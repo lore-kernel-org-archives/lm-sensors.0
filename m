@@ -1,53 +1,57 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 20 Feb 2006 09:42:19 +0000
-Subject: [lm-sensors] Output (i2cdump) for ULI M1695 Chipset
-Message-Id: <RADiPUpX.1140428539.4397450.khali@localhost>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sat, 25 Feb 2006 21:16:11 +0000
+Subject: [lm-sensors] move to new website - status? - any showstopper
+Message-Id: <4400C91B.4080108@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200602192129.02414.s.kostka@arcor.de>
-In-Reply-To: <200602192129.02414.s.kostka@arcor.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello all
 
-Hallo Sebastian,
+I replied to Phil down here but first I just want to summarize what is left so we can switch:
 
-On 2006-02-19, Sebastian Kostka wrote:
-> So here is my output of i2cdump which unfortunaltely never changed - But i
-> went back to Windows and wrote down what Speedfan detected, i hope this
-> helps you a little.
-> (...)
-> Default:(vcore 1,1v)
-> 00: c3 8b 18 00 03 45 02 00 9c 34 3f 00 00 03 09 00    ???.?E?.?4?..??.
-> 10: 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00    ?...?...........
+1) Mark send the key to Axel but no reply received. Axel any news on this?
+2) Axel, please can you get working the "formatted text" feature so we can convert the
+   tables of supported chips?
+
+Then when done with this and Phil closes the tickets I think we are ready to switch and use the
+SVN instead of CVS.
+
+Anything else?
+
+
 > 
-> Default: (vcore 1,4volt)
-> 00: c3 8b 18 00 03 45 02 00 9c 34 3f 00 00 03 09 00    ???.?E?.?4?..??.
-> 10: 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00    ?...?...........
+> The tickets have been moved over.  Notice that the old status is in  the
+> subject.  Change or remove that if you change the status of a  ticket. 
+> Or, if that's too much of a hassle, I can try to strip those  out for
+> non-closed tickets.
+
+I think nobody know the answer to that ticket so please try to close them.
+
+> All tickets are 'minor' to start with.  Change the priority as  necessary.
 > 
-> Overclocked: (vcore 1,4v)
-> 00: c3 8b 18 00 03 45 02 00 9c 34 3f 00 00 03 09 00    ???.?E?.?4?..??.
-> 10: 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00    ?...?...........
+> 'Components' were carried over from the old ticket system.  Let me  know
+> if you want more.
+
+What about the "userspace" and maybe "kernel/2.4 and kernel/2.6" ?
+
+> I don't know what milestones would make sense, or if they are even  needed.
+
+Hmm same here.
+
 > 
-> Overclocked (100% CPU) (vcore 1,4v)
-> 00: c3 8b 18 00 03 45 02 00 9c 34 3f 00 00 03 09 00    ???.?E?.?4?..??.
-> 10: 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00    ?...?...........
+> I'll put some versions that make sense in that pulldown.
 
-No change, so it has to be a control device and not a monitoring device.
+Good.
 
-> Scanning Uli SMBus at $0400...
-> LM80 found on SMBus at $22
+> Unless there are any show stoppers, please dive in and categorize, 
+> prioritize, and hopefully fix some bugs!
 
-I'm pretty certain this is a misdetection, as the LM80 has most of its
-registers between 0x20 and 0x3b, and the chip you have doesn't even
-seem to have registers there.
+Well I guess this old ticket has no known answer.
 
-At this point, the only way to figure out what this mysterious chip is,
-is to ask the motherboard manufacturer directly - if you want to do that
-at all. After all, you have monitoring working on your system and
-that's what you wanted in the first place, I guess.
-
---
-Jean Delvare
+Thanks,
+Regards
+Rudolf
 
