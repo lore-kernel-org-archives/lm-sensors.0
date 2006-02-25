@@ -1,46 +1,43 @@
-From: Axel.Thimm@ATrpms.net (Axel Thimm)
-Date: Sun, 26 Feb 2006 12:00:29 +0000
-Subject: [lm-sensors] move to new website - status? - any showstopper
-Message-Id: <20060226120029.GH22716@neu.nirvana>
+From: filip.tsachev@gmail.com (Filip Tsachev)
+Date: Sat, 25 Feb 2006 19:30:07 +0000
+Subject: [lm-sensors] I switched from AMD XP TB to AMD Mobile Barton
+Message-Id: <ea9ff50b0602251130x6701bbc7o@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4400C91B.4080108@sh.cvut.cz>
-In-Reply-To: <4400C91B.4080108@sh.cvut.cz>
+References: <ea9ff50b0601230528q3f9e2f26j@mail.gmail.com>
+In-Reply-To: <ea9ff50b0601230528q3f9e2f26j@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Feb 25, 2006 at 10:16:11PM +0100, Rudolf Marek wrote:
-> 1) Mark send the key to Axel but no reply received. Axel any news on this?
+As I ran prime95 torture the "watch sensors" made me notice that CPU
+temp is going from -70 to -65, could you please elaborate on reverting
+the readings? It would be really nice then I could make some offset
+like -20*C and it should become very accurate...
 
-It's installed, I overlooked his mail, sorry again.
 
-> 2) Axel, please can you get working the "formatted text" feature so we can convert the
->    tables of supported chips?
+Maybe it is possible to be BIOS fault?? since it's recognized as:
+cat /proc/cpuinfo
+model name      : Unknown CPU Typ
 
-Check out http://lm-sensors.org/trac/wiki/TestRST
+p.s. I also could find only about A64 some type of diode offset but no
+info for XP-Ms..
 
-Looks like it's working.
+2006/2/24, Rudolf Marek <r.marek at sh.cvut.cz>:
+> > The CPU temp should be around 45-55*C.. please guys help me out here,
+> > what could be done?
+>
+> I think that the mobile barton has somewhere a diode offset register. I failed to find
+> a datasheet for it so bad luck. I would suggest to google for "thermal offset" or diode
+> offset and with conjuction of mobile barton
+>
+> I hope it helps,
+>
+> Regards
+> Rudolf
+>
 
-> > I don't know what milestones would make sense, or if they are even  needed.
-> 
-> Hmm same here.
+--
+Cheers,
+Filip
 
-Milestones should be like future versions, then you can have a fast
-overview of what is needed to release the next version, see for
-example
-
-http://svn.mythtv.org/trac/roadmap
-
-There the next version is 0.20 and issues to be dealt with later than
-that are simply under the milestone "unknown". Instead of a version
-number there could be something like "next release" and "future".
--- 
-Axel.Thimm at ATrpms.net
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 191 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060226/08c512f0/attachment-0001.bin
