@@ -1,57 +1,46 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 25 Feb 2006 21:16:11 +0000
+From: Axel.Thimm@ATrpms.net (Axel Thimm)
+Date: Sun, 26 Feb 2006 12:00:29 +0000
 Subject: [lm-sensors] move to new website - status? - any showstopper
-Message-Id: <4400C91B.4080108@sh.cvut.cz>
+Message-Id: <20060226120029.GH22716@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4400C91B.4080108@sh.cvut.cz>
+In-Reply-To: <4400C91B.4080108@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello all
+On Sat, Feb 25, 2006 at 10:16:11PM +0100, Rudolf Marek wrote:
+> 1) Mark send the key to Axel but no reply received. Axel any news on this?
 
-I replied to Phil down here but first I just want to summarize what is left so we can switch:
+It's installed, I overlooked his mail, sorry again.
 
-1) Mark send the key to Axel but no reply received. Axel any news on this?
-2) Axel, please can you get working the "formatted text" feature so we can convert the
-   tables of supported chips?
+> 2) Axel, please can you get working the "formatted text" feature so we can convert the
+>    tables of supported chips?
 
-Then when done with this and Phil closes the tickets I think we are ready to switch and use the
-SVN instead of CVS.
+Check out http://lm-sensors.org/trac/wiki/TestRST
 
-Anything else?
+Looks like it's working.
 
-
+> > I don't know what milestones would make sense, or if they are even  needed.
 > 
-> The tickets have been moved over.  Notice that the old status is in  the
-> subject.  Change or remove that if you change the status of a  ticket. 
-> Or, if that's too much of a hassle, I can try to strip those  out for
-> non-closed tickets.
+> Hmm same here.
 
-I think nobody know the answer to that ticket so please try to close them.
+Milestones should be like future versions, then you can have a fast
+overview of what is needed to release the next version, see for
+example
 
-> All tickets are 'minor' to start with.  Change the priority as  necessary.
-> 
-> 'Components' were carried over from the old ticket system.  Let me  know
-> if you want more.
+http://svn.mythtv.org/trac/roadmap
 
-What about the "userspace" and maybe "kernel/2.4 and kernel/2.6" ?
-
-> I don't know what milestones would make sense, or if they are even  needed.
-
-Hmm same here.
-
-> 
-> I'll put some versions that make sense in that pulldown.
-
-Good.
-
-> Unless there are any show stoppers, please dive in and categorize, 
-> prioritize, and hopefully fix some bugs!
-
-Well I guess this old ticket has no known answer.
-
-Thanks,
-Regards
-Rudolf
-
+There the next version is 0.20 and issues to be dealt with later than
+that are simply under the milestone "unknown". Instead of a version
+number there could be something like "next release" and "future".
+-- 
+Axel.Thimm at ATrpms.net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 191 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060226/08c512f0/attachment-0001.bin
