@@ -1,44 +1,35 @@
-From: gregkh@suse.de (Greg KH)
-Date: Mon, 06 Feb 2006 20:18:58 +0000
-Subject: [lm-sensors] [PATCH] i2c: Use module_param in i2c-algo-sibyte
-Message-Id: <1139257138769@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 27 Feb 2006 22:12:58 +0000
+Subject: [lm-sensors] [PATCH 4/6] i2c-ixp4xx: Add hwmon class
+Message-Id: <20060227231258.cebdda2f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: Use module_param in i2c-algo-sibyte
+From: Alessandro Zummo <a.zummo at towertech.it>
+Content-Disposition: inline; filename=i2c-ixp4xx-hwmon-class.patch
 
-this patch changes MODULE_PARM usage
-to module_param in i2c-algo-sibyte.c
+This patch adds I2C_CLASS_HWMON to the ixp4xx bus driver.
 
-Signed-off-by: Eric Sesterhenn <snakebyte at gmx.de>
+Signed-off-by: Alessandro Zummo <a.zummo at towertech.it>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
 ---
-commit 8104a9a9c9ad8c849d931c46ef6841b23d1fc729
-tree aa3eedb4db3ab3cb79a74208971f756b3ab99155
-parent 0d0ab7fe4c009c40dc485731f9ad98e1d336ddae
-author Eric Sesterhenn <snakebyte at gmx.de> Mon, 09 Jan 2006 23:09:57 +0100
-committer Greg Kroah-Hartman <gregkh at suse.de> Mon, 06 Feb 2006 12:02:15 -0800
+ drivers/i2c/busses/i2c-ixp4xx.c |    1 +
+ 1 file changed, 1 insertion(+)
 
- drivers/i2c/algos/i2c-algo-sibyte.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/i2c/algos/i2c-algo-sibyte.c b/drivers/i2c/algos/i2c-algo-sibyte.c
-index 938848a..3df3f09 100644
---- a/drivers/i2c/algos/i2c-algo-sibyte.c
-+++ b/drivers/i2c/algos/i2c-algo-sibyte.c
-@@ -202,7 +202,7 @@ EXPORT_SYMBOL(i2c_sibyte_del_bus);
- #ifdef MODULE
- MODULE_AUTHOR("Kip Walker, Broadcom Corp.");
- MODULE_DESCRIPTION("SiByte I2C-Bus algorithm");
--MODULE_PARM(bit_scan, "i");
-+module_param(bit_scan, int, 0);
- MODULE_PARM_DESC(bit_scan, "Scan for active chips on the bus");
- MODULE_LICENSE("GPL");
+--- linux-2.6.16-rc4.orig/drivers/i2c/busses/i2c-ixp4xx.c	2006-02-19 09:40:51.000000000 +0100
++++ linux-2.6.16-rc4/drivers/i2c/busses/i2c-ixp4xx.c	2006-02-19 20:41:14.000000000 +0100
+@@ -126,6 +126,7 @@
+ 	drv_data->algo_data.timeout = 100;
  
+ 	drv_data->adapter.id = I2C_HW_B_IXP4XX;
++	drv_data->adapter.class = I2C_CLASS_HWMON;
+ 	strlcpy(drv_data->adapter.name, plat_dev->dev.driver->name,
+ 		I2C_NAME_SIZE);
+ 	drv_data->adapter.algo_data = &drv_data->algo_data;
 
+-- 
+Jean Delvare
 
