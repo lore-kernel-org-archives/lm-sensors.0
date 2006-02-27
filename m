@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 27 Feb 2006 11:21:15 +0000
+Date: Mon, 27 Feb 2006 14:31:46 +0000
 Subject: [lm-sensors] Hardware monitoring support for SMSC 47M192/47M997
-Message-Id: <MwESoPiv.1141039275.0012950.khali@localhost>
+Message-Id: <DvMvWsuE.1141050706.0849140.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.63.0602270128360.3209@Laila>
 In-Reply-To: <Pine.LNX.4.63.0602270128360.3209@Laila>
@@ -11,101 +11,224 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hi Harmut, Rudolf,
+Hallo Hartmut,
 
-> >  I've seen a few inquiries about temperature and voltage
-> > sensor support for the SMSC Super-I/O chips for 2.6 kernels,
-> > but there was no clear statement about who is actually working
-> > on that.
-> >
-> > While waiting for support, I tried to set up a driver myself,
-> > and finally managed to produce the attached file 'smsc47m192.c'.
+On 2006-02-27, Hartmut Rick wrote:
+>  I've seen a few inquiries about temperature and voltage
+> sensor support for the SMSC Super-I/O chips for 2.6 kernels,
+> but there was no clear statement about who is actually working
+> on that.
 >
-> Cool
+> While waiting for support, I tried to set up a driver myself,
+> and finally managed to produce the attached file 'smsc47m192.c'.
 
-Yes, this is good news. There have been a Linux 2.4 driver floating
-around but it never made it into lm_sensors, and no 2.6 driver at all.
+Great. Here comes my review of your (rather good) code:
 
-> > Linking this into the 2.6.15.1 kernel gives me access to
-> > voltages and temperature readings in /sys/bus/i2c/devices/0-002d
-> >
-> > I have a Gigabyte K8U motherboard with SMSC 47M997 chip and would
-> > be interested to hear whether this works anywhere else.
-> >
-> > The chip supports 8 voltage input channels:
-> >         in0     +2.5V
-> >         in1     VCCP (CPU supply voltage)
-> >         in2     +3.3V
-> >         in3     +5V
-> >         in4     +12V
-> >         in5     HVCC (supply voltage of the LPC47Mxxx chip)
-> >         in6     +1.5V
-> >         in7     +1.8V
+> /*
+>     smsc47m192.c - Not yet Part of lm_sensors, Linux kernel modules for
+>                    hardware monitoring
 
-I have never seen any chip monitoring +1.8V before. Do you know what it
-is supposed to be wired to?
+And will never be. Linux 2.6 drivers for hardware monitoring are, well,
+linux drivers. lm_sensors is only the userspace part there, so your
+driver cannot be said to be part of it.
 
-> > and 3 temperatures:
-> >         temp1   remote diode sensor (probably on the CPU)
-> >         temp2   local sensor (inside the 47Mxxx chip)
-> >         temp3   second remote diode sensor (corresponds to
-> >             'System temperature' on the K8U mainboard)
->
-> Wore, leshaste
-> Please can you test the hartmut work? If it works OK I can do the review.
+> derived from lm78.c and other chip drivers of the lm_sensors package
 
-It would be easier for everyone (i.e. testers and me) if Hartmut could
-provide his work as a (unified, -p1) patch against some recent kernel
-(2.6.15.1 will do).
+Hopefully derived from the other Linux 2.6 drivers and not the ones in
+the lm_sensors package ;)
 
-A proper patch would add the new driver in drivers/hwmon, and alter
-drivers/hwmon/Kconfig and drivers/hwmon/Makefile so that users can
-select the new driver. It's quite easy, just make sure to keep things
-in alphabetical order, and make the new driver depend on EXPERIMENTAL.
+> #include <asm/io.h>
 
-A documentation file (in Documentation/hwmon) would be welcome as well.
-It can be made a separate patch.
+I don't think you need this.
 
-> > There are also 2 registers which I called 'temp1_offset' and
-> > 'temp3_offset'. They can be written with an offset which the chip adds
-> > to the temperature readings temp1_input and temp3_input.
-> > Not particularly useful as such, since adding an offset can easily
-> > be done in software, but I found that it can be used in order to
-> > identify which temperature readings correspond to CPU and System
-> > temperatures as shown by the BIOS. When soft-booting into the
-> > BIOS setup, the offsets are still active and I can see
-> > which temperature is different from what it was before.
+> #define SMSC47M192_REG_ALARM1 0x41
+> #define SMSC47M192_REG_ALARM2 0x42
+> 
+> #define SMSC47M192_REG_VID 0x47
+> #define SMSC47M192_REG_VID4 0x49
+> 
+> #define SMSC47M192_REG_CONFIG 0x40
+> #define SMSC47M192_REG_COMPANY_ID 0x3e
+> #define SMSC47M192_REG_VERSION 0x3f
 
-There's a more simple way to find out which input corresponds to the CPU
-temperature. Just run some CPU-consumming task (e.g. "md5sum
-/dev/zero"), the CPU temperature will usually rise much faster and
-higher.
+You may want to align the values (using tabs, not spaces) for improved
+readability.
 
-So if you implemented the feature only to serve this testing purpose, you
-might want to drop it. So far, most other drivers have been assuming
-that the BIOS was doing the right thing with offset registers so these
-were not exposed to the user. The only exception is the adm1026 driver,
-I think. If you still want to keep that feature, fine with me, but then
-please extend Documentation/hwmon/sysfs-interface appropriately.
+> /* generalised scaling with integer rounding */
+> static inline int SCALE(long val, int mul, int div)
+> {
+>         if (val < 0)
+>                 return (val * mul - div / 2) / div;
+>         else
+>                 return (val * mul + div / 2) / div;
+> }
 
-> Wow that is strange that BIOS is doing the computation that way. Never
-> seen it like this.
+You are using spaces for indentation here, which is prohibited. Please
+convert to tabs, here and wherever else in your code you used spaces for
+indentation.
 
-As I understand it, the BIOS doesn't compute anything; the chip does.
-The BIOS simply displays the value as returned by the chip, and this
-include the fake offset value set by Hartmut for testing purpose.
+Also, typo: generaliZed.
 
-> When done, please send us the sample sensors.conf.
->
-> I would like to ask if you have some userspace support for lm-sensors done
-> or not yet. Best would be if you can develop it too as far I remember
-> there was none.
+> /* TEMP: mC (-128C to +127C)
+>    REG: 1C/bit, two's complement */
+> static inline s8 TEMP_TO_REG(int val)
+> {
+> 	int nval = SENSORS_LIMIT(val, -128000, 127000) ;
+> 	return nval<0 ? (nval-500)/1000 : (nval+500)/1000;
+> }
 
-I remember the same. User-space support is a good way to find bugs in the
-drivers, so it would be great to have it before the driver makes it into
-the official kernel tree. Shouldn't be very difficult, it's mostly
-copy'n'paste work. The adm1025 support could be used as an example,
-although some parts may probably be improved.
+Suggestion: maybe you can use SCALE() here?
+
+> /* For each registered SMSC47M192, we need to keep some data in memory.
+>    That data is pointed to by smsc47m192_list[NR]->data. The structure
+>    itself is dynamically allocated, at the same time when a new smsc47m192
+>    client is allocated. */
+
+This is a very old comment which has been copied from driver to driver
+and does no more reflect the way these drivers work. Please drop.
+
+> static struct i2c_driver smsc47m192_driver = {
+> 	.owner		= THIS_MODULE,
+> 	.name		= "smsc47m192",
+> 	.id		= I2C_DRIVERID_SMSC47M192,
+
+You don't need this ID, so you can simply omit it.
+
+> 	return sprintf(buf, "%d\n", IN_FROM_REG(data->in[nr],nr));
+
+Usual coding style suggests space after comma. Please fix everywhere is
+needed.
+
+> #define show_in_offset(offset)					\
+> static ssize_t							\
+> 	show_in##offset (struct device *dev,				\
+> 			struct device_attribute *attr, char *buf)	\
+> {								\
+> 	return show_in(dev, buf, offset);				\
+> }								\
+
+This is the old way to do it. New drivers should use a different
+approach, known as dynamic sysfs attributes, which makes it possible to
+get rid of these macros and makes the drivers much smaller. Please look
+at the it87 driver for an example. Basically, the new approach lets you
+attach an integer value to each sysfs file you create, and you can then
+retrieve and use this integer value in the sysfs callback functions.
+This makes it possible to use the same callback for all 8 voltage
+readings, for example.
+
+Same holds for the temperatures channels, of course.
+
+> static ssize_t show_temp_offset(struct device *dev, char *buf, int nr)
+> {
+> 	struct smsc47m192_data *data = smsc47m192_update_device(dev);
+> 	return sprintf(buf, "%d\n",
+>                       TEMP_FROM_REG(data->temp_offset[nr>>1]));
+> }
+
+We try to avoid that kind of trick in the kernel code. The bit shift
+operation happens to work here but it's really not obvious to the
+reader why. I'd much prefer an explicit "nr = 1 ? 1 : 3". Or, even
+better, define 3 slots in your data structure, and leave the second one
+unused. The extra byte used really isn't a problem and it'll make the
+code faster and more readable. If you do that you'll have to edit
+SMSC47M192_REG_TEMP_OFFSET(nr) though.
+
+> /* Alarms */
+> static ssize_t show_alarms(struct device *dev, struct device_attribute
+>                            *attr, char *buf)
+> {
+> 	struct smsc47m192_data *data = smsc47m192_update_device(dev);
+> 	return sprintf(buf, "%u\n", data->alarms);
+> }
+> static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+
+For newer designs, we try to have one sysfs file per alarm type (here,
+one for voltages and one for temperatures) with bits sorted for
+userspace. That way userspace doesn't need to know about the chip
+internals. Can you try to do that in your driver? You'd have one
+alarms_in file and one alarms_temp file.
+
+> static int smsc47m192_detect(struct i2c_adapter *adapter, int address, int
+>                              kind)
+> {
+> 	struct i2c_client *new_client;
+
+Please name it client rather than new_client to make the following code
+more readable (other drivers could be "fixed" the same way.)
+
+> 	struct smsc47m192_data *data;
+> 	int err=0;
+
+Spaces around equals sign please (same problem in other places.)
+
+> 	new_client->flags = 0;
+
+Not needed thanks to the kzalloc right before (other drivers need fixing
+for this too.)
+
+> 	if (	i2c_smbus_read_byte_data(new_client,
+> 				SMSC47M192_REG_COMPANY_ID) = 0x55
+> 		&& ((version=i2c_smbus_read_byte_data(new_client,
+> 				SMSC47M192_REG_VERSION)) & 0xf0) = 0x20
+> 		&& (i2c_smbus_read_byte_data(new_client,
+> 				SMSC47M192_REG_VID) & 0x70) = 0x00
+> 		&& (i2c_smbus_read_byte_data(new_client,
+> 				SMSC47M192_REG_VID4) & 0xfe) = 0x80
+> 	) {
+
+Weird coding style :(
+
+> 		dev_info(&adapter->dev,"found SMSC47M192 or SMSC47M997,"
+> 			" version 2, stepping A%d\n",version&0x0f);
+
+Coding style: space after comma (twice). Also, when splitting strings,
+please place the middle space at the end of the first half rather than
+the beginning of the second half (makes it easier to spot missing
+spaces.)
+
+> 	data->valid = 0;
+
+Not needed either.
+
+> 	data->vrm = 90;
+
+Please use CPU-based detection (function is called vid_which_vrm) instead.
+
+> ERROR3:
+> 	i2c_detach_client(new_client);
+> ERROR2:
+> 	kfree(data);
+> ERROR0:
+> 	return err;
+> }
+
+Please rename these labels to something more explicit (exit_free etc.).
+
+> static int __init sm_smsc47m192_init(void)
+> {
+> 	int res;
+> 
+> 	res = i2c_add_driver(&smsc47m192_driver);
+> 	if (res)
+> 		return res;
+> 
+> 	return 0;
+> }
+
+Can be simplified to:
+
+static int __init smsc47m192_init(void)
+{
+	return i2c_add_driver(&smsc47m192_driver);
+}
+
+Also please drop the "sm_" prefix, which is a legacy of the past (I
+don't even have an idea what it's supposed to mean.)
+
+Good code overall, good work :) Please address all the minor issues I
+have pointed out and if possible do the changes I suggested, and post
+your work again (after some testing) as a patch, so that we can
+integrate your work into the kernel quickly.
 
 Thanks,
 --
