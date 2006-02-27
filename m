@@ -1,98 +1,143 @@
-From: gregkh@suse.de (Greg KH)
-Date: Mon, 06 Feb 2006 20:18:58 +0000
-Subject: [lm-sensors] [PATCH] i2c: Use ARRAY_SIZE macro
-Message-Id: <11392571383350@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 27 Feb 2006 22:14:58 +0000
+Subject: [lm-sensors] [PATCH 6/6] hwmon: Rename register parameters
+Message-Id: <20060227231458.1870d756.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: Use ARRAY_SIZE macro
+From: Darren Jenkins <darrenrjenkins at gmail.com>
+Content-Disposition: inline; filename=hwmon-rename-register-parameters.patch
 
-Use ARRAY_SIZE macro instead of sizeof(x)/sizeof(x[0]). Some trailing
-whitespaces are also removed.
+"register" is a reserved keyword so using it as a parameter name
+can confuse some compilers, most notably ICC.
 
-Signed-off-by: Tobias Klauser <tklauser at nuerscht.ch>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Cc: Russell King <rmk+kernel at arm.linux.org.uk>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+The patch below just renames all occurences to reg which fits the actual
+function declarations.
 
+Signed-off-by: Darren Jenkins <darrenrjenkins at gmail.com>
 ---
-commit 7e3d7db52469f6bcfbfd2d3d00dd17da573facd9
-tree c6090fda544c24ddf169177ee4596121b8bd10a6
-parent 8104a9a9c9ad8c849d931c46ef6841b23d1fc729
-author Tobias Klauser <tklauser at nuerscht.ch> Mon, 09 Jan 2006 23:19:51 +0100
-committer Greg Kroah-Hartman <gregkh at suse.de> Mon, 06 Feb 2006 12:02:15 -0800
+ drivers/hwmon/adm1026.c  |    5 ++---
+ drivers/hwmon/fscpos.c   |    4 ++--
+ drivers/hwmon/it87.c     |    5 ++---
+ drivers/hwmon/lm78.c     |    4 ++--
+ drivers/hwmon/lm85.c     |    4 ++--
+ drivers/hwmon/sis5595.c  |    4 ++--
+ drivers/hwmon/w83627hf.c |    5 ++---
+ drivers/hwmon/w83781d.c  |    5 ++---
+ 8 files changed, 16 insertions(+), 20 deletions(-)
 
- drivers/i2c/busses/i2c-parport-light.c |    9 +++------
- drivers/i2c/busses/i2c-parport.c       |    7 ++-----
- drivers/i2c/busses/i2c-pxa.c           |    2 +-
- 3 files changed, 6 insertions(+), 12 deletions(-)
+--- linux-2.6.16-rc4.orig/drivers/hwmon/adm1026.c	2006-02-19 09:40:51.000000000 +0100
++++ linux-2.6.16-rc4/drivers/hwmon/adm1026.c	2006-02-19 19:20:17.000000000 +0100
+@@ -299,9 +299,8 @@
+ static int adm1026_detect(struct i2c_adapter *adapter, int address,
+ 	int kind);
+ static int adm1026_detach_client(struct i2c_client *client);
+-static int adm1026_read_value(struct i2c_client *client, u8 register);
+-static int adm1026_write_value(struct i2c_client *client, u8 register,
+-	int value); 
++static int adm1026_read_value(struct i2c_client *client, u8 reg);
++static int adm1026_write_value(struct i2c_client *client, u8 reg, int value);
+ static void adm1026_print_gpio(struct i2c_client *client);
+ static void adm1026_fixup_gpio(struct i2c_client *client); 
+ static struct adm1026_data *adm1026_update_device(struct device *dev);
+--- linux-2.6.16-rc4.orig/drivers/hwmon/fscpos.c	2006-02-19 09:40:51.000000000 +0100
++++ linux-2.6.16-rc4/drivers/hwmon/fscpos.c	2006-02-19 19:02:40.000000000 +0100
+@@ -90,8 +90,8 @@
+ static int fscpos_detect(struct i2c_adapter *adapter, int address, int kind);
+ static int fscpos_detach_client(struct i2c_client *client);
+ 
+-static int fscpos_read_value(struct i2c_client *client, u8 register);
+-static int fscpos_write_value(struct i2c_client *client, u8 register, u8 value);
++static int fscpos_read_value(struct i2c_client *client, u8 reg);
++static int fscpos_write_value(struct i2c_client *client, u8 reg, u8 value);
+ static struct fscpos_data *fscpos_update_device(struct device *dev);
+ static void fscpos_init_client(struct i2c_client *client);
+ 
+--- linux-2.6.16-rc4.orig/drivers/hwmon/it87.c	2006-02-19 09:40:51.000000000 +0100
++++ linux-2.6.16-rc4/drivers/hwmon/it87.c	2006-02-19 19:20:11.000000000 +0100
+@@ -225,9 +225,8 @@
+ static int it87_detect(struct i2c_adapter *adapter, int address, int kind);
+ static int it87_detach_client(struct i2c_client *client);
+ 
+-static int it87_read_value(struct i2c_client *client, u8 register);
+-static int it87_write_value(struct i2c_client *client, u8 register,
+-			u8 value);
++static int it87_read_value(struct i2c_client *client, u8 reg);
++static int it87_write_value(struct i2c_client *client, u8 reg, u8 value);
+ static struct it87_data *it87_update_device(struct device *dev);
+ static int it87_check_pwm(struct i2c_client *client);
+ static void it87_init_client(struct i2c_client *client, struct it87_data *data);
+--- linux-2.6.16-rc4.orig/drivers/hwmon/lm78.c	2006-02-19 09:40:51.000000000 +0100
++++ linux-2.6.16-rc4/drivers/hwmon/lm78.c	2006-02-19 19:03:00.000000000 +0100
+@@ -158,8 +158,8 @@
+ static int lm78_detect(struct i2c_adapter *adapter, int address, int kind);
+ static int lm78_detach_client(struct i2c_client *client);
+ 
+-static int lm78_read_value(struct i2c_client *client, u8 register);
+-static int lm78_write_value(struct i2c_client *client, u8 register, u8 value);
++static int lm78_read_value(struct i2c_client *client, u8 reg);
++static int lm78_write_value(struct i2c_client *client, u8 reg, u8 value);
+ static struct lm78_data *lm78_update_device(struct device *dev);
+ static void lm78_init_client(struct i2c_client *client);
+ 
+--- linux-2.6.16-rc4.orig/drivers/hwmon/lm85.c	2006-02-19 09:40:51.000000000 +0100
++++ linux-2.6.16-rc4/drivers/hwmon/lm85.c	2006-02-19 19:03:00.000000000 +0100
+@@ -374,8 +374,8 @@
+ 			int kind);
+ static int lm85_detach_client(struct i2c_client *client);
+ 
+-static int lm85_read_value(struct i2c_client *client, u8 register);
+-static int lm85_write_value(struct i2c_client *client, u8 register, int value);
++static int lm85_read_value(struct i2c_client *client, u8 reg);
++static int lm85_write_value(struct i2c_client *client, u8 reg, int value);
+ static struct lm85_data *lm85_update_device(struct device *dev);
+ static void lm85_init_client(struct i2c_client *client);
+ 
+--- linux-2.6.16-rc4.orig/drivers/hwmon/sis5595.c	2006-02-18 17:16:17.000000000 +0100
++++ linux-2.6.16-rc4/drivers/hwmon/sis5595.c	2006-02-19 19:03:00.000000000 +0100
+@@ -193,8 +193,8 @@
+ static int sis5595_detect(struct i2c_adapter *adapter);
+ static int sis5595_detach_client(struct i2c_client *client);
+ 
+-static int sis5595_read_value(struct i2c_client *client, u8 register);
+-static int sis5595_write_value(struct i2c_client *client, u8 register, u8 value);
++static int sis5595_read_value(struct i2c_client *client, u8 reg);
++static int sis5595_write_value(struct i2c_client *client, u8 reg, u8 value);
+ static struct sis5595_data *sis5595_update_device(struct device *dev);
+ static void sis5595_init_client(struct i2c_client *client);
+ 
+--- linux-2.6.16-rc4.orig/drivers/hwmon/w83627hf.c	2006-02-18 17:16:17.000000000 +0100
++++ linux-2.6.16-rc4/drivers/hwmon/w83627hf.c	2006-02-19 19:19:47.000000000 +0100
+@@ -332,9 +332,8 @@
+ static int w83627hf_detect(struct i2c_adapter *adapter);
+ static int w83627hf_detach_client(struct i2c_client *client);
+ 
+-static int w83627hf_read_value(struct i2c_client *client, u16 register);
+-static int w83627hf_write_value(struct i2c_client *client, u16 register,
+-			       u16 value);
++static int w83627hf_read_value(struct i2c_client *client, u16 reg);
++static int w83627hf_write_value(struct i2c_client *client, u16 reg, u16 value);
+ static struct w83627hf_data *w83627hf_update_device(struct device *dev);
+ static void w83627hf_init_client(struct i2c_client *client);
+ 
+--- linux-2.6.16-rc4.orig/drivers/hwmon/w83781d.c	2006-02-19 09:40:51.000000000 +0100
++++ linux-2.6.16-rc4/drivers/hwmon/w83781d.c	2006-02-19 19:19:35.000000000 +0100
+@@ -272,9 +272,8 @@
+ static int w83781d_detect(struct i2c_adapter *adapter, int address, int kind);
+ static int w83781d_detach_client(struct i2c_client *client);
+ 
+-static int w83781d_read_value(struct i2c_client *client, u16 register);
+-static int w83781d_write_value(struct i2c_client *client, u16 register,
+-			       u16 value);
++static int w83781d_read_value(struct i2c_client *client, u16 reg);
++static int w83781d_write_value(struct i2c_client *client, u16 reg, u16 value);
+ static struct w83781d_data *w83781d_update_device(struct device *dev);
+ static void w83781d_init_client(struct i2c_client *client);
+ 
 
-diff --git a/drivers/i2c/busses/i2c-parport-light.c b/drivers/i2c/busses/i2c-parport-light.c
-index 3e5eba9..c63025a 100644
---- a/drivers/i2c/busses/i2c-parport-light.c
-+++ b/drivers/i2c/busses/i2c-parport-light.c
-@@ -121,14 +121,11 @@ static struct i2c_adapter parport_adapte
- 
- static int __init i2c_parport_init(void)
- {
--	int type_count;
--
--	type_count = sizeof(adapter_parm)/sizeof(struct adapter_parm);
--	if (type < 0 || type >= type_count) {
-+	if (type < 0 || type >= ARRAY_SIZE(adapter_parm)) {
- 		printk(KERN_WARNING "i2c-parport: invalid type (%d)\n", type);
- 		type = 0;
- 	}
--	
-+
- 	if (base = 0) {
- 		printk(KERN_INFO "i2c-parport: using default base 0x%x\n", DEFAULT_BASE);
- 		base = DEFAULT_BASE;
-@@ -152,7 +149,7 @@ static int __init i2c_parport_init(void)
- 		release_region(base, 3);
- 		return -ENODEV;
- 	}
--	
-+
- 	return 0;
- }
- 
-diff --git a/drivers/i2c/busses/i2c-parport.c b/drivers/i2c/busses/i2c-parport.c
-index 2854d85..7e2e8cd 100644
---- a/drivers/i2c/busses/i2c-parport.c
-+++ b/drivers/i2c/busses/i2c-parport.c
-@@ -241,14 +241,11 @@ static struct parport_driver i2c_parport
- 
- static int __init i2c_parport_init(void)
- {
--	int type_count;
--
--	type_count = sizeof(adapter_parm)/sizeof(struct adapter_parm);
--	if (type < 0 || type >= type_count) {
-+	if (type < 0 || type >= ARRAY_SIZE(adapter_parm)) {
- 		printk(KERN_WARNING "i2c-parport: invalid type (%d)\n", type);
- 		type = 0;
- 	}
--	
-+
- 	return parport_register_driver(&i2c_parport_driver);
- }
- 
-diff --git a/drivers/i2c/busses/i2c-pxa.c b/drivers/i2c/busses/i2c-pxa.c
-index 86e2234..7579f4b 100644
---- a/drivers/i2c/busses/i2c-pxa.c
-+++ b/drivers/i2c/busses/i2c-pxa.c
-@@ -861,7 +861,7 @@ static irqreturn_t i2c_pxa_handler(int t
- 		decode_ISR(isr);
- 	}
- 
--	if (i2c->irqlogidx < sizeof(i2c->isrlog)/sizeof(u32))
-+	if (i2c->irqlogidx < ARRAY_SIZE(i2c->isrlog))
- 		i2c->isrlog[i2c->irqlogidx++] = isr;
- 
- 	show_state(i2c);
-
+-- 
+Jean Delvare
 
