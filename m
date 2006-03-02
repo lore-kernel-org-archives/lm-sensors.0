@@ -1,26 +1,29 @@
-From: galak@kernel.crashing.org (Kumar Gala)
-Date: Fri, 24 Mar 2006 01:22:59 +0000
-Subject: [lm-sensors] [PATCH] i2c: Add support for virtual I2C adapters
-Message-Id: <B520BB15-6EF6-4138-95E5-A97DDCE90839@kernel.crashing.org>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 02 Mar 2006 22:00:16 +0000
+Subject: [lm-sensors] Add LM82 support
+Message-Id: <20060302230016.0ec7c595.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.44.0603231854270.29782-100000@gate.crashing.org> <20060324011349.GC28500@kroah.com>
-In-Reply-To: <20060324011349.GC28500@kroah.com>
+References: <20060216175930.GE20157@cosmic.amd.com>
+	<LYRIS-4270-26349-2006.02.17-07.32.29--jordan.crouse#amd.com@whitestar.amd.com>
+	<20060217162922.GP20157@cosmic.amd.com>
+In-Reply-To: <20060217162922.GP20157@cosmic.amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: khali@linux-fr.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Jordan Crouse <jordan.crouse@amd.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, info-linux@ldcmail.amd.com
 
+Hi Jordan,
 
-On Mar 23, 2006, at 7:13 PM, Greg KH wrote:
+> Yep - thats what that would be.  That must be my typo of the week, since
+> I just had it in another driver I'm writing.  I'll post a fixup here
+> very shortly with all the comments.
 
-> On Thu, Mar 23, 2006 at 06:55:31PM -0600, Kumar Gala wrote:
->> +EXPORT_SYMBOL(i2c_add_virt_adapter);
->> +EXPORT_SYMBOL(i2c_del_virt_adapter);
->
-> EXPORT_SYMBOL_GPL() perhaps?
+Where's that update? I'd like to merge it upstream.
 
-Got no issue with making that change.
+Remember that a patch for user-space support would be welcome too.
 
-- kumar
+Thanks,
+-- 
+Jean Delvare
 
