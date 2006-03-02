@@ -1,33 +1,81 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sun, 05 Mar 2006 20:53:09 +0000
-Subject: [lm-sensors] ADM1024
-Message-Id: <440B4FB5.400@sh.cvut.cz>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 02 Mar 2006 21:52:42 +0000
+Subject: [lm-sensors] some remarks over platform_device use in f71805f.c
+Message-Id: <20060302225242.94ee3bb1.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <002a01c23476$84783190$0201d00a@hq.pc3.xstreamis.com>
-In-Reply-To: <002a01c23476$84783190$0201d00a@hq.pc3.xstreamis.com>
+References: <43E4778C.6000103@hhs.nl>
+In-Reply-To: <43E4778C.6000103@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Steven A. DuChene wrote:
-> The non-2.6-integrated module code does indeed exist in the lm_sensors
-> source but I do not see any mention of anyone working on porting it
-> to the new 2.6 kernel hwmon infrastructure. The boards with the adm1024
-> exist (at least in Murray's and my case) and I am more than willing to test
-> any pre-release code or if there is good documentation on what has to
-> be done to migrate existing 2.4 modules for chips to the 2.6 hwmon chip
-> module code stuff I wouldn't mind looking that over as well.
+Hi Hans,
 
+> > -You've made the resource struct a static global, but it can be
+> >   a normal local variable since the platform_device copy allocs its own
+> >   copy, see the lifetime is not an issue.
+> 
+> It is tagged __initdata so it will be freed after initialization anyway
+> (at least as I understand the __init tags.) However, it now seems to me
+> that using a global that way is not correct, because it prevents
+> f71805f_device_add twice in parallel. We don't do it anyway, but the
+> driver design shouldn't prevent it.
+> 
+> Usually I don't much like structures on the stack, but struct resource
+> isn't too large, so it should be acceptable. Can you please propose a
+> patch?
 
-Yes it is in the  porting-clients  see the Documentation/i2c/ directory.
+Something like this?
 
-You may also take a look how other drivers look like, mainly the interface
-has been changed so please check the hwmon/sysfs-interface file too. If you
-need further help with porting please write back.
+The F71805F I/O resource structure needs not be a global variable,
+as the platform core allocs its own copy of it anyway.
 
-Good luck,
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ drivers/hwmon/f71805f.c |   15 +++++++--------
+ 1 files changed, 7 insertions(+), 8 deletions(-)
 
-Regards
-Rudolf
+--- linux-2.6.16-rc5.orig/drivers/hwmon/f71805f.c	2006-02-27 21:01:16.000000000 +0100
++++ linux-2.6.16-rc5/drivers/hwmon/f71805f.c	2006-03-02 22:44:15.000000000 +0100
+@@ -99,10 +99,6 @@
+ #define ADDR_REG_OFFSET		0
+ #define DATA_REG_OFFSET		1
+ 
+-static struct resource f71805f_resource __initdata = {
+-	.flags	= IORESOURCE_IO,
+-};
+-
+ /*
+  * Registers
+  */
+@@ -782,6 +778,11 @@
+ 
+ static int __init f71805f_device_add(unsigned short address)
+ {
++	struct resource res = {
++		.start	= address,
++		.end	= address + REGION_LENGTH - 1,
++		.flags	= IORESOURCE_IO,
++	};
+ 	int err;
+ 
+ 	pdev = platform_device_alloc(DRVNAME, address);
+@@ -791,10 +792,8 @@
+ 		goto exit;
+ 	}
+ 
+-	f71805f_resource.start = address;
+-	f71805f_resource.end = address + REGION_LENGTH - 1;
+-	f71805f_resource.name = pdev->name;
+-	err = platform_device_add_resources(pdev, &f71805f_resource, 1);
++	res.name = pdev->name;
++	err = platform_device_add_resources(pdev, &res, 1);
+ 	if (err) {
+ 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
+ 		       "(%d)\n", err);
+
+Thanks,
+-- 
+Jean Delvare
 
