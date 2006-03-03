@@ -1,47 +1,102 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 24 Mar 2006 19:31:35 +0000
-Subject: [lm-sensors] [PATCH] Clean up magic numbers in i2c_parport.h
-Message-Id: <20060324203135.bfcaac45.khali@linux-fr.org>
+From: tomloos@yahoo.com (Thomas Loos)
+Date: Fri, 03 Mar 2006 16:31:37 +0000
+Subject: [lm-sensors] Microchip 24LC256
+Message-Id: <20060303163137.89340.qmail@web31008.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060323205617.38e02afe.khali@linux-fr.org>
-	<000e01c64efd$cae7f750$8401000a@fakie>
-	<20060324082600.ca9f9796.khali@linux-fr.org>
-	<20060324174901.GA27881@kroah.com>
-In-Reply-To: <20060324174901.GA27881@kroah.com>
+References: <20060227225941.36483.qmail@web31004.mail.mud.yahoo.com>
+In-Reply-To: <20060227225941.36483.qmail@web31004.mail.mud.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>, Christopher Hoover <ch@murgatroid.com>
-Cc: Andrew Morton <akpm@osdl.org>, kernel-janitors@lists.osdl.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi Greg, Christpher,
+I took a look at the eepromer tools and I will try
+them first before writing a full blown driver.
 
-> > I don't think C99 initializers are needed here, the structure is pretty
-> > simple and is also defined in the same file, a few lines above all its
-> > instance declarations. So I am indeed asking for a patch w/o macros and
-> > w/o C99 structure initializers, unless someone objects.
-> 
-> You should use structure initializers whereever possible, as it makes
-> future changes much easier and safer (reorder the fields and things
-> don't break in odd ways.)  So I would encourage this kind of change.
-
-Oh well, if Greg says so...
-
-Christopher, can you please respin a patch with C99 initializers, which
-would look a bit better than your original one? I'd suggest a single,
-straightforward macro (no needless underscores please):
-
-#define LINEOP(val, port, inverted) \
-    { .val = (val), .port = (port), .inverted = (inverted) }
-
-Hopefully this will keep all lines within a reasonable length and won't
-hurt the readability too much.
-
-Also, I just noticed in your original patch: please preserve the comma
-at the end of the last line of struct declarations. It's not needed,
-sure, but it makes later changes easier.
+We wired up a test board for the 24LC256 part and
+plugged it into an i2c header on our dev board.  The
+part was wired up to be address 0x04.  I would like to
+see i2cdetect find the chip at its address, but did
+not.  Looking at the documentation for i2cdetect tells
+me that this program does not detect all chips. Will
+it work for the 24LC256?  If it doesn't, are there any
+other tools that would get me past the step of seeing
+the chip sitting on the bus at a particular address so
+I can start reading and writing...
 
 Thanks,
--- 
-Jean Delvare
+Tom
+> 
+> --- Mark Studebaker <mds at mds.gotdns.com> wrote:
+> 
+> > one of the userspace tools in prog/eepromer may be
+> > sufficient for what 
+> > you need. You could do a new chip driver for the
+> big
+> > eeprom but then you 
+> > have to go through /sys files which is awkward for
+> > eeproms;
+> > look hard at doing userspace access through
+> > /dev/i2c-x,
+> > better and you don't have to write a new driver.
+> > 
+> > mds
+> > 
+> > 
+> > Thomas Loos wrote:
+> > > Hello All!
+> > > I need to support three Microchip 24LC256
+> EEPROMs
+> > in a
+> > > project.  We are using a ColdFire 5485,
+> Freescale
+> > > 2.6.10 distribution.  I2C is working and the
+> > i2c-tools
+> > > i2cset, i2cdump, and i2cdetect are compiled in
+> to
+> > the
+> > > kernel.  Is this chip supported already?  If
+> not,
+> > I
+> > > will be writing a driver, to be included
+> > > with the lm_sensors package.  I have spent the
+> > last
+> > > few days reading the documentation, which is
+> good,
+> > but
+> > > will most likely need your help!!!
+> > > 
+> > > Cheers!
+> > > Tom
+> > > 
+> > >
+> __________________________________________________
+> > > Do You Yahoo!?
+> > > Tired of spam?  Yahoo! Mail has the best spam
+> > protection around 
+> > > http://mail.yahoo.com 
+> > > 
+> > > _______________________________________________
+> > > lm-sensors mailing list
+> > > lm-sensors at lm-sensors.org
+> > >
+> >
+>
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+> > > 
+> > 
+> 
+> 
+> __________________________________________________
+> Do You Yahoo!?
+> Tired of spam?  Yahoo! Mail has the best spam
+> protection around 
+> http://mail.yahoo.com 
+> 
+
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
 
