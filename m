@@ -1,47 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 06 Mar 2006 08:43:24 +0000
-Subject: [lm-sensors] Radeon LM63 support
-Message-Id: <pEuED2gZ.1141634604.5634840.khali@localhost>
+From: linux-clusters@mindspring.com (Steven A. DuChene)
+Date: Fri, 03 Mar 2006 20:43:59 +0000
+Subject: [lm-sensors] ADM1024
+Message-Id: <261519.1141418639369.JavaMail.root@mswamui-backed.atl.sa.earthlink.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200602272329.20330.pavouk@pavouk.org>
-In-Reply-To: <200602272329.20330.pavouk@pavouk.org>
+References: <002a01c23476$84783190$0201d00a@hq.pc3.xstreamis.com>
+In-Reply-To: <002a01c23476$84783190$0201d00a@hq.pc3.xstreamis.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+The non-2.6-integrated module code does indeed exist in the lm_sensors
+source but I do not see any mention of anyone working on porting it
+to the new 2.6 kernel hwmon infrastructure. The boards with the adm1024
+exist (at least in Murray's and my case) and I am more than willing to test
+any pre-release code or if there is good documentation on what has to
+be done to migrate existing 2.4 modules for chips to the 2.6 hwmon chip
+module code stuff I wouldn't mind looking that over as well.
 
-Hi Rudolf, Pavel,
-
-On 2006-03-05, Rudolf Marek wrote:
-> Pavel Ruzicka wrote:
-> > I have ATI Radeon X800 card with passive heatsink.
-> > Winblows program ATITOOL displays two temperatures and can control fan.
-> > In a log I see that he found LM63 chip. This chip is supported by latest
-> > kernel, but I didn't found support for Radeon SMBus or I2C.
-> > It's possible to read temperatures? (or control fan for others...)
+Murray Blakeman wrote:
+> Where can I get this module from?
 >
-> Technically yes if there is a driver to access the SMBUS on the ATI card.
-> I know that such driver is for nVidia not sure about ati.
+> I am running Linux Kernel 2.6.15.1 and the ADM1024 module doesn't appear to
+> be part of it.
 >
-> There is a possibility that it resides on same bus as DDC channel to
-> monitor, so you may try to scan that bus (it is the bit bang bus)
 >
-> So just look to X.org sources for I2C the implement the bitbang driver
-> and then use i2cdetect ;)
+>   
 
-If the LM63 chip is on the DDC channels, then Pavel could simply use the
-radeonfb driver with I2C support enabled. This will instanciate 4
-bit-banging i2c adapters.
-
-However, another user in a similar situation tried that, and reported
-that the LM63 was nowhere to be found, so either there was one or more
-additional I2C/SMBus busses on the Radeon boards, or there was some bus
-multiplexing in action. We did not investigate any further. In either
-case, the radeonfb driver would need to be extended to support the
-additional busses or bus branches. This would require documentation we
-(or at least I) don't have, or free code to look at.
-
---
-Jean Delvare
+Jim Cromie replied:
+> forgive me for not knowing, but you presume it to be supported ? but omitted ?
+>
+> IOW, did you check if it is supported ?  and if not, are you interested in adding it ?
+>
+> I'm not trying to be snide here; there are other adm 102x devices supported,
+> (I hacked at 1026.c, but I dont have the chip to sanity test the patch,
+> and apparently no-one else does either)
 
