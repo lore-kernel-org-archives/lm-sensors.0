@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 04 Mar 2006 15:04:31 +0000
+Date: Sat, 04 Mar 2006 16:57:23 +0000
 Subject: [lm-sensors] [PATCH] Add voltage support to W83627EHF
-Message-Id: <20060304160431.a10afb4c.khali@linux-fr.org>
+Message-Id: <20060304175723.d845d809.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4409700D.8010604@sh.cvut.cz>
 In-Reply-To: <4409700D.8010604@sh.cvut.cz>
@@ -12,106 +12,103 @@ To: lm-sensors@vger.kernel.org
 
 Hi Rudolf,
 
-> I just finished adding the support for voltage channels on EHF chip. Feel free to test it.
-> (This implies to the mailing list members rather to you Yuan, I know you are busy ;)
-> 
-> Jean, If you like it, please apply (after someone did the testing in reasonable time)
+> I'm attaching the userspace part this should work applying on the top of the
+> latest version of lm-sensors.
 
-Can I have a -p1 patch please?
+My comments:
 
-Comments on the code:
+> +    { SENSORS_W83627EHF_IN0_ALARM, "in0_alarm", NOMAP, NOMAP, 
+> +                        R, NOSYSCTL, VALUE(1), 0 },
 
-> +    This is a preliminary version of the driver. The chip does much more than
-> +    that.
+Now that we have individual alarm files, it would make sense to express
+their mapping with the corresponding input. That is, the first "NOMAP"
+above should be "SENSORS_W83627EHF_IN0".
 
-The "much" is probably too much now that the voltage inputs, and parts
-of the alarms, are supported.
+> +#define SENSORS_W83627EHF_IN0 1 /* R */
+> (...)
+> +#define SENSORS_W83627EHF_IN9_MAX 30 /* RW */
 
-> +/* The W83627EHF registers for nr=7,8,9 are in bank 5 */
-> +#define W83627EHF_REG_IN_MAX(nr) ((nr < 7) ? (0x2b + (nr) * 2) : \
-> +					   (0x554 + (((nr) - 7) * 2)))
-> +#define W83627EHF_REG_IN_MIN(nr) ((nr < 7) ? (0x2c + (nr) * 2) : \
-> +					   (0x555 + (((nr) - 7) * 2)))
-> +#define W83627EHF_REG_IN(nr)     ((nr < 7) ? (0x20 + (nr)) : \
-> +					   (0x550 + (nr) - 7))
+Please align the values with tabs, like I did for the rest of the
+W83627EHF defines.
 
-Don't use spaces for primary alignment please.
+> +  double cur, min, div, max, alarm;
 
-> +/* Some of registers have internal scaling,
-> +   8mV is ADC LSB and some are scaled twice */
+If you want to give function scope to these variables, please do it
+properly (i.e. also use them for temperature.)
 
-They are "scaled by a factor of 2", rather than "scaled twice". You may
-also mention the word "internally", as this is the reason why we care
-in the driver rather than user-space.
+> +    if (!sensors_get_label_and_valid(*name,SENSORS_W83627EHF_IN0+i,&label,&valid) &&
+> +      !sensors_get_feature(*name,SENSORS_W83627EHF_IN0+i,&cur) &&
+> +      !sensors_get_feature(*name,SENSORS_W83627EHF_IN0_MIN+i,&min) &&
+> +      !sensors_get_feature(*name,SENSORS_W83627EHF_IN0_MAX+i,&max) &&
+> +      !sensors_get_feature(*name,SENSORS_W83627EHF_IN0_ALARM+i,&alarm)) {
+> +      if (valid) {
+> +        print_label(label,10);
+> +        printf("%+6.2f V  (min = %+6.2f V, max = %+6.2f V) %s\n",
+> +               cur,min,max,alarm ? "ALARM" : "");
+> +      }
+> +    } else
+> +    printf("ERROR: Can't get IN%d data!\n",i+1);
+> +    free(label);
+> +  }
 
-> +static u8 scale_in[10] = { 3, 3, 4, 4, 3, 3, 3, 4, 4, 3 };
-> +
-> +static inline u32 in_from_reg(u8 reg, u8 nr)
-> +{
-> +	return reg << scale_in[nr];
-> +}
-> +
-> +static inline u8 in_to_reg(u32 val, u8 nr)
-> +{
-> +	return SENSORS_LIMIT(((val + (1 << (scale_in[nr] - 1))) / 
-> +					(1 << scale_in[nr])), 0, 255);
-> +}
+Coding style, please! I know that sensors' coding style is quite bad,
+but let's not make it worse. Just follow the coding style I used for
+the rest of the function, so that we have some kind of local
+homogeneity.
 
-That bit-shifting makes things quite hard to read. Why don't you just
-go with explicit multiplications/divisions by 8 and 2 (or 8 and 16 if
-you prefer)? This would be much easier to check, and I'm almost certain
-that the compiler will generate the same code anyway.
+> -    double cur, min, div;
+> +    
 
-> +		for (i = 0; i < 10; i++) {
-> +			data->in[i] > +			    w83627ehf_read_value(client, W83627EHF_REG_IN(i));
-> +			data->in_min[i] > +			    w83627ehf_read_value(client,
-> +					       W83627EHF_REG_IN_MIN(i));
-> +			data->in_max[i] > +			    w83627ehf_read_value(client,
-> +					       W83627EHF_REG_IN_MAX(i));
-> +
-> +		}
+No blank line here please.
 
-Coding style, please.
+>  # Winbond W83627EHF configuration originally contributed by Leon Moonen
+>  # This is for an Asus P5P800.
+>  chip "w83627ehf-*"
 
-> +static ssize_t show_##reg (struct device *dev, struct device_attribute *attr, char *buf) \
+This will need some rewording as you have a different board so the
+voltage part may not match the P5P800 at all.
 
-Line too long.
+> +    label in0 "VCore"
+> +    label in1 "VIN0"
+> +    label in2 "AVCC"
+> +    label in3 "3VCC"
+> +    label in4 "VIN1"
+> +    label in5 "VIN2"
+> +    label in6 "VIN3"
+> +    label in7 "VSB"
+> +    label in8 "VBAT"
+> +    label in9 "VIN4"
 
-> +	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);\
-> +	int nr = sensor_attr->index;\
-> +	return sprintf(buf,"%ld\n", (long)in_from_reg(data->reg[nr], nr)); \
+The VIN[0-4] labels are not helping much, and may in fact add to
+confusion, as they don't match our in0-9 numbering.
 
-Missing space before backslash (twice), missing space after comma, and
-there are many more in your patch. Please pay attention, you've been
-around for long enough now to know how picky I am about this! ;)
+> +# +12V is in1 and +5V is in6 as recommended by datasheet 
+> +    compute in1 @*(1+(56/10)),  @/(1+(56/10))
+> +    compute in6 @*(1+(22/10)),  @/(1+(22/10))
 
-I also fail to see the point of the cast; just make sure that
-in_from_reg() will return what you need (i.e. long instead of u32) in
-the first place.
+Just label them that way then.
 
-> +static ssize_t show_in_alarm(struct device *dev, struct device_attribute *attr, char *buf)
-> +{
-> +	struct w83627ehf_data *data = w83627ehf_update_device(dev);
-> +	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-> +	int nr = sensor_attr->index;
-> +	return sprintf(buf,"%d\n", 
-> +			(1 << W83627EHF_ALARM_IN_SHIFT[nr]) & data->alarms ? 1 : 0);
-> +}
+> -   set fan1_min    1200
+> -   set fan2_min    1700
+> +  set fan1_min    1200
+> +  set fan2_min    1700
 
-Looks inefficient. Why don't you instead store
-W83627EHF_ALARM_IN_SHIFT[N] in sensor_attr->index when creating the
-sysfs file? You would spare the lookup on each file read, and you
-wouldn't even need to define an array with the shift values.
+No whitespace changes please.
 
-Also, an added benefit would be that the same callback could be used
-for temperatures and fans as well, not just voltages.
+> +   label temp3     "AUX Temp"
 
-Rest looks OK. Now with this patch, we end up with alarms for the
-voltages and not the other input types, so I'd appreciate an incremental
-patch adding these, for consistency. It should be quite straightforward.
+s/AUX/Aux/ for consistency.
 
-Also I see that this driver has no documentation file. Shame on me, but
-if anyone wants to contribute a patch, this would be welcome.
+> -   set temp1_over  45
+> -   set temp1_hyst  40
+> -   set temp2_over  45
+> -   set temp2_hyst  40
+> +#  set temp1_over  45
+> +#  set temp1_hyst  40
+> +#  set temp2_over  45
+> +#  set temp2_hyst  40
+
+Yes you're right, we should preserve the BIOS settings by default.
 
 Thanks,
 -- 
