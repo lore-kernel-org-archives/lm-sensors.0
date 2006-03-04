@@ -1,8 +1,10 @@
 From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 04 Mar 2006 10:46:37 +0000
+Date: Sat, 04 Mar 2006 12:41:35 +0000
 Subject: [lm-sensors] [PATCH] Add voltage support to W83627EHF
-Message-Id: <4409700D.8010604@sh.cvut.cz>
+Message-Id: <44098AFF.2060806@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4409700D.8010604@sh.cvut.cz>
+In-Reply-To: <4409700D.8010604@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -10,25 +12,19 @@ To: lm-sensors@vger.kernel.org
 
 Hello all,
 
-I just finished adding the support for voltage channels on EHF chip. Feel free to test it.
-(This implies to the mailing list members rather to you Yuan, I know you are busy ;)
+Oh I forgot. The patch needs this patches to work:
+hwmon-allow-sensor-attr-arrays.patch  hwmon-convert-semaphores-to-mutexes.patch
+w83627ehf_use_new_sensor_device_attr.patch-0001.txt
+(get it here http://lists.lm-sensors.org/pipermail/lm-sensors/2006-January/015115.html, first
+two are available through jean's homepage)
 
-Jean, If you like it, please apply (after someone did the testing in reasonable time)
+I'm attaching the userspace part this should work applying on the top of the
+latest version of lm-sensors.
 
-This patch adds the voltage measuring support to W83627EHF. The code is based
-on the patch provided by Yuan Mu from Winbond. Moreover the patch implements new
-alarm files scheme for voltages.
-
-Signed-off-by: Yuan Mu <Ymu at Winbond.com.tw>
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
-
-Thanks,
-Regards
+regards
 Rudolf
+
 -------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w83627ehf_add_voltages.patch
-Type: text/x-patch
-Size: 8594 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060304/b1354d92/w83627ehf_add_voltages.bin
+An embedded and charset-unspecified text was scrubbed...
+Name: add_voltages
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060304/b5ac6de8/add_voltages.pl
