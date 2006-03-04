@@ -1,45 +1,34 @@
-From: bezaur@gmail.com (Charles Spirakis)
-Date: Thu, 30 Mar 2006 02:56:51 +0000
-Subject: [lm-sensors] [patch] hwmon: Add support for w83791d sensor chip
-Message-Id: <5bfe43f80603291856o77a2b5a5j5b6e295060bd1af2@mail.gmail.com>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sat, 04 Mar 2006 10:46:37 +0000
+Subject: [lm-sensors] [PATCH] Add voltage support to W83627EHF
+Message-Id: <4409700D.8010604@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5bfe43f80602141317i5e7e08d7q989e5d717598bd7d@mail.gmail.com>
-In-Reply-To: <5bfe43f80602141317i5e7e08d7q989e5d717598bd7d@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 3/28/06, Jean Delvare <khali at linux-fr.org> wrote:
-...
->
-> This is something new, not in 2.6.16. You'll have to take a look at
-> Linus' latest (2.6.16-git14 right now) or any recent -mm. There's no
-> macro named SENSOR_ARRAY, by the way, but Rudolf was obviously
-> referring to the possibility to define sysfs files within arrays rather
-> than individually, so that they are then easier to instanciate. This is
-> done using the SENSOR_ATTR and SENSOR_ATTR_2 macros. You can find
-> examples of use in the following drivers:
->   f71805f
->   pc87360
->   w83627ehf
->   w83792d
+Hello all,
 
-Thanks! Found it (and the macro definitions in <linux/hwmon-sysfs.h>).
-Will update to use these...
+I just finished adding the support for voltage channels on EHF chip. Feel free to test it.
+(This implies to the mailing list members rather to you Yuan, I know you are busy ;)
 
-...
->
-> >
-> > Do you mean the serial bus address register (index 0x48)? Don't I
-> > already know the address of the device based on the reads that I'm
-> > doing? Or are you saying I should confirm that the address register
-> > has an address that matches the address of the reads that I'm doing?
->
-> Yes, verifying that register 0x48 holds the address is a good safety
-> check. If it doesn't, then you know that it cannot be a W83791D chip,
-> and this avoids a chip misdetection. Many other drivers do that
-> (adm9240, it87, lm78, w83627hf, w83781d, w83792d.)
+Jean, If you like it, please apply (after someone did the testing in reasonable time)
 
-OK, will do.
+This patch adds the voltage measuring support to W83627EHF. The code is based
+on the patch provided by Yuan Mu from Winbond. Moreover the patch implements new
+alarm files scheme for voltages.
 
+Signed-off-by: Yuan Mu <Ymu at Winbond.com.tw>
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+
+Thanks,
+Regards
+Rudolf
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: w83627ehf_add_voltages.patch
+Type: text/x-patch
+Size: 8594 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060304/b1354d92/w83627ehf_add_voltages.bin
