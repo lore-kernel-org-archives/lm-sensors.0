@@ -1,46 +1,32 @@
-From: Uwe_Zeisberger@digi.com (Uwe Zeisberger)
-Date: Mon, 06 Mar 2006 07:30:09 +0000
-Subject: [lm-sensors] new [PATCH] I2C: add new rx8025 driver
-Message-Id: <20060306073008.GA2745@digi.com>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sun, 05 Mar 2006 20:58:43 +0000
+Subject: [lm-sensors] Temp sensors on msi rs480m2
+Message-Id: <440B5103.3090402@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060203134225.GA4398@digi.com>
-In-Reply-To: <20060203134225.GA4398@digi.com>
+References: <43F86179.9070304@clifford.net>
+In-Reply-To: <43F86179.9070304@clifford.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean, hello list,
-
-Jean Delvare wrote:
-> > here comes a reworked driver (in a seperate e-mail to ease applying it).
-> > I didn't implemented all your suggestions, as commented below.
-> > 
-> > I didn't (yet) used Alessandro's rtc core as it doesn't compile on
-> > current HEAD.  (Moreover my driver has to work on 2.6.12.5, because
-> > that's the version our customer has to stick to.)
+Raphael Clifford wrote:
+> Hi,
 > 
-> True, but if we merge your driver in the main Linux tree, it'll happen
-> at best in 2.6.17-rc1 so the version we'll merge will not be compatible
-> with 2.6.12.5 anyway. You must have noticed that the i2c subsystem had
-> a few minor changes in the last few Linux releases. So, given that you
-> will have to maintain a separate version for your customer anyway, we
-> better make the merged driver comply with the latest standards.
-Maybe I need still more time to investigate there.  I'm planning to
-rework all our Linux code for the NetSilicon platform and submit it.
-Now the code is running on 2.6.15.3, but it's a big mess.  I'd prefer
-testing on that new implementation.  So it came in handy that I don't
-have maintainer duties.  Moreover the board with that chip is currently
-at the customer's.  So I plan to resubmit a reworked driver when I
-finished the rework of our platform here.
+> I am trying to get the temperature sensors on my MSI rs480m2 amd64
+> motherboard working. I applied the patch at
+> http://assembler.cz/download/ati2_patch as listed on the newdrivers page.
+> After talking on IRC it seems that my hardware is not supported yet but
+> there is a 2.4 kernel driver for it as mentioned at
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2006-January/014844.html
+> .  Is there any chance of getting this working on the 2.6 series?  I
+> can't code but I am more than willing to test any patches etc. :)
 
-Best regards
-Uwe
+Yes now we have a driver from the Hartmut, please check the mailing list archive
+(check the march archives)
 
--- 
-Uwe Zeisberger
-FS Forth-Systeme GmbH, A Digi International Company
-Kueferstrasse 8, D-79206 Breisach, Germany
-Phone: +49 (7667) 908 0 Fax: +49 (7667) 908 200
-Web: www.fsforth.de, www.digi.com
+Thanks,
+
+Regards
+Rudolf
 
