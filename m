@@ -1,38 +1,57 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 06 Mar 2006 11:29:44 +0000
-Subject: [lm-sensors] Added hysteresis to fancontrol
-Message-Id: <TtTLXERc.1141644584.6506060.khali@localhost>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sun, 05 Mar 2006 20:24:42 +0000
+Subject: [lm-sensors] Implementation of FSCSCY?
+Message-Id: <440B490A.2050104@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060124032204.GG28986@paradise.net.nz>
-In-Reply-To: <20060124032204.GG28986@paradise.net.nz>
+References: <43F75216.9040309@hiereinwerfen.de>
+In-Reply-To: <43F75216.9040309@hiereinwerfen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello,
 
-Hi Rudolf, Axel, Volker,
+Your mail hit the list just few days before my final exams so I had no time to reply.
 
-On 2006-03-05, Rudolf Marek wrote:
-> Well if you want to be an anctive maintainer for this type of stuff you
-> will be wellcomed.
->
-> Cool. Please send the ssh public key to and you will get access to svn.
-> If Jean agrees of course :)
+> I've got a FSC Dual-Mainboard (D1306) on which I'm trying to setup a
+> server-system based on the actual Ubuntu ("Breezy Badger"). So the
+> kernel must be a 2.6.
 
-No problem. My only requirement is that Volker posts with his real e-mail
-address rather than expecting everyone to manually replace "hidden" by
-"list0570". This is inefficient and annoying, we really don't have
-extra time for this kind of trick.
+Is this a serverworks chipset?
 
-That left apart, welcome, Volker. You'll just have to wait for us to
-switch from CVS to SVN before your committer access works. Should happen
-soon now, hopefully.
+> 
+> The board contains a "Scylla"-chip, which is found by sensors-detect. As
+> far as I found within the docs, this must be ok, because the developer
+> of the required module "fscscy" notes, the driver is "beta" but
+> well-tested on exactly THIS board.
 
-Axel, are SVN changes now reported on the lm-sensors-notify list? We
-can't switch until it works.
+> Anyway, sensors-detect wants to load "fscscy" in modules.conf, but this
+> module doesn't exist!
+> The only module next to piix4 ist "eeprom" which doesn't seem to be very
+> useful...
+> 
+> I searched the whole drive, but only found the note mentioned above.
+> Google didn't come out with more and I couldn't find an open bug/ticket...
+> 
+> Where can I get it and why is it missing?
 
-Thanks,
---
-Jean Delvare
+Nobody ever port it it seems. You can do it yourself with our help, pay/donate
+something to handle it for you.
+
+> PS: Another strange thing, when installing piix4, the bootlog shows
+> something about "unusual config register value" and I should set
+> "fix_hstcfg=1". When I do so, sensors-detect searches longer and finds
+> more... Anyway, the only new modules to load are smbus-arp (for which
+> the doc reads "if you don't know what this is you don't need it"???) and
+> another unsupported chip called Philips "PCA9556". :-(
+
+This is some multiplexer device if I recall correctly. Mayebe it is just
+missdetection because of the fix_hst cfg. Please write back what chipset it is
+(or lspci)
+
+Thanks
+
+Regards
+Rudolf
 
