@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 05 Mar 2006 17:32:27 +0000
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Sun, 05 Mar 2006 21:05:52 +0000
 Subject: [lm-sensors] [PATCH 2.6.15-rc5] hwmon: add required idr locking
-Message-Id: <20060305183227.5deb7c23.khali@linux-fr.org>
+Message-Id: <20060305210552.GA3145@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060305152435.GA7990@jupiter.solarsys.private>
 In-Reply-To: <20060305152435.GA7990@jupiter.solarsys.private>
@@ -10,48 +10,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+Hi Jean:
 
-> Add required locking around idr_ routines, retry the idr_pre_get/idr_get_new
-> pair properly, and sprinkle in some likely/unlikely for good measure.
+* Jean Delvare <khali at linux-fr.org> [2006-03-05 18:32:27 +0100]:
+> > Add required locking around idr_ routines, retry the idr_pre_get/idr_get_new
+> > pair properly, and sprinkle in some likely/unlikely for good measure.
+> > 
+> > (Lack of idr locking didn't hurt when all callers were I2C clients, as the
+> > i2c-core serialized for us anyway.  Now that we have non I2C hwmon drivers,
+> > this is truly necessary.)
+> > 
+> > This patch should be considered for 2.6.16.
 > 
-> (Lack of idr locking didn't hurt when all callers were I2C clients, as the
-> i2c-core serialized for us anyway.  Now that we have non I2C hwmon drivers,
-> this is truly necessary.)
+> Thanks for reporting the problem and proposing a fix. It's all correct
+> as far as I can tell, but I'd still have a few comments:
 > 
-> This patch should be considered for 2.6.16.
+> > -	if (idr_get_new(&hwmon_idr, NULL, &id) < 0)
+> > +	spin_lock(&idr_lock);
+> > +	err = idr_get_new(&hwmon_idr, NULL, &id);
+> > +	spin_unlock(&idr_lock);
+> > +
+> > +	if (unlikely(err = -EAGAIN))
+> > +		goto again;
+> > +	else if (unlikely(err))
+> >  		return ERR_PTR(-ENOMEM);
+> 
+> It has just occured to me that the error value we are returning is not
+> correct. Why -ENOMEM? As far as I know, idr_get_new does not allocate
+> memory, by design, so it's probably the more inaccurate error value we
+> could return.
+> 
+> Why don't we just return ERR_PTR(err) instead?
 
-Thanks for reporting the problem and proposing a fix. It's all correct
-as far as I can tell, but I'd still have a few comments:
+OK.
 
-> -	if (idr_get_new(&hwmon_idr, NULL, &id) < 0)
-> +	spin_lock(&idr_lock);
-> +	err = idr_get_new(&hwmon_idr, NULL, &id);
-> +	spin_unlock(&idr_lock);
-> +
-> +	if (unlikely(err = -EAGAIN))
-> +		goto again;
-> +	else if (unlikely(err))
->  		return ERR_PTR(-ENOMEM);
+> I realize that this isn't strictly related with your patch, the old code
+> returned just the same, but while we're here changing that code...
+> 
+> > -	if (IS_ERR(cdev))
+> > +	if (unlikely(IS_ERR(cdev))) {
+> 
+> IS_ERR() already includes an unlikely(), so this is redundant.
 
-It has just occured to me that the error value we are returning is not
-correct. Why -ENOMEM? As far as I know, idr_get_new does not allocate
-memory, by design, so it's probably the more inaccurate error value we
-could return.
+So it does - struck.
 
-Why don't we just return ERR_PTR(err) instead?
+New boot-tested (on x86) patch to follow...
 
-I realize that this isn't strictly related with your patch, the old code
-returned just the same, but while we're here changing that code...
+Regards,
 
-> -	if (IS_ERR(cdev))
-> +	if (unlikely(IS_ERR(cdev))) {
-
-IS_ERR() already includes an unlikely(), so this is redundant.
-
-And you're right, let's try to get that patch in 2.6.16.
-
-Thanks,
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman at lightlink.com
+
 
