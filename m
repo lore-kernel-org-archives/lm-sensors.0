@@ -1,7 +1,7 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Mon, 06 Mar 2006 07:08:16 +0000
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Mon, 06 Mar 2006 07:30:11 +0000
 Subject: [lm-sensors] Proposal to individual alarm/beep sysfs files
-Message-Id: <440BDFE0.8010806@penguincomputing.com>
+Message-Id: <440BE503.3010303@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060305231105.97f9085a.khali@linux-fr.org>
 In-Reply-To: <20060305231105.97f9085a.khali@linux-fr.org>
@@ -40,17 +40,20 @@ Jean Delvare wrote:
 >  
 >
 
-What about using strings in the alarm files instead of booleans?  Then 
-you could report the *name* of the limit or condition causing the alarm 
-(or alarms) or an empty string if there is no alarm?
+I still vote for having one file per type of alarm. All you need is an 
+array which contains the correct masks per sensor type for the alarm reg 
+and then a loop which contructs a new virtual alarm reg , by masking the 
+real alarm reg with the values in the array and storing the true/false 
+results linear in a new mask.
 
-When you look at the code in libsensors, it seems that alarms are almost 
-always converted into text strings.  Why not move that code into the 
-driver itself and then user-space tools would just print the contents of 
-the ALARM file rather than having to parse the alarm file name to 
-determine what limit or condition is causing the alarm or fault.
+I think having a zillion files in sysfs is a bad idea, besides the 
+obvious driver size this also requires a kobject per file, which is a 
+refcount ed object and thus not so light.
 
-:v)
+Either way we need a standard and we need it yesterday.
 
+Regards,
+
+Hans
 
 
