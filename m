@@ -1,7 +1,7 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Mon, 06 Mar 2006 07:30:11 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 06 Mar 2006 10:21:17 +0000
 Subject: [lm-sensors] Proposal to individual alarm/beep sysfs files
-Message-Id: <440BE503.3010303@hhs.nl>
+Message-Id: <QZ6kh67w.1141640476.9172650.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060305231105.97f9085a.khali@linux-fr.org>
 In-Reply-To: <20060305231105.97f9085a.khali@linux-fr.org>
@@ -10,50 +10,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
 
->The original discussion was between per-type files versus per-channel
->files. I think we agreed that individual files were better, allowing a
->much cleaner implementation. Per-type files would require us to reorder
->all bits when the chip has them in a random order (which is most often
->the case, unfortunately). With per-channel files, we just have to
->extract the correct bit, which is easy. We can even use the same
->callback for all alarms, as demonstrated at the end of this post.
+Hi Philip,
+
+Thanks for joining the discussion, it's much appreciated.
+
+On 2006-03-06, Philip Pokorny wrote:
+> > So my new suggestion is to have per-limit alarm files for chips which
+> > implement things that way. This makes every alarm file a boolean. The
+> > only drawback I can think of is that we'll end up with many more sysfs
+> > files defined in each driver. However, the size increase seems to be
+> > acceptable, thanks to the dynamic sysfs callbacks and the array of
+> > attributes which we can use now.
+> >
+> > Fault conditions and beep masks can be handled exactly the same way.
 >
->Now, some chips offer more than one alarm for a given channel. For
->example the LM90/ADM1032 has a separate alarm for low limit crossed,
->high limit crossed and critical limit crossed. It was suggested that we
->could have non-boolean alarm files, and it makes some sense. However,
->on second though, it means that we would have to define a standard bit
->order inside such alarm files, and we'll have to build the contents
->from the registers. This won't be easier than having per-type files,
->which we said we did not want to do.
->
->So my new suggestion is to have per-limit alarm files for chips which
->implement things that way. This makes every alarm file a boolean. The
->only drawback I can think of is that we'll end up with many more sysfs
->files defined in each driver. However, the size increase seems to be
->acceptable, thanks to the dynamic sysfs callbacks and the array of
->attributes which we can use now.
->
->Fault conditions and beep masks can be handled exactly the same way.
->  
->
+> What about using strings in the alarm files instead of booleans?  Then
+> you could report the *name* of the limit or condition causing the alarm
+> (or alarms) or an empty string if there is no alarm?
 
-I still vote for having one file per type of alarm. All you need is an 
-array which contains the correct masks per sensor type for the alarm reg 
-and then a loop which contructs a new virtual alarm reg , by masking the 
-real alarm reg with the values in the array and storing the true/false 
-results linear in a new mask.
+A given input channel may have several alarms active at the same time,
+for example the high and critical limits may be active at the same time
+if the temperature is above both limits. It's even possible to have the
+low and high limit alarms active at the same time if the chip is
+misproperly configured ;)
 
-I think having a zillion files in sysfs is a bad idea, besides the 
-obvious driver size this also requires a kobject per file, which is a 
-refcount ed object and thus not so light.
+How would you handle this situation? Returning more than one string per
+file is sort of against the sysfs philosophy. Unless we decide to see it
+as a single string... I guess it's a matter of point of view.
 
-Either way we need a standard and we need it yesterday.
+> When you look at the code in libsensors, it seems that alarms are almost
+> always converted into text strings.  Why not move that code into the
+> driver itself and then user-space tools would just print the contents of
+> the ALARM file rather than having to parse the alarm file name to
+> determine what limit or condition is causing the alarm or fault.
 
-Regards,
+Please try to forget all you know about libsensors here. If just for
+libsensors, we would not be discussing this new interface, for the old
+one would be enough. Likewise, don't think too much about the
+"sensors" program. It's really only one hardware monitoring tool
+among a dozen.
 
-Hans
+So, thinking about a new library, relying on a chip-independant sysfs
+interface, I don't think your proposal will help most of the programs
+using it. Graphical tools may want to express alarm conditions with a
+different color, or with some blinking led-like picture. If the sysfs
+interface file says "HIGH" instead of "1", it doesn't help them at
+all, does it?
 
+Also, even for text-based programs, authors may want to internationalize
+them, so they'll need to parse the file contents anyway, rather than
+displaying it directly. Good coders will want to parse the file contents
+anyway, because it wouldn't be safe to let a string go through without
+some minimum checks.
+
+So all in all I don't see much added value to having drivers export
+alarm conditions as strings, sorry. I'm still carefully listening to
+counter arguments though, and interested in seeing actual code for
+alternative proposals.
+
+Thanks,
+--
+Jean Delvare
 
