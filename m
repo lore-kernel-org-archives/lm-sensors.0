@@ -1,81 +1,72 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sun, 05 Mar 2006 20:47:37 +0000
-Subject: [lm-sensors] sensors with piix4/IBM
-Message-Id: <440B4E69.6080306@sh.cvut.cz>
+From: peb@mppmu.mpg.de (Peter Breitenlohner)
+Date: Wed, 08 Mar 2006 08:50:38 +0000
+Subject: [lm-sensors] i2c-2.10.0 and lm_sensors-2.10.0 --- 2 patches
+Message-Id: <Pine.LNX.4.64.0603080940220.1369@pcl321.mppmu.mpg.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43FA13EA.3010309@NOSPAM-lontzen.net>
-In-Reply-To: <43FA13EA.3010309@NOSPAM-lontzen.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hi,
 
-Yes I can help now after my exams :)
+I'd like to suggest the attached two patches for i2c-2.10.0 and
+lm_sensors-2.10.0.
 
->
->>I need help! I searched and didn't find anything that could help me.
->>
->>I have an IBM desktop computer here, installed with Gentoo/Linux:
->>genta ~ # uname -a
->>Linux genta 2.6.15.1 #5 PREEMPT Wed Feb 15 20:42:34 CET 2006 i686 
->>Pentium III (Katmai) GenuineIntel GNU/Linux
->>genta ~ # lspci
->>00:00.0 Host bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX 
->>Host bridge (rev 03)
->>00:01.0 PCI bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX AGP 
->>bridge (rev 03)
->>00:02.0 ISA bridge: Intel Corporation 82371AB/EB/MB PIIX4 ISA (rev 02)
->>00:02.1 IDE interface: Intel Corporation 82371AB/EB/MB PIIX4 IDE (rev 01)
->>00:02.2 USB Controller: Intel Corporation 82371AB/EB/MB PIIX4 USB (rev 
->>01)
->>00:02.3 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ACPI (rev 02)
->>00:03.0 Ethernet controller: Intel Corporation 82557/8/9 [Ethernet Pro 
->>100] (rev 05)
->>...
->>
->>As i found on the website and the kernel informations, piix4 is 
->>supported so lets modprobe it:
->>genta ~ # modprobe i2c-piix4
->>genta ~ # sensors
->>No sensors found!
->>
->>Hmm ... lets ask dmesg:
->>genta ~ # dmesg
->>...
->>piix4_smbus 0000:00:02.3: Found 0000:00:02.3 device
->>piix4_smbus 0000:00:02.3: IBM Laptop detected; this module may corrupt 
->>your serial eeprom! Refusing to load module!
+Why?
 
-Yes please check your motherboard if you dont have a chip called AT24RF08.
+1. The header i2c-pcf8584.h is included from i2c-algo-pcf.h and should
+therefore installed together with i2c-algo-pcf.h (not with i2c-elektor).
 
-If you have then next step might be dangerous and render your computer unusable (dead).
-Proceed on your own RISK!
+2. When running "make KERNELVERSION=version all install" in order to build
+and install the modules for a new (configured and installed, but not yet
+running) kernel, you should use "depmod -a $(KERNELVERSION)" instead of
+"depmod -a". The latter would rebuild the dependencies for the current
+kernel, quite useless in this situation.
 
-You will need to compile your kernel. But before you should:
+Please answer directly, since I'm not on this list.
 
-1) cd linux/drivers/i2c
-2) run editor on i2c-piix4.c
-
-Change all ocurrencies of IBM to something else like HAL
-:)
-
-3) save the file
-4) build as usual
-
-
->>piix4_smbus: probe of 0000:00:02.3 failed with error -1
->>
->>Help! What's wrong? What can i do? I'm sure that that is NOT a Laptop! 
->>;-)
-
-The eeprom (the chip) had a hardware bug that causes to corrupt the content after sensors-detect.
-BIOS of laptop was so paranoid so the laptom refused to boot at all.
-
-I think once there was a person with the classic motherboard from IBM and with such eeprom and
-nothing bad happened. But again it will be your fault when it will be dead.
-
-Regards
-Rudolf
-
+regards
+Peter Breitenlohner <peb at mppmu.mpg.de>
+-------------- next part --------------
+diff -ur i2c-2.10.0.orig/Makefile i2c-2.10.0/Makefile
+--- i2c-2.10.0.orig/Makefile	2005-07-24 17:40:03.000000000 +0200
++++ i2c-2.10.0/Makefile	2006-03-07 22:44:54.000000000 +0100
+@@ -211,7 +211,7 @@
+ 
+ install :: all
+ ifeq ($(DESTDIR),)
+-	-/sbin/depmod -a
++	-/sbin/depmod -a $(KERNELVERSION)
+ else
+ 	@echo "*** This is a \`staged' install using \"$(DESTDIR)\" as prefix."
+ 	@echo "***"
+diff -ur i2c-2.10.0.orig/kernel/Module.mk i2c-2.10.0/kernel/Module.mk
+--- i2c-2.10.0.orig/kernel/Module.mk	2005-05-12 19:25:24.000000000 +0200
++++ i2c-2.10.0/kernel/Module.mk	2006-03-07 21:08:08.000000000 +0100
+@@ -58,11 +58,11 @@
+ ifneq ($(shell if grep -q '^CONFIG_I2C_ALGOPCF=y' $(LINUX)/.config; then echo 1; fi),1)
+ KERNELTARGETS += $(MODULE_DIR)/i2c-algo-pcf.o
+ KERNELINCLUDES += $(MODULE_DIR)/i2c-algo-pcf.h
++KERNELINCLUDES += $(MODULE_DIR)/i2c-pcf8584.h
+ endif
+ # will not build outside kernel tree 
+ ifneq ($(shell if grep -q '^CONFIG_I2C_ELEKTOR=y' $(LINUX)/.config; then echo 1; fi),1)
+ #KERNELTARGETS += $(MODULE_DIR)/i2c-elektor.o
+-#KERNELINCLUDES += $(MODULE_DIR)/i2c-pcf8584.h
+ endif
+ ifneq ($(shell if grep -q '^CONFIG_I2C_PROC=y' $(LINUX)/.config; then echo 1; fi),1)
+ KERNELTARGETS += $(MODULE_DIR)/i2c-proc.o
+-------------- next part --------------
+diff -ur lm_sensors-2.10.0.orig/Makefile lm_sensors-2.10.0/Makefile
+--- lm_sensors-2.10.0.orig/Makefile	2006-02-15 02:46:46.000000000 +0100
++++ lm_sensors-2.10.0/Makefile	2006-03-07 22:43:46.000000000 +0100
+@@ -321,7 +321,7 @@
+ all :: user
+ install :: all user_install
+ ifeq ($(DESTDIR),)
+-	-/sbin/depmod -a
++	-/sbin/depmod -a $(KERNELVERSION)
+ else
+ 	@echo "*** This is a \`staged' install using \"$(DESTDIR)\" as prefix."
+ 	@echo "***"
