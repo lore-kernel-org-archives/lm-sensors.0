@@ -1,90 +1,64 @@
-From: mgreer@mvista.com (Mark A. Greer)
-Date: Tue, 28 Mar 2006 00:22:14 +0000
-Subject: [lm-sensors] [PATCH 2.6.16-mm1 1/3] rtc: m41t00 driver should
-Message-Id: <20060328002214.GC21077@mag.az.mvista.com>
+From: Axel.Thimm@ATrpms.net (Axel Thimm)
+Date: Wed, 08 Mar 2006 23:17:57 +0000
+Subject: [lm-sensors] lm-sensors-notify (was: Added hysteresis to fancontrol)
+Message-Id: <20060308231757.GD4146@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <440B4B6E.8080307@sh.cvut.cz> <zt2d4LqL.1141645514.2993990.khali@localhost> <20060307170107.GA5250@mag.az.mvista.com> <20060318001254.GA14079@mag.az.mvista.com> <20060323210856.f1bfd02b.khali@linux-fr.org> <20060323203843.GA18912@mag.az.mvista.com> <20060324011846.GC9560@mag.az.mvista.com> <20060327190358.742eafb3.khali@linux-fr.org>
-In-Reply-To: <20060327190358.742eafb3.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "Mark A. Greer" <mgreer@mvista.com>, LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-Resend...
----
+On Mon, Mar 06, 2006 at 12:29:44PM +0100, Jean Delvare wrote:
+> Axel, are SVN changes now reported on the lm-sensors-notify list? We
+> can't switch until it works.
 
-The m41t00 i2c/rtc driver currently uses a tasklet to schedule
-interrupt-level writes to the rtc.  This patch causes the driver
-to use a workqueue instead.
+I finally found the bug, the whitelist was wrong so any commit mail on
+svn would be rejected. :/
 
-Signed-off-by: Mark A. Greer <mgreer at mvista.com>
----
+So now
 
- m41t00.c |   16 +++++++++-------
- 1 files changed, 9 insertions(+), 7 deletions(-)
----
+o the commit mails work properly, and
+o so *should* ticket notifications. E.g. new or changed tickets should
+  fire a mail to lm-sensors-notify, too.
+o Both have a reply-to set to this list, so when someone spots
+  something worth to discuss the reply will automatically go to the
+  discussion list.
+o There is a neat feature with commit messages and tickets: If you use
+  some magic wording the commit can automagically close or reference
+  tickets. From the doc:
 
-diff -Nurp linux-2.6.16-mm1/drivers/i2c/chips/m41t00.c linux-2.6.16-mm1-wq/drivers/i2c/chips/m41t00.c
---- linux-2.6.16-mm1/drivers/i2c/chips/m41t00.c	2006-03-23 15:04:55.000000000 -0700
-+++ linux-2.6.16-mm1-wq/drivers/i2c/chips/m41t00.c	2006-03-27 15:29:35.000000000 -0700
-@@ -25,6 +25,7 @@
- #include <linux/rtc.h>
- #include <linux/bcd.h>
- #include <linux/mutex.h>
-+#include <linux/workqueue.h>
- 
- #include <asm/time.h>
- #include <asm/rtc.h>
-@@ -111,7 +112,7 @@ m41t00_get_rtc_time(void)
- }
- 
- static void
--m41t00_set_tlet(ulong arg)
-+m41t00_set(void *arg)
- {
- 	struct rtc_time	tm;
- 	ulong	nowtime = *(ulong *)arg;
-@@ -145,9 +146,9 @@ m41t00_set_tlet(ulong arg)
- 	return;
- }
- 
--static ulong	new_time;
--
--DECLARE_TASKLET_DISABLED(m41t00_tasklet, m41t00_set_tlet, (ulong)&new_time);
-+static ulong new_time;
-+static struct workqueue_struct *m41t00_wq;
-+static DECLARE_WORK(m41t00_work, m41t00_set, &new_time);
- 
- int
- m41t00_set_rtc_time(ulong nowtime)
-@@ -155,9 +156,9 @@ m41t00_set_rtc_time(ulong nowtime)
- 	new_time = nowtime;
- 
- 	if (in_interrupt())
--		tasklet_schedule(&m41t00_tasklet);
-+		queue_work(m41t00_wq, &m41t00_work);
- 	else
--		m41t00_set_tlet((ulong)&new_time);
-+		m41t00_set(&new_time);
- 
- 	return 0;
- }
-@@ -189,6 +190,7 @@ m41t00_probe(struct i2c_adapter *adap, i
- 		return rc;
- 	}
- 
-+	m41t00_wq = create_singlethread_workqueue("m41t00");
- 	save_client = client;
- 	return 0;
- }
-@@ -206,7 +208,7 @@ m41t00_detach(struct i2c_client *client)
- 
- 	if ((rc = i2c_detach_client(client)) = 0) {
- 		kfree(client);
--		tasklet_kill(&m41t00_tasklet);
-+		destroy_workqueue(m41t00_wq);
- 	}
- 	return rc;
- }
+# It searches commit messages for text in the form of:
+#   command #1
+#   command #1, #2
+#   command #1 & #2 
+#   command #1 and #2
+#
+# You can have more then one command in a message. The following commands
+# are supported. There is more then one spelling for each command, to make
+# this as user-friendly as possible.
+#
+#   closes, fixes
+#     The specified issue numbers are closed with the contents of this
+#     commit message being added to it. 
+#   references, refs, addresses, re 
+#     The specified issue numbers are left in their current status, but 
+#     the contents of this commit message are added to their notes. 
+#
+# A fairly complicated example of what you can do is with a commit
+# message of:
+#
+#    Changed blah and foo to do this or that. Fixes #10 and #12, and refs #12.
+#
+# This will close #10 and #12, and add a note to #12.
 
+I didn't want to test the ticketing interaction with fake tickets as
+Phil has done some work to get the tickets into production state.
+-- 
+Axel.Thimm at ATrpms.net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 191 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060309/b2c629e1/attachment.bin
