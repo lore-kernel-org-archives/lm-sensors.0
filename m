@@ -1,287 +1,95 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 23 Mar 2006 22:43:50 +0000
-Subject: [lm-sensors] [PATCH 04/36] I2C: Convert i2c to mutexes
-Message-Id: <11431538301657-git-send-email-gregkh@suse.de>
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Fri, 10 Mar 2006 10:58:13 +0000
+Subject: [lm-sensors] New Abit uGuru (lm_sensors) driver please test!
+Message-Id: <44115BC5.5090704@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The patch below converts a few i2c semaphores to mutexes
+Hi all,
 
-Signed-off-by: Arjan van de Ven <arjan at infradead.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+Here is yet another release of the Abit uGuru driver, the big change 
+which needs testing is:
+-(attempt to) detect the number of pwm outputs and fan sensors, so that
+  we do not give the user the ability to write pwm-settings for pwm's
+  which aren't there, otherwise the user could cause us to overwrite
+  random uGuru memory.
 
----
+This is because support for the AA8XE Fatal1ty motherboard has been 
+added which comes with 5 pwm outputs for fan control, always making 5 
+pwms available will allow uGuru memory corruption to be caused by the 
+user when writing settings to pwm 4 or 5 on an uguru which doesn't have 
+these.
 
- drivers/i2c/busses/i2c-ali1535.c |    7 ++++---
- drivers/i2c/chips/ds1374.c       |   11 ++++++-----
- drivers/i2c/chips/m41t00.c       |   11 ++++++-----
- drivers/i2c/i2c-core.c           |   23 ++++++++++++-----------
- 4 files changed, 28 insertions(+), 24 deletions(-)
+After loading the driver you should see something like this in dmesg:
+abituguru: detecting number of fan sensors
+abituguru:   bank2 sensor 5 does not seem to be a fan sensor: 
+settings[0] = 40
+abituguru:  found: 5 fan sensors
+abituguru: detecting number of PWM outputs
+abituguru:   pwm channel 3 does not seem to be a pwm channel: 9 is not a 
+valid temp sensor address
+abituguru:  found: 3 PWM outputs
 
-b3585e4f5b3e4ddb4d82ae50d0b844f619c6d821
-diff --git a/drivers/i2c/busses/i2c-ali1535.c b/drivers/i2c/busses/i2c-ali1535.c
-index 3eb4789..26cf891 100644
---- a/drivers/i2c/busses/i2c-ali1535.c
-+++ b/drivers/i2c/busses/i2c-ali1535.c
-@@ -62,6 +62,7 @@
- #include <linux/ioport.h>
- #include <linux/i2c.h>
- #include <linux/init.h>
-+#include <linux/mutex.h>
- #include <asm/io.h>
- #include <asm/semaphore.h>
- 
-@@ -136,7 +137,7 @@
- 
- static struct pci_driver ali1535_driver;
- static unsigned short ali1535_smba;
--static DECLARE_MUTEX(i2c_ali1535_sem);
-+static DEFINE_MUTEX(i2c_ali1535_mutex);
- 
- /* Detect whether a ALI1535 can be found, and initialize it, where necessary.
-    Note the differences between kernels with the old PCI BIOS interface and
-@@ -345,7 +346,7 @@ static s32 ali1535_access(struct i2c_ada
- 	int timeout;
- 	s32 result = 0;
- 
--	down(&i2c_ali1535_sem);
-+	mutex_lock(&i2c_ali1535_mutex);
- 	/* make sure SMBus is idle */
- 	temp = inb_p(SMBHSTSTS);
- 	for (timeout = 0;
-@@ -460,7 +461,7 @@ static s32 ali1535_access(struct i2c_ada
- 		break;
- 	}
- EXIT:
--	up(&i2c_ali1535_sem);
-+	mutex_unlock(&i2c_ali1535_mutex);
- 	return result;
- }
- 
-diff --git a/drivers/i2c/chips/ds1374.c b/drivers/i2c/chips/ds1374.c
-index 0710b9d..03d09ed 100644
---- a/drivers/i2c/chips/ds1374.c
-+++ b/drivers/i2c/chips/ds1374.c
-@@ -26,6 +26,7 @@
- #include <linux/i2c.h>
- #include <linux/rtc.h>
- #include <linux/bcd.h>
-+#include <linux/mutex.h>
- 
- #define DS1374_REG_TOD0		0x00
- #define DS1374_REG_TOD1		0x01
-@@ -41,7 +42,7 @@
- 
- #define	DS1374_DRV_NAME		"ds1374"
- 
--static DECLARE_MUTEX(ds1374_mutex);
-+static DEFINE_MUTEX(ds1374_mutex);
- 
- static struct i2c_driver ds1374_driver;
- static struct i2c_client *save_client;
-@@ -114,7 +115,7 @@ ulong ds1374_get_rtc_time(void)
- 	ulong t1, t2;
- 	int limit = 10;		/* arbitrary retry limit */
- 
--	down(&ds1374_mutex);
-+	mutex_lock(&ds1374_mutex);
- 
- 	/*
- 	 * Since the reads are being performed one byte at a time using
-@@ -127,7 +128,7 @@ ulong ds1374_get_rtc_time(void)
- 		t2 = ds1374_read_rtc();
- 	} while (t1 != t2 && limit--);
- 
--	up(&ds1374_mutex);
-+	mutex_unlock(&ds1374_mutex);
- 
- 	if (t1 != t2) {
- 		dev_warn(&save_client->dev,
-@@ -145,7 +146,7 @@ static void ds1374_set_tlet(ulong arg)
- 
- 	t1 = *(ulong *) arg;
- 
--	down(&ds1374_mutex);
-+	mutex_lock(&ds1374_mutex);
- 
- 	/*
- 	 * Since the writes are being performed one byte at a time using
-@@ -158,7 +159,7 @@ static void ds1374_set_tlet(ulong arg)
- 		t2 = ds1374_read_rtc();
- 	} while (t1 != t2 && limit--);
- 
--	up(&ds1374_mutex);
-+	mutex_unlock(&ds1374_mutex);
- 
- 	if (t1 != t2)
- 		dev_warn(&save_client->dev,
-diff --git a/drivers/i2c/chips/m41t00.c b/drivers/i2c/chips/m41t00.c
-index 2dc3d48..b5aabe7 100644
---- a/drivers/i2c/chips/m41t00.c
-+++ b/drivers/i2c/chips/m41t00.c
-@@ -24,13 +24,14 @@
- #include <linux/i2c.h>
- #include <linux/rtc.h>
- #include <linux/bcd.h>
-+#include <linux/mutex.h>
- 
- #include <asm/time.h>
- #include <asm/rtc.h>
- 
- #define	M41T00_DRV_NAME		"m41t00"
- 
--static DECLARE_MUTEX(m41t00_mutex);
-+static DEFINE_MUTEX(m41t00_mutex);
- 
- static struct i2c_driver m41t00_driver;
- static struct i2c_client *save_client;
-@@ -54,7 +55,7 @@ m41t00_get_rtc_time(void)
- 	sec = min = hour = day = mon = year = 0;
- 	sec1 = min1 = hour1 = day1 = mon1 = year1 = 0;
- 
--	down(&m41t00_mutex);
-+	mutex_lock(&m41t00_mutex);
- 	do {
- 		if (((sec = i2c_smbus_read_byte_data(save_client, 0)) >= 0)
- 			&& ((min = i2c_smbus_read_byte_data(save_client, 1))
-@@ -80,7 +81,7 @@ m41t00_get_rtc_time(void)
- 		mon1 = mon;
- 		year1 = year;
- 	} while (--limit > 0);
--	up(&m41t00_mutex);
-+	mutex_unlock(&m41t00_mutex);
- 
- 	if (limit = 0) {
- 		dev_warn(&save_client->dev,
-@@ -125,7 +126,7 @@ m41t00_set_tlet(ulong arg)
- 	BIN_TO_BCD(tm.tm_mday);
- 	BIN_TO_BCD(tm.tm_year);
- 
--	down(&m41t00_mutex);
-+	mutex_lock(&m41t00_mutex);
- 	if ((i2c_smbus_write_byte_data(save_client, 0, tm.tm_sec & 0x7f) < 0)
- 		|| (i2c_smbus_write_byte_data(save_client, 1, tm.tm_min & 0x7f)
- 			< 0)
-@@ -140,7 +141,7 @@ m41t00_set_tlet(ulong arg)
- 
- 		dev_warn(&save_client->dev,"m41t00: can't write to rtc chip\n");
- 
--	up(&m41t00_mutex);
-+	mutex_unlock(&m41t00_mutex);
- 	return;
- }
- 
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 1a2c9ab..9733443 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -31,12 +31,13 @@
- #include <linux/idr.h>
- #include <linux/seq_file.h>
- #include <linux/platform_device.h>
-+#include <linux/mutex.h>
- #include <asm/uaccess.h>
- 
- 
- static LIST_HEAD(adapters);
- static LIST_HEAD(drivers);
--static DECLARE_MUTEX(core_lists);
-+static DEFINE_MUTEX(core_lists);
- static DEFINE_IDR(i2c_adapter_idr);
- 
- /* match always succeeds, as we want the probe() to tell if we really accept this match */
-@@ -153,7 +154,7 @@ int i2c_add_adapter(struct i2c_adapter *
- 	struct list_head   *item;
- 	struct i2c_driver  *driver;
- 
--	down(&core_lists);
-+	mutex_lock(&core_lists);
- 
- 	if (idr_pre_get(&i2c_adapter_idr, GFP_KERNEL) = 0) {
- 		res = -ENOMEM;
-@@ -203,7 +204,7 @@ int i2c_add_adapter(struct i2c_adapter *
- 	}
- 
- out_unlock:
--	up(&core_lists);
-+	mutex_unlock(&core_lists);
- 	return res;
- }
- 
-@@ -216,7 +217,7 @@ int i2c_del_adapter(struct i2c_adapter *
- 	struct i2c_client *client;
- 	int res = 0;
- 
--	down(&core_lists);
-+	mutex_lock(&core_lists);
- 
- 	/* First make sure that this adapter was ever added */
- 	list_for_each_entry(adap_from_list, &adapters, list) {
-@@ -272,7 +273,7 @@ int i2c_del_adapter(struct i2c_adapter *
- 	dev_dbg(&adap->dev, "adapter [%s] unregistered\n", adap->name);
- 
-  out_unlock:
--	up(&core_lists);
-+	mutex_unlock(&core_lists);
- 	return res;
- }
- 
-@@ -289,7 +290,7 @@ int i2c_register_driver(struct module *o
- 	struct i2c_adapter *adapter;
- 	int res = 0;
- 
--	down(&core_lists);
-+	mutex_lock(&core_lists);
- 
- 	/* add the driver to the list of i2c drivers in the driver core */
- 	driver->driver.owner = owner;
-@@ -311,7 +312,7 @@ int i2c_register_driver(struct module *o
- 	}
- 
-  out_unlock:
--	up(&core_lists);
-+	mutex_unlock(&core_lists);
- 	return res;
- }
- EXPORT_SYMBOL(i2c_register_driver);
-@@ -324,7 +325,7 @@ int i2c_del_driver(struct i2c_driver *dr
- 	
- 	int res = 0;
- 
--	down(&core_lists);
-+	mutex_lock(&core_lists);
- 
- 	/* Have a look at each adapter, if clients of this driver are still
- 	 * attached. If so, detach them to be able to kill the driver 
-@@ -363,7 +364,7 @@ int i2c_del_driver(struct i2c_driver *dr
- 	pr_debug("i2c-core: driver [%s] unregistered\n", driver->driver.name);
- 
-  out_unlock:
--	up(&core_lists);
-+	mutex_unlock(&core_lists);
- 	return 0;
- }
- 
-@@ -779,12 +780,12 @@ struct i2c_adapter* i2c_get_adapter(int 
- {
- 	struct i2c_adapter *adapter;
- 	
--	down(&core_lists);
-+	mutex_lock(&core_lists);
- 	adapter = (struct i2c_adapter *)idr_find(&i2c_adapter_idr, id);
- 	if (adapter && !try_module_get(adapter->owner))
- 		adapter = NULL;
- 
--	up(&core_lists);
-+	mutex_unlock(&core_lists);
- 	return adapter;
- }
- 
--- 
-1.2.4
+Please check that the number of fan sensors and pwm outputs (FAN EQ 
+control) match the numbers in you bios, and report your results (both 
+success and failure) to me. Many thanks for testing.
 
+As always Instructions for using / building the driver can be found in 
+the file README.txt . You need to move Makefile.txt to Makefile and 
+abituguru.c.txt to abituguru.c I had to add a .txt extension to make the 
+mailinglist happy.
 
+Regards,
 
+Hans
+
+p.s.
+
+Sorry about the big post to the list, I just wanted to have everything 
+(makefile, driver, userspace patches, docs) together in the archives for 
+users looking / searching for uguru support.
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: COPYING.txt
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/COPYING-0001.txt
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: ChangeLog.txt
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/ChangeLog-0001.txt
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: Makefile.txt
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/Makefile-0001.txt
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: README.txt
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/README-0001.txt
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: abituguru.c.txt
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/abituguru.c-0001.txt
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: abituguru-datasheet.txt
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/abituguru-datasheet-0001.txt
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm_sensors-2.9.2-uguru.patch
+Type: text/x-patch
+Size: 15184 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/lm_sensors-2.9.2-uguru-0001.bin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm_sensors-2.10.0-uguru.patch
+Type: text/x-patch
+Size: 17805 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/lm_sensors-2.10.0-uguru-0001.bin
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: sysfs-interface-proposal.txt
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/sysfs-interface-proposal-0001.txt
