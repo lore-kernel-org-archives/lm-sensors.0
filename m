@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 10 Mar 2006 13:46:19 +0000
+Date: Fri, 10 Mar 2006 14:09:24 +0000
 Subject: [lm-sensors] Memory usage of sysfs files
-Message-Id: <20060310144619.24210e5b.khali@linux-fr.org>
+Message-Id: <20060310150924.cdd78efd.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.63.0603082311220.3051@Laila>
 In-Reply-To: <Pine.LNX.4.63.0603082311220.3051@Laila>
@@ -12,60 +12,68 @@ To: lm-sensors@vger.kernel.org
 
 Hi Hans,
 
-> > > With loops:
-> > > [hans at shalem uguru]$ ls -l abituguru.o abituguru.ko
-> > > -rw-rw-r-- 1 hans hans 232871 Mar  8 15:14 abituguru.ko
-> > > -rw-rw-r-- 1 hans hans 154472 Mar  8 15:14 abituguru.o
-> > >
-> > > Without loops:
-> > > [hans at shalem uguru]$ ls -l abituguru.o abituguru.ko
-> > > -rw-rw-r-- 1 hans hans 231191 Mar  9 21:12 abituguru.ko
-> > > -rw-rw-r-- 1 hans hans 152816 Mar  9 21:11 abituguru.o
-> > 
-> > These numbers are really too high, you must have some debugging option
-> > enabled. Please provide the same numbers without debugging so that the
-> > comparisons make more sense.
+> I've given this some more thought and I've decided against implementing 
+> my way for a couple of other drivers to be able to really measure the 
+> difference. I believe we agree my way is somewhat more efficient, but 
+> that the differences aren't big enough to swing the scales to my way 
+> only on the efficiency reasons.
 > 
-> Erm, how do I do that? Also they might be correct this is x86_64 which 
-> comes with almost twice as big code and: "wc -l abituguru.c" gives 1473.
+> Instead of spending more time coding test-cases I'd rather just see a 
+> decision soon and (if nescessarry) I'll update the uguru driver to match .
+> 
+> There are 2 arguments I would still like to make in favor of my way though:
+> 
+> 1) you initially did it this way too for atleast one driver. Remember, 
+> usually your first hunch is a good one.
 
-Granted, drivers are a bit larger on x86_64 but not to that extent. I
-have w83627hf.o around 35 kB on x86 and 51 kB on x86_64, for example.
+Doesn't work for me, it seems. See my automatic fan speed control
+interface :(
 
-Please check in your kernel configuration if you have some kernel-wide
-debugging option set. These options are under Kernel hacking > Kernel
-debugging (most of them are named CONFIG_DEBUG_*, but not all).
+If I did it that way for the f71805f, this was mostly suggested by the
+design of the chip itself. If you look at the code you'll see that it's
+really simple. This one chip was almost meant for your proposal. But
+for many other chips it wouldn't be that nice at all.
 
-I remember that Jim Cromie reported similarly incredible sizes when he
-was working on the pc87360 driver. I don't remember what the cause was
-(if I ever knew it).
+Also, I did this without really thinking of all the other features
+(separate high/low alarms, input faults, beeps, etc...) that other
+drivers would need, and ideas cannot always be generalized.
 
-> Sorry no figures, it just doesn't feel right todo all this opens / close 
-> if we can pass it all in one file. Also be aware that each open and each 
-> read and each close will cause a userspace <-> kernel space context 
-> switch syscalls are expensive. Doing this the lots of files way just 
-> doesn't feel right for me (I've learned programming on a 8051, so 9k 
-> additional data is _huge_ to me).
+> 2) I've also written support for libsensors and the sensors application 
+> when doing things my way and that fits nicely. I'm afraid that the many 
+> files way will be a problem with the current libsensors. I don't want to 
+> now wath the lib and the progs chips.* will look like. 100+ additional 
+> entries for the uguru alone! And I don't think the chip specific reading 
+> and report code in the sensors application will get any pretter too.
 
-Well we're not talking about 8051 here (whatever it is) so we have to
-think in terms of hardware which actually runs Linux, and 9 additional
-kB really isn't much in that respect (or at least not enough to
-invalidate my proposed interface.)
+This will look fat and ugly, no matter which alarms interface we go
+with. This is due to the broken design of libsensors, there's not much
+we can do until then. And this isn't specific to the uguru either.
 
-However, your point about context switching is interesting. I have to
-admit I did not think about it at all until now. Greg, can you please
-comment on this point? Imagine that we have 200 sysfs files total for a
-driver, and an application which is polling half of them every two
-seconds, this means an average 50 such context switches per second.
-Does it sound bad?
+Having seperate alarm files would simply cause you to pass feature IDs
+for alarms instead of pre-computed booleans to print_abituguru_in and
+friends. It really doesn't change much in terms of number of lines of
+code, just try it.
 
-(As a side question, I am wondering if inotify could be used instead of
-polling here? Does inotify work on sysfs? If so maybe this addresses
-Hans' objection altogether.)
+> Now I know that libsensors is destined to be replaced, but it will be 
+> around for a while I think.
 
-Greg, you pointed our that there were large amounts of sysfs files in
-other areas of the kernel, however do these other areas repeatedly poll
-the values found in these sysfs files, like we do to the hwmon drivers?
+True, but the new interface is clearly meant for the future library, so
+I really don't care if it looks less than optimal for the old library.
+
+> I've attached a patch adding support for the uguru to both lib and prog 
+> with alarm reporting to give you an idea how this will look like when 
+> doing things my way. Please note that this patch needs updating for
+> 2.10 / cvs and thus won't apply.
+
+You may spare some lines in lib/chips.h by defining feature IDs as
+parametrized macros rather than constants. Given that this is how you
+end up using these values, this would be cleaner too. That's what I
+did for the f71805f, if you want to take a look.
+
+Also, I invite you to leave some room after each set of values. Having
+SENSORS_ABITUGURU_IN10 = 11 and SENSORS_ABITUGURU_IN0_MIN = 12 doesn't
+look good at all - what will you do if the next version of the uguru
+has a 12th voltage input?
 
 Thanks,
 -- 
