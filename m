@@ -1,62 +1,145 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 23 Mar 2006 22:43:51 +0000
-Subject: [lm-sensors] [PATCH 22/36] hwmon: Support the Pentium M VID code
-Message-Id: <11431538312989-git-send-email-gregkh@suse.de>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Fri, 10 Mar 2006 17:42:43 +0000
+Subject: [lm-sensors] [patch 0/2] hwmon: add a superio_locks coordinator
+Message-Id: <4411BA93.6000605@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Add support for the Intel Pentium M series to the hwmon-vid driver.
-
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Cc: Rudolf Marek <r.marek at sh.cvut.cz>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
----
-
- drivers/hwmon/hwmon-vid.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
-
-4c537fb287e68b84df685f4730348e83a163367b
-diff --git a/drivers/hwmon/hwmon-vid.c b/drivers/hwmon/hwmon-vid.c
-index e497274..a74a44f 100644
---- a/drivers/hwmon/hwmon-vid.c
-+++ b/drivers/hwmon/hwmon-vid.c
-@@ -54,6 +54,10 @@
-     (IMVP-II). You can find more information in the datasheet of Max1718
-     http://www.maxim-ic.com/quick_view2.cfm/qv_pk/2452
- 
-+    The 13 specification corresponds to the Intel Pentium M series. There
-+    doesn't seem to be any named specification for these. The conversion
-+    tables are detailed directly in the various Pentium M datasheets:
-+    http://www.intel.com/design/intarch/pentiumm/docs_pentiumm.htm
- */
- 
- /* vrm is the VRM/VRD document version multiplied by 10.
-@@ -100,6 +104,8 @@ int vid_from_reg(int val, u8 vrm)
- 	case 17:		/* Intel IMVP-II */
- 		return(val & 0x10 ? 975 - (val & 0xF) * 25 :
- 				    1750 - val * 50);
-+	case 13:
-+		return(1708 - (val & 0x3f) * 16);
- 	default:		/* report 0 for unknown */
- 		printk(KERN_INFO "hwmon-vid: requested unknown VRM version\n");
- 		return 0;
-@@ -129,8 +135,9 @@ struct vrm_model {
- static struct vrm_model vrm_models[] = {
- 	{X86_VENDOR_AMD, 0x6, ANY, ANY, 90},		/* Athlon Duron etc */
- 	{X86_VENDOR_AMD, 0xF, ANY, ANY, 24},		/* Athlon 64, Opteron and above VRM 24 */
--	{X86_VENDOR_INTEL, 0x6, 0x9, ANY, 85},		/* 0.13um too */
-+	{X86_VENDOR_INTEL, 0x6, 0x9, ANY, 13},		/* Pentium M (130 nm) */
- 	{X86_VENDOR_INTEL, 0x6, 0xB, ANY, 85},		/* Tualatin */
-+	{X86_VENDOR_INTEL, 0x6, 0xD, ANY, 13},		/* Pentium M (90 nm) */
- 	{X86_VENDOR_INTEL, 0x6, ANY, ANY, 82},		/* any P6 */
- 	{X86_VENDOR_INTEL, 0x7, ANY, ANY, 0},		/* Itanium */
- 	{X86_VENDOR_INTEL, 0xF, 0x0, ANY, 90},		/* P4 */
--- 
-1.2.4
+Rudolf Marek wrote:
+> Hello
+>
+> Sorry for the delay I have been rather busy with the school finishing stuff.
+> And now my comments. I studied both patches and I really like a simplistic aproach
+>
+>   
+thanks.  I also just noticed your reply.
 
 
+> So far I know sio is used in:
+>
+> mmc card driver wbsd.c
+> parallel port drivers parport_pc.c
+> several watchdog drivers
+> irda drivers
+>
+> After studying those drivers and your minimalistic approach in mind I came to this conclusion
+>
+> what about to create this API:
+>
+>   
+How well does this API fit those drivers you surveyed ?
+Is it a loose combo of the uses you saw, or a more formal one ?
+I did my strawman in a vacuum, and I need to go look at those drivers
+(I havent yet, I wanted to answer 1st )  thanks for IDg them
+
+> unlock_seq[] = {0x87,0x87,0x00} maybe 0x00 to terminate the list?
+>
+>   
+I dont get what unlock_seq is for.
+> sio_enter(u8 port, u8 *unlock_seq)
+> sio_exit(u8 port, u8 *lock_seq)
+> sio_inb(u8 port)
+> sio_outb(u8 port, u8 val)
+> sio_select(u8 port, u8 ldn)
+>
+>   
+
+Ive also been a little sloppy with sio vs superio names,
+(pc87360 has superio_inb, superio_outb, superio_exit
+I hope this hasn't confused anything.
+
+I'll infer that you used sio_* as non-conflicting names that the 
+mentioned drivers
+could easily be patched to use.
+
+
+> Now the big thing ;) the semaphore/mutex for the access locking would be hidden in sio_enter
+> and sio_exit
+>
+>   
+Im not sure hiding them has any value - exposing the locking lets the 
+driver do it
+for its needs - a driver (forex pc87360) could (not unreasonably) lock 
+the sio,
+then scan all its sensors, then unlock.
+Im not saying thats how pc87360 should do it, just that the driver writer
+can reasonably make the max-latency vs speed tradeoff.
+
+you chose enter/exit  as your locking primitives.  This seems less 
+obvious than
+lock/unlock, I presume your names are taken from their presence in the 
+drivers you surveyed.
+
+FWIW, superio_exit in pc87360 looks like this:
+
+static inline void superio_exit(int sioaddr)
+{
+        outb(0x02, sioaddr);
+        outb(0x02, sioaddr+1);
+}
+
+I dont know whether that 02 value is something that is chip specific,
+or whether its semi-standard in the world of superio-chips.
+
+
+> there could be just some port-> index mapping so you will try to lock/unlock just a lock to right address
+> This would solve all problems with concurrent access.
+>
+>   
+Im not sure what you mean here - It sounds vaguely like what I proposed 
+/ intended
+with get_sio_gate()
+
+
+> This approach should work and it is consistent with the idea of SIO, just enter the configuration space,
+> alter something and exit... Just lock it between enter and exit.
+>
+> The locking in some other places cannot be done because the drivers can switch the bank and this is
+> not good. They can try to lock/unlock the sio itself. This approach will solve those problems...
+>
+>   
+I dont follow you.   One reason to make the sio_lock/unlock explicit is to
+avoid the hassles with bank switching etc -
+In diff.use*locks*.alpha-hilock  (patch 2 - flavor 1)
+I take the lock once, and all sensor-scan accesses do the bank switching
+they need to once, rather than re-doing it each time, just in case someone
+else 'simultaneously' used the SIO and changed the bank out from under us.
+
+
+> What do you say? If you like it maybe you can implement it or come with something else...
+>
+>   
+Thanks for the dialog,  Id like to continue it, and eventually come up 
+with a patch.
+I have a semi-clear idea what I was proposing, Im less clear on what you 
+are thinking.
+Could you go back over my bullet items, and comment on each that 
+warrants it ?
+
+Forex:
+do you like/dislike the struct superio_gate ?
+   - I do, the new type gives some manner of type-safety,
+    semantic separation from other uses of SIO port
+
+Do you think the gate metaphor works ?
+locks themselves dont have addresses, but when installed into doors etc
+in your home, they protect stuff there.
+
+do you think the singleton aspect works to coordinate SIO-port using 
+drivers ?
+
+Im gonna look at those drivers you mentioned,
+to see if I glean the same API that you have.
+
+> Regards
+> Rudolf
+>
+>   
+
+
+thanks,
+jimc
 
