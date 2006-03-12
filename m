@@ -1,41 +1,39 @@
-From: greg@kroah.com (Greg KH)
-Date: Fri, 24 Mar 2006 17:49:01 +0000
-Subject: [lm-sensors] [KJ] Re: [PATCH] Clean up magic numbers in
-Message-Id: <20060324174901.GA27881@kroah.com>
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Sun, 12 Mar 2006 13:02:45 +0000
+Subject: [lm-sensors] Updated new Abit uGuru (lm_sensors) driver please test!
+Message-Id: <44141BF5.8040809@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060323205617.38e02afe.khali@linux-fr.org> <000e01c64efd$cae7f750$8401000a@fakie> <20060324082600.ca9f9796.khali@linux-fr.org>
-In-Reply-To: <20060324082600.ca9f9796.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Christopher Hoover <ch@murgatroid.com>, Andrew Morton <akpm@osdl.org>, kernel-janitors@lists.osdl.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Fri, Mar 24, 2006 at 08:26:00AM +0100, Jean Delvare wrote:
-> Hi Christopher,
-> 
-> > > Beeuh. These macros don't really help. They actually make the lines
-> > > longer! I'm not taking this change, sorry.
-> > 
-> > If I kill off the macros but continue to use C99 structure initializers,
-> > which is I believe is the proper kernel coding style today, the lines are
-> > going to get even longer.  Is that OK?
-> > 
-> > Or are you asking for the patch w/o macros and w/o C99 structure
-> > initializers?
-> > 
-> > I can/will do either.  Just let me know what is acceptable a priori.
-> 
-> I don't think C99 initializers are needed here, the structure is pretty
-> simple and is also defined in the same file, a few lines above all its
-> instance declarations. So I am indeed asking for a patch w/o macros and
-> w/o C99 structure initializers, unless someone objects.
+Hi all,
 
-You should use structure initializers whereever possible, as it makes
-future changes much easier and safer (reorder the fields and things
-don't break in odd ways.)  So I would encourage this kind of change.
+As feared there were some problems with the #pwm and #sensor detection.
+Attached is a new version. Which also contains a fix for not compiling
+on less then bleeding edge kernels.
 
-thanks,
+Changes:
+version 1.1.6:
+-put the wait for alarm time in bank1 sensor type detect code for voltage
+   sensor test back to 20ms, as according to the reporter only the temp test
+   duration needs to be raised.
+-except 0x40 (bit 6) being high as a valid fan sensor setting, I don't
+   know what this bit does, but it is being reported high for fan1 on some
+   motherboards. Currently this bit is only excepted for fan1, but that 
+might
+   change.
+-use 77 (30%) as minimal allowed pwm%, but for pwm1 only.
 
-greg k-h
+Please test as usual, and many thanks!
 
+Regards,
+
+Hans
+
+
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: abituguru.c.txt
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060312/86942704/abituguru.c-0001.txt
