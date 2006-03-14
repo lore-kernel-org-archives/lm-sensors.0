@@ -1,268 +1,69 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 23 Mar 2006 22:43:50 +0000
-Subject: [lm-sensors] [PATCH 05/36] i2c: scx200_acb whitespace and comment
-Message-Id: <11431538302654-git-send-email-gregkh@suse.de>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Tue, 14 Mar 2006 03:47:15 +0000
+Subject: [lm-sensors] using primitive i2c/parallel port method (i2c-pport)
+Message-Id: <20060314034715.GA19400@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-scx200_acb: Whitespace and comment cleanup
+Hi all:
 
-Signed-off-by: Ben Gardner <bgardner at wabtec.com>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+I did a quick-n-dirty port to Linux 2.6.x of i2c-pport.c (from CVS/2.4.x)
+which can be found here:
 
----
+http://members.dca.net/mhoffman/sensors/temp/20060313/
 
- drivers/i2c/busses/scx200_acb.c |   90 +++++++++++++++++++--------------------
- 1 files changed, 43 insertions(+), 47 deletions(-)
+That works well enough, with one hint from Jean Delvare to set "standard"
+mode in the BIOS.  But clearly, this code is not suitable for merging.
 
-99c3adb4d5a2d0727d656f32d5de885581d3feec
-diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
-index d3478e0..f45779b 100644
---- a/drivers/i2c/busses/scx200_acb.c
-+++ b/drivers/i2c/busses/scx200_acb.c
-@@ -1,27 +1,25 @@
--/*  linux/drivers/i2c/scx200_acb.c 
--
-+/*
-     Copyright (c) 2001,2002 Christer Weinigel <wingel at nano-system.com>
- 
-     National Semiconductor SCx200 ACCESS.bus support
--    
-+
-     Based on i2c-keywest.c which is:
-         Copyright (c) 2001 Benjamin Herrenschmidt <benh at kernel.crashing.org>
-         Copyright (c) 2000 Philip Edelbrock <phil at stimpy.netroedge.com>
--    
-+
-     This program is free software; you can redistribute it and/or
-     modify it under the terms of the GNU General Public License as
-     published by the Free Software Foundation; either version 2 of the
-     License, or (at your option) any later version.
--   
-+
-     This program is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-     General Public License for more details.
--   
-+
-     You should have received a copy of the GNU General Public License
-     along with this program; if not, write to the Free Software
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
--
- */
- 
- #include <linux/module.h>
-@@ -79,8 +77,7 @@ static const char *scx200_acb_state_name
+So I tried to port this adapter to i2c-parport/i2c-parport-light [1].  I had
+no success at all using i2c-parport... the voltages looked wrong again, as
+if it puts the port back into one of the enhanced modes.
+
+With i2c-parport-light, it almost works.  The signals look good... but
+always one bit gets corrupted on reads.  My only guess is that the getscl
+method is not working properly... so that the master ignores the slave's
+clock stretching.
+
+Another note: I can use i2c-pport, then remove it and insert i2c-parport-light,
+then go back to i2c-pport as often as I want without rebooting... but always
+the former works and the latter does not.  Whereas, if I load i2c-parport even
+once, nothing works again until after a reboot.
+
+I am no expert on PC parallel ports.  I would definitely appreciate some
+advice about this.
+
+[1] Here's the patch I am using:
+
+--- linux-2.6.16-rc6.orig/drivers/i2c/busses/i2c-parport.h
++++ linux-2.6.16-rc6/drivers/i2c/busses/i2c-parport.h
+@@ -88,6 +88,13 @@ static struct adapter_parm adapter_parm[
+ 		.getscl	= { 0x40, STAT, 0 },
+ 		.init	= { 0xfc, DATA, 0 },
+ 	},
++	/* type 7: Primitive +5V 'pport' adapter */
++	{
++		.setsda = { 0x02, CTRL, 1 },
++		.getsda = { 0x02, CTRL, 1 },
++		.setscl = { 0x04, CTRL, 0 },
++		.getscl = { 0x04, CTRL, 0 },
++	},
  };
  
- /* Physical interface */
--struct scx200_acb_iface
--{
-+struct scx200_acb_iface {
- 	struct scx200_acb_iface *next;
- 	struct i2c_adapter adapter;
- 	unsigned base;
-@@ -100,7 +97,7 @@ struct scx200_acb_iface
- #define ACBSDA		(iface->base + 0)
- #define ACBST		(iface->base + 1)
- #define    ACBST_SDAST		0x40 /* SDA Status */
--#define    ACBST_BER		0x20 
-+#define    ACBST_BER		0x20
- #define    ACBST_NEGACK		0x10 /* Negative Acknowledge */
- #define    ACBST_STASTR		0x08 /* Stall After Start */
- #define    ACBST_MASTER		0x02
-@@ -109,9 +106,9 @@ struct scx200_acb_iface
- #define ACBCTL1		(iface->base + 3)
- #define    ACBCTL1_STASTRE	0x80
- #define    ACBCTL1_NMINTE	0x40
--#define	   ACBCTL1_ACK		0x10
--#define	   ACBCTL1_STOP		0x02
--#define	   ACBCTL1_START	0x01
-+#define    ACBCTL1_ACK		0x10
-+#define    ACBCTL1_STOP		0x02
-+#define    ACBCTL1_START	0x01
- #define ACBADDR		(iface->base + 4)
- #define ACBCTL2		(iface->base + 5)
- #define    ACBCTL2_ENABLE	0x01
-@@ -122,7 +119,7 @@ static void scx200_acb_machine(struct sc
- {
- 	const char *errmsg;
- 
--	DBG("state %s, status = 0x%02x\n", 
-+	DBG("state %s, status = 0x%02x\n",
- 	    scx200_acb_state_name[iface->state], status);
- 
- 	if (status & ACBST_BER) {
-@@ -160,10 +157,10 @@ static void scx200_acb_machine(struct sc
- 	case state_repeat_start:
- 		outb(inb(ACBCTL1) | ACBCTL1_START, ACBCTL1);
- 		/* fallthrough */
--		
-+
- 	case state_quick:
- 		if (iface->address_byte & 1) {
--			if (iface->len = 1) 
-+			if (iface->len = 1)
- 				outb(inb(ACBCTL1) | ACBCTL1_ACK, ACBCTL1);
- 			else
- 				outb(inb(ACBCTL1) & ~ACBCTL1_ACK, ACBCTL1);
-@@ -202,17 +199,17 @@ static void scx200_acb_machine(struct sc
- 			outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
- 			break;
- 		}
--		
-+
- 		outb(*iface->ptr++, ACBSDA);
- 		--iface->len;
--		
-+
- 		break;
- 	}
- 
- 	return;
- 
-  negack:
--	DBG("negative acknowledge in state %s\n", 
-+	DBG("negative acknowledge in state %s\n",
- 	    scx200_acb_state_name[iface->state]);
- 
- 	iface->state = state_idle;
-@@ -231,7 +228,7 @@ static void scx200_acb_machine(struct sc
- 	iface->needs_reset = 1;
- }
- 
--static void scx200_acb_timeout(struct scx200_acb_iface *iface) 
-+static void scx200_acb_timeout(struct scx200_acb_iface *iface)
- {
- 	dev_err(&iface->adapter.dev, "timeout in state %s\n",
- 		scx200_acb_state_name[iface->state]);
-@@ -264,7 +261,7 @@ static void scx200_acb_poll(struct scx20
- static void scx200_acb_reset(struct scx200_acb_iface *iface)
- {
- 	/* Disable the ACCESS.bus device and Configure the SCL
--           frequency: 16 clock cycles */
-+	   frequency: 16 clock cycles */
- 	outb(0x70, ACBCTL2);
- 	/* Polling mode */
- 	outb(0, ACBCTL1);
-@@ -283,9 +280,9 @@ static void scx200_acb_reset(struct scx2
- }
- 
- static s32 scx200_acb_smbus_xfer(struct i2c_adapter *adapter,
--				u16 address, unsigned short flags,	
--				char rw, u8 command, int size, 
--				union i2c_smbus_data *data)
-+				 u16 address, unsigned short flags,
-+				 char rw, u8 command, int size,
-+				 union i2c_smbus_data *data)
- {
- 	struct scx200_acb_iface *iface = i2c_get_adapdata(adapter);
- 	int len;
-@@ -295,9 +292,10 @@ static s32 scx200_acb_smbus_xfer(struct 
- 
- 	switch (size) {
- 	case I2C_SMBUS_QUICK:
--	    	len = 0;
--	    	buffer = NULL;
--	    	break;
-+		len = 0;
-+		buffer = NULL;
-+		break;
-+
- 	case I2C_SMBUS_BYTE:
- 		if (rw = I2C_SMBUS_READ) {
- 			len = 1;
-@@ -306,22 +304,26 @@ static s32 scx200_acb_smbus_xfer(struct 
- 			len = 1;
- 			buffer = &command;
- 		}
--	    	break;
-+		break;
-+
- 	case I2C_SMBUS_BYTE_DATA:
--	    	len = 1;
--	    	buffer = &data->byte;
--	    	break;
-+		len = 1;
-+		buffer = &data->byte;
-+		break;
-+
- 	case I2C_SMBUS_WORD_DATA:
- 		len = 2;
--	    	cur_word = cpu_to_le16(data->word);
--	    	buffer = (u8 *)&cur_word;
-+		cur_word = cpu_to_le16(data->word);
-+		buffer = (u8 *)&cur_word;
- 		break;
-+
- 	case I2C_SMBUS_BLOCK_DATA:
--	    	len = data->block[0];
--	    	buffer = &data->block[1];
-+		len = data->block[0];
-+		buffer = &data->block[1];
- 		break;
-+
- 	default:
--	    	return -EINVAL;
-+		return -EINVAL;
- 	}
- 
- 	DBG("size=%d, address=0x%x, command=0x%x, len=%d, read=%d\n",
-@@ -370,7 +372,7 @@ static s32 scx200_acb_smbus_xfer(struct 
- 	up(&iface->sem);
- 
- 	if (rc = 0 && size = I2C_SMBUS_WORD_DATA && rw = I2C_SMBUS_READ)
--	    	data->word = le16_to_cpu(cur_word);
-+		data->word = le16_to_cpu(cur_word);
- 
- #ifdef DEBUG
- 	DBG(": transfer done, result: %d", rc);
-@@ -406,7 +408,7 @@ static int scx200_acb_probe(struct scx20
- 	u8 val;
- 
- 	/* Disable the ACCESS.bus device and Configure the SCL
--           frequency: 16 clock cycles */
-+	   frequency: 16 clock cycles */
- 	outb(0x70, ACBCTL2);
- 
- 	if (inb(ACBCTL2) != 0x70) {
-@@ -459,7 +461,8 @@ static int  __init scx200_acb_create(int
- 
- 	init_MUTEX(&iface->sem);
- 
--	snprintf(description, sizeof(description), "NatSemi SCx200 ACCESS.bus [%s]", adapter->name);
-+	snprintf(description, sizeof(description),
-+		 "NatSemi SCx200 ACCESS.bus [%s]", adapter->name);
- 	if (request_region(base, 8, description) = 0) {
- 		dev_err(&adapter->dev, "can't allocate io 0x%x-0x%x\n",
- 			base, base + 8-1);
-@@ -528,6 +531,7 @@ static int __init scx200_acb_init(void)
- static void __exit scx200_acb_cleanup(void)
- {
- 	struct scx200_acb_iface *iface;
-+
- 	lock_kernel();
- 	while ((iface = scx200_acb_list) != NULL) {
- 		scx200_acb_list = iface->next;
-@@ -543,11 +547,3 @@ static void __exit scx200_acb_cleanup(vo
- 
- module_init(scx200_acb_init);
- module_exit(scx200_acb_cleanup);
--
--/*
--    Local variables:
--        compile-command: "make -k -C ../.. SUBDIRS=drivers/i2c modules"
--        c-basic-offset: 8
--    End:
--*/
--
--- 
-1.2.4
+ static int type;
+@@ -101,4 +108,5 @@ MODULE_PARM_DESC(type,
+ 	" 4 = ADM1032 evaluation board\n"
+ 	" 5 = ADM1025, ADM1030 and ADM1031 evaluation boards\n"
+ 	" 6 = Barco LPT->DVI (K5800236) adapter\n"
++	" 7 = Primitive +5V 'pport' adapter\n"
+ );
 
+Thanks & regards,
+
+-- 
+Mark M. Hoffman
+mhoffman at lightlink.com
 
 
