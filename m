@@ -1,59 +1,44 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 23 Mar 2006 22:43:51 +0000
-Subject: [lm-sensors] [PATCH 24/36] w83781d: Document the alarm and beep bits
-Message-Id: <11431538313516-git-send-email-gregkh@suse.de>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Wed, 15 Mar 2006 03:52:12 +0000
+Subject: [lm-sensors] [PATCH 2.6.16-rc6] i2c: remove a log message from
+Message-Id: <20060315035212.GB21733@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Document the individual alarm and beep bits of the w83781d driver.
-Ideally we would offer a chip-independant interface for them, but
-until it's done, it's only fair that we document the current
-interface.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+This patch removes an init-time kernel log message.
+http://marc.theaimsgroup.com/?l=linux-kernel&m4232987208628&w=3
 
----
+Signed-off-by: Mark M. Hoffman <mhoffman at lightlink.com>
 
- Documentation/hwmon/w83781d |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
-
-41fc49337d7779eefb6b5e85a8a3cd9e11e9de08
-diff --git a/Documentation/hwmon/w83781d b/Documentation/hwmon/w83781d
-index e545933..ac155d8 100644
---- a/Documentation/hwmon/w83781d
-+++ b/Documentation/hwmon/w83781d
-@@ -123,6 +123,25 @@ When an alarm goes off, you can be warne
- your computer speaker. It is possible to enable all beeping globally,
- or only the beeping for some alarms.
+--- linux-2.6.16-rc6.orig/drivers/i2c/busses/i2c-sis96x.c
++++ linux-2.6.16-rc6/drivers/i2c/busses/i2c-sis96x.c
+@@ -43,13 +43,6 @@
+ #include <linux/init.h>
+ #include <asm/io.h>
  
-+Individual alarm and beep bits:
-+
-+0x000001: in0
-+0x000002: in1
-+0x000004: in2
-+0x000008: in3
-+0x000010: temp1
-+0x000020: temp2 (+temp3 on W83781D)
-+0x000040: fan1
-+0x000080: fan2
-+0x000100: in4
-+0x000200: in5
-+0x000400: in6
-+0x000800: fan3
-+0x001000: chassis
-+0x002000: temp3 (W83782D and W83627HF only)
-+0x010000: in7 (W83782D and W83627HF only)
-+0x020000: in8 (W83782D and W83627HF only)
-+
- If an alarm triggers, it will remain triggered until the hardware register
- is read at least once. This means that the cause for the alarm may
- already have disappeared! Note that in the current implementation, all
+-/*
+-	HISTORY:
+-	2003-05-11	1.0.0 	Updated from lm_sensors project for kernel 2.5
+-				(was i2c-sis645.c from lm_sensors 2.7.0)
+-*/
+-#define SIS96x_VERSION "1.0.0"
+-
+ /* base address register in PCI config space */
+ #define SIS96x_BAR 0x04
+ 
+@@ -337,7 +330,6 @@ static struct pci_driver sis96x_driver  
+ static int __init i2c_sis96x_init(void)
+ {
+-	printk(KERN_INFO "i2c-sis96x version %s\n", SIS96x_VERSION);
+ 	return pci_register_driver(&sis96x_driver);
+ }
+ 
 -- 
-1.2.4
-
+Mark M. Hoffman
+mhoffman at lightlink.com
 
 
