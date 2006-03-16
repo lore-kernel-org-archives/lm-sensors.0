@@ -1,27 +1,45 @@
-From: mgreer@mvista.com (Mark A. Greer)
-Date: Fri, 24 Mar 2006 01:14:38 +0000
-Subject: [lm-sensors] [PATCH 1/1] i2c: m41txx driver for ST i2c RTC chips
-Message-Id: <20060324011438.GB9560@mag.az.mvista.com>
+From: bhayward@gmail.com (Brian Hayward)
+Date: Thu, 16 Mar 2006 07:33:44 +0000
+Subject: [lm-sensors] DFI Lan Party SLI-DR Expert shuts off when it87 is
+Message-Id: <a33b5feb0603152333t5f7dcc28i24b235e39d595706@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060217011359.GA16247@mag.az.mvista.com>
-In-Reply-To: <20060217011359.GA16247@mag.az.mvista.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Thu, Mar 23, 2006 at 01:38:43PM -0700, Mark A. Greer wrote:
-> On Thu, Mar 23, 2006 at 09:08:56PM +0100, Jean Delvare wrote:
+First off, when running sensors-detect, if I select "yes" for the next
+question, the computer turns off.
+Next adapter: SMBus nForce2 adapter at 1c40
+Do you want to scan it? (YES/no/selectively):
 
-> > I know it means more work for you and I'm sorry about that, but it's
-> > also the only way for me to give proper review to all the changes.
-> 
-> No problem, Jean.  Thanks for the comments.  I'll post the new patches
-> asap.
+The computer just powers down, as if I turned the switch off.  No warning or
+anything.
 
-Okay, they're done.  I've broken the patch up and I will submit them in
-subsequent emails.  I will give each of them a unique subject to reply
-to this thread so you mail client should still be able to thread them.
+If I select NO to the 1c40 nForc2 option and then YES to all others - the
+computer does not power off until I modprobe it87.
 
-Mark
+I've tried:
+   modprobe it87
+   modprobe it87 force_it87=9191,0x290
+Same problem either way, immediate shutdown.
 
+Checking the messages file after bootup, these are the last entrys before
+the shutdown:
+
+Mar 16 01:13:14 kobold kernel: i2c /dev entries driver
+Mar 16 01:19:09 kobold kernel: it87: Found IT8712F chip at 0x290, revision 7
+
+Then I get messages from booting back up.
+
+If I load all suggested modules _except_ it87, it does not shut down and it
+also does not show any CPU/Fanspeed redouts when I type "sensors".
+
+Do you have any suggestions?
+
+Thanks,
+Brian Hayward
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060316/=
+d289f03b/attachment.html
