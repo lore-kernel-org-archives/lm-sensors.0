@@ -1,7 +1,7 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 16 Mar 2006 23:29:40 +0000
+From: galak@kernel.crashing.org (Kumar Gala)
+Date: Thu, 16 Mar 2006 23:39:06 +0000
 Subject: [lm-sensors] i2c-virtual in 2.6?
-Message-Id: <20060316232940.GC12408@suse.de>
+Message-Id: <4AFED3C4-6389-4B70-9375-D24D69878259@kernel.crashing.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1D5ED714-FC68-4E82-9619-15C62CBED628@kgala.com>
 In-Reply-To: <1D5ED714-FC68-4E82-9619-15C62CBED628@kgala.com>
@@ -10,8 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Mar 16, 2006 at 01:15:47PM -0600, Kumar Gala wrote:
-> Has anyone ported the i2c-virtual code over 2.6?
 
-Not that I know of.
+On Mar 16, 2006, at 5:29 PM, Greg KH wrote:
+
+> On Thu, Mar 16, 2006 at 01:15:47PM -0600, Kumar Gala wrote:
+>> Has anyone ported the i2c-virtual code over 2.6?
+>
+> Not that I know of.
+
+thanks.  I'll look at porting it 2.6.  It seems that the adapter- 
+ >bus_lock is going to be the biggest issue.  How evil is it to call  
+adapter->algo->master_xfer directly instead of i2c_transfer?
+
+- kumar
 
