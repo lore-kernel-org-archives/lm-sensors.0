@@ -1,139 +1,60 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 16 Mar 2006 03:59:16 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 16 Mar 2006 08:46:51 +0000
 Subject: [lm-sensors] sis96x compiled in by error: delay of one minute
-Message-Id: <20060316035916.GA10675@jupiter.solarsys.private>
+Message-Id: <3ZH07HE0.1142498811.4526410.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060315034625.GA21733@jupiter.solarsys.private> <zJe6kSDV.1142413307.3312800.khali@localhost>
-In-Reply-To: <zJe6kSDV.1142413307.3312800.khali@localhost>
+In-Reply-To: <20060316035916.GA10675@jupiter.solarsys.private>
+References: <20060316035916.GA10675@jupiter.solarsys.private>
+In-Reply-To: <20060316035916.GA10675@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: linux-kernel@vger.kernel.org, Etienne Lorrain <etienne_lorrain@yahoo.fr>, lm-sensors <lm-sensors@lm-sensors.org>
+To: linux-kernel@vger.kernel.org
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, Etienne Lorrain <etienne_lorrain@yahoo.fr>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Hi Jean:
 
-(cc'ed lm-sensors ML)
+Hi Mark,
 
-[user reports waiting ~23 seconds for i2c/hwmon stuff to init in a
-monolithic kernel build]
+On 2006-03-16, Mark M. Hoffman wrote:
+> Here's a start: why does i2c-parport[-light] have a default adapter
+> type?
 
-> On 2006-03-15, Mark M. Hoffman wrote:
-> > Wow, that's a huge delay.  One alternative would be for i2c slaves to
-> > behave more like USB and do the probing asynchronous to driver load;
-> > i.e. 'modprobe w83627hf' returns before the chip is actually recognized
-> > and attached.
-> 
-* Jean Delvare <khali at linux-fr.org> [2006-03-15 10:01:47 +0100]:
-> You mean that the i2c subsystem would finally be rewritten from scratch
-> to comply with the driver model? I'm waiting for your patches :)
+I think I made it look as closely as possible like the old
+i2c-philips-par driver, which is was replacing, so that users could
+switch with the least effort.
 
-Heh, 'spose I asked for that.
+> Loading it with the default could be considered an accident by
+> definition. It takes ~6 seconds to load all of
+> kernel/drivers/hwmon/*.ko on a test box here with i2c-parport-light
+> present (but without any adapter hardware). With this patch, that
+> drops to ~1 second.
 
-> > OTOH, that brings up all the related problems.  E.g., you could no longer
-> > expect this simple fragment of a RC script to work...
-> >
-> >	modprobe i2c-sis96x
-> >	modprobe asb100
-> >	sensors -s
-> 
-> I guess we would have to use hotplug instead then.
-> 
-> > Short of fixing all that... one has to accept that (1) i2c bus probing
-> > is slow, and (2) some i2c busses themselves are not reliably
-> > detectable...
-> 
-> Things can be improved still. The busses which cannot be reliably
-> detected could test themselves, and discard themselves if they find they
-> don't work. This is much the spirit of the bit_test parameter of the
-> i2c-algo-bit module; it could be made the default. i2c-algo-pca could be
-> added a similar option.
-> 
-> Also, the i2c subsystem is currently relying on general probing for
-> almost everything. Whenever you load an i2c chip driver, it'll probe
-> all the i2c busses for supported chips. We tried to limit the probing
-> area by introducing the concept of "classes", and we now only probe
-> the busses which share a class with the i2c chip driver. Not all drivers
-> have been modified to take benefit of that class check though, and the
-> i2c core doesn't enforce it at the moment; it is all based on drivers
-> cooperation. So there is room for improvement here.
-> 
-> Last, sometimes you know exactly where the chip is, yet the i2c core
-> doesn't offer a way to skip the probing step and attach the driver
-> directly to the device. I'm working on a way to do that, and hope to
-> have something ready to show soon. This should speed up the driver load
-> quite a bit.
+Note that the same result could be achieved by using
+i2c_algo_bit.bit_test=1, which is why I was suggesting to make it the
+default. Doing so would also help the radeonfb driver users: this one
+creates up to 4 i2c busses and at least one does not work for me (I
+guess it depends on how the chip was wired on the graphics adapter),
+causing significant delays on when loading i2c chip drivers afterwards.
 
-Here's a start: why does i2c-parport[-light] have a default adapter type?
-Loading it with the default could be considered an accident by definition.
-It takes ~6 seconds to load all of kernel/drivers/hwmon/*.ko on a test box
-here with i2c-parport-light present (but without any adapter hardware).
-With this patch, that drops to ~1 second.
+I wonder if i2c_algo_bit.bit_test=1 can cause problems. Why wasn't it
+made the default in the first place?
 
----
+> This patch forces the user to specify what type of adapter is present
+> when loading i2c-parport or i2c-parport-light.  If none is specified,
+> the driver init simply fails - instead of assuming adapter type 0.
+>
+> This alleviates the sometimes lengthy boot time delays which can be
+> caused by accidentally building one of these into a kernel along with
+> several i2c slave drivers that have lengthy probe routines (e.g. hwmon
+> drivers).
 
-This patch forces the user to specify what type of adapter is present when
-loading i2c-parport or i2c-parport-light.  If none is specified, the driver
-init simply fails - instead of assuming adapter type 0.
+This makes sense, no adapter type is more likely to be found than the
+others. So I like the patch and am willing to accept it. However, given
+that it changes the default behavior, and makes the "type" module
+parameter mandatory, a short notice in the documentation and/or Kconfig
+would be welcome, don't you think?
 
-This alleviates the sometimes lengthy boot time delays which can be caused
-by accidentally building one of these into a kernel along with several i2c
-slave drivers that have lengthy probe routines (e.g. hwmon drivers).
-
-Signed-off-by: Mark M. Hoffman <mhoffman at lightlink.com>
-
---- linux-2.6.16-rc6.orig/drivers/i2c/busses/i2c-parport-light.c
-+++ linux-2.6.16-rc6/drivers/i2c/busses/i2c-parport-light.c
-@@ -121,9 +121,14 @@ static struct i2c_adapter parport_adapte
- 
- static int __init i2c_parport_init(void)
- {
--	if (type < 0 || type >= ARRAY_SIZE(adapter_parm)) {
-+	if (type < 0) {
-+		printk(KERN_WARNING "i2c-parport: adapter type unspecified\n");
-+		return -ENODEV;
-+	}
-+
-+	if (type >= ARRAY_SIZE(adapter_parm)) {
- 		printk(KERN_WARNING "i2c-parport: invalid type (%d)\n", type);
--		type = 0;
-+		return -ENODEV;
- 	}
- 
- 	if (base = 0) {
---- linux-2.6.16-rc6.orig/drivers/i2c/busses/i2c-parport.h
-+++ linux-2.6.16-rc6/drivers/i2c/busses/i2c-parport.h
-@@ -90,7 +90,7 @@ static struct adapter_parm adapter_parm[
- 	},
- };
- 
--static int type;
-+static int type = -1;
- module_param(type, int, 0);
- MODULE_PARM_DESC(type,
- 	"Type of adapter:\n"
---- linux-2.6.16-rc6.orig/drivers/i2c/busses/i2c-parport.c
-+++ linux-2.6.16-rc6/drivers/i2c/busses/i2c-parport.c
-@@ -241,9 +241,14 @@ static struct parport_driver i2c_parport
- 
- static int __init i2c_parport_init(void)
- {
--	if (type < 0 || type >= ARRAY_SIZE(adapter_parm)) {
-+	if (type < 0) {
-+		printk(KERN_WARNING "i2c-parport: adapter type unspecified\n");
-+		return -ENODEV;
-+	}
-+
-+	if (type >= ARRAY_SIZE(adapter_parm)) {
- 		printk(KERN_WARNING "i2c-parport: invalid type (%d)\n", type);
--		type = 0;
-+		return -ENODEV;
- 	}
- 
- 	return parport_register_driver(&i2c_parport_driver);
-
--- 
-Mark M. Hoffman
-mhoffman at lightlink.com
-
+Thanks,
+--
+Jean Delvare
 
