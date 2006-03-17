@@ -1,30 +1,22 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 13 Mar 2006 18:28:24 +0000
-Subject: [lm-sensors] lm-sensors-notify (was: Added hysteresis to
-Message-Id: <20060313192824.86aab995.khali@linux-fr.org>
+From: galak@kernel.crashing.org (Kumar Gala)
+Date: Fri, 17 Mar 2006 18:54:54 +0000
+Subject: [lm-sensors] I2C-virtual and locking?
+Message-Id: <6CCFFBB4-CDE0-4DC0-A4D7-A3E7398B2494@kernel.crashing.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060308231757.GD4146@neu.nirvana>
-In-Reply-To: <20060308231757.GD4146@neu.nirvana>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Axel,
+I'm looking at porting the i2c-virtual code from 2.4 to 2.6.  One  
+thing I'm not clear on is the use of i2c_add_adapter_nolock() by the  
+old code.  The only reference I can find related to this is:
 
-[Axel Thimm]
-> o the commit mails work properly, and
-> o so *should* ticket notifications. E.g. new or changed tickets should
->   fire a mail to lm-sensors-notify, too.
+http://archives.andrew.net.au/lm-sensors/msg31060.html
 
-I made several svn commits in the last few days, and one trac page
-change, and no notification was emitted. The odd thing is that I *did*
-receive a notification for your test SVN change on March 9th, so it
-used to work somehow.
+I can't think of a reason why locking would be in issue when adding  
+or removing of a virtual adapter.  Anyone have an additional ides on  
+this?
 
-Any idea what has gone wrong?
-
-Thanks,
--- 
-Jean Delvare
+- kumar
 
