@@ -1,62 +1,65 @@
 From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Fri, 17 Mar 2006 03:56:16 +0000
+Date: Fri, 17 Mar 2006 04:20:19 +0000
 Subject: [lm-sensors] sis96x compiled in by error: delay of one minute
-Message-Id: <20060317035616.GA3446@jupiter.solarsys.private>
+Message-Id: <20060317042019.GC3446@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060316035916.GA10675@jupiter.solarsys.private> <3ZH07HE0.1142498811.4526410.khali@localhost>
-In-Reply-To: <3ZH07HE0.1142498811.4526410.khali@localhost>
+References: <3ZH07HE0.1142498811.4526410.khali@localhost> <20060316105332.46898.qmail@web26913.mail.ukl.yahoo.com>
+In-Reply-To: <20060316105332.46898.qmail@web26913.mail.ukl.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: linux-kernel@vger.kernel.org, Etienne Lorrain <etienne_lorrain@yahoo.fr>, lm-sensors <lm-sensors@lm-sensors.org>
+To: Etienne Lorrain <etienne_lorrain@yahoo.fr>
+Cc: linux-kernel@vger.kernel.org, lm-sensors <lm-sensors@lm-sensors.org>
 
-Hi Jean:
+Hi Etienne:
 
-> On 2006-03-16, Mark M. Hoffman wrote:
-> > Loading it with the default could be considered an accident by
-> > definition. It takes ~6 seconds to load all of
-> > kernel/drivers/hwmon/*.ko on a test box here with i2c-parport-light
-> > present (but without any adapter hardware). With this patch, that
-> > drops to ~1 second.
+> >Mark M. Hoffman wrote:
+> >Lots of drivers printk messages when they load - IMO it's useful info.
+> >E.g. how else could Etienne discover that he accidentally built a kernel
+> >with dozens of i2c bus drivers (and probably all of the hwmon drivers)
+> >built-in by accident?
 
-* Jean Delvare <khali at linux-fr.org> [2006-03-16 09:46:51 +0100]:
-> Note that the same result could be achieved by using
-> i2c_algo_bit.bit_test=1, which is why I was suggesting to make it the
-> default. Doing so would also help the radeonfb driver users: this one
-> creates up to 4 i2c busses and at least one does not work for me (I
-> guess it depends on how the chip was wired on the graphics adapter),
-> causing significant delays on when loading i2c chip drivers afterwards.
-> 
-> I wonder if i2c_algo_bit.bit_test=1 can cause problems. Why wasn't it
-> made the default in the first place?
+* Etienne Lorrain <etienne_lorrain at yahoo.fr> [2006-03-16 11:53:32 +0100]:
+>  I did not built with all hwmon drivers because I could determine what I
+>  had on my mainboard.
 
-It doesn't look very reliable to me.  E.g. if there happens to be bus
-traffic during the bus test, it fails.  If it gets past that, it gets
-worse... 
+Really?  If you don't have all the hwmon drivers built in, then I'm not
+sure how the i2c subsystem could take so long to init.  Can we see the
+entire kernel config please?
 
-	5. A START condition immediately followed by a STOP condition
-	(void message) is an illegal format.
-		- I2C Bus Specification, Version 2.1 (page 14)
+> For me, because the kernel say it enters the I2C
+>  system by the line:
+> Mar 13 21:46:48 kernel: [   47.705445] i2c /dev entries driver
 
-Unless I read it wrong, that's exactly what the bus test will do.
+That message comes from the (optional) Linux i2c ioctl interface.  It is not
+the whole core.
 
-> > This patch forces the user to specify what type of adapter is present
-> > when loading i2c-parport or i2c-parport-light.  If none is specified,
-> > the driver init simply fails - instead of assuming adapter type 0.
-> >
-> > This alleviates the sometimes lengthy boot time delays which can be
-> > caused by accidentally building one of these into a kernel along with
-> > several i2c slave drivers that have lengthy probe routines (e.g. hwmon
-> > drivers).
-> 
-> This makes sense, no adapter type is more likely to be found than the
-> others. So I like the patch and am willing to accept it. However, given
-> that it changes the default behavior, and makes the "type" module
-> parameter mandatory, a short notice in the documentation and/or Kconfig
-> would be welcome, don't you think?
+>  It could print a line when finished probing all those I2C drivers by a
+>  line like:
+> Mar 13 21:46:48 kernel: [   50.705445] i2c driver found: aaa-i2c, bbb-i2c.
 
-OK - patch to follow.
+Actually, it can't do that.  The i2c core doesn't know anything about
+"done probing".  It probes whenever a new master or slave driver is
+registered, which could happen at any time.
+
+>  And then I can have a clue on what to include in my monolitic build.
+>  I do not care about such timeout on _one_ build, as long as I know what
+>  to do for next build. Another possibility is to print a line when an I2C
+>  detection has failed: you know that it has taken quite a lot of time and
+>  it should not have been done in the first place (even for a module
+>  because this module should not have been inserted).
+
+Why don't you just use the sensors-detect script from the lm-sensors project
+to see what hardware you have?  If you don't have a kernel with all of the
+i2c-bus drivers built as modules, you could probably just boot knoppix and
+run the script from there.
+
+>  It also protect the I2C group from people like me complainning
+>  because completely unrelated messages like
+> Mar 13 22:12:54 kernel: [   61.997032]  : Detection failed at step 3
+
+That particular message is displayed by accident; it's a bug.  Jean already
+ack'ed that.
 
 Regards,
 
