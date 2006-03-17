@@ -1,92 +1,67 @@
-From: etienne_lorrain@yahoo.fr (Etienne Lorrain)
-Date: Thu, 16 Mar 2006 10:53:32 +0000
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Fri, 17 Mar 2006 03:56:16 +0000
 Subject: [lm-sensors] sis96x compiled in by error: delay of one minute
-Message-Id: <20060316105332.46898.qmail@web26913.mail.ukl.yahoo.com>
+Message-Id: <20060317035616.GA3446@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20060316035916.GA10675@jupiter.solarsys.private> <3ZH07HE0.1142498811.4526410.khali@localhost>
 In-Reply-To: <3ZH07HE0.1142498811.4526410.khali@localhost>
-References: <20060316035916.GA10675@jupiter.solarsys.private>
-In-Reply-To: <20060316035916.GA10675@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Jean Delvare <khali@linux-fr.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>, lm-sensors <lm-sensors@lm-sensors.org>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: linux-kernel@vger.kernel.org, Etienne Lorrain <etienne_lorrain@yahoo.fr>, lm-sensors <lm-sensors@lm-sensors.org>
 
->> Jean Delvare wrote:
->> Mark, can you provide a patch to your i2c-sis96x driver so that it'll
->> keep quiet when no supported device is found?
->
->Mark M. Hoffman wrote:
->Lots of drivers printk messages when they load - IMO it's useful info.
->E.g. how else could Etienne discover that he accidentally built a kernel
->with dozens of i2c bus drivers (and probably all of the hwmon drivers)
->built-in by accident?
+Hi Jean:
 
- I did not built with all hwmon drivers because I could determine what I
- had on my mainboard. For me, because the kernel say it enters the I2C
- system by the line:
-Mar 13 21:46:48 kernel: [   47.705445] i2c /dev entries driver
- It could print a line when finished probing all those I2C drivers by a
- line like:
-Mar 13 21:46:48 kernel: [   50.705445] i2c driver found: aaa-i2c, bbb-i2c.
- And then I can have a clue on what to include in my monolitic build.
- I do not care about such timeout on _one_ build, as long as I know what
- to do for next build. Another possibility is to print a line when an I2C
- detection has failed: you know that it has taken quite a lot of time and
- it should not have been done in the first place (even for a module
- because this module should not have been inserted).
+> On 2006-03-16, Mark M. Hoffman wrote:
+> > Loading it with the default could be considered an accident by
+> > definition. It takes ~6 seconds to load all of
+> > kernel/drivers/hwmon/*.ko on a test box here with i2c-parport-light
+> > present (but without any adapter hardware). With this patch, that
+> > drops to ~1 second.
 
- It also protect the I2C group from people like me complainning
- because completely unrelated messages like
-Mar 13 22:12:54 kernel: [   61.997032]  : Detection failed at step 3
+* Jean Delvare <khali at linux-fr.org> [2006-03-16 09:46:51 +0100]:
+> Note that the same result could be achieved by using
+> i2c_algo_bit.bit_test=1, which is why I was suggesting to make it the
+> default. Doing so would also help the radeonfb driver users: this one
+> creates up to 4 i2c busses and at least one does not work for me (I
+> guess it depends on how the chip was wired on the graphics adapter),
+> causing significant delays on when loading i2c chip drivers afterwards.
+> 
+> I wonder if i2c_algo_bit.bit_test=1 can cause problems. Why wasn't it
+> made the default in the first place?
 
-Elsewhere Jean Delvare wrote:
-> That being said, the key problem being stuck i2c busses, it's even more
-> important to get rid of these. You can use "i2cdetect -l" to list all
-> detected i2c bus, so you'll see if you have any unwanted bus left.
+It doesn't look very reliable to me.  E.g. if there happens to be bus
+traffic during the bus test, it fails.  If it gets past that, it gets
+worse... 
 
-I do not have this i2cdetect software installed on my system.
+	5. A START condition immediately followed by a STOP condition
+	(void message) is an illegal format.
+		- I2C Bus Specification, Version 2.1 (page 14)
 
-> If all drivers were actually printking messages when they load,
-> monolithic kernels would be a mess (not that I much understand the
-> point of such monolithic kernels, but...) You wouldn't be able to tell from
-> the boot log which drivers are actually used by the system, and which
-> aren't.
+Unless I read it wrong, that's exactly what the bus test will do.
 
-Maybe it is only me, and I am totally wrong, but it seems that the
-resulting _monolitic_ kernel is quicker.
-- Maybe it is quicker because a lot of modules try to insert themself
-and fails as an autodetection subsystem in some distributions.
-- Maybe because fetching a lot of files (kernel modules) at boot
-time creates a lot of disk activity - and it is better to load everything
-at startup by the bootloader (hint: Gujin).
-- Maybe it is quicker because when loading a module there is a lot
-of addresses to resolve at run time and that takes time, instead of
-doing it once when you are linking the monolitic kernel.
-- Maybe it is simply (correct me if I am wrong) because modules
-_have_ to be compiled as a relocatable library (because the load
-address of code and data segment isn't known) and that is acheived
-by the compiler by fixing register %ebx to the base address - and
-on i386 removing one of the 4 (or 6) general purpose register
-produces code which is a lot slower (up to the point you do not care
-for which processor you compile the kernel: the improvement done
-by one or two added instruction/features do not compensate for this
-kind of loss).
+> > This patch forces the user to specify what type of adapter is present
+> > when loading i2c-parport or i2c-parport-light.  If none is specified,
+> > the driver init simply fails - instead of assuming adapter type 0.
+> >
+> > This alleviates the sometimes lengthy boot time delays which can be
+> > caused by accidentally building one of these into a kernel along with
+> > several i2c slave drivers that have lengthy probe routines (e.g. hwmon
+> > drivers).
+> 
+> This makes sense, no adapter type is more likely to be found than the
+> others. So I like the patch and am willing to accept it. However, given
+> that it changes the default behavior, and makes the "type" module
+> parameter mandatory, a short notice in the documentation and/or Kconfig
+> would be welcome, don't you think?
 
-Maybe also managing the tree /lib/modules/* and the initrd take
-more time than simply doing once a clean linux/.config and
-maintaining this file by saying "No" to most added drivers...
+OK - patch to follow.
 
-  Cheers,
-  Etienne.
+Regards,
 
+-- 
+Mark M. Hoffman
+mhoffman at lightlink.com
 
-
-	
-
-	
-		
-___________________________________________________________________________ 
-Nouveau : t?l?phonez moins cher avec Yahoo! Messenger ! D?couvez les tarifs exceptionnels pour appeler la France et l'international.
-T?l?chargez sur http://fr.messenger.yahoo.com
 
