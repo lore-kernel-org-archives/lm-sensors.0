@@ -1,70 +1,139 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Fri, 17 Mar 2006 04:20:19 +0000
+From: etienne_lorrain@yahoo.fr (Etienne Lorrain)
+Date: Mon, 20 Mar 2006 23:00:37 +0000
 Subject: [lm-sensors] sis96x compiled in by error: delay of one minute
-Message-Id: <20060317042019.GC3446@jupiter.solarsys.private>
+Message-Id: <20060320230037.29764.qmail@web26902.mail.ukl.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3ZH07HE0.1142498811.4526410.khali@localhost> <20060316105332.46898.qmail@web26913.mail.ukl.yahoo.com>
-In-Reply-To: <20060316105332.46898.qmail@web26913.mail.ukl.yahoo.com>
+In-Reply-To: <20060317042019.GC3446@jupiter.solarsys.private>
+References: <20060316035916.GA10675@jupiter.solarsys.private>
+In-Reply-To: <20060316035916.GA10675@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Etienne Lorrain <etienne_lorrain@yahoo.fr>
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Cc: linux-kernel@vger.kernel.org, lm-sensors <lm-sensors@lm-sensors.org>
 
-Hi Etienne:
+--- "Mark M. Hoffman" wrote:
+> * Etienne Lorrain [2006-03-16 11:53:32 +0100]:
+> >  I did not built with all hwmon drivers because I could determine what I
+> >  had on my mainboard.
+> 
+> Really?  If you don't have all the hwmon drivers built in, then I'm not
+> sure how the i2c subsystem could take so long to init.  Can we see the
+> entire kernel config please?
 
-> >Mark M. Hoffman wrote:
-> >Lots of drivers printk messages when they load - IMO it's useful info.
-> >E.g. how else could Etienne discover that he accidentally built a kernel
-> >with dozens of i2c bus drivers (and probably all of the hwmon drivers)
-> >built-in by accident?
+   That is the real 2.6.16 with only CONFIG_I2C_VIAPRO=y (the only I2C module loaded
+ using Knoppix on my motherboard) (full .config attached):
 
-* Etienne Lorrain <etienne_lorrain at yahoo.fr> [2006-03-16 11:53:32 +0100]:
->  I did not built with all hwmon drivers because I could determine what I
->  had on my mainboard.
+Mar 20 22:12:34 ubuntu kernel: [  102.107512] input: PC Speaker as /class/input/input2
+Mar 20 22:12:34 ubuntu kernel: [  102.110230] i2c /dev entries driver
+Mar 20 22:12:34 ubuntu kernel: [  102.151923]  : Detection failed at step 3
+Mar 20 22:12:34 ubuntu kernel: [  102.287882] hdaps: supported laptop not found!
+Mar 20 22:12:34 ubuntu kernel: [  102.290460] hdaps: driver init failed (ret=-6)!
+Mar 20 22:12:34 ubuntu kernel: [  102.299862] md: linear personality registered for level
+-1
 
-Really?  If you don't have all the hwmon drivers built in, then I'm not
-sure how the i2c subsystem could take so long to init.  Can we see the
-entire kernel config please?
+etienne at ubuntu:~/linux/linux-2.6.16$ diff .config-initial .config
+4c4
+< # Mon Mar 20 21:36:32 2006
+---
+> # Mon Mar 20 22:03:44 2006
+885c885
+< # CONFIG_I2C_PCA_ISA is not set
+---
+> CONFIG_I2C_PCA_ISA=y
+892c892
+< # CONFIG_SENSORS_EEPROM is not set
+---
+> CONFIG_SENSORS_EEPROM=y
+896c896
+< # CONFIG_SENSORS_RTC8564 is not set
+---
+> CONFIG_SENSORS_RTC8564=y
+etienne at ubuntu:~/linux/linux-2.6.16$
 
-> For me, because the kernel say it enters the I2C
->  system by the line:
-> Mar 13 21:46:48 kernel: [   47.705445] i2c /dev entries driver
+  Leads to 21 seconds delay:
 
-That message comes from the (optional) Linux i2c ioctl interface.  It is not
-the whole core.
+Mar 20 22:16:34 ubuntu kernel: [   47.768105] drivers/usb/input/hid-core.c: v2.6:USB HID
+core driver
+Mar 20 22:16:34 ubuntu kernel: [   47.770813] usbcore: registered new driver microtekX6
+Mar 20 22:16:34 ubuntu kernel: [   47.773540] mice: PS/2 mouse device common for all mice
+Mar 20 22:16:34 ubuntu kernel: [   47.822537] input: AT Translated Set 2 keyboard as
+/class/input/input1
+Mar 20 22:16:34 ubuntu kernel: [   47.825434] input: PC Speaker as /class/input/input2
+Mar 20 22:16:34 ubuntu kernel: [   47.828153] i2c /dev entries driver
+Mar 20 22:16:34 ubuntu kernel: [   47.831032] i2c-pca-isa: i/o base 0x000330. irq 10
+Mar 20 22:16:34 ubuntu kernel: [   68.239670]  : Detection failed at step 3
+Mar 20 22:16:34 ubuntu kernel: [   68.375633] hdaps: supported laptop not found!
+Mar 20 22:16:34 ubuntu kernel: [   68.378227] hdaps: driver init failed (ret=-6)!
+Mar 20 22:16:34 ubuntu kernel: [   68.387599] md: linear personality registered for level
+-1
 
->  It could print a line when finished probing all those I2C drivers by a
->  line like:
-> Mar 13 21:46:48 kernel: [   50.705445] i2c driver found: aaa-i2c, bbb-i2c.
+BTW, someone knows what are those messages just after startup:
 
-Actually, it can't do that.  The i2c core doesn't know anything about
-"done probing".  It probes whenever a new master or slave driver is
-registered, which could happen at any time.
+Mar 20 22:12:34 ubuntu kernel: No module symbols loaded - kernel modules not enabled.
+Mar 20 22:12:34 ubuntu kernel: >[   93.075610] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.075649] test 4:
+Mar 20 22:12:34 ubuntu kernel: [   93.075692] 697eaf0aca3a3aea3a75164746ffaa79
+Mar 20 22:12:34 ubuntu kernel: [   93.076226] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.076266] test 5:
+Mar 20 22:12:34 ubuntu kernel: [   93.076309] 56461ef2342edc00f9bab995690efd4c
+Mar 20 22:12:34 ubuntu kernel: [   93.076857] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.076896] test 6:
+Mar 20 22:12:34 ubuntu kernel: [   93.076941] 6b1ab7fe4bd7bf8f0b62e6ce61b9d0cd
+Mar 20 22:12:34 ubuntu kernel: [   93.077475] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.077514] test 7:
+Mar 20 22:12:34 ubuntu kernel: [   93.077559] 6f630fad67cda0ee1fb1f562db3aa53e
+Mar 20 22:12:34 ubuntu kernel: [   93.078093] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.078133]
+Mar 20 22:12:34 ubuntu kernel: [   93.078134] testing hmac_md5 across pages
+Mar 20 22:12:34 ubuntu kernel: [   93.078269] test 1:
+Mar 20 22:12:34 ubuntu kernel: [   93.078314] 750c783e6ab0b503eaa86e310a5db738
+Mar 20 22:12:34 ubuntu kernel: [   93.078848] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.078889]
+Mar 20 22:12:34 ubuntu kernel: [   93.078890] testing hmac_sha1
+Mar 20 22:12:34 ubuntu kernel: [   93.078973] test 1:
+Mar 20 22:12:34 ubuntu kernel: [   93.079020] b617318655057264e28bc0b6fb378c8ef146be00
+Mar 20 22:12:34 ubuntu kernel: [   93.079678] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.079717] test 2:
+Mar 20 22:12:34 ubuntu kernel: [   93.079762] effcdf6ae5eb2fa2d27416d5f184df9c259a7c79
+Mar 20 22:12:34 ubuntu kernel: [   93.080432] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.080472] test 3:
+Mar 20 22:12:34 ubuntu kernel: [   93.080517] 125d7342b9ac11cd91a39af48aa17b4f63f175d3
+Mar 20 22:12:34 ubuntu kernel: [   93.081175] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.081214] test 4:
+Mar 20 22:12:34 ubuntu kernel: [   93.081260] 4c9007f4026250c6bc8414f9bf50c86c2d7235da
+Mar 20 22:12:34 ubuntu kernel: [   93.081917] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.081957] test 5:
+Mar 20 22:12:34 ubuntu kernel: [   93.082649] 4c1a03424b55e07fe7f27be1d58bb9324a9a5a04
+Mar 20 22:12:34 ubuntu kernel: [   93.083307] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.083347] test 6:
+Mar 20 22:12:34 ubuntu kernel: [   93.083394] aa4ae5e15272d00e95705637ce8a3b55ed402112
+Mar 20 22:12:34 ubuntu kernel: [   93.084051] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.084090] test 7:
+Mar 20 22:12:34 ubuntu kernel: [   93.084138] e8e99d0f45237d786d6bbaa7965c7808bbff1a91
+Mar 20 22:12:34 ubuntu kernel: [   93.084808] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.084848]
+Mar 20 22:12:34 ubuntu kernel: [   93.084849] testing hmac_sha1 across pages
+Mar 20 22:12:34 ubuntu kernel: [   93.084936] test 1:
+Mar 20 22:12:34 ubuntu kernel: [   93.084981] effcdf6ae5eb2fa2d27416d5f184df9c259a7c79
+Mar 20 22:12:34 ubuntu kernel: [   93.085639] pass
+Mar 20 22:12:34 ubuntu kernel: [   93.085681]
 
->  And then I can have a clue on what to include in my monolitic build.
->  I do not care about such timeout on _one_ build, as long as I know what
->  to do for next build. Another possibility is to print a line when an I2C
->  detection has failed: you know that it has taken quite a lot of time and
->  it should not have been done in the first place (even for a module
->  because this module should not have been inserted).
-
-Why don't you just use the sensors-detect script from the lm-sensors project
-to see what hardware you have?  If you don't have a kernel with all of the
-i2c-bus drivers built as modules, you could probably just boot knoppix and
-run the script from there.
-
->  It also protect the I2C group from people like me complainning
->  because completely unrelated messages like
-> Mar 13 22:12:54 kernel: [   61.997032]  : Detection failed at step 3
-
-That particular message is displayed by accident; it's a bug.  Jean already
-ack'ed that.
-
-Regards,
-
--- 
-Mark M. Hoffman
-mhoffman at lightlink.com
+  Regards,
+  Etienne.
 
 
+	
+
+	
+		
+___________________________________________________________________________ 
+Nouveau : t?l?phonez moins cher avec Yahoo! Messenger ! D?couvez les tarifs exceptionnels pour appeler la France et l'international.
+T?l?chargez sur http://fr.messenger.yahoo.com
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: .config-initial
+Type: application/octet-stream
+Size: 34511 bytes
+Desc: 276185620-.config-initial
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060321/eff20ec6/config-initial-0001.obj
