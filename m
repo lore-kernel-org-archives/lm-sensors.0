@@ -1,150 +1,125 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 31 Mar 2006 21:06:46 +0000
-Subject: [lm-sensors] [PATCH 3/3] i2c: cleanup m41t00
-Message-Id: <20060331230646.e06f73a1.khali@linux-fr.org>
+From: jason.roscoe@gmail.com (Jason Roscoe)
+Date: Tue, 21 Mar 2006 20:27:38 +0000
+Subject: [lm-sensors] lm85 occasional bad data ticket 2038
+Message-Id: <20060321202738.GA18336@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: "Mark A. Greer" <mgreer at mvista.com>
-Content-Disposition: inline; filename=rtc-m41t00-driver-cleanup.patch
+Hi,
 
-This patch does some cleanup to the m41t00 i2c/rtc driver including:
-- use BCD2BIN/BIN2BCD instead of BCD_TO_BIN/BIN_TO_BCD
-- use strlcpy instead of strncpy
-- some whitespace cleanup
+Issue 2038 was put on the backburner for awhile, but I am now looking into it
+again.  I have done what Khali suggested as far as running i2cdetect and
+i2cdump.  I have some results that may or may not be normal and I was hoping
+someone could help me.  The hardware is the same, Radisys LS855 motherboard.  I
+have lm_sensors 2.9.2 with libsensors 2.9.2 now.  The linux kernel version is
+2.4.31.
 
-Signed-off-by: Mark A. Greer <mgreer at mvista.com>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- m41t00.c |   49 +++++++++++++++++++++----------------------------
- 1 files changed, 21 insertions(+), 28 deletions(-)
+The *new* problem, which I assume is related to the previous one mentioned in
+ticket 2038 is described here.  Assume the system has just booted.
 
-diff -Nurp linux-2.6.16-mm1-wq/drivers/i2c/chips/m41t00.c linux-2.6.16-mm1-cleanup/drivers/i2c/chips/m41t00.c
---- linux-2.6.16-mm1-wq/drivers/i2c/chips/m41t00.c	2006-03-27 15:29:35.000000000 -0700
-+++ linux-2.6.16-mm1-cleanup/drivers/i2c/chips/m41t00.c	2006-03-27 16:00:35.000000000 -0700
-@@ -1,6 +1,4 @@
- /*
-- * drivers/i2c/chips/m41t00.c
-- *
-  * I2C client/driver for the ST M41T00 Real-Time Clock chip.
-  *
-  * Author: Mark A. Greer <mgreer at mvista.com>
-@@ -13,9 +11,6 @@
- /*
-  * This i2c client/driver wedges between the drivers/char/genrtc.c RTC
-  * interface and the SMBus interface of the i2c subsystem.
-- * It would be more efficient to use i2c msgs/i2c_transfer directly but, as
-- * recommened in .../Documentation/i2c/writing-clients section
-- * "Sending and receiving", using SMBus level communication is preferred.
-  */
- 
- #include <linux/kernel.h>
-@@ -41,17 +36,17 @@ static unsigned short ignore[] = { I2C_C
- static unsigned short normal_addr[] = { 0x68, I2C_CLIENT_END };
- 
- static struct i2c_client_address_data addr_data = {
--	.normal_i2c		= normal_addr,
--	.probe			= ignore,
--	.ignore			= ignore,
-+	.normal_i2c	= normal_addr,
-+	.probe		= ignore,
-+	.ignore		= ignore,
- };
- 
- ulong
- m41t00_get_rtc_time(void)
- {
--	s32	sec, min, hour, day, mon, year;
--	s32	sec1, min1, hour1, day1, mon1, year1;
--	ulong	limit = 10;
-+	s32 sec, min, hour, day, mon, year;
-+	s32 sec1, min1, hour1, day1, mon1, year1;
-+	ulong limit = 10;
- 
- 	sec = min = hour = day = mon = year = 0;
- 	sec1 = min1 = hour1 = day1 = mon1 = year1 = 0;
-@@ -97,12 +92,12 @@ m41t00_get_rtc_time(void)
- 	mon &= 0x1f;
- 	year &= 0xff;
- 
--	BCD_TO_BIN(sec);
--	BCD_TO_BIN(min);
--	BCD_TO_BIN(hour);
--	BCD_TO_BIN(day);
--	BCD_TO_BIN(mon);
--	BCD_TO_BIN(year);
-+	sec = BCD2BIN(sec);
-+	min = BCD2BIN(min);
-+	hour = BCD2BIN(hour);
-+	day = BCD2BIN(day);
-+	mon = BCD2BIN(mon);
-+	year = BCD2BIN(year);
- 
- 	year += 1900;
- 	if (year < 1970)
-@@ -115,17 +110,17 @@ static void
- m41t00_set(void *arg)
- {
- 	struct rtc_time	tm;
--	ulong	nowtime = *(ulong *)arg;
-+	ulong nowtime = *(ulong *)arg;
- 
- 	to_tm(nowtime, &tm);
- 	tm.tm_year = (tm.tm_year - 1900) % 100;
- 
--	BIN_TO_BCD(tm.tm_sec);
--	BIN_TO_BCD(tm.tm_min);
--	BIN_TO_BCD(tm.tm_hour);
--	BIN_TO_BCD(tm.tm_mon);
--	BIN_TO_BCD(tm.tm_mday);
--	BIN_TO_BCD(tm.tm_year);
-+	tm.tm_sec = BIN2BCD(tm.tm_sec);
-+	tm.tm_min = BIN2BCD(tm.tm_min);
-+	tm.tm_hour = BIN2BCD(tm.tm_hour);
-+	tm.tm_mon = BIN2BCD(tm.tm_mon);
-+	tm.tm_mday = BIN2BCD(tm.tm_mday);
-+	tm.tm_year = BIN2BCD(tm.tm_year);
- 
- 	mutex_lock(&m41t00_mutex);
- 	if ((i2c_smbus_write_byte_data(save_client, 0, tm.tm_sec & 0x7f) < 0)
-@@ -143,7 +138,6 @@ m41t00_set(void *arg)
- 		dev_warn(&save_client->dev,"m41t00: can't write to rtc chip\n");
- 
- 	mutex_unlock(&m41t00_mutex);
--	return;
- }
- 
- static ulong new_time;
-@@ -180,7 +174,7 @@ m41t00_probe(struct i2c_adapter *adap, i
- 	if (!client)
- 		return -ENOMEM;
- 
--	strncpy(client->name, M41T00_DRV_NAME, I2C_NAME_SIZE);
-+	strlcpy(client->name, M41T00_DRV_NAME, I2C_NAME_SIZE);
- 	client->addr = addr;
- 	client->adapter = adap;
- 	client->driver = &m41t00_driver;
-@@ -204,7 +198,7 @@ m41t00_attach(struct i2c_adapter *adap)
- static int
- m41t00_detach(struct i2c_client *client)
- {
--	int	rc;
-+	int rc;
- 
- 	if ((rc = i2c_detach_client(client)) = 0) {
- 		kfree(client);
-@@ -232,7 +226,6 @@ static void __exit
- m41t00_exit(void)
- {
- 	i2c_del_driver(&m41t00_driver);
--	return;
- }
- 
- module_init(m41t00_init);
+# lsmod
+Module                  Size  Used by    Not tainted
+i2c-dev                 3808   0  (unused)
+e1000                  67564   0  (unused)
+e100                   47832   1
+rtc                     6012   0  (autoclean)
+eeprom                  3656   0  (unused)
+lm85                   17032   0  (unused)
+i2c-proc                6020   0  [eeprom lm85]
+i2c-i801                4632   0  (unused)
+i2c-core               14852   0  [i2c-dev eeprom lm85 i2c-proc i2c-i801]
+apm                     9096   1
 
--- 
-Jean Delvare
+If I run i2cdetect, I get the following output:
+
+# i2cdetect -y 0
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+	 00:          XX XX XX XX XX 08 XX XX XX XX XX XX XX
+	 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX UU XX
+	 30: 30 XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 40: XX XX XX XX 44 XX XX XX XX XX XX XX XX XX XX XX
+	 50: UU XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
+	 70: XX XX XX XX XX XX XX XX
+
+From what I understand, this means that there are I2C devices at the following
+addresses: 
+
+0x08 0x2e 0x30 0x44 0x50 0x69
+
+I seem to be able to run i2cdump for all of these addresses except 0x69, which
+from what I gathered from the I2C tools page
+(http://netroedge.com/~lm78/i2ctools.html) seems to be a clock chip.
+
+Here is the output I get for this address.
+# i2cdump -y 0 0x69 b
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+	 00: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+	 10: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+	 20: 0f 1f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+	 30: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+	 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+
+Basically, the first 4 lines of output are output as normal with a slight delay
+between echos, but then there is a short pause, and the rest of the lines are
+output immediately with no delay.  Subsequent i2cdump commands generate the
+following output immediately (no delay like before for the first 4 lines).
+
+# i2cdump -y 0 0x69 b
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+	 00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+
+I am assuming that I am hosing some hardware registers each time I try to dump
+this clock chip.  Maybe I shouldn't be trying to do that??  I'm not exactly
+sure.  The i2cdumps behave the same way until I reboot the system.  I've tried
+removing the modules from the kernel and then installing them again, but the
+problem? remains.
+
+Furthermore, subsequent i2cdetect commands give the following output:
+# i2cdetect -y 0
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+	 00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX UU XX
+	 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 50: UU XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 70: XX XX XX XX XX XX XX XX
+
+Which shows that I don't have the same addresses as before.
+
+Thanks for any suggestions.
+
+-Jason
 
