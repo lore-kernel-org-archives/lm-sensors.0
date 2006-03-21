@@ -1,72 +1,57 @@
-From: kai.svahn@nokia.com (Kai Svahn)
-Date: Mon, 06 Mar 2006 10:10:13 +0000
-Subject: [lm-sensors] i2c-core error messages
-Message-Id: <20060306101013.GK16281@six.research.nokia.com>
+From: swsnyder@insightbb.com (Steve Snyder)
+Date: Tue, 21 Mar 2006 17:49:42 +0000
+Subject: [lm-sensors] lm87 on kernel 2.6.9: kinda-sorta working. What else
+Message-Id: <200603211249.43224.swsnyder@insightbb.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060306071543.GE16281@six.research.nokia.com>
-In-Reply-To: <20060306071543.GE16281@six.research.nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+I am attempting to get LM87 support on a RHEL4 kernel.  This kernel, 
+2.6.9-34.EL, does not include the lm87 driver, so I'm trying to add it 
+myself.
 
-On Mon, Mar 06, 2006 at 10:36:04AM +0100, ext Jean Delvare wrote:
-> 
-> Ah, so it was function i2c_probe_address, not i2c_probe.
+My desire is to get health information from my Supermicro P3TDLE 
+M/B (http://www.supermicro.com/products/motherboard/P3/LE/P3TDLE.cfm).
 
-Yeah sorry about that I wrote at the first time just from my memory
-didn't look the code my mistake :) . 
+I got the lm87.c from the standard 2.6.10 kernel and simply dropped it 
+into Red Hat's source tree.  After adding the required normal_i2c_range[] 
+and normal_isa_range{} references (see below) it built without complaint.  
+No errors or warnings are seen in the system log at load time, either.  
 
-> 
-> > ---line 664---
-> > if (kind < 0) {
-> > 	if (i2c_smbus_xfer(adapter, addr, 0, 0, 0,
-> > 		          I2C_SMBUS_QUICK, NULL) < 0)
-> > 		return 0;
-> > }
-> > ---
-> > Shouldn't it be something like, or have I misunderstood something here?
-> > 
-> > if (kind < 0) {
-> > 	if ((err = (i2c_smbus_xfer(adapter, addr, 0, 0, 0,
-> > 	                           I2C_SMBUS_QUICK, NULL)) < 0)
-> > 		return err;
-> > }
-> 
-> No, we return 0 on purpose.
-> 
-> Each driver lists the possible addresses for the device(s) it supports.
-> More often than not, only one of these addresses will hold a real chip
-> on a given system (unless the same chip is used several times in a given
-> design.) Other address probes are expected to fail, so this is not an
-> error.
-> 
-> The real problem here is that the design of our probing mechanism is not
-> suitable for every design. When you know where your chip is, it's a bit
-> frustrating that you have to let the i2c-core probe and find out by
-> itself, especially when it makes it harder to detect errors.
+At runtime, though, I get this:
 
-Yes, that I found out it was kinda hard to debug but I found a solution
-for the problem without changing this.
+# sensors
+lm87-i2c-0-2e
+Adapter: SMBus PIIX4 adapter at 0580
+ERROR: Can't get IN1 data!
+ERROR: Can't get IN3 data!
+ERROR: Can't get IN4 data!
+fan1:     5153 RPM  (min = 2848 RPM, div = 2)
+fan2:     5153 RPM  (min = 2848 RPM, div = 2)
+temp1:       +33?C  (low  =    +0?C, high =   +50?C)
+ERROR: Can't get TEMP2 data!
 
-> A new explicit attach method is being worked on (for quite some time
-> now...) which should hopefully help in this type of situation. A
-> preliminary patch can be seen here:
-> http://khali.linux-fr.org/devel/i2c/linux-2.6/i2c-probe-04-explicit-attach.patch
-> But I need some real life uses to make sure it's properly designed. I
-> wanted to experiment on the zoran media/video driver, but didn't quite
-> find the time to do that yet.
+Yes, this is a dual-CPU board, and the single temperature shown is 
+reasonably close to the values reported by the BIOS in the BIOS 
+setup menu.
 
-Sounds nice I can take a look at it also and maybe try it out.
+This are the 2 lines I added to the 2.6.10 version of lm87.c to pacify 
+the build complaints:
 
-> Thanks,
-> --
-> Jean Delvarei
+  static unsigned short normal_i2c_range[] = { I2C_CLIENT_END };
+  static unsigned int normal_isa_range[] = { I2C_CLIENT_ISA_END };
 
-Thank you about the information.
+So now the full set of address declarations look like this:
 
-Cheers,
-Kai
+  static unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END }; 
+  static unsigned short normal_i2c_range[] = { I2C_CLIENT_END };
+  static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+  static unsigned int normal_isa_range[] = { I2C_CLIENT_ISA_END };
+
+Any advice out there on what else is needed to get LM87 support with this
+2.6.9 (+ backported tweaks and fixes) kernel?
+
+Thanks.
 
