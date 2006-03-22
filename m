@@ -1,52 +1,149 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 16 Mar 2006 09:13:47 +0000
-Subject: [lm-sensors] DFI Lan Party SLI-DR Expert shuts off when it87 is
-Message-Id: <QtmlAR8K.1142500427.0326340.khali@localhost>
+Date: Wed, 22 Mar 2006 21:06:25 +0000
+Subject: [lm-sensors] [PATCH] w83627ehf: Add alarms support
+Message-Id: <20060322220625.1b389b02.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <a33b5feb0603152333t5f7dcc28i24b235e39d595706@mail.gmail.com>
-In-Reply-To: <a33b5feb0603152333t5f7dcc28i24b235e39d595706@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
-Hi Brian,
+Here is a patch adding alarms support to the w83627ehf driver. It
+applies on top of Yuan Mu's patch converting the driver to use arrays
+of attributes [1] and Rudolf Marek's patch adding voltage inputs
+support [2]. Owners of W83627EHF/EHG chips are invited to give it
+testing and report how it works. Note that you'll need lm_sensors2 CVS
+on the user-space side.
 
-On 2006-03-16, Brian Hayward wrote:
-> First off, when running sensors-detect, if I select "yes" for the next
-> question, the computer turns off.
-> Next adapter: SMBus nForce2 adapter at 1c40
-> Do you want to scan it? (YES/no/selectively):
->
-> The computer just powers down, as if I turned the switch off.  No warning
-> or anything.
->
-> If I select NO to the 1c40 nForc2 option and then YES to all others - the
-> computer does not power off until I modprobe it87.
->
-> I've tried:
->   modprobe it87
->   modprobe it87 force_it87=9191,0x290
-> Same problem either way, immediate shutdown.
+[1] http://khali.linux-fr.org/devel/i2c/linux-2.6/hwmon-w83627ehf-use-attr-arrays.patch
+[2] http://khali.linux-fr.org/devel/i2c/linux-2.6/hwmon-w83627ehf-add-voltages.patch
 
-Try modprobe it87 ignore=3D-1,0x2e.
 
-> If I load all suggested modules _except_ it87, it does not shut down and
-> it also does not show any CPU/Fanspeed redouts when I type "sensors".
->
-> Do you have any suggestions?
+Add alarms support for the W83627EHF/EHG hardware monitoring chip.
 
-This was reported already, on the same board. There is a mysterious chip
-at address 0x2e on the SMBus which powers off the board when probed.
+This is based on an earlier patch from Rudolf Marek.
 
-See: http://bugzilla.kernel.org/show_bug.cgi?idX89
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ drivers/hwmon/w83627ehf.c |   46 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-A workaround was merged in 2.6.16-rc3 and 2.6.15.5. We yet have to come
-up with a workaround for sensors-detect. The solution would be to detect
-this motherboard (e.g. using dmidecode) and skip probing the faulty
-address automatically.
+--- linux-2.6.16.orig/drivers/hwmon/w83627ehf.c	2006-03-22 09:24:57.000000000 +0100
++++ linux-2.6.16/drivers/hwmon/w83627ehf.c	2006-03-22 14:40:53.000000000 +0100
+@@ -141,6 +141,10 @@
+ #define W83627EHF_REG_DIODE		0x59
+ #define W83627EHF_REG_SMI_OVT		0x4C
+ 
++#define W83627EHF_REG_ALARM1		0x459
++#define W83627EHF_REG_ALARM2		0x45A
++#define W83627EHF_REG_ALARM3		0x45B
++
+ /*
+  * Conversions
+  */
+@@ -218,6 +222,7 @@
+ 	s16 temp[2];
+ 	s16 temp_max[2];
+ 	s16 temp_max_hyst[2];
++	u32 alarms;
+ };
+ 
+ static inline int is_word_sized(u16 reg)
+@@ -427,6 +432,13 @@
+ 						 W83627EHF_REG_TEMP_HYST[i]);
+ 		}
+ 
++		data->alarms = w83627ehf_read_value(client,
++					W83627EHF_REG_ALARM1) |
++			       (w83627ehf_read_value(client,
++					W83627EHF_REG_ALARM2) << 8) |
++			       (w83627ehf_read_value(client,
++					W83627EHF_REG_ALARM3) << 16);
++
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
+ 	}
+@@ -474,6 +486,14 @@
+ store_in_reg(MIN, min)
+ store_in_reg(MAX, max)
+ 
++static ssize_t show_alarm(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct w83627ehf_data *data = w83627ehf_update_device(dev);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	return sprintf(buf, "%u\n", (data->alarms >> nr) & 0x01);
++}
++
+ static struct sensor_device_attribute sda_in_input[] = {
+ 	SENSOR_ATTR(in0_input, S_IRUGO, show_in, NULL, 0),
+ 	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
+@@ -487,6 +507,19 @@
+ 	SENSOR_ATTR(in9_input, S_IRUGO, show_in, NULL, 9),
+ };
+ 
++static struct sensor_device_attribute sda_in_alarm[] = {
++	SENSOR_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0),
++	SENSOR_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1),
++	SENSOR_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2),
++	SENSOR_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3),
++	SENSOR_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 8),
++	SENSOR_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 21),
++	SENSOR_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 20),
++	SENSOR_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 16),
++	SENSOR_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 17),
++	SENSOR_ATTR(in9_alarm, S_IRUGO, show_alarm, NULL, 19),
++};
++
+ static struct sensor_device_attribute sda_in_min[] = {
+        SENSOR_ATTR(in0_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 0),
+        SENSOR_ATTR(in1_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 1),
+@@ -516,6 +549,7 @@
+ static void device_create_file_in(struct device *dev, int i)
+ {
+ 	device_create_file(dev, &sda_in_input[i].dev_attr);
++	device_create_file(dev, &sda_in_alarm[i].dev_attr);
+ 	device_create_file(dev, &sda_in_min[i].dev_attr);
+ 	device_create_file(dev, &sda_in_max[i].dev_attr);
+ }
+@@ -618,6 +652,14 @@
+ 	SENSOR_ATTR(fan5_input, S_IRUGO, show_fan, NULL, 4),
+ };
+ 
++static struct sensor_device_attribute sda_fan_alarm[] = {
++	SENSOR_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 6),
++	SENSOR_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 7),
++	SENSOR_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 10),
++	SENSOR_ATTR(fan4_alarm, S_IRUGO, show_alarm, NULL, 11),
++	SENSOR_ATTR(fan5_alarm, S_IRUGO, show_alarm, NULL, 23),
++};
++
+ static struct sensor_device_attribute sda_fan_min[] = {
+ 	SENSOR_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan_min,
+ 		    store_fan_min, 0),
+@@ -642,6 +684,7 @@
+ static void device_create_file_fan(struct device *dev, int i)
+ {
+ 	device_create_file(dev, &sda_fan_input[i].dev_attr);
++	device_create_file(dev, &sda_fan_alarm[i].dev_attr);
+ 	device_create_file(dev, &sda_fan_div[i].dev_attr);
+ 	device_create_file(dev, &sda_fan_min[i].dev_attr);
+ }
+@@ -729,6 +772,9 @@
+ 		    store_temp_max_hyst, 0),
+ 	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR, show_temp_max_hyst,
+ 		    store_temp_max_hyst, 1),
++	SENSOR_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4),
++	SENSOR_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 5),
++	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13),
+ };
+ 
+ /*
 
---
+
+-- 
 Jean Delvare
 
