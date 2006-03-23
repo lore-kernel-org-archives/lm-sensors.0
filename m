@@ -1,171 +1,47 @@
-From: ben-linux@fluff.org (Ben Dooks)
-Date: Tue, 21 Mar 2006 23:07:37 +0000
-Subject: [lm-sensors] PATCH - s3c2410 clock control patch
-Message-Id: <20060321230737.GA6910@home.fluff.org>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 23 Mar 2006 22:43:52 +0000
+Subject: [lm-sensors] [PATCH 31/36] I2C: i2c-amd756-s4882: Improve static
+Message-Id: <11431538322017-git-send-email-gregkh@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This patch makes it possible for the I2C unit
-to disable the clock fed into it whilst it is
-not being used. This should reduce the power
-consumption, with only minimal extra time during
-the start and end of a transfer.
+Static mutexes can be initialized at declaration time.
 
-This patch also ensures that the clock is in
-the right state when going in and out of
-suspend.
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
 
-Also included is a minor bugfix to place a minor
-delay if going to next part of a write, the
-controller can generate incorrect bus data if
-a small number of register reads inserted
-before returning from the IRQ handler
+---
 
-Signed-off-by: Ben Dooks <ben-linux at fluff.org>
--------------- next part --------------
-diff -urpN -X ../dontdiff linux-2.6.16-rmk/drivers/i2c/busses/Kconfig linux-2.6.16-rmk-bjd1/drivers/i2c/busses/Kconfig
---- linux-2.6.16-rmk/drivers/i2c/busses/Kconfig	2006-03-20 05:53:29.000000000 +0000
-+++ linux-2.6.16-rmk-bjd1/drivers/i2c/busses/Kconfig	2006-03-21 22:44:26.000000000 +0000
-@@ -343,6 +343,14 @@ config I2C_S3C2410
- 	  Say Y here to include support for I2C controller in the
- 	  Samsung S3C2410 based System-on-Chip devices.
+ drivers/i2c/busses/i2c-amd756-s4882.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
+
+d7d2fe384703f3f57dac94e8e6303a9f0d9a6239
+diff --git a/drivers/i2c/busses/i2c-amd756-s4882.c b/drivers/i2c/busses/i2c-amd756-s4882.c
+index f7b4cb4..08e9157 100644
+--- a/drivers/i2c/busses/i2c-amd756-s4882.c
++++ b/drivers/i2c/busses/i2c-amd756-s4882.c
+@@ -46,7 +46,7 @@ static struct i2c_adapter *s4882_adapter
+ static struct i2c_algorithm *s4882_algo;
  
-+config I2C_S3C2410_CLKIDLE
-+	bool "Stop I2C clock during IDLE"
-+	depends on I2C_S3C2410
-+	help
-+	  Say Y here to enable support for disabling the I2C unit
-+	  clock when the bus is idle. This is useful to save power
-+	  if not using the unit as a bus slave.
-+
- config I2C_SAVAGE4
- 	tristate "S3 Savage 4"
- 	depends on I2C && PCI && EXPERIMENTAL
-diff -urpN -X ../dontdiff linux-2.6.16-rmk/drivers/i2c/busses/i2c-s3c2410.c linux-2.6.16-rmk-bjd1/drivers/i2c/busses/i2c-s3c2410.c
---- linux-2.6.16-rmk/drivers/i2c/busses/i2c-s3c2410.c	2006-03-20 05:53:29.000000000 +0000
-+++ linux-2.6.16-rmk-bjd1/drivers/i2c/busses/i2c-s3c2410.c	2006-03-21 22:44:26.000000000 +0000
-@@ -44,6 +44,14 @@
- #include <asm/arch/regs-iic.h>
- #include <asm/arch/iic.h>
+ /* Wrapper access functions for multiplexed SMBus */
+-static struct mutex amd756_lock;
++static DEFINE_MUTEX(amd756_lock);
  
-+/* configuration */
-+
-+#ifdef CONFIG_I2C_S3C2410_CLKIDLE
-+static int clock_idle = 1;
-+#else
-+static const int clock_idle = 0;
-+#endif
-+
- /* i2c controller state */
- 
- enum s3c24xx_i2c_state {
-@@ -96,6 +104,11 @@ static inline int s3c24xx_i2c_is2440(str
- 	return !strcmp(pdev->name, "s3c2440-i2c");
- }
- 
-+static inline int s3c24xx_i2c_clkidle(struct s3c24xx_i2c *i2c)
-+{
-+	return clock_idle;
-+}
-+
- 
- /* s3c24xx_i2c_get_platformdata
-  *
-@@ -214,7 +227,7 @@ static inline void s3c24xx_i2c_stop(stru
- {
- 	unsigned long iicstat = readl(i2c->regs + S3C2410_IICSTAT);
- 
--	dev_dbg(i2c->dev, "STOP\n");
-+	dev_dbg(i2c->dev, "STOP (ret=%d)\n", ret);
- 
- 	/* stop the transfer */
- 	iicstat &= ~ S3C2410_IICSTAT_START;
-@@ -269,6 +282,7 @@ static int i2s_s3c_irq_nextbyte(struct s
- 	unsigned long tmp;
- 	unsigned char byte;
- 	int ret = 0;
-+	int i;
- 
- 	switch (i2c->state) {
- 
-@@ -324,7 +338,15 @@ static int i2s_s3c_irq_nextbyte(struct s
- 		if (!is_msgend(i2c)) {
- 			byte = i2c->msg->buf[i2c->msg_ptr++];
- 			writeb(byte, i2c->regs + S3C2410_IICDS);
--			
-+
-+			/* sometimes write operations fail if the write is
-+			 * let go too quickly, slow down the proceedings
-+			 * slightly.
-+			 */
-+
-+			for (i = 0; i < 6; i++) 
-+				tmp += readl(i2c->regs + S3C2410_IICSTAT);
-+
- 		} else if (!is_lastmsg(i2c)) {
- 			/* we need to go to the next i2c message */
- 
-@@ -492,6 +514,9 @@ static int s3c24xx_i2c_doxfer(struct s3c
- 	unsigned long timeout;
- 	int ret;
- 
-+	if (s3c24xx_i2c_clkidle(i2c))
-+		clk_enable(i2c->clk);
-+
- 	ret = s3c24xx_i2c_set_master(i2c);
- 	if (ret != 0) {
- 		dev_err(i2c->dev, "cannot get bus (error %d)\n", ret);
-@@ -528,6 +553,9 @@ static int s3c24xx_i2c_doxfer(struct s3c
- 	msleep(1);
- 
-  out:
-+	if (s3c24xx_i2c_clkidle(i2c))
-+		clk_disable(i2c->clk);
-+
- 	return ret;
- }
- 
-@@ -852,8 +880,13 @@ static int s3c24xx_i2c_probe(struct plat
- 	dev_info(&pdev->dev, "%s: S3C I2C adapter\n", i2c->adap.dev.bus_id);
- 
-  out:
--	if (ret < 0)
-+	if (ret < 0) {
- 		s3c24xx_i2c_free(i2c);
-+		clk_disable(i2c->clk);
-+	} else {
-+		if (s3c24xx_i2c_clkidle(i2c))
-+			clk_disable(i2c->clk);
-+	}
- 
- 	return ret;
- }
-@@ -870,6 +903,9 @@ static int s3c24xx_i2c_remove(struct pla
- 	if (i2c != NULL) {
- 		s3c24xx_i2c_free(i2c);
- 		platform_set_drvdata(pdev, NULL);
-+
-+		if (!s3c24xx_i2c_clkidle(i2c))
-+			clk_disable(i2c->clk);
+ static s32 amd756_access_virt0(struct i2c_adapter * adap, u16 addr,
+ 			       unsigned short flags, char read_write,
+@@ -167,8 +167,6 @@ static int __init amd756_s4882_init(void
  	}
  
- 	return 0;
-@@ -880,9 +916,14 @@ static int s3c24xx_i2c_resume(struct pla
- {
- 	struct s3c24xx_i2c *i2c = platform_get_drvdata(dev);
- 
--	if (i2c != NULL)
-+	if (i2c != NULL) {
-+		clk_enable(i2c->clk);
- 		s3c24xx_i2c_init(i2c);
- 
-+		if (!s3c24xx_i2c_clkidle(i2c))
-+			clk_disable(i2c->clk);
-+	}
-+
- 	return 0;
- }
- 
+ 	printk(KERN_INFO "Enabling SMBus multiplexing for Tyan S4882\n");
+-	mutex_init(&amd756_lock);
+-
+ 	/* Define the 5 virtual adapters and algorithms structures */
+ 	if (!(s4882_adapter = kzalloc(5 * sizeof(struct i2c_adapter),
+ 				      GFP_KERNEL))) {
+-- 
+1.2.4
+
+
+
