@@ -1,39 +1,137 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 23 Mar 2006 22:43:51 +0000
-Subject: [lm-sensors] [PATCH 29/36] i2c: Cleanup isp1301_omap
-Message-Id: <11431538313450-git-send-email-gregkh@suse.de>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 23 Mar 2006 15:30:29 +0000
+Subject: [lm-sensors] [PATCH 03/10] w83627ehf: Add alarms support
+Message-Id: <20060323163029.5d56d96d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Drop unused rogue i2c driver ID and nonsensical i2c class.
+Content-Disposition: inline; filename=hwmon-w83627ehf-add-alarms.patch
 
+Add alarms support for the W83627EHF/EHG hardware monitoring chip.
+
+This is based on an earlier patch from Rudolf Marek.
+
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
 ---
+ drivers/hwmon/w83627ehf.c |   46 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
- drivers/i2c/chips/isp1301_omap.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
-
-c006705e0f6a195d122be8d5344a4257c269f559
-diff --git a/drivers/i2c/chips/isp1301_omap.c b/drivers/i2c/chips/isp1301_omap.c
-index 1251c7f..e6f1ab7 100644
---- a/drivers/i2c/chips/isp1301_omap.c
-+++ b/drivers/i2c/chips/isp1301_omap.c
-@@ -1635,8 +1635,6 @@ static struct i2c_driver isp1301_driver 
- 	.driver = {
- 		.name	= "isp1301_omap",
- 	},
--	.id		= 1301,		/* FIXME "official", i2c-ids.h */
--	.class		= I2C_CLASS_HWMON,
- 	.attach_adapter	= isp1301_scan_bus,
- 	.detach_client	= isp1301_detach_client,
+--- linux-2.6.16-git.orig/drivers/hwmon/w83627ehf.c	2006-03-22 17:21:15.000000000 +0100
++++ linux-2.6.16-git/drivers/hwmon/w83627ehf.c	2006-03-22 23:03:22.000000000 +0100
+@@ -141,6 +141,10 @@
+ #define W83627EHF_REG_DIODE		0x59
+ #define W83627EHF_REG_SMI_OVT		0x4C
+ 
++#define W83627EHF_REG_ALARM1		0x459
++#define W83627EHF_REG_ALARM2		0x45A
++#define W83627EHF_REG_ALARM3		0x45B
++
+ /*
+  * Conversions
+  */
+@@ -218,6 +222,7 @@
+ 	s16 temp[2];
+ 	s16 temp_max[2];
+ 	s16 temp_max_hyst[2];
++	u32 alarms;
  };
+ 
+ static inline int is_word_sized(u16 reg)
+@@ -427,6 +432,13 @@
+ 						 W83627EHF_REG_TEMP_HYST[i]);
+ 		}
+ 
++		data->alarms = w83627ehf_read_value(client,
++					W83627EHF_REG_ALARM1) |
++			       (w83627ehf_read_value(client,
++					W83627EHF_REG_ALARM2) << 8) |
++			       (w83627ehf_read_value(client,
++					W83627EHF_REG_ALARM3) << 16);
++
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
+ 	}
+@@ -474,6 +486,14 @@
+ store_in_reg(MIN, min)
+ store_in_reg(MAX, max)
+ 
++static ssize_t show_alarm(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct w83627ehf_data *data = w83627ehf_update_device(dev);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	return sprintf(buf, "%u\n", (data->alarms >> nr) & 0x01);
++}
++
+ static struct sensor_device_attribute sda_in_input[] = {
+ 	SENSOR_ATTR(in0_input, S_IRUGO, show_in, NULL, 0),
+ 	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
+@@ -487,6 +507,19 @@
+ 	SENSOR_ATTR(in9_input, S_IRUGO, show_in, NULL, 9),
+ };
+ 
++static struct sensor_device_attribute sda_in_alarm[] = {
++	SENSOR_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0),
++	SENSOR_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1),
++	SENSOR_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2),
++	SENSOR_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3),
++	SENSOR_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 8),
++	SENSOR_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 21),
++	SENSOR_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 20),
++	SENSOR_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 16),
++	SENSOR_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 17),
++	SENSOR_ATTR(in9_alarm, S_IRUGO, show_alarm, NULL, 19),
++};
++
+ static struct sensor_device_attribute sda_in_min[] = {
+        SENSOR_ATTR(in0_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 0),
+        SENSOR_ATTR(in1_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 1),
+@@ -516,6 +549,7 @@
+ static void device_create_file_in(struct device *dev, int i)
+ {
+ 	device_create_file(dev, &sda_in_input[i].dev_attr);
++	device_create_file(dev, &sda_in_alarm[i].dev_attr);
+ 	device_create_file(dev, &sda_in_min[i].dev_attr);
+ 	device_create_file(dev, &sda_in_max[i].dev_attr);
+ }
+@@ -618,6 +652,14 @@
+ 	SENSOR_ATTR(fan5_input, S_IRUGO, show_fan, NULL, 4),
+ };
+ 
++static struct sensor_device_attribute sda_fan_alarm[] = {
++	SENSOR_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 6),
++	SENSOR_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 7),
++	SENSOR_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 11),
++	SENSOR_ATTR(fan4_alarm, S_IRUGO, show_alarm, NULL, 10),
++	SENSOR_ATTR(fan5_alarm, S_IRUGO, show_alarm, NULL, 23),
++};
++
+ static struct sensor_device_attribute sda_fan_min[] = {
+ 	SENSOR_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan_min,
+ 		    store_fan_min, 0),
+@@ -642,6 +684,7 @@
+ static void device_create_file_fan(struct device *dev, int i)
+ {
+ 	device_create_file(dev, &sda_fan_input[i].dev_attr);
++	device_create_file(dev, &sda_fan_alarm[i].dev_attr);
+ 	device_create_file(dev, &sda_fan_div[i].dev_attr);
+ 	device_create_file(dev, &sda_fan_min[i].dev_attr);
+ }
+@@ -729,6 +772,9 @@
+ 		    store_temp_max_hyst, 0),
+ 	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR, show_temp_max_hyst,
+ 		    store_temp_max_hyst, 1),
++	SENSOR_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4),
++	SENSOR_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 5),
++	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13),
+ };
+ 
+ /*
+
 -- 
-1.2.4
-
-
+Jean Delvare
 
