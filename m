@@ -1,37 +1,61 @@
 From: gregkh@suse.de (Greg KH)
-Date: Thu, 23 Mar 2006 22:43:52 +0000
-Subject: [lm-sensors] [PATCH 33/36] I2C: i2c-ixp4xx: Add hwmon class
-Message-Id: <1143153832917-git-send-email-gregkh@suse.de>
+Date: Thu, 23 Mar 2006 22:43:50 +0000
+Subject: [lm-sensors] [PATCH 11/36] i2c: scx200_acb minimal documentation
+Message-Id: <11431538301689-git-send-email-gregkh@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This patch adds I2C_CLASS_HWMON to the ixp4xx bus driver.
+scx200_acb: Minimal documentation update
 
-Signed-off-by: Alessandro Zummo <a.zummo at towertech.it>
+Signed-off-by: Ben Gardner <bgardner at wabtec.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
 
- drivers/i2c/busses/i2c-ixp4xx.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ Documentation/i2c/busses/scx200_acb |    5 +++--
+ drivers/i2c/busses/Kconfig          |    5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-7cd30b26eb779b787e00e05f3e9797a97de33968
-diff --git a/drivers/i2c/busses/i2c-ixp4xx.c b/drivers/i2c/busses/i2c-ixp4xx.c
-index e422d8b..2ed0711 100644
---- a/drivers/i2c/busses/i2c-ixp4xx.c
-+++ b/drivers/i2c/busses/i2c-ixp4xx.c
-@@ -126,6 +126,7 @@ static int ixp4xx_i2c_probe(struct platf
- 	drv_data->algo_data.timeout = 100;
+a417bbd33b2ed7a3b2bc78cbadb820079d453328
+diff --git a/Documentation/i2c/busses/scx200_acb b/Documentation/i2c/busses/scx200_acb
+index 08c8cd1..f50e699 100644
+--- a/Documentation/i2c/busses/scx200_acb
++++ b/Documentation/i2c/busses/scx200_acb
+@@ -6,9 +6,10 @@ Module Parameters
+ -----------------
  
- 	drv_data->adapter.id = I2C_HW_B_IXP4XX;
-+	drv_data->adapter.class = I2C_CLASS_HWMON;
- 	strlcpy(drv_data->adapter.name, plat_dev->dev.driver->name,
- 		I2C_NAME_SIZE);
- 	drv_data->adapter.algo_data = &drv_data->algo_data;
+ * base: int
+-  Base addresses for the ACCESS.bus controllers
++  Base addresses for the ACCESS.bus controllers on SCx200 and SC1100 devices
+ 
+ Description
+ -----------
+ 
+-Enable the use of the ACCESS.bus controllers of a SCx200 processor.
++Enable the use of the ACCESS.bus controller on the Geode SCx200 and
++SC1100 processors and the CS5535 and CS5536 Geode companion devices.
+diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+index ff92735..1a3bf42 100644
+--- a/drivers/i2c/busses/Kconfig
++++ b/drivers/i2c/busses/Kconfig
+@@ -389,10 +389,11 @@ config SCx200_I2C_SDA
+ 	  also be specified with a module parameter.
+ 
+ config SCx200_ACB
+-	tristate "NatSemi SCx200 ACCESS.bus"
++	tristate "Geode ACCESS.bus support"
+ 	depends on I2C && PCI
+ 	help
+-	  Enable the use of the ACCESS.bus controllers of a SCx200 processor.
++	  Enable the use of the ACCESS.bus controllers on the Geode SCx200 and
++	  SC1100 processors and the CS5535 and CS5536 Geode companion devices.
+ 
+ 	  If you don't know what to do here, say N.
+ 
 -- 
 1.2.4
 
