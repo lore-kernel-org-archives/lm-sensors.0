@@ -1,62 +1,67 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 23 Mar 2006 15:40:23 +0000
-Subject: [lm-sensors] [PATCH 06/10] f71805f: Resource needs not be global
-Message-Id: <20060323164023.f5380bf9.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 23 Mar 2006 22:43:50 +0000
+Subject: [lm-sensors] [PATCH 16/36] i2c: Speed up block transfers
+Message-Id: <1143153830466-git-send-email-gregkh@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=hwmon-f71805f-no-global-resource.patch
-
-The F71805F I/O resource structure needs not be a global variable,
-as the platform core allocs its own copy of it anyway.
+Speed up i2c_smbus_write_block_data and i2c_smbus_read_i2c_block_data
+a bit by using memcpy instead of an explicit loop.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
 ---
- drivers/hwmon/f71805f.c |   15 +++++++--------
- 1 files changed, 7 insertions(+), 8 deletions(-)
 
---- linux-2.6.16-rc5.orig/drivers/hwmon/f71805f.c	2006-02-27 21:01:16.000000000 +0100
-+++ linux-2.6.16-rc5/drivers/hwmon/f71805f.c	2006-03-02 22:44:15.000000000 +0100
-@@ -99,10 +99,6 @@
- #define ADDR_REG_OFFSET		0
- #define DATA_REG_OFFSET		1
- 
--static struct resource f71805f_resource __initdata = {
--	.flags	= IORESOURCE_IO,
--};
--
- /*
-  * Registers
-  */
-@@ -782,6 +778,11 @@
- 
- static int __init f71805f_device_add(unsigned short address)
+ drivers/i2c/i2c-core.c |   15 ++++++---------
+ 1 files changed, 6 insertions(+), 9 deletions(-)
+
+7656032b904b936eca65a41afa1f2b3603195657
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 9733443..2b0c555 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -920,12 +920,11 @@ s32 i2c_smbus_write_block_data(struct i2
+ 			       u8 length, u8 *values)
  {
-+	struct resource res = {
-+		.start	= address,
-+		.end	= address + REGION_LENGTH - 1,
-+		.flags	= IORESOURCE_IO,
-+	};
- 	int err;
+ 	union i2c_smbus_data data;
+-	int i;
++
+ 	if (length > I2C_SMBUS_BLOCK_MAX)
+ 		length = I2C_SMBUS_BLOCK_MAX;
+-	for (i = 1; i <= length; i++)
+-		data.block[i] = values[i-1];
+ 	data.block[0] = length;
++	memcpy(&data.block[1], values, length);
+ 	return i2c_smbus_xfer(client->adapter,client->addr,client->flags,
+ 			      I2C_SMBUS_WRITE,command,
+ 			      I2C_SMBUS_BLOCK_DATA,&data);
+@@ -935,16 +934,14 @@ s32 i2c_smbus_write_block_data(struct i2
+ s32 i2c_smbus_read_i2c_block_data(struct i2c_client *client, u8 command, u8 *values)
+ {
+ 	union i2c_smbus_data data;
+-	int i;
++
+ 	if (i2c_smbus_xfer(client->adapter,client->addr,client->flags,
+ 	                      I2C_SMBUS_READ,command,
+ 	                      I2C_SMBUS_I2C_BLOCK_DATA,&data))
+ 		return -1;
+-	else {
+-		for (i = 1; i <= data.block[0]; i++)
+-			values[i-1] = data.block[i];
+-		return data.block[0];
+-	}
++
++	memcpy(values, &data.block[1], data.block[0]);
++	return data.block[0];
+ }
  
- 	pdev = platform_device_alloc(DRVNAME, address);
-@@ -791,10 +792,8 @@
- 		goto exit;
- 	}
- 
--	f71805f_resource.start = address;
--	f71805f_resource.end = address + REGION_LENGTH - 1;
--	f71805f_resource.name = pdev->name;
--	err = platform_device_add_resources(pdev, &f71805f_resource, 1);
-+	res.name = pdev->name;
-+	err = platform_device_add_resources(pdev, &res, 1);
- 	if (err) {
- 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
- 		       "(%d)\n", err);
-
+ s32 i2c_smbus_write_i2c_block_data(struct i2c_client *client, u8 command,
 -- 
-Jean Delvare
+1.2.4
+
+
 
