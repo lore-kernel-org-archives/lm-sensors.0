@@ -1,110 +1,132 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 12 Mar 2006 15:47:01 +0000
-Subject: [lm-sensors] i2c-2.10.0 and lm_sensors-2.10.0 --- 2 patches
-Message-Id: <20060312164701.20355fc9.khali@linux-fr.org>
+From: ch@garage.murgatroid.com (Christopher Hoover)
+Date: Thu, 23 Mar 2006 08:12:31 +0000
+Subject: [lm-sensors] [PATCH] Clean up magic numbers in i2c_parport.h
+Message-Id: <20060323081231.D794B1EC019@garage.murgatroid.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.64.0603080940220.1369@pcl321.mppmu.mpg.de>
-In-Reply-To: <Pine.LNX.4.64.0603080940220.1369@pcl321.mppmu.mpg.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org, lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org, kernel-janitors@lists.osdl.org, akpm@osdl.org, ch@murgatroid.com
 
-Hi Peter,
 
-> > --- Makefile	23 Feb 2006 22:58:52 -0000	1.103
-> > +++ Makefile	11 Mar 2006 16:57:39 -0000
-> > @@ -82,7 +82,8 @@
-> > # This is the main modules directory into which the modules will be installed.
-> > # The magic invocation will return something like this:
-> > #   /lib/modules/2.4.29
-> > -MODPREF := /lib/modules/$(shell $(CC) -I$(LINUX_HEADERS) -E etc/config.c | grep uts_release |cut -f 2 -d'"')
-> > +KERNELVERSION = $(shell $(CC) -I$(LINUX_HEADERS) -E etc/config.c | grep uts_release |cut -f 2 -d'"')
-> > +MODPREF := /lib/modules/$(KERNELVERSION)
-> >
-> > # When building userspace for use with 2.4.x series kernels, we turn off
-> > # sysfs support by default.  You can override this (e.g. if you want
-> > @@ -319,7 +320,7 @@
-> > all :: user
-> > install :: all user_install
-> > ifeq ($(DESTDIR),)
-> > -	-/sbin/depmod -a
-> > +	-/sbin/depmod -a $(KERNELVERSION)
-> > else
-> > 	@echo "*** This is a \`staged' install using \"$(DESTDIR)\" as prefix."
-> > 	@echo "***"
-> >
-> > What do you think? That way setting either LINUX or KERNELVERSION on
-> > the command line will work.
-> 
-> Yes, but the above patch is still incomplete. I think one should use
-> 
->  	-/sbin/depmod -a -F <location of System.map> $(KERNELVERSION)
-> 
-> where <location of System.map> could, e.g., be
-> 
->  	$(MODPREF)/build/System.map
+This small patch gets rid of some magic numbers in the i2c parport
+drivers, specifically wrt the control and status handling, using the
+symbols already defined in parport.h
 
-Ah yes, you're right. This leads me to the following patch, which I'll
-apply if there are no more objections:
+The patch produces the same binary objects for i2c-parport.c and
+i2c-parport-simple.c as before.
 
-Index: Makefile
-=================================RCS file: /home/cvs/lm_sensors2/Makefile,v
-retrieving revision 1.103
-diff -u -r1.103 Makefile
---- Makefile	23 Feb 2006 22:58:52 -0000	1.103
-+++ Makefile	12 Mar 2006 16:37:58 -0000
-@@ -82,7 +82,8 @@
- # This is the main modules directory into which the modules will be installed.
- # The magic invocation will return something like this:
- #   /lib/modules/2.4.29
--MODPREF := /lib/modules/$(shell $(CC) -I$(LINUX_HEADERS) -E etc/config.c | grep uts_release |cut -f 2 -d'"')
-+KERNELVERSION = $(shell $(CC) -I$(LINUX_HEADERS) -E etc/config.c | grep uts_release |cut -f 2 -d'"')
-+MODPREF := /lib/modules/$(KERNELVERSION)
+Please apply.
+
+Cheers,
+Christopher.
+
+ch at murgatroid.com
+ch at hpl.hp.com
+
+
+
+Only in linux-2.6.16: .config
+diff --exclude=scripts --exclude='*~' -aurp linux-2.6.16/drivers/i2c/busses/i2c-parport.h linux-2.6.16.i2c/drivers/i2c/busses/i2c-parport.h
+--- linux-2.6.16/drivers/i2c/busses/i2c-parport.h	2006-03-19 21:53:29.000000000 -0800
++++ linux-2.6.16.i2c/drivers/i2c/busses/i2c-parport.h	2006-03-22 23:51:08.000000000 -0800
+@@ -18,6 +18,8 @@
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  * ------------------------------------------------------------------------ */
  
- # When building userspace for use with 2.4.x series kernels, we turn off
- # sysfs support by default.  You can override this (e.g. if you want
-@@ -319,7 +320,9 @@
- all :: user
- install :: all user_install
- ifeq ($(DESTDIR),)
--	-/sbin/depmod -a
-+	-if [ -r $(MODPREF)/build/System.map -a -x /sbin/depmod ] ; then \
-+	  /sbin/depmod -a -F $(MODPREF)/build/System.map $(KERNELVERSION) ; \
-+	fi
- else
- 	@echo "*** This is a \`staged' install using \"$(DESTDIR)\" as prefix."
- 	@echo "***"
-
-> With that I got no errors (on a 2.4.30 system when building lm_sensors for a
-> 2.4.32 kernel), but I got lots of errors without the "-F".
-> 
-> > Note that I ended up with an error either way. I'm running a 2.6
-> > kernel, and when building lm_sensors for a 2.4.32 kernel, depmod now
-> > dies with the following error:
-> >
-> > /sbin/depmod -a 2.4.32
-> > depmod: QM_MODULES: Function not implemented
-> >
-> > Any idea what's going on? I did not have the problem before "thanks" to
-> > our broken Makefile (depmod was run for the 2.6 kernel instead). Now, no
-> > big deal either, the error isn't fatal, but it makes me curious.
-> 
-> I think I know what's going on: With the 2.6 kernel you have depmod from
-> module-init-tools. This works for 2.6 kernels but falls back to depmod.old
-> (the renamed depmod from modutils) when running on a 2.4 system or when a
-> version earlier than 2.5.48 is specified on the command line.
-> 
-> It seems, this somehow doesn't work as expected when running on a 2.6
-> system.
-> 
-> One way out would be to test if /sbin/depmod.old exists and if so directly
-> invoke depmod.old.
-
-I had tried that already, but it didn't work. But it turns out that the
--F you suggested above fixes it :)
-
-Thanks,
--- 
-Jean Delvare
++#include <linux/parport.h>
++
+ #ifdef DATA
+ #undef DATA
+ #endif
+@@ -40,53 +42,62 @@ struct adapter_parm {
+ 	struct lineop init;
+ };
+ 
++#define LINEOP_DATA(val_, inverted_) \
++   { .val=(val_), .port = DATA, .inverted=(inverted_) }
++
++#define LINEOP_STATUS(val_, inverted_) \
++   { .val=(val_), .port = STAT, .inverted=(inverted_) }
++
++#define LINEOP_CONTROL(val_, inverted_) \
++   { .val=(val_), .port = CTRL, .inverted=(inverted_) }
++
+ static struct adapter_parm adapter_parm[] = {
+ 	/* type 0: Philips adapter */
+ 	{
+-		.setsda	= { 0x80, DATA, 1 },
+-		.setscl	= { 0x08, CTRL, 0 },
+-		.getsda	= { 0x80, STAT, 0 },
+-		.getscl	= { 0x08, STAT, 0 },
++		.setsda	= LINEOP_DATA(0x80, 1),
++		.setscl	= LINEOP_CONTROL(PARPORT_CONTROL_SELECT, 0),
++		.getsda	= LINEOP_STATUS(PARPORT_STATUS_BUSY, 0),
++		.getscl	= LINEOP_STATUS(PARPORT_STATUS_ERROR, 0)
+ 	},
+ 	/* type 1: home brew teletext adapter */
+ 	{
+-		.setsda	= { 0x02, DATA, 0 },
+-		.setscl	= { 0x01, DATA, 0 },
+-		.getsda	= { 0x80, STAT, 1 },
++		.setsda	= LINEOP_DATA(0x02, 0),
++		.setscl	= LINEOP_DATA(0x01, 0),
++		.getsda	= LINEOP_STATUS(PARPORT_STATUS_BUSY, 1)
+ 	},
+ 	/* type 2: Velleman K8000 adapter */
+ 	{
+-		.setsda	= { 0x02, CTRL, 1 },
+-		.setscl	= { 0x08, CTRL, 1 },
+-		.getsda	= { 0x10, STAT, 0 },
++		.setsda	= LINEOP_CONTROL(PARPORT_CONTROL_AUTOFD, 1),
++		.setscl	= LINEOP_CONTROL(PARPORT_CONTROL_SELECT, 1),
++		.getsda	= LINEOP_STATUS(PARPORT_STATUS_SELECT, 0)
+ 	},
+ 	/* type 3: ELV adapter */
+ 	{
+-		.setsda	= { 0x02, DATA, 1 },
+-		.setscl	= { 0x01, DATA, 1 },
+-		.getsda	= { 0x40, STAT, 1 },
+-		.getscl	= { 0x08, STAT, 1 },
++		.setsda	= LINEOP_DATA(0x02, 1),
++		.setscl	= LINEOP_DATA(0x01, 1),
++		.getsda	= LINEOP_STATUS(PARPORT_STATUS_ACK, 1),
++		.getscl	= LINEOP_STATUS(PARPORT_STATUS_ERROR, 1)
+ 	},
+ 	/* type 4: ADM1032 evaluation board */
+ 	{
+-		.setsda	= { 0x02, DATA, 1 },
+-		.setscl	= { 0x01, DATA, 1 },
+-		.getsda	= { 0x10, STAT, 1 },
+-		.init	= { 0xf0, DATA, 0 },
++		.setsda	= LINEOP_DATA(0x02, 1),
++		.setscl	= LINEOP_DATA(0x01, 1),
++		.getsda	= LINEOP_STATUS(PARPORT_STATUS_SELECT, 1),
++		.init	= LINEOP_DATA(0xf0,0)
+ 	},
+ 	/* type 5: ADM1025, ADM1030 and ADM1031 evaluation boards */
+ 	{
+-		.setsda	= { 0x02, DATA, 1 },
+-		.setscl	= { 0x01, DATA, 1 },
+-		.getsda	= { 0x10, STAT, 1 },
++		.setsda	= LINEOP_DATA(0x02, 1),
++		.setscl	= LINEOP_DATA(0x01, 1),
++		.getsda	= LINEOP_STATUS(PARPORT_STATUS_SELECT, 1)
+ 	},
+ 	/* type 6: Barco LPT->DVI (K5800236) adapter */
+ 	{
+-		.setsda	= { 0x02, DATA, 1 },
+-		.setscl	= { 0x01, DATA, 1 },
+-		.getsda	= { 0x20, STAT, 0 },
+-		.getscl	= { 0x40, STAT, 0 },
+-		.init	= { 0xfc, DATA, 0 },
++		.setsda	= LINEOP_DATA(0x02, 1),
++		.setscl	= LINEOP_DATA(0x01, 1),
++		.getsda	= LINEOP_STATUS(PARPORT_STATUS_PAPEROUT, 0),
++		.getscl	= LINEOP_STATUS(PARPORT_STATUS_ACK, 0),
++		.init	= LINEOP_DATA(0xfc, 0)
+ 	},
+ };
+ 
 
