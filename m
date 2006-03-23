@@ -1,319 +1,151 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 23 Mar 2006 22:43:49 +0000
-Subject: [lm-sensors] [PATCH 03/36] hwmon: Use attribute arrays in f71805f
-Message-Id: <11431538292749-git-send-email-gregkh@suse.de>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 23 Mar 2006 15:46:47 +0000
+Subject: [lm-sensors] [PATCH 07/10] hwmon: Add sysfs interface for
+Message-Id: <20060323164647.0e89adcb.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Convert the f71805f driver to use arrays of attributes. This shrinks the
-compiled module from 12.0 kB to 9.6 kB. We certainly should do the same
-for as many hardware monitoring drivers as possible.
+Content-Disposition: inline; filename=hwmon-sysfs-interface-individual-alarm-files.patch
 
-This, together with a nice chip design by Fintek, makes this driver
-very small, both in terms of number of lines of code and memory
-consumption.
+Extend the sysfs interface of hardware monitoring chips, by adding
+individual alarm and beep files. Contrary to the old aggregated "alarms"
+and "beeps" files, individual files constitute a standard way to access
+the status information, making it finally possible to implement a
+chip-independant hardware monitoring chip access library (once all
+drivers have been added this new interface, that is.)
+
+If future drivers need more individual files, the interface will be
+extended as needed at the same time these drivers are merged into the
+kernel tree.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
 ---
+ Documentation/hwmon/sysfs-interface |   98 ++++++++++++++++++++++++++---------
+ 1 file changed, 73 insertions(+), 25 deletions(-)
 
- drivers/hwmon/f71805f.c |  224 ++++++++++++++++++++++-------------------------
- 1 files changed, 106 insertions(+), 118 deletions(-)
+--- linux-2.6.16-git.orig/Documentation/hwmon/sysfs-interface	2006-03-23 14:27:36.000000000 +0100
++++ linux-2.6.16-git/Documentation/hwmon/sysfs-interface	2006-03-23 14:52:10.000000000 +0100
+@@ -252,9 +252,68 @@
+ 		Read only.
+ 
+ 
+-*********
+-* Other *
+-*********
++**********
++* Alarms *
++**********
++
++Each channel or limit may have an associated alarm file, containing a
++boolean value. 1 means than an alarm condition exists, 0 means no alarm.
++
++Usually a given chip will either use channel-related alarms, or
++limit-related alarms, not both. The driver should just reflect the hardware
++implementation.
++
++in[0-n]_alarm
++fan[1-n]_alarm
++temp[1-n]_alarm
++		Channel alarm
++		Boolean
++		Read-only
++
++OR
++
++in[0-n]_min_alarm
++in[0-n]_max_alarm
++fan[1-n]_min_alarm
++temp[1-n]_min_alarm
++temp[1-n]_max_alarm
++temp[1-n]_crit_alarm
++		Limit alarm
++		Boolean
++		Read-only
++
++Each input channel may have an associated fault file. This can be used
++to notify open diodes, unconnected fans etc. where the hardware
++supports it. When this boolean has value 1, the measurement for that
++channel should not be trusted.
++
++in[0-n]_input_fault
++fan[1-n]_input_fault
++temp[1-n]_input_fault
++		Input fault condition
++		Boolean
++		Read-only
++
++Some chips also offer the possibility to get beeped when an alarm occurs:
++
++beep_enable	Master beep enable
++		Boolean
++		Read/Write
++
++in[0-n]_beep
++fan[1-n]_beep
++temp[1-n]_beep
++		Channel beep
++		0 to disable.
++		1 to enable.
++		Read/write
++
++In theory, a chip could provide per-limit beep masking, but no such chip
++was seen so far.
++
++Old drivers provided a different, non-standard interface to alarms and
++beeps. These interface files are deprecated, but will be kept around
++for compatibility reasons:
+ 
+ alarms		Alarm bitmask.
+ 		Read only.
+@@ -265,33 +324,22 @@
+ 		if it is still valid.
+ 		Generally a direct representation of a chip's internal
+ 		alarm registers; there is no standard for the position
+-		of individual bits.
++		of individual bits. For this reason, the use of this
++		interface file for new drivers is discouraged. Use
++		individual *_alarm and *_fault files instead.
+ 		Bits are defined in kernel/include/sensors.h.
+ 
+-alarms_in	Alarm bitmask relative to in (voltage) channels
+-		Read only
+-		A '1' bit means an alarm, LSB corresponds to in0 and so on
+-		Prefered to 'alarms' for newer chips
+-
+-alarms_fan	Alarm bitmask relative to fan channels
+-		Read only
+-		A '1' bit means an alarm, LSB corresponds to fan1 and so on
+-		Prefered to 'alarms' for newer chips
+-
+-alarms_temp	Alarm bitmask relative to temp (temperature) channels
+-		Read only
+-		A '1' bit means an alarm, LSB corresponds to temp1 and so on
+-		Prefered to 'alarms' for newer chips
+-
+-beep_enable	Beep/interrupt enable
+-		0 to disable.
+-		1 to enable.
+-		Read/Write
+-
+ beep_mask	Bitmask for beep.
+-		Same format as 'alarms' with the same bit locations.
++		Same format as 'alarms' with the same bit locations,
++		use discouraged for the same reason. Use individual
++		*_beep files instead.
+ 		Read/Write
+ 
++
++*********
++* Other *
++*********
++
+ eeprom		Raw EEPROM data in binary form.
+ 		Read only.
+ 
 
-2488a39d233a758d41ab7de70a220bc956f3c96c
-diff --git a/drivers/hwmon/f71805f.c b/drivers/hwmon/f71805f.c
-index e029e0a..8e810f0 100644
---- a/drivers/hwmon/f71805f.c
-+++ b/drivers/hwmon/f71805f.c
-@@ -384,10 +384,6 @@ static ssize_t set_in0_min(struct device
- 	return count;
- }
- 
--static DEVICE_ATTR(in0_input, S_IRUGO, show_in0, NULL);
--static DEVICE_ATTR(in0_max, S_IRUGO| S_IWUSR, show_in0_max, set_in0_max);
--static DEVICE_ATTR(in0_min, S_IRUGO| S_IWUSR, show_in0_min, set_in0_min);
--
- static ssize_t show_in(struct device *dev, struct device_attribute *devattr,
- 		       char *buf)
- {
-@@ -450,23 +446,6 @@ static ssize_t set_in_min(struct device 
- 	return count;
- }
- 
--#define sysfs_in(offset)					\
--static SENSOR_DEVICE_ATTR(in##offset##_input, S_IRUGO,		\
--		show_in, NULL, offset);				\
--static SENSOR_DEVICE_ATTR(in##offset##_max, S_IRUGO | S_IWUSR,	\
--		show_in_max, set_in_max, offset);		\
--static SENSOR_DEVICE_ATTR(in##offset##_min, S_IRUGO | S_IWUSR,	\
--		show_in_min, set_in_min, offset)
--
--sysfs_in(1);
--sysfs_in(2);
--sysfs_in(3);
--sysfs_in(4);
--sysfs_in(5);
--sysfs_in(6);
--sysfs_in(7);
--sysfs_in(8);
--
- static ssize_t show_fan(struct device *dev, struct device_attribute *devattr,
- 			char *buf)
- {
-@@ -503,16 +482,6 @@ static ssize_t set_fan_min(struct device
- 	return count;
- }
- 
--#define sysfs_fan(offset)					\
--static SENSOR_DEVICE_ATTR(fan##offset##_input, S_IRUGO,		\
--		show_fan, NULL, offset - 1);			\
--static SENSOR_DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR,	\
--		show_fan_min, set_fan_min, offset - 1)
--
--sysfs_fan(1);
--sysfs_fan(2);
--sysfs_fan(3);
--
- static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
- 			 char *buf)
- {
-@@ -586,20 +555,6 @@ static ssize_t set_temp_hyst(struct devi
- 	return count;
- }
- 
--#define sysfs_temp(offset)						\
--static SENSOR_DEVICE_ATTR(temp##offset##_input, S_IRUGO,		\
--		show_temp, NULL, offset - 1);				\
--static SENSOR_DEVICE_ATTR(temp##offset##_max, S_IRUGO | S_IWUSR,	\
--		show_temp_max, set_temp_max, offset - 1);		\
--static SENSOR_DEVICE_ATTR(temp##offset##_max_hyst, S_IRUGO | S_IWUSR,	\
--		show_temp_hyst, set_temp_hyst, offset - 1);		\
--static SENSOR_DEVICE_ATTR(temp##offset##_type, S_IRUGO,			\
--		show_temp_type, NULL, offset - 1)
--
--sysfs_temp(1);
--sysfs_temp(2);
--sysfs_temp(3);
--
- static ssize_t show_alarms_in(struct device *dev, struct device_attribute
- 			      *devattr, char *buf)
- {
-@@ -625,10 +580,6 @@ static ssize_t show_alarms_temp(struct d
- 	return sprintf(buf, "%d\n", (data->alarms[1] >> 3) & 0x07);
- }
- 
--static DEVICE_ATTR(alarms_in, S_IRUGO, show_alarms_in, NULL);
--static DEVICE_ATTR(alarms_fan, S_IRUGO, show_alarms_fan, NULL);
--static DEVICE_ATTR(alarms_temp, S_IRUGO, show_alarms_temp, NULL);
--
- static ssize_t show_name(struct device *dev, struct device_attribute
- 			 *devattr, char *buf)
- {
-@@ -637,7 +588,89 @@ static ssize_t show_name(struct device *
- 	return sprintf(buf, "%s\n", data->name);
- }
- 
--static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
-+static struct device_attribute f71805f_dev_attr[] = {
-+	__ATTR(in0_input, S_IRUGO, show_in0, NULL),
-+	__ATTR(in0_max, S_IRUGO| S_IWUSR, show_in0_max, set_in0_max),
-+	__ATTR(in0_min, S_IRUGO| S_IWUSR, show_in0_min, set_in0_min),
-+	__ATTR(alarms_in, S_IRUGO, show_alarms_in, NULL),
-+	__ATTR(alarms_fan, S_IRUGO, show_alarms_fan, NULL),
-+	__ATTR(alarms_temp, S_IRUGO, show_alarms_temp, NULL),
-+	__ATTR(name, S_IRUGO, show_name, NULL),
-+};
-+
-+static struct sensor_device_attribute f71805f_sensor_attr[] = {
-+	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
-+	SENSOR_ATTR(in1_max, S_IRUGO | S_IWUSR,
-+		    show_in_max, set_in_max, 1),
-+	SENSOR_ATTR(in1_min, S_IRUGO | S_IWUSR,
-+		    show_in_min, set_in_min, 1),
-+	SENSOR_ATTR(in2_input, S_IRUGO, show_in, NULL, 2),
-+	SENSOR_ATTR(in2_max, S_IRUGO | S_IWUSR,
-+		    show_in_max, set_in_max, 2),
-+	SENSOR_ATTR(in2_min, S_IRUGO | S_IWUSR,
-+		    show_in_min, set_in_min, 2),
-+	SENSOR_ATTR(in3_input, S_IRUGO, show_in, NULL, 3),
-+	SENSOR_ATTR(in3_max, S_IRUGO | S_IWUSR,
-+		    show_in_max, set_in_max, 3),
-+	SENSOR_ATTR(in3_min, S_IRUGO | S_IWUSR,
-+		    show_in_min, set_in_min, 3),
-+	SENSOR_ATTR(in4_input, S_IRUGO, show_in, NULL, 4),
-+	SENSOR_ATTR(in4_max, S_IRUGO | S_IWUSR,
-+		    show_in_max, set_in_max, 4),
-+	SENSOR_ATTR(in4_min, S_IRUGO | S_IWUSR,
-+		    show_in_min, set_in_min, 4),
-+	SENSOR_ATTR(in5_input, S_IRUGO, show_in, NULL, 5),
-+	SENSOR_ATTR(in5_max, S_IRUGO | S_IWUSR,
-+		    show_in_max, set_in_max, 5),
-+	SENSOR_ATTR(in5_min, S_IRUGO | S_IWUSR,
-+		    show_in_min, set_in_min, 5),
-+	SENSOR_ATTR(in6_input, S_IRUGO, show_in, NULL, 6),
-+	SENSOR_ATTR(in6_max, S_IRUGO | S_IWUSR,
-+		    show_in_max, set_in_max, 6),
-+	SENSOR_ATTR(in6_min, S_IRUGO | S_IWUSR,
-+		    show_in_min, set_in_min, 6),
-+	SENSOR_ATTR(in7_input, S_IRUGO, show_in, NULL, 7),
-+	SENSOR_ATTR(in7_max, S_IRUGO | S_IWUSR,
-+		    show_in_max, set_in_max, 7),
-+	SENSOR_ATTR(in7_min, S_IRUGO | S_IWUSR,
-+		    show_in_min, set_in_min, 7),
-+	SENSOR_ATTR(in8_input, S_IRUGO, show_in, NULL, 8),
-+	SENSOR_ATTR(in8_max, S_IRUGO | S_IWUSR,
-+		    show_in_max, set_in_max, 8),
-+	SENSOR_ATTR(in8_min, S_IRUGO | S_IWUSR,
-+		    show_in_min, set_in_min, 8),
-+
-+	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0),
-+	SENSOR_ATTR(temp1_max, S_IRUGO | S_IWUSR,
-+		    show_temp_max, set_temp_max, 0),
-+	SENSOR_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR,
-+		    show_temp_hyst, set_temp_hyst, 0),
-+	SENSOR_ATTR(temp1_type, S_IRUGO, show_temp_type, NULL, 0),
-+	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1),
-+	SENSOR_ATTR(temp2_max, S_IRUGO | S_IWUSR,
-+		    show_temp_max, set_temp_max, 1),
-+	SENSOR_ATTR(temp2_max_hyst, S_IRUGO | S_IWUSR,
-+		    show_temp_hyst, set_temp_hyst, 1),
-+	SENSOR_ATTR(temp2_type, S_IRUGO, show_temp_type, NULL, 1),
-+	SENSOR_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2),
-+	SENSOR_ATTR(temp3_max, S_IRUGO | S_IWUSR,
-+		    show_temp_max, set_temp_max, 2),
-+	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR,
-+		    show_temp_hyst, set_temp_hyst, 2),
-+	SENSOR_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2),
-+};
-+
-+static struct sensor_device_attribute f71805f_fan_attr[] = {
-+	SENSOR_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0),
-+	SENSOR_ATTR(fan1_min, S_IRUGO | S_IWUSR,
-+		    show_fan_min, set_fan_min, 0),
-+	SENSOR_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1),
-+	SENSOR_ATTR(fan2_min, S_IRUGO | S_IWUSR,
-+		    show_fan_min, set_fan_min, 1),
-+	SENSOR_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2),
-+	SENSOR_ATTR(fan3_min, S_IRUGO | S_IWUSR,
-+		    show_fan_min, set_fan_min, 2),
-+};
- 
- /*
-  * Device registration and initialization
-@@ -668,7 +701,7 @@ static int __devinit f71805f_probe(struc
- {
- 	struct f71805f_data *data;
- 	struct resource *res;
--	int err;
-+	int i, err;
- 
- 	if (!(data = kzalloc(sizeof(struct f71805f_data), GFP_KERNEL))) {
- 		err = -ENOMEM;
-@@ -695,76 +728,31 @@ static int __devinit f71805f_probe(struc
- 	f71805f_init_device(data);
- 
- 	/* Register sysfs interface files */
--	device_create_file(&pdev->dev, &dev_attr_in0_input);
--	device_create_file(&pdev->dev, &dev_attr_in0_max);
--	device_create_file(&pdev->dev, &dev_attr_in0_min);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in1_input.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in2_input.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in3_input.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in4_input.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in5_input.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in6_input.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in7_input.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in8_input.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in1_max.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in2_max.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in3_max.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in4_max.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in5_max.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in6_max.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in7_max.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in8_max.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in1_min.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in2_min.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in3_min.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in4_min.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in5_min.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in6_min.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in7_min.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_in8_min.dev_attr);
--	if (data->fan_enabled & (1 << 0)) {
--		device_create_file(&pdev->dev,
--				   &sensor_dev_attr_fan1_input.dev_attr);
--		device_create_file(&pdev->dev,
--				   &sensor_dev_attr_fan1_min.dev_attr);
--	}
--	if (data->fan_enabled & (1 << 1)) {
--		device_create_file(&pdev->dev,
--				   &sensor_dev_attr_fan2_input.dev_attr);
--		device_create_file(&pdev->dev,
--				   &sensor_dev_attr_fan2_min.dev_attr);
--	}
--	if (data->fan_enabled & (1 << 2)) {
--		device_create_file(&pdev->dev,
--				   &sensor_dev_attr_fan3_input.dev_attr);
--		device_create_file(&pdev->dev,
--				   &sensor_dev_attr_fan3_min.dev_attr);
--	}
--	device_create_file(&pdev->dev,
--			   &sensor_dev_attr_temp1_input.dev_attr);
--	device_create_file(&pdev->dev,
--			   &sensor_dev_attr_temp2_input.dev_attr);
--	device_create_file(&pdev->dev,
--			   &sensor_dev_attr_temp3_input.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_temp1_max.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_temp2_max.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_temp3_max.dev_attr);
--	device_create_file(&pdev->dev,
--			   &sensor_dev_attr_temp1_max_hyst.dev_attr);
--	device_create_file(&pdev->dev,
--			   &sensor_dev_attr_temp2_max_hyst.dev_attr);
--	device_create_file(&pdev->dev,
--			   &sensor_dev_attr_temp3_max_hyst.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_temp1_type.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_temp2_type.dev_attr);
--	device_create_file(&pdev->dev, &sensor_dev_attr_temp3_type.dev_attr);
--	device_create_file(&pdev->dev, &dev_attr_alarms_in);
--	device_create_file(&pdev->dev, &dev_attr_alarms_fan);
--	device_create_file(&pdev->dev, &dev_attr_alarms_temp);
--	device_create_file(&pdev->dev, &dev_attr_name);
-+	for (i = 0; i < ARRAY_SIZE(f71805f_dev_attr); i++) {
-+		err = device_create_file(&pdev->dev, &f71805f_dev_attr[i]);
-+		if (err)
-+			goto exit_class;
-+	}
-+	for (i = 0; i < ARRAY_SIZE(f71805f_sensor_attr); i++) {
-+		err = device_create_file(&pdev->dev,
-+					 &f71805f_sensor_attr[i].dev_attr);
-+		if (err)
-+			goto exit_class;
-+	}
-+	for (i = 0; i < ARRAY_SIZE(f71805f_fan_attr); i++) {
-+		if (!(data->fan_enabled & (1 << (i / 2))))
-+			continue;
-+		err = device_create_file(&pdev->dev,
-+					 &f71805f_fan_attr[i].dev_attr);
-+		if (err)
-+			goto exit_class;
-+	}
- 
- 	return 0;
- 
-+exit_class:
-+	dev_err(&pdev->dev, "Sysfs interface creation failed\n");
-+	hwmon_device_unregister(data->class_dev);
- exit_free:
- 	kfree(data);
- exit:
 -- 
-1.2.4
-
-
+Jean Delvare
 
