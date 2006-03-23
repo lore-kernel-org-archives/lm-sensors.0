@@ -1,130 +1,152 @@
 From: gregkh@suse.de (Greg KH)
-Date: Thu, 23 Mar 2006 22:43:51 +0000
-Subject: [lm-sensors] [PATCH 27/36] i2c: Drop the i2c-frodo bus driver
-Message-Id: <11431538312073-git-send-email-gregkh@suse.de>
+Date: Thu, 23 Mar 2006 22:43:50 +0000
+Subject: [lm-sensors] [PATCH 06/36] i2c: scx200_acb debug log cleanup
+Message-Id: <11431538303054-git-send-email-gregkh@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Drop the i2c-frodo bus driver. It isn't referenced by the build
-system, and depends on code which was never included in 2.6 kernels.
+scx200_acb: debug log cleanup
 
+Signed-off-by: Ben Gardner <bgardner at wabtec.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
 
- drivers/i2c/busses/i2c-frodo.c |   85 ----------------------------------------
- include/linux/i2c-id.h         |    1 
- 2 files changed, 0 insertions(+), 86 deletions(-)
- delete mode 100644 drivers/i2c/busses/i2c-frodo.c
+ drivers/i2c/busses/scx200_acb.c |   42 ++++++++++++++++-----------------------
+ 1 files changed, 17 insertions(+), 25 deletions(-)
 
-2f27f46c49c096d86e7e63acd43cad3bc42f2383
-diff --git a/drivers/i2c/busses/i2c-frodo.c b/drivers/i2c/busses/i2c-frodo.c
-deleted file mode 100644
-index b6f52f5..0000000
---- a/drivers/i2c/busses/i2c-frodo.c
-+++ /dev/null
-@@ -1,85 +0,0 @@
+ef4d9275e2949976cb43c8bd0c11cb77b9b017e9
+diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
+index f45779b..bfa243d 100644
+--- a/drivers/i2c/busses/scx200_acb.c
++++ b/drivers/i2c/busses/scx200_acb.c
+@@ -45,12 +45,6 @@ static int base[MAX_DEVICES] = { 0x820, 
+ module_param_array(base, int, NULL, 0);
+ MODULE_PARM_DESC(base, "Base addresses for the ACCESS.bus controllers");
+ 
+-#ifdef DEBUG
+-#define DBG(x...) printk(KERN_DEBUG NAME ": " x)
+-#else
+-#define DBG(x...)
+-#endif
 -
--/*
-- * linux/drivers/i2c/i2c-frodo.c
-- *
-- * Author: Abraham van der Merwe <abraham at 2d3d.co.za>
-- *
-- * An I2C adapter driver for the 2d3D, Inc. StrongARM SA-1110
-- * Development board (Frodo).
-- *
-- * This source code is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- */
+ /* The hardware supports interrupt driven mode too, but I haven't
+    implemented that. */
+ #define POLLED_MODE 1
+@@ -119,8 +113,8 @@ static void scx200_acb_machine(struct sc
+ {
+ 	const char *errmsg;
+ 
+-	DBG("state %s, status = 0x%02x\n",
+-	    scx200_acb_state_name[iface->state], status);
++	dev_dbg(&iface->adapter.dev, "state %s, status = 0x%02x\n",
++		scx200_acb_state_name[iface->state], status);
+ 
+ 	if (status & ACBST_BER) {
+ 		errmsg = "bus error";
+@@ -209,8 +203,8 @@ static void scx200_acb_machine(struct sc
+ 	return;
+ 
+  negack:
+-	DBG("negative acknowledge in state %s\n",
+-	    scx200_acb_state_name[iface->state]);
++	dev_dbg(&iface->adapter.dev, "negative ack in state %s\n",
++		scx200_acb_state_name[iface->state]);
+ 
+ 	iface->state = state_idle;
+ 	iface->result = -ENXIO;
+@@ -326,19 +320,15 @@ static s32 scx200_acb_smbus_xfer(struct 
+ 		return -EINVAL;
+ 	}
+ 
+-	DBG("size=%d, address=0x%x, command=0x%x, len=%d, read=%d\n",
+-	    size, address, command, len, rw = I2C_SMBUS_READ);
++	dev_dbg(&adapter->dev,
++		"size=%d, address=0x%x, command=0x%x, len=%d, read=%d\n",
++		size, address, command, len, rw);
+ 
+ 	if (!len && rw = I2C_SMBUS_READ) {
+-		dev_warn(&adapter->dev, "zero length read\n");
++		dev_dbg(&adapter->dev, "zero length read\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	if (len && !buffer) {
+-		dev_warn(&adapter->dev, "nonzero length but no buffer\n");
+-		return -EFAULT;
+-	}
 -
--#include <linux/module.h>
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/delay.h>
--#include <linux/i2c.h>
--#include <linux/i2c-algo-bit.h>
--#include <asm/hardware.h>
--
--
--static void frodo_setsda (void *data,int state)
--{
--	if (state)
--		FRODO_CPLD_I2C |= FRODO_I2C_SDA_OUT;
--	else
--		FRODO_CPLD_I2C &= ~FRODO_I2C_SDA_OUT;
--}
--
--static void frodo_setscl (void *data,int state)
--{
--	if (state)
--		FRODO_CPLD_I2C |= FRODO_I2C_SCL_OUT;
--	else
--		FRODO_CPLD_I2C &= ~FRODO_I2C_SCL_OUT;
--}
--
--static int frodo_getsda (void *data)
--{
--	return ((FRODO_CPLD_I2C & FRODO_I2C_SDA_IN) != 0);
--}
--
--static int frodo_getscl (void *data)
--{
--	return ((FRODO_CPLD_I2C & FRODO_I2C_SCL_IN) != 0);
--}
--
--static struct i2c_algo_bit_data bit_frodo_data = {
--	.setsda		= frodo_setsda,
--	.setscl		= frodo_setscl,
--	.getsda		= frodo_getsda,
--	.getscl		= frodo_getscl,
--	.udelay		= 80,
--	.mdelay		= 80,
--	.timeout	= HZ
--};
--
--static struct i2c_adapter frodo_ops = {
--	.owner			= THIS_MODULE,
--	.id			= I2C_HW_B_FRODO,
--	.algo_data		= &bit_frodo_data,
--	.dev			= {
--		.name		= "Frodo adapter driver",
--	},
--};
--
--static int __init i2c_frodo_init (void)
--{
--	return i2c_bit_add_bus(&frodo_ops);
--}
--
--static void __exit i2c_frodo_exit (void)
--{
--	i2c_bit_del_bus(&frodo_ops);
--}
--
--MODULE_AUTHOR ("Abraham van der Merwe <abraham at 2d3d.co.za>");
--MODULE_DESCRIPTION ("I2C-Bus adapter routines for Frodo");
--MODULE_LICENSE ("GPL");
--
--module_init (i2c_frodo_init);
--module_exit (i2c_frodo_exit);
--
-diff --git a/include/linux/i2c-id.h b/include/linux/i2c-id.h
-index 474c8f4..ec311bc 100644
---- a/include/linux/i2c-id.h
-+++ b/include/linux/i2c-id.h
-@@ -172,7 +172,6 @@
- #define I2C_HW_B_RIVA		0x010010 /* Riva based graphics cards */
- #define I2C_HW_B_IOC		0x010011 /* IOC bit-wiggling */
- #define I2C_HW_B_TSUNA		0x010012 /* DEC Tsunami chipset */
--#define I2C_HW_B_FRODO		0x010013 /* 2d3D SA-1110 Development Board */
- #define I2C_HW_B_OMAHA		0x010014 /* Omaha I2C interface (ARM) */
- #define I2C_HW_B_GUIDE		0x010015 /* Guide bit-basher */
- #define I2C_HW_B_IXP2000	0x010016 /* GPIO on IXP2000 systems */
+ 	down(&iface->sem);
+ 
+ 	iface->address_byte = address<<1;
+@@ -375,7 +365,7 @@ static s32 scx200_acb_smbus_xfer(struct 
+ 		data->word = le16_to_cpu(cur_word);
+ 
+ #ifdef DEBUG
+-	DBG(": transfer done, result: %d", rc);
++	dev_dbg(&adapter->dev, "transfer done, result: %d", rc);
+ 	if (buffer) {
+ 		int i;
+ 		printk(" data:");
+@@ -412,7 +402,7 @@ static int scx200_acb_probe(struct scx20
+ 	outb(0x70, ACBCTL2);
+ 
+ 	if (inb(ACBCTL2) != 0x70) {
+-		DBG("ACBCTL2 readback failed\n");
++		pr_debug(NAME ": ACBCTL2 readback failed\n");
+ 		return -ENXIO;
+ 	}
+ 
+@@ -420,7 +410,8 @@ static int scx200_acb_probe(struct scx20
+ 
+ 	val = inb(ACBCTL1);
+ 	if (val) {
+-		DBG("disabled, but ACBCTL1=0x%02x\n", val);
++		pr_debug(NAME ": disabled, but ACBCTL1=0x%02x\n",
++			val);
+ 		return -ENXIO;
+ 	}
+ 
+@@ -430,7 +421,8 @@ static int scx200_acb_probe(struct scx20
+ 
+ 	val = inb(ACBCTL1);
+ 	if ((val & ACBCTL1_NMINTE) != ACBCTL1_NMINTE) {
+-		DBG("enabled, but NMINTE won't be set, ACBCTL1=0x%02x\n", val);
++		pr_debug(NAME ": enabled, but NMINTE won't be set, "
++			 "ACBCTL1=0x%02x\n", val);
+ 		return -ENXIO;
+ 	}
+ 
+@@ -464,7 +456,7 @@ static int  __init scx200_acb_create(int
+ 	snprintf(description, sizeof(description),
+ 		 "NatSemi SCx200 ACCESS.bus [%s]", adapter->name);
+ 	if (request_region(base, 8, description) = 0) {
+-		dev_err(&adapter->dev, "can't allocate io 0x%x-0x%x\n",
++		printk(KERN_ERR NAME ": can't allocate io 0x%x-0x%x\n",
+ 			base, base + 8-1);
+ 		rc = -EBUSY;
+ 		goto errout;
+@@ -473,14 +465,14 @@ static int  __init scx200_acb_create(int
+ 
+ 	rc = scx200_acb_probe(iface);
+ 	if (rc) {
+-		dev_warn(&adapter->dev, "probe failed\n");
++		printk(KERN_WARNING NAME ": probe failed\n");
+ 		goto errout;
+ 	}
+ 
+ 	scx200_acb_reset(iface);
+ 
+ 	if (i2c_add_adapter(adapter) < 0) {
+-		dev_err(&adapter->dev, "failed to register\n");
++		printk(KERN_ERR NAME ": failed to register\n");
+ 		rc = -ENODEV;
+ 		goto errout;
+ 	}
 -- 
 1.2.4
 
