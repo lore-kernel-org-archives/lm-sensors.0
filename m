@@ -1,54 +1,70 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 23 Mar 2006 15:38:21 +0000
-Subject: [lm-sensors] [PATCH 05/10] w83792d: Be quiet on misdetection
-Message-Id: <20060323163821.074148b4.khali@linux-fr.org>
+Date: Thu, 23 Mar 2006 15:09:22 +0000
+Subject: [lm-sensors] [PATCH 00/10] hwmon and i2c updates
+Message-Id: <20060323160922.1362fb0b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=hwmon-w83792d-quiet-on-misdetection.patch
+Hi Greg,
 
-Make the w83792d driver keep quiet when misdetecting a chip. This can
-happen, and the user doesn't need to know.
+Here comes a 10-piece hwmon and i2c patchset, mainly adding support for
+more chips (National Semiconductor LM82, ATI IXP200/300/400, SMSC
+LPC47M192/997) and new features (Winbond W83627EHF/EHG voltage inputs
+and alarms). There also are a few cleanups here and there. All these
+patches should make it into 2.6.17.
 
-Also renumber the messages, and add one, for consistency.
+This is probably the last large patchset I send to you for 2.6.17, BTW,
+although there will inevitably be some last minute fixes after that.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- drivers/hwmon/w83792d.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Here's the summary:
 
---- linux-2.6.16-rc6.orig/drivers/hwmon/w83792d.c	2006-03-13 21:41:04.000000000 +0100
-+++ linux-2.6.16-rc6/drivers/hwmon/w83792d.c	2006-03-14 19:29:04.000000000 +0100
-@@ -1161,7 +1161,7 @@
- 	   bank. */
- 	if (kind < 0) {
- 		if (w83792d_read_value(client, W83792D_REG_CONFIG) & 0x80) {
--			dev_warn(dev, "Detection failed at step 3\n");
-+			dev_dbg(dev, "Detection failed at step 1\n");
- 			goto ERROR1;
- 		}
- 		val1 = w83792d_read_value(client, W83792D_REG_BANK);
-@@ -1170,6 +1170,7 @@
- 		if (!(val1 & 0x07)) {  /* is Bank0 */
- 			if (((!(val1 & 0x80)) && (val2 != 0xa3)) ||
- 			     ((val1 & 0x80) && (val2 != 0x5c))) {
-+				dev_dbg(dev, "Detection failed at step 2\n");
- 				goto ERROR1;
- 			}
- 		}
-@@ -1177,7 +1178,7 @@
- 		   should match */
- 		if (w83792d_read_value(client,
- 					W83792D_REG_I2C_ADDR) != address) {
--			dev_warn(dev, "Detection failed at step 5\n");
-+			dev_dbg(dev, "Detection failed at step 3\n");
- 			goto ERROR1;
- 		}
- 	}
+Hartmut Rick:
+ o smsc47m192: New hwmon driver for SMSC LPC47M192/997
 
+Jean Delvare:
+ o w83627ehf: Add alarms support
+ o w83792d: Be quiet on misdetection
+ o f71805f: Resource needs not be global
+ o hwmon: Add sysfs interface for individual alarm files
+
+Jordan Crouse:
+ o lm83: Add LM82 support
+
+Mark M. Hoffman:
+ o i2c-sis96x: Remove an init-time log message
+ o i2c-parport: Make type parameter mandatory
+
+Rudolf Marek:
+ o w83627ehf: Add voltage inputs support
+ o i2c-piix4: Add ATI IXP200/300/400 support
+
+Statistics:
+
+ Documentation/hwmon/lm83               |   16 +
+ Documentation/hwmon/smsc47m192         |  102 +++++
+ Documentation/hwmon/sysfs-interface    |  104 ++++-
+ Documentation/i2c/busses/i2c-parport   |   16 +
+ Documentation/i2c/busses/i2c-piix4     |    2 +
+ drivers/hwmon/Kconfig                  |   27 +
+ drivers/hwmon/Makefile                 |    1 +
+ drivers/hwmon/f71805f.c                |   15 -
+ drivers/hwmon/lm83.c                   |   50 ++
+ drivers/hwmon/smsc47m192.c             |  648 ++++++++++++++++++++++++++++++++
+ drivers/hwmon/w83627ehf.c              |  170 ++++++++
+ drivers/hwmon/w83792d.c                |    5 +
+ drivers/i2c/busses/Kconfig             |   10 +
+ drivers/i2c/busses/i2c-parport-light.c |    9 +
+ drivers/i2c/busses/i2c-parport.c       |    9 +
+ drivers/i2c/busses/i2c-parport.h       |    2 
+ drivers/i2c/busses/i2c-piix4.c         |    6 +
+ drivers/i2c/busses/i2c-sis96x.c        |    8 -
+ include/linux/pci_ids.h                |    3 +
+ 19 files changed, 1123 insertions(+), 80 deletions(-)
+
+Thanks,
 -- 
 Jean Delvare
 
