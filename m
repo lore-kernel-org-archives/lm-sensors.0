@@ -1,330 +1,284 @@
 From: gregkh@suse.de (Greg KH)
-Date: Thu, 23 Mar 2006 22:43:51 +0000
-Subject: [lm-sensors] [PATCH 23/36] w83627ehf: Refactor the sysfs interface
-Message-Id: <1143153831753-git-send-email-gregkh@suse.de>
+Date: Thu, 23 Mar 2006 22:43:50 +0000
+Subject: [lm-sensors] [PATCH 04/36] I2C: Convert i2c to mutexes
+Message-Id: <11431538301657-git-send-email-gregkh@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Use dynamic sysfs callbacks and array of attributes to reduce the
-w83627ehf driver size.
+The patch below converts a few i2c semaphores to mutexes
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Arjan van de Ven <arjan at infradead.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
 
- drivers/hwmon/w83627ehf.c |  208 ++++++++++++++++++---------------------------
- 1 files changed, 81 insertions(+), 127 deletions(-)
+ drivers/i2c/busses/i2c-ali1535.c |    7 ++++---
+ drivers/i2c/chips/ds1374.c       |   11 ++++++-----
+ drivers/i2c/chips/m41t00.c       |   11 ++++++-----
+ drivers/i2c/i2c-core.c           |   23 ++++++++++++-----------
+ 4 files changed, 28 insertions(+), 24 deletions(-)
 
-412fec8216bb71ecbe255af702b0daf7ad55a7c4
-diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-index 1affaf1..b6bd568 100644
---- a/drivers/hwmon/w83627ehf.c
-+++ b/drivers/hwmon/w83627ehf.c
-@@ -42,6 +42,7 @@
+b3585e4f5b3e4ddb4d82ae50d0b844f619c6d821
+diff --git a/drivers/i2c/busses/i2c-ali1535.c b/drivers/i2c/busses/i2c-ali1535.c
+index 3eb4789..26cf891 100644
+--- a/drivers/i2c/busses/i2c-ali1535.c
++++ b/drivers/i2c/busses/i2c-ali1535.c
+@@ -62,6 +62,7 @@
+ #include <linux/ioport.h>
  #include <linux/i2c.h>
- #include <linux/i2c-isa.h>
- #include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
+ #include <linux/init.h>
++#include <linux/mutex.h>
  #include <asm/io.h>
-@@ -408,9 +409,12 @@ static struct w83627ehf_data *w83627ehf_
+ #include <asm/semaphore.h>
  
- #define show_fan_reg(reg) \
- static ssize_t \
--show_##reg(struct device *dev, char *buf, int nr) \
-+show_##reg(struct device *dev, struct device_attribute *attr, \
-+	   char *buf) \
- { \
- 	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	int nr = sensor_attr->index; \
- 	return sprintf(buf, "%d\n", \
- 		       fan_from_reg(data->reg[nr], \
- 				    div_from_reg(data->fan_div[nr]))); \
-@@ -419,18 +423,23 @@ show_fan_reg(fan);
- show_fan_reg(fan_min);
+@@ -136,7 +137,7 @@
  
- static ssize_t
--show_fan_div(struct device *dev, char *buf, int nr)
-+show_fan_div(struct device *dev, struct device_attribute *attr,
-+	     char *buf)
- {
- 	struct w83627ehf_data *data = w83627ehf_update_device(dev);
--	return sprintf(buf, "%u\n",
--		       div_from_reg(data->fan_div[nr]));
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	return sprintf(buf, "%u\n", div_from_reg(data->fan_div[nr]));
+ static struct pci_driver ali1535_driver;
+ static unsigned short ali1535_smba;
+-static DECLARE_MUTEX(i2c_ali1535_sem);
++static DEFINE_MUTEX(i2c_ali1535_mutex);
+ 
+ /* Detect whether a ALI1535 can be found, and initialize it, where necessary.
+    Note the differences between kernels with the old PCI BIOS interface and
+@@ -345,7 +346,7 @@ static s32 ali1535_access(struct i2c_ada
+ 	int timeout;
+ 	s32 result = 0;
+ 
+-	down(&i2c_ali1535_sem);
++	mutex_lock(&i2c_ali1535_mutex);
+ 	/* make sure SMBus is idle */
+ 	temp = inb_p(SMBHSTSTS);
+ 	for (timeout = 0;
+@@ -460,7 +461,7 @@ static s32 ali1535_access(struct i2c_ada
+ 		break;
+ 	}
+ EXIT:
+-	up(&i2c_ali1535_sem);
++	mutex_unlock(&i2c_ali1535_mutex);
+ 	return result;
  }
  
- static ssize_t
--store_fan_min(struct device *dev, const char *buf, size_t count, int nr)
-+store_fan_min(struct device *dev, struct device_attribute *attr,
-+	      const char *buf, size_t count)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct w83627ehf_data *data = i2c_get_clientdata(client);
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
- 	unsigned int val = simple_strtoul(buf, NULL, 10);
- 	unsigned int reg;
- 	u8 new_div;
-@@ -488,58 +497,41 @@ store_fan_min(struct device *dev, const 
- 	return count;
+diff --git a/drivers/i2c/chips/ds1374.c b/drivers/i2c/chips/ds1374.c
+index 0710b9d..03d09ed 100644
+--- a/drivers/i2c/chips/ds1374.c
++++ b/drivers/i2c/chips/ds1374.c
+@@ -26,6 +26,7 @@
+ #include <linux/i2c.h>
+ #include <linux/rtc.h>
+ #include <linux/bcd.h>
++#include <linux/mutex.h>
+ 
+ #define DS1374_REG_TOD0		0x00
+ #define DS1374_REG_TOD1		0x01
+@@ -41,7 +42,7 @@
+ 
+ #define	DS1374_DRV_NAME		"ds1374"
+ 
+-static DECLARE_MUTEX(ds1374_mutex);
++static DEFINE_MUTEX(ds1374_mutex);
+ 
+ static struct i2c_driver ds1374_driver;
+ static struct i2c_client *save_client;
+@@ -114,7 +115,7 @@ ulong ds1374_get_rtc_time(void)
+ 	ulong t1, t2;
+ 	int limit = 10;		/* arbitrary retry limit */
+ 
+-	down(&ds1374_mutex);
++	mutex_lock(&ds1374_mutex);
+ 
+ 	/*
+ 	 * Since the reads are being performed one byte at a time using
+@@ -127,7 +128,7 @@ ulong ds1374_get_rtc_time(void)
+ 		t2 = ds1374_read_rtc();
+ 	} while (t1 != t2 && limit--);
+ 
+-	up(&ds1374_mutex);
++	mutex_unlock(&ds1374_mutex);
+ 
+ 	if (t1 != t2) {
+ 		dev_warn(&save_client->dev,
+@@ -145,7 +146,7 @@ static void ds1374_set_tlet(ulong arg)
+ 
+ 	t1 = *(ulong *) arg;
+ 
+-	down(&ds1374_mutex);
++	mutex_lock(&ds1374_mutex);
+ 
+ 	/*
+ 	 * Since the writes are being performed one byte at a time using
+@@ -158,7 +159,7 @@ static void ds1374_set_tlet(ulong arg)
+ 		t2 = ds1374_read_rtc();
+ 	} while (t1 != t2 && limit--);
+ 
+-	up(&ds1374_mutex);
++	mutex_unlock(&ds1374_mutex);
+ 
+ 	if (t1 != t2)
+ 		dev_warn(&save_client->dev,
+diff --git a/drivers/i2c/chips/m41t00.c b/drivers/i2c/chips/m41t00.c
+index 2dc3d48..b5aabe7 100644
+--- a/drivers/i2c/chips/m41t00.c
++++ b/drivers/i2c/chips/m41t00.c
+@@ -24,13 +24,14 @@
+ #include <linux/i2c.h>
+ #include <linux/rtc.h>
+ #include <linux/bcd.h>
++#include <linux/mutex.h>
+ 
+ #include <asm/time.h>
+ #include <asm/rtc.h>
+ 
+ #define	M41T00_DRV_NAME		"m41t00"
+ 
+-static DECLARE_MUTEX(m41t00_mutex);
++static DEFINE_MUTEX(m41t00_mutex);
+ 
+ static struct i2c_driver m41t00_driver;
+ static struct i2c_client *save_client;
+@@ -54,7 +55,7 @@ m41t00_get_rtc_time(void)
+ 	sec = min = hour = day = mon = year = 0;
+ 	sec1 = min1 = hour1 = day1 = mon1 = year1 = 0;
+ 
+-	down(&m41t00_mutex);
++	mutex_lock(&m41t00_mutex);
+ 	do {
+ 		if (((sec = i2c_smbus_read_byte_data(save_client, 0)) >= 0)
+ 			&& ((min = i2c_smbus_read_byte_data(save_client, 1))
+@@ -80,7 +81,7 @@ m41t00_get_rtc_time(void)
+ 		mon1 = mon;
+ 		year1 = year;
+ 	} while (--limit > 0);
+-	up(&m41t00_mutex);
++	mutex_unlock(&m41t00_mutex);
+ 
+ 	if (limit = 0) {
+ 		dev_warn(&save_client->dev,
+@@ -125,7 +126,7 @@ m41t00_set_tlet(ulong arg)
+ 	BIN_TO_BCD(tm.tm_mday);
+ 	BIN_TO_BCD(tm.tm_year);
+ 
+-	down(&m41t00_mutex);
++	mutex_lock(&m41t00_mutex);
+ 	if ((i2c_smbus_write_byte_data(save_client, 0, tm.tm_sec & 0x7f) < 0)
+ 		|| (i2c_smbus_write_byte_data(save_client, 1, tm.tm_min & 0x7f)
+ 			< 0)
+@@ -140,7 +141,7 @@ m41t00_set_tlet(ulong arg)
+ 
+ 		dev_warn(&save_client->dev,"m41t00: can't write to rtc chip\n");
+ 
+-	up(&m41t00_mutex);
++	mutex_unlock(&m41t00_mutex);
+ 	return;
  }
  
--#define sysfs_fan_offset(offset) \
--static ssize_t \
--show_reg_fan_##offset(struct device *dev, struct device_attribute *attr, \
--		      char *buf) \
--{ \
--	return show_fan(dev, buf, offset-1); \
--} \
--static DEVICE_ATTR(fan##offset##_input, S_IRUGO, \
--		   show_reg_fan_##offset, NULL);
-+static struct sensor_device_attribute sda_fan_input[] = {
-+	SENSOR_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0),
-+	SENSOR_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1),
-+	SENSOR_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2),
-+	SENSOR_ATTR(fan4_input, S_IRUGO, show_fan, NULL, 3),
-+	SENSOR_ATTR(fan5_input, S_IRUGO, show_fan, NULL, 4),
-+};
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 1a2c9ab..9733443 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -31,12 +31,13 @@
+ #include <linux/idr.h>
+ #include <linux/seq_file.h>
+ #include <linux/platform_device.h>
++#include <linux/mutex.h>
+ #include <asm/uaccess.h>
  
--#define sysfs_fan_min_offset(offset) \
--static ssize_t \
--show_reg_fan##offset##_min(struct device *dev, struct device_attribute *attr, \
--			   char *buf) \
--{ \
--	return show_fan_min(dev, buf, offset-1); \
--} \
--static ssize_t \
--store_reg_fan##offset##_min(struct device *dev, struct device_attribute *attr, \
--			    const char *buf, size_t count) \
--{ \
--	return store_fan_min(dev, buf, count, offset-1); \
--} \
--static DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR, \
--		   show_reg_fan##offset##_min, \
--		   store_reg_fan##offset##_min);
-+static struct sensor_device_attribute sda_fan_min[] = {
-+	SENSOR_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan_min,
-+		    store_fan_min, 0),
-+	SENSOR_ATTR(fan2_min, S_IWUSR | S_IRUGO, show_fan_min,
-+		    store_fan_min, 1),
-+	SENSOR_ATTR(fan3_min, S_IWUSR | S_IRUGO, show_fan_min,
-+		    store_fan_min, 2),
-+	SENSOR_ATTR(fan4_min, S_IWUSR | S_IRUGO, show_fan_min,
-+		    store_fan_min, 3),
-+	SENSOR_ATTR(fan5_min, S_IWUSR | S_IRUGO, show_fan_min,
-+		    store_fan_min, 4),
-+};
  
--#define sysfs_fan_div_offset(offset) \
--static ssize_t \
--show_reg_fan##offset##_div(struct device *dev, struct device_attribute *attr, \
--			   char *buf) \
--{ \
--	return show_fan_div(dev, buf, offset - 1); \
--} \
--static DEVICE_ATTR(fan##offset##_div, S_IRUGO, \
--		   show_reg_fan##offset##_div, NULL);
--
--sysfs_fan_offset(1);
--sysfs_fan_min_offset(1);
--sysfs_fan_div_offset(1);
--sysfs_fan_offset(2);
--sysfs_fan_min_offset(2);
--sysfs_fan_div_offset(2);
--sysfs_fan_offset(3);
--sysfs_fan_min_offset(3);
--sysfs_fan_div_offset(3);
--sysfs_fan_offset(4);
--sysfs_fan_min_offset(4);
--sysfs_fan_div_offset(4);
--sysfs_fan_offset(5);
--sysfs_fan_min_offset(5);
--sysfs_fan_div_offset(5);
-+static struct sensor_device_attribute sda_fan_div[] = {
-+	SENSOR_ATTR(fan1_div, S_IRUGO, show_fan_div, NULL, 0),
-+	SENSOR_ATTR(fan2_div, S_IRUGO, show_fan_div, NULL, 1),
-+	SENSOR_ATTR(fan3_div, S_IRUGO, show_fan_div, NULL, 2),
-+	SENSOR_ATTR(fan4_div, S_IRUGO, show_fan_div, NULL, 3),
-+	SENSOR_ATTR(fan5_div, S_IRUGO, show_fan_div, NULL, 4),
-+};
-+
-+static void device_create_file_fan(struct device *dev, int i)
-+{
-+	device_create_file(dev, &sda_fan_input[i].dev_attr);
-+	device_create_file(dev, &sda_fan_div[i].dev_attr);
-+	device_create_file(dev, &sda_fan_min[i].dev_attr);
-+}
+ static LIST_HEAD(adapters);
+ static LIST_HEAD(drivers);
+-static DECLARE_MUTEX(core_lists);
++static DEFINE_MUTEX(core_lists);
+ static DEFINE_IDR(i2c_adapter_idr);
  
- #define show_temp1_reg(reg) \
- static ssize_t \
-@@ -572,17 +564,14 @@ store_temp1_##reg(struct device *dev, st
- store_temp1_reg(OVER, max);
- store_temp1_reg(HYST, max_hyst);
+ /* match always succeeds, as we want the probe() to tell if we really accept this match */
+@@ -153,7 +154,7 @@ int i2c_add_adapter(struct i2c_adapter *
+ 	struct list_head   *item;
+ 	struct i2c_driver  *driver;
  
--static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp1, NULL);
--static DEVICE_ATTR(temp1_max, S_IRUGO| S_IWUSR,
--		   show_temp1_max, store_temp1_max);
--static DEVICE_ATTR(temp1_max_hyst, S_IRUGO| S_IWUSR,
--		   show_temp1_max_hyst, store_temp1_max_hyst);
--
- #define show_temp_reg(reg) \
- static ssize_t \
--show_##reg (struct device *dev, char *buf, int nr) \
-+show_##reg(struct device *dev, struct device_attribute *attr, \
-+	   char *buf) \
- { \
- 	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	int nr = sensor_attr->index; \
- 	return sprintf(buf, "%d\n", \
- 		       LM75_TEMP_FROM_REG(data->reg[nr])); \
- }
-@@ -592,10 +581,13 @@ show_temp_reg(temp_max_hyst);
+-	down(&core_lists);
++	mutex_lock(&core_lists);
  
- #define store_temp_reg(REG, reg) \
- static ssize_t \
--store_##reg (struct device *dev, const char *buf, size_t count, int nr) \
-+store_##reg(struct device *dev, struct device_attribute *attr, \
-+	    const char *buf, size_t count) \
- { \
- 	struct i2c_client *client = to_i2c_client(dev); \
- 	struct w83627ehf_data *data = i2c_get_clientdata(client); \
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	int nr = sensor_attr->index; \
- 	u32 val = simple_strtoul(buf, NULL, 10); \
-  \
- 	mutex_lock(&data->update_lock); \
-@@ -608,39 +600,23 @@ store_##reg (struct device *dev, const c
- store_temp_reg(OVER, temp_max);
- store_temp_reg(HYST, temp_max_hyst);
- 
--#define sysfs_temp_offset(offset) \
--static ssize_t \
--show_reg_temp##offset (struct device *dev, struct device_attribute *attr, \
--		       char *buf) \
--{ \
--	return show_temp(dev, buf, offset - 2); \
--} \
--static DEVICE_ATTR(temp##offset##_input, S_IRUGO, \
--		   show_reg_temp##offset, NULL);
--
--#define sysfs_temp_reg_offset(reg, offset) \
--static ssize_t \
--show_reg_temp##offset##_##reg(struct device *dev, struct device_attribute *attr, \
--			      char *buf) \
--{ \
--	return show_temp_##reg(dev, buf, offset - 2); \
--} \
--static ssize_t \
--store_reg_temp##offset##_##reg(struct device *dev, struct device_attribute *attr, \
--			       const char *buf, size_t count) \
--{ \
--	return store_temp_##reg(dev, buf, count, offset - 2); \
--} \
--static DEVICE_ATTR(temp##offset##_##reg, S_IRUGO| S_IWUSR, \
--		   show_reg_temp##offset##_##reg, \
--		   store_reg_temp##offset##_##reg);
--
--sysfs_temp_offset(2);
--sysfs_temp_reg_offset(max, 2);
--sysfs_temp_reg_offset(max_hyst, 2);
--sysfs_temp_offset(3);
--sysfs_temp_reg_offset(max, 3);
--sysfs_temp_reg_offset(max_hyst, 3);
-+static struct sensor_device_attribute sda_temp[] = {
-+	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp1, NULL, 0),
-+	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 0),
-+	SENSOR_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 1),
-+	SENSOR_ATTR(temp1_max, S_IRUGO | S_IWUSR, show_temp1_max,
-+		    store_temp1_max, 0),
-+	SENSOR_ATTR(temp2_max, S_IRUGO | S_IWUSR, show_temp_max,
-+		    store_temp_max, 0),
-+	SENSOR_ATTR(temp3_max, S_IRUGO | S_IWUSR, show_temp_max,
-+		    store_temp_max, 1),
-+	SENSOR_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR, show_temp1_max_hyst,
-+		    store_temp1_max_hyst, 0),
-+	SENSOR_ATTR(temp2_max_hyst, S_IRUGO | S_IWUSR, show_temp_max_hyst,
-+		    store_temp_max_hyst, 0),
-+	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR, show_temp_max_hyst,
-+		    store_temp_max_hyst, 1),
-+};
- 
- /*
-  * Driver and client management
-@@ -674,6 +650,7 @@ static int w83627ehf_detect(struct i2c_a
- {
- 	struct i2c_client *client;
- 	struct w83627ehf_data *data;
-+	struct device *dev;
- 	int i, err = 0;
- 
- 	if (!request_region(address + REGION_OFFSET, REGION_LENGTH,
-@@ -694,6 +671,7 @@ static int w83627ehf_detect(struct i2c_a
- 	client->adapter = adapter;
- 	client->driver = &w83627ehf_driver;
- 	client->flags = 0;
-+	dev = &client->dev;
- 
- 	strlcpy(client->name, "w83627ehf", I2C_NAME_SIZE);
- 	data->valid = 0;
-@@ -721,42 +699,18 @@ static int w83627ehf_detect(struct i2c_a
- 		data->has_fan |= (1 << 4);
- 
- 	/* Register sysfs hooks */
--	data->class_dev = hwmon_device_register(&client->dev);
-+	data->class_dev = hwmon_device_register(dev);
- 	if (IS_ERR(data->class_dev)) {
- 		err = PTR_ERR(data->class_dev);
- 		goto exit_detach;
+ 	if (idr_pre_get(&i2c_adapter_idr, GFP_KERNEL) = 0) {
+ 		res = -ENOMEM;
+@@ -203,7 +204,7 @@ int i2c_add_adapter(struct i2c_adapter *
  	}
  
--	device_create_file(&client->dev, &dev_attr_fan1_input);
--	device_create_file(&client->dev, &dev_attr_fan1_min);
--	device_create_file(&client->dev, &dev_attr_fan1_div);
--	device_create_file(&client->dev, &dev_attr_fan2_input);
--	device_create_file(&client->dev, &dev_attr_fan2_min);
--	device_create_file(&client->dev, &dev_attr_fan2_div);
--	device_create_file(&client->dev, &dev_attr_fan3_input);
--	device_create_file(&client->dev, &dev_attr_fan3_min);
--	device_create_file(&client->dev, &dev_attr_fan3_div);
--
--	if (data->has_fan & (1 << 3)) {
--		device_create_file(&client->dev, &dev_attr_fan4_input);
--		device_create_file(&client->dev, &dev_attr_fan4_min);
--		device_create_file(&client->dev, &dev_attr_fan4_div);
--	}
--	if (data->has_fan & (1 << 4)) {
--		device_create_file(&client->dev, &dev_attr_fan5_input);
--		device_create_file(&client->dev, &dev_attr_fan5_min);
--		device_create_file(&client->dev, &dev_attr_fan5_div);
--	}
--
--	device_create_file(&client->dev, &dev_attr_temp1_input);
--	device_create_file(&client->dev, &dev_attr_temp1_max);
--	device_create_file(&client->dev, &dev_attr_temp1_max_hyst);
--	device_create_file(&client->dev, &dev_attr_temp2_input);
--	device_create_file(&client->dev, &dev_attr_temp2_max);
--	device_create_file(&client->dev, &dev_attr_temp2_max_hyst);
--	device_create_file(&client->dev, &dev_attr_temp3_input);
--	device_create_file(&client->dev, &dev_attr_temp3_max);
--	device_create_file(&client->dev, &dev_attr_temp3_max_hyst);
-+	for (i = 0; i < 5; i++) {
-+		if (data->has_fan & (1 << i))
-+			device_create_file_fan(dev, i);
-+	}
-+	for (i = 0; i < ARRAY_SIZE(sda_temp); i++)
-+		device_create_file(dev, &sda_temp[i].dev_attr);
+ out_unlock:
+-	up(&core_lists);
++	mutex_unlock(&core_lists);
+ 	return res;
+ }
  
+@@ -216,7 +217,7 @@ int i2c_del_adapter(struct i2c_adapter *
+ 	struct i2c_client *client;
+ 	int res = 0;
+ 
+-	down(&core_lists);
++	mutex_lock(&core_lists);
+ 
+ 	/* First make sure that this adapter was ever added */
+ 	list_for_each_entry(adap_from_list, &adapters, list) {
+@@ -272,7 +273,7 @@ int i2c_del_adapter(struct i2c_adapter *
+ 	dev_dbg(&adap->dev, "adapter [%s] unregistered\n", adap->name);
+ 
+  out_unlock:
+-	up(&core_lists);
++	mutex_unlock(&core_lists);
+ 	return res;
+ }
+ 
+@@ -289,7 +290,7 @@ int i2c_register_driver(struct module *o
+ 	struct i2c_adapter *adapter;
+ 	int res = 0;
+ 
+-	down(&core_lists);
++	mutex_lock(&core_lists);
+ 
+ 	/* add the driver to the list of i2c drivers in the driver core */
+ 	driver->driver.owner = owner;
+@@ -311,7 +312,7 @@ int i2c_register_driver(struct module *o
+ 	}
+ 
+  out_unlock:
+-	up(&core_lists);
++	mutex_unlock(&core_lists);
+ 	return res;
+ }
+ EXPORT_SYMBOL(i2c_register_driver);
+@@ -324,7 +325,7 @@ int i2c_del_driver(struct i2c_driver *dr
+ 	
+ 	int res = 0;
+ 
+-	down(&core_lists);
++	mutex_lock(&core_lists);
+ 
+ 	/* Have a look at each adapter, if clients of this driver are still
+ 	 * attached. If so, detach them to be able to kill the driver 
+@@ -363,7 +364,7 @@ int i2c_del_driver(struct i2c_driver *dr
+ 	pr_debug("i2c-core: driver [%s] unregistered\n", driver->driver.name);
+ 
+  out_unlock:
+-	up(&core_lists);
++	mutex_unlock(&core_lists);
  	return 0;
+ }
+ 
+@@ -779,12 +780,12 @@ struct i2c_adapter* i2c_get_adapter(int 
+ {
+ 	struct i2c_adapter *adapter;
+ 	
+-	down(&core_lists);
++	mutex_lock(&core_lists);
+ 	adapter = (struct i2c_adapter *)idr_find(&i2c_adapter_idr, id);
+ 	if (adapter && !try_module_get(adapter->owner))
+ 		adapter = NULL;
+ 
+-	up(&core_lists);
++	mutex_unlock(&core_lists);
+ 	return adapter;
+ }
  
 -- 
 1.2.4
