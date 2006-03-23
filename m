@@ -1,89 +1,264 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 31 Mar 2006 21:06:03 +0000
-Subject: [lm-sensors] [PATCH 2/3] i2c: convert m41t00 to use a workqueue
-Message-Id: <20060331230603.4a8bc540.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 23 Mar 2006 22:43:51 +0000
+Subject: [lm-sensors] [PATCH 21/36] hwmon: Add support for the Winbond
+Message-Id: <11431538313067-git-send-email-gregkh@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: "Mark A. Greer" <mgreer at mvista.com>
-Content-Disposition: inline; filename=rtc-m41t00-driver-should-use-workqueue-instead-of-tasklet.patch
+Add support for the Winbond W83687THF chip to the w83627hf hardware
+monitoring driver. This new chip is almost similar to the already
+supported W83627THF chip, except for VID and a few other minor
+changes.
 
-The m41t00 i2c/rtc driver currently uses a tasklet to schedule
-interrupt-level writes to the rtc.  This patch causes the driver
-to use a workqueue instead.
-
-Signed-off-by: Mark A. Greer <mgreer at mvista.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
 ---
- m41t00.c |   16 +++++++++-------
- 1 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -Nurp linux-2.6.16-mm1/drivers/i2c/chips/m41t00.c linux-2.6.16-mm1-wq/drivers/i2c/chips/m41t00.c
---- linux-2.6.16-mm1/drivers/i2c/chips/m41t00.c	2006-03-23 15:04:55.000000000 -0700
-+++ linux-2.6.16-mm1-wq/drivers/i2c/chips/m41t00.c	2006-03-27 15:29:35.000000000 -0700
-@@ -25,6 +25,7 @@
- #include <linux/rtc.h>
- #include <linux/bcd.h>
- #include <linux/mutex.h>
-+#include <linux/workqueue.h>
+ Documentation/hwmon/w83627hf |    4 ++
+ drivers/hwmon/Kconfig        |    7 ++--
+ drivers/hwmon/w83627hf.c     |   72 ++++++++++++++++++++++++++++++++++--------
+ 3 files changed, 66 insertions(+), 17 deletions(-)
+
+c2db6ce14a743ac5f8973124272cf425c4f86b90
+diff --git a/Documentation/hwmon/w83627hf b/Documentation/hwmon/w83627hf
+index bbeaba6..7922319 100644
+--- a/Documentation/hwmon/w83627hf
++++ b/Documentation/hwmon/w83627hf
+@@ -18,6 +18,10 @@ Supported chips:
+     Prefix: 'w83637hf'
+     Addresses scanned: ISA address retrieved from Super I/O registers
+     Datasheet: http://www.winbond.com/PDF/sheet/w83637hf.pdf
++  * Winbond W83687THF
++    Prefix: 'w83687thf'
++    Addresses scanned: ISA address retrieved from Super I/O registers
++    Datasheet: Provided by Winbond on request
  
- #include <asm/time.h>
- #include <asm/rtc.h>
-@@ -111,7 +112,7 @@ m41t00_get_rtc_time(void)
- }
+ Authors:
+         Frodo Looijaard <frodol at dds.nl>,
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 7230d4e..99cdc61 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -406,13 +406,14 @@ config SENSORS_W83L785TS
+ 	  will be called w83l785ts.
  
- static void
--m41t00_set_tlet(ulong arg)
-+m41t00_set(void *arg)
+ config SENSORS_W83627HF
+-	tristate "Winbond W83627HF, W83627THF, W83637HF, W83697HF"
+-	depends on HWMON && I2C && EXPERIMENTAL
++	tristate "Winbond W83627HF, W83627THF, W83637HF, W83687THF, W83697HF"
++	depends on HWMON && I2C
+ 	select I2C_ISA
+ 	select HWMON_VID
+ 	help
+ 	  If you say yes here you get support for the Winbond W836X7 series
+-	  of sensor chips: the W83627HF, W83627THF, W83637HF, and the W83697HF
++	  of sensor chips: the W83627HF, W83627THF, W83637HF, W83687THF and
++	  W83697HF.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called w83627hf.
+diff --git a/drivers/hwmon/w83627hf.c b/drivers/hwmon/w83627hf.c
+index 3d4888c..992e344 100644
+--- a/drivers/hwmon/w83627hf.c
++++ b/drivers/hwmon/w83627hf.c
+@@ -28,6 +28,7 @@
+     w83627hf	9	3	2	3	0x20	0x5ca3	no	yes(LPC)
+     w83627thf	7	3	3	3	0x90	0x5ca3	no	yes(LPC)
+     w83637hf	7	3	3	3	0x80	0x5ca3	no	yes(LPC)
++    w83687thf	7	3	3	3	0x90	0x5ca3	no	yes(LPC)
+     w83697hf	8	2	2	2	0x60	0x5ca3	no	yes(LPC)
+ 
+     For other winbond chips, and for i2c support in the above chips,
+@@ -63,7 +64,7 @@ MODULE_PARM_DESC(force_i2c,
+ static unsigned short address;
+ 
+ /* Insmod parameters */
+-enum chips { any_chip, w83627hf, w83627thf, w83697hf, w83637hf };
++enum chips { any_chip, w83627hf, w83627thf, w83697hf, w83637hf, w83687thf };
+ 
+ static int reset;
+ module_param(reset, bool, 0);
+@@ -101,6 +102,10 @@ static int VAL;		/* The value to read/wr
+ #define W83627THF_GPIO5_IOSR	0xf3 /* w83627thf only */
+ #define W83627THF_GPIO5_DR	0xf4 /* w83627thf only */
+ 
++#define W83687THF_VID_EN	0x29 /* w83687thf only */
++#define W83687THF_VID_CFG	0xF0 /* w83687thf only */
++#define W83687THF_VID_DATA	0xF1 /* w83687thf only */
++
+ static inline void
+ superio_outb(int reg, int val)
  {
- 	struct rtc_time	tm;
- 	ulong	nowtime = *(ulong *)arg;
-@@ -145,9 +146,9 @@ m41t00_set_tlet(ulong arg)
- 	return;
- }
+@@ -139,6 +144,7 @@ superio_exit(void)
+ #define W627THF_DEVID 0x82
+ #define W697_DEVID 0x60
+ #define W637_DEVID 0x70
++#define W687THF_DEVID 0x85
+ #define WINB_ACT_REG 0x30
+ #define WINB_BASE_REG 0x60
+ /* Constants specified below */
+@@ -202,11 +208,11 @@ superio_exit(void)
+ #define W83627HF_REG_PWM1 0x5A
+ #define W83627HF_REG_PWM2 0x5B
  
--static ulong	new_time;
--
--DECLARE_TASKLET_DISABLED(m41t00_tasklet, m41t00_set_tlet, (ulong)&new_time);
-+static ulong new_time;
-+static struct workqueue_struct *m41t00_wq;
-+static DECLARE_WORK(m41t00_work, m41t00_set, &new_time);
+-#define W83627THF_REG_PWM1		0x01	/* 697HF and 637HF too */
+-#define W83627THF_REG_PWM2		0x03	/* 697HF and 637HF too */
+-#define W83627THF_REG_PWM3		0x11	/* 637HF too */
++#define W83627THF_REG_PWM1		0x01	/* 697HF/637HF/687THF too */
++#define W83627THF_REG_PWM2		0x03	/* 697HF/637HF/687THF too */
++#define W83627THF_REG_PWM3		0x11	/* 637HF/687THF too */
  
- int
- m41t00_set_rtc_time(ulong nowtime)
-@@ -155,9 +156,9 @@ m41t00_set_rtc_time(ulong nowtime)
- 	new_time = nowtime;
+-#define W83627THF_REG_VRM_OVT_CFG 	0x18	/* 637HF too */
++#define W83627THF_REG_VRM_OVT_CFG 	0x18	/* 637HF/687THF too */
  
- 	if (in_interrupt())
--		tasklet_schedule(&m41t00_tasklet);
-+		queue_work(m41t00_wq, &m41t00_work);
- 	else
--		m41t00_set_tlet((ulong)&new_time);
-+		m41t00_set(&new_time);
+ static const u8 regpwm_627hf[] = { W83627HF_REG_PWM1, W83627HF_REG_PWM2 };
+ static const u8 regpwm[] = { W83627THF_REG_PWM1, W83627THF_REG_PWM2,
+@@ -319,7 +325,7 @@ struct w83627hf_data {
+ 				   Default = 3435.
+ 				   Other Betas unimplemented */
+ 	u8 vrm;
+-	u8 vrm_ovt;		/* Register value, 627thf & 637hf only */
++	u8 vrm_ovt;		/* Register value, 627THF/637HF/687THF only */
+ };
  
- 	return 0;
- }
-@@ -189,6 +190,7 @@ m41t00_probe(struct i2c_adapter *adap, i
- 		return rc;
+ 
+@@ -414,7 +420,8 @@ static ssize_t show_in_0(struct w83627hf
+ 	long in0;
+ 
+ 	if ((data->vrm_ovt & 0x01) &&
+-		(w83627thf = data->type || w83637hf = data->type))
++		(w83627thf = data->type || w83637hf = data->type
++		 || w83687thf = data->type))
+ 
+ 		/* use VRM9 calculation */
+ 		in0 = (long)((reg * 488 + 70000 + 50) / 100);
+@@ -455,7 +462,8 @@ static ssize_t store_regs_in_min0(struct
+ 	mutex_lock(&data->update_lock);
+ 	
+ 	if ((data->vrm_ovt & 0x01) &&
+-		(w83627thf = data->type || w83637hf = data->type))
++		(w83627thf = data->type || w83637hf = data->type
++		 || w83687thf = data->type))
+ 
+ 		/* use VRM9 calculation */
+ 		data->in_min[0] @@ -482,7 +490,8 @@ static ssize_t store_regs_in_max0(struct
+ 	mutex_lock(&data->update_lock);
+ 
+ 	if ((data->vrm_ovt & 0x01) &&
+-		(w83627thf = data->type || w83637hf = data->type))
++		(w83627thf = data->type || w83637hf = data->type
++		 || w83687thf = data->type))
+ 		
+ 		/* use VRM9 calculation */
+ 		data->in_max[0] @@ -981,7 +990,8 @@ static int __init w83627hf_find(int sioa
+ 	if(val != W627_DEVID &&
+ 	   val != W627THF_DEVID &&
+ 	   val != W697_DEVID &&
+-	   val != W637_DEVID) {
++	   val != W637_DEVID &&
++	   val != W687THF_DEVID) {
+ 		superio_exit();
+ 		return -ENODEV;
+ 	}
+@@ -1035,6 +1045,8 @@ static int w83627hf_detect(struct i2c_ad
+ 		kind = w83627thf;
+ 	else if(val = W637_DEVID)
+ 		kind = w83637hf;
++	else if (val = W687THF_DEVID)
++		kind = w83687thf;
+ 	else {
+ 		dev_info(&adapter->dev,
+ 			 "Unsupported chip (dev_id=0x%02X).\n", val);
+@@ -1072,6 +1084,8 @@ static int w83627hf_detect(struct i2c_ad
+ 		client_name = "w83697hf";
+ 	} else if (kind = w83637hf) {
+ 		client_name = "w83637hf";
++	} else if (kind = w83687thf) {
++		client_name = "w83687thf";
  	}
  
-+	m41t00_wq = create_singlethread_workqueue("m41t00");
- 	save_client = client;
- 	return 0;
- }
-@@ -206,7 +208,7 @@ m41t00_detach(struct i2c_client *client)
- 
- 	if ((rc = i2c_detach_client(client)) = 0) {
- 		kfree(client);
--		tasklet_kill(&m41t00_tasklet);
-+		destroy_workqueue(m41t00_wq);
+ 	/* Fill in the remaining client fields and put into the global list */
+@@ -1107,7 +1121,7 @@ static int w83627hf_detect(struct i2c_ad
+ 	device_create_file_in(new_client, 2);
+ 	device_create_file_in(new_client, 3);
+ 	device_create_file_in(new_client, 4);
+-	if (kind != w83627thf && kind != w83637hf) {
++	if (kind = w83627hf || kind = w83697hf) {
+ 		device_create_file_in(new_client, 5);
+ 		device_create_file_in(new_client, 6);
  	}
- 	return rc;
+@@ -1140,7 +1154,7 @@ static int w83627hf_detect(struct i2c_ad
+ 
+ 	device_create_file_pwm(new_client, 1);
+ 	device_create_file_pwm(new_client, 2);
+-	if (kind = w83627thf || kind = w83637hf)
++	if (kind = w83627thf || kind = w83637hf || kind = w83687thf)
+ 		device_create_file_pwm(new_client, 3);
+ 
+ 	device_create_file_sensor(new_client, 1);
+@@ -1248,6 +1262,33 @@ exit:
+ 	return res;
  }
+ 
++static int w83687thf_read_vid(struct i2c_client *client)
++{
++	int res = 0xff;
++
++	superio_enter();
++	superio_select(W83627HF_LD_HWM);
++
++	/* Make sure these GPIO pins are enabled */
++	if (!(superio_inb(W83687THF_VID_EN) & (1 << 2))) {
++		dev_dbg(&client->dev, "VID disabled, no VID function\n");
++		goto exit;
++	}
++
++	/* Make sure the pins are configured for input */
++	if (!(superio_inb(W83687THF_VID_CFG) & (1 << 4))) {
++		dev_dbg(&client->dev, "VID configured as output, "
++			"no VID function\n");
++		goto exit;
++	}
++
++	res = superio_inb(W83687THF_VID_DATA) & 0x3f;
++
++exit:
++	superio_exit();
++	return res;
++}
++
+ static int w83627hf_write_value(struct i2c_client *client, u16 reg, u16 value)
+ {
+ 	struct w83627hf_data *data = i2c_get_clientdata(client);
+@@ -1325,10 +1366,13 @@ static void w83627hf_init_client(struct 
+ 		data->vid = (lo & 0x0f) | ((hi & 0x01) << 4);
+ 	} else if (w83627thf = data->type) {
+ 		data->vid = w83627thf_read_gpio5(client);
++	} else if (w83687thf = data->type) {
++		data->vid = w83687thf_read_vid(client);
+ 	}
+ 
+ 	/* Read VRM & OVT Config only once */
+-	if (w83627thf = data->type || w83637hf = data->type) {
++	if (w83627thf = data->type || w83637hf = data->type
++	 || w83687thf = data->type) {
+ 		data->vrm_ovt = 
+ 			w83627hf_read_value(client, W83627THF_REG_VRM_OVT_CFG);
+ 	}
+@@ -1395,7 +1439,7 @@ static struct w83627hf_data *w83627hf_up
+ 		for (i = 0; i <= 8; i++) {
+ 			/* skip missing sensors */
+ 			if (((data->type = w83697hf) && (i = 1)) ||
+-			    ((data->type = w83627thf || data->type = w83637hf)
++			    ((data->type != w83627hf && data->type != w83697hf)
+ 			    && (i = 5 || i = 6)))
+ 				continue;
+ 			data->in[i] -- 
+1.2.4
 
--- 
-Jean Delvare
+
 
