@@ -1,145 +1,132 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Fri, 10 Mar 2006 17:42:43 +0000
-Subject: [lm-sensors] [patch 0/2] hwmon: add a superio_locks coordinator
-Message-Id: <4411BA93.6000605@gmail.com>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 23 Mar 2006 22:43:51 +0000
+Subject: [lm-sensors] [PATCH 27/36] i2c: Drop the i2c-frodo bus driver
+Message-Id: <11431538312073-git-send-email-gregkh@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rudolf Marek wrote:
-> Hello
->
-> Sorry for the delay I have been rather busy with the school finishing stuff.
-> And now my comments. I studied both patches and I really like a simplistic aproach
->
->   
-thanks.  I also just noticed your reply.
+Drop the i2c-frodo bus driver. It isn't referenced by the build
+system, and depends on code which was never included in 2.6 kernels.
+
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
+---
+
+ drivers/i2c/busses/i2c-frodo.c |   85 ----------------------------------------
+ include/linux/i2c-id.h         |    1 
+ 2 files changed, 0 insertions(+), 86 deletions(-)
+ delete mode 100644 drivers/i2c/busses/i2c-frodo.c
+
+2f27f46c49c096d86e7e63acd43cad3bc42f2383
+diff --git a/drivers/i2c/busses/i2c-frodo.c b/drivers/i2c/busses/i2c-frodo.c
+deleted file mode 100644
+index b6f52f5..0000000
+--- a/drivers/i2c/busses/i2c-frodo.c
++++ /dev/null
+@@ -1,85 +0,0 @@
+-
+-/*
+- * linux/drivers/i2c/i2c-frodo.c
+- *
+- * Author: Abraham van der Merwe <abraham at 2d3d.co.za>
+- *
+- * An I2C adapter driver for the 2d3D, Inc. StrongARM SA-1110
+- * Development board (Frodo).
+- *
+- * This source code is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/delay.h>
+-#include <linux/i2c.h>
+-#include <linux/i2c-algo-bit.h>
+-#include <asm/hardware.h>
+-
+-
+-static void frodo_setsda (void *data,int state)
+-{
+-	if (state)
+-		FRODO_CPLD_I2C |= FRODO_I2C_SDA_OUT;
+-	else
+-		FRODO_CPLD_I2C &= ~FRODO_I2C_SDA_OUT;
+-}
+-
+-static void frodo_setscl (void *data,int state)
+-{
+-	if (state)
+-		FRODO_CPLD_I2C |= FRODO_I2C_SCL_OUT;
+-	else
+-		FRODO_CPLD_I2C &= ~FRODO_I2C_SCL_OUT;
+-}
+-
+-static int frodo_getsda (void *data)
+-{
+-	return ((FRODO_CPLD_I2C & FRODO_I2C_SDA_IN) != 0);
+-}
+-
+-static int frodo_getscl (void *data)
+-{
+-	return ((FRODO_CPLD_I2C & FRODO_I2C_SCL_IN) != 0);
+-}
+-
+-static struct i2c_algo_bit_data bit_frodo_data = {
+-	.setsda		= frodo_setsda,
+-	.setscl		= frodo_setscl,
+-	.getsda		= frodo_getsda,
+-	.getscl		= frodo_getscl,
+-	.udelay		= 80,
+-	.mdelay		= 80,
+-	.timeout	= HZ
+-};
+-
+-static struct i2c_adapter frodo_ops = {
+-	.owner			= THIS_MODULE,
+-	.id			= I2C_HW_B_FRODO,
+-	.algo_data		= &bit_frodo_data,
+-	.dev			= {
+-		.name		= "Frodo adapter driver",
+-	},
+-};
+-
+-static int __init i2c_frodo_init (void)
+-{
+-	return i2c_bit_add_bus(&frodo_ops);
+-}
+-
+-static void __exit i2c_frodo_exit (void)
+-{
+-	i2c_bit_del_bus(&frodo_ops);
+-}
+-
+-MODULE_AUTHOR ("Abraham van der Merwe <abraham at 2d3d.co.za>");
+-MODULE_DESCRIPTION ("I2C-Bus adapter routines for Frodo");
+-MODULE_LICENSE ("GPL");
+-
+-module_init (i2c_frodo_init);
+-module_exit (i2c_frodo_exit);
+-
+diff --git a/include/linux/i2c-id.h b/include/linux/i2c-id.h
+index 474c8f4..ec311bc 100644
+--- a/include/linux/i2c-id.h
++++ b/include/linux/i2c-id.h
+@@ -172,7 +172,6 @@
+ #define I2C_HW_B_RIVA		0x010010 /* Riva based graphics cards */
+ #define I2C_HW_B_IOC		0x010011 /* IOC bit-wiggling */
+ #define I2C_HW_B_TSUNA		0x010012 /* DEC Tsunami chipset */
+-#define I2C_HW_B_FRODO		0x010013 /* 2d3D SA-1110 Development Board */
+ #define I2C_HW_B_OMAHA		0x010014 /* Omaha I2C interface (ARM) */
+ #define I2C_HW_B_GUIDE		0x010015 /* Guide bit-basher */
+ #define I2C_HW_B_IXP2000	0x010016 /* GPIO on IXP2000 systems */
+-- 
+1.2.4
 
 
-> So far I know sio is used in:
->
-> mmc card driver wbsd.c
-> parallel port drivers parport_pc.c
-> several watchdog drivers
-> irda drivers
->
-> After studying those drivers and your minimalistic approach in mind I came to this conclusion
->
-> what about to create this API:
->
->   
-How well does this API fit those drivers you surveyed ?
-Is it a loose combo of the uses you saw, or a more formal one ?
-I did my strawman in a vacuum, and I need to go look at those drivers
-(I havent yet, I wanted to answer 1st )  thanks for IDg them
-
-> unlock_seq[] = {0x87,0x87,0x00} maybe 0x00 to terminate the list?
->
->   
-I dont get what unlock_seq is for.
-> sio_enter(u8 port, u8 *unlock_seq)
-> sio_exit(u8 port, u8 *lock_seq)
-> sio_inb(u8 port)
-> sio_outb(u8 port, u8 val)
-> sio_select(u8 port, u8 ldn)
->
->   
-
-Ive also been a little sloppy with sio vs superio names,
-(pc87360 has superio_inb, superio_outb, superio_exit
-I hope this hasn't confused anything.
-
-I'll infer that you used sio_* as non-conflicting names that the 
-mentioned drivers
-could easily be patched to use.
-
-
-> Now the big thing ;) the semaphore/mutex for the access locking would be hidden in sio_enter
-> and sio_exit
->
->   
-Im not sure hiding them has any value - exposing the locking lets the 
-driver do it
-for its needs - a driver (forex pc87360) could (not unreasonably) lock 
-the sio,
-then scan all its sensors, then unlock.
-Im not saying thats how pc87360 should do it, just that the driver writer
-can reasonably make the max-latency vs speed tradeoff.
-
-you chose enter/exit  as your locking primitives.  This seems less 
-obvious than
-lock/unlock, I presume your names are taken from their presence in the 
-drivers you surveyed.
-
-FWIW, superio_exit in pc87360 looks like this:
-
-static inline void superio_exit(int sioaddr)
-{
-        outb(0x02, sioaddr);
-        outb(0x02, sioaddr+1);
-}
-
-I dont know whether that 02 value is something that is chip specific,
-or whether its semi-standard in the world of superio-chips.
-
-
-> there could be just some port-> index mapping so you will try to lock/unlock just a lock to right address
-> This would solve all problems with concurrent access.
->
->   
-Im not sure what you mean here - It sounds vaguely like what I proposed 
-/ intended
-with get_sio_gate()
-
-
-> This approach should work and it is consistent with the idea of SIO, just enter the configuration space,
-> alter something and exit... Just lock it between enter and exit.
->
-> The locking in some other places cannot be done because the drivers can switch the bank and this is
-> not good. They can try to lock/unlock the sio itself. This approach will solve those problems...
->
->   
-I dont follow you.   One reason to make the sio_lock/unlock explicit is to
-avoid the hassles with bank switching etc -
-In diff.use*locks*.alpha-hilock  (patch 2 - flavor 1)
-I take the lock once, and all sensor-scan accesses do the bank switching
-they need to once, rather than re-doing it each time, just in case someone
-else 'simultaneously' used the SIO and changed the bank out from under us.
-
-
-> What do you say? If you like it maybe you can implement it or come with something else...
->
->   
-Thanks for the dialog,  Id like to continue it, and eventually come up 
-with a patch.
-I have a semi-clear idea what I was proposing, Im less clear on what you 
-are thinking.
-Could you go back over my bullet items, and comment on each that 
-warrants it ?
-
-Forex:
-do you like/dislike the struct superio_gate ?
-   - I do, the new type gives some manner of type-safety,
-    semantic separation from other uses of SIO port
-
-Do you think the gate metaphor works ?
-locks themselves dont have addresses, but when installed into doors etc
-in your home, they protect stuff there.
-
-do you think the singleton aspect works to coordinate SIO-port using 
-drivers ?
-
-Im gonna look at those drivers you mentioned,
-to see if I glean the same API that you have.
-
-> Regards
-> Rudolf
->
->   
-
-
-thanks,
-jimc
 
