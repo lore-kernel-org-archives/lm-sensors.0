@@ -1,91 +1,99 @@
 From: gregkh@suse.de (Greg KH)
-Date: Thu, 23 Mar 2006 22:43:51 +0000
-Subject: [lm-sensors] [PATCH 25/36] w83781d: Don't reset the chip by default
-Message-Id: <11431538313901-git-send-email-gregkh@suse.de>
+Date: Thu, 23 Mar 2006 22:43:52 +0000
+Subject: [lm-sensors] [PATCH 36/36] hwmon: add required idr locking
+Message-Id: <11431538321873-git-send-email-gregkh@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Stop resetting the chip on load by default, so as to preserve the BIOS
-initializations. Same was done in the w83627hf driver some times ago
-for the same reasons.
+Add required locking around idr_ routines, retry the idr_pre_get/idr_get_new
+pair properly, and sprinkle in some likely/unlikely for good measure.
 
+(Lack of idr locking didn't hurt when all callers were I2C clients, as the
+i2c-core serialized for us anyway.  Now that we have non I2C hwmon drivers,
+this is truly necessary.)
+
+Signed-off-by: Mark M. Hoffman <mhoffman at lightlink.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
 
- Documentation/hwmon/w83781d |    5 +++++
- drivers/hwmon/w83781d.c     |   22 +++++++++++++++++++++-
- 2 files changed, 26 insertions(+), 1 deletions(-)
+ drivers/hwmon/hwmon.c |   26 ++++++++++++++++++++------
+ 1 files changed, 20 insertions(+), 6 deletions(-)
 
-fabddcd49d8b4fca40ce346f701853888d98b5d2
-diff --git a/Documentation/hwmon/w83781d b/Documentation/hwmon/w83781d
-index ac155d8..b1e9f80 100644
---- a/Documentation/hwmon/w83781d
-+++ b/Documentation/hwmon/w83781d
-@@ -36,6 +36,11 @@ Module parameters
-   Use 'init=0' to bypass initializing the chip.
-   Try this if your computer crashes when you load the module.
+ded2b66615613093eeb83b81499bc270de8fc499
+diff --git a/drivers/hwmon/hwmon.c b/drivers/hwmon/hwmon.c
+index dddd3eb..106fa01 100644
+--- a/drivers/hwmon/hwmon.c
++++ b/drivers/hwmon/hwmon.c
+@@ -17,6 +17,7 @@
+ #include <linux/idr.h>
+ #include <linux/hwmon.h>
+ #include <linux/gfp.h>
++#include <linux/spinlock.h>
  
-+* reset int
-+  (default 0)
-+  The driver used to reset the chip on load, but does no more. Use
-+  'reset=1' to restore the old behavior. Report if you need to do this.
+ #define HWMON_ID_PREFIX "hwmon"
+ #define HWMON_ID_FORMAT HWMON_ID_PREFIX "%d"
+@@ -24,6 +25,7 @@
+ static struct class *hwmon_class;
+ 
+ static DEFINE_IDR(hwmon_idr);
++static DEFINE_SPINLOCK(idr_lock);
+ 
+ /**
+  * hwmon_device_register - register w/ hwmon sysfs class
+@@ -37,20 +39,30 @@ static DEFINE_IDR(hwmon_idr);
+ struct class_device *hwmon_device_register(struct device *dev)
+ {
+ 	struct class_device *cdev;
+-	int id;
++	int id, err;
+ 
+-	if (idr_pre_get(&hwmon_idr, GFP_KERNEL) = 0)
++again:
++	if (unlikely(idr_pre_get(&hwmon_idr, GFP_KERNEL) = 0))
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	if (idr_get_new(&hwmon_idr, NULL, &id) < 0)
+-		return ERR_PTR(-ENOMEM);
++	spin_lock(&idr_lock);
++	err = idr_get_new(&hwmon_idr, NULL, &id);
++	spin_unlock(&idr_lock);
 +
- force_subclients=bus,caddr,saddr,saddr
-   This is used to force the i2c addresses for subclients of
-   a certain chip. Typical usage is `force_subclients=0,0x2d,0x4a,0x4b'
-diff --git a/drivers/hwmon/w83781d.c b/drivers/hwmon/w83781d.c
-index 7821178..8b17132 100644
---- a/drivers/hwmon/w83781d.c
-+++ b/drivers/hwmon/w83781d.c
-@@ -57,6 +57,10 @@ I2C_CLIENT_INSMOD_5(w83781d, w83782d, w8
- I2C_CLIENT_MODULE_PARM(force_subclients, "List of subclient addresses: "
- 		    "{bus, clientaddr, subclientaddr1, subclientaddr2}");
++	if (unlikely(err = -EAGAIN))
++		goto again;
++	else if (unlikely(err))
++		return ERR_PTR(err);
  
-+static int reset;
-+module_param(reset, bool, 0);
-+MODULE_PARM_DESC(reset, "Set to one to reset chip on load");
-+
- static int init = 1;
- module_param(init, bool, 0);
- MODULE_PARM_DESC(init, "Set to zero to bypass chip initialization");
-@@ -1460,8 +1464,17 @@ w83781d_init_client(struct i2c_client *c
- 	int type = data->type;
- 	u8 tmp;
+ 	id = id & MAX_ID_MASK;
+ 	cdev = class_device_create(hwmon_class, NULL, MKDEV(0,0), dev,
+ 					HWMON_ID_FORMAT, id);
  
--	if (init && type != as99127f) {	/* this resets registers we don't have
-+	if (reset && type != as99127f) { /* this resets registers we don't have
- 					   documentation for on the as99127f */
-+		/* Resetting the chip has been the default for a long time,
-+		   but it causes the BIOS initializations (fan clock dividers,
-+		   thermal sensor types...) to be lost, so it is now optional.
-+		   It might even go away if nobody reports it as being useful,
-+		   as I see very little reason why this would be needed at
-+		   all. */
-+		dev_info(&client->dev, "If reset=1 solved a problem you were "
-+			 "having, please report!\n");
-+
- 		/* save these registers */
- 		i = w83781d_read_value(client, W83781D_REG_BEEP_CONFIG);
- 		p = w83781d_read_value(client, W83781D_REG_PWMCLK12);
-@@ -1478,6 +1491,13 @@ w83781d_init_client(struct i2c_client *c
- 		w83781d_write_value(client, W83781D_REG_BEEP_INTS2, 0);
- 	}
- 
-+	/* Disable power-on abnormal beep, as advised by the datasheet.
-+	   Already done if reset=1. */
-+	if (init && !reset && type != as99127f) {
-+		i = w83781d_read_value(client, W83781D_REG_BEEP_CONFIG);
-+		w83781d_write_value(client, W83781D_REG_BEEP_CONFIG, i | 0x80);
+-	if (IS_ERR(cdev))
++	if (IS_ERR(cdev)) {
++		spin_lock(&idr_lock);
+ 		idr_remove(&hwmon_idr, id);
++		spin_unlock(&idr_lock);
 +	}
-+
- 	data->vrm = vid_which_vrm();
  
- 	if ((type != w83781d) && (type != as99127f)) {
+ 	return cdev;
+ }
+@@ -64,9 +76,11 @@ void hwmon_device_unregister(struct clas
+ {
+ 	int id;
+ 
+-	if (sscanf(cdev->class_id, HWMON_ID_FORMAT, &id) = 1) {
++	if (likely(sscanf(cdev->class_id, HWMON_ID_FORMAT, &id) = 1)) {
+ 		class_device_unregister(cdev);
++		spin_lock(&idr_lock);
+ 		idr_remove(&hwmon_idr, id);
++		spin_unlock(&idr_lock);
+ 	} else
+ 		dev_dbg(cdev->dev,
+ 			"hwmon_device_unregister() failed: bad class ID!\n");
 -- 
 1.2.4
 
