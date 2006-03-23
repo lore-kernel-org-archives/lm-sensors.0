@@ -1,255 +1,268 @@
-From: ben-linux@fluff.org (Ben Dooks)
-Date: Tue, 21 Mar 2006 23:15:57 +0000
-Subject: [lm-sensors] PATCH - simtec-i2c platform driver
-Message-Id: <20060321231557.GA8612@home.fluff.org>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 23 Mar 2006 22:43:50 +0000
+Subject: [lm-sensors] [PATCH 05/36] i2c: scx200_acb whitespace and comment
+Message-Id: <11431538302654-git-send-email-gregkh@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Add support for the simple IO based I2C interface
-being used in the newer Simtec products, such as
-the BBD2016A. 
+scx200_acb: Whitespace and comment cleanup
 
-Signed-off-by: Ben Dooks <ben-linux at fluff.org>
--------------- next part --------------
-diff -urpN -X ../dontdiff linux-2.6.16-rmk-bjd1/drivers/i2c/busses/Kconfig linux-2.6.16-rmk-bjd2/drivers/i2c/busses/Kconfig
---- linux-2.6.16-rmk-bjd1/drivers/i2c/busses/Kconfig	2006-03-21 22:44:26.000000000 +0000
-+++ linux-2.6.16-rmk-bjd2/drivers/i2c/busses/Kconfig	2006-03-21 23:09:11.000000000 +0000
-@@ -368,6 +368,19 @@ config I2C_SIBYTE
- 	help
- 	  Supports the SiByte SOC on-chip I2C interfaces (2 channels).
+Signed-off-by: Ben Gardner <bgardner at wabtec.com>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
+---
+
+ drivers/i2c/busses/scx200_acb.c |   90 +++++++++++++++++++--------------------
+ 1 files changed, 43 insertions(+), 47 deletions(-)
+
+99c3adb4d5a2d0727d656f32d5de885581d3feec
+diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
+index d3478e0..f45779b 100644
+--- a/drivers/i2c/busses/scx200_acb.c
++++ b/drivers/i2c/busses/scx200_acb.c
+@@ -1,27 +1,25 @@
+-/*  linux/drivers/i2c/scx200_acb.c 
+-
++/*
+     Copyright (c) 2001,2002 Christer Weinigel <wingel at nano-system.com>
  
-+config I2C_SIMTEC
-+	tristate "Simtec Generic I2C interface"
-+	depends on I2C
-+	select I2C_ALGOBIT
-+	help
-+	  If you say yes to this option, support will be inclyded for
-+	  the Simtec Generic I2C interface. This driver is for the
-+	  simple I2C bus used on newer Simtec products for general
-+	  I2C, such as DDC on the Simtec BBD2016A.
+     National Semiconductor SCx200 ACCESS.bus support
+-    
 +
-+	  This driver can also be build as a module. If so, the module
-+	  will be called i2c-simtec.
+     Based on i2c-keywest.c which is:
+         Copyright (c) 2001 Benjamin Herrenschmidt <benh at kernel.crashing.org>
+         Copyright (c) 2000 Philip Edelbrock <phil at stimpy.netroedge.com>
+-    
 +
- config SCx200_I2C
- 	tristate "NatSemi SCx200 I2C using GPIO pins"
- 	depends on SCx200_GPIO && I2C
-diff -urpN -X ../dontdiff linux-2.6.16-rmk-bjd1/drivers/i2c/busses/Makefile linux-2.6.16-rmk-bjd2/drivers/i2c/busses/Makefile
---- linux-2.6.16-rmk-bjd1/drivers/i2c/busses/Makefile	2006-03-20 05:53:29.000000000 +0000
-+++ linux-2.6.16-rmk-bjd2/drivers/i2c/busses/Makefile	2006-03-21 23:09:11.000000000 +0000
-@@ -33,6 +33,7 @@ obj-$(CONFIG_I2C_RPXLITE)	+= i2c-rpx.o
- obj-$(CONFIG_I2C_S3C2410)	+= i2c-s3c2410.o
- obj-$(CONFIG_I2C_SAVAGE4)	+= i2c-savage4.o
- obj-$(CONFIG_I2C_SIBYTE)	+= i2c-sibyte.o
-+obj-$(CONFIG_I2C_SIMTEC)	+= i2c-simtec.o
- obj-$(CONFIG_I2C_SIS5595)	+= i2c-sis5595.o
- obj-$(CONFIG_I2C_SIS630)	+= i2c-sis630.o
- obj-$(CONFIG_I2C_SIS96X)	+= i2c-sis96x.o
-diff -urpN -X ../dontdiff linux-2.6.16-rmk-bjd1/drivers/i2c/busses/i2c-simtec.c linux-2.6.16-rmk-bjd2/drivers/i2c/busses/i2c-simtec.c
---- linux-2.6.16-rmk-bjd1/drivers/i2c/busses/i2c-simtec.c	1970-01-01 01:00:00.000000000 +0100
-+++ linux-2.6.16-rmk-bjd2/drivers/i2c/busses/i2c-simtec.c	2006-03-21 23:13:02.000000000 +0000
-@@ -0,0 +1,201 @@
-+/* linux/drivers/i2c/busses/i2c-simtec.c
-+ *
-+ * Copyright (C) 2005 Simtec Electronics
-+ *	Ben Dooks <ben at simtec.co.uk>
-+ *
-+ * Simtec Generic I2C Controller
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+*/
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License as
+     published by the Free Software Foundation; either version 2 of the
+     License, or (at your option) any later version.
+-   
 +
-+#include <linux/config.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     General Public License for more details.
+-   
 +
-+#include <linux/i2c.h>
-+#include <linux/i2c-algo-bit.h>
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-
+ */
+ 
+ #include <linux/module.h>
+@@ -79,8 +77,7 @@ static const char *scx200_acb_state_name
+ };
+ 
+ /* Physical interface */
+-struct scx200_acb_iface
+-{
++struct scx200_acb_iface {
+ 	struct scx200_acb_iface *next;
+ 	struct i2c_adapter adapter;
+ 	unsigned base;
+@@ -100,7 +97,7 @@ struct scx200_acb_iface
+ #define ACBSDA		(iface->base + 0)
+ #define ACBST		(iface->base + 1)
+ #define    ACBST_SDAST		0x40 /* SDA Status */
+-#define    ACBST_BER		0x20 
++#define    ACBST_BER		0x20
+ #define    ACBST_NEGACK		0x10 /* Negative Acknowledge */
+ #define    ACBST_STASTR		0x08 /* Stall After Start */
+ #define    ACBST_MASTER		0x02
+@@ -109,9 +106,9 @@ struct scx200_acb_iface
+ #define ACBCTL1		(iface->base + 3)
+ #define    ACBCTL1_STASTRE	0x80
+ #define    ACBCTL1_NMINTE	0x40
+-#define	   ACBCTL1_ACK		0x10
+-#define	   ACBCTL1_STOP		0x02
+-#define	   ACBCTL1_START	0x01
++#define    ACBCTL1_ACK		0x10
++#define    ACBCTL1_STOP		0x02
++#define    ACBCTL1_START	0x01
+ #define ACBADDR		(iface->base + 4)
+ #define ACBCTL2		(iface->base + 5)
+ #define    ACBCTL2_ENABLE	0x01
+@@ -122,7 +119,7 @@ static void scx200_acb_machine(struct sc
+ {
+ 	const char *errmsg;
+ 
+-	DBG("state %s, status = 0x%02x\n", 
++	DBG("state %s, status = 0x%02x\n",
+ 	    scx200_acb_state_name[iface->state], status);
+ 
+ 	if (status & ACBST_BER) {
+@@ -160,10 +157,10 @@ static void scx200_acb_machine(struct sc
+ 	case state_repeat_start:
+ 		outb(inb(ACBCTL1) | ACBCTL1_START, ACBCTL1);
+ 		/* fallthrough */
+-		
 +
-+#include <asm/io.h>
+ 	case state_quick:
+ 		if (iface->address_byte & 1) {
+-			if (iface->len = 1) 
++			if (iface->len = 1)
+ 				outb(inb(ACBCTL1) | ACBCTL1_ACK, ACBCTL1);
+ 			else
+ 				outb(inb(ACBCTL1) & ~ACBCTL1_ACK, ACBCTL1);
+@@ -202,17 +199,17 @@ static void scx200_acb_machine(struct sc
+ 			outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
+ 			break;
+ 		}
+-		
 +
-+struct simtec_i2c_data {
-+	struct resource		*ioarea;
-+	void __iomem		*reg;
-+	struct i2c_adapter	 adap;
-+	struct i2c_algo_bit_data bit;
-+};
+ 		outb(*iface->ptr++, ACBSDA);
+ 		--iface->len;
+-		
 +
-+#define CMD_SET_SDA	(1<<2)
-+#define CMD_SET_SCL	(1<<3)
+ 		break;
+ 	}
+ 
+ 	return;
+ 
+  negack:
+-	DBG("negative acknowledge in state %s\n", 
++	DBG("negative acknowledge in state %s\n",
+ 	    scx200_acb_state_name[iface->state]);
+ 
+ 	iface->state = state_idle;
+@@ -231,7 +228,7 @@ static void scx200_acb_machine(struct sc
+ 	iface->needs_reset = 1;
+ }
+ 
+-static void scx200_acb_timeout(struct scx200_acb_iface *iface) 
++static void scx200_acb_timeout(struct scx200_acb_iface *iface)
+ {
+ 	dev_err(&iface->adapter.dev, "timeout in state %s\n",
+ 		scx200_acb_state_name[iface->state]);
+@@ -264,7 +261,7 @@ static void scx200_acb_poll(struct scx20
+ static void scx200_acb_reset(struct scx200_acb_iface *iface)
+ {
+ 	/* Disable the ACCESS.bus device and Configure the SCL
+-           frequency: 16 clock cycles */
++	   frequency: 16 clock cycles */
+ 	outb(0x70, ACBCTL2);
+ 	/* Polling mode */
+ 	outb(0, ACBCTL1);
+@@ -283,9 +280,9 @@ static void scx200_acb_reset(struct scx2
+ }
+ 
+ static s32 scx200_acb_smbus_xfer(struct i2c_adapter *adapter,
+-				u16 address, unsigned short flags,	
+-				char rw, u8 command, int size, 
+-				union i2c_smbus_data *data)
++				 u16 address, unsigned short flags,
++				 char rw, u8 command, int size,
++				 union i2c_smbus_data *data)
+ {
+ 	struct scx200_acb_iface *iface = i2c_get_adapdata(adapter);
+ 	int len;
+@@ -295,9 +292,10 @@ static s32 scx200_acb_smbus_xfer(struct 
+ 
+ 	switch (size) {
+ 	case I2C_SMBUS_QUICK:
+-	    	len = 0;
+-	    	buffer = NULL;
+-	    	break;
++		len = 0;
++		buffer = NULL;
++		break;
 +
-+#define STATE_SDA	(1<<0)
-+#define STATE_SCL	(1<<1)
+ 	case I2C_SMBUS_BYTE:
+ 		if (rw = I2C_SMBUS_READ) {
+ 			len = 1;
+@@ -306,22 +304,26 @@ static s32 scx200_acb_smbus_xfer(struct 
+ 			len = 1;
+ 			buffer = &command;
+ 		}
+-	    	break;
++		break;
 +
-+/* i2c bit-bus functions */
+ 	case I2C_SMBUS_BYTE_DATA:
+-	    	len = 1;
+-	    	buffer = &data->byte;
+-	    	break;
++		len = 1;
++		buffer = &data->byte;
++		break;
 +
-+static void simtec_i2c_setsda(void *pw, int state)
-+{
-+	struct simtec_i2c_data *pd = pw;
-+	writeb(CMD_SET_SDA | (state ? STATE_SDA : 0), pd->reg);
-+}
+ 	case I2C_SMBUS_WORD_DATA:
+ 		len = 2;
+-	    	cur_word = cpu_to_le16(data->word);
+-	    	buffer = (u8 *)&cur_word;
++		cur_word = cpu_to_le16(data->word);
++		buffer = (u8 *)&cur_word;
+ 		break;
 +
-+static void simtec_i2c_setscl(void *pw, int state)
-+{
-+	struct simtec_i2c_data *pd = pw;
-+	writeb(CMD_SET_SCL | (state ? STATE_SCL : 0), pd->reg);
-+}
+ 	case I2C_SMBUS_BLOCK_DATA:
+-	    	len = data->block[0];
+-	    	buffer = &data->block[1];
++		len = data->block[0];
++		buffer = &data->block[1];
+ 		break;
 +
-+static int simtec_i2c_getsda(void *pw)
-+{
-+	struct simtec_i2c_data *pd = pw;
-+	return readb(pd->reg) & STATE_SDA ? 1 : 0;
-+}
+ 	default:
+-	    	return -EINVAL;
++		return -EINVAL;
+ 	}
+ 
+ 	DBG("size=%d, address=0x%x, command=0x%x, len=%d, read=%d\n",
+@@ -370,7 +372,7 @@ static s32 scx200_acb_smbus_xfer(struct 
+ 	up(&iface->sem);
+ 
+ 	if (rc = 0 && size = I2C_SMBUS_WORD_DATA && rw = I2C_SMBUS_READ)
+-	    	data->word = le16_to_cpu(cur_word);
++		data->word = le16_to_cpu(cur_word);
+ 
+ #ifdef DEBUG
+ 	DBG(": transfer done, result: %d", rc);
+@@ -406,7 +408,7 @@ static int scx200_acb_probe(struct scx20
+ 	u8 val;
+ 
+ 	/* Disable the ACCESS.bus device and Configure the SCL
+-           frequency: 16 clock cycles */
++	   frequency: 16 clock cycles */
+ 	outb(0x70, ACBCTL2);
+ 
+ 	if (inb(ACBCTL2) != 0x70) {
+@@ -459,7 +461,8 @@ static int  __init scx200_acb_create(int
+ 
+ 	init_MUTEX(&iface->sem);
+ 
+-	snprintf(description, sizeof(description), "NatSemi SCx200 ACCESS.bus [%s]", adapter->name);
++	snprintf(description, sizeof(description),
++		 "NatSemi SCx200 ACCESS.bus [%s]", adapter->name);
+ 	if (request_region(base, 8, description) = 0) {
+ 		dev_err(&adapter->dev, "can't allocate io 0x%x-0x%x\n",
+ 			base, base + 8-1);
+@@ -528,6 +531,7 @@ static int __init scx200_acb_init(void)
+ static void __exit scx200_acb_cleanup(void)
+ {
+ 	struct scx200_acb_iface *iface;
 +
-+static int simtec_i2c_getscl(void *pw)
-+{
-+	struct simtec_i2c_data *pd = pw;
-+	return readb(pd->reg) & STATE_SCL ? 1 : 0;
-+}
-+
-+/* device registration */
-+
-+static int simtec_i2c_probe(struct platform_device *pdev)
-+{
-+	struct simtec_i2c_data *pd;
-+	struct resource *res;
-+	int size;
-+	int ret;
-+
-+	pd = kzalloc(sizeof(struct simtec_i2c_data), GFP_KERNEL);
-+	if (pd = NULL) {
-+		dev_err(&pdev->dev, "cannot allocate private data\n");
-+		return -ENOMEM;
-+	}
-+
-+	platform_set_drvdata(pdev, pd);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res = NULL) {
-+		dev_err(&pdev->dev, "cannot find IO resource\n");
-+		ret = -ENOENT;
-+		goto exit_err;
-+	}
-+
-+	size = (res->end-res->start)+1;
-+
-+	pd->ioarea = request_mem_region(res->start, size, pdev->name);
-+
-+	if (pd->ioarea = NULL) {
-+		dev_err(&pdev->dev, "cannot request IO\n");
-+		ret = -ENXIO;
-+		goto exit_err;
-+	}
-+
-+	pd->reg = ioremap(res->start, size);
-+
-+	if (pd->reg = NULL) {
-+		dev_err(&pdev->dev, "cannot map IO\n");
-+		ret = -ENXIO;
-+		goto exit_err_res;
-+	}
-+
-+	/* setup the private data */
-+
-+	pd->adap.owner      = THIS_MODULE;
-+	pd->adap.algo_data  = &pd->bit;
-+	pd->adap.dev.parent = &pdev->dev;
-+
-+	strlcpy(pd->adap.name, "Simtec I2C", sizeof(pd->adap.name));
-+
-+	pd->bit.data	    = pd;
-+	pd->bit.setsda	    = simtec_i2c_setsda;
-+	pd->bit.setscl	    = simtec_i2c_setscl;
-+	pd->bit.getsda	    = simtec_i2c_getsda;
-+	pd->bit.getscl	    = simtec_i2c_getscl;
-+	pd->bit.timeout	    = HZ;
-+	pd->bit.udelay	    = 20;
-+
-+	ret = i2c_bit_add_bus(&pd->adap);
-+	if (ret)
-+		goto exit_err_all;
-+
-+	return 0;
-+
-+ exit_err_all:
-+	iounmap(pd->reg);
-+
-+ exit_err_res:
-+	release_resource(pd->ioarea);
-+	kfree(pd->ioarea);
-+
-+ exit_err:
-+	kfree(pd);
-+	return ret;
-+}
-+
-+static int simtec_i2c_remove(struct platform_device *dev)
-+{
-+	struct simtec_i2c_data *pd = platform_get_drvdata(dev);
-+
-+	if (pd) {
-+		i2c_bit_del_bus(&pd->adap);
-+
-+		if (pd->reg) {
-+			iounmap(pd->reg);
-+			pd->reg = NULL;
-+		}
-+
-+		if (pd->ioarea) {
-+			release_resource(pd->ioarea);
-+			kfree(pd->ioarea);
-+			pd->ioarea = NULL;
-+		}
-+
-+		kfree(pd);
-+	}
-+
-+	return 0;
-+}
-+
-+
-+/* device driver */
-+
-+static struct platform_driver simtec_i2c_driver = {
-+	.driver		= {
-+		.name	= "simtec-i2c",
-+		.owner	= THIS_MODULE,		
-+	},
-+	.probe		= simtec_i2c_probe,
-+	.remove		= simtec_i2c_remove,
-+};
-+
-+static int __init i2c_adap_simtec_init(void)
-+{
-+	return platform_driver_register(&simtec_i2c_driver);
-+}
-+
-+static void __exit i2c_adap_simtec_exit(void)
-+{
-+	platform_driver_unregister(&simtec_i2c_driver);
-+}
-+
-+module_init(i2c_adap_simtec_init);
-+module_exit(i2c_adap_simtec_exit);
-+
-+MODULE_DESCRIPTION("Simtec Generic I2C Bus driver");
-+MODULE_AUTHOR("Ben Dooks, <ben at simtec.co.uk>");
-+MODULE_LICENSE("GPL");
+ 	lock_kernel();
+ 	while ((iface = scx200_acb_list) != NULL) {
+ 		scx200_acb_list = iface->next;
+@@ -543,11 +547,3 @@ static void __exit scx200_acb_cleanup(vo
+ 
+ module_init(scx200_acb_init);
+ module_exit(scx200_acb_cleanup);
+-
+-/*
+-    Local variables:
+-        compile-command: "make -k -C ../.. SUBDIRS=drivers/i2c modules"
+-        c-basic-offset: 8
+-    End:
+-*/
+-
+-- 
+1.2.4
+
+
+
