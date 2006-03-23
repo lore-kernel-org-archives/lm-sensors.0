@@ -1,95 +1,184 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Fri, 10 Mar 2006 10:58:13 +0000
-Subject: [lm-sensors] New Abit uGuru (lm_sensors) driver please test!
-Message-Id: <44115BC5.5090704@hhs.nl>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 23 Mar 2006 15:19:49 +0000
+Subject: [lm-sensors] [PATCH 01/10] lm83: Add LM82 support
+Message-Id: <20060323161949.e6dd074b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+From: Jordan Crouse <jordan.crouse at amd.com>
+Content-Disposition: inline; filename=hwmon-lm83-add-lm82-support.patch
 
-Here is yet another release of the Abit uGuru driver, the big change 
-which needs testing is:
--(attempt to) detect the number of pwm outputs and fan sensors, so that
-  we do not give the user the ability to write pwm-settings for pwm's
-  which aren't there, otherwise the user could cause us to overwrite
-  random uGuru memory.
+Add LM82 temperature sensor support (similar to the LM83, 
+but less featureful).
 
-This is because support for the AA8XE Fatal1ty motherboard has been 
-added which comes with 5 pwm outputs for fan control, always making 5 
-pwms available will allow uGuru memory corruption to be caused by the 
-user when writing settings to pwm 4 or 5 on an uguru which doesn't have 
-these.
+Signed-off-by: Jordan Crouse <jordan.crouse at amd.com>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ Documentation/hwmon/lm83 |   16 +++++++++++----
+ drivers/hwmon/Kconfig    |    4 ++--
+ drivers/hwmon/lm83.c     |   50 ++++++++++++++++++++++++++++++++++------------
+ 3 files changed, 51 insertions(+), 19 deletions(-)
 
-After loading the driver you should see something like this in dmesg:
-abituguru: detecting number of fan sensors
-abituguru:   bank2 sensor 5 does not seem to be a fan sensor: 
-settings[0] = 40
-abituguru:  found: 5 fan sensors
-abituguru: detecting number of PWM outputs
-abituguru:   pwm channel 3 does not seem to be a pwm channel: 9 is not a 
-valid temp sensor address
-abituguru:  found: 3 PWM outputs
+--- linux-2.6.16-rc6.orig/Documentation/hwmon/lm83	2006-01-03 04:21:10.000000000 +0100
++++ linux-2.6.16-rc6/Documentation/hwmon/lm83	2006-03-14 20:21:43.000000000 +0100
+@@ -7,6 +7,10 @@
+     Addresses scanned: I2C 0x18 - 0x1a, 0x29 - 0x2b, 0x4c - 0x4e
+     Datasheet: Publicly available at the National Semiconductor website
+                http://www.national.com/pf/LM/LM83.html
++  * National Semiconductor LM82
++    Addresses scanned: I2C 0x18 - 0x1a, 0x29 - 0x2b, 0x4c - 0x4e
++    Datasheet: Publicly available at the National Semiconductor website
++               http://www.national.com/pf/LM/LM82.html
+ 
+ 
+ Author: Jean Delvare <khali at linux-fr.org>
+@@ -15,10 +19,11 @@
+ -----------
+ 
+ The LM83 is a digital temperature sensor. It senses its own temperature as
+-well as the temperature of up to three external diodes. It is compatible
+-with many other devices such as the LM84 and all other ADM1021 clones.
+-The main difference between the LM83 and the LM84 in that the later can
+-only sense the temperature of one external diode.
++well as the temperature of up to three external diodes. The LM82 is
++a stripped down version of the LM83 that only supports one external diode.
++Both are compatible with many other devices such as the LM84 and all
++other ADM1021 clones. The main difference between the LM83 and the LM84
++in that the later can only sense the temperature of one external diode.
+ 
+ Using the adm1021 driver for a LM83 should work, but only two temperatures
+ will be reported instead of four.
+@@ -36,6 +41,9 @@
+     Iwill       MPX2
+     Soltek      SL-75DRV5
+ 
++The LM82 is confirmed to have been found on most AMD Geode reference
++designs and test platforms.
++
+ The driver has been successfully tested by Magnus Forsstr?m, who I'd
+ like to thank here. More testers will be of course welcome.
+ 
+--- linux-2.6.16-rc6.orig/drivers/hwmon/Kconfig	2006-03-14 19:34:06.000000000 +0100
++++ linux-2.6.16-rc6/drivers/hwmon/Kconfig	2006-03-14 20:07:17.000000000 +0100
+@@ -236,11 +236,11 @@
+ 	  will be called lm80.
+ 
+ config SENSORS_LM83
+-	tristate "National Semiconductor LM83"
++	tristate "National Semiconductor LM83 and compatibles"
+ 	depends on HWMON && I2C
+ 	help
+ 	  If you say yes here you get support for National Semiconductor
+-	  LM83 sensor chips.
++	  LM82 and LM83 sensor chips.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm83.
+--- linux-2.6.16-rc6.orig/drivers/hwmon/lm83.c	2006-03-14 19:34:06.000000000 +0100
++++ linux-2.6.16-rc6/drivers/hwmon/lm83.c	2006-03-14 20:25:36.000000000 +0100
+@@ -12,6 +12,10 @@
+  * Since the datasheet omits to give the chip stepping code, I give it
+  * here: 0x03 (at register 0xff).
+  *
++ * Also supports the LM82 temp sensor, which is basically a stripped down
++ * model of the LM83.  Datasheet is here:
++ * http://www.national.com/pf/LM/LM82.html
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+@@ -52,7 +56,7 @@
+  * Insmod parameters
+  */
+ 
+-I2C_CLIENT_INSMOD_1(lm83);
++I2C_CLIENT_INSMOD_2(lm83, lm82);
+ 
+ /*
+  * The LM83 registers
+@@ -283,6 +287,9 @@
+ 		if (man_id = 0x01) { /* National Semiconductor */
+ 			if (chip_id = 0x03) {
+ 				kind = lm83;
++			} else
++			if (chip_id = 0x01) {
++				kind = lm82;
+ 			}
+ 		}
+ 
+@@ -296,6 +303,9 @@
+ 
+ 	if (kind = lm83) {
+ 		name = "lm83";
++	} else
++	if (kind = lm82) {
++		name = "lm82";
+ 	}
+ 
+ 	/* We can fill in the remaining client fields */
+@@ -319,32 +329,46 @@
+ 		goto exit_detach;
+ 	}
+ 
++	/*
++	 * The LM82 can only monitor one external diode which is
++	 * at the same register as the LM83 temp3 entry - so we
++	 * declare 1 and 3 common, and then 2 and 4 only for the LM83.
++	 */
++
+ 	device_create_file(&new_client->dev,
+ 			   &sensor_dev_attr_temp1_input.dev_attr);
+ 	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp2_input.dev_attr);
+-	device_create_file(&new_client->dev,
+ 			   &sensor_dev_attr_temp3_input.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp4_input.dev_attr);
++
+ 	device_create_file(&new_client->dev,
+ 			   &sensor_dev_attr_temp1_max.dev_attr);
+ 	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp2_max.dev_attr);
+-	device_create_file(&new_client->dev,
+ 			   &sensor_dev_attr_temp3_max.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp4_max.dev_attr);
++
+ 	device_create_file(&new_client->dev,
+ 			   &sensor_dev_attr_temp1_crit.dev_attr);
+ 	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp2_crit.dev_attr);
+-	device_create_file(&new_client->dev,
+ 			   &sensor_dev_attr_temp3_crit.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp4_crit.dev_attr);
++
+ 	device_create_file(&new_client->dev, &dev_attr_alarms);
+ 
++	if (kind = lm83) {
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_temp2_input.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_temp4_input.dev_attr);
++
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_temp2_max.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_temp4_max.dev_attr);
++
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_temp2_crit.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_temp4_crit.dev_attr);
++	}
++
+ 	return 0;
+ 
+ exit_detach:
 
-Please check that the number of fan sensors and pwm outputs (FAN EQ 
-control) match the numbers in you bios, and report your results (both 
-success and failure) to me. Many thanks for testing.
+-- 
+Jean Delvare
 
-As always Instructions for using / building the driver can be found in 
-the file README.txt . You need to move Makefile.txt to Makefile and 
-abituguru.c.txt to abituguru.c I had to add a .txt extension to make the 
-mailinglist happy.
-
-Regards,
-
-Hans
-
-p.s.
-
-Sorry about the big post to the list, I just wanted to have everything 
-(makefile, driver, userspace patches, docs) together in the archives for 
-users looking / searching for uguru support.
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: COPYING.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/COPYING-0001.txt
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: ChangeLog.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/ChangeLog-0001.txt
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: Makefile.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/Makefile-0001.txt
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: README.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/README-0001.txt
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: abituguru.c.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/abituguru.c-0001.txt
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: abituguru-datasheet.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/abituguru-datasheet-0001.txt
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: lm_sensors-2.9.2-uguru.patch
-Type: text/x-patch
-Size: 15184 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/lm_sensors-2.9.2-uguru-0001.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: lm_sensors-2.10.0-uguru.patch
-Type: text/x-patch
-Size: 17805 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/lm_sensors-2.10.0-uguru-0001.bin
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: sysfs-interface-proposal.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060310/34636342/sysfs-interface-proposal-0001.txt
