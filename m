@@ -1,48 +1,202 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Thu, 23 Mar 2006 06:13:25 +0000
-Subject: [lm-sensors] [PATCH] w83627ehf: Add alarms support
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEF2CEEA@weshml03.winbond.com.tw>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 23 Mar 2006 15:25:22 +0000
+Subject: [lm-sensors] [PATCH 02/10] w83627ehf: Add voltage inputs support
+Message-Id: <20060323162522.f46f7072.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060322220625.1b389b02.khali@linux-fr.org>
-In-Reply-To: <20060322220625.1b389b02.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello all,
+From: Rudolf Marek <r.marek at sh.cvut.cz>
+Content-Disposition: inline; filename=hwmon-w83627ehf-add-voltages.patch
 
-> Much more is needed:
-> 
-> Order:
-> 1 hwmon-allow-sensor-attr-arrays.patch
-> 2 hwmon-convert-semaphores-to-mutexes.patch
-> 5 hwmon-w83627ehf-add-alarms.patch
-> 4 hwmon-w83627ehf-add-voltages.patch
-> 3 hwmon-w83627ehf-use-attr-arrays.patch
-> 
-> Some other drivers will fail to patch but it does not matter.
-> 
-> I did the testing except the fan4/fan5 which look OK anyway.
+Add the voltage measuring support to W83627EHF. The code is based
+on the patch provided by Yuan Mu from Winbond.
 
-I did not try fan5.
+Signed-off-by: Yuan Mu <Ymu at winbond.com.tw>
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ drivers/hwmon/w83627ehf.c |  122 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 119 insertions(+), 3 deletions(-)
 
-> (I did not try the voltage alarms, I assume you did not changed the
-numbers)
-> 
-> There is only one problem:
-> 
-> > +	SENSOR_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 10),
-> > +	SENSOR_ATTR(fan4_alarm, S_IRUGO, show_alarm, NULL, 11),
-> 10 and 11 needs to be swapped.
-Yes :)
-I have tested the patches just now, it works well for me, and I like one
-file per sensor too, all wonderful, thank you!
+--- linux-2.6.16-rc5.orig/drivers/hwmon/w83627ehf.c	2006-03-09 15:23:01.000000000 +0100
++++ linux-2.6.16-rc5/drivers/hwmon/w83627ehf.c	2006-03-09 15:40:10.000000000 +0100
+@@ -30,10 +30,7 @@
+     Supports the following chips:
+ 
+     Chip        #vin    #fan    #pwm    #temp   chip_id man_id
+-    w83627ehf   -       5       -       3       0x88    0x5ca3
+-
+-    This is a preliminary version of the driver, only supporting the
+-    fan and temperature inputs. The chip does much more than that.
++    w83627ehf   10      5       -       3       0x88    0x5ca3
+ */
+ 
+ #include <linux/module.h>
+@@ -121,6 +118,14 @@
+ static const u16 W83627EHF_REG_FAN[] = { 0x28, 0x29, 0x2a, 0x3f, 0x553 };
+ static const u16 W83627EHF_REG_FAN_MIN[] = { 0x3b, 0x3c, 0x3d, 0x3e, 0x55c };
+ 
++/* The W83627EHF registers for nr=7,8,9 are in bank 5 */
++#define W83627EHF_REG_IN_MAX(nr)	((nr < 7) ? (0x2b + (nr) * 2) : \
++					 (0x554 + (((nr) - 7) * 2)))
++#define W83627EHF_REG_IN_MIN(nr)	((nr < 7) ? (0x2c + (nr) * 2) : \
++					 (0x555 + (((nr) - 7) * 2)))
++#define W83627EHF_REG_IN(nr)		((nr < 7) ? (0x20 + (nr)) : \
++					 (0x550 + (nr) - 7))
++
+ #define W83627EHF_REG_TEMP1		0x27
+ #define W83627EHF_REG_TEMP1_HYST	0x3a
+ #define W83627EHF_REG_TEMP1_OVER	0x39
+@@ -172,6 +177,20 @@
+ 	return (temp + 500) / 1000;
+ }
+ 
++/* Some of analog inputs have internal scaling (2x), 8mV is ADC LSB */
++
++static u8 scale_in[10] = { 8, 8, 16, 16, 8, 8, 8, 16, 16, 8 };
++
++static inline long in_from_reg(u8 reg, u8 nr)
++{
++	return reg * scale_in[nr];
++}
++
++static inline u8 in_to_reg(u32 val, u8 nr)
++{
++	return SENSORS_LIMIT(((val + (scale_in[nr] / 2)) / scale_in[nr]), 0, 255);
++}
++
+ /*
+  * Data structures and manipulation thereof
+  */
+@@ -186,6 +205,9 @@
+ 	unsigned long last_updated;	/* In jiffies */
+ 
+ 	/* Register values */
++	u8 in[10];		/* Register value */
++	u8 in_max[10];		/* Register value */
++	u8 in_min[10];		/* Register value */
+ 	u8 fan[5];
+ 	u8 fan_min[5];
+ 	u8 fan_div[5];
+@@ -349,6 +371,16 @@
+ 			data->fan_div[3] |= (i >> 5) & 0x04;
+ 		}
+ 
++		/* Measured voltages and limits */
++		for (i = 0; i < 10; i++) {
++			data->in[i] = w83627ehf_read_value(client,
++				      W83627EHF_REG_IN(i));
++			data->in_min[i] = w83627ehf_read_value(client,
++					  W83627EHF_REG_IN_MIN(i));
++			data->in_max[i] = w83627ehf_read_value(client,
++					  W83627EHF_REG_IN_MAX(i));
++		}
++
+ 		/* Measured fan speeds and limits */
+ 		for (i = 0; i < 5; i++) {
+ 			if (!(data->has_fan & (1 << i)))
+@@ -406,6 +438,87 @@
+ /*
+  * Sysfs callback functions
+  */
++#define show_in_reg(reg) \
++static ssize_t \
++show_##reg(struct device *dev, struct device_attribute *attr, \
++	   char *buf) \
++{ \
++	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	return sprintf(buf, "%ld\n", in_from_reg(data->reg[nr], nr)); \
++}
++show_in_reg(in)
++show_in_reg(in_min)
++show_in_reg(in_max)
++
++#define store_in_reg(REG, reg) \
++static ssize_t \
++store_in_##reg (struct device *dev, struct device_attribute *attr, \
++			const char *buf, size_t count) \
++{ \
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct w83627ehf_data *data = i2c_get_clientdata(client); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	u32 val = simple_strtoul(buf, NULL, 10); \
++ \
++	mutex_lock(&data->update_lock); \
++	data->in_##reg[nr] = in_to_reg(val, nr); \
++	w83627ehf_write_value(client, W83627EHF_REG_IN_##REG(nr), \
++			      data->in_##reg[nr]); \
++	mutex_unlock(&data->update_lock); \
++	return count; \
++}
++
++store_in_reg(MIN, min)
++store_in_reg(MAX, max)
++
++static struct sensor_device_attribute sda_in_input[] = {
++	SENSOR_ATTR(in0_input, S_IRUGO, show_in, NULL, 0),
++	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
++	SENSOR_ATTR(in2_input, S_IRUGO, show_in, NULL, 2),
++	SENSOR_ATTR(in3_input, S_IRUGO, show_in, NULL, 3),
++	SENSOR_ATTR(in4_input, S_IRUGO, show_in, NULL, 4),
++	SENSOR_ATTR(in5_input, S_IRUGO, show_in, NULL, 5),
++	SENSOR_ATTR(in6_input, S_IRUGO, show_in, NULL, 6),
++	SENSOR_ATTR(in7_input, S_IRUGO, show_in, NULL, 7),
++	SENSOR_ATTR(in8_input, S_IRUGO, show_in, NULL, 8),
++	SENSOR_ATTR(in9_input, S_IRUGO, show_in, NULL, 9),
++};
++
++static struct sensor_device_attribute sda_in_min[] = {
++       SENSOR_ATTR(in0_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 0),
++       SENSOR_ATTR(in1_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 1),
++       SENSOR_ATTR(in2_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 2),
++       SENSOR_ATTR(in3_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 3),
++       SENSOR_ATTR(in4_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 4),
++       SENSOR_ATTR(in5_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 5),
++       SENSOR_ATTR(in6_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 6),
++       SENSOR_ATTR(in7_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 7),
++       SENSOR_ATTR(in8_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 8),
++       SENSOR_ATTR(in9_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 9),
++};
++
++static struct sensor_device_attribute sda_in_max[] = {
++       SENSOR_ATTR(in0_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 0),
++       SENSOR_ATTR(in1_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 1),
++       SENSOR_ATTR(in2_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 2),
++       SENSOR_ATTR(in3_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 3),
++       SENSOR_ATTR(in4_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 4),
++       SENSOR_ATTR(in5_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 5),
++       SENSOR_ATTR(in6_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 6),
++       SENSOR_ATTR(in7_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 7),
++       SENSOR_ATTR(in8_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 8),
++       SENSOR_ATTR(in9_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 9),
++};
++
++static void device_create_file_in(struct device *dev, int i)
++{
++	device_create_file(dev, &sda_in_input[i].dev_attr);
++	device_create_file(dev, &sda_in_min[i].dev_attr);
++	device_create_file(dev, &sda_in_max[i].dev_attr);
++}
+ 
+ #define show_fan_reg(reg) \
+ static ssize_t \
+@@ -705,6 +818,9 @@
+ 		goto exit_detach;
+ 	}
+ 
++	for (i = 0; i < 10; i++)
++		device_create_file_in(dev, i);
++
+ 	for (i = 0; i < 5; i++) {
+ 		if (data->has_fan & (1 << i))
+ 			device_create_file_fan(dev, i);
 
-Best Regards
-Yuan Mu
-
-
-
-=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
+-- 
+Jean Delvare
 
