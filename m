@@ -1,35 +1,26 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 24 Mar 2006 09:01:46 +0000
+From: gregkh@suse.de (Greg KH)
+Date: Fri, 24 Mar 2006 19:06:33 +0000
 Subject: [lm-sensors] [GIT PATCH] I2C and hwmon patches for 2.6.16
-Message-Id: <20060324100146.835b24a9.khali@linux-fr.org>
+Message-Id: <20060324190633.GA2650@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060323224306.GA32322@kroah.com>
-In-Reply-To: <20060323224306.GA32322@kroah.com>
+References: <20060323224306.GA32322@kroah.com> <20060324100146.835b24a9.khali@linux-fr.org>
+In-Reply-To: <20060324100146.835b24a9.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <gregkh@suse.de>
+To: Jean Delvare <khali@linux-fr.org>
 Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hi Greg,
+On Fri, Mar 24, 2006 at 10:01:46AM +0100, Jean Delvare wrote:
+> You still have 10 pending patches from me though (sent yesterday) and
+> there will most certainly be at least two more by the end of the week
+> (two RTC i2c drivers use tasklets in forbidden conditions and need to
+> be fixed.)
 
-> Here are some i2c and hwmon patches for against your current git tree.
-> They all have been in the -mm tree for a few weeks and months.
-> 
-> They fix a number of various bugs and add some new drivers and features
-> (hm, that was sure vague, see the changelog below for details...)
+Yes, those patches are in my todo queue, and will get to them later
+today.
 
-Vague, and wrong too ;) No new driver this time around.
+thanks,
 
-I've checked all the patches and they match my own stack, so this is a
-successful resync once again. Well done!
-
-You still have 10 pending patches from me though (sent yesterday) and
-there will most certainly be at least two more by the end of the week
-(two RTC i2c drivers use tasklets in forbidden conditions and need to
-be fixed.)
-
-Thanks,
--- 
-Jean Delvare
+greg k-h
 
