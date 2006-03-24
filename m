@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 23 Mar 2006 20:52:08 +0000
+From: mgreer@mvista.com (Mark A. Greer)
+Date: Fri, 24 Mar 2006 01:14:38 +0000
 Subject: [lm-sensors] [PATCH 1/1] i2c: m41txx driver for ST i2c RTC chips
-Message-Id: <20060323215208.2486cccf.khali@linux-fr.org>
+Message-Id: <20060324011438.GB9560@mag.az.mvista.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060217011359.GA16247@mag.az.mvista.com>
 In-Reply-To: <20060217011359.GA16247@mag.az.mvista.com>
@@ -10,24 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > I still have a problem with your patch (sorry). It's really doing to
-> > many things at once. Namely, it adds support for new chips, converts
-> > from tasklet to workqueue, cleans up a few things (e.g. BIN2BCD instead
-> > of BIN_TO_BCD, which is a good move), and also includes some whitespace
-> > changes (some of which is NOT OK, please don't attempt to align equal
-> > signs with spaces in regular code!)
-> 
-> You mean things like the following?
-> 
-> 	sec  =  buf[m41t00_chip->sec]  & 0x7f;
-> 	min  =  buf[m41t00_chip->min]  & 0x7f;
-> 	hour = buf[m41t00_chip->hour]  & 0x3f;
-> 
-> I just want to make sure I change the right code.
+On Thu, Mar 23, 2006 at 01:38:43PM -0700, Mark A. Greer wrote:
+> On Thu, Mar 23, 2006 at 09:08:56PM +0100, Jean Delvare wrote:
 
-Yes, this is the kind of thing I was referring to.
+> > I know it means more work for you and I'm sorry about that, but it's
+> > also the only way for me to give proper review to all the changes.
+> 
+> No problem, Jean.  Thanks for the comments.  I'll post the new patches
+> asap.
 
-Thanks,
--- 
-Jean Delvare
+Okay, they're done.  I've broken the patch up and I will submit them in
+subsequent emails.  I will give each of them a unique subject to reply
+to this thread so you mail client should still be able to thread them.
+
+Mark
 
