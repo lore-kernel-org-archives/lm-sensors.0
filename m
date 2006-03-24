@@ -1,97 +1,160 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Sun, 05 Mar 2006 21:07:15 +0000
-Subject: [lm-sensors] [PATCH 2.6.15-rc5] hwmon: add required idr locking
-Message-Id: <20060305210715.GB3145@jupiter.solarsys.private>
+From: mgreer@mvista.com (Mark A. Greer)
+Date: Fri, 24 Mar 2006 01:21:37 +0000
+Subject: [lm-sensors] [PATCH 2.6.16-mm1 2/3] rtc: m41t00 driver cleanup
+Message-Id: <20060324012137.GD9560@mag.az.mvista.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060305152435.GA7990@jupiter.solarsys.private>
-In-Reply-To: <20060305152435.GA7990@jupiter.solarsys.private>
+References: <440B4B6E.8080307@sh.cvut.cz> <zt2d4LqL.1141645514.2993990.khali@localhost> <20060307170107.GA5250@mag.az.mvista.com> <20060318001254.GA14079@mag.az.mvista.com> <20060323210856.f1bfd02b.khali@linux-fr.org> <20060323203843.GA18912@mag.az.mvista.com>
+In-Reply-To: <20060323203843.GA18912@mag.az.mvista.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LM Sensors <lm-sensors@lm-sensors.org>
+Cc: Rudolf Marek <r.marek@sh.cvut.cz>, Jean Delvare <khali@linux-fr.org>, lkml <linux-kernel@vger.kernel.org>
 
+This patch does some cleanup to the m41t00 i2c/rtc driver including:
+- use BCD2BIN/BIN2BCD instead of BCD_TO_BIN/BIN_TO_BCD
+- use strlcpy instead of strncpy
+- some whitespace cleanup
 
-Add required locking around idr_ routines, retry the idr_pre_get/idr_get_new
-pair properly, and sprinkle in some likely/unlikely for good measure.
+Signed-off-by: Mark A. Greer <mgreer at mvista.com>
+---
 
-(Lack of idr locking didn't hurt when all callers were I2C clients, as the
-i2c-core serialized for us anyway.  Now that we have non I2C hwmon drivers,
-this is truly necessary.)
+ m41t00.c |   52 +++++++++++++++++++++++-----------------------------
+ 1 files changed, 23 insertions(+), 29 deletions(-)
+---
 
-This patch should be considered for 2.6.16.
-
-Signed-off-by: Mark M. Hoffman <mhoffman at lightlink.com>
-
---- linux-2.6.16-rc5.orig/drivers/hwmon/hwmon.c
-+++ linux-2.6.16-rc5/drivers/hwmon/hwmon.c
-@@ -17,6 +17,7 @@
- #include <linux/idr.h>
- #include <linux/hwmon.h>
- #include <linux/gfp.h>
-+#include <linux/spinlock.h>
+diff -Nurp linux-2.6.16-mm1-wq/drivers/i2c/chips/m41t00.c linux-2.6.16-mm1-cleanup/drivers/i2c/chips/m41t00.c
+--- linux-2.6.16-mm1-wq/drivers/i2c/chips/m41t00.c	2006-03-23 16:04:01.000000000 -0700
++++ linux-2.6.16-mm1-cleanup/drivers/i2c/chips/m41t00.c	2006-03-23 16:16:35.000000000 -0700
+@@ -1,6 +1,4 @@
+ /*
+- * drivers/i2c/chips/m41t00.c
+- *
+  * I2C client/driver for the ST M41T00 Real-Time Clock chip.
+  *
+  * Author: Mark A. Greer <mgreer at mvista.com>
+@@ -13,9 +11,6 @@
+ /*
+  * This i2c client/driver wedges between the drivers/char/genrtc.c RTC
+  * interface and the SMBus interface of the i2c subsystem.
+- * It would be more efficient to use i2c msgs/i2c_transfer directly but, as
+- * recommened in .../Documentation/i2c/writing-clients section
+- * "Sending and receiving", using SMBus level communication is preferred.
+  */
  
- #define HWMON_ID_PREFIX "hwmon"
- #define HWMON_ID_FORMAT HWMON_ID_PREFIX "%d"
-@@ -24,6 +25,7 @@
- static struct class *hwmon_class;
+ #include <linux/kernel.h>
+@@ -42,17 +37,17 @@ static unsigned short ignore[] = { I2C_C
+ static unsigned short normal_addr[] = { 0x68, I2C_CLIENT_END };
  
- static DEFINE_IDR(hwmon_idr);
-+static DEFINE_SPINLOCK(idr_lock);
+ static struct i2c_client_address_data addr_data = {
+-	.normal_i2c		= normal_addr,
+-	.probe			= ignore,
+-	.ignore			= ignore,
++	.normal_i2c	= normal_addr,
++	.probe		= ignore,
++	.ignore		= ignore,
+ };
  
- /**
-  * hwmon_device_register - register w/ hwmon sysfs class
-@@ -37,20 +39,30 @@ static DEFINE_IDR(hwmon_idr);
- struct class_device *hwmon_device_register(struct device *dev)
+ ulong
+ m41t00_get_rtc_time(void)
  {
- 	struct class_device *cdev;
--	int id;
-+	int id, err;
+-	s32	sec, min, hour, day, mon, year;
+-	s32	sec1, min1, hour1, day1, mon1, year1;
+-	ulong	limit = 10;
++	s32 sec, min, hour, day, mon, year;
++	s32 sec1, min1, hour1, day1, mon1, year1;
++	ulong limit = 10;
  
--	if (idr_pre_get(&hwmon_idr, GFP_KERNEL) = 0)
-+again:
-+	if (unlikely(idr_pre_get(&hwmon_idr, GFP_KERNEL) = 0))
- 		return ERR_PTR(-ENOMEM);
+ 	sec = min = hour = day = mon = year = 0;
+ 	sec1 = min1 = hour1 = day1 = mon1 = year1 = 0;
+@@ -98,12 +93,12 @@ m41t00_get_rtc_time(void)
+ 	mon &= 0x1f;
+ 	year &= 0xff;
  
--	if (idr_get_new(&hwmon_idr, NULL, &id) < 0)
--		return ERR_PTR(-ENOMEM);
-+	spin_lock(&idr_lock);
-+	err = idr_get_new(&hwmon_idr, NULL, &id);
-+	spin_unlock(&idr_lock);
-+
-+	if (unlikely(err = -EAGAIN))
-+		goto again;
-+	else if (unlikely(err))
-+		return ERR_PTR(err);
+-	BCD_TO_BIN(sec);
+-	BCD_TO_BIN(min);
+-	BCD_TO_BIN(hour);
+-	BCD_TO_BIN(day);
+-	BCD_TO_BIN(mon);
+-	BCD_TO_BIN(year);
++	sec = BCD2BIN(sec);
++	min = BCD2BIN(min);
++	hour = BCD2BIN(hour);
++	day = BCD2BIN(day);
++	mon = BCD2BIN(mon);
++	year = BCD2BIN(year);
  
- 	id = id & MAX_ID_MASK;
- 	cdev = class_device_create(hwmon_class, NULL, MKDEV(0,0), dev,
- 					HWMON_ID_FORMAT, id);
+ 	year += 1900;
+ 	if (year < 1970)
+@@ -116,17 +111,17 @@ static void
+ m41t00_set(void *arg)
+ {
+ 	struct rtc_time	tm;
+-	ulong	nowtime = *(ulong *)arg;
++	ulong nowtime = *(ulong *)arg;
  
--	if (IS_ERR(cdev))
-+	if (IS_ERR(cdev)) {
-+		spin_lock(&idr_lock);
- 		idr_remove(&hwmon_idr, id);
-+		spin_unlock(&idr_lock);
-+	}
+ 	to_tm(nowtime, &tm);
+ 	tm.tm_year = (tm.tm_year - 1900) % 100;
  
- 	return cdev;
+-	BIN_TO_BCD(tm.tm_sec);
+-	BIN_TO_BCD(tm.tm_min);
+-	BIN_TO_BCD(tm.tm_hour);
+-	BIN_TO_BCD(tm.tm_mon);
+-	BIN_TO_BCD(tm.tm_mday);
+-	BIN_TO_BCD(tm.tm_year);
++	tm.tm_sec = BIN2BCD(tm.tm_sec);
++	tm.tm_min = BIN2BCD(tm.tm_min);
++	tm.tm_hour = BIN2BCD(tm.tm_hour);
++	tm.tm_mon = BIN2BCD(tm.tm_mon);
++	tm.tm_mday = BIN2BCD(tm.tm_mday);
++	tm.tm_year = BIN2BCD(tm.tm_year);
+ 
+ 	mutex_lock(&m41t00_mutex);
+ 	if ((i2c_smbus_write_byte_data(save_client, 0, tm.tm_sec & 0x7f) < 0)
+@@ -144,10 +139,9 @@ m41t00_set(void *arg)
+ 		dev_warn(&save_client->dev,"m41t00: can't write to rtc chip\n");
+ 
+ 	mutex_unlock(&m41t00_mutex);
+-	return;
  }
-@@ -64,9 +76,11 @@ void hwmon_device_unregister(struct clas
- {
- 	int id;
  
--	if (sscanf(cdev->class_id, HWMON_ID_FORMAT, &id) = 1) {
-+	if (likely(sscanf(cdev->class_id, HWMON_ID_FORMAT, &id) = 1)) {
- 		class_device_unregister(cdev);
-+		spin_lock(&idr_lock);
- 		idr_remove(&hwmon_idr, id);
-+		spin_unlock(&idr_lock);
- 	} else
- 		dev_dbg(cdev->dev,
- 			"hwmon_device_unregister() failed: bad class ID!\n");
-
--- 
-Mark M. Hoffman
-mhoffman at lightlink.com
-
+-static ulong	new_time;
++static ulong new_time;
+ 
+ int
+ m41t00_set_rtc_time(ulong nowtime)
+@@ -179,7 +173,7 @@ m41t00_probe(struct i2c_adapter *adap, i
+ 	if (!client)
+ 		return -ENOMEM;
+ 
+-	strncpy(client->name, M41T00_DRV_NAME, I2C_NAME_SIZE);
++	strlcpy(client->name, M41T00_DRV_NAME, I2C_NAME_SIZE);
+ 	client->addr = addr;
+ 	client->adapter = adap;
+ 	client->driver = &m41t00_driver;
+@@ -203,7 +197,7 @@ m41t00_attach(struct i2c_adapter *adap)
+ static int
+ m41t00_detach(struct i2c_client *client)
+ {
+-	int	rc;
++	int rc;
+ 
+ 	if ((rc = i2c_detach_client(client)) = 0) {
+ 		kfree(client);
+@@ -214,6 +208,7 @@ m41t00_detach(struct i2c_client *client)
+ 
+ static struct i2c_driver m41t00_driver = {
+ 	.driver = {
++		.owner	= THIS_MODULE,
+ 		.name	= M41T00_DRV_NAME,
+ 	},
+ 	.id		= I2C_DRIVERID_STM41T00,
+@@ -231,7 +226,6 @@ static void __exit
+ m41t00_exit(void)
+ {
+ 	i2c_del_driver(&m41t00_driver);
+-	return;
+ }
+ 
+ module_init(m41t00_init);
 
