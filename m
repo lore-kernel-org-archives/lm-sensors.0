@@ -1,39 +1,46 @@
-From: bunk@stusta.de (Adrian Bunk)
-Date: Sat, 25 Mar 2006 21:09:46 +0000
-Subject: [lm-sensors] patch : hdaps on Thinkpad R52
-Message-Id: <20060325210946.GZ4053@stusta.de>
+From: dcb@pa.net (Douglas Bollinger)
+Date: Sat, 25 Mar 2006 23:45:52 +0000
+Subject: [lm-sensors] Kernel module load order can kill sensors
+Message-Id: <20060325184552.d1df0abf.dcb@pa.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060314205758.GA9229@gevaerts.be>
-In-Reply-To: <20060314205758.GA9229@gevaerts.be>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: rlove@rlove.org, linux-kernel@vger.kernel.org
-Cc: khali@linux-fr.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Tue, Mar 14, 2006 at 09:57:58PM +0100, Frank Gevaerts wrote:
+At first I joined this list to ask for help because I couldn't get the sensors
+working with my board.  Luckily I solved the problem on my own but thought you
+guys might be interested in what was the cause of the conflict.
 
-> Hello,
+Kernel: 2.6.14-ck9n
+Sensors: 2.10.0
+Board: Tyan K8E S2865
 
-Hi Frank,
+Since Tyan supplies a sensor.conf for this board, I thought getting sensors
+running would be a breeze.  After following their instructions, I found that I
+got no sensor output at all with "sensors" reporting a missing filesystem or
+something.
 
-> I had to add a new entry to the hdaps_whitelist table in hdaps.c to get
-> my Thinkpad R52 recognized. Patch is attached
+I use a old brooktree video capture board with this board.  What I found was
+that if I rmmod all bttv stuff I could then successfully get sensors to work.
 
-please resend your patch:
-- inline in the email (not an attachment) and
-- with a Signed-off-by: line
+The ultimate solution was to load the sensor kernel modules before bttv and
+then everything worked together.  I'm using Gentoo, so in
+/etc/modules.autoload.d/kernel-2.6:
 
-> Frank
+usbcore
+i2c-nforce2
+lm85 force_emc6d100=0,0x2e
+ide-cd
+nls_utf8
+loop
+bttv
 
-TIA
-Adrian
+This module-loading order works well.  Originally bttv was before the
+i2c-nforce2 and lm85 modules and that was causing all the problems.
+
+Thanks for all the work in getting hardware sensors working in Linux!
 
 -- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+: is not an identifier
 
