@@ -1,49 +1,55 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 23 Mar 2006 15:49:34 +0000
-Subject: [lm-sensors] [PATCH 09/10] i2c-sis96x: Remove an init-time log
-Message-Id: <20060323164934.5bc2122f.khali@linux-fr.org>
+Date: Sun, 26 Mar 2006 16:26:50 +0000
+Subject: [lm-sensors] [PATCH] i2c: Prevent client usage count breakage
+Message-Id: <20060326182650.770720a8.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: "Mark M. Hoffman" <mhoffman at lightlink.com>
-Content-Disposition: inline; filename=i2c-sis96x-remove-init-log-message.patch
+Hi Greg,
 
-This patch removes an init-time kernel log message.
-http://marc.theaimsgroup.com/?l=linux-kernel&m4232987208628&w=3
+While working on the i2c chip probing stuff, I noticed the following
+problem. Right now, no driver in the kernel tree seem to have hit it,
+but let's fix it before any does. Can you please enqueue this patch for
+2.6.17?
 
-Signed-off-by: Mark M. Hoffman <mhoffman at lightlink.com>
+Thanks.
+
+* * * * *
+Content-Disposition: inline; filename=i2c-core-init-usage-count-before-calling-client-register.patch
+
+The i2c clients usage count should be initialized before calling an
+adapter's client_register method, else calling i2c_use_client from
+within this method breaks the count.
+
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- drivers/i2c/busses/i2c-sis96x.c |    8 --------
- 1 file changed, 8 deletions(-)
+ drivers/i2c/i2c-core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- linux-2.6.16-rc6.orig/drivers/i2c/busses/i2c-sis96x.c	2006-03-13 21:41:04.000000000 +0100
-+++ linux-2.6.16-rc6/drivers/i2c/busses/i2c-sis96x.c	2006-03-15 19:30:03.000000000 +0100
-@@ -43,13 +43,6 @@
- #include <linux/init.h>
- #include <asm/io.h>
+--- linux-2.6.16-git.orig/drivers/i2c/i2c-core.c	2006-03-26 18:10:42.000000000 +0200
++++ linux-2.6.16-git/drivers/i2c/i2c-core.c	2006-03-26 18:10:48.000000000 +0200
+@@ -403,6 +403,8 @@
+ 	list_add_tail(&client->list,&adapter->clients);
+ 	mutex_unlock(&adapter->clist_lock);
+ 	
++	client->usage_count = 0;
++
+ 	if (adapter->client_register)  {
+ 		if (adapter->client_register(client))  {
+ 			dev_dbg(&adapter->dev, "client_register "
+@@ -411,8 +413,6 @@
+ 		}
+ 	}
  
--/*
--	HISTORY:
--	2003-05-11	1.0.0 	Updated from lm_sensors project for kernel 2.5
--				(was i2c-sis645.c from lm_sensors 2.7.0)
--*/
--#define SIS96x_VERSION "1.0.0"
+-	client->usage_count = 0;
 -
- /* base address register in PCI config space */
- #define SIS96x_BAR 0x04
- 
-@@ -337,7 +330,6 @@
- 
- static int __init i2c_sis96x_init(void)
- {
--	printk(KERN_INFO "i2c-sis96x version %s\n", SIS96x_VERSION);
- 	return pci_register_driver(&sis96x_driver);
- }
- 
+ 	client->dev.parent = &client->adapter->dev;
+ 	client->dev.driver = &client->driver->driver;
+ 	client->dev.bus = &i2c_bus_type;
+
 
 -- 
 Jean Delvare
