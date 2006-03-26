@@ -1,48 +1,47 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 23 Mar 2006 10:50:38 +0000
-Subject: [lm-sensors] EVGA NF41
-Message-Id: <20060323115038.9ae5e98d.khali@linux-fr.org>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Sun, 26 Mar 2006 22:47:13 +0000
+Subject: [lm-sensors] [patch 0/2] hwmon/pc87360 shrink object size by
+Message-Id: <442719F1.8020408@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jerry,
+From: Jim Cromie <jim.cromie at gmail.com>
 
-Sorry for the late answer...
+Heres 2 patches to shrink object size of hwmon/pc87360 driver
 
-> (I hope this is the correct way to do this...)
-> 
-> I did some searching on this motherboard, here is some of the info I 
-> have discovered as far as the tmp sensor stuff.
-> Sensor Properties:
-> Sensor Type Fintek F71872F (ISA 290h)
-> GPU Sensor Type Diode (NV-Diode)
-> 
-> It is an nForce 4 SLi motherboard.
-> 
-> Is there an existing driver I can use for this?
 
-No, we don't support this chip right now. However, I did add support to
-our sensors detection script, and it should now identify the F71872F/FG
-chip properly. Can you pick it, give it a try and report?
-http://www2.lm-sensors.nu/%7Elm78/cvs/lm_sensors2/prog/detect/sensors-detect
+1. hwmon-pc87360-use-sensor-attr-2.patch
 
-> If not, could I request one???
+Converts SENSOR_ATTRs to SENSOR_ATTR_2s for all sysfs-callbacks.
+Also adds a number of #defines which provide values used to
+initialize the sensor_device_attr_2.nr field for each sensor.
 
-Support for your chip could be added to our f71805f driver. The F71805F
-and F71872F chips are very similar when it comes to hardware
-monitoring. The F71872F seems to have a few more inputs, but otherwise
-it seems to be compatible.
 
-I added an entry to our New Drivers page for this chip, mentioning your
-request for support, so that we don't forget about it.
 
-Now, how much time it'll take to actually add the support you need
-depends on how much free time someone willing to do it (could be me)
-has, and on what you have to offer.
+2. hwmon-pc87360-sysfs-combo-callbacks.patch
 
--- 
-Jean Delvare
+This combines individual  (show|set)_Sensor_Attr callbacks into
+(show|set)_Sensor callbacks that handle all that Sensor's Attrs.
+The callback routines use the .nr field to determine what attribute
+they were called for.
+
+
+Combining callbacks results in a non-trivial size reduction (b4, after)
+14588    3224      16   17828    45a4 A-2/drivers/hwmon/pc87360.ko
+13124    3224      16   16364    3fec A-3/drivers/hwmon/pc87360.ko
+ie about 9%
+
+
+Combining all show_X (for all X) together is possible, but would 
+compromise clarity, and would save only ~ 1/5 th additional space.
+
+
+These were tested against 2.6.16 + 4 patches from -mm1
+(-mm1 is panic'g at boot on this NFS-root box)
+
+
+Id like to see these get into -mm2
 
