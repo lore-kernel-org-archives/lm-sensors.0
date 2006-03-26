@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Fri, 24 Mar 2006 20:57:07 +0000
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Sun, 26 Mar 2006 21:03:26 +0000
 Subject: [lm-sensors] [PATCH 1/2] hwmon: new vt1211 driver
-Message-Id: <44245D23.9080304@sh.cvut.cz>
+Message-Id: <191fb4ca0603261303o50dd2ca3i6d8e254717d0e1f0@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0602251324o560dcd61oc55dc703f452a570@mail.gmail.com>
 In-Reply-To: <191fb4ca0602251324o560dcd61oc55dc703f452a570@mail.gmail.com>
@@ -10,29 +10,71 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi again,
+Hi,
 
-I'm attaching commented version in file.
+> Sometimes there are places with spaces and not tabs (especially in #define
+> ) plus some operators like + dont have spaces around too.
 
-Sometimes there are places with spaces and not tabs (especially in #define ) plus some operators like + dont have spaces around too.
-I'm proposing that some of funcs can be done via macro or 2D array. This might help to shrink the source code a bit.
-I'm not user about the runtime UCONFIG configuration. Perhaps cleanest solution would be to create/remove sysfs nodes
-runtime instead of exporting them with zero.
-Also I think several printks can be replaced with dev_err stuff.
-Last thing to discuss is about the forced interrupt mode. I'm not sure if it is OK because it may affect the chip
-pins.
-I'm not too familiar with the platform stuff yet so I'm asking Jean to look into this.
+Ok, will fix.
 
-Overall the code looks very good. I tried to read all the stuff carefuly but it is quite difficult not to miss anything.
-(and even I spent like 3 hours just with reading and I'm not even sure :( )
+> I'm proposing that some of funcs can be done via macro or 2D array. This
+> might help to shrink the source code a bit.
 
-Regards
-Rudolf
+I had it this way in the begining but threw it out for some reasons I
+can't remember anymore. I'll take a look at it again.
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: hwmon-vt1211-new-driver.patch
-Type: text/x-patch
-Size: 41217 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060324/46c3f4b5/hwmon-vt1211-new-driver-0001.bin
+> I'm not user about the runtime UCONFIG configuration. Perhaps cleanest
+> solution would be to create/remove sysfs nodes
+> runtime instead of exporting them with zero.
+
+I don't understand. Exporting the UCH config register is a left-over
+from the 2.4 driver. I think the reason why it's in the 2.4 driver is
+because some BIOSes don't set it correctly. Maybe this is not true
+anymore and we can now fully rely on the BIOS doing it right and don't
+need to export the register anymore. Comments anyone?
+
+> Also I think several printks can be replaced with dev_err stuff.
+
+OK, will do.
+
+> Last thing to discuss is about the forced interrupt mode. I'm not sure if
+> it is OK because it may affect the chip
+> pins.
+
+Well the vt1211 implements 3 different interrupt modes (or more
+precisely 3 different modes of how interrupts get cleared):
+
+1) Generate INT when temp exceeds max limit. Clear INT when temp falls
+below max limit.
+2) Generate INT when temp exceeds max limit. Clear INT when status
+register is read. Regenerate INT as long as temp stays above
+hysteresis limit.
+3) Generate INT when temp exceeds max limit. Clear INT when status
+register is read. DON'T regenerate INT until temp falls below
+hysteresis limit and exceeds hot limit again.
+
+The default is mode 3 (on my EPIA M10000) and the driver sets it to
+mode 2 upon initialization. This is also a left-over from 2.4 and it
+has been around for some time. I'm not aware of any problems with this
+so I'm reluctant to change it unless somebody fells strongly about
+it...
+
+> I'm not too familiar with the platform stuff yet so I'm asking Jean to
+> look into this.
+>
+> Overall the code looks very good. I tried to read all the stuff carefuly
+> but it is quite difficult not to miss anything.
+> (and even I spent like 3 hours just with reading and I'm not even sure :(
+> )
+
+Thanks for taking the time to look at the patch. I really appreciate
+it and keep up the good work! You guys do an outstanding job!
+
+...juerg
+
+
+> Regards
+> Rudolf
+>
+>
+
