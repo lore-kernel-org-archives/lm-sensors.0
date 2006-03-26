@@ -1,8 +1,10 @@
 From: mmodem00@gmail.com (=?iso-8859-1?q?Z=E9?=)
-Date: Sat, 25 Mar 2006 21:50:52 +0000
+Date: Sun, 26 Mar 2006 02:39:57 +0000
 Subject: [lm-sensors] unable to set lm_sensors
-Message-Id: <200603252150.53616.mmodem00@netvisao.pt>
+Message-Id: <200603260339.57911.mmodem00@netvisao.pt>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200603252150.53616.mmodem00@netvisao.pt>
+In-Reply-To: <200603252150.53616.mmodem00@netvisao.pt>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
