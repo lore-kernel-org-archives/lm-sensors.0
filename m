@@ -1,62 +1,92 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Thu, 16 Mar 2006 11:11:26 +0000
-Subject: [lm-sensors] alarm files one file per sensor vs file with
-Message-Id: <441947DE.40800@hhs.nl>
+From: dieter.jurzitza@t-online.de (Dieter Jurzitza)
+Date: Tue, 28 Mar 2006 19:50:16 +0000
+Subject: [lm-sensors] Question on my mainboard
+Message-Id: <200603282150.16130.dieter.jurzitza@t-online.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <441940D4.2050107@hhs.nl>
-In-Reply-To: <441940D4.2050107@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
-> On 2006-03-16, Hans de Goede wrote:
->> Jean I would like to submit a version of the abituguru for merging, but
->> I would like to modify it (if needed) to match your decision on this
->> first. Can you take a decisision on this please?
->>
->> Or shall I just submit the abituguru driver as is and submit an update
->> if needed later?
-> 
-> No, let's decide now and have your driver follow that decision right
-> away, that's less work for everyone, and will let you do the user-space
-> part faster too.
-> 
+Dear listmembers,
+I am using several Tyan Tiger 2460 motherboards since quite a while. And I =
+am=20
+observing a strange behaviour someone in the list (might) have a clue about.
 
-I agree, but I didn't know if you were ready to take a decission.
+I am reading the sensors data periodically every 10 seconds. After an=20
+undefined time (maybe one week, maybe one day, maybe three weeks) sensors=20
+"hangs" after start and cannot be killed any more. A manual call to sensors=
+=20
+ends in a hang as well (of sensors, the board is running on).
 
-> We will go with individual alarm files, as I had been proposing. I will
-> not have the time to submit a new documentation patch before next week,
-> but basically it's just what my previous patch was saying. Follow the
-> same naming scheme for beep, alarm_mask and shutdown (the later two
-> being only used by your driver AFAIK.)
-> 
+What is my configuration:
+I am loading=20
+MODULE_0=3Di2c-amd756
+MODULE_1=3Di2c-isa
+MODULE_2=3Dw83781d
+MODULE_3=EEprom
+MODULE_4=3Dw83627hf
+(in this sequence).
 
-Ok,  got a link handy to the patch you're talking about? Otherwise I'll 
-scim the archives.
+By recommendation from Tyan I use the line:
+options w83781d force_w83782d=3D0,0x2d force_subclients=3D0,0x2d,0x48,0x49 =
 
-> Hans, I'd like to thank you for your constructive criticism with regards
-> to this technical choice we had to make. 
+force_w83627hf=3D0,0x2c force_subclients=3D0,0x2c,0x4a,0x4b init=3D0
 
-You're welcome.
+in /etc/modprobe.conf.local
 
-> Now I understand that its not the best thing that could happen for your
-> abituguru driver, but this is really only one driver amongst four
-> dozens, and almost all other drivers will be better with this approach.
-> 
+I have a script watchtemp that is started at boot that calls sensors every =
+10=20
+seconds; at boot it is called once with the parameter DAEMON, later on only=
+=20
+once with watchtemp what gives me a temperature display on the screen.
 
-I understand, no problem, this will delay the uguru patch a bit though, 
-I have to find some time todo this, probably not before next week.
+If someone finds the time to look into it and may give me a hint - greatly =
 
-> sorry for being slow
+appreciated. I cannot force the behaviour described above - it just happens=
+=20
+to occur after a while.
 
-No problem, processes like these take time
+Besides the many "SuSEisms" in the script it (might) be useful for someone =
+
+because it is very simple. If of interest I could provide a rpm / srpm for =
+
+SuSE installing all the required components at the right places.
+
+I am using sensors version 2.10.0 with libsensors version 2.10.0 on SuSE 9.=
+3=20
+SMP.
+
+Many thanks for your efforts in advance,
+take care
 
 
-Thanks & Regards,
 
-Hans
+Dieter Jurzitza
 
+
+
+
+--=20
+-----------------------------------------------------------
+
+                               |
+                                \
+                 /\_/\           |
+                | ~x~ |/-----\   /
+                 \   /-       \_/
+  ^^__   _        /  _  ____   /
+ <??__ \- \_/     |  |/    |  |
+  ||  ||         _| _|    _| _|
+
+if you really want to see the pictures above - use some font
+with constant spacing like courier! :-)
+-----------------------------------------------------------
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: watchtemp
+Type: application/x-shellscript
+Size: 2731 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060328=
+/72b1c2ad/watchtemp.bin
