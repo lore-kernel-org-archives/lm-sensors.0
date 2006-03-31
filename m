@@ -1,38 +1,150 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Sun, 26 Mar 2006 22:52:47 +0000
-Subject: [lm-sensors] [patch 2/2] hwmon/pc87360 combine sysfs callbacks to
-Message-Id: <44271B3F.80404@gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 31 Mar 2006 21:06:46 +0000
+Subject: [lm-sensors] [PATCH 3/3] i2c: cleanup m41t00
+Message-Id: <20060331230646.e06f73a1.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+From: "Mark A. Greer" <mgreer at mvista.com>
+Content-Disposition: inline; filename=rtc-m41t00-driver-cleanup.patch
 
+This patch does some cleanup to the m41t00 i2c/rtc driver including:
+- use BCD2BIN/BIN2BCD instead of BCD_TO_BIN/BIN_TO_BCD
+- use strlcpy instead of strncpy
+- some whitespace cleanup
 
-2. hwmon-pc87360-sysfs-combo-callbacks.patch
-
-This combines individual  show_Sensor_Attr callbacks into
-show_Sensor callbacks that handle all that Sensor's Attrs.
-Does same for set_Sensor_Attr callbacks, where appropriate.
-They use the .nr field to determine what attribute they were called for.
-
-Combining callbacks results in a non-trivial size reduction (b4, after)
-14588    3224      16   17828    45a4 A-2/drivers/hwmon/pc87360.ko
-13124    3224      16   16364    3fec A-3/drivers/hwmon/pc87360.ko
-ie about 9%
-
-Signed-off-by:  Jim Cromie <jim.cromie at gmail.com>
+Signed-off-by: Mark A. Greer <mgreer at mvista.com>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
-$ diffstat pc-set-uc/hwmon-pc87360-sysfs-combo-callbacks.patch
- pc87360.c |  570 
-+++++++++++++++++++++++++++++---------------------------------
- 1 files changed, 271 insertions(+), 299 deletions(-)
+ m41t00.c |   49 +++++++++++++++++++++----------------------------
+ 1 files changed, 21 insertions(+), 28 deletions(-)
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: hwmon-pc87360-sysfs-combo-callbacks.patch
-Type: text/x-patch
-Size: 31627 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060327/6b55be17/hwmon-pc87360-sysfs-combo-callbacks-0001.bin
+diff -Nurp linux-2.6.16-mm1-wq/drivers/i2c/chips/m41t00.c linux-2.6.16-mm1-cleanup/drivers/i2c/chips/m41t00.c
+--- linux-2.6.16-mm1-wq/drivers/i2c/chips/m41t00.c	2006-03-27 15:29:35.000000000 -0700
++++ linux-2.6.16-mm1-cleanup/drivers/i2c/chips/m41t00.c	2006-03-27 16:00:35.000000000 -0700
+@@ -1,6 +1,4 @@
+ /*
+- * drivers/i2c/chips/m41t00.c
+- *
+  * I2C client/driver for the ST M41T00 Real-Time Clock chip.
+  *
+  * Author: Mark A. Greer <mgreer at mvista.com>
+@@ -13,9 +11,6 @@
+ /*
+  * This i2c client/driver wedges between the drivers/char/genrtc.c RTC
+  * interface and the SMBus interface of the i2c subsystem.
+- * It would be more efficient to use i2c msgs/i2c_transfer directly but, as
+- * recommened in .../Documentation/i2c/writing-clients section
+- * "Sending and receiving", using SMBus level communication is preferred.
+  */
+ 
+ #include <linux/kernel.h>
+@@ -41,17 +36,17 @@ static unsigned short ignore[] = { I2C_C
+ static unsigned short normal_addr[] = { 0x68, I2C_CLIENT_END };
+ 
+ static struct i2c_client_address_data addr_data = {
+-	.normal_i2c		= normal_addr,
+-	.probe			= ignore,
+-	.ignore			= ignore,
++	.normal_i2c	= normal_addr,
++	.probe		= ignore,
++	.ignore		= ignore,
+ };
+ 
+ ulong
+ m41t00_get_rtc_time(void)
+ {
+-	s32	sec, min, hour, day, mon, year;
+-	s32	sec1, min1, hour1, day1, mon1, year1;
+-	ulong	limit = 10;
++	s32 sec, min, hour, day, mon, year;
++	s32 sec1, min1, hour1, day1, mon1, year1;
++	ulong limit = 10;
+ 
+ 	sec = min = hour = day = mon = year = 0;
+ 	sec1 = min1 = hour1 = day1 = mon1 = year1 = 0;
+@@ -97,12 +92,12 @@ m41t00_get_rtc_time(void)
+ 	mon &= 0x1f;
+ 	year &= 0xff;
+ 
+-	BCD_TO_BIN(sec);
+-	BCD_TO_BIN(min);
+-	BCD_TO_BIN(hour);
+-	BCD_TO_BIN(day);
+-	BCD_TO_BIN(mon);
+-	BCD_TO_BIN(year);
++	sec = BCD2BIN(sec);
++	min = BCD2BIN(min);
++	hour = BCD2BIN(hour);
++	day = BCD2BIN(day);
++	mon = BCD2BIN(mon);
++	year = BCD2BIN(year);
+ 
+ 	year += 1900;
+ 	if (year < 1970)
+@@ -115,17 +110,17 @@ static void
+ m41t00_set(void *arg)
+ {
+ 	struct rtc_time	tm;
+-	ulong	nowtime = *(ulong *)arg;
++	ulong nowtime = *(ulong *)arg;
+ 
+ 	to_tm(nowtime, &tm);
+ 	tm.tm_year = (tm.tm_year - 1900) % 100;
+ 
+-	BIN_TO_BCD(tm.tm_sec);
+-	BIN_TO_BCD(tm.tm_min);
+-	BIN_TO_BCD(tm.tm_hour);
+-	BIN_TO_BCD(tm.tm_mon);
+-	BIN_TO_BCD(tm.tm_mday);
+-	BIN_TO_BCD(tm.tm_year);
++	tm.tm_sec = BIN2BCD(tm.tm_sec);
++	tm.tm_min = BIN2BCD(tm.tm_min);
++	tm.tm_hour = BIN2BCD(tm.tm_hour);
++	tm.tm_mon = BIN2BCD(tm.tm_mon);
++	tm.tm_mday = BIN2BCD(tm.tm_mday);
++	tm.tm_year = BIN2BCD(tm.tm_year);
+ 
+ 	mutex_lock(&m41t00_mutex);
+ 	if ((i2c_smbus_write_byte_data(save_client, 0, tm.tm_sec & 0x7f) < 0)
+@@ -143,7 +138,6 @@ m41t00_set(void *arg)
+ 		dev_warn(&save_client->dev,"m41t00: can't write to rtc chip\n");
+ 
+ 	mutex_unlock(&m41t00_mutex);
+-	return;
+ }
+ 
+ static ulong new_time;
+@@ -180,7 +174,7 @@ m41t00_probe(struct i2c_adapter *adap, i
+ 	if (!client)
+ 		return -ENOMEM;
+ 
+-	strncpy(client->name, M41T00_DRV_NAME, I2C_NAME_SIZE);
++	strlcpy(client->name, M41T00_DRV_NAME, I2C_NAME_SIZE);
+ 	client->addr = addr;
+ 	client->adapter = adap;
+ 	client->driver = &m41t00_driver;
+@@ -204,7 +198,7 @@ m41t00_attach(struct i2c_adapter *adap)
+ static int
+ m41t00_detach(struct i2c_client *client)
+ {
+-	int	rc;
++	int rc;
+ 
+ 	if ((rc = i2c_detach_client(client)) = 0) {
+ 		kfree(client);
+@@ -232,7 +226,6 @@ static void __exit
+ m41t00_exit(void)
+ {
+ 	i2c_del_driver(&m41t00_driver);
+-	return;
+ }
+ 
+ module_init(m41t00_init);
+
+-- 
+Jean Delvare
+
