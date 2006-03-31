@@ -1,69 +1,89 @@
-From: jordan.crouse@amd.com (Jordan Crouse)
-Date: Fri, 31 Mar 2006 22:49:54 +0000
-Subject: [lm-sensors] [PATCH 2.6] scx200_acb - Fix for CS5535 eratta
-Message-Id: <20060331224954.GC17261@cosmic.amd.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 31 Mar 2006 21:06:03 +0000
+Subject: [lm-sensors] [PATCH 2/3] i2c: convert m41t00 to use a workqueue
+Message-Id: <20060331230603.4a8bc540.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: lm-sensors@lm-sensors.org, info-linux@ldcmail.amd.com, BGardner@Wabtec.com
+To: lm-sensors@vger.kernel.org
 
-Hey all - This is a fix for the recently added CS5535/CS5536 support in
-the scx200_acb driver.  This works around an errata in the CS5535 that 
-sometimes results in NEGACK not being cleared.  It would be great if we
-could get this into 2.6.17 with the driver.
+From: "Mark A. Greer" <mgreer at mvista.com>
+Content-Disposition: inline; filename=rtc-m41t00-driver-should-use-workqueue-instead-of-tasklet.patch
 
-Regards,
-Jordan
+The m41t00 i2c/rtc driver currently uses a tasklet to schedule
+interrupt-level writes to the rtc.  This patch causes the driver
+to use a workqueue instead.
 
--- 
-Jordan Crouse
-Senior Linux Engineer
-AMD - Personal Connectivity Solutions Group
-<www.amd.com/embeddedprocessors>
--------------- next part --------------
-[PATCH] scx200_acb: Fix for negack clear errata
-
-From: Jordan Crouse <jordan.crouse at amd.com>
-
-This patch is a fix for the CS5535 errata 111:
-
-When the SMB controller tries to access a non-existing device, it sets
-the NEGACK bit, SMB I/O Offset 01h[4], to 1 after it detects no
-acknowledge at the ninth clock. The specification says there are only
-two ways to clear this status bit: write 1 to this bit or disable the
-SMB controller. Sometimes this bit is cleared by a read of this
-register, but not always.
-
-Signed-off-by: Jordan Crouse <jordan.crouse at amd.com>
+Signed-off-by: Mark A. Greer <mgreer at mvista.com>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
+ m41t00.c |   16 +++++++++-------
+ 1 files changed, 9 insertions(+), 7 deletions(-)
 
- drivers/i2c/busses/scx200_acb.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
-index 8bd305e..e7a2225 100644
---- a/drivers/i2c/busses/scx200_acb.c
-+++ b/drivers/i2c/busses/scx200_acb.c
-@@ -133,6 +133,9 @@ static void scx200_acb_machine(struct sc
+diff -Nurp linux-2.6.16-mm1/drivers/i2c/chips/m41t00.c linux-2.6.16-mm1-wq/drivers/i2c/chips/m41t00.c
+--- linux-2.6.16-mm1/drivers/i2c/chips/m41t00.c	2006-03-23 15:04:55.000000000 -0700
++++ linux-2.6.16-mm1-wq/drivers/i2c/chips/m41t00.c	2006-03-27 15:29:35.000000000 -0700
+@@ -25,6 +25,7 @@
+ #include <linux/rtc.h>
+ #include <linux/bcd.h>
+ #include <linux/mutex.h>
++#include <linux/workqueue.h>
  
- 		outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
- 		outb(ACBST_STASTR | ACBST_NEGACK, ACBST);
-+
-+		/* Reset the status register */
-+		outb(0, ACBST);
- 		return;
+ #include <asm/time.h>
+ #include <asm/rtc.h>
+@@ -111,7 +112,7 @@ m41t00_get_rtc_time(void)
+ }
+ 
+ static void
+-m41t00_set_tlet(ulong arg)
++m41t00_set(void *arg)
+ {
+ 	struct rtc_time	tm;
+ 	ulong	nowtime = *(ulong *)arg;
+@@ -145,9 +146,9 @@ m41t00_set_tlet(ulong arg)
+ 	return;
+ }
+ 
+-static ulong	new_time;
+-
+-DECLARE_TASKLET_DISABLED(m41t00_tasklet, m41t00_set_tlet, (ulong)&new_time);
++static ulong new_time;
++static struct workqueue_struct *m41t00_wq;
++static DECLARE_WORK(m41t00_work, m41t00_set, &new_time);
+ 
+ int
+ m41t00_set_rtc_time(ulong nowtime)
+@@ -155,9 +156,9 @@ m41t00_set_rtc_time(ulong nowtime)
+ 	new_time = nowtime;
+ 
+ 	if (in_interrupt())
+-		tasklet_schedule(&m41t00_tasklet);
++		queue_work(m41t00_wq, &m41t00_work);
+ 	else
+-		m41t00_set_tlet((ulong)&new_time);
++		m41t00_set(&new_time);
+ 
+ 	return 0;
+ }
+@@ -189,6 +190,7 @@ m41t00_probe(struct i2c_adapter *adap, i
+ 		return rc;
  	}
  
-@@ -228,6 +231,10 @@ static void scx200_acb_poll(struct scx20
- 	timeout = jiffies + POLL_TIMEOUT;
- 	while (time_before(jiffies, timeout)) {
- 		status = inb(ACBST);
-+
-+		/* Reset the status register to avoid the hang */
-+		outb(0, ACBST);
-+
- 		if ((status & (ACBST_SDAST|ACBST_BER|ACBST_NEGACK)) != 0) {
- 			scx200_acb_machine(iface, status);
- 			return;
++	m41t00_wq = create_singlethread_workqueue("m41t00");
+ 	save_client = client;
+ 	return 0;
+ }
+@@ -206,7 +208,7 @@ m41t00_detach(struct i2c_client *client)
+ 
+ 	if ((rc = i2c_detach_client(client)) = 0) {
+ 		kfree(client);
+-		tasklet_kill(&m41t00_tasklet);
++		destroy_workqueue(m41t00_wq);
+ 	}
+ 	return rc;
+ }
+
+-- 
+Jean Delvare
+
