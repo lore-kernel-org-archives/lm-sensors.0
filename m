@@ -1,53 +1,89 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 23 Mar 2006 22:43:50 +0000
-Subject: [lm-sensors] [PATCH 13/36] hwmon: Refactor SENSOR_DEVICE_ATTR_2
-Message-Id: <11431538302068-git-send-email-gregkh@suse.de>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 31 Mar 2006 21:05:01 +0000
+Subject: [lm-sensors] [PATCH 1/3] i2c: convert ds1374 to use a workqueue
+Message-Id: <20060331230501.c9858518.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This patch refactors SENSOR_DEVICE_ATTR_2 macro, following pattern set by
-SENSOR_ATTR.  First it creates a new macro SENSOR_ATTR_2() which expands
-to an initialization expression, then it uses that in SENSOR_DEVICE_ATTR_2,
-which declares and initializes a struct sensor_device_attribute_2.
+Content-Disposition: inline; filename=rtc-ds1374-convert-tasklet-to-workqueue.patch
 
-Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
+A tasklet is not suitable for what the ds1374 driver does: neither sleeping
+nor mutex operations are allowed in tasklets, and ds1374_set_tlet may do
+both.
+
+We can use a workqueue instead, where both sleeping and mutex operations
+are allowed.
+
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
+Acked-by: Randy Vinson <rvinson at mvista.com>
 ---
+ drivers/i2c/chips/ds1374.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
- include/linux/hwmon-sysfs.h |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
-
-70adca5a9f506942ec88fb2d9d6e71ef271888b7
-diff --git a/include/linux/hwmon-sysfs.h b/include/linux/hwmon-sysfs.h
-index dedca6a..a90c09d 100644
---- a/include/linux/hwmon-sysfs.h
-+++ b/include/linux/hwmon-sysfs.h
-@@ -43,11 +43,13 @@ struct sensor_device_attribute_2 {
- #define to_sensor_dev_attr_2(_dev_attr) \
- 	container_of(_dev_attr, struct sensor_device_attribute_2, dev_attr)
+--- linux-2.6.16-git.orig/drivers/i2c/chips/ds1374.c	2006-03-27 18:25:17.000000000 +0200
++++ linux-2.6.16-git/drivers/i2c/chips/ds1374.c	2006-03-27 18:59:05.000000000 +0200
+@@ -27,6 +27,7 @@
+ #include <linux/rtc.h>
+ #include <linux/bcd.h>
+ #include <linux/mutex.h>
++#include <linux/workqueue.h>
  
-+#define SENSOR_ATTR_2(_name, _mode, _show, _store, _nr, _index)	\
-+	{ .dev_attr = __ATTR(_name, _mode, _show, _store),	\
-+	  .index = _index,					\
-+	  .nr = _nr }
+ #define DS1374_REG_TOD0		0x00
+ #define DS1374_REG_TOD1		0x01
+@@ -139,7 +140,7 @@
+ 	return t1;
+ }
+ 
+-static void ds1374_set_tlet(ulong arg)
++static void ds1374_set_work(void *arg)
+ {
+ 	ulong t1, t2;
+ 	int limit = 10;		/* arbitrary retry limit */
+@@ -168,17 +169,18 @@
+ 
+ static ulong new_time;
+ 
+-static DECLARE_TASKLET_DISABLED(ds1374_tasklet, ds1374_set_tlet,
+-				(ulong) & new_time);
++static struct workqueue_struct *ds1374_workqueue;
 +
- #define SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)	\
--struct sensor_device_attribute_2 sensor_dev_attr_##_name = {	\
--	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
--	.index =	_index,					\
--	.nr =		_nr,					\
--}
-+struct sensor_device_attribute_2 sensor_dev_attr_##_name		\
-+	= SENSOR_ATTR_2(_name, _mode, _show, _store, _nr, _index)
++static DECLARE_WORK(ds1374_work, ds1374_set_work, &new_time);
  
- #endif /* _LINUX_HWMON_SYSFS_H */
+ int ds1374_set_rtc_time(ulong nowtime)
+ {
+ 	new_time = nowtime;
+ 
+ 	if (in_interrupt())
+-		tasklet_schedule(&ds1374_tasklet);
++		queue_work(ds1374_workqueue, &ds1374_work);
+ 	else
+-		ds1374_set_tlet((ulong) & new_time);
++		ds1374_set_work(&new_time);
+ 
+ 	return 0;
+ }
+@@ -204,6 +206,8 @@
+ 	client->adapter = adap;
+ 	client->driver = &ds1374_driver;
+ 
++	ds1374_workqueue = create_singlethread_workqueue("ds1374");
++
+ 	if ((rc = i2c_attach_client(client)) != 0) {
+ 		kfree(client);
+ 		return rc;
+@@ -227,7 +231,7 @@
+ 
+ 	if ((rc = i2c_detach_client(client)) = 0) {
+ 		kfree(i2c_get_clientdata(client));
+-		tasklet_kill(&ds1374_tasklet);
++		destroy_workqueue(ds1374_workqueue);
+ 	}
+ 	return rc;
+ }
+
 -- 
-1.2.4
-
-
+Jean Delvare
 
