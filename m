@@ -1,7 +1,7 @@
-From: harald.dunkel@t-online.de (Harald Dunkel)
-Date: Sun, 26 Mar 2006 09:43:11 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 31 Mar 2006 12:35:28 +0000
 Subject: [lm-sensors] 2.6.16-rc5: unreasonable temperature reported by
-Message-Id: <4426622F.1070304@t-online.de>
+Message-Id: <20060331143528.49a916b6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44144A01.2050207@t-online.de>
 In-Reply-To: <44144A01.2050207@t-online.de>
@@ -10,80 +10,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi folks,
+Hi Harald,
 
-Any news about this? Some information missing?
-
-
-Regards
-
-Harri
-======================================
-Harald Dunkel wrote:
-> Hi Jean,
-> 
 > Sorry for the late response. See below.
-> 
-> Jean Delvare wrote:
-> 
->>Hallo Harald,
->>
->>
->>I don't see the version of lm_sensors in your second report, I'll
->>assume 2.10.0.
->>
-> 
-> 
-> Yes, it is.
-> 
-> 
->>I'm surprised that the thermal sensor types changed from "diode" to
->>"thermistor". These settings are not supposed to change on their own.
->>Did you change anything in your configuration file? It probably doesn't
->>matter much here, as these inputs seem to be unused, but I'm curious.
->>
-> 
-> 
-> No, I did not change this file. Currently sensors replies "diode"
-> again.
-> 
-> 
->>The output of sensors-detect is interesting:
->>
->>
->>
->>>Next adapter: SMBus I801 adapter at 5000
->>>(...)
->>>Client found at address 0x2d
->>
->>(All Failed)
->>
->>
->>>Client found at address 0x2f
->>
->>(All Failed)
->>
->>These are typical addresses for hardware monitoring chips, so I start
->>suspecting that one of these is your real fans + temperatures sensor
->>chip, either a recent or rare type which we don't know about yet.
->>
->>Please provide the output of the following commands (which will dump the
->>contents of these chips for further analysis) as root:
->>
->>modprobe i2c-dev
->>i2cdump 0 0x2d b
->>i2cdump 0 0x2f b
->>
-> 
-> 
-> No problem, see below. Please mail if more information is needed.
-> 
-> 
-> Many thanx in advance
-> 
-> Harri
-> =====================================
-> {root at bugs:harri 1001} modprobe i2c-dev
+
+What can I say... ;)
+
 > {root at bugs:harri 1001} i2cdump 0 0x2d b
 > WARNING! This program can confuse your I2C bus, cause data loss and worse!
 > I will probe file /dev/i2c-0, address 0x2d, mode byte
@@ -105,6 +37,17 @@ Harald Dunkel wrote:
 > d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
 > e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
 > f0: 00 00 00 00 00 00 39 38 01 45 00 ff ff ff ff 27    ......98?E.....'
+
+This could be a hardware monitoring chip, according to the number of
+registers, and some interesting patterns (0xff and 0x00 repeated at
+0x20-0x27 could be input voltage low and high limits, 0x64 and 0x46
+repeated at 0x6a could be temperature limits...) but the mapping is not
+usual and I can't find any obvious ID register.
+
+You'll have to search the available technical documentation for your
+system and/or ask Aopen for information. There's nothing we can do as
+long as we don't know what chip we are dealing with.
+
 > {root at bugs:harri 1002} i2cdump 0 0x2f b
 > WARNING! This program can confuse your I2C bus, cause data loss and worse!
 > I will probe file /dev/i2c-0, address 0x2f, mode byte
@@ -126,30 +69,18 @@ Harald Dunkel wrote:
 > d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
 > e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
 > f0: 00 80 ff ff ff ff ff ff ff ff ff ff ff ff ff 5e    .?.............^
-> {root at bugs:harri 1003} sensors
-> w83627thf-isa-0290
-> Adapter: ISA adapter
-> VCore:     +1.37 V  (min =  +1.94 V, max =  +1.94 V)       ALARM
-> +12V:     +12.22 V  (min = +10.82 V, max = +13.19 V)
-> +3.3V:     +3.18 V  (min =  +3.14 V, max =  +3.47 V)
-> +5V:       +4.91 V  (min =  +4.75 V, max =  +5.25 V)
-> -12V:     -12.11 V  (min = -13.18 V, max = -10.80 V)
-> V5SB:      +5.05 V  (min =  +4.76 V, max =  +5.24 V)
-> VBat:      +3.09 V  (min =  +2.40 V, max =  +3.60 V)
-> fan1:        0 RPM  (min =  664 RPM, div = 8)              ALARM
-> CPU Fan:     0 RPM  (min =  664 RPM, div = 8)              ALARM
-> fan3:        0 RPM  (min =  664 RPM, div = 8)              ALARM
-> M/B Temp:     +6 C  (high =   -87 C, hyst =  +125 C)   sensor = diode
-> CPU Temp:   -7.5 C  (high =   +80 C, hyst =   +75 C)   sensor = diode
-> temp3:      +7.5 C  (high =   +80 C, hyst =   +75 C)   sensor = diode           (beep)
-> alarms:
-> beep_enable:
->           Sound alarm enabled
-> 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: signature.asc
-Type: application/pgp-signature
-Size: 258 bytes
-Desc: OpenPGP digital signature
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060326/a4fa1b1b/signature.bin
+
+I was about to say "No idea about this one", as it has very few
+registers and no noticeable patterns, but that "19 34" at 0x5d reminds
+me of the Fintek signature in my F71805F Super-I/O chip. Can you please
+search your motherboard for a Fintek chip, presumably small?
+
+And now I realize that the chip at 0x2d has the same values at address
+0x5d, so it must be a Fintek chip too.
+
+I'll go ask my Fintek contact for additional information while you try
+to locate the chips on your board.
+
+-- 
+Jean Delvare
+
