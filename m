@@ -1,7 +1,7 @@
-From: jamesd@jml.net (James Davis)
-Date: Fri, 31 Mar 2006 12:45:39 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 31 Mar 2006 13:17:26 +0000
 Subject: [lm-sensors] Problems with i2c_i801
-Message-Id: <1143809139.7300.1.camel@cressida.cert>
+Message-Id: <20060331151726.356ff753.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1143796746.10346.10.camel@cressida.cert>
 In-Reply-To: <1143796746.10346.10.camel@cressida.cert>
@@ -10,45 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 2006-03-31 at 13:15 +0200, Jean Delvare wrote:
+Hi James,
 
-> OK. Can you make sure that libsensors was compiled with sysfs support?
-> "ldd /usr/lib/libsensors.so" should have one line for libsysfs.
+> I found the following SMSC chip:
+> 
+> LPC47M584-NC
+> B0443-AL1314
+> 8H1190280
+> 
+> Here's a link to a photograph.
+> 
+> http://www.freecharity.org.uk/~james/DSC00300.JPG
 
-It's there...
+Looks like we had a report for that chip already:
+http://netroedge.com/~lm78/readticket.cgi?ticket98
 
-james at cressida:~$ ldd /usr/lib/libsensors.so.3
-        linux-gate.so.1 =>  (0xffffe000)
-        libc.so.6 => /lib/tls/libc.so.6 (0xb7df3000)
-        libm.so.6 => /lib/tls/libm.so.6 (0xb7dcc000)
-        libsysfs.so.1 => /lib/libsysfs.so.1 (0xb7dc1000)
-        /lib/ld-linux.so.2 (0x80000000)
+Dell system too... SMSC doesn't have anything about that chip on their
+site. I guess this is a custom chip they made for Dell.
 
-> You have a Super-I/O chip (a.k.a. LPC chip) we don't know about. Given
-> the output above, this could be a chip made by ITE, National
-> Semiconductor or SMSC. Can you find some documentation about your board
-> and/or open the case and locate that chip? Typically they are
-> rectangular, with 128 pins, and measure about 20 mm by 12 mm. Sometimes
-> these chips have hardware monitoring functionalities.
+> > Does the BIOS of your system display any hardware monitoring
+> > information? Is this system somehow advertise as having hardware
+> > monitoring capabilities?
+> 
+> Nothing there, I guess that doesn't bode well..
 
-I found the following SMSC chip:
+Indeed. I've gone as far as I could, but now, without any information
+on that SMSC chip, there's nothing left I can do. Unless you can get
+information from either Dell or SMSC, this is the end of the road,
+sorry.
 
-LPC47M584-NC
-B0443-AL1314
-8H1190280
-
-Here's a link to a photograph.
-
-http://www.freecharity.org.uk/~james/DSC00300.JPG
-
-> Does the BIOS of your system display any hardware monitoring
-> information? Is this system somehow advertise as having hardware
-> monitoring capabilities?
-
-Nothing there, I guess that doesn't bode well..
-
-Many thnaks for your help,
-
-James
-
+-- 
+Jean Delvare
 
