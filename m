@@ -1,44 +1,221 @@
-From: chingimleong@yahoo.com.sg (Gim Leong Chin)
-Date: Mon, 20 Mar 2006 04:24:29 +0000
-Subject: [lm-sensors] Verified sensors.conf file for ASUS A8N32-SLI Deluxe
-Message-Id: <20060320042429.6313.qmail@web33513.mail.mud.yahoo.com>
+From: jordan.crouse@amd.com (Jordan Crouse)
+Date: Fri, 31 Mar 2006 23:03:09 +0000
+Subject: [lm-sensors] [PATCH 2.6] scx200_acb: Use PCI I/O resource when
+Message-Id: <20060331230309.GE17261@cosmic.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: lm-sensors@lm-sensors.org, info-linux@ldcmail.amd.com, BGardner@Wabtec.com
 
-Hi,
+The CS5535 and CS5536 both define the I/O base for the SMBUS device in a 
+PCI header.  This patch uses that header for the I/O base rather then 
+using the MSR backdoor.
 
-I have managed to put in the correct settings for ASUS A8N32-SLI Deluxe with an AMD Opteron 175
-with AMD Cool'n'Quiet enabled.
+This patch isn't as urgent as the other one, so it can probably take the 
+usual trip up through Greg's tree.
 
-I have attached the sensors.conf, (look for the line starting with "# Start of Chin Gim Leong's
-customization for ASUS A8N32-SLI Deluxe" for the start of changes) and my sensors-detect log file,
-sensors-detect.log.
-
-Thanks to all for contributing to the lm_sensors!
-
-
-Chin Gim Leong
-
-
-		
-__________________________________ 
-Do you Yahoo!?
-Yahoo! Movies - Search movie info and celeb profiles and photos.
-http://sg.movies.yahoo.com/
+-- 
+Jordan Crouse
+Senior Linux Engineer
+AMD - Personal Connectivity Solutions Group
+<www.amd.com/embeddedprocessors>
 -------------- next part --------------
-A non-text attachment was scrubbed...
-Name: sensors-detect.log
-Type: text/x-log
-Size: 6487 bytes
-Desc: 1106954662-sensors-detect.log
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060320/d3e11db4/sensors-detect-0001.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: sensors.conf
-Type: application/octet-stream
-Size: 70236 bytes
-Desc: 3200610018-sensors.conf
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060320/d3e11db4/sensors-0001.obj
+[PATCH] scx200_acb:  Use PCI I/O resource when appropriate
+
+From: Jordan Crouse <jordan.crouse at amd.com>
+
+On the CS5535 and CS5536, the I/O resource is allocated through PCI,
+so use that instead of using the MSR backdoor.
+
+Signed-off-by: Jordan Crouse <jordan.crouse at amd.com>
+---
+
+ drivers/i2c/busses/scx200_acb.c |  114 +++++++++++++++++++++++++++------------
+ 1 files changed, 78 insertions(+), 36 deletions(-)
+
+diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
+index e7a2225..454492f 100644
+--- a/drivers/i2c/busses/scx200_acb.c
++++ b/drivers/i2c/busses/scx200_acb.c
+@@ -33,7 +33,6 @@
+ #include <linux/delay.h>
+ #include <linux/mutex.h>
+ #include <asm/io.h>
+-#include <asm/msr.h>
+ 
+ #include <linux/scx200.h>
+ 
+@@ -85,6 +84,10 @@ struct scx200_acb_iface {
+ 	u8 *ptr;
+ 	char needs_reset;
+ 	unsigned len;
++
++	/* PCI device info */
++	struct pci_dev *pdev;
++	int bar;
+ };
+ 
+ /* Register Definitions */
+@@ -417,7 +420,8 @@ static int scx200_acb_probe(struct scx20
+ 	return 0;
+ }
+ 
+-static int  __init scx200_acb_create(const char *text, int base, int index)
++static int __init scx200_acb_create(char *text, unsigned int base, int index,
++				    struct pci_dev *pdev, int bar)
+ {
+ 	struct scx200_acb_iface *iface;
+ 	struct i2c_adapter *adapter;
+@@ -444,13 +448,31 @@ static int  __init scx200_acb_create(con
+ 	snprintf(description, sizeof(description), "%s ACCESS.bus [%s]",
+ 		 text, adapter->name);
+ 
+-	if (request_region(base, 8, description) = 0) {
+-		printk(KERN_ERR NAME ": can't allocate io 0x%x-0x%x\n",
+-			base, base + 8-1);
+-		rc = -EBUSY;
+-		goto errout_free;
++	if (pdev != NULL) {
++
++		iface->pdev = pdev;
++		iface->bar = bar;
++
++		pci_enable_device_bars(iface->pdev, 1 << iface->bar);
++
++		if (pci_request_region(iface->pdev, iface->bar, description)) {
++			printk(KERN_ERR NAME ": can't allocate PCI region %d\n",
++			       iface->bar);
++			rc = -EBUSY;
++			goto errout_free;
++		}
++
++		iface->base = pci_resource_start(iface->pdev, iface->bar);
++	} else {
++		if (request_region(base, 8, description) = 0) {
++			printk(KERN_ERR NAME ": can't allocate io 0x%x-0x%x\n",
++			       base, base + 8 - 1);
++			rc = -EBUSY;
++			goto errout_free;
++		}
++
++		iface->base = base;
+ 	}
+-	iface->base = base;
+ 
+ 	rc = scx200_acb_probe(iface);
+ 	if (rc) {
+@@ -474,7 +496,11 @@ static int  __init scx200_acb_create(con
+ 	return 0;
+ 
+  errout_release:
+-	release_region(iface->base, 8);
++	if (iface->pdev != NULL)
++		pci_release_region(iface->pdev, iface->bar);
++	else
++		release_region(iface->base, 8);
++
+  errout_free:
+ 	kfree(iface);
+  errout:
+@@ -487,49 +513,60 @@ static struct pci_device_id scx200[] = {
+ 	{ },
+ };
+ 
+-static struct pci_device_id divil_pci[] = {
+-	{ PCI_DEVICE(PCI_VENDOR_ID_NS,  PCI_DEVICE_ID_NS_CS5535_ISA) },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
+-	{ } /* NULL entry */
++/* On the CS5535 and CS5536, the SMBUS I/0 base is a PCI resource, so
++   we should allocate that resource through the PCI
++   subsystem. rather then going through the MSR back door.
++*/
++
++static struct {
++	unsigned int vendor;
++	unsigned int device;
++	char *name;
++	int bar;
++} divil_pci[] = {
++	{
++	PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_CS5535_ISA, "CS5535", 0}, {
++	PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA, "CS5536", 0}
+ };
+ 
+-#define MSR_LBAR_SMB		0x5140000B
++#define DIVIL_LENGTH (sizeof(divil_pci) / sizeof(divil_pci[0]))
+ 
+ static int scx200_add_cs553x(void)
+ {
+-	u32	low, hi;
+-	u32	smb_base;
+-
+-	/* Grab & reserve the SMB I/O range */
+-	rdmsr(MSR_LBAR_SMB, low, hi);
++	int dev;
++	struct pci_dev *pdev;
+ 
+-	/* Check the IO mask and whether SMB is enabled */
+-	if (hi != 0x0000F001) {
+-		printk(KERN_WARNING NAME ": SMBus not enabled\n");
+-		return -ENODEV;
++	for (dev = 0; dev < DIVIL_LENGTH; dev++) {
++		pdev +		    pci_find_device(divil_pci[dev].vendor,
++				    divil_pci[dev].device, NULL);
++		if (pdev != NULL)
++			break;
+ 	}
+ 
+-	/* SMBus IO size is 8 bytes */
+-	smb_base = low & 0x0000FFF8;
++	if (pdev = NULL)
++		return -ENODEV;
+ 
+-	return scx200_acb_create("CS5535", smb_base, 0);
++	return scx200_acb_create(divil_pci[dev].name, 0, 0, pdev,
++				 divil_pci[dev].bar);
+ }
+ 
+ static int __init scx200_acb_init(void)
+ {
+ 	int i;
+-	int	rc = -ENODEV;
++	int rc     = -ENODEV;
+ 
+ 	pr_debug(NAME ": NatSemi SCx200 ACCESS.bus Driver\n");
+ 
+-	/* Verify that this really is a SCx200 processor */
+-	if (pci_dev_present(scx200)) {
+-		for (i = 0; i < MAX_DEVICES; ++i) {
+-			if (base[i] > 0)
+-				rc = scx200_acb_create("SCx200", base[i], i);
+-		}
+-	} else if (pci_dev_present(divil_pci))
+-		rc = scx200_add_cs553x();
++	/* If this is a CS5535 or CS5536, then probe the PCI header */
++
++	if (!pci_dev_present(scx200))
++		return scx200_add_cs553x();
++
++	for (i = 0; i < MAX_DEVICES; ++i) {
++		if (base[i] > 0)
++			rc = scx200_acb_create("SCx200", base[i], i, NULL, 0);
++	}
+ 
+ 	return rc;
+ }
+@@ -544,7 +581,12 @@ static void __exit scx200_acb_cleanup(vo
+ 		up(&scx200_acb_list_mutex);
+ 
+ 		i2c_del_adapter(&iface->adapter);
+-		release_region(iface->base, 8);
++
++		if (iface->pdev != NULL)
++			pci_release_region(iface->pdev, iface->bar);
++		else
++			release_region(iface->base, 8);
++
+ 		kfree(iface);
+ 		down(&scx200_acb_list_mutex);
+ 	}
