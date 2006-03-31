@@ -1,69 +1,69 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Tue, 14 Mar 2006 03:47:15 +0000
-Subject: [lm-sensors] using primitive i2c/parallel port method (i2c-pport)
-Message-Id: <20060314034715.GA19400@jupiter.solarsys.private>
+From: jordan.crouse@amd.com (Jordan Crouse)
+Date: Fri, 31 Mar 2006 22:49:54 +0000
+Subject: [lm-sensors] [PATCH 2.6] scx200_acb - Fix for CS5535 eratta
+Message-Id: <20060331224954.GC17261@cosmic.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: lm-sensors@lm-sensors.org, info-linux@ldcmail.amd.com, BGardner@Wabtec.com
 
-Hi all:
+Hey all - This is a fix for the recently added CS5535/CS5536 support in
+the scx200_acb driver.  This works around an errata in the CS5535 that 
+sometimes results in NEGACK not being cleared.  It would be great if we
+could get this into 2.6.17 with the driver.
 
-I did a quick-n-dirty port to Linux 2.6.x of i2c-pport.c (from CVS/2.4.x)
-which can be found here:
-
-http://members.dca.net/mhoffman/sensors/temp/20060313/
-
-That works well enough, with one hint from Jean Delvare to set "standard"
-mode in the BIOS.  But clearly, this code is not suitable for merging.
-
-So I tried to port this adapter to i2c-parport/i2c-parport-light [1].  I had
-no success at all using i2c-parport... the voltages looked wrong again, as
-if it puts the port back into one of the enhanced modes.
-
-With i2c-parport-light, it almost works.  The signals look good... but
-always one bit gets corrupted on reads.  My only guess is that the getscl
-method is not working properly... so that the master ignores the slave's
-clock stretching.
-
-Another note: I can use i2c-pport, then remove it and insert i2c-parport-light,
-then go back to i2c-pport as often as I want without rebooting... but always
-the former works and the latter does not.  Whereas, if I load i2c-parport even
-once, nothing works again until after a reboot.
-
-I am no expert on PC parallel ports.  I would definitely appreciate some
-advice about this.
-
-[1] Here's the patch I am using:
-
---- linux-2.6.16-rc6.orig/drivers/i2c/busses/i2c-parport.h
-+++ linux-2.6.16-rc6/drivers/i2c/busses/i2c-parport.h
-@@ -88,6 +88,13 @@ static struct adapter_parm adapter_parm[
- 		.getscl	= { 0x40, STAT, 0 },
- 		.init	= { 0xfc, DATA, 0 },
- 	},
-+	/* type 7: Primitive +5V 'pport' adapter */
-+	{
-+		.setsda = { 0x02, CTRL, 1 },
-+		.getsda = { 0x02, CTRL, 1 },
-+		.setscl = { 0x04, CTRL, 0 },
-+		.getscl = { 0x04, CTRL, 0 },
-+	},
- };
- 
- static int type;
-@@ -101,4 +108,5 @@ MODULE_PARM_DESC(type,
- 	" 4 = ADM1032 evaluation board\n"
- 	" 5 = ADM1025, ADM1030 and ADM1031 evaluation boards\n"
- 	" 6 = Barco LPT->DVI (K5800236) adapter\n"
-+	" 7 = Primitive +5V 'pport' adapter\n"
- );
-
-Thanks & regards,
+Regards,
+Jordan
 
 -- 
-Mark M. Hoffman
-mhoffman at lightlink.com
+Jordan Crouse
+Senior Linux Engineer
+AMD - Personal Connectivity Solutions Group
+<www.amd.com/embeddedprocessors>
+-------------- next part --------------
+[PATCH] scx200_acb: Fix for negack clear errata
 
+From: Jordan Crouse <jordan.crouse at amd.com>
 
+This patch is a fix for the CS5535 errata 111:
+
+When the SMB controller tries to access a non-existing device, it sets
+the NEGACK bit, SMB I/O Offset 01h[4], to 1 after it detects no
+acknowledge at the ninth clock. The specification says there are only
+two ways to clear this status bit: write 1 to this bit or disable the
+SMB controller. Sometimes this bit is cleared by a read of this
+register, but not always.
+
+Signed-off-by: Jordan Crouse <jordan.crouse at amd.com>
+---
+
+ drivers/i2c/busses/scx200_acb.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
+index 8bd305e..e7a2225 100644
+--- a/drivers/i2c/busses/scx200_acb.c
++++ b/drivers/i2c/busses/scx200_acb.c
+@@ -133,6 +133,9 @@ static void scx200_acb_machine(struct sc
+ 
+ 		outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
+ 		outb(ACBST_STASTR | ACBST_NEGACK, ACBST);
++
++		/* Reset the status register */
++		outb(0, ACBST);
+ 		return;
+ 	}
+ 
+@@ -228,6 +231,10 @@ static void scx200_acb_poll(struct scx20
+ 	timeout = jiffies + POLL_TIMEOUT;
+ 	while (time_before(jiffies, timeout)) {
+ 		status = inb(ACBST);
++
++		/* Reset the status register to avoid the hang */
++		outb(0, ACBST);
++
+ 		if ((status & (ACBST_SDAST|ACBST_BER|ACBST_NEGACK)) != 0) {
+ 			scx200_acb_machine(iface, status);
+ 			return;
