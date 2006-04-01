@@ -1,37 +1,41 @@
 From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 19 Apr 2006 20:40:12 +0000
-Subject: [lm-sensors] sensor output writing to terminals
-Message-Id: <4446A02C.8010508@sh.cvut.cz>
+Date: Sat, 01 Apr 2006 16:10:51 +0000
+Subject: [lm-sensors] W83793G Chip support
+Message-Id: <442EA60B.6020404@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1145229015.329.9.camel@localhost.localdomain>
-In-Reply-To: <1145229015.329.9.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Ymu at Winbond.com.tw wrote:
+> Hi,
+> I got a w83793G chip, and my boss asks me to start to code the driver.
+> Good news is I have connected the chip to one of my MB :)
+> And I would like to send the datasheet to you first.
+>
 
-> Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
-> -12V: +2.03 V (min = -13.18 V, max = -10.80 V) [ALARM]
-> Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
-> -5V: +0.63 V (min = -5.25 V, max = -4.75 V) [ALARM]
-> Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
-> fan2: 0 RPM (min = 1188 RPM, div = 8) [ALARM]
-> Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
-> temp1: 24 C (limit = 12 C, hysteresis = 18 C, sensors = thermistor)
-> [ALARM]
-> 
-> Can someone please tell me what I need to configure to stop the writing
-> to all open terminals?
 
-Hmm perhaps the sensorsd deamons sends an alert. And because of allert nature it
-will be sent to all terms. Please check if this cannot be configured somehow.
-I'm not too familiar with sensorsd.
+Good thanks. I just went through the datasheet and got some remarks:
 
-You may also adjust the /etc/sensors.conf file so the alarm is produced
-only when it is a real one.
+1) this design looks more clean to me
+2) good would be to hyperlink the register names and vaules with the description
+3) cool is that they really implemented WINB ID and CHIP in ALL banks
+4) I spotted two new technology stuff AMDSI and PESI
 
-I hope it helps
+THe new register set leads to a conclusion that best would be to start
+new driver from scratch instead of putting stuff into the w83792d.
+
+I will take care of watchdog because it seems same to me as in the w83792d.
+
+I'm trying to think out the best how to connect the watchdog driver core
+with rest of the w83792, because two different drivers cannot be assigned to
+just one i2c addr. I think I will create separate module to support 92/93
+and create some callbacks to respective drivers or vice versa.
+
+To new driver developement. If you have any questions/problems/ideas whatever
+please post them to the mailing list. I prepared to help you for sure :)
+
 Regards
 Rudolf
 
