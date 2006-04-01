@@ -1,31 +1,62 @@
-From: jeff@garzik.org (Jeff Garzik)
-Date: Fri, 21 Apr 2006 21:19:31 +0000
-Subject: [lm-sensors] [PATCH] OpenCores I2C bus driver
-Message-Id: <44494C63.5000606@garzik.org>
+From: m.mcknight@yahoo.ca (Mark McKnight)
+Date: Sat, 01 Apr 2006 21:58:08 +0000
+Subject: [lm-sensors] nForce 410
+Message-Id: <20060401215808.67999.qmail@web37401.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <87fyk71eps.fsf@sleipner.barco.com>
-In-Reply-To: <87fyk71eps.fsf@sleipner.barco.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Korsgaard <jacmet@sunsite.dk>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Peter Korsgaard wrote:
-> Hi,
-> 
-> The following patch adds support for the OpenCores I2C controller IP
-> core (See http://www.opencores.org/projects.cgi/web/i2c/overview).
-> 
-> Signed-off-by: Peter Korsgaard <jacmet at sunsite.dk>
+Asus K8n-vm
+geforce 6100 / nforce 410
+Ubuntu dapper 6.06
+lm-sensors = 2.9.2-5ubuntu2
 
-Very cool...   I'm glad to see opencores stuff making it into the 
-upstream kernel.
+Looking at supported devices on lm-sensors site I thought i2c-nforce2 might work. It doesn't auto-install  on boot  so I modprobe. Here's lsmod output:
 
-One day I hope to see the OpenRISC port in the upstream kernel...
-
-	Jeff
+i2c_nforce2             7360  0
+i2c_dev                10752  0
+i2c_core               23168  2 i2c_nforce2,i2c_dev
 
 
+Here's i2cdetect output:
+
+Error: No i2c-bus specified!
+Syntax: i2cdetect [-y] [-a] [-q|-r] I2CBUS [FIRST LAST]
+        i2cdetect -l
+        i2cdetect -V
+  I2CBUS is an integer
+  With -a, probe all addresses (NOT RECOMMENDED)
+  With -q, uses only quick write commands for probing (NOT RECOMMENDED)
+  With -r, uses only read byte commands for probing (NOT RECOMMENDED)
+  If provided, FIRST and LAST limit the probing range.
+  With -l, lists installed busses only
+Error: No I2C busses found!
+Be sure you have done 'modprobe i2c-dev'
+and also modprobed your i2c bus drivers
+Error: No i2c-bus specified!
+Syntax: i2cdetect [-y] [-a] [-q|-r] I2CBUS [FIRST LAST]
+        i2cdetect -l
+        i2cdetect -V
+  I2CBUS is an integer
+  With -a, probe all addresses (NOT RECOMMENDED)
+  With -q, uses only quick write commands for probing (NOT RECOMMENDED)
+  With -r, uses only read byte commands for probing (NOT RECOMMENDED)
+  If provided, FIRST and LAST limit the probing range.
+  With -l, lists installed busses only
+Error: No I2C busses found!
+Be sure you have done 'modprobe i2c-dev'
+and also modprobed your i2c bus drivers
+
+As you can see it doesn't detect any busses. Is it because the chipset isn't supported yet or... ?
+
+Thanks, Mark
 
 
+		
+---------------------------------
+Have a question? Yahoo! Canada Answers. Go to Yahoo! Canada Answers  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060401/35751225/attachment.html
