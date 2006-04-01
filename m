@@ -1,30 +1,31 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Fri, 07 Apr 2006 04:28:22 +0000
-Subject: [lm-sensors] [PATCH 1/2 RESEND] hwmon: new vt1211 driver
-Message-Id: <191fb4ca0604062128m60ba1c53gbcab205aa6f40c0c@mail.gmail.com>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sat, 01 Apr 2006 22:37:44 +0000
+Subject: [lm-sensors] [PATCH] remove the fix_hstcfg from i2c-piix4
+Message-Id: <442F00B8.6010507@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Incorporated suggestions made by Rudolf Marek.
+Hello,
 
-This is a new driver for the VIA vt1211 Super-IO chip. It is a rewrite of the
-existing vt1211 driver (by Mark D. Studebaker and Lars Ekman) that has been
-around for a while but never made it into the main kernel tree. It is
-implemented as a platform driver and therefore requires the latest CVS version
-of lm_sensors to function properly.
+This patch removes the fix_hstcfg option from the driver and related SMBus Interrupt Select register
+magic because now we know what are valid values for this register. This patch updates the documentation
+and adds new IRQ mode check so we are sure not to miss any new "unusual" value.
 
-Signed-off-by: Juerg Haefliger <juergh at gmail.com
-<http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>>
+The PCI quirk for users of fix_hstcfg was not developed because the chipset lacks of subsystem ID registers
+and DMI is stated "To be filled". Impact to existing systems is minimal because the problem showed up
+on motherboards like 10 years back. On the other hand users of newer Serverworks and HT1000 systems won't
+be misleaded by the message suggesting to try the fix_hstcfg any more.
+
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+
+Regards
+Rudolf
+
+
 -------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060407/8aeac2fa/attachment-0001.html
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: hwmon-vt1211-new-driver.patch
-Type: application/octet-stream
-Size: 36195 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060407/8aeac2fa/hwmon-vt1211-new-driver-0001.obj
+An embedded and charset-unspecified text was scrubbed...
+Name: patch_remove_fixhstcfg
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060402/9d3d753a/patch_remove_fixhstcfg.pl
