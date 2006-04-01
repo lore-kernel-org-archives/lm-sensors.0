@@ -1,28 +1,51 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Wed, 12 Apr 2006 02:04:09 +0000
-Subject: [lm-sensors] ICH7 - no sensors found.
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE0100EE34@weshml03.winbond.com.tw>
+From: harald.dunkel@t-online.de (Harald Dunkel)
+Date: Sat, 01 Apr 2006 05:44:52 +0000
+Subject: [lm-sensors] 2.6.16-rc5: unreasonable temperature reported by
+Message-Id: <442E1354.8010108@t-online.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060411043415.6613.qmail@web36806.mail.mud.yahoo.com>
-In-Reply-To: <20060411043415.6613.qmail@web36806.mail.mud.yahoo.com>
+References: <44144A01.2050207@t-online.de>
+In-Reply-To: <44144A01.2050207@t-online.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Jean,
+
+Jean Delvare wrote:
 > 
-> Fedora has not updated the package yet. :(
-> Does the new version fix problems like the one I posted ?
->  
+> You'll have to search the available technical documentation for your
+> system and/or ask Aopen for information. There's nothing we can do as
+> long as we don't know what chip we are dealing with.
+> 
+:
+> 
+> I was about to say "No idea about this one", as it has very few
+> registers and no noticeable patterns, but that "19 34" at 0x5d reminds
+> me of the Fintek signature in my F71805F Super-I/O chip. Can you please
+> search your motherboard for a Fintek chip, presumably small?
+> 
 
-Trust what Rudolf said ;)
-I just hope new version sensors-detect can detect more chips...
+I found a small chip close to the socket for an additional fan.
+16 pins. AFAICS it says F75387SG, but it was very hard to read
+even with a looking glass. Esp. the "S" looks suspicious.
 
-Best Regards
-Yuan Mu
+Using "fintek F75387SG" I found this on Google:
+
+http://www.fintek.com.tw/files/productfiles/F75387_025P%20datasheet.pdf
+
+BTW, my PC is an Aopen MZ915-M .
 
 
+Hope this helps. Regards
+
+Harri
 
 
-=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
-
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 254 bytes
+Desc: OpenPGP digital signature
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060401/41d5029f/signature.bin
