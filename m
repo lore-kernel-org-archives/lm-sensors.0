@@ -1,7 +1,7 @@
 From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sun, 02 Apr 2006 11:48:55 +0000
-Subject: [lm-sensors] [PATCH] remove the fix_hstcfg from i2c-piix4
-Message-Id: <442FBA27.3080005@sh.cvut.cz>
+Date: Sun, 02 Apr 2006 16:38:05 +0000
+Subject: [lm-sensors] [PATCH] remove the fix_hstcfg from i2c-piix4 -
+Message-Id: <442FFDED.1040100@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <442F00B8.6010507@sh.cvut.cz>
 In-Reply-To: <442F00B8.6010507@sh.cvut.cz>
@@ -10,47 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean
->>+If you have some rather strange SMBus problems, you may need to change the
->>+SMBus Interrupt Select register as it is known solution for Force CPCI735
->>+motherboard or other OSB4 based systems. Please contact us for further
->>+assistance (lm-sensors at lm-sensors.org).
-> 
-> 
-> Oh, no. We don't want more support requests on this. Instead, please
-> explain how to get the register value using lspci and how to write back
-> the modified value using setpci.
+Hello,
 
-Well I think there will be requests like same probability that you capture your
-very own neutrino :)
+This patch removes the fix_hstcfg option from the driver and related SMBus
+Interrupt Select register
+magic because now we know what are valid values for this register. This patch
+updates the documentation
+and adds new IRQ mode check so we are sure not to miss any new "unusual" value.
 
-Anyway I will prepare the DIY guide.
+The PCI quirk for users of fix_hstcfg was not developed because the chipset
+lacks of subsystem ID registers
+and DMI is stated "To be filled". Impact to existing systems is minimal because
+the problem showed up
+on motherboards like 10 years back. On the other hand users of newer Serverworks
+and HT1000 systems won't
+be misleaded by the message suggesting to try the fix_hstcfg any more.
 
-> 
-> Besides, are you sure that other OSB4 based systems did need this? I've
-> searched all my mails, and couldn't find anyone reporting success after
-> using fix_hstcfg, except Tom.
-> 
-
-The old text suggest this. All I think is that the bios left the controller in
-interrupt mode and I think our driver assumes always the SMI mode.
-
-
-> 
->>-	if ((temp & 0x0E) = 8)
->>+	if (((temp & 0x0E) = 8) || ((temp & 0x0E) = 2))
-> 
-> 
-> I think I understand that 8 is OK for non-Serverworks one and 2 is OK
-> for Serverworks one, right? So maybe we can improve this check and do:
-> 
-> if ((temp & 0x0E) = (id->vendor = PCI_VENDOR_ID_SERVERWORKS ? 2 : 8))
-
-I thought about this but for the reason that serverworks was bought by broadcom
-and we have ATI and others there so best sounds to me to make it more global.
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
 
 Regards
 Rudolf
-
-
-
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: patch_remove_fixhstcfg2
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060402/957ccd76/patch_remove_fixhstcfg2.pl
