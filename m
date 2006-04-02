@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 01 Apr 2006 22:03:53 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 02 Apr 2006 08:13:50 +0000
 Subject: [lm-sensors] PIIX4 and fix_hstcfg
-Message-Id: <442EF8C9.9030800@sh.cvut.cz>
+Message-Id: <20060402101350.f3846ec9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <442E9B64.50909@sh.cvut.cz>
 In-Reply-To: <442E9B64.50909@sh.cvut.cz>
@@ -10,22 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Tom Rini wrote:
-> 	System Information
-> 		Manufacturer: To be filled
-> 		Product Name: To be filled
-> 		Version: To be filled
+Hi Rudolf, Tom,
 
-Quite clever :)
-
->>Tom, do you remember if any other system ever needed this option?
+> Tom Rini wrote:
+> > 	System Information
+> > 		Manufacturer: To be filled
+> > 		Product Name: To be filled
+> > 		Version: To be filled
 > 
-> 
-> I don't recall, sorry.
-> 
+> Quite clever :)
 
-I think just a drop plus doc note is a winner.
+This table is totally crappy, indeed. Nothing we can do with this.
 
-Regards
-Rudolf
+> I think just a drop plus doc note is a winner.
+
+Agreed. Can you please work up a patch?
+
+Thanks,
+-- 
+Jean Delvare
 
