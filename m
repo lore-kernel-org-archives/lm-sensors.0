@@ -1,32 +1,22 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 27 Apr 2006 15:28:53 +0000
-Subject: [lm-sensors] user prog "sensors" seg faults on x86_64?
-Message-Id: <20060427172853.a15de9cf.khali@linux-fr.org>
+From: mlybarger@gmail.com (Mark Lybarger)
+Date: Mon, 03 Apr 2006 20:04:18 +0000
+Subject: [lm-sensors] netfinity 6000r crash running sensors-detect
+Message-Id: <a0fb11cc0604031304m792d8a8oef1f1a81c10e23ad@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4450D446.10303@telus.net>
-In-Reply-To: <4450D446.10303@telus.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> We have a dual Opteron 285 system on a Tyan Tiger K8WE (S2877) 
-> motherboard. The make user ; make user_install went fine. The 
-> sensor-detect script seemed to run ok and the modprobes seemed to work 
-> but the "sensors -s" command segfaults. Is it a 64 bit problem? Using 
-> Suse 10.1 x86_64 beta atm.
+running sensors-detect on my system causes it to crash. i have a
+netfinity 6000r machine, quad p4, 4gb ram.
 
-Which version of lm_sensors is this?
+Here's the bug I created with my OS, who referred me to this mailing list:
 
-Does "sensors" (without -s) work?
+https://bugs.gentoo.org/show_bug.cgi?id8385
 
-Why don't you use the package which comes with Suse?
+note, i'm running 2.10.0 of lm_sensors. let me know if any additional
+information would hlep troubleshoot.
 
-Which beta is this?
-
-I'm using lm_sensors on Suse 10.0 x86_64 myself for quite some time now
-without a problem, so I doubt there is a general 64-bit problem.
-
--- 
-Jean Delvare
+~mark
 
