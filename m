@@ -1,30 +1,56 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 05 Apr 2006 08:42:32 +0000
-Subject: [lm-sensors] [PATCH 1/2] hwmon: new vt1211 driver
-Message-Id: <443382F8.3030709@sh.cvut.cz>
+From: przemek.kulik@neostrada.pl (=?iso-8859-2?Q?Przemys=B3aw?= Kulik)
+Date: Mon, 03 Apr 2006 21:50:11 +0000
+Subject: [lm-sensors] [Fwd: Sensor readings from Gigabyte I915P Duo Pro
+Message-Id: <1144101011.28472.17.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0602251324o560dcd61oc55dc703f452a570@mail.gmail.com>
-In-Reply-To: <191fb4ca0602251324o560dcd61oc55dc703f452a570@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hi,
 
-Sorry for delay.
+Just as ruik adviced on #linux-sensors:
+Here's what I get after chnaging sensor type to diode:
+M/B Temp:    +96?C  (low  =   +15?C, high =   +40?C)   sensor = diode
+CPU Temp:    +96?C  (low  =   +15?C, high =   +45?C)   sensor = diode
+Temp3:       +33?C  (low  =   +15?C, high =   +45?C)   sensor = diode
 
-> hmm... libsensor currently supports this interface. Is it deprecated?
-> Using i2c to change it would be OK I guess, except that the driver
-> itself doesn't need i2c anymore (it's platform) and the user would
-> have to compile i2c just for this (if required, that is).
+Are you sure about Temp3 being CPU temp? I don't know if ther is any
+corelation but:
+fan1:      756 RPM  (min =    0 RPM, div = 8)
+fan2:     1480 RPM  (min = 3013 RPM, div = 8)          ALARM
+fan3:        0 RPM  (min = 3013 RPM, div = 8)
+fan1 and fan2 are CPU and acse fans
 
-I had isaset in mind. Sorry for confusion.
+hddtemp shows:
+# hddtemp /dev/hde
+/dev/hde: WDC WD2000BB-00DWA0:  34?C or ?F
+while temp3 is 33?C
 
-> How about using a module load parameter instead?
+--
+p3k4
 
-Yes that would be cleanest solution.
+-------- Przesy?any list ----------
+Od: Przemek Kulik <przemek.kulik at gmail.com>
+Dla: lm-sensors at lm-sensors.org
+Temat: Sensor readings from Gigabyte I915P Duo Pro (IT8712F)
+Data: Mon, 03 Apr 2006 20:33:26 +0200
 
-Regards
-Rudolf
+I don't know if it is the right place to ask this question. If not,
+plase disregard this note.
+
+I get strange reading from M/B and CPU i.e.
+M/B Temp:    -55?C  (low = +15?C, high = +40?C) sensor = thermistor
+CPU Temp:     -2?C  (low = +15?C, high = +45?C) sensor = thermistor
+Temp3:       +33?C  (low = +15?C, high = +45?C) sensor = diode
+
+I tried to get it right by changing sensor type in sensors.conf but it
+didn't work. Any tip would be appreciated
+
+Cheers
+--
+p3k4
+
+
 
