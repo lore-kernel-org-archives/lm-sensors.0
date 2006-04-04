@@ -1,40 +1,31 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Sun, 09 Apr 2006 05:24:40 +0000
-Subject: [lm-sensors] hwmon/pc87360 as a platform driver
-Message-Id: <191fb4ca0604082224k7a51d258n4fb64b2d157e9c4e@mail.gmail.com>
+From: bezaur@gmail.com (Charles Spirakis)
+Date: Tue, 04 Apr 2006 23:06:46 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Add w83791d support
+Message-Id: <5bfe43f80604041606n5a99ecbcg234ae8532b016b6c@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4436BE3B.7090306@gmail.com>
-In-Reply-To: <4436BE3B.7090306@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> The SHOW_SET_*_*  constants are just a bit off-putting at first read,
-> but I know what you mean, and I dont have a better idea.
-> maybe SHOW_SETTNG_*_* ?
-> or SHOW_CURR_*_*,   thats confuse-able with the current reading
+Add support for the w83791d sensor chip. The w83791d hardware is
+somewhere between the w83781d and the w83792d and this driver code
+is derived from the code that supports those chips.
 
-Well SHOW_SET_xxx_yyy is supposed to hint that the constant is used in
-both the show_xxx and set_xxx callbacks. It's the best I could come up
-with although I have to admit I didn't spend too much time thinking
-about this....
+Signed-off by: Charles Spirakis <bezaur at gmail.com>
 
->
-> you can improve your printks :
->
-> s/(printk\(KERN_DEBUG)/dev_dbg\(&pdev->dev/;
-> s/(printk\(KERN_ERR)/dev_err\(&pdev->dev/
-> s/(printk\(KERN_INFO)/dev_info\(&pdev->dev/
->
-> at least where pdev has already been initd
+---
 
-Hmm... I thought I used printks only in places where pdev is not initialized.
-
->
-> Ill try to read thru the enire patch this weekend sometime.
-
-I certainly appreciate the review :-)
-
-...juerg
-
+  Documentation/hwmon/w83791d |  106 +++
+  drivers/hwmon/Kconfig       |   10
+  drivers/hwmon/Makefile      |    1
+  drivers/hwmon/w83791d.c     | 1247
+++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 1364 insertions(+)
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: w83791d_support.patch
+Type: text/x-patch
+Size: 44837 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060405/ac649306/w83791d_support-0001.bin
