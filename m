@@ -1,47 +1,30 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 06 Apr 2006 19:44:49 +0000
-Subject: [lm-sensors] Reading ASUS P5GD1-VM sensors
-Message-Id: <20060406214449.4556ca21.khali@linux-fr.org>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Wed, 05 Apr 2006 08:42:32 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: new vt1211 driver
+Message-Id: <443382F8.3030709@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44354E63.5090703@gmail.com>
-In-Reply-To: <44354E63.5090703@gmail.com>
+References: <191fb4ca0602251324o560dcd61oc55dc703f452a570@mail.gmail.com>
+In-Reply-To: <191fb4ca0602251324o560dcd61oc55dc703f452a570@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hello,
 
-> Reading the P5GD1-VM sensors
-> 
-> I have been using lmsensors for quite a while now but recently stumbled 
-> across an ASUS P5GD1-VM MotherBoard at work.
-> 
-> I installed the i2c and lmsensors, read the quick installation 
-> documentation, ran the suggested utilities and was able to identify the 
-> sensor chip as a Winbound w83627ehf.
-> 
-> I then applied all the recommendations, updated the files as specified, 
-> restarted my machine and came out empty handed. No sensors detected. 
-> Spent quite a bit of time googling to get further information about the 
-> w83627ehf Super IO Chip, but results were unsuccessful.
-> (...)
-> Of course Asus Probe reads all parameters correctly, so why was it that 
-> I could not do it in Slackware 10.2 using a 2.4.31 kernel.
+Sorry for delay.
 
-Because the w83627ehf driver only exists for Linux 2.6 at the moment.
-Nobody ported it back to lm_sensors CVS (which is where drivers for
-Linux 2.4 are maintained), most probably due to a lack of resources and
-interest.
+> hmm... libsensor currently supports this interface. Is it deprecated?
+> Using i2c to change it would be OK I guess, except that the driver
+> itself doesn't need i2c anymore (it's platform) and the user would
+> have to compile i2c just for this (if required, that is).
 
-I just modified our "new drivers" web page to mention your interest in
-a backport.
+I had isaset in mind. Sorry for confusion.
 
-Your trick of forcing the w83781d driver is interesting, although a bit
-complex for the regular users, and there are also some new features of
-the W83627EHF chip which you will miss. But I agree that it's better
-than nothing.
+> How about using a module load parameter instead?
 
--- 
-Jean Delvare
+Yes that would be cleanest solution.
+
+Regards
+Rudolf
 
