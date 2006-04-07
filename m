@@ -1,7 +1,7 @@
 From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Fri, 07 Apr 2006 06:02:12 +0000
+Date: Fri, 07 Apr 2006 08:25:47 +0000
 Subject: [lm-sensors] [PATCH] hwmon: Add w83791d support
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE0100EB94@weshml03.winbond.com.tw>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE0100EBC1@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5bfe43f80604041606n5a99ecbcg234ae8532b016b6c@mail.gmail.com>
 In-Reply-To: <5bfe43f80604041606n5a99ecbcg234ae8532b016b6c@mail.gmail.com>
