@@ -1,7 +1,7 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Fri, 07 Apr 2006 23:17:55 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 08 Apr 2006 10:40:26 +0000
 Subject: [lm-sensors] hwmon/pc87360 as a platform driver
-Message-Id: <4436F323.8030505@gmail.com>
+Message-Id: <20060408124026.2af3aac9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4436BE3B.7090306@gmail.com>
 In-Reply-To: <4436BE3B.7090306@gmail.com>
@@ -10,67 +10,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Juerg Haefliger wrote:
-> Jim,
->
-> I had a similar problem when I converted the vt1211 to a platform 
-> driver. Turned out to be a bug in lm_sensors which required some I2C 
-> modules to function properly. Try either loading an I2C module or use 
-> the CVS version of lm_sensors.
->
-> Check the following thread:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2006-February/015358.html
->
-> ...juerg
->
->
-> On 4/7/06, *Jim Cromie* <jim.cromie at gmail.com 
-> <mailto:jim.cromie at gmail.com>> wrote:
->
->     hi folks,
->
->     Ive just made a rough pass thru pc87360, and have converted it
->     to a non-working, but non-crashing platform_driver that does
->     at least a little of what it should:
->
+Hi Jim,
 
-thanks!
-but alas, error-driven cut-paste will only get me so far.
-More to the point, I have code similar to yours and Jean's
+> Ive just made a rough pass thru pc87360, and have converted it
+> to a non-working, but non-crashing platform_driver that does
+> at least a little of what it should:
+> 
+> soekris:~# modprobe pc87360
+> [  964.952000] pc87360: Device 0x09 not activated
+> [  966.576000] pc87360 pc87360.26144: VLM conversion set to 1s period, 
+> 160us delay
+> soekris:~#
+> (...)
+> so far so good, but:
+> 
+> soekris:~# sensors -s
+> No sensors found!
+> soekris:~#
+> soekris:~# sensors
+> No sensors found!
+> 
+> my libsensors is unstable debian package:  libsensors 1:2.10.0-3
+> That version number looks to contain 2.10.0
+> 
+> Frankly, Im hoping that with 2.10, the user-side just works, but this is 
+> not the case here.
+> 
+> Any guesses / suggestions as to whats wrong ?
 
-    data->class_dev = hwmon_device_register(&pdev->dev);
+First of all, Juerg's answer is correct, 2.10.0 doesn't play fair with
+platform hwmon drivers unless an i2c driver is also present.
 
-Guess I'll have to roll up my sleeves and actually figure it out.
+Secondly, your driver must have a "name" attribute containing the chip
+name (such as "pc87360" or "pc87366" etc. in your case) else libsensors
+won't be able to use it. That's probably what you're missing here.
 
+BTW, I don't want to discourage you from working on this, as this will
+be needed at some point in time, but remember that I do not plan to
+accept any i2c-isa -> platform conversion before next year, because we
+need a widely deployed base of working libsensors before we do, and
+unfortunately even 2.10.0 doesn't qualify, as Juerg and you found out.
 
-BTW, I glanced at your patch,  saw you're :
-    using sensor_attribute_2's,
-    that you're using the .nr field to switch the 'functionality'
-        of your combined-functionality callbacks.
-   
-thats all quite similar to what Im doing in these:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2006-March/015702.html
-http://lists.lm-sensors.org/pipermail/lm-sensors/2006-March/015703.html
-
-The SHOW_SET_*_*  constants are just a bit off-putting at first read,
-but I know what you mean, and I dont have a better idea.
-maybe SHOW_SETTNG_*_* ?
-or SHOW_CURR_*_*,   thats confuse-able with the current reading
-
-
-you can improve your printks :
-
-s/(printk\(KERN_DEBUG)/dev_dbg\(&pdev->dev/;
-s/(printk\(KERN_ERR)/dev_err\(&pdev->dev/
-s/(printk\(KERN_INFO)/dev_info\(&pdev->dev/
-
-at least where pdev has already been initd
-
-
-Ill try to read thru the enire patch this weekend sometime.
-
-thanks
-jimc
-
-
+Thanks,
+-- 
+Jean Delvare
 
