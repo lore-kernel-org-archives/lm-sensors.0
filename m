@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 08 Apr 2006 10:40:26 +0000
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Sun, 09 Apr 2006 05:24:40 +0000
 Subject: [lm-sensors] hwmon/pc87360 as a platform driver
-Message-Id: <20060408124026.2af3aac9.khali@linux-fr.org>
+Message-Id: <191fb4ca0604082224k7a51d258n4fb64b2d157e9c4e@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4436BE3B.7090306@gmail.com>
 In-Reply-To: <4436BE3B.7090306@gmail.com>
@@ -10,48 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jim,
+> The SHOW_SET_*_*  constants are just a bit off-putting at first read,
+> but I know what you mean, and I dont have a better idea.
+> maybe SHOW_SETTNG_*_* ?
+> or SHOW_CURR_*_*,   thats confuse-able with the current reading
 
-> Ive just made a rough pass thru pc87360, and have converted it
-> to a non-working, but non-crashing platform_driver that does
-> at least a little of what it should:
-> 
-> soekris:~# modprobe pc87360
-> [  964.952000] pc87360: Device 0x09 not activated
-> [  966.576000] pc87360 pc87360.26144: VLM conversion set to 1s period, 
-> 160us delay
-> soekris:~#
-> (...)
-> so far so good, but:
-> 
-> soekris:~# sensors -s
-> No sensors found!
-> soekris:~#
-> soekris:~# sensors
-> No sensors found!
-> 
-> my libsensors is unstable debian package:  libsensors 1:2.10.0-3
-> That version number looks to contain 2.10.0
-> 
-> Frankly, Im hoping that with 2.10, the user-side just works, but this is 
-> not the case here.
-> 
-> Any guesses / suggestions as to whats wrong ?
+Well SHOW_SET_xxx_yyy is supposed to hint that the constant is used in
+both the show_xxx and set_xxx callbacks. It's the best I could come up
+with although I have to admit I didn't spend too much time thinking
+about this....
 
-First of all, Juerg's answer is correct, 2.10.0 doesn't play fair with
-platform hwmon drivers unless an i2c driver is also present.
+>
+> you can improve your printks :
+>
+> s/(printk\(KERN_DEBUG)/dev_dbg\(&pdev->dev/;
+> s/(printk\(KERN_ERR)/dev_err\(&pdev->dev/
+> s/(printk\(KERN_INFO)/dev_info\(&pdev->dev/
+>
+> at least where pdev has already been initd
 
-Secondly, your driver must have a "name" attribute containing the chip
-name (such as "pc87360" or "pc87366" etc. in your case) else libsensors
-won't be able to use it. That's probably what you're missing here.
+Hmm... I thought I used printks only in places where pdev is not initialized.
 
-BTW, I don't want to discourage you from working on this, as this will
-be needed at some point in time, but remember that I do not plan to
-accept any i2c-isa -> platform conversion before next year, because we
-need a widely deployed base of working libsensors before we do, and
-unfortunately even 2.10.0 doesn't qualify, as Juerg and you found out.
+>
+> Ill try to read thru the enire patch this weekend sometime.
 
-Thanks,
--- 
-Jean Delvare
+I certainly appreciate the review :-)
+
+...juerg
 
