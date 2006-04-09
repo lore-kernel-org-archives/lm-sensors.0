@@ -1,59 +1,39 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 30 Apr 2006 12:17:07 +0000
-Subject: [lm-sensors] Address configuration for scx200_acb
-Message-Id: <20060430141707.28c6ea66.khali@linux-fr.org>
+From: bunk@stusta.de (Adrian Bunk)
+Date: Sun, 09 Apr 2006 11:31:10 +0000
+Subject: [lm-sensors] [-mm patch] drivers/w1/w1.c: fix a compile error
+Message-Id: <20060409113110.GA8454@stusta.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060427234114.941c9657.khali@linux-fr.org>
-In-Reply-To: <20060427234114.941c9657.khali@linux-fr.org>
+References: <20060408031405.5e5131da.akpm@osdl.org>
+In-Reply-To: <20060408031405.5e5131da.akpm@osdl.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>, gregkh@suse.de, johnpol@2ka.mipt.ru
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hi Thomas,
+This patch fixes the following compile error:
 
-[Jean Delvare]
-> > Looks like standard LPC/Super-IO register mapping. Are the SC1100 and
-> > SCx200 LPC chips? What are the values of CFG_INDEX and CFG_DATA in the
-> > code snippet above? I'd guess/hope 0x2e and 0x2f respectively (or 0x4e
-> > and 0x4f.)
-> > 
-> > I don't have much time to work on that myself, especially when I have
-> > no hardware to test this on, but if you or anyone else could prepare a
-> > patch implementing the idea above in the scx200_acb driver, so that
-> > other users can give it some testing, this would be great.
+<--  snip  -->
 
-[Thomas Andrews]
-> I don't actually know what "LPC/Super-IO" means, but the data-sheet for
-> the SC1100 seems to indicate that it is so:
-> 
->     "The LPC interface of the Core Logic module is based on the Intel Low
->     Pin Count (LPC) Interface specification, revision 1.0."
-> 
-> and also:
-> 
->     "LPC SuperI/O Addressing. SuperI/O control addresses I/O Ports 2Eh-2Fh.
->     See bit 16 for decode"
-> 
-> And as you suggested, there is another address pair that can be used:
-> 
->     "LPC Alternate SuperI/O Addressing. Alternate SuperI/O control addresses
->     4Eh-4Fh. See bit 16 for decode."
-> 
-> In the code snippet above, I used 0x2e & x2f. I don't know how you
-> determine which pair to use. I just tried the first one. Is there a
-> "standard" way to select it?
+...
+  CC      drivers/w1/w1.o
+drivers/w1/w1.c:197: error: static declaration of 'w1_bus_type' follows non-static declaration
+drivers/w1/w1.h:217: error: previous declaration of 'w1_bus_type' was here
+make[2]: *** [drivers/w1/w1.o] Error 1
 
-Usually the address is selected by hardware, by latching the state of
-one pin of the chip at power-up. So, most of the time you just have to
-try both address pairs. See function w83627hf_find in
-drivers/hwmon/w83627hf.c for an example. 0x2e/0x2f is almost always
-the right address pair.
+<--  snip  -->
 
-> I will submit a patch once I have a better understanding.
+Signed-off-by: Adrian Bunk <bunk at stusta.de>
 
-Great, thanks.
+--- linux-2.6.17-rc1-mm2-full/drivers/w1/w1.h.old	2006-04-09 11:21:48.000000000 +0200
++++ linux-2.6.17-rc1-mm2-full/drivers/w1/w1.h	2006-04-09 11:21:57.000000000 +0200
+@@ -214,7 +214,6 @@
+ }
+ 
+ extern struct device_driver w1_master_driver;
+-extern struct bus_type w1_bus_type;
+ extern struct device w1_master_device;
+ extern int w1_max_slave_count;
+ extern int w1_max_slave_ttl;
 
--- 
-Jean Delvare
 
