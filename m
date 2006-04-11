@@ -1,25 +1,28 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 20 Apr 2006 19:29:41 +0000
-Subject: [lm-sensors] the thread I started  - Tyan Tiger
-Message-Id: <4447E125.8020109@sh.cvut.cz>
+From: doug@sedonanetworks.com (Doug - Sedona Networks)
+Date: Tue, 11 Apr 2006 23:47:04 +0000
+Subject: [lm-sensors] lm87 support on Centos 4.3 (kernel 2.6.9-34.EL) /
+Message-Id: <443C3FF8.9080002@sedonanetworks.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200604202104.57414.dieter.jurzitza@t-online.de>
-In-Reply-To: <200604202104.57414.dieter.jurzitza@t-online.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dieter Jurzitza wrote:
-> Dear Rudolf,
-> dear listmembers,
-> did I do something offending? I didn't intend to do so. Rudolf, I really 
-> appreciate your support - I hope I did not say / do anything unfriendly.
-> Should I take out the w83627hf driver? Should I remove any of the lines 
-> in /etc/modprobe.conf.local?
+I have a number of Supermicro P3TDEi daul PIII servers I'm attempting to 
+get lm_sensors working with to poll temps and fans speeds.
 
-No need to panic. I simply have no time to answer every day. Now after 12 hours I'm still in office working :/
+I'm using Centos 4.3 and appears from your website that support for the 
+lm87 chip used on the Suppermicro P3TDEi mb's is only available from 
+kernel 2.6.10 and Centos is currently using 2.6.9-34.
 
-Regards
-Rudolf
+Is there any chance that Centos/RHEL will use the 2.6.10 kernel soon or 
+is it final at 2.6.9....?  Just  trying to get an idea if I can wait for 
+an update or not.
+
+Any other suggestions other than rebuilding the kernel?
+
+Thanks
+
+Doug
+
 
