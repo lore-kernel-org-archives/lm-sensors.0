@@ -1,54 +1,23 @@
-From: tebbens@yahoo.com (Mathew Tebbens)
-Date: Tue, 11 Apr 2006 04:34:15 +0000
+From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
+Date: Tue, 11 Apr 2006 05:38:02 +0000
 Subject: [lm-sensors] ICH7 - no sensors found.
-Message-Id: <20060411043415.6613.qmail@web36806.mail.mud.yahoo.com>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE0100ED77@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20060411043415.6613.qmail@web36806.mail.mud.yahoo.com>
+In-Reply-To: <20060411043415.6613.qmail@web36806.mail.mud.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Installed everything correctly.
-Did a sensors-detect
-Made the recommended mods
-Loads mods on boot
-But no sensors found!  (see below).
+How about install new version lm_sensors?
+http://secure.netroedge.com/~lm78/download.html
+use the new sensors-detect
 
-Attached are outputs from sensors-detect, lsmod, lspci.
-
-Any suggestions on what I can do to fix this ?
-
-Thanks !
-Matthew
+Best Regards
+Yuan Mu
+ 
 
 
-[root at localhost ~]# sensors
-No sensors found!
-[root at localhost ~]# sensors -s
-No sensors found!
-[root at localhost ~]#
-:(
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060411/37712acd/attachment-0001.html
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: sensors-detect
-Type: application/octet-stream
-Size: 8395 bytes
-Desc: 2162092475-sensors-detect
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060411/37712acd/sensors-detect-0001.obj
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: lsmod
-Type: application/octet-stream
-Size: 3165 bytes
-Desc: 2094681481-lsmod
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060411/37712acd/lsmod-0001.obj
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: lspci
-Type: application/octet-stream
-Size: 1967 bytes
-Desc: 1895743385-lspci
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060411/37712acd/lspci-0001.obj
+=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
+
