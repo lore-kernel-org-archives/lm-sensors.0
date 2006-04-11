@@ -1,7 +1,7 @@
 From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Mon, 10 Apr 2006 10:45:25 +0000
+Date: Tue, 11 Apr 2006 18:34:44 +0000
 Subject: [lm-sensors] w83792d watchdog
-Message-Id: <443A3745.9080507@sh.cvut.cz>
+Message-Id: <443BF6C4.6030803@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <442B0C6F.4080604@sh.cvut.cz>
 In-Reply-To: <442B0C6F.4080604@sh.cvut.cz>
@@ -10,56 +10,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Yuan,
+Hello again,
 
-> I have finished the w83793 driver, and i'm testing it.
-> So i can be the tester if you need testers on watchdog now, 
+>>Hmm, you mean reading after reboot will not clear the bit?
+>>Reading use i2cdump after reboot will clear the bit in my computer. 
 
-Good.
+I found the reason. The chip is powered from VSB which means that the chip
+configuration survives power on/off. (For example I enabled watchdog in CR40
+halted the machine, boot and the enwdt bit watch still set - and the timeout flag
+too) Only plug/unplug of cable worked - this was expected ;)
 
-> 
-> Hmm, you mean reading after reboot will not clear the bit?
-> Reading use i2cdump after reboot will clear the bit in my computer. 
+It clears after the reboot too but I was somehow confused.
 
-I tried the SOFT watchdog and the bit seems sticky. I will test
-this evening.
+>>I tried write 0x33 and 0x55 to CR01, it seems only the last one is
+>>enabled by reading CR02.
 
->>This is so far to datasheet, now to real funcs:
+Yes same here too. Last value seems to enable it.
+
+>>>2) I tried many ways to reset the watchdog timer but only 
+>>>seems to work is to write 0xAA to CR1 and then 0x55 to re-enable it.
+>>>    This seems bit strange because the computer can fail 
+>>>just in between of this two writes Yes I know this is not 
+>>>probable, but
+>>>    the best method is just to re-write the timeout value or 
+>>>rewrite the enable (0x55) - as others might do. Were there
+>>>    some strange reason for this design?
+>>>
 >>
->>1) What will happen if I enable hard and soft watchdog same 
->>time? (i'm disabling the hard watchdog timer in first place so
->>it should not be an issue but you never know)
-> 
-> 
-> I tried write 0x33 and 0x55 to CR01, it seems only the last one is
-> enabled by reading CR02.
-
-Ok I will try too.
-
-> 
-> 
->>2) I tried many ways to reset the watchdog timer but only 
->>seems to work is to write 0xAA to CR1 and then 0x55 to re-enable it.
->>     This seems bit strange because the computer can fail 
->>just in between of this two writes Yes I know this is not 
->>probable, but
->>     the best method is just to re-write the timeout value or 
->>rewrite the enable (0x55) - as others might do. Were there
->>     some strange reason for this design?
 >>
+>>I'm quite confusing about this.... Do you mean you can not set the
+>>timeout value??
 > 
 > 
-> I'm quite confusing about this.... Do you mean you can not set the
-> timeout value??
+> I can but after for example one minute I need to refresh the watchdog
+> so it wont boot the computer. As I have written I tried several methods to
+> reset the counter back to count the the timeout value.
 
-I can but after for example one minute I need to refresh the watchdog
-so it wont boot the computer. As I have written I tried several methods to
-reset the counter back to count the the timeout value.
+I tried again and just re-enabling the watchdog is not working, nor
+writing new timeout value.
 
-The only that worked so far is to disable/enable the watchdog which
-is non-atomic operation. Other winbond watchdogs works different
-way, sufficient is to rewrite the timeout for example.
+Moreover it seems that just enabling the watchdog without rewriting the timeout register first
+will cause immediate reset.
 
-Regards
+Lets wait for FAE to answer, I will meanwhile test the class.
+
+regards
 Rudolf
 
