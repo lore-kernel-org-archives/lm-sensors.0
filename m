@@ -1,7 +1,7 @@
-From: bezaur@gmail.com (Charles Spirakis)
-Date: Wed, 12 Apr 2006 02:38:17 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 12 Apr 2006 06:48:20 +0000
 Subject: [lm-sensors] [PATCH] hwmon: Add w83791d support
-Message-Id: <5bfe43f80604111938lb27d121r81b1e5b5b2f29808@mail.gmail.com>
+Message-Id: <20060412084820.b7b77ed8.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5bfe43f80604041606n5a99ecbcg234ae8532b016b6c@mail.gmail.com>
 In-Reply-To: <5bfe43f80604041606n5a99ecbcg234ae8532b016b6c@mail.gmail.com>
@@ -10,25 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Charles Spirakis <bezaur at gmail.com>
+Hi Charles,
 
-Add support for the w83791d sensor chip. The w83791d hardware is
-somewhere between the w83781d and the w83792d and this driver code
-is derived from the code that supports those chips.
+> Add support for the w83791d sensor chip. The w83791d hardware is
+> somewhere between the w83781d and the w83792d and this driver code
+> is derived from the code that supports those chips.
 
-Signed-off by: Charles Spirakis <bezaur at gmail.com>
+Applied, thanks. Good work!
 
----
+Any future changes to the driver should be sent as incremental patches.
 
- Documentation/hwmon/w83791d |  113 +++
- drivers/hwmon/Kconfig       |   10
- drivers/hwmon/Makefile      |    1
- drivers/hwmon/w83791d.c     | 1255 ++++++++++++++++++++++++++++++++++++++++++++
-4 files changed, 1379 insertions(+)
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w83791d_support.patch
-Type: text/x-patch
-Size: 46365 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060412/487f9186/w83791d_support-0001.bin
+-- 
+Jean Delvare
+
