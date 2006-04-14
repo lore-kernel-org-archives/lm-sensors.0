@@ -1,56 +1,94 @@
-From: gregkh@suse.de (Greg KH)
-Date: Fri, 14 Apr 2006 20:00:52 +0000
-Subject: [lm-sensors] [GIT PATCH] I2C and hwmon bugfixes for 2.6.17-rc1
-Message-Id: <20060414200052.GA5559@kroah.com>
+From: greg@kroah.com (Greg KH)
+Date: Fri, 14 Apr 2006 20:10:47 +0000
+Subject: [lm-sensors] [PATCH 1/5] i2c: convert ds1374 to use a workqueue
+Message-Id: <11450454473398-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Here are some i2c and hwmon fixes for against your current git tree.
-They all have been in the -mm tree for a few weeks.
+A tasklet is not suitable for what the ds1374 driver does: neither sleeping
+nor mutex operations are allowed in tasklets, and ds1374_set_tlet may do
+both.
 
-They fix a number of various bugs in the different i2c and hwmon
-drivers, and update the documentation a bit.
+We can use a workqueue instead, where both sleeping and mutex operations
+are allowed.
 
-Please pull from:
-	rsync://rsync.kernel.org/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
-or from:
-	master.kernel.org:/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
-if it isn't synced up yet.
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Acked-by: Randy Vinson <rvinson at mvista.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
-The full patch series will sent to the sensors mailing list, if anyone
-wants to see them.
+---
 
-thanks,
+ drivers/i2c/chips/ds1374.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
 
-greg k-h
+524465df2accf54604cb89c04dbaab0c8aaa5bb4
+diff --git a/drivers/i2c/chips/ds1374.c b/drivers/i2c/chips/ds1374.c
+index 03d09ed..4630f19 100644
+--- a/drivers/i2c/chips/ds1374.c
++++ b/drivers/i2c/chips/ds1374.c
+@@ -27,6 +27,7 @@
+ #include <linux/rtc.h>
+ #include <linux/bcd.h>
+ #include <linux/mutex.h>
++#include <linux/workqueue.h>
+ 
+ #define DS1374_REG_TOD0		0x00
+ #define DS1374_REG_TOD1		0x01
+@@ -139,7 +140,7 @@ ulong ds1374_get_rtc_time(void)
+ 	return t1;
+ }
+ 
+-static void ds1374_set_tlet(ulong arg)
++static void ds1374_set_work(void *arg)
+ {
+ 	ulong t1, t2;
+ 	int limit = 10;		/* arbitrary retry limit */
+@@ -168,17 +169,18 @@ static void ds1374_set_tlet(ulong arg)
+ 
+ static ulong new_time;
+ 
+-static DECLARE_TASKLET_DISABLED(ds1374_tasklet, ds1374_set_tlet,
+-				(ulong) & new_time);
++static struct workqueue_struct *ds1374_workqueue;
++
++static DECLARE_WORK(ds1374_work, ds1374_set_work, &new_time);
+ 
+ int ds1374_set_rtc_time(ulong nowtime)
+ {
+ 	new_time = nowtime;
+ 
+ 	if (in_interrupt())
+-		tasklet_schedule(&ds1374_tasklet);
++		queue_work(ds1374_workqueue, &ds1374_work);
+ 	else
+-		ds1374_set_tlet((ulong) & new_time);
++		ds1374_set_work(&new_time);
+ 
+ 	return 0;
+ }
+@@ -204,6 +206,8 @@ static int ds1374_probe(struct i2c_adapt
+ 	client->adapter = adap;
+ 	client->driver = &ds1374_driver;
+ 
++	ds1374_workqueue = create_singlethread_workqueue("ds1374");
++
+ 	if ((rc = i2c_attach_client(client)) != 0) {
+ 		kfree(client);
+ 		return rc;
+@@ -227,7 +231,7 @@ static int ds1374_detach(struct i2c_clie
+ 
+ 	if ((rc = i2c_detach_client(client)) = 0) {
+ 		kfree(i2c_get_clientdata(client));
+-		tasklet_kill(&ds1374_tasklet);
++		destroy_workqueue(ds1374_workqueue);
+ 	}
+ 	return rc;
+ }
+-- 
+1.2.6
 
-
- Documentation/i2c/busses/i2c-parport   |   16 ++++++++++------
- drivers/hwmon/w83792d.c                |    5 +++--
- drivers/i2c/busses/Kconfig             |    5 ++++-
- drivers/i2c/busses/i2c-parport-light.c |    9 +++++++--
- drivers/i2c/busses/i2c-parport.c       |    9 +++++++--
- drivers/i2c/busses/i2c-parport.h       |    2 +-
- drivers/i2c/busses/i2c-sis96x.c        |    8 --------
- drivers/i2c/chips/ds1374.c             |   16 ++++++++++------
- drivers/i2c/chips/m41t00.c             |   16 +++++++++-------
- 9 files changed, 51 insertions(+), 35 deletions(-)
-
----------------
-
-Jean Delvare:
-      i2c: convert ds1374 to use a workqueue
-      w83792d: Be quiet on misdetection
-
-Mark A. Greer:
-      i2c: convert m41t00 to use a workqueue
-
-Mark M. Hoffman:
-      i2c-sis96x: Remove an init-time log message
-      i2c-parport: Make type parameter mandatory
 
 
