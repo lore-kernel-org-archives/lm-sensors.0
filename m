@@ -1,60 +1,92 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 25 Apr 2006 12:20:11 +0000
-Subject: [lm-sensors] [PATCH 06/10] hdaps: Update the list of supported
-Message-Id: <20060425142011.6dbc8a14.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Fri, 14 Apr 2006 20:10:47 +0000
+Subject: [lm-sensors] [PATCH 2/5] i2c: convert m41t00 to use a workqueue
+Message-Id: <1145045447745-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=hwmon-hdaps-update-id-list.patch
+The m41t00 i2c/rtc driver currently uses a tasklet to schedule
+interrupt-level writes to the rtc.  This patch causes the driver
+to use a workqueue instead.
 
-Update the list of systems supported by the hdaps driver:
-* Add the "ThinkPad Z60m" entry, reported by Arkadiusz Miskiewicz.
-* Add the "ThinkPad H" entry, reported by Frank Gevaerts for some
-  ThinkPad R52 models (1846AQG).
-* Drop the "ThinkPad X41 Tablet" entry, which looks redundant to me.
-And a comment update for good measure.
-
+Signed-off-by: Mark A. Greer <mgreer at mvista.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Cc: Arkadiusz Miskiewicz <arekm at maven.pl>
-Cc: Frank Gevaerts <frank at gevaerts.be>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
 ---
- drivers/hwmon/hdaps.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- linux-2.6.17-rc1.orig/drivers/hwmon/hdaps.c	2006-04-11 23:13:47.000000000 +0200
-+++ linux-2.6.17-rc1/drivers/hwmon/hdaps.c	2006-04-12 07:40:17.000000000 +0200
-@@ -522,13 +522,15 @@
+ drivers/i2c/chips/m41t00.c |   16 +++++++++-------
+ 1 files changed, 9 insertions(+), 7 deletions(-)
+
+8c750c0bd2fa6f73cd3cd3f1a58d48f94de343b6
+diff --git a/drivers/i2c/chips/m41t00.c b/drivers/i2c/chips/m41t00.c
+index b5aabe7..27fc9ff 100644
+--- a/drivers/i2c/chips/m41t00.c
++++ b/drivers/i2c/chips/m41t00.c
+@@ -25,6 +25,7 @@
+ #include <linux/rtc.h>
+ #include <linux/bcd.h>
+ #include <linux/mutex.h>
++#include <linux/workqueue.h>
+ 
+ #include <asm/time.h>
+ #include <asm/rtc.h>
+@@ -111,7 +112,7 @@ m41t00_get_rtc_time(void)
+ }
+ 
+ static void
+-m41t00_set_tlet(ulong arg)
++m41t00_set(void *arg)
  {
- 	int ret;
+ 	struct rtc_time	tm;
+ 	ulong	nowtime = *(ulong *)arg;
+@@ -145,9 +146,9 @@ m41t00_set_tlet(ulong arg)
+ 	return;
+ }
  
--	/* Note that DMI_MATCH(...,"ThinkPad T42") will match "ThinkPad T42p" */
-+	/* Note that HDAPS_DMI_MATCH_NORMAL("ThinkPad T42") would match
-+	  "ThinkPad T42p", so the order of the entries matters */
- 	struct dmi_system_id hdaps_whitelist[] = {
- 		HDAPS_DMI_MATCH_NORMAL("ThinkPad H"),
- 		HDAPS_DMI_MATCH_INVERT("ThinkPad R50p"),
- 		HDAPS_DMI_MATCH_NORMAL("ThinkPad R50"),
- 		HDAPS_DMI_MATCH_NORMAL("ThinkPad R51"),
- 		HDAPS_DMI_MATCH_NORMAL("ThinkPad R52"),
-+		HDAPS_DMI_MATCH_NORMAL("ThinkPad H"),	 /* R52 (1846AQG) */
- 		HDAPS_DMI_MATCH_INVERT("ThinkPad T41p"),
- 		HDAPS_DMI_MATCH_NORMAL("ThinkPad T41"),
- 		HDAPS_DMI_MATCH_INVERT("ThinkPad T42p"),
-@@ -536,9 +538,9 @@
- 		HDAPS_DMI_MATCH_NORMAL("ThinkPad T43"),
- 		HDAPS_DMI_MATCH_LENOVO("ThinkPad T60p"),
- 		HDAPS_DMI_MATCH_NORMAL("ThinkPad X40"),
--		HDAPS_DMI_MATCH_NORMAL("ThinkPad X41 Tablet"),
- 		HDAPS_DMI_MATCH_NORMAL("ThinkPad X41"),
- 		HDAPS_DMI_MATCH_LENOVO("ThinkPad X60"),
-+		HDAPS_DMI_MATCH_NORMAL("ThinkPad Z60m"),
- 		{ .ident = NULL }
- 	};
+-static ulong	new_time;
+-
+-DECLARE_TASKLET_DISABLED(m41t00_tasklet, m41t00_set_tlet, (ulong)&new_time);
++static ulong new_time;
++static struct workqueue_struct *m41t00_wq;
++static DECLARE_WORK(m41t00_work, m41t00_set, &new_time);
  
-
+ int
+ m41t00_set_rtc_time(ulong nowtime)
+@@ -155,9 +156,9 @@ m41t00_set_rtc_time(ulong nowtime)
+ 	new_time = nowtime;
+ 
+ 	if (in_interrupt())
+-		tasklet_schedule(&m41t00_tasklet);
++		queue_work(m41t00_wq, &m41t00_work);
+ 	else
+-		m41t00_set_tlet((ulong)&new_time);
++		m41t00_set(&new_time);
+ 
+ 	return 0;
+ }
+@@ -189,6 +190,7 @@ m41t00_probe(struct i2c_adapter *adap, i
+ 		return rc;
+ 	}
+ 
++	m41t00_wq = create_singlethread_workqueue("m41t00");
+ 	save_client = client;
+ 	return 0;
+ }
+@@ -206,7 +208,7 @@ m41t00_detach(struct i2c_client *client)
+ 
+ 	if ((rc = i2c_detach_client(client)) = 0) {
+ 		kfree(client);
+-		tasklet_kill(&m41t00_tasklet);
++		destroy_workqueue(m41t00_wq);
+ 	}
+ 	return rc;
+ }
 -- 
-Jean Delvare
+1.2.6
+
+
 
