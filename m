@@ -1,60 +1,59 @@
-From: mario@mariovaldez.org (=?ISO-8859-1?Q?=22Mario_A=2E_Valdez-Ram=EDrez=22?=)
-Date: Wed, 12 Apr 2006 05:44:29 +0000
-Subject: [lm-sensors] Compilation endless loop...
-Message-Id: <443C93BD.6080704@mariovaldez.org>
+From: greg@kroah.com (Greg KH)
+Date: Fri, 14 Apr 2006 20:10:47 +0000
+Subject: [lm-sensors] [PATCH 3/5] w83792d: Be quiet on misdetection
+Message-Id: <11450454472880-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
+Make the w83792d driver keep quiet when misdetecting a chip. This can
+happen, and the user doesn't need to know.
 
+Also renumber the messages, and add one, for consistency.
 
-lm_sensors list:
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
-      Hi. After reading a few support tickets about similar problems I
-discovered why I was getting a compilation endless loop. I'm sending
-this email just in case some other user gets into the same problem.
+---
 
+ drivers/hwmon/w83792d.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-       I upgraded the motherboard and CPU of a Slackware 10.1 server.
-As there were too many differences in the hardware I had to recompile
-the kernel. The problem was that the motherboard BIOS date was set a
-few days in the future (I really thought it was Tuesday, not Monday,
-go figure).
+ac987c1f65cedd98d953e14ba219db2f8cc009d4
+diff --git a/drivers/hwmon/w83792d.c b/drivers/hwmon/w83792d.c
+index 6865c64..958602e 100644
+--- a/drivers/hwmon/w83792d.c
++++ b/drivers/hwmon/w83792d.c
+@@ -1161,7 +1161,7 @@ w83792d_detect(struct i2c_adapter *adapt
+ 	   bank. */
+ 	if (kind < 0) {
+ 		if (w83792d_read_value(client, W83792D_REG_CONFIG) & 0x80) {
+-			dev_warn(dev, "Detection failed at step 3\n");
++			dev_dbg(dev, "Detection failed at step 1\n");
+ 			goto ERROR1;
+ 		}
+ 		val1 = w83792d_read_value(client, W83792D_REG_BANK);
+@@ -1170,6 +1170,7 @@ w83792d_detect(struct i2c_adapter *adapt
+ 		if (!(val1 & 0x07)) {  /* is Bank0 */
+ 			if (((!(val1 & 0x80)) && (val2 != 0xa3)) ||
+ 			     ((val1 & 0x80) && (val2 != 0x5c))) {
++				dev_dbg(dev, "Detection failed at step 2\n");
+ 				goto ERROR1;
+ 			}
+ 		}
+@@ -1177,7 +1178,7 @@ w83792d_detect(struct i2c_adapter *adapt
+ 		   should match */
+ 		if (w83792d_read_value(client,
+ 					W83792D_REG_I2C_ADDR) != address) {
+-			dev_warn(dev, "Detection failed at step 5\n");
++			dev_dbg(dev, "Detection failed at step 3\n");
+ 			goto ERROR1;
+ 		}
+ 	}
+-- 
+1.2.6
 
-      When I tried to compile the i2c package it started generating
-some kernel/*.d files over and over again, in and endless loop.
-
-      I later found out the date was wrong (when the computer tried to
-sync its date/time with a NTP server, it was too late: several files
-in the Linux kernel had their date in the future.
-
-      After browsing the support ticket system I learned that if the
-date of the filesystem was not right, the make process may behave
-like that. So, I unpacked a brand new kernel tree and after compiling
-a new kernel, i2c and lm_sensors compiled correctly.
-
-
-      End of story.  :)
-
-
-
-      Regards,
-
-      Mario A. Valdez-Ramirez.
-
-
-
-
------BEGIN PGP SIGNATURE-----
-Version: PGP 8.0
-
-iQCVAwUBRDyTuTpHuYe8JiHtAQEdJQP/aPO9kUH0lUKpFuDjFD6s3i1eZSf+IC7n
-uUErPfxHZnbTQ07A0U5INWl9AbHoHa5jF3ccZ85q6iRCWukBaFOXRnMtu+o5iQ2g
-0k/xbD6zUAKxBxU9qOYk9q8I1iRqQwTa6bU3IxarRv7DcenO/OzXbMdFOZxhjsy3
-V6JgKFhQr0Q=Ixs/
------END PGP SIGNATURE-----
 
 
