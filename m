@@ -1,137 +1,56 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 25 Apr 2006 12:18:16 +0000
-Subject: [lm-sensors] [PATCH 05/10] i2c-nforce2: Add support for the nForce4
-Message-Id: <20060425141816.a6dcb410.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Fri, 14 Apr 2006 20:00:52 +0000
+Subject: [lm-sensors] [GIT PATCH] I2C and hwmon bugfixes for 2.6.17-rc1
+Message-Id: <20060414200052.GA5559@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Content-Disposition: inline; filename=i2c-nforce2-add-mcp51-mcp55-support.patch
+Here are some i2c and hwmon fixes for against your current git tree.
+They all have been in the -mm tree for a few weeks.
 
-Add support for the new nForce4 MCP51 (also known as nForce 410 or
-430) and nForce4 MCP55 to the i2c-nforce2 driver. Some code changes
-were required because the base I/O address registers have changed in
-these versions. Standard BARs are now being used, while the original
-nForce2 chips used non-standard ones.
+They fix a number of various bugs in the different i2c and hwmon
+drivers, and update the documentation a bit.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- Documentation/i2c/busses/i2c-nforce2 |    2 ++
- drivers/i2c/busses/i2c-nforce2.c     |   38 ++++++++++++++++++++++++----------
- include/linux/pci_ids.h              |    2 ++
- 3 files changed, 31 insertions(+), 11 deletions(-)
+Please pull from:
+	rsync://rsync.kernel.org/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
+or from:
+	master.kernel.org:/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
+if it isn't synced up yet.
 
---- linux-2.6.17-rc2.orig/drivers/i2c/busses/i2c-nforce2.c	2006-04-24 19:24:01.000000000 +0200
-+++ linux-2.6.17-rc2/drivers/i2c/busses/i2c-nforce2.c	2006-04-25 12:22:17.000000000 +0200
-@@ -31,6 +31,8 @@
-     nForce3 250Gb MCP		00E4
-     nForce4 MCP			0052
-     nForce4 MCP-04		0034
-+    nForce4 MCP51		0264
-+    nForce4 MCP55		0368
- 
-     This driver supports the 2 SMBuses that are included in the MCP of the
-     nForce2/3/4 chipsets.
-@@ -64,6 +66,7 @@
- 
- /*
-  * nVidia nForce2 SMBus control register definitions
-+ * (Newer incarnations use standard BARs 4 and 5 instead)
-  */
- #define NFORCE_PCI_SMB1	0x50
- #define NFORCE_PCI_SMB2	0x54
-@@ -259,6 +262,8 @@
- 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE3S_SMBUS) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE4_SMBUS) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP04_SMBUS) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SMBUS) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SMBUS) },
- 	{ 0 }
- };
- 
-@@ -266,19 +271,29 @@
- MODULE_DEVICE_TABLE (pci, nforce2_ids);
- 
- 
--static int __devinit nforce2_probe_smb (struct pci_dev *dev, int reg,
--	struct nforce2_smbus *smbus, char *name)
-+static int __devinit nforce2_probe_smb (struct pci_dev *dev, int bar,
-+	int alt_reg, struct nforce2_smbus *smbus, const char *name)
- {
--	u16 iobase;
- 	int error;
- 
--	if (pci_read_config_word(dev, reg, &iobase) != PCIBIOS_SUCCESSFUL) {
--		dev_err(&smbus->adapter.dev, "Error reading PCI config for %s\n", name);
--		return -1;
-+	smbus->base = pci_resource_start(dev, bar);
-+	if (smbus->base) {
-+		smbus->size = pci_resource_len(dev, bar);
-+	} else {
-+		/* Older incarnations of the device used non-standard BARs */
-+		u16 iobase;
-+
-+		if (pci_read_config_word(dev, alt_reg, &iobase)
-+		    != PCIBIOS_SUCCESSFUL) {
-+			dev_err(&dev->dev, "Error reading PCI config for %s\n",
-+				name);
-+			return -1;
-+		}
-+
-+		smbus->base = iobase & PCI_BASE_ADDRESS_IO_MASK;
-+		smbus->size = 8;
- 	}
--	smbus->dev  = dev;
--	smbus->base = iobase & 0xfffc;
--	smbus->size = 8;
-+	smbus->dev = dev;
- 
- 	if (!request_region(smbus->base, smbus->size, nforce2_driver.name)) {
- 		dev_err(&smbus->adapter.dev, "Error requesting region %02x .. %02X for %s\n",
-@@ -313,12 +328,13 @@
- 	pci_set_drvdata(dev, smbuses);
- 
- 	/* SMBus adapter 1 */
--	res1 = nforce2_probe_smb (dev, NFORCE_PCI_SMB1, &smbuses[0], "SMB1");
-+	res1 = nforce2_probe_smb(dev, 4, NFORCE_PCI_SMB1, &smbuses[0], "SMB1");
- 	if (res1 < 0) {
- 		dev_err(&dev->dev, "Error probing SMB1.\n");
- 		smbuses[0].base = 0;	/* to have a check value */
- 	}
--	res2 = nforce2_probe_smb (dev, NFORCE_PCI_SMB2, &smbuses[1], "SMB2");
-+	/* SMBus adapter 2 */
-+	res2 = nforce2_probe_smb(dev, 5, NFORCE_PCI_SMB2, &smbuses[1], "SMB2");
- 	if (res2 < 0) {
- 		dev_err(&dev->dev, "Error probing SMB2.\n");
- 		smbuses[1].base = 0;	/* to have a check value */
---- linux-2.6.17-rc2.orig/include/linux/pci_ids.h	2006-04-25 09:44:30.000000000 +0200
-+++ linux-2.6.17-rc2/include/linux/pci_ids.h	2006-04-25 12:21:54.000000000 +0200
-@@ -1129,9 +1129,11 @@
- #define PCI_DEVICE_ID_NVIDIA_QUADRO4_900XGL	0x0258
- #define PCI_DEVICE_ID_NVIDIA_QUADRO4_750XGL	0x0259
- #define PCI_DEVICE_ID_NVIDIA_QUADRO4_700XGL	0x025B
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SMBUS	0x0264
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_IDE	0x0265
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SATA	0x0266
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SATA2	0x0267
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SMBUS	0x0368
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_IDE	0x036E
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SATA	0x037E
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SATA2	0x037F
---- linux-2.6.17-rc2.orig/Documentation/i2c/busses/i2c-nforce2	2006-04-24 19:24:01.000000000 +0200
-+++ linux-2.6.17-rc2/Documentation/i2c/busses/i2c-nforce2	2006-04-25 12:22:26.000000000 +0200
-@@ -7,6 +7,8 @@
-   * nForce3 250Gb MCP          10de:00E4 
-   * nForce4 MCP                10de:0052
-   * nForce4 MCP-04             10de:0034
-+  * nForce4 MCP51              10de:0264
-+  * nForce4 MCP55              10de:0368
- 
- Datasheet: not publically available, but seems to be similar to the
-            AMD-8111 SMBus 2.0 adapter.
+The full patch series will sent to the sensors mailing list, if anyone
+wants to see them.
 
--- 
-Jean Delvare
+thanks,
+
+greg k-h
+
+
+ Documentation/i2c/busses/i2c-parport   |   16 ++++++++++------
+ drivers/hwmon/w83792d.c                |    5 +++--
+ drivers/i2c/busses/Kconfig             |    5 ++++-
+ drivers/i2c/busses/i2c-parport-light.c |    9 +++++++--
+ drivers/i2c/busses/i2c-parport.c       |    9 +++++++--
+ drivers/i2c/busses/i2c-parport.h       |    2 +-
+ drivers/i2c/busses/i2c-sis96x.c        |    8 --------
+ drivers/i2c/chips/ds1374.c             |   16 ++++++++++------
+ drivers/i2c/chips/m41t00.c             |   16 +++++++++-------
+ 9 files changed, 51 insertions(+), 35 deletions(-)
+
+---------------
+
+Jean Delvare:
+      i2c: convert ds1374 to use a workqueue
+      w83792d: Be quiet on misdetection
+
+Mark A. Greer:
+      i2c: convert m41t00 to use a workqueue
+
+Mark M. Hoffman:
+      i2c-sis96x: Remove an init-time log message
+      i2c-parport: Make type parameter mandatory
+
 
