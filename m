@@ -1,73 +1,143 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 25 Apr 2006 12:24:46 +0000
-Subject: [lm-sensors] [PATCH 10/10] hwmon: Trim VID values to correct number
-Message-Id: <20060425142446.4efec6a6.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Fri, 14 Apr 2006 20:10:47 +0000
+Subject: [lm-sensors] [PATCH 5/5] i2c-parport: Make type parameter mandatory
+Message-Id: <11450454471615-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Rudolf Marek <r.marek at sh.cvut.cz>
-Content-Disposition: inline; filename=hwmon-vid-mask-per-vrm.patch
+This patch forces the user to specify what type of adapter is present when
+loading i2c-parport or i2c-parport-light.  If none is specified, the driver
+init simply fails - instead of assuming adapter type 0.
 
-Following patch trims the VID value to correct number of bits
-for each VRM.
+This alleviates the sometimes lengthy boot time delays which can be caused
+by accidentally building one of these into a kernel along with several i2c
+slave drivers that have lengthy probe routines (e.g. hwmon drivers).
 
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Kconfig and documentation updated accordingly.
+
+Signed-off-by: Mark M. Hoffman <mhoffman at lightlink.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
 ---
- drivers/hwmon/hwmon-vid.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- linux-2.6.17-rc1.orig/drivers/hwmon/hwmon-vid.c	2006-04-03 20:12:39.000000000 +0200
-+++ linux-2.6.17-rc1/drivers/hwmon/hwmon-vid.c	2006-04-16 10:18:13.000000000 +0200
-@@ -70,6 +70,7 @@
- 	switch(vrm) {
- 
- 	case 100:               /* VRD 10.0 */
-+		val &= 0x3f;
- 		if((val & 0x1f) = 0x1f)
- 			return 0;
- 		if((val & 0x1f) <= 0x09 || val = 0x0a)
-@@ -82,14 +83,17 @@
- 		return vid;
- 
- 	case 24:                /* Opteron processor */
-+		val &= 0x1f;
- 		return(val = 0x1f ? 0 : 1550 - val * 25);
- 
- 	case 91:		/* VRM 9.1 */
- 	case 90:		/* VRM 9.0 */
-+		val &= 0x1f;
- 		return(val = 0x1f ? 0 :
- 		                       1850 - val * 25);
- 
- 	case 85:		/* VRM 8.5 */
-+		val &= 0x1f;
- 		return((val & 0x10  ? 25 : 0) +
- 		       ((val & 0x0f) > 0x04 ? 2050 : 1250) -
- 		       ((val & 0x0f) * 50));
-@@ -98,14 +102,17 @@
- 		val &= 0x0f;
- 				/* fall through */
- 	case 82:		/* VRM 8.2 */
-+		val &= 0x1f;
- 		return(val = 0x1f ? 0 :
- 		       val & 0x10  ? 5100 - (val) * 100 :
- 		                     2050 - (val) * 50);
- 	case 17:		/* Intel IMVP-II */
-+		val &= 0x1f;
- 		return(val & 0x10 ? 975 - (val & 0xF) * 25 :
- 				    1750 - val * 50);
- 	case 13:
--		return(1708 - (val & 0x3f) * 16);
-+		val &= 0x3f;
-+		return(1708 - val * 16);
- 	default:		/* report 0 for unknown */
- 		printk(KERN_INFO "hwmon-vid: requested unknown VRM version\n");
- 		return 0;
+ Documentation/i2c/busses/i2c-parport   |   16 ++++++++++------
+ drivers/i2c/busses/Kconfig             |    5 ++++-
+ drivers/i2c/busses/i2c-parport-light.c |    9 +++++++--
+ drivers/i2c/busses/i2c-parport.c       |    9 +++++++--
+ drivers/i2c/busses/i2c-parport.h       |    2 +-
+ 5 files changed, 29 insertions(+), 12 deletions(-)
 
+e97b81ddbb8b8c72b85330ac4a454a4513dcba8a
+diff --git a/Documentation/i2c/busses/i2c-parport b/Documentation/i2c/busses/i2c-parport
+index d9f23c0..77b995d 100644
+--- a/Documentation/i2c/busses/i2c-parport
++++ b/Documentation/i2c/busses/i2c-parport
+@@ -12,18 +12,22 @@ meant as a replacement for the older, in
+                       teletext adapters)
+ 
+ It currently supports the following devices:
+- * Philips adapter
+- * home brew teletext adapter
+- * Velleman K8000 adapter
+- * ELV adapter
+- * Analog Devices evaluation boards (ADM1025, ADM1030, ADM1031, ADM1032)
+- * Barco LPT->DVI (K5800236) adapter
++ * (type=0) Philips adapter
++ * (type=1) home brew teletext adapter
++ * (type=2) Velleman K8000 adapter
++ * (type=3) ELV adapter
++ * (type=4) Analog Devices ADM1032 evaluation board
++ * (type=5) Analog Devices evaluation boards: ADM1025, ADM1030, ADM1031
++ * (type=6) Barco LPT->DVI (K5800236) adapter
+ 
+ These devices use different pinout configurations, so you have to tell
+ the driver what you have, using the type module parameter. There is no
+ way to autodetect the devices. Support for different pinout configurations
+ can be easily added when needed.
+ 
++Earlier kernels defaulted to type=0 (Philips).  But now, if the type
++parameter is missing, the driver will simply fail to initialize.
++
+ 
+ Building your own adapter
+ -------------------------
+diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+index 089c6f5..d6d4494 100644
+--- a/drivers/i2c/busses/Kconfig
++++ b/drivers/i2c/busses/Kconfig
+@@ -286,7 +286,10 @@ config I2C_PARPORT
+ 	  This driver is a replacement for (and was inspired by) an older
+ 	  driver named i2c-philips-par.  The new driver supports more devices,
+ 	  and makes it easier to add support for new devices.
+-	  
++
++	  An adapter type parameter is now mandatory.  Please read the file
++	  Documentation/i2c/busses/i2c-parport for details.
++
+ 	  Another driver exists, named i2c-parport-light, which doesn't depend
+ 	  on the parport driver.  This is meant for embedded systems. Don't say
+ 	  Y here if you intend to say Y or M there.
+diff --git a/drivers/i2c/busses/i2c-parport-light.c b/drivers/i2c/busses/i2c-parport-light.c
+index c63025a..e09ebbb 100644
+--- a/drivers/i2c/busses/i2c-parport-light.c
++++ b/drivers/i2c/busses/i2c-parport-light.c
+@@ -121,9 +121,14 @@ static struct i2c_adapter parport_adapte
+ 
+ static int __init i2c_parport_init(void)
+ {
+-	if (type < 0 || type >= ARRAY_SIZE(adapter_parm)) {
++	if (type < 0) {
++		printk(KERN_WARNING "i2c-parport: adapter type unspecified\n");
++		return -ENODEV;
++	}
++
++	if (type >= ARRAY_SIZE(adapter_parm)) {
+ 		printk(KERN_WARNING "i2c-parport: invalid type (%d)\n", type);
+-		type = 0;
++		return -ENODEV;
+ 	}
+ 
+ 	if (base = 0) {
+diff --git a/drivers/i2c/busses/i2c-parport.c b/drivers/i2c/busses/i2c-parport.c
+index 7e2e8cd..934bd55 100644
+--- a/drivers/i2c/busses/i2c-parport.c
++++ b/drivers/i2c/busses/i2c-parport.c
+@@ -241,9 +241,14 @@ static struct parport_driver i2c_parport
+ 
+ static int __init i2c_parport_init(void)
+ {
+-	if (type < 0 || type >= ARRAY_SIZE(adapter_parm)) {
++	if (type < 0) {
++		printk(KERN_WARNING "i2c-parport: adapter type unspecified\n");
++		return -ENODEV;
++	}
++
++	if (type >= ARRAY_SIZE(adapter_parm)) {
+ 		printk(KERN_WARNING "i2c-parport: invalid type (%d)\n", type);
+-		type = 0;
++		return -ENODEV;
+ 	}
+ 
+ 	return parport_register_driver(&i2c_parport_driver);
+diff --git a/drivers/i2c/busses/i2c-parport.h b/drivers/i2c/busses/i2c-parport.h
+index d702e5e..9ddd816 100644
+--- a/drivers/i2c/busses/i2c-parport.h
++++ b/drivers/i2c/busses/i2c-parport.h
+@@ -90,7 +90,7 @@ static struct adapter_parm adapter_parm[
+ 	},
+ };
+ 
+-static int type;
++static int type = -1;
+ module_param(type, int, 0);
+ MODULE_PARM_DESC(type,
+ 	"Type of adapter:\n"
 -- 
-Jean Delvare
+1.2.6
+
+
 
