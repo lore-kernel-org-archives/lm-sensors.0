@@ -1,32 +1,22 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 02 Apr 2006 08:13:50 +0000
-Subject: [lm-sensors] PIIX4 and fix_hstcfg
-Message-Id: <20060402101350.f3846ec9.khali@linux-fr.org>
+Date: Sat, 15 Apr 2006 06:52:49 +0000
+Subject: [lm-sensors] i2c-2.10.0 and lm_sensors-2.10.0 --- 2 patches
+Message-Id: <20060415085249.93597b50.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <442E9B64.50909@sh.cvut.cz>
-In-Reply-To: <442E9B64.50909@sh.cvut.cz>
+References: <Pine.LNX.4.64.0603080940220.1369@pcl321.mppmu.mpg.de>
+In-Reply-To: <Pine.LNX.4.64.0603080940220.1369@pcl321.mppmu.mpg.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf, Tom,
+Quoting myself:
+> Ah yes, you're right. This leads me to the following patch, which I'll
+> apply if there are no more objections:
 
-> Tom Rini wrote:
-> > 	System Information
-> > 		Manufacturer: To be filled
-> > 		Product Name: To be filled
-> > 		Version: To be filled
-> 
-> Quite clever :)
+Sorry for the delay, I just applied this patch (to both i2c and
+lm_sensors2.) Thanks Peter!
 
-This table is totally crappy, indeed. Nothing we can do with this.
-
-> I think just a drop plus doc note is a winner.
-
-Agreed. Can you please work up a patch?
-
-Thanks,
 -- 
 Jean Delvare
 
