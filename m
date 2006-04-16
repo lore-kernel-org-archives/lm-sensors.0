@@ -1,7 +1,7 @@
-From: roy@karlsbakk.net (Roy Sigurd Karlsbakk)
-Date: Sun, 16 Apr 2006 16:47:15 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 16 Apr 2006 16:57:10 +0000
 Subject: [lm-sensors] ridicolous sensors output?
-Message-Id: <E21ED252-F6F9-4DB4-A12A-00FEAE2FF884@karlsbakk.net>
+Message-Id: <20060416185710.b9b5a618.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <F2CFFC9F-4DC4-4DBA-BDEB-C195DBCAD479@karlsbakk.net>
 In-Reply-To: <F2CFFC9F-4DC4-4DBA-BDEB-C195DBCAD479@karlsbakk.net>
@@ -10,53 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Please:
-> * Don't compress files you send on the list. You shouldn't expect
-> people to take the time to save and gunzip the file to look at the
-> data. People are always busy.
->
-> * Don't send sensors.conf in its entirety when only a small part of it
-> is relevant for your configuration.
+Roy,
 
-ok. sorry.
+> > My first guess is that this W83627THF chip is not used for hardware
+> > monitoring on your board. You probably have another chip for that.
+> >
+> > Please provide the following information:
+> > * Kernel version.
+> 
+> 2.6.16.2 custom built
+> 
+> > * Version of lm_sensors.
+> 
+> sensors version 2.9.1 with libsensors version 2.9.1
 
->> can someone please help me figure out what's happening here?
->
-> My first guess is that this W83627THF chip is not used for hardware
-> monitoring on your board. You probably have another chip for that.
->
-> Please provide the following information:
-> * Kernel version.
+That's a bit old, see below.
 
-2.6.16.2 custom built
+> Next adapter: SMBus I801 adapter at 0500
+> (...)
+> Client found at address 0x2f
+> (...)
+> Probing for `Winbond W83792D'... Success!
+>     (confidence 7, driver `to-be-written'), other addresses: 0x4b 0x4f
 
-> * Version of lm_sensors.
+OK, that's your hardware monitoring chip. sensors-detect thinks there
+is no driver for it, but by now, there is. Try:
+  rmmod w83627hf
+  modprobe i2c-i801
+  modprobe w83792d
+And sensors output should be better.
 
-sensors version 2.9.1 with libsensors version 2.9.1
+However, user-space support for that chip was just added in lm_sensors
+2.9.1 and many bugs have been fixed since, so you are invited to update
+lm_sensors to a later version for better results.
 
-> * Server model.
-
-Asus AP140R
-
-> * Full output of sensors-detect.
-
-attached below
-
-
-thanks
-
-roy
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: sensorslogstuff.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060416/247204ae/sensorslogstuff.txt
--------------- next part --------------
-
---
-Roy Sigurd Karlsbakk
-roy at karlsbakk.net
----
-In space, loud sounds, like explosions, are even louder because there  
-is no air to get in the way.
-
+-- 
+Jean Delvare
 
