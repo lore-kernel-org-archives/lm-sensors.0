@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 16 Apr 2006 16:22:43 +0000
+From: roy@karlsbakk.net (Roy Sigurd Karlsbakk)
+Date: Sun, 16 Apr 2006 16:47:15 +0000
 Subject: [lm-sensors] ridicolous sensors output?
-Message-Id: <20060416182243.05507642.khali@linux-fr.org>
+Message-Id: <E21ED252-F6F9-4DB4-A12A-00FEAE2FF884@karlsbakk.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <F2CFFC9F-4DC4-4DBA-BDEB-C195DBCAD479@karlsbakk.net>
 In-Reply-To: <F2CFFC9F-4DC4-4DBA-BDEB-C195DBCAD479@karlsbakk.net>
@@ -10,31 +10,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Roy,
+> Please:
+> * Don't compress files you send on the list. You shouldn't expect
+> people to take the time to save and gunzip the file to look at the
+> data. People are always busy.
+>
+> * Don't send sensors.conf in its entirety when only a small part of it
+> is relevant for your configuration.
 
-> running 'sensors' on this new 1U asus server, gives me quite  
-> interesting data. this is on a server that's been running three weeks  
-> or so without problems. attached is lspci -vvv output and  
-> sensors.conf (standard from debian sarge).
+ok. sorry.
 
-Please:
-* Don't compress files you send on the list. You shouldn't expect
-people to take the time to save and gunzip the file to look at the
-data. People are always busy.
-* Don't send sensors.conf in its entirety when only a small part of it
-is relevant for your configuration.
+>> can someone please help me figure out what's happening here?
+>
+> My first guess is that this W83627THF chip is not used for hardware
+> monitoring on your board. You probably have another chip for that.
+>
+> Please provide the following information:
+> * Kernel version.
 
-> can someone please help me figure out what's happening here?
+2.6.16.2 custom built
 
-My first guess is that this W83627THF chip is not used for hardware
-monitoring on your board. You probably have another chip for that.
+> * Version of lm_sensors.
 
-Please provide the following information:
-* Kernel version.
-* Version of lm_sensors.
-* Server model.
-* Full output of sensors-detect.
+sensors version 2.9.1 with libsensors version 2.9.1
 
--- 
-Jean Delvare
+> * Server model.
+
+Asus AP140R
+
+> * Full output of sensors-detect.
+
+attached below
+
+
+thanks
+
+roy
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: sensorslogstuff.txt
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060416/247204ae/sensorslogstuff.txt
+-------------- next part --------------
+
+--
+Roy Sigurd Karlsbakk
+roy at karlsbakk.net
+---
+In space, loud sounds, like explosions, are even louder because there  
+is no air to get in the way.
+
 
