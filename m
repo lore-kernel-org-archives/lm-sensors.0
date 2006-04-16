@@ -1,59 +1,86 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 25 Apr 2006 11:37:25 +0000
-Subject: [lm-sensors] [PATCH 04/10] i2c-piix4: Document the IBM problem more
-Message-Id: <20060425133725.ef4eadd2.khali@linux-fr.org>
+Date: Sun, 16 Apr 2006 13:59:41 +0000
+Subject: [lm-sensors] Improvement to I2C debugging tools
+Message-Id: <20060416155941.7e43f57e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=i2c-piix4-improve-ibm-error-message.patch
+Hi all,
 
-Properly document on which systems the i2c-piix4 SMBus driver will
-refuse to load. Hopefully this will make it clearer for users, which
-were often wondering why their destop or server systems were detected
-as laptops.
+I just made two improvements to our I2C debugging tools.
 
-Closes bug #6429.
+Firstly, I added an option -F to i2cdetect. When used, i2cdetect will
+only print the functionalities offered by a given i2c adapter (or more
+exactly by a given adapter driver.) Sample output:
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- Documentation/i2c/busses/i2c-piix4 |   14 ++++++++++++++
- drivers/i2c/busses/i2c-piix4.c     |    2 +-
- 2 files changed, 15 insertions(+), 1 deletion(-)
+root at arrakis:~> modprobe i2c-dev
+root at arrakis:~> i2cdetect -l
+i2c-0   smbus           SMBus I801 adapter at 1880              Non-I2C SMBus adapter
+root at arrakis:~> i2cdetect -F 0
+Functionalities implemented by /dev/i2c/0:
+I2C                              no
+SMBus Quick Command              yes
+SMBus Send Byte                  yes
+SMBus Receive Byte               yes
+SMBus Write Byte                 yes
+SMBus Read Byte                  yes
+SMBus Write Word                 yes
+SMBus Read Word                  yes
+SMBus Process Call               no
+SMBus Block Write                yes
+SMBus Block Read                 yes
+SMBus Block Process Call         no
+SMBus PEC                        no
+I2C Block Write                  yes
+I2C Block Read                   no
+root at arrakis:~> 
 
---- linux-2.6.17-rc2.orig/Documentation/i2c/busses/i2c-piix4	2006-04-23 17:44:43.000000000 +0200
-+++ linux-2.6.17-rc2/Documentation/i2c/busses/i2c-piix4	2006-04-23 17:46:00.000000000 +0200
-@@ -82,3 +82,17 @@
- 
- Please note that you don't need to do that in all cases, just when the SMBus is
- not working properly.
-+
-+
-+Hardware-specific issues
-+------------------------
-+
-+This driver will refuse to load on IBM systems with an Intel PIIX4 SMBus.
-+Some of these machines have an RFID EEPROM (24RF08) connected to the SMBus,
-+which can easily get corrupted due to a state machine bug. These are mostly
-+Thinkpad laptops, but desktop systems may also be affected. We have no list
-+of all affected systems, so the only safe solution was to prevent access to
-+the SMBus on all IBM systems (detected using DMI data.)
-+
-+For additional information, read:
-+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/README.thinkpad
---- linux-2.6.17-rc2.orig/drivers/i2c/busses/i2c-piix4.c	2006-04-21 18:43:35.000000000 +0200
-+++ linux-2.6.17-rc2/drivers/i2c/busses/i2c-piix4.c	2006-04-23 17:36:33.000000000 +0200
-@@ -130,7 +130,7 @@
- 	/* Don't access SMBus on IBM systems which get corrupted eeproms */
- 	if (dmi_check_system(piix4_dmi_table) &&
- 			PIIX4_dev->vendor = PCI_VENDOR_ID_INTEL) {
--		dev_err(&PIIX4_dev->dev, "IBM Laptop detected; this module "
-+		dev_err(&PIIX4_dev->dev, "IBM system detected; this module "
- 			"may corrupt your serial eeprom! Refusing to load "
- 			"module!\n");
- 		return -EPERM;
+Secondly, I added a mode W to i2cdump. This new mode is somewhere
+between mode w (it uses SMBus Read Word transactions) and mode b (it
+assumes 8 bit per "register".) The idea is to consider SMBus Read Word
+as an I2C Block Read with length 2, as this is exactly how an EEPROM
+will see it. So, when using i2cdump an a 24C02 EEPROM, modes b, c, W
+and (if available) i should produce the same output. Thus, this new mode
+W makes it possible and easy to test SMBus Read Word transactions on
+any adapter; all it takes is an EEPROM on that bus.
+
+This EEPROM dumping method also has an interest in terms of
+performance. It fetches two bytes per transaction when modes b and c
+only fetch one. For poll-based bus adapters with low to medium HZ
+values, the speed benefit is enjoyable. Here is an example using
+i2c-viapro with HZ%0:
+
+i2cdump -y 5 0x50 b: 2.05 s
+i2cdump -y 5 0x50 c: 2.05 s
+i2cdump -y 5 0x50 W: 1.02 s
+i2cdump -y 5 0x50 i: 0.19 s
+
+Of course I2C Block Read is still much faster, but it is available only
+on a limited number of adapters, while SMBus Read Word is very common.
+
+With greater values of HZ (e.g. 1000) or for interrupt-based adapter
+drivers, modes c and W should be roughly equivalent (SMBus Receive Byte
+is 20 bits on the bus, SMBus Read Word is 48 bits and brings two bytes
+at once.)
+
+I was thinking of using the word mode in the eeprom kernel driver, as
+it improves the performance in some cases. However, the exact gain
+depends on the adapter driver (poll vs. interrupt, bit-banging I2C vs.
+hardware SMBus) and the value of HZ for poll-based adapter drivers, and
+I'd expect continuous byte mode to be faster or otherwise better (lower
+latency, lower CPU load) in some conditions. For example, using some
+i2c-algo-bit adapter at 25 kHz, I obtain:
+
+i2cdump -y 1 0x50 b: 1.19 s
+i2cdump -y 1 0x50 c: 0.59 s
+i2cdump -y 1 0x50 W: 0.71 s
+i2cdump -y 1 0x50 i: 0.25 s
+
+So I'll probably forget leave the eeprom driver as is, but comments are
+still welcome.
 
 -- 
 Jean Delvare
