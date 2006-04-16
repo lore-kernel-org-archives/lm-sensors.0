@@ -1,69 +1,40 @@
-From: roy@karlsbakk.net (Roy Sigurd Karlsbakk)
-Date: Sun, 16 Apr 2006 16:06:36 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 16 Apr 2006 16:22:43 +0000
 Subject: [lm-sensors] ridicolous sensors output?
-Message-Id: <F2CFFC9F-4DC4-4DBA-BDEB-C195DBCAD479@karlsbakk.net>
+Message-Id: <20060416182243.05507642.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <F2CFFC9F-4DC4-4DBA-BDEB-C195DBCAD479@karlsbakk.net>
+In-Reply-To: <F2CFFC9F-4DC4-4DBA-BDEB-C195DBCAD479@karlsbakk.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-hi all
+Hi Roy,
 
-running 'sensors' on this new 1U asus server, gives me quite  
-interesting data. this is on a server that's been running three weeks  
-or so without problems. attached is lspci -vvv output and  
-sensors.conf (standard from debian sarge).
+> running 'sensors' on this new 1U asus server, gives me quite  
+> interesting data. this is on a server that's been running three weeks  
+> or so without problems. attached is lspci -vvv output and  
+> sensors.conf (standard from debian sarge).
 
-can someone please help me figure out what's happening here?
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: sensors.conf.gz
-Type: application/x-gzip
-Size: 18675 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060416/e36e63b5/sensors.conf-0001.gz
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: lspci-vvv.txt.gz
-Type: application/x-gzip
-Size: 1854 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060416/e36e63b5/lspci-vvv.txt-0001.gz
--------------- next part --------------
+Please:
+* Don't compress files you send on the list. You shouldn't expect
+people to take the time to save and gunzip the file to look at the
+data. People are always busy.
+* Don't send sensors.conf in its entirety when only a small part of it
+is relevant for your configuration.
 
-thanks
+> can someone please help me figure out what's happening here?
 
-roy
+My first guess is that this W83627THF chip is not used for hardware
+monitoring on your board. You probably have another chip for that.
 
-# sensors
-w83627thf-isa-0290
-Adapter: ISA adapter
-VCore:     +1.94 V  (min =  +0.70 V, max =  +1.87 V)       ALARM
-+12V:      +7.36 V  (min =  +0.30 V, max =  +7.78 V)
-+3.3V:     +1.44 V  (min =  +0.21 V, max =  +0.77 V)       ALARM
-+5V:       +5.01 V  (min =  +0.00 V, max =  +0.77 V)       ALARM
--12V:      +6.06 V  (min = -10.96 V, max = -12.28 V)       ALARM
-V5SB:      +5.03 V  (min =  +1.51 V, max =  +0.38 V)       ALARM
-VBat:      +0.11 V  (min =  +0.00 V, max =  +2.82 V)
-fan1:        0 RPM  (min = 5232 RPM, div = 2)              ALARM
-CPU Fan:     0 RPM  (min = 675000 RPM, div = 2)              ALARM
-fan3:        0 RPM  (min = 9926 RPM, div = 2)              ALARM
-M/B Temp:    -48 C  (high =    +4 C, hyst =    +0 C)   sensor =  
-thermistor
-CPU Temp:  -48.0 C  (high =   +80 C, hyst =   +75 C)   sensor =  
-thermistor
-temp3:     -48.0 C  (high =   +80 C, hyst =   +75 C)   sensor =  
-thermistor
-alarms:   Chassis intrusion detection                      ALARM
-beep_enable:
-           Sound alarm enabled
+Please provide the following information:
+* Kernel version.
+* Version of lm_sensors.
+* Server model.
+* Full output of sensors-detect.
 
---
-Roy Sigurd Karlsbakk
-roy at karlsbakk.net
----
-In space, loud sounds, like explosions, are even louder because there  
-is no air to get in the way.
-
+-- 
+Jean Delvare
 
