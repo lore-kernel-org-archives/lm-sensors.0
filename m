@@ -1,40 +1,48 @@
-From: khc@pm.waw.pl (Krzysztof Halasa)
-Date: Wed, 19 Apr 2006 23:02:25 +0000
-Subject: [lm-sensors] Black box flight recorder for Linux
-Message-Id: <m3r73t6uf2.fsf@defiant.localdomain>
+From: webe3@myrealbox.com (Brent S. Elmer, Ph.D.)
+Date: Sun, 16 Apr 2006 23:10:15 +0000
+Subject: [lm-sensors] sensor output writing to terminals
+Message-Id: <1145229015.329.9.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44379AB8.6050808@superbug.co.uk>
-	<m3psjqeeor.fsf@defiant.localdomain> <443A4927.5040801@warmcat.com>
-	<m3odz9kze6.fsf@defiant.localdomain>
-	<m364l5dep9.fsf@defiant.localdomain> <44469BA3.2090309@sh.cvut.cz>
-In-Reply-To: <44469BA3.2090309@sh.cvut.cz> (Rudolf Marek's message of "Wed, 19 Apr 2006 22:20:51 +0200")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rudolf Marek <r.marek@sh.cvut.cz>
-Cc: lkml <linux-kernel@vger.kernel.org>, Andy Green <andy@warmcat.com>, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Rudolf Marek <r.marek at sh.cvut.cz> writes:
+lm-sensors is working fine as far as reading the sensors.  The problem
+is that it (or something) is sending the output to all open terminals.
+I have had lm-sensors set up for years.  The writing to the terminals
+has only started happening in the last month or so.  It is annoying to
+be working in a terminal and the sensor data to constantly be written to
+the terminal.  I use regular gnome terminals logged in as a normal user.
 
->> No wonder my first attempt with 24C16 which occupies all 0x50 - 0x57
->> addresses had to fail.
->
-> Hm that should work, because Asus most likely multiplexes physical lines
-> instead of devices (using 74HC4052 IIRC)
+My system is Debian testing.
+Kernel 2.6.15 custom built
+lm-sensors 2.10.0
 
-No, the motherboard thought that my 24C16 was a set of 3 DIMMs
-(answering at 0x50 - 0x57, and DIMMs seem to be at 0x50, 0x51 and 0x52).
-Of course the data read back was some product of both DIMM EEPROM and
-my 24C16 but the machine didn't pass POST.
+Here is the sensor detected information
 
-I think anyone trying to connect an EEPROM to SMBus has to make sure
-there is nothing there, and nothing is expected by things like BIOS.
-Not a very plug and play.
+Driver `w83627hf' (should be inserted):
+  Detects correctly:
+  * ISA bus address 0x0290 (Busdriver `i2c-isa')
+    Chip `Winbond W83697HF Super IO Sensors' (confidence: 9)
 
-> What about to connect the device to parallel port, there are some adapter
-> schematics in kernel docs.
+Here is a snippet of what is being written to the terminal:
 
-Sure, that's one of the options.
--- 
-Krzysztof Halasa
+Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
+-12V: +2.03 V (min = -13.18 V, max = -10.80 V) [ALARM]
+Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
+-5V: +0.63 V (min = -5.25 V, max = -4.75 V) [ALARM]
+Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
+fan2: 0 RPM (min = 1188 RPM, div = 8) [ALARM]
+Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
+temp1: 24 C (limit = 12 C, hysteresis = 18 C, sensors = thermistor)
+[ALARM]
+
+Can someone please tell me what I need to configure to stop the writing
+to all open terminals?
+
+Thanks,
+
+Brent
+
 
