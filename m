@@ -1,72 +1,52 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 19 Apr 2006 21:11:09 +0000
-Subject: [lm-sensors] Curious temperature readings
-Message-Id: <4446A76D.5000206@sh.cvut.cz>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Mon, 17 Apr 2006 16:04:06 +0000
+Subject: [lm-sensors] vt1211 driver (was hwmon/pc87360 as a platform
+Message-Id: <4443BC76.3060905@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44366D8D.8010403@justcroft.com>
-In-Reply-To: <44366D8D.8010403@justcroft.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Juerg Haefliger wrote:
+>> The SHOW_SET_*_*  constants are just a bit off-putting at first read,
+>> but I know what you mean, and I dont have a better idea.
+>> maybe SHOW_SETTNG_*_* ?
+>> or SHOW_CURR_*_*,   thats confuse-able with the current reading
+>>     
+>
+> Well SHOW_SET_xxx_yyy is supposed to hint that the constant is used in
+> both the show_xxx and set_xxx callbacks. It's the best I could come up
+> with although I have to admit I didn't spend too much time thinking
+> about this....
+>
+>   
+>> you can improve your printks :
+>>
+>> s/(printk\(KERN_DEBUG)/dev_dbg\(&pdev->dev/;
+>> s/(printk\(KERN_ERR)/dev_err\(&pdev->dev/
+>> s/(printk\(KERN_INFO)/dev_info\(&pdev->dev/
+>>
+>> at least where pdev has already been initd
+>>     
+>
+> Hmm... I thought I used printks only in places where pdev is not initialized.
+>
+>   
+I didnt look that carefully.
+>> Ill try to read thru the enire patch this weekend sometime.
+>>     
+>
+> I certainly appreciate the review :-)
+>
+>   
+good thing that *this* is so flexible ;-)
 
-> I'm new to the lm-sensors world, but I have some curious results that 
-> I'm struggling to understand.
+> ...juerg
+>
+>   
 
-Lets see.
-
-> My hardware is:
-> 	Pentium4 2A GHz (Northwood, 512Kb cache, socket478)
-> 	Motherboard is tricky to identify, but says 845CA so maybe it's
-> 	 a Jetway 845CA - that seems consistent with their specs and
-> 	 looks like an Intel 845 chipset.
-> 	Sensor chip is a Winbond w83627hf.
-> 
-> Software is Mandriva 2006
-> 
-> I started to get the system shutting down spontaneously, often 
-> overnight, but also while I'm working. No obvious application causing 
-> it. I did memory tests and that came up clean. So I decided to monitor 
-> CPU temperature and voltages using lm-sensors and KDE-SystemGuard.
-
-Good.
-
-> On the original hardware, with a standard Intel heatsink and fan, I got 
-> three temperature readings:
-> temp1: 15-20?C
-> temp2: 28-35?C
-> temp3: 54-60?C
-> 
-> I figured temp3 was CPU chip temperature, and a bit high: the cooler 
-> looked a bit grubby and I have a feeling that the thermal grease had 
-> been disturbed. So I looked for a way of cleaning this up, and found the 
-> Asatek Micro Chill cooler - so I bought one (retail therapy I guess...)
-> 
-> Anyway, with this (big) cooler now on the chip, my readings are:
-> temp1: ~20?C
-> temp2: 30-35?C
-> temp3: Started at 118?C (!) but is gradually working its way down 
-> towards 60?C
-> 
-> Now I'll admit that I might have screwed the cooler installation, but I 
-> was surprised to see 100+?C on a running machine. So have I 
-> misinterpreted the readings, or maybe the sensors are not connected like 
-> lm-sensors expects...
-> 
-> Anyone have any suggestions?
-
-Yes, what is the output of sensors command?
-You may want to fiddle with thermistor/diode settings, also check the BIOS temps
-please how they are diffrent?
-
-> One other thing, VCore1 is a bit fluffy, with occasional spikes to 1.8V 
-> and dips below 1.4V (should be 1.5V). Does that sound reasonable?
-
-Hmm this should be stable maybe it is not a thermal problem at all? Tried with
-another PSU?
-
-Regards
-Rudolf
-
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: hwmon-vt1211-driver-review
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060417/2985cd2c/hwmon-vt1211-driver-review.pl
