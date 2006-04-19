@@ -1,39 +1,48 @@
-From: ymu@Winbond.com.tw (Yuan Mu)
-Date: Mon, 17 Apr 2006 02:03:52 +0000
-Subject: [lm-sensors] ridicolous sensors output?
-Message-Id: <4442F788.4010805@winbond.com.tw>
+From: khc@pm.waw.pl (Krzysztof Halasa)
+Date: Wed, 19 Apr 2006 10:47:46 +0000
+Subject: [lm-sensors] Black box flight recorder for Linux
+Message-Id: <m364l5dep9.fsf@defiant.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <F2CFFC9F-4DC4-4DBA-BDEB-C195DBCAD479@karlsbakk.net>
-In-Reply-To: <F2CFFC9F-4DC4-4DBA-BDEB-C195DBCAD479@karlsbakk.net>
+References: <44379AB8.6050808@superbug.co.uk>
+	<m3psjqeeor.fsf@defiant.localdomain> <443A4927.5040801@warmcat.com>
+	<m3odz9kze6.fsf@defiant.localdomain>
+In-Reply-To: <m3odz9kze6.fsf@defiant.localdomain> (Krzysztof Halasa's message of "Mon, 10 Apr 2006 21:24:01 +0200")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lkml <linux-kernel@vger.kernel.org>, Andy Green <andy@warmcat.com>
+Cc: lm-sensors@lm-sensors.org
 
-Roy Sigurd Karlsbakk wrote:
->>> ERROR: Can't get FAN6 data!
->> Some pins of the W83792D chip can be used for different purposes. In
->> your case, the fan6 pin is indeed used for something different so the
->> w83792d kernel driver did not create an interface for that fan.
->> "sensors" should ignore missing interface files in this case, but the
->> version you have did not. This was fixed in CVS recently.
->>
->> You may try to add an "ignore fan6" statement in your configuration
->> file.
-> 
-> didn't help. it still seems to probe it.
-> 
-Are you sure...
-Are you find " chip "w83792d-*" " and add ignore fan6 below it?
+Hi,
 
-Or you may try download the lm_sensors2 nightly cvs snapshots and install the userspace tools,
-http://secure.netroedge.com/~lm78/archive/lm_sensors-daily.tar.gz
-I think this warning has been removed in the cvs.
+(Cc to lm-sensors list).
 
+> Yes, that could be used, too. It would be a bit more complicated as
+> different VGA cards use different access methods (i.e., different
+> I/O port and bit numbers). X11 drivers probably know how to drive it.
 
-Best Regards
-Yuan Mu
+BTW: I just soldered a 24C64 I^2C EEPROM (the largest I could find
+at home but 24C512 (64 KB) and even 24C1024 (128 KB) are available
+on the market) to a connector and connected it to SMBus on my Asus
+A7V333 mobo. I don't have code to write "printk" messages to it yet
+but will look at it sometime.
 
+Interesting: i2cdetect and friends can only find a custom Asus sensors
+chip on this bus (ASB100 chip at addresses 0x2D, 0x48 and 0x49) - and
+now my 24C64 at 0x57 (config address 7 = all ones). But the BIOS POST
+searches and finds more devices: there is something at 0x2F, 0x69, and
+there are (I think) DDR SDRAM EEPROMs and 0x51 and 0x52 (0x50 is an
+empty DIMM slot). Got this info with my "DIY" logic analyzer. I think
+the BIOS POST disconnects somehow the devices before loading the OS
+(in order to prevent data damage?).
 
-=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
+No wonder my first attempt with 24C16 which occupies all 0x50 - 0x57
+addresses had to fail.
+
+I think VGA monitors respond (at least?) at 0x50 address so
+a 16-bit-addressable EEPROM (at least not larger than 24C2048 which
+IMHO aren't yet available) with all-ones I^2C address selected
+should do as well if connected to VGA/DVI I^2C/ACCESS.bus.
+-- 
+Krzysztof Halasa
 
