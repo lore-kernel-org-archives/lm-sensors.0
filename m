@@ -1,48 +1,37 @@
-From: webe3@myrealbox.com (Brent S. Elmer, Ph.D.)
-Date: Sun, 16 Apr 2006 23:10:15 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Wed, 19 Apr 2006 20:40:12 +0000
 Subject: [lm-sensors] sensor output writing to terminals
-Message-Id: <1145229015.329.9.camel@localhost.localdomain>
+Message-Id: <4446A02C.8010508@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1145229015.329.9.camel@localhost.localdomain>
+In-Reply-To: <1145229015.329.9.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-lm-sensors is working fine as far as reading the sensors.  The problem
-is that it (or something) is sending the output to all open terminals.
-I have had lm-sensors set up for years.  The writing to the terminals
-has only started happening in the last month or so.  It is annoying to
-be working in a terminal and the sensor data to constantly be written to
-the terminal.  I use regular gnome terminals logged in as a normal user.
 
-My system is Debian testing.
-Kernel 2.6.15 custom built
-lm-sensors 2.10.0
+> Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
+> -12V: +2.03 V (min = -13.18 V, max = -10.80 V) [ALARM]
+> Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
+> -5V: +0.63 V (min = -5.25 V, max = -4.75 V) [ALARM]
+> Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
+> fan2: 0 RPM (min = 1188 RPM, div = 8) [ALARM]
+> Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
+> temp1: 24 C (limit = 12 C, hysteresis = 18 C, sensors = thermistor)
+> [ALARM]
+> 
+> Can someone please tell me what I need to configure to stop the writing
+> to all open terminals?
 
-Here is the sensor detected information
+Hmm perhaps the sensorsd deamons sends an alert. And because of allert nature it
+will be sent to all terms. Please check if this cannot be configured somehow.
+I'm not too familiar with sensorsd.
 
-Driver `w83627hf' (should be inserted):
-  Detects correctly:
-  * ISA bus address 0x0290 (Busdriver `i2c-isa')
-    Chip `Winbond W83697HF Super IO Sensors' (confidence: 9)
+You may also adjust the /etc/sensors.conf file so the alarm is produced
+only when it is a real one.
 
-Here is a snippet of what is being written to the terminal:
-
-Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
--12V: +2.03 V (min = -13.18 V, max = -10.80 V) [ALARM]
-Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
--5V: +0.63 V (min = -5.25 V, max = -4.75 V) [ALARM]
-Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
-fan2: 0 RPM (min = 1188 RPM, div = 8) [ALARM]
-Apr 16 19:07:48 VTdebian sensord: Sensor alarm: Chip w83697hf-isa-0290:
-temp1: 24 C (limit = 12 C, hysteresis = 18 C, sensors = thermistor)
-[ALARM]
-
-Can someone please tell me what I need to configure to stop the writing
-to all open terminals?
-
-Thanks,
-
-Brent
-
+I hope it helps
+Regards
+Rudolf
 
