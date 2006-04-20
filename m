@@ -1,41 +1,43 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Tue, 11 Apr 2006 18:02:48 +0000
-Subject: [lm-sensors] w83l785r driver
-Message-Id: <443BEF48.5030709@sh.cvut.cz>
+From: dieter.jurzitza@t-online.de (Dieter Jurzitza)
+Date: Thu, 20 Apr 2006 19:04:57 +0000
+Subject: [lm-sensors] the thread I started  - Tyan Tiger
+Message-Id: <200604202104.57414.dieter.jurzitza@t-online.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <443BE8D3.6050906@sh.cvut.cz>
-In-Reply-To: <443BE8D3.6050906@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Lonni,
+Dear Rudolf,
+dear listmembers,
+did I do something offending? I didn't intend to do so. Rudolf, I really 
+appreciate your support - I hope I did not say / do anything unfriendly.
+Should I take out the w83627hf driver? Should I remove any of the lines 
+in /etc/modprobe.conf.local?
+Sorry, I probably only did not understand correctly what to do. I left the 
+83627 driver after having found that without it it crashed in a similar 
+fashion and I thought I'd better stay with a behaviour I know well (what may 
+be wrong).
 
-Thanks for the quick answer. I'm not the person who seeks the help but users
-which do seek help from me. I'm the member of lm-sensors group that
-develops and maintains the sensor drivers for the Linux kernel. There is
-the unified infrastructure for sensors handling and drivers for monitoring chips.
+Take care
 
-This unified infastructure means that any application can be used to access the sensors data
-which are exported to user programs. Making it closed and locked just to one apps may not fit
-the user needs at all. Just imagine the user has some favourite application like gkrellm
-and wants to see the GPU temp there.
 
-Opening the drivers for i2c access will enable you to use our hwmon drivers for chips
-commonly found on the graphics cards. This would mean it would reduce you the time
-to develop the driver to access the chip on your own. Moreover, we are taking care of
-that the drivers will work nice in any future linux version.
 
-Some companies like Asus, Tyan  and Winbond are working with us tightly on this sensors
-field. If you want to join the cooperation, I'm offering help to nVidia whith opening the drivers
-for i2c bus and integrating them to the kernel.
+Dieter Jurzitza
 
-Please forward this email to the responsible manager, or if you need more information
-contact me directly, or via the lm-sensors mailing list.
+-- 
+-----------------------------------------------------------
 
-Thank you,
+                               |
+                                \
+                 /\_/\           |
+                | ~x~ |/-----\   /
+                 \   /-       \_/
+  ^^__   _        /  _  ____   /
+ <??__ \- \_/     |  |/    |  |
+  ||  ||         _| _|    _| _|
 
-Regards
-Rudolf
+if you really want to see the pictures above - use some font
+with constant spacing like courier! :-)
+-----------------------------------------------------------
 
