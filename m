@@ -1,37 +1,54 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 19 Apr 2006 18:30:31 +0000
-Subject: [lm-sensors] [PATCH] i2c-i801: Fix resume when PEC is used
-Message-Id: <20060419203031.b20e967c.khali@linux-fr.org>
+From: crotalus@superig.com.br (Paulo Roma Cavalcanti)
+Date: Fri, 21 Apr 2006 23:06:17 +0000
+Subject: [lm-sensors] asb100 not working in kernel 2.6.16
+Message-Id: <44496569.6030100@superig.com.br>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060418140629.7cb21736.khali@linux-fr.org>
-	<20060418170331.GA3915@jupiter.solarsys.private>
-	<20060418211546.fa5a76df.khali@linux-fr.org>
-	<20060419130857.7f2db2d4.khali@linux-fr.org>
-	<Pine.LNX.4.64.0604190918210.3701@g5.osdl.org>
-In-Reply-To: <Pine.LNX.4.64.0604190918210.3701@g5.osdl.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@osdl.org>
-Cc: Greg KH <greg@kroah.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-Hi Linus,
 
-> On Wed, 19 Apr 2006, Jean Delvare wrote:
-> > The BIOS of the Tecra M2 doesn't like it when it has to reboot or
-> > resume after the i2c-i801 driver has left the SMBus in PEC mode. The
-> > most simple fix is to clear the PEC bit after after every transaction.
+I have been using lm_sensors for a long time
+on an Asus P4S333 motherboard.
+However, they are no longer working with the 2.6.16
+kernel series. During the boot there is a message
+saying it cannot find any i2c information.
 
-The same day, Linus Torvalds replied:
-> Just wondering.. Wouldn't it make more sense to clear it when closing the 
-> device or when shutting down, rather than after each transaction?
+Interesting is that the modules are loaded:
 
-That's what my original patch was doing, but Mark M. Hoffman objected
-that it didn't cover the case where the user hits the reset button.
+eeprom                  7249  0
+asb100                 20437  0
+hwmon_vid               2881  1 asb100
+hwmon                   3269  1 asb100
+i2c_sis96x              5829  0
+i2c_core               21697  3 eeprom,asb100,i2c_sis96x
+rfcomm                 36821  0
+l2cap                  24641  5 rfcomm
 
-Given that PEC is only rarely used, the slight performance impact isn't
-an issue, so I'm fine with both patches.
+But if I try to read the sensors, I get:
 
--- 
-Jean Delvare
+Can't access procfs/sysfs file
+Unable to find i2c bus information;
+For 2.6 kernels, make sure you have mounted sysfs and libsensors
+was compiled with sysfs support!
+For older kernels, make sure you have done 'modprobe i2c-proc'!
+
+My system is a Fedora 4 with latest lm_sensors from ATrpms.
+
+Linux version 2.6.16-1.2096_FC4 (bhcompile at hs20-bc1-4.build.redhat.com)
+
+I am loading the modules below in /etc/sysconfig/lm_sensors:
+
+MODULE_0=3Di2c-sis96x
+MODULE_1=3Dasb100
+MODULE_2=EEprom
+
+They work very well with kernel 2.6.15 and below, only.
+
+I appreciate any suggestion.
+
+Thank you.
+
+/Paulo Roma
 
