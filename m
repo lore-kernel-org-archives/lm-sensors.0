@@ -1,7 +1,7 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Sun, 23 Apr 2006 18:19:39 +0000
-Subject: [lm-sensors] Kernel fault from ACPI when using W83627EHG
-Message-Id: <4dfa50520604231119q2e776654s42403c066680dfae@mail.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 23 Apr 2006 18:39:55 +0000
+Subject: [lm-sensors] Kernel fault from ACPI when using W83627EHG on
+Message-Id: <20060423203955.c9f5dba7.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060420235351.9D72212ED4@bluewhale.planbit.co.uk>
 In-Reply-To: <20060420235351.9D72212ED4@bluewhale.planbit.co.uk>
@@ -12,38 +12,22 @@ To: lm-sensors@vger.kernel.org
 
 Hi Roger,
 
-I take that back. You've got the registers set right. Well, there are
-other places where the bits can be disabled, but I wonder if the DSDT
-of your ACPI polls the alarms on the w83627ehf to monitor it. It
-wouldn't surprise me.
+When starting a new thread, please do NOT use the "reply" function of
+your e-mail client on a random post. This confuses users of threading
+e-mail clients a lot.
 
-David
+> Although booting with "acpi=off" is a workaround, I would _really_ like to
+> have ACPI running as it means that the power button on the front of the box
+> does a controlled shutdown (rather than a hard power-off) if pressed briefly
+> as well as a few other nice features.
 
-On 4/23/06, David Hubbard <david.c.hubbard at gmail.com> wrote:
-> Hi Roger,
->
-> On 4/23/06, Roger Lucas <roger at planbit.co.uk> wrote:
-> > Well, I think I made the correct changes.
-> >
-> >         CONFIG (addr 0x40) = 0x01
-> >         OVT (addr 0x18) = 0x43
->
-> I think you need to set CONFIG to 0x00.
->
-> >
-> > ... but it doesn't change the behaviour.
-> >
-> > I've posted a similar message to the ACPI mailing list to see if they can
-> > shed any light on it...
-> >
-> > Thanks anyhow, it was definitely worth trying.
-> >
-> > - Roger
->
-> There are other bits worth trying too, but maybe you just want to grab
-> the datasheet and look around?
->
-> Anyway, good luck!
-> David
->
+The various ACPI features can be built modular. You could try this, and
+only load the parts you need (e.g. ac, button) and not the ones which
+are probably responsible for the crash (e.g. thermal). This might help
+you survive for now, and isolate the problem within acpi.
+
+And this definitely needs to be reported to the acpi people (bugzilla?)
+
+-- 
+Jean Delvare
 
