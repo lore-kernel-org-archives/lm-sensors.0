@@ -1,7 +1,7 @@
 From: roger@planbit.co.uk (Roger Lucas)
-Date: Fri, 21 Apr 2006 21:51:32 +0000
-Subject: [lm-sensors] Kernel fault from ACPI when using W83627EHG on
-Message-Id: <20060421215131.8C8EB12ED4@bluewhale.planbit.co.uk>
+Date: Sun, 23 Apr 2006 16:33:01 +0000
+Subject: [lm-sensors] Kernel fault from ACPI when using W83627EHG
+Message-Id: <20060423163259.3DB3C12ED4@bluewhale.planbit.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060420235351.9D72212ED4@bluewhale.planbit.co.uk>
 In-Reply-To: <20060420235351.9D72212ED4@bluewhale.planbit.co.uk>
@@ -10,113 +10,151 @@ Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi David,
+Well, I think I made the correct changes. =20
 
-Thanks for the reply.  I'll modify the w83627ehf driver to change the
-register writes and post the results back to the list.
+	CONFIG (addr 0x40) =3D 0x01
+	OVT (addr 0x18) =3D 0x43
 
-BR,
+... but it doesn't change the behaviour.
 
-Roger
+I've posted a similar message to the ACPI mailing list to see if they can
+shed any light on it...
+
+Thanks anyhow, it was definitely worth trying.
+
+- Roger
 
 > -----Original Message-----
-> From: David Hubbard [mailto:david.c.hubbard at gmail.com]
-> Sent: 21 April 2006 21:00
-> To: Roger Lucas; lm-sensors at lm-sensors.org
-> Subject: Re: [lm-sensors] Kernel fault from ACPI when using W83627EHG on
-> 2.6.15
+> From: lm-sensors-bounces at lm-sensors.org [mailto:lm-sensors-bounces at =
+lm-
+> sensors.org] On Behalf Of Roger Lucas
+> Sent: 21 April 2006 22:52
+> To: 'David Hubbard'
+> Cc: lm-sensors at lm-sensors.org
+> Subject: Re: [lm-sensors] Kernel fault from ACPI when using W83627EHG
+> on2.6.15
 >=20
-> Hi Roger,
+> Hi David,
 >=20
-> I'm new at working on the w83627ehf/s83627ehg chips, but here's by 2c:
+> Thanks for the reply.  I'll modify the w83627ehf driver to change the
+> register writes and post the results back to the list.
 >=20
-> On 4/20/06, Roger Lucas <roger at planbit.co.uk> wrote:
-> > When I ran "sensors -s", however, I immediately got a kernel dump.  I
-> > haven't managed to get a proper capture of this, but the errors at the
-> top
-> > were:
-> >        acpi_ps_parse_aml
-> >        acpi_ps_execute_pass
-> >        acpi_ps_execute_method
-> >        acpi_ps_execute_control_method
-> >        acpi_ps_evaluate_by_handle
-> >        acpi_ps_evaluate_relative
-> >        acpi_evaluate_object
-> >        acpi_evalute_integer
-> >        acpi_thermal_get_temperature
-> >        acpi_thermal_check
-> >        acpi_acquire_mutex
-> >        ...
+> BR,
+>=20
+> Roger
+>=20
+> > -----Original Message-----
+> > From: David Hubbard [mailto:david.c.hubbard at gmail.com]
+> > Sent: 21 April 2006 21:00
+> > To: Roger Lucas; lm-sensors at lm-sensors.org
+> > Subject: Re: [lm-sensors] Kernel fault from ACPI when using W83627EHG on
+> > 2.6.15
 > >
-> > When I checked the sensors configuration, I found that the high
-> temperature
-> > thresholds were just below what my board was reading (CPU is at about 50
-> > degrees and the PWM at about 45 degrees - not too high, but above the
-> > original thresholds).  When I changed them to much higher values so that
-> > they wouldn't trigger (high=95 deg, hyst=85 deg), the kernel dumps
-> stopped.
+> > Hi Roger,
 > >
-> > I did a bit of a search through the lm-sensors mailing list archives and
-> > found the suggestion to boot with "acpi=3Doff", so I tried it.
+> > I'm new at working on the w83627ehf/s83627ehg chips, but here's by 2c:
 > >
-> > Booting with "acpi=3Doff", if I have temperature thresholds that are lo=
-wer
-> > than the sensors temperatures, and run "sensors -s", I get no kernel
-> faults
-> > but I do get a high-low beeping from the motherboard!  When I change the
-> > sensors.conf file to have higher temperature thresholds so that the
-> alarms
-> > don't trigger, then the beeping from the motherboard stops (and still no
-> > kernel fault).
+> > On 4/20/06, Roger Lucas <roger at planbit.co.uk> wrote:
+> > > When I ran "sensors -s", however, I immediately got a kernel dump.  I
+> > > haven't managed to get a proper capture of this, but the errors at the
+> > top
+> > > were:
+> > >        acpi_ps_parse_aml
+> > >        acpi_ps_execute_pass
+> > >        acpi_ps_execute_method
+> > >        acpi_ps_execute_control_method
+> > >        acpi_ps_evaluate_by_handle
+> > >        acpi_ps_evaluate_relative
+> > >        acpi_evaluate_object
+> > >        acpi_evalute_integer
+> > >        acpi_thermal_get_temperature
+> > >        acpi_thermal_check
+> > >        acpi_acquire_mutex
+> > >        ...
+> > >
+> > > When I checked the sensors configuration, I found that the high
+> > temperature
+> > > thresholds were just below what my board was reading (CPU is at about
+> 50
+> > > degrees and the PWM at about 45 degrees - not too high, but above the
+> > > original thresholds).  When I changed them to much higher values so
+> that
+> > > they wouldn't trigger (high=95 deg, hyst=85 deg), the kernel dumps
+> > stopped.
+> > >
+> > > I did a bit of a search through the lm-sensors mailing list archives
+> and
+> > > found the suggestion to boot with "acpi=3Doff", so I tried it.
+> > >
+> > > Booting with "acpi=3Doff", if I have temperature thresholds that are
+> lower
+> > > than the sensors temperatures, and run "sensors -s", I get no kernel
+> > faults
+> > > but I do get a high-low beeping from the motherboard!  When I change
+> the
+> > > sensors.conf file to have higher temperature thresholds so that the
+> > alarms
+> > > don't trigger, then the beeping from the motherboard stops (and still
+> no
+> > > kernel fault).
+> > >
+> > > Although booting with "acpi=3Doff" is a workaround, I would _really_
+> like
+> > to
+> > > have ACPI running as it means that the power button on the front of
+> the
+> > box
+> > > does a controlled shutdown (rather than a hard power-off) if pressed
+> > briefly
+> > > as well as a few other nice features.
+> > >
+> > > I appreciate that this looks like an ACPI problem, but it seems to be
+> > > triggered by the over-temperature from the w83627ehf module, so I
+> > thought
+> > > that it would be best to check this out first.  Googling for the
+> problem
+> > > seems to suggest some kind of device conflict may be occurring, but
+> this
+> > was
+> > > on a kernel mailing list thread dating back to the 2.6.8.1 kernel in
+> > 2004.
+> > >
+> > > Can anyone offer any help on this...
+> > >  - Has anyone seen anything similar?
 > >
-> > Although booting with "acpi=3Doff" is a workaround, I would _really_ li=
-ke
-> to
-> > have ACPI running as it means that the power button on the front of the
-> box
-> > does a controlled shutdown (rather than a hard power-off) if pressed
-> briefly
-> > as well as a few other nice features.
+> > I have not seen this behavior, even though my motherboard (Asus
+> > A8N-VM/CSM) also has a w83627ehf.
 > >
-> > I appreciate that this looks like an ACPI problem, but it seems to be
-> > triggered by the over-temperature from the w83627ehf module, so I
-> thought
-> > that it would be best to check this out first.  Googling for the problem
-> > seems to suggest some kind of device conflict may be occurring, but this
-> was
-> > on a kernel mailing list thread dating back to the 2.6.8.1 kernel in
-> 2004.
+> > >  - Does anyone have a solution that allows me to keep ACPI active?
 > >
-> > Can anyone offer any help on this...
-> >  - Has anyone seen anything similar?
+> > I think I understand what is going on. There are several pins
+> > described in the w83627ehf datasheet which could be triggering
+> > something on your motherboard. Pin 5 (OVT# / HM_SMI#) and pin 118
+> > (Beep) can be configured to respond to any of the hardware monitoring
+> > alarms, such as the fan speed and the CPU temperature. The biggest
+> > clue that leads me to think this is "but I do get a high-low beeping
+> > from the motherboard." However, there's also an ACPI interface on the
+> > chip which apparently can power up the system from the power switch,
+> > so the problem could be lurking there.
+> >
+> > I propose attempting something like the following:
+> > 1. to work around the ACPI behavior, the OVT# Register (0x18) and
+> > Configuration Register (0x40) can be modified to disable OVT# and
+> > HM_SMI# outputs. (Set bit 6 to 1 in register 0x18, set bit 1 to 0 in
+> > register 0x40) If this is what the motherboard is responding to, the
+> > ACPI crash will disappear.
+> >
+> > 2. since your motherboard responds to the ACPI event generated by a
+> > hardware fault and an over-temperature interrupt (mine does not), this
+> > feature could be included in a future version of the ACPI driver. I
+> > suppose that request needs to go to the ACPI driver mailing list.
+> >
+> > David
 >=20
-> I have not seen this behavior, even though my motherboard (Asus
-> A8N-VM/CSM) also has a w83627ehf.
 >=20
-> >  - Does anyone have a solution that allows me to keep ACPI active?
->=20
-> I think I understand what is going on. There are several pins
-> described in the w83627ehf datasheet which could be triggering
-> something on your motherboard. Pin 5 (OVT# / HM_SMI#) and pin 118
-> (Beep) can be configured to respond to any of the hardware monitoring
-> alarms, such as the fan speed and the CPU temperature. The biggest
-> clue that leads me to think this is "but I do get a high-low beeping
-> from the motherboard." However, there's also an ACPI interface on the
-> chip which apparently can power up the system from the power switch,
-> so the problem could be lurking there.
->=20
-> I propose attempting something like the following:
-> 1. to work around the ACPI behavior, the OVT# Register (0x18) and
-> Configuration Register (0x40) can be modified to disable OVT# and
-> HM_SMI# outputs. (Set bit 6 to 1 in register 0x18, set bit 1 to 0 in
-> register 0x40) If this is what the motherboard is responding to, the
-> ACPI crash will disappear.
->=20
-> 2. since your motherboard responds to the ACPI event generated by a
-> hardware fault and an over-temperature interrupt (mine does not), this
-> feature could be included in a future version of the ACPI driver. I
-> suppose that request needs to go to the ACPI driver mailing list.
->=20
-> David
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors at lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
 
