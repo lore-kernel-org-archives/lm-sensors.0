@@ -1,37 +1,28 @@
-From: bezaur@gmail.com (Charles Spirakis)
-Date: Wed, 12 Apr 2006 17:30:03 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Add w83791d support
-Message-Id: <5bfe43f80604121030q2d3a62dex929ac7c628dec694@mail.gmail.com>
+From: alon.keren@gmail.com (Alon Keren)
+Date: Mon, 24 Apr 2006 11:31:20 +0000
+Subject: [lm-sensors] Patch regarding the I2C_HEADERS variable in
+Message-Id: <92c85b0e0604240431l54394a80xf6e58be07af5d32b@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5bfe43f80604041606n5a99ecbcg234ae8532b016b6c@mail.gmail.com>
-In-Reply-To: <5bfe43f80604041606n5a99ecbcg234ae8532b016b6c@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Will do.
+Hello all,
+I consider the following as a nuisance, but still a bug.
+I've noticed that lm_sensors's compilation always assumes that there
+is a special path for i2c headers, which is held in I2C_HEADERS
+(default is '/usr/local/include'). In my opinion, it should be
+possible to unset that variable, in case there is no such special
+path. The attached patch does exactly that.
 
-I'll start work on the user-mode patch for detection and the per-file
-alarm patches now that this is done.
+ Alon
 
-Thanks for your eyes and your time!
-
--- charles
-
-
-On 4/11/06, Jean Delvare <khali at linux-fr.org> wrote:
-> Hi Charles,
->
-> > Add support for the w83791d sensor chip. The w83791d hardware is
-> > somewhere between the w83781d and the w83792d and this driver code
-> > is derived from the code that supports those chips.
->
-> Applied, thanks. Good work!
->
-> Any future changes to the driver should be sent as incremental patches.
->
-> --
-> Jean Delvare
->
-
+P.S. since I'm not subsribed to the mailing list, please CC me your replies.
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm_sensors-2.10.0-i2c_headers-1.patch
+Type: application/octet-stream
+Size: 784 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060424/6358e2a6/lm_sensors-2.10.0-i2c_headers-1.obj
