@@ -1,33 +1,60 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 26 Apr 2006 21:13:21 +0000
-Subject: [lm-sensors] digital thermal sensor in intel processors
-Message-Id: <444FE271.3020407@sh.cvut.cz>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 25 Apr 2006 11:37:25 +0000
+Subject: [lm-sensors] [PATCH 04/10] i2c-piix4: Document the IBM problem more
+Message-Id: <20060425133725.ef4eadd2.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Content-Disposition: inline; filename=i2c-piix4-improve-ibm-error-message.patch
 
-After reading stuff after some days I spent offline, I came to
-this:
+Properly document on which systems the i2c-piix4 SMBus driver will
+refuse to load. Hopefully this will make it clearer for users, which
+were often wondering why their destop or server systems were detected
+as laptops.
 
-New intel processors have digital thermal sensor.
-It is possible to read the CPU temp from it.
-(if Tjuction is known, if not only the difference to Tmax)
+Closes bug #6429.
 
-It would be nice to have a driver for it.
-http://download.intel.com/design/Pentium4/manuals/25366819.pdf
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ Documentation/i2c/busses/i2c-piix4 |   14 ++++++++++++++
+ drivers/i2c/busses/i2c-piix4.c     |    2 +-
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
-Here is the original article (in Czech ;)
-http://www.svethardware.cz/art_doc-426BF1284FA826D8C125715800796150.html
+--- linux-2.6.17-rc2.orig/Documentation/i2c/busses/i2c-piix4	2006-04-23 17:44:43.000000000 +0200
++++ linux-2.6.17-rc2/Documentation/i2c/busses/i2c-piix4	2006-04-23 17:46:00.000000000 +0200
+@@ -82,3 +82,17 @@
+ 
+ Please note that you don't need to do that in all cases, just when the SMBus is
+ not working properly.
++
++
++Hardware-specific issues
++------------------------
++
++This driver will refuse to load on IBM systems with an Intel PIIX4 SMBus.
++Some of these machines have an RFID EEPROM (24RF08) connected to the SMBus,
++which can easily get corrupted due to a state machine bug. These are mostly
++Thinkpad laptops, but desktop systems may also be affected. We have no list
++of all affected systems, so the only safe solution was to prevent access to
++the SMBus on all IBM systems (detected using DMI data.)
++
++For additional information, read:
++http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/README.thinkpad
+--- linux-2.6.17-rc2.orig/drivers/i2c/busses/i2c-piix4.c	2006-04-21 18:43:35.000000000 +0200
++++ linux-2.6.17-rc2/drivers/i2c/busses/i2c-piix4.c	2006-04-23 17:36:33.000000000 +0200
+@@ -130,7 +130,7 @@
+ 	/* Don't access SMBus on IBM systems which get corrupted eeproms */
+ 	if (dmi_check_system(piix4_dmi_table) &&
+ 			PIIX4_dev->vendor = PCI_VENDOR_ID_INTEL) {
+-		dev_err(&PIIX4_dev->dev, "IBM Laptop detected; this module "
++		dev_err(&PIIX4_dev->dev, "IBM system detected; this module "
+ 			"may corrupt your serial eeprom! Refusing to load "
+ 			"module!\n");
+ 		return -EPERM;
 
-See page 521 and round.
-
-Someone wants to work on it?
-Regards
-Rudolf
-
-PS: I will read the lm-sensors emails tomorrow so please be patient...
+-- 
+Jean Delvare
 
