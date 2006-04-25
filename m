@@ -1,143 +1,120 @@
-From: greg@kroah.com (Greg KH)
-Date: Fri, 14 Apr 2006 20:10:47 +0000
-Subject: [lm-sensors] [PATCH 5/5] i2c-parport: Make type parameter mandatory
-Message-Id: <11450454471615-git-send-email-greg@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 25 Apr 2006 11:06:41 +0000
+Subject: [lm-sensors] [PATCH 02/10] i2c-piix4: Remove the fix_hstcfg
+Message-Id: <20060425130641.892e4179.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This patch forces the user to specify what type of adapter is present when
-loading i2c-parport or i2c-parport-light.  If none is specified, the driver
-init simply fails - instead of assuming adapter type 0.
+From: Rudolf Marek <r.marek at sh.cvut.cz>
+Content-Disposition: inline; filename=i2c-piix4-remove-fix_hstcfg-parameter.patch
 
-This alleviates the sometimes lengthy boot time delays which can be caused
-by accidentally building one of these into a kernel along with several i2c
-slave drivers that have lengthy probe routines (e.g. hwmon drivers).
+This patch removes the fix_hstcfg option from the driver and related
+SMBus Interrupt Select register magic because now we know what are
+valid values for this register. This patch updates the documentation
+and adds new IRQ mode check so we are sure not to miss any new
+"unusual" value.
 
-Kconfig and documentation updated accordingly.
+The PCI quirk for users of fix_hstcfg was not developed because the
+chipset lacks of subsystem ID registers and DMI is stated "To be
+filled". Impact to existing systems is minimal because the problem
+showed up on motherboards like 10 years back. On the other hand users
+of newer Serverworks and HT1000 systems won't be misleaded by the
+message suggesting to try the fix_hstcfg any more.
 
-Signed-off-by: Mark M. Hoffman <mhoffman at lightlink.com>
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
 ---
+ Documentation/i2c/busses/i2c-piix4 |   22 ++++++++++++++++------
+ drivers/i2c/busses/i2c-piix4.c     |   25 +------------------------
+ 2 files changed, 17 insertions(+), 30 deletions(-)
 
- Documentation/i2c/busses/i2c-parport   |   16 ++++++++++------
- drivers/i2c/busses/Kconfig             |    5 ++++-
- drivers/i2c/busses/i2c-parport-light.c |    9 +++++++--
- drivers/i2c/busses/i2c-parport.c       |    9 +++++++--
- drivers/i2c/busses/i2c-parport.h       |    2 +-
- 5 files changed, 29 insertions(+), 12 deletions(-)
-
-e97b81ddbb8b8c72b85330ac4a454a4513dcba8a
-diff --git a/Documentation/i2c/busses/i2c-parport b/Documentation/i2c/busses/i2c-parport
-index d9f23c0..77b995d 100644
---- a/Documentation/i2c/busses/i2c-parport
-+++ b/Documentation/i2c/busses/i2c-parport
-@@ -12,18 +12,22 @@ meant as a replacement for the older, in
-                       teletext adapters)
+--- linux-2.6.16-git.orig/Documentation/i2c/busses/i2c-piix4	2006-04-02 22:55:59.000000000 +0200
++++ linux-2.6.16-git/Documentation/i2c/busses/i2c-piix4	2006-04-02 23:02:09.000000000 +0200
+@@ -23,8 +23,6 @@
+   Forcibly enable the PIIX4. DANGEROUS!
+ * force_addr: int
+   Forcibly enable the PIIX4 at the given address. EXTREMELY DANGEROUS!
+-* fix_hstcfg: int
+-  Fix config register. Needed on some boards (Force CPCI735).
  
- It currently supports the following devices:
-- * Philips adapter
-- * home brew teletext adapter
-- * Velleman K8000 adapter
-- * ELV adapter
-- * Analog Devices evaluation boards (ADM1025, ADM1030, ADM1031, ADM1032)
-- * Barco LPT->DVI (K5800236) adapter
-+ * (type=0) Philips adapter
-+ * (type=1) home brew teletext adapter
-+ * (type=2) Velleman K8000 adapter
-+ * (type=3) ELV adapter
-+ * (type=4) Analog Devices ADM1032 evaluation board
-+ * (type=5) Analog Devices evaluation boards: ADM1025, ADM1030, ADM1031
-+ * (type=6) Barco LPT->DVI (K5800236) adapter
  
- These devices use different pinout configurations, so you have to tell
- the driver what you have, using the type module parameter. There is no
- way to autodetect the devices. Support for different pinout configurations
- can be easily added when needed.
+ Description
+@@ -68,7 +66,19 @@
+ The ServerWorks Southbridges, the Intel 440MX, and the Victory766 are
+ identical to the PIIX4 in I2C/SMBus support.
  
-+Earlier kernels defaulted to type=0 (Philips).  But now, if the type
-+parameter is missing, the driver will simply fail to initialize.
+-A few OSB4 southbridges are known to be misconfigured by the BIOS. In this
+-case, you have you use the fix_hstcfg module parameter. Do not use it
+-unless you know you have to, because in some cases it also breaks
+-configuration on southbridges that don't need it.
++If you own Force CPCI735 motherboard or other OSB4 based systems you may need
++to change the SMBus Interrupt Select register so the SMBus controller uses
++the SMI mode.
 +
++1) Use lspci command and locate the PCI device with the SMBus controller:
++   00:0f.0 ISA bridge: ServerWorks OSB4 South Bridge (rev 4f)
++   The line may vary for different chipsets. Please consult the driver source
++   for all possible PCI ids (and lspci -n to match them). Lets assume the
++   device is located at 00:0f.0.
++2) Now you just need to change the value in 0xD2 register. Get it first with
++   command: lspci -xxx -s 00:0f.0
++   If the value is 0x3 then you need to change it to 0x1
++   setpci  -s 00:0f.0 d2.b=1
++
++Please note that you don't need to do that in all cases, just when the SMBus is
++not working properly.
+--- linux-2.6.16-git.orig/drivers/i2c/busses/i2c-piix4.c	2006-04-02 22:55:59.000000000 +0200
++++ linux-2.6.16-git/drivers/i2c/busses/i2c-piix4.c	2006-04-02 22:56:28.000000000 +0200
+@@ -102,13 +102,6 @@
+ 		 "Forcibly enable the PIIX4 at the given address. "
+ 		 "EXTREMELY DANGEROUS!");
  
- Building your own adapter
- -------------------------
-diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
-index 089c6f5..d6d4494 100644
---- a/drivers/i2c/busses/Kconfig
-+++ b/drivers/i2c/busses/Kconfig
-@@ -286,7 +286,10 @@ config I2C_PARPORT
- 	  This driver is a replacement for (and was inspired by) an older
- 	  driver named i2c-philips-par.  The new driver supports more devices,
- 	  and makes it easier to add support for new devices.
--	  
-+
-+	  An adapter type parameter is now mandatory.  Please read the file
-+	  Documentation/i2c/busses/i2c-parport for details.
-+
- 	  Another driver exists, named i2c-parport-light, which doesn't depend
- 	  on the parport driver.  This is meant for embedded systems. Don't say
- 	  Y here if you intend to say Y or M there.
-diff --git a/drivers/i2c/busses/i2c-parport-light.c b/drivers/i2c/busses/i2c-parport-light.c
-index c63025a..e09ebbb 100644
---- a/drivers/i2c/busses/i2c-parport-light.c
-+++ b/drivers/i2c/busses/i2c-parport-light.c
-@@ -121,9 +121,14 @@ static struct i2c_adapter parport_adapte
+-/* If fix_hstcfg is set to anything different from 0, we reset one of the
+-   registers to be a valid value. */
+-static int fix_hstcfg;
+-module_param (fix_hstcfg, int, 0);
+-MODULE_PARM_DESC(fix_hstcfg,
+-		"Fix config register. Needed on some boards (Force CPCI735).");
+-
+ static int piix4_transaction(void);
  
- static int __init i2c_parport_init(void)
- {
--	if (type < 0 || type >= ARRAY_SIZE(adapter_parm)) {
-+	if (type < 0) {
-+		printk(KERN_WARNING "i2c-parport: adapter type unspecified\n");
-+		return -ENODEV;
-+	}
-+
-+	if (type >= ARRAY_SIZE(adapter_parm)) {
- 		printk(KERN_WARNING "i2c-parport: invalid type (%d)\n", type);
--		type = 0;
-+		return -ENODEV;
+ static unsigned short piix4_smba;
+@@ -166,22 +159,6 @@
+ 
+ 	pci_read_config_byte(PIIX4_dev, SMBHSTCFG, &temp);
+ 
+-	/* Some BIOS will set up the chipset incorrectly and leave a register
+-	   in an undefined state (causing I2C to act very strangely). */
+-	if (temp & 0x02) {
+-		if (fix_hstcfg) {
+-			dev_info(&PIIX4_dev->dev, "Working around buggy BIOS "
+-					"(I2C)\n");
+-			temp &= 0xfd;
+-			pci_write_config_byte(PIIX4_dev, SMBHSTCFG, temp);
+-		} else {
+-			dev_info(&PIIX4_dev->dev, "Unusual config register "
+-					"value\n");
+-			dev_info(&PIIX4_dev->dev, "Try using fix_hstcfg=1 if "
+-					"you experience problems\n");
+-		}
+-	}
+- 
+ 	/* If force_addr is set, we program the new address here. Just to make
+ 	   sure, we disable the PIIX4 first. */
+ 	if (force_addr) {
+@@ -214,7 +191,7 @@
+ 		}
  	}
  
- 	if (base = 0) {
-diff --git a/drivers/i2c/busses/i2c-parport.c b/drivers/i2c/busses/i2c-parport.c
-index 7e2e8cd..934bd55 100644
---- a/drivers/i2c/busses/i2c-parport.c
-+++ b/drivers/i2c/busses/i2c-parport.c
-@@ -241,9 +241,14 @@ static struct parport_driver i2c_parport
- 
- static int __init i2c_parport_init(void)
- {
--	if (type < 0 || type >= ARRAY_SIZE(adapter_parm)) {
-+	if (type < 0) {
-+		printk(KERN_WARNING "i2c-parport: adapter type unspecified\n");
-+		return -ENODEV;
-+	}
-+
-+	if (type >= ARRAY_SIZE(adapter_parm)) {
- 		printk(KERN_WARNING "i2c-parport: invalid type (%d)\n", type);
--		type = 0;
-+		return -ENODEV;
- 	}
- 
- 	return parport_register_driver(&i2c_parport_driver);
-diff --git a/drivers/i2c/busses/i2c-parport.h b/drivers/i2c/busses/i2c-parport.h
-index d702e5e..9ddd816 100644
---- a/drivers/i2c/busses/i2c-parport.h
-+++ b/drivers/i2c/busses/i2c-parport.h
-@@ -90,7 +90,7 @@ static struct adapter_parm adapter_parm[
- 	},
- };
- 
--static int type;
-+static int type = -1;
- module_param(type, int, 0);
- MODULE_PARM_DESC(type,
- 	"Type of adapter:\n"
+-	if ((temp & 0x0E) = 8)
++	if (((temp & 0x0E) = 8) || ((temp & 0x0E) = 2))
+ 		dev_dbg(&PIIX4_dev->dev, "Using Interrupt 9 for SMBus.\n");
+ 	else if ((temp & 0x0E) = 0)
+ 		dev_dbg(&PIIX4_dev->dev, "Using Interrupt SMI# for SMBus.\n");
+
 -- 
-1.2.6
-
-
+Jean Delvare
 
