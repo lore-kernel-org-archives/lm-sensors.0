@@ -1,59 +1,34 @@
-From: greg@kroah.com (Greg KH)
-Date: Fri, 14 Apr 2006 20:10:47 +0000
-Subject: [lm-sensors] [PATCH 3/5] w83792d: Be quiet on misdetection
-Message-Id: <11450454472880-git-send-email-greg@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 25 Apr 2006 11:29:26 +0000
+Subject: [lm-sensors] [PATCH 03/10] i2c-piix4: Fix typo in documentation
+Message-Id: <20060425132926.538d84ed.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Make the w83792d driver keep quiet when misdetecting a chip. This can
-happen, and the user doesn't need to know.
+Content-Disposition: inline; filename=i2c-piix4-fix-typo-in-documentation.patch
 
-Also renumber the messages, and add one, for consistency.
+Fix i2c-piix4 documentation typo.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
 ---
+ Documentation/i2c/busses/i2c-piix4 |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/hwmon/w83792d.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+--- linux-2.6.16-git.orig/Documentation/i2c/busses/i2c-piix4	2006-04-02 23:16:24.000000000 +0200
++++ linux-2.6.16-git/Documentation/i2c/busses/i2c-piix4	2006-04-02 23:16:35.000000000 +0200
+@@ -63,7 +63,7 @@
+ The PIIX/PIIX3 does not implement an SMBus or I2C bus, so you can't use
+ this driver on those mainboards.
+ 
+-The ServerWorks Southbridges, the Intel 440MX, and the Victory766 are
++The ServerWorks Southbridges, the Intel 440MX, and the Victory66 are
+ identical to the PIIX4 in I2C/SMBus support.
+ 
+ If you own Force CPCI735 motherboard or other OSB4 based systems you may need
 
-ac987c1f65cedd98d953e14ba219db2f8cc009d4
-diff --git a/drivers/hwmon/w83792d.c b/drivers/hwmon/w83792d.c
-index 6865c64..958602e 100644
---- a/drivers/hwmon/w83792d.c
-+++ b/drivers/hwmon/w83792d.c
-@@ -1161,7 +1161,7 @@ w83792d_detect(struct i2c_adapter *adapt
- 	   bank. */
- 	if (kind < 0) {
- 		if (w83792d_read_value(client, W83792D_REG_CONFIG) & 0x80) {
--			dev_warn(dev, "Detection failed at step 3\n");
-+			dev_dbg(dev, "Detection failed at step 1\n");
- 			goto ERROR1;
- 		}
- 		val1 = w83792d_read_value(client, W83792D_REG_BANK);
-@@ -1170,6 +1170,7 @@ w83792d_detect(struct i2c_adapter *adapt
- 		if (!(val1 & 0x07)) {  /* is Bank0 */
- 			if (((!(val1 & 0x80)) && (val2 != 0xa3)) ||
- 			     ((val1 & 0x80) && (val2 != 0x5c))) {
-+				dev_dbg(dev, "Detection failed at step 2\n");
- 				goto ERROR1;
- 			}
- 		}
-@@ -1177,7 +1178,7 @@ w83792d_detect(struct i2c_adapter *adapt
- 		   should match */
- 		if (w83792d_read_value(client,
- 					W83792D_REG_I2C_ADDR) != address) {
--			dev_warn(dev, "Detection failed at step 5\n");
-+			dev_dbg(dev, "Detection failed at step 3\n");
- 			goto ERROR1;
- 		}
- 	}
 -- 
-1.2.6
-
-
+Jean Delvare
 
