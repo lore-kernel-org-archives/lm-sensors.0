@@ -1,83 +1,55 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 25 Apr 2006 12:23:01 +0000
-Subject: [lm-sensors] [PATCH 09/10] hwmon: Improve the help text for
-Message-Id: <20060425142301.1981401b.khali@linux-fr.org>
+Date: Wed, 26 Apr 2006 21:00:16 +0000
+Subject: [lm-sensors] [PATCH] scx200_acb: Fix resource name use after free
+Message-Id: <20060426230016.dca44e58.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=hwmon-improve-Kconfig-help.patch
+Hi Greg,
 
-Improve the help text for CONFIG_HWMON to let the users know how they
-pick the right hardware monitoring driver(s) for their system.
+This should go in 2.6.17. I'll backport it for -stable as well, as this
+bug seems to be in there since the driver was added. It's even in the
+2.4 tree, I'll have to backport the fix there too.
 
-Also fix a couple typos in the related documentation file and improve
-some parts a bit.
+Content-Disposition: inline; filename=i2c-scx200_acb-fix-resource-name-use-after-free.patch
+
+We can't pass a string on the stack to request_region. As soon as we
+leave the function that stack is gone and the string is lost. Let's
+use the same string we identify the i2c_adapter with instead, it's
+more simple, more consistent, and just works.
+
+This is the second half of fix to bug #6445.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- Documentation/hwmon/userspace-tools |   17 +++++++++--------
- drivers/hwmon/Kconfig               |    4 ++++
- 2 files changed, 13 insertions(+), 8 deletions(-)
+ drivers/i2c/busses/scx200_acb.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- linux-2.6.17-rc1.orig/drivers/hwmon/Kconfig	2006-04-11 11:12:14.000000000 +0200
-+++ linux-2.6.17-rc1/drivers/hwmon/Kconfig	2006-04-11 14:31:02.000000000 +0200
-@@ -16,6 +16,10 @@
- 	  should say Y here and also to the specific driver(s) for your
- 	  sensors chip(s) below.
+--- linux-2.6.17-rc2.orig/drivers/i2c/busses/scx200_acb.c	2006-04-26 18:59:23.000000000 +0200
++++ linux-2.6.17-rc2/drivers/i2c/busses/scx200_acb.c	2006-04-26 19:01:39.000000000 +0200
+@@ -415,7 +415,6 @@
+ 	struct scx200_acb_iface *iface;
+ 	struct i2c_adapter *adapter;
+ 	int rc;
+-	char description[64];
  
-+	  To find out which specific driver(s) you need, use the
-+	  sensors-detect script from the lm_sensors package.  Read
-+	  <file:Documentation/hwmon/userspace-tools> for details.
-+
- 	  This support can also be built as a module.  If so, the module
- 	  will be called hwmon.
+ 	iface = kzalloc(sizeof(*iface), GFP_KERNEL);
+ 	if (!iface) {
+@@ -434,10 +433,7 @@
  
---- linux-2.6.17-rc1.orig/Documentation/hwmon/userspace-tools	2006-01-03 04:21:10.000000000 +0100
-+++ linux-2.6.17-rc1/Documentation/hwmon/userspace-tools	2006-04-11 14:51:27.000000000 +0200
-@@ -6,31 +6,32 @@
- are also connected directly through the ISA bus.
+ 	mutex_init(&iface->mutex);
  
- The kernel drivers make the data from the sensor chips available in the /sys
--virtual filesystem. Userspace tools are then used to display or set or the
--data in a more friendly manner.
-+virtual filesystem. Userspace tools are then used to display the measured
-+values or configure the chips in a more friendly manner.
- 
- Lm-sensors
- ----------
- 
--Core set of utilites that will allow you to obtain health information,
-+Core set of utilities that will allow you to obtain health information,
- setup monitoring limits etc. You can get them on their homepage
- http://www.lm-sensors.nu/ or as a package from your Linux distribution.
- 
- If from website:
--Get lmsensors from project web site. Please note, you need only userspace
--part, so compile with "make user_install" target.
-+Get lm-sensors from project web site. Please note, you need only userspace
-+part, so compile with "make user" and install with "make user_install".
- 
- General hints to get things working:
- 
- 0) get lm-sensors userspace utils
--1) compile all drivers in I2C section as modules in your kernel
-+1) compile all drivers in I2C and Hardware Monitoring sections as modules
-+   in your kernel
- 2) run sensors-detect script, it will tell you what modules you need to load.
- 3) load them and run "sensors" command, you should see some results.
- 4) fix sensors.conf, labels, limits, fan divisors
- 5) if any more problems consult FAQ, or documentation
- 
--Other utilites
----------------
-+Other utilities
-+---------------
- 
- If you want some graphical indicators of system health look for applications
- like: gkrellm, ksensors, xsensors, wmtemp, wmsensors, wmgtemp, ksysguardd,
+-	snprintf(description, sizeof(description), "%s ACCESS.bus [%s]",
+-		 text, adapter->name);
+-
+-	if (request_region(base, 8, description) = 0) {
++	if (!request_region(base, 8, adapter->name)) {
+ 		printk(KERN_ERR NAME ": can't allocate io 0x%x-0x%x\n",
+ 			base, base + 8-1);
+ 		rc = -EBUSY;
 
 -- 
 Jean Delvare
