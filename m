@@ -1,219 +1,209 @@
-From: mlybarger@gmail.com (Mark Lybarger)
-Date: Fri, 21 Apr 2006 10:50:15 +0000
-Subject: [lm-sensors] netfinity 6000r crash running sensors-detect
-Message-Id: <a0fb11cc0604210350v2ab8a155j5bb3a138eba0fff2@mail.gmail.com>
+From: bezaur@gmail.com (Charles Spirakis)
+Date: Wed, 26 Apr 2006 21:54:19 +0000
+Subject: [lm-sensors] sensors-detect: Update sensors-detect to handle new
+Message-Id: <5bfe43f80604261454g6c48e2a3o926d5a783976563f@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <a0fb11cc0604031304m792d8a8oef1f1a81c10e23ad@mail.gmail.com>
-In-Reply-To: <a0fb11cc0604031304m792d8a8oef1f1a81c10e23ad@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I seem to have gotten by the scanning.  Here's your requested output. 
-Sensors still doesn't work, but at least it doesn't crash my machine:
+All --
 
-arabica mark # lspci -xxx
-00:00.0 Host bridge: Broadcom CNB20HE Host Bridge (rev 21)
-00: 66 11 08 00 00 00 00 00 21 00 00 06 08 60 80 00
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-40: 00 00 00 00 02 08 00 00 00 61 01 3b 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 01 00 02 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Based on an earlier discussion:
 
-05:02.0 RAID bus controller: IBM ServeRAID Controller
-00: 14 10 bd 01 56 01 80 22 00 00 04 01 08 60 00 00
-10: 08 e0 ff ec 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 14 10 be 01
-30: 00 00 00 00 80 00 00 00 00 00 00 00 0a 01 00 00
-40: 00 e0 ff ff 00 10 00 00 08 00 00 a0 00 00 00 fc
-50: 00 00 00 a0 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 88 00 00 00 00
-70: 00 00 00 00 00 80 ff ff 00 00 e0 fe 00 00 00 00
-80: 01 00 02 00 00 00 00 00 06 01 20 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 56 03 00 00 00 00 00 8c
-a0: 00 00 00 00 00 00 00 00 1c 01 08 00 14 10 be 01
-b0: 04 00 04 88 00 00 00 00 00 00 00 00 00 01 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>> * sensors-detect needs to be updated, as for now it points the W83791D
+> > owners to the w83781d driver regardless of the kernel version. Patch
+>> > anyone?
+>>
+>> Yes, it detects the w83791d correctly and tells you to load the
+w83781d driver:
+>>
+>> Driver `w83781d' (should be inserted):
+>>   Detects correctly:
+>>   * Bus `SMBus I801 adapter at 0540'
+>>     Busdriver `i2c-i801', I2C address 0x2c (and 0x48 0x49)
+>>     Chip `Winbond W83791D' (confidence: 7)
+>>
+>> I haven't looked at that code/scripts, but I can update depending on
+>> how you want to handle it (check for 2.4 vs. 2.6 and output as
+>> appropriate?)
+>
+>I haven't look in deep either, but I remember that we have a similar
+>case for one SiS SMBus driver: it's named i2c-sis645 on Linux 2.4 and
+>i2c-sis96x on Linux 2.6, and we have some code to pick the right driver
+>depending on the kernel version. So let's do it the same way for the
+>W83791D case and it should be fine.
 
-05:04.0 RAID bus controller: IBM ServeRAID Controller
-00: 14 10 bd 01 56 01 80 22 00 00 04 01 08 60 00 00
-10: 08 c0 ff ec 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 14 10 be 01
-30: 00 00 00 00 80 00 00 00 00 00 00 00 0a 01 00 00
-40: 00 e0 ff ff 00 10 00 00 08 00 00 a0 00 00 00 fc
-50: 00 00 00 a0 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 88 00 00 00 00
-70: 00 00 00 00 00 80 ff ff 00 00 e0 fe 00 00 00 00
-80: 01 00 02 00 00 00 00 00 06 01 20 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 56 03 00 00 00 00 00 8c
-a0: 00 00 00 00 00 00 00 00 1c 01 08 00 14 10 be 01
-b0: 04 00 04 88 00 00 00 00 00 00 00 00 00 01 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+To handle the 2.4/2.6 different for the SiS adapter, there are extra
+sis elements (@pci_adapters_sis5595 @pci_adapters_sis645
+@pci_adapters_sis96x ~ line 844) and a new routine
+(adapter_pci_detection_sis_96x() ~ line 2134) which then pushes one or
+more of the new elements onto the @pci_adapters list as needed (called
+~ line 2183). Line numbers are based on sensors-detect perl script
+from the lm-sensors package version 2.10.0.
 
-arabica mark # modprobe i2c-dev
-arabica mark # modprobe i2c-piix4
-arabica mark # i2cdump -y 0 0x50
-No size specified (using byte-data access)
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+Since the w83781d is part of the @chip_ids list and not part of the
+@pci_adapters list (or checks), it seemed like trying to overuse the
+sis subroutine may not make sense. Thus, there seemed to be three
+choices for handling the w83791d:
 
-arabica mark # i2cdetect 0
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c/0.
-I will probe address range 0x03-0x77.
-Continue? [Y/n] Y
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00:          03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
-10: 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f
-20: 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f
-30: 30 31 32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f
-40: 40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f
-50: UU UU UU UU UU UU UU UU 58 59 5a 5b 5c 5d 5e 5f
-60: 60 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f
-70: 70 71 72 73 74 75 76 77
+1) Follow the general sis pattern and create two new entries for the
+w83791d - one for the 2.4 kernel and one for the 2.6 kernel, then
+create a routine to pushd the correct entry onto the @chip_ids list
+(similar to what the SiS is doing for the adapter, but for chips).
 
-arabica mark # sensors
-Can't access procfs/sysfs file
-Unable to find i2c bus information;
-For 2.6 kernels, make sure you have mounted sysfs and libsensors
-was compiled with sysfs support!
-For older kernels, make sure you have done 'modprobe i2c-proc'!
+2) Create a routine that walks the @chip_ids list and modifies
+specific chip_id entries for earlier kernels as needed.
+
+3) Special case the driver field to allow for a "driver-choice"
+(similar to "to-be-written" and "not-a-sensor" that's available now).
+When the "driver-choice" string is seen, then have a driver_choice
+field (a new field in a chip element) point to a subroutine to give
+you the actual driver name.
+
+4) Other???
+
+I admit, Perl is not my native language so it's possible (4) is the
+right answer. So, before submitting an "official" patch, I prototyped
+choices (1) and (2) above and included them below for comment. If it's
+easier, I can turn one (or both) into a real patch for people to
+try...
+
+Preferences? Thoughts? Comments?
+
+-- charles
 
 
+== Not a real patch, but something to give people a feel for the
+changes for option 1 =
+--- sensors-detect.000  Tue Apr 25 11:20:26 2006
++++ sensors-detect      Wed Apr 26 14:37:30 2006
+@@ -915,6 +915,24 @@
+             w83791sd_detect vt1211_i2c_detect vt1211_alias_detect
+             smsc47m192_detect);
 
-On 4/19/06, Rudolf Marek <r.marek at sh.cvut.cz> wrote:
-> Mark Lybarger wrote:
-> > here's the output from when it crashed.  note that the sensors modules
-> > were all loaded, but sensors wasn't working.  also, the box doesn't
-> > come up so cleanly after it crashes.
-> > arabica mark # sensors
-> > Can't access procfs/sysfs file
-> > Unable to find i2c bus information;
-> > For 2.6 kernels, make sure you have mounted sysfs and libsensors
-> > was compiled with sysfs support!
-> > For older kernels, make sure you have done 'modprobe i2c-proc'!
-> > arabica mark # lsmod
-> > Module                  Size  Used by
-> > i2c_dev                10112  0
-> > nfs                   187588  1
-> > lockd                  57736  2 nfs
-> > sunrpc                137660  3 nfs,lockd
-> > lm92                   10384  0
-> > eeprom                  7696  0
-> > pcspkr                  3076  0
-> > rtc                     9748  0
-> > parport_pc             37572  0
-> > parport                33864  1 parport_pc
-> > floppy                 57188  0
-> > i2c_piix4               9488  0
-> > i2c_savage4             4740  0
-> > i2c_algo_bit            9352  1 i2c_savage4
-> > i2c_core               20736  5 i2c_dev,lm92,eeprom,i2c_piix4,i2c_algo_bit
->
-> How did you find out that you have lm92?
++# Special case chip information goes here and would be included in
++# the chip_special_cases routine below
++use vars qw($chip_ids_kern24_w83791d $chip_ids_kern26_w83791d);
++$chip_ids_kern24_w83791d = {
++       name => "Winbond W83791D",
++       driver => "w83781d",
++       i2c_addrs => [0x2c..0x2f],
++       i2c_detect => sub { w83781d_detect 7, @_},
++};
++
++$chip_ids_kern26_w83791d = {
++       name => "Winbond W83791D",
++       driver => "w83791d",
++       i2c_addrs => [0x2c..0x2f],
++       i2c_detect => sub { w83781d_detect 7, @_},
++};
++
++
+ # This is a list of all recognized chips.
+ # Each entry must have the following fields:
+ #  name: The full chip name
+@@ -1054,12 +1072,6 @@
+        i2c_detect => sub { w83781d_detect 2, @_},
+      } ,
+      {
+-       name => "Winbond W83791D",
+-       driver => "w83781d",
+-       i2c_addrs => [0x2c..0x2f],
+-       i2c_detect => sub { w83781d_detect 7, @_},
+-     },
+-     {
+        name => "Winbond W83792D",
+        driver => "w83792d",
+        i2c_addrs => [0x2c..0x2f],
+@@ -2844,6 +2856,20 @@
+ # this program will surely confuse them. But we guarantee never to write to
+ # any of these devices.
 
-I don't know how this got loaded.
++# This routine allows you to select which chips are optionally added to the
++# chip detection list. The most common use is to allow for different chip
++# detection/drivers based on different linux kernels
++# This routine follows the pattern of the Sis adapter special cases
++sub chip_special_cases
++{
++  # Based on the kernel, add the appropriate chip structure to the
++  # chip_ids detection list
++  if (kernel_version_at_least(2,6,0)) {
++    push @chip_ids, $chip_ids_kern26_w83791d;
++  } elsif (kernel_version_at_least(2,4,0)) {
++    push @chip_ids, $chip_ids_kern24_w83791d;
++  }
++}
 
->
-> > pcnet32                27780  0
-> > mii                     6272  1 pcnet32
-> > sworks_agp              9888  0
-> > agpgart                33484  1 sworks_agp
-> > dm_mirror              21200  0
-> > dm_mod                 53656  1 dm_mirror
-> > sbp2                   22788  0
-> > ohci1394               32052  0
-> > ieee1394               91704  2 sbp2,ohci1394
-> > sl811_hcd              13056  0
-> > ohci_hcd               19972  0
-> > uhci_hcd               30992  0
-> > usb_storage            67264  0
-> > usbhid                 43872  0
-> > ehci_hcd               29192  0
-> > usbcore               115460  7
-> > sl811_hcd,ohci_hcd,uhci_hcd,usb_storage,usbhid,ehci_hcd
-> > arabica mark # sensors-detect
-> > # sensors-detect revision 1.413 (2006/01/19 20:28:00)
-> >
->
-> > Next adapter: SMBus PIIX4 adapter at 0440
-> > Do you want to scan it? (YES/no/selectively):
-> > Client found at address 0x21
-> > Probing for `National Semiconductor LM78'... Failed!
-> > Probing for `National Semiconductor LM78-J'... Failed!
-> > Probing for `National Semiconductor LM79'... Failed!
-> > Probing for `Winbond W83781D'... Failed!
-> > Probing for `Winbond W83782D'... Failed!
-> > Probing for `Winbond W83627HF'... Failed!
-> > Client found at address 0x22
-> > Probing for `National Semiconductor LM78'... Failed!
-> > Probing for `National Semiconductor LM78-J'... Failed!
-> > Probing for `National Semiconductor LM79'... Failed!
-> > Probing for `Winbond W83781D'... Failed!
-> > Probing for `Winbond W83782D'... Failed!
-> > Probing for `Winbond W83627HF'... Failed!
-> > Client found at address 0x23
-> > Probing for `National Semiconductor LM78'... Failed!
-> > Probing for `National Semiconductor LM78-J'... Failed!
-> > Probing for `National Semiconductor LM79'... Failed!
-> > Probing for `Winbond W83781D'... Failed!
-> > Probing for `Winbond W83782D'... Failed!
-> > Probing for `Winbond W83627HF'... Failed!
-> > Client at address 0x50 can not be probed - unload all client drivers first!
-> > Client at address 0x51 can not be probed - unload all client drivers first!
-> > Client found at address 0x52
->
-> So it crashes right here?
->
-> Please can you send output of following:
->
-> power cycle system
-> lspci -xxx
-> modprobe i2c-dev
-> modprobe i2c-piix4
-> i2cdump -y 0 0x50
-> i2cdetect 0
->
-> (so without savage drivers and lm92)
->
-> It should not crash yet. I guess it may crash due to 0x69 clockchip
->
-> You may also try:
-> Do you want to scan it? (YES/no/selectively): selectively
-> 0x69
->
-> this will avoid the clockchip and maybe it will not crash.
->
-> Regards
-> Rudolf
->
+ # $_[0]: A reference to the file descriptor to access this chip.
+ #        We may assume an i2c_set_slave_addr was already done.
+@@ -5077,6 +5103,10 @@
+     }
+   }
 
++  # Before looking for chips, make sure any special case chips are
++  # added to the chip_ids list
++  chip_special_cases();
++
+   print "\n We are now going to do the adapter probings. Some adapters may ",
+         "hang halfway\n",
+         " through; we can't really help that. Also, some chips will
+be double ",
+
+
+== not a real patch, but something to give people a feel for the
+changes for option 2  =
+--- sensors-detect.000  Tue Apr 25 11:20:26 2006
++++ sensors-detect      Wed Apr 26 11:28:07 2006
+@@ -1055,7 +1055,7 @@
+      } ,
+      {
+        name => "Winbond W83791D",
+-       driver => "w83781d",
++       driver => "w83791d",
+        i2c_addrs => [0x2c..0x2f],
+        i2c_detect => sub { w83781d_detect 7, @_},
+      },
+@@ -2844,6 +2844,27 @@
+ # this program will surely confuse them. But we guarantee never to write to
+ # any of these devices.
+
++# The @chip_ids list is based on what's needed for the most recent kernel
++# (2.6 in our case). This routine allows you to add or modify entries
++# on the chip_ids list if you have special case needs.
++sub chip_special_cases
++{
++  my $chip_ref;
++
++  # Based on the kernel, add the appropriate chip structure to the
++  # chip_ids detection list
++  if (kernel_version_at_least(2,6,0)) {
++    # Nothing to do
++  } elsif (kernel_version_at_least(2,4,0)) {
++    for $chip_ref (@chip_ids) {
++      # The w83791d chip uses the w83781d driver from 2.4 kernels
++      if ($chip_ref->{'name'} eq 'Winbond W83791D') {
++        $chip_ref->{'driver'} = "w83781d";
++      }
++    }
++  }
++}
++
+
+ # $_[0]: A reference to the file descriptor to access this chip.
+ #        We may assume an i2c_set_slave_addr was already done.
+@@ -5077,6 +5098,10 @@
+     }
+   }
+
++  # Before looking for chips, make sure any special case chip needs
++  # are handled
++  chip_special_cases();
++
+   print "\n We are now going to do the adapter probings. Some adapters may ",
+         "hang halfway\n",
+         " through; we can't really help that. Also, some chips will
+be double ",
+
+===== end of proposed email =======
