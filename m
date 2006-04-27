@@ -1,22 +1,17 @@
-From: sc2@gmx.at (sc2@gmx.at)
-Date: Mon, 24 Apr 2006 19:14:30 +0000
-Subject: [lm-sensors] Question
-Message-Id: <000301c667d3$5603d550$6bda6c50@bernhard>
+From: millerlf@telus.net (lloyd)
+Date: Thu, 27 Apr 2006 14:25:10 +0000
+Subject: [lm-sensors] user prog "sensors" seg faults on x86_64?
+Message-Id: <4450D446.10303@telus.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020214113146.O24643@Stimpy.netroedge.com>
-In-Reply-To: <20020214113146.O24643@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-hello
-i need the mtp008 module, how i can compile it into the kernel, to use 
-sensors?
-normal compile does not work .
-thanks
-ps: its a 2.6 kernel
-bye
-richard 
+We have a dual Opteron 285 system on a Tyan Tiger K8WE (S2877) 
+motherboard. The make user ; make user_install went fine. The 
+sensor-detect script seemed to run ok and the modprobes seemed to work 
+but the "sensors -s" command segfaults. Is it a 64 bit problem? Using 
+Suse 10.1 x86_64 beta atm.
 
 
