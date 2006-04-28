@@ -1,7 +1,7 @@
-From: tandrews@grok.co.za (Thomas Andrews)
-Date: Fri, 28 Apr 2006 07:50:38 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 28 Apr 2006 11:03:19 +0000
 Subject: [lm-sensors] making a geode i2c slave driver
-Message-Id: <20060428075038.GC14420@grok.co.za>
+Message-Id: <20060428130319.5b9c9217.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060427092159.GA27959@grok.co.za>
 In-Reply-To: <20060427092159.GA27959@grok.co.za>
@@ -10,68 +10,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jordan,
+Hi Thomas,
 
-On Thu, Apr 27, 2006 at 08:30:55AM -0600, Jordan Crouse wrote:
+> I hope you don't mind the imposition, Jean Delvare (khali on
+> #linux-sensors) suggested I contact you about a geode driver that I need
+> to write. (He said you wanted to do something similar a while back.)
 
-> [...] We've been asked to consider adding slave support to the drivers
-> before, and I've been trying to wrap my brain around how extensive we
-> need to go.  Is it just a simple little array in the driver, or is a
-> full blown, all bells and whistles implementation complete with
-> "slave" meta drivers and userland interaction?  [...]
+That was Rudolf Marek who did, actually.
 
-I'm just going to start with the simplest approach. Once I understand
-what I'm doing we can make it more 'generic'. At the moment I don't even
-have a handle on the existing framework. :p
+> At the moment I am using an "adapter" driver for the SC1100 called
+> i2c-nscacb.c. It doesn't seem to have a maintainer, but it only had a
+> couple of little bug-fixes required, so once I'd done that it worked
+> perfectly.
 
-> Our current thinking is that we will create a new class of I2C driver
-> called "slave" drivers - they will register themselves with the I2C
-> framework, and latch on to a particular bus driver with a specific
-> address.
+We have two drivers for similar boards in the kernel already:
+scx200_i2c and scx200_acb. I suspect that the latter is a replacement
+for the older, never merged i2c-nscacb driver you're using. This guess
+is backed up by this one-year old thread:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2005-April/011756.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2005-May/012043.html
 
-This is much more "layered" than how I was thinking of doing it. My
-initial thoughts were to take the existing adapter driver for the geode
-and make it interrupt driven rather than polled. Once that is in place,
-the interrupt handler should then be "aware" of the i2c state-machine's
-current state. It can therefore make sensible decisions about what to do
-when another master tries to talk. If enabled as a slave, the handler
-can then use a call-back to the slave driver...
+> The driver that I wrote for the Atmel is basically a vanilla sensor
+> driver. (...)
+
+How does a microcontroller qualify as a sensor? And what do you mean
+with "vanilla"?
+
+I will merge the following documentation update for the scx200_acb
+driver, comments welcome.
+
+* * * * *
+
+Documentation update for the scx200_acb driver. Hopefully this should
+help future users.
+
+References:
+
+[lm-sensors] Support of i2c-nscacb (April, May 2005)
+  http://lists.lm-sensors.org/pipermail/lm-sensors/2005-April/011756.html
+  http://lists.lm-sensors.org/pipermail/lm-sensors/2005-May/012043.html
+
+[lm-sensors] making a geode i2c slave driver (April 2006)
+  http://lists.lm-sensors.org/pipermail/lm-sensors/2006-April/015998.html
+
+Kernel bug #6445
+  http://bugzilla.kernel.org/show_bug.cgi?idd45
+
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ Documentation/i2c/busses/scx200_acb |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+--- linux-2.6.17-rc3.orig/Documentation/i2c/busses/scx200_acb	2006-04-03 20:12:23.000000000 +0200
++++ linux-2.6.17-rc3/Documentation/i2c/busses/scx200_acb	2006-04-28 10:45:30.000000000 +0200
+@@ -2,14 +2,31 @@
  
-> The bus driver will monitor that address, suck in the data when the
-> interrupt comes through, and push it back up through the framework to
-> the slave driver that will do with it as it will.   That will keep
-> ugly stuff like userland interaction outside of the driver, and it
-> will let us plug in new slave drivers easily without having to have
-> knowledge of the underlying bus.
-
-As I understand it, this would put an additional layer between the
-adapter driver and the hardware. This additional layer would do either
-polling or handle interrupts. It effectively means splitting the adapter
-driver into two parts, if I understand what you're saying. What would be
-the advantage to splitting the driver though?
-
-> > How should I go about this problem? What would you suggest ?
-> 
-> Well, the first thing is to study the spec so you know what you're up
-> against, in terms of adding slave mode to the specific bus driver:
-> 
-> http://www.amd.com/us-en/ConnectivitySolutions/ProductInformation/0,,50_2330_9863_9883%5E9886,00.html
-
-I'm currently using the sc1100 data book. I don't really want to be
-reading two similar docs. Am I reading the wrong one for the more
-generic solution?
+ Author: Christer Weinigel <wingel at nano-system.com>
  
-> You might also want to consider moving up to the scx200_acb.c driver - that
-> way all Geodes can share in your efforts.  
-
-Thanks very much for that! I've moved over now :)
++The driver supersedes the older, never merged driver named i2c-nscacb.
++
+ Module Parameters
+ -----------------
  
-> So good luck.  Please keep me in the loop, and if you need any help,
-> my freenode nick is CosmicPenguin, and i try to hang out in #linux-sensors,
-> though I often forget to re-join after a disconnect.
+-* base: int
++* base: up to 4 ints
+   Base addresses for the ACCESS.bus controllers on SCx200 and SC1100 devices
+ 
++  By default the driver uses two base addresses 0x820 and 0x840.
++  If you want only one base address, specify the second as 0 so as to
++  override this default.
++
+ Description
+ -----------
+ 
+ Enable the use of the ACCESS.bus controller on the Geode SCx200 and
+ SC1100 processors and the CS5535 and CS5536 Geode companion devices.
++
++Device-specific notes
++---------------------
++
++The SC1100 WRAP boards are known to use base addresses 0x810 and 0x820.
++If the scx200_acb driver is built into the kernel, add the following
++parameter to your boot command line:
++  scx200_acb.base=0x810,0x820
++If the scx200_acb driver is built as a module, add the following line to
++the file /etc/modprobe.conf instead:
++  options scx200_acb base=0x810,0x820
 
-Thanks very much, I *really* appreciate the help!
 
-Regards,
-Thomas
+-- 
+Jean Delvare
 
