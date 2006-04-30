@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 30 Apr 2006 12:24:53 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Sun, 30 Apr 2006 19:15:59 +0000
 Subject: [lm-sensors] sensors work but broke the network and sound
-Message-Id: <20060430142453.f2a94edd.khali@linux-fr.org>
+Message-Id: <4dfa50520604301215t610641f8o531a6484c64abc80@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060430120557.12F6E18C67F@mail.host.bg>
 In-Reply-To: <20060430120557.12F6E18C67F@mail.host.bg>
@@ -10,35 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I configured the sensors, now they're working great,
-> but I haven't got network and sound !!!! My sound card is
-> realtek ac97 and the ethernet card is Intel 3Com. I didn't
-> do anything different from typing sensors-detect and then
-> editing /etc/modules.conf and /etc/rc.d/rc.modules as
-> shown in the examples ! Have you got any suggestions
-> how could I repair it ?? Please help!
+Hi Kamen,
 
-You need to provide much more information than that if you want us to
-be able to help you:
+First of all, can you undo the changes and get the sound card and
+network card working again? We'll need to go step by step to find out
+what point exactly it is that breaks everything.
 
-* What motherboard and/or system is it?
+Then, paste the following things into your email.
+1. Output of sensors-detect
+2. /etc/modules.conf and what changes you are making
+3. /etc/rc.d/rc.modules and the changes you are making
+4. What kernel version you have
+5. What distribution you are running
 
-* Linux distribution?
+David
 
-* Kernel version?
-
-* lm_sensors version?
-
-* What kernel modules are you loading for sensors?
-
-* What kernel modules are you loading for network and sound?
-
-* Are the sound and network back if you disable the sensors modules and
-cold reboot?
-
-Oh, and I doubt that something as an "Intel 3Com" network adapter
-exists. It has to be Intel or 3Com, not both.
-
--- 
-Jean Delvare
+On 4/30/06, kamen <kamen at ggbit.info> wrote:
+> Hi
+>
+> I configured the sensors, now they're working great, but I haven't got network and sound !!!! My sound card is realtek ac97 and the ethernet card is Intel 3Com. I didn't do anything different from typing sensors-detect and then editing /etc/modules.conf and /etc/rc.d/rc.modules as shown in the examples ! Have you got any suggestions how could I repair it ?? Please help!
 
