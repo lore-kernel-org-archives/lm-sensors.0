@@ -1,81 +1,122 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Tue, 30 May 2006 19:54:40 +0000
-Subject: [lm-sensors] how accurate?
-Message-Id: <447CA300.60209@sh.cvut.cz>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Mon, 01 May 2006 11:15:07 +0000
+Subject: [lm-sensors] Address configuration for scx200_acb
+Message-Id: <4455EDBB.4000905@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <447ABAC1.3080706@donehue.net>
-In-Reply-To: <447ABAC1.3080706@donehue.net>
+References: <20060427234114.941c9657.khali@linux-fr.org>
+In-Reply-To: <20060427234114.941c9657.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Andrew wrote:
-> Hi All,
-> 
-> I have a server (remote, 300kms away) that crash on me yesterday... 
-> Anyhow, I upgraded it to a 2.6 kernel after it came back up, and 
-> installed lm-sensors.  
+Thomas Andrews wrote:
+> On Thu, Apr 27, 2006 at 11:41:14PM +0200, Jean Delvare wrote:
+>
+>   
+>> Can you please comment on this?
+>> http://bugzilla.kernel.org/show_bug.cgi?idd45#c15
+>>
+>> This is a propsal to make the scx200_acb driver's default base
+>> addresses configurable through Kconfig. What do you think?
+>>
+>> Another possibility would be to detect them at runtime depending on
+>> some platform data. Sounds more complex, if possible at all.
+>>
+>> Or we can stick to the current state (default addresses, can be
+>> overriden with module parameters).
+>>
+>> What makes the current default addresses (0x820 and 0x840) more
+>> legitimate than what Alexander has (0x810 and 0x820)?
+>>     
+>
+> I've been wondering about this myself. I also use the wrap boards, and
+> I've found that the address can be automatically set using something
+> like this:
+>
+> static void detect_acb_base_addresses(int *acb1, int* acb2)
+> {
+>     unsigned char h1 = 0;
+>     unsigned char l1 = 0;
+>     unsigned char h2 = 0;
+>     unsigned char l2 = 0;
+>
+>     /* Select ACB1  (LDN 5) */
+>     outb(0x07,CFG_INDEX);
+>     outb(0x05,CFG_DATA);
+>     outb(0x60,CFG_INDEX);
+>     h1 = inb(CFG_DATA);
+>     outb(0x61,CFG_INDEX);
+>     l1 = inb(CFG_DATA);
+>
+>     /* ACB2 (LDN 6) */
+>     outb(0x07,CFG_INDEX);
+>     outb(0x06,CFG_DATA);
+>     outb(0x60,CFG_INDEX);
+>     h2 = inb(CFG_DATA);
+>     outb(0x61,CFG_INDEX);
+>     l2 = inb(CFG_DATA);
+>     *acb1 = (h1 << 8) | l1;
+>     *acb2 = (h2 << 8) | l2;    
+>     DEBUG(1,printk("ACB1 at %x, ACB2 at %x",*acb1,*acb2));
+> }
+>
+> Would this not work for the whole family ?
+>
+> Regards,
+> Thomas
+>   
 
-Good. Most likely overheat.
+I have a soekris net4801 which has the same sc-1100.
+On my board, ISA addys 2e, 2f talk to a separate Super-IO chip, pc87360.
+which IIRC has an acb unit also.
+Back when I got the board, the presence of 2 superio devices was somewhat
+confusing, until Id read both datasheets - 2x.
 
-> Sensors-detect found the following modules to install:
-> i2c-piix4
-> w83781d
-> eeprom
-> 
-> 
-> I have used sensors on about 15 other machines so far, and the results 
-> always seemed to be accurate.  Is there a chance that the temps could be 
-> wrong? (I haven't used this module before). The machine is reasonably 
-> old, so I would not be surprised if the fans were broken...
+FWIW, the pc87360 has these (from a pre-proto-patch I still have)
 
-Well there is always a chance...
++char* funcblocks[] = {
++       "Floppy Disk Controller (FDC)",
++       "Parallel Port (PP)",
++       "Serial Port 2 with IR (SP2)",
++       "Serial Port 1 (SP1)",
++       "System Wake-Up Control (SWC)",
++       "Keyboard and Mouse Controller (KBC) - Mouse interface",
++       "Keyboard and Mouse Controller (KBC) - Keyboard interface",
++       "General-Purpose I/O (GPIO) Ports",
++       "ACCESS.bus Interface (ACB)",
++       "Fan Speed Control and Monitor (FSCM)",
++       "WATCHDOG Timer (WDT)",
++       "Game Port (GMP)",
++       "Musical Instrument Digital Interface (MIDI) Port",
++       "Voltage Level Monitor (VLM)",
++       "Temperature Sensor (TMS)",
++       NULL
++};
++
++
++struct pc87366_unit pc87366_units[] = {
++       { 8,    "Floppy Disk Controller (FDC)" },
++       { 0x10, "Parallel Port (PP)" },
++       { 8, "Serial Port 2 with IR (SP2)" },
++       { 8, "Serial Port 1 (SP1)" },
++       { 0x10, "System Wake-Up Control (SWC)" },
++       { 0x10, "Keyboard and Mouse Controller (KBC) - Mouse interface" },
++       { 0x10, "Keyboard and Mouse Controller (KBC) - Keyboard 
+interface" },
++       { 0x0c, "General-Purpose I/O (GPIO) Ports" },
++       { 6,    "ACCESS.bus Interface (ACB)" },
++       { 0,    "Fan Speed Control and Monitor (FSCM)" },
++       { 4,    "WATCHDOG Timer (WDT)" },
++       { 0x0d, "Game Port (GMP)" },
++       { 3,    "Musical Instrument Digital Interface (MIDI) Port" },
++       { 0x10, "Voltage Level Monitor (VLM)" },
++       { 0x0f, "Temperature Sensor (TMS)" },
++       { 0,    NULL }
++};
 
-Do you know the motherboard manufacturer? maybe we can compare with some 
-database of motherboards to see which thermal lines means what.
 
-Maybe you can try dmidecode utility which should tell you the manuf name.
-
-> w83782d-i2c-0-29
-> Adapter: SMBus PIIX4 adapter at 0580
-> VCore 1:   +1.50 V  (min =  +0.00 V, max =  +4.08 V)
-> VCore 2:   +1.25 V  (min =  +0.00 V, max =  +4.08 V)
-> +3.3V:     +3.31 V  (min =  +2.82 V, max =  +3.79 V)
-> +5V:       +5.08 V  (min =  +4.52 V, max =  +4.30 V)       ALARM
-> +12V:     +11.86 V  (min =  +0.06 V, max =  +0.00 V)       ALARM
-> -12V:      -1.01 V  (min =  -9.65 V, max = -12.28 V)       ALARM
-> -5V:       +2.59 V  (min =  +0.33 V, max =  -0.93 V)       ALARM
-> V5SB:      +5.08 V  (min =  +0.86 V, max =  +3.44 V)       ALARM
-> VBat:      +1.04 V  (min =  +0.03 V, max =  +0.02 V)       ALARM
-> fan1:        0 RPM  (min = 21093 RPM, div = 2)              ALARM
-> fan2:        0 RPM  (min = 16071 RPM, div = 2)              ALARM
-> fan3:        0 RPM  (min = 75000 RPM, div = 2)              ALARM
-
-Try changing fan divisor to 4 or 8 if the fan really spins. (but slowly)
-
-> temp1:       +77 C  (high =    +0 C, hyst =    +4 C)   sensor = 
-> thermistor   ALARM
-
-Thermistor...  Quite hot down the CPU socket...
-
-> temp2:     +64.0 C  (high =   +80 C, hyst =   +75 C)   sensor = thermistor
-> temp3:     +64.0 C  (high =   +80 C, hyst =   +75 C)   sensor = thermistor
-
-64 quite hot inside.
-
-You may try to change the temp inputs to diode to see if there some more 
-reasonable temps...
-
-Suggested steps: change the fan divisor (check fanX_div stuff in sensors conf) 
-to see if the fans still reads 0
-if so maybe someone should check the fan if it is stuck or not + PSU fan.
-
-then you might try to change the sensor type to diode... (set senors stuff)
-
-Best would be to know the motherboard manufacturer/type so we might know what 
-sensors is what...
-
-Regards
-Rudolf
+the sc-1100 has fewer functional units; I dimly recall poking at them 
+this same way,
+but I cant dig up any old bones.
 
