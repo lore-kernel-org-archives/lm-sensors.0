@@ -1,22 +1,27 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Tue, 30 May 2006 14:09:56 +0000
-Subject: [lm-sensors] How to control GPIOs I2C chips from a separate
-Message-Id: <447C5234.7030200@sh.cvut.cz>
+From: alexander.krause@erazor-zone.de (Alexander Krause)
+Date: Tue, 02 May 2006 14:25:31 +0000
+Subject: [lm-sensors] i2c bindings in python?
+Message-Id: <200605021625.31660.alexander.krause@erazor-zone.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200605231229.55405.laurent.pinchart@tbox.biz>
-In-Reply-To: <200605231229.55405.laurent.pinchart@tbox.biz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hi,
 
-> Most NDA don't prevent you from publishing source code based on the
-> documentation.
+just wanna ask if there is some kind of library for python to handle 
+i2c-transfers (via usermode like i2cset and i2cget does).
 
-Well sometimes they dont care but better to check.
+I couldn't find any using google.
 
-Regards
-Rudolf
+
+cheers Alex
+-- 
+Alexander Krause
+Amtmann-K?stner-Platz 11
+99091 Erfurt
+
+Mail alexander.krause at erazor-zone.de
+Tel. +49 (179) 4725826
 
