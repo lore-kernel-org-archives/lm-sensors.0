@@ -1,56 +1,66 @@
-From: dieter.jurzitza@t-online.de (Dieter Jurzitza)
-Date: Tue, 02 May 2006 19:28:10 +0000
-Subject: [lm-sensors] latest findings - my older posting from ~ 11 days ago
-Message-Id: <200605022128.10627.dieter.jurzitza@t-online.de>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Wed, 03 May 2006 21:37:01 +0000
+Subject: [lm-sensors] latest findings - my older posting from ~ 11 days
+Message-Id: <4459227D.8080700@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200605022128.10627.dieter.jurzitza@t-online.de>
+In-Reply-To: <200605022128.10627.dieter.jurzitza@t-online.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dear Rudolf,
-dear listmembers,
-after having configured the debugging nothing bad had happened - but I readily 
-knew that could happen so I was patient.
-Today returning from home the problem had had reappeared:
+Hello Dieter
 
-Please see file attached. You will find a "SMBus collision", and, after that, 
-"sensors" is dead.
+> after having configured the debugging nothing bad had happened - but I readily 
+> knew that could happen so I was patient.
+> Today returning from home the problem had had reappeared:
+> 
+> Please see file attached. You will find a "SMBus collision", and, after that, 
+> "sensors" is dead.
 
-So, I added several lines on top in order to (possibly ...) help who 
-understands what is happening here.
+OK got it.
 
-This time the module loaded are:
-i2c-amd75, i2c-isa, w83781d and eeprom
+To me it seems as:
 
-Let me know how to proceed, thank you in advance, take care
+1) silicon bug in the AMD chipset state machine
+2) design error in motherboard or some malfunctioning chip hooked on SMBus
 
+Lets see if there is somewhere a register with the state of state machine ;)
+so we know if it is #1. Jordan just contacted some chip designer so we will have 
+more information later..
 
+Now my questions:
 
-Dieter
+Does it start to work after reboot? After cold boot? After power unplug?
+Have you ACPI in kernel? Have you compiled/loaded/in kernel the thermal module?
 
-P.S. please see the excerpt of a messages file attached. I bzip2-ed it in 
-order to save space.
+If it will happen again in future you may try following:
 
--- 
------------------------------------------------------------
+1) obtain the smb base addr
+	AMD756_smba = xxx
+Should be in your debug log, you may use value from older log because it does 
+not change. Alternatively you may also look into cat /proc/ioports
 
-                               |
-                                \
-                 /\_/\           |
-                | ~x~ |/-----\   /
-                 \   /-       \_/
-  ^^__   _        /  _  ____   /
- <??__ \- \_/     |  |/    |  |
-  ||  ||         _| _|    _| _|
+then you may use the isadump tool
+2)
+isadump -f xxx
 
-if you really want to see the pictures above - use some font
-with constant spacing like courier! :-)
------------------------------------------------------------
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: collision.bz2
-Type: application/x-bzip2
-Size: 1407 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060502/c8bd81a2/collision.bz2
+(please replace the xxx with the base address from the log) This will allow us 
+to check the status of the SMBDATA and SMBCLK lines and see if they are stuck 
+low. Eventually we can try to excersise the DATA and CLK lines to see if they
+are working properly.
+
+You may also try to provoke the failure by running this:
+
+modprobe i2c-dev
+modprobe i2c-amd756
+while true; do i2cdump -y 0 0x2d b > /dev/null; done
+
+This will read from the bus again and again and I'm expecting that it will soon 
+or later fail. You dont need to enable the the debugging now I guess it wont 
+come with anything new.
+
+Regards
+Rudolf
+
