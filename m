@@ -1,23 +1,30 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 30 May 2006 12:34:39 +0000
-Subject: [lm-sensors] [PATCH] Fix the set pwm value will change fan mode
-Message-Id: <20060530143439.69125e22.khali@linux-fr.org>
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Wed, 03 May 2006 04:44:26 +0000
+Subject: [lm-sensors] [PATCH 1/2 RESEND] hwmon: new vt1211 driver
+Message-Id: <191fb4ca0605022144j208fa753u49c3d715b49014d4@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <444610F0.1070809@winbond.com.tw>
-In-Reply-To: <444610F0.1070809@winbond.com.tw>
+References: <191fb4ca0604062128m60ba1c53gbcab205aa6f40c0c@mail.gmail.com>
+In-Reply-To: <191fb4ca0604062128m60ba1c53gbcab205aa6f40c0c@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Yuan,
+Hi Rudolf,
 
-> And do we need to add lock in other store functions in w83792d ?
+Just wondering when you might have the time to review the updated vt1211 driver?
 
-Yes, we do. I'm surprised that it isn't the case. All drivers were
-supposedly fixed at the same time. Maybe the w83792d driver was
-integrated at that time and slipped through the checks.
+Thanks
+...juerg
 
--- 
-Jean Delvare
+
+> Incorporated suggestions made by Rudolf Marek.
+>
+> This is a new driver for the VIA vt1211 Super-IO chip. It is a rewrite of the
+> existing vt1211 driver (by Mark D. Studebaker and Lars Ekman) that has been
+> around for a while but never made it into the main kernel tree. It is
+> implemented as a platform driver and therefore requires the latest CVS version
+> of lm_sensors to function properly.
+>
+> Signed-off-by: Juerg Haefliger <juergh at gmail.com
 
