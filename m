@@ -1,30 +1,60 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 10 May 2006 17:16:21 +0000
-Subject: [lm-sensors] Question
-Message-Id: <44621FE5.1000705@sh.cvut.cz>
+From: millerlf@telus.net (lloyd)
+Date: Thu, 04 May 2006 00:30:58 +0000
+Subject: [lm-sensors] user prog "sensors" seg faults on x86_64?
+Message-Id: <44594B42.4090800@telus.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020214113146.O24643@Stimpy.netroedge.com>
-In-Reply-To: <20020214113146.O24643@Stimpy.netroedge.com>
+References: <4450D446.10303@telus.net>
+In-Reply-To: <4450D446.10303@telus.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello
+  Jean Delvare <khali at linux-fr.org> wrote
 
-> i need the mtp008 module, how i can compile it into the kernel, to use 
-> sensors?
-> normal compile does not work .
-> thanks
-> ps: its a 2.6 kernel
+| > We have a dual Opteron 285 system on a Tyan Tiger K8WE (S2877)
+| > motherboard. The make user ; make user_install went fine. The
+| > sensor-detect script seemed to run ok and the modprobes seemed to work
+| > but the "sensors -s" command segfaults. Is it a 64 bit problem? Using
+| > Suse 10.1 x86_64 beta atm.
+|
+|
+| Which version of lm_sensors is this?
 
-This driver has not been ported to 2.6 kernel. You can do it yourself, offer 
-some reward for it or pay it. Currently we do not have any free time to do that 
-on "free" basis. But of course if you want to do it yourself we will help you.
+2.10.0
 
-If you need just quick and dirty solution, you can use i2cdump util to read a 
-raw register value and convert it to a temperature with a shell script.
+|
+| Does "sensors" (without -s) work?
 
-Regards
-Rudolf
+also seg faults
+
+|
+| Why don't you use the package which comes with Suse?
+
+also seg faults (I downloaded the package assuming it would be newer, it 
+wasn't)
+
+|
+| Which beta is this?
+
+10.1 beta 9
+
+|
+| I'm using lm_sensors on Suse 10.0 x86_64 myself for quite some time
+| now
+| without a problem, so I doubt there is a general 64-bit problem.
+|
+
+It seems it is something in the sysfs that is causing the crash. I tried
+to build sensors with debuging but all gdb would tell me was the seg
+fault was in :
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00002af197a9deaf in sensors_read_one_sysfs_chip () from 
+/usr/local/lib/libsensors.so.3
+
+I havn't got it to tell me the exact line
+where its crashing (yet).
+
+
 
