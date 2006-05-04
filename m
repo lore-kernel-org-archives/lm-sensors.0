@@ -1,30 +1,31 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Tue, 23 May 2006 10:23:23 +0000
-Subject: [lm-sensors] apply "I2C patch for Intel ICH8" into next
-Message-Id: <4472E29B.2010801@sh.cvut.cz>
+From: tandrews@grok.co.za (Thomas Andrews)
+Date: Thu, 04 May 2006 08:02:31 +0000
+Subject: [lm-sensors] unique names for module parameters
+Message-Id: <20060504080231.GH19375@grok.co.za>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060522063247.36935.qmail@web33413.mail.mud.yahoo.com>
-In-Reply-To: <20060522063247.36935.qmail@web33413.mail.mud.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Yi-Chih Chen wrote:
-> Hi,
-> 
-> I found "I2C patch for Intel ICH8" available at 
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2006-February/015229.html
-> , but did not see it on http://netroedge.com/~lm78/supported.html
-> 
-> Would you apply the patch into next revision of I2C / LM Sensors?
+Hi,
 
-I just updated the driver. Now it is in CVS. The daily snapshot generates well I
-think daily :) So please use the CVS to checkout it or wait some time.
+If a module has a parameter like "base", and you want to build a
+monolithic kernel, as I understand it, you must put into your lilo/grub
+kenel command-line. Is that correct?
 
-Please can you test it, if it works for you?
+If that is the case, then surely it is a bit short-sighted to use module
+parameter names like "base" and "irq", etc because there is a very good
+chance of modules using the same parameter names, and hence causing a
+kind of name-space pollution?
 
-Thanks,
-Regards
-Rudolf
+Would it not make more sense to prefix all module parameters in a more
+consistent manner eg:
+
+    scx200_acb_base=0x810,0x820,0x830,0x840
+    scx200_acb_sioaddr=0x2e,0x4e,0x15c
+    scx200_acb_irq=5
+
+Regards,
+Thomas
 
