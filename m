@@ -1,7 +1,7 @@
 From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 03 May 2006 21:37:01 +0000
+Date: Fri, 05 May 2006 19:54:41 +0000
 Subject: [lm-sensors] latest findings - my older posting from ~ 11 days
-Message-Id: <4459227D.8080700@sh.cvut.cz>
+Message-Id: <445BAD81.4080708@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200605022128.10627.dieter.jurzitza@t-online.de>
 In-Reply-To: <200605022128.10627.dieter.jurzitza@t-online.de>
@@ -10,57 +10,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Dieter
+Hello Dieter,
 
-> after having configured the debugging nothing bad had happened - but I readily 
-> knew that could happen so I was patient.
-> Today returning from home the problem had had reappeared:
+Please dont forget to CC the list.
+
+> No! The reset button does *not* cure the problem. This is different from 
+> "normal" behaviour"
+
+Ok
+
 > 
-> Please see file attached. You will find a "SMBus collision", and, after that, 
-> "sensors" is dead.
+>>Have you ACPI in kernel? 
+> 
+> Yes. Any info required on that?
 
-OK got it.
+Please mail dsdt.bin
 
-To me it seems as:
+cat /proc/acpi/dsdt > /tmp/dsdt.bin
 
-1) silicon bug in the AMD chipset state machine
-2) design error in motherboard or some malfunctioning chip hooked on SMBus
+>>Have you compiled/loaded/in kernel the thermal module?
 
-Lets see if there is somewhere a register with the state of state machine ;)
-so we know if it is #1. Jordan just contacted some chip designer so we will have 
-more information later..
+And no support for "thermal" module (thermal is the module name or ACPI subsytem
+option in kernel)
 
-Now my questions:
+> It will :-(
+> This is my homework, I'll be back with you as soon as I have results to tell.
+> 
+>>1) obtain the smb base addr
+>>	AMD756_smba = xxx
+>>Should be in your debug log, you may use value from older log because it
+>>does not change. Alternatively you may also look into cat /proc/ioports
+>>
+>>then you may use the isadump tool
+>>2)
+>>isadump -f xxx
 
-Does it start to work after reboot? After cold boot? After power unplug?
-Have you ACPI in kernel? Have you compiled/loaded/in kernel the thermal module?
+Please dont forget the 0x prefix before the address
 
-If it will happen again in future you may try following:
+>>while true; do i2cdump -y 0 0x2d b > /dev/null; done
 
-1) obtain the smb base addr
-	AMD756_smba = xxx
-Should be in your debug log, you may use value from older log because it does 
-not change. Alternatively you may also look into cat /proc/ioports
+You may insert here some sleep 1 maybe. But lets try without first.
 
-then you may use the isadump tool
-2)
-isadump -f xxx
+> Thanks for helping that far. I will unload the debug kernel now as it spits 
+> about 400 MByte of i2c-debug logs into /var/log/messages.
 
-(please replace the xxx with the base address from the log) This will allow us 
-to check the status of the SMBDATA and SMBCLK lines and see if they are stuck 
-low. Eventually we can try to excersise the DATA and CLK lines to see if they
-are working properly.
+Good.
 
-You may also try to provoke the failure by running this:
-
-modprobe i2c-dev
-modprobe i2c-amd756
-while true; do i2cdump -y 0 0x2d b > /dev/null; done
-
-This will read from the bus again and again and I'm expecting that it will soon 
-or later fail. You dont need to enable the the debugging now I guess it wont 
-come with anything new.
-
-Regards
+regards
 Rudolf
 
