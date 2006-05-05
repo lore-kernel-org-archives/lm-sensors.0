@@ -1,51 +1,41 @@
-From: millerlf@telus.net (lloyd)
-Date: Tue, 02 May 2006 15:10:58 +0000
-Subject: [lm-sensors] lm-sensors Digest, Vol 12, Issue 57
-Message-Id: <44577682.1000408@telus.net>
+From: tandrews@grok.co.za (Thomas Andrews)
+Date: Fri, 05 May 2006 13:16:21 +0000
+Subject: [lm-sensors] architecture for slave mode
+Message-Id: <20060505131621.GK19375@grok.co.za>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-  Jean Delvare <khali at linux-fr.org> wrote | Subject: Re: [lm-sensors] 
-user prog "sensors" seg faults on x86_64? |
+Hi,
 
->| > We have a dual Opteron 285 system on a Tyan Tiger K8WE (S2877) 
->| > motherboard. The make user ; make user_install went fine. The 
->| > sensor-detect script seemed to run ok and the modprobes seemed to work 
->| > but the "sensors -s" command segfaults. Is it a 64 bit problem? Using 
->| > Suse 10.1 x86_64 beta atm.
->  
->
-| 
-| Which version of lm_sensors is this?
+I have managed successfully to make the scx200_acb.c module use either
+interrupts or use polling, so that I can ultimately operate the adapter
+as a slave.
 
-2.10.0
+To achieve this, I need a 'task' that sleeps most of the time, and will
+get woken up by my ISR. This task can then do one of two things:
 
-| 
-| Does "sensors" (without -s) work?
+    (a) If the adapter is busy as a master, then wake the master
+        state-machine to continue with the comms, or
+    (b) If the adapter is idle, invoke the slave state-machine to receive
+        the data from the bus.
 
-also seg faults
+(At the moment the ISR just wakes the master state-machine directly.)
 
-| 
-| Why don't you use the package which comes with Suse?
+Questions:
 
-also seg faults (I downloaded the package assuming it would be newer, it wasn't)
+    (1) How is it best to create/start this 'receiver task'?
+        Should this be done in i2c-core.c ?
+    (2) An interpreter proc will have to be called by the slave
+        state-machine. Presumably my 'client' driver will install this
+        by means of some call-back. Would one use something like
+        i2c_register_entry() for that ? 
 
-| 
-| Which beta is this?
+I don't really understand fully how all the i2c-* modules fit together,
+so please feel free to tell me if I'm off the track here..
 
-10.1 beta 9
-| 
-| I'm using lm_sensors on Suse 10.0 x86_64 myself for quite some time now
-| without a problem, so I doubt there is a general 64-bit problem.
-| 
-it seems it is something in the sysfs that is causing the crash. I tried 
-to build sensors with debuging but all gdb would tell me was the seg 
-fault was in : Program received signal SIGSEGV, Segmentation fault. 
-0x00002af197a9deaf in sensors_read_one_sysfs_chip () from 
-/usr/local/lib/libsensors.so.3 I havn't got it to tell me the exact line 
-where its crashing (yet).
-
+Regards,
+Thomas
 
