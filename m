@@ -1,7 +1,7 @@
-From: dieter.jurzitza@t-online.de (Dieter Jurzitza)
-Date: Fri, 05 May 2006 21:06:37 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Fri, 05 May 2006 21:33:55 +0000
 Subject: [lm-sensors] latest findings - my older posting from ~ 11 days
-Message-Id: <200605052306.37845.dieter.jurzitza@t-online.de>
+Message-Id: <445BC4C3.4030501@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200605022128.10627.dieter.jurzitza@t-online.de>
 In-Reply-To: <200605022128.10627.dieter.jurzitza@t-online.de>
@@ -10,63 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Rudolf,
-> Please dont forget to CC the list.
-will not happen any more. Best is sending to the list - you are subscribed 
-anyway, you won't need it twice.
-> Please mail dsdt.bin
-Attached to this email
-> And no support for "thermal" module (thermal is the module name or ACPI
-> subsytem option in kernel)
-there is a /proc/acpi/thermal_zone directory, but it is empty.
+Thanks for the report.
 
-/home/fred> ls -l /proc/acpi/
-insgesamt 0
-dr-xr-xr-x   10 root root 0 2006-05-05 22:47 ./
-dr-xr-xr-x  166 root root 0 2006-05-05 22:46 ../
-dr-xr-xr-x    2 root root 0 2006-05-05 23:04 ac_adapter/
--rw-r--r--    1 root root 0 2006-05-05 23:04 alarm
-dr-xr-xr-x    2 root root 0 2006-05-05 23:04 battery/
-dr-xr-xr-x    4 root root 0 2006-05-05 23:04 button/
--r--------    1 root root 0 2006-05-05 23:04 dsdt
-dr-xr-xr-x    2 root root 0 2006-05-05 23:04 embedded_controller/
--r--------    1 root root 0 2006-05-05 22:47 event
--r--------    1 root root 0 2006-05-05 23:04 fadt
-dr-xr-xr-x    2 root root 0 2006-05-05 23:04 fan/
--r--r--r--    1 root root 0 2006-05-05 23:04 info
-dr-xr-xr-x    2 root root 0 2006-05-05 23:04 power_resource/
-dr-xr-xr-x    4 root root 0 2006-05-05 23:04 processor/
--rw-r--r--    1 root root 0 2006-05-05 23:04 sleep
-dr-xr-xr-x    2 root root 0 2006-05-05 23:04 thermal_zone/
--rw-r--r--    1 root root 0 2006-05-05 23:04 wakeup << empty!!!
+80c0: 68 48 20 2c 2c 6c 6c 6c 65 65 44 65 28 4c 20 44
 
+the 0x48 means that DATA line of smbus is forced low
+so the bus is stuck. The bit 5 offers the realtime status
+of the bus line.
 
-That's it for the moment! I wonder what findings you'll bring up!
-Thanks again,
-take care
+(http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/23167.pdf
+page 83)
 
+When the bus is stuck again you may try following:
 
-Dieter
+rmmod i2c-amd756
 
--- 
------------------------------------------------------------
+Now lets reprogram the chipset to force 1 to the DATA line,
+if the isadump will be 0x68 then the chipset has some bug
+otherwise some device on the bus has the bug.
 
-                               |
-                                \
-                 /\_/\           |
-                | ~x~ |/-----\   /
-                 \   /-       \_/
-  ^^__   _        /  _  ____   /
- <??__ \- \_/     |  |/    |  |
-  ||  ||         _| _|    _| _|
+isaset -y -f 0x80c0 0x5
+isaset -y -f 0x80c1 0x5
+isadump -y -f 0x8000
 
-if you really want to see the pictures above - use some font
-with constant spacing like courier! :-)
------------------------------------------------------------
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: dsdt.bin.zip
-Type: application/x-zip
-Size: 3542 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060505/9c997768/dsdt.bin-0001.bin
+Regards
+Rudolf
+
+Thanks,
+
+regards
+Rudolf
+
