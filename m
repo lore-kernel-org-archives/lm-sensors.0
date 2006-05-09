@@ -1,42 +1,56 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 26 May 2006 10:22:44 +0000
-Subject: [lm-sensors] decode-dimms.pl with kernel 2.6
-Message-Id: <20060526122244.64b4c048.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Tue, 09 May 2006 20:08:25 +0000
+Subject: [lm-sensors] [PATCH 2/3] scx200_acb: Fix resource name use after
+Message-Id: <11472053061587-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Gernot,
+From: Jean Delvare <khali at linux-fr.org>
 
-A long, long time ago (May 2004), Gernot Vormayr wrote:
-> i'm using lm-sensors on my pc with a 2.6 kernel and it works great!
-> great work!
-> 
-> well i wanted to figure out which ram i have in my computer and found 
-> decode-dimms.pl... but this doesn't work with kernel 2.6 (it tries to reach 
-> the eeprom data of the spd in /proc - in kernel 2.6 this is in /sys) so i dl 
-> some jedec specifications and created my own program.
-> i'm not so good at perl - so i tried to create one with C
-> well it works fine for my DDR RAM and seems to display correct data.
-> it is able to display information about SDRAM and DDR SDRAM.
-> (information = nearly everything which is in the spd according to the JEDEC 
-> specs)
+We can't pass a string on the stack to request_region. As soon as we
+leave the function that stack is gone and the string is lost. Let's
+use the same string we identify the i2c_adapter with instead, it's
+more simple, more consistent, and just works.
 
-For your information, our script now supports Linux 2.6 (since July
-2006, lm_sensors 2.9.2). We also have DDR SDRAM (and DDR2 SDRAM)
-support in lm_sensors CVS. It doesn't decode everything for these
-memory types, but the more important characteristics are there.
+This is the second half of fix to bug #6445.
 
-> it's not very well formated at the moment and some comments wouldn't be bad 
-> too. if u want to use this peace of code then i would reformat the source and 
-> send this file to u. (and if u want reformat the output to a better form)
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
-Well I think we'll stick to our perl script, it's easier for us to
-maintain and probably for people to test too. And it works fine now, so
-why change it? ;)
+---
 
+ drivers/i2c/busses/scx200_acb.c |    6 +-----
+ 1 files changed, 1 insertions(+), 5 deletions(-)
+
+b33d0798e6cfae1fcee75afc808fe5690a48a814
+diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
+index f2dae68..42e4e00 100644
+--- a/drivers/i2c/busses/scx200_acb.c
++++ b/drivers/i2c/busses/scx200_acb.c
+@@ -415,7 +415,6 @@ static int  __init scx200_acb_create(con
+ 	struct scx200_acb_iface *iface;
+ 	struct i2c_adapter *adapter;
+ 	int rc;
+-	char description[64];
+ 
+ 	iface = kzalloc(sizeof(*iface), GFP_KERNEL);
+ 	if (!iface) {
+@@ -434,10 +433,7 @@ static int  __init scx200_acb_create(con
+ 
+ 	mutex_init(&iface->mutex);
+ 
+-	snprintf(description, sizeof(description), "%s ACCESS.bus [%s]",
+-		 text, adapter->name);
+-
+-	if (request_region(base, 8, description) = 0) {
++	if (!request_region(base, 8, adapter->name)) {
+ 		printk(KERN_ERR NAME ": can't allocate io 0x%x-0x%x\n",
+ 			base, base + 8-1);
+ 		rc = -EBUSY;
 -- 
-Jean Delvare
+1.3.2
+
 
