@@ -1,7 +1,7 @@
 From: tandrews@grok.co.za (Thomas Andrews)
-Date: Thu, 04 May 2006 06:32:05 +0000
+Date: Wed, 10 May 2006 18:36:26 +0000
 Subject: [lm-sensors] Address configuration for scx200_acb
-Message-Id: <20060504063205.GG19375@grok.co.za>
+Message-Id: <20060510183626.GD30963@grok.co.za>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060427234114.941c9657.khali@linux-fr.org>
 In-Reply-To: <20060427234114.941c9657.khali@linux-fr.org>
@@ -12,71 +12,52 @@ To: lm-sensors@vger.kernel.org
 
 Hi Jim,
 
-On Wed, May 03, 2006 at 11:24:23PM -0400, Jim Cromie wrote:
+On Fri, May 05, 2006 at 10:39:50AM -0400, Jim Cromie wrote:
 
-> This is premature, and hugely incomplete - (basically one observation)
+[...]
 
-Even so I really appreciate it! :)
+> Im looking for the right way to coordinate use of Super-IO control
+> ports amongst the drivers that would use them.  While you and I dont
+> actually compete for the same port (mines at 2E,2F), you clearly have
+> a clue about these things, and could either; - provide me with one (if
+> you see that I need it ;-) - add it into your thinking on your driver
+> (so that its easy to fit in a port-lock-coordinator later) - tell me
+> that Ive more or less thought of everything that seems relevant.  - or
+> some combo of them..
+
+I've had a look at the links you gave, and it made a lot of sense to me
+because I've been worrying about collisions in usage of the SIO. I'm
+pretty sure I can make good use of your module.
+
+One thing that I must mention though, is that in order to discover the
+actual SIO address, I have had to access other regions, and these are
+not always the same; the actual address depends on a) the bootloader,
+and b) how pins are strapped.
+
+The long and short of this is that I will need to make use of your
+locking mechanism on all of the addresses, not just on the SIO address.
+Looking at your code, that doesn't seem to be a problem though. I only
+need to lock 3 or 4 addresses briefly.
+
+If my explanation is too vague, I'll send you my module, and you can
+have a look to see how I do it, but it's not very readable unless you
+have the sc1100 data-sheet close at hand. Just shout if you want to see
+it.
  
-> >+	// Select ACB0 (LDN 5)
-> >+	outb(0x07,sio); // LDN select register
-> >+	outb(0x05,val); // Choose LDN 5 ie ACCESS.bus 1
-> >+	outb(0x60,sio); // Select I/O port 0 base addr
-> >+	h1 = inb(val);
-> >+	outb(0x61,sio);
-> >+	l1 = inb(val);
-> >  
-> 
-> please use these helper functions - lifted verbatim from another patch.
-> These show up in various superio drivers in lm-sensors, consistency is good,
-> and will help later if we need to mediate access to the SIO port,
-> to share it amongst multiple drivers.
-> 
-> +
-> +static inline void superio_outb(int reg, int val)
-> +{
-> +	outb(reg, SIO_REG_CIP);
-> +	outb(val, SIO_REG_DIP);
-> +}
-> +
-> +static inline int superio_inb(int reg)
-> +{
-> +	outb(reg, SIO_REG_CIP);
-> +	return inb(SIO_REG_DIP);
-> +}
-> +
-> +static inline void superio_select(int ldn)
-> +{
-> +	outb(SIO_VT1211_LDN, SIO_REG_CIP);
-> +	outb(ldn, SIO_REG_DIP);
-> +}
-> +
-> +static inline void superio_enter(void)
-> +{
-> +	outb(0x87, SIO_REG_CIP);
-> +	outb(0x87, SIO_REG_CIP);
-> +}
-> +
-> +static inline void superio_exit(void)
-> +{
-> +	outb(0xaa, SIO_REG_CIP);
-> +}
+[...]
 
-I can't use those helper functions as is, because the whole purpose of
-my patch is so that you can move away from using a #define for
-SIO_REG_CIP. I'll write some equivalents for this module which use a
-parameter instead.
+> Im still on the hook for giving your code a compile, load, try.  I
+> might need some guidance on the try part, I'll email on that if/when I
+> do.
 
-> I havent actually checked, but it would be nice if you used the -p option
->   -p     Show which C function each change is in.
+Thanks. But you could also hang on until I submit a more final version,
+because I've drastically improved the discovery of the SIO address now,
+plus got interrupt-driven mode working nicely.
 
-Thanks, I will use -p in future.
+> btw, wheres za ?
 
-> and eventually, you'll probly need to do something about the nesting level.
-> // and the c++ comments. :-(
+South Africa - Down at the very bottom in a town called Cape Town
 
-I've changed all the comments to /* */ style.
-
-Regards,
+Cheers,
 Thomas
 
