@@ -1,73 +1,43 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Mon, 15 May 2006 21:52:10 +0000
-Subject: [lm-sensors] compaq evo w6000
-Message-Id: <4468F80A.1000804@sh.cvut.cz>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 11 May 2006 14:31:15 +0000
+Subject: [lm-sensors] set lines in sensors.conf.eg
+Message-Id: <20060511163115.7ca1d6a5.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4464301C.9030003@tu-bs.de>
-In-Reply-To: <4464301C.9030003@tu-bs.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi all,
 
-> 
-> 0000:00:00.0 Host bridge: Intel Corp. 82860 860 (Wombat) Chipset Host 
-> Bridge (MCH) (rev 04)
-> 0000:00:01.0 PCI bridge: Intel Corp. 82850 850 (Tehama) Chipset AGP 
-> Bridge (rev 04)
-> 0000:00:1e.0 PCI bridge: Intel Corp. 82801 PCI Bridge (rev 04)
-> 0000:00:1f.0 ISA bridge: Intel Corp. 82801BA ISA Bridge (LPC) (rev 04)
-> 0000:00:1f.1 IDE interface: Intel Corp. 82801BA IDE U100 (rev 04)
-> 0000:00:1f.2 USB Controller: Intel Corp. 82801BA/BAM USB (Hub #1) (rev 04)
-> 0000:00:1f.4 USB Controller: Intel Corp. 82801BA/BAM USB (Hub #2) (rev 04)
-> 0000:01:00.0 VGA compatible controller: nVidia Corporation NV10GL 
-> [Quadro] (rev 10)
-> 0000:02:06.0 Multimedia audio controller: Ensoniq ES1371 [AudioPCI-97] 
-> (rev 09)
-> 0000:02:08.0 Ethernet controller: Intel Corp. 82801BA/BAM/CA/CAM 
-> Ethernet Controller (rev 03)
-> 0000:02:0d.0 SCSI storage controller: Adaptec AIC-7892P U160/m (rev 02)
-> 
+There have been several reports about systems getting into various
+trouble after installing lm_sensors these last months. Symptoms could
+be instant shutdown, beeps, or slowness. Each time, the reason why that
+"sensors -s" was run at boot time, and the default sensors
+configuration file would trigger an alarm, and the system would be
+hardwired to react to that alarm.
 
+References:
+http://bugzilla.kernel.org/show_bug.cgi?idC32
+http://bugzilla.kernel.org/show_bug.cgi?idQ86
+https://bugzilla.novell.com/show_bug.cgi?id0542
+https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id9878
+http://lists.lm-sensors.org/pipermail/lm-sensors/2005-March/011369.html
 
-> Can anybody help me to solve this problem? Maybe some unix commands that 
-> can give me the right
-> values?
+And I'm certain I'm missing several other reports on this list and
+elsewhere.
 
-Quick howto:
-1) lspci -n will tell you the IDs, you will need: pci Id of 0000:00:1f.0
+With newer systems featuring hardware protection, I expect to see this
+kind of problem even more frequently in the next months. It seems
+reasonable for distributions to run "sensors -s" at boot time,
+sensors-config itself suggests it. So my conclusion is that the default
+sensors.conf configuration file should NOT have any "set" line
+activated. Any such line is likely to create an alarm condition. This
+is especially true for temperature inputs.
 
-first part is 8086: which is intel, second part is the requested ID
+Thus I am proposing that we comment out all "set" lines in
+sensors.conf.eg. What do others think?
 
-2) quick hack the quirks.c
-
-change this:
-static int __initdata asus_hides_smbus = 0;
-to
-static int __initdata asus_hides_smbus = 1;
-
-Then recompile and run. you should now see the smbus. If not then take the pci 
-ID from step 1 and change following line:
-DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,   PCI_DEVICE_ID_INTEL_82801BA_0, 
-asus_hides_smbus_lpc );
-
-into
-DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,   0xNNNN,  asus_hides_smbus_lpc );
-
-where NNNN is you ID number.
-
-If you are able to see the smbus device run sensors-detect and please report if 
-you found some useful devices. If so, proper quirk needs to be developed. You 
-should provide:
-lspci
-lspci -n
-lspci -v -v -v
-lspci -v -v -v -n
-
-Hope it helps.
-
-Good night,
-Rudolf
+-- 
+Jean Delvare
 
