@@ -1,56 +1,103 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 27 May 2006 19:07:52 +0000
-Subject: [lm-sensors] How to control GPIOs I2C chips from a
-Message-Id: <4478A388.6060806@sh.cvut.cz>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 11 May 2006 07:57:50 +0000
+Subject: [lm-sensors] [PATCH] i2c: Suggest N for rare devices
+Message-Id: <20060511095750.36e15bff.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hi all,
 
-> I'm facing a small architecture problem on an embedded (MPC8248) design. The 
-> processor has a hardware I2C bus for which a driver exists in the Denx 
-> linuxppc kernel tree at rsync://www.denx.de/git/linux-2.6-denx (the driver is 
-> called i2c-mpc8260, does anyone know if there are plans to integrate it in 
-> mainline kernels ?).
+I'm adding this to my patch queue.
 
-No we dont know.
+(Note: I'm back from a one-week trip in N?rnberg, Germany, so please
+give me some time to catch up with my personnal e-mail before I can go
+on with this mailing list.)
 
-> Our hardware platform has a DSL daughterboard on which a PCA9557 GPIO I2C chip 
-> is used to control several DSL functions (resetting chipsets, connecting to 
-> the line, ...). The DSL and PCA9557 chipsets are thus both part of a single 
-> "device", but are not connected to the same bus (the DSL chipset is a 
-> platform device, while the PCA9557 is connected on the I2C bus).
+Content-Disposition: inline; filename=i2c-Kconfig-suggest-N-for-rare-devices.patch
 
-Good.
+Improve the Kconfig help text of the follwing i2c drivers:
+* busses/i2c-pca-isa.c
+* chips/pcf8574.c
+* chips/pcf8591.c
+These are hard to detect and building them into the kernel
+results in long delays at boot.
 
-> I'm developping the DSL chipset driver, and the needed arises to control the 
-> GPIO lines from inside the driver. I've had a look at some PCI drivers which 
-> need to control I2C devices, and all of them have the I2C chips connected to 
-> an I2C bus controlled by the PCI device. Getting a reference to those chips 
-> is thus quite easy. I'm a bit puzzled regarding how to do the same for my 
-> design. Could anyone advice me on how to get a reference to the PCA9557 from 
-> the DSL platform driver in a clean way ?
+March 2006, thread "I2C_PCA_ISA causes boot delays"
+http://marc.theaimsgroup.com/?l=linux-kernel&m4360399415744&w=2
 
-Well this is a bit problem. There are three ways:
+April 2006, thread "i2c-related 1-minute hang during bootup"
+http://marc.theaimsgroup.com/?l=linux-kernel&m4640992330721&w=2
 
-1) create EXPORT_SYMBOL(my_api) with defined API and call it from your PCI
-device to the PCA driver some RTC drivers did this
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ drivers/i2c/busses/Kconfig |    6 ++++++
+ drivers/i2c/chips/Kconfig  |    8 ++++++++
+ 2 files changed, 14 insertions(+)
 
-2) there is,  now obsoleted, method with the i2c command callback. This may be
-removed in the future.
+--- linux-2.6.17-rc3.orig/drivers/i2c/busses/Kconfig	2006-05-10 19:58:20.000000000 +0200
++++ linux-2.6.17-rc3/drivers/i2c/busses/Kconfig	2006-05-11 09:47:51.000000000 +0200
+@@ -503,6 +503,7 @@
+ 	tristate "PCA9564 on an ISA bus"
+ 	depends on I2C
+ 	select I2C_ALGOPCA
++	default n
+ 	help
+ 	  This driver supports ISA boards using the Philips PCA 9564
+ 	  Parallel bus to I2C bus controller
+@@ -510,6 +511,11 @@
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called i2c-pca-isa.
+ 
++	  This device is almost undetectable and using this driver on a
++	  system which doesn't have this device will result in long
++	  delays at boot time and/or when I2C/SMBus chip drivers are
++	  loaded.  If unsure, say N.
++
+ config I2C_MV64XXX
+ 	tristate "Marvell mv64xxx I2C Controller"
+ 	depends on I2C && MV64X60 && EXPERIMENTAL
+--- linux-2.6.17-rc3.orig/drivers/i2c/chips/Kconfig	2006-04-03 20:12:43.000000000 +0200
++++ linux-2.6.17-rc3/drivers/i2c/chips/Kconfig	2006-05-11 09:43:11.000000000 +0200
+@@ -39,6 +39,7 @@
+ config SENSORS_PCF8574
+ 	tristate "Philips PCF8574 and PCF8574A"
+ 	depends on I2C && EXPERIMENTAL
++	default n
+ 	help
+ 	  If you say yes here you get support for Philips PCF8574 and 
+ 	  PCF8574A chips.
+@@ -46,6 +47,9 @@
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called pcf8574.
+ 
++	  These devices are hard to detect and rarely found on mainstream
++	  hardware.  If unsure, say N.
++
+ config SENSORS_PCA9539
+ 	tristate "Philips PCA9539 16-bit I/O port"
+ 	depends on I2C && EXPERIMENTAL
+@@ -59,12 +63,16 @@
+ config SENSORS_PCF8591
+ 	tristate "Philips PCF8591"
+ 	depends on I2C && EXPERIMENTAL
++	default n
+ 	help
+ 	  If you say yes here you get support for Philips PCF8591 chips.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called pcf8591.
+ 
++	  These devices are hard to detect and rarely found on mainstream
++	  hardware.  If unsure, say N.
++
+ config ISP1301_OMAP
+ 	tristate "Philips ISP1301 with OMAP OTG"
+ 	depends on I2C && ARCH_OMAP_OTG
 
-3) create a class interface for this stuff and register the device in the class
-   I'm taking this aproach to create an watchdog class even for i2c devices...
 
-And because perhaps you will not want to have your driver integrated into
-kernel, and because it is a very special think you may use the #1 method without
-problems. Please note that if the PCA driver needs to be called from interrupts
-then you will need some workqueues. See some other RTC drivers for inspiration.
-(pre 2.6.17 because I think 2.6.17 has already a RTC class)
-
-Regards
-Rudolf
+-- 
+Jean Delvare
 
