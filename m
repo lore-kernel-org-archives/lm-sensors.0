@@ -1,7 +1,7 @@
-From: sylvain@gomjabbar.ath.cx (Sylvain Jeaugey)
-Date: Fri, 12 May 2006 06:44:56 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sun, 14 May 2006 20:55:54 +0000
 Subject: [lm-sensors] W83627EHF driver enhancements
-Message-Id: <Pine.LNX.4.62.0605120842300.6485@gomjabbar>
+Message-Id: <4467995A.9090905@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <442ED616.4070109@sh.cvut.cz>
 In-Reply-To: <442ED616.4070109@sh.cvut.cz>
@@ -10,37 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Trying to build against 2.6.16.16, I ran into undefined references to 
-SENSOR_ATTR arrays. After a quick search it looks like it was introduced 
-little time ago.
+Hi all
 
-Do I need to upgrade to 2.6.17-rc4 or is there another separate patch to 
-apply ?
+> Trying to build against 2.6.16.16, I ran into undefined references to
+> SENSOR_ATTR arrays. After a quick search it looks like it was introduced
+> little time ago.
 
-Sylvain
+> Do I need to upgrade to 2.6.17-rc4 or is there another separate patch to
+> apply ?
 
-On Thu, 11 May 2006, David Hubbard wrote:
+upgrade to this kernel version plus use supplied w83627ehf.c
 
-> Hi Rudolf, Sylvain,
->
-> Here is the .c file Rudolf sent me, and the first patch is his
-> (add_fan_crt.patch). Then there are three patches of mine. Rudolf, I
-> removed the extra comments as you suggested. Please test these and let
-> me know if there are any problems.
->
-> David
->
-> On 5/11/06, Sylvain Jeaugey <sylvain at gomjabbar.ath.cx> wrote:
->> Hi guys,
->> 
->> I own an ASUS P5S800-VM, with an embedded W83627EHF. If you need help for
->> testing/coding, please tell me where I can find the latest piece of code.
->> I saw e-mails with patches, but didn't catch all of them. I'd really like
->> to play with smart fans ...
->> 
->> So, if I can do something, just ask.
->> 
->> Cheers,
->> Sylvain
->
+It should work with that - but David fixed one of the patches by hand and it is
+malformed now. I will post tomorrow bigger patch putting together what we have
+until now.
+
+David, do you have somewhere the speed cruise mode or we postpone it to later?
+I went through your patches and they look good to me, I just fixed a codingstyle
+on some place plus I want to verify some of your changes, I will do that tomorrow.
+
+plan:
+
+1) I will merge yours patches to one bigger (tomorrow)
+2) I have fixed the sysfs docs and I post them (tomorrow)
+3) I still think that check for fan4 and fan5 is not sufficient.
+   see page 94 (printed) in datasheet, the pin 119 can be GPIO,
+   similar for other fan which is shared with serial flash interface,
+   but it seems the datasheet is not sharing with us the pin control.
+
+PI) speed cruise mode patch ?
+4) cleanup patch for whole file
+5) docs update reflecting the fan control (got some notes about the files)
+
+Personally I think we can wait with fanspeed cruise a bit and concentrate to
+finish our stuff...
+
+
+Regards
+Rudolf
 
