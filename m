@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sun, 14 May 2006 20:55:54 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Mon, 15 May 2006 14:14:10 +0000
 Subject: [lm-sensors] W83627EHF driver enhancements
-Message-Id: <4467995A.9090905@sh.cvut.cz>
+Message-Id: <4dfa50520605150714t266320afua280409c82e57a01@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <442ED616.4070109@sh.cvut.cz>
 In-Reply-To: <442ED616.4070109@sh.cvut.cz>
@@ -10,42 +10,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all
+Hi all,
 
-> Trying to build against 2.6.16.16, I ran into undefined references to
-> SENSOR_ATTR arrays. After a quick search it looks like it was introduced
-> little time ago.
+On 5/14/06, Rudolf Marek <r.marek at sh.cvut.cz> wrote:
+> Hi all
+>
+> > Trying to build against 2.6.16.16, I ran into undefined references to
+> > SENSOR_ATTR arrays. After a quick search it looks like it was introduced
+> > little time ago.
+>
+> > Do I need to upgrade to 2.6.17-rc4 or is there another separate patch to
+> > apply ?
+>
+> upgrade to this kernel version plus use supplied w83627ehf.c
+>
+> It should work with that - but David fixed one of the patches by hand and it is
+> malformed now. I will post tomorrow bigger patch putting together what we have
+> until now.
 
-> Do I need to upgrade to 2.6.17-rc4 or is there another separate patch to
-> apply ?
+Oops! Yes, I forgot to change the number of lines! I got in a hurry,
+and there you go...
 
-upgrade to this kernel version plus use supplied w83627ehf.c
+> David, do you have somewhere the speed cruise mode or we postpone it to later?
+> I went through your patches and they look good to me, I just fixed a codingstyle
+> on some place plus I want to verify some of your changes, I will do that tomorrow.
 
-It should work with that - but David fixed one of the patches by hand and it is
-malformed now. I will post tomorrow bigger patch putting together what we have
-until now.
+Thanks for fixing stuff. I would like to see what you end up with. The
+RPM speed cruise is coming, sorry for taking so long...
 
-David, do you have somewhere the speed cruise mode or we postpone it to later?
-I went through your patches and they look good to me, I just fixed a codingstyle
-on some place plus I want to verify some of your changes, I will do that tomorrow.
+> plan:
+>
+> 1) I will merge yours patches to one bigger (tomorrow)
+> 2) I have fixed the sysfs docs and I post them (tomorrow)
+> 3) I still think that check for fan4 and fan5 is not sufficient.
+>    see page 94 (printed) in datasheet, the pin 119 can be GPIO,
+>    similar for other fan which is shared with serial flash interface,
+>    but it seems the datasheet is not sharing with us the pin control.
+>
+> PI) speed cruise mode patch ?
+> 4) cleanup patch for whole file
+> 5) docs update reflecting the fan control (got some notes about the files)
+>
+> Personally I think we can wait with fanspeed cruise a bit and concentrate to
+> finish our stuff...
 
-plan:
+Okay, yes, especially #3 and #4 (and I look forward to reading the
+updates to the docs, you have new information?). When I do get around
+to writing the RPM cruise and the SpeedFan III support, it can just be
+added on, no matter what else is done.
 
-1) I will merge yours patches to one bigger (tomorrow)
-2) I have fixed the sysfs docs and I post them (tomorrow)
-3) I still think that check for fan4 and fan5 is not sufficient.
-   see page 94 (printed) in datasheet, the pin 119 can be GPIO,
-   similar for other fan which is shared with serial flash interface,
-   but it seems the datasheet is not sharing with us the pin control.
+Anyway, sorry for taking so long to write patches...
 
-PI) speed cruise mode patch ?
-4) cleanup patch for whole file
-5) docs update reflecting the fan control (got some notes about the files)
-
-Personally I think we can wait with fanspeed cruise a bit and concentrate to
-finish our stuff...
-
-
-Regards
-Rudolf
+David
 
