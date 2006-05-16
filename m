@@ -1,41 +1,33 @@
-From: gregkh@suse.de (Greg KH)
-Date: Tue, 09 May 2006 20:07:18 +0000
-Subject: [lm-sensors] [GIT PATCH] I2C bugfixes for 2.6.17-rc3
-Message-Id: <20060509200718.GA7176@kroah.com>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Tue, 16 May 2006 18:06:37 +0000
+Subject: [lm-sensors] [ patch 2/3 ] hwmon/pc87360 use SENSOR_ATTR_2 in
+Message-Id: <446A14AD.4040207@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-Here are some i2c bug fixes for a single driver against your current git
-tree.  They all have been in the -mm tree for a few weeks.
-
-Please pull from:
-	rsync://rsync.kernel.org/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
-or from:
-	master.kernel.org:/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
-if it isn't synced up yet.
-
-The full patch series will sent to the sensors mailing list, if anyone
-wants to see them.
-
-thanks,
-
-greg k-h
+To: lm-sensors@vger.kernel.org
 
 
- drivers/i2c/busses/scx200_acb.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+This patch converts SENSOR_ATTRs to SENSOR_ATTR_2s for all sysfs-callbacks.
+Also adds a number of #define FN_$(SENSOR)_($ATTR)s which provide
+symbolic values used in the sensor array initializations.  With this in 
+place, we
+have 2-D info in the attribute handed to the callbacks.
 
----------------
+Signed-off-by:  Jim Cromie <jim.cromie at gmail.com>
 
-Jean Delvare:
-      scx200_acb: Fix return on init error
-      scx200_acb: Fix resource name use after free
+$ diffstat hwmon-pc87360-use-sensor-attr-2.patch
+ pc87360.c |  492 
+++++++++++++++++++++++++++++++++++----------------------------
+ 1 files changed, 277 insertions(+), 215 deletions(-)
 
-Jordan Crouse:
-      scx200_acb: Fix for the CS5535 errata
+---
 
-
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: hwmon-pc87360-use-sensor-attr-2.patch
+Type: text/x-patch
+Size: 36103 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060516/ebc9ab56/hwmon-pc87360-use-sensor-attr-2-0001.bin
