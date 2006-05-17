@@ -1,25 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 01 May 2006 16:01:38 +0000
-Subject: [lm-sensors] Driver question
-Message-Id: <20060501180138.19ef7062.khali@linux-fr.org>
+From: dieter.jurzitza@t-online.de (Dieter Jurzitza)
+Date: Wed, 17 May 2006 19:02:57 +0000
+Subject: [lm-sensors] Tyan Tiger 2460 / i2c-amd756.c
+Message-Id: <200605172102.57593.dieter.jurzitza@t-online.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <347F0EE2DB29484092B27DF737737AC2040E12B9@idbexc01.americas.cpqcorp.net>
-In-Reply-To: <347F0EE2DB29484092B27DF737737AC2040E12B9@idbexc01.americas.cpqcorp.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Marc,
+Hi folks,
+dear Rudolf,
+only to let you know: I have reached 178623 reads without errors in the 
+meantime. No problems so far. Will keep on reading until the weekend - then 
+I'll have to reboot, but I think that this is ok!
+Thanks for your support,
+take care & best regards from Karlsruhe
 
-> Thanks for the reply.  Can you point me to a location for the driver?
 
-From 2.6.11 to 2.6.12, drivers/i2c/chips/smsc47b397.c in the Linux
-source tree. Since 2.6.13, drivers/hwmon/smsc47b397.c in the Linux
-source tree.
 
-http://www.kernel.org/git/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=drivers/hwmon/smsc47b397.c
+Dieter Jurzitza
 
 -- 
-Jean Delvare
+-----------------------------------------------------------
+
+                               |
+                                \
+                 /\_/\           |
+                | ~x~ |/-----\   /
+                 \   /-       \_/
+  ^^__   _        /  _  ____   /
+ <??__ \- \_/     |  |/    |  |
+  ||  ||         _| _|    _| _|
+
+if you really want to see the pictures above - use some font
+with constant spacing like courier! :-)
+-----------------------------------------------------------
 
