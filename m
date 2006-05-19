@@ -1,30 +1,42 @@
-From: liontooth@cogweb.net (David Liontooth)
-Date: Wed, 03 May 2006 17:28:56 +0000
-Subject: [lm-sensors] Winbond PC87431M and PC87427
-Message-Id: <4458E858.2000303@cogweb.net>
+From: dieter.jurzitza@t-online.de (Dieter Jurzitza)
+Date: Fri, 19 May 2006 16:34:22 +0000
+Subject: [lm-sensors] i2c-amd756.c - again, some thoughts
+Message-Id: <200605191834.22564.dieter.jurzitza@t-online.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Some suggested updates for http://secure.netroedge.com/~lm78/newdrivers.html
+Hi folks,
+only to make sure: it is *only* bit 13 and bit 3 in the return value showing 
+in temp that could provide a reason to wait? I am referring to the line (row 
+112, i2c-amd756.c):
 
-Martin Devera (cc'd) has done some work on the PC87427 -- see
-http://luxik.cdi.cz/~devik/supermicro-wdt.htm. Could this be integrated
-into lm-sensors and used as a basis for support?
+if ((temp = inw_p(SMB_GLOBAL_STATUS)) & (GS_HST_STS | GS_SMB_STS)) {
+}
 
-Corey Minyard has incorporated a rewrite of Yani Ioannou's BMC code for
-PC87431M into the openipmi patches for 2.6.16; these  also appear to
-have been submitted to the mm tree (cf.
-http://groups.google.ca/group/fa.linux.kernel/browse_thread/thread/db9b2e03786b8e7d/5a1f8e11ea55c8b1).
-
-
-Ipmitool is working great on my Intel Server Board SE7525GP2 running
-Debian etch with 2.6.16.12.
-
-David
+No other status worth making a pause for?
+Just guessing ...
+Take care
 
 
 
+Dieter Jurzitza
+
+-- 
+-----------------------------------------------------------
+
+                               |
+                                \
+                 /\_/\           |
+                | ~x~ |/-----\   /
+                 \   /-       \_/
+  ^^__   _        /  _  ____   /
+ <??__ \- \_/     |  |/    |  |
+  ||  ||         _| _|    _| _|
+
+if you really want to see the pictures above - use some font
+with constant spacing like courier! :-)
+-----------------------------------------------------------
 
