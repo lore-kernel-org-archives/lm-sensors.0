@@ -1,102 +1,53 @@
-From: roger@planbit.co.uk (Roger Lucas)
-Date: Wed, 31 May 2006 14:58:49 +0000
-Subject: [lm-sensors] LM Sensors autoconfig tool project awarded
-Message-Id: <20060531145706.8899812ED4@bluewhale.planbit.co.uk>
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Fri, 19 May 2006 07:59:17 +0000
+Subject: [lm-sensors] Question about the new sysfs alarm interface
+Message-Id: <446D7AD5.2080405@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44744596.40406@hhs.nl>
-In-Reply-To: <44744596.40406@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Hi all,
 
-We use "sensors" as a back-end system for a GUI.  We didn't need to pick
-this exact naming convention, but the example names in the sensors.conf file
-were not consistent and we needed to pick a standard.  We didn't want to
-have to re-write the GUI if we suddenly had a motherboard with an extra fan
-input, so we needed a way for the sensor names to make sense to the GUI so
-that it could adapt its display accordingly.  What I posted was our solution
-to the problem.
+I've finally made the time to convert the abituguru driver to the new
+alarm sysfs interface however the uguru has 2 alarms for each voltage
+input, a volt low and a volt low alarm, currently I create the following
+for these:
+in0_alarm_low
+in0_alarm_high
 
-There are many other solutions, but that was the one that we chose.  As a
-general comment, however, in the *nix world, pretty much any utility that
-only runs on the command line has to consider itself as a source of data for
-other tools and should really try to make some effort to offer output (or at
-least an optional output mode) which makes parsing its output by other
-scripts easy.  All the LVM tools, for example, offer such modes as do tools
-like dmidecode.  On the other hand, some of the SAMBA tools such as
-smbstatus do not, and their output is very hard to reliably parse under
-certain conditions.  I know which style of tools I prefer to work with...
+I was thinking that for compatibility with apps which just expect an
+alarm file as documented in the new standard to add:
+in0_alarm
 
-I admit that the command-line mode is widely used in Linux, but so are
-KDE/Gnome/xxxx-window-manager GUIs.  As I understand it, "sensors" is the
-recommended tool for access to the lm-sensors subsystem, then its output
-should be parseable so that the GUI can re-structure it as required.  As it
-currently stands, there are a range of different description strings in
-sensors.conf.  At the very least, if a centralised archive of sensors.conf
-files is to be created then we need a naming convention for the sensor
-values in just the same way that the sensor names themselves follow a
-standard.  If we don't then anyone "downstream" of sensors will have a
-horrible job trying to work out exactly what sensors they have and how to
-display them.  If we want, we could have a short machine-style version and a
-longer human style version.  I really don't mind, but for my needs, I need a
-name that can be parsed easily and which is consistent across all the
-motherboards that I am using (or may use in the future).
-
-Best regards,
-
-Roger
+Which will contain an alarm if either of the 2 above alarms happens. I
+personally find this a good idea of mine, but i just wanted to check to
+make sure.
 
 
-> -----Original Message-----
-> From: Hans de Goede [mailto:j.w.r.degoede at hhs.nl]
-> Sent: 31 May 2006 15:36
-> To: Roger Lucas
-> Subject: Re: [lm-sensors] LM Sensors autoconfig tool project awarded as
-> google SOC project
-> 
-> Roger Lucas wrote:
-> > Hi All,
-> >
-> 
-> Hi,
-> 
-> Thanks for the config files, maybe its an idea to add them to the wiki?
-> 
-> >
-> > We picked a naming convention for the sensors based on a prefix of:
-> > 	V_	voltage sensor
-> > 	T_	temperature sensor
-> > 	F_	Fan sensor
-> >
-> > There then followed a unique identifier string - if it was a voltage
-> rail
-> > described as a target voltage (e.g. 3.3v rail) then we followed a
-> typical
-> > engineering practice of removing the "." and replacing it with "V" for
-> > voltages.  A suffix of "P" indicated a positive voltage and "N" a
-> negative
-> > voltage - again common practice in schematics and similar.  If there
-> were
-> > multiple sensors reading the same type of parameter (e.g. multiple CPUs)
-> > then a suffix of _0, _1, _2, ... was added.  This made the parser
-> extremely
-> > simple.
-> >
-> 
-> I'm not sure I would want togo this way, I don't find the resulting
-> names very pretty, with the Abit uGuru driver I've tried to match the
-> names in sensors.conf to the BIOS names I think that that is what a less
-> experienced user would expect.
-> 
-> Whats the advantage of this, why would you want to parse the output with
-> a script?
-> 
-> Regards,
-> 
-> Hans
+Also the uguru has the ability do disable alarms on a certain input.
+This way you can silence a certain input and make it not report any
+alarms which might upset monitoring scripts etc.
 
+I currently have added the following enntries for these:
+in0_alarm_low_enable
+in0_alarm_high_enable
+temp1_alarm_enable
+fan1_alarm_enable
+
+And I could, but I'm not so sure about that one, seems overkill add a:
+in0_alarm_enable
+which then can be used to disable/enable both alarms at once and will
+show alarms enabled if one of or both the alarms are enabled.
+
+I personally think this is ugly, but it would be somewhat consistent,
+then again a monitor app may expect in0_alarm, so I really think I
+should add that. But I think that generic apps shouldn't touch the
+_enable files and leave that to the sysadmin.
+
+Regards,
+
+Hans
 
 
