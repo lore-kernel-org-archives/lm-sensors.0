@@ -1,7 +1,7 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Mon, 15 May 2006 22:54:30 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 20 May 2006 08:45:30 +0000
 Subject: [lm-sensors] [PATCH] hwmon sysfs documenation update
-Message-Id: <4dfa50520605151554j69d85c7dhfba0253f678f71e2@mail.gmail.com>
+Message-Id: <20060520104530.74535c1c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4468E7CF.7040109@sh.cvut.cz>
 In-Reply-To: <4468E7CF.7040109@sh.cvut.cz>
@@ -12,15 +12,17 @@ To: lm-sensors@vger.kernel.org
 
 Hi Rudolf,
 
-On 5/15/06, Rudolf Marek <r.marek at sh.cvut.cz> wrote:
-> > Instead of "internal resistors build into a chip" you want to say
-> > "internal resistors built into a chip". Sorry, I don't mean to be a
-> > spelling nazi.
->
->
-> Heh thanks, please check the rest so I can respin it for Jean.
+> This patch cleans up hwmon sysfs documentation file, plus introduces
+> the description of new alarm interface format.
 
-Yes, the rest of it is fine.
+Err, this update conflicts with my own documentation update which is
+already in Greg's staging tree:
+http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-02-i2c/hwmon-sysfs-interface-individual-alarm-files.patch
 
-David
+Could you please provide a clean patch on top of this one? Sorry for
+not noticing before.
+
+Thanks,
+-- 
+Jean Delvare
 
