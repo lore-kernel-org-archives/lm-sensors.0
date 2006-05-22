@@ -1,7 +1,7 @@
 From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Mon, 22 May 2006 10:36:58 +0000
+Date: Mon, 22 May 2006 10:49:24 +0000
 Subject: [lm-sensors] make user output
-Message-Id: <20060522103658.GB12713@jupiter.solarsys.private>
+Message-Id: <20060522104924.GC12713@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <OFECJLLKEMLEIPDNILGBKEGIEPAA.jtmitche@mindspring.com>
 In-Reply-To: <OFECJLLKEMLEIPDNILGBKEGIEPAA.jtmitche@mindspring.com>
@@ -10,35 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi John:
+To anyone using challenge-response email systems...
 
-* John T. Mitchell <jtmitche at mindspring.com> [2006-05-21 23:29:09 -0400]:
-> I have been trying to get lm-sensors working on a Mitac 8355 laptop for the
-> last two days without success.  I believe I am just doing something wrong.
-> Anyway I am running Ubuntu Dapper Drake with all of the newest updates.
-> When I try make user I get the following output:
+* jtmitche at mindspring.com <jtmitche at mindspring.com> [2006-05-22 06:37:00 -0400]:
+> I apologize for this automatic reply to your email.
 > 
-> grep: /usr/src/linux/include/linux/autoconf.h: No such file or directory
-> grep: /usr/src/linux/include/linux/autoconf.h: No such file or directory
-> make: *** No rule to make target `sysfs/libsysfs.h', needed by
-> `lib/sysfs.ad'. Stop.
+> To control spam, I now allow incoming messages only from senders I
+> have approved beforehand.
 > 
-> Being fairly new to Linux I don't understand how to fix the missing
-> autoconf.h file?  Any help or suggestions would be welcomed.
+> If you would like to be added to my list of approved senders, please
+> fill out the short request form (see link below). Once I approve you,
+> I will receive your original message in my inbox. You do not need to
+> resend your message. I apologize for this one-time inconvenience.
+> 
+> Click the link below to fill out the request:
+> 
+> https://webmail.atl.earthlink.net/wam/addme?a=jtmitche at mindspring.com&idI7Mw54X3Nl3pv0
 
-lm-sensors depends on a library called libsysfs.  To build lm-sensors from
-source, you either need to (1) build and install sysfsutils from source,
-or (2) install a package that includes libsysfs headers.
+No way.
 
-Option #2 is easiest.  On Ubuntu, the package you need is libsysfs-dev.
-Install that, then back to lm-sensors... 'make clean' and 'make user'
-and 'make user_install' should do it.
+If you ask for help on a public mailing list, at a minimum, your CR email
+system should whitelist the message ID of your question and perhaps the
+subject as well.  If it can't do that, don't use that address to ask for
+help.
 
-Also, don't worry about the "grep: ... No such file or directory" warnings.
-That is mentioned in the FAQ:
-http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/lm_sensors-FAQ.html
-
-Regards,
+Better yet, don't use CR at all.
 
 -- 
 Mark M. Hoffman
