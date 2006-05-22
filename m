@@ -1,10 +1,8 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 31 May 2006 15:09:41 +0000
-Subject: [lm-sensors] w83792d works under 2.6 kernel, but not 2.4 kernel
-Message-Id: <447DB1B5.9090408@sh.cvut.cz>
+From: jtmitche@mindspring.com (John T. Mitchell)
+Date: Mon, 22 May 2006 03:29:09 +0000
+Subject: [lm-sensors] make user output
+Message-Id: <OFECJLLKEMLEIPDNILGBKEGIEPAA.jtmitche@mindspring.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44730D34.4080802@morison.biz>
-In-Reply-To: <44730D34.4080802@morison.biz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -12,10 +10,20 @@ To: lm-sensors@vger.kernel.org
 
 Hello,
 
-Please apply this fix which should fix it:
+I have been trying to get lm-sensors working on a Mitac 8355 laptop for the
+last two days without success.  I believe I am just doing something wrong.
+Anyway I am running Ubuntu Dapper Drake with all of the newest updates.
+When I try make user I get the following output:
 
-http://www.lm-sensors.org/changeset/4031?format=diff&new@31
+grep: /usr/src/linux/include/linux/autoconf.h: No such file or directory
+grep: /usr/src/linux/include/linux/autoconf.h: No such file or directory
+make: *** No rule to make target `sysfs/libsysfs.h', needed by
+`lib/sysfs.ad'. Stop.
 
-Regards
-Rudolf
+Being fairly new to Linux I don't understand how to fix the missing
+autoconf.h file?  Any help or suggestions would be welcomed.
+
+Thank you,
+John
+
 
