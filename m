@@ -1,26 +1,28 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 16 May 2006 07:17:27 +0000
-Subject: [lm-sensors] [lm-sensors-commit] lm_sensors2/lib conf-lex.l
-Message-Id: <20060516091727.492d4e62.khali@linux-fr.org>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Tue, 23 May 2006 09:56:38 +0000
+Subject: [lm-sensors] W83627DHG datasheet request
+Message-Id: <4472DC56.8080001@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Update of /home/cvs/lm_sensors2/lib
-> In directory mordac.netroedge.com:/tmp/cvs-serv21915/lib
-> 
-> Modified Files:
-> 	conf-lex.l 
-> Log Message:
-> (mmh) Allow the config file scanner to release its buffers upon EOF.
+Hello,
 
-Wow, excellent work Mark, once again!
+While surfing on http://www.winbond-usa.com/mambo/content/view/143/273/
+I came to W83627DHG chip. I think it is just EHF chip with the PECI support.
 
-It now looks to me like libsensors has no more memory leaks left? This
-is really great news :)
+Please can you be so kind and get more info? Best would be some comparision
+document with the EHF or the chip datasheet.
 
--- 
-Jean Delvare
+If the datasheet is not yet public, please send it to me and Jean.
+
+We may add support for it quite quickly if it is similar enough to EHF ;)
+
+Thank you very much,
+
+regards
+Rudolf
+
 
