@@ -1,78 +1,44 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Tue, 16 May 2006 20:53:14 +0000
-Subject: [lm-sensors] latest findings - my older posting from ~ 11 days
-Message-Id: <446A3BBA.8050308@sh.cvut.cz>
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Thu, 25 May 2006 14:54:22 +0000
+Subject: [lm-sensors] vt1211 patch
+Message-Id: <191fb4ca0605250754y4ffe117fucd52fc2c5b37369a@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200605022128.10627.dieter.jurzitza@t-online.de>
-In-Reply-To: <200605022128.10627.dieter.jurzitza@t-online.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Oops, forgot to include the lm_sensors mailinglist...
 
-> Hi folks,
-> dear Rudolf,
-> I think I've solved the issue. As it is a very "heuristic" approach I can only 
-> tell what I did and you can give me a commentary on it saying it makes no 
-> sense this way or whatsoever ...
-> 
-> Nevertheless, I keep crash-looped now doing 
-> 
-> while true; do
-> 	i2cdump -y 0 0x2d b > /dev/null
-> done
-> 
-> for more than 105000 times (the best value I had had reached before was around 
-> 20000, and only with debugging turned on) so I think it is fair to say things 
-> have improved significantly at least.
-> 
-> I readily mentioned that I had had the impression that things were less 
-> problematic with debugging turned on. Now, what does debugging do? It does 
-> many printk's or printf's thereby making the process slower.
-> 
-> Rudolf pointed me to the file in charge: i2c-amd756.c. I simply added a single 
-> msleep(1);
+ > So basically manual control is impossible?
 
-Good.
+I think so yes, but the datasheet is not clear. I should check with
+Via eventually.
 
-> 
-> /usr/src/linux/drivers/i2c/busses/i2c-amd756.c (referring to linux-2.6.11.4):
-> 
-> static int amd756_transaction(struct i2c_adapter *adap)
-> {
->         int temp;
->         int result = 0;
->         int timeout = 0;
-> 
->         dev_dbg(&adap->dev, "Transaction (pre): GS=%04x, GE=%04x, ADD=%04x, "
->                 "DAT=%04x\n", inw_p(SMB_GLOBAL_STATUS),
->                 inw_p(SMB_GLOBAL_ENABLE), inw_p(SMB_HOST_ADDRESS),
->                 inb_p(SMB_HOST_DATA));  
-> 
->         /* Make sure the SMBus host is ready to start transmitting */
->         /* but always wait one millisecond just in case ... */
->>>      msleep(1); <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  Here!
->         if ((temp = inw_p(SMB_GLOBAL_STATUS)) & (GS_HST_STS | GS_SMB_STS)) {
-> 
-> and, until now, this seems to do the trick (knock on wood!!!). Tell me why 
-> this cannot happen - as a matter of fact it seems to work. The explanation is 
-> up to you, folks ;-).
 
-I'm still waiting for Raphael to contact someone at AMD, that was the reason for 
-the quiet in this case...
+> I can either choose fan on or fan auto
+> Can you give me a simple way to test the switching off of a fan?
+> I experimented multiple values in all the files and I can't get it off.
 
-This is "sleep" is good idea, there must be something wrong with the controller, 
-  as we already know ...
+Let's see if I can remember (I currently don't have access to the
+datasheets). Try the following:
+cat pwmX (should return 255)
+echo 2 > pwmX_enable
+echo 100 > pwmX_auto_point4_temp
 
-Explanation hmm :) hard to tell...
+Now 'cat pwmX' should return 0 do indicate 0% duty-cycle. If your
+board has the PWM outputs connected the associated fan should be
+turned off. If it is indeed, be careful not to blow anything up!
 
-I checked the sequence of command and nothing really strange...
+...juerg
 
-Have you some crash even with this delay?
 
-Thanks
-Regards
-Rudolf
+
+> Besides:
+>
+> # echo 0> pwm2_auto_point1_temp && cat pwm2_auto_point1_pwm
+>
+> 2
+>
+>
 
