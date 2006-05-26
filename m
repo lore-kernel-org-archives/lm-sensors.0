@@ -1,7 +1,7 @@
-From: rod@morison.biz (Rod Morison)
-Date: Thu, 25 May 2006 22:42:48 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Fri, 26 May 2006 06:18:41 +0000
 Subject: [lm-sensors] w83792d works under 2.6 kernel, but not 2.4 kernel
-Message-Id: <447632E8.2060908@morison.biz>
+Message-Id: <44769DC1.6080100@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44730D34.4080802@morison.biz>
 In-Reply-To: <44730D34.4080802@morison.biz>
@@ -10,39 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Yes,
-
-modprobe w83792d force_subclients=0,0x2f,0x4b,0x4c
-
-works like a champ!
-
-So that I can learn from this, how would I (or how did you) figure out 
-the subclient addresses from the i2cdump?
-
-Thanks again!
-
-Rod
-
-
-Rudolf Marek wrote:
->> But why would 2.6 distro work and 2.4 not work for w83792d-i2c-0-2f 
->> if it was a BIOS problem?
->>> Please let me know if
->>> modprobe w83792d force_subclients=0,0x2f,0x4a,0x4b
->
+Rod Morison wrote:
+> Yes,
+> 
 > modprobe w83792d force_subclients=0,0x2f,0x4b,0x4c
->
-> Sorry this should at least theoreticaly work. The driver has some 
-> flaw. I will fix it in the weekend.
->
-> If the force does not work please use following before loading driver:
-> i2cset 0 0x2f 0x4a 0x43
-> modprobe w83792d
->
-> regards
-> Rudolf
->
+> 
+> works like a champ!
+> 
+> So that I can learn from this, how would I (or how did you) figure out 
+> the subclient addresses from the i2cdump?
+> 
 
+The driver has flaw when the w83792d subclients are disabled. This was fixed for 
+2.6 but forgotten for 2.4. Moreover it likes to have both subclients on specific 
+  addr ranges. Plus I had to select addresses where no device is present.
 
+I will fix the driver hopefuly in the weekend.
 
+Regards
+Rudolf
 
