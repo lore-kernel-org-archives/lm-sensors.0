@@ -1,49 +1,42 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Tue, 16 May 2006 17:40:33 +0000
-Subject: [lm-sensors] [ patch 0/3 ]  hwmon/pc87360 maintainership,
-Message-Id: <446A0E91.5020207@gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 26 May 2006 10:22:44 +0000
+Subject: [lm-sensors] decode-dimms.pl with kernel 2.6
+Message-Id: <20060526122244.64b4c048.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Gernot,
 
-heres 3 patches to pc87360 driver, to;
+A long, long time ago (May 2004), Gernot Vormayr wrote:
+> i'm using lm-sensors on my pc with a 2.6 kernel and it works great!
+> great work!
+> 
+> well i wanted to figure out which ram i have in my computer and found 
+> decode-dimms.pl... but this doesn't work with kernel 2.6 (it tries to reach 
+> the eeprom data of the spd in /proc - in kernel 2.6 this is in /sys) so i dl 
+> some jedec specifications and created my own program.
+> i'm not so good at perl - so i tried to create one with C
+> well it works fine for my DDR RAM and seems to display correct data.
+> it is able to display information about SDRAM and DDR SDRAM.
+> (information = nearly everything which is in the spd according to the JEDEC 
+> specs)
 
-- take maintainership.  I missed Jean's drop.
-- switch to use SENSOR_ATTR_2
-- switch to use combo-callbacks that key on the new .nr field.
+For your information, our script now supports Linux 2.6 (since July
+2006, lm_sensors 2.9.2). We also have DDR SDRAM (and DDR2 SDRAM)
+support in lm_sensors CVS. It doesn't decode everything for these
+memory types, but the more important characteristics are there.
 
-the 2nd, 3rd were previously sent, on 1/26/06, and not
-commented-upon ^H changed since then.
-Ive revalidated them against 17-rc3-mm1.
-Will resend ;-)
+> it's not very well formated at the moment and some comments wouldn't be bad 
+> too. if u want to use this peace of code then i would reformat the source and 
+> send this file to u. (and if u want reformat the output to a better form)
 
-1. hwmon-pc87360-maintainer.patch
-    the bribe, as it were.
-    thanks for authoring this driver Jean.
+Well I think we'll stick to our perl script, it's easier for us to
+maintain and probably for people to test too. And it works fine now, so
+why change it? ;)
 
-2. hwmon-pc87360-use-sensor-attr-2.patch
-
-Converts SENSOR_ATTRs to SENSOR_ATTR_2s for all sysfs-callbacks.
-Also adds a number of #define FN_$(SENSOR)_($ATTR)s which provide
-symbolic values used in the sensor array initializations.
-
-3. hwmon-pc87360-sysfs-combo-callbacks.patch
-
-This combines individual  (show|set)_Sensor_Attr callbacks into
-(show|set)_Sensor callbacks that handle all that Sensor's Attrs.
-The callback routines use the .nr field to determine what attribute
-they were called for.
-
-
-Combining callbacks results in a non-trivial size reduction (b4, after)
-14588    3224      16   17828    45a4 A-2/drivers/hwmon/pc87360.ko
-13124    3224      16   16364    3fec A-3/drivers/hwmon/pc87360.ko
-ie about 9%
-
-I also, like Juerg Haefliger, think theyre clearer, which is why Ive
-ccd Rudolf.  I hope he'll agree ;-)
-
+-- 
+Jean Delvare
 
