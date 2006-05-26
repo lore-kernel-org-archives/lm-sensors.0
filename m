@@ -1,29 +1,28 @@
-From: xanni@glasswings.com.au (Andrew Pam)
-Date: Wed, 24 May 2006 12:57:22 +0000
-Subject: [lm-sensors] Myson MTP008 driver ported to 2.6 kernel
-Message-Id: <20060524125722.GQ8229@kira.glasswings.com.au>
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Fri, 26 May 2006 12:34:39 +0000
+Subject: [lm-sensors] Abituguru driver merging progres?
+Message-Id: <4476F5DF.8040105@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051004125511.GI7154@kira.glasswings.com.au>
-In-Reply-To: <20051004125511.GI7154@kira.glasswings.com.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, May 24, 2006 at 10:39:55AM +0200, Helge Bahmann wrote:
-> I used to run my version adapted for the 2.6 kernel, but the machine it
-> was used on is no longer active; however the driver sources are still
-> there; I will dig it out tomorrow and submit it.
+Hi Jean & All
 
-That would be great, as I have a production server that I would very
-much like to be able to monitor.  It's currently running 2.6.12 but I
-can upgrade.
+I just checked http://khali.linux-fr.org/devel/i2c/linux-2.6/ and
+http://khali.linux-fr.org/devel/i2c/linux-2.6/series and I saw no
+mention of the abituguru driver which I submitted rescently. I was kinda
+hoping this could be merged soon.
+
+It has already been reviewed before in its standalone .c file form and
+I've fixed all issues reported then (and if I remember correctly I also
+posted a new .c file then with all the fixes and got no further
+comments). I must admit the submitted driver contains some changes
+mainly for the new individial aram files sysfs interface.
 
 Regards,
-	Andrew
--- 
-mailto:xanni at xanadu.net                         Andrew Pam
-http://www.xanadu.com.au/                       Chief Scientist, Xanadu
-http://www.glasswings.com.au/                   Partner, Glass Wings
-http://www.sericyb.com.au/                      Manager, Serious Cybernetics
+
+Hans
+
 
