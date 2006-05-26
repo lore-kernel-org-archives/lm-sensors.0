@@ -1,7 +1,7 @@
-From: harald.dunkel@t-online.de (Harald Dunkel)
-Date: Fri, 26 May 2006 10:46:18 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 26 May 2006 12:10:31 +0000
 Subject: [lm-sensors] 2.6.16-rc5: unreasonable temperature reported by
-Message-Id: <4476DC7A.7080906@t-online.de>
+Message-Id: <20060526141031.7774b25a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <446DF157.80805@t-online.de>
 In-Reply-To: <446DF157.80805@t-online.de>
@@ -10,32 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hi Harald,
 
 Harald Dunkel wrote:
+> The datasheet of the F75387 doesn't say anything about Packet
+> Error Checking, but I am not sure whether this is a feature of
+> the bus. Is it?
 > 
-> I have started working on this (but please don't expect too much).
-> One question about the I2C_DRIVERID_* macros in i2c-id.h: Where
-> could I get an ID for the f75387 driver?
-> 
+> Can something bad happen if I don't support PEC?
 
-The datasheet of the F75387 doesn't say anything about Packet
-Error Checking, but I am not sure whether this is a feature of
-the bus. Is it?
+PEC is an optional protocol extension, it can be used only when both
+the master and the slave support it.
 
-Can something bad happen if I don't support PEC?
+The Fintek F75387 datasheet doesn't mention PEC, so I would assume it
+doesn't support it. Chips supporting PEC are the exception rather than
+the rule, only the ADM1032 chip (lm90 driver) supports it in our whole
+driver set. So just forget about PEC, and everything will be fine.
 
+-- 
+Jean Delvare
 
-Regards
-
-Harri
-
-
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: signature.asc
-Type: application/pgp-signature
-Size: 252 bytes
-Desc: OpenPGP digital signature
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060526/5a6e32db/signature.bin
