@@ -1,7 +1,7 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Sun, 28 May 2006 11:56:56 +0000
+From: fabien@wernli.eu (Fabien Wernli)
+Date: Sun, 28 May 2006 13:32:37 +0000
 Subject: [lm-sensors] vt1211 patch
-Message-Id: <191fb4ca0605280456w2a113co25b67dc8645bc8c7@mail.gmail.com>
+Message-Id: <20060528133237.GA8085@mail.faxm0dem.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0605250754y4ffe117fucd52fc2c5b37369a@mail.gmail.com>
 In-Reply-To: <191fb4ca0605250754y4ffe117fucd52fc2c5b37369a@mail.gmail.com>
@@ -10,27 +10,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I tried your instructions, but nothing seems to happen:
->
-> | # cat pwm?_enable
-> | 2
-> | 2
-> |
-> | # cat pwm?_auto_point4_temp
-> | 255000
-> | 255000
+On Sun, May 28, 2006 at 01:56:56PM +0200, Juerg Haefliger wrote:
+> yes, the register saturates at 255 which gets multiplied by 1000 by the 
+> driver.
+[...]
+> what does 'cat pwm?' show?
 
-Ok, so good so far.
+255
 
-> BTW that value seems the max I can set it to
-
-yes, the register saturates at 255 which gets multiplied by 1000 by the driver.
-
-> sensors shows:
->
-> | CPU:      3105 RPM  (min =    0 RPM, div = 2)
-
-what does 'cat pwm?' show?
-
-...juerg
 
