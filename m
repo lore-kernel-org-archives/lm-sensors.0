@@ -1,7 +1,7 @@
-From: brix@gentoo.org (Henrik Brix Andersen)
-Date: Thu, 11 May 2006 15:38:13 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 28 May 2006 14:12:57 +0000
 Subject: [lm-sensors] set lines in sensors.conf.eg
-Message-Id: <20060511153813.GA28273@osgiliath>
+Message-Id: <20060528161257.631638d9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060511163115.7ca1d6a5.khali@linux-fr.org>
 In-Reply-To: <20060511163115.7ca1d6a5.khali@linux-fr.org>
@@ -10,21 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, May 11, 2006 at 04:31:15PM +0200, Jean Delvare wrote:
-> Thus I am proposing that we comment out all "set" lines in
-> sensors.conf.eg. What do others think?
+> > Thus I am proposing that we comment out all "set" lines in
+> > sensors.conf.eg. What do others think?
+> 
+> That sounds like a sane solution to me.
 
-That sounds like a sane solution to me.
+OK, I've done that. The only exception is when the chip monitors its
+own supply voltage, we know for sure that it is present so we can leave
+the set statements related to this. I did this for the pc87366 and
+f71805f entries because I'm familiar with these. It probably applies to
+a few other chips, patches restoring set statements for these are
+welcome.
 
-Regards,
-Brix
 -- 
-Henrik Brix Andersen <brix at gentoo.org>
-Gentoo Metadistribution | Mobile computing herd
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 213 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060511/563ff1a2/attachment.bin
+Jean Delvare
+
