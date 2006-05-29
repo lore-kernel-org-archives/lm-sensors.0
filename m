@@ -1,7 +1,7 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Sun, 28 May 2006 21:55:27 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 29 May 2006 06:29:48 +0000
 Subject: [lm-sensors] svn resync
-Message-Id: <447A1C4F.6060507@edgedesign.us>
+Message-Id: <20060529082948.d5cf5873.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44621B6E.6070500@sh.cvut.cz>
 In-Reply-To: <44621B6E.6070500@sh.cvut.cz>
@@ -10,52 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
+Hi Philip, Axel,
 
 Philip Edelbrock wrote:
-> 
-> 
-> Jean Delvare wrote:
->> Hi all,
->>
->> [Rudolf Marek]
->>>> Please can you resync SVN with CVS? I think we can switch after that
->>>> because the commits to both repositories were quite anoying...
->>
->> [Axel Thimm]
->>> OK. Someone with access to the cvs repo needs to copy it over to the
->>> server (I have no access). Last time either Philip or Jean copied it,
->>> I don't remember anymore. For the migration one needs the RCS files
->>> (foo,v) - anonymous cvs access is not enough.
->>>
->>> Just rsync the CVS repo to devel.atrpms.net:/srv/lm-sensors.org/cvs
->>> (or any place else) and I'll do the syncing.
->>
->> I have no access to the CVS repository, only Philip Edelbrock has.
->> Phil, can you please:
->> * Turn the i2c, lm_sensors and lm_sensors2 modules to read-only.
->> * Rsync the i2c and lm_sensors2 modules to Axel's server.
->>
->> I don't think we want to copy the old lm_sensors module to the new
->> server, that would be a waste of time and energy. I guess we also don't
->> need the website module, as the new site will be handled differently.
->> The website module must stay active on the old CVS repository though,
->> as we will want to maintain the old site until the new one is fully
->> operational.
->>
-> 
-> Oops, sorry this email slipped past me.  Thanks, Rudolf, for dropping me 
-> a note today.
-> 
-> I'm pushing the tar ball up now.
-> 
-> 
+> OK, the tar ball is there in my home directory.  I also removed everyone 
+> from the writers file at cvs.lm-sensors.nu.
 
-OK, the tar ball is there in my home directory.  I also removed everyone 
-from the writers file at cvs.lm-sensors.nu.
+Hm, this turns out to be a problem, as I am now unable to update our
+website to mention the migration :( Can't we have different permissions
+for the website module? If not, please restore write access for me, so
+that I can update the site - I promise I won't write to the i2c and
+lm_sensors2 modules ;)
 
-Sorry for the delay.
+Axel, please proceed with the migration. There's one extra thing I'd
+like you to do if possible. All our cvs commits used to begin with the
+commiter's short name inside parentheses. This was helping us identify
+in the commit mail who had been doing the change. Subversion does
+already include the user name in the mails it generates so this
+information is now redundant. Can the names be easily removed from the
+messages during the migration?
 
+At any rate, after the migration is completed, committers must no more
+include their name in commit messages - this is no more needed.
 
-Phil
+Thanks,
+-- 
+Jean Delvare
 
