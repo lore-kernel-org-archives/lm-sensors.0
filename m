@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 27 May 2006 11:22:10 +0000
+From: ymu@Winbond.com.tw (Yuan Mu)
+Date: Tue, 30 May 2006 02:30:06 +0000
 Subject: [lm-sensors] [PATCH] New VID codes for Intel Core and Conroe
-Message-Id: <20060527132210.434a9b6f.khali@linux-fr.org>
+Message-Id: <447BAE2E.8030604@winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <447815E5.5060601@sh.cvut.cz>
 In-Reply-To: <447815E5.5060601@sh.cvut.cz>
@@ -10,57 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
+Rudolf Marek wrote:
+> I have finally put the patch together. It was a bit tricky without Conroe
+> datasheet ;) I added the mobile Core processor support too. Please can
+> you give a try and see if it reports meaningful results which should be 
+> round
+> 1.2V for Conroe?
+> 
 
-> --- c/drivers/hwmon/hwmon-vid.c	2006-05-12 01:31:53.000000000 +0200
-> +++ linux-2.6.17-rc4/drivers/hwmon/hwmon-vid.c	2006-05-27 10:55:07.954764128 +0200
-> (...)
->  /* vrm is the VRM/VRD document version multiplied by 10.
-> -   val is the 4-, 5- or 6-bit VID code.
-> -   Returned value is in mV to avoid floating point in the kernel. */
-> +   val is the 4-, 5-, 6- or 7-bit VID code.
+I tried ;)
+vrm:110
+cpu0_vid:1513
+cpu1_vid:1225
 
-Maybe this is time to go with "4 or more". I'm pretty certain we will
-see 8-bit VID codes in the future.
 
-> +   Returned value is in mV to avoid floating point in the kernel. 
-> +   Some VID have some bits in uV scale, this is rounded to mV */
+Best Regards
+Yuan Mu
 
-This was the case of VRD 10 already, and for this one we do truncate,
-not round. We need to be consistent here, either round all, or truncate
-all.
 
->  int vid_from_reg(int val, u8 vrm)
->  {
->  	int vid;
-> @@ -80,7 +91,10 @@ int vid_from_reg(int val, u8 vrm)
->  			vid -= 125;
->  		vid /= 10;      /* only return 3 dec. places for now */
->  		return vid;
-> -
-> +	case 110:		/* Intel Conroe */
-> +				/* compute in uV, round to mV */
-> +		return((val & 0x7e) ? (1600500 - ((val & 0x7f) - 2) * 6250)
-> +				      / 1000 : 0);
-
-If we go for rounding, please separate the +500 offset from the base
-voltage value, so as to make it clear it is there for rounding purposes.
-
->  	case 24:                /* Opteron processor */
->  		return(val = 0x1f ? 0 : 1550 - val * 25);
->  
-> @@ -106,6 +120,9 @@ int vid_from_reg(int val, u8 vrm)
->  				    1750 - val * 50);
->  	case 13:
->  		return(1708 - (val & 0x3f) * 16);
-> +	case 14:		/* Intel Core */
-> +				/* compute in uV, round to mV */
-> +		return((1500500 - (val & 0x7f) * 12500) / 1000);
-
-Same here. Additionally, values above 0x77 should be filtered out
-somehow, as they seem to be invalid (they would result in 0 or nevative
-Vcore.)
-
--- 
-Jean Delvare
-
+=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: ymu.vcf
+Type: text/x-vcard
+Size: 56 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060530/c23fa2a5/ymu.vcf
