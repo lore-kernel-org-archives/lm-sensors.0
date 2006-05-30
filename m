@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 29 May 2006 10:09:12 +0000
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Tue, 30 May 2006 10:36:22 +0000
 Subject: [lm-sensors] LM Sensors autoconfig tool project awarded as
-Message-Id: <20060529120912.895607eb.khali@linux-fr.org>
+Message-Id: <447C2026.6080503@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44744596.40406@hhs.nl>
 In-Reply-To: <44744596.40406@hhs.nl>
@@ -10,77 +10,67 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
 
-> Besides writing the abituguru driver I'm also active (actually mainly 
-> active) as a Fedora contributer. A few weeks ago the Fedora board asked 
-> for ideas/projects for Fedora's participation in Google's Summer of Code 
-> (SOC: http://code.google.com/soc/). Ever since working on the abituguru 
-> driver I've had this dream / project in my head for better & easier 
-> autoconfiguration of lm_sensors for a specific setup.
+
+Jean Delvare wrote:
+> Hi Hans,
 > 
-> Thus I took this chance to propose an lm_sensors autoconfig tool as a 
-> Fedora SOC project. As already said sorry for not involving you all 
-> earlier, I didn't expect much to come of this.
+> A few comments about DMI tables:
+> * Depending on the system, the DMI table may be conveniently and
+> accurately filled, or empty, or useless. Systems with poor DMI tables
+> won't be supportable.
+
+Yes I just encountered the first of such a system, any idea for
+alternative methods to identify these? I'm myself thinking about
+memmapping the bios and getting info from the bios image, anyone got any
+experience with this?
+
+Here is what my pcchips M811 gives:
+Handle 0x0002, DMI type 2, 8 bytes.
+Base Board Information
+        Manufacturer:
+        Product Name: VT8367-8235
+        Version:
+        Serial Number:
+
+Clearly the didn't change this from the VIA reference bios.
+
+> * Some systems have no type 2 (Base Board Information) DMI record but
+> do have type 1 (System Information) or type 3 (Chassis Information)
+> records you can fall back on.
+The above motherboard doesn't contain any usefull info there either.
+
+> I don't think that being able to export the database is a key feature.
+> End users shouldn't need this.
 > 
-> It has turned out however that much has come of this. 4 "students" have 
->   submitted official applications to google to undertake this project! 
-> And 2 more have send me emails but didn't file their applications with 
-> google. And I have applicated to be the Mentor for one of these students 
-> who seems like an excellent candidate.
+
+They will, one cannot assume a internet connection and even if one
+assumes an internet connection, phoning home applications are evil!
+
+> Likewise, I don't like the hotplug/udev stuff you mention in point 2.
+> Configuration is only done once, so I don't quite see how hotplug is
+> relevant here. 
+
+The idea behind this is to make things truely plug and play, so if I
+drop a new motherboard in my system the OS should reconfigure itself
+automaticly and everything should work as if nothing has changed. I've
+done this a couple of times and this currently works pretty well with
+Linux as OS, except for lm_sensors.
+
+> It's more simple, and more efficient too, to integrate
+> the motherboard recognition code into sensors-detect. If enough DMI
+> data is available, propose to connect to the online database to find a
+> configuration file. If a configuration file is found, copy it, and skip
+> all the probing phase. This is how I'd do it, anyway.
 > 
-> Its very likely (not 100% official yet) that this project will be 
-> approved and that the student I've applicated to Mentor will be working 
-> on this this summer.
-> 
-> Even though this is a Fedora project, I believe that the lm_sensors 
-> team/community getting involved is important if not vital and that the 
-> project should be implemented in an as distro neutral way as possible, 
-> hence my mail to you.
-> 
-> For the project as described by me when suggesting it see:
-> http://fedoraproject.org/wiki/FedoraBounties#head-5a66fb1f8ba2fa17d980e9d4df54c2b61e76ca54
 
-Sounds like a very good idea. A few users tried to setup similar
-projects before, but nobody ever came up with something functional
-enough to be used. If the project is completed and ends up being
-operational, this would be a great improvement for the lm_sensors
-project, making the setup phase much easier in many cases.
+See above, besides I want lm_sensors to just work (tm), having to run
+sensors-detect is not just working. I do agree that the detected
+motherboard should be stored somewhere and that the existing config
+should not be overwritten if the motherboard wasn't changed.
 
-Using dmidecode to get the motherboard identification sounds right.
-Note that I have implemented a command line interface to dmidecode,
-which should come in handy:
 
-$ dmidecode -s baseboard-manufacturer
-Supermicro
-$ dmidecode -s baseboard-product-name
-370DL3/370DLE
-$
+Regards,
 
-This requires dmidecode >= 2.7.
-
-A few comments about DMI tables:
-* Depending on the system, the DMI table may be conveniently and
-accurately filled, or empty, or useless. Systems with poor DMI tables
-won't be supportable.
-* Some systems have no type 2 (Base Board Information) DMI record but
-do have type 1 (System Information) or type 3 (Chassis Information)
-records you can fall back on.
-* The full output of dmidecode can contain data which shouldn't be made
-public (serial numbers, UUIDs etc.) so you must make sure to only ask
-the user for what you need.
-
-I don't think that being able to export the database is a key feature.
-End users shouldn't need this.
-
-Likewise, I don't like the hotplug/udev stuff you mention in point 2.
-Configuration is only done once, so I don't quite see how hotplug is
-relevant here. It's more simple, and more efficient too, to integrate
-the motherboard recognition code into sensors-detect. If enough DMI
-data is available, propose to connect to the online database to find a
-configuration file. If a configuration file is found, copy it, and skip
-all the probing phase. This is how I'd do it, anyway.
-
--- 
-Jean Delvare
+Hans
 
