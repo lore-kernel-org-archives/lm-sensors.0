@@ -1,7 +1,7 @@
-From: roger@planbit.co.uk (Roger Lucas)
-Date: Tue, 30 May 2006 22:19:35 +0000
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Wed, 31 May 2006 03:21:18 +0000
 Subject: [lm-sensors] LM Sensors autoconfig tool project awarded as
-Message-Id: <20060530221750.9822012ED4@bluewhale.planbit.co.uk>
+Message-Id: <20060531032118.GC5739@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44744596.40406@hhs.nl>
 In-Reply-To: <44744596.40406@hhs.nl>
@@ -10,186 +10,98 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi All,
+Hi Jean:
 
-There was a similar thread on this list last year about how to set up a
-system that automatically detects motherboards and their configurations.
+> > * Hans de Goede <j.w.r.degoede at hhs.nl> [2006-05-30 12:36:22 +0200]:
+> > > They will, one cannot assume a internet connection and even if one
+> > > assumes an internet connection, phoning home applications are evil!
 
-We needed something to do this and our brief spec was for:
-- a system that would confidently pick a configuration that was specific to
-an exact motherboard, not based on chip probing.  This stopped any problems
-with external voltage scaling resistors etc that were motherboard specific.
-- a system that we could quickly add new configuation files to.
-- a system with a standardised naming convention for the sensors themselves
-so that the output from "sensors" could be easily parsed by a script or
-similar and where the script did NOT need changing for different
-motherboards.
+* Jean Delvare <khali at linux-fr.org> [2006-05-30 14:32:33 +0200]:
+> One could argue that a 4 MB database on my hard disk drive, when I need
+> a single 3 kB file out of it, is evil. I have no problem with
+> applications phoning home as long as they ask me before. For systems
+> with no internet connection, people can download the file from the web
+> and copy it manually.
 
-Our solution was to create a unique sensors.conf file for each motherboard
-which included information about the motherboard "dmidecode" output and the
-modules that were needed to run.  A script ran the dmidecode utility and
-scanned all the conf files in a folder looking for the best match.  It could
-then optionally install the appropriate .conf file and add the appropriate
-modprobe commands to the modules file.
+A 4MB database is well into the noise for most distributions.  For any
+that actually care, it should be easy to package the data separately.
 
-We picked a naming convention for the sensors based on a prefix of:
-	V_	voltage sensor
-	T_	temperature sensor
-	F_	Fan sensor
+> That being said, I am fine with both implementations, as long as it
+> works and the maintenance workload is limited.
+> 
+> > > > Likewise, I don't like the hotplug/udev stuff you mention in point 2.
+> > > > Configuration is only done once, so I don't quite see how hotplug is
+> > > > relevant here. 
+> > > 
+> > > The idea behind this is to make things truely plug and play, so if I
+> > > drop a new motherboard in my system the OS should reconfigure itself
+> > > automaticly and everything should work as if nothing has changed. I've
+> > > done this a couple of times and this currently works pretty well with
+> > > Linux as OS, except for lm_sensors.
+> > 
+> > I agree with you (Hans) here and about the database.  Actually, I *really*
+> > like the idea of having a little DMI/hotplug driver, because that means
+> > we *won't* have to add all of that directly to hwmon drivers.
+> 
+> Why would we have to add anything to the drivers?
+> 
+> I don't argue with the idea of a plug'n'play system. I argue strongly
+> against the proposed implementation. It really doesn't have anything
+> to do with hotplug (until your motherboard becomes hotpluggable...) and
+> the detection mechanism doesn't belong to the kernel. Userspace can
+> identify the motherboard and load the required modules, then configure
+> the chip(s) as needed. This only has to be done only once, at boot
+> time, and can easily be made part of the init scripts.
+> 
+> Unless I'm missing something. What do we win with an hotplug event?
 
-There then followed a unique identifier string - if it was a voltage rail
-described as a target voltage (e.g. 3.3v rail) then we followed a typical
-engineering practice of removing the "." and replacing it with "V" for
-voltages.  A suffix of "P" indicated a positive voltage and "N" a negative
-voltage - again common practice in schematics and similar.  If there were
-multiple sensors reading the same type of parameter (e.g. multiple CPUs)
-then a suffix of _0, _1, _2, ... was added.  This made the parser extremely
-simple.
+I had assumed that an auto-configurator would be driven by the kernel with
+hotplug events.  But I guess you're right, it could be done just as well
+without that.
 
-e.g.
-    label in0 "V_VCORE_0"    #"VCore"
-    label in2 "V_3V3P"    #"+3.3V"
-    label in3 "V_5V0P"    #"+5V"
-    label in4 "V_12V0P"    #"+12V"
-    label in5 "V_12V0N"    #"-12V"
-    label in6 "V_5V0N"    #"-5V"
-    label in7 "V_V5SB"    #"V5SB"
-    label in8 "V_VBAT"    #"VBat"
+> > > > It's more simple, and more efficient too, to integrate
+> > > > the motherboard recognition code into sensors-detect. If enough DMI
+> > > > data is available, propose to connect to the online database to find a
+> > > > configuration file. If a configuration file is found, copy it, and skip
+> > > > all the probing phase. This is how I'd do it, anyway.
+> > > 
+> > > See above, besides I want lm_sensors to just work (tm), having to run
+> > > sensors-detect is not just working. I do agree that the detected
+> > > motherboard should be stored somewhere and that the existing config
+> > > should not be overwritten if the motherboard wasn't changed.
+> 
+> We agree on that second point. I don't agree with the statement that
+> "sensors-detect is not just working" though. sensors-detect does its
+> job well. If it fails on some systems, please report and we'll try to
+> fix that. Some things cannot be detected though (e.g. unused super-I/O
+> chips.) The real problem is that sensors-detect does only detect chips
+> and knows about which drivers they need. It was never meant to handle
+> the chips configuration, because this just can't be detected. The
+> project you propose would complement, not replace, sensors-detect.
 
-    label fan1 "F_CPU_0"
-    label fan2 "F_MB_0"
-    label fan3 "F_MB_1"
-    label fan4 "F_MB_2"
-    
-    label temp1 "T_MB_0"
-    label temp2 "T_CPU_0"
+(If I may...) Hans is not saying that sensors-detect does not work.  For
+the purpose of developers, it works well.  For the purpose of a user with
+some courage or knowledge, it can also work.  But...
 
-This has worked _really_ well for us.
+Go and give a talk to a local LUG about lm-sensors and you will find that
+a lot of people will just wait for something like Hans' project to be
+started and finished rather than wade into sensors-detect.  They're not
+stupid either, and I don't blame them.  
 
-I have attached the python script that we wrote as well as several sensors
-files.  If this is of use to anyone then enjoy !
+Of course, free software being what it is... an automagic configurator
+would have never made it to the top of my personal TODO list.  Anyone
+who knows enough about lm-sensors to write a proper one doesn't actually
+need it.  That said, once complete I probably will use it to save a tiny
+amount of work (re-targeting a symlink or two) whenever I move a board
+or a hard drive.
 
-Comments welcome.
+But for many users, something more automatic than sensors-detect could
+mean the difference between using lm-sensors or not using it at all.
 
-BR,
+Regards,
 
-Roger
- 
-> -----Original Message-----
-> From: lm-sensors-bounces at lm-sensors.org [mailto:lm-sensors-bounces at lm-
-> sensors.org] On Behalf Of Hans de Goede
-> Sent: 30 May 2006 11:36
-> To: LM Sensors
-> Subject: Re: [lm-sensors] LM Sensors autoconfig tool project awarded as
-> google SOC project
-> 
-> 
-> 
-> Jean Delvare wrote:
-> > Hi Hans,
-> >
-> > A few comments about DMI tables:
-> > * Depending on the system, the DMI table may be conveniently and
-> > accurately filled, or empty, or useless. Systems with poor DMI tables
-> > won't be supportable.
-> 
-> Yes I just encountered the first of such a system, any idea for
-> alternative methods to identify these? I'm myself thinking about
-> memmapping the bios and getting info from the bios image, anyone got any
-> experience with this?
-> 
-> Here is what my pcchips M811 gives:
-> Handle 0x0002, DMI type 2, 8 bytes.
-> Base Board Information
->         Manufacturer:
->         Product Name: VT8367-8235
->         Version:
->         Serial Number:
-> 
-> Clearly the didn't change this from the VIA reference bios.
-> 
-> > * Some systems have no type 2 (Base Board Information) DMI record but
-> > do have type 1 (System Information) or type 3 (Chassis Information)
-> > records you can fall back on.
-> The above motherboard doesn't contain any usefull info there either.
-> 
-> > I don't think that being able to export the database is a key feature.
-> > End users shouldn't need this.
-> >
-> 
-> They will, one cannot assume a internet connection and even if one
-> assumes an internet connection, phoning home applications are evil!
-> 
-> > Likewise, I don't like the hotplug/udev stuff you mention in point 2.
-> > Configuration is only done once, so I don't quite see how hotplug is
-> > relevant here.
-> 
-> The idea behind this is to make things truely plug and play, so if I
-> drop a new motherboard in my system the OS should reconfigure itself
-> automaticly and everything should work as if nothing has changed. I've
-> done this a couple of times and this currently works pretty well with
-> Linux as OS, except for lm_sensors.
-> 
-> > It's more simple, and more efficient too, to integrate
-> > the motherboard recognition code into sensors-detect. If enough DMI
-> > data is available, propose to connect to the online database to find a
-> > configuration file. If a configuration file is found, copy it, and skip
-> > all the probing phase. This is how I'd do it, anyway.
-> >
-> 
-> See above, besides I want lm_sensors to just work (tm), having to run
-> sensors-detect is not just working. I do agree that the detected
-> motherboard should be stored somewhere and that the existing config
-> should not be overwritten if the motherboard wasn't changed.
-> 
-> 
-> Regards,
-> 
-> Hans
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors at lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: abit_LG81.conf
-Type: application/octet-stream
-Size: 725 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060531/01aca96f/abit_LG81-0001.obj
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: asrock_K7S41GX.conf
-Type: application/octet-stream
-Size: 3175 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060531/01aca96f/asrock_K7S41GX-0001.obj
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: EPIA.conf
-Type: application/octet-stream
-Size: 2802 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060531/01aca96f/EPIA-0001.obj
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: MSI_KM266-8237.conf
-Type: application/octet-stream
-Size: 3235 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060531/01aca96f/MSI_KM266-8237-0001.obj
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: template.conf
-Type: application/octet-stream
-Size: 3091 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060531/01aca96f/template-0001.obj
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: sensors4mobo
-Type: application/octet-stream
-Size: 19047 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060531/01aca96f/sensors4mobo-0001.obj
+-- 
+Mark M. Hoffman
+mhoffman at lightlink.com
+
+
