@@ -1,7 +1,7 @@
 From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 31 May 2006 09:26:49 +0000
+Date: Wed, 31 May 2006 09:31:40 +0000
 Subject: [lm-sensors] vt8251 need info
-Message-Id: <447D6159.6070102@sh.cvut.cz>
+Message-Id: <447D627C.7050403@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <447CBCA9.6060505@sh.cvut.cz>
 In-Reply-To: <447CBCA9.6060505@sh.cvut.cz>
@@ -10,38 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rajib Chakrabartty wrote:
-> Dear Rudolf,
-> 
-> Please find attached the requested files. Do get back if I can be 
-> of any additional help.
+Hi Roger,
 
-Thanks,
+> 0000:00:11.0 ISA bridge: VIA Technologies, Inc. VT8231 [PCI-to-ISA Bridge]
 
-Assuming you have at least lm-sensors userspace tools installed lets try:
+Hmm seems it has different south bridge. I need vt8251.
 
-isadump -f 0x400
-
-Depending on result of this dump, following will be less dangerous:
-
-If you want to get the SMBus working you may change following to the i2c-viapro.c
-
-       { PCI_DEVICE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8237),
-
-to:
-
-       { PCI_DEVICE(PCI_VENDOR_ID_VIA, 0x3287),
-
-Then compile, install modules and try to detect some devices on the bus:
-
-modprobe i2c-viapro
-modprobe i2c-dev
-i2cdetect 0
-
-So you may try both, or just the first part and do the second part optionally
-based on the result of step #1
-
-Thanks,
+Anyway, thanks for the help.
 
 Regards
 Rudolf
