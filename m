@@ -1,72 +1,221 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 10 May 2006 17:06:08 +0000
-Subject: [lm-sensors] netfinity 6000r crash running sensors-detect
-Message-Id: <44621D80.9050706@sh.cvut.cz>
+From: m.teunissenvanmanen@cb2.nl (Marco Teunissen van Manen)
+Date: Wed, 31 May 2006 11:54:36 +0000
+Subject: [lm-sensors] Two issues: sysfs and smsc47m1 error
+Message-Id: <000601c684a8$fdb00020$6fc8a8c0@WSMARCO>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <a0fb11cc0604031304m792d8a8oef1f1a81c10e23ad@mail.gmail.com>
-In-Reply-To: <a0fb11cc0604031304m792d8a8oef1f1a81c10e23ad@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mark Lybarger wrote:
-> I seem to have gotten by the scanning.  Here's your requested output. 
-> Sensors still doesn't work, but at least it doesn't crash my machine:
-> 
-> arabica mark # lspci -xxx
-> 00:00.0 Host bridge: Broadcom CNB20HE Host Bridge (rev 21)
+Ok, the detailed info:
 
-Hmm I need this line:
-00:0f.0 ISA bridge: Broadcom OSB4 South Bridge (rev 4f
+ 
 
-Or similar one... Please include it in later mail
+HP ML310T2G2 Server , 1Gb Memory, 70Gb SCSI HD. Intel Xeon 3.2Ghz
 
-> 
-> arabica mark # modprobe i2c-dev
-> arabica mark # modprobe i2c-piix4
-> arabica mark # i2cdump -y 0 0x50
-> No size specified (using byte-data access)
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> 00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 
-> arabica mark # i2cdetect 0
-> WARNING! This program can confuse your I2C bus, cause data loss and worse!
-> I will probe file /dev/i2c/0.
-> I will probe address range 0x03-0x77.
-> Continue? [Y/n] Y
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00:          03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
-> 10: 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f
-> 20: 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f
-> 30: 30 31 32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f
-> 40: 40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f
-> 50: UU UU UU UU UU UU UU UU 58 59 5a 5b 5c 5d 5e 5f
-> 60: 60 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f
-> 70: 70 71 72 73 74 75 76 77
-> 
+ 
 
-Hmm this means smbus is not working at all.
+Installed SuSE 9.3 architecture: x86_64, kernel: 2.6.11.4-21.12-smp
 
-I guess you did all steps just after clean start?
+ 
 
-Thanks
+# sensors -v
 
-Regards
-Rudolf
+Sensors version 2.10.0 with libsensors version 2.10.0
 
+ 
+
+Answer YES to all questions
+
+# sensors-detect
+
+Probing for `SMSC 47B27x Super IO Fan Sensors'
+
+  Failed! (0x60)
+
+Probing for `SMSC 47M10x/13x Super IO Fan Sensors'
+
+  Failed! (0x60)
+
+Probing for `SMSC 47M14x Super IO Fan Sensors'
+
+  Failed! (0x60)
+
+Probing for `SMSC 47M15x/192/997 Super IO Fan Sensors'
+
+  Success... found at address 0x0400
+
+Probing for `SMSC 47S42x Super IO Fan Sensors'
+
+  Failed! (0x60)
+
+Probing for `SMSC 47S45x Super IO Fan Sensors'
+
+  Failed! (0x60)
+
+Probing for `SMSC 47M172 Super IO'
+
+  Failed! (0x60)
+
+ 
+
+Now follows a summary of the probes I have just done.
+
+ Just press ENTER to continue: YES
+
+ 
+
+Driver `smsc47m1' (should be inserted):
+
+  Detects correctly:
+
+  * ISA bus address 0x0400 (Busdriver `i2c-isa')
+
+    Chip `SMSC 47M15x/192/997 Super IO Fan Sensors' (confidence: 9)
+
+ 
+
+ 
+
+I will now generate the commands needed to load the I2C modules.
+
+ 
+
+To make the sensors modules behave correctly, add these lines to
+
+/etc/modules.conf:
+
+ 
+
+#----cut here----
+
+# I2C module options
+
+alias char-major-89 i2c-dev
+
+#----cut here----
+
+ 
+
+To load everything that is needed, add this to some /etc/rc* file:
+
+ 
+
+#----cut here----
+
+# I2C adapter drivers
+
+modprobe i2c-isa
+
+# I2C chip drivers
+
+modprobe smsc47m1
+
+# sleep 2 # optional
+
+/usr/local/bin/sensors -s # recommended
+
+#----cut here----
+
+ 
+
+Manual trying:
+
+# lsmod | grep i2c
+
+i2c_core               27776  0
+
+ 
+
+# modprobe i2c-isa
+
+# lsmod | grep i2c
+
+i2c_isa                 3840  0
+
+i2c_core               27776  1 i2c_isa
+
+ 
+
+# modprobe smsc47m1
+
+FATAL: Error inserting smsc47m1
+(/lib/modules/2.6.11.4-21.12-smp/kernel/drivers/i2c/chips/smsc47m1.ko): No
+such device
+
+ 
+
+This raises my first problem. 
+
+ 
+
+# modprobe i2c-sensor
+
+# lsmod | grep i2c
+
+i2c_sensor              5120  0
+
+i2c_isa                 3840  0
+
+i2c_core               27776  2 i2c_sensor,i2c_isa
+
+ 
+
+# modprobe smsc47m1
+
+FATAL: Error inserting smsc47m1
+(/lib/modules/2.6.11.4-21.12-smp/kernel/drivers/i2c/chips/smsc47m1.ko): No
+such device
+
+ 
+
+Ok, so the one module I need, I cannot get loaded. Some help appreciated. 
+
+ 
+
+Just continued with normal steps, and found the following error, which
+completely eludes me as well:
+
+# sensors -s
+
+Can't access procfs/sysfs file
+
+Unable to find i2c bus information;
+
+For 2.6 kernels, make sure you have mounted sysfs and libsensors
+
+was compiled with sysfs support!
+
+For older kernels, make sure you have done 'modprobe i2c-proc'!
+
+ 
+
+Ehmmm
+
+# mount | grep sysfs
+
+sysfs on /sys type sysfs (rw)
+
+ 
+
+# ls /sys/bus/i2c/
+
+.  ..  devices  drivers
+
+ 
+
+I've been reading through the docs, searched the internet but I cannot find
+a solution. Help very much appreciated.
+
+ 
+
+WBR
+
+Marco Teunissen van Manen
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060531/8a18ec1d/attachment.html
