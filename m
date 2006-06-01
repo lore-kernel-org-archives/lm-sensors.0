@@ -1,75 +1,113 @@
-From: khc@pm.waw.pl (Krzysztof Halasa)
-Date: Wed, 07 Jun 2006 23:52:42 +0000
-Subject: [lm-sensors] Black box flight recorder for Linux
-Message-Id: <m3irncr0ad.fsf@defiant.localdomain>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 01 Jun 2006 12:11:51 +0000
+Subject: [lm-sensors] LM Sensors autoconfig tool project awarded
+Message-Id: <20060601121151.GE5739@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44379AB8.6050808@superbug.co.uk>
-	<m3psjqeeor.fsf@defiant.localdomain> <443A4927.5040801@warmcat.com>
-	<m3zmgqxjs8.fsf@defiant.localdomain>
-	<20060607100349.a990e054.khali@linux-fr.org>
-	<4486A7FC.2090904@warmcat.com>
-In-Reply-To: <4486A7FC.2090904@warmcat.com> (Andy Green's message of "Wed, 07 Jun 2006 11:18:36 +0100")
+References: <44744596.40406@hhs.nl>
+In-Reply-To: <44744596.40406@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andy Green <andy@warmcat.com>
-Cc: Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Roger:
 
-Andy Green <andy at warmcat.com> writes:
+* Roger Lucas <roger at planbit.co.uk> [2006-05-31 15:58:49 +0100]:
+> We use "sensors" as a back-end system for a GUI.  We didn't need to pick
+> this exact naming convention, but the example names in the sensors.conf file
+> were not consistent and we needed to pick a standard.  We didn't want to
+> have to re-write the GUI if we suddenly had a motherboard with an extra fan
+> input, so we needed a way for the sensor names to make sense to the GUI so
+> that it could adapt its display accordingly.  What I posted was our solution
+> to the problem.
+> 
+> There are many other solutions, but that was the one that we chose.  As a
+> general comment, however, in the *nix world, pretty much any utility that
+> only runs on the command line has to consider itself as a source of data for
+> other tools and should really try to make some effort to offer output (or at
+> least an optional output mode) which makes parsing its output by other
+> scripts easy.  All the LVM tools, for example, offer such modes as do tools
+> like dmidecode.  On the other hand, some of the SAMBA tools such as
+> smbstatus do not, and their output is very hard to reliably parse under
+> certain conditions.  I know which style of tools I prefer to work with...
+> 
+> I admit that the command-line mode is widely used in Linux, but so are
+> KDE/Gnome/xxxx-window-manager GUIs.  As I understand it, "sensors" is the
+> recommended tool for access to the lm-sensors subsystem, then its output
+> should be parseable so that the GUI can re-structure it as required.  As it
 
-> A whole other way forward is to consider to replace the EEPROM from
-> the original proposal (which does provide its own advantages such as
-> simplicity, I accept) with something else that ends up on another
-> PC. In this concept some logic presents a fake I2C peripheral to the
-> DDC interface at an I2C address of our choosing.  This logic acts as a
-> bidirectional "UART" type of thing, allowing transfer of data in both
-> directions between the Linux box being debugged and another PC.
+Really, you should use libsensors directly if that's your goal.  We're not
+in the habit of making gratuitous changes to the output of sensors(1), but
+AFAIK it's not considered a requirement.
 
-Right. I think one could use something like ATMEL 89F2051 (20-pin 8051
-non-SMD clones with flash and hardware UART) or something similar.
+BTW: the output of 'sensors -u' might be easier for you to parse.
 
-Client I2C is difficult in Linux (using general purpose I/O port) but
-with a dedicated CPU it's not a problem (not sure about 400 kHz access).
+> currently stands, there are a range of different description strings in
+> sensors.conf.  At the very least, if a centralised archive of sensors.conf
+> files is to be created then we need a naming convention for the sensor
+> values in just the same way that the sensor names themselves follow a
+> standard.  If we don't then anyone "downstream" of sensors will have a
+> horrible job trying to work out exactly what sensors they have and how to
+> display them.  If we want, we could have a short machine-style version and a
+> longer human style version.  I really don't mind, but for my needs, I need a
+> name that can be parsed easily and which is consistent across all the
+> motherboards that I am using (or may use in the future).
 
-> http://warmcat.com/milksop/filtror.html
+The autoconfigurator will still allow custom /etc/sensors.conf I'm sure.  Is
+there something else you need?
 
-Well, that's a bit more complicated. I'm not going to try that on
-an experimental PCB :-)
+> > -----Original Message-----
+> > From: Hans de Goede [mailto:j.w.r.degoede at hhs.nl]
+> > Sent: 31 May 2006 15:36
+> > To: Roger Lucas
+> > Subject: Re: [lm-sensors] LM Sensors autoconfig tool project awarded as
+> > google SOC project
+> > 
+> > Roger Lucas wrote:
+> > > Hi All,
+> > >
+> > 
+> > Hi,
+> > 
+> > Thanks for the config files, maybe its an idea to add them to the wiki?
+> > 
+> > >
+> > > We picked a naming convention for the sensors based on a prefix of:
+> > > 	V_	voltage sensor
+> > > 	T_	temperature sensor
+> > > 	F_	Fan sensor
+> > >
+> > > There then followed a unique identifier string - if it was a voltage
+> > rail
+> > > described as a target voltage (e.g. 3.3v rail) then we followed a
+> > typical
+> > > engineering practice of removing the "." and replacing it with "V" for
+> > > voltages.  A suffix of "P" indicated a positive voltage and "N" a
+> > negative
+> > > voltage - again common practice in schematics and similar.  If there
+> > were
+> > > multiple sensors reading the same type of parameter (e.g. multiple CPUs)
+> > > then a suffix of _0, _1, _2, ... was added.  This made the parser
+> > extremely
+> > > simple.
+> > >
+> > 
+> > I'm not sure I would want togo this way, I don't find the resulting
+> > names very pretty, with the Abit uGuru driver I've tried to match the
+> > names in sensors.conf to the BIOS names I think that that is what a less
+> > experienced user would expect.
+> > 
+> > Whats the advantage of this, why would you want to parse the output with
+> > a script?
+> > 
+> > Regards,
+> > 
+> > Hans
 
-> However this would be much simpler, not even needing RAM.  It can hook
-> to the second PC by the same I2C method, parallel printer port, RS232
-> or USB depending on the level of complexity of the design.
->
-> I guess the link will feel quite like a 9600 or 19200 baud serial port
-> in terms of throughput.
+Regards,
 
-Depends on I2C. With something like 400 kHz it should be faster,
-probably like 115200.
-
-> Maybe this effort is considered too esoteric, but it seems to me to be
-> a reason to keep the DDC access drivers standalone, the
-> hardware-specific framebuffer drivers can call through to them and we
-> can use them in a clean way.  I realize this is a bit of a late
-> objection and that there was not previously much point to keeping them
-> as separate things in the world.
-
-Actually we have:
-- the Xserver "hardware access" issue
-- DRI/DRM
-- now the I2C bus driver
-- frame buffer
-
-To avoid conflicts we really need them managed by a single driver.
-Probably the GGI (KGI?) should be revisited?
-
-Long-term project, unfortunatelly, but I think we'll have to do that
-eventually.
-
-The I2C, graphics subsystem and DRI/DRM could be sub-modules, with
-the master module only keeping track of hardware access, mode
-settings etc.
 -- 
-Krzysztof Halasa
+Mark M. Hoffman
+mhoffman at lightlink.com
+
 
