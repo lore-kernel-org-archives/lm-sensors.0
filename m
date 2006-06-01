@@ -1,31 +1,30 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 08 Jun 2006 15:33:31 +0000
-Subject: [lm-sensors] [PATCH] i2c: fix scx200_acb functionalities
-Message-Id: <20060608173331.e5af158c.khali@linux-fr.org>
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Thu, 01 Jun 2006 14:29:44 +0000
+Subject: [lm-sensors] PATCH: libsensors and sensors prog support for
+Message-Id: <447EF9D8.2020108@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060607222407.6dc85114.khali@linux-fr.org>
-In-Reply-To: <20060607222407.6dc85114.khali@linux-fr.org>
+References: <4470B176.5000703@hhs.nl>
+In-Reply-To: <4470B176.5000703@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Greg,
+Hi,
 
-Quoting myself:
-> Can you please push this to Linus as soon as possible? It would be nice
-> to have this fix in 2.6.17 (and -stable too.)
-> 
-> 
-> The scx200_acb advertises SMBus block transactions as supported. In
-> fact, it supports SMBus block writes, but not SMBus block reads which
-> are more complex to implement.
-> 
-> This fixes an oops reported by Alexander Atanasov:
-> http://marc.theaimsgroup.com/?l=linux-kernel&m4970382125094
+Here is a new version of the Abit uGuru userspace support, I fixed 
+everything from Jean's review.
 
-Huh, please hold on, my fix seems to be incomplete.
+I did this patch against 2.10.0 not CVS, but I checked that it applies 
+against CVS too.
 
--- 
-Jean Delvare
+Thanks & Regards,
 
+Hans
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm_sensors-2.10.0-uguru.patch
+Type: text/x-patch
+Size: 11354 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060601/66e2f534/attachment.bin 
