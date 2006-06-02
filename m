@@ -1,7 +1,7 @@
 From: hverkuil@xs4all.nl (Hans Verkuil)
-Date: Fri, 02 Jun 2006 12:05:17 +0000
+Date: Fri, 02 Jun 2006 12:05:43 +0000
 Subject: [lm-sensors] [v4l-dvb-maintainer] Re: [PATCH 1/3] i2c: allow
-Message-Id: <7222.212.123.193.10.1149249917.squirrel@webmail.xs4all.nl>
+Message-Id: <12467.212.123.193.10.1149249943.squirrel@webmail.xs4all.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44802319.4050609@gmail.com>
 In-Reply-To: <44802319.4050609@gmail.com>
