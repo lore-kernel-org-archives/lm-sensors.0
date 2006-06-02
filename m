@@ -1,277 +1,88 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 26 Jun 2006 20:28:39 +0000
-Subject: [lm-sensors] Struggled with this for months (resending)
-Message-Id: <20060626222839.74f4c8cc.khali@linux-fr.org>
+From: kevin.bowling@wans.net (Kevin Bowling)
+Date: Fri, 02 Jun 2006 07:53:28 +0000
+Subject: [lm-sensors] IBM NetFinity 4000r Support
+Message-Id: <447FEE78.308@wans.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060624193309.85639.qmail@web52103.mail.yahoo.com>
-In-Reply-To: <20060624193309.85639.qmail@web52103.mail.yahoo.com>
+References: <44665DE5.60703@wans.net>
+In-Reply-To: <44665DE5.60703@wans.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Tom,
+Rudolf Marek wrote:
+>>   If you view the bug, it uses 4 MAX161 sensors for primary temperature
+>> sensors.  I also posted the source code for an old driver.  Please let
+>> me know what I need to do to get development started.
+>>              Kevin
+>
+> yep I rechecked again. It seems to me at first as a bus problem.
+> Please can you do/provide output of following:
+>
+> 0) power cycle the system
+> 1) turn on the I2C bus debugging
+> 2) modprobe i2c-piix4
+> 3) i2cdetect 0
+> 4) i2cdump 0 0x2d
+>
+> lspci -xxx
+>
+> Thanks,
+> regards
+> Rudolf
+Sorry for the delay, I brought up a second machine to do the development
+on since the first is my server.
 
-> No replies to this last month, so sending it again.
+Needless to say, I didn't get very far.  Here's the output of the
+commands you gave me.  It does indeed sound like a bus issue.
 
-No replies to what? You didn't ask any actual question!
+[root at localhost ~]# modprobe i2c-dev
+[root at localhost ~]# modprobe i2c-piix4
+[root at localhost ~]# i2cdetect 0
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-0.
+I will probe address range 0x03-0x77.
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
+10: XX XX XX XX XX XX XX XX 18 XX 1a XX XX XX XX XX
+20: XX XX XX XX XX XX XX XX XX XX XX XX XX 2d XX XX
+30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+40: XX XX XX XX XX XX XX XX XX XX XX XX 4c XX 4e XX
+50: XX XX 52 53 XX XX XX XX XX XX XX XX XX XX XX XX
+60: XX XX XX XX XX XX 66 XX XX 69 XX XX XX XX XX XX
+70: XX XX XX 73 XX XX XX XX
 
-> OK, I have tried reading documentation, following
-> the flowchart, and searching the mailing list, the
-> site, and the entire web to try to figure out what
-> I have. I just don't get it. :(
-> 
-> I have decided to finally ask for help from the list.
-> 
-> Let me know if I have forgotten anything.
-> 
-> # uname -mpr
-> 2.6.16-gentoo-r6 i686 Pentium III (Coppermine)
-> 
-> 
-> # equery list lm_sensors
-> [ Searching for package 'lm_sensors' in all categories among: ]
->  * installed packages
-> [I--] [  ] sys-apps/lm_sensors-2.10.0 (0)
-> 
-> 
-> # lsmod
-> Module                  Size  Used by
-> hwmon_vid               1984  0
-> i2c_isa                 3072  0
-> 
-> 
-> # /usr/sbin/sensors-detect
-> # sensors-detect revision 1.413 (2006/01/19 20:28:00)
-> 
-> This program will help you determine which I2C/SMBus modules you need
-> to
-> load to use lm_sensors most effectively. You need to have i2c and
-> lm_sensors installed before running this program.
-> Also, you need to be `root', or at least have access to the /dev/i2c-*
-> files, for most things.
-> If you have patched your kernel and have some drivers built in, you can
-> safely answer NO if asked to load some modules. In this case, things
-> may
-> seem a bit confusing, but they will still work.
-> 
-> It is generally safe and recommended to accept the default answers to
-> all
-> questions, unless you know what you're doing.
-> 
->  We can start with probing for (PCI) I2C or SMBus adapters.
->  You do not need any special privileges for this.
->  Do you want to probe now? (YES/no):
-> Probing for PCI bus adapters...
-> Use driver `i2c-i810' for device 00:01.0: Intel 82810E GMCH
-> Use driver `i2c-i801' for device 00:1f.3: Intel 82801AA ICH
-> Probe succesfully concluded.
-> 
-> We will now try to load each adapter module in turn.
-> Load `i2c-i810' (say NO if built into your kernel)? (YES/no): n
-> Load `i2c-i801' (say NO if built into your kernel)? (YES/no): n
-> If you have undetectable or unsupported adapters, you can have them
-> scanned by manually loading the modules before running this script.
-> 
->  To continue, we need module `i2c-dev' to be loaded.
->  If it is built-in into your kernel, you can safely skip this.
->  i2c-dev is not loaded. Do you want to load it now? (YES/no): n
->  Well, you will know best. We will just hope you edited
-> `/etc/modules.conf'
->  for automatic loading of this module. If not,
->  you won't be able to open any /dev/i2c-* file (unless youhave it
-> built-in
->  into your kernel)
-> 
->  We are now going to do the adapter probings. Some adapters may hang
-> halfway
->  through; we can't really help that. Also, some chips will be double
-> detected;
->  we choose the one with the highest confidence value in that case.
->  If you found that the adapter hung after probing a certain address,
-> you can
->  specify that address to remain unprobed. That often
->  includes address 0x69 (clock chip).
-> 
-> Next adapter: SMBus I801 adapter at dcd0
-> Do you want to scan it? (YES/no/selectively):
-> Client found at address 0x31
-> Client found at address 0x50
-> Probing for `SPD EEPROM'... Success!
->     (confidence 8, driver `eeprom')
-> Probing for `DDC monitor'... Failed!
-> Probing for `Maxim MAX6900'... Failed!
-> Client found at address 0x51
-> Probing for `SPD EEPROM'... Success!
->     (confidence 8, driver `eeprom')
-> Client found at address 0x69
+[root at localhost ~]# i2cdump 0 0x2d
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-0, address 0x2d, mode byte
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 00 1c 00 02 00 00 11 00 44 04 04 00 00 00 54 00    .?.?..?.D??...T.
+10: 00 02 00 10 44 00 10 10 00 80 00 10 00 08 04 00    .?.?D.??.?.?.??.
+20: 01 00 00 18 00 00 08 42 00 90 00 00 a0 00 23 05    ?..?..?B.?..?.#?
+30: 00 00 00 00 00 80 02 00 00 00 00 12 00 10 00 08    .....??....?.?.?
+40: 08 00 10 00 00 00 40 51 2d c0 c0 c0 c0 c0 c0 00    ?.?... at Q-??????.
+50: 08 00 10 00 00 00 40 51 2d c0 c0 c0 c0 c0 c0 00    ?.?... at Q-??????.
+60: 01 00 00 18 00 00 08 XX XX XX XX XX XX XX XX XX    ?..?..?XXXXXXXXX
+70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
 
-These are only memory module EEPROMs, not hardware monitoring chips.
-You don't have hardware monitoring chips on your SMBus, or they are
-somehow muxed out.
+And in dmesg:
 
-> 
-> Some chips are also accessible through the ISA bus. ISA probes are
-> typically a bit more dangerous, as we have to write to I/O ports to do
-> this. This is usually safe though.
-> 
-> Do you want to scan the ISA bus? (YES/no):
-> Probing for `National Semiconductor LM78'
->   Trying address 0x0290... Failed!
-> Probing for `National Semiconductor LM78-J'
->   Trying address 0x0290... Failed!
-> Probing for `National Semiconductor LM79'
->   Trying address 0x0290... Failed!
-> Probing for `Winbond W83781D'
->   Trying address 0x0290... Failed!
-> Probing for `Winbond W83782D'
->   Trying address 0x0290... Failed!
-> Probing for `Winbond W83627HF'
->   Trying address 0x0290... Failed!
-> Probing for `Winbond W83627EHF'
->   Trying address 0x0290... Failed!
-> Probing for `Silicon Integrated Systems SIS5595'
->   Trying general detect... Failed!
-> Probing for `VIA Technologies VT82C686 Integrated Sensors'
->   Trying general detect... Failed!
-> Probing for `VIA Technologies VT8231 Integrated Sensors'
->   Trying general detect... Failed!
-> Probing for `ITE IT8712F'
->   Trying address 0x0290... Failed!
-> Probing for `ITE IT8705F / SiS 950'
->   Trying address 0x0290... Failed!
-> Probing for `IPMI BMC KCS'
->   Trying address 0x0ca0... Failed!
-> Probing for `IPMI BMC SMIC'
->   Trying address 0x0ca8... Failed!
+i2c_adapter i2c-0: SMBus Timeout!
+i2c_adapter i2c-0: Failed reset at end of transaction (01)
+i2c_adapter i2c-0: Failed! (01)
+[last entry repeated many times]
 
-No legacy ISA nor PCI hardware monitoring chips either.
-
-> 
-> Some Super I/O chips may also contain sensors. Super I/O probes are
-> typically a bit more dangerous, as we have to write to I/O ports to do
-> this. This is usually safe though.
-> 
-> Do you want to scan for Super I/O sensors? (YES/no):
-> Probing for `ITE 8702F Super IO Sensors'
->   Failed! (0xe411)
-> Probing for `ITE 8705F Super IO Sensors'
->   Failed! (0xe411)
-> Probing for `ITE 8712F Super IO Sensors'
->   Failed! (0xe411)
-> Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC87360 Super IO Fan Sensors'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC87363 Super IO Fan Sensors'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC87364 Super IO Fan Sensors'
->   Success... but not activated
-
-You have a Super-I/O with fan speed monitoring, but this feature is
-disabled. Most of the time, this means that the feature is not used on
-the motherboard (the inputs are not wired). You may try to forcibly
-enable it and see if you can get something out of it, but it probably
-won't work.
-
-> Probing for `Nat. Semi. PC87365 Super IO Fan Sensors'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC87365 Super IO Voltage Sensors'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC87365 Super IO Thermal Sensors'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC87366 Super IO Fan Sensors'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC87366 Super IO Voltage Sensors'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC87366 Super IO Thermal Sensors'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC87372 Super IO Fan Sensors'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC87373 Super IO Fan Sensors'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC87591 Super IO'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC87371 Super IO'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC97371 Super IO'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC8739x Super IO'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PC8741x Super IO'
->   Failed! (0xe4)
-> Probing for `Nat. Semi. PCPC87427 Super IO'
->   Failed! (0xe4)
-> Probing for `SMSC 47B27x Super IO Fan Sensors'
->   Failed! (0xe4)
-> Probing for `SMSC 47M10x/13x Super IO Fan Sensors'
->   Failed! (0xe4)
-> Probing for `SMSC 47M14x Super IO Fan Sensors'
->   Failed! (0xe4)
-> Probing for `SMSC 47M15x/192/997 Super IO Fan Sensors'
->   Failed! (0xe4)
-> Probing for `SMSC 47S42x Super IO Fan Sensors'
->   Failed! (0xe4)
-> Probing for `SMSC 47S45x Super IO Fan Sensors'
->   Failed! (0xe4)
-> Probing for `SMSC 47M172 Super IO'
->   Failed! (0xe4)
-> Probing for `SMSC LPC47B397-NC Super IO'
->   Failed! (0xe4)
-> Probing for `SMSC SCH5307-NS Super IO'
->   Failed! (0xe4)
-> Probing for `VT1211 Super IO Sensors'
->   Failed! (0xe4)
-> Probing for `Winbond W83627HF Super IO Sensors'
->   Failed! (0xe4)
-> Probing for `Winbond W83627THF Super IO Sensors'
->   Failed! (0xe4)
-> Probing for `Winbond W83637HF Super IO Sensors'
->   Failed! (0xe4)
-> Probing for `Winbond W83687THF Super IO Sensors'
->   Failed! (0xe4)
-> Probing for `Winbond W83697HF Super IO Sensors'
->   Failed! (0xe4)
-> Probing for `Winbond W83697SF/UF Super IO PWM'
->   Failed! (0xe4)
-> Probing for `Winbond W83L517D Super IO'
->   Failed! (0xe4)
-> Probing for `Fintek F71805F/FG Super IO Sensors'
->   Failed! (0xe411)
-> Probing for `Winbond W83627EHF/EHG Super IO Sensors'
->   Failed! (0xe411)
-> 
-> Do you want to scan for secondary Super I/O sensors? (YES/no):
-> Probing for `ITE 8702F Super IO Sensors'
->   Failed! (skipping family)
-> Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
->   Failed! (skipping family)
-> Probing for `SMSC 47B27x Super IO Fan Sensors'
->   Failed! (skipping family)
-> Probing for `VT1211 Super IO Sensors'
->   Failed! (skipping family)
-> Probing for `Winbond W83627EHF/EHG Super IO Sensors'
->   Failed! (skipping family)
-> 
->  Now follows a summary of the probes I have just done.
->  Just press ENTER to continue:
-> 
-> Driver `eeprom' (should be inserted):
->   Detects correctly:
->   * Bus `SMBus I801 adapter at dcd0'
->     Busdriver `i2c-i801', I2C address 0x50
->     Chip `SPD EEPROM' (confidence: 8)
->   * Bus `SMBus I801 adapter at dcd0'
->     Busdriver `i2c-i801', I2C address 0x51
->     Chip `SPD EEPROM' (confidence: 8)
-> 
-
-So the bottom line is that our script didn't find any enabled hardware
-monitoring chip on your system. Time for you to dig through the
-available documentation for your system, or ask the manufacturer. Maybe
-your system simply doesn't have hardware monitoring features. Do you
-see any in the BIOS?
-
--- 
-Jean Delvare
+Thanks for your assistance,
+Kevin
 
