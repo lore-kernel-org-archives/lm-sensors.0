@@ -1,7 +1,7 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Thu, 01 Jun 2006 14:29:44 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 02 Jun 2006 13:50:32 +0000
 Subject: [lm-sensors] PATCH: libsensors and sensors prog support for
-Message-Id: <447EF9D8.2020108@hhs.nl>
+Message-Id: <20060602155032.ac9a633c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4470B176.5000703@hhs.nl>
 In-Reply-To: <4470B176.5000703@hhs.nl>
@@ -10,21 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Hans,
 
-Here is a new version of the Abit uGuru userspace support, I fixed 
-everything from Jean's review.
+> Here is a new version of the Abit uGuru userspace support, I fixed 
+> everything from Jean's review.
+> 
+> I did this patch against 2.10.0 not CVS, but I checked that it applies 
+> against CVS too.
 
-I did this patch against 2.10.0 not CVS, but I checked that it applies 
-against CVS too.
+Sorry by I'd have one more objection:
 
-Thanks & Regards,
+> +void print_abituguru(const sensors_chip_name *name)
+> +{
+> +  int i;
+> +
+> +  for (i=0;i<11;i++)
+> +    print_abituguru_in(name, SENSORS_ABITUGURU_IN(i),
+> +      SENSORS_ABITUGURU_IN_MIN(i), SENSORS_ABITUGURU_IN_MIN_ALARM(i),
+> +      SENSORS_ABITUGURU_IN_MAX(i), SENSORS_ABITUGURU_IN_MAX_ALARM(i));
+> +
+> +  for (i=1;i<=7;i++)
+> +    print_abituguru_temp(name, SENSORS_ABITUGURU_TEMP(i),
+> +      SENSORS_ABITUGURU_TEMP_ALARM(i), SENSORS_ABITUGURU_TEMP_MAX(i),
+> +      SENSORS_ABITUGURU_TEMP_CRIT(i));
+> +
+> +  for (i=1;i<=6;i++)
+> +    print_abituguru_fan(name, SENSORS_ABITUGURU_FAN(i),
+> +      SENSORS_ABITUGURU_FAN_ALARM(i), SENSORS_ABITUGURU_FAN_MIN(i));
+> +}
 
-Hans
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: lm_sensors-2.10.0-uguru.patch
-Type: text/x-patch
-Size: 11354 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060601/66e2f534/attachment.bin 
+This looks inefficient to me. You could pass only name and i as
+parameters to the three sub-functions. What do you think?
+
+Thanks,
+-- 
+Jean Delvare
+
