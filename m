@@ -1,14 +1,14 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:27:45 +0000
-Subject: [lm-sensors] [PATCH 19/44] [PATCH] i2c: Suggest N for rare devices
-Message-Id: <11510009551920-git-send-email-greg@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 04 Jun 2006 17:59:57 +0000
+Subject: [lm-sensors] [PATCH 01/11] i2c: Suggest N for rare devices in
+Message-Id: <20060604195957.ff0438f5.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali at linux-fr.org>
+Content-Disposition: inline; filename=i2c-Kconfig-suggest-N-for-rare-devices.patch
 
 Improve the Kconfig help text of the follwing i2c drivers:
 * busses/i2c-pca-isa.c
@@ -24,17 +24,14 @@ April 2006, thread "i2c-related 1-minute hang during bootup"
 http://marc.theaimsgroup.com/?l=linux-kernel&m4640992330721&w=2
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
  drivers/i2c/busses/Kconfig |    6 ++++++
  drivers/i2c/chips/Kconfig  |    8 ++++++++
- 2 files changed, 14 insertions(+), 0 deletions(-)
+ 2 files changed, 14 insertions(+)
 
-diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
-index e3450d1..d25a8cb 100644
---- a/drivers/i2c/busses/Kconfig
-+++ b/drivers/i2c/busses/Kconfig
-@@ -503,6 +503,7 @@ config I2C_PCA_ISA
+--- linux-2.6.17-rc5.orig/drivers/i2c/busses/Kconfig	2006-06-04 09:50:19.000000000 +0200
++++ linux-2.6.17-rc5/drivers/i2c/busses/Kconfig	2006-06-04 09:54:00.000000000 +0200
+@@ -503,6 +503,7 @@
  	tristate "PCA9564 on an ISA bus"
  	depends on I2C
  	select I2C_ALGOPCA
@@ -42,7 +39,7 @@ index e3450d1..d25a8cb 100644
  	help
  	  This driver supports ISA boards using the Philips PCA 9564
  	  Parallel bus to I2C bus controller
-@@ -510,6 +511,11 @@ config I2C_PCA_ISA
+@@ -510,6 +511,11 @@
  	  This driver can also be built as a module.  If so, the module
  	  will be called i2c-pca-isa.
  
@@ -54,11 +51,9 @@ index e3450d1..d25a8cb 100644
  config I2C_MV64XXX
  	tristate "Marvell mv64xxx I2C Controller"
  	depends on I2C && MV64X60 && EXPERIMENTAL
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index 7aa5c38..87ee3ce 100644
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -39,6 +39,7 @@ config SENSORS_EEPROM
+--- linux-2.6.17-rc5.orig/drivers/i2c/chips/Kconfig	2006-06-04 09:50:19.000000000 +0200
++++ linux-2.6.17-rc5/drivers/i2c/chips/Kconfig	2006-06-04 09:51:38.000000000 +0200
+@@ -39,6 +39,7 @@
  config SENSORS_PCF8574
  	tristate "Philips PCF8574 and PCF8574A"
  	depends on I2C && EXPERIMENTAL
@@ -66,7 +61,7 @@ index 7aa5c38..87ee3ce 100644
  	help
  	  If you say yes here you get support for Philips PCF8574 and 
  	  PCF8574A chips.
-@@ -46,6 +47,9 @@ config SENSORS_PCF8574
+@@ -46,6 +47,9 @@
  	  This driver can also be built as a module.  If so, the module
  	  will be called pcf8574.
  
@@ -76,7 +71,7 @@ index 7aa5c38..87ee3ce 100644
  config SENSORS_PCA9539
  	tristate "Philips PCA9539 16-bit I/O port"
  	depends on I2C && EXPERIMENTAL
-@@ -59,12 +63,16 @@ config SENSORS_PCA9539
+@@ -59,12 +63,16 @@
  config SENSORS_PCF8591
  	tristate "Philips PCF8591"
  	depends on I2C && EXPERIMENTAL
@@ -93,7 +88,7 @@ index 7aa5c38..87ee3ce 100644
  config ISP1301_OMAP
  	tristate "Philips ISP1301 with OMAP OTG"
  	depends on I2C && ARCH_OMAP_OTG
--- 
-1.4.0
 
+-- 
+Jean Delvare
 
