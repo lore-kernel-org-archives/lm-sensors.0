@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:27:47 +0000
-Subject: [lm-sensors] [PATCH 21/44] [PATCH] hwmon: Sysfs interface
-Message-Id: <1151000963287-git-send-email-greg@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 04 Jun 2006 18:03:39 +0000
+Subject: [lm-sensors] [PATCH 03/11] hwmon: Sysfs interface documentation
+Message-Id: <20060604200339.4ba872f7.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,22 +9,20 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 From: Rudolf Marek <r.marek at sh.cvut.cz>
+Content-Disposition: inline; filename=hwmon-sysfs-interface-update-1.patch
 
 This patch cleans up hwmon sysfs documentation file, plus introduces
 the description of DC/PWM selection for fan speed control.
 
 Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- Documentation/hwmon/sysfs-interface |  181 +++++++++++++++++++++--------------
- 1 files changed, 107 insertions(+), 74 deletions(-)
+ Documentation/hwmon/sysfs-interface |  183 +++++++++++++++++++++--------------
+ 1 file changed, 108 insertions(+), 75 deletions(-)
 
-diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
-index eeb9122..bc59a51 100644
---- a/Documentation/hwmon/sysfs-interface
-+++ b/Documentation/hwmon/sysfs-interface
-@@ -69,28 +69,37 @@ to cause an alarm) is chip-dependent.
+--- linux-2.6.17-rc4.orig/Documentation/hwmon/sysfs-interface	2006-05-20 10:00:32.000000000 +0200
++++ linux-2.6.17-rc4/Documentation/hwmon/sysfs-interface	2006-05-22 16:16:35.000000000 +0200
+@@ -69,28 +69,37 @@
  
  -------------------------------------------------------------------------
  
@@ -69,7 +67,7 @@ index eeb9122..bc59a51 100644
  		These drivers will output the actual voltage.
  
  		Typical usage:
-@@ -104,58 +113,72 @@ in[0-8]_input	Voltage input value.
+@@ -104,58 +113,72 @@
  			in7_*	varies
  			in8_*	varies
  
@@ -159,7 +157,7 @@ index eeb9122..bc59a51 100644
  
  pwm[1-*]_auto_point[1-*]_pwm
  pwm[1-*]_auto_point[1-*]_temp
-@@ -163,6 +186,7 @@ pwm[1-*]_auto_point[1-*]_temp_hyst
+@@ -163,6 +186,7 @@
  		Define the PWM vs temperature curve. Number of trip points is
  		chip-dependent. Use this for chips which associate trip points
  		to PWM output channels.
@@ -167,7 +165,7 @@ index eeb9122..bc59a51 100644
  
  OR
  
-@@ -172,51 +196,52 @@ temp[1-*]_auto_point[1-*]_temp_hyst
+@@ -172,51 +196,52 @@
  		Define the PWM vs temperature curve. Number of trip points is
  		chip-dependent. Use this for chips which associate trip points
  		to temperature channels.
@@ -234,7 +232,7 @@ index eeb9122..bc59a51 100644
  
  temp[1-4]_offset
  		Temperature offset which is added to the temperature reading
-@@ -231,6 +256,8 @@ temp[1-4]_offset
+@@ -231,6 +256,8 @@
  		itself, for example the thermal diode inside the CPU or
  		a thermistor nearby.
  
@@ -243,7 +241,7 @@ index eeb9122..bc59a51 100644
  
  ************
  * Currents *
-@@ -239,17 +266,17 @@ temp[1-4]_offset
+@@ -239,17 +266,17 @@
  Note that no known chip provides current measurements as of writing,
  so this part is theoretical, so to say.
  
@@ -267,7 +265,7 @@ index eeb9122..bc59a51 100644
  
  
  **********
-@@ -263,50 +290,54 @@ Usually a given chip will either use cha
+@@ -263,50 +290,54 @@
  limit-related alarms, not both. The driver should just reflect the hardware
  implementation.
  
@@ -328,13 +326,14 @@ index eeb9122..bc59a51 100644
  beep_enable	Master beep enable
 -		Boolean
 -		Read/Write
-+		0: no beeps
-+		1: beeps
-+		RW
- 
+-
 -in[0-n]_beep
 -fan[1-n]_beep
 -temp[1-n]_beep
++		0: no beeps
++		1: beeps
++		RW
++
 +in[0-*]_beep
 +fan[1-*]_beep
 +temp[1-*]_beep
@@ -348,7 +347,7 @@ index eeb9122..bc59a51 100644
  
  In theory, a chip could provide per-limit beep masking, but no such chip
  was seen so far.
-@@ -316,7 +347,7 @@ beeps. These interface files are depreca
+@@ -316,7 +347,7 @@
  for compatibility reasons:
  
  alarms		Alarm bitmask.
@@ -357,7 +356,7 @@ index eeb9122..bc59a51 100644
  		Integer representation of one to four bytes.
  		A '1' bit means an alarm.
  		Chips should be programmed for 'comparator' mode so that
-@@ -333,7 +364,7 @@ beep_mask	Bitmask for beep.
+@@ -333,7 +364,7 @@
  		Same format as 'alarms' with the same bit locations,
  		use discouraged for the same reason. Use individual
  		*_beep files instead.
@@ -366,7 +365,7 @@ index eeb9122..bc59a51 100644
  
  
  *********
-@@ -341,7 +372,9 @@ beep_mask	Bitmask for beep.
+@@ -341,7 +372,9 @@
  *********
  
  eeprom		Raw EEPROM data in binary form.
@@ -378,7 +377,7 @@ index eeb9122..bc59a51 100644
 +		0: disable
 +		1: enable
 +		RW
--- 
-1.4.0
 
+-- 
+Jean Delvare
 
