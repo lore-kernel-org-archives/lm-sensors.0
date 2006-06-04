@@ -1,74 +1,43 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:28:00 +0000
-Subject: [lm-sensors] [PATCH 34/44] [PATCH] scx200_acb: Documentation update
-Message-Id: <11510010301085-git-send-email-greg@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 04 Jun 2006 18:24:11 +0000
+Subject: [lm-sensors] [PATCH 11/11] abituguru: Fix fan detection
+Message-Id: <20060604202411.59d7dd3f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali at linux-fr.org>
+From: Hans de Goede <j.w.r.degoede at hhs.nl>
+Content-Disposition: inline; filename=hwmon-abituguru-nofans-detect-fix.patch
 
-Documentation update for the scx200_acb driver. Hopefully this will
-help future users.
+One of my testers had a problem where the driver only saw 2 of the 4 fan
+sensors his uGuru has, this fixes this.
+ -accept 0x40 (bit 6) being high as a valid fan sensor setting for all fans
+  not just fan 1, I have a feeling this bit indicates whether or not a fan is
+  actually connected .
 
-References:
-
-[lm-sensors] Support of i2c-nscacb (April, May 2005)
-  http://lists.lm-sensors.org/pipermail/lm-sensors/2005-April/011756.html
-  http://lists.lm-sensors.org/pipermail/lm-sensors/2005-May/012043.html
-
-[lm-sensors] making a geode i2c slave driver (April 2006)
-  http://lists.lm-sensors.org/pipermail/lm-sensors/2006-April/015998.html
-
-Kernel bug #6445
-  http://bugzilla.kernel.org/show_bug.cgi?idd45
-
+Signed-off-by: Hans de Goede <j.w.r.degoede at hhs.nl>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- Documentation/i2c/busses/scx200_acb |   19 ++++++++++++++++++-
- 1 files changed, 18 insertions(+), 1 deletions(-)
+ drivers/hwmon/abituguru.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/i2c/busses/scx200_acb b/Documentation/i2c/busses/scx200_acb
-index f50e699..7c07883 100644
---- a/Documentation/i2c/busses/scx200_acb
-+++ b/Documentation/i2c/busses/scx200_acb
-@@ -2,14 +2,31 @@ Kernel driver scx200_acb
- 
- Author: Christer Weinigel <wingel at nano-system.com>
- 
-+The driver supersedes the older, never merged driver named i2c-nscacb.
-+
- Module Parameters
- -----------------
- 
--* base: int
-+* base: up to 4 ints
-   Base addresses for the ACCESS.bus controllers on SCx200 and SC1100 devices
- 
-+  By default the driver uses two base addresses 0x820 and 0x840.
-+  If you want only one base address, specify the second as 0 so as to
-+  override this default.
-+
- Description
- -----------
- 
- Enable the use of the ACCESS.bus controller on the Geode SCx200 and
- SC1100 processors and the CS5535 and CS5536 Geode companion devices.
-+
-+Device-specific notes
-+---------------------
-+
-+The SC1100 WRAP boards are known to use base addresses 0x810 and 0x820.
-+If the scx200_acb driver is built into the kernel, add the following
-+parameter to your boot command line:
-+  scx200_acb.base=0x810,0x820
-+If the scx200_acb driver is built as a module, add the following line to
-+the file /etc/modprobe.conf instead:
-+  options scx200_acb base=0x810,0x820
+--- linux-2.6.17-rc5.orig/drivers/hwmon/abituguru.c	2006-06-04 17:06:55.000000000 +0200
++++ linux-2.6.17-rc5/drivers/hwmon/abituguru.c	2006-06-04 17:27:25.000000000 +0200
+@@ -529,9 +529,8 @@
+ 		   -0x08 enable beep
+ 		   -0x01 enable alarm
+ 		   All other bits should be 0, but on some motherboards
+-		   0x40 (bit 6) is also high, at least for fan1 */
+-		if ((!i && (data->bank2_settings[i][0] & ~0xC9)) ||
+-		     (i && (data->bank2_settings[i][0] & ~0x89))) {
++		   0x40 (bit 6) is also high for some of the fans?? */
++		if (data->bank2_settings[i][0] & ~0xC9) {
+ 			ABIT_UGURU_DEBUG(2, "  bank2 sensor %d does not seem "
+ 				"to be a fan sensor: settings[0] = %02X\n",
+ 				i, (unsigned int)data->bank2_settings[i][0]);
+
 -- 
-1.4.0
-
+Jean Delvare
 
