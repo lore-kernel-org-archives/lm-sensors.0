@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 04 Jun 2006 17:56:21 +0000
+From: hmh@debian.org (Henrique de Moraes Holschuh)
+Date: Sun, 04 Jun 2006 17:58:31 +0000
 Subject: [lm-sensors] sysfs interface for fan present capability
-Message-Id: <20060604195621.b5ae7692.khali@linux-fr.org>
+Message-Id: <20060604175831.GL24739@khazad-dum.debian.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4482843D.5020506@hhs.nl>
 In-Reply-To: <4482843D.5020506@hhs.nl>
@@ -10,26 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> On Sun, 04 Jun 2006, Hans de Goede wrote:
-> > I think they are just seeing if it gives any "ticks" at all, so it won't
-> > detect a 2 wire fan even if connected to one if its headers.
+On Sun, 04 Jun 2006, Jean Delvare wrote:
+> > On Sun, 04 Jun 2006, Jean Delvare wrote:
+> > > Sure, why not. fan[1-*]_present sounds like a good idea. I wonder how
+> > > this works physically. It would be great if other chips could implement
+> > > this feature, that would make autoconfig easier for fans. If you
+> > 
+> > We can certainly implement it as in-driver logic if the hardware doesn't
+> > cooperate, but a stuck fan on startup will be shown as not-present unless
+> > you DO have hardware detection.
 > 
-> Two-wire fans can be detected just as well as three-wire ones, if you
-> measure current draw :)  In fact, some chips (like the lm75) can actually
-> COUNT ticks on two-wire fans by measuring spikes in the current draw...
+> No, this feature is only valuable if implemented by the hardware. If we
+> emulate it in any way, it would be in user space and not in the
+> drivers, but even there I fail to see the value.
 
-Definitely not the LM75, as it is a temperature-only sensor chip. But I
-remember reading datasheets mentioning tick count on 2-wires fans,
-indeed. Strangely enough, some vendors are doing the opposite and
-propose 4-wire fans, the idea being that tick counts tend to be lost
-when fan speed control is in use on 3-wire fans.
-
-> If you detect fan presence using ticks, you will never detect a stuck fan on
-> startup, which is *dangerous* as it could cause the software inhibit an
-> alarm on that fan.
-
-Indeed - which is why I don't want us to emulate it in software.
+I fully agree, and I suggest that the sysfs interface description makes it
+clear that this attribute can be exported only if it is a *hardware sense*
+result...
 
 -- 
-Jean Delvare
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
