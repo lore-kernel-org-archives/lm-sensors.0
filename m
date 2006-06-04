@@ -1,27 +1,26 @@
-From: rudolf.marek@sysgo.com (Rudolf Marek)
-Date: Mon, 26 Jun 2006 12:01:54 +0000
-Subject: [lm-sensors] ASUS NCCH-DR confusing 83792 vs. 83627THF
-Message-Id: <449FCCB2.2070104@sysgo.com>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sun, 04 Jun 2006 18:08:43 +0000
+Subject: [lm-sensors] W83627EHF driver enhancements
+Message-Id: <448321AB.7070300@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44901813.3080703@fasytek.dk>
-In-Reply-To: <44901813.3080703@fasytek.dk>
+References: <442ED616.4070109@sh.cvut.cz>
+In-Reply-To: <442ED616.4070109@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> BIOS is already version 1005,  which is the latest - and presumably 
-> greatest - according to ASUS
-> download pages.  Looks like we need your ASUS contact anyway...
->>>     
+Hi David,
 
-Hello I'm sending you in private the latest beta BIOS which works in ASUS lab.
-(If anyone else needs this BIOS let me know)
+> I'm attaching the fix for fan5 fan4 conditional enable.
+> Please test it. The patch apply on the top of my previous email
+> of this thread.
 
--- 
-Thanks,
+Anything new about this?
+
+I think if we know that it works then we might push the patch upstream so it
+will be in 2.6.18...
+
+Regards
 Rudolf
-
-SYSGO | Real-Time Solutions | ELinOS Embedded Linux | http://www.sysgo.com
-
 
