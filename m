@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 04 Jun 2006 18:35:21 +0000
+Date: Sun, 04 Jun 2006 18:38:48 +0000
 Subject: [lm-sensors] sysfs interface for fan present capability
-Message-Id: <20060604203521.36a9a3a6.khali@linux-fr.org>
+Message-Id: <20060604203848.0f3a3350.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4482843D.5020506@hhs.nl>
 In-Reply-To: <4482843D.5020506@hhs.nl>
@@ -10,29 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Henrique,
-
 > On Sun, 04 Jun 2006, Jean Delvare wrote:
-> > > On Sun, 04 Jun 2006, Jean Delvare wrote:
-> > > > Sure, why not. fan[1-*]_present sounds like a good idea. I wonder how
-> > > > this works physically. It would be great if other chips could implement
-> > > > this feature, that would make autoconfig easier for fans. If you
-> > > 
-> > > We can certainly implement it as in-driver logic if the hardware doesn't
-> > > cooperate, but a stuck fan on startup will be shown as not-present unless
-> > > you DO have hardware detection.
-> > 
-> > No, this feature is only valuable if implemented by the hardware. If we
-> > emulate it in any way, it would be in user space and not in the
-> > drivers, but even there I fail to see the value.
+> > Definitely not the LM75, as it is a temperature-only sensor chip. But I
 > 
-> I fully agree, and I suggest that the sysfs interface description makes it
-> clear that this attribute can be exported only if it is a *hardware sense*
-> result...
+> My bad, I should have typed lm85 (which would not be strictly correct,
+> either: the ADM1027 does it.  It is a LM85 compatible chip, but I don't
+> think the lm85b/c can do it).
+> 
+> > indeed. Strangely enough, some vendors are doing the opposite and
+> > propose 4-wire fans, the idea being that tick counts tend to be lost
+> > when fan speed control is in use on 3-wire fans.
+> 
+> As soon as you drive fans using PWM you screw up any sort of simple tick
+> counters completely, as you have a spike on every PWM cycle start, plus no
+> spikes generated during the second phase of the PWM cycle.
 
-This is true of all sysfs attributes, not just this one. See patch
-04/11 I just sent to Greg, I updated the documentation to make it
-clearer.
+Some chips try to compensate with additional circuitery. This requires
+that you know which fan input is connected to which PWM output though,
+and that the motherboard manufacturer did take care of wiring things
+properly. And even then I guess you lose most of the accuracy when PWM
+gets too low.
 
 -- 
 Jean Delvare
