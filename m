@@ -1,34 +1,25 @@
-From: grimm@nickellson.com (Nick Ellson)
-Date: Thu, 29 Jun 2006 22:10:10 +0000
-Subject: [lm-sensors] i2c-i801 on Intel Server Board se7525gp2?
-Message-Id: <Pine.LNX.4.64.0606291507290.17831@gubbie.home>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sun, 04 Jun 2006 19:56:22 +0000
+Subject: [lm-sensors] [PATCH] New VID codes for Intel Core and Conroe
+Message-Id: <44833AE6.6040209@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.64.0606261023280.15719@gubbie.home>
-In-Reply-To: <Pine.LNX.4.64.0606261023280.15719@gubbie.home>
+References: <447815E5.5060601@sh.cvut.cz>
+In-Reply-To: <447815E5.5060601@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello
 
-I have dug a bit longer and talked a bit with Intel. The SE7525GP2 uses a 
-National PC87431M Baseboard Management Controller
+Jean, thanks for the review. Here comes updated patch. I hope that it is OK.
 
-A thread I found give me some hope for lm-sensors
+This patch adds support for two new VID codes, supporting Intel mobile Core
+processors and new Conroe based platforms.
 
-http://lists.lm-sensors.org/pipermail/lm-sensors/2005-June/012847.html
-
-I am going to see if I can try to put this all together and get something 
-working.. If anyone that knows this stuff (from an lm-sensors point of 
-view) can lend a hand, I would appreciate it. I am getting close!
-
-Nick
-
--- 
-Nick Ellson
-CCDA, CCNP, CCSP, CCAI,
-MCSE 2000, Security+, Network+
-Network Hobbyist, VFR Private Pilot.
-
-
-
+regards
+Rudolf
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: vid_upd
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060604/8906ff3c/attachment.pl 
