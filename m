@@ -1,338 +1,482 @@
-From: gregkh@suse.de (gregkh at suse.de)
-Date: Fri, 16 Jun 2006 22:49:36 +0000
-Subject: [lm-sensors] patch
-Message-Id: <20060616225231.22B1175990C@imap.suse.de>
+From: khc@pm.waw.pl (Krzysztof Halasa)
+Date: Tue, 06 Jun 2006 17:42:47 +0000
+Subject: [lm-sensors] Black box flight recorder for Linux
+Message-Id: <m3zmgqxjs8.fsf@defiant.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060502054527.8533748769D@imap.suse.de>
-In-Reply-To: <20060502054527.8533748769D@imap.suse.de>
+References: <44379AB8.6050808@superbug.co.uk>
+	<m3psjqeeor.fsf@defiant.localdomain> <443A4927.5040801@warmcat.com>
+In-Reply-To: <443A4927.5040801@warmcat.com> (Andy Green's message of "Mon, 10 Apr 2006 13:01:43 +0100")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andy Green <andy@warmcat.com>
+Cc: linux list <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org
+
+Andy Green <andy at warmcat.com> writes:
+
+> Just an additional thought on this idea... both VGA and DVI connectors
+> on modern video cards appear to have DDC-2 connections, which is in
+> fact I2C.  This would provide an (inherently bidirectional :-) ) 3-pin
+> digital interface out of a mostly dead box even on laptops and so on
+> with no serial, parallel or legacy keyboard/mouse, so long as they had
+> reasonably modern VGA or DVI out.  You would need to get access to the
+> two I2C pins and Gnd somehow in that scenario.   Since I2C has a
+> concept of addressing it should be possible to choose I2C addresses
+> for this communication that doesn't address whatever may be listening
+> on the same bus in the monitor.
+
+I think I like the idea and have some (not yet finished but working)
+code. Any comments?
+
+The first part is the "console" driver (obvious parts removed). It works
+with both my Asus A7V333 (VIA KT333, VIA SMBUS driver) and with VGA DDC
+interface on a Cirrus Logic GD 5446 VGA chip (simplified source attached
+as well). Using respectively 2464 and 24512 set to ID 0x57.
+
+This is, of course, not yet intended for inclusion.
+
+#define DRV "eelogger"
+#define EEPROM_MAX_READ_SIZE 128
+#define EEPROM_MAX_WRITE_SIZE 128
+
+int bus = -1;
+unsigned char device;
+unsigned int page_size, size /* in bytes */;
+
+MODULE_PARM_DESC(bus, "I2C bus number");
+module_param(bus, int, 0);
+MODULE_PARM_DESC(device, "I2C device address");
+module_param(device, byte, 0);
+
+MODULE_PARM_DESC(size, "Size of EEPROM in bytes");
+module_param(size, uint, 0);
+MODULE_PARM_DESC(page_size, "Size of EEPROM write page in bytes");
+module_param(page_size, uint, 0);
+
+struct drv_data {
+	struct i2c_client client;
+	atomic_t idle;
+	int (*read_func)(struct i2c_client *client, u8 *address, char *data,
+			 int count);
+	int (*write_func)(struct i2c_client *client, const char *data,
+			  int count);
+	u16 max_write_size, write_address; /* bytes */
+	u8 buffer[EEPROM_MAX_WRITE_SIZE + 2 /* address */];
+};
+
+static int drv_read_i2c(struct i2c_client *client, u8 *address, char *data,
+			int count)
+{
+	struct i2c_msg msgs[2] = {{
+			.addr = client->addr,
+			.flags = 0,
+			.len = 2,
+			.buf = address,
+		}, {
+			.addr = client->addr,
+			.flags = I2C_M_RD,
+			.len = count,
+			.buf = data,
+		}};
+
+	if (i2c_transfer(client->adapter, msgs, 2) < 0)
+		return -EIO;
+
+	return count;
+}
 
 
-This is a note to let you know that I've just added the patch titled
+static int drv_read_smbus(struct i2c_client *client, u8 *address, char *data,
+			  int count)
+{
+	int i;
 
-     Subject: [PATCH 03/14] scx200_acb: Use PCI I/O resource when appropriate
+	if (i2c_smbus_write_byte_data(client, address[0], address[1])) {
+		dev_dbg(&client->dev, "EEPROM read has failed\n");
+		return -EIO;
+	}
 
-to my gregkh-2.6 tree.  Its filename is
+	for (i = 0; i < count; i++) {
+		int val = i2c_smbus_read_byte(client);
+		if (val < 0)
+			return i ? i : -EIO;
+		*(data++) = (u8)val;
+	}
+	return count;
+}
 
-     i2c-scx200_acb-use-PCI-IO-resource-when-appropriate.patch
 
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+static int drv_write_smbus(struct i2c_client *client, const char *data,
+			   int count)
+{
+	return i2c_smbus_write_i2c_block_data(client, data[0], count - 1,
+					      data + 1) >= 0 ? count : -1;
+}
 
 
-From khali at linux-fr.org Mon Jun 12 12:44:31 2006
-Date: Mon, 12 Jun 2006 21:44:28 +0200
-From: Jordan Crouse <jordan.crouse at amd.com>
-To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>, Jordan Crouse <jordan.crouse at amd.com>
-Subject: [PATCH 03/14] scx200_acb: Use PCI I/O resource when appropriate
-Message-Id: <20060612214428.f1a2c46b.khali at linux-fr.org>
-Content-Disposition: inline; filename=i2c-scx200_acb-use-PCI-IO-resource-when-appropriate.patch
+static ssize_t drv_read(struct kobject *kobj, char *buffer, loff_t offset,
+			size_t count)
+{
+	struct i2c_client *client;
+	struct drv_data *data;
+	u8 address[2] = { offset >> 8, offset & 0xFF};
 
-From: Jordan Crouse <jordan.crouse at amd.com>
+	client = to_i2c_client(container_of(kobj, struct device, kobj));
+	data = i2c_get_clientdata(client);
 
-On the CS5535 and CS5536, the I/O resource is allocated through PCI,
-so use that instead of using the MSR backdoor.
+	if (offset > size || count = 0)
+		return 0;
+	if (offset + count > size)
+		count = size - offset;
 
-Signed-off-by: Jordan Crouse <jordan.crouse at amd.com>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+/* I don't like/need eeprom.c buffering and prefer direct EEPROM read.
+   Reads are limited to, say, 128 bytes */
 
---- linux-2.6.17-rc6.orig/drivers/i2c/busses/scx200_acb.c	2006-06-11 13:49:21.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/i2c/busses/scx200_acb.c	2006-06-11 14:51:21.000000000 +0200
-@@ -33,7 +33,6 @@
- #include <linux/delay.h>
- #include <linux/mutex.h>
- #include <asm/io.h>
--#include <asm/msr.h>
- 
- #include <linux/scx200.h>
- 
-@@ -85,6 +84,10 @@
- 	u8 *ptr;
- 	char needs_reset;
- 	unsigned len;
-+
-+	/* PCI device info */
-+	struct pci_dev *pdev;
-+	int bar;
- };
- 
- /* Register Definitions */
-@@ -417,17 +420,16 @@
- 	return 0;
- }
- 
--static int  __init scx200_acb_create(const char *text, int base, int index)
-+static __init struct scx200_acb_iface *scx200_create_iface(const char *text,
-+		int index)
- {
- 	struct scx200_acb_iface *iface;
- 	struct i2c_adapter *adapter;
--	int rc;
- 
- 	iface = kzalloc(sizeof(*iface), GFP_KERNEL);
- 	if (!iface) {
- 		printk(KERN_ERR NAME ": can't allocate memory\n");
--		rc = -ENOMEM;
--		goto errout;
-+		return NULL;
- 	}
- 
- 	adapter = &iface->adapter;
-@@ -440,26 +442,27 @@
- 
- 	mutex_init(&iface->mutex);
- 
--	if (!request_region(base, 8, adapter->name)) {
--		printk(KERN_ERR NAME ": can't allocate io 0x%x-0x%x\n",
--			base, base + 8-1);
--		rc = -EBUSY;
--		goto errout_free;
--	}
--	iface->base = base;
-+	return iface;
-+}
-+
-+static int __init scx200_acb_create(struct scx200_acb_iface *iface)
-+{
-+	struct i2c_adapter *adapter;
-+	int rc;
-+
-+	adapter = &iface->adapter;
- 
- 	rc = scx200_acb_probe(iface);
- 	if (rc) {
- 		printk(KERN_WARNING NAME ": probe failed\n");
--		goto errout_release;
-+		return rc;
- 	}
- 
- 	scx200_acb_reset(iface);
- 
- 	if (i2c_add_adapter(adapter) < 0) {
- 		printk(KERN_ERR NAME ": failed to register\n");
--		rc = -ENODEV;
--		goto errout_release;
-+		return -ENODEV;
- 	}
- 
- 	down(&scx200_acb_list_mutex);
-@@ -468,64 +471,148 @@
- 	up(&scx200_acb_list_mutex);
- 
- 	return 0;
-+}
- 
-- errout_release:
--	release_region(iface->base, 8);
-+static __init int scx200_create_pci(const char *text, struct pci_dev *pdev,
-+		int bar)
-+{
-+	struct scx200_acb_iface *iface;
-+	int rc;
-+
-+	iface = scx200_create_iface(text, 0);
-+
-+	if (iface = NULL)
-+		return -ENOMEM;
-+
-+	iface->pdev = pdev;
-+	iface->bar = bar;
-+
-+	pci_enable_device_bars(iface->pdev, 1 << iface->bar);
-+
-+	rc = pci_request_region(iface->pdev, iface->bar, iface->adapter.name);
-+
-+	if (rc != 0) {
-+		printk(KERN_ERR NAME ": can't allocate PCI BAR %d\n",
-+				iface->bar);
-+		goto errout_free;
-+	}
-+
-+	iface->base = pci_resource_start(iface->pdev, iface->bar);
-+	rc = scx200_acb_create(iface);
-+
-+	if (rc = 0)
-+		return 0;
-+
-+	pci_release_region(iface->pdev, iface->bar);
-+	pci_dev_put(iface->pdev);
-  errout_free:
- 	kfree(iface);
-- errout:
- 	return rc;
- }
- 
--static struct pci_device_id scx200[] = {
--	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SCx200_BRIDGE) },
--	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SC1100_BRIDGE) },
--	{ },
--};
-+static int __init scx200_create_isa(const char *text, unsigned long base,
-+		int index)
-+{
-+	struct scx200_acb_iface *iface;
-+	int rc;
-+
-+	iface = scx200_create_iface(text, index);
-+
-+	if (iface = NULL)
-+		return -ENOMEM;
-+
-+	if (request_region(base, 8, iface->adapter.name) = 0) {
-+		printk(KERN_ERR NAME ": can't allocate io 0x%lx-0x%lx\n",
-+		       base, base + 8 - 1);
-+		rc = -EBUSY;
-+		goto errout_free;
-+	}
-+
-+	iface->base = base;
-+	rc = scx200_acb_create(iface);
-+
-+	if (rc = 0)
-+		return 0;
- 
--static struct pci_device_id divil_pci[] = {
--	{ PCI_DEVICE(PCI_VENDOR_ID_NS,  PCI_DEVICE_ID_NS_CS5535_ISA) },
--	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
--	{ } /* NULL entry */
-+	release_region(base, 8);
-+ errout_free:
-+	kfree(iface);
-+	return rc;
-+}
-+
-+/* Driver data is an index into the scx200_data array that indicates
-+ * the name and the BAR where the I/O address resource is located.  ISA
-+ * devices are flagged with a bar value of -1 */
-+
-+static struct pci_device_id scx200_pci[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SCx200_BRIDGE),
-+	  .driver_data = 0 },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SC1100_BRIDGE),
-+	  .driver_data = 0 },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_CS5535_ISA),
-+	  .driver_data = 1 },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA),
-+	  .driver_data = 2 }
- };
- 
--#define MSR_LBAR_SMB		0x5140000B
-+static struct {
-+	const char *name;
-+	int bar;
-+} scx200_data[] = {
-+	{ "SCx200", -1 },
-+	{ "CS5535",  0 },
-+	{ "CS5536",  0 }
-+};
- 
--static __init int scx200_add_cs553x(void)
-+static __init int scx200_scan_pci(void)
- {
--	u32	low, hi;
--	u32	smb_base;
--
--	/* Grab & reserve the SMB I/O range */
--	rdmsr(MSR_LBAR_SMB, low, hi);
-+	int data, dev;
-+	int rc = -ENODEV;
-+	struct pci_dev *pdev;
-+
-+	for(dev = 0; dev < ARRAY_SIZE(scx200_pci); dev++) {
-+		pdev = pci_get_device(scx200_pci[dev].vendor,
-+				scx200_pci[dev].device, NULL);
-+
-+		if (pdev = NULL)
-+			continue;
-+
-+		data = scx200_pci[dev].driver_data;
-+
-+		/* if .bar is greater or equal to zero, this is a
-+		 * PCI device - otherwise, we assume
-+		   that the ports are ISA based
-+		*/
-+
-+		if (scx200_data[data].bar >= 0)
-+			rc = scx200_create_pci(scx200_data[data].name, pdev,
-+					scx200_data[data].bar);
-+		else {
-+			int i;
-+
-+			for (i = 0; i < MAX_DEVICES; ++i) {
-+				if (base[i] = 0)
-+					continue;
-+
-+				rc = scx200_create_isa(scx200_data[data].name,
-+						base[i],
-+						i);
-+			}
-+		}
- 
--	/* Check the IO mask and whether SMB is enabled */
--	if (hi != 0x0000F001) {
--		printk(KERN_WARNING NAME ": SMBus not enabled\n");
--		return -ENODEV;
-+		break;
- 	}
- 
--	/* SMBus IO size is 8 bytes */
--	smb_base = low & 0x0000FFF8;
--
--	return scx200_acb_create("CS5535", smb_base, 0);
-+	return rc;
- }
- 
- static int __init scx200_acb_init(void)
- {
--	int i;
--	int	rc = -ENODEV;
-+	int rc;
- 
- 	pr_debug(NAME ": NatSemi SCx200 ACCESS.bus Driver\n");
- 
--	/* Verify that this really is a SCx200 processor */
--	if (pci_dev_present(scx200)) {
--		for (i = 0; i < MAX_DEVICES; ++i) {
--			if (base[i] > 0)
--				rc = scx200_acb_create("SCx200", base[i], i);
--		}
--	} else if (pci_dev_present(divil_pci))
--		rc = scx200_add_cs553x();
-+	rc = scx200_scan_pci();
- 
- 	/* If at least one bus was created, init must succeed */
- 	if (scx200_acb_list)
-@@ -543,7 +630,14 @@
- 		up(&scx200_acb_list_mutex);
- 
- 		i2c_del_adapter(&iface->adapter);
--		release_region(iface->base, 8);
-+
-+		if (iface->pdev) {
-+			pci_release_region(iface->pdev, iface->bar);
-+			pci_dev_put(iface->pdev);
-+		}
-+		else
-+			release_region(iface->base, 8);
-+
- 		kfree(iface);
- 		down(&scx200_acb_list_mutex);
- 	}
+	if (count > EEPROM_MAX_READ_SIZE)
+		count = EEPROM_MAX_READ_SIZE;
+
+	dev_dbg(&client->dev, "Reading EEPROM, offset 0x%llX, length %u\n",
+		offset, count);
+
+	return data->read_func(client, address, buffer, count);
+}
+
+
+static void console_write(struct console *co, const char *buffer,
+			  unsigned count)
+{
+	struct i2c_client *client = co->data;
+	struct drv_data *data = i2c_get_clientdata(client);
+	int put_zero = 0, err;
+
+	if (!count)
+		return;
+
+/* This atomic_* things are temporary, I thing I should protect
+   console_write() and drv_read() from conflicting but it's not yet here.
+*/
+	if (!atomic_dec_and_test(&data->idle)) { /* would nest, debug only */
+		printk(KERN_DEBUG "NESTED access!\n");
+		atomic_inc(&data->idle);
+		return;
+	}
+
+	do {
+		unsigned long t;
+		u16 len = page_size - (data->write_address & (page_size - 1));
+		if (len > data->max_write_size - 2 /* address */)
+			len = data->max_write_size - 2;
+
+		if (len >= count + 1 /* zero */) {
+			put_zero = 1; /* last part of the string */
+			len = count + 1;
+		}
+
+		memcpy(data->buffer + 2 /* address */, buffer, len - put_zero);
+		if (put_zero)
+			data->buffer[2 /* address */ + len - 1] = '\x0';
+
+		data->buffer[0] = data->write_address >> 8;
+		data->buffer[1] = data->write_address & 0xFF;
+
+/* not sure if a busy loop is best here but it avoids locking issues and
+   console writes are not frequent. EEPROMs write a "row" (128 bytes with
+   24512) within, say, 10 ms so I think no big deal here.
+*/
+
+		t = jiffies;
+		do {
+			err = data->write_func(client, data->buffer, len + 2);
+			if (err >= 0)
+				break;
+		} while (time_before(jiffies, t + HZ / 20)); /* 50 ms */
+
+		if (err < 0) {
+			dev_dbg(&client->dev, "EEPROM write has failed\n");
+			break;
+		}
+
+		count -= len - put_zero; /* overwrite trailing zero */
+		buffer += len - put_zero;
+		data->write_address += len - put_zero;
+		data->write_address &= ~size;
+	} while (!put_zero);
+	atomic_inc(&data->idle);
+}
+
+
+static struct console cons = {
+	.name	= "EEcons",
+	.write	= console_write,
+	.flags	= CON_PRINTBUFFER | CON_ENABLED,
+};
+
+static struct i2c_driver drv = {
+	.driver = {
+		.name	= "eelogger",
+	},
+	.id		= I2C_DRIVERID_EEPROM,
+	.attach_adapter	= drv_attach_adapter,
+	.detach_client	= drv_detach_client,
+};
+
+static struct bin_attribute drv_attr = {
+	.attr = {
+		.name = "eelogger",
+		.mode = S_IRUGO,
+		.owner = THIS_MODULE,
+	},
+	.read = drv_read,
+};
+
+/* I don't like searching for devices in this case, thus blind fixed
+   param-based addressing.
+*/
+
+static int drv_attach_adapter(struct i2c_adapter *adapter)
+{
+	struct i2c_client *client;
+	struct drv_data *data;
+	int err, does_i2c, write_only = 0;
+
+	if (i2c_check_addr(adapter, device)) /* Skip if already in use */
+		return -EBUSY;
+
+	if (i2c_adapter_id(adapter) != bus)
+		return -ENOSYS;
+
+	does_i2c = i2c_check_functionality(adapter, I2C_FUNC_I2C);
+
+	if (!does_i2c &&
+	    !i2c_check_functionality(adapter,
+				     I2C_FUNC_SMBUS_WRITE_I2C_BLOCK)) {
+		printk(KERN_WARNING DRV ": Adapter %u has no required"
+		       " functionality\n", bus);
+		return -ENOSYS;
+	}
+
+	if (!does_i2c &&
+	    !i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE |
+				     I2C_FUNC_SMBUS_WRITE_BYTE_DATA)) {
+		printk(KERN_WARNING DRV ": Adapter %u is write-only\n",
+		       bus);
+		write_only = 1;
+	}
+
+	if (!(data = kzalloc(sizeof(struct drv_data), GFP_KERNEL)))
+		return -ENOMEM;
+
+	client = &data->client;
+	i2c_set_clientdata(client, data);
+	client->addr = device;
+	client->adapter = adapter;
+	client->driver = &drv;
+	client->flags = 0;
+
+	atomic_set(&data->idle, 1);
+	if (does_i2c) {
+		data->read_func = drv_read_i2c;
+		data->write_func = i2c_master_send;
+	} else {
+		data->read_func = drv_read_smbus;
+		data->write_func = drv_write_smbus;
+	}
+	data->max_write_size = EEPROM_MAX_WRITE_SIZE + 2 /* address */;
+	if (!does_i2c && I2C_SMBUS_BLOCK_MAX + 1 < EEPROM_MAX_WRITE_SIZE + 2)
+		data->max_write_size = I2C_SMBUS_BLOCK_MAX + 1 /* MSB */;
+
+	/* Fill in the remaining client fields */
+	strlcpy(client->name, "eelogger", I2C_NAME_SIZE);
+
+	/* Tell the I2C layer a new client has arrived */
+	if ((err = i2c_attach_client(client))) {
+		kfree(data);
+		return err;
+	}
+
+	cons.data = client;
+
+	/* create the sysfs file */
+	if (!write_only) {
+		drv_attr.size = size;
+		sysfs_create_bin_file(&client->dev.kobj, &drv_attr);
+	}
+
+	register_console(&cons);
+	printk(KERN_ERR "EEPROM logger installed\n");
+	return 0;
+}
+
+static int drv_detach_client(struct i2c_client *client)
+{
+	int err = i2c_detach_client(client);
+	if (err)
+		return err;
+
+	unregister_console(&cons);
+
+	kfree(i2c_get_clientdata(client));
+	return 0;
+}
+
+
+static int __init bits(unsigned int value)
+{
+	int v = 0;
+	while (!(value & 1) && v < 32) {
+		value >>= 1;
+		v++;
+	}
+	if (value = 1)
+		return v;
+	return -1;
+}
+
+static int __init drv_init(void)
+{
+	int b;
+
+	/* sanity checks */
+
+	if (bus < 0) {
+		printk(KERN_WARNING DRV ": Invalid I^2C bus ID\n");
+		return -EINVAL;
+	}
+
+	if (device < 0x50 || device > 0x57) {
+		printk(KERN_WARNING DRV ": Invalid EEPROM device ID, "
+		       "supported: 0x50 to 0x57\n");
+		return -EINVAL;
+	}
+
+	/* EEPROMs smaller than 2432 have 1-byte address format and
+	   are not handled here.
+	   EEPROMs larger than 24512 will have to occupy more than
+	   one I^2C device address and are not (yet) handled.
+	   Multiple EEPROM chips are not (yet) handled either. */
+	b = bits(size);
+	if (b < 12 /* 2432 */ || b > 16 /* 24512 */) {
+		printk(KERN_WARNING DRV ": Invalid EEPROM size, supported "
+		       "sizes: 4096 to 65536 bytes\n");
+		return -EINVAL;
+	}
+
+	b = bits(page_size);
+	if (b < 0 || page_size > size) {
+		printk(KERN_WARNING DRV ": Invalid EEPROM page size\n");
+		return -EINVAL;
+	}
+
+	return i2c_add_driver(&drv);
+}
+
+static void __exit drv_exit(void)
+{
+	i2c_del_driver(&drv);
+}
+
+
+************************************************************************
+
+The following is an adapter for Cirrus Logic 5446 VGA on my old R440LX
+test machine:
+
+There is a locking problem - the VGA is (can be) shared between VT console,
+X11 and the driver. I'll look at CL FB driver to see how/if it's done.
+
+static void *regbase = NULL; /* This CL VGA is legacy PIO-driven only */
+static int scl, sda;
+
+static void alpine_switch_i2c_bus(int bus /* 0 = internal or 1 = DDC */)
+{
+	u8 val = vga_rgfx(regbase, 0x17);
+
+	if ((val & 0x60) != (bus * 0x60)) {
+#ifdef DEBUG
+		printk(KERN_DEBUG "Alpine: setting bus#\n");
+#endif
+		vga_wgfx(regbase, 0x17, (val & ~0x60) | (bus * 0x60));
+	}
+}
+
+static void alpine_i2c_in(int b, int *clock, int *data)
+{
+        u8 reg;
+
+        alpine_switch_i2c_bus(b);
+
+        reg = vga_rseq(regbase, 0x08);
+        if (clock)
+		*clock = !!(reg & 0x04);
+        if (data)
+		*data  = !!(reg & 0x80);
+}
+
+static void alpine_i2c_out(int b, int clock, int data)
+{
+        u8 reg = 0xfc;
+        alpine_switch_i2c_bus(b);
+
+        if (clock)
+		reg |= 1;
+        if (data)
+		reg |= 2;
+        vga_wseq(regbase, 0x08, reg);
+}
+
+static void alpine_setsda(void *ptr, int state)
+{
+	alpine_i2c_out(1, scl, sda = state);
+}
+
+static void alpine_setscl(void *ptr, int state)
+{
+	alpine_i2c_out(1, scl = state, sda);
+}
+
+static int alpine_getsda(void *ptr)
+{
+	int val;
+	alpine_i2c_in(1, NULL, &val);
+	return val;
+}
+
+static int alpine_getscl(void *ptr)
+{
+	int val;
+	alpine_i2c_in(1, &val, NULL);
+	return val;
+}
+
+static struct i2c_algo_bit_data bit_alpine_data = {
+	.setsda		= alpine_setsda,
+	.setscl		= alpine_setscl,
+	.getsda		= alpine_getsda,
+	.getscl		= alpine_getscl,
+	.udelay		= 5, /* 400 kHz access */
+	.mdelay		= 1,
+	.timeout	= HZ
+};
+
+static struct i2c_adapter alpine_ops = {
+	.owner		= THIS_MODULE,
+	.id		= I2C_HW_B_LP, /* test only */
+	.algo_data	= &bit_alpine_data,
+	.name		= "Cirrus Logic Alpine DDC I2C adapter driver",
+};
+
+static int __init dev_init_module(void)
+{
+/* don't change the signals unless requested */
+	alpine_i2c_in(1, &scl, &sda);
+	return i2c_bit_add_bus(&alpine_ops);
+}
+
+static void __exit dev_cleanup_module(void)
+{
+	i2c_bit_del_bus(&alpine_ops);
+}
 
 -- 
-Jean Delvare
-
-
-
-Patches currently in gregkh-2.6 which might be from jordan.crouse at amd.com are
-
-i2c/hwmon-lm83-add-lm82-support.patch
-i2c/i2c-scx200_acb-documentation-update.patch
-i2c/i2c-scx200_acb-mark-scx200_acb_probe-init.patch
-i2c/i2c-scx200_acb-use-PCI-IO-resource-when-appropriate.patch
+Krzysztof Halasa
 
