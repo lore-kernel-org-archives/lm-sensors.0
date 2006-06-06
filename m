@@ -1,91 +1,98 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Sat, 10 Jun 2006 07:27:39 +0000
-Subject: [lm-sensors] LM Sensors Autoconfig Tool - Database aspects
-Message-Id: <448A746B.9030005@hhs.nl>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 06 Jun 2006 21:17:55 +0000
+Subject: [lm-sensors] ACPI temperature in libsensors
+Message-Id: <20060606231755.a6e528b5.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44862F5D.6090404@gmail.com>
-In-Reply-To: <44862F5D.6090404@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
+Last saturday I played a bit with libsensors. My idea was to integrate
+the hardware monitoring data which is available from ACPI
+(/proc/acpi/{thermal_zone,fan}). There are many reason why I think this
+would be valuable:
 
-Jim Cromie wrote:
-> Hans de Goede wrote:
-> 
-> hi Hans,
-> 
->> Jim Cromie wrote:
->>  
->>> This is an important choice of directions.  Setting that aside for
->>> the moment,
->>> the database has great value in its own right, esp if this is
->>> recognized early, and maximized.
->>>
->>> Id suggest looking for available fingerprint-worthy items - they
->>> offer the possiblity of
->>> setting up multiple indices which at minimum could help to optimize
->>> the implementation.
->>>
->>>     
->>
->> I agree after seeing some of the dmidecode posts here it has become
->> clear to me that dmidecode output alone will not be enough (sigh) as
->> many bioses don't have proper tables.
->>
->>
->>   
-> Ooh that sounds like agreement of sorts -
-> 
-> I went back to the webite you posted links to, what you said there seems
-> more reliant on dmidecode than I think you're thinking now..
-> 
-> We have a quality of information problem.  This is true on many levels .
-> We're trying to improve an untenable situation ( trying to make optimized
-> configuration decisions based upon incomplete info about nearly
-> un-knowable mobo environs, at least wrt probing currently) with other
-> imperfect info.
-> - improve Q of the data which drives choices
-> - use more data
->    - must learn which data is good
-> 
+* User space applications would no more have to handle the ACPI side of
+things on their own.
 
-<snip>
+* Many recent systems (especially laptops) only have ACPI to report
+system temperature, and people complain that lm_sensors doesn't work
+for them. This would make sensors display some minimal information and
+hopefully make them happy.
 
-Yes I agree we have a quality of data problem, but the solution you're
-suggesting is way to complex and fuzzy. We want a system where a human
-can say, hey the autconf tool thingie got it wrong because:
--empty / unusable dmi-table and an accidentially identical bios
- checksum.
-And then ask himself now how are we going to solve this?
+* There are more and more reports of systems where i2c or hwmon drivers
+conflict with ACPI. If libsensors supports the ACPI interface, we'll
+see the ACPI stuff immediately when people report their sensors output,
+and this will help us spot potential conflicts.
 
+Now, the problem is that the ACPI interface was never meant to be
+integrated into libsensors. It uses procfs, and in a human-oriented
+way, so I had to parse the files. Additionally, ACPI has no concept of
+chips, it creates one subdirectory for each thermal zone and each fan.
+This approach doesn't fit too well into libsensors, at least for my
+naive approach. I've created one pseudo-chip for each thermal zone and
+each fan entry, using the 4-letter ACPI identifier as an address.
+We're lucky enough that 4 letters fit just fine in a 32-bit integer.
+Given that ACPI isn't a bus, I've used the "dummy" bus type. I don't
+remember it being ever used, but it came in quite handy :) I had to add
+a few hacks in libsensors for it to work properly though.
 
-Instead of a human just saying: hey the autoconf tool thingie got it
-wrong, gees what a surprise with the fuzzy logic heuristic approach it
-has (not). Now what the hell went wrong with the fuzzy logic heuristic
-is a mistery though. And let me guess your answer: we need to get even
-more data.
+I've attached the patch I have come up with, which does work good
+enough for me. Note that the patch should be applied on top of SVN,
+else it won't work for systems with only acpi temperature (no working
+hwmon driver).
 
-We may even end up solving this the same way as is done for monitors. If
-a monitor can't be DCC-probed then the installer asks the user what
-monitor he has. We could do the same for mobo's, except that the user
-would first have to start a tool to get this question, we don't want the
-user to be asked this out of the blue as many users probably won't know
-the answer.
+Example, on my laptop:
 
-So my approach is vastly different I'm afraid: I want to build:
-1) a database with good sensors.conf for as many motherboards as
-   possible
-2) A tool which will try to automaticly detect which motherboard a user
-   has with _zero_ false positives and if it succeeds then automaticly
-   sets the correct configuration. If it fails then things work as they
-   do today, they don't (without manual intervention) :)
+khali at arrakis:~> sensors
+thermal-acpi-ATF0
+Adapter: Dummy adapter
+temperature:   +52?C  (high =   +85?C, crit =   +90?C)  
 
+khali at arrakis:~>
 
-Regards,
+I've made a number of choices as far as the temperature limits are
+concerned. I've made ACPI's "passive" trip point the high limit, and
+ACPI's "critical" trip point the critical limit. Both are optional (or
+at least I have one laptop with none of them.) ACPI additionally
+defines 0 to 10 "active" trip points, which are more about fan speed
+control than temperature, as I understand it; my current implementation
+doesn't support them. I've made an alarm out of the "state" interface
+file.
 
-Hans
+Setting temperature limits is not supported at the moment. I'm not sure
+it will ever be, due to the way the acpi interface works.
 
+For fans, there seems to be only a status flag, saying if the fan is on
+or off. Another example:
 
+khali at hyperion:~> sensors "*-acpi-*"
+thermal-acpi-THRM
+Adapter: Dummy adapter
+temperature:    +9?C  (high =   +68?C, crit =   +70?C)  
+
+fan-acpi-FAN
+Adapter: Dummy adapter
+status:         on
+
+khali at hyperion:~>
+
+(Yes, temperature is stuck at 9 degrees C on that machine, presumably
+since I upgraded the BIOS...)
+
+One completely different approach would be to implement an hwmon-acpi
+driver in the Linux kernel itself, which would register with the hwmon
+class and would export the ACPI data using the standard interface. I've
+not looked into feasability yet, though.
+
+Thoughts anyone?
+
+-- 
+Jean Delvare
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: libsensors-acpi-support.patch
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060606/10488445/attachment-0001.pl 
