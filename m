@@ -1,45 +1,56 @@
-From: jirislaby@gmail.com (Jiri Slaby)
-Date: Tue, 06 Jun 2006 07:00:40 +0000
-Subject: [lm-sensors] [PATCH 1/3] pci: i2c scx200_acb avoid
-Message-Id: <4485226B.5030502@gmail.com>
+From: Bruce@Ivn.cl (Ivan Barrera A.)
+Date: Tue, 06 Jun 2006 19:16:28 +0000
+Subject: [lm-sensors] LM Sensors Autoconfig Tool
+Message-Id: <4485D48C.7010507@Ivn.cl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060606083318.8c69a0ff.khali@linux-fr.org>
-In-Reply-To: <20060606083318.8c69a0ff.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi !
 
-Jean Delvare napsal(a):
-> Hi Jiri,
-> 
->> i2c scx200_acb avoid pci_find_device
->>
->> i2c scx200_acb bus driver pci_find_device -> pci_get_device conversion.
-> 
-> The use of pci_find_device in scx200_acb was added by a patch from
-> Jordan Crouse which is not yet finished and applied, so I asked Jordan
-> to fix it in the next iteration of his patch directly. As a result,
-> your patch will no more be necessary. Thanks for pointing out the use
-> of a deprecated function though.
-> 
-> As a side note, I'd suggest that you stop sending patches to three
-> mailing lists at once, as this generates lot of traffic and makes
-> discussions difficult. Please pick the best list for your patches and
-> send to only this list.
-Ok, thanks.
-- --
-Jiri Slaby         www.fi.muni.cz/~xslaby
-\_.-^-._   jirislaby at gmail.com   _.-^-._/
-B67499670407CE62ACC8 22A032CC55C339D47A7E
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-Comment: Using GnuPG with Fedora - http://enigmail.mozdev.org
+I recently subscribed to the list, as i'll be the one developing an
+Autoconfig Tool for Lm Sensors.
 
-iD8DBQFEhSJrMsxVwznUen4RAqgMAJ9SnTsewLD/STvixdzxSJBuxe+sUQCgla5c
-VbUBkFWCxiMH+35CrK0sxdo=xoGY
------END PGP SIGNATURE-----
+I've been taking a look with Hans de Goede in which way is the best to
+identify a motheboard, and each sensor. (as well, as how to write a user
+tool which will look into the database and write the configuration).
+
+The project consist en 2 main parts :
+
+1 - A web application which will mantain a database with the info about
+motheboard - sensors and configurations. (as well as some "use notes").
+2 - User tools which will be able to query the database and get the
+correct configuration for the motheboard/sensors detected.
+
+For this month's end i pretend to have a basic working website, as well
+as a basic user-tool.
+The next month, i'll want to work on the details (some gui, more
+advanced website, etc)
+
+Now, i'm working on how to detect correctly different motheboards and
+sensors, to build the database. I own lots of motheboards, however most
+of them are too different (i want to see, how similar are the reports of
+dmidecode on "similar" motheboards (i.e. different revisions)).
+
+I've been reading the earlier posts about his, to see more ideas on how
+to detect this configurations. So, if any has ideas on this, let me know.
+
+I don't want to be a pain to the list, so, i'll keep informed on
+relevant issues working on the project. (as well, as some personal
+questions about some drivers :) )
+
+Well, this is just an introduction post. I'll write more as soon as i
+have more news.
+
+
+Ivan Barrera A. [Bruce]
+
+PS: Excuse my english. It's a little rusty , as i haven't practiced in
+some time.
+
+
+
+
 
