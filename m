@@ -1,54 +1,31 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 02 Jun 2006 18:56:26 +0000
-Subject: [lm-sensors] PATCH: libsensors and sensors prog support for
-Message-Id: <20060602205626.1eeeea5c.khali@linux-fr.org>
+Date: Tue, 06 Jun 2006 06:33:18 +0000
+Subject: [lm-sensors] [PATCH 1/3] pci: i2c scx200_acb avoid
+Message-Id: <20060606083318.8c69a0ff.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4470B176.5000703@hhs.nl>
-In-Reply-To: <4470B176.5000703@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Hi Jiri,
 
-> > > +void print_abituguru(const sensors_chip_name *name)
-> > > +{
-> > > +  int i;
-> > > +
-> > > +  for (i=0;i<11;i++)
-> > > +    print_abituguru_in(name, SENSORS_ABITUGURU_IN(i),
-> > > +      SENSORS_ABITUGURU_IN_MIN(i), SENSORS_ABITUGURU_IN_MIN_ALARM(i),
-> > > +      SENSORS_ABITUGURU_IN_MAX(i), SENSORS_ABITUGURU_IN_MAX_ALARM(i));
-> > > +
-> > > +  for (i=1;i<=7;i++)
-> > > +    print_abituguru_temp(name, SENSORS_ABITUGURU_TEMP(i),
-> > > +      SENSORS_ABITUGURU_TEMP_ALARM(i), SENSORS_ABITUGURU_TEMP_MAX(i),
-> > > +      SENSORS_ABITUGURU_TEMP_CRIT(i));
-> > > +
-> > > +  for (i=1;i<=6;i++)
-> > > +    print_abituguru_fan(name, SENSORS_ABITUGURU_FAN(i),
-> > > +      SENSORS_ABITUGURU_FAN_ALARM(i), SENSORS_ABITUGURU_FAN_MIN(i));
-> > > +}
-> > 
-> > This looks inefficient to me. You could pass only name and i as
-> > parameters to the three sub-functions. What do you think?
+> i2c scx200_acb avoid pci_find_device
 > 
-> Yes, with the new macro's which take the sensor number as argument I
-> could do that. This would make the abituguru_print function deviate from
-> how things are done in all other print functions though. So the current
-> way is more consistent.
+> i2c scx200_acb bus driver pci_find_device -> pci_get_device conversion.
 
-I don't see how it makes a difference. Most other chips don't use
-macros for symbols and don't use sub-functions either, so your code IS
-different anyway. And this is not a problem.
+The use of pci_find_device in scx200_acb was added by a patch from
+Jordan Crouse which is not yet finished and applied, so I asked Jordan
+to fix it in the next iteration of his patch directly. As a result,
+your patch will no more be necessary. Thanks for pointing out the use
+of a deprecated function though.
 
-> Eitherway let me know what you want and I'll make the necessary changes.
->  Lemme guess, you want me to change things as per your first mail :)
+As a side note, I'd suggest that you stop sending patches to three
+mailing lists at once, as this generates lot of traffic and makes
+discussions difficult. Please pick the best list for your patches and
+send to only this list.
 
-No, I am not insisting either. I've applied your patch (almost) as is.
-Thanks for your contribution :)
-
+Thanks,
 -- 
 Jean Delvare
 
