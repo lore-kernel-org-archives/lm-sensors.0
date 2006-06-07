@@ -1,7 +1,7 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Wed, 07 Jun 2006 10:29:38 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Wed, 07 Jun 2006 20:51:52 +0000
 Subject: [lm-sensors] [PATCH] W83627EHF driver update
-Message-Id: <4486AA92.5010306@gmail.com>
+Message-Id: <4dfa50520606071351x3d0a2214iba829b73fd832c33@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4485CB7A.9050209@sh.cvut.cz>
 In-Reply-To: <4485CB7A.9050209@sh.cvut.cz>
@@ -10,51 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rudolf Marek wrote:
->
-> Please have a look to store_pwm_enable which has non-trivial locking. 
-> I belive it is OK and I tested briefly, but better to be sure.
->
+Hi Rudolf,
 
-> +static ssize_t
-> +store_pwm_enable(struct device *dev, struct device_attribute *attr,
-> +			const char *buf, size_t count)
-> +{
->   
-> +	if (data->pwm_enable[nr] != val) {
->   
-I guess *here* is where you mean non-trivial.
+I like the added mutex locking. It's a good idea. It sounds like
+you'll be modifying it a little?
 
-why not take the lock here -> instead of in both branches of if ?
+Here is the output of the regression test on my machine:
+# ./w83627ehf_regression.sh
+* WARNING: This will run your system fans through many possible
+           combinations. There is a possibility your system will
+           overheat. Use this script at your own risk!
+Mapping fans...setting all PWMs to 100%
+    fan 1 0 RPM: ignored. (Fan not installed?)
+    fan 2 0 RPM: ignored. (Fan not installed?)
+    fan 3 3479 RPM:
+        pwm1 3443 RPM
+        pwm2 3443 RPM
+        pwm3 1654 RPM: connected.
+Testing fan 3 - pwm3 ... div OK, PWM/DC OK, enable OK
+test_smartfan1 $1="3" $2="pwm3"
+, SF1 OK
 
-> +		if (!val) {
->   
-you specifically and knowingly dont protect this call,
-and advised us of it in your msg.  It certainly warrants a comment here too.
+Obviously, I'm right in the middle of building SmartFan 1 testing. It
+doesn't test that. Everything else works fine. I'm attaching the
+regression test which is updated for this patch. So, sign me off on
+it.
 
-> +			store_pwm(dev, attr, "255", 3);
->   
-and now take the lock.
-> +			mutex_lock(&data->update_lock);
-> +			data->pwm_enable[nr] = val;
-> +		}
-> +		else {
->   
-repeating, this lock could be hoisted, but for the missing/unstated reason.
-
-> +			mutex_lock(&data->update_lock);
-> +			data->pwm_enable[nr] = val;
-> +			val--;
-> +		}
-> +		reg = (reg & ~(11 << W83627EHF_PWM_ENABLE_SHIFT[nr]));
-> +		reg |= val << W83627EHF_PWM_ENABLE_SHIFT[nr];
-> +		w83627ehf_write_value(client, W83627EHF_REG_PWM_ENABLE[nr],
-> +					reg);
-> +		mutex_unlock(&data->update_lock);
-> +	}
-> +	return count;
-> +}
-> +
->   
-:-)
-
+Thanks,
+David
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: w83627ehf_regression.sh
+Type: application/x-sh
+Size: 15366 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060607/ba81aba3/attachment.sh 
