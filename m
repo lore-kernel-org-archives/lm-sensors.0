@@ -1,7 +1,7 @@
-From: gregkh@suse.de (gregkh at suse.de)
-Date: Fri, 16 Jun 2006 22:47:55 +0000
-Subject: [lm-sensors] patch hwmon-lm70-new-driver.patch added to gregkh-2.6
-Message-Id: <20060616225049.B3BA07596A5@imap.suse.de>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Sat, 10 Jun 2006 17:58:22 +0000
+Subject: [lm-sensors] [RFC patch 0/2] hwmon: add a superio locks coordinator
+Message-Id: <448B083E.3060809@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,286 +9,143 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-This is a note to let you know that I've just added the patch titled
+Ooof. 
+I just realized this has been sitting in my drafts folder since 5/21.
+And I just sent these 2 described patches in a yet older draft response
+to Thomas Andrews  :-}
 
-     Subject: [PATCH 13/14] lm70: New hardware monitoring driver
+Too many irons in the fire perhaps..
 
-to my gregkh-2.6 tree.  Its filename is
+This 2 part patch-set: 
+ - adds a superio_locks module to hwmon dir
+ - uses it in hwmon/pc87360
 
-     hwmon-lm70-new-driver.patch
+The 1st patch makes this an LKML message, 2nd an lm-sensors msg.
 
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+SuperIO ports are found on LPC (low pin count) chips, and may have
+many (15) functional units behind a 2 IO address resource space.
+These units need device drivers, which must coordinate for use of the
+shared SuperIO resource.
 
 
-From khali at linux-fr.org Mon Jun 12 13:00:12 2006
-Date: Mon, 12 Jun 2006 22:00:05 +0200
-From: Kaiwan N Billimoria <kaiwan at designergraphix.com>
-To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>, Kaiwan N Billimoria <kaiwan at designergraphix.com>
-Subject: [PATCH 13/14] lm70: New hardware monitoring driver
-Message-Id: <20060612220005.cd9ce8ad.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-lm70-new-driver.patch
 
-From: Kaiwan N Billimoria <kaiwan at designergraphix.com>
+patch/driver is as simple as possible:
 
-This driver implements support for the National Semiconductor LM70
-temperature sensor.
-
-The LM70 temperature sensor chip supports a single temperature sensor.
-It communicates with a host processor (or microcontroller) via an
-SPI/Microwire Bus interface.
-
-Communication with the LM70 is simple: when the temperature is to be sensed,
-the driver accesses the LM70 using SPI communication: 16 SCLK cycles
-comprise the MOSI/MISO loop. At the end of the transfer, the 11-bit 2's
-complement digital temperature (sent via the SIO line), is available in the
-driver for interpretation. This driver makes use of the kernel's in-core
-SPI support.
-
-Signed-off-by: Kaiwan N Billimoria <kaiwan at designergraphix.com>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-2.6.17-rc6/Documentation/hwmon/lm70	2006-06-12 21:58:17.000000000 +0200
-@@ -0,0 +1,31 @@
-+Kernel driver lm70
-+=========
-+
-+Supported chip:
-+  * National Semiconductor LM70
-+    Datasheet: http://www.national.com/pf/LM/LM70.html
-+
-+Author:
-+        Kaiwan N Billimoria <kaiwan at designergraphix.com>
-+
-+Description
-+-----------
-+
-+This driver implements support for the National Semiconductor LM70
-+temperature sensor.
-+
-+The LM70 temperature sensor chip supports a single temperature sensor.
-+It communicates with a host processor (or microcontroller) via an
-+SPI/Microwire Bus interface.
-+
-+Communication with the LM70 is simple: when the temperature is to be sensed,
-+the driver accesses the LM70 using SPI communication: 16 SCLK cycles
-+comprise the MOSI/MISO loop. At the end of the transfer, the 11-bit 2's
-+complement digital temperature (sent via the SIO line), is available in the
-+driver for interpretation. This driver makes use of the kernel's in-core
-+SPI support.
-+
-+Thanks to
-+---------
-+Jean Delvare <khali at linux-fr.org> for mentoring the hwmon-side driver
-+development.
---- linux-2.6.17-rc6.orig/drivers/hwmon/Kconfig	2006-06-12 19:16:40.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/hwmon/Kconfig	2006-06-12 19:17:08.000000000 +0200
-@@ -204,6 +204,16 @@
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called lm63.
- 
-+config SENSORS_LM70
-+	tristate "National Semiconductor LM70"
-+	depends on HWMON && SPI_MASTER && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for the National Semiconductor
-+	  LM70 digital temperature sensor chip.
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called lm70.
-+
- config SENSORS_LM75
- 	tristate "National Semiconductor LM75 and compatibles"
- 	depends on HWMON && I2C
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-2.6.17-rc6/drivers/hwmon/lm70.c	2006-06-12 19:17:08.000000000 +0200
-@@ -0,0 +1,165 @@
-+/*
-+ * lm70.c
-+ *
-+ * The LM70 is a temperature sensor chip from National Semiconductor (NS).
-+ * Copyright (C) 2006 Kaiwan N Billimoria <kaiwan at designergraphix.com>
-+ *
-+ * The LM70 communicates with a host processor via an SPI/Microwire Bus
-+ * interface. The complete datasheet is available at National's website
-+ * here:
-+ * http://www.national.com/pf/LM/LM70.html
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/sysfs.h>
-+#include <linux/hwmon.h>
-+#include <linux/spi/spi.h>
-+#include <asm/semaphore.h>
-+
-+#define DRVNAME		"lm70"
-+
-+struct lm70 {
-+	struct class_device *cdev;
-+	struct semaphore sem;
++struct superio {
++       struct mutex lock;      /* lock shared amongst user drivers */
++       int sioaddr;            /* port's tested cmd-address */
++       int devid;              /* devid found by the registering driver */
 +};
-+
-+/* sysfs hook function */
-+static ssize_t lm70_sense_temp(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	int status, val;
-+	u8 rxbuf[2];
-+	s16 raw=0;
-+	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
-+
-+	if (down_interruptible(&p_lm70->sem))
-+		return -ERESTARTSYS;
-+
-+	/*
-+	 * spi_read() requires a DMA-safe buffer; so we use
-+	 * spi_write_then_read(), transmitting 0 bytes.
-+	 */
-+	status = spi_write_then_read(spi, NULL, 0, &rxbuf[0], 2);
-+	if (status < 0) {
-+		printk(KERN_WARNING
-+		"spi_write_then_read failed with status %d\n", status);
-+		goto out;
-+	}
-+	dev_dbg(dev, "rxbuf[1] : 0x%x rxbuf[0] : 0x%x\n", rxbuf[1], rxbuf[0]);
-+
-+	raw = (rxbuf[1] << 8) + rxbuf[0];
-+	dev_dbg(dev, "raw=0x%x\n", raw);
-+
-+	/*
-+	 * The "raw" temperature read into rxbuf[] is a 16-bit signed 2's
-+	 * complement value. Only the MSB 11 bits (1 sign + 10 temperature
-+	 * bits) are meaningful; the LSB 5 bits are to be discarded.
-+	 * See the datasheet.
-+	 *
-+	 * Further, each bit represents 0.25 degrees Celsius; so, multiply
-+	 * by 0.25. Also multiply by 1000 to represent in millidegrees
-+	 * Celsius.
-+	 * So it's equivalent to multiplying by 0.25 * 1000 = 250.
-+	 */
-+	val = ((int)raw/32) * 250;
-+	status = sprintf(buf, "%+d\n", val); /* millidegrees Celsius */
-+out:
-+	up(&p_lm70->sem);
-+	return status;
-+}
-+
-+static DEVICE_ATTR(temp1_input, S_IRUGO, lm70_sense_temp, NULL);
-+
-+/*----------------------------------------------------------------------*/
-+
-+static int __devinit lm70_probe(struct spi_device *spi)
-+{
-+	struct lm70 *p_lm70;
-+	int status;
-+
-+	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
-+	if (!p_lm70)
-+		return -ENOMEM;
-+
-+	init_MUTEX(&p_lm70->sem);
-+
-+	/* sysfs hook */
-+	p_lm70->cdev = hwmon_device_register(&spi->dev);
-+	if (IS_ERR(p_lm70->cdev)) {
-+		dev_dbg(&spi->dev, "hwmon_device_register failed.\n");
-+		status = PTR_ERR(p_lm70->cdev);
-+		goto out_dev_reg_failed;
-+	}
-+	dev_set_drvdata(&spi->dev, p_lm70);
-+
-+	if ((status = device_create_file(&spi->dev, &dev_attr_temp1_input))) {
-+		dev_dbg(&spi->dev, "device_create_file failure.\n");
-+		goto out_dev_create_file_failed;
-+	}
-+
-+	return 0;
-+
-+out_dev_create_file_failed:
-+	hwmon_device_unregister(p_lm70->cdev);
-+out_dev_reg_failed:
-+	dev_set_drvdata(&spi->dev, NULL);
-+	kfree(p_lm70);
-+	return status;
-+}
-+
-+static int __exit lm70_remove(struct spi_device *spi)
-+{
-+	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
-+
-+	device_remove_file(&spi->dev, &dev_attr_temp1_input);
-+	hwmon_device_unregister(p_lm70->cdev);
-+	dev_set_drvdata(&spi->dev, NULL);
-+	kfree(p_lm70);
-+
-+	return 0;
-+}
-+
-+static struct spi_driver lm70_driver = {
-+	.driver = {
-+		.name	= "lm70",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe	= lm70_probe,
-+	.remove	= __devexit_p(lm70_remove),
-+};
-+
-+static int __init init_lm70(void)
-+{
-+	return spi_register_driver(&lm70_driver);
-+}
-+
-+static void __exit cleanup_lm70(void)
-+{
-+	spi_unregister_driver(&lm70_driver);
-+}
-+
-+module_init(init_lm70);
-+module_exit(cleanup_lm70);
-+
-+MODULE_AUTHOR("Kaiwan N Billimoria");
-+MODULE_DESCRIPTION("National Semiconductor LM70 Linux driver");
-+MODULE_LICENSE("GPL");
---- linux-2.6.17-rc6.orig/drivers/hwmon/Makefile	2006-06-12 18:41:00.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/hwmon/Makefile	2006-06-12 19:17:08.000000000 +0200
-@@ -28,6 +28,7 @@
- obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
- obj-$(CONFIG_SENSORS_IT87)	+= it87.o
- obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
-+obj-$(CONFIG_SENSORS_LM70)	+= lm70.o
- obj-$(CONFIG_SENSORS_LM75)	+= lm75.o
- obj-$(CONFIG_SENSORS_LM77)	+= lm77.o
- obj-$(CONFIG_SENSORS_LM78)	+= lm78.o
 
--- 
-Jean Delvare
+a singleton: superio_locks.ko, which:
+
+- waits for client drivers to register for a superio port
+  a known device-id, at a known devid-addr, via a known command-addr
+
+- 1st client who probes/registers a port that
+  tests ok - like a superio command addr should,
+  gets a fresh superio struct
+	initialized to the just-found cmd addr and devid
+
+- next client registering the same command-addr and devid
+  gets the same pointer value as 1st client.
+  1st and later clients are equal
+  they share the slot, and the lock therein
+
+- they agree not to change sioaddr, devid
+  a reasonable interface contract
+
+- they use the lock when they need exclusion
+  ie whenever they use the superio,
+    typically in sequences of: 
+      superio_inb(), superio_outb()
+  point is: lock use is *not* lock allocation, which is here.
+
+- clients dont change sioaddr, devid
+  a reasonable contract
+
+- no module unregister, 
+  We hold memory for shared locks, so we 'own' them,
+  therefore, we preclude removal, easy and safe.
 
 
+The API
 
-Patches currently in gregkh-2.6 which might be from kaiwan at designergraphix.com are
+struct superio* get_superio(int sioaddr, int devid_addr, int devid_val);
+/* arrays are 0 terminated */
+struct superio* find_superio(u8 sioaddr[],
+                            int devid_addr, u8 devid_val[]);
 
-i2c/hwmon-kconfig-header-fix.patch
-i2c/hwmon-lm70-new-driver.patch
+
+1. get/find your superio,
+	
+	struct superio* gate = find_superio(&my_candidate_cmdports,
+			                    devid_addr,
+					    &supported_devids);
+
+devid_addr is a superio-address, and is 'probed' for the device id
+found there.  If we find a supported id at that sioaddr, and the
+sioaddr also reads back the devid-addr we just wrote there, we call it
+*good*, reserve and return the slot.
+
+find_* is built on get_*, its more convenient.  There may be some
+corner cases where the iteration is oversimplified.  Drivers should
+iterate over combos of cmdaddrs and devids they are prepared to
+support, til they get a port that responds properly to the probe.
+
+2. lock the superio port while using it
+
+  // reach thru the struct to lock and unlock - obvious is good
+  mutex_lock($gate->lock);
+  do_stuff()
+  mutex_unlock($gate->lock);
+
+Driver knows when locks are needed, we dont.
+
+The hwmon/pc87360 driver only uses the superio port during
+initialization, so the gate obtained in 1 can even be forgotten after
+init.  The 2nd patch doesnt go this far, I plan to look for reuse of
+sioaddr and devid in the rest of the driver 1st.
+
+
+NOTES
+
+module has no unload.  doing so would lose locks promised and shared
+amongst possibly multiple drivers.  Module usage counts are unwise
+or evil.
+
+just treat the shared superio struct as RO.
+	deref to fields, or
+	copy values to statics,
+	your choice.
+
+SuperIO ports are slow anyway (multiple ISA bus cycles), so a pointer
+deref + struct offset is trivial.
+
+0-terminated arrays.  are they OK, or asking for errors?
+
+
+The IO space is not currently reserved.  This matches history; nobody
+has complained about another module seizing the superio.  IOW, the
+sharing is happening now, just nothing *bad* has been detected.
+
+So, is there a need / real problem ? 
+
+Yes - at least on paper.  Ive got work-in-progress to peel nsc_gpio.c
+out of scx200_gpio.c, then copy and rework the latter into
+pc87360_gpio.c.  This last module will need to coordinate at least
+once, maybe more.
+
+Also, Ive heard that the pc87360 has a serial port that is used for
+com2 on the soekris (ML hearsay)
+
+
+FutureQ
+
+Consider claiming a 2-byte IO resource for the superIO.  This should
+expose rogue users, IFF such intra-kernel barriers are mandatory.
+
+Signed-off-by:  Jim Cromie <jim.cromie at gmail.com>
+
+
 
