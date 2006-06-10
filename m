@@ -1,68 +1,60 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Fri, 09 Jun 2006 11:05:46 +0000
+From: khc@pm.waw.pl (Krzysztof Halasa)
+Date: Sat, 10 Jun 2006 22:27:14 +0000
 Subject: [lm-sensors] [PATCH] I2C: i2c_bit_add_bus should initialize SDA
-Message-Id: <20060609110546.GA26073@jupiter.solarsys.private>
+Message-Id: <m3lks4k5od.fsf@defiant.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <m34pyyz0e1.fsf@defiant.localdomain>
-In-Reply-To: <m34pyyz0e1.fsf@defiant.localdomain>
+	<20060609110546.GA26073@jupiter.solarsys.private>
+In-Reply-To: <20060609110546.GA26073@jupiter.solarsys.private> (Mark M. Hoffman's message of "Fri, 9 Jun 2006 07:05:46 -0400")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Krzysztof Halasa <khc@pm.waw.pl>
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Cc: Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hi Krzysztof:
+Hi,
 
-* Krzysztof Halasa <khc at pm.waw.pl> [2006-06-06 18:58:46 +0200]:
-> Another thing: I noticed the i2c_bit_add_bus doesn't set SDA and SCL
-> lines to a known levels. If the hw driver set them to 1 all is fine
-> and the first START condition is detected correctly. But if they're
-> set differently (for example, if both are zero), the START will not
-> work.
-> 
-> I'm not sure if the following patch isn't an overkill, though, and
-> if the lack of initialization is a real problem which shows in
-> practice and not only on my analyzer.
-> 
-> In case you think it's needed:
-> 
-> This patch makes i2c_bit_add_bus() initialize SDA and SCL lines
-> as required by subsequent START condition.
-> 
-> Signed-off-by: Krzysztof Halasa <khc at pm.waw.pl>
-> 
-> --- a/drivers/i2c/algos/i2c-algo-bit.c
-> +++ b/drivers/i2c/algos/i2c-algo-bit.c
-> @@ -544,6 +544,13 @@ int i2c_bit_add_bus(struct i2c_adapter *
->  	adap->timeout = 100;	/* default values, should	*/
->  	adap->retries = 3;	/* be replaced by defines	*/
->  
-> +	setsda(bit_adap, 0);	/* may mean START if SCL = 1 */
-> +	udelay(bit_adap->udelay);
-> +	setscl(bit_adap, 1);	/* may clock a zero bit in */
-> +	udelay(bit_adap->udelay);
-> +	setsda(bit_adap, 1);	/* STOP */
-> +	udelay(bit_adap->udelay);
-> +
->  	i2c_add_adapter(adap);
->  	return 0;
->  }
+"Mark M. Hoffman" <mhoffman at lightlink.com> writes:
 
-NACK.  The I2C bus spec says[1]:
+> SCL and SDA must be pulled high by hardware.  If a driver inits to
+> setting them low, that's a bug in the driver.
 
-	A START condition immediately followed by a STOP condition
-	(void message) is an illegal format.
+Thanks for your response.
 
-SCL and SDA must be pulled high by hardware.  If a driver inits to
-setting them low, that's a bug in the driver.
+The question is rather who inits the lines: a) the hw driver,
+b) the I2C algorithm driver.
 
-[1] (page 14, note 5)
-http://www.semiconductors.philips.com/acrobat_download/literature/9398/39340011.pdf
+With a) every hw driver has to know how to init them (duplicated
+code but there might be positive side).
 
-Regards,
+With b) I2C algorithm driver inits the lines and hw driver
+doesn't worry about but it might have some limitations such
+as unknown SCL state.
 
+I understand the current case is a) - right?
+
+
+The other question is _how_ to init the lines. There are 4 possible
+hardware initial conditions:
+
+  SCL SDA
+a)  0   0 (outputs zeroed by default)
+b)  0   1 (uncommon but may be left in this state by previous operations)
+c)  1   0 (ditto)
+d)  1   1 (I/O lines configured as input by default)
+
+The internal state of devices connected to the bus is potentially
+unknown. Some implementations just start with STOP to eliminate
+this problem, I don't know what Linux driver is supposed to do.
+
+(Other implementation I know are rather specialized and thus they
+know their hardware init state, Linux I2C algorithm handles many
+devices with potentially different initial state of hardware lines).
+
+
+To summarize questions:
+- is it the hw driver who has to init the bus
+- how to init the bus (depending on init state)
 -- 
-Mark M. Hoffman
-mhoffman at lightlink.com
-
+Krzysztof Halasa
 
