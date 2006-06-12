@@ -1,151 +1,65 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:27:34 +0000
-Subject: [lm-sensors] [PATCH 8/44] [PATCH] i2c: cleanup m41t00
-Message-Id: <11510009163455-git-send-email-greg@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 12 Jun 2006 19:40:53 +0000
+Subject: [lm-sensors] [PATCH 01/14] i2c-ocores: Minor cleanups
+Message-Id: <20060612214053.4c7ebc0c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Mark A. Greer <mgreer at mvista.com>
+From: Peter Korsgaard <jacmet at sunsite.dk>
+Content-Disposition: inline; filename=i2c-opencores-cleanup.patch
 
-This patch does some cleanup to the m41t00 i2c/rtc driver including:
-- use BCD2BIN/BIN2BCD instead of BCD_TO_BIN/BIN_TO_BCD
-- use strlcpy instead of strncpy
-- some whitespace cleanup
+Minor cleanup to the i2c-ocores driver.
 
-Signed-off-by: Mark A. Greer <mgreer at mvista.com>
+Peter Korsgaard will maintain the i2c-ocores driver.
+
+Signed-off-by: Peter Korsgaard <jacmet at sunsite.dk>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/chips/m41t00.c |   49 +++++++++++++++++++-------------------------
- 1 files changed, 21 insertions(+), 28 deletions(-)
+ MAINTAINERS                     |    6 ++++++
+ drivers/i2c/busses/i2c-ocores.c |    6 ++----
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/i2c/chips/m41t00.c b/drivers/i2c/chips/m41t00.c
-index 99ab4ec..eb2be3e 100644
---- a/drivers/i2c/chips/m41t00.c
-+++ b/drivers/i2c/chips/m41t00.c
-@@ -1,6 +1,4 @@
- /*
-- * drivers/i2c/chips/m41t00.c
-- *
-  * I2C client/driver for the ST M41T00 Real-Time Clock chip.
-  *
-  * Author: Mark A. Greer <mgreer at mvista.com>
-@@ -13,9 +11,6 @@
- /*
-  * This i2c client/driver wedges between the drivers/char/genrtc.c RTC
-  * interface and the SMBus interface of the i2c subsystem.
-- * It would be more efficient to use i2c msgs/i2c_transfer directly but, as
-- * recommened in .../Documentation/i2c/writing-clients section
-- * "Sending and receiving", using SMBus level communication is preferred.
-  */
+--- linux-2.6.17-rc6.orig/MAINTAINERS	2006-06-07 07:27:05.000000000 +0200
++++ linux-2.6.17-rc6/MAINTAINERS	2006-06-07 07:27:05.000000000 +0200
+@@ -2051,6 +2051,12 @@
+ L:      linux-fbdev-devel at lists.sourceforge.net
+ S:      Maintained
  
- #include <linux/kernel.h>
-@@ -41,17 +36,17 @@ static unsigned short ignore[] = { I2C_C
- static unsigned short normal_addr[] = { 0x68, I2C_CLIENT_END };
++OPENCORES I2C BUS DRIVER
++P:	Peter Korsgaard
++M:	jacmet at sunsite.dk
++L:	lm-sensors at lm-sensors.org
++S:	Maintained
++
+ ORACLE CLUSTER FILESYSTEM 2 (OCFS2)
+ P:	Mark Fasheh
+ M:	mark.fasheh at oracle.com
+--- linux-2.6.17-rc6.orig/drivers/i2c/busses/i2c-ocores.c	2006-06-07 07:27:04.000000000 +0200
++++ linux-2.6.17-rc6/drivers/i2c/busses/i2c-ocores.c	2006-06-07 07:27:05.000000000 +0200
+@@ -38,8 +38,8 @@
+ #define OCI2C_PREHIGH		1
+ #define OCI2C_CONTROL		2
+ #define OCI2C_DATA		3
+-#define OCI2C_CMD		4
+-#define OCI2C_STATUS		4
++#define OCI2C_CMD		4 /* write only */
++#define OCI2C_STATUS		4 /* read only, same address as OCI2C_CMD */
  
- static struct i2c_client_address_data addr_data = {
--	.normal_i2c		= normal_addr,
--	.probe			= ignore,
--	.ignore			= ignore,
-+	.normal_i2c	= normal_addr,
-+	.probe		= ignore,
-+	.ignore		= ignore,
+ #define OCI2C_CTRL_IEN		0x40
+ #define OCI2C_CTRL_EN		0x80
+@@ -209,8 +209,6 @@
+ 	.name		= "i2c-ocores",
+ 	.class		= I2C_CLASS_HWMON,
+ 	.algo		= &ocores_algorithm,
+-	.timeout	= 2,
+-	.retries	= 1,
  };
  
- ulong
- m41t00_get_rtc_time(void)
- {
--	s32	sec, min, hour, day, mon, year;
--	s32	sec1, min1, hour1, day1, mon1, year1;
--	ulong	limit = 10;
-+	s32 sec, min, hour, day, mon, year;
-+	s32 sec1, min1, hour1, day1, mon1, year1;
-+	ulong limit = 10;
  
- 	sec = min = hour = day = mon = year = 0;
- 	sec1 = min1 = hour1 = day1 = mon1 = year1 = 0;
-@@ -97,12 +92,12 @@ m41t00_get_rtc_time(void)
- 	mon &= 0x1f;
- 	year &= 0xff;
- 
--	BCD_TO_BIN(sec);
--	BCD_TO_BIN(min);
--	BCD_TO_BIN(hour);
--	BCD_TO_BIN(day);
--	BCD_TO_BIN(mon);
--	BCD_TO_BIN(year);
-+	sec = BCD2BIN(sec);
-+	min = BCD2BIN(min);
-+	hour = BCD2BIN(hour);
-+	day = BCD2BIN(day);
-+	mon = BCD2BIN(mon);
-+	year = BCD2BIN(year);
- 
- 	year += 1900;
- 	if (year < 1970)
-@@ -115,17 +110,17 @@ static void
- m41t00_set(void *arg)
- {
- 	struct rtc_time	tm;
--	ulong	nowtime = *(ulong *)arg;
-+	ulong nowtime = *(ulong *)arg;
- 
- 	to_tm(nowtime, &tm);
- 	tm.tm_year = (tm.tm_year - 1900) % 100;
- 
--	BIN_TO_BCD(tm.tm_sec);
--	BIN_TO_BCD(tm.tm_min);
--	BIN_TO_BCD(tm.tm_hour);
--	BIN_TO_BCD(tm.tm_mon);
--	BIN_TO_BCD(tm.tm_mday);
--	BIN_TO_BCD(tm.tm_year);
-+	tm.tm_sec = BIN2BCD(tm.tm_sec);
-+	tm.tm_min = BIN2BCD(tm.tm_min);
-+	tm.tm_hour = BIN2BCD(tm.tm_hour);
-+	tm.tm_mon = BIN2BCD(tm.tm_mon);
-+	tm.tm_mday = BIN2BCD(tm.tm_mday);
-+	tm.tm_year = BIN2BCD(tm.tm_year);
- 
- 	mutex_lock(&m41t00_mutex);
- 	if ((i2c_smbus_write_byte_data(save_client, 0, tm.tm_sec & 0x7f) < 0)
-@@ -143,7 +138,6 @@ m41t00_set(void *arg)
- 		dev_warn(&save_client->dev,"m41t00: can't write to rtc chip\n");
- 
- 	mutex_unlock(&m41t00_mutex);
--	return;
- }
- 
- static ulong new_time;
-@@ -180,7 +174,7 @@ m41t00_probe(struct i2c_adapter *adap, i
- 	if (!client)
- 		return -ENOMEM;
- 
--	strncpy(client->name, M41T00_DRV_NAME, I2C_NAME_SIZE);
-+	strlcpy(client->name, M41T00_DRV_NAME, I2C_NAME_SIZE);
- 	client->addr = addr;
- 	client->adapter = adap;
- 	client->driver = &m41t00_driver;
-@@ -204,7 +198,7 @@ m41t00_attach(struct i2c_adapter *adap)
- static int
- m41t00_detach(struct i2c_client *client)
- {
--	int	rc;
-+	int rc;
- 
- 	if ((rc = i2c_detach_client(client)) = 0) {
- 		kfree(client);
-@@ -232,7 +226,6 @@ static void __exit
- m41t00_exit(void)
- {
- 	i2c_del_driver(&m41t00_driver);
--	return;
- }
- 
- module_init(m41t00_init);
--- 
-1.4.0
 
+-- 
+Jean Delvare
 
