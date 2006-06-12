@@ -1,200 +1,71 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:27:52 +0000
-Subject: [lm-sensors] [PATCH 26/44] [PATCH] w83792d: Add missing data access
-Message-Id: <11510009911635-git-send-email-greg@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 12 Jun 2006 19:48:08 +0000
+Subject: [lm-sensors] [PATCH 05/14] scx200_acb: Documentation update
+Message-Id: <20060612214808.35510747.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Yuan Mu <ymu at winbond.com.tw>
+Content-Disposition: inline; filename=i2c-scx200_acb-documentation-update.patch
 
-Add missing data lock in w83792d driver to avoid unexpected
-data change.
+Documentation update for the scx200_acb driver. Hopefully this will
+help future users.
 
-Signed-off-by: Yuan Mu <ymu at winbond.com.tw>
+References:
+
+[lm-sensors] Support of i2c-nscacb (April, May 2005)
+  http://lists.lm-sensors.org/pipermail/lm-sensors/2005-April/011756.html
+  http://lists.lm-sensors.org/pipermail/lm-sensors/2005-May/012043.html
+
+[lm-sensors] making a geode i2c slave driver (April 2006)
+  http://lists.lm-sensors.org/pipermail/lm-sensors/2006-April/015998.html
+
+Kernel bug #6445
+  http://bugzilla.kernel.org/show_bug.cgi?idd45
+
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/hwmon/w83792d.c |   30 +++++++++++++++++++++++++-----
- 1 files changed, 25 insertions(+), 5 deletions(-)
+ Documentation/i2c/busses/scx200_acb |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/hwmon/w83792d.c b/drivers/hwmon/w83792d.c
-index 6cdef18..4ef884c 100644
---- a/drivers/hwmon/w83792d.c
-+++ b/drivers/hwmon/w83792d.c
-@@ -372,8 +372,10 @@ static ssize_t store_in_##reg (struct de
- 	u32 val; \
- 	 \
- 	val = simple_strtoul(buf, NULL, 10); \
-+	mutex_lock(&data->update_lock); \
- 	data->in_##reg[nr] = SENSORS_LIMIT(IN_TO_REG(nr, val)/4, 0, 255); \
- 	w83792d_write_value(client, W83792D_REG_IN_##REG[nr], data->in_##reg[nr]); \
-+	mutex_unlock(&data->update_lock); \
- 	 \
- 	return count; \
- }
-@@ -440,9 +442,11 @@ store_fan_min(struct device *dev, struct
- 	u32 val;
+--- linux-2.6.17-rc3.orig/Documentation/i2c/busses/scx200_acb	2006-04-03 20:12:23.000000000 +0200
++++ linux-2.6.17-rc3/Documentation/i2c/busses/scx200_acb	2006-04-28 10:45:30.000000000 +0200
+@@ -2,14 +2,31 @@
  
- 	val = simple_strtoul(buf, NULL, 10);
-+	mutex_lock(&data->update_lock);
- 	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
- 	w83792d_write_value(client, W83792D_REG_FAN_MIN[nr],
- 				data->fan_min[nr]);
-+	mutex_unlock(&data->update_lock);
+ Author: Christer Weinigel <wingel at nano-system.com>
  
- 	return count;
- }
-@@ -475,6 +479,7 @@ store_fan_div(struct device *dev, struct
- 	u8 tmp_fan_div;
- 
- 	/* Save fan_min */
-+	mutex_lock(&data->update_lock);
- 	min = FAN_FROM_REG(data->fan_min[nr],
- 			   DIV_FROM_REG(data->fan_div[nr]));
- 
-@@ -490,6 +495,7 @@ store_fan_div(struct device *dev, struct
- 	/* Restore fan_min */
- 	data->fan_min[nr] = FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
- 	w83792d_write_value(client, W83792D_REG_FAN_MIN[nr], data->fan_min[nr]);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -544,10 +550,11 @@ static ssize_t store_temp1(struct device
- 	s32 val;
- 
- 	val = simple_strtol(buf, NULL, 10);
--
-+	mutex_lock(&data->update_lock);
- 	data->temp1[nr] = TEMP1_TO_REG(val);
- 	w83792d_write_value(client, W83792D_REG_TEMP1[nr],
- 		data->temp1[nr]);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -577,13 +584,14 @@ static ssize_t store_temp23(struct devic
- 	s32 val;
- 
- 	val = simple_strtol(buf, NULL, 10);
--
-+	mutex_lock(&data->update_lock);
- 	data->temp_add[nr][index] = TEMP_ADD_TO_REG_HIGH(val);
- 	data->temp_add[nr][index+1] = TEMP_ADD_TO_REG_LOW(val);
- 	w83792d_write_value(client, W83792D_REG_TEMP_ADD[nr][index],
- 		data->temp_add[nr][index]);
- 	w83792d_write_value(client, W83792D_REG_TEMP_ADD[nr][index+1],
- 		data->temp_add[nr][index+1]);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -682,6 +690,10 @@ store_pwmenable(struct device *dev, stru
- 	u8 fan_cfg_tmp, cfg1_tmp, cfg2_tmp, cfg3_tmp, cfg4_tmp;
- 
- 	val = simple_strtoul(buf, NULL, 10);
-+	if (val < 1 || val > 3)
-+		return -EINVAL;
++The driver supersedes the older, never merged driver named i2c-nscacb.
 +
-+	mutex_lock(&data->update_lock);
- 	switch (val) {
- 	case 1:
- 		data->pwmenable[nr] = 0; /* manual mode */
-@@ -692,8 +704,6 @@ store_pwmenable(struct device *dev, stru
- 	case 3:
- 		data->pwmenable[nr] = 1; /* thermal cruise/Smart Fan I */
- 		break;
--	default:
--		return -EINVAL;
- 	}
- 	cfg1_tmp = data->pwmenable[0];
- 	cfg2_tmp = (data->pwmenable[1]) << 2;
-@@ -701,6 +711,7 @@ store_pwmenable(struct device *dev, stru
- 	cfg4_tmp = w83792d_read_value(client,W83792D_REG_FAN_CFG) & 0xc0;
- 	fan_cfg_tmp = ((cfg4_tmp | cfg3_tmp) | cfg2_tmp) | cfg1_tmp;
- 	w83792d_write_value(client, W83792D_REG_FAN_CFG, fan_cfg_tmp);
-+	mutex_unlock(&data->update_lock);
+ Module Parameters
+ -----------------
  
- 	return count;
- }
-@@ -794,12 +805,13 @@ store_chassis_clear(struct device *dev, 
- 	u8 temp1 = 0, temp2 = 0;
+-* base: int
++* base: up to 4 ints
+   Base addresses for the ACCESS.bus controllers on SCx200 and SC1100 devices
  
- 	val = simple_strtoul(buf, NULL, 10);
--
-+	mutex_lock(&data->update_lock);
- 	data->chassis_clear = SENSORS_LIMIT(val, 0 ,1);
- 	temp1 = ((data->chassis_clear) << 7) & 0x80;
- 	temp2 = w83792d_read_value(client,
- 		W83792D_REG_CHASSIS_CLR) & 0x7f;
- 	w83792d_write_value(client, W83792D_REG_CHASSIS_CLR, temp1 | temp2);
-+	mutex_unlock(&data->update_lock);
++  By default the driver uses two base addresses 0x820 and 0x840.
++  If you want only one base address, specify the second as 0 so as to
++  override this default.
++
+ Description
+ -----------
  
- 	return count;
- }
-@@ -832,10 +844,12 @@ store_thermal_cruise(struct device *dev,
- 	val = simple_strtoul(buf, NULL, 10);
- 	target_tmp = val;
- 	target_tmp = target_tmp & 0x7f;
-+	mutex_lock(&data->update_lock);
- 	target_mask = w83792d_read_value(client, W83792D_REG_THERMAL[nr]) & 0x80;
- 	data->thermal_cruise[nr] = SENSORS_LIMIT(target_tmp, 0, 255);
- 	w83792d_write_value(client, W83792D_REG_THERMAL[nr],
- 		(data->thermal_cruise[nr]) | target_mask);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -872,6 +886,7 @@ store_tolerance(struct device *dev, stru
- 	u8 tol_tmp, tol_mask;
- 
- 	val = simple_strtoul(buf, NULL, 10);
-+	mutex_lock(&data->update_lock);
- 	tol_mask = w83792d_read_value(client,
- 		W83792D_REG_TOLERANCE[nr]) & ((nr = 1) ? 0x0f : 0xf0);
- 	tol_tmp = SENSORS_LIMIT(val, 0, 15);
-@@ -882,6 +897,7 @@ store_tolerance(struct device *dev, stru
- 	}
- 	w83792d_write_value(client, W83792D_REG_TOLERANCE[nr],
- 		tol_mask | tol_tmp);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -920,11 +936,13 @@ store_sf2_point(struct device *dev, stru
- 	u8 mask_tmp = 0;
- 
- 	val = simple_strtoul(buf, NULL, 10);
-+	mutex_lock(&data->update_lock);
- 	data->sf2_points[index][nr] = SENSORS_LIMIT(val, 0, 127);
- 	mask_tmp = w83792d_read_value(client,
- 					W83792D_REG_POINTS[index][nr]) & 0x80;
- 	w83792d_write_value(client, W83792D_REG_POINTS[index][nr],
- 		mask_tmp|data->sf2_points[index][nr]);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -984,6 +1002,7 @@ store_sf2_level(struct device *dev, stru
- 	u8 mask_tmp=0, level_tmp=0;
- 
- 	val = simple_strtoul(buf, NULL, 10);
-+	mutex_lock(&data->update_lock);
- 	data->sf2_levels[index][nr] = SENSORS_LIMIT((val * 15) / 100, 0, 15);
- 	mask_tmp = w83792d_read_value(client, W83792D_REG_LEVELS[index][nr])
- 		& ((nr=3) ? 0xf0 : 0x0f);
-@@ -993,6 +1012,7 @@ store_sf2_level(struct device *dev, stru
- 		level_tmp = data->sf2_levels[index][nr] << 4;
- 	}
- 	w83792d_write_value(client, W83792D_REG_LEVELS[index][nr], level_tmp | mask_tmp);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
--- 
-1.4.0
+ Enable the use of the ACCESS.bus controller on the Geode SCx200 and
+ SC1100 processors and the CS5535 and CS5536 Geode companion devices.
++
++Device-specific notes
++---------------------
++
++The SC1100 WRAP boards are known to use base addresses 0x810 and 0x820.
++If the scx200_acb driver is built into the kernel, add the following
++parameter to your boot command line:
++  scx200_acb.base=0x810,0x820
++If the scx200_acb driver is built as a module, add the following line to
++the file /etc/modprobe.conf instead:
++  options scx200_acb base=0x810,0x820
 
+-- 
+Jean Delvare
 
