@@ -1,137 +1,270 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 19 Jun 2006 12:24:27 +0000
-Subject: [lm-sensors] PATCH - s3c2410 clock control patch
-Message-Id: <20060619142427.ab16da07.khali@linux-fr.org>
+Date: Mon, 12 Jun 2006 20:00:05 +0000
+Subject: [lm-sensors] [PATCH 13/14] lm70: New hardware monitoring driver
+Message-Id: <20060612220005.cd9ce8ad.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ben,
+From: Kaiwan N Billimoria <kaiwan at designergraphix.com>
+Content-Disposition: inline; filename=hwmon-lm70-new-driver.patch
 
-> This patch makes it possible for the I2C unit
-> to disable the clock fed into it whilst it is
-> not being used. This should reduce the power
-> consumption, with only minimal extra time during
-> the start and end of a transfer.
-> 
-> This patch also ensures that the clock is in
-> the right state when going in and out of
-> suspend.
-> 
-> Also included is a minor bugfix to place a minor
-> delay if going to next part of a write, the
-> controller can generate incorrect bus data if
-> a small number of register reads inserted
-> before returning from the IRQ handler
+This driver implements support for the National Semiconductor LM70
+temperature sensor.
 
-This probably should be a separate patch.
+The LM70 temperature sensor chip supports a single temperature sensor.
+It communicates with a host processor (or microcontroller) via an
+SPI/Microwire Bus interface.
 
-> diff -urpN -X ../dontdiff linux-2.6.16-rmk/drivers/i2c/busses/Kconfig linux-2.6.16-rmk-bjd1/drivers/i2c/busses/Kconfig
-> --- linux-2.6.16-rmk/drivers/i2c/busses/Kconfig	2006-03-20 05:53:29.000000000 +0000
-> +++ linux-2.6.16-rmk-bjd1/drivers/i2c/busses/Kconfig	2006-03-21 22:44:26.000000000 +0000
-> @@ -343,6 +343,14 @@ config I2C_S3C2410
->  	  Say Y here to include support for I2C controller in the
->  	  Samsung S3C2410 based System-on-Chip devices.
->  
-> +config I2C_S3C2410_CLKIDLE
-> +	bool "Stop I2C clock during IDLE"
-> +	depends on I2C_S3C2410
-> +	help
-> +	  Say Y here to enable support for disabling the I2C unit
-> +	  clock when the bus is idle. This is useful to save power
-> +	  if not using the unit as a bus slave.
-> +
->  config I2C_SAVAGE4
->  	tristate "S3 Savage 4"
->  	depends on I2C && PCI && EXPERIMENTAL
-> diff -urpN -X ../dontdiff linux-2.6.16-rmk/drivers/i2c/busses/i2c-s3c2410.c linux-2.6.16-rmk-bjd1/drivers/i2c/busses/i2c-s3c2410.c
-> --- linux-2.6.16-rmk/drivers/i2c/busses/i2c-s3c2410.c	2006-03-20 05:53:29.000000000 +0000
-> +++ linux-2.6.16-rmk-bjd1/drivers/i2c/busses/i2c-s3c2410.c	2006-03-21 22:44:26.000000000 +0000
-> @@ -44,6 +44,14 @@
->  #include <asm/arch/regs-iic.h>
->  #include <asm/arch/iic.h>
->  
-> +/* configuration */
-> +
-> +#ifdef CONFIG_I2C_S3C2410_CLKIDLE
-> +static int clock_idle = 1;
-> +#else
-> +static const int clock_idle = 0;
-> +#endif
-> +
+Communication with the LM70 is simple: when the temperature is to be sensed,
+the driver accesses the LM70 using SPI communication: 16 SCLK cycles
+comprise the MOSI/MISO loop. At the end of the transfer, the 11-bit 2's
+complement digital temperature (sent via the SIO line), is available in the
+driver for interpretation. This driver makes use of the kernel's in-core
+SPI support.
 
-Why did you make it a compilation-time choice, rather than a run-time
-one? It would be easy to define a sysfs attribute for the driver, so
-that the user can change his/her mind anytime.
+Signed-off-by: Kaiwan N Billimoria <kaiwan at designergraphix.com>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ Documentation/hwmon/lm70 |   31 +++++++++
+ drivers/hwmon/Kconfig    |   10 +++
+ drivers/hwmon/Makefile   |    1 +
+ drivers/hwmon/lm70.c     |  165 ++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 207 insertions(+)
 
->  /* i2c controller state */
->  
->  enum s3c24xx_i2c_state {
-> @@ -96,6 +104,11 @@ static inline int s3c24xx_i2c_is2440(str
->  	return !strcmp(pdev->name, "s3c2440-i2c");
->  }
->  
-> +static inline int s3c24xx_i2c_clkidle(struct s3c24xx_i2c *i2c)
-> +{
-> +	return clock_idle;
-> +}
-> +
-
-This function doesn't make much sense, why don't you test clock_idle
-directly?
-
->  
->  /* s3c24xx_i2c_get_platformdata
->   *
-> @@ -214,7 +227,7 @@ static inline void s3c24xx_i2c_stop(stru
->  {
->  	unsigned long iicstat = readl(i2c->regs + S3C2410_IICSTAT);
->  
-> -	dev_dbg(i2c->dev, "STOP\n");
-> +	dev_dbg(i2c->dev, "STOP (ret=%d)\n", ret);
->  
->  	/* stop the transfer */
->  	iicstat &= ~ S3C2410_IICSTAT_START;
-> @@ -269,6 +282,7 @@ static int i2s_s3c_irq_nextbyte(struct s
->  	unsigned long tmp;
->  	unsigned char byte;
->  	int ret = 0;
-> +	int i;
->  
->  	switch (i2c->state) {
->  
-> @@ -324,7 +338,15 @@ static int i2s_s3c_irq_nextbyte(struct s
->  		if (!is_msgend(i2c)) {
->  			byte = i2c->msg->buf[i2c->msg_ptr++];
->  			writeb(byte, i2c->regs + S3C2410_IICDS);
-> -			
-> +
-> +			/* sometimes write operations fail if the write is
-> +			 * let go too quickly, slow down the proceedings
-> +			 * slightly.
-> +			 */
-> +
-> +			for (i = 0; i < 6; i++) 
-> +				tmp += readl(i2c->regs + S3C2410_IICSTAT);
-> +
-
-Ugly hack, is there no cleaner way? :(
-
-BTW I'd expect a warning from the compiler, as tmp is uninitialized at
-this point. Why do you need tmp at all?
-
-> @@ -870,6 +903,9 @@ static int s3c24xx_i2c_remove(struct pla
->  	if (i2c != NULL) {
->  		s3c24xx_i2c_free(i2c);
->  		platform_set_drvdata(pdev, NULL);
-> +
-> +		if (!s3c24xx_i2c_clkidle(i2c))
-> +			clk_disable(i2c->clk);
->  	}
-
-You already disable the clock in s3c24xx_i2c_free, so why do it again?
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.17-rc6/Documentation/hwmon/lm70	2006-06-12 21:58:17.000000000 +0200
+@@ -0,0 +1,31 @@
++Kernel driver lm70
++=========
++
++Supported chip:
++  * National Semiconductor LM70
++    Datasheet: http://www.national.com/pf/LM/LM70.html
++
++Author:
++        Kaiwan N Billimoria <kaiwan at designergraphix.com>
++
++Description
++-----------
++
++This driver implements support for the National Semiconductor LM70
++temperature sensor.
++
++The LM70 temperature sensor chip supports a single temperature sensor.
++It communicates with a host processor (or microcontroller) via an
++SPI/Microwire Bus interface.
++
++Communication with the LM70 is simple: when the temperature is to be sensed,
++the driver accesses the LM70 using SPI communication: 16 SCLK cycles
++comprise the MOSI/MISO loop. At the end of the transfer, the 11-bit 2's
++complement digital temperature (sent via the SIO line), is available in the
++driver for interpretation. This driver makes use of the kernel's in-core
++SPI support.
++
++Thanks to
++---------
++Jean Delvare <khali at linux-fr.org> for mentoring the hwmon-side driver
++development.
+--- linux-2.6.17-rc6.orig/drivers/hwmon/Kconfig	2006-06-12 19:16:40.000000000 +0200
++++ linux-2.6.17-rc6/drivers/hwmon/Kconfig	2006-06-12 19:17:08.000000000 +0200
+@@ -204,6 +204,16 @@
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm63.
+ 
++config SENSORS_LM70
++	tristate "National Semiconductor LM70"
++	depends on HWMON && SPI_MASTER && EXPERIMENTAL
++	help
++	  If you say yes here you get support for the National Semiconductor
++	  LM70 digital temperature sensor chip.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called lm70.
++
+ config SENSORS_LM75
+ 	tristate "National Semiconductor LM75 and compatibles"
+ 	depends on HWMON && I2C
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.17-rc6/drivers/hwmon/lm70.c	2006-06-12 19:17:08.000000000 +0200
+@@ -0,0 +1,165 @@
++/*
++ * lm70.c
++ *
++ * The LM70 is a temperature sensor chip from National Semiconductor (NS).
++ * Copyright (C) 2006 Kaiwan N Billimoria <kaiwan at designergraphix.com>
++ *
++ * The LM70 communicates with a host processor via an SPI/Microwire Bus
++ * interface. The complete datasheet is available at National's website
++ * here:
++ * http://www.national.com/pf/LM/LM70.html
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/sysfs.h>
++#include <linux/hwmon.h>
++#include <linux/spi/spi.h>
++#include <asm/semaphore.h>
++
++#define DRVNAME		"lm70"
++
++struct lm70 {
++	struct class_device *cdev;
++	struct semaphore sem;
++};
++
++/* sysfs hook function */
++static ssize_t lm70_sense_temp(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	int status, val;
++	u8 rxbuf[2];
++	s16 raw=0;
++	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
++
++	if (down_interruptible(&p_lm70->sem))
++		return -ERESTARTSYS;
++
++	/*
++	 * spi_read() requires a DMA-safe buffer; so we use
++	 * spi_write_then_read(), transmitting 0 bytes.
++	 */
++	status = spi_write_then_read(spi, NULL, 0, &rxbuf[0], 2);
++	if (status < 0) {
++		printk(KERN_WARNING
++		"spi_write_then_read failed with status %d\n", status);
++		goto out;
++	}
++	dev_dbg(dev, "rxbuf[1] : 0x%x rxbuf[0] : 0x%x\n", rxbuf[1], rxbuf[0]);
++
++	raw = (rxbuf[1] << 8) + rxbuf[0];
++	dev_dbg(dev, "raw=0x%x\n", raw);
++
++	/*
++	 * The "raw" temperature read into rxbuf[] is a 16-bit signed 2's
++	 * complement value. Only the MSB 11 bits (1 sign + 10 temperature
++	 * bits) are meaningful; the LSB 5 bits are to be discarded.
++	 * See the datasheet.
++	 *
++	 * Further, each bit represents 0.25 degrees Celsius; so, multiply
++	 * by 0.25. Also multiply by 1000 to represent in millidegrees
++	 * Celsius.
++	 * So it's equivalent to multiplying by 0.25 * 1000 = 250.
++	 */
++	val = ((int)raw/32) * 250;
++	status = sprintf(buf, "%+d\n", val); /* millidegrees Celsius */
++out:
++	up(&p_lm70->sem);
++	return status;
++}
++
++static DEVICE_ATTR(temp1_input, S_IRUGO, lm70_sense_temp, NULL);
++
++/*----------------------------------------------------------------------*/
++
++static int __devinit lm70_probe(struct spi_device *spi)
++{
++	struct lm70 *p_lm70;
++	int status;
++
++	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
++	if (!p_lm70)
++		return -ENOMEM;
++
++	init_MUTEX(&p_lm70->sem);
++
++	/* sysfs hook */
++	p_lm70->cdev = hwmon_device_register(&spi->dev);
++	if (IS_ERR(p_lm70->cdev)) {
++		dev_dbg(&spi->dev, "hwmon_device_register failed.\n");
++		status = PTR_ERR(p_lm70->cdev);
++		goto out_dev_reg_failed;
++	}
++	dev_set_drvdata(&spi->dev, p_lm70);
++
++	if ((status = device_create_file(&spi->dev, &dev_attr_temp1_input))) {
++		dev_dbg(&spi->dev, "device_create_file failure.\n");
++		goto out_dev_create_file_failed;
++	}
++
++	return 0;
++
++out_dev_create_file_failed:
++	hwmon_device_unregister(p_lm70->cdev);
++out_dev_reg_failed:
++	dev_set_drvdata(&spi->dev, NULL);
++	kfree(p_lm70);
++	return status;
++}
++
++static int __exit lm70_remove(struct spi_device *spi)
++{
++	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
++
++	device_remove_file(&spi->dev, &dev_attr_temp1_input);
++	hwmon_device_unregister(p_lm70->cdev);
++	dev_set_drvdata(&spi->dev, NULL);
++	kfree(p_lm70);
++
++	return 0;
++}
++
++static struct spi_driver lm70_driver = {
++	.driver = {
++		.name	= "lm70",
++		.owner	= THIS_MODULE,
++	},
++	.probe	= lm70_probe,
++	.remove	= __devexit_p(lm70_remove),
++};
++
++static int __init init_lm70(void)
++{
++	return spi_register_driver(&lm70_driver);
++}
++
++static void __exit cleanup_lm70(void)
++{
++	spi_unregister_driver(&lm70_driver);
++}
++
++module_init(init_lm70);
++module_exit(cleanup_lm70);
++
++MODULE_AUTHOR("Kaiwan N Billimoria");
++MODULE_DESCRIPTION("National Semiconductor LM70 Linux driver");
++MODULE_LICENSE("GPL");
+--- linux-2.6.17-rc6.orig/drivers/hwmon/Makefile	2006-06-12 18:41:00.000000000 +0200
++++ linux-2.6.17-rc6/drivers/hwmon/Makefile	2006-06-12 19:17:08.000000000 +0200
+@@ -28,6 +28,7 @@
+ obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
+ obj-$(CONFIG_SENSORS_IT87)	+= it87.o
+ obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
++obj-$(CONFIG_SENSORS_LM70)	+= lm70.o
+ obj-$(CONFIG_SENSORS_LM75)	+= lm75.o
+ obj-$(CONFIG_SENSORS_LM77)	+= lm77.o
+ obj-$(CONFIG_SENSORS_LM78)	+= lm78.o
 
 -- 
 Jean Delvare
