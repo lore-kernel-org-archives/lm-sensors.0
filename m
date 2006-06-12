@@ -1,98 +1,98 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:27:33 +0000
-Subject: [lm-sensors] [PATCH 7/44] [PATCH] i2c-piix4: Add ATI IXP200/300/400
-Message-Id: <11510009121292-git-send-email-greg@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 12 Jun 2006 19:50:11 +0000
+Subject: [lm-sensors] [PATCH 07/14] i2c-i801: Remove force_addr parameter
+Message-Id: <20060612215011.c5843671.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Rudolf Marek <r.marek at sh.cvut.cz>
+Content-Disposition: inline; filename=i2c-i801-02-remove-force_addr-parameter.patch
 
-This patch adds the ATI IXP southbridges support to i2c-piix4,
-as it turned out those chips are compatible with it.
+i2c-i801: Remove force_addr parameter
 
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Remove the force_addr module parameter. It doesn't appear to ever
+have been needed, and PCI resources shouldn't be arbitrarily
+changed anyway.
+
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- Documentation/i2c/busses/i2c-piix4 |    2 ++
- drivers/i2c/busses/Kconfig         |    5 ++++-
- drivers/i2c/busses/i2c-piix4.c     |    6 ++++++
- include/linux/pci_ids.h            |    3 +++
- 4 files changed, 15 insertions(+), 1 deletions(-)
+ Documentation/i2c/busses/i2c-i801 |    3 +--
+ drivers/i2c/busses/i2c-i801.c     |   35 +++++++----------------------------
+ 2 files changed, 8 insertions(+), 30 deletions(-)
 
-diff --git a/Documentation/i2c/busses/i2c-piix4 b/Documentation/i2c/busses/i2c-piix4
-index a1c8f58..6e6c905 100644
---- a/Documentation/i2c/busses/i2c-piix4
-+++ b/Documentation/i2c/busses/i2c-piix4
-@@ -6,6 +6,8 @@ Supported adapters:
-     Datasheet: Publicly available at the Intel website
-   * ServerWorks OSB4, CSB5, CSB6 and HT-1000 southbridges
-     Datasheet: Only available via NDA from ServerWorks
-+  * ATI IXP southbridges IXP200, IXP300, IXP400
-+    Datasheet: Not publicly available
-   * Standard Microsystems (SMSC) SLC90E66 (Victory66) southbridge
-     Datasheet: Publicly available at the SMSC website http://www.smsc.com
+--- linux-2.6.17-rc6.orig/Documentation/i2c/busses/i2c-i801	2006-06-08 13:25:15.000000000 +0200
++++ linux-2.6.17-rc6/Documentation/i2c/busses/i2c-i801	2006-06-08 13:51:43.000000000 +0200
+@@ -21,8 +21,7 @@
+ Module Parameters
+ -----------------
  
-diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
-index d6d4494..e3450d1 100644
---- a/drivers/i2c/busses/Kconfig
-+++ b/drivers/i2c/busses/Kconfig
-@@ -163,7 +163,7 @@ config I2C_PXA_SLAVE
- 	  I2C bus.
+-* force_addr: int
+-  Forcibly enable the ICH at the given address. EXTREMELY DANGEROUS!
++None.
  
- config I2C_PIIX4
--	tristate "Intel PIIX4"
-+	tristate "Intel PIIX4 and compatible (ATI/Serverworks/Broadcom/SMSC)"
- 	depends on I2C && PCI
- 	help
- 	  If you say yes to this option, support will be included for the Intel
-@@ -172,6 +172,9 @@ config I2C_PIIX4
- 	  of Broadcom):
- 	    Intel PIIX4
- 	    Intel 440MX
-+	    ATI IXP200
-+	    ATI IXP300
-+	    ATI IXP400
- 	    Serverworks OSB4
- 	    Serverworks CSB5
- 	    Serverworks CSB6
-diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
-index d9c7c00..5f06e81 100644
---- a/drivers/i2c/busses/i2c-piix4.c
-+++ b/drivers/i2c/busses/i2c-piix4.c
-@@ -413,6 +413,12 @@ static struct i2c_adapter piix4_adapter 
- static struct pci_device_id piix4_ids[] = {
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82371AB_3),
- 	  .driver_data = 3 },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP200_SMBUS),
-+	  .driver_data = 0 },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP300_SMBUS),
-+	  .driver_data = 0 },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP400_SMBUS),
-+	  .driver_data = 0 },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_OSB4),
- 	  .driver_data = 0 },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_CSB5),
-diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
-index bcfe9d4..489af9d 100644
---- a/include/linux/pci_ids.h
-+++ b/include/linux/pci_ids.h
-@@ -352,8 +352,11 @@ #define PCI_DEVICE_ID_ATI_RS400_200     
- #define PCI_DEVICE_ID_ATI_RS480         0x5950
- /* ATI IXP Chipset */
- #define PCI_DEVICE_ID_ATI_IXP200_IDE	0x4349
-+#define PCI_DEVICE_ID_ATI_IXP200_SMBUS	0x4353
-+#define PCI_DEVICE_ID_ATI_IXP300_SMBUS	0x4363
- #define PCI_DEVICE_ID_ATI_IXP300_IDE	0x4369
- #define PCI_DEVICE_ID_ATI_IXP300_SATA   0x436e
-+#define PCI_DEVICE_ID_ATI_IXP400_SMBUS	0x4372
- #define PCI_DEVICE_ID_ATI_IXP400_IDE	0x4376
- #define PCI_DEVICE_ID_ATI_IXP400_SATA   0x4379
- #define PCI_DEVICE_ID_ATI_IXP400_SATA2	0x437a
+ 
+ Description
+--- linux-2.6.17-rc6.orig/drivers/i2c/busses/i2c-i801.c	2006-06-08 13:25:36.000000000 +0200
++++ linux-2.6.17-rc6/drivers/i2c/busses/i2c-i801.c	2006-06-08 13:55:43.000000000 +0200
+@@ -92,15 +92,6 @@
+ #define I801_START		0x40
+ #define I801_PEC_EN		0x80	/* ICH4 only */
+ 
+-/* insmod parameters */
+-
+-/* If force_addr is set to anything different from 0, we forcibly enable
+-   the I801 at the given address. VERY DANGEROUS! */
+-static u16 force_addr;
+-module_param(force_addr, ushort, 0);
+-MODULE_PARM_DESC(force_addr,
+-		 "Forcibly enable the I801 at the given address. "
+-		 "EXTREMELY DANGEROUS!");
+ 
+ static int i801_transaction(void);
+ static int i801_block_transaction(union i2c_smbus_data *data, char read_write,
+@@ -129,16 +120,12 @@
+ 		isich4 = 0;
+ 
+ 	/* Determine the address of the SMBus areas */
+-	if (force_addr) {
+-		i801_smba = force_addr & 0xfff0;
+-	} else {
+-		pci_read_config_word(I801_dev, SMBBA, &i801_smba);
+-		i801_smba &= 0xfff0;
+-		if(i801_smba = 0) {
+-			dev_err(&dev->dev, "SMB base address uninitialized "
+-				"- upgrade BIOS or use force_addr=0xaddr\n");
+-			return -ENODEV;
+-		}
++	pci_read_config_word(I801_dev, SMBBA, &i801_smba);
++	i801_smba &= 0xfff0;
++	if (!i801_smba) {
++		dev_err(&dev->dev, "SMBus base address uninitialized, "
++			"upgrade BIOS\n");
++		return -ENODEV;
+ 	}
+ 
+ 	if (!request_region(i801_smba, (isich4 ? 16 : 8), i801_driver.name)) {
+@@ -152,15 +139,7 @@
+ 	temp &= ~SMBHSTCFG_I2C_EN;	/* SMBus timing */
+ 	pci_write_config_byte(I801_dev, SMBHSTCFG, temp);
+ 
+-	/* If force_addr is set, we program the new address here. Just to make
+-	   sure, we disable the device first. */
+-	if (force_addr) {
+-		pci_write_config_byte(I801_dev, SMBHSTCFG, temp & 0xfe);
+-		pci_write_config_word(I801_dev, SMBBA, i801_smba);
+-		pci_write_config_byte(I801_dev, SMBHSTCFG, temp | 0x01);
+-		dev_warn(&dev->dev, "WARNING: I801 SMBus interface set to "
+-			"new address %04x!\n", i801_smba);
+-	} else if ((temp & 1) = 0) {
++	if (!(temp & 1)) {
+ 		pci_write_config_byte(I801_dev, SMBHSTCFG, temp | 1);
+ 		dev_warn(&dev->dev, "enabling SMBus device\n");
+ 	}
+
 -- 
-1.4.0
-
+Jean Delvare
 
