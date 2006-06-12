@@ -1,45 +1,35 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:27:55 +0000
-Subject: [lm-sensors] [PATCH 29/44] [PATCH] abituguru: Fix fan detection
-Message-Id: <11510010131599-git-send-email-greg@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 12 Jun 2006 19:46:04 +0000
+Subject: [lm-sensors] [PATCH 04/14] scx200_acb: Mark scx200_acb_probe __init
+Message-Id: <20060612214604.3050e740.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Hans de Goede <j.w.r.degoede at hhs.nl>
+Content-Disposition: inline; filename=i2c-scx200_acb-mark-scx200_acb_probe-init.patch
 
-One of my testers had a problem where the driver only saw 2 of the 4 fan
-sensors his uGuru has, this fixes this.
- -accept 0x40 (bit 6) being high as a valid fan sensor setting for all fans
-  not just fan 1, I have a feeling this bit indicates whether or not a fan is
-  actually connected .
+In i2c bus driver scx200_acb, function scx200_acb_probe can be
+tagged __init.
 
-Signed-off-by: Hans de Goede <j.w.r.degoede at hhs.nl>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/hwmon/abituguru.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/i2c/busses/scx200_acb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/hwmon/abituguru.c b/drivers/hwmon/abituguru.c
-index ab80b41..59122cc 100644
---- a/drivers/hwmon/abituguru.c
-+++ b/drivers/hwmon/abituguru.c
-@@ -529,9 +529,8 @@ abituguru_detect_no_bank2_sensors(struct
- 		   -0x08 enable beep
- 		   -0x01 enable alarm
- 		   All other bits should be 0, but on some motherboards
--		   0x40 (bit 6) is also high, at least for fan1 */
--		if ((!i && (data->bank2_settings[i][0] & ~0xC9)) ||
--		     (i && (data->bank2_settings[i][0] & ~0x89))) {
-+		   0x40 (bit 6) is also high for some of the fans?? */
-+		if (data->bank2_settings[i][0] & ~0xC9) {
- 			ABIT_UGURU_DEBUG(2, "  bank2 sensor %d does not seem "
- 				"to be a fan sensor: settings[0] = %02X\n",
- 				i, (unsigned int)data->bank2_settings[i][0]);
+--- linux-2.6.17-rc6.orig/drivers/i2c/busses/scx200_acb.c	2006-06-11 14:51:21.000000000 +0200
++++ linux-2.6.17-rc6/drivers/i2c/busses/scx200_acb.c	2006-06-11 14:54:02.000000000 +0200
+@@ -384,7 +384,7 @@
+ static struct scx200_acb_iface *scx200_acb_list;
+ static DECLARE_MUTEX(scx200_acb_list_mutex);
+ 
+-static int scx200_acb_probe(struct scx200_acb_iface *iface)
++static __init int scx200_acb_probe(struct scx200_acb_iface *iface)
+ {
+ 	u8 val;
+ 
+
 -- 
-1.4.0
-
+Jean Delvare
 
