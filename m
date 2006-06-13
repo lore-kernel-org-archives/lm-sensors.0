@@ -1,8 +1,10 @@
 From: fhj-52@sbcglobal.net (Ric Johnson)
-Date: Tue, 13 Jun 2006 19:16:11 +0000
+Date: Tue, 13 Jun 2006 19:16:33 +0000
 Subject: [lm-sensors] Using lm_sensors for accessing SMSC EMC6W201
-Message-Id: <20060613191611.80065.qmail@web81614.mail.mud.yahoo.com>
+Message-Id: <20060613191633.16775.qmail@web81601.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20060613191611.80065.qmail@web81614.mail.mud.yahoo.com>
+In-Reply-To: <20060613191611.80065.qmail@web81614.mail.mud.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
