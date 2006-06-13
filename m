@@ -1,51 +1,35 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 06 Jun 2006 17:28:22 +0000
-Subject: [lm-sensors] [PATCH] OpenCores I2C bus driver
-Message-Id: <20060606192822.4954e78f.khali@linux-fr.org>
+Date: Tue, 13 Jun 2006 12:20:05 +0000
+Subject: [lm-sensors] Dedicated mailing list for i2c
+Message-Id: <20060613142005.0d4e4763.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <874q0n1505.fsf@sleipner.barco.com>
-In-Reply-To: <874q0n1505.fsf@sleipner.barco.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Peter,
+Hi all,
 
-> > > #define OCI2C_CMD		4
-> > > #define OCI2C_STATUS		4
-> 
-> Jean> Two registers with the same number? If it's true this deserves a
-> Jean> comment, methinks.
-> 
-> Yes, comment added in patch below.
-> 
->  >> static struct i2c_adapter ocores_adapter = {
->  >> .owner		= THIS_MODULE,
->  >> .name		= "i2c-ocores",
->  >> .class		= I2C_CLASS_HWMON,
->  >> .algo		= &ocores_algorithm,
->  >> .timeout	= 2,
->  >> .retries	= 1,
->  >> };
-> 
->  Jean> Why define .timeout and .retries if you don't use them in your driver?
-> 
-> Sorry, I guess that was a case of too much cut'n'paste - fixed below.
-> 
->  Jean> Last, I would like you to become the maintainer for this new driver if
->  Jean> you feel like it. If you accept, please send a patch to MAINTAINERS and
->  Jean> I'll apply it.
-> 
-> Added below.
-> 
-> Signed-off-by: Peter Korsgaard <jacmet at sunsite.dk>
-> ---
->  MAINTAINERS                     |    6 ++++++
->  drivers/i2c/busses/i2c-ocores.c |    6 ++----
->  2 files changed, 8 insertions(+), 4 deletions(-)
+I think it is about time to have a dedicated list for i2c, instead of
+having a single list for hardware monitoring (sensors) and i2c. There
+are more and more non-sensors users for the i2c bus (for example
+media/video adapters, RTC chips) and more different connectivities for
+sensors (for example SPI) so having a single list makes less and less
+sense.
 
-Applied, thanks.
+I'm certain that some people refrain from subscribing to our list
+because they are only interested in one of the topics and don't want to
+bother filtering manually. Also, having different lists may help us
+bring more neutrality to the i2c subsystem, which has been
+sensors-oriented for a long time for historical reasons. I have already
+taken several steps to separate both in the kernel but there's still a
+significant way to go.
+
+If we create a list for i2c, then we should have a dedicated list for
+w1 as well. Thanks to Axel Thimm we have a nice Mailman installation so
+creating new lists shouldn't be a problem.
+
+What do others think?
 
 -- 
 Jean Delvare
