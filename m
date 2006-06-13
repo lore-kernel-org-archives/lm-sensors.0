@@ -1,121 +1,35 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 12 Jun 2006 19:53:02 +0000
-Subject: [lm-sensors] [PATCH 10/14] i2c-i801: Better pci subsystem
-Message-Id: <20060612215302.3540ed7b.khali@linux-fr.org>
+From: laurent.pinchart@tbox.biz (Laurent Pinchart)
+Date: Tue, 13 Jun 2006 08:49:04 +0000
+Subject: [lm-sensors] Philips LM75A
+Message-Id: <200606131049.05054.laurent.pinchart@tbox.biz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=i2c-i801-05-better-pci-subsystem-integration.patch
+Hi everybody,
 
-i2c-i801: Better pci subsystem integration
+I tried to use the LM75 (temperature sensor) driver with a Philips LM75A.
 
-Integrate the i2c-i801 driver better with the pci subsystem, by
-calling pci_{enable,disable}_device and requesting the I/O region
-by BAR rather than direct configuration space access.
+The LM75 driver tries to identify the chip using a heuristic based on 
+non-implemented registers:
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- drivers/i2c/busses/i2c-i801.c |   38 +++++++++++++++++++++++++++-----------
- 1 file changed, 27 insertions(+), 11 deletions(-)
+- The LM75 ignores the 5 high address bits, register i is can thus be read at 
+i+n*8 (0 <= i <= 7; n < 32). This is true for the LM75A as well.
 
---- linux-2.6.17-rc6.orig/drivers/i2c/busses/i2c-i801.c	2006-06-08 14:41:14.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/i2c/busses/i2c-i801.c	2006-06-08 15:03:13.000000000 +0200
-@@ -66,7 +66,7 @@
- #define SMBAUXCTL	(13 + i801_smba)	/* ICH4 only */
- 
- /* PCI Address Constants */
--#define SMBBA		0x020
-+#define SMBBAR		4
- #define SMBHSTCFG	0x040
- #define SMBREV		0x008
- 
-@@ -97,7 +97,7 @@
- static int i801_block_transaction(union i2c_smbus_data *data, char read_write,
- 				  int command, int hwpec);
- 
--static unsigned short i801_smba;
-+static unsigned long i801_smba;
- static struct pci_driver i801_driver;
- static struct pci_dev *I801_dev;
- static int isich4;
-@@ -105,6 +105,7 @@
- static int __devinit i801_setup(struct pci_dev *dev)
- {
- 	unsigned char temp;
-+	int err;
- 
- 	I801_dev = dev;
- 	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
-@@ -114,19 +115,28 @@
- 	else
- 		isich4 = 0;
- 
-+	err = pci_enable_device(dev);
-+	if (err) {
-+		dev_err(&dev->dev, "Failed to enable SMBus device (%d)\n",
-+			err);
-+		goto exit;
-+	}
-+
- 	/* Determine the address of the SMBus area */
--	pci_read_config_word(I801_dev, SMBBA, &i801_smba);
--	i801_smba &= 0xfff0;
-+	i801_smba = pci_resource_start(dev, SMBBAR);
- 	if (!i801_smba) {
- 		dev_err(&dev->dev, "SMBus base address uninitialized, "
- 			"upgrade BIOS\n");
--		return -ENODEV;
-+		err = -ENODEV;
-+		goto exit_disable;
- 	}
- 
--	if (!request_region(i801_smba, (isich4 ? 16 : 8), i801_driver.name)) {
--		dev_err(&dev->dev, "I801_smb region 0x%x already in use!\n",
--			i801_smba);
--		return -EBUSY;
-+	err = pci_request_region(dev, SMBBAR, i801_driver.name);
-+	if (err) {
-+		dev_err(&dev->dev, "Failed to request SMBus region "
-+			"0x%lx-0x%lx\n", i801_smba,
-+			pci_resource_end(dev, SMBBAR));
-+		goto exit_disable;
- 	}
- 
- 	pci_read_config_byte(I801_dev, SMBHSTCFG, &temp);
-@@ -147,6 +157,11 @@
- 	dev_dbg(&dev->dev, "I801_smba = 0x%X\n", i801_smba);
- 
- 	return 0;
-+
-+exit_disable:
-+	pci_disable_device(dev);
-+exit:
-+	return err;
- }
- 
- static int i801_transaction(void)
-@@ -521,14 +536,15 @@
- 	i801_adapter.dev.parent = &dev->dev;
- 
- 	snprintf(i801_adapter.name, I2C_NAME_SIZE,
--		"SMBus I801 adapter at %04x", i801_smba);
-+		"SMBus I801 adapter at %04lx", i801_smba);
- 	return i2c_add_adapter(&i801_adapter);
- }
- 
- static void __devexit i801_remove(struct pci_dev *dev)
- {
- 	i2c_del_adapter(&i801_adapter);
--	release_region(i801_smba, (isich4 ? 16 : 8));
-+	pci_release_region(dev, SMBBAR);
-+	pci_disable_device(dev);
- }
- 
- static struct pci_driver i801_driver = {
+- Reading unimplemented registers 0x04-0x07 from the LM75 returns the last 
+read value. The LM75A returns 0xff.
 
--- 
-Jean Delvare
+Here is a patch (against 2.6.17-rc6) which modifies the unused addresses test 
+to accept 0xff as 
+valid values.
 
+Laurent Pinchart
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm75a.diff
+Type: text/x-diff
+Size: 1646 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060613/7290691f/attachment.bin 
