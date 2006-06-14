@@ -1,7 +1,7 @@
 From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Wed, 14 Jun 2006 00:53:37 +0000
+Date: Wed, 14 Jun 2006 04:33:27 +0000
 Subject: [lm-sensors] Using lm_sensors for accessing SMSC EMC6W201
-Message-Id: <448F5E11.5030207@penguincomputing.com>
+Message-Id: <448F9197.1020100@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060613191611.80065.qmail@web81614.mail.mud.yahoo.com>
 In-Reply-To: <20060613191611.80065.qmail@web81614.mail.mud.yahoo.com>
@@ -10,104 +10,128 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Do you have a URL for the datasheet?  Perhaps someone else on this list 
-can look at the datasheet and help you find a compatible driver.
+Ric Johnson wrote:
 
-Do you know what address the EMC6W201 device is at?
+>There is no URL as GBT sent the Datasheet to me. It is PDF. I can send it but
+>do not have a web server at this time so cannot post it.
+>  
+>
+It would *really* help if we could see the datasheet.  How big is it?
 
-Can you post the output of 'i2cdetect -l' and 'i2cdetect 0'
+>The DS says the "default slave adddress is 0101110b" and GBT told me they
+>"followed SMSC recommendations" ... 
+>There is a table showing 
+> "SMBUS Address[7:1] " as 0101 110b which is suppose is the same as 101110
+>binary or 2E hex.  
+>  
+>
+Yes, that's the default address.
 
-If you know what the I2C address should be (it should be in the 
-datasheet what the default I2C address is), then you should also run 
-'i2cdump 0 0xYY' where 0xYY is the I2C address of the device.
+>i2cdetect -l  returns nothing.  I am not sure why since lsmod has quite a few
+>"i2c*" items in it while sensors is running.
+>  
+>
+Perhaps that's a bug with i2cdetect...  We can follow up on that problem 
+later.
+
+>#> i2cdetect 0
+>WARNING! This program can confuse your I2C bus, cause data loss and worse!
+>I will probe file /dev/i2c-0.
+>I will probe address range 0x03-0x77.
+>Continue? [Y/n]
+>     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+>00:          XX XX XX XX XX 08 XX XX XX XX XX XX XX
+>10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+>20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+>30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+>40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+>50: XX XX UU UU XX XX UU UU XX XX XX XX XX XX XX XX
+>60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+>70: XX XX XX XX XX XX XX XX
+>
+>  
+>
+No, that's probably just your memory DIMM's (at 52, 53, 56, 67) (do you 
+have 4 DIMM's installed?)  Not sure what might be at address 0x08...
+
+>I have run i2cdump 0 0x2e but the results are only "XX". Perhaps that is that
+>wrong command parameter/address ...
+>  
+>
+That's because there is no device at address 0x2e on bus 0.  Note the XX 
+in square 20 x e in the output above.
+
+>Since it *looks* like i2c-1 is where all the easter eggs are hidden, I did a
+>dump and got all kinds of stuff:
+>  
+>
+Perfect, the output from 'i2cdetect -l' would have listed what busses 
+you have and we would have gotten around to asking you to 'i2cdetect 1' 
+and so on, but you've figured that out for yourself.  Excellent...
+
+>#> i2cdump 1 0x2e
+>No size specified (using byte-data access)
+>WARNING! This program can confuse your I2C bus, cause data loss and worse!
+>I will probe file /dev/i2c-1, address 0x2e, mode byte
+>Continue? [Y/n]
+>     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+>00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+>10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+>20: c8 b0 bb 64 c0 b3 2d 17 31 1b 16 22 c4 0c 37 0e    ???d??-?1??"??7?
+>30: 52 0e 40 0d 1a 07 80 80 80 00 00 00 00 00 5c b1    R?@??????.....\?
+>40: 05 00 00 00 00 00 00 00 3e 00 00 ff 00 ff 00 ff    ?.......>.......
+>50: 00 ff 00 ff 00 ff 81 7f 81 7f 81 7f 81 7f 81 7f    ......??????????
+>60: 81 7f ff ff ff ff ff ff ff ff ff ff 00 00 00 ff    ??..............
+>70: 00 ff 00 ff 00 ff 00 ff 00 ff fc 3e 7e 00 00 00    ..........?>~...
+>80: e2 e2 e2 99 90 cc cc cc 00 00 80 80 80 00 00 00    ????????..???...
+>90: 23 23 23 23 23 23 64 64 64 64 64 64 44 44 44 94    ######ddddddDDD?
+>a0: 00 40 80 00 04 04 04 04 2c 2c 2c 00 0a 00 2d 2d    .@?.????,,,.?.--
+>b0: 2d 2d 2d 2d 00 00 00 00 a0 00 05 25 12 ff ff 00    ----....?.?%?...
+>c0: 00 00 00 00 7f 7f 7f 7f 7f 7f c0 00 00 00 00 00    ....???????.....
+>d0: 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+>e0: 00 00 c0 8a 68 00 20 00 1c 00 00 00 00 00 00 00    ..??h. .?.......
+>f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+>It's 22:24:24 CDT (UTC-0500) on Tue Jun 13, week 24 in 2006.
+>
+>OF course, that might be an eeprom or something.
+>
+No, that's probably your chip.  Go ahead and try i2cdump on one of your 
+eeproms 'i2cdump 0 0x52' and you'll see that the output is very different.
+
+>Any ideas?
+>
+>  
+>
+Yes, but without the data sheet it's just speculation...
+
+I would say that you appear to have 6 voltage sensors (0x20-25), and 6 
+temperature sensors (as you said previously, 0x26-2b).  I'm going to 
+guess that you have five (5) 16-bit fan speed sensors (0x2c-35).
+
+The device ID signature registers are probably 0x3e (value 0x5c) and 
+0x3f (value 0xb1)
+
+The min/max limits for the voltages probably start at 0x4a through 
+0x55.  Then the limits for the temperatures (0x56-0x61) and fan speeds 
+(0x62-0x6b).
+
+I would guess that the rest of the registers are perhaps fan speed 
+control or some other features on the chip.  Hopefully they are 
+described in the datasheet.
+
+If that's correct, then we just need to know what the scaling values are 
+for the voltages and the fan speed equation.  And your temperatures are:
+
+2d  =  45 degC
+17  =  23 degC
+31  =  49 degC
+1b  =  27 degC
+16  =  22 degC
+22  =  34 degC
+
+If that's right, the temperatures appear to be rather low.  Do you have this machine in a cooled computer room?
+
 
 Thanks,
 :v)
-
-Ric Johnson wrote:
-
->Hi:
->
->I need to monitor temperatures on my system in real time. ( big surprise,
->huh?, :) )
->The mobo is a Gigabyte(GBT) GA-2CEWH dual Opteron based system which includes
->an ITE 8712F Super I/O as well as the SMSC EMC6W201 monitoring device.  
->The SMSC is similar in function to the SMSC EMC6D* devices but that is pretty
->much all -only "similar":  lm_sensors does not recognize the 6W201 and trying
->to use the EMC6D* modules does not work. 
->
->According to GBT the 8712F is strictly used for I/O and all monitoring is done
->by the SMSC device.  I am not positive that is entirely true but it is mostly
->so.  The installation of lm_sensors (SUSE 10.x) provides pretty wacky results
->for everything except the 12VDC line and, possibly, one fan.  ...
->
->I have read most of the 6W201 datasheet and found, I hope, all pertinent info
->necessary to get the monitoring done. Of course, I do not know how to modify
->lm_sensors to get that accomplished. After reading various man pages, I still
->do not see a direct way to get it done.
->
->Cutting to the chase, I first need to be able to WRITE a "START" bit(01h) to
->bit 0 of register 40h on the $5000 SMBus(i.e., 0000 0001). That starts the
->monitoring and fills the EMC6W201 registers with valuable info, and, according
->to the datasheet, makes reading of the registers possible.  PRIOR to writing
->the START bit the registers are not accessible and any value in them is not
->good. ...
->
->After that, I need to read the registers.  First the temps, then later
->voltages and fan speeds; finally, control w/b most excellent to have(hey,
->dreams _are_ good, :) ). 
->THE readings needed most are in ($5000) SMBus registers(hex):
->
->26, diode 1 temp reading,
->27, diode 2 temp reading,
->28, diode 3 temp reading,
->29, diode 4 temp reading,
->2A, diode 5 temp reading, and
->2B, Ambient
->-- All 6 are needed because which is for what is unknown... 
->The value in those registers are signed, 8-bit, 2's compliment of the
->temperature in centigrade ranging from -127*c to 127*c.  E.g., a few:
->0*c = 0000 0000
->1*c = 0000 0001
->2*c = 0000 0010
->3*c = 0000 0011
->...
->25*c = 0001 1001
->... 
->and so forth.
->
->Of course I would like to read register 40h to make sure that it is something
->I want lm_sensors to write a 01h to before actually doing that.  ...sometimes
->datasheets and implementations are not the same.  GBT assured me that they
->followed the SMSC rec's so it should be okay but I would like to proceed
->cautiously.  I.e., the sensors-detect does find EEPROMs and I do not want to
->write there.
->
->I am not capable of providing an official driver but could possibly tweak and
->test some already established code.  Curently, I am using openSUSE 10.1-x86_64
->with kernel 2.6.16.13-4-smp.  
->There is a huge hole in my experience and knowledge about reading and writing
->binary/hex to devices on a mainboard.  That's probably obvious but I mention
->it to emphasize that I know there are steps missing from what I described
->above but unless someone takes the time to assist me, I won't know what they
->are and could ruin my mobo. So, please, at least, warn me of the shark
->infested waters before I go swimming, so to speak.
->
->HOW can I modify lm_sensors to do those things?
->
->If lm_sensors cannot be modified please let me know.  
->
->Thanks, :)
->
->Ric Johnson
->
->
->
->_______________________________________________
->lm-sensors mailing list
->lm-sensors at lm-sensors.org
->http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->  
->
-
 
