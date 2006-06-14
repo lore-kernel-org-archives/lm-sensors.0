@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 14 Jun 2006 15:07:16 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 14 Jun 2006 16:04:37 +0000
 Subject: [lm-sensors] ASUS NCCH-DR confusing 83792 vs. 83627THF
-Message-Id: <44902624.9090509@sh.cvut.cz>
+Message-Id: <20060614180437.7cb8c350.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44901813.3080703@fasytek.dk>
 In-Reply-To: <44901813.3080703@fasytek.dk>
@@ -10,70 +10,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi J.
-
-> I have build a brand new server for SuSE 10, using ASUS NCCH-DR, and
-> everything
-> works fine, apart from the HW monitoring.
-
-Lets fix it.
-
-> The only "likely" chip I can see on the board is a Winbond W83627THF,
-> but according
-> to ASUS support the HW monitoring chip should be W83792D (even if I
-> can't find it).
-
-It is "hidden" using the multiplexer. Please upgrade to latest BIOS.
-If sensors-detect cannot find it - we have a contact at ASUS and they will fix it.
-
-> w83627thf-isa-0290
-> Adapter: ISA adapter
-> VCore:     +1.94 V  (min =  +1.94 V, max =  +1.94 V)            
-> +12V:      +7.60 V  (min = +10.82 V, max = +13.19 V)       ALARM
-> +3.3V:     +3.34 V  (min =  +3.14 V, max =  +3.47 V)            
-> +5V:       +4.96 V  (min =  +4.75 V, max =  +5.25 V)            
-> -12V:      +6.06 V  (min = -10.80 V, max = -13.18 V)       ALARM
-> V5SB:      +5.00 V  (min =  +4.76 V, max =  +5.24 V)            
-> VBat:      +0.00 V  (min =  +2.40 V, max =  +3.60 V)       ALARM
-> fan1:        0 RPM  (min = 4891 RPM, div = 2)              ALARM CPU
-> Fan:     0 RPM  (min = 37500 RPM, div = 2)              ALARM
-> fan3:        0 RPM  (min = 28125 RPM, div = 2)              ALARM M/B
-> Temp:    -48?C  (high =  +104?C, hyst =    +0?C)   sensor > thermistor          CPU Temp:  -48.0?C  (high =   +80?C, hyst =  
-> +75?C)   sensor = thermistor          temp3:     -48.0?C  (high =  
-> +80?C, hyst =   +75?C)   sensor = thermistor          alarms:   Chassis
-> intrusion detection                      ALARM
-> beep_enable:
->          Sound alarm enabled
->
-
-This chip is known to be unused for the fans/temps. You dont need to load this
-driver.
-
-> The other thing that puzzles me: In an X86_64 system, I would expect to
-> find
-> the libsensor libraries in a the /lib64 directory, but they actually get
-> nstalled
-> in /usr/local/lib. What must I do to get these libraries in the proper
-> place ?
+> > The other thing that puzzles me: In an X86_64 system, I would expect to
+> > find the libsensor libraries in a the /lib64 directory, but they actually
+> > get installed in /usr/local/lib. What must I do to get these libraries
+> > in the proper place ?
 > 
+> # You should not need to change this. It is the directory into which the
+> 
+> # library files (both static and shared) will be installed.
+> 
+> LIBDIR := $(PREFIX)/lib
+> 
+> maybe you can change this to lib64 so the dir will be /usr/local/lib64 but I
+> dont know if such directory can exist.
 
-# You should not need to change this. It is the directory into which the
+I can't get why some distributions invented these lib64 directories. On
+32-bit systems we have lib, not lib32, so why make it different on
+64-bit systems? It may make sense to have a lib32 directory on 64-bit
+systems for libraries which are only available in 32-bit format, Gentoo
+is doing it almost this way (lib is a link to lib64, and there is lib32
+for the 32-bit libraries), but doing it the other way around sounds
+weird to me.
 
-# library files (both static and shared) will be installed.
+However if most distributions do that... Maybe we should detect 64-bit
+systems and change the default in this case. Anyone wants to give it a
+try?
 
-LIBDIR := $(PREFIX)/lib
+At any rate, nothing will break if you install your 64-bit
+libsensors.so under /usr/local/lib, I'm doing this and it works just
+fine.
 
-maybe you can change this to lib64 so the dir will be /usr/local/lib64 but I
-dont know if such directory can exist.
+I wonder why you are installing it by yourself, rather that using the
+suse package which would put everything in the right place for you?
 
-You may also change the PREFIX to / to get it to /lib64 if you like. (all in top
-Makefile)
+> You may also change the PREFIX to / to get it to /lib64 if you like. (all in top
+> Makefile)
 
-Hope it helps,
+This would be a very bad idea. /lib (and /lib64) are meant for
+libraries fundamental to the system, libsensors sure doesn't qualify.
 
-Regards
-Rudolf
-
-
-
+-- 
+Jean Delvare
 
