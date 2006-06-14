@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 14 Jun 2006 16:04:37 +0000
+From: jwa@fasytek.dk (J. W. Andersen)
+Date: Wed, 14 Jun 2006 16:13:11 +0000
 Subject: [lm-sensors] ASUS NCCH-DR confusing 83792 vs. 83627THF
-Message-Id: <20060614180437.7cb8c350.khali@linux-fr.org>
+Message-Id: <44903597.5080609@fasytek.dk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44901813.3080703@fasytek.dk>
 In-Reply-To: <44901813.3080703@fasytek.dk>
@@ -10,45 +10,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > The other thing that puzzles me: In an X86_64 system, I would expect to
-> > find the libsensor libraries in a the /lib64 directory, but they actually
-> > get installed in /usr/local/lib. What must I do to get these libraries
-> > in the proper place ?
-> 
+Hi rudolf, thanks a lot for your quick reply - and for clearing me up 
+about the chip hidden
+in the mulriplexor.
+
+Rudolf Marek wrote:
+> It is "hidden" using the multiplexer. Please upgrade to latest BIOS.
+> If sensors-detect cannot find it - we have a contact at ASUS and they will fix it.
+>
+>   
+BIOS is already version 1005,  which is the latest - and presumably 
+greatest - according to ASUS
+download pages.  Looks like we need your ASUS contact anyway...
+>>     
+>
+> This chip is known to be unused for the fans/temps. You dont need to load this
+> driver.
+>
+>   
+Duly noted.
+>> The other thing that puzzles me: In an X86_64 system, I would expect to
+>> find
+>> the libsensor libraries in a the /lib64 directory, but they actually get
+>> nstalled
+>> in /usr/local/lib. What must I do to get these libraries in the proper
+>> place ?
+>>
+>>     
+>
 > # You should not need to change this. It is the directory into which the
-> 
+>
 > # library files (both static and shared) will be installed.
-> 
+>
 > LIBDIR := $(PREFIX)/lib
-> 
+>
 > maybe you can change this to lib64 so the dir will be /usr/local/lib64 but I
 > dont know if such directory can exist.
-
-I can't get why some distributions invented these lib64 directories. On
-32-bit systems we have lib, not lib32, so why make it different on
-64-bit systems? It may make sense to have a lib32 directory on 64-bit
-systems for libraries which are only available in 32-bit format, Gentoo
-is doing it almost this way (lib is a link to lib64, and there is lib32
-for the 32-bit libraries), but doing it the other way around sounds
-weird to me.
-
-However if most distributions do that... Maybe we should detect 64-bit
-systems and change the default in this case. Anyone wants to give it a
-try?
-
-At any rate, nothing will break if you install your 64-bit
-libsensors.so under /usr/local/lib, I'm doing this and it works just
-fine.
-
-I wonder why you are installing it by yourself, rather that using the
-suse package which would put everything in the right place for you?
-
+>
 > You may also change the PREFIX to / to get it to /lib64 if you like. (all in top
 > Makefile)
+>
+>   
 
-This would be a very bad idea. /lib (and /lib64) are meant for
-libraries fundamental to the system, libsensors sure doesn't qualify.
+Well, I am not sure of the significance of this. Probably the system 
+will just look in the  normal library
+path (such as /usr/local/lib) if it cannot find the libraries in 
+/usr/lib64. Will try to figure that out from here.
 
--- 
-Jean Delvare
+Going on standby till you get the news from ASUS - tnx again !
+
+Regards, Joern.
+
+
 
