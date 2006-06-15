@@ -1,7 +1,7 @@
 From: fhj-52@sbcglobal.net (Ric Johnson)
-Date: Wed, 14 Jun 2006 17:45:57 +0000
+Date: Thu, 15 Jun 2006 03:33:13 +0000
 Subject: [lm-sensors] Using lm_sensors for accessing SMSC EMC6W201
-Message-Id: <20060614174557.84916.qmail@web81608.mail.mud.yahoo.com>
+Message-Id: <20060615033313.36517.qmail@web81608.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060613191611.80065.qmail@web81614.mail.mud.yahoo.com>
 In-Reply-To: <20060613191611.80065.qmail@web81614.mail.mud.yahoo.com>
@@ -12,93 +12,115 @@ To: lm-sensors@vger.kernel.org
 
 Hi:
 
-I'm still working towards getting sensor information provided correctly for
-this GBT 2CEWH mobo.  I found an ap, named moodss, that can record values and
-chart them once lm_sensors can be used.  It runs so I have hopes it will work
-& I do not have to code something here from scratch.
+Voltages
 
-Yesterday '' i2cdetect -l '' would not work. Today, currently, it does. So
-here is the output that was requested :
-#> i2cdetect -l
-i2c-4   i2c   NVIDIA I2C Device                      Algorithm unavailable
-i2c-3   i2c   NVIDIA I2C Device                      Algorithm unavailable
-i2c-2   i2c   NVIDIA I2C Device                      Algorithm unavailable
-i2c-1   smbus  SMBus nForce2 adapter at 5040         Non-I2C SMBus adapter
-i2c-0   smbus  SMBus nForce2 adapter at 5000         Non-I2C SMBus adapter
-It's 11:26:02 CDT (UTC-0500) on Wed Jun 14, week 24 in 2006.
+I am pretty sure that the +5VDC as well as the +12VDC lines are not monitored
+on this chip and this mobo.  Both of those values, as well as the 5VStby and
+Vbat readings, from the output of the 8712F readings look reasonable. The
+value for the 5VDC here is way off( but that might be the way I got the value
+).
 
-That IS the result that has been previously listed when using i2cdetect -l.
-Any ideas as to why it works sometimes but not others? 
-(I suspect openSUSE config but do not know the smart place to start looking to
-confirm/fix that. ...)
+Here goes:
 
-Also, oddly, I was  unable  to use i2cdump after first boot this AM.  After a
-few minutes it started working just as it did earlier this AM before shutdown.
+The reading registers(hex), names, nominal values and what each is:
+
+20, 2.5VDC, 	2.5 VDC nominal, for ??? on ...???...
+21, V1.5P1,  	1.5 VDC nominal, for CPU0
+22, VCC, 	3.3 VDC nominal, for chip, or line or VTR ...?... 
+23, +5V, 	5.0 VDC nominal, for ...???...
+24, 1.5VDC,  	1.5 VDC nominal, for 1.5V on ...???...
+25, V1.5P2,  	1.5 VDC nominal, for CPU1
+
+The DS info on Analog Voltages does not have much that makes a lot of sense(to
+me) but ithink I figured out that what they were trying to say is that to get
+the Voltage value:
+take the read value, convert to decimal, multiply by the factor and add
+0.5*factor to the result;  one then has the closest truth to the actual value.
+
+I saw no info about the accuracy/tolerance(yet) but if it is like the
+temps(+/- 3*c), the above method will provide as good a result as an end user
+should expect.
+
+The "factor" is the scaling factor obtained from a chart.
+
+Each voltage I/O has it's own "3/4" scale/factor:  
+5VDC is 0.026
+3.3VDC is  0.0172
+1.5VDC is  0.008
+2.5VDC is  0.013
+
+But there is a range too(see chart) so multiplying by the factor is not going
+to give the best value to report. It will be on the low end so adding
+1/2*factor to the result of factor*decimal coversion of hex reading will give
+a closer to truth value.  There's a mathematical term for that which I am sure
+to rem' just _after_ I press the send button. :)
+
+My calcs:
+Readings same as from yesterday _and_ just now(no change)
+20  21  22  23  24  25  Registers
+c8  b0  bb  64  c0  b3  hex values 
+200 176 187 100 192 179 decimal equiv's
+
+Register 20 is the 2.5VDC reading output value which has no use unless GBT has
+connected it to something that uses 2.5V.  I don't know what that could be.
+200*0.013=2.6
+...whatever it is, it reads ~ 2.6 + 0.0065 => 2.606VDC
+
+Register 21 is the 1.5VDC P1(CPU0 core volts) reading output value
+176*0.008 = 1.408  => 1.412VDC
+Register 25 is the 1.5VDC P2(CPU1 core volts) reading output value
+179*0.008 = 1.432 => 1.436VDC
+Those are very close to what they should be(1.35 - 1.40) _and_
+considering that GBT OVERCLOCKS this mobo, those are probably dead-on.  IIRC,
+nVidia's nTune showed the voltage as > 1.4VDC as well as DDR at 402, HT @
+2010, etc.
+
+Register 22 is the 3.3VDC VCC reading output value
+187*0.0172 = 3.2164  => 3.225VDC
+That's close ... close enuf to be a real value considering I have a little
+problem with the PSU, or so it seems(12VDC runs low too).  That is one of the
+reasons we need to get lm_sensors working correctly for this chip.  ...
+
+Register 23 is the 5VDC reading output value
+100*0.026 = 2.6  => ridiculous!
+... that cannot be correct!!
+Perhaps GBT does not use the 6W201 for 5V voltage either ... ???
+Interestingly, the 8712F obtained value is 4.97VDC which is prbly correct.
+
+Register 24 is the nominal 1.5V value but, really, we do not know what it is
+so don't care.
 
 
-A brief look at logs only provides a clue as to why.
-During boot, before login:
+What they (SMSC) say:
+The chip updates the registers at least 4 times per second. 
+
+The device compares the inputs(voltages) against a known (internal) reference
+source ... scales the inputs internally " such that the correct value refers
+to 3/4 scale or 192 decimal."
+
+" Voltages in the Registers are presented at 3/4 full scale for the nominal
+voltage, meaning that at nominal voltage, each register will read c0h. "
+
+...iDontHaveaFrigginClue what that *really* means; am pretty sure the editor
+cut the sentences that would have made that make sense to non bit-byters. It
+does not mean the value in the register is 75% of the full correct value.
+
+There's a ADC Voltage Conversion chart on PDF page 145 of the DS(p133 of doc).
+
+
+What I get here by using the method above agrees with what I know to be true
+but it could be coincedence.  I do not know of any way to test/verify it.  The
+BIOS HW readings do not show the CPU voltages. The 3.3VDC is always a little
+bit low. If the method is wrong or there is a better way, I would surely like
+to know.
+
+Please do not think that I am going to hunt you down and hurt you for
+correcting me.  I would never do that.(
+http://regmedia.co.uk/2001/09/12/joke_alert.gif ) :)
+
 ...
-Jun 14 10:45:10 name kernel: i2c_adapter i2c-2: SMBus Quick command not
-supported, can't probe for chips
-Jun 14 10:45:10 name kernel: i2c_adapter i2c-3: SMBus Quick command not
-supported, can't probe for chips
-Jun 14 10:45:10 name kernel: i2c_adapter i2c-4: SMBus Quick command not
-supported, can't probe for chips
-...
-_BUT later, after login was done @ ~10:46AM, an additional entry:
-...
-Jun 14 10:51:30 name kernel: i2c /dev entries driver
-...
-I was able to get the i2cdump at 10:53 so suspect that the above entry is
-significant as to why I could not before.
-Is that a "SUSE bug/freature" or something to do with the way the devices are
-setup by the kernel?  
-IOW, I want monitoring to begin ASAP so I can record & chart it, even w/o
-login if that is possible/sensible, so do I need some mod to SUSE, kernel or
-sensors?(or all of the above?)
 
-On the subject of temperatures:
-I ran a lot of dumps this AM(my yesterday) and have determined that on this
-mobo, for i2c-1, 2E:
-Register 26, CPU0 temperature!
-Register 27, ??  - this is always the 2nd coolest temp; ~23*c to 29*c.
-Register 28, CPU1 temperature!
-Register 29, ??  ~27*c to 32*c all the time
-Register 2a, Front temperature!( always the lowest temp )
-Register 2b, Rear temperature! ( the BIOS & GBT have named it "Rear" temp )
-
-I don't think I am going to be able to pin-down what registers 27 and 29
-monitor until we can get lm_sensors working correctly so values can be
-recorded & charted.  Both fluctuate, a little, as the CPUs temps go up and
-down but I cannot see any correlation, if there is any, with the small dataset
-that I have. ( I have hopes that those two are, respectively, the NV 2050 and
-NV 2200 chipsets ... )
-
-
-Thanks for listening as well as any assistance/hints that can be provided.
-Philip's tip to run a dump using the suspected chip device address really
-helped nail where things are located!  
-[I don't why I had not done that specific command before ... suppose my
-''sensors'' knowledge base was just too low. (still is..., :) ]
-
-I have written a sensors.conf section for this device which has everything
-needed except some of PWM control parameters(and of course usability with
-lm_sensors...). 
-I also have part of a chip doc similar to what one finds in the
-/usr/share/doc/packages/sensors/chips/ for a description to be added after
-compatibility is established. I am adding to it as I gather more *correct*
-info.
-
-I am investigating other ways/chips to get compatibility but have found none
-so far.  If there is something specifically to look at, please inform me.
-
-
-Regards,
-
-Ric Johnson
-
-
+Ric
 =========
 --- Philip Pokorny <ppokorny at penguincomputing.com> wrote:
 
@@ -233,4 +255,10 @@ Ric Johnson
 > :v)
 > 
 
+
+Ric
+...
+Success
+" He has achieved success who has lived well, laughed often, and loved much; who has enjoyed the trust of pure women, the respect of intelligent men and the love of little children; who has filled his niche and accomplished his task; who has left the world better than he found it whether by an improved poppy, a perfect poem, or a rescued soul; who has never lacked appreciation of Earth's beauty or failed to express it; who has always looked for the best in others and given them the best he had; whose life was an inspiration; whose memory a benediction. "
+- Bessie A. Stanley( Published in Lincoln Sentinel, Nov. 30, 1905 )
 
