@@ -1,7 +1,7 @@
-From: grimm@nickellson.com (Nick Ellson)
-Date: Tue, 27 Jun 2006 13:48:12 +0000
-Subject: [lm-sensors] Alternatives? Was: i2c-i801 on Intel Server Board
-Message-Id: <Pine.LNX.4.64.0606270643390.21180@gubbie.home>
+From: gregkh@suse.de (gregkh at suse.de)
+Date: Fri, 16 Jun 2006 22:47:46 +0000
+Subject: [lm-sensors] patch hwmon-kconfig-header-fix.patch added to
+Message-Id: <20060616225040.9BB5275926A@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,125 +9,90 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
+This is a note to let you know that I've just added the patch titled
 
-I have done some research on my motherboard. The E7525 chipset, used in a 
-number of Dell's (though I bought mine as bareboard) will not show any 
-usable sensors to LM_Sensors. Most posts redirect the owners of systems 
-with these chipsets to Dell's OpenManage.
+     Subject: [PATCH 12/14] hwmon: Fix the Kconfig header
 
-I bet I won't be able to use that particular solution as I do not have a 
-Dell, but what other alternatives might start looking for to get CPU 
-Temp/Fan Speed from my motherboard?
+to my gregkh-2.6 tree.  Its filename is
 
-Thanks in advance for any leads,
+     hwmon-kconfig-header-fix.patch
 
-Nick
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+
+
+From khali at linux-fr.org Mon Jun 12 12:55:28 2006
+Date: Mon, 12 Jun 2006 21:55:28 +0200
+From: Jean Delvare <khali at linux-fr.org>
+To: Greg KH <greg at kroah.com>
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, Kaiwan N Billimoria <kaiwan at designergraphix.com>
+Subject: [PATCH 12/14] hwmon: Fix the Kconfig header
+Message-Id: <20060612215528.e72133d5.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-kconfig-header-fix.patch
+
+Hardware monitoring chips don't have to be on the I2C bus.
+
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
+--- linux-2.6.17-rc6.orig/drivers/hwmon/Kconfig	2006-06-12 18:41:00.000000000 +0200
++++ linux-2.6.17-rc6/drivers/hwmon/Kconfig	2006-06-12 19:16:40.000000000 +0200
+@@ -1,5 +1,5 @@
+ #
+-# I2C Sensor chip drivers configuration
++# Hardware monitoring chip drivers configuration
+ #
+ 
+ menu "Hardware Monitoring support"
 
 -- 
-Nick Ellson
-CCDA, CCNP, CCSP, CCAI,
-MCSE 2000, Security+, Network+
-Network Hobbyist, VFR Private Pilot.
+Jean Delvare
 
 
-On Mon, 26 Jun 2006, Nick Ellson wrote:
 
->
-> I am hoping to get some help understanding why lm_sensors is not finding
-> what it need on my two servers. I am trying to follow the Identifying your
-> Hardware process and this is what I get:
->
->
->
-> Next adapter: SMBus I801 adapter at 0400
-> Do you want to scan it? (YES/no/selectively):
-> Client found at address 0x30
-> Client found at address 0x42
-> Probing for `Maxim MAX6633/MAX6634/MAX6635'... Failed!
-> Client found at address 0x51
-> Probing for `SPD EEPROM'... Success!
->     (confidence 8, driver `eeprom')
-> Client found at address 0x55
-> Probing for `SPD EEPROM'... Success!
->     (confidence 8, driver `eeprom')
-> Client found at address 0x69
-> Client found at address 0x6e
->
-> gubbie ~ # modprobe i2c-i801
-> gubbie ~ # modprobe eeprom
-> gubbie ~ # /usr/bin/sensors -s
-> Can't access procfs/sysfs file
-> Unable to find i2c bus information;
-> For 2.6 kernels, make sure you have mounted sysfs and libsensors
-> was compiled with sysfs support!
-> For older kernels, make sure you have done 'modprobe i2c-proc'!
-> gubbie ~ # dmesg
-> [17179569.184000] Linux version 2.6.17-gentoo (root at gubbie) (gcc version
-> 3.4.6 (Gentoo 3.4.6-r1, ssp-3.4.5-1.0, pie-8.7.9)) #2 SMP PREEMPT Mon Jun
-> 26 09:33:18 PDT 2006
->
-> <snip>
->
-> [17179640.696000] IA-32 Microcode Update Driver: v1.14
-> <tigran at veritas.com>
-> [17179646.016000] Installing knfsd (copyright (C) 1996 okir at monad.swb.de).
-> [17179939.952000] i2c /dev entries driver
-> gubbie ~ #
->
-> gubbie ~ #  lsmod
-> Module                  Size  Used by
-> eeprom                  8080  0
-> i2c_dev                10244  0
-> nfsd                  105192  13
-> snd_seq_midi            9600  0
-> snd_emu10k1_synth       8320  0
-> snd_emux_synth         37120  1 snd_emu10k1_synth
-> snd_seq_virmidi         8960  1 snd_emux_synth
-> snd_seq_midi_emul       8320  1 snd_emux_synth
-> evbug                   3968  0
-> hw_random               6808  0
-> snd_emu10k1           118916  1 snd_emu10k1_synth
-> snd_rawmidi            26624  3 snd_seq_midi,snd_seq_virmidi,snd_emu10k1
-> snd_ac97_codec         90528  1 snd_emu10k1
-> snd_ac97_bus            3328  1 snd_ac97_codec
-> snd_util_mem            5632  2 snd_emux_synth,snd_emu10k1
-> i2c_i801                9740  0
-> snd_hwdep              10884  2 snd_emux_synth,snd_emu10k1
-> e752x_edac             12932  0
-> edac_mc                15428  1 e752x_edac
-> raid10                 26112  0
-> raid6                 109840  0
-> raid5                  35968  0
-> xor                    16520  2 raid6,raid5
-> raid0                   9856  0
-> dm_bbr                 14368  0
-> dm_snapshot            18852  0
-> dm_mirror              24144  0
-> usb_storage            83520  0
-> usbhid                 43040  0
->
->
->
-> I have the I2C stuff and Hardware Monitoring sections in my Kernel all
-> <M>odularized.
->
->
-> Have I over loked anything?
->
->
-> Nick
->
->
-> -- 
-> Nick Ellson
-> CCDA, CCNP, CCSP, CCAI,
-> MCSE 2000, Security+, Network+
-> Network Hobbyist, VFR Private Pilot.
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors at lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
+
+i2c/hwmon-f71805f-no-global-resource.patch
+i2c/hwmon-lm83-add-lm82-support.patch
+i2c/hwmon-smsc47m192-new-driver.patch
+i2c/hwmon-sysfs-interface-individual-alarm-files.patch
+i2c/hwmon-w83627ehf-add-alarms.patch
+i2c/hwmon-w83627ehf-add-voltages.patch
+i2c/i2c-piix4-add-ati-smbus-support.patch
+i2c/rtc-add-support-for-m41t81-m41t85-chips-to-m41t00-driver.patch
+i2c/hwmon-hdaps-update-id-list.patch
+i2c/rtc-m41t00-driver-cleanup.patch
+i2c/i2c-nforce2-add-mcp51-mcp55-support.patch
+i2c/i2c-piix4-fix-typo-in-documentation.patch
+i2c/i2c-piix4-improve-ibm-error-message.patch
+i2c/i2c-piix4-remove-fix_hstcfg-parameter.patch
+i2c/hwmon-improve-Kconfig-help.patch
+i2c/hwmon-lm83-documentation-update.patch
+i2c/hwmon-vid-mask-per-vrm.patch
+i2c/hwmon-w83791d-new-driver.patch
+i2c/hwmon-abituguru-fixes.patch
+i2c/hwmon-abituguru-new-driver.patch
+i2c/hwmon-abituguru-nofans-detect-fix.patch
+i2c/hwmon-hdaps-typo.patch
+i2c/hwmon-maintenance-update.patch
+i2c/hwmon-sysfs-interface-update-1.patch
+i2c/hwmon-sysfs-interface-update-2.patch
+i2c/hwmon-w83792d-add-data-lock.patch
+i2c/hwmon-w83792d-pwm-set-fix.patch
+i2c/i2c-Kconfig-suggest-N-for-rare-devices.patch
+i2c/i2c-opencores-new-driver.patch
+i2c/hwmon-kconfig-header-fix.patch
+i2c/hwmon-lm70-new-driver.patch
+i2c/hwmon-vid-add-core-and-conroe-support.patch
+i2c/i2c-i801-01-fix-block-transaction-poll-loops.patch
+i2c/i2c-i801-02-remove-force_addr-parameter.patch
+i2c/i2c-i801-03-remove-pci-function-check.patch
+i2c/i2c-i801-04-cleanups.patch
+i2c/i2c-i801-05-better-pci-subsystem-integration.patch
+i2c/i2c-i801-06-merge-setup-function.patch
+i2c/i2c-mark-data-const-for-write-block.patch
+i2c/i2c-opencores-cleanup.patch
+i2c/i2c-scx200_acb-documentation-update.patch
+i2c/i2c-scx200_acb-mark-scx200_acb_probe-init.patch
+i2c/i2c-scx200_acb-use-PCI-IO-resource-when-appropriate.patch
 
