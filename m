@@ -1,7 +1,7 @@
 From: gregkh@suse.de (gregkh at suse.de)
-Date: Fri, 16 Jun 2006 22:48:50 +0000
-Subject: [lm-sensors] patch i2c-i801-06-merge-setup-function.patch added to
-Message-Id: <20060616225143.E5127758119@imap.suse.de>
+Date: Fri, 16 Jun 2006 22:47:55 +0000
+Subject: [lm-sensors] patch hwmon-lm70-new-driver.patch added to gregkh-2.6
+Message-Id: <20060616225049.B3BA07596A5@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -11,239 +11,284 @@ To: lm-sensors@vger.kernel.org
 
 This is a note to let you know that I've just added the patch titled
 
-     Subject: [PATCH 11/14] i2c-i801: Merge setup function
+     Subject: [PATCH 13/14] lm70: New hardware monitoring driver
 
 to my gregkh-2.6 tree.  Its filename is
 
-     i2c-i801-06-merge-setup-function.patch
+     hwmon-lm70-new-driver.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-From khali at linux-fr.org Mon Jun 12 12:53:41 2006
-Date: Mon, 12 Jun 2006 21:53:41 +0200
-From: Jean Delvare <khali at linux-fr.org>
+From khali at linux-fr.org Mon Jun 12 13:00:12 2006
+Date: Mon, 12 Jun 2006 22:00:05 +0200
+From: Kaiwan N Billimoria <kaiwan at designergraphix.com>
 To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>
-Subject: [PATCH 11/14] i2c-i801: Merge setup function
-Message-Id: <20060612215341.cdc67d11.khali at linux-fr.org>
-Content-Disposition: inline; filename=i2c-i801-06-merge-setup-function.patch
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, Kaiwan N Billimoria <kaiwan at designergraphix.com>
+Subject: [PATCH 13/14] lm70: New hardware monitoring driver
+Message-Id: <20060612220005.cd9ce8ad.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-lm70-new-driver.patch
 
-i2c-i801: Merge setup function
+From: Kaiwan N Billimoria <kaiwan at designergraphix.com>
 
-Merge i801_setup into i801_probe, as it doesn't make much sense to
-have them split. This lets us handle errors better. Christopher
-Hellwig had been suggesting this back in March 2003 when the driver
-was merged.
+This driver implements support for the National Semiconductor LM70
+temperature sensor.
 
-Also drop two useless debug messages (revision and base address can be
-obtained from lspci, procfs or sysfs.)
+The LM70 temperature sensor chip supports a single temperature sensor.
+It communicates with a host processor (or microcontroller) via an
+SPI/Microwire Bus interface.
 
+Communication with the LM70 is simple: when the temperature is to be sensed,
+the driver accesses the LM70 using SPI communication: 16 SCLK cycles
+comprise the MOSI/MISO loop. At the end of the transfer, the 11-bit 2's
+complement digital temperature (sent via the SIO line), is available in the
+driver for interpretation. This driver makes use of the kernel's in-core
+SPI support.
+
+Signed-off-by: Kaiwan N Billimoria <kaiwan at designergraphix.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
---- linux-2.6.17-rc6.orig/drivers/i2c/busses/i2c-i801.c	2006-06-08 15:16:31.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/i2c/busses/i2c-i801.c	2006-06-08 15:28:21.000000000 +0200
-@@ -68,7 +68,6 @@
- /* PCI Address Constants */
- #define SMBBAR		4
- #define SMBHSTCFG	0x040
--#define SMBREV		0x008
- 
- /* Host configuration bits for SMBHSTCFG */
- #define SMBHSTCFG_HST_EN	1
-@@ -102,68 +101,6 @@
- static struct pci_dev *I801_dev;
- static int isich4;
- 
--static int __devinit i801_setup(struct pci_dev *dev)
--{
--	unsigned char temp;
--	int err;
--
--	I801_dev = dev;
--	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
--	    (dev->device = PCI_DEVICE_ID_INTEL_82801EB_3) ||
--	    (dev->device = PCI_DEVICE_ID_INTEL_ESB_4))
--		isich4 = 1;
--	else
--		isich4 = 0;
--
--	err = pci_enable_device(dev);
--	if (err) {
--		dev_err(&dev->dev, "Failed to enable SMBus device (%d)\n",
--			err);
--		goto exit;
--	}
--
--	/* Determine the address of the SMBus area */
--	i801_smba = pci_resource_start(dev, SMBBAR);
--	if (!i801_smba) {
--		dev_err(&dev->dev, "SMBus base address uninitialized, "
--			"upgrade BIOS\n");
--		err = -ENODEV;
--		goto exit_disable;
--	}
--
--	err = pci_request_region(dev, SMBBAR, i801_driver.name);
--	if (err) {
--		dev_err(&dev->dev, "Failed to request SMBus region "
--			"0x%lx-0x%lx\n", i801_smba,
--			pci_resource_end(dev, SMBBAR));
--		goto exit_disable;
--	}
--
--	pci_read_config_byte(I801_dev, SMBHSTCFG, &temp);
--	temp &= ~SMBHSTCFG_I2C_EN;	/* SMBus timing */
--	if (!(temp & SMBHSTCFG_HST_EN)) {
--		dev_warn(&dev->dev, "enabling SMBus device\n");
--		temp |= SMBHSTCFG_HST_EN;
--	}
--	pci_write_config_byte(I801_dev, SMBHSTCFG, temp);
--
--	if (temp & SMBHSTCFG_SMB_SMI_EN)
--		dev_dbg(&dev->dev, "I801 using Interrupt SMI# for SMBus.\n");
--	else
--		dev_dbg(&dev->dev, "I801 using PCI Interrupt for SMBus.\n");
--
--	pci_read_config_byte(I801_dev, SMBREV, &temp);
--	dev_dbg(&dev->dev, "SMBREV = 0x%X\n", temp);
--	dev_dbg(&dev->dev, "I801_smba = 0x%X\n", i801_smba);
--
--	return 0;
--
--exit_disable:
--	pci_disable_device(dev);
--exit:
--	return err;
--}
--
- static int i801_transaction(void)
- {
- 	int temp;
-@@ -527,17 +464,69 @@
- 
- static int __devinit i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
- {
-+	unsigned char temp;
- 	int err;
- 
--	if ((err = i801_setup(dev)))
--		return err;
-+	I801_dev = dev;
-+	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
-+	    (dev->device = PCI_DEVICE_ID_INTEL_82801EB_3) ||
-+	    (dev->device = PCI_DEVICE_ID_INTEL_ESB_4))
-+		isich4 = 1;
-+	else
-+		isich4 = 0;
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.17-rc6/Documentation/hwmon/lm70	2006-06-12 21:58:17.000000000 +0200
+@@ -0,0 +1,31 @@
++Kernel driver lm70
++=========
 +
-+	err = pci_enable_device(dev);
-+	if (err) {
-+		dev_err(&dev->dev, "Failed to enable SMBus PCI device (%d)\n",
-+			err);
-+		goto exit;
++Supported chip:
++  * National Semiconductor LM70
++    Datasheet: http://www.national.com/pf/LM/LM70.html
++
++Author:
++        Kaiwan N Billimoria <kaiwan at designergraphix.com>
++
++Description
++-----------
++
++This driver implements support for the National Semiconductor LM70
++temperature sensor.
++
++The LM70 temperature sensor chip supports a single temperature sensor.
++It communicates with a host processor (or microcontroller) via an
++SPI/Microwire Bus interface.
++
++Communication with the LM70 is simple: when the temperature is to be sensed,
++the driver accesses the LM70 using SPI communication: 16 SCLK cycles
++comprise the MOSI/MISO loop. At the end of the transfer, the 11-bit 2's
++complement digital temperature (sent via the SIO line), is available in the
++driver for interpretation. This driver makes use of the kernel's in-core
++SPI support.
++
++Thanks to
++---------
++Jean Delvare <khali at linux-fr.org> for mentoring the hwmon-side driver
++development.
+--- linux-2.6.17-rc6.orig/drivers/hwmon/Kconfig	2006-06-12 19:16:40.000000000 +0200
++++ linux-2.6.17-rc6/drivers/hwmon/Kconfig	2006-06-12 19:17:08.000000000 +0200
+@@ -204,6 +204,16 @@
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm63.
+ 
++config SENSORS_LM70
++	tristate "National Semiconductor LM70"
++	depends on HWMON && SPI_MASTER && EXPERIMENTAL
++	help
++	  If you say yes here you get support for the National Semiconductor
++	  LM70 digital temperature sensor chip.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called lm70.
++
+ config SENSORS_LM75
+ 	tristate "National Semiconductor LM75 and compatibles"
+ 	depends on HWMON && I2C
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.17-rc6/drivers/hwmon/lm70.c	2006-06-12 19:17:08.000000000 +0200
+@@ -0,0 +1,165 @@
++/*
++ * lm70.c
++ *
++ * The LM70 is a temperature sensor chip from National Semiconductor (NS).
++ * Copyright (C) 2006 Kaiwan N Billimoria <kaiwan at designergraphix.com>
++ *
++ * The LM70 communicates with a host processor via an SPI/Microwire Bus
++ * interface. The complete datasheet is available at National's website
++ * here:
++ * http://www.national.com/pf/LM/LM70.html
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/sysfs.h>
++#include <linux/hwmon.h>
++#include <linux/spi/spi.h>
++#include <asm/semaphore.h>
++
++#define DRVNAME		"lm70"
++
++struct lm70 {
++	struct class_device *cdev;
++	struct semaphore sem;
++};
++
++/* sysfs hook function */
++static ssize_t lm70_sense_temp(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	int status, val;
++	u8 rxbuf[2];
++	s16 raw=0;
++	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
++
++	if (down_interruptible(&p_lm70->sem))
++		return -ERESTARTSYS;
++
++	/*
++	 * spi_read() requires a DMA-safe buffer; so we use
++	 * spi_write_then_read(), transmitting 0 bytes.
++	 */
++	status = spi_write_then_read(spi, NULL, 0, &rxbuf[0], 2);
++	if (status < 0) {
++		printk(KERN_WARNING
++		"spi_write_then_read failed with status %d\n", status);
++		goto out;
++	}
++	dev_dbg(dev, "rxbuf[1] : 0x%x rxbuf[0] : 0x%x\n", rxbuf[1], rxbuf[0]);
++
++	raw = (rxbuf[1] << 8) + rxbuf[0];
++	dev_dbg(dev, "raw=0x%x\n", raw);
++
++	/*
++	 * The "raw" temperature read into rxbuf[] is a 16-bit signed 2's
++	 * complement value. Only the MSB 11 bits (1 sign + 10 temperature
++	 * bits) are meaningful; the LSB 5 bits are to be discarded.
++	 * See the datasheet.
++	 *
++	 * Further, each bit represents 0.25 degrees Celsius; so, multiply
++	 * by 0.25. Also multiply by 1000 to represent in millidegrees
++	 * Celsius.
++	 * So it's equivalent to multiplying by 0.25 * 1000 = 250.
++	 */
++	val = ((int)raw/32) * 250;
++	status = sprintf(buf, "%+d\n", val); /* millidegrees Celsius */
++out:
++	up(&p_lm70->sem);
++	return status;
++}
++
++static DEVICE_ATTR(temp1_input, S_IRUGO, lm70_sense_temp, NULL);
++
++/*----------------------------------------------------------------------*/
++
++static int __devinit lm70_probe(struct spi_device *spi)
++{
++	struct lm70 *p_lm70;
++	int status;
++
++	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
++	if (!p_lm70)
++		return -ENOMEM;
++
++	init_MUTEX(&p_lm70->sem);
++
++	/* sysfs hook */
++	p_lm70->cdev = hwmon_device_register(&spi->dev);
++	if (IS_ERR(p_lm70->cdev)) {
++		dev_dbg(&spi->dev, "hwmon_device_register failed.\n");
++		status = PTR_ERR(p_lm70->cdev);
++		goto out_dev_reg_failed;
++	}
++	dev_set_drvdata(&spi->dev, p_lm70);
++
++	if ((status = device_create_file(&spi->dev, &dev_attr_temp1_input))) {
++		dev_dbg(&spi->dev, "device_create_file failure.\n");
++		goto out_dev_create_file_failed;
 +	}
 +
-+	/* Determine the address of the SMBus area */
-+	i801_smba = pci_resource_start(dev, SMBBAR);
-+	if (!i801_smba) {
-+		dev_err(&dev->dev, "SMBus base address uninitialized, "
-+			"upgrade BIOS\n");
-+		err = -ENODEV;
-+		goto exit_disable;
-+	}
++	return 0;
 +
-+	err = pci_request_region(dev, SMBBAR, i801_driver.name);
-+	if (err) {
-+		dev_err(&dev->dev, "Failed to request SMBus region "
-+			"0x%lx-0x%lx\n", i801_smba,
-+			pci_resource_end(dev, SMBBAR));
-+		goto exit_disable;
-+	}
++out_dev_create_file_failed:
++	hwmon_device_unregister(p_lm70->cdev);
++out_dev_reg_failed:
++	dev_set_drvdata(&spi->dev, NULL);
++	kfree(p_lm70);
++	return status;
++}
 +
-+	pci_read_config_byte(I801_dev, SMBHSTCFG, &temp);
-+	temp &= ~SMBHSTCFG_I2C_EN;	/* SMBus timing */
-+	if (!(temp & SMBHSTCFG_HST_EN)) {
-+		dev_info(&dev->dev, "Enabling SMBus device\n");
-+		temp |= SMBHSTCFG_HST_EN;
-+	}
-+	pci_write_config_byte(I801_dev, SMBHSTCFG, temp);
++static int __exit lm70_remove(struct spi_device *spi)
++{
++	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
 +
-+	if (temp & SMBHSTCFG_SMB_SMI_EN)
-+		dev_dbg(&dev->dev, "SMBus using interrupt SMI#\n");
-+	else
-+		dev_dbg(&dev->dev, "SMBus using PCI Interrupt\n");
- 
- 	/* set up the driverfs linkage to our parent device */
- 	i801_adapter.dev.parent = &dev->dev;
- 
- 	snprintf(i801_adapter.name, I2C_NAME_SIZE,
- 		"SMBus I801 adapter at %04lx", i801_smba);
--	return i2c_add_adapter(&i801_adapter);
-+	err = i2c_add_adapter(&i801_adapter);
-+	if (err) {
-+		dev_err(&dev->dev, "Failed to add SMBus adapter\n");
-+		goto exit_disable;
-+	}
++	device_remove_file(&spi->dev, &dev_attr_temp1_input);
++	hwmon_device_unregister(p_lm70->cdev);
++	dev_set_drvdata(&spi->dev, NULL);
++	kfree(p_lm70);
 +
-+exit_disable:
-+	pci_disable_device(dev);
-+exit:
-+	return err;
- }
- 
- static void __devexit i801_remove(struct pci_dev *dev)
++	return 0;
++}
++
++static struct spi_driver lm70_driver = {
++	.driver = {
++		.name	= "lm70",
++		.owner	= THIS_MODULE,
++	},
++	.probe	= lm70_probe,
++	.remove	= __devexit_p(lm70_remove),
++};
++
++static int __init init_lm70(void)
++{
++	return spi_register_driver(&lm70_driver);
++}
++
++static void __exit cleanup_lm70(void)
++{
++	spi_unregister_driver(&lm70_driver);
++}
++
++module_init(init_lm70);
++module_exit(cleanup_lm70);
++
++MODULE_AUTHOR("Kaiwan N Billimoria");
++MODULE_DESCRIPTION("National Semiconductor LM70 Linux driver");
++MODULE_LICENSE("GPL");
+--- linux-2.6.17-rc6.orig/drivers/hwmon/Makefile	2006-06-12 18:41:00.000000000 +0200
++++ linux-2.6.17-rc6/drivers/hwmon/Makefile	2006-06-12 19:17:08.000000000 +0200
+@@ -28,6 +28,7 @@
+ obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
+ obj-$(CONFIG_SENSORS_IT87)	+= it87.o
+ obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
++obj-$(CONFIG_SENSORS_LM70)	+= lm70.o
+ obj-$(CONFIG_SENSORS_LM75)	+= lm75.o
+ obj-$(CONFIG_SENSORS_LM77)	+= lm77.o
+ obj-$(CONFIG_SENSORS_LM78)	+= lm78.o
 
 -- 
 Jean Delvare
 
 
 
-Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
+Patches currently in gregkh-2.6 which might be from kaiwan at designergraphix.com are
 
-i2c/hwmon-f71805f-no-global-resource.patch
-i2c/hwmon-lm83-add-lm82-support.patch
-i2c/hwmon-smsc47m192-new-driver.patch
-i2c/hwmon-sysfs-interface-individual-alarm-files.patch
-i2c/hwmon-w83627ehf-add-alarms.patch
-i2c/hwmon-w83627ehf-add-voltages.patch
-i2c/i2c-piix4-add-ati-smbus-support.patch
-i2c/rtc-add-support-for-m41t81-m41t85-chips-to-m41t00-driver.patch
-i2c/hwmon-hdaps-update-id-list.patch
-i2c/rtc-m41t00-driver-cleanup.patch
-i2c/i2c-nforce2-add-mcp51-mcp55-support.patch
-i2c/i2c-piix4-fix-typo-in-documentation.patch
-i2c/i2c-piix4-improve-ibm-error-message.patch
-i2c/i2c-piix4-remove-fix_hstcfg-parameter.patch
-i2c/hwmon-improve-Kconfig-help.patch
-i2c/hwmon-lm83-documentation-update.patch
-i2c/hwmon-vid-mask-per-vrm.patch
-i2c/hwmon-w83791d-new-driver.patch
-i2c/hwmon-abituguru-fixes.patch
-i2c/hwmon-abituguru-new-driver.patch
-i2c/hwmon-abituguru-nofans-detect-fix.patch
-i2c/hwmon-hdaps-typo.patch
-i2c/hwmon-maintenance-update.patch
-i2c/hwmon-sysfs-interface-update-1.patch
-i2c/hwmon-sysfs-interface-update-2.patch
-i2c/hwmon-w83792d-add-data-lock.patch
-i2c/hwmon-w83792d-pwm-set-fix.patch
-i2c/i2c-Kconfig-suggest-N-for-rare-devices.patch
-i2c/i2c-opencores-new-driver.patch
 i2c/hwmon-kconfig-header-fix.patch
 i2c/hwmon-lm70-new-driver.patch
-i2c/hwmon-vid-add-core-and-conroe-support.patch
-i2c/i2c-i801-01-fix-block-transaction-poll-loops.patch
-i2c/i2c-i801-02-remove-force_addr-parameter.patch
-i2c/i2c-i801-03-remove-pci-function-check.patch
-i2c/i2c-i801-04-cleanups.patch
-i2c/i2c-i801-05-better-pci-subsystem-integration.patch
-i2c/i2c-i801-06-merge-setup-function.patch
-i2c/i2c-mark-data-const-for-write-block.patch
-i2c/i2c-opencores-cleanup.patch
-i2c/i2c-scx200_acb-documentation-update.patch
-i2c/i2c-scx200_acb-mark-scx200_acb_probe-init.patch
-i2c/i2c-scx200_acb-use-PCI-IO-resource-when-appropriate.patch
 
