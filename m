@@ -1,7 +1,7 @@
 From: gregkh@suse.de (gregkh at suse.de)
-Date: Fri, 16 Jun 2006 22:48:36 +0000
-Subject: [lm-sensors] patch i2c-i801-04-cleanups.patch added to gregkh-2.6
-Message-Id: <20060616225129.E55EB7595E5@imap.suse.de>
+Date: Fri, 16 Jun 2006 22:48:50 +0000
+Subject: [lm-sensors] patch i2c-i801-06-merge-setup-function.patch added to
+Message-Id: <20060616225143.E5127758119@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -11,129 +11,190 @@ To: lm-sensors@vger.kernel.org
 
 This is a note to let you know that I've just added the patch titled
 
-     Subject: [PATCH 09/14] i2c-i801: Cleanups
+     Subject: [PATCH 11/14] i2c-i801: Merge setup function
 
 to my gregkh-2.6 tree.  Its filename is
 
-     i2c-i801-04-cleanups.patch
+     i2c-i801-06-merge-setup-function.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-From khali at linux-fr.org Mon Jun 12 12:52:12 2006
-Date: Mon, 12 Jun 2006 21:52:02 +0200
+From khali at linux-fr.org Mon Jun 12 12:53:41 2006
+Date: Mon, 12 Jun 2006 21:53:41 +0200
 From: Jean Delvare <khali at linux-fr.org>
 To: Greg KH <greg at kroah.com>
 Cc: LM Sensors <lm-sensors at lm-sensors.org>
-Subject: [PATCH 09/14] i2c-i801: Cleanups
-Message-Id: <20060612215202.7c2541df.khali at linux-fr.org>
-Content-Disposition: inline; filename=i2c-i801-04-cleanups.patch
+Subject: [PATCH 11/14] i2c-i801: Merge setup function
+Message-Id: <20060612215341.cdc67d11.khali at linux-fr.org>
+Content-Disposition: inline; filename=i2c-i801-06-merge-setup-function.patch
 
-i2c-i801: Cleanups
+i2c-i801: Merge setup function
 
-Various cleanups to the i2c-i801 driver:
-* Fix documentation file and self file name references.
-* i801_setup can be marked __devinit.
-* Drop useless error local variable and label in i801_setup.
-* Avoid a double PCI configuration register write in some cases.
-* Use symbolic names for SMBHSTCFG bits.
-* Transmit the error code returned by i801_setup instead of forcing it
-  to an arbitrary value.
+Merge i801_setup into i801_probe, as it doesn't make much sense to
+have them split. This lets us handle errors better. Christopher
+Hellwig had been suggesting this back in March 2003 when the driver
+was merged.
+
+Also drop two useless debug messages (revision and base address can be
+obtained from lspci, procfs or sysfs.)
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
---- linux-2.6.17-rc6.orig/drivers/i2c/busses/i2c-i801.c	2006-06-08 14:10:56.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/i2c/busses/i2c-i801.c	2006-06-08 15:28:40.000000000 +0200
-@@ -1,5 +1,5 @@
- /*
--    i801.c - Part of lm_sensors, Linux kernel modules for hardware
-+    i2c-i801.c - Part of lm_sensors, Linux kernel modules for hardware
-               monitoring
-     Copyright (c) 1998 - 2002  Frodo Looijaard <frodol at dds.nl>,
-     Philip Edelbrock <phil at netroedge.com>, and Mark D. Studebaker
-@@ -36,7 +36,7 @@
-     This driver supports several versions of Intel's I/O Controller Hubs (ICH).
-     For SMBus support, they are similar to the PIIX4 and are part
-     of Intel's '810' and other chipsets.
--    See the doc/busses/i2c-i801 file for details.
-+    See the file Documentation/i2c/busses/i2c-i801 for details.
-     I2C Block Read and Process Call are not supported.
- */
+--- linux-2.6.17-rc6.orig/drivers/i2c/busses/i2c-i801.c	2006-06-08 15:16:31.000000000 +0200
++++ linux-2.6.17-rc6/drivers/i2c/busses/i2c-i801.c	2006-06-08 15:28:21.000000000 +0200
+@@ -68,7 +68,6 @@
+ /* PCI Address Constants */
+ #define SMBBAR		4
+ #define SMBHSTCFG	0x040
+-#define SMBREV		0x008
  
-@@ -102,9 +102,8 @@
+ /* Host configuration bits for SMBHSTCFG */
+ #define SMBHSTCFG_HST_EN	1
+@@ -102,68 +101,6 @@
  static struct pci_dev *I801_dev;
  static int isich4;
  
--static int i801_setup(struct pci_dev *dev)
-+static int __devinit i801_setup(struct pci_dev *dev)
- {
--	int error_return = 0;
- 	unsigned char temp;
- 
- 	I801_dev = dev;
-@@ -115,7 +114,7 @@
- 	else
- 		isich4 = 0;
- 
--	/* Determine the address of the SMBus areas */
-+	/* Determine the address of the SMBus area */
- 	pci_read_config_word(I801_dev, SMBBA, &i801_smba);
- 	i801_smba &= 0xfff0;
- 	if (!i801_smba) {
-@@ -127,20 +126,18 @@
- 	if (!request_region(i801_smba, (isich4 ? 16 : 8), i801_driver.name)) {
- 		dev_err(&dev->dev, "I801_smb region 0x%x already in use!\n",
- 			i801_smba);
--		error_return = -EBUSY;
--		goto END;
-+		return -EBUSY;
- 	}
- 
- 	pci_read_config_byte(I801_dev, SMBHSTCFG, &temp);
- 	temp &= ~SMBHSTCFG_I2C_EN;	/* SMBus timing */
+-static int __devinit i801_setup(struct pci_dev *dev)
+-{
+-	unsigned char temp;
+-	int err;
+-
+-	I801_dev = dev;
+-	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
+-	    (dev->device = PCI_DEVICE_ID_INTEL_82801EB_3) ||
+-	    (dev->device = PCI_DEVICE_ID_INTEL_ESB_4))
+-		isich4 = 1;
+-	else
+-		isich4 = 0;
+-
+-	err = pci_enable_device(dev);
+-	if (err) {
+-		dev_err(&dev->dev, "Failed to enable SMBus device (%d)\n",
+-			err);
+-		goto exit;
+-	}
+-
+-	/* Determine the address of the SMBus area */
+-	i801_smba = pci_resource_start(dev, SMBBAR);
+-	if (!i801_smba) {
+-		dev_err(&dev->dev, "SMBus base address uninitialized, "
+-			"upgrade BIOS\n");
+-		err = -ENODEV;
+-		goto exit_disable;
+-	}
+-
+-	err = pci_request_region(dev, SMBBAR, i801_driver.name);
+-	if (err) {
+-		dev_err(&dev->dev, "Failed to request SMBus region "
+-			"0x%lx-0x%lx\n", i801_smba,
+-			pci_resource_end(dev, SMBBAR));
+-		goto exit_disable;
+-	}
+-
+-	pci_read_config_byte(I801_dev, SMBHSTCFG, &temp);
+-	temp &= ~SMBHSTCFG_I2C_EN;	/* SMBus timing */
+-	if (!(temp & SMBHSTCFG_HST_EN)) {
+-		dev_warn(&dev->dev, "enabling SMBus device\n");
+-		temp |= SMBHSTCFG_HST_EN;
+-	}
 -	pci_write_config_byte(I801_dev, SMBHSTCFG, temp);
 -
--	if (!(temp & 1)) {
--		pci_write_config_byte(I801_dev, SMBHSTCFG, temp | 1);
-+	if (!(temp & SMBHSTCFG_HST_EN)) {
- 		dev_warn(&dev->dev, "enabling SMBus device\n");
-+		temp |= SMBHSTCFG_HST_EN;
- 	}
-+	pci_write_config_byte(I801_dev, SMBHSTCFG, temp);
- 
--	if (temp & 0x02)
-+	if (temp & SMBHSTCFG_SMB_SMI_EN)
- 		dev_dbg(&dev->dev, "I801 using Interrupt SMI# for SMBus.\n");
- 	else
- 		dev_dbg(&dev->dev, "I801 using PCI Interrupt for SMBus.\n");
-@@ -149,8 +146,7 @@
- 	dev_dbg(&dev->dev, "SMBREV = 0x%X\n", temp);
- 	dev_dbg(&dev->dev, "I801_smba = 0x%X\n", i801_smba);
- 
--END:
--	return error_return;
-+	return 0;
- }
- 
+-	if (temp & SMBHSTCFG_SMB_SMI_EN)
+-		dev_dbg(&dev->dev, "I801 using Interrupt SMI# for SMBus.\n");
+-	else
+-		dev_dbg(&dev->dev, "I801 using PCI Interrupt for SMBus.\n");
+-
+-	pci_read_config_byte(I801_dev, SMBREV, &temp);
+-	dev_dbg(&dev->dev, "SMBREV = 0x%X\n", temp);
+-	dev_dbg(&dev->dev, "I801_smba = 0x%X\n", i801_smba);
+-
+-	return 0;
+-
+-exit_disable:
+-	pci_disable_device(dev);
+-exit:
+-	return err;
+-}
+-
  static int i801_transaction(void)
-@@ -516,12 +512,10 @@
+ {
+ 	int temp;
+@@ -527,17 +464,69 @@
  
  static int __devinit i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
  {
-+	int err;
++	unsigned char temp;
+ 	int err;
  
--	if (i801_setup(dev)) {
--		dev_warn(&dev->dev,
--			"I801 not detected, module not inserted.\n");
--		return -ENODEV;
--	}
-+	if ((err = i801_setup(dev)))
-+		return err;
+-	if ((err = i801_setup(dev)))
+-		return err;
++	I801_dev = dev;
++	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
++	    (dev->device = PCI_DEVICE_ID_INTEL_82801EB_3) ||
++	    (dev->device = PCI_DEVICE_ID_INTEL_ESB_4))
++		isich4 = 1;
++	else
++		isich4 = 0;
++
++	err = pci_enable_device(dev);
++	if (err) {
++		dev_err(&dev->dev, "Failed to enable SMBus PCI device (%d)\n",
++			err);
++		goto exit;
++	}
++
++	/* Determine the address of the SMBus area */
++	i801_smba = pci_resource_start(dev, SMBBAR);
++	if (!i801_smba) {
++		dev_err(&dev->dev, "SMBus base address uninitialized, "
++			"upgrade BIOS\n");
++		err = -ENODEV;
++		goto exit_disable;
++	}
++
++	err = pci_request_region(dev, SMBBAR, i801_driver.name);
++	if (err) {
++		dev_err(&dev->dev, "Failed to request SMBus region "
++			"0x%lx-0x%lx\n", i801_smba,
++			pci_resource_end(dev, SMBBAR));
++		goto exit_disable;
++	}
++
++	pci_read_config_byte(I801_dev, SMBHSTCFG, &temp);
++	temp &= ~SMBHSTCFG_I2C_EN;	/* SMBus timing */
++	if (!(temp & SMBHSTCFG_HST_EN)) {
++		dev_info(&dev->dev, "Enabling SMBus device\n");
++		temp |= SMBHSTCFG_HST_EN;
++	}
++	pci_write_config_byte(I801_dev, SMBHSTCFG, temp);
++
++	if (temp & SMBHSTCFG_SMB_SMI_EN)
++		dev_dbg(&dev->dev, "SMBus using interrupt SMI#\n");
++	else
++		dev_dbg(&dev->dev, "SMBus using PCI Interrupt\n");
  
  	/* set up the driverfs linkage to our parent device */
  	i801_adapter.dev.parent = &dev->dev;
+ 
+ 	snprintf(i801_adapter.name, I2C_NAME_SIZE,
+ 		"SMBus I801 adapter at %04lx", i801_smba);
+-	return i2c_add_adapter(&i801_adapter);
++	err = i2c_add_adapter(&i801_adapter);
++	if (err) {
++		dev_err(&dev->dev, "Failed to add SMBus adapter\n");
++		goto exit_disable;
++	}
++
++exit_disable:
++	pci_disable_device(dev);
++exit:
++	return err;
+ }
+ 
+ static void __devexit i801_remove(struct pci_dev *dev)
 
 -- 
 Jean Delvare
