@@ -1,65 +1,101 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:27:38 +0000
-Subject: [lm-sensors] [PATCH 12/44] [PATCH] I2C: i2c-piix4: Document the IBM
-Message-Id: <11510009303684-git-send-email-greg@kroah.com>
+From: gregkh@suse.de (gregkh at suse.de)
+Date: Fri, 16 Jun 2006 22:49:11 +0000
+Subject: [lm-sensors] patch i2c-scx200_acb-mark-scx200_acb_probe-init.patch
+Message-Id: <20060616225219.AF5FD7598B5@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+
+This is a note to let you know that I've just added the patch titled
+
+     Subject: [PATCH 04/14] scx200_acb: Mark scx200_acb_probe __init
+
+to my gregkh-2.6 tree.  Its filename is
+
+     i2c-scx200_acb-mark-scx200_acb_probe-init.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+
+
+From khali at linux-fr.org Mon Jun 12 12:46:10 2006
+Date: Mon, 12 Jun 2006 21:46:04 +0200
 From: Jean Delvare <khali at linux-fr.org>
+To: Greg KH <greg at kroah.com>
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, Jordan Crouse <jordan.crouse at amd.com>
+Subject: [PATCH 04/14] scx200_acb: Mark scx200_acb_probe __init
+Message-Id: <20060612214604.3050e740.khali at linux-fr.org>
+Content-Disposition: inline; filename=i2c-scx200_acb-mark-scx200_acb_probe-init.patch
 
-Properly document on which systems the i2c-piix4 SMBus driver will
-refuse to load. Hopefully this will make it clearer for users, which
-were often wondering why their destop or server systems were detected
-as laptops.
-
-Closes bug #6429.
+In i2c bus driver scx200_acb, function scx200_acb_probe can be
+tagged __init.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
----
- Documentation/i2c/busses/i2c-piix4 |   14 ++++++++++++++
- drivers/i2c/busses/i2c-piix4.c     |    2 +-
- 2 files changed, 15 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/i2c/busses/i2c-piix4 b/Documentation/i2c/busses/i2c-piix4
-index a706ae6..9214763 100644
---- a/Documentation/i2c/busses/i2c-piix4
-+++ b/Documentation/i2c/busses/i2c-piix4
-@@ -82,3 +82,17 @@ the SMI mode.
+--- linux-2.6.17-rc6.orig/drivers/i2c/busses/scx200_acb.c	2006-06-11 14:51:21.000000000 +0200
++++ linux-2.6.17-rc6/drivers/i2c/busses/scx200_acb.c	2006-06-11 14:54:02.000000000 +0200
+@@ -384,7 +384,7 @@
+ static struct scx200_acb_iface *scx200_acb_list;
+ static DECLARE_MUTEX(scx200_acb_list_mutex);
  
- Please note that you don't need to do that in all cases, just when the SMBus is
- not working properly.
-+
-+
-+Hardware-specific issues
-+------------------------
-+
-+This driver will refuse to load on IBM systems with an Intel PIIX4 SMBus.
-+Some of these machines have an RFID EEPROM (24RF08) connected to the SMBus,
-+which can easily get corrupted due to a state machine bug. These are mostly
-+Thinkpad laptops, but desktop systems may also be affected. We have no list
-+of all affected systems, so the only safe solution was to prevent access to
-+the SMBus on all IBM systems (detected using DMI data.)
-+
-+For additional information, read:
-+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/README.thinkpad
-diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
-index 05af7b0..8f2f65b 100644
---- a/drivers/i2c/busses/i2c-piix4.c
-+++ b/drivers/i2c/busses/i2c-piix4.c
-@@ -130,7 +130,7 @@ static int __devinit piix4_setup(struct 
- 	/* Don't access SMBus on IBM systems which get corrupted eeproms */
- 	if (dmi_check_system(piix4_dmi_table) &&
- 			PIIX4_dev->vendor = PCI_VENDOR_ID_INTEL) {
--		dev_err(&PIIX4_dev->dev, "IBM Laptop detected; this module "
-+		dev_err(&PIIX4_dev->dev, "IBM system detected; this module "
- 			"may corrupt your serial eeprom! Refusing to load "
- 			"module!\n");
- 		return -EPERM;
--- 
-1.4.0
+-static int scx200_acb_probe(struct scx200_acb_iface *iface)
++static __init int scx200_acb_probe(struct scx200_acb_iface *iface)
+ {
+ 	u8 val;
+ 
 
+-- 
+Jean Delvare
+
+
+
+Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
+
+i2c/hwmon-f71805f-no-global-resource.patch
+i2c/hwmon-lm83-add-lm82-support.patch
+i2c/hwmon-smsc47m192-new-driver.patch
+i2c/hwmon-sysfs-interface-individual-alarm-files.patch
+i2c/hwmon-w83627ehf-add-alarms.patch
+i2c/hwmon-w83627ehf-add-voltages.patch
+i2c/i2c-piix4-add-ati-smbus-support.patch
+i2c/rtc-add-support-for-m41t81-m41t85-chips-to-m41t00-driver.patch
+i2c/hwmon-hdaps-update-id-list.patch
+i2c/rtc-m41t00-driver-cleanup.patch
+i2c/i2c-nforce2-add-mcp51-mcp55-support.patch
+i2c/i2c-piix4-fix-typo-in-documentation.patch
+i2c/i2c-piix4-improve-ibm-error-message.patch
+i2c/i2c-piix4-remove-fix_hstcfg-parameter.patch
+i2c/hwmon-improve-Kconfig-help.patch
+i2c/hwmon-lm83-documentation-update.patch
+i2c/hwmon-vid-mask-per-vrm.patch
+i2c/hwmon-w83791d-new-driver.patch
+i2c/hwmon-abituguru-fixes.patch
+i2c/hwmon-abituguru-new-driver.patch
+i2c/hwmon-abituguru-nofans-detect-fix.patch
+i2c/hwmon-hdaps-typo.patch
+i2c/hwmon-maintenance-update.patch
+i2c/hwmon-sysfs-interface-update-1.patch
+i2c/hwmon-sysfs-interface-update-2.patch
+i2c/hwmon-w83792d-add-data-lock.patch
+i2c/hwmon-w83792d-pwm-set-fix.patch
+i2c/i2c-Kconfig-suggest-N-for-rare-devices.patch
+i2c/i2c-opencores-new-driver.patch
+i2c/hwmon-kconfig-header-fix.patch
+i2c/hwmon-lm70-new-driver.patch
+i2c/hwmon-vid-add-core-and-conroe-support.patch
+i2c/i2c-i801-01-fix-block-transaction-poll-loops.patch
+i2c/i2c-i801-02-remove-force_addr-parameter.patch
+i2c/i2c-i801-03-remove-pci-function-check.patch
+i2c/i2c-i801-04-cleanups.patch
+i2c/i2c-i801-05-better-pci-subsystem-integration.patch
+i2c/i2c-i801-06-merge-setup-function.patch
+i2c/i2c-mark-data-const-for-write-block.patch
+i2c/i2c-opencores-cleanup.patch
+i2c/i2c-scx200_acb-documentation-update.patch
+i2c/i2c-scx200_acb-mark-scx200_acb_probe-init.patch
+i2c/i2c-scx200_acb-use-PCI-IO-resource-when-appropriate.patch
 
