@@ -1,7 +1,7 @@
 From: gregkh@suse.de (gregkh at suse.de)
-Date: Fri, 16 Jun 2006 22:48:43 +0000
+Date: Fri, 16 Jun 2006 22:49:36 +0000
 Subject: [lm-sensors] patch
-Message-Id: <20060616225136.A81BA758119@imap.suse.de>
+Message-Id: <20060616225231.22B1175990C@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060502054527.8533748769D@imap.suse.de>
 In-Reply-To: <20060502054527.8533748769D@imap.suse.de>
@@ -13,176 +13,325 @@ To: lm-sensors@vger.kernel.org
 
 This is a note to let you know that I've just added the patch titled
 
-     Subject: [PATCH 10/14] i2c-i801: Better pci subsystem integration
+     Subject: [PATCH 03/14] scx200_acb: Use PCI I/O resource when appropriate
 
 to my gregkh-2.6 tree.  Its filename is
 
-     i2c-i801-05-better-pci-subsystem-integration.patch
+     i2c-scx200_acb-use-PCI-IO-resource-when-appropriate.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-From khali at linux-fr.org Mon Jun 12 12:53:08 2006
-Date: Mon, 12 Jun 2006 21:53:02 +0200
-From: Jean Delvare <khali at linux-fr.org>
+From khali at linux-fr.org Mon Jun 12 12:44:31 2006
+Date: Mon, 12 Jun 2006 21:44:28 +0200
+From: Jordan Crouse <jordan.crouse at amd.com>
 To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>
-Subject: [PATCH 10/14] i2c-i801: Better pci subsystem integration
-Message-Id: <20060612215302.3540ed7b.khali at linux-fr.org>
-Content-Disposition: inline; filename=i2c-i801-05-better-pci-subsystem-integration.patch
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, Jordan Crouse <jordan.crouse at amd.com>
+Subject: [PATCH 03/14] scx200_acb: Use PCI I/O resource when appropriate
+Message-Id: <20060612214428.f1a2c46b.khali at linux-fr.org>
+Content-Disposition: inline; filename=i2c-scx200_acb-use-PCI-IO-resource-when-appropriate.patch
 
-i2c-i801: Better pci subsystem integration
+From: Jordan Crouse <jordan.crouse at amd.com>
 
-Integrate the i2c-i801 driver better with the pci subsystem, by
-calling pci_{enable,disable}_device and requesting the I/O region
-by BAR rather than direct configuration space access.
+On the CS5535 and CS5536, the I/O resource is allocated through PCI,
+so use that instead of using the MSR backdoor.
 
+Signed-off-by: Jordan Crouse <jordan.crouse at amd.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
---- linux-2.6.17-rc6.orig/drivers/i2c/busses/i2c-i801.c	2006-06-08 14:41:14.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/i2c/busses/i2c-i801.c	2006-06-08 15:03:13.000000000 +0200
-@@ -66,7 +66,7 @@
- #define SMBAUXCTL	(13 + i801_smba)	/* ICH4 only */
+--- linux-2.6.17-rc6.orig/drivers/i2c/busses/scx200_acb.c	2006-06-11 13:49:21.000000000 +0200
++++ linux-2.6.17-rc6/drivers/i2c/busses/scx200_acb.c	2006-06-11 14:51:21.000000000 +0200
+@@ -33,7 +33,6 @@
+ #include <linux/delay.h>
+ #include <linux/mutex.h>
+ #include <asm/io.h>
+-#include <asm/msr.h>
  
- /* PCI Address Constants */
--#define SMBBA		0x020
-+#define SMBBAR		4
- #define SMBHSTCFG	0x040
- #define SMBREV		0x008
+ #include <linux/scx200.h>
  
-@@ -97,7 +97,7 @@
- static int i801_block_transaction(union i2c_smbus_data *data, char read_write,
- 				  int command, int hwpec);
- 
--static unsigned short i801_smba;
-+static unsigned long i801_smba;
- static struct pci_driver i801_driver;
- static struct pci_dev *I801_dev;
- static int isich4;
-@@ -105,6 +105,7 @@
- static int __devinit i801_setup(struct pci_dev *dev)
- {
- 	unsigned char temp;
-+	int err;
- 
- 	I801_dev = dev;
- 	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
-@@ -114,19 +115,28 @@
- 	else
- 		isich4 = 0;
- 
-+	err = pci_enable_device(dev);
-+	if (err) {
-+		dev_err(&dev->dev, "Failed to enable SMBus device (%d)\n",
-+			err);
-+		goto exit;
-+	}
+@@ -85,6 +84,10 @@
+ 	u8 *ptr;
+ 	char needs_reset;
+ 	unsigned len;
 +
- 	/* Determine the address of the SMBus area */
--	pci_read_config_word(I801_dev, SMBBA, &i801_smba);
--	i801_smba &= 0xfff0;
-+	i801_smba = pci_resource_start(dev, SMBBAR);
- 	if (!i801_smba) {
- 		dev_err(&dev->dev, "SMBus base address uninitialized, "
- 			"upgrade BIOS\n");
--		return -ENODEV;
-+		err = -ENODEV;
-+		goto exit_disable;
++	/* PCI device info */
++	struct pci_dev *pdev;
++	int bar;
+ };
+ 
+ /* Register Definitions */
+@@ -417,17 +420,16 @@
+ 	return 0;
+ }
+ 
+-static int  __init scx200_acb_create(const char *text, int base, int index)
++static __init struct scx200_acb_iface *scx200_create_iface(const char *text,
++		int index)
+ {
+ 	struct scx200_acb_iface *iface;
+ 	struct i2c_adapter *adapter;
+-	int rc;
+ 
+ 	iface = kzalloc(sizeof(*iface), GFP_KERNEL);
+ 	if (!iface) {
+ 		printk(KERN_ERR NAME ": can't allocate memory\n");
+-		rc = -ENOMEM;
+-		goto errout;
++		return NULL;
  	}
  
--	if (!request_region(i801_smba, (isich4 ? 16 : 8), i801_driver.name)) {
--		dev_err(&dev->dev, "I801_smb region 0x%x already in use!\n",
--			i801_smba);
--		return -EBUSY;
-+	err = pci_request_region(dev, SMBBAR, i801_driver.name);
-+	if (err) {
-+		dev_err(&dev->dev, "Failed to request SMBus region "
-+			"0x%lx-0x%lx\n", i801_smba,
-+			pci_resource_end(dev, SMBBAR));
-+		goto exit_disable;
+ 	adapter = &iface->adapter;
+@@ -440,26 +442,27 @@
+ 
+ 	mutex_init(&iface->mutex);
+ 
+-	if (!request_region(base, 8, adapter->name)) {
+-		printk(KERN_ERR NAME ": can't allocate io 0x%x-0x%x\n",
+-			base, base + 8-1);
+-		rc = -EBUSY;
+-		goto errout_free;
+-	}
+-	iface->base = base;
++	return iface;
++}
++
++static int __init scx200_acb_create(struct scx200_acb_iface *iface)
++{
++	struct i2c_adapter *adapter;
++	int rc;
++
++	adapter = &iface->adapter;
+ 
+ 	rc = scx200_acb_probe(iface);
+ 	if (rc) {
+ 		printk(KERN_WARNING NAME ": probe failed\n");
+-		goto errout_release;
++		return rc;
  	}
  
- 	pci_read_config_byte(I801_dev, SMBHSTCFG, &temp);
-@@ -147,6 +157,11 @@
- 	dev_dbg(&dev->dev, "I801_smba = 0x%X\n", i801_smba);
+ 	scx200_acb_reset(iface);
+ 
+ 	if (i2c_add_adapter(adapter) < 0) {
+ 		printk(KERN_ERR NAME ": failed to register\n");
+-		rc = -ENODEV;
+-		goto errout_release;
++		return -ENODEV;
+ 	}
+ 
+ 	down(&scx200_acb_list_mutex);
+@@ -468,64 +471,148 @@
+ 	up(&scx200_acb_list_mutex);
  
  	return 0;
++}
+ 
+- errout_release:
+-	release_region(iface->base, 8);
++static __init int scx200_create_pci(const char *text, struct pci_dev *pdev,
++		int bar)
++{
++	struct scx200_acb_iface *iface;
++	int rc;
 +
-+exit_disable:
-+	pci_disable_device(dev);
-+exit:
-+	return err;
++	iface = scx200_create_iface(text, 0);
++
++	if (iface = NULL)
++		return -ENOMEM;
++
++	iface->pdev = pdev;
++	iface->bar = bar;
++
++	pci_enable_device_bars(iface->pdev, 1 << iface->bar);
++
++	rc = pci_request_region(iface->pdev, iface->bar, iface->adapter.name);
++
++	if (rc != 0) {
++		printk(KERN_ERR NAME ": can't allocate PCI BAR %d\n",
++				iface->bar);
++		goto errout_free;
++	}
++
++	iface->base = pci_resource_start(iface->pdev, iface->bar);
++	rc = scx200_acb_create(iface);
++
++	if (rc = 0)
++		return 0;
++
++	pci_release_region(iface->pdev, iface->bar);
++	pci_dev_put(iface->pdev);
+  errout_free:
+ 	kfree(iface);
+- errout:
+ 	return rc;
  }
  
- static int i801_transaction(void)
-@@ -521,14 +536,15 @@
- 	i801_adapter.dev.parent = &dev->dev;
+-static struct pci_device_id scx200[] = {
+-	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SCx200_BRIDGE) },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SC1100_BRIDGE) },
+-	{ },
+-};
++static int __init scx200_create_isa(const char *text, unsigned long base,
++		int index)
++{
++	struct scx200_acb_iface *iface;
++	int rc;
++
++	iface = scx200_create_iface(text, index);
++
++	if (iface = NULL)
++		return -ENOMEM;
++
++	if (request_region(base, 8, iface->adapter.name) = 0) {
++		printk(KERN_ERR NAME ": can't allocate io 0x%lx-0x%lx\n",
++		       base, base + 8 - 1);
++		rc = -EBUSY;
++		goto errout_free;
++	}
++
++	iface->base = base;
++	rc = scx200_acb_create(iface);
++
++	if (rc = 0)
++		return 0;
  
- 	snprintf(i801_adapter.name, I2C_NAME_SIZE,
--		"SMBus I801 adapter at %04x", i801_smba);
-+		"SMBus I801 adapter at %04lx", i801_smba);
- 	return i2c_add_adapter(&i801_adapter);
- }
+-static struct pci_device_id divil_pci[] = {
+-	{ PCI_DEVICE(PCI_VENDOR_ID_NS,  PCI_DEVICE_ID_NS_CS5535_ISA) },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
+-	{ } /* NULL entry */
++	release_region(base, 8);
++ errout_free:
++	kfree(iface);
++	return rc;
++}
++
++/* Driver data is an index into the scx200_data array that indicates
++ * the name and the BAR where the I/O address resource is located.  ISA
++ * devices are flagged with a bar value of -1 */
++
++static struct pci_device_id scx200_pci[] = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SCx200_BRIDGE),
++	  .driver_data = 0 },
++	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SC1100_BRIDGE),
++	  .driver_data = 0 },
++	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_CS5535_ISA),
++	  .driver_data = 1 },
++	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA),
++	  .driver_data = 2 }
+ };
  
- static void __devexit i801_remove(struct pci_dev *dev)
+-#define MSR_LBAR_SMB		0x5140000B
++static struct {
++	const char *name;
++	int bar;
++} scx200_data[] = {
++	{ "SCx200", -1 },
++	{ "CS5535",  0 },
++	{ "CS5536",  0 }
++};
+ 
+-static __init int scx200_add_cs553x(void)
++static __init int scx200_scan_pci(void)
  {
- 	i2c_del_adapter(&i801_adapter);
--	release_region(i801_smba, (isich4 ? 16 : 8));
-+	pci_release_region(dev, SMBBAR);
-+	pci_disable_device(dev);
+-	u32	low, hi;
+-	u32	smb_base;
+-
+-	/* Grab & reserve the SMB I/O range */
+-	rdmsr(MSR_LBAR_SMB, low, hi);
++	int data, dev;
++	int rc = -ENODEV;
++	struct pci_dev *pdev;
++
++	for(dev = 0; dev < ARRAY_SIZE(scx200_pci); dev++) {
++		pdev = pci_get_device(scx200_pci[dev].vendor,
++				scx200_pci[dev].device, NULL);
++
++		if (pdev = NULL)
++			continue;
++
++		data = scx200_pci[dev].driver_data;
++
++		/* if .bar is greater or equal to zero, this is a
++		 * PCI device - otherwise, we assume
++		   that the ports are ISA based
++		*/
++
++		if (scx200_data[data].bar >= 0)
++			rc = scx200_create_pci(scx200_data[data].name, pdev,
++					scx200_data[data].bar);
++		else {
++			int i;
++
++			for (i = 0; i < MAX_DEVICES; ++i) {
++				if (base[i] = 0)
++					continue;
++
++				rc = scx200_create_isa(scx200_data[data].name,
++						base[i],
++						i);
++			}
++		}
+ 
+-	/* Check the IO mask and whether SMB is enabled */
+-	if (hi != 0x0000F001) {
+-		printk(KERN_WARNING NAME ": SMBus not enabled\n");
+-		return -ENODEV;
++		break;
+ 	}
+ 
+-	/* SMBus IO size is 8 bytes */
+-	smb_base = low & 0x0000FFF8;
+-
+-	return scx200_acb_create("CS5535", smb_base, 0);
++	return rc;
  }
  
- static struct pci_driver i801_driver = {
+ static int __init scx200_acb_init(void)
+ {
+-	int i;
+-	int	rc = -ENODEV;
++	int rc;
+ 
+ 	pr_debug(NAME ": NatSemi SCx200 ACCESS.bus Driver\n");
+ 
+-	/* Verify that this really is a SCx200 processor */
+-	if (pci_dev_present(scx200)) {
+-		for (i = 0; i < MAX_DEVICES; ++i) {
+-			if (base[i] > 0)
+-				rc = scx200_acb_create("SCx200", base[i], i);
+-		}
+-	} else if (pci_dev_present(divil_pci))
+-		rc = scx200_add_cs553x();
++	rc = scx200_scan_pci();
+ 
+ 	/* If at least one bus was created, init must succeed */
+ 	if (scx200_acb_list)
+@@ -543,7 +630,14 @@
+ 		up(&scx200_acb_list_mutex);
+ 
+ 		i2c_del_adapter(&iface->adapter);
+-		release_region(iface->base, 8);
++
++		if (iface->pdev) {
++			pci_release_region(iface->pdev, iface->bar);
++			pci_dev_put(iface->pdev);
++		}
++		else
++			release_region(iface->base, 8);
++
+ 		kfree(iface);
+ 		down(&scx200_acb_list_mutex);
+ 	}
 
 -- 
 Jean Delvare
 
 
 
-Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
+Patches currently in gregkh-2.6 which might be from jordan.crouse at amd.com are
 
-i2c/hwmon-f71805f-no-global-resource.patch
 i2c/hwmon-lm83-add-lm82-support.patch
-i2c/hwmon-smsc47m192-new-driver.patch
-i2c/hwmon-sysfs-interface-individual-alarm-files.patch
-i2c/hwmon-w83627ehf-add-alarms.patch
-i2c/hwmon-w83627ehf-add-voltages.patch
-i2c/i2c-piix4-add-ati-smbus-support.patch
-i2c/rtc-add-support-for-m41t81-m41t85-chips-to-m41t00-driver.patch
-i2c/hwmon-hdaps-update-id-list.patch
-i2c/rtc-m41t00-driver-cleanup.patch
-i2c/i2c-nforce2-add-mcp51-mcp55-support.patch
-i2c/i2c-piix4-fix-typo-in-documentation.patch
-i2c/i2c-piix4-improve-ibm-error-message.patch
-i2c/i2c-piix4-remove-fix_hstcfg-parameter.patch
-i2c/hwmon-improve-Kconfig-help.patch
-i2c/hwmon-lm83-documentation-update.patch
-i2c/hwmon-vid-mask-per-vrm.patch
-i2c/hwmon-w83791d-new-driver.patch
-i2c/hwmon-abituguru-fixes.patch
-i2c/hwmon-abituguru-new-driver.patch
-i2c/hwmon-abituguru-nofans-detect-fix.patch
-i2c/hwmon-hdaps-typo.patch
-i2c/hwmon-maintenance-update.patch
-i2c/hwmon-sysfs-interface-update-1.patch
-i2c/hwmon-sysfs-interface-update-2.patch
-i2c/hwmon-w83792d-add-data-lock.patch
-i2c/hwmon-w83792d-pwm-set-fix.patch
-i2c/i2c-Kconfig-suggest-N-for-rare-devices.patch
-i2c/i2c-opencores-new-driver.patch
-i2c/hwmon-kconfig-header-fix.patch
-i2c/hwmon-lm70-new-driver.patch
-i2c/hwmon-vid-add-core-and-conroe-support.patch
-i2c/i2c-i801-01-fix-block-transaction-poll-loops.patch
-i2c/i2c-i801-02-remove-force_addr-parameter.patch
-i2c/i2c-i801-03-remove-pci-function-check.patch
-i2c/i2c-i801-04-cleanups.patch
-i2c/i2c-i801-05-better-pci-subsystem-integration.patch
-i2c/i2c-i801-06-merge-setup-function.patch
-i2c/i2c-mark-data-const-for-write-block.patch
-i2c/i2c-opencores-cleanup.patch
 i2c/i2c-scx200_acb-documentation-update.patch
 i2c/i2c-scx200_acb-mark-scx200_acb_probe-init.patch
 i2c/i2c-scx200_acb-use-PCI-IO-resource-when-appropriate.patch
