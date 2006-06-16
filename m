@@ -1,7 +1,7 @@
 From: gregkh@suse.de (gregkh at suse.de)
-Date: Fri, 16 Jun 2006 22:48:14 +0000
+Date: Fri, 16 Jun 2006 22:48:43 +0000
 Subject: [lm-sensors] patch
-Message-Id: <20060616225108.399C375989A@imap.suse.de>
+Message-Id: <20060616225136.A81BA758119@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060502054527.8533748769D@imap.suse.de>
 In-Reply-To: <20060502054527.8533748769D@imap.suse.de>
@@ -13,57 +13,128 @@ To: lm-sensors@vger.kernel.org
 
 This is a note to let you know that I've just added the patch titled
 
-     Subject: [PATCH 06/14] i2c-i801: Fix block transaction poll loops
+     Subject: [PATCH 10/14] i2c-i801: Better pci subsystem integration
 
 to my gregkh-2.6 tree.  Its filename is
 
-     i2c-i801-01-fix-block-transaction-poll-loops.patch
+     i2c-i801-05-better-pci-subsystem-integration.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-From khali at linux-fr.org Mon Jun 12 12:49:39 2006
-Date: Mon, 12 Jun 2006 21:49:36 +0200
+From khali at linux-fr.org Mon Jun 12 12:53:08 2006
+Date: Mon, 12 Jun 2006 21:53:02 +0200
 From: Jean Delvare <khali at linux-fr.org>
 To: Greg KH <greg at kroah.com>
 Cc: LM Sensors <lm-sensors at lm-sensors.org>
-Subject: [PATCH 06/14] i2c-i801: Fix block transaction poll loops
-Message-Id: <20060612214936.d81fd1b9.khali at linux-fr.org>
-Content-Disposition: inline; filename=i2c-i801-01-fix-block-transaction-poll-loops.patch
+Subject: [PATCH 10/14] i2c-i801: Better pci subsystem integration
+Message-Id: <20060612215302.3540ed7b.khali at linux-fr.org>
+Content-Disposition: inline; filename=i2c-i801-05-better-pci-subsystem-integration.patch
 
-i2c-i801: Fix block transaction poll loops
+i2c-i801: Better pci subsystem integration
 
-Two of the three poll loops have the poll and sleep swapped,
-causing an extra sleep to occur after the polled condition is
-fulfilled. In practice, this doubles the amount of sleep time for
-every block transaction.
+Integrate the i2c-i801 driver better with the pci subsystem, by
+calling pci_{enable,disable}_device and requesting the I/O region
+by BAR rather than direct configuration space access.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
---- linux-2.6.17-rc6.orig/drivers/i2c/busses/i2c-i801.c	2006-06-07 17:59:52.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/i2c/busses/i2c-i801.c	2006-06-08 13:25:36.000000000 +0200
-@@ -334,8 +334,8 @@
- 		/* We will always wait for a fraction of a second! */
- 		timeout = 0;
- 		do {
--			temp = inb_p(SMBHSTSTS);
- 			msleep(1);
-+			temp = inb_p(SMBHSTSTS);
- 		}
- 		    while ((!(temp & 0x80))
- 			   && (timeout++ < MAX_TIMEOUT));
-@@ -393,8 +393,8 @@
- 		/* wait for INTR bit as advised by Intel */
- 		timeout = 0;
- 		do {
--			temp = inb_p(SMBHSTSTS);
- 			msleep(1);
-+			temp = inb_p(SMBHSTSTS);
- 		} while ((!(temp & 0x02))
- 			   && (timeout++ < MAX_TIMEOUT));
+--- linux-2.6.17-rc6.orig/drivers/i2c/busses/i2c-i801.c	2006-06-08 14:41:14.000000000 +0200
++++ linux-2.6.17-rc6/drivers/i2c/busses/i2c-i801.c	2006-06-08 15:03:13.000000000 +0200
+@@ -66,7 +66,7 @@
+ #define SMBAUXCTL	(13 + i801_smba)	/* ICH4 only */
  
+ /* PCI Address Constants */
+-#define SMBBA		0x020
++#define SMBBAR		4
+ #define SMBHSTCFG	0x040
+ #define SMBREV		0x008
+ 
+@@ -97,7 +97,7 @@
+ static int i801_block_transaction(union i2c_smbus_data *data, char read_write,
+ 				  int command, int hwpec);
+ 
+-static unsigned short i801_smba;
++static unsigned long i801_smba;
+ static struct pci_driver i801_driver;
+ static struct pci_dev *I801_dev;
+ static int isich4;
+@@ -105,6 +105,7 @@
+ static int __devinit i801_setup(struct pci_dev *dev)
+ {
+ 	unsigned char temp;
++	int err;
+ 
+ 	I801_dev = dev;
+ 	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
+@@ -114,19 +115,28 @@
+ 	else
+ 		isich4 = 0;
+ 
++	err = pci_enable_device(dev);
++	if (err) {
++		dev_err(&dev->dev, "Failed to enable SMBus device (%d)\n",
++			err);
++		goto exit;
++	}
++
+ 	/* Determine the address of the SMBus area */
+-	pci_read_config_word(I801_dev, SMBBA, &i801_smba);
+-	i801_smba &= 0xfff0;
++	i801_smba = pci_resource_start(dev, SMBBAR);
+ 	if (!i801_smba) {
+ 		dev_err(&dev->dev, "SMBus base address uninitialized, "
+ 			"upgrade BIOS\n");
+-		return -ENODEV;
++		err = -ENODEV;
++		goto exit_disable;
+ 	}
+ 
+-	if (!request_region(i801_smba, (isich4 ? 16 : 8), i801_driver.name)) {
+-		dev_err(&dev->dev, "I801_smb region 0x%x already in use!\n",
+-			i801_smba);
+-		return -EBUSY;
++	err = pci_request_region(dev, SMBBAR, i801_driver.name);
++	if (err) {
++		dev_err(&dev->dev, "Failed to request SMBus region "
++			"0x%lx-0x%lx\n", i801_smba,
++			pci_resource_end(dev, SMBBAR));
++		goto exit_disable;
+ 	}
+ 
+ 	pci_read_config_byte(I801_dev, SMBHSTCFG, &temp);
+@@ -147,6 +157,11 @@
+ 	dev_dbg(&dev->dev, "I801_smba = 0x%X\n", i801_smba);
+ 
+ 	return 0;
++
++exit_disable:
++	pci_disable_device(dev);
++exit:
++	return err;
+ }
+ 
+ static int i801_transaction(void)
+@@ -521,14 +536,15 @@
+ 	i801_adapter.dev.parent = &dev->dev;
+ 
+ 	snprintf(i801_adapter.name, I2C_NAME_SIZE,
+-		"SMBus I801 adapter at %04x", i801_smba);
++		"SMBus I801 adapter at %04lx", i801_smba);
+ 	return i2c_add_adapter(&i801_adapter);
+ }
+ 
+ static void __devexit i801_remove(struct pci_dev *dev)
+ {
+ 	i2c_del_adapter(&i801_adapter);
+-	release_region(i801_smba, (isich4 ? 16 : 8));
++	pci_release_region(dev, SMBBAR);
++	pci_disable_device(dev);
+ }
+ 
+ static struct pci_driver i801_driver = {
 
 -- 
 Jean Delvare
