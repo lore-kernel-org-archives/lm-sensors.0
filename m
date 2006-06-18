@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 18 Jun 2006 17:02:30 +0000
+From: gimeshell@web.de (gimeshell at web.de)
+Date: Sun, 18 Jun 2006 18:11:11 +0000
 Subject: [lm-sensors] better temp2 computation for asus CUSL2C
-Message-Id: <20060618190230.880689ff.khali@linux-fr.org>
+Message-Id: <20060618201111.c4f9a4ff.gimeshell@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060618021736.f08a39bb.gimeshell@web.de>
 In-Reply-To: <20060618021736.f08a39bb.gimeshell@web.de>
@@ -10,36 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi (no name),
+On Sun, 18 Jun 2006 19:02:30 +0200
+Jean Delvare <khali at linux-fr.org> wrote:
 
-> > http://www.lm-sensors.org/wiki/FAQ/Chapter3#MyBIOSreportsamuchhigherCPUtemperaturethanyourmodules
-> > (In particular the last paragraph.)
+Hi,
+
+> Actually my point was that there is probably nothing to correct.
+
+my BIOS does have such an idle loop, too.
+Temperature is increasing from about 35 degrees immidiately after
+entering BIOS up to 46 degrees met after a few minutes.
+Looking at sensors output while linux is idle, i get shown about 30
+degrees with sensors default computation line for asus CUSL.
+
 > 
-> Yes that's it!
-> Now what would be better way to correct this?
-
-Actually my point was that there is probably nothing to correct.
-
->                                                Is there any difference
-> between both ways?
+> We use the formula which gives the best result for the applicable
+> range of temperatures. There's little point in having a slighly more
+> simple equation if it gives less accurate results.
 > 
-> a) multiply @ with bigger factor eg 31 instead of 30
-> compute temp2 (@*31/43)+25, ...
-> 
-> b) adding bigger factor, eg 31 instead of 25 to @.
-> compute temp2 (@*30/43)+31, ...
 
-How are we supposed to guess? We would need many data points to decide
-which is best, and you did provide only one (which may not even be
-correct.)
+But what's the mathematic principle behind this method (first
+to multiply with value, then to add another value)?
+Isn't the bottom line outcome the same if only adding fixed value
+instead of first to multiply and after that to add another value?
 
-> Why isn't compute line so easy to only add ONE value to @. No
-> multiplikation anymore. Only addition. Is this a practical thought?
-
-We use the formula which gives the best result for the applicable range
-of temperatures. There's little point in having a slighly more simple
-equation if it gives less accurate results.
-
--- 
-Jean Delvare
+regards,
+gimshell
 
