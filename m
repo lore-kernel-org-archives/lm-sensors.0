@@ -1,156 +1,205 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 05 Jun 2006 18:31:20 +0000
-Subject: [lm-sensors] [PATCH 04/11] hwmon: Sysfs interface documentation
-Message-Id: <20060605203120.b865347e.khali@linux-fr.org>
+From: Lou@ParisiHome.net (Lou Parisi)
+Date: Sun, 18 Jun 2006 05:13:28 +0000
+Subject: [lm-sensors] CPU Temp on ECS NFORCE3-A939
+Message-Id: <000f01c69295$f481af80$7001a8c0@parisi02>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060604200919.0f92b0e6.khali@linux-fr.org>
-In-Reply-To: <20060604200919.0f92b0e6.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jim Cromie wrote:
-> caught these spelling errs in passing.
-> trivial enough for no-sig.
+I am running CentOS 4 (uname ?r 2.6.9-34.0.1.EL) with an ECS NFORCE3-939 MB
+and AMD Athlon64 3000+ processor
 
-Thanks for catching these, Jim. They were there before my patch
-actually, but let's still fix them while we're here.
-
-Greg, here is an updated patch, please pick this one instead of the
-original 04/11 patch, thanks.
-
-Content-Disposition: inline; filename=hwmon-sysfs-interface-update-2.patch
-
-Reword and complete certain parts of the hwmon sysfs-interface
-documentation file. Hopefully this will make things clearer for new
-driver authors.
-
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- Documentation/hwmon/sysfs-interface |   45 +++++++++++++++++++++++------------
- 1 file changed, 29 insertions(+), 16 deletions(-)
-
---- linux-2.6.17-rc5.orig/Documentation/hwmon/sysfs-interface	2006-06-05 19:15:39.000000000 +0200
-+++ linux-2.6.17-rc5/Documentation/hwmon/sysfs-interface	2006-06-05 20:25:03.000000000 +0200
-@@ -3,15 +3,15 @@
- 
- The libsensors library offers an interface to the raw sensors data
- through the sysfs interface. See libsensors documentation and source for
--more further information. As of writing this document, libsensors
--(from lm_sensors 2.8.3) is heavily chip-dependant. Adding or updating
-+further information. As of writing this document, libsensors
-+(from lm_sensors 2.8.3) is heavily chip-dependent. Adding or updating
- support for any given chip requires modifying the library's code.
- This is because libsensors was written for the procfs interface
- older kernel modules were using, which wasn't standardized enough.
- Recent versions of libsensors (from lm_sensors 2.8.2 and later) have
- support for the sysfs interface, though.
- 
--The new sysfs interface was designed to be as chip-independant as
-+The new sysfs interface was designed to be as chip-independent as
- possible.
- 
- Note that motherboards vary widely in the connections to sensor chips.
-@@ -24,7 +24,7 @@
- can change from motherboard to motherboard, the conversions cannot be
- hard coded into the driver and have to be done in user space.
- 
--For this reason, even if we aim at a chip-independant libsensors, it will
-+For this reason, even if we aim at a chip-independent libsensors, it will
- still require a configuration file (e.g. /etc/sensors.conf) for proper
- values conversion, labeling of inputs and hiding of unused inputs.
- 
-@@ -39,15 +39,16 @@
- this standard.
- 
- Note that this standard isn't completely established yet, so it is subject
--to changes, even important ones. One more reason to use the library instead
--of accessing sysfs files directly.
-+to changes. If you are writing a new hardware monitoring driver those
-+features can't seem to fit in this interface, please contact us with your
-+extension proposal. Keep in mind that backward compatibility must be
-+preserved.
- 
- Each chip gets its own directory in the sysfs /sys/devices tree.  To
--find all sensor chips, it is easier to follow the symlinks from
--/sys/i2c/devices/
-+find all sensor chips, it is easier to follow the device symlinks from
-+/sys/class/hwmon/hwmon*.
- 
--All sysfs values are fixed point numbers.  To get the true value of some
--of the values, you should divide by the specified value.
-+All sysfs values are fixed point numbers.
- 
- There is only one value per file, unlike the older /proc specification.
- The common scheme for files naming is: <type><number>_<item>. Usual
-@@ -77,6 +78,9 @@
- Read/write values may be read-only for some chips, depending on the
- hardware implementation.
- 
-+All entries are optional, and should only be created in a given driver
-+if the chip has the feature.
-+
- ************
- * Voltages *
- ************
-@@ -213,32 +217,32 @@
- 		Not all types are supported by all chips
- 
- temp[1-*]_max	Temperature max value.
--		Unit: millidegree Celcius
-+		Unit: millidegree Celsius (or millivolt, see below)
- 		RW
- 
- temp[1-*]_min	Temperature min value.
--		Unit: millidegree Celcius
-+		Unit: millidegree Celsius
- 		RW
- 
- temp[1-*]_max_hyst
- 		Temperature hysteresis value for max limit.
--		Unit: millidegree Celcius
-+		Unit: millidegree Celsius
- 		Must be reported as an absolute temperature, NOT a delta
- 		from the max value.
- 		RW
- 
- temp[1-*]_input Temperature input value.
--		Unit: millidegree Celcius
-+		Unit: millidegree Celsius
- 		RO
- 
- temp[1-*]_crit	Temperature critical value, typically greater than
- 		corresponding temp_max values.
--		Unit: millidegree Celcius
-+		Unit: millidegree Celsius
- 		RW
- 
- temp[1-*]_crit_hyst
- 		Temperature hysteresis value for critical limit.
--		Unit: millidegree Celcius
-+		Unit: millidegree Celsius
- 		Must be reported as an absolute temperature, NOT a delta
- 		from the critical value.
- 		RW
-@@ -256,6 +260,15 @@
- 		itself, for example the thermal diode inside the CPU or
- 		a thermistor nearby.
- 
-+Some chips measure temperature using external thermistors and an ADC, and
-+report the temperature measurement as a voltage. Converting this voltage
-+back to a temperature (or the other way around for limits) requires
-+mathematical functions not available in the kernel, so the conversion
-+must occur in user space. For these chips, all temp* files described
-+above should contain values expressed in millivolt instead of millidegree
-+Celsius. In other words, such temperature channels are handled as voltage
-+channels by the driver.
-+
- Also see the Alarms section for status flags associated with temperatures.
- 
  
 
+I am having problems with the CPU temp and core voltage value using
+lm-sensors.
 
--- 
-Jean Delvare
+ 
 
+I first installed lm-sensors using yum (lm_sensors.x86_64  2.8.7-2.40.3).
+After install saw these problems so removed the install and installed 2.10
+from source.  Got error on make for sysfs/libsysfs.h so installed
+sysfsutils-devel using yum (sysfsutils-devel.x86_64  1.2.0-1).  Did make
+clean and then installed successfully. 
+
+ 
+
+After install ran sensor-detect and detected my chip successfully  The
+pertinent output from sensors-detect:
+
+ 
+
+------------------ sensors-detect output start
+-------------------------------
+
+Probing for `ITE 8712F Super IO Sensors'
+
+  Success... found at address 0x0290
+
+ 
+
+To make the sensors modules behave correctly, add these lines to
+
+/etc/modules.conf:
+
+ 
+
+#----cut here----
+
+# I2C module options
+
+alias char-major-89 i2c-dev
+
+#----cut here----
+
+ 
+
+To load everything that is needed, add this to some /etc/rc* file:
+
+ 
+
+#----cut here----
+
+# I2C adapter drivers
+
+modprobe i2c-isa
+
+# I2C chip drivers
+
+modprobe it87
+
+# sleep 2 # optional
+
+/usr/local/bin/sensors -s # recommended
+
+#----cut here----
+
+------------------ sensors-detect output end
+-------------------------------
+
+ 
+
+Edited modprobe.conf to add:
+
+alias char-major-89 i2c-dev
+
+ 
+
+Generated /etc/sysconfig/lm_sensors:
+
+# Generated by sensors-detect on Sat Jun 17 16:02:34 2006
+
+MODULE_0=i2c-isa
+
+MODULE_1=it87
+
+ 
+
+Lsmod:
+
+[root at web etc]# lsmod
+
+Module              Size      Used by
+
+it87                   28393  0
+
+i2c_sensor        4161     1 it87
+
+i2c_isa              2881     0
+
+i2c_core            27841   3 it87,i2c_sensor,i2c_isa
+
+ 
+
+Had to adjust voltages computations for in5 and in6 from a post I found
+regarding a TYAN mb that had the same chip:    
+
+    compute in5 (@ * (1+4.14)) - (4.096*4.14)  ,  (@ + (4.096*4.14)) /
+(1+4.14)
+
+    compute in6 (@ * (1+2.14)) - (4.096*2.14)  ,  (@ + (4.096*2.14)) /
+(1+2.14)
+
+ 
+
+When I run sensors:
+
+[root at web etc]# sensors
+
+it87-isa-0290
+
+Adapter: ISA adapter
+
+CPU VCore: +1.07 V  (min =  +1.28 V, max =  +1.42 V)   ALARM
+
++1.5V:     +1.47 V  (min =  +1.42 V, max =  +1.57 V)
+
++3.3V:     +3.31 V  (min =  +3.14 V, max =  +3.47 V)
+
++5V:       +4.92 V  (min =  +4.76 V, max =  +5.24 V)
+
++12V:     +11.71 V  (min = +11.39 V, max = +12.61 V)
+
+-12V:     -12.11 V  (min = -12.60 V, max = -11.37 V)
+
+-5V:       -4.80 V  (min =  -5.25 V, max =  -4.75 V)
+
+Stdby:     +5.03 V  (min =  +4.76 V, max =  +5.24 V)
+
+VBat:      +2.94 V
+
+CPU Fan:  3245 RPM  (min = 3013 RPM, div = 8)
+
+Case Fan:  981 RPM  (min =  664 RPM, div = 8)
+
+Temp1:        +4??C  (low  =   +15??C, high =   +40??C)   sensor thermistor
+
+Temp2:       +30??C  (low  =   +15??C, high =   +45??C)   sensor thermistor
+
+ 
+
+Everything looks good except the CPU core voltage and CPU temp.  
+
+The bios reads 1.37V for coreV but lm_sensors reads 1.07 consistently.
+
+ 
+
+The bios for temps: MB = 31 and CPU = 52.  Both are pretty consistent in the
+bios.
+
+The CPU temperature in lm_sensors fluctuates between -5 and 50.  I have
+tried using the diode for both temp1 and temp2 and ignoring different
+combinations with no success.  If the temperature was consistent I would
+feel better like a correction factor was needed but it is all over the
+place.  Also the chip designation in sensors.conf is 
+
+chip "it87-*" "it8712-*"
+
+If I have just ?it8712-*? it does not detect the configuration in the
+sensors.conf and uses all defaults.
+
+ 
+
+Can you help me out at all?  The CPU temp was the main thing I am looking
+for.
+
+ 
+
+Thanks for any help you can provide.  I have also sent a support request to
+ECS but don?t really expect too much help from them.
+
+ 
+
+Thank you, Lou Parisi
+
+Lou at parisihome.net
+
+ 
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060618/ff8cb430/attachment-0001.html 
