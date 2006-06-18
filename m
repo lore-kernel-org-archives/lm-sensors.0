@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 18 Jun 2006 15:08:55 +0000
+From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
+Date: Sun, 18 Jun 2006 15:33:18 +0000
 Subject: [lm-sensors] Dedicated mailing list for i2c
-Message-Id: <20060618170855.8e49033c.khali@linux-fr.org>
+Message-Id: <20060618153318.GA16096@2ka.mipt.ru>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060613142005.0d4e4763.khali@linux-fr.org>
 In-Reply-To: <20060613142005.0d4e4763.khali@linux-fr.org>
@@ -10,24 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting myself:
+On Sun, Jun 18, 2006 at 05:08:55PM +0200, Jean Delvare (khali at linux-fr.org) wrote:
+> Evgeniy, I think you should have a separate list for w1, like we plan
+> to do for i2c. We can host the list for you on lm-sensors.org's mailman
+> if you want, or if you prefer you can move to a different place. Your
+> call, just let us know.
 
-> I think it is about time to have a dedicated list for i2c, instead of
-> having a single list for hardware monitoring (sensors) and i2c. There
-> are more and more non-sensors users for the i2c bus (for example
-> media/video adapters, RTC chips) and more different connectivities for
-> sensors (for example SPI) so having a single list makes less and less
-> sense.
+Just drop w1 from lm_sensors.
+Currently w1 users directly send me patches and questions, so mail list
+is not needed, but if there will be strong requirement for that I will
+either create one myself, or will contact you.
 
-The balance being in favor of a separate list for i2c by 3 to 0, let's
-do that. This raises the question of what w1 will become. If i2c has a
-seperate list, keeping w1 in the lm-sensors list would be confusing.
+Thank you.
 
-Evgeniy, I think you should have a separate list for w1, like we plan
-to do for i2c. We can host the list for you on lm-sensors.org's mailman
-if you want, or if you prefer you can move to a different place. Your
-call, just let us know.
+> -- 
+> Jean Delvare
 
 -- 
-Jean Delvare
+	Evgeniy Polyakov
 
