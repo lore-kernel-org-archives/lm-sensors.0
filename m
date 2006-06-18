@@ -1,7 +1,7 @@
-From: gimeshell@web.de (gimeshell at web.de)
-Date: Sun, 18 Jun 2006 15:15:46 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 18 Jun 2006 17:02:30 +0000
 Subject: [lm-sensors] better temp2 computation for asus CUSL2C
-Message-Id: <20060618171546.f1242303.gimeshell@web.de>
+Message-Id: <20060618190230.880689ff.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060618021736.f08a39bb.gimeshell@web.de>
 In-Reply-To: <20060618021736.f08a39bb.gimeshell@web.de>
@@ -10,30 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 18 Jun 2006 11:31:17 +0200
-Jean Delvare <khali at linux-fr.org> wrote:
+Hi (no name),
 
-> > But resulting temperature is about 8 degrees too low.
+> > http://www.lm-sensors.org/wiki/FAQ/Chapter3#MyBIOSreportsamuchhigherCPUtemperaturethanyourmodules
+> > (In particular the last paragraph.)
 > 
-> Compared to what?
+> Yes that's it!
+> Now what would be better way to correct this?
+
+Actually my point was that there is probably nothing to correct.
+
+>                                                Is there any difference
+> between both ways?
 > 
-> http://www.lm-sensors.org/wiki/FAQ/Chapter3#MyBIOSreportsamuchhigherCPUtemperaturethanyourmodules
-> (In particular the last paragraph.)
+> a) multiply @ with bigger factor eg 31 instead of 30
+> compute temp2 (@*31/43)+25, ...
 > 
+> b) adding bigger factor, eg 31 instead of 25 to @.
+> compute temp2 (@*30/43)+31, ...
 
-Yes that's it!
-Now what would be better way to correct this? Is there any difference
-between both ways?
+How are we supposed to guess? We would need many data points to decide
+which is best, and you did provide only one (which may not even be
+correct.)
 
-a) multiply @ with bigger factor eg 31 instead of 30
-compute temp2 (@*31/43)+25, ...
+> Why isn't compute line so easy to only add ONE value to @. No
+> multiplikation anymore. Only addition. Is this a practical thought?
 
-b) adding bigger factor, eg 31 instead of 25 to @.
-compute temp2 (@*30/43)+31, ...
+We use the formula which gives the best result for the applicable range
+of temperatures. There's little point in having a slighly more simple
+equation if it gives less accurate results.
 
-Why isn't compute line so easy to only add ONE value to @. No
-multiplikation anymore. Only addition. Is this a practical thought?
-
-regards,
-gimeshell
+-- 
+Jean Delvare
 
