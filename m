@@ -1,54 +1,26 @@
-From: ymu@winbond.com (Yuan Mu)
-Date: Tue, 13 Jun 2006 08:58:36 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sun, 18 Jun 2006 21:32:30 +0000
 Subject: [lm-sensors] W83793 driver
-Message-Id: <448E7E3C.6050601@winbond.com>
+Message-Id: <4495C66E.2000401@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44893948.2070709@winbond.com>
 In-Reply-To: <44893948.2070709@winbond.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
->> Sounds interesting, i think we do not need to do this now since the=20
->> machine did not
->> reboot for 3 days, maybe the reason is they use a aeroengine as the=20
->> cpufan...
->> I will dig what you said after finish the schedule about 793 :)
->> Now I got it work on FC5 and FC4, but FC3 met the same problem as i=20
->> met before,
->> maybe i801 driver missing ICH7 PCI ID, and i'm trying to make it work :(
->=20
-> CHeck the PCI IDS, for new kernels you can check the history on each file=
-s:
-> http://www.kernel.org/git/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=
-=3Dhistory;h=86bc843a268058df558844b6bf64531617fbc698;f=3Ddrivers/i2c/busse=
-s/i2c-i801.c=20
->=20
->=20
-> And also through the trac.
-> http://www.lm-sensors.org/log/lm-sensors/trunk/kernel/busses/i2c-i801.c
->=20
+Hi Yuan,
 
-Thanks , it works now :)
+Still reading the driver. It took already couple of evenings and two 120km
+journeys in train and still I'm just passed the half of the driver.
 
+I really want to do that well and this takes lot of time. I did not found
+something really bad so far ;)
 
---=20
-Best Regards
-Yuan Mu
+Please be patient, I have a lot of other work and I have other time consumpting
+tasks to solve too.
 
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3DThe privileged =
-confidential information contained in this email is intended for use only b=
-y the addressees as indicated by the original sender of this email. If you =
-are not the addressee indicated in this email or are not responsible for de=
-livery of the email to such  a person, please kindly reply to the sender in=
-dicating this fact and delete all copies of it from your computer and netwo=
-rk server immediately. Your cooperation is highly appreciated. It is advise=
-d that any unauthorized use of confidential information of Winbond is stric=
-tly prohibited; and any information in this email irrelevant to the officia=
-l business of Winbond shall be deemed as neither given nor endorsed by Winb=
-ond.
+Regards
+Rudolf
 
