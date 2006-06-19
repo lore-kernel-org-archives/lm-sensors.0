@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 19 Jun 2006 09:54:45 +0000
+Date: Mon, 19 Jun 2006 10:01:09 +0000
 Subject: [lm-sensors] CPU Temp on ECS NFORCE3-A939
-Message-Id: <20060619115445.55524ba3.khali@linux-fr.org>
+Message-Id: <20060619120109.31d996b5.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <000f01c69295$f481af80$7001a8c0@parisi02>
 In-Reply-To: <000f01c69295$f481af80$7001a8c0@parisi02>
@@ -12,36 +12,57 @@ To: lm-sensors@vger.kernel.org
 
 Lou,
 
-> Regarding the kernel version - I have a fresh install of CentOS 4 and have
-> updated all packages using yum.  Lm_sensors is actually the first thing I am
-> trying to get running on this new box before I put it off into a closet.
-> The output from uname -r is below:
-> # uname -r
-> 2.6.9-34.0.1.EL
+> I ran the commands to load the ic2-nforce2 module as per your instructions
+> and then ran sensors-detects again.  
 > 
-> The only other thing that is possible is I first had lm_sensors 2.8
-> installed from yum and then when I was having the problem with the cpu temps
-> removed using yum and then downloaded the source and compiled and installed.
-> 
-> Do you think there could be something left over from this? The version from
-> sensors shows 2.10
-> # sensors -v
-> sensors version 2.10.0 with libsensors version 2.10.0
+> Several new sensors were detected and the result of sensors-detect was put
+> into /etc/sysconfig/lm_sensors but no new sensors were found when I ran the
+> sensors command line.  Output was the same as previous and behavior of
+> temperature values was unchanged.
 
-No, for Linux 2.6 kernels, the lm_sensors package only brings the user
-space support, so it can't explain the observed inconsistencies on the
-kernel front. It seems that you have an older version of the it87
-driver than your kernel version suggests. I can't explain it, we would
-need to know how exactly CentOS built their kernel.
+> Next adapter: SMBus nForce2 adapter at 4c40
 
-Anyway, it doesn't matter that much, you can live without vid readings
-- we aren't even sure if your boards support that.
+Good news is that the "new_id" trick worked. Note that it needs to be
+done every time you load the i2c-nforce2 driver, so in particular it
+won't survive a reboot unless you add the commands in a boot script.
 
-> The only other thing I can think of is I am running amd64 version of linux
-> which can sometimes cause some strange behaviors in applications.
+> Do you want to scan it? (YES/no/selectively): YES
+> Client found at address 0x08
+> Client found at address 0x4c
+> Probing for `National Semiconductor LM75'... Failed!
+> Probing for `Dallas Semiconductor DS1621'... Failed!
+> Probing for `Analog Devices ADM1021'... Failed!
+> Probing for `Analog Devices ADM1021A/ADM1023'... Failed!
+> Probing for `Maxim MAX1617'... Failed!
+> Probing for `Maxim MAX1617A'... Failed!
+> Probing for `TI THMC10'... Failed!
+> Probing for `National Semiconductor LM84'... Failed!
+> Probing for `Genesys Logic GL523SM'... Failed!
+> Probing for `Onsemi MC1066'... Failed!
+> Probing for `Maxim MAX1619'... Failed!
+> Probing for `National Semiconductor LM82/LM83'... Failed!
+> Probing for `National Semiconductor LM90'... Failed!
+> Probing for `National Semiconductor LM89/LM99'... Failed!
+> Probing for `National Semiconductor LM86'... Failed!
+> Probing for `Analog Devices ADM1032'... Failed!
+> Probing for `Maxim MAX6657/MAX6658/MAX6659'... Failed!
+> Probing for `National Semiconductor LM63'... Failed!
+> Probing for `Maxim MAX6633/MAX6634/MAX6635'... Failed!
+> Probing for `Analog Devices ADT7461'... Failed!
 
-It can't explain the observed inconsistencies either, and I doubt it
-will cause any kind of problem on the lm_sensors side in general.
+These were probed, but NOT detected. You have a chip here but your
+version of sensors-detect doesn't know what it is. Please try the
+latest version of sensors-detect, as Brian did:
+http://www.lm-sensors.org/browser/lm-sensors/trunk/prog/detect/sensors-detect?format=txt
+
+I wouldn't be surprised if you have the same chip as Brian.
+
+> I tried to look in the docs but is there something more I need to do for
+> these new sensors to be reported to output?  
+
+The only new chips which were detected here are SPD EEPROMs, you can
+get information from them using the decode-dimms.pl script. These are
+not sensors so they won't show in "sensors".
 
 -- 
 Jean Delvare
