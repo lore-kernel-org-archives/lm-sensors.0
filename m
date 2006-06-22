@@ -1,177 +1,99 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 04 Jun 2006 18:18:05 +0000
-Subject: [lm-sensors] [PATCH 07/11] w83792d: Fix setting the PWM value
-Message-Id: <20060604201805.49585bea.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 22 Jun 2006 18:27:45 +0000
+Subject: [lm-sensors] [PATCH 19/44] [PATCH] i2c: Suggest N for rare devices
+Message-Id: <11510009551920-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Yuan Mu <ymu at winbond.com.tw>
-Content-Disposition: inline; filename=hwmon-w83792d-pwm-set-fix.patch
+From: Jean Delvare <khali at linux-fr.org>
 
-W83792D use pwm register low 4 bits to store PWM/DC value, bit 7
-is used to store fan PWM/DC mode. The store_pwm function did not
-convert the pwm input correctly, so it may change the fan mode
-when new value is set.
+Improve the Kconfig help text of the follwing i2c drivers:
+* busses/i2c-pca-isa.c
+* chips/pcf8574.c
+* chips/pcf8591.c
+These are hard to detect and building them into the kernel
+results in long delays at boot.
 
-This fix the problem. Change the "index" value of pwm*_mode
-and pwm* SENSOR_ATTR to simplify code.
+March 2006, thread "I2C_PCA_ISA causes boot delays"
+http://marc.theaimsgroup.com/?l=linux-kernel&m4360399415744&w=2
 
-Signed-off-by: Yuan Mu <ymu at winbond.com.tw>
+April 2006, thread "i2c-related 1-minute hang during bootup"
+http://marc.theaimsgroup.com/?l=linux-kernel&m4640992330721&w=2
+
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/hwmon/w83792d.c |   56 ++++++++++++++++++++++++-----------------------
- 1 file changed, 29 insertions(+), 27 deletions(-)
+ drivers/i2c/busses/Kconfig |    6 ++++++
+ drivers/i2c/chips/Kconfig  |    8 ++++++++
+ 2 files changed, 14 insertions(+), 0 deletions(-)
 
---- linux-2.6.17-rc5.orig/drivers/hwmon/w83792d.c	2006-04-19 08:46:25.000000000 +0200
-+++ linux-2.6.17-rc5/drivers/hwmon/w83792d.c	2006-05-30 08:51:24.000000000 +0200
-@@ -250,8 +250,6 @@
- 			: (val)) / 1000, 0, 0xff))
- #define TEMP_ADD_TO_REG_LOW(val)	((val%1000) ? 0x80 : 0x00)
+diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+index e3450d1..d25a8cb 100644
+--- a/drivers/i2c/busses/Kconfig
++++ b/drivers/i2c/busses/Kconfig
+@@ -503,6 +503,7 @@ config I2C_PCA_ISA
+ 	tristate "PCA9564 on an ISA bus"
+ 	depends on I2C
+ 	select I2C_ALGOPCA
++	default n
+ 	help
+ 	  This driver supports ISA boards using the Philips PCA 9564
+ 	  Parallel bus to I2C bus controller
+@@ -510,6 +511,11 @@ config I2C_PCA_ISA
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called i2c-pca-isa.
  
--#define PWM_FROM_REG(val)		(val)
--#define PWM_TO_REG(val)			(SENSORS_LIMIT((val),0,255))
- #define DIV_FROM_REG(val)		(1 << (val))
- 
- static inline u8
-@@ -291,7 +289,6 @@
- 	u8 pwm[7];		/* We only consider the first 3 set of pwm,
- 				   although 792 chip has 7 set of pwm. */
- 	u8 pwmenable[3];
--	u8 pwm_mode[7];		/* indicates PWM or DC mode: 1->PWM; 0->DC */
- 	u32 alarms;		/* realtime status register encoding,combined */
- 	u8 chassis;		/* Chassis status */
- 	u8 chassis_clear;	/* CLR_CHS, clear chassis intrusion detection */
-@@ -627,7 +624,7 @@
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
- 	int nr = sensor_attr->index;
- 	struct w83792d_data *data = w83792d_update_device(dev);
--	return sprintf(buf, "%ld\n", (long) PWM_FROM_REG(data->pwm[nr-1]));
-+	return sprintf(buf, "%d\n", (data->pwm[nr] & 0x0f) << 4);
- }
- 
- static ssize_t
-@@ -659,14 +656,16 @@
- 		const char *buf, size_t count)
- {
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
--	int nr = sensor_attr->index - 1;
-+	int nr = sensor_attr->index;
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct w83792d_data *data = i2c_get_clientdata(client);
--	u32 val;
-+	u8 val = SENSORS_LIMIT(simple_strtoul(buf, NULL, 10), 0, 255) >> 4;
- 
--	val = simple_strtoul(buf, NULL, 10);
--	data->pwm[nr] = PWM_TO_REG(val);
-+	mutex_lock(&data->update_lock);
-+	val |= w83792d_read_value(client, W83792D_REG_PWM[nr]) & 0xf0;
-+	data->pwm[nr] = val;
- 	w83792d_write_value(client, W83792D_REG_PWM[nr], data->pwm[nr]);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -707,9 +706,9 @@
- }
- 
- static struct sensor_device_attribute sda_pwm[] = {
--	SENSOR_ATTR(pwm1, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 1),
--	SENSOR_ATTR(pwm2, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 2),
--	SENSOR_ATTR(pwm3, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 3),
-+	SENSOR_ATTR(pwm1, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 0),
-+	SENSOR_ATTR(pwm2, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 1),
-+	SENSOR_ATTR(pwm3, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 2),
- };
- static struct sensor_device_attribute sda_pwm_enable[] = {
- 	SENSOR_ATTR(pwm1_enable, S_IWUSR | S_IRUGO,
-@@ -728,7 +727,7 @@
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
- 	int nr = sensor_attr->index;
- 	struct w83792d_data *data = w83792d_update_device(dev);
--	return sprintf(buf, "%d\n", data->pwm_mode[nr-1]);
-+	return sprintf(buf, "%d\n", data->pwm[nr] >> 7);
- }
- 
- static ssize_t
-@@ -736,29 +735,35 @@
- 			const char *buf, size_t count)
- {
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
--	int nr = sensor_attr->index - 1;
-+	int nr = sensor_attr->index;
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct w83792d_data *data = i2c_get_clientdata(client);
- 	u32 val;
--	u8 pwm_mode_mask = 0;
- 
- 	val = simple_strtoul(buf, NULL, 10);
--	data->pwm_mode[nr] = SENSORS_LIMIT(val, 0, 1);
--	pwm_mode_mask = w83792d_read_value(client,
--		W83792D_REG_PWM[nr]) & 0x7f;
--	w83792d_write_value(client, W83792D_REG_PWM[nr],
--		((data->pwm_mode[nr]) << 7) | pwm_mode_mask);
-+	if (val != 0 && val != 1)
-+		return -EINVAL;
++	  This device is almost undetectable and using this driver on a
++	  system which doesn't have this device will result in long
++	  delays when I2C/SMBus chip drivers are loaded (e.g. at boot
++	  time).  If unsure, say N.
 +
-+	mutex_lock(&data->update_lock);
-+	data->pwm[nr] = w83792d_read_value(client, W83792D_REG_PWM[nr]);
-+	if (val) {			/* PWM mode */
-+		data->pwm[nr] |= 0x80;
-+	} else {			/* DC mode */
-+		data->pwm[nr] &= 0x7f;
-+	}
-+	w83792d_write_value(client, W83792D_REG_PWM[nr], data->pwm[nr]);
-+	mutex_unlock(&data->update_lock);
+ config I2C_MV64XXX
+ 	tristate "Marvell mv64xxx I2C Controller"
+ 	depends on I2C && MV64X60 && EXPERIMENTAL
+diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
+index 7aa5c38..87ee3ce 100644
+--- a/drivers/i2c/chips/Kconfig
++++ b/drivers/i2c/chips/Kconfig
+@@ -39,6 +39,7 @@ config SENSORS_EEPROM
+ config SENSORS_PCF8574
+ 	tristate "Philips PCF8574 and PCF8574A"
+ 	depends on I2C && EXPERIMENTAL
++	default n
+ 	help
+ 	  If you say yes here you get support for Philips PCF8574 and 
+ 	  PCF8574A chips.
+@@ -46,6 +47,9 @@ config SENSORS_PCF8574
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called pcf8574.
  
- 	return count;
- }
++	  These devices are hard to detect and rarely found on mainstream
++	  hardware.  If unsure, say N.
++
+ config SENSORS_PCA9539
+ 	tristate "Philips PCA9539 16-bit I/O port"
+ 	depends on I2C && EXPERIMENTAL
+@@ -59,12 +63,16 @@ config SENSORS_PCA9539
+ config SENSORS_PCF8591
+ 	tristate "Philips PCF8591"
+ 	depends on I2C && EXPERIMENTAL
++	default n
+ 	help
+ 	  If you say yes here you get support for Philips PCF8591 chips.
  
- static struct sensor_device_attribute sda_pwm_mode[] = {
- 	SENSOR_ATTR(pwm1_mode, S_IWUSR | S_IRUGO,
--		    show_pwm_mode, store_pwm_mode, 1),
-+		    show_pwm_mode, store_pwm_mode, 0),
- 	SENSOR_ATTR(pwm2_mode, S_IWUSR | S_IRUGO,
--		    show_pwm_mode, store_pwm_mode, 2),
-+		    show_pwm_mode, store_pwm_mode, 1),
- 	SENSOR_ATTR(pwm3_mode, S_IWUSR | S_IRUGO,
--		    show_pwm_mode, store_pwm_mode, 3),
-+		    show_pwm_mode, store_pwm_mode, 2),
- };
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called pcf8591.
  
- 
-@@ -1373,7 +1378,7 @@
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct w83792d_data *data = i2c_get_clientdata(client);
- 	int i, j;
--	u8 reg_array_tmp[4], pwm_array_tmp[7], reg_tmp;
-+	u8 reg_array_tmp[4], reg_tmp;
- 
- 	mutex_lock(&data->update_lock);
- 
-@@ -1402,10 +1407,8 @@
- 			data->fan_min[i] = w83792d_read_value(client,
- 						W83792D_REG_FAN_MIN[i]);
- 			/* Update the PWM/DC Value and PWM/DC flag */
--			pwm_array_tmp[i] = w83792d_read_value(client,
-+			data->pwm[i] = w83792d_read_value(client,
- 						W83792D_REG_PWM[i]);
--			data->pwm[i] = pwm_array_tmp[i] & 0x0f;
--			data->pwm_mode[i] = pwm_array_tmp[i] >> 7;
- 		}
- 
- 		reg_tmp = w83792d_read_value(client, W83792D_REG_FAN_CFG);
-@@ -1513,7 +1516,6 @@
- 		dev_dbg(dev, "fan[%d] is: 0x%x\n", i, data->fan[i]);
- 		dev_dbg(dev, "fan[%d] min is: 0x%x\n", i, data->fan_min[i]);
- 		dev_dbg(dev, "pwm[%d]     is: 0x%x\n", i, data->pwm[i]);
--		dev_dbg(dev, "pwm_mode[%d] is: 0x%x\n", i, data->pwm_mode[i]);
- 	}
- 	dev_dbg(dev, "3 set of Temperatures: ===>\n");
- 	for (i=0; i<3; i++) {
-
++	  These devices are hard to detect and rarely found on mainstream
++	  hardware.  If unsure, say N.
++
+ config ISP1301_OMAP
+ 	tristate "Philips ISP1301 with OMAP OTG"
+ 	depends on I2C && ARCH_OMAP_OTG
 -- 
-Jean Delvare
+1.4.0
+
 
