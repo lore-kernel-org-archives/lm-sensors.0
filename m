@@ -1,66 +1,103 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 12 Jun 2006 19:09:20 +0000
-Subject: [lm-sensors] [PATCH 00/14] i2c and hwmon updates
-Message-Id: <20060612210920.59c64202.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 22 Jun 2006 18:28:09 +0000
+Subject: [lm-sensors] [PATCH 43/44] [PATCH] hwmon-vid: Add support for Intel
+Message-Id: <11510010603461-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg,
+From: Rudolf Marek <r.marek at sh.cvut.cz>
 
-Here comes a 14-piece i2c and hwmon update patchset. We have a new
-hardware monitoring driver (lm70, for the National Semiconductor LM70
-SPI thermal sensor chip), cleanups to the scx200_acb and i2c-i801 SMBus
-drivers, and a few other minor fixes. All of this is meant for
--mm/2.6.18.
+This patch adds support for two new VID codes, supporting Intel mobile Core
+processors and new Conroe based platforms.
 
-Here's the summary:
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+---
+ drivers/hwmon/hwmon-vid.c |   35 ++++++++++++++++++++++++++++-------
+ 1 files changed, 28 insertions(+), 7 deletions(-)
 
-Jean Delvare:
- o scx200_acb: Mark scx200_acb_probe __init
- o scx200_acb: Documentation update
- o i2c-i801: Fix block transaction poll loops
- o i2c-i801: Remove force_addr parameter
- o i2c-i801: Remove PCI function check
- o i2c-i801: Cleanups
- o i2c-i801: Better pci subsystem integration
- o i2c-i801: Merge setup function
- o hwmon: Fix the Kconfig header
-
-Jordan Crouse:
- o scx200_acb: Use PCI I/O resource when appropriate
-
-Kaiwan N Billimoria:
- o lm70: New hardware monitoring driver
-
-Krzysztof Halasa:
- o i2c: Mark block write buffers as const
-
-Peter Korsgaard:
- o i2c-ocores: Minor cleanups
-
-Rudolf Marek:
- o hwmon-vid: Add support for Intel Core and Conroe
-
-Statistics:
-
- Documentation/hwmon/lm70            |   31 +++++
- Documentation/i2c/busses/i2c-i801   |    3 -
- Documentation/i2c/busses/scx200_acb |   19 +++
- MAINTAINERS                         |    6 +
- drivers/hwmon/Kconfig               |   12 ++
- drivers/hwmon/Makefile              |    1 +
- drivers/hwmon/hwmon-vid.c           |   35 +++++-
- drivers/hwmon/lm70.c                |  165 +++++++++++++++++++++++++++++
- drivers/i2c/busses/i2c-i801.c       |  154 +++++++++++----------------
- drivers/i2c/busses/i2c-ocores.c     |    6 -
- drivers/i2c/busses/scx200_acb.c     |  202 ++++++++++++++++++++++++++---------
- drivers/i2c/i2c-core.c              |    4 
- include/linux/i2c.h                 |    4 
- 13 files changed, 479 insertions(+), 163 deletions(-)
-
+diff --git a/drivers/hwmon/hwmon-vid.c b/drivers/hwmon/hwmon-vid.c
+index b0fd267..a6764ff 100644
+--- a/drivers/hwmon/hwmon-vid.c
++++ b/drivers/hwmon/hwmon-vid.c
+@@ -58,11 +58,20 @@ #include <linux/hwmon-vid.h>
+     doesn't seem to be any named specification for these. The conversion
+     tables are detailed directly in the various Pentium M datasheets:
+     http://www.intel.com/design/intarch/pentiumm/docs_pentiumm.htm
++
++    The 14 specification corresponds to Intel Core series. There
++    doesn't seem to be any named specification for these. The conversion
++    tables are detailed directly in the various Pentium Core datasheets:
++    http://www.intel.com/design/mobile/datashts/309221.htm
++
++    The 110 (VRM 11) specification corresponds to Intel Conroe based series.
++    http://www.intel.com/design/processor/applnots/313214.htm
+ */
+ 
+ /* vrm is the VRM/VRD document version multiplied by 10.
+-   val is the 4-, 5- or 6-bit VID code.
+-   Returned value is in mV to avoid floating point in the kernel. */
++   val is the 4-bit or more VID code.
++   Returned value is in mV to avoid floating point in the kernel.
++   Some VID have some bits in uV scale, this is rounded to mV */
+ int vid_from_reg(int val, u8 vrm)
+ {
+ 	int vid;
+@@ -70,18 +79,24 @@ int vid_from_reg(int val, u8 vrm)
+ 	switch(vrm) {
+ 
+ 	case 100:               /* VRD 10.0 */
++		/* compute in uV, round to mV */
+ 		val &= 0x3f;
+ 		if((val & 0x1f) = 0x1f)
+ 			return 0;
+ 		if((val & 0x1f) <= 0x09 || val = 0x0a)
+-			vid = 10875 - (val & 0x1f) * 250;
++			vid = 1087500 - (val & 0x1f) * 25000;
+ 		else
+-			vid = 18625 - (val & 0x1f) * 250;
++			vid = 1862500 - (val & 0x1f) * 25000;
+ 		if(val & 0x20)
+-			vid -= 125;
+-		vid /= 10;      /* only return 3 dec. places for now */
+-		return vid;
++			vid -= 12500;
++		return((vid + 500) / 1000);
+ 
++	case 110:		/* Intel Conroe */
++				/* compute in uV, round to mV */
++		val &= 0xff;
++		if(((val & 0x7e) = 0xfe) || (!(val & 0x7e)))
++			return 0;
++		return((1600000 - (val - 2) * 6250 + 500) / 1000);
+ 	case 24:                /* Opteron processor */
+ 		val &= 0x1f;
+ 		return(val = 0x1f ? 0 : 1550 - val * 25);
+@@ -113,6 +128,10 @@ int vid_from_reg(int val, u8 vrm)
+ 	case 13:
+ 		val &= 0x3f;
+ 		return(1708 - val * 16);
++	case 14:		/* Intel Core */
++				/* compute in uV, round to mV */
++		val &= 0x7f;
++		return(val > 0x77 ? 0 : (1500000 - (val * 12500) + 500) / 1000);
+ 	default:		/* report 0 for unknown */
+ 		printk(KERN_INFO "hwmon-vid: requested unknown VRM version\n");
+ 		return 0;
+@@ -145,6 +164,8 @@ static struct vrm_model vrm_models[] = {
+ 	{X86_VENDOR_INTEL, 0x6, 0x9, ANY, 13},		/* Pentium M (130 nm) */
+ 	{X86_VENDOR_INTEL, 0x6, 0xB, ANY, 85},		/* Tualatin */
+ 	{X86_VENDOR_INTEL, 0x6, 0xD, ANY, 13},		/* Pentium M (90 nm) */
++	{X86_VENDOR_INTEL, 0x6, 0xE, ANY, 14},		/* Intel Core (65 nm) */
++	{X86_VENDOR_INTEL, 0x6, 0xF, ANY, 110},		/* Intel Conroe */
+ 	{X86_VENDOR_INTEL, 0x6, ANY, ANY, 82},		/* any P6 */
+ 	{X86_VENDOR_INTEL, 0x7, ANY, ANY, 0},		/* Itanium */
+ 	{X86_VENDOR_INTEL, 0xF, 0x0, ANY, 90},		/* P4 */
 -- 
-Jean Delvare
+1.4.0
+
 
