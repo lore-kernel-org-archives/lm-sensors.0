@@ -1,185 +1,150 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:28:06 +0000
-Subject: [lm-sensors] [PATCH 40/44] [PATCH] i2c-i801: Merge setup function
-Message-Id: <11510010492312-git-send-email-greg@kroah.com>
+Date: Thu, 22 Jun 2006 18:27:34 +0000
+Subject: [lm-sensors] [PATCH 8/44] [PATCH] i2c: cleanup m41t00
+Message-Id: <11510009163455-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali at linux-fr.org>
+From: Mark A. Greer <mgreer at mvista.com>
 
-i2c-i801: Merge setup function
+This patch does some cleanup to the m41t00 i2c/rtc driver including:
+- use BCD2BIN/BIN2BCD instead of BCD_TO_BIN/BIN_TO_BCD
+- use strlcpy instead of strncpy
+- some whitespace cleanup
 
-Merge i801_setup into i801_probe, as it doesn't make much sense to
-have them split. This lets us handle errors better. Christopher
-Hellwig had been suggesting this back in March 2003 when the driver
-was merged.
-
-Also drop two useless debug messages (revision and base address can be
-obtained from lspci, procfs or sysfs.)
-
+Signed-off-by: Mark A. Greer <mgreer at mvista.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/busses/i2c-i801.c |  121 +++++++++++++++++++----------------------
- 1 files changed, 55 insertions(+), 66 deletions(-)
+ drivers/i2c/chips/m41t00.c |   49 +++++++++++++++++++-------------------------
+ 1 files changed, 21 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
-index 94a30f5..3e0d04d 100644
---- a/drivers/i2c/busses/i2c-i801.c
-+++ b/drivers/i2c/busses/i2c-i801.c
-@@ -68,7 +68,6 @@ #define SMBAUXCTL	(13 + i801_smba)	/* IC
- /* PCI Address Constants */
- #define SMBBAR		4
- #define SMBHSTCFG	0x040
--#define SMBREV		0x008
+diff --git a/drivers/i2c/chips/m41t00.c b/drivers/i2c/chips/m41t00.c
+index 99ab4ec..eb2be3e 100644
+--- a/drivers/i2c/chips/m41t00.c
++++ b/drivers/i2c/chips/m41t00.c
+@@ -1,6 +1,4 @@
+ /*
+- * drivers/i2c/chips/m41t00.c
+- *
+  * I2C client/driver for the ST M41T00 Real-Time Clock chip.
+  *
+  * Author: Mark A. Greer <mgreer at mvista.com>
+@@ -13,9 +11,6 @@
+ /*
+  * This i2c client/driver wedges between the drivers/char/genrtc.c RTC
+  * interface and the SMBus interface of the i2c subsystem.
+- * It would be more efficient to use i2c msgs/i2c_transfer directly but, as
+- * recommened in .../Documentation/i2c/writing-clients section
+- * "Sending and receiving", using SMBus level communication is preferred.
+  */
  
- /* Host configuration bits for SMBHSTCFG */
- #define SMBHSTCFG_HST_EN	1
-@@ -102,68 +101,6 @@ static struct pci_driver i801_driver;
- static struct pci_dev *I801_dev;
- static int isich4;
+ #include <linux/kernel.h>
+@@ -41,17 +36,17 @@ static unsigned short ignore[] = { I2C_C
+ static unsigned short normal_addr[] = { 0x68, I2C_CLIENT_END };
  
--static int __devinit i801_setup(struct pci_dev *dev)
--{
--	unsigned char temp;
--	int err;
--
--	I801_dev = dev;
--	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
--	    (dev->device = PCI_DEVICE_ID_INTEL_82801EB_3) ||
--	    (dev->device = PCI_DEVICE_ID_INTEL_ESB_4))
--		isich4 = 1;
--	else
--		isich4 = 0;
--
--	err = pci_enable_device(dev);
--	if (err) {
--		dev_err(&dev->dev, "Failed to enable SMBus device (%d)\n",
--			err);
--		goto exit;
--	}
--
--	/* Determine the address of the SMBus area */
--	i801_smba = pci_resource_start(dev, SMBBAR);
--	if (!i801_smba) {
--		dev_err(&dev->dev, "SMBus base address uninitialized, "
--			"upgrade BIOS\n");
--		err = -ENODEV;
--		goto exit_disable;
--	}
--
--	err = pci_request_region(dev, SMBBAR, i801_driver.name);
--	if (err) {
--		dev_err(&dev->dev, "Failed to request SMBus region "
--			"0x%lx-0x%lx\n", i801_smba,
--			pci_resource_end(dev, SMBBAR));
--		goto exit_disable;
--	}
--
--	pci_read_config_byte(I801_dev, SMBHSTCFG, &temp);
--	temp &= ~SMBHSTCFG_I2C_EN;	/* SMBus timing */
--	if (!(temp & SMBHSTCFG_HST_EN)) {
--		dev_warn(&dev->dev, "enabling SMBus device\n");
--		temp |= SMBHSTCFG_HST_EN;
--	}
--	pci_write_config_byte(I801_dev, SMBHSTCFG, temp);
--
--	if (temp & SMBHSTCFG_SMB_SMI_EN)
--		dev_dbg(&dev->dev, "I801 using Interrupt SMI# for SMBus.\n");
--	else
--		dev_dbg(&dev->dev, "I801 using PCI Interrupt for SMBus.\n");
--
--	pci_read_config_byte(I801_dev, SMBREV, &temp);
--	dev_dbg(&dev->dev, "SMBREV = 0x%X\n", temp);
--	dev_dbg(&dev->dev, "I801_smba = 0x%X\n", i801_smba);
--
--	return 0;
--
--exit_disable:
--	pci_disable_device(dev);
--exit:
--	return err;
--}
--
- static int i801_transaction(void)
+ static struct i2c_client_address_data addr_data = {
+-	.normal_i2c		= normal_addr,
+-	.probe			= ignore,
+-	.ignore			= ignore,
++	.normal_i2c	= normal_addr,
++	.probe		= ignore,
++	.ignore		= ignore,
+ };
+ 
+ ulong
+ m41t00_get_rtc_time(void)
  {
- 	int temp;
-@@ -527,17 +464,69 @@ MODULE_DEVICE_TABLE (pci, i801_ids);
+-	s32	sec, min, hour, day, mon, year;
+-	s32	sec1, min1, hour1, day1, mon1, year1;
+-	ulong	limit = 10;
++	s32 sec, min, hour, day, mon, year;
++	s32 sec1, min1, hour1, day1, mon1, year1;
++	ulong limit = 10;
  
- static int __devinit i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ 	sec = min = hour = day = mon = year = 0;
+ 	sec1 = min1 = hour1 = day1 = mon1 = year1 = 0;
+@@ -97,12 +92,12 @@ m41t00_get_rtc_time(void)
+ 	mon &= 0x1f;
+ 	year &= 0xff;
+ 
+-	BCD_TO_BIN(sec);
+-	BCD_TO_BIN(min);
+-	BCD_TO_BIN(hour);
+-	BCD_TO_BIN(day);
+-	BCD_TO_BIN(mon);
+-	BCD_TO_BIN(year);
++	sec = BCD2BIN(sec);
++	min = BCD2BIN(min);
++	hour = BCD2BIN(hour);
++	day = BCD2BIN(day);
++	mon = BCD2BIN(mon);
++	year = BCD2BIN(year);
+ 
+ 	year += 1900;
+ 	if (year < 1970)
+@@ -115,17 +110,17 @@ static void
+ m41t00_set(void *arg)
  {
-+	unsigned char temp;
- 	int err;
+ 	struct rtc_time	tm;
+-	ulong	nowtime = *(ulong *)arg;
++	ulong nowtime = *(ulong *)arg;
  
--	if ((err = i801_setup(dev)))
--		return err;
-+	I801_dev = dev;
-+	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
-+	    (dev->device = PCI_DEVICE_ID_INTEL_82801EB_3) ||
-+	    (dev->device = PCI_DEVICE_ID_INTEL_ESB_4))
-+		isich4 = 1;
-+	else
-+		isich4 = 0;
-+
-+	err = pci_enable_device(dev);
-+	if (err) {
-+		dev_err(&dev->dev, "Failed to enable SMBus PCI device (%d)\n",
-+			err);
-+		goto exit;
-+	}
-+
-+	/* Determine the address of the SMBus area */
-+	i801_smba = pci_resource_start(dev, SMBBAR);
-+	if (!i801_smba) {
-+		dev_err(&dev->dev, "SMBus base address uninitialized, "
-+			"upgrade BIOS\n");
-+		err = -ENODEV;
-+		goto exit_disable;
-+	}
-+
-+	err = pci_request_region(dev, SMBBAR, i801_driver.name);
-+	if (err) {
-+		dev_err(&dev->dev, "Failed to request SMBus region "
-+			"0x%lx-0x%lx\n", i801_smba,
-+			pci_resource_end(dev, SMBBAR));
-+		goto exit_disable;
-+	}
-+
-+	pci_read_config_byte(I801_dev, SMBHSTCFG, &temp);
-+	temp &= ~SMBHSTCFG_I2C_EN;	/* SMBus timing */
-+	if (!(temp & SMBHSTCFG_HST_EN)) {
-+		dev_info(&dev->dev, "Enabling SMBus device\n");
-+		temp |= SMBHSTCFG_HST_EN;
-+	}
-+	pci_write_config_byte(I801_dev, SMBHSTCFG, temp);
-+
-+	if (temp & SMBHSTCFG_SMB_SMI_EN)
-+		dev_dbg(&dev->dev, "SMBus using interrupt SMI#\n");
-+	else
-+		dev_dbg(&dev->dev, "SMBus using PCI Interrupt\n");
+ 	to_tm(nowtime, &tm);
+ 	tm.tm_year = (tm.tm_year - 1900) % 100;
  
- 	/* set up the driverfs linkage to our parent device */
- 	i801_adapter.dev.parent = &dev->dev;
+-	BIN_TO_BCD(tm.tm_sec);
+-	BIN_TO_BCD(tm.tm_min);
+-	BIN_TO_BCD(tm.tm_hour);
+-	BIN_TO_BCD(tm.tm_mon);
+-	BIN_TO_BCD(tm.tm_mday);
+-	BIN_TO_BCD(tm.tm_year);
++	tm.tm_sec = BIN2BCD(tm.tm_sec);
++	tm.tm_min = BIN2BCD(tm.tm_min);
++	tm.tm_hour = BIN2BCD(tm.tm_hour);
++	tm.tm_mon = BIN2BCD(tm.tm_mon);
++	tm.tm_mday = BIN2BCD(tm.tm_mday);
++	tm.tm_year = BIN2BCD(tm.tm_year);
  
- 	snprintf(i801_adapter.name, I2C_NAME_SIZE,
- 		"SMBus I801 adapter at %04lx", i801_smba);
--	return i2c_add_adapter(&i801_adapter);
-+	err = i2c_add_adapter(&i801_adapter);
-+	if (err) {
-+		dev_err(&dev->dev, "Failed to add SMBus adapter\n");
-+		goto exit_disable;
-+	}
-+
-+exit_disable:
-+	pci_disable_device(dev);
-+exit:
-+	return err;
+ 	mutex_lock(&m41t00_mutex);
+ 	if ((i2c_smbus_write_byte_data(save_client, 0, tm.tm_sec & 0x7f) < 0)
+@@ -143,7 +138,6 @@ m41t00_set(void *arg)
+ 		dev_warn(&save_client->dev,"m41t00: can't write to rtc chip\n");
+ 
+ 	mutex_unlock(&m41t00_mutex);
+-	return;
  }
  
- static void __devexit i801_remove(struct pci_dev *dev)
+ static ulong new_time;
+@@ -180,7 +174,7 @@ m41t00_probe(struct i2c_adapter *adap, i
+ 	if (!client)
+ 		return -ENOMEM;
+ 
+-	strncpy(client->name, M41T00_DRV_NAME, I2C_NAME_SIZE);
++	strlcpy(client->name, M41T00_DRV_NAME, I2C_NAME_SIZE);
+ 	client->addr = addr;
+ 	client->adapter = adap;
+ 	client->driver = &m41t00_driver;
+@@ -204,7 +198,7 @@ m41t00_attach(struct i2c_adapter *adap)
+ static int
+ m41t00_detach(struct i2c_client *client)
+ {
+-	int	rc;
++	int rc;
+ 
+ 	if ((rc = i2c_detach_client(client)) = 0) {
+ 		kfree(client);
+@@ -232,7 +226,6 @@ static void __exit
+ m41t00_exit(void)
+ {
+ 	i2c_del_driver(&m41t00_driver);
+-	return;
+ }
+ 
+ module_init(m41t00_init);
 -- 
 1.4.0
 
