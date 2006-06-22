@@ -1,7 +1,7 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:27:29 +0000
-Subject: [lm-sensors] [PATCH 3/44] [PATCH] w83627ehf: Add alarms support
-Message-Id: <11510008972546-git-send-email-greg@kroah.com>
+Date: Thu, 22 Jun 2006 18:28:00 +0000
+Subject: [lm-sensors] [PATCH 34/44] [PATCH] scx200_acb: Documentation update
+Message-Id: <11510010301085-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,130 +10,64 @@ To: lm-sensors@vger.kernel.org
 
 From: Jean Delvare <khali at linux-fr.org>
 
-Add alarms support for the W83627EHF/EHG hardware monitoring chip.
+Documentation update for the scx200_acb driver. Hopefully this will
+help future users.
 
-This is based on an earlier patch from Rudolf Marek.
+References:
 
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+[lm-sensors] Support of i2c-nscacb (April, May 2005)
+  http://lists.lm-sensors.org/pipermail/lm-sensors/2005-April/011756.html
+  http://lists.lm-sensors.org/pipermail/lm-sensors/2005-May/012043.html
+
+[lm-sensors] making a geode i2c slave driver (April 2006)
+  http://lists.lm-sensors.org/pipermail/lm-sensors/2006-April/015998.html
+
+Kernel bug #6445
+  http://bugzilla.kernel.org/show_bug.cgi?idd45
+
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/hwmon/w83627ehf.c |   46 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 46 insertions(+), 0 deletions(-)
+ Documentation/i2c/busses/scx200_acb |   19 ++++++++++++++++++-
+ 1 files changed, 18 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-index 08bbeaf..40301bc 100644
---- a/drivers/hwmon/w83627ehf.c
-+++ b/drivers/hwmon/w83627ehf.c
-@@ -141,6 +141,10 @@ #define W83627EHF_REG_VBAT		0x5D
- #define W83627EHF_REG_DIODE		0x59
- #define W83627EHF_REG_SMI_OVT		0x4C
+diff --git a/Documentation/i2c/busses/scx200_acb b/Documentation/i2c/busses/scx200_acb
+index f50e699..7c07883 100644
+--- a/Documentation/i2c/busses/scx200_acb
++++ b/Documentation/i2c/busses/scx200_acb
+@@ -2,14 +2,31 @@ Kernel driver scx200_acb
  
-+#define W83627EHF_REG_ALARM1		0x459
-+#define W83627EHF_REG_ALARM2		0x45A
-+#define W83627EHF_REG_ALARM3		0x45B
+ Author: Christer Weinigel <wingel at nano-system.com>
+ 
++The driver supersedes the older, never merged driver named i2c-nscacb.
 +
- /*
-  * Conversions
-  */
-@@ -218,6 +222,7 @@ struct w83627ehf_data {
- 	s16 temp[2];
- 	s16 temp_max[2];
- 	s16 temp_max_hyst[2];
-+	u32 alarms;
- };
+ Module Parameters
+ -----------------
  
- static inline int is_word_sized(u16 reg)
-@@ -427,6 +432,13 @@ static struct w83627ehf_data *w83627ehf_
- 						 W83627EHF_REG_TEMP_HYST[i]);
- 		}
+-* base: int
++* base: up to 4 ints
+   Base addresses for the ACCESS.bus controllers on SCx200 and SC1100 devices
  
-+		data->alarms = w83627ehf_read_value(client,
-+					W83627EHF_REG_ALARM1) |
-+			       (w83627ehf_read_value(client,
-+					W83627EHF_REG_ALARM2) << 8) |
-+			       (w83627ehf_read_value(client,
-+					W83627EHF_REG_ALARM3) << 16);
++  By default the driver uses two base addresses 0x820 and 0x840.
++  If you want only one base address, specify the second as 0 so as to
++  override this default.
 +
- 		data->last_updated = jiffies;
- 		data->valid = 1;
- 	}
-@@ -474,6 +486,14 @@ store_in_##reg (struct device *dev, stru
- store_in_reg(MIN, min)
- store_in_reg(MAX, max)
+ Description
+ -----------
  
-+static ssize_t show_alarm(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct w83627ehf_data *data = w83627ehf_update_device(dev);
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	return sprintf(buf, "%u\n", (data->alarms >> nr) & 0x01);
-+}
+ Enable the use of the ACCESS.bus controller on the Geode SCx200 and
+ SC1100 processors and the CS5535 and CS5536 Geode companion devices.
 +
- static struct sensor_device_attribute sda_in_input[] = {
- 	SENSOR_ATTR(in0_input, S_IRUGO, show_in, NULL, 0),
- 	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
-@@ -487,6 +507,19 @@ static struct sensor_device_attribute sd
- 	SENSOR_ATTR(in9_input, S_IRUGO, show_in, NULL, 9),
- };
- 
-+static struct sensor_device_attribute sda_in_alarm[] = {
-+	SENSOR_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0),
-+	SENSOR_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1),
-+	SENSOR_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2),
-+	SENSOR_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3),
-+	SENSOR_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 8),
-+	SENSOR_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 21),
-+	SENSOR_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 20),
-+	SENSOR_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 16),
-+	SENSOR_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 17),
-+	SENSOR_ATTR(in9_alarm, S_IRUGO, show_alarm, NULL, 19),
-+};
++Device-specific notes
++---------------------
 +
- static struct sensor_device_attribute sda_in_min[] = {
-        SENSOR_ATTR(in0_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 0),
-        SENSOR_ATTR(in1_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 1),
-@@ -516,6 +549,7 @@ static struct sensor_device_attribute sd
- static void device_create_file_in(struct device *dev, int i)
- {
- 	device_create_file(dev, &sda_in_input[i].dev_attr);
-+	device_create_file(dev, &sda_in_alarm[i].dev_attr);
- 	device_create_file(dev, &sda_in_min[i].dev_attr);
- 	device_create_file(dev, &sda_in_max[i].dev_attr);
- }
-@@ -618,6 +652,14 @@ static struct sensor_device_attribute sd
- 	SENSOR_ATTR(fan5_input, S_IRUGO, show_fan, NULL, 4),
- };
- 
-+static struct sensor_device_attribute sda_fan_alarm[] = {
-+	SENSOR_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 6),
-+	SENSOR_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 7),
-+	SENSOR_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 11),
-+	SENSOR_ATTR(fan4_alarm, S_IRUGO, show_alarm, NULL, 10),
-+	SENSOR_ATTR(fan5_alarm, S_IRUGO, show_alarm, NULL, 23),
-+};
-+
- static struct sensor_device_attribute sda_fan_min[] = {
- 	SENSOR_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan_min,
- 		    store_fan_min, 0),
-@@ -642,6 +684,7 @@ static struct sensor_device_attribute sd
- static void device_create_file_fan(struct device *dev, int i)
- {
- 	device_create_file(dev, &sda_fan_input[i].dev_attr);
-+	device_create_file(dev, &sda_fan_alarm[i].dev_attr);
- 	device_create_file(dev, &sda_fan_div[i].dev_attr);
- 	device_create_file(dev, &sda_fan_min[i].dev_attr);
- }
-@@ -729,6 +772,9 @@ static struct sensor_device_attribute sd
- 		    store_temp_max_hyst, 0),
- 	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR, show_temp_max_hyst,
- 		    store_temp_max_hyst, 1),
-+	SENSOR_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4),
-+	SENSOR_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 5),
-+	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13),
- };
- 
- /*
++The SC1100 WRAP boards are known to use base addresses 0x810 and 0x820.
++If the scx200_acb driver is built into the kernel, add the following
++parameter to your boot command line:
++  scx200_acb.base=0x810,0x820
++If the scx200_acb driver is built as a module, add the following line to
++the file /etc/modprobe.conf instead:
++  options scx200_acb base=0x810,0x820
 -- 
 1.4.0
 
