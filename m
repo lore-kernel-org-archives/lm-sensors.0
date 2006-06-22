@@ -1,14 +1,14 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 12 Jun 2006 19:52:02 +0000
-Subject: [lm-sensors] [PATCH 09/14] i2c-i801: Cleanups
-Message-Id: <20060612215202.7c2541df.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 22 Jun 2006 18:28:04 +0000
+Subject: [lm-sensors] [PATCH 38/44] [PATCH] i2c-i801: Cleanups
+Message-Id: <11510010421299-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=i2c-i801-04-cleanups.patch
+From: Jean Delvare <khali at linux-fr.org>
 
 i2c-i801: Cleanups
 
@@ -22,12 +22,15 @@ Various cleanups to the i2c-i801 driver:
   to an arbitrary value.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
  drivers/i2c/busses/i2c-i801.c |   32 +++++++++++++-------------------
- 1 file changed, 13 insertions(+), 19 deletions(-)
+ 1 files changed, 13 insertions(+), 19 deletions(-)
 
---- linux-2.6.17-rc6.orig/drivers/i2c/busses/i2c-i801.c	2006-06-08 14:10:56.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/i2c/busses/i2c-i801.c	2006-06-08 15:28:40.000000000 +0200
+diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
+index b651493..b9e6fac 100644
+--- a/drivers/i2c/busses/i2c-i801.c
++++ b/drivers/i2c/busses/i2c-i801.c
 @@ -1,5 +1,5 @@
  /*
 -    i801.c - Part of lm_sensors, Linux kernel modules for hardware
@@ -44,7 +47,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
      I2C Block Read and Process Call are not supported.
  */
  
-@@ -102,9 +102,8 @@
+@@ -102,9 +102,8 @@ static struct pci_driver i801_driver;
  static struct pci_dev *I801_dev;
  static int isich4;
  
@@ -55,7 +58,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  	unsigned char temp;
  
  	I801_dev = dev;
-@@ -115,7 +114,7 @@
+@@ -115,7 +114,7 @@ static int i801_setup(struct pci_dev *de
  	else
  		isich4 = 0;
  
@@ -64,7 +67,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  	pci_read_config_word(I801_dev, SMBBA, &i801_smba);
  	i801_smba &= 0xfff0;
  	if (!i801_smba) {
-@@ -127,20 +126,18 @@
+@@ -127,20 +126,18 @@ static int i801_setup(struct pci_dev *de
  	if (!request_region(i801_smba, (isich4 ? 16 : 8), i801_driver.name)) {
  		dev_err(&dev->dev, "I801_smb region 0x%x already in use!\n",
  			i801_smba);
@@ -90,7 +93,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  		dev_dbg(&dev->dev, "I801 using Interrupt SMI# for SMBus.\n");
  	else
  		dev_dbg(&dev->dev, "I801 using PCI Interrupt for SMBus.\n");
-@@ -149,8 +146,7 @@
+@@ -149,8 +146,7 @@ static int i801_setup(struct pci_dev *de
  	dev_dbg(&dev->dev, "SMBREV = 0x%X\n", temp);
  	dev_dbg(&dev->dev, "I801_smba = 0x%X\n", i801_smba);
  
@@ -100,7 +103,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  }
  
  static int i801_transaction(void)
-@@ -516,12 +512,10 @@
+@@ -516,12 +512,10 @@ MODULE_DEVICE_TABLE (pci, i801_ids);
  
  static int __devinit i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
  {
@@ -116,7 +119,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  
  	/* set up the driverfs linkage to our parent device */
  	i801_adapter.dev.parent = &dev->dev;
-
 -- 
-Jean Delvare
+1.4.0
+
 
