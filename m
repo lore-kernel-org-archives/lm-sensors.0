@@ -1,483 +1,310 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 04 Jun 2006 18:01:08 +0000
-Subject: [lm-sensors] [PATCH 02/11] i2c: New bus driver for the OpenCores
-Message-Id: <20060604200108.d3bca76d.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 22 Jun 2006 18:27:58 +0000
+Subject: [lm-sensors] [PATCH 32/44] [PATCH] scx200_acb: Use PCI I/O resource
+Message-Id: <11510010231027-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Peter Korsgaard <jacmet at sunsite.dk>
-Content-Disposition: inline; filename=i2c-opencores-new-driver.patch
+From: Jordan Crouse <jordan.crouse at amd.com>
 
-The following patch adds support for the OpenCores I2C controller IP
-core (See http://www.opencores.org/projects.cgi/web/i2c/overview).
+On the CS5535 and CS5536, the I/O resource is allocated through PCI,
+so use that instead of using the MSR backdoor.
 
-Signed-off-by: Peter Korsgaard <jacmet at sunsite.dk>
-Signed-off-by: Andrew Morton <akpm at osdl.org>
+Signed-off-by: Jordan Crouse <jordan.crouse at amd.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
+ drivers/i2c/busses/scx200_acb.c |  200 +++++++++++++++++++++++++++++----------
+ 1 files changed, 147 insertions(+), 53 deletions(-)
 
- Documentation/i2c/busses/i2c-ocores |   51 +++++
- drivers/i2c/busses/Kconfig          |   11 +
- drivers/i2c/busses/Makefile         |    1 +
- drivers/i2c/busses/i2c-ocores.c     |  343 +++++++++++++++++++++++++++++++++++
- include/linux/i2c-ocores.h          |   19 ++
- 5 files changed, 425 insertions(+)
-
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-2.6.17-rc5/drivers/i2c/busses/i2c-ocores.c	2006-06-04 16:33:01.000000000 +0200
-@@ -0,0 +1,343 @@
-+/*
-+ * i2c-ocores.c: I2C bus driver for OpenCores I2C controller
-+ * (http://www.opencores.org/projects.cgi/web/i2c/overview).
-+ *
-+ * Peter Korsgaard <jacmet at sunsite.dk>
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ */
+diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
+index 766cc96..09b4586 100644
+--- a/drivers/i2c/busses/scx200_acb.c
++++ b/drivers/i2c/busses/scx200_acb.c
+@@ -33,7 +33,6 @@ #include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <linux/mutex.h>
+ #include <asm/io.h>
+-#include <asm/msr.h>
+ 
+ #include <linux/scx200.h>
+ 
+@@ -85,6 +84,10 @@ struct scx200_acb_iface {
+ 	u8 *ptr;
+ 	char needs_reset;
+ 	unsigned len;
 +
-+#include <linux/config.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/sched.h>
-+#include <linux/init.h>
-+#include <linux/errno.h>
-+#include <linux/platform_device.h>
-+#include <linux/i2c.h>
-+#include <linux/interrupt.h>
-+#include <linux/wait.h>
-+#include <linux/i2c-ocores.h>
-+#include <asm/io.h>
-+
-+struct ocores_i2c {
-+	void __iomem *base;
-+	int regstep;
-+	wait_queue_head_t wait;
-+	struct i2c_adapter adap;
-+	struct i2c_msg *msg;
-+	int pos;
-+	int nmsgs;
-+	int state; /* see STATE_ */
-+};
-+
-+/* registers */
-+#define OCI2C_PRELOW		0
-+#define OCI2C_PREHIGH		1
-+#define OCI2C_CONTROL		2
-+#define OCI2C_DATA		3
-+#define OCI2C_CMD		4
-+#define OCI2C_STATUS		4
-+
-+#define OCI2C_CTRL_IEN		0x40
-+#define OCI2C_CTRL_EN		0x80
-+
-+#define OCI2C_CMD_START		0x91
-+#define OCI2C_CMD_STOP		0x41
-+#define OCI2C_CMD_READ		0x21
-+#define OCI2C_CMD_WRITE		0x11
-+#define OCI2C_CMD_READ_ACK	0x21
-+#define OCI2C_CMD_READ_NACK	0x29
-+#define OCI2C_CMD_IACK		0x01
-+
-+#define OCI2C_STAT_IF		0x01
-+#define OCI2C_STAT_TIP		0x02
-+#define OCI2C_STAT_ARBLOST	0x20
-+#define OCI2C_STAT_BUSY		0x40
-+#define OCI2C_STAT_NACK		0x80
-+
-+#define STATE_DONE		0
-+#define STATE_START		1
-+#define STATE_WRITE		2
-+#define STATE_READ		3
-+#define STATE_ERROR		4
-+
-+static inline void oc_setreg(struct ocores_i2c *i2c, int reg, u8 value)
-+{
-+	iowrite8(value, i2c->base + reg * i2c->regstep);
++	/* PCI device info */
++	struct pci_dev *pdev;
++	int bar;
+ };
+ 
+ /* Register Definitions */
+@@ -417,17 +420,16 @@ static int scx200_acb_probe(struct scx20
+ 	return 0;
+ }
+ 
+-static int  __init scx200_acb_create(const char *text, int base, int index)
++static __init struct scx200_acb_iface *scx200_create_iface(const char *text,
++		int index)
+ {
+ 	struct scx200_acb_iface *iface;
+ 	struct i2c_adapter *adapter;
+-	int rc;
+ 
+ 	iface = kzalloc(sizeof(*iface), GFP_KERNEL);
+ 	if (!iface) {
+ 		printk(KERN_ERR NAME ": can't allocate memory\n");
+-		rc = -ENOMEM;
+-		goto errout;
++		return NULL;
+ 	}
+ 
+ 	adapter = &iface->adapter;
+@@ -440,26 +442,27 @@ static int  __init scx200_acb_create(con
+ 
+ 	mutex_init(&iface->mutex);
+ 
+-	if (!request_region(base, 8, adapter->name)) {
+-		printk(KERN_ERR NAME ": can't allocate io 0x%x-0x%x\n",
+-			base, base + 8-1);
+-		rc = -EBUSY;
+-		goto errout_free;
+-	}
+-	iface->base = base;
++	return iface;
 +}
 +
-+static inline u8 oc_getreg(struct ocores_i2c *i2c, int reg)
++static int __init scx200_acb_create(struct scx200_acb_iface *iface)
 +{
-+	return ioread8(i2c->base + reg * i2c->regstep);
-+}
++	struct i2c_adapter *adapter;
++	int rc;
 +
-+static void ocores_process(struct ocores_i2c *i2c)
-+{
-+	struct i2c_msg *msg = i2c->msg;
-+	u8 stat = oc_getreg(i2c, OCI2C_STATUS);
-+
-+	if ((i2c->state = STATE_DONE) || (i2c->state = STATE_ERROR)) {
-+		/* stop has been sent */
-+		oc_setreg(i2c, OCI2C_CMD, OCI2C_CMD_IACK);
-+		wake_up(&i2c->wait);
-+		return;
-+	}
-+
-+	/* error? */
-+	if (stat & OCI2C_STAT_ARBLOST) {
-+		i2c->state = STATE_ERROR;
-+		oc_setreg(i2c, OCI2C_CMD, OCI2C_CMD_STOP);
-+		return;
-+	}
-+
-+	if ((i2c->state = STATE_START) || (i2c->state = STATE_WRITE)) {
-+		i2c->state +			(msg->flags & I2C_M_RD) ? STATE_READ : STATE_WRITE;
-+
-+		if (stat & OCI2C_STAT_NACK) {
-+			i2c->state = STATE_ERROR;
-+			oc_setreg(i2c, OCI2C_CMD, OCI2C_CMD_STOP);
-+			return;
-+		}
-+	} else
-+		msg->buf[i2c->pos++] = oc_getreg(i2c, OCI2C_DATA);
-+
-+	/* end of msg? */
-+	if (i2c->pos = msg->len) {
-+		i2c->nmsgs--;
-+		i2c->msg++;
-+		i2c->pos = 0;
-+		msg = i2c->msg;
-+
-+		if (i2c->nmsgs) {	/* end? */
-+			/* send start? */
-+			if (!(msg->flags & I2C_M_NOSTART)) {
-+				u8 addr = (msg->addr << 1);
-+
-+				if (msg->flags & I2C_M_RD)
-+					addr |= 1;
-+
-+				i2c->state = STATE_START;
-+
-+				oc_setreg(i2c, OCI2C_DATA, addr);
-+				oc_setreg(i2c, OCI2C_CMD,  OCI2C_CMD_START);
-+				return;
-+			} else
-+				i2c->state = (msg->flags & I2C_M_RD)
-+					? STATE_READ : STATE_WRITE;
-+		} else {
-+			i2c->state = STATE_DONE;
-+			oc_setreg(i2c, OCI2C_CMD, OCI2C_CMD_STOP);
-+			return;
-+		}
-+	}
-+
-+	if (i2c->state = STATE_READ) {
-+		oc_setreg(i2c, OCI2C_CMD, i2c->pos = (msg->len-1) ?
-+			  OCI2C_CMD_READ_NACK : OCI2C_CMD_READ_ACK);
-+	} else {
-+		oc_setreg(i2c, OCI2C_DATA, msg->buf[i2c->pos++]);
-+		oc_setreg(i2c, OCI2C_CMD, OCI2C_CMD_WRITE);
-+	}
-+}
-+
-+static irqreturn_t ocores_isr(int irq, void *dev_id, struct pt_regs *regs)
-+{
-+	struct ocores_i2c *i2c = dev_id;
-+
-+	ocores_process(i2c);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int ocores_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
-+{
-+	struct ocores_i2c *i2c = i2c_get_adapdata(adap);
-+
-+	i2c->msg = msgs;
-+	i2c->pos = 0;
-+	i2c->nmsgs = num;
-+	i2c->state = STATE_START;
-+
-+	oc_setreg(i2c, OCI2C_DATA,
-+			(i2c->msg->addr << 1) |
-+			((i2c->msg->flags & I2C_M_RD) ? 1:0));
-+
-+	oc_setreg(i2c, OCI2C_CMD, OCI2C_CMD_START);
-+
-+	if (wait_event_timeout(i2c->wait, (i2c->state = STATE_ERROR) ||
-+			       (i2c->state = STATE_DONE), HZ))
-+		return (i2c->state = STATE_DONE) ? num : -EIO;
-+	else
-+		return -ETIMEDOUT;
-+}
-+
-+static void ocores_init(struct ocores_i2c *i2c,
-+			struct ocores_i2c_platform_data *pdata)
-+{
-+	int prescale;
-+	u8 ctrl = oc_getreg(i2c, OCI2C_CONTROL);
-+
-+	/* make sure the device is disabled */
-+	oc_setreg(i2c, OCI2C_CONTROL, ctrl & ~(OCI2C_CTRL_EN|OCI2C_CTRL_IEN));
-+
-+	prescale = (pdata->clock_khz / (5*100)) - 1;
-+	oc_setreg(i2c, OCI2C_PRELOW, prescale & 0xff);
-+	oc_setreg(i2c, OCI2C_PREHIGH, prescale >> 8);
-+
-+	/* Init the device */
-+	oc_setreg(i2c, OCI2C_CMD, OCI2C_CMD_IACK);
-+	oc_setreg(i2c, OCI2C_CONTROL, ctrl | OCI2C_CTRL_IEN | OCI2C_CTRL_EN);
-+}
-+
-+
-+static u32 ocores_func(struct i2c_adapter *adap)
-+{
-+	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
-+}
-+
-+static struct i2c_algorithm ocores_algorithm = {
-+	.master_xfer	= ocores_xfer,
-+	.functionality	= ocores_func,
-+};
-+
-+static struct i2c_adapter ocores_adapter = {
-+	.owner		= THIS_MODULE,
-+	.name		= "i2c-ocores",
-+	.class		= I2C_CLASS_HWMON,
-+	.algo		= &ocores_algorithm,
-+	.timeout	= 2,
-+	.retries	= 1,
-+};
-+
-+
-+static int __devinit ocores_i2c_probe(struct platform_device *pdev)
-+{
-+	struct ocores_i2c *i2c;
-+	struct ocores_i2c_platform_data *pdata;
-+	struct resource *res, *res2;
-+	int ret;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res)
++	adapter = &iface->adapter;
+ 
+ 	rc = scx200_acb_probe(iface);
+ 	if (rc) {
+ 		printk(KERN_WARNING NAME ": probe failed\n");
+-		goto errout_release;
++		return rc;
+ 	}
+ 
+ 	scx200_acb_reset(iface);
+ 
+ 	if (i2c_add_adapter(adapter) < 0) {
+ 		printk(KERN_ERR NAME ": failed to register\n");
+-		rc = -ENODEV;
+-		goto errout_release;
 +		return -ENODEV;
+ 	}
+ 
+ 	down(&scx200_acb_list_mutex);
+@@ -468,64 +471,148 @@ static int  __init scx200_acb_create(con
+ 	up(&scx200_acb_list_mutex);
+ 
+ 	return 0;
++}
+ 
+- errout_release:
+-	release_region(iface->base, 8);
++static __init int scx200_create_pci(const char *text, struct pci_dev *pdev,
++		int bar)
++{
++	struct scx200_acb_iface *iface;
++	int rc;
 +
-+	res2 = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	if (!res2)
-+		return -ENODEV;
++	iface = scx200_create_iface(text, 0);
 +
-+	pdata = (struct ocores_i2c_platform_data*) pdev->dev.platform_data;
-+	if (!pdata)
-+		return -ENODEV;
-+
-+	i2c = kzalloc(sizeof(*i2c), GFP_KERNEL);
-+	if (!i2c)
++	if (iface = NULL)
 +		return -ENOMEM;
 +
-+	if (!request_mem_region(res->start, res->end - res->start + 1,
-+				pdev->name)) {
-+		dev_err(&pdev->dev, "Memory region busy\n");
-+		ret = -EBUSY;
-+		goto request_mem_failed;
++	iface->pdev = pdev;
++	iface->bar = bar;
++
++	pci_enable_device_bars(iface->pdev, 1 << iface->bar);
++
++	rc = pci_request_region(iface->pdev, iface->bar, iface->adapter.name);
++
++	if (rc != 0) {
++		printk(KERN_ERR NAME ": can't allocate PCI BAR %d\n",
++				iface->bar);
++		goto errout_free;
 +	}
 +
-+	i2c->base = ioremap(res->start, res->end - res->start + 1);
-+	if (!i2c->base) {
-+		dev_err(&pdev->dev, "Unable to map registers\n");
-+		ret = -EIO;
-+		goto map_failed;
-+	}
++	iface->base = pci_resource_start(iface->pdev, iface->bar);
++	rc = scx200_acb_create(iface);
 +
-+	i2c->regstep = pdata->regstep;
-+	ocores_init(i2c, pdata);
++	if (rc = 0)
++		return 0;
 +
-+	init_waitqueue_head(&i2c->wait);
-+	ret = request_irq(res2->start, ocores_isr, 0, pdev->name, i2c);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Cannot claim IRQ\n");
-+		goto request_irq_failed;
-+	}
-+
-+	/* hook up driver to tree */
-+	platform_set_drvdata(pdev, i2c);
-+	i2c->adap = ocores_adapter;
-+	i2c_set_adapdata(&i2c->adap, i2c);
-+	i2c->adap.dev.parent = &pdev->dev;
-+
-+	/* add i2c adapter to i2c tree */
-+	ret = i2c_add_adapter(&i2c->adap);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to add adapter\n");
-+		goto add_adapter_failed;
-+	}
-+
-+	return 0;
-+
-+add_adapter_failed:
-+	free_irq(res2->start, i2c);
-+request_irq_failed:
-+	iounmap(i2c->base);
-+map_failed:
-+	release_mem_region(res->start, res->end - res->start + 1);
-+request_mem_failed:
-+	kfree(i2c);
-+
-+	return ret;
-+}
-+
-+static int __devexit ocores_i2c_remove(struct platform_device* pdev)
-+{
-+	struct ocores_i2c *i2c = platform_get_drvdata(pdev);
-+	struct resource *res;
-+
-+	/* disable i2c logic */
-+	oc_setreg(i2c, OCI2C_CONTROL, oc_getreg(i2c, OCI2C_CONTROL)
-+		  & ~(OCI2C_CTRL_EN|OCI2C_CTRL_IEN));
-+
-+	/* remove adapter & data */
-+	i2c_del_adapter(&i2c->adap);
-+	platform_set_drvdata(pdev, NULL);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	if (res)
-+		free_irq(res->start, i2c);
-+
-+	iounmap(i2c->base);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res)
-+		release_mem_region(res->start, res->end - res->start + 1);
-+
-+	kfree(i2c);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver ocores_i2c_driver = {
-+	.probe  = ocores_i2c_probe,
-+	.remove = __devexit_p(ocores_i2c_remove),
-+	.driver = {
-+		.owner = THIS_MODULE,
-+		.name = "ocores-i2c",
-+	},
-+};
-+
-+static int __init ocores_i2c_init(void)
-+{
-+	return platform_driver_register(&ocores_i2c_driver);
-+}
-+
-+static void __exit ocores_i2c_exit(void)
-+{
-+	platform_driver_unregister(&ocores_i2c_driver);
-+}
-+
-+module_init(ocores_i2c_init);
-+module_exit(ocores_i2c_exit);
-+
-+MODULE_AUTHOR("Peter Korsgaard <jacmet at sunsite.dk>");
-+MODULE_DESCRIPTION("OpenCores I2C bus driver");
-+MODULE_LICENSE("GPL");
---- linux-2.6.17-rc5.orig/drivers/i2c/busses/Kconfig	2006-06-04 09:54:00.000000000 +0200
-+++ linux-2.6.17-rc5/drivers/i2c/busses/Kconfig	2006-06-04 16:06:21.000000000 +0200
-@@ -276,6 +276,17 @@
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called i2c-nforce2.
++	pci_release_region(iface->pdev, iface->bar);
++	pci_dev_put(iface->pdev);
+  errout_free:
+ 	kfree(iface);
+- errout:
+ 	return rc;
+ }
  
-+config I2C_OCORES
-+	tristate "OpenCores I2C Controller"
-+	depends on I2C && EXPERIMENTAL
-+	help
-+	  If you say yes to this option, support will be included for the
-+	  OpenCores I2C controller. For details see
-+	  http://www.opencores.org/projects.cgi/web/i2c/overview
+-static struct pci_device_id scx200[] = {
+-	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SCx200_BRIDGE) },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SC1100_BRIDGE) },
+-	{ },
+-};
++static int __init scx200_create_isa(const char *text, unsigned long base,
++		int index)
++{
++	struct scx200_acb_iface *iface;
++	int rc;
 +
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called i2c-ocores.
++	iface = scx200_create_iface(text, index);
 +
- config I2C_PARPORT
- 	tristate "Parallel port adapter"
- 	depends on I2C && PARPORT
---- linux-2.6.17-rc5.orig/drivers/i2c/busses/Makefile	2006-03-20 22:42:50.000000000 +0100
-+++ linux-2.6.17-rc5/drivers/i2c/busses/Makefile	2006-06-04 15:37:20.000000000 +0200
-@@ -23,6 +23,7 @@
- obj-$(CONFIG_I2C_MPC)		+= i2c-mpc.o
- obj-$(CONFIG_I2C_MV64XXX)	+= i2c-mv64xxx.o
- obj-$(CONFIG_I2C_NFORCE2)	+= i2c-nforce2.o
-+obj-$(CONFIG_I2C_OCORES)	+= i2c-ocores.o
- obj-$(CONFIG_I2C_PARPORT)	+= i2c-parport.o
- obj-$(CONFIG_I2C_PARPORT_LIGHT)	+= i2c-parport-light.o
- obj-$(CONFIG_I2C_PCA_ISA)	+= i2c-pca-isa.o
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-2.6.17-rc5/include/linux/i2c-ocores.h	2006-06-04 16:05:50.000000000 +0200
-@@ -0,0 +1,19 @@
-+/*
-+ * i2c-ocores.h - definitions for the i2c-ocores interface
-+ *
-+ * Peter Korsgaard <jacmet at sunsite.dk>
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ */
++	if (iface = NULL)
++		return -ENOMEM;
 +
-+#ifndef _LINUX_I2C_OCORES_H
-+#define _LINUX_I2C_OCORES_H
++	if (request_region(base, 8, iface->adapter.name) = 0) {
++		printk(KERN_ERR NAME ": can't allocate io 0x%lx-0x%lx\n",
++		       base, base + 8 - 1);
++		rc = -EBUSY;
++		goto errout_free;
++	}
 +
-+struct ocores_i2c_platform_data {
-+	u32 regstep;   /* distance between registers */
-+	u32 clock_khz; /* input clock in kHz */
++	iface->base = base;
++	rc = scx200_acb_create(iface);
++
++	if (rc = 0)
++		return 0;
+ 
+-static struct pci_device_id divil_pci[] = {
+-	{ PCI_DEVICE(PCI_VENDOR_ID_NS,  PCI_DEVICE_ID_NS_CS5535_ISA) },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
+-	{ } /* NULL entry */
++	release_region(base, 8);
++ errout_free:
++	kfree(iface);
++	return rc;
++}
++
++/* Driver data is an index into the scx200_data array that indicates
++ * the name and the BAR where the I/O address resource is located.  ISA
++ * devices are flagged with a bar value of -1 */
++
++static struct pci_device_id scx200_pci[] = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SCx200_BRIDGE),
++	  .driver_data = 0 },
++	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SC1100_BRIDGE),
++	  .driver_data = 0 },
++	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_CS5535_ISA),
++	  .driver_data = 1 },
++	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA),
++	  .driver_data = 2 }
+ };
+ 
+-#define MSR_LBAR_SMB		0x5140000B
++static struct {
++	const char *name;
++	int bar;
++} scx200_data[] = {
++	{ "SCx200", -1 },
++	{ "CS5535",  0 },
++	{ "CS5536",  0 }
 +};
+ 
+-static __init int scx200_add_cs553x(void)
++static __init int scx200_scan_pci(void)
+ {
+-	u32	low, hi;
+-	u32	smb_base;
+-
+-	/* Grab & reserve the SMB I/O range */
+-	rdmsr(MSR_LBAR_SMB, low, hi);
++	int data, dev;
++	int rc = -ENODEV;
++	struct pci_dev *pdev;
 +
-+#endif /* _LINUX_I2C_OCORES_H */
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-2.6.17-rc5/Documentation/i2c/busses/i2c-ocores	2006-06-04 16:19:44.000000000 +0200
-@@ -0,0 +1,51 @@
-+Kernel driver i2c-ocores
++	for(dev = 0; dev < ARRAY_SIZE(scx200_pci); dev++) {
++		pdev = pci_get_device(scx200_pci[dev].vendor,
++				scx200_pci[dev].device, NULL);
 +
-+Supported adapters:
-+  * OpenCores.org I2C controller by Richard Herveille (see datasheet link)
-+    Datasheet: http://www.opencores.org/projects.cgi/web/i2c/overview
++		if (pdev = NULL)
++			continue;
 +
-+Author: Peter Korsgaard <jacmet at sunsite.dk>
++		data = scx200_pci[dev].driver_data;
 +
-+Description
-+-----------
++		/* if .bar is greater or equal to zero, this is a
++		 * PCI device - otherwise, we assume
++		   that the ports are ISA based
++		*/
 +
-+i2c-ocores is an i2c bus driver for the OpenCores.org I2C controller
-+IP core by Richard Herveille.
++		if (scx200_data[data].bar >= 0)
++			rc = scx200_create_pci(scx200_data[data].name, pdev,
++					scx200_data[data].bar);
++		else {
++			int i;
 +
-+Usage
-+-----
++			for (i = 0; i < MAX_DEVICES; ++i) {
++				if (base[i] = 0)
++					continue;
 +
-+i2c-ocores uses the platform bus, so you need to provide a struct
-+platform_device with the base address and interrupt number. The
-+dev.platform_data of the device should also point to a struct
-+ocores_i2c_platform_data (see linux/i2c-ocores.h) describing the
-+distance between registers and the input clock speed.
++				rc = scx200_create_isa(scx200_data[data].name,
++						base[i],
++						i);
++			}
++		}
+ 
+-	/* Check the IO mask and whether SMB is enabled */
+-	if (hi != 0x0000F001) {
+-		printk(KERN_WARNING NAME ": SMBus not enabled\n");
+-		return -ENODEV;
++		break;
+ 	}
+ 
+-	/* SMBus IO size is 8 bytes */
+-	smb_base = low & 0x0000FFF8;
+-
+-	return scx200_acb_create("CS5535", smb_base, 0);
++	return rc;
+ }
+ 
+ static int __init scx200_acb_init(void)
+ {
+-	int i;
+-	int	rc = -ENODEV;
++	int rc;
+ 
+ 	pr_debug(NAME ": NatSemi SCx200 ACCESS.bus Driver\n");
+ 
+-	/* Verify that this really is a SCx200 processor */
+-	if (pci_dev_present(scx200)) {
+-		for (i = 0; i < MAX_DEVICES; ++i) {
+-			if (base[i] > 0)
+-				rc = scx200_acb_create("SCx200", base[i], i);
+-		}
+-	} else if (pci_dev_present(divil_pci))
+-		rc = scx200_add_cs553x();
++	rc = scx200_scan_pci();
+ 
+ 	/* If at least one bus was created, init must succeed */
+ 	if (scx200_acb_list)
+@@ -543,7 +630,14 @@ static void __exit scx200_acb_cleanup(vo
+ 		up(&scx200_acb_list_mutex);
+ 
+ 		i2c_del_adapter(&iface->adapter);
+-		release_region(iface->base, 8);
 +
-+E.G. something like:
++		if (iface->pdev) {
++			pci_release_region(iface->pdev, iface->bar);
++			pci_dev_put(iface->pdev);
++		}
++		else
++			release_region(iface->base, 8);
 +
-+static struct resource ocores_resources[] = {
-+	[0] = {
-+		.start	= MYI2C_BASEADDR,
-+		.end	= MYI2C_BASEADDR + 8,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start	= MYI2C_IRQ,
-+		.end	= MYI2C_IRQ,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct ocores_i2c_platform_data myi2c_data = {
-+	.regstep	= 2,		/* two bytes between registers */
-+	.clock_khz	= 50000,	/* input clock of 50MHz */
-+};
-+
-+static struct platform_device myi2c = {
-+	.name			= "ocores-i2c",
-+	.dev = {
-+		.platform_data	= &myi2c_data,
-+	},
-+	.num_resources		= ARRAY_SIZE(ocores_resources),
-+	.resource		= ocores_resources,
-+};
-
+ 		kfree(iface);
+ 		down(&scx200_acb_list_mutex);
+ 	}
 -- 
-Jean Delvare
+1.4.0
+
 
