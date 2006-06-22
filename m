@@ -1,65 +1,281 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 12 Jun 2006 19:40:53 +0000
-Subject: [lm-sensors] [PATCH 01/14] i2c-ocores: Minor cleanups
-Message-Id: <20060612214053.4c7ebc0c.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 22 Jun 2006 18:28:08 +0000
+Subject: [lm-sensors] [PATCH 42/44] [PATCH] lm70: New hardware monitoring
+Message-Id: <11510010561993-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Peter Korsgaard <jacmet at sunsite.dk>
-Content-Disposition: inline; filename=i2c-opencores-cleanup.patch
+From: Kaiwan N Billimoria <kaiwan at designergraphix.com>
 
-Minor cleanup to the i2c-ocores driver.
+This driver implements support for the National Semiconductor LM70
+temperature sensor.
 
-Peter Korsgaard will maintain the i2c-ocores driver.
+The LM70 temperature sensor chip supports a single temperature sensor.
+It communicates with a host processor (or microcontroller) via an
+SPI/Microwire Bus interface.
 
-Signed-off-by: Peter Korsgaard <jacmet at sunsite.dk>
+Communication with the LM70 is simple: when the temperature is to be sensed,
+the driver accesses the LM70 using SPI communication: 16 SCLK cycles
+comprise the MOSI/MISO loop. At the end of the transfer, the 11-bit 2's
+complement digital temperature (sent via the SIO line), is available in the
+driver for interpretation. This driver makes use of the kernel's in-core
+SPI support.
+
+Signed-off-by: Kaiwan N Billimoria <kaiwan at designergraphix.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- MAINTAINERS                     |    6 ++++++
- drivers/i2c/busses/i2c-ocores.c |    6 ++----
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ Documentation/hwmon/lm70 |   31 +++++++++
+ drivers/hwmon/Kconfig    |   10 +++
+ drivers/hwmon/Makefile   |    1 
+ drivers/hwmon/lm70.c     |  165 ++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 207 insertions(+), 0 deletions(-)
 
---- linux-2.6.17-rc6.orig/MAINTAINERS	2006-06-07 07:27:05.000000000 +0200
-+++ linux-2.6.17-rc6/MAINTAINERS	2006-06-07 07:27:05.000000000 +0200
-@@ -2051,6 +2051,12 @@
- L:      linux-fbdev-devel at lists.sourceforge.net
- S:      Maintained
- 
-+OPENCORES I2C BUS DRIVER
-+P:	Peter Korsgaard
-+M:	jacmet at sunsite.dk
-+L:	lm-sensors at lm-sensors.org
-+S:	Maintained
+diff --git a/Documentation/hwmon/lm70 b/Documentation/hwmon/lm70
+new file mode 100644
+index 0000000..2bdd3fe
+--- /dev/null
++++ b/Documentation/hwmon/lm70
+@@ -0,0 +1,31 @@
++Kernel driver lm70
++=========
 +
- ORACLE CLUSTER FILESYSTEM 2 (OCFS2)
- P:	Mark Fasheh
- M:	mark.fasheh at oracle.com
---- linux-2.6.17-rc6.orig/drivers/i2c/busses/i2c-ocores.c	2006-06-07 07:27:04.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/i2c/busses/i2c-ocores.c	2006-06-07 07:27:05.000000000 +0200
-@@ -38,8 +38,8 @@
- #define OCI2C_PREHIGH		1
- #define OCI2C_CONTROL		2
- #define OCI2C_DATA		3
--#define OCI2C_CMD		4
--#define OCI2C_STATUS		4
-+#define OCI2C_CMD		4 /* write only */
-+#define OCI2C_STATUS		4 /* read only, same address as OCI2C_CMD */
++Supported chip:
++  * National Semiconductor LM70
++    Datasheet: http://www.national.com/pf/LM/LM70.html
++
++Author:
++        Kaiwan N Billimoria <kaiwan at designergraphix.com>
++
++Description
++-----------
++
++This driver implements support for the National Semiconductor LM70
++temperature sensor.
++
++The LM70 temperature sensor chip supports a single temperature sensor.
++It communicates with a host processor (or microcontroller) via an
++SPI/Microwire Bus interface.
++
++Communication with the LM70 is simple: when the temperature is to be sensed,
++the driver accesses the LM70 using SPI communication: 16 SCLK cycles
++comprise the MOSI/MISO loop. At the end of the transfer, the 11-bit 2's
++complement digital temperature (sent via the SIO line), is available in the
++driver for interpretation. This driver makes use of the kernel's in-core
++SPI support.
++
++Thanks to
++---------
++Jean Delvare <khali at linux-fr.org> for mentoring the hwmon-side driver
++development.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 43e1f08..0e31a0c 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -204,6 +204,16 @@ config SENSORS_LM63
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm63.
  
- #define OCI2C_CTRL_IEN		0x40
- #define OCI2C_CTRL_EN		0x80
-@@ -209,8 +209,6 @@
- 	.name		= "i2c-ocores",
- 	.class		= I2C_CLASS_HWMON,
- 	.algo		= &ocores_algorithm,
--	.timeout	= 2,
--	.retries	= 1,
- };
- 
- 
-
++config SENSORS_LM70
++	tristate "National Semiconductor LM70"
++	depends on HWMON && SPI_MASTER && EXPERIMENTAL
++	help
++	  If you say yes here you get support for the National Semiconductor
++	  LM70 digital temperature sensor chip.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called lm70.
++
+ config SENSORS_LM75
+ 	tristate "National Semiconductor LM75 and compatibles"
+ 	depends on HWMON && I2C
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 5092999..3141584 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -28,6 +28,7 @@ obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm
+ obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
+ obj-$(CONFIG_SENSORS_IT87)	+= it87.o
+ obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
++obj-$(CONFIG_SENSORS_LM70)	+= lm70.o
+ obj-$(CONFIG_SENSORS_LM75)	+= lm75.o
+ obj-$(CONFIG_SENSORS_LM77)	+= lm77.o
+ obj-$(CONFIG_SENSORS_LM78)	+= lm78.o
+diff --git a/drivers/hwmon/lm70.c b/drivers/hwmon/lm70.c
+new file mode 100644
+index 0000000..6ba8473
+--- /dev/null
++++ b/drivers/hwmon/lm70.c
+@@ -0,0 +1,165 @@
++/*
++ * lm70.c
++ *
++ * The LM70 is a temperature sensor chip from National Semiconductor (NS).
++ * Copyright (C) 2006 Kaiwan N Billimoria <kaiwan at designergraphix.com>
++ *
++ * The LM70 communicates with a host processor via an SPI/Microwire Bus
++ * interface. The complete datasheet is available at National's website
++ * here:
++ * http://www.national.com/pf/LM/LM70.html
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/sysfs.h>
++#include <linux/hwmon.h>
++#include <linux/spi/spi.h>
++#include <asm/semaphore.h>
++
++#define DRVNAME		"lm70"
++
++struct lm70 {
++	struct class_device *cdev;
++	struct semaphore sem;
++};
++
++/* sysfs hook function */
++static ssize_t lm70_sense_temp(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	int status, val;
++	u8 rxbuf[2];
++	s16 raw=0;
++	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
++
++	if (down_interruptible(&p_lm70->sem))
++		return -ERESTARTSYS;
++
++	/*
++	 * spi_read() requires a DMA-safe buffer; so we use
++	 * spi_write_then_read(), transmitting 0 bytes.
++	 */
++	status = spi_write_then_read(spi, NULL, 0, &rxbuf[0], 2);
++	if (status < 0) {
++		printk(KERN_WARNING
++		"spi_write_then_read failed with status %d\n", status);
++		goto out;
++	}
++	dev_dbg(dev, "rxbuf[1] : 0x%x rxbuf[0] : 0x%x\n", rxbuf[1], rxbuf[0]);
++
++	raw = (rxbuf[1] << 8) + rxbuf[0];
++	dev_dbg(dev, "raw=0x%x\n", raw);
++
++	/*
++	 * The "raw" temperature read into rxbuf[] is a 16-bit signed 2's
++	 * complement value. Only the MSB 11 bits (1 sign + 10 temperature
++	 * bits) are meaningful; the LSB 5 bits are to be discarded.
++	 * See the datasheet.
++	 *
++	 * Further, each bit represents 0.25 degrees Celsius; so, multiply
++	 * by 0.25. Also multiply by 1000 to represent in millidegrees
++	 * Celsius.
++	 * So it's equivalent to multiplying by 0.25 * 1000 = 250.
++	 */
++	val = ((int)raw/32) * 250;
++	status = sprintf(buf, "%+d\n", val); /* millidegrees Celsius */
++out:
++	up(&p_lm70->sem);
++	return status;
++}
++
++static DEVICE_ATTR(temp1_input, S_IRUGO, lm70_sense_temp, NULL);
++
++/*----------------------------------------------------------------------*/
++
++static int __devinit lm70_probe(struct spi_device *spi)
++{
++	struct lm70 *p_lm70;
++	int status;
++
++	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
++	if (!p_lm70)
++		return -ENOMEM;
++
++	init_MUTEX(&p_lm70->sem);
++
++	/* sysfs hook */
++	p_lm70->cdev = hwmon_device_register(&spi->dev);
++	if (IS_ERR(p_lm70->cdev)) {
++		dev_dbg(&spi->dev, "hwmon_device_register failed.\n");
++		status = PTR_ERR(p_lm70->cdev);
++		goto out_dev_reg_failed;
++	}
++	dev_set_drvdata(&spi->dev, p_lm70);
++
++	if ((status = device_create_file(&spi->dev, &dev_attr_temp1_input))) {
++		dev_dbg(&spi->dev, "device_create_file failure.\n");
++		goto out_dev_create_file_failed;
++	}
++
++	return 0;
++
++out_dev_create_file_failed:
++	hwmon_device_unregister(p_lm70->cdev);
++out_dev_reg_failed:
++	dev_set_drvdata(&spi->dev, NULL);
++	kfree(p_lm70);
++	return status;
++}
++
++static int __exit lm70_remove(struct spi_device *spi)
++{
++	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
++
++	device_remove_file(&spi->dev, &dev_attr_temp1_input);
++	hwmon_device_unregister(p_lm70->cdev);
++	dev_set_drvdata(&spi->dev, NULL);
++	kfree(p_lm70);
++
++	return 0;
++}
++
++static struct spi_driver lm70_driver = {
++	.driver = {
++		.name	= "lm70",
++		.owner	= THIS_MODULE,
++	},
++	.probe	= lm70_probe,
++	.remove	= __devexit_p(lm70_remove),
++};
++
++static int __init init_lm70(void)
++{
++	return spi_register_driver(&lm70_driver);
++}
++
++static void __exit cleanup_lm70(void)
++{
++	spi_unregister_driver(&lm70_driver);
++}
++
++module_init(init_lm70);
++module_exit(cleanup_lm70);
++
++MODULE_AUTHOR("Kaiwan N Billimoria");
++MODULE_DESCRIPTION("National Semiconductor LM70 Linux driver");
++MODULE_LICENSE("GPL");
 -- 
-Jean Delvare
+1.4.0
+
 
