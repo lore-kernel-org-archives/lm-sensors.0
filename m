@@ -1,189 +1,203 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:27:27 +0000
-Subject: [lm-sensors] [PATCH 1/44] [PATCH] lm83: Add LM82 support
-Message-Id: <11510008901279-git-send-email-greg@kroah.com>
+Date: Thu, 22 Jun 2006 18:27:28 +0000
+Subject: [lm-sensors] [PATCH 2/44] [PATCH] w83627ehf: Add voltage inputs
+Message-Id: <1151000894807-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jordan Crouse <jordan.crouse at amd.com>
+From: Rudolf Marek <r.marek at sh.cvut.cz>
 
-Add LM82 temperature sensor support (similar to the LM83,
-but less featureful).
+Add the voltage measuring support to W83627EHF. The code is based
+on the patch provided by Yuan Mu from Winbond.
 
-Signed-off-by: Jordan Crouse <jordan.crouse at amd.com>
+Signed-off-by: Yuan Mu <Ymu at winbond.com.tw>
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- Documentation/hwmon/lm83 |   16 +++++++++++----
- drivers/hwmon/Kconfig    |    4 ++--
- drivers/hwmon/lm83.c     |   50 ++++++++++++++++++++++++++++++++++------------
- 3 files changed, 51 insertions(+), 19 deletions(-)
+ drivers/hwmon/w83627ehf.c |  124 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 120 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/hwmon/lm83 b/Documentation/hwmon/lm83
-index 061d9ed..74aa7ee 100644
---- a/Documentation/hwmon/lm83
-+++ b/Documentation/hwmon/lm83
-@@ -7,6 +7,10 @@ Supported chips:
-     Addresses scanned: I2C 0x18 - 0x1a, 0x29 - 0x2b, 0x4c - 0x4e
-     Datasheet: Publicly available at the National Semiconductor website
-                http://www.national.com/pf/LM/LM83.html
-+  * National Semiconductor LM82
-+    Addresses scanned: I2C 0x18 - 0x1a, 0x29 - 0x2b, 0x4c - 0x4e
-+    Datasheet: Publicly available at the National Semiconductor website
-+               http://www.national.com/pf/LM/LM82.html
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index b6bd568..08bbeaf 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -30,10 +30,7 @@
+     Supports the following chips:
  
+     Chip        #vin    #fan    #pwm    #temp   chip_id man_id
+-    w83627ehf   -       5       -       3       0x88    0x5ca3
+-
+-    This is a preliminary version of the driver, only supporting the
+-    fan and temperature inputs. The chip does much more than that.
++    w83627ehf   10      5       -       3       0x88    0x5ca3
+ */
  
- Author: Jean Delvare <khali at linux-fr.org>
-@@ -15,10 +19,11 @@ Description
- -----------
+ #include <linux/module.h>
+@@ -121,6 +118,14 @@ #define W83627EHF_REG_MAN_ID		0x4F
+ static const u16 W83627EHF_REG_FAN[] = { 0x28, 0x29, 0x2a, 0x3f, 0x553 };
+ static const u16 W83627EHF_REG_FAN_MIN[] = { 0x3b, 0x3c, 0x3d, 0x3e, 0x55c };
  
- The LM83 is a digital temperature sensor. It senses its own temperature as
--well as the temperature of up to three external diodes. It is compatible
--with many other devices such as the LM84 and all other ADM1021 clones.
--The main difference between the LM83 and the LM84 in that the later can
--only sense the temperature of one external diode.
-+well as the temperature of up to three external diodes. The LM82 is
-+a stripped down version of the LM83 that only supports one external diode.
-+Both are compatible with many other devices such as the LM84 and all
-+other ADM1021 clones. The main difference between the LM83 and the LM84
-+in that the later can only sense the temperature of one external diode.
- 
- Using the adm1021 driver for a LM83 should work, but only two temperatures
- will be reported instead of four.
-@@ -36,6 +41,9 @@ Unconfirmed motherboards:
-     Iwill       MPX2
-     Soltek      SL-75DRV5
- 
-+The LM82 is confirmed to have been found on most AMD Geode reference
-+designs and test platforms.
++/* The W83627EHF registers for nr=7,8,9 are in bank 5 */
++#define W83627EHF_REG_IN_MAX(nr)	((nr < 7) ? (0x2b + (nr) * 2) : \
++					 (0x554 + (((nr) - 7) * 2)))
++#define W83627EHF_REG_IN_MIN(nr)	((nr < 7) ? (0x2c + (nr) * 2) : \
++					 (0x555 + (((nr) - 7) * 2)))
++#define W83627EHF_REG_IN(nr)		((nr < 7) ? (0x20 + (nr)) : \
++					 (0x550 + (nr) - 7))
 +
- The driver has been successfully tested by Magnus Forsstr?m, who I'd
- like to thank here. More testers will be of course welcome.
+ #define W83627EHF_REG_TEMP1		0x27
+ #define W83627EHF_REG_TEMP1_HYST	0x3a
+ #define W83627EHF_REG_TEMP1_OVER	0x39
+@@ -172,6 +177,20 @@ temp1_to_reg(int temp)
+ 	return (temp + 500) / 1000;
+ }
  
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 99cdc61..a6a8d66 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -236,11 +236,11 @@ config SENSORS_LM80
- 	  will be called lm80.
- 
- config SENSORS_LM83
--	tristate "National Semiconductor LM83"
-+	tristate "National Semiconductor LM83 and compatibles"
- 	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for National Semiconductor
--	  LM83 sensor chips.
-+	  LM82 and LM83 sensor chips.
- 
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called lm83.
-diff --git a/drivers/hwmon/lm83.c b/drivers/hwmon/lm83.c
-index aac4ec2..2137d78 100644
---- a/drivers/hwmon/lm83.c
-+++ b/drivers/hwmon/lm83.c
-@@ -12,6 +12,10 @@
-  * Since the datasheet omits to give the chip stepping code, I give it
-  * here: 0x03 (at register 0xff).
-  *
-+ * Also supports the LM82 temp sensor, which is basically a stripped down
-+ * model of the LM83.  Datasheet is here:
-+ * http://www.national.com/pf/LM/LM82.html
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-@@ -52,7 +56,7 @@ static unsigned short normal_i2c[] = { 0
-  * Insmod parameters
-  */
- 
--I2C_CLIENT_INSMOD_1(lm83);
-+I2C_CLIENT_INSMOD_2(lm83, lm82);
- 
++/* Some of analog inputs have internal scaling (2x), 8mV is ADC LSB */
++
++static u8 scale_in[10] = { 8, 8, 16, 16, 8, 8, 8, 16, 16, 8 };
++
++static inline long in_from_reg(u8 reg, u8 nr)
++{
++	return reg * scale_in[nr];
++}
++
++static inline u8 in_to_reg(u32 val, u8 nr)
++{
++	return SENSORS_LIMIT(((val + (scale_in[nr] / 2)) / scale_in[nr]), 0, 255);
++}
++
  /*
-  * The LM83 registers
-@@ -283,6 +287,9 @@ static int lm83_detect(struct i2c_adapte
- 		if (man_id = 0x01) { /* National Semiconductor */
- 			if (chip_id = 0x03) {
- 				kind = lm83;
-+			} else
-+			if (chip_id = 0x01) {
-+				kind = lm82;
- 			}
+  * Data structures and manipulation thereof
+  */
+@@ -186,6 +205,9 @@ struct w83627ehf_data {
+ 	unsigned long last_updated;	/* In jiffies */
+ 
+ 	/* Register values */
++	u8 in[10];		/* Register value */
++	u8 in_max[10];		/* Register value */
++	u8 in_min[10];		/* Register value */
+ 	u8 fan[5];
+ 	u8 fan_min[5];
+ 	u8 fan_div[5];
+@@ -349,6 +371,16 @@ static struct w83627ehf_data *w83627ehf_
+ 			data->fan_div[3] |= (i >> 5) & 0x04;
  		}
  
-@@ -296,6 +303,9 @@ static int lm83_detect(struct i2c_adapte
++		/* Measured voltages and limits */
++		for (i = 0; i < 10; i++) {
++			data->in[i] = w83627ehf_read_value(client,
++				      W83627EHF_REG_IN(i));
++			data->in_min[i] = w83627ehf_read_value(client,
++					  W83627EHF_REG_IN_MIN(i));
++			data->in_max[i] = w83627ehf_read_value(client,
++					  W83627EHF_REG_IN_MAX(i));
++		}
++
+ 		/* Measured fan speeds and limits */
+ 		for (i = 0; i < 5; i++) {
+ 			if (!(data->has_fan & (1 << i)))
+@@ -406,6 +438,87 @@ static struct w83627ehf_data *w83627ehf_
+ /*
+  * Sysfs callback functions
+  */
++#define show_in_reg(reg) \
++static ssize_t \
++show_##reg(struct device *dev, struct device_attribute *attr, \
++	   char *buf) \
++{ \
++	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	return sprintf(buf, "%ld\n", in_from_reg(data->reg[nr], nr)); \
++}
++show_in_reg(in)
++show_in_reg(in_min)
++show_in_reg(in_max)
++
++#define store_in_reg(REG, reg) \
++static ssize_t \
++store_in_##reg (struct device *dev, struct device_attribute *attr, \
++			const char *buf, size_t count) \
++{ \
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct w83627ehf_data *data = i2c_get_clientdata(client); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	u32 val = simple_strtoul(buf, NULL, 10); \
++ \
++	mutex_lock(&data->update_lock); \
++	data->in_##reg[nr] = in_to_reg(val, nr); \
++	w83627ehf_write_value(client, W83627EHF_REG_IN_##REG(nr), \
++			      data->in_##reg[nr]); \
++	mutex_unlock(&data->update_lock); \
++	return count; \
++}
++
++store_in_reg(MIN, min)
++store_in_reg(MAX, max)
++
++static struct sensor_device_attribute sda_in_input[] = {
++	SENSOR_ATTR(in0_input, S_IRUGO, show_in, NULL, 0),
++	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
++	SENSOR_ATTR(in2_input, S_IRUGO, show_in, NULL, 2),
++	SENSOR_ATTR(in3_input, S_IRUGO, show_in, NULL, 3),
++	SENSOR_ATTR(in4_input, S_IRUGO, show_in, NULL, 4),
++	SENSOR_ATTR(in5_input, S_IRUGO, show_in, NULL, 5),
++	SENSOR_ATTR(in6_input, S_IRUGO, show_in, NULL, 6),
++	SENSOR_ATTR(in7_input, S_IRUGO, show_in, NULL, 7),
++	SENSOR_ATTR(in8_input, S_IRUGO, show_in, NULL, 8),
++	SENSOR_ATTR(in9_input, S_IRUGO, show_in, NULL, 9),
++};
++
++static struct sensor_device_attribute sda_in_min[] = {
++       SENSOR_ATTR(in0_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 0),
++       SENSOR_ATTR(in1_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 1),
++       SENSOR_ATTR(in2_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 2),
++       SENSOR_ATTR(in3_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 3),
++       SENSOR_ATTR(in4_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 4),
++       SENSOR_ATTR(in5_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 5),
++       SENSOR_ATTR(in6_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 6),
++       SENSOR_ATTR(in7_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 7),
++       SENSOR_ATTR(in8_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 8),
++       SENSOR_ATTR(in9_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 9),
++};
++
++static struct sensor_device_attribute sda_in_max[] = {
++       SENSOR_ATTR(in0_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 0),
++       SENSOR_ATTR(in1_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 1),
++       SENSOR_ATTR(in2_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 2),
++       SENSOR_ATTR(in3_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 3),
++       SENSOR_ATTR(in4_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 4),
++       SENSOR_ATTR(in5_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 5),
++       SENSOR_ATTR(in6_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 6),
++       SENSOR_ATTR(in7_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 7),
++       SENSOR_ATTR(in8_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 8),
++       SENSOR_ATTR(in9_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 9),
++};
++
++static void device_create_file_in(struct device *dev, int i)
++{
++	device_create_file(dev, &sda_in_input[i].dev_attr);
++	device_create_file(dev, &sda_in_min[i].dev_attr);
++	device_create_file(dev, &sda_in_max[i].dev_attr);
++}
  
- 	if (kind = lm83) {
- 		name = "lm83";
-+	} else
-+	if (kind = lm82) {
-+		name = "lm82";
- 	}
- 
- 	/* We can fill in the remaining client fields */
-@@ -319,32 +329,46 @@ static int lm83_detect(struct i2c_adapte
+ #define show_fan_reg(reg) \
+ static ssize_t \
+@@ -705,6 +818,9 @@ static int w83627ehf_detect(struct i2c_a
  		goto exit_detach;
  	}
  
-+	/*
-+	 * The LM82 can only monitor one external diode which is
-+	 * at the same register as the LM83 temp3 entry - so we
-+	 * declare 1 and 3 common, and then 2 and 4 only for the LM83.
-+	 */
++	for (i = 0; i < 10; i++)
++		device_create_file_in(dev, i);
 +
- 	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp1_input.dev_attr);
- 	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_input.dev_attr);
--	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp3_input.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp4_input.dev_attr);
-+
- 	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp1_max.dev_attr);
- 	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_max.dev_attr);
--	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp3_max.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp4_max.dev_attr);
-+
- 	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp1_crit.dev_attr);
- 	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_crit.dev_attr);
--	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp3_crit.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp4_crit.dev_attr);
-+
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
- 
-+	if (kind = lm83) {
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_temp2_input.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_temp4_input.dev_attr);
-+
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_temp2_max.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_temp4_max.dev_attr);
-+
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_temp2_crit.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_temp4_crit.dev_attr);
-+	}
-+
- 	return 0;
- 
- exit_detach:
+ 	for (i = 0; i < 5; i++) {
+ 		if (data->has_fan & (1 << i))
+ 			device_create_file_fan(dev, i);
 -- 
 1.4.0
 
