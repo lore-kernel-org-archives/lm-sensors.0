@@ -1,50 +1,43 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 12 Jun 2006 19:49:36 +0000
-Subject: [lm-sensors] [PATCH 06/14] i2c-i801: Fix block transaction poll
-Message-Id: <20060612214936.d81fd1b9.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 22 Jun 2006 18:28:03 +0000
+Subject: [lm-sensors] [PATCH 37/44] [PATCH] i2c-i801: Remove PCI function
+Message-Id: <11510010393810-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=i2c-i801-01-fix-block-transaction-poll-loops.patch
+From: Jean Delvare <khali at linux-fr.org>
 
-i2c-i801: Fix block transaction poll loops
+i2c-i801: Remove PCI function check
 
-Two of the three poll loops have the poll and sleep swapped,
-causing an extra sleep to occur after the polled condition is
-fulfilled. In practice, this doubles the amount of sleep time for
-every block transaction. 
+Remove the PCI function number check when probing devices.
+This check is redundant, each function has a separate PCI device
+ID, so checking for that ID is sufficient.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/busses/i2c-i801.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/i2c/busses/i2c-i801.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
---- linux-2.6.17-rc6.orig/drivers/i2c/busses/i2c-i801.c	2006-06-07 17:59:52.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/i2c/busses/i2c-i801.c	2006-06-08 13:25:36.000000000 +0200
-@@ -334,8 +334,8 @@
- 		/* We will always wait for a fraction of a second! */
- 		timeout = 0;
- 		do {
--			temp = inb_p(SMBHSTSTS);
- 			msleep(1);
-+			temp = inb_p(SMBHSTSTS);
- 		}
- 		    while ((!(temp & 0x80))
- 			   && (timeout++ < MAX_TIMEOUT));
-@@ -393,8 +393,8 @@
- 		/* wait for INTR bit as advised by Intel */
- 		timeout = 0;
- 		do {
--			temp = inb_p(SMBHSTSTS);
- 			msleep(1);
-+			temp = inb_p(SMBHSTSTS);
- 		} while ((!(temp & 0x02))
- 			   && (timeout++ < MAX_TIMEOUT));
+diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
+index 0d5374c..b651493 100644
+--- a/drivers/i2c/busses/i2c-i801.c
++++ b/drivers/i2c/busses/i2c-i801.c
+@@ -107,10 +107,6 @@ static int i801_setup(struct pci_dev *de
+ 	int error_return = 0;
+ 	unsigned char temp;
  
-
+-	/* Note: we keep on searching until we have found 'function 3' */
+-	if(PCI_FUNC(dev->devfn) != 3)
+-		return -ENODEV;
+-
+ 	I801_dev = dev;
+ 	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
+ 	    (dev->device = PCI_DEVICE_ID_INTEL_82801EB_3) ||
 -- 
-Jean Delvare
+1.4.0
+
 
