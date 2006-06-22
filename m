@@ -1,124 +1,199 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:28:04 +0000
-Subject: [lm-sensors] [PATCH 38/44] [PATCH] i2c-i801: Cleanups
-Message-Id: <11510010421299-git-send-email-greg@kroah.com>
+Date: Thu, 22 Jun 2006 18:27:52 +0000
+Subject: [lm-sensors] [PATCH 26/44] [PATCH] w83792d: Add missing data access
+Message-Id: <11510009911635-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali at linux-fr.org>
+From: Yuan Mu <ymu at winbond.com.tw>
 
-i2c-i801: Cleanups
+Add missing data lock in w83792d driver to avoid unexpected
+data change.
 
-Various cleanups to the i2c-i801 driver:
-* Fix documentation file and self file name references.
-* i801_setup can be marked __devinit.
-* Drop useless error local variable and label in i801_setup.
-* Avoid a double PCI configuration register write in some cases.
-* Use symbolic names for SMBHSTCFG bits.
-* Transmit the error code returned by i801_setup instead of forcing it
-  to an arbitrary value.
-
+Signed-off-by: Yuan Mu <ymu at winbond.com.tw>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/busses/i2c-i801.c |   32 +++++++++++++-------------------
- 1 files changed, 13 insertions(+), 19 deletions(-)
+ drivers/hwmon/w83792d.c |   30 +++++++++++++++++++++++++-----
+ 1 files changed, 25 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
-index b651493..b9e6fac 100644
---- a/drivers/i2c/busses/i2c-i801.c
-+++ b/drivers/i2c/busses/i2c-i801.c
-@@ -1,5 +1,5 @@
- /*
--    i801.c - Part of lm_sensors, Linux kernel modules for hardware
-+    i2c-i801.c - Part of lm_sensors, Linux kernel modules for hardware
-               monitoring
-     Copyright (c) 1998 - 2002  Frodo Looijaard <frodol at dds.nl>,
-     Philip Edelbrock <phil at netroedge.com>, and Mark D. Studebaker
-@@ -36,7 +36,7 @@
-     This driver supports several versions of Intel's I/O Controller Hubs (ICH).
-     For SMBus support, they are similar to the PIIX4 and are part
-     of Intel's '810' and other chipsets.
--    See the doc/busses/i2c-i801 file for details.
-+    See the file Documentation/i2c/busses/i2c-i801 for details.
-     I2C Block Read and Process Call are not supported.
- */
- 
-@@ -102,9 +102,8 @@ static struct pci_driver i801_driver;
- static struct pci_dev *I801_dev;
- static int isich4;
- 
--static int i801_setup(struct pci_dev *dev)
-+static int __devinit i801_setup(struct pci_dev *dev)
- {
--	int error_return = 0;
- 	unsigned char temp;
- 
- 	I801_dev = dev;
-@@ -115,7 +114,7 @@ static int i801_setup(struct pci_dev *de
- 	else
- 		isich4 = 0;
- 
--	/* Determine the address of the SMBus areas */
-+	/* Determine the address of the SMBus area */
- 	pci_read_config_word(I801_dev, SMBBA, &i801_smba);
- 	i801_smba &= 0xfff0;
- 	if (!i801_smba) {
-@@ -127,20 +126,18 @@ static int i801_setup(struct pci_dev *de
- 	if (!request_region(i801_smba, (isich4 ? 16 : 8), i801_driver.name)) {
- 		dev_err(&dev->dev, "I801_smb region 0x%x already in use!\n",
- 			i801_smba);
--		error_return = -EBUSY;
--		goto END;
-+		return -EBUSY;
- 	}
- 
- 	pci_read_config_byte(I801_dev, SMBHSTCFG, &temp);
- 	temp &= ~SMBHSTCFG_I2C_EN;	/* SMBus timing */
--	pci_write_config_byte(I801_dev, SMBHSTCFG, temp);
--
--	if (!(temp & 1)) {
--		pci_write_config_byte(I801_dev, SMBHSTCFG, temp | 1);
-+	if (!(temp & SMBHSTCFG_HST_EN)) {
- 		dev_warn(&dev->dev, "enabling SMBus device\n");
-+		temp |= SMBHSTCFG_HST_EN;
- 	}
-+	pci_write_config_byte(I801_dev, SMBHSTCFG, temp);
- 
--	if (temp & 0x02)
-+	if (temp & SMBHSTCFG_SMB_SMI_EN)
- 		dev_dbg(&dev->dev, "I801 using Interrupt SMI# for SMBus.\n");
- 	else
- 		dev_dbg(&dev->dev, "I801 using PCI Interrupt for SMBus.\n");
-@@ -149,8 +146,7 @@ static int i801_setup(struct pci_dev *de
- 	dev_dbg(&dev->dev, "SMBREV = 0x%X\n", temp);
- 	dev_dbg(&dev->dev, "I801_smba = 0x%X\n", i801_smba);
- 
--END:
--	return error_return;
-+	return 0;
+diff --git a/drivers/hwmon/w83792d.c b/drivers/hwmon/w83792d.c
+index 6cdef18..4ef884c 100644
+--- a/drivers/hwmon/w83792d.c
++++ b/drivers/hwmon/w83792d.c
+@@ -372,8 +372,10 @@ static ssize_t store_in_##reg (struct de
+ 	u32 val; \
+ 	 \
+ 	val = simple_strtoul(buf, NULL, 10); \
++	mutex_lock(&data->update_lock); \
+ 	data->in_##reg[nr] = SENSORS_LIMIT(IN_TO_REG(nr, val)/4, 0, 255); \
+ 	w83792d_write_value(client, W83792D_REG_IN_##REG[nr], data->in_##reg[nr]); \
++	mutex_unlock(&data->update_lock); \
+ 	 \
+ 	return count; \
  }
+@@ -440,9 +442,11 @@ store_fan_min(struct device *dev, struct
+ 	u32 val;
  
- static int i801_transaction(void)
-@@ -516,12 +512,10 @@ MODULE_DEVICE_TABLE (pci, i801_ids);
+ 	val = simple_strtoul(buf, NULL, 10);
++	mutex_lock(&data->update_lock);
+ 	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
+ 	w83792d_write_value(client, W83792D_REG_FAN_MIN[nr],
+ 				data->fan_min[nr]);
++	mutex_unlock(&data->update_lock);
  
- static int __devinit i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
- {
-+	int err;
+ 	return count;
+ }
+@@ -475,6 +479,7 @@ store_fan_div(struct device *dev, struct
+ 	u8 tmp_fan_div;
  
--	if (i801_setup(dev)) {
--		dev_warn(&dev->dev,
--			"I801 not detected, module not inserted.\n");
--		return -ENODEV;
--	}
-+	if ((err = i801_setup(dev)))
-+		return err;
+ 	/* Save fan_min */
++	mutex_lock(&data->update_lock);
+ 	min = FAN_FROM_REG(data->fan_min[nr],
+ 			   DIV_FROM_REG(data->fan_div[nr]));
  
- 	/* set up the driverfs linkage to our parent device */
- 	i801_adapter.dev.parent = &dev->dev;
+@@ -490,6 +495,7 @@ store_fan_div(struct device *dev, struct
+ 	/* Restore fan_min */
+ 	data->fan_min[nr] = FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
+ 	w83792d_write_value(client, W83792D_REG_FAN_MIN[nr], data->fan_min[nr]);
++	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+ }
+@@ -544,10 +550,11 @@ static ssize_t store_temp1(struct device
+ 	s32 val;
+ 
+ 	val = simple_strtol(buf, NULL, 10);
+-
++	mutex_lock(&data->update_lock);
+ 	data->temp1[nr] = TEMP1_TO_REG(val);
+ 	w83792d_write_value(client, W83792D_REG_TEMP1[nr],
+ 		data->temp1[nr]);
++	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+ }
+@@ -577,13 +584,14 @@ static ssize_t store_temp23(struct devic
+ 	s32 val;
+ 
+ 	val = simple_strtol(buf, NULL, 10);
+-
++	mutex_lock(&data->update_lock);
+ 	data->temp_add[nr][index] = TEMP_ADD_TO_REG_HIGH(val);
+ 	data->temp_add[nr][index+1] = TEMP_ADD_TO_REG_LOW(val);
+ 	w83792d_write_value(client, W83792D_REG_TEMP_ADD[nr][index],
+ 		data->temp_add[nr][index]);
+ 	w83792d_write_value(client, W83792D_REG_TEMP_ADD[nr][index+1],
+ 		data->temp_add[nr][index+1]);
++	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+ }
+@@ -682,6 +690,10 @@ store_pwmenable(struct device *dev, stru
+ 	u8 fan_cfg_tmp, cfg1_tmp, cfg2_tmp, cfg3_tmp, cfg4_tmp;
+ 
+ 	val = simple_strtoul(buf, NULL, 10);
++	if (val < 1 || val > 3)
++		return -EINVAL;
++
++	mutex_lock(&data->update_lock);
+ 	switch (val) {
+ 	case 1:
+ 		data->pwmenable[nr] = 0; /* manual mode */
+@@ -692,8 +704,6 @@ store_pwmenable(struct device *dev, stru
+ 	case 3:
+ 		data->pwmenable[nr] = 1; /* thermal cruise/Smart Fan I */
+ 		break;
+-	default:
+-		return -EINVAL;
+ 	}
+ 	cfg1_tmp = data->pwmenable[0];
+ 	cfg2_tmp = (data->pwmenable[1]) << 2;
+@@ -701,6 +711,7 @@ store_pwmenable(struct device *dev, stru
+ 	cfg4_tmp = w83792d_read_value(client,W83792D_REG_FAN_CFG) & 0xc0;
+ 	fan_cfg_tmp = ((cfg4_tmp | cfg3_tmp) | cfg2_tmp) | cfg1_tmp;
+ 	w83792d_write_value(client, W83792D_REG_FAN_CFG, fan_cfg_tmp);
++	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+ }
+@@ -794,12 +805,13 @@ store_chassis_clear(struct device *dev, 
+ 	u8 temp1 = 0, temp2 = 0;
+ 
+ 	val = simple_strtoul(buf, NULL, 10);
+-
++	mutex_lock(&data->update_lock);
+ 	data->chassis_clear = SENSORS_LIMIT(val, 0 ,1);
+ 	temp1 = ((data->chassis_clear) << 7) & 0x80;
+ 	temp2 = w83792d_read_value(client,
+ 		W83792D_REG_CHASSIS_CLR) & 0x7f;
+ 	w83792d_write_value(client, W83792D_REG_CHASSIS_CLR, temp1 | temp2);
++	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+ }
+@@ -832,10 +844,12 @@ store_thermal_cruise(struct device *dev,
+ 	val = simple_strtoul(buf, NULL, 10);
+ 	target_tmp = val;
+ 	target_tmp = target_tmp & 0x7f;
++	mutex_lock(&data->update_lock);
+ 	target_mask = w83792d_read_value(client, W83792D_REG_THERMAL[nr]) & 0x80;
+ 	data->thermal_cruise[nr] = SENSORS_LIMIT(target_tmp, 0, 255);
+ 	w83792d_write_value(client, W83792D_REG_THERMAL[nr],
+ 		(data->thermal_cruise[nr]) | target_mask);
++	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+ }
+@@ -872,6 +886,7 @@ store_tolerance(struct device *dev, stru
+ 	u8 tol_tmp, tol_mask;
+ 
+ 	val = simple_strtoul(buf, NULL, 10);
++	mutex_lock(&data->update_lock);
+ 	tol_mask = w83792d_read_value(client,
+ 		W83792D_REG_TOLERANCE[nr]) & ((nr = 1) ? 0x0f : 0xf0);
+ 	tol_tmp = SENSORS_LIMIT(val, 0, 15);
+@@ -882,6 +897,7 @@ store_tolerance(struct device *dev, stru
+ 	}
+ 	w83792d_write_value(client, W83792D_REG_TOLERANCE[nr],
+ 		tol_mask | tol_tmp);
++	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+ }
+@@ -920,11 +936,13 @@ store_sf2_point(struct device *dev, stru
+ 	u8 mask_tmp = 0;
+ 
+ 	val = simple_strtoul(buf, NULL, 10);
++	mutex_lock(&data->update_lock);
+ 	data->sf2_points[index][nr] = SENSORS_LIMIT(val, 0, 127);
+ 	mask_tmp = w83792d_read_value(client,
+ 					W83792D_REG_POINTS[index][nr]) & 0x80;
+ 	w83792d_write_value(client, W83792D_REG_POINTS[index][nr],
+ 		mask_tmp|data->sf2_points[index][nr]);
++	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+ }
+@@ -984,6 +1002,7 @@ store_sf2_level(struct device *dev, stru
+ 	u8 mask_tmp=0, level_tmp=0;
+ 
+ 	val = simple_strtoul(buf, NULL, 10);
++	mutex_lock(&data->update_lock);
+ 	data->sf2_levels[index][nr] = SENSORS_LIMIT((val * 15) / 100, 0, 15);
+ 	mask_tmp = w83792d_read_value(client, W83792D_REG_LEVELS[index][nr])
+ 		& ((nr=3) ? 0xf0 : 0x0f);
+@@ -993,6 +1012,7 @@ store_sf2_level(struct device *dev, stru
+ 		level_tmp = data->sf2_levels[index][nr] << 4;
+ 	}
+ 	w83792d_write_value(client, W83792D_REG_LEVELS[index][nr], level_tmp | mask_tmp);
++	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+ }
 -- 
 1.4.0
 
