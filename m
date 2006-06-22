@@ -1,133 +1,146 @@
-From: gregkh@suse.de (gregkh at suse.de)
-Date: Fri, 16 Jun 2006 22:48:04 +0000
-Subject: [lm-sensors] patch hwmon-vid-add-core-and-conroe-support.patch
-Message-Id: <20060616225058.33395754C01@imap.suse.de>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 22 Jun 2006 18:27:48 +0000
+Subject: [lm-sensors] [PATCH 22/44] [PATCH] hwmon: Sysfs interface
+Message-Id: <1151000967421-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+From: Jean Delvare <khali at linux-fr.org>
 
-This is a note to let you know that I've just added the patch titled
+Reword and complete certain parts of the hwmon sysfs-interface
+documentation file. Hopefully this will make things clearer for new
+driver authors.
 
-     Subject: [PATCH 14/14] hwmon-vid: Add support for Intel Core and Conroe
-
-to my gregkh-2.6 tree.  Its filename is
-
-     hwmon-vid-add-core-and-conroe-support.patch
-
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
-
-
-From khali at linux-fr.org Mon Jun 12 13:00:57 2006
-Date: Mon, 12 Jun 2006 22:00:53 +0200
-From: Rudolf Marek <r.marek at sh.cvut.cz>
-To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>, Rudolf Marek <r.marek at sh.cvut.cz>
-Subject: [PATCH 14/14] hwmon-vid: Add support for Intel Core and Conroe
-Message-Id: <20060612220053.622e56c6.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-vid-add-core-and-conroe-support.patch
-
-From: Rudolf Marek <r.marek at sh.cvut.cz>
-
-This patch adds support for two new VID codes, supporting Intel mobile Core
-processors and new Conroe based platforms.
-
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+---
+ Documentation/hwmon/sysfs-interface |   45 +++++++++++++++++++++++------------
+ 1 files changed, 29 insertions(+), 16 deletions(-)
 
---- linux-2.6.17-rc6.orig/drivers/hwmon/hwmon-vid.c	2006-06-11 13:49:25.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/hwmon/hwmon-vid.c	2006-06-11 16:20:34.000000000 +0200
-@@ -58,11 +58,20 @@
-     doesn't seem to be any named specification for these. The conversion
-     tables are detailed directly in the various Pentium M datasheets:
-     http://www.intel.com/design/intarch/pentiumm/docs_pentiumm.htm
+diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+index bc59a51..d1d390a 100644
+--- a/Documentation/hwmon/sysfs-interface
++++ b/Documentation/hwmon/sysfs-interface
+@@ -3,15 +3,15 @@ Naming and data format standards for sys
+ 
+ The libsensors library offers an interface to the raw sensors data
+ through the sysfs interface. See libsensors documentation and source for
+-more further information. As of writing this document, libsensors
+-(from lm_sensors 2.8.3) is heavily chip-dependant. Adding or updating
++further information. As of writing this document, libsensors
++(from lm_sensors 2.8.3) is heavily chip-dependent. Adding or updating
+ support for any given chip requires modifying the library's code.
+ This is because libsensors was written for the procfs interface
+ older kernel modules were using, which wasn't standardized enough.
+ Recent versions of libsensors (from lm_sensors 2.8.2 and later) have
+ support for the sysfs interface, though.
+ 
+-The new sysfs interface was designed to be as chip-independant as
++The new sysfs interface was designed to be as chip-independent as
+ possible.
+ 
+ Note that motherboards vary widely in the connections to sensor chips.
+@@ -24,7 +24,7 @@ range using external resistors. Since th
+ can change from motherboard to motherboard, the conversions cannot be
+ hard coded into the driver and have to be done in user space.
+ 
+-For this reason, even if we aim at a chip-independant libsensors, it will
++For this reason, even if we aim at a chip-independent libsensors, it will
+ still require a configuration file (e.g. /etc/sensors.conf) for proper
+ values conversion, labeling of inputs and hiding of unused inputs.
+ 
+@@ -39,15 +39,16 @@ If you are developing a userspace applic
+ this standard.
+ 
+ Note that this standard isn't completely established yet, so it is subject
+-to changes, even important ones. One more reason to use the library instead
+-of accessing sysfs files directly.
++to changes. If you are writing a new hardware monitoring driver those
++features can't seem to fit in this interface, please contact us with your
++extension proposal. Keep in mind that backward compatibility must be
++preserved.
+ 
+ Each chip gets its own directory in the sysfs /sys/devices tree.  To
+-find all sensor chips, it is easier to follow the symlinks from
+-/sys/i2c/devices/
++find all sensor chips, it is easier to follow the device symlinks from
++/sys/class/hwmon/hwmon*.
+ 
+-All sysfs values are fixed point numbers.  To get the true value of some
+-of the values, you should divide by the specified value.
++All sysfs values are fixed point numbers.
+ 
+ There is only one value per file, unlike the older /proc specification.
+ The common scheme for files naming is: <type><number>_<item>. Usual
+@@ -77,6 +78,9 @@ RW	read/write value
+ Read/write values may be read-only for some chips, depending on the
+ hardware implementation.
+ 
++All entries are optional, and should only be created in a given driver
++if the chip has the feature.
 +
-+    The 14 specification corresponds to Intel Core series. There
-+    doesn't seem to be any named specification for these. The conversion
-+    tables are detailed directly in the various Pentium Core datasheets:
-+    http://www.intel.com/design/mobile/datashts/309221.htm
+ ************
+ * Voltages *
+ ************
+@@ -213,32 +217,32 @@ temp[1-*]_type	Sensor type selection.
+ 		Not all types are supported by all chips
+ 
+ temp[1-*]_max	Temperature max value.
+-		Unit: millidegree Celcius
++		Unit: millidegree Celsius (or millivolt, see below)
+ 		RW
+ 
+ temp[1-*]_min	Temperature min value.
+-		Unit: millidegree Celcius
++		Unit: millidegree Celsius
+ 		RW
+ 
+ temp[1-*]_max_hyst
+ 		Temperature hysteresis value for max limit.
+-		Unit: millidegree Celcius
++		Unit: millidegree Celsius
+ 		Must be reported as an absolute temperature, NOT a delta
+ 		from the max value.
+ 		RW
+ 
+ temp[1-*]_input Temperature input value.
+-		Unit: millidegree Celcius
++		Unit: millidegree Celsius
+ 		RO
+ 
+ temp[1-*]_crit	Temperature critical value, typically greater than
+ 		corresponding temp_max values.
+-		Unit: millidegree Celcius
++		Unit: millidegree Celsius
+ 		RW
+ 
+ temp[1-*]_crit_hyst
+ 		Temperature hysteresis value for critical limit.
+-		Unit: millidegree Celcius
++		Unit: millidegree Celsius
+ 		Must be reported as an absolute temperature, NOT a delta
+ 		from the critical value.
+ 		RW
+@@ -256,6 +260,15 @@ temp[1-4]_offset
+ 		itself, for example the thermal diode inside the CPU or
+ 		a thermistor nearby.
+ 
++Some chips measure temperature using external thermistors and an ADC, and
++report the temperature measurement as a voltage. Converting this voltage
++back to a temperature (or the other way around for limits) requires
++mathematical functions not available in the kernel, so the conversion
++must occur in user space. For these chips, all temp* files described
++above should contain values expressed in millivolt instead of millidegree
++Celsius. In other words, such temperature channels are handled as voltage
++channels by the driver.
 +
-+    The 110 (VRM 11) specification corresponds to Intel Conroe based series.
-+    http://www.intel.com/design/processor/applnots/313214.htm
- */
+ Also see the Alarms section for status flags associated with temperatures.
  
- /* vrm is the VRM/VRD document version multiplied by 10.
--   val is the 4-, 5- or 6-bit VID code.
--   Returned value is in mV to avoid floating point in the kernel. */
-+   val is the 4-bit or more VID code.
-+   Returned value is in mV to avoid floating point in the kernel.
-+   Some VID have some bits in uV scale, this is rounded to mV */
- int vid_from_reg(int val, u8 vrm)
- {
- 	int vid;
-@@ -70,18 +79,24 @@
- 	switch(vrm) {
  
- 	case 100:               /* VRD 10.0 */
-+		/* compute in uV, round to mV */
- 		val &= 0x3f;
- 		if((val & 0x1f) = 0x1f)
- 			return 0;
- 		if((val & 0x1f) <= 0x09 || val = 0x0a)
--			vid = 10875 - (val & 0x1f) * 250;
-+			vid = 1087500 - (val & 0x1f) * 25000;
- 		else
--			vid = 18625 - (val & 0x1f) * 250;
-+			vid = 1862500 - (val & 0x1f) * 25000;
- 		if(val & 0x20)
--			vid -= 125;
--		vid /= 10;      /* only return 3 dec. places for now */
--		return vid;
-+			vid -= 12500;
-+		return((vid + 500) / 1000);
- 
-+	case 110:		/* Intel Conroe */
-+				/* compute in uV, round to mV */
-+		val &= 0xff;
-+		if(((val & 0x7e) = 0xfe) || (!(val & 0x7e)))
-+			return 0;
-+		return((1600000 - (val - 2) * 6250 + 500) / 1000);
- 	case 24:                /* Opteron processor */
- 		val &= 0x1f;
- 		return(val = 0x1f ? 0 : 1550 - val * 25);
-@@ -113,6 +128,10 @@
- 	case 13:
- 		val &= 0x3f;
- 		return(1708 - val * 16);
-+	case 14:		/* Intel Core */
-+				/* compute in uV, round to mV */
-+		val &= 0x7f;
-+		return(val > 0x77 ? 0 : (1500000 - (val * 12500) + 500) / 1000);
- 	default:		/* report 0 for unknown */
- 		printk(KERN_INFO "hwmon-vid: requested unknown VRM version\n");
- 		return 0;
-@@ -145,6 +164,8 @@
- 	{X86_VENDOR_INTEL, 0x6, 0x9, ANY, 13},		/* Pentium M (130 nm) */
- 	{X86_VENDOR_INTEL, 0x6, 0xB, ANY, 85},		/* Tualatin */
- 	{X86_VENDOR_INTEL, 0x6, 0xD, ANY, 13},		/* Pentium M (90 nm) */
-+	{X86_VENDOR_INTEL, 0x6, 0xE, ANY, 14},		/* Intel Core (65 nm) */
-+	{X86_VENDOR_INTEL, 0x6, 0xF, ANY, 110},		/* Intel Conroe */
- 	{X86_VENDOR_INTEL, 0x6, ANY, ANY, 82},		/* any P6 */
- 	{X86_VENDOR_INTEL, 0x7, ANY, ANY, 0},		/* Itanium */
- 	{X86_VENDOR_INTEL, 0xF, 0x0, ANY, 90},		/* P4 */
-
 -- 
-Jean Delvare
+1.4.0
 
-
-
-Patches currently in gregkh-2.6 which might be from r.marek at sh.cvut.cz are
-
-i2c/hwmon-w83627ehf-add-alarms.patch
-i2c/hwmon-w83627ehf-add-voltages.patch
-i2c/i2c-piix4-add-ati-smbus-support.patch
-i2c/i2c-piix4-remove-fix_hstcfg-parameter.patch
-i2c/hwmon-vid-mask-per-vrm.patch
-i2c/hwmon-w83791d-new-driver.patch
-i2c/hwmon-sysfs-interface-update-1.patch
-i2c/hwmon-vid-add-core-and-conroe-support.patch
 
