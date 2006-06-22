@@ -1,35 +1,65 @@
-From: laurent.pinchart@tbox.biz (Laurent Pinchart)
-Date: Tue, 13 Jun 2006 08:49:04 +0000
-Subject: [lm-sensors] Philips LM75A
-Message-Id: <200606131049.05054.laurent.pinchart@tbox.biz>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 22 Jun 2006 18:27:38 +0000
+Subject: [lm-sensors] [PATCH 12/44] [PATCH] I2C: i2c-piix4: Document the IBM
+Message-Id: <11510009303684-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi everybody,
+From: Jean Delvare <khali at linux-fr.org>
 
-I tried to use the LM75 (temperature sensor) driver with a Philips LM75A.
+Properly document on which systems the i2c-piix4 SMBus driver will
+refuse to load. Hopefully this will make it clearer for users, which
+were often wondering why their destop or server systems were detected
+as laptops.
 
-The LM75 driver tries to identify the chip using a heuristic based on 
-non-implemented registers:
+Closes bug #6429.
 
-- The LM75 ignores the 5 high address bits, register i is can thus be read at 
-i+n*8 (0 <= i <= 7; n < 32). This is true for the LM75A as well.
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+---
+ Documentation/i2c/busses/i2c-piix4 |   14 ++++++++++++++
+ drivers/i2c/busses/i2c-piix4.c     |    2 +-
+ 2 files changed, 15 insertions(+), 1 deletions(-)
 
-- Reading unimplemented registers 0x04-0x07 from the LM75 returns the last 
-read value. The LM75A returns 0xff.
+diff --git a/Documentation/i2c/busses/i2c-piix4 b/Documentation/i2c/busses/i2c-piix4
+index a706ae6..9214763 100644
+--- a/Documentation/i2c/busses/i2c-piix4
++++ b/Documentation/i2c/busses/i2c-piix4
+@@ -82,3 +82,17 @@ the SMI mode.
+ 
+ Please note that you don't need to do that in all cases, just when the SMBus is
+ not working properly.
++
++
++Hardware-specific issues
++------------------------
++
++This driver will refuse to load on IBM systems with an Intel PIIX4 SMBus.
++Some of these machines have an RFID EEPROM (24RF08) connected to the SMBus,
++which can easily get corrupted due to a state machine bug. These are mostly
++Thinkpad laptops, but desktop systems may also be affected. We have no list
++of all affected systems, so the only safe solution was to prevent access to
++the SMBus on all IBM systems (detected using DMI data.)
++
++For additional information, read:
++http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/README.thinkpad
+diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
+index 05af7b0..8f2f65b 100644
+--- a/drivers/i2c/busses/i2c-piix4.c
++++ b/drivers/i2c/busses/i2c-piix4.c
+@@ -130,7 +130,7 @@ static int __devinit piix4_setup(struct 
+ 	/* Don't access SMBus on IBM systems which get corrupted eeproms */
+ 	if (dmi_check_system(piix4_dmi_table) &&
+ 			PIIX4_dev->vendor = PCI_VENDOR_ID_INTEL) {
+-		dev_err(&PIIX4_dev->dev, "IBM Laptop detected; this module "
++		dev_err(&PIIX4_dev->dev, "IBM system detected; this module "
+ 			"may corrupt your serial eeprom! Refusing to load "
+ 			"module!\n");
+ 		return -EPERM;
+-- 
+1.4.0
 
-Here is a patch (against 2.6.17-rc6) which modifies the unused addresses test 
-to accept 0xff as 
-valid values.
 
-Laurent Pinchart
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: lm75a.diff
-Type: text/x-diff
-Size: 1646 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060613/7290691f/attachment.bin 
