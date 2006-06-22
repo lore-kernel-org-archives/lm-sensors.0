@@ -1,183 +1,154 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 12 Jun 2006 19:53:41 +0000
-Subject: [lm-sensors] [PATCH 11/14] i2c-i801: Merge setup function
-Message-Id: <20060612215341.cdc67d11.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 22 Jun 2006 18:27:32 +0000
+Subject: [lm-sensors] [PATCH 6/44] [PATCH] hwmon: Add sysfs interface for
+Message-Id: <11510009093906-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=i2c-i801-06-merge-setup-function.patch
+From: Jean Delvare <khali at linux-fr.org>
 
-i2c-i801: Merge setup function
+Extend the sysfs interface of hardware monitoring chips, by adding
+individual alarm and beep files. Contrary to the old aggregated "alarms"
+and "beeps" files, individual files constitute a standard way to access
+the status information, making it finally possible to implement a
+chip-independant hardware monitoring chip access library (once all
+drivers have been added this new interface, that is.)
 
-Merge i801_setup into i801_probe, as it doesn't make much sense to
-have them split. This lets us handle errors better. Christopher
-Hellwig had been suggesting this back in March 2003 when the driver
-was merged.
-
-Also drop two useless debug messages (revision and base address can be
-obtained from lspci, procfs or sysfs.)
+If future drivers need more individual files, the interface will be
+extended as needed at the same time these drivers are merged into the
+kernel tree.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/busses/i2c-i801.c |  121 +++++++++++++++++++----------------------
- 1 file changed, 55 insertions(+), 66 deletions(-)
+ Documentation/hwmon/sysfs-interface |   98 ++++++++++++++++++++++++++---------
+ 1 files changed, 73 insertions(+), 25 deletions(-)
 
---- linux-2.6.17-rc6.orig/drivers/i2c/busses/i2c-i801.c	2006-06-08 15:16:31.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/i2c/busses/i2c-i801.c	2006-06-08 15:28:21.000000000 +0200
-@@ -68,7 +68,6 @@
- /* PCI Address Constants */
- #define SMBBAR		4
- #define SMBHSTCFG	0x040
--#define SMBREV		0x008
+diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+index 2d16e1e..eeb9122 100644
+--- a/Documentation/hwmon/sysfs-interface
++++ b/Documentation/hwmon/sysfs-interface
+@@ -252,9 +252,68 @@ curr[1-n]_input	Current input value
+ 		Read only.
  
- /* Host configuration bits for SMBHSTCFG */
- #define SMBHSTCFG_HST_EN	1
-@@ -102,68 +101,6 @@
- static struct pci_dev *I801_dev;
- static int isich4;
  
--static int __devinit i801_setup(struct pci_dev *dev)
--{
--	unsigned char temp;
--	int err;
--
--	I801_dev = dev;
--	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
--	    (dev->device = PCI_DEVICE_ID_INTEL_82801EB_3) ||
--	    (dev->device = PCI_DEVICE_ID_INTEL_ESB_4))
--		isich4 = 1;
--	else
--		isich4 = 0;
--
--	err = pci_enable_device(dev);
--	if (err) {
--		dev_err(&dev->dev, "Failed to enable SMBus device (%d)\n",
--			err);
--		goto exit;
--	}
--
--	/* Determine the address of the SMBus area */
--	i801_smba = pci_resource_start(dev, SMBBAR);
--	if (!i801_smba) {
--		dev_err(&dev->dev, "SMBus base address uninitialized, "
--			"upgrade BIOS\n");
--		err = -ENODEV;
--		goto exit_disable;
--	}
--
--	err = pci_request_region(dev, SMBBAR, i801_driver.name);
--	if (err) {
--		dev_err(&dev->dev, "Failed to request SMBus region "
--			"0x%lx-0x%lx\n", i801_smba,
--			pci_resource_end(dev, SMBBAR));
--		goto exit_disable;
--	}
--
--	pci_read_config_byte(I801_dev, SMBHSTCFG, &temp);
--	temp &= ~SMBHSTCFG_I2C_EN;	/* SMBus timing */
--	if (!(temp & SMBHSTCFG_HST_EN)) {
--		dev_warn(&dev->dev, "enabling SMBus device\n");
--		temp |= SMBHSTCFG_HST_EN;
--	}
--	pci_write_config_byte(I801_dev, SMBHSTCFG, temp);
--
--	if (temp & SMBHSTCFG_SMB_SMI_EN)
--		dev_dbg(&dev->dev, "I801 using Interrupt SMI# for SMBus.\n");
--	else
--		dev_dbg(&dev->dev, "I801 using PCI Interrupt for SMBus.\n");
--
--	pci_read_config_byte(I801_dev, SMBREV, &temp);
--	dev_dbg(&dev->dev, "SMBREV = 0x%X\n", temp);
--	dev_dbg(&dev->dev, "I801_smba = 0x%X\n", i801_smba);
--
--	return 0;
--
--exit_disable:
--	pci_disable_device(dev);
--exit:
--	return err;
--}
--
- static int i801_transaction(void)
- {
- 	int temp;
-@@ -527,17 +464,69 @@
- 
- static int __devinit i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
- {
-+	unsigned char temp;
- 	int err;
- 
--	if ((err = i801_setup(dev)))
--		return err;
-+	I801_dev = dev;
-+	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
-+	    (dev->device = PCI_DEVICE_ID_INTEL_82801EB_3) ||
-+	    (dev->device = PCI_DEVICE_ID_INTEL_ESB_4))
-+		isich4 = 1;
-+	else
-+		isich4 = 0;
+-*********
+-* Other *
+-*********
++**********
++* Alarms *
++**********
 +
-+	err = pci_enable_device(dev);
-+	if (err) {
-+		dev_err(&dev->dev, "Failed to enable SMBus PCI device (%d)\n",
-+			err);
-+		goto exit;
-+	}
++Each channel or limit may have an associated alarm file, containing a
++boolean value. 1 means than an alarm condition exists, 0 means no alarm.
 +
-+	/* Determine the address of the SMBus area */
-+	i801_smba = pci_resource_start(dev, SMBBAR);
-+	if (!i801_smba) {
-+		dev_err(&dev->dev, "SMBus base address uninitialized, "
-+			"upgrade BIOS\n");
-+		err = -ENODEV;
-+		goto exit_disable;
-+	}
++Usually a given chip will either use channel-related alarms, or
++limit-related alarms, not both. The driver should just reflect the hardware
++implementation.
 +
-+	err = pci_request_region(dev, SMBBAR, i801_driver.name);
-+	if (err) {
-+		dev_err(&dev->dev, "Failed to request SMBus region "
-+			"0x%lx-0x%lx\n", i801_smba,
-+			pci_resource_end(dev, SMBBAR));
-+		goto exit_disable;
-+	}
++in[0-n]_alarm
++fan[1-n]_alarm
++temp[1-n]_alarm
++		Channel alarm
++		Boolean
++		Read-only
 +
-+	pci_read_config_byte(I801_dev, SMBHSTCFG, &temp);
-+	temp &= ~SMBHSTCFG_I2C_EN;	/* SMBus timing */
-+	if (!(temp & SMBHSTCFG_HST_EN)) {
-+		dev_info(&dev->dev, "Enabling SMBus device\n");
-+		temp |= SMBHSTCFG_HST_EN;
-+	}
-+	pci_write_config_byte(I801_dev, SMBHSTCFG, temp);
++OR
 +
-+	if (temp & SMBHSTCFG_SMB_SMI_EN)
-+		dev_dbg(&dev->dev, "SMBus using interrupt SMI#\n");
-+	else
-+		dev_dbg(&dev->dev, "SMBus using PCI Interrupt\n");
++in[0-n]_min_alarm
++in[0-n]_max_alarm
++fan[1-n]_min_alarm
++temp[1-n]_min_alarm
++temp[1-n]_max_alarm
++temp[1-n]_crit_alarm
++		Limit alarm
++		Boolean
++		Read-only
++
++Each input channel may have an associated fault file. This can be used
++to notify open diodes, unconnected fans etc. where the hardware
++supports it. When this boolean has value 1, the measurement for that
++channel should not be trusted.
++
++in[0-n]_input_fault
++fan[1-n]_input_fault
++temp[1-n]_input_fault
++		Input fault condition
++		Boolean
++		Read-only
++
++Some chips also offer the possibility to get beeped when an alarm occurs:
++
++beep_enable	Master beep enable
++		Boolean
++		Read/Write
++
++in[0-n]_beep
++fan[1-n]_beep
++temp[1-n]_beep
++		Channel beep
++		0 to disable.
++		1 to enable.
++		Read/write
++
++In theory, a chip could provide per-limit beep masking, but no such chip
++was seen so far.
++
++Old drivers provided a different, non-standard interface to alarms and
++beeps. These interface files are deprecated, but will be kept around
++for compatibility reasons:
  
- 	/* set up the driverfs linkage to our parent device */
- 	i801_adapter.dev.parent = &dev->dev;
+ alarms		Alarm bitmask.
+ 		Read only.
+@@ -265,33 +324,22 @@ alarms		Alarm bitmask.
+ 		if it is still valid.
+ 		Generally a direct representation of a chip's internal
+ 		alarm registers; there is no standard for the position
+-		of individual bits.
++		of individual bits. For this reason, the use of this
++		interface file for new drivers is discouraged. Use
++		individual *_alarm and *_fault files instead.
+ 		Bits are defined in kernel/include/sensors.h.
  
- 	snprintf(i801_adapter.name, I2C_NAME_SIZE,
- 		"SMBus I801 adapter at %04lx", i801_smba);
--	return i2c_add_adapter(&i801_adapter);
-+	err = i2c_add_adapter(&i801_adapter);
-+	if (err) {
-+		dev_err(&dev->dev, "Failed to add SMBus adapter\n");
-+		goto exit_disable;
-+	}
+-alarms_in	Alarm bitmask relative to in (voltage) channels
+-		Read only
+-		A '1' bit means an alarm, LSB corresponds to in0 and so on
+-		Prefered to 'alarms' for newer chips
+-
+-alarms_fan	Alarm bitmask relative to fan channels
+-		Read only
+-		A '1' bit means an alarm, LSB corresponds to fan1 and so on
+-		Prefered to 'alarms' for newer chips
+-
+-alarms_temp	Alarm bitmask relative to temp (temperature) channels
+-		Read only
+-		A '1' bit means an alarm, LSB corresponds to temp1 and so on
+-		Prefered to 'alarms' for newer chips
+-
+-beep_enable	Beep/interrupt enable
+-		0 to disable.
+-		1 to enable.
+-		Read/Write
+-
+ beep_mask	Bitmask for beep.
+-		Same format as 'alarms' with the same bit locations.
++		Same format as 'alarms' with the same bit locations,
++		use discouraged for the same reason. Use individual
++		*_beep files instead.
+ 		Read/Write
+ 
 +
-+exit_disable:
-+	pci_disable_device(dev);
-+exit:
-+	return err;
- }
++*********
++* Other *
++*********
++
+ eeprom		Raw EEPROM data in binary form.
+ 		Read only.
  
- static void __devexit i801_remove(struct pci_dev *dev)
-
 -- 
-Jean Delvare
+1.4.0
+
 
