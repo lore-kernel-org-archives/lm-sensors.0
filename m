@@ -1,41 +1,36 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:28:10 +0000
-Subject: [lm-sensors] [PATCH 44/44] [PATCH] I2C: I2C controllers go into
-Message-Id: <11510010632165-git-send-email-greg@kroah.com>
+Date: Thu, 22 Jun 2006 18:27:37 +0000
+Subject: [lm-sensors] [PATCH 11/44] [PATCH] I2C: i2c-piix4: Fix typo in
+Message-Id: <11510009273507-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: David Brownell <david-b at pacbell.net>
+From: Jean Delvare <khali at linux-fr.org>
 
-I2C creates some sysfs nodes in the wrong places:  not as children of parent
-controllers, but as their peers (!).  This puts them into the right place
-always, instead of just when the adapter is on the platform bus.
+Fix i2c-piix4 documentation typo.
 
-Signed-off-by: David Brownell <dbrownell at users.sourceforge.net>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/i2c-dev.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+ Documentation/i2c/busses/i2c-piix4 |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
-index ed7eed3..58ccddd 100644
---- a/drivers/i2c/i2c-dev.c
-+++ b/drivers/i2c/i2c-dev.c
-@@ -426,10 +426,7 @@ static int i2cdev_attach_adapter(struct 
+diff --git a/Documentation/i2c/busses/i2c-piix4 b/Documentation/i2c/busses/i2c-piix4
+index 10957be..a706ae6 100644
+--- a/Documentation/i2c/busses/i2c-piix4
++++ b/Documentation/i2c/busses/i2c-piix4
+@@ -63,7 +63,7 @@ The PIIX4E is just an new version of the
+ The PIIX/PIIX3 does not implement an SMBus or I2C bus, so you can't use
+ this driver on those mainboards.
  
- 	/* register this i2c device with the driver core */
- 	i2c_dev->adap = adap;
--	if (adap->dev.parent = &platform_bus)
--		dev = &adap->dev;
--	else
--		dev = adap->dev.parent;
-+	dev = &adap->dev;
- 	i2c_dev->class_dev = class_device_create(i2c_dev_class, NULL,
- 						 MKDEV(I2C_MAJOR, i2c_dev->minor),
- 						 dev, "i2c-%d", i2c_dev->minor);
+-The ServerWorks Southbridges, the Intel 440MX, and the Victory766 are
++The ServerWorks Southbridges, the Intel 440MX, and the Victory66 are
+ identical to the PIIX4 in I2C/SMBus support.
+ 
+ If you own Force CPCI735 motherboard or other OSB4 based systems you may need
 -- 
 1.4.0
 
