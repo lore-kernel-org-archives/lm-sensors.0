@@ -1,271 +1,144 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 12 Jun 2006 20:00:05 +0000
-Subject: [lm-sensors] [PATCH 13/14] lm70: New hardware monitoring driver
-Message-Id: <20060612220005.cd9ce8ad.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 22 Jun 2006 18:27:39 +0000
+Subject: [lm-sensors] [PATCH 13/44] [PATCH] I2C: i2c-nforce2: Add support
+Message-Id: <11510009332654-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Kaiwan N Billimoria <kaiwan at designergraphix.com>
-Content-Disposition: inline; filename=hwmon-lm70-new-driver.patch
+From: Jean Delvare <khali at linux-fr.org>
 
-This driver implements support for the National Semiconductor LM70
-temperature sensor.
+Add support for the new nForce4 MCP51 (also known as nForce 410 or
+430) and nForce4 MCP55 to the i2c-nforce2 driver. Some code changes
+were required because the base I/O address registers have changed in
+these versions. Standard BARs are now being used, while the original
+nForce2 chips used non-standard ones.
 
-The LM70 temperature sensor chip supports a single temperature sensor.
-It communicates with a host processor (or microcontroller) via an
-SPI/Microwire Bus interface.
-
-Communication with the LM70 is simple: when the temperature is to be sensed,
-the driver accesses the LM70 using SPI communication: 16 SCLK cycles
-comprise the MOSI/MISO loop. At the end of the transfer, the 11-bit 2's
-complement digital temperature (sent via the SIO line), is available in the
-driver for interpretation. This driver makes use of the kernel's in-core
-SPI support.
-
-Signed-off-by: Kaiwan N Billimoria <kaiwan at designergraphix.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- Documentation/hwmon/lm70 |   31 +++++++++
- drivers/hwmon/Kconfig    |   10 +++
- drivers/hwmon/Makefile   |    1 +
- drivers/hwmon/lm70.c     |  165 ++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 207 insertions(+)
+ Documentation/i2c/busses/i2c-nforce2 |    2 ++
+ drivers/i2c/busses/i2c-nforce2.c     |   38 ++++++++++++++++++++++++----------
+ include/linux/pci_ids.h              |    2 ++
+ 3 files changed, 31 insertions(+), 11 deletions(-)
 
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-2.6.17-rc6/Documentation/hwmon/lm70	2006-06-12 21:58:17.000000000 +0200
-@@ -0,0 +1,31 @@
-+Kernel driver lm70
-+=========
-+
-+Supported chip:
-+  * National Semiconductor LM70
-+    Datasheet: http://www.national.com/pf/LM/LM70.html
-+
-+Author:
-+        Kaiwan N Billimoria <kaiwan at designergraphix.com>
-+
-+Description
-+-----------
-+
-+This driver implements support for the National Semiconductor LM70
-+temperature sensor.
-+
-+The LM70 temperature sensor chip supports a single temperature sensor.
-+It communicates with a host processor (or microcontroller) via an
-+SPI/Microwire Bus interface.
-+
-+Communication with the LM70 is simple: when the temperature is to be sensed,
-+the driver accesses the LM70 using SPI communication: 16 SCLK cycles
-+comprise the MOSI/MISO loop. At the end of the transfer, the 11-bit 2's
-+complement digital temperature (sent via the SIO line), is available in the
-+driver for interpretation. This driver makes use of the kernel's in-core
-+SPI support.
-+
-+Thanks to
-+---------
-+Jean Delvare <khali at linux-fr.org> for mentoring the hwmon-side driver
-+development.
---- linux-2.6.17-rc6.orig/drivers/hwmon/Kconfig	2006-06-12 19:16:40.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/hwmon/Kconfig	2006-06-12 19:17:08.000000000 +0200
-@@ -204,6 +204,16 @@
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called lm63.
+diff --git a/Documentation/i2c/busses/i2c-nforce2 b/Documentation/i2c/busses/i2c-nforce2
+index d751282..cd49c42 100644
+--- a/Documentation/i2c/busses/i2c-nforce2
++++ b/Documentation/i2c/busses/i2c-nforce2
+@@ -7,6 +7,8 @@ Supported adapters:
+   * nForce3 250Gb MCP          10de:00E4 
+   * nForce4 MCP                10de:0052
+   * nForce4 MCP-04             10de:0034
++  * nForce4 MCP51              10de:0264
++  * nForce4 MCP55              10de:0368
  
-+config SENSORS_LM70
-+	tristate "National Semiconductor LM70"
-+	depends on HWMON && SPI_MASTER && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for the National Semiconductor
-+	  LM70 digital temperature sensor chip.
+ Datasheet: not publically available, but seems to be similar to the
+            AMD-8111 SMBus 2.0 adapter.
+diff --git a/drivers/i2c/busses/i2c-nforce2.c b/drivers/i2c/busses/i2c-nforce2.c
+index 2d80eb2..604b49e 100644
+--- a/drivers/i2c/busses/i2c-nforce2.c
++++ b/drivers/i2c/busses/i2c-nforce2.c
+@@ -31,6 +31,8 @@
+     nForce3 250Gb MCP		00E4
+     nForce4 MCP			0052
+     nForce4 MCP-04		0034
++    nForce4 MCP51		0264
++    nForce4 MCP55		0368
+ 
+     This driver supports the 2 SMBuses that are included in the MCP of the
+     nForce2/3/4 chipsets.
+@@ -64,6 +66,7 @@ struct nforce2_smbus {
+ 
+ /*
+  * nVidia nForce2 SMBus control register definitions
++ * (Newer incarnations use standard BARs 4 and 5 instead)
+  */
+ #define NFORCE_PCI_SMB1	0x50
+ #define NFORCE_PCI_SMB2	0x54
+@@ -259,6 +262,8 @@ static struct pci_device_id nforce2_ids[
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE3S_SMBUS) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE4_SMBUS) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP04_SMBUS) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SMBUS) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SMBUS) },
+ 	{ 0 }
+ };
+ 
+@@ -266,19 +271,29 @@ static struct pci_device_id nforce2_ids[
+ MODULE_DEVICE_TABLE (pci, nforce2_ids);
+ 
+ 
+-static int __devinit nforce2_probe_smb (struct pci_dev *dev, int reg,
+-	struct nforce2_smbus *smbus, char *name)
++static int __devinit nforce2_probe_smb (struct pci_dev *dev, int bar,
++	int alt_reg, struct nforce2_smbus *smbus, const char *name)
+ {
+-	u16 iobase;
+ 	int error;
+ 
+-	if (pci_read_config_word(dev, reg, &iobase) != PCIBIOS_SUCCESSFUL) {
+-		dev_err(&smbus->adapter.dev, "Error reading PCI config for %s\n", name);
+-		return -1;
++	smbus->base = pci_resource_start(dev, bar);
++	if (smbus->base) {
++		smbus->size = pci_resource_len(dev, bar);
++	} else {
++		/* Older incarnations of the device used non-standard BARs */
++		u16 iobase;
 +
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called lm70.
++		if (pci_read_config_word(dev, alt_reg, &iobase)
++		    != PCIBIOS_SUCCESSFUL) {
++			dev_err(&dev->dev, "Error reading PCI config for %s\n",
++				name);
++			return -1;
++		}
 +
- config SENSORS_LM75
- 	tristate "National Semiconductor LM75 and compatibles"
- 	depends on HWMON && I2C
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-2.6.17-rc6/drivers/hwmon/lm70.c	2006-06-12 19:17:08.000000000 +0200
-@@ -0,0 +1,165 @@
-+/*
-+ * lm70.c
-+ *
-+ * The LM70 is a temperature sensor chip from National Semiconductor (NS).
-+ * Copyright (C) 2006 Kaiwan N Billimoria <kaiwan at designergraphix.com>
-+ *
-+ * The LM70 communicates with a host processor via an SPI/Microwire Bus
-+ * interface. The complete datasheet is available at National's website
-+ * here:
-+ * http://www.national.com/pf/LM/LM70.html
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/sysfs.h>
-+#include <linux/hwmon.h>
-+#include <linux/spi/spi.h>
-+#include <asm/semaphore.h>
-+
-+#define DRVNAME		"lm70"
-+
-+struct lm70 {
-+	struct class_device *cdev;
-+	struct semaphore sem;
-+};
-+
-+/* sysfs hook function */
-+static ssize_t lm70_sense_temp(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	int status, val;
-+	u8 rxbuf[2];
-+	s16 raw=0;
-+	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
-+
-+	if (down_interruptible(&p_lm70->sem))
-+		return -ERESTARTSYS;
-+
-+	/*
-+	 * spi_read() requires a DMA-safe buffer; so we use
-+	 * spi_write_then_read(), transmitting 0 bytes.
-+	 */
-+	status = spi_write_then_read(spi, NULL, 0, &rxbuf[0], 2);
-+	if (status < 0) {
-+		printk(KERN_WARNING
-+		"spi_write_then_read failed with status %d\n", status);
-+		goto out;
-+	}
-+	dev_dbg(dev, "rxbuf[1] : 0x%x rxbuf[0] : 0x%x\n", rxbuf[1], rxbuf[0]);
-+
-+	raw = (rxbuf[1] << 8) + rxbuf[0];
-+	dev_dbg(dev, "raw=0x%x\n", raw);
-+
-+	/*
-+	 * The "raw" temperature read into rxbuf[] is a 16-bit signed 2's
-+	 * complement value. Only the MSB 11 bits (1 sign + 10 temperature
-+	 * bits) are meaningful; the LSB 5 bits are to be discarded.
-+	 * See the datasheet.
-+	 *
-+	 * Further, each bit represents 0.25 degrees Celsius; so, multiply
-+	 * by 0.25. Also multiply by 1000 to represent in millidegrees
-+	 * Celsius.
-+	 * So it's equivalent to multiplying by 0.25 * 1000 = 250.
-+	 */
-+	val = ((int)raw/32) * 250;
-+	status = sprintf(buf, "%+d\n", val); /* millidegrees Celsius */
-+out:
-+	up(&p_lm70->sem);
-+	return status;
-+}
-+
-+static DEVICE_ATTR(temp1_input, S_IRUGO, lm70_sense_temp, NULL);
-+
-+/*----------------------------------------------------------------------*/
-+
-+static int __devinit lm70_probe(struct spi_device *spi)
-+{
-+	struct lm70 *p_lm70;
-+	int status;
-+
-+	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
-+	if (!p_lm70)
-+		return -ENOMEM;
-+
-+	init_MUTEX(&p_lm70->sem);
-+
-+	/* sysfs hook */
-+	p_lm70->cdev = hwmon_device_register(&spi->dev);
-+	if (IS_ERR(p_lm70->cdev)) {
-+		dev_dbg(&spi->dev, "hwmon_device_register failed.\n");
-+		status = PTR_ERR(p_lm70->cdev);
-+		goto out_dev_reg_failed;
-+	}
-+	dev_set_drvdata(&spi->dev, p_lm70);
-+
-+	if ((status = device_create_file(&spi->dev, &dev_attr_temp1_input))) {
-+		dev_dbg(&spi->dev, "device_create_file failure.\n");
-+		goto out_dev_create_file_failed;
-+	}
-+
-+	return 0;
-+
-+out_dev_create_file_failed:
-+	hwmon_device_unregister(p_lm70->cdev);
-+out_dev_reg_failed:
-+	dev_set_drvdata(&spi->dev, NULL);
-+	kfree(p_lm70);
-+	return status;
-+}
-+
-+static int __exit lm70_remove(struct spi_device *spi)
-+{
-+	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
-+
-+	device_remove_file(&spi->dev, &dev_attr_temp1_input);
-+	hwmon_device_unregister(p_lm70->cdev);
-+	dev_set_drvdata(&spi->dev, NULL);
-+	kfree(p_lm70);
-+
-+	return 0;
-+}
-+
-+static struct spi_driver lm70_driver = {
-+	.driver = {
-+		.name	= "lm70",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe	= lm70_probe,
-+	.remove	= __devexit_p(lm70_remove),
-+};
-+
-+static int __init init_lm70(void)
-+{
-+	return spi_register_driver(&lm70_driver);
-+}
-+
-+static void __exit cleanup_lm70(void)
-+{
-+	spi_unregister_driver(&lm70_driver);
-+}
-+
-+module_init(init_lm70);
-+module_exit(cleanup_lm70);
-+
-+MODULE_AUTHOR("Kaiwan N Billimoria");
-+MODULE_DESCRIPTION("National Semiconductor LM70 Linux driver");
-+MODULE_LICENSE("GPL");
---- linux-2.6.17-rc6.orig/drivers/hwmon/Makefile	2006-06-12 18:41:00.000000000 +0200
-+++ linux-2.6.17-rc6/drivers/hwmon/Makefile	2006-06-12 19:17:08.000000000 +0200
-@@ -28,6 +28,7 @@
- obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
- obj-$(CONFIG_SENSORS_IT87)	+= it87.o
- obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
-+obj-$(CONFIG_SENSORS_LM70)	+= lm70.o
- obj-$(CONFIG_SENSORS_LM75)	+= lm75.o
- obj-$(CONFIG_SENSORS_LM77)	+= lm77.o
- obj-$(CONFIG_SENSORS_LM78)	+= lm78.o
-
++		smbus->base = iobase & PCI_BASE_ADDRESS_IO_MASK;
++		smbus->size = 8;
+ 	}
+-	smbus->dev  = dev;
+-	smbus->base = iobase & 0xfffc;
+-	smbus->size = 8;
++	smbus->dev = dev;
+ 
+ 	if (!request_region(smbus->base, smbus->size, nforce2_driver.name)) {
+ 		dev_err(&smbus->adapter.dev, "Error requesting region %02x .. %02X for %s\n",
+@@ -313,12 +328,13 @@ static int __devinit nforce2_probe(struc
+ 	pci_set_drvdata(dev, smbuses);
+ 
+ 	/* SMBus adapter 1 */
+-	res1 = nforce2_probe_smb (dev, NFORCE_PCI_SMB1, &smbuses[0], "SMB1");
++	res1 = nforce2_probe_smb(dev, 4, NFORCE_PCI_SMB1, &smbuses[0], "SMB1");
+ 	if (res1 < 0) {
+ 		dev_err(&dev->dev, "Error probing SMB1.\n");
+ 		smbuses[0].base = 0;	/* to have a check value */
+ 	}
+-	res2 = nforce2_probe_smb (dev, NFORCE_PCI_SMB2, &smbuses[1], "SMB2");
++	/* SMBus adapter 2 */
++	res2 = nforce2_probe_smb(dev, 5, NFORCE_PCI_SMB2, &smbuses[1], "SMB2");
+ 	if (res2 < 0) {
+ 		dev_err(&dev->dev, "Error probing SMB2.\n");
+ 		smbuses[1].base = 0;	/* to have a check value */
+diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+index 489af9d..d334360 100644
+--- a/include/linux/pci_ids.h
++++ b/include/linux/pci_ids.h
+@@ -1130,9 +1130,11 @@ #define PCI_DEVICE_ID_NVIDIA_GEFORCE4_TI
+ #define PCI_DEVICE_ID_NVIDIA_QUADRO4_900XGL	0x0258
+ #define PCI_DEVICE_ID_NVIDIA_QUADRO4_750XGL	0x0259
+ #define PCI_DEVICE_ID_NVIDIA_QUADRO4_700XGL	0x025B
++#define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SMBUS	0x0264
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_IDE	0x0265
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SATA	0x0266
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SATA2	0x0267
++#define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SMBUS	0x0368
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_IDE	0x036E
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SATA	0x037E
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SATA2	0x037F
 -- 
-Jean Delvare
+1.4.0
+
 
