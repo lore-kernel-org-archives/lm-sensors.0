@@ -1,102 +1,139 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:28:09 +0000
-Subject: [lm-sensors] [PATCH 43/44] [PATCH] hwmon-vid: Add support for Intel
-Message-Id: <11510010603461-git-send-email-greg@kroah.com>
+Date: Thu, 22 Jun 2006 18:27:29 +0000
+Subject: [lm-sensors] [PATCH 3/44] [PATCH] w83627ehf: Add alarms support
+Message-Id: <11510008972546-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Rudolf Marek <r.marek at sh.cvut.cz>
+From: Jean Delvare <khali at linux-fr.org>
 
-This patch adds support for two new VID codes, supporting Intel mobile Core
-processors and new Conroe based platforms.
+Add alarms support for the W83627EHF/EHG hardware monitoring chip.
+
+This is based on an earlier patch from Rudolf Marek.
 
 Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/hwmon/hwmon-vid.c |   35 ++++++++++++++++++++++++++++-------
- 1 files changed, 28 insertions(+), 7 deletions(-)
+ drivers/hwmon/w83627ehf.c |   46 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 46 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/hwmon/hwmon-vid.c b/drivers/hwmon/hwmon-vid.c
-index b0fd267..a6764ff 100644
---- a/drivers/hwmon/hwmon-vid.c
-+++ b/drivers/hwmon/hwmon-vid.c
-@@ -58,11 +58,20 @@ #include <linux/hwmon-vid.h>
-     doesn't seem to be any named specification for these. The conversion
-     tables are detailed directly in the various Pentium M datasheets:
-     http://www.intel.com/design/intarch/pentiumm/docs_pentiumm.htm
-+
-+    The 14 specification corresponds to Intel Core series. There
-+    doesn't seem to be any named specification for these. The conversion
-+    tables are detailed directly in the various Pentium Core datasheets:
-+    http://www.intel.com/design/mobile/datashts/309221.htm
-+
-+    The 110 (VRM 11) specification corresponds to Intel Conroe based series.
-+    http://www.intel.com/design/processor/applnots/313214.htm
- */
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 08bbeaf..40301bc 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -141,6 +141,10 @@ #define W83627EHF_REG_VBAT		0x5D
+ #define W83627EHF_REG_DIODE		0x59
+ #define W83627EHF_REG_SMI_OVT		0x4C
  
- /* vrm is the VRM/VRD document version multiplied by 10.
--   val is the 4-, 5- or 6-bit VID code.
--   Returned value is in mV to avoid floating point in the kernel. */
-+   val is the 4-bit or more VID code.
-+   Returned value is in mV to avoid floating point in the kernel.
-+   Some VID have some bits in uV scale, this is rounded to mV */
- int vid_from_reg(int val, u8 vrm)
++#define W83627EHF_REG_ALARM1		0x459
++#define W83627EHF_REG_ALARM2		0x45A
++#define W83627EHF_REG_ALARM3		0x45B
++
+ /*
+  * Conversions
+  */
+@@ -218,6 +222,7 @@ struct w83627ehf_data {
+ 	s16 temp[2];
+ 	s16 temp_max[2];
+ 	s16 temp_max_hyst[2];
++	u32 alarms;
+ };
+ 
+ static inline int is_word_sized(u16 reg)
+@@ -427,6 +432,13 @@ static struct w83627ehf_data *w83627ehf_
+ 						 W83627EHF_REG_TEMP_HYST[i]);
+ 		}
+ 
++		data->alarms = w83627ehf_read_value(client,
++					W83627EHF_REG_ALARM1) |
++			       (w83627ehf_read_value(client,
++					W83627EHF_REG_ALARM2) << 8) |
++			       (w83627ehf_read_value(client,
++					W83627EHF_REG_ALARM3) << 16);
++
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
+ 	}
+@@ -474,6 +486,14 @@ store_in_##reg (struct device *dev, stru
+ store_in_reg(MIN, min)
+ store_in_reg(MAX, max)
+ 
++static ssize_t show_alarm(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct w83627ehf_data *data = w83627ehf_update_device(dev);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	return sprintf(buf, "%u\n", (data->alarms >> nr) & 0x01);
++}
++
+ static struct sensor_device_attribute sda_in_input[] = {
+ 	SENSOR_ATTR(in0_input, S_IRUGO, show_in, NULL, 0),
+ 	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
+@@ -487,6 +507,19 @@ static struct sensor_device_attribute sd
+ 	SENSOR_ATTR(in9_input, S_IRUGO, show_in, NULL, 9),
+ };
+ 
++static struct sensor_device_attribute sda_in_alarm[] = {
++	SENSOR_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0),
++	SENSOR_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1),
++	SENSOR_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2),
++	SENSOR_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3),
++	SENSOR_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 8),
++	SENSOR_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 21),
++	SENSOR_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 20),
++	SENSOR_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 16),
++	SENSOR_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 17),
++	SENSOR_ATTR(in9_alarm, S_IRUGO, show_alarm, NULL, 19),
++};
++
+ static struct sensor_device_attribute sda_in_min[] = {
+        SENSOR_ATTR(in0_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 0),
+        SENSOR_ATTR(in1_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 1),
+@@ -516,6 +549,7 @@ static struct sensor_device_attribute sd
+ static void device_create_file_in(struct device *dev, int i)
  {
- 	int vid;
-@@ -70,18 +79,24 @@ int vid_from_reg(int val, u8 vrm)
- 	switch(vrm) {
+ 	device_create_file(dev, &sda_in_input[i].dev_attr);
++	device_create_file(dev, &sda_in_alarm[i].dev_attr);
+ 	device_create_file(dev, &sda_in_min[i].dev_attr);
+ 	device_create_file(dev, &sda_in_max[i].dev_attr);
+ }
+@@ -618,6 +652,14 @@ static struct sensor_device_attribute sd
+ 	SENSOR_ATTR(fan5_input, S_IRUGO, show_fan, NULL, 4),
+ };
  
- 	case 100:               /* VRD 10.0 */
-+		/* compute in uV, round to mV */
- 		val &= 0x3f;
- 		if((val & 0x1f) = 0x1f)
- 			return 0;
- 		if((val & 0x1f) <= 0x09 || val = 0x0a)
--			vid = 10875 - (val & 0x1f) * 250;
-+			vid = 1087500 - (val & 0x1f) * 25000;
- 		else
--			vid = 18625 - (val & 0x1f) * 250;
-+			vid = 1862500 - (val & 0x1f) * 25000;
- 		if(val & 0x20)
--			vid -= 125;
--		vid /= 10;      /* only return 3 dec. places for now */
--		return vid;
-+			vid -= 12500;
-+		return((vid + 500) / 1000);
++static struct sensor_device_attribute sda_fan_alarm[] = {
++	SENSOR_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 6),
++	SENSOR_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 7),
++	SENSOR_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 11),
++	SENSOR_ATTR(fan4_alarm, S_IRUGO, show_alarm, NULL, 10),
++	SENSOR_ATTR(fan5_alarm, S_IRUGO, show_alarm, NULL, 23),
++};
++
+ static struct sensor_device_attribute sda_fan_min[] = {
+ 	SENSOR_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan_min,
+ 		    store_fan_min, 0),
+@@ -642,6 +684,7 @@ static struct sensor_device_attribute sd
+ static void device_create_file_fan(struct device *dev, int i)
+ {
+ 	device_create_file(dev, &sda_fan_input[i].dev_attr);
++	device_create_file(dev, &sda_fan_alarm[i].dev_attr);
+ 	device_create_file(dev, &sda_fan_div[i].dev_attr);
+ 	device_create_file(dev, &sda_fan_min[i].dev_attr);
+ }
+@@ -729,6 +772,9 @@ static struct sensor_device_attribute sd
+ 		    store_temp_max_hyst, 0),
+ 	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR, show_temp_max_hyst,
+ 		    store_temp_max_hyst, 1),
++	SENSOR_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4),
++	SENSOR_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 5),
++	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13),
+ };
  
-+	case 110:		/* Intel Conroe */
-+				/* compute in uV, round to mV */
-+		val &= 0xff;
-+		if(((val & 0x7e) = 0xfe) || (!(val & 0x7e)))
-+			return 0;
-+		return((1600000 - (val - 2) * 6250 + 500) / 1000);
- 	case 24:                /* Opteron processor */
- 		val &= 0x1f;
- 		return(val = 0x1f ? 0 : 1550 - val * 25);
-@@ -113,6 +128,10 @@ int vid_from_reg(int val, u8 vrm)
- 	case 13:
- 		val &= 0x3f;
- 		return(1708 - val * 16);
-+	case 14:		/* Intel Core */
-+				/* compute in uV, round to mV */
-+		val &= 0x7f;
-+		return(val > 0x77 ? 0 : (1500000 - (val * 12500) + 500) / 1000);
- 	default:		/* report 0 for unknown */
- 		printk(KERN_INFO "hwmon-vid: requested unknown VRM version\n");
- 		return 0;
-@@ -145,6 +164,8 @@ static struct vrm_model vrm_models[] = {
- 	{X86_VENDOR_INTEL, 0x6, 0x9, ANY, 13},		/* Pentium M (130 nm) */
- 	{X86_VENDOR_INTEL, 0x6, 0xB, ANY, 85},		/* Tualatin */
- 	{X86_VENDOR_INTEL, 0x6, 0xD, ANY, 13},		/* Pentium M (90 nm) */
-+	{X86_VENDOR_INTEL, 0x6, 0xE, ANY, 14},		/* Intel Core (65 nm) */
-+	{X86_VENDOR_INTEL, 0x6, 0xF, ANY, 110},		/* Intel Conroe */
- 	{X86_VENDOR_INTEL, 0x6, ANY, ANY, 82},		/* any P6 */
- 	{X86_VENDOR_INTEL, 0x7, ANY, ANY, 0},		/* Itanium */
- 	{X86_VENDOR_INTEL, 0xF, 0x0, ANY, 90},		/* P4 */
+ /*
 -- 
 1.4.0
 
