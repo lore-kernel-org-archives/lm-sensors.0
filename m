@@ -1,36 +1,160 @@
-From: khc@pm.waw.pl (Krzysztof Halasa)
-Date: Mon, 12 Jun 2006 17:13:38 +0000
-Subject: [lm-sensors] [PATCH] I2C: i2c_bit_add_bus should initialize SDA
-Message-Id: <m3hd2q47r1.fsf@defiant.localdomain>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 22 Jun 2006 18:26:34 +0000
+Subject: [lm-sensors] [GIT PATCH] I2C and hwmon patches for 2.6.17
+Message-Id: <20060622182634.GA5668@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <m34pyyz0e1.fsf@defiant.localdomain>
-	<20060609110546.GA26073@jupiter.solarsys.private>
-	<m3lks4k5od.fsf@defiant.localdomain>
-	<20060612123626.GA27429@jupiter.solarsys.private>
-In-Reply-To: <20060612123626.GA27429@jupiter.solarsys.private> (Mark M. Hoffman's message of "Mon, 12 Jun 2006 08:36:26 -0400")
+References: <20051028210607.GA18845@kroah.com>
+In-Reply-To: <20051028210607.GA18845@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>
 
-Hi,
+Here are some i2c and hwmon patches and fixes for 2.6.17.  They add a
+few new drivers, and fix a wide range of bugs and cleanups.
 
-"Mark M. Hoffman" <mhoffman at lightlink.com> writes:
+They all have been in the -mm tree for a few months.
 
-> If you can't read the line state... well, that's not actually a proper
-> I2C bus anyway.
+Please pull from:
+	git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
+or from:
+	master.kernel.org:/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
+if it isn't synced up yet.
 
-Actually you only have to be able to read SDA state, it might not be
-true WRT SCL. I think most implementations use a single master and
-a fixed access timing and thus only read SDA (SCL can as well be
-a simple 2-state normal output from master instead of open
-drain/collector or 3-state).
+The full patch series will sent to the sensors mailing list, if anyone
+wants to see them.
 
-I'm not sure initializing the bus (in terms of ~ handshaking)
-belongs to hw driver and not to the algorithm but such is live.
+thanks,
 
-Thanks.
--- 
-Krzysztof Halasa
+greg k-h
+
+
+
+ Documentation/hwmon/abituguru           |   59 +
+ Documentation/hwmon/abituguru-datasheet |  312 +++++++
+ Documentation/hwmon/lm70                |   31 +
+ Documentation/hwmon/lm83                |   17 
+ Documentation/hwmon/smsc47m192          |  102 ++
+ Documentation/hwmon/sysfs-interface     |  274 ++++--
+ Documentation/hwmon/userspace-tools     |   17 
+ Documentation/hwmon/w83791d             |  113 ++
+ Documentation/i2c/busses/i2c-i801       |    3 
+ Documentation/i2c/busses/i2c-nforce2    |    2 
+ Documentation/i2c/busses/i2c-ocores     |   51 +
+ Documentation/i2c/busses/i2c-piix4      |   40 +
+ Documentation/i2c/busses/scx200_acb     |   19 
+ MAINTAINERS                             |   24 -
+ drivers/hwmon/Kconfig                   |   65 +
+ drivers/hwmon/Makefile                  |    4 
+ drivers/hwmon/abituguru.c               | 1415 +++++++++++++++++++++++++++++++
+ drivers/hwmon/f71805f.c                 |   15 
+ drivers/hwmon/hdaps.c                   |    8 
+ drivers/hwmon/hwmon-vid.c               |   44 +
+ drivers/hwmon/lm70.c                    |  165 ++++
+ drivers/hwmon/lm83.c                    |   50 +
+ drivers/hwmon/smsc47m192.c              |  648 ++++++++++++++
+ drivers/hwmon/w83627ehf.c               |  170 ++++
+ drivers/hwmon/w83791d.c                 | 1255 +++++++++++++++++++++++++++
+ drivers/hwmon/w83792d.c                 |   86 +-
+ drivers/i2c/busses/Kconfig              |   22 
+ drivers/i2c/busses/Makefile             |    1 
+ drivers/i2c/busses/i2c-i801.c           |  154 +--
+ drivers/i2c/busses/i2c-nforce2.c        |   38 +
+ drivers/i2c/busses/i2c-ocores.c         |  341 +++++++
+ drivers/i2c/busses/i2c-piix4.c          |   33 -
+ drivers/i2c/busses/scx200_acb.c         |  202 +++-
+ drivers/i2c/chips/Kconfig               |    8 
+ drivers/i2c/chips/m41t00.c              |  346 ++++++--
+ drivers/i2c/i2c-core.c                  |    4 
+ drivers/i2c/i2c-dev.c                   |    5 
+ include/linux/i2c-ocores.h              |   19 
+ include/linux/i2c.h                     |    4 
+ include/linux/m41t00.h                  |   50 +
+ include/linux/pci_ids.h                 |    5 
+ 41 files changed, 5747 insertions(+), 474 deletions(-)
+ create mode 100644 Documentation/hwmon/abituguru
+ create mode 100644 Documentation/hwmon/abituguru-datasheet
+ create mode 100644 Documentation/hwmon/lm70
+ create mode 100644 Documentation/hwmon/smsc47m192
+ create mode 100644 Documentation/hwmon/w83791d
+ create mode 100644 Documentation/i2c/busses/i2c-ocores
+ create mode 100644 drivers/hwmon/abituguru.c
+ create mode 100644 drivers/hwmon/lm70.c
+ create mode 100644 drivers/hwmon/smsc47m192.c
+ create mode 100644 drivers/hwmon/w83791d.c
+ create mode 100644 drivers/i2c/busses/i2c-ocores.c
+ create mode 100644 include/linux/i2c-ocores.h
+ create mode 100644 include/linux/m41t00.h
+
+---------------
+
+Charles Spirakis:
+      HWMON: w83791d: New hardware monitoring driver for the Winbond W83791D
+
+David Brownell:
+      I2C: I2C controllers go into right place on sysfs
+
+Hans de Goede:
+      abituguru: New hardware monitoring driver
+      abituguru: Review fixes
+      abituguru: Fix fan detection
+
+Hartmut Rick:
+      smsc47m192: New hwmon driver for SMSC LPC47M192/997
+
+Jean Delvare:
+      w83627ehf: Add alarms support
+      f71805f: Resource needs not be global
+      hwmon: Add sysfs interface for individual alarm files
+      I2C: i2c-piix4: Fix typo in documentation
+      I2C: i2c-piix4: Document the IBM problem more clearly
+      I2C: i2c-nforce2: Add support for the nForce4 MCP51 and MCP55
+      HWMON: hdaps: Update the list of supported systems
+      HWMON: lm83: Documentation update
+      HWMON: Improve the help text for CONFIG_HWMON
+      i2c: Suggest N for rare devices in Kconfig
+      hwmon: Sysfs interface documentation update, 2 of 2, take 2
+      hwmon: Fix a typo in the hdaps driver
+      hwmon: Drop some maintainers entries
+      scx200_acb: Mark scx200_acb_probe __init
+      scx200_acb: Documentation update
+      i2c-i801: Fix block transaction poll loops
+      i2c-i801: Remove force_addr parameter
+      i2c-i801: Remove PCI function check
+      i2c-i801: Cleanups
+      i2c-i801: Better pci subsystem integration
+      i2c-i801: Merge setup function
+      hwmon: Fix the Kconfig header
+
+Jordan Crouse:
+      lm83: Add LM82 support
+      scx200_acb: Use PCI I/O resource when appropriate
+
+Kaiwan N Billimoria:
+      lm70: New hardware monitoring driver
+
+Krzysztof Halasa:
+      i2c: Mark block write buffers as const
+
+Mark A. Greer:
+      i2c: cleanup m41t00
+      I2C: m41t00: Add support for the ST M41T81 and M41T85
+
+Peter Korsgaard:
+      i2c: New bus driver for the OpenCores I2C controller
+      i2c-ocores: Minor cleanups
+
+Rudolf Marek:
+      w83627ehf: Add voltage inputs support
+      i2c-piix4: Add ATI IXP200/300/400 support
+      I2C: i2c-piix4: Remove the fix_hstcfg parameter
+      HWMON: Trim VID values to correct number of bits
+      hwmon: Sysfs interface documentation update, 1 of 2
+      hwmon-vid: Add support for Intel Core and Conroe
+
+Yuan Mu:
+      w83792d: Fix setting the PWM value
+      w83792d: Add missing data access locks
+
 
