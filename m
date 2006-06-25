@@ -1,41 +1,35 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 07 Jun 2006 21:24:58 +0000
-Subject: [lm-sensors] ASUS P4P 800 and sensors.conf
-Message-Id: <4487442A.7030300@sh.cvut.cz>
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Sun, 25 Jun 2006 12:00:21 +0000
+Subject: [lm-sensors] Patch: hwmon-abituguru-override-bank1detect.patch
+Message-Id: <449E7AD5.4060908@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44709DB9.7000006@wanadoo.fr>
-In-Reply-To: <44709DB9.7000006@wanadoo.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-hello
+Hi all,
 
->> If you use acpi, please can you send us the dsdt.bin
->> file?
->>
->> You can obtain it via cat /proc/acpi/dsdt > /tmp/dsdt.bin
+Now that the abituguru driver is seeing some more widespread testing it
+has turned out that one the first generation of Abit uGuru motherboards,
+with uGuru revision 1, the autodetect bank1 sensor type code doesn't
+(always) work.
 
->t a few words to know if you received the file you were asking for, I
-> mean /tmp/dsdt.bin  ? And what could be the solution ? To wait for a new
-> version  of lm-sensors ??
+Thispatch adds a module param to override the autodetect, and it adds
+validity checks for the value of the 2 other autodetection override
+module params. An example of howto use the new param can be found here:
+http://lm-sensors.org/wiki/Configurations/Abit/AN7
 
-Ah sorry I forgot to reply. There is nothing it can help us.
-The only way is the BIOS reverse engineering or contacting ASUS which might
-be equally hard ;)
+It would be nice if this patch could be merged before 2.6.18, as without
+it the uguru driver is useless for people with the affected motherboards.
 
-You might ask them this:
+Regards,
 
-What are the scaling factors of monitored voltages connected to w83627thf chip
-on this and this motherboard.
-
-I'm sorry but I cant do the reversengineering right know because I dont have any 
-  free time for extra stuff at all :(
-
-You may check my website http://assembler.cz there some "Bios hacking"  stuff 
-including some steps how to do that.
-
-Regards
-Rudolf
-
+Hans
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: hwmon-abituguru-override-bank1detect.patch
+Type: text/x-patch
+Size: 2379 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060625/28b1a1bb/attachment.bin 
