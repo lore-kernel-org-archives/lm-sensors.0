@@ -1,56 +1,46 @@
-From: gimeshell@web.de (gimeshell at web.de)
-Date: Tue, 27 Jun 2006 23:40:22 +0000
-Subject: [lm-sensors] better temp2 computation for asus CUSL2C
-Message-Id: <20060628014022.dd15c4a0.gimeshell@web.de>
+From: ben-linux@fluff.org (Ben Dooks)
+Date: Mon, 26 Jun 2006 22:14:30 +0000
+Subject: [lm-sensors] [PATCH] S3C24XX: fix small bug in write
+Message-Id: <20060626221430.GA4772@home.fluff.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060618021736.f08a39bb.gimeshell@web.de>
-In-Reply-To: <20060618021736.f08a39bb.gimeshell@web.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 18 Jun 2006 22:17:15 +0200
-Jean Delvare <khali at linux-fr.org> wrote:
+This affects a few devices on i2c, where the i2c controller
+on the S3C2410 simply stops working when writing to the bus.
 
-> > my BIOS does have such an idle loop, too.
-> > Temperature is increasing from about 35 degrees immidiately after
-> > entering BIOS up to 46 degrees met after a few minutes.
-> > Looking at sensors output while linux is idle, i get shown about 30
-> > degrees with sensors default computation line for asus CUSL.
-> 
-> So I'd say the compute line is correct and you don't need to change
-> it.
-> 
+Adding a small delay by reading the IICSTAT register 6 times
+seesm to be good enough to allow the controller to continue
+without stopping the bus transaction.
 
-Hi,
+Signed-off-by: Ben Dooks <ben-linux at fluff.org>
 
-i did make some tests (sorry for late reply):
-
-CPU busy
-====
-Linux: (mprime cpu stressing): lm-sensors: 44? C
-BIOS: (instantly reset switch): 43? C
-
-CPU idle
-====
-Linux: lm-sensors: 38? C
-BIOS: (instantly reset switch): 36? C
-
-BIOS
-==
-(probably cpu load, loop) 45? C
-
-sensors.conf compute line:
-compute temp2 (@*30/43)+34, (@-25)*43/30 
-
-instead of default:
-compute temp2 (@*30/43)+25, (@-25)*43/30 
-
-Motherboard: Asus CUSL2C
-
-Or did i overlook anything?
-
-regards,
-gimeshell
+diff -urpN -X ../dontdiff linux-2.6.17-git9-bjd1/drivers/i2c/busses/i2c-s3c2410.c linux-2.6.17-git9/drivers/i2c/busses/i2c-s3c2410.c
+--- linux-2.6.17-git9-bjd1/drivers/i2c/busses/i2c-s3c2410.c	2006-06-18 02:49:35.000000000 +0100
++++ linux-2.6.17-git9/drivers/i2c/busses/i2c-s3c2410.c	2006-06-26 23:05:56.000000000 +0100
+@@ -269,6 +269,7 @@ static int i2s_s3c_irq_nextbyte(struct s
+ 	unsigned long tmp;
+ 	unsigned char byte;
+ 	int ret = 0;
++	int i;
+ 
+ 	switch (i2c->state) {
+ 
+@@ -325,6 +326,14 @@ static int i2s_s3c_irq_nextbyte(struct s
+ 			byte = i2c->msg->buf[i2c->msg_ptr++];
+ 			writeb(byte, i2c->regs + S3C2410_IICDS);
+ 			
++			/* sometimes write operations fail if the write is
++			 * let go too quickly, slow down the proceedings
++			 * slightly.
++			 */
++
++			for (i = 0; i < 6; i++) 
++				tmp += readl(i2c->regs + S3C2410_IICSTAT);
++
+ 		} else if (!is_lastmsg(i2c)) {
+ 			/* we need to go to the next i2c message */
+ 
 
