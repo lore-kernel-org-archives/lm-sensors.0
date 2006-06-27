@@ -1,7 +1,7 @@
-From: Axel.Thimm@ATrpms.net (Axel Thimm)
-Date: Tue, 27 Jun 2006 10:20:55 +0000
+From: mrenzmann@otaku42.de (Michael Renzmann)
+Date: Tue, 27 Jun 2006 10:32:41 +0000
 Subject: [lm-sensors] snapshot generation
-Message-Id: <20060627102055.GG4718@neu.nirvana>
+Message-Id: <2299.194.45.26.221.1151404361.squirrel@webmail.otaku42.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <449D304E.5070603@sh.cvut.cz>
 In-Reply-To: <449D304E.5070603@sh.cvut.cz>
@@ -10,41 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Jun 26, 2006 at 09:56:08PM +0200, Jean Delvare wrote:
-> For releases, it would make more sense to have a "static" download
-> area, like we had on the old site:
-> http://secure.netroedge.com/~lm78/archive/
-> So that we can also sign the archives. Can we have such a download area
-> on the new site?
+Hi all.
 
-I created
+> I'll return on the subject of snapshots in another mail.
 
-http://dl.lm-sensors.org/{lm-sensors,i2c}/{release,snapshot}
+If it helps I can provide a bash script that we use at madwifi.org for
+generating snapshots once a day (see [1]). Snapshot tarballs are only
+generated if there were changes since the last generated tarball. The
+script is kept as general as possible and makes use of "configuration
+files", so it's easy to reuse it for generating snapshots of more than one
+repository and/or several directory trees in one repository.
 
-and synced over the contents of
-http://secure.netroedge.com/~lm78/archive/
+Bye, Mike
 
-Maybe you'd like to restructure a bit, it's all under
-/srv/lm-sensors/dl and owned by yourself. I would maybe move some
-older releases in an old folder or similar.
+[1] http://snapshots.madwifi.org
 
-I'll return on the subject of snapshots in another mail.
 
-> It would also be convenient if we could have a "Download" link it
-> trac's top bar, as this is clearly one of the most popular page. Is it
-> possible? I'm surprised there isn't one by default.
 
-That seems to be a bit difficult and is currently advised against
-since it may conflict with upgrades
-
-http://projects.edgewall.com/trac/wiki/TracInterfaceCustomization#MainTemplates
-
--- 
-Axel.Thimm at ATrpms.net
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060627/930f5fa2/attachment.bin 
