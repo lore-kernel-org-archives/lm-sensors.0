@@ -1,21 +1,40 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 18 Jun 2006 16:53:39 +0000
-Subject: [lm-sensors] [PATCH] detect: update sensors-detect for w83791d
-Message-Id: <20060618185339.5edbe08f.khali@linux-fr.org>
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Tue, 27 Jun 2006 14:54:47 +0000
+Subject: [lm-sensors] #2073: VT1211 Driver review + docs
+Message-Id: <191fb4ca0606270754x29ac79ak194b509f9c9aac88@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5bfe43f80606162233r484a8d54k54c624403c9add69@mail.gmail.com>
-In-Reply-To: <5bfe43f80606162233r484a8d54k54c624403c9add69@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Charles,
+Rudolf,
 
-> Change sensors-detect to support the w83791d driver when run on a 2.6 kernel
+I know you're busy but is there a chance that someone gives the vt1211
+a final review and merge it into main line soon? It's been around for
+a while now.
+Is there anything I can do to help?
 
-Applied with minor coding-style changes. Thanks!
+Thanks
+...juerg
 
--- 
-Jean Delvare
+
+On 6/4/06, lm-sensors <lm-sensors-notify at lm-sensors.org> wrote:
+> #2073: VT1211 Driver review + docs
+> --------------------+-------------------------------------------------------
+>  Reporter:  ruik    |       Owner:  ruik
+>      Type:  task    |      Status:  new
+>  Priority:  major   |   Milestone:
+> Component:  kernel  |     Version:
+>  Keywords:          |
+> --------------------+-------------------------------------------------------
+>  [http://lists.lm-sensors.org/pipermail/lm-sensors/2006-June/016329.html
+>  VT1211 driver review]
+>
+>  Needs review. Khali thinks not yet for 2.6.18
+>
+> --
+> Ticket URL: <http://www.lm-sensors.org/ticket/2073>
+> lm-sensors <http://lm-sensors.org/>
+> Linux hardware monitoring
 
