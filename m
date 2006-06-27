@@ -1,7 +1,7 @@
-From: mrenzmann@otaku42.de (Michael Renzmann)
-Date: Tue, 27 Jun 2006 10:42:05 +0000
+From: Axel.Thimm@ATrpms.net (Axel Thimm)
+Date: Tue, 27 Jun 2006 10:51:45 +0000
 Subject: [lm-sensors] snapshot generation
-Message-Id: <2375.194.45.26.221.1151404925.squirrel@webmail.otaku42.de>
+Message-Id: <20060627105145.GH4718@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <449D304E.5070603@sh.cvut.cz>
 In-Reply-To: <449D304E.5070603@sh.cvut.cz>
@@ -10,28 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi (again).
+Hi,
 
-Sorry for the noise (by adding yet another mail to this thread), I didn't
-notice that part of Axel's mail before:
+On Sat, Jun 24, 2006 at 02:30:06PM +0200, Rudolf Marek wrote:
+> I'm attaching a script that creates snapshots from SVN. It seems there is no
+> crontab available on the server, so I'm asking you kindly to run it somewhere.
+> 
+> The script is fairly simple, it just needs to know the target dir, plus the dir
+> where will be the script/temp repo placed. Check first few lines of script please
+> 
+> It may be executed with lm-sensors or i2c as parameter. We would like to have
+> daily snapshots for lm-sensors and weekly for i2c if possible.
+> 
+> I tested the script briefly and it seems to work.
 
-> On Mon, Jun 26, 2006 at 09:56:08PM +0200, Jean Delvare wrote:
->> It would also be convenient if we could have a "Download" link it
->> trac's top bar, as this is clearly one of the most popular page. Is it
->> possible? I'm surprised there isn't one by default.
->
-> That seems to be a bit difficult and is currently advised against
-> since it may conflict with upgrades
+I've setup snapshots at
 
-I wrote a plugin (which should work on Trac 0.9 as well as 0.10-dev, but
-tested it on 0.9 only so far) which allows to add custom buttons to the
-various navigation bars. You can see it in action on http://madwifi.org -
-the "download" button in the mainnav bar is added by the plugin.
+http://dl.lm-sensors.org/{lm-sensors,i2c}/snapshots/
 
-I will publish the plugin on trac-hacks.org as soon as I find a bit time
-to document it, but can provide it to you along with a few lines of
-explanation if you're interested.
+They are checked daily, but only generated if there is an actual
+change. I'm keeping the last 32 snapshots of both sub-projects.
 
-Bye, Mike
+I've manually initiated snapshots right now, and the scripts are
+running at 06:00-06:10 CET
 
-
+We can tune any parameter you like (cron frequency & time, URLs,
+number of snapshots to keep etc).
+-- 
+Axel.Thimm at ATrpms.net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060627/89521a93/attachment.bin 
