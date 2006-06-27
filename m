@@ -1,8 +1,10 @@
 From: andre.dantas-vieira@correiolivre.serpro.gov.br (andre.dantas-vieira@serpro.gov.b
-Date: Tue, 27 Jun 2006 12:34:18 +0000
+Date: Tue, 27 Jun 2006 13:09:44 +0000
 Subject: [lm-sensors] Support for Intel 82801GR (ICH7 Family)
-Message-Id: <44A125CA.3000603@correiolivre.serpro.gov.br>
+Message-Id: <44A12E18.1060107@correiolivre.serpro.gov.br>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <44A125CA.3000603@correiolivre.serpro.gov.br>
+In-Reply-To: <44A125CA.3000603@correiolivre.serpro.gov.br>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -17,9 +19,9 @@ for PCI bus adapters i have to use 'i2c-i801' for device ICH7.
 
 ---------------- Begin Output ---------------------------------------
 
- We can start with probing for (PCI) I2C or SMBus adapters.
- You do not need any special privileges for this.
- Do you want to probe now? (YES/no): YES
+We can start with probing for (PCI) I2C or SMBus adapters.
+You do not need any special privileges for this.
+Do you want to probe now? (YES/no): YES
 Probing for PCI bus adapters...
 Use driver `i2c-i801' for device 00:1f.3: Intel ICH7
 Probe succesfully concluded.
@@ -39,8 +41,8 @@ Module `i2c-i801' already loaded.
 If you have undetectable or unsupported adapters, you can have them
 scanned by manually loading the modules before running this script.
 
- To continue, we need module `i2c-dev' to be loaded.
- If it is built-in into your kernel, you can safely skip this.
+To continue, we need module `i2c-dev' to be loaded.
+If it is built-in into your kernel, you can safely skip this.
 i2c-dev is already loaded.
 
 -------------------End Output --------------------------------------
@@ -91,23 +93,18 @@ Controller (rev 01)
 Serial ATA Storage Controllers cc=IDE (rev 01)
 00:1f.3 SMBus: Intel Corporation 82801G (ICH7 Family) SMBus Controller 
 (rev 01)
-02:00.0 Ethernet controller: Intel Corporation: Unknown device 108c (rev 03)
+02:00.0 Ethernet controller: Intel Corporation: Unknown device 108c (rev 
+03)
 02:00.3 Serial controller: Intel Corporation: Unknown device 108f (rev 03)
 02:00.4 Class 0c07: Intel Corporation: Unknown device 108e (rev 03)
 07:05.0 FireWire (IEEE 1394): Texas Instruments TSB43AB23 
 IEEE-1394a-2000 Controller (PHY/Link)
 
-------------------Begin Output ---------------------------------------
+------------------End Output ---------------------------------------
 
 
 Thanks a lot,
-Andr? Vieira.
-
-
-
-
-
-
-
-
-
+Andr? Dantas.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060627/812ddf90/attachment.html 
