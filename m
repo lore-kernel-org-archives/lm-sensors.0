@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Wed, 28 Jun 2006 10:49:01 +0000
+From: paul@lshift.net (Paul Crowley)
+Date: Wed, 28 Jun 2006 12:13:40 +0000
 Subject: [lm-sensors] A better fan control program
-Message-Id: <20060628104901.GB3140@jupiter.solarsys.private>
+Message-Id: <44A27274.4020909@lshift.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44A2556C.7070205@lshift.net>
 In-Reply-To: <44A2556C.7070205@lshift.net>
@@ -10,29 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Paul:
-
-* Paul Crowley <paul at lshift.net> [2006-06-28 11:09:48 +0100]:
-> I know there are several programs out there that adjust your fan speed 
-> based on temperature readings.  However, I couldn't find one worked well 
-> on my system, so I wrote my own.   This program takes a very simple 
-> approach: if the system is too hot, the fans run on maximum power, 
-> otherwise they run at minimum power.  The reasoning behind this approach 
-> is explained at length here:
+Mark M. Hoffman wrote:
+> I skimmed through the blog entry and the earlier one which it references.
+> In your first attempt you reinvented the 'P' part of a PID control loop.
+> Don't give up! ;)  There's a *ton* of info about PID controllers on the
+> web.  If you're still interested, you could start here:
 > 
-> http://www.lshift.net/blog/2006/06/26/thermostat-defeat
+> http://en.wikipedia.org/wiki/PID_controller
 
-I skimmed through the blog entry and the earlier one which it references.
-In your first attempt you reinvented the 'P' part of a PID control loop.
-Don't give up! ;)  There's a *ton* of info about PID controllers on the
-web.  If you're still interested, you could start here:
+Very interesting stuff, thanks!
 
-http://en.wikipedia.org/wiki/PID_controller
+My quick reading of this stuff indicates a possible problem.  On my 
+system at least, I can only read the temperature in whole degrees; 
+lm-sensors returns a number in thousandths of a degree, but sadly the 
+last three digits are always zero.  This means that our differentiation 
+of the temperature will be very crude, which could make it difficult to 
+build a functioning PID controller.
 
-Regards,
+How can I find out the maximum safe operating temperature of my current 
+CPU?  Since my first priority is something that works on my current 
+system, the only reason for me to pick this up again and explore in more 
+detail is if I can afford to slow the fan even when the system is flat 
+out, which means I need to know how fast I can run it.
 
+Thanks again!
 -- 
-Mark M. Hoffman
-mhoffman at lightlink.com
-
+   [][][] Paul Crowley
+     [][] LShift Ltd
+   []  [] www.lshift.net
 
