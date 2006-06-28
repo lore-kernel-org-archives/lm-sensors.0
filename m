@@ -1,106 +1,76 @@
-From: gregkh@suse.de (gregkh at suse.de)
-Date: Fri, 16 Jun 2006 22:48:27 +0000
-Subject: [lm-sensors] patch i2c-i801-03-remove-pci-function-check.patch
-Message-Id: <20060616225120.C63B0742055@imap.suse.de>
+From: anything@daanwillems.nl (Daan Willems)
+Date: Wed, 28 Jun 2006 08:39:43 +0000
+Subject: [lm-sensors] nvidia nforce410 chipset / ASUS K8N-VM motherboard
+Message-Id: <44A2404F.9030106@daanwillems.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello all,
 
-This is a note to let you know that I've just added the patch titled
+I subscribed to the list because I am trying to configure lm-sensors for 
+my ASUS K8N-VM motherboard, which features a nvidia nforce410 chipset 
+(the one with geforce6100 integrated). So far I have good results with 
+the w83627ehf kernel module, yielding the following output:
 
-     Subject: [PATCH 08/14] i2c-i801: Remove PCI function check
+-------
+d3vlin at arrakis ~ $ sensors
+w83627ehf-isa-0290
+Adapter: ISA adapter
+Chassis Fan:  1795 RPM  (min = 1205 RPM, div = 8)
+CPU Fan:      3245 RPM  (min = 1704 RPM, div = 8)
+System Temp:  +28?C  (high =   +60?C, hyst =   +40?C)
+CPU Temp:     +30.0?C  (high = +60.0?C, hyst = +40.0?C)
+Chipset Temp: +33.0?C  (high = +60.0?C, hyst = +40.0?C)
+d3vlin at arrakis ~ $
+-------
 
-to my gregkh-2.6 tree.  Its filename is
+As one might notice, there is no information about VCore / 3.3V etc. 
+displayed. I have tried some modules, i2c_nforce2 in particular, but no 
+results. I wonder if there is support for this chipset or if anyone has 
+better results. I have included the relevant part of my 
+/etc/sensors.conf below.
 
-     i2c-i801-03-remove-pci-function-check.patch
-
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
-
-
-From khali at linux-fr.org Mon Jun 12 12:51:28 2006
-Date: Mon, 12 Jun 2006 21:51:20 +0200
-From: Jean Delvare <khali at linux-fr.org>
-To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>
-Subject: [PATCH 08/14] i2c-i801: Remove PCI function check
-Message-Id: <20060612215120.0578fd85.khali at linux-fr.org>
-Content-Disposition: inline; filename=i2c-i801-03-remove-pci-function-check.patch
-
-i2c-i801: Remove PCI function check
-
-Remove the PCI function number check when probing devices.
-This check is redundant, each function has a separate PCI device
-ID, so checking for that ID is sufficient.
-
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
---- linux-2.6.17-rc2.orig/drivers/i2c/busses/i2c-i801.c	2006-04-23 20:26:30.000000000 +0200
-+++ linux-2.6.17-rc2/drivers/i2c/busses/i2c-i801.c	2006-04-23 20:26:34.000000000 +0200
-@@ -107,10 +107,6 @@
- 	int error_return = 0;
- 	unsigned char temp;
- 
--	/* Note: we keep on searching until we have found 'function 3' */
--	if(PCI_FUNC(dev->devfn) != 3)
--		return -ENODEV;
--
- 	I801_dev = dev;
- 	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
- 	    (dev->device = PCI_DEVICE_ID_INTEL_82801EB_3) ||
-
--- 
-Jean Delvare
+Best regards,
+Daan Willems
 
 
+-------
+chip "w83627ehf-*"
 
-Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
+# Fans
+   label fan1      "Chassis Fan"
+   set fan1_min    1200
+   label fan2      "CPU Fan"
+   set fan2_min    1700
+   ignore fan3
+   ignore fan4
 
-i2c/hwmon-f71805f-no-global-resource.patch
-i2c/hwmon-lm83-add-lm82-support.patch
-i2c/hwmon-smsc47m192-new-driver.patch
-i2c/hwmon-sysfs-interface-individual-alarm-files.patch
-i2c/hwmon-w83627ehf-add-alarms.patch
-i2c/hwmon-w83627ehf-add-voltages.patch
-i2c/i2c-piix4-add-ati-smbus-support.patch
-i2c/rtc-add-support-for-m41t81-m41t85-chips-to-m41t00-driver.patch
-i2c/hwmon-hdaps-update-id-list.patch
-i2c/rtc-m41t00-driver-cleanup.patch
-i2c/i2c-nforce2-add-mcp51-mcp55-support.patch
-i2c/i2c-piix4-fix-typo-in-documentation.patch
-i2c/i2c-piix4-improve-ibm-error-message.patch
-i2c/i2c-piix4-remove-fix_hstcfg-parameter.patch
-i2c/hwmon-improve-Kconfig-help.patch
-i2c/hwmon-lm83-documentation-update.patch
-i2c/hwmon-vid-mask-per-vrm.patch
-i2c/hwmon-w83791d-new-driver.patch
-i2c/hwmon-abituguru-fixes.patch
-i2c/hwmon-abituguru-new-driver.patch
-i2c/hwmon-abituguru-nofans-detect-fix.patch
-i2c/hwmon-hdaps-typo.patch
-i2c/hwmon-maintenance-update.patch
-i2c/hwmon-sysfs-interface-update-1.patch
-i2c/hwmon-sysfs-interface-update-2.patch
-i2c/hwmon-w83792d-add-data-lock.patch
-i2c/hwmon-w83792d-pwm-set-fix.patch
-i2c/i2c-Kconfig-suggest-N-for-rare-devices.patch
-i2c/i2c-opencores-new-driver.patch
-i2c/hwmon-kconfig-header-fix.patch
-i2c/hwmon-lm70-new-driver.patch
-i2c/hwmon-vid-add-core-and-conroe-support.patch
-i2c/i2c-i801-01-fix-block-transaction-poll-loops.patch
-i2c/i2c-i801-02-remove-force_addr-parameter.patch
-i2c/i2c-i801-03-remove-pci-function-check.patch
-i2c/i2c-i801-04-cleanups.patch
-i2c/i2c-i801-05-better-pci-subsystem-integration.patch
-i2c/i2c-i801-06-merge-setup-function.patch
-i2c/i2c-mark-data-const-for-write-block.patch
-i2c/i2c-opencores-cleanup.patch
-i2c/i2c-scx200_acb-documentation-update.patch
-i2c/i2c-scx200_acb-mark-scx200_acb_probe-init.patch
-i2c/i2c-scx200_acb-use-PCI-IO-resource-when-appropriate.patch
+# Temperatures
+    label temp1     "System Temp"
+    label temp2     "CPU Temp"
+    label temp3     "Chipset Temp"
+    set temp1_over  60
+    set temp1_hyst  40
+    set temp2_over  60
+    set temp2_hyst  40
+    set temp3_over  60
+    set temp3_hyst  40
+
+# Voltages
+    label in0 "+3.3V"
+    label in1 "Vtt1.2V"
+    label in2 "Vram"
+    label in3 "Vchip"
+    label in4 "+5V"
+    label in5 "+12V"
+    label in6 "Vcc1.5V"
+    label in7 "Vcore"
+    label in8 "5VSB"
+-------
+
+
+
 
