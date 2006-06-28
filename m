@@ -1,383 +1,63 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 04 Jun 2006 18:03:39 +0000
-Subject: [lm-sensors] [PATCH 03/11] hwmon: Sysfs interface documentation
-Message-Id: <20060604200339.4ba872f7.khali@linux-fr.org>
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Wed, 28 Jun 2006 12:29:58 +0000
+Subject: [lm-sensors] The Abit uGuru saga
+Message-Id: <44A27646.8020703@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Rudolf Marek <r.marek at sh.cvut.cz>
-Content-Disposition: inline; filename=hwmon-sysfs-interface-update-1.patch
+Hi All,
 
-This patch cleans up hwmon sysfs documentation file, plus introduces
-the description of DC/PWM selection for fan speed control.
+With the Abit uGuru driver being upstream now it has get some more 
+exposure. 3 people sofar have contacted me that the driver does not work 
+with the latest generation of Abit motherboards.
 
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- Documentation/hwmon/sysfs-interface |  183 +++++++++++++++++++++--------------
- 1 file changed, 108 insertions(+), 75 deletions(-)
+One of them has been so kind todo a bit of reverse engineering and has 
+managed to give me the correct handshake / protocol to atleast read the 
+sensors. I'm pretty confident I've also found the sensor settings (but I 
+can only read them for now).
 
---- linux-2.6.17-rc4.orig/Documentation/hwmon/sysfs-interface	2006-05-20 10:00:32.000000000 +0200
-+++ linux-2.6.17-rc4/Documentation/hwmon/sysfs-interface	2006-05-22 16:16:35.000000000 +0200
-@@ -69,28 +69,37 @@
- 
- -------------------------------------------------------------------------
- 
-+[0-*]	denotes any positive number starting from 0
-+[1-*]	denotes any positive number starting from 1
-+RO	read only value
-+RW	read/write value
-+
-+Read/write values may be read-only for some chips, depending on the
-+hardware implementation.
-+
- ************
- * Voltages *
- ************
- 
--in[0-8]_min	Voltage min value.
-+in[0-*]_min	Voltage min value.
- 		Unit: millivolt
--		Read/Write
-+		RW
- 		
--in[0-8]_max	Voltage max value.
-+in[0-*]_max	Voltage max value.
- 		Unit: millivolt
--		Read/Write
-+		RW
- 		
--in[0-8]_input	Voltage input value.
-+in[0-*]_input	Voltage input value.
- 		Unit: millivolt
--		Read only
-+		RO
-+		Voltage measured on the chip pin.
- 		Actual voltage depends on the scaling resistors on the
- 		motherboard, as recommended in the chip datasheet.
- 		This varies by chip and by motherboard.
- 		Because of this variation, values are generally NOT scaled
- 		by the chip driver, and must be done by the application.
- 		However, some drivers (notably lm87 and via686a)
--		do scale, with various degrees of success.
-+		do scale, because of internal resistors built into a chip.
- 		These drivers will output the actual voltage.
- 
- 		Typical usage:
-@@ -104,58 +113,72 @@
- 			in7_*	varies
- 			in8_*	varies
- 
--cpu[0-1]_vid	CPU core reference voltage.
-+cpu[0-*]_vid	CPU core reference voltage.
- 		Unit: millivolt
--		Read only.
-+		RO
- 		Not always correct.
- 
- vrm		Voltage Regulator Module version number. 
--		Read only.
--		Two digit number, first is major version, second is
--		minor version.
-+		RW (but changing it should no more be necessary)
-+		Originally the VRM standard version multiplied by 10, but now
-+		an arbitrary number, as not all standards have a version
-+		number.
- 		Affects the way the driver calculates the CPU core reference
- 		voltage from the vid pins.
- 
-+Also see the Alarms section for status flags associated with voltages.
-+
- 
- ********
- * Fans *
- ********
- 
--fan[1-3]_min	Fan minimum value
-+fan[1-*]_min	Fan minimum value
- 		Unit: revolution/min (RPM)
--		Read/Write.
-+		RW
- 
--fan[1-3]_input	Fan input value.
-+fan[1-*]_input	Fan input value.
- 		Unit: revolution/min (RPM)
--		Read only.
-+		RO
- 
--fan[1-3]_div	Fan divisor.
-+fan[1-*]_div	Fan divisor.
- 		Integer value in powers of two (1, 2, 4, 8, 16, 32, 64, 128).
-+		RW
- 		Some chips only support values 1, 2, 4 and 8.
- 		Note that this is actually an internal clock divisor, which
- 		affects the measurable speed range, not the read value.
- 
-+Also see the Alarms section for status flags associated with fans.
-+
-+
- *******
- * PWM *
- *******
- 
--pwm[1-3]	Pulse width modulation fan control.
-+pwm[1-*]	Pulse width modulation fan control.
- 		Integer value in the range 0 to 255
--		Read/Write
-+		RW
- 		255 is max or 100%.
- 
--pwm[1-3]_enable
-+pwm[1-*]_enable
- 		Switch PWM on and off.
- 		Not always present even if fan*_pwm is.
--		0 to turn off
--		1 to turn on in manual mode
--		2 to turn on in automatic mode
--		Read/Write
-+		0: turn off
-+		1: turn on in manual mode
-+		2+: turn on in automatic mode
-+		Check individual chip documentation files for automatic mode details.
-+		RW
-+
-+pwm[1-*]_mode
-+		0: DC mode
-+		1: PWM mode
-+		RW
- 
- pwm[1-*]_auto_channels_temp
- 		Select which temperature channels affect this PWM output in
- 		auto mode. Bitfield, 1 is temp1, 2 is temp2, 4 is temp3 etc...
- 		Which values are possible depend on the chip used.
-+		RW
- 
- pwm[1-*]_auto_point[1-*]_pwm
- pwm[1-*]_auto_point[1-*]_temp
-@@ -163,6 +186,7 @@
- 		Define the PWM vs temperature curve. Number of trip points is
- 		chip-dependent. Use this for chips which associate trip points
- 		to PWM output channels.
-+		RW
- 
- OR
- 
-@@ -172,51 +196,52 @@
- 		Define the PWM vs temperature curve. Number of trip points is
- 		chip-dependent. Use this for chips which associate trip points
- 		to temperature channels.
-+		RW
- 
- 
- ****************
- * Temperatures *
- ****************
- 
--temp[1-3]_type	Sensor type selection.
-+temp[1-*]_type	Sensor type selection.
- 		Integers 1 to 4 or thermistor Beta value (typically 3435)
--		Read/Write.
-+		RW
- 		1: PII/Celeron Diode
- 		2: 3904 transistor
- 		3: thermal diode
- 		4: thermistor (default/unknown Beta)
- 		Not all types are supported by all chips
- 
--temp[1-4]_max	Temperature max value.
-+temp[1-*]_max	Temperature max value.
- 		Unit: millidegree Celcius
--		Read/Write value.
-+		RW
- 
--temp[1-3]_min	Temperature min value.
-+temp[1-*]_min	Temperature min value.
- 		Unit: millidegree Celcius
--		Read/Write value.
-+		RW
- 
--temp[1-3]_max_hyst
-+temp[1-*]_max_hyst
- 		Temperature hysteresis value for max limit.
- 		Unit: millidegree Celcius
- 		Must be reported as an absolute temperature, NOT a delta
- 		from the max value.
--		Read/Write value.
-+		RW
- 
--temp[1-4]_input Temperature input value.
-+temp[1-*]_input Temperature input value.
- 		Unit: millidegree Celcius
--		Read only value.
-+		RO
- 
--temp[1-4]_crit	Temperature critical value, typically greater than
-+temp[1-*]_crit	Temperature critical value, typically greater than
- 		corresponding temp_max values.
- 		Unit: millidegree Celcius
--		Read/Write value.
-+		RW
- 
--temp[1-2]_crit_hyst
-+temp[1-*]_crit_hyst
- 		Temperature hysteresis value for critical limit.
- 		Unit: millidegree Celcius
- 		Must be reported as an absolute temperature, NOT a delta
- 		from the critical value.
--		Read/Write value.
-+		RW
- 
- temp[1-4]_offset
- 		Temperature offset which is added to the temperature reading
-@@ -231,6 +256,8 @@
- 		itself, for example the thermal diode inside the CPU or
- 		a thermistor nearby.
- 
-+Also see the Alarms section for status flags associated with temperatures.
-+
- 
- ************
- * Currents *
-@@ -239,17 +266,17 @@
- Note that no known chip provides current measurements as of writing,
- so this part is theoretical, so to say.
- 
--curr[1-n]_max	Current max value
-+curr[1-*]_max	Current max value
- 		Unit: milliampere
--		Read/Write.
-+		RW
- 
--curr[1-n]_min	Current min value.
-+curr[1-*]_min	Current min value.
- 		Unit: milliampere
--		Read/Write.
-+		RW
- 
--curr[1-n]_input	Current input value
-+curr[1-*]_input	Current input value
- 		Unit: milliampere
--		Read only.
-+		RO
- 
- 
- **********
-@@ -263,50 +290,54 @@
- limit-related alarms, not both. The driver should just reflect the hardware
- implementation.
- 
--in[0-n]_alarm
--fan[1-n]_alarm
--temp[1-n]_alarm
-+in[0-*]_alarm
-+fan[1-*]_alarm
-+temp[1-*]_alarm
- 		Channel alarm
--		Boolean
--		Read-only
-+		0: no alarm
-+		1: alarm
-+		RO
- 
- OR
- 
--in[0-n]_min_alarm
--in[0-n]_max_alarm
--fan[1-n]_min_alarm
--temp[1-n]_min_alarm
--temp[1-n]_max_alarm
--temp[1-n]_crit_alarm
-+in[0-*]_min_alarm
-+in[0-*]_max_alarm
-+fan[1-*]_min_alarm
-+temp[1-*]_min_alarm
-+temp[1-*]_max_alarm
-+temp[1-*]_crit_alarm
- 		Limit alarm
--		Boolean
--		Read-only
-+		0: no alarm
-+		1: alarm
-+		RO
- 
- Each input channel may have an associated fault file. This can be used
- to notify open diodes, unconnected fans etc. where the hardware
- supports it. When this boolean has value 1, the measurement for that
- channel should not be trusted.
- 
--in[0-n]_input_fault
--fan[1-n]_input_fault
--temp[1-n]_input_fault
-+in[0-*]_input_fault
-+fan[1-*]_input_fault
-+temp[1-*]_input_fault
- 		Input fault condition
--		Boolean
--		Read-only
-+		0: no fault occured
-+		1: fault condition
-+		RO
- 
- Some chips also offer the possibility to get beeped when an alarm occurs:
- 
- beep_enable	Master beep enable
--		Boolean
--		Read/Write
--
--in[0-n]_beep
--fan[1-n]_beep
--temp[1-n]_beep
-+		0: no beeps
-+		1: beeps
-+		RW
-+
-+in[0-*]_beep
-+fan[1-*]_beep
-+temp[1-*]_beep
- 		Channel beep
--		0 to disable.
--		1 to enable.
--		Read/write
-+		0: disable
-+		1: enable
-+		RW
- 
- In theory, a chip could provide per-limit beep masking, but no such chip
- was seen so far.
-@@ -316,7 +347,7 @@
- for compatibility reasons:
- 
- alarms		Alarm bitmask.
--		Read only.
-+		RO
- 		Integer representation of one to four bytes.
- 		A '1' bit means an alarm.
- 		Chips should be programmed for 'comparator' mode so that
-@@ -333,7 +364,7 @@
- 		Same format as 'alarms' with the same bit locations,
- 		use discouraged for the same reason. Use individual
- 		*_beep files instead.
--		Read/Write
-+		RW
- 
- 
- *********
-@@ -341,7 +372,9 @@
- *********
- 
- eeprom		Raw EEPROM data in binary form.
--		Read only.
-+		RO
- 
- pec		Enable or disable PEC (SMBus only)
--		Read/Write
-+		0: disable
-+		1: enable
-+		RW
+These newer uGuru's while similar are so much different that I think 
+they need / warrant a new driver. Putting support for them into the 
+current driver would be a big kludge.
 
--- 
-Jean Delvare
+With this in mind the question becomes: how do we call this newer 
+driver? I'm tending towards the very original "abituguru2" as name. An 
+other option would be abit_ac2005 as AC2005 is how Abit seems to call 
+them internally (that is what the dll is named in the new windows 
+software and the name is used in Abit ini files). However it turns out 
+that the older uGuru's are probably called AC2003 by Abit intern, so 
+then the name of the older driver would be wrong. Also I don't think 
+that calling the drivers AC200X is going to help the end user find the 
+correct driver for its motherboard. Maybe abituguru2005 ?
+
+This new uGuru stuff has also lead me to 2 more questions:
+1) With the new uGuru I'm able to read a motherboard type from the uGuru
+  and with this type I can determine the exact sensor configuration (of
+  known motherboards) including the labels for the sensors. Now I really
+  want to keep all this knowledge in one place. So I'm thinking about
+  giving all the sensors a _label sysfs attribute and write a little
+  userspace program which can generate a (part of) sensors.conf based on
+  these _label sysfs files. Does this sound ok?
+
+2) The current abituguru will load (as in modprobe) with the newer
+  uGuru's and create its platform device, as the simple test done in
+  module_init also succeeds on the uguru2005. However the more
+  comprehensive test in the drivers probe function fails on the
+  uguru2005. This has the end result that when the old driver gets loaded
+  on the uguru2005 it will create a:
+  /sys/bus/plaform/devices/abituguru.224 dir
+  Which is mostly empty.
+
+  Is there anyway to detect the driver probe function failing from
+  module_init. so that then the platform device can be destroyed and
+  module_init can exit with an error?
+
+Regards,
+
+Hans
+
+
 
