@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Fri, 30 Jun 2006 08:06:27 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 30 Jun 2006 11:37:25 +0000
 Subject: [lm-sensors] snapshot generation
-Message-Id: <44A4DB83.3000409@sh.cvut.cz>
+Message-Id: <20060630133725.b0ba4126.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <449D304E.5070603@sh.cvut.cz>
 In-Reply-To: <449D304E.5070603@sh.cvut.cz>
@@ -10,24 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I've setup snapshots at
-> 
-> http://dl.lm-sensors.org/{lm-sensors,i2c}/snapshots/
-> 
-> They are checked daily, but only generated if there is an actual
-> change. I'm keeping the last 32 snapshots of both sub-projects.
-> 
-> I've manually initiated snapshots right now, and the scripts are
-> running at 06:00-06:10 CET
-> 
-> We can tune any parameter you like (cron frequency & time, URLs,
-> number of snapshots to keep etc).
+Hi Axel,
 
-Thank you all. I will put the wiki pointer to that area too.
+> Mike sent me the plugin with instructions and it's installed
+> now. There is a menu button "Downloads" that links to
+> dl.lm-sensors.org. It works as advertized :=)
 
-Is it CET/CEST or just CET?
+What I had in mind was rather a link to wiki/Download, then we remove
+that link from our own "Starting points" menu. There are a few hints we
+want people to read before they download. Can this be done? (And, for my
+own culture, where is it configured?)
 
-Thanks,
-Regards
-Rudolf
+Thanks Mike :)
+
+-- 
+Jean Delvare
 
