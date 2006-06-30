@@ -1,7 +1,7 @@
 From: Axel.Thimm@ATrpms.net (Axel Thimm)
-Date: Fri, 30 Jun 2006 11:50:35 +0000
+Date: Fri, 30 Jun 2006 11:53:52 +0000
 Subject: [lm-sensors] snapshot generation
-Message-Id: <20060630115035.GF26375@neu.nirvana>
+Message-Id: <20060630115352.GG26375@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <449D304E.5070603@sh.cvut.cz>
 In-Reply-To: <449D304E.5070603@sh.cvut.cz>
@@ -10,37 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Jun 30, 2006 at 01:37:25PM +0200, Jean Delvare wrote:
-> Hi Axel,
+On Fri, Jun 30, 2006 at 10:06:27AM +0200, Rudolf Marek wrote:
+> > I've setup snapshots at
+> > 
+> > http://dl.lm-sensors.org/{lm-sensors,i2c}/snapshots/
+> > 
+> > They are checked daily, but only generated if there is an actual
+> > change. I'm keeping the last 32 snapshots of both sub-projects.
+> > 
+> > I've manually initiated snapshots right now, and the scripts are
+> > running at 06:00-06:10 CET
+> > 
+> > We can tune any parameter you like (cron frequency & time, URLs,
+> > number of snapshots to keep etc).
 > 
-> > Mike sent me the plugin with instructions and it's installed
-> > now. There is a menu button "Downloads" that links to
-> > dl.lm-sensors.org. It works as advertized :=)
+> Thank you all. I will put the wiki pointer to that area too.
 > 
-> What I had in mind was rather a link to wiki/Download, then we remove
-> that link from our own "Starting points" menu. There are a few hints we
-> want people to read before they download.
+> Is it CET/CEST or just CET?
 
-Ah, OK.
+Currently it's CEST, in the winter it will be CET. de and cz have the
+same local time, so it's 06:00-06:10 your local time. :)
 
-> Can this be done? (And, for my own culture, where is it configured?)
-
-Yes, it can (just did). If you can read german I'll forward you Mike's
-instructions. Even if not, it's very intuitive and it's all within
-trac.ini:
-
-[components]
-navadd.* = enabled
-
-[navadd]
-add_items = download
-download.title = Download
-download.url = /wiki/Download
-download.target = mainnav
-
-So it can easily be further extended if/when you wish so.
-
-> Thanks Mike :)
+If you prefer another scheduling, just let me know.
 -- 
 Axel.Thimm at ATrpms.net
 -------------- next part --------------
@@ -49,4 +40,4 @@ Name: not available
 Type: application/pgp-signature
 Size: 189 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060630/555eb548/attachment.bin 
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060630/3a3e8a73/attachment.bin 
