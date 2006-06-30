@@ -1,146 +1,87 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 22 Jun 2006 18:27:48 +0000
-Subject: [lm-sensors] [PATCH 22/44] [PATCH] hwmon: Sysfs interface
-Message-Id: <1151000967421-git-send-email-greg@kroah.com>
+From: grimm@nickellson.com (Nick Ellson)
+Date: Fri, 30 Jun 2006 21:36:24 +0000
+Subject: [lm-sensors] What DOES work on SE7525GP2 with a PC87431 mBMC
+Message-Id: <Pine.LNX.4.64.0606301425370.2698@gubbie.home>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali at linux-fr.org>
 
-Reword and complete certain parts of the hwmon sysfs-interface
-documentation file. Hopefully this will make things clearer for new
-driver authors.
+I said I would post what I get working...
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
----
- Documentation/hwmon/sysfs-interface |   45 +++++++++++++++++++++++------------
- 1 files changed, 29 insertions(+), 16 deletions(-)
 
-diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
-index bc59a51..d1d390a 100644
---- a/Documentation/hwmon/sysfs-interface
-+++ b/Documentation/hwmon/sysfs-interface
-@@ -3,15 +3,15 @@ Naming and data format standards for sys
- 
- The libsensors library offers an interface to the raw sensors data
- through the sysfs interface. See libsensors documentation and source for
--more further information. As of writing this document, libsensors
--(from lm_sensors 2.8.3) is heavily chip-dependant. Adding or updating
-+further information. As of writing this document, libsensors
-+(from lm_sensors 2.8.3) is heavily chip-dependent. Adding or updating
- support for any given chip requires modifying the library's code.
- This is because libsensors was written for the procfs interface
- older kernel modules were using, which wasn't standardized enough.
- Recent versions of libsensors (from lm_sensors 2.8.2 and later) have
- support for the sysfs interface, though.
- 
--The new sysfs interface was designed to be as chip-independant as
-+The new sysfs interface was designed to be as chip-independent as
- possible.
- 
- Note that motherboards vary widely in the connections to sensor chips.
-@@ -24,7 +24,7 @@ range using external resistors. Since th
- can change from motherboard to motherboard, the conversions cannot be
- hard coded into the driver and have to be done in user space.
- 
--For this reason, even if we aim at a chip-independant libsensors, it will
-+For this reason, even if we aim at a chip-independent libsensors, it will
- still require a configuration file (e.g. /etc/sensors.conf) for proper
- values conversion, labeling of inputs and hiding of unused inputs.
- 
-@@ -39,15 +39,16 @@ If you are developing a userspace applic
- this standard.
- 
- Note that this standard isn't completely established yet, so it is subject
--to changes, even important ones. One more reason to use the library instead
--of accessing sysfs files directly.
-+to changes. If you are writing a new hardware monitoring driver those
-+features can't seem to fit in this interface, please contact us with your
-+extension proposal. Keep in mind that backward compatibility must be
-+preserved.
- 
- Each chip gets its own directory in the sysfs /sys/devices tree.  To
--find all sensor chips, it is easier to follow the symlinks from
--/sys/i2c/devices/
-+find all sensor chips, it is easier to follow the device symlinks from
-+/sys/class/hwmon/hwmon*.
- 
--All sysfs values are fixed point numbers.  To get the true value of some
--of the values, you should divide by the specified value.
-+All sysfs values are fixed point numbers.
- 
- There is only one value per file, unlike the older /proc specification.
- The common scheme for files naming is: <type><number>_<item>. Usual
-@@ -77,6 +78,9 @@ RW	read/write value
- Read/write values may be read-only for some chips, depending on the
- hardware implementation.
- 
-+All entries are optional, and should only be created in a given driver
-+if the chip has the feature.
-+
- ************
- * Voltages *
- ************
-@@ -213,32 +217,32 @@ temp[1-*]_type	Sensor type selection.
- 		Not all types are supported by all chips
- 
- temp[1-*]_max	Temperature max value.
--		Unit: millidegree Celcius
-+		Unit: millidegree Celsius (or millivolt, see below)
- 		RW
- 
- temp[1-*]_min	Temperature min value.
--		Unit: millidegree Celcius
-+		Unit: millidegree Celsius
- 		RW
- 
- temp[1-*]_max_hyst
- 		Temperature hysteresis value for max limit.
--		Unit: millidegree Celcius
-+		Unit: millidegree Celsius
- 		Must be reported as an absolute temperature, NOT a delta
- 		from the max value.
- 		RW
- 
- temp[1-*]_input Temperature input value.
--		Unit: millidegree Celcius
-+		Unit: millidegree Celsius
- 		RO
- 
- temp[1-*]_crit	Temperature critical value, typically greater than
- 		corresponding temp_max values.
--		Unit: millidegree Celcius
-+		Unit: millidegree Celsius
- 		RW
- 
- temp[1-*]_crit_hyst
- 		Temperature hysteresis value for critical limit.
--		Unit: millidegree Celcius
-+		Unit: millidegree Celsius
- 		Must be reported as an absolute temperature, NOT a delta
- 		from the critical value.
- 		RW
-@@ -256,6 +260,15 @@ temp[1-4]_offset
- 		itself, for example the thermal diode inside the CPU or
- 		a thermistor nearby.
- 
-+Some chips measure temperature using external thermistors and an ADC, and
-+report the temperature measurement as a voltage. Converting this voltage
-+back to a temperature (or the other way around for limits) requires
-+mathematical functions not available in the kernel, so the conversion
-+must occur in user space. For these chips, all temp* files described
-+above should contain values expressed in millivolt instead of millidegree
-+Celsius. In other words, such temperature channels are handled as voltage
-+channels by the driver.
-+
- Also see the Alarms section for status flags associated with temperatures.
- 
- 
+uname -a
+
+Linux gubbie 2.6.17-gentoo #6 SMP PREEMPT Fri Jun 30 09:51:47 PDT 2006 
+i686 Intel(R) Xeon(TM) CPU 3.00GHz GNU/Linux
+
+
+I used the OpenIPMI and patches for 2.6.17 from:
+
+http://sourceforge.net/project/showfiles.php?group_id6127
+
+and with the sensor command from OpenIPMI I finally get:
+
+sensor: version 1.29
+-- mBMC version 2.40, IPMI version 1.5
+_ID_ SDR_Type_xx Sz Own Typ S_Num Sens_Description   Hex & Interp Reading
+0001 SDR EvtO 03 15 20 01 snum 01 LAN Scrty        = 00 00 00 00 OK
+0002 SDR EvtO 03 14 20 01 snum 02 Password         = 00 00 00 00 OK
+0003 SDR EvtO 03 14 20 01 snum 03 PWRGOOD#         = 00 00 00 00 OK
+0004 SDR EvtO 03 12 20 01 snum 04 Button           = 00 00 00 00 OK
+0005 SDR EvtO 03 15 20 01 snum 05 Watchdog2        = 00 00 00 00 OK
+0006 SDR EvtO 03 19 20 01 snum 06 SyS Boot Init    = 00 00 00 00 OK
+0007 SDR EvtO 03 14 20 01 snum 07 Sys Evnt         = 00 00 00 00 OK
+0008 SDR EvtO 03 17 20 01 snum 08 Pltfrm Evnt      = 00 00 00 00 OK
+0009 SDR IPMB 12 17 dev: 20 00 07 01 PC87431 mBMC
+000a SDR Full 01 33 20 02 snum 0a CPU1 12V         = c5 OK   12.31 Volts
+000b SDR Full 01 39 20 02 snum 0c Baseboard 1.5V   = c1 OK   1.51 Volts
+000c SDR Full 01 39 20 02 snum 0d Baseboard 2.5V   = bf OK   2.50 Volts
+000d SDR Full 01 39 20 02 snum 0e Baseboard 3.3V   = c3 OK   3.35 Volts
+000e SDR Full 01 39 20 02 snum 0f Baseboard 5.0V   = c3 OK   5.08 Volts
+000f SDR Full 01 38 20 02 snum 10 Baseboard 12V    = c6 OK   12.37 Volts
+0010 SDR Full 01 39 20 02 snum 11 Baseboard -12V   = 4c OK   -12.00 Volts
+0011 SDR Full 01 32 20 02 snum 12 FSB Vtt          = c0 OK   1.20 Volts
+0012 SDR Full 01 32 20 02 snum 13 MCH Vtt          = 00 OK   0.01 Volts
+0013 SDR Full 01 36 20 01 snum 2a System Temp      = 1e OK   30.00 degrees 
+C
+0014 SDR Comp 02 2b 20 13 snum 23 Interrupt Button = 00 c0 00 00 OK
+0015 SDR Comp 02 24 20 14 snum 24 ID Button        = 00 c0 00 00 OK
+0016 SDR Comp 02 2b 20 07 snum 29 CPU Config Error = 00 c0 00 00 OK
+0017 SDR FRU  11 13 dev: 01 00 07 01 HOST FRU
+0018 SDR OEM  c0 13 manuf=Intel: SDR Package 1.30
+
+and I have these modules loaded (I just crammed as many that would lod 
+in... )
+
+Module                  Size  Used by
+ipmi_watchdog          20548  0
+ipmi_devintf            9992  0
+eeprom                  8080  0
+ipmi_smb               17796  0
+i2c_algo_pcf            7684  0
+i2c_algo_pca            7044  0
+i2c_dev                10244  0
+i2c_isa                 5888  0
+ipmi_msghandler        39360  3 ipmi_watchdog,ipmi_devintf,ipmi_smb
+i2c_i801               10672  0
+
+
+And I guess lm-sensors can't use this? When I do a i2cdetect 0 now, the 
+0x42 location shows up as UU instead of XX and sensor-detect says to 
+unload any clients using it.
+
+Hope this helps folks :)
+
+Nick
+
+
 -- 
-1.4.0
+Nick Ellson
+CCDA, CCNP, CCSP, CCAI,
+MCSE 2000, Security+, Network+
+Network Hobbyist, VFR Private Pilot.
 
 
