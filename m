@@ -1,72 +1,93 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 30 Jul 2006 12:29:43 +0000
-Subject: [lm-sensors] Generic battery interface
-Message-Id: <20060730142943.2537124e.khali@linux-fr.org>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Sat, 01 Jul 2006 12:30:28 +0000
+Subject: [lm-sensors] [RFC PATCH] include statement in
+Message-Id: <20060701123027.GD3140@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
-	<20060727221632.GE3797@elf.ucw.cz>
-	<41840b750607271556n1901af3by2e4d046d68abcb94@mail.gmail.com>
-	<20060727230801.GA30619@kroah.com>
-	<20060727232426.GI3797@elf.ucw.cz>
-In-Reply-To: <20060727232426.GI3797@elf.ucw.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pavel Machek <pavel@suse.cz>
-Cc: Greg KH <greg@kroah.com>, lm-sensors@lm-sensors.org, Shem Multinymous <multinymous@gmail.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, vojtech@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Hi Pavel,
+Hello:
 
-> > > We also need to decide on clear convention about units. Are they in
-> > > the output and/or filename? Filename is best, I think, since it's
-> > > impossible to miss and works nicely for input attributes too.
-> > 
-> > Actually, this whole thing could probably just go under the 'hwmon'
-> > interface, as it already handles other hardware monitoring events.  I
-> > don't see how a battery would be any different, do you?
-> 
-> Heh... yes, hwmon already has voltage, current, and more importantly,
-> a maintainer.
-> 
-> I'd still prefer batteries to go into /sys/class/battery/... they are
-> really different from lm78-style voltage sensor and I'd not expect
-> battery applet to understand all the fields "normal" hwmon
-> exports.
+Before I get started on the code, is everyone OK with this?
+(patch to man page, which serves as spec...)
 
-This probably doesn't matter much, every application can handle only
-the subset it is interested in. For example a dockapp displaying the
-system temperature only cares about the temp* files and ignores the
-in*, fan*, etc. files.
+Index: sensors.conf.5
+=================================--- sensors.conf.5	(revision 4062)
++++ sensors.conf.5	(working copy)
+@@ -40,7 +40,8 @@
+ not work within a comment,
+ .B NAME
+ or
+-.BR NUMBER .
++.BR NUMBER ,
++nor can lines containing an include statement be continued.
+ 
+ .RS
+ bus 
+@@ -60,6 +61,9 @@
+ ignore
+ .B NAME
+ .sp 0
++include
++.B FILENAME
++.sp 0
+ set 
+ .B NAME EXPR
+ .RE
+@@ -71,6 +75,12 @@
+ Within quotes, you can use the normal escape\-codes from C.
+ 
+ A
++.B FILENAME
++is a string.  It may contain letters, digits, dots, dashes, underscores,
++slashes and/or spaces only.  A filename must always appear within double
++quotes.
++
++A
+ .B NAME\-LIST
+ is one or more
+ .B NAME
+@@ -300,6 +310,33 @@
+ The only argument is the feature name, which may be a feature class;
+ in that case the label class is used (see below).
+ 
++.SS INCLUDE STATEMENT
++.RS
++include "/etc/sensors/foo.conf"
++.RE
++.RS
++include "sensors/foo.conf"
++.RE
++.RS
++include "foo.conf"
++.RE
++
++The
++.I include
++statement causes the program to continue reading configuration from the
++named file.  Upon reaching the end of the named file, the program will
++continue reading configuration from the original file beginning with the
++line after the
++.I include
++statement.
++
++If the filename is not absolute, then the program looks for the file in
++the current working directory.  
++
++Nesting of
++.I include
++statements is limited to a maximum of five levels.
++
+ .SS LABEL STATEMENT
+ .RS
+ label in3 "+5V"
 
-However, it would be convenient if the battery monitoring application
-had an easy (and non heuristic-based) way to distinguish between a
-battery and a hardware monitoring chip. In that sense, having a
-separate class makes sense. This doesn't prevent the battery drivers to
-use the same conventions used by the hardware monitoring drivers.
-
-> But conventions developed by hwmon group look sane and usable.
-
-Nice to read this for a change, usually people have only complaints
-about it ;)
-
-> Actually I do not see "hwmon infrastructure" to exist. Every driver
-> just uses sysfs directly. I'm not sure that the best option --
-> "input-like" infrastructure can make drivers even shorter -- but
-> perhaps just directly using sysfs is best for simple task like a battery?
-> 
-> Jean, any ideas?
-
-I guess we never felt any need for an "infrastructure", else we would
-have created it. I have no idea what the "input infrastructure" looks
-like so I can't compare. If you have something to propose which would
-refactor some code amongst the hardware monitoring drivers or would
-otherwise makes thing better, speak up :)
-
-Note that the hwmon class is merely a way to find out which devices
-have hardware monitoring attributes. There are no class attributes in
-use. The reason is historical, and also due to the fact that no two
-hardware monitoring chips have the same set of features.
+Regards,
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman at lightlink.com
+
 
