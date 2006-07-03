@@ -1,66 +1,47 @@
-From: mikpolniak@adelphia.net (mikepolniak)
-Date: Tue, 11 Jul 2006 22:10:21 +0000
-Subject: [lm-sensors] it87 driver supports ITE8716 chip on new AM2 boards
-Message-Id: <20060711221021.GA5889@debamd64>
+From: ymu@winbond.com (Yuan Mu)
+Date: Mon, 03 Jul 2006 01:35:34 +0000
+Subject: [lm-sensors] nvidia nforce410 chipset / ASUS
+Message-Id: <44A87466.9020002@winbond.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060705202045.GA15892@debamd64>
-In-Reply-To: <20060705202045.GA15892@debamd64>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 23:45 Tue 11 Jul     , Rudolf Marek wrote:
-> Thanks Mike,
+Hi Jean, Daan,
+
+>> Daan Willems wrote:
+>>> I've tried the patch on a plain 2.6.17.1 vanilla kernel, but using the 
+>>> newbuilt module still doesn't show me the voltages. However on building 
+>>> the module with the patch applied I get the following message:
+>>>
+>>> WARNING: drivers/acpi/processor.o - Section mismatch: reference to 
+>>> .init.data: from .text between 'acpi_processor_power_init' (at offset 
+>>> 0xf2f) and 'acpi_processor_cst_has_changed'
+>> One possible reason is you need to install new lm_sensors2 user space tools.
+>> If it is not this reason, i can not help you more :(
+>> I still have no chance to try 2.6.17.1 kernel...
 > 
-> I'm attaching fixed sensors-detect.
+> No, this is a completely unrelated warning. There's something wrong in
+> the acpi code, the compiler warns about it since 2.6.17 (it was already
+> wrong before, but the compiler wasn't taught to detect the mistake
+> until recently.
 > 
-> DOes it find the IT8716F on isa and on superIO?
+> So, Daan, you can ignore that warning safely. You would have the same
+> warning without the patch. I have the warning too for quite some times
+> now and nothing bad happened ;) Let's just hope the acpi people
+> eventually show up and fix it, so that people stop being frightened!
+> 
+Hmm, sorry, i think i made a mistake that i have not snipped the "WARNING ..." part.
+I know nothing about it at all ;)
 
-Yes...success!
+And my reply is for "doesn't show the voltage after patch w83627ehf",
+Jean, why it still can not show the voltages :(
 
-Do you want to scan the ISA bus? (YES/no): 
-Probing for 	TE IT8712F'
-  Trying address 0x0290... Failed!
-Probing for 	TE IT8716F'
-  Trying address 0x0290... Success!
-    (confidence 7, driver 	t87')
-
-....................
-
-Do you want to scan for Super I/O sensors? (YES/no): 
-Probing for 	TE 8702F Super IO Sensors'
-  Failed! (0x8716)
-Probing for 	TE 8705F Super IO Sensors'
-  Failed! (0x8716)
-Probing for 	TE 8712F Super IO Sensors'
-  Failed! (0x8716)
-Probing for 	TE IT8716F Super IO Sensors'
-  Success... found at address 0x0290
-.....................
-Driver 	t87' (should be inserted):
-  Detects correctly:
-  * ISA bus address 0x0290 (Busdriver 	2c-isa')
-    Chip 	TE IT8716F Super IO Sensors' (confidence: 9)
+-- 
+Best Regards
+Yuan Mu
 
 
-I will now generate the commands needed to load the I2C modules.
-
-To make the sensors modules behave correctly, add these lines to
-/etc/modules.conf:
-
-#----cut here----
-# I2C module options
-alias char-major-89 i2c-dev
-#----cut here----
-To load everything that is needed, add this to some /etc/rc* file:
-
-#----cut here----
-# I2C adapter drivers
-modprobe i2c-isa
-# I2C chip drivers
-modprobe it87
-# sleep 2 # optional
-/usr/local/bin/sensors -s # recommended
-#----cut here----
+=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
 
