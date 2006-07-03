@@ -1,27 +1,27 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 31 Jul 2006 14:37:57 +0000
-Subject: [lm-sensors] Problem with W83792d
-Message-Id: <20060731163757.38b038d5.khali@linux-fr.org>
+From: Marcin.Dawidowicz@kontron.pl (Marcin Dawidowicz)
+Date: Mon, 03 Jul 2006 10:40:52 +0000
+Subject: [lm-sensors] Is anyone working on driver for SMSC SCH311x ?
+Message-Id: <200607031240.52311.Marcin.Dawidowicz@kontron.pl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44CB36A9.9040502@hcl.in>
-In-Reply-To: <44CB36A9.9040502@hcl.in>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Nithin,
+Hello,
 
-> I just asked our Asus contact about your motherboard, I'll let you know
-> what he thinks. In the meantime, if you are not already using the
-> latest BIOS available, I would suggest that you upgrade and see if it
-> helps.
+I would like to know if anyone is working on driver for SMSC SCH311x.
 
-Our contact needs the exact version of the motherboard (exact name and
-revision if it applies) and the BIOS version you are currently using
-(should show at boot time, and dmidecode should tell you too.) Please
-provide this information.
+Here are datasheet and manual for this chip:
+http://www.nuhorizons.com/products/NewProducts/Nexus/SMSC/311xdb.pdf
+http://www.nuhorizons.com/products/NewProducts/Nexus/SMSC/311x.pdf
 
--- 
-Jean Delvare
+The SCH3112/SCH3114/SCH3116 product family's HWM capabilities include: 
+temperature monitoring (two external via diode inputs plus one internal), 
+voltage monitoring (seven voltages) and programmable automatic FAN control. 
+Three fan tachometer inputs and three pulse width modulator (PWM) outputs are 
+available.
+
+Best regards,
+Marcin
 
