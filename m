@@ -1,29 +1,37 @@
-From: johannes@sipsolutions.net (Johannes Berg)
-Date: Mon, 03 Jul 2006 10:19:29 +0000
+From: linux-kernel@hansmi.ch (Michael Hanselmann)
+Date: Mon, 03 Jul 2006 10:45:47 +0000
 Subject: [lm-sensors] [RFC] Apple Motion Sensor driver
-Message-Id: <1151921969.20701.18.camel@localhost>
+Message-Id: <20060703104547.GA25342@hansmi.ch>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060702222649.GA13411@hansmi.ch>
-	 <1151921567.10711.22.camel@localhost.localdomain>
+References: <20060702222649.GA13411@hansmi.ch> <1151921567.10711.22.camel@localhost.localdomain>
 In-Reply-To: <1151921567.10711.22.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Stelian Pop <stelian@popies.net>
-Cc: Michael Hanselmann <linux-kernel@hansmi.ch>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, khali@linux-fr.org, linux-kernel@killerfox.forkbomb.ch, benh@kernel.crashing.org, chainsaw@gentoo.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, khali@linux-fr.org, linux-kernel@killerfox.forkbomb.ch, benh@kernel.crashing.org, johannes@sipsolutions.net, chainsaw@gentoo.org
 
+On Mon, Jul 03, 2006 at 12:12:47PM +0200, Stelian Pop wrote:
+> > +
+> > +static DEVICE_ATTR(mouse, S_IRUGO | S_IWUSR,
+> > +	ams_mouse_show_mouse, ams_mouse_store_mouse);
 
-> Is it really necessary to have a config option here ?
+> I would prefer three different files for x, y and z instead of a single
+> one... 
 
-Same goes, imo, for the hdpark functionality (once we get it through all
-layers, I agree with leaving it out for now completely). That's what the
-thing was designed for after all.
+Because of the way the values are calculated with orientation, that
+would mean that if a program needs all three, either all values are read
+three times or the ams_sensors function gets much more complicated.
 
-johannes
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 828 bytes
-Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060703/c013b9ad/attachment.bin 
+To prevent it from having to read them three times in a row, I joined
+all three values.
+
+Do you think I should rewrite the ams_sensors function to only get the
+correct value?
+
+Thanks,
+Michael
+
+(All other issues, including those in the other mails, are clear and
+will be addressed by a new patch)
+
