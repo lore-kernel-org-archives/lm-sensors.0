@@ -1,50 +1,77 @@
-From: pavel@ucw.cz (Pavel Machek)
-Date: Tue, 04 Jul 2006 07:59:50 +0000
+From: hmh@debian.org (Henrique de Moraes Holschuh)
+Date: Tue, 04 Jul 2006 16:23:46 +0000
 Subject: [lm-sensors] Generic interface for accelerometers (AMS, HDAPS,
-Message-Id: <20060704075950.GA13073@elf.ucw.cz>
+Message-Id: <20060704162346.GE9447@khazad-dum.debian.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060703124823.GA18821@khazad-dum.debian.net>
-In-Reply-To: <20060703124823.GA18821@khazad-dum.debian.net>
+References: <20060703124823.GA18821@khazad-dum.debian.net> <20060704075950.GA13073@elf.ucw.cz>
+In-Reply-To: <20060704075950.GA13073@elf.ucw.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Henrique de Moraes Holschuh <hmh@debian.org>
+To: Pavel Machek <pavel@ucw.cz>
 Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, hdaps-devel@lists.sourceforge.net, Stelian Pop <stelian@popies.net>, Michael Hanselmann <linux-kernel@hansmi.ch>
 
-On Mon 2006-07-03 09:48:23, Henrique de Moraes Holschuh wrote:
-> We have now (or we are about to have, anyway) two drivers that export
-> accelerometer data: IBM's HDAPS, and Apple's AMS.  More accelerometer
-> drivers could be coming in the future.
-> 
-> Both drivers export one common set of data (accelerometer output), and some
-> extra information that is not related to acellerometers.  Both have at least
-> two functionality goals in common: to export accelerometer data to
-> userspace, and also to allow somehow for HD head parking when the
-> accelerometer detects a potentially incoming impact.
-> 
-> User?space utilities that interface to accelerometers like hdapsd and
-> smackpad could benefit from a common interface, so that they work with
-> HDAPS, AMS, and any other future accelerometer drivers.
-> 
-> If any kernel-space functionality needed by HDAPS and AMS is also shared, we
-> would have benefits there too.  Some examples I can think of are: generic HD
-> queue-freeze and HD head parking, and a generic acellerometer-driven
-> joystick event interface.  This would also enable generic userspace
-> notifiers that the HD heads have been parked, etc.
-> 
-> I am posting this message as a head's up for the two projects (HDAPS, AMS)
-> to make sure that they are actively aware of each other.  I do so in hope
-> that we can work in a joint, generic interface and port both drivers to this
-> new interface in the near future, and also that we can make as much
-> functionality shared between the two drivers as possible.
+On Tue, 04 Jul 2006, Pavel Machek wrote:
+> Just use input infrastructure and be done with that? You can do
+> parking from userspace.
 
-Just use input infrastructure and be done with that? You can do
-parking from userspace.
+The command to execute the freeze (and for how long) can certaily come from
+userspace, and the logic behind that command can be an userspace
+high-priority task, yes (that's how it is done in HDAPS anyway).  However,
+to implement the disk head unload you need kernel code (you need to freeze
+the IO queues for a while too, not just unload the heads).
 
-Only piece of puzzle missing is marking that input device as "this
-accelerometer actually watches the whole device".
-								Pavel
+Anyway, the input infrastructure is good to emulate a mouse/joystick, but we
+probably want to support the following generic data channels:
+
+1. Absolute acceleration output stream (either in hardware units, or
+   normalized to G or mG if at all possible) for X, Y, Z.  Does the input
+   infrastructure work well for reporting absolute numbers in a reasonably
+   constant rate?
+   
+   This is what HD head unload policy daemons want to know, and the stream
+   usually needs to offer datapoints somewhere between 20Hz and 100Hz
+   without excessive jitter to be useful for more advanced filtering (like
+   masking-off periodic movement such as the one caused by train tracks).
+
+2. As easy-to-use as possible joystick and mouse emulation (for toys and 
+   gaming), which probably means auto-calibrating ones when possible
+   and thus making them unsuitable channels for (1) above.
+
+3. Control of accelerometer parameters:
+   3a. Report of accelerometer type (hdaps, ams, etc) and other metadata
+       (name, location, what it is measuring (system accel, hd-bay 
+       accel...))
+   3b. Accelerometer polling frequency
+   3c. Enable/disable joystick and mouse emulation control
+   etc.
+
+And, of course, userspace must be able to easily find the accelerometer
+outputs and diferentiate them from other joystick/mouse interfaces.  This is
+a task for udev, I suppose.
+
+It is also very helpful to be able to know when something is using any of
+the accelerometer output channels, so as to shut it down (or stop talking to
+it) when it is uneeded.  I don't know about AMS, but talking to HDAPS when
+you don't need to does waste enough system resources and power to actually
+justify implementing this.
+
+If we cannot detect automatically when userspace is paying attention to the
+accelerometer through the input layer, then that means we will need the
+enable/disable functionality already provided by the device model through
+sysfs.
+
+> Only piece of puzzle missing is marking that input device as "this
+> accelerometer actually watches the whole device".
+
+Well, it is very important to be able to easily find all data and channels
+pertaining for a given accelerometer, and the accelerometer metadata should
+indeed give userspace an idea of WHAT it is measuring the acceleration of
+:-)
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
