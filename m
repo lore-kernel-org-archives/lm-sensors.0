@@ -1,41 +1,26 @@
 From: multinymous@gmail.com (Shem Multinymous)
-Date: Tue, 04 Jul 2006 10:26:56 +0000
+Date: Tue, 04 Jul 2006 10:33:07 +0000
 Subject: [lm-sensors] [Hdaps-devel] Generic interface for accelerometers
-Message-Id: <41840b750607040326y7bfe92dy21c6845ab034ce30@mail.gmail.com>
+Message-Id: <41840b750607040333w6d7afb76t100570ffabf67761@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060703124823.GA18821@khazad-dum.debian.net>
-	 <20060704075950.GA13073@elf.ucw.cz>
-In-Reply-To: <20060704075950.GA13073@elf.ucw.cz>
+References: <41840b750607040326y7bfe92dy21c6845ab034ce30@mail.gmail.com>
+In-Reply-To: <41840b750607040326y7bfe92dy21c6845ab034ce30@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Henrique de Moraes Holschuh <hmh@debian.org>, Stelian Pop <stelian@popies.net>, Michael Hanselmann <linux-kernel@hansmi.ch>, hdaps-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On 7/4/06, Pavel Machek <pavel at ucw.cz> wrote:
-> Just use input infrastructure and be done with that? You can do
-> parking from userspace.
+On 7/3/06, Henrique de Moraes Holschuh <hmh at debian.org> wrote:
+> If any kernel-space functionality needed by HDAPS and AMS is also shared, we
+> would have benefits there too.
+[snip]
+> queue-freeze and HD head parking
 
-Will moving the hdapsd userspace daemon from sysfs polling to the
-input infrastructure cause a noticable latency increase compared to
-polling sysfs? This functionality is highly time-critical.
-
-Also, there's a small issue with polling frequency. hdapsd needs a
-fairly high frequency (say, 50Hz) to gather statistics and keep
-response latency low, whereas the hdaps driver's internal polling
-(routing to the input infrastructure) is currently done at only 20Hz.
-We'll need to increase the latter, thereby slightly increasing system
-load when hdaps isn't running.
-
-In terms of magnitude, an hdaps readout takes ~70usec on average and
-(very rarely) up to ~1msec. This is with the tp_smapi [1] patches to
-hdaps, which add the checks and retries needed to ensure the readout
-is valid.
-
-BTW, can the driver tell when nothing is accessing its input device,
-and avoid polling in that case?
+Is there any difference between the freeze+park functionality needed
+by the different laptops? The hdaps_protect patch has a well thought
+out generic interface, and can probably serve all projects. What's the
+prospect of seeing it in mainline? (Of course, the recently reported
+hangs need to be addressed first.)
 
   Shem
-
-[1] http://thinkwiki.org/wiki/tp_smapi
 
