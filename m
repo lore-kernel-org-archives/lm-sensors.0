@@ -1,34 +1,29 @@
-From: ymu@winbond.com (Yuan Mu)
-Date: Fri, 07 Jul 2006 06:14:23 +0000
-Subject: [lm-sensors] W83793 driver
-Message-Id: <44ADFBBF.9070309@winbond.com>
+From: devsku@gmail.com (Sunil Kumar)
+Date: Tue, 04 Jul 2006 18:46:20 +0000
+Subject: [lm-sensors] new abituguru driver in mm kernel
+Message-Id: <ce9ef0d90607041146t6837a584x68d1ab7e528139ea@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44893948.2070709@winbond.com>
-In-Reply-To: <44893948.2070709@winbond.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
+Hi,
 
-I revised the driver and make a patch against the file you send to me, please
-can you check if it meet your review :)
+I am interested in using this driver but don't know how. I am running
+gentoo-sources-2.6.17-r1 (2.6.17.3) patched with suspend2 patch. I don't
+want to use mm sources for now. I have lm_sensors-2.10.0 installed. From
+this mailing list, I gather that there are three patches for the driver and
+one userspace patch for the lm_sensors package itself.
 
-And some note:
-1.I removed some not used MACROs, and fix a wrong register definition.
-2.tolerance registers, i stored the register value in cache, so i think no need to use index/2.
-3. I leave the update_nonvolatile function there, because update too many registers every time
-is just not worthy, if it can change in 300s interval, it also may change in 3s...
+In nutshell, I am confused about what patches I need to apply to the kernel
+and how do I get the latest lm_sensors package which works with abit uguru
+driver. Can Hans or someone who has used this driver, please post a step by
+step howto to get the uguru working with my setup, I will really appreciate
+it.
 
-
--- 
-Best Regards
-Yuan Mu
-
-
-=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
+Thanks,
+Sunil
 -------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: w83793_revise_1.patch
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060707/da56796a/attachment.pl 
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060704/95684bac/attachment.html 
