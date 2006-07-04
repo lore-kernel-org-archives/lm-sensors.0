@@ -1,33 +1,41 @@
-From: staffan.emren@sau.se (Staffan Emr=?iso-8859-15?q?=E9n?=)
-Date: Tue, 25 Jul 2006 07:53:17 +0000
-Subject: [lm-sensors] May I use lm-monitor as name for my software?
-Message-Id: <E1G5HjB-0003Mg-Nl@vile.sau.se>
+From: multinymous@gmail.com (Shem Multinymous)
+Date: Tue, 04 Jul 2006 10:26:56 +0000
+Subject: [lm-sensors] [Hdaps-devel] Generic interface for accelerometers
+Message-Id: <41840b750607040326y7bfe92dy21c6845ab034ce30@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20060703124823.GA18821@khazad-dum.debian.net>
+	 <20060704075950.GA13073@elf.ucw.cz>
+In-Reply-To: <20060704075950.GA13073@elf.ucw.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Henrique de Moraes Holschuh <hmh@debian.org>, Stelian Pop <stelian@popies.net>, Michael Hanselmann <linux-kernel@hansmi.ch>, hdaps-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hello,
+On 7/4/06, Pavel Machek <pavel at ucw.cz> wrote:
+> Just use input infrastructure and be done with that? You can do
+> parking from userspace.
 
-I have written a small daemon (well, it will soon be a daemon :-) ), which I
-would like to name 'lm-monitor', as it monitors sensors output and sends an
-email to one or more administrators when a reading (temp, fan or voltage)
-exceeds the allowed limits.
+Will moving the hdapsd userspace daemon from sysfs polling to the
+input infrastructure cause a noticable latency increase compared to
+polling sysfs? This functionality is highly time-critical.
 
-My simple question is if I may use that name, as it is quite close to
-'lm-sensors'. On the other hand, it is built upon the output of lm-sensors, so
-if it is OK with whoever "owns" the lm-sensors name, I would like to use it.
+Also, there's a small issue with polling frequency. hdapsd needs a
+fairly high frequency (say, 50Hz) to gather statistics and keep
+response latency low, whereas the hdaps driver's internal polling
+(routing to the input infrastructure) is currently done at only 20Hz.
+We'll need to increase the latter, thereby slightly increasing system
+load when hdaps isn't running.
 
-I intend to publish the software on sourceforge (under GPL), but as of now you
-can get the source, currently 1.0alpha, if you drop me a mail.
+In terms of magnitude, an hdaps readout takes ~70usec on average and
+(very rarely) up to ~1msec. This is with the tp_smapi [1] patches to
+hdaps, which add the checks and retries needed to ensure the readout
+is valid.
 
-Best regards
+BTW, can the driver tell when nothing is accessing its input device,
+and avoid polling in that case?
 
-Staffan Emr?n
-----------------------------------------
-Societas Archaeologica Upsaliensis
-018 - 10 79 30 (vx) 10 79 40 (fax)
-http://www.sau.se
+  Shem
 
+[1] http://thinkwiki.org/wiki/tp_smapi
 
