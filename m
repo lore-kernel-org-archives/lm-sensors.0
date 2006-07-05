@@ -1,34 +1,112 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Fri, 07 Jul 2006 13:23:35 +0000
-Subject: [lm-sensors] [OT]Patch: libsensors support for gkrellm
-Message-Id: <44AE6057.30309@hhs.nl>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 05 Jul 2006 16:15:31 +0000
+Subject: [lm-sensors] [PATCH 5/5] hwmon: Documentation update for w83627ehf
+Message-Id: <20060705181531.bdcc8624.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+From: Rudolf Marek <r.marek at sh.cvut.cz>
+Content-Disposition: inline; filename=hwmon-w83627ehf-documentation.patch
 
-Sort of offtopic, but I know some people here are interested in this.
-Here is the promised patch for libsensors support. Notice that I didn't
-add any support for this to the Makefile. Here is how I compiled to test
-the patch, you will need todo something similar to get gkrellm compiled
-with libsensors support:
-make CFLAGS="-O2 -Wall -DHAVE_LIBSENSORS" INSTALLROOT=/usr \
-SYS_LIBS=-lsensors
+Add documentation for the w83627ehf hardware monitoring driver.
 
-This patch has also been send to gkrellm upstream and is likely to get
-merged there.
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ Documentation/hwmon/w83627ehf |   85 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 85 insertions(+)
 
-Regards,
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.17-git/Documentation/hwmon/w83627ehf	2006-06-26 21:07:29.000000000 +0200
+@@ -0,0 +1,85 @@
++Kernel driver w83627ehf
++===========+
++Supported chips:
++  * Winbond W83627EHF/EHG (ISA access ONLY)
++    Prefix: 'w83627ehf'
++    Addresses scanned: ISA address retrieved from Super I/O registers
++    Datasheet: http://www.winbond-usa.com/products/winbond_products/pdfs/PCIC/W83627EHF_%20W83627EHGb.pdf
++
++Authors:
++        Jean Delvare <khali at linux-fr.org>
++        Yuan Mu <Ymu at Winbond.com.tw>
++        Rudolf Marek <r.marek at sh.cvut.cz>
++
++Description
++-----------
++
++This driver implements support for the Winbond W83627EHF and W83627EHG
++super I/O chips. We will refer to them collectively as Winbond chips.
++
++The chips implement three temperature sensors, five fan rotation
++speed sensors, ten analog voltage sensors, alarms with beep warnings (control
++unimplemented), and some automatic fan regulation strategies (plus manual
++fan control mode).
++
++Temperatures are measured in degrees Celsius and measurement resolution is 1
++degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
++the temperature gets higher than high limit; it stays on until the temperature
++falls below the Hysteresis value.
++
++Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
++triggered if the rotation speed has dropped below a programmable limit. Fan
++readings can be divided by a programmable divider (1, 2, 4, 8, 16, 32, 64 or
++128) to give the readings more range or accuracy. The driver sets the most
++suitable fan divisor itself. Some fans might not be present because they
++share pins with other functions.
++
++Voltage sensors (also known as IN sensors) report their values in millivolts.
++An alarm is triggered if the voltage has crossed a programmable minimum
++or maximum limit.
++
++The driver supports automatic fan control mode known as Thermal Cruise.
++In this mode, the chip attempts to keep the measured temperature in a
++predefined temperature range. If the temperature goes out of range, fan
++is driven slower/faster to reach the predefined range again.
++
++The mode works for fan1-fan4. Mapping of temperatures to pwm outputs is as
++follows:
++
++temp1 -> pwm1
++temp2 -> pwm2
++temp3 -> pwm3
++prog  -> pwm4 (the programmable setting is not supported by the driver)
++
++/sys files
++----------
++
++pwm[1-4] - this file stores PWM duty cycle or DC value (fan speed) in range:
++	   0 (stop) to 255 (full)
++
++pwm[1-4]_enable - this file controls mode of fan/temperature control:
++	* 1 Manual Mode, write to pwm file any value 0-255 (full speed)
++	* 2 Thermal Cruise
++
++Thermal Cruise mode
++-------------------
++
++If the temperature is in the range defined by:
++
++pwm[1-4]_target    - set target temperature, unit millidegree Celcius
++		     (range 0 - 127000)
++pwm[1-4]_tolerance - tolerance, unit millidegree Celcius (range 0 - 15000)
++
++there are no changes to fan speed. Once the temperature leaves the interval,
++fan speed increases (temp is higher) or decreases if lower than desired.
++There are defined steps and times, but not exported by the driver yet.
++
++pwm[1-4]_min_output - minimum fan speed (range 1 - 255), when the temperature
++                      is below defined range.
++pwm[1-4]_stop_time  - how many milliseconds [ms] must elapse to switch
++                      corresponding fan off. (when the temperature was below
++                      defined range).
++
++Note: last two functions are influenced by other control bits, not yet exported
++      by the driver, so a change might not have any effect.
 
-Hans
+-- 
+Jean Delvare
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: gkrellm-2.2.9-libsensors.patch
-Type: text/x-patch
-Size: 8783 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060707/e1af6cf0/attachment.bin 
