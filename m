@@ -1,421 +1,521 @@
-From: mort@bork.org (Martin Hicks)
-Date: Wed, 12 Jul 2006 14:43:40 +0000
-Subject: [lm-sensors] [PATCH] hwmon:  Add support for DS1682
-Message-Id: <20060712144340.GI16658@bork.org>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 05 Jul 2006 16:14:31 +0000
+Subject: [lm-sensors] [PATCH 4/5] hwmon: Add fan speed control features to
+Message-Id: <20060705181431.8a7ac449.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+From: Rudolf Marek <r.marek at sh.cvut.cz>
+Content-Disposition: inline; filename=hwmon-w83627ehf-add-pwm-support.patch
 
-Hi,
+This patch adds long-awaited support for automatic fan modes. Based on
+the work of Yuan Mu from Winbond, I finished the support with the great
+help of David Hubbard.
 
-This adds a driver for the Dallas Semiconductor DS1682
-Total Elapsed Time counter.
-
-Signed-off-by: Martin Hicks <mort at bork.org>
-
+Signed-off-by: Yuan Mu <Ymu at Winbond.com.tw>
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Signed-off-by: David Hubbard <david.c.hubbard at gmail.com>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
+ drivers/hwmon/w83627ehf.c |  393 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 382 insertions(+), 11 deletions(-)
 
- drivers/hwmon/Kconfig  |   25 ++++
- drivers/hwmon/Makefile |    1 
- drivers/hwmon/ds1682.c |  321 ++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/i2c-id.h |    1 
- 4 files changed, 348 insertions(+), 0 deletions(-)
- create mode 100644 drivers/hwmon/ds1682.c
-
-929a2c6bbd7ba9abdc68219552f2944290d8f45f
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 0e31a0c..2a45d83 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -129,6 +129,31 @@ config SENSORS_DS1621
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called ds1621.
+--- linux-2.6.17-git.orig/drivers/hwmon/w83627ehf.c	2006-06-26 20:07:12.000000000 +0200
++++ linux-2.6.17-git/drivers/hwmon/w83627ehf.c	2006-06-26 20:08:03.000000000 +0200
+@@ -2,6 +2,8 @@
+     w83627ehf - Driver for the hardware monitoring functionality of
+                 the Winbond W83627EHF Super-I/O chip
+     Copyright (C) 2005  Jean Delvare <khali at linux-fr.org>
++    Copyright (C) 2006  Yuan Mu <Ymu at Winbond.com.tw>,
++                        Rudolf Marek <r.marek at sh.cvut.cz>
  
-+config SENSORS_DS1682
-+        tristate "Dallas Semiconductor DS1682"
-+        depends on HWMON && I2C && EXPERIMENTAL
-+        help
-+          If you say yes here you get support for Dallas Semiconductor
-+          DS1682 total elapsed time recorder.
-+
-+          This driver can also be built as a module.  If so, the module
-+          will be called ds1682.
-+
-+config SENSORS_DS1682_RESET
-+        bool "Enable DS1682 Config and Reset capabilities"
-+        depends on SENSORS_DS1682
-+        help
-+          This enables the configuration phase of the ds1682.  Once you
-+          setup the config register to your liking you can issue a reset
-+          command by doing, for example:
-+                
-+                  echo 55 > /sys/bus/i2c/devices/0-006b/reset
-+
-+          twice. This permanently locks the device into its current
-+          configuration.
-+
-+          YOU CAN ONLY DO THIS ONCE.  Subsequent resets are ignored.
-+
- config SENSORS_F71805F
- 	tristate "Fintek F71805F/FG"
- 	depends on HWMON && EXPERIMENTAL
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index 3141584..d435011 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -20,6 +20,7 @@ obj-$(CONFIG_SENSORS_ADM1031)	+= adm1031
- obj-$(CONFIG_SENSORS_ADM9240)	+= adm9240.o
- obj-$(CONFIG_SENSORS_ATXP1)	+= atxp1.o
- obj-$(CONFIG_SENSORS_DS1621)	+= ds1621.o
-+obj-$(CONFIG_SENSORS_DS1682)	+= ds1682.o
- obj-$(CONFIG_SENSORS_F71805F)	+= f71805f.o
- obj-$(CONFIG_SENSORS_FSCHER)	+= fscher.o
- obj-$(CONFIG_SENSORS_FSCPOS)	+= fscpos.o
-diff --git a/drivers/hwmon/ds1682.c b/drivers/hwmon/ds1682.c
-new file mode 100644
-index 0000000..109f689
---- /dev/null
-+++ b/drivers/hwmon/ds1682.c
-@@ -0,0 +1,321 @@
-+/*
-+ * ds1682.c	for the Dallas Semiconductor DS1682 Total-Elapsed-Time
-+ *		recorder with Alarm.
-+ *
-+ * Copyright (C) 2006  Martin Hicks <mort at bork.org>
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/i2c.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
-+#include <linux/mutex.h>
-+#include <linux/delay.h>
-+
-+/* Addresses to scan */
-+static unsigned short normal_i2c[] = { 0x6b, I2C_CLIENT_END };
-+
-+/* Insmod parameters */
-+I2C_CLIENT_INSMOD_1(ds1682);
-+
-+/* Registers */
-+enum ds1682_reg {
-+	CONFIG_REG		= 0x00,
-+	ALARM_REG		= 0x01,
-+	ETC_REG			= 0x05,
-+	EVENT_CTR_REG		= 0x09,
-+	USER1_REG		= 0x0b,
-+	USER2_REG		= 0x0c,
-+	USER3_REG		= 0x0d,
-+	USER4_REG		= 0x0e,
-+	USER5_REG		= 0x0f,
-+	USER6_REG		= 0x10,
-+	USER7_REG		= 0x11,
-+	USER8_REG		= 0x12,
-+	USER9_REG		= 0x13,
-+	USER10_REG		= 0x14,
-+	/* Unused 0x15-0x1c */
-+	RESET_REG		= 0x1d,
-+	WRITE_DISABLE_REG 	= 0x1e,
-+	WRITE_MEM_DISABLE_REG	= 0x1f,
+     Shamelessly ripped from the w83627hf driver
+     Copyright (C) 2003  Mark Studebaker
+@@ -29,8 +31,8 @@
+ 
+     Supports the following chips:
+ 
+-    Chip        #vin    #fan    #pwm    #temp   chip_id man_id
+-    w83627ehf   10      5       -       3       0x88    0x5ca3
++    Chip        #vin    #fan    #pwm    #temp   chip_id    man_id
++    w83627ehf   10      5       4       3       0x88,0xa1  0x5ca3
+ */
+ 
+ #include <linux/module.h>
+@@ -145,10 +147,44 @@
+ #define W83627EHF_REG_ALARM2		0x45A
+ #define W83627EHF_REG_ALARM3		0x45B
+ 
++/* SmartFan registers */
++/* DC or PWM output fan configuration */
++static const u8 W83627EHF_REG_PWM_ENABLE[] = {
++	0x04,			/* SYS FAN0 output mode and PWM mode */
++	0x04,			/* CPU FAN0 output mode and PWM mode */
++	0x12,			/* AUX FAN mode */
++	0x62,			/* CPU fan1 mode */
 +};
 +
-+enum config_bits {
-+	ECMSB	= 1<<0,	/* Event Counter MSB */
-+	AP	= 1<<1,	/* Alarm Polarity */
-+	RE	= 1<<2,	/* Reset Enable */
-+	AOS	= 1<<3,	/* Alarm Output Select */
-+	WMDF	= 1<<4,	/* Write-Memory-Disable Flag */
-+	WDF	= 1<<5,	/* Write Disable Flag */
-+	AF	= 1<<6,	/* Alarm Flag */
-+	UNUSED	= 1<<7,
-+};
-+	
++static const u8 W83627EHF_PWM_MODE_SHIFT[] = { 0, 1, 0, 6 };
++static const u8 W83627EHF_PWM_ENABLE_SHIFT[] = { 2, 4, 1, 4 };
 +
-+static int ds1682_attach_adapter(struct i2c_adapter *adapter);
-+static int ds1682_detect(struct i2c_adapter *adapter, int address, int kind);
-+static int ds1682_detach_client(struct i2c_client *client);
-+static struct ds1682_data *ds1682_update_device(struct device *dev);
++/* FAN Duty Cycle, be used to control */
++static const u8 W83627EHF_REG_PWM[] = { 0x01, 0x03, 0x11, 0x61 };
++static const u8 W83627EHF_REG_TARGET[] = { 0x05, 0x06, 0x13, 0x63 };
++static const u8 W83627EHF_REG_TOLERANCE[] = { 0x07, 0x07, 0x14, 0x62 };
 +
-+static struct i2c_driver ds1682_driver = {
-+	.driver = {
-+		.name	= "ds1682",
-+	},
-+	.id		= I2C_DRIVERID_DS1682,
-+	.attach_adapter	= ds1682_attach_adapter,
-+	.detach_client	= ds1682_detach_client,
-+};
 +
-+struct ds1682_data {
-+	enum chips type;
-+	struct i2c_client client;
-+	struct class_device *class_dev;
-+	struct mutex update_lock;
-+	char valid;
-+	unsigned long last_updated_measure;
++/* Advanced Fan control, some values are common for all fans */
++static const u8 W83627EHF_REG_FAN_MIN_OUTPUT[] = { 0x08, 0x09, 0x15, 0x64 };
++static const u8 W83627EHF_REG_FAN_STOP_TIME[] = { 0x0C, 0x0D, 0x17, 0x66 };
 +
-+	union {
-+		u8 etc_byte[4];
-+		u32 etc_int;
-+	} etc;
-+	u32 event_ctr;
-+	u8 config;
-+};
-+
-+/*** sysfs accessors ***/
-+static ssize_t show_etc(struct device *dev, struct device_attribute *dummy,
-+			char *buf)
+ /*
+  * Conversions
+  */
+ 
++/* 1 is PWM mode, output in ms */
++static inline unsigned int step_time_from_reg(u8 reg, u8 mode)
 +{
-+	struct ds1682_data *data = ds1682_update_device(dev);
-+	return sprintf(buf, "%d\n", data->etc.etc_int >> 2);
++	return mode ? 100 * reg : 400 * reg;
 +}
-+static DEVICE_ATTR(time_elapsed, S_IRUGO, show_etc, NULL);
 +
-+static ssize_t show_event_ctr(struct device *dev,
-+			      struct device_attribute *dummy, char *buf)
++static inline u8 step_time_to_reg(unsigned int msec, u8 mode)
 +{
-+	struct ds1682_data *data = ds1682_update_device(dev);
-+	return sprintf(buf, "%d\n", data->event_ctr);
++	return SENSORS_LIMIT((mode ? (msec + 50) / 100 :
++						(msec + 200) / 400), 1, 255);
 +}
-+static DEVICE_ATTR(event_counter, S_IRUGO, show_event_ctr, NULL);
 +
-+#ifdef CONFIG_SENSORS_DS1682_RESET
-+static ssize_t do_reset(struct device *dev, struct device_attribute *devattr,
+ static inline unsigned int
+ fan_from_reg(u8 reg, unsigned int div)
+ {
+@@ -170,12 +206,12 @@
+ }
+ 
+ static inline s8
+-temp1_to_reg(int temp)
++temp1_to_reg(int temp, int min, int max)
+ {
+-	if (temp <= -128000)
+-		return -128;
+-	if (temp >= 127000)
+-		return 127;
++	if (temp <= min)
++		return min / 1000;
++	if (temp >= max)
++		return max / 1000;
+ 	if (temp < 0)
+ 		return (temp - 500) / 1000;
+ 	return (temp + 500) / 1000;
+@@ -223,6 +259,16 @@
+ 	s16 temp_max[2];
+ 	s16 temp_max_hyst[2];
+ 	u32 alarms;
++
++	u8 pwm_mode[4]; /* 0->DC variable voltage, 1->PWM variable duty cycle */
++	u8 pwm_enable[4]; /* 1->manual
++			     2->thermal cruise (also called SmartFan I) */
++	u8 pwm[4];
++	u8 target_temp[4];
++	u8 tolerance[4];
++
++	u8 fan_min_output[4]; /* minimum fan speed */
++	u8 fan_stop_time[4];
+ };
+ 
+ static inline int is_word_sized(u16 reg)
+@@ -349,6 +395,7 @@
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83627ehf_data *data = i2c_get_clientdata(client);
++	int pwmcfg = 0, tolerance = 0; /* shut up the compiler */
+ 	int i;
+ 
+ 	mutex_lock(&data->update_lock);
+@@ -416,6 +463,34 @@
+ 			}
+ 		}
+ 
++		for (i = 0; i < 4; i++) {
++			/* pwmcfg, tolarance mapped for i=0, i=1 to same reg */
++			if (i != 1) {
++				pwmcfg = w83627ehf_read_value(client,
++						W83627EHF_REG_PWM_ENABLE[i]);
++				tolerance = w83627ehf_read_value(client,
++						W83627EHF_REG_TOLERANCE[i]);
++			}
++			data->pwm_mode[i] +				((pwmcfg >> W83627EHF_PWM_MODE_SHIFT[i]) & 1)
++				? 0 : 1;
++			data->pwm_enable[i] +					((pwmcfg >> W83627EHF_PWM_ENABLE_SHIFT[i])
++						& 3) + 1;
++			data->pwm[i] = w83627ehf_read_value(client,
++						W83627EHF_REG_PWM[i]);
++			data->fan_min_output[i] = w83627ehf_read_value(client,
++						W83627EHF_REG_FAN_MIN_OUTPUT[i]);
++			data->fan_stop_time[i] = w83627ehf_read_value(client,
++						W83627EHF_REG_FAN_STOP_TIME[i]);
++			data->target_temp[i] +				w83627ehf_read_value(client,
++					W83627EHF_REG_TARGET[i]) &
++					(data->pwm_mode[i] = 1 ? 0x7f : 0xff);
++			data->tolerance[i] = (tolerance >> (i = 1 ? 4 : 0))
++									& 0x0f;
++		}
++
+ 		/* Measured temperatures and limits */
+ 		data->temp1 = w83627ehf_read_value(client,
+ 			      W83627EHF_REG_TEMP1);
+@@ -711,7 +786,7 @@
+ 	u32 val = simple_strtoul(buf, NULL, 10); \
+  \
+ 	mutex_lock(&data->update_lock); \
+-	data->temp1_##reg = temp1_to_reg(val); \
++	data->temp1_##reg = temp1_to_reg(val, -128000, 127000); \
+ 	w83627ehf_write_value(client, W83627EHF_REG_TEMP1_##REG, \
+ 			      data->temp1_##reg); \
+ 	mutex_unlock(&data->update_lock); \
+@@ -777,6 +852,281 @@
+ 	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13),
+ };
+ 
++#define show_pwm_reg(reg) \
++static ssize_t show_##reg (struct device *dev, struct device_attribute *attr, \
++				char *buf) \
++{ \
++	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	return sprintf(buf, "%d\n", data->reg[nr]); \
++}
++
++show_pwm_reg(pwm_mode)
++show_pwm_reg(pwm_enable)
++show_pwm_reg(pwm)
++
++static ssize_t
++store_pwm_mode(struct device *dev, struct device_attribute *attr,
 +			const char *buf, size_t count)
 +{
 +	struct i2c_client *client = to_i2c_client(dev);
-+	struct ds1682_data *data = i2c_get_clientdata(client);
-+	static int reset = 0;
-+	long val = simple_strtol(buf, NULL, 10);
++	struct w83627ehf_data *data = i2c_get_clientdata(client);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	u32 val = simple_strtoul(buf, NULL, 10);
++	u16 reg;
 +
-+	if (val = 55) {
-+		u8 config;
-+
-+		if (++reset != 2)
-+			return count;
-+
-+		mutex_lock(&data->update_lock);
-+		i2c_smbus_write_byte_data(client, RESET_REG, 0x55);
-+		i2c_smbus_write_byte_data(client, RESET_REG, 0x55);
-+		data->valid = 0;
-+		printk("ds1682: reset issued\n");
-+		mutex_unlock(&data->update_lock);
-+	} else
-+		printk("ds1682: invalid reset code\n");
-+
-+	return count;
-+}
-+static DEVICE_ATTR(reset, S_IWUSR, NULL, do_reset);
-+#endif /* CONFIG_SENSORS_DS1682_RESET */
-+
-+static ssize_t read_user_eeprom(struct device *dev,
-+				struct device_attribute *dummy,
-+				char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	int count = 0, i;
-+
-+	for (i = 0; i < 10; i++) {
-+		u8 val = i2c_smbus_read_byte_data(client, USER1_REG + i);
-+		count += sprintf(buf + i, "%c", val);
-+	}
++	if (val > 1)
++		return -EINVAL;
++	mutex_lock(&data->update_lock);
++	reg = w83627ehf_read_value(client, W83627EHF_REG_PWM_ENABLE[nr]);
++	data->pwm_mode[nr] = val;
++	reg &= ~(1 << W83627EHF_PWM_MODE_SHIFT[nr]);
++	if (!val)
++		reg |= 1 << W83627EHF_PWM_MODE_SHIFT[nr];
++	w83627ehf_write_value(client, W83627EHF_REG_PWM_ENABLE[nr], reg);
++	mutex_unlock(&data->update_lock);
 +	return count;
 +}
 +
-+static ssize_t write_user_eeprom(struct device *dev,
-+				 struct device_attribute *devattr,
-+				 const char *buf, size_t count)
++static ssize_t
++store_pwm(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
 +{
 +	struct i2c_client *client = to_i2c_client(dev);
-+	struct ds1682_data *data = ds1682_update_device(dev);
-+	int i;
-+
-+	/* User EEPROM writing is disabled */
-+	if (data->config & WMDF)
-+		return 0;
-+
-+	for (i = 0; i < count; i++)
-+		i2c_smbus_write_byte_data(client, USER1_REG+i, buf[i]);
-+
-+	return count;
-+}
-+static DEVICE_ATTR(user_eeprom, S_IWUSR | S_IRUGO,
-+		   read_user_eeprom, write_user_eeprom);
-+
-+static ssize_t get_config(struct device *dev,
-+			  struct device_attribute *dummy,
-+			  char *buf)
-+{
-+	struct ds1682_data *data = ds1682_update_device(dev);
-+	return sprintf(buf, "%02x\n", data->config);
-+}
-+
-+#ifdef CONFIG_SENSORS_DS1682_RESET
-+static ssize_t set_config(struct device *dev,
-+			  struct device_attribute *devattr,
-+			  const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	unsigned int config;
-+
-+	sscanf(buf, "%x", &config);
-+	/* This is an 8-bit register */
-+	if (config > 0xff) {
-+		printk("ds1682: set_config failed.  (value > 0xff)\n");
-+		return -ERANGE;
-+	}
-+
-+	i2c_smbus_write_byte_data(client, CONFIG_REG, config);
-+
-+	return count;
-+}
-+static DEVICE_ATTR(config, S_IWUSR | S_IRUGO,
-+		   get_config, set_config);
-+#else
-+static DEVICE_ATTR(config, S_IRUGO, get_config, NULL);
-+#endif /* CONFIG_SENSORS_DS1682_RESET */
-+
-+static int ds1682_detect(struct i2c_adapter *adapter, int address, int kind)
-+{
-+	struct i2c_client *new_client;
-+	struct ds1682_data *data;
-+	int err = 0;
-+
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-+		goto exit;
-+
-+	if (!(data = kzalloc(sizeof(*data), GFP_KERNEL))) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	new_client = &data->client;
-+	i2c_set_clientdata(new_client, data);
-+	new_client->addr = address;
-+	new_client->adapter = adapter;
-+	new_client->driver = &ds1682_driver;
-+	new_client->flags = 0;
-+
-+	/* Just assume that anything at 0x6b is a ds1682 */
-+	strlcpy(new_client->name, "ds1682", I2C_NAME_SIZE);
-+	data->type = ds1682;
-+	mutex_init(&data->update_lock);
-+
-+	if ((err = i2c_attach_client(new_client)))
-+		goto exit_free;
-+
-+	/* populate sysfs filesystem */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
-+	device_create_file(&new_client->dev, &dev_attr_time_elapsed);
-+	device_create_file(&new_client->dev, &dev_attr_event_counter);
-+#ifdef CONFIG_SENSORS_DS1682_RESET
-+	device_create_file(&new_client->dev, &dev_attr_reset);
-+#endif
-+	device_create_file(&new_client->dev, &dev_attr_user_eeprom);
-+	device_create_file(&new_client->dev, &dev_attr_config);
-+
-+	return 0;
-+
-+exit_detach:
-+	i2c_detach_client(new_client);
-+exit_free:
-+	kfree(data);
-+exit:
-+	return err;
-+}
-+
-+static struct ds1682_data *ds1682_update_device(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct ds1682_data *data = i2c_get_clientdata(client);
-+	int i;
++	struct w83627ehf_data *data = i2c_get_clientdata(client);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	u32 val = SENSORS_LIMIT(simple_strtoul(buf, NULL, 10), 0, 255);
 +
 +	mutex_lock(&data->update_lock);
-+
-+	/* Don't let stuff poll faster than the clock tick */
-+	if (time_after(jiffies, data->last_updated_measure + 3*HZ/4) || !data->valid) {
-+		/* Read the Elapsed Time Counter */
-+		for (i = 0; i < 4; i++)
-+			data->etc.etc_byte[i] +				i2c_smbus_read_byte_data(client, ETC_REG+i);
-+		data->etc.etc_int = swab32(data->etc.etc_int);
-+
-+		data->config = i2c_smbus_read_byte_data(client, CONFIG_REG);
-+
-+		/*
-+		 * The MSB of the Event Counter is stored in the
-+		 * config register
-+		 */
-+		if (data->config & 1)
-+			data->event_ctr = 1<<16;
-+		data->event_ctr |= i2c_smbus_read_word_data(client, EVENT_CTR_REG);
-+	}
++	data->pwm[nr] = val;
++	w83627ehf_write_value(client, W83627EHF_REG_PWM[nr], val);
 +	mutex_unlock(&data->update_lock);
-+	return data;
++	return count;
 +}
 +
-+static int ds1682_attach_adapter(struct i2c_adapter *adapter)
++static ssize_t
++store_pwm_enable(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
 +{
-+	if (!(adapter->class & I2C_CLASS_HWMON))
-+		return 0;
-+	return i2c_probe(adapter, &addr_data, ds1682_detect);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct w83627ehf_data *data = i2c_get_clientdata(client);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	u32 val = simple_strtoul(buf, NULL, 10);
++	u16 reg;
++
++	if (!val || (val > 2))	/* only modes 1 and 2 are supported */
++		return -EINVAL;
++	mutex_lock(&data->update_lock);
++	reg = w83627ehf_read_value(client, W83627EHF_REG_PWM_ENABLE[nr]);
++	data->pwm_enable[nr] = val;
++	reg &= ~(0x03 << W83627EHF_PWM_ENABLE_SHIFT[nr]);
++	reg |= (val - 1) << W83627EHF_PWM_ENABLE_SHIFT[nr];
++	w83627ehf_write_value(client, W83627EHF_REG_PWM_ENABLE[nr], reg);
++	mutex_unlock(&data->update_lock);
++	return count;
 +}
 +
-+static int ds1682_detach_client(struct i2c_client *client)
++
++#define show_tol_temp(reg) \
++static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
++				char *buf) \
++{ \
++	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	return sprintf(buf, "%d\n", temp1_from_reg(data->reg[nr])); \
++}
++
++show_tol_temp(tolerance)
++show_tol_temp(target_temp)
++
++static ssize_t
++store_target_temp(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
 +{
-+	struct ds1682_data *data = i2c_get_clientdata(client);
-+	int err;
++	struct i2c_client *client = to_i2c_client(dev);
++	struct w83627ehf_data *data = i2c_get_clientdata(client);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	u8 val = temp1_to_reg(simple_strtoul(buf, NULL, 10), 0, 127000);
 +
-+	hwmon_device_unregister(data->class_dev);
-+
-+	if ((err = i2c_detach_client(client)))
-+		return err;
-+
-+	kfree(data);
-+	return 0;
++	mutex_lock(&data->update_lock);
++	data->target_temp[nr] = val;
++	w83627ehf_write_value(client, W83627EHF_REG_TARGET[nr], val);
++	mutex_unlock(&data->update_lock);
++	return count;
 +}
 +
-+static int __init sensors_ds1682_init(void)
++static ssize_t
++store_tolerance(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
 +{
-+	return i2c_add_driver(&ds1682_driver);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct w83627ehf_data *data = i2c_get_clientdata(client);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	u16 reg;
++	/* Limit the temp to 0C - 15C */
++	u8 val = temp1_to_reg(simple_strtoul(buf, NULL, 10), 0, 15000);
++
++	mutex_lock(&data->update_lock);
++	reg = w83627ehf_read_value(client, W83627EHF_REG_TOLERANCE[nr]);
++	data->tolerance[nr] = val;
++	if (nr = 1)
++		reg = (reg & 0x0f) | (val << 4);
++	else
++		reg = (reg & 0xf0) | val;
++	w83627ehf_write_value(client, W83627EHF_REG_TOLERANCE[nr], reg);
++	mutex_unlock(&data->update_lock);
++	return count;
 +}
 +
-+static void __exit sensors_ds1682_exit(void)
++static struct sensor_device_attribute sda_pwm[] = {
++	SENSOR_ATTR(pwm1, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 0),
++	SENSOR_ATTR(pwm2, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 1),
++	SENSOR_ATTR(pwm3, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 2),
++	SENSOR_ATTR(pwm4, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 3),
++};
++
++static struct sensor_device_attribute sda_pwm_mode[] = {
++	SENSOR_ATTR(pwm1_mode, S_IWUSR | S_IRUGO, show_pwm_mode,
++		    store_pwm_mode, 0),
++	SENSOR_ATTR(pwm2_mode, S_IWUSR | S_IRUGO, show_pwm_mode,
++		    store_pwm_mode, 1),
++	SENSOR_ATTR(pwm3_mode, S_IWUSR | S_IRUGO, show_pwm_mode,
++		    store_pwm_mode, 2),
++	SENSOR_ATTR(pwm4_mode, S_IWUSR | S_IRUGO, show_pwm_mode,
++		    store_pwm_mode, 3),
++};
++
++static struct sensor_device_attribute sda_pwm_enable[] = {
++	SENSOR_ATTR(pwm1_enable, S_IWUSR | S_IRUGO, show_pwm_enable,
++		    store_pwm_enable, 0),
++	SENSOR_ATTR(pwm2_enable, S_IWUSR | S_IRUGO, show_pwm_enable,
++		    store_pwm_enable, 1),
++	SENSOR_ATTR(pwm3_enable, S_IWUSR | S_IRUGO, show_pwm_enable,
++		    store_pwm_enable, 2),
++	SENSOR_ATTR(pwm4_enable, S_IWUSR | S_IRUGO, show_pwm_enable,
++		    store_pwm_enable, 3),
++};
++
++static struct sensor_device_attribute sda_target_temp[] = {
++	SENSOR_ATTR(pwm1_target, S_IWUSR | S_IRUGO, show_target_temp,
++		    store_target_temp, 0),
++	SENSOR_ATTR(pwm2_target, S_IWUSR | S_IRUGO, show_target_temp,
++		    store_target_temp, 1),
++	SENSOR_ATTR(pwm3_target, S_IWUSR | S_IRUGO, show_target_temp,
++		    store_target_temp, 2),
++	SENSOR_ATTR(pwm4_target, S_IWUSR | S_IRUGO, show_target_temp,
++		    store_target_temp, 3),
++};
++
++static struct sensor_device_attribute sda_tolerance[] = {
++	SENSOR_ATTR(pwm1_tolerance, S_IWUSR | S_IRUGO, show_tolerance,
++		    store_tolerance, 0),
++	SENSOR_ATTR(pwm2_tolerance, S_IWUSR | S_IRUGO, show_tolerance,
++		    store_tolerance, 1),
++	SENSOR_ATTR(pwm3_tolerance, S_IWUSR | S_IRUGO, show_tolerance,
++		    store_tolerance, 2),
++	SENSOR_ATTR(pwm4_tolerance, S_IWUSR | S_IRUGO, show_tolerance,
++		    store_tolerance, 3),
++};
++
++static void device_create_file_pwm(struct device *dev, int i)
 +{
-+	i2c_del_driver(&ds1682_driver);
++	device_create_file(dev, &sda_pwm[i].dev_attr);
++	device_create_file(dev, &sda_pwm_mode[i].dev_attr);
++	device_create_file(dev, &sda_pwm_enable[i].dev_attr);
++	device_create_file(dev, &sda_target_temp[i].dev_attr);
++	device_create_file(dev, &sda_tolerance[i].dev_attr);
 +}
 +
-+MODULE_AUTHOR("Martin Hicks <mort at bork.org>");
-+MODULE_DESCRIPTION("DS1682 driver");
-+MODULE_LICENSE("GPL");
++/* Smart Fan registers */
 +
-+module_init(sensors_ds1682_init);
-+module_exit(sensors_ds1682_exit);
-diff --git a/include/linux/i2c-id.h b/include/linux/i2c-id.h
-index 21338bb..c4cf3c6 100644
---- a/include/linux/i2c-id.h
-+++ b/include/linux/i2c-id.h
-@@ -158,6 +158,7 @@ #define I2C_DRIVERID_LM90 1042
- #define I2C_DRIVERID_ASB100 1043
- #define I2C_DRIVERID_FSCHER 1046
- #define I2C_DRIVERID_W83L785TS 1047
-+#define I2C_DRIVERID_DS1682 1049
- 
++#define fan_functions(reg, REG) \
++static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
++		       char *buf) \
++{ \
++	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	return sprintf(buf, "%d\n", data->reg[nr]); \
++}\
++static ssize_t \
++store_##reg(struct device *dev, struct device_attribute *attr, \
++			    const char *buf, size_t count) \
++{\
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct w83627ehf_data *data = i2c_get_clientdata(client); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	u32 val = SENSORS_LIMIT(simple_strtoul(buf, NULL, 10), 1, 255); \
++	mutex_lock(&data->update_lock); \
++	data->reg[nr] = val; \
++	w83627ehf_write_value(client, W83627EHF_REG_##REG[nr],  val); \
++	mutex_unlock(&data->update_lock); \
++	return count; \
++}
++
++fan_functions(fan_min_output, FAN_MIN_OUTPUT)
++
++#define fan_time_functions(reg, REG) \
++static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
++				char *buf) \
++{ \
++	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	return sprintf(buf, "%d\n", \
++			step_time_from_reg(data->reg[nr], data->pwm_mode[nr])); \
++} \
++\
++static ssize_t \
++store_##reg(struct device *dev, struct device_attribute *attr, \
++			const char *buf, size_t count) \
++{ \
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct w83627ehf_data *data = i2c_get_clientdata(client); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	u8 val = step_time_to_reg(simple_strtoul(buf, NULL, 10), \
++					data->pwm_mode[nr]); \
++	mutex_lock(&data->update_lock); \
++	data->reg[nr] = val; \
++	w83627ehf_write_value(client, W83627EHF_REG_##REG[nr], val); \
++	mutex_unlock(&data->update_lock); \
++	return count; \
++} \
++
++fan_time_functions(fan_stop_time, FAN_STOP_TIME)
++
++
++static struct sensor_device_attribute sda_sf3_arrays_fan4[] = {
++	SENSOR_ATTR(pwm4_stop_time, S_IWUSR | S_IRUGO, show_fan_stop_time,
++		    store_fan_stop_time, 3),
++	SENSOR_ATTR(pwm4_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
++		    store_fan_min_output, 3),
++};
++
++static struct sensor_device_attribute sda_sf3_arrays[] = {
++	SENSOR_ATTR(pwm1_stop_time, S_IWUSR | S_IRUGO, show_fan_stop_time,
++		    store_fan_stop_time, 0),
++	SENSOR_ATTR(pwm2_stop_time, S_IWUSR | S_IRUGO, show_fan_stop_time,
++		    store_fan_stop_time, 1),
++	SENSOR_ATTR(pwm3_stop_time, S_IWUSR | S_IRUGO, show_fan_stop_time,
++		    store_fan_stop_time, 2),
++	SENSOR_ATTR(pwm1_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
++		    store_fan_min_output, 0),
++	SENSOR_ATTR(pwm2_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
++		    store_fan_min_output, 1),
++	SENSOR_ATTR(pwm3_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
++		    store_fan_min_output, 2),
++};
++
  /*
-  * ---- Adapter types ----------------------------------------------------
--- 
-1.3.2
+  * Driver and client management
+  */
+@@ -810,6 +1160,7 @@
+ 	struct i2c_client *client;
+ 	struct w83627ehf_data *data;
+ 	struct device *dev;
++	u8 fan4pin, fan5pin;
+ 	int i, err = 0;
+ 
+ 	if (!request_region(address + REGION_OFFSET, REGION_LENGTH,
+@@ -848,13 +1199,21 @@
+ 		data->fan_min[i] = w83627ehf_read_value(client,
+ 				   W83627EHF_REG_FAN_MIN[i]);
+ 
++	/* fan4 and fan5 share some pins with the GPIO and serial flash */
++
++	superio_enter();
++	fan5pin = superio_inb(0x24) & 0x2;
++	fan4pin = superio_inb(0x29) & 0x6;
++	superio_exit();
++
+ 	/* It looks like fan4 and fan5 pins can be alternatively used
+ 	   as fan on/off switches */
++
+ 	data->has_fan = 0x07; /* fan1, fan2 and fan3 */
+ 	i = w83627ehf_read_value(client, W83627EHF_REG_FANDIV1);
+-	if (i & (1 << 2))
++	if ((i & (1 << 2)) && (!fan4pin))
+ 		data->has_fan |= (1 << 3);
+-	if (i & (1 << 0))
++	if ((i & (1 << 0)) && (!fan5pin))
+ 		data->has_fan |= (1 << 4);
+ 
+ 	/* Register sysfs hooks */
+@@ -864,13 +1223,25 @@
+ 		goto exit_detach;
+ 	}
+ 
++  	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++)
++  		device_create_file(dev, &sda_sf3_arrays[i].dev_attr);
++
++	/* if fan4 is enabled create the sf3 files for it */
++	if (data->has_fan & (1 << 3))
++		for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++)
++			device_create_file(dev, &sda_sf3_arrays_fan4[i].dev_attr);
++
+ 	for (i = 0; i < 10; i++)
+ 		device_create_file_in(dev, i);
+ 
+ 	for (i = 0; i < 5; i++) {
+-		if (data->has_fan & (1 << i))
++		if (data->has_fan & (1 << i)) {
+ 			device_create_file_fan(dev, i);
++			if (i != 4) /* we have only 4 pwm */
++				device_create_file_pwm(dev, i);
++		}
+ 	}
++
+ 	for (i = 0; i < ARRAY_SIZE(sda_temp); i++)
+ 		device_create_file(dev, &sda_temp[i].dev_attr);
+ 
 
-
 -- 
-Martin Hicks || mort at bork.org || PGP/GnuPG: 0x4C7F2BEE
+Jean Delvare
 
