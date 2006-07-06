@@ -1,7 +1,7 @@
-From: mikpolniak@adelphia.net (mikepolniak)
-Date: Thu, 06 Jul 2006 18:26:52 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 06 Jul 2006 19:17:54 +0000
 Subject: [lm-sensors] it87 driver supports ITE8716 chip on new AM2 boards
-Message-Id: <20060706182652.GB21112@debamd64>
+Message-Id: <44AD61E2.2010307@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060705202045.GA15892@debamd64>
 In-Reply-To: <20060705202045.GA15892@debamd64>
@@ -10,16 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 17:17 Thu 06 Jul     , Rudolf Marek wrote:
-> Hello Mike,
-> 
-> Thanks for quick reply. Please can you send me your (modified driver) so I know
-> what has been changed?
-> 
-> #define IT8712F_DEVID 0x8712
-> 
-> I guess you had changed this line to make it work.
-> 
-> Regards
-> Rudolf
+Hello again,
+
+> Probing for 	TE IT8712F'
+>   Trying address 0x0290... Failed!
+> Probing for 	TE IT8716F'
+>   Trying address 0x0290... Failed!
+
+Please can you send me output of:
+isadump 0x295 0x296
+
+Thanks,
+Regards
+Rudolf
 
