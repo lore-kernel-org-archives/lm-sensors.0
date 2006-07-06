@@ -1,31 +1,43 @@
-From: pavel@suse.cz (Pavel Machek)
-Date: Thu, 06 Jul 2006 01:12:22 +0000
+From: vojtech@suse.cz (Vojtech Pavlik)
+Date: Thu, 06 Jul 2006 06:19:30 +0000
 Subject: [lm-sensors] Generic interface for accelerometers (AMS, HDAPS,
-Message-Id: <20060706011222.GA5303@elf.ucw.cz>
+Message-Id: <20060706061930.GA6033@suse.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060703124823.GA18821@khazad-dum.debian.net> <20060704075950.GA13073@elf.ucw.cz> <20060704162346.GE9447@khazad-dum.debian.net> <20060704235717.GD11872@elf.ucw.cz> <20060705073455.GA6027@suse.cz> <20060705135816.GA8452@khazad-dum.debian.net>
-In-Reply-To: <20060705135816.GA8452@khazad-dum.debian.net>
+References: <fa.GOQkHC8inXir2wbg4bZayOWXzAY@ifi.uio.no> <fa.qLWuLxQd7Mhcnixy/TLVs/nPwig@ifi.uio.no> <44AC5261.9050708@shaw.ca>
+In-Reply-To: <44AC5261.9050708@shaw.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Henrique de Moraes Holschuh <hmh@debian.org>
-Cc: Vojtech Pavlik <vojtech@suse.cz>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, hdaps-devel@lists.sourceforge.net, Stelian Pop <stelian@popies.net>, Michael Hanselmann <linux-kernel@hansmi.ch>
+To: Robert Hancock <hancockr@shaw.ca>
+Cc: Henrique de Moraes Holschuh <hmh@debian.org>, Pavel Machek <pavel@suse.cz>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, hdaps-devel@lists.sourceforge.net, Stelian Pop <stelian@popies.net>, Michael Hanselmann <linux-kernel@hansmi.ch>
 
-Hi!
+On Wed, Jul 05, 2006 at 05:59:29PM -0600, Robert Hancock wrote:
+> Henrique de Moraes Holschuh wrote:
+> >HDAPS talks to the embedded controller using IO over the LPC bus, and not 
+> >to
+> >the accelerometer chip or to a simple A/D i2c chip which is used excusively
+> >for accelerometer access.  The EC interface for HDAPS data retrieval is
+> >not friendly to any errors, and hardlocks the machine somehow if any
+> >firmware bugs hit or if we violate any of the rules (that are not written
+> >anywhere) about how to access the EC without geting the SMBIOS unhappy.
+> >
+> >So, turning off HDAPS polling while it is not necessary really looks like a
+> >good idea overall.
+> >
+> >We are investigating the ACPI global lock as a way to at least get the
+> >SMBIOS to stay away from the EC while we talk to it, but we don't know if
+> >the entire SMBIOS firmware respects that lock.
+> 
+> It had better, that is exactly what the ACPI Global Lock is supposed to 
+> prevent (concurrent access to non-sharable resources between the OS and 
+> SMI code). The ACPI DSDT contains information on whether or not the 
+> machine requires the Global Lock in order to access the EC or whether it 
+> is safe to access without locking.
+ 
+Isn't that vaild only if you actully use ACPI to access the EC? (AFAIK
+the HDAPS driver does direct port access.)
 
-> > > > I don't know about AMS, but talking to HDAPS when
-> > > > you don't need to does waste enough system resources and power to actually
-> > > > justify implementing this.
-> > 
-> > I'd doubt any of the accelerometer implementations would consume much
-> > power or CPU.
-
-Actually polling at 100Hz probably _is_ going to be measurable on
-modern CPUs -- because it means that CPU has to exit C4. It will not
-be too bad, hopefully.
-
-								Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Vojtech Pavlik
+Director SuSE Labs
 
