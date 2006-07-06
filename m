@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 06 Jul 2006 19:17:54 +0000
+From: mikpolniak@adelphia.net (mikepolniak)
+Date: Thu, 06 Jul 2006 19:28:37 +0000
 Subject: [lm-sensors] it87 driver supports ITE8716 chip on new AM2 boards
-Message-Id: <44AD61E2.2010307@sh.cvut.cz>
+Message-Id: <20060706192837.GB27199@debamd64>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060705202045.GA15892@debamd64>
 In-Reply-To: <20060705202045.GA15892@debamd64>
@@ -10,17 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello again,
-
-> Probing for 	TE IT8712F'
->   Trying address 0x0290... Failed!
-> Probing for 	TE IT8716F'
->   Trying address 0x0290... Failed!
-
-Please can you send me output of:
-isadump 0x295 0x296
-
-Thanks,
-Regards
-Rudolf
+On 21:17 Thu 06 Jul     , Rudolf Marek wrote:
+> Hello again,
+> 
+> > Probing for 	TE IT8712F'
+> >   Trying address 0x0290... Failed!
+> > Probing for 	TE IT8716F'
+> >   Trying address 0x0290... Failed!
+> 
+> Please can you send me output of:
+> isadump 0x295 0x296
+> 
+15:27 >>isadump 0x295 0x296
+WARNING! Running this program can cause system crashes, data loss and
+worse!
+I will probe address register 0x295 and data register 0x296.
+Continue? [Y/n] 
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: 11 10 00 00 37 ff 00 37 ff 87 00 09 07 89 ff 00 
+10: ff ff ff 33 d7 82 80 c2 02 ff 00 ff ff ff ff ff 
+20: 46 77 d0 b9 bc c8 2c ba c2 29 24 15 8c 05 05 05 
+30: ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 
+40: 7f 7f 7f 7f 46 7f 00 0d 2d ff ff ff ff ff ff ff 
+50: ff 1c 7f 7f 7f 50 e4 e4 90 e4 03 12 04 00 00 00 
+60: ff 14 00 27 90 03 ff ff ff 14 00 20 90 03 ff ff 
+70: ff 14 00 20 90 03 ff ff ff ff ff ff ff ff ff ff 
+80: 00 00 00 00 ff ff ff ff 00 00 ff ca 02 00 99 99 
+90: 7f 7f 7f 00 00 7f ff ff 7f 7f 7f 00 00 7f ff ff 
+a0: 00 00 00 00 00 00 00 ff ff ff ff ff ff ff ff ff 
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
 
