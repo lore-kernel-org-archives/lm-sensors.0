@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 06 Jul 2006 18:04:45 +0000
+From: albertvd@gmail.com (Albert)
+Date: Thu, 06 Jul 2006 18:10:01 +0000
 Subject: [lm-sensors] Winbond W83627HF - deactivated
-Message-Id: <44AD50BD.5080803@sh.cvut.cz>
+Message-Id: <66e9a78f0607061110o3ae4a911qa9edd5ce5f800263@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44AD4B8C.1010002@sh.cvut.cz>
 In-Reply-To: <44AD4B8C.1010002@sh.cvut.cz>
@@ -10,59 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Albert wrote:
-> Hi Rudolf
-> On 06/07/06, Rudolf Marek <r.marek at sh.cvut.cz> wrote:
->> Maybe they just forgotten it to activate ....
->>
->> Enter configuration mode
->>
->> isaset -y -f 0x2e 0x87
-> Data mismatch, wrote 0x87, read 0xff back.
-> 
->> isaset -y -f 0x2e 0x87
-> Data mismatch, wrote 0x87, read 0xff back.
-> 
->> select logical device 0xb - hw monitor
->> isaset -y 0x2e 0x2f 0x07 0xb
-> No issue here
-> 
->> select base addr: (assuming 0x290 is safe, check /proc/ioports and see if the
->> 0x290 - 0x29F is empty)
-> The address ranges are open
-> 
->> isaset -y 0x2e 0x2f 0x61 0x90
->> isaset -y 0x2e 0x2f 0x60 0x2
-> no issue here
-> 
->> activate it:
->> isaset -y 0x2e 0x2f 0x30 0x1
-> no issue here
-> 
->> Leave configuration mode
->> isaset -y -f 0x2e 0xaa
-> Data mismatch, wrote 0xaa, read 0xff back.
-> 
-> Seems to me that it is not there at all.
+On 06/07/06, Rudolf Marek <r.marek at sh.cvut.cz> wrote:
+> Albert wrote:
+> > Hi Rudolf
+> > On 06/07/06, Rudolf Marek <r.marek at sh.cvut.cz> wrote:
+> This errors are normal. Ignore them.
 
-This errors are normal. Ignore them.
+It seems that I was too hasty in replying. I ran sensors-detect again
+and it did detect the chip.
 
-> I'm sending an email to Ampro to find out what is going on here. I'll
-> let you know as soon as I have more info from them.
+# sensors
+w83627hf-isa-0290
+Adapter: ISA adapter
+VCore 1:   +0.90 V  (min =  +0.00 V, max =  +0.00 V)       ALARM
+VCore 2:   +1.52 V  (min =  +0.00 V, max =  +0.00 V)       ALARM
++3.3V:     +3.30 V  (min =  +3.14 V, max =  +3.47 V)
++5V:       +4.95 V  (min =  +4.76 V, max =  +5.24 V)
++12V:     +11.92 V  (min = +10.82 V, max = +13.19 V)       ALARM
+-12V:      -2.16 V  (min = -13.18 V, max = -10.80 V)
+-5V:       -3.49 V  (min =  -5.25 V, max =  -4.75 V)       ALARM
+V5SB:      +5.03 V  (min =  +4.76 V, max =  +5.24 V)       ALARM
+VBat:      +2.05 V  (min =  +2.40 V, max =  +3.60 V)
+fan1:        0 RPM  (min = 225000 RPM, div = 2)
+fan2:        0 RPM  (min = 7417 RPM, div = 2)
+fan3:        0 RPM  (min = 675000 RPM, div = 2)
+temp1:       +47??C  (high =   +73??C, hyst =   -28??C)   sensor = thermistor
+temp2:     +73.0??C  (high =   +80??C, hyst =   +75??C)   sensor = thermistor
+temp3:     -46.0??C  (high =   +80??C, hyst =   +75??C)   sensor = thermistor
+vid:      +0.000 V  (VRM Version 8.2)
+alarms:   Chassis intrusion detection                      ALARM
+beep_enable:
+          Sound alarm disabled
 
-Well this sequence just reprograms the chip. After that you should be able to
-modprobe the module, and sensors-detect should find it active.
+eeprom-i2c-0-50
+Adapter: SMBus I801 adapter at d800
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
 
-(unless I made some mistake)
+Now to set up the alarms...
 
-Can you re-run the sequence, and run this:
-isaset -y -f 0x2e 0x87
-isaset -y -f 0x2e 0x87
-isaset -y 0x2e 0x2f 0x07 0xb
-isadump -y 0x2e 0x2f
-isaset -y -f 0x2e 0xaa
+Thanks for your help. It is much appreciated.
 
-Thanks,
-Regards
-Rudolf
+Albert
 
