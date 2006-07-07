@@ -1,67 +1,23 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 12 Jul 2006 23:27:17 +0000
-Subject: [lm-sensors] [PATCH 5/13] [PATCH] i2c-powermac: Fix master_xfer
-Message-Id: <11527468582828-git-send-email-greg@kroah.com>
+From: aqua910@hotmail.com (Jon Graves)
+Date: Fri, 07 Jul 2006 07:14:20 +0000
+Subject: [lm-sensors] SMSC SCH5504-NS ?
+Message-Id: <BAY106-W2690AFF868DDF98F3C118F3740@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali at linux-fr.org>
+Does anyone have any information on this Super IO chip?  I'm guessing it's similar to the SCH5307-NS, which is supported in the smsc47b397 driver.  It reports a device id of 0x79 (SCH5307-NS is 0x81).
 
-Fix the value returned by the i2c-powermac's master_xfer method.
-It should return the number of messages processed successfully, but
-instead returns the number of data bytes in the first (and only)
-processed message.
+Dell uses it in recent versions of their Precision 380 workstations.
 
-Also explicitly mention the master_xfer convention so that future
-implementations get it right directly.
+Mailing SMSC for a datasheet resulted in a big fat zero.  If anyone can supply me with the datasheet or other information, I'll give adding support a shot.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Acked-by: Benjamin Herrenschmidt <benh at kernel.crashing.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
----
- drivers/i2c/busses/i2c-powermac.c |    4 +---
- include/linux/i2c.h               |    2 ++
- 2 files changed, 3 insertions(+), 3 deletions(-)
+Thanks,
 
-diff --git a/drivers/i2c/busses/i2c-powermac.c b/drivers/i2c/busses/i2c-powermac.c
-index 2a0b3be..53bb435 100644
---- a/drivers/i2c/busses/i2c-powermac.c
-+++ b/drivers/i2c/busses/i2c-powermac.c
-@@ -148,8 +148,6 @@ static int i2c_powermac_master_xfer(	str
- 	int			read;
- 	int			addrdir;
+Jon
  
--	if (num != 1)
--		return -EINVAL;
- 	if (msgs->flags & I2C_M_TEN)
- 		return -EINVAL;
- 	read = (msgs->flags & I2C_M_RD) != 0;
-@@ -166,7 +164,7 @@ static int i2c_powermac_master_xfer(	str
- 	rc = pmac_i2c_xfer(bus, addrdir, 0, 0, msgs->buf, msgs->len);
-  bail:
- 	pmac_i2c_close(bus);
--	return rc < 0 ? rc : msgs->len;
-+	return rc < 0 ? rc : 1;
- }
- 
- static u32 i2c_powermac_func(struct i2c_adapter * adapter)
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index 526ddc8..eb0628a 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -193,6 +193,8 @@ struct i2c_algorithm {
- 	   to NULL. If an adapter algorithm can do SMBus access, set 
- 	   smbus_xfer. If set to NULL, the SMBus protocol is simulated
- 	   using common I2C messages */
-+	/* master_xfer should return the number of messages successfully
-+	   processed, or a negative value on error */
- 	int (*master_xfer)(struct i2c_adapter *adap,struct i2c_msg *msgs, 
- 	                   int num);
- 	int (*smbus_xfer) (struct i2c_adapter *adap, u16 addr, 
--- 
-1.4.1
-
-
+_________________________________________________________________
+Express yourself: design your homepage the way you want it with Live.com. 
+http://www.live.com/getstarted
