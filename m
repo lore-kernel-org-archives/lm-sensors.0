@@ -1,40 +1,44 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 26 Jul 2006 20:01:21 +0000
-Subject: [lm-sensors] [GIT PATCH] I2C and hwmon fixes for 2.6.18-rc1
-Message-Id: <20060726220121.89fda898.khali@linux-fr.org>
+From: Hubert.Li@Resilience.com (Hubert Li)
+Date: Fri, 07 Jul 2006 07:47:07 +0000
+Subject: [lm-sensors] Unresolved symbols in i2c-ipmi
+Message-Id: <1152258427.2658.21.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060712232359.GA22679@kroah.com>
-	<20060724212146.498d184b.khali@linux-fr.org>
-	<20060724193808.GA9244@suse.de>
-In-Reply-To: <20060724193808.GA9244@suse.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <gregkh@suse.de>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi Greg,
+Hi,
 
-> On Mon, Jul 24, 2006 at 09:21:46PM +0200, Jean Delvare wrote:
-> > > Here are some i2c and hwmon fixes for 2.6.18-rc1.  They fix quite a few
-> > > bugs and update the documentation.
-> > > (...)
-> > > The full patch series will sent to the sensors mailing list, if anyone
-> > > wants to see them.
-> > 
-> > Which is quite unfortunate because we now have a new mailing list
-> > dedicated to i2c [1], where the i2c patches would fit better. Is it
-> > possible to send the i2c patches to the i2c list next time? And the
-> > hwmon patches to the sensors list as before.
-> 
-> I can do that if you want me to split up the hwmon and i2c patches into
-> two different set of patches for Linus to pull from.  If you think it's
-> worth it, I will.
+When I do `depmod -a` after i2c and lm_sensors are installed, I got
+error like this:
 
-Yes, please. Else people will never get that i2c and hwmon are
-different things (although they intersect.)
+Unresolved symbols
+in /lib/modules/2.4.21-40.EL.rftsmp/kernel/drivers/i2c/busses/i2c-ipmi.o
 
-Thanks,
--- 
-Jean Delvare
+Then I run `depmod -a -e` to find detail information:
+# depmod -a -e
+depmod: *** Unresolved symbols
+in /lib/modules/2.4.21-40.EL.rftsmp/kernel/drivers/i2c/busses/i2c-ipmi.o
+depmod:         ipmi_smi_watcher_unregister_Rsmp_87e068b3
+depmod:         ipmi_request_Rsmp_5ed81731
+depmod:         ipmi_get_version_Rsmp_8bb4af12
+depmod:         ipmi_create_user_Rsmp_e10206b5
+depmod:         ipmi_smi_watcher_register_Rsmp_18f0b1ff
+depmod:         ipmi_destroy_user_Rsmp_74848fb7
+
+I use i2c-2.10.0 and lm_sensors-2.10.0 tarball to build on Red Hat
+Enterprise Linux AS release 3(kernel version: 2.4.21-27). In order to
+run it on Red Hat Enterprise Linux AS release 3(kernel version:
+2.4.21-40), I set parameter `LINUX` of Makefile to 2.4.21-40 source
+directory. Attached please find the diff files of i2c and lm_sensors'
+spec files for fit my environment. The RFT_KERNEL in these two spec
+files are refer to the 2.4.21-40 source.
+
+Could you please help with the problem? Thank you.
+
+Br,
+Hubert
+
+
 
