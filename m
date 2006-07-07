@@ -1,59 +1,34 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 12 Jul 2006 23:27:15 +0000
-Subject: [lm-sensors] [PATCH 3/13] [PATCH] scx200_acb: Fix the state machine
-Message-Id: <1152746852668-git-send-email-greg@kroah.com>
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Fri, 07 Jul 2006 13:23:35 +0000
+Subject: [lm-sensors] [OT]Patch: libsensors support for gkrellm
+Message-Id: <44AE6057.30309@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Thomas Andrews <tandrews at grok.co.za>
+Hi all,
 
-Fix the scx200_acb state machine:
+Sort of offtopic, but I know some people here are interested in this.
+Here is the promised patch for libsensors support. Notice that I didn't
+add any support for this to the Makefile. Here is how I compiled to test
+the patch, you will need todo something similar to get gkrellm compiled
+with libsensors support:
+make CFLAGS="-O2 -Wall -DHAVE_LIBSENSORS" INSTALLROOT=/usr \
+SYS_LIBS=-lsensors
 
-* Nack was sent one byte too late on reads >= 2 bytes.
-* Stop bit was set one byte too late on reads.
+This patch has also been send to gkrellm upstream and is likely to get
+merged there.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
----
- drivers/i2c/busses/scx200_acb.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+Regards,
 
-diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
-index 22a3eda..454086a 100644
---- a/drivers/i2c/busses/scx200_acb.c
-+++ b/drivers/i2c/busses/scx200_acb.c
-@@ -184,21 +184,21 @@ static void scx200_acb_machine(struct sc
- 		break;
- 
- 	case state_read:
--		/* Set ACK if receiving the last byte */
--		if (iface->len = 1)
-+		/* Set ACK if _next_ byte will be the last one */
-+		if (iface->len = 2)
- 			outb(inb(ACBCTL1) | ACBCTL1_ACK, ACBCTL1);
- 		else
- 			outb(inb(ACBCTL1) & ~ACBCTL1_ACK, ACBCTL1);
- 
--		*iface->ptr++ = inb(ACBSDA);
--		--iface->len;
--
--		if (iface->len = 0) {
-+		if (iface->len = 1) {
- 			iface->result = 0;
- 			iface->state = state_idle;
- 			outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
- 		}
- 
-+		*iface->ptr++ = inb(ACBSDA);
-+		--iface->len;
-+
- 		break;
- 
- 	case state_write:
--- 
-1.4.1
+Hans
 
-
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: gkrellm-2.2.9-libsensors.patch
+Type: text/x-patch
+Size: 8783 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060707/e1af6cf0/attachment.bin 
