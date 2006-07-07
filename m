@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 06 Jul 2006 14:08:13 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Fri, 07 Jul 2006 15:59:45 +0000
 Subject: [lm-sensors] AMD K8 digital temperature sensor
-Message-Id: <44AD194D.8050303@sh.cvut.cz>
+Message-Id: <4dfa50520607070859u5f0593d2n386439d4a9405561@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44A9941C.4020106@sh.cvut.cz>
 In-Reply-To: <44A9941C.4020106@sh.cvut.cz>
@@ -10,33 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Hi Rudolf,
 
-I have updated the archive at http://assembler.cz/download/amd_digital_temp.tar.gz
-
-So it supports the userspace too ;)
-
-There was a little problem with PCI support to libsensors but it seems I solved
-it somehow. I'm attaching the patch here too.
-
-It adds new bus of type PCI and does not change the "address" which is scalar.
-Instead it "concatenates" the PCI addr together.
-
-0000:00:18.3 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron]
-Miscellaneous Control
-
-k8temp-pci-0183
-Adapter: PCI adapter
-Core0Temp:   +47?C
-
-Regards
-Rudolf
+> After new specs was released. I discovered that even older AMD K8 have digital
+> temperature sensor.
+>
+> http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
+> (page 177)
+>
+> I created a device driver for that
+> http://assembler.cz/download/amd_digital_temp.tar.gz
+>
+> You need to have AMD K8, up to four different temps can be monitored
+> two in one core...
+>
+> The driver will create new hwmon device. No userspace support yet.
+> If someone with dual core would test it - I'm interested in results.
+> cat /sys/class/hwmon/hwmon1/device/temp*
+> ls /sys/class/hwmon/hwmon1/device/temp*
+> cat /proc/cpuinfo
 
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: add_pci_and_k8temp.patch
-Type: text/x-patch
-Size: 8333 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060706/cec73032/attachment-0001.bin 
+I'll attempt to apply this to my kernel tonight. I have an Athlon 64
+X2, so I can give you dual-core results. The temperatures reported by
+the W83627EHF have puzzled me, because I thought I was getting two
+readings from the CPU. Why is that?
+
+>
+> (replace 1 with correct number please)
+>
+> "Many thanks" goes to Jean, helping me a lot hunting nasty bugs ;)
+
+David
+
