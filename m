@@ -1,7 +1,7 @@
-From: s.cormier@gmx.net (Stephen Cormier)
-Date: Thu, 06 Jul 2006 01:24:24 +0000
+From: devsku@gmail.com (Sunil Kumar)
+Date: Sat, 08 Jul 2006 23:03:58 +0000
 Subject: [lm-sensors] new abituguru driver in mm kernel
-Message-Id: <200607052224.35180.s.cormier@gmx.net>
+Message-Id: <ce9ef0d90607081604p728de7beq360d5ffd2bc354c5@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <ce9ef0d90607041146t6837a584x68d1ab7e528139ea@mail.gmail.com>
 In-Reply-To: <ce9ef0d90607041146t6837a584x68d1ab7e528139ea@mail.gmail.com>
@@ -10,23 +10,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wednesday 05 July 2006 22:09, Sunil Kumar wrote:
-> great!! it works like a charm. Thanks a lot. That saves me the headache of
-> having ksensors around...:-)
+Hi Hans,
+
+I am seeing these messages in the dmesg:
+
+abituguru: timeout exceeded waiting for ready state
+abituguru: timeout exceeded waiting for ready state
+abituguru: timeout exceeded waiting for read state (bank: 34, sensor: 15)
+abituguru: CMD reg does not hold 0xAC after ready command
+abituguru: timeout exceeded waiting for read state (bank: 38, sensor: 2)
+abituguru: timeout exceeded waiting for ready state
+
+I am not sure if they are related to a freeze I saw today. My machine wasn't
+being used and when I came back, it was frozen. Can you please tell me what
+are those messages about?
+
+Thanks a lot,
+Sunil
+PS: This is with 1.1.8 with 2.6.17.3 kernel.
+
+
+On 7/4/06, Hans de Goede <j.w.r.degoede at hhs.nl> wrote:
 >
-> temps are reported as temp1, temp2, temp3 and fans as fan1, fan2 etc. I
-> think this will go away once gkrellm moves to libsensors.
-
-In the area where you check mark the sensor to be shown double click on the 
-label eg. temp1 then you will be able to put in the name you want displayed 
-in gkrellm, works great here as well. 
-
--- 
-GPG Pubic Key: http://users.eastlink.ca/~stephencormier/publickey.asc
+> Sunil Kumar wrote:
+> > I actually found that thread after posting here. I am devsk there. So,
+> > is there going to be standalone tar release of version 1.1.10? I have
+> > AN8-SLI and 1.1.8 is working fine with patch to lm_sensors-2.10.0
+> > package. I am also wondering if I really need to go to 1.1.10?
+> >
+>
+> I'm not planning on doing a stand alone release of 1.1.10 as you say
+> 1.1.8 works fine for you and so it does for most others. If the need
+> arises I may do a stand alone release. But the whole idea is to have
+> this driver in the kernel and for the kernel to be _the_ place where
+> development happens. So things are actually going as planned, with 1.1.8
+> being the last standalone release.
+>
+> Regards,
+>
+> Hans
+>
+>
+>
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors at lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>
 -------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060705/905a972a/attachment.bin 
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060708/6a661f2e/attachment.html 
