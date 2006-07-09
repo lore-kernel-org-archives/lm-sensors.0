@@ -1,24 +1,37 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 28 Jul 2006 13:37:27 +0000
-Subject: [lm-sensors] W83687THF datasheet
-Message-Id: <20060728153727.83ec057b.khali@linux-fr.org>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sun, 09 Jul 2006 20:20:47 +0000
+Subject: [lm-sensors] new account(s) - trac/wiki
+Message-Id: <44B1651F.4030007@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <0f1db2lm623ipv9bjnh68erku1sgmpu8ho@4ax.com>
-In-Reply-To: <0f1db2lm623ipv9bjnh68erku1sgmpu8ho@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > Please, could I get a copy of the datasheet?
-> 
-> Thank you for your work, i will send you a copy later, and without CC the list :)
+Hi all,
 
-By the way, this is probably the appropriate time to thank Yuan Mu,
-Dezheng Shen and other folks at Winbond once again for all the help
-they bring to the project. This is very much appreciated, don't stop! :)
+Anyone here interrested in Wiki/trac account?
 
-Thanks,
--- 
-Jean Delvare
+Btw I had to create the special account for the appending of trac ticket
+user:ticket
+password:needhelp
+
+As the temporary anti-spam workaround.
+
+Also we need to discuss the wiki editing policy, I think more people should be
+edit the Wiki. What others think? Some open account to edit certain pages?
+(except the download page for example), or something like bellow?
+
+Phil, Axel please is it possible to:
+1) remove those old imported tickets (close them)
+2) remove the spam?
+3) I think trac-10 should have some captcha or some account plugin.
+   Maybe we should move to this direction. Or is there a way how to write
+something to new ticket page about the "ticket" account?
+
+This email should be some starter of discussion.
+
+Many thanks,
+Regards
+Rudolf
 
