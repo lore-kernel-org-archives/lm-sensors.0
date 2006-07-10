@@ -1,46 +1,51 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 12 Jul 2006 23:27:18 +0000
-Subject: [lm-sensors] [PATCH 6/13] [PATCH] i2c-ite: Plan for removal
-Message-Id: <11527468621546-git-send-email-greg@kroah.com>
+From: mcbrides9@comcast.net (Jerry McBride)
+Date: Mon, 10 Jul 2006 12:19:09 +0000
+Subject: [lm-sensors] #2090: Request for support of winbon pc87591
+Message-Id: <200607100819.09698.mcbrides9@comcast.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali at linux-fr.org>
+On Sunday 09 July 2006 15:38, lm-sensors wrote:
+> #2090: Request for support of winbon pc87591 chipset
+> ----------------------------------+----------------------------------------
+>- Reporter:  mcbrides9 at comcast.net  |        Owner:  somebody
+>     Type:  enhancement            |       Status:  closed
+> Priority:  major                  |    Component:  hardware
+>  Version:                         |   Resolution:  wontfix
+> Keywords:                         |
+> ----------------------------------+----------------------------------------
+>- Changes (by ruik):
+>
+>   * status:  new => closed
+>   * resolution:  => wontfix
+>
+> Comment:
+>
+>  Hello,
+>
+>  Well bad news for you. We found out that we cannot support the chip. The
+>  sensors are connected to the embedded controller, but the interface to
+>  host CPU of sensors is not standtized - it depends of embedded cotroller
+>  programming.
+>
+>  I would suggest to use ACPI module called "thermal"
+>  modprobe thermal
+>  acpi -V
+>
+>  Those command should show you the CPU temp.
+>  I hope it helps,
+>
+>  Regards
+>  Rudolf
 
-Plan the i2c-ite and i2c-algo-ite drivers for removal.
-These drivers never compiled since they were added to the kernel
-tree 5 years ago. Also see:
-http://marc.theaimsgroup.com/?l=linux-mips&m5040510817448
+Yep. I dug around and pretty much found the same thing. I was hoping that 
+someone  on lm-sensors knew how to program the controller...
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
----
- Documentation/feature-removal-schedule.txt |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+Thank you, for your time
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index ee28798..ffa4d6c 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -255,3 +255,14 @@ Why:	The interrupt related SA_* flags ar
- Who:	Thomas Gleixner <tglx at linutronix.de>
- 
- ---------------------------
-+
-+What:	i2c-ite and i2c-algo-ite drivers
-+When:	September 2006
-+Why:	These drivers never compiled since they were added to the kernel
-+	tree 5 years ago. This feature removal can be reevaluated if
-+	someone shows interest in the drivers, fixes them and takes over
-+	maintenance.
-+	http://marc.theaimsgroup.com/?l=linux-mips&m5040510817448
-+Who:	Jean Delvare <khali at linux-fr.org>
-+
-+---------------------------
--- 
-1.4.1
+Jerry
 
 
