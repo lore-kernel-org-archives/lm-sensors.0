@@ -1,92 +1,122 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 12 Jul 2006 23:27:25 +0000
-Subject: [lm-sensors] [PATCH 13/13] [PATCH] hwmon: Documentation update for
-Message-Id: <11527468842439-git-send-email-greg@kroah.com>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Tue, 11 Jul 2006 18:57:23 +0000
+Subject: [lm-sensors] [ patch 18-rc1-mm1 01/01 ] hwmon/pc87360: check
+Message-Id: <44B3F493.9080405@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Hans de Goede <j.w.r.degoede at hhs.nl>
 
-Documentation update for the new bank1_types module param.
+patch corrects the unchecked-return-code warnings issued when
+compiling pc87360.c in 18-rc1-mm1.  It just counts the errors,
+warns how many occurred, and continues merrily (as before).
 
-Also add what we know about different revisions of the uGuru and
-a note that the abituguru driver unfortunatly does not work with the
-latest and greatest motherboards, which have what I think is revision
-4 of the uGuru.
+Signed-off-by   Jim Cromie  <jim.cromie at gmail.com>
 
-Signed-off-by: Hans de Goede <j.w.r.degoede at hhs.nl>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+$ diffstat hwmon-stuff/diff.sys-ret-not-void-1
+ pc87360.c |   62 +++++++++++++++++++++++++++++++++++++-------------------------
+ 1 files changed, 37 insertions(+), 25 deletions(-)
+
 ---
- Documentation/hwmon/abituguru |   32 ++++++++++++++++++++++++++++++--
- 1 files changed, 30 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/hwmon/abituguru b/Documentation/hwmon/abituguru
-index 69cdb52..b2c0d61 100644
---- a/Documentation/hwmon/abituguru
-+++ b/Documentation/hwmon/abituguru
-@@ -2,13 +2,36 @@ Kernel driver abituguru
- =========== 
- Supported chips:
--  * Abit uGuru (Hardware Monitor part only)
-+  * Abit uGuru revision 1-3 (Hardware Monitor part only)
-     Prefix: 'abituguru'
-     Addresses scanned: ISA 0x0E0
-     Datasheet: Not available, this driver is based on reverse engineering.
- 	A "Datasheet" has been written based on the reverse engineering it
- 	should be available in the same dir as this file under the name
- 	abituguru-datasheet.
-+    Note:
-+	The uGuru is a microcontroller with onboard firmware which programs
-+	it to behave as a hwmon IC. There are many different revisions of the
-+	firmware and thus effectivly many different revisions of the uGuru.
-+	Below is an incomplete list with which revisions are used for which
-+	Motherboards:
-+	uGuru 1.00    ~ 1.24    (AI7, KV8-MAX3, AN7) (1)
-+	uGuru 2.0.0.0 ~ 2.0.4.2 (KV8-PRO)
-+	uGuru 2.1.0.0 ~ 2.1.2.8 (AS8, AV8, AA8, AG8, AA8XE, AX8)
-+	uGuru 2.2.0.0 ~ 2.2.0.6 (AA8 Fatal1ty)
-+	uGuru 2.3.0.0 ~ 2.3.0.9 (AN8)
-+	uGuru 3.0.0.0 ~ 3.0.1.2 (AW8, AL8, NI8)
-+	uGuru 4.xxxxx?          (AT8 32X) (2)
-+	1) For revisions 2 and 3 uGuru's the driver can autodetect the
-+	   sensortype (Volt or Temp) for bank1 sensors, for revision 1 uGuru's
-+	   this doesnot always work. For these uGuru's the autodection can
-+	   be overriden with the bank1_types module param. For all 3 known
-+	   revison 1 motherboards the correct use of this param is:
-+	   bank1_types=1,1,0,0,0,0,0,2,0,0,0,0,2,0,0,1
-+	   You may also need to specify the fan_sensors option for these boards
-+	   fan_sensors=5
-+	2) The current version of the abituguru driver is known to NOT work
-+	   on these Motherboards
+diff -ruNp -X dontdiff -X exclude-diffs ../linux-2.6.18-rc1-mm1-sk/drivers/hwmon/pc87360.c sys-ret-not-void/drivers/hwmon/pc87360.c
+--- ../linux-2.6.18-rc1-mm1-sk/drivers/hwmon/pc87360.c	2006-06-17 19:49:35.000000000 -0600
++++ sys-ret-not-void/drivers/hwmon/pc87360.c	2006-07-11 11:51:30.000000000 -0600
+@@ -829,6 +829,15 @@ static int __init pc87360_find(int sioad
+ 	return 0;
+ }
  
- Authors:
- 	Hans de Goede <j.w.r.degoede at hhs.nl>,
-@@ -22,6 +45,11 @@ Module Parameters
- * force: bool		Force detection. Note this parameter only causes the
- 			detection to be skipped, if the uGuru can't be read
- 			the module initialization (insmod) will still fail.
-+* bank1_types: int[]	Bank1 sensortype autodetection override:
-+			  -1 autodetect (default)
-+			   0 volt sensor
-+			   1 temp sensor
-+			   2 not connected
- * fan_sensors: int	Tell the driver how many fan speed sensors there are
- 			on your motherboard. Default: 0 (autodetect).
- * pwms: int		Tell the driver how many fan speed controls (fan
-@@ -29,7 +57,7 @@ Module Parameters
- * verbose: int		How verbose should the driver be? (0-3):
- 			   0 normal output
- 			   1 + verbose error reporting
--			   2 + sensors type probing info\n"
-+			   2 + sensors type probing info (default)
- 			   3 + retryable error reporting
- 			Default: 2 (the driver is still in the testing phase)
++static int devattr_file_create_errs;
++static void create_devattr_file(struct device *dev,
++				struct device_attribute *attr)
++{
++	int rc = device_create_file(dev, attr);
++	if (rc)
++		devattr_file_create_errs++;
++}
++
+ static int pc87360_detect(struct i2c_adapter *adapter)
+ {
+ 	int i;
+@@ -944,48 +953,51 @@ static int pc87360_detect(struct i2c_ada
  
--- 
-1.4.1
+ 	if (data->innr) {
+ 		for (i = 0; i < 11; i++) {
+-			device_create_file(dev, &in_input[i].dev_attr);
+-			device_create_file(dev, &in_min[i].dev_attr);
+-			device_create_file(dev, &in_max[i].dev_attr);
+-			device_create_file(dev, &in_status[i].dev_attr);
+-		}
+-		device_create_file(dev, &dev_attr_cpu0_vid);
+-		device_create_file(dev, &dev_attr_vrm);
+-		device_create_file(dev, &dev_attr_alarms_in);
++			create_devattr_file(dev, &in_input[i].dev_attr);
++			create_devattr_file(dev, &in_min[i].dev_attr);
++			create_devattr_file(dev, &in_max[i].dev_attr);
++			create_devattr_file(dev, &in_status[i].dev_attr);
++		}
++		create_devattr_file(dev, &dev_attr_cpu0_vid);
++		create_devattr_file(dev, &dev_attr_vrm);
++		create_devattr_file(dev, &dev_attr_alarms_in);
+ 	}
+ 
+ 	if (data->tempnr) {
+ 		for (i = 0; i < data->tempnr; i++) {
+-			device_create_file(dev, &temp_input[i].dev_attr);
+-			device_create_file(dev, &temp_min[i].dev_attr);
+-			device_create_file(dev, &temp_max[i].dev_attr);
+-			device_create_file(dev, &temp_crit[i].dev_attr);
+-			device_create_file(dev, &temp_status[i].dev_attr);
++			create_devattr_file(dev, &temp_input[i].dev_attr);
++			create_devattr_file(dev, &temp_min[i].dev_attr);
++			create_devattr_file(dev, &temp_max[i].dev_attr);
++			create_devattr_file(dev, &temp_crit[i].dev_attr);
++			create_devattr_file(dev, &temp_status[i].dev_attr);
+ 		}
+-		device_create_file(dev, &dev_attr_alarms_temp);
++		create_devattr_file(dev, &dev_attr_alarms_temp);
+ 	}
+ 
+ 	if (data->innr = 14) {
+ 		for (i = 0; i < 3; i++) {
+-			device_create_file(dev, &therm_input[i].dev_attr);
+-			device_create_file(dev, &therm_min[i].dev_attr);
+-			device_create_file(dev, &therm_max[i].dev_attr);
+-			device_create_file(dev, &therm_crit[i].dev_attr);
+-			device_create_file(dev, &therm_status[i].dev_attr);
++			create_devattr_file(dev, &therm_input[i].dev_attr);
++			create_devattr_file(dev, &therm_min[i].dev_attr);
++			create_devattr_file(dev, &therm_max[i].dev_attr);
++			create_devattr_file(dev, &therm_crit[i].dev_attr);
++			create_devattr_file(dev, &therm_status[i].dev_attr);
+ 		}
+ 	}
+ 
+ 	for (i = 0; i < data->fannr; i++) {
+ 		if (FAN_CONFIG_MONITOR(data->fan_conf, i)) {
+-			device_create_file(dev, &fan_input[i].dev_attr);
+-			device_create_file(dev, &fan_min[i].dev_attr);
+-			device_create_file(dev, &fan_div[i].dev_attr);
+-			device_create_file(dev, &fan_status[i].dev_attr);
++			create_devattr_file(dev, &fan_input[i].dev_attr);
++			create_devattr_file(dev, &fan_min[i].dev_attr);
++			create_devattr_file(dev, &fan_div[i].dev_attr);
++			create_devattr_file(dev, &fan_status[i].dev_attr);
+ 		}
+ 		if (FAN_CONFIG_CONTROL(data->fan_conf, i))
+-			device_create_file(dev, &pwm[i].dev_attr);
++			create_devattr_file(dev, &pwm[i].dev_attr);
+ 	}
+-
++	if (devattr_file_create_errs)
++		dev_warn(&client->dev, "got %d device_create_file errs\n",
++			 devattr_file_create_errs);
++		
+ 	return 0;
+ 
+ ERROR3:
+
 
 
