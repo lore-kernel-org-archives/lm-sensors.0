@@ -1,50 +1,59 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Sat, 29 Jul 2006 02:09:42 +0000
-Subject: [lm-sensors] [RFC PATCH] lib/access.c optimization
-Message-Id: <20060729020942.GF25291@jupiter.solarsys.private>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Tue, 11 Jul 2006 18:33:33 +0000
+Subject: [lm-sensors] 18-rc1-mm1  and unchecked return-codes
+Message-Id: <44B3EEFD.5050209@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060725041358.GB12109@jupiter.solarsys.private>
-In-Reply-To: <20060725041358.GB12109@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
 
-I wrote:
-> > Before anyone spends too much time on that patch... why are there so many
-> > 'strcasecmp' calls in libsensors?  Did you know that you can specify 'in0'
-> > or 'IN0' in the config file and both have the same effect?  I never even
-> > realized it until yesterday night.  This case insensitivity is *nowhere*
-> > mentioned in the man pages.
+from the 18-rc1-mm1 announcement:
 
-* Jean Delvare <khali at linux-fr.org> [2006-07-28 15:29:09 +0200]:
-> I didn't know either.
-> 
-> > Can we get rid of that?  If so, I'm gonna shave a lot more than 8% by
-> > using a hash for all the string/name to chip/feature/ignore lookups.
-> 
-> Yeah, let's get rid of it, I really don't see the point.
+- We're getting a relatively large number of crash reports coming out of the
+  core sysfs/kobject/driver/bus code, and they're all really hard to diagnose.
 
-Good.
+  I am suspecting that what's happening is that some registration functions
+  are failing and the caller is ignoring that failure.  The code proceeds and
+  crashes much later, in obscure ways.
 
-> How are you going to implement your hash? I'm curious?
+  All these functions return error codes, and we're not checking them.  We
+  should.  So there's a patch which marks all these things as __must_check,
+  which causes around 1,500 new warnings.
 
-man 3 hsearch_r
+  These are all bugs and they all need to be fixed.
 
-> > BTW: valgrind 3.2.0 (w/ callgrind) plus kcachegrind rocks.
-> 
-> Don't know about callgrind and kcachegrind, but yeah, valgrind
-> definitely rocks.
 
-Screenshots:
-http://kcachegrind.sourceforge.net/cgi-bin/show.cgi/KcacheGrindShot
 
-Regards,
+Many of these 1500 are from lm-sensors modules;
+for example - a single function - device_create_file(),
+is called 1027 times, and 'every' one is a void context return.
 
--- 
-Mark M. Hoffman
-mhoffman at lightlink.com
+     grep device_create_file drivers/hwmon/*.c
 
+So, what kinds of errors are possible here ?
+and what should we do if they occur ?
+does it ever happen that only 1 create fails ? 
+do/would we care ? (not currently)
+
+These Qs are somewhat rhetorical, theyre at least a heads-up.
+
+FWIW, device_remove_file() is only called 9 times.
+This doesnt seem to be a problem though, or we'd have heard it by now.
+Specifically - hwmon/pc87360 appears to clean up after itself,
+(or rather sysfs core code does), without any calls to device_remove_file()
+
+soekris:/sys/bus/i2c/devices# ls
+9191-6620@
+soekris:/sys/bus/i2c/devices# rmmod pc87360
+soekris:/sys/bus/i2c/devices# ls
+soekris:/sys/bus/i2c/devices#
+
+
+Ive gone ahead and worked up a patch against pc87360 to
+count-errors-and-warn, which should suffice, at least for short term.
+
+thanks
+-jimc
 
