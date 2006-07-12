@@ -1,43 +1,29 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 12 Jul 2006 23:27:23 +0000
-Subject: [lm-sensors] [PATCH 11/13] [PATCH] hwmon: New maintainer for w83791d
-Message-Id: <11527468773894-git-send-email-greg@kroah.com>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Wed, 12 Jul 2006 22:04:37 +0000
+Subject: [lm-sensors] vacation schedule
+Message-Id: <44B571F5.8000203@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Charles Spirakis <bezaur at gmail.com>
+Hello all,
 
-Add Charles Spirakis as the maintainer for the w83791d sensor chip
-driver.
+I would like to announce my vacation schedule:
 
-Signed-off-by: Charles Spirakis <bezaur at gmail.com>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
----
- MAINTAINERS |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+14-22.7  Beskydy Mountains
+27.7-6.8 Summer university camp
+9.8-16.8 London visit - anyway some tips to "technical sightseeings?"
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 6699394..d4bc293 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3183,6 +3183,12 @@ M:	johnpol at 2ka.mipt.ru
- L:	lm-sensors at lm-sensors.org
- S:	Maintained
- 
-+W83791D HARDWARE MONITORING DRIVER
-+P:	Charles Spirakis
-+M:	bezaur at gmail.com
-+L:	lm-sensors at lm-sensors.org
-+S:	Maintained
-+
- W83L51xD SD/MMC CARD INTERFACE DRIVER
- P:	Pierre Ossman
- M:	drzeus-wbsd at drzeus.cx
--- 
-1.4.1
+During this three periods I won't be online.
+
+Jean Delvare should be back on 23rd.
+
+Regards
+Rudolf
+
+
+
 
 
