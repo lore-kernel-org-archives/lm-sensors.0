@@ -1,37 +1,66 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 12 Jul 2006 23:27:21 +0000
-Subject: [lm-sensors] [PATCH 9/13] [PATCH] i2c-algo-bit: Wipe out dead code
-Message-Id: <11527468711986-git-send-email-greg@kroah.com>
+From: gregkh@suse.de (gregkh at suse.de)
+Date: Wed, 12 Jul 2006 21:17:06 +0000
+Subject: [lm-sensors] patch hwmon-w83791d-maintainer.patch added to
+Message-Id: <20060712212128.F034D7C5165@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Uwe Bugla <uwe.bugla at gmx.de>
 
-i2c-algo-bit: Wipe out dead code
+This is a note to let you know that I've just added the patch titled
 
-Signed-off-by: Uwe Bugla <uwe.bugla at gmx.de>
+     Subject: hwmon: New maintainer for w83791d
+
+to my gregkh-2.6 tree.  Its filename is
+
+     hwmon-w83791d-maintainer.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+
+
+From khali at linux-fr.org Wed Jul  5 09:05:22 2006
+Date: Wed, 5 Jul 2006 18:05:15 +0200
+From: Charles Spirakis <bezaur at gmail.com>
+To: Greg KH <greg at kroah.com>
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, Charles Spirakis <bezaur at gmail.com>
+Subject: hwmon: New maintainer for w83791d
+Message-Id: <20060705180515.97a0691d.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-w83791d-maintainer.patch
+
+From: Charles Spirakis <bezaur at gmail.com>
+
+Add Charles Spirakis as the maintainer for the w83791d sensor chip
+driver.
+
+Signed-off-by: Charles Spirakis <bezaur at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
 ---
- drivers/i2c/algos/i2c-algo-bit.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ MAINTAINERS |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/i2c/algos/i2c-algo-bit.c b/drivers/i2c/algos/i2c-algo-bit.c
-index 3d6fc82..ab230c0 100644
---- a/drivers/i2c/algos/i2c-algo-bit.c
-+++ b/drivers/i2c/algos/i2c-algo-bit.c
-@@ -372,7 +372,6 @@ static inline int readbytes(struct i2c_a
+--- gregkh-2.6.orig/MAINTAINERS
++++ gregkh-2.6/MAINTAINERS
+@@ -3182,6 +3182,12 @@ P:	Evgeniy Polyakov
+ M:	johnpol at 2ka.mipt.ru
+ S:	Maintained
  
- 	while (count > 0) {
- 		inval = i2c_inb(i2c_adap);
--/*printk("%#02x ",inval); if ( ! (count % 16) ) printk("\n"); */
- 		if (inval>=0) {
- 			*temp = inval;
- 			rdcount++;
--- 
-1.4.1
++W83791D HARDWARE MONITORING DRIVER
++P:	Charles Spirakis
++M:	bezaur at gmail.com
++L:	lm-sensors at lm-sensors.org
++S:	Maintained
++
+ W83L51xD SD/MMC CARD INTERFACE DRIVER
+ P:	Pierre Ossman
+ M:	drzeus-wbsd at drzeus.cx
 
+
+Patches currently in gregkh-2.6 which might be from bezaur at gmail.com are
+
+i2c/hwmon-w83791d-maintainer.patch
 
