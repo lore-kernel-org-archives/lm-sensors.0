@@ -1,90 +1,80 @@
 From: greg@kroah.com (Greg KH)
-Date: Wed, 12 Jul 2006 23:27:14 +0000
-Subject: [lm-sensors] [PATCH 2/13] [PATCH] i2c-iop3xx: Avoid addressing self
-Message-Id: <11527468492476-git-send-email-greg@kroah.com>
+Date: Wed, 12 Jul 2006 23:27:19 +0000
+Subject: [lm-sensors] [PATCH 7/13] [PATCH] i2c: New mailing list
+Message-Id: <1152746865674-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Peter Milne <peter.milne at d-tacq.com>
+From: Jean Delvare <khali at linux-fr.org>
 
-Avoid addressing self when sending a slave address. Follows instruction
-in Intel 80331/80321 manuals.
-Ignoring this worked previously on 80321, but causes a hang on i2cdetect
-on 80331.
+We have a new mailing list dedicated to linux i2c:
+http://lists.lm-sensors.org/mailman/listinfo/i2c
 
-Signed-off-by: Peter Milne <peter.milne at d-tacq.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/busses/i2c-iop3xx.c |   17 ++++++++++-------
- drivers/i2c/busses/i2c-iop3xx.h |    2 +-
- 2 files changed, 11 insertions(+), 8 deletions(-)
+ Documentation/i2c/busses/i2c-sis96x |    4 ++--
+ MAINTAINERS                         |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-iop3xx.c b/drivers/i2c/busses/i2c-iop3xx.c
-index aca7e16..48c5693 100644
---- a/drivers/i2c/busses/i2c-iop3xx.c
-+++ b/drivers/i2c/busses/i2c-iop3xx.c
-@@ -21,6 +21,9 @@
-  * - Make it work with IXP46x chips
-  * - Cleanup function names, coding style, etc
-  *
-+ * - writing to slave address causes latchup on iop331.
-+ *	fix: driver refuses to address self.
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, version 2.
-@@ -73,12 +76,6 @@ iop3xx_i2c_reset(struct i2c_algo_iop3xx_
- } 
+diff --git a/Documentation/i2c/busses/i2c-sis96x b/Documentation/i2c/busses/i2c-sis96x
+index 00a009b..08d7b2d 100644
+--- a/Documentation/i2c/busses/i2c-sis96x
++++ b/Documentation/i2c/busses/i2c-sis96x
+@@ -42,8 +42,8 @@ I suspect that this driver could be made
+ chipsets as well: 635, and 635T. If anyone owns a board with those chips
+ AND is willing to risk crashing & burning an otherwise well-behaved kernel
+ in the name of progress... please contact me at <mhoffman at lightlink.com> or
+-via the project's mailing list: <lm-sensors at lm-sensors.org>.  Please
+-send bug reports and/or success stories as well.
++via the project's mailing list: <i2c at lm-sensors.org>.  Please send bug
++reports and/or success stories as well.
  
- static void 
--iop3xx_i2c_set_slave_addr(struct i2c_algo_iop3xx_data *iop3xx_adap)
--{
--	__raw_writel(MYSAR, iop3xx_adap->ioaddr + SAR_OFFSET);
--}
--
--static void 
- iop3xx_i2c_enable(struct i2c_algo_iop3xx_data *iop3xx_adap)
- {
- 	u32 cr = IOP3XX_ICR_GCD | IOP3XX_ICR_SCLEN | IOP3XX_ICR_UE;
-@@ -248,6 +245,13 @@ iop3xx_i2c_send_target_addr(struct i2c_a
- 	int status;
- 	int rc;
  
-+	/* avoid writing to my slave address (hangs on 80331),
-+	 * forbidden in Intel developer manual
-+	 */
-+	if (msg->addr = MYSAR) {
-+		return -EBUSY;
-+	}
-+
- 	__raw_writel(iic_cook_addr(msg), iop3xx_adap->ioaddr + DBR_OFFSET);
- 	
- 	cr &= ~(IOP3XX_ICR_MSTOP | IOP3XX_ICR_NACK);
-@@ -498,7 +502,6 @@ iop3xx_i2c_probe(struct platform_device 
- 	spin_lock_init(&adapter_data->lock);
+ TO DOs
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 645a9f8..6699394 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -274,7 +274,7 @@ S:	Maintained
+ ALI1563 I2C DRIVER
+ P:	Rudolf Marek
+ M:	r.marek at sh.cvut.cz
+-L:	lm-sensors at lm-sensors.org
++L:	i2c at lm-sensors.org
+ S:	Maintained
  
- 	iop3xx_i2c_reset(adapter_data);
--	iop3xx_i2c_set_slave_addr(adapter_data);
- 	iop3xx_i2c_enable(adapter_data);
+ ALPHA PORT
+@@ -1249,7 +1249,7 @@ S:	Maintained
+ I2C SUBSYSTEM
+ P:	Jean Delvare
+ M:	khali at linux-fr.org
+-L:	lm-sensors at lm-sensors.org
++L:	i2c at lm-sensors.org
+ W:	http://www.lm-sensors.nu/
+ T:	quilt kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/
+ S:	Maintained
+@@ -2093,7 +2093,7 @@ S:      Maintained
+ OPENCORES I2C BUS DRIVER
+ P:	Peter Korsgaard
+ M:	jacmet at sunsite.dk
+-L:	lm-sensors at lm-sensors.org
++L:	i2c at lm-sensors.org
+ S:	Maintained
  
- 	platform_set_drvdata(pdev, new_adapter);
-diff --git a/drivers/i2c/busses/i2c-iop3xx.h b/drivers/i2c/busses/i2c-iop3xx.h
-index e46ebae..8485861 100644
---- a/drivers/i2c/busses/i2c-iop3xx.h
-+++ b/drivers/i2c/busses/i2c-iop3xx.h
-@@ -80,7 +80,7 @@ #define IOP3XX_IBMR_SDA		0x0001
- #define IOP3XX_GPOD_I2C0	0x00c0	/* clear these bits to enable ch0 */
- #define IOP3XX_GPOD_I2C1	0x0030	/* clear these bits to enable ch1 */
+ ORACLE CLUSTER FILESYSTEM 2 (OCFS2)
+@@ -3132,7 +3132,7 @@ S:	Maintained
+ VIAPRO SMBUS DRIVER
+ P:	Jean Delvare
+ M:	khali at linux-fr.org
+-L:	lm-sensors at lm-sensors.org
++L:	i2c at lm-sensors.org
+ S:	Maintained
  
--#define MYSAR			0x02	/* SWAG a suitable slave address */
-+#define MYSAR			0	/* default slave address */
- 
- #define I2C_ERR			321
- #define I2C_ERR_BERR		(I2C_ERR+0)
+ UCLINUX (AND M68KNOMMU)
 -- 
 1.4.1
 
