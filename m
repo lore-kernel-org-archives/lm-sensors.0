@@ -1,25 +1,59 @@
-From: phil_edelbrock@edgedesign.us (Philip Edelbrock)
-Date: Sat, 01 Jul 2006 19:32:03 +0000
-Subject: [lm-sensors] Web site redirection
-Message-Id: <17690D40-C78A-419E-A618-15B325C3C8B1@edgedesign.us>
+From: greg@kroah.com (Greg KH)
+Date: Wed, 12 Jul 2006 23:27:16 +0000
+Subject: [lm-sensors] [PATCH 4/13] [PATCH] scx200_acb: Fix the block
+Message-Id: <11527468552897-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+From: Jean Delvare <khali at linux-fr.org>
 
-OK, I've got www.lm-sensors.nu now redirecting to www.lm- 
-sensors.org.  If it helps to make DNS changes, I can do that, too.
+The scx200_acb i2c bus driver pretends to support SMBus block
+transactions, but in fact it implements the more simple I2C block
+transactions. Additionally, it lacks sanity checks on the length
+of the block transactions, which could lead to a buffer overrun.
 
-Thanks again to Axel and others for making the migration happen!
+This fixes an oops reported by Alexander Atanasov:
+http://marc.theaimsgroup.com/?l=linux-kernel&m4970382125094
+
+Thanks to Ben Gardner for fixing my bugs :)
+
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+---
+ drivers/i2c/busses/scx200_acb.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
+index 454086a..ced309f 100644
+--- a/drivers/i2c/busses/scx200_acb.c
++++ b/drivers/i2c/busses/scx200_acb.c
+@@ -307,8 +307,12 @@ static s32 scx200_acb_smbus_xfer(struct 
+ 		buffer = (u8 *)&cur_word;
+ 		break;
+ 
+-	case I2C_SMBUS_BLOCK_DATA:
++	case I2C_SMBUS_I2C_BLOCK_DATA:
++		if (rw = I2C_SMBUS_READ)
++			data->block[0] = I2C_SMBUS_BLOCK_MAX; /* For now */
+ 		len = data->block[0];
++		if (len = 0 || len > I2C_SMBUS_BLOCK_MAX)
++			return -EINVAL;
+ 		buffer = &data->block[1];
+ 		break;
+ 
+@@ -372,7 +376,7 @@ static u32 scx200_acb_func(struct i2c_ad
+ {
+ 	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
+ 	       I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
+-	       I2C_FUNC_SMBUS_BLOCK_DATA;
++	       I2C_FUNC_SMBUS_I2C_BLOCK;
+ }
+ 
+ /* For now, we only handle combined mode (smbus) */
+-- 
+1.4.1
 
 
-Phil
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: smime.p7s
-Type: application/pkcs7-signature
-Size: 2439 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060701/237059a0/attachment.bin 
