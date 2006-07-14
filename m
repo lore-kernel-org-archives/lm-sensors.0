@@ -1,56 +1,34 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Wed, 12 Jul 2006 13:43:13 +0000
-Subject: [lm-sensors] AMD K8 digital temperature sensor
-Message-Id: <4dfa50520607120643i6523381fj9c790e3949dd2dd@mail.gmail.com>
+From: ymu@winbond.com (Yuan Mu)
+Date: Fri, 14 Jul 2006 05:08:03 +0000
+Subject: [lm-sensors] Linux 2.6.16 kernel and "Can't access
+Message-Id: <44B726B3.9030704@winbond.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44A9941C.4020106@sh.cvut.cz>
-In-Reply-To: <44A9941C.4020106@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
+Hi Keith,
+> I've installed lm_sensors v2.10.0 on a Linux system running a 2.16.6
+> kernel. That's a Debian kernel, but I've also tried with a 2.6.17.4
+> vanilla kernel.
+> 
+> lm_sensors builds and installs fine, and sensors-detect runs and detects
+> i2c-i801. The 'sensors' command gives 'Can't access procfs/sysfs file'.
+> The FAQ suggests ensuring that /sys is mounted and populated (it is),
+> and that i2c-proc is loaded. That module is not loaded, but it doesn't
+> seem to be in the 2.16.6 kernels.
+> 
+> Should I have an i2c-proc module? If not, any further suggestions would
+> be welcome - thanks.
+Can you give the output of sensors-detect and output of `ls /sys/bus/i2c/drivers/*`.
+I think it may because it has not find any hwmon chips OR library linked to "sensors"
+is not the right one.
 
-> > Attached is a zip file containing the results of the k8temp driver on
-> > my machine. It compiles and installs with no problems. The temperature
-> > readings do not compare to what the w83627ehf reports. In the zip file
-> > is comp_temp.gif which plots the results. It seems the digital
-> > temperature sensors are located nearer the surface of the chip, or
-> > perhaps are isolated thermally somehow, since they respond much faster
-> > to a change in the load average.
->
-> Yes they should be somewhere in the core imho.
+-- 
+Best Regards
+Yuan Mu
 
-It looks like there are four sensors then?
 
-> > I did not test whether the
-> > temperatures respond differently to a load applied to just one CPU.
-> > Also, I do not know why the w83627ehf reports two temperatures from
-> > the athlon 64 x2. It may be the processor has two analog temperature
-> > pins.
->
-> Yes it has two analog pins.
->
-> > However, the temperatures are always within 1 degree C of each
-> > other.
->
-> I think thats because of the load balancing.
-
-I could test that, I don't think it's load balancing, but I don't have
-any data to back it up.
-
-> Many thanks for the test. Now we know:
->
-> 1) it works on single core
-> 2) it works on dualcore
-> 3) it works on 2x CPU
-> 4) it shoud work on 2x dualcore ;)
->
-> Just a curios did you test with latest version :) ? (it has dword reads for temps)
-
-I'll double-check, but I downloaded
-http://assembler.cz/download/amd_digital_temp.tar.gz on Friday.
-
-David
+=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
 
