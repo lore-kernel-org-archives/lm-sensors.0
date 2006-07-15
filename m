@@ -1,7 +1,7 @@
 From: devsku@gmail.com (Sunil Kumar)
-Date: Fri, 14 Jul 2006 19:50:19 +0000
+Date: Sat, 15 Jul 2006 00:52:59 +0000
 Subject: [lm-sensors] new abituguru driver in mm kernel
-Message-Id: <ce9ef0d90607141250n7f8a0a2ao1dd03de528b250f5@mail.gmail.com>
+Message-Id: <ce9ef0d90607141753u3d0c61eag2d64341a9ca9fbe0@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <ce9ef0d90607041146t6837a584x68d1ab7e528139ea@mail.gmail.com>
 In-Reply-To: <ce9ef0d90607041146t6837a584x68d1ab7e528139ea@mail.gmail.com>
@@ -10,8 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-ok, the  machine where it happened is not in front of me right now. So, I
-can reliably answer your question only when I reach home.
+You are right. The messages happen to be much more sparse. After recent
+resume, I have only seen one:
+
+abituguru: timeout exceeded waiting for read state (bank: 33, sensor: 9)
+
+Last time I saw after a resume:
+
+Jul 10 21:25:10 localhost abituguru: timeout exceeded waiting for read state
+(bank: 34, sensor: 12)
+Jul 10 21:25:10 localhost abituguru: timeout exceeded waiting for ready
+state
+Jul 10 21:25:20 localhost abituguru: timeout exceeded waiting for read state
+(bank: 34, sensor: 15)
+Jul 10 21:25:20 localhost abituguru: timeout exceeded waiting for ready
+state
+Jul 10 21:27:10 localhost abituguru: timeout exceeded waiting for ready
+state
+Jul 10 21:27:10 localhost abituguru: timeout exceeded waiting for ready
+state
+
+-Sunil
 
 On 7/14/06, Hans de Goede <j.w.r.degoede at hhs.nl> wrote:
 >
@@ -51,4 +70,4 @@ On 7/14/06, Hans de Goede <j.w.r.degoede at hhs.nl> wrote:
 >
 -------------- next part --------------
 An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060714/bffe4ddd/attachment.html 
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060714/9d03d6b5/attachment.html 
