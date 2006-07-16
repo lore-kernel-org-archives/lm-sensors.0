@@ -1,60 +1,40 @@
 From: com.ea@tinet.org (com.ea)
-Date: Wed, 05 Jul 2006 12:54:05 +0000
-Subject: [lm-sensors] w83627hf, fan speed always high, unchangeable?
-Message-Id: <q6dna2l8qoo4lqoeg3icfo6c8ni6db7n3d@4ax.com>
+Date: Sun, 16 Jul 2006 17:24:08 +0000
+Subject: [lm-sensors] Looking for testers
+Message-Id: <7askb297uvn6b7mo7tt48t0a9km8ipusbc@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43692C12.90301@gmail.com>
-In-Reply-To: <43692C12.90301@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-
 Hello
 
->> I use lm-sensors version 2.9.2-5ubuntu3 (I am on the last stable Ubunutu 6.06).
->> My chipset is a Winbond W83697HF and my mobo is a MSI K8T Neo-FIS2R (MS-6702).
->> I have the same problem :
+I am looking for testers of a fan/temperature control application.
+This application allows the user to set a safe range of temperature and fan speed.
 
-be careful, the topic reads w83627hf and its registers are different
-from the ones in w83697hf and w83627ehf.
+The application has been widely tested because it was written 2 years ago, 
+but it used its own driver to read/write the hardware monitor (w83697hf).
 
->> However, I'm sure the fan is controllable in speed because under Windows (only
->> :( ), MSI provides a software (CoreCenter) that works perfectly (in "thermal"
->> or "speed cruise", speed regulated between 1500 and 2600 rpm). Still under
->> windows XP, I tested SpeedFan and I had the same problem than with pwmconfig.
->> The only way I succeeded in reducing the speed was to low the clock of PWM
->> clock frequency, which you propose.
+I rewrote it to make use of libsensors and lm-sensors drivers. The idea is to
+support all the chips able to provide 'changeable' pwm or dc output.
 
-w83697hf is supported by rtsensors, rtsensors is an applicattion i
-wrote some time ago, but it works like a charm for me
+At the moment I have done the needed code for the kernel driver and libsensors 
+to support the chips in the "w83627hf.c" driver (for 2.4 and 2.6 kernels)
 
-you can get it here
-http://www.tinet.org/~com.ea/rtsensors/
+I would like to find people with any of the following hardware monitors,
 
-as w83697HF and w83627EHF are the same in terms of pwm and pwmclock
-registers ... (correct me if not) they both can be controlled with
-rtsensors
+w83627hf
+w83627thf
+w83637hf
+w83687thf
+w83697hf <--- i got this one so no testing needed here
 
->
->1) rmmod w83627hf
->   so the driver wont be confused
->2) reprogram the chip to bank 0
->    isaset 0x295 0x296 0x4e 0x00
->3) reprogram the value
->     isaset 0x295 0x296 0x0 0x84
->
->For fan2 it would be in register 2 bank 0
->     isaset 0x295 0x296 0x2 0x84
->
->4) modprobe w83627hf
->5) pwmconfig
->
+Testers interested should contact me at com.ea at tinet.org ,
+I will supply the patches for libsensors / kernel drivers and the control application.
 
-this will only work for w83627ehf and w83697hf, NOT for w83627hf !
-be careful
+I will upload the new patches to the list as soon as they have been tested.
 
+Regards
 Carlos
 
