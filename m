@@ -1,24 +1,23 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sun, 02 Jul 2006 21:20:43 +0000
-Subject: [lm-sensors] Using ... SMSC EMC6W201
-Message-Id: <44A838AB.7060802@sh.cvut.cz>
+From: edwin.verplanke@intel.com (Verplanke, Edwin)
+Date: Fri, 21 Jul 2006 01:17:54 +0000
+Subject: [lm-sensors] CFA779 LCD Driver
+Message-Id: <3A6952DDD3BA1A4EAC9841DE282A17DB07E40113@azsmsx404.amr.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060613202602.560.qmail@web81611.mail.mud.yahoo.com>
-In-Reply-To: <20060613202602.560.qmail@web81611.mail.mud.yahoo.com>
+References: <20041118202527.GB1694@hexview.com>
+In-Reply-To: <20041118202527.GB1694@hexview.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ric
-
-I think the chip might be similar to dme1737 (also from SMSC) so we may need to
-develop just one driver instead of two. I think someone is already working on
-this. If you can, please just send me a datasheet to my email.
-
-Sorry for the delay you hit the mailing list while I had too much work.
-
-Regards
-Rudolf
-
-
+Hello Max, I understand a while back you written a driver for the
+custome module above. I have been doing some work on an appliance we
+designed quite a while back with this display. I would like to write
+some code to display some messages, in order not to start from scratch
+would you be able to supply me with the source for this device?
+ 
+Thanks,
+Edwin 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060720/681be82c/attachment-0001.html 
