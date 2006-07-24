@@ -1,122 +1,70 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Tue, 11 Jul 2006 18:57:23 +0000
-Subject: [lm-sensors] [ patch 18-rc1-mm1 01/01 ] hwmon/pc87360: check
-Message-Id: <44B3F493.9080405@gmail.com>
+From: james.kirkpatrick@imperial.ac.uk (James Kirkpatrick)
+Date: Mon, 24 Jul 2006 11:46:26 +0000
+Subject: [lm-sensors] voltage reading too low: what next?
+Message-Id: <44C4B312.1010205@imperial.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+    Hi,
 
-patch corrects the unchecked-return-code warnings issued when
-compiling pc87360.c in 18-rc1-mm1.  It just counts the errors,
-warns how many occurred, and continues merrily (as before).
+I have just finished building a computer at uni. It has two dual core 
+Opterons 275 on an MSI K8N-DL. It is very hot in my town at the moment 
+and I would like to monitor temperature etc.
 
-Signed-off-by   Jim Cromie  <jim.cromie at gmail.com>
+I *think* that sensors-detect is running all fine, the output I get from 
+`sensors` is:
 
-$ diffstat hwmon-stuff/diff.sys-ret-not-void-1
- pc87360.c |   62 +++++++++++++++++++++++++++++++++++++-------------------------
- 1 files changed, 37 insertions(+), 25 deletions(-)
+<quote>
+w83627thf-isa-0290
+Adapter: ISA adapter
+VCore:     +1.02 V  (min =  +0.94 V, max =  +0.96 V)
++12V:      +4.13 V  (min = +10.82 V, max = +13.19 V)
++3.3V:     +1.92 V  (min =  +3.14 V, max =  +3.47 V)
++5V:       +5.04 V  (min =  +4.75 V, max =  +5.25 V)
+-12V:     -14.91 V  (min = -10.80 V, max = -13.18 V)
+V5SB:      +5.08 V  (min =  +4.76 V, max =  +5.24 V)
+VBat:      +2.93 V  (min =  +2.40 V, max =  +3.60 V)
+fan1:     5578 RPM  (min = 9375 RPM, div = 2)
+CPU Fan:  5769 RPM  (min =   -1 RPM, div = 2)
+fan3:        0 RPM  (min = 112500 RPM, div = 2)
+M/B Temp:    +47 C  (high =    +5 C, hyst =    +0 C)   sensor = thermistor
+CPU Temp:  +42.0 C  (high =   +80 C, hyst =   +75 C)   sensor = thermistor
+temp3:     +39.0 C  (high =   +80 C, hyst =   +75 C)   sensor = thermistor
+vid:      +0.275 V  (VRM Version 9.0)
+alarms:
+beep_enable:
+          Sound alarm disabled
 
----
+eeprom-i2c-0-53
+Adapter: SMBus nForce2 adapter at f800
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       1024
 
-diff -ruNp -X dontdiff -X exclude-diffs ../linux-2.6.18-rc1-mm1-sk/drivers/hwmon/pc87360.c sys-ret-not-void/drivers/hwmon/pc87360.c
---- ../linux-2.6.18-rc1-mm1-sk/drivers/hwmon/pc87360.c	2006-06-17 19:49:35.000000000 -0600
-+++ sys-ret-not-void/drivers/hwmon/pc87360.c	2006-07-11 11:51:30.000000000 -0600
-@@ -829,6 +829,15 @@ static int __init pc87360_find(int sioad
- 	return 0;
- }
- 
-+static int devattr_file_create_errs;
-+static void create_devattr_file(struct device *dev,
-+				struct device_attribute *attr)
-+{
-+	int rc = device_create_file(dev, attr);
-+	if (rc)
-+		devattr_file_create_errs++;
-+}
-+
- static int pc87360_detect(struct i2c_adapter *adapter)
- {
- 	int i;
-@@ -944,48 +953,51 @@ static int pc87360_detect(struct i2c_ada
- 
- 	if (data->innr) {
- 		for (i = 0; i < 11; i++) {
--			device_create_file(dev, &in_input[i].dev_attr);
--			device_create_file(dev, &in_min[i].dev_attr);
--			device_create_file(dev, &in_max[i].dev_attr);
--			device_create_file(dev, &in_status[i].dev_attr);
--		}
--		device_create_file(dev, &dev_attr_cpu0_vid);
--		device_create_file(dev, &dev_attr_vrm);
--		device_create_file(dev, &dev_attr_alarms_in);
-+			create_devattr_file(dev, &in_input[i].dev_attr);
-+			create_devattr_file(dev, &in_min[i].dev_attr);
-+			create_devattr_file(dev, &in_max[i].dev_attr);
-+			create_devattr_file(dev, &in_status[i].dev_attr);
-+		}
-+		create_devattr_file(dev, &dev_attr_cpu0_vid);
-+		create_devattr_file(dev, &dev_attr_vrm);
-+		create_devattr_file(dev, &dev_attr_alarms_in);
- 	}
- 
- 	if (data->tempnr) {
- 		for (i = 0; i < data->tempnr; i++) {
--			device_create_file(dev, &temp_input[i].dev_attr);
--			device_create_file(dev, &temp_min[i].dev_attr);
--			device_create_file(dev, &temp_max[i].dev_attr);
--			device_create_file(dev, &temp_crit[i].dev_attr);
--			device_create_file(dev, &temp_status[i].dev_attr);
-+			create_devattr_file(dev, &temp_input[i].dev_attr);
-+			create_devattr_file(dev, &temp_min[i].dev_attr);
-+			create_devattr_file(dev, &temp_max[i].dev_attr);
-+			create_devattr_file(dev, &temp_crit[i].dev_attr);
-+			create_devattr_file(dev, &temp_status[i].dev_attr);
- 		}
--		device_create_file(dev, &dev_attr_alarms_temp);
-+		create_devattr_file(dev, &dev_attr_alarms_temp);
- 	}
- 
- 	if (data->innr = 14) {
- 		for (i = 0; i < 3; i++) {
--			device_create_file(dev, &therm_input[i].dev_attr);
--			device_create_file(dev, &therm_min[i].dev_attr);
--			device_create_file(dev, &therm_max[i].dev_attr);
--			device_create_file(dev, &therm_crit[i].dev_attr);
--			device_create_file(dev, &therm_status[i].dev_attr);
-+			create_devattr_file(dev, &therm_input[i].dev_attr);
-+			create_devattr_file(dev, &therm_min[i].dev_attr);
-+			create_devattr_file(dev, &therm_max[i].dev_attr);
-+			create_devattr_file(dev, &therm_crit[i].dev_attr);
-+			create_devattr_file(dev, &therm_status[i].dev_attr);
- 		}
- 	}
- 
- 	for (i = 0; i < data->fannr; i++) {
- 		if (FAN_CONFIG_MONITOR(data->fan_conf, i)) {
--			device_create_file(dev, &fan_input[i].dev_attr);
--			device_create_file(dev, &fan_min[i].dev_attr);
--			device_create_file(dev, &fan_div[i].dev_attr);
--			device_create_file(dev, &fan_status[i].dev_attr);
-+			create_devattr_file(dev, &fan_input[i].dev_attr);
-+			create_devattr_file(dev, &fan_min[i].dev_attr);
-+			create_devattr_file(dev, &fan_div[i].dev_attr);
-+			create_devattr_file(dev, &fan_status[i].dev_attr);
- 		}
- 		if (FAN_CONFIG_CONTROL(data->fan_conf, i))
--			device_create_file(dev, &pwm[i].dev_attr);
-+			create_devattr_file(dev, &pwm[i].dev_attr);
- 	}
--
-+	if (devattr_file_create_errs)
-+		dev_warn(&client->dev, "got %d device_create_file errs\n",
-+			 devattr_file_create_errs);
-+		
- 	return 0;
- 
- ERROR3:
+eeprom-i2c-0-52
+Adapter: SMBus nForce2 adapter at f800
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       1024
+
+eeprom-i2c-0-51
+Adapter: SMBus nForce2 adapter at f800
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       1024
+
+eeprom-i2c-0-50
+Adapter: SMBus nForce2 adapter at f800
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       1024
+
+<\quote>
 
 
+This suggest that the rail which ought to have 3.3V, provides only 1.9! 
+Does anyone have any information about whether this is a real 
+problem/artifact? What's my next step?
+
+Thanks for any advice and for bearing with my ignorance!
+James
 
