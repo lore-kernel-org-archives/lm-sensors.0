@@ -1,29 +1,29 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 12 Jul 2006 22:04:37 +0000
-Subject: [lm-sensors] vacation schedule
-Message-Id: <44B571F5.8000203@sh.cvut.cz>
+From: dhaab@gpengineering.com (Dan Haab)
+Date: Tue, 25 Jul 2006 19:56:27 +0000
+Subject: [lm-sensors] no sensors found on Intel se7230 server board
+Message-Id: <001601c6b024$6a6ae760$3f01a8c0@haab>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello all,
+I have an Intel SE7230 server board that has (at least) the following
+sensors on it:  Philips NE916 and National PC8375.  However I am having no
+luck in getting lm_sensors to recognize these devices.  After following the
+QUICKSTART as well as reading the INSTALL I cannot figure out why this would
+be.  I would like to be able to at least scan the I2C bus for devices but
+the address that shows up when I run 'i2cdetect' appears to be out of the
+valid range:
 
-I would like to announce my vacation schedule:
+Installed I2C busses:
+I2c-0	smbus	SMBus I801 adapter at 3000	Non-I2C SMBus adapter
 
-14-22.7  Beskydy Mountains
-27.7-6.8 Summer university camp
-9.8-16.8 London visit - anyway some tips to "technical sightseeings?"
+I am sure that lm_sensors should work with this motherboard as Intel uses
+lm_sensors as part of its Server Manager software for linux.
 
-During this three periods I won't be online.
+I am running lm_sensors-2.10.0 on RHEL 3 update 7.
 
-Jean Delvare should be back on 23rd.
-
-Regards
-Rudolf
-
-
-
+Thanks
 
 
