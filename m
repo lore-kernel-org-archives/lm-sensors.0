@@ -1,31 +1,50 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 28 Jul 2006 13:43:01 +0000
-Subject: [lm-sensors] Differences between w83781d.c in 2.4 and 2.6
-Message-Id: <20060728154301.1d7a0fda.khali@linux-fr.org>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Tue, 25 Jul 2006 22:08:08 +0000
+Subject: [lm-sensors] [PATCH] AMD K8 digital sensor
+Message-Id: <44C69648.9060808@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <onr3c2pk3p96kqejtnousjsml75rh16srf@4ax.com>
-In-Reply-To: <onr3c2pk3p96kqejtnousjsml75rh16srf@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi "com.ea" (what a strange name is that),
+Hello all,
 
-> Im continuing with my job about adding PWM clock support for
-> the winbond family. I noticed that the w83781d.c driver for 2.4
-> kernels has support for w83791d while the same driver
-> for 2.6 kernels doesnt (last release 2.6.17). Is anybody porting
-> it to 2.6? Where can i get the code if its already done?
+This patch adds support for the temperature sensor(s) found in AMD K8 CPUs.
 
-It was moved to a separate driver (unsurprisingly named w83791d) by
-Charles Spirakis. The reason is that the W83791D is quite different
-from the other chips already supported by the w83781d driver and having
-a separate driver was cleaner.
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
 
-You can find the new driver in linux 2.6.18-rc1 and later, it was just
-merged.
+Info for Jean:
 
--- 
-Jean Delvare
+This patch has only one bigger change compared to older version - the access 
+width to register is now whole 32bits. This is neccessary for future 
+enhancements because addtional reserved bits might be used for temperature, 
+gaining more precision. Trust me ;)
 
+The dependency is set to X86 because of usage of cpuid funcs. No need to check 
+for specific procesor because it is in fact PCI driver. The latest version
+works on dual core - dual procesor AMD server and it works fine on my single 
+core Opteron too.
+
+I'm leaving for next week and something -> on thursday. I would like to get this 
+patch into 2.6.19, so if you have some minor comments please fix the patch as 
+you like.
+
+And info for users:
+The userspace patch is still in here 
+http://assembler.cz/download/amd_digital_temp.tar.gz
+the patch itself is for 2.6.18rc-2 but should work on any post 2.6.15 kernel. If 
+you need standalone version, use that one in the archive.
+
+I will check into the SVN the userspace code once Jean or Mark says it is OK ;)
+
+Thanks,
+Regards
+Rudolf
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: k8temp.patch
+Type: text/x-patch
+Size: 9921 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060726/bfb27574/attachment.bin 
