@@ -1,50 +1,48 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Tue, 25 Jul 2006 22:08:08 +0000
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Wed, 26 Jul 2006 14:36:52 +0000
 Subject: [lm-sensors] [PATCH] AMD K8 digital sensor
-Message-Id: <44C69648.9060808@sh.cvut.cz>
+Message-Id: <44C77E04.6010504@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <44C69648.9060808@sh.cvut.cz>
+In-Reply-To: <44C69648.9060808@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello all,
 
-This patch adds support for the temperature sensor(s) found in AMD K8 CPUs.
 
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Rudolf Marek wrote:
+> Hello all,
+> 
+> And info for users:
+> The userspace patch is still in here
+> http://assembler.cz/download/amd_digital_temp.tar.gz
+> the patch itself is for 2.6.18rc-2 but should work on any post 2.6.15
+> kernel. If you need standalone version, use that one in the archive.
+> 
 
-Info for Jean:
+I was thinking about doing things differently with regards to userspace.
+As I already posted to the list I'm working on a driver for the uGuru2.
+The driver is done (waiting for feedback from testers) but I still need
+todo userspace. Since the uGuru2 driver is going to be 2.6 only and
+since 2.6 has a clear API/ABI between userspace and the kernel for hwmon
+chips I was thinking about adding code to libsensors for generic 2.6
+support. The idea is to write a piece of code which will come into
+action only if libsensors doesn't have a chip definition for a found
+chip and libsensors is running on a  2.6 kernel. This piece of code
+would then fill a dynamicly allocated structure describing the unknown
+chip, using the same structure as for known chips.
 
-This patch has only one bigger change compared to older version - the access 
-width to register is now whole 32bits. This is neccessary for future 
-enhancements because addtional reserved bits might be used for temperature, 
-gaining more precision. Trust me ;)
+Does this sound like a plan? With this in place we no longer need to
+write support for every new 2.6 hwmon driver, actually if this goes in I
+would like to see explicit support for the uGuru (1) be removed, since
+this generic code should do just as good of a job.
 
-The dependency is set to X86 because of usage of cpuid funcs. No need to check 
-for specific procesor because it is in fact PCI driver. The latest version
-works on dual core - dual procesor AMD server and it works fine on my single 
-core Opteron too.
+Does this sound like  a plan (for 2.6 only drivers) ? Or are you
+planning on porting this driver to 2.4?
 
-I'm leaving for next week and something -> on thursday. I would like to get this 
-patch into 2.6.19, so if you have some minor comments please fix the patch as 
-you like.
+Regards,
 
-And info for users:
-The userspace patch is still in here 
-http://assembler.cz/download/amd_digital_temp.tar.gz
-the patch itself is for 2.6.18rc-2 but should work on any post 2.6.15 kernel. If 
-you need standalone version, use that one in the archive.
+Hans
 
-I will check into the SVN the userspace code once Jean or Mark says it is OK ;)
-
-Thanks,
-Regards
-Rudolf
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: k8temp.patch
-Type: text/x-patch
-Size: 9921 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060726/bfb27574/attachment.bin 
