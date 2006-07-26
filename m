@@ -1,7 +1,7 @@
 From: com.ea@tinet.org (com.ea)
-Date: Tue, 18 Jul 2006 19:00:23 +0000
+Date: Wed, 26 Jul 2006 21:52:24 +0000
 Subject: [lm-sensors] Looking for testers
-Message-Id: <anbqb2pn3gkfo0ptrai3265k1onkmhfk8j@4ax.com>
+Message-Id: <ibofc2hgdv6uq1l89prgo5b5n5rp80kbe8@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <7askb297uvn6b7mo7tt48t0a9km8ipusbc@4ax.com>
 In-Reply-To: <7askb297uvn6b7mo7tt48t0a9km8ipusbc@4ax.com>
@@ -10,6 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi again,
 
 >Hi Carlos:
 >
@@ -45,15 +46,29 @@ To: lm-sensors@vger.kernel.org
 >
 >Regards,
 
-Hey I have just finished the new homepage.
-You can find it here:
+I have updated the patches for 2.4 and 2.6 drivers to enable pwmclock. Now w83781d.c is also
+patched. The full list of chips is now:
 
+w83627hf
+w83627thf
+w83637hf
+w83687thf
+w83697hf
+
+and 
+
+w83782d
+w83783s
+
+The patches for lm_sensors-2.10.0 and kernel 2.6.17.3 can be found here
 http://www.tinet.org/~com.ea/rtsensors/
 
-If you own a w83627hf or a w83637hf and want to provide testing, then contact me.
+I would appreciate testing, cause I couldnt get any feedback for most of the chips.
+If you need a specific patch for your kernel version just ask for it and I will generate one.
 
+If the patches are welcome I will resend them again. I think the code is now refinated enough to be
+ok.
 
 Regards
 Carlos
-
 
