@@ -1,7 +1,7 @@
-From: hasw@hasw.net (Sebastian Witt)
-Date: Thu, 27 Jul 2006 19:15:13 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 27 Jul 2006 20:28:49 +0000
 Subject: [lm-sensors] [PATCH] atxp1: signed/unsigned char bug
-Message-Id: <44C910C1.4040702@hasw.net>
+Message-Id: <20060727222849.12c12a43.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060724083118.GB6815@martell.zuzino.mipt.ru>
 In-Reply-To: <20060724083118.GB6815@martell.zuzino.mipt.ru>
@@ -10,16 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
+> On Thu, Jul 27, 2006 at 08:20:53PM +0200, Jean Delvare wrote:
+> > > vid_to_reg() can return -1 and char can be unsigned.
+> >
+> > What does it take for char be unsigned? Never seen that.
 > 
-> Whatever, this looks better with ints, I agree. I'll take that patch,
-> unless Sebastian objects.
+> Cross-gcc for arm here. That's how it was noticed.
 
-No, I'm fine with that.
+I'd call it a bug.
 
-Bye,
-Sebastian
+> Or -funsigned-char gcc flag.
 
+Irrelevant as far as the kernel compilation goes - but thanks for the
+hint.
 
+I take the patch anyway.
 
+-- 
+Jean Delvare
 
