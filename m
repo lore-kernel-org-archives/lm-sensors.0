@@ -1,7 +1,7 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Wed, 26 Jul 2006 20:43:37 +0000
+From: devsku@gmail.com (Sunil Kumar)
+Date: Thu, 27 Jul 2006 00:48:34 +0000
 Subject: [lm-sensors] new abituguru driver in mm kernel
-Message-Id: <44C7D3F9.3040202@hhs.nl>
+Message-Id: <ce9ef0d90607261748g4781e645kecd2eb79e0cc2aaf@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <ce9ef0d90607041146t6837a584x68d1ab7e528139ea@mail.gmail.com>
 In-Reply-To: <ce9ef0d90607041146t6837a584x68d1ab7e528139ea@mail.gmail.com>
@@ -10,69 +10,96 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On 7/26/06, Hans de Goede <j.w.r.degoede at hhs.nl> wrote:
+>
+> Hmm, how did you measure this? According to top gkrellm on my system
+> never comes above the 0.7 percent, then again on my system the wait
+> function usually returns pretty fast.
 
 
-Sunil Kumar wrote:
-> Hans, I have done some very rudimentary performance analysis of this driver
-> and I have a feeling that some tuning may be in order. All I did was to
-> look
-> at gkrellm with abituguru loaded and unloaded. gkrellm updates sensors
-> every
-> 5 seconds (which is kinda high I think) and I see that the cpu usage is
-> 0-2%
-> if module is unloaded. If module is loaded the cpu usage is as high as 4%
-> every 5 seconds (more than half of it red). System is quiet and nothing
-> else
-> is being done on it.
-> 
-> I suspect its to do with the while loop in abitugru_wait(). What I did was
-> to make the following change on top of what you sent and cpu usage
-> became 2%
-> every 5 seconds. So, it remains between 0-2%.
-> 
-
-Hmm, how did you measure this? According to top gkrellm on my system
-never comes above the 0.7 percent, then again on my system the wait
-function usually returns pretty fast.
-
-> I don't think there is any harm in sleeping because most sensor user
-> programs are working at seconds level and we are talking about ms sleep.
-> And
-> in most cases first sleep for 1 jiffy will be enough. But this probably
-> needs testing by our volunteers to see if there are any ill-effects,
-> although it works perfectly here.
-> 
+by simply staring at the gkrellm chart where it plots cpu usage and shows a
+number in %age for it as well. The jump from 2% to 4% is easily noticeable,
+particulalrly when it happens every 5 second on a quiet system, but I think
+a more detailed analysis should probably be done.
 
 My worries are because abituguru_wait gets called 148 times for one
+
+
+So many reads actually make the case for  tight loop weaker and for sleeping
+stronger, because the loop actually will run 250*148~7000 times per update
+without doing anything useful apart from seeing if its ok to read. I am sure
+lesser CPUs will see more %age being used every 5 seconds. May be we can
+have someone with 1ghz cpu to monitor gkrellm with and without abituguru and
+report.
+
 update! So on a system running at 100 HZ, that could get translated to
-blocking the program trying to read a sensor for 1.5 seconds.
-
-However on my system the uGuru usually responds within 50 polls in
-abituguru wait with 1 in 10 waits only succeeding after 90 polls. So if
-we can agree to make ABIT_UGURU_WAIT_TIMEOUT_SLEEP 150 instead of 200
-then I think your patch can go in to help those with uGuru's which are
-slower to respond like yours is.
-
-The 1.5 seconds mentioned above assumes 1 sleep per wait, and with your
-current code it could become much more sleeps. Thinking about this some
-more, with your current code it could become 200 / 150 sleeps per wait!
-
-I think the correct fix for this would be to just lower
-ABIT_UGURU_WAIT_TIMEOUT from 250 to 100 now that we have the sleep
-before final try code. That way we wil not sleep more then once per
-wait() and we should still get the desired effect of lowering cpu usage.
-Since your last version (sleep 1 ms before final try) worked always
-without errors. I'm pretty sure we can just lower
-ABIT_UGURU_WAIT_TIMEOUT to 100, those missed 150 reads won't make much
-of a difference timing wise when compared with that msleep(1), so things
-should still work as expected. The only differences being that wait()
-will go to sleep sooner, resulting in the decreased cpu usage you want.
-
-Could you give the last version I send you with ABIT_UGURU_WAIT_TIMEOUT
-changed to 100 a try? I think that should do the trick.
-
-Regards,
-
-Hans
+> blocking the program trying to read a sensor for 1.5 seconds.
 
 
+This is the unfortunate part. People with 100 hz will suffer terrible delay
+if the read state is not reached fast. But we are talking about a monitoring
+program, not some essential kernel component which can fail something
+critical. For 1000hz it is only 150ms. Note that it is advised to run linux
+2.6 with HZ 1000. May be we can make the determination of how early to go to
+sleep based upon the value of HZ, by adjusting the difference between
+TIMEOUT and TIMEOUT_SLEEP dynamically based on HZ. Please also realize that
+with every 1 jiffy sleep, the chances of reaching the next sleep reduce
+tremendously (unless uguru has died and not responding at all...:)) But I
+have a feeling that sleep in steps of 1 jiffy is in order if loop times out
+50 or so iterations.
+
+Also, someone using 100 hz will never like a long tight loop in anything
+periodic like sensors because the whole point of choosing hz 100 was to give
+as much cpu to useful work as possible (like on a server). But, as I said,
+its an unfortunate conflicting requirement.
+
+How about this:
+
+--- /tmp/abituguru.c    2006-07-26 11:16:32.000000000 -0700
++++ ./abituguru.c       2006-07-26 17:41:05.000000000 -0700
+@@ -72,9 +72,10 @@
+    the CPU should be the bottleneck. Note that 250 sometimes is still not
+    enough (only reported on AN7 mb) this is handled by a higher layer. */
+ #define ABIT_UGURU_WAIT_TIMEOUT                        250
++#define ABIT_UGURU_WAIT_TIMEOUT_SLEEP          200
+ /* Normally all expected status in abituguru_ready, are reported after the
+    first read, but sometimes not and we need to poll. */
+-#define ABIT_UGURU_READY_TIMEOUT               50
++#define ABIT_UGURU_READY_TIMEOUT               5
+ /* Maximum 3 retries on timedout reads/writes, delay 200 ms before retrying
+*/
+ #define ABIT_UGURU_MAX_RETRIES                 3
+ #define ABIT_UGURU_RETRY_DELAY                 (HZ/5)
+@@ -221,15 +222,17 @@
+ static int abituguru_wait(struct abituguru_data *data, u8 state)
+ {
+        int timeout = ABIT_UGURU_WAIT_TIMEOUT;
++       int start_sleep = (HZ < 1000) ? ABIT_UGURU_WAIT_TIMEOUT_SLEEP / 2 :
+ABIT_UGURU_WAIT_TIMEOUT_SLEEP;
+
+        while (inb_p(data->addr + ABIT_UGURU_DATA) != state) {
+                timeout--;
+                if (timeout = 0)
+                        return -EBUSY;
+-               /* sleep a bit before our last try, to give the uGuru one
+-                  last chance to respond. */
+-               if (timeout = 1)
+-                       msleep(1);
++               /* start sleeping a bit after
+ABIT_UGURU_WAIT_TIMEOUT-start_sleep
++                * iterations to give the uGuru some chance to respond.
++                */
++               if (timeout <= start_sleep && timeout >= 1)
++                       msleep(0);
+        }
+        return 0;
+ }
+
+So, it will go 150 iterations before it starts sleeping on 100/250hz. Note
+also that this patch has reduced READY timeout to 5 as well. Even with 5, I
+haven't hit ready state timeout so far.
+
+-Sunil
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060726/f9a3aa52/attachment.html 
