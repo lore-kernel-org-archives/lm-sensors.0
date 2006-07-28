@@ -1,7 +1,7 @@
-From: e.fusi@reply.it (Fusi Enrico Maria)
-Date: Thu, 06 Jul 2006 15:20:37 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 28 Jul 2006 14:23:57 +0000
 Subject: [lm-sensors] Message
-Message-Id: <44AD2A45.2020401@reply.it>
+Message-Id: <20060728162357.9f0f6de6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1149181308.17368.3.camel@localhost.localdomain>
 In-Reply-To: <1149181308.17368.3.camel@localhost.localdomain>
@@ -10,41 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Rudolf,
+Hi Enrico,
 
-that's fine, but downloading and using the latest 2.10.0 version i get
-this message...
-how i have to use this fully-tested code?
+> that's fine, but downloading and using the latest 2.10.0 version i get
+> this message...
+> how i have to use this fully-tested code?
 
-regards,
+You can simply disregard the message, the driver (i2c-piix4) happened
+to just work so we did not have to make any change to it. We removed
+the message by now, so the next version of lm_sensors (2.10.1) will not
+display it.
 
-Enrico Fusi
+-- 
+Jean Delvare
 
-Rudolf Marek wrote:
-> Fusi Enrico Maria wrote:
->   
->> Hello, i get this message running
->> the sensors-detect on my HP laptop, so i would like to know how to be
->> useful.
->>     
->
-> Hi Fusi,
->
-> We considered this bus fully tested. -> No help needed.
->
-> Thanks,
-> Regards
-> Rudolf
->   
-
-
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060706/c8a57831/attachment.html 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: signature.asc
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: OpenPGP digital signature
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060706/c8a57831/attachment.bin 
