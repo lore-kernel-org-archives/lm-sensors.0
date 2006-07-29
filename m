@@ -1,50 +1,98 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 26 Jul 2006 14:44:33 +0000
-Subject: [lm-sensors] [PATCH] AMD K8 digital sensor
-Message-Id: <44C77FD1.9020100@sh.cvut.cz>
+From: nithinkj@hcl.in (Nithin)
+Date: Sat, 29 Jul 2006 10:33:29 +0000
+Subject: [lm-sensors] Problem with W83792d
+Message-Id: <44CB36A9.9040502@hcl.in>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44C69648.9060808@sh.cvut.cz>
-In-Reply-To: <44C69648.9060808@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-Hi Hans,
+	I m working in "ASUS NCL-DE Board " in RHEL 3.0 UP5,with lmsensors-2.10.0 and i2c-2.10.0
+In this board w83792d is the health monitoring chip.
+But i am not able to get any of the values.The chip is not even detecting using sensors-detect.
+I have inserted modules i2c-i801,i2c-proc,i2c-dev,i2c-core,w83792d.But the chip is showing in
+/proc/sys/dev/sensors/.
+The reply i got from 'Asus' is, it using the slave addres as 0x5e,smbus base addres 0x400.
+But the driver for w83792d searches in 0x2c to 0x2f (static unsigned short normal_i2c_range[] = { 0x2c, 0x2f, SENSORS_I2C_END };)
 
 
-> I was thinking about doing things differently with regards to userspace.
-> As I already posted to the list I'm working on a driver for the uGuru2.
-> The driver is done (waiting for feedback from testers) but I still need
-> todo userspace. Since the uGuru2 driver is going to be 2.6 only and
-> since 2.6 has a clear API/ABI between userspace and the kernel for hwmon
-> chips I was thinking about adding code to libsensors for generic 2.6
-> support. The idea is to write a piece of code which will come into
-> action only if libsensors doesn't have a chip definition for a found
-> chip and libsensors is running on a  2.6 kernel. This piece of code
-> would then fill a dynamicly allocated structure describing the unknown
-> chip, using the same structure as for known chips.
+I have tried using dev-interface also.But that is giving incorrect values.
 
-Yes this is in long term plan.
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <linux/i2c-dev.h>
+                                                                                                 
+main()
+{
+        int fp,res;
+//      int addr = 0x5E;
+        __u8 reg= 0x29;             //0x29  is the CPU fan register                                                                                                 
+        fp = open("/dev/i2c-0",O_RDWR);
+        if(fp = -1) {
+                printf("Error\n");
+                exit(0);
+        }
+        ioctl(fp,I2C_SLAVE,0x5e);  //Slave address 0x5e
+//      read(fp,res,8);  //Not working since it doesn't support i2c level transactions.
+        res = i2c_smbus_read_byte_data(fp,reg);
+                                                                                                 
+        printf("%d\n",res);
+}
 
-> Does this sound like a plan With this in place we no longer need to
-> write support for every new 2.6 hwmon driver, actually if this goes in I
-> would like to see explicit support for the uGuru (1) be removed, since
-> this generic code should do just as good of a job.
 
-Yes.
 
-There are still questions if to rewrite the libsensors and allow LGPL or change libsensors to what you propose.
+Then i have gone for port programming.
+This is the code i have used 
 
-> Does this sound like  a plan (for 2.6 only drivers) ? Or are you
-> planning on porting this driver to 2.4?
+#include <sys/io.h>
+#include<fcntl.h>
+#include<string.h>
+#include<stdio.h>
+                                                                                                 
 
-No plan for 2.4.
+cpufan()
+{
+        unsigned char x,y;
+        unsigned char fandiv,fandiv2;
+//      int x;
+        FILE *fp;
+        char s[100];
+                                                                                                 
+        iopl(3);
+        outb(0xFF,0x400);   //Base address is 400
+        outb(0x29,0x403);   //0x29  is the CPU fan register
+        outb(0x5E,0x404);   //Slave addres is 0x5e
+        outb(0x48,0x402);
+        while( (inb(0x400)&0x02)!=0x02);
+        x = inb(0x405);
+                                                                                                 
+        printf("%u\n",x);
+        printf("%u\n",1350000/(x*8));
+}
+main()
+{
+        cpufan();
+}
 
-I'm  leaving now for two weeks so please be patient with further answers from me.
+But this program is going infite while loop;
 
-Regards
-Rudolf
+Could  any one please help me to solve this issue
+
+Thanks
+Nithin
+
+
+
+
+
+
+	
+
 
 
