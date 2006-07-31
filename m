@@ -1,84 +1,232 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 27 Jul 2006 01:18:30 +0000
-Subject: [lm-sensors] generic chip support in libsensors
-Message-Id: <20060727011830.GB25291@jupiter.solarsys.private>
+From: j2fuentes@gmail.com (JF)
+Date: Mon, 31 Jul 2006 14:10:42 +0000
+Subject: [lm-sensors] i810 adm1021
+Message-Id: <1154355042.8040.29.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44C78622.8060808@hhs.nl>
-In-Reply-To: <44C78622.8060808@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans, Rudolf:
+i have spent several hours trying to figure out how to setup lm-sensors. i have slowly made progress, and was almost able to achieve complete success. i am not sure though if i made the correct steps. let me share my experience in the hope that you could help me sort this one out.
 
-* Hans de Goede <j.w.r.degoede at hhs.nl> [2006-07-26 17:11:30 +0200]:
-> >> I was thinking about doing things differently with regards to userspace.
-> >> As I already posted to the list I'm working on a driver for the uGuru2.
-> >> The driver is done (waiting for feedback from testers) but I still need
-> >> todo userspace. Since the uGuru2 driver is going to be 2.6 only and
-> >> since 2.6 has a clear API/ABI between userspace and the kernel for hwmon
-> >> chips I was thinking about adding code to libsensors for generic 2.6
-> >> support. The idea is to write a piece of code which will come into
-> >> action only if libsensors doesn't have a chip definition for a found
-> >> chip and libsensors is running on a  2.6 kernel. This piece of code
-> >> would then fill a dynamicly allocated structure describing the unknown
-> >> chip, using the same structure as for known chips.
+a) system
 
-> Rudolf Marek wrote:
-> > Yes this is in long term plan.
+   - Ubuntu Dapper
+     2.6.15-26-386
 
-In fact, Jean Delvare & I discussed just how we would like to do this
-at OLS.  It is long overdue.
+   - compiled lm-sensors.2.10.0
 
-> I know it has been the long term plan for a while, my suggestion is to
-> write an intermediate solution for the short term (say within a couple
-> of weeks) this short term solution would only kick into action for new
-> chip drivers (like your k8 temp driver) leaving the behaviour unchanged
-> for chips currently already supported by libsensors (although the 2.6
-> only ones may be removed after thorough testing making libsensors smaller).
+   - pertinent output of lspci
+     -------------------------
 
-That sounds great.  But, generic chip/feature discovery was not the first
-thing on the plan.  It turns out that libsysfs is getting yanked from a
-lot of distros and so that part should be reworked first.  Are you
-interested in taking that on?  Apparently, libsysfs was recently written
-*out* of udev... we should see what they're doing instead.
+	0000:00:1f.3 SMBus: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) SMBus Controller (rev 04)
 
-I will let Jean reproduce the rest of the plan here from his notes.
+b) pertinent output of sensors-detect
+   ----------------------------------
 
-> >> Does this sound like a plan With this in place we no longer need to
-> >> write support for every new 2.6 hwmon driver, actually if this goes in I
-> >> would like to see explicit support for the uGuru (1) be removed, since
-> >> this generic code should do just as good of a job.
-> > 
-> > Yes.
-> > 
-> > There are still questions if to rewrite the libsensors and allow LGPL or
-> > change libsensors to what you propose.
+Probing for PCI bus adapters...
+Use driver `i2c-i801' for device 00:1f.3: Intel 82801FB ICH6
+Probe succesfully concluded.
 
-This was never really a question in my mind.  I recognize that we've been
-asked for a LGPL library in the past... too bad for them.  I'm not going to
-take on the job of rewriting *all* of libsensors just to accomodate a license
-change.  I think that I've brought Jean around to the same thinking.
+...
 
-> I know, what I propose is not to wait for a decission but instead add
-> support for unknown 2.6 driven chips to libsensors, leaving things as is
-> for already supported chips. This way we no longer need to update
-> libsensors each time a new 2.6 driver is added. I've been planning to
-> write a patch for this evolutionary change for a while now. But first I
-> would like to see some people backing the concept, I don't like writing
-> code with 0%chance of getting it integrated upstream.
+Next adapter: SMBus I801 adapter at 1400
+Do you want to scan it? (YES/no/selectively):
+Client found at address 0x08
+Client found at address 0x44
+Probing for `Maxim MAX6633/MAX6634/MAX6635'... Failed!
+Client found at address 0x50
+Probing for `SPD EEPROM'... Success!
+    (confidence 8, driver `eeprom')
+Probing for `DDC monitor'... Failed!
+Probing for `Maxim MAX6900'... Failed!
+Client found at address 0x52
+Probing for `SPD EEPROM'... Success!
+    (confidence 8, driver `eeprom')
+Client found at address 0x69
 
-I will back you.  The fear of what a huge task it would be to rewrite
-it has prevented us from simply maintaining it.  I've been saying that
-we should evolve it instead of rewriting it for some time now.  I've
-tried to improve the code every time I touch it... although I guess the
-libsysfs stuff I did turns out to be short-lived.
+...
 
-Thanks & regards,
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+#----cut here----
 
--- 
-Mark M. Hoffman
-mhoffman at lightlink.com
+To load everything that is needed, add this to some /etc/rc* file:
+
+#----cut here----
+# I2C adapter drivers
+modprobe i2c-i801
+# I2C chip drivers
+modprobe eeprom
+# sleep 2 # optional
+/usr/local/bin/sensors -s # recommended
+#----cut here----
+
+c) the following modules were loaded:
+
+$ lsmod |grep i2c
+
+i2c_dev                 9984  0
+i2c_i801                9100  0
+i2c_core               21904  2 eeprom, i2c_dev,i2c_i801
+
+problem started when i used "sensors". the results came out as 
+
+Can't access procfs/sysfs file
+Unable to find i2c bus information;
+For 2.6 kernels, make sure you have mounted sysfs and libsensors
+was compiled with sysfs support!
+For older kernels, make sure you have done 'modprobe i2c-proc'!
+
+c) i tried playing around with i2cdump using the addresses of devices i got with "sensors-detect"
+
+c1) results of "i2cdump 0x08"
+    -------------------------
+
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+
+c2) "i2cdump 0x44"
+
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 00 00 00 04 00 00 00 00 00 00 00 00 00 00 00 00    ...?............
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+
+c3) "i2cdump 0x50"
+    --------------
+
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 08 07 0d 0b 01 40 00 04 60 70 00 82 08 00 01    ??????@.?`p.??.?
+10: 0e 04 0c 01 02 20 c0 75 70 00 00 48 30 48 2a 80    ????? ?up..H0H*?
+20: 75 75 45 45 00 00 00 00 00 3c 48 30 2d 55 00 00    uuEE.....<H0-U..
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 41    ...............A
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+60: 00 00 00 00 60 00 00 00 28 12 05 01 0a 00 00 00    ....`...(????...
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+
+c4) "i2cdump 0x52"
+    --------------
+
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 08 07 0d 0b 01 40 00 04 60 70 00 82 08 00 01    ??????@.?`p.??.?
+10: 0e 04 0c 01 02 20 c0 75 70 00 00 48 30 48 2a 80    ????? ?up..H0H*?
+20: 75 75 45 45 00 00 00 00 00 3c 48 30 2d 55 00 00    uuEE.....<H0-U..
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 41    ...............A
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+60: 00 00 00 00 60 00 00 00 28 12 05 01 0a 00 00 00    ....`...(????...
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+
+c5) "i2cdump 0x69"
+
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+10: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+20: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+30: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+40: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+50: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+60: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+70: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+80: 39 7f f7 c6 e5 01 75 01 0f 07 00 cd 3c eb 2f 88    9?????u???.?<?/?
+90: 00 53 b8 f5 1c 00 XX d3 d3 d3 d3 d3 d3 d3 d3 d3    .S???.X?????????
+a0: 39 7f f7 c6 e5 01 75 01 0f 07 00 cd 3c eb 2f 88    9?????u???.?<?/?
+b0: 00 53 b8 f5 1c 00 XX d3 d3 d3 d3 d3 d3 d3 d3 d3    .S???.X?????????
+c0: 39 7f f7 c6 e5 01 75 01 0f 07 00 cd 3c eb 2f 88    9?????u???.?<?/?
+d0: 00 53 b8 f5 1c 00 XX d3 d3 d3 d3 d3 d3 d3 d3 d3    .S???.X?????????
+e0: 39 7f f7 c6 e5 01 75 01 0f 07 00 cd 3c eb 2f 88    9?????u???.?<?/?
+f0: 00 53 b8 f5 1c 00 XX d3 d3 d3 d3 d3 d3 d3 d3 d3    .S???.X?????????
+
+d) i tried to guess what chip/device to use. i experimented with adm1021:
+
+d1) modprobe adm1021 force=0,0x08
+
+"sensors" give:
+
+max1617-i2c-0-08
+Adapter: SMBus I801 adapter at 1400
+
+Board:        -1?C  (low  =    -1?C, high =    -1?C)  ALARM (LOW,HIGH)
+CPU:          -1?C  (low  =    -1?C, high =    -1?C)  ALARM (N/A,LOW,HIGH)
+
+d2) modprobe adm1021 force=0,0x44; "sensors" give
+
+lm84-i2c-0-44
+Adapter: SMBus I801 adapter at 1400
+
+Board:        +0?C  (low  =    +0?C, high =    +0?C)
+CPU:          +0?C  (low  =    +0?C, high =    +0?C)
+
+d3) modprobe adm1021 force=0,0x50; "sensors" give
+
+Can't access procfs/sysfs file
+Unable to find i2c bus information;
+For 2.6 kernels, make sure you have mounted sysfs and libsensors
+was compiled with sysfs support!
+For older kernels, make sure you have done 'modprobe i2c-proc'!
+
+d4) same results with modprobe adm1021 force=0x052
+
+d5) modprobe adm1021 force=0,0x69
+
+max1617-i2c-0-69
+Adapter: SMBus I801 adapter at 1400
+
+Board:       +15?C  (low  =   +15?C, high =   +15?C)
+CPU:         +15?C  (low  =   +15?C, high =   +15?C)  ALARM (N/A,LOW)
+
+This last seem to be the closest. But for sure, it gives me incorrect information (15?C for CPU!)...
+
+Am I doing the right thing?
+
+I wish someone could help. Thanks!
 
 
