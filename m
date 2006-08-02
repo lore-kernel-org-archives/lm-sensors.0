@@ -1,7 +1,7 @@
 From: anthony.calabro@lmco.com (Calabro, Anthony)
-Date: Wed, 02 Aug 2006 16:38:06 +0000
+Date: Wed, 02 Aug 2006 16:47:17 +0000
 Subject: [lm-sensors] Flex Scanner Jammed Problem
-Message-Id: <ECFA7CB48E408A45987215BF5593E04704F7F7BC@emss09m08.us.lmco.com>
+Message-Id: <ECFA7CB48E408A45987215BF5593E04708A1719B@emss09m08.us.lmco.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1064332995.5787.33.camel@nils>
 In-Reply-To: <1064332995.5787.33.camel@nils>
@@ -10,7 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
- 
+Well, I tried a few things and removed w83781d, I again removed the
+sensors.conf file, and this time it worked.
+
+The problem definitely is with the sensors.conf file...
+
+I think its because im copying it over from a windows machine down to
+the linux server, I ran dos2unix on it, but I guess its still corrupted
+in some way.
+
+Im going to try to create my own.... Thanks for your help.
+
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali at linux-fr.org] 
+Sent: Wednesday, August 02, 2006 12:16 PM
+To: Calabro, Anthony
+Cc: LM Sensors
+Subject: Re: [lm-sensors] Flex Scanner Jammed Problem
+
 Hi Anthony,
 
 >     We recently upgraded from Linux v2.4.9 to 2.6.9 and are trying to 
@@ -37,8 +55,6 @@ Hi Anthony,
 You certainly mean MA_X_1617. Did you really copy all of this output
 manually? ;)
 
--- Yeah, I cant actually paste any of the ouptput over, huuge pain.
-
 >         (confidence 3, driver 'adm1021')
 >     ......
 >     Client found at address 0x1a
@@ -46,8 +62,6 @@ manually? ;)
 >         (confidence 3, driver 'adm1021')
 
 Dual-Xeon system?
-
--- Yes
 
 >     ....
 >     Client found at address 0x2d
@@ -96,8 +110,6 @@ your system.
 This one wasn't ported to Linux 2.6 at the time of 2.6.9. If you need
 it, you'll need to backport it, or to move to a more recent kernel.
 
--- OK
-
 >     # Warning:  required module smbus-arp is not currently installed
 on your system.
 >     modprobe smbus-arp
@@ -111,8 +123,6 @@ You can ignore this one, it's useless anyway.
 > so i load all available libraries
 
 What do you mean? Do you mean you loaded the _kernel_modules_?
-
--- yes loaded all the modules...
 
 > and run sensors -s it returns flex scanner jammed.
 
@@ -142,8 +152,6 @@ generally better.
 By "none of which work", I take it that you always obtained the "flex
 scanner jammed" error message?
 
--- correct.
-
 > i also tried removing modules down to just sensors, i801 and w83781d, 
 > and removing ones until i got the proc/sysfs error message, then 
 > adding modules back up until the flex scanner message returned.
@@ -159,28 +167,8 @@ run ldconfig, and try again.
 The only strange thing is that an empty configuration file should have
 let "sensors" work, and you report it did not...
 
--- I ran sensors -v and get:
-	sensors version 2.10.0 with libsensors version 2.10.0
+--
+Jean Delvare
 
- with ldd /usr/bin/sensors I get:
-	libsensors.so.3 => /usr/lib/libsensors.so.3 (0x00664000)
-	libc.so.6 => /lib/tls/libc.so.6 (0x0075b000)
-	libm.so.6 => /lib/tls/libm.so.6 (0x0088d000)
-	libsysfs.so.1 => /usr/lib/libsysfs.so.1 (0x00101000)
-	/lib/ld-linux.so.2 (0x00742000)
 
-If I do ls /usr/lib/libsens* I get:
-
-libsensors.a
-libsensors.so -> libsensors.so.3
-libsensors.so.3 -> libsensors.so.3.1.0
-libsensors.so.3.0.5
-libsensors.so.3.1.0
-
-I definitely think that could be possible, I simply installed the new
-version right over top of the old versions on sensors and libsensors.
-But everything looks OK.  Thanks so much for your quick response and let
-me know if you see anything else that might help.
-
--Anthony Calabro
 
