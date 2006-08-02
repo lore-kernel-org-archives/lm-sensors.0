@@ -1,7 +1,7 @@
 From: anthony.calabro@lmco.com (Calabro, Anthony)
-Date: Wed, 02 Aug 2006 16:47:17 +0000
+Date: Wed, 02 Aug 2006 17:35:25 +0000
 Subject: [lm-sensors] Flex Scanner Jammed Problem
-Message-Id: <ECFA7CB48E408A45987215BF5593E04708A1719B@emss09m08.us.lmco.com>
+Message-Id: <ECFA7CB48E408A45987215BF5593E04708A1719E@emss09m08.us.lmco.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1064332995.5787.33.camel@nils>
 In-Reply-To: <1064332995.5787.33.camel@nils>
@@ -10,17 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Well, I tried a few things and removed w83781d, I again removed the
-sensors.conf file, and this time it worked.
+Im still finding now that whatever I put in the sensors.conf file I get
+flex scanner jammed.
 
-The problem definitely is with the sensors.conf file...
+Even with just two lines, one defining the chip, and one defining a
+label.
 
-I think its because im copying it over from a windows machine down to
-the linux server, I ran dos2unix on it, but I guess its still corrupted
-in some way.
+Even with the newest version in the downloads section.
 
-Im going to try to create my own.... Thanks for your help.
+But when I put a 0 byte file there it works...
 
+Any suggestions? 
+
+
+Anthony W. Calabro
+
+Voice: 703.367.3138 
+Email:  anthony.calabro at lmco.com
 
 -----Original Message-----
 From: Jean Delvare [mailto:khali at linux-fr.org] 
