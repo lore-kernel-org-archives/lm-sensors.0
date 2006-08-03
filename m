@@ -1,119 +1,143 @@
-From: david_denny@verizon.net (David Denny)
-Date: Sun, 27 Aug 2006 13:54:38 +0000
-Subject: [lm-sensors] Newbie: Gigabyte K8NS calibration / scaling questions
-Message-Id: <44F1A41E.7020300@verizon.net>
+From: gregkh@suse.de (gregkh at suse.de)
+Date: Thu, 03 Aug 2006 21:37:52 +0000
+Subject: [lm-sensors] patch hwmon-w83627ehf-documentation.patch added to
+Message-Id: <20060803214223.97B2581B866@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Gentlemen,
 
-Thanks for the great work on lm_sensors (and also the i2c subsystem!)  
-Of course its good to be able to monitor the temperature and take some 
-action,  but I'm also inspired by the "hardware hacking" ideas.   I've 
-wanted to fool with some of the stuff at 
-"http://www.sparkfun.com/commerce/categories.php", but didn't quite know 
-how to interface to a modern computer - now I know!
+This is a note to let you know that I've just added the patch titled
 
-I hooked up lm_sensors and cpufreqd because I was having some strange 
-problems with my CPU overheating under sustained high load, and then 
-getting a very reproducible but mysterious kernel panic.  All is hooked 
-up now, and everything works perfectly.  As the CPU temp climbs, under a 
-heavy load, the frequency is scaled back to stabilize the temp and the 
-kernel panic is avoided.
+     Subject: hwmon: Documentation update for w83627ehf
 
-I have some "fine-tuning" issues that you may be able to provide advice 
-regarding.
+to my gregkh-2.6 tree.  Its filename is
 
-First, my configuration:
+     hwmon-w83627ehf-documentation.patch
 
-AMD Athlon 64 3400+ 2.4GHz
-Gigabyte GA-K8NS (version 1.2 I believe, not 2.1.  Not Ultra, not Pro, 
-just plain.),  Version 19 firmware.
-Linux-2.6.17.11
-lm_sensors-2.10.0
-sysfsutils-2.1.0
-
-This board has the ITE 8712F chip, which is detected correctly.  I can 
-see values like:
-
-it8712-isa-0290
-Adapter: ISA adapter
-VCore 1:   +1.52 V  (min =  +1.42 V, max =  +1.57 V)
-VCore 2:   +2.56 V  (min =  +2.40 V, max =  +2.61 V)
-+3.3V:     +3.07 V  (min =  +3.14 V, max =  +3.47 V)   ALARM
-+5V:       +5.81 V  (min =  +4.76 V, max =  +5.24 V)   ALARM
-+12V:     +11.65 V  (min = +11.39 V, max = +12.61 V)
--12V:     -10.42 V  (min = -12.63 V, max = -11.41 V)   ALARM
--5V:       -4.84 V  (min =  -5.26 V, max =  -4.77 V)   ALARM
-Stdby:     +4.27 V  (min =  +4.76 V, max =  +5.24 V)   ALARM
-VBat:      +2.93 V
-CPU Fan:  5273 RPM  (min = 2481 RPM, div = 8)
-M/B Temp:    +25 C  (low  =   +15 C, high =   +40 C)   sensor = thermistor
-CPU Temp:    +41 C  (low  =   +15 C, high =   +65 C)   sensor = thermistor
-Temp3:       +72 C  (low  =   +15 C, high =   +45 C)   sensor = thermistor
-vid:       +1.55 V
-
-but then, taken a few seconds later, I get...
-
-it8712-isa-0290
-Adapter: ISA adapter
-VCore 1:   +1.52 V  (min =  +1.42 V, max =  +1.57 V)
-VCore 2:   +2.56 V  (min =  +2.40 V, max =  +2.61 V)
-+3.3V:     +3.07 V  (min =  +3.14 V, max =  +3.47 V)   ALARM
-+5V:       +3.84 V  (min =  +4.76 V, max =  +5.24 V)   ALARM
-+12V:     +11.58 V  (min = +11.39 V, max = +12.61 V)
--12V:      -4.66 V  (min = -12.63 V, max = -11.41 V)   ALARM
--5V:       -2.35 V  (min =  -5.26 V, max =  -4.77 V)   ALARM
-Stdby:     +4.97 V  (min =  +4.76 V, max =  +5.24 V)   ALARM
-VBat:      +2.93 V
-CPU Fan:  5443 RPM  (min = 2481 RPM, div = 8)
-M/B Temp:    +25 C  (low  =   +15 C, high =   +40 C)   sensor = thermistor
-CPU Temp:    +41 C  (low  =   +15 C, high =   +65 C)   sensor = thermistor
-Temp3:       +72 C  (low  =   +15 C, high =   +45 C)   sensor = thermistor
-vid:       +1.55 V
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
+From khali at linux-fr.org Wed Jul  5 09:15:35 2006
+Date: Wed, 5 Jul 2006 18:15:31 +0200
+From: Jean Delvare <khali at linux-fr.org>
+To: Greg KH <greg at kroah.com>
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, Rudolf Marek <r.marek at sh.cvut.cz>
+Subject: hwmon: Documentation update for w83627ehf
+Message-Id: <20060705181531.bdcc8624.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-w83627ehf-documentation.patch
 
- From my observations...
+From: Rudolf Marek <r.marek at sh.cvut.cz>
 
-1.) Some signals, like VCore1, VCore2, +3.3, +12, standby, VBatt, CPU 
-Fan, M/B temp, CPU Temp, vid seem to be connected.  In some cases they 
-may have scaling issues however.
+Add documentation for the w83627ehf hardware monitoring driver.
 
-2.) Some signals, like +/- 5V and -12V are all over the place.  I bet 
-they aren't supported on the M/B.
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
-3.) CPU Fan Speed toggles somewhat, which is no problem, but also drifts 
-hugely, like from 5400 RPM to 3500 RPM, which trips an alarm.   I 
-noticed this at night, which system temperature was at a minimum with 
-minimal load on the CPU.  The fan slowed way down and tripped an 
-alarm.   Sorry I can't show it on my output capture!
+---
+ Documentation/hwmon/w83627ehf |   85 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 85 insertions(+)
 
-4.) CPU temp may be scaled / reported incorrectly because I get a 
-different value in BIOS, and also because it fails when it hits the 
-"correct" temperature (over 70C) rather than the lm_sensor reported ~50C.  
+--- /dev/null
++++ gregkh-2.6/Documentation/hwmon/w83627ehf
+@@ -0,0 +1,85 @@
++Kernel driver w83627ehf
++===========+
++Supported chips:
++  * Winbond W83627EHF/EHG (ISA access ONLY)
++    Prefix: 'w83627ehf'
++    Addresses scanned: ISA address retrieved from Super I/O registers
++    Datasheet: http://www.winbond-usa.com/products/winbond_products/pdfs/PCIC/W83627EHF_%20W83627EHGb.pdf
++
++Authors:
++        Jean Delvare <khali at linux-fr.org>
++        Yuan Mu <Ymu at Winbond.com.tw>
++        Rudolf Marek <r.marek at sh.cvut.cz>
++
++Description
++-----------
++
++This driver implements support for the Winbond W83627EHF and W83627EHG
++super I/O chips. We will refer to them collectively as Winbond chips.
++
++The chips implement three temperature sensors, five fan rotation
++speed sensors, ten analog voltage sensors, alarms with beep warnings (control
++unimplemented), and some automatic fan regulation strategies (plus manual
++fan control mode).
++
++Temperatures are measured in degrees Celsius and measurement resolution is 1
++degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
++the temperature gets higher than high limit; it stays on until the temperature
++falls below the Hysteresis value.
++
++Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
++triggered if the rotation speed has dropped below a programmable limit. Fan
++readings can be divided by a programmable divider (1, 2, 4, 8, 16, 32, 64 or
++128) to give the readings more range or accuracy. The driver sets the most
++suitable fan divisor itself. Some fans might not be present because they
++share pins with other functions.
++
++Voltage sensors (also known as IN sensors) report their values in millivolts.
++An alarm is triggered if the voltage has crossed a programmable minimum
++or maximum limit.
++
++The driver supports automatic fan control mode known as Thermal Cruise.
++In this mode, the chip attempts to keep the measured temperature in a
++predefined temperature range. If the temperature goes out of range, fan
++is driven slower/faster to reach the predefined range again.
++
++The mode works for fan1-fan4. Mapping of temperatures to pwm outputs is as
++follows:
++
++temp1 -> pwm1
++temp2 -> pwm2
++temp3 -> pwm3
++prog  -> pwm4 (the programmable setting is not supported by the driver)
++
++/sys files
++----------
++
++pwm[1-4] - this file stores PWM duty cycle or DC value (fan speed) in range:
++	   0 (stop) to 255 (full)
++
++pwm[1-4]_enable - this file controls mode of fan/temperature control:
++	* 1 Manual Mode, write to pwm file any value 0-255 (full speed)
++	* 2 Thermal Cruise
++
++Thermal Cruise mode
++-------------------
++
++If the temperature is in the range defined by:
++
++pwm[1-4]_target    - set target temperature, unit millidegree Celcius
++		     (range 0 - 127000)
++pwm[1-4]_tolerance - tolerance, unit millidegree Celcius (range 0 - 15000)
++
++there are no changes to fan speed. Once the temperature leaves the interval,
++fan speed increases (temp is higher) or decreases if lower than desired.
++There are defined steps and times, but not exported by the driver yet.
++
++pwm[1-4]_min_output - minimum fan speed (range 1 - 255), when the temperature
++                      is below defined range.
++pwm[1-4]_stop_time  - how many milliseconds [ms] must elapse to switch
++                      corresponding fan off. (when the temperature was below
++                      defined range).
++
++Note: last two functions are influenced by other control bits, not yet exported
++      by the driver, so a change might not have any effect.
 
-My questions are:
 
-1.) Do you know which lines are connected and which ones should be ignored?
-2.) What is the best way to determine correct scaling and calibrate the 
-connected lines?  I have plenty of gadgetry and have worked on 
-electronic stuff for years.  But I'm not sure how to determine a 
-calibration curve without having specs, being able to vary conditions, 
-etc.  I'd like to hear ideas from experts!
-3.) Any ideas why the fan speed is moving around (beyond just simple 
-toggling and resolution limitations?)  I'd like to detect "dead/failing" 
-fan syndrome and take corrective action.  Any ideas how this can be 
-implemented since the RPM varies quite a bit?
-4.) Any ideas how to correctly scale the CPU temp?  I'd like to read it 
-absolutely, rather than a relative more/less hot...
+Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
 
-Once again, thanks for the great work!
+i2c/hwmon-w83627ehf-add-pwm-support.patch
+i2c/hwmon-w83627ehf-documentation.patch
+i2c/i2c-dev-cleanups.patch
+i2c/i2c-dev-convert-array-to-list.patch
+i2c/i2c-dev-drop-template-client.patch
+i2c/i2c-dev-device.patch
+pci/pci-unhide-the-smbus-on-asus-pu-dls.patch
 
-David
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060827/144f675d/attachment-0001.html 
