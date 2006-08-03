@@ -1,35 +1,31 @@
-From: zukov@drzukov.is-a-geek.org (=?UTF-8?B?SnVyZSBLbGFrb8SNYXI=?=)
-Date: Tue, 22 Aug 2006 15:11:29 +0000
-Subject: [lm-sensors] Fintek F71872F (sensor chip driver request)
-Message-Id: <44EB1EA1.9050908@drzukov.is-a-geek.org>
+From: bezaur@gmail.com (Charles Spirakis)
+Date: Thu, 03 Aug 2006 07:56:47 +0000
+Subject: [lm-sensors] [PATCH] Update lm_sensors to handle more of the
+Message-Id: <5bfe43f80608030056t16679db3ub2bc7fa0efa59ed1@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <op.tc5kteo6x2i9gg@linux.site>
-In-Reply-To: <op.tc5kteo6x2i9gg@linux.site>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rudolf Marek wrote:
-> Hi all,
->
->   
->> According to http://www.lm-sensors.org/wiki/NewDrivers there is no driver  
->> for the Fintek F71872F sensor chip, which is installed on my EPOX 9npa3j  
->> motherboard.
->> Could I request one?
->>     
->
-> Jure,
-> Are you working on this?
->
-> Regards
-> Rudolf
->   
-Sorry, but between work and college, I've been rather busy. I'll try to 
-do some work on the driver, but I really can't promise anything.
+From: Charles Spirakis <bezaur at gmail.com>
 
+Modified patch from Sven Anders to enhance w83791d support. Partial
+support was already implemented, but it was missing IN9/FAN4/FAN5 output.
 
-Sorry,
-Jure
+Signed-off by: Sven Anders <anders at anduras.de>
+Signed-off by: Charles Spirakis <bezaur at gmail.com>
 
+---
+
+ kernel/chips/w83781d.c |   16 ++++++++++-----
+ prog/sensors/chips.c   |   50
++++++++++++++++++++++++++++++++++++++++++++++++-- 2 files changed, 59
+insertions(+), 7 deletions(-)
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm-sensors-r4079-20060730_sven_changes.patch
+Type: text/x-patch
+Size: 6216 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060803/920c40e7/attachment-0001.bin 
