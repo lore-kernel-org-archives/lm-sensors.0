@@ -1,7 +1,7 @@
 From: gregkh@suse.de (gregkh at suse.de)
-Date: Tue, 29 Aug 2006 23:25:03 +0000
-Subject: [lm-sensors] patch hwmon-it87-it8716f-support.patch added to
-Message-Id: <20060829232606.783F4895AA1@imap.suse.de>
+Date: Thu, 03 Aug 2006 21:37:47 +0000
+Subject: [lm-sensors] patch hwmon-w83627ehf-add-pwm-support.patch added to
+Message-Id: <20060803214218.D866B81D2BA@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -11,477 +11,542 @@ To: lm-sensors@vger.kernel.org
 
 This is a note to let you know that I've just added the patch titled
 
-     Subject: [PATCH 04/14] it87: Add support for the IT8716F
+     Subject: hwmon: Add fan speed control features to w83627ehf
 
 to my gregkh-2.6 tree.  Its filename is
 
-     hwmon-it87-it8716f-support.patch
+     hwmon-w83627ehf-add-pwm-support.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-From khali at linux-fr.org Mon Aug 28 05:23:51 2006
-Date: Mon, 28 Aug 2006 14:23:46 +0200
+From khali at linux-fr.org Wed Jul  5 09:14:31 2006
+Date: Wed, 5 Jul 2006 18:14:31 +0200
 From: Jean Delvare <khali at linux-fr.org>
 To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>
-Subject: [PATCH 04/14] it87: Add support for the IT8716F
-Message-Id: <20060828142346.6bc0fe8e.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-it87-it8716f-support.patch
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, Rudolf Marek <r.marek at sh.cvut.cz>, Yuan Mu <Ymu at Winbond.com.tw>, David Hubbard <david.c.hubbard at gmail.com>
+Subject: hwmon: Add fan speed control features to w83627ehf
+Message-Id: <20060705181431.8a7ac449.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-w83627ehf-add-pwm-support.patch
 
-it87: Add support for the IT8716F
+From: Rudolf Marek <r.marek at sh.cvut.cz>
 
-The IT8716F is a Super-I/O chip with integrated hardware monitoring
-functions. It is very similar to the IT8712F, so adding support to the
-it87 driver was pretty straightforward. The most significant change here
-is that the IT8716F has 16-bit fan speed counters, so the user no more
-needs to tweak the fan clock dividers to get the best readings.
+This patch adds long-awaited support for automatic fan modes. Based on
+the work of Yuan Mu from Winbond, I finished the support with the great
+help of David Hubbard.
 
-Userspace support is already in lm_sensors SVN (to be soon released
-as 2.10.1.)
-
-Thanks to Stian Oksavik, Olivier Nicolas, Prakash Punnoor and
-Juergen Kilb for testing the early versions of this patch.
-
-Thanks also to ITE for providing datasheets and answering my questions.
-
+Signed-off-by: Yuan Mu <Ymu at Winbond.com.tw>
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Signed-off-by: David Hubbard <david.c.hubbard at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
- Documentation/hwmon/it87 |   40 +++++++---
- drivers/hwmon/Kconfig    |    4 -
- drivers/hwmon/it87.c     |  178 ++++++++++++++++++++++++++++++++++++++++-------
- 3 files changed, 185 insertions(+), 37 deletions(-)
+ drivers/hwmon/w83627ehf.c |  393 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 382 insertions(+), 11 deletions(-)
 
---- gregkh-2.6.orig/Documentation/hwmon/it87
-+++ gregkh-2.6/Documentation/hwmon/it87
-@@ -13,6 +13,11 @@ Supported chips:
-                        from Super I/O config space (8 I/O ports)
-     Datasheet: Publicly available at the ITE website
-                http://www.ite.com.tw/
-+  * IT8716F
-+    Prefix: 'it8716'
-+    Addresses scanned: from Super I/O config space (8 I/O ports)
-+    Datasheet: Publicly available at the ITE website
-+               http://www.ite.com.tw/product_info/file/pc/IT8716F_V0.3.ZIP
-   * SiS950   [clone of IT8705F]
-     Prefix: 'it87'
-     Addresses scanned: from Super I/O config space (8 I/O ports)
-@@ -43,26 +48,39 @@ Module Parameters
- Description
- -----------
+--- gregkh-2.6.orig/drivers/hwmon/w83627ehf.c
++++ gregkh-2.6/drivers/hwmon/w83627ehf.c
+@@ -2,6 +2,8 @@
+     w83627ehf - Driver for the hardware monitoring functionality of
+                 the Winbond W83627EHF Super-I/O chip
+     Copyright (C) 2005  Jean Delvare <khali at linux-fr.org>
++    Copyright (C) 2006  Yuan Mu <Ymu at Winbond.com.tw>,
++                        Rudolf Marek <r.marek at sh.cvut.cz>
  
--This driver implements support for the IT8705F, IT8712F and SiS950 chips.
--
--This driver also supports IT8712F, which adds SMBus access, and a VID
--input, used to report the Vcore voltage of the Pentium processor.
--The IT8712F additionally features VID inputs.
-+This driver implements support for the IT8705F, IT8712F, IT8716F and
-+SiS950 chips.
+     Shamelessly ripped from the w83627hf driver
+     Copyright (C) 2003  Mark Studebaker
+@@ -29,8 +31,8 @@
  
- These chips are 'Super I/O chips', supporting floppy disks, infrared ports,
- joysticks and other miscellaneous stuff. For hardware monitoring, they
- include an 'environment controller' with 3 temperature sensors, 3 fan
- rotation speed sensors, 8 voltage sensors, and associated alarms.
+     Supports the following chips:
  
-+The IT8712F and IT8716F additionally feature VID inputs, used to report
-+the Vcore voltage of the processor. The early IT8712F have 5 VID pins,
-+the IT8716F and late IT8712F have 6. They are shared with other functions
-+though, so the functionality may not be available on a given system.
-+The driver dumbly assume it is there.
+-    Chip        #vin    #fan    #pwm    #temp   chip_id man_id
+-    w83627ehf   10      5       -       3       0x88    0x5ca3
++    Chip        #vin    #fan    #pwm    #temp   chip_id    man_id
++    w83627ehf   10      5       4       3       0x88,0xa1  0x5ca3
+ */
+ 
+ #include <linux/module.h>
+@@ -145,10 +147,44 @@ static const u16 W83627EHF_REG_TEMP_CONF
+ #define W83627EHF_REG_ALARM2		0x45A
+ #define W83627EHF_REG_ALARM3		0x45B
+ 
++/* SmartFan registers */
++/* DC or PWM output fan configuration */
++static const u8 W83627EHF_REG_PWM_ENABLE[] = {
++	0x04,			/* SYS FAN0 output mode and PWM mode */
++	0x04,			/* CPU FAN0 output mode and PWM mode */
++	0x12,			/* AUX FAN mode */
++	0x62,			/* CPU fan1 mode */
++};
 +
-+The IT8716F and later IT8712F revisions have support for 2 additional
-+fans. They are not yet supported by the driver.
++static const u8 W83627EHF_PWM_MODE_SHIFT[] = { 0, 1, 0, 6 };
++static const u8 W83627EHF_PWM_ENABLE_SHIFT[] = { 2, 4, 1, 4 };
 +
-+The IT8716F and late IT8712F and IT8705F also have optional 16-bit
-+tachometer counters for fans 1 to 3. This is better (no more fan
-+clock divider mess) but not compatible with the older chips and
-+revisions. For now, the driver only uses the 16-bit mode on the
-+IT8716F.
++/* FAN Duty Cycle, be used to control */
++static const u8 W83627EHF_REG_PWM[] = { 0x01, 0x03, 0x11, 0x61 };
++static const u8 W83627EHF_REG_TARGET[] = { 0x05, 0x06, 0x13, 0x63 };
++static const u8 W83627EHF_REG_TOLERANCE[] = { 0x07, 0x07, 0x14, 0x62 };
 +
- Temperatures are measured in degrees Celsius. An alarm is triggered once
- when the Overtemperature Shutdown limit is crossed.
++
++/* Advanced Fan control, some values are common for all fans */
++static const u8 W83627EHF_REG_FAN_MIN_OUTPUT[] = { 0x08, 0x09, 0x15, 0x64 };
++static const u8 W83627EHF_REG_FAN_STOP_TIME[] = { 0x0C, 0x0D, 0x17, 0x66 };
++
+ /*
+  * Conversions
+  */
  
- Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
--triggered if the rotation speed has dropped below a programmable limit. Fan
--readings can be divided by a programmable divider (1, 2, 4 or 8) to give the
--readings more range or accuracy. Not all RPM values can accurately be
--represented, so some rounding is done. With a divider of 2, the lowest
--representable value is around 2600 RPM.
-+triggered if the rotation speed has dropped below a programmable limit. When
-+16-bit tachometer counters aren't used, fan readings can be divided by
-+a programmable divider (1, 2, 4 or 8) to give the readings more range or
-+accuracy. With a divider of 2, the lowest representable value is around
-+2600 RPM. Not all RPM values can accurately be represented, so some rounding
-+is done.
- 
- Voltage sensors (also known as IN sensors) report their values in volts. An
- alarm is triggered if the voltage has crossed a programmable minimum or
-@@ -71,7 +89,7 @@ zero'; this is important for negative vo
- inputs can measure voltages between 0 and 4.08 volts, with a resolution of
- 0.016 volt. The battery voltage in8 does not have limit registers.
- 
--The VID lines (IT8712F only) encode the core voltage value: the voltage
-+The VID lines (IT8712F/IT8716F) encode the core voltage value: the voltage
- level your processor should work with. This is hardcoded by the mainboard
- and/or processor itself. It is a value in volts.
- 
---- gregkh-2.6.orig/drivers/hwmon/Kconfig
-+++ gregkh-2.6/drivers/hwmon/Kconfig
-@@ -186,8 +186,8 @@ config SENSORS_IT87
- 	select I2C_ISA
- 	select HWMON_VID
- 	help
--	  If you say yes here you get support for ITE IT87xx sensor chips
--	  and clones: SiS960.
-+	  If you say yes here you get support for ITE IT8705F, IT8712F and
-+	  IT8716F sensor chips, and the SiS960 clone.
- 
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called it87.
---- gregkh-2.6.orig/drivers/hwmon/it87.c
-+++ gregkh-2.6/drivers/hwmon/it87.c
-@@ -4,6 +4,7 @@
- 
-     Supports: IT8705F  Super I/O chip w/LPC interface
-               IT8712F  Super I/O chip w/LPC interface & SMBus
-+              IT8716F  Super I/O chip w/LPC interface
-               Sis950   A clone of the IT8705F
- 
-     Copyright (C) 2001 Chris Gauthron <chrisg at 0-in.com> 
-@@ -50,7 +51,7 @@ static unsigned short normal_i2c[] = { 0
- static unsigned short isa_address;
- 
- /* Insmod parameters */
--I2C_CLIENT_INSMOD_2(it87, it8712);
-+I2C_CLIENT_INSMOD_3(it87, it8712, it8716);
- 
- #define	REG	0x2e	/* The register to read/write */
- #define	DEV	0x07	/* Register: Logical device select */
-@@ -101,6 +102,7 @@ superio_exit(void)
- 
- #define IT8712F_DEVID 0x8712
- #define IT8705F_DEVID 0x8705
-+#define IT8716F_DEVID 0x8716
- #define IT87_ACT_REG  0x30
- #define IT87_BASE_REG 0x60
- 
-@@ -132,12 +134,18 @@ static u16 chip_type;
- #define IT87_REG_ALARM3        0x03
- 
- #define IT87_REG_VID           0x0a
-+/* Warning: register 0x0b is used for something completely different in
-+   new chips/revisions. I suspect only 16-bit tachometer mode will work
-+   for these. */
- #define IT87_REG_FAN_DIV       0x0b
-+#define IT87_REG_FAN_16BIT     0x0c
- 
- /* Monitors: 9 voltage (0 to 7, battery), 3 temp (1 to 3), 3 fan (1 to 3) */
- 
- #define IT87_REG_FAN(nr)       (0x0d + (nr))
- #define IT87_REG_FAN_MIN(nr)   (0x10 + (nr))
-+#define IT87_REG_FANX(nr)      (0x18 + (nr))
-+#define IT87_REG_FANX_MIN(nr)  (0x1b + (nr))
- #define IT87_REG_FAN_MAIN_CTRL 0x13
- #define IT87_REG_FAN_CTL       0x14
- #define IT87_REG_PWM(nr)       (0x15 + (nr))
-@@ -169,7 +177,16 @@ static inline u8 FAN_TO_REG(long rpm, in
- 			     254);
++/* 1 is PWM mode, output in ms */
++static inline unsigned int step_time_from_reg(u8 reg, u8 mode)
++{
++	return mode ? 100 * reg : 400 * reg;
++}
++
++static inline u8 step_time_to_reg(unsigned int msec, u8 mode)
++{
++	return SENSORS_LIMIT((mode ? (msec + 50) / 100 :
++						(msec + 200) / 400), 1, 255);
++}
++
+ static inline unsigned int
+ fan_from_reg(u8 reg, unsigned int div)
+ {
+@@ -170,12 +206,12 @@ temp1_from_reg(s8 reg)
  }
  
-+static inline u16 FAN16_TO_REG(long rpm)
-+{
-+	if (rpm = 0)
-+		return 0xffff;
-+	return SENSORS_LIMIT((1350000 + rpm) / (rpm * 2), 1, 0xfffe);
-+}
+ static inline s8
+-temp1_to_reg(int temp)
++temp1_to_reg(int temp, int min, int max)
+ {
+-	if (temp <= -128000)
+-		return -128;
+-	if (temp >= 127000)
+-		return 127;
++	if (temp <= min)
++		return min / 1000;
++	if (temp >= max)
++		return max / 1000;
+ 	if (temp < 0)
+ 		return (temp - 500) / 1000;
+ 	return (temp + 500) / 1000;
+@@ -223,6 +259,16 @@ struct w83627ehf_data {
+ 	s16 temp_max[2];
+ 	s16 temp_max_hyst[2];
+ 	u32 alarms;
 +
- #define FAN_FROM_REG(val,div) ((val)=0?-1:(val)=255?0:1350000/((val)*(div)))
-+/* The divider is fixed to 2 in 16-bit mode */
-+#define FAN16_FROM_REG(val) ((val)=0?-1:(val)=0xffff?0:1350000/((val)*2))
++	u8 pwm_mode[4]; /* 0->DC variable voltage, 1->PWM variable duty cycle */
++	u8 pwm_enable[4]; /* 1->manual
++			     2->thermal cruise (also called SmartFan I) */
++	u8 pwm[4];
++	u8 target_temp[4];
++	u8 tolerance[4];
++
++	u8 fan_min_output[4]; /* minimum fan speed */
++	u8 fan_stop_time[4];
+ };
  
- #define TEMP_TO_REG(val) (SENSORS_LIMIT(((val)<0?(((val)-500)/1000):\
- 					((val)+500)/1000),-128,127))
-@@ -205,8 +222,8 @@ struct it87_data {
- 	u8 in[9];		/* Register value */
- 	u8 in_max[9];		/* Register value */
- 	u8 in_min[9];		/* Register value */
--	u8 fan[3];		/* Register value */
--	u8 fan_min[3];		/* Register value */
-+	u16 fan[3];		/* Register values, possibly combined */
-+	u16 fan_min[3];		/* Register values, possibly combined */
- 	u8 temp[3];		/* Register value */
- 	u8 temp_high[3];	/* Register value */
- 	u8 temp_low[3];		/* Register value */
-@@ -656,6 +673,59 @@ show_pwm_offset(1);
- show_pwm_offset(2);
- show_pwm_offset(3);
+ static inline int is_word_sized(u16 reg)
+@@ -349,6 +395,7 @@ static struct w83627ehf_data *w83627ehf_
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83627ehf_data *data = i2c_get_clientdata(client);
++	int pwmcfg = 0, tolerance = 0; /* shut up the compiler */
+ 	int i;
  
-+/* A different set of callbacks for 16-bit fans */
-+static ssize_t show_fan16(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	struct it87_data *data = it87_update_device(dev);
-+	return sprintf(buf, "%d\n", FAN16_FROM_REG(data->fan[nr]));
+ 	mutex_lock(&data->update_lock);
+@@ -416,6 +463,34 @@ static struct w83627ehf_data *w83627ehf_
+ 			}
+ 		}
+ 
++		for (i = 0; i < 4; i++) {
++			/* pwmcfg, tolarance mapped for i=0, i=1 to same reg */
++			if (i != 1) {
++				pwmcfg = w83627ehf_read_value(client,
++						W83627EHF_REG_PWM_ENABLE[i]);
++				tolerance = w83627ehf_read_value(client,
++						W83627EHF_REG_TOLERANCE[i]);
++			}
++			data->pwm_mode[i] +				((pwmcfg >> W83627EHF_PWM_MODE_SHIFT[i]) & 1)
++				? 0 : 1;
++			data->pwm_enable[i] +					((pwmcfg >> W83627EHF_PWM_ENABLE_SHIFT[i])
++						& 3) + 1;
++			data->pwm[i] = w83627ehf_read_value(client,
++						W83627EHF_REG_PWM[i]);
++			data->fan_min_output[i] = w83627ehf_read_value(client,
++						W83627EHF_REG_FAN_MIN_OUTPUT[i]);
++			data->fan_stop_time[i] = w83627ehf_read_value(client,
++						W83627EHF_REG_FAN_STOP_TIME[i]);
++			data->target_temp[i] +				w83627ehf_read_value(client,
++					W83627EHF_REG_TARGET[i]) &
++					(data->pwm_mode[i] = 1 ? 0x7f : 0xff);
++			data->tolerance[i] = (tolerance >> (i = 1 ? 4 : 0))
++									& 0x0f;
++		}
++
+ 		/* Measured temperatures and limits */
+ 		data->temp1 = w83627ehf_read_value(client,
+ 			      W83627EHF_REG_TEMP1);
+@@ -711,7 +786,7 @@ store_temp1_##reg(struct device *dev, st
+ 	u32 val = simple_strtoul(buf, NULL, 10); \
+  \
+ 	mutex_lock(&data->update_lock); \
+-	data->temp1_##reg = temp1_to_reg(val); \
++	data->temp1_##reg = temp1_to_reg(val, -128000, 127000); \
+ 	w83627ehf_write_value(client, W83627EHF_REG_TEMP1_##REG, \
+ 			      data->temp1_##reg); \
+ 	mutex_unlock(&data->update_lock); \
+@@ -777,6 +852,281 @@ static struct sensor_device_attribute sd
+ 	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13),
+ };
+ 
++#define show_pwm_reg(reg) \
++static ssize_t show_##reg (struct device *dev, struct device_attribute *attr, \
++				char *buf) \
++{ \
++	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	return sprintf(buf, "%d\n", data->reg[nr]); \
 +}
 +
-+static ssize_t show_fan16_min(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	struct it87_data *data = it87_update_device(dev);
-+	return sprintf(buf, "%d\n", FAN16_FROM_REG(data->fan_min[nr]));
-+}
++show_pwm_reg(pwm_mode)
++show_pwm_reg(pwm_enable)
++show_pwm_reg(pwm)
 +
-+static ssize_t set_fan16_min(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
++static ssize_t
++store_pwm_mode(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
 +{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
 +	struct i2c_client *client = to_i2c_client(dev);
-+	struct it87_data *data = i2c_get_clientdata(client);
-+	int val = simple_strtol(buf, NULL, 10);
++	struct w83627ehf_data *data = i2c_get_clientdata(client);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	u32 val = simple_strtoul(buf, NULL, 10);
++	u16 reg;
 +
++	if (val > 1)
++		return -EINVAL;
 +	mutex_lock(&data->update_lock);
-+	data->fan_min[nr] = FAN16_TO_REG(val);
-+	it87_write_value(client, IT87_REG_FAN_MIN(nr),
-+			 data->fan_min[nr] & 0xff);
-+	it87_write_value(client, IT87_REG_FANX_MIN(nr),
-+			 data->fan_min[nr] >> 8);
++	reg = w83627ehf_read_value(client, W83627EHF_REG_PWM_ENABLE[nr]);
++	data->pwm_mode[nr] = val;
++	reg &= ~(1 << W83627EHF_PWM_MODE_SHIFT[nr]);
++	if (!val)
++		reg |= 1 << W83627EHF_PWM_MODE_SHIFT[nr];
++	w83627ehf_write_value(client, W83627EHF_REG_PWM_ENABLE[nr], reg);
 +	mutex_unlock(&data->update_lock);
 +	return count;
 +}
 +
-+/* We want to use the same sysfs file names as 8-bit fans, but we need
-+   different variable names, so we have to use SENSOR_ATTR instead of
-+   SENSOR_DEVICE_ATTR. */
-+#define show_fan16_offset(offset) \
-+static struct sensor_device_attribute sensor_dev_attr_fan##offset##_input16 \
-+	= SENSOR_ATTR(fan##offset##_input, S_IRUGO,		\
-+		show_fan16, NULL, offset - 1);			\
-+static struct sensor_device_attribute sensor_dev_attr_fan##offset##_min16 \
-+	= SENSOR_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR,	\
-+		show_fan16_min, set_fan16_min, offset - 1)
++static ssize_t
++store_pwm(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct w83627ehf_data *data = i2c_get_clientdata(client);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	u32 val = SENSORS_LIMIT(simple_strtoul(buf, NULL, 10), 0, 255);
 +
-+show_fan16_offset(1);
-+show_fan16_offset(2);
-+show_fan16_offset(3);
++	mutex_lock(&data->update_lock);
++	data->pwm[nr] = val;
++	w83627ehf_write_value(client, W83627EHF_REG_PWM[nr], val);
++	mutex_unlock(&data->update_lock);
++	return count;
++}
 +
- /* Alarms */
- static ssize_t show_alarms(struct device *dev, struct device_attribute *attr, char *buf)
- {
-@@ -720,6 +790,7 @@ static int __init it87_find(unsigned sho
- 	superio_enter();
- 	chip_type = superio_inw(DEVID);
- 	if (chip_type != IT8712F_DEVID
-+	 && chip_type != IT8716F_DEVID
- 	 && chip_type != IT8705F_DEVID)
- 	 	goto exit;
++static ssize_t
++store_pwm_enable(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct w83627ehf_data *data = i2c_get_clientdata(client);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	u32 val = simple_strtoul(buf, NULL, 10);
++	u16 reg;
++
++	if (!val || (val > 2))	/* only modes 1 and 2 are supported */
++		return -EINVAL;
++	mutex_lock(&data->update_lock);
++	reg = w83627ehf_read_value(client, W83627EHF_REG_PWM_ENABLE[nr]);
++	data->pwm_enable[nr] = val;
++	reg &= ~(0x03 << W83627EHF_PWM_ENABLE_SHIFT[nr]);
++	reg |= (val - 1) << W83627EHF_PWM_ENABLE_SHIFT[nr];
++	w83627ehf_write_value(client, W83627EHF_REG_PWM_ENABLE[nr], reg);
++	mutex_unlock(&data->update_lock);
++	return count;
++}
++
++
++#define show_tol_temp(reg) \
++static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
++				char *buf) \
++{ \
++	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	return sprintf(buf, "%d\n", temp1_from_reg(data->reg[nr])); \
++}
++
++show_tol_temp(tolerance)
++show_tol_temp(target_temp)
++
++static ssize_t
++store_target_temp(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct w83627ehf_data *data = i2c_get_clientdata(client);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	u8 val = temp1_to_reg(simple_strtoul(buf, NULL, 10), 0, 127000);
++
++	mutex_lock(&data->update_lock);
++	data->target_temp[nr] = val;
++	w83627ehf_write_value(client, W83627EHF_REG_TARGET[nr], val);
++	mutex_unlock(&data->update_lock);
++	return count;
++}
++
++static ssize_t
++store_tolerance(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct w83627ehf_data *data = i2c_get_clientdata(client);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	u16 reg;
++	/* Limit the temp to 0C - 15C */
++	u8 val = temp1_to_reg(simple_strtoul(buf, NULL, 10), 0, 15000);
++
++	mutex_lock(&data->update_lock);
++	reg = w83627ehf_read_value(client, W83627EHF_REG_TOLERANCE[nr]);
++	data->tolerance[nr] = val;
++	if (nr = 1)
++		reg = (reg & 0x0f) | (val << 4);
++	else
++		reg = (reg & 0xf0) | val;
++	w83627ehf_write_value(client, W83627EHF_REG_TOLERANCE[nr], reg);
++	mutex_unlock(&data->update_lock);
++	return count;
++}
++
++static struct sensor_device_attribute sda_pwm[] = {
++	SENSOR_ATTR(pwm1, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 0),
++	SENSOR_ATTR(pwm2, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 1),
++	SENSOR_ATTR(pwm3, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 2),
++	SENSOR_ATTR(pwm4, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 3),
++};
++
++static struct sensor_device_attribute sda_pwm_mode[] = {
++	SENSOR_ATTR(pwm1_mode, S_IWUSR | S_IRUGO, show_pwm_mode,
++		    store_pwm_mode, 0),
++	SENSOR_ATTR(pwm2_mode, S_IWUSR | S_IRUGO, show_pwm_mode,
++		    store_pwm_mode, 1),
++	SENSOR_ATTR(pwm3_mode, S_IWUSR | S_IRUGO, show_pwm_mode,
++		    store_pwm_mode, 2),
++	SENSOR_ATTR(pwm4_mode, S_IWUSR | S_IRUGO, show_pwm_mode,
++		    store_pwm_mode, 3),
++};
++
++static struct sensor_device_attribute sda_pwm_enable[] = {
++	SENSOR_ATTR(pwm1_enable, S_IWUSR | S_IRUGO, show_pwm_enable,
++		    store_pwm_enable, 0),
++	SENSOR_ATTR(pwm2_enable, S_IWUSR | S_IRUGO, show_pwm_enable,
++		    store_pwm_enable, 1),
++	SENSOR_ATTR(pwm3_enable, S_IWUSR | S_IRUGO, show_pwm_enable,
++		    store_pwm_enable, 2),
++	SENSOR_ATTR(pwm4_enable, S_IWUSR | S_IRUGO, show_pwm_enable,
++		    store_pwm_enable, 3),
++};
++
++static struct sensor_device_attribute sda_target_temp[] = {
++	SENSOR_ATTR(pwm1_target, S_IWUSR | S_IRUGO, show_target_temp,
++		    store_target_temp, 0),
++	SENSOR_ATTR(pwm2_target, S_IWUSR | S_IRUGO, show_target_temp,
++		    store_target_temp, 1),
++	SENSOR_ATTR(pwm3_target, S_IWUSR | S_IRUGO, show_target_temp,
++		    store_target_temp, 2),
++	SENSOR_ATTR(pwm4_target, S_IWUSR | S_IRUGO, show_target_temp,
++		    store_target_temp, 3),
++};
++
++static struct sensor_device_attribute sda_tolerance[] = {
++	SENSOR_ATTR(pwm1_tolerance, S_IWUSR | S_IRUGO, show_tolerance,
++		    store_tolerance, 0),
++	SENSOR_ATTR(pwm2_tolerance, S_IWUSR | S_IRUGO, show_tolerance,
++		    store_tolerance, 1),
++	SENSOR_ATTR(pwm3_tolerance, S_IWUSR | S_IRUGO, show_tolerance,
++		    store_tolerance, 2),
++	SENSOR_ATTR(pwm4_tolerance, S_IWUSR | S_IRUGO, show_tolerance,
++		    store_tolerance, 3),
++};
++
++static void device_create_file_pwm(struct device *dev, int i)
++{
++	device_create_file(dev, &sda_pwm[i].dev_attr);
++	device_create_file(dev, &sda_pwm_mode[i].dev_attr);
++	device_create_file(dev, &sda_pwm_enable[i].dev_attr);
++	device_create_file(dev, &sda_target_temp[i].dev_attr);
++	device_create_file(dev, &sda_tolerance[i].dev_attr);
++}
++
++/* Smart Fan registers */
++
++#define fan_functions(reg, REG) \
++static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
++		       char *buf) \
++{ \
++	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	return sprintf(buf, "%d\n", data->reg[nr]); \
++}\
++static ssize_t \
++store_##reg(struct device *dev, struct device_attribute *attr, \
++			    const char *buf, size_t count) \
++{\
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct w83627ehf_data *data = i2c_get_clientdata(client); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	u32 val = SENSORS_LIMIT(simple_strtoul(buf, NULL, 10), 1, 255); \
++	mutex_lock(&data->update_lock); \
++	data->reg[nr] = val; \
++	w83627ehf_write_value(client, W83627EHF_REG_##REG[nr],  val); \
++	mutex_unlock(&data->update_lock); \
++	return count; \
++}
++
++fan_functions(fan_min_output, FAN_MIN_OUTPUT)
++
++#define fan_time_functions(reg, REG) \
++static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
++				char *buf) \
++{ \
++	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	return sprintf(buf, "%d\n", \
++			step_time_from_reg(data->reg[nr], data->pwm_mode[nr])); \
++} \
++\
++static ssize_t \
++store_##reg(struct device *dev, struct device_attribute *attr, \
++			const char *buf, size_t count) \
++{ \
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct w83627ehf_data *data = i2c_get_clientdata(client); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
++	u8 val = step_time_to_reg(simple_strtoul(buf, NULL, 10), \
++					data->pwm_mode[nr]); \
++	mutex_lock(&data->update_lock); \
++	data->reg[nr] = val; \
++	w83627ehf_write_value(client, W83627EHF_REG_##REG[nr], val); \
++	mutex_unlock(&data->update_lock); \
++	return count; \
++} \
++
++fan_time_functions(fan_stop_time, FAN_STOP_TIME)
++
++
++static struct sensor_device_attribute sda_sf3_arrays_fan4[] = {
++	SENSOR_ATTR(pwm4_stop_time, S_IWUSR | S_IRUGO, show_fan_stop_time,
++		    store_fan_stop_time, 3),
++	SENSOR_ATTR(pwm4_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
++		    store_fan_min_output, 3),
++};
++
++static struct sensor_device_attribute sda_sf3_arrays[] = {
++	SENSOR_ATTR(pwm1_stop_time, S_IWUSR | S_IRUGO, show_fan_stop_time,
++		    store_fan_stop_time, 0),
++	SENSOR_ATTR(pwm2_stop_time, S_IWUSR | S_IRUGO, show_fan_stop_time,
++		    store_fan_stop_time, 1),
++	SENSOR_ATTR(pwm3_stop_time, S_IWUSR | S_IRUGO, show_fan_stop_time,
++		    store_fan_stop_time, 2),
++	SENSOR_ATTR(pwm1_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
++		    store_fan_min_output, 0),
++	SENSOR_ATTR(pwm2_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
++		    store_fan_min_output, 1),
++	SENSOR_ATTR(pwm3_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
++		    store_fan_min_output, 2),
++};
++
+ /*
+  * Driver and client management
+  */
+@@ -810,6 +1160,7 @@ static int w83627ehf_detect(struct i2c_a
+ 	struct i2c_client *client;
+ 	struct w83627ehf_data *data;
+ 	struct device *dev;
++	u8 fan4pin, fan5pin;
+ 	int i, err = 0;
  
-@@ -799,8 +870,16 @@ static int it87_detect(struct i2c_adapte
- 		i = it87_read_value(new_client, IT87_REG_CHIPID);
- 		if (i = 0x90) {
- 			kind = it87;
--			if ((is_isa) && (chip_type = IT8712F_DEVID))
--				kind = it8712;
-+			if (is_isa) {
-+				switch (chip_type) {
-+				case IT8712F_DEVID:
-+					kind = it8712;
-+					break;
-+				case IT8716F_DEVID:
-+					kind = it8716;
-+					break;
-+				}
-+			}
- 		}
- 		else {
- 			if (kind = 0)
-@@ -817,6 +896,8 @@ static int it87_detect(struct i2c_adapte
- 		name = "it87";
- 	} else if (kind = it8712) {
- 		name = "it8712";
-+	} else if (kind = it8716) {
-+		name = "it8716";
+ 	if (!request_region(address + REGION_OFFSET, REGION_LENGTH,
+@@ -848,13 +1199,21 @@ static int w83627ehf_detect(struct i2c_a
+ 		data->fan_min[i] = w83627ehf_read_value(client,
+ 				   W83627EHF_REG_FAN_MIN[i]);
+ 
++	/* fan4 and fan5 share some pins with the GPIO and serial flash */
++
++	superio_enter();
++	fan5pin = superio_inb(0x24) & 0x2;
++	fan4pin = superio_inb(0x29) & 0x6;
++	superio_exit();
++
+ 	/* It looks like fan4 and fan5 pins can be alternatively used
+ 	   as fan on/off switches */
++
+ 	data->has_fan = 0x07; /* fan1, fan2 and fan3 */
+ 	i = w83627ehf_read_value(client, W83627EHF_REG_FANDIV1);
+-	if (i & (1 << 2))
++	if ((i & (1 << 2)) && (!fan4pin))
+ 		data->has_fan |= (1 << 3);
+-	if (i & (1 << 0))
++	if ((i & (1 << 0)) && (!fan5pin))
+ 		data->has_fan |= (1 << 4);
+ 
+ 	/* Register sysfs hooks */
+@@ -864,13 +1223,25 @@ static int w83627ehf_detect(struct i2c_a
+ 		goto exit_detach;
  	}
  
- 	/* Fill in the remaining client fields and put it into the global list */
-@@ -884,15 +965,41 @@ static int it87_detect(struct i2c_adapte
- 	device_create_file(&new_client->dev, &sensor_dev_attr_temp1_type.dev_attr);
- 	device_create_file(&new_client->dev, &sensor_dev_attr_temp2_type.dev_attr);
- 	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_type.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan1_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan2_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan3_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan1_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan2_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan3_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan1_div.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan2_div.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan3_div.dev_attr);
++  	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++)
++  		device_create_file(dev, &sda_sf3_arrays[i].dev_attr);
 +
-+	if (data->type = it8716) { /* 16-bit tachometers */
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan1_input16.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan2_input16.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan3_input16.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan1_min16.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan2_min16.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan3_min16.dev_attr);
-+	} else {
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan1_input.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan2_input.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan3_input.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan1_min.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan2_min.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan3_min.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan1_div.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan2_div.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan3_div.dev_attr);
-+	}
++	/* if fan4 is enabled create the sf3 files for it */
++	if (data->has_fan & (1 << 3))
++		for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++)
++			device_create_file(dev, &sda_sf3_arrays_fan4[i].dev_attr);
 +
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
- 	if (enable_pwm_interface) {
- 		device_create_file(&new_client->dev, &sensor_dev_attr_pwm1_enable.dev_attr);
-@@ -903,7 +1010,7 @@ static int it87_detect(struct i2c_adapte
- 		device_create_file(&new_client->dev, &sensor_dev_attr_pwm3.dev_attr);
- 	}
+ 	for (i = 0; i < 10; i++)
+ 		device_create_file_in(dev, i);
  
--	if (data->type = it8712) {
-+	if (data->type = it8712 || data->type = it8716) {
- 		data->vrm = vid_which_vrm();
- 		device_create_file_vrm(new_client);
- 		device_create_file_vid(new_client);
-@@ -1068,6 +1175,17 @@ static void it87_init_client(struct i2c_
- 		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
- 	}
- 
-+	/* Set tachometers to 16-bit mode if needed */
-+	if (data->type = it8716) {
-+		tmp = it87_read_value(client, IT87_REG_FAN_16BIT);
-+		if ((tmp & 0x07) != 0x07) {
-+			dev_dbg(&client->dev,
-+				"Setting fan1-3 to 16-bit mode\n");
-+			it87_write_value(client, IT87_REG_FAN_16BIT,
-+					 tmp | 0x07);
+ 	for (i = 0; i < 5; i++) {
+-		if (data->has_fan & (1 << i))
++		if (data->has_fan & (1 << i)) {
+ 			device_create_file_fan(dev, i);
++			if (i != 4) /* we have only 4 pwm */
++				device_create_file_pwm(dev, i);
 +		}
-+	}
+ 	}
 +
- 	/* Set current fan mode registers and the default settings for the
- 	 * other mode registers */
- 	for (i = 0; i < 3; i++) {
-@@ -1125,10 +1243,17 @@ static struct it87_data *it87_update_dev
- 		data->in_max[8] = 255;
+ 	for (i = 0; i < ARRAY_SIZE(sda_temp); i++)
+ 		device_create_file(dev, &sda_temp[i].dev_attr);
  
- 		for (i = 0; i < 3; i++) {
--			data->fan[i] -			    it87_read_value(client, IT87_REG_FAN(i));
- 			data->fan_min[i]  			    it87_read_value(client, IT87_REG_FAN_MIN(i));
-+			data->fan[i] = it87_read_value(client,
-+				       IT87_REG_FAN(i));
-+			/* Add high byte if in 16-bit mode */
-+			if (data->type = it8716) {
-+				data->fan[i] |= it87_read_value(client,
-+						IT87_REG_FANX(i)) << 8;
-+				data->fan_min[i] |= it87_read_value(client,
-+						IT87_REG_FANX_MIN(i)) << 8;
-+			}
- 		}
- 		for (i = 0; i < 3; i++) {
- 			data->temp[i] @@ -1139,10 +1264,13 @@ static struct it87_data *it87_update_dev
- 			    it87_read_value(client, IT87_REG_TEMP_LOW(i));
- 		}
- 
--		i = it87_read_value(client, IT87_REG_FAN_DIV);
--		data->fan_div[0] = i & 0x07;
--		data->fan_div[1] = (i >> 3) & 0x07;
--		data->fan_div[2] = (i & 0x40) ? 3 : 1;
-+		/* Newer chips don't have clock dividers */
-+		if (data->type != it8716) {
-+			i = it87_read_value(client, IT87_REG_FAN_DIV);
-+			data->fan_div[0] = i & 0x07;
-+			data->fan_div[1] = (i >> 3) & 0x07;
-+			data->fan_div[2] = (i & 0x40) ? 3 : 1;
-+		}
- 
- 		data->alarms  			it87_read_value(client, IT87_REG_ALARM1) |
-@@ -1152,9 +1280,11 @@ static struct it87_data *it87_update_dev
- 
- 		data->sensor = it87_read_value(client, IT87_REG_TEMP_ENABLE);
- 		/* The 8705 does not have VID capability */
--		if (data->type = it8712) {
-+		if (data->type = it8712 || data->type = it8716) {
- 			data->vid = it87_read_value(client, IT87_REG_VID);
--			data->vid &= 0x1f;
-+			/* The older IT8712F revisions had only 5 VID pins,
-+			   but we assume it is always safe to read 6 bits. */
-+			data->vid &= 0x3f;
- 		}
- 		data->last_updated = jiffies;
- 		data->valid = 1;
-@@ -1193,7 +1323,7 @@ static void __exit sm_it87_exit(void)
- 
- 
- MODULE_AUTHOR("Chris Gauthron <chrisg at 0-in.com>");
--MODULE_DESCRIPTION("IT8705F, IT8712F, Sis950 driver");
-+MODULE_DESCRIPTION("IT8705F/8712F/8716F, SiS950 driver");
- module_param(update_vbat, bool, 0);
- MODULE_PARM_DESC(update_vbat, "Update vbat if set else return powerup value");
- module_param(fix_pwm_polarity, bool, 0);
 
 
 Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
 
 i2c/hwmon-w83627ehf-add-pwm-support.patch
 i2c/hwmon-w83627ehf-documentation.patch
-i2c/i2c-algo-bit-kill-mdelay.patch
-i2c/hwmon-abituguru-suspend-resume.patch
-i2c/i2c-__must_check-fixes-i2c-dev.patch
-i2c/i2c-__must_check-fixes.patch
-i2c/hwmon-it87-disabled-fans.patch
-i2c/i2c-algo-sibyte-cleanups.patch
-i2c/i2c-algo-sibyte-merge-in-i2c-sibyte.patch
-i2c/i2c-au1550-add-au1200-support.patch
-i2c/i2c-au1550-add-smbus-functionality-flag.patch
-i2c/i2c-au1550-fix-timeout-problem.patch
-i2c/i2c-bus-driver-for-TI-OMAP-boards.patch
-i2c/i2c-isa-plan-for-removal.patch
 i2c/i2c-dev-cleanups.patch
 i2c/i2c-dev-convert-array-to-list.patch
 i2c/i2c-dev-drop-template-client.patch
 i2c/i2c-dev-device.patch
-i2c/i2c-fix-copy-n-paste-in-subsystem-Kconfig.patch
-i2c/i2c-matroxfb-c99-struct-init.patch
-i2c/i2c-sibyte-drop-kip-walker-address.patch
-i2c/i2c-stub-add-chip_addr-param.patch
-i2c/hwmon-atxp1-signed-unsigned-char-bug.patch
-i2c/hwmon-hdaps-handle-errors-from-input-register-device.patch
-i2c/hwmon-it87-copyright-update.patch
-i2c/hwmon-it87-div-to-reg-overflow.patch
-i2c/hwmon-it87-in8-no-limits.patch
-i2c/hwmon-it87-it8716f-support.patch
-i2c/hwmon-it87-it8718f-support.patch
-i2c/hwmon-it87-sane-limit-defaults.patch
-i2c/hwmon-it87-set-fan-div.patch
-i2c/hwmon-k8temp-autoload.patch
-i2c/hwmon-k8temp-new-driver.patch
-i2c/hwmon-smsc47m1-fix-dev-message.patch
+pci/pci-unhide-the-smbus-on-asus-pu-dls.patch
 
