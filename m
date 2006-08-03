@@ -1,67 +1,34 @@
-From: dieter.jurzitza@t-online.de (Dieter Jurzitza)
-Date: Thu, 31 Aug 2006 20:08:47 +0000
-Subject: [lm-sensors] Question on driver maxilife.c - how to compile for
-Message-Id: <200608312208.47176.dieter.jurzitza@t-online.de>
+From: bezaur@gmail.com (Charles Spirakis)
+Date: Thu, 03 Aug 2006 07:57:15 +0000
+Subject: [lm-sensors] [PATCH] w83791d - swap bit 1 and bit 13 in beep_enable
+Message-Id: <5bfe43f80608030057w2a35591ag2f6bd7b771b0c568@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200608271418.06601.dieter.jurzitza@t-online.de>
-In-Reply-To: <200608271418.06601.dieter.jurzitza@t-online.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dear listmembers,
-I announced that I wanted to test the installation of lm_sensors on a 2.4 
-kernel arch.
-I got sensors-2.10.0, i2c-2.10.0. I uninstalled the old sensors, I unloaded 
-the i2c-modules.
-After some fiddling I finally decided to use a "vanilla" kernel, but in vain 
-(SuSE linux 9.0):
-Installation of i2c is problemless,
-installation of sensors works until depmod -a
-Then I get tons of *** Unresolved symbols 
-in /lib/modules/2.4.21-144-smp4G/kernel/drivers/i2c/chips/xeontemp.o
-etc etc etc.
-This happens with the "stock" SuSE kernel and the vanilla kernel. More 
-specifically:
+From: Charles Spirakis <bezaur at gmail.com>
 
-/lib/modules/2.4.21-144-smp4G/kernel/drivers/i2c/chips/maxilife.o: unresolved 
-symbol i2c_sysctl_real
-/lib/modules/2.4.21-144-smp4G/kernel/drivers/i2c/chips/maxilife.o: unresolved 
-symbol i2c_proc_real
-/lib/modules/2.4.21-144-smp4G/kernel/drivers/i2c/chips/maxilife.o: unresolved 
-symbol i2c_deregister_entry
-/lib/modules/2.4.21-144-smp4G/kernel/drivers/i2c/chips/maxilife.o: unresolved 
-symbol i2c_detect
-/lib/modules/2.4.21-144-smp4G/kernel/drivers/i2c/chips/maxilife.o: unresolved 
-symbol i2c_register_entry
-/lib/modules/2.4.21-144-smp4G/kernel/drivers/i2c/chips/maxilife.o: 
-insmod /lib/modules/2.4.21-144-smp4G/kernel/drivers/i2c/chips/maxilife.o 
-failed
+The alarm and beep enable bits are close to being the same but bit 1 and
+bit 13 are swapped. This patch swaps those bits on the beep enable side
+so that user-mode doesn't need to know. Also, the w83791d official
+documentation for the alarm bits doesn't seem to match reality so
+update the driver documentation to reflect reality.  Patch was originally
+submitted by Sven Anders.
 
-Any ideas? Any module ends with similar messages. Many thanks in advance,
-take care
+Signed-off by: Sven Anders <anders at anduras.de>
+Signed-off by: Charles Spirakis <bezaur at gmail.com>
 
+---
 
-
-Dieter Jurzitza
-
-Am Sonntag, 27. August 2006 22:22 schrieb Jean Delvare:
-*****
-
--- 
------------------------------------------------------------
-
-                               |
-                                \
-                 /\_/\           |
-                | ~x~ |/-----\   /
-                 \   /-       \_/
-  ^^__   _        /  _  ____   /
- <??__ \- \_/     |  |/    |  |
-  ||  ||         _| _|    _| _|
-
-if you really want to see the pictures above - use some font
-with constant spacing like courier! :-)
------------------------------------------------------------
-
+ Documentation/hwmon/w83791d |   43 ++++++++++++++++++++++++++-----------------
+ drivers/hwmon/w83791d.c     |   33 ++++++++++++++++++++++++++++++---
+ 2 files changed, 56 insertions(+), 20 deletions(-)
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: w83791d_update.patch
+Type: text/x-patch
+Size: 5790 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060803/b5693a78/attachment.bin 
