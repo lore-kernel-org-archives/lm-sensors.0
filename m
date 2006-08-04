@@ -1,7 +1,7 @@
-From: aris@cathedrallabs.org (Aristeu Sergio Rozanski Filho)
-Date: Thu, 03 Aug 2006 20:08:49 +0000
+From: johannes@sipsolutions.net (Johannes Berg)
+Date: Fri, 04 Aug 2006 08:13:53 +0000
 Subject: [lm-sensors] [PATCH] Apple Motion Sensor driver
-Message-Id: <20060803200848.GC6547@cathedrallabs.org>
+Message-Id: <44D301C1.3050808@sipsolutions.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060802191520.GA2260@hansmi.ch>
 In-Reply-To: <20060802191520.GA2260@hansmi.ch>
@@ -10,11 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I would like if Aristeu or Stelian could fix this, because I don't own
-> the I??C hardware myself. Thus I left it untouched in the patch below.
-will take a look on this tonight
+Andrew Morton wrote:
+> Also, the previous patch had an s-o-b from Johannes.  Does this version
+> need one too?  
+>   
+I didn't really write much code in there, but for any that I might have 
+written I can assure that it's ok to use:
 
--- 
-Aristeu
+Signed-off-by: Johannes Berg <johannes at sipsolutions.net>
 
 
