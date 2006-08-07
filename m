@@ -1,25 +1,16 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 30 Aug 2006 07:21:03 +0000
-Subject: [lm-sensors] I2C detection
-Message-Id: <44F53C5F.10709@sh.cvut.cz>
+From: brian@rapsure.net (Brian Beardall)
+Date: Mon, 07 Aug 2006 05:10:05 +0000
+Subject: [lm-sensors] f75383 / f75384 driver questions
+Message-Id: <1154927405.24785.2.camel@rapsure.rapsure.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060830013649.58038.qmail@web55812.mail.re3.yahoo.com>
-In-Reply-To: <20060830013649.58038.qmail@web55812.mail.re3.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+I wrote a driver for the f75383/4, and I never heard anything back about
+what should be changed in the code. I submitted the patches, and so you
+should be able to find them. If not I'll re-send the code. It was really
+about a month ago.
 
-Sorry this does not belong to hwmon mailing list. Please stop sending your 
-offtopic mails here in the rate of couple of mails on same topic IN SAME DAY!!!!
-
-We are NOT paid support! We are doing that in our free time. Do not waste our 
-resources, such as with writing this mail.
-
-Thank you,
-
-Regards
-Rudolf
 
