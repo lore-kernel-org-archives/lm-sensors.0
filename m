@@ -1,39 +1,24 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sun, 20 Aug 2006 11:45:30 +0000
-Subject: [lm-sensors] Tyan S2466N fan control help
-Message-Id: <44E84B5A.1030204@sh.cvut.cz>
+From: tparcina@lama.hr (=?iso-8859-2?Q?Tomislav_Par=E8ina?=)
+Date: Mon, 07 Aug 2006 06:15:03 +0000
+Subject: [lm-sensors] Via VT1211 - in Kernel
+Message-Id: <79337FA3BA80774F9FE87BF809C9F356430954@stipe.lama.hr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44CD6F57.3080001@gmail.com>
-In-Reply-To: <44CD6F57.3080001@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jax,
+When will support for Via vt1211 chip be in Kernel? Can I expect it soon?
 
-> Is there anyone who can make it work with my motherboard or somethink
-> like this from tyan?
-> The problem not lm-sensors specific because I get the same with speedfan
-> or motherboard monitor app in windows. I tryed to search but I go
-> nowhere with google. Bios upgrade also impossible if it would be the
-> problem, because tyan doesn't support this board anymore. The board has
-> 6 fan connectors and I tried all but still the same results.
 
-Perhaps they do not have PWM transitors connected so you cannot control the fan
-speed.
 
-If the fan speed measurements are zero, then you need to change something called
- "Fan divisor" Please check the sensors.conf file, find correct section and
-
-set fan1_div 4
-
-Add lines something like this (8 should be used for slower fans)
-
-Then run sensors -s to apply the change.
-
-As for the temps. 77 is a lot how do you cool it?
-
-Regards
-Rudolf
+--
+Tomislav Par?ina
+Lama Computers Split
+Stinice 12, 21000 Split
+Tel.: +385(21)495148
+Mob.: +385(91)1212148
+SIP: tomo at pbx.lama.hr
+e-mail: tparcina#lama.hr
+http://www.lama.hr
 
