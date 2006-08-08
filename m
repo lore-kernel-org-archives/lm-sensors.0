@@ -1,14 +1,12 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 28 Aug 2006 12:23:46 +0000
-Subject: [lm-sensors] [PATCH 04/14] it87: Add support for the IT8716F
-Message-Id: <20060828142346.6bc0fe8e.khali@linux-fr.org>
+Date: Tue, 08 Aug 2006 14:06:01 +0000
+Subject: [lm-sensors] [PATCH 1/5] it87: Add support for the IT8716F
+Message-Id: <20060808160601.60701c88.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
-
-Content-Disposition: inline; filename=hwmon-it87-it8716f-support.patch
 
 it87: Add support for the IT8716F
 
@@ -21,20 +19,17 @@ needs to tweak the fan clock dividers to get the best readings.
 Userspace support is already in lm_sensors SVN (to be soon released
 as 2.10.1.)
 
-Thanks to Stian Oksavik, Olivier Nicolas, Prakash Punnoor and
-Juergen Kilb for testing the early versions of this patch.
-
-Thanks also to ITE for providing datasheets and answering my questions.
+Thanks to Stian Oksavik for testing the early versions of this patch.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- Documentation/hwmon/it87 |   40 +++++++---
+ Documentation/hwmon/it87 |   40 ++++++++++----
  drivers/hwmon/Kconfig    |    4 
- drivers/hwmon/it87.c     |  178 ++++++++++++++++++++++++++++++++++++++++------
- 3 files changed, 185 insertions(+), 37 deletions(-)
+ drivers/hwmon/it87.c     |  127 +++++++++++++++++++++++++++++++++++++---------
+ 3 files changed, 134 insertions(+), 37 deletions(-)
 
---- linux-2.6.18-rc4.orig/Documentation/hwmon/it87	2006-08-27 22:32:01.000000000 +0200
-+++ linux-2.6.18-rc4/Documentation/hwmon/it87	2006-08-27 22:47:56.000000000 +0200
+--- linux-2.6.18-rc4.orig/Documentation/hwmon/it87	2006-08-08 14:18:25.000000000 +0200
++++ linux-2.6.18-rc4/Documentation/hwmon/it87	2006-08-08 14:47:57.000000000 +0200
 @@ -13,6 +13,11 @@
                         from Super I/O config space (8 I/O ports)
      Datasheet: Publicly available at the ITE website
@@ -77,7 +72,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
 +tachometer counters for fans 1 to 3. This is better (no more fan
 +clock divider mess) but not compatible with the older chips and
 +revisions. For now, the driver only uses the 16-bit mode on the
-+IT8716F.
++IT8716F, and only if the chip was so configured.
 +
  Temperatures are measured in degrees Celsius. An alarm is triggered once
  when the Overtemperature Shutdown limit is crossed.
@@ -89,7 +84,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
 -represented, so some rounding is done. With a divider of 2, the lowest
 -representable value is around 2600 RPM.
 +triggered if the rotation speed has dropped below a programmable limit. When
-+16-bit tachometer counters aren't used, fan readings can be divided by
++16-bit tachometer counters aren't use, fan readings can be divided by
 +a programmable divider (1, 2, 4 or 8) to give the readings more range or
 +accuracy. With a divider of 2, the lowest representable value is around
 +2600 RPM. Not all RPM values can accurately be represented, so some rounding
@@ -106,8 +101,8 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  level your processor should work with. This is hardcoded by the mainboard
  and/or processor itself. It is a value in volts.
  
---- linux-2.6.18-rc4.orig/drivers/hwmon/it87.c	2006-08-27 22:32:01.000000000 +0200
-+++ linux-2.6.18-rc4/drivers/hwmon/it87.c	2006-08-27 22:42:16.000000000 +0200
+--- linux-2.6.18-rc4.orig/drivers/hwmon/it87.c	2006-08-08 14:18:25.000000000 +0200
++++ linux-2.6.18-rc4/drivers/hwmon/it87.c	2006-08-08 14:47:57.000000000 +0200
 @@ -4,6 +4,7 @@
  
      Supports: IT8705F  Super I/O chip w/LPC interface
@@ -152,7 +147,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  #define IT87_REG_FAN_MAIN_CTRL 0x13
  #define IT87_REG_FAN_CTL       0x14
  #define IT87_REG_PWM(nr)       (0x15 + (nr))
-@@ -169,7 +177,16 @@
+@@ -169,7 +177,15 @@
  			     254);
  }
  
@@ -160,87 +155,76 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
 +{
 +	if (rpm = 0)
 +		return 0xffff;
-+	return SENSORS_LIMIT((1350000 + rpm) / (rpm * 2), 1, 0xfffe);
++	return SENSORS_LIMIT((1350000 + rpm / 2) / rpm, 1, 0xfffe);
 +}
 +
  #define FAN_FROM_REG(val,div) ((val)=0?-1:(val)=255?0:1350000/((val)*(div)))
-+/* The divider is fixed to 2 in 16-bit mode */
-+#define FAN16_FROM_REG(val) ((val)=0?-1:(val)=0xffff?0:1350000/((val)*2))
++#define FAN16_FROM_REG(val) ((val)=0?-1:(val)=0xffff?0:1350000/(val))
  
  #define TEMP_TO_REG(val) (SENSORS_LIMIT(((val)<0?(((val)-500)/1000):\
  					((val)+500)/1000),-128,127))
-@@ -205,8 +222,8 @@
+@@ -205,8 +221,9 @@
  	u8 in[9];		/* Register value */
  	u8 in_max[9];		/* Register value */
  	u8 in_min[9];		/* Register value */
 -	u8 fan[3];		/* Register value */
 -	u8 fan_min[3];		/* Register value */
++	u8 fan16;		/* Bitfield, fans in 16-bit mode */
 +	u16 fan[3];		/* Register values, possibly combined */
 +	u16 fan_min[3];		/* Register values, possibly combined */
  	u8 temp[3];		/* Register value */
  	u8 temp_high[3];	/* Register value */
  	u8 temp_low[3];		/* Register value */
-@@ -656,6 +673,59 @@
- show_pwm_offset(2);
- show_pwm_offset(3);
+@@ -473,8 +490,11 @@
+ 	int nr = sensor_attr->index;
  
-+/* A different set of callbacks for 16-bit fans */
-+static ssize_t show_fan16(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	struct it87_data *data = it87_update_device(dev);
-+	return sprintf(buf, "%d\n", FAN16_FROM_REG(data->fan[nr]));
-+}
-+
-+static ssize_t show_fan16_min(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	struct it87_data *data = it87_update_device(dev);
-+	return sprintf(buf, "%d\n", FAN16_FROM_REG(data->fan_min[nr]));
-+}
-+
-+static ssize_t set_fan16_min(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct it87_data *data = i2c_get_clientdata(client);
-+	int val = simple_strtol(buf, NULL, 10);
-+
-+	mutex_lock(&data->update_lock);
-+	data->fan_min[nr] = FAN16_TO_REG(val);
-+	it87_write_value(client, IT87_REG_FAN_MIN(nr),
-+			 data->fan_min[nr] & 0xff);
-+	it87_write_value(client, IT87_REG_FANX_MIN(nr),
-+			 data->fan_min[nr] >> 8);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+/* We want to use the same sysfs file names as 8-bit fans, but we need
-+   different variable names, so we have to use SENSOR_ATTR instead of
-+   SENSOR_DEVICE_ATTR. */
-+#define show_fan16_offset(offset) \
-+static struct sensor_device_attribute sensor_dev_attr_fan##offset##_input16 \
-+	= SENSOR_ATTR(fan##offset##_input, S_IRUGO,		\
-+		show_fan16, NULL, offset - 1);			\
-+static struct sensor_device_attribute sensor_dev_attr_fan##offset##_min16 \
-+	= SENSOR_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR,	\
-+		show_fan16_min, set_fan16_min, offset - 1)
-+
-+show_fan16_offset(1);
-+show_fan16_offset(2);
-+show_fan16_offset(3);
-+
- /* Alarms */
- static ssize_t show_alarms(struct device *dev, struct device_attribute *attr, char *buf)
- {
-@@ -720,6 +790,7 @@
+ 	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf,"%d\n", FAN_FROM_REG(data->fan[nr], 
+-				DIV_FROM_REG(data->fan_div[nr])));
++	int rpm = (data->fan16 & (1 << nr)) ?
++		FAN16_FROM_REG(data->fan[nr]) :
++		FAN_FROM_REG(data->fan[nr],
++			     DIV_FROM_REG(data->fan_div[nr]));
++	return sprintf(buf, "%d\n", rpm);
+ }
+ static ssize_t show_fan_min(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -483,8 +503,11 @@
+ 	int nr = sensor_attr->index;
+ 
+ 	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf,"%d\n",
+-		FAN_FROM_REG(data->fan_min[nr], DIV_FROM_REG(data->fan_div[nr])));
++	int rpm = (data->fan16 & (1 << nr)) ?
++		FAN16_FROM_REG(data->fan_min[nr]) :
++		FAN_FROM_REG(data->fan_min[nr],
++			     DIV_FROM_REG(data->fan_div[nr]));
++	return sprintf(buf, "%d\n", rpm);
+ }
+ static ssize_t show_fan_div(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -531,8 +554,18 @@
+ 	case 2: data->fan_div[nr] = (reg & 0x40) ? 3 : 1; break;
+ 	}
+ 
+-	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
+-	it87_write_value(client, IT87_REG_FAN_MIN(nr), data->fan_min[nr]);
++	if (data->fan16 & (1 << nr)) { /* 16-bit tachometer mode */
++		data->fan_min[nr] = FAN16_TO_REG(val);
++		it87_write_value(client, IT87_REG_FAN_MIN(nr),
++				 data->fan_min[nr] & 0xff);
++		it87_write_value(client, IT87_REG_FANX_MIN(nr),
++				 data->fan_min[nr] >> 8);
++	} else {
++		data->fan_min[nr] = FAN_TO_REG(val,
++				    DIV_FROM_REG(data->fan_div[nr]));
++		it87_write_value(client, IT87_REG_FAN_MIN(nr),
++				 data->fan_min[nr]);
++	}
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+@@ -720,6 +753,7 @@
  	superio_enter();
  	chip_type = superio_inw(DEVID);
  	if (chip_type != IT8712F_DEVID
@@ -248,7 +232,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  	 && chip_type != IT8705F_DEVID)
  	 	goto exit;
  
-@@ -799,8 +870,16 @@
+@@ -799,8 +833,16 @@
  		i = it87_read_value(new_client, IT87_REG_CHIPID);
  		if (i = 0x90) {
  			kind = it87;
@@ -267,7 +251,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  		}
  		else {
  			if (kind = 0)
-@@ -817,6 +896,8 @@
+@@ -817,6 +859,8 @@
  		name = "it87";
  	} else if (kind = it8712) {
  		name = "it8712";
@@ -276,58 +260,29 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  	}
  
  	/* Fill in the remaining client fields and put it into the global list */
-@@ -884,15 +965,41 @@
- 	device_create_file(&new_client->dev, &sensor_dev_attr_temp1_type.dev_attr);
- 	device_create_file(&new_client->dev, &sensor_dev_attr_temp2_type.dev_attr);
- 	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_type.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan1_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan2_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan3_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan1_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan2_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan3_min.dev_attr);
+@@ -890,9 +934,18 @@
+ 	device_create_file(&new_client->dev, &sensor_dev_attr_fan1_min.dev_attr);
+ 	device_create_file(&new_client->dev, &sensor_dev_attr_fan2_min.dev_attr);
+ 	device_create_file(&new_client->dev, &sensor_dev_attr_fan3_min.dev_attr);
 -	device_create_file(&new_client->dev, &sensor_dev_attr_fan1_div.dev_attr);
 -	device_create_file(&new_client->dev, &sensor_dev_attr_fan2_div.dev_attr);
 -	device_create_file(&new_client->dev, &sensor_dev_attr_fan3_div.dev_attr);
 +
-+	if (data->type = it8716) { /* 16-bit tachometers */
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan1_input16.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan2_input16.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan3_input16.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan1_min16.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan2_min16.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan3_min16.dev_attr);
-+	} else {
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan1_input.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan2_input.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan3_input.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan1_min.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan2_min.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan3_min.dev_attr);
++	/* Only create the fan clock divider entries if not in 16-bit mode */
++	if (!(data->fan16 & (1 << 0)))
 +		device_create_file(&new_client->dev,
 +				   &sensor_dev_attr_fan1_div.dev_attr);
++	if (!(data->fan16 & (1 << 1)))
 +		device_create_file(&new_client->dev,
 +				   &sensor_dev_attr_fan2_div.dev_attr);
++	if (!(data->fan16 & (1 << 2)))
 +		device_create_file(&new_client->dev,
 +				   &sensor_dev_attr_fan3_div.dev_attr);
-+	}
 +
  	device_create_file(&new_client->dev, &dev_attr_alarms);
  	if (enable_pwm_interface) {
  		device_create_file(&new_client->dev, &sensor_dev_attr_pwm1_enable.dev_attr);
-@@ -903,7 +1010,7 @@
+@@ -903,7 +956,7 @@
  		device_create_file(&new_client->dev, &sensor_dev_attr_pwm3.dev_attr);
  	}
  
@@ -336,25 +291,27 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  		data->vrm = vid_which_vrm();
  		device_create_file_vrm(new_client);
  		device_create_file_vid(new_client);
-@@ -1068,6 +1175,17 @@
+@@ -1068,6 +1121,19 @@
  		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
  	}
  
-+	/* Set tachometers to 16-bit mode if needed */
++	/* Read and store tachometer mode */
 +	if (data->type = it8716) {
-+		tmp = it87_read_value(client, IT87_REG_FAN_16BIT);
-+		if ((tmp & 0x07) != 0x07) {
-+			dev_dbg(&client->dev,
-+				"Setting fan1-3 to 16-bit mode\n");
-+			it87_write_value(client, IT87_REG_FAN_16BIT,
-+					 tmp | 0x07);
++		data->fan16 = it87_read_value(client, IT87_REG_FAN_16BIT)
++			    & 0x07;
++		for (i = 0; i < 3; i++) {
++			if (data->fan16 & (1 << i)) {
++				dev_dbg(&client->dev, "Using 16-bit "
++					"tachometer counter for fan%d\n",
++					i + 1);
++			}
 +		}
 +	}
 +
  	/* Set current fan mode registers and the default settings for the
  	 * other mode registers */
  	for (i = 0; i < 3; i++) {
-@@ -1125,10 +1243,17 @@
+@@ -1125,10 +1191,17 @@
  		data->in_max[8] = 255;
  
  		for (i = 0; i < 3; i++) {
@@ -363,7 +320,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
 +			data->fan[i] = it87_read_value(client,
 +				       IT87_REG_FAN(i));
 +			/* Add high byte if in 16-bit mode */
-+			if (data->type = it8716) {
++			if (data->fan16 & (1 << i)) {
 +				data->fan[i] |= it87_read_value(client,
 +						IT87_REG_FANX(i)) << 8;
 +				data->fan_min[i] |= it87_read_value(client,
@@ -371,7 +328,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
 +			}
  		}
  		for (i = 0; i < 3; i++) {
- 			data->temp[i] @@ -1139,10 +1264,13 @@
+ 			data->temp[i] @@ -1139,10 +1212,14 @@
  			    it87_read_value(client, IT87_REG_TEMP_LOW(i));
  		}
  
@@ -379,8 +336,9 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
 -		data->fan_div[0] = i & 0x07;
 -		data->fan_div[1] = (i >> 3) & 0x07;
 -		data->fan_div[2] = (i & 0x40) ? 3 : 1;
-+		/* Newer chips don't have clock dividers */
-+		if (data->type != it8716) {
++		/* If at least one fan isn't in 16-bit tachometer mode, we
++		   need the clock divider values */
++		if (~data->fan16 & 0x07) {
 +			i = it87_read_value(client, IT87_REG_FAN_DIV);
 +			data->fan_div[0] = i & 0x07;
 +			data->fan_div[1] = (i >> 3) & 0x07;
@@ -388,7 +346,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
 +		}
  
  		data->alarms  			it87_read_value(client, IT87_REG_ALARM1) |
-@@ -1152,9 +1280,11 @@
+@@ -1152,9 +1229,11 @@
  
  		data->sensor = it87_read_value(client, IT87_REG_TEMP_ENABLE);
  		/* The 8705 does not have VID capability */
@@ -402,7 +360,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  		}
  		data->last_updated = jiffies;
  		data->valid = 1;
-@@ -1193,7 +1323,7 @@
+@@ -1193,7 +1272,7 @@
  
  
  MODULE_AUTHOR("Chris Gauthron <chrisg at 0-in.com>");
@@ -411,8 +369,8 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  module_param(update_vbat, bool, 0);
  MODULE_PARM_DESC(update_vbat, "Update vbat if set else return powerup value");
  module_param(fix_pwm_polarity, bool, 0);
---- linux-2.6.18-rc4.orig/drivers/hwmon/Kconfig	2006-08-27 22:32:01.000000000 +0200
-+++ linux-2.6.18-rc4/drivers/hwmon/Kconfig	2006-08-27 22:42:16.000000000 +0200
+--- linux-2.6.18-rc4.orig/drivers/hwmon/Kconfig	2006-08-08 14:18:25.000000000 +0200
++++ linux-2.6.18-rc4/drivers/hwmon/Kconfig	2006-08-08 14:47:57.000000000 +0200
 @@ -186,8 +186,8 @@
  	select I2C_ISA
  	select HWMON_VID
@@ -424,6 +382,7 @@ Signed-off-by: Jean Delvare <khali at linux-fr.org>
  
  	  This driver can also be built as a module.  If so, the module
  	  will be called it87.
+
 
 -- 
 Jean Delvare
