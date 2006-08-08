@@ -1,83 +1,44 @@
-From: RaphaelD@tyan.com (Raphael Deng)
-Date: Mon, 21 Aug 2006 18:56:48 +0000
-Subject: [lm-sensors] =?utf-8?b?562U5aSNOiAgVHlhbiBTMjcyMCBSZXZzaW9uIDIu?=
-Message-Id: <3174569B9743D511922F00A0C943142310DBD905@TYANWEB>
+From: tparcina@lama.hr (=?iso-8859-2?Q?Tomislav_Par=E8ina?=)
+Date: Tue, 08 Aug 2006 10:00:53 +0000
+Subject: [lm-sensors] Vt1211
+Message-Id: <79337FA3BA80774F9FE87BF809C9F3564309A3@stipe.lama.hr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3174569B9743D511922F00A0C943142310DBD8AD@TYANWEB>
-In-Reply-To: <3174569B9743D511922F00A0C943142310DBD8AD@TYANWEB>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Marcus,
+Do I need to patch Kernel to make lm_sensors work on Fedora Core 4 (2.6.11) and Via EPIA (vt1211 chip) motherboard? If yes, what patch should I use and is there any complete instructions how to do it?
 
-I found I make some mistake. According to lm-sensors document, the xeontemp
-is "look very similar to an adm1021 or max1617". So the currently
-configuration should be fine.
-So I wonder the problem is BIOS doesn't switch main I2C bus to the CPU I2C
-bus correctly. I think you can try the attached file, which set the GPIO to
-switch i2c bus.
+I have tried to use patch (this one http://hem.bredband.net/ekmlar/patch-vt1211-2.6.11.txt ) found on this pages http://hem.bredband.net/ekmlar/vt1211.html
 
-Best Regards
-Raphael Deng
+And when I execute make bzImage I get following error
+scripts/mod/sumversion.c:486: warning: pointer targets in passing argument 1 of
+'strlen' differ in signedness
+scripts/mod/sumversion.c: In function 'maybe_frob_rcs_version':
+scripts/mod/sumversion.c:496: warning: pointer targets in passing argument 1 of
+'strip_rcs_crap' differ in signedness
+  HOSTLD  scripts/mod/modpost
+make[1]: *** No rule to make target `init/main.o', needed by `init/built-in.o'.
+ Stop.
+make: *** [init] Error 2
 
------????-----
-???: Marcus Sobchak [mailto:lists at localguru.de] 
-????: 2006?8?21? 11:14
-???: Raphael Deng
-??: lm-sensors at lm-sensors.org
-??: Re: [lm-sensors] Tyan S2720 Revsion 2.01 again
-
-Hi,
-
-Am Montag, den 21.08.2006, 10:24 -0700 schrieb Raphael Deng:
-> Which CPU he use? FSB400 or FSB533? 
-
-I use FSB400.
-
-> If using FSB400, the CPU temp cannot be
-> got from hardware monitor chip. You must use sensor in Intel Xeon CPU
-> itself.
-
-How do I do that?
-
-Marcus
+I would preheated any help on what patch to use and how to patch kernel. Thank you!
 
 
-> -----????-----
-> ???: Rudolf Marek [mailto:r.marek at sh.cvut.cz] 
-> ????: 2006?8?19? 3:40
-> ???: Marcus Sobchak
-> ??: LM Sensors; Raphael Deng
-> ??: Re: [lm-sensors] Tyan S2720 Revsion 2.01 again
-> 
-> Hello all,
-> 
-> Raphael have you please idea why he has still -1 temp? Tyan sensors.conf
-> suggest
-> to upgrade the bios, but it did not help in his case.
-> 
-> Please can you help?
-> 
-> Regards
-> Rudolf
-> 
-> > adm1021-i2c-0-19
-> > Adapter: SMBus I801 adapter at 0540
-> > CPU 2 temp:
-> >               -1?C  (low  =    -1?C, high =    -1?C)  ALARM (N/A,LOW)
-> > 
-> > adm1021-i2c-0-18
-> > Adapter: SMBus I801 adapter at 0540
-> > CPU 1 temp:
-> >               -1?C  (low  =    -1?C, high =    -1?C)  ALARM (N/A,LOW)
-> > 
+**
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: 2720sw.c
-Type: application/octet-stream
-Size: 184 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060821/f1c0e953/attachment.obj 
+P.S.
+Without patching the kernel I can't modprobe vt1211 driver
+
+
+--
+Tomislav Par?ina
+Lama Computers Split
+Stinice 12, 21000 Split
+Tel.: +385(21)495148
+Mob.: +385(91)1212148
+SIP: tomo at pbx.lama.hr
+e-mail: tparcina#lama.hr
+http://www.lama.hr
+
