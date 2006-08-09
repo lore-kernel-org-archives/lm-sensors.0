@@ -1,7 +1,7 @@
-From: tparcina@lama.hr (=?iso-8859-2?Q?Tomislav_Par=E8ina?=)
-Date: Wed, 09 Aug 2006 07:35:48 +0000
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Wed, 09 Aug 2006 14:50:08 +0000
 Subject: [lm-sensors] Vt1211
-Message-Id: <79337FA3BA80774F9FE87BF809C9F3564309C6@stipe.lama.hr>
+Message-Id: <191fb4ca0608090750w242e893x451a49e907ae25dd@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <79337FA3BA80774F9FE87BF809C9F3564309A3@stipe.lama.hr>
 In-Reply-To: <79337FA3BA80774F9FE87BF809C9F3564309A3@stipe.lama.hr>
@@ -10,26 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> -----Original Message-----
-> From: jon.molin at gmail.com [mailto:jon.molin at gmail.com] On 
-> Behalf Of Jon
-> Sent: 8. kolovoz 2006 16:56
-> To: Tomislav Par?ina
-> Cc: lm-sensors at lm-sensors.org
-> Subject: Re: [lm-sensors] Vt1211
-> 
-> Did you try compiling it as a module by doing:
-> patch kernel with:
-> patch -p1 < patch-vt1211-2.6.11.txt
-> copy the patched vt1211.c to your homedir or something and do:
-> echo "obj-m := vt1211.o" > Makefile
-> make -C /path/to/your/kernel2.6/source/dir SUBDIRS=$PWD modules ?
-> I got it working by doing that on the patched kernel (for 
-> debian-stable with 2.6.8 but it ought to be pretty much the same)
+Hi Tomislav,
 
-Hi Jon,
+> Can you send me pre-compiled vt1211.ko driver? Can I put your pre-compiled driver to
+> /lib/modules/2.6.11-1.1369_FC4/kernel/drivers/i2c/chips and execute
+> "depmod -a"?
+> Will that work?
 
-I'll try that if this one with pre-compiled driver fails. Can you send me your's vt1211.ko driver binary? I hope it will work that way.
+No that won't work. The kernel version and the driver need to match
+and I don't have a precompiled 2.6.11 version. 2.6.11 is too old a
+kernel anyway.
+You need at least 2.6.17 (I believe). There's no way around a kernel
+compilation if you want to use the latest driver.
 
-Tomislav
+
+> Because I have tried to recompile kernel several times and I
+> still haven't managed to install driver.
+
+What do you mean?
+
+
+> And kernel compilation on VIA EPIA motherboard lasts forever...
+
+Yeah, VIA CPUs are not exactly blazingly fast.
+
+
+...juerg
 
