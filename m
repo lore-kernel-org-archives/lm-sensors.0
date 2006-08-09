@@ -1,7 +1,7 @@
-From: linux-kernel@hansmi.ch (Michael Hanselmann)
-Date: Wed, 09 Aug 2006 12:17:17 +0000
+From: johannes@sipsolutions.net (Johannes Berg)
+Date: Wed, 09 Aug 2006 12:25:03 +0000
 Subject: [lm-sensors] [PATCH] Apple Motion Sensor driver
-Message-Id: <20060809121717.GA1539@hansmi.ch>
+Message-Id: <44D9D41F.8050402@sipsolutions.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060802191520.GA2260@hansmi.ch>
 In-Reply-To: <20060802191520.GA2260@hansmi.ch>
@@ -10,18 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Aug 07, 2006 at 10:06:38AM +0200, Johannes Berg wrote:
-> Why? It's infrastructure basically. Anyway. Is it possible to have 
-> something like
->  depends I2C=AMS || I2C=y
+Michael Hanselmann wrote:
+> I'm not really a fan of it. Is there anything wrong with my proposed
+> patch?
+>   
+This is what you get if I write things and then don't put the powerbook 
+online for days.
 
-> If we stuck that into the i2c AMS version that'd help. Though be really 
-> ugly for the user since she might get the AMS I2C version only after 
-> selecting AMS as a module then. Pretty icky, all that.
+I think your depends statement is hard to parse, but should be fine :) 
+Try actually configuring things in the presence of I2C=m though, please.
 
-I'm not really a fan of it. Is there anything wrong with my proposed
-patch?
-
-Thanks,
-Michael
+johannes
 
