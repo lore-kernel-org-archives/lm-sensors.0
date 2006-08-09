@@ -1,7 +1,7 @@
-From: benh@kernel.crashing.org (Benjamin Herrenschmidt)
-Date: Wed, 09 Aug 2006 10:37:27 +0000
+From: linux-kernel@hansmi.ch (Michael Hanselmann)
+Date: Wed, 09 Aug 2006 12:17:17 +0000
 Subject: [lm-sensors] [PATCH] Apple Motion Sensor driver
-Message-Id: <1155119847.4040.83.camel@localhost.localdomain>
+Message-Id: <20060809121717.GA1539@hansmi.ch>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060802191520.GA2260@hansmi.ch>
 In-Reply-To: <20060802191520.GA2260@hansmi.ch>
@@ -10,17 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 2006-08-07 at 11:36 +0200, Johannes Berg wrote:
-> Jean Delvare wrote:
-> > Now if you believe that this is an error and I2C should always be
-> > selected rather than depended upon, I'm waiting for your patch :)
-> >   
-> Heh, no, I don't really care. A Power/iBook without I2C isn't much good 
-> anyway.
+On Mon, Aug 07, 2006 at 10:06:38AM +0200, Johannes Berg wrote:
+> Why? It's infrastructure basically. Anyway. Is it possible to have 
+> something like
+>  depends I2C=AMS || I2C=y
 
-Old ones are...
+> If we stuck that into the i2c AMS version that'd help. Though be really 
+> ugly for the user since she might get the AMS I2C version only after 
+> selecting AMS as a module then. Pretty icky, all that.
 
-Ben.
+I'm not really a fan of it. Is there anything wrong with my proposed
+patch?
 
-
+Thanks,
+Michael
 
