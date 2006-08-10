@@ -1,31 +1,43 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 23 Aug 2006 20:58:40 +0000
-Subject: [lm-sensors] [PATCH] AMD K8 digital sensor - take3
-Message-Id: <20060823225840.af4a6ae4.khali@linux-fr.org>
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Thu, 10 Aug 2006 12:16:49 +0000
+Subject: [lm-sensors] PATCH: hwmon-abituguru-timeout-fixes.patch
+Message-Id: <44DB23B1.1060102@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44EC7391.2040700@sh.cvut.cz>
-In-Reply-To: <44EC7391.2040700@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
+Hi all,
 
-> This patch adds support for the temperature sensor(s) found in AMD K8 CPUs.
-> 
-> Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
-> 
-> I fixed the remaining issues, I got rid of REG_TEMP_T. I left the different 
-> register i/o sizes. It is neccessary for future extensions of the driver.
-> 
-> Please apply.
+This patch contains 2 sets of fixes for the abituguru:
+ 1) Much improved timeout handling, drasticly reducing the amount of
+    timeout errors on some motherboards
+ 2) Fix the exit paths in the bank1 sensor type detect code to always
+    restore the original settings even on an error. Without this our
+    special test settings could remain seriously confusing the system
+    BIOS's setup menu.
 
-Applied, thanks.
+Both are very much related and are must haves, to avoid messing up the
+uguru CMOS settings.
 
-I'll send a set of hwmon patches to Greg next weed-end, including this
-one.
+Since this patch fixes the CMOS settings corruption* reported to the
+list earlier by Sunil Kumar, it should be send upstream ASAP (to GKH who
+is replacing Linus while Linus is away for a couple of weeks).
 
--- 
-Jean Delvare
+Regards,
 
+Hans
+
+
+* Which was luckily not as bad as it seems, it can be fixed by loading
+  the setup defaults in the BIOS, still not messing up these settings in
+  the first place is much much better!
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: hwmon-abituguru-timeout-fixes.patch
+Type: text/x-patch
+Size: 10780 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060810/488d34f1/attachment.bin 
