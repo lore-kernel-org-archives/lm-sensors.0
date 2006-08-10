@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 10 Aug 2006 08:35:04 +0000
+Date: Thu, 10 Aug 2006 08:42:38 +0000
 Subject: [lm-sensors] Flex Scanner Jammed Problem
-Message-Id: <20060810103504.8480da09.khali@linux-fr.org>
+Message-Id: <20060810104238.1976d0d5.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1064332995.5787.33.camel@nils>
 In-Reply-To: <1064332995.5787.33.camel@nils>
@@ -10,28 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Anthony,
+> If I run sensors  v2.10.0 with the libsensors v2.8.7, the parser works
+> correctly with the original sensors.conf input file.  I wonder if there
+> is a problem with where it is being compiled...
 
-> > What about my question on the locale you use?
-> 
-> Locale is en_US.UTF-8
+All the parsing code is in the library, "sensors" itself only queries
+for data and print it. So the version of "sensors" shouldn't matter at
+all.
 
-Pretty standard. But just in case, would you mind recompiling
-libsensors with locale set to C or POSIX, and then running "sensors"
-with the same locale?
+Indeed there seems to be a problem at compilation time, but I don't
+have any idea on what could cause that much trouble, given that you use
+the same version of flex everyone does. Unless your distribution has
+some additional patch applied?
 
-> It seems that the only thing the parser recognizes are lm_sensors
-> keywords (label, compute, set), but only if they are in the first
-> position on the line.  The sample sensors.conf will not work for me with
-> the spaces in front of the terms.  I get Invalid Keyword errors.
-> 
-> In a compute line, I havent figured out how to make it process without
-> error, I get syntax errors on the computation part of the line, if it
-> put it into quotes, I get an unexpected EOL error.
+> So right now I have sensors 2.10.0 running with either libsensors 2.8.7
+> or 2.10.0.  in either case I am getting weird sensors readings....  Most
+> voltages read 4.08 V, and the fans and temps are not returning any
+> values. 
 
-Compute lines are by far the most complex ones in the configuration
-file. Given the trouble you had for more simple statements, it's likely
-they will never work.
+Could be that your chip isn't properly wired, but I wouldn't trust
+libsensors much given the trouble you have with the configuration file
+parsing. Also, I suppose that the values reported were correct before
+the kernel update? Please provide the output of:
+  systool -c hwmon -v
 
 -- 
 Jean Delvare
