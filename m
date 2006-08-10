@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 09 Aug 2006 17:15:04 +0000
+From: tparcina@lama.hr (Tomislav Parcina)
+Date: Thu, 10 Aug 2006 11:13:48 +0000
 Subject: [lm-sensors] Via VT1211 - in Kernel
-Message-Id: <20060809191504.814287a4.khali@linux-fr.org>
+Message-Id: <79337FA3BA80774F9FE87BF809C9F3564309EF@stipe.lama.hr>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <79337FA3BA80774F9FE87BF809C9F356430954@stipe.lama.hr>
 In-Reply-To: <79337FA3BA80774F9FE87BF809C9F356430954@stipe.lama.hr>
@@ -10,16 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg, Tomislav,
-
-> Check this thread:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2006-June/016745.html
+> -----Original Message-----
+> From: Jean Delvare [mailto:khali at linux-fr.org] 
+> Sent: 9. kolovoz 2006 19:15
+> To: Juerg Haefliger
+> Cc: Tomislav Parcina; LM Sensors
+> Subject: Re: [lm-sensors] Via VT1211 - in Kernel
 > 
-> It's on Jean's plate for a final review.
+> Hi Juerg, Tomislav,
+> 
+> Yup, that's true. I am ashamed that this has been waiting for 
+> so long already :( I can't seem to find the time to review it.
 
-Yup, that's true. I am ashamed that this has been waiting for so long
-already :( I can't seem to find the time to review it.
+Hi Jean,
 
--- 
-Jean Delvare
+Will it be ready for next Kernel release?
+
+
+Tomislav
 
