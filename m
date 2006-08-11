@@ -1,34 +1,24 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Thu, 31 Aug 2006 16:25:45 +0000
-Subject: [lm-sensors] [patch] hwmon: w83781d - check return code of
-Message-Id: <44F70D89.30409@gmail.com>
+From: dave@boost-consulting.com (David Abrahams)
+Date: Fri, 11 Aug 2006 14:00:49 +0000
+Subject: [lm-sensors] Thinkpads still not supported?
+Message-Id: <loom.20060811T155741-190@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+I see my model (T60p) in
+http://lists.lm-sensors.org/pipermail/lm-sensors/2006-April/015983.html
+Does that mean anything, or is
+http://www.lm-sensors.org/browser/lm-sensors/trunk/README.thinkpad still the
+latest news?
 
-add 2 attr-file groups (for base and model-specific attrs respectively),
-create the base group with single call to sysfs_create_group,
-check the return code on individual calls to device_create_file for each
-of the model-specific attr-files.
-
-Signed-off-by:  Jim Cromie <jim.cromie at gmail.com>
-
-This is compile-tested only, needs validation on hardware, or
-very thorough inspection.
-
-$ diffstat diff.w83781d-checkrc.txt
- w83781d.c |  192 
-++++++++++++++++++++++++++++++++++++++------------------------
- 1 files changed, 119 insertions(+), 73 deletions(-)
+Thanks in advance,
+--
+Dave Abrahams
+Boost Consulting
+http://www.boost-consulting.com
 
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: diff.w83781d-checkrc.txt
-Type: plain/text
-Size: 10002 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060831/1f312e73/attachment.bin 
+
