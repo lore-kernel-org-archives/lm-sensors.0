@@ -1,7 +1,7 @@
-From: dave@boost-consulting.com (David Abrahams)
-Date: Fri, 11 Aug 2006 21:07:39 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 12 Aug 2006 10:08:01 +0000
 Subject: [lm-sensors] Thinkpads still not supported?
-Message-Id: <uslk3yo9w.fsf@boost-consulting.com>
+Message-Id: <20060812120801.3f2625cb.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <loom.20060811T155741-190@post.gmane.org>
 In-Reply-To: <loom.20060811T155741-190@post.gmane.org>
@@ -10,73 +10,54 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare <khali at linux-fr.org> writes:
+David,
 
-> David,
->
->> > The SMBus is still blacklisted on IBM systems based on a PIIX4 chip.
->> > Your laptop probably has a more recent chip (Intel 82801), but anyway
->> > we've never seen a Thinkpad with a useable hardware monitoring chip as
->> > far as I remember, so it's probably not worth investigating. If you
->> > want to know the temperature laptop, try the "thermal" acpi driver
->> > instead.
->> 
->> Thanks.  I think I may already have that.  "acpi -t" does display two
->> thermal zones.  Somehow my gnome-sensors applet is also getting a
->> reading for the GPU (in a category called "ibm-acpi"), which is
->> alarmingly high.
->
-> There's a kernel driver named "IBM ThinkPad Laptop Extras", it's
-> probably that. Never used it, I can't tell what it does exactly nor how
-> useful and reliable it is.
+> > There's a kernel driver named "IBM ThinkPad Laptop Extras", it's
+> > probably that. Never used it, I can't tell what it does exactly nor how
+> > useful and reliable it is.
+> 
+> Thanks; I'll check that out.  Do you happen to know how I can find out
+> what an acceptable GPU temp is on this thing, and/or what I can do to
+> keep it under control?
 
-Thanks; I'll check that out.  Do you happen to know how I can find out
-what an acceptable GPU temp is on this thing, and/or what I can do to
-keep it under control?  The vesa driver runs it at 60 Centigrade at
-idle, which is already hot.  The ATI drivers all run it at 71 and
-above, which is scary (to me anyway).
+No, sorry. I never had a Thinkpad laptop myself. Best is probably to
+find someone else with similar hardware, and compare your numbers.
 
->> What I'm really after is much more at the application level; something
->> like "ksensors", which can help me keep the laptop running optimally
->> for whatever situation I'm in, and will let me switch between profiles
->> easily if I want battery life, performance, or etc.  However, the
->> ksensor package depends on lm-sensors, which according to that page
->> might be doing terrible things to my BIOS (any chance _that's_
->> outdated info?)  I already had ksensors installed, and it seemed to be
->> working OK, but took it out when I read that.
->
-> No, don't worry. As long as you don't run sensors-detect 
+>                         The vesa driver runs it at 60 Centigrade at
+> idle, which is already hot.  The ATI drivers all run it at 71 and
+> above, which is scary (to me anyway).
 
-Well, I did, before I found the admonition not to.  And I recall at
-some point last week, long before I ran sensors-detect, seeing a
-message at boot that the EEPROM had been corrupted or something (!) I
-think I may have installed something from my XP partition that
-corrected it (although I don't specifically recall a BIOS update), and
-I don't recall seeing it recently.
+I'd say it's high, but not scary.
 
-> and/or load random i2c and/or hwmon drivers, nothing bad will
-> happen. Just installing the lm_sensors user-space tools doesn't
-> represent any danger. As far as I know, ksensors can use other data
-> sources than lm_sensors (ACPI, hddtemp...) so it may still work.
+> > No, don't worry. As long as you don't run sensors-detect 
+> 
+> Well, I did, before I found the admonition not to.  And I recall at
+> some point last week, long before I ran sensors-detect, seeing a
+> message at boot that the EEPROM had been corrupted or something (!) I
+> think I may have installed something from my XP partition that
+> corrected it (although I don't specifically recall a BIOS update), and
+> I don't recall seeing it recently.
 
-Oh, then maybe I'll reinstall it; thanks!
+Nasty. These EEPROMs have a state machine bug which makes them
+vulnerable, so other tools and OSes could corrupt it as well. However,
+as far as I remember, the corruption cases that were reported to us
+were fatal, in that the laptop would not boot anymore. Your case seems
+to be different, but without additional details it's hard to come to any
+conclusion.
 
-> About the Thinkpad issue, we made our best to limit the problems so
-> that EEPROM corruptions are very unlikely to happen again. 
+> > and/or load random i2c and/or hwmon drivers, nothing bad will
+> > happen. Just installing the lm_sensors user-space tools doesn't
+> > represent any danger. As far as I know, ksensors can use other data
+> > sources than lm_sensors (ACPI, hddtemp...) so it may still work.
+> 
+> Oh, then maybe I'll reinstall it; thanks!
 
-That's what the doc said; thanks for confirming.
-
-> But the real reason for you not to try running sensors-detect or
-> loading drivers is that I am almost certain it won't work anyway, as
-> the Thinkpad laptops do not have any supported hardware. At least
-> that was the case last time people tried (a couple years ago,
-> though.)
-
-OK.  Thanks for all the detailed attention; I really appreciate that
-you took the time to educate me.
+Make sure your system won't load related drivers for you at boot time.
+If you ran sensors-detect and let it create it's configuration file
+(typically /etc/sysconfig/lm_sensors), the modules listed in that file
+will be loaded at boot time, and you don't want this to happen. To be
+safe, delete or blank that file.
 
 -- 
-Dave Abrahams
-Boost Consulting
-www.boost-consulting.com
+Jean Delvare
 
