@@ -1,28 +1,40 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Tue, 15 Aug 2006 12:11:50 +0000
-Subject: [lm-sensors] [PATCH 2.6.18-rc4-mm1] hwmon: unchecked return
-Message-Id: <20060815121150.GE2666@jupiter.solarsys.private>
+From: bunk@stusta.de (Adrian Bunk)
+Date: Sun, 13 Aug 2006 21:00:12 +0000
+Subject: [lm-sensors] [-mm patch] make
+Message-Id: <20060813210012.GK3543@stusta.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060815120610.GC2666@jupiter.solarsys.private>
-In-Reply-To: <20060815120610.GC2666@jupiter.solarsys.private>
+References: <20060813012454.f1d52189.akpm@osdl.org>
+In-Reply-To: <20060813012454.f1d52189.akpm@osdl.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>, Shem Multinymous <multinymous@gmail.com>
+Cc: linux-kernel@vger.kernel.org, khali@linux-fr.org, lm-sensors@lm-sensors.org
 
-Hi:
+On Sun, Aug 13, 2006 at 01:24:54AM -0700, Andrew Morton wrote:
+>...
+> Changes since 2.6.18-rc3-mm2:
+>...
+> +hdaps-unify-and-cache-hdaps-readouts.patch
+>...
+>  HDAPS driver updates
 
-* Mark M. Hoffman <mhoffman at lightlink.com> [2006-08-15 08:06:10 -0400]:
-> This patch fixes up some hwmon drivers so that they no longer ignore
-> return status from device_create_file().
+transform_axes() isn't a good name for a global function.
 
-BTW: only change from previous RFCs are to address Jean's comments and
-to add 'const' to the struct attribute_group variables.
+Thankfully, it can simply made static.
 
-Regards,
+Signed-off-by: Adrian Bunk <bunk at stusta.de>
 
--- 
-Mark M. Hoffman
-mhoffman at lightlink.com
+--- linux-2.6.18-rc4-mm1/drivers/hwmon/hdaps.c.old	2006-08-13 17:45:34.000000000 +0200
++++ linux-2.6.18-rc4-mm1/drivers/hwmon/hdaps.c	2006-08-13 17:45:50.000000000 +0200
+@@ -85,7 +85,7 @@
+ static u64 last_mouse_jiffies = INITIAL_JIFFIES;
+ 
+ /* Some models require an axis transformation to the standard reprsentation */
+-void transform_axes(int *x, int *y)
++static void transform_axes(int *x, int *y)
+ {
+ 	if (hdaps_invert) {
+ 		*x = -*x;
 
 
