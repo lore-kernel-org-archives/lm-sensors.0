@@ -1,66 +1,101 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 15 Aug 2006 07:37:12 +0000
+Date: Tue, 15 Aug 2006 08:01:30 +0000
 Subject: [lm-sensors] [RFC PATCH 2.6.18-rc4-mm1] hwmon: unchecked return
-Message-Id: <20060815093712.e2e5561a.khali@linux-fr.org>
+Message-Id: <20060815100130.6cd0b6f6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060814020407.GA3327@jupiter.solarsys.private>
 In-Reply-To: <20060814020407.GA3327@jupiter.solarsys.private>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi David,
+Mark, David,
 
-> I added some return value checks in w83627ehf_detect(). This is called
-> from i2c_isa_add_driver using driver->attach_adapter(&isa_adapter). So
-> I returned an error from w83627ehf_detect(), and was surprised to see
-> that the module silently succeeded, without fully creating the
-> w83627ehf sysfs interface. I looked deeper and found that
-> i2c_isa_add_driver() does not check the return value when calling its
-> driver->attach_adapter(). i2c_isa_add_driver() is called from
-> sensors_w83627ehf_init(), which is the module_init function.
+> > The w83627ehf driver uses struct sensor_device_attribute instead of
+> > struct device_attribute, and we've put them in arrays, so if I created
+>=20
+> The only reason to put them in arrays in the first place was to make
+> registration easier.  For w83627ehf, I would do this...
+>=20
+> -static struct sensor_device_attribute sda_in_input[] =3D {
+> -	SENSOR_ATTR(in0_input, S_IRUGO, show_in, NULL, 0),
+> -	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
+> -	SENSOR_ATTR(in2_input, S_IRUGO, show_in, NULL, 2),
+> -	SENSOR_ATTR(in3_input, S_IRUGO, show_in, NULL, 3),
+> -	SENSOR_ATTR(in4_input, S_IRUGO, show_in, NULL, 4),
+> -	SENSOR_ATTR(in5_input, S_IRUGO, show_in, NULL, 5),
+> -	SENSOR_ATTR(in6_input, S_IRUGO, show_in, NULL, 6),
+> -	SENSOR_ATTR(in7_input, S_IRUGO, show_in, NULL, 7),
+> -	SENSOR_ATTR(in8_input, S_IRUGO, show_in, NULL, 8),
+> -	SENSOR_ATTR(in9_input, S_IRUGO, show_in, NULL, 9),
+> -};
+> +static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, show_in, NULL, 0);
+> +static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_in, NULL, 1);
+> +static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_in, NULL, 2);
+> +static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_in, NULL, 3);
+> +static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, show_in, NULL, 4);
+> +static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, show_in, NULL, 5);
+> +static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, show_in, NULL, 6);
+> +static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, show_in, NULL, 7);
+> +static SENSOR_DEVICE_ATTR(in8_input, S_IRUGO, show_in, NULL, 8);
+> +static SENSOR_DEVICE_ATTR(in9_input, S_IRUGO, show_in, NULL, 9);
 
-Good catch, we should indeed check the return value.
+Yep. The driver core wants arrays of pointers, rather that arrays of
+structures. We have to adapt.
 
-This code was copied from i2c-core, where the value returned by
-driver->attach_adapter() is ignored as well. There's even a comment:
-"We ignore the return code; if it fails, too bad". Sigh. The problem in
-i2c-core is that attach_adapter() will be called in a loop, on each
-available driver (when calling i2c_add_adapter) or each available
-adapter (when calling i2c_add_driver). We can't stop if one call fail,
-that wouldn't be fair for the others which may still succeed. The proper
-fix is to switch to the device driver model...
+> > a struct attribute *w83627ehf_attributes, it would contain something
+> > like &sda_sf3_arrays[0].device_attr, &sda_sf3_arrays[1].device_attr,
+>=20
+> Given the above, it would be &dev_attr_in0_input.dev_attr.attr.
+>=20
+> > I think that would be ugly code. It would allow me to call
+> > sysfs_create_group() just like Mark does, which I would do if I could
+> > find a way. Is there a sysfs_create_* function that takes
+> > sensor_device_attribute arrays instead? If I read correctly, no. :-(
+>=20
+> Of course we could create one and put it into the hwmon module.  Not sure
+> if I like that idea though.  It won't save any code, and I don't think it
+> would save any time either.
 
-In the i2c-isa case things are much more simple, we have a single call
-so failing on error sounds good.
+There are currently 3 possible structures for device attributes in
+hardware monitoring drivers, depending on whether they take 0, 1 or 2
+parameters. Some drivers mix the three types. Having helpers for arrays
+of structures would mean 3 different function sets in the hwmon driver,
+and some drivers would have to call the three of them. This is going to
+make things much more complex in some cases.
 
-> I have attached a very short patch for drivers/i2c/busses/i2c-isa.c
-> which should fix the problem. Instead of returning 0, it returns the
-> result of driver->attach_adapter().
+So I'd rather stick to what the driver core offers. Arrays of pointers
+make it possible to handle all attributes in a single array, regardless
+of their "original type".
 
-> diff -ur linux-2.6.18-rc4/drivers/i2c/busses/i2c-isa.c linux-2.6.18-rc4/drivers/i2c/busses/i2c-isa.c
-> --- linux-2.6.18-rc4/drivers/i2c/busses/i2c-isa.c	2006-08-14 17:48:28.000000000 -0700
-> +++ linux-2.6.18-rc4/drivers/i2c/busses/i2c-isa.c	2006-08-14 17:52:04.000000000 -0700
-> @@ -89,9 +89,7 @@
->  	dev_dbg(&isa_adapter.dev, "Driver %s registered\n", driver->driver.name);
->  
->  	/* Now look for clients */
-> -	driver->attach_adapter(&isa_adapter);
-> -
-> -	return 0;
-> +	return driver->attach_adapter(&isa_adapter);
->  }
+And indeed, the few drivers which had been using arrays for attributes
+will have to change. I'm sorry about that, but this seems to be the
+best move in the long run.
 
-That's not enough, unfortunately. In case of error you must unregister
-the driver before returning. I also think we should print some message
-on error. Care to send an updated patch?
+Now, the usual rules apply. If someone comes up with real working code
+and real world numbers which prove me wrong, the discussion reopens.
 
-> However, this may cause a great deal of unexpected grief, considering
-> how many drivers use this function.
+> I2C developers =3D mostly Jean, increasingly me too.  Anyway, i2c-isa is
+> not used by anyone except hwmon, so it's just as well to discuss it here.
 
-Not that many (11), and they are all hardware monitoring drivers.
+Yup, in fact i2c-isa should be in drivers/hwmon. I didn't bother moving
+it only because it was planned for removal anyway.
 
--- 
+> Jean: I thought you already had such a patch in your queue?  Now I can't
+> seem to find it.
+
+No, I don't. Maybe you are thinking of your own "i2c algorithm drivers
+don't propagate bus creation error" patch [1] or my work-in-progress
+patch addressing the __must_check warnings in i2c-isa [2]. But the
+specific bug reported by David is new to me.
+
+[1] http://www.kernel.org/git/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;=
+a=3Dcommit;h=B39ad0cf7c19fc14e8f823b1b36245f7a3711655
+[2] http://khali.linux-fr.org/devel/i2c/linux-2.6/i2c-core-__must_check-fix=
+es.patch
+
+Thanks,
+--=20
 Jean Delvare
 
