@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 15 Aug 2006 08:39:35 +0000
+From: bezaur@gmail.com (Charles Spirakis)
+Date: Thu, 17 Aug 2006 03:04:52 +0000
 Subject: [lm-sensors] [PATCH] Update lm_sensors to handle more of the
-Message-Id: <20060815103935.4f34fc11.khali@linux-fr.org>
+Message-Id: <5bfe43f80608162004r20bad3b8hd25827282b2c5363@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5bfe43f80608030056t16679db3ub2bc7fa0efa59ed1@mail.gmail.com>
 In-Reply-To: <5bfe43f80608030056t16679db3ub2bc7fa0efa59ed1@mail.gmail.com>
@@ -10,31 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Charles,
+From: Charles Spirakis <bezaur at gmail.com>
 
-> I wrote an ugly little python script to cause each alarm to trigger
-> one at a time (I can provide it if anyone is interested). Based on the
-> script, what I found was that the documentation was completely correct
-> for the values I tested (in0-9, temp1-3, fan1-5). My board doesn't
-> have the pwm stuff and the driver doesn't have that support, so I
-> didn't validate the tart1-3 alarms/enables, but since everything else
-> was correct, it seems likely those are as well.
-> 
-> Sven - Can you confirm this result?
+Modified patch from Sven Anders to enhance w83791d support. Adds output
+for in7, in8, in9, fan4 and fan5. Also updated to display the (beep)
+properly due to the fact that the w83791d beep enable mask is different
+than the alarm mask.
 
-Maybe you can share your script with Sven so that he can test quickly.
-A confirmation would indeed be welcome, as I know there are different
-revisions of the W83791D chip.
+Signed-off by: Sven Anders <anders at anduras.de>
+Signed-off by: Charles Spirakis <bezaur at gmail.com>
 
-> Based on this result and the comment earlier that the driver should do
-> a pass through of the values, I will create a documentation only
-> change for the 2.6 driver and clean up the lm_sensors patch that
-> started this thread.
-> 
-> Does this sound reasonable?
+---
 
-Yes, sounds like a good plan to me. I'm waiting for your patches :)
-
--- 
-Jean Delvare
-
+ kernel/chips/w83781d.c |   18 +++++++--
+ prog/sensors/chips.c   |   94
+++++++++++++++++++++++++++++++++++++++++++++++--- 2 files changed, 103
+insertions(+), 9 deletions(-)
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm-sensors-r4079-20060730_sven_changes.patch
+Type: text/x-patch
+Size: 8721 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060816/43b7b6d7/attachment.bin 
