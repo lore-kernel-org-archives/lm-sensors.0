@@ -1,23 +1,34 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 02 Aug 2006 07:39:13 +0000
-Subject: [lm-sensors] [PATCH] HDAPS: handle errors from
-Message-Id: <20060802093913.db3a2989.khali@linux-fr.org>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sat, 19 Aug 2006 09:39:03 +0000
+Subject: [lm-sensors] 2.6.16-rc5: unreasonable temperature reported by
+Message-Id: <44E6DC37.5060201@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200608012237.30591.dtor@insightbb.com>
-In-Reply-To: <200608012237.30591.dtor@insightbb.com>
+References: <446DF157.80805@t-online.de>
+In-Reply-To: <446DF157.80805@t-online.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Dmitry,
+Harald Dunkel wrote:
+> Hi folks,
+> 
+> It would be very nice if you could send me some feedback. I
+> haven't created a kernel driver before, but IMHO this should
+> not be a reason to ignore my efforts in this completely.
+> 
 
-> Compile-tested only (do not have the hardware)
-> (...)
-> HDAPS: handle errors from input_register_device()
+Hi,
 
-Looks good, applied. Thanks!
+We do not ignore, I just returned from 2-3 weeks off. Jean was alone here...
+Not easy to handle all those patches in two... Or alone..
 
--- 
-Jean Delvare
+Remember that we are doing this in free time and it eats a lot of it.
+
+I created a ticket with for your driver review.
+
+Regards
+Rudolf
+
+
 
