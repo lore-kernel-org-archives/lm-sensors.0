@@ -1,48 +1,41 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 28 Aug 2006 12:21:42 +0000
-Subject: [lm-sensors] [PATCH 02/14] hdaps: Handle errors from
-Message-Id: <20060828142142.d4dcad2c.khali@linux-fr.org>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Sun, 20 Aug 2006 22:30:52 +0000
+Subject: [lm-sensors] #2076: [ patch 0/3 ] hwmon/pc87360 maintainership,
+Message-Id: <44E8E29C.8070106@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Dmitry Torokhov <dtor at insightbb.com>
-Content-Disposition: inline; filename=hwmon-hdaps-handle-errors-from-input-register-device.patch
+lm-sensors wrote:
+> #2076: [lm-sensors] [ patch 0/3 ]  hwmon/pc87360 maintainership, object shrink
+> using combo callback
+> --------------------+-------------------------------------------------------
+> Reporter:  ruik     |        Owner:  somebody
+>     Type:  task     |       Status:  closed  
+> Priority:  major    |    Component:  kernel  
+>  Version:  CVS/SVN  |   Resolution:  invalid 
+> Keywords:           |  
+> --------------------+-------------------------------------------------------
+> Changes (by ruik):
+>
+>   * status:  new => closed
+>   * resolution:  => invalid
+>
+>   
 
-HDAPS: handle errors from input_register_device()
+1 - should I have been CCd on this ticket update ?
+    seems that
 
-Signed-off-by: Dmitry Torokhov <dtor at mail.ru>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
+2 - I infer that 'invalid' means doesnt apply cleanly any longer.
+    If not, whats the real reason ?
+    If so, is it practical to have that as a resolution ?
+       and presuming I'll fix them up, should I (try to) :
+         update the ticket ?  open new one ? just resend to list ?
 
- drivers/hwmon/hdaps.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+3 - who is *ruik* ?  
+    Is it Rudolf Marek ?
+    not that it matters, its just nice to know..
 
---- linux-2.6.18-rc4.orig/drivers/hwmon/hdaps.c	2006-08-27 22:32:01.000000000 +0200
-+++ linux-2.6.18-rc4/drivers/hwmon/hdaps.c	2006-08-27 22:38:41.000000000 +0200
-@@ -587,7 +587,9 @@
- 	input_set_abs_params(hdaps_idev, ABS_Y,
- 			-256, 256, HDAPS_INPUT_FUZZ, HDAPS_INPUT_FLAT);
- 
--	input_register_device(hdaps_idev);
-+	ret = input_register_device(hdaps_idev);
-+	if (ret)
-+		goto out_idev;
- 
- 	/* start up our timer for the input device */
- 	init_timer(&hdaps_timer);
-@@ -598,6 +600,8 @@
- 	printk(KERN_INFO "hdaps: driver successfully loaded.\n");
- 	return 0;
- 
-+out_idev:
-+	input_free_device(hdaps_idev);
- out_group:
- 	sysfs_remove_group(&pdev->dev.kobj, &hdaps_attribute_group);
- out_device:
-
--- 
-Jean Delvare
 
