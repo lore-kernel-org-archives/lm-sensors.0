@@ -1,76 +1,199 @@
-From: bezaur@gmail.com (Charles Spirakis)
-Date: Thu, 03 Aug 2006 07:55:50 +0000
-Subject: [lm-sensors] Patch to fully support W81791D
-Message-Id: <5bfe43f80608030055n77c1384al887bf0b87f440a1b@mail.gmail.com>
+From: michal.k.k.piotrowski@gmail.com (Michal Piotrowski)
+Date: Sun, 20 Aug 2006 20:44:30 +0000
+Subject: [lm-sensors] [RFC][PATCH] hwmon:fix sparse warnings + error handling
+Message-Id: <44E8C9AE.3060307@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5bfe43f80607101040q5fe64dfdi4e7e2ce349407d62@mail.gmail.com>
-In-Reply-To: <5bfe43f80607101040q5fe64dfdi4e7e2ce349407d62@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>, Frodo Looijaard <frodol@dds.nl>, Philip Edelbrock <phil@netroedge.com>, Mark Studebaker <mdsxyz123@yahoo.com>, lm-sensors@lm-sensors.org, LKML <linux-kernel@vger.kernel.org>
 
-Jean --
+Hi,
 
-I can't speak for the 2.4 driver, but the testing that I did for the
-2.6 driver was based on the values in /sys. The biggest changes Sven
-found were that the user-mode sensors tool wasn't showing all the
-values from the w83791d that it could. Sven provided a patch for this
-which will be submitted in a separate email.
+This patch fixes 56 sparse "ignoring return value of 'device_create_file'" warnings. It also adds error handling.
 
-As for driver bugs, Sven did find one of those too - the beep enable
-and the realtime status bits don't completely match the documentation
-and one of the beep enable bits needs to be swapped. A second patch
-will be submitted for this.
+w83627hf.c |   96 ++++++++++++++++++++++++++++++++++++++++++++++++++-----------
+1 file changed, 80 insertions(+), 16 deletions(-)
 
--- charles
+Regards,
+Michal
+
+-- 
+Michal K. K. Piotrowski
+LTG - Linux Testers Group
+(http://www.stardust.webpages.pl/ltg/wiki/)
+
+Signed-off-by: Michal Piotrowski <michal.k.k.piotrowski at gmail.com>
+
+diff -uprN -X linux-work/Documentation/dontdiff linux-work-clean/drivers/hwmon/w83627hf.c linux-work/drivers/hwmon/w83627hf.c
+--- linux-work-clean/drivers/hwmon/w83627hf.c	2006-08-20 22:02:40.000000000 +0200
++++ linux-work/drivers/hwmon/w83627hf.c	2006-08-20 22:27:14.000000000 +0200
+@@ -513,9 +513,21 @@ static DEVICE_ATTR(in0_max, S_IRUGO | S_
+
+ #define device_create_file_in(client, offset) \
+ do { \
+-device_create_file(&client->dev, &dev_attr_in##offset##_input); \
+-device_create_file(&client->dev, &dev_attr_in##offset##_min); \
+-device_create_file(&client->dev, &dev_attr_in##offset##_max); \
++	err = device_create_file(&client->dev, &dev_attr_in##offset##_input); \
++	if (err) {\
++		hwmon_device_unregister(data->class_dev); \
++		return err; \
++	} \
++	err = device_create_file(&client->dev, &dev_attr_in##offset##_min); \
++	if (err) {\
++		hwmon_device_unregister(data->class_dev); \
++		return err; \
++	} \
++	err = device_create_file(&client->dev, &dev_attr_in##offset##_max); \
++	if (err) {\
++		hwmon_device_unregister(data->class_dev); \
++		return err; \
++	} \
+ } while (0)
+
+ #define show_fan_reg(reg) \
+@@ -577,8 +589,16 @@ sysfs_fan_min_offset(3);
+
+ #define device_create_file_fan(client, offset) \
+ do { \
+-device_create_file(&client->dev, &dev_attr_fan##offset##_input); \
+-device_create_file(&client->dev, &dev_attr_fan##offset##_min); \
++	err = device_create_file(&client->dev, &dev_attr_fan##offset##_input); \
++	if (err) {\
++		hwmon_device_unregister(data->class_dev); \
++		return err; \
++	} \
++	err = device_create_file(&client->dev, &dev_attr_fan##offset##_min); \
++	if (err) {\
++		hwmon_device_unregister(data->class_dev); \
++		return err; \
++	} \
+ } while (0)
+
+ #define show_temp_reg(reg) \
+@@ -657,9 +677,21 @@ sysfs_temp_offsets(3);
+
+ #define device_create_file_temp(client, offset) \
+ do { \
+-device_create_file(&client->dev, &dev_attr_temp##offset##_input); \
+-device_create_file(&client->dev, &dev_attr_temp##offset##_max); \
+-device_create_file(&client->dev, &dev_attr_temp##offset##_max_hyst); \
++	err = device_create_file(&client->dev, &dev_attr_temp##offset##_input); \
++	if (err) {\
++		hwmon_device_unregister(data->class_dev); \
++		return err; \
++	} \
++	err = device_create_file(&client->dev, &dev_attr_temp##offset##_max); \
++	if (err) {\
++		hwmon_device_unregister(data->class_dev); \
++		return err; \
++	} \
++	err = device_create_file(&client->dev, &dev_attr_temp##offset##_max_hyst); \
++	if (err) {\
++		hwmon_device_unregister(data->class_dev); \
++		return err; \
++	} \
+ } while (0)
+
+ static ssize_t
+@@ -670,7 +702,11 @@ show_vid_reg(struct device *dev, struct
+ }
+ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid_reg, NULL);
+ #define device_create_file_vid(client) \
+-device_create_file(&client->dev, &dev_attr_cpu0_vid)
++err = device_create_file(&client->dev, &dev_attr_cpu0_vid); \
++if (err) { \
++	hwmon_device_unregister(data->class_dev); \
++	return err; \
++} \
+
+ static ssize_t
+ show_vrm_reg(struct device *dev, struct device_attribute *attr, char *buf)
+@@ -692,7 +728,11 @@ store_vrm_reg(struct device *dev, struct
+ }
+ static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm_reg, store_vrm_reg);
+ #define device_create_file_vrm(client) \
+-device_create_file(&client->dev, &dev_attr_vrm)
++err = device_create_file(&client->dev, &dev_attr_vrm); \
++if (err) {\
++	hwmon_device_unregister(data->class_dev); \
++	return err; \
++} \
+
+ static ssize_t
+ show_alarms_reg(struct device *dev, struct device_attribute *attr, char *buf)
+@@ -702,7 +742,11 @@ show_alarms_reg(struct device *dev, stru
+ }
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms_reg, NULL);
+ #define device_create_file_alarms(client) \
+-device_create_file(&client->dev, &dev_attr_alarms)
++err = device_create_file(&client->dev, &dev_attr_alarms); \
++if (err) {\
++	hwmon_device_unregister(data->class_dev); \
++	return err; \
++} \
+
+ #define show_beep_reg(REG, reg) \
+ static ssize_t show_beep_##reg (struct device *dev, struct device_attribute *attr, char *buf) \
+@@ -767,8 +811,16 @@ sysfs_beep(MASK, mask);
+
+ #define device_create_file_beep(client) \
+ do { \
+-device_create_file(&client->dev, &dev_attr_beep_enable); \
+-device_create_file(&client->dev, &dev_attr_beep_mask); \
++	err = device_create_file(&client->dev, &dev_attr_beep_enable); \
++	if (err) {\
++		hwmon_device_unregister(data->class_dev); \
++		return err; \
++	} \
++	err = device_create_file(&client->dev, &dev_attr_beep_mask); \
++	if (err) {\
++		hwmon_device_unregister(data->class_dev); \
++		return err; \
++	} \
+ } while (0)
+
+ static ssize_t
+@@ -838,7 +890,11 @@ sysfs_fan_div(3);
+
+ #define device_create_file_fan_div(client, offset) \
+ do { \
+-device_create_file(&client->dev, &dev_attr_fan##offset##_div); \
++	err = device_create_file(&client->dev, &dev_attr_fan##offset##_div); \
++	if (err) {\
++		hwmon_device_unregister(data->class_dev); \
++		return err; \
++	} \
+ } while (0)
+
+ static ssize_t
+@@ -897,7 +953,11 @@ sysfs_pwm(3);
+
+ #define device_create_file_pwm(client, offset) \
+ do { \
+-device_create_file(&client->dev, &dev_attr_pwm##offset); \
++	err = device_create_file(&client->dev, &dev_attr_pwm##offset); \
++	if (err) {\
++		hwmon_device_unregister(data->class_dev); \
++		return err; \
++	} \
+ } while (0)
+
+ static ssize_t
+@@ -973,7 +1033,11 @@ sysfs_sensor(3);
+
+ #define device_create_file_sensor(client, offset) \
+ do { \
+-device_create_file(&client->dev, &dev_attr_temp##offset##_type); \
++	err = device_create_file(&client->dev, &dev_attr_temp##offset##_type); \
++	if (err) {\
++		hwmon_device_unregister(data->class_dev); \
++		return err; \
++	} \
+ } while (0)
 
 
-On 7/28/06, Charles Spirakis <bezaur at gmail.com> wrote:
-> I'll give it a try.
->
-> Sven and I were also talking about a patch to the w83791d driver to
-> fix some of the beep/realtime status bits as the documentation doesn't
-> seem to match the hardware. I'll try to get that to the lmsensors
-> mailing list over the weekend.
->
-> -- charles
->
->
-> On 7/28/06, Jean Delvare <khali at linux-fr.org> wrote:
-> > > -----BEGIN PGP SIGNED MESSAGE-----
-> > > Hash: SHA1
-> > >
-> > > Jean Delvare schrieb:
-> > > > Charles, Sven,
-> > > >
-> > > >>> I've attached a patch to fully support the W81791D chip, which is part of the
-> > > >>> coming kernel 2.1.18.
-> > > >>>
-> > > >>> Partial support was alredy implemented, but it was missing IN9/FAN4/FAN5 output.
-> > > >>>
-> > > >>> Please add it to the SVN.
-> > > >
-> > > > Where is this patch, please?
-> > >
-> > > It was attatched - I checked it...
-> >
-> > I guess you had only sent it to Charles, who has no write access to the
-> > repository. At least I did not receive your original post and I can't
-> > see it in the mailing list archive either.
-> >
-> > > But in case, something went wrong - here it comes again...
-> >
-> > Great, thanks. Charles, can you please review and test the patch? Then
-> > I'll apply it if it has no problem.
-> >
-> > I'm very surprised that this support was missing since the W83791D
-> > support was added. This means that parts of the drivers (w83781d in 2.4
-> > and w83791d in 2.6) were never actually exercised.
-> >
-> > Thanks,
-> > --
-> > Jean Delvare
-> >
->
+
+
 
