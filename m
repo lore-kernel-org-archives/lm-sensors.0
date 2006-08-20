@@ -1,28 +1,23 @@
-From: michal.k.k.piotrowski@gmail.com (Michal Piotrowski)
-Date: Sun, 20 Aug 2006 22:12:52 +0000
+From: alan@lxorguk.ukuu.org.uk (Alan Cox)
+Date: Sun, 20 Aug 2006 22:28:43 +0000
 Subject: [lm-sensors] [RFC][PATCH] hwmon:fix sparse warnings + error
-Message-Id: <6bffcb0e0608201512r12d5ece5u2de4abb914cc7728@mail.gmail.com>
+Message-Id: <1156112923.4051.51.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44E8C9AE.3060307@gmail.com> <44E8D8F7.5090000@yahoo.com>
-In-Reply-To: <44E8D8F7.5090000@yahoo.com>
+References: <44E8C9AE.3060307@gmail.com>
+In-Reply-To: <44E8C9AE.3060307@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "jim.cromie@gmail.com" <jim.cromie@gmail.com>
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 Cc: Andrew Morton <akpm@osdl.org>, Frodo Looijaard <frodol@dds.nl>, Philip Edelbrock <phil@netroedge.com>, Mark Studebaker <mdsxyz123@yahoo.com>, lm-sensors@lm-sensors.org, LKML <linux-kernel@vger.kernel.org>
 
-On 20/08/06, jim.cromie at gmail.com <jim.cromie at gmail.com> wrote:
-[snip]
-> If youre so inclined, there are ~38 others in need
-> of similar attention ;)
+Ar Sul, 2006-08-20 am 22:44 +0200, ysgrifennodd Michal Piotrowski:
+> Hi,
+> 
+> This patch fixes 56 sparse "ignoring return value of 'device_create_file'" warnings. It also adds error handling.
+> 
 
-I'll try to fix them.
+The core of these wants turning into called functions with the extra
+checks included, just because of the size it now is.
 
-Regards,
-Michal
-
--- 
-Michal K. K. Piotrowski
-LTG - Linux Testers Group
-(http://www.stardust.webpages.pl/ltg/wiki/)
 
