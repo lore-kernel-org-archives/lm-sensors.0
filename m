@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 20 Aug 2006 12:23:28 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Sun, 20 Aug 2006 21:23:23 +0000
 Subject: [lm-sensors] [RFC PATCH 2.6.18-rc4-mm1] hwmon: unchecked return
-Message-Id: <20060820142328.d5827801.khali@linux-fr.org>
+Message-Id: <4dfa50520608201423m1aaca4ffhe83cd33df991aa1@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060814020407.GA3327@jupiter.solarsys.private>
 In-Reply-To: <20060814020407.GA3327@jupiter.solarsys.private>
@@ -10,10 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Updated patch attached.
+Hi Jean,
 
-Applied, thanks.
+> > Updated patch attached.
+>
+> Applied, thanks.
 
--- 
-Jean Delvare
+I guess moving forward, I'll finish the patch for the w83627ehf
+driver, but let's not include it until the i2c patch has had some time
+to be tested.
+
+David
 
