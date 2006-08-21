@@ -1,28 +1,48 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
-Date: Sat, 05 Aug 2006 10:12:46 +0000
-Subject: [lm-sensors] Adding userspace support for ipmisensors
-Message-Id: <253818670608050312h1d6387f5ud6bf51b2ae07ad65@mail.gmail.com>
+From: RaphaelD@tyan.com (Raphael Deng)
+Date: Mon, 21 Aug 2006 17:24:32 +0000
+Subject: [lm-sensors] =?utf-8?b?562U5aSNOiAgVHlhbiBTMjcyMCBSZXZzaW9uIDIu?=
+Message-Id: <3174569B9743D511922F00A0C943142310DBD8AD@TYANWEB>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <253818670608031201l3e101782r5d1012900ddecdf8@mail.gmail.com>
-In-Reply-To: <253818670608031201l3e101782r5d1012900ddecdf8@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 8/4/06, Yani Ioannou <yani.ioannou at gmail.com> wrote:
-> Hi Jean,
->
-> On 8/4/06, Jean Delvare <khali at linux-fr.org> wrote:
-> > We can obviously apply this, it's not very intrusive ;) However, may I
-> > ask why you didn't simply keep the "bmc" prefix? You would have won
-> > compatibility with a few previous releases of lm_sensors, and the name
-> > change might also confuse the users.
+Hi Rudolf
 
-Actually just letting the name attribute return "bmc" seems to allow
-ipmisensors to work with lm-sensors as is (with the exception of
-sensors-detect as mentioned before). So I think thats the way I'll go
-for now.
+Which CPU he use? FSB400 or FSB533? If using FSB400, the CPU temp cannot be
+got from hardware monitor chip. You must use sensor in Intel Xeon CPU
+itself.
 
-Yani
+Best Regards
+Raphael Deng
+
+-----????-----
+???: Rudolf Marek [mailto:r.marek at sh.cvut.cz] 
+????: 2006?8?19? 3:40
+???: Marcus Sobchak
+??: LM Sensors; Raphael Deng
+??: Re: [lm-sensors] Tyan S2720 Revsion 2.01 again
+
+Hello all,
+
+Raphael have you please idea why he has still -1 temp? Tyan sensors.conf
+suggest
+to upgrade the bios, but it did not help in his case.
+
+Please can you help?
+
+Regards
+Rudolf
+
+> adm1021-i2c-0-19
+> Adapter: SMBus I801 adapter at 0540
+> CPU 2 temp:
+>               -1?C  (low  =    -1?C, high =    -1?C)  ALARM (N/A,LOW)
+> 
+> adm1021-i2c-0-18
+> Adapter: SMBus I801 adapter at 0540
+> CPU 1 temp:
+>               -1?C  (low  =    -1?C, high =    -1?C)  ALARM (N/A,LOW)
+> 
 
