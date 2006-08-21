@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 17 Aug 2006 20:50:24 +0000
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Mon, 21 Aug 2006 23:02:55 +0000
 Subject: [lm-sensors] [PATCH 1/2 RESEND 2] hwmon: new vt1211 driver
-Message-Id: <20060817225024.f02bad76.khali@linux-fr.org>
+Message-Id: <191fb4ca0608211602s77614c87h9f8f9fe6b054d864@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0605311844n3d24f429k8942ffaa15e864a8@mail.gmail.com>
 In-Reply-To: <191fb4ca0605311844n3d24f429k8942ffaa15e864a8@mail.gmail.com>
@@ -10,45 +10,91 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+Hi Jean,
 
-> > Really, I don't think so. That's what we have in the 2.4 driver:
-> >
-> > http://www.lm-sensors.org/browser/lm-sensors/trunk/kernel/chips/vt1211.c
-> >
-> > 122     static const u8 regtemp[] = { 0x20, 0x21, 0x1f, 0x22, 0x23, 0x24, 0x25 };
-> > 123     static const u8 regover[] = { 0x39, 0x3d, 0x1d, 0x2b, 0x2d, 0x2f, 0x31 };
-> > 124     static const u8 reghyst[] = { 0x3a, 0x3e, 0x1e, 0x2c, 0x2e, 0x30, 0x32 };
-> >
-> > regtemp is similar, but regover and reghyst have their 1st and 3rd
-> > elements swapped. The datasheet matches your version, so this has to be
-> > a bug in the 2.4 driver. In doubt, you could check if the alarm flags
-> > for temp1 and temp3 trigger as expected.
-> 
-> OK, yes. Now I remember. Regover and reghyst in 2.4 are correct but
-> regtemp has elements 1 and 3 swapped (compared to the datasheet). I
-> kept the swapping but fixed regover and reghyst to stay compatible
-> with sensors.conf. If we want to follow the datasheet (rev 1.42) it
-> would have to be as follows:
-> 
-> static const u8 regtemp[] = { 0x1f, 0x21, 0x20, 0x22, 0x23, 0x24, 0x25 };
-> static const u8 regover[] = { 0x39, 0x3d, 0x1d, 0x2b, 0x2d, 0x2f, 0x31 };
-> static const u8 reghyst[] = { 0x3a, 0x3e, 0x1e, 0x2c, 0x2e, 0x30, 0x32 };
-> 
-> i.e.:
-> temp1 = Reading 1
-> temp2 = Reading 2
-> temp3 = Reading 3
-> temp4 = UCH2
-> temp5 = UCH3
-> temp6 = UCH4
-> temp7 = UCH5
+I started working on a new patch over the weekend and ran into some
+issues. Please see my additional questions below:
 
-I don't know what others think, but I don't really care. If you want to
-put temp1 and temp3 back in sync with the datasheet, feel free to do
-so. If you prefer to keep them swapped, that's fine as well. We'll have
-to adjust the 2.4 driver and sensors.conf.eg in both cases anyway.
 
--- 
-Jean Delvare
+> > +#define TEMP_FROM_REG(ix, val)       ((ix) = 0 ? \
+> > +                              (val) < 51 ? 0 : ((val) - 51) * 1000 : \
+> > +                              (val) * 1000)
+> > +#define TEMP_TO_REG(ix, val) ((ix) = 0 ? \
+> > +                              SENSORS_LIMIT((((val) / 1000) + 51), \
+> > +                                     0, 255) : \
+> > +                              SENSORS_LIMIT(((val) / 1000), 0, 255))
+>
+> For all other temperature channels, I'm not OK. These are
+> thermistor-based measurements with external resistors and thermistors,
+> so most scaling belongs to userspace. What we want to export here is
+> the voltage at the pins, in mV. This wasn't done correctly in the
+> Linux 2.4 driver, but in 2.6 we have a standard interface and we have
+> to respect it. This is exactly the same as for the VT8231 so the same
+> formula should work:
+>
+> #define TEMP_FROM_REG(reg)              (((253 * 4 - (reg)) * 550 + 105) / 210)
+> #define TEMP_MAXMIN_FROM_REG(reg)       (((253 - (reg)) * 2200 + 105) / 210)
+> #define TEMP_MAXMIN_TO_REG(val)         (253 - ((val) * 210 + 1100) / 2200)
+
+OK, I don't get it. How were these formulaes derived and what are they
+supposed to do?
+
+
+> > +             printk(KERN_ERR DRVNAME ": Unknown attr fetch\n");
+>
+> As I understand it, the default case can't happen unless the driver is
+> broken. Thus it would make sense to make this a debug message. Also,
+> please convert all these printk calls to dev_err, dev_dbg, etc. These
+> provide a uniform way to print device messages.
+
+How do I get to &pdev->dev inside a callback?
+
+
+> > +     case SHOW_SET_FAN_DIV:
+> > +             data->fan_div[ix] = DIV_TO_REG(val);
+> > +             vt1211_write8(data, VT1211_REG_FAN_DIV,
+> > +                           ((data->fan_div[1] << 6) |
+> > +                            (data->fan_div[0] << 4) |
+> > +                             data->fan_ctl));
+> > +             break;
+>
+> Not correct. You assume the data cache is in synch with register
+> VT1211_REG_FAN_DIV, while it may not be (e.g. if this function is
+> called before the update function ever is.) Please read the contents of
+> VT1211_REG_FAN_DIV so that you are sure you won't change bits in that
+> register.
+
+Hmm... If this is indeed an issue then it's true in a lot of places.
+I.e., whenever a callback function modifies a value rather than
+overwrites it (e.g., data->value |= x vs data->value = y).
+It becomes very cumbersome if I have to read the registers first in
+these cases since the mapping between the data cache and the physical
+registers isn't exactly straight forward. It's all hidden in
+vt1211_update_device and I would have to duplicate part of that logic
+in the individual callbacks, ugly. It would be easiest to just call
+vt1211_update_device rather than dev_get_drvdata but that's of course
+not very efficient.
+
+
+>> +	if (!(data = kzalloc(sizeof(struct vt1211_data), GFP_KERNEL))) {
+>> +		err = -ENOMEM;
+>> +		printk(KERN_ERR DRVNAME ": Out of memory\n");
+>
+>dev_err()
+
+Is &pdev->dev already initialized at this point?
+
+
+> > +     val = ((superio_inb(SIO_VT1211_BADDR) << 8) |
+> > +            (superio_inb(SIO_VT1211_BADDR + 1)));
+> > +     *address = val & SIO_VT1211_BADDR_MASK;
+>
+> I see nothing in the datasheet justifying this masking.
+
+Hmm, that mask is weird indeed. I changed it to 0xfff0 since page 27
+states that bits 7-0 are reserved (but always read 0). I don't trust
+the datasheet (it's erronous in other places too) so I keep the mask.
+
+
+...juerg
 
