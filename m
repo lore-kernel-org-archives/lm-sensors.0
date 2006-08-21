@@ -1,45 +1,104 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 21 Aug 2006 08:04:16 +0000
+Date: Mon, 21 Aug 2006 09:11:27 +0000
 Subject: [lm-sensors] [RFC][PATCH] hwmon:fix sparse warnings + error
-Message-Id: <20060821100416.4d356328.khali@linux-fr.org>
+Message-Id: <20060821111127.fe93bc0a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44E8C9AE.3060307@gmail.com>
-In-Reply-To: <44E8C9AE.3060307@gmail.com>
+	<20060821023017.GA30017@jupiter.solarsys.private>
+In-Reply-To: <20060821023017.GA30017@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Andrew Morton <akpm@osdl.org>, lm-sensors@lm-sensors.org, LKML <linux-kernel@vger.kernel.org>
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Andrew Morton <akpm@osdl.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-> --- linux-work-clean/drivers/hwmon/w83627hf.c	2006-08-20 22:02:40.000000000 +0200
-> +++ linux-work/drivers/hwmon/w83627hf.c	2006-08-20 22:27:14.000000000 +0200
-> @@ -513,9 +513,21 @@ static DEVICE_ATTR(in0_max, S_IRUGO | S_
+Mark, Michal,
+
+> Thanks for doing this... but Andrew please don't apply it.  The sensors project
+> people are working on these even now, and we already have a patch for the
+> w83627hf driver...
 > 
->  #define device_create_file_in(client, offset) \
->  do { \
-> -device_create_file(&client->dev, &dev_attr_in##offset##_input); \
-> -device_create_file(&client->dev, &dev_attr_in##offset##_min); \
-> -device_create_file(&client->dev, &dev_attr_in##offset##_max); \
-> +	err = device_create_file(&client->dev, &dev_attr_in##offset##_input); \
-> +	if (err) {\
-> +		hwmon_device_unregister(data->class_dev); \
-> +		return err; \
-> +	} \
-> +	err = device_create_file(&client->dev, &dev_attr_in##offset##_min); \
-> +	if (err) {\
-> +		hwmon_device_unregister(data->class_dev); \
-> +		return err; \
-> +	} \
-> +	err = device_create_file(&client->dev, &dev_attr_in##offset##_max); \
-> +	if (err) {\
-> +		hwmon_device_unregister(data->class_dev); \
-> +		return err; \
-> +	} \
->  } while (0)
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2006-August/017204.html
+> 
+> Jean Delvare (hwmon maintainer) should be sending these up the chain soon.
+> 
+> Michal: if you're interested in fixing any of the rest of them, please take
+> a look at the patch above to see the mechanism we intend to use.  It actually
+> makes the drivers *smaller* than they were.
 
-_Never_ use "return" in a macro. It's way too confusing for whoever will
-read the code later.
+The size change really depends on the driver. For older drivers with
+individual file registration (sometimes hidden behind macros) the
+driver size will indeed shrink, but for newer drivers with loop-based
+file registration, this would be a slight increase in size. Not that it
+really matters anyway, what matters is that we handle errors and file
+deletion properly from now on.
 
+Michal, if you go on working on this (and this is welcome), please
+follow what Mark did, as this is what we agreed was the best approach.
+Here is a quick status summary for drivers/hwmon:
+
+Done by Mark M. Hoffman:
+ o asb100
+ o lm75
+ o lm78
+ o smsc47b397
+ o w83627hf
+
+Done by Jim Cromie:
+ o pc87360
+
+Will be done by David Hubbard:
+ o w83627ehf
+
+Will be done by me:
+ o f71805f
+ o it87
+ o lm63
+ o lm83
+ o lm90
+
+This leaves the following list:
+ o abituguru
+ o adm1021
+ o adm1025
+ o adm1026
+ o adm1031
+ o adm9240
+ o atxp1
+ o ds1621
+ o fscher
+ o fscpos
+ o gl518sm
+ o gl520sm
+ o lm77
+ o lm80
+ o lm85
+ o lm87
+ o lm92
+ o max1619
+ o sis5595
+ o smsc47m1
+ o smsc47m192
+ o via686a
+ o vt8231
+ o w83781d
+ o w83791d
+ o w83792d
+ o w83l785ts
+
+Almost 1000 warnings for drivers/hwmon alone... OTOH I wonder how
+device_create_file and friends qualified for __must_check given that
+nothing wrong can happen if they fail, from the kernel's point of view.
+The files are not created and that's about it.
+
+If you are going to fix some of the drivers listed above, please
+advertise on the lm-sensors list so that your work is not duplicated.
+
+As a side note, I have patches ready for everything under drivers/i2c
+already, I sent them on the i2c list last week and will push them soon
+now.
+
+Thanks,
 -- 
 Jean Delvare
 
