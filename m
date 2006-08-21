@@ -1,7 +1,7 @@
-From: gregkh@suse.de (gregkh at suse.de)
-Date: Tue, 29 Aug 2006 23:25:34 +0000
-Subject: [lm-sensors] patch hwmon-k8temp-new-driver.patch added to
-Message-Id: <20060829232637.5FACA808ABE@imap.suse.de>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Mon, 21 Aug 2006 03:01:45 +0000
+Subject: [lm-sensors] [patch 3/3] hwmon/pc87360: combine sysfs-attr
+Message-Id: <44E92219.8030806@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,411 +9,763 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-This is a note to let you know that I've just added the patch titled
+3. hwmon-pc87360-sysfs-combo-callbacks.patch
 
-     Subject: [PATCH 12/14] hwmon: New driver k8temp
+This combines individual  (show|set)_Sensor_Attr callbacks into
+(show|set)_Sensor callbacks that handle all that Sensor's Attrs.
+The callback routines use the .nr field to determine what attribute
+they were called for.
 
-to my gregkh-2.6 tree.  Its filename is
+previous version of patches saved ~ 9%
 
-     hwmon-k8temp-new-driver.patch
+Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
 
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+--
 
+[jimc at harpo pc-set]$ diffstat hwmon-pc87360-sysfs-combo-callbacks.patch
+ pc87360.c |  609 
+++++++++++++++++++++++++++++----------------------------------
+ 1 files changed, 281 insertions(+), 328 deletions(-)
 
-From khali at linux-fr.org Mon Aug 28 05:40:19 2006
-Date: Mon, 28 Aug 2006 14:40:17 +0200
-From: Jean Delvare <khali at linux-fr.org>
-To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>, Rudolf Marek <r.marek at sh.cvut.cz>
-Subject: [PATCH 12/14] hwmon: New driver k8temp
-Message-Id: <20060828144017.67876c4f.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-k8temp-new-driver.patch
+--
 
-From: Rudolf Marek <r.marek at sh.cvut.cz>
-
-Add support for the temperature sensor(s) found in AMD K8 CPUs.
-
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
----
- drivers/hwmon/Kconfig   |   10 +
- drivers/hwmon/Makefile  |    1 
- drivers/hwmon/k8temp.c  |  292 ++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pci_ids.h |    1 
- 4 files changed, 304 insertions(+)
-
---- gregkh-2.6.orig/drivers/hwmon/Kconfig
-+++ gregkh-2.6/drivers/hwmon/Kconfig
-@@ -94,6 +94,16 @@ config SENSORS_ADM9240
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called adm9240.
+diff -ruNp -X dontdiff -X exclude-diffs ae-2/drivers/hwmon/pc87360.c ae-3/drivers/hwmon/pc87360.c
+--- ae-2/drivers/hwmon/pc87360.c	2006-08-20 17:20:52.000000000 -0600
++++ ae-3/drivers/hwmon/pc87360.c	2006-08-20 17:53:59.000000000 -0600
+@@ -257,34 +257,35 @@ static struct i2c_driver pc87360_driver 
+ #define FN_FAN_STATUS	2
+ #define FN_FAN_DIV	3
  
-+config SENSORS_K8TEMP
-+	tristate "AMD K8 processor sensor"
-+	depends on HWMON && X86 && PCI && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for the temperature
-+	  sensor(s) inside your AMD K8 CPU.
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called k8temp.
-+
- config SENSORS_ASB100
- 	tristate "Asus ASB100 Bach"
- 	depends on HWMON && I2C && EXPERIMENTAL
---- gregkh-2.6.orig/drivers/hwmon/Makefile
-+++ gregkh-2.6/drivers/hwmon/Makefile
-@@ -27,6 +27,7 @@ obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm
- obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
- obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
- obj-$(CONFIG_SENSORS_IT87)	+= it87.o
-+obj-$(CONFIG_SENSORS_K8TEMP)	+= k8temp.o
- obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
- obj-$(CONFIG_SENSORS_LM70)	+= lm70.o
- obj-$(CONFIG_SENSORS_LM75)	+= lm75.o
---- /dev/null
-+++ gregkh-2.6/drivers/hwmon/k8temp.c
-@@ -0,0 +1,292 @@
-+/*
-+ * k8temp.c - Linux kernel module for hardware monitoring
-+ *
-+ * Copyright (C) 2006 Rudolf Marek <r.marek at sh.cvut.cz>
-+ *
-+ * Inspired from the w83785 and amd756 drivers.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-+ * 02110-1301 USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/jiffies.h>
-+#include <linux/pci.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/err.h>
-+#include <linux/mutex.h>
-+
-+#define TEMP_FROM_REG(val)	(((((val) >> 16) & 0xff) - 49) * 1000)
-+#define REG_TEMP	0xe4
-+#define SEL_PLACE	0x40
-+#define SEL_CORE	0x04
-+
-+struct k8temp_data {
-+	struct class_device *class_dev;
-+	struct mutex update_lock;
-+	const char *name;
-+	char valid;		/* zero until following fields are valid */
-+	unsigned long last_updated;	/* in jiffies */
-+
-+	/* registers values */
-+	u8 sensorsp;		/* sensor presence bits - SEL_CORE & SEL_PLACE */
-+	u32 temp[2][2];		/* core, place */
-+};
-+
-+static struct k8temp_data *k8temp_update_device(struct device *dev)
-+{
-+	struct k8temp_data *data = dev_get_drvdata(dev);
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	u8 tmp;
-+
-+	mutex_lock(&data->update_lock);
-+
-+	if (!data->valid
-+	    || time_after(jiffies, data->last_updated + HZ)) {
-+		pci_read_config_byte(pdev, REG_TEMP, &tmp);
-+		tmp &= ~(SEL_PLACE | SEL_CORE);		/* Select sensor 0, core0 */
-+		pci_write_config_byte(pdev, REG_TEMP, tmp);
-+		pci_read_config_dword(pdev, REG_TEMP, &data->temp[0][0]);
-+
-+		if (data->sensorsp & SEL_PLACE) {
-+			tmp |= SEL_PLACE;	/* Select sensor 1, core0 */
-+			pci_write_config_byte(pdev, REG_TEMP, tmp);
-+			pci_read_config_dword(pdev, REG_TEMP,
-+					      &data->temp[0][1]);
-+		}
-+
-+		if (data->sensorsp & SEL_CORE) {
-+			tmp &= ~SEL_PLACE;	/* Select sensor 0, core1 */
-+			tmp |= SEL_CORE;
-+			pci_write_config_byte(pdev, REG_TEMP, tmp);
-+			pci_read_config_dword(pdev, REG_TEMP,
-+					      &data->temp[1][0]);
-+
-+			if (data->sensorsp & SEL_PLACE) {
-+				tmp |= SEL_PLACE;	/* Select sensor 1, core1 */
-+				pci_write_config_byte(pdev, REG_TEMP, tmp);
-+				pci_read_config_dword(pdev, REG_TEMP,
-+						      &data->temp[1][1]);
-+			}
-+		}
-+
-+		data->last_updated = jiffies;
-+		data->valid = 1;
+-static ssize_t show_fan_input(struct device *dev, struct device_attribute *devattr, char *buf)
++static ssize_t show_fan(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan[attr->index],
+-		       FAN_DIV_FROM_REG(data->fan_status[attr->index])));
+-}
+-static ssize_t show_fan_min(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan_min[attr->index],
+-		       FAN_DIV_FROM_REG(data->fan_status[attr->index])));
+-}
+-static ssize_t show_fan_div(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n",
+-		       FAN_DIV_FROM_REG(data->fan_status[attr->index]));
+-}
+-static ssize_t show_fan_status(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n",
+-		       FAN_STATUS_FROM_REG(data->fan_status[attr->index]));
++        struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
++        int idx = attr->index;
++	int func = attr->nr;
++        struct pc87360_data *data = pc87360_update_device(dev);
++	unsigned res = -1;
++	
++	switch(func) {
++	case FN_FAN_INPUT:
++		res = FAN_FROM_REG(data->fan[idx],
++				   FAN_DIV_FROM_REG(data->fan_status[idx]));
++		break;
++	case FN_FAN_MIN:
++		res = FAN_FROM_REG(data->fan_min[idx],
++				   FAN_DIV_FROM_REG(data->fan_status[idx]));
++		break;
++	case FN_FAN_STATUS:
++		res = FAN_STATUS_FROM_REG(data->fan_status[idx]);
++		break;
++	case FN_FAN_DIV:
++		res = FAN_DIV_FROM_REG(data->fan_status[idx]);
++		break;
++	default:
++		printk(KERN_ERR "unknown attr fetch\n");
 +	}
++	return sprintf(buf, "%u\n", res);
+ }
 +
-+	mutex_unlock(&data->update_lock);
-+	return data;
-+}
-+
-+/*
-+ * Sysfs stuff
-+ */
-+
-+static ssize_t show_name(struct device *dev, struct device_attribute
-+			 *devattr, char *buf)
-+{
-+	struct k8temp_data *data = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%s\n", data->name);
-+}
-+
-+
-+static ssize_t show_temp(struct device *dev,
-+			 struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute_2 *attr +	    to_sensor_dev_attr_2(devattr);
-+	int core = attr->nr;
-+	int place = attr->index;
-+	struct k8temp_data *data = k8temp_update_device(dev);
-+
-+	return sprintf(buf, "%d\n",
-+		       TEMP_FROM_REG(data->temp[core][place]));
-+}
-+
-+/* core, place */
-+
-+static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0, 0);
-+static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, 0, 1);
-+static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 1, 0);
-+static SENSOR_DEVICE_ATTR_2(temp4_input, S_IRUGO, show_temp, NULL, 1, 1);
-+static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
-+
-+static struct pci_device_id k8temp_ids[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_K8_NB_MISC) },
-+	{ 0 },
-+};
-+
-+static int __devinit k8temp_probe(struct pci_dev *pdev,
-+				  const struct pci_device_id *id)
-+{
-+	int err;
-+	u8 scfg;
-+	u32 temp;
-+	struct k8temp_data *data;
-+	u32 cpuid = cpuid_eax(1);
-+
-+	/* this feature should be available since SH-C0 core */
-+	if ((cpuid = 0xf40) || (cpuid = 0xf50) || (cpuid = 0xf51)) {
-+		err = -ENODEV;
-+		goto exit;
-+	}
-+
-+	if (!(data = kzalloc(sizeof(struct k8temp_data), GFP_KERNEL))) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	pci_read_config_byte(pdev, REG_TEMP, &scfg);
-+	scfg &= ~(SEL_PLACE | SEL_CORE);		/* Select sensor 0, core0 */
-+	pci_write_config_byte(pdev, REG_TEMP, scfg);
-+	pci_read_config_byte(pdev, REG_TEMP, &scfg);
-+
-+	if (scfg & (SEL_PLACE | SEL_CORE)) {
-+		dev_err(&pdev->dev, "Configuration bit(s) stuck at 1!\n");
-+		err = -ENODEV;
-+		goto exit_free;
-+	}
-+
-+	scfg |= (SEL_PLACE | SEL_CORE);
-+	pci_write_config_byte(pdev, REG_TEMP, scfg);
-+
-+	/* now we know if we can change core and/or sensor */
-+	pci_read_config_byte(pdev, REG_TEMP, &data->sensorsp);
-+
-+	if (data->sensorsp & SEL_PLACE) {
-+		scfg &= ~SEL_CORE;	/* Select sensor 1, core0 */
-+		pci_write_config_byte(pdev, REG_TEMP, scfg);
-+		pci_read_config_dword(pdev, REG_TEMP, &temp);
-+		scfg |= SEL_CORE;	/* prepare for next selection */
-+		if (!((temp >> 16) & 0xff))	/* if temp is 0 -49C is not likely */
-+			data->sensorsp &= ~SEL_PLACE;
-+	}
-+
-+	if (data->sensorsp & SEL_CORE) {
-+		scfg &= ~SEL_PLACE;	/* Select sensor 0, core1 */
-+		pci_write_config_byte(pdev, REG_TEMP, scfg);
-+		pci_read_config_dword(pdev, REG_TEMP, &temp);
-+		if (!((temp >> 16) & 0xff))	/* if temp is 0 -49C is not likely */
-+			data->sensorsp &= ~SEL_CORE;
-+	}
-+
-+	data->name = "k8temp";
-+	mutex_init(&data->update_lock);
-+	dev_set_drvdata(&pdev->dev, data);
-+
-+	/* Register sysfs hooks */
-+	err = device_create_file(&pdev->dev,
-+			   &sensor_dev_attr_temp1_input.dev_attr);
-+	if (err)
-+		goto exit_remove;
-+
-+	/* sensor can be changed and reports something */
-+	if (data->sensorsp & SEL_PLACE) {
-+		err = device_create_file(&pdev->dev,
-+				   &sensor_dev_attr_temp2_input.dev_attr);
-+		if (err)
-+			goto exit_remove;
-+	}
-+
-+	/* core can be changed and reports something */
-+	if (data->sensorsp & SEL_CORE) {
-+		err = device_create_file(&pdev->dev,
-+				   &sensor_dev_attr_temp3_input.dev_attr);
-+		if (err)
-+			goto exit_remove;
-+		if (data->sensorsp & SEL_PLACE)
-+			err = device_create_file(&pdev->dev,
-+					   &sensor_dev_attr_temp4_input.
-+					   dev_attr);
-+			if (err)
-+				goto exit_remove;
-+	}
-+
-+	err = device_create_file(&pdev->dev, &dev_attr_name);
-+	if (err)
-+		goto exit_remove;
-+
-+	data->class_dev = hwmon_device_register(&pdev->dev);
-+
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_remove;
-+	}
-+
-+	return 0;
-+
-+exit_remove:
-+	device_remove_file(&pdev->dev,
-+			   &sensor_dev_attr_temp1_input.dev_attr);
-+	device_remove_file(&pdev->dev,
-+			   &sensor_dev_attr_temp2_input.dev_attr);
-+	device_remove_file(&pdev->dev,
-+			   &sensor_dev_attr_temp3_input.dev_attr);
-+	device_remove_file(&pdev->dev,
-+			   &sensor_dev_attr_temp4_input.dev_attr);
-+	device_remove_file(&pdev->dev, &dev_attr_name);
-+exit_free:
-+	dev_set_drvdata(&pdev->dev, NULL);
-+	kfree(data);
-+exit:
-+	return err;
-+}
-+
-+static void __devexit k8temp_remove(struct pci_dev *pdev)
-+{
-+	struct k8temp_data *data = dev_get_drvdata(&pdev->dev);
-+
-+	hwmon_device_unregister(data->class_dev);
-+	device_remove_file(&pdev->dev,
-+			   &sensor_dev_attr_temp1_input.dev_attr);
-+	device_remove_file(&pdev->dev,
-+			   &sensor_dev_attr_temp2_input.dev_attr);
-+	device_remove_file(&pdev->dev,
-+			   &sensor_dev_attr_temp3_input.dev_attr);
-+	device_remove_file(&pdev->dev,
-+			   &sensor_dev_attr_temp4_input.dev_attr);
-+	device_remove_file(&pdev->dev, &dev_attr_name);
-+	dev_set_drvdata(&pdev->dev, NULL);
-+	kfree(data);
-+}
-+
-+static struct pci_driver k8temp_driver = {
-+	.name = "k8temp",
-+	.id_table = k8temp_ids,
-+	.probe = k8temp_probe,
-+	.remove = __devexit_p(k8temp_remove),
-+};
-+
-+static int __init k8temp_init(void)
-+{
-+	return pci_register_driver(&k8temp_driver);
-+}
-+
-+static void __exit k8temp_exit(void)
-+{
-+	pci_unregister_driver(&k8temp_driver);
-+}
-+
-+MODULE_AUTHOR("Rudolf Marek <r.marek at sh.cvut.cz>");
-+MODULE_DESCRIPTION("AMD K8 core temperature monitor");
-+MODULE_LICENSE("GPL");
-+
-+module_init(k8temp_init)
-+module_exit(k8temp_exit)
---- gregkh-2.6.orig/include/linux/pci_ids.h
-+++ gregkh-2.6/include/linux/pci_ids.h
-@@ -479,6 +479,7 @@
+ static ssize_t set_fan_min(struct device *dev, struct device_attribute *devattr, const char *buf,
+ 	size_t count)
+ {
+@@ -316,31 +317,27 @@ static ssize_t set_fan_min(struct device
+ }
  
- #define PCI_VENDOR_ID_AMD		0x1022
- #define PCI_DEVICE_ID_AMD_K8_NB		0x1100
-+#define PCI_DEVICE_ID_AMD_K8_NB_MISC	0x1103
- #define PCI_DEVICE_ID_AMD_LANCE		0x2000
- #define PCI_DEVICE_ID_AMD_LANCE_HOME	0x2001
- #define PCI_DEVICE_ID_AMD_SCSI		0x2020
+ static struct sensor_device_attribute_2 fan_input[] = {
+-	SENSOR_ATTR_2(fan1_input, S_IRUGO, show_fan_input, NULL, FN_FAN_INPUT, 0),
+-	SENSOR_ATTR_2(fan2_input, S_IRUGO, show_fan_input, NULL, FN_FAN_INPUT, 1),
+-	SENSOR_ATTR_2(fan3_input, S_IRUGO, show_fan_input, NULL, FN_FAN_INPUT, 2),
++	SENSOR_ATTR_2(fan1_input, S_IRUGO, show_fan, NULL, FN_FAN_INPUT, 0),
++	SENSOR_ATTR_2(fan2_input, S_IRUGO, show_fan, NULL, FN_FAN_INPUT, 1),
++	SENSOR_ATTR_2(fan3_input, S_IRUGO, show_fan, NULL, FN_FAN_INPUT, 2),
+ };
+ static struct sensor_device_attribute_2 fan_status[] = {
+-	SENSOR_ATTR_2(fan1_status, S_IRUGO, show_fan_status, NULL, FN_FAN_STATUS, 0),
+-	SENSOR_ATTR_2(fan2_status, S_IRUGO, show_fan_status, NULL, FN_FAN_STATUS, 1),
+-	SENSOR_ATTR_2(fan3_status, S_IRUGO, show_fan_status, NULL, FN_FAN_STATUS, 2),
+-		      
++	SENSOR_ATTR_2(fan1_status, S_IRUGO, show_fan, NULL, FN_FAN_STATUS, 0),
++	SENSOR_ATTR_2(fan2_status, S_IRUGO, show_fan, NULL, FN_FAN_STATUS, 1),
++	SENSOR_ATTR_2(fan3_status, S_IRUGO, show_fan, NULL, FN_FAN_STATUS, 2),
+ };
+ static struct sensor_device_attribute_2 fan_div[] = {
+-	SENSOR_ATTR_2(fan1_div, S_IRUGO,
+-		      show_fan_div, NULL, FN_FAN_DIV, 0),
+-	SENSOR_ATTR_2(fan2_div, S_IRUGO,
+-		      show_fan_div, NULL, FN_FAN_DIV, 1),
+-	SENSOR_ATTR_2(fan3_div, S_IRUGO,
+-		      show_fan_div, NULL, FN_FAN_DIV, 2),
++	SENSOR_ATTR_2(fan1_div, S_IRUGO, show_fan, NULL, FN_FAN_DIV, 0),
++	SENSOR_ATTR_2(fan2_div, S_IRUGO, show_fan, NULL, FN_FAN_DIV, 1),
++	SENSOR_ATTR_2(fan3_div, S_IRUGO, show_fan, NULL, FN_FAN_DIV, 2),
+ };
+ static struct sensor_device_attribute_2 fan_min[] = {
+ 	SENSOR_ATTR_2(fan1_min, S_IWUSR | S_IRUGO,
+-		      show_fan_min, set_fan_min, FN_FAN_MIN, 0),
++		      show_fan, set_fan_min, FN_FAN_MIN, 0),
+ 	SENSOR_ATTR_2(fan2_min, S_IWUSR | S_IRUGO,
+-		      show_fan_min, set_fan_min, FN_FAN_MIN, 1),
++		      show_fan, set_fan_min, FN_FAN_MIN, 1),
+ 	SENSOR_ATTR_2(fan3_min, S_IWUSR | S_IRUGO,
+-		      show_fan_min, set_fan_min, FN_FAN_MIN, 2),
++		      show_fan, set_fan_min, FN_FAN_MIN, 2),
+ };
+ 
+ #define FAN_UNIT_ATTRS(X)	\
+@@ -401,116 +398,113 @@ static const struct attribute_group pc87
+ #define FN_IN_MAX	7
+ #define FN_IN_STATUS	8
+ 
+-static ssize_t show_in_input(struct device *dev, struct device_attribute *devattr, char *buf)
++static ssize_t show_vin(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", IN_FROM_REG(data->in[attr->index],
+-		       data->in_vref));
+-}
+-static ssize_t show_in_min(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_min[attr->index],
+-		       data->in_vref));
+-}
+-static ssize_t show_in_max(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_max[attr->index],
+-		       data->in_vref));
+-}
+-static ssize_t show_in_status(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", data->in_status[attr->index]);
++        struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
++        int idx = attr->index;
++	int func = attr->nr;
++        struct pc87360_data *data = pc87360_update_device(dev);
++	unsigned res = -1;
++	
++	switch (func) {
++	case FN_IN_INPUT:
++		res = IN_FROM_REG(data->in[idx], data->in_vref);
++		break;
++	case FN_IN_MIN:
++		res = IN_FROM_REG(data->in_min[idx], data->in_vref);
++		break;
++	case FN_IN_MAX:
++		res = IN_FROM_REG(data->in_max[idx], data->in_vref);
++		break;
++	case FN_IN_STATUS:
++		res = data->in_status[idx];
++		break;
++	default:
++		printk(KERN_ERR "unknown attr fetch\n");
++	}
++	return sprintf(buf, "%u\n", res);
+ }
+-static ssize_t set_in_min(struct device *dev, struct device_attribute *devattr, const char *buf,
+-	size_t count)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct pc87360_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
+ 
+-	mutex_lock(&data->update_lock);
+-	data->in_min[attr->index] = IN_TO_REG(val, data->in_vref);
+-	pc87360_write_value(data, LD_IN, attr->index, PC87365_REG_IN_MIN,
+-			    data->in_min[attr->index]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-static ssize_t set_in_max(struct device *dev, struct device_attribute *devattr, const char *buf,
+-	size_t count)
++static ssize_t set_in(struct device *dev, struct device_attribute *devattr, const char *buf,
++		      size_t count)
+ {
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct pc87360_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
+-
+-	mutex_lock(&data->update_lock);
+-	data->in_max[attr->index] = IN_TO_REG(val,
+-			       data->in_vref);
+-	pc87360_write_value(data, LD_IN, attr->index, PC87365_REG_IN_MAX,
+-			    data->in_max[attr->index]);
++        struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
++        int idx = attr->index;
++	int func = attr->nr;
++        struct i2c_client *client = to_i2c_client(dev);
++        struct pc87360_data *data = i2c_get_clientdata(client);
++        long val = simple_strtol(buf, NULL, 10);
++
++        mutex_lock(&data->update_lock);
++	switch (func) {
++	case FN_IN_MIN:
++		data->in_min[idx] = IN_TO_REG(val, data->in_vref);
++		pc87360_write_value(data, LD_IN, idx, PC87365_REG_IN_MIN,
++				    data->in_min[idx]);
++		break;
++	case FN_IN_MAX:
++		data->in_max[idx] = IN_TO_REG(val, data->in_vref);
++		pc87360_write_value(data, LD_IN, idx, PC87365_REG_IN_MAX,
++				    data->in_max[idx]);
++		break;
++	default:
++		printk(KERN_ERR "unknown attr fetch\n");
++	}
+ 	mutex_unlock(&data->update_lock);
+-	return count;
++        return count;
+ }
+ 
+ static struct sensor_device_attribute_2 in_input[] = {
+-	SENSOR_ATTR_2(in0_input, S_IRUGO, show_in_input, NULL, FN_IN_INPUT, 0),
+-	SENSOR_ATTR_2(in1_input, S_IRUGO, show_in_input, NULL, FN_IN_INPUT, 1),
+-	SENSOR_ATTR_2(in2_input, S_IRUGO, show_in_input, NULL, FN_IN_INPUT, 2),
+-	SENSOR_ATTR_2(in3_input, S_IRUGO, show_in_input, NULL, FN_IN_INPUT, 3),
+-	SENSOR_ATTR_2(in4_input, S_IRUGO, show_in_input, NULL, FN_IN_INPUT, 4),
+-	SENSOR_ATTR_2(in5_input, S_IRUGO, show_in_input, NULL, FN_IN_INPUT, 5),
+-	SENSOR_ATTR_2(in6_input, S_IRUGO, show_in_input, NULL, FN_IN_INPUT, 6),
+-	SENSOR_ATTR_2(in7_input, S_IRUGO, show_in_input, NULL, FN_IN_INPUT, 7),
+-	SENSOR_ATTR_2(in8_input, S_IRUGO, show_in_input, NULL, FN_IN_INPUT, 8),
+-	SENSOR_ATTR_2(in9_input, S_IRUGO, show_in_input, NULL, FN_IN_INPUT, 9),
+-	SENSOR_ATTR_2(in10_input, S_IRUGO, show_in_input, NULL, FN_IN_INPUT, 10),
++	SENSOR_ATTR_2(in0_input, S_IRUGO, show_vin, NULL, FN_IN_INPUT, 0),
++	SENSOR_ATTR_2(in1_input, S_IRUGO, show_vin, NULL, FN_IN_INPUT, 1),
++	SENSOR_ATTR_2(in2_input, S_IRUGO, show_vin, NULL, FN_IN_INPUT, 2),
++	SENSOR_ATTR_2(in3_input, S_IRUGO, show_vin, NULL, FN_IN_INPUT, 3),
++	SENSOR_ATTR_2(in4_input, S_IRUGO, show_vin, NULL, FN_IN_INPUT, 4),
++	SENSOR_ATTR_2(in5_input, S_IRUGO, show_vin, NULL, FN_IN_INPUT, 5),
++	SENSOR_ATTR_2(in6_input, S_IRUGO, show_vin, NULL, FN_IN_INPUT, 6),
++	SENSOR_ATTR_2(in7_input, S_IRUGO, show_vin, NULL, FN_IN_INPUT, 7),
++	SENSOR_ATTR_2(in8_input, S_IRUGO, show_vin, NULL, FN_IN_INPUT, 8),
++	SENSOR_ATTR_2(in9_input, S_IRUGO, show_vin, NULL, FN_IN_INPUT, 9),
++	SENSOR_ATTR_2(in10_input, S_IRUGO, show_vin, NULL, FN_IN_INPUT, 10),
+ };
+ static struct sensor_device_attribute_2 in_status[] = {
+-	SENSOR_ATTR_2(in0_status, S_IRUGO, show_in_status, NULL, FN_IN_STATUS, 0),
+-	SENSOR_ATTR_2(in1_status, S_IRUGO, show_in_status, NULL, FN_IN_STATUS, 1),
+-	SENSOR_ATTR_2(in2_status, S_IRUGO, show_in_status, NULL, FN_IN_STATUS, 2),
+-	SENSOR_ATTR_2(in3_status, S_IRUGO, show_in_status, NULL, FN_IN_STATUS, 3),
+-	SENSOR_ATTR_2(in4_status, S_IRUGO, show_in_status, NULL, FN_IN_STATUS, 4),
+-	SENSOR_ATTR_2(in5_status, S_IRUGO, show_in_status, NULL, FN_IN_STATUS, 5),
+-	SENSOR_ATTR_2(in6_status, S_IRUGO, show_in_status, NULL, FN_IN_STATUS, 6),
+-	SENSOR_ATTR_2(in7_status, S_IRUGO, show_in_status, NULL, FN_IN_STATUS, 7),
+-	SENSOR_ATTR_2(in8_status, S_IRUGO, show_in_status, NULL, FN_IN_STATUS, 8),
+-	SENSOR_ATTR_2(in9_status, S_IRUGO, show_in_status, NULL, FN_IN_STATUS, 9),
+-	SENSOR_ATTR_2(in10_status, S_IRUGO, show_in_status, NULL, FN_IN_STATUS, 10),
++	SENSOR_ATTR_2(in0_status, S_IRUGO, show_vin, NULL, FN_IN_STATUS, 0),
++	SENSOR_ATTR_2(in1_status, S_IRUGO, show_vin, NULL, FN_IN_STATUS, 1),
++	SENSOR_ATTR_2(in2_status, S_IRUGO, show_vin, NULL, FN_IN_STATUS, 2),
++	SENSOR_ATTR_2(in3_status, S_IRUGO, show_vin, NULL, FN_IN_STATUS, 3),
++	SENSOR_ATTR_2(in4_status, S_IRUGO, show_vin, NULL, FN_IN_STATUS, 4),
++	SENSOR_ATTR_2(in5_status, S_IRUGO, show_vin, NULL, FN_IN_STATUS, 5),
++	SENSOR_ATTR_2(in6_status, S_IRUGO, show_vin, NULL, FN_IN_STATUS, 6),
++	SENSOR_ATTR_2(in7_status, S_IRUGO, show_vin, NULL, FN_IN_STATUS, 7),
++	SENSOR_ATTR_2(in8_status, S_IRUGO, show_vin, NULL, FN_IN_STATUS, 8),
++	SENSOR_ATTR_2(in9_status, S_IRUGO, show_vin, NULL, FN_IN_STATUS, 9),
++	SENSOR_ATTR_2(in10_status, S_IRUGO, show_vin, NULL, FN_IN_STATUS, 10),
+ };
+ static struct sensor_device_attribute_2 in_min[] = {
+-	SENSOR_ATTR_2(in0_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, FN_IN_MIN, 0),
+-	SENSOR_ATTR_2(in1_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, FN_IN_MIN, 1),
+-	SENSOR_ATTR_2(in2_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, FN_IN_MIN, 2),
+-	SENSOR_ATTR_2(in3_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, FN_IN_MIN, 3),
+-	SENSOR_ATTR_2(in4_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, FN_IN_MIN, 4),
+-	SENSOR_ATTR_2(in5_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, FN_IN_MIN, 5),
+-	SENSOR_ATTR_2(in6_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, FN_IN_MIN, 6),
+-	SENSOR_ATTR_2(in7_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, FN_IN_MIN, 7),
+-	SENSOR_ATTR_2(in8_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, FN_IN_MIN, 8),
+-	SENSOR_ATTR_2(in9_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, FN_IN_MIN, 9),
+-	SENSOR_ATTR_2(in10_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, FN_IN_MIN, 10),
++	SENSOR_ATTR_2(in0_min, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MIN, 0),
++	SENSOR_ATTR_2(in1_min, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MIN, 1),
++	SENSOR_ATTR_2(in2_min, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MIN, 2),
++	SENSOR_ATTR_2(in3_min, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MIN, 3),
++	SENSOR_ATTR_2(in4_min, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MIN, 4),
++	SENSOR_ATTR_2(in5_min, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MIN, 5),
++	SENSOR_ATTR_2(in6_min, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MIN, 6),
++	SENSOR_ATTR_2(in7_min, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MIN, 7),
++	SENSOR_ATTR_2(in8_min, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MIN, 8),
++	SENSOR_ATTR_2(in9_min, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MIN, 9),
++	SENSOR_ATTR_2(in10_min, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MIN, 10),
+ };
+ static struct sensor_device_attribute_2 in_max[] = {
+-	SENSOR_ATTR_2(in0_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, FN_IN_MAX, 0),
+-	SENSOR_ATTR_2(in1_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, FN_IN_MAX, 1),
+-	SENSOR_ATTR_2(in2_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, FN_IN_MAX, 2),
+-	SENSOR_ATTR_2(in3_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, FN_IN_MAX, 3),
+-	SENSOR_ATTR_2(in4_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, FN_IN_MAX, 4),
+-	SENSOR_ATTR_2(in5_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, FN_IN_MAX, 5),
+-	SENSOR_ATTR_2(in6_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, FN_IN_MAX, 6),
+-	SENSOR_ATTR_2(in7_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, FN_IN_MAX, 7),
+-	SENSOR_ATTR_2(in8_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, FN_IN_MAX, 8),
+-	SENSOR_ATTR_2(in9_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, FN_IN_MAX, 9),
+-	SENSOR_ATTR_2(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, FN_IN_MAX, 10),
++	SENSOR_ATTR_2(in0_max, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MAX, 0),
++	SENSOR_ATTR_2(in1_max, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MAX, 1),
++	SENSOR_ATTR_2(in2_max, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MAX, 2),
++	SENSOR_ATTR_2(in3_max, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MAX, 3),
++	SENSOR_ATTR_2(in4_max, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MAX, 4),
++	SENSOR_ATTR_2(in5_max, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MAX, 5),
++	SENSOR_ATTR_2(in6_max, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MAX, 6),
++	SENSOR_ATTR_2(in7_max, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MAX, 7),
++	SENSOR_ATTR_2(in8_max, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MAX, 8),
++	SENSOR_ATTR_2(in9_max, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MAX, 9),
++	SENSOR_ATTR_2(in10_max, S_IWUSR | S_IRUGO, show_vin, set_in, FN_IN_MAX, 10),
+ };
+ 
+ #define VIN_UNIT_ATTRS(X) \
+@@ -540,12 +534,12 @@ static ssize_t set_vrm(struct device *de
+ }
+ static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
+ 
+-static ssize_t show_in_alarms(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t show_vin_alarms(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+ 	return sprintf(buf, "%u\n", data->in_alarms);
+ }
+-static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
++static DEVICE_ATTR(alarms_in, S_IRUGO, show_vin_alarms, NULL);
+ 
+ static struct attribute *pc8736x_vin_attr_array[] = {
+ 	VIN_UNIT_ATTRS(0),
+@@ -574,84 +568,68 @@ static const struct attribute_group pc87
+ #define FN_THERM_STATUS	12
+ #define FN_THERM_CRIT	13
+ 
+-static ssize_t show_therm_input(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", IN_FROM_REG(data->in[attr->index],
+-		       data->in_vref));
+-}
+-static ssize_t show_therm_min(struct device *dev, struct device_attribute *devattr, char *buf)
++static ssize_t show_therm(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_min[attr->index],
+-		       data->in_vref));
+-}
+-static ssize_t show_therm_max(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_max[attr->index],
+-		       data->in_vref));
+-}
+-static ssize_t show_therm_crit(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_crit[attr->index-11],
+-		       data->in_vref));
+-}
+-static ssize_t show_therm_status(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", data->in_status[attr->index]);
+-}
+-static ssize_t set_therm_min(struct device *dev, struct device_attribute *devattr, const char *buf,
+-	size_t count)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct pc87360_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
+-
+-	mutex_lock(&data->update_lock);
+-	data->in_min[attr->index] = IN_TO_REG(val, data->in_vref);
+-	pc87360_write_value(data, LD_IN, attr->index, PC87365_REG_TEMP_MIN,
+-			    data->in_min[attr->index]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
++        struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
++        int idx = attr->index;
++	int func = attr->nr;
++        struct pc87360_data *data = pc87360_update_device(dev);
++	unsigned res = -1;
++	
++	switch (func) {
++	case FN_THERM_INPUT:
++		res = IN_FROM_REG(data->in[idx], data->in_vref);
++		break;
++	case FN_THERM_MIN:
++		res = IN_FROM_REG(data->in_min[idx], data->in_vref);
++		break;
++	case FN_THERM_MAX:
++		res = IN_FROM_REG(data->in_max[idx], data->in_vref);
++		break;
++	case FN_THERM_STATUS:
++		res = data->in_status[idx];
++		break;
++	case FN_THERM_CRIT:
++		res = IN_FROM_REG(data->in_crit[idx-11], data->in_vref);
++		break;
++	default:
++		printk(KERN_ERR "unknown attr fetch\n");
++	}
++	return sprintf(buf, "%u\n", res);
+ }
+-static ssize_t set_therm_max(struct device *dev, struct device_attribute *devattr, const char *buf,
+-	size_t count)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct pc87360_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
+ 
+-	mutex_lock(&data->update_lock);
+-	data->in_max[attr->index] = IN_TO_REG(val, data->in_vref);
+-	pc87360_write_value(data, LD_IN, attr->index, PC87365_REG_TEMP_MAX,
+-			    data->in_max[attr->index]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-static ssize_t set_therm_crit(struct device *dev, struct device_attribute *devattr, const char *buf,
+-	size_t count)
++static ssize_t set_therm(struct device *dev, struct device_attribute *devattr, const char *buf,
++			 size_t count)
+ {
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct pc87360_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
+-
+-	mutex_lock(&data->update_lock);
+-	data->in_crit[attr->index-11] = IN_TO_REG(val, data->in_vref);
+-	pc87360_write_value(data, LD_IN, attr->index, PC87365_REG_TEMP_CRIT,
+-			    data->in_crit[attr->index-11]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
++        struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
++        int idx = attr->index;
++	int func = attr->nr;
++        struct i2c_client *client = to_i2c_client(dev);
++        struct pc87360_data *data = i2c_get_clientdata(client);
++        long val = simple_strtol(buf, NULL, 10);
++	
++        mutex_lock(&data->update_lock);
++	switch (func) {
++	case FN_THERM_MIN:
++		data->in_min[idx] = IN_TO_REG(val, data->in_vref);
++		pc87360_write_value(data, LD_IN, idx, PC87365_REG_TEMP_MIN,
++				    data->in_min[idx]);
++		break;
++	case FN_THERM_MAX:
++		data->in_max[idx] = IN_TO_REG(val, data->in_vref);
++		pc87360_write_value(data, LD_IN, idx, PC87365_REG_TEMP_MAX,
++				    data->in_max[idx]);
++		break;
++	case FN_THERM_CRIT:
++		data->in_crit[idx-11] = IN_TO_REG(val, data->in_vref);
++		pc87360_write_value(data, LD_IN, idx, PC87365_REG_TEMP_CRIT,
++				    data->in_crit[idx-11]);
++		break;
++	default:
++		printk(KERN_ERR "unknown attr fetch\n");
++	}
++        mutex_unlock(&data->update_lock);
++        return count;
+ }
+ 
+ /* the +11 term below reflects the fact that VLM units 11,12,13 are
+@@ -659,39 +637,39 @@ static ssize_t set_therm_crit(struct dev
+ */
+ 
+ static struct sensor_device_attribute_2 therm_input[] = {
+-	SENSOR_ATTR_2(temp4_input, S_IRUGO, show_therm_input, NULL, FN_THERM_INPUT, 0+11),
+-	SENSOR_ATTR_2(temp5_input, S_IRUGO, show_therm_input, NULL, FN_THERM_INPUT, 1+11),
+-	SENSOR_ATTR_2(temp6_input, S_IRUGO, show_therm_input, NULL, FN_THERM_INPUT, 2+11),
++	SENSOR_ATTR_2(temp4_input, S_IRUGO, show_therm, NULL, FN_THERM_INPUT, 0+11),
++	SENSOR_ATTR_2(temp5_input, S_IRUGO, show_therm, NULL, FN_THERM_INPUT, 1+11),
++	SENSOR_ATTR_2(temp6_input, S_IRUGO, show_therm, NULL, FN_THERM_INPUT, 2+11),
+ };
+ 
+ static struct sensor_device_attribute_2 therm_status[] = {
+-	SENSOR_ATTR_2(temp4_status, S_IRUGO, show_therm_status, NULL, FN_THERM_STATUS, 0+11),
+-	SENSOR_ATTR_2(temp5_status, S_IRUGO, show_therm_status, NULL, FN_THERM_STATUS, 1+11),
+-	SENSOR_ATTR_2(temp6_status, S_IRUGO, show_therm_status, NULL, FN_THERM_STATUS, 2+11),
++	SENSOR_ATTR_2(temp4_status, S_IRUGO, show_therm, NULL, FN_THERM_STATUS, 0+11),
++	SENSOR_ATTR_2(temp5_status, S_IRUGO, show_therm, NULL, FN_THERM_STATUS, 1+11),
++	SENSOR_ATTR_2(temp6_status, S_IRUGO, show_therm, NULL, FN_THERM_STATUS, 2+11),
+ };
+ static struct sensor_device_attribute_2 therm_min[] = {
+ 	SENSOR_ATTR_2(temp4_min, S_IRUGO | S_IWUSR,
+-		      show_therm_min, set_therm_min, FN_THERM_MIN, 0+11),
++		      show_therm, set_therm, FN_THERM_MIN, 0+11),
+ 	SENSOR_ATTR_2(temp5_min, S_IRUGO | S_IWUSR,
+-		      show_therm_min, set_therm_min, FN_THERM_MIN, 1+11),
++		      show_therm, set_therm, FN_THERM_MIN, 1+11),
+ 	SENSOR_ATTR_2(temp6_min, S_IRUGO | S_IWUSR,
+-		      show_therm_min, set_therm_min, FN_THERM_MIN, 2+11),
++		      show_therm, set_therm, FN_THERM_MIN, 2+11),
+ };
+ static struct sensor_device_attribute_2 therm_max[] = {
+ 	SENSOR_ATTR_2(temp4_max, S_IRUGO | S_IWUSR,
+-		      show_therm_max, set_therm_max, FN_THERM_MAX, 0+11),
++		      show_therm, set_therm, FN_THERM_MAX, 0+11),
+ 	SENSOR_ATTR_2(temp5_max, S_IRUGO | S_IWUSR,
+-		      show_therm_max, set_therm_max, FN_THERM_MAX, 1+11),
++		      show_therm, set_therm, FN_THERM_MAX, 1+11),
+ 	SENSOR_ATTR_2(temp6_max, S_IRUGO | S_IWUSR,
+-		      show_therm_max, set_therm_max, FN_THERM_MAX, 2+11),
++		      show_therm, set_therm, FN_THERM_MAX, 2+11),
+ };
+ static struct sensor_device_attribute_2 therm_crit[] = {
+ 	SENSOR_ATTR_2(temp4_crit, S_IRUGO | S_IWUSR,
+-		      show_therm_crit, set_therm_crit, FN_THERM_CRIT, 0+11),
++		      show_therm, set_therm, FN_THERM_CRIT, 0+11),
+ 	SENSOR_ATTR_2(temp5_crit, S_IRUGO | S_IWUSR,
+-		      show_therm_crit, set_therm_crit, FN_THERM_CRIT, 1+11),
++		      show_therm, set_therm, FN_THERM_CRIT, 1+11),
+ 	SENSOR_ATTR_2(temp6_crit, S_IRUGO | S_IWUSR,
+-		      show_therm_crit, set_therm_crit, FN_THERM_CRIT, 2+11),
++		      show_therm, set_therm, FN_THERM_CRIT, 2+11),
+ };
+ 
+ #define THERM_UNIT_ATTRS(X) \
+@@ -717,129 +695,104 @@ static const struct attribute_group pc87
+ #define FN_TEMP_STATUS	17
+ #define FN_TEMP_CRIT	18
+ 
+-static ssize_t show_temp_input(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	int idx = attr->index;
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[idx]));
+-}
+-static ssize_t show_temp_min(struct device *dev, struct device_attribute *devattr, char *buf)
++static ssize_t show_temp(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	int idx = attr->index;
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_min[idx]));
+-}
+-static ssize_t show_temp_max(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	int idx = attr->index;
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_max[idx]));
+-}
+-static ssize_t show_temp_crit(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	int idx = attr->index;
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_crit[idx]));
+-}
+-static ssize_t show_temp_status(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	int idx = attr->index;
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%d\n", data->temp_status[idx]);
+-}
+-static ssize_t set_temp_min(struct device *dev, struct device_attribute *devattr, const char *buf,
+-	size_t count)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	int idx = attr->index;
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct pc87360_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
+-
+-	mutex_lock(&data->update_lock);
+-	data->temp_min[idx] = TEMP_TO_REG(val);
+-	pc87360_write_value(data, LD_TEMP, idx, PC87365_REG_TEMP_MIN,
+-			    data->temp_min[idx]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
++        struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
++        int idx = attr->index;
++	int func = attr->nr;
++        struct pc87360_data *data = pc87360_update_device(dev);
++	unsigned res = -1;
++	
++	switch (func) {
++	case FN_TEMP_INPUT:
++		res = TEMP_FROM_REG(data->temp[idx]);
++		break;
++	case FN_TEMP_MIN:
++		res = TEMP_FROM_REG(data->temp_min[idx]);
++		break;
++	case FN_TEMP_MAX:
++		res = TEMP_FROM_REG(data->temp_max[idx]);
++		break;
++	case FN_TEMP_STATUS:
++		res = data->temp_status[idx];
++		break;
++	case FN_TEMP_CRIT:
++		res = TEMP_FROM_REG(data->temp_crit[idx]);
++		break;
++	default:
++		printk(KERN_ERR "unknown attr fetch\n");
++	}
++	return sprintf(buf, "%u\n", res);
+ }
+-static ssize_t set_temp_max(struct device *dev, struct device_attribute *devattr, const char *buf,
+-	size_t count)
+-{
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	int idx = attr->index;
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct pc87360_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
+ 
+-	mutex_lock(&data->update_lock);
+-	data->temp_max[idx] = TEMP_TO_REG(val);
+-	pc87360_write_value(data, LD_TEMP, idx, PC87365_REG_TEMP_MAX,
+-			    data->temp_max[idx]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-static ssize_t set_temp_crit(struct device *dev, struct device_attribute *devattr, const char *buf,
+-	size_t count)
++static ssize_t set_temp(struct device *dev, struct device_attribute *devattr, const char *buf,
++			size_t count)
+ {
+-	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+-	int idx = attr->index;
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct pc87360_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
+-
+-	mutex_lock(&data->update_lock);
+-	data->temp_crit[idx] = TEMP_TO_REG(val);
+-	pc87360_write_value(data, LD_TEMP, idx, PC87365_REG_TEMP_CRIT,
+-			    data->temp_crit[idx]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
++        struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
++        int idx = attr->index;
++	int func = attr->nr;
++        struct i2c_client *client = to_i2c_client(dev);
++        struct pc87360_data *data = i2c_get_clientdata(client);
++        long val = simple_strtol(buf, NULL, 10);
++	
++        mutex_lock(&data->update_lock);
++	switch (func) {
++	case FN_TEMP_MIN:
++		data->temp_min[idx] = TEMP_TO_REG(val);
++		pc87360_write_value(data, LD_TEMP, idx, PC87365_REG_TEMP_MIN,
++				    data->temp_min[idx]);
++		break;
++	case FN_TEMP_MAX:
++		data->temp_max[idx] = TEMP_TO_REG(val);
++		pc87360_write_value(data, LD_TEMP, idx, PC87365_REG_TEMP_MAX,
++				    data->temp_max[idx]);
++		break;
++	case FN_TEMP_CRIT:
++		data->temp_crit[idx] = TEMP_TO_REG(val);
++		pc87360_write_value(data, LD_TEMP, idx, PC87365_REG_TEMP_CRIT,
++				    data->temp_crit[idx]);
++		break;
++	default:
++		printk(KERN_ERR "unknown attr fetch\n");
++	}
++        mutex_unlock(&data->update_lock);
++        return count;
+ }
+ 
+ static struct sensor_device_attribute_2 temp_input[] = {
+-	SENSOR_ATTR_2(temp1_input, S_IRUGO,
+-		      show_temp_input, NULL, FN_TEMP_INPUT, 0),
+-	SENSOR_ATTR_2(temp2_input, S_IRUGO,
+-		      show_temp_input, NULL, FN_TEMP_INPUT, 1),
+-	SENSOR_ATTR_2(temp3_input, S_IRUGO,
+-		      show_temp_input, NULL, FN_TEMP_INPUT, 2),
++	SENSOR_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, FN_TEMP_INPUT, 0),
++	SENSOR_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, FN_TEMP_INPUT, 1),
++	SENSOR_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, FN_TEMP_INPUT, 2),
+ };
+ static struct sensor_device_attribute_2 temp_status[] = {
+-	SENSOR_ATTR_2(temp1_status, S_IRUGO,
+-		      show_temp_status, NULL, FN_TEMP_STATUS, 0),
+-	SENSOR_ATTR_2(temp2_status, S_IRUGO,
+-		      show_temp_status, NULL, FN_TEMP_STATUS, 1),
+-	SENSOR_ATTR_2(temp3_status, S_IRUGO,
+-		      show_temp_status, NULL, FN_TEMP_STATUS, 2),
++	SENSOR_ATTR_2(temp1_status, S_IRUGO, show_temp, NULL, FN_TEMP_STATUS, 0),
++	SENSOR_ATTR_2(temp2_status, S_IRUGO, show_temp, NULL, FN_TEMP_STATUS, 1),
++	SENSOR_ATTR_2(temp3_status, S_IRUGO, show_temp, NULL, FN_TEMP_STATUS, 2),
++		      
+ };
+ static struct sensor_device_attribute_2 temp_min[] = {
+ 	SENSOR_ATTR_2(temp1_min, S_IRUGO | S_IWUSR,
+-		    show_temp_min, set_temp_min, FN_TEMP_MIN, 0),
++		      show_temp, set_temp, FN_TEMP_MIN, 0),
+ 	SENSOR_ATTR_2(temp2_min, S_IRUGO | S_IWUSR,
+-		    show_temp_min, set_temp_min, FN_TEMP_MIN, 1),
++		      show_temp, set_temp, FN_TEMP_MIN, 1),
+ 	SENSOR_ATTR_2(temp3_min, S_IRUGO | S_IWUSR,
+-		    show_temp_min, set_temp_min, FN_TEMP_MIN, 2),
++		      show_temp, set_temp, FN_TEMP_MIN, 2),
+ };
+ static struct sensor_device_attribute_2 temp_max[] = {
+ 	SENSOR_ATTR_2(temp1_max, S_IRUGO | S_IWUSR,
+-		    show_temp_max, set_temp_max, FN_TEMP_MAX, 0),
++		      show_temp, set_temp, FN_TEMP_MAX, 0),
+ 	SENSOR_ATTR_2(temp2_max, S_IRUGO | S_IWUSR,
+-		    show_temp_max, set_temp_max, FN_TEMP_MAX, 1),
++		      show_temp, set_temp, FN_TEMP_MAX, 1),
+ 	SENSOR_ATTR_2(temp3_max, S_IRUGO | S_IWUSR,
+-		    show_temp_max, set_temp_max, FN_TEMP_MAX, 2),
++		      show_temp, set_temp, FN_TEMP_MAX, 2),
+ };
+ static struct sensor_device_attribute_2 temp_crit[] = {
+ 	SENSOR_ATTR_2(temp1_crit, S_IRUGO | S_IWUSR,
+-		    show_temp_crit, set_temp_crit, FN_TEMP_CRIT, 0),
++		      show_temp, set_temp, FN_TEMP_CRIT, 0),
+ 	SENSOR_ATTR_2(temp2_crit, S_IRUGO | S_IWUSR,
+-		    show_temp_crit, set_temp_crit, FN_TEMP_CRIT, 1),
++		      show_temp, set_temp, FN_TEMP_CRIT, 1),
+ 	SENSOR_ATTR_2(temp3_crit, S_IRUGO | S_IWUSR,
+-		    show_temp_crit, set_temp_crit, FN_TEMP_CRIT, 2),
++		      show_temp, set_temp, FN_TEMP_CRIT, 2),
+ };
+ 
+ static ssize_t show_temp_alarms(struct device *dev, struct device_attribute *attr, char *buf)
 
 
-Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
 
-i2c/hwmon-w83627ehf-add-pwm-support.patch
-i2c/hwmon-w83627ehf-documentation.patch
-i2c/i2c-algo-bit-kill-mdelay.patch
-i2c/hwmon-abituguru-suspend-resume.patch
-i2c/i2c-__must_check-fixes-i2c-dev.patch
-i2c/i2c-__must_check-fixes.patch
-i2c/hwmon-it87-disabled-fans.patch
-i2c/i2c-algo-sibyte-cleanups.patch
-i2c/i2c-algo-sibyte-merge-in-i2c-sibyte.patch
-i2c/i2c-au1550-add-au1200-support.patch
-i2c/i2c-au1550-add-smbus-functionality-flag.patch
-i2c/i2c-au1550-fix-timeout-problem.patch
-i2c/i2c-bus-driver-for-TI-OMAP-boards.patch
-i2c/i2c-isa-plan-for-removal.patch
-i2c/i2c-dev-cleanups.patch
-i2c/i2c-dev-convert-array-to-list.patch
-i2c/i2c-dev-drop-template-client.patch
-i2c/i2c-dev-device.patch
-i2c/i2c-fix-copy-n-paste-in-subsystem-Kconfig.patch
-i2c/i2c-matroxfb-c99-struct-init.patch
-i2c/i2c-sibyte-drop-kip-walker-address.patch
-i2c/i2c-stub-add-chip_addr-param.patch
-i2c/hwmon-atxp1-signed-unsigned-char-bug.patch
-i2c/hwmon-hdaps-handle-errors-from-input-register-device.patch
-i2c/hwmon-it87-copyright-update.patch
-i2c/hwmon-it87-div-to-reg-overflow.patch
-i2c/hwmon-it87-in8-no-limits.patch
-i2c/hwmon-it87-it8716f-support.patch
-i2c/hwmon-it87-it8718f-support.patch
-i2c/hwmon-it87-sane-limit-defaults.patch
-i2c/hwmon-it87-set-fan-div.patch
-i2c/hwmon-k8temp-autoload.patch
-i2c/hwmon-k8temp-new-driver.patch
-i2c/hwmon-smsc47m1-fix-dev-message.patch
 
