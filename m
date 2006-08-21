@@ -1,7 +1,7 @@
 From: jim.cromie@gmail.com (Jim Cromie)
-Date: Mon, 21 Aug 2006 15:38:11 +0000
+Date: Mon, 21 Aug 2006 17:01:07 +0000
 Subject: [lm-sensors] [patch 0/3] pc87360 - fix unchecked
-Message-Id: <44E9D363.8040409@gmail.com>
+Message-Id: <44E9E6D3.3070105@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44E72DE7.10907@gmail.com>
 In-Reply-To: <44E72DE7.10907@gmail.com>
@@ -38,25 +38,18 @@ Ok, it aint worth much, but it was free ;-)
 > Thanks,
 >   
 
-Your choice of words leaves it ambiguous whether this is an observation,
+Your choice of words leaves me unsure whether this is an observation,
 or a requirement.  In any case, its easy, so here it is, plus some other 
 observations.
 
-by contents, I assume you mean the files within the dir ?
+By contents, I assume you mean the files within the dir:
 
-soekris:~# diff -u sys-files-2.6.1*
---- sys-files-2.6.17-ipipe-139-sk       2006-08-21 08:54:36.000000000 -0600
-+++ sys-files-2.6.18-rc4-mm1-sk 2006-08-21 09:05:51.000000000 -0600
-@@ -49,6 +49,7 @@
- in9_min
- in9_status
- name
-+subsystem@
- temp1_crit
- temp1_input
- temp1_max
+ diff sys-files-2.6.1*
+51a52
+ > subsystem@
 
-The files content can change each sample, usually on VPWR, but others too.
+
+The files contents change each sample, usually on VPWR, but others too.
 diffs are always in small fractions of a volt.
 
 Forex:  these 2 samples show some milli-volt noise,
@@ -96,7 +89,7 @@ Temp:       +102 C  (low  =    +0 C, high =  +125 C)
 Critical:   +126 C
 
 
-One other thing / oddity I note (again on old kernel).
+One other thing / oddity I note (again on old kernel, and new/patched).
 Datestamps on the 'files' is not uniform.
 
 soekris:/sys/class/hwmon/hwmon0/device# ll -tr
@@ -134,5 +127,6 @@ Also, 8:42 is near the bootup time, but not exactly the same.
  08:50:13 up 10 min,  1 user,  load average: 3.00, 2.72, 1.54
 
 rmmod & modprobing recreates the files with current & uniform timestamps.
+
 
 
