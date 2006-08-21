@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 19 Aug 2006 10:40:23 +0000
+From: lists@localguru.de (Marcus Sobchak)
+Date: Mon, 21 Aug 2006 18:13:47 +0000
 Subject: [lm-sensors] Tyan S2720 Revsion 2.01 again
-Message-Id: <44E6EA97.8030408@sh.cvut.cz>
+Message-Id: <1156184028.8384.22.camel@kramer>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1152171804.5078.26.camel@localhost.localdomain>
 In-Reply-To: <1152171804.5078.26.camel@localhost.localdomain>
@@ -10,24 +10,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello all,
+Hi,
 
-Raphael have you please idea why he has still -1 temp? Tyan sensors.conf suggest
-to upgrade the bios, but it did not help in his case.
+Am Montag, den 21.08.2006, 10:24 -0700 schrieb Raphael Deng:
+> Which CPU he use? FSB400 or FSB533? 
 
-Please can you help?
+I use FSB400.
 
-Regards
-Rudolf
+> If using FSB400, the CPU temp cannot be
+> got from hardware monitor chip. You must use sensor in Intel Xeon CPU
+> itself.
 
-> adm1021-i2c-0-19
-> Adapter: SMBus I801 adapter at 0540
-> CPU 2 temp:
->               -1?C  (low  =    -1?C, high =    -1?C)  ALARM (N/A,LOW)
+How do I do that?
+
+Marcus
+
+
+> -----????-----
+> ???: Rudolf Marek [mailto:r.marek at sh.cvut.cz] 
+> ????: 2006?8?19? 3:40
+> ???: Marcus Sobchak
+> ??: LM Sensors; Raphael Deng
+> ??: Re: [lm-sensors] Tyan S2720 Revsion 2.01 again
 > 
-> adm1021-i2c-0-18
-> Adapter: SMBus I801 adapter at 0540
-> CPU 1 temp:
->               -1?C  (low  =    -1?C, high =    -1?C)  ALARM (N/A,LOW)
+> Hello all,
 > 
+> Raphael have you please idea why he has still -1 temp? Tyan sensors.conf
+> suggest
+> to upgrade the bios, but it did not help in his case.
+> 
+> Please can you help?
+> 
+> Regards
+> Rudolf
+> 
+> > adm1021-i2c-0-19
+> > Adapter: SMBus I801 adapter at 0540
+> > CPU 2 temp:
+> >               -1?C  (low  =    -1?C, high =    -1?C)  ALARM (N/A,LOW)
+> > 
+> > adm1021-i2c-0-18
+> > Adapter: SMBus I801 adapter at 0540
+> > CPU 1 temp:
+> >               -1?C  (low  =    -1?C, high =    -1?C)  ALARM (N/A,LOW)
+> > 
+
 
