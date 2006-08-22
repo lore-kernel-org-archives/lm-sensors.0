@@ -1,47 +1,51 @@
-From: gcoady.lk@gmail.com (Grant Coady)
-Date: Mon, 21 Aug 2006 16:46:27 +0000
+From: dtor@insightbb.com (Dmitry Torokhov)
+Date: Tue, 22 Aug 2006 00:43:05 +0000
 Subject: [lm-sensors] [RFC][PATCH] hwmon:fix sparse warnings + error
-Message-Id: <tkoje25hlbjo1ui9i9v86fpdl6h4sfjnpq@4ax.com>
+Message-Id: <200608212043.06256.dtor@insightbb.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44E8C9AE.3060307@gmail.com> <20060821023017.GA30017@jupiter.solarsys.private> <20060821111127.fe93bc0a.khali@linux-fr.org>
-In-Reply-To: <20060821111127.fe93bc0a.khali@linux-fr.org>
+References: <44E8C9AE.3060307@gmail.com> <20060821100416.4d356328.khali@linux-fr.org>
+In-Reply-To: <20060821100416.4d356328.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <khali@linux-fr.org>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Andrew Morton <akpm@osdl.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Andrew Morton <akpm@osdl.org>, lm-sensors@lm-sensors.org, LKML <linux-kernel@vger.kernel.org>
 
-On Mon, 21 Aug 2006 11:11:27 +0200, Jean Delvare <khali at linux-fr.org> wrote:
+On Monday 21 August 2006 04:04, Jean Delvare wrote:
+> > --- linux-work-clean/drivers/hwmon/w83627hf.c	2006-08-20 22:02:40.000000000 +0200
+> > +++ linux-work/drivers/hwmon/w83627hf.c	2006-08-20 22:27:14.000000000 +0200
+> > @@ -513,9 +513,21 @@ static DEVICE_ATTR(in0_max, S_IRUGO | S_
+> > 
+> >  #define device_create_file_in(client, offset) \
+> >  do { \
+> > -device_create_file(&client->dev, &dev_attr_in##offset##_input); \
+> > -device_create_file(&client->dev, &dev_attr_in##offset##_min); \
+> > -device_create_file(&client->dev, &dev_attr_in##offset##_max); \
+> > +	err = device_create_file(&client->dev, &dev_attr_in##offset##_input); \
+> > +	if (err) {\
+> > +		hwmon_device_unregister(data->class_dev); \
+> > +		return err; \
+> > +	} \
+> > +	err = device_create_file(&client->dev, &dev_attr_in##offset##_min); \
+> > +	if (err) {\
+> > +		hwmon_device_unregister(data->class_dev); \
+> > +		return err; \
+> > +	} \
+> > +	err = device_create_file(&client->dev, &dev_attr_in##offset##_max); \
+> > +	if (err) {\
+> > +		hwmon_device_unregister(data->class_dev); \
+> > +		return err; \
+> > +	} \
+> >  } while (0)
+> 
+> _Never_ use "return" in a macro. It's way too confusing for whoever will
+> read the code later.
+>
 
->Mark, Michal,
->
->> Thanks for doing this... but Andrew please don't apply it.  The sensors project
->> people are working on these even now, and we already have a patch for the
->> w83627hf driver...
->> 
->> http://lists.lm-sensors.org/pipermail/lm-sensors/2006-August/017204.html
->> 
->> Jean Delvare (hwmon maintainer) should be sending these up the chain soon.
->> 
->> Michal: if you're interested in fixing any of the rest of them, please take
->> a look at the patch above to see the mechanism we intend to use.  It actually
->> makes the drivers *smaller* than they were.
->
->The size change really depends on the driver. For older drivers with
->individual file registration (sometimes hidden behind macros) the
->driver size will indeed shrink, but for newer drivers with loop-based
->file registration, this would be a slight increase in size. Not that it
->really matters anyway, what matters is that we handle errors and file
->deletion properly from now on.
->
->Michal, if you go on working on this (and this is welcome), please
->follow what Mark did, as this is what we agreed was the best approach.
->Here is a quick status summary for drivers/hwmon:
->
-...
-> o adm9240
+Also I believe it is good practice to remove created attributes explicitely
+instead of relying on sysfs to do the cleanup - I beliee Greg was going to
+remove it from sysfs at some point of time... 
 
-Somebody else is welcome to do this one, my last patch was dropped.
-
-Grant.
+-- 
+Dmitry
 
