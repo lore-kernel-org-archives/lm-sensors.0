@@ -1,54 +1,27 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Mon, 28 Aug 2006 09:53:34 +0000
-Subject: [lm-sensors] PATCH: hwmon-abituguru-suspend-resume.patch
-Message-Id: <44F2BD1E.6010209@hhs.nl>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Tue, 22 Aug 2006 20:23:23 +0000
+Subject: [lm-sensors] [PATCH] AMD K8 digital sensor - take2
+Message-Id: <44EB67BB.5010604@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44DB2470.3050507@hhs.nl>
-In-Reply-To: <44DB2470.3050507@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
- > Can you add your Signed-off-by line? So that I can merge both and push
- > the change as a single patch.
- >
- > Thanks,
+Hello Jean,
 
-Here you are, I hope my mailcient hasn't foo-barred the patch.
+This patch adds support for the temperature sensor(s) found in AMD K8 CPUs.
 
-Only include suspend/resume functions when CONFIG_PM is set.
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Hans de Goede <j.w.r.degoede at hhs.nl>
----
-  drivers/hwmon/abituguru.c |    5 +++++
-  1 file changed, 5 insertions(+)
+All fixed & tested on quad CPU - dual dual core ;), please apply.
 
---- linux-2.6.18-rc5.orig/drivers/hwmon/abituguru.c	2006-08-28 
-11:09:39.000000000 +0200
-+++ linux-2.6.18-rc5/drivers/hwmon/abituguru.c	2006-08-28 
-11:31:26.000000000 +0200
-@@ -1354,6 +1354,7 @@
-  		return NULL;
-  }
-
-+#ifdef CONFIG_PM
-  static int abituguru_suspend(struct platform_device *pdev, 
-pm_message_t state)
-  {
-  	struct abituguru_data *data = platform_get_drvdata(pdev);
-@@ -1372,6 +1373,10 @@
-  	mutex_unlock(&data->update_lock);
-  	return 0;
-  }
-+#else
-+#define abituguru_suspend	NULL
-+#define abituguru_resume	NULL
-+#endif /* CONFIG_PM */
-
-  static struct platform_driver abituguru_driver = {
-  	.driver = {
-
-
-
+regards
+Rudolf
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: k8temp2.patch
+Type: text/x-patch
+Size: 10581 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060822/660aa2a4/attachment.bin 
