@@ -1,20 +1,31 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 31 Aug 2006 11:14:41 +0000
-Subject: [lm-sensors] VT8251 - call for testers
-Message-Id: <44F6C4A1.9060702@sh.cvut.cz>
+From: tparcina@lama.hr (=?iso-8859-2?Q?Tomislav_Par=E8ina?=)
+Date: Wed, 23 Aug 2006 13:17:04 +0000
+Subject: [lm-sensors] Sensor reading logging
+Message-Id: <79337FA3BA80774F9FE87BF809C9F356430AF4@stipe.lama.hr>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello all,
+I need to log lm_sensors readings. I need to log them on two or three different ways.
 
-I finally obtained specs for VT8251 SMBus, I will create the patch later today, 
-In the meanwhile, if there are any owners of VT8251 southbrige around, please 
-speak up ;) (for impatient, enough would be to change the PCI ID in the driver)
+1. I need to log them in file (for small computers that I don't need to check often)
+2. To create SNMP MIB's, so that I can look at logs using Munin or Cacti.
 
-Thanks,
-Regards
-Rudolf
+Is it possible to do this with lm-sensors?
+
+P.S.
+Last thing, can I send mail when temp goes over x degrees?
+
+
+--
+Tomislav Par?ina
+Lama Computers Split
+Stinice 12, 21000 Split
+Tel.: +385(21)495148
+Mob.: +385(91)1212148
+SIP: tomo at pbx.lama.hr
+e-mail: tparcina#lama.hr
+http://www.lama.hr
 
