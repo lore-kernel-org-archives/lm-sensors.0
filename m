@@ -1,29 +1,31 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 28 Aug 2006 12:16:00 +0000
-Subject: [lm-sensors] [PATCH 1/2 RESEND 2] hwmon: new vt1211 driver
-Message-Id: <20060828141600.48f02da9.khali@linux-fr.org>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Wed, 23 Aug 2006 15:26:09 +0000
+Subject: [lm-sensors] [PATCH] AMD K8 digital sensor - take3
+Message-Id: <44EC7391.2040700@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0605311844n3d24f429k8942ffaa15e864a8@mail.gmail.com>
-In-Reply-To: <191fb4ca0605311844n3d24f429k8942ffaa15e864a8@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > Again, there are reasons why we wrote the drivers that way, mind you ;)
-> 
-> I'm certain of that I just wasn't obvious to me, that's why I asked.
-> Sorry for being such a pain in the but I just wanted to know how and
-> why things are implemented they way they are :-)
+Hello,
 
-Hehe, no worry. Better that you ask and now know, rather than forever
-think we are morrons ;)
+This patch adds support for the temperature sensor(s) found in AMD K8 CPUs.
 
-> That was my last question, promised :-) Next you'll see an updated
-> patch that hopefully passes the bar...
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
 
-Waiting for it :)
+I fixed the remaining issues, I got rid of REG_TEMP_T. I left the different 
+register i/o sizes. It is neccessary for future extensions of the driver.
 
--- 
-Jean Delvare
+Please apply.
 
+Regards
+Rudolf
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: k8temp3.patch
+Type: text/x-patch
+Size: 10665 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060823/7f80120f/attachment.bin 
