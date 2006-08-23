@@ -1,17 +1,24 @@
-From: Reuven_korch@PacketLight.com (Reuven Korchminsky)
-Date: Tue, 29 Aug 2006 16:33:43 +0000
-Subject: [lm-sensors]  Bug in initialisation of stopped RTC's in ds1337.c
-Message-Id: <3E66D1D6AA90B54CB36A4DA7AE83D4EC12279F@pl-exch.packetlight.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 23 Aug 2006 19:07:09 +0000
+Subject: [lm-sensors] Call for testers: sis5595, via686a, vt8231
+Message-Id: <20060823210709.d338387d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43FDAF51.50207@gassner-waagen.at>
-In-Reply-To: <43FDAF51.50207@gassner-waagen.at>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
+I just committed a huge simplification of the detection routines for
+the SiS5595, VIA686 and VT8231 chips to sensors-detect. I would
+appreciate if users with these chips could give a try to the latest
+version of sensors-detect and confirm that their chip is still properly
+detected:
 
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060829/b50501e6/attachment.html 
+http://www.lm-sensors.org/browser/lm-sensors/trunk/prog/detect/sensors-detect?format=txt
+
+Thanks,
+-- 
+Jean Delvare
+
