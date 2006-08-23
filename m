@@ -1,7 +1,7 @@
 From: anthony.calabro@lmco.com (Calabro, Anthony)
-Date: Wed, 23 Aug 2006 17:46:24 +0000
+Date: Wed, 23 Aug 2006 21:04:21 +0000
 Subject: [lm-sensors] Flex Scanner Jammed Problem
-Message-Id: <ECFA7CB48E408A45987215BF5593E04708A17264@emss09m08.us.lmco.com>
+Message-Id: <ECFA7CB48E408A45987215BF5593E04704F7F7CE@emss09m08.us.lmco.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1064332995.5787.33.camel@nils>
 In-Reply-To: <1064332995.5787.33.camel@nils>
@@ -10,12 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Attached is the ouput of sensors -s (2.10.0) with the ocmpile flag '-d'
-and also theline %nodefault  commented out of the file lib/conf-lex.l
+ 
 
-PS.  Thanks both of you for all of your help and suggestions.  I really
-appreciate it.
 
+Anthony W. Calabro
+
+Voice: 703.367.3138 
+Email:  anthony.calabro at lmco.com
 
 -----Original Message-----
 From: Jean Delvare [mailto:khali at linux-fr.org] 
@@ -62,21 +63,43 @@ will converge after 11 iterations, should be fast enough.
 
 What update is this?
 
+
+-- In the change log for kernel 2.6.9-42 from redhat enterprise, it
+says:
+2006-05-02 22:00:00 
+Jason Baron <jbaron at redhat.com> [2.6.9-35]: 
+-revert: fix hanging serial console
+-Introduce netpoll over bonded interfaces (Thomas Graf)
+-fix USB error handling (Kimball Murray) [189279]
+-qla2xxx update v. 8.01.04-d7 (Mike Christie) [188912]
+-Fix coredump vs exec deadlock (David Howells) [168112]
+*****-add i2c sensors drivers (Eric Paris) [171507]*****
+-s390: fix sysrq backtrace oops (Jan Glauber) [185736]
+-s390: fix crypto driver memory overwrite (Jan Glauber)
+-s390: lcs driver fixes (Jan Glauber)
+-add hpet_period finetuning to allow correction of hpet drift (Brian
+Maly) [169876]
+-bonding updates (Thomas Graf) [180431]
+-Add MSI/MSI-X support to cciss (Tom Coughlan) [179860]
+-add modern_apic() tests (Jim Paradis) [166885]
+-SUNRPC: rpcbind should retry if server's portmapper becomes unavailable
+(Steve Dickson) [172082]
+-device-mapper mirroring: error on log failure override (Jonathan
+Brassow)
+-make aic7xxx and aic79xx Drivers Support 16-byte CDBs (Chip Coldwell)
+-fix ipmi driver broken on HP Integrity platform (Brian Maly) [174986]
+-fix mmap wastes too much virtual address space for 32-bit environment
+(Larry Woodman) [173662]
+-IPMI: Resolve startup race condition (Peter Martuccelli) [189390]
+-ati sb600 support (John Linville) [189844]
+-Emulex lpfc/lpfcdfc drivers re-organizations (Chip Coldwell) [179752]
+
+-- I tried to research the bug from redhat but didn't have the right
+access.
+
+
+
 --
 Jean Delvare
 
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: sensorsdebug.out
-Type: application/octet-stream
-Size: 4110 bytes
-Desc: sensorsdebug.out
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060823/efebee77/attachment.obj 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: sensors.conf.temp
-Type: application/octet-stream
-Size: 189 bytes
-Desc: sensors.conf.temp
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060823/efebee77/attachment-0001.obj 
