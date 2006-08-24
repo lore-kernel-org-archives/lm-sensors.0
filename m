@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 24 Aug 2006 07:49:01 +0000
+Date: Thu, 24 Aug 2006 14:52:17 +0000
 Subject: [lm-sensors] Flex Scanner Jammed Problem
-Message-Id: <20060824094901.051bfb42.khali@linux-fr.org>
+Message-Id: <20060824165217.bd1b43be.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1064332995.5787.33.camel@nils>
 In-Reply-To: <1064332995.5787.33.camel@nils>
@@ -12,76 +12,46 @@ To: lm-sensors@vger.kernel.org
 
 Anthony,
 
-> > The Winbond (sensor) chip is supported including access by ISA bus...
-> > so you don't need any other bus driver to get that working.
+> > What update is this?
 > 
-> The 83627HG uses the same drivers as the 83627HF???
-
-Yes. The "HG" variant is lead-free, but otherwise it's the same chip.
-
-> Ok,  I went into BIOS and read the output of the sensors it is reading,
-> and compared it with the lm_sensors output.   Below is what BIOS is
-> reading, and attached is the output of sensors, as well as a few other
-> programs to give input on what is going on the system, including
-> sensors-detect, systool, lspci, lsmod.  Please let me know what, if any
-> other input would be helpful.  I'm going to try to find out how the BIOS
-> is reading the sensors and maybe ill have a better shot doing it that
-> way.
-
-Can you please set the MIME type properly for text attachements next
-time?
-
-> BIOS INFO:
 > 
-> CPU1 VCore:			1.19V
-> CPU2 VCore:			1.19V
-> CPU1 DIMM Volt:		2.62V
-> CPU2 DIMM Volt:		2.63V
-> 1.2V Hyper-Transport:	1.21V
-> 1.5V:				1.50V
-> 2.5V:				2.63V
-> 3.3V VCC:			3.44V
-> 3.3V SB:			3.44V
-> 5Vin:				5.10V
-> 12Vin:			12.06V
-> -12V Vcc:			-12.09V
-> Vbatt:			3.07V
+> -- In the change log for kernel 2.6.9-42 from redhat enterprise, it
+> says:
+> 2006-05-02 22:00:00 
+> Jason Baron <jbaron at redhat.com> [2.6.9-35]: 
+> -revert: fix hanging serial console
+> -Introduce netpoll over bonded interfaces (Thomas Graf)
+> -fix USB error handling (Kimball Murray) [189279]
+> -qla2xxx update v. 8.01.04-d7 (Mike Christie) [188912]
+> -Fix coredump vs exec deadlock (David Howells) [168112]
+> *****-add i2c sensors drivers (Eric Paris) [171507]*****
+> -s390: fix sysrq backtrace oops (Jan Glauber) [185736]
+> -s390: fix crypto driver memory overwrite (Jan Glauber)
+> -s390: lcs driver fixes (Jan Glauber)
+> -add hpet_period finetuning to allow correction of hpet drift (Brian
+> Maly) [169876]
+> -bonding updates (Thomas Graf) [180431]
+> -Add MSI/MSI-X support to cciss (Tom Coughlan) [179860]
+> -add modern_apic() tests (Jim Paradis) [166885]
+> -SUNRPC: rpcbind should retry if server's portmapper becomes unavailable
+> (Steve Dickson) [172082]
+> -device-mapper mirroring: error on log failure override (Jonathan
+> Brassow)
+> -make aic7xxx and aic79xx Drivers Support 16-byte CDBs (Chip Coldwell)
+> -fix ipmi driver broken on HP Integrity platform (Brian Maly) [174986]
+> -fix mmap wastes too much virtual address space for 32-bit environment
+> (Larry Woodman) [173662]
+> -IPMI: Resolve startup race condition (Peter Martuccelli) [189390]
+> -ati sb600 support (John Linville) [189844]
+> -Emulex lpfc/lpfcdfc drivers re-organizations (Chip Coldwell) [179752]
 > 
-> CPU1:				17 C
-> CPU2:				0 C
-> SYS Temp:			25 C
-> 
-> FAN1:				NA (not attached)
-> FAN2:				~7000
-> FAN3:				NA (not attached)
-> FAN4:				6750
-> FAN5:				NA (not attached)
+> -- I tried to research the bug from redhat but didn't have the right
+> access.
 
-13 voltage inputs and 5 fan inputs, while the W83627HF/HG has only 9
-and 3, respectively. This suggests that there is a second hardware
-monitoring on your motherboard, most probably connected to the SMBus.
+I asked for access, that may or may not be accepted.
 
-> 00:01.1 SMBus: nVidia Corporation CK804 SMBus (rev a2)
-
-This is your SMBus. Support was added to the i2c-nforce2 driver in
-2.6.12. I think you said you were running 2.6.9, so no surprise it
-doesn't work.
-
-You may load i2c-nforce2 manually, then run the following command:
-echo "10de 0052" > /sys/bus/pci/drivers/nForce2_smbus/new_id
-
-This should enable the SMBus. If it works, you'll have to do the same
-after each reboot. Then you can run sensors-detect again and hopefully
-it will find some other chip. I suggest running the most recent version
-of sensors-detect, else it'll miss recent chips.
-
-BTW I notice that this system is completely different from the one you
-reported for in the first place. The original one was Intel-based and
-this one is nVidia-based. Please make separate threads for separate
-issues, else it is very difficult for us to keep track of everything at
-once.
-
-What motherboard is this?
+Anyway, I was asking out of curiousity. It certainly has nothing to do
+with your current problems.
 
 -- 
 Jean Delvare
