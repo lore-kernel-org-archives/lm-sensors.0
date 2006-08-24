@@ -1,82 +1,51 @@
-From: devsku@gmail.com (Sunil Kumar)
-Date: Thu, 31 Aug 2006 21:58:56 +0000
-Subject: [lm-sensors] Is the Intel i945G supported/planned?
-Message-Id: <ce9ef0d90608311458u706d2c3ah36395c0d77343f6a@mail.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 24 Aug 2006 15:05:20 +0000
+Subject: [lm-sensors] it8718 under 2.6
+Message-Id: <20060824170520.ad92a6de.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <ce9ef0d90608291525r42520432gd67005073da32057@mail.gmail.com>
-In-Reply-To: <ce9ef0d90608291525r42520432gd67005073da32057@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-yeah, I messed up a bit. i2c-dev is indeed a module and I didn't modprobe it
-before I ran sensors-detect.
+Hi Shane,
 
-But doesn't make much difference. I re-ran the sensors-detect and this time
-I asked it to load the i2c-dev. Didn't find any chip this time either.
+> Ok, I've found the patch on the newdrivers section of the
+> lm-sensors wiki which worked.  As the entry says testers
+> needed, here are my results.
 
-I am running 2.6.18-rc4.
+Great, thanks for reporting. Which kernel are you running?
 
--Sunil
+>                               There was no config entry for
+> the 8718 so I just used the 8716 entry which doesn't seem
+> fully compatable.  12v is wrong and temp3 as well though
+> not sure if temp3 is enabled on the board.
 
-On 8/31/06, Jean Delvare <khali at linux-fr.org> wrote:
->
-> Hi Sunil,
->
-> > $ sensors-detect
-> > # sensors-detect revision 1.413 (2006/01/19 20:28:00)
-> >
-> > This program will help you determine which I2C/SMBus modules you need to
-> > load to use lm_sensors most effectively. You need to have i2c and
-> > lm_sensors installed before running this program.
-> > Also, you need to be `root', or at least have access to the /dev/i2c-*
-> > files, for most things.
-> > If you have patched your kernel and have some drivers built in, you can
-> > safely answer NO if asked to load some modules. In this case, things may
-> > seem a bit confusing, but they will still work.
-> >
-> > It is generally safe and recommended to accept the default answers to
-> all
-> > questions, unless you know what you're doing.
-> >
-> >  We can start with probing for (PCI) I2C or SMBus adapters.
-> >  You do not need any special privileges for this.
-> >  Do you want to probe now? (YES/no): YES
-> > Probing for PCI bus adapters...
-> > Use driver `i2c-i801' for device 00:1f.3: Intel ICH7
-> > Probe succesfully concluded.
->
-> Which kernel is this? You need >= 2.6.11 for ICH7 support in i2c-i801.
->
-> > I have i2c_dev in kernel, so I declined that.
->
-> Please double check that. I'm quite suspicious given the original lsmod
-> you posted:
->
-> > $ lsmod
-> > Module                  Size  Used by
-> > vmnet                  30764  9
-> > vmmon                  99788  0
-> > i915                   18304  2
-> > eeprom                  7568  0
-> > drm                    62740  3 i915
-> > snd_intel8x0           31260  0
-> > snd_ac97_codec         83616  1 snd_intel8x0
-> > snd_ac97_bus            2816  1 snd_ac97_codec
-> > intel_agp              21788  1
-> > intelfb                30628  0
-> > tg3                    96900  0
-> > i2c_i801                7820  0
-> > agpgart                32712  4 drm,intel_agp,intelfb
-> > i2c_core               20352  2 eeprom,i2c_i801
->
-> You can't have i2c-core as a module and i2c-dev built-in, it's
-> technically impossible.
->
-> --
-> Jean Delvare
->
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060831/e0c06185/attachment-0001.html 
+I was waiting to have some more reports, as the first board I had a
+report for had a somewhat non-standard configuration.
+
+Please go to the BIOS setup screen and write down everything it says
+about voltages, fans and temperatures (labels and values, in order.)
+Then report this list here, together with the output of "sensors"
+without a configuration file (either delete it, or run "sensors
+-c /dev/null"). I'll help you come up with a working configuration file
+for your board.
+
+Oh, the driver is also trying to help with messages in the logs when
+you load it. Please report these messages.
+
+> Also, fan 4 and fan 5 aren't shown in the sensors output.
+
+I have not seen a board using these yet, so I didn't bother adding
+support. I could add it if you need it. What do you offer?
+
+FYI, I just updated the 2.6.18 version of my patch:
+http://jdelvare.pck.nerim.net/sensors/hwmon-it8716f-it8718f-v2-2.6.18.patch
+
+It should work as least as well as the first one, the fan part is a bit
+better. Please give it a try if you are running a 2.6.18-rc kernel. I
+don't quite have the time to backport this one to earlier kernels.
+
+-- 
+Jean Delvare
+
