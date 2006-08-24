@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 24 Aug 2006 03:01:43 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 24 Aug 2006 07:49:01 +0000
 Subject: [lm-sensors] Flex Scanner Jammed Problem
-Message-Id: <20060824030143.GA2653@jupiter.solarsys.private>
+Message-Id: <20060824094901.051bfb42.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1064332995.5787.33.camel@nils>
 In-Reply-To: <1064332995.5787.33.camel@nils>
@@ -10,66 +10,79 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Anthony:
+Anthony,
 
-* Calabro, Anthony <anthony.calabro at lmco.com> [2006-08-23 13:46:24 -0400]:
-> Attached is the ouput of sensors -s (2.10.0) with the ocmpile flag '-d'
-> and also theline %nodefault  commented out of the file lib/conf-lex.l
+> > The Winbond (sensor) chip is supported including access by ISA bus...
+> > so you don't need any other bus driver to get that working.
+> 
+> The 83627HG uses the same drivers as the 83627HF???
 
-Here is some of the output from your attachment...
+Yes. The "HG" variant is lead-free, but otherwise it's the same chip.
 
-> --(end of buffer or a NUL)
-> --accepting rule at line 122 ("chip")
-> --accepting default rule (" ")
+> Ok,  I went into BIOS and read the output of the sensors it is reading,
+> and compared it with the lm_sensors output.   Below is what BIOS is
+> reading, and attached is the output of sensors, as well as a few other
+> programs to give input on what is going on the system, including
+> sensors-detect, systool, lspci, lsmod.  Please let me know what, if any
+> other input would be helpful.  I'm going to try to find out how the BIOS
+> is reading the sensors and maybe ill have a better shot doing it that
+> way.
 
-It missed the rule at line 88, which refrences "[[:space:]]".  In flex, this
-is called a character class expression.  It means any character for which the
-standard C library function isspace(3) returns true.
+Can you please set the MIME type properly for text attachements next
+time?
 
-> --accepting rule at line 189 (""")
-> --accepting rule at line 257 ("w83782d-*")
-> --accepting rule at line 205 (""")
-> --accepting default rule (" ")
+> BIOS INFO:
+> 
+> CPU1 VCore:			1.19V
+> CPU2 VCore:			1.19V
+> CPU1 DIMM Volt:		2.62V
+> CPU2 DIMM Volt:		2.63V
+> 1.2V Hyper-Transport:	1.21V
+> 1.5V:				1.50V
+> 2.5V:				2.63V
+> 3.3V VCC:			3.44V
+> 3.3V SB:			3.44V
+> 5Vin:				5.10V
+> 12Vin:			12.06V
+> -12V Vcc:			-12.09V
+> Vbatt:			3.07V
+> 
+> CPU1:				17 C
+> CPU2:				0 C
+> SYS Temp:			25 C
+> 
+> FAN1:				NA (not attached)
+> FAN2:				~7000
+> FAN3:				NA (not attached)
+> FAN4:				6750
+> FAN5:				NA (not attached)
 
-Missed rule 88 again.
+13 voltage inputs and 5 fan inputs, while the W83627HF/HG has only 9
+and 3, respectively. This suggests that there is a second hardware
+monitoring on your motherboard, most probably connected to the SMBus.
 
-> --accepting rule at line 189 (""")
-> --accepting rule at line 257 ("w83627hf-*")
-> --accepting rule at line 205 (""")
-> --accepting rule at line 80 ("
-> ")
-> --accepting default rule ("
-> ")
-> --accepting rule at line 98 ("label")
-> --accepting default rule (" ")
+> 00:01.1 SMBus: nVidia Corporation CK804 SMBus (rev a2)
 
-Missed rule 88 again.
+This is your SMBus. Support was added to the i2c-nforce2 driver in
+2.6.12. I think you said you were running 2.6.9, so no surprise it
+doesn't work.
 
-> --accepting default rule ("i")
-> --accepting default rule ("n")
-> --accepting default rule ("0")
+You may load i2c-nforce2 manually, then run the following command:
+echo "10de 0052" > /sys/bus/pci/drivers/nForce2_smbus/new_id
 
-Here, it missed the rule at line 262 which references "[[:alnum:]]".  This
-corresponds to the standard C library function isalnum(3).  Hmmm...
+This should enable the SMBus. If it works, you'll have to do the same
+after each reboot. Then you can run sensors-detect again and hopefully
+it will find some other chip. I suggest running the most recent version
+of sensors-detect, else it'll miss recent chips.
 
-You said before that if you quote the identifiers, the scanner will accept
-them.  That further points to the character class expressions being somehow
-broken because the rules for *inside* the quotes do not use them.
+BTW I notice that this system is completely different from the one you
+reported for in the first place. The original one was Intel-based and
+this one is nVidia-based. Please make separate threads for separate
+issues, else it is very difficult for us to keep track of everything at
+once.
 
-I'm going to guess that you are having some bad interaction with the standard
-C library.  I'm not sure how that's possible, especially if you can compile
-and use lm-sensors 2.9.0 without problems.  Did you compile the two versions
-on two different machines?  I think the character class expressions are
-resolved during compile time / scanner generation, i.e. from *.l -> *.c.
-
-I don't know what else to suggest.  This much is certain: given the output
-you attached, something is getting miscompiled or corrupted when you build
-2.10.0.  As unlikely as that may sound, nothing else makes sense.
-
-Regards,
+What motherboard is this?
 
 -- 
-Mark M. Hoffman
-mhoffman at lightlink.com
-
+Jean Delvare
 
