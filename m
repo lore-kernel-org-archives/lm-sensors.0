@@ -1,143 +1,50 @@
-From: gregkh@suse.de (gregkh at suse.de)
-Date: Thu, 03 Aug 2006 21:37:52 +0000
-Subject: [lm-sensors] patch hwmon-w83627ehf-documentation.patch added to
-Message-Id: <20060803214223.97B2581B866@imap.suse.de>
+From: s.cormier@gmx.net (Stephen Cormier)
+Date: Fri, 25 Aug 2006 18:34:21 +0000
+Subject: [lm-sensors] Gkrellm support was Re: Asus M2NPV-VM and lm-sensors
+Message-Id: <200608251534.38426.s.cormier@gmx.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Friday 25 August 2006 07:41, Prakash Punnoor wrote:
+> Hi,
+>
+> Yes, I foundit in the mailing list archives. Works nice, unfortunately
+> gkrellm doesn't support it yet.
+>
 
-This is a note to let you know that I've just added the patch titled
+Gkrellm will support the k8temp if you patch libsensors then build and install 
+the lm-sensors package. I got the patch in the file amd_digital_temp.tar.gz 
+which I believe was posted on this list by the author if you cannot find it a 
+quick Google on the file name comes up with http://assembler.cz/download/ as 
+the location to get it which contains the same files as the tarball I have 
+here. Then you need a patch to Gkrellm itself for the hwmon looks like I got 
+that one when I applied the abituguru patch to libsensors as I only find this 
+(1) when searching on the patch name with Hans's name in there. I have 
+attached this patch if you want to try it as it is contained with a few 
+others. BTW both drivers have been working great in the time I have been 
+using them many thanks to their respective authors and everyone else doing 
+all the hard work so we can have decent support for our hardware.
 
-     Subject: hwmon: Documentation update for w83627ehf
+(1)http://www.redhat.com/archives/fedora-extras-commits/2006-July/msg01559.html
 
-to my gregkh-2.6 tree.  Its filename is
+Stephen
 
-     hwmon-w83627ehf-documentation.patch
-
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
-
-
-From khali at linux-fr.org Wed Jul  5 09:15:35 2006
-Date: Wed, 5 Jul 2006 18:15:31 +0200
-From: Jean Delvare <khali at linux-fr.org>
-To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>, Rudolf Marek <r.marek at sh.cvut.cz>
-Subject: hwmon: Documentation update for w83627ehf
-Message-Id: <20060705181531.bdcc8624.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-w83627ehf-documentation.patch
-
-From: Rudolf Marek <r.marek at sh.cvut.cz>
-
-Add documentation for the w83627ehf hardware monitoring driver.
-
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
----
- Documentation/hwmon/w83627ehf |   85 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 85 insertions(+)
-
---- /dev/null
-+++ gregkh-2.6/Documentation/hwmon/w83627ehf
-@@ -0,0 +1,85 @@
-+Kernel driver w83627ehf
-+===========+
-+Supported chips:
-+  * Winbond W83627EHF/EHG (ISA access ONLY)
-+    Prefix: 'w83627ehf'
-+    Addresses scanned: ISA address retrieved from Super I/O registers
-+    Datasheet: http://www.winbond-usa.com/products/winbond_products/pdfs/PCIC/W83627EHF_%20W83627EHGb.pdf
-+
-+Authors:
-+        Jean Delvare <khali at linux-fr.org>
-+        Yuan Mu <Ymu at Winbond.com.tw>
-+        Rudolf Marek <r.marek at sh.cvut.cz>
-+
-+Description
-+-----------
-+
-+This driver implements support for the Winbond W83627EHF and W83627EHG
-+super I/O chips. We will refer to them collectively as Winbond chips.
-+
-+The chips implement three temperature sensors, five fan rotation
-+speed sensors, ten analog voltage sensors, alarms with beep warnings (control
-+unimplemented), and some automatic fan regulation strategies (plus manual
-+fan control mode).
-+
-+Temperatures are measured in degrees Celsius and measurement resolution is 1
-+degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
-+the temperature gets higher than high limit; it stays on until the temperature
-+falls below the Hysteresis value.
-+
-+Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
-+triggered if the rotation speed has dropped below a programmable limit. Fan
-+readings can be divided by a programmable divider (1, 2, 4, 8, 16, 32, 64 or
-+128) to give the readings more range or accuracy. The driver sets the most
-+suitable fan divisor itself. Some fans might not be present because they
-+share pins with other functions.
-+
-+Voltage sensors (also known as IN sensors) report their values in millivolts.
-+An alarm is triggered if the voltage has crossed a programmable minimum
-+or maximum limit.
-+
-+The driver supports automatic fan control mode known as Thermal Cruise.
-+In this mode, the chip attempts to keep the measured temperature in a
-+predefined temperature range. If the temperature goes out of range, fan
-+is driven slower/faster to reach the predefined range again.
-+
-+The mode works for fan1-fan4. Mapping of temperatures to pwm outputs is as
-+follows:
-+
-+temp1 -> pwm1
-+temp2 -> pwm2
-+temp3 -> pwm3
-+prog  -> pwm4 (the programmable setting is not supported by the driver)
-+
-+/sys files
-+----------
-+
-+pwm[1-4] - this file stores PWM duty cycle or DC value (fan speed) in range:
-+	   0 (stop) to 255 (full)
-+
-+pwm[1-4]_enable - this file controls mode of fan/temperature control:
-+	* 1 Manual Mode, write to pwm file any value 0-255 (full speed)
-+	* 2 Thermal Cruise
-+
-+Thermal Cruise mode
-+-------------------
-+
-+If the temperature is in the range defined by:
-+
-+pwm[1-4]_target    - set target temperature, unit millidegree Celcius
-+		     (range 0 - 127000)
-+pwm[1-4]_tolerance - tolerance, unit millidegree Celcius (range 0 - 15000)
-+
-+there are no changes to fan speed. Once the temperature leaves the interval,
-+fan speed increases (temp is higher) or decreases if lower than desired.
-+There are defined steps and times, but not exported by the driver yet.
-+
-+pwm[1-4]_min_output - minimum fan speed (range 1 - 255), when the temperature
-+                      is below defined range.
-+pwm[1-4]_stop_time  - how many milliseconds [ms] must elapse to switch
-+                      corresponding fan off. (when the temperature was below
-+                      defined range).
-+
-+Note: last two functions are influenced by other control bits, not yet exported
-+      by the driver, so a change might not have any effect.
-
-
-Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
-
-i2c/hwmon-w83627ehf-add-pwm-support.patch
-i2c/hwmon-w83627ehf-documentation.patch
-i2c/i2c-dev-cleanups.patch
-i2c/i2c-dev-convert-array-to-list.patch
-i2c/i2c-dev-drop-template-client.patch
-i2c/i2c-dev-device.patch
-pci/pci-unhide-the-smbus-on-asus-pu-dls.patch
-
+-- 
+GPG Pubic Key: http://users.eastlink.ca/~stephencormier/publickey.asc
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: gkrellm-2.2.9-hwmon.patch
+Type: text/x-diff
+Size: 1444 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060825/2fe6e47c/attachment.bin 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060825/2fe6e47c/attachment-0001.bin 
