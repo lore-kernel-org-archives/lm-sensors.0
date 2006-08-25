@@ -1,7 +1,7 @@
-From: prakash@punnoor.de (Prakash Punnoor)
-Date: Fri, 25 Aug 2006 10:41:08 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 25 Aug 2006 17:50:31 +0000
 Subject: [lm-sensors] Asus M2NPV-VM and lm-sensors not working
-Message-Id: <200608251241.13802.prakash@punnoor.de>
+Message-Id: <20060825195031.02fb4875.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200608241001.14052.prakash@punnoor.de>
 In-Reply-To: <200608241001.14052.prakash@punnoor.de>
@@ -10,143 +10,203 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Prakash,
 
-> > 1) sensor-detect tells me to inster k8temp, but I can't find it in kernel
-> > tree.
->
-> It's a really new driver written by Rudolf Marek. Get the patch from
-> here:
+> I set them to:
+> powernow-k8:    0 : fid 0xc (2000 MHz), vid 0x11
+> powernow-k8:    1 : fid 0xa (1800 MHz), vid 0x13
+> powernow-k8:    2 : fid 0x2 (1000 MHz), vid 0x1b
 
-Yes, I foundit in the mailing list archives. Works nice, unfortunately gkrellm 
-doesn't support it yet.
+The K8 family uses the VID conversion table described in AMD document
+26094 (Table 74). Inside the kernel it is known as VRM version "2.4.
+This table leads me to the following values:
 
-> VDDR as +3.12 V is way too high, so my guess is that in1 is actually
-> +3.3V, and VDDR isn't monitored.
+(2000 MHz), vid 0x11 -> 1.125 V
+(1800 MHz), vid 0x13 -> 1.075 V
+(1000 MHz), vid 0x1b -> 0.875 V
 
-Yes, later I thought the same...
+These values are significantly lower than the ones I am used to (1.40
+V, 1.35 V and 1.10 V, respectively). I am surprised by your words: "I
+set them to"... Do you mean that you somehow _decided_ to use these
+values instead of the standard ones?
 
-> Can you copy all the hardware monitoring data provided by your BIOS?
-> This is the most useful data to customize the configuration file for a
-> given board.
+Please check that the value of /sys/class/hwmon/hwmon0/device/vrm is
+8.2 as expected.
 
-Here we go:
+> > Can you copy all the hardware monitoring data provided by your BIOS?
+> > This is the most useful data to customize the configuration file for a
+> > given board.
+> 
+> Here we go:
+> 
+> Vcore 1,35 (so it show 0.05 too little, as stock vcore at 2GHz is 1.4, I 
+> should have set it down to 1.2 or 1.225, if I calced the hex corretly...)
 
-Vcore 1,35 (so it show 0.05 too little, as stock vcore at 2GHz is 1.4, I 
-should have set it down to 1.2 or 1.225, if I calced the hex corretly...)
+Again, it sounds like you are underpowering your CPU on purpose?
 
-3.3: 3.22
-5: 5.03
-12: 11.85
+> 3.3: 3.22
+> 5: 5.03
+> 12: 11.85
+> 
+> comparing again with sensors:
+> 
+> k8temp-pci-00c3
+> Adapter: PCI adapter
+> Core0 Temp:
+>              +33?C
+> Core1 Temp:
+>              +35?C
+> 
+> it8716-isa-0290
+> Adapter: ISA adapter
+> VCore:     +0.80 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
+> VDDR:      +3.12 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
+> +3.3V:     +0.00 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
+> +5V:       +4.84 V  (min =  +6.85 V, max =  +6.85 V)   ALARM
+> +12V:     +11.52 V  (min = +16.32 V, max = +16.32 V)   ALARM
+> in5:       +0.00 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
+> in6:       +0.00 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
+> 5VSB:      +4.70 V  (min =  +6.85 V, max =  +6.85 V)   ALARM
+> VBat:      +2.88 V
+> fan1:     1800 RPM  (min = 6490 RPM)                   ALARM
+> fan2:        0 RPM  (min = 6490 RPM)                   ALARM
+> fan3:     1560 RPM  (min =    0 RPM)
+> temp1:       +28?C  (low  =    -1?C, high =    -1?C)   sensor = diode
+> temp2:       +42?C  (low  =    -1?C, high =    -1?C)   sensor = thermistor
+> temp3:       +25?C  (low  =    -1?C, high =    -1?C)   sensor = thermistor
+> vid:       +0.00 V
+> 
+> We see that sensors reports a bit too little voltages across the board. 
 
-comparing again with sensors:
+Indeed, by ~4%. I can't explain it, the way to decode voltage values is
+pretty standard at least for voltages below 4.1 V. The fact that even
+the battery value is 4% off suggests that this is the ADC not
+converting the values properly. This could be caused by a device
+misconfiguration, or maybe by the IT8716F chip itself being
+underpowered?
 
-k8temp-pci-00c3
-Adapter: PCI adapter
-Core0 Temp:
-             +33?C
-Core1 Temp:
-             +35?C
+The driver should print some messages in the log when you load it, can
+you please copy them here?
 
-it8716-isa-0290
-Adapter: ISA adapter
-VCore:     +0.80 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
-VDDR:      +3.12 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
-+3.3V:     +0.00 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
-+5V:       +4.84 V  (min =  +6.85 V, max =  +6.85 V)   ALARM
-+12V:     +11.52 V  (min = +16.32 V, max = +16.32 V)   ALARM
-in5:       +0.00 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
-in6:       +0.00 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
-5VSB:      +4.70 V  (min =  +6.85 V, max =  +6.85 V)   ALARM
-VBat:      +2.88 V
-fan1:     1800 RPM  (min = 6490 RPM)                   ALARM
-fan2:        0 RPM  (min = 6490 RPM)                   ALARM
-fan3:     1560 RPM  (min =    0 RPM)
-temp1:       +28?C  (low  =    -1?C, high =    -1?C)   sensor = diode
-temp2:       +42?C  (low  =    -1?C, high =    -1?C)   sensor = thermistor
-temp3:       +25?C  (low  =    -1?C, high =    -1?C)   sensor = thermistor
-vid:       +0.00 V
+> Interesting that the temp sensors - though conforming to bios values - are 
+> giving quite ridiculous values. temp2 - motherboard temp - is way higher than 
+> cpu temp, but on the other hand I don't know where the 2nd sensor is and 
+> whether the chipset actually gets hotter
 
-We see that sensors reports a bit too little voltages across the board. 
-Interesting that the temp sensors - though conforming to bios values - are 
-giving quite ridiculous values. temp2 - motherboard temp - is way higher than 
-cpu temp, but on the other hand I don't know where the 2nd sensor is and 
-whether the chipset actually gets hotter
+If temp2 is taken on the northbridge, and if you have no northbridge
+fan, and if your CPU is underpowered and has a good fan, it may make
+sense. I used to tell users that CPU temperature must always be above
+motherboard temperature, but I seem to be proven wrong more frequently.
 
+The best way to differenciate between CPU temperature and motherboard
+temperature is to put some load on the CPU, and see which temperature
+raises faster. A simple "md5sum /dev/zero" makes the trick.
 
-> Vbat is a bit off, is your battery dead already?
-
-The board is pretty new and I didn't have cmos problems, so don't think so.
-
-> > I am also pretty sure that VCore is wrong:
->
-> It looks reasonable to me.
-
-Nope, if I interpret it correctly
-http://lists.lm-sensors.org/pipermail/lm-sensors/2006-August/017356.html
-
-has the same problem if you compare bios vcore and sensors output.
-
-
-> The decoding depends on the CPU. In theory the kernel detects it and
-> picks the right decoding formula but if your CPU is really new, it
-> might use a table we don't know yet. What is your exact CPU model?
-
-cpu family      : 15
-model           : 75
-model name      : AMD Athlon(tm) 64 X2 Dual Core Processor 3800+
-stepping        : 2
-
-It is the new AM2 "regular" version.
-
-
-> > CPU: 780
-> > POWER: 777
+> > > I am also pretty sure that VCore is wrong:
 > >
-> > wheres sensors reports too high values
-> > fan1:     1323 RPM  (min = 6490 RPM)                   ALARM
-> > fan2:        0 RPM  (min = 6490 RPM)                   ALARM
-> > fan3:     1564 RPM  (min =    0 RPM)
->
-> So you are affected by the problem too...
->
-> What do you think are the correct values for your fans, the BIOS' ones,
-> or sensors' ones?
+> > It looks reasonable to me.
+> 
+> Nope, if I interpret it correctly
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2006-August/017356.html
+> 
+> has the same problem if you compare bios vcore and sensors output.
 
-I think the bios ones are right, as if I disable fan management, it shows CPU 
-fan at 2335 which fits well enough to Artcic Cooling Freezer 64 specs at 
-2200rpm. (Yes my machine is "ultra silent", so it is possible that fans run 
-at ~800 rpm when idle. It also just consumes 50Watt when idle...)
+Yeah, there are interesting similarities between your report and this
+one. Same motherboard manufacturer... I have had other reports for
+IT8716F chips where the voltages were in line with what the BIOS said.
+I wonder if these motherboards could be voluntarily underpowering all
+the devices, instead of only the CPU, to same power? That would be
+weird.
 
-On the other hand, when I disable fan management, the fan makes quite some 
-noise which might be too high for a 2200rpm fan, but maybe I am just used to 
-silence. ;-)
+One way to test this is as follows:
+Reboot your system, and make sure that the it87 driver will not be
+loaded at boot time.
+Dump the contents of the chip:
+  isadump -y 0x295 0x296 > /tmp/before.dump
+Load the it87 driver, run sensors once.
+Dump the contents of the chip again:
+  isadump -y 0x295 0x296 > /tmp/after.dump
+Send both files here.
 
-> > fan1:     46551 RPM  (min = 6490 RPM)                   ALARM
-> > fan2:        0 RPM  (min = 6490 RPM)                   ALARM
-> > fan3:     1551 RPM  (min =    0 RPM)
->
-> Very strange. Are you using fan speed control? This could induce some
-> noise in the speed sensing.
+If the voltage registers in both dumps are the same, it means the it87
+driver has nothing to do with it.
 
-Yes Asus' so called "q-fan2".
+> > The decoding depends on the CPU. In theory the kernel detects it and
+> > picks the right decoding formula but if your CPU is really new, it
+> > might use a table we don't know yet. What is your exact CPU model?
+> 
+> cpu family      : 15
+> model           : 75
+> model name      : AMD Athlon(tm) 64 X2 Dual Core Processor 3800+
+> stepping        : 2
+> 
+> It is the new AM2 "regular" version.
 
-> Do you have similar effects when looking at 
-> the values in the BIOS?
+Do you know where I can get technical documentation for your
+processor? My reference document for K8 CPUs was AMD document 30430 so
+far, but I can't find your CPU revision there.
 
-Well, I haven't observed the bios long enough, as such values usually just 
-appear for short times. But I noticed at times the bios also shows wrong 
-values, as it shows "0" instead of ~800. Perhaps here the same thing hapens, 
-but the bios clips the value correctly?
+> > > CPU: 780
+> > > POWER: 777
+> > >
+> > > wheres sensors reports too high values
+> > > fan1:     1323 RPM  (min = 6490 RPM)                   ALARM
+> > > fan2:        0 RPM  (min = 6490 RPM)                   ALARM
+> > > fan3:     1564 RPM  (min =    0 RPM)
+> >
+> > So you are affected by the problem too...
+> >
+> > What do you think are the correct values for your fans, the BIOS' ones,
+> > or sensors' ones?
+> 
+> I think the bios ones are right, as if I disable fan management, it shows CPU 
+> fan at 2335 which fits well enough to Artcic Cooling Freezer 64 specs at 
+> 2200rpm.
+
+Almost all reporters seem to agree on that fact, and one ITE tech guy
+just confirmed it to me... I'll fix the driver.
+
+> (Yes my machine is "ultra silent", so it is possible that fans run 
+> at ~800 rpm when idle. It also just consumes 50Watt when idle...)
+
+Nice. I tried something similar for my home server, except that it's
+using old hardware (Pentium III 800 MHz...) It is somewhere around 50 W
+too, and pretty silent as well (mostly thanks to the Fortron PSU and the
+Seagate hard disk drive.)
+
+> On the other hand, when I disable fan management, the fan makes quite some 
+> noise which might be too high for a 2200rpm fan, but maybe I am just used to 
+> silence. ;-)
+
+Depends on the size of the fan. A 120 mm fan at 2200 RPM should be
+almost silent. A 60 mm fan at 2200 RPM can already make some noise,
+although it should be acceptable.
+
+> > > fan1:     46551 RPM  (min = 6490 RPM)                   ALARM
+> > > fan2:        0 RPM  (min = 6490 RPM)                   ALARM
+> > > fan3:     1551 RPM  (min =    0 RPM)
+> >
+> > Very strange. Are you using fan speed control? This could induce some
+> > noise in the speed sensing.
+> 
+> Yes Asus' so called "q-fan2".
+
+I guess you won't observe the phenomenon with it disabled.
+
+> > Do you have similar effects when looking at 
+> > the values in the BIOS?
+> 
+> Well, I haven't observed the bios long enough, as such values usually just 
+> appear for short times. But I noticed at times the bios also shows wrong 
+> values, as it shows "0" instead of ~800. Perhaps here the same thing hapens, 
+> but the bios clips the value correctly?
+
+I'm not sure about the "correctly" but yet the BIOS is most certainly
+trimming the values it considers too high to be relistic. But I am
+reluctant to do this in our drivers. It's up to the hardware to improve
+to make it possible to control fans and still monitor them. I think
+that's where we are going with 4-wire fans.
 
 -- 
-(?=                 =?)
-//\ Prakash Punnoor /\\
-V_/                 \_V
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060825/f44d49e1/attachment.bin 
+Jean Delvare
+
