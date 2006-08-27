@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 27 Aug 2006 20:22:31 +0000
+From: dieter.jurzitza@t-online.de (Dieter Jurzitza)
+Date: Sun, 27 Aug 2006 21:09:57 +0000
 Subject: [lm-sensors] Question on driver maxilife.c - how to compile for
-Message-Id: <20060827222231.f356ec44.khali@linux-fr.org>
+Message-Id: <200608272309.57234.dieter.jurzitza@t-online.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200608271418.06601.dieter.jurzitza@t-online.de>
 In-Reply-To: <200608271418.06601.dieter.jurzitza@t-online.de>
@@ -10,28 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Guten Abend Dieter,
+Bonsoir, Jean, :-))
+I have a HP VISUALIZE WS. Ok, ok, somewhat outdated. sensors-detect says 
+"nothing found". However, the CPU-fan is controlled depending on the CPU - 
+load (or whatsoever). This WS has the front display that is addressed in the 
+documentation of the driver - that's about it.
+I will try to boot a 2.4-kernel and check whether it will allow to insert the 
+maxilife driver. If so, I can verify, after that I'll be back on the list.
+Take care,
+thanks alot
 
-> within the lm-sensors source tree there is a list of drivers that cannot be 
-> found in the kernel tree.
-> However, I think my HP-Workstation would need the "maxilife" driver to work. 
-> Could someone be so kind to tell me how to compile this as a module for 
-> linux-2.6?
-> The INSTALL - File  says "FOR 2.5/2.6 KERNELS, do not attempt to compile the 
-> modules in this package. Use the drivers ...". 
 
-The missing drivers have simply not be ported to Linux 2.6 yet, either
-because we didn't have the time, or because nobody asked. This includes
-the maxilife driver (nobody asked AFAIR).
+Dieter
 
-Don't attempt to use the drivers from the lm_sensors tree with a Linux
-2.6 kernel, it really won't work - too many things have changed between
-2.4 and 2.6 kernels.
-
-What makes you think you have a maxilife chip? This is a rare chip, we
-don't even detect it in sensors-detect, and the driver seems to be
-a bit... messy. I doubt this chip would be found in any recent system.
+Am Sonntag, 27. August 2006 22:22 schrieb Jean Delvare:
+*****
+> The missing drivers have simply not be ported to Linux 2.6 yet, either
+> because we didn't have the time, or because nobody asked. This includes
+> the maxilife driver (nobody asked AFAIR).
+*****
 
 -- 
-Jean Delvare
+-----------------------------------------------------------
+
+                               |
+                                \
+                 /\_/\           |
+                | ~x~ |/-----\   /
+                 \   /-       \_/
+  ^^__   _        /  _  ____   /
+ <??__ \- \_/     |  |/    |  |
+  ||  ||         _| _|    _| _|
+
+if you really want to see the pictures above - use some font
+with constant spacing like courier! :-)
+-----------------------------------------------------------
 
