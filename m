@@ -1,26 +1,53 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Thu, 31 Aug 2006 23:44:00 +0000
-Subject: [lm-sensors] [PATCH 1/2 RESEND 4] hwmon: new vt1211 driver
-Message-Id: <191fb4ca0608311644t25d61cc1ne31d5e19b0568b98@mail.gmail.com>
+From: g1ul10@libero.it (G1ul10)
+Date: Sun, 27 Aug 2006 14:06:12 +0000
+Subject: [lm-sensors] it8712 on shuttle ST20G5
+Message-Id: <20060827160612.9a23709d.g1ul10@libero.it>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a new driver for the VIA vt1211 Super-IO chip. It is a rewrite
-of the existing vt1211 driver (by Mark D. Studebaker and Lars Ekman)
-which has been around for a while but never made it into the main
-kernel tree.
+Hi all,
+I've recently installed lm_sensors on my ST20G5. sensors-detect seems
+to work properly
 
-It is implemented as a platform driver and therefore requires the
-latest CVS version of lm_sensors to function properly.
+#sensors-detect
+...
+Probing for `ITE IT8712F'
+  Trying address 0x0290... Success!
+    (confidence 8, driver `it87')
+...
+Probing for `ITE 8712F Super IO Sensors'
+  Success... found at address 0x0290
+...
 
-Signed-off-by: Juerg Haefliger <juergh at gmail.com>
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: hwmon-vt1211-new-driver.patch
-Type: application/octet-stream
-Size: 43054 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060831/9acf8842/attachment-0001.obj 
+but later I get wrong results from the sensors command. Using
+an empty config file I get
+
+#sensors -c /dev/null
+it8712-isa-0290
+Adapter: ISA adapter
+...
+fan1:     3515 RPM  (min =    0 RPM, div = 8)          
+fan2:        0 RPM  (min = 3013 RPM, div = 8)          
+fan3:        0 RPM  (min = 3013 RPM, div = 8)          
+M/B Temp:    +44 C  (low  =   +15 C, high =   +40 C)   sensor = thermistor   
+CPU Temp:    -55 C  (low  =   -83 C, high =    +7 C)   sensor = thermistor   
+Temp3:       -55 C  (low  =   +15 C, high =   +45 C)   sensor = thermistor   
+
+notice that using the default sensors.conf I get the same results.
+In the BIOS I typically have
+
+MB temp         45 C
+CPU temp        56 C
+System temp     43 C
+CPU fan speed   1432 RPM
+FAN 2 speed        0 RPM
+FAN 3 speed     3443 RPM
+
+Any suggestion?
+
+Thanks,
+	Giulio.
+
