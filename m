@@ -1,442 +1,430 @@
-From: jihostyle@gmail.com (Hoya)
-Date: Fri, 18 Aug 2006 05:29:57 +0000
-Subject: [lm-sensors] lm-sensors & IPMI problem
-Message-Id: <44e55064.027cda9b.4089.ffffd722@mx.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 28 Aug 2006 12:23:46 +0000
+Subject: [lm-sensors] [PATCH 04/14] it87: Add support for the IT8716F
+Message-Id: <20060828142346.6bc0fe8e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I am using an SGI 1100 U1 server with p3 at 866*2 and ServerWorks LE
-North&South Bridge. (CNB30LE & OSB4)
+Content-Disposition: inline; filename=hwmon-it87-it8716f-support.patch
 
-According to SGI's tech sheet, BMC is connected to the South Bridge SMB
-which provides IPMI functionality.
+it87: Add support for the IT8716F
 
+The IT8716F is a Super-I/O chip with integrated hardware monitoring
+functions. It is very similar to the IT8712F, so adding support to the
+it87 driver was pretty straightforward. The most significant change here
+is that the IT8716F has 16-bit fan speed counters, so the user no more
+needs to tweak the fan clock dividers to get the best readings.
+
+Userspace support is already in lm_sensors SVN (to be soon released
+as 2.10.1.)
+
+Thanks to Stian Oksavik, Olivier Nicolas, Prakash Punnoor and
+Juergen Kilb for testing the early versions of this patch.
+
+Thanks also to ITE for providing datasheets and answering my questions.
+
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ Documentation/hwmon/it87 |   40 +++++++---
+ drivers/hwmon/Kconfig    |    4 
+ drivers/hwmon/it87.c     |  178 ++++++++++++++++++++++++++++++++++++++++------
+ 3 files changed, 185 insertions(+), 37 deletions(-)
+
+--- linux-2.6.18-rc4.orig/Documentation/hwmon/it87	2006-08-27 22:32:01.000000000 +0200
++++ linux-2.6.18-rc4/Documentation/hwmon/it87	2006-08-27 22:47:56.000000000 +0200
+@@ -13,6 +13,11 @@
+                        from Super I/O config space (8 I/O ports)
+     Datasheet: Publicly available at the ITE website
+                http://www.ite.com.tw/
++  * IT8716F
++    Prefix: 'it8716'
++    Addresses scanned: from Super I/O config space (8 I/O ports)
++    Datasheet: Publicly available at the ITE website
++               http://www.ite.com.tw/product_info/file/pc/IT8716F_V0.3.ZIP
+   * SiS950   [clone of IT8705F]
+     Prefix: 'it87'
+     Addresses scanned: from Super I/O config space (8 I/O ports)
+@@ -43,26 +48,39 @@
+ Description
+ -----------
  
-
-I am using Ubuntu 6.06 (Dapper Drake) on kernel 2.6.17 with the
-openIPMI(v39) and ipmisensors patch.
-
-And I have installed lm-sensors 2.9.x deb package which was provided by
-ubuntu.
-
+-This driver implements support for the IT8705F, IT8712F and SiS950 chips.
+-
+-This driver also supports IT8712F, which adds SMBus access, and a VID
+-input, used to report the Vcore voltage of the Pentium processor.
+-The IT8712F additionally features VID inputs.
++This driver implements support for the IT8705F, IT8712F, IT8716F and
++SiS950 chips.
  
-
-Sensors keeps telling me it can't find any sensors and I have no idea why.
-(may be incorrect kernel patch or config?)
-
+ These chips are 'Super I/O chips', supporting floppy disks, infrared ports,
+ joysticks and other miscellaneous stuff. For hardware monitoring, they
+ include an 'environment controller' with 3 temperature sensors, 3 fan
+ rotation speed sensors, 8 voltage sensors, and associated alarms.
  
-
-My kernel patch list is as so.
-
-1.       OpenIPMI from http://openipmi.sourceforge.net
-<http://openipmi.sourceforge.net/> 
-
-A.        linux-i2c-2.6.17-v39.0.diff
-
-B.       linux-ipmibase-2.6.17-v39.0.diff
-
-C.       linux-ipmismb-2.6.17-v39.0.diff
-
-2.       IPMIsensors from http://bmcsensors-26.sourceforge.net
-<http://bmcsensors-26.sourceforge.net/> 
-
-A.        ipmisensors-20060805-0622.diff
-
++The IT8712F and IT8716F additionally feature VID inputs, used to report
++the Vcore voltage of the processor. The early IT8712F have 5 VID pins,
++the IT8716F and late IT8712F have 6. They are shared with other functions
++though, so the functionality may not be available on a given system.
++The driver dumbly assume it is there.
++
++The IT8716F and later IT8712F revisions have support for 2 additional
++fans. They are not yet supported by the driver.
++
++The IT8716F and late IT8712F and IT8705F also have optional 16-bit
++tachometer counters for fans 1 to 3. This is better (no more fan
++clock divider mess) but not compatible with the older chips and
++revisions. For now, the driver only uses the 16-bit mode on the
++IT8716F.
++
+ Temperatures are measured in degrees Celsius. An alarm is triggered once
+ when the Overtemperature Shutdown limit is crossed.
  
-
-The following is my lsmod readings
-
+ Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
+-triggered if the rotation speed has dropped below a programmable limit. Fan
+-readings can be divided by a programmable divider (1, 2, 4 or 8) to give the
+-readings more range or accuracy. Not all RPM values can accurately be
+-represented, so some rounding is done. With a divider of 2, the lowest
+-representable value is around 2600 RPM.
++triggered if the rotation speed has dropped below a programmable limit. When
++16-bit tachometer counters aren't used, fan readings can be divided by
++a programmable divider (1, 2, 4 or 8) to give the readings more range or
++accuracy. With a divider of 2, the lowest representable value is around
++2600 RPM. Not all RPM values can accurately be represented, so some rounding
++is done.
  
-
-root at sigma:/usr/src/patch# lsmod
-
-Module                  Size  Used by
-
-i2c_isa                 5120  0
-
-i2c_dev                 9248  0
-
-quota_v2                9856  2
-
-ipv6                  259168  21
-
-ipmisensors            18792  0
-
-ipmi_msghandler        35872  1 ipmisensors
-
-parport_pc             36048  0
-
-lp                     12000  0
-
-parport                36808  2 parport_pc,lp
-
-i2c_piix4               8912  0
-
-floppy                 60304  0
-
-i2c_core               27040  3 i2c_isa,i2c_dev,i2c_piix4
-
-sworks_agp              9600  0
-
-agpgart                32744  1 sworks_agp
-
-e100                   35044  0
-
-mii                     5888  1 e100
-
-psmouse                38696  0
-
-serio_raw               7140  0
-
-pcspkr                  3136  0
-
-evdev                   9984  0
-
-ext3                  137160  5
-
-jbd                    58228  1 ext3
-
-mbcache                 8900  1 ext3
-
-ide_generic             1408  0 [permanent]
-
-ohci_hcd               21508  0
-
-usbcore               128668  2 ohci_hcd
-
-ide_cd                 40256  0
-
-cdrom                  37456  1 ide_cd
-
-ide_disk               16736  8
-
-serverworks             8968  0 [permanent]
-
-generic                 4516  0 [permanent]
-
-thermal                13192  0
-
-processor              23176  1 thermal
-
-fan                     4708  0
-
-vga16fb                12744  0
-
-cfbcopyarea             3968  1 vga16fb
-
-vgastate                9632  1 vga16fb
-
-cfbimgblt               3072  1 vga16fb
-
-cfbfillrect             4320  1 vga16fb
-
+ Voltage sensors (also known as IN sensors) report their values in volts. An
+ alarm is triggered if the voltage has crossed a programmable minimum or
+@@ -71,7 +89,7 @@
+ inputs can measure voltages between 0 and 4.08 volts, with a resolution of
+ 0.016 volt. The battery voltage in8 does not have limit registers.
  
-
-It seems that the ipmisensors and ipmi_msghandler have successfully loaded.
-
+-The VID lines (IT8712F only) encode the core voltage value: the voltage
++The VID lines (IT8712F/IT8716F) encode the core voltage value: the voltage
+ level your processor should work with. This is hardcoded by the mainboard
+ and/or processor itself. It is a value in volts.
  
-
-And the following is the output of sensors-detect.
-
+--- linux-2.6.18-rc4.orig/drivers/hwmon/it87.c	2006-08-27 22:32:01.000000000 +0200
++++ linux-2.6.18-rc4/drivers/hwmon/it87.c	2006-08-27 22:42:16.000000000 +0200
+@@ -4,6 +4,7 @@
  
-
-root at sigma:/usr/src/patch# /usr/local/sbin/sensors-detect
-
+     Supports: IT8705F  Super I/O chip w/LPC interface
+               IT8712F  Super I/O chip w/LPC interface & SMBus
++              IT8716F  Super I/O chip w/LPC interface
+               Sis950   A clone of the IT8705F
  
-
-This program will help you determine which I2C/SMBus modules you need to
-
-load to use lm_sensors most effectively. You need to have i2c and
-
-lm_sensors installed before running this program.
-
-Also, you need to be `root', or at least have access to the /dev/i2c-*
-
-files, for most things.
-
-If you have patched your kernel and have some drivers built in, you can
-
-safely answer NO if asked to load some modules. In this case, things may
-
-seem a bit confusing, but they will still work.
-
+     Copyright (C) 2001 Chris Gauthron <chrisg at 0-in.com> 
+@@ -50,7 +51,7 @@
+ static unsigned short isa_address;
  
-
-It is generally safe and recommended to accept the default answers to all
-
-questions, unless you know what you're doing.
-
+ /* Insmod parameters */
+-I2C_CLIENT_INSMOD_2(it87, it8712);
++I2C_CLIENT_INSMOD_3(it87, it8712, it8716);
  
-
- We can start with probing for (PCI) I2C or SMBus adapters.
-
- You do not need any special privileges for this.
-
- Do you want to probe now? (YES/no):
-
-Probing for PCI bus adapters...
-
-Use driver `i2c-piix4' for device 00:0f.0: ServerWorks OSB4 South Bridge
-
-Probe succesfully concluded.
-
+ #define	REG	0x2e	/* The register to read/write */
+ #define	DEV	0x07	/* Register: Logical device select */
+@@ -101,6 +102,7 @@
  
-
-We will now try to load each adapter module in turn.
-
-Module `i2c-piix4' already loaded.
-
-If you have undetectable or unsupported adapters, you can have them
-
-scanned by manually loading the modules before running this script.
-
+ #define IT8712F_DEVID 0x8712
+ #define IT8705F_DEVID 0x8705
++#define IT8716F_DEVID 0x8716
+ #define IT87_ACT_REG  0x30
+ #define IT87_BASE_REG 0x60
  
-
- To continue, we need module `i2c-dev' to be loaded.
-
- If it is built-in into your kernel, you can safely skip this.
-
-i2c-dev is already loaded.
-
+@@ -132,12 +134,18 @@
+ #define IT87_REG_ALARM3        0x03
  
-
- We are now going to do the adapter probings. Some adapters may hang halfway
-
- through; we can't really help that. Also, some chips will be double
-detected;
-
- we choose the one with the highest confidence value in that case.
-
- If you found that the adapter hung after probing a certain address, you can
-
- specify that address to remain unprobed. That often
-
- includes address 0x69 (clock chip).
-
+ #define IT87_REG_VID           0x0a
++/* Warning: register 0x0b is used for something completely different in
++   new chips/revisions. I suspect only 16-bit tachometer mode will work
++   for these. */
+ #define IT87_REG_FAN_DIV       0x0b
++#define IT87_REG_FAN_16BIT     0x0c
  
-
-Next adapter: SMBus PIIX4 adapter at 0e80 (Algorithm unavailable)
-
-Do you want to scan it? (YES/no/selectively):
-
-Client found at address 0x60
-
+ /* Monitors: 9 voltage (0 to 7, battery), 3 temp (1 to 3), 3 fan (1 to 3) */
  
-
-Some chips are also accessible through the ISA bus. ISA probes are
-
-typically a bit more dangerous, as we have to write to I/O ports to do
-
-this. This is usually safe though.
-
+ #define IT87_REG_FAN(nr)       (0x0d + (nr))
+ #define IT87_REG_FAN_MIN(nr)   (0x10 + (nr))
++#define IT87_REG_FANX(nr)      (0x18 + (nr))
++#define IT87_REG_FANX_MIN(nr)  (0x1b + (nr))
+ #define IT87_REG_FAN_MAIN_CTRL 0x13
+ #define IT87_REG_FAN_CTL       0x14
+ #define IT87_REG_PWM(nr)       (0x15 + (nr))
+@@ -169,7 +177,16 @@
+ 			     254);
+ }
  
-
-Do you want to scan the ISA bus? (YES/no):
-
-Probing for `National Semiconductor LM78'
-
-  Trying address 0x0290... Failed!
-
-Probing for `National Semiconductor LM78-J'
-
-  Trying address 0x0290... Failed!
-
-Probing for `National Semiconductor LM79'
-
-  Trying address 0x0290... Failed!
-
-Probing for `Winbond W83781D'
-
-  Trying address 0x0290... Failed!
-
-Probing for `Winbond W83782D'
-
-  Trying address 0x0290... Failed!
-
-Probing for `Winbond W83627HF'
-
-  Trying address 0x0290... Failed!
-
-Probing for `Winbond W83697HF'
-
-  Trying address 0x0290... Failed!
-
-Probing for `Silicon Integrated Systems SIS5595'
-
-  Trying general detect... Failed!
-
-Probing for `VIA Technologies VT82C686 Integrated Sensors'
-
-  Trying general detect... Failed!
-
-Probing for `VIA Technologies VT8231 Integrated Sensors'
-
-  Trying general detect... Failed!
-
-Probing for `ITE IT8705F / IT8712F / SiS 950'
-
-  Trying address 0x0290... Failed!
-
-Probing for `IPMI BMC KCS'
-
-  Trying address 0x0ca0... Failed!
-
-Probing for `IPMI BMC SMIC'
-
-  Trying address 0x0ca8... Success!
-
-    (confidence 4, driver `bmcsensors')
-
++static inline u16 FAN16_TO_REG(long rpm)
++{
++	if (rpm = 0)
++		return 0xffff;
++	return SENSORS_LIMIT((1350000 + rpm) / (rpm * 2), 1, 0xfffe);
++}
++
+ #define FAN_FROM_REG(val,div) ((val)=0?-1:(val)=255?0:1350000/((val)*(div)))
++/* The divider is fixed to 2 in 16-bit mode */
++#define FAN16_FROM_REG(val) ((val)=0?-1:(val)=0xffff?0:1350000/((val)*2))
  
-
-Some Super I/O chips may also contain sensors. Super I/O probes are
-
-typically a bit more dangerous, as we have to write to I/O ports to do
-
-this. This is usually safe though.
-
+ #define TEMP_TO_REG(val) (SENSORS_LIMIT(((val)<0?(((val)-500)/1000):\
+ 					((val)+500)/1000),-128,127))
+@@ -205,8 +222,8 @@
+ 	u8 in[9];		/* Register value */
+ 	u8 in_max[9];		/* Register value */
+ 	u8 in_min[9];		/* Register value */
+-	u8 fan[3];		/* Register value */
+-	u8 fan_min[3];		/* Register value */
++	u16 fan[3];		/* Register values, possibly combined */
++	u16 fan_min[3];		/* Register values, possibly combined */
+ 	u8 temp[3];		/* Register value */
+ 	u8 temp_high[3];	/* Register value */
+ 	u8 temp_low[3];		/* Register value */
+@@ -656,6 +673,59 @@
+ show_pwm_offset(2);
+ show_pwm_offset(3);
  
-
-Do you want to scan for Super I/O sensors? (YES/no):
-
-Probing for `ITE 8702F Super IO Sensors'
-
-  Failed! (skipping family)
-
-Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
-
-  Failed! (skipping family)
-
-Probing for `SMSC 47B27x Super IO Fan Sensors'
-
-  Failed! (skipping family)
-
-Probing for `VT1211 Super IO Sensors'
-
-  Failed! (skipping family)
-
++/* A different set of callbacks for 16-bit fans */
++static ssize_t show_fan16(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	struct it87_data *data = it87_update_device(dev);
++	return sprintf(buf, "%d\n", FAN16_FROM_REG(data->fan[nr]));
++}
++
++static ssize_t show_fan16_min(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	struct it87_data *data = it87_update_device(dev);
++	return sprintf(buf, "%d\n", FAN16_FROM_REG(data->fan_min[nr]));
++}
++
++static ssize_t set_fan16_min(struct device *dev, struct device_attribute *attr,
++		const char *buf, size_t count)
++{
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	struct i2c_client *client = to_i2c_client(dev);
++	struct it87_data *data = i2c_get_clientdata(client);
++	int val = simple_strtol(buf, NULL, 10);
++
++	mutex_lock(&data->update_lock);
++	data->fan_min[nr] = FAN16_TO_REG(val);
++	it87_write_value(client, IT87_REG_FAN_MIN(nr),
++			 data->fan_min[nr] & 0xff);
++	it87_write_value(client, IT87_REG_FANX_MIN(nr),
++			 data->fan_min[nr] >> 8);
++	mutex_unlock(&data->update_lock);
++	return count;
++}
++
++/* We want to use the same sysfs file names as 8-bit fans, but we need
++   different variable names, so we have to use SENSOR_ATTR instead of
++   SENSOR_DEVICE_ATTR. */
++#define show_fan16_offset(offset) \
++static struct sensor_device_attribute sensor_dev_attr_fan##offset##_input16 \
++	= SENSOR_ATTR(fan##offset##_input, S_IRUGO,		\
++		show_fan16, NULL, offset - 1);			\
++static struct sensor_device_attribute sensor_dev_attr_fan##offset##_min16 \
++	= SENSOR_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR,	\
++		show_fan16_min, set_fan16_min, offset - 1)
++
++show_fan16_offset(1);
++show_fan16_offset(2);
++show_fan16_offset(3);
++
+ /* Alarms */
+ static ssize_t show_alarms(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+@@ -720,6 +790,7 @@
+ 	superio_enter();
+ 	chip_type = superio_inw(DEVID);
+ 	if (chip_type != IT8712F_DEVID
++	 && chip_type != IT8716F_DEVID
+ 	 && chip_type != IT8705F_DEVID)
+ 	 	goto exit;
  
-
-Do you want to scan for secondary Super I/O sensors? (YES/no):
-
-Probing for `ITE 8702F Super IO Sensors'
-
-  Failed! (skipping family)
-
-Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
-
-  Failed! (skipping family)
-
-Probing for `SMSC 47B27x Super IO Fan Sensors'
-
-  Failed! (skipping family)
-
-Probing for `VT1211 Super IO Sensors'
-
-  Failed! (skipping family)
-
+@@ -799,8 +870,16 @@
+ 		i = it87_read_value(new_client, IT87_REG_CHIPID);
+ 		if (i = 0x90) {
+ 			kind = it87;
+-			if ((is_isa) && (chip_type = IT8712F_DEVID))
+-				kind = it8712;
++			if (is_isa) {
++				switch (chip_type) {
++				case IT8712F_DEVID:
++					kind = it8712;
++					break;
++				case IT8716F_DEVID:
++					kind = it8716;
++					break;
++				}
++			}
+ 		}
+ 		else {
+ 			if (kind = 0)
+@@ -817,6 +896,8 @@
+ 		name = "it87";
+ 	} else if (kind = it8712) {
+ 		name = "it8712";
++	} else if (kind = it8716) {
++		name = "it8716";
+ 	}
  
-
- Now follows a summary of the probes I have just done.
-
- Just press ENTER to continue:
-
+ 	/* Fill in the remaining client fields and put it into the global list */
+@@ -884,15 +965,41 @@
+ 	device_create_file(&new_client->dev, &sensor_dev_attr_temp1_type.dev_attr);
+ 	device_create_file(&new_client->dev, &sensor_dev_attr_temp2_type.dev_attr);
+ 	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_type.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_fan1_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_fan2_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_fan3_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_fan1_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_fan2_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_fan3_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_fan1_div.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_fan2_div.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_fan3_div.dev_attr);
++
++	if (data->type = it8716) { /* 16-bit tachometers */
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan1_input16.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan2_input16.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan3_input16.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan1_min16.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan2_min16.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan3_min16.dev_attr);
++	} else {
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan1_input.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan2_input.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan3_input.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan1_min.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan2_min.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan3_min.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan1_div.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan2_div.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_fan3_div.dev_attr);
++	}
++
+ 	device_create_file(&new_client->dev, &dev_attr_alarms);
+ 	if (enable_pwm_interface) {
+ 		device_create_file(&new_client->dev, &sensor_dev_attr_pwm1_enable.dev_attr);
+@@ -903,7 +1010,7 @@
+ 		device_create_file(&new_client->dev, &sensor_dev_attr_pwm3.dev_attr);
+ 	}
  
-
-Driver `bmcsensors' (should be inserted):
-
-  Detects correctly:
-
-  * ISA bus address 0x0ca8 (Busdriver `i2c-isa')
-
-    Chip `IPMI BMC SMIC' (confidence: 4)
-
+-	if (data->type = it8712) {
++	if (data->type = it8712 || data->type = it8716) {
+ 		data->vrm = vid_which_vrm();
+ 		device_create_file_vrm(new_client);
+ 		device_create_file_vid(new_client);
+@@ -1068,6 +1175,17 @@
+ 		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
+ 	}
  
-
++	/* Set tachometers to 16-bit mode if needed */
++	if (data->type = it8716) {
++		tmp = it87_read_value(client, IT87_REG_FAN_16BIT);
++		if ((tmp & 0x07) != 0x07) {
++			dev_dbg(&client->dev,
++				"Setting fan1-3 to 16-bit mode\n");
++			it87_write_value(client, IT87_REG_FAN_16BIT,
++					 tmp | 0x07);
++		}
++	}
++
+ 	/* Set current fan mode registers and the default settings for the
+ 	 * other mode registers */
+ 	for (i = 0; i < 3; i++) {
+@@ -1125,10 +1243,17 @@
+ 		data->in_max[8] = 255;
  
-
- I will now generate the commands needed to load the I2C modules.
-
- Sometimes, a chip is available both through the ISA bus and an I2C bus.
-
- ISA bus access is faster, but you need to load an additional driver module
-
- for it. If you have the choice, do you want to use the ISA bus or the
-
- I2C/SMBus (ISA/smbus)?
-
+ 		for (i = 0; i < 3; i++) {
+-			data->fan[i] -			    it87_read_value(client, IT87_REG_FAN(i));
+ 			data->fan_min[i]  			    it87_read_value(client, IT87_REG_FAN_MIN(i));
++			data->fan[i] = it87_read_value(client,
++				       IT87_REG_FAN(i));
++			/* Add high byte if in 16-bit mode */
++			if (data->type = it8716) {
++				data->fan[i] |= it87_read_value(client,
++						IT87_REG_FANX(i)) << 8;
++				data->fan_min[i] |= it87_read_value(client,
++						IT87_REG_FANX_MIN(i)) << 8;
++			}
+ 		}
+ 		for (i = 0; i < 3; i++) {
+ 			data->temp[i] @@ -1139,10 +1264,13 @@
+ 			    it87_read_value(client, IT87_REG_TEMP_LOW(i));
+ 		}
  
-
-To make the sensors modules behave correctly, add these lines to
-
-/etc/modules.conf:
-
+-		i = it87_read_value(client, IT87_REG_FAN_DIV);
+-		data->fan_div[0] = i & 0x07;
+-		data->fan_div[1] = (i >> 3) & 0x07;
+-		data->fan_div[2] = (i & 0x40) ? 3 : 1;
++		/* Newer chips don't have clock dividers */
++		if (data->type != it8716) {
++			i = it87_read_value(client, IT87_REG_FAN_DIV);
++			data->fan_div[0] = i & 0x07;
++			data->fan_div[1] = (i >> 3) & 0x07;
++			data->fan_div[2] = (i & 0x40) ? 3 : 1;
++		}
  
-
-#----cut here----
-
-# I2C module options
-
-alias char-major-89 i2c-dev
-
-#----cut here----
-
+ 		data->alarms  			it87_read_value(client, IT87_REG_ALARM1) |
+@@ -1152,9 +1280,11 @@
  
-
-To load everything that is needed, add this to some /etc/rc* file:
-
+ 		data->sensor = it87_read_value(client, IT87_REG_TEMP_ENABLE);
+ 		/* The 8705 does not have VID capability */
+-		if (data->type = it8712) {
++		if (data->type = it8712 || data->type = it8716) {
+ 			data->vid = it87_read_value(client, IT87_REG_VID);
+-			data->vid &= 0x1f;
++			/* The older IT8712F revisions had only 5 VID pins,
++			   but we assume it is always safe to read 6 bits. */
++			data->vid &= 0x3f;
+ 		}
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
+@@ -1193,7 +1323,7 @@
  
-
-#----cut here----
-
-# I2C adapter drivers
-
-modprobe i2c-isa
-
-# I2C chip drivers
-
-modprobe bmcsensors
-
-# sleep 2 # optional
-
-/usr/local/bin/sensors -s # recommended
-
-#----cut here----
-
  
-
-WARNING! If you have some things built into your kernel, the list above
-
-will contain too many modules. Skip the appropriate ones! You really should
-
-try these commands right now to make sure everything is working properly.
-
-Monitoring programs won't work until it's done.
-
+ MODULE_AUTHOR("Chris Gauthron <chrisg at 0-in.com>");
+-MODULE_DESCRIPTION("IT8705F, IT8712F, Sis950 driver");
++MODULE_DESCRIPTION("IT8705F/8712F/8716F, SiS950 driver");
+ module_param(update_vbat, bool, 0);
+ MODULE_PARM_DESC(update_vbat, "Update vbat if set else return powerup value");
+ module_param(fix_pwm_polarity, bool, 0);
+--- linux-2.6.18-rc4.orig/drivers/hwmon/Kconfig	2006-08-27 22:32:01.000000000 +0200
++++ linux-2.6.18-rc4/drivers/hwmon/Kconfig	2006-08-27 22:42:16.000000000 +0200
+@@ -186,8 +186,8 @@
+ 	select I2C_ISA
+ 	select HWMON_VID
+ 	help
+-	  If you say yes here you get support for ITE IT87xx sensor chips
+-	  and clones: SiS960.
++	  If you say yes here you get support for ITE IT8705F, IT8712F and
++	  IT8716F sensor chips, and the SiS960 clone.
  
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called it87.
 
-Do you want to generate /etc/sysconfig/lm_sensors? (yes/NO):
+-- 
+Jean Delvare
 
- 
-
-I'm not sure but it seems lm-sensors is looking for modprobe bmcsensors
-which doesn't exist on my system. (I have ipmisensors instead)
-
- 
-
-There are no errors in dmesg.
-
- 
-
-Any comments on this issue would be greatly appreciated.
-
- 
-
-Thanks. 
-
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060818/5c71a217/attachment-0001.html 
