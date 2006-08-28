@@ -1,53 +1,48 @@
-From: g1ul10@libero.it (G1ul10)
-Date: Sun, 27 Aug 2006 14:06:12 +0000
-Subject: [lm-sensors] it8712 on shuttle ST20G5
-Message-Id: <20060827160612.9a23709d.g1ul10@libero.it>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 28 Aug 2006 12:21:42 +0000
+Subject: [lm-sensors] [PATCH 02/14] hdaps: Handle errors from
+Message-Id: <20060828142142.d4dcad2c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
-I've recently installed lm_sensors on my ST20G5. sensors-detect seems
-to work properly
+From: Dmitry Torokhov <dtor at insightbb.com>
+Content-Disposition: inline; filename=hwmon-hdaps-handle-errors-from-input-register-device.patch
 
-#sensors-detect
-...
-Probing for `ITE IT8712F'
-  Trying address 0x0290... Success!
-    (confidence 8, driver `it87')
-...
-Probing for `ITE 8712F Super IO Sensors'
-  Success... found at address 0x0290
-...
+HDAPS: handle errors from input_register_device()
 
-but later I get wrong results from the sensors command. Using
-an empty config file I get
+Signed-off-by: Dmitry Torokhov <dtor at mail.ru>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
 
-#sensors -c /dev/null
-it8712-isa-0290
-Adapter: ISA adapter
-...
-fan1:     3515 RPM  (min =    0 RPM, div = 8)          
-fan2:        0 RPM  (min = 3013 RPM, div = 8)          
-fan3:        0 RPM  (min = 3013 RPM, div = 8)          
-M/B Temp:    +44 C  (low  =   +15 C, high =   +40 C)   sensor = thermistor   
-CPU Temp:    -55 C  (low  =   -83 C, high =    +7 C)   sensor = thermistor   
-Temp3:       -55 C  (low  =   +15 C, high =   +45 C)   sensor = thermistor   
+ drivers/hwmon/hdaps.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-notice that using the default sensors.conf I get the same results.
-In the BIOS I typically have
+--- linux-2.6.18-rc4.orig/drivers/hwmon/hdaps.c	2006-08-27 22:32:01.000000000 +0200
++++ linux-2.6.18-rc4/drivers/hwmon/hdaps.c	2006-08-27 22:38:41.000000000 +0200
+@@ -587,7 +587,9 @@
+ 	input_set_abs_params(hdaps_idev, ABS_Y,
+ 			-256, 256, HDAPS_INPUT_FUZZ, HDAPS_INPUT_FLAT);
+ 
+-	input_register_device(hdaps_idev);
++	ret = input_register_device(hdaps_idev);
++	if (ret)
++		goto out_idev;
+ 
+ 	/* start up our timer for the input device */
+ 	init_timer(&hdaps_timer);
+@@ -598,6 +600,8 @@
+ 	printk(KERN_INFO "hdaps: driver successfully loaded.\n");
+ 	return 0;
+ 
++out_idev:
++	input_free_device(hdaps_idev);
+ out_group:
+ 	sysfs_remove_group(&pdev->dev.kobj, &hdaps_attribute_group);
+ out_device:
 
-MB temp         45 C
-CPU temp        56 C
-System temp     43 C
-CPU fan speed   1432 RPM
-FAN 2 speed        0 RPM
-FAN 3 speed     3443 RPM
-
-Any suggestion?
-
-Thanks,
-	Giulio.
+-- 
+Jean Delvare
 
