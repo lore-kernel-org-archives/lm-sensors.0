@@ -1,50 +1,64 @@
-From: s.cormier@gmx.net (Stephen Cormier)
-Date: Fri, 25 Aug 2006 18:34:21 +0000
-Subject: [lm-sensors] Gkrellm support was Re: Asus M2NPV-VM and lm-sensors
-Message-Id: <200608251534.38426.s.cormier@gmx.net>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 28 Aug 2006 12:35:46 +0000
+Subject: [lm-sensors] [PATCH 08/14] it87: Cleanup set_fan_div
+Message-Id: <20060828143546.9d439cf8.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Friday 25 August 2006 07:41, Prakash Punnoor wrote:
-> Hi,
->
-> Yes, I foundit in the mailing list archives. Works nice, unfortunately
-> gkrellm doesn't support it yet.
->
+Content-Disposition: inline; filename=3Dhwmon-it87-set-fan-div.patch
 
-Gkrellm will support the k8temp if you patch libsensors then build and install 
-the lm-sensors package. I got the patch in the file amd_digital_temp.tar.gz 
-which I believe was posted on this list by the author if you cannot find it a 
-quick Google on the file name comes up with http://assembler.cz/download/ as 
-the location to get it which contains the same files as the tarball I have 
-here. Then you need a patch to Gkrellm itself for the hwmon looks like I got 
-that one when I applied the abituguru patch to libsensors as I only find this 
-(1) when searching on the patch name with Hans's name in there. I have 
-attached this patch if you want to try it as it is contained with a few 
-others. BTW both drivers have been working great in the time I have been 
-using them many thanks to their respective authors and everyone else doing 
-all the hard work so we can have decent support for our hardware.
+it87: Cleanup set_fan_div
 
-(1)http://www.redhat.com/archives/fedora-extras-commits/2006-July/msg01559.html
+We only change one fan clock divider at a time, so there is only one
+fan min which needs to be saved and restored.
 
-Stephen
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ drivers/hwmon/it87.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
--- 
-GPG Pubic Key: http://users.eastlink.ca/~stephencormier/publickey.asc
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: gkrellm-2.2.9-hwmon.patch
-Type: text/x-diff
-Size: 1444 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060825/2fe6e47c/attachment.bin 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060825/2fe6e47c/attachment-0001.bin 
+--- linux-2.6.18-rc4.orig/drivers/hwmon/it87.c	2006-08-27 22:59:10.00000000=
+0 +0200
++++ linux-2.6.18-rc4/drivers/hwmon/it87.c	2006-08-27 23:00:44.000000000 +02=
+00
+@@ -563,14 +563,14 @@
+ 	struct i2c_client *client =3D to_i2c_client(dev);
+ 	struct it87_data *data =3D i2c_get_clientdata(client);
+ 	unsigned long val =3D simple_strtoul(buf, NULL, 10);
+-	int i, min[3];
++	int min;
+ 	u8 old;
+=20
+ 	mutex_lock(&data->update_lock);
+ 	old =3D it87_read_value(client, IT87_REG_FAN_DIV);
+=20
+-	for (i =3D 0; i < 3; i++)
+-		min[i] =3D FAN_FROM_REG(data->fan_min[i], DIV_FROM_REG(data->fan_div[i])=
+);
++	/* Save fan min limit */
++	min =3D FAN_FROM_REG(data->fan_min[nr], DIV_FROM_REG(data->fan_div[nr]));
+=20
+ 	switch (nr) {
+ 	case 0:
+@@ -590,10 +590,10 @@
+ 		val |=3D 0x1 << 6;
+ 	it87_write_value(client, IT87_REG_FAN_DIV, val);
+=20
+-	for (i =3D 0; i < 3; i++) {
+-		data->fan_min[i]=FAN_TO_REG(min[i], DIV_FROM_REG(data->fan_div[i]));
+-		it87_write_value(client, IT87_REG_FAN_MIN(i), data->fan_min[i]);
+-	}
++	/* Restore fan min limit */
++	data->fan_min[nr] =3D FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
++	it87_write_value(client, IT87_REG_FAN_MIN(nr), data->fan_min[nr]);
++
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+
+--=20
+Jean Delvare
+
