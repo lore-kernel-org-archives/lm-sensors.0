@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 24 Aug 2006 21:15:57 +0000
+Date: Mon, 28 Aug 2006 09:39:08 +0000
 Subject: [lm-sensors] PATCH: hwmon-abituguru-suspend-resume.patch
-Message-Id: <20060824231557.70a24654.khali@linux-fr.org>
+Message-Id: <20060828113908.c3c00881.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44DB2470.3050507@hhs.nl>
 In-Reply-To: <44DB2470.3050507@hhs.nl>
@@ -10,43 +10,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hans,
+Hi Hans,
 
-> >> This patch contains rudimentary suspend / resume support for the uguru,
-> >> this protects the uguru and the driver against suspend / resume cycles,
-> >> so there is no reason to unload the driver in your suspend / resume scripts.
-> >>
-> >> I'm not sure if this is needed, does the sysfs code itself guarantee
-> >> that no sysfs attr read/write calls are in progress before starting a
-> >> resume, if it does then this patch most likely isn't needed.
-> > 
-> > Good question, I really don't know. If sysfs doesn't guarantee it, then
-> > we should do something similar for all hardware monitoring drivers,
-> > it's simple enough.
-> > 
-> > Maybe you can raise the question on LKML, or maybe linux-pm-devel
-> > (doesn't seem too active though) or otherwise ask anyone with more
-> > power management knowledge than I do?
-> > 
+> This patch contains rudimentary suspend / resume support for the uguru,
+> this protects the uguru and the driver against suspend / resume cycles,
+> so there is no reason to unload the driver in your suspend / resume scripts.
 > 
-> I'm not subscribed to LKML (too much mail from other lists already), 
-> maybe someone who is can forward this for me?
+> I'm not sure if this is needed, does the sysfs code itself guarantee
+> that no sysfs attr read/write calls are in progress before starting a
+> resume, if it does then this patch most likely isn't needed. Except for
+> protecting against this, it also checks the uguru is still in ready
+> status after a resume, but that seems to be unnescesarry (as it seems
+> that the uguru always is still ready after the resume).
 
-I'm not subscribed either, for the same reason. But you don't need to
-be subscribed to post.
+I've noticed that most drivers take care to exclude the suspend/resume
+functions when CONFIG_PM is disabled. I agree it shouldn't matter much
+for the abituguru driver, as ACPI implies CONFIG_PM and I don't think
+anyone would run these boards with ACPI support. But in an attempt to
+make things as good as possible (in case others copy that code for
+other hwmon driver), what about stacking the following patch on top of
+yours?
 
-> My guess is that this protection is actually needed as in the end the 
-> sysfs reads / writes are just ordinary reads / writes and I don't think 
-> that the kernel guarantees all reads/writes to have completed when 
-> suspending, because that would be a real pain to guarantee for things 
-> like NFS, disks, etc.
 
-Well, something has to take care of it anyway. If not sysfs, each
-individual driver will have to do it, so it would make as much sense if
-sysfs actually did it.
+Only include suspend/resume functions when CONFIG_PM is set.
 
-Anyway, I'll apply your patch, we'll see if someone complains ;)
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ drivers/hwmon/abituguru.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
+--- linux-2.6.18-rc5.orig/drivers/hwmon/abituguru.c	2006-08-28 11:09:39.000000000 +0200
++++ linux-2.6.18-rc5/drivers/hwmon/abituguru.c	2006-08-28 11:31:26.000000000 +0200
+@@ -1354,6 +1354,7 @@
+ 		return NULL;
+ }
+ 
++#ifdef CONFIG_PM
+ static int abituguru_suspend(struct platform_device *pdev, pm_message_t state)
+ {
+ 	struct abituguru_data *data = platform_get_drvdata(pdev);
+@@ -1372,6 +1373,10 @@
+ 	mutex_unlock(&data->update_lock);
+ 	return 0;
+ }
++#else
++#define abituguru_suspend	NULL
++#define abituguru_resume	NULL
++#endif /* CONFIG_PM */
+ 
+ static struct platform_driver abituguru_driver = {
+ 	.driver = {
+
+Thanks,
 -- 
 Jean Delvare
 
