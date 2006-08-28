@@ -1,65 +1,61 @@
-From: prakash@punnoor.de (Prakash Punnoor)
-Date: Sun, 27 Aug 2006 14:31:05 +0000
-Subject: [lm-sensors] Asus M2NPV-VM and lm-sensors not working
-Message-Id: <200608271631.05532.prakash@punnoor.de>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 28 Aug 2006 12:00:20 +0000
+Subject: [lm-sensors] [PATCH 00/14] hwmon updates for 2.6.19
+Message-Id: <20060828140020.61c81eb0.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200608241001.14052.prakash@punnoor.de>
-In-Reply-To: <200608241001.14052.prakash@punnoor.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Am Sonntag 27 August 2006 14:47 schrieb Jean Delvare:
-> Hi Prakash,
->
-> > > Well, the question is, do the voltage values reported by "sensors"
-> > > increase again if you stop underpowering your system? If they do,
-> > > obviously that's your business and I couldn't care less ;)
-> >
-> > No they dont. eg:
-> > VCore:     +1.23 V  (min =  +0.00 V, max =  +4.08 V)
-> >
-> > Bios shows 1.35V, so clearly the voltages are off.
->
-> We now have evidences that the BIOS adds arbitrary constants to the
-> measured voltages (150 mV for Vcore.) This explains the differences.
-> What we don't know is, why the BIOS does this. At any rate the driver
-> is correct and doesn't need to be fixed. You can add offsets in
-> sensors.conf to match the BIOS readings if you want.
+Hi Greg,
 
-Yes, I did it now:
-    compute in0  @+0.15, @-0.15
-    compute in1  @+0.1, @-0.1
-    compute in3  ((6.8/10)+1)*@+0.2 , (@-0.2)/((6.8/10)+1)
-    compute in4  ((30/10)+1)*@+0.4  , (@-0.4)/((30/10)+1)
+Here comes a 14-piece hwmon update patchset. There is a new driver for
+the thermal sensors embedded in AMD K8 CPUs, many fixes and
+improvements to the it87 driver, including support for the IT8716F and
+IT8718F, and a few other things. All these patches should go to -mm for
+now, and to 2.6.19 later.
 
-Now the values match BIOS values. The only problem is I needed to adjust 
-gkrellm by hand, as well...but at least now everything looks reasonable. :-)
+Here's the summary:
 
-> > > I generated a new version of my it87 patch, which should report fan
-> > > speeds properly:
-> >
-> > Yes, looks better now. Maybe you want to lower the fan limits, as well?
-> >
-> > fan1:      830 RPM  (min = 3245 RPM)                   ALARM
-> > fan2:        0 RPM  (min = 3245 RPM)                   ALARM
-> > fan3:      782 RPM  (min =    0 RPM)
->
-> Aha, maybe _you_ want to lower the fan limits ;) Adjust the values in
-> sensors.conf and run "sensors -s" to apply the changes.
+Alexey Dobriyan:
+ o atxp1: Signed/unsigned char bug fix
 
-Ok, I did it now. :-)
+Dmitry Torokhov:
+ o hdaps: Handle errors from input_register_device
 
-Thanks again,
+Jean Delvare:
+ o smsc47m1: dev_warn fix
+ o it87: Add support for the IT8716F
+ o it87: No sysfs files for disabled fans
+ o it87: Prevent overflow on fan clock divider write
+ o it87: in8 has no limit registers
+ o it87: Cleanup set_fan_div
+ o it87: Add support for the IT8718F
+ o it87: Overwrite broken default limits
+ o it87: Copyright update
+ o k8temp: Enable automatic loading
+
+Hans de Goede:
+ o abituguru: Add suspend/resume support
+
+Rudolf Marek:
+ o hwmon: New driver k8temp
+
+Statistics:
+
+ Documentation/hwmon/it87  |   61 +++++++--
+ drivers/hwmon/Kconfig     |   14 ++
+ drivers/hwmon/Makefile    |    1 +
+ drivers/hwmon/abituguru.c |   30 ++++-
+ drivers/hwmon/atxp1.c     |    3 -
+ drivers/hwmon/hdaps.c     |    6 +
+ drivers/hwmon/it87.c      |  299 +++++++++++++++++++++++++++++++++++++--------
+ drivers/hwmon/k8temp.c    |  294 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/hwmon/smsc47m1.c  |    3 +
+ include/linux/pci_ids.h   |    1 +
+ 10 files changed, 637 insertions(+), 75 deletions(-)
+
 -- 
-(?=                 =?)
-//\ Prakash Punnoor /\\
-V_/                 \_V
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060827/dae1fb2b/attachment.bin 
+Jean Delvare
+
