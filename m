@@ -1,35 +1,45 @@
-From: michaelnel@comcast.net (Michael Nelson)
-Date: Sat, 26 Aug 2006 22:22:19 +0000
-Subject: [lm-sensors] Asus P5B Deluxe WiFi AP Sensors
-Message-Id: <20060826222219.GA19743@seahunt.dyndns.org>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 28 Aug 2006 11:46:58 +0000
+Subject: [lm-sensors] [RFC] Dropping rivatv from sensors-detect
+Message-Id: <20060828134658.c4d0ae3c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060822145643.GA5632@seahunt.dyndns.org>
-In-Reply-To: <20060822145643.GA5632@seahunt.dyndns.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Aug 26, 2006 at 11:21:32PM +0200, Jean Delvare wrote:
+Hi all,
 
-> >     Chip `Winbond W83627DHG Super IO Sensors' (confidence: 9)
-> 
-> Looks correct to me, this one is your hardware monitoring chip.
+Is there any objection to me dropping rivatv detection from
+sensors-detect? My reasons are:
 
-Cool!  Knowing what chip is on there makes me feel better, even if I can't
-use it in Linux yet. 
+* rivatv is still not in mainline after 3 years. I wonder if it will
+ever be. 
 
-> The W83627DHG is a bit different from the W83627EHF/EHG which is
-> supported by the w83627ehf driver. We need to add support for your
-> chip, so it's no surprise that it doesn't work yet.
+* rivatv is only one of the several drivers which can provide I2C/SMBus
+access to nVidia adapters. nvidiafb and rivafb do it as well (although
+I did not check if access to the same busses was provided) and they
+are in mainline. And nVidia's proprietary X driver does also in recent
+versions, even though it won't work at the moment due to improperly
+set i2c functionality flags (and we won't provide support for it, but
+that's a different point.)
 
-Ok, understood.  
+* Most PCI drivers will autoload in recent Linux 2.6 kernels (in
+particular nvidiafb and rivafb do). So I'd rather let the user pick the
+driver he/she wants. sensors-detect will scan all available busses
+anyway, whether they were detected or not.
 
-Thank you.
+* There are many many different nVidia graphics adapters. We already
+have 22 entries, representing 20% of the total list of known PCI
+adapters. Given that the last ones were added over 2 years ago, the list
+is certainly incomplete. I don't even know which devices are supported
+by rivatv (or the other drivers mentioned above), and I don't want to
+spend time tracking this.
 
-Michael
+So unless someone finds a good reason I missed, I plan to remove all
+references to rivatv from sensors-detect soon.
 
+Thanks,
 -- 
-
-San Francisco, CA
+Jean Delvare
 
