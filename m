@@ -1,24 +1,45 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 19 Aug 2006 10:46:40 +0000
-Subject: [lm-sensors] SMSC SCH5504-NS ?
-Message-Id: <44E6EC10.6080705@sh.cvut.cz>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 28 Aug 2006 12:26:22 +0000
+Subject: [lm-sensors] [PATCH 06/14] it87: Prevent overflow on fan clock
+Message-Id: <20060828142622.4e6c9492.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jon Graves wrote:
-> Does anyone have any information on this Super IO chip?  I'm guessing it's similar to the SCH5307-NS, which is supported in the smsc47b397 driver.  It reports a device id of 0x79 (SCH5307-NS is 0x81).
-> 
-> Dell uses it in recent versions of their Precision 380 workstations.
-> 
-> Mailing SMSC for a datasheet resulted in a big fat zero.  If anyone can supply me with the datasheet or other information, I'll give adding support a shot.
+Content-Disposition: inline; filename=hwmon-it87-div-to-reg-overflow.patch
 
-Hmm we do not have any info. You may try to pickup some values from register
-dump and compare if they look reasonable or try to change the ID in the driver
-and see what happens.
+it87: Prevent overflow on fan clock divider write
 
-Regards
-Rudolf
+The highest possible clock divider for fan1 and fan2 is 128.
+
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ drivers/hwmon/it87.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- linux-2.6.18-rc4.orig/drivers/hwmon/it87.c	2006-08-25 19:15:34.000000000 +0200
++++ linux-2.6.18-rc4/drivers/hwmon/it87.c	2006-08-25 19:15:37.000000000 +0200
+@@ -198,7 +198,7 @@
+ static int DIV_TO_REG(int val)
+ {
+ 	int answer = 0;
+-	while ((val >>= 1) != 0)
++	while (answer < 7 && (val >>= 1))
+ 		answer++;
+ 	return answer;
+ }
+@@ -562,7 +562,7 @@
+ 
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct it87_data *data = i2c_get_clientdata(client);
+-	int val = simple_strtol(buf, NULL, 10);
++	unsigned long val = simple_strtoul(buf, NULL, 10);
+ 	int i, min[3];
+ 	u8 old;
+ 
+
+-- 
+Jean Delvare
 
