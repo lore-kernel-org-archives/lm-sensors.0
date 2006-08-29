@@ -1,43 +1,65 @@
-From: greg@kroah.com (Greg KH)
-Date: Fri, 18 Aug 2006 21:21:22 +0000
-Subject: [lm-sensors] [RFC-patch] pc87360 - unchecked
-Message-Id: <20060818212122.GC29488@kroah.com>
+From: J.Kilb@gmx.de (Juergen Kilb)
+Date: Tue, 29 Aug 2006 19:55:11 +0000
+Subject: [lm-sensors] ADT7474
+Message-Id: <200608292155.12019.J.Kilb@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44D2514B.2090202@gmail.com>
-In-Reply-To: <44D2514B.2090202@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Aug 17, 2006 at 10:45:03PM -0400, Mark M. Hoffman wrote:
-> It's a reasonable question though.  I wondered about it for a little bit
-> when I saw that struct attribute_group seems to be missing two const
-> modifiers, i.e.:
-> 
-> --- linux-2.6.18-rc4-mm1.orig/include/linux/sysfs.h
-> +++ linux-2.6.18-rc4-mm1/include/linux/sysfs.h
-> @@ -24,7 +24,7 @@ struct attribute {
->  
->  struct attribute_group {
->  	const char		* name;
-> -	struct attribute	** attrs;
-> +	const struct attribute	* const * attrs;
->  };
->  
-> But actually compiling a kernel with the above introduces a ton of warnings.
+Hi Jean,
+it seems that the ADT7475 is compatible with an ADT7463, so i have tried to 
+use the lm85 driver. (The ADT7475 is missing the Vid Inputs.)
 
-It shouldn't make that many warnings, but yeah, that would be the
-correct fix.
+My first attempd was to force the ADT7463 with
 
-> All those I examined could be fixed by adding const to struct attribute
-> declarations (AFAICT nobody is actually modifying any data through those
-> pointers), but I haven't looked at them all, and it's late here, blah...
+modprobe lm85 force_adt7463:0,0x2e
 
-Care to send a patch for this?  We are trying to fix up things like this
-in the kernel to make it harder for people to do things wrong.
+but this fails with
+==FATAL: Error inserting 
+lm85 /lib/modules/2.6.16.21-0.13-smp/kernel/drivers/hwmon/lm85.ko): Unknown 
+symbol in module, or unknown parameter (see dmesg)
+==
 
-thanks,
+After that i have added the verstep to lm85.c
 
-greg k-h
+#define LM85_VERSTEP_ADT7475            0x69
+
+and changed inside lm85_detect ...
+
+  } else if( company = LM85_COMPANY_ANALOG_DEV
+                    && (verstep = LM85_VERSTEP_ADT7463
+                         || verstep = LM85_VERSTEP_ADT7463C
+                         || verstep = LM85_VERSTEP_ADT7475) ) {
+                        kind = adt7463 ;
+
+now sensors give me the following infos:
+
+snip=======adt7463-i2c-1-2e
+Adapter: SMBus nForce2 adapter at 1c40
+
+V1.5:      +0.000 V  (min =  +0.00 V, max =  +3.32 V)
+VCore:     +0.000 V  (min =  +0.00 V, max =  +2.99 V)   ALARM
+V3.3:      +3.395 V  (min =  +0.00 V, max =  +4.38 V)
+V5:       +0.000 V  (min =  +0.00 V, max =  +6.64 V)
+V12:      +0.000 V  (min =  +0.00 V, max = +15.94 V)
+CPU_Fan:   2019 RPM  (min =    0 RPM)
+fan2:      1420 RPM  (min =    0 RPM)
+fan3:      1889 RPM  (min =    0 RPM)
+fan4:         0 RPM  (min =    0 RPM)
+CPU Temp:  +0.25?C  (low  =    +1?C, high =    -1?C)     ALARM FAULT
+Board Temp:
+          +87.00?C  (low  =    +1?C, high =    -1?C)
+Remote Temp:
+           +0.00?C  (low  =    +1?C, high =    -1?C)     ALARM FAULT
+CPU_PWM:     0
+Fan2_PWM:    0
+Fan3_PWM:    0
+vid:      +0.000 V  (VRM Version 2.4)
+
+snap=========
+What do you think about this ?
+
+=Juergen
 
