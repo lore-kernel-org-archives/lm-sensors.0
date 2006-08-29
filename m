@@ -1,7 +1,7 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Sat, 19 Aug 2006 15:28:05 +0000
-Subject: [lm-sensors] [patch 1/3] pc87360 - fix unchecked
-Message-Id: <44E72E05.9070203@gmail.com>
+From: gregkh@suse.de (gregkh at suse.de)
+Date: Tue, 29 Aug 2006 23:25:40 +0000
+Subject: [lm-sensors] patch hwmon-smsc47m1-fix-dev-message.patch added to
+Message-Id: <20060829232642.AD6D3808ABE@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,93 +9,86 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-1- code-move (prep patch)
-    moves code for get-set-decl tuples for 3 items: cpu0_vid, vrm, alarms_in
-    up, to just after the get-set-decl tuple for Voltages.
-    These items are already 'activated' together with the rest of the 
-voltage attributes
-    , so the move tightens the grouping thats made explicit in next patch.
+This is a note to let you know that I've just added the patch titled
 
-Signed-off-by:   Jim Cromie  <jim.cromie at gmail.com>
+     Subject: [PATCH 03/14] smsc47m1: dev_warn fix
 
-[jimc at harpo hwmon-stuff]$ diffstat diff.ab-1.20060818.185514
- pc87360.c |   56 ++++++++++++++++++++++++++++----------------------------
- 1 files changed, 28 insertions(+), 28 deletions(-)
+to my gregkh-2.6 tree.  Its filename is
+
+     hwmon-smsc47m1-fix-dev-message.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-diff -ruNp -X dontdiff -X exclude-diffs ab-0/drivers/hwmon/pc87360.c ab-1/drivers/hwmon/pc87360.c
---- ab-0/drivers/hwmon/pc87360.c	2006-08-14 21:19:24.000000000 -0600
-+++ ab-1/drivers/hwmon/pc87360.c	2006-08-18 17:35:53.000000000 -0600
-@@ -471,6 +471,34 @@ static struct sensor_device_attribute in
- 	SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
- };
- 
-+static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%u\n", vid_from_reg(data->vid, data->vrm));
-+}
-+static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
-+
-+static ssize_t show_vrm(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%u\n", data->vrm);
-+}
-+static ssize_t set_vrm(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct pc87360_data *data = i2c_get_clientdata(client);
-+	data->vrm = simple_strtoul(buf, NULL, 10);
-+	return count;
-+}
-+static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
-+
-+static ssize_t show_in_alarms(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%u\n", data->in_alarms);
-+}
-+static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
-+
- static ssize_t show_therm_input(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -589,34 +617,6 @@ static struct sensor_device_attribute th
- 		    show_therm_crit, set_therm_crit, 2+11),
- };
- 
--static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct pc87360_data *data = pc87360_update_device(dev);
--	return sprintf(buf, "%u\n", vid_from_reg(data->vid, data->vrm));
--}
--static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
--
--static ssize_t show_vrm(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct pc87360_data *data = pc87360_update_device(dev);
--	return sprintf(buf, "%u\n", data->vrm);
--}
--static ssize_t set_vrm(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	struct pc87360_data *data = i2c_get_clientdata(client);
--	data->vrm = simple_strtoul(buf, NULL, 10);
--	return count;
--}
--static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
--
--static ssize_t show_in_alarms(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct pc87360_data *data = pc87360_update_device(dev);
--	return sprintf(buf, "%u\n", data->in_alarms);
--}
--static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
--
- static ssize_t show_temp_input(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+From khali at linux-fr.org Mon Aug 28 05:22:44 2006
+Date: Mon, 28 Aug 2006 14:22:34 +0200
+From: Jean Delvare <khali at linux-fr.org>
+To: Greg KH <greg at kroah.com>
+Cc: LM Sensors <lm-sensors at lm-sensors.org>
+Subject: [PATCH 03/14] smsc47m1: dev_warn fix
+Message-Id: <20060828142234.3acd8103.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-smsc47m1-fix-dev-message.patch
+
+smsc47m1: dev_warn fix
+
+We can't use dev_warn on an i2c client before it is attached.
+
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
+---
+ drivers/hwmon/smsc47m1.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- gregkh-2.6.orig/drivers/hwmon/smsc47m1.c
++++ gregkh-2.6/drivers/hwmon/smsc47m1.c
+@@ -428,7 +428,8 @@ static int smsc47m1_detect(struct i2c_ad
+ 	pwm2 = (smsc47m1_read_value(new_client, SMSC47M1_REG_PPIN(1)) & 0x05)
+ 	       = 0x04;
+ 	if (!(fan1 || fan2 || pwm1 || pwm2)) {
+-		dev_warn(&new_client->dev, "Device is not configured, will not use\n");
++		dev_warn(&adapter->dev, "Device at 0x%x is not configured, "
++			 "will not use\n", new_client->addr);
+ 		err = -ENODEV;
+ 		goto error_free;
+ 	}
 
 
+Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
+
+i2c/hwmon-w83627ehf-add-pwm-support.patch
+i2c/hwmon-w83627ehf-documentation.patch
+i2c/i2c-algo-bit-kill-mdelay.patch
+i2c/hwmon-abituguru-suspend-resume.patch
+i2c/i2c-__must_check-fixes-i2c-dev.patch
+i2c/i2c-__must_check-fixes.patch
+i2c/hwmon-it87-disabled-fans.patch
+i2c/i2c-algo-sibyte-cleanups.patch
+i2c/i2c-algo-sibyte-merge-in-i2c-sibyte.patch
+i2c/i2c-au1550-add-au1200-support.patch
+i2c/i2c-au1550-add-smbus-functionality-flag.patch
+i2c/i2c-au1550-fix-timeout-problem.patch
+i2c/i2c-bus-driver-for-TI-OMAP-boards.patch
+i2c/i2c-isa-plan-for-removal.patch
+i2c/i2c-dev-cleanups.patch
+i2c/i2c-dev-convert-array-to-list.patch
+i2c/i2c-dev-drop-template-client.patch
+i2c/i2c-dev-device.patch
+i2c/i2c-fix-copy-n-paste-in-subsystem-Kconfig.patch
+i2c/i2c-matroxfb-c99-struct-init.patch
+i2c/i2c-sibyte-drop-kip-walker-address.patch
+i2c/i2c-stub-add-chip_addr-param.patch
+i2c/hwmon-atxp1-signed-unsigned-char-bug.patch
+i2c/hwmon-hdaps-handle-errors-from-input-register-device.patch
+i2c/hwmon-it87-copyright-update.patch
+i2c/hwmon-it87-div-to-reg-overflow.patch
+i2c/hwmon-it87-in8-no-limits.patch
+i2c/hwmon-it87-it8716f-support.patch
+i2c/hwmon-it87-it8718f-support.patch
+i2c/hwmon-it87-sane-limit-defaults.patch
+i2c/hwmon-it87-set-fan-div.patch
+i2c/hwmon-k8temp-autoload.patch
+i2c/hwmon-k8temp-new-driver.patch
+i2c/hwmon-smsc47m1-fix-dev-message.patch
 
