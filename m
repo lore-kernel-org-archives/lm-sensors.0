@@ -1,42 +1,95 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Mon, 21 Aug 2006 02:59:26 +0000
-Subject: [lm-sensors] [patch 1/3] hwmon/pc87360: take maintenance
-Message-Id: <44E9218E.4010607@gmail.com>
+From: gregkh@suse.de (gregkh at suse.de)
+Date: Tue, 29 Aug 2006 23:24:34 +0000
+Subject: [lm-sensors] patch hwmon-atxp1-signed-unsigned-char-bug.patch added
+Message-Id: <20060829232536.B7C5E895AC5@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-1. hwmon-pc87360-maintainer.patch
-    the bribe, as it were.
-    thanks for authoring this driver Jean.
 
-Signed-off-by:  Jim Cromie  <jim.cromie at gmail.com>
+This is a note to let you know that I've just added the patch titled
+
+     Subject: [PATCH 01/14] atxp1: Signed/unsigned char bug fix
+
+to my gregkh-2.6 tree.  Its filename is
+
+     hwmon-atxp1-signed-unsigned-char-bug.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-[jimc at harpo pc-set]$ diffstat hwmon-pc87360-maintainer.patch
- MAINTAINERS |    6 ++++++
- 1 files changed, 6 insertions(+)
+From khali at linux-fr.org Mon Aug 28 05:18:20 2006
+Date: Mon, 28 Aug 2006 14:18:14 +0200
+From: Jean Delvare <khali at linux-fr.org>
+To: Greg KH <greg at kroah.com>
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, Alexey Dobriyan <adobriyan at gmail.com>
+Subject: [PATCH 01/14] atxp1: Signed/unsigned char bug fix
+Message-Id: <20060828141814.71640724.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-atxp1-signed-unsigned-char-bug.patch
 
---
+From: Alexey Dobriyan <adobriyan at gmail.com>
 
-diff -ruNp -X dontdiff -X exclude-diffs ad-0/MAINTAINERS ad-1/MAINTAINERS
---- ad-0/MAINTAINERS	2006-08-13 08:38:53.000000000 -0600
-+++ ad-1/MAINTAINERS	2006-08-20 16:04:03.000000000 -0600
-@@ -2257,6 +2257,12 @@ T:	git kernel.org:/pub/scm/linux/kernel/
- T:	cvs cvs.parisc-linux.org:/var/cvs/linux-2.6
- S:	Maintained
+vid_to_reg() can return -1 and char can be unsigned.
+
+Signed-off-by: Alexey Dobriyan <adobriyan at gmail.com>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
+---
+ drivers/hwmon/atxp1.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+--- gregkh-2.6.orig/drivers/hwmon/atxp1.c
++++ gregkh-2.6/drivers/hwmon/atxp1.c
+@@ -116,8 +116,7 @@ static ssize_t atxp1_storevcore(struct d
+ {
+ 	struct atxp1_data *data;
+ 	struct i2c_client *client;
+-	char vid;
+-	char cvid;
++	int vid, cvid;
+ 	unsigned int vcore;
  
-+PC87360 HARDWARE MONITOR DRIVER
-+P:	Jim Cromie
-+M:	jim.cromie at gmail.com
-+L:	lm-sensors at lm-sensors.org
-+S:	Maintained
-+
- PCI ERROR RECOVERY
- P:	Linas Vepstas
- M:	linas at austin.ibm.com
+ 	client = to_i2c_client(dev);
 
 
+Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
+
+i2c/hwmon-w83627ehf-add-pwm-support.patch
+i2c/hwmon-w83627ehf-documentation.patch
+i2c/i2c-algo-bit-kill-mdelay.patch
+i2c/hwmon-abituguru-suspend-resume.patch
+i2c/i2c-__must_check-fixes-i2c-dev.patch
+i2c/i2c-__must_check-fixes.patch
+i2c/hwmon-it87-disabled-fans.patch
+i2c/i2c-algo-sibyte-cleanups.patch
+i2c/i2c-algo-sibyte-merge-in-i2c-sibyte.patch
+i2c/i2c-au1550-add-au1200-support.patch
+i2c/i2c-au1550-add-smbus-functionality-flag.patch
+i2c/i2c-au1550-fix-timeout-problem.patch
+i2c/i2c-bus-driver-for-TI-OMAP-boards.patch
+i2c/i2c-isa-plan-for-removal.patch
+i2c/i2c-dev-cleanups.patch
+i2c/i2c-dev-convert-array-to-list.patch
+i2c/i2c-dev-drop-template-client.patch
+i2c/i2c-dev-device.patch
+i2c/i2c-fix-copy-n-paste-in-subsystem-Kconfig.patch
+i2c/i2c-matroxfb-c99-struct-init.patch
+i2c/i2c-sibyte-drop-kip-walker-address.patch
+i2c/i2c-stub-add-chip_addr-param.patch
+i2c/hwmon-atxp1-signed-unsigned-char-bug.patch
+i2c/hwmon-hdaps-handle-errors-from-input-register-device.patch
+i2c/hwmon-it87-copyright-update.patch
+i2c/hwmon-it87-div-to-reg-overflow.patch
+i2c/hwmon-it87-in8-no-limits.patch
+i2c/hwmon-it87-it8716f-support.patch
+i2c/hwmon-it87-it8718f-support.patch
+i2c/hwmon-it87-sane-limit-defaults.patch
+i2c/hwmon-it87-set-fan-div.patch
+i2c/hwmon-k8temp-autoload.patch
+i2c/hwmon-k8temp-new-driver.patch
+i2c/hwmon-smsc47m1-fix-dev-message.patch
 
