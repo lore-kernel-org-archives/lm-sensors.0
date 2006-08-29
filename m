@@ -1,194 +1,107 @@
-From: fhj52rags@yahoo.com (Ric)
-Date: Mon, 28 Aug 2006 10:27:44 +0000
-Subject: [lm-sensors] wiki pages - update
-Message-Id: <20060828102744.90326.qmail@web37403.mail.mud.yahoo.com>
+From: gregkh@suse.de (gregkh at suse.de)
+Date: Tue, 29 Aug 2006 23:24:38 +0000
+Subject: [lm-sensors] patch
+Message-Id: <20060829232541.1C6F8895A7E@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44F09CBA.60301@sh.cvut.cz>
-In-Reply-To: <44F09CBA.60301@sh.cvut.cz>
+References: <20060502054527.8533748769D@imap.suse.de>
+In-Reply-To: <20060502054527.8533748769D@imap.suse.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
 
-Thanks for the feedback.
+This is a note to let you know that I've just added the patch titled
 
---- Jean Delvare <khali at linux-fr.org> wrote:
+     Subject: [PATCH 02/14] hdaps: Handle errors from input_register_device
 
-> Hi Ric,
-> 
-> > I am DOA for now which is okay since I need to spend some quality
-> time
-> > with the dremel and a SuperMicro SC750 case anyway. 
-> 
-> Where "DOA" and "dremel" mean...?
+to my gregkh-2.6 tree.  Its filename is
 
-DOA = dead on arrival; meaning I got there but not much I could do.
-Dremel is a brand name for a high speed rotary tool used with
-attachments for cutting, grinding, drilling, engraving, ... just about
-anything the mind can conceive.  Dremel is sold in Europe but there is
-another brand name that I read is more popular.
-The ( old but new to me ) Supermicro SC750A+ case is well built but not
-designed for high efficiency and low-noise air cooling.  My Dremel and
-I made some adjustments. :)
+     hwmon-hdaps-handle-errors-from-input-register-device.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-> > THE biggest problem is that there is not any registration function.
-> 
-> > Wikis are for collaborative efforts but apparently Trac does not
-> have a
-> > simple registration function. All I saw was that the admin has to
-> run
-> > an admin script to assign permisssions. I certainly hope that is
-> robust
-> > enough to be automated, :).
-> 
-> We disabled that feature of trac on purpose, because it made it very
-> easy for spammers to create fake accounts and ruin our site. I agree
-> it
-> pretty much voids the point of having a wiki, and we need to find a
-> solution to this problem.
+From khali at linux-fr.org Mon Aug 28 05:21:49 2006
+Date: Mon, 28 Aug 2006 14:21:42 +0200
+From: Jean Delvare <khali at linux-fr.org>
+To: Greg KH <greg at kroah.com>
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, Dmitry Torokhov <dtor at insightbb.com>
+Subject: [PATCH 02/14] hdaps: Handle errors from input_register_device
+Message-Id: <20060828142142.d4dcad2c.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-hdaps-handle-errors-from-input-register-device.patch
 
-I am sorry that happened but agree that it is very important to have a
-workable solution ASAP.
-Somebody(webmaster/admin) might ask the Warewulf webmaster if they are
-having any trouble with spam or anything else.  The Warewulf OpenSource
-project uses Trac and has a Register widget:
-http://www.warewulf-cluster.org/cgi-bin/trac.cgi/register
-...it works. 
-Or ask Trac folks ... I just happened to know that Warewulf uses Trac
-so maybe they have a solution.
+From: Dmitry Torokhov <dtor at insightbb.com>
 
-As you probably know, most sites have now gone to email verification
-and also use the "Enter the Code and if you guess correctly you win a
-properly completed registration ticket" widget to stop the automated
-registrations.  It must work since so many sites and forums use it.  
-Warewulf uses neither.
+HDAPS: handle errors from input_register_device()
 
+Signed-off-by: Dmitry Torokhov <dtor at mail.ru>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
-> > I cannot do anything until I can be registered with at least the
-> link
-> > changing function.
-> > 
-> > I stopped at the FAQ link(s). As more than likely the first place
-> any
-> > user will look for info, if they look at all, ;),
-> 
-> I wish you were true...
+---
+ drivers/hwmon/hdaps.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-I know what you mean. 
-A little fix here and there will make it better. ...
+--- gregkh-2.6.orig/drivers/hwmon/hdaps.c
++++ gregkh-2.6/drivers/hwmon/hdaps.c
+@@ -587,7 +587,9 @@ static int __init hdaps_init(void)
+ 	input_set_abs_params(hdaps_idev, ABS_Y,
+ 			-256, 256, HDAPS_INPUT_FUZZ, HDAPS_INPUT_FLAT);
+ 
+-	input_register_device(hdaps_idev);
++	ret = input_register_device(hdaps_idev);
++	if (ret)
++		goto out_idev;
+ 
+ 	/* start up our timer for the input device */
+ 	init_timer(&hdaps_timer);
+@@ -598,6 +600,8 @@ static int __init hdaps_init(void)
+ 	printk(KERN_INFO "hdaps: driver successfully loaded.\n");
+ 	return 0;
+ 
++out_idev:
++	input_free_device(hdaps_idev);
+ out_group:
+ 	sysfs_remove_group(&pdev->dev.kobj, &hdaps_attribute_group);
+ out_device:
 
 
-> > it needs to be available and,
-> 
-> It looks available enough to me, do you see a problem there?
+Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
 
-What I meant by available, was available on _that_ page and not another
-link to go to some other page or website.
-But besides that, yes, problem: It is static, not Wiki.
-To make it a better user document, the _user_ has to understand it and
-contibute to it.
-
-Also, FAQ = Frequently Asked Questions. When used for documentation, it
-is no more than a list of items that ask a short, simple question and
-have a short, simple answer attached.  The key word there is "simple"
-...
-
-
-> > I suggest, editable. That presents a
-> > Copyright problem.
-> > Copyright (C) 1998 - 2005
-> > Frodo Looijaard,
-> > Philip Edelbrock,
-> > Mark D. Studebaker
-> > and
-> > Jean Delvare
-> > 
-> > Since that *might* be considered as expired,
-> 
-> Copyrights expired after one year? In what country do you leave?
-
-USA where we have copyrights, trademarks, digital rights, intellectual
-rights, encryption export restrictions,  ..., and patents on some of
-the silliest things one has never seen or heard of before. And lots of
-lawyers who challenge all of those things every day. :)
-
-Copyrights have to be renewed is all I meant.  If the authors chose not
-to renew, then the copyright problem is not a problem.
-
-
-> > authors' permissions s/b
-> > all that is needed to adjust it.  I saw no 'license' for it; merely
-> the
-> > copyright statement. There is no mention of license anywhere on the
-> FAQ
-> > page. 
-> >
-> > Is that doc supposed to fall under the GPL as an official part of
-> the
-> > lm_sensors project?
-> 
-> The FAQ used to be (and actually still is) part the the lm_sensors
-> tree itself, so I'd say yes.
-
-Well, good. :)
-
-
-> > The '' Licensed under GPL '' blurb is missing from the lm_sensors
-> home
-> > page so maybe that sentence s/b added so we all know that code
-> _and_
-> > documents are GPL'd, unless of course somebody wants to license
-> > documents under the GFDL,
-> > http://www.gnu.org/licenses/licenses.html#FDL, or similar. ;)
-> 
-> Good point, we mention that our software is "OSI Certified open
-> source software", but we don't mention GPL. We should.
-
-Glad you agree.
-
-
-> > AS for the FAQ, I suggest a temporary fix by making the Contents
-> list
-> > correct and linked to the current FAQ page, as such:
-> > [code]
-> > Table of Contents 
-> >
-> [snip]
->
-http://www.lm-sensors.org/browser/lm-sensors/trunk/doc/lm_sensors-FAQ.html?format=raw#Document-Revisions
-> > [/code]
-> > 
-> > That's pretty easy to do/change on the page and should work until
-> such
-> > time that Registration is available and working securely.
-> 
-> Before doing that, we must take a decision about what the FAQ source
-> will be. Currently the FAQ source is a texi document, which is
-> converted to plain text and HTML and distributed with lm_sensors
-> itself. Rudolf Marek merged it into the wiki, so now we have two
-> versions. I will let him explain what are his plans for the future.
-> We certainly don't want to maintain two sources for the FAQ.
-> 
-> -- 
-> Jean Delvare
-
-Well, ( you and the other authors ) please consider that the current
-"FAQ" should be called "Documentation" or "Manual" and a new "FAQ"
-created for the WIKI that is just really, really, simple questions and
-answers. ( the most pesky ones that drive you and the other dev's crazy
-because they have been answered so many times and have such simple
-answers )
-
-...
-
-Regards, Ric
-
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+i2c/hwmon-w83627ehf-add-pwm-support.patch
+i2c/hwmon-w83627ehf-documentation.patch
+i2c/i2c-algo-bit-kill-mdelay.patch
+i2c/hwmon-abituguru-suspend-resume.patch
+i2c/i2c-__must_check-fixes-i2c-dev.patch
+i2c/i2c-__must_check-fixes.patch
+i2c/hwmon-it87-disabled-fans.patch
+i2c/i2c-algo-sibyte-cleanups.patch
+i2c/i2c-algo-sibyte-merge-in-i2c-sibyte.patch
+i2c/i2c-au1550-add-au1200-support.patch
+i2c/i2c-au1550-add-smbus-functionality-flag.patch
+i2c/i2c-au1550-fix-timeout-problem.patch
+i2c/i2c-bus-driver-for-TI-OMAP-boards.patch
+i2c/i2c-isa-plan-for-removal.patch
+i2c/i2c-dev-cleanups.patch
+i2c/i2c-dev-convert-array-to-list.patch
+i2c/i2c-dev-drop-template-client.patch
+i2c/i2c-dev-device.patch
+i2c/i2c-fix-copy-n-paste-in-subsystem-Kconfig.patch
+i2c/i2c-matroxfb-c99-struct-init.patch
+i2c/i2c-sibyte-drop-kip-walker-address.patch
+i2c/i2c-stub-add-chip_addr-param.patch
+i2c/hwmon-atxp1-signed-unsigned-char-bug.patch
+i2c/hwmon-hdaps-handle-errors-from-input-register-device.patch
+i2c/hwmon-it87-copyright-update.patch
+i2c/hwmon-it87-div-to-reg-overflow.patch
+i2c/hwmon-it87-in8-no-limits.patch
+i2c/hwmon-it87-it8716f-support.patch
+i2c/hwmon-it87-it8718f-support.patch
+i2c/hwmon-it87-sane-limit-defaults.patch
+i2c/hwmon-it87-set-fan-div.patch
+i2c/hwmon-k8temp-autoload.patch
+i2c/hwmon-k8temp-new-driver.patch
+i2c/hwmon-smsc47m1-fix-dev-message.patch
 
