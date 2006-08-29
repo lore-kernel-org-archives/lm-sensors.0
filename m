@@ -1,36 +1,75 @@
-From: post@hendrik-sattler.de (Hendrik Sattler)
-Date: Thu, 24 Aug 2006 10:40:23 +0000
-Subject: [lm-sensors] linux-i2c and smbalert
-Message-Id: <200608241240.24981.post@hendrik-sattler.de>
+From: abo_gwapo@yahoo.com (Arnold)
+Date: Tue, 29 Aug 2006 01:59:31 +0000
+Subject: [lm-sensors] i2c-dev driver
+Message-Id: <20060829015931.95433.qmail@web55804.mail.re3.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Frodol,
 
-in my notebook, I have a chip (namely O2 Micro OZ99x) that probably can do 
-SMBALERTs for events (panel buttons in this case).
-The SMBus specification[1] says that it's optional.
+I'm using an omap5912 and would like to write and read
+thru i2c.  Below are  the debug msg aswell as the
+code. 
 
-The only mentioning of alert reponse address (ARA) in the i2c-ali1535. And 
-according to specs from intel[2], the i815 has it, too.
+Debug msg:
+#./i2c_test
+(OJ) adapter number = OMAP I2C adapter
+i: Remote I/O error
+written -1 bytes
 
-I guess, the interrupt handler should check if the interrupt was due to an 
-SMBALERT and then handle the alert properly by issuing a read from the ARA 
-(0x0C), thus finding the device address. Then it should call the driver that 
-was registered for that address.
+Code:
 
-Was there any work done on this? I would really like to try this out with the 
-above device combination, however the i2c-i810 doesn't even listen on the 
-irq ?!?
+#define I2C_SLAVE     0x0703
+#define BUFFER_SIZE   32
 
-HS
 
-PS: I am not subscribed, so please CC: me
+int adapter_nr = 0;
 
-[1]: http://www.smbus.org/specs/smbus20.pdf or
-     http://www.smbus.org/specs/smb10.pdf
-[2]: http://www.intel.com/design/chipsets/datashts/29065503.pdf
+int addr = 0x40; /* The I2C address */
+
+sprintf(filename,"/dev/i2c-%d",adapter_nr);
+  if ((file = open(filename,O_RDWR)) < 0) {
+    printf("Error Opening File\n");
+    exit(1);
+  }
+
+  if (ioctl(file,I2C_SLAVE,addr) < 0) {
+    exit(1);
+  }
+ 
+if (write(file,buffer,sizeof(char) * BUFFER_SIZE) < 0)
+{
+        perror("Error Writing:");
+        exit(1);
+  }
+  printf("written %d bytes\n",i);
+  memset(buffer,0,BUFFER_SIZE);
+
+  if(read(file,buffer,sizeof(char) * BUFFER_SIZE) < 0
+)     {
+        perror("Error Reading:");
+        exit(1);
+  }
+  printf("read %d bytes\n",i);
+  for(i=0;i<BUFFER_SIZE;i++)
+  {
+     printf("%c",buffer[i]);
+  }
+  printf("\n");
+
+  close(file);
+
+I hope you could help me with my problem? 
+
+Thanks,
+OJ
+
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
 
