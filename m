@@ -1,25 +1,419 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 08 Aug 2006 13:53:41 +0000
-Subject: [lm-sensors] [PATCH 0/5] Updates and fixes to the it87 driver
-Message-Id: <20060808155341.0ceb1196.khali@linux-fr.org>
+From: gregkh@suse.de (gregkh at suse.de)
+Date: Tue, 29 Aug 2006 23:25:34 +0000
+Subject: [lm-sensors] patch hwmon-k8temp-new-driver.patch added to
+Message-Id: <20060829232637.5FACA808ABE@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
 
-Here are 5 patches to the it87 driver, which I will push to -mm soon
-and plan to have merged in 2.6.19.
+This is a note to let you know that I've just added the patch titled
 
- Documentation/hwmon/it87 |   40 +++++++---
- drivers/hwmon/Kconfig    |    4 
- drivers/hwmon/it87.c     |  185 +++++++++++++++++++++++++++++++++++-----------
- 3 files changed, 171 insertions(+), 58 deletions(-)
+     Subject: [PATCH 12/14] hwmon: New driver k8temp
 
-Testers and comments welcome.
+to my gregkh-2.6 tree.  Its filename is
 
--- 
-Jean Delvare
+     hwmon-k8temp-new-driver.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+
+
+From khali at linux-fr.org Mon Aug 28 05:40:19 2006
+Date: Mon, 28 Aug 2006 14:40:17 +0200
+From: Jean Delvare <khali at linux-fr.org>
+To: Greg KH <greg at kroah.com>
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, Rudolf Marek <r.marek at sh.cvut.cz>
+Subject: [PATCH 12/14] hwmon: New driver k8temp
+Message-Id: <20060828144017.67876c4f.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-k8temp-new-driver.patch
+
+From: Rudolf Marek <r.marek at sh.cvut.cz>
+
+Add support for the temperature sensor(s) found in AMD K8 CPUs.
+
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
+---
+ drivers/hwmon/Kconfig   |   10 +
+ drivers/hwmon/Makefile  |    1 
+ drivers/hwmon/k8temp.c  |  292 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/pci_ids.h |    1 
+ 4 files changed, 304 insertions(+)
+
+--- gregkh-2.6.orig/drivers/hwmon/Kconfig
++++ gregkh-2.6/drivers/hwmon/Kconfig
+@@ -94,6 +94,16 @@ config SENSORS_ADM9240
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called adm9240.
+ 
++config SENSORS_K8TEMP
++	tristate "AMD K8 processor sensor"
++	depends on HWMON && X86 && PCI && EXPERIMENTAL
++	help
++	  If you say yes here you get support for the temperature
++	  sensor(s) inside your AMD K8 CPU.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called k8temp.
++
+ config SENSORS_ASB100
+ 	tristate "Asus ASB100 Bach"
+ 	depends on HWMON && I2C && EXPERIMENTAL
+--- gregkh-2.6.orig/drivers/hwmon/Makefile
++++ gregkh-2.6/drivers/hwmon/Makefile
+@@ -27,6 +27,7 @@ obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm
+ obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
+ obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
+ obj-$(CONFIG_SENSORS_IT87)	+= it87.o
++obj-$(CONFIG_SENSORS_K8TEMP)	+= k8temp.o
+ obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
+ obj-$(CONFIG_SENSORS_LM70)	+= lm70.o
+ obj-$(CONFIG_SENSORS_LM75)	+= lm75.o
+--- /dev/null
++++ gregkh-2.6/drivers/hwmon/k8temp.c
+@@ -0,0 +1,292 @@
++/*
++ * k8temp.c - Linux kernel module for hardware monitoring
++ *
++ * Copyright (C) 2006 Rudolf Marek <r.marek at sh.cvut.cz>
++ *
++ * Inspired from the w83785 and amd756 drivers.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
++ * 02110-1301 USA.
++ */
++
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/jiffies.h>
++#include <linux/pci.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++
++#define TEMP_FROM_REG(val)	(((((val) >> 16) & 0xff) - 49) * 1000)
++#define REG_TEMP	0xe4
++#define SEL_PLACE	0x40
++#define SEL_CORE	0x04
++
++struct k8temp_data {
++	struct class_device *class_dev;
++	struct mutex update_lock;
++	const char *name;
++	char valid;		/* zero until following fields are valid */
++	unsigned long last_updated;	/* in jiffies */
++
++	/* registers values */
++	u8 sensorsp;		/* sensor presence bits - SEL_CORE & SEL_PLACE */
++	u32 temp[2][2];		/* core, place */
++};
++
++static struct k8temp_data *k8temp_update_device(struct device *dev)
++{
++	struct k8temp_data *data = dev_get_drvdata(dev);
++	struct pci_dev *pdev = to_pci_dev(dev);
++	u8 tmp;
++
++	mutex_lock(&data->update_lock);
++
++	if (!data->valid
++	    || time_after(jiffies, data->last_updated + HZ)) {
++		pci_read_config_byte(pdev, REG_TEMP, &tmp);
++		tmp &= ~(SEL_PLACE | SEL_CORE);		/* Select sensor 0, core0 */
++		pci_write_config_byte(pdev, REG_TEMP, tmp);
++		pci_read_config_dword(pdev, REG_TEMP, &data->temp[0][0]);
++
++		if (data->sensorsp & SEL_PLACE) {
++			tmp |= SEL_PLACE;	/* Select sensor 1, core0 */
++			pci_write_config_byte(pdev, REG_TEMP, tmp);
++			pci_read_config_dword(pdev, REG_TEMP,
++					      &data->temp[0][1]);
++		}
++
++		if (data->sensorsp & SEL_CORE) {
++			tmp &= ~SEL_PLACE;	/* Select sensor 0, core1 */
++			tmp |= SEL_CORE;
++			pci_write_config_byte(pdev, REG_TEMP, tmp);
++			pci_read_config_dword(pdev, REG_TEMP,
++					      &data->temp[1][0]);
++
++			if (data->sensorsp & SEL_PLACE) {
++				tmp |= SEL_PLACE;	/* Select sensor 1, core1 */
++				pci_write_config_byte(pdev, REG_TEMP, tmp);
++				pci_read_config_dword(pdev, REG_TEMP,
++						      &data->temp[1][1]);
++			}
++		}
++
++		data->last_updated = jiffies;
++		data->valid = 1;
++	}
++
++	mutex_unlock(&data->update_lock);
++	return data;
++}
++
++/*
++ * Sysfs stuff
++ */
++
++static ssize_t show_name(struct device *dev, struct device_attribute
++			 *devattr, char *buf)
++{
++	struct k8temp_data *data = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%s\n", data->name);
++}
++
++
++static ssize_t show_temp(struct device *dev,
++			 struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute_2 *attr +	    to_sensor_dev_attr_2(devattr);
++	int core = attr->nr;
++	int place = attr->index;
++	struct k8temp_data *data = k8temp_update_device(dev);
++
++	return sprintf(buf, "%d\n",
++		       TEMP_FROM_REG(data->temp[core][place]));
++}
++
++/* core, place */
++
++static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0, 0);
++static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, 0, 1);
++static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 1, 0);
++static SENSOR_DEVICE_ATTR_2(temp4_input, S_IRUGO, show_temp, NULL, 1, 1);
++static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
++
++static struct pci_device_id k8temp_ids[] = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_K8_NB_MISC) },
++	{ 0 },
++};
++
++static int __devinit k8temp_probe(struct pci_dev *pdev,
++				  const struct pci_device_id *id)
++{
++	int err;
++	u8 scfg;
++	u32 temp;
++	struct k8temp_data *data;
++	u32 cpuid = cpuid_eax(1);
++
++	/* this feature should be available since SH-C0 core */
++	if ((cpuid = 0xf40) || (cpuid = 0xf50) || (cpuid = 0xf51)) {
++		err = -ENODEV;
++		goto exit;
++	}
++
++	if (!(data = kzalloc(sizeof(struct k8temp_data), GFP_KERNEL))) {
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	pci_read_config_byte(pdev, REG_TEMP, &scfg);
++	scfg &= ~(SEL_PLACE | SEL_CORE);		/* Select sensor 0, core0 */
++	pci_write_config_byte(pdev, REG_TEMP, scfg);
++	pci_read_config_byte(pdev, REG_TEMP, &scfg);
++
++	if (scfg & (SEL_PLACE | SEL_CORE)) {
++		dev_err(&pdev->dev, "Configuration bit(s) stuck at 1!\n");
++		err = -ENODEV;
++		goto exit_free;
++	}
++
++	scfg |= (SEL_PLACE | SEL_CORE);
++	pci_write_config_byte(pdev, REG_TEMP, scfg);
++
++	/* now we know if we can change core and/or sensor */
++	pci_read_config_byte(pdev, REG_TEMP, &data->sensorsp);
++
++	if (data->sensorsp & SEL_PLACE) {
++		scfg &= ~SEL_CORE;	/* Select sensor 1, core0 */
++		pci_write_config_byte(pdev, REG_TEMP, scfg);
++		pci_read_config_dword(pdev, REG_TEMP, &temp);
++		scfg |= SEL_CORE;	/* prepare for next selection */
++		if (!((temp >> 16) & 0xff))	/* if temp is 0 -49C is not likely */
++			data->sensorsp &= ~SEL_PLACE;
++	}
++
++	if (data->sensorsp & SEL_CORE) {
++		scfg &= ~SEL_PLACE;	/* Select sensor 0, core1 */
++		pci_write_config_byte(pdev, REG_TEMP, scfg);
++		pci_read_config_dword(pdev, REG_TEMP, &temp);
++		if (!((temp >> 16) & 0xff))	/* if temp is 0 -49C is not likely */
++			data->sensorsp &= ~SEL_CORE;
++	}
++
++	data->name = "k8temp";
++	mutex_init(&data->update_lock);
++	dev_set_drvdata(&pdev->dev, data);
++
++	/* Register sysfs hooks */
++	err = device_create_file(&pdev->dev,
++			   &sensor_dev_attr_temp1_input.dev_attr);
++	if (err)
++		goto exit_remove;
++
++	/* sensor can be changed and reports something */
++	if (data->sensorsp & SEL_PLACE) {
++		err = device_create_file(&pdev->dev,
++				   &sensor_dev_attr_temp2_input.dev_attr);
++		if (err)
++			goto exit_remove;
++	}
++
++	/* core can be changed and reports something */
++	if (data->sensorsp & SEL_CORE) {
++		err = device_create_file(&pdev->dev,
++				   &sensor_dev_attr_temp3_input.dev_attr);
++		if (err)
++			goto exit_remove;
++		if (data->sensorsp & SEL_PLACE)
++			err = device_create_file(&pdev->dev,
++					   &sensor_dev_attr_temp4_input.
++					   dev_attr);
++			if (err)
++				goto exit_remove;
++	}
++
++	err = device_create_file(&pdev->dev, &dev_attr_name);
++	if (err)
++		goto exit_remove;
++
++	data->class_dev = hwmon_device_register(&pdev->dev);
++
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		goto exit_remove;
++	}
++
++	return 0;
++
++exit_remove:
++	device_remove_file(&pdev->dev,
++			   &sensor_dev_attr_temp1_input.dev_attr);
++	device_remove_file(&pdev->dev,
++			   &sensor_dev_attr_temp2_input.dev_attr);
++	device_remove_file(&pdev->dev,
++			   &sensor_dev_attr_temp3_input.dev_attr);
++	device_remove_file(&pdev->dev,
++			   &sensor_dev_attr_temp4_input.dev_attr);
++	device_remove_file(&pdev->dev, &dev_attr_name);
++exit_free:
++	dev_set_drvdata(&pdev->dev, NULL);
++	kfree(data);
++exit:
++	return err;
++}
++
++static void __devexit k8temp_remove(struct pci_dev *pdev)
++{
++	struct k8temp_data *data = dev_get_drvdata(&pdev->dev);
++
++	hwmon_device_unregister(data->class_dev);
++	device_remove_file(&pdev->dev,
++			   &sensor_dev_attr_temp1_input.dev_attr);
++	device_remove_file(&pdev->dev,
++			   &sensor_dev_attr_temp2_input.dev_attr);
++	device_remove_file(&pdev->dev,
++			   &sensor_dev_attr_temp3_input.dev_attr);
++	device_remove_file(&pdev->dev,
++			   &sensor_dev_attr_temp4_input.dev_attr);
++	device_remove_file(&pdev->dev, &dev_attr_name);
++	dev_set_drvdata(&pdev->dev, NULL);
++	kfree(data);
++}
++
++static struct pci_driver k8temp_driver = {
++	.name = "k8temp",
++	.id_table = k8temp_ids,
++	.probe = k8temp_probe,
++	.remove = __devexit_p(k8temp_remove),
++};
++
++static int __init k8temp_init(void)
++{
++	return pci_register_driver(&k8temp_driver);
++}
++
++static void __exit k8temp_exit(void)
++{
++	pci_unregister_driver(&k8temp_driver);
++}
++
++MODULE_AUTHOR("Rudolf Marek <r.marek at sh.cvut.cz>");
++MODULE_DESCRIPTION("AMD K8 core temperature monitor");
++MODULE_LICENSE("GPL");
++
++module_init(k8temp_init)
++module_exit(k8temp_exit)
+--- gregkh-2.6.orig/include/linux/pci_ids.h
++++ gregkh-2.6/include/linux/pci_ids.h
+@@ -479,6 +479,7 @@
+ 
+ #define PCI_VENDOR_ID_AMD		0x1022
+ #define PCI_DEVICE_ID_AMD_K8_NB		0x1100
++#define PCI_DEVICE_ID_AMD_K8_NB_MISC	0x1103
+ #define PCI_DEVICE_ID_AMD_LANCE		0x2000
+ #define PCI_DEVICE_ID_AMD_LANCE_HOME	0x2001
+ #define PCI_DEVICE_ID_AMD_SCSI		0x2020
+
+
+Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
+
+i2c/hwmon-w83627ehf-add-pwm-support.patch
+i2c/hwmon-w83627ehf-documentation.patch
+i2c/i2c-algo-bit-kill-mdelay.patch
+i2c/hwmon-abituguru-suspend-resume.patch
+i2c/i2c-__must_check-fixes-i2c-dev.patch
+i2c/i2c-__must_check-fixes.patch
+i2c/hwmon-it87-disabled-fans.patch
+i2c/i2c-algo-sibyte-cleanups.patch
+i2c/i2c-algo-sibyte-merge-in-i2c-sibyte.patch
+i2c/i2c-au1550-add-au1200-support.patch
+i2c/i2c-au1550-add-smbus-functionality-flag.patch
+i2c/i2c-au1550-fix-timeout-problem.patch
+i2c/i2c-bus-driver-for-TI-OMAP-boards.patch
+i2c/i2c-isa-plan-for-removal.patch
+i2c/i2c-dev-cleanups.patch
+i2c/i2c-dev-convert-array-to-list.patch
+i2c/i2c-dev-drop-template-client.patch
+i2c/i2c-dev-device.patch
+i2c/i2c-fix-copy-n-paste-in-subsystem-Kconfig.patch
+i2c/i2c-matroxfb-c99-struct-init.patch
+i2c/i2c-sibyte-drop-kip-walker-address.patch
+i2c/i2c-stub-add-chip_addr-param.patch
+i2c/hwmon-atxp1-signed-unsigned-char-bug.patch
+i2c/hwmon-hdaps-handle-errors-from-input-register-device.patch
+i2c/hwmon-it87-copyright-update.patch
+i2c/hwmon-it87-div-to-reg-overflow.patch
+i2c/hwmon-it87-in8-no-limits.patch
+i2c/hwmon-it87-it8716f-support.patch
+i2c/hwmon-it87-it8718f-support.patch
+i2c/hwmon-it87-sane-limit-defaults.patch
+i2c/hwmon-it87-set-fan-div.patch
+i2c/hwmon-k8temp-autoload.patch
+i2c/hwmon-k8temp-new-driver.patch
+i2c/hwmon-smsc47m1-fix-dev-message.patch
 
