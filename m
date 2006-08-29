@@ -1,29 +1,24 @@
-From: michaelnel@comcast.net (Michael Nelson)
-Date: Wed, 30 Aug 2006 13:57:08 +0000
-Subject: [lm-sensors] [RFC] Improved sensors-detect output
-Message-Id: <20060830135708.GA5135@seahunt.dyndns.org>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Tue, 29 Aug 2006 18:13:13 +0000
+Subject: [lm-sensors] [PATCH] k8temp documentation
+Message-Id: <44F483B9.5050202@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060829133558.19eb6bb6.khali@linux-fr.org>
-In-Reply-To: <20060829133558.19eb6bb6.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Aug 30, 2006 at 01:45:15PM +0200, Jean Delvare wrote:
+Hello,
 
-> I am considering "No" as a replacement, it's short and neutral. 
+This patch adds promised documentation for the k8temp driver.
 
-I'm sorry, because I am not a programmer and can't help in that area.  But
-as a user it has struck me before that "Failed!" is kind of unnecessarily
-emphatic and alarming, like there is something "Wrong!".
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
 
-I agree with something like a simple "No" (without the exclamation point) to
-replace "Failed!".
-
-Michael
-
--- 
-
-San Francisco, CA
-
+Rudolf
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: k8temp_docs.patch
+Type: text/x-patch
+Size: 2257 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060829/fbcef857/attachment.bin 
