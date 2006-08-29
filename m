@@ -1,113 +1,298 @@
-From: drasko.draskovic@gmail.com (Drasko Draskovic)
-Date: Wed, 02 Aug 2006 08:30:34 +0000
-Subject: [lm-sensors] I2C for uCLinux on ARM926EJ (with AMBA bus)
-Message-Id: <5ec3d7930608020130l40ef55fdv5475834cc1c1c334@mail.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 29 Aug 2006 11:35:58 +0000
+Subject: [lm-sensors] [RFC] Improved sensors-detect output
+Message-Id: <20060829133558.19eb6bb6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5ec3d7930608010704g39ff5710u35686e708c152a7d@mail.gmail.com>
-In-Reply-To: <5ec3d7930608010704g39ff5710u35686e708c152a7d@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 8/1/06, Mark M. Hoffman <mhoffman at lightlink.com> wrote:
->
-> Hi:
->
-> (Again... moving to i2c list)
->
-> * Drasko Draskovic <drasko.draskovic at gmail.com> [2006-08-01 17:35:11
-> +0200]:
-> > On 8/1/06, Drasko Draskovic <drasko.draskovic at gmail.com> wrote:
-> > >
-> > >
-> > >Hi. I am working on a custom design that is based on ARM926EJ and AMBA
-> > >bus. OS of choice is uCLinux, patched with RTAI for RT performance. I
-> > >have to implement now I2C support, but looking at the existing driver
-> > >things seem a bit unclear for me.
-> > >
-> > >Here is what I unserstood:
-> > >i2c-core.c is independent of the bus and is kernel module. This should
-> > >be working. But  what about AMBA bus? Is it supported? Is this file for
-> > >support of AMBA located in 'busses' directory? What are algos files? As
-> > >I undersand, these are bus dependent. Is AMBA supported by these?
-> > >
-> > >If there are not, does anyone have idea how these can be written?
-> > >
-> > >How can a proper working of I2C be tested? Can some dummy I2C
-> > >peripheral be created in Linux?
-> > >
-> > >Any information will be more than helpful.
-> > >
-> > >
-> > I also want to ask following things:
-> > ARM has Amba Peripheral I2C Bus Controller (ApI2c), which I guess is a
-> > bridge between Amba and I2C (which comes out of the chip on two pins).
->
-> Ah, OK.  That's the thing for which you want to write an "adapter" driver.
->
-> > So, can you tell me:
-> > 1) what abot 'buses' part? It has to be dependeant on Amba?
->
-> You will need a driver in drivers/i2c/busses that supports the API2C.
->
-> > 2) what about 'chips part? Does it have to depend on ApI2c?
->
-> You may (or may not) need a driver in driver/i2c/chips to support whatever
-> it is that you plan to connect to your I2C bus.  Drivers in this directory
-> are independent of the I2C bus/adapter drivers.
->
-> Or, you could drive your I2C slave devices completely from userspace using
-> the i2c-dev mechanism.
->
-> > 3) Do I have to write only adapter part -- is this the peice of code
-> > that is ApI2c dependant, and not 'chips' part?
->
-> I don't know what you "have" to do.  In your first message you mention
-> "implement now I2C support".  This probably means (at least) writing an
-> API2C bus/adapter driver.
->
-> > I am still not clear which part of driver ('algos', 'busses', and
-> > 'chips') depends on what... And waht of existing I can use from existing
-> and
-> > what I
-> > have to write by myself.
->
-> Read Documentation/i2c/* please.
->
-> Regards,
->
-> --
-> Mark M. Hoffman
-> mhoffman at lightlink.com
->
->
-Hi,
-thank you all very much for your time, especially Mark.
+Hi all,
 
-So, it looks like I'll have to investigate bus/adapter for ApI2c. As I
-understand, since AMBA is supported in kernel, if adapter part of i2c driver
-code is writen for ApI2c, than I2C on this architecture would be functional
-(if I for example use eeprom as a pripheral, which is already supposrtd chip
-by lm code). Is this right?
+I am trying to make sensors-detect more user friendly. I made a first
+pass this morning, which is already committed to SVN, with the
+following changes:
 
-Also, I wanted to ask the question what about algos? Do I have to worry
-about that? I mean - is just writing adapter part enogh, so I can transmit
-and receive messages?
+* Kill the annoying blank space in front of half of the messages.
+* Stop frightening the user with problems which might have happened some
+  years ago, but are very rare nowadays.
+* Skip some messages on 2.6 kernels where they do not apply.
+* Don't even mention i2c-dev if it is already loaded or build into the
+  kernel.
+* Reword some messages.
 
-I am wondering -- how come that so popular architecture as ARM (adn AMBA
-ApI2c interface) is not already supported by lm code...
+These are relatively minor changes, but I hope that all these minor
+changes together can contribute to making users less confused by
+sensors-detect.
 
-Cheers,
+Now I have a second set of changes which make the output of
+sensors-detect look really different. My goals were:
+
+* Make the output more compact, as it has grown quite a bit over the
+  past two years with the addition of Super-I/O chip detection and
+  dozens of new chips.
+* Make successful probes more visible, not only for the user but also
+  for us when a user sends the output to us for investigation.
+* Make I2C/SMBus, ISA and Super-I/O probes look more alike.
+
+Here follows a sample output with my current changes applied.
+Ergonomics being partly subjective, I am interested in feedback. In
+other words, if someone thinks the new output is rather less clear than
+the original one, please let me know before I commit my changes.
+
+Thanks.
+
+* * * * *
+
+# sensors-detect revision 4120 (2006-08-29 11:17:56 +0200)
+
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
+
+We can start with probing for (PCI) I2C or SMBus adapters.
+Do you want to probe now? (YES/no): 
+Probing for PCI bus adapters...
+Use driver `i2c-viapro' for device 00:11.0: VIA Technologies VT8237 South Bridge
+Probe successfully concluded.
+
+We will now try to load each adapter module in turn.
+Load `i2c-viapro' (say NO if built into your kernel)? (YES/no): n
+If you have undetectable or unsupported adapters, you can have them
+scanned by manually loading the modules before running this script.
+
+We are now going to do the I2C/SMBus adapter probings. Some chips may
+be double detected; we choose the one with the highest confidence value
+in that case.
+If you found that the adapter hung after probing a certain address, you
+can specify that address to remain unprobed.
+
+Next adapter: DC10plus[0]
+Do you want to scan it? (YES/no/selectively): 
+Client found at address 0x2b
+Handled by driver `adv7175' (already loaded), chip type `adv7176'
+    (note: this is probably NOT a sensor chip!)
+Client found at address 0x4e
+Handled by driver `saa7110' (already loaded), chip type `saa7110'
+    (note: this is probably NOT a sensor chip!)
+Client found at address 0x50
+Probing for `Analog Devices ADM1033'...                     Failed!
+Probing for `Analog Devices ADM1034'...                     Failed!
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 1, driver `eeprom')
+Probing for `EDID EEPROM'...                                Failed!
+Probing for `Maxim MAX6900'...                              Failed!
+Client found at address 0x51
+Probing for `Analog Devices ADM1033'...                     Failed!
+Probing for `Analog Devices ADM1034'...                     Failed!
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 1, driver `eeprom')
+Client found at address 0x52
+Probing for `Analog Devices ADM1033'...                     Failed!
+Probing for `Analog Devices ADM1034'...                     Failed!
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 1, driver `eeprom')
+Client found at address 0x53
+Probing for `Analog Devices ADM1033'...                     Failed!
+Probing for `Analog Devices ADM1034'...                     Failed!
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 1, driver `eeprom')
+
+Next adapter: SMBus Via Pro adapter at 5000
+Do you want to scan it? (YES/no/selectively): 
+Client found at address 0x50
+Probing for `Analog Devices ADM1033'...                     Failed!
+Probing for `Analog Devices ADM1034'...                     Failed!
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 8, driver `eeprom')
+Probing for `EDID EEPROM'...                                Failed!
+Probing for `Maxim MAX6900'...                              Failed!
+Client found at address 0x51
+Probing for `Analog Devices ADM1033'...                     Failed!
+Probing for `Analog Devices ADM1034'...                     Failed!
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 8, driver `eeprom')
+Client found at address 0x69
+
+Next adapter: crt2
+Do you want to scan it? (YES/no/selectively): 
+
+Next adapter: vga
+Do you want to scan it? (YES/no/selectively): 
+
+Next adapter: dvi
+Do you want to scan it? (YES/no/selectively): 
+Client found at address 0x50
+Probing for `Analog Devices ADM1033'...                     Failed!
+Probing for `Analog Devices ADM1034'...                     Failed!
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 1, driver `eeprom')
+Probing for `EDID EEPROM'...                                Success!
+    (confidence 8, driver `eeprom'), other addresses: 0x51 0x52 0x53 0x54 0x55 0x56 0x57
+Probing for `Maxim MAX6900'...                              Failed!
+Client found at address 0x51
+Probing for `Analog Devices ADM1033'...                     Failed!
+Probing for `Analog Devices ADM1034'...                     Failed!
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 1, driver `eeprom')
+Client found at address 0x52
+Probing for `Analog Devices ADM1033'...                     Failed!
+Probing for `Analog Devices ADM1034'...                     Failed!
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 1, driver `eeprom')
+Client found at address 0x53
+Probing for `Analog Devices ADM1033'...                     Failed!
+Probing for `Analog Devices ADM1034'...                     Failed!
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 1, driver `eeprom')
+Client found at address 0x54
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 1, driver `eeprom')
+Client found at address 0x55
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 1, driver `eeprom')
+Client found at address 0x56
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 1, driver `eeprom')
+Client found at address 0x57
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 1, driver `eeprom')
+Probing for `Sony Vaio EEPROM'...                           Failed!
+
+Next adapter: monid
+Do you want to scan it? (YES/no/selectively): n
+
+Some chips are also accessible through the ISA I/O ports. We have to
+write to arbitrary I/O ports to do this. This is usually safe though.
+Yes, you do have ISA I/O ports even if you do not have any ISA slots!
+Do you want to scan the ISA I/O ports? (YES/no): 
+Probing for `National Semiconductor LM78' at 0x290...       Failed!
+Probing for `National Semiconductor LM78-J' at 0x290...     Failed!
+Probing for `National Semiconductor LM79' at 0x290...       Failed!
+Probing for `Winbond W83781D' at 0x290...                   Failed!
+Probing for `Winbond W83782D' at 0x290...                   Failed!
+Probing for `Winbond W83627HF' at 0x290...                  Failed!
+Probing for `Winbond W83627EHF' at 0x290...                 Failed!
+Probing for `Winbond W83627DHG' at 0x290...                 Failed!
+Probing for `Silicon Integrated Systems SIS5595'...         Failed!
+Probing for `VIA VT82C686 Integrated Sensors'...            Failed!
+Probing for `VIA VT8231 Integrated Sensors'...              Failed!
+Probing for `AMD K8 thermal sensors'...                     Success!
+    (confidence 9, driver `k8temp')
+Probing for `IPMI BMC KCS' at 0xca0...                      Failed!
+Probing for `IPMI BMC SMIC' at 0xca8...                     Failed!
+
+Some Super I/O chips may also contain sensors. We have to write to
+standard I/O ports to do this. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no): 
+Probing for `ITE 8702F Sensors' at 0x2e...                  Failed!
+Probing for `Nat. Semi. PC87351 Fan Sensors' at 0x2e...     Failed!
+Probing for `SMSC 47B27x Fan Sensors' at 0x2e...            Failed!
+Probing for `VT1211 Sensors' at 0x2e...                     Failed!
+Probing for `Winbond W83627EHF/EHG Sensors' at 0x2e...      Failed!
+Probing for `ITE 8702F Sensors' at 0x4e...                  Failed!
+Probing for `Nat. Semi. PC87351 Fan Sensors' at 0x4e...     Failed!
+Probing for `SMSC 47B27x Fan Sensors' at 0x4e...            Failed!
+Probing for `VT1211 Sensors' at 0x4e...                     Failed!
+    (found device ID 0x04)
+Probing for `Winbond W83627HF Sensors' at 0x4e...           Failed!
+Probing for `Winbond W83627THF Sensors' at 0x4e...          Failed!
+Probing for `Winbond W83637HF Sensors' at 0x4e...           Failed!
+Probing for `Winbond W83687THF Sensors' at 0x4e...          Failed!
+Probing for `Winbond W83697HF Sensors' at 0x4e...           Failed!
+Probing for `Winbond W83697SF/UF PWM' at 0x4e...            Failed!
+Probing for `Winbond W83L517D' at 0x4e...                   Failed!
+Probing for `Fintek F71805F/FG Sensors' at 0x4e...          Success!
+    (address 0x295, driver `f71805f')
+Probing for `Fintek F71872F/FG Sensors' at 0x4e...          Failed!
+Probing for `Fintek F81218D' at 0x4e...                     Failed!
+Probing for `Winbond W83627EHF/EHG Sensors' at 0x4e...      Failed!
+    (found device ID 0x0406)
+Probing for `Winbond W83627DHG Sensors' at 0x4e...          Failed!
+
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue: 
+
+Driver `eeprom' (should be inserted):
+  Detects correctly:
+  * Bus `DC10plus[0]'
+    Busdriver `UNKNOWN', I2C address 0x50
+    Chip `SPD EEPROM' (confidence: 1)
+  * Bus `DC10plus[0]'
+    Busdriver `UNKNOWN', I2C address 0x51
+    Chip `SPD EEPROM' (confidence: 1)
+  * Bus `DC10plus[0]'
+    Busdriver `UNKNOWN', I2C address 0x52
+    Chip `SPD EEPROM' (confidence: 1)
+  * Bus `DC10plus[0]'
+    Busdriver `UNKNOWN', I2C address 0x53
+    Chip `SPD EEPROM' (confidence: 1)
+  * Bus `SMBus Via Pro adapter at 5000'
+    Busdriver `i2c-viapro', I2C address 0x50
+    Chip `SPD EEPROM' (confidence: 8)
+  * Bus `SMBus Via Pro adapter at 5000'
+    Busdriver `i2c-viapro', I2C address 0x51
+    Chip `SPD EEPROM' (confidence: 8)
+  * Bus `dvi'
+    Busdriver `UNKNOWN', I2C address 0x50 (and 0x51 0x52 0x53 0x54 0x55 0x56 0x57)
+    Chip `EDID EEPROM' (confidence: 8)
+
+  EEPROMs are *NOT* sensors! They are data storage chips commonly
+  found on memory modules (SPD), in monitors (EDID), or in some
+  laptops, for example.
+
+Driver `k8temp' (should be inserted):
+  Detects correctly:
+  * ISA bus, undetermined address (Busdriver `i2c-isa')
+    Hint: Try forcing the chip address. Consult the documentation
+          of particular chip for details and address value.
+    Chip `AMD K8 thermal sensors' (confidence: 9)
+
+Driver `f71805f' (should be inserted):
+  Detects correctly:
+  * ISA bus address 0x0295 (Busdriver `i2c-isa')
+    Chip `Fintek F71805F/FG Super IO Sensors' (confidence: 9)
+
+I will now generate the commands needed to load the required modules.
+Just press ENTER to continue: 
+
+To make the sensors modules behave correctly, add these lines to
+/etc/modules.conf:
+
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+#----cut here----
+
+To load everything that is needed, add this to some /etc/rc* file:
+
+#----cut here----
+# I2C adapter drivers
+# modprobe unknown adapter monid
+# modprobe unknown adapter dvi
+# modprobe unknown adapter vga
+# modprobe unknown adapter crt2
+# modprobe unknown adapter DC10plus[0]
+modprobe i2c-viapro
+# Chip drivers
+modprobe eeprom
+modprobe k8temp
+modprobe f71805f
+# sleep 2 # optional
+/usr/local/bin/sensors -s # recommended
+#----cut here----
+
+If you have some drivers built into your kernel, the list above will
+contain too many modules. Skip the appropriate ones! You really
+should try these commands right now to make sure everything is
+working properly. Monitoring programs won't work until the needed
+modules are loaded.
+
+Do you want to generate /etc/sysconfig/lm_sensors? (YES/no): n
+
+
 -- 
-Drasko DRASKOVIC
+Jean Delvare
 
-Software Developer
-Elsys-DESIGN
-Belgrade, Serbia
-Tel. +381.11.311.5252
-Fax. +381.11.311.5251
-www.elsys-design.com
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060802/88c387b3/attachment-0001.html 
