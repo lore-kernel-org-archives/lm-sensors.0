@@ -1,24 +1,24 @@
 From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Tue, 29 Aug 2006 18:13:13 +0000
+Date: Tue, 29 Aug 2006 18:35:34 +0000
 Subject: [lm-sensors] [PATCH] k8temp documentation
-Message-Id: <44F483B9.5050202@sh.cvut.cz>
+Message-Id: <44F488F6.3000104@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <44F483B9.5050202@sh.cvut.cz>
+In-Reply-To: <44F483B9.5050202@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hi Jean,
 
-This patch adds promised documentation for the k8temp driver.
+> +The relation ship is following:
+  ^^^^^^^^^^^^^^^^^^^^
+Sorry I missed this. Please fix it.
 
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+I don't know the TjOffset value maybe someone has AM2 K8? (if so then lspci -xxx 
+please)
 
+Thanks.
 Rudolf
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: k8temp_docs.patch
-Type: text/x-patch
-Size: 2257 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060829/fbcef857/attachment.bin 
+
