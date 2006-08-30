@@ -1,7 +1,7 @@
-From: abo_gwapo@yahoo.com (Arnold)
-Date: Wed, 30 Aug 2006 07:07:59 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Wed, 30 Aug 2006 07:21:03 +0000
 Subject: [lm-sensors] I2C detection
-Message-Id: <20060830070759.25335.qmail@web55813.mail.re3.yahoo.com>
+Message-Id: <44F53C5F.10709@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060830013649.58038.qmail@web55812.mail.re3.yahoo.com>
 In-Reply-To: <20060830013649.58038.qmail@web55812.mail.re3.yahoo.com>
@@ -10,32 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guys,
+Hello,
 
-Could anyone help? I dont whats wrong with what Im
-doing. I really desperate, that I need any help that
-you could give. I am exploring I2C and I can not find
-any sensors on /proc/sys/dev/ and /proc/bus/I2C. And
-another thing is there anyone that could help me find
-another sensor that I could test I2C with my omap
-opensource kernel? Anything that could bring me back
-to the right track would be greatly appreciated. I am
-writing/reading to my I2C device right now but I am
-encountering problems. If I cat /dev/i2c-0 I am
-encountering Remote I/O error. But I can write a
-maximum of bytes only. Anyone knows anything? Thank
-you in advance
+Sorry this does not belong to hwmon mailing list. Please stop sending your 
+offtopic mails here in the rate of couple of mails on same topic IN SAME DAY!!!!
 
-Regards,
-OJ
-PS. 
- Im sorry guys but I think I need to post this to both
-list. Thanks.
+We are NOT paid support! We are doing that in our free time. Do not waste our 
+resources, such as with writing this mail.
 
+Thank you,
 
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Regards
+Rudolf
 
