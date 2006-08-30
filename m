@@ -1,7 +1,7 @@
 From: abo_gwapo@yahoo.com (Arnold)
-Date: Wed, 30 Aug 2006 07:07:46 +0000
+Date: Wed, 30 Aug 2006 07:07:59 +0000
 Subject: [lm-sensors] I2C detection
-Message-Id: <20060830070746.1024.qmail@web55808.mail.re3.yahoo.com>
+Message-Id: <20060830070759.25335.qmail@web55813.mail.re3.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060830013649.58038.qmail@web55812.mail.re3.yahoo.com>
 In-Reply-To: <20060830013649.58038.qmail@web55812.mail.re3.yahoo.com>
