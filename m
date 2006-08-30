@@ -1,71 +1,25 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 31 Aug 2006 20:12:26 +0000
-Subject: [lm-sensors] TODO: unchecked return codes from
-Message-Id: <20060831221226.d9009375.khali@linux-fr.org>
+From: A.Huisman@inter.nl.net (Age Huisman)
+Date: Wed, 30 Aug 2006 10:22:39 +0000
+Subject: [lm-sensors] request ITE IT8282M
+Message-Id: <200608301222.39414.A.Huisman@inter.nl.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060830030828.GB5104@jupiter.solarsys.private>
-In-Reply-To: <20060830030828.GB5104@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-My turn :)
+Hi,
 
-> > * Jim Cromie <jim.cromie at gmail.com> [2006-08-27 11:06:12 -0600]:
-> > > Here is a quick status summary for drivers/hwmon:
-> > > 
-> > > Done by Mark M. Hoffman:
->      o adm1021
->      o adm1025
->      o adm1026
->      o adm1031
->      o adm9240
-> > >  o asb100
-> > >  o lm75
-> >    o lm77
-> > >  o lm78
-> >    o lm80
-> >    o lm85
-> >    o lm87
-> >    o lm92
-> > >  o smsc47b397
-> > >  o w83627hf
-> > > 
-> > > Done by Jim Cromie:
-> > >  o pc87360
-> > > 
-> > > Will be done by David Hubbard:
-> > >  o w83627ehf
-> > > 
-      Done by Jean Delvare:
-       o f71805f
-       o lm63
-       o lm83
-       o lm90
+I have here a Epox 9U1697GLI motherboard.
+The sensor-chip is the ITE IT8282M.
+The link for the chip and the datasheet :
 
-> > > Will be done by me: (Jean)
-> > >  o it87
-> > > 
-> > > This leaves the following list:
-> > >  o abituguru
-> > >  o atxp1
-> > >  o ds1621
-> > >  o fscher
-> > >  o fscpos
-> > >  o gl518sm
-> > >  o gl520sm
-> > >  o max1619
-> > >  o sis5595
-> > >  o smsc47m1
-> > >  o smsc47m192
-> > >  o via686a
-> > >  o vt8231
-> > >  o w83781d
-> > >  o w83791d
-> > >  o w83792d
-> > >  o w83l785ts
+http://www.ite.com.tw/product_info/PC/Brief-IT8282_2.asp
 
--- 
-Jean Delvare
+Is there someone who is writing a driver for this chip
+at the moment ?
+
+tia
+
+Age
 
