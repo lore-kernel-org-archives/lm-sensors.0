@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 29 Aug 2006 19:04:50 +0000
+From: stevenkaratnyk@rogers.com (Steven Karatnyk)
+Date: Wed, 30 Aug 2006 01:37:41 +0000
 Subject: [lm-sensors] [PATCH] k8temp documentation
-Message-Id: <20060829210450.96f32ee6.khali@linux-fr.org>
+Message-Id: <44F4EBE5.6040206@rogers.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44F483B9.5050202@sh.cvut.cz>
 In-Reply-To: <44F483B9.5050202@sh.cvut.cz>
@@ -10,14 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
+Rudolf Marek wrote:
+> +Description
+> +-----------
+> +
+> +This driver allows to read temperature sensor(s) embedded inside AMD K8 CPUs.
+>   
 
-> I don't know the TjOffset value maybe someone has AM2 K8? (if so then lspci -xxx 
-> please)
+Perhaps instead: This driver permits reading of the temperature
+sensor(s) embedded inside AMD K8 CPUs.
+> +Official documentation says that it works from revision F of K8 core, but
+> +it fact it .... 
 
-I know Prakash and Juergen do have AM2 K8 systems, maybe they can
-provide the lspci -xxx you are looking for?
+...., but "in" fact it ....
 
--- 
-Jean Delvare
 
