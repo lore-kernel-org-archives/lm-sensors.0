@@ -1,48 +1,28 @@
-From: Axel.Thimm@ATrpms.net (Axel Thimm)
-Date: Mon, 14 Aug 2006 06:00:04 +0000
-Subject: [lm-sensors] snapshot generation
-Message-Id: <20060814060004.GA21873@neu.nirvana>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 31 Aug 2006 21:14:23 +0000
+Subject: [lm-sensors] [PATCH] Add VT8237A and VT8251 southbridges to
+Message-Id: <44F7512F.3080402@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <449D304E.5070603@sh.cvut.cz>
-In-Reply-To: <449D304E.5070603@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hello
 
-On Mon, Aug 14, 2006 at 07:49:30AM +0200, Jean Delvare wrote:
-> > On Sun, Aug 13, 2006 at 10:18:49AM +0200, Jean Delvare wrote:
-> > > It looks like the timestamps are not preserved by the snapshot
-> > > operation. Can it be improved?
-> > 
-> > Hm, that was how it was written, and that's how it ends if invoked
-> > manually. It looks like cron squashed my $HOME, where the subversion
-> > config variables are set, so I hardwired it into the scripts. Can you
-> > check on the next revision?
-> 
-> Timestamps are now properly preserved for regular files, but still not
-> for directories. Regular files are what I care mostly about anyway.
+This patch adds VT8237A and VT8251 southbridges to our i2c-viapro driver. 
+Documentation update included.
 
-I'm not even sure svn stores folder timestamps at all.
+Compile tested.
 
-Just FYI the flag to use to have svn co use the real timestamps of
-files is use-commit-times under [miscellany] in ~/.subversion/config.
+Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
 
-[You should think about switching it on on your own checkouts or not,
- as it may break your make building. See info automake cvs ("26.1.2
- Background: CVS and timestamps"). Though that's not an issue for
- creating tarballs, only for continuous updates/commits work cycles.]
-
-But I didn't find any switch to manipulate folder timestamps on
-checkouts/updates.
--- 
-Axel.Thimm at ATrpms.net
+Regards
+Rudolf
 -------------- next part --------------
 A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
+Name: vt8251_vt8237a_release.patch
+Type: text/x-patch
+Size: 2394 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060814/2dd39899/attachment.bin 
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060831/194e3f99/attachment.bin 
