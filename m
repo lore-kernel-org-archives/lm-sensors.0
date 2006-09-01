@@ -1,30 +1,21 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 28 Sep 2006 14:15:54 +0000
-Subject: [lm-sensors] libsysfs 2.x bug affects libsensors
-Message-Id: <20060928161554.7955b5e3.khali@linux-fr.org>
+Date: Fri, 01 Sep 2006 11:45:46 +0000
+Subject: [lm-sensors] [PATCH 2/2 RESEND 4] hwmon: add vt1211
+Message-Id: <20060901134546.d41fab99.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgYWxsLAoKSSBqdXN0IG5vdGljZWQgdGhhdCBsaWJzeXNmcyAyLnggaGFzIGEgYnVnIChvciBh
-dCBsZWFzdCBhIHNlcmlvdXMKbWlzLWZlYXR1cmUpIHdoaWNoIGFmZmVjdHMgbGlic2Vuc29ycy4K
-ClNpbmNlIGxtX3NlbnNvcnMgMi4xMC4wLCBsaWJzZW5zb3JzIHJlbGllcyBvbiBzeXNmc19nZXRf
-bW50X3BhdGgoKSB0bwpmaW5kIG91dCB3aGV0aGVyIHN5c2ZzIGlzIGF2YWlsYWJsZSBvciBub3Qs
-IGFuZCBmYWxsYmFja3MgdG8gcHJvY2ZzIHRvCmdldCB0aGUgc2Vuc29ycyBkYXRhIGlmIGl0IGlz
-bid0LiBXaXRoIGxpYnN5c2ZzIDEueCBpdCB3b3JrZWQgZmluZSwgYXMKc3lzZnNfZ2V0X21udF9w
-YXRoKCkgd291bGQgZmFpbCBpcyBzeXNmcyB3YXNuJ3QgbW91bnRlZC4gSG93ZXZlciwgc2luY2UK
-bGlic3lzZnMgMi4wLjAsIHN5c2ZzX2dldF9tbnRfcGF0aCgpIGFwcGVhcnMgdG8gc3VjY2VlZCBl
-dmVuIGlmIHN5c2ZzCmlzbid0IG1vdW50ZWQuIEFzIGEgY29uc2VxdWVuY2UsIGEgc3lzZnMtZW5h
-YmxlZCBsaWJzZW5zb3JzIHdpbGwgbm90Cndvcmsgb24gYSAyLjQga2VybmVsLiBTbyB0aGVyZSBp
-cyBjdXJyZW50bHkgbm8gd2F5IHRvIGJ1aWxkIGxpYnNlbnNvcnMKc28gdGhhdCBpdCdsbCB3b3Jr
-IG9uIGJvdGggMi40IGFuZCAyLjYga2VybmVscywgdW5sZXNzIHlvdSBnbyBiYWNrIHRvCmxpYnN5
-c2ZzIDEuMy4wLgoKSSBvcGVuZWQgYSBidWcgb24gc291cmNlZm9yZ2U6Cmh0dHA6Ly9zb3VyY2Vm
-b3JnZS5uZXQvdHJhY2tlci9pbmRleC5waHA/ZnVuY950YWlsJmFpZBU2NzA1MyZncm91cF9pZEQ0
-MjcmYXRpZEM5NTQ0CgpUaGVyZSBhcmUgc2V2ZXJhbCBxdWljayBmaXhlcyBwb3NzaWJsZS4uLiBU
-ZXN0aW5nIHRoZSBzdHJpbmcgcmV0dXJuZWQKYnkgInVuYW1lIC1yIiwgbG9va2luZyBmb3Igc3lz
-ZnMgaW4gL3Byb2MvbW91bnRzLCB0ZXN0aW5nIGlmIC9zeXMvYnVzCmV4aXN0cywgb3IgdGhlIG90
-aGVyIHdheSBhcm91bmQsIHRlc3RpbmcgaWYgL3Byb2Mvc3lzL2Rldi9zZW5zb3JzCmV4aXN0cy4K
-Ck9yIHdlIGNvdWxkIHN0b3AgdXNpbmcgbGlic3lzZnMgYWx0b2dldGhlci4uLgoKLS0gCkplYW4g
-RGVsdmFyZQoK
+> This patch adds documentation for the new VIA vt1211 Super-IO driver.
+> 
+> Signed-off-by: Juerg Haefliger <juergh at gmail.com
+
+Missing ">" ;)
+
+Applied, thanks.
+
+-- 
+Jean Delvare
+
