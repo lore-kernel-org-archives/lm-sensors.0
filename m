@@ -1,41 +1,34 @@
-From: greg@kroah.com (Greg KH)
-Date: Sun, 03 Sep 2006 06:41:35 +0000
-Subject: [lm-sensors] TODO: "dynamic" sysfs callbacks
-Message-Id: <20060903064135.GA11525@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 01 Sep 2006 10:25:37 +0000
+Subject: [lm-sensors] Call for testers: sis5595, via686a, vt8231
+Message-Id: <20060901122537.8ca8c804.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44F1E5B6.1080105@gmail.com>
-In-Reply-To: <44F1E5B6.1080105@gmail.com>
+References: <20060823210709.d338387d.khali@linux-fr.org>
+In-Reply-To: <20060823210709.d338387d.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Sep 03, 2006 at 08:08:02AM +0200, Jean Delvare wrote:
-> Greg KH wrote:
-> > On Sat, Sep 02, 2006 at 10:57:03PM +0200, Jean Delvare wrote:
-> > > The bus driver msleep()s, so it's rather an uninterruptible sleep?
-> > 
-> > Yes it is.
-> > 
-> > > Not that I know what different it makes in that context.
-> > 
-> > When you sleep in the kernel, in an uninterruptable state, it increases
-> > the load average spit out by the kernel by 1.  Now this really doesn't
-> > make that much sense, as the code is sleeping and not doing anything at
-> > all, but it plays havoc on tools that look at the load average of the
-> > machine to see what is going on.
-> > 
-> > That might be why users think the driver is taking up more cpu time than
-> > it really is, but it all depends on how they were measuring it.
-> 
-> OK, Thanks for the explanation. Isn't it possible to change the kernel
-> to not count sleeping processes in the load? That'd make people happier,
-> and the value more meaningful.
+Hi Roger,
 
-From what I remember, no, it is not simple to do this.  But feel free to
-poke at it, I really don't know how that code works :)
+> Apologies for my late reply on this.
 
-good luck,
+No worries :)
 
-greg k-h
+> I will be checking these patches next week - the VT8231 platform that I have
+> is currently in a live system and cannot be played with.  It should be
+> coming off-line next week (permanently) and I can then use it to test the
+> detection changes.
+
+OK, great. This is good because I also would like the vt8231 driver to
+be converted to a platform (or pci?) driver in a near future. It would
+be nice if you could help with testing, or even convert the driver
+yourself if you have time for this.
+
+Old server being replaced by brand new shiny hardware?
+
+Thanks,
+-- 
+Jean Delvare
 
