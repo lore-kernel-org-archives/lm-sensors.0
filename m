@@ -1,24 +1,34 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Thu, 14 Sep 2006 19:16:24 +0000
-Subject: [lm-sensors] w83627ehf-isa-0290 CPU fan rpm: wrong value
-Message-Id: <4dfa50520609141216r507a2218ud16e1b50f71fbba7@mail.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 01 Sep 2006 10:32:12 +0000
+Subject: [lm-sensors] Is the Intel i945G supported/planned?
+Message-Id: <20060901123212.cbbf6963.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <loom.20060908T163738-492@post.gmane.org>
-In-Reply-To: <loom.20060908T163738-492@post.gmane.org>
+References: <ce9ef0d90608291525r42520432gd67005073da32057@mail.gmail.com>
+In-Reply-To: <ce9ef0d90608291525r42520432gd67005073da32057@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Simone,
+Sunil,
 
-> Hi David,
-> I'm using 2.6.18-rc6 (official, without any other patch) and the
-> gregkh's patch isn't in that release (I believe...).
-> It'll be included in the final kernel release of 2.6.18 version?
+> yeah, I messed up a bit. i2c-dev is indeed a module and I didn't modprobe it
+> before I ran sensors-detect.
+> 
+> But doesn't make much difference. I re-ran the sensors-detect and this time
+> I asked it to load the i2c-dev. Didn't find any chip this time either.
 
-It has been accepted for inclusion in a kernel. I don't actually know
-how it works from there. I assume 2.6.18, but maybe 2.6.19... ?
+It may not make much difference for your old sensors-detect and for
+you, but it may make for us especially if you use the latest version of
+sensors-detect:
+http://www.lm-sensors.org/browser/lm-sensors/trunk/prog/detect/sensors-detect?format=txt
 
-David
+So please give it a try and report the full output. Maybe it won't find
+anything, maybe you just don't have sensors on that system, but at
+least we'll be sure.
+
+Is there any hardware monitoring information reported by the BIOS?
+
+-- 
+Jean Delvare
 
