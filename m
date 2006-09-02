@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 02 Sep 2006 21:05:22 +0000
+From: Axel.Thimm@ATrpms.net (Axel Thimm)
+Date: Sat, 02 Sep 2006 21:26:49 +0000
 Subject: [lm-sensors] wiki pages - update
-Message-Id: <44F9F212.5010609@sh.cvut.cz>
+Message-Id: <20060902212649.GR28210@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44F09CBA.60301@sh.cvut.cz>
 In-Reply-To: <44F09CBA.60301@sh.cvut.cz>
@@ -10,28 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Hi,
 
-Sorry for delay, this has been preempted by other tasks. I fixed the FAQ links,
-thank you Ric. I also added a link to wiki installation wizard...
-> 
-> Before doing that, we must take a decision about what the FAQ source
-> will be. Currently the FAQ source is a texi document, which is
-> converted to plain text and HTML and distributed with lm_sensors
-> itself. Rudolf Marek merged it into the wiki, so now we have two
-> versions. I will let him explain what are his plans for the future. We
-> certainly don't want to maintain two sources for the FAQ.
-> 
+On Sat, Sep 02, 2006 at 11:05:22PM +0200, Rudolf Marek wrote:
+> 1) we need user/web managed accounts so people can edit the wiki pages. Axel
+> please how does this look like?
 
-My plan:
-1) we need user/web managed accounts so people can edit the wiki pages. Axel
-please how does this look like?
-2) The FAQ could be shortened or newly created.
-3) If we decide for some kind of wiki FAQ as the source, we may generate a html
-snapshot and TXT version and ship it with lm-sensors release. I tried already
-http://ssh.cz/~ruik/Chapter1 and it does not look bad.
-
-Do we agree on this?
-Regards
-Rudolf
-
+there was a private thread on this on May 31st between yourself, Jean
+Delvare, Philip Edelbrock and myself which describes how to add new
+i2c/lm-sensors/trac accounts (search for subject "anonymous and
+milestones"). Any of these four has shell access and can
+add/remove/modify these accounts.
+-- 
+Axel.Thimm at ATrpms.net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060902/b307cbe3/attachment.bin 
