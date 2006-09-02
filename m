@@ -1,117 +1,89 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 23 Sep 2006 20:53:27 +0000
-Subject: [lm-sensors] [PATCH] hwmon: unchecked return status fixes
-Message-Id: <20060923225327.571284be.khali@linux-fr.org>
+Date: Sat, 02 Sep 2006 15:25:12 +0000
+Subject: [lm-sensors] [RFC] Generic device detection in sensors-detect
+Message-Id: <20060902172512.960d5eca.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060831220610.19a79141.khali@linux-fr.org>
-In-Reply-To: <20060831220610.19a79141.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mark,
+Hi all,
 
-> * Jean Delvare <khali at linux-fr.org> [2006-09-22 13:45:59 +0200]:
-> > Fix up 5 more hwmon drivers so that they no longer ignore return
-> > status from device_create_file(). Untested.
-> > 
-> > Signed-off-by: Jean Delvare <khali at linux-fr.org>
-> > ---
-> >  drivers/hwmon/atxp1.c   |   24 +++++++++--
-> >  drivers/hwmon/ds1621.c  |   27 +++++++++----
-> >  drivers/hwmon/max1619.c |   32 +++++++++++----
-> >  drivers/hwmon/sis5595.c |  100 +++++++++++++++++++++++++++++++++--------------
-> >  drivers/hwmon/via686a.c |   82 +++++++++++++++++++++++----------------
-> >  5 files changed, 180 insertions(+), 85 deletions(-)
-> 
-> You should add '#include <linux/sysfs.h>' to all of these.  Also...
+Now that I'm done with all the cleanups in sensors-detect, I thought it
+would be refreshing to go for some inovation. Two ideas came to my
+mind, both related to generic device detection. So far, sensors-detect
+is essentially a long list of known devices to look for on the target
+system. I think we could go one step further, and try to detect chips
+we don't know about yet.
 
-Yes, you're right. I've done so.
+1* PCI devices have a class field, which describes the main
+functionality of the device. SMBus is one of the possible classes since
+PCI 2.2. Most recent SMBus adapters have their class properly set to
+0x0c05 (SMBus), with the notable exception of the VIA ones.
 
-BTW, there are a lot of drivers missing it as well (basically all the
-drivers which were converted early, including all of yours.) Should I
-edit all the patches before I send them to Greg?
+Thus my first idea is to look for such devices even if we don't know
+about the exact model yet. Patch attached
+(sensors-detect-generic-pci.patch), sample output follows:
 
-> > --- linux-2.6.18.orig/drivers/hwmon/sis5595.c	2006-09-21 21:41:50.000000000 +0200
-> > +++ linux-2.6.18/drivers/hwmon/sis5595.c	2006-09-22 13:30:36.000000000 +0200
-> > @@ -566,43 +610,37 @@
-> >  	}
-> >  
-> >  	/* Register sysfs hooks */
-> > +	if ((err = sysfs_create_group(&new_client->dev.kobj, &sis5595_group)))
-> > +		goto exit_detach;
-> > +	if (data->maxins = 4) {
-> > +		if ((err = device_create_file(&new_client->dev,
-> > +					      &dev_attr_in4_input))
-> > +		 || (err = device_create_file(&new_client->dev,
-> > +					      &dev_attr_in4_min))
-> > +		 || (err = device_create_file(&new_client->dev,
-> > +					      &dev_attr_in4_max)))
-> > +			goto exit_remove_files;
-> > +	} else {
-> 
-> This else implies data->maxins = 3 right?  Just checking.
+  We can start with probing for (PCI) I2C or SMBus adapters.
+  Do you want to probe now? (YES/no): 
+  Probing for PCI bus adapters...
+  Found unknown SMBus adapter 8086:2483 at 00:1f:3.
 
-I assumed so, but you're right to ask. Fortunately, after checking, it
-appears to be correct.
+I'm not exactly satisfied with the implementation, but feel tree to
+comment on the idea nevertheless. To try it out, apply the patch, then
+in @pci_adapters, comment out the entry for your own SMBus adapter.
 
-> > +		if ((err = device_create_file(&new_client->dev,
-> > +					      &dev_attr_temp1_input))
-> > +		 || (err = device_create_file(&new_client->dev,
-> > +					      &dev_attr_temp1_max))
-> > +		 || (err = device_create_file(&new_client->dev,
-> > +					      &dev_attr_temp1_max_hyst)))
-> > +			goto exit_remove_files;
-> > +	}
-> > +
-> >  	data->class_dev = hwmon_device_register(&new_client->dev);
-> >  	if (IS_ERR(data->class_dev)) {
-> >  		err = PTR_ERR(data->class_dev);
-> > -		goto exit_detach;
-> > +		goto exit_remove_files;
-> >  	}
-> >  
-> > -	device_create_file(&new_client->dev, &dev_attr_in0_input);
-> > -	device_create_file(&new_client->dev, &dev_attr_in0_min);
-> > -	device_create_file(&new_client->dev, &dev_attr_in0_max);
-> > -	device_create_file(&new_client->dev, &dev_attr_in1_input);
-> > -	device_create_file(&new_client->dev, &dev_attr_in1_min);
-> > -	device_create_file(&new_client->dev, &dev_attr_in1_max);
-> > -	device_create_file(&new_client->dev, &dev_attr_in2_input);
-> > -	device_create_file(&new_client->dev, &dev_attr_in2_min);
-> > -	device_create_file(&new_client->dev, &dev_attr_in2_max);
-> > -	device_create_file(&new_client->dev, &dev_attr_in3_input);
-> > -	device_create_file(&new_client->dev, &dev_attr_in3_min);
-> > -	device_create_file(&new_client->dev, &dev_attr_in3_max);
-> > -	if (data->maxins = 4) {
-> > -		device_create_file(&new_client->dev, &dev_attr_in4_input);
-> > -		device_create_file(&new_client->dev, &dev_attr_in4_min);
-> > -		device_create_file(&new_client->dev, &dev_attr_in4_max);
-> > -	}
-> > -	device_create_file(&new_client->dev, &dev_attr_fan1_input);
-> > -	device_create_file(&new_client->dev, &dev_attr_fan1_min);
-> > -	device_create_file(&new_client->dev, &dev_attr_fan1_div);
-> > -	device_create_file(&new_client->dev, &dev_attr_fan2_input);
-> > -	device_create_file(&new_client->dev, &dev_attr_fan2_min);
-> > -	device_create_file(&new_client->dev, &dev_attr_fan2_div);
-> > -	device_create_file(&new_client->dev, &dev_attr_alarms);
-> > -	if (data->maxins = 3) {
-> > -		device_create_file(&new_client->dev, &dev_attr_temp1_input);
-> > -		device_create_file(&new_client->dev, &dev_attr_temp1_max);
-> > -		device_create_file(&new_client->dev, &dev_attr_temp1_max_hyst);
-> > -	}
-> >  	return 0;
-> >  
-> > +exit_remove_files:
-> > +	sysfs_remove_group(&new_client->dev.kobj, &sis5595_group);
-> > +	sysfs_remove_group(&new_client->dev.kobj, &sis5595_group_opt);
-> >  exit_detach:
-> >  	i2c_detach_client(new_client);
-> >  exit_free:
+2* The interface to Super-I/O chips is mostly standard, so we should be
+able to talk even to Super-I/O chips we don't specifically know about.
+The logical device used for hardware monitoring differs from one chip
+to the next, but a good half of the chips (Winbond, ITE and Fintek
+ones) still use the legacy I/O address 0x290 for hardware monitoring.
 
-Thanks for the review!
+Thus my second idea is to scan all the logical devices when we find an
+unknown Super-I/O chip, and see if one is set to I/O address 0x290 or
+nearby. If we find one, this means that this unknown Super-I/O chip
+most certainly embeds hardware monitoring features, and we can tell
+that the user. Patch attached (sensors-detect-generic-superio.patch),
+sample output follows:
+
+  Some Super I/O chips may also contain sensors. We have to write to
+  standard I/O ports to probe them. This is usually safe.
+  Do you want to scan for Super I/O sensors? (YES/no): 
+  Probing for Super-I/O at 0x2e/0x2f
+  Trying family `ITE'...                                      No
+  Trying family `National Semiconductor'...                   No
+  Trying family `SMSC'...                                     No
+  Trying family `VIA/Winbond/Fintek'...                       No
+  Probing for Super-I/O at 0x4e/0x4f
+  Trying family `ITE'...                                      No
+  Trying family `National Semiconductor'...                   No
+  Trying family `SMSC'...                                     No
+  Trying family `VIA/Winbond/Fintek'...                       Yes
+  Found unknown chip with ID 0x0406
+      (logical device 4 has address 0x295, could be sensors)
+
+This patch is simple and clean, and I think could be applied as is. The
+only change I might do is to only attempt a guess for the "ITE" and
+"VIA/Winbond/Fintek" families, as we've never seen an SMSC or National
+Semiconductor Super-I/O chip with hardware monitoring device at 0x290
+anyway.
+
+To try it out, apply the patch, then in @superio_ids, comment out the
+entry for your own Super-I/O chip.
+
+Testers and comments welcome. The goal of these changes is to make it
+easier for us to investigate when users with brand new hardware report
+"no sensors found".
 
 -- 
 Jean Delvare
-
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: sensors-detect-generic-pci.patch
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060902/613438a3/attachment-0002.pl 
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: sensors-detect-generic-superio.patch
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060902/613438a3/attachment-0003.pl 
