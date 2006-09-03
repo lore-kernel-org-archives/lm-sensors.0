@@ -1,46 +1,72 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 25 Sep 2006 16:08:32 +0000
-Subject: [lm-sensors] w83627hf and w83781d fancontrol support
-Message-Id: <20060925180832.731e2697.khali@linux-fr.org>
+Date: Sun, 03 Sep 2006 13:24:23 +0000
+Subject: [lm-sensors] TODO: unchecked return codes from
+Message-Id: <20060903152423.4f60f3d8.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4517F3B2.3000504@gmail.com>
-In-Reply-To: <4517F3B2.3000504@gmail.com>
+References: <20060830030828.GB5104@jupiter.solarsys.private>
+In-Reply-To: <20060830030828.GB5104@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I see you going well with the development of winbond chips. I tried to 
-> make the fancontrol work with this 2 chip since a month without success. 
-> Can you tell me now it's changed or not?
+Restarting the list from scratch for clarity:
 
-No, there were no change in this area recently. The W83781D chip does
-not support fan speed control, so I wonder what you have been actually
-trying with this one. All it can do is fan on/off, but our (w83781d)
-driver doesn't actually implement this, and I am not aware of any
-motherboard needing it. These fan switches are the same pins used for
-fan monitoring, so using them means that you monitor fewer or no fans -
-not really interesting.
+Done by Mark M. Hoffman:
+ o adm1021
+ o adm1025
+ o adm1026
+ o adm1031
+ o adm9240
+ o asb100
+ o lm75
+ o lm77
+ o lm78
+ o lm80
+ o lm85
+ o lm87
+ o lm92
+ o smsc47b397
+ o w83627hf
 
-The W83627HF chip does support fan speed control (2 PWM channels), and
-our (w83627hf) driver does support that. It works OK as far as I know.
-It does not (yet) support clock frequency selection though, while the
-chip can do it.
+Done by Jim Cromie:
+ o pc87360
 
-Put in short, if you can't control the fans on a specific motherboard,
-it's more likely because that motherboard was not properly wired for
-fan speed control in the first place, and in that case there's nothing
-we can do. If you have a proof that the board is properly wired an our
-drivers still won't let you control the fans, please provide all the
-information you have so that we can investigate.
+Done by David Hubbard:
+ o w83627ehf
 
-> I using the newer kernel and sensors version 2.9.2 with libsensors 
-> version 2.9.2 (ubuntu packages).
-> BTW there are some problems with your SVN.
+Done by Jean Delvare:
+ o f71805f
+ o fscher
+ o fscpos
+ o gl518sm
+ o gl520sm
+ o it87
+ o lm63
+ o lm83
+ o lm90
 
-If you don't tell us what problems you have with SVN, the probability
-that we help you is 0.
+This leaves the following list:
+ o abituguru
+ o atxp1
+ o ds1621
+ o max1619
+ o sis5595
+ o smsc47m1
+ o smsc47m192
+ o via686a
+ o vt8231
+ o w83781d
+ o w83791d
+ o w83792d
+ o w83l785ts
 
+I'd like to remind everyone that this is an easy task, just look at the
+patches submitted by either Mark of me, and do the same. So if you are
+using one of the remaining drivers, please consider converting it and
+sending the patch back to us.
+
+Thanks,
 -- 
 Jean Delvare
 
