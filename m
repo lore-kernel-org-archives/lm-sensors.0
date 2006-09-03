@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 03 Sep 2006 06:08:02 +0000
+From: greg@kroah.com (Greg KH)
+Date: Sun, 03 Sep 2006 06:41:35 +0000
 Subject: [lm-sensors] TODO: "dynamic" sysfs callbacks
-Message-Id: <20060903080802.41e2c2b0.khali@linux-fr.org>
+Message-Id: <20060903064135.GA11525@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44F1E5B6.1080105@gmail.com>
 In-Reply-To: <44F1E5B6.1080105@gmail.com>
@@ -10,32 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Greg KH wrote:
-> On Sat, Sep 02, 2006 at 10:57:03PM +0200, Jean Delvare wrote:
-> > The bus driver msleep()s, so it's rather an uninterruptible sleep?
+On Sun, Sep 03, 2006 at 08:08:02AM +0200, Jean Delvare wrote:
+> Greg KH wrote:
+> > On Sat, Sep 02, 2006 at 10:57:03PM +0200, Jean Delvare wrote:
+> > > The bus driver msleep()s, so it's rather an uninterruptible sleep?
+> > 
+> > Yes it is.
+> > 
+> > > Not that I know what different it makes in that context.
+> > 
+> > When you sleep in the kernel, in an uninterruptable state, it increases
+> > the load average spit out by the kernel by 1.  Now this really doesn't
+> > make that much sense, as the code is sleeping and not doing anything at
+> > all, but it plays havoc on tools that look at the load average of the
+> > machine to see what is going on.
+> > 
+> > That might be why users think the driver is taking up more cpu time than
+> > it really is, but it all depends on how they were measuring it.
 > 
-> Yes it is.
-> 
-> > Not that I know what different it makes in that context.
-> 
-> When you sleep in the kernel, in an uninterruptable state, it increases
-> the load average spit out by the kernel by 1.  Now this really doesn't
-> make that much sense, as the code is sleeping and not doing anything at
-> all, but it plays havoc on tools that look at the load average of the
-> machine to see what is going on.
-> 
-> That might be why users think the driver is taking up more cpu time than
-> it really is, but it all depends on how they were measuring it.
+> OK, Thanks for the explanation. Isn't it possible to change the kernel
+> to not count sleeping processes in the load? That'd make people happier,
+> and the value more meaningful.
 
-OK, Thanks for the explanation. Isn't it possible to change the kernel
-to not count sleeping processes in the load? That'd make people happier,
-and the value more meaningful.
+From what I remember, no, it is not simple to do this.  But feel free to
+poke at it, I really don't know how that code works :)
 
-We still should convert our drivers to be interrupt-driven anyway, as
-the SMBus transactions would be much faster that way. If it makes the
-average load _look_ lower, it can't hurt from a marketing point of
-view ;)
+good luck,
 
--- 
-Jean Delvare
+greg k-h
 
