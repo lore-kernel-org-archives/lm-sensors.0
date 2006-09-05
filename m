@@ -1,31 +1,46 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Fri, 01 Sep 2006 18:20:28 +0000
-Subject: [lm-sensors] [RFC PATCH 2.6.18-rc4-mm1] hwmon: unchecked return
-Message-Id: <4dfa50520609011120h3052db5fmf76c7a8f9820a6fe@mail.gmail.com>
+From: pjkonweb@gmail.com (Prakash J K)
+Date: Tue, 05 Sep 2006 23:32:12 +0000
+Subject: [lm-sensors] lm_sensors trigger pc buzzer beeping continuously
+Message-Id: <5251aaf50609051620r683eb75fm95d738c444ff86da@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060814020407.GA3327@jupiter.solarsys.private>
-In-Reply-To: <20060814020407.GA3327@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+hello all,
+i use a gigabyte mobo(GA-8I915GV-MF)with i915GV chipset and only CPU
+temperature sensor available.it shows CPU temp correctly.now i configure it
+with`sensors-detect` and it detected driver `it87'.the problem is during
+booting itself after sometime it triggers PC beeping continuously.am quoting
+results below.
+Driver `it87' (should be inserted):
+Detects correctly:
+* ISA bus address 0x0290 (Busdriver `i2c-isa')
+Chip `ITE 8712F Super IO Sensors' (confidence: 9)
+To make the sensors modules behave correctly, add these lines to
+/etc/modprobe.conf:
 
-> Back to the mailing-list, as I doubt you replied to me privately on
-> purpose?
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+#----cut here----
 
-Oops, yes, I forgot.
+To load everything that is needed, add this to some /etc/rc* file:
 
-> Applied, with two minor edits:
->
-> * Moved the "Register sysfs hooks" comment back to where it belongs.
-> * In w83627ehf_detach_client, call hwmon_device_unregister before
-> w83627ehf_device_remove_files. It probably doesn't matter much as
-> everything ends up being removed, but it looks less confusing for
-> userspace that way.
-
-Okay, that's good.
-
-David
-
+#----cut here----
+# I2C adapter drivers
+modprobe i2c-isa
+# I2C chip drivers
+modprobe it87
+# sleep 2 # optional
+/usr/bin/sensors -s # recommended
+#----cut here----
+now one think i noticed is `sensors` gave all o/p along with CPU
+temp(correctly)~33degrees and the non-existent M/B temp as -55 and temp3 as
+-12degrees.
+so i disabled those temps by ignore temp1 and temp3 and ran `sensors -s`.no
+luxk yet as still beeps.help me ppl,it really hurts this beeping pals.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060906/a6a20532/attachment.html 
