@@ -1,7 +1,7 @@
 From: michaelnel@comcast.net (Michael Nelson)
-Date: Wed, 06 Sep 2006 14:07:49 +0000
+Date: Wed, 06 Sep 2006 14:26:50 +0000
 Subject: [lm-sensors] Asus P5B Deluxe WiFi AP Sensors
-Message-Id: <20060906140749.GA8143@seahunt.dyndns.org>
+Message-Id: <20060906142650.GA4641@seahunt.dyndns.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060822145643.GA5632@seahunt.dyndns.org>
 In-Reply-To: <20060822145643.GA5632@seahunt.dyndns.org>
@@ -10,22 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 06, 2006 at 04:03:37PM +0200, Jean Delvare wrote:
+On Wed, Sep 06, 2006 at 07:07:49AM -0700, Michael Nelson wrote:
 
-> You should start with a self-compiled 2.6.17.11 kernel first. If it
-> works, try 2.6.18-rc6. It's a bit odd to try -rc4 when -rc6 is already
-> there. The problem you are hitting may have been fixed already.
+> Hmmm.  I tried the 2.6.18-rc4 because that is the one the patch is against.
+> I will grab the -rc6 and see if that works.
 
-Hmmm.  I tried the 2.6.18-rc4 because that is the one the patch is against.
-I will grab the -rc6 and see if that works.
+The patch fails to apply on rc6:
 
-The stock Suse kernel that works fine but without support for my chip is
-2.6.16.21-0.13-smp.  I have not tried the 2.6.17.11 kernel at all.
+File to patch: linux/drivers/hwmon/w83627ehf.c
+patching file linux/drivers/hwmon/w83627ehf.c
+Hunk #1 FAILED at 34.
+Hunk #2 succeeded at 113 (offset -3 lines).
+Hunk #3 succeeded at 249 (offset -37 lines).
+Hunk #4 succeeded at 412 (offset -48 lines).
+Hunk #5 FAILED at 1201.
+Hunk #6 FAILED at 1241.
+3 out of 6 hunks FAILED -- saving rejects to file
+linux/drivers/hwmon/w83627ehf.c.rej
 
-I doubt I will get much more done on this this morning, as I have to leave
-for work soon.
-
-Thanks for the help.
+I don't think I can hand apply this patch to either the suse 2.6.16 source
+or this rc6... I am over my head here, folks, sorry.
 
 Michael
 
