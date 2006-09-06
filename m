@@ -1,53 +1,24 @@
-From: roger@planbit.co.uk (Roger Lucas)
-Date: Fri, 01 Sep 2006 10:32:06 +0000
-Subject: [lm-sensors] Call for testers: sis5595, via686a, vt8231
-Message-Id: <20060901103411.54D3712EE1@bluewhale.planbit.co.uk>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Wed, 06 Sep 2006 03:34:18 +0000
+Subject: [lm-sensors] libsensors config file scanner speed
+Message-Id: <20060906033418.GA7775@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060823210709.d338387d.khali@linux-fr.org>
-In-Reply-To: <20060823210709.d338387d.khali@linux-fr.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-> -----Original Message-----
-> From: Jean Delvare [mailto:khali at linux-fr.org]
-> Sent: 01 September 2006 11:26
-> To: Roger Lucas
-> Cc: 'LM Sensors'
-> Subject: Re: [lm-sensors] Call for testers: sis5595, via686a, vt8231
-> 
-> Hi Roger,
-> 
-> > Apologies for my late reply on this.
-> 
-> No worries :)
-> 
-> > I will be checking these patches next week - the VT8231 platform that I
-> have
-> > is currently in a live system and cannot be played with.  It should be
-> > coming off-line next week (permanently) and I can then use it to test
-> the
-> > detection changes.
-> 
-> OK, great. This is good because I also would like the vt8231 driver to
-> be converted to a platform (or pci?) driver in a near future. It would
-> be nice if you could help with testing, or even convert the driver
-> yourself if you have time for this.
-
-No problem.
-
-> 
-> Old server being replaced by brand new shiny hardware?
-
-Yep.  A set of older low-power servers are in the process ob being replaced
-by equivalent virtual server in a shiny new Xen machine.  Faster, cheaper,
-lower power and MUCH easier to manage...
-
-> 
-> Thanks,
-> --
-> Jean Delvare
-
-
+SGkgYWxsOgoKSSd2ZSBjb21taXR0ZWQgYWxsIG9mIG15IHdvcmsgdG8gZGF0ZSBvbiB0aGUgbGli
+c2Vuc29ycyBjb25maWcgZmlsZSBzY2FubmVyCnRvIFNWTi4gIEl0IGlzIG9uIHRoZSBicmFuY2gg
+Y2FsbGVkIHNjYW5uZXItb3B0LWJyYW5jaC4gIEknbSBwcmV0dHkgaGFwcHkKYWJvdXQgdGhlIHJl
+c3VsdHMgc28gZmFyLi4uCgojIHcvIHc4MzYyN2hmIGxvYWRlZAojIGFsc28sIHVzZSBERUJVRzo9
+MSBpbiB0aGUgTWFrZWZpbGUKCiQgdmFsZ3JpbmQgLS10b29symxsZ3JpbmQgc2Vuc29ycyAtdSAt
+YyBldGMvc2Vuc29ycy5jb25mLmVnCiQga2NhY2hlZ3JpbmQgY2FsbGdyaW5kLm91dC5OTk5OCgpU
+b3RhbCBjeWNsZXMgYmVmb3JlOgl+MTEuMk0KVG90YWwgY3ljbGVzIGFmdGVyOgl+IDcuM00KVG90
+YWwgc3BlZWR1cDoJCX4gMS41eAoKU2Nhbm5lciBjeWNsZXMgYmVmb3JlOgl+IDUuOU0KU2Nhbm5l
+ciBjeWNsZXMgYWZ0ZXI6CX4gMi4wTQpTY2FubmVyIHNwZWVkdXA6CX4gMy4weAoKSSdtIGdvaW5n
+IHRvIGtlZXAgaXQgb24gdGhlIGJyYW5jaCB1bnRpbCAoMSkgd2UgcmVsZWFzZSAyLjEwLjEsIGFu
+ZCAoMikgSQpjcmVhdGUgc29tZSBzb3J0IG9mIHJlZ3Jlc3Npb24gdGVzdCBmb3IgaXQuICBGb3Ig
+bm93IGF0IGxlYXN0LCBpdCBoYXMgbm8KKmtub3duKiBidWdzLiAgR2l2ZSBpdCBhIHRyeTsgbGV0
+IG1lIGtub3cgaWYgeW91IGhhdmUgdHJvdWJsZS4KClJlZ2FyZHMsCgotLSAKTWFyayBNLiBIb2Zm
+bWFuCm1ob2ZmbWFuIGF0IGxpZ2h0bGluay5jb20KCgo=
