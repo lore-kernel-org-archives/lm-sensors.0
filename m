@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 06 Sep 2006 14:40:46 +0000
+From: michaelnel@comcast.net (Michael Nelson)
+Date: Wed, 06 Sep 2006 15:07:24 +0000
 Subject: [lm-sensors] Asus P5B Deluxe WiFi AP Sensors
-Message-Id: <20060906164046.abf493f5.khali@linux-fr.org>
+Message-Id: <20060906150724.GA5746@seahunt.dyndns.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060822145643.GA5632@seahunt.dyndns.org>
 In-Reply-To: <20060822145643.GA5632@seahunt.dyndns.org>
@@ -10,34 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> On Wed, Sep 06, 2006 at 07:07:49AM -0700, Michael Nelson wrote:
-> 
-> > Hmmm.  I tried the 2.6.18-rc4 because that is the one the patch is against.
-> > I will grab the -rc6 and see if that works.
-> 
-> The patch fails to apply on rc6:
-> 
-> File to patch: linux/drivers/hwmon/w83627ehf.c
-> patching file linux/drivers/hwmon/w83627ehf.c
-> Hunk #1 FAILED at 34.
-> Hunk #2 succeeded at 113 (offset -3 lines).
-> Hunk #3 succeeded at 249 (offset -37 lines).
-> Hunk #4 succeeded at 412 (offset -48 lines).
-> Hunk #5 FAILED at 1201.
-> Hunk #6 FAILED at 1241.
-> 3 out of 6 hunks FAILED -- saving rejects to file
-> linux/drivers/hwmon/w83627ehf.c.rej
+On Wed, Sep 06, 2006 at 07:26:50AM -0700, Michael Nelson wrote:
 
-The file drivers/hwmon/w83627ehf.c did not change between rc4 and rc6,
-so if the patch applied to rc4 it should apply fine to rc6 as well. I
-guess you messed up somewhere... Please retry.
+I got the 2.6.18-rc6 kernel to build and boot.  Now to see if I can get that
+patch to apply.
 
-> I don't think I can hand apply this patch to either the suse 2.6.16 source
-> or this rc6... I am over my head here, folks, sorry.
-
-I confirm it won't work on Suse's 2.6.16, as the driver had a big
-update in 2.6.17 and once more in 2.6.18-rc1.
+Michael
 
 -- 
-Jean Delvare
+
+San Francisco, CA
 
