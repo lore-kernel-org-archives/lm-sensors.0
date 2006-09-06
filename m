@@ -1,7 +1,7 @@
-From: michaelnel@comcast.net (Michael Nelson)
-Date: Wed, 06 Sep 2006 15:28:59 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Wed, 06 Sep 2006 18:08:33 +0000
 Subject: [lm-sensors] Asus P5B Deluxe WiFi AP Sensors
-Message-Id: <20060906152859.GA6180@seahunt.dyndns.org>
+Message-Id: <4dfa50520609061108k54989720w76d0d64fedc289d9@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060822145643.GA5632@seahunt.dyndns.org>
 In-Reply-To: <20060822145643.GA5632@seahunt.dyndns.org>
@@ -10,28 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 06, 2006 at 08:07:24AM -0700, Michael Nelson wrote:
-> On Wed, Sep 06, 2006 at 07:26:50AM -0700, Michael Nelson wrote:
-> 
-> I got the 2.6.18-rc6 kernel to build and boot.  Now to see if I can get that
-> patch to apply.
+I just realized that the patch I sent is against the newest w83627ehf
+driver, which is not in the kernel yet. However, the .c file includes
+all the patches. Please use that file.
 
-I dropped the w83627ehf.c file into the
-/usr/src/linux-2.6.18-rc6/drivers/hwmon directory and rebuilt kernel and
-modules. It built fine, but after reboot it fails to load:
+The "No such device" error is probably here in the source code:
+		dev_err(dev, "unknown CHIP_ID (0x%02x)\n", i);
+		err = -ENODEV;
+		goto exit_remove;
 
-# sh /home/michaeln/w83627ehf_regression.sh
-* WARNING: This will run your system fans through many possible
-           combinations. There is a possibility your system will
-           overheat. Use this script at your own risk!
-No w83627ehf driver in system. Loading module.
-FATAL: Error inserting w83627ehf
-(/lib/modules/2.6.18-rc6-smp/kernel/drivers/hwmon/w83627ehf.ko): No such
-device
+This error occurs if the chip is not recognized in w83627ehf_detect():
 
-Michael
+	/* Detect w83627ehf (10 VIN) and w83627dhg (9 VIN) */
+	i = w83627ehf_read_value(client, W83627EHF_REG_CHIP_ID);
+	if (i = 0xa1) {	/* w83627ehf */
+		dev_dbg(dev, "detected W83627EHF/EHG (A1)\n");
+		data->num_in = 10;
+	}
+	else if (i = 0xc1) {	/* w83627dhg */
+		dev_dbg(dev, "detected W83627DHG (C1)\n");
+		data->num_in = 9;
+	}
+	else {
+		dev_err(dev, "unknown CHIP_ID (0x%02x)\n", i);
+		err = -ENODEV;
+		goto exit_remove;
+	}
 
--- 
+You should see the "unknown CHIP_ID" message in dmesg. You may need to
+turn on driver debug messages, although I thought dev_err() will show
+up in dmesg even with them off.
 
-San Francisco, CA
+Can you please send the output of "lspci -n"?
+
+Thanks,
+David
 
