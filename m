@@ -1,72 +1,39 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 22 Sep 2006 11:52:48 +0000
-Subject: [lm-sensors] TODO: unchecked return codes from
-Message-Id: <20060922135248.8a7454fa.khali@linux-fr.org>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 07 Sep 2006 12:07:14 +0000
+Subject: [lm-sensors] regression test script for sensors output
+Message-Id: <20060907120714.GC11807@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060830030828.GB5104@jupiter.solarsys.private>
-In-Reply-To: <20060830030828.GB5104@jupiter.solarsys.private>
+References: <44F72B6D.4050207@gmail.com>
+In-Reply-To: <44F72B6D.4050207@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Updating the list:
+Hi Jim:
 
-> Done by Mark M. Hoffman:
->  o adm1021
->  o adm1025
->  o adm1026
->  o adm1031
->  o adm9240
->  o asb100
->  o lm75
->  o lm77
->  o lm78
->  o lm80
->  o lm85
->  o lm87
->  o lm92
->  o smsc47b397
->  o w83627hf
+* Jim Cromie <jim.cromie at gmail.com> [2006-08-31 12:33:17 -0600]:
 > 
-> Done by Jim Cromie:
->  o pc87360
+> attached script reads `sensors` output, compares to file content
+> (which should contain sensors output from baseline driver, before you hack)
 
-Almost done by Jim Cromie:
-   o w83781d
+Hey, thanks for doing that - it will be useful.
 
-> Done by David Hubbard:
->  o w83627ehf
-> 
-> Done by Jean Delvare:
-   o atxp1
-   o ds1621
->  o f71805f
->  o fscher
->  o fscpos
->  o gl518sm
->  o gl520sm
->  o it87
->  o lm63
->  o lm83
->  o lm90
-   o max1619
-   o sis5595
-   o via686a
+Do you have any experience with these Perl modules... ?
 
-Done by Roger Lucas:
-   o vt8231
+	test::cmd
+	test::simple
+	test::harness
 
-Will be done by Charles Spirakis:
-   o w83791d
+I'm working up a regression test for the libsensors config file scanner.  At
+the moment, Perl with those modules looks like an easy but flexible way to
+organize it.  By contrast, Dejagnu is extreme overkill.  Are there any other
+mechanisms I should consider?
 
-> This leaves the following list:
->  o abituguru
->  o smsc47m1
->  o smsc47m192
->  o w83792d
->  o w83l785ts
+Thanks & regards,
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman at lightlink.com
+
 
