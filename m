@@ -1,7 +1,7 @@
-From: michaelnel@comcast.net (Michael Nelson)
-Date: Thu, 07 Sep 2006 13:23:09 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 07 Sep 2006 19:34:35 +0000
 Subject: [lm-sensors] Asus P5B Deluxe WiFi AP Sensors
-Message-Id: <20060907132309.GA7098@seahunt.dyndns.org>
+Message-Id: <4500744B.3010509@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060822145643.GA5632@seahunt.dyndns.org>
 In-Reply-To: <20060822145643.GA5632@seahunt.dyndns.org>
@@ -10,49 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 06, 2006 at 11:20:00PM -0700, David Hubbard wrote:
+>> -    Chip        #vin    #fan    #pwm    #temp   chip_id    man_id
+>> -    w83627ehf   10      5       4       3       0x88,0xa1  0x5ca3
+>> +    Chip        #vin    #fan    #pwm    #temp  sio_ID & 0xfff0 chip_id mfg_id
+>> +    w83627ehf   10      5       4       3      0x8860          0xa1    0x5ca3
+>> +    w83627dhg    9      5       4       3      0xa020          0xc1    0x5ca3
+>>  */
+> 
+> As explained above, chip_id may also be 0x88 for early W83627EHFs.
+> 
+> I also note that our sensors-detect script was looking for chip_id =
+> 0xa2 for the W83627DHG. Don't know where this value comes from. Rudolf?
 
-> I have attached an updated patch (it now includes changes to
-> drivers/hwmon/w83627ehf.c and a new Documentation/hwmon/w83627ehf
-> file), plus w83627ehf.c. Michael and Michael, please try out the new
-> driver. 
+Hi all,
 
-Thank you!  It seems to work, somewhat:
+I'm back to my mail. Bad news is that I dont know where I got 0xa2. I check all 
+docs I had and it is not there. I'm sorry I can't explain where it comes from.
 
-seahunt:~ # sensors
-w83627ehf-isa-0290
-Adapter: ISA adapter
-Case Fan:    0 RPM  (min = 1318 RPM, div = 128)
-CPU Fan:   865 RPM  (min = 1704 RPM, div = 8)
-fan3:     1997 RPM  (min = 21093 RPM, div = 4)
-fan4:        0 RPM  (min = 10546 RPM, div = 128)
-fan5:        0 RPM  (min = 168750 RPM, div = 8)
-Sys Temp:    +28??C  (high =   +45??C, hyst =   +40??C)
-CPU Temp:  +49.5??C  (high = +45.0??C, hyst = +40.0??C)
-temp3:     +58.5??C  (high = +68.0??C, hyst = +66.0??C)
+MIchael, or whoever with the DHG chip please:
 
-It doesn't show any voltages though.  But the voltages do show up in gkrellm.
+Please unload the driver and do:
 
-I'm not sure what that temp3 is in the sensors output.  I think the one
-labeled fan3 is actually the CPU Fan, at least from looking at the BIOS
-values.  I probably need to tweak /etc/sensors.conf some.
+isaset -y 0x295 0x296 0x4e 0
+isadump -y 0x295 0x296
 
->No changes to w83627ehf_regression.sh
+This will show us the bank0 and also the ID reg. (we would need to fix it for 
+the i2c...)
 
-It blows up for me:
+And BTW Jean,
 
-seahunt:~ # sh /home/michaeln/w83627ehf_regression.sh
-* WARNING: This will run your system fans through many possible
-           combinations. There is a possibility your system will
-           overheat. Use this script at your own risk!
-cat: in9_input: No such file or directory
+	incorrectly presented itself as mallaury.nerim.net
+X-Scanned: No viruses found.
+X-Scan-Signature: 6c8541cafecc71ce735155c6942fb964
+Cc: Marek <r.marek at sh.cvut.cz>, Michael Walle <michael at walle.cc>,
+	Rudolf at ATrpms.net, LM Sensors <lm-sensors at lm-sensors.org>
+Subject: Re: [lm-sensors] Asus P5B Deluxe WiFi AP Sensors
+X-BeenThere: lm-sensors at lm-sensors.org
 
+There is something wrong with the CC field of your last mail...
 
-Thanks so much for the work you folks have done on this so far!
-
-Michael
-
--- 
-
-San Francisco, CA
+Thanks,
+Regards
+Rudolf
 
