@@ -1,112 +1,65 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 07 Sep 2006 14:27:16 +0000
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Thu, 07 Sep 2006 16:55:20 +0000
 Subject: [lm-sensors] libsensors config file scanner speed
-Message-Id: <20060907162716.2304cca8.khali@linux-fr.org>
+Message-Id: <45004EF8.1090908@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060906033418.GA7775@jupiter.solarsys.private>
 In-Reply-To: <20060906033418.GA7775@jupiter.solarsys.private>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+Jean Delvare wrote:
+> Hi Mark,
+>
+>   
+> Not to discourage you from working on the scanner, every additional
+> improvement is welcome... But just to underline the well known fact
+> that sensors.conf.eg has grown much larger than the original authors of
+> libsensors thought it ever would, and as a result 95% of the
+> configuration file we install by default is useless for each user, and
+> ruins the "sensors" performance. This means that we really need
+> dedicated configuration files for people to use instead of the default
+> configuration file.
+>
+> Other possible approachs:
+> * Having a smaller dedicated configuration file which would only
+>   contain the safest defaults (chip manufacturer recommended compute
+>   lines and labels). The rest could be moved to documentation.
+> * Having a separate default file for each chip, and copying it (or
+>   merging them) to /etc/sensors.conf when the user runs sensors-detect.
+> * Delaying the scanning of the configuration data until after we know
+>   which chips have been found of the system. So we could happily skip
+>   the data which has not been found.
+>
+> Or maybe it's more interesting to put our energy in the configuration
+> files database, and let the default configuration file as is in the
+> hope that people won't use it anymore anyway.
+>
+>   
 
-> I've committed all of my work to date on the libsensors config file scann=
-er
-> to SVN.  It is on the branch called scanner-opt-branch.  I'm pretty happy
-> about the results so far...
->=20
-> # w/ w83627hf loaded
-> # also, use DEBUG:=3D1 in the Makefile
->=20
-> $ valgrind --tool=CAllgrind sensors -u -c etc/sensors.conf.eg
-> $ kcachegrind callgrind.out.NNNN
->=20
-> Total cycles before:		~11.2M
-> Total cycles after:		~ 7.3M
-> Total speedup:		~ 1.5x
->=20
-> Scanner cycles before:	~ 5.9M
-> Scanner cycles after:		~ 2.0M
-> Scanner speedup:		~ 3.0x
+something like this ?
 
-Really nice. I've been doing some measurements on my machine and here
-are my results. I assumed that what you call "scanner cycles" is the
-cycle count for sensors_yylex, and "total cycles" is the cycle count
-for main.
+[jimc at harpo lm-sensors]$ ls etc/sensors.conf.d/
+abituguru  adm9240   fscpos   k8temp  lm85c    maxilife  smsc47m192  
+w83697hf
+adm1021    as99127f  fscscy   lm63    lm87     mtp008    via686a     w83782d
+adm1024    asb100    gl518sm  lm75    lm90     pc87366   vt1211      w83783s
+adm1025    bmc       gl520sm  lm78    lm92     pcf8591   vt8231      w83792d
+adm1030    f71805f   it87     lm80    lm99     sis5595   w83627ehf   w83793
+adm1031    fscher    it8716   lm83    max1619  smsc47m1  w83627thf   
+w83l785ts
 
-Total cycles before:	~11.3M
-Total cycles after:	~ 8.2M
-Total speedup:		~ 1.4x
+assuming yes, attached script will do the scut-work.
 
-Scanner cycles before:	~ 5.1M
-Scanner cycles after:	~ 1.9M
-Scanner speedup:	~ 2.7x
+Before you use it for real, the sensors.conf.eg file needs some comments 
+moved below
+the "chip <foo>" lines they pertain to, otherwize theyre written into 
+the wrong file.
+I'll do that juggling if you want to go this route.
 
-This is on x86_64.
-
-Another interesting point of comparison is when using the dedicated
-configuration file I have for this test machine, instead of the
-fat default one:
-
-Total cycles before:	~ 4.7M
-Total cycles after:	~ 4.5M
-Total speedup:		~ none
-
-Scanner cycles before:	~ 267k
-Scanner cycles after:	~ 138k
-Scanner speedup:	~ 1.9x
-
-I guess the result isn't a surprise, if the configuration file is
-smaller, the amount of time spent in the scanner has to be smaller as
-well, thus the overall speed improvement is lower.
-
-If we anaylze the benefit of the configuration file change (without
-taking your scanner optimizations in consideration) we obtain:
-
-Total cycles before:	~11.3M
-Total cycles after:	~ 4.7M
-Total speedup:		~ 2.4x
-
-Scanner cycles before:	~ 5.1M
-Scanner cycles after:	~ 267k
-Scanner speedup:	~  19x
-
-Not to discourage you from working on the scanner, every additional
-improvement is welcome... But just to underline the well known fact
-that sensors.conf.eg has grown much larger than the original authors of
-libsensors thought it ever would, and as a result 95% of the
-configuration file we install by default is useless for each user, and
-ruins the "sensors" performance. This means that we really need
-dedicated configuration files for people to use instead of the default
-configuration file.
-
-Other possible approachs:
-* Having a smaller dedicated configuration file which would only
-  contain the safest defaults (chip manufacturer recommended compute
-  lines and labels). The rest could be moved to documentation.
-* Having a separate default file for each chip, and copying it (or
-  merging them) to /etc/sensors.conf when the user runs sensors-detect.
-* Delaying the scanning of the configuration data until after we know
-  which chips have been found of the system. So we could happily skip
-  the data which has not been found.
-
-Or maybe it's more interesting to put our energy in the configuration
-files database, and let the default configuration file as is in the
-hope that people won't use it anymore anyway.
-
-BTW, if anyone wants to compile kcachegrind (very impressive tool,
-thanks for making me discover it) on x86_64, the key for me was to pass
---enable-libsuffixd to the configure script. Without it, configure
-would fail to find the right libraries.
-
-> I'm going to keep it on the branch until (1) we release 2.10.1, and (2) I
-> create some sort of regression test for it.  For now at least, it has no
-> *known* bugs.  Give it a try; let me know if you have trouble.
-
-Sounds like a good plan to me, thanks for working on this.
-
---=20
-Jean Delvare
-
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: split-sensors
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060907/d76a67f6/attachment-0001.pl 
