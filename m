@@ -1,99 +1,91 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 27 Sep 2006 16:23:02 +0000
-Subject: [lm-sensors] issue with clearing alarms
-Message-Id: <20060927182302.ccfd1d55.khali@linux-fr.org>
+From: A.Huisman@inter.nl.net (Age Huisman)
+Date: Thu, 07 Sep 2006 12:10:21 +0000
+Subject: [lm-sensors] Answer Epox
+Message-Id: <200609071410.21618.A.Huisman@inter.nl.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <450312F6.4030500@gmail.com>
-In-Reply-To: <450312F6.4030500@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jim,
+Hi Jean,
 
-> > > --- linux-2.6.18-rc6-mm2-sk/Documentation/hwmon/sysfs-interface	2006-09-07 16:09:40.000000000 -0600
-> > > +++ doc-touches/Documentation/hwmon/sysfs-interface	2006-09-26 14:04:19.000000000 -0600
-> > > @@ -23,6 +23,7 @@ voltages between 0 and +4V. Other voltag
-> > >  range using external resistors. Since the values of these resistors
-> > >  can change from motherboard to motherboard, the conversions cannot be
-> > >  hard coded into the driver and have to be done in user space.
-> > > +Therefore, all sysfs values are fixed point numbers.
-> >
-> > I see no cause-to-consequence relation here, so why the "therefore"?
-> > What problem are you trying to address by moving this sentence around?
->
-> sure, its a little white lie.  I wondered if it would draw comment.
-> Its easier than explaining why the kernel doesnt allow FP.
+I got a answer from Epox :
 
-It's easier, and irrelevant. We just don't need floating point here.
+Dear Age,
 
-> Let me turn it around.  Why do you bother to say it at all ?
+Sorry for that due to the datesheed is confidential.So we can't share it to
+you.
+But we can share the register for you reference.That's all we can share to
+you.
+See attachment.
 
-Because it's true, and relevant. This is an important design decision,
-and also a difference compared to the Linux 2.4 interface. Well, 2.4
-used fixed point as well, but exported the values to procfs as real
-numbers, as opposed to integers as we do now.
+Thank you for your interest in EPoX products and contacting our support
+department. If you reply ensure to include all previous E-mail text. It will
+prevent unnecessary delays and guarantee the fastest possible response.
 
-> Motivated readers would just try it, then either google to find out
-> why its disallowed (I have), or <gasp> ask on some ML.
-> Besides, the whole paragraph is sufficient reason, to move the sentence,
-> even if FP were allowed.
+Best Regards,
 
-I don't follow you here. You seem to agree that there is no real
-relation between the paragraph above, and the fixed point sentence, yet
-you still want to move the two next to each other?
+========================Technical Support (AFA)
+EPoX Computer Co., LTD. (Head office)
+E-Mail : support at epox.com.tw
+Web : www.epox.com
+Please provide previous E-mail text if replying.
+Specifications subject to change without notice.
 
-> > >  For this reason, even if we aim at a chip-independent libsensors, it will
-> > >  still require a configuration file (e.g. /etc/sensors.conf) for proper
-> > > @@ -35,8 +36,9 @@ access this data in a simple and consist
-> > >  will have to implement conversion, labeling and hiding of inputs. For
-> > >  this reason, it is still not recommended to bypass the library.
-> > >  
-> > > -If you are developing a userspace application please send us feedback on
-> > > -this standard.
-> > > +If you are developing a userspace application please send us feedback
-> > > +on this standard.  Note that applications are expected to read all the
-> > > +sysfs files at once, you may miss transient alarms otherwise.
-> >
-> > Or you could leave the "on" where it was, so that the diff doesn't look
-> > bigger than it really is?
->
-> emacs autowrap.  But thats not really the issue is it ?
 
-It is. If your text editor reformats the lines as it sees fit, you
-can't really work with me. But I guess you can actually reconfigure it
-not to misbehave that way.
+ISA bridge index port 295h.
+ISA bridge data port 296h.
 
-> > You are putting the things in the wrong order, I think. The
-> > applications are not expected to read all the sysfs values at once, it
-> > just happens to be what they all do at the moment. And nothing really
-> > wrong will happen if they don't. The different behavior of transient
-> > alarms is a minor annoyance, because, as I explained earlier, nobody
-> > really cares about transient alarms. In fact, people may even be
-> > _happy_ to miss them. So why frighten them with something we don't
-> > expect to bother them at all?
->
-> ignorance != apathy
+Address		Attribute		Description
+===========================================20h		RO			VCC3V reading. The unit of reading is 8mV.
+21h		RO			V1(Vcore)reading. The unit of reading is 8mV.
+22h		RO			V2 reading. The unit of reading is 8mV.
+23h		RO			V3 reading. The unit of reading is 8mV.
+24h		RO			V4 reading. The unit of reading is 8mV.
+25h		RO			V5 reading. The unit of reading is 8mV.
+26h		RO			V6 reading. The unit of reading is 8mV.
+27h		RO			VSB3V reading. The unit of reading is 8mV.
+28h		RO			VBAT reading. The unit of reading is 8mV.
+===========================================72h		RO			Temperature 1 reading. The unit of reading is
+					1 degree C. At the moment of reading this reg.
+74h		RO			Temperature 2 reading. The unit of reading is
+					1 degree C. At the moment of reading this reg.
+76h		RO			Temperature 3 reading. The unit of reading is
+					1 degree C. At the moment of reading this reg.
+===========================================A0h		RO			FAN1 count reading(MSB). At the moment of
+					reading this register, the LSB will be latched
+					. This will prevent from data updating when 
+					reading. To read the fan count correctly, read
+					MSB first and followed read the LSB.
+A1h		RO			FAN1 count reading(LSB).
+B0h		RO			FAN2 count reading(MSB). At the moment of
+					reading this register, the LSB will be latched
+					. This will prevent from data updating when 
+					reading. To read the fan count correctly, read
+					MSB first and followed read the LSB.
+B1h		RO			FAN2 count reading(LSB).
+C0h		RO			FAN3 count reading(MSB). At the moment of
+					reading this register, the LSB will be latched
+					. This will prevent from data updating when 
+					reading. To read the fan count correctly, read
+					MSB first and followed read the LSB.
+C1h		RO			FAN3 count reading(LSB).
+D0h		RO			FAN4 count reading(MSB). At the moment of
+					reading this register, the LSB will be latched
+					. This will prevent from data updating when 
+					reading. To read the fan count correctly, read
+					MSB first and followed read the LSB.
+D1h		RO			FAN4 count reading(LSB).
+===========================================The formula is voltage divided formula as following below:
 
-Certainly, and your point is?
+VIN = V(+12V) * (R2 / (R1 + R2)) where V(+12V) is the analog input voltage.
+===========================================The formula is fan count / RPM calculated formula as following below:
 
-> And if we dont care about alarms, why bother to split them out, 1 per 
-> sensor ?
+RPM = (1.5 * 10 ^ 6) / Count where ^ is the exponent symbol.
+===========================================
+Age Huisman
 
-My point is essentially that transient alarms don't matter. Alarms by
-themselves, are somewhat more important. Their redundancy helps us
-debug the drivers, and we can also use them to quickly understand
-configuration issues on user systems, for example negative voltages
-with their limits swapped, or the reason why the system is beeping,
-etc.
 
-More importantly, we have been providing this data to the applications
-for 8 years now, so just dropping it is likely to cause some complaints
-if anyone is really interested in them. I would be happy myself without
-the alarm bits, and this would get around a lot of work in the next
-months as well, so don't tempt me please ;)
 
--- 
-Jean Delvare
 
