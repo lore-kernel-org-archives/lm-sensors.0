@@ -1,7 +1,7 @@
 From: michaelnel@comcast.net (Michael Nelson)
-Date: Fri, 08 Sep 2006 01:12:41 +0000
+Date: Fri, 08 Sep 2006 01:43:35 +0000
 Subject: [lm-sensors] Asus P5B Deluxe WiFi AP Sensors
-Message-Id: <20060908011241.GA13735@seahunt.dyndns.org>
+Message-Id: <20060908014335.GA7239@seahunt.dyndns.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060822145643.GA5632@seahunt.dyndns.org>
 In-Reply-To: <20060822145643.GA5632@seahunt.dyndns.org>
@@ -10,40 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Sep 07, 2006 at 09:34:35PM +0200, Rudolf Marek wrote:
-> MIchael, or whoever with the DHG chip please:
-> 
-> Please unload the driver and do:
-> 
-> isaset -y 0x295 0x296 0x4e 0
-> isadump -y 0x295 0x296
+I have the output making more sense now:
 
-Here it is:
+w83627ehf-isa-0290
+Adapter: ISA adapter
+Case Fan:  878 RPM  (min = 1704 RPM, div = 8)
+CPU Fan:  2057 RPM  (min = 84375 RPM, div = 4)
+Power Fan: 975 RPM  (min = 168750 RPM, div = 8)
+MB Temp:     +30??C  (high =   +35??C, hyst =   +40??C)
+CPU Temp:  +51.0??C  (high = +70.0??C, hyst = +40.0??C)
 
-seahunt:~ # isaset -y 0x295 0x296 0x4e 0
-seahunt:~ # isadump -y 0x295 0x296
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: 04 ff 04 4b 31 00 42 10 01 4b 01 01 3c 3c 0a 05
-10: 01 59 50 00 00 01 01 3c 43 17 00 00 ff ff ff c5
-20: 99 e3 cc cc 98 c6 97 1e ff c1 a1 c5 b2 c5 b2 d9
-30: c4 c3 b1 cf bb e3 cd da c5 46 28 11 63 08 01 ff
-40: 03 b0 20 de ff ff 00 f5 2d 00 20 84 88 95 00 a3
-50: ff ff 00 ff ff ff 00 80 c1 6f ff ff 19 24 04 05
-60: 01 9b 31 52 9b 01 3c ff 12 ff 0a ff ff ff ff ff
-70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-80: 04 ff 04 4b 31 00 42 10 01 4b 01 01 3c 3c 0a 05
-90: 01 59 50 00 00 01 01 3c 43 17 00 00 ff ff ff c5
-a0: 99 e3 cc cc 98 c6 97 1e ff c1 a1 c5 b2 c5 b2 d9
-b0: c4 c3 b1 cf bb e3 cd da c5 46 28 11 63 08 01 ff
-c0: 03 00 00 de ff ff 00 f5 2d 00 20 84 88 95 00 a3
-d0: ff ff 00 ff ff ff 00 80 c1 6f ff ff 19 24 04 05
-e0: 01 9b 31 52 9b 01 3c ff 12 ff 0a ff ff ff ff ff
-f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-seahunt:~ #
+I guess I need to fix up those min values for the fans though...
 
-Hope that helps you.
+... but no voltages are shown.  Michael in Germany, can you share your
+sensors.conf stuff for this chip and board with me please?
 
-Michael
+Thanks
+Michael in USA
 
 -- 
 
