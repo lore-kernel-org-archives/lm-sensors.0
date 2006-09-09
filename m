@@ -1,67 +1,60 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 23 Sep 2006 20:58:23 +0000
-Subject: [lm-sensors] Intel DG956RY motherboard with LPC47M182
-Message-Id: <20060923225823.bd26a578.khali@linux-fr.org>
+From: vsu@altlinux.ru (Sergey Vlasov)
+Date: Sat, 09 Sep 2006 18:02:56 +0000
+Subject: [lm-sensors] [PATCH] watchdog: add support for w83697hg chip
+Message-Id: <20060909220256.d4486a4f.vsu@altlinux.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1158983695.9242.3.camel@ubuntu.gghcwest.com>
-In-Reply-To: <1158983695.9242.3.camel@ubuntu.gghcwest.com>
+References: <87fyf5jnkj.fsf@willow.rfc1149.net>
+	<1157815525.6877.43.camel@localhost.localdomain>
+In-Reply-To: <1157815525.6877.43.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Samuel Tardieu <sam@rfc1149.net>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>, Jim Cromie <jim.cromie@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hi Jeffrey,
+On Sat, 09 Sep 2006 16:25:25 +0100 Alan Cox wrote:
 
-> On Sat, 2006-09-23 at 13:32 +0200, Jean Delvare wrote:
-> > Hi Jeffrey,
-> > 
-> > > > I have an Intel DG965RY motherboard, which the lm-sensors in Ubuntu Edgy
-> > > > does not seem to support.  I received a message from Rudolf Marek by way
-> > > > of Andrew Barr that I should examine the chips near the floppy connector
-> > > > and mail it here.
-> > > > 
-> > > > The chip near the floppy connector is an SMSC LPC47M182.  I did not see
-> > > > any other integrated circuits in that area of the motherboard.
-> > 
-> > This is your Super-I/O chip. I found datasheets on www.smsc.com for the
-> > LPC47M112, LPC47M172 and LPC47M182 (thanks SMSC!). It appears that the
-> > latter two only support minimalist fan speed monitoring - two 16-bit
-> > fan speed values, no low limit, no control. This chip may or may not be
-> > used for actual fan speed monitoring on your specific system.
-> > 
-> > Do you see any fan speed or temperature values in your BIOS setup
-> > screen?
+> Ar Mer, 2006-09-06 am 12:29 +0200, ysgrifennodd Samuel Tardieu:
+> > +static unsigned char
+> > +w83697hg_get_reg(unsigned char reg)
+> > +{
+> > +	outb_p(reg, W83697HG_EFIR);
+> > +	return inb_p(W83697HG_EFDR);
+> > +}
 > 
-> Yes, actually there are four fan tachometers in the BIOS, in addition to
-> the CPU temperature, the MCH temperature, the ICH temperature, and three
-> ambient air temperature sensors.
+> No kernel level locking anywhere in the driver. Yet you could have two
+> people accessing it at once.
 
-The LPC47M182 only supports 2 fans, so I'm pretty certain it isn't
-actually used for hardware monitoring on your machine.
+Actually the situation is worse.  This driver pokes at SuperIO
+configuration registers, which are shared by all logical devices of the
+SuperIO chip.  There are other drivers which touch these registers -
+e.g., drivers/hwmon/w83627hf.c handles the hardware monitor part of this
+chip; many other hwmon drivers handle other SuperIO devices.  Hardware
+monitor drivers access the SuperIO config during initialization and do
+not request that port region, therefore loading hwmon drivers when
+w83697hf_wdt is loaded can lead to conflicts.
 
-> I tried to take a photograph of the motherboard.  This is the best
-> result I could get:
-> 
-> Warning: 15.5MB TIFF image!
-> http://tastic.brillig.org/~jwb/DG965RY.tiff
+More places which seem to touch SuperIO config:
 
-Ever heard of JPEG compression? ;)
+  - drivers/parport/parport_pc.c
+  - drivers/net/irda/nsc-ircc.c
+  - drivers/net/irda/smsc-ircc2.c
+  - drivers/net/irda/via-ircc.h
 
-> I've identified every significant integrated circuit in that photo.
-> There's an IDT clock generator, an On Semi PWM voltage reg for the CPU,
-> a TI RS232 chip, a TI 1394a controller, a Sigmatel audio CODEC, the
-> Intel NIC, a Marvell PATA controller, and the aforementioned SMSC super
-> i/o.  I checked under all three heat sinks, and there's nothing under
-> there aside from the CPU, the MCH, and the ICH.
+I can find at least two attempts to fix the SuperIO problem:
 
-I suspect that the sensors are inside (or at least driven by) the ICH
-itself. The ICH8 datasheet mentions 4 fan tachometer inputs, 3 fan
-control outputs (PWM), and two new busses to connect thermal sensors
-(SST and PECI).
+  - a SuperIO subsystem proposed by Evgeniy Polyakov (cc'd);
 
-The bad news is that we don't support any of these bleeding edge
-technologies at the moment.
+  - a simple SuperIO locks coordinator proposed by Jim Cromie (also
+    cc'd; http://thread.gmane.org/gmane.linux.drivers.sensors/10052 -
+    can't find actual patches).
 
--- 
-Jean Delvare
-
+However, the mainline kernel still does not have anything for proper
+SuperIO access locking.
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060909/b34f08ee/attachment.bin 
