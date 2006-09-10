@@ -1,7 +1,7 @@
-From: oe@hentges.net (Matthias Hentges)
-Date: Sun, 10 Sep 2006 19:15:51 +0000
-Subject: [lm-sensors] w83627ehf: Missing fan input and minor problems	w/
-Message-Id: <1157915751.8827.34.camel@mhcln03>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sun, 10 Sep 2006 21:31:26 +0000
+Subject: [lm-sensors] w83627ehf: Missing fan input and minor problems w/
+Message-Id: <4504842E.7050603@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1157458671.18988.34.camel@mhcln03>
 In-Reply-To: <1157458671.18988.34.camel@mhcln03>
@@ -10,54 +10,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Jean,
+Hello all
 
-Am Sonntag, den 10.09.2006, 19:48 +0200 schrieb Jean Delvare:
-> Hallo Matthias,
+I checked the ACPI DSDT and they set the bit0 of 0x47... in every change of the
+the 47reg.
 
-> > I'm indeed getting an error from isaset: 
-> > "Data mismatch, wrote 0xf5, read 0xf4 back."
-> > 
-> > I just tried again to be sure.
-> 
-> Odd, this register is supposed to be writable. Can you please try other
-> values (e.g. 0xa4) to see if other bits in the register can be written?
+               And (FDR1, 0x3F, Local3)
 
-Interesting, I can set the value 0xa4 (and then back to 0xf4) just fine.
-BTW: I did this while the driver was loaded.
+                Or (Local2, Local3, Local3)
 
-> You may also try writing to register 0x48, we don't care about the
-> value there and it'll be an interesting test.
+                Or (Local3, 0x01, Local3)
 
-+root at mhcln01:/tmp >isaset -y 0x295 0x296 0x48 0xa5 
-Data mismatch, wrote 0xa5, read 0x25 back.
-+root at mhcln01:/tmp >isaset -y 0x295 0x296 0x48 0xa6
-Data mismatch, wrote 0xa6, read 0x26 back.
-+root at mhcln01:/tmp >isaset -y 0x295 0x296 0x48 0xb6
-Data mismatch, wrote 0xb6, read 0x36 back.
-+root at mhcln01:/tmp >isaset -y 0x295 0x296 0x48 0xc6
-Data mismatch, wrote 0xc6, read 0x46 back.
-+root at mhcln01:/tmp >
+                Store (Local3, FDR1)
 
-Dunno if that was to be expected heh.
+(FDR1 is 0x47)
 
-> Pin 58 is shared between two functions, SI and AUXFANIN1. Your problem
-> might have something to do with this, but I can't find information
-> about function selection for this pin in the datasheet.
-> 
-> David, any idea?
-> 
--- 
-Matthias 'CoreDump' Hentges 
+I did not find out how they force the bit to be R/W. I remember I asked already
+at Winbond how to know when fan5 is enabled, and they told me that the serial
+flash interface should be disabled (ENROM cr24) And then FAN5 (AUXFANIN1) works.
+This way it is implemented in newer EHF patches.
 
-Webmaster of hentges.net and OpenZaurus developer.
-You can reach me in #openzaurus on Freenode.
+Well in my case is the bit0/47 is RO too (I own the EHF chip) - so writing 0xf5
+fails same as in Matthias case... even if the serial flash is disabled,
+monitoring stopped...
 
-My OS: Debian SID. Geek by Nature, Linux by Choice
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: Dies ist ein digital signierter Nachrichtenteil
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060910/d6e9aca6/attachment.bin 
+I'm out of ideas... but ;)
+
+Yuan, please can you ask someone:
+
+How is it possible that the bit0/of reg 47 in hardware monitor is read only (1
+cannot be written) even when serial flash interface is disabled and CR24 bit 1
+in sio (ENROM strap says 0)?
+
+In other words:
+What should I do to enable the AUXFANIN1 or why is the bit0 at 47 readonly.
+
+I have ID 88 63  so it seems it is version C
+
+
+Thank you very much.
+Regards
+Rudolf
+
