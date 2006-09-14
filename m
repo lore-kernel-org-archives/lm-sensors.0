@@ -1,7 +1,7 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Thu, 14 Sep 2006 15:18:57 +0000
+From: simone.marchi@ilc.cnr.it (simone marchi)
+Date: Thu, 14 Sep 2006 16:31:07 +0000
 Subject: [lm-sensors] w83627ehf-isa-0290 CPU fan rpm: wrong value
-Message-Id: <4dfa50520609140818u4a188934r16d83694a90845f0@mail.gmail.com>
+Message-Id: <450983CB.10205@ilc.cnr.it>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <loom.20060908T163738-492@post.gmane.org>
 In-Reply-To: <loom.20060908T163738-492@post.gmane.org>
@@ -10,13 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Simone,
+David Hubbard ha scritto:
+> Hi Simone,
+> 
+> You should be using at least the 2.6.17 kernel. The 2.6.18 kernel will
+> be ready soon. The gregkh-i2c-hwmon-w83627ehf-add-pwm-support.patch is
+> in these kernels. What kernel are you using?
+> 
+> Glad you are making some progress.
+> 
+> David
 
-You should be using at least the 2.6.17 kernel. The 2.6.18 kernel will
-be ready soon. The gregkh-i2c-hwmon-w83627ehf-add-pwm-support.patch is
-in these kernels. What kernel are you using?
+Hi David,
+I'm using 2.6.18-rc6 (official, without any other patch) and the 
+gregkh's patch isn't in that release (I believe...).
+It'll be included in the final kernel release of 2.6.18 version?
 
-Glad you are making some progress.
+Thank you very much.
 
-David
+ciao simone
 
