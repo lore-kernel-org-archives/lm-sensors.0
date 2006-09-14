@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sun, 10 Sep 2006 21:31:26 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Thu, 14 Sep 2006 05:26:58 +0000
 Subject: [lm-sensors] w83627ehf: Missing fan input and minor problems w/
-Message-Id: <4504842E.7050603@sh.cvut.cz>
+Message-Id: <4dfa50520609132226p3da777caj195ed1976567eac9@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1157458671.18988.34.camel@mhcln03>
 In-Reply-To: <1157458671.18988.34.camel@mhcln03>
@@ -10,45 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello all
+Hi Jean,
 
-I checked the ACPI DSDT and they set the bit0 of 0x47... in every change of the
-the 47reg.
+> Odd, this register is supposed to be writable. Can you please try other
+> values (e.g. 0xa4) to see if other bits in the register can be written?
+>
+> You may also try writing to register 0x48, we don't care about the
+> value there and it'll be an interesting test.
+>
+> Pin 58 is shared between two functions, SI and AUXFANIN1. Your problem
+> might have something to do with this, but I can't find information
+> about function selection for this pin in the datasheet.
+>
+> David, any idea?
 
-               And (FDR1, 0x3F, Local3)
+There's been a lot going on around here, so sorry for the delay. I
+looked at the datasheet to see how pin 58 is configured. SI (serial
+flash input) and AUXFANIN1 are affected by two registers:
 
-                Or (Local2, Local3, Local3)
+1. register 47h: force AUXFANIN1 to act as a fan output
+2. CR[0x24] bit 1. ENROM. The datasheet says a hardware reset is necessary.
 
-                Or (Local3, 0x01, Local3)
+My guess is that the serial flash interface is set by default. I think
+there's a way to reset the w83627ehf chip by writing to certain ports.
+What do you think, Jean?
 
-                Store (Local3, FDR1)
+David
 
-(FDR1 is 0x47)
-
-I did not find out how they force the bit to be R/W. I remember I asked already
-at Winbond how to know when fan5 is enabled, and they told me that the serial
-flash interface should be disabled (ENROM cr24) And then FAN5 (AUXFANIN1) works.
-This way it is implemented in newer EHF patches.
-
-Well in my case is the bit0/47 is RO too (I own the EHF chip) - so writing 0xf5
-fails same as in Matthias case... even if the serial flash is disabled,
-monitoring stopped...
-
-I'm out of ideas... but ;)
-
-Yuan, please can you ask someone:
-
-How is it possible that the bit0/of reg 47 in hardware monitor is read only (1
-cannot be written) even when serial flash interface is disabled and CR24 bit 1
-in sio (ENROM strap says 0)?
-
-In other words:
-What should I do to enable the AUXFANIN1 or why is the bit0 at 47 readonly.
-
-I have ID 88 63  so it seems it is version C
-
-
-Thank you very much.
-Regards
-Rudolf
+P.S. Working on an updated w83627dhg patch!
 
