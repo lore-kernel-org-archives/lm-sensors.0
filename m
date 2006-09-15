@@ -1,7 +1,7 @@
-From: A.Huisman@inter.nl.net (Age Huisman)
-Date: Fri, 15 Sep 2006 17:58:58 +0000
+From: hans.edgington@xs4all.nl (Hans Edgington)
+Date: Fri, 15 Sep 2006 22:25:33 +0000
 Subject: [lm-sensors] Answer Epox
-Message-Id: <200609151958.59016.A.Huisman@inter.nl.net>
+Message-Id: <000601c6d915$de66d6a0$20140a0a@EA002>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200609071410.21618.A.Huisman@inter.nl.net>
 In-Reply-To: <200609071410.21618.A.Huisman@inter.nl.net>
@@ -10,10 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Age,
+
+Unfortunately I do not have the mobo, I am asking around to see if any can
+supply me with one. But no luck at the moment.
+So I probably have to find someone you can test any software written.
+
+Groeten,
+Hans
+
+-----Original Message-----
+From: lm-sensors-bounces@lm-sensors.org
+[mailto:lm-sensors-bounces at lm-sensors.org] On Behalf Of Age Huisman
+Sent: 15 September 2006 19:59
+To: lm-sensors at lm-sensors.org
+Subject: Re: [lm-sensors] Answer Epox
+
 On Friday 15 September 2006 15:33, Hans Edgington wrote:
 > Sorry, I thought I had replied to another thread.
 >
-> The Driver I am referring to is one for the Epox 9U1697GLI motherboard with
+> The Driver I am referring to is one for the Epox 9U1697GLI motherboard
+with
 > the EPoX EP1308 sensor-chip. Age Huisman requested one for his mobo.
 
 Hi Hans,
@@ -71,4 +88,10 @@ Age Huisman
 > lm-sensors mailing list
 > lm-sensors at lm-sensors.org
 > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors at lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+
 
