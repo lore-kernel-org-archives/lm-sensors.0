@@ -1,28 +1,23 @@
-From: oe@hentges.net (Matthias Hentges)
-Date: Fri, 22 Sep 2006 00:14:32 +0000
-Subject: [lm-sensors] w83627ehf: Missing fan input
-Message-Id: <1158884072.29190.13.camel@mhcln03>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Tue, 19 Sep 2006 07:11:07 +0000
+Subject: [lm-sensors] w83627ehf: Missing fan input and minor	problems
+Message-Id: <450F980B.6070908@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Rudolf,
 
-I've downloaded a clean kernel tarball and applied the patches again.
-After a reboot fan5 showed up =)
+> 
+> Doesn't work for me :\ I still only get 4 fans.
+> Maybe you could add some debugging output?
 
-I'm a happy camper now, thanks a lot!
+Please provide dumps of:
+isadump 0x295 0x296
+isadump -k 0x87,0x87 0x2e 0x2f
 
--- 
-Matthias 'CoreDump' Hentges 
+Thanks,
 
-My OS: Debian SID. Geek by Nature, Linux by Choice
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: Dies ist ein digital signierter Nachrichtenteil
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060922/3cd1c057/attachment.bin 
+Rudolf
+
