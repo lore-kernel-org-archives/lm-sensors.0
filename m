@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 20 Sep 2006 16:30:45 +0000
+From: phil_edelbrock@edgedesign.us (Philip Edelbrock)
+Date: Wed, 20 Sep 2006 16:59:05 +0000
 Subject: [lm-sensors] Call for 2.10.1
-Message-Id: <20060920183045.45e141b7.khali@linux-fr.org>
+Message-Id: <01239B56-5690-4C5C-B901-FCD04F940200@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060819105454.c6c438ed.khali@linux-fr.org>
 In-Reply-To: <20060819105454.c6c438ed.khali@linux-fr.org>
@@ -10,22 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
 
-> I started working on the patch a couple of days ago and realized that
-> the current sensors does have some issues with the new 2.6 driver.
-> Since the temp mapping changed, the 'old' single alarms sysfs node now
-> has some bits swapped. So alaram reporting is broken.
+On Sep 20, 2006, at 1:43 AM, Jean Delvare wrote:
 
-Oops, good catch. This basically means that we must have the same order
-for the 2.4 and the 2.6 driver, at the very least.
+> Hi Phil,
+>
+>>> Phil, will you continue taking care of the release? Our
+>>> doc/developers/checklist probably needs some adjustements to reflect
+>>> our move to SVN, amongst others.
+>>
+>> Hi Jean, yes I can.
+>
+> Great. The estimated release date is now Sunday, September 24th (or
+> anytime after that, depending on your own availability.)
 
-Will you have the time to provide a patch "fixing" the 2.4 driver by
-the end of the week?
+OK, sounds good.
 
-(One more reason to keep adding individual alarm bits to all drivers...)
 
-Thanks,
--- 
-Jean Delvare
+Phil
 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: smime.p7s
+Type: application/pkcs7-signature
+Size: 2439 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060920/0ff6df88/attachment.bin 
