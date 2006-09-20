@@ -1,35 +1,34 @@
-From: mrgreen.linuxuser@gmail.com (Mr Green)
-Date: Wed, 20 Sep 2006 17:18:42 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 20 Sep 2006 19:30:35 +0000
 Subject: [lm-sensors] Asus P5B
-Message-Id: <b62408800609201018k102f2869wa8f97d0c83021fc8@mail.gmail.com>
+Message-Id: <20060920213035.7b58da3f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <b62408800609201018k102f2869wa8f97d0c83021fc8@mail.gmail.com>
+In-Reply-To: <b62408800609201018k102f2869wa8f97d0c83021fc8@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+> I have got lm_sensors installed (2.10)
+> 
+> m/b temp shows up but not cpu
+> 
+> attached output of ./sensors-detect
+> 
+> Can you tell me how to get cpu temp & fan set up please?
 
-I have got lm_sensors installed (2.10)
+Your W83627DHG chip is properly detected, but it is not yet supported
+by the w83627ehf driver. David Hubbard is working on adding support, he
+posted a test patch some times ago:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2006-September/017625.html
 
-m/b temp shows up but not cpu
+Please see with David for the latest patches and how you can help with
+testing.
 
-attached output of ./sensors-detect
-
-Can you tell me how to get cpu temp & fan set up please?
-
-
-
+I wonder how you get any temperature reported at all... May we see the
+current output of "sensors"?
 
 -- 
-Mr Green Linux User
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060920/2b4a829a/attachment.html 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: output
-Type: application/octet-stream
-Size: 6038 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060920/2b4a829a/attachment.obj 
+Jean Delvare
+
