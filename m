@@ -1,7 +1,7 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Wed, 20 Sep 2006 20:46:32 +0000
+From: michaelnel@comcast.net (Michael Nelson)
+Date: Wed, 20 Sep 2006 21:41:24 +0000
 Subject: [lm-sensors] Asus P5B
-Message-Id: <4dfa50520609201346u10f179aay7a53bdeae357c660@mail.gmail.com>
+Message-Id: <20060920214124.GB19919@seahunt.dyndns.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <b62408800609201018k102f2869wa8f97d0c83021fc8@mail.gmail.com>
 In-Reply-To: <b62408800609201018k102f2869wa8f97d0c83021fc8@mail.gmail.com>
@@ -10,28 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Michael,
+On Wed, Sep 20, 2006 at 02:46:32PM -0600, David Hubbard wrote:
 
-> David's driver works very well on my P5B Deluxe WiFi AP.  Unfortunately, I
-> can't use it right now.  It is for the 2.6.18 series kernels, and 2.6.18 has
-> broken support for the JMicron IDE/SATA controller on my motherboard.  Alan
-> Cox's latest patch kills the kernel upon loading, so for right now I'm just
-> back to running the stock SuSE 10.1 kernel (2.6.16.something) and living
-> without sensors and my DVD.
->
-> Life sucks when you are using a MB that is riding the foreskin of technology.
->
-> I will revisit 2.6.18 when it's released.
->
-> Thanks for your work, David!
->
-> Michael
+> I'd be willing to backport the driver for the 2.6.16 series. It
+> wouldn't be hard to do, once I have some time to do it. Which version
+> exactly are you using? I suspect the latest version (2.6.16.29) would
+> only have a few differences from the 2.6.18 series. If it also worked
+> for your version, support for 2.6.16 would be easy.
 
-I'd be willing to backport the driver for the 2.6.16 series. It
-wouldn't be hard to do, once I have some time to do it. Which version
-exactly are you using? I suspect the latest version (2.6.16.29) would
-only have a few differences from the 2.6.18 series. If it also worked
-for your version, support for 2.6.16 would be easy.
+Thanks David, for offering.  But really, no need.  2.6.16 doesn't support
+the JMicron either, so right now I am just running the stock SuSE kernel
+because I got lazy and didn't want to screw around with it anymore.  If I
+want sensors, I can use 2.6.18 with your patch, which I know works.  Either
+way, no JMicro support until Alan Cox unbreaks what he broke.
 
-David
+Michael
+
+-- 
+
+San Francisco, CA
 
