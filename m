@@ -1,7 +1,7 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Wed, 20 Sep 2006 15:39:23 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 20 Sep 2006 16:30:45 +0000
 Subject: [lm-sensors] Call for 2.10.1
-Message-Id: <191fb4ca0609200839o523cb04m26552b9b69cf51f8@mail.gmail.com>
+Message-Id: <20060920183045.45e141b7.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060819105454.c6c438ed.khali@linux-fr.org>
 In-Reply-To: <20060819105454.c6c438ed.khali@linux-fr.org>
@@ -10,32 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hi Juerg,
 
-I started working on the patch a couple of days ago and realized that
-the current sensors does have some issues with the new 2.6 driver.
-Since the temp mapping changed, the 'old' single alarms sysfs node now
-has some bits swapped. So alaram reporting is broken.
+> I started working on the patch a couple of days ago and realized that
+> the current sensors does have some issues with the new 2.6 driver.
+> Since the temp mapping changed, the 'old' single alarms sysfs node now
+> has some bits swapped. So alaram reporting is broken.
 
-...juerg
+Oops, good catch. This basically means that we must have the same order
+for the 2.4 and the 2.6 driver, at the very least.
 
+Will you have the time to provide a patch "fixing" the 2.4 driver by
+the end of the week?
 
-On 9/20/06, Jean Delvare <khali at linux-fr.org> wrote:
-> Hi Juerg,
->
-> > > > As far as I am concerned, the only thing I'd like to merge before this
-> > > > upcoming release is the set of changes needed to make the Linux 2.6
-> > > > vt1211 driver work properly. If you think of other things that need to
-> > > > be done before the release, please speak up.
-> >
-> > The current version of libsensors works fine with the new vt1211
-> > driver. All it needs is a sligthly modified sensors.conf (and of
-> > course an update to the 2.4 driver).
->
-> Good, thanks for testing and reporting. We can (and should) update both
-> right after the release.
->
-> --
-> Jean Delvare
->
+(One more reason to keep adding individual alarm bits to all drivers...)
+
+Thanks,
+-- 
+Jean Delvare
 
