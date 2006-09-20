@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 20 Sep 2006 08:47:55 +0000
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Wed, 20 Sep 2006 15:39:23 +0000
 Subject: [lm-sensors] Call for 2.10.1
-Message-Id: <20060920104755.09f58b30.khali@linux-fr.org>
+Message-Id: <191fb4ca0609200839o523cb04m26552b9b69cf51f8@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060819105454.c6c438ed.khali@linux-fr.org>
 In-Reply-To: <20060819105454.c6c438ed.khali@linux-fr.org>
@@ -10,27 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting myself:
-> > Proposed schedule:
-> > September 5th: SVN freeze
-> 
-> A few days late, but we're there. The SVN repository is now considered
-> frozen. Only bugfixes and documentation updates are allowed until we
-> release.
-> 
-> > September 6th-20th: Testing
-> > September 21st: Release
+Hi Jean,
 
-There's some sliding in the schedule, and the estimated release date is
-now September 24th (next Sunday.) Everyone please give good testing to
-the current SVN version by then. Areas which specifically need testing
-are:
-* Proper support of older kernels (both 2.4 and early 2.6)
-* sensors-detect
-* decode-dimms.pl
-But really any kind of testing is welcome anyway.
+I started working on the patch a couple of days ago and realized that
+the current sensors does have some issues with the new 2.6 driver.
+Since the temp mapping changed, the 'old' single alarms sysfs node now
+has some bits swapped. So alaram reporting is broken.
 
-Thanks,
--- 
-Jean Delvare
+...juerg
+
+
+On 9/20/06, Jean Delvare <khali at linux-fr.org> wrote:
+> Hi Juerg,
+>
+> > > > As far as I am concerned, the only thing I'd like to merge before this
+> > > > upcoming release is the set of changes needed to make the Linux 2.6
+> > > > vt1211 driver work properly. If you think of other things that need to
+> > > > be done before the release, please speak up.
+> >
+> > The current version of libsensors works fine with the new vt1211
+> > driver. All it needs is a sligthly modified sensors.conf (and of
+> > course an update to the 2.4 driver).
+>
+> Good, thanks for testing and reporting. We can (and should) update both
+> right after the release.
+>
+> --
+> Jean Delvare
+>
 
