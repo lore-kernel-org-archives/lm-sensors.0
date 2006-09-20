@@ -1,31 +1,35 @@
-From: alejandro.riveira@gmail.com (Alejandro Riveira =?ISO-8859-1?Q?Fern=E1ndez?=)
-Date: Wed, 13 Sep 2006 23:02:08 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Wed, 20 Sep 2006 19:36:25 +0000
 Subject: [lm-sensors] Module(s) ALI15** not loading
-Message-Id: <1158188528.9914.8.camel@localhost.localdomain>
+Message-Id: <45119839.2010100@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1158188393.9914.5.camel@localhost.localdomain>
 In-Reply-To: <1158188393.9914.5.camel@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-El jue, 14-09-2006 a las 01:00 +0200, Alejandro Riveira Fern?ndez
-escribi?:
- > [...]
+Alejandro Riveira Fern?ndez wrote:
+>         Hi I have changed my mobo, now i have an uli1697 based asrock
+>         AM2xli-esataII 
+>         
+>         i'm seeing this in the dmesg
+>         
+>         ali1535_smbus 0000:00:15.1: ALI1535_smb region uninitialized - upgrade BIOS?
+>         ali1535_smbus 0000:00:15.1: ALI1535 not detected, module not inserted.
+>         ali15x3_smbus 0000:00:15.1: ALI15X3_smb region uninitialized - upgrade BIOS or use force_addr=0xaddr
+>         ali15x3_smbus 0000:00:15.1: ALI15X3 not detected, module not inserted.
+>         
+>         ??Does anybody has an idea of how to make it work?
 
-Sorry but i forgot to tell that i'm not in the list so please CC me in
-your replies. Thanks for your time and patince ;)
---=20
-Pandas are still around because of "survival of the cutest". Much like
-OSX.
-                                                    hclyff in Slashdot
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 199 bytes
-Desc: Esta parte del mensaje =3D?ISO-8859-1?Q?est=E1?=3D firmada
-	digitalmente
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060914=
-/cae4fda1/attachment.bin=20
+Not yet. Please provide output of following (you need to to be root)
+lspci -xxx
+sensors-detect
+
+(with newest sensors-detect - 
+http://www.lm-sensors.org/wiki/iwizard/NoSensorsDetected
+
+Regards
+Rudolf
+
