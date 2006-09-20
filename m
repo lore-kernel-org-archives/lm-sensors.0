@@ -1,7 +1,7 @@
-From: phil_edelbrock@edgedesign.us (Philip Edelbrock)
-Date: Mon, 11 Sep 2006 04:26:04 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 20 Sep 2006 08:40:22 +0000
 Subject: [lm-sensors] Call for 2.10.1
-Message-Id: <A52AE733-7CA1-4041-8835-5CB1ED4DB2AA@edgedesign.us>
+Message-Id: <20060920104022.5dbfa635.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060819105454.c6c438ed.khali@linux-fr.org>
 In-Reply-To: <20060819105454.c6c438ed.khali@linux-fr.org>
@@ -10,27 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Juerg,
 
-On Sep 10, 2006, at 12:33 PM, Jean Delvare wrote:
+> > > As far as I am concerned, the only thing I'd like to merge before this
+> > > upcoming release is the set of changes needed to make the Linux 2.6
+> > > vt1211 driver work properly. If you think of other things that need to
+> > > be done before the release, please speak up.
+> 
+> The current version of libsensors works fine with the new vt1211
+> driver. All it needs is a sligthly modified sensors.conf (and of
+> course an update to the 2.4 driver).
 
+Good, thanks for testing and reporting. We can (and should) update both
+right after the release.
 
->>
->> Phil, will you continue taking care of the release? Our
->> doc/developers/checklist probably needs some adjustements to reflect
->> our move to SVN, amongst others.
->
-> Phil, you didn't answer to my question?
->
+-- 
+Jean Delvare
 
-Hi Jean, yes I can.
-
-
-Phil
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: smime.p7s
-Type: application/pkcs7-signature
-Size: 2439 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060910/abd11506/attachment.bin 
