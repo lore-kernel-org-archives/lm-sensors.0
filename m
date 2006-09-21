@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 21 Sep 2006 06:11:58 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 21 Sep 2006 10:53:59 +0000
 Subject: [lm-sensors] Module(s) ALI15** not loading
-Message-Id: <20060921081158.7d0f1bad.khali@linux-fr.org>
+Message-Id: <45126F47.8050600@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1158188393.9914.5.camel@localhost.localdomain>
 In-Reply-To: <1158188393.9914.5.camel@localhost.localdomain>
@@ -10,99 +10,54 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Alejandro,
+> 0000:00:15.0 ISA bridge: ALi Corporation PCI to LPC Controller (rev 10)
+> 00: b9 10 73 15 0f 00 00 02 10 00 01 06 00 00 80 00
+> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> 20: 00 00 00 00 00 00 00 00 00 00 00 00 49 18 73 15
+> 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 18
+> 40: 00 00 00 00 3d 00 00 00 00 00 00 00 00 90 00 90
+> 50: 33 00 00 fe 0d 21 01 00 00 00 00 00 80 00 00 05
+> 60: d8 f8 f0 f3 00 00 00 00 00 00 00 00 00 00 00 00
+> 70: 00 01 73 15 00 0f 00 42 00 00 00 20 00 00 00 00
+> 80: 03 50 00 00 21 0f 99 aa bb cc 00 00 ee dd 00 58
+> 90: 00 00 00 00 00 00 00 00 ba 01 00 00 68 00 00 00
+> a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> b0: 00 00 0e 00 02 00 00 00 de 05 00 00 00 00 00 00
+> c0: 88 88 88 88 00 00 00 00 08 00 00 00 00 00 00 00
+> d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> f0: 00 00 80 07 f0 00 f0 00 c7 0f 00 00 04 01 00 00
 
-> We can start with probing for (PCI) I2C or SMBus adapters.
-> Do you want to probe now? (YES/no):
-> Probing for PCI bus adapters...
-> Use driver `i2c-ali15x3' for device 0000:00:15.1: Acer Labs 1533/1543
-> Use driver `i2c-ali1535' for device 0000:00:15.1: Acer Labs 1535
-> 
-> We will now try to load each adapter module in turn.
-> Module `i2c-ali15x3' already loaded.
-> Module `i2c-ali1535' already loaded.
-> If you have undetectable or unsupported adapters, you can have them
-> scanned by manually loading the modules before running this script.
-> 
-> To continue, we need module `i2c-dev' to be loaded.
-> Do you want to load `i2c-dev' now? (YES/no):
-> Module loaded successfully.
-> 
-> We are now going to do the I2C/SMBus adapter probings. Some chips may
-> be double detected; we choose the one with the highest confidence
-> value in that case.
-> If you found that the adapter hung after probing a certain address,
-> you can specify that address to remain unprobed.
-> 
-> Next adapter: NVIDIA I2C Device
-> Do you want to scan it? (YES/no/selectively): n
-> 
-> Next adapter: NVIDIA I2C Device
-> Do you want to scan it? (YES/no/selectively):
-> Adapter cannot be probed, skipping.
-> 
-> Next adapter: NVIDIA I2C Device
-> Do you want to scan it? (YES/no/selectively):
-> Adapter cannot be probed, skipping.
-> 
-> Some chips are also accessible through the ISA I/O ports. We have to
-> write to arbitrary I/O ports to probe them. This is usually safe though.
-> Yes, you do have ISA I/O ports even if you do not have any ISA slots!
-> Do you want to scan the ISA I/O ports? (YES/no):
-> Probing for `National Semiconductor LM78' at 0x290...       No
-> Probing for `National Semiconductor LM78-J' at 0x290...     No
-> Probing for `National Semiconductor LM79' at 0x290...       No
-> Probing for `Winbond W83781D' at 0x290...                   No
-> Probing for `Winbond W83782D' at 0x290...                   No
-> Probing for `Winbond W83627HF' at 0x290...                  No
-> Probing for `Silicon Integrated Systems SIS5595'...         No
-> Probing for `VIA VT82C686 Integrated Sensors'...            No
-> Probing for `VIA VT8231 Integrated Sensors'...              No
-> Probing for `AMD K8 thermal sensors'...                     Success!
->     (confidence 9, driver `k8temp')
-> Probing for `IPMI BMC KCS' at 0xca0...                      No
-> Probing for `IPMI BMC SMIC' at 0xca8...                     No
-> 
-> Some Super I/O chips may also contain sensors. We have to write to
-> standard I/O ports to probe them. This is usually safe.
-> Do you want to scan for Super I/O sensors? (YES/no):
-> Probing for Super-I/O at 0x2e/0x2f
-> Trying family `ITE'...                                      Yes
-> Found unknown chip with ID 0x8863
->     (logical device B has address 0x290, could be sensors)
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Fintek'...                       Yes
-> Found `Winbond W83627EHF/EHG Super IO Sensors'              Success!
->     (address 0x290, driver `w83627ehf')
-> Probing for Super-I/O at 0x4e/0x4f
-> Trying family `ITE'...                                      No
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Fintek'...                       No
-> 
-> Now follows a summary of the probes I have just done.
-> Just press ENTER to continue:
-> 
-> Driver `k8temp' (should be inserted):
->   Detects correctly:
->   * ISA bus, undetermined address (Busdriver `i2c-isa')
->     Chip `AMD K8 thermal sensors' (confidence: 9)
-> 
-> Driver `w83627ehf' (should be inserted):
->   Detects correctly:
->   * ISA bus address 0x0290 (Busdriver `i2c-isa')
->     Chip `Winbond W83627EHF/EHG Super IO Sensors' (confidence: 9)
+Maybe here is the answer?
 
-So you can most certainly get hardware monitoring to work on this board
-without using the ALi SMBus. You'll need a fairly recent kernel though,
-as k8temp is only in -mm for now (will go to 2.6.19) and w83627ehf got
-recent improvements as well.
+What does the cat /proc/ioports say?
+is there the region of 5000 ?
 
-Of course it doesn't explain why the ALi SMBus doesn't work, and it'd
-be nice to fix it if possible, but if all you are after is hardware
-monitoring, you can do without it.
 
--- 
-Jean Delvare
+> 80: 03 50
+
+Is base 5000, host enabled, iospace too. So I think it might work if
+you can try following which is a bit dangerous and can lead to machine crash...
+
+edit the i2c-ali1563.c
+
+find this line:
+       { PCI_DEVICE(PCI_VENDOR_ID_AL, PCI_DEVICE_ID_AL_M1563) },
+change to:
+       { PCI_DEVICE(PCI_VENDOR_ID_AL, 0x1573) },
+
+compile, install, modprobe, run sensors-detect, send us the output of
+sensors-detect,
+
+modprobe i2c-dev
+i2cdetect -l
+should list the busses - find one which will say ALI @ 5000, and write the
+number instead of X
+
+i2cdetect X
+
+Send the dump to us too please.
+
+Regards
+Rudolf
 
