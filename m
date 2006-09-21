@@ -1,51 +1,255 @@
-From: lwhite@nrw.ca (Len J. White)
-Date: Tue, 26 Sep 2006 20:32:39 +0000
-Subject: [lm-sensors] ADT7475
-Message-Id: <45198E67.2000500@nrw.ca>
+From: roger@planbit.co.uk (Roger Lucas)
+Date: Thu, 21 Sep 2006 18:29:22 +0000
+Subject: [lm-sensors] [PATCH] VT8231 driver with device_create_file() return
+Message-Id: <20060921182901.A183C12EE1@bluewhale.planbit.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060902193444.a259efdb.khali@linux-fr.org>
-In-Reply-To: <20060902193444.a259efdb.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guys,
+Hi,
 
-I have a ADT7475 on my board as well, I don't have much driver 
-experience but I am making some headway...
+This patches the VT8231 driver to check the return status from device_create_file() and also use the newer and cleaner sysfs
+creation functions.
 
-Going from this message:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2006-September/017552.html
+It works on my Via EPIA board with its VT8231.  I haven't been able to make it break to test all the cleanup paths, however, but
+they match the coding constructs on other drivers so they should be OK.
 
-I have since been able to get the CPU temperature working...
+Regards,
 
-adt7463-i2c-1-2e
-Adapter: SMBus nForce2 adapter at 1c40
-V1.5:      +0.000 V  (min =  +1.42 V, max =  +1.58 V)
-VCore:     +0.000 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
-V3.3:      +3.360 V  (min =  +3.13 V, max =  +3.47 V)
-V5:       +0.000 V  (min =  +4.74 V, max =  +5.26 V)
-V12:      +0.000 V  (min = +11.38 V, max = +12.62 V)
-CPU_Fan:      0 RPM  (min = 4000 RPM)                     ALARM
-fan2:         0 RPM  (min =    0 RPM)
-fan3:         0 RPM  (min =    0 RPM)
-fan4:         0 RPM  (min =    0 RPM)
-CPU:      +32.25 C  (low  =   +10 C, high =   +50 C)     ALARM FAULT
-Board:     +0.00 C  (low  =   +10 C, high =   +35 C)     ALARM
-Remote:    +0.00 C  (low  =   +10 C, high =   +35 C)     ALARM FAULT
-CPU_PWM:     0
-Fan2_PWM:    0
-Fan3_PWM:    0
-vid:      +0.000 V  (VRM Version 2.4)
+Roger Lucas
 
 
-Change this below from register 0x25 to 0x77, 0x25 is the 8bit 
-resolution and 0x77 is the 10bit..
+Signed-off-by: Roger Lucas <roger at planbit.co.uk>
 
-#define LM85_REG_TEMP(nr)               (0x77 + (nr))
+--- linux-2.6.18/drivers/hwmon/vt8231.c.ref     2006-09-21 17:54:04.000000000 +0100
++++ linux-2.6.18/drivers/hwmon/vt8231.c 2006-09-21 19:13:05.000000000 +0100
+@@ -36,6 +36,7 @@
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/platform_device.h>
+ #include <asm/io.h>
 
+ static int force_addr;
+@@ -451,37 +452,6 @@
+ define_temperature_sysfs(5);
+ define_temperature_sysfs(6);
 
-This gives the correct CPU temperature (verified by bios)  
+-#define CFG_INFO_TEMP(id)      { &sensor_dev_attr_temp##id##_input.dev_attr, \
+-                               &sensor_dev_attr_temp##id##_max_hyst.dev_attr, \
+-                               &sensor_dev_attr_temp##id##_max.dev_attr }
+-#define CFG_INFO_VOLT(id)      { &sensor_dev_attr_in##id##_input.dev_attr, \
+-                               &sensor_dev_attr_in##id##_min.dev_attr, \
+-                               &sensor_dev_attr_in##id##_max.dev_attr }
+-
+-struct str_device_attr_table {
+-       struct device_attribute *input;
+-       struct device_attribute *min;
+-       struct device_attribute *max;
+-};
+-
+-static struct str_device_attr_table cfg_info_temp[] = {
+-       { &dev_attr_temp1_input, &dev_attr_temp1_max_hyst, &dev_attr_temp1_max },
+-       CFG_INFO_TEMP(2),
+-       CFG_INFO_TEMP(3),
+-       CFG_INFO_TEMP(4),
+-       CFG_INFO_TEMP(5),
+-       CFG_INFO_TEMP(6)
+-};
+-
+-static struct str_device_attr_table cfg_info_volt[] = {
+-       CFG_INFO_VOLT(0),
+-       CFG_INFO_VOLT(1),
+-       CFG_INFO_VOLT(2),
+-       CFG_INFO_VOLT(3),
+-       CFG_INFO_VOLT(4),
+-       { &dev_attr_in5_input, &dev_attr_in5_min, &dev_attr_in5_max }
+-};
+-
+ /* Fans */
+ static ssize_t show_fan(struct device *dev, struct device_attribute *attr,
+                char *buf)
+@@ -585,6 +555,108 @@
+
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+
++static struct attribute *vt8231_attributes_temps[6][4] = {
++       {
++               &dev_attr_temp1_input.attr,
++               &dev_attr_temp1_max_hyst.attr,
++               &dev_attr_temp1_max.attr,
++               NULL
++       }, {
++               &sensor_dev_attr_temp2_input.dev_attr.attr,
++               &sensor_dev_attr_temp2_max_hyst.dev_attr.attr,
++               &sensor_dev_attr_temp2_max.dev_attr.attr,
++               NULL
++       }, {
++               &sensor_dev_attr_temp3_input.dev_attr.attr,
++               &sensor_dev_attr_temp3_max_hyst.dev_attr.attr,
++               &sensor_dev_attr_temp3_max.dev_attr.attr,
++               NULL
++       }, {
++               &sensor_dev_attr_temp4_input.dev_attr.attr,
++               &sensor_dev_attr_temp4_max_hyst.dev_attr.attr,
++               &sensor_dev_attr_temp4_max.dev_attr.attr,
++               NULL
++       }, {
++               &sensor_dev_attr_temp5_input.dev_attr.attr,
++               &sensor_dev_attr_temp5_max_hyst.dev_attr.attr,
++               &sensor_dev_attr_temp5_max.dev_attr.attr,
++               NULL
++       }, {
++               &sensor_dev_attr_temp6_input.dev_attr.attr,
++               &sensor_dev_attr_temp6_max_hyst.dev_attr.attr,
++               &sensor_dev_attr_temp6_max.dev_attr.attr,
++               NULL
++       }
++};
++
++static const struct attribute_group vt8231_group_temps[6] = {
++       { .attrs = vt8231_attributes_temps[0] },
++       { .attrs = vt8231_attributes_temps[1] },
++       { .attrs = vt8231_attributes_temps[2] },
++       { .attrs = vt8231_attributes_temps[3] },
++       { .attrs = vt8231_attributes_temps[4] },
++       { .attrs = vt8231_attributes_temps[5] }
++};
++
++
++static struct attribute *vt8231_attributes_volts[6][4] = {
++       {
++               &sensor_dev_attr_in0_input.dev_attr.attr,
++               &sensor_dev_attr_in0_min.dev_attr.attr,
++               &sensor_dev_attr_in0_max.dev_attr.attr,
++               NULL
++       }, {
++               &sensor_dev_attr_in1_input.dev_attr.attr,
++               &sensor_dev_attr_in1_min.dev_attr.attr,
++               &sensor_dev_attr_in1_max.dev_attr.attr,
++               NULL
++       }, {
++               &sensor_dev_attr_in2_input.dev_attr.attr,
++               &sensor_dev_attr_in2_min.dev_attr.attr,
++               &sensor_dev_attr_in2_max.dev_attr.attr,
++               NULL
++       }, {
++               &sensor_dev_attr_in3_input.dev_attr.attr,
++               &sensor_dev_attr_in3_min.dev_attr.attr,
++               &sensor_dev_attr_in3_max.dev_attr.attr,
++               NULL
++       }, {
++               &sensor_dev_attr_in4_input.dev_attr.attr,
++               &sensor_dev_attr_in4_min.dev_attr.attr,
++               &sensor_dev_attr_in4_max.dev_attr.attr,
++               NULL
++       }, {
++               &dev_attr_in5_input.attr,
++               &dev_attr_in5_min.attr,
++               &dev_attr_in5_max.attr,
++               NULL
++       }
++};
++
++static const struct attribute_group vt8231_group_volts[6] = {
++       { .attrs = vt8231_attributes_volts[0] },
++       { .attrs = vt8231_attributes_volts[1] },
++       { .attrs = vt8231_attributes_volts[2] },
++       { .attrs = vt8231_attributes_volts[3] },
++       { .attrs = vt8231_attributes_volts[4] },
++       { .attrs = vt8231_attributes_volts[5] }
++};
++
++static struct attribute *vt8231_attributes[] = {
++       &sensor_dev_attr_fan1_input.dev_attr.attr,
++       &sensor_dev_attr_fan2_input.dev_attr.attr,
++       &sensor_dev_attr_fan1_min.dev_attr.attr,
++       &sensor_dev_attr_fan2_min.dev_attr.attr,
++       &sensor_dev_attr_fan1_div.dev_attr.attr,
++       &sensor_dev_attr_fan2_div.dev_attr.attr,
++       &dev_attr_alarms.attr,
++       NULL
++};
++
++static const struct attribute_group vt8231_group = {
++       .attrs = vt8231_attributes,
++};
++
+ static struct i2c_driver vt8231_driver = {
+        .driver = {
+                .name   = "vt8231",
+@@ -669,47 +741,46 @@
+
+        vt8231_init_client(client);
+
+-       /* Register sysfs hooks */
+-       data->class_dev = hwmon_device_register(&client->dev);
+-       if (IS_ERR(data->class_dev)) {
+-               err = PTR_ERR(data->class_dev);
++       if ((err = sysfs_create_group(&client->dev.kobj, &vt8231_group)))
+                goto exit_detach;
+-       }
+
+        /* Must update device information to find out the config field */
+        data->uch_config = vt8231_read_value(client, VT8231_REG_UCH_CONFIG);
+
+-       for (i = 0; i < ARRAY_SIZE(cfg_info_temp); i++) {
++       for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++) {
+                if (ISTEMP(i, data->uch_config)) {
+-                       device_create_file(&client->dev,
+-                                          cfg_info_temp[i].input);
+-                       device_create_file(&client->dev, cfg_info_temp[i].max);
+-                       device_create_file(&client->dev, cfg_info_temp[i].min);
++                       if ((err = sysfs_create_group(&client->dev.kobj, &vt8231_group_temps[i])))
++                               goto exit_remove_files;
+                }
+        }
+
+-       for (i = 0; i < ARRAY_SIZE(cfg_info_volt); i++) {
++       for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++) {
+                if (ISVOLT(i, data->uch_config)) {
+-                       device_create_file(&client->dev,
+-                                          cfg_info_volt[i].input);
+-                       device_create_file(&client->dev, cfg_info_volt[i].max);
+-                       device_create_file(&client->dev, cfg_info_volt[i].min);
++                       if ((err = sysfs_create_group(&client->dev.kobj, &vt8231_group_volts[i])))
++                               goto exit_remove_files;
+                }
+        }
+
+-       device_create_file(&client->dev, &sensor_dev_attr_fan1_input.dev_attr);
+-       device_create_file(&client->dev, &sensor_dev_attr_fan2_input.dev_attr);
+-       device_create_file(&client->dev, &sensor_dev_attr_fan1_min.dev_attr);
+-       device_create_file(&client->dev, &sensor_dev_attr_fan2_min.dev_attr);
+-       device_create_file(&client->dev, &sensor_dev_attr_fan1_div.dev_attr);
+-       device_create_file(&client->dev, &sensor_dev_attr_fan2_div.dev_attr);
+-
+-       device_create_file(&client->dev, &dev_attr_alarms);
++       /* Register sysfs hooks */
++       data->class_dev = hwmon_device_register(&client->dev);
++       if (IS_ERR(data->class_dev)) {
++               err = PTR_ERR(data->class_dev);
++               goto exit_remove_files;
++       }
+        return 0;
+
++exit_remove_files:
++       for(i=0; i<ARRAY_SIZE(vt8231_group_volts); i++)
++               sysfs_remove_group(&client->dev.kobj, &vt8231_group_volts[i]);
++
++       for(i=0; i<ARRAY_SIZE(vt8231_group_temps); i++)
++               sysfs_remove_group(&client->dev.kobj, &vt8231_group_temps[i]);
++
++       sysfs_remove_group(&client->dev.kobj, &vt8231_group);
+ exit_detach:
+        i2c_detach_client(client);
+ exit_free:
++       platform_set_drvdata(client, NULL);
+        kfree(data);
+ exit_release:
+        release_region(isa_address, VT8231_EXTENT);
+
 
 
