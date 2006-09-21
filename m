@@ -1,32 +1,29 @@
-From: hanyongkui99@gmail.com (Yongkui Han)
-Date: Thu, 21 Sep 2006 19:44:59 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 21 Sep 2006 20:36:39 +0000
 Subject: [lm-sensors] Any suggestion on buying a new computer with
-Message-Id: <2ca62ec0609211244u172bab79ta8af0617a1a96309@mail.gmail.com>
+Message-Id: <20060921223639.f5d26b8a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2ca62ec0609191209t1e5c2d5cn497a70d2c56cdc66@mail.gmail.com>
 In-Reply-To: <2ca62ec0609191209t1e5c2d5cn497a70d2c56cdc66@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbiwKCkhvdyBkbyB5b3UgdGhpbmsgb2YgdGhpcyBDeWJlcnRyb25QQyBjb21wdXRlci4g
-SXQgaGFzIGEgQXN1cyAqQXN1cyBQNVY4MDAtTVgKU29ja2V0IExHNzc1ICptb3RoZXJib2FyZC4K
-aHR0cDovL3d3dy50aWdlcmRpcmVjdC5jb20vYXBwbGljYXRpb25zL3NlYXJjaHRvb2xzL2l0ZW0t
-RGV0YWlscy5hc3A/RWRwTm8iMjQxODkmc2t1wTIyLTM1MDIKCkRvIHlvdSB0aGluayB0aGlzIG1v
-dGhlcmJvYXJkIHN1cHBvcnRzIGxtLXNlbnNvcnMgd2VsbD8gSWYgc28sIEkgd2lsbApwcm9iYWJs
-eSBidXkgdGhpcyBjb21wdXRlci4KClRoYW5rcyEKCllvbmdrdWkKCgpPbiA5LzIxLzA2LCBKZWFu
-IERlbHZhcmUgPGtoYWxpIGF0IGxpbnV4LWZyLm9yZz4gd3JvdGU6Cj4KPiA+IFBlbnRpdW0gNCBD
-UFUgaXMgbmVjZXNzYXJ5IGZvciBtZS4gSSBjYW5ub3QgdXNlIEludGVsIENvcmUgMiBEdW8gRTYz
-MDAKPiBhcwo+ID4gdGhlIENQVS4gU28gSSBtdXN0IGNob29zZSBvbmUgQXN1cyBtb3RoZXJib2Fy
-ZCB3aGljaCBzdXBwb3J0cyBQZW50aXVtIDQKPiBDUFUuCj4gPiBBbnkgc3VnZ2VzdGlvbnM/Cj4K
-PiBUaGVyZSBhcmUgaHVuZHJlZHMgb2YgUGVudGl1bSA0IG1vdGhlcmJvYXJkcy4gQW5kIFBlbnRp
-dW0gNCBkb2Vzbid0Cj4gbWVhbiBtdWNoIGVpdGhlciwgYXMgdGhlcmUgYXJlIGF0IGxlYXN0IDYg
-ZmFtaWxpZXMgb2YgUGVudGl1bSA0IHdpdGgKPiB2ZXJ5aW5nIHNvY2tldHMuCj4KPiBEb24ndCBh
-c2sgdXMgdG8gY2hvb3NlIGZvciB5b3UsIGl0IGRvZXNuJ3QgbWFrZSBzZW5zZS4gQWxsIHdlIGNh
-biB0ZWxsCj4geW91IGlzIHRoZSBsZXZlbCBvZiBzdXBwb3J0IG9mIGEgZ2l2ZW4gaGFyZHdhcmUg
-bW9uaXRvcmluZyBjaGlwIG9yIGEKPiBnaXZlbiBTTUJ1cy4gQWxsIHRoZSByZXN0IGlzIHVwIHRv
-IHlvdSB0byBzZWFyY2guCj4KPiAtLQo+IEplYW4gRGVsdmFyZQo+Ci0tLS0tLS0tLS0tLS0tIG5l
-eHQgcGFydCAtLS0tLS0tLS0tLS0tLQpBbiBIVE1MIGF0dGFjaG1lbnQgd2FzIHNjcnViYmVkLi4u
-ClVSTDogaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVybWFpbC9sbS1zZW5zb3JzL2F0
-dGFjaG1lbnRzLzIwMDYwOTIxL2VhMDE3M2FhL2F0dGFjaG1lbnQtMDAwMS5odG1sIAo=
+> How do you think of this CybertronPC computer. It has a Asus *Asus P5V800=
+-MX
+> Socket LG775 *motherboard.
+> http://www.tigerdirect.com/applications/searchtools/item-Details.asp?EdpN=
+o"24189&sku=C122-3502
+>=20
+> Do you think this motherboard supports lm-sensors well? If so, I will
+> probably buy this computer.
+
+Can't tell for sure without having my hands on it, and nobody ever
+reported with that board, but it appears to have an ITE IT8712F
+Super-I/O chip, and this chip has hardware monitoring functions and is
+perfectly supported for a long time. So I'd say it's OK.
+
+--=20
+Jean Delvare
+
