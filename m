@@ -1,7 +1,7 @@
-From: michaelnel@comcast.net (Michael Nelson)
-Date: Wed, 20 Sep 2006 21:41:24 +0000
+From: mrgreen.linuxuser@gmail.com (Mr Green)
+Date: Thu, 21 Sep 2006 06:42:30 +0000
 Subject: [lm-sensors] Asus P5B
-Message-Id: <20060920214124.GB19919@seahunt.dyndns.org>
+Message-Id: <b62408800609202342o3aedeba5vb2c70da38eacf698@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <b62408800609201018k102f2869wa8f97d0c83021fc8@mail.gmail.com>
 In-Reply-To: <b62408800609201018k102f2869wa8f97d0c83021fc8@mail.gmail.com>
@@ -10,23 +10,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 20, 2006 at 02:46:32PM -0600, David Hubbard wrote:
+Hi Michael,
 
-> I'd be willing to backport the driver for the 2.6.16 series. It
-> wouldn't be hard to do, once I have some time to do it. Which version
-> exactly are you using? I suspect the latest version (2.6.16.29) would
-> only have a few differences from the 2.6.18 series. If it also worked
-> for your version, support for 2.6.16 would be easy.
+Let me know if you want your dvd drive back ;-)
 
-Thanks David, for offering.  But really, no need.  2.6.16 doesn't support
-the JMicron either, so right now I am just running the stock SuSE kernel
-because I got lazy and didn't want to screw around with it anymore.  If I
-want sensors, I can use 2.6.18 with your patch, which I know works.  Either
-way, no JMicro support until Alan Cox unbreaks what he broke.
+I have same issue with my mobo but I use a patched 2.6.18-rc6 at the moment
+so have dvd drive working
 
-Michael
+Will help you as much I can just let me know
+
+HTH
+
+MrG
+
+On 9/20/06, Michael Nelson <michaelnel at comcast.net> wrote:
+>
+> On Wed, Sep 20, 2006 at 10:05:18PM +0200, Jean Delvare wrote:
+> > Ah, this is a misdetection. You don't have an LM78 chip. So the output
+> > above is crap. You must unload the lm78 driver, and use the w83627ehf
+> > driver instead - once David is done with adding support for your chip.
+>
+> David's driver works very well on my P5B Deluxe WiFi AP.  Unfortunately, I
+> can't use it right now.  It is for the 2.6.18 series kernels, and 2.6.18has
+> broken support for the JMicron IDE/SATA controller on my
+> motherboard.  Alan
+> Cox's latest patch kills the kernel upon loading, so for right now I'm
+> just
+> back to running the stock SuSE 10.1 kernel (2.6.16.something) and living
+> without sensors and my DVD.
+>
+> Life sucks when you are using a MB that is riding the foreskin of
+> technology.
+>
+> I will revisit 2.6.18 when it's released.
+>
+> Thanks for your work, David!
+>
+> Michael
+>
+> --
+>
+> San Francisco, CA
+>
+
+
 
 -- 
-
-San Francisco, CA
-
+Mr Green Linux User
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060921/8280ef84/attachment.html 
