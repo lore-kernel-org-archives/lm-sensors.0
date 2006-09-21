@@ -1,144 +1,55 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 28 Sep 2006 22:48:47 +0000
-Subject: [lm-sensors] [PATCH 27/39] pc87360: Check for error on sysfs files
-Message-Id: <11594838352441-git-send-email-greg@kroah.com>
+From: andrea.gozzi@linuxrevolution.eu (Andrea Gozzi)
+Date: Thu, 21 Sep 2006 09:17:21 +0000
+Subject: [lm-sensors] it87-isa-0290 troubles
+Message-Id: <1158830241.3820.1.camel@osmosis.gnet.eu>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jim Cromie <jim.cromie at gmail.com>
+Hi.
+I'm having some troubles with my motherboard.
+The board in question is a _VIA Technologies, Inc. VT8378 [KM400/A]_ and
+I'm using the _it87-isa-0290_ driver.
 
-pc87360: Check for error on sysfs files creation
+These are two outputs of 'sensors', just a few seconds apart:
 
-Use sysfs_create_group() for 2 sensor-types which are chip-model
-invariant, i.e. all-or-nothing attribute groups.
-Other 2 groups vary too much due to configuration, etc, so we keep the
-loops of device_create_file(), but now check their returns.
+Adapter: ISA adapter
+VCore 1:   +1.52 V  (min =  +1.42 V, max =  +1.57 V)
+VCore 2:   +2.50 V  (min =  +2.40 V, max =  +2.61 V)
+fan1:     1757 RPM  (min = 1298 RPM, div = 8)
+fan2:     5113 RPM  (min = 4017 RPM, div = 8)
+M/B Temp:    +65?C  (low  =   +15?C, high =   +40?C)   sensor = diode
+CPU Temp:    +51?C  (low  =   +25?C, high =   +60?C)   sensor = diode
 
-Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
----
- drivers/hwmon/pc87360.c |   89 ++++++++++++++++++++++++++---------------------
- 1 files changed, 49 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index ce3232c..3b8b819 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -1018,60 +1018,69 @@ static int pc87360_detect(struct i2c_ada
- 		pc87360_init_client(client, use_thermistors);
- 	}
- 
--	/* Register sysfs hooks */
--	data->class_dev = hwmon_device_register(&client->dev);
--	if (IS_ERR(data->class_dev)) {
--		err = PTR_ERR(data->class_dev);
-+	/* Register all-or-nothing sysfs groups */
-+
-+	if (data->innr &&
-+	    (err = sysfs_create_group(&client->dev.kobj,
-+				      &pc8736x_vin_group)))
- 		goto ERROR3;
--	}
- 
--	if (data->innr) {
--		for (i = 0; i < 11; i++) {
--			device_create_file(dev, &in_input[i].dev_attr);
--			device_create_file(dev, &in_min[i].dev_attr);
--			device_create_file(dev, &in_max[i].dev_attr);
--			device_create_file(dev, &in_status[i].dev_attr);
--		}
--		device_create_file(dev, &dev_attr_cpu0_vid);
--		device_create_file(dev, &dev_attr_vrm);
--		device_create_file(dev, &dev_attr_alarms_in);
--	}
-+	if (data->innr = 14 &&
-+	    (err = sysfs_create_group(&client->dev.kobj,
-+				      &pc8736x_therm_group)))
-+		goto ERROR3;
-+
-+	/* create device attr-files for varying sysfs groups */
- 
- 	if (data->tempnr) {
- 		for (i = 0; i < data->tempnr; i++) {
--			device_create_file(dev, &temp_input[i].dev_attr);
--			device_create_file(dev, &temp_min[i].dev_attr);
--			device_create_file(dev, &temp_max[i].dev_attr);
--			device_create_file(dev, &temp_crit[i].dev_attr);
--			device_create_file(dev, &temp_status[i].dev_attr);
--		}
--		device_create_file(dev, &dev_attr_alarms_temp);
--	}
--
--	if (data->innr = 14) {
--		for (i = 0; i < 3; i++) {
--			device_create_file(dev, &therm_input[i].dev_attr);
--			device_create_file(dev, &therm_min[i].dev_attr);
--			device_create_file(dev, &therm_max[i].dev_attr);
--			device_create_file(dev, &therm_crit[i].dev_attr);
--			device_create_file(dev, &therm_status[i].dev_attr);
-+			if ((err = device_create_file(dev,
-+					&temp_input[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_min[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_max[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_crit[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_status[i].dev_attr)))
-+				goto ERROR3;
- 		}
-+		if ((err = device_create_file(dev, &dev_attr_alarms_temp)))
-+			goto ERROR3;
- 	}
- 
- 	for (i = 0; i < data->fannr; i++) {
--		if (FAN_CONFIG_MONITOR(data->fan_conf, i)) {
--			device_create_file(dev, &fan_input[i].dev_attr);
--			device_create_file(dev, &fan_min[i].dev_attr);
--			device_create_file(dev, &fan_div[i].dev_attr);
--			device_create_file(dev, &fan_status[i].dev_attr);
--		}
--		if (FAN_CONFIG_CONTROL(data->fan_conf, i))
--			device_create_file(dev, &pwm[i].dev_attr);
-+		if (FAN_CONFIG_MONITOR(data->fan_conf, i)
-+		    && ((err = device_create_file(dev,
-+					&fan_input[i].dev_attr))
-+			|| (err = device_create_file(dev,
-+					&fan_min[i].dev_attr))
-+			|| (err = device_create_file(dev,
-+					&fan_div[i].dev_attr))
-+			|| (err = device_create_file(dev,
-+					&fan_status[i].dev_attr))))
-+			goto ERROR3;
-+
-+		if (FAN_CONFIG_CONTROL(data->fan_conf, i)
-+		    && (err = device_create_file(dev, &pwm[i].dev_attr)))
-+			goto ERROR3;
- 	}
- 
-+	data->class_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto ERROR3;
-+	}
- 	return 0;
- 
- ERROR3:
-+	/* can still remove groups whose members were added individually */
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_temp_group);
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_fan_group);
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_therm_group);
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_vin_group);
-+
- 	i2c_detach_client(client);
- ERROR2:
- 	for (i = 0; i < 3; i++) {
+Adapter: ISA adapter
+VCore 1:   +1.54 V  (min =  +1.42 V, max =  +1.57 V)
+VCore 2:   +2.51 V  (min =  +2.40 V, max =  +2.61 V)
+fan1:     1776 RPM  (min = 1298 RPM, div = 8)
+fan2:     5113 RPM  (min = 4017 RPM, div = 8)
+M/B Temp:    +86?C  (low  =   +15?C, high =   +40?C)   sensor = diode
+CPU Temp:    +52?C  (low  =   +25?C, high =   +60?C)   sensor = diode
+
+I would say there is definitely something wrong with the M/B sensor.
+I tried changing the type to 'thermistor' but then the sensor was
+displaying a fixed temperature of 127?C.
+BTW the cpu's sensor works all right, I checked with the BIOS values.
+
+Any suggestions to make the M/B sensor work?
+Thanks
+
+Andrea
+
+
+
 -- 
-1.4.2.1
-
-
+Andrea Gozzi <andrea.gozzi at linuxrevolution.eu>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: This is a digitally signed message part
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060921/09f57c50/attachment.bin 
