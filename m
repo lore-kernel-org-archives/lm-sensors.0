@@ -1,7 +1,7 @@
-From: sandeen@sandeen.net (Eric Sandeen)
-Date: Wed, 20 Sep 2006 20:21:45 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 21 Sep 2006 06:14:51 +0000
 Subject: [lm-sensors] DME1737 specsheet dead end.
-Message-Id: <4511A2D9.5010405@sandeen.net>
+Message-Id: <20060921081451.6d90742b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4503968B.8010703@sandeen.net>
 In-Reply-To: <4503968B.8010703@sandeen.net>
@@ -10,25 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Eric,
+Eric,
+
+> > > FYI, DME1737 specsheet (a.k.a. Asus A8000) is apparently not available to mere 
+> > > mortals... conversation follows:
+> > 
+> > I didn't know the SMSC DME1737 and the Asus A8000 were the same chip.
+> > How did you find out?
 > 
->> FYI, DME1737 specsheet (a.k.a. Asus A8000) is apparently not available to mere 
->> mortals... conversation follows:
+> Google :)
 > 
-> I didn't know the SMSC DME1737 and the Asus A8000 were the same chip.
-> How did you find out?
+> http://www.google.com/search?q=DME1737+Asus+A8000
+> 
+> http://www.lavalys.com/forum/lofiversion/index.php/t811.html
+> 
+> Granted not the most authoritative answer, but apparently someone else
+> writing this sort of driver believes that it's true...
+> 
+> the lm-sensors wiki also makes such a statement.
 
-Google :)
+Ah yeah, right. I don't know who added it... The reason why I'm
+susprised is that the DME1737 is said to be a Super-I/O chip, while the
+A8000 can be accessed through the SMBus and is supposed to have
+similarities with the LM85, which is a dedicated hardware monitoring
+chip with SMBus interface only.
 
-http://www.google.com/search?q=DME1737+Asus+A8000
+But well we've seen Super-I/Os with SMBus interfaces as well, so it may
+be true after all. Not that it really matters anymore...
 
-http://www.lavalys.com/forum/lofiversion/index.php/t811.html
-
-Granted not the most authoritative answer, but apparently someone else
-writing this sort of driver believes that it's true...
-
-the lm-sensors wiki also makes such a statement.
-
--Eric
+-- 
+Jean Delvare
 
