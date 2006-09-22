@@ -1,44 +1,30 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 02 Sep 2006 05:28:00 +0000
-Subject: [lm-sensors] vt1211 module parameters
-Message-Id: <20060902072800.1ba25f52.khali@linux-fr.org>
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Fri, 22 Sep 2006 16:07:25 +0000
+Subject: [lm-sensors] [PATCH]: lm-sensors vt1211 updates
+Message-Id: <191fb4ca0609220907w416fb35r3533de04d8ee0bd0@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060901154635.6be81700.khali@linux-fr.org>
-In-Reply-To: <20060901154635.6be81700.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+Hi,
 
-> > I noticed that the vt1211 module parameters are not documented. Usually
-> > have a section for them in the Documentation/hwmon/$driver file. Can
-> > you please provide a documentation update adding it?
-> 
-> Sure, will do.
-> 
-> > The patches I applied for the vt1211 driver and documentation are:
-> > http://khali.linux-fr.org/devel/i2c/linux-2.6/hwmon-vt1211-new-driver.patch
-> > http://khali.linux-fr.org/devel/i2c/linux-2.6/hwmon-vt1211-documentation.patch
-> >
-> > Any change you make from now needs to be an incremental patch against
-> > these.
-> 
-> What's the command to generate an inc patch?
+This patch fixes a vt1211 register mapping bug and it syncs the temp
+channel mappings of the 2.4 vt1211 driver with the recently released
+2.6 driver. It also fixes the register-to-procfs (and
+procfs-to-register) conversions to match the 2.6 driver and updates
+the vt1211 section of sensors.conf accordingly.
 
-Nothing special, just run "diff" between the current and the new
-version of the file. Something like:
-  diff -u Documentation/hwmon/vt1211.orig Documentation/hwmon/vt1211
-should work fine.
+It has been tested on my EPIA M10000 and the outpust of 'sensors' on a
+2.4 kernel matches the output on a 2.6 kernel using the patched
+sensors.conf file.
 
-By "incremetal", all I meant was: new patches to apply on top of the
-current files, and not a complete replacement for the previous patches.
-
-And if you think handling a patch stack manually is difficult, I can
-only recommend using quilt:
-  http://savannah.nongnu.org/projects/quilt
-
--- 
-Jean Delvare
-
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: vt1211-updates.patch
+Type: text/x-patch
+Size: 16199 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060922/a1b27563/attachment-0001.bin 
