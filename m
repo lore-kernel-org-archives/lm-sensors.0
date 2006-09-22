@@ -1,7 +1,7 @@
-From: robson@rmmultimidia.com (Robson rodrigues)
-Date: Fri, 22 Sep 2006 13:35:51 +0000
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Fri, 22 Sep 2006 18:34:20 +0000
 Subject: [lm-sensors] SIS 5595
-Message-Id: <000501c6de4c$16b63b00$5500a8c0@rob>
+Message-Id: <45142CAC.200@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3BE149CF.000008.18577@karina>
 In-Reply-To: <3BE149CF.000008.18577@karina>
@@ -10,7 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-po irm?o vc sabe a onde eu encotro o driver de audio dessa placa ta foda pra acha c vc pode me as ajudar .
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060922/99fd681c/attachment.html 
+Robson rodrigues wrote:
+> po irm?o vc sabe a onde eu encotro o driver de audio dessa placa ta foda 
+> pra acha c vc pode me as ajudar .
+
+Esta ? tradu??o autom?tica. Este mailinglist n?o ? para o ?udio, se voc? 
+necessitar nos escrever, usa o ingl?s por favor.
+
+This is automatic translation. This mailing list is not about audio, if you need 
+to write us, use English please.
+Thanks,
+
+
+Agradecimentos,
+Rudolf
+
