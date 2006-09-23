@@ -1,67 +1,53 @@
-From: Marc.Kalberer@programmers.ch (Marc Kalberer)
-Date: Sun, 10 Sep 2006 21:27:50 +0000
-Subject: [lm-sensors] VT1211-ISA-6000 &  procfs/sysfs
-Message-Id: <45048356.6050201@programmers.ch>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 23 Sep 2006 15:02:22 +0000
+Subject: [lm-sensors] [patch 3/3] pc87360 - fix unchecked
+Message-Id: <20060923170222.71cd9913.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45034A2F.2020701@programmers.ch>
-In-Reply-To: <45034A2F.2020701@programmers.ch>
+References: <44E73765.80603@gmail.com>
+In-Reply-To: <44E73765.80603@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
-Ok , /sys/devices/platform/vt1211.24576 is not populated values seems ok.
+Hi Jim,
 
-Sorry, but it gave me a lot of questions ...
+> > 3- rework sys-device-interface startup
+> >     use sysfs_create_group() for 2 sensor-types which are chip-model invariant.
+> >        ie all-or-nothing attribute groups
+> >     other 2 groups vary too much due to configuration, etc,
+> >        so we keep the loops of device_create_file(), but now check their returns.
+> > 
+> > Signed-off-by:   Jim Cromie  <jim.cromie at gmail.com>
 
-You said that "VT1211 does not support manual fan speed control", so 
-does it means that it possible to set the default values for the 
-automatic fan control :  the threshold, the min RPM (seems taht I can go 
-bellow 2580) etc ...
+I just noticed that you do not properly propagate the error value if a
+device file creation actually fails:
 
-1) Or simplier, what control can I have on my fans ?
+> > diff -ruNp -X dontdiff -X exclude-diffs ab-2/drivers/hwmon/pc87360.c ab-3/drivers/hwmon/pc87360.c
+> > --- ab-2/drivers/hwmon/pc87360.c	2006-08-18 17:40:35.000000000 -0600
+> > +++ ab-3/drivers/hwmon/pc87360.c	2006-08-18 18:54:24.000000000 -0600
 
-2) What is PWM mode 0 or 2
+> > +	/* Register all-or-nothing sysfs groups */
+> > +
+> > +	if (data->innr && 
+> > +	    sysfs_create_group(&client->dev.kobj,
+> > +			       &pc8736x_vin_group))
+> >  		goto ERROR3;
 
-... probably more to come .
+> >  	if (data->tempnr) {
+> >  		for (i = 0; i < data->tempnr; i++) {
+> > +			if (device_create_file(dev, &temp_input[i].dev_attr)
+> > +			    || device_create_file(dev, &temp_min[i].dev_attr)
+> > +			    || device_create_file(dev, &temp_max[i].dev_attr)
+> > +			    || device_create_file(dev, &temp_crit[i].dev_attr)
+> > +			    || device_create_file(dev, &temp_status[i].dev_attr))
+> > +				goto ERROR3;
 
-Marc
-
-
-
-
-Marc Kalberer a ?crit :
-> Hi Jean,
->
-> Seems that using the SVN sources was the solution.
-> Now I don't get this "procfs/sysfs" message anymore.  I'll look forward 
-> into the configutaion of the fans to see if everything really work... 
-> this noise is making me crazy ;-)
-> Thanks for the answer ... and for your work !!
-> Marc
->
->
->   
->> Probably a different problem. pwmconfig and fancontrol are known to be
->> broken for platform drivers, which the vt1211 driver is. Anyway, the
->> VT1211 does not support manual fan speed control, which is when
->> pwmconfig and fancontrol are useful for, so you probably won't miss
->> them.
->>   
->>     
-> Good to know ;-), I won't look forward it that direction.
->
->
->   
+I've fixed that, modified patch is attached, I hope you like it.
 
 -- 
-Programmers.ch
-Solutions libres et Opensources
-Tel: ++41 76 44 888 72
-Site: http://www.programmers.ch
-Site: http://openprojects.ch
-
+Jean Delvare
 -------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060910/1904750f/attachment.html 
+An embedded and charset-unspecified text was scrubbed...
+Name: hwmon-unchecked-return-status-fixes-pc87360-3.patch
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060923/de6416cf/attachment-0001.pl 
