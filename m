@@ -1,264 +1,172 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 28 Sep 2006 22:48:53 +0000
-Subject: [lm-sensors] [PATCH 33/39] vt8231: Fix unchecked return status
-Message-Id: <11594838621930-git-send-email-greg@kroah.com>
+From: andrea.gozzi@linuxrevolution.eu (Andrea Gozzi)
+Date: Sat, 23 Sep 2006 22:06:52 +0000
+Subject: [lm-sensors] PB V7900 Notebook (Intel ICH7)
+Message-Id: <1159049213.20808.13.camel@osmosis>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Roger Lucas <roger at planbit.co.uk>
+Hi.
+I have a Packard Bell V7900 laptop (Intel ICH7) and I am trying to set
+up the debian lm-sensors package.
+This is the detect output:
 
-vt8231: Fix unchecked return status
+stariez:~# sensors-detect
+# sensors-detect revision 1.413 (2006/01/19 20:28:00)
 
-Check the return status from device_create_file() and also use
-the newer and cleaner sysfs creation functions.
+This program will help you determine which I2C/SMBus modules you need to
+load to use lm_sensors most effectively. You need to have i2c and
+lm_sensors installed before running this program.
+Also, you need to be `root', or at least have access to the /dev/i2c-*
+files, for most things.
+If you have patched your kernel and have some drivers built in, you can
+safely answer NO if asked to load some modules. In this case, things may
+seem a bit confusing, but they will still work.
 
-Signed-off-by: Roger Lucas <roger at planbit.co.uk>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
----
- drivers/hwmon/vt8231.c |  186 ++++++++++++++++++++++++++++++++++--------------
- 1 files changed, 132 insertions(+), 54 deletions(-)
+It is generally safe and recommended to accept the default answers to
+all
+questions, unless you know what you're doing.
 
-diff --git a/drivers/hwmon/vt8231.c b/drivers/hwmon/vt8231.c
-index 236ccf0..93f93d4 100644
---- a/drivers/hwmon/vt8231.c
-+++ b/drivers/hwmon/vt8231.c
-@@ -451,37 +451,6 @@ define_temperature_sysfs(4);
- define_temperature_sysfs(5);
- define_temperature_sysfs(6);
- 
--#define CFG_INFO_TEMP(id)	{ &sensor_dev_attr_temp##id##_input.dev_attr, \
--				&sensor_dev_attr_temp##id##_max_hyst.dev_attr, \
--				&sensor_dev_attr_temp##id##_max.dev_attr }
--#define CFG_INFO_VOLT(id)	{ &sensor_dev_attr_in##id##_input.dev_attr, \
--				&sensor_dev_attr_in##id##_min.dev_attr, \
--				&sensor_dev_attr_in##id##_max.dev_attr }
--
--struct str_device_attr_table {
--	struct device_attribute *input;
--	struct device_attribute *min;
--	struct device_attribute *max;
--};
--
--static struct str_device_attr_table cfg_info_temp[] = {
--	{ &dev_attr_temp1_input, &dev_attr_temp1_max_hyst, &dev_attr_temp1_max },
--	CFG_INFO_TEMP(2),
--	CFG_INFO_TEMP(3),
--	CFG_INFO_TEMP(4),
--	CFG_INFO_TEMP(5),
--	CFG_INFO_TEMP(6)
--};
--
--static struct str_device_attr_table cfg_info_volt[] = {
--	CFG_INFO_VOLT(0),
--	CFG_INFO_VOLT(1),
--	CFG_INFO_VOLT(2),
--	CFG_INFO_VOLT(3),
--	CFG_INFO_VOLT(4),
--	{ &dev_attr_in5_input, &dev_attr_in5_min, &dev_attr_in5_max }
--};
--
- /* Fans */
- static ssize_t show_fan(struct device *dev, struct device_attribute *attr,
- 		char *buf)
-@@ -585,6 +554,107 @@ static ssize_t show_alarms(struct device
- 
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
-+static struct attribute *vt8231_attributes_temps[6][4] = {
-+	{
-+		&dev_attr_temp1_input.attr,
-+		&dev_attr_temp1_max_hyst.attr,
-+		&dev_attr_temp1_max.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_temp2_input.dev_attr.attr,
-+		&sensor_dev_attr_temp2_max_hyst.dev_attr.attr,
-+		&sensor_dev_attr_temp2_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_temp3_input.dev_attr.attr,
-+		&sensor_dev_attr_temp3_max_hyst.dev_attr.attr,
-+		&sensor_dev_attr_temp3_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_temp4_input.dev_attr.attr,
-+		&sensor_dev_attr_temp4_max_hyst.dev_attr.attr,
-+		&sensor_dev_attr_temp4_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_temp5_input.dev_attr.attr,
-+		&sensor_dev_attr_temp5_max_hyst.dev_attr.attr,
-+		&sensor_dev_attr_temp5_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_temp6_input.dev_attr.attr,
-+		&sensor_dev_attr_temp6_max_hyst.dev_attr.attr,
-+		&sensor_dev_attr_temp6_max.dev_attr.attr,
-+		NULL
-+	}
-+};
-+
-+static const struct attribute_group vt8231_group_temps[6] = {
-+	{ .attrs = vt8231_attributes_temps[0] },
-+	{ .attrs = vt8231_attributes_temps[1] },
-+	{ .attrs = vt8231_attributes_temps[2] },
-+	{ .attrs = vt8231_attributes_temps[3] },
-+	{ .attrs = vt8231_attributes_temps[4] },
-+	{ .attrs = vt8231_attributes_temps[5] },
-+};
-+
-+static struct attribute *vt8231_attributes_volts[6][4] = {
-+	{
-+		&sensor_dev_attr_in0_input.dev_attr.attr,
-+		&sensor_dev_attr_in0_min.dev_attr.attr,
-+		&sensor_dev_attr_in0_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_in1_input.dev_attr.attr,
-+		&sensor_dev_attr_in1_min.dev_attr.attr,
-+		&sensor_dev_attr_in1_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_in2_input.dev_attr.attr,
-+		&sensor_dev_attr_in2_min.dev_attr.attr,
-+		&sensor_dev_attr_in2_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_in3_input.dev_attr.attr,
-+		&sensor_dev_attr_in3_min.dev_attr.attr,
-+		&sensor_dev_attr_in3_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_in4_input.dev_attr.attr,
-+		&sensor_dev_attr_in4_min.dev_attr.attr,
-+		&sensor_dev_attr_in4_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&dev_attr_in5_input.attr,
-+		&dev_attr_in5_min.attr,
-+		&dev_attr_in5_max.attr,
-+		NULL
-+	}
-+};
-+
-+static const struct attribute_group vt8231_group_volts[6] = {
-+	{ .attrs = vt8231_attributes_volts[0] },
-+	{ .attrs = vt8231_attributes_volts[1] },
-+	{ .attrs = vt8231_attributes_volts[2] },
-+	{ .attrs = vt8231_attributes_volts[3] },
-+	{ .attrs = vt8231_attributes_volts[4] },
-+	{ .attrs = vt8231_attributes_volts[5] },
-+};
-+
-+static struct attribute *vt8231_attributes[] = {
-+	&sensor_dev_attr_fan1_input.dev_attr.attr,
-+	&sensor_dev_attr_fan2_input.dev_attr.attr,
-+	&sensor_dev_attr_fan1_min.dev_attr.attr,
-+	&sensor_dev_attr_fan2_min.dev_attr.attr,
-+	&sensor_dev_attr_fan1_div.dev_attr.attr,
-+	&sensor_dev_attr_fan2_div.dev_attr.attr,
-+	&dev_attr_alarms.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group vt8231_group = {
-+	.attrs = vt8231_attributes,
-+};
-+
- static struct i2c_driver vt8231_driver = {
- 	.driver = {
- 		.owner	= THIS_MODULE,
-@@ -671,43 +741,43 @@ int vt8231_detect(struct i2c_adapter *ad
- 	vt8231_init_client(client);
- 
- 	/* Register sysfs hooks */
--	data->class_dev = hwmon_device_register(&client->dev);
--	if (IS_ERR(data->class_dev)) {
--		err = PTR_ERR(data->class_dev);
-+	if ((err = sysfs_create_group(&client->dev.kobj, &vt8231_group)))
- 		goto exit_detach;
--	}
- 
- 	/* Must update device information to find out the config field */
- 	data->uch_config = vt8231_read_value(client, VT8231_REG_UCH_CONFIG);
- 
--	for (i = 0; i < ARRAY_SIZE(cfg_info_temp); i++) {
-+	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++) {
- 		if (ISTEMP(i, data->uch_config)) {
--			device_create_file(&client->dev,
--					   cfg_info_temp[i].input);
--			device_create_file(&client->dev, cfg_info_temp[i].max);
--			device_create_file(&client->dev, cfg_info_temp[i].min);
-+			if ((err = sysfs_create_group(&client->dev.kobj,
-+					&vt8231_group_temps[i])))
-+				goto exit_remove_files;
- 		}
- 	}
- 
--	for (i = 0; i < ARRAY_SIZE(cfg_info_volt); i++) {
-+	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++) {
- 		if (ISVOLT(i, data->uch_config)) {
--			device_create_file(&client->dev,
--					   cfg_info_volt[i].input);
--			device_create_file(&client->dev, cfg_info_volt[i].max);
--			device_create_file(&client->dev, cfg_info_volt[i].min);
-+			if ((err = sysfs_create_group(&client->dev.kobj,
-+					&vt8231_group_volts[i])))
-+				goto exit_remove_files;
- 		}
- 	}
- 
--	device_create_file(&client->dev, &sensor_dev_attr_fan1_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_fan2_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_fan1_min.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_fan2_min.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_fan1_div.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_fan2_div.dev_attr);
--
--	device_create_file(&client->dev, &dev_attr_alarms);
-+	data->class_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_remove_files;
-+	}
- 	return 0;
- 
-+exit_remove_files:
-+	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
-+		sysfs_remove_group(&client->dev.kobj, &vt8231_group_volts[i]);
-+
-+	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
-+		sysfs_remove_group(&client->dev.kobj, &vt8231_group_temps[i]);
-+
-+	sysfs_remove_group(&client->dev.kobj, &vt8231_group);
- exit_detach:
- 	i2c_detach_client(client);
- exit_free:
-@@ -720,10 +790,18 @@ exit_release:
- static int vt8231_detach_client(struct i2c_client *client)
- {
- 	struct vt8231_data *data = i2c_get_clientdata(client);
--	int err;
-+	int err, i;
- 
- 	hwmon_device_unregister(data->class_dev);
- 
-+	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
-+		sysfs_remove_group(&client->dev.kobj, &vt8231_group_volts[i]);
-+
-+	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
-+		sysfs_remove_group(&client->dev.kobj, &vt8231_group_temps[i]);
-+
-+	sysfs_remove_group(&client->dev.kobj, &vt8231_group);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		return err;
- 	}
+ We can start with probing for (PCI) I2C or SMBus adapters.
+ You do not need any special privileges for this.
+ Do you want to probe now? (YES/no): y
+Probing for PCI bus adapters...
+Use driver `i2c-i801' for device 00:1f.3: Intel ICH7
+Probe succesfully concluded.
+
+We will now try to load each adapter module in turn.
+Module `i2c-i801' already loaded.
+If you have undetectable or unsupported adapters, you can have them
+scanned by manually loading the modules before running this script.
+
+ To continue, we need module `i2c-dev' to be loaded.
+ If it is built-in into your kernel, you can safely skip this.
+ i2c-dev is not loaded. Do you want to load it now? (YES/no): y
+ Module loaded succesfully.
+
+ We are now going to do the adapter probings. Some adapters may hang
+halfway
+ through; we can't really help that. Also, some chips will be double
+detected;
+ we choose the one with the highest confidence value in that case.
+ If you found that the adapter hung after probing a certain address, you
+can
+ specify that address to remain unprobed. That often
+ includes address 0x69 (clock chip).
+
+Next adapter: SMBus I801 adapter at 8000
+Do you want to scan it? (YES/no/selectively): y
+Client found at address 0x08
+Client found at address 0x44
+Probing for `Maxim MAX6633/MAX6634/MAX6635'... Failed!
+Client at address 0x50 can not be probed - unload all client drivers
+first!
+Client at address 0x52 can not be probed - unload all client drivers
+first!
+Client found at address 0x61
+Probing for `SMBus 2.0 ARP-Capable Device'... Success!
+    (confidence 1, driver `smbus-arp')
+
+Some chips are also accessible through the ISA bus. ISA probes are
+typically a bit more dangerous, as we have to write to I/O ports to do
+this. This is usually safe though.
+
+Do you want to scan the ISA bus? (YES/no): y
+Probing for `National Semiconductor LM78'
+  Trying address 0x0290... Failed!
+Probing for `National Semiconductor LM78-J'
+  Trying address 0x0290... Failed!
+Probing for `National Semiconductor LM79'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83781D'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83782D'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83627HF'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83627EHF'
+  Trying address 0x0290... Failed!
+Probing for `Silicon Integrated Systems SIS5595'
+  Trying general detect... Failed!
+Probing for `VIA Technologies VT82C686 Integrated Sensors'
+  Trying general detect... Failed!
+Probing for `VIA Technologies VT8231 Integrated Sensors'
+  Trying general detect... Failed!
+Probing for `ITE IT8712F'
+  Trying address 0x0290... Failed!
+Probing for `ITE IT8705F / SiS 950'
+  Trying address 0x0290... Failed!
+Probing for `IPMI BMC KCS'
+  Trying address 0x0ca0... Failed!
+Probing for `IPMI BMC SMIC'
+  Trying address 0x0ca8... Failed!
+
+Some Super I/O chips may also contain sensors. Super I/O probes are
+typically a bit more dangerous, as we have to write to I/O ports to do
+this. This is usually safe though.
+
+Do you want to scan for Super I/O sensors? (YES/no): y
+Probing for `ITE 8702F Super IO Sensors'
+  Failed! (skipping family)
+Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
+  Failed! (skipping family)
+Probing for `SMSC 47B27x Super IO Fan Sensors'
+  Failed! (skipping family)
+Probing for `VT1211 Super IO Sensors'
+  Failed! (skipping family)
+Probing for `Winbond W83627EHF/EHG Super IO Sensors'
+  Failed! (skipping family)
+
+Do you want to scan for secondary Super I/O sensors? (YES/no): y
+Probing for `ITE 8702F Super IO Sensors'
+  Failed! (skipping family)
+Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
+  Failed! (skipping family)
+Probing for `SMSC 47B27x Super IO Fan Sensors'
+  Failed! (skipping family)
+Probing for `VT1211 Super IO Sensors'
+  Failed! (skipping family)
+Probing for `Winbond W83627EHF/EHG Super IO Sensors'
+  Failed! (skipping family)
+
+ Now follows a summary of the probes I have just done.
+ Just press ENTER to continue:
+
+Driver `smbus-arp' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus I801 adapter at 8000'
+    Busdriver `i2c-i801', I2C address 0x61
+    Chip `SMBus 2.0 ARP-Capable Device' (confidence: 1)
+
+
+I will now generate the commands needed to load the I2C modules.
+
+To make the sensors modules behave correctly, add these lines to
+/etc/modules:
+
+#----cut here----
+# I2C adapter drivers
+i2c-i801
+# I2C chip drivers
+# Warning: the required module smbus-arp is not currently installed on
+your system.
+# For status of 2.6 kernel ports see
+http://secure.netroedge.com/~lm78/supported.html
+# If driver is built-in to the kernel, or unavailable, comment out the
+following line.
+smbus-arp
+
+
+Should I set anything particular in the sensors.conf file?
+
 -- 
-1.4.2.1
-
-
+Andrea Gozzi <andrea.gozzi at linuxrevolution.eu>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: This is a digitally signed message part
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060924/1520cdb4/attachment.bin 
