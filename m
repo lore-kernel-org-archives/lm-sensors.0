@@ -1,30 +1,52 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Fri, 22 Sep 2006 22:36:06 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 23 Sep 2006 10:45:01 +0000
 Subject: [lm-sensors] [PATCH] w83792d - fix unchecked return codes from
-Message-Id: <45146556.5020004@assembler.cz>
+Message-Id: <20060923124501.1b394744.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <45146556.5020004@assembler.cz>
+In-Reply-To: <45146556.5020004@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hi Rudolf,
 
-Following patch fixes the w83792d driver. It adds error checking to 
-device_create file and also cares to destroy the files upon exit.
+> Following patch fixes the w83792d driver. It adds error checking to 
+> device_create file and also cares to destroy the files upon exit.
+> 
+> I will test it as soon I will get the disk back to my test machine with this 
+> chip. Possible dates are: Saturday evening, Sunday and Monday for sure ;)
+> Until now, compiles without warnings.
 
-I will test it as soon I will get the disk back to my test machine with this 
-chip. Possible dates are: Saturday evening, Sunday and Monday for sure ;)
-Until now, compiles without warnings.
+Applied, with the following fix:
 
-Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
+> @@ -1342,12 +1428,16 @@ static int
+>  w83792d_detach_client(struct i2c_client *client)
+>  {
+>  	struct w83792d_data *data = i2c_get_clientdata(client);
+> -	int err;
+> +	int err, i;
+>  
+>  	/* main client */
+>  	if (data)
+>  		hwmon_device_unregister(data->class_dev);
+>  
+> +	sysfs_remove_group(&client->dev.kobj, &w83792d_group);
+> +	for (i = 0; i < ARRAY_SIZE(w83792d_group_fan); i++)
+> +		sysfs_remove_group(&client->dev.kobj, &w83792d_group_fan[i]);
+> +
+>  	if ((err = i2c_detach_client(client)))
+>  		return err;
+>  
+> 
 
-Regards
-Rudolf
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w83792d.patch
-Type: text/x-patch
-Size: 28882 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060923/6c3c4039/attachment-0001.bin 
+Only the main client has the files, so the file removal should be
+conditional upon "data" too.
+
+The rest looks OK to me. Testing is still welcome nevertheless.
+
+Thanks,
+-- 
+Jean Delvare
+
