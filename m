@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 23 Sep 2006 15:02:22 +0000
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Sat, 23 Sep 2006 21:07:25 +0000
 Subject: [lm-sensors] [patch 3/3] pc87360 - fix unchecked
-Message-Id: <20060923170222.71cd9913.khali@linux-fr.org>
+Message-Id: <4515A20D.1080803@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <44E73765.80603@gmail.com>
 In-Reply-To: <44E73765.80603@gmail.com>
@@ -10,44 +10,80 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jim,
+Jean Delvare wrote:
+> Hi Jim,
+>
+>   
+>>> 3- rework sys-device-interface startup
+>>>     use sysfs_create_group() for 2 sensor-types which are chip-model invariant.
+>>>        ie all-or-nothing attribute groups
+>>>     other 2 groups vary too much due to configuration, etc,
+>>>        so we keep the loops of device_create_file(), but now check their returns.
+>>>
+>>> Signed-off-by:   Jim Cromie  <jim.cromie at gmail.com>
+>>>       
+>
+> I just noticed that you do not properly propagate the error value if a
+> device file creation actually fails:
+>
+>   
+My timing was off.  I noted this too, and did a patch last nite. 
+Was gonna stack them all up and test result this morning.
+Ive now done so, using your patch, everything looks good :)
 
-> > 3- rework sys-device-interface startup
-> >     use sysfs_create_group() for 2 sensor-types which are chip-model invariant.
-> >        ie all-or-nothing attribute groups
-> >     other 2 groups vary too much due to configuration, etc,
-> >        so we keep the loops of device_create_file(), but now check their returns.
-> > 
-> > Signed-off-by:   Jim Cromie  <jim.cromie at gmail.com>
+BTW, everything includes :
+3 patches for pc87360 return-status-checks (already on your list)
+1 vrm patch,
+2 patches giving  pc87360 2D-callbacks,
+3 superio-locks patches (add module, use in pc87360 & pc8736x_gpio)
 
-I just noticed that you do not properly propagate the error value if a
-device file creation actually fails:
+Id like to get these into 18-mmX, for some value of X.
+Do you have any thoughts on how and when this should happen ?
+Im presuming it is sometime after the 19-rc0 submit window closes.
 
-> > diff -ruNp -X dontdiff -X exclude-diffs ab-2/drivers/hwmon/pc87360.c ab-3/drivers/hwmon/pc87360.c
-> > --- ab-2/drivers/hwmon/pc87360.c	2006-08-18 17:40:35.000000000 -0600
-> > +++ ab-3/drivers/hwmon/pc87360.c	2006-08-18 18:54:24.000000000 -0600
 
-> > +	/* Register all-or-nothing sysfs groups */
-> > +
-> > +	if (data->innr && 
-> > +	    sysfs_create_group(&client->dev.kobj,
-> > +			       &pc8736x_vin_group))
-> >  		goto ERROR3;
+FWIW, my previously posted sensorck.pl shows this 'discrepancy', due to 
+new vrm-vid patch..
+(updated version attached)
 
-> >  	if (data->tempnr) {
-> >  		for (i = 0; i < data->tempnr; i++) {
-> > +			if (device_create_file(dev, &temp_input[i].dev_attr)
-> > +			    || device_create_file(dev, &temp_min[i].dev_attr)
-> > +			    || device_create_file(dev, &temp_max[i].dev_attr)
-> > +			    || device_create_file(dev, &temp_crit[i].dev_attr)
-> > +			    || device_create_file(dev, &temp_status[i].dev_attr))
-> > +				goto ERROR3;
+$ sensorck.pl sensor-out
+[10310.921653] hwmon-vid: requested unknown VRM version
+check VPWR
+check VCORE
+check VCC
+check Vbat
+check Critical
+check -12V
+check Vsb
+check Vdd
+check +12V
+check Temp
+val out of range by 5.88%, 102 should be +108
+check AVdd
+check avi0
+check GND
+unknown sensors:
+$VAR1 = {
+  '          +0.000 V  (VRM Version 0.0)' => {
+    'raw' => undef
+  },
+  'Voltage ID:' => {
+    'raw' => undef
+  }
+};
 
-I've fixed that, modified patch is attached, I hope you like it.
+$ sensorck.pl -h
+Unknown option: h
+usage: sensorck.pl [opts] <filename>
+    -v  : verbose
+    -r <5> : percentage difference (5% is default)
+    -e  : verbose for errors
+    -H  : more help
 
--- 
-Jean Delvare
 -------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: hwmon-unchecked-return-status-fixes-pc87360-3.patch
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060923/de6416cf/attachment-0001.pl 
+A non-text attachment was scrubbed...
+Name: sensorck.pl
+Type: application/x-perl
+Size: 3743 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060923/1bd12843/attachment.bin 
