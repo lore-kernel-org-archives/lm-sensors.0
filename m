@@ -1,115 +1,895 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 28 Sep 2006 22:48:22 +0000
-Subject: [lm-sensors] [PATCH 2/39] hwmon: Documentation update for w83627ehf
-Message-Id: <11594837444099-git-send-email-greg@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 24 Sep 2006 19:17:13 +0000
+Subject: [lm-sensors] [PATCH 16/23] Fix unchecked return status, batch 5
+Message-Id: <20060924211713.e88c034f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Rudolf Marek <r.marek at sh.cvut.cz>
+Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-5.patch
 
-Add documentation for the w83627ehf hardware monitoring driver.
+hwmon: Fix unchecked return status, batch 5
 
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Fix up some hwmon drivers so that they no longer ignore return status
+from device_create_file().
+
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- Documentation/hwmon/w83627ehf |   85 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 85 insertions(+), 0 deletions(-)
+ drivers/hwmon/fscher.c  |  106 +++++++++------------
+ drivers/hwmon/fscpos.c  |   75 +++++++++------
+ drivers/hwmon/gl518sm.c |   74 +++++++++------
+ drivers/hwmon/gl520sm.c |  128 +++++++++++++++++---------
+ drivers/hwmon/it87.c    |  234 ++++++++++++++++++++++++++++++-----------------
+ 5 files changed, 368 insertions(+), 249 deletions(-)
 
-diff --git a/Documentation/hwmon/w83627ehf b/Documentation/hwmon/w83627ehf
-new file mode 100644
-index 0000000..1474e78
---- /dev/null
-+++ b/Documentation/hwmon/w83627ehf
-@@ -0,0 +1,85 @@
-+Kernel driver w83627ehf
-+===========+
-+Supported chips:
-+  * Winbond W83627EHF/EHG (ISA access ONLY)
-+    Prefix: 'w83627ehf'
-+    Addresses scanned: ISA address retrieved from Super I/O registers
-+    Datasheet: http://www.winbond-usa.com/products/winbond_products/pdfs/PCIC/W83627EHF_%20W83627EHGb.pdf
+--- linux-2.6.18.orig/drivers/hwmon/it87.c	2006-09-23 15:24:23.000000000 +0200
++++ linux-2.6.18/drivers/hwmon/it87.c	2006-09-23 17:50:59.000000000 +0200
+@@ -37,6 +37,7 @@
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ #include <asm/io.h>
+ 
+ 
+@@ -758,8 +759,6 @@
+ 	return count;
+ }
+ static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm_reg, store_vrm_reg);
+-#define device_create_file_vrm(client) \
+-device_create_file(&client->dev, &dev_attr_vrm)
+ 
+ static ssize_t
+ show_vid_reg(struct device *dev, struct device_attribute *attr, char *buf)
+@@ -768,8 +767,88 @@
+ 	return sprintf(buf, "%ld\n", (long) vid_from_reg(data->vid, data->vrm));
+ }
+ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid_reg, NULL);
+-#define device_create_file_vid(client) \
+-device_create_file(&client->dev, &dev_attr_cpu0_vid)
 +
-+Authors:
-+        Jean Delvare <khali at linux-fr.org>
-+        Yuan Mu <Ymu at Winbond.com.tw>
-+        Rudolf Marek <r.marek at sh.cvut.cz>
++static struct attribute *it87_attributes[] = {
++	&sensor_dev_attr_in0_input.dev_attr.attr,
++	&sensor_dev_attr_in1_input.dev_attr.attr,
++	&sensor_dev_attr_in2_input.dev_attr.attr,
++	&sensor_dev_attr_in3_input.dev_attr.attr,
++	&sensor_dev_attr_in4_input.dev_attr.attr,
++	&sensor_dev_attr_in5_input.dev_attr.attr,
++	&sensor_dev_attr_in6_input.dev_attr.attr,
++	&sensor_dev_attr_in7_input.dev_attr.attr,
++	&sensor_dev_attr_in8_input.dev_attr.attr,
++	&sensor_dev_attr_in0_min.dev_attr.attr,
++	&sensor_dev_attr_in1_min.dev_attr.attr,
++	&sensor_dev_attr_in2_min.dev_attr.attr,
++	&sensor_dev_attr_in3_min.dev_attr.attr,
++	&sensor_dev_attr_in4_min.dev_attr.attr,
++	&sensor_dev_attr_in5_min.dev_attr.attr,
++	&sensor_dev_attr_in6_min.dev_attr.attr,
++	&sensor_dev_attr_in7_min.dev_attr.attr,
++	&sensor_dev_attr_in0_max.dev_attr.attr,
++	&sensor_dev_attr_in1_max.dev_attr.attr,
++	&sensor_dev_attr_in2_max.dev_attr.attr,
++	&sensor_dev_attr_in3_max.dev_attr.attr,
++	&sensor_dev_attr_in4_max.dev_attr.attr,
++	&sensor_dev_attr_in5_max.dev_attr.attr,
++	&sensor_dev_attr_in6_max.dev_attr.attr,
++	&sensor_dev_attr_in7_max.dev_attr.attr,
 +
-+Description
-+-----------
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp3_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp3_max.dev_attr.attr,
++	&sensor_dev_attr_temp1_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp3_min.dev_attr.attr,
++	&sensor_dev_attr_temp1_type.dev_attr.attr,
++	&sensor_dev_attr_temp2_type.dev_attr.attr,
++	&sensor_dev_attr_temp3_type.dev_attr.attr,
 +
-+This driver implements support for the Winbond W83627EHF and W83627EHG
-+super I/O chips. We will refer to them collectively as Winbond chips.
++	&dev_attr_alarms.attr,
++	NULL
++};
 +
-+The chips implement three temperature sensors, five fan rotation
-+speed sensors, ten analog voltage sensors, alarms with beep warnings (control
-+unimplemented), and some automatic fan regulation strategies (plus manual
-+fan control mode).
++static const struct attribute_group it87_group = {
++	.attrs = it87_attributes,
++};
 +
-+Temperatures are measured in degrees Celsius and measurement resolution is 1
-+degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
-+the temperature gets higher than high limit; it stays on until the temperature
-+falls below the Hysteresis value.
++static struct attribute *it87_attributes_opt[] = {
++	&sensor_dev_attr_fan1_input16.dev_attr.attr,
++	&sensor_dev_attr_fan1_min16.dev_attr.attr,
++	&sensor_dev_attr_fan2_input16.dev_attr.attr,
++	&sensor_dev_attr_fan2_min16.dev_attr.attr,
++	&sensor_dev_attr_fan3_input16.dev_attr.attr,
++	&sensor_dev_attr_fan3_min16.dev_attr.attr,
 +
-+Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
-+triggered if the rotation speed has dropped below a programmable limit. Fan
-+readings can be divided by a programmable divider (1, 2, 4, 8, 16, 32, 64 or
-+128) to give the readings more range or accuracy. The driver sets the most
-+suitable fan divisor itself. Some fans might not be present because they
-+share pins with other functions.
++	&sensor_dev_attr_fan1_input.dev_attr.attr,
++	&sensor_dev_attr_fan1_min.dev_attr.attr,
++	&sensor_dev_attr_fan1_div.dev_attr.attr,
++	&sensor_dev_attr_fan2_input.dev_attr.attr,
++	&sensor_dev_attr_fan2_min.dev_attr.attr,
++	&sensor_dev_attr_fan2_div.dev_attr.attr,
++	&sensor_dev_attr_fan3_input.dev_attr.attr,
++	&sensor_dev_attr_fan3_min.dev_attr.attr,
++	&sensor_dev_attr_fan3_div.dev_attr.attr,
 +
-+Voltage sensors (also known as IN sensors) report their values in millivolts.
-+An alarm is triggered if the voltage has crossed a programmable minimum
-+or maximum limit.
++	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
++	&sensor_dev_attr_pwm2_enable.dev_attr.attr,
++	&sensor_dev_attr_pwm3_enable.dev_attr.attr,
++	&sensor_dev_attr_pwm1.dev_attr.attr,
++	&sensor_dev_attr_pwm2.dev_attr.attr,
++	&sensor_dev_attr_pwm3.dev_attr.attr,
 +
-+The driver supports automatic fan control mode known as Thermal Cruise.
-+In this mode, the chip attempts to keep the measured temperature in a
-+predefined temperature range. If the temperature goes out of range, fan
-+is driven slower/faster to reach the predefined range again.
++	&dev_attr_vrm.attr,
++	&dev_attr_cpu0_vid.attr,
++	NULL
++};
 +
-+The mode works for fan1-fan4. Mapping of temperatures to pwm outputs is as
-+follows:
++static const struct attribute_group it87_group_opt = {
++	.attrs = it87_attributes_opt,
++};
+ 
+ /* This function is called when:
+      * it87_driver is inserted (when this module is loaded), for each
+@@ -948,107 +1027,78 @@
+ 	it87_init_client(new_client, data);
+ 
+ 	/* Register sysfs hooks */
+-	data->class_dev = hwmon_device_register(&new_client->dev);
+-	if (IS_ERR(data->class_dev)) {
+-		err = PTR_ERR(data->class_dev);
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &it87_group)))
+ 		goto ERROR3;
+-	}
+-
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in0_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in1_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in2_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in3_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in4_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in5_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in6_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in7_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in8_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in0_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in1_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in2_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in3_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in4_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in5_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in6_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in7_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in0_max.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in1_max.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in2_max.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in3_max.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in4_max.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in5_max.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in6_max.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_in7_max.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_temp1_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_temp2_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_input.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_temp1_max.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_temp2_max.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_max.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_temp1_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_temp2_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_min.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_temp1_type.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_temp2_type.dev_attr);
+-	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_type.dev_attr);
+ 
+ 	/* Do not create fan files for disabled fans */
+ 	if (data->type = it8716 || data->type = it8718) {
+ 		/* 16-bit tachometers */
+ 		if (data->has_fan & (1 << 0)) {
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan1_input16.dev_attr);
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan1_min16.dev_attr);
++			if ((err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan1_input16.dev_attr))
++			 || (err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan1_min16.dev_attr)))
++				goto ERROR4;
+ 		}
+ 		if (data->has_fan & (1 << 1)) {
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan2_input16.dev_attr);
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan2_min16.dev_attr);
++			if ((err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan2_input16.dev_attr))
++			 || (err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan2_min16.dev_attr)))
++				goto ERROR4;
+ 		}
+ 		if (data->has_fan & (1 << 2)) {
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan3_input16.dev_attr);
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan3_min16.dev_attr);
++			if ((err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan3_input16.dev_attr))
++			 || (err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan3_min16.dev_attr)))
++				goto ERROR4;
+ 		}
+ 	} else {
+ 		/* 8-bit tachometers with clock divider */
+ 		if (data->has_fan & (1 << 0)) {
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan1_input.dev_attr);
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan1_min.dev_attr);
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan1_div.dev_attr);
++			if ((err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan1_input.dev_attr))
++			 || (err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan1_min.dev_attr))
++			 || (err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan1_div.dev_attr)))
++				goto ERROR4;
+ 		}
+ 		if (data->has_fan & (1 << 1)) {
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan2_input.dev_attr);
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan2_min.dev_attr);
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan2_div.dev_attr);
++			if ((err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan2_input.dev_attr))
++			 || (err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan2_min.dev_attr))
++			 || (err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan2_div.dev_attr)))
++				goto ERROR4;
+ 		}
+ 		if (data->has_fan & (1 << 2)) {
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan3_input.dev_attr);
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan3_min.dev_attr);
+-			device_create_file(&new_client->dev,
+-				&sensor_dev_attr_fan3_div.dev_attr);
++			if ((err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan3_input.dev_attr))
++			 || (err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan3_min.dev_attr))
++			 || (err = device_create_file(&new_client->dev,
++			     &sensor_dev_attr_fan3_div.dev_attr)))
++				goto ERROR4;
+ 		}
+ 	}
+ 
+-	device_create_file(&new_client->dev, &dev_attr_alarms);
+ 	if (enable_pwm_interface) {
+-		device_create_file(&new_client->dev, &sensor_dev_attr_pwm1_enable.dev_attr);
+-		device_create_file(&new_client->dev, &sensor_dev_attr_pwm2_enable.dev_attr);
+-		device_create_file(&new_client->dev, &sensor_dev_attr_pwm3_enable.dev_attr);
+-		device_create_file(&new_client->dev, &sensor_dev_attr_pwm1.dev_attr);
+-		device_create_file(&new_client->dev, &sensor_dev_attr_pwm2.dev_attr);
+-		device_create_file(&new_client->dev, &sensor_dev_attr_pwm3.dev_attr);
++		if ((err = device_create_file(&new_client->dev,
++		     &sensor_dev_attr_pwm1_enable.dev_attr))
++		 || (err = device_create_file(&new_client->dev,
++		     &sensor_dev_attr_pwm2_enable.dev_attr))
++		 || (err = device_create_file(&new_client->dev,
++		     &sensor_dev_attr_pwm3_enable.dev_attr))
++		 || (err = device_create_file(&new_client->dev,
++		     &sensor_dev_attr_pwm1.dev_attr))
++		 || (err = device_create_file(&new_client->dev,
++		     &sensor_dev_attr_pwm2.dev_attr))
++		 || (err = device_create_file(&new_client->dev,
++		     &sensor_dev_attr_pwm3.dev_attr)))
++			goto ERROR4;
+ 	}
+ 
+ 	if (data->type = it8712 || data->type = it8716
+@@ -1056,12 +1106,24 @@
+ 		data->vrm = vid_which_vrm();
+ 		/* VID reading from Super-I/O config space if available */
+ 		data->vid = vid_value;
+-		device_create_file_vrm(new_client);
+-		device_create_file_vid(new_client);
++		if ((err = device_create_file(&new_client->dev,
++		     &dev_attr_vrm))
++		 || (err = device_create_file(&new_client->dev,
++		     &dev_attr_cpu0_vid)))
++			goto ERROR4;
++	}
 +
-+temp1 -> pwm1
-+temp2 -> pwm2
-+temp3 -> pwm3
-+prog  -> pwm4 (the programmable setting is not supported by the driver)
++	data->class_dev = hwmon_device_register(&new_client->dev);
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		goto ERROR4;
+ 	}
+ 
+ 	return 0;
+ 
++ERROR4:
++	sysfs_remove_group(&new_client->dev.kobj, &it87_group);
++	sysfs_remove_group(&new_client->dev.kobj, &it87_group_opt);
+ ERROR3:
+ 	i2c_detach_client(new_client);
+ ERROR2:
+@@ -1079,6 +1141,8 @@
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &it87_group);
++	sysfs_remove_group(&client->dev.kobj, &it87_group_opt);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+--- linux-2.6.18.orig/drivers/hwmon/fscher.c	2006-09-23 15:24:23.000000000 +0200
++++ linux-2.6.18/drivers/hwmon/fscher.c	2006-09-23 17:48:05.000000000 +0200
+@@ -34,6 +34,7 @@
+ #include <linux/hwmon.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ 
+ /*
+  * Addresses to scan
+@@ -240,47 +241,45 @@
+ sysfs_control(FSCHER_REG_CONTROL)
+ sysfs_watchdog(FSCHER_REG_WDOG_CONTROL, FSCHER_REG_WDOG_STATE, FSCHER_REG_WDOG_PRESET)
+   
+-#define device_create_file_fan(client, offset) \
+-do { \
+-	device_create_file(&client->dev, &dev_attr_fan##offset##_status); \
+-	device_create_file(&client->dev, &dev_attr_pwm##offset); \
+-	device_create_file(&client->dev, &dev_attr_fan##offset##_div); \
+-	device_create_file(&client->dev, &dev_attr_fan##offset##_input); \
+-} while (0)
+-
+-#define device_create_file_temp(client, offset) \
+-do { \
+-	device_create_file(&client->dev, &dev_attr_temp##offset##_status); \
+-	device_create_file(&client->dev, &dev_attr_temp##offset##_input); \
+-} while (0)
+-
+-#define device_create_file_in(client, offset) \
+-do { \
+-	device_create_file(&client->dev, &dev_attr_in##offset##_input); \
+-} while (0)
+-
+-#define device_create_file_revision(client) \
+-do { \
+-	device_create_file(&client->dev, &dev_attr_revision); \
+-} while (0)
+-
+-#define device_create_file_alarms(client) \
+-do { \
+-	device_create_file(&client->dev, &dev_attr_alarms); \
+-} while (0)
+-
+-#define device_create_file_control(client) \
+-do { \
+-	device_create_file(&client->dev, &dev_attr_control); \
+-} while (0)
+-
+-#define device_create_file_watchdog(client) \
+-do { \
+-	device_create_file(&client->dev, &dev_attr_watchdog_status); \
+-	device_create_file(&client->dev, &dev_attr_watchdog_control); \
+-	device_create_file(&client->dev, &dev_attr_watchdog_preset); \
+-} while (0)
+-  
++static struct attribute *fscher_attributes[] = {
++	&dev_attr_revision.attr,
++	&dev_attr_alarms.attr,
++	&dev_attr_control.attr,
 +
-+/sys files
-+----------
++	&dev_attr_watchdog_status.attr,
++	&dev_attr_watchdog_control.attr,
++	&dev_attr_watchdog_preset.attr,
 +
-+pwm[1-4] - this file stores PWM duty cycle or DC value (fan speed) in range:
-+	   0 (stop) to 255 (full)
++	&dev_attr_in0_input.attr,
++	&dev_attr_in1_input.attr,
++	&dev_attr_in2_input.attr,
 +
-+pwm[1-4]_enable - this file controls mode of fan/temperature control:
-+	* 1 Manual Mode, write to pwm file any value 0-255 (full speed)
-+	* 2 Thermal Cruise
++	&dev_attr_fan1_status.attr,
++	&dev_attr_fan1_div.attr,
++	&dev_attr_fan1_input.attr,
++	&dev_attr_pwm1.attr,
++	&dev_attr_fan2_status.attr,
++	&dev_attr_fan2_div.attr,
++	&dev_attr_fan2_input.attr,
++	&dev_attr_pwm2.attr,
++	&dev_attr_fan3_status.attr,
++	&dev_attr_fan3_div.attr,
++	&dev_attr_fan3_input.attr,
++	&dev_attr_pwm3.attr,
 +
-+Thermal Cruise mode
-+-------------------
++	&dev_attr_temp1_status.attr,
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp2_status.attr,
++	&dev_attr_temp2_input.attr,
++	&dev_attr_temp3_status.attr,
++	&dev_attr_temp3_input.attr,
++	NULL
++};
 +
-+If the temperature is in the range defined by:
++static const struct attribute_group fscher_group = {
++	.attrs = fscher_attributes,
++};
 +
-+pwm[1-4]_target    - set target temperature, unit millidegree Celcius
-+		     (range 0 - 127000)
-+pwm[1-4]_tolerance - tolerance, unit millidegree Celcius (range 0 - 15000)
+ /*
+  * Real code
+  */
+@@ -342,31 +341,19 @@
+ 	fscher_init_client(new_client);
+ 
+ 	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &fscher_group)))
++		goto exit_detach;
 +
-+there are no changes to fan speed. Once the temperature leaves the interval,
-+fan speed increases (temp is higher) or decreases if lower than desired.
-+There are defined steps and times, but not exported by the driver yet.
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove_files;
+ 	}
+ 
+-	device_create_file_revision(new_client);
+-	device_create_file_alarms(new_client);
+-	device_create_file_control(new_client);
+-	device_create_file_watchdog(new_client);
+-
+-	device_create_file_in(new_client, 0);
+-	device_create_file_in(new_client, 1);
+-	device_create_file_in(new_client, 2);
+-
+-	device_create_file_fan(new_client, 1);
+-	device_create_file_fan(new_client, 2);
+-	device_create_file_fan(new_client, 3);
+-
+-	device_create_file_temp(new_client, 1);
+-	device_create_file_temp(new_client, 2);
+-	device_create_file_temp(new_client, 3);
+-
+ 	return 0;
+ 
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &fscher_group);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+@@ -381,6 +368,7 @@
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &fscher_group);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+--- linux-2.6.18.orig/drivers/hwmon/fscpos.c	2006-09-23 15:24:23.000000000 +0200
++++ linux-2.6.18/drivers/hwmon/fscpos.c	2006-09-23 17:48:05.000000000 +0200
+@@ -38,6 +38,7 @@
+ #include <linux/hwmon.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ 
+ /*
+  * Addresses to scan
+@@ -432,6 +433,44 @@
+ static DEVICE_ATTR(in1_input, S_IRUGO, show_volt_5, NULL);
+ static DEVICE_ATTR(in2_input, S_IRUGO, show_volt_batt, NULL);
+ 
++static struct attribute *fscpos_attributes[] = {
++	&dev_attr_event.attr,
++	&dev_attr_in0_input.attr,
++	&dev_attr_in1_input.attr,
++	&dev_attr_in2_input.attr,
 +
-+pwm[1-4]_min_output - minimum fan speed (range 1 - 255), when the temperature
-+                      is below defined range.
-+pwm[1-4]_stop_time  - how many milliseconds [ms] must elapse to switch
-+                      corresponding fan off. (when the temperature was below
-+                      defined range).
++	&dev_attr_wdog_control.attr,
++	&dev_attr_wdog_preset.attr,
++	&dev_attr_wdog_state.attr,
 +
-+Note: last two functions are influenced by other control bits, not yet exported
-+      by the driver, so a change might not have any effect.
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp1_status.attr,
++	&dev_attr_temp1_reset.attr,
++	&dev_attr_temp2_input.attr,
++	&dev_attr_temp2_status.attr,
++	&dev_attr_temp2_reset.attr,
++	&dev_attr_temp3_input.attr,
++	&dev_attr_temp3_status.attr,
++	&dev_attr_temp3_reset.attr,
++
++	&dev_attr_fan1_input.attr,
++	&dev_attr_fan1_status.attr,
++	&dev_attr_fan1_ripple.attr,
++	&dev_attr_pwm1.attr,
++	&dev_attr_fan2_input.attr,
++	&dev_attr_fan2_status.attr,
++	&dev_attr_fan2_ripple.attr,
++	&dev_attr_pwm2.attr,
++	&dev_attr_fan3_input.attr,
++	&dev_attr_fan3_status.attr,
++	&dev_attr_fan3_ripple.attr,
++	NULL
++};
++
++static const struct attribute_group fscpos_group = {
++	.attrs = fscpos_attributes,
++};
++
+ static int fscpos_attach_adapter(struct i2c_adapter *adapter)
+ {
+ 	if (!(adapter->class & I2C_CLASS_HWMON))
+@@ -497,42 +536,19 @@
+ 	dev_info(&new_client->dev, "Found fscpos chip, rev %u\n", data->revision);
+ 
+ 	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &fscpos_group)))
++		goto exit_detach;
++
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove_files;
+ 	}
+ 
+-	device_create_file(&new_client->dev, &dev_attr_event);
+-	device_create_file(&new_client->dev, &dev_attr_in0_input);
+-	device_create_file(&new_client->dev, &dev_attr_in1_input);
+-	device_create_file(&new_client->dev, &dev_attr_in2_input);
+-	device_create_file(&new_client->dev, &dev_attr_wdog_control);
+-	device_create_file(&new_client->dev, &dev_attr_wdog_preset);
+-	device_create_file(&new_client->dev, &dev_attr_wdog_state);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_status);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_reset);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_status);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_reset);
+-	device_create_file(&new_client->dev, &dev_attr_temp3_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp3_status);
+-	device_create_file(&new_client->dev, &dev_attr_temp3_reset);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_status);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_ripple);
+-	device_create_file(&new_client->dev, &dev_attr_pwm1);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_status);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_ripple);
+-	device_create_file(&new_client->dev, &dev_attr_pwm2);
+-	device_create_file(&new_client->dev, &dev_attr_fan3_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan3_status);
+-	device_create_file(&new_client->dev, &dev_attr_fan3_ripple);
+-
+ 	return 0;
+ 
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &fscpos_group);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+@@ -547,6 +563,7 @@
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &fscpos_group);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+--- linux-2.6.18.orig/drivers/hwmon/gl518sm.c	2006-09-23 15:24:23.000000000 +0200
++++ linux-2.6.18/drivers/hwmon/gl518sm.c	2006-09-23 17:48:05.000000000 +0200
+@@ -44,6 +44,7 @@
+ #include <linux/hwmon.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ 
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x2c, 0x2d, I2C_CLIENT_END };
+@@ -340,6 +341,42 @@
+ static DEVICE_ATTR(beep_mask, S_IWUSR|S_IRUGO,
+ 	show_beep_mask, set_beep_mask);
+ 
++static struct attribute *gl518_attributes[] = {
++	&dev_attr_in0_input.attr,
++	&dev_attr_in1_input.attr,
++	&dev_attr_in2_input.attr,
++	&dev_attr_in3_input.attr,
++	&dev_attr_in0_min.attr,
++	&dev_attr_in1_min.attr,
++	&dev_attr_in2_min.attr,
++	&dev_attr_in3_min.attr,
++	&dev_attr_in0_max.attr,
++	&dev_attr_in1_max.attr,
++	&dev_attr_in2_max.attr,
++	&dev_attr_in3_max.attr,
++
++	&dev_attr_fan1_auto.attr,
++	&dev_attr_fan1_input.attr,
++	&dev_attr_fan2_input.attr,
++	&dev_attr_fan1_min.attr,
++	&dev_attr_fan2_min.attr,
++	&dev_attr_fan1_div.attr,
++	&dev_attr_fan2_div.attr,
++
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp1_max.attr,
++	&dev_attr_temp1_max_hyst.attr,
++
++	&dev_attr_alarms.attr,
++	&dev_attr_beep_enable.attr,
++	&dev_attr_beep_mask.attr,
++	NULL
++};
++
++static const struct attribute_group gl518_group = {
++	.attrs = gl518_attributes,
++};
++
+ /*
+  * Real code
+  */
+@@ -420,43 +457,19 @@
+ 	gl518_init_client((struct i2c_client *) new_client);
+ 
+ 	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &gl518_group)))
++		goto exit_detach;
++
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove_files;
+ 	}
+ 
+-	device_create_file(&new_client->dev, &dev_attr_in0_input);
+-	device_create_file(&new_client->dev, &dev_attr_in1_input);
+-	device_create_file(&new_client->dev, &dev_attr_in2_input);
+-	device_create_file(&new_client->dev, &dev_attr_in3_input);
+-	device_create_file(&new_client->dev, &dev_attr_in0_min);
+-	device_create_file(&new_client->dev, &dev_attr_in1_min);
+-	device_create_file(&new_client->dev, &dev_attr_in2_min);
+-	device_create_file(&new_client->dev, &dev_attr_in3_min);
+-	device_create_file(&new_client->dev, &dev_attr_in0_max);
+-	device_create_file(&new_client->dev, &dev_attr_in1_max);
+-	device_create_file(&new_client->dev, &dev_attr_in2_max);
+-	device_create_file(&new_client->dev, &dev_attr_in3_max);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_auto);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_min);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_min);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_div);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_div);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_max_hyst);
+-	device_create_file(&new_client->dev, &dev_attr_alarms);
+-	device_create_file(&new_client->dev, &dev_attr_beep_enable);
+-	device_create_file(&new_client->dev, &dev_attr_beep_mask);
+-
+ 	return 0;
+ 
+-/* OK, this is not exactly good programming practice, usually. But it is
+-   very code-efficient in this case. */
+-
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &gl518_group);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+@@ -490,6 +503,7 @@
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &gl518_group);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+--- linux-2.6.18.orig/drivers/hwmon/gl520sm.c	2006-09-23 15:24:23.000000000 +0200
++++ linux-2.6.18/drivers/hwmon/gl520sm.c	2006-09-23 17:48:05.000000000 +0200
+@@ -30,6 +30,7 @@
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ 
+ /* Type of the extra sensor */
+ static unsigned short extra_sensor_type;
+@@ -190,55 +191,29 @@
+ #define sysfs_vid(n) \
+ sysfs_ro_n(cpu, n, _vid, GL520_REG_VID_INPUT)
+ 
+-#define device_create_file_vid(client, n) \
+-device_create_file(&client->dev, &dev_attr_cpu##n##_vid)
+-
+ #define sysfs_in(n) \
+ sysfs_ro_n(in, n, _input, GL520_REG_IN##n##INPUT) \
+ sysfs_rw_n(in, n, _min, GL520_REG_IN##n##_MIN) \
+ sysfs_rw_n(in, n, _max, GL520_REG_IN##n##_MAX) \
+ 
+-#define device_create_file_in(client, n) \
+-({device_create_file(&client->dev, &dev_attr_in##n##_input); \
+-device_create_file(&client->dev, &dev_attr_in##n##_min); \
+-device_create_file(&client->dev, &dev_attr_in##n##_max);})
+-
+ #define sysfs_fan(n) \
+ sysfs_ro_n(fan, n, _input, GL520_REG_FAN_INPUT) \
+ sysfs_rw_n(fan, n, _min, GL520_REG_FAN_MIN) \
+ sysfs_rw_n(fan, n, _div, GL520_REG_FAN_DIV)
+ 
+-#define device_create_file_fan(client, n) \
+-({device_create_file(&client->dev, &dev_attr_fan##n##_input); \
+-device_create_file(&client->dev, &dev_attr_fan##n##_min); \
+-device_create_file(&client->dev, &dev_attr_fan##n##_div);})
+-
+ #define sysfs_fan_off(n) \
+ sysfs_rw_n(fan, n, _off, GL520_REG_FAN_OFF) \
+ 
+-#define device_create_file_fan_off(client, n) \
+-device_create_file(&client->dev, &dev_attr_fan##n##_off)
+-
+ #define sysfs_temp(n) \
+ sysfs_ro_n(temp, n, _input, GL520_REG_TEMP##n##_INPUT) \
+ sysfs_rw_n(temp, n, _max, GL520_REG_TEMP##n##_MAX) \
+ sysfs_rw_n(temp, n, _max_hyst, GL520_REG_TEMP##n##_MAX_HYST)
+ 
+-#define device_create_file_temp(client, n) \
+-({device_create_file(&client->dev, &dev_attr_temp##n##_input); \
+-device_create_file(&client->dev, &dev_attr_temp##n##_max); \
+-device_create_file(&client->dev, &dev_attr_temp##n##_max_hyst);})
+-
+ #define sysfs_alarms() \
+ sysfs_ro(alarms, , GL520_REG_ALARMS) \
+ sysfs_rw(beep_enable, , GL520_REG_BEEP_ENABLE) \
+ sysfs_rw(beep_mask, , GL520_REG_BEEP_MASK)
+ 
+-#define device_create_file_alarms(client) \
+-({device_create_file(&client->dev, &dev_attr_alarms); \
+-device_create_file(&client->dev, &dev_attr_beep_enable); \
+-device_create_file(&client->dev, &dev_attr_beep_mask);})
+-
+ 
+ sysfs_vid(0)
+ 
+@@ -511,6 +486,59 @@
+ 	return count;
+ }
+ 
++static struct attribute *gl520_attributes[] = {
++	&dev_attr_cpu0_vid.attr,
++
++	&dev_attr_in0_input.attr,
++	&dev_attr_in0_min.attr,
++	&dev_attr_in0_max.attr,
++	&dev_attr_in1_input.attr,
++	&dev_attr_in1_min.attr,
++	&dev_attr_in1_max.attr,
++	&dev_attr_in2_input.attr,
++	&dev_attr_in2_min.attr,
++	&dev_attr_in2_max.attr,
++	&dev_attr_in3_input.attr,
++	&dev_attr_in3_min.attr,
++	&dev_attr_in3_max.attr,
++
++	&dev_attr_fan1_input.attr,
++	&dev_attr_fan1_min.attr,
++	&dev_attr_fan1_div.attr,
++	&dev_attr_fan1_off.attr,
++	&dev_attr_fan2_input.attr,
++	&dev_attr_fan2_min.attr,
++	&dev_attr_fan2_div.attr,
++
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp1_max.attr,
++	&dev_attr_temp1_max_hyst.attr,
++
++	&dev_attr_alarms.attr,
++	&dev_attr_beep_enable.attr,
++	&dev_attr_beep_mask.attr,
++	NULL
++};
++
++static const struct attribute_group gl520_group = {
++	.attrs = gl520_attributes,
++};
++
++static struct attribute *gl520_attributes_opt[] = {
++	&dev_attr_in4_input.attr,
++	&dev_attr_in4_min.attr,
++	&dev_attr_in4_max.attr,
++
++	&dev_attr_temp2_input.attr,
++	&dev_attr_temp2_max.attr,
++	&dev_attr_temp2_max_hyst.attr,
++	NULL
++};
++
++static const struct attribute_group gl520_group_opt = {
++	.attrs = gl520_attributes_opt,
++};
++
+ 
+ /*
+  * Real code
+@@ -572,33 +600,39 @@
+ 	gl520_init_client(new_client);
+ 
+ 	/* Register sysfs hooks */
+-	data->class_dev = hwmon_device_register(&new_client->dev);
+-	if (IS_ERR(data->class_dev)) {
+-		err = PTR_ERR(data->class_dev);
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &gl520_group)))
+ 		goto exit_detach;
+-	}
+ 
+-	device_create_file_vid(new_client, 0);
++	if (data->two_temps) {
++		if ((err = device_create_file(&new_client->dev,
++					      &dev_attr_temp2_input))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_temp2_max))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_temp2_max_hyst)))
++			goto exit_remove_files;
++	} else {
++		if ((err = device_create_file(&new_client->dev,
++					      &dev_attr_in4_input))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_in4_min))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_in4_max)))
++			goto exit_remove_files;
++	}
+ 
+-	device_create_file_in(new_client, 0);
+-	device_create_file_in(new_client, 1);
+-	device_create_file_in(new_client, 2);
+-	device_create_file_in(new_client, 3);
+-	if (!data->two_temps)
+-		device_create_file_in(new_client, 4);
+-
+-	device_create_file_fan(new_client, 1);
+-	device_create_file_fan(new_client, 2);
+-	device_create_file_fan_off(new_client, 1);
+-
+-	device_create_file_temp(new_client, 1);
+-	if (data->two_temps)
+-		device_create_file_temp(new_client, 2);
+ 
+-	device_create_file_alarms(new_client);
++	data->class_dev = hwmon_device_register(&new_client->dev);
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		goto exit_remove_files;
++	}
+ 
+ 	return 0;
+ 
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &gl520_group);
++	sysfs_remove_group(&new_client->dev.kobj, &gl520_group_opt);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+@@ -652,6 +686,8 @@
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &gl520_group);
++	sysfs_remove_group(&client->dev.kobj, &gl520_group_opt);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+
 -- 
-1.4.2.1
-
+Jean Delvare
 
