@@ -1,170 +1,80 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 28 Sep 2006 22:48:46 +0000
-Subject: [lm-sensors] [PATCH 26/39] pc87360: Delete sysfs files on device
-Message-Id: <11594838321900-git-send-email-greg@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 24 Sep 2006 19:23:26 +0000
+Subject: [lm-sensors] [PATCH 19/23] w83l785ts: Fix unchecked return status
+Message-Id: <20060924212326.f391f226.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jim Cromie <jim.cromie at gmail.com>
+From: Rudolf Marek <r.marek at assembler.cz>
+Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-w83l785ts.patch
 
-pc87360: Delete sysfs files on device deletion
+w83l785ts: Fix unchecked return status
 
-Add 4 explicit attribute groups for the 5 sensor types:
-voltage (in), therm, temp, and fan & pwm (together in one group).
-Use sysfs_remove_group() to drop them, but keeps the existing
-startup code, which calls device_create_file in loops.
+Fix the w83l785ts driver. Add error checking to device_create_file
+and also care to destroy the files upon exit.
 
-Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
+Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/hwmon/pc87360.c |   87 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 87 insertions(+), 0 deletions(-)
+ drivers/hwmon/w83l785ts.c |   28 ++++++++++++++++++++--------
+ 1 file changed, 20 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index db543a8..ce3232c 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -328,6 +328,12 @@ static struct sensor_device_attribute fa
- 	SENSOR_ATTR(fan3_min, S_IWUSR | S_IRUGO, show_fan_min, set_fan_min, 2),
- };
+--- linux-2.6.18.orig/drivers/hwmon/w83l785ts.c	2006-09-21 21:25:05.000000000 +0200
++++ linux-2.6.18/drivers/hwmon/w83l785ts.c	2006-09-23 12:04:17.000000000 +0200
+@@ -236,21 +236,30 @@
+ 	 * Nothing yet, assume it is already started.
+ 	 */
  
-+#define FAN_UNIT_ATTRS(X)	\
-+	&fan_input[X].dev_attr.attr,	\
-+	&fan_status[X].dev_attr.attr,	\
-+	&fan_div[X].dev_attr.attr,	\
-+	&fan_min[X].dev_attr.attr
++	err = device_create_file(&new_client->dev,
++				 &sensor_dev_attr_temp1_input.dev_attr);
++	if (err)
++		goto exit_remove;
 +
- static ssize_t show_pwm(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -360,6 +366,19 @@ static struct sensor_device_attribute pw
- 	SENSOR_ATTR(pwm3, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 2),
- };
++	err = device_create_file(&new_client->dev,
++				 &sensor_dev_attr_temp1_max.dev_attr);
++	if (err)
++		goto exit_remove;
++
+ 	/* Register sysfs hooks */
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove;
+ 	}
  
-+static struct attribute * pc8736x_fan_attr_array[] = {
-+	FAN_UNIT_ATTRS(0),
-+	FAN_UNIT_ATTRS(1),
-+	FAN_UNIT_ATTRS(2),
-+	&pwm[0].dev_attr.attr,
-+	&pwm[1].dev_attr.attr,
-+	&pwm[2].dev_attr.attr,
-+	NULL
-+};
-+static const struct attribute_group pc8736x_fan_group = {
-+	.attrs = pc8736x_fan_attr_array,
-+};
-+
- static ssize_t show_in_input(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -472,6 +491,12 @@ static struct sensor_device_attribute in
- 	SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
- };
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp1_input.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp1_max.dev_attr);
+-
+ 	return 0;
  
-+#define VIN_UNIT_ATTRS(X) \
-+	&in_input[X].dev_attr.attr,	\
-+	&in_status[X].dev_attr.attr,	\
-+	&in_min[X].dev_attr.attr,	\
-+	&in_max[X].dev_attr.attr
-+
- static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct pc87360_data *data = pc87360_update_device(dev);
-@@ -500,6 +525,27 @@ static ssize_t show_in_alarms(struct dev
- }
- static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
- 
-+static struct attribute *pc8736x_vin_attr_array[] = {
-+	VIN_UNIT_ATTRS(0),
-+	VIN_UNIT_ATTRS(1),
-+	VIN_UNIT_ATTRS(2),
-+	VIN_UNIT_ATTRS(3),
-+	VIN_UNIT_ATTRS(4),
-+	VIN_UNIT_ATTRS(5),
-+	VIN_UNIT_ATTRS(6),
-+	VIN_UNIT_ATTRS(7),
-+	VIN_UNIT_ATTRS(8),
-+	VIN_UNIT_ATTRS(9),
-+	VIN_UNIT_ATTRS(10),
-+	&dev_attr_cpu0_vid.attr,
-+	&dev_attr_vrm.attr,
-+	&dev_attr_alarms_in.attr,
-+	NULL
-+};
-+static const struct attribute_group pc8736x_vin_group = {
-+	.attrs = pc8736x_vin_attr_array,
-+};
-+
- static ssize_t show_therm_input(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -618,6 +664,23 @@ static struct sensor_device_attribute th
- 		    show_therm_crit, set_therm_crit, 2+11),
- };
- 
-+#define THERM_UNIT_ATTRS(X) \
-+	&therm_input[X].dev_attr.attr,	\
-+	&therm_status[X].dev_attr.attr,	\
-+	&therm_min[X].dev_attr.attr,	\
-+	&therm_max[X].dev_attr.attr,	\
-+	&therm_crit[X].dev_attr.attr
-+
-+static struct attribute * pc8736x_therm_attr_array[] = {
-+	THERM_UNIT_ATTRS(0),
-+	THERM_UNIT_ATTRS(1),
-+	THERM_UNIT_ATTRS(2),
-+	NULL
-+};
-+static const struct attribute_group pc8736x_therm_group = {
-+	.attrs = pc8736x_therm_attr_array,
-+};
-+
- static ssize_t show_temp_input(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -736,6 +799,25 @@ static ssize_t show_temp_alarms(struct d
- }
- static DEVICE_ATTR(alarms_temp, S_IRUGO, show_temp_alarms, NULL);
- 
-+#define TEMP_UNIT_ATTRS(X) \
-+	&temp_input[X].dev_attr.attr,	\
-+	&temp_status[X].dev_attr.attr,	\
-+	&temp_min[X].dev_attr.attr,	\
-+	&temp_max[X].dev_attr.attr,	\
-+	&temp_crit[X].dev_attr.attr
-+
-+static struct attribute * pc8736x_temp_attr_array[] = {
-+	TEMP_UNIT_ATTRS(0),
-+	TEMP_UNIT_ATTRS(1),
-+	TEMP_UNIT_ATTRS(2),
-+	/* include the few miscellaneous atts here */
-+	&dev_attr_alarms_temp.attr,
-+	NULL
-+};
-+static const struct attribute_group pc8736x_temp_group = {
-+	.attrs = pc8736x_temp_attr_array,
-+};
-+
- /*
-  * Device detection, registration and update
-  */
-@@ -1009,6 +1091,11 @@ static int pc87360_detach_client(struct 
+-exit_detach:
++exit_remove:
++	device_remove_file(&new_client->dev,
++			   &sensor_dev_attr_temp1_input.dev_attr);
++	device_remove_file(&new_client->dev,
++			   &sensor_dev_attr_temp1_max.dev_attr);
+ 	i2c_detach_client(new_client);
+ exit_free:
+ 	kfree(data);
+@@ -264,7 +273,10 @@
+ 	int err;
  
  	hwmon_device_unregister(data->class_dev);
+-
++	device_remove_file(&client->dev,
++			   &sensor_dev_attr_temp1_input.dev_attr);
++	device_remove_file(&client->dev,
++			   &sensor_dev_attr_temp1_max.dev_attr);
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
  
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_temp_group);
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_fan_group);
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_therm_group);
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_vin_group);
-+
- 	if ((i = i2c_detach_client(client)))
- 		return i;
- 
--- 
-1.4.2.1
 
+-- 
+Jean Delvare
 
