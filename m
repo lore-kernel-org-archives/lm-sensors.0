@@ -1,97 +1,142 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 27 Sep 2006 01:01:52 +0000
-Subject: [lm-sensors] [PATCH 21/30] i2c-algo-bit: Cleanups
-Message-Id: <11593189943645-git-send-email-greg@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 24 Sep 2006 19:03:25 +0000
+Subject: [lm-sensors] [PATCH 11/23] pc87360: Check for error on sysfs files
+Message-Id: <20060924210325.901a1206.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali at linux-fr.org>
+From: Jim Cromie <jim.cromie at gmail.com>
+Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-pc87360-3.patch
 
-i2c-algo-bit: Cleanups
+pc87360: Check for error on sysfs files creation
 
-* Uninline long functions (saves around 1 kB or 15%)
-* Refactor code in sclhi()
-* Drop redundant udelay on repeated start
+Use sysfs_create_group() for 2 sensor-types which are chip-model
+invariant, i.e. all-or-nothing attribute groups.
+Other 2 groups vary too much due to configuration, etc, so we keep the
+loops of device_create_file(), but now check their returns.
 
+Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/algos/i2c-algo-bit.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
+ drivers/hwmon/pc87360.c |   89 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 49 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/i2c/algos/i2c-algo-bit.c b/drivers/i2c/algos/i2c-algo-bit.c
-index 761df16..48fe3a3 100644
---- a/drivers/i2c/algos/i2c-algo-bit.c
-+++ b/drivers/i2c/algos/i2c-algo-bit.c
-@@ -76,17 +76,15 @@ static inline void scllo(struct i2c_algo
-  * Raise scl line, and do checking for delays. This is necessary for slower
-  * devices.
-  */
--static inline int sclhi(struct i2c_algo_bit_data *adap)
-+static int sclhi(struct i2c_algo_bit_data *adap)
- {
- 	unsigned long start;
- 
- 	setscl(adap,1);
- 
- 	/* Not all adapters have scl sense line... */
--	if (adap->getscl = NULL ) {
--		udelay(adap->udelay);
--		return 0;
--	}
-+	if (!adap->getscl)
-+		goto done;
- 
- 	start=jiffies;
- 	while (! getscl(adap) ) {	
-@@ -101,6 +99,8 @@ static inline int sclhi(struct i2c_algo_
- 		cond_resched();
+--- linux-2.6.18.orig/drivers/hwmon/pc87360.c	2006-09-23 20:45:52.000000000 +0200
++++ linux-2.6.18/drivers/hwmon/pc87360.c	2006-09-23 20:56:05.000000000 +0200
+@@ -1018,60 +1018,69 @@
+ 		pc87360_init_client(client, use_thermistors);
  	}
- 	DEBSTAT(printk(KERN_DEBUG "needed %ld jiffies\n", jiffies-start));
-+
-+done:
- 	udelay(adap->udelay);
- 	return 0;
- } 
-@@ -121,7 +121,6 @@ static void i2c_repstart(struct i2c_algo
- 	DEBPROTO(printk(" Sr "));
- 	setsda(adap,1);
- 	sclhi(adap);
--	udelay(adap->udelay);
- 	
- 	sdalo(adap);
- 	scllo(adap);
-@@ -306,7 +305,7 @@ bailout:
-  * 0 chip did not answer
-  * -x transmission error
-  */
--static inline int try_address(struct i2c_adapter *i2c_adap,
-+static int try_address(struct i2c_adapter *i2c_adap,
- 		       unsigned char addr, int retries)
- {
- 	struct i2c_algo_bit_data *adap = i2c_adap->algo_data;
-@@ -358,7 +357,7 @@ static int sendbytes(struct i2c_adapter 
- 	return wrcount;
- }
  
--static inline int readbytes(struct i2c_adapter *i2c_adap, struct i2c_msg *msg)
-+static int readbytes(struct i2c_adapter *i2c_adap, struct i2c_msg *msg)
- {
- 	int inval;
- 	int rdcount=0;   	/* counts bytes read */
-@@ -408,7 +407,7 @@ static inline int readbytes(struct i2c_a
-  * -x an error occurred (like: -EREMOTEIO if the device did not answer, or
-  *	-ETIMEDOUT, for example if the lines are stuck...) 
-  */
--static inline int bit_doAddress(struct i2c_adapter *i2c_adap, struct i2c_msg *msg) 
-+static int bit_doAddress(struct i2c_adapter *i2c_adap, struct i2c_msg *msg)
- {
- 	unsigned short flags = msg->flags;
- 	unsigned short nak_ok = msg->flags & I2C_M_IGNORE_NAK;
--- 
-1.4.2.1
+-	/* Register sysfs hooks */
+-	data->class_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->class_dev)) {
+-		err = PTR_ERR(data->class_dev);
++	/* Register all-or-nothing sysfs groups */
++
++	if (data->innr &&
++	    (err = sysfs_create_group(&client->dev.kobj,
++				      &pc8736x_vin_group)))
+ 		goto ERROR3;
+-	}
+ 
+-	if (data->innr) {
+-		for (i = 0; i < 11; i++) {
+-			device_create_file(dev, &in_input[i].dev_attr);
+-			device_create_file(dev, &in_min[i].dev_attr);
+-			device_create_file(dev, &in_max[i].dev_attr);
+-			device_create_file(dev, &in_status[i].dev_attr);
+-		}
+-		device_create_file(dev, &dev_attr_cpu0_vid);
+-		device_create_file(dev, &dev_attr_vrm);
+-		device_create_file(dev, &dev_attr_alarms_in);
+-	}
++	if (data->innr = 14 &&
++	    (err = sysfs_create_group(&client->dev.kobj,
++				      &pc8736x_therm_group)))
++		goto ERROR3;
++
++	/* create device attr-files for varying sysfs groups */
+ 
+ 	if (data->tempnr) {
+ 		for (i = 0; i < data->tempnr; i++) {
+-			device_create_file(dev, &temp_input[i].dev_attr);
+-			device_create_file(dev, &temp_min[i].dev_attr);
+-			device_create_file(dev, &temp_max[i].dev_attr);
+-			device_create_file(dev, &temp_crit[i].dev_attr);
+-			device_create_file(dev, &temp_status[i].dev_attr);
+-		}
+-		device_create_file(dev, &dev_attr_alarms_temp);
+-	}
+-
+-	if (data->innr = 14) {
+-		for (i = 0; i < 3; i++) {
+-			device_create_file(dev, &therm_input[i].dev_attr);
+-			device_create_file(dev, &therm_min[i].dev_attr);
+-			device_create_file(dev, &therm_max[i].dev_attr);
+-			device_create_file(dev, &therm_crit[i].dev_attr);
+-			device_create_file(dev, &therm_status[i].dev_attr);
++			if ((err = device_create_file(dev,
++					&temp_input[i].dev_attr))
++			    || (err = device_create_file(dev,
++					&temp_min[i].dev_attr))
++			    || (err = device_create_file(dev,
++					&temp_max[i].dev_attr))
++			    || (err = device_create_file(dev,
++					&temp_crit[i].dev_attr))
++			    || (err = device_create_file(dev,
++					&temp_status[i].dev_attr)))
++				goto ERROR3;
+ 		}
++		if ((err = device_create_file(dev, &dev_attr_alarms_temp)))
++			goto ERROR3;
+ 	}
+ 
+ 	for (i = 0; i < data->fannr; i++) {
+-		if (FAN_CONFIG_MONITOR(data->fan_conf, i)) {
+-			device_create_file(dev, &fan_input[i].dev_attr);
+-			device_create_file(dev, &fan_min[i].dev_attr);
+-			device_create_file(dev, &fan_div[i].dev_attr);
+-			device_create_file(dev, &fan_status[i].dev_attr);
+-		}
+-		if (FAN_CONFIG_CONTROL(data->fan_conf, i))
+-			device_create_file(dev, &pwm[i].dev_attr);
++		if (FAN_CONFIG_MONITOR(data->fan_conf, i)
++		    && ((err = device_create_file(dev,
++					&fan_input[i].dev_attr))
++			|| (err = device_create_file(dev,
++					&fan_min[i].dev_attr))
++			|| (err = device_create_file(dev,
++					&fan_div[i].dev_attr))
++			|| (err = device_create_file(dev,
++					&fan_status[i].dev_attr))))
++			goto ERROR3;
++
++		if (FAN_CONFIG_CONTROL(data->fan_conf, i)
++		    && (err = device_create_file(dev, &pwm[i].dev_attr)))
++			goto ERROR3;
+ 	}
+ 
++	data->class_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		goto ERROR3;
++	}
+ 	return 0;
+ 
+ ERROR3:
++	/* can still remove groups whose members were added individually */
++	sysfs_remove_group(&client->dev.kobj, &pc8736x_temp_group);
++	sysfs_remove_group(&client->dev.kobj, &pc8736x_fan_group);
++	sysfs_remove_group(&client->dev.kobj, &pc8736x_therm_group);
++	sysfs_remove_group(&client->dev.kobj, &pc8736x_vin_group);
++
+ 	i2c_detach_client(client);
+ ERROR2:
+ 	for (i = 0; i < 3; i++) {
 
+-- 
+Jean Delvare
 
