@@ -1,101 +1,487 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 24 Sep 2006 19:01:56 +0000
-Subject: [lm-sensors] [PATCH 09/23] pc87360: Move some code around
-Message-Id: <20060924210156.4b9a5655.khali@linux-fr.org>
+Date: Sun, 24 Sep 2006 19:24:46 +0000
+Subject: [lm-sensors] [PATCH 21/23] hwmon: Fix unchecked return status,
+Message-Id: <20060924212446.6aaca0af.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jim Cromie <jim.cromie at gmail.com>
-Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-pc87360-1.patch
+Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-6.patch
 
-pc87360: Move some code around
+hwmon: Fix unchecked return status, batch 6
 
-Moves code for get-set-decl tuples for 3 items: cpu0_vid, vrm, alarms_in
-up, to just after the get-set-decl tuple for voltages.
-These items are already 'activated' together with the rest of the 
-voltage attributes, so the move tightens the grouping that's made
-explicit in next patch.
+Fix up 5 more hwmon drivers so that they no longer ignore return status
+from device_create_file().
 
-Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-----
- drivers/hwmon/pc87360.c |   56 +++++++++++++++++++++++-----------------------
- 1 file changed, 28 insertions(+), 28 deletions(-)
---- linux-2.6.18.orig/drivers/hwmon/pc87360.c	2006-09-23 15:24:24.000000000 +0200
-+++ linux-2.6.18/drivers/hwmon/pc87360.c	2006-09-23 16:42:05.000000000 +0200
-@@ -472,6 +472,34 @@
- 	SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
- };
+---
+ drivers/hwmon/atxp1.c   |   25 +++++++++---
+ drivers/hwmon/ds1621.c  |   28 +++++++++----
+ drivers/hwmon/max1619.c |   33 +++++++++++----
+ drivers/hwmon/sis5595.c |  101 +++++++++++++++++++++++++++++++++--------------
+ drivers/hwmon/via686a.c |   83 +++++++++++++++++++++++----------------
+ 5 files changed, 185 insertions(+), 85 deletions(-)
+
+--- linux-2.6.18.orig/drivers/hwmon/atxp1.c	2006-09-23 18:17:15.000000000 +0200
++++ linux-2.6.18/drivers/hwmon/atxp1.c	2006-09-23 20:26:19.000000000 +0200
+@@ -27,6 +27,7 @@
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
  
-+static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%u\n", vid_from_reg(data->vid, data->vrm));
-+}
-+static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
-+
-+static ssize_t show_vrm(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%u\n", data->vrm);
-+}
-+static ssize_t set_vrm(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct pc87360_data *data = i2c_get_clientdata(client);
-+	data->vrm = simple_strtoul(buf, NULL, 10);
-+	return count;
-+}
-+static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
-+
-+static ssize_t show_in_alarms(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%u\n", data->in_alarms);
-+}
-+static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
-+
- static ssize_t show_therm_input(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -590,34 +618,6 @@
- 		    show_therm_crit, set_therm_crit, 2+11),
- };
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("System voltages control via Attansic ATXP1");
+@@ -250,6 +251,17 @@
+ */
+ static DEVICE_ATTR(gpio2, S_IRUGO | S_IWUSR, atxp1_showgpio2, atxp1_storegpio2);
  
--static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct pc87360_data *data = pc87360_update_device(dev);
--	return sprintf(buf, "%u\n", vid_from_reg(data->vid, data->vrm));
--}
--static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
--
--static ssize_t show_vrm(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct pc87360_data *data = pc87360_update_device(dev);
--	return sprintf(buf, "%u\n", data->vrm);
--}
--static ssize_t set_vrm(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	struct pc87360_data *data = i2c_get_clientdata(client);
--	data->vrm = simple_strtoul(buf, NULL, 10);
--	return count;
--}
--static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
--
--static ssize_t show_in_alarms(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct pc87360_data *data = pc87360_update_device(dev);
--	return sprintf(buf, "%u\n", data->in_alarms);
--}
--static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
--
- static ssize_t show_temp_input(struct device *dev, struct device_attribute *devattr, char *buf)
++static struct attribute *atxp1_attributes[] = {
++	&dev_attr_gpio1.attr,
++	&dev_attr_gpio2.attr,
++	&dev_attr_cpu0_vid.attr,
++	NULL
++};
++
++static const struct attribute_group atxp1_group = {
++	.attrs = atxp1_attributes,
++};
++
+ 
+ static int atxp1_attach_adapter(struct i2c_adapter *adapter)
  {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+@@ -319,21 +331,23 @@
+ 		goto exit_free;
+ 	}
+ 
++	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &atxp1_group)))
++		goto exit_detach;
++
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove_files;
+ 	}
+ 
+-	device_create_file(&new_client->dev, &dev_attr_gpio1);
+-	device_create_file(&new_client->dev, &dev_attr_gpio2);
+-	device_create_file(&new_client->dev, &dev_attr_cpu0_vid);
+-
+ 	dev_info(&new_client->dev, "Using VRM: %d.%d\n",
+ 			 data->vrm / 10, data->vrm % 10);
+ 
+ 	return 0;
+ 
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &atxp1_group);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+@@ -348,6 +362,7 @@
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &atxp1_group);
+ 
+ 	err = i2c_detach_client(client);
+ 
+--- linux-2.6.18.orig/drivers/hwmon/ds1621.c	2006-09-23 18:17:15.000000000 +0200
++++ linux-2.6.18/drivers/hwmon/ds1621.c	2006-09-23 20:26:14.000000000 +0200
+@@ -29,6 +29,7 @@
+ #include <linux/hwmon.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ #include "lm75.h"
+ 
+ /* Addresses to scan */
+@@ -178,6 +179,18 @@
+ static DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO , show_temp_min, set_temp_min);
+ static DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max, set_temp_max);
+ 
++static struct attribute *ds1621_attributes[] = {
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp1_min.attr,
++	&dev_attr_temp1_max.attr,
++	&dev_attr_alarms.attr,
++	NULL
++};
++
++static const struct attribute_group ds1621_group = {
++	.attrs = ds1621_attributes,
++};
++
+ 
+ static int ds1621_attach_adapter(struct i2c_adapter *adapter)
+ {
+@@ -253,21 +266,19 @@
+ 	ds1621_init_client(new_client);
+ 
+ 	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &ds1621_group)))
++		goto exit_detach;
++
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove_files;
+ 	}
+ 
+-	device_create_file(&new_client->dev, &dev_attr_alarms);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_min);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_max);
+-	
+ 	return 0;
+ 
+-/* OK, this is not exactly good programming practice, usually. But it is
+-   very code-efficient in this case. */
++      exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &ds1621_group);
+       exit_detach:
+ 	i2c_detach_client(new_client);
+       exit_free:
+@@ -282,6 +293,7 @@
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &ds1621_group);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+--- linux-2.6.18.orig/drivers/hwmon/max1619.c	2006-09-23 18:17:15.000000000 +0200
++++ linux-2.6.18/drivers/hwmon/max1619.c	2006-09-23 20:26:09.000000000 +0200
+@@ -34,6 +34,7 @@
+ #include <linux/hwmon.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ 
+ static unsigned short normal_i2c[] = { 0x18, 0x19, 0x1a,
+ 					0x29, 0x2a, 0x2b,
+@@ -172,6 +173,22 @@
+ 	set_temp_hyst2);
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
++static struct attribute *max1619_attributes[] = {
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp2_input.attr,
++	&dev_attr_temp2_min.attr,
++	&dev_attr_temp2_max.attr,
++	&dev_attr_temp2_crit.attr,
++	&dev_attr_temp2_crit_hyst.attr,
++
++	&dev_attr_alarms.attr,
++	NULL
++};
++
++static const struct attribute_group max1619_group = {
++	.attrs = max1619_attributes,
++};
++
+ /*
+  * Real code
+  */
+@@ -273,22 +290,19 @@
+ 	max1619_init_client(new_client);
+ 
+ 	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &max1619_group)))
++		goto exit_detach;
++
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove_files;
+ 	}
+ 
+-	device_create_file(&new_client->dev, &dev_attr_temp1_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_min);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_crit);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_crit_hyst);
+-	device_create_file(&new_client->dev, &dev_attr_alarms);
+-
+ 	return 0;
+ 
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &max1619_group);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+@@ -318,6 +332,7 @@
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &max1619_group);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+--- linux-2.6.18.orig/drivers/hwmon/sis5595.c	2006-09-23 18:17:15.000000000 +0200
++++ linux-2.6.18/drivers/hwmon/sis5595.c	2006-09-23 20:26:05.000000000 +0200
+@@ -61,6 +61,7 @@
+ #include <linux/init.h>
+ #include <linux/jiffies.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ #include <asm/io.h>
+ 
+ 
+@@ -473,6 +474,50 @@
+ 	return sprintf(buf, "%d\n", data->alarms);
+ }
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
++
++static struct attribute *sis5595_attributes[] = {
++	&dev_attr_in0_input.attr,
++	&dev_attr_in0_min.attr,
++	&dev_attr_in0_max.attr,
++	&dev_attr_in1_input.attr,
++	&dev_attr_in1_min.attr,
++	&dev_attr_in1_max.attr,
++	&dev_attr_in2_input.attr,
++	&dev_attr_in2_min.attr,
++	&dev_attr_in2_max.attr,
++	&dev_attr_in3_input.attr,
++	&dev_attr_in3_min.attr,
++	&dev_attr_in3_max.attr,
++
++	&dev_attr_fan1_input.attr,
++	&dev_attr_fan1_min.attr,
++	&dev_attr_fan1_div.attr,
++	&dev_attr_fan2_input.attr,
++	&dev_attr_fan2_min.attr,
++	&dev_attr_fan2_div.attr,
++
++	&dev_attr_alarms.attr,
++	NULL
++};
++
++static const struct attribute_group sis5595_group = {
++	.attrs = sis5595_attributes,
++};
++
++static struct attribute *sis5595_attributes_opt[] = {
++	&dev_attr_in4_input.attr,
++	&dev_attr_in4_min.attr,
++	&dev_attr_in4_max.attr,
++
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp1_max.attr,
++	&dev_attr_temp1_max_hyst.attr,
++	NULL
++};
++
++static const struct attribute_group sis5595_group_opt = {
++	.attrs = sis5595_attributes_opt,
++};
+  
+ /* This is called when the module is loaded */
+ static int sis5595_detect(struct i2c_adapter *adapter)
+@@ -566,43 +611,37 @@
+ 	}
+ 
+ 	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &sis5595_group)))
++		goto exit_detach;
++	if (data->maxins = 4) {
++		if ((err = device_create_file(&new_client->dev,
++					      &dev_attr_in4_input))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_in4_min))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_in4_max)))
++			goto exit_remove_files;
++	} else {
++		if ((err = device_create_file(&new_client->dev,
++					      &dev_attr_temp1_input))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_temp1_max))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_temp1_max_hyst)))
++			goto exit_remove_files;
++	}
++
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove_files;
+ 	}
+ 
+-	device_create_file(&new_client->dev, &dev_attr_in0_input);
+-	device_create_file(&new_client->dev, &dev_attr_in0_min);
+-	device_create_file(&new_client->dev, &dev_attr_in0_max);
+-	device_create_file(&new_client->dev, &dev_attr_in1_input);
+-	device_create_file(&new_client->dev, &dev_attr_in1_min);
+-	device_create_file(&new_client->dev, &dev_attr_in1_max);
+-	device_create_file(&new_client->dev, &dev_attr_in2_input);
+-	device_create_file(&new_client->dev, &dev_attr_in2_min);
+-	device_create_file(&new_client->dev, &dev_attr_in2_max);
+-	device_create_file(&new_client->dev, &dev_attr_in3_input);
+-	device_create_file(&new_client->dev, &dev_attr_in3_min);
+-	device_create_file(&new_client->dev, &dev_attr_in3_max);
+-	if (data->maxins = 4) {
+-		device_create_file(&new_client->dev, &dev_attr_in4_input);
+-		device_create_file(&new_client->dev, &dev_attr_in4_min);
+-		device_create_file(&new_client->dev, &dev_attr_in4_max);
+-	}
+-	device_create_file(&new_client->dev, &dev_attr_fan1_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_min);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_div);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_min);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_div);
+-	device_create_file(&new_client->dev, &dev_attr_alarms);
+-	if (data->maxins = 3) {
+-		device_create_file(&new_client->dev, &dev_attr_temp1_input);
+-		device_create_file(&new_client->dev, &dev_attr_temp1_max);
+-		device_create_file(&new_client->dev, &dev_attr_temp1_max_hyst);
+-	}
+ 	return 0;
+ 
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &sis5595_group);
++	sysfs_remove_group(&new_client->dev.kobj, &sis5595_group_opt);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+@@ -619,6 +658,8 @@
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &sis5595_group);
++	sysfs_remove_group(&client->dev.kobj, &sis5595_group_opt);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+--- linux-2.6.18.orig/drivers/hwmon/via686a.c	2006-09-23 18:17:15.000000000 +0200
++++ linux-2.6.18/drivers/hwmon/via686a.c	2006-09-23 20:25:55.000000000 +0200
+@@ -40,6 +40,7 @@
+ #include <linux/err.h>
+ #include <linux/init.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ #include <asm/io.h>
+ 
+ 
+@@ -570,6 +571,48 @@
+ }
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
++static struct attribute *via686a_attributes[] = {
++	&dev_attr_in0_input.attr,
++	&dev_attr_in1_input.attr,
++	&dev_attr_in2_input.attr,
++	&dev_attr_in3_input.attr,
++	&dev_attr_in4_input.attr,
++	&dev_attr_in0_min.attr,
++	&dev_attr_in1_min.attr,
++	&dev_attr_in2_min.attr,
++	&dev_attr_in3_min.attr,
++	&dev_attr_in4_min.attr,
++	&dev_attr_in0_max.attr,
++	&dev_attr_in1_max.attr,
++	&dev_attr_in2_max.attr,
++	&dev_attr_in3_max.attr,
++	&dev_attr_in4_max.attr,
++
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp2_input.attr,
++	&dev_attr_temp3_input.attr,
++	&dev_attr_temp1_max.attr,
++	&dev_attr_temp2_max.attr,
++	&dev_attr_temp3_max.attr,
++	&dev_attr_temp1_max_hyst.attr,
++	&dev_attr_temp2_max_hyst.attr,
++	&dev_attr_temp3_max_hyst.attr,
++
++	&dev_attr_fan1_input.attr,
++	&dev_attr_fan2_input.attr,
++	&dev_attr_fan1_min.attr,
++	&dev_attr_fan2_min.attr,
++	&dev_attr_fan1_div.attr,
++	&dev_attr_fan2_div.attr,
++
++	&dev_attr_alarms.attr,
++	NULL
++};
++
++static const struct attribute_group via686a_group = {
++	.attrs = via686a_attributes,
++};
++
+ /* The driver. I choose to use type i2c_driver, as at is identical to both
+    smbus_driver and isa_driver, and clients could be of either kind */
+ static struct i2c_driver via686a_driver = {
+@@ -650,46 +693,19 @@
+ 	via686a_init_client(new_client);
+ 
+ 	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &via686a_group)))
++		goto exit_detach;
++
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove_files;
+ 	}
+ 
+-	device_create_file(&new_client->dev, &dev_attr_in0_input);
+-	device_create_file(&new_client->dev, &dev_attr_in1_input);
+-	device_create_file(&new_client->dev, &dev_attr_in2_input);
+-	device_create_file(&new_client->dev, &dev_attr_in3_input);
+-	device_create_file(&new_client->dev, &dev_attr_in4_input);
+-	device_create_file(&new_client->dev, &dev_attr_in0_min);
+-	device_create_file(&new_client->dev, &dev_attr_in1_min);
+-	device_create_file(&new_client->dev, &dev_attr_in2_min);
+-	device_create_file(&new_client->dev, &dev_attr_in3_min);
+-	device_create_file(&new_client->dev, &dev_attr_in4_min);
+-	device_create_file(&new_client->dev, &dev_attr_in0_max);
+-	device_create_file(&new_client->dev, &dev_attr_in1_max);
+-	device_create_file(&new_client->dev, &dev_attr_in2_max);
+-	device_create_file(&new_client->dev, &dev_attr_in3_max);
+-	device_create_file(&new_client->dev, &dev_attr_in4_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp3_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp3_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_max_hyst);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_max_hyst);
+-	device_create_file(&new_client->dev, &dev_attr_temp3_max_hyst);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_min);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_min);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_div);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_div);
+-	device_create_file(&new_client->dev, &dev_attr_alarms);
+-
+ 	return 0;
+ 
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &via686a_group);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+@@ -705,6 +721,7 @@
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &via686a_group);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
 
 -- 
 Jean Delvare
