@@ -1,167 +1,217 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 24 Sep 2006 19:02:44 +0000
-Subject: [lm-sensors] [PATCH 10/23] pc87360: Delete sysfs files on device
-Message-Id: <20060924210244.4df2c16a.khali@linux-fr.org>
+Date: Sun, 24 Sep 2006 19:04:38 +0000
+Subject: [lm-sensors] [PATCH 12/23] w83627ehf: Fix unchecked return status
+Message-Id: <20060924210438.23b3af5b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jim Cromie <jim.cromie at gmail.com>
-Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-pc87360-2.patch
+From: David Hubbard <david.c.hubbard at gmail.com>
+Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-w83627ehf.patch
 
-pc87360: Delete sysfs files on device deletion
+w83627ehf: Fix unchecked return status
 
-Add 4 explicit attribute groups for the 5 sensor types:
-voltage (in), therm, temp, and fan & pwm (together in one group).
-Use sysfs_remove_group() to drop them, but keeps the existing
-startup code, which calls device_create_file in loops.
+Fix: check return value from device_create_file()
+Fix: call device_remove_file() on error and module unload
+Fix: call hwmon_device_register() after device_create_file() to eliminate race
 
-Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
+Signed-off-by: David Hubbard <david.c.hubbard at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- drivers/hwmon/pc87360.c |   87 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 87 insertions(+)
+ drivers/hwmon/w83627ehf.c |  122 ++++++++++++++++++++++++++++++---------------
+ 1 file changed, 82 insertions(+), 40 deletions(-)
 
---- linux-2.6.18-rc5.orig/drivers/hwmon/pc87360.c	2006-09-02 21:16:33.000000000 +0200
-+++ linux-2.6.18-rc5/drivers/hwmon/pc87360.c	2006-09-02 21:16:41.000000000 +0200
-@@ -328,6 +328,12 @@
- 	SENSOR_ATTR(fan3_min, S_IWUSR | S_IRUGO, show_fan_min, set_fan_min, 2),
+--- linux-2.6.18.orig/drivers/hwmon/w83627ehf.c	2006-09-23 15:24:24.000000000 +0200
++++ linux-2.6.18/drivers/hwmon/w83627ehf.c	2006-09-23 17:03:20.000000000 +0200
+@@ -4,6 +4,7 @@
+     Copyright (C) 2005  Jean Delvare <khali at linux-fr.org>
+     Copyright (C) 2006  Yuan Mu <Ymu at Winbond.com.tw>,
+                         Rudolf Marek <r.marek at sh.cvut.cz>
++                        David Hubbard <david.c.hubbard at gmail.com>
+ 
+     Shamelessly ripped from the w83627hf driver
+     Copyright (C) 2003  Mark Studebaker
+@@ -621,14 +622,6 @@
+        SENSOR_ATTR(in9_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 9),
  };
  
-+#define FAN_UNIT_ATTRS(X)	\
-+	&fan_input[X].dev_attr.attr,	\
-+	&fan_status[X].dev_attr.attr,	\
-+	&fan_div[X].dev_attr.attr,	\
-+	&fan_min[X].dev_attr.attr
-+
- static ssize_t show_pwm(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -360,6 +366,19 @@
- 	SENSOR_ATTR(pwm3, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 2),
+-static void device_create_file_in(struct device *dev, int i)
+-{
+-	device_create_file(dev, &sda_in_input[i].dev_attr);
+-	device_create_file(dev, &sda_in_alarm[i].dev_attr);
+-	device_create_file(dev, &sda_in_min[i].dev_attr);
+-	device_create_file(dev, &sda_in_max[i].dev_attr);
+-}
+-
+ #define show_fan_reg(reg) \
+ static ssize_t \
+ show_##reg(struct device *dev, struct device_attribute *attr, \
+@@ -756,14 +749,6 @@
+ 	SENSOR_ATTR(fan5_div, S_IRUGO, show_fan_div, NULL, 4),
  };
  
-+static struct attribute * pc8736x_fan_attr_array[] = {
-+	FAN_UNIT_ATTRS(0),
-+	FAN_UNIT_ATTRS(1),
-+	FAN_UNIT_ATTRS(2),
-+	&pwm[0].dev_attr.attr,
-+	&pwm[1].dev_attr.attr,
-+	&pwm[2].dev_attr.attr,
-+	NULL
-+};
-+static const struct attribute_group pc8736x_fan_group = {
-+	.attrs = pc8736x_fan_attr_array,
-+};
-+
- static ssize_t show_in_input(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -472,6 +491,12 @@
- 	SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
+-static void device_create_file_fan(struct device *dev, int i)
+-{
+-	device_create_file(dev, &sda_fan_input[i].dev_attr);
+-	device_create_file(dev, &sda_fan_alarm[i].dev_attr);
+-	device_create_file(dev, &sda_fan_div[i].dev_attr);
+-	device_create_file(dev, &sda_fan_min[i].dev_attr);
+-}
+-
+ #define show_temp1_reg(reg) \
+ static ssize_t \
+ show_##reg(struct device *dev, struct device_attribute *attr, \
+@@ -1036,15 +1021,6 @@
+ 		    store_tolerance, 3),
  };
  
-+#define VIN_UNIT_ATTRS(X) \
-+	&in_input[X].dev_attr.attr,	\
-+	&in_status[X].dev_attr.attr,	\
-+	&in_min[X].dev_attr.attr,	\
-+	&in_max[X].dev_attr.attr
-+
- static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct pc87360_data *data = pc87360_update_device(dev);
-@@ -500,6 +525,27 @@
- }
- static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
+-static void device_create_file_pwm(struct device *dev, int i)
+-{
+-	device_create_file(dev, &sda_pwm[i].dev_attr);
+-	device_create_file(dev, &sda_pwm_mode[i].dev_attr);
+-	device_create_file(dev, &sda_pwm_enable[i].dev_attr);
+-	device_create_file(dev, &sda_target_temp[i].dev_attr);
+-	device_create_file(dev, &sda_tolerance[i].dev_attr);
+-}
+-
+ /* Smart Fan registers */
  
-+static struct attribute *pc8736x_vin_attr_array[] = {
-+	VIN_UNIT_ATTRS(0),
-+	VIN_UNIT_ATTRS(1),
-+	VIN_UNIT_ATTRS(2),
-+	VIN_UNIT_ATTRS(3),
-+	VIN_UNIT_ATTRS(4),
-+	VIN_UNIT_ATTRS(5),
-+	VIN_UNIT_ATTRS(6),
-+	VIN_UNIT_ATTRS(7),
-+	VIN_UNIT_ATTRS(8),
-+	VIN_UNIT_ATTRS(9),
-+	VIN_UNIT_ATTRS(10),
-+	&dev_attr_cpu0_vid.attr,
-+	&dev_attr_vrm.attr,
-+	&dev_attr_alarms_in.attr,
-+	NULL
-+};
-+static const struct attribute_group pc8736x_vin_group = {
-+	.attrs = pc8736x_vin_attr_array,
-+};
-+
- static ssize_t show_therm_input(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -618,6 +664,23 @@
- 		    show_therm_crit, set_therm_crit, 2+11),
- };
- 
-+#define THERM_UNIT_ATTRS(X) \
-+	&therm_input[X].dev_attr.attr,	\
-+	&therm_status[X].dev_attr.attr,	\
-+	&therm_min[X].dev_attr.attr,	\
-+	&therm_max[X].dev_attr.attr,	\
-+	&therm_crit[X].dev_attr.attr
-+
-+static struct attribute * pc8736x_therm_attr_array[] = {
-+	THERM_UNIT_ATTRS(0),
-+	THERM_UNIT_ATTRS(1),
-+	THERM_UNIT_ATTRS(2),
-+	NULL
-+};
-+static const struct attribute_group pc8736x_therm_group = {
-+	.attrs = pc8736x_therm_attr_array,
-+};
-+
- static ssize_t show_temp_input(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -736,6 +799,25 @@
- }
- static DEVICE_ATTR(alarms_temp, S_IRUGO, show_temp_alarms, NULL);
- 
-+#define TEMP_UNIT_ATTRS(X) \
-+	&temp_input[X].dev_attr.attr,	\
-+	&temp_status[X].dev_attr.attr,	\
-+	&temp_min[X].dev_attr.attr,	\
-+	&temp_max[X].dev_attr.attr,	\
-+	&temp_crit[X].dev_attr.attr
-+
-+static struct attribute * pc8736x_temp_attr_array[] = {
-+	TEMP_UNIT_ATTRS(0),
-+	TEMP_UNIT_ATTRS(1),
-+	TEMP_UNIT_ATTRS(2),
-+	/* include the few miscellaneous atts here */
-+	&dev_attr_alarms_temp.attr,
-+	NULL
-+};
-+static const struct attribute_group pc8736x_temp_group = {
-+	.attrs = pc8736x_temp_attr_array,
-+};
-+
- /*
-  * Device detection, registration and update
+ #define fan_functions(reg, REG) \
+@@ -1131,6 +1107,39 @@
+  * Driver and client management
   */
-@@ -1009,6 +1091,11 @@
+ 
++static void w83627ehf_device_remove_files(struct device *dev)
++{
++	/* some entries in the following arrays may not have been used in
++	 * device_create_file(), but device_remove_file() will ignore them */
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++)
++		device_remove_file(dev, &sda_sf3_arrays[i].dev_attr);
++	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++)
++		device_remove_file(dev, &sda_sf3_arrays_fan4[i].dev_attr);
++	for (i = 0; i < 10; i++) {
++		device_remove_file(dev, &sda_in_input[i].dev_attr);
++		device_remove_file(dev, &sda_in_alarm[i].dev_attr);
++		device_remove_file(dev, &sda_in_min[i].dev_attr);
++		device_remove_file(dev, &sda_in_max[i].dev_attr);
++	}
++	for (i = 0; i < 5; i++) {
++		device_remove_file(dev, &sda_fan_input[i].dev_attr);
++		device_remove_file(dev, &sda_fan_alarm[i].dev_attr);
++		device_remove_file(dev, &sda_fan_div[i].dev_attr);
++		device_remove_file(dev, &sda_fan_min[i].dev_attr);
++	}
++	for (i = 0; i < 4; i++) {
++		device_remove_file(dev, &sda_pwm[i].dev_attr);
++		device_remove_file(dev, &sda_pwm_mode[i].dev_attr);
++		device_remove_file(dev, &sda_pwm_enable[i].dev_attr);
++		device_remove_file(dev, &sda_target_temp[i].dev_attr);
++		device_remove_file(dev, &sda_tolerance[i].dev_attr);
++	}
++	for (i = 0; i < ARRAY_SIZE(sda_temp); i++)
++		device_remove_file(dev, &sda_temp[i].dev_attr);
++}
++
+ static struct i2c_driver w83627ehf_driver;
+ 
+ static void w83627ehf_init_client(struct i2c_client *client)
+@@ -1217,37 +1226,69 @@
+ 		data->has_fan |= (1 << 4);
+ 
+ 	/* Register sysfs hooks */
+-	data->class_dev = hwmon_device_register(dev);
+-	if (IS_ERR(data->class_dev)) {
+-		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
+-	}
+-
+   	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++)
+-  		device_create_file(dev, &sda_sf3_arrays[i].dev_attr);
++		if ((err = device_create_file(dev,
++			&sda_sf3_arrays[i].dev_attr)))
++			goto exit_remove;
+ 
+ 	/* if fan4 is enabled create the sf3 files for it */
+ 	if (data->has_fan & (1 << 3))
+-		for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++)
+-			device_create_file(dev, &sda_sf3_arrays_fan4[i].dev_attr);
++		for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++) {
++			if ((err = device_create_file(dev,
++				&sda_sf3_arrays_fan4[i].dev_attr)))
++				goto exit_remove;
++		}
+ 
+ 	for (i = 0; i < 10; i++)
+-		device_create_file_in(dev, i);
++		if ((err = device_create_file(dev, &sda_in_input[i].dev_attr))
++			|| (err = device_create_file(dev,
++				&sda_in_alarm[i].dev_attr))
++			|| (err = device_create_file(dev,
++				&sda_in_min[i].dev_attr))
++			|| (err = device_create_file(dev,
++				&sda_in_max[i].dev_attr)))
++			goto exit_remove;
+ 
+ 	for (i = 0; i < 5; i++) {
+ 		if (data->has_fan & (1 << i)) {
+-			device_create_file_fan(dev, i);
+-			if (i != 4) /* we have only 4 pwm */
+-				device_create_file_pwm(dev, i);
++			if ((err = device_create_file(dev,
++					&sda_fan_input[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_fan_alarm[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_fan_div[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_fan_min[i].dev_attr)))
++				goto exit_remove;
++			if (i < 4 && /* w83627ehf only has 4 pwm */
++				((err = device_create_file(dev,
++					&sda_pwm[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_pwm_mode[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_pwm_enable[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_target_temp[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_tolerance[i].dev_attr))))
++				goto exit_remove;
+ 		}
+ 	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sda_temp); i++)
+-		device_create_file(dev, &sda_temp[i].dev_attr);
++		if ((err = device_create_file(dev, &sda_temp[i].dev_attr)))
++			goto exit_remove;
++
++	data->class_dev = hwmon_device_register(dev);
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		goto exit_remove;
++	}
+ 
+ 	return 0;
+ 
+-exit_detach:
++exit_remove:
++	w83627ehf_device_remove_files(dev);
+ 	i2c_detach_client(client);
+ exit_free:
+ 	kfree(data);
+@@ -1263,6 +1304,7 @@
+ 	int err;
  
  	hwmon_device_unregister(data->class_dev);
++	w83627ehf_device_remove_files(&client->dev);
  
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_temp_group);
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_fan_group);
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_therm_group);
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_vin_group);
-+
- 	if ((i = i2c_detach_client(client)))
- 		return i;
- 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
 
 -- 
 Jean Delvare
