@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 20 Sep 2006 18:40:04 +0000
+Date: Sun, 24 Sep 2006 20:29:29 +0000
 Subject: [lm-sensors] Call for 2.10.1
-Message-Id: <20060920204004.220fc645.khali@linux-fr.org>
+Message-Id: <20060924222929.753a59ec.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060819105454.c6c438ed.khali@linux-fr.org>
 In-Reply-To: <20060819105454.c6c438ed.khali@linux-fr.org>
@@ -10,17 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Juerg,
+Hi Phil,
 
-> > Will you have the time to provide a patch "fixing" the 2.4 driver by
-> > the end of the week?
+> > Phil, will you continue taking care of the release? Our
+> > doc/developers/checklist probably needs some adjustements to reflect
+> > our move to SVN, amongst others.
 > 
-> I believe so yes, but it won't be well tested (other than running
-> sensors and making sure the output under 2.6 and 2.4 match).
+> Hi Jean, yes I can.
 
-Should be good enough. At least it can't be worse than shipping a
-version of libsensors/sensors with alarm bits which don't match the 2.6
-driver channels - that could really confuse the users.
+We've got the green light, you can now release 2.10.1 as your schedule
+allows :)
+
+Both i2c and lm_sensors need to be released. You'll need to bump the
+version of libsensors to 3.1.1.
+
+As said above, please update doc/developers/checklist to reflect the
+changes as you discover them. If there's any problem with the new
+setup, please let Axel Thimm (and me) now, and we'll try to assist.
 
 Thanks,
 -- 
