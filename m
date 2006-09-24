@@ -1,295 +1,168 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 27 Sep 2006 01:01:50 +0000
-Subject: [lm-sensors] [PATCH 19/30] i2c: __must_check fixes (chip drivers)
-Message-Id: <11593189872321-git-send-email-greg@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 24 Sep 2006 19:02:44 +0000
+Subject: [lm-sensors] [PATCH 10/23] pc87360: Delete sysfs files on device
+Message-Id: <20060924210244.4df2c16a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali at linux-fr.org>
+From: Jim Cromie <jim.cromie at gmail.com>
+Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-pc87360-2.patch
 
-i2c: __must_check fixes (chip drivers)
+pc87360: Delete sysfs files on device deletion
 
-Check for error on sysfs file creation.
-Delete sysfs files on device removal.
+Add 4 explicit attribute groups for the 5 sensor types:
+voltage (in), therm, temp, and fan & pwm (together in one group).
+Use sysfs_remove_group() to drop them, but keeps the existing
+startup code, which calls device_create_file in loops.
 
-The approach taken for the most complex case (pcf8591) is similar to
-what Mark M. Hoffman proposed for hardware monitoring chip drivers.
-
+Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Cc: Ben Gardner <bgardner at wabtec.com>
-Cc: Aurelien Jarno <aurelien at aurel32.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/chips/eeprom.c  |    8 +++++-
- drivers/i2c/chips/max6875.c |   25 ++++++++++++++-----
- drivers/i2c/chips/pca9539.c |   11 +++++++-
- drivers/i2c/chips/pcf8574.c |   22 +++++++++++++---
- drivers/i2c/chips/pcf8591.c |   58 +++++++++++++++++++++++++++++++++----------
- 5 files changed, 97 insertions(+), 27 deletions(-)
+ drivers/hwmon/pc87360.c |   87 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 87 insertions(+)
 
-diff --git a/drivers/i2c/chips/eeprom.c b/drivers/i2c/chips/eeprom.c
-index 13c1082..cec3a0c 100644
---- a/drivers/i2c/chips/eeprom.c
-+++ b/drivers/i2c/chips/eeprom.c
-@@ -209,10 +209,14 @@ static int eeprom_detect(struct i2c_adap
- 	}
+--- linux-2.6.18-rc5.orig/drivers/hwmon/pc87360.c	2006-09-02 21:16:33.000000000 +0200
++++ linux-2.6.18-rc5/drivers/hwmon/pc87360.c	2006-09-02 21:16:41.000000000 +0200
+@@ -328,6 +328,12 @@
+ 	SENSOR_ATTR(fan3_min, S_IWUSR | S_IRUGO, show_fan_min, set_fan_min, 2),
+ };
  
- 	/* create the sysfs eeprom file */
--	sysfs_create_bin_file(&new_client->dev.kobj, &eeprom_attr);
-+	err = sysfs_create_bin_file(&new_client->dev.kobj, &eeprom_attr);
-+	if (err)
-+		goto exit_detach;
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_kfree:
- 	kfree(data);
- exit:
-@@ -223,6 +227,8 @@ static int eeprom_detach_client(struct i
++#define FAN_UNIT_ATTRS(X)	\
++	&fan_input[X].dev_attr.attr,	\
++	&fan_status[X].dev_attr.attr,	\
++	&fan_div[X].dev_attr.attr,	\
++	&fan_min[X].dev_attr.attr
++
+ static ssize_t show_pwm(struct device *dev, struct device_attribute *devattr, char *buf)
  {
- 	int err;
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+@@ -360,6 +366,19 @@
+ 	SENSOR_ATTR(pwm3, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 2),
+ };
  
-+	sysfs_remove_bin_file(&client->dev.kobj, &eeprom_attr);
-+
- 	err = i2c_detach_client(client);
- 	if (err)
- 		return err;
-diff --git a/drivers/i2c/chips/max6875.c b/drivers/i2c/chips/max6875.c
-index 88d2dde..76645c1 100644
---- a/drivers/i2c/chips/max6875.c
-+++ b/drivers/i2c/chips/max6875.c
-@@ -199,8 +199,7 @@ static int max6875_detect(struct i2c_ada
- 	mutex_init(&data->update_lock);
- 
- 	/* Init fake client data */
--	/* set the client data to the i2c_client so that it will get freed */
--	i2c_set_clientdata(fake_client, fake_client);
-+	i2c_set_clientdata(fake_client, NULL);
- 	fake_client->addr = address | 1;
- 	fake_client->adapter = adapter;
- 	fake_client->driver = &max6875_driver;
-@@ -214,13 +213,17 @@ static int max6875_detect(struct i2c_ada
- 		goto exit_kfree2;
- 
- 	if ((err = i2c_attach_client(fake_client)) != 0)
--		goto exit_detach;
-+		goto exit_detach1;
- 
--	sysfs_create_bin_file(&real_client->dev.kobj, &user_eeprom_attr);
-+	err = sysfs_create_bin_file(&real_client->dev.kobj, &user_eeprom_attr);
-+	if (err)
-+		goto exit_detach2;
- 
- 	return 0;
- 
--exit_detach:
-+exit_detach2:
-+	i2c_detach_client(fake_client);
-+exit_detach1:
- 	i2c_detach_client(real_client);
- exit_kfree2:
- 	kfree(fake_client);
-@@ -229,14 +232,24 @@ exit_kfree1:
- 	return err;
- }
- 
-+/* Will be called for both the real client and the fake client */
- static int max6875_detach_client(struct i2c_client *client)
- {
- 	int err;
-+	struct max6875_data *data = i2c_get_clientdata(client);
-+
-+	/* data is NULL for the fake client */
-+	if (data)
-+		sysfs_remove_bin_file(&client->dev.kobj, &user_eeprom_attr);
- 
- 	err = i2c_detach_client(client);
- 	if (err)
- 		return err;
--	kfree(i2c_get_clientdata(client));
-+
-+	if (data)		/* real client */
-+		kfree(data);
-+	else			/* fake client */
-+		kfree(client);
- 	return 0;
- }
- 
-diff --git a/drivers/i2c/chips/pca9539.c b/drivers/i2c/chips/pca9539.c
-index cb22280..f43c4e7 100644
---- a/drivers/i2c/chips/pca9539.c
-+++ b/drivers/i2c/chips/pca9539.c
-@@ -148,11 +148,16 @@ static int pca9539_detect(struct i2c_ada
- 	if ((err = i2c_attach_client(new_client)))
- 		goto exit_kfree;
- 
--	/* Register sysfs hooks (don't care about failure) */
--	sysfs_create_group(&new_client->dev.kobj, &pca9539_defattr_group);
-+	/* Register sysfs hooks */
-+	err = sysfs_create_group(&new_client->dev.kobj,
-+				 &pca9539_defattr_group);
-+	if (err)
-+		goto exit_detach;
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_kfree:
- 	kfree(data);
- exit:
-@@ -163,6 +168,8 @@ static int pca9539_detach_client(struct 
- {
- 	int err;
- 
-+	sysfs_remove_group(&client->dev.kobj, &pca9539_defattr_group);
-+
- 	if ((err = i2c_detach_client(client)))
- 		return err;
- 
-diff --git a/drivers/i2c/chips/pcf8574.c b/drivers/i2c/chips/pcf8574.c
-index c3e6449..32b2542 100644
---- a/drivers/i2c/chips/pcf8574.c
-+++ b/drivers/i2c/chips/pcf8574.c
-@@ -105,6 +105,16 @@ static ssize_t set_write(struct device *
- 
- static DEVICE_ATTR(write, S_IWUSR | S_IRUGO, show_write, set_write);
- 
-+static struct attribute *pcf8574_attributes[] = {
-+	&dev_attr_read.attr,
-+	&dev_attr_write.attr,
++static struct attribute * pc8736x_fan_attr_array[] = {
++	FAN_UNIT_ATTRS(0),
++	FAN_UNIT_ATTRS(1),
++	FAN_UNIT_ATTRS(2),
++	&pwm[0].dev_attr.attr,
++	&pwm[1].dev_attr.attr,
++	&pwm[2].dev_attr.attr,
 +	NULL
 +};
++static const struct attribute_group pc8736x_fan_group = {
++	.attrs = pc8736x_fan_attr_array,
++};
 +
-+static const struct attribute_group pcf8574_attr_group = {
-+	.attrs = pcf8574_attributes,
+ static ssize_t show_in_input(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+@@ -472,6 +491,12 @@
+ 	SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
+ };
+ 
++#define VIN_UNIT_ATTRS(X) \
++	&in_input[X].dev_attr.attr,	\
++	&in_status[X].dev_attr.attr,	\
++	&in_min[X].dev_attr.attr,	\
++	&in_max[X].dev_attr.attr
++
+ static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+@@ -500,6 +525,27 @@
+ }
+ static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
+ 
++static struct attribute *pc8736x_vin_attr_array[] = {
++	VIN_UNIT_ATTRS(0),
++	VIN_UNIT_ATTRS(1),
++	VIN_UNIT_ATTRS(2),
++	VIN_UNIT_ATTRS(3),
++	VIN_UNIT_ATTRS(4),
++	VIN_UNIT_ATTRS(5),
++	VIN_UNIT_ATTRS(6),
++	VIN_UNIT_ATTRS(7),
++	VIN_UNIT_ATTRS(8),
++	VIN_UNIT_ATTRS(9),
++	VIN_UNIT_ATTRS(10),
++	&dev_attr_cpu0_vid.attr,
++	&dev_attr_vrm.attr,
++	&dev_attr_alarms_in.attr,
++	NULL
++};
++static const struct attribute_group pc8736x_vin_group = {
++	.attrs = pc8736x_vin_attr_array,
++};
++
+ static ssize_t show_therm_input(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+@@ -618,6 +664,23 @@
+ 		    show_therm_crit, set_therm_crit, 2+11),
+ };
+ 
++#define THERM_UNIT_ATTRS(X) \
++	&therm_input[X].dev_attr.attr,	\
++	&therm_status[X].dev_attr.attr,	\
++	&therm_min[X].dev_attr.attr,	\
++	&therm_max[X].dev_attr.attr,	\
++	&therm_crit[X].dev_attr.attr
++
++static struct attribute * pc8736x_therm_attr_array[] = {
++	THERM_UNIT_ATTRS(0),
++	THERM_UNIT_ATTRS(1),
++	THERM_UNIT_ATTRS(2),
++	NULL
++};
++static const struct attribute_group pc8736x_therm_group = {
++	.attrs = pc8736x_therm_attr_array,
++};
++
+ static ssize_t show_temp_input(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+@@ -736,6 +799,25 @@
+ }
+ static DEVICE_ATTR(alarms_temp, S_IRUGO, show_temp_alarms, NULL);
+ 
++#define TEMP_UNIT_ATTRS(X) \
++	&temp_input[X].dev_attr.attr,	\
++	&temp_status[X].dev_attr.attr,	\
++	&temp_min[X].dev_attr.attr,	\
++	&temp_max[X].dev_attr.attr,	\
++	&temp_crit[X].dev_attr.attr
++
++static struct attribute * pc8736x_temp_attr_array[] = {
++	TEMP_UNIT_ATTRS(0),
++	TEMP_UNIT_ATTRS(1),
++	TEMP_UNIT_ATTRS(2),
++	/* include the few miscellaneous atts here */
++	&dev_attr_alarms_temp.attr,
++	NULL
++};
++static const struct attribute_group pc8736x_temp_group = {
++	.attrs = pc8736x_temp_attr_array,
 +};
 +
  /*
-  * Real code
+  * Device detection, registration and update
   */
-@@ -166,13 +176,13 @@ static int pcf8574_detect(struct i2c_ada
- 	pcf8574_init_client(new_client);
+@@ -1009,6 +1091,11 @@
  
- 	/* Register sysfs hooks */
--	device_create_file(&new_client->dev, &dev_attr_read);
--	device_create_file(&new_client->dev, &dev_attr_write);
-+	err = sysfs_create_group(&new_client->dev.kobj, &pcf8574_attr_group);
-+	if (err)
-+		goto exit_detach;
- 	return 0;
+ 	hwmon_device_unregister(data->class_dev);
  
--/* OK, this is not exactly good programming practice, usually. But it is
--   very code-efficient in this case. */
--
-+      exit_detach:
-+	i2c_detach_client(new_client);
-       exit_free:
- 	kfree(data);
-       exit:
-@@ -183,6 +193,8 @@ static int pcf8574_detach_client(struct 
- {
- 	int err;
- 
-+	sysfs_remove_group(&client->dev.kobj, &pcf8574_attr_group);
++	sysfs_remove_group(&client->dev.kobj, &pc8736x_temp_group);
++	sysfs_remove_group(&client->dev.kobj, &pc8736x_fan_group);
++	sysfs_remove_group(&client->dev.kobj, &pc8736x_therm_group);
++	sysfs_remove_group(&client->dev.kobj, &pc8736x_vin_group);
 +
- 	if ((err = i2c_detach_client(client)))
- 		return err;
+ 	if ((i = i2c_detach_client(client)))
+ 		return i;
  
-diff --git a/drivers/i2c/chips/pcf8591.c b/drivers/i2c/chips/pcf8591.c
-index 925a6b3..4dc3637 100644
---- a/drivers/i2c/chips/pcf8591.c
-+++ b/drivers/i2c/chips/pcf8591.c
-@@ -158,6 +158,28 @@ static ssize_t set_out0_enable(struct de
- static DEVICE_ATTR(out0_enable, S_IWUSR | S_IRUGO, 
- 		   show_out0_enable, set_out0_enable);
- 
-+static struct attribute *pcf8591_attributes[] = {
-+	&dev_attr_out0_enable.attr,
-+	&dev_attr_out0_output.attr,
-+	&dev_attr_in0_input.attr,
-+	&dev_attr_in1_input.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group pcf8591_attr_group = {
-+	.attrs = pcf8591_attributes,
-+};
-+
-+static struct attribute *pcf8591_attributes_opt[] = {
-+	&dev_attr_in2_input.attr,
-+	&dev_attr_in3_input.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group pcf8591_attr_group_opt = {
-+	.attrs = pcf8591_attributes_opt,
-+};
-+
- /*
-  * Real code
-  */
-@@ -211,24 +233,31 @@ static int pcf8591_detect(struct i2c_ada
- 	pcf8591_init_client(new_client);
- 
- 	/* Register sysfs hooks */
--	device_create_file(&new_client->dev, &dev_attr_out0_enable);
--	device_create_file(&new_client->dev, &dev_attr_out0_output);
--	device_create_file(&new_client->dev, &dev_attr_in0_input);
--	device_create_file(&new_client->dev, &dev_attr_in1_input);
-+	err = sysfs_create_group(&new_client->dev.kobj, &pcf8591_attr_group);
-+	if (err)
-+		goto exit_detach;
- 
- 	/* Register input2 if not in "two differential inputs" mode */
--	if (input_mode != 3 )
--		device_create_file(&new_client->dev, &dev_attr_in2_input);
--		
-+	if (input_mode != 3) {
-+		if ((err = device_create_file(&new_client->dev,
-+					      &dev_attr_in2_input)))
-+			goto exit_sysfs_remove;
-+	}
-+
- 	/* Register input3 only in "four single ended inputs" mode */
--	if (input_mode = 0)
--		device_create_file(&new_client->dev, &dev_attr_in3_input);
--	
-+	if (input_mode = 0) {
-+		if ((err = device_create_file(&new_client->dev,
-+					      &dev_attr_in3_input)))
-+			goto exit_sysfs_remove;
-+	}
-+
- 	return 0;
--	
--	/* OK, this is not exactly good programming practice, usually. But it is
--	   very code-efficient in this case. */
- 
-+exit_sysfs_remove:
-+	sysfs_remove_group(&new_client->dev.kobj, &pcf8591_attr_group_opt);
-+	sysfs_remove_group(&new_client->dev.kobj, &pcf8591_attr_group);
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_kfree:
- 	kfree(data);
- exit:
-@@ -239,6 +268,9 @@ static int pcf8591_detach_client(struct 
- {
- 	int err;
- 
-+	sysfs_remove_group(&client->dev.kobj, &pcf8591_attr_group_opt);
-+	sysfs_remove_group(&client->dev.kobj, &pcf8591_attr_group);
-+
- 	if ((err = i2c_detach_client(client)))
- 		return err;
- 
+
 -- 
-1.4.2.1
-
+Jean Delvare
 
