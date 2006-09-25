@@ -1,53 +1,34 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 27 Sep 2006 01:01:53 +0000
-Subject: [lm-sensors] [PATCH 22/30] i2c-algo-pcf: Discard the mdelay data
-Message-Id: <1159318997126-git-send-email-greg@kroah.com>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Mon, 25 Sep 2006 17:05:04 +0000
+Subject: [lm-sensors] [patch] hwmon:  fix unchecked returncodes in w83791d
+Message-Id: <45180C40.7090809@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Adrian Bunk <bunk at stusta.de>
+Fix unchecked return-status by replacing all unchecked calls 
+to device_create_file with a single group declaration,
+and one call to sysfs_create_group, and check that one return status.
 
-i2c-algo-pcf: Discard the mdelay data struct member
-
-Just as i2c-algo-bit, i2c-algo-pcf has an unused mdelay struct member,
-which we can get rid of to spare some code and memory.
-
-Signed-off-by: Adrian Bunk <bunk at stusta.de>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+Signed-off-by:  Jim Cromie  <jim.cromie at gmail.com>
 ---
- drivers/i2c/busses/i2c-elektor.c |    1 -
- include/linux/i2c-algo-pcf.h     |    1 -
- 2 files changed, 0 insertions(+), 2 deletions(-)
+$ diffstat pc-set/hwmon-unchecked-return-status-fixes-w83791d.patch
+ w83791d.c |   83 +++++++++++++++++++++++++++++++++++++++++---------------------
+ 1 files changed, 55 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-elektor.c b/drivers/i2c/busses/i2c-elektor.c
-index 59f8308..caa8e5c 100644
---- a/drivers/i2c/busses/i2c-elektor.c
-+++ b/drivers/i2c/busses/i2c-elektor.c
-@@ -196,7 +196,6 @@ static struct i2c_algo_pcf_data pcf_isa_
- 	.getclock   = pcf_isa_getclock,
- 	.waitforpin = pcf_isa_waitforpin,
- 	.udelay	    = 10,
--	.mdelay	    = 10,
- 	.timeout    = 100,
- };
- 
-diff --git a/include/linux/i2c-algo-pcf.h b/include/linux/i2c-algo-pcf.h
-index 18b0adf..9908f3f 100644
---- a/include/linux/i2c-algo-pcf.h
-+++ b/include/linux/i2c-algo-pcf.h
-@@ -35,7 +35,6 @@ struct i2c_algo_pcf_data {
- 
- 	/* local settings */
- 	int udelay;
--	int mdelay;
- 	int timeout;
- };
- 
--- 
-1.4.2.1
+---
 
+Its impressive (or embarrassing) how much slop you detect.
+I trust this comment is in right place for auto-strip to 
+keep it out of Changelog.  Is any of this automated, and if so,
+are we/I getting it right (or close) ?
 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: hwmon-unchecked-return-status-fixes-w83791d.patch
+Type: text/x-patch
+Size: 3292 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060925/26f34a04/attachment.bin 
