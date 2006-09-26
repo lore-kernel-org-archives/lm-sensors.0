@@ -1,225 +1,71 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Thu, 14 Sep 2006 07:20:24 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Tue, 26 Sep 2006 04:33:49 +0000
 Subject: [lm-sensors] [RFC-patch 3/3] SuperIO locks coordinator - use in
-Message-Id: <450902B8.6040407@gmail.com>
+Message-Id: <4dfa50520609252133o257733c5h4272594c6d20cff8@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <87fyf5jnkj.fsf@willow.rfc1149.net>	<1157815525.6877.43.camel@localhost.localdomain> <20060909220256.d4486a4f.vsu@altlinux.ru> <4508FF2F.5020504@gmail.com>
-In-Reply-To: <4508FF2F.5020504@gmail.com>
+References: <450902B8.6040407@gmail.com>
+In-Reply-To: <450902B8.6040407@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jim Cromie <jim.cromie@gmail.com>
-Cc: Sergey Vlasov <vsu@altlinux.ru>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Samuel Tardieu <sam@rfc1149.net>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
+
+Hi Jim,
+
+This is a question about the w83627ehf driver, but it's nice and
+general, so I'm looking at the way you did the pc8736x_gpio driver.
+There's this line:
+
+static struct superio* gate;
+
+And the driver uses the global 'gate' to access the Super-I/O. Right
+now in the w83627ehf driver, there are several globals:
+
+/* The actual ISA address is read from Super-I/O configuration space */
+static unsigned short address;
+
+/*
+ * Super-I/O constants and functions
+ */
+
+static int REG;		/* The register to read/write */
+static int VAL;		/* The value to read/write */
 
 
->
-> 3/3   adapts drivers/char/pc8736x_gpio
->    this module needs the superio-port at runtime to alter pin-configs,
->    so it doesnt release its superio-port reservation until module-exit
->
+Later on in the file, there's another global:
 
-diff -ruNp -X dontdiff -X exclude-diffs 6locks-3/drivers/char/pc8736x_gpio.c 6locks-4/drivers/char/pc8736x_gpio.c
---- 6locks-3/drivers/char/pc8736x_gpio.c	2006-09-07 16:11:44.000000000 -0600
-+++ 6locks-4/drivers/char/pc8736x_gpio.c	2006-09-13 23:03:38.000000000 -0600
-@@ -20,6 +20,7 @@
- #include <linux/mutex.h>
- #include <linux/nsc_gpio.h>
- #include <linux/platform_device.h>
-+#include <linux/superio-locks.h>
- #include <asm/uaccess.h>
- 
- #define DEVNAME "pc8736x_gpio"
-@@ -36,12 +37,11 @@ static DEFINE_MUTEX(pc8736x_gpio_config_
- static unsigned pc8736x_gpio_base;
- static u8 pc8736x_gpio_shadow[4];
- 
--#define SIO_BASE1       0x2E	/* 1st command-reg to check */
--#define SIO_BASE2       0x4E	/* alt command-reg to check */
--
--#define SIO_SID		0x20	/* SuperI/O ID Register */
--#define SIO_SID_VALUE	0xe9	/* Expected value in SuperI/O ID Register */
-+static u16 cmd_addrs[] = { 0x2E, 0x4E, 0 };
-+static u8 devid_vals[] = { 0xE1, 0xE8, 0xE4, 0xE5, 0xE9, 0 };
-+static struct superio* gate;
- 
-+#define SIO_DEVID	0x20	/* SuperI/O Device ID Register */
- #define SIO_CF1		0x21	/* chip config, bit0 is chip enable */
- 
- #define PC8736X_GPIO_RANGE	16 /* ioaddr range */
-@@ -62,7 +62,6 @@ static u8 pc8736x_gpio_shadow[4];
- #define SIO_GPIO_PIN_CONFIG     0xF1
- #define SIO_GPIO_PIN_EVENT      0xF2
- 
--static unsigned char superio_cmd = 0;
- static unsigned char selected_device = 0xFF;	/* bogus start val */
- 
- /* GPIO port runtime access, functionality */
-@@ -76,35 +75,9 @@ static int port_offset[] = { 0, 4, 8, 10
- 
- static struct platform_device *pdev;  /* use in dev_*() */
- 
--static inline void superio_outb(int addr, int val)
--{
--	outb_p(addr, superio_cmd);
--	outb_p(val, superio_cmd + 1);
--}
--
--static inline int superio_inb(int addr)
--{
--	outb_p(addr, superio_cmd);
--	return inb_p(superio_cmd + 1);
--}
--
--static int pc8736x_superio_present(void)
--{
--	/* try the 2 possible values, read a hardware reg to verify */
--	superio_cmd = SIO_BASE1;
--	if (superio_inb(SIO_SID) = SIO_SID_VALUE)
--		return superio_cmd;
--
--	superio_cmd = SIO_BASE2;
--	if (superio_inb(SIO_SID) = SIO_SID_VALUE)
--		return superio_cmd;
--
--	return 0;
--}
--
- static void device_select(unsigned devldn)
- {
--	superio_outb(SIO_UNIT_SEL, devldn);
-+	superio_outb(gate, SIO_UNIT_SEL, devldn);
- 	selected_device = devldn;
- }
- 
-@@ -112,7 +85,7 @@ static void select_pin(unsigned iminor)
- {
- 	/* select GPIO port/pin from device minor number */
- 	device_select(SIO_GPIO_UNIT);
--	superio_outb(SIO_GPIO_PIN_SELECT,
-+	superio_outb(gate, SIO_GPIO_PIN_SELECT,
- 		     ((iminor << 1) & 0xF0) | (iminor & 0x7));
- }
- 
-@@ -121,19 +94,19 @@ static inline u32 pc8736x_gpio_configure
- {
- 	u32 config, new_config;
- 
-+	superio_enter(gate);
- 	mutex_lock(&pc8736x_gpio_config_lock);
- 
--	device_select(SIO_GPIO_UNIT);
-+	/* read pin's current config value */
- 	select_pin(index);
--
--	/* read current config value */
--	config = superio_inb(func_slct);
-+	config = superio_inb(gate, func_slct);
- 
- 	/* set new config */
- 	new_config = (config & mask) | bits;
--	superio_outb(func_slct, new_config);
-+	superio_outb(gate, func_slct, new_config);
- 
- 	mutex_unlock(&pc8736x_gpio_config_lock);
-+	superio_exit(gate);
- 
- 	return config;
- }
-@@ -188,6 +161,8 @@ static void pc8736x_gpio_set(unsigned mi
- 	pc8736x_gpio_shadow[port] = val;
- }
- 
-+#if 0
-+/* may re-enable for sysfs-gpio */
- static void pc8736x_gpio_set_high(unsigned index)
- {
- 	pc8736x_gpio_set(index, 1);
-@@ -197,6 +172,7 @@ static void pc8736x_gpio_set_low(unsigne
- {
- 	pc8736x_gpio_set(index, 0);
- }
-+#endif
- 
- static int pc8736x_gpio_current(unsigned minor)
- {
-@@ -269,40 +245,44 @@ static int __init pc8736x_gpio_init(void
- 		rc = -ENODEV;
- 		goto undo_platform_dev_alloc;
- 	}
-+	pc8736x_gpio_ops.dev = &pdev->dev;
-+
- 	dev_info(&pdev->dev, "NatSemi pc8736x GPIO Driver Initializing\n");
- 
--	if (!pc8736x_superio_present()) {
-+	gate = superio_find(cmd_addrs, SIO_DEVID, devid_vals);
-+	if (!gate) {
- 		rc = -ENODEV;
--		dev_err(&pdev->dev, "no device found\n");
-+		dev_err(&pdev->dev, "no superio port found\n");
-+		// goto err2;
- 		goto undo_platform_dev_add;
- 	}
--	pc8736x_gpio_ops.dev = &pdev->dev;
- 
- 	/* Verify that chip and it's GPIO unit are both enabled.
- 	   My BIOS does this, so I take minimum action here
- 	 */
--	rc = superio_inb(SIO_CF1);
-+	superio_enter(gate);
-+	rc = superio_inb(gate, SIO_CF1);
- 	if (!(rc & 0x01)) {
- 		rc = -ENODEV;
- 		dev_err(&pdev->dev, "device not enabled\n");
--		goto undo_platform_dev_add;
-+		goto undo_superio_enter;
- 	}
- 	device_select(SIO_GPIO_UNIT);
--	if (!superio_inb(SIO_UNIT_ACT)) {
-+	if (!superio_inb(gate, SIO_UNIT_ACT)) {
- 		rc = -ENODEV;
- 		dev_err(&pdev->dev, "GPIO unit not enabled\n");
--		goto undo_platform_dev_add;
-+		goto undo_superio_enter;
- 	}
- 
- 	/* read the GPIO unit base addr that chip responds to */
--	pc8736x_gpio_base = (superio_inb(SIO_BASE_HADDR) << 8
--			     | superio_inb(SIO_BASE_LADDR));
-+	pc8736x_gpio_base = (superio_inb(gate, SIO_BASE_HADDR) << 8
-+			     | superio_inb(gate, SIO_BASE_LADDR));
- 
- 	if (!request_region(pc8736x_gpio_base, PC8736X_GPIO_RANGE, DEVNAME)) {
- 		rc = -ENODEV;
- 		dev_err(&pdev->dev, "GPIO ioport %x busy\n",
- 			pc8736x_gpio_base);
--		goto undo_platform_dev_add;
-+		goto undo_superio_enter;
- 	}
- 	dev_info(&pdev->dev, "GPIO ioport %x reserved\n", pc8736x_gpio_base);
- 
-@@ -329,10 +309,14 @@ static int __init pc8736x_gpio_init(void
- 	cdev_init(&pc8736x_gpio_cdev, &pc8736x_gpio_fileops);
- 	cdev_add(&pc8736x_gpio_cdev, devid, PC8736X_GPIO_CT);
- 
-+	superio_exit(gate);	/* no release, we need to stay registered */
- 	return 0;
- 
- undo_request_region:
- 	release_region(pc8736x_gpio_base, PC8736X_GPIO_RANGE);
-+undo_superio_enter:
-+	superio_exit(gate);
-+	superio_release(gate);
- undo_platform_dev_add:
- 	platform_device_del(pdev);
- undo_platform_dev_alloc:
-@@ -351,6 +335,7 @@ static void __exit pc8736x_gpio_cleanup(
- 
- 	platform_device_del(pdev);
- 	platform_device_put(pdev);
-+	superio_release(gate);
- }
- 
- module_init(pc8736x_gpio_init);
+static struct i2c_driver w83627ehf_driver;
 
 
+Now, I'm not the most knowledgeable one about the I2C subsystem, but I
+believe that w83627ehf_driver is redeclared a little later with this:
+
+static struct i2c_driver w83627ehf_driver = {
+	.driver = {
+		.name	= "w83627ehf",
+	},
+	.attach_adapter	= w83627ehf_detect,
+	.detach_client	= w83627ehf_detach_client,
+};
+
+
+Jean mentioned that it might be a good idea to define .name at
+runtime, depending on whether a w83627ehf or a w83627dhg was detected.
+But the global stays, as part of the driver.
+
+In moving to a driver / device model, it's possible to put a struct
+superio inside struct w83627ehf_data, inside struct device, which is
+part of struct i2c_adapter. (If I understand the I2C structures...if
+not, I think this is on the right track.) While I'm at it, I can put
+unsigned short address in there too. Personally, I'd like to remove
+all the global variables. (But not the struct i2c_driver
+w83627ehf_driver, plus the sensor_device_attribute structs, because
+they are more like constants such as function callbacks.)
+
+So I'm sitting here thinking about it, and it seems it could be done
+that way. There are some parts I haven't worked out yet. Especially
+embedding struct superio inside struct device. Is that valid?
+
+Hmmm,
+David
 
