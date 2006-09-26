@@ -1,7 +1,7 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Tue, 26 Sep 2006 17:30:23 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 26 Sep 2006 19:15:25 +0000
 Subject: [lm-sensors] issue with clearing alarms
-Message-Id: <451963AF.6050403@gmail.com>
+Message-Id: <20060926211525.1c9b2f32.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <450312F6.4030500@gmail.com>
 In-Reply-To: <450312F6.4030500@gmail.com>
@@ -10,83 +10,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Jim,
->
->   
-> To me, "new data not yet read" simply means that at least one sampling
-> cycle was completed since our last read. There's nothing wrong with
-> that, as the chip samples its inputs continuously and we only read the
-> values from times to times.
->
->   
+Hi Jim,
 
+> Looking again, I see a point of confusion at least, and a possible problem.
+> It may be one of interpretation, but is worth checking, and possibly 
+> documenting.
+> 
+> The *not-yet-read* property pertains to the scan done by update_device(),
+> since thats what reads all sensors the driver supports.
+> But its easy to misconstrue not-yet-read as a property on the individual 
+> alarms.
+> 
+> More importantly, any single read of any property will clear unrelated 
+> alarms.
 
-Looking again, I see a point of confusion at least, and a possible problem.
-It may be one of interpretation, but is worth checking, and possibly 
-documenting.
+You are 100% correct. Things are as you describe, by driver design.
 
-The *not-yet-read* property pertains to the scan done by update_device(),
-since thats what reads all sensors the driver supports.
-But its easy to misconstrue not-yet-read as a property on the individual 
-alarms.
+> So, with the usual caveats (Ive done something wrong, immature code, etc)
+> I see a few possibilities:
+> 
+> 1 - Document the fact - tell users not to do that.
+>     this isnt unreasonable, and far simpler..
 
-More importantly, any single read of any property will clear unrelated 
-alarms.
-Let me demonstrate:
+The user can't do anything. The ones we need to tell are the
+application authors. The end user looks at the temperatures in his nice
+GUI, and doesn't decide what is read and when. At best he/she can
+select the global refresh rate, and that's about it.
 
-1- raise then lower the min setting, then check the alarm,
-    which is (properly) on.  A 2nd read shows it cleared. (also proper)
+> 2 - sensors-deamon locks the directory to preclude loss of alarms (is 
+> this possible ? bad idea ?)
 
-soekris:/sys/devices/platform/i2c-9191/9191-6620# echo 1500 > in8_min
-soekris:/sys/devices/platform/i2c-9191/9191-6620# echo 1400 > in8_min
-soekris:/sys/devices/platform/i2c-9191/9191-6620# cat in8_min_alarm
-2
-soekris:/sys/devices/platform/i2c-9191/9191-6620# cat in8_min_alarm
-0
+Which daemon?
 
-2- repeat raise & lower, then read an *unrelated* attr
-    now 1st read of in8_min_alarm shows 0, the alarm state has been *missed*
+> 3 - dunno
 
-soekris:/sys/devices/platform/i2c-9191/9191-6620# echo 1500 > in8_min
-soekris:/sys/devices/platform/i2c-9191/9191-6620# echo 1400 > in8_min
-soekris:/sys/devices/platform/i2c-9191/9191-6620# cat in2_min_alarm
-0
-soekris:/sys/devices/platform/i2c-9191/9191-6620# cat in8_min_alarm
-0
+4 - don't care:
 
-3- redo test 2, this time reading a setting, then reading alarm.  its 
-off, should be on.
-    this time, its a readback of config value, which doensnt *need* to 
-trigger a scan,
-    but does cuz its simpler (I guess)
+What's the point in spending efforts to make sure that the application
+will see the one-time alarm, while you have absolutely no way to know
+if the user will see it? Unless the application keeps the alarm on
+until the user clicks to confirm that he/she did see the alarm... This
+doesn't sound very friendly.
 
-soekris:/sys/devices/platform/i2c-9191/9191-6620# echo 1500 > in8_min
-soekris:/sys/devices/platform/i2c-9191/9191-6620# echo 1400 > in8_min
-soekris:/sys/devices/platform/i2c-9191/9191-6620# cat in8_min
-1394
-soekris:/sys/devices/platform/i2c-9191/9191-6620# cat in8_min_alarm
-0
+All GUIs I know of do not present the alarm data at all, by the way.
+Could be because libsensors doesn't make their access very friendly at
+the moment... But it could also be because end users don't care - they
+can simply compare the measurement to the limits, or even judge the
+measurement by themselves. The alarm bits are redundant.
 
+Furthermore, I don't expect any application to actually do selective
+reads. I expect them to read all the values at once, and our drivers
+will work just fine in that case. Do you know of any exiting
+application that does otherwise?
 
+In the real world, one-time alarms don't matter. I don't get why chip
+designers almost all did implement alarms that way. Their main use
+right now is for us to write and debug drivers.
 
+So, as much as I agree that there is a flaw in our design, I'd say
+fixing it isn't worth the effort.
 
-IOW, 2 reads of any 2 sysfs-files, separated by this much time, will 
-reset the alarm,
-even though userspace has never seen the alarm.
-
-    if (time_after(jiffies, data->last_updated + HZ * 2) || !data->valid) {
-        dev_dbg(&client->dev, "Data update\n");
-
-
-
-
-So, with the usual caveats (Ive done something wrong, immature code, etc)
-I see a few possibilities:
-
-1 - Document the fact - tell users not to do that.
-    this isnt unreasonable, and far simpler..
-2 - sensors-deamon locks the directory to preclude loss of alarms (is 
-this possible ? bad idea ?)
-3 - dunno
+-- 
+Jean Delvare
 
