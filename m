@@ -1,47 +1,43 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 21 Sep 2006 08:41:43 +0000
-Subject: [lm-sensors] [patch] hwmon/pc87360: update vrm setting using
-Message-Id: <20060921104143.81446758.khali@linux-fr.org>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Tue, 26 Sep 2006 22:12:17 +0000
+Subject: [lm-sensors] coretemp - digital temperature driver for Intel Core
+Message-Id: <4519A5C1.8010207@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4505F5AF.7090708@gmail.com>
-In-Reply-To: <4505F5AF.7090708@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jim,
+Hello all,
 
-> pc87360 currently hardcodes vrm = 90 (2.4 vintage).  Update it to use
-> newer code in hwmon-vid which reads cpuid to determine the correct vid.
-> 
-> Signed-off-by:  Jim Cromie <jim.cromie at gmail.com>
+I had today some time and coded the driver for Core 2 processors which will read 
+the temperature from the CPU. (precisely I worked on it from 16:36 to 23:59 with 
+some preemptions ;)
 
-Doesn't apply :( I guess your mailer converted the tabs to spaces or
-something equally silly. Can you please resubmit (maybe as an
-attachement if you can't educate Thunderbird)?
+I dont have such CPU so I'm looking for brave testers!
 
-> ---
-> 
-> My board has an NSC SC-1100 (a 586-mmx class cpu), which is seen as 
-> unknown,
-> so perhaps theres more to do / investigate, but 'unknown' is certainly 
-> accurate at this point.
-> 
-> Looking at hwmon-vid.c, I note:
-> - it looks rather complete, at least for pentium 2 and up
-> - there are no i586's listed, from any vendor.
-> - I couldnt find anything at Intel website, or elsewhere
-> 
-> I reluctantly conclude that no VID standard existed back then.
-> Anyone have better / contradicting info ?
+The code is "virgin" it compiles but that is all I know. Testers should expect 
+oops, panic or simple crash... Or maybe if I did not make any mistake (hehe) the 
+temperature in /sys/class/hwmon/correcthwmondir/temp1_input
 
-As far as I know the Pentium Pro was the first one to have VID pins.
-I'm pretty certain the regular Pentium (socket 7) and previous CPUs did
-not have VID pins, so it comes to no surprise that the SC1100 doesn't
-have any.
+To compile:
+make -C /lib/modules/`uname -r`/build SUBDIRS=$PWD  modules
 
-Thanks,
--- 
-Jean Delvare
+Again this should be for either brave testers or persons with the knowledge of C 
+... I will review the code tomorrow again.
 
+Good luck and thanks!
+
+regards
+Rudolf
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: coretemp.c
+Type: application/octet
+Size: 8780 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060927/5ad49cd3/attachment.bin 
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: Makefile
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060927/5ad49cd3/attachment.pl 
