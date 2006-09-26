@@ -1,7 +1,7 @@
 From: Axel.Thimm@ATrpms.net (Axel Thimm)
-Date: Tue, 26 Sep 2006 18:27:35 +0000
+Date: Tue, 26 Sep 2006 18:40:59 +0000
 Subject: [lm-sensors] SVN/trac requests
-Message-Id: <20060926182735.GJ10410@neu.nirvana>
+Message-Id: <20060926184059.GL10410@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060926140502.00d29dd5.khali@linux-fr.org>
 In-Reply-To: <20060926140502.00d29dd5.khali@linux-fr.org>
@@ -10,25 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Sep 26, 2006 at 05:43:46PM +0200, Michael Renzmann wrote:
-> Axel Thimm wrote:
->   > Hm, I don't have a solution. First of all I wouldn't loop it through
-> > trac, but use the direct svn URL instead, e.g.
-> > 
-> > http://lm-sensors.org/svn/lm-sensors/trunk/prog/detect/sensors-detect
-> > 
-> > But this has the same issue, so it doesn't solve the issue at hand.
-> > 
-> > I would guess that the keyword substitution happens at the client, and
-> > svn/trac offer the raw contents only. :(
-> 
-> Keyword substitution is disabled by default and must be enabled 
-> explicitly if wanted.
-> 
-> See: 
-> http://svnbook.red-bean.com/en/1.2/svn.advanced.props.html#svn.advanced.props.special.keywords
+On Tue, Sep 26, 2006 at 07:10:22PM +0200, Jean Delvare wrote:
+> > Axel Thimm wrote:
+> >   > Hm, I don't have a solution. First of all I wouldn't loop it through
+> > > trac, but use the direct svn URL instead, e.g.
+> > > 
+> > > http://lm-sensors.org/svn/lm-sensors/trunk/prog/detect/sensors-detect
+> > > 
+> > > But this has the same issue, so it doesn't solve the issue at hand.
+> > > 
+> > > I would guess that the keyword substitution happens at the client, and
+> > > svn/trac offer the raw contents only. :(
 
-But the file in question already has svn:keywords properly set.
+> Another option is to give the users a simple svn command to type to
+> retrieve just that file:
+>   svn export http://lm-sensors.org/svn/lm-sensors/trunk/prog/detect/sensors-detect
+> 
+> However it is significantly less convenient, as the user might not have
+> svn installed. Or maybe we can install a simple CGI script on the web
+> server which would run this command and return the result to the
+> user? I can't seem to find an option to output the file to stdout
+> though, which we would need.
+
+If no native solution in svn/trac is found maybe the scripts doing the
+snapshots could extract this file w/ keywords and place it to a
+canonical place?
 -- 
 Axel.Thimm at ATrpms.net
 -------------- next part --------------
@@ -37,4 +43,4 @@ Name: not available
 Type: application/pgp-signature
 Size: 189 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060926/2bda417a/attachment.bin 
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060926/67d79b99/attachment.bin 
