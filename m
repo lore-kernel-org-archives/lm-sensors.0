@@ -1,34 +1,32 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 02 Sep 2006 17:42:50 +0000
-Subject: [lm-sensors] Question on piix4
-Message-Id: <44F9C29A.7010601@sh.cvut.cz>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 26 Sep 2006 12:05:02 +0000
+Subject: [lm-sensors] SVN/trac requests
+Message-Id: <20060926140502.00d29dd5.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200609021929.30351.dieter.jurzitza@t-online.de>
-In-Reply-To: <200609021929.30351.dieter.jurzitza@t-online.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Dieter
+Hi Axel,
 
-> Sep  2 13:04:06 linux kernel: piix4_smbus 0000:00:0f.0: Found 0000:00:0f.0 
-> device
-> Sep  2 13:04:06 linux kernel: piix4_smbus 0000:00:0f.0: Unusual config 
-> register value
-> Sep  2 13:04:06 linux kernel: piix4_smbus 0000:00:0f.0: Try using fix_hstcfg=1 
-> if you experience problems
-> Sep  2 13:04:06 linux kernel: piix4_smbus 0000:00:0f.0: Illegal Interrupt 
-> configuration (or code out of date)!
+I have the two following requests with regards to lm-sensors' SVN/trac:
 
-We fixed that already. This happened with serverworks chipset and HT1000
+1* Can the "V-2-3-1" tag be renamed to "V2-3-1"?
 
+2* We often need to ask people to try the latest version of
+sensors-detect. For now we point them to:
+http://www.lm-sensors.org/browser/lm-sensors/trunk/prog/detect/sensors-detect?format=txt
 
-> Is this potentially harmful? Should I do something about it?
-> I reinserted the module with parameter fix_hstcfg=1, sensors-detect finds no 
+The problem is that this version of the SVN file doesn't have its
+keywords substituted, so the version string reads:
+  '$Revision$ ($Date$)'
+This might become a problem in the long run when users report with this
+version string, as we will be unable to tell what version of the file
+they have. So, is it possible to ask trac to provide the file with
+keywords substituted? I'm surprised this isn't the default...
 
-Ignore it please.
-
-Regards
-Rudolf
+Thanks,
+-- 
+Jean Delvare
 
