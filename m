@@ -1,7 +1,7 @@
-From: michaelnel@comcast.net (Michael Nelson)
-Date: Wed, 27 Sep 2006 10:15:59 +0000
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Wed, 27 Sep 2006 10:38:30 +0000
 Subject: [lm-sensors] coretemp - digital temperature driver for Intel
-Message-Id: <20060927101559.GA20829@seahunt.dyndns.org>
+Message-Id: <451A54A6.2060103@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4519A5C1.8010207@assembler.cz>
 In-Reply-To: <4519A5C1.8010207@assembler.cz>
@@ -10,25 +10,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 27, 2006 at 08:20:51AM +0200, Rudolf Marek wrote:
+Michael Nelson wrote:
+> On Wed, Sep 27, 2006 at 08:20:51AM +0200, Rudolf Marek wrote:
+>
+>   
+>> Please add this two printk to this code:
+>>
+>>               data->therm_status = eax;
+>>               printk("EAX from  MSR %x\n", eax);
+>>
+>>                  /* update only if data has been valid */
+>>                  if (eax & 0x80000000) {
+>> 			printk("in temp condition\n");
+>>     
+>
+> Uhhhh... add them WHERE?
+>
+>   
+Find this line:
 
-> Please add this two printk to this code:
-> 
->               data->therm_status = eax;
->               printk("EAX from  MSR %x\n", eax);
-> 
->                  /* update only if data has been valid */
->                  if (eax & 0x80000000) {
-> 			printk("in temp condition\n");
+  data->therm_status = eax;
 
-Uhhhh... add them WHERE?
+on next line add
 
-BTW, the hw monitoring chip on my motherboard (Asus P5B Deluxe WiFi) already
-does report CPU temp.
+ printk("EAX from  MSR %x\n", eax);
 
-Michael
+and find this line:
+if (eax & 0x80000000) {
+and on next line add
 
--- 
+printk("in temp condition\n");
 
-San Francisco, CA
+
+Thanks.
+
+> BTW, the hw monitoring chip on my motherboard (Asus P5B Deluxe WiFi) already
+> does report CPU temp.
+>   
+Yes but I need to test this ;)
+
+Thanks,
+Rudolf
 
