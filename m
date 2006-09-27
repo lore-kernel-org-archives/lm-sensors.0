@@ -1,7 +1,7 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Wed, 27 Sep 2006 14:28:59 +0000
+From: michaelnel@comcast.net (Michael Nelson)
+Date: Wed, 27 Sep 2006 14:32:12 +0000
 Subject: [lm-sensors] coretemp - digital temperature driver for Intel
-Message-Id: <451A8AAB.6040802@assembler.cz>
+Message-Id: <20060927143212.GA7048@seahunt.dyndns.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4519A5C1.8010207@assembler.cz>
 In-Reply-To: <4519A5C1.8010207@assembler.cz>
@@ -10,19 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Michael Nelson wrote:
-> I also get this:
->
-> # grep EAX /var/log/messages
-> Sep 27 07:15:46 seahunt kernel: EAX from  MSR 2
-> Sep 27 07:16:07 seahunt kernel: EAX from  MSR 2
->   
-Did you add the second printk too?
+On Wed, Sep 27, 2006 at 04:28:59PM +0200, Rudolf Marek wrote:
 
-Is it displayed?
+> Did you add the second printk too?
 
-I think there is something wrong I will take a look maybe in the evening...
+I did.
 
-regards
-Rudolf
+> Is it displayed?
+
+No:
+
+# grep condition /var/log/messages
+# 
+
+> I think there is something wrong I will take a look maybe in the evening...
+
+OK, I will be glad to test further.
+
+Thank you
+Michael
+
+-- 
+
+San Francisco, CA
 
