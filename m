@@ -1,40 +1,52 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 21 Sep 2006 09:32:01 +0000
-Subject: [lm-sensors] Any suggestion on buying a new computer
-Message-Id: <45125C11.1040005@sh.cvut.cz>
+From: greg@kroah.com (Greg KH)
+Date: Wed, 27 Sep 2006 01:01:55 +0000
+Subject: [lm-sensors] [PATCH 24/30] i2c: Warn on i2c client creation failure
+Message-Id: <11593190031746-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+From: Jean Delvare <khali at linux-fr.org>
 
-Please do not start new thread, it is not necessary. This is the list of
-components we used to buy for our new office computer:
-		
-Midi ATX 5410+USB metal blue 300wP4,Eurocase	
-LOGITECH Optical Wheel Mouse (U96)-White, USB OEM
-Arctic Cooling FREEZER 7 Pro, 6x heat pipe, skt. 775
-NEC ND-4570 DVD?RW / bulk / white
-19" SAMSUNG LCD 940B / Height / Pivot / DVI / Black / 8ms
-HDD Hitachi T7K250 / 200GB / HDT722520-DLA380 / 8MB/ SATA300
-1024MB DDR2 533MHz CL4 Kingston
-VGA ASUS EN6200TC TD / 256MB DDR / DVI / PCI-E / 6200TC
-MB ASUS P5B / i965 / DDR2 / Wi-Fi / PCI-E / 775
-Intel Core 2 Duo E6300 / 1,86GHz / 1066MHz / 2MB/ 775
+i2c: Warn on i2c client creation failure
 
-The motherboard has fairly recent chip W83627DHG, support is not yet in kernel.
-But I believe this is still quite a good choice for you. On the other hand it
-will require you to patch/build the latest kernel for yourself and I dont know
-if you can handle it.
+Warn when an i2c client creation fails. If we don't, the user will
+never know something wrong happened, as i2c client creation is
+typically called through an attach_adapter callback, those return value
+we currently ignore for technical reasons.
 
-So all in all if you buy this, it is good computer, but it will take some time
-until the distributions will adopt the new kernel - with the support of this new
-chip.
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+---
+ drivers/i2c/i2c-core.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-I hope it helps,
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 88dd803..01233f0 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -707,11 +707,16 @@ static int i2c_probe_address(struct i2c_
+ 
+ 	/* Finally call the custom detection function */
+ 	err = found_proc(adapter, addr, kind);
+-
+ 	/* -ENODEV can be returned if there is a chip at the given address
+ 	   but it isn't supported by this chip driver. We catch it here as
+ 	   this isn't an error. */
+-	return (err = -ENODEV) ? 0 : err;
++	if (err = -ENODEV)
++		err = 0;
++
++	if (err)
++		dev_warn(&adapter->dev, "Client creation failed at 0x%x (%d)\n",
++			 addr, err);
++	return err;
+ }
+ 
+ int i2c_probe(struct i2c_adapter *adapter,
+-- 
+1.4.2.1
 
-regards
-Rudolf
 
