@@ -1,7 +1,7 @@
-From: michaelnel@comcast.net (Michael Nelson)
-Date: Wed, 27 Sep 2006 14:32:12 +0000
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Wed, 27 Sep 2006 16:49:00 +0000
 Subject: [lm-sensors] coretemp - digital temperature driver for Intel
-Message-Id: <20060927143212.GA7048@seahunt.dyndns.org>
+Message-Id: <451AAB7C.2010008@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4519A5C1.8010207@assembler.cz>
 In-Reply-To: <4519A5C1.8010207@assembler.cz>
@@ -10,27 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 27, 2006 at 04:28:59PM +0200, Rudolf Marek wrote:
 
-> Did you add the second printk too?
+> OK, I will be glad to test further.
+>   
 
-I did.
+Ok I think I found it.:
 
-> Is it displayed?
+Please change this:
+             do_rdmsr(data->id, MSR_IA32_THERM_CONTROL, &eax, &edx);
 
-No:
+Into this:
 
-# grep condition /var/log/messages
-# 
+             do_rdmsr(data->id, MSR_IA32_THERM_STATUS, &eax, &edx);
 
-> I think there is something wrong I will take a look maybe in the evening...
+It should work ...
 
-OK, I will be glad to test further.
+Thanks,
 
-Thank you
-Michael
+Rudolf
 
--- 
 
-San Francisco, CA
 
