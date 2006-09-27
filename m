@@ -1,7 +1,7 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 28 Sep 2006 22:48:39 +0000
-Subject: [lm-sensors] [PATCH 19/39] hwmon: Add individual alarm files to 4
-Message-Id: <11594838011181-git-send-email-greg@kroah.com>
+Date: Wed, 27 Sep 2006 01:01:38 +0000
+Subject: [lm-sensors] [PATCH 7/30] i2c-algo-sibyte: Merge into i2c-sibyte
+Message-Id: <11593189412834-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,369 +10,472 @@ To: lm-sensors@vger.kernel.org
 
 From: Jean Delvare <khali at linux-fr.org>
 
-hwmon: Add individual alarm files to 4 drivers
+i2c-algo-sibyte: Merge into i2c-sibyte
 
-Add individual sysfs files for all f71805f, lm63, lm83 and lm90 alarm
-and fault conditions. This is a requirement for the planned
-chip-independent libsensors. Almost all other hwmon drivers will need
-the same improvement.
+Merge i2c-algo-sibyte into i2c-sibyte, as this is a complete,
+hardware-dependent SMBus implementation and not a reusable algorithm.
+
+Perform some basic coding style cleanups while we're here (mainly
+space-based indentation replaced by tabulations.)
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Cc: Ralf Baechle <ralf at linux-mips.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/hwmon/f71805f.c |   46 ++++++++++++++++++++++++++++++++++----------
- drivers/hwmon/lm63.c    |   33 +++++++++++++++++++++++++++++++-
- drivers/hwmon/lm83.c    |   49 ++++++++++++++++++++++++++++++++++++++++++++++-
- drivers/hwmon/lm90.c    |   37 +++++++++++++++++++++++++++++++++++
- 4 files changed, 151 insertions(+), 14 deletions(-)
+ drivers/i2c/algos/Kconfig           |    6 -
+ drivers/i2c/algos/Makefile          |    1 
+ drivers/i2c/algos/i2c-algo-sibyte.c |  186 -----------------------------------
+ drivers/i2c/busses/i2c-sibyte.c     |  158 +++++++++++++++++++++++++++++-
+ include/linux/i2c-algo-sibyte.h     |   33 ------
+ 5 files changed, 155 insertions(+), 229 deletions(-)
 
-diff --git a/drivers/hwmon/f71805f.c b/drivers/hwmon/f71805f.c
-index fd72440..678bae4 100644
---- a/drivers/hwmon/f71805f.c
-+++ b/drivers/hwmon/f71805f.c
-@@ -1,7 +1,7 @@
- /*
-  * f71805f.c - driver for the Fintek F71805F/FG Super-I/O chip integrated
-  *             hardware monitoring features
-- * Copyright (C) 2005  Jean Delvare <khali at linux-fr.org>
-+ * Copyright (C) 2005-2006  Jean Delvare <khali at linux-fr.org>
-  *
-  * The F71805F/FG is a LPC Super-I/O chip made by Fintek. It integrates
-  * complete hardware monitoring features: voltage, fan and temperature
-@@ -147,7 +147,7 @@ struct f71805f_data {
- 	u8 temp_high[3];
- 	u8 temp_hyst[3];
- 	u8 temp_mode;
--	u8 alarms[3];
-+	unsigned long alarms;
- };
+diff --git a/drivers/i2c/algos/Kconfig b/drivers/i2c/algos/Kconfig
+index 3040801..c034820 100644
+--- a/drivers/i2c/algos/Kconfig
++++ b/drivers/i2c/algos/Kconfig
+@@ -53,12 +53,6 @@ config I2C_ALGO8XX
+ 	tristate "MPC8xx CPM I2C interface"
+ 	depends on 8xx && I2C
  
- static inline long in_from_reg(u8 reg)
-@@ -311,10 +311,9 @@ static struct f71805f_data *f71805f_upda
- 			data->temp[nr] = f71805f_read8(data,
- 					 F71805F_REG_TEMP(nr));
- 		}
--		for (nr = 0; nr < 3; nr++) {
--			data->alarms[nr] = f71805f_read8(data,
--					   F71805F_REG_STATUS(nr));
+-config I2C_ALGO_SIBYTE
+-	tristate "SiByte SMBus interface"
+-	depends on SIBYTE_SB1xxx_SOC && I2C
+-	help
+-	  Supports the SiByte SOC on-chip I2C interfaces (2 channels).
+-
+ config I2C_ALGO_SGI
+ 	tristate "I2C SGI interfaces"
+ 	depends on I2C && (SGI_IP22 || SGI_IP32 || X86_VISWS)
+diff --git a/drivers/i2c/algos/Makefile b/drivers/i2c/algos/Makefile
+index 867fe1f..208be04 100644
+--- a/drivers/i2c/algos/Makefile
++++ b/drivers/i2c/algos/Makefile
+@@ -6,7 +6,6 @@ obj-$(CONFIG_I2C_ALGOBIT)	+= i2c-algo-bi
+ obj-$(CONFIG_I2C_ALGOPCF)	+= i2c-algo-pcf.o
+ obj-$(CONFIG_I2C_ALGOPCA)	+= i2c-algo-pca.o
+ obj-$(CONFIG_I2C_ALGOITE)	+= i2c-algo-ite.o
+-obj-$(CONFIG_I2C_ALGO_SIBYTE)	+= i2c-algo-sibyte.o
+ obj-$(CONFIG_I2C_ALGO_SGI)	+= i2c-algo-sgi.o
+ 
+ ifeq ($(CONFIG_I2C_DEBUG_ALGO),y)
+diff --git a/drivers/i2c/algos/i2c-algo-sibyte.c b/drivers/i2c/algos/i2c-algo-sibyte.c
+deleted file mode 100644
+index 16d666f..0000000
+--- a/drivers/i2c/algos/i2c-algo-sibyte.c
++++ /dev/null
+@@ -1,186 +0,0 @@
+-/* ------------------------------------------------------------------------- */
+-/* i2c-algo-sibyte.c i2c driver algorithms for bit-shift adapters		     */
+-/* ------------------------------------------------------------------------- */
+-/*   Copyright (C) 2001,2002,2003 Broadcom Corporation
+-     Copyright (C) 1995-2000 Simon G. Vogl
+-
+-    This program is free software; you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation; either version 2 of the License, or
+-    (at your option) any later version.
+-
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
+-
+-    You should have received a copy of the GNU General Public License
+-    along with this program; if not, write to the Free Software
+-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.		     */
+-/* ------------------------------------------------------------------------- */
+-
+-/* With some changes from Ky?sti M?lkki <kmalkki at cc.hut.fi> and even
+-   Frodo Looijaard <frodol at dds.nl>.  */
+-
+-/* Ported for SiByte SOCs by Broadcom Corporation.  */
+-
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/init.h>
+-
+-#include <asm/io.h>
+-#include <asm/sibyte/sb1250_regs.h>
+-#include <asm/sibyte/sb1250_smbus.h>
+-
+-#include <linux/i2c.h>
+-#include <linux/i2c-algo-sibyte.h>
+-
+-/* ----- global defines ----------------------------------------------- */
+-#define SMB_CSR(a,r) ((long)(a->reg_base + r))
+-
+-/* ----- global variables ---------------------------------------------	*/
+-
+-/* module parameters:
+- */
+-static int bit_scan;	/* have a look at what's hanging 'round		*/
+-
+-
+-static int smbus_xfer(struct i2c_adapter *i2c_adap, u16 addr, 
+-                      unsigned short flags, char read_write,
+-                      u8 command, int size, union i2c_smbus_data * data)
+-{
+-	struct i2c_algo_sibyte_data *adap = i2c_adap->algo_data;
+-        int data_bytes = 0;
+-        int error;
+-
+-        while (csr_in32(SMB_CSR(adap, R_SMB_STATUS)) & M_SMB_BUSY)
+-                ;
+-
+-        switch (size) {
+-        case I2C_SMBUS_QUICK:
+-                csr_out32((V_SMB_ADDR(addr) | (read_write = I2C_SMBUS_READ ? M_SMB_QDATA : 0) |
+-			   V_SMB_TT_QUICKCMD), SMB_CSR(adap, R_SMB_START));
+-                break;
+-        case I2C_SMBUS_BYTE:
+-                if (read_write = I2C_SMBUS_READ) {
+-                        csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_RD1BYTE),
+-				  SMB_CSR(adap, R_SMB_START));
+-                        data_bytes = 1;
+-                } else {
+-                        csr_out32(V_SMB_CMD(command), SMB_CSR(adap, R_SMB_CMD));
+-                        csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_WR1BYTE),
+-				  SMB_CSR(adap, R_SMB_START));
+-                }
+-                break;
+-        case I2C_SMBUS_BYTE_DATA:
+-                csr_out32(V_SMB_CMD(command), SMB_CSR(adap, R_SMB_CMD));
+-                if (read_write = I2C_SMBUS_READ) {
+-                        csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_CMD_RD1BYTE),
+-				  SMB_CSR(adap, R_SMB_START));
+-                        data_bytes = 1;
+-                } else {
+-                        csr_out32(V_SMB_LB(data->byte), SMB_CSR(adap, R_SMB_DATA));
+-                        csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_WR2BYTE),
+-				  SMB_CSR(adap, R_SMB_START));
+-                }
+-                break;
+-        case I2C_SMBUS_WORD_DATA:
+-                csr_out32(V_SMB_CMD(command), SMB_CSR(adap, R_SMB_CMD));
+-                if (read_write = I2C_SMBUS_READ) {
+-                        csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_CMD_RD2BYTE),
+-				  SMB_CSR(adap, R_SMB_START));
+-                        data_bytes = 2;
+-                } else {
+-                        csr_out32(V_SMB_LB(data->word & 0xff), SMB_CSR(adap, R_SMB_DATA));
+-                        csr_out32(V_SMB_MB(data->word >> 8), SMB_CSR(adap, R_SMB_DATA));
+-                        csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_WR2BYTE),
+-				  SMB_CSR(adap, R_SMB_START));
+-                }
+-                break;
+-        default:
+-                return -1;      /* XXXKW better error code? */
+-        }
+-
+-        while (csr_in32(SMB_CSR(adap, R_SMB_STATUS)) & M_SMB_BUSY)
+-                ;
+-
+-        error = csr_in32(SMB_CSR(adap, R_SMB_STATUS));
+-        if (error & M_SMB_ERROR) {
+-                /* Clear error bit by writing a 1 */
+-                csr_out32(M_SMB_ERROR, SMB_CSR(adap, R_SMB_STATUS));
+-                return -1;      /* XXXKW better error code? */
+-        }
+-
+-        if (data_bytes = 1)
+-                data->byte = csr_in32(SMB_CSR(adap, R_SMB_DATA)) & 0xff;
+-        if (data_bytes = 2)
+-                data->word = csr_in32(SMB_CSR(adap, R_SMB_DATA)) & 0xffff;
+-
+-        return 0;
+-}
+-
+-static u32 bit_func(struct i2c_adapter *adap)
+-{
+-	return (I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
+-                I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA);
+-}
+-
+-
+-/* -----exported algorithm data: -------------------------------------	*/
+-
+-static struct i2c_algorithm i2c_sibyte_algo = {
+-	.smbus_xfer	= smbus_xfer,
+-	.functionality	= bit_func,
+-};
+-
+-/* 
+- * registering functions to load algorithms at runtime 
+- */
+-int i2c_sibyte_add_bus(struct i2c_adapter *i2c_adap, int speed)
+-{
+-	int i;
+-	struct i2c_algo_sibyte_data *adap = i2c_adap->algo_data;
+-
+-	/* register new adapter to i2c module... */
+-	i2c_adap->algo = &i2c_sibyte_algo;
+-        
+-        /* Set the frequency to 100 kHz */
+-        csr_out32(speed, SMB_CSR(adap,R_SMB_FREQ));
+-        csr_out32(0, SMB_CSR(adap,R_SMB_CONTROL));
+-
+-	/* scan bus */
+-	if (bit_scan) {
+-                union i2c_smbus_data data;
+-                int rc;
+-		printk(KERN_INFO " i2c-algo-sibyte.o: scanning bus %s.\n",
+-		       i2c_adap->name);
+-		for (i = 0x00; i < 0x7f; i++) {
+-                        /* XXXKW is this a realistic probe? */
+-                        rc = smbus_xfer(i2c_adap, i, 0, I2C_SMBUS_READ, 0,
+-                                        I2C_SMBUS_BYTE_DATA, &data);
+-			if (!rc) {
+-				printk("(%02x)",i); 
+-			} else 
+-				printk("."); 
 -		}
-+		data->alarms = f71805f_read8(data, F71805F_REG_STATUS(0))
-+			+ (f71805f_read8(data, F71805F_REG_STATUS(1)) << 8)
-+			+ (f71805f_read8(data, F71805F_REG_STATUS(2)) << 16);
- 
- 		data->last_updated = jiffies;
- 		data->valid = 1;
-@@ -557,8 +556,7 @@ static ssize_t show_alarms_in(struct dev
- {
- 	struct f71805f_data *data = f71805f_update_device(dev);
- 
--	return sprintf(buf, "%d\n", data->alarms[0] |
--				    ((data->alarms[1] & 0x01) << 8));
-+	return sprintf(buf, "%lu\n", data->alarms & 0x1ff);
- }
- 
- static ssize_t show_alarms_fan(struct device *dev, struct device_attribute
-@@ -566,7 +564,7 @@ static ssize_t show_alarms_fan(struct de
- {
- 	struct f71805f_data *data = f71805f_update_device(dev);
- 
--	return sprintf(buf, "%d\n", data->alarms[2] & 0x07);
-+	return sprintf(buf, "%lu\n", (data->alarms >> 16) & 0x07);
- }
- 
- static ssize_t show_alarms_temp(struct device *dev, struct device_attribute
-@@ -574,7 +572,17 @@ static ssize_t show_alarms_temp(struct d
- {
- 	struct f71805f_data *data = f71805f_update_device(dev);
- 
--	return sprintf(buf, "%d\n", (data->alarms[1] >> 3) & 0x07);
-+	return sprintf(buf, "%lu\n", (data->alarms >> 11) & 0x07);
-+}
-+
-+static ssize_t show_alarm(struct device *dev, struct device_attribute
-+			  *devattr, char *buf)
-+{
-+	struct f71805f_data *data = f71805f_update_device(dev);
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	int bitnr = attr->index;
-+
-+	return sprintf(buf, "%lu\n", (data->alarms >> bitnr) & 1);
- }
- 
- static ssize_t show_name(struct device *dev, struct device_attribute
-@@ -655,18 +663,34 @@ static struct sensor_device_attribute f7
- 	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR,
- 		    show_temp_hyst, set_temp_hyst, 2),
- 	SENSOR_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2),
-+
-+	SENSOR_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0),
-+	SENSOR_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1),
-+	SENSOR_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2),
-+	SENSOR_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3),
-+	SENSOR_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 4),
-+	SENSOR_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 5),
-+	SENSOR_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 6),
-+	SENSOR_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 7),
-+	SENSOR_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 8),
-+	SENSOR_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 11),
-+	SENSOR_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 12),
-+	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13),
- };
- 
- static struct sensor_device_attribute f71805f_fan_attr[] = {
- 	SENSOR_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0),
- 	SENSOR_ATTR(fan1_min, S_IRUGO | S_IWUSR,
- 		    show_fan_min, set_fan_min, 0),
-+	SENSOR_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 16),
- 	SENSOR_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1),
- 	SENSOR_ATTR(fan2_min, S_IRUGO | S_IWUSR,
- 		    show_fan_min, set_fan_min, 1),
-+	SENSOR_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 17),
- 	SENSOR_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2),
- 	SENSOR_ATTR(fan3_min, S_IRUGO | S_IWUSR,
- 		    show_fan_min, set_fan_min, 2),
-+	SENSOR_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 18),
- };
- 
+-		printk("\n");
+-	}
+-
+-	return i2c_add_adapter(i2c_adap);
+-}
+-
+-
+-int i2c_sibyte_del_bus(struct i2c_adapter *adap)
+-{
+-	return i2c_del_adapter(adap);
+-}
+-
+-
+-EXPORT_SYMBOL(i2c_sibyte_add_bus);
+-EXPORT_SYMBOL(i2c_sibyte_del_bus);
+-
+-MODULE_AUTHOR("Kip Walker, Broadcom Corp.");
+-MODULE_DESCRIPTION("SiByte I2C-Bus algorithm");
+-module_param(bit_scan, int, 0);
+-MODULE_PARM_DESC(bit_scan, "Scan for active chips on the bus");
+-MODULE_LICENSE("GPL");
+diff --git a/drivers/i2c/busses/i2c-sibyte.c b/drivers/i2c/busses/i2c-sibyte.c
+index fa503ed..f516eb7 100644
+--- a/drivers/i2c/busses/i2c-sibyte.c
++++ b/drivers/i2c/busses/i2c-sibyte.c
+@@ -1,6 +1,7 @@
  /*
-@@ -737,7 +761,7 @@ static int __devinit f71805f_probe(struc
- 			goto exit_class;
- 	}
- 	for (i = 0; i < ARRAY_SIZE(f71805f_fan_attr); i++) {
--		if (!(data->fan_enabled & (1 << (i / 2))))
-+		if (!(data->fan_enabled & (1 << (i / 3))))
- 			continue;
- 		err = device_create_file(&pdev->dev,
- 					 &f71805f_fan_attr[i].dev_attr);
-diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
-index 071f0fc..00a50be 100644
---- a/drivers/hwmon/lm63.c
-+++ b/drivers/hwmon/lm63.c
-@@ -1,7 +1,7 @@
- /*
-  * lm63.c - driver for the National Semiconductor LM63 temperature sensor
-  *          with integrated fan control
-- * Copyright (C) 2004-2005  Jean Delvare <khali at linux-fr.org>
-+ * Copyright (C) 2004-2006  Jean Delvare <khali at linux-fr.org>
-  * Based on the lm90 driver.
+  * Copyright (C) 2004 Steven J. Hill
+  * Copyright (C) 2001,2002,2003 Broadcom Corporation
++ * Copyright (C) 1995-2000 Simon G. Vogl
   *
-  * The LM63 is a sensor chip made by National Semiconductor. It measures
-@@ -330,6 +330,16 @@ static ssize_t show_alarms(struct device
- 	return sprintf(buf, "%u\n", data->alarms);
- }
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+@@ -17,11 +18,162 @@
+  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  */
  
-+static ssize_t show_alarm(struct device *dev, struct device_attribute *devattr,
-+			  char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct lm63_data *data = lm63_update_device(dev);
-+	int bitnr = attr->index;
++#include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/i2c-algo-sibyte.h>
++#include <linux/init.h>
++#include <linux/i2c.h>
++#include <asm/io.h>
+ #include <asm/sibyte/sb1250_regs.h>
+ #include <asm/sibyte/sb1250_smbus.h>
+ 
 +
-+	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
++struct i2c_algo_sibyte_data {
++	void *data;		/* private data */
++	int   bus;		/* which bus */
++	void *reg_base;		/* CSR base */
++};
++
++/* ----- global defines ----------------------------------------------- */
++#define SMB_CSR(a,r) ((long)(a->reg_base + r))
++
++/* ----- global variables --------------------------------------------- */
++
++/* module parameters:
++ */
++static int bit_scan;	/* have a look at what's hanging 'round */
++module_param(bit_scan, int, 0);
++MODULE_PARM_DESC(bit_scan, "Scan for active chips on the bus");
++
++
++static int smbus_xfer(struct i2c_adapter *i2c_adap, u16 addr,
++		      unsigned short flags, char read_write,
++		      u8 command, int size, union i2c_smbus_data * data)
++{
++	struct i2c_algo_sibyte_data *adap = i2c_adap->algo_data;
++	int data_bytes = 0;
++	int error;
++
++	while (csr_in32(SMB_CSR(adap, R_SMB_STATUS)) & M_SMB_BUSY)
++		;
++
++	switch (size) {
++	case I2C_SMBUS_QUICK:
++		csr_out32((V_SMB_ADDR(addr) |
++			   (read_write = I2C_SMBUS_READ ? M_SMB_QDATA : 0) |
++			   V_SMB_TT_QUICKCMD), SMB_CSR(adap, R_SMB_START));
++		break;
++	case I2C_SMBUS_BYTE:
++		if (read_write = I2C_SMBUS_READ) {
++			csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_RD1BYTE),
++				  SMB_CSR(adap, R_SMB_START));
++			data_bytes = 1;
++		} else {
++			csr_out32(V_SMB_CMD(command), SMB_CSR(adap, R_SMB_CMD));
++			csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_WR1BYTE),
++				  SMB_CSR(adap, R_SMB_START));
++		}
++		break;
++	case I2C_SMBUS_BYTE_DATA:
++		csr_out32(V_SMB_CMD(command), SMB_CSR(adap, R_SMB_CMD));
++		if (read_write = I2C_SMBUS_READ) {
++			csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_CMD_RD1BYTE),
++				  SMB_CSR(adap, R_SMB_START));
++			data_bytes = 1;
++		} else {
++			csr_out32(V_SMB_LB(data->byte),
++				  SMB_CSR(adap, R_SMB_DATA));
++			csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_WR2BYTE),
++				  SMB_CSR(adap, R_SMB_START));
++		}
++		break;
++	case I2C_SMBUS_WORD_DATA:
++		csr_out32(V_SMB_CMD(command), SMB_CSR(adap, R_SMB_CMD));
++		if (read_write = I2C_SMBUS_READ) {
++			csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_CMD_RD2BYTE),
++				  SMB_CSR(adap, R_SMB_START));
++			data_bytes = 2;
++		} else {
++			csr_out32(V_SMB_LB(data->word & 0xff),
++				  SMB_CSR(adap, R_SMB_DATA));
++			csr_out32(V_SMB_MB(data->word >> 8),
++				  SMB_CSR(adap, R_SMB_DATA));
++			csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_WR2BYTE),
++				  SMB_CSR(adap, R_SMB_START));
++		}
++		break;
++	default:
++		return -1;      /* XXXKW better error code? */
++	}
++
++	while (csr_in32(SMB_CSR(adap, R_SMB_STATUS)) & M_SMB_BUSY)
++		;
++
++	error = csr_in32(SMB_CSR(adap, R_SMB_STATUS));
++	if (error & M_SMB_ERROR) {
++		/* Clear error bit by writing a 1 */
++		csr_out32(M_SMB_ERROR, SMB_CSR(adap, R_SMB_STATUS));
++		return -1;      /* XXXKW better error code? */
++	}
++
++	if (data_bytes = 1)
++		data->byte = csr_in32(SMB_CSR(adap, R_SMB_DATA)) & 0xff;
++	if (data_bytes = 2)
++		data->word = csr_in32(SMB_CSR(adap, R_SMB_DATA)) & 0xffff;
++
++	return 0;
 +}
 +
- static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0);
- static SENSOR_DEVICE_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan,
- 	set_fan, 1);
-@@ -350,6 +360,14 @@ static SENSOR_DEVICE_ATTR(temp2_crit, S_
- static DEVICE_ATTR(temp2_crit_hyst, S_IWUSR | S_IRUGO, show_temp2_crit_hyst,
- 	set_temp2_crit_hyst);
- 
-+/* Individual alarm files */
-+static SENSOR_DEVICE_ATTR(fan1_min_alarm, S_IRUGO, show_alarm, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_alarm, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp2_input_fault, S_IRUGO, show_alarm, NULL, 2);
-+static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO, show_alarm, NULL, 3);
-+static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_alarm, NULL, 4);
-+static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 6);
-+/* Raw alarm file for compatibility */
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
- /*
-@@ -449,6 +467,8 @@ static int lm63_detect(struct i2c_adapte
- 				   &sensor_dev_attr_fan1_input.dev_attr);
- 		device_create_file(&new_client->dev,
- 				   &sensor_dev_attr_fan1_min.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan1_min_alarm.dev_attr);
- 	}
- 	device_create_file(&new_client->dev, &dev_attr_pwm1);
- 	device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
-@@ -465,6 +485,17 @@ static int lm63_detect(struct i2c_adapte
- 	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp2_crit.dev_attr);
- 	device_create_file(&new_client->dev, &dev_attr_temp2_crit_hyst);
-+
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_input_fault.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_min_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_max_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_max_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_crit_alarm.dev_attr);
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
- 
- 	return 0;
-diff --git a/drivers/hwmon/lm83.c b/drivers/hwmon/lm83.c
-index 2137d78..ea22489 100644
---- a/drivers/hwmon/lm83.c
-+++ b/drivers/hwmon/lm83.c
-@@ -1,7 +1,7 @@
- /*
-  * lm83.c - Part of lm_sensors, Linux kernel modules for hardware
-  *          monitoring
-- * Copyright (C) 2003-2005  Jean Delvare <khali at linux-fr.org>
-+ * Copyright (C) 2003-2006  Jean Delvare <khali at linux-fr.org>
-  *
-  * Heavily inspired from the lm78, lm75 and adm1021 drivers. The LM83 is
-  * a sensor chip made by National Semiconductor. It reports up to four
-@@ -191,6 +191,16 @@ static ssize_t show_alarms(struct device
- 	return sprintf(buf, "%d\n", data->alarms);
- }
- 
-+static ssize_t show_alarm(struct device *dev, struct device_attribute
-+			  *devattr, char *buf)
++static u32 bit_func(struct i2c_adapter *adap)
 +{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct lm83_data *data = lm83_update_device(dev);
-+	int bitnr = attr->index;
-+
-+	return sprintf(buf, "%d\n", (data->alarms >> bitnr) & 1);
++	return (I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
++		I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA);
 +}
 +
- static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
- static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1);
- static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2);
-@@ -208,6 +218,20 @@ static SENSOR_DEVICE_ATTR(temp2_crit, S_
- static SENSOR_DEVICE_ATTR(temp3_crit, S_IWUSR | S_IRUGO, show_temp,
- 	set_temp, 8);
- static SENSOR_DEVICE_ATTR(temp4_crit, S_IRUGO, show_temp, NULL, 8);
 +
-+/* Individual alarm files */
-+static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp3_crit_alarm, S_IRUGO, show_alarm, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp3_input_fault, S_IRUGO, show_alarm, NULL, 2);
-+static SENSOR_DEVICE_ATTR(temp3_max_alarm, S_IRUGO, show_alarm, NULL, 4);
-+static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 6);
-+static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_alarm, NULL, 8);
-+static SENSOR_DEVICE_ATTR(temp4_crit_alarm, S_IRUGO, show_alarm, NULL, 9);
-+static SENSOR_DEVICE_ATTR(temp4_input_fault, S_IRUGO, show_alarm, NULL, 10);
-+static SENSOR_DEVICE_ATTR(temp4_max_alarm, S_IRUGO, show_alarm, NULL, 12);
-+static SENSOR_DEVICE_ATTR(temp2_input_fault, S_IRUGO, show_alarm, NULL, 13);
-+static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_alarm, NULL, 15);
-+/* Raw alarm file for compatibility */
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
- /*
-@@ -350,6 +374,16 @@ static int lm83_detect(struct i2c_adapte
- 	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp3_crit.dev_attr);
- 
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp3_input_fault.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_max_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp3_max_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_crit_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp3_crit_alarm.dev_attr);
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
- 
- 	if (kind = lm83) {
-@@ -367,6 +401,19 @@ static int lm83_detect(struct i2c_adapte
- 				   &sensor_dev_attr_temp2_crit.dev_attr);
- 		device_create_file(&new_client->dev,
- 				   &sensor_dev_attr_temp4_crit.dev_attr);
++/* -----exported algorithm data: -------------------------------------	*/
 +
-+		device_create_file(&new_client->dev,
-+				&sensor_dev_attr_temp2_input_fault.dev_attr);
-+		device_create_file(&new_client->dev,
-+				&sensor_dev_attr_temp4_input_fault.dev_attr);
-+		device_create_file(&new_client->dev,
-+				&sensor_dev_attr_temp2_max_alarm.dev_attr);
-+		device_create_file(&new_client->dev,
-+				&sensor_dev_attr_temp4_max_alarm.dev_attr);
-+		device_create_file(&new_client->dev,
-+				&sensor_dev_attr_temp2_crit_alarm.dev_attr);
-+		device_create_file(&new_client->dev,
-+				&sensor_dev_attr_temp4_crit_alarm.dev_attr);
- 	}
- 
- 	return 0;
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index d9eeaf7..77f8e3f 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -1,7 +1,7 @@
- /*
-  * lm90.c - Part of lm_sensors, Linux kernel modules for hardware
-  *          monitoring
-- * Copyright (C) 2003-2005  Jean Delvare <khali at linux-fr.org>
-+ * Copyright (C) 2003-2006  Jean Delvare <khali at linux-fr.org>
-  *
-  * Based on the lm83 driver. The LM90 is a sensor chip made by National
-  * Semiconductor. It reports up to two temperatures (its own plus up to
-@@ -327,6 +327,16 @@ static ssize_t show_alarms(struct device
- 	return sprintf(buf, "%d\n", data->alarms);
- }
- 
-+static ssize_t show_alarm(struct device *dev, struct device_attribute
-+			  *devattr, char *buf)
++static struct i2c_algorithm i2c_sibyte_algo = {
++	.smbus_xfer	= smbus_xfer,
++	.functionality	= bit_func,
++};
++
++/*
++ * registering functions to load algorithms at runtime
++ */
++int i2c_sibyte_add_bus(struct i2c_adapter *i2c_adap, int speed)
 +{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct lm90_data *data = lm90_update_device(dev);
-+	int bitnr = attr->index;
++	int i;
++	struct i2c_algo_sibyte_data *adap = i2c_adap->algo_data;
 +
-+	return sprintf(buf, "%d\n", (data->alarms >> bitnr) & 1);
++	/* register new adapter to i2c module... */
++	i2c_adap->algo = &i2c_sibyte_algo;
++
++	/* Set the frequency to 100 kHz */
++	csr_out32(speed, SMB_CSR(adap,R_SMB_FREQ));
++	csr_out32(0, SMB_CSR(adap,R_SMB_CONTROL));
++
++	/* scan bus */
++	if (bit_scan) {
++		union i2c_smbus_data data;
++		int rc;
++		printk(KERN_INFO " i2c-algo-sibyte.o: scanning bus %s.\n",
++		       i2c_adap->name);
++		for (i = 0x00; i < 0x7f; i++) {
++			/* XXXKW is this a realistic probe? */
++			rc = smbus_xfer(i2c_adap, i, 0, I2C_SMBUS_READ, 0,
++					I2C_SMBUS_BYTE_DATA, &data);
++			if (!rc) {
++				printk("(%02x)",i);
++			} else
++				printk(".");
++		}
++		printk("\n");
++	}
++
++	return i2c_add_adapter(i2c_adap);
 +}
 +
- static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp8, NULL, 0);
- static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp11, NULL, 0);
- static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp8,
-@@ -344,6 +354,16 @@ static SENSOR_DEVICE_ATTR(temp2_crit, S_
- static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO, show_temphyst,
- 	set_temphyst, 3);
- static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temphyst, NULL, 4);
 +
-+/* Individual alarm files */
-+static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_alarm, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp2_input_fault, S_IRUGO, show_alarm, NULL, 2);
-+static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO, show_alarm, NULL, 3);
-+static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_alarm, NULL, 4);
-+static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL, 5);
-+static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 6);
-+/* Raw alarm file for compatibility */
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ static struct i2c_algo_sibyte_data sibyte_board_data[2] = {
+ 	{ NULL, 0, (void *) (CKSEG1+A_SMB_BASE(0)) },
+ 	{ NULL, 1, (void *) (CKSEG1+A_SMB_BASE(1)) }
+@@ -58,8 +210,8 @@ static int __init i2c_sibyte_init(void)
  
- /* pec used for ADM1032 only */
-@@ -595,6 +615,21 @@ static int lm90_detect(struct i2c_adapte
- 			   &sensor_dev_attr_temp1_crit_hyst.dev_attr);
- 	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp2_crit_hyst.dev_attr);
-+
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_input_fault.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_min_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_min_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_max_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_max_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_crit_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_crit_alarm.dev_attr);
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
+ static void __exit i2c_sibyte_exit(void)
+ {
+-	i2c_sibyte_del_bus(&sibyte_board_adapter[0]);
+-	i2c_sibyte_del_bus(&sibyte_board_adapter[1]);
++	i2c_del_bus(&sibyte_board_adapter[0]);
++	i2c_del_bus(&sibyte_board_adapter[1]);
+ }
  
- 	if (new_client->flags & I2C_CLIENT_PEC)
+ module_init(i2c_sibyte_init);
+diff --git a/include/linux/i2c-algo-sibyte.h b/include/linux/i2c-algo-sibyte.h
+deleted file mode 100644
+index 03914de..0000000
+--- a/include/linux/i2c-algo-sibyte.h
++++ /dev/null
+@@ -1,33 +0,0 @@
+-/*
+- * Copyright (C) 2001,2002,2003 Broadcom Corporation
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * as published by the Free Software Foundation; either version 2
+- * of the License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+- */
+-
+-#ifndef I2C_ALGO_SIBYTE_H
+-#define I2C_ALGO_SIBYTE_H 1
+-
+-#include <linux/i2c.h>
+-
+-struct i2c_algo_sibyte_data {
+-	void *data;		/* private data */
+-        int   bus;		/* which bus */
+-        void *reg_base;		/* CSR base */
+-};
+-
+-int i2c_sibyte_add_bus(struct i2c_adapter *, int speed);
+-int i2c_sibyte_del_bus(struct i2c_adapter *);
+-
+-#endif /* I2C_ALGO_SIBYTE_H */
 -- 
 1.4.2.1
 
