@@ -1,7 +1,7 @@
-From: michaelnel@comcast.net (Michael Nelson)
-Date: Tue, 26 Sep 2006 22:56:50 +0000
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Wed, 27 Sep 2006 06:20:51 +0000
 Subject: [lm-sensors] coretemp - digital temperature driver for Intel
-Message-Id: <20060926225650.GA15013@seahunt.dyndns.org>
+Message-Id: <451A1843.6090509@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4519A5C1.8010207@assembler.cz>
 In-Reply-To: <4519A5C1.8010207@assembler.cz>
@@ -10,36 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 27, 2006 at 12:12:17AM +0200, Rudolf Marek wrote:
-> Hello all,
+Hello,
+
+Thanks for the test. It is cool but it does not work ;)
+
+> Doesn't seem to work here with a Core2 Duo 6400 and kernel 2.6.18:
 > 
-> I had today some time and coded the driver for Core 2 processors which will 
-> read the temperature from the CPU. (precisely I worked on it from 16:36 to 
-> 23:59 with some preemptions ;)
-> 
-> I dont have such CPU so I'm looking for brave testers!
-> 
-> The code is "virgin" it compiles but that is all I know. Testers should 
-> expect oops, panic or simple crash... Or maybe if I did not make any 
-> mistake (hehe) the temperature in 
-> /sys/class/hwmon/correcthwmondir/temp1_input
-> 
-> To compile:
-> make -C /lib/modules/`uname -r`/build SUBDIRS=$PWD  modules
-> 
-> Again this should be for either brave testers or persons with the knowledge 
-> of C ... I will review the code tomorrow again.
+>   cat /sys/class/hwmon/hwmon1/device/temp1_input
+> 0
 
-Doesn't seem to work here with a Core2 Duo 6400 and kernel 2.6.18:
+Ehm.
 
-  cat /sys/class/hwmon/hwmon1/device/temp1_input
-0
 
-Thanks for the effort though!
+Please add this two printk to this code:
 
-Michael
+              data->therm_status = eax;
+              printk("EAX from  MSR %x\n", eax);
 
--- 
+                 /* update only if data has been valid */
+                 if (eax & 0x80000000) {
+			printk("in temp condition\n");
 
-San Francisco, CA
+Run it again, to see the 0 but check the log...
+
+Thanks,
+
+regards
+Rudolf
 
