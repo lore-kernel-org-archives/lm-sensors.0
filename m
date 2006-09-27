@@ -1,223 +1,170 @@
-From: gregkh@suse.de (gregkh at suse.de)
-Date: Thu, 28 Sep 2006 07:02:01 +0000
-Subject: [lm-sensors] patch hwmon-w83791d-doc-update.patch added to
-Message-Id: <20060928070158.912648A3D3C@imap.suse.de>
+From: greg@kroah.com (Greg KH)
+Date: Wed, 27 Sep 2006 01:01:57 +0000
+Subject: [lm-sensors] [PATCH 26/30] i2c-isa: Restore driver owner
+Message-Id: <11593190102288-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-This is a note to let you know that I've just added the patch titled
-
-     Subject: [PATCH 04/23] w83791d: Documentation update
-
-to my gregkh-2.6 tree.  Its filename is
-
-     hwmon-w83791d-doc-update.patch
-
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
-
-
-From khali at linux-fr.org Sun Sep 24 11:53:15 2006
-Date: Sun, 24 Sep 2006 20:53:04 +0200
 From: Jean Delvare <khali at linux-fr.org>
-To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>, Charles Spirakis <bezaur at gmail.com>
-Subject: [PATCH 04/23] w83791d: Documentation update
-Message-Id: <20060924205304.5ecc36c2.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-w83791d-doc-update.patch
 
-From: Charles Spirakis <bezaur at gmail.com>
+i2c-isa: Restore driver owner
 
-w83791d: Documentation update
+Commit 2b48716d1d2f2edb1e7cbc5ecf1cb2cb39373e33 back in January
+2006 was a bit overzealous. It removed .owner from all i2c drivers,
+including i2c-isa ones, while they still need it.
 
-The alarm bits and the beep enable bits are in different positions in
-the hardware. Document the problem and leave it to the user-space code
-to handle the situation. When this driver is updated to the standardized
-sysfs alarm/beep methodology, this won't be a problem.
-
-This is a documentation only change.
-
-Signed-off by: Charles Spirakis <bezaur at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
 ---
- Documentation/hwmon/w83791d |   67 ++++++++++++++++++++++++--------------------
- drivers/hwmon/w83791d.c     |    7 ++--
- 2 files changed, 41 insertions(+), 33 deletions(-)
+ drivers/hwmon/it87.c       |    1 +
+ drivers/hwmon/lm78.c       |    1 +
+ drivers/hwmon/pc87360.c    |    1 +
+ drivers/hwmon/sis5595.c    |    1 +
+ drivers/hwmon/smsc47b397.c |    1 +
+ drivers/hwmon/smsc47m1.c   |    1 +
+ drivers/hwmon/via686a.c    |    1 +
+ drivers/hwmon/vt8231.c     |    1 +
+ drivers/hwmon/w83627ehf.c  |    1 +
+ drivers/hwmon/w83627hf.c   |    1 +
+ drivers/hwmon/w83781d.c    |    1 +
+ 11 files changed, 11 insertions(+), 0 deletions(-)
 
---- gregkh-2.6.orig/Documentation/hwmon/w83791d
-+++ gregkh-2.6/Documentation/hwmon/w83791d
-@@ -5,7 +5,7 @@ Supported chips:
-   * Winbond W83791D
-     Prefix: 'w83791d'
-     Addresses scanned: I2C 0x2c - 0x2f
--    Datasheet: http://www.winbond-usa.com/products/winbond_products/pdfs/PCIC/W83791Da.pdf
-+    Datasheet: http://www.winbond-usa.com/products/winbond_products/pdfs/PCIC/W83791D_W83791Gb.pdf
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 06df92b..b0ee574 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -243,6 +243,7 @@ static struct i2c_driver it87_driver = {
  
- Author: Charles Spirakis <bezaur at gmail.com>
+ static struct i2c_driver it87_isa_driver = {
+ 	.driver = {
++		.owner	= THIS_MODULE,
+ 		.name	= "it87-isa",
+ 	},
+ 	.attach_adapter	= it87_isa_attach_adapter,
+diff --git a/drivers/hwmon/lm78.c b/drivers/hwmon/lm78.c
+index a6ce7ab..fa1715b 100644
+--- a/drivers/hwmon/lm78.c
++++ b/drivers/hwmon/lm78.c
+@@ -175,6 +175,7 @@ static struct i2c_driver lm78_driver = {
  
-@@ -20,6 +20,9 @@ Credits:
-     Chunhao Huang <DZShen at Winbond.com.tw>,
-     Rudolf Marek <r.marek at sh.cvut.cz>
+ static struct i2c_driver lm78_isa_driver = {
+ 	.driver = {
++		.owner	= THIS_MODULE,
+ 		.name	= "lm78-isa",
+ 	},
+ 	.attach_adapter	= lm78_isa_attach_adapter,
+diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
+index ae05e48..236f9f2 100644
+--- a/drivers/hwmon/pc87360.c
++++ b/drivers/hwmon/pc87360.c
+@@ -238,6 +238,7 @@ static struct pc87360_data *pc87360_upda
  
-+Additional contributors:
-+    Sven Anders <anders at anduras.de>
-+
- Module Parameters
- -----------------
+ static struct i2c_driver pc87360_driver = {
+ 	.driver = {
++		.owner	= THIS_MODULE,
+ 		.name	= "pc87360",
+ 	},
+ 	.attach_adapter	= pc87360_detect,
+diff --git a/drivers/hwmon/sis5595.c b/drivers/hwmon/sis5595.c
+index 063f71c..3783af4 100644
+--- a/drivers/hwmon/sis5595.c
++++ b/drivers/hwmon/sis5595.c
+@@ -200,6 +200,7 @@ static void sis5595_init_client(struct i
  
-@@ -46,7 +49,8 @@ Module Parameters
- Description
- -----------
+ static struct i2c_driver sis5595_driver = {
+ 	.driver = {
++		.owner	= THIS_MODULE,
+ 		.name	= "sis5595",
+ 	},
+ 	.attach_adapter	= sis5595_detect,
+diff --git a/drivers/hwmon/smsc47b397.c b/drivers/hwmon/smsc47b397.c
+index b608618..a858693 100644
+--- a/drivers/hwmon/smsc47b397.c
++++ b/drivers/hwmon/smsc47b397.c
+@@ -228,6 +228,7 @@ static int smsc47b397_detect(struct i2c_
  
--This driver implements support for the Winbond W83791D chip.
-+This driver implements support for the Winbond W83791D chip. The W83791G
-+chip appears to be the same as the W83791D but is lead free.
+ static struct i2c_driver smsc47b397_driver = {
+ 	.driver = {
++		.owner	= THIS_MODULE,
+ 		.name	= "smsc47b397",
+ 	},
+ 	.attach_adapter	= smsc47b397_detect,
+diff --git a/drivers/hwmon/smsc47m1.c b/drivers/hwmon/smsc47m1.c
+index 825e8f7..6c81b84 100644
+--- a/drivers/hwmon/smsc47m1.c
++++ b/drivers/hwmon/smsc47m1.c
+@@ -128,6 +128,7 @@ static struct smsc47m1_data *smsc47m1_up
  
- Detection of the chip can sometimes be foiled because it can be in an
- internal state that allows no clean access (Bank with ID register is not
-@@ -71,34 +75,36 @@ Voltage sensors (also known as IN sensor
- An alarm is triggered if the voltage has crossed a programmable minimum
- or maximum limit.
+ static struct i2c_driver smsc47m1_driver = {
+ 	.driver = {
++		.owner	= THIS_MODULE,
+ 		.name	= "smsc47m1",
+ 	},
+ 	.attach_adapter	= smsc47m1_detect,
+diff --git a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
+index 166298f..95ae056 100644
+--- a/drivers/hwmon/via686a.c
++++ b/drivers/hwmon/via686a.c
+@@ -574,6 +574,7 @@ static DEVICE_ATTR(alarms, S_IRUGO, show
+    smbus_driver and isa_driver, and clients could be of either kind */
+ static struct i2c_driver via686a_driver = {
+ 	.driver = {
++		.owner	= THIS_MODULE,
+ 		.name	= "via686a",
+ 	},
+ 	.attach_adapter	= via686a_detect,
+diff --git a/drivers/hwmon/vt8231.c b/drivers/hwmon/vt8231.c
+index 686f3de..236ccf0 100644
+--- a/drivers/hwmon/vt8231.c
++++ b/drivers/hwmon/vt8231.c
+@@ -587,6 +587,7 @@ static DEVICE_ATTR(alarms, S_IRUGO, show
  
--Alarms are provided as output from a "realtime status register". The
--following bits are defined:
-+The bit ordering for the alarm "realtime status register" and the
-+"beep enable registers" are different.
+ static struct i2c_driver vt8231_driver = {
+ 	.driver = {
++		.owner	= THIS_MODULE,
+ 		.name	= "vt8231",
+ 	},
+ 	.attach_adapter	= vt8231_detect,
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 40301bc..b21d6b9 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -903,6 +903,7 @@ static int w83627ehf_detach_client(struc
  
--bit - alarm on:
--0  - Vcore
--1  - VINR0
--2  - +3.3VIN
--3  - 5VDD
--4  - temp1
--5  - temp2
--6  - fan1
--7  - fan2
--8  - +12VIN
--9  - -12VIN
--10 - -5VIN
--11 - fan3
--12 - chassis
--13 - temp3
--14 - VINR1
--15 - reserved
--16 - tart1
--17 - tart2
--18 - tart3
--19 - VSB
--20 - VBAT
--21 - fan4
--22 - fan5
--23 - reserved
-+in0 (VCORE)  :  alarms: 0x000001 beep_enable: 0x000001
-+in1 (VINR0)  :  alarms: 0x000002 beep_enable: 0x002000 <= mismatch
-+in2 (+3.3VIN):  alarms: 0x000004 beep_enable: 0x000004
-+in3 (5VDD)   :  alarms: 0x000008 beep_enable: 0x000008
-+in4 (+12VIN) :  alarms: 0x000100 beep_enable: 0x000100
-+in5 (-12VIN) :  alarms: 0x000200 beep_enable: 0x000200
-+in6 (-5VIN)  :  alarms: 0x000400 beep_enable: 0x000400
-+in7 (VSB)    :  alarms: 0x080000 beep_enable: 0x010000 <= mismatch
-+in8 (VBAT)   :  alarms: 0x100000 beep_enable: 0x020000 <= mismatch
-+in9 (VINR1)  :  alarms: 0x004000 beep_enable: 0x004000
-+temp1        :  alarms: 0x000010 beep_enable: 0x000010
-+temp2        :  alarms: 0x000020 beep_enable: 0x000020
-+temp3        :  alarms: 0x002000 beep_enable: 0x000002 <= mismatch
-+fan1         :  alarms: 0x000040 beep_enable: 0x000040
-+fan2         :  alarms: 0x000080 beep_enable: 0x000080
-+fan3         :  alarms: 0x000800 beep_enable: 0x000800
-+fan4         :  alarms: 0x200000 beep_enable: 0x200000
-+fan5         :  alarms: 0x400000 beep_enable: 0x400000
-+tart1        :  alarms: 0x010000 beep_enable: 0x040000 <= mismatch
-+tart2        :  alarms: 0x020000 beep_enable: 0x080000 <= mismatch
-+tart3        :  alarms: 0x040000 beep_enable: 0x100000 <= mismatch
-+case_open    :  alarms: 0x001000 beep_enable: 0x001000
-+user_enable  :  alarms: -------- beep_enable: 0x800000
-+
-+*** NOTE: It is the responsibility of user-space code to handle the fact
-+that the beep enable and alarm bits are in different positions when using that
-+feature of the chip.
+ static struct i2c_driver w83627ehf_driver = {
+ 	.driver = {
++		.owner	= THIS_MODULE,
+ 		.name	= "w83627ehf",
+ 	},
+ 	.attach_adapter	= w83627ehf_detect,
+diff --git a/drivers/hwmon/w83627hf.c b/drivers/hwmon/w83627hf.c
+index 79368d5..3029502 100644
+--- a/drivers/hwmon/w83627hf.c
++++ b/drivers/hwmon/w83627hf.c
+@@ -339,6 +339,7 @@ static void w83627hf_init_client(struct 
  
- When an alarm goes off, you can be warned by a beeping signal through your
- computer speaker. It is possible to enable all beeping globally, or only
-@@ -109,5 +115,6 @@ often will do no harm, but will return '
+ static struct i2c_driver w83627hf_driver = {
+ 	.driver = {
++		.owner	= THIS_MODULE,
+ 		.name	= "w83627hf",
+ 	},
+ 	.attach_adapter	= w83627hf_detect,
+diff --git a/drivers/hwmon/w83781d.c b/drivers/hwmon/w83781d.c
+index 7be469e..95221b1 100644
+--- a/drivers/hwmon/w83781d.c
++++ b/drivers/hwmon/w83781d.c
+@@ -288,6 +288,7 @@ static struct i2c_driver w83781d_driver 
  
- W83791D TODO:
- ---------------
--Provide a patch for per-file alarms as discussed on the mailing list
-+Provide a patch for per-file alarms and beep enables as defined in the hwmon
-+	documentation (Documentation/hwmon/sysfs-interface)
- Provide a patch for smart-fan control (still need appropriate motherboard/fans)
---- gregkh-2.6.orig/drivers/hwmon/w83791d.c
-+++ gregkh-2.6/drivers/hwmon/w83791d.c
-@@ -27,9 +27,9 @@
- 
-     The w83791d chip appears to be part way between the 83781d and the
-     83792d. Thus, this file is derived from both the w83792d.c and
--    w83781d.c files, but its output is more along the lines of the
--    83781d (which means there are no changes to the user-mode sensors
--    program which treats the 83791d as an 83781d).
-+    w83781d.c files.
-+
-+    The w83791g chip is the same as the w83791d but lead-free.
- */
- 
- #include <linux/config.h>
-@@ -1172,6 +1172,7 @@ static struct w83791d_data *w83791d_upda
- 			(w83791d_read(client, W83791D_REG_BEEP_CTRL[1]) << 8) +
- 			(w83791d_read(client, W83791D_REG_BEEP_CTRL[2]) << 16);
- 
-+		/* Extract global beep enable flag */
- 		data->beep_enable  			(data->beep_mask >> GLOBAL_BEEP_ENABLE_SHIFT) & 0x01;
- 
+ static struct i2c_driver w83781d_isa_driver = {
+ 	.driver = {
++		.owner = THIS_MODULE,
+ 		.name = "w83781d-isa",
+ 	},
+ 	.attach_adapter = w83781d_isa_attach_adapter,
+-- 
+1.4.2.1
 
-
-Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
-
-i2c/hwmon-w83627ehf-add-pwm-support.patch
-i2c/hwmon-w83627ehf-documentation.patch
-i2c/hwmon-k8temp-documentation.patch
-i2c/hwmon-abituguru-suspend-resume.patch
-i2c/hwmon-individual-alarm-files-1.patch
-i2c/hwmon-kconfig-update.patch
-i2c/hwmon-it87-disabled-fans.patch
-i2c/hwmon-remove-yuan-mu-address.patch
-i2c/hwmon-unchecked-return-status-fixes-1.patch
-i2c/hwmon-unchecked-return-status-fixes-2.patch
-i2c/hwmon-unchecked-return-status-fixes-3.patch
-i2c/hwmon-unchecked-return-status-fixes-4.patch
-i2c/hwmon-unchecked-return-status-fixes-5.patch
-i2c/hwmon-unchecked-return-status-fixes-6.patch
-i2c/hwmon-unchecked-return-status-fixes-pc87360-1.patch
-i2c/hwmon-unchecked-return-status-fixes-pc87360-2.patch
-i2c/hwmon-unchecked-return-status-fixes-pc87360-3.patch
-i2c/hwmon-unchecked-return-status-fixes-smsc.patch
-i2c/hwmon-unchecked-return-status-fixes-vt8231.patch
-i2c/hwmon-atxp1-signed-unsigned-char-bug.patch
-i2c/hwmon-hdaps-handle-errors-from-input-register-device.patch
-i2c/hwmon-it87-copyright-update.patch
-i2c/hwmon-it87-div-to-reg-overflow.patch
-i2c/hwmon-it87-in8-no-limits.patch
-i2c/hwmon-it87-it8716f-support.patch
-i2c/hwmon-it87-it8718f-support.patch
-i2c/hwmon-it87-sane-limit-defaults.patch
-i2c/hwmon-it87-set-fan-div.patch
-i2c/hwmon-k8temp-autoload.patch
-i2c/hwmon-k8temp-new-driver.patch
-i2c/hwmon-smsc47m1-fix-dev-message.patch
-i2c/hwmon-unchecked-return-status-fixes-w83627ehf.patch
-i2c/hwmon-unchecked-return-status-fixes-w83781d.patch
-i2c/hwmon-unchecked-return-status-fixes-w83792d.patch
-i2c/hwmon-unchecked-return-status-fixes-w83l785ts.patch
-i2c/hwmon-vt1211-add-module-parameters-description.patch
-i2c/hwmon-vt1211-documentation.patch
-i2c/hwmon-vt1211-new-driver.patch
-i2c/hwmon-w83791d-doc-update.patch
-driver-class/i2c-dev-device.patch
-driver-class/i2c-dev-device.old.patch
 
