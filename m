@@ -1,262 +1,97 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 24 Sep 2006 19:21:46 +0000
-Subject: [lm-sensors] [PATCH 17/23] vt8231: Fix unchecked return status
-Message-Id: <20060924212146.6e7570d5.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Wed, 27 Sep 2006 01:01:52 +0000
+Subject: [lm-sensors] [PATCH 21/30] i2c-algo-bit: Cleanups
+Message-Id: <11593189943645-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Roger Lucas <roger at planbit.co.uk>
-Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-vt8231.patch
+From: Jean Delvare <khali at linux-fr.org>
 
-vt8231: Fix unchecked return status
+i2c-algo-bit: Cleanups
 
-Check the return status from device_create_file() and also use
-the newer and cleaner sysfs creation functions.
+* Uninline long functions (saves around 1 kB or 15%)
+* Refactor code in sclhi()
+* Drop redundant udelay on repeated start
 
-Signed-off-by: Roger Lucas <roger at planbit.co.uk>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/hwmon/vt8231.c |  186 ++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 132 insertions(+), 54 deletions(-)
+ drivers/i2c/algos/i2c-algo-bit.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
---- linux-2.6.18.orig/drivers/hwmon/vt8231.c	2006-09-23 15:24:23.000000000 +0200
-+++ linux-2.6.18/drivers/hwmon/vt8231.c	2006-09-23 18:07:12.000000000 +0200
-@@ -451,37 +451,6 @@
- define_temperature_sysfs(5);
- define_temperature_sysfs(6);
- 
--#define CFG_INFO_TEMP(id)	{ &sensor_dev_attr_temp##id##_input.dev_attr, \
--				&sensor_dev_attr_temp##id##_max_hyst.dev_attr, \
--				&sensor_dev_attr_temp##id##_max.dev_attr }
--#define CFG_INFO_VOLT(id)	{ &sensor_dev_attr_in##id##_input.dev_attr, \
--				&sensor_dev_attr_in##id##_min.dev_attr, \
--				&sensor_dev_attr_in##id##_max.dev_attr }
--
--struct str_device_attr_table {
--	struct device_attribute *input;
--	struct device_attribute *min;
--	struct device_attribute *max;
--};
--
--static struct str_device_attr_table cfg_info_temp[] = {
--	{ &dev_attr_temp1_input, &dev_attr_temp1_max_hyst, &dev_attr_temp1_max },
--	CFG_INFO_TEMP(2),
--	CFG_INFO_TEMP(3),
--	CFG_INFO_TEMP(4),
--	CFG_INFO_TEMP(5),
--	CFG_INFO_TEMP(6)
--};
--
--static struct str_device_attr_table cfg_info_volt[] = {
--	CFG_INFO_VOLT(0),
--	CFG_INFO_VOLT(1),
--	CFG_INFO_VOLT(2),
--	CFG_INFO_VOLT(3),
--	CFG_INFO_VOLT(4),
--	{ &dev_attr_in5_input, &dev_attr_in5_min, &dev_attr_in5_max }
--};
--
- /* Fans */
- static ssize_t show_fan(struct device *dev, struct device_attribute *attr,
- 		char *buf)
-@@ -585,6 +554,107 @@
- 
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
-+static struct attribute *vt8231_attributes_temps[6][4] = {
-+	{
-+		&dev_attr_temp1_input.attr,
-+		&dev_attr_temp1_max_hyst.attr,
-+		&dev_attr_temp1_max.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_temp2_input.dev_attr.attr,
-+		&sensor_dev_attr_temp2_max_hyst.dev_attr.attr,
-+		&sensor_dev_attr_temp2_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_temp3_input.dev_attr.attr,
-+		&sensor_dev_attr_temp3_max_hyst.dev_attr.attr,
-+		&sensor_dev_attr_temp3_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_temp4_input.dev_attr.attr,
-+		&sensor_dev_attr_temp4_max_hyst.dev_attr.attr,
-+		&sensor_dev_attr_temp4_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_temp5_input.dev_attr.attr,
-+		&sensor_dev_attr_temp5_max_hyst.dev_attr.attr,
-+		&sensor_dev_attr_temp5_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_temp6_input.dev_attr.attr,
-+		&sensor_dev_attr_temp6_max_hyst.dev_attr.attr,
-+		&sensor_dev_attr_temp6_max.dev_attr.attr,
-+		NULL
-+	}
-+};
-+
-+static const struct attribute_group vt8231_group_temps[6] = {
-+	{ .attrs = vt8231_attributes_temps[0] },
-+	{ .attrs = vt8231_attributes_temps[1] },
-+	{ .attrs = vt8231_attributes_temps[2] },
-+	{ .attrs = vt8231_attributes_temps[3] },
-+	{ .attrs = vt8231_attributes_temps[4] },
-+	{ .attrs = vt8231_attributes_temps[5] },
-+};
-+
-+static struct attribute *vt8231_attributes_volts[6][4] = {
-+	{
-+		&sensor_dev_attr_in0_input.dev_attr.attr,
-+		&sensor_dev_attr_in0_min.dev_attr.attr,
-+		&sensor_dev_attr_in0_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_in1_input.dev_attr.attr,
-+		&sensor_dev_attr_in1_min.dev_attr.attr,
-+		&sensor_dev_attr_in1_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_in2_input.dev_attr.attr,
-+		&sensor_dev_attr_in2_min.dev_attr.attr,
-+		&sensor_dev_attr_in2_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_in3_input.dev_attr.attr,
-+		&sensor_dev_attr_in3_min.dev_attr.attr,
-+		&sensor_dev_attr_in3_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_in4_input.dev_attr.attr,
-+		&sensor_dev_attr_in4_min.dev_attr.attr,
-+		&sensor_dev_attr_in4_max.dev_attr.attr,
-+		NULL
-+	}, {
-+		&dev_attr_in5_input.attr,
-+		&dev_attr_in5_min.attr,
-+		&dev_attr_in5_max.attr,
-+		NULL
-+	}
-+};
-+
-+static const struct attribute_group vt8231_group_volts[6] = {
-+	{ .attrs = vt8231_attributes_volts[0] },
-+	{ .attrs = vt8231_attributes_volts[1] },
-+	{ .attrs = vt8231_attributes_volts[2] },
-+	{ .attrs = vt8231_attributes_volts[3] },
-+	{ .attrs = vt8231_attributes_volts[4] },
-+	{ .attrs = vt8231_attributes_volts[5] },
-+};
-+
-+static struct attribute *vt8231_attributes[] = {
-+	&sensor_dev_attr_fan1_input.dev_attr.attr,
-+	&sensor_dev_attr_fan2_input.dev_attr.attr,
-+	&sensor_dev_attr_fan1_min.dev_attr.attr,
-+	&sensor_dev_attr_fan2_min.dev_attr.attr,
-+	&sensor_dev_attr_fan1_div.dev_attr.attr,
-+	&sensor_dev_attr_fan2_div.dev_attr.attr,
-+	&dev_attr_alarms.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group vt8231_group = {
-+	.attrs = vt8231_attributes,
-+};
-+
- static struct i2c_driver vt8231_driver = {
- 	.driver = {
- 		.owner	= THIS_MODULE,
-@@ -671,43 +741,43 @@
- 	vt8231_init_client(client);
- 
- 	/* Register sysfs hooks */
--	data->class_dev = hwmon_device_register(&client->dev);
--	if (IS_ERR(data->class_dev)) {
--		err = PTR_ERR(data->class_dev);
-+	if ((err = sysfs_create_group(&client->dev.kobj, &vt8231_group)))
- 		goto exit_detach;
--	}
- 
- 	/* Must update device information to find out the config field */
- 	data->uch_config = vt8231_read_value(client, VT8231_REG_UCH_CONFIG);
- 
--	for (i = 0; i < ARRAY_SIZE(cfg_info_temp); i++) {
-+	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++) {
- 		if (ISTEMP(i, data->uch_config)) {
--			device_create_file(&client->dev,
--					   cfg_info_temp[i].input);
--			device_create_file(&client->dev, cfg_info_temp[i].max);
--			device_create_file(&client->dev, cfg_info_temp[i].min);
-+			if ((err = sysfs_create_group(&client->dev.kobj,
-+					&vt8231_group_temps[i])))
-+				goto exit_remove_files;
- 		}
- 	}
- 
--	for (i = 0; i < ARRAY_SIZE(cfg_info_volt); i++) {
-+	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++) {
- 		if (ISVOLT(i, data->uch_config)) {
--			device_create_file(&client->dev,
--					   cfg_info_volt[i].input);
--			device_create_file(&client->dev, cfg_info_volt[i].max);
--			device_create_file(&client->dev, cfg_info_volt[i].min);
-+			if ((err = sysfs_create_group(&client->dev.kobj,
-+					&vt8231_group_volts[i])))
-+				goto exit_remove_files;
- 		}
- 	}
- 
--	device_create_file(&client->dev, &sensor_dev_attr_fan1_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_fan2_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_fan1_min.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_fan2_min.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_fan1_div.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_fan2_div.dev_attr);
--
--	device_create_file(&client->dev, &dev_attr_alarms);
-+	data->class_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_remove_files;
-+	}
- 	return 0;
- 
-+exit_remove_files:
-+	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
-+		sysfs_remove_group(&client->dev.kobj, &vt8231_group_volts[i]);
-+
-+	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
-+		sysfs_remove_group(&client->dev.kobj, &vt8231_group_temps[i]);
-+
-+	sysfs_remove_group(&client->dev.kobj, &vt8231_group);
- exit_detach:
- 	i2c_detach_client(client);
- exit_free:
-@@ -720,10 +790,18 @@
- static int vt8231_detach_client(struct i2c_client *client)
+diff --git a/drivers/i2c/algos/i2c-algo-bit.c b/drivers/i2c/algos/i2c-algo-bit.c
+index 761df16..48fe3a3 100644
+--- a/drivers/i2c/algos/i2c-algo-bit.c
++++ b/drivers/i2c/algos/i2c-algo-bit.c
+@@ -76,17 +76,15 @@ static inline void scllo(struct i2c_algo
+  * Raise scl line, and do checking for delays. This is necessary for slower
+  * devices.
+  */
+-static inline int sclhi(struct i2c_algo_bit_data *adap)
++static int sclhi(struct i2c_algo_bit_data *adap)
  {
- 	struct vt8231_data *data = i2c_get_clientdata(client);
--	int err;
-+	int err, i;
+ 	unsigned long start;
  
- 	hwmon_device_unregister(data->class_dev);
+ 	setscl(adap,1);
  
-+	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
-+		sysfs_remove_group(&client->dev.kobj, &vt8231_group_volts[i]);
-+
-+	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
-+		sysfs_remove_group(&client->dev.kobj, &vt8231_group_temps[i]);
-+
-+	sysfs_remove_group(&client->dev.kobj, &vt8231_group);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		return err;
+ 	/* Not all adapters have scl sense line... */
+-	if (adap->getscl = NULL ) {
+-		udelay(adap->udelay);
+-		return 0;
+-	}
++	if (!adap->getscl)
++		goto done;
+ 
+ 	start=jiffies;
+ 	while (! getscl(adap) ) {	
+@@ -101,6 +99,8 @@ static inline int sclhi(struct i2c_algo_
+ 		cond_resched();
  	}
-
+ 	DEBSTAT(printk(KERN_DEBUG "needed %ld jiffies\n", jiffies-start));
++
++done:
+ 	udelay(adap->udelay);
+ 	return 0;
+ } 
+@@ -121,7 +121,6 @@ static void i2c_repstart(struct i2c_algo
+ 	DEBPROTO(printk(" Sr "));
+ 	setsda(adap,1);
+ 	sclhi(adap);
+-	udelay(adap->udelay);
+ 	
+ 	sdalo(adap);
+ 	scllo(adap);
+@@ -306,7 +305,7 @@ bailout:
+  * 0 chip did not answer
+  * -x transmission error
+  */
+-static inline int try_address(struct i2c_adapter *i2c_adap,
++static int try_address(struct i2c_adapter *i2c_adap,
+ 		       unsigned char addr, int retries)
+ {
+ 	struct i2c_algo_bit_data *adap = i2c_adap->algo_data;
+@@ -358,7 +357,7 @@ static int sendbytes(struct i2c_adapter 
+ 	return wrcount;
+ }
+ 
+-static inline int readbytes(struct i2c_adapter *i2c_adap, struct i2c_msg *msg)
++static int readbytes(struct i2c_adapter *i2c_adap, struct i2c_msg *msg)
+ {
+ 	int inval;
+ 	int rdcount=0;   	/* counts bytes read */
+@@ -408,7 +407,7 @@ static inline int readbytes(struct i2c_a
+  * -x an error occurred (like: -EREMOTEIO if the device did not answer, or
+  *	-ETIMEDOUT, for example if the lines are stuck...) 
+  */
+-static inline int bit_doAddress(struct i2c_adapter *i2c_adap, struct i2c_msg *msg) 
++static int bit_doAddress(struct i2c_adapter *i2c_adap, struct i2c_msg *msg)
+ {
+ 	unsigned short flags = msg->flags;
+ 	unsigned short nak_ok = msg->flags & I2C_M_IGNORE_NAK;
 -- 
-Jean Delvare
+1.4.2.1
+
 
