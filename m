@@ -1,114 +1,295 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 24 Sep 2006 18:43:04 +0000
-Subject: [lm-sensors] [PATCH 00/23] hwmon updates for 2.6.19
-Message-Id: <20060924204304.f479ee21.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Wed, 27 Sep 2006 01:01:50 +0000
+Subject: [lm-sensors] [PATCH 19/30] i2c: __must_check fixes (chip drivers)
+Message-Id: <11593189872321-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg,
+From: Jean Delvare <khali at linux-fr.org>
 
-Here comes a 23-piece hwmon update patchset. The bulk of it is added
-checks for device_create_file() failures, to comply with the new checks
-that have been in -mm for a while and which I guess will hit mainline
-soon. In the same time, we now delete sysfs files when device/driver is
-deleted. There are also a new driver (for the VIA VT1211) and
-documentation updates. This is the last large patchset I'll have for
-2.6.19.
+i2c: __must_check fixes (chip drivers)
 
-Here's the summary:
+Check for error on sysfs file creation.
+Delete sysfs files on device removal.
 
-Charles Spirakis:
- o w83791d: Documentation update
+The approach taken for the most complex case (pcf8591) is similar to
+what Mark M. Hoffman proposed for hardware monitoring chip drivers.
 
-David Hubbard:
- o w83627ehf: Fix unchecked return status
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Cc: Ben Gardner <bgardner at wabtec.com>
+Cc: Aurelien Jarno <aurelien at aurel32.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+---
+ drivers/i2c/chips/eeprom.c  |    8 +++++-
+ drivers/i2c/chips/max6875.c |   25 ++++++++++++++-----
+ drivers/i2c/chips/pca9539.c |   11 +++++++-
+ drivers/i2c/chips/pcf8574.c |   22 +++++++++++++---
+ drivers/i2c/chips/pcf8591.c |   58 +++++++++++++++++++++++++++++++++----------
+ 5 files changed, 97 insertions(+), 27 deletions(-)
 
-Jean Delvare:
- o hwmon: Make a dozen drivers no more experimental
- o hwmon: Add individual alarm files to 4 drivers
- o hwmon: Fix unchecked return status, batch 4
- o hwmon: Fix unchecked return status, batch 5
- o hwmon: Fix unchecked return status, batch 6
- o hwmon: Fix unchecked return status, SMSC chips
- o hwmon: Remove Yuan Mu's address
-
-Jim Cromie:
- o pc87360: Move some code around
- o pc87360: Delete sysfs files on device deletion
- o pc87360: Check for error on sysfs files creation
- o w83781d: Fix unchecked return status
-
-Juerg Haefliger:
- o hwmon: New driver for the VIA VT1211
- o vt1211: Add documentation
- o vt1211: Document module parameters
-
-Mark M. Hoffman:
- o hwmon: Fix unchecked return status, batch 1
- o hwmon: Fix unchecked return status, batch 2
- o hwmon: Fix unchecked return status, batch 3
-
-Roger Lucas:
- o vt8231: Fix unchecked return status
-
-Rudolf Marek:
- o k8temp: Add documentation
- o w83l785ts: Fix unchecked return status
- o w83792d: Fix unchecked return status
-
-Statistics:
-
- Documentation/hwmon/k8temp    |   52 ++
- Documentation/hwmon/vt1211    |  206 ++++++
- Documentation/hwmon/w83627ehf |    2 
- Documentation/hwmon/w83791d   |   67 +-
- MAINTAINERS                   |    6 +
- drivers/hwmon/Kconfig         |   37 +
- drivers/hwmon/Makefile        |    1 +
- drivers/hwmon/adm1021.c       |   31 +
- drivers/hwmon/adm1025.c       |   94 +--
- drivers/hwmon/adm1026.c       |  286 +++++----
- drivers/hwmon/adm1031.c       |  114 ++-
- drivers/hwmon/adm9240.c       |  105 +--
- drivers/hwmon/asb100.c        |  122 ++--
- drivers/hwmon/atxp1.c         |   25 +
- drivers/hwmon/ds1621.c        |   28 +
- drivers/hwmon/f71805f.c       |  336 +++++++---
- drivers/hwmon/fscher.c        |  106 +--
- drivers/hwmon/fscpos.c        |   75 +-
- drivers/hwmon/gl518sm.c       |   74 +-
- drivers/hwmon/gl520sm.c       |  128 +++-
- drivers/hwmon/it87.c          |  234 ++++---
- drivers/hwmon/lm63.c          |   96 ++-
- drivers/hwmon/lm75.c          |   24 +
- drivers/hwmon/lm77.c          |   33 +
- drivers/hwmon/lm78.c          |   88 ++-
- drivers/hwmon/lm80.c          |   85 ++-
- drivers/hwmon/lm83.c          |  128 +++-
- drivers/hwmon/lm85.c          |  173 +++--
- drivers/hwmon/lm87.c          |  191 ++++--
- drivers/hwmon/lm90.c          |   90 +++
- drivers/hwmon/lm92.c          |   34 +
- drivers/hwmon/max1619.c       |   33 +
- drivers/hwmon/pc87360.c       |  230 +++++--
- drivers/hwmon/sis5595.c       |  101 ++-
- drivers/hwmon/smsc47b397.c    |   39 +
- drivers/hwmon/smsc47m1.c      |   78 ++
- drivers/hwmon/smsc47m192.c    |  150 ++---
- drivers/hwmon/via686a.c       |   83 +--
- drivers/hwmon/vt1211.c        | 1355 +++++++++++++++++++++++++++++++++++++++++
- drivers/hwmon/vt8231.c        |  186 +++++-
- drivers/hwmon/w83627ehf.c     |  124 +++-
- drivers/hwmon/w83627hf.c      |  232 ++++---
- drivers/hwmon/w83781d.c       |  277 ++++----
- drivers/hwmon/w83791d.c       |    7 +
- drivers/hwmon/w83792d.c       |  554 +++++++++--------
- drivers/hwmon/w83l785ts.c     |   28 +
- 46 files changed, 4671 insertions(+), 1877 deletions(-)
-
+diff --git a/drivers/i2c/chips/eeprom.c b/drivers/i2c/chips/eeprom.c
+index 13c1082..cec3a0c 100644
+--- a/drivers/i2c/chips/eeprom.c
++++ b/drivers/i2c/chips/eeprom.c
+@@ -209,10 +209,14 @@ static int eeprom_detect(struct i2c_adap
+ 	}
+ 
+ 	/* create the sysfs eeprom file */
+-	sysfs_create_bin_file(&new_client->dev.kobj, &eeprom_attr);
++	err = sysfs_create_bin_file(&new_client->dev.kobj, &eeprom_attr);
++	if (err)
++		goto exit_detach;
+ 
+ 	return 0;
+ 
++exit_detach:
++	i2c_detach_client(new_client);
+ exit_kfree:
+ 	kfree(data);
+ exit:
+@@ -223,6 +227,8 @@ static int eeprom_detach_client(struct i
+ {
+ 	int err;
+ 
++	sysfs_remove_bin_file(&client->dev.kobj, &eeprom_attr);
++
+ 	err = i2c_detach_client(client);
+ 	if (err)
+ 		return err;
+diff --git a/drivers/i2c/chips/max6875.c b/drivers/i2c/chips/max6875.c
+index 88d2dde..76645c1 100644
+--- a/drivers/i2c/chips/max6875.c
++++ b/drivers/i2c/chips/max6875.c
+@@ -199,8 +199,7 @@ static int max6875_detect(struct i2c_ada
+ 	mutex_init(&data->update_lock);
+ 
+ 	/* Init fake client data */
+-	/* set the client data to the i2c_client so that it will get freed */
+-	i2c_set_clientdata(fake_client, fake_client);
++	i2c_set_clientdata(fake_client, NULL);
+ 	fake_client->addr = address | 1;
+ 	fake_client->adapter = adapter;
+ 	fake_client->driver = &max6875_driver;
+@@ -214,13 +213,17 @@ static int max6875_detect(struct i2c_ada
+ 		goto exit_kfree2;
+ 
+ 	if ((err = i2c_attach_client(fake_client)) != 0)
+-		goto exit_detach;
++		goto exit_detach1;
+ 
+-	sysfs_create_bin_file(&real_client->dev.kobj, &user_eeprom_attr);
++	err = sysfs_create_bin_file(&real_client->dev.kobj, &user_eeprom_attr);
++	if (err)
++		goto exit_detach2;
+ 
+ 	return 0;
+ 
+-exit_detach:
++exit_detach2:
++	i2c_detach_client(fake_client);
++exit_detach1:
+ 	i2c_detach_client(real_client);
+ exit_kfree2:
+ 	kfree(fake_client);
+@@ -229,14 +232,24 @@ exit_kfree1:
+ 	return err;
+ }
+ 
++/* Will be called for both the real client and the fake client */
+ static int max6875_detach_client(struct i2c_client *client)
+ {
+ 	int err;
++	struct max6875_data *data = i2c_get_clientdata(client);
++
++	/* data is NULL for the fake client */
++	if (data)
++		sysfs_remove_bin_file(&client->dev.kobj, &user_eeprom_attr);
+ 
+ 	err = i2c_detach_client(client);
+ 	if (err)
+ 		return err;
+-	kfree(i2c_get_clientdata(client));
++
++	if (data)		/* real client */
++		kfree(data);
++	else			/* fake client */
++		kfree(client);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/i2c/chips/pca9539.c b/drivers/i2c/chips/pca9539.c
+index cb22280..f43c4e7 100644
+--- a/drivers/i2c/chips/pca9539.c
++++ b/drivers/i2c/chips/pca9539.c
+@@ -148,11 +148,16 @@ static int pca9539_detect(struct i2c_ada
+ 	if ((err = i2c_attach_client(new_client)))
+ 		goto exit_kfree;
+ 
+-	/* Register sysfs hooks (don't care about failure) */
+-	sysfs_create_group(&new_client->dev.kobj, &pca9539_defattr_group);
++	/* Register sysfs hooks */
++	err = sysfs_create_group(&new_client->dev.kobj,
++				 &pca9539_defattr_group);
++	if (err)
++		goto exit_detach;
+ 
+ 	return 0;
+ 
++exit_detach:
++	i2c_detach_client(new_client);
+ exit_kfree:
+ 	kfree(data);
+ exit:
+@@ -163,6 +168,8 @@ static int pca9539_detach_client(struct 
+ {
+ 	int err;
+ 
++	sysfs_remove_group(&client->dev.kobj, &pca9539_defattr_group);
++
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+ 
+diff --git a/drivers/i2c/chips/pcf8574.c b/drivers/i2c/chips/pcf8574.c
+index c3e6449..32b2542 100644
+--- a/drivers/i2c/chips/pcf8574.c
++++ b/drivers/i2c/chips/pcf8574.c
+@@ -105,6 +105,16 @@ static ssize_t set_write(struct device *
+ 
+ static DEVICE_ATTR(write, S_IWUSR | S_IRUGO, show_write, set_write);
+ 
++static struct attribute *pcf8574_attributes[] = {
++	&dev_attr_read.attr,
++	&dev_attr_write.attr,
++	NULL
++};
++
++static const struct attribute_group pcf8574_attr_group = {
++	.attrs = pcf8574_attributes,
++};
++
+ /*
+  * Real code
+  */
+@@ -166,13 +176,13 @@ static int pcf8574_detect(struct i2c_ada
+ 	pcf8574_init_client(new_client);
+ 
+ 	/* Register sysfs hooks */
+-	device_create_file(&new_client->dev, &dev_attr_read);
+-	device_create_file(&new_client->dev, &dev_attr_write);
++	err = sysfs_create_group(&new_client->dev.kobj, &pcf8574_attr_group);
++	if (err)
++		goto exit_detach;
+ 	return 0;
+ 
+-/* OK, this is not exactly good programming practice, usually. But it is
+-   very code-efficient in this case. */
+-
++      exit_detach:
++	i2c_detach_client(new_client);
+       exit_free:
+ 	kfree(data);
+       exit:
+@@ -183,6 +193,8 @@ static int pcf8574_detach_client(struct 
+ {
+ 	int err;
+ 
++	sysfs_remove_group(&client->dev.kobj, &pcf8574_attr_group);
++
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+ 
+diff --git a/drivers/i2c/chips/pcf8591.c b/drivers/i2c/chips/pcf8591.c
+index 925a6b3..4dc3637 100644
+--- a/drivers/i2c/chips/pcf8591.c
++++ b/drivers/i2c/chips/pcf8591.c
+@@ -158,6 +158,28 @@ static ssize_t set_out0_enable(struct de
+ static DEVICE_ATTR(out0_enable, S_IWUSR | S_IRUGO, 
+ 		   show_out0_enable, set_out0_enable);
+ 
++static struct attribute *pcf8591_attributes[] = {
++	&dev_attr_out0_enable.attr,
++	&dev_attr_out0_output.attr,
++	&dev_attr_in0_input.attr,
++	&dev_attr_in1_input.attr,
++	NULL
++};
++
++static const struct attribute_group pcf8591_attr_group = {
++	.attrs = pcf8591_attributes,
++};
++
++static struct attribute *pcf8591_attributes_opt[] = {
++	&dev_attr_in2_input.attr,
++	&dev_attr_in3_input.attr,
++	NULL
++};
++
++static const struct attribute_group pcf8591_attr_group_opt = {
++	.attrs = pcf8591_attributes_opt,
++};
++
+ /*
+  * Real code
+  */
+@@ -211,24 +233,31 @@ static int pcf8591_detect(struct i2c_ada
+ 	pcf8591_init_client(new_client);
+ 
+ 	/* Register sysfs hooks */
+-	device_create_file(&new_client->dev, &dev_attr_out0_enable);
+-	device_create_file(&new_client->dev, &dev_attr_out0_output);
+-	device_create_file(&new_client->dev, &dev_attr_in0_input);
+-	device_create_file(&new_client->dev, &dev_attr_in1_input);
++	err = sysfs_create_group(&new_client->dev.kobj, &pcf8591_attr_group);
++	if (err)
++		goto exit_detach;
+ 
+ 	/* Register input2 if not in "two differential inputs" mode */
+-	if (input_mode != 3 )
+-		device_create_file(&new_client->dev, &dev_attr_in2_input);
+-		
++	if (input_mode != 3) {
++		if ((err = device_create_file(&new_client->dev,
++					      &dev_attr_in2_input)))
++			goto exit_sysfs_remove;
++	}
++
+ 	/* Register input3 only in "four single ended inputs" mode */
+-	if (input_mode = 0)
+-		device_create_file(&new_client->dev, &dev_attr_in3_input);
+-	
++	if (input_mode = 0) {
++		if ((err = device_create_file(&new_client->dev,
++					      &dev_attr_in3_input)))
++			goto exit_sysfs_remove;
++	}
++
+ 	return 0;
+-	
+-	/* OK, this is not exactly good programming practice, usually. But it is
+-	   very code-efficient in this case. */
+ 
++exit_sysfs_remove:
++	sysfs_remove_group(&new_client->dev.kobj, &pcf8591_attr_group_opt);
++	sysfs_remove_group(&new_client->dev.kobj, &pcf8591_attr_group);
++exit_detach:
++	i2c_detach_client(new_client);
+ exit_kfree:
+ 	kfree(data);
+ exit:
+@@ -239,6 +268,9 @@ static int pcf8591_detach_client(struct 
+ {
+ 	int err;
+ 
++	sysfs_remove_group(&client->dev.kobj, &pcf8591_attr_group_opt);
++	sysfs_remove_group(&client->dev.kobj, &pcf8591_attr_group);
++
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+ 
 -- 
-Jean Delvare
+1.4.2.1
+
 
