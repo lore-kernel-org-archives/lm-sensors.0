@@ -1,60 +1,68 @@
 From: greg@kroah.com (Greg KH)
-Date: Wed, 27 Sep 2006 01:01:40 +0000
-Subject: [lm-sensors] [PATCH 9/30] i2c-au1550: Fix timeout problem
-Message-Id: <11593189491224-git-send-email-greg@kroah.com>
+Date: Wed, 27 Sep 2006 01:01:34 +0000
+Subject: [lm-sensors] [PATCH 3/30] i2c-dev: Drop the client template
+Message-Id: <11593189281219-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Domen Puncer <domen.puncer at ultra.si>
+From: Jean Delvare <khali at linux-fr.org>
 
-i2c-au1550: Fix timeout problem
+i2c-dev: Drop the client template
 
-Fix from Jordan Crouse:
-If the transmit and recieve FIFOS are not empty, forceably flush them
-rather then waiting for them to drain on their own.
+Drop the i2c-dev client template. This saves about 360 bytes of
+memory. I got the idea from a similar cleanup Hans-Frieder Vogt
+made to i2c-nforce2 recently.
 
-This solves at least a problem reported by Clem Taylor:
-http://www.linux-mips.org/archives/linux-mips/2006-05/msg00240.html
-(1% of I2C transactions would timeout)
-
-Signed-off-by: Domen Puncer <domen.puncer at ultra.si>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/busses/i2c-au1550.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/i2c/i2c-dev.c |   13 ++++---------
+ 1 files changed, 4 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-au1550.c b/drivers/i2c/busses/i2c-au1550.c
-index d06edce..02a359e 100644
---- a/drivers/i2c/busses/i2c-au1550.c
-+++ b/drivers/i2c/busses/i2c-au1550.c
-@@ -118,13 +118,19 @@ do_address(struct i2c_au1550_data *adap,
+diff --git a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
+index 206e805..2ce0833 100644
+--- a/drivers/i2c/i2c-dev.c
++++ b/drivers/i2c/i2c-dev.c
+@@ -37,7 +37,7 @@ #include <linux/i2c.h>
+ #include <linux/i2c-dev.h>
+ #include <asm/uaccess.h>
  
- 	/* Reset the FIFOs, clear events.
- 	*/
--	sp->psc_smbpcr = PSC_SMBPCR_DC;
-+	stat = sp->psc_smbstat;
- 	sp->psc_smbevnt = PSC_SMBEVNT_ALLCLR;
- 	au_sync();
--	do {
--		stat = sp->psc_smbpcr;
-+
-+	if (!(stat & PSC_SMBSTAT_TE) || !(stat & PSC_SMBSTAT_RE)) {
-+		sp->psc_smbpcr = PSC_SMBPCR_DC;
- 		au_sync();
--	} while ((stat & PSC_SMBPCR_DC) != 0);
-+		do {
-+			stat = sp->psc_smbpcr;
-+			au_sync();
-+		} while ((stat & PSC_SMBPCR_DC) != 0);
-+		udelay(50);
-+	}
+-static struct i2c_client i2cdev_client_template;
++static struct i2c_driver i2cdev_driver;
  
- 	/* Write out the i2c chip address and specify operation
- 	*/
+ struct i2c_dev {
+ 	struct list_head list;
+@@ -365,12 +365,13 @@ static int i2cdev_open(struct inode *ino
+ 	if (!adap)
+ 		return -ENODEV;
+ 
+-	client = kmalloc(sizeof(*client), GFP_KERNEL);
++	client = kzalloc(sizeof(*client), GFP_KERNEL);
+ 	if (!client) {
+ 		i2c_put_adapter(adap);
+ 		return -ENOMEM;
+ 	}
+-	memcpy(client, &i2cdev_client_template, sizeof(*client));
++	snprintf(client->name, I2C_NAME_SIZE, "i2c-dev %d", adap->nr);
++	client->driver = &i2cdev_driver;
+ 
+ 	/* registered with adapter, passed as client to user */
+ 	client->adapter = adap;
+@@ -459,12 +460,6 @@ static struct i2c_driver i2cdev_driver  	.detach_client	= i2cdev_detach_client,
+ };
+ 
+-static struct i2c_client i2cdev_client_template = {
+-	.name		= "I2C /dev entry",
+-	.addr		= -1,
+-	.driver		= &i2cdev_driver,
+-};
+-
+ static int __init i2c_dev_init(void)
+ {
+ 	int res;
 -- 
 1.4.2.1
 
