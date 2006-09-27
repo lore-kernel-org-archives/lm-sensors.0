@@ -1,370 +1,83 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 24 Sep 2006 18:52:15 +0000
-Subject: [lm-sensors] [PATCH 03/23] hwmon: Add individual alarm files to 4
-Message-Id: <20060924205215.7ad2959a.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Wed, 27 Sep 2006 01:01:59 +0000
+Subject: [lm-sensors] [PATCH 28/30] i2c: Constify i2c_algorithm declarations,
+Message-Id: <11593190173151-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=hwmon-individual-alarm-files-1.patch
+From: Jean Delvare <khali at linux-fr.org>
 
-hwmon: Add individual alarm files to 4 drivers
+i2c: Constify i2c_algorithm declarations, part 1
 
-Add individual sysfs files for all f71805f, lm63, lm83 and lm90 alarm
-and fault conditions. This is a requirement for the planned
-chip-independent libsensors. Almost all other hwmon drivers will need
-the same improvement.
+Make struct i2c_algorithm declarations const in all i2c algorithm
+drivers.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Cc: David Brownell <david-b at pacbell.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/hwmon/f71805f.c |   46 ++++++++++++++++++++++++++++++++++----------
- drivers/hwmon/lm63.c    |   33 +++++++++++++++++++++++++++++++-
- drivers/hwmon/lm83.c    |   49 ++++++++++++++++++++++++++++++++++++++++++++++-
- drivers/hwmon/lm90.c    |   37 ++++++++++++++++++++++++++++++++++-
- 4 files changed, 151 insertions(+), 14 deletions(-)
+ drivers/i2c/algos/i2c-algo-bit.c |    2 +-
+ drivers/i2c/algos/i2c-algo-pca.c |    2 +-
+ drivers/i2c/algos/i2c-algo-pcf.c |    2 +-
+ drivers/i2c/algos/i2c-algo-sgi.c |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
---- linux-2.6.18.orig/drivers/hwmon/f71805f.c	2006-09-23 15:24:25.000000000 +0200
-+++ linux-2.6.18/drivers/hwmon/f71805f.c	2006-09-23 15:36:40.000000000 +0200
-@@ -1,7 +1,7 @@
- /*
-  * f71805f.c - driver for the Fintek F71805F/FG Super-I/O chip integrated
-  *             hardware monitoring features
-- * Copyright (C) 2005  Jean Delvare <khali at linux-fr.org>
-+ * Copyright (C) 2005-2006  Jean Delvare <khali at linux-fr.org>
-  *
-  * The F71805F/FG is a LPC Super-I/O chip made by Fintek. It integrates
-  * complete hardware monitoring features: voltage, fan and temperature
-@@ -147,7 +147,7 @@
- 	u8 temp_high[3];
- 	u8 temp_hyst[3];
- 	u8 temp_mode;
--	u8 alarms[3];
-+	unsigned long alarms;
+diff --git a/drivers/i2c/algos/i2c-algo-bit.c b/drivers/i2c/algos/i2c-algo-bit.c
+index 48fe3a3..21c36bf 100644
+--- a/drivers/i2c/algos/i2c-algo-bit.c
++++ b/drivers/i2c/algos/i2c-algo-bit.c
+@@ -512,7 +512,7 @@ static u32 bit_func(struct i2c_adapter *
+ 
+ /* -----exported algorithm data: -------------------------------------	*/
+ 
+-static struct i2c_algorithm i2c_bit_algo = {
++static const struct i2c_algorithm i2c_bit_algo = {
+ 	.master_xfer	= bit_xfer,
+ 	.functionality	= bit_func,
  };
- 
- static inline long in_from_reg(u8 reg)
-@@ -311,10 +311,9 @@
- 			data->temp[nr] = f71805f_read8(data,
- 					 F71805F_REG_TEMP(nr));
- 		}
--		for (nr = 0; nr < 3; nr++) {
--			data->alarms[nr] = f71805f_read8(data,
--					   F71805F_REG_STATUS(nr));
--		}
-+		data->alarms = f71805f_read8(data, F71805F_REG_STATUS(0))
-+			+ (f71805f_read8(data, F71805F_REG_STATUS(1)) << 8)
-+			+ (f71805f_read8(data, F71805F_REG_STATUS(2)) << 16);
- 
- 		data->last_updated = jiffies;
- 		data->valid = 1;
-@@ -557,8 +556,7 @@
- {
- 	struct f71805f_data *data = f71805f_update_device(dev);
- 
--	return sprintf(buf, "%d\n", data->alarms[0] |
--				    ((data->alarms[1] & 0x01) << 8));
-+	return sprintf(buf, "%lu\n", data->alarms & 0x1ff);
- }
- 
- static ssize_t show_alarms_fan(struct device *dev, struct device_attribute
-@@ -566,7 +564,7 @@
- {
- 	struct f71805f_data *data = f71805f_update_device(dev);
- 
--	return sprintf(buf, "%d\n", data->alarms[2] & 0x07);
-+	return sprintf(buf, "%lu\n", (data->alarms >> 16) & 0x07);
- }
- 
- static ssize_t show_alarms_temp(struct device *dev, struct device_attribute
-@@ -574,7 +572,17 @@
- {
- 	struct f71805f_data *data = f71805f_update_device(dev);
- 
--	return sprintf(buf, "%d\n", (data->alarms[1] >> 3) & 0x07);
-+	return sprintf(buf, "%lu\n", (data->alarms >> 11) & 0x07);
-+}
-+
-+static ssize_t show_alarm(struct device *dev, struct device_attribute
-+			  *devattr, char *buf)
-+{
-+	struct f71805f_data *data = f71805f_update_device(dev);
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	int bitnr = attr->index;
-+
-+	return sprintf(buf, "%lu\n", (data->alarms >> bitnr) & 1);
- }
- 
- static ssize_t show_name(struct device *dev, struct device_attribute
-@@ -655,18 +663,34 @@
- 	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR,
- 		    show_temp_hyst, set_temp_hyst, 2),
- 	SENSOR_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2),
-+
-+	SENSOR_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0),
-+	SENSOR_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1),
-+	SENSOR_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2),
-+	SENSOR_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3),
-+	SENSOR_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 4),
-+	SENSOR_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 5),
-+	SENSOR_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 6),
-+	SENSOR_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 7),
-+	SENSOR_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 8),
-+	SENSOR_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 11),
-+	SENSOR_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 12),
-+	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13),
- };
- 
- static struct sensor_device_attribute f71805f_fan_attr[] = {
- 	SENSOR_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0),
- 	SENSOR_ATTR(fan1_min, S_IRUGO | S_IWUSR,
- 		    show_fan_min, set_fan_min, 0),
-+	SENSOR_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 16),
- 	SENSOR_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1),
- 	SENSOR_ATTR(fan2_min, S_IRUGO | S_IWUSR,
- 		    show_fan_min, set_fan_min, 1),
-+	SENSOR_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 17),
- 	SENSOR_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2),
- 	SENSOR_ATTR(fan3_min, S_IRUGO | S_IWUSR,
- 		    show_fan_min, set_fan_min, 2),
-+	SENSOR_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 18),
- };
- 
- /*
-@@ -737,7 +761,7 @@
- 			goto exit_class;
- 	}
- 	for (i = 0; i < ARRAY_SIZE(f71805f_fan_attr); i++) {
--		if (!(data->fan_enabled & (1 << (i / 2))))
-+		if (!(data->fan_enabled & (1 << (i / 3))))
- 			continue;
- 		err = device_create_file(&pdev->dev,
- 					 &f71805f_fan_attr[i].dev_attr);
---- linux-2.6.18.orig/drivers/hwmon/lm63.c	2006-09-23 15:24:25.000000000 +0200
-+++ linux-2.6.18/drivers/hwmon/lm63.c	2006-09-23 15:36:40.000000000 +0200
-@@ -1,7 +1,7 @@
- /*
-  * lm63.c - driver for the National Semiconductor LM63 temperature sensor
-  *          with integrated fan control
-- * Copyright (C) 2004-2005  Jean Delvare <khali at linux-fr.org>
-+ * Copyright (C) 2004-2006  Jean Delvare <khali at linux-fr.org>
-  * Based on the lm90 driver.
-  *
-  * The LM63 is a sensor chip made by National Semiconductor. It measures
-@@ -330,6 +330,16 @@
- 	return sprintf(buf, "%u\n", data->alarms);
- }
- 
-+static ssize_t show_alarm(struct device *dev, struct device_attribute *devattr,
-+			  char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct lm63_data *data = lm63_update_device(dev);
-+	int bitnr = attr->index;
-+
-+	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
-+}
-+
- static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0);
- static SENSOR_DEVICE_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan,
- 	set_fan, 1);
-@@ -350,6 +360,14 @@
- static DEVICE_ATTR(temp2_crit_hyst, S_IWUSR | S_IRUGO, show_temp2_crit_hyst,
- 	set_temp2_crit_hyst);
- 
-+/* Individual alarm files */
-+static SENSOR_DEVICE_ATTR(fan1_min_alarm, S_IRUGO, show_alarm, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_alarm, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp2_input_fault, S_IRUGO, show_alarm, NULL, 2);
-+static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO, show_alarm, NULL, 3);
-+static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_alarm, NULL, 4);
-+static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 6);
-+/* Raw alarm file for compatibility */
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
- /*
-@@ -449,6 +467,8 @@
- 				   &sensor_dev_attr_fan1_input.dev_attr);
- 		device_create_file(&new_client->dev,
- 				   &sensor_dev_attr_fan1_min.dev_attr);
-+		device_create_file(&new_client->dev,
-+				   &sensor_dev_attr_fan1_min_alarm.dev_attr);
- 	}
- 	device_create_file(&new_client->dev, &dev_attr_pwm1);
- 	device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
-@@ -465,6 +485,17 @@
- 	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp2_crit.dev_attr);
- 	device_create_file(&new_client->dev, &dev_attr_temp2_crit_hyst);
-+
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_input_fault.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_min_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_max_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_max_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_crit_alarm.dev_attr);
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
- 
+diff --git a/drivers/i2c/algos/i2c-algo-pca.c b/drivers/i2c/algos/i2c-algo-pca.c
+index b88a6fc..9081c9f 100644
+--- a/drivers/i2c/algos/i2c-algo-pca.c
++++ b/drivers/i2c/algos/i2c-algo-pca.c
+@@ -355,7 +355,7 @@ static int pca_init(struct i2c_algo_pca_
  	return 0;
---- linux-2.6.18.orig/drivers/hwmon/lm83.c	2006-09-23 15:24:25.000000000 +0200
-+++ linux-2.6.18/drivers/hwmon/lm83.c	2006-09-23 15:36:40.000000000 +0200
-@@ -1,7 +1,7 @@
- /*
-  * lm83.c - Part of lm_sensors, Linux kernel modules for hardware
-  *          monitoring
-- * Copyright (C) 2003-2005  Jean Delvare <khali at linux-fr.org>
-+ * Copyright (C) 2003-2006  Jean Delvare <khali at linux-fr.org>
-  *
-  * Heavily inspired from the lm78, lm75 and adm1021 drivers. The LM83 is
-  * a sensor chip made by National Semiconductor. It reports up to four
-@@ -191,6 +191,16 @@
- 	return sprintf(buf, "%d\n", data->alarms);
  }
  
-+static ssize_t show_alarm(struct device *dev, struct device_attribute
-+			  *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct lm83_data *data = lm83_update_device(dev);
-+	int bitnr = attr->index;
-+
-+	return sprintf(buf, "%d\n", (data->alarms >> bitnr) & 1);
-+}
-+
- static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
- static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1);
- static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2);
-@@ -208,6 +218,20 @@
- static SENSOR_DEVICE_ATTR(temp3_crit, S_IWUSR | S_IRUGO, show_temp,
- 	set_temp, 8);
- static SENSOR_DEVICE_ATTR(temp4_crit, S_IRUGO, show_temp, NULL, 8);
-+
-+/* Individual alarm files */
-+static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp3_crit_alarm, S_IRUGO, show_alarm, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp3_input_fault, S_IRUGO, show_alarm, NULL, 2);
-+static SENSOR_DEVICE_ATTR(temp3_max_alarm, S_IRUGO, show_alarm, NULL, 4);
-+static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 6);
-+static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_alarm, NULL, 8);
-+static SENSOR_DEVICE_ATTR(temp4_crit_alarm, S_IRUGO, show_alarm, NULL, 9);
-+static SENSOR_DEVICE_ATTR(temp4_input_fault, S_IRUGO, show_alarm, NULL, 10);
-+static SENSOR_DEVICE_ATTR(temp4_max_alarm, S_IRUGO, show_alarm, NULL, 12);
-+static SENSOR_DEVICE_ATTR(temp2_input_fault, S_IRUGO, show_alarm, NULL, 13);
-+static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_alarm, NULL, 15);
-+/* Raw alarm file for compatibility */
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+-static struct i2c_algorithm pca_algo = {
++static const struct i2c_algorithm pca_algo = {
+ 	.master_xfer	= pca_xfer,
+ 	.functionality	= pca_func,
+ };
+diff --git a/drivers/i2c/algos/i2c-algo-pcf.c b/drivers/i2c/algos/i2c-algo-pcf.c
+index 5b24930..3b20033 100644
+--- a/drivers/i2c/algos/i2c-algo-pcf.c
++++ b/drivers/i2c/algos/i2c-algo-pcf.c
+@@ -458,7 +458,7 @@ static u32 pcf_func(struct i2c_adapter *
  
- /*
-@@ -350,6 +374,16 @@
- 	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp3_crit.dev_attr);
+ /* -----exported algorithm data: -------------------------------------	*/
  
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp3_input_fault.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_max_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp3_max_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_crit_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp3_crit_alarm.dev_attr);
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
- 
- 	if (kind = lm83) {
-@@ -367,6 +401,19 @@
- 				   &sensor_dev_attr_temp2_crit.dev_attr);
- 		device_create_file(&new_client->dev,
- 				   &sensor_dev_attr_temp4_crit.dev_attr);
-+
-+		device_create_file(&new_client->dev,
-+				&sensor_dev_attr_temp2_input_fault.dev_attr);
-+		device_create_file(&new_client->dev,
-+				&sensor_dev_attr_temp4_input_fault.dev_attr);
-+		device_create_file(&new_client->dev,
-+				&sensor_dev_attr_temp2_max_alarm.dev_attr);
-+		device_create_file(&new_client->dev,
-+				&sensor_dev_attr_temp4_max_alarm.dev_attr);
-+		device_create_file(&new_client->dev,
-+				&sensor_dev_attr_temp2_crit_alarm.dev_attr);
-+		device_create_file(&new_client->dev,
-+				&sensor_dev_attr_temp4_crit_alarm.dev_attr);
- 	}
- 
- 	return 0;
---- linux-2.6.18.orig/drivers/hwmon/lm90.c	2006-09-23 15:24:25.000000000 +0200
-+++ linux-2.6.18/drivers/hwmon/lm90.c	2006-09-23 15:36:40.000000000 +0200
-@@ -1,7 +1,7 @@
- /*
-  * lm90.c - Part of lm_sensors, Linux kernel modules for hardware
-  *          monitoring
-- * Copyright (C) 2003-2005  Jean Delvare <khali at linux-fr.org>
-+ * Copyright (C) 2003-2006  Jean Delvare <khali at linux-fr.org>
-  *
-  * Based on the lm83 driver. The LM90 is a sensor chip made by National
-  * Semiconductor. It reports up to two temperatures (its own plus up to
-@@ -327,6 +327,16 @@
- 	return sprintf(buf, "%d\n", data->alarms);
+-static struct i2c_algorithm pcf_algo = {
++static const struct i2c_algorithm pcf_algo = {
+ 	.master_xfer	= pcf_xfer,
+ 	.functionality	= pcf_func,
+ };
+diff --git a/drivers/i2c/algos/i2c-algo-sgi.c b/drivers/i2c/algos/i2c-algo-sgi.c
+index 932c4fa..490d999 100644
+--- a/drivers/i2c/algos/i2c-algo-sgi.c
++++ b/drivers/i2c/algos/i2c-algo-sgi.c
+@@ -157,7 +157,7 @@ static u32 sgi_func(struct i2c_adapter *
+ 	return I2C_FUNC_SMBUS_EMUL;
  }
  
-+static ssize_t show_alarm(struct device *dev, struct device_attribute
-+			  *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct lm90_data *data = lm90_update_device(dev);
-+	int bitnr = attr->index;
-+
-+	return sprintf(buf, "%d\n", (data->alarms >> bitnr) & 1);
-+}
-+
- static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp8, NULL, 0);
- static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp11, NULL, 0);
- static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp8,
-@@ -344,6 +354,16 @@
- static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO, show_temphyst,
- 	set_temphyst, 3);
- static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temphyst, NULL, 4);
-+
-+/* Individual alarm files */
-+static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_alarm, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp2_input_fault, S_IRUGO, show_alarm, NULL, 2);
-+static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO, show_alarm, NULL, 3);
-+static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_alarm, NULL, 4);
-+static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL, 5);
-+static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 6);
-+/* Raw alarm file for compatibility */
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
- /* pec used for ADM1032 only */
-@@ -595,6 +615,21 @@
- 			   &sensor_dev_attr_temp1_crit_hyst.dev_attr);
- 	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp2_crit_hyst.dev_attr);
-+
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_input_fault.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_min_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_min_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_max_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_max_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_crit_alarm.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp2_crit_alarm.dev_attr);
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
- 
- 	if (new_client->flags & I2C_CLIENT_PEC)
-
+-static struct i2c_algorithm sgi_algo = {
++static const struct i2c_algorithm sgi_algo = {
+ 	.master_xfer	= sgi_xfer,
+ 	.functionality	= sgi_func,
+ };
 -- 
-Jean Delvare
+1.4.2.1
+
 
