@@ -1,80 +1,75 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 24 Sep 2006 19:23:26 +0000
-Subject: [lm-sensors] [PATCH 19/23] w83l785ts: Fix unchecked return status
-Message-Id: <20060924212326.f391f226.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Wed, 27 Sep 2006 01:01:54 +0000
+Subject: [lm-sensors] [PATCH 23/30] i2c-core: Drop useless bitmaskings
+Message-Id: <11593190003763-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Rudolf Marek <r.marek at assembler.cz>
-Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-w83l785ts.patch
+From: Jean Delvare <khali at linux-fr.org>
 
-w83l785ts: Fix unchecked return status
+i2c-core: Drop useless bitmaskings
 
-Fix the w83l785ts driver. Add error checking to device_create_file
-and also care to destroy the files upon exit.
+The code generated is exactly the same.
 
-Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/hwmon/w83l785ts.c |   28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+ drivers/i2c/i2c-core.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
---- linux-2.6.18.orig/drivers/hwmon/w83l785ts.c	2006-09-21 21:25:05.000000000 +0200
-+++ linux-2.6.18/drivers/hwmon/w83l785ts.c	2006-09-23 12:04:17.000000000 +0200
-@@ -236,21 +236,30 @@
- 	 * Nothing yet, assume it is already started.
- 	 */
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 36e1214..88dd803 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -901,7 +901,7 @@ s32 i2c_smbus_read_byte(struct i2c_clien
+ 	                   I2C_SMBUS_READ,0,I2C_SMBUS_BYTE, &data))
+ 		return -1;
+ 	else
+-		return 0x0FF & data.byte;
++		return data.byte;
+ }
  
-+	err = device_create_file(&new_client->dev,
-+				 &sensor_dev_attr_temp1_input.dev_attr);
-+	if (err)
-+		goto exit_remove;
-+
-+	err = device_create_file(&new_client->dev,
-+				 &sensor_dev_attr_temp1_max.dev_attr);
-+	if (err)
-+		goto exit_remove;
-+
- 	/* Register sysfs hooks */
- 	data->class_dev = hwmon_device_register(&new_client->dev);
- 	if (IS_ERR(data->class_dev)) {
- 		err = PTR_ERR(data->class_dev);
--		goto exit_detach;
-+		goto exit_remove;
- 	}
+ s32 i2c_smbus_write_byte(struct i2c_client *client, u8 value)
+@@ -917,7 +917,7 @@ s32 i2c_smbus_read_byte_data(struct i2c_
+ 	                   I2C_SMBUS_READ,command, I2C_SMBUS_BYTE_DATA,&data))
+ 		return -1;
+ 	else
+-		return 0x0FF & data.byte;
++		return data.byte;
+ }
  
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_input.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_max.dev_attr);
--
- 	return 0;
+ s32 i2c_smbus_write_byte_data(struct i2c_client *client, u8 command, u8 value)
+@@ -936,7 +936,7 @@ s32 i2c_smbus_read_word_data(struct i2c_
+ 	                   I2C_SMBUS_READ,command, I2C_SMBUS_WORD_DATA, &data))
+ 		return -1;
+ 	else
+-		return 0x0FFFF & data.word;
++		return data.word;
+ }
  
--exit_detach:
-+exit_remove:
-+	device_remove_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_input.dev_attr);
-+	device_remove_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_max.dev_attr);
- 	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
-@@ -264,7 +273,10 @@
- 	int err;
- 
- 	hwmon_device_unregister(data->class_dev);
--
-+	device_remove_file(&client->dev,
-+			   &sensor_dev_attr_temp1_input.dev_attr);
-+	device_remove_file(&client->dev,
-+			   &sensor_dev_attr_temp1_max.dev_attr);
- 	if ((err = i2c_detach_client(client)))
- 		return err;
- 
-
+ s32 i2c_smbus_write_word_data(struct i2c_client *client, u8 command, u16 value)
+@@ -1039,7 +1039,7 @@ static s32 i2c_smbus_xfer_emulated(struc
+ 		else {
+ 			msg[0].len=3;
+ 			msgbuf0[1] = data->word & 0xff;
+-			msgbuf0[2] = (data->word >> 8) & 0xff;
++			msgbuf0[2] = data->word >> 8;
+ 		}
+ 		break;
+ 	case I2C_SMBUS_PROC_CALL:
+@@ -1048,7 +1048,7 @@ static s32 i2c_smbus_xfer_emulated(struc
+ 		msg[0].len = 3;
+ 		msg[1].len = 2;
+ 		msgbuf0[1] = data->word & 0xff;
+-		msgbuf0[2] = (data->word >> 8) & 0xff;
++		msgbuf0[2] = data->word >> 8;
+ 		break;
+ 	case I2C_SMBUS_BLOCK_DATA:
+ 		if (read_write = I2C_SMBUS_READ) {
 -- 
-Jean Delvare
+1.4.2.1
+
 
