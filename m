@@ -1,7 +1,7 @@
 From: gregkh@suse.de (gregkh at suse.de)
-Date: Thu, 28 Sep 2006 07:01:42 +0000
+Date: Thu, 28 Sep 2006 07:01:46 +0000
 Subject: [lm-sensors] patch
-Message-Id: <20060928070139.C6B42902D5A@imap.suse.de>
+Message-Id: <20060928070143.84F12890831@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060502054527.8533748769D@imap.suse.de>
 In-Reply-To: <20060502054527.8533748769D@imap.suse.de>
@@ -13,92 +13,80 @@ To: lm-sensors@vger.kernel.org
 
 This is a note to let you know that I've just added the patch titled
 
-     Subject: [PATCH 19/23] w83l785ts: Fix unchecked return status
+     Subject: [PATCH 07/23] vt1211: Document module parameters
 
 to my gregkh-2.6 tree.  Its filename is
 
-     hwmon-unchecked-return-status-fixes-w83l785ts.patch
+     hwmon-vt1211-add-module-parameters-description.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-From khali at linux-fr.org Sun Sep 24 12:23:29 2006
-Date: Sun, 24 Sep 2006 21:23:26 +0200
+From khali at linux-fr.org Sun Sep 24 11:55:42 2006
+Date: Sun, 24 Sep 2006 20:55:34 +0200
 From: Jean Delvare <khali at linux-fr.org>
 To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>, Rudolf Marek <r.marek at assembler.cz>
-Subject: [PATCH 19/23] w83l785ts: Fix unchecked return status
-Message-Id: <20060924212326.f391f226.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-w83l785ts.patch
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, Juerg Haefliger <juergh at gmail.com>
+Subject: [PATCH 07/23] vt1211: Document module parameters
+Message-Id: <20060924205534.56a0e585.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-vt1211-add-module-parameters-description.patch
 
-From: Rudolf Marek <r.marek at assembler.cz>
+From: Juerg Haefliger <juergh at gmail.com>
 
-w83l785ts: Fix unchecked return status
+vt1211: Document module parameters
 
-Fix the w83l785ts driver. Add error checking to device_create_file
-and also care to destroy the files upon exit.
+Add a description of the module parameters to the documentation of
+the vt1211 driver.
 
-Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
- drivers/hwmon/w83l785ts.c |   28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+ Documentation/hwmon/vt1211 |   24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
---- gregkh-2.6.orig/drivers/hwmon/w83l785ts.c
-+++ gregkh-2.6/drivers/hwmon/w83l785ts.c
-@@ -236,21 +236,30 @@ static int w83l785ts_detect(struct i2c_a
- 	 * Nothing yet, assume it is already started.
- 	 */
+--- gregkh-2.6.orig/Documentation/hwmon/vt1211
++++ gregkh-2.6/Documentation/hwmon/vt1211
+@@ -16,6 +16,26 @@ Thanks to Joseph Chan and Fiona Gatt fro
+ technical support.
  
-+	err = device_create_file(&new_client->dev,
-+				 &sensor_dev_attr_temp1_input.dev_attr);
-+	if (err)
-+		goto exit_remove;
+ 
++Module Parameters
++-----------------
 +
-+	err = device_create_file(&new_client->dev,
-+				 &sensor_dev_attr_temp1_max.dev_attr);
-+	if (err)
-+		goto exit_remove;
++* uch_config: int	Override the BIOS default universal channel (UCH)
++			configuration for channels 1-5.
++			Legal values are in the range of 0-31. Bit 0 maps to
++			UCH1, bit 1 maps to UCH2 and so on. Setting a bit to 1
++			enables the thermal input of that particular UCH and
++			setting a bit to 0 enables the voltage input.
 +
- 	/* Register sysfs hooks */
- 	data->class_dev = hwmon_device_register(&new_client->dev);
- 	if (IS_ERR(data->class_dev)) {
- 		err = PTR_ERR(data->class_dev);
--		goto exit_detach;
-+		goto exit_remove;
- 	}
++* int_mode: int		Override the BIOS default temperature interrupt mode.
++			The only possible value is 0 which forces interrupt
++			mode 0. In this mode, any pending interrupt is cleared
++			when the status register is read but is regenerated as
++			long as the temperature stays above the hysteresis
++			limit.
++
++Be aware that overriding BIOS defaults might cause some unwanted side effects!
++
++
+ Description
+ -----------
  
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_input.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_max.dev_attr);
--
- 	return 0;
+@@ -88,9 +108,7 @@ has a high limit which triggers an alarm
+ hysteresis value with each temperature below which the temperature has to drop
+ before the alarm is cleared (this is only true for interrupt mode 0). The
+ interrupt mode can be forced to 0 in case the BIOS doesn't do it
+-automatically. For that, the parameter int_mode=0 needs to be supplied when
+-loading the driver module. Be aware that overriding BIOS defaults might cause
+-some unwanted side effects!
++automatically. See the 'Module Parameters' section for details.
  
--exit_detach:
-+exit_remove:
-+	device_remove_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_input.dev_attr);
-+	device_remove_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_max.dev_attr);
- 	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
-@@ -264,7 +273,10 @@ static int w83l785ts_detach_client(struc
- 	int err;
- 
- 	hwmon_device_unregister(data->class_dev);
--
-+	device_remove_file(&client->dev,
-+			   &sensor_dev_attr_temp1_input.dev_attr);
-+	device_remove_file(&client->dev,
-+			   &sensor_dev_attr_temp1_max.dev_attr);
- 	if ((err = i2c_detach_client(client)))
- 		return err;
- 
+ All temperature channels except temp2 are external. Temp2 is the VT1211
+ internal thermal diode and the driver does all the scaling for temp2 and
 
 
 Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
