@@ -1,7 +1,7 @@
 From: gregkh@suse.de (gregkh at suse.de)
-Date: Thu, 28 Sep 2006 07:01:19 +0000
-Subject: [lm-sensors] patch hwmon-unchecked-return-status-fixes-smsc.patch
-Message-Id: <20060928070116.4145C8FD61D@imap.suse.de>
+Date: Thu, 28 Sep 2006 07:01:23 +0000
+Subject: [lm-sensors] patch hwmon-unchecked-return-status-fixes-vt8231.patch
+Message-Id: <20060928070120.A0F6A8DF287@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060928065931.BBCC7900C4B@imap.suse.de>
 In-Reply-To: <20060928065931.BBCC7900C4B@imap.suse.de>
@@ -13,357 +13,274 @@ To: lm-sensors@vger.kernel.org
 
 This is a note to let you know that I've just added the patch titled
 
-     Subject: [PATCH 22/23] hwmon: Fix unchecked return status, SMSC chips
+     Subject: [PATCH 17/23] vt8231: Fix unchecked return status
 
 to my gregkh-2.6 tree.  Its filename is
 
-     hwmon-unchecked-return-status-fixes-smsc.patch
+     hwmon-unchecked-return-status-fixes-vt8231.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-From khali at linux-fr.org Sun Sep 24 12:25:22 2006
-Date: Sun, 24 Sep 2006 21:25:12 +0200
+From khali at linux-fr.org Sun Sep 24 12:21:52 2006
+Date: Sun, 24 Sep 2006 21:21:46 +0200
 From: Jean Delvare <khali at linux-fr.org>
 To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>
-Subject: [PATCH 22/23] hwmon: Fix unchecked return status, SMSC chips
-Message-Id: <20060924212512.afc2d3b3.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-smsc.patch
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, Roger Lucas <roger at planbit.co.uk>
+Subject: [PATCH 17/23] vt8231: Fix unchecked return status
+Message-Id: <20060924212146.6e7570d5.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-vt8231.patch
 
-hwmon: Fix unchecked return status, SMSC chips
+From: Roger Lucas <roger at planbit.co.uk>
 
-Fix up 2 more hwmon drivers so that they no longer ignore return
-status from device_create_file().
+vt8231: Fix unchecked return status
 
+Check the return status from device_create_file() and also use
+the newer and cleaner sysfs creation functions.
+
+Signed-off-by: Roger Lucas <roger at planbit.co.uk>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
- drivers/hwmon/smsc47m1.c   |   78 ++++++++++++++++++-----
- drivers/hwmon/smsc47m192.c |  150 +++++++++++++++++++++++++--------------------
- 2 files changed, 145 insertions(+), 83 deletions(-)
+ drivers/hwmon/vt8231.c |  186 ++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 132 insertions(+), 54 deletions(-)
 
---- gregkh-2.6.orig/drivers/hwmon/smsc47m1.c
-+++ gregkh-2.6/drivers/hwmon/smsc47m1.c
-@@ -35,6 +35,7 @@
- #include <linux/err.h>
- #include <linux/init.h>
- #include <linux/mutex.h>
-+#include <linux/sysfs.h>
- #include <asm/io.h>
+--- gregkh-2.6.orig/drivers/hwmon/vt8231.c
++++ gregkh-2.6/drivers/hwmon/vt8231.c
+@@ -451,37 +451,6 @@ define_temperature_sysfs(4);
+ define_temperature_sysfs(5);
+ define_temperature_sysfs(6);
  
- /* Address is autodetected, there is no default value */
-@@ -347,6 +348,30 @@ fan_present(2);
+-#define CFG_INFO_TEMP(id)	{ &sensor_dev_attr_temp##id##_input.dev_attr, \
+-				&sensor_dev_attr_temp##id##_max_hyst.dev_attr, \
+-				&sensor_dev_attr_temp##id##_max.dev_attr }
+-#define CFG_INFO_VOLT(id)	{ &sensor_dev_attr_in##id##_input.dev_attr, \
+-				&sensor_dev_attr_in##id##_min.dev_attr, \
+-				&sensor_dev_attr_in##id##_max.dev_attr }
+-
+-struct str_device_attr_table {
+-	struct device_attribute *input;
+-	struct device_attribute *min;
+-	struct device_attribute *max;
+-};
+-
+-static struct str_device_attr_table cfg_info_temp[] = {
+-	{ &dev_attr_temp1_input, &dev_attr_temp1_max_hyst, &dev_attr_temp1_max },
+-	CFG_INFO_TEMP(2),
+-	CFG_INFO_TEMP(3),
+-	CFG_INFO_TEMP(4),
+-	CFG_INFO_TEMP(5),
+-	CFG_INFO_TEMP(6)
+-};
+-
+-static struct str_device_attr_table cfg_info_volt[] = {
+-	CFG_INFO_VOLT(0),
+-	CFG_INFO_VOLT(1),
+-	CFG_INFO_VOLT(2),
+-	CFG_INFO_VOLT(3),
+-	CFG_INFO_VOLT(4),
+-	{ &dev_attr_in5_input, &dev_attr_in5_min, &dev_attr_in5_max }
+-};
+-
+ /* Fans */
+ static ssize_t show_fan(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -585,6 +554,107 @@ static ssize_t show_alarms(struct device
  
- static DEVICE_ATTR(alarms, S_IRUGO, get_alarms, NULL);
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
  
-+/* Almost all sysfs files may or may not be created depending on the chip
-+   setup so we create them individually. It is still convenient to define a
-+   group to remove them all at once. */
-+static struct attribute *smsc47m1_attributes[] = {
-+	&dev_attr_fan1_input.attr,
-+	&dev_attr_fan1_min.attr,
-+	&dev_attr_fan1_div.attr,
-+	&dev_attr_fan2_input.attr,
-+	&dev_attr_fan2_min.attr,
-+	&dev_attr_fan2_div.attr,
++static struct attribute *vt8231_attributes_temps[6][4] = {
++	{
++		&dev_attr_temp1_input.attr,
++		&dev_attr_temp1_max_hyst.attr,
++		&dev_attr_temp1_max.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_temp2_input.dev_attr.attr,
++		&sensor_dev_attr_temp2_max_hyst.dev_attr.attr,
++		&sensor_dev_attr_temp2_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_temp3_input.dev_attr.attr,
++		&sensor_dev_attr_temp3_max_hyst.dev_attr.attr,
++		&sensor_dev_attr_temp3_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_temp4_input.dev_attr.attr,
++		&sensor_dev_attr_temp4_max_hyst.dev_attr.attr,
++		&sensor_dev_attr_temp4_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_temp5_input.dev_attr.attr,
++		&sensor_dev_attr_temp5_max_hyst.dev_attr.attr,
++		&sensor_dev_attr_temp5_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_temp6_input.dev_attr.attr,
++		&sensor_dev_attr_temp6_max_hyst.dev_attr.attr,
++		&sensor_dev_attr_temp6_max.dev_attr.attr,
++		NULL
++	}
++};
 +
-+	&dev_attr_pwm1.attr,
-+	&dev_attr_pwm1_enable.attr,
-+	&dev_attr_pwm2.attr,
-+	&dev_attr_pwm2_enable.attr,
++static const struct attribute_group vt8231_group_temps[6] = {
++	{ .attrs = vt8231_attributes_temps[0] },
++	{ .attrs = vt8231_attributes_temps[1] },
++	{ .attrs = vt8231_attributes_temps[2] },
++	{ .attrs = vt8231_attributes_temps[3] },
++	{ .attrs = vt8231_attributes_temps[4] },
++	{ .attrs = vt8231_attributes_temps[5] },
++};
 +
++static struct attribute *vt8231_attributes_volts[6][4] = {
++	{
++		&sensor_dev_attr_in0_input.dev_attr.attr,
++		&sensor_dev_attr_in0_min.dev_attr.attr,
++		&sensor_dev_attr_in0_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_in1_input.dev_attr.attr,
++		&sensor_dev_attr_in1_min.dev_attr.attr,
++		&sensor_dev_attr_in1_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_in2_input.dev_attr.attr,
++		&sensor_dev_attr_in2_min.dev_attr.attr,
++		&sensor_dev_attr_in2_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_in3_input.dev_attr.attr,
++		&sensor_dev_attr_in3_min.dev_attr.attr,
++		&sensor_dev_attr_in3_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_in4_input.dev_attr.attr,
++		&sensor_dev_attr_in4_min.dev_attr.attr,
++		&sensor_dev_attr_in4_max.dev_attr.attr,
++		NULL
++	}, {
++		&dev_attr_in5_input.attr,
++		&dev_attr_in5_min.attr,
++		&dev_attr_in5_max.attr,
++		NULL
++	}
++};
++
++static const struct attribute_group vt8231_group_volts[6] = {
++	{ .attrs = vt8231_attributes_volts[0] },
++	{ .attrs = vt8231_attributes_volts[1] },
++	{ .attrs = vt8231_attributes_volts[2] },
++	{ .attrs = vt8231_attributes_volts[3] },
++	{ .attrs = vt8231_attributes_volts[4] },
++	{ .attrs = vt8231_attributes_volts[5] },
++};
++
++static struct attribute *vt8231_attributes[] = {
++	&sensor_dev_attr_fan1_input.dev_attr.attr,
++	&sensor_dev_attr_fan2_input.dev_attr.attr,
++	&sensor_dev_attr_fan1_min.dev_attr.attr,
++	&sensor_dev_attr_fan2_min.dev_attr.attr,
++	&sensor_dev_attr_fan1_div.dev_attr.attr,
++	&sensor_dev_attr_fan2_div.dev_attr.attr,
 +	&dev_attr_alarms.attr,
 +	NULL
 +};
 +
-+static const struct attribute_group smsc47m1_group = {
-+	.attrs = smsc47m1_attributes,
++static const struct attribute_group vt8231_group = {
++	.attrs = vt8231_attributes,
 +};
 +
- static int __init smsc47m1_find(unsigned short *addr)
- {
- 	u8 val;
-@@ -447,46 +472,62 @@ static int smsc47m1_detect(struct i2c_ad
- 	smsc47m1_update_device(&new_client->dev, 1);
- 
- 	/* Register sysfs hooks */
--	data->class_dev = hwmon_device_register(&new_client->dev);
--	if (IS_ERR(data->class_dev)) {
--		err = PTR_ERR(data->class_dev);
--		goto error_detach;
--	}
--
- 	if (fan1) {
--		device_create_file(&new_client->dev, &dev_attr_fan1_input);
--		device_create_file(&new_client->dev, &dev_attr_fan1_min);
--		device_create_file(&new_client->dev, &dev_attr_fan1_div);
-+		if ((err = device_create_file(&new_client->dev,
-+					      &dev_attr_fan1_input))
-+		 || (err = device_create_file(&new_client->dev,
-+					      &dev_attr_fan1_min))
-+		 || (err = device_create_file(&new_client->dev,
-+					      &dev_attr_fan1_div)))
-+			goto error_remove_files;
- 	} else
- 		dev_dbg(&new_client->dev, "Fan 1 not enabled by hardware, "
- 			"skipping\n");
- 
- 	if (fan2) {
--		device_create_file(&new_client->dev, &dev_attr_fan2_input);
--		device_create_file(&new_client->dev, &dev_attr_fan2_min);
--		device_create_file(&new_client->dev, &dev_attr_fan2_div);
-+		if ((err = device_create_file(&new_client->dev,
-+					      &dev_attr_fan2_input))
-+		 || (err = device_create_file(&new_client->dev,
-+					      &dev_attr_fan2_min))
-+		 || (err = device_create_file(&new_client->dev,
-+					      &dev_attr_fan2_div)))
-+			goto error_remove_files;
- 	} else
- 		dev_dbg(&new_client->dev, "Fan 2 not enabled by hardware, "
- 			"skipping\n");
- 
- 	if (pwm1) {
--		device_create_file(&new_client->dev, &dev_attr_pwm1);
--		device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
-+		if ((err = device_create_file(&new_client->dev,
-+					      &dev_attr_pwm1))
-+		 || (err = device_create_file(&new_client->dev,
-+					      &dev_attr_pwm1_enable)))
-+			goto error_remove_files;
- 	} else
- 		dev_dbg(&new_client->dev, "PWM 1 not enabled by hardware, "
- 			"skipping\n");
- 	if (pwm2) {
--		device_create_file(&new_client->dev, &dev_attr_pwm2);
--		device_create_file(&new_client->dev, &dev_attr_pwm2_enable);
-+		if ((err = device_create_file(&new_client->dev,
-+					      &dev_attr_pwm2))
-+		 || (err = device_create_file(&new_client->dev,
-+					      &dev_attr_pwm2_enable)))
-+			goto error_remove_files;
- 	} else
- 		dev_dbg(&new_client->dev, "PWM 2 not enabled by hardware, "
- 			"skipping\n");
- 
--	device_create_file(&new_client->dev, &dev_attr_alarms);
-+	if ((err = device_create_file(&new_client->dev, &dev_attr_alarms)))
-+		goto error_remove_files;
-+
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto error_remove_files;
-+	}
- 
- 	return 0;
- 
--error_detach:
-+error_remove_files:
-+	sysfs_remove_group(&new_client->dev.kobj, &smsc47m1_group);
- 	i2c_detach_client(new_client);
- error_free:
- 	kfree(data);
-@@ -501,6 +542,7 @@ static int smsc47m1_detach_client(struct
- 	int err;
- 
- 	hwmon_device_unregister(data->class_dev);
-+	sysfs_remove_group(&client->dev.kobj, &smsc47m1_group);
- 
- 	if ((err = i2c_detach_client(client)))
- 		return err;
---- gregkh-2.6.orig/drivers/hwmon/smsc47m192.c
-+++ gregkh-2.6/drivers/hwmon/smsc47m192.c
-@@ -30,6 +30,7 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/hwmon-vid.h>
- #include <linux/err.h>
-+#include <linux/sysfs.h>
- 
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { 0x2c, 0x2d, I2C_CLIENT_END };
-@@ -370,6 +371,75 @@ static SENSOR_DEVICE_ATTR(in5_alarm, S_I
- static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 0x0400);
- static SENSOR_DEVICE_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 0x0800);
- 
-+static struct attribute *smsc47m192_attributes[] = {
-+	&sensor_dev_attr_in0_input.dev_attr.attr,
-+	&sensor_dev_attr_in0_min.dev_attr.attr,
-+	&sensor_dev_attr_in0_max.dev_attr.attr,
-+	&sensor_dev_attr_in0_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in1_input.dev_attr.attr,
-+	&sensor_dev_attr_in1_min.dev_attr.attr,
-+	&sensor_dev_attr_in1_max.dev_attr.attr,
-+	&sensor_dev_attr_in1_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in2_input.dev_attr.attr,
-+	&sensor_dev_attr_in2_min.dev_attr.attr,
-+	&sensor_dev_attr_in2_max.dev_attr.attr,
-+	&sensor_dev_attr_in2_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in3_input.dev_attr.attr,
-+	&sensor_dev_attr_in3_min.dev_attr.attr,
-+	&sensor_dev_attr_in3_max.dev_attr.attr,
-+	&sensor_dev_attr_in3_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in5_input.dev_attr.attr,
-+	&sensor_dev_attr_in5_min.dev_attr.attr,
-+	&sensor_dev_attr_in5_max.dev_attr.attr,
-+	&sensor_dev_attr_in5_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in6_input.dev_attr.attr,
-+	&sensor_dev_attr_in6_min.dev_attr.attr,
-+	&sensor_dev_attr_in6_max.dev_attr.attr,
-+	&sensor_dev_attr_in6_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in7_input.dev_attr.attr,
-+	&sensor_dev_attr_in7_min.dev_attr.attr,
-+	&sensor_dev_attr_in7_max.dev_attr.attr,
-+	&sensor_dev_attr_in7_alarm.dev_attr.attr,
-+
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_min.dev_attr.attr,
-+	&sensor_dev_attr_temp1_offset.dev_attr.attr,
-+	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp2_input.dev_attr.attr,
-+	&sensor_dev_attr_temp2_max.dev_attr.attr,
-+	&sensor_dev_attr_temp2_min.dev_attr.attr,
-+	&sensor_dev_attr_temp2_offset.dev_attr.attr,
-+	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp2_input_fault.dev_attr.attr,
-+	&sensor_dev_attr_temp3_input.dev_attr.attr,
-+	&sensor_dev_attr_temp3_max.dev_attr.attr,
-+	&sensor_dev_attr_temp3_min.dev_attr.attr,
-+	&sensor_dev_attr_temp3_offset.dev_attr.attr,
-+	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp3_input_fault.dev_attr.attr,
-+
-+	&dev_attr_cpu0_vid.attr,
-+	&dev_attr_vrm.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group smsc47m192_group = {
-+	.attrs = smsc47m192_attributes,
-+};
-+
-+static struct attribute *smsc47m192_attributes_in4[] = {
-+	&sensor_dev_attr_in4_input.dev_attr.attr,
-+	&sensor_dev_attr_in4_min.dev_attr.attr,
-+	&sensor_dev_attr_in4_max.dev_attr.attr,
-+	&sensor_dev_attr_in4_alarm.dev_attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group smsc47m192_group_in4 = {
-+	.attrs = smsc47m192_attributes_in4,
-+};
-+
- /* This function is called when:
-     * smsc47m192_driver is inserted (when this module is loaded), for each
-       available adapter
-@@ -471,80 +541,28 @@ static int smsc47m192_detect(struct i2c_
- 	smsc47m192_init_client(client);
+ static struct i2c_driver vt8231_driver = {
+ 	.driver = {
+ 		.owner	= THIS_MODULE,
+@@ -671,43 +741,43 @@ int vt8231_detect(struct i2c_adapter *ad
+ 	vt8231_init_client(client);
  
  	/* Register sysfs hooks */
 -	data->class_dev = hwmon_device_register(&client->dev);
 -	if (IS_ERR(data->class_dev)) {
 -		err = PTR_ERR(data->class_dev);
-+	if ((err = sysfs_create_group(&client->dev.kobj, &smsc47m192_group)))
++	if ((err = sysfs_create_group(&client->dev.kobj, &vt8231_group)))
  		goto exit_detach;
 -	}
--
--	device_create_file(&client->dev, &sensor_dev_attr_in0_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in0_min.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in0_max.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in0_alarm.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in1_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in1_min.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in1_max.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in1_alarm.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in2_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in2_min.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in2_max.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in2_alarm.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in3_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in3_min.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in3_max.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in3_alarm.dev_attr);
  
- 	/* Pin 110 is either in4 (+12V) or VID4 */
- 	config = i2c_smbus_read_byte_data(client, SMSC47M192_REG_CONFIG);
- 	if (!(config & 0x20)) {
--		device_create_file(&client->dev,
--				   &sensor_dev_attr_in4_input.dev_attr);
--		device_create_file(&client->dev,
--				   &sensor_dev_attr_in4_min.dev_attr);
--		device_create_file(&client->dev,
--				   &sensor_dev_attr_in4_max.dev_attr);
--		device_create_file(&client->dev,
--				   &sensor_dev_attr_in4_alarm.dev_attr);
-+		if ((err = sysfs_create_group(&client->dev.kobj,
-+					      &smsc47m192_group_in4)))
-+			goto exit_remove_files;
-+	}
-+
+ 	/* Must update device information to find out the config field */
+ 	data->uch_config = vt8231_read_value(client, VT8231_REG_UCH_CONFIG);
+ 
+-	for (i = 0; i < ARRAY_SIZE(cfg_info_temp); i++) {
++	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++) {
+ 		if (ISTEMP(i, data->uch_config)) {
+-			device_create_file(&client->dev,
+-					   cfg_info_temp[i].input);
+-			device_create_file(&client->dev, cfg_info_temp[i].max);
+-			device_create_file(&client->dev, cfg_info_temp[i].min);
++			if ((err = sysfs_create_group(&client->dev.kobj,
++					&vt8231_group_temps[i])))
++				goto exit_remove_files;
+ 		}
+ 	}
+ 
+-	for (i = 0; i < ARRAY_SIZE(cfg_info_volt); i++) {
++	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++) {
+ 		if (ISVOLT(i, data->uch_config)) {
+-			device_create_file(&client->dev,
+-					   cfg_info_volt[i].input);
+-			device_create_file(&client->dev, cfg_info_volt[i].max);
+-			device_create_file(&client->dev, cfg_info_volt[i].min);
++			if ((err = sysfs_create_group(&client->dev.kobj,
++					&vt8231_group_volts[i])))
++				goto exit_remove_files;
+ 		}
+ 	}
+ 
+-	device_create_file(&client->dev, &sensor_dev_attr_fan1_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_fan2_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_fan1_min.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_fan2_min.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_fan1_div.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_fan2_div.dev_attr);
+-
+-	device_create_file(&client->dev, &dev_attr_alarms);
 +	data->class_dev = hwmon_device_register(&client->dev);
 +	if (IS_ERR(data->class_dev)) {
 +		err = PTR_ERR(data->class_dev);
 +		goto exit_remove_files;
- 	}
--	device_create_file(&client->dev, &sensor_dev_attr_in5_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in5_min.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in5_max.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in5_alarm.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in6_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in6_min.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in6_max.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in6_alarm.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in7_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in7_min.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in7_max.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_in7_alarm.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_temp1_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_temp1_max.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_temp1_min.dev_attr);
--	device_create_file(&client->dev,
--			   &sensor_dev_attr_temp1_offset.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_temp1_alarm.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_temp2_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_temp2_max.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_temp2_min.dev_attr);
--	device_create_file(&client->dev,
--			   &sensor_dev_attr_temp2_offset.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_temp2_alarm.dev_attr);
--	device_create_file(&client->dev,
--			   &sensor_dev_attr_temp2_input_fault.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_temp3_input.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_temp3_max.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_temp3_min.dev_attr);
--	device_create_file(&client->dev,
--			   &sensor_dev_attr_temp3_offset.dev_attr);
--	device_create_file(&client->dev, &sensor_dev_attr_temp3_alarm.dev_attr);
--	device_create_file(&client->dev,
--			   &sensor_dev_attr_temp3_input_fault.dev_attr);
--	device_create_file(&client->dev, &dev_attr_cpu0_vid);
--	device_create_file(&client->dev, &dev_attr_vrm);
- 
++	}
  	return 0;
  
 +exit_remove_files:
-+	sysfs_remove_group(&client->dev.kobj, &smsc47m192_group);
-+	sysfs_remove_group(&client->dev.kobj, &smsc47m192_group_in4);
++	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
++		sysfs_remove_group(&client->dev.kobj, &vt8231_group_volts[i]);
++
++	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
++		sysfs_remove_group(&client->dev.kobj, &vt8231_group_temps[i]);
++
++	sysfs_remove_group(&client->dev.kobj, &vt8231_group);
  exit_detach:
  	i2c_detach_client(client);
  exit_free:
-@@ -559,6 +577,8 @@ static int smsc47m192_detach_client(stru
- 	int err;
+@@ -720,10 +790,18 @@ exit_release:
+ static int vt8231_detach_client(struct i2c_client *client)
+ {
+ 	struct vt8231_data *data = i2c_get_clientdata(client);
+-	int err;
++	int err, i;
  
  	hwmon_device_unregister(data->class_dev);
-+	sysfs_remove_group(&client->dev.kobj, &smsc47m192_group);
-+	sysfs_remove_group(&client->dev.kobj, &smsc47m192_group_in4);
  
- 	if ((err = i2c_detach_client(client)))
++	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
++		sysfs_remove_group(&client->dev.kobj, &vt8231_group_volts[i]);
++
++	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
++		sysfs_remove_group(&client->dev.kobj, &vt8231_group_temps[i]);
++
++	sysfs_remove_group(&client->dev.kobj, &vt8231_group);
++
+ 	if ((err = i2c_detach_client(client))) {
  		return err;
+ 	}
 
 
 Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
