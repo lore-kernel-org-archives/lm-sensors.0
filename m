@@ -1,26 +1,156 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Sun, 24 Sep 2006 20:57:59 +0000
-Subject: [lm-sensors] [PATCH] W83627EHF fix fan5
-Message-Id: <4516F157.9060407@assembler.cz>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 28 Sep 2006 22:48:27 +0000
+Subject: [lm-sensors] [PATCH 7/39] it87: No sysfs files for disabled fans
+Message-Id: <11594837602411-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+From: Jean Delvare <khali at linux-fr.org>
 
-Following patch fixes the detection of fan5 and preserves the bit between the
-register writes, because the bit is write only.
+it87: No sysfs files for disabled fans
 
-Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
+Only create the fan attributes for enabled fan tachometers. Some
+motherboards have a nice BIOS which only enables the fan inputs which
+are wired to a fan header on the board. This makes the configuration
+easier for the user.
 
-Regards
-Rudolf
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: fan5fix2.patch
-Type: text/x-patch
-Size: 1857 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060924/f4aa0a84/attachment.bin 
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+---
+ drivers/hwmon/it87.c |   83 +++++++++++++++++++++++++++++++-------------------
+ 1 files changed, 51 insertions(+), 32 deletions(-)
+
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index e7f14e6..0317e44 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -222,6 +222,7 @@ struct it87_data {
+ 	u8 in[9];		/* Register value */
+ 	u8 in_max[9];		/* Register value */
+ 	u8 in_min[9];		/* Register value */
++	u8 has_fan;		/* Bitfield, fans enabled */
+ 	u16 fan[3];		/* Register values, possibly combined */
+ 	u16 fan_min[3];		/* Register values, possibly combined */
+ 	u8 temp[3];		/* Register value */
+@@ -967,38 +968,51 @@ static int it87_detect(struct i2c_adapte
+ 	device_create_file(&new_client->dev, &sensor_dev_attr_temp2_type.dev_attr);
+ 	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_type.dev_attr);
+ 
++	/* Do not create fan files for disabled fans */
+ 	if (data->type = it8716) { /* 16-bit tachometers */
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan1_input16.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan2_input16.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan3_input16.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan1_min16.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan2_min16.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan3_min16.dev_attr);
++		if (data->has_fan & (1 << 0)) {
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan1_input16.dev_attr);
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan1_min16.dev_attr);
++		}
++		if (data->has_fan & (1 << 1)) {
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan2_input16.dev_attr);
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan2_min16.dev_attr);
++		}
++		if (data->has_fan & (1 << 2)) {
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan3_input16.dev_attr);
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan3_min16.dev_attr);
++		}
+ 	} else {
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan1_input.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan2_input.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan3_input.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan1_min.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan2_min.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan3_min.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan1_div.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan2_div.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan3_div.dev_attr);
++		if (data->has_fan & (1 << 0)) {
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan1_input.dev_attr);
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan1_min.dev_attr);
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan1_div.dev_attr);
++		}
++		if (data->has_fan & (1 << 1)) {
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan2_input.dev_attr);
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan2_min.dev_attr);
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan2_div.dev_attr);
++		}
++		if (data->has_fan & (1 << 2)) {
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan3_input.dev_attr);
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan3_min.dev_attr);
++			device_create_file(&new_client->dev,
++				&sensor_dev_attr_fan3_div.dev_attr);
++		}
+ 	}
+ 
+ 	device_create_file(&new_client->dev, &dev_attr_alarms);
+@@ -1175,11 +1189,12 @@ static void it87_init_client(struct i2c_
+ 		data->fan_main_ctrl |= 0x70;
+ 		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
+ 	}
++	data->has_fan = (data->fan_main_ctrl >> 4) & 0x07;
+ 
+ 	/* Set tachometers to 16-bit mode if needed */
+ 	if (data->type = it8716) {
+ 		tmp = it87_read_value(client, IT87_REG_FAN_16BIT);
+-		if ((tmp & 0x07) != 0x07) {
++		if (~tmp & 0x07 & data->has_fan) {
+ 			dev_dbg(&client->dev,
+ 				"Setting fan1-3 to 16-bit mode\n");
+ 			it87_write_value(client, IT87_REG_FAN_16BIT,
+@@ -1244,6 +1259,10 @@ static struct it87_data *it87_update_dev
+ 		data->in_max[8] = 255;
+ 
+ 		for (i = 0; i < 3; i++) {
++			/* Skip disabled fans */
++			if (!(data->has_fan & (1 << i)))
++				continue;
++
+ 			data->fan_min[i]  			    it87_read_value(client, IT87_REG_FAN_MIN(i));
+ 			data->fan[i] = it87_read_value(client,
+@@ -1266,7 +1285,7 @@ static struct it87_data *it87_update_dev
+ 		}
+ 
+ 		/* Newer chips don't have clock dividers */
+-		if (data->type != it8716) {
++		if ((data->has_fan & 0x07) && data->type != it8716) {
+ 			i = it87_read_value(client, IT87_REG_FAN_DIV);
+ 			data->fan_div[0] = i & 0x07;
+ 			data->fan_div[1] = (i >> 3) & 0x07;
+-- 
+1.4.2.1
+
+
