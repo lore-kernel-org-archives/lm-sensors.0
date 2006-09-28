@@ -1,7 +1,7 @@
 From: greg@kroah.com (Greg KH)
-Date: Wed, 27 Sep 2006 01:01:44 +0000
-Subject: [lm-sensors] [PATCH 13/30] i2c-matroxfb: Struct init conversion
-Message-Id: <11593189642739-git-send-email-greg@kroah.com>
+Date: Thu, 28 Sep 2006 22:48:28 +0000
+Subject: [lm-sensors] [PATCH 8/39] it87: Prevent overflow on fan clock
+Message-Id: <11594837643683-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,41 +10,38 @@ To: lm-sensors@vger.kernel.org
 
 From: Jean Delvare <khali at linux-fr.org>
 
-i2c-matroxfb: Struct init conversion
+it87: Prevent overflow on fan clock divider write
 
-Convert the struct i2c_algo_bit_data initialization to proper C99
-style.
+The highest possible clock divider for fan1 and fan2 is 128.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Acked-by: Petr Vandrovec <vandrove at vc.cvut.cz>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/video/matrox/i2c-matroxfb.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/hwmon/it87.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/matrox/i2c-matroxfb.c b/drivers/video/matrox/i2c-matroxfb.c
-index 57abbae..9842042 100644
---- a/drivers/video/matrox/i2c-matroxfb.c
-+++ b/drivers/video/matrox/i2c-matroxfb.c
-@@ -95,12 +95,13 @@ static struct i2c_adapter matrox_i2c_ada
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 0317e44..fc75fcb 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -198,7 +198,7 @@ #define PWM_FROM_REG(val) (((val)&0x7f) 
+ static int DIV_TO_REG(int val)
+ {
+ 	int answer = 0;
+-	while ((val >>= 1) != 0)
++	while (answer < 7 && (val >>= 1))
+ 		answer++;
+ 	return answer;
+ }
+@@ -563,7 +563,7 @@ static ssize_t set_fan_div(struct device
  
- static struct i2c_algo_bit_data matrox_i2c_algo_template  {
--	NULL,
--	matroxfb_gpio_setsda,
--	matroxfb_gpio_setscl,
--	matroxfb_gpio_getsda,
--	matroxfb_gpio_getscl,
--	10, 10, 100,
-+	.setsda		= matroxfb_gpio_setsda,
-+	.setscl		= matroxfb_gpio_setscl,
-+	.getsda		= matroxfb_gpio_getsda,
-+	.getscl		= matroxfb_gpio_getscl,
-+	.udelay		= 10,
-+	.mdelay		= 10,
-+	.timeout	= 100,
- };
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct it87_data *data = i2c_get_clientdata(client);
+-	int val = simple_strtol(buf, NULL, 10);
++	unsigned long val = simple_strtoul(buf, NULL, 10);
+ 	int i, min[3];
+ 	u8 old;
  
- static int i2c_bus_reg(struct i2c_bit_adapter* b, struct matrox_fb_info* minfo, 
 -- 
 1.4.2.1
 
