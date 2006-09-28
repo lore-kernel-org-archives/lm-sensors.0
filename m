@@ -1,7 +1,7 @@
 From: greg@kroah.com (Greg KH)
-Date: Wed, 27 Sep 2006 01:01:38 +0000
-Subject: [lm-sensors] [PATCH 7/30] i2c-algo-sibyte: Merge into i2c-sibyte
-Message-Id: <11593189412834-git-send-email-greg@kroah.com>
+Date: Thu, 28 Sep 2006 22:48:33 +0000
+Subject: [lm-sensors] [PATCH 13/39] it87: Copyright update
+Message-Id: <11594837803541-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,472 +10,72 @@ To: lm-sensors@vger.kernel.org
 
 From: Jean Delvare <khali at linux-fr.org>
 
-i2c-algo-sibyte: Merge into i2c-sibyte
+it87: Copyright update
 
-Merge i2c-algo-sibyte into i2c-sibyte, as this is a complete,
-hardware-dependent SMBus implementation and not a reusable algorithm.
+I think my contributions to the it87 driver over the past two
+years qualify me as a co-author of this driver.
 
-Perform some basic coding style cleanups while we're here (mainly
-space-based indentation replaced by tabulations.)
+Also drop old comments of dubious usefulness.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Cc: Ralf Baechle <ralf at linux-mips.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/algos/Kconfig           |    6 -
- drivers/i2c/algos/Makefile          |    1 
- drivers/i2c/algos/i2c-algo-sibyte.c |  186 -----------------------------------
- drivers/i2c/busses/i2c-sibyte.c     |  158 +++++++++++++++++++++++++++++-
- include/linux/i2c-algo-sibyte.h     |   33 ------
- 5 files changed, 155 insertions(+), 229 deletions(-)
+ Documentation/hwmon/it87 |    4 +++-
+ drivers/hwmon/it87.c     |   12 +++---------
+ 2 files changed, 6 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/i2c/algos/Kconfig b/drivers/i2c/algos/Kconfig
-index 3040801..c034820 100644
---- a/drivers/i2c/algos/Kconfig
-+++ b/drivers/i2c/algos/Kconfig
-@@ -53,12 +53,6 @@ config I2C_ALGO8XX
- 	tristate "MPC8xx CPM I2C interface"
- 	depends on 8xx && I2C
+diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
+index a45044e..e783fd6 100644
+--- a/Documentation/hwmon/it87
++++ b/Documentation/hwmon/it87
+@@ -29,7 +29,9 @@ Supported chips:
+     Addresses scanned: from Super I/O config space (8 I/O ports)
+     Datasheet: No longer be available
  
--config I2C_ALGO_SIBYTE
--	tristate "SiByte SMBus interface"
--	depends on SIBYTE_SB1xxx_SOC && I2C
--	help
--	  Supports the SiByte SOC on-chip I2C interfaces (2 channels).
--
- config I2C_ALGO_SGI
- 	tristate "I2C SGI interfaces"
- 	depends on I2C && (SGI_IP22 || SGI_IP32 || X86_VISWS)
-diff --git a/drivers/i2c/algos/Makefile b/drivers/i2c/algos/Makefile
-index 867fe1f..208be04 100644
---- a/drivers/i2c/algos/Makefile
-+++ b/drivers/i2c/algos/Makefile
-@@ -6,7 +6,6 @@ obj-$(CONFIG_I2C_ALGOBIT)	+= i2c-algo-bi
- obj-$(CONFIG_I2C_ALGOPCF)	+= i2c-algo-pcf.o
- obj-$(CONFIG_I2C_ALGOPCA)	+= i2c-algo-pca.o
- obj-$(CONFIG_I2C_ALGOITE)	+= i2c-algo-ite.o
--obj-$(CONFIG_I2C_ALGO_SIBYTE)	+= i2c-algo-sibyte.o
- obj-$(CONFIG_I2C_ALGO_SGI)	+= i2c-algo-sgi.o
+-Author: Christophe Gauthron <chrisg at 0-in.com>
++Authors:
++    Christophe Gauthron <chrisg at 0-in.com>
++    Jean Delvare <khali at linux-fr.org>
  
- ifeq ($(CONFIG_I2C_DEBUG_ALGO),y)
-diff --git a/drivers/i2c/algos/i2c-algo-sibyte.c b/drivers/i2c/algos/i2c-algo-sibyte.c
-deleted file mode 100644
-index 16d666f..0000000
---- a/drivers/i2c/algos/i2c-algo-sibyte.c
-+++ /dev/null
-@@ -1,186 +0,0 @@
--/* ------------------------------------------------------------------------- */
--/* i2c-algo-sibyte.c i2c driver algorithms for bit-shift adapters		     */
--/* ------------------------------------------------------------------------- */
--/*   Copyright (C) 2001,2002,2003 Broadcom Corporation
--     Copyright (C) 1995-2000 Simon G. Vogl
--
--    This program is free software; you can redistribute it and/or modify
--    it under the terms of the GNU General Public License as published by
--    the Free Software Foundation; either version 2 of the License, or
--    (at your option) any later version.
--
--    This program is distributed in the hope that it will be useful,
--    but WITHOUT ANY WARRANTY; without even the implied warranty of
--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--    GNU General Public License for more details.
--
--    You should have received a copy of the GNU General Public License
--    along with this program; if not, write to the Free Software
--    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.		     */
--/* ------------------------------------------------------------------------- */
--
--/* With some changes from Ky?sti M?lkki <kmalkki at cc.hut.fi> and even
--   Frodo Looijaard <frodol at dds.nl>.  */
--
--/* Ported for SiByte SOCs by Broadcom Corporation.  */
--
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/init.h>
--
--#include <asm/io.h>
--#include <asm/sibyte/sb1250_regs.h>
--#include <asm/sibyte/sb1250_smbus.h>
--
--#include <linux/i2c.h>
--#include <linux/i2c-algo-sibyte.h>
--
--/* ----- global defines ----------------------------------------------- */
--#define SMB_CSR(a,r) ((long)(a->reg_base + r))
--
--/* ----- global variables ---------------------------------------------	*/
--
--/* module parameters:
-- */
--static int bit_scan;	/* have a look at what's hanging 'round		*/
--
--
--static int smbus_xfer(struct i2c_adapter *i2c_adap, u16 addr, 
--                      unsigned short flags, char read_write,
--                      u8 command, int size, union i2c_smbus_data * data)
--{
--	struct i2c_algo_sibyte_data *adap = i2c_adap->algo_data;
--        int data_bytes = 0;
--        int error;
--
--        while (csr_in32(SMB_CSR(adap, R_SMB_STATUS)) & M_SMB_BUSY)
--                ;
--
--        switch (size) {
--        case I2C_SMBUS_QUICK:
--                csr_out32((V_SMB_ADDR(addr) | (read_write = I2C_SMBUS_READ ? M_SMB_QDATA : 0) |
--			   V_SMB_TT_QUICKCMD), SMB_CSR(adap, R_SMB_START));
--                break;
--        case I2C_SMBUS_BYTE:
--                if (read_write = I2C_SMBUS_READ) {
--                        csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_RD1BYTE),
--				  SMB_CSR(adap, R_SMB_START));
--                        data_bytes = 1;
--                } else {
--                        csr_out32(V_SMB_CMD(command), SMB_CSR(adap, R_SMB_CMD));
--                        csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_WR1BYTE),
--				  SMB_CSR(adap, R_SMB_START));
--                }
--                break;
--        case I2C_SMBUS_BYTE_DATA:
--                csr_out32(V_SMB_CMD(command), SMB_CSR(adap, R_SMB_CMD));
--                if (read_write = I2C_SMBUS_READ) {
--                        csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_CMD_RD1BYTE),
--				  SMB_CSR(adap, R_SMB_START));
--                        data_bytes = 1;
--                } else {
--                        csr_out32(V_SMB_LB(data->byte), SMB_CSR(adap, R_SMB_DATA));
--                        csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_WR2BYTE),
--				  SMB_CSR(adap, R_SMB_START));
--                }
--                break;
--        case I2C_SMBUS_WORD_DATA:
--                csr_out32(V_SMB_CMD(command), SMB_CSR(adap, R_SMB_CMD));
--                if (read_write = I2C_SMBUS_READ) {
--                        csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_CMD_RD2BYTE),
--				  SMB_CSR(adap, R_SMB_START));
--                        data_bytes = 2;
--                } else {
--                        csr_out32(V_SMB_LB(data->word & 0xff), SMB_CSR(adap, R_SMB_DATA));
--                        csr_out32(V_SMB_MB(data->word >> 8), SMB_CSR(adap, R_SMB_DATA));
--                        csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_WR2BYTE),
--				  SMB_CSR(adap, R_SMB_START));
--                }
--                break;
--        default:
--                return -1;      /* XXXKW better error code? */
--        }
--
--        while (csr_in32(SMB_CSR(adap, R_SMB_STATUS)) & M_SMB_BUSY)
--                ;
--
--        error = csr_in32(SMB_CSR(adap, R_SMB_STATUS));
--        if (error & M_SMB_ERROR) {
--                /* Clear error bit by writing a 1 */
--                csr_out32(M_SMB_ERROR, SMB_CSR(adap, R_SMB_STATUS));
--                return -1;      /* XXXKW better error code? */
--        }
--
--        if (data_bytes = 1)
--                data->byte = csr_in32(SMB_CSR(adap, R_SMB_DATA)) & 0xff;
--        if (data_bytes = 2)
--                data->word = csr_in32(SMB_CSR(adap, R_SMB_DATA)) & 0xffff;
--
--        return 0;
--}
--
--static u32 bit_func(struct i2c_adapter *adap)
--{
--	return (I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
--                I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA);
--}
--
--
--/* -----exported algorithm data: -------------------------------------	*/
--
--static struct i2c_algorithm i2c_sibyte_algo = {
--	.smbus_xfer	= smbus_xfer,
--	.functionality	= bit_func,
--};
--
--/* 
-- * registering functions to load algorithms at runtime 
-- */
--int i2c_sibyte_add_bus(struct i2c_adapter *i2c_adap, int speed)
--{
--	int i;
--	struct i2c_algo_sibyte_data *adap = i2c_adap->algo_data;
--
--	/* register new adapter to i2c module... */
--	i2c_adap->algo = &i2c_sibyte_algo;
--        
--        /* Set the frequency to 100 kHz */
--        csr_out32(speed, SMB_CSR(adap,R_SMB_FREQ));
--        csr_out32(0, SMB_CSR(adap,R_SMB_CONTROL));
--
--	/* scan bus */
--	if (bit_scan) {
--                union i2c_smbus_data data;
--                int rc;
--		printk(KERN_INFO " i2c-algo-sibyte.o: scanning bus %s.\n",
--		       i2c_adap->name);
--		for (i = 0x00; i < 0x7f; i++) {
--                        /* XXXKW is this a realistic probe? */
--                        rc = smbus_xfer(i2c_adap, i, 0, I2C_SMBUS_READ, 0,
--                                        I2C_SMBUS_BYTE_DATA, &data);
--			if (!rc) {
--				printk("(%02x)",i); 
--			} else 
--				printk("."); 
--		}
--		printk("\n");
--	}
--
--	return i2c_add_adapter(i2c_adap);
--}
--
--
--int i2c_sibyte_del_bus(struct i2c_adapter *adap)
--{
--	return i2c_del_adapter(adap);
--}
--
--
--EXPORT_SYMBOL(i2c_sibyte_add_bus);
--EXPORT_SYMBOL(i2c_sibyte_del_bus);
--
--MODULE_AUTHOR("Kip Walker, Broadcom Corp.");
--MODULE_DESCRIPTION("SiByte I2C-Bus algorithm");
--module_param(bit_scan, int, 0);
--MODULE_PARM_DESC(bit_scan, "Scan for active chips on the bus");
--MODULE_LICENSE("GPL");
-diff --git a/drivers/i2c/busses/i2c-sibyte.c b/drivers/i2c/busses/i2c-sibyte.c
-index fa503ed..f516eb7 100644
---- a/drivers/i2c/busses/i2c-sibyte.c
-+++ b/drivers/i2c/busses/i2c-sibyte.c
-@@ -1,6 +1,7 @@
- /*
-  * Copyright (C) 2004 Steven J. Hill
-  * Copyright (C) 2001,2002,2003 Broadcom Corporation
-+ * Copyright (C) 1995-2000 Simon G. Vogl
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-@@ -17,11 +18,162 @@
-  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-  */
  
-+#include <linux/kernel.h>
+ Module Parameters
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index de62f60..af5740d 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -9,7 +9,7 @@
+               Sis950   A clone of the IT8705F
+ 
+     Copyright (C) 2001 Chris Gauthron <chrisg at 0-in.com> 
+-    Largely inspired by lm78.c of the same package
++    Copyright (C) 2005-2006 Jean Delvare <khali at linux-fr.org>
+ 
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+@@ -26,13 +26,6 @@
+     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+ 
+-/*
+-    djg at pdp8.net David Gesswein 7/18/01
+-    Modified to fix bug with not all alarms enabled.
+-    Added ability to read battery voltage and select temperature sensor
+-    type at module load time.
+-*/
+-
  #include <linux/module.h>
--#include <linux/i2c-algo-sibyte.h>
-+#include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <asm/io.h>
- #include <asm/sibyte/sb1250_regs.h>
- #include <asm/sibyte/sb1250_smbus.h>
- 
-+
-+struct i2c_algo_sibyte_data {
-+	void *data;		/* private data */
-+	int   bus;		/* which bus */
-+	void *reg_base;		/* CSR base */
-+};
-+
-+/* ----- global defines ----------------------------------------------- */
-+#define SMB_CSR(a,r) ((long)(a->reg_base + r))
-+
-+/* ----- global variables --------------------------------------------- */
-+
-+/* module parameters:
-+ */
-+static int bit_scan;	/* have a look at what's hanging 'round */
-+module_param(bit_scan, int, 0);
-+MODULE_PARM_DESC(bit_scan, "Scan for active chips on the bus");
-+
-+
-+static int smbus_xfer(struct i2c_adapter *i2c_adap, u16 addr,
-+		      unsigned short flags, char read_write,
-+		      u8 command, int size, union i2c_smbus_data * data)
-+{
-+	struct i2c_algo_sibyte_data *adap = i2c_adap->algo_data;
-+	int data_bytes = 0;
-+	int error;
-+
-+	while (csr_in32(SMB_CSR(adap, R_SMB_STATUS)) & M_SMB_BUSY)
-+		;
-+
-+	switch (size) {
-+	case I2C_SMBUS_QUICK:
-+		csr_out32((V_SMB_ADDR(addr) |
-+			   (read_write = I2C_SMBUS_READ ? M_SMB_QDATA : 0) |
-+			   V_SMB_TT_QUICKCMD), SMB_CSR(adap, R_SMB_START));
-+		break;
-+	case I2C_SMBUS_BYTE:
-+		if (read_write = I2C_SMBUS_READ) {
-+			csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_RD1BYTE),
-+				  SMB_CSR(adap, R_SMB_START));
-+			data_bytes = 1;
-+		} else {
-+			csr_out32(V_SMB_CMD(command), SMB_CSR(adap, R_SMB_CMD));
-+			csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_WR1BYTE),
-+				  SMB_CSR(adap, R_SMB_START));
-+		}
-+		break;
-+	case I2C_SMBUS_BYTE_DATA:
-+		csr_out32(V_SMB_CMD(command), SMB_CSR(adap, R_SMB_CMD));
-+		if (read_write = I2C_SMBUS_READ) {
-+			csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_CMD_RD1BYTE),
-+				  SMB_CSR(adap, R_SMB_START));
-+			data_bytes = 1;
-+		} else {
-+			csr_out32(V_SMB_LB(data->byte),
-+				  SMB_CSR(adap, R_SMB_DATA));
-+			csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_WR2BYTE),
-+				  SMB_CSR(adap, R_SMB_START));
-+		}
-+		break;
-+	case I2C_SMBUS_WORD_DATA:
-+		csr_out32(V_SMB_CMD(command), SMB_CSR(adap, R_SMB_CMD));
-+		if (read_write = I2C_SMBUS_READ) {
-+			csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_CMD_RD2BYTE),
-+				  SMB_CSR(adap, R_SMB_START));
-+			data_bytes = 2;
-+		} else {
-+			csr_out32(V_SMB_LB(data->word & 0xff),
-+				  SMB_CSR(adap, R_SMB_DATA));
-+			csr_out32(V_SMB_MB(data->word >> 8),
-+				  SMB_CSR(adap, R_SMB_DATA));
-+			csr_out32((V_SMB_ADDR(addr) | V_SMB_TT_WR2BYTE),
-+				  SMB_CSR(adap, R_SMB_START));
-+		}
-+		break;
-+	default:
-+		return -1;      /* XXXKW better error code? */
-+	}
-+
-+	while (csr_in32(SMB_CSR(adap, R_SMB_STATUS)) & M_SMB_BUSY)
-+		;
-+
-+	error = csr_in32(SMB_CSR(adap, R_SMB_STATUS));
-+	if (error & M_SMB_ERROR) {
-+		/* Clear error bit by writing a 1 */
-+		csr_out32(M_SMB_ERROR, SMB_CSR(adap, R_SMB_STATUS));
-+		return -1;      /* XXXKW better error code? */
-+	}
-+
-+	if (data_bytes = 1)
-+		data->byte = csr_in32(SMB_CSR(adap, R_SMB_DATA)) & 0xff;
-+	if (data_bytes = 2)
-+		data->word = csr_in32(SMB_CSR(adap, R_SMB_DATA)) & 0xffff;
-+
-+	return 0;
-+}
-+
-+static u32 bit_func(struct i2c_adapter *adap)
-+{
-+	return (I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
-+		I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA);
-+}
-+
-+
-+/* -----exported algorithm data: -------------------------------------	*/
-+
-+static struct i2c_algorithm i2c_sibyte_algo = {
-+	.smbus_xfer	= smbus_xfer,
-+	.functionality	= bit_func,
-+};
-+
-+/*
-+ * registering functions to load algorithms at runtime
-+ */
-+int i2c_sibyte_add_bus(struct i2c_adapter *i2c_adap, int speed)
-+{
-+	int i;
-+	struct i2c_algo_sibyte_data *adap = i2c_adap->algo_data;
-+
-+	/* register new adapter to i2c module... */
-+	i2c_adap->algo = &i2c_sibyte_algo;
-+
-+	/* Set the frequency to 100 kHz */
-+	csr_out32(speed, SMB_CSR(adap,R_SMB_FREQ));
-+	csr_out32(0, SMB_CSR(adap,R_SMB_CONTROL));
-+
-+	/* scan bus */
-+	if (bit_scan) {
-+		union i2c_smbus_data data;
-+		int rc;
-+		printk(KERN_INFO " i2c-algo-sibyte.o: scanning bus %s.\n",
-+		       i2c_adap->name);
-+		for (i = 0x00; i < 0x7f; i++) {
-+			/* XXXKW is this a realistic probe? */
-+			rc = smbus_xfer(i2c_adap, i, 0, I2C_SMBUS_READ, 0,
-+					I2C_SMBUS_BYTE_DATA, &data);
-+			if (!rc) {
-+				printk("(%02x)",i);
-+			} else
-+				printk(".");
-+		}
-+		printk("\n");
-+	}
-+
-+	return i2c_add_adapter(i2c_adap);
-+}
-+
-+
- static struct i2c_algo_sibyte_data sibyte_board_data[2] = {
- 	{ NULL, 0, (void *) (CKSEG1+A_SMB_BASE(0)) },
- 	{ NULL, 1, (void *) (CKSEG1+A_SMB_BASE(1)) }
-@@ -58,8 +210,8 @@ static int __init i2c_sibyte_init(void)
- 
- static void __exit i2c_sibyte_exit(void)
- {
--	i2c_sibyte_del_bus(&sibyte_board_adapter[0]);
--	i2c_sibyte_del_bus(&sibyte_board_adapter[1]);
-+	i2c_del_bus(&sibyte_board_adapter[0]);
-+	i2c_del_bus(&sibyte_board_adapter[1]);
+ #include <linux/init.h>
+ #include <linux/slab.h>
+@@ -1392,7 +1385,8 @@ static void __exit sm_it87_exit(void)
  }
  
- module_init(i2c_sibyte_init);
-diff --git a/include/linux/i2c-algo-sibyte.h b/include/linux/i2c-algo-sibyte.h
-deleted file mode 100644
-index 03914de..0000000
---- a/include/linux/i2c-algo-sibyte.h
-+++ /dev/null
-@@ -1,33 +0,0 @@
--/*
-- * Copyright (C) 2001,2002,2003 Broadcom Corporation
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * as published by the Free Software Foundation; either version 2
-- * of the License, or (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-- */
--
--#ifndef I2C_ALGO_SIBYTE_H
--#define I2C_ALGO_SIBYTE_H 1
--
--#include <linux/i2c.h>
--
--struct i2c_algo_sibyte_data {
--	void *data;		/* private data */
--        int   bus;		/* which bus */
--        void *reg_base;		/* CSR base */
--};
--
--int i2c_sibyte_add_bus(struct i2c_adapter *, int speed);
--int i2c_sibyte_del_bus(struct i2c_adapter *);
--
--#endif /* I2C_ALGO_SIBYTE_H */
+ 
+-MODULE_AUTHOR("Chris Gauthron <chrisg at 0-in.com>");
++MODULE_AUTHOR("Chris Gauthron <chrisg at 0-in.com>, "
++	      "Jean Delvare <khali at linux-fr.org>");
+ MODULE_DESCRIPTION("IT8705F/8712F/8716F/8718F, SiS950 driver");
+ module_param(update_vbat, bool, 0);
+ MODULE_PARM_DESC(update_vbat, "Update vbat if set else return powerup value");
 -- 
 1.4.2.1
 
