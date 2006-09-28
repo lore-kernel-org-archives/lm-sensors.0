@@ -1,7 +1,7 @@
 From: gregkh@suse.de (gregkh at suse.de)
-Date: Thu, 28 Sep 2006 07:01:15 +0000
+Date: Thu, 28 Sep 2006 07:01:28 +0000
 Subject: [lm-sensors] patch
-Message-Id: <20060928070112.6BE118FF210@imap.suse.de>
+Message-Id: <20060928070125.6636C902DCA@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060502054527.8533748769D@imap.suse.de>
 In-Reply-To: <20060502054527.8533748769D@imap.suse.de>
@@ -13,154 +13,230 @@ To: lm-sensors@vger.kernel.org
 
 This is a note to let you know that I've just added the patch titled
 
-     Subject: [PATCH 11/23] pc87360: Check for error on sysfs files creation
+     Subject: [PATCH 12/23] w83627ehf: Fix unchecked return status
 
 to my gregkh-2.6 tree.  Its filename is
 
-     hwmon-unchecked-return-status-fixes-pc87360-3.patch
+     hwmon-unchecked-return-status-fixes-w83627ehf.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-From khali at linux-fr.org Sun Sep 24 12:03:32 2006
-Date: Sun, 24 Sep 2006 21:03:25 +0200
+From khali at linux-fr.org Sun Sep 24 12:04:49 2006
+Date: Sun, 24 Sep 2006 21:04:38 +0200
 From: Jean Delvare <khali at linux-fr.org>
 To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>, Jim Cromie <jim.cromie at gmail.com>
-Subject: [PATCH 11/23] pc87360: Check for error on sysfs files creation
-Message-Id: <20060924210325.901a1206.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-pc87360-3.patch
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, David Hubbard <david.c.hubbard at gmail.com>
+Subject: [PATCH 12/23] w83627ehf: Fix unchecked return status
+Message-Id: <20060924210438.23b3af5b.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-w83627ehf.patch
 
-From: Jim Cromie <jim.cromie at gmail.com>
+From: David Hubbard <david.c.hubbard at gmail.com>
 
-pc87360: Check for error on sysfs files creation
+w83627ehf: Fix unchecked return status
 
-Use sysfs_create_group() for 2 sensor-types which are chip-model
-invariant, i.e. all-or-nothing attribute groups.
-Other 2 groups vary too much due to configuration, etc, so we keep the
-loops of device_create_file(), but now check their returns.
+Fix: check return value from device_create_file()
+Fix: call device_remove_file() on error and module unload
+Fix: call hwmon_device_register() after device_create_file() to eliminate race
 
-Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
+Signed-off-by: David Hubbard <david.c.hubbard at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
- drivers/hwmon/pc87360.c |   89 ++++++++++++++++++++++++++----------------------
- 1 file changed, 49 insertions(+), 40 deletions(-)
+ drivers/hwmon/w83627ehf.c |  122 ++++++++++++++++++++++++++++++----------------
+ 1 file changed, 82 insertions(+), 40 deletions(-)
 
---- gregkh-2.6.orig/drivers/hwmon/pc87360.c
-+++ gregkh-2.6/drivers/hwmon/pc87360.c
-@@ -1018,60 +1018,69 @@ static int pc87360_detect(struct i2c_ada
- 		pc87360_init_client(client, use_thermistors);
- 	}
+--- gregkh-2.6.orig/drivers/hwmon/w83627ehf.c
++++ gregkh-2.6/drivers/hwmon/w83627ehf.c
+@@ -4,6 +4,7 @@
+     Copyright (C) 2005  Jean Delvare <khali at linux-fr.org>
+     Copyright (C) 2006  Yuan Mu <Ymu at Winbond.com.tw>,
+                         Rudolf Marek <r.marek at sh.cvut.cz>
++                        David Hubbard <david.c.hubbard at gmail.com>
  
--	/* Register sysfs hooks */
--	data->class_dev = hwmon_device_register(&client->dev);
+     Shamelessly ripped from the w83627hf driver
+     Copyright (C) 2003  Mark Studebaker
+@@ -621,14 +622,6 @@ static struct sensor_device_attribute sd
+        SENSOR_ATTR(in9_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 9),
+ };
+ 
+-static void device_create_file_in(struct device *dev, int i)
+-{
+-	device_create_file(dev, &sda_in_input[i].dev_attr);
+-	device_create_file(dev, &sda_in_alarm[i].dev_attr);
+-	device_create_file(dev, &sda_in_min[i].dev_attr);
+-	device_create_file(dev, &sda_in_max[i].dev_attr);
+-}
+-
+ #define show_fan_reg(reg) \
+ static ssize_t \
+ show_##reg(struct device *dev, struct device_attribute *attr, \
+@@ -756,14 +749,6 @@ static struct sensor_device_attribute sd
+ 	SENSOR_ATTR(fan5_div, S_IRUGO, show_fan_div, NULL, 4),
+ };
+ 
+-static void device_create_file_fan(struct device *dev, int i)
+-{
+-	device_create_file(dev, &sda_fan_input[i].dev_attr);
+-	device_create_file(dev, &sda_fan_alarm[i].dev_attr);
+-	device_create_file(dev, &sda_fan_div[i].dev_attr);
+-	device_create_file(dev, &sda_fan_min[i].dev_attr);
+-}
+-
+ #define show_temp1_reg(reg) \
+ static ssize_t \
+ show_##reg(struct device *dev, struct device_attribute *attr, \
+@@ -1036,15 +1021,6 @@ static struct sensor_device_attribute sd
+ 		    store_tolerance, 3),
+ };
+ 
+-static void device_create_file_pwm(struct device *dev, int i)
+-{
+-	device_create_file(dev, &sda_pwm[i].dev_attr);
+-	device_create_file(dev, &sda_pwm_mode[i].dev_attr);
+-	device_create_file(dev, &sda_pwm_enable[i].dev_attr);
+-	device_create_file(dev, &sda_target_temp[i].dev_attr);
+-	device_create_file(dev, &sda_tolerance[i].dev_attr);
+-}
+-
+ /* Smart Fan registers */
+ 
+ #define fan_functions(reg, REG) \
+@@ -1131,6 +1107,39 @@ static struct sensor_device_attribute sd
+  * Driver and client management
+  */
+ 
++static void w83627ehf_device_remove_files(struct device *dev)
++{
++	/* some entries in the following arrays may not have been used in
++	 * device_create_file(), but device_remove_file() will ignore them */
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++)
++		device_remove_file(dev, &sda_sf3_arrays[i].dev_attr);
++	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++)
++		device_remove_file(dev, &sda_sf3_arrays_fan4[i].dev_attr);
++	for (i = 0; i < 10; i++) {
++		device_remove_file(dev, &sda_in_input[i].dev_attr);
++		device_remove_file(dev, &sda_in_alarm[i].dev_attr);
++		device_remove_file(dev, &sda_in_min[i].dev_attr);
++		device_remove_file(dev, &sda_in_max[i].dev_attr);
++	}
++	for (i = 0; i < 5; i++) {
++		device_remove_file(dev, &sda_fan_input[i].dev_attr);
++		device_remove_file(dev, &sda_fan_alarm[i].dev_attr);
++		device_remove_file(dev, &sda_fan_div[i].dev_attr);
++		device_remove_file(dev, &sda_fan_min[i].dev_attr);
++	}
++	for (i = 0; i < 4; i++) {
++		device_remove_file(dev, &sda_pwm[i].dev_attr);
++		device_remove_file(dev, &sda_pwm_mode[i].dev_attr);
++		device_remove_file(dev, &sda_pwm_enable[i].dev_attr);
++		device_remove_file(dev, &sda_target_temp[i].dev_attr);
++		device_remove_file(dev, &sda_tolerance[i].dev_attr);
++	}
++	for (i = 0; i < ARRAY_SIZE(sda_temp); i++)
++		device_remove_file(dev, &sda_temp[i].dev_attr);
++}
++
+ static struct i2c_driver w83627ehf_driver;
+ 
+ static void w83627ehf_init_client(struct i2c_client *client)
+@@ -1217,37 +1226,69 @@ static int w83627ehf_detect(struct i2c_a
+ 		data->has_fan |= (1 << 4);
+ 
+ 	/* Register sysfs hooks */
+-	data->class_dev = hwmon_device_register(dev);
 -	if (IS_ERR(data->class_dev)) {
 -		err = PTR_ERR(data->class_dev);
-+	/* Register all-or-nothing sysfs groups */
-+
-+	if (data->innr &&
-+	    (err = sysfs_create_group(&client->dev.kobj,
-+				      &pc8736x_vin_group)))
- 		goto ERROR3;
--	}
- 
--	if (data->innr) {
--		for (i = 0; i < 11; i++) {
--			device_create_file(dev, &in_input[i].dev_attr);
--			device_create_file(dev, &in_min[i].dev_attr);
--			device_create_file(dev, &in_max[i].dev_attr);
--			device_create_file(dev, &in_status[i].dev_attr);
--		}
--		device_create_file(dev, &dev_attr_cpu0_vid);
--		device_create_file(dev, &dev_attr_vrm);
--		device_create_file(dev, &dev_attr_alarms_in);
--	}
-+	if (data->innr = 14 &&
-+	    (err = sysfs_create_group(&client->dev.kobj,
-+				      &pc8736x_therm_group)))
-+		goto ERROR3;
-+
-+	/* create device attr-files for varying sysfs groups */
- 
- 	if (data->tempnr) {
- 		for (i = 0; i < data->tempnr; i++) {
--			device_create_file(dev, &temp_input[i].dev_attr);
--			device_create_file(dev, &temp_min[i].dev_attr);
--			device_create_file(dev, &temp_max[i].dev_attr);
--			device_create_file(dev, &temp_crit[i].dev_attr);
--			device_create_file(dev, &temp_status[i].dev_attr);
--		}
--		device_create_file(dev, &dev_attr_alarms_temp);
+-		goto exit_detach;
 -	}
 -
--	if (data->innr = 14) {
--		for (i = 0; i < 3; i++) {
--			device_create_file(dev, &therm_input[i].dev_attr);
--			device_create_file(dev, &therm_min[i].dev_attr);
--			device_create_file(dev, &therm_max[i].dev_attr);
--			device_create_file(dev, &therm_crit[i].dev_attr);
--			device_create_file(dev, &therm_status[i].dev_attr);
+   	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++)
+-  		device_create_file(dev, &sda_sf3_arrays[i].dev_attr);
++		if ((err = device_create_file(dev,
++			&sda_sf3_arrays[i].dev_attr)))
++			goto exit_remove;
+ 
+ 	/* if fan4 is enabled create the sf3 files for it */
+ 	if (data->has_fan & (1 << 3))
+-		for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++)
+-			device_create_file(dev, &sda_sf3_arrays_fan4[i].dev_attr);
++		for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++) {
 +			if ((err = device_create_file(dev,
-+					&temp_input[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_min[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_max[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_crit[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_status[i].dev_attr)))
-+				goto ERROR3;
++				&sda_sf3_arrays_fan4[i].dev_attr)))
++				goto exit_remove;
++		}
+ 
+ 	for (i = 0; i < 10; i++)
+-		device_create_file_in(dev, i);
++		if ((err = device_create_file(dev, &sda_in_input[i].dev_attr))
++			|| (err = device_create_file(dev,
++				&sda_in_alarm[i].dev_attr))
++			|| (err = device_create_file(dev,
++				&sda_in_min[i].dev_attr))
++			|| (err = device_create_file(dev,
++				&sda_in_max[i].dev_attr)))
++			goto exit_remove;
+ 
+ 	for (i = 0; i < 5; i++) {
+ 		if (data->has_fan & (1 << i)) {
+-			device_create_file_fan(dev, i);
+-			if (i != 4) /* we have only 4 pwm */
+-				device_create_file_pwm(dev, i);
++			if ((err = device_create_file(dev,
++					&sda_fan_input[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_fan_alarm[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_fan_div[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_fan_min[i].dev_attr)))
++				goto exit_remove;
++			if (i < 4 && /* w83627ehf only has 4 pwm */
++				((err = device_create_file(dev,
++					&sda_pwm[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_pwm_mode[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_pwm_enable[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_target_temp[i].dev_attr))
++				|| (err = device_create_file(dev,
++					&sda_tolerance[i].dev_attr))))
++				goto exit_remove;
  		}
-+		if ((err = device_create_file(dev, &dev_attr_alarms_temp)))
-+			goto ERROR3;
  	}
  
- 	for (i = 0; i < data->fannr; i++) {
--		if (FAN_CONFIG_MONITOR(data->fan_conf, i)) {
--			device_create_file(dev, &fan_input[i].dev_attr);
--			device_create_file(dev, &fan_min[i].dev_attr);
--			device_create_file(dev, &fan_div[i].dev_attr);
--			device_create_file(dev, &fan_status[i].dev_attr);
--		}
--		if (FAN_CONFIG_CONTROL(data->fan_conf, i))
--			device_create_file(dev, &pwm[i].dev_attr);
-+		if (FAN_CONFIG_MONITOR(data->fan_conf, i)
-+		    && ((err = device_create_file(dev,
-+					&fan_input[i].dev_attr))
-+			|| (err = device_create_file(dev,
-+					&fan_min[i].dev_attr))
-+			|| (err = device_create_file(dev,
-+					&fan_div[i].dev_attr))
-+			|| (err = device_create_file(dev,
-+					&fan_status[i].dev_attr))))
-+			goto ERROR3;
+ 	for (i = 0; i < ARRAY_SIZE(sda_temp); i++)
+-		device_create_file(dev, &sda_temp[i].dev_attr);
++		if ((err = device_create_file(dev, &sda_temp[i].dev_attr)))
++			goto exit_remove;
 +
-+		if (FAN_CONFIG_CONTROL(data->fan_conf, i)
-+		    && (err = device_create_file(dev, &pwm[i].dev_attr)))
-+			goto ERROR3;
- 	}
- 
-+	data->class_dev = hwmon_device_register(&client->dev);
++	data->class_dev = hwmon_device_register(dev);
 +	if (IS_ERR(data->class_dev)) {
 +		err = PTR_ERR(data->class_dev);
-+		goto ERROR3;
++		goto exit_remove;
 +	}
+ 
  	return 0;
  
- ERROR3:
-+	/* can still remove groups whose members were added individually */
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_temp_group);
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_fan_group);
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_therm_group);
-+	sysfs_remove_group(&client->dev.kobj, &pc8736x_vin_group);
-+
+-exit_detach:
++exit_remove:
++	w83627ehf_device_remove_files(dev);
  	i2c_detach_client(client);
- ERROR2:
- 	for (i = 0; i < 3; i++) {
+ exit_free:
+ 	kfree(data);
+@@ -1263,6 +1304,7 @@ static int w83627ehf_detach_client(struc
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	w83627ehf_device_remove_files(&client->dev);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
 
 
 Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
