@@ -1,212 +1,351 @@
-From: gregkh@suse.de (gregkh at suse.de)
-Date: Thu, 28 Sep 2006 06:59:24 +0000
-Subject: [lm-sensors] patch hwmon-kconfig-update.patch added to gregkh-2.6
-Message-Id: <20060928065921.9B95072C257@imap.suse.de>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 28 Sep 2006 22:48:58 +0000
+Subject: [lm-sensors] [PATCH 38/39] hwmon: Fix unchecked return status,
+Message-Id: <11594838832146-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-This is a note to let you know that I've just added the patch titled
-
-     Subject: [PATCH 02/23] hwmon: Make a dozen drivers no more experimental
-
-to my gregkh-2.6 tree.  Its filename is
-
-     hwmon-kconfig-update.patch
-
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
-
-
-From khali at linux-fr.org Sun Sep 24 11:51:42 2006
-Date: Sun, 24 Sep 2006 20:51:37 +0200
 From: Jean Delvare <khali at linux-fr.org>
-To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>
-Subject: [PATCH 02/23] hwmon: Make a dozen drivers no more experimental
-Message-Id: <20060924205137.3856fbfa.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-kconfig-update.patch
 
-hwmon: Make a dozen drivers no more experimental
+hwmon: Fix unchecked return status, SMSC chips
 
-Remove the EXPERIMENTAL tag from a dozen hardware monitoring drivers.
-They are in the tree for quite a long time, so we would know by now if
-they were causing trouble.
-
-Also make it clearer that the VT8231 is a VIA chip.
+Fix up 2 more hwmon drivers so that they no longer ignore return
+status from device_create_file().
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
 ---
- drivers/hwmon/Kconfig |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ drivers/hwmon/smsc47m1.c   |   78 ++++++++++++++++++-----
+ drivers/hwmon/smsc47m192.c |  150 +++++++++++++++++++++++++-------------------
+ 2 files changed, 145 insertions(+), 83 deletions(-)
 
---- gregkh-2.6.orig/drivers/hwmon/Kconfig
-+++ gregkh-2.6/drivers/hwmon/Kconfig
-@@ -53,7 +53,7 @@ config SENSORS_ADM1021
+diff --git a/drivers/hwmon/smsc47m1.c b/drivers/hwmon/smsc47m1.c
+index 9cd28f2..47132fd 100644
+--- a/drivers/hwmon/smsc47m1.c
++++ b/drivers/hwmon/smsc47m1.c
+@@ -35,6 +35,7 @@ #include <linux/hwmon.h>
+ #include <linux/err.h>
+ #include <linux/init.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ #include <asm/io.h>
  
- config SENSORS_ADM1025
- 	tristate "Analog Devices ADM1025 and compatibles"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	select HWMON_VID
- 	help
- 	  If you say yes here you get support for Analog Devices ADM1025
-@@ -131,7 +131,7 @@ config SENSORS_ATXP1
+ /* Address is autodetected, there is no default value */
+@@ -347,6 +348,30 @@ fan_present(2);
  
- config SENSORS_DS1621
- 	tristate "Dallas Semiconductor DS1621 and DS1625"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for Dallas Semiconductor
- 	  DS1621 and DS1625 sensor chips.
-@@ -151,7 +151,7 @@ config SENSORS_F71805F
+ static DEVICE_ATTR(alarms, S_IRUGO, get_alarms, NULL);
  
- config SENSORS_FSCHER
- 	tristate "FSC Hermes"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for Fujitsu Siemens
- 	  Computers Hermes sensor chips.
-@@ -161,7 +161,7 @@ config SENSORS_FSCHER
++/* Almost all sysfs files may or may not be created depending on the chip
++   setup so we create them individually. It is still convenient to define a
++   group to remove them all at once. */
++static struct attribute *smsc47m1_attributes[] = {
++	&dev_attr_fan1_input.attr,
++	&dev_attr_fan1_min.attr,
++	&dev_attr_fan1_div.attr,
++	&dev_attr_fan2_input.attr,
++	&dev_attr_fan2_min.attr,
++	&dev_attr_fan2_div.attr,
++
++	&dev_attr_pwm1.attr,
++	&dev_attr_pwm1_enable.attr,
++	&dev_attr_pwm2.attr,
++	&dev_attr_pwm2_enable.attr,
++
++	&dev_attr_alarms.attr,
++	NULL
++};
++
++static const struct attribute_group smsc47m1_group = {
++	.attrs = smsc47m1_attributes,
++};
++
+ static int __init smsc47m1_find(unsigned short *addr)
+ {
+ 	u8 val;
+@@ -447,46 +472,62 @@ static int smsc47m1_detect(struct i2c_ad
+ 	smsc47m1_update_device(&new_client->dev, 1);
  
- config SENSORS_FSCPOS
- 	tristate "FSC Poseidon"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for Fujitsu Siemens
- 	  Computers Poseidon sensor chips.
-@@ -181,7 +181,7 @@ config SENSORS_GL518SM
+ 	/* Register sysfs hooks */
+-	data->class_dev = hwmon_device_register(&new_client->dev);
+-	if (IS_ERR(data->class_dev)) {
+-		err = PTR_ERR(data->class_dev);
+-		goto error_detach;
+-	}
+-
+ 	if (fan1) {
+-		device_create_file(&new_client->dev, &dev_attr_fan1_input);
+-		device_create_file(&new_client->dev, &dev_attr_fan1_min);
+-		device_create_file(&new_client->dev, &dev_attr_fan1_div);
++		if ((err = device_create_file(&new_client->dev,
++					      &dev_attr_fan1_input))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_fan1_min))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_fan1_div)))
++			goto error_remove_files;
+ 	} else
+ 		dev_dbg(&new_client->dev, "Fan 1 not enabled by hardware, "
+ 			"skipping\n");
  
- config SENSORS_GL520SM
- 	tristate "Genesys Logic GL520SM"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	select HWMON_VID
- 	help
- 	  If you say yes here you get support for Genesys Logic GL520SM
-@@ -204,7 +204,7 @@ config SENSORS_IT87
+ 	if (fan2) {
+-		device_create_file(&new_client->dev, &dev_attr_fan2_input);
+-		device_create_file(&new_client->dev, &dev_attr_fan2_min);
+-		device_create_file(&new_client->dev, &dev_attr_fan2_div);
++		if ((err = device_create_file(&new_client->dev,
++					      &dev_attr_fan2_input))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_fan2_min))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_fan2_div)))
++			goto error_remove_files;
+ 	} else
+ 		dev_dbg(&new_client->dev, "Fan 2 not enabled by hardware, "
+ 			"skipping\n");
  
- config SENSORS_LM63
- 	tristate "National Semiconductor LM63"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for the National Semiconductor
- 	  LM63 remote diode digital temperature sensor with integrated fan
-@@ -241,7 +241,7 @@ config SENSORS_LM75
+ 	if (pwm1) {
+-		device_create_file(&new_client->dev, &dev_attr_pwm1);
+-		device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
++		if ((err = device_create_file(&new_client->dev,
++					      &dev_attr_pwm1))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_pwm1_enable)))
++			goto error_remove_files;
+ 	} else
+ 		dev_dbg(&new_client->dev, "PWM 1 not enabled by hardware, "
+ 			"skipping\n");
+ 	if (pwm2) {
+-		device_create_file(&new_client->dev, &dev_attr_pwm2);
+-		device_create_file(&new_client->dev, &dev_attr_pwm2_enable);
++		if ((err = device_create_file(&new_client->dev,
++					      &dev_attr_pwm2))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_pwm2_enable)))
++			goto error_remove_files;
+ 	} else
+ 		dev_dbg(&new_client->dev, "PWM 2 not enabled by hardware, "
+ 			"skipping\n");
  
- config SENSORS_LM77
- 	tristate "National Semiconductor LM77"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for National Semiconductor LM77
- 	  sensor chips.
-@@ -251,7 +251,7 @@ config SENSORS_LM77
+-	device_create_file(&new_client->dev, &dev_attr_alarms);
++	if ((err = device_create_file(&new_client->dev, &dev_attr_alarms)))
++		goto error_remove_files;
++
++	data->class_dev = hwmon_device_register(&new_client->dev);
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		goto error_remove_files;
++	}
  
- config SENSORS_LM78
- 	tristate "National Semiconductor LM78 and compatibles"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	select I2C_ISA
- 	select HWMON_VID
- 	help
-@@ -294,7 +294,7 @@ config SENSORS_LM85
+ 	return 0;
  
- config SENSORS_LM87
- 	tristate "National Semiconductor LM87"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	select HWMON_VID
- 	help
- 	  If you say yes here you get support for National Semiconductor LM87
-@@ -319,7 +319,7 @@ config SENSORS_LM90
+-error_detach:
++error_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &smsc47m1_group);
+ 	i2c_detach_client(new_client);
+ error_free:
+ 	kfree(data);
+@@ -501,6 +542,7 @@ static int smsc47m1_detach_client(struct
+ 	int err;
  
- config SENSORS_LM92
- 	tristate "National Semiconductor LM92 and compatibles"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for National Semiconductor LM92
- 	  and Maxim MAX6635 sensor chips.
-@@ -329,7 +329,7 @@ config SENSORS_LM92
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &smsc47m1_group);
  
- config SENSORS_MAX1619
- 	tristate "Maxim MAX1619 sensor chip"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for MAX1619 sensor chip.
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+diff --git a/drivers/hwmon/smsc47m192.c b/drivers/hwmon/smsc47m192.c
+index bdc4570..a6833f4 100644
+--- a/drivers/hwmon/smsc47m192.c
++++ b/drivers/hwmon/smsc47m192.c
+@@ -30,6 +30,7 @@ #include <linux/hwmon.h>
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
++#include <linux/sysfs.h>
  
-@@ -364,7 +364,7 @@ config SENSORS_SIS5595
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x2c, 0x2d, I2C_CLIENT_END };
+@@ -370,6 +371,75 @@ static SENSOR_DEVICE_ATTR(in5_alarm, S_I
+ static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 0x0400);
+ static SENSOR_DEVICE_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 0x0800);
  
- config SENSORS_SMSC47M1
- 	tristate "SMSC LPC47M10x and compatibles"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	select I2C_ISA
- 	help
- 	  If you say yes here you get support for the integrated fan
-@@ -418,7 +418,7 @@ config SENSORS_VIA686A
- 	  will be called via686a.
++static struct attribute *smsc47m192_attributes[] = {
++	&sensor_dev_attr_in0_input.dev_attr.attr,
++	&sensor_dev_attr_in0_min.dev_attr.attr,
++	&sensor_dev_attr_in0_max.dev_attr.attr,
++	&sensor_dev_attr_in0_alarm.dev_attr.attr,
++	&sensor_dev_attr_in1_input.dev_attr.attr,
++	&sensor_dev_attr_in1_min.dev_attr.attr,
++	&sensor_dev_attr_in1_max.dev_attr.attr,
++	&sensor_dev_attr_in1_alarm.dev_attr.attr,
++	&sensor_dev_attr_in2_input.dev_attr.attr,
++	&sensor_dev_attr_in2_min.dev_attr.attr,
++	&sensor_dev_attr_in2_max.dev_attr.attr,
++	&sensor_dev_attr_in2_alarm.dev_attr.attr,
++	&sensor_dev_attr_in3_input.dev_attr.attr,
++	&sensor_dev_attr_in3_min.dev_attr.attr,
++	&sensor_dev_attr_in3_max.dev_attr.attr,
++	&sensor_dev_attr_in3_alarm.dev_attr.attr,
++	&sensor_dev_attr_in5_input.dev_attr.attr,
++	&sensor_dev_attr_in5_min.dev_attr.attr,
++	&sensor_dev_attr_in5_max.dev_attr.attr,
++	&sensor_dev_attr_in5_alarm.dev_attr.attr,
++	&sensor_dev_attr_in6_input.dev_attr.attr,
++	&sensor_dev_attr_in6_min.dev_attr.attr,
++	&sensor_dev_attr_in6_max.dev_attr.attr,
++	&sensor_dev_attr_in6_alarm.dev_attr.attr,
++	&sensor_dev_attr_in7_input.dev_attr.attr,
++	&sensor_dev_attr_in7_min.dev_attr.attr,
++	&sensor_dev_attr_in7_max.dev_attr.attr,
++	&sensor_dev_attr_in7_alarm.dev_attr.attr,
++
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp1_min.dev_attr.attr,
++	&sensor_dev_attr_temp1_offset.dev_attr.attr,
++	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_offset.dev_attr.attr,
++	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_input_fault.dev_attr.attr,
++	&sensor_dev_attr_temp3_input.dev_attr.attr,
++	&sensor_dev_attr_temp3_max.dev_attr.attr,
++	&sensor_dev_attr_temp3_min.dev_attr.attr,
++	&sensor_dev_attr_temp3_offset.dev_attr.attr,
++	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp3_input_fault.dev_attr.attr,
++
++	&dev_attr_cpu0_vid.attr,
++	&dev_attr_vrm.attr,
++	NULL
++};
++
++static const struct attribute_group smsc47m192_group = {
++	.attrs = smsc47m192_attributes,
++};
++
++static struct attribute *smsc47m192_attributes_in4[] = {
++	&sensor_dev_attr_in4_input.dev_attr.attr,
++	&sensor_dev_attr_in4_min.dev_attr.attr,
++	&sensor_dev_attr_in4_max.dev_attr.attr,
++	&sensor_dev_attr_in4_alarm.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group smsc47m192_group_in4 = {
++	.attrs = smsc47m192_attributes_in4,
++};
++
+ /* This function is called when:
+     * smsc47m192_driver is inserted (when this module is loaded), for each
+       available adapter
+@@ -471,80 +541,28 @@ static int smsc47m192_detect(struct i2c_
+ 	smsc47m192_init_client(client);
  
- config SENSORS_VT8231
--	tristate "VT8231"
-+	tristate "VIA VT8231"
- 	depends on HWMON && I2C && PCI && EXPERIMENTAL
- 	select HWMON_VID
- 	select I2C_ISA
+ 	/* Register sysfs hooks */
+-	data->class_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->class_dev)) {
+-		err = PTR_ERR(data->class_dev);
++	if ((err = sysfs_create_group(&client->dev.kobj, &smsc47m192_group)))
+ 		goto exit_detach;
+-	}
+-
+-	device_create_file(&client->dev, &sensor_dev_attr_in0_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in0_min.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in0_max.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in0_alarm.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in1_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in1_min.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in1_max.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in1_alarm.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in2_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in2_min.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in2_max.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in2_alarm.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in3_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in3_min.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in3_max.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in3_alarm.dev_attr);
+ 
+ 	/* Pin 110 is either in4 (+12V) or VID4 */
+ 	config = i2c_smbus_read_byte_data(client, SMSC47M192_REG_CONFIG);
+ 	if (!(config & 0x20)) {
+-		device_create_file(&client->dev,
+-				   &sensor_dev_attr_in4_input.dev_attr);
+-		device_create_file(&client->dev,
+-				   &sensor_dev_attr_in4_min.dev_attr);
+-		device_create_file(&client->dev,
+-				   &sensor_dev_attr_in4_max.dev_attr);
+-		device_create_file(&client->dev,
+-				   &sensor_dev_attr_in4_alarm.dev_attr);
++		if ((err = sysfs_create_group(&client->dev.kobj,
++					      &smsc47m192_group_in4)))
++			goto exit_remove_files;
++	}
++
++	data->class_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		goto exit_remove_files;
+ 	}
+-	device_create_file(&client->dev, &sensor_dev_attr_in5_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in5_min.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in5_max.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in5_alarm.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in6_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in6_min.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in6_max.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in6_alarm.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in7_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in7_min.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in7_max.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_in7_alarm.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_temp1_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_temp1_max.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_temp1_min.dev_attr);
+-	device_create_file(&client->dev,
+-			   &sensor_dev_attr_temp1_offset.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_temp1_alarm.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_temp2_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_temp2_max.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_temp2_min.dev_attr);
+-	device_create_file(&client->dev,
+-			   &sensor_dev_attr_temp2_offset.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_temp2_alarm.dev_attr);
+-	device_create_file(&client->dev,
+-			   &sensor_dev_attr_temp2_input_fault.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_temp3_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_temp3_max.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_temp3_min.dev_attr);
+-	device_create_file(&client->dev,
+-			   &sensor_dev_attr_temp3_offset.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_temp3_alarm.dev_attr);
+-	device_create_file(&client->dev,
+-			   &sensor_dev_attr_temp3_input_fault.dev_attr);
+-	device_create_file(&client->dev, &dev_attr_cpu0_vid);
+-	device_create_file(&client->dev, &dev_attr_vrm);
+ 
+ 	return 0;
+ 
++exit_remove_files:
++	sysfs_remove_group(&client->dev.kobj, &smsc47m192_group);
++	sysfs_remove_group(&client->dev.kobj, &smsc47m192_group_in4);
+ exit_detach:
+ 	i2c_detach_client(client);
+ exit_free:
+@@ -559,6 +577,8 @@ static int smsc47m192_detach_client(stru
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &smsc47m192_group);
++	sysfs_remove_group(&client->dev.kobj, &smsc47m192_group_in4);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+-- 
+1.4.2.1
 
-
-Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
-
-i2c/hwmon-w83627ehf-add-pwm-support.patch
-i2c/hwmon-w83627ehf-documentation.patch
-i2c/hwmon-k8temp-documentation.patch
-i2c/hwmon-abituguru-suspend-resume.patch
-i2c/hwmon-individual-alarm-files-1.patch
-i2c/hwmon-kconfig-update.patch
-i2c/hwmon-it87-disabled-fans.patch
-i2c/hwmon-remove-yuan-mu-address.patch
-i2c/hwmon-unchecked-return-status-fixes-1.patch
-i2c/hwmon-unchecked-return-status-fixes-2.patch
-i2c/hwmon-unchecked-return-status-fixes-3.patch
-i2c/hwmon-unchecked-return-status-fixes-4.patch
-i2c/hwmon-unchecked-return-status-fixes-5.patch
-i2c/hwmon-unchecked-return-status-fixes-6.patch
-i2c/hwmon-unchecked-return-status-fixes-pc87360-1.patch
-i2c/hwmon-unchecked-return-status-fixes-pc87360-2.patch
-i2c/hwmon-unchecked-return-status-fixes-pc87360-3.patch
-i2c/hwmon-unchecked-return-status-fixes-smsc.patch
-i2c/hwmon-unchecked-return-status-fixes-vt8231.patch
-i2c/hwmon-atxp1-signed-unsigned-char-bug.patch
-i2c/hwmon-hdaps-handle-errors-from-input-register-device.patch
-i2c/hwmon-it87-copyright-update.patch
-i2c/hwmon-it87-div-to-reg-overflow.patch
-i2c/hwmon-it87-in8-no-limits.patch
-i2c/hwmon-it87-it8716f-support.patch
-i2c/hwmon-it87-it8718f-support.patch
-i2c/hwmon-it87-sane-limit-defaults.patch
-i2c/hwmon-it87-set-fan-div.patch
-i2c/hwmon-k8temp-autoload.patch
-i2c/hwmon-k8temp-new-driver.patch
-i2c/hwmon-smsc47m1-fix-dev-message.patch
-i2c/hwmon-unchecked-return-status-fixes-w83627ehf.patch
-i2c/hwmon-unchecked-return-status-fixes-w83781d.patch
-i2c/hwmon-unchecked-return-status-fixes-w83792d.patch
-i2c/hwmon-unchecked-return-status-fixes-w83l785ts.patch
-i2c/hwmon-vt1211-add-module-parameters-description.patch
-i2c/hwmon-vt1211-documentation.patch
-i2c/hwmon-vt1211-new-driver.patch
-i2c/hwmon-w83791d-doc-update.patch
-driver-class/i2c-dev-device.patch
-driver-class/i2c-dev-device.old.patch
 
