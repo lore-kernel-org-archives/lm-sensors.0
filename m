@@ -1,7 +1,7 @@
 From: greg@kroah.com (Greg KH)
-Date: Wed, 27 Sep 2006 01:01:33 +0000
-Subject: [lm-sensors] [PATCH 2/30] i2c-dev: Use a list for data storage
-Message-Id: <1159318925918-git-send-email-greg@kroah.com>
+Date: Thu, 28 Sep 2006 22:48:31 +0000
+Subject: [lm-sensors] [PATCH 11/39] it87: Add support for the IT8718F
+Message-Id: <1159483773300-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,111 +10,311 @@ To: lm-sensors@vger.kernel.org
 
 From: Jean Delvare <khali at linux-fr.org>
 
-i2c-dev: Use a list for data storage
+it87: Add support for the IT8718F
 
-Use a list instead of a static array for storing the i2c-dev data.
-Given that most systems have less than 10 i2c busses, most of the
-space was wasted, so this saves around 1 kB of memory (2 kB on 64-bit
-archs.)
+The IT8718F is a Super-I/O chip with integrated hardware monitoring
+functions. It is very similar to the IT8716F, so adding support to the
+it87 driver was pretty straightforward. The most significant difference
+is that the IT8718F has up to 8 VID pins, instead of 6 for the older
+chips.
 
-The drawback is that lookup was in O(1) and is now in O(N), but given
-that the values of N are always small, I don't think this is a problem.
+For the IT8718F, the VID value can only be read from Super-I/O space.
+
+Userspace support is already in lm_sensors SVN (to be soon released
+as 2.10.1.)
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/i2c-dev.c |   45 +++++++++++++++++++++++++--------------------
- 1 files changed, 25 insertions(+), 20 deletions(-)
+ Documentation/hwmon/it87 |   33 +++++++++++++++++--------
+ drivers/hwmon/Kconfig    |    4 ++-
+ drivers/hwmon/it87.c     |   61 +++++++++++++++++++++++++++++++++++++---------
+ 3 files changed, 74 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
-index 6e90dec..206e805 100644
---- a/drivers/i2c/i2c-dev.c
-+++ b/drivers/i2c/i2c-dev.c
-@@ -32,6 +32,7 @@ #include <linux/fs.h>
- #include <linux/slab.h>
- #include <linux/smp_lock.h>
- #include <linux/init.h>
-+#include <linux/list.h>
- #include <linux/i2c.h>
- #include <linux/i2c-dev.h>
- #include <asm/uaccess.h>
-@@ -39,21 +40,27 @@ #include <asm/uaccess.h>
- static struct i2c_client i2cdev_client_template;
+diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
+index aff6807..a45044e 100644
+--- a/Documentation/hwmon/it87
++++ b/Documentation/hwmon/it87
+@@ -18,6 +18,12 @@ Supported chips:
+     Addresses scanned: from Super I/O config space (8 I/O ports)
+     Datasheet: Publicly available at the ITE website
+                http://www.ite.com.tw/product_info/file/pc/IT8716F_V0.3.ZIP
++  * IT8718F
++    Prefix: 'it8718'
++    Addresses scanned: from Super I/O config space (8 I/O ports)
++    Datasheet: Publicly available at the ITE website
++               http://www.ite.com.tw/product_info/file/pc/IT8718F_V0.2.zip
++               http://www.ite.com.tw/product_info/file/pc/IT8718F_V0%203_(for%20C%20version).zip
+   * SiS950   [clone of IT8705F]
+     Prefix: 'it87'
+     Addresses scanned: from Super I/O config space (8 I/O ports)
+@@ -48,8 +54,8 @@ Module Parameters
+ Description
+ -----------
  
- struct i2c_dev {
-+	struct list_head list;
- 	struct i2c_adapter *adap;
- 	struct class_device *class_dev;
- };
+-This driver implements support for the IT8705F, IT8712F, IT8716F and
+-SiS950 chips.
++This driver implements support for the IT8705F, IT8712F, IT8716F,
++IT8718F and SiS950 chips.
  
- #define I2C_MINORS	256
--static struct i2c_dev *i2c_dev_array[I2C_MINORS];
--static DEFINE_SPINLOCK(i2c_dev_array_lock);
-+static LIST_HEAD(i2c_dev_list);
-+static DEFINE_SPINLOCK(i2c_dev_list_lock);
+ These chips are 'Super I/O chips', supporting floppy disks, infrared ports,
+ joysticks and other miscellaneous stuff. For hardware monitoring, they
+@@ -62,14 +68,21 @@ the IT8716F and late IT8712F have 6. The
+ though, so the functionality may not be available on a given system.
+ The driver dumbly assume it is there.
  
- static struct i2c_dev *i2c_dev_get_by_minor(unsigned index)
- {
- 	struct i2c_dev *i2c_dev;
+-The IT8716F and later IT8712F revisions have support for 2 additional
+-fans. They are not yet supported by the driver.
++The IT8718F also features VID inputs (up to 8 pins) but the value is
++stored in the Super-I/O configuration space. Due to technical limitations,
++this value can currently only be read once at initialization time, so
++the driver won't notice and report changes in the VID value. The two
++upper VID bits share their pins with voltage inputs (in5 and in6) so you
++can't have both on a given board.
++
++The IT8716F, IT8718F and later IT8712F revisions have support for
++2 additional fans. They are not yet supported by the driver.
  
--	spin_lock(&i2c_dev_array_lock);
--	i2c_dev = i2c_dev_array[index];
--	spin_unlock(&i2c_dev_array_lock);
-+	spin_lock(&i2c_dev_list_lock);
-+	list_for_each_entry(i2c_dev, &i2c_dev_list, list) {
-+		if (i2c_dev->adap->nr = index)
-+			goto found;
-+	}
-+	i2c_dev = NULL;
-+found:
-+	spin_unlock(&i2c_dev_list_lock);
- 	return i2c_dev;
+-The IT8716F and late IT8712F and IT8705F also have optional 16-bit
+-tachometer counters for fans 1 to 3. This is better (no more fan
++The IT8716F and IT8718F, and late IT8712F and IT8705F also have optional
++16-bit tachometer counters for fans 1 to 3. This is better (no more fan
+ clock divider mess) but not compatible with the older chips and
+ revisions. For now, the driver only uses the 16-bit mode on the
+-IT8716F.
++IT8716F and IT8718F.
+ 
+ Temperatures are measured in degrees Celsius. An alarm is triggered once
+ when the Overtemperature Shutdown limit is crossed.
+@@ -89,9 +102,9 @@ zero'; this is important for negative vo
+ inputs can measure voltages between 0 and 4.08 volts, with a resolution of
+ 0.016 volt. The battery voltage in8 does not have limit registers.
+ 
+-The VID lines (IT8712F/IT8716F) encode the core voltage value: the voltage
+-level your processor should work with. This is hardcoded by the mainboard
+-and/or processor itself. It is a value in volts.
++The VID lines (IT8712F/IT8716F/IT8718F) encode the core voltage value:
++the voltage level your processor should work with. This is hardcoded by
++the mainboard and/or processor itself. It is a value in volts.
+ 
+ If an alarm triggers, it will remain triggered until the hardware register
+ is read at least once. This means that the cause for the alarm may already
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index cefb1ad..78c237f 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -186,8 +186,8 @@ config SENSORS_IT87
+ 	select I2C_ISA
+ 	select HWMON_VID
+ 	help
+-	  If you say yes here you get support for ITE IT8705F, IT8712F and
+-	  IT8716F sensor chips, and the SiS960 clone.
++	  If you say yes here you get support for ITE IT8705F, IT8712F,
++	  IT8716F and IT8718F sensor chips, and the SiS960 clone.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called it87.
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index e9ab8a3..956cd55 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -5,6 +5,7 @@
+     Supports: IT8705F  Super I/O chip w/LPC interface
+               IT8712F  Super I/O chip w/LPC interface & SMBus
+               IT8716F  Super I/O chip w/LPC interface
++              IT8718F  Super I/O chip w/LPC interface
+               Sis950   A clone of the IT8705F
+ 
+     Copyright (C) 2001 Chris Gauthron <chrisg at 0-in.com> 
+@@ -51,12 +52,13 @@ static unsigned short normal_i2c[] = { 0
+ static unsigned short isa_address;
+ 
+ /* Insmod parameters */
+-I2C_CLIENT_INSMOD_3(it87, it8712, it8716);
++I2C_CLIENT_INSMOD_4(it87, it8712, it8716, it8718);
+ 
+ #define	REG	0x2e	/* The register to read/write */
+ #define	DEV	0x07	/* Register: Logical device select */
+ #define	VAL	0x2f	/* The value to read/write */
+ #define PME	0x04	/* The device with the fan registers in it */
++#define GPIO	0x07	/* The device with the IT8718F VID value in it */
+ #define	DEVID	0x20	/* Register: Device ID */
+ #define	DEVREV	0x22	/* Register: Device Revision */
+ 
+@@ -78,10 +80,10 @@ static int superio_inw(int reg)
  }
  
-@@ -61,30 +68,28 @@ static struct i2c_dev *get_free_i2c_dev(
+ static inline void
+-superio_select(void)
++superio_select(int ldn)
  {
- 	struct i2c_dev *i2c_dev;
+ 	outb(DEV, REG);
+-	outb(PME, VAL);
++	outb(ldn, VAL);
+ }
  
-+	if (adap->nr >= I2C_MINORS) {
-+		printk(KERN_ERR "i2c-dev: Out of device minors (%d)\n",
-+		       adap->nr);
-+		return ERR_PTR(-ENODEV);
-+	}
+ static inline void
+@@ -100,21 +102,27 @@ superio_exit(void)
+ 	outb(0x02, VAL);
+ }
+ 
++/* Logical device 4 registers */
+ #define IT8712F_DEVID 0x8712
+ #define IT8705F_DEVID 0x8705
+ #define IT8716F_DEVID 0x8716
++#define IT8718F_DEVID 0x8718
+ #define IT87_ACT_REG  0x30
+ #define IT87_BASE_REG 0x60
+ 
++/* Logical device 7 registers (IT8712F and later) */
++#define IT87_SIO_PINX2_REG	0x2c	/* Pin selection */
++#define IT87_SIO_VID_REG	0xfc	/* VID value */
 +
- 	i2c_dev = kzalloc(sizeof(*i2c_dev), GFP_KERNEL);
- 	if (!i2c_dev)
- 		return ERR_PTR(-ENOMEM);
+ /* Update battery voltage after every reading if true */
+ static int update_vbat;
+ 
+ /* Not all BIOSes properly configure the PWM registers */
+ static int fix_pwm_polarity;
+ 
+-/* Chip Type */
 -
--	spin_lock(&i2c_dev_array_lock);
--	if (i2c_dev_array[adap->nr]) {
--		spin_unlock(&i2c_dev_array_lock);
--		dev_err(&adap->dev, "i2c-dev already has a device assigned to this adapter\n");
--		goto error;
--	}
- 	i2c_dev->adap = adap;
--	i2c_dev_array[adap->nr] = i2c_dev;
--	spin_unlock(&i2c_dev_array_lock);
++/* Values read from Super-I/O config space */
+ static u16 chip_type;
++static u8 vid_value;
+ 
+ /* Many IT87 constants specified below */
+ 
+@@ -133,6 +141,8 @@ #define IT87_REG_ALARM1        0x01
+ #define IT87_REG_ALARM2        0x02
+ #define IT87_REG_ALARM3        0x03
+ 
++/* The IT8718F has the VID value in a different register, in Super-I/O
++   configuration space. */
+ #define IT87_REG_VID           0x0a
+ /* Warning: register 0x0b is used for something completely different in
+    new chips/revisions. I suspect only 16-bit tachometer mode will work
+@@ -793,10 +803,11 @@ static int __init it87_find(unsigned sho
+ 	chip_type = superio_inw(DEVID);
+ 	if (chip_type != IT8712F_DEVID
+ 	 && chip_type != IT8716F_DEVID
++	 && chip_type != IT8718F_DEVID
+ 	 && chip_type != IT8705F_DEVID)
+ 	 	goto exit;
+ 
+-	superio_select();
++	superio_select(PME);
+ 	if (!(superio_inb(IT87_ACT_REG) & 0x01)) {
+ 		pr_info("it87: Device not activated, skipping\n");
+ 		goto exit;
+@@ -812,6 +823,21 @@ static int __init it87_find(unsigned sho
+ 	pr_info("it87: Found IT%04xF chip at 0x%x, revision %d\n",
+ 		chip_type, *address, superio_inb(DEVREV) & 0x0f);
+ 
++	/* Read GPIO config and VID value from LDN 7 (GPIO) */
++	if (chip_type != IT8705F_DEVID) {
++		int reg;
 +
-+	spin_lock(&i2c_dev_list_lock);
-+	list_add_tail(&i2c_dev->list, &i2c_dev_list);
-+	spin_unlock(&i2c_dev_list_lock);
- 	return i2c_dev;
--error:
--	kfree(i2c_dev);
--	return ERR_PTR(-ENODEV);
- }
++		superio_select(GPIO);
++		if (chip_type = it8718)
++			vid_value = superio_inb(IT87_SIO_VID_REG);
++
++		reg = superio_inb(IT87_SIO_PINX2_REG);
++		if (reg & (1 << 0))
++			pr_info("it87: in3 is VCC (+5V)\n");
++		if (reg & (1 << 1))
++			pr_info("it87: in7 is VCCH (+5V Stand-By)\n");
++	}
++
+ exit:
+ 	superio_exit();
+ 	return err;
+@@ -880,6 +906,9 @@ static int it87_detect(struct i2c_adapte
+ 				case IT8716F_DEVID:
+ 					kind = it8716;
+ 					break;
++				case IT8718F_DEVID:
++					kind = it8718;
++					break;
+ 				}
+ 			}
+ 		}
+@@ -900,6 +929,8 @@ static int it87_detect(struct i2c_adapte
+ 		name = "it8712";
+ 	} else if (kind = it8716) {
+ 		name = "it8716";
++	} else if (kind = it8718) {
++		name = "it8718";
+ 	}
  
- static void return_i2c_dev(struct i2c_dev *i2c_dev)
- {
--	spin_lock(&i2c_dev_array_lock);
--	i2c_dev_array[i2c_dev->adap->nr] = NULL;
--	spin_unlock(&i2c_dev_array_lock);
-+	spin_lock(&i2c_dev_list_lock);
-+	list_del(&i2c_dev->list);
-+	spin_unlock(&i2c_dev_list_lock);
- }
+ 	/* Fill in the remaining client fields and put it into the global list */
+@@ -969,7 +1000,8 @@ static int it87_detect(struct i2c_adapte
+ 	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_type.dev_attr);
  
- static ssize_t show_adapter_name(struct class_device *class_dev, char *buf)
+ 	/* Do not create fan files for disabled fans */
+-	if (data->type = it8716) { /* 16-bit tachometers */
++	if (data->type = it8716 || data->type = it8718) {
++		/* 16-bit tachometers */
+ 		if (data->has_fan & (1 << 0)) {
+ 			device_create_file(&new_client->dev,
+ 				&sensor_dev_attr_fan1_input16.dev_attr);
+@@ -989,6 +1021,7 @@ static int it87_detect(struct i2c_adapte
+ 				&sensor_dev_attr_fan3_min16.dev_attr);
+ 		}
+ 	} else {
++		/* 8-bit tachometers with clock divider */
+ 		if (data->has_fan & (1 << 0)) {
+ 			device_create_file(&new_client->dev,
+ 				&sensor_dev_attr_fan1_input.dev_attr);
+@@ -1025,8 +1058,11 @@ static int it87_detect(struct i2c_adapte
+ 		device_create_file(&new_client->dev, &sensor_dev_attr_pwm3.dev_attr);
+ 	}
+ 
+-	if (data->type = it8712 || data->type = it8716) {
++	if (data->type = it8712 || data->type = it8716
++	 || data->type = it8718) {
+ 		data->vrm = vid_which_vrm();
++		/* VID reading from Super-I/O config space if available */
++		data->vid = vid_value;
+ 		device_create_file_vrm(new_client);
+ 		device_create_file_vid(new_client);
+ 	}
+@@ -1192,7 +1228,7 @@ static void it87_init_client(struct i2c_
+ 	data->has_fan = (data->fan_main_ctrl >> 4) & 0x07;
+ 
+ 	/* Set tachometers to 16-bit mode if needed */
+-	if (data->type = it8716) {
++	if (data->type = it8716 || data->type = it8718) {
+ 		tmp = it87_read_value(client, IT87_REG_FAN_16BIT);
+ 		if (~tmp & 0x07 & data->has_fan) {
+ 			dev_dbg(&client->dev,
+@@ -1265,7 +1301,7 @@ static struct it87_data *it87_update_dev
+ 			data->fan[i] = it87_read_value(client,
+ 				       IT87_REG_FAN(i));
+ 			/* Add high byte if in 16-bit mode */
+-			if (data->type = it8716) {
++			if (data->type = it8716 || data->type = it8718) {
+ 				data->fan[i] |= it87_read_value(client,
+ 						IT87_REG_FANX(i)) << 8;
+ 				data->fan_min[i] |= it87_read_value(client,
+@@ -1282,7 +1318,8 @@ static struct it87_data *it87_update_dev
+ 		}
+ 
+ 		/* Newer chips don't have clock dividers */
+-		if ((data->has_fan & 0x07) && data->type != it8716) {
++		if ((data->has_fan & 0x07) && data->type != it8716
++		 && data->type != it8718) {
+ 			i = it87_read_value(client, IT87_REG_FAN_DIV);
+ 			data->fan_div[0] = i & 0x07;
+ 			data->fan_div[1] = (i >> 3) & 0x07;
+@@ -1340,7 +1377,7 @@ static void __exit sm_it87_exit(void)
+ 
+ 
+ MODULE_AUTHOR("Chris Gauthron <chrisg at 0-in.com>");
+-MODULE_DESCRIPTION("IT8705F/8712F/8716F, SiS950 driver");
++MODULE_DESCRIPTION("IT8705F/8712F/8716F/8718F, SiS950 driver");
+ module_param(update_vbat, bool, 0);
+ MODULE_PARM_DESC(update_vbat, "Update vbat if set else return powerup value");
+ module_param(fix_pwm_polarity, bool, 0);
 -- 
 1.4.2.1
 
