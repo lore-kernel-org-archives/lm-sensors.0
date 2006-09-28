@@ -1,147 +1,264 @@
-From: gregkh@suse.de (gregkh at suse.de)
-Date: Thu, 28 Sep 2006 06:59:20 +0000
-Subject: [lm-sensors] patch hwmon-k8temp-documentation.patch added to
-Message-Id: <20060928065917.CC54D90221A@imap.suse.de>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 28 Sep 2006 22:48:53 +0000
+Subject: [lm-sensors] [PATCH 33/39] vt8231: Fix unchecked return status
+Message-Id: <11594838621930-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+From: Roger Lucas <roger at planbit.co.uk>
 
-This is a note to let you know that I've just added the patch titled
+vt8231: Fix unchecked return status
 
-     Subject: [PATCH 01/23] k8temp: Add documentation
+Check the return status from device_create_file() and also use
+the newer and cleaner sysfs creation functions.
 
-to my gregkh-2.6 tree.  Its filename is
-
-     hwmon-k8temp-documentation.patch
-
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
-
-
-From khali at linux-fr.org Sun Sep 24 11:51:04 2006
-Date: Sun, 24 Sep 2006 20:50:57 +0200
-From: Jean Delvare <khali at linux-fr.org>
-To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>, Rudolf Marek <r.marek at sh.cvut.cz>
-Subject: [PATCH 01/23] k8temp: Add documentation
-Message-Id: <20060924205057.ce05687a.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-k8temp-documentation.patch
-
-From: Rudolf Marek <r.marek at sh.cvut.cz>
-
-k8temp: Add documentation
-
-Add promised documentation for the k8temp driver.
-
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Signed-off-by: Roger Lucas <roger at planbit.co.uk>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
 ---
- Documentation/hwmon/k8temp |   52 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+ drivers/hwmon/vt8231.c |  186 ++++++++++++++++++++++++++++++++++--------------
+ 1 files changed, 132 insertions(+), 54 deletions(-)
 
---- /dev/null
-+++ gregkh-2.6/Documentation/hwmon/k8temp
-@@ -0,0 +1,52 @@
-+Kernel driver k8temp
-+==========
+diff --git a/drivers/hwmon/vt8231.c b/drivers/hwmon/vt8231.c
+index 236ccf0..93f93d4 100644
+--- a/drivers/hwmon/vt8231.c
++++ b/drivers/hwmon/vt8231.c
+@@ -451,37 +451,6 @@ define_temperature_sysfs(4);
+ define_temperature_sysfs(5);
+ define_temperature_sysfs(6);
+ 
+-#define CFG_INFO_TEMP(id)	{ &sensor_dev_attr_temp##id##_input.dev_attr, \
+-				&sensor_dev_attr_temp##id##_max_hyst.dev_attr, \
+-				&sensor_dev_attr_temp##id##_max.dev_attr }
+-#define CFG_INFO_VOLT(id)	{ &sensor_dev_attr_in##id##_input.dev_attr, \
+-				&sensor_dev_attr_in##id##_min.dev_attr, \
+-				&sensor_dev_attr_in##id##_max.dev_attr }
+-
+-struct str_device_attr_table {
+-	struct device_attribute *input;
+-	struct device_attribute *min;
+-	struct device_attribute *max;
+-};
+-
+-static struct str_device_attr_table cfg_info_temp[] = {
+-	{ &dev_attr_temp1_input, &dev_attr_temp1_max_hyst, &dev_attr_temp1_max },
+-	CFG_INFO_TEMP(2),
+-	CFG_INFO_TEMP(3),
+-	CFG_INFO_TEMP(4),
+-	CFG_INFO_TEMP(5),
+-	CFG_INFO_TEMP(6)
+-};
+-
+-static struct str_device_attr_table cfg_info_volt[] = {
+-	CFG_INFO_VOLT(0),
+-	CFG_INFO_VOLT(1),
+-	CFG_INFO_VOLT(2),
+-	CFG_INFO_VOLT(3),
+-	CFG_INFO_VOLT(4),
+-	{ &dev_attr_in5_input, &dev_attr_in5_min, &dev_attr_in5_max }
+-};
+-
+ /* Fans */
+ static ssize_t show_fan(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -585,6 +554,107 @@ static ssize_t show_alarms(struct device
+ 
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
++static struct attribute *vt8231_attributes_temps[6][4] = {
++	{
++		&dev_attr_temp1_input.attr,
++		&dev_attr_temp1_max_hyst.attr,
++		&dev_attr_temp1_max.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_temp2_input.dev_attr.attr,
++		&sensor_dev_attr_temp2_max_hyst.dev_attr.attr,
++		&sensor_dev_attr_temp2_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_temp3_input.dev_attr.attr,
++		&sensor_dev_attr_temp3_max_hyst.dev_attr.attr,
++		&sensor_dev_attr_temp3_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_temp4_input.dev_attr.attr,
++		&sensor_dev_attr_temp4_max_hyst.dev_attr.attr,
++		&sensor_dev_attr_temp4_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_temp5_input.dev_attr.attr,
++		&sensor_dev_attr_temp5_max_hyst.dev_attr.attr,
++		&sensor_dev_attr_temp5_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_temp6_input.dev_attr.attr,
++		&sensor_dev_attr_temp6_max_hyst.dev_attr.attr,
++		&sensor_dev_attr_temp6_max.dev_attr.attr,
++		NULL
++	}
++};
 +
-+Supported chips:
-+  * AMD K8 CPU
-+    Prefix: 'k8temp'
-+    Addresses scanned: PCI space
-+    Datasheet: http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
++static const struct attribute_group vt8231_group_temps[6] = {
++	{ .attrs = vt8231_attributes_temps[0] },
++	{ .attrs = vt8231_attributes_temps[1] },
++	{ .attrs = vt8231_attributes_temps[2] },
++	{ .attrs = vt8231_attributes_temps[3] },
++	{ .attrs = vt8231_attributes_temps[4] },
++	{ .attrs = vt8231_attributes_temps[5] },
++};
 +
-+Author: Rudolf Marek
-+Contact: Rudolf Marek <r.marek at sh.cvut.cz>
++static struct attribute *vt8231_attributes_volts[6][4] = {
++	{
++		&sensor_dev_attr_in0_input.dev_attr.attr,
++		&sensor_dev_attr_in0_min.dev_attr.attr,
++		&sensor_dev_attr_in0_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_in1_input.dev_attr.attr,
++		&sensor_dev_attr_in1_min.dev_attr.attr,
++		&sensor_dev_attr_in1_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_in2_input.dev_attr.attr,
++		&sensor_dev_attr_in2_min.dev_attr.attr,
++		&sensor_dev_attr_in2_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_in3_input.dev_attr.attr,
++		&sensor_dev_attr_in3_min.dev_attr.attr,
++		&sensor_dev_attr_in3_max.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_in4_input.dev_attr.attr,
++		&sensor_dev_attr_in4_min.dev_attr.attr,
++		&sensor_dev_attr_in4_max.dev_attr.attr,
++		NULL
++	}, {
++		&dev_attr_in5_input.attr,
++		&dev_attr_in5_min.attr,
++		&dev_attr_in5_max.attr,
++		NULL
++	}
++};
 +
-+Description
-+-----------
++static const struct attribute_group vt8231_group_volts[6] = {
++	{ .attrs = vt8231_attributes_volts[0] },
++	{ .attrs = vt8231_attributes_volts[1] },
++	{ .attrs = vt8231_attributes_volts[2] },
++	{ .attrs = vt8231_attributes_volts[3] },
++	{ .attrs = vt8231_attributes_volts[4] },
++	{ .attrs = vt8231_attributes_volts[5] },
++};
 +
-+This driver permits reading temperature sensor(s) embedded inside AMD K8 CPUs.
-+Official documentation says that it works from revision F of K8 core, but
-+in fact it seems to be implemented for all revisions of K8 except the first
-+two revisions (SH-B0 and SH-B3).
++static struct attribute *vt8231_attributes[] = {
++	&sensor_dev_attr_fan1_input.dev_attr.attr,
++	&sensor_dev_attr_fan2_input.dev_attr.attr,
++	&sensor_dev_attr_fan1_min.dev_attr.attr,
++	&sensor_dev_attr_fan2_min.dev_attr.attr,
++	&sensor_dev_attr_fan1_div.dev_attr.attr,
++	&sensor_dev_attr_fan2_div.dev_attr.attr,
++	&dev_attr_alarms.attr,
++	NULL
++};
 +
-+There can be up to four temperature sensors inside single CPU. The driver
-+will auto-detect the sensors and will display only temperatures from
-+implemented sensors.
++static const struct attribute_group vt8231_group = {
++	.attrs = vt8231_attributes,
++};
 +
-+Mapping of /sys files is as follows:
+ static struct i2c_driver vt8231_driver = {
+ 	.driver = {
+ 		.owner	= THIS_MODULE,
+@@ -671,43 +741,43 @@ int vt8231_detect(struct i2c_adapter *ad
+ 	vt8231_init_client(client);
+ 
+ 	/* Register sysfs hooks */
+-	data->class_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->class_dev)) {
+-		err = PTR_ERR(data->class_dev);
++	if ((err = sysfs_create_group(&client->dev.kobj, &vt8231_group)))
+ 		goto exit_detach;
+-	}
+ 
+ 	/* Must update device information to find out the config field */
+ 	data->uch_config = vt8231_read_value(client, VT8231_REG_UCH_CONFIG);
+ 
+-	for (i = 0; i < ARRAY_SIZE(cfg_info_temp); i++) {
++	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++) {
+ 		if (ISTEMP(i, data->uch_config)) {
+-			device_create_file(&client->dev,
+-					   cfg_info_temp[i].input);
+-			device_create_file(&client->dev, cfg_info_temp[i].max);
+-			device_create_file(&client->dev, cfg_info_temp[i].min);
++			if ((err = sysfs_create_group(&client->dev.kobj,
++					&vt8231_group_temps[i])))
++				goto exit_remove_files;
+ 		}
+ 	}
+ 
+-	for (i = 0; i < ARRAY_SIZE(cfg_info_volt); i++) {
++	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++) {
+ 		if (ISVOLT(i, data->uch_config)) {
+-			device_create_file(&client->dev,
+-					   cfg_info_volt[i].input);
+-			device_create_file(&client->dev, cfg_info_volt[i].max);
+-			device_create_file(&client->dev, cfg_info_volt[i].min);
++			if ((err = sysfs_create_group(&client->dev.kobj,
++					&vt8231_group_volts[i])))
++				goto exit_remove_files;
+ 		}
+ 	}
+ 
+-	device_create_file(&client->dev, &sensor_dev_attr_fan1_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_fan2_input.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_fan1_min.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_fan2_min.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_fan1_div.dev_attr);
+-	device_create_file(&client->dev, &sensor_dev_attr_fan2_div.dev_attr);
+-
+-	device_create_file(&client->dev, &dev_attr_alarms);
++	data->class_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		goto exit_remove_files;
++	}
+ 	return 0;
+ 
++exit_remove_files:
++	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
++		sysfs_remove_group(&client->dev.kobj, &vt8231_group_volts[i]);
 +
-+temp1_input - temperature of Core 0 and "place" 0
-+temp2_input - temperature of Core 0 and "place" 1
-+temp3_input - temperature of Core 1 and "place" 0
-+temp4_input - temperature of Core 1 and "place" 1
++	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
++		sysfs_remove_group(&client->dev.kobj, &vt8231_group_temps[i]);
 +
-+Temperatures are measured in degrees Celsius and measurement resolution is
-+1 degree C. It is expected that future CPU will have better resolution. The
-+temperature is updated once a second. Valid temperatures are from -49 to
-+206 degrees C.
++	sysfs_remove_group(&client->dev.kobj, &vt8231_group);
+ exit_detach:
+ 	i2c_detach_client(client);
+ exit_free:
+@@ -720,10 +790,18 @@ exit_release:
+ static int vt8231_detach_client(struct i2c_client *client)
+ {
+ 	struct vt8231_data *data = i2c_get_clientdata(client);
+-	int err;
++	int err, i;
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
++	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
++		sysfs_remove_group(&client->dev.kobj, &vt8231_group_volts[i]);
 +
-+Temperature known as TCaseMax was specified for processors up to revision E.
-+This temperature is defined as temperature between heat-spreader and CPU
-+case, so the internal CPU temperature supplied by this driver can be higher.
-+There is no easy way how to measure the temperature which will correlate
-+with TCaseMax temperature.
++	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
++		sysfs_remove_group(&client->dev.kobj, &vt8231_group_temps[i]);
 +
-+For newer revisions of CPU (rev F, socket AM2) there is a mathematically
-+computed temperature called TControl, which must be lower than TControlMax.
++	sysfs_remove_group(&client->dev.kobj, &vt8231_group);
 +
-+The relationship is following:
-+
-+temp1_input - TjOffset*2 < TControlMax,
-+
-+TjOffset is not yet exported by the driver, TControlMax is usually
-+70 degrees C. The rule of the thumb -> CPU temperature should not cross
-+60 degrees C too much.
+ 	if ((err = i2c_detach_client(client))) {
+ 		return err;
+ 	}
+-- 
+1.4.2.1
 
-
-Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
-
-i2c/hwmon-w83627ehf-add-pwm-support.patch
-i2c/hwmon-w83627ehf-documentation.patch
-i2c/hwmon-k8temp-documentation.patch
-i2c/hwmon-abituguru-suspend-resume.patch
-i2c/hwmon-individual-alarm-files-1.patch
-i2c/hwmon-kconfig-update.patch
-i2c/hwmon-it87-disabled-fans.patch
-i2c/hwmon-remove-yuan-mu-address.patch
-i2c/hwmon-unchecked-return-status-fixes-1.patch
-i2c/hwmon-unchecked-return-status-fixes-2.patch
-i2c/hwmon-unchecked-return-status-fixes-3.patch
-i2c/hwmon-unchecked-return-status-fixes-4.patch
-i2c/hwmon-unchecked-return-status-fixes-5.patch
-i2c/hwmon-unchecked-return-status-fixes-6.patch
-i2c/hwmon-unchecked-return-status-fixes-pc87360-1.patch
-i2c/hwmon-unchecked-return-status-fixes-pc87360-2.patch
-i2c/hwmon-unchecked-return-status-fixes-pc87360-3.patch
-i2c/hwmon-unchecked-return-status-fixes-smsc.patch
-i2c/hwmon-unchecked-return-status-fixes-vt8231.patch
-i2c/hwmon-atxp1-signed-unsigned-char-bug.patch
-i2c/hwmon-hdaps-handle-errors-from-input-register-device.patch
-i2c/hwmon-it87-copyright-update.patch
-i2c/hwmon-it87-div-to-reg-overflow.patch
-i2c/hwmon-it87-in8-no-limits.patch
-i2c/hwmon-it87-it8716f-support.patch
-i2c/hwmon-it87-it8718f-support.patch
-i2c/hwmon-it87-sane-limit-defaults.patch
-i2c/hwmon-it87-set-fan-div.patch
-i2c/hwmon-k8temp-autoload.patch
-i2c/hwmon-k8temp-new-driver.patch
-i2c/hwmon-smsc47m1-fix-dev-message.patch
-i2c/hwmon-unchecked-return-status-fixes-w83627ehf.patch
-i2c/hwmon-unchecked-return-status-fixes-w83781d.patch
-i2c/hwmon-unchecked-return-status-fixes-w83792d.patch
-i2c/hwmon-unchecked-return-status-fixes-w83l785ts.patch
-i2c/hwmon-vt1211-add-module-parameters-description.patch
-i2c/hwmon-vt1211-documentation.patch
-i2c/hwmon-vt1211-new-driver.patch
-i2c/hwmon-w83791d-doc-update.patch
-driver-class/i2c-dev-device.patch
-driver-class/i2c-dev-device.old.patch
 
