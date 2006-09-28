@@ -1,84 +1,69 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 28 Sep 2006 22:48:37 +0000
-Subject: [lm-sensors] [PATCH 17/39] k8temp: Add documentation
-Message-Id: <11594837943723-git-send-email-greg@kroah.com>
+Date: Thu, 28 Sep 2006 22:48:43 +0000
+Subject: [lm-sensors] [PATCH 23/39] vt1211: Document module parameters
+Message-Id: <11594838192090-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Rudolf Marek <r.marek at sh.cvut.cz>
+From: Juerg Haefliger <juergh at gmail.com>
 
-k8temp: Add documentation
+vt1211: Document module parameters
 
-Add promised documentation for the k8temp driver.
+Add a description of the module parameters to the documentation of
+the vt1211 driver.
 
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- Documentation/hwmon/k8temp |   52 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 52 insertions(+), 0 deletions(-)
+ Documentation/hwmon/vt1211 |   24 +++++++++++++++++++++---
+ 1 files changed, 21 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/hwmon/k8temp b/Documentation/hwmon/k8temp
-new file mode 100644
-index 0000000..bab445a
---- /dev/null
-+++ b/Documentation/hwmon/k8temp
-@@ -0,0 +1,52 @@
-+Kernel driver k8temp
-+==========
+diff --git a/Documentation/hwmon/vt1211 b/Documentation/hwmon/vt1211
+index d6d8071..77fa633 100644
+--- a/Documentation/hwmon/vt1211
++++ b/Documentation/hwmon/vt1211
+@@ -16,6 +16,26 @@ Thanks to Joseph Chan and Fiona Gatt fro
+ technical support.
+ 
+ 
++Module Parameters
++-----------------
 +
-+Supported chips:
-+  * AMD K8 CPU
-+    Prefix: 'k8temp'
-+    Addresses scanned: PCI space
-+    Datasheet: http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
++* uch_config: int	Override the BIOS default universal channel (UCH)
++			configuration for channels 1-5.
++			Legal values are in the range of 0-31. Bit 0 maps to
++			UCH1, bit 1 maps to UCH2 and so on. Setting a bit to 1
++			enables the thermal input of that particular UCH and
++			setting a bit to 0 enables the voltage input.
 +
-+Author: Rudolf Marek
-+Contact: Rudolf Marek <r.marek at sh.cvut.cz>
++* int_mode: int		Override the BIOS default temperature interrupt mode.
++			The only possible value is 0 which forces interrupt
++			mode 0. In this mode, any pending interrupt is cleared
++			when the status register is read but is regenerated as
++			long as the temperature stays above the hysteresis
++			limit.
 +
-+Description
-+-----------
++Be aware that overriding BIOS defaults might cause some unwanted side effects!
 +
-+This driver permits reading temperature sensor(s) embedded inside AMD K8 CPUs.
-+Official documentation says that it works from revision F of K8 core, but
-+in fact it seems to be implemented for all revisions of K8 except the first
-+two revisions (SH-B0 and SH-B3).
 +
-+There can be up to four temperature sensors inside single CPU. The driver
-+will auto-detect the sensors and will display only temperatures from
-+implemented sensors.
-+
-+Mapping of /sys files is as follows:
-+
-+temp1_input - temperature of Core 0 and "place" 0
-+temp2_input - temperature of Core 0 and "place" 1
-+temp3_input - temperature of Core 1 and "place" 0
-+temp4_input - temperature of Core 1 and "place" 1
-+
-+Temperatures are measured in degrees Celsius and measurement resolution is
-+1 degree C. It is expected that future CPU will have better resolution. The
-+temperature is updated once a second. Valid temperatures are from -49 to
-+206 degrees C.
-+
-+Temperature known as TCaseMax was specified for processors up to revision E.
-+This temperature is defined as temperature between heat-spreader and CPU
-+case, so the internal CPU temperature supplied by this driver can be higher.
-+There is no easy way how to measure the temperature which will correlate
-+with TCaseMax temperature.
-+
-+For newer revisions of CPU (rev F, socket AM2) there is a mathematically
-+computed temperature called TControl, which must be lower than TControlMax.
-+
-+The relationship is following:
-+
-+temp1_input - TjOffset*2 < TControlMax,
-+
-+TjOffset is not yet exported by the driver, TControlMax is usually
-+70 degrees C. The rule of the thumb -> CPU temperature should not cross
-+60 degrees C too much.
+ Description
+ -----------
+ 
+@@ -88,9 +108,7 @@ has a high limit which triggers an alarm
+ hysteresis value with each temperature below which the temperature has to drop
+ before the alarm is cleared (this is only true for interrupt mode 0). The
+ interrupt mode can be forced to 0 in case the BIOS doesn't do it
+-automatically. For that, the parameter int_mode=0 needs to be supplied when
+-loading the driver module. Be aware that overriding BIOS defaults might cause
+-some unwanted side effects!
++automatically. See the 'Module Parameters' section for details.
+ 
+ All temperature channels except temp2 are external. Temp2 is the VT1211
+ internal thermal diode and the driver does all the scaling for temp2 and
 -- 
 1.4.2.1
 
