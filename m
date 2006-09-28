@@ -1,826 +1,220 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 28 Sep 2006 22:48:51 +0000
-Subject: [lm-sensors] [PATCH 31/39] hwmon: Fix unchecked return status,
-Message-Id: <1159483852533-git-send-email-greg@kroah.com>
+Date: Thu, 28 Sep 2006 22:48:42 +0000
+Subject: [lm-sensors] [PATCH 22/39] vt1211: Add documentation
+Message-Id: <11594838153103-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali at linux-fr.org>
+From: Juerg Haefliger <juergh at gmail.com>
 
-hwmon: Fix unchecked return status, batch 4
+vt1211: Add documentation
 
-Fix up some hwmon drivers so that they no longer ignore return status
-from device_create_file().
+Add documentation for the new vt1211 hardware monitoring driver.
 
-Note: f71805f actually checked the status from device_create_file
-already. However it did not remove the files on device destruction.
-It was also an opportunity to use sysfs_create/remove_group instead
-of hand-made loops. This makes the changes much more important but
-I think the result is worth it.
-
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/hwmon/f71805f.c |  324 +++++++++++++++++++++++++++++------------------
- drivers/hwmon/lm63.c    |   89 ++++++++-----
- drivers/hwmon/lm83.c    |  125 +++++++++---------
- drivers/hwmon/lm90.c    |   83 ++++++------
- 4 files changed, 357 insertions(+), 264 deletions(-)
+ Documentation/hwmon/vt1211 |  188 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 188 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/hwmon/f71805f.c b/drivers/hwmon/f71805f.c
-index 678bae4..de17a72 100644
---- a/drivers/hwmon/f71805f.c
-+++ b/drivers/hwmon/f71805f.c
-@@ -31,6 +31,7 @@ #include <linux/hwmon.h>
- #include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/sysfs.h>
- #include <asm/io.h>
- 
- static struct platform_device *pdev;
-@@ -593,104 +594,189 @@ static ssize_t show_name(struct device *
- 	return sprintf(buf, "%s\n", data->name);
- }
- 
--static struct device_attribute f71805f_dev_attr[] = {
--	__ATTR(in0_input, S_IRUGO, show_in0, NULL),
--	__ATTR(in0_max, S_IRUGO| S_IWUSR, show_in0_max, set_in0_max),
--	__ATTR(in0_min, S_IRUGO| S_IWUSR, show_in0_min, set_in0_min),
--	__ATTR(alarms_in, S_IRUGO, show_alarms_in, NULL),
--	__ATTR(alarms_fan, S_IRUGO, show_alarms_fan, NULL),
--	__ATTR(alarms_temp, S_IRUGO, show_alarms_temp, NULL),
--	__ATTR(name, S_IRUGO, show_name, NULL),
-+static DEVICE_ATTR(in0_input, S_IRUGO, show_in0, NULL);
-+static DEVICE_ATTR(in0_max, S_IRUGO| S_IWUSR, show_in0_max, set_in0_max);
-+static DEVICE_ATTR(in0_min, S_IRUGO| S_IWUSR, show_in0_min, set_in0_min);
-+static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_in, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in1_max, S_IRUGO | S_IWUSR,
-+			  show_in_max, set_in_max, 1);
-+static SENSOR_DEVICE_ATTR(in1_min, S_IRUGO | S_IWUSR,
-+			  show_in_min, set_in_min, 1);
-+static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_in, NULL, 2);
-+static SENSOR_DEVICE_ATTR(in2_max, S_IRUGO | S_IWUSR,
-+			  show_in_max, set_in_max, 2);
-+static SENSOR_DEVICE_ATTR(in2_min, S_IRUGO | S_IWUSR,
-+			  show_in_min, set_in_min, 2);
-+static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_in, NULL, 3);
-+static SENSOR_DEVICE_ATTR(in3_max, S_IRUGO | S_IWUSR,
-+			  show_in_max, set_in_max, 3);
-+static SENSOR_DEVICE_ATTR(in3_min, S_IRUGO | S_IWUSR,
-+			  show_in_min, set_in_min, 3);
-+static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, show_in, NULL, 4);
-+static SENSOR_DEVICE_ATTR(in4_max, S_IRUGO | S_IWUSR,
-+			  show_in_max, set_in_max, 4);
-+static SENSOR_DEVICE_ATTR(in4_min, S_IRUGO | S_IWUSR,
-+			  show_in_min, set_in_min, 4);
-+static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, show_in, NULL, 5);
-+static SENSOR_DEVICE_ATTR(in5_max, S_IRUGO | S_IWUSR,
-+			  show_in_max, set_in_max, 5);
-+static SENSOR_DEVICE_ATTR(in5_min, S_IRUGO | S_IWUSR,
-+			  show_in_min, set_in_min, 5);
-+static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, show_in, NULL, 6);
-+static SENSOR_DEVICE_ATTR(in6_max, S_IRUGO | S_IWUSR,
-+			  show_in_max, set_in_max, 6);
-+static SENSOR_DEVICE_ATTR(in6_min, S_IRUGO | S_IWUSR,
-+			  show_in_min, set_in_min, 6);
-+static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, show_in, NULL, 7);
-+static SENSOR_DEVICE_ATTR(in7_max, S_IRUGO | S_IWUSR,
-+			  show_in_max, set_in_max, 7);
-+static SENSOR_DEVICE_ATTR(in7_min, S_IRUGO | S_IWUSR,
-+			  show_in_min, set_in_min, 7);
-+static SENSOR_DEVICE_ATTR(in8_input, S_IRUGO, show_in, NULL, 8);
-+static SENSOR_DEVICE_ATTR(in8_max, S_IRUGO | S_IWUSR,
-+			  show_in_max, set_in_max, 8);
-+static SENSOR_DEVICE_ATTR(in8_min, S_IRUGO | S_IWUSR,
-+			  show_in_min, set_in_min, 8);
+diff --git a/Documentation/hwmon/vt1211 b/Documentation/hwmon/vt1211
+new file mode 100644
+index 0000000..d6d8071
+--- /dev/null
++++ b/Documentation/hwmon/vt1211
+@@ -0,0 +1,188 @@
++Kernel driver vt1211
++==========
 +
-+static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0);
-+static SENSOR_DEVICE_ATTR(fan1_min, S_IRUGO | S_IWUSR,
-+			  show_fan_min, set_fan_min, 0);
-+static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1);
-+static SENSOR_DEVICE_ATTR(fan2_min, S_IRUGO | S_IWUSR,
-+			  show_fan_min, set_fan_min, 1);
-+static SENSOR_DEVICE_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2);
-+static SENSOR_DEVICE_ATTR(fan3_min, S_IRUGO | S_IWUSR,
-+			  show_fan_min, set_fan_min, 2);
++Supported chips:
++  * VIA VT1211
++    Prefix: 'vt1211'
++    Addresses scanned: none, address read from Super-I/O config space
++    Datasheet: Provided by VIA upon request and under NDA
 +
-+static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO | S_IWUSR,
-+		    show_temp_max, set_temp_max, 0);
-+static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR,
-+		    show_temp_hyst, set_temp_hyst, 0);
-+static SENSOR_DEVICE_ATTR(temp1_type, S_IRUGO, show_temp_type, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp2_max, S_IRUGO | S_IWUSR,
-+		    show_temp_max, set_temp_max, 1);
-+static SENSOR_DEVICE_ATTR(temp2_max_hyst, S_IRUGO | S_IWUSR,
-+		    show_temp_hyst, set_temp_hyst, 1);
-+static SENSOR_DEVICE_ATTR(temp2_type, S_IRUGO, show_temp_type, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2);
-+static SENSOR_DEVICE_ATTR(temp3_max, S_IRUGO | S_IWUSR,
-+		    show_temp_max, set_temp_max, 2);
-+static SENSOR_DEVICE_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR,
-+		    show_temp_hyst, set_temp_hyst, 2);
-+static SENSOR_DEVICE_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2);
++Authors: Juerg Haefliger <juergh at gmail.com>
 +
-+static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
-+static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2);
-+static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3);
-+static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 4);
-+static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 5);
-+static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 6);
-+static SENSOR_DEVICE_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 7);
-+static SENSOR_DEVICE_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 8);
-+static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 11);
-+static SENSOR_DEVICE_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 12);
-+static SENSOR_DEVICE_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13);
-+static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 16);
-+static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 17);
-+static SENSOR_DEVICE_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 18);
-+static DEVICE_ATTR(alarms_in, S_IRUGO, show_alarms_in, NULL);
-+static DEVICE_ATTR(alarms_fan, S_IRUGO, show_alarms_fan, NULL);
-+static DEVICE_ATTR(alarms_temp, S_IRUGO, show_alarms_temp, NULL);
++This driver is based on the driver for kernel 2.4 by Mark D. Studebaker and
++its port to kernel 2.6 by Lars Ekman.
 +
-+static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
++Thanks to Joseph Chan and Fiona Gatt from VIA for providing documentation and
++technical support.
 +
-+static struct attribute *f71805f_attributes[] = {
-+	&dev_attr_in0_input.attr,
-+	&dev_attr_in0_max.attr,
-+	&dev_attr_in0_min.attr,
-+	&sensor_dev_attr_in1_input.dev_attr.attr,
-+	&sensor_dev_attr_in1_max.dev_attr.attr,
-+	&sensor_dev_attr_in1_min.dev_attr.attr,
-+	&sensor_dev_attr_in2_input.dev_attr.attr,
-+	&sensor_dev_attr_in2_max.dev_attr.attr,
-+	&sensor_dev_attr_in2_min.dev_attr.attr,
-+	&sensor_dev_attr_in3_input.dev_attr.attr,
-+	&sensor_dev_attr_in3_max.dev_attr.attr,
-+	&sensor_dev_attr_in3_min.dev_attr.attr,
-+	&sensor_dev_attr_in4_input.dev_attr.attr,
-+	&sensor_dev_attr_in4_max.dev_attr.attr,
-+	&sensor_dev_attr_in4_min.dev_attr.attr,
-+	&sensor_dev_attr_in5_input.dev_attr.attr,
-+	&sensor_dev_attr_in5_max.dev_attr.attr,
-+	&sensor_dev_attr_in5_min.dev_attr.attr,
-+	&sensor_dev_attr_in6_input.dev_attr.attr,
-+	&sensor_dev_attr_in6_max.dev_attr.attr,
-+	&sensor_dev_attr_in6_min.dev_attr.attr,
-+	&sensor_dev_attr_in7_input.dev_attr.attr,
-+	&sensor_dev_attr_in7_max.dev_attr.attr,
-+	&sensor_dev_attr_in7_min.dev_attr.attr,
-+	&sensor_dev_attr_in8_input.dev_attr.attr,
-+	&sensor_dev_attr_in8_max.dev_attr.attr,
-+	&sensor_dev_attr_in8_min.dev_attr.attr,
 +
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp1_type.dev_attr.attr,
-+	&sensor_dev_attr_temp2_input.dev_attr.attr,
-+	&sensor_dev_attr_temp2_max.dev_attr.attr,
-+	&sensor_dev_attr_temp2_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp2_type.dev_attr.attr,
-+	&sensor_dev_attr_temp3_input.dev_attr.attr,
-+	&sensor_dev_attr_temp3_max.dev_attr.attr,
-+	&sensor_dev_attr_temp3_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp3_type.dev_attr.attr,
++Description
++-----------
 +
-+	&sensor_dev_attr_in0_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in1_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in2_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in3_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in4_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in5_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in6_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in7_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in8_alarm.dev_attr.attr,
-+	&dev_attr_alarms_in.attr,
-+	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
-+	&dev_attr_alarms_temp.attr,
-+	&dev_attr_alarms_fan.attr,
++The VIA VT1211 Super-I/O chip includes complete hardware monitoring
++capabilities. It monitors 2 dedicated temperature sensor inputs (temp1 and
++temp2), 1 dedicated voltage (in5) and 2 fans. Additionally, the chip
++implements 5 universal input channels (UCH1-5) that can be individually
++programmed to either monitor a voltage or a temperature.
 +
-+	&dev_attr_name.attr,
-+	NULL
- };
- 
--static struct sensor_device_attribute f71805f_sensor_attr[] = {
--	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
--	SENSOR_ATTR(in1_max, S_IRUGO | S_IWUSR,
--		    show_in_max, set_in_max, 1),
--	SENSOR_ATTR(in1_min, S_IRUGO | S_IWUSR,
--		    show_in_min, set_in_min, 1),
--	SENSOR_ATTR(in2_input, S_IRUGO, show_in, NULL, 2),
--	SENSOR_ATTR(in2_max, S_IRUGO | S_IWUSR,
--		    show_in_max, set_in_max, 2),
--	SENSOR_ATTR(in2_min, S_IRUGO | S_IWUSR,
--		    show_in_min, set_in_min, 2),
--	SENSOR_ATTR(in3_input, S_IRUGO, show_in, NULL, 3),
--	SENSOR_ATTR(in3_max, S_IRUGO | S_IWUSR,
--		    show_in_max, set_in_max, 3),
--	SENSOR_ATTR(in3_min, S_IRUGO | S_IWUSR,
--		    show_in_min, set_in_min, 3),
--	SENSOR_ATTR(in4_input, S_IRUGO, show_in, NULL, 4),
--	SENSOR_ATTR(in4_max, S_IRUGO | S_IWUSR,
--		    show_in_max, set_in_max, 4),
--	SENSOR_ATTR(in4_min, S_IRUGO | S_IWUSR,
--		    show_in_min, set_in_min, 4),
--	SENSOR_ATTR(in5_input, S_IRUGO, show_in, NULL, 5),
--	SENSOR_ATTR(in5_max, S_IRUGO | S_IWUSR,
--		    show_in_max, set_in_max, 5),
--	SENSOR_ATTR(in5_min, S_IRUGO | S_IWUSR,
--		    show_in_min, set_in_min, 5),
--	SENSOR_ATTR(in6_input, S_IRUGO, show_in, NULL, 6),
--	SENSOR_ATTR(in6_max, S_IRUGO | S_IWUSR,
--		    show_in_max, set_in_max, 6),
--	SENSOR_ATTR(in6_min, S_IRUGO | S_IWUSR,
--		    show_in_min, set_in_min, 6),
--	SENSOR_ATTR(in7_input, S_IRUGO, show_in, NULL, 7),
--	SENSOR_ATTR(in7_max, S_IRUGO | S_IWUSR,
--		    show_in_max, set_in_max, 7),
--	SENSOR_ATTR(in7_min, S_IRUGO | S_IWUSR,
--		    show_in_min, set_in_min, 7),
--	SENSOR_ATTR(in8_input, S_IRUGO, show_in, NULL, 8),
--	SENSOR_ATTR(in8_max, S_IRUGO | S_IWUSR,
--		    show_in_max, set_in_max, 8),
--	SENSOR_ATTR(in8_min, S_IRUGO | S_IWUSR,
--		    show_in_min, set_in_min, 8),
--
--	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0),
--	SENSOR_ATTR(temp1_max, S_IRUGO | S_IWUSR,
--		    show_temp_max, set_temp_max, 0),
--	SENSOR_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR,
--		    show_temp_hyst, set_temp_hyst, 0),
--	SENSOR_ATTR(temp1_type, S_IRUGO, show_temp_type, NULL, 0),
--	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1),
--	SENSOR_ATTR(temp2_max, S_IRUGO | S_IWUSR,
--		    show_temp_max, set_temp_max, 1),
--	SENSOR_ATTR(temp2_max_hyst, S_IRUGO | S_IWUSR,
--		    show_temp_hyst, set_temp_hyst, 1),
--	SENSOR_ATTR(temp2_type, S_IRUGO, show_temp_type, NULL, 1),
--	SENSOR_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2),
--	SENSOR_ATTR(temp3_max, S_IRUGO | S_IWUSR,
--		    show_temp_max, set_temp_max, 2),
--	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR,
--		    show_temp_hyst, set_temp_hyst, 2),
--	SENSOR_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2),
--
--	SENSOR_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0),
--	SENSOR_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1),
--	SENSOR_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2),
--	SENSOR_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3),
--	SENSOR_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 4),
--	SENSOR_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 5),
--	SENSOR_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 6),
--	SENSOR_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 7),
--	SENSOR_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 8),
--	SENSOR_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 11),
--	SENSOR_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 12),
--	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13),
-+static const struct attribute_group f71805f_group = {
-+	.attrs = f71805f_attributes,
- };
- 
--static struct sensor_device_attribute f71805f_fan_attr[] = {
--	SENSOR_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0),
--	SENSOR_ATTR(fan1_min, S_IRUGO | S_IWUSR,
--		    show_fan_min, set_fan_min, 0),
--	SENSOR_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 16),
--	SENSOR_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1),
--	SENSOR_ATTR(fan2_min, S_IRUGO | S_IWUSR,
--		    show_fan_min, set_fan_min, 1),
--	SENSOR_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 17),
--	SENSOR_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2),
--	SENSOR_ATTR(fan3_min, S_IRUGO | S_IWUSR,
--		    show_fan_min, set_fan_min, 2),
--	SENSOR_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 18),
-+static struct attribute *f71805f_attributes_fan[3][4] = {
-+	{
-+		&sensor_dev_attr_fan1_input.dev_attr.attr,
-+		&sensor_dev_attr_fan1_min.dev_attr.attr,
-+		&sensor_dev_attr_fan1_alarm.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_fan2_input.dev_attr.attr,
-+		&sensor_dev_attr_fan2_min.dev_attr.attr,
-+		&sensor_dev_attr_fan2_alarm.dev_attr.attr,
-+		NULL
-+	}, {
-+		&sensor_dev_attr_fan3_input.dev_attr.attr,
-+		&sensor_dev_attr_fan3_min.dev_attr.attr,
-+		&sensor_dev_attr_fan3_alarm.dev_attr.attr,
-+		NULL
-+	}
-+};
++This chip also provides manual and automatic control of fan speeds (according
++to the datasheet). The driver only supports automatic control since the manual
++mode doesn't seem to work as advertised in the datasheet. In fact I couldn't
++get manual mode to work at all! Be aware that automatic mode hasn't been
++tested very well (due to the fact that my EPIA M10000 doesn't have the fans
++connected to the PWM outputs of the VT1211 :-().
 +
-+static const struct attribute_group f71805f_group_fan[3] = {
-+	{ .attrs = f71805f_attributes_fan[0] },
-+	{ .attrs = f71805f_attributes_fan[1] },
-+	{ .attrs = f71805f_attributes_fan[2] },
- };
- 
- /*
-@@ -738,43 +824,35 @@ static int __devinit f71805f_probe(struc
- 
- 	platform_set_drvdata(pdev, data);
- 
--	data->class_dev = hwmon_device_register(&pdev->dev);
--	if (IS_ERR(data->class_dev)) {
--		err = PTR_ERR(data->class_dev);
--		dev_err(&pdev->dev, "Class registration failed (%d)\n", err);
--		goto exit_free;
--	}
--
- 	/* Initialize the F71805F chip */
- 	f71805f_init_device(data);
- 
- 	/* Register sysfs interface files */
--	for (i = 0; i < ARRAY_SIZE(f71805f_dev_attr); i++) {
--		err = device_create_file(&pdev->dev, &f71805f_dev_attr[i]);
--		if (err)
--			goto exit_class;
--	}
--	for (i = 0; i < ARRAY_SIZE(f71805f_sensor_attr); i++) {
--		err = device_create_file(&pdev->dev,
--					 &f71805f_sensor_attr[i].dev_attr);
--		if (err)
--			goto exit_class;
--	}
--	for (i = 0; i < ARRAY_SIZE(f71805f_fan_attr); i++) {
--		if (!(data->fan_enabled & (1 << (i / 3))))
-+	if ((err = sysfs_create_group(&pdev->dev.kobj, &f71805f_group)))
-+		goto exit_free;
-+	for (i = 0; i < 3; i++) {
-+		if (!(data->fan_enabled & (1 << i)))
- 			continue;
--		err = device_create_file(&pdev->dev,
--					 &f71805f_fan_attr[i].dev_attr);
--		if (err)
--			goto exit_class;
-+		if ((err = sysfs_create_group(&pdev->dev.kobj,
-+					      &f71805f_group_fan[i])))
-+			goto exit_remove_files;
-+	}
++The following table shows the relationship between the vt1211 inputs and the
++sysfs nodes.
 +
-+	data->class_dev = hwmon_device_register(&pdev->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		dev_err(&pdev->dev, "Class registration failed (%d)\n", err);
-+		goto exit_remove_files;
- 	}
- 
- 	return 0;
- 
--exit_class:
--	dev_err(&pdev->dev, "Sysfs interface creation failed\n");
--	hwmon_device_unregister(data->class_dev);
-+exit_remove_files:
-+	sysfs_remove_group(&pdev->dev.kobj, &f71805f_group);
-+	for (i = 0; i < 3; i++)
-+		sysfs_remove_group(&pdev->dev.kobj, &f71805f_group_fan[i]);
- exit_free:
-+	platform_set_drvdata(pdev, NULL);
- 	kfree(data);
- exit:
- 	return err;
-@@ -783,9 +861,13 @@ exit:
- static int __devexit f71805f_remove(struct platform_device *pdev)
- {
- 	struct f71805f_data *data = platform_get_drvdata(pdev);
-+	int i;
- 
- 	platform_set_drvdata(pdev, NULL);
- 	hwmon_device_unregister(data->class_dev);
-+	sysfs_remove_group(&pdev->dev.kobj, &f71805f_group);
-+	for (i = 0; i < 3; i++)
-+		sysfs_remove_group(&pdev->dev.kobj, &f71805f_group_fan[i]);
- 	kfree(data);
- 
- 	return 0;
-diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
-index 00a50be..d69f3cf 100644
---- a/drivers/hwmon/lm63.c
-+++ b/drivers/hwmon/lm63.c
-@@ -46,6 +46,7 @@ #include <linux/hwmon-sysfs.h>
- #include <linux/hwmon.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/sysfs.h>
- 
- /*
-  * Addresses to scan
-@@ -370,6 +371,42 @@ static SENSOR_DEVICE_ATTR(temp1_max_alar
- /* Raw alarm file for compatibility */
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
-+static struct attribute *lm63_attributes[] = {
-+	&dev_attr_pwm1.attr,
-+	&dev_attr_pwm1_enable.attr,
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp2_input.dev_attr.attr,
-+	&sensor_dev_attr_temp2_min.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp2_max.dev_attr.attr,
-+	&sensor_dev_attr_temp2_crit.dev_attr.attr,
-+	&dev_attr_temp2_crit_hyst.attr,
++Sensor          Voltage Mode   Temp Mode   Default Use (from the datasheet)
++------          ------------   ---------   --------------------------------
++Reading 1                      temp1       Intel thermal diode
++Reading 3                      temp2       Internal thermal diode
++UCH1/Reading2   in0            temp3       NTC type thermistor
++UCH2            in1            temp4       +2.5V
++UCH3            in2            temp5       VccP (processor core)
++UCH4            in3            temp6       +5V
++UCH5            in4            temp7       +12V
+++3.3V           in5                        Internal VCC (+3.3V)
 +
-+	&sensor_dev_attr_temp2_crit_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp2_input_fault.dev_attr.attr,
-+	&sensor_dev_attr_temp2_min_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp2_max_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
-+	&dev_attr_alarms.attr,
-+	NULL
-+};
 +
-+static const struct attribute_group lm63_group = {
-+	.attrs = lm63_attributes,
-+};
++Voltage Monitoring
++------------------
 +
-+static struct attribute *lm63_attributes_fan1[] = {
-+	&sensor_dev_attr_fan1_input.dev_attr.attr,
-+	&sensor_dev_attr_fan1_min.dev_attr.attr,
++Voltages are sampled by an 8-bit ADC with a LSB of ~10mV. The supported input
++range is thus from 0 to 2.60V. Voltage values outside of this range need
++external scaling resistors. This external scaling needs to be compensated for
++via compute lines in sensors.conf, like:
 +
-+	&sensor_dev_attr_fan1_min_alarm.dev_attr.attr,
-+	NULL
-+};
++compute inx @*(1+R1/R2), @/(1+R1/R2)
 +
-+static const struct attribute_group lm63_group_fan1 = {
-+	.attrs = lm63_attributes_fan1,
-+};
++The board level scaling resistors according to VIA's recommendation are as
++follows. And this is of course totally dependent on the actual board
++implementation :-) You will have to find documentation for your own
++motherboard and edit sensors.conf accordingly.
 +
- /*
-  * Real code
-  */
-@@ -456,50 +493,26 @@ static int lm63_detect(struct i2c_adapte
- 	lm63_init_client(new_client);
- 
- 	/* Register sysfs hooks */
--	data->class_dev = hwmon_device_register(&new_client->dev);
--	if (IS_ERR(data->class_dev)) {
--		err = PTR_ERR(data->class_dev);
-+	if ((err = sysfs_create_group(&new_client->dev.kobj,
-+				      &lm63_group)))
- 		goto exit_detach;
-+	if (data->config & 0x04) { /* tachometer enabled */
-+		if ((err = sysfs_create_group(&new_client->dev.kobj,
-+					      &lm63_group_fan1)))
-+			goto exit_remove_files;
- 	}
- 
--	if (data->config & 0x04) { /* tachometer enabled */
--		device_create_file(&new_client->dev,
--				   &sensor_dev_attr_fan1_input.dev_attr);
--		device_create_file(&new_client->dev,
--				   &sensor_dev_attr_fan1_min.dev_attr);
--		device_create_file(&new_client->dev,
--				   &sensor_dev_attr_fan1_min_alarm.dev_attr);
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_remove_files;
- 	}
--	device_create_file(&new_client->dev, &dev_attr_pwm1);
--	device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_input.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_input.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_min.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_max.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_max.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_crit.dev_attr);
--	device_create_file(&new_client->dev, &dev_attr_temp2_crit_hyst);
--
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_input_fault.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_min_alarm.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_max_alarm.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_max_alarm.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_crit_alarm.dev_attr);
--	device_create_file(&new_client->dev, &dev_attr_alarms);
- 
- 	return 0;
- 
-+exit_remove_files:
-+	sysfs_remove_group(&new_client->dev.kobj, &lm63_group);
-+	sysfs_remove_group(&new_client->dev.kobj, &lm63_group_fan1);
- exit_detach:
- 	i2c_detach_client(new_client);
- exit_free:
-@@ -549,6 +562,8 @@ static int lm63_detach_client(struct i2c
- 	int err;
- 
- 	hwmon_device_unregister(data->class_dev);
-+	sysfs_remove_group(&client->dev.kobj, &lm63_group);
-+	sysfs_remove_group(&client->dev.kobj, &lm63_group_fan1);
- 
- 	if ((err = i2c_detach_client(client)))
- 		return err;
-diff --git a/drivers/hwmon/lm83.c b/drivers/hwmon/lm83.c
-index ea22489..feb87b4 100644
---- a/drivers/hwmon/lm83.c
-+++ b/drivers/hwmon/lm83.c
-@@ -40,6 +40,7 @@ #include <linux/hwmon-sysfs.h>
- #include <linux/hwmon.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/sysfs.h>
- 
- /*
-  * Addresses to scan
-@@ -234,6 +235,48 @@ static SENSOR_DEVICE_ATTR(temp2_max_alar
- /* Raw alarm file for compatibility */
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
-+static struct attribute *lm83_attributes[] = {
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp3_input.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp3_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_crit.dev_attr.attr,
-+	&sensor_dev_attr_temp3_crit.dev_attr.attr,
++                                      Expected
++Voltage       R1     R2     Divider   Raw Value
++-----------------------------------------------
+++2.5V         2K     10K    1.2       2083 mV
++VccP          ---    ---    1.0       1400 mV (1)
+++5V           14K    10K    2.4       2083 mV
+++12V          47K    10K    5.7       2105 mV
+++3.3V (int)   2K     3.4K   1.588     3300 mV (2)
+++3.3V (ext)   6.8K   10K    1.68      1964 mV
 +
-+	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp3_crit_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp3_input_fault.dev_attr.attr,
-+	&sensor_dev_attr_temp3_max_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
-+	&dev_attr_alarms.attr,
-+	NULL
-+};
++(1) Depending on the CPU (1.4V is for a VIA C3 Nehemiah).
++(2) R1 and R2 for 3.3V (int) are internal to the VT1211 chip and the driver
++    performs the scaling and returns the properly scaled voltage value.
 +
-+static const struct attribute_group lm83_group = {
-+	.attrs = lm83_attributes,
-+};
++Each measured voltage has an associated low and high limit which triggers an
++alarm when crossed.
 +
-+static struct attribute *lm83_attributes_opt[] = {
-+	&sensor_dev_attr_temp2_input.dev_attr.attr,
-+	&sensor_dev_attr_temp4_input.dev_attr.attr,
-+	&sensor_dev_attr_temp2_max.dev_attr.attr,
-+	&sensor_dev_attr_temp4_max.dev_attr.attr,
-+	&sensor_dev_attr_temp2_crit.dev_attr.attr,
-+	&sensor_dev_attr_temp4_crit.dev_attr.attr,
 +
-+	&sensor_dev_attr_temp2_crit_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp4_crit_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp4_input_fault.dev_attr.attr,
-+	&sensor_dev_attr_temp4_max_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp2_input_fault.dev_attr.attr,
-+	&sensor_dev_attr_temp2_max_alarm.dev_attr.attr,
-+	NULL
-+};
++Temperature Monitoring
++----------------------
 +
-+static const struct attribute_group lm83_group_opt = {
-+	.attrs = lm83_attributes_opt,
-+};
++Temperatures are reported in millidegree Celsius. Each measured temperature
++has a high limit which triggers an alarm if crossed. There is an associated
++hysteresis value with each temperature below which the temperature has to drop
++before the alarm is cleared (this is only true for interrupt mode 0). The
++interrupt mode can be forced to 0 in case the BIOS doesn't do it
++automatically. For that, the parameter int_mode=0 needs to be supplied when
++loading the driver module. Be aware that overriding BIOS defaults might cause
++some unwanted side effects!
 +
- /*
-  * Real code
-  */
-@@ -342,82 +385,32 @@ static int lm83_detect(struct i2c_adapte
- 		goto exit_free;
- 
- 	/*
--	 * Initialize the LM83 chip
--	 * (Nothing to do for this one.)
--	 */
--
--	/* Register sysfs hooks */
--	data->class_dev = hwmon_device_register(&new_client->dev);
--	if (IS_ERR(data->class_dev)) {
--		err = PTR_ERR(data->class_dev);
--		goto exit_detach;
--	}
--
--	/*
-+	 * Register sysfs hooks
- 	 * The LM82 can only monitor one external diode which is
- 	 * at the same register as the LM83 temp3 entry - so we
- 	 * declare 1 and 3 common, and then 2 and 4 only for the LM83.
- 	 */
- 
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_input.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp3_input.dev_attr);
--
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_max.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp3_max.dev_attr);
--
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_crit.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp3_crit.dev_attr);
--
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp3_input_fault.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_max_alarm.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp3_max_alarm.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_crit_alarm.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp3_crit_alarm.dev_attr);
--	device_create_file(&new_client->dev, &dev_attr_alarms);
-+	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm83_group)))
-+		goto exit_detach;
- 
- 	if (kind = lm83) {
--		device_create_file(&new_client->dev,
--				   &sensor_dev_attr_temp2_input.dev_attr);
--		device_create_file(&new_client->dev,
--				   &sensor_dev_attr_temp4_input.dev_attr);
--
--		device_create_file(&new_client->dev,
--				   &sensor_dev_attr_temp2_max.dev_attr);
--		device_create_file(&new_client->dev,
--				   &sensor_dev_attr_temp4_max.dev_attr);
--
--		device_create_file(&new_client->dev,
--				   &sensor_dev_attr_temp2_crit.dev_attr);
--		device_create_file(&new_client->dev,
--				   &sensor_dev_attr_temp4_crit.dev_attr);
--
--		device_create_file(&new_client->dev,
--				&sensor_dev_attr_temp2_input_fault.dev_attr);
--		device_create_file(&new_client->dev,
--				&sensor_dev_attr_temp4_input_fault.dev_attr);
--		device_create_file(&new_client->dev,
--				&sensor_dev_attr_temp2_max_alarm.dev_attr);
--		device_create_file(&new_client->dev,
--				&sensor_dev_attr_temp4_max_alarm.dev_attr);
--		device_create_file(&new_client->dev,
--				&sensor_dev_attr_temp2_crit_alarm.dev_attr);
--		device_create_file(&new_client->dev,
--				&sensor_dev_attr_temp4_crit_alarm.dev_attr);
-+		if ((err = sysfs_create_group(&new_client->dev.kobj,
-+					      &lm83_group_opt)))
-+			goto exit_remove_files;
-+	}
++All temperature channels except temp2 are external. Temp2 is the VT1211
++internal thermal diode and the driver does all the scaling for temp2 and
++returns the temperature in millidegree Celsius. For the external channels
++temp1 and temp3-temp7, scaling depends on the board implementation and needs
++to be performed in userspace via sensors.conf.
 +
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_remove_files;
- 	}
- 
- 	return 0;
- 
-+exit_remove_files:
-+	sysfs_remove_group(&new_client->dev.kobj, &lm83_group);
-+	sysfs_remove_group(&new_client->dev.kobj, &lm83_group_opt);
- exit_detach:
- 	i2c_detach_client(new_client);
- exit_free:
-@@ -432,6 +425,8 @@ static int lm83_detach_client(struct i2c
- 	int err;
- 
- 	hwmon_device_unregister(data->class_dev);
-+	sysfs_remove_group(&client->dev.kobj, &lm83_group);
-+	sysfs_remove_group(&client->dev.kobj, &lm83_group_opt);
- 
- 	if ((err = i2c_detach_client(client)))
- 		return err;
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index 77f8e3f..6882ce7 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -79,6 +79,7 @@ #include <linux/hwmon-sysfs.h>
- #include <linux/hwmon.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/sysfs.h>
- 
- /*
-  * Addresses to scan
-@@ -366,6 +367,33 @@ static SENSOR_DEVICE_ATTR(temp1_max_alar
- /* Raw alarm file for compatibility */
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
-+static struct attribute *lm90_attributes[] = {
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp2_input.dev_attr.attr,
-+	&sensor_dev_attr_temp1_min.dev_attr.attr,
-+	&sensor_dev_attr_temp2_min.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp2_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_crit.dev_attr.attr,
-+	&sensor_dev_attr_temp2_crit.dev_attr.attr,
-+	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp2_crit_hyst.dev_attr.attr,
++Temp1 is an Intel-type thermal diode which requires the following formula to
++convert between sysfs readings and real temperatures:
 +
-+	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp2_crit_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp2_input_fault.dev_attr.attr,
-+	&sensor_dev_attr_temp2_min_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp2_max_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
-+	&dev_attr_alarms.attr,
-+	NULL
-+};
++compute temp1 (@-Offset)/Gain, (@*Gain)+Offset
 +
-+static const struct attribute_group lm90_group = {
-+	.attrs = lm90_attributes,
-+};
++According to the VIA VT1211 BIOS porting guide, the following gain and offset
++values should be used:
 +
- /* pec used for ADM1032 only */
- static ssize_t show_pec(struct device *dev, struct device_attribute *dummy,
- 			char *buf)
-@@ -589,54 +617,25 @@ static int lm90_detect(struct i2c_adapte
- 	lm90_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm90_group)))
-+		goto exit_detach;
-+	if (new_client->flags & I2C_CLIENT_PEC) {
-+		if ((err = device_create_file(&new_client->dev,
-+					      &dev_attr_pec)))
-+			goto exit_remove_files;
-+	}
++Diode Type      Offset   Gain
++----------      ------   ----
++Intel CPU       88.638   0.9528
++                65.000   0.9686   *)
++VIA C3 Ezra     83.869   0.9528
++VIA C3 Ezra-T   73.869   0.9528
 +
- 	data->class_dev = hwmon_device_register(&new_client->dev);
- 	if (IS_ERR(data->class_dev)) {
- 		err = PTR_ERR(data->class_dev);
--		goto exit_detach;
-+		goto exit_remove_files;
- 	}
- 
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_input.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_input.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_min.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_min.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_max.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_max.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_crit.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_crit.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_crit_hyst.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_crit_hyst.dev_attr);
--
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_input_fault.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_min_alarm.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_min_alarm.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_max_alarm.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_max_alarm.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp1_crit_alarm.dev_attr);
--	device_create_file(&new_client->dev,
--			   &sensor_dev_attr_temp2_crit_alarm.dev_attr);
--	device_create_file(&new_client->dev, &dev_attr_alarms);
--
--	if (new_client->flags & I2C_CLIENT_PEC)
--		device_create_file(&new_client->dev, &dev_attr_pec);
--
- 	return 0;
- 
-+exit_remove_files:
-+	sysfs_remove_group(&new_client->dev.kobj, &lm90_group);
-+	device_remove_file(&new_client->dev, &dev_attr_pec);
- exit_detach:
- 	i2c_detach_client(new_client);
- exit_free:
-@@ -669,6 +668,8 @@ static int lm90_detach_client(struct i2c
- 	int err;
- 
- 	hwmon_device_unregister(data->class_dev);
-+	sysfs_remove_group(&client->dev.kobj, &lm90_group);
-+	device_remove_file(&client->dev, &dev_attr_pec);
- 
- 	if ((err = i2c_detach_client(client)))
- 		return err;
++*) This is the formula from the lm_sensors 2.10.0 sensors.conf file. I don't
++know where it comes from or how it was derived, it's just listed here for
++completeness.
++
++Temp3-temp7 support NTC thermistors. For these channels, the driver returns
++the voltages as seen at the individual pins of UCH1-UCH5. The voltage at the
++pin (Vpin) is formed by a voltage divider made of the thermistor (Rth) and a
++scaling resistor (Rs):
++
++Vpin = 2200 * Rth / (Rs + Rth)   (2200 is the ADC max limit of 2200 mV)
++
++The equation for the thermistor is as follows (google it if you want to know
++more about it):
++
++Rth = Ro * exp(B * (1 / T - 1 / To))   (To is 298.15K (25C) and Ro is the
++                                        nominal resistance at 25C)
++
++Mingling the above two equations and assuming Rs = Ro and B = 3435 yields the
++following formula for sensors.conf:
++
++compute tempx 1 / (1 / 298.15 - (` (2200 / @ - 1)) / 3435) - 273.15,
++              2200 / (1 + (^ (3435 / 298.15 - 3435 / (273.15 + @))))
++
++
++Fan Speed Control
++-----------------
++
++The VT1211 provides 2 programmable PWM outputs to control the speeds of 2
++fans. Writing a 2 to any of the two pwm[1-2]_enable sysfs nodes will put the
++PWM controller in automatic mode. There is only a single controller that
++controls both PWM outputs but each PWM output can be individually enabled and
++disabled.
++
++Each PWM has 4 associated distinct output duty-cycles: full, high, low and
++off. Full and off are internally hard-wired to 255 (100%) and 0 (0%),
++respectively. High and low can be programmed via
++pwm[1-2]_auto_point[2-3]_pwm. Each PWM output can be associated with a
++different thermal input but - and here's the weird part - only one set of
++thermal thresholds exist that controls both PWMs output duty-cycles. The
++thermal thresholds are accessible via pwm[1-2]_auto_point[1-4]_temp. Note
++that even though there are 2 sets of 4 auto points each, they map to the same
++registers in the VT1211 and programming one set is sufficient (actually only
++the first set pwm1_auto_point[1-4]_temp is writable, the second set is
++read-only).
++
++PWM Auto Point             PWM Output Duty-Cycle
++------------------------------------------------
++pwm[1-2]_auto_point4_pwm   full speed duty-cycle (hard-wired to 255)
++pwm[1-2]_auto_point3_pwm   high speed duty-cycle
++pwm[1-2]_auto_point2_pwm   low speed duty-cycle
++pwm[1-2]_auto_point1_pwm   off duty-cycle (hard-wired to 0)
++
++Temp Auto Point             Thermal Threshold
++---------------------------------------------
++pwm[1-2]_auto_point4_temp   full speed temp
++pwm[1-2]_auto_point3_temp   high speed temp
++pwm[1-2]_auto_point2_temp   low speed temp
++pwm[1-2]_auto_point1_temp   off temp
++
++Long story short, the controller implements the following algorithm to set the
++PWM output duty-cycle based on the input temperature:
++
++Thermal Threshold             Output Duty-Cycle
++                    (Rising Temp)           (Falling Temp)
++----------------------------------------------------------
++                    full speed duty-cycle   full speed duty-cycle
++full speed temp
++                    high speed duty-cycle   full speed duty-cycle
++high speed temp
++                    low speed duty-cycle    high speed duty-cycle
++low speed temp
++                    off duty-cycle          low speed duty-cycle
++off temp
 -- 
 1.4.2.1
 
