@@ -1,7 +1,7 @@
 From: greg@kroah.com (Greg KH)
-Date: Wed, 27 Sep 2006 01:01:34 +0000
-Subject: [lm-sensors] [PATCH 3/30] i2c-dev: Drop the client template
-Message-Id: <11593189281219-git-send-email-greg@kroah.com>
+Date: Thu, 28 Sep 2006 22:48:29 +0000
+Subject: [lm-sensors] [PATCH 9/39] it87: in8 has no limit registers
+Message-Id: <11594837671949-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,59 +10,41 @@ To: lm-sensors@vger.kernel.org
 
 From: Jean Delvare <khali at linux-fr.org>
 
-i2c-dev: Drop the client template
-
-Drop the i2c-dev client template. This saves about 360 bytes of
-memory. I got the idea from a similar cleanup Hans-Frieder Vogt
-made to i2c-nforce2 recently.
+it87: in8 has no limit registers
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/i2c-dev.c |   13 ++++---------
- 1 files changed, 4 insertions(+), 9 deletions(-)
+ drivers/hwmon/it87.c |    9 +++------
+ 1 files changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
-index 206e805..2ce0833 100644
---- a/drivers/i2c/i2c-dev.c
-+++ b/drivers/i2c/i2c-dev.c
-@@ -37,7 +37,7 @@ #include <linux/i2c.h>
- #include <linux/i2c-dev.h>
- #include <asm/uaccess.h>
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index fc75fcb..bfad897 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -220,8 +220,8 @@ struct it87_data {
+ 	unsigned long last_updated;	/* In jiffies */
  
--static struct i2c_client i2cdev_client_template;
-+static struct i2c_driver i2cdev_driver;
+ 	u8 in[9];		/* Register value */
+-	u8 in_max[9];		/* Register value */
+-	u8 in_min[9];		/* Register value */
++	u8 in_max[8];		/* Register value */
++	u8 in_min[8];		/* Register value */
+ 	u8 has_fan;		/* Bitfield, fans enabled */
+ 	u16 fan[3];		/* Register values, possibly combined */
+ 	u16 fan_min[3];		/* Register values, possibly combined */
+@@ -1251,12 +1251,9 @@ static struct it87_data *it87_update_dev
+ 			data->in_max[i]  			    it87_read_value(client, IT87_REG_VIN_MAX(i));
+ 		}
++		/* in8 (battery) has no limit registers */
+ 		data->in[8]  		    it87_read_value(client, IT87_REG_VIN(8));
+-		/* Temperature sensor doesn't have limit registers, set
+-		   to min and max value */
+-		data->in_min[8] = 0;
+-		data->in_max[8] = 255;
  
- struct i2c_dev {
- 	struct list_head list;
-@@ -365,12 +365,13 @@ static int i2cdev_open(struct inode *ino
- 	if (!adap)
- 		return -ENODEV;
- 
--	client = kmalloc(sizeof(*client), GFP_KERNEL);
-+	client = kzalloc(sizeof(*client), GFP_KERNEL);
- 	if (!client) {
- 		i2c_put_adapter(adap);
- 		return -ENOMEM;
- 	}
--	memcpy(client, &i2cdev_client_template, sizeof(*client));
-+	snprintf(client->name, I2C_NAME_SIZE, "i2c-dev %d", adap->nr);
-+	client->driver = &i2cdev_driver;
- 
- 	/* registered with adapter, passed as client to user */
- 	client->adapter = adap;
-@@ -459,12 +460,6 @@ static struct i2c_driver i2cdev_driver  	.detach_client	= i2cdev_detach_client,
- };
- 
--static struct i2c_client i2cdev_client_template = {
--	.name		= "I2C /dev entry",
--	.addr		= -1,
--	.driver		= &i2cdev_driver,
--};
--
- static int __init i2c_dev_init(void)
- {
- 	int res;
+ 		for (i = 0; i < 3; i++) {
+ 			/* Skip disabled fans */
 -- 
 1.4.2.1
 
