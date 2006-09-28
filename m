@@ -1,82 +1,105 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 24 Sep 2006 18:50:57 +0000
-Subject: [lm-sensors] [PATCH 01/23] k8temp: Add documentation
-Message-Id: <20060924205057.ce05687a.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 28 Sep 2006 22:48:45 +0000
+Subject: [lm-sensors] [PATCH 25/39] pc87360: Move some code around
+Message-Id: <11594838283720-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Rudolf Marek <r.marek at sh.cvut.cz>
-Content-Disposition: inline; filename=hwmon-k8temp-documentation.patch
+From: Jim Cromie <jim.cromie at gmail.com>
 
-k8temp: Add documentation
+pc87360: Move some code around
 
-Add promised documentation for the k8temp driver.
+Moves code for get-set-decl tuples for 3 items: cpu0_vid, vrm, alarms_in
+up, to just after the get-set-decl tuple for voltages.
+These items are already 'activated' together with the rest of the
+voltage attributes, so the move tightens the grouping that's made
+explicit in next patch.
 
-Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
+Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- Documentation/hwmon/k8temp |   52 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+ drivers/hwmon/pc87360.c |   56 ++++++++++++++++++++++++-----------------------
+ 1 files changed, 28 insertions(+), 28 deletions(-)
 
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-2.6.18/Documentation/hwmon/k8temp	2006-09-23 15:26:23.000000000 +0200
-@@ -0,0 +1,52 @@
-+Kernel driver k8temp
-+==========
+diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
+index 236f9f2..db543a8 100644
+--- a/drivers/hwmon/pc87360.c
++++ b/drivers/hwmon/pc87360.c
+@@ -472,6 +472,34 @@ static struct sensor_device_attribute in
+ 	SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
+ };
+ 
++static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct pc87360_data *data = pc87360_update_device(dev);
++	return sprintf(buf, "%u\n", vid_from_reg(data->vid, data->vrm));
++}
++static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
 +
-+Supported chips:
-+  * AMD K8 CPU
-+    Prefix: 'k8temp'
-+    Addresses scanned: PCI space
-+    Datasheet: http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
++static ssize_t show_vrm(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct pc87360_data *data = pc87360_update_device(dev);
++	return sprintf(buf, "%u\n", data->vrm);
++}
++static ssize_t set_vrm(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct pc87360_data *data = i2c_get_clientdata(client);
++	data->vrm = simple_strtoul(buf, NULL, 10);
++	return count;
++}
++static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
 +
-+Author: Rudolf Marek
-+Contact: Rudolf Marek <r.marek at sh.cvut.cz>
++static ssize_t show_in_alarms(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct pc87360_data *data = pc87360_update_device(dev);
++	return sprintf(buf, "%u\n", data->in_alarms);
++}
++static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
 +
-+Description
-+-----------
-+
-+This driver permits reading temperature sensor(s) embedded inside AMD K8 CPUs.
-+Official documentation says that it works from revision F of K8 core, but
-+in fact it seems to be implemented for all revisions of K8 except the first
-+two revisions (SH-B0 and SH-B3).
-+
-+There can be up to four temperature sensors inside single CPU. The driver
-+will auto-detect the sensors and will display only temperatures from
-+implemented sensors.
-+
-+Mapping of /sys files is as follows:
-+
-+temp1_input - temperature of Core 0 and "place" 0
-+temp2_input - temperature of Core 0 and "place" 1
-+temp3_input - temperature of Core 1 and "place" 0
-+temp4_input - temperature of Core 1 and "place" 1
-+
-+Temperatures are measured in degrees Celsius and measurement resolution is
-+1 degree C. It is expected that future CPU will have better resolution. The
-+temperature is updated once a second. Valid temperatures are from -49 to
-+206 degrees C.
-+
-+Temperature known as TCaseMax was specified for processors up to revision E.
-+This temperature is defined as temperature between heat-spreader and CPU
-+case, so the internal CPU temperature supplied by this driver can be higher.
-+There is no easy way how to measure the temperature which will correlate
-+with TCaseMax temperature.
-+
-+For newer revisions of CPU (rev F, socket AM2) there is a mathematically
-+computed temperature called TControl, which must be lower than TControlMax.
-+
-+The relationship is following:
-+
-+temp1_input - TjOffset*2 < TControlMax,
-+
-+TjOffset is not yet exported by the driver, TControlMax is usually
-+70 degrees C. The rule of the thumb -> CPU temperature should not cross
-+60 degrees C too much.
-
+ static ssize_t show_therm_input(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+@@ -590,34 +618,6 @@ static struct sensor_device_attribute th
+ 		    show_therm_crit, set_therm_crit, 2+11),
+ };
+ 
+-static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
+-{
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", vid_from_reg(data->vid, data->vrm));
+-}
+-static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
+-
+-static ssize_t show_vrm(struct device *dev, struct device_attribute *attr, char *buf)
+-{
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", data->vrm);
+-}
+-static ssize_t set_vrm(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct pc87360_data *data = i2c_get_clientdata(client);
+-	data->vrm = simple_strtoul(buf, NULL, 10);
+-	return count;
+-}
+-static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
+-
+-static ssize_t show_in_alarms(struct device *dev, struct device_attribute *attr, char *buf)
+-{
+-	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", data->in_alarms);
+-}
+-static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
+-
+ static ssize_t show_temp_input(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 -- 
-Jean Delvare
+1.4.2.1
+
 
