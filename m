@@ -1,7 +1,7 @@
 From: gregkh@suse.de (gregkh at suse.de)
-Date: Thu, 28 Sep 2006 07:01:11 +0000
+Date: Thu, 28 Sep 2006 07:01:15 +0000
 Subject: [lm-sensors] patch
-Message-Id: <20060928070108.776E072C18F@imap.suse.de>
+Message-Id: <20060928070112.6BE118FF210@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060502054527.8533748769D@imap.suse.de>
 In-Reply-To: <20060502054527.8533748769D@imap.suse.de>
@@ -13,180 +13,154 @@ To: lm-sensors@vger.kernel.org
 
 This is a note to let you know that I've just added the patch titled
 
-     Subject: [PATCH 10/23] pc87360: Delete sysfs files on device deletion
+     Subject: [PATCH 11/23] pc87360: Check for error on sysfs files creation
 
 to my gregkh-2.6 tree.  Its filename is
 
-     hwmon-unchecked-return-status-fixes-pc87360-2.patch
+     hwmon-unchecked-return-status-fixes-pc87360-3.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-From khali at linux-fr.org Sun Sep 24 12:02:48 2006
-Date: Sun, 24 Sep 2006 21:02:44 +0200
+From khali at linux-fr.org Sun Sep 24 12:03:32 2006
+Date: Sun, 24 Sep 2006 21:03:25 +0200
 From: Jean Delvare <khali at linux-fr.org>
 To: Greg KH <greg at kroah.com>
 Cc: LM Sensors <lm-sensors at lm-sensors.org>, Jim Cromie <jim.cromie at gmail.com>
-Subject: [PATCH 10/23] pc87360: Delete sysfs files on device deletion
-Message-Id: <20060924210244.4df2c16a.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-pc87360-2.patch
+Subject: [PATCH 11/23] pc87360: Check for error on sysfs files creation
+Message-Id: <20060924210325.901a1206.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-pc87360-3.patch
 
 From: Jim Cromie <jim.cromie at gmail.com>
 
-pc87360: Delete sysfs files on device deletion
+pc87360: Check for error on sysfs files creation
 
-Add 4 explicit attribute groups for the 5 sensor types:
-voltage (in), therm, temp, and fan & pwm (together in one group).
-Use sysfs_remove_group() to drop them, but keeps the existing
-startup code, which calls device_create_file in loops.
+Use sysfs_create_group() for 2 sensor-types which are chip-model
+invariant, i.e. all-or-nothing attribute groups.
+Other 2 groups vary too much due to configuration, etc, so we keep the
+loops of device_create_file(), but now check their returns.
 
 Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
- drivers/hwmon/pc87360.c |   87 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 87 insertions(+)
+ drivers/hwmon/pc87360.c |   89 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 49 insertions(+), 40 deletions(-)
 
 --- gregkh-2.6.orig/drivers/hwmon/pc87360.c
 +++ gregkh-2.6/drivers/hwmon/pc87360.c
-@@ -328,6 +328,12 @@ static struct sensor_device_attribute fa
- 	SENSOR_ATTR(fan3_min, S_IWUSR | S_IRUGO, show_fan_min, set_fan_min, 2),
- };
+@@ -1018,60 +1018,69 @@ static int pc87360_detect(struct i2c_ada
+ 		pc87360_init_client(client, use_thermistors);
+ 	}
  
-+#define FAN_UNIT_ATTRS(X)	\
-+	&fan_input[X].dev_attr.attr,	\
-+	&fan_status[X].dev_attr.attr,	\
-+	&fan_div[X].dev_attr.attr,	\
-+	&fan_min[X].dev_attr.attr
+-	/* Register sysfs hooks */
+-	data->class_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->class_dev)) {
+-		err = PTR_ERR(data->class_dev);
++	/* Register all-or-nothing sysfs groups */
 +
- static ssize_t show_pwm(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -360,6 +366,19 @@ static struct sensor_device_attribute pw
- 	SENSOR_ATTR(pwm3, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 2),
- };
++	if (data->innr &&
++	    (err = sysfs_create_group(&client->dev.kobj,
++				      &pc8736x_vin_group)))
+ 		goto ERROR3;
+-	}
  
-+static struct attribute * pc8736x_fan_attr_array[] = {
-+	FAN_UNIT_ATTRS(0),
-+	FAN_UNIT_ATTRS(1),
-+	FAN_UNIT_ATTRS(2),
-+	&pwm[0].dev_attr.attr,
-+	&pwm[1].dev_attr.attr,
-+	&pwm[2].dev_attr.attr,
-+	NULL
-+};
-+static const struct attribute_group pc8736x_fan_group = {
-+	.attrs = pc8736x_fan_attr_array,
-+};
+-	if (data->innr) {
+-		for (i = 0; i < 11; i++) {
+-			device_create_file(dev, &in_input[i].dev_attr);
+-			device_create_file(dev, &in_min[i].dev_attr);
+-			device_create_file(dev, &in_max[i].dev_attr);
+-			device_create_file(dev, &in_status[i].dev_attr);
+-		}
+-		device_create_file(dev, &dev_attr_cpu0_vid);
+-		device_create_file(dev, &dev_attr_vrm);
+-		device_create_file(dev, &dev_attr_alarms_in);
+-	}
++	if (data->innr = 14 &&
++	    (err = sysfs_create_group(&client->dev.kobj,
++				      &pc8736x_therm_group)))
++		goto ERROR3;
 +
- static ssize_t show_in_input(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -472,6 +491,12 @@ static struct sensor_device_attribute in
- 	SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
- };
++	/* create device attr-files for varying sysfs groups */
  
-+#define VIN_UNIT_ATTRS(X) \
-+	&in_input[X].dev_attr.attr,	\
-+	&in_status[X].dev_attr.attr,	\
-+	&in_min[X].dev_attr.attr,	\
-+	&in_max[X].dev_attr.attr
-+
- static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct pc87360_data *data = pc87360_update_device(dev);
-@@ -500,6 +525,27 @@ static ssize_t show_in_alarms(struct dev
- }
- static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
+ 	if (data->tempnr) {
+ 		for (i = 0; i < data->tempnr; i++) {
+-			device_create_file(dev, &temp_input[i].dev_attr);
+-			device_create_file(dev, &temp_min[i].dev_attr);
+-			device_create_file(dev, &temp_max[i].dev_attr);
+-			device_create_file(dev, &temp_crit[i].dev_attr);
+-			device_create_file(dev, &temp_status[i].dev_attr);
+-		}
+-		device_create_file(dev, &dev_attr_alarms_temp);
+-	}
+-
+-	if (data->innr = 14) {
+-		for (i = 0; i < 3; i++) {
+-			device_create_file(dev, &therm_input[i].dev_attr);
+-			device_create_file(dev, &therm_min[i].dev_attr);
+-			device_create_file(dev, &therm_max[i].dev_attr);
+-			device_create_file(dev, &therm_crit[i].dev_attr);
+-			device_create_file(dev, &therm_status[i].dev_attr);
++			if ((err = device_create_file(dev,
++					&temp_input[i].dev_attr))
++			    || (err = device_create_file(dev,
++					&temp_min[i].dev_attr))
++			    || (err = device_create_file(dev,
++					&temp_max[i].dev_attr))
++			    || (err = device_create_file(dev,
++					&temp_crit[i].dev_attr))
++			    || (err = device_create_file(dev,
++					&temp_status[i].dev_attr)))
++				goto ERROR3;
+ 		}
++		if ((err = device_create_file(dev, &dev_attr_alarms_temp)))
++			goto ERROR3;
+ 	}
  
-+static struct attribute *pc8736x_vin_attr_array[] = {
-+	VIN_UNIT_ATTRS(0),
-+	VIN_UNIT_ATTRS(1),
-+	VIN_UNIT_ATTRS(2),
-+	VIN_UNIT_ATTRS(3),
-+	VIN_UNIT_ATTRS(4),
-+	VIN_UNIT_ATTRS(5),
-+	VIN_UNIT_ATTRS(6),
-+	VIN_UNIT_ATTRS(7),
-+	VIN_UNIT_ATTRS(8),
-+	VIN_UNIT_ATTRS(9),
-+	VIN_UNIT_ATTRS(10),
-+	&dev_attr_cpu0_vid.attr,
-+	&dev_attr_vrm.attr,
-+	&dev_attr_alarms_in.attr,
-+	NULL
-+};
-+static const struct attribute_group pc8736x_vin_group = {
-+	.attrs = pc8736x_vin_attr_array,
-+};
+ 	for (i = 0; i < data->fannr; i++) {
+-		if (FAN_CONFIG_MONITOR(data->fan_conf, i)) {
+-			device_create_file(dev, &fan_input[i].dev_attr);
+-			device_create_file(dev, &fan_min[i].dev_attr);
+-			device_create_file(dev, &fan_div[i].dev_attr);
+-			device_create_file(dev, &fan_status[i].dev_attr);
+-		}
+-		if (FAN_CONFIG_CONTROL(data->fan_conf, i))
+-			device_create_file(dev, &pwm[i].dev_attr);
++		if (FAN_CONFIG_MONITOR(data->fan_conf, i)
++		    && ((err = device_create_file(dev,
++					&fan_input[i].dev_attr))
++			|| (err = device_create_file(dev,
++					&fan_min[i].dev_attr))
++			|| (err = device_create_file(dev,
++					&fan_div[i].dev_attr))
++			|| (err = device_create_file(dev,
++					&fan_status[i].dev_attr))))
++			goto ERROR3;
 +
- static ssize_t show_therm_input(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -618,6 +664,23 @@ static struct sensor_device_attribute th
- 		    show_therm_crit, set_therm_crit, 2+11),
- };
++		if (FAN_CONFIG_CONTROL(data->fan_conf, i)
++		    && (err = device_create_file(dev, &pwm[i].dev_attr)))
++			goto ERROR3;
+ 	}
  
-+#define THERM_UNIT_ATTRS(X) \
-+	&therm_input[X].dev_attr.attr,	\
-+	&therm_status[X].dev_attr.attr,	\
-+	&therm_min[X].dev_attr.attr,	\
-+	&therm_max[X].dev_attr.attr,	\
-+	&therm_crit[X].dev_attr.attr
-+
-+static struct attribute * pc8736x_therm_attr_array[] = {
-+	THERM_UNIT_ATTRS(0),
-+	THERM_UNIT_ATTRS(1),
-+	THERM_UNIT_ATTRS(2),
-+	NULL
-+};
-+static const struct attribute_group pc8736x_therm_group = {
-+	.attrs = pc8736x_therm_attr_array,
-+};
-+
- static ssize_t show_temp_input(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -736,6 +799,25 @@ static ssize_t show_temp_alarms(struct d
- }
- static DEVICE_ATTR(alarms_temp, S_IRUGO, show_temp_alarms, NULL);
++	data->class_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		goto ERROR3;
++	}
+ 	return 0;
  
-+#define TEMP_UNIT_ATTRS(X) \
-+	&temp_input[X].dev_attr.attr,	\
-+	&temp_status[X].dev_attr.attr,	\
-+	&temp_min[X].dev_attr.attr,	\
-+	&temp_max[X].dev_attr.attr,	\
-+	&temp_crit[X].dev_attr.attr
-+
-+static struct attribute * pc8736x_temp_attr_array[] = {
-+	TEMP_UNIT_ATTRS(0),
-+	TEMP_UNIT_ATTRS(1),
-+	TEMP_UNIT_ATTRS(2),
-+	/* include the few miscellaneous atts here */
-+	&dev_attr_alarms_temp.attr,
-+	NULL
-+};
-+static const struct attribute_group pc8736x_temp_group = {
-+	.attrs = pc8736x_temp_attr_array,
-+};
-+
- /*
-  * Device detection, registration and update
-  */
-@@ -1009,6 +1091,11 @@ static int pc87360_detach_client(struct 
- 
- 	hwmon_device_unregister(data->class_dev);
- 
+ ERROR3:
++	/* can still remove groups whose members were added individually */
 +	sysfs_remove_group(&client->dev.kobj, &pc8736x_temp_group);
 +	sysfs_remove_group(&client->dev.kobj, &pc8736x_fan_group);
 +	sysfs_remove_group(&client->dev.kobj, &pc8736x_therm_group);
 +	sysfs_remove_group(&client->dev.kobj, &pc8736x_vin_group);
 +
- 	if ((i = i2c_detach_client(client)))
- 		return i;
- 
+ 	i2c_detach_client(client);
+ ERROR2:
+ 	for (i = 0; i < 3; i++) {
 
 
 Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
