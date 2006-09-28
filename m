@@ -1,109 +1,153 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 02 Sep 2006 07:12:39 +0000
-Subject: [lm-sensors] Is the Intel i945G supported/planned?
-Message-Id: <20060902091239.ad8c7826.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 28 Sep 2006 22:42:48 +0000
+Subject: [lm-sensors] [GIT PATCH] HWMon patches for 2.6.18
+Message-Id: <20060928224248.GA23843@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <ce9ef0d90608291525r42520432gd67005073da32057@mail.gmail.com>
-In-Reply-To: <ce9ef0d90608291525r42520432gd67005073da32057@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>
 
-Hi Sunil,
+Here are some hwmon patches for 2.6.18.  They include a new driver, and
+a bunch of warning fixes that cleaned up the code a lot.
 
-> Ok, here it is, from the newer script:
-> (...)
-> Some Super I/O chips may also contain sensors. We have to write to
-> standard I/O ports to probe them. This is usually safe.
-> Do you want to scan for Super I/O sensors? (YES/no): YES
-> Probing for Super-I/O at 0x2e/0x2f
-> Probing for `ITE IT8702F Sensors'...                        No (0x7901)
-> Probing for `ITE IT8705F Sensors'...                        No (0x7901)
-> Probing for `ITE IT8712F Sensors'...                        No (0x7901)
-> Probing for `ITE IT8716F Sensors'...                        No (0x7901)
-> Probing for `ITE IT8718F Sensors'...                        No (0x7901)
-> Probing for `Nat. Semi. PC87351 Fan Sensors'...             No (0x79)
-> Probing for `Nat. Semi. PC87360 Fan Sensors'...             No (0x79)
-> Probing for `Nat. Semi. PC87363 Fan Sensors'...             No (0x79)
-> Probing for `Nat. Semi. PC87364 Fan Sensors'...             No (0x79)
-> Probing for `Nat. Semi. PC87365 Fan Sensors'...             No (0x79)
-> Probing for `Nat. Semi. PC87365 Voltage Sensors'...         No (0x79)
-> Probing for `Nat. Semi. PC87365 Thermal Sensors'...         No (0x79)
-> Probing for `Nat. Semi. PC87366 Fan Sensors'...             No (0x79)
-> Probing for `Nat. Semi. PC87366 Voltage Sensors'...         No (0x79)
-> Probing for `Nat. Semi. PC87366 Thermal Sensors'...         No (0x79)
-> Probing for `Nat. Semi. PC87372 Fan Sensors'...             No (0x79)
-> Probing for `Nat. Semi. PC87373 Fan Sensors'...             No (0x79)
-> Probing for `Nat. Semi. PC87591'...                         No (0x79)
-> Probing for `Nat. Semi. PC87371'...                         No (0x79)
-> Probing for `Nat. Semi. PC97371'...                         No (0x79)
-> Probing for `Nat. Semi. PC8739x'...                         No (0x79)
-> Probing for `Nat. Semi. PC8741x'...                         No (0x79)
-> Probing for `Nat. Semi. PC87427 Fan Sensors'...             No (0x79)
-> Probing for `Nat. Semi. PC87427 Health Sensors'...          No (0x79)
-> Probing for `SMSC LPC47B27x Fan Sensors'...                 No (0x79)
-> Probing for `SMSC LPC47M10x/13x Fan Sensors'...             No (0x79)
-> Probing for `SMSC LPC47M14x Fan Sensors'...                 No (0x79)
-> Probing for `SMSC LPC47M15x/192/997 Fan Sensors'...         No (0x79)
-> Probing for `SMSC LPC47S42x Fan Sensors'...                 No (0x79)
-> Probing for `SMSC LPC47S45x Fan Sensors'...                 No (0x79)
-> Probing for `SMSC LPC47M172'...                             No (0x79)
-> Probing for `SMSC LPC47B397-NC'...                          No (0x79)
-> Probing for `SMSC SCH5307-NS'...                            No (0x79)
-> Probing for `SMSC LPC47M584-NC'...                          No (0x79)
-> Probing for `VIA VT1211 Sensors'...                         No
-> Probing for `Winbond W83627EHF/EHG Sensors'...              No
+Half of these have been in the -mm tree for a while, the other half were
+in Jean's tree for too long before I added them to mine (the delay was
+my fault.)
 
-You appear to have an unknown Super-I/O chip, presumably made by SMSC.
-Could be a custom chip made by SMSC for Dell. Sometimes Super-I/O have
-integrated hardware monitoring features. Without additional
-information (like the name of the chip), there's not much we can do
-though.
+Please pull from:
+	git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/hwmon-2.6.git/
+or from:
+	master.kernel.org:/pub/scm/linux/kernel/git/gregkh/hwmon-2.6.git/
+if it isn't synced up yet.
 
-> Now follows a summary of the probes I have just done.
-> Just press ENTER to continue:
-> 
-> Driver `eeprom' (should be inserted):
->   Detects correctly:
->   * Bus `SMBus I801 adapter at e8a0'
->     Busdriver `i2c-i801', I2C address 0x50
->     Chip `eeprom' (confidence: 6)
->   * Bus `SMBus I801 adapter at e8a0'
->     Busdriver `i2c-i801', I2C address 0x52
->     Chip `eeprom' (confidence: 6)
-> 
->   EEPROMs are *NOT* sensors! They are data storage chips commonly
->   found on memory modules (SPD), in monitors (EDID), or in some
->   laptops, for example.
+The full patch series will sent to the sensors mailing list, if anyone
+wants to see them.
 
-> That's exactly what I had from the first ever run. I am not sure why
-> subsequent runs refused to find any chip (A bug in older sensors-detect) but
-> this is what it found the very first time and I had set it  up with these in
+thanks,
 
-Either because the user pretended i2c-dev needn't be loaded (hum hum),
-or because the eeprom driver was already loaded, and the user didn't
-unload it in spite of the script asking for it.
+greg k-h
 
-I have since improved the script to gather information from already
-loaded i2c chip drivers, hopefully this should make things better.
+ Documentation/hwmon/it87      |   61 +-
+ Documentation/hwmon/k8temp    |   52 ++
+ Documentation/hwmon/vt1211    |  206 ++++++
+ Documentation/hwmon/w83627ehf |   85 +++
+ Documentation/hwmon/w83791d   |   69 +-
+ MAINTAINERS                   |    6 
+ drivers/hwmon/Kconfig         |   51 +-
+ drivers/hwmon/Makefile        |    2 
+ drivers/hwmon/abituguru.c     |   30 +
+ drivers/hwmon/adm1021.c       |   31 +
+ drivers/hwmon/adm1025.c       |   94 ++-
+ drivers/hwmon/adm1026.c       |  286 ++++-----
+ drivers/hwmon/adm1031.c       |  114 ++-
+ drivers/hwmon/adm9240.c       |  105 +--
+ drivers/hwmon/asb100.c        |  122 ++--
+ drivers/hwmon/atxp1.c         |   28 +
+ drivers/hwmon/ds1621.c        |   28 +
+ drivers/hwmon/f71805f.c       |  336 +++++++---
+ drivers/hwmon/fscher.c        |  106 +--
+ drivers/hwmon/fscpos.c        |   75 +-
+ drivers/hwmon/gl518sm.c       |   74 +-
+ drivers/hwmon/gl520sm.c       |  128 ++--
+ drivers/hwmon/hdaps.c         |    6 
+ drivers/hwmon/it87.c          |  469 +++++++++++---
+ drivers/hwmon/k8temp.c        |  294 +++++++++
+ drivers/hwmon/lm63.c          |   96 ++-
+ drivers/hwmon/lm75.c          |   24 +
+ drivers/hwmon/lm77.c          |   33 +
+ drivers/hwmon/lm78.c          |   88 ++-
+ drivers/hwmon/lm80.c          |   85 +--
+ drivers/hwmon/lm83.c          |  128 +++-
+ drivers/hwmon/lm85.c          |  173 +++--
+ drivers/hwmon/lm87.c          |  191 ++++--
+ drivers/hwmon/lm90.c          |   90 ++-
+ drivers/hwmon/lm92.c          |   34 +
+ drivers/hwmon/max1619.c       |   33 +
+ drivers/hwmon/pc87360.c       |  230 +++++--
+ drivers/hwmon/sis5595.c       |  101 ++-
+ drivers/hwmon/smsc47b397.c    |   39 +
+ drivers/hwmon/smsc47m1.c      |   81 ++
+ drivers/hwmon/smsc47m192.c    |  150 +++--
+ drivers/hwmon/via686a.c       |   83 ++-
+ drivers/hwmon/vt1211.c        | 1355 +++++++++++++++++++++++++++++++++++++++++
+ drivers/hwmon/vt8231.c        |  186 ++++--
+ drivers/hwmon/w83627ehf.c     |  485 ++++++++++++++-
+ drivers/hwmon/w83627hf.c      |  232 ++++---
+ drivers/hwmon/w83781d.c       |  277 ++++----
+ drivers/hwmon/w83791d.c       |    7 
+ drivers/hwmon/w83792d.c       |  554 ++++++++++-------
+ drivers/hwmon/w83l785ts.c     |   28 +
+ include/linux/pci_ids.h       |    1 
+ 51 files changed, 5727 insertions(+), 1915 deletions(-)
+ create mode 100644 Documentation/hwmon/k8temp
+ create mode 100644 Documentation/hwmon/vt1211
+ create mode 100644 Documentation/hwmon/w83627ehf
+ create mode 100644 drivers/hwmon/k8temp.c
+ create mode 100644 drivers/hwmon/vt1211.c
 
-> /etc/conf.d/lm_sensors (gentoo diversion, /etc/init.d/lm_sensors reads it, I
-> think) and /etc/modules.conf. Obviously, 'sensors' still comes out with 'No
-> sensors found!' even when all the modules are loaded properly.
+---------------
 
-Quite rightly so, as EEPROMs aren't sensors, as the script kindly but
-firmly reminded you above ;) Try "decode-dimms.pl" for decoded EEPROM
-contents.
+Alexey Dobriyan:
+      atxp1: Signed/unsigned char bug fix
 
-From another post:
-> BIOS doesn't have any hardwar monitoring information. its a dell, what
-> do ya expect...;-)
+Charles Spirakis:
+      w83791d: Documentation update
 
-This is usually a good indication that there is no hardware monitoring
-chip in the machine. You may try ACPI (modprobe thermal; acpi -t) as
-your last hope.
+David Hubbard:
+      w83627ehf: Fix unchecked return status
 
--- 
-Jean Delvare
+Dmitry Torokhov:
+      hdaps: Handle errors from input_register_device
+
+Hans de Goede:
+      abituguru: Add suspend/resume support
+
+Jean Delvare:
+      smsc47m1: dev_warn fix
+      it87: Add support for the IT8716F
+      it87: No sysfs files for disabled fans
+      it87: Prevent overflow on fan clock divider write
+      it87: in8 has no limit registers
+      it87: Cleanup set_fan_div
+      it87: Add support for the IT8718F
+      it87: Overwrite broken default limits
+      it87: Copyright update
+      k8temp: Enable automatic loading
+      hwmon: Make a dozen drivers no more experimental
+      hwmon: Add individual alarm files to 4 drivers
+      hwmon: Fix unchecked return status, batch 4
+      Fix unchecked return status, batch 5
+      hwmon: Fix unchecked return status, batch 6
+      hwmon: Fix unchecked return status, SMSC chips
+      hwmon: Remove Yuan Mu's address
+
+Jim Cromie:
+      pc87360: Move some code around
+      pc87360: Delete sysfs files on device deletion
+      pc87360: Check for error on sysfs files creation
+      w83781d: Fix unchecked return status
+
+Juerg Haefliger:
+      hwmon: New driver for the VIA VT1211
+      vt1211: Add documentation
+      vt1211: Document module parameters
+
+Mark M. Hoffman:
+      hwmon: Fix unchecked return status, batch 1
+      hwmon: Fix unchecked return status, batch 2
+      hwmon: Fix unchecked return status, batch 3
+
+Roger Lucas:
+      vt8231: Fix unchecked return status
+
+Rudolf Marek:
+      hwmon: Add fan speed control features to w83627ehf
+      hwmon: Documentation update for w83627ehf
+      hwmon: New driver k8temp
+      k8temp: Add documentation
+      w83l785ts: Fix unchecked return status
+      w83792d: Fix unchecked return status
+
 
