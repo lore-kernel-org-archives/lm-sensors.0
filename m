@@ -1,7 +1,7 @@
 From: gregkh@suse.de (gregkh at suse.de)
-Date: Thu, 28 Sep 2006 06:59:46 +0000
-Subject: [lm-sensors] patch hwmon-unchecked-return-status-fixes-3.patch
-Message-Id: <20060928065942.EB47D901627@imap.suse.de>
+Date: Thu, 28 Sep 2006 06:59:51 +0000
+Subject: [lm-sensors] patch hwmon-unchecked-return-status-fixes-4.patch
+Message-Id: <20060928065949.0F54B8FF210@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060928065931.BBCC7900C4B@imap.suse.de>
 In-Reply-To: <20060928065931.BBCC7900C4B@imap.suse.de>
@@ -13,256 +13,166 @@ To: lm-sensors@vger.kernel.org
 
 This is a note to let you know that I've just added the patch titled
 
-     Subject: [PATCH 14/23] hwmon: Fix unchecked return status, batch 3
+     Subject: [PATCH 15/23] hwmon: Fix unchecked return status, batch 4
 
 to my gregkh-2.6 tree.  Its filename is
 
-     hwmon-unchecked-return-status-fixes-3.patch
+     hwmon-unchecked-return-status-fixes-4.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-From khali at linux-fr.org Sun Sep 24 12:15:48 2006
-Date: Sun, 24 Sep 2006 21:15:35 +0200
+From khali at linux-fr.org Sun Sep 24 12:16:54 2006
+Date: Sun, 24 Sep 2006 21:16:40 +0200
 From: Jean Delvare <khali at linux-fr.org>
 To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>, "Mark M. Hoffman" <mhoffman at lightlink.com>
-Subject: [PATCH 14/23] hwmon: Fix unchecked return status, batch 3
-Message-Id: <20060924211535.21df8cd3.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-3.patch
+Cc: LM Sensors <lm-sensors at lm-sensors.org>
+Subject: [PATCH 15/23] hwmon: Fix unchecked return status, batch 4
+Message-Id: <20060924211640.5c32e79d.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-4.patch
 
-From: "Mark M. Hoffman" <mhoffman at lightlink.com>
-
-hwmon: Fix unchecked return status, batch 3
+hwmon: Fix unchecked return status, batch 4
 
 Fix up some hwmon drivers so that they no longer ignore return status
 from device_create_file().
 
-Signed-off-by: Mark M. Hoffman <mhoffman at lightlink.com>
+Note: f71805f actually checked the status from device_create_file
+already. However it did not remove the files on device destruction.
+It was also an opportunity to use sysfs_create/remove_group instead
+of hand-made loops. This makes the changes much more important but
+I think the result is worth it.
+
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
- drivers/hwmon/adm1021.c |   31 +++--
- drivers/hwmon/adm1025.c |   94 ++++++++++-----
- drivers/hwmon/adm1026.c |  286 ++++++++++++++++++++++++------------------------
- drivers/hwmon/adm1031.c |  114 +++++++++++--------
- drivers/hwmon/adm9240.c |  105 +++++++----------
- 5 files changed, 346 insertions(+), 284 deletions(-)
+ drivers/hwmon/f71805f.c |  324 ++++++++++++++++++++++++++++++------------------
+ drivers/hwmon/lm63.c    |   89 +++++++------
+ drivers/hwmon/lm83.c    |  125 ++++++++----------
+ drivers/hwmon/lm90.c    |   83 ++++++------
+ 4 files changed, 357 insertions(+), 264 deletions(-)
 
---- gregkh-2.6.orig/drivers/hwmon/adm1021.c
-+++ gregkh-2.6/drivers/hwmon/adm1021.c
-@@ -190,6 +190,21 @@ static int adm1021_attach_adapter(struct
- 	return i2c_probe(adapter, &addr_data, adm1021_detect);
+--- gregkh-2.6.orig/drivers/hwmon/f71805f.c
++++ gregkh-2.6/drivers/hwmon/f71805f.c
+@@ -31,6 +31,7 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ #include <asm/io.h>
+ 
+ static struct platform_device *pdev;
+@@ -593,104 +594,189 @@ static ssize_t show_name(struct device *
+ 	return sprintf(buf, "%s\n", data->name);
  }
  
-+static struct attribute *adm1021_attributes[] = {
-+	&dev_attr_temp1_max.attr,
-+	&dev_attr_temp1_min.attr,
-+	&dev_attr_temp1_input.attr,
-+	&dev_attr_temp2_max.attr,
-+	&dev_attr_temp2_min.attr,
-+	&dev_attr_temp2_input.attr,
-+	&dev_attr_alarms.attr,
-+	NULL
-+};
+-static struct device_attribute f71805f_dev_attr[] = {
+-	__ATTR(in0_input, S_IRUGO, show_in0, NULL),
+-	__ATTR(in0_max, S_IRUGO| S_IWUSR, show_in0_max, set_in0_max),
+-	__ATTR(in0_min, S_IRUGO| S_IWUSR, show_in0_min, set_in0_min),
+-	__ATTR(alarms_in, S_IRUGO, show_alarms_in, NULL),
+-	__ATTR(alarms_fan, S_IRUGO, show_alarms_fan, NULL),
+-	__ATTR(alarms_temp, S_IRUGO, show_alarms_temp, NULL),
+-	__ATTR(name, S_IRUGO, show_name, NULL),
++static DEVICE_ATTR(in0_input, S_IRUGO, show_in0, NULL);
++static DEVICE_ATTR(in0_max, S_IRUGO| S_IWUSR, show_in0_max, set_in0_max);
++static DEVICE_ATTR(in0_min, S_IRUGO| S_IWUSR, show_in0_min, set_in0_min);
++static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_in, NULL, 1);
++static SENSOR_DEVICE_ATTR(in1_max, S_IRUGO | S_IWUSR,
++			  show_in_max, set_in_max, 1);
++static SENSOR_DEVICE_ATTR(in1_min, S_IRUGO | S_IWUSR,
++			  show_in_min, set_in_min, 1);
++static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_in, NULL, 2);
++static SENSOR_DEVICE_ATTR(in2_max, S_IRUGO | S_IWUSR,
++			  show_in_max, set_in_max, 2);
++static SENSOR_DEVICE_ATTR(in2_min, S_IRUGO | S_IWUSR,
++			  show_in_min, set_in_min, 2);
++static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_in, NULL, 3);
++static SENSOR_DEVICE_ATTR(in3_max, S_IRUGO | S_IWUSR,
++			  show_in_max, set_in_max, 3);
++static SENSOR_DEVICE_ATTR(in3_min, S_IRUGO | S_IWUSR,
++			  show_in_min, set_in_min, 3);
++static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, show_in, NULL, 4);
++static SENSOR_DEVICE_ATTR(in4_max, S_IRUGO | S_IWUSR,
++			  show_in_max, set_in_max, 4);
++static SENSOR_DEVICE_ATTR(in4_min, S_IRUGO | S_IWUSR,
++			  show_in_min, set_in_min, 4);
++static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, show_in, NULL, 5);
++static SENSOR_DEVICE_ATTR(in5_max, S_IRUGO | S_IWUSR,
++			  show_in_max, set_in_max, 5);
++static SENSOR_DEVICE_ATTR(in5_min, S_IRUGO | S_IWUSR,
++			  show_in_min, set_in_min, 5);
++static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, show_in, NULL, 6);
++static SENSOR_DEVICE_ATTR(in6_max, S_IRUGO | S_IWUSR,
++			  show_in_max, set_in_max, 6);
++static SENSOR_DEVICE_ATTR(in6_min, S_IRUGO | S_IWUSR,
++			  show_in_min, set_in_min, 6);
++static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, show_in, NULL, 7);
++static SENSOR_DEVICE_ATTR(in7_max, S_IRUGO | S_IWUSR,
++			  show_in_max, set_in_max, 7);
++static SENSOR_DEVICE_ATTR(in7_min, S_IRUGO | S_IWUSR,
++			  show_in_min, set_in_min, 7);
++static SENSOR_DEVICE_ATTR(in8_input, S_IRUGO, show_in, NULL, 8);
++static SENSOR_DEVICE_ATTR(in8_max, S_IRUGO | S_IWUSR,
++			  show_in_max, set_in_max, 8);
++static SENSOR_DEVICE_ATTR(in8_min, S_IRUGO | S_IWUSR,
++			  show_in_min, set_in_min, 8);
 +
-+static const struct attribute_group adm1021_group = {
-+	.attrs = adm1021_attributes,
-+};
++static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0);
++static SENSOR_DEVICE_ATTR(fan1_min, S_IRUGO | S_IWUSR,
++			  show_fan_min, set_fan_min, 0);
++static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1);
++static SENSOR_DEVICE_ATTR(fan2_min, S_IRUGO | S_IWUSR,
++			  show_fan_min, set_fan_min, 1);
++static SENSOR_DEVICE_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2);
++static SENSOR_DEVICE_ATTR(fan3_min, S_IRUGO | S_IWUSR,
++			  show_fan_min, set_fan_min, 2);
 +
- static int adm1021_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	int i;
-@@ -287,22 +302,19 @@ static int adm1021_detect(struct i2c_ada
- 		adm1021_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	if ((err = sysfs_create_group(&new_client->dev.kobj, &adm1021_group)))
-+		goto error2;
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO | S_IWUSR,
++		    show_temp_max, set_temp_max, 0);
++static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR,
++		    show_temp_hyst, set_temp_hyst, 0);
++static SENSOR_DEVICE_ATTR(temp1_type, S_IRUGO, show_temp_type, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp2_max, S_IRUGO | S_IWUSR,
++		    show_temp_max, set_temp_max, 1);
++static SENSOR_DEVICE_ATTR(temp2_max_hyst, S_IRUGO | S_IWUSR,
++		    show_temp_hyst, set_temp_hyst, 1);
++static SENSOR_DEVICE_ATTR(temp2_type, S_IRUGO, show_temp_type, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2);
++static SENSOR_DEVICE_ATTR(temp3_max, S_IRUGO | S_IWUSR,
++		    show_temp_max, set_temp_max, 2);
++static SENSOR_DEVICE_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR,
++		    show_temp_hyst, set_temp_hyst, 2);
++static SENSOR_DEVICE_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2);
 +
- 	data->class_dev = hwmon_device_register(&new_client->dev);
- 	if (IS_ERR(data->class_dev)) {
- 		err = PTR_ERR(data->class_dev);
--		goto error2;
-+		goto error3;
- 	}
- 
--	device_create_file(&new_client->dev, &dev_attr_temp1_max);
--	device_create_file(&new_client->dev, &dev_attr_temp1_min);
--	device_create_file(&new_client->dev, &dev_attr_temp1_input);
--	device_create_file(&new_client->dev, &dev_attr_temp2_max);
--	device_create_file(&new_client->dev, &dev_attr_temp2_min);
--	device_create_file(&new_client->dev, &dev_attr_temp2_input);
--	device_create_file(&new_client->dev, &dev_attr_alarms);
--
- 	return 0;
- 
-+error3:
-+	sysfs_remove_group(&new_client->dev.kobj, &adm1021_group);
- error2:
- 	i2c_detach_client(new_client);
- error1:
-@@ -326,6 +338,7 @@ static int adm1021_detach_client(struct 
- 	int err;
- 
- 	hwmon_device_unregister(data->class_dev);
-+	sysfs_remove_group(&client->dev.kobj, &adm1021_group);
- 
- 	if ((err = i2c_detach_client(client)))
- 		return err;
---- gregkh-2.6.orig/drivers/hwmon/adm1025.c
-+++ gregkh-2.6/drivers/hwmon/adm1025.c
-@@ -315,6 +315,49 @@ static int adm1025_attach_adapter(struct
- 	return i2c_probe(adapter, &addr_data, adm1025_detect);
- }
- 
-+static struct attribute *adm1025_attributes[] = {
++static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
++static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
++static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3);
++static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 4);
++static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 5);
++static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 6);
++static SENSOR_DEVICE_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 7);
++static SENSOR_DEVICE_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 8);
++static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 11);
++static SENSOR_DEVICE_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 12);
++static SENSOR_DEVICE_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13);
++static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 16);
++static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 17);
++static SENSOR_DEVICE_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 18);
++static DEVICE_ATTR(alarms_in, S_IRUGO, show_alarms_in, NULL);
++static DEVICE_ATTR(alarms_fan, S_IRUGO, show_alarms_fan, NULL);
++static DEVICE_ATTR(alarms_temp, S_IRUGO, show_alarms_temp, NULL);
++
++static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
++
++static struct attribute *f71805f_attributes[] = {
 +	&dev_attr_in0_input.attr,
-+	&dev_attr_in1_input.attr,
-+	&dev_attr_in2_input.attr,
-+	&dev_attr_in3_input.attr,
-+	&dev_attr_in5_input.attr,
-+	&dev_attr_in0_min.attr,
-+	&dev_attr_in1_min.attr,
-+	&dev_attr_in2_min.attr,
-+	&dev_attr_in3_min.attr,
-+	&dev_attr_in5_min.attr,
 +	&dev_attr_in0_max.attr,
-+	&dev_attr_in1_max.attr,
-+	&dev_attr_in2_max.attr,
-+	&dev_attr_in3_max.attr,
-+	&dev_attr_in5_max.attr,
-+	&dev_attr_temp1_input.attr,
-+	&dev_attr_temp2_input.attr,
-+	&dev_attr_temp1_min.attr,
-+	&dev_attr_temp2_min.attr,
-+	&dev_attr_temp1_max.attr,
-+	&dev_attr_temp2_max.attr,
-+	&dev_attr_alarms.attr,
-+	&dev_attr_cpu0_vid.attr,
-+	&dev_attr_vrm.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group adm1025_group = {
-+	.attrs = adm1025_attributes,
-+};
-+
-+static struct attribute *adm1025_attributes_opt[] = {
-+	&dev_attr_in4_input.attr,
-+	&dev_attr_in4_min.attr,
-+	&dev_attr_in4_max.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group adm1025_group_opt = {
-+	.attrs = adm1025_attributes_opt,
-+};
-+
- /*
-  * The following function does more than just detection. If detection
-  * succeeds, it also registers the new chip.
-@@ -415,46 +458,31 @@ static int adm1025_detect(struct i2c_ada
- 	adm1025_init_client(new_client);
- 
- 	/* Register sysfs hooks */
--	data->class_dev = hwmon_device_register(&new_client->dev);
--	if (IS_ERR(data->class_dev)) {
--		err = PTR_ERR(data->class_dev);
-+	if ((err = sysfs_create_group(&new_client->dev.kobj, &adm1025_group)))
- 		goto exit_detach;
--	}
--
--	device_create_file(&new_client->dev, &dev_attr_in0_input);
--	device_create_file(&new_client->dev, &dev_attr_in1_input);
--	device_create_file(&new_client->dev, &dev_attr_in2_input);
--	device_create_file(&new_client->dev, &dev_attr_in3_input);
--	device_create_file(&new_client->dev, &dev_attr_in5_input);
--	device_create_file(&new_client->dev, &dev_attr_in0_min);
--	device_create_file(&new_client->dev, &dev_attr_in1_min);
--	device_create_file(&new_client->dev, &dev_attr_in2_min);
--	device_create_file(&new_client->dev, &dev_attr_in3_min);
--	device_create_file(&new_client->dev, &dev_attr_in5_min);
--	device_create_file(&new_client->dev, &dev_attr_in0_max);
--	device_create_file(&new_client->dev, &dev_attr_in1_max);
--	device_create_file(&new_client->dev, &dev_attr_in2_max);
--	device_create_file(&new_client->dev, &dev_attr_in3_max);
--	device_create_file(&new_client->dev, &dev_attr_in5_max);
--	device_create_file(&new_client->dev, &dev_attr_temp1_input);
--	device_create_file(&new_client->dev, &dev_attr_temp2_input);
--	device_create_file(&new_client->dev, &dev_attr_temp1_min);
--	device_create_file(&new_client->dev, &dev_attr_temp2_min);
--	device_create_file(&new_client->dev, &dev_attr_temp1_max);
--	device_create_file(&new_client->dev, &dev_attr_temp2_max);
--	device_create_file(&new_client->dev, &dev_attr_alarms);
--	device_create_file(&new_client->dev, &dev_attr_cpu0_vid);
--	device_create_file(&new_client->dev, &dev_attr_vrm);
- 
- 	/* Pin 11 is either in4 (+12V) or VID4 */
- 	if (!(config & 0x20)) {
--		device_create_file(&new_client->dev, &dev_attr_in4_input);
--		device_create_file(&new_client->dev, &dev_attr_in4_min);
--		device_create_file(&new_client->dev, &dev_attr_in4_max);
-+		if ((err = device_create_file(&new_client->dev,
-+					&dev_attr_in4_input))
-+		 || (err = device_create_file(&new_client->dev,
-+					&dev_attr_in4_min))
-+		 || (err = device_create_file(&new_client->dev,
-+					&dev_attr_in4_max)))
-+			goto exit_remove;
-+	}
-+
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_remove;
- 	}
- 
- 	return 0;
- 
-+exit_remove:
-+	sysfs_remove_group(&new_client->dev.kobj, &adm1025_group);
-+	sysfs_remove_group(&new_client->dev.kobj, &adm1025_group_opt);
- exit_detach:
- 	i2c_detach_client(new_client);
- exit_free:
-@@ -511,6 +539,8 @@ static int adm1025_detach_client(struct 
- 	int err;
- 
- 	hwmon_device_unregister(data->class_dev);
-+	sysfs_remove_group(&client->dev.kobj, &adm1025_group);
-+	sysfs_remove_group(&client->dev.kobj, &adm1025_group_opt);
- 
- 	if ((err = i2c_detach_client(client)))
- 		return err;
---- gregkh-2.6.orig/drivers/hwmon/adm1026.c
-+++ gregkh-2.6/drivers/hwmon/adm1026.c
-@@ -323,15 +323,6 @@ static int adm1026_attach_adapter(struct
- 	return i2c_probe(adapter, &addr_data, adm1026_detect);
- }
- 
--static int adm1026_detach_client(struct i2c_client *client)
--{
--	struct adm1026_data *data = i2c_get_clientdata(client);
--	hwmon_device_unregister(data->class_dev);
--	i2c_detach_client(client);
--	kfree(data);
--	return 0;
--}
--
- static int adm1026_read_value(struct i2c_client *client, u8 reg)
- {
- 	int res;
-@@ -1450,6 +1441,135 @@ static DEVICE_ATTR(temp1_auto_point2_pwm
- static DEVICE_ATTR(temp2_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
- static DEVICE_ATTR(temp3_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
- 
-+static struct attribute *adm1026_attributes[] = {
-+	&sensor_dev_attr_in0_input.dev_attr.attr,
-+	&sensor_dev_attr_in0_max.dev_attr.attr,
-+	&sensor_dev_attr_in0_min.dev_attr.attr,
++	&dev_attr_in0_min.attr,
 +	&sensor_dev_attr_in1_input.dev_attr.attr,
 +	&sensor_dev_attr_in1_max.dev_attr.attr,
 +	&sensor_dev_attr_in1_min.dev_attr.attr,
@@ -287,556 +197,642 @@ Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 +	&sensor_dev_attr_in8_input.dev_attr.attr,
 +	&sensor_dev_attr_in8_max.dev_attr.attr,
 +	&sensor_dev_attr_in8_min.dev_attr.attr,
-+	&sensor_dev_attr_in9_input.dev_attr.attr,
-+	&sensor_dev_attr_in9_max.dev_attr.attr,
-+	&sensor_dev_attr_in9_min.dev_attr.attr,
-+	&sensor_dev_attr_in10_input.dev_attr.attr,
-+	&sensor_dev_attr_in10_max.dev_attr.attr,
-+	&sensor_dev_attr_in10_min.dev_attr.attr,
-+	&sensor_dev_attr_in11_input.dev_attr.attr,
-+	&sensor_dev_attr_in11_max.dev_attr.attr,
-+	&sensor_dev_attr_in11_min.dev_attr.attr,
-+	&sensor_dev_attr_in12_input.dev_attr.attr,
-+	&sensor_dev_attr_in12_max.dev_attr.attr,
-+	&sensor_dev_attr_in12_min.dev_attr.attr,
-+	&sensor_dev_attr_in13_input.dev_attr.attr,
-+	&sensor_dev_attr_in13_max.dev_attr.attr,
-+	&sensor_dev_attr_in13_min.dev_attr.attr,
-+	&sensor_dev_attr_in14_input.dev_attr.attr,
-+	&sensor_dev_attr_in14_max.dev_attr.attr,
-+	&sensor_dev_attr_in14_min.dev_attr.attr,
-+	&sensor_dev_attr_in15_input.dev_attr.attr,
-+	&sensor_dev_attr_in15_max.dev_attr.attr,
-+	&sensor_dev_attr_in15_min.dev_attr.attr,
-+	&sensor_dev_attr_in16_input.dev_attr.attr,
-+	&sensor_dev_attr_in16_max.dev_attr.attr,
-+	&sensor_dev_attr_in16_min.dev_attr.attr,
-+	&sensor_dev_attr_fan1_input.dev_attr.attr,
-+	&sensor_dev_attr_fan1_div.dev_attr.attr,
-+	&sensor_dev_attr_fan1_min.dev_attr.attr,
-+	&sensor_dev_attr_fan2_input.dev_attr.attr,
-+	&sensor_dev_attr_fan2_div.dev_attr.attr,
-+	&sensor_dev_attr_fan2_min.dev_attr.attr,
-+	&sensor_dev_attr_fan3_input.dev_attr.attr,
-+	&sensor_dev_attr_fan3_div.dev_attr.attr,
-+	&sensor_dev_attr_fan3_min.dev_attr.attr,
-+	&sensor_dev_attr_fan4_input.dev_attr.attr,
-+	&sensor_dev_attr_fan4_div.dev_attr.attr,
-+	&sensor_dev_attr_fan4_min.dev_attr.attr,
-+	&sensor_dev_attr_fan5_input.dev_attr.attr,
-+	&sensor_dev_attr_fan5_div.dev_attr.attr,
-+	&sensor_dev_attr_fan5_min.dev_attr.attr,
-+	&sensor_dev_attr_fan6_input.dev_attr.attr,
-+	&sensor_dev_attr_fan6_div.dev_attr.attr,
-+	&sensor_dev_attr_fan6_min.dev_attr.attr,
-+	&sensor_dev_attr_fan7_input.dev_attr.attr,
-+	&sensor_dev_attr_fan7_div.dev_attr.attr,
-+	&sensor_dev_attr_fan7_min.dev_attr.attr,
-+	&sensor_dev_attr_fan8_input.dev_attr.attr,
-+	&sensor_dev_attr_fan8_div.dev_attr.attr,
-+	&sensor_dev_attr_fan8_min.dev_attr.attr,
++
 +	&sensor_dev_attr_temp1_input.dev_attr.attr,
 +	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_min.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
++	&sensor_dev_attr_temp1_type.dev_attr.attr,
 +	&sensor_dev_attr_temp2_input.dev_attr.attr,
 +	&sensor_dev_attr_temp2_max.dev_attr.attr,
-+	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_max_hyst.dev_attr.attr,
++	&sensor_dev_attr_temp2_type.dev_attr.attr,
 +	&sensor_dev_attr_temp3_input.dev_attr.attr,
 +	&sensor_dev_attr_temp3_max.dev_attr.attr,
-+	&sensor_dev_attr_temp3_min.dev_attr.attr,
-+	&sensor_dev_attr_temp1_offset.dev_attr.attr,
-+	&sensor_dev_attr_temp2_offset.dev_attr.attr,
-+	&sensor_dev_attr_temp3_offset.dev_attr.attr,
-+	&sensor_dev_attr_temp1_auto_point1_temp.dev_attr.attr,
-+	&sensor_dev_attr_temp2_auto_point1_temp.dev_attr.attr,
-+	&sensor_dev_attr_temp3_auto_point1_temp.dev_attr.attr,
-+	&sensor_dev_attr_temp1_auto_point1_temp_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp2_auto_point1_temp_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp3_auto_point1_temp_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp1_auto_point2_temp.dev_attr.attr,
-+	&sensor_dev_attr_temp2_auto_point2_temp.dev_attr.attr,
-+	&sensor_dev_attr_temp3_auto_point2_temp.dev_attr.attr,
-+	&sensor_dev_attr_temp1_crit.dev_attr.attr,
-+	&sensor_dev_attr_temp2_crit.dev_attr.attr,
-+	&sensor_dev_attr_temp3_crit.dev_attr.attr,
-+	&dev_attr_temp1_crit_enable.attr,
-+	&dev_attr_temp2_crit_enable.attr,
-+	&dev_attr_temp3_crit_enable.attr,
-+	&dev_attr_cpu0_vid.attr,
-+	&dev_attr_vrm.attr,
-+	&dev_attr_alarms.attr,
-+	&dev_attr_alarm_mask.attr,
-+	&dev_attr_gpio.attr,
-+	&dev_attr_gpio_mask.attr,
-+	&dev_attr_pwm1.attr,
-+	&dev_attr_pwm2.attr,
-+	&dev_attr_pwm3.attr,
-+	&dev_attr_pwm1_enable.attr,
-+	&dev_attr_pwm2_enable.attr,
-+	&dev_attr_pwm3_enable.attr,
-+	&dev_attr_temp1_auto_point1_pwm.attr,
-+	&dev_attr_temp2_auto_point1_pwm.attr,
-+	&dev_attr_temp3_auto_point1_pwm.attr,
-+	&dev_attr_temp1_auto_point2_pwm.attr,
-+	&dev_attr_temp2_auto_point2_pwm.attr,
-+	&dev_attr_temp3_auto_point2_pwm.attr,
-+	&dev_attr_analog_out.attr,
++	&sensor_dev_attr_temp3_max_hyst.dev_attr.attr,
++	&sensor_dev_attr_temp3_type.dev_attr.attr,
++
++	&sensor_dev_attr_in0_alarm.dev_attr.attr,
++	&sensor_dev_attr_in1_alarm.dev_attr.attr,
++	&sensor_dev_attr_in2_alarm.dev_attr.attr,
++	&sensor_dev_attr_in3_alarm.dev_attr.attr,
++	&sensor_dev_attr_in4_alarm.dev_attr.attr,
++	&sensor_dev_attr_in5_alarm.dev_attr.attr,
++	&sensor_dev_attr_in6_alarm.dev_attr.attr,
++	&sensor_dev_attr_in7_alarm.dev_attr.attr,
++	&sensor_dev_attr_in8_alarm.dev_attr.attr,
++	&dev_attr_alarms_in.attr,
++	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
++	&dev_attr_alarms_temp.attr,
++	&dev_attr_alarms_fan.attr,
++
++	&dev_attr_name.attr,
 +	NULL
 +};
 +
-+static const struct attribute_group adm1026_group = {
-+	.attrs = adm1026_attributes,
-+};
-+
- static int adm1026_detect(struct i2c_adapter *adapter, int address,
- 			  int kind)
- {
-@@ -1554,145 +1674,20 @@ static int adm1026_detect(struct i2c_ada
- 	adm1026_init_client(new_client);
++static const struct attribute_group f71805f_group = {
++	.attrs = f71805f_attributes,
+ };
  
- 	/* Register sysfs hooks */
-+	if ((err = sysfs_create_group(&new_client->dev.kobj, &adm1026_group)))
-+		goto exitdetach;
+-static struct sensor_device_attribute f71805f_sensor_attr[] = {
+-	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
+-	SENSOR_ATTR(in1_max, S_IRUGO | S_IWUSR,
+-		    show_in_max, set_in_max, 1),
+-	SENSOR_ATTR(in1_min, S_IRUGO | S_IWUSR,
+-		    show_in_min, set_in_min, 1),
+-	SENSOR_ATTR(in2_input, S_IRUGO, show_in, NULL, 2),
+-	SENSOR_ATTR(in2_max, S_IRUGO | S_IWUSR,
+-		    show_in_max, set_in_max, 2),
+-	SENSOR_ATTR(in2_min, S_IRUGO | S_IWUSR,
+-		    show_in_min, set_in_min, 2),
+-	SENSOR_ATTR(in3_input, S_IRUGO, show_in, NULL, 3),
+-	SENSOR_ATTR(in3_max, S_IRUGO | S_IWUSR,
+-		    show_in_max, set_in_max, 3),
+-	SENSOR_ATTR(in3_min, S_IRUGO | S_IWUSR,
+-		    show_in_min, set_in_min, 3),
+-	SENSOR_ATTR(in4_input, S_IRUGO, show_in, NULL, 4),
+-	SENSOR_ATTR(in4_max, S_IRUGO | S_IWUSR,
+-		    show_in_max, set_in_max, 4),
+-	SENSOR_ATTR(in4_min, S_IRUGO | S_IWUSR,
+-		    show_in_min, set_in_min, 4),
+-	SENSOR_ATTR(in5_input, S_IRUGO, show_in, NULL, 5),
+-	SENSOR_ATTR(in5_max, S_IRUGO | S_IWUSR,
+-		    show_in_max, set_in_max, 5),
+-	SENSOR_ATTR(in5_min, S_IRUGO | S_IWUSR,
+-		    show_in_min, set_in_min, 5),
+-	SENSOR_ATTR(in6_input, S_IRUGO, show_in, NULL, 6),
+-	SENSOR_ATTR(in6_max, S_IRUGO | S_IWUSR,
+-		    show_in_max, set_in_max, 6),
+-	SENSOR_ATTR(in6_min, S_IRUGO | S_IWUSR,
+-		    show_in_min, set_in_min, 6),
+-	SENSOR_ATTR(in7_input, S_IRUGO, show_in, NULL, 7),
+-	SENSOR_ATTR(in7_max, S_IRUGO | S_IWUSR,
+-		    show_in_max, set_in_max, 7),
+-	SENSOR_ATTR(in7_min, S_IRUGO | S_IWUSR,
+-		    show_in_min, set_in_min, 7),
+-	SENSOR_ATTR(in8_input, S_IRUGO, show_in, NULL, 8),
+-	SENSOR_ATTR(in8_max, S_IRUGO | S_IWUSR,
+-		    show_in_max, set_in_max, 8),
+-	SENSOR_ATTR(in8_min, S_IRUGO | S_IWUSR,
+-		    show_in_min, set_in_min, 8),
+-
+-	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0),
+-	SENSOR_ATTR(temp1_max, S_IRUGO | S_IWUSR,
+-		    show_temp_max, set_temp_max, 0),
+-	SENSOR_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR,
+-		    show_temp_hyst, set_temp_hyst, 0),
+-	SENSOR_ATTR(temp1_type, S_IRUGO, show_temp_type, NULL, 0),
+-	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1),
+-	SENSOR_ATTR(temp2_max, S_IRUGO | S_IWUSR,
+-		    show_temp_max, set_temp_max, 1),
+-	SENSOR_ATTR(temp2_max_hyst, S_IRUGO | S_IWUSR,
+-		    show_temp_hyst, set_temp_hyst, 1),
+-	SENSOR_ATTR(temp2_type, S_IRUGO, show_temp_type, NULL, 1),
+-	SENSOR_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2),
+-	SENSOR_ATTR(temp3_max, S_IRUGO | S_IWUSR,
+-		    show_temp_max, set_temp_max, 2),
+-	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR,
+-		    show_temp_hyst, set_temp_hyst, 2),
+-	SENSOR_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2),
+-
+-	SENSOR_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0),
+-	SENSOR_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1),
+-	SENSOR_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2),
+-	SENSOR_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3),
+-	SENSOR_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 4),
+-	SENSOR_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 5),
+-	SENSOR_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 6),
+-	SENSOR_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 7),
+-	SENSOR_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 8),
+-	SENSOR_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 11),
+-	SENSOR_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 12),
+-	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13),
++static struct attribute *f71805f_attributes_fan[3][4] = {
++	{
++		&sensor_dev_attr_fan1_input.dev_attr.attr,
++		&sensor_dev_attr_fan1_min.dev_attr.attr,
++		&sensor_dev_attr_fan1_alarm.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_fan2_input.dev_attr.attr,
++		&sensor_dev_attr_fan2_min.dev_attr.attr,
++		&sensor_dev_attr_fan2_alarm.dev_attr.attr,
++		NULL
++	}, {
++		&sensor_dev_attr_fan3_input.dev_attr.attr,
++		&sensor_dev_attr_fan3_min.dev_attr.attr,
++		&sensor_dev_attr_fan3_alarm.dev_attr.attr,
++		NULL
++	}
+ };
+ 
+-static struct sensor_device_attribute f71805f_fan_attr[] = {
+-	SENSOR_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0),
+-	SENSOR_ATTR(fan1_min, S_IRUGO | S_IWUSR,
+-		    show_fan_min, set_fan_min, 0),
+-	SENSOR_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 16),
+-	SENSOR_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1),
+-	SENSOR_ATTR(fan2_min, S_IRUGO | S_IWUSR,
+-		    show_fan_min, set_fan_min, 1),
+-	SENSOR_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 17),
+-	SENSOR_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2),
+-	SENSOR_ATTR(fan3_min, S_IRUGO | S_IWUSR,
+-		    show_fan_min, set_fan_min, 2),
+-	SENSOR_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 18),
++static const struct attribute_group f71805f_group_fan[3] = {
++	{ .attrs = f71805f_attributes_fan[0] },
++	{ .attrs = f71805f_attributes_fan[1] },
++	{ .attrs = f71805f_attributes_fan[2] },
+ };
+ 
+ /*
+@@ -738,43 +824,35 @@ static int __devinit f71805f_probe(struc
+ 
+ 	platform_set_drvdata(pdev, data);
+ 
+-	data->class_dev = hwmon_device_register(&pdev->dev);
+-	if (IS_ERR(data->class_dev)) {
+-		err = PTR_ERR(data->class_dev);
+-		dev_err(&pdev->dev, "Class registration failed (%d)\n", err);
+-		goto exit_free;
+-	}
+-
+ 	/* Initialize the F71805F chip */
+ 	f71805f_init_device(data);
+ 
+ 	/* Register sysfs interface files */
+-	for (i = 0; i < ARRAY_SIZE(f71805f_dev_attr); i++) {
+-		err = device_create_file(&pdev->dev, &f71805f_dev_attr[i]);
+-		if (err)
+-			goto exit_class;
+-	}
+-	for (i = 0; i < ARRAY_SIZE(f71805f_sensor_attr); i++) {
+-		err = device_create_file(&pdev->dev,
+-					 &f71805f_sensor_attr[i].dev_attr);
+-		if (err)
+-			goto exit_class;
+-	}
+-	for (i = 0; i < ARRAY_SIZE(f71805f_fan_attr); i++) {
+-		if (!(data->fan_enabled & (1 << (i / 3))))
++	if ((err = sysfs_create_group(&pdev->dev.kobj, &f71805f_group)))
++		goto exit_free;
++	for (i = 0; i < 3; i++) {
++		if (!(data->fan_enabled & (1 << i)))
+ 			continue;
+-		err = device_create_file(&pdev->dev,
+-					 &f71805f_fan_attr[i].dev_attr);
+-		if (err)
+-			goto exit_class;
++		if ((err = sysfs_create_group(&pdev->dev.kobj,
++					      &f71805f_group_fan[i])))
++			goto exit_remove_files;
++	}
 +
- 	data->class_dev = hwmon_device_register(&new_client->dev);
- 	if (IS_ERR(data->class_dev)) {
- 		err = PTR_ERR(data->class_dev);
--		goto exitdetach;
-+		goto exitremove;
++	data->class_dev = hwmon_device_register(&pdev->dev);
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		dev_err(&pdev->dev, "Class registration failed (%d)\n", err);
++		goto exit_remove_files;
  	}
  
--	device_create_file(&new_client->dev, &sensor_dev_attr_in0_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in0_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in0_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in1_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in1_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in1_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in2_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in2_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in2_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in3_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in3_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in3_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in4_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in4_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in4_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in5_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in5_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in5_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in6_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in6_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in6_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in7_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in7_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in7_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in8_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in8_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in8_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in9_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in9_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in9_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in10_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in10_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in10_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in11_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in11_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in11_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in12_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in12_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in12_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in13_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in13_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in13_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in14_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in14_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in14_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in15_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in15_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in15_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in16_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in16_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_in16_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan1_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan1_div.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan1_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan2_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan2_div.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan2_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan3_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan3_div.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan3_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan4_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan4_div.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan4_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan5_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan5_div.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan5_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan6_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan6_div.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan6_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan7_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan7_div.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan7_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan8_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan8_div.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_fan8_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp1_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp1_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp1_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp2_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp2_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp2_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_input.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_max.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_min.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp1_offset.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp2_offset.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_offset.dev_attr);
--	device_create_file(&new_client->dev, 
--		&sensor_dev_attr_temp1_auto_point1_temp.dev_attr);
--	device_create_file(&new_client->dev, 
--		&sensor_dev_attr_temp2_auto_point1_temp.dev_attr);
--	device_create_file(&new_client->dev, 
--		&sensor_dev_attr_temp3_auto_point1_temp.dev_attr);
--	device_create_file(&new_client->dev,
--		&sensor_dev_attr_temp1_auto_point1_temp_hyst.dev_attr);
--	device_create_file(&new_client->dev,
--		&sensor_dev_attr_temp2_auto_point1_temp_hyst.dev_attr);
--	device_create_file(&new_client->dev,
--		&sensor_dev_attr_temp3_auto_point1_temp_hyst.dev_attr);
--	device_create_file(&new_client->dev, 
--		&sensor_dev_attr_temp1_auto_point2_temp.dev_attr);
--	device_create_file(&new_client->dev, 
--		&sensor_dev_attr_temp2_auto_point2_temp.dev_attr);
--	device_create_file(&new_client->dev, 
--		&sensor_dev_attr_temp3_auto_point2_temp.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp1_crit.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp2_crit.dev_attr);
--	device_create_file(&new_client->dev, &sensor_dev_attr_temp3_crit.dev_attr);
--	device_create_file(&new_client->dev, &dev_attr_temp1_crit_enable);
--	device_create_file(&new_client->dev, &dev_attr_temp2_crit_enable);
--	device_create_file(&new_client->dev, &dev_attr_temp3_crit_enable);
--	device_create_file(&new_client->dev, &dev_attr_cpu0_vid);
--	device_create_file(&new_client->dev, &dev_attr_vrm);
--	device_create_file(&new_client->dev, &dev_attr_alarms);
--	device_create_file(&new_client->dev, &dev_attr_alarm_mask);
--	device_create_file(&new_client->dev, &dev_attr_gpio);
--	device_create_file(&new_client->dev, &dev_attr_gpio_mask);
--	device_create_file(&new_client->dev, &dev_attr_pwm1);
--	device_create_file(&new_client->dev, &dev_attr_pwm2);
--	device_create_file(&new_client->dev, &dev_attr_pwm3);
--	device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
--	device_create_file(&new_client->dev, &dev_attr_pwm2_enable);
--	device_create_file(&new_client->dev, &dev_attr_pwm3_enable);
--	device_create_file(&new_client->dev, &dev_attr_temp1_auto_point1_pwm);
--	device_create_file(&new_client->dev, &dev_attr_temp2_auto_point1_pwm);
--	device_create_file(&new_client->dev, &dev_attr_temp3_auto_point1_pwm);
--	device_create_file(&new_client->dev, &dev_attr_temp1_auto_point2_pwm);
--	device_create_file(&new_client->dev, &dev_attr_temp2_auto_point2_pwm);
--	device_create_file(&new_client->dev, &dev_attr_temp3_auto_point2_pwm);
--	device_create_file(&new_client->dev, &dev_attr_analog_out);
  	return 0;
  
- 	/* Error out and cleanup code */
-+exitremove:
-+	sysfs_remove_group(&new_client->dev.kobj, &adm1026_group);
- exitdetach:
- 	i2c_detach_client(new_client);
- exitfree:
-@@ -1700,6 +1695,17 @@ exitfree:
+-exit_class:
+-	dev_err(&pdev->dev, "Sysfs interface creation failed\n");
+-	hwmon_device_unregister(data->class_dev);
++exit_remove_files:
++	sysfs_remove_group(&pdev->dev.kobj, &f71805f_group);
++	for (i = 0; i < 3; i++)
++		sysfs_remove_group(&pdev->dev.kobj, &f71805f_group_fan[i]);
+ exit_free:
++	platform_set_drvdata(pdev, NULL);
+ 	kfree(data);
  exit:
  	return err;
- }
-+
-+static int adm1026_detach_client(struct i2c_client *client)
-+{
-+	struct adm1026_data *data = i2c_get_clientdata(client);
-+	hwmon_device_unregister(data->class_dev);
-+	sysfs_remove_group(&client->dev.kobj, &adm1026_group);
-+	i2c_detach_client(client);
-+	kfree(data);
-+	return 0;
-+}
-+
- static int __init sm_adm1026_init(void)
+@@ -783,9 +861,13 @@ exit:
+ static int __devexit f71805f_remove(struct platform_device *pdev)
  {
- 	return i2c_add_driver(&adm1026_driver);
---- gregkh-2.6.orig/drivers/hwmon/adm1031.c
-+++ gregkh-2.6/drivers/hwmon/adm1031.c
-@@ -730,6 +730,61 @@ static int adm1031_attach_adapter(struct
- 	return i2c_probe(adapter, &addr_data, adm1031_detect);
- }
+ 	struct f71805f_data *data = platform_get_drvdata(pdev);
++	int i;
  
-+static struct attribute *adm1031_attributes[] = {
-+	&dev_attr_fan1_input.attr,
-+	&dev_attr_fan1_div.attr,
-+	&dev_attr_fan1_min.attr,
+ 	platform_set_drvdata(pdev, NULL);
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&pdev->dev.kobj, &f71805f_group);
++	for (i = 0; i < 3; i++)
++		sysfs_remove_group(&pdev->dev.kobj, &f71805f_group_fan[i]);
+ 	kfree(data);
+ 
+ 	return 0;
+--- gregkh-2.6.orig/drivers/hwmon/lm63.c
++++ gregkh-2.6/drivers/hwmon/lm63.c
+@@ -46,6 +46,7 @@
+ #include <linux/hwmon.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ 
+ /*
+  * Addresses to scan
+@@ -370,6 +371,42 @@ static SENSOR_DEVICE_ATTR(temp1_max_alar
+ /* Raw alarm file for compatibility */
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
++static struct attribute *lm63_attributes[] = {
 +	&dev_attr_pwm1.attr,
-+	&dev_attr_auto_fan1_channel.attr,
-+	&dev_attr_temp1_input.attr,
-+	&dev_attr_temp1_min.attr,
-+	&dev_attr_temp1_max.attr,
-+	&dev_attr_temp1_crit.attr,
-+	&dev_attr_temp2_input.attr,
-+	&dev_attr_temp2_min.attr,
-+	&dev_attr_temp2_max.attr,
-+	&dev_attr_temp2_crit.attr,
++	&dev_attr_pwm1_enable.attr,
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit.dev_attr.attr,
++	&dev_attr_temp2_crit_hyst.attr,
 +
-+	&dev_attr_auto_temp1_off.attr,
-+	&dev_attr_auto_temp1_min.attr,
-+	&dev_attr_auto_temp1_max.attr,
-+
-+	&dev_attr_auto_temp2_off.attr,
-+	&dev_attr_auto_temp2_min.attr,
-+	&dev_attr_auto_temp2_max.attr,
-+
-+	&dev_attr_auto_fan1_min_pwm.attr,
-+
++	&sensor_dev_attr_temp2_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_input_fault.dev_attr.attr,
++	&sensor_dev_attr_temp2_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
 +	&dev_attr_alarms.attr,
-+
 +	NULL
 +};
 +
-+static const struct attribute_group adm1031_group = {
-+	.attrs = adm1031_attributes,
++static const struct attribute_group lm63_group = {
++	.attrs = lm63_attributes,
 +};
 +
-+static struct attribute *adm1031_attributes_opt[] = {
-+	&dev_attr_fan2_input.attr,
-+	&dev_attr_fan2_div.attr,
-+	&dev_attr_fan2_min.attr,
-+	&dev_attr_pwm2.attr,
-+	&dev_attr_auto_fan2_channel.attr,
-+	&dev_attr_temp3_input.attr,
-+	&dev_attr_temp3_min.attr,
-+	&dev_attr_temp3_max.attr,
-+	&dev_attr_temp3_crit.attr,
-+	&dev_attr_auto_temp3_off.attr,
-+	&dev_attr_auto_temp3_min.attr,
-+	&dev_attr_auto_temp3_max.attr,
-+	&dev_attr_auto_fan2_min_pwm.attr,
++static struct attribute *lm63_attributes_fan1[] = {
++	&sensor_dev_attr_fan1_input.dev_attr.attr,
++	&sensor_dev_attr_fan1_min.dev_attr.attr,
++
++	&sensor_dev_attr_fan1_min_alarm.dev_attr.attr,
 +	NULL
 +};
 +
-+static const struct attribute_group adm1031_group_opt = {
-+	.attrs = adm1031_attributes_opt,
++static const struct attribute_group lm63_group_fan1 = {
++	.attrs = lm63_attributes_fan1,
 +};
 +
- /* This function is called by i2c_probe */
- static int adm1031_detect(struct i2c_adapter *adapter, int address, int kind)
- {
-@@ -789,57 +844,26 @@ static int adm1031_detect(struct i2c_ada
- 	adm1031_init_client(new_client);
+ /*
+  * Real code
+  */
+@@ -456,50 +493,26 @@ static int lm63_detect(struct i2c_adapte
+ 	lm63_init_client(new_client);
  
  	/* Register sysfs hooks */
 -	data->class_dev = hwmon_device_register(&new_client->dev);
 -	if (IS_ERR(data->class_dev)) {
 -		err = PTR_ERR(data->class_dev);
-+	if ((err = sysfs_create_group(&new_client->dev.kobj, &adm1031_group)))
++	if ((err = sysfs_create_group(&new_client->dev.kobj,
++				      &lm63_group)))
  		goto exit_detach;
--	}
--
--	device_create_file(&new_client->dev, &dev_attr_fan1_input);
--	device_create_file(&new_client->dev, &dev_attr_fan1_div);
--	device_create_file(&new_client->dev, &dev_attr_fan1_min);
++	if (data->config & 0x04) { /* tachometer enabled */
++		if ((err = sysfs_create_group(&new_client->dev.kobj,
++					      &lm63_group_fan1)))
++			goto exit_remove_files;
+ 	}
+ 
+-	if (data->config & 0x04) { /* tachometer enabled */
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan1_input.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan1_min.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_fan1_min_alarm.dev_attr);
++	data->class_dev = hwmon_device_register(&new_client->dev);
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		goto exit_remove_files;
+ 	}
 -	device_create_file(&new_client->dev, &dev_attr_pwm1);
--	device_create_file(&new_client->dev, &dev_attr_auto_fan1_channel);
--	device_create_file(&new_client->dev, &dev_attr_temp1_input);
--	device_create_file(&new_client->dev, &dev_attr_temp1_min);
--	device_create_file(&new_client->dev, &dev_attr_temp1_max);
--	device_create_file(&new_client->dev, &dev_attr_temp1_crit);
--	device_create_file(&new_client->dev, &dev_attr_temp2_input);
--	device_create_file(&new_client->dev, &dev_attr_temp2_min);
--	device_create_file(&new_client->dev, &dev_attr_temp2_max);
--	device_create_file(&new_client->dev, &dev_attr_temp2_crit);
+-	device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp1_input.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp2_input.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp2_min.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp1_max.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp2_max.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp2_crit.dev_attr);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_crit_hyst);
 -
--	device_create_file(&new_client->dev, &dev_attr_auto_temp1_off);
--	device_create_file(&new_client->dev, &dev_attr_auto_temp1_min);
--	device_create_file(&new_client->dev, &dev_attr_auto_temp1_max);
--
--	device_create_file(&new_client->dev, &dev_attr_auto_temp2_off);
--	device_create_file(&new_client->dev, &dev_attr_auto_temp2_min);
--	device_create_file(&new_client->dev, &dev_attr_auto_temp2_max);
--
--	device_create_file(&new_client->dev, &dev_attr_auto_fan1_min_pwm);
--
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp2_input_fault.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp2_min_alarm.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp1_max_alarm.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp2_max_alarm.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp2_crit_alarm.dev_attr);
 -	device_create_file(&new_client->dev, &dev_attr_alarms);
  
- 	if (kind = adm1031) {
--		device_create_file(&new_client->dev, &dev_attr_fan2_input);
--		device_create_file(&new_client->dev, &dev_attr_fan2_div);
--		device_create_file(&new_client->dev, &dev_attr_fan2_min);
--		device_create_file(&new_client->dev, &dev_attr_pwm2);
+ 	return 0;
+ 
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &lm63_group);
++	sysfs_remove_group(&new_client->dev.kobj, &lm63_group_fan1);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+@@ -549,6 +562,8 @@ static int lm63_detach_client(struct i2c
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &lm63_group);
++	sysfs_remove_group(&client->dev.kobj, &lm63_group_fan1);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+--- gregkh-2.6.orig/drivers/hwmon/lm83.c
++++ gregkh-2.6/drivers/hwmon/lm83.c
+@@ -40,6 +40,7 @@
+ #include <linux/hwmon.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ 
+ /*
+  * Addresses to scan
+@@ -234,6 +235,48 @@ static SENSOR_DEVICE_ATTR(temp2_max_alar
+ /* Raw alarm file for compatibility */
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
++static struct attribute *lm83_attributes[] = {
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp3_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp3_max.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit.dev_attr.attr,
++	&sensor_dev_attr_temp3_crit.dev_attr.attr,
++
++	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp3_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp3_input_fault.dev_attr.attr,
++	&sensor_dev_attr_temp3_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
++	&dev_attr_alarms.attr,
++	NULL
++};
++
++static const struct attribute_group lm83_group = {
++	.attrs = lm83_attributes,
++};
++
++static struct attribute *lm83_attributes_opt[] = {
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp4_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp4_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit.dev_attr.attr,
++	&sensor_dev_attr_temp4_crit.dev_attr.attr,
++
++	&sensor_dev_attr_temp2_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp4_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp4_input_fault.dev_attr.attr,
++	&sensor_dev_attr_temp4_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_input_fault.dev_attr.attr,
++	&sensor_dev_attr_temp2_max_alarm.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group lm83_group_opt = {
++	.attrs = lm83_attributes_opt,
++};
++
+ /*
+  * Real code
+  */
+@@ -342,82 +385,32 @@ static int lm83_detect(struct i2c_adapte
+ 		goto exit_free;
+ 
+ 	/*
+-	 * Initialize the LM83 chip
+-	 * (Nothing to do for this one.)
+-	 */
+-
+-	/* Register sysfs hooks */
+-	data->class_dev = hwmon_device_register(&new_client->dev);
+-	if (IS_ERR(data->class_dev)) {
+-		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
+-	}
+-
+-	/*
++	 * Register sysfs hooks
+ 	 * The LM82 can only monitor one external diode which is
+ 	 * at the same register as the LM83 temp3 entry - so we
+ 	 * declare 1 and 3 common, and then 2 and 4 only for the LM83.
+ 	 */
+ 
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp1_input.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp3_input.dev_attr);
+-
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp1_max.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp3_max.dev_attr);
+-
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp1_crit.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp3_crit.dev_attr);
+-
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp3_input_fault.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp1_max_alarm.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp3_max_alarm.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp1_crit_alarm.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp3_crit_alarm.dev_attr);
+-	device_create_file(&new_client->dev, &dev_attr_alarms);
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm83_group)))
++		goto exit_detach;
+ 
+ 	if (kind = lm83) {
 -		device_create_file(&new_client->dev,
--				   &dev_attr_auto_fan2_channel);
--		device_create_file(&new_client->dev, &dev_attr_temp3_input);
--		device_create_file(&new_client->dev, &dev_attr_temp3_min);
--		device_create_file(&new_client->dev, &dev_attr_temp3_max);
--		device_create_file(&new_client->dev, &dev_attr_temp3_crit);
--		device_create_file(&new_client->dev, &dev_attr_auto_temp3_off);
--		device_create_file(&new_client->dev, &dev_attr_auto_temp3_min);
--		device_create_file(&new_client->dev, &dev_attr_auto_temp3_max);
--		device_create_file(&new_client->dev, &dev_attr_auto_fan2_min_pwm);
+-				   &sensor_dev_attr_temp2_input.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_temp4_input.dev_attr);
+-
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_temp2_max.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_temp4_max.dev_attr);
+-
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_temp2_crit.dev_attr);
+-		device_create_file(&new_client->dev,
+-				   &sensor_dev_attr_temp4_crit.dev_attr);
+-
+-		device_create_file(&new_client->dev,
+-				&sensor_dev_attr_temp2_input_fault.dev_attr);
+-		device_create_file(&new_client->dev,
+-				&sensor_dev_attr_temp4_input_fault.dev_attr);
+-		device_create_file(&new_client->dev,
+-				&sensor_dev_attr_temp2_max_alarm.dev_attr);
+-		device_create_file(&new_client->dev,
+-				&sensor_dev_attr_temp4_max_alarm.dev_attr);
+-		device_create_file(&new_client->dev,
+-				&sensor_dev_attr_temp2_crit_alarm.dev_attr);
+-		device_create_file(&new_client->dev,
+-				&sensor_dev_attr_temp4_crit_alarm.dev_attr);
 +		if ((err = sysfs_create_group(&new_client->dev.kobj,
-+						&adm1031_group_opt)))
-+			goto exit_remove;
++					      &lm83_group_opt)))
++			goto exit_remove_files;
 +	}
 +
 +	data->class_dev = hwmon_device_register(&new_client->dev);
 +	if (IS_ERR(data->class_dev)) {
 +		err = PTR_ERR(data->class_dev);
-+		goto exit_remove;
++		goto exit_remove_files;
  	}
  
  	return 0;
  
-+exit_remove:
-+	sysfs_remove_group(&new_client->dev.kobj, &adm1031_group);
-+	sysfs_remove_group(&new_client->dev.kobj, &adm1031_group_opt);
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &lm83_group);
++	sysfs_remove_group(&new_client->dev.kobj, &lm83_group_opt);
  exit_detach:
  	i2c_detach_client(new_client);
  exit_free:
-@@ -854,6 +878,8 @@ static int adm1031_detach_client(struct 
- 	int ret;
+@@ -432,6 +425,8 @@ static int lm83_detach_client(struct i2c
+ 	int err;
  
  	hwmon_device_unregister(data->class_dev);
-+	sysfs_remove_group(&client->dev.kobj, &adm1031_group);
-+	sysfs_remove_group(&client->dev.kobj, &adm1031_group_opt);
- 	if ((ret = i2c_detach_client(client)) != 0) {
- 		return ret;
- 	}
---- gregkh-2.6.orig/drivers/hwmon/adm9240.c
-+++ gregkh-2.6/drivers/hwmon/adm9240.c
-@@ -465,6 +465,45 @@ static ssize_t chassis_clear(struct devi
- }
- static DEVICE_ATTR(chassis_clear, S_IWUSR, NULL, chassis_clear);
++	sysfs_remove_group(&client->dev.kobj, &lm83_group);
++	sysfs_remove_group(&client->dev.kobj, &lm83_group_opt);
  
-+static struct attribute *adm9240_attributes[] = {
-+	&sensor_dev_attr_in0_input.dev_attr.attr,
-+	&sensor_dev_attr_in0_min.dev_attr.attr,
-+	&sensor_dev_attr_in0_max.dev_attr.attr,
-+	&sensor_dev_attr_in1_input.dev_attr.attr,
-+	&sensor_dev_attr_in1_min.dev_attr.attr,
-+	&sensor_dev_attr_in1_max.dev_attr.attr,
-+	&sensor_dev_attr_in2_input.dev_attr.attr,
-+	&sensor_dev_attr_in2_min.dev_attr.attr,
-+	&sensor_dev_attr_in2_max.dev_attr.attr,
-+	&sensor_dev_attr_in3_input.dev_attr.attr,
-+	&sensor_dev_attr_in3_min.dev_attr.attr,
-+	&sensor_dev_attr_in3_max.dev_attr.attr,
-+	&sensor_dev_attr_in4_input.dev_attr.attr,
-+	&sensor_dev_attr_in4_min.dev_attr.attr,
-+	&sensor_dev_attr_in4_max.dev_attr.attr,
-+	&sensor_dev_attr_in5_input.dev_attr.attr,
-+	&sensor_dev_attr_in5_min.dev_attr.attr,
-+	&sensor_dev_attr_in5_max.dev_attr.attr,
-+	&dev_attr_temp1_input.attr,
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+--- gregkh-2.6.orig/drivers/hwmon/lm90.c
++++ gregkh-2.6/drivers/hwmon/lm90.c
+@@ -79,6 +79,7 @@
+ #include <linux/hwmon.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ 
+ /*
+  * Addresses to scan
+@@ -366,6 +367,33 @@ static SENSOR_DEVICE_ATTR(temp1_max_alar
+ /* Raw alarm file for compatibility */
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
++static struct attribute *lm90_attributes[] = {
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_min.dev_attr.attr,
 +	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_fan1_input.dev_attr.attr,
-+	&sensor_dev_attr_fan1_div.dev_attr.attr,
-+	&sensor_dev_attr_fan1_min.dev_attr.attr,
-+	&sensor_dev_attr_fan2_input.dev_attr.attr,
-+	&sensor_dev_attr_fan2_div.dev_attr.attr,
-+	&sensor_dev_attr_fan2_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit_hyst.dev_attr.attr,
++
++	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_input_fault.dev_attr.attr,
++	&sensor_dev_attr_temp2_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
 +	&dev_attr_alarms.attr,
-+	&dev_attr_aout_output.attr,
-+	&dev_attr_chassis_clear.attr,
-+	&dev_attr_cpu0_vid.attr,
 +	NULL
 +};
 +
-+static const struct attribute_group adm9240_group = {
-+	.attrs = adm9240_attributes,
++static const struct attribute_group lm90_group = {
++	.attrs = lm90_attributes,
 +};
 +
+ /* pec used for ADM1032 only */
+ static ssize_t show_pec(struct device *dev, struct device_attribute *dummy,
+ 			char *buf)
+@@ -589,54 +617,25 @@ static int lm90_detect(struct i2c_adapte
+ 	lm90_init_client(new_client);
  
- /*** sensor chip detect and driver install ***/
- 
-@@ -548,72 +587,19 @@ static int adm9240_detect(struct i2c_ada
- 	adm9240_init_client(new_client);
- 
- 	/* populate sysfs filesystem */
-+	if ((err = sysfs_create_group(&new_client->dev.kobj, &adm9240_group)))
+ 	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm90_group)))
 +		goto exit_detach;
++	if (new_client->flags & I2C_CLIENT_PEC) {
++		if ((err = device_create_file(&new_client->dev,
++					      &dev_attr_pec)))
++			goto exit_remove_files;
++	}
 +
  	data->class_dev = hwmon_device_register(&new_client->dev);
  	if (IS_ERR(data->class_dev)) {
  		err = PTR_ERR(data->class_dev);
 -		goto exit_detach;
-+		goto exit_remove;
++		goto exit_remove_files;
  	}
  
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in0_input.dev_attr);
+-			   &sensor_dev_attr_temp1_input.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in0_min.dev_attr);
+-			   &sensor_dev_attr_temp2_input.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in0_max.dev_attr);
+-			   &sensor_dev_attr_temp1_min.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in1_input.dev_attr);
+-			   &sensor_dev_attr_temp2_min.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in1_min.dev_attr);
+-			   &sensor_dev_attr_temp1_max.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in1_max.dev_attr);
+-			   &sensor_dev_attr_temp2_max.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in2_input.dev_attr);
+-			   &sensor_dev_attr_temp1_crit.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in2_min.dev_attr);
+-			   &sensor_dev_attr_temp2_crit.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in2_max.dev_attr);
+-			   &sensor_dev_attr_temp1_crit_hyst.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in3_input.dev_attr);
+-			   &sensor_dev_attr_temp2_crit_hyst.dev_attr);
+-
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in3_min.dev_attr);
+-			   &sensor_dev_attr_temp2_input_fault.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in3_max.dev_attr);
+-			   &sensor_dev_attr_temp1_min_alarm.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in4_input.dev_attr);
+-			   &sensor_dev_attr_temp2_min_alarm.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in4_min.dev_attr);
+-			   &sensor_dev_attr_temp1_max_alarm.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in4_max.dev_attr);
+-			   &sensor_dev_attr_temp2_max_alarm.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in5_input.dev_attr);
+-			   &sensor_dev_attr_temp1_crit_alarm.dev_attr);
 -	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in5_min.dev_attr);
--	device_create_file(&new_client->dev,
--			&sensor_dev_attr_in5_max.dev_attr);
--	device_create_file(&new_client->dev, &dev_attr_temp1_input);
--	device_create_file(&new_client->dev,
--			&sensor_dev_attr_temp1_max.dev_attr);
--	device_create_file(&new_client->dev,
--			&sensor_dev_attr_temp1_max_hyst.dev_attr);
--	device_create_file(&new_client->dev,
--			&sensor_dev_attr_fan1_input.dev_attr);
--	device_create_file(&new_client->dev,
--			&sensor_dev_attr_fan1_div.dev_attr);
--	device_create_file(&new_client->dev,
--			&sensor_dev_attr_fan1_min.dev_attr);
--	device_create_file(&new_client->dev,
--			&sensor_dev_attr_fan2_input.dev_attr);
--	device_create_file(&new_client->dev,
--			&sensor_dev_attr_fan2_div.dev_attr);
--	device_create_file(&new_client->dev,
--			&sensor_dev_attr_fan2_min.dev_attr);
+-			   &sensor_dev_attr_temp2_crit_alarm.dev_attr);
 -	device_create_file(&new_client->dev, &dev_attr_alarms);
--	device_create_file(&new_client->dev, &dev_attr_aout_output);
--	device_create_file(&new_client->dev, &dev_attr_chassis_clear);
--	device_create_file(&new_client->dev, &dev_attr_cpu0_vid);
+-
+-	if (new_client->flags & I2C_CLIENT_PEC)
+-		device_create_file(&new_client->dev, &dev_attr_pec);
 -
  	return 0;
  
-+exit_remove:
-+	sysfs_remove_group(&new_client->dev.kobj, &adm9240_group);
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &lm90_group);
++	device_remove_file(&new_client->dev, &dev_attr_pec);
  exit_detach:
  	i2c_detach_client(new_client);
  exit_free:
-@@ -635,6 +621,7 @@ static int adm9240_detach_client(struct 
+@@ -669,6 +668,8 @@ static int lm90_detach_client(struct i2c
  	int err;
  
  	hwmon_device_unregister(data->class_dev);
-+	sysfs_remove_group(&client->dev.kobj, &adm9240_group);
++	sysfs_remove_group(&client->dev.kobj, &lm90_group);
++	device_remove_file(&client->dev, &dev_attr_pec);
  
  	if ((err = i2c_detach_client(client)))
  		return err;
