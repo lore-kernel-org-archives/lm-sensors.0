@@ -1,7 +1,7 @@
 From: greg@kroah.com (Greg KH)
-Date: Wed, 27 Sep 2006 01:01:35 +0000
-Subject: [lm-sensors] [PATCH 4/30] i2c: __must_check fixes (core drivers)
-Message-Id: <11593189311374-git-send-email-greg@kroah.com>
+Date: Thu, 28 Sep 2006 22:48:57 +0000
+Subject: [lm-sensors] [PATCH 37/39] hwmon: Fix unchecked return status,
+Message-Id: <1159483879355-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,180 +10,489 @@ To: lm-sensors@vger.kernel.org
 
 From: Jean Delvare <khali at linux-fr.org>
 
-i2c: __must_check fixes (core drivers)
+hwmon: Fix unchecked return status, batch 6
 
-Check for error on sysfs file creation.
-Check for error on device registration.
-Check for error on class device registration.
-
-Greg, I am not familiar with completion, can you please tell me if I
-need to take care of it in the error paths (as I did in this patch,
-see /* Needed? */ comments), or if it isn't needed?
-
-These patches were tested, including forced errors, so they should work
-fine. But of course more testing can't hurt.
+Fix up 5 more hwmon drivers so that they no longer ignore return status
+from device_create_file().
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 ---
- drivers/i2c/busses/i2c-isa.c |   29 +++++++++++++++++++++--
- drivers/i2c/i2c-core.c       |   53 ++++++++++++++++++++++++++++++++++--------
- 2 files changed, 69 insertions(+), 13 deletions(-)
+ drivers/hwmon/atxp1.c   |   25 +++++++++---
+ drivers/hwmon/ds1621.c  |   28 +++++++++----
+ drivers/hwmon/max1619.c |   33 +++++++++++----
+ drivers/hwmon/sis5595.c |  101 +++++++++++++++++++++++++++++++++--------------
+ drivers/hwmon/via686a.c |   83 +++++++++++++++++++++++----------------
+ 5 files changed, 185 insertions(+), 85 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-isa.c b/drivers/i2c/busses/i2c-isa.c
-index c3e1d3e..d7486e5 100644
---- a/drivers/i2c/busses/i2c-isa.c
-+++ b/drivers/i2c/busses/i2c-isa.c
-@@ -125,6 +125,8 @@ int i2c_isa_del_driver(struct i2c_driver
+diff --git a/drivers/hwmon/atxp1.c b/drivers/hwmon/atxp1.c
+index ba843f8..0ccdd07 100644
+--- a/drivers/hwmon/atxp1.c
++++ b/drivers/hwmon/atxp1.c
+@@ -27,6 +27,7 @@ #include <linux/hwmon.h>
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
  
- static int __init i2c_isa_init(void)
- {
-+	int err;
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("System voltages control via Attansic ATXP1");
+@@ -250,6 +251,17 @@ static ssize_t atxp1_storegpio2(struct d
+ */
+ static DEVICE_ATTR(gpio2, S_IRUGO | S_IWUSR, atxp1_showgpio2, atxp1_storegpio2);
+ 
++static struct attribute *atxp1_attributes[] = {
++	&dev_attr_gpio1.attr,
++	&dev_attr_gpio2.attr,
++	&dev_attr_cpu0_vid.attr,
++	NULL
++};
 +
- 	mutex_init(&isa_adapter.clist_lock);
- 	INIT_LIST_HEAD(&isa_adapter.clients);
++static const struct attribute_group atxp1_group = {
++	.attrs = atxp1_attributes,
++};
++
  
-@@ -133,8 +135,16 @@ static int __init i2c_isa_init(void)
- 	sprintf(isa_adapter.dev.bus_id, "i2c-%d", isa_adapter.nr);
- 	isa_adapter.dev.driver = &i2c_adapter_driver;
- 	isa_adapter.dev.release = &i2c_adapter_dev_release;
--	device_register(&isa_adapter.dev);
--	device_create_file(&isa_adapter.dev, &dev_attr_name);
-+	err = device_register(&isa_adapter.dev);
-+	if (err) {
-+		printk(KERN_ERR "i2c-isa: Failed to register device\n");
-+		goto exit;
-+	}
-+	err = device_create_file(&isa_adapter.dev, &dev_attr_name);
-+	if (err) {
-+		printk(KERN_ERR "i2c-isa: Failed to create name file\n");
-+		goto exit_unregister;
-+	}
+ static int atxp1_attach_adapter(struct i2c_adapter *adapter)
+ {
+@@ -319,21 +331,23 @@ static int atxp1_detect(struct i2c_adapt
+ 		goto exit_free;
+ 	}
  
- 	/* Add this adapter to the i2c_adapter class */
- 	memset(&isa_adapter.class_dev, 0x00, sizeof(struct class_device));
-@@ -142,11 +152,24 @@ static int __init i2c_isa_init(void)
- 	isa_adapter.class_dev.class = &i2c_adapter_class;
- 	strlcpy(isa_adapter.class_dev.class_id, isa_adapter.dev.bus_id,
- 		BUS_ID_SIZE);
--	class_device_register(&isa_adapter.class_dev);
-+	err = class_device_register(&isa_adapter.class_dev);
-+	if (err) {
-+		printk(KERN_ERR "i2c-isa: Failed to register class device\n");
-+		goto exit_remove_name;
-+	}
++	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &atxp1_group)))
++		goto exit_detach;
++
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove_files;
+ 	}
  
- 	dev_dbg(&isa_adapter.dev, "%s registered\n", isa_adapter.name);
+-	device_create_file(&new_client->dev, &dev_attr_gpio1);
+-	device_create_file(&new_client->dev, &dev_attr_gpio2);
+-	device_create_file(&new_client->dev, &dev_attr_cpu0_vid);
+-
+ 	dev_info(&new_client->dev, "Using VRM: %d.%d\n",
+ 			 data->vrm / 10, data->vrm % 10);
  
  	return 0;
+ 
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &atxp1_group);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+@@ -348,6 +362,7 @@ static int atxp1_detach_client(struct i2
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &atxp1_group);
+ 
+ 	err = i2c_detach_client(client);
+ 
+diff --git a/drivers/hwmon/ds1621.c b/drivers/hwmon/ds1621.c
+index 478eb4b..c849c0c 100644
+--- a/drivers/hwmon/ds1621.c
++++ b/drivers/hwmon/ds1621.c
+@@ -29,6 +29,7 @@ #include <linux/i2c.h>
+ #include <linux/hwmon.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ #include "lm75.h"
+ 
+ /* Addresses to scan */
+@@ -178,6 +179,18 @@ static DEVICE_ATTR(temp1_input, S_IRUGO 
+ static DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO , show_temp_min, set_temp_min);
+ static DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max, set_temp_max);
+ 
++static struct attribute *ds1621_attributes[] = {
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp1_min.attr,
++	&dev_attr_temp1_max.attr,
++	&dev_attr_alarms.attr,
++	NULL
++};
 +
-+exit_remove_name:
-+	device_remove_file(&isa_adapter.dev, &dev_attr_name);
-+exit_unregister:
-+	init_completion(&isa_adapter.dev_released); /* Needed? */
-+	device_unregister(&isa_adapter.dev);
-+	wait_for_completion(&isa_adapter.dev_released);
-+exit:
-+	return err;
- }
- 
- static void __exit i2c_isa_exit(void)
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 9cb277d..36e1214 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -183,15 +183,21 @@ int i2c_add_adapter(struct i2c_adapter *
- 	sprintf(adap->dev.bus_id, "i2c-%d", adap->nr);
- 	adap->dev.driver = &i2c_adapter_driver;
- 	adap->dev.release = &i2c_adapter_dev_release;
--	device_register(&adap->dev);
--	device_create_file(&adap->dev, &dev_attr_name);
-+	res = device_register(&adap->dev);
-+	if (res)
-+		goto out_list;
-+	res = device_create_file(&adap->dev, &dev_attr_name);
-+	if (res)
-+		goto out_unregister;
- 
- 	/* Add this adapter to the i2c_adapter class */
- 	memset(&adap->class_dev, 0x00, sizeof(struct class_device));
- 	adap->class_dev.dev = &adap->dev;
- 	adap->class_dev.class = &i2c_adapter_class;
- 	strlcpy(adap->class_dev.class_id, adap->dev.bus_id, BUS_ID_SIZE);
--	class_device_register(&adap->class_dev);
-+	res = class_device_register(&adap->class_dev);
-+	if (res)
-+		goto out_remove_name;
- 
- 	dev_dbg(&adap->dev, "adapter [%s] registered\n", adap->name);
- 
-@@ -206,6 +212,17 @@ int i2c_add_adapter(struct i2c_adapter *
- out_unlock:
- 	mutex_unlock(&core_lists);
- 	return res;
++static const struct attribute_group ds1621_group = {
++	.attrs = ds1621_attributes,
++};
 +
-+out_remove_name:
-+	device_remove_file(&adap->dev, &dev_attr_name);
-+out_unregister:
-+	init_completion(&adap->dev_released); /* Needed? */
-+	device_unregister(&adap->dev);
-+	wait_for_completion(&adap->dev_released);
-+out_list:
-+	list_del(&adap->list);
-+	idr_remove(&i2c_adapter_idr, adap->nr);
-+	goto out_unlock;
- }
  
- 
-@@ -394,14 +411,14 @@ int i2c_check_addr(struct i2c_adapter *a
- int i2c_attach_client(struct i2c_client *client)
+ static int ds1621_attach_adapter(struct i2c_adapter *adapter)
  {
- 	struct i2c_adapter *adapter = client->adapter;
-+	int res = 0;
+@@ -253,21 +266,19 @@ static int ds1621_detect(struct i2c_adap
+ 	ds1621_init_client(new_client);
  
- 	mutex_lock(&adapter->clist_lock);
- 	if (__i2c_check_addr(client->adapter, client->addr)) {
--		mutex_unlock(&adapter->clist_lock);
--		return -EBUSY;
-+		res = -EBUSY;
-+		goto out_unlock;
+ 	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &ds1621_group)))
++		goto exit_detach;
++
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove_files;
  	}
- 	list_add_tail(&client->list,&adapter->clients);
--	mutex_unlock(&adapter->clist_lock);
- 	
- 	if (adapter->client_register)  {
- 		if (adapter->client_register(client))  {
-@@ -422,10 +439,26 @@ int i2c_attach_client(struct i2c_client 
- 		"%d-%04x", i2c_adapter_id(adapter), client->addr);
- 	dev_dbg(&adapter->dev, "client [%s] registered with bus id %s\n",
- 		client->name, client->dev.bus_id);
--	device_register(&client->dev);
--	device_create_file(&client->dev, &dev_attr_client_name);
+ 
+-	device_create_file(&new_client->dev, &dev_attr_alarms);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_min);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_max);
 -	
--	return 0;
-+	res = device_register(&client->dev);
-+	if (res)
-+		goto out_list;
-+	res = device_create_file(&client->dev, &dev_attr_client_name);
-+	if (res)
-+		goto out_unregister;
+ 	return 0;
+ 
+-/* OK, this is not exactly good programming practice, usually. But it is
+-   very code-efficient in this case. */
++      exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &ds1621_group);
+       exit_detach:
+ 	i2c_detach_client(new_client);
+       exit_free:
+@@ -282,6 +293,7 @@ static int ds1621_detach_client(struct i
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &ds1621_group);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+diff --git a/drivers/hwmon/max1619.c b/drivers/hwmon/max1619.c
+index b4135b5..2f58f65 100644
+--- a/drivers/hwmon/max1619.c
++++ b/drivers/hwmon/max1619.c
+@@ -34,6 +34,7 @@ #include <linux/i2c.h>
+ #include <linux/hwmon.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ 
+ static unsigned short normal_i2c[] = { 0x18, 0x19, 0x1a,
+ 					0x29, 0x2a, 0x2b,
+@@ -172,6 +173,22 @@ static DEVICE_ATTR(temp2_crit_hyst, S_IW
+ 	set_temp_hyst2);
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
++static struct attribute *max1619_attributes[] = {
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp2_input.attr,
++	&dev_attr_temp2_min.attr,
++	&dev_attr_temp2_max.attr,
++	&dev_attr_temp2_crit.attr,
++	&dev_attr_temp2_crit_hyst.attr,
 +
-+out_unlock:
-+	mutex_unlock(&adapter->clist_lock);
-+	return res;
++	&dev_attr_alarms.attr,
++	NULL
++};
 +
-+out_unregister:
-+	init_completion(&client->released); /* Needed? */
-+	device_unregister(&client->dev);
-+	wait_for_completion(&client->released);
-+out_list:
-+	list_del(&client->list);
-+	dev_err(&adapter->dev, "Failed to attach i2c client %s at 0x%02x "
-+		"(%d)\n", client->name, client->addr, res);
-+	goto out_unlock;
++static const struct attribute_group max1619_group = {
++	.attrs = max1619_attributes,
++};
++
+ /*
+  * Real code
+  */
+@@ -273,22 +290,19 @@ static int max1619_detect(struct i2c_ada
+ 	max1619_init_client(new_client);
+ 
+ 	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &max1619_group)))
++		goto exit_detach;
++
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove_files;
+ 	}
+ 
+-	device_create_file(&new_client->dev, &dev_attr_temp1_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_min);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_crit);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_crit_hyst);
+-	device_create_file(&new_client->dev, &dev_attr_alarms);
+-
+ 	return 0;
+ 
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &max1619_group);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+@@ -318,6 +332,7 @@ static int max1619_detach_client(struct 
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &max1619_group);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+diff --git a/drivers/hwmon/sis5595.c b/drivers/hwmon/sis5595.c
+index 3783af4..95a4b5d 100644
+--- a/drivers/hwmon/sis5595.c
++++ b/drivers/hwmon/sis5595.c
+@@ -61,6 +61,7 @@ #include <linux/err.h>
+ #include <linux/init.h>
+ #include <linux/jiffies.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ #include <asm/io.h>
+ 
+ 
+@@ -473,6 +474,50 @@ static ssize_t show_alarms(struct device
+ 	return sprintf(buf, "%d\n", data->alarms);
  }
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
++
++static struct attribute *sis5595_attributes[] = {
++	&dev_attr_in0_input.attr,
++	&dev_attr_in0_min.attr,
++	&dev_attr_in0_max.attr,
++	&dev_attr_in1_input.attr,
++	&dev_attr_in1_min.attr,
++	&dev_attr_in1_max.attr,
++	&dev_attr_in2_input.attr,
++	&dev_attr_in2_min.attr,
++	&dev_attr_in2_max.attr,
++	&dev_attr_in3_input.attr,
++	&dev_attr_in3_min.attr,
++	&dev_attr_in3_max.attr,
++
++	&dev_attr_fan1_input.attr,
++	&dev_attr_fan1_min.attr,
++	&dev_attr_fan1_div.attr,
++	&dev_attr_fan2_input.attr,
++	&dev_attr_fan2_min.attr,
++	&dev_attr_fan2_div.attr,
++
++	&dev_attr_alarms.attr,
++	NULL
++};
++
++static const struct attribute_group sis5595_group = {
++	.attrs = sis5595_attributes,
++};
++
++static struct attribute *sis5595_attributes_opt[] = {
++	&dev_attr_in4_input.attr,
++	&dev_attr_in4_min.attr,
++	&dev_attr_in4_max.attr,
++
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp1_max.attr,
++	&dev_attr_temp1_max_hyst.attr,
++	NULL
++};
++
++static const struct attribute_group sis5595_group_opt = {
++	.attrs = sis5595_attributes_opt,
++};
+  
+ /* This is called when the module is loaded */
+ static int sis5595_detect(struct i2c_adapter *adapter)
+@@ -566,43 +611,37 @@ static int sis5595_detect(struct i2c_ada
+ 	}
+ 
+ 	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &sis5595_group)))
++		goto exit_detach;
++	if (data->maxins = 4) {
++		if ((err = device_create_file(&new_client->dev,
++					      &dev_attr_in4_input))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_in4_min))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_in4_max)))
++			goto exit_remove_files;
++	} else {
++		if ((err = device_create_file(&new_client->dev,
++					      &dev_attr_temp1_input))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_temp1_max))
++		 || (err = device_create_file(&new_client->dev,
++					      &dev_attr_temp1_max_hyst)))
++			goto exit_remove_files;
++	}
++
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove_files;
+ 	}
+ 
+-	device_create_file(&new_client->dev, &dev_attr_in0_input);
+-	device_create_file(&new_client->dev, &dev_attr_in0_min);
+-	device_create_file(&new_client->dev, &dev_attr_in0_max);
+-	device_create_file(&new_client->dev, &dev_attr_in1_input);
+-	device_create_file(&new_client->dev, &dev_attr_in1_min);
+-	device_create_file(&new_client->dev, &dev_attr_in1_max);
+-	device_create_file(&new_client->dev, &dev_attr_in2_input);
+-	device_create_file(&new_client->dev, &dev_attr_in2_min);
+-	device_create_file(&new_client->dev, &dev_attr_in2_max);
+-	device_create_file(&new_client->dev, &dev_attr_in3_input);
+-	device_create_file(&new_client->dev, &dev_attr_in3_min);
+-	device_create_file(&new_client->dev, &dev_attr_in3_max);
+-	if (data->maxins = 4) {
+-		device_create_file(&new_client->dev, &dev_attr_in4_input);
+-		device_create_file(&new_client->dev, &dev_attr_in4_min);
+-		device_create_file(&new_client->dev, &dev_attr_in4_max);
+-	}
+-	device_create_file(&new_client->dev, &dev_attr_fan1_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_min);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_div);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_min);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_div);
+-	device_create_file(&new_client->dev, &dev_attr_alarms);
+-	if (data->maxins = 3) {
+-		device_create_file(&new_client->dev, &dev_attr_temp1_input);
+-		device_create_file(&new_client->dev, &dev_attr_temp1_max);
+-		device_create_file(&new_client->dev, &dev_attr_temp1_max_hyst);
+-	}
+ 	return 0;
+ 
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &sis5595_group);
++	sysfs_remove_group(&new_client->dev.kobj, &sis5595_group_opt);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+@@ -619,6 +658,8 @@ static int sis5595_detach_client(struct 
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &sis5595_group);
++	sysfs_remove_group(&client->dev.kobj, &sis5595_group_opt);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+diff --git a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
+index 95ae056..f8acada 100644
+--- a/drivers/hwmon/via686a.c
++++ b/drivers/hwmon/via686a.c
+@@ -40,6 +40,7 @@ #include <linux/hwmon.h>
+ #include <linux/err.h>
+ #include <linux/init.h>
+ #include <linux/mutex.h>
++#include <linux/sysfs.h>
+ #include <asm/io.h>
  
  
+@@ -570,6 +571,48 @@ static ssize_t show_alarms(struct device
+ }
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
++static struct attribute *via686a_attributes[] = {
++	&dev_attr_in0_input.attr,
++	&dev_attr_in1_input.attr,
++	&dev_attr_in2_input.attr,
++	&dev_attr_in3_input.attr,
++	&dev_attr_in4_input.attr,
++	&dev_attr_in0_min.attr,
++	&dev_attr_in1_min.attr,
++	&dev_attr_in2_min.attr,
++	&dev_attr_in3_min.attr,
++	&dev_attr_in4_min.attr,
++	&dev_attr_in0_max.attr,
++	&dev_attr_in1_max.attr,
++	&dev_attr_in2_max.attr,
++	&dev_attr_in3_max.attr,
++	&dev_attr_in4_max.attr,
++
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp2_input.attr,
++	&dev_attr_temp3_input.attr,
++	&dev_attr_temp1_max.attr,
++	&dev_attr_temp2_max.attr,
++	&dev_attr_temp3_max.attr,
++	&dev_attr_temp1_max_hyst.attr,
++	&dev_attr_temp2_max_hyst.attr,
++	&dev_attr_temp3_max_hyst.attr,
++
++	&dev_attr_fan1_input.attr,
++	&dev_attr_fan2_input.attr,
++	&dev_attr_fan1_min.attr,
++	&dev_attr_fan2_min.attr,
++	&dev_attr_fan1_div.attr,
++	&dev_attr_fan2_div.attr,
++
++	&dev_attr_alarms.attr,
++	NULL
++};
++
++static const struct attribute_group via686a_group = {
++	.attrs = via686a_attributes,
++};
++
+ /* The driver. I choose to use type i2c_driver, as at is identical to both
+    smbus_driver and isa_driver, and clients could be of either kind */
+ static struct i2c_driver via686a_driver = {
+@@ -650,46 +693,19 @@ static int via686a_detect(struct i2c_ada
+ 	via686a_init_client(new_client);
+ 
+ 	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&new_client->dev.kobj, &via686a_group)))
++		goto exit_detach;
++
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+-		goto exit_detach;
++		goto exit_remove_files;
+ 	}
+ 
+-	device_create_file(&new_client->dev, &dev_attr_in0_input);
+-	device_create_file(&new_client->dev, &dev_attr_in1_input);
+-	device_create_file(&new_client->dev, &dev_attr_in2_input);
+-	device_create_file(&new_client->dev, &dev_attr_in3_input);
+-	device_create_file(&new_client->dev, &dev_attr_in4_input);
+-	device_create_file(&new_client->dev, &dev_attr_in0_min);
+-	device_create_file(&new_client->dev, &dev_attr_in1_min);
+-	device_create_file(&new_client->dev, &dev_attr_in2_min);
+-	device_create_file(&new_client->dev, &dev_attr_in3_min);
+-	device_create_file(&new_client->dev, &dev_attr_in4_min);
+-	device_create_file(&new_client->dev, &dev_attr_in0_max);
+-	device_create_file(&new_client->dev, &dev_attr_in1_max);
+-	device_create_file(&new_client->dev, &dev_attr_in2_max);
+-	device_create_file(&new_client->dev, &dev_attr_in3_max);
+-	device_create_file(&new_client->dev, &dev_attr_in4_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp3_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp3_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_max_hyst);
+-	device_create_file(&new_client->dev, &dev_attr_temp2_max_hyst);
+-	device_create_file(&new_client->dev, &dev_attr_temp3_max_hyst);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_min);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_min);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_div);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_div);
+-	device_create_file(&new_client->dev, &dev_attr_alarms);
+-
+ 	return 0;
+ 
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &via686a_group);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+@@ -705,6 +721,7 @@ static int via686a_detach_client(struct 
+ 	int err;
+ 
+ 	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &via686a_group);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
 -- 
 1.4.2.1
 
