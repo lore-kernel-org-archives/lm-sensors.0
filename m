@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 29 Sep 2006 07:50:47 +0000
+Date: Fri, 29 Sep 2006 08:03:31 +0000
 Subject: [lm-sensors] Answer Epox - EPoX EP1308 sensor-chip
-Message-Id: <20060929095047.acd76d50.khali@linux-fr.org>
+Message-Id: <20060929100331.652b422e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <450B14DB.2090505@sh.cvut.cz>
 In-Reply-To: <450B14DB.2090505@sh.cvut.cz>
@@ -12,60 +12,44 @@ To: lm-sensors@vger.kernel.org
 
 Hi Hans,
 
-> Ran on Jean's advice sensors-detect again and it reported when probing for
-> superior the following:
-> 
-> Probing for Super-I/O at 0x4e/0x4f
-> Trying family `ITE'...                                      No
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Fintek'...                       Yes
-> Found unknown chip with ID 0x0541
+> Maybe I should make my relation to Hans Edgington clear. As you may know 
+> I'm a university Computer Science teacher and Hans E. is a student of 
+> mine. As part of his / her last year every student must work on a 
+> project for 1 day / week during 5 months. Normally the project 
+> assignments come from real companies, but when we don't have enough 
+> assignments the teacher(s) create assignments for these projects. After 
+> seeing the mail from Age Huisman on this I thought it would be a fun 
+> project for a student to write a driver for this sensors chip.
 
-Great, it partly worked. It properly detected the address (0x4e/0x4f)
-and the family. Contrary to my expectations, it failed to find the
-logical device number though, I wonder why.
+Yes, I think this is a good idea, both interesting for the student and
+useful for the user waiting for this chip to be supported.
 
-> Then did an isadump on 0x4e 0x4f and was shown a lot more 0xff :(
-> I looked at the driver code for the Fintek F71805F Super-I/O chip which uses
-> 0x87 to as key to unlock.
+> At first I thought this driver would be much like the uguru driver, but 
+> I see now with the superio stuff that it will be somewhat different, 
+> what would be a good driver to start with as a skeleton to base this 
+> driver on?
 
-Actually the key for this family is double 0x87. You are lucky that it
-worked with only one (below), in most cases it won't.
+There's nothing like the uGuru :p
 
-> Results for isadump -k 0x87 0x4e 0x4f
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: ff ff 00 ff ff ff ff 05 ff ff ff ff ff ff ff ff
-> 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 20: 05 41 10 19 34 00 00 7e 70 ff 44 a0 07 0a 00 00
-               ^^^^^
-This confirms my earlier guess that this chip was designed by Fintek,
-despite the Epox top marking.
+I'd suggest working off the f71805f driver, as it supports a Fintek
+chip so the Super-I/O code should be very similar.
 
-> 30: 01 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 60: 00 60 ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 70: 01 ff 0c ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> Also are there datasheets of similar (fintek) superio chips available 
+> somewhere, those could be of great help.
 
-Now I'd like to understand why sensors-detect didn't find the logical
-device number. Please run the following command and provide the output
-(assuming you use bash as your shell, and as root):
+The Fintek datasheets are unfortunately not publicly available as far
+as I know. But Winbond has good datasheets and the Super-I/O mechanism
+is pretty standard, so you can start from there (see
+Documentation/hwmon/w83627hf for URLs). Or you can simply look at the
+f71805f driver code, I would hope it is clear enough.
 
-for ldn in `seq 0 15` ; do echo "=/ LDN=$ldn /=" ; isadump -y -k 0x87,0x87 0x4e 0x4f $ldn ; done
+BTW the Super-I/O mechanism is essentially based on Intel's LPC
+specification, which is publicly available here:
+  http://www.intel.com/design/chipsets/industry/lpc.htm
+But it's highly technical and you don't really need to know the details
+to write a driver.
 
-This will dump the first 16 logical devices (there are rarely more.) We
-are looking for a logical device with 0x295 at 0x60. sensors-detect
-would have detected that so I expect some trick though.
-
+Hope that helps,
 -- 
 Jean Delvare
 
