@@ -1,7 +1,7 @@
-From: michaelnel@comcast.net (Michael Nelson)
-Date: Thu, 28 Sep 2006 01:06:43 +0000
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Fri, 29 Sep 2006 14:30:47 +0000
 Subject: [lm-sensors] coretemp - digital temperature driver for Intel
-Message-Id: <20060928010643.GA6118@seahunt.dyndns.org>
+Message-Id: <451D2E17.3070502@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4519A5C1.8010207@assembler.cz>
 In-Reply-To: <4519A5C1.8010207@assembler.cz>
@@ -10,28 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Sep 28, 2006 at 12:11:30AM +0200, Rudolf Marek wrote:
+Hello all,
 
-> I think I found that, please use attached version.
+Please check the new version on http://assembler.cz/download/coretemp/
 
-OK, here's the latest:
+It has:
 
-seahunt:/var/log # cat /sys/class/hwmon/hwmon0/device/temp1_input
-31000
-seahunt:/var/log # cat /sys/class/hwmon/hwmon1/device/temp1_input
-58000
-seahunt:/var/log # cat /sys/class/hwmon/hwmon2/device/temp1_input
-58000
-seahunt:/var/log # sensors | grep Temp
-MB Temp:     +31??C  (high =   +35??C, hyst =   +40??C)
-CPU Temp:  +55.5??C  (high = +70.0??C, hyst = +40.0??C)
+1) code improvements
+2) support for critical temperature alarm
+3) shows the TjMax temperature
+4) hotplug CPU support
+5) new bugs? ;)
 
-Assuming 58000 means 58 degrees C and 31000 means 31 degrees C, it looks OK?
+there is also a patch for userspace - should be applied on top of the SVN HEAD.
 
-Thanks
-Michael
+Please test it and let me know how the output of "sensors" command looks like. I
+believe this version is less dangerous to use than a first one, but of course I
+cannot guarantee that. All I know is that it compiles...
 
--- 
+Any testing is appreciated.
 
-San Francisco, CA
+Thanks,
+
+Rudolf
 
