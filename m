@@ -1,7 +1,7 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Fri, 29 Sep 2006 14:30:47 +0000
-Subject: [lm-sensors] coretemp - digital temperature driver for Intel
-Message-Id: <451D2E17.3070502@assembler.cz>
+From: oe@hentges.net (Matthias Hentges)
+Date: Sat, 30 Sep 2006 17:25:23 +0000
+Subject: [lm-sensors] coretemp - digital temperature driver for
+Message-Id: <1159637123.4641.33.camel@mhcln03>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4519A5C1.8010207@assembler.cz>
 In-Reply-To: <4519A5C1.8010207@assembler.cz>
@@ -10,27 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello all,
+Hello Rudolf,
 
-Please check the new version on http://assembler.cz/download/coretemp/
+I'm running a C2D (E6600) system here and would be happy to be of
+assistance.
 
-It has:
+I've downloaded and compiled your latest version (I think heh) but the
+resulting temperature is a bit off I think.
 
-1) code improvements
-2) support for critical temperature alarm
-3) shows the TjMax temperature
-4) hotplug CPU support
-5) new bugs? ;)
+The CPU temp as reported by the SuperIO chip is 23.5 degrees,
+you driver reports about 37000 (37 degrees? and which core? or is that
+supposed to be the m/b diode?)
+a little c program to read the coretemp from the CPU I have found
+elsewhere on the net reports ~51 degrees for both cores on the same idle
+system (the little program is attached, it's header says it's GPL).
 
-there is also a patch for userspace - should be applied on top of the SVN HEAD.
+If you need any testing done let me know. A hwmon sysfs interface to
+both(!) coretemps would be most welcome =)
 
-Please test it and let me know how the output of "sensors" command looks like. I
-believe this version is less dangerous to use than a first one, but of course I
-cannot guarantee that. All I know is that it compiles...
 
-Any testing is appreciated.
 
-Thanks,
+-- 
+Matthias Hentges 
 
-Rudolf
-
+My OS: Debian SID. Geek by Nature, Linux by Choice
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: coretemp.c
+Type: text/x-csrc
+Size: 2435 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060930/8e36379b/attachment.bin 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Dies ist ein digital signierter Nachrichtenteil
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060930/8e36379b/attachment-0001.bin 
