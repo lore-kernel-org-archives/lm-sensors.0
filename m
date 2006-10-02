@@ -1,58 +1,77 @@
-From: tuharsky@misbb.sk (Mgr. Peter Tuharsky)
-Date: Mon, 09 Oct 2006 13:31:20 +0000
-Subject: [lm-sensors] Wrong sensors order for MSI K8MM-V (MS7142),
-Message-Id: <452A4F28.2070600@misbb.sk>
+From: hans.edgington@xs4all.nl (Hans Edgington)
+Date: Mon, 02 Oct 2006 20:46:29 +0000
+Subject: [lm-sensors] Answer Epox - EPoX EP1308 sensor-chip
+Message-Id: <001401c6e663$dbcfd760$1f140a0a@EA002>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <452A4E94.5040307@misbb.sk>
-In-Reply-To: <452A4E94.5040307@misbb.sk>
+References: <450B14DB.2090505@sh.cvut.cz>
+In-Reply-To: <450B14DB.2090505@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
-Hallo
+I have been trying to find what some of the other fields mean this is what I
+have found out so far.
 
-I'm posting my experience with sensors in order to make DB more
-accurate, so that less experienced users could gain the sensors give
-good results automatically, without need of tackling the sensors.conf
+The f8 and f9 seem to contain the temperature at which the system shuts
+down.
+5d-5e are the fintek ID, discovered by Jean.
 
-This is the result from MSI K8MM-V (MS7142), chipset VIA K8M800-CE + VIA
-VT8237R.
+Tried to find the fields for fan control and found the following:
+When setting the fan control, was disabled the field 96 a3-a5 a7-a9 and
+ab-ae changed. A3 and ab contain the same value, which I set in the bios,
+and is the percentage of max rpm at which the cpu fan can operate. Seems
+that the fields a4 and a5 are the max rpm of the fan a4 is the MSB and a5
+LSB. The fields get updated when a higher rpm is detected.
+Ab is  fast fan speed percnatge of max, ac field is the half fan speed, ad
+and ae are the lowest fanspeed setting which I can't change but are 30% of
+max.
+A6, a7 and a8 are the temperatures at which the fanspeed will increase.
 
--Note the temp3 (probably should be CPU)
+Haven't found out why field 96 changed maybe to say that fan temps and
+speeds have been set?
 
--VCore +1.55V is probably suitable for Athlon64 2800+ and the 1.94 is
-really out of order
+Below are two isadumps which I used two discover the changes, first one
+before setting fan control second is after.
 
--12V is between the interval limits, however ALARM is signalised. Maybe
-MIN and MAX values should be switched!
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: ff 03 00 00 ff ff ff ff ff ff ff ff ff ff ff ff 
+10: 00 00 00 00 ff ff ff ff ff ff ff ff ff ff ff ff 
+20: d3 af ab 83 7a 8a 76 d6 c3 ff ff ff ff ff ff ff 
+30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+50: ff ff ff ff ff ff ff ff ff ff 03 04 10 19 34 ff 
+60: 00 00 00 00 ff ff 02 74 00 00 ff 06 40 24 ff 00 
+70: ff ff 2e ff 1f ff 00 ff ff ff ff ff ff ff ff ff 
+80: ff ff 65 64 64 55 55 46 ff ff ff ff ff ff a8 ff 
+90: 00 0c 0c 00 15 ff 57 ff 44 22 ff aa 55 55 ff 0a 
+a0: 01 d5 00 ff 02 23 3c 32 28 1e ff d9 b2 99 80 01 
+b0: 02 31 00 99 02 1b 3c 32 28 1e ff d9 b2 99 80 02 
+c0: 0f ff 00 80 03 ff 3c 32 28 1e ff d9 b2 99 80 03 
+d0: 0f ff 00 80 03 ff 3c 32 28 1e ff d9 b2 99 80 03 
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+f0: 00 00 00 00 00 00 37 ff 22 ff ff 02 ff ff ff ff
 
--CPU temp should be OK if bellow 70C
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: ff 03 00 00 ff ff ff ff ff ff ff ff ff ff ff ff 
+10: 00 00 00 00 ff ff ff ff ff ff ff ff ff ff ff ff 
+20: d3 af ab 84 7a 8a 76 d6 c7 ff ff ff ff ff ff ff 
+30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+50: ff ff ff ff ff ff ff ff ff ff 03 04 10 19 34 ff 
+60: 00 00 00 00 ff ff 02 74 00 00 ff 06 40 24 ff 00 
+70: ff ff 30 ff 1e ff 00 ff ff ff ff ff ff ff ff ff 
+80: ff ff 65 64 64 55 55 46 ff ff ff ff ff ff a8 ff 
+90: 00 0c 0c 00 15 ff 55 ff 44 22 ff aa 55 55 ff 0a 
+a0: 02 31 00 cc 01 bf 3c 28 14 0a ff cc 7f 4a 4a 01 
+b0: 02 1b 00 99 02 1b 3c 32 28 1e ff d9 b2 99 80 02 
+c0: 0f ff 00 80 03 ff 3c 32 28 1e ff d9 b2 99 80 03 
+d0: 0f ff 00 80 03 ff 3c 32 28 1e ff d9 b2 99 80 03 
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+f0: 00 00 00 00 00 00 37 ff 02 ff ff 02 ff ff ff ff
 
-Please, if You need more info, or am I on wrong address, let me know and
-I'll do what I can.
-
-
-
-w83627thf-isa-0290
-Adapter: ISA adapter
-VCore:     +1.55 V  (min =  +1.94 V, max =  +1.94 V)       ALARM
-+12V:     +11.80 V  (min = +10.82 V, max = +13.19 V)
-+3.3V:     +3.25 V  (min =  +3.14 V, max =  +3.47 V)
-+5V:       +4.93 V  (min =  +4.75 V, max =  +5.25 V)
--12V:     -11.78 V  (min = -10.80 V, max = -13.18 V)       ALARM
-V5SB:      +4.95 V  (min =  +4.76 V, max =  +5.24 V)
-VBat:      +3.50 V  (min =  +2.40 V, max =  +3.60 V)
-CPU Fan:     0 RPM  (min =   -1 RPM, div = 2)              ALARM
-fan3:        0 RPM  (min = 6750 RPM, div = 2)              ALARM
-M/B Temp:    +47?C  (high =    +1?C, hyst =    +0?C)   sensor thermistor   ALARM
-CPU Temp:  +52.5?C  (high =   +60?C, hyst =   +55?C)   sensor = thermistor
-temp3:     +68.5?C  (high =   +60?C, hyst =   +55?C)   sensor thermistor   ALARM
-vid:      -0.025 V  (VRM Version 2.4)
-alarms:
-beep_enable:
-           Sound alarm enabled
-
+Hans Edgington
 
 
