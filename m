@@ -1,31 +1,52 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Tue, 17 Oct 2006 21:31:58 +0000
-Subject: [lm-sensors] [PATCH 2/3] coretemp driver
-Message-Id: <45354BCE.1020704@assembler.cz>
+From: ebs@ebshome.net (Eugene Surovegin)
+Date: Wed, 04 Oct 2006 03:25:10 +0000
+Subject: [lm-sensors] [PATCH] PowerPC 4xx I2C driver - add
+Message-Id: <20061004032510.GA10354@gate.ebshome.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45329AC7.3040008@assembler.cz>
-In-Reply-To: <45329AC7.3040008@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello all,
+This small patch adds calls to the functions request_mem_region and
+release_mem_region.
 
-I fixed the missing header include and also this version of driver uses msr_read 
-  intead of do_rdmsr. So the new driver coretemp should now hopefully compile 
-without problems.
-
-This version along with the msr patch should now compile cleanly on the x68_64, 
-but I dont know if on i386. Anyone with 32bit gcc around?
-
-Thanks,
-Regards
-Rudolf
+Signed-off-by: Jean-Baptiste Maneyrol <jean-baptiste.maneyrol at teamlog.com>
+Signed-off-by: Eugene Surovegin <ebs at ebshome.net>
 -------------- next part --------------
-A non-text attachment was scrubbed...
-Name: add-coretemp-driver.patch
-Type: text/x-patch
-Size: 11854 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061017/759c6d1b/attachment-0001.bin 
+--- linux-2.6.18/drivers/i2c/busses/i2c-ibm_iic.c	2006-09-20 05:42:06.000000000 +0200
++++ linux-2.6.18_tlgate/drivers/i2c/busses/i2c-ibm_iic.c	2006-09-28 16:23:38.000000000 +0200
+@@ -680,10 +680,16 @@
+ 	dev->idx = ocp->def->index;
+ 	ocp_set_drvdata(ocp, dev);
+ 	
++	if (!request_mem_region(ocp->def->paddr, sizeof(struct iic_regs), "ibm_iic")) {
++		ret = -EBUSY;
++		goto fail2;
++	}
++	
+ 	if (!(dev->vaddr = ioremap(ocp->def->paddr, sizeof(struct iic_regs)))){
+ 		printk(KERN_CRIT "ibm-iic%d: failed to ioremap device registers\n",
+ 			dev->idx);
+-		ret = -ENXIO;
++		release_mem_region(ocp->def->paddr, sizeof(struct iic_regs));
++		ret = -ENOMEM;
+ 		goto fail2;
+ 	}
+ 	
+@@ -749,6 +755,7 @@
+ 	}	
+ 
+ 	iounmap(dev->vaddr);
++	release_mem_region(ocp->def->paddr, sizeof(struct iic_regs));
+ fail2:	
+ 	ocp_set_drvdata(ocp, NULL);
+ 	kfree(dev);	
+@@ -777,6 +784,7 @@
+ 		    free_irq(dev->irq, dev);
+ 		}
+ 		iounmap(dev->vaddr);
++		release_mem_region(ocp->def->paddr, sizeof(struct iic_regs));
+ 		kfree(dev);
+ 	}
+ }
