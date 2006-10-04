@@ -1,29 +1,34 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Tue, 17 Oct 2006 21:39:17 +0000
-Subject: [lm-sensors] lm_sensors trigger pc buzzer beeping continuously
-Message-Id: <45354D85.70808@assembler.cz>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 04 Oct 2006 13:00:35 +0000
+Subject: [lm-sensors] Analog Devices ADT7463
+Message-Id: <20061004150035.73afdf9e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5251aaf50609051620r683eb75fm95d738c444ff86da@mail.gmail.com>
-In-Reply-To: <5251aaf50609051620r683eb75fm95d738c444ff86da@mail.gmail.com>
+References: <451D19F1.5060304@enib.fr>
+In-Reply-To: <451D19F1.5060304@enib.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Prakash J K wrote:
-> Hi,
-> thanks for ur interest.i tried unloading it87 module and again it beeps 
-> for the current session.BIOS is up2date.
->                                 regards,
+Hi Firas,
 
-Ok and now please try following:
+> It is not listed in the Devices page and indeed, sensors-detect detects 
+> only my GPU chip. I have an ADT7463 on my Asus A6JM laptop. Are there 
+> any plans to add support for it ? Unfortunately, I'm not very skilled in 
+> programming so I won't be able to help much but I'd be OK for doing some 
+> testing.
 
-1) remove/delete/move the it87.ko
-2) powerdown the system, unplug from power
-3) boot linux
+The ADT7463 _is_ listed on our Devices page, it's supported by the lm85
+driver for a long time now.
 
-Does it make the beeps too? Or only when you load or later unload the driver?
+If sensors-detect didn't find it, it's most probably because Asus
+disabled the SMBus on this laptop as they often do. In order to
+reenable it, a PCI quick is needed. Please provide the output of "lspci
+-vn". Note that this PCI quirk is mutually exclusive with suspend
+support though, so if you want to be able to suspend and resume your
+laptop, you can't have hardware monitoring support (other than the ACPI
+temperature.)
 
-Thanks,
-Rudolf
+-- 
+Jean Delvare
 
