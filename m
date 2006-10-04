@@ -1,22 +1,25 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Sun, 22 Oct 2006 11:07:43 +0000
-Subject: [lm-sensors] Intel DG965WH (ICH8) question
-Message-Id: <453B50FF.2070004@assembler.cz>
+From: ben@whyte-systems.co.uk (Ben Whyte)
+Date: Wed, 04 Oct 2006 13:05:47 +0000
+Subject: [lm-sensors] Help with Temperature readings
+Message-Id: <4523B1AB.8060708@whyte-systems.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4537E8FD.6060202@jhmg.net>
-In-Reply-To: <4537E8FD.6060202@jhmg.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jim Garrison wrote:
-> Is this combination one of the ones that's not yet
-> available?  sensors-detect seems to work, but sensors
-> says it can't find anything.
+Hi
 
-Please check the ticket for reply ;) Unfortunately we cannot help. We do not
-have the documentation for the QST stuff.
+I have just upgraded to the latest version of lm-sensors on my pc and my 
+temperature readings are now wrong.
 
-Rudolf
+thor:~# sensors -v
+sensors version 2.10.1 with libsensors version 2.10.1
+thor:~#
+
+M/B Temp:   +128??C  (low  =  +127??C, high =   +85??C)   sensor = diode
+CPU Temp:   +128??C  (low  =  +127??C, high =   +85??C)   sensor = 
+thermistor
+Temp3:      +128??C  (low  =  +127??C, high =   +85??C)   sensor = 
+thermistor
 
