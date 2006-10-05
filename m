@@ -1,120 +1,132 @@
-From: craighagerman@gmail.com (Craig Hagerman)
-Date: Fri, 06 Oct 2006 16:30:15 +0000
-Subject: [lm-sensors] lm-sensors used to work... now doesn't
-Message-Id: <80d985600610060930v5e4d2b8fyeff7126415c4be3a@mail.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 05 Oct 2006 08:22:44 +0000
+Subject: [lm-sensors] [PATCH] hdaps: Cleanup the DMI detection data
+Message-Id: <20061005102244.3dd5b1ac.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Move the DMI detection from .text to .data. We really don't want
+that amount of data on the stack.
 
-I have an Asus A8V Deluxe motherboard with Cool 'n' Quiet. Both the
-cool and the quiet bit were working fine until recently. I had
-installed lm-sensors, run pwmconfig etc (as per
-http://ubuntuguide.org/wiki/Dapper). Sensors would report that the CPU
-fan was off most of the time and the machine was pretty quiet. Both of
-the (2) case fans were
-connected to the power supply and not effected or controled by
-pwmconfig.
+Also refactor the macros used to generate the detection data, the
+vendor becomes a parameter.
 
-Last weekend I bought a new (3 pin) case fan and attached it to the
-motherboard connector. A while after I restarted I noticed that the
-CPU fan was no longer spinning down. sensors reports that is is
-spinning slower than full speed (could be, I can't be sure) but it
-doesn't shut off. Sometimes sensors says that the CPU fan is off, but
-it never is.
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ drivers/hwmon/hdaps.c |   68 +++++++++++++++++++++----------------------------
+ 1 file changed, 29 insertions(+), 39 deletions(-)
 
-I reasoned that maybe the fancontrol or pwm or sensors.conf or
-something related had to be reconfigured so I set everything up from
-start again.
+--- linux-2.6.19-rc1.orig/drivers/hwmon/hdaps.c	2006-10-05 09:01:07.000000000 +0200
++++ linux-2.6.19-rc1/drivers/hwmon/hdaps.c	2006-10-05 09:07:59.000000000 +0200
+@@ -477,74 +477,64 @@
+ /* Module stuff */
+ 
+ /* hdaps_dmi_match - found a match.  return one, short-circuiting the hunt. */
+-static int hdaps_dmi_match(struct dmi_system_id *id)
++static int __init hdaps_dmi_match(struct dmi_system_id *id)
+ {
+ 	printk(KERN_INFO "hdaps: %s detected.\n", id->ident);
+ 	return 1;
+ }
+ 
+ /* hdaps_dmi_match_invert - found an inverted match. */
+-static int hdaps_dmi_match_invert(struct dmi_system_id *id)
++static int __init hdaps_dmi_match_invert(struct dmi_system_id *id)
+ {
+ 	hdaps_invert = 1;
+ 	printk(KERN_INFO "hdaps: inverting axis readings.\n");
+ 	return hdaps_dmi_match(id);
+ }
+ 
+-#define HDAPS_DMI_MATCH_NORMAL(model)	{		\
+-	.ident = "IBM " model,				\
++#define HDAPS_DMI_MATCH_NORMAL(vendor, model) {		\
++	.ident = vendor " " model,			\
+ 	.callback = hdaps_dmi_match,			\
+ 	.matches = {					\
+-		DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),	\
++		DMI_MATCH(DMI_BOARD_VENDOR, vendor),	\
+ 		DMI_MATCH(DMI_PRODUCT_VERSION, model)	\
+ 	}						\
+ }
+ 
+-#define HDAPS_DMI_MATCH_INVERT(model)	{		\
+-	.ident = "IBM " model,				\
++#define HDAPS_DMI_MATCH_INVERT(vendor, model) {		\
++	.ident = vendor " " model,			\
+ 	.callback = hdaps_dmi_match_invert,		\
+ 	.matches = {					\
+-		DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),	\
++		DMI_MATCH(DMI_BOARD_VENDOR, vendor),	\
+ 		DMI_MATCH(DMI_PRODUCT_VERSION, model)	\
+ 	}						\
+ }
+ 
+-#define HDAPS_DMI_MATCH_LENOVO(model)   {               \
+-        .ident = "Lenovo " model,                       \
+-        .callback = hdaps_dmi_match_invert,             \
+-        .matches = {                                    \
+-                DMI_MATCH(DMI_BOARD_VENDOR, "LENOVO"),  \
+-                DMI_MATCH(DMI_PRODUCT_VERSION, model)   \
+-        }                                               \
+-}
++/* Note that HDAPS_DMI_MATCH_NORMAL("ThinkPad T42") would match
++  "ThinkPad T42p", so the order of the entries matters */
++static struct dmi_system_id __initdata hdaps_whitelist[] = {
++	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad H"),
++	HDAPS_DMI_MATCH_INVERT("IBM", "ThinkPad R50p"),
++	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad R50"),
++	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad R51"),
++	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad R52"),
++	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad H"),	   /* R52 (1846AQG) */
++	HDAPS_DMI_MATCH_INVERT("IBM", "ThinkPad T41p"),
++	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad T41"),
++	HDAPS_DMI_MATCH_INVERT("IBM", "ThinkPad T42p"),
++	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad T42"),
++	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad T43"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad T60"),
++	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad X40"),
++	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad X41"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad X60"),
++	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad Z60m"),
++	{ .ident = NULL }
++};
+ 
+ static int __init hdaps_init(void)
+ {
+ 	int ret;
+ 
+-	/* Note that HDAPS_DMI_MATCH_NORMAL("ThinkPad T42") would match
+-	  "ThinkPad T42p", so the order of the entries matters */
+-	struct dmi_system_id hdaps_whitelist[] = {
+-		HDAPS_DMI_MATCH_NORMAL("ThinkPad H"),
+-		HDAPS_DMI_MATCH_INVERT("ThinkPad R50p"),
+-		HDAPS_DMI_MATCH_NORMAL("ThinkPad R50"),
+-		HDAPS_DMI_MATCH_NORMAL("ThinkPad R51"),
+-		HDAPS_DMI_MATCH_NORMAL("ThinkPad R52"),
+-		HDAPS_DMI_MATCH_NORMAL("ThinkPad H"),	 /* R52 (1846AQG) */
+-		HDAPS_DMI_MATCH_INVERT("ThinkPad T41p"),
+-		HDAPS_DMI_MATCH_NORMAL("ThinkPad T41"),
+-		HDAPS_DMI_MATCH_INVERT("ThinkPad T42p"),
+-		HDAPS_DMI_MATCH_NORMAL("ThinkPad T42"),
+-		HDAPS_DMI_MATCH_NORMAL("ThinkPad T43"),
+-		HDAPS_DMI_MATCH_LENOVO("ThinkPad T60p"),
+-		HDAPS_DMI_MATCH_LENOVO("ThinkPad T60"),
+-		HDAPS_DMI_MATCH_NORMAL("ThinkPad X40"),
+-		HDAPS_DMI_MATCH_NORMAL("ThinkPad X41"),
+-		HDAPS_DMI_MATCH_LENOVO("ThinkPad X60"),
+-		HDAPS_DMI_MATCH_NORMAL("ThinkPad Z60m"),
+-		{ .ident = NULL }
+-	};
+-
+ 	if (!dmi_check_system(hdaps_whitelist)) {
+ 		printk(KERN_WARNING "hdaps: supported laptop not found!\n");
+ 		ret = -ENODEV;
 
-The problem is that pwmconfig no longer sets things up. It doesn't
-spin down the CPU fan (nor the case fan) and doesn't seem to see it. I
-shut down, disconnected the new fan from the motherboard, put
-everythign back as it was and restarted. But it STILL can't see
-or spin down the CPU fan. I am getting very frustrated. I have shutdown and
-restarted multiple times, and tried adjusting different settings (div
-number on the fan for example) and nothing has any effect. Any advice?
 
-Craig
-
-------------------------------------------------------------------------
-% sensors
-
-w83627thf-isa-0290
-Adapter: ISA adapter
-VCore:     +1.12 V  (min =  +0.29 V, max =  +0.32 V)       ALARM
-+12V:     +11.43 V  (min = +10.82 V, max = +13.19 V)
-+3.3V:     +3.25 V  (min =  +3.14 V, max =  +3.47 V)
-+5V:       +4.99 V  (min =  +4.75 V, max =  +5.25 V)
--12V:      +6.06 V  (min = -10.80 V, max = -13.18 V)       ALARM
-V5SB:      +4.97 V  (min =  +4.76 V, max =  +5.24 V)
-VBat:      +0.02 V  (min =  +2.40 V, max =  +3.60 V)       ALARM
-fan1:        0 RPM  (min = 1350000 RPM, div = 1)              ALARM
-CPU Fan:  3835 RPM  (min =   -1 RPM, div = 4)              ALARM
-fan3:        0 RPM  (min = 84375 RPM, div = 1)              ALARM
-M/B Temp:    +35?C  (high =    +2?C, hyst =    +8?C)   sensor thermistor   ALARM
-CPU Temp:  +41.5?C  (high =   +80?C, hyst =   +75?C)   sensor thermistor
-temp3:     +15.5?C  (high =   +80?C, hyst =   +75?C)   sensor thermistor
-vid:      +0.300 V  (VRM Version 8.2)
-alarms:
-beep_enable:
-         Sound alarm enabled
-
-------------------------------------------------------------------------
-% pwmconfig            (edited)
-
-Found the following PWM controls:
-  9191-0290/pwm1
-  9191-0290/pwm2
-  9191-0290/pwm3
-
-Found the following fan sensors:
-  9191-0290/fan1_input     current speed: 0 ... skipping!
-  9191-0290/fan2_input     current speed: 3879 RPM
-  9191-0290/fan3_input     current speed: 0 ... skipping!
-
-...
-Testing pwm control 9191-0290/pwm2 ...
- 9191-0290/fan2_input ... speed was 3879 now 3835
-   no correlation
-
-No correlations were detected.
-There is either no fan connected to the output of 9191-0290/pwm2,
-or the connected fan has no rpm-signal connected to one of
-the tested fan sensors.
-
-------------------------------------------------------------------------
-Summary of sensors-detect:
-
-Driver `eeprom' (should be inserted):
- Detects correctly:
- * Bus `NVIDIA I2C Device'
-   Busdriver `UNKNOWN', I2C address 0x50 (and 0x51 0x52 0x53 0x54
-0x55 0x56 0x57)
-   Chip `DDC monitor' (confidence: 8)
-
-Driver `not-a-sensor' (should be inserted):
- Detects correctly:
- * Bus `SMBus Via Pro adapter at 0400'
-   Busdriver `i2c-viapro', I2C address 0x2f
-   Chip `Winbond W83791SD' (confidence: 3)
-
-Driver `smbus-arp' (should be inserted):
- Detects correctly:
- * Bus `SMBus Via Pro adapter at 0400'
-   Busdriver `i2c-viapro', I2C address 0x61
-   Chip `SMBus 2.0 ARP-Capable Device' (confidence: 1)
-
-Driver `w83627hf' (should be inserted):
- Detects correctly:
- * ISA bus address 0x0290 (Busdriver `i2c-isa')
-   Chip `Winbond W83627THF Super IO Sensors' (confidence: 9)
-
-------------------------------------------------------------------------
-
-
-nb. the modules ARE all loaded.
+-- 
+Jean Delvare
 
