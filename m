@@ -1,63 +1,120 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 18 Oct 2006 20:09:34 +0000
-Subject: [lm-sensors] [PATCH 3/8] hwmon: Fix documentation typos
-Message-Id: <11612021851009-git-send-email-greg@kroah.com>
+From: craighagerman@gmail.com (Craig Hagerman)
+Date: Fri, 06 Oct 2006 16:30:15 +0000
+Subject: [lm-sensors] lm-sensors used to work... now doesn't
+Message-Id: <80d985600610060930v5e4d2b8fyeff7126415c4be3a@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali at linux-fr.org>
+Hi,
 
-Fix typos in hardware monitoring documentation.
+I have an Asus A8V Deluxe motherboard with Cool 'n' Quiet. Both the
+cool and the quiet bit were working fine until recently. I had
+installed lm-sensors, run pwmconfig etc (as per
+http://ubuntuguide.org/wiki/Dapper). Sensors would report that the CPU
+fan was off most of the time and the machine was pretty quiet. Both of
+the (2) case fans were
+connected to the power supply and not effected or controled by
+pwmconfig.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
----
- Documentation/hwmon/f71805f   |    2 +-
- Documentation/hwmon/w83627ehf |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Last weekend I bought a new (3 pin) case fan and attached it to the
+motherboard connector. A while after I restarted I noticed that the
+CPU fan was no longer spinning down. sensors reports that is is
+spinning slower than full speed (could be, I can't be sure) but it
+doesn't shut off. Sometimes sensors says that the CPU fan is off, but
+it never is.
 
-diff --git a/Documentation/hwmon/f71805f b/Documentation/hwmon/f71805f
-index 28c5b7d..2ca69df 100644
---- a/Documentation/hwmon/f71805f
-+++ b/Documentation/hwmon/f71805f
-@@ -17,7 +17,7 @@ Thanks to Kris Chen from Fintek for answ
- providing additional documentation.
- 
- Thanks to Chris Lin from Jetway for providing wiring schematics and
--anwsering technical questions.
-+answering technical questions.
- 
- 
- Description
-diff --git a/Documentation/hwmon/w83627ehf b/Documentation/hwmon/w83627ehf
-index fae3b78..caa610a 100644
---- a/Documentation/hwmon/w83627ehf
-+++ b/Documentation/hwmon/w83627ehf
-@@ -26,7 +26,7 @@ fan control mode).
- Temperatures are measured in degrees Celsius and measurement resolution is 1
- degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
- the temperature gets higher than high limit; it stays on until the temperature
--falls below the Hysteresis value.
-+falls below the hysteresis value.
- 
- Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
- triggered if the rotation speed has dropped below a programmable limit. Fan
-@@ -67,9 +67,9 @@ Thermal Cruise mode
- 
- If the temperature is in the range defined by:
- 
--pwm[1-4]_target    - set target temperature, unit millidegree Celcius
-+pwm[1-4]_target    - set target temperature, unit millidegree Celsius
- 		     (range 0 - 127000)
--pwm[1-4]_tolerance - tolerance, unit millidegree Celcius (range 0 - 15000)
-+pwm[1-4]_tolerance - tolerance, unit millidegree Celsius (range 0 - 15000)
- 
- there are no changes to fan speed. Once the temperature leaves the interval,
- fan speed increases (temp is higher) or decreases if lower than desired.
--- 
-1.4.2.4
+I reasoned that maybe the fancontrol or pwm or sensors.conf or
+something related had to be reconfigured so I set everything up from
+start again.
 
+The problem is that pwmconfig no longer sets things up. It doesn't
+spin down the CPU fan (nor the case fan) and doesn't seem to see it. I
+shut down, disconnected the new fan from the motherboard, put
+everythign back as it was and restarted. But it STILL can't see
+or spin down the CPU fan. I am getting very frustrated. I have shutdown and
+restarted multiple times, and tried adjusting different settings (div
+number on the fan for example) and nothing has any effect. Any advice?
+
+Craig
+
+------------------------------------------------------------------------
+% sensors
+
+w83627thf-isa-0290
+Adapter: ISA adapter
+VCore:     +1.12 V  (min =  +0.29 V, max =  +0.32 V)       ALARM
++12V:     +11.43 V  (min = +10.82 V, max = +13.19 V)
++3.3V:     +3.25 V  (min =  +3.14 V, max =  +3.47 V)
++5V:       +4.99 V  (min =  +4.75 V, max =  +5.25 V)
+-12V:      +6.06 V  (min = -10.80 V, max = -13.18 V)       ALARM
+V5SB:      +4.97 V  (min =  +4.76 V, max =  +5.24 V)
+VBat:      +0.02 V  (min =  +2.40 V, max =  +3.60 V)       ALARM
+fan1:        0 RPM  (min = 1350000 RPM, div = 1)              ALARM
+CPU Fan:  3835 RPM  (min =   -1 RPM, div = 4)              ALARM
+fan3:        0 RPM  (min = 84375 RPM, div = 1)              ALARM
+M/B Temp:    +35?C  (high =    +2?C, hyst =    +8?C)   sensor thermistor   ALARM
+CPU Temp:  +41.5?C  (high =   +80?C, hyst =   +75?C)   sensor thermistor
+temp3:     +15.5?C  (high =   +80?C, hyst =   +75?C)   sensor thermistor
+vid:      +0.300 V  (VRM Version 8.2)
+alarms:
+beep_enable:
+         Sound alarm enabled
+
+------------------------------------------------------------------------
+% pwmconfig            (edited)
+
+Found the following PWM controls:
+  9191-0290/pwm1
+  9191-0290/pwm2
+  9191-0290/pwm3
+
+Found the following fan sensors:
+  9191-0290/fan1_input     current speed: 0 ... skipping!
+  9191-0290/fan2_input     current speed: 3879 RPM
+  9191-0290/fan3_input     current speed: 0 ... skipping!
+
+...
+Testing pwm control 9191-0290/pwm2 ...
+ 9191-0290/fan2_input ... speed was 3879 now 3835
+   no correlation
+
+No correlations were detected.
+There is either no fan connected to the output of 9191-0290/pwm2,
+or the connected fan has no rpm-signal connected to one of
+the tested fan sensors.
+
+------------------------------------------------------------------------
+Summary of sensors-detect:
+
+Driver `eeprom' (should be inserted):
+ Detects correctly:
+ * Bus `NVIDIA I2C Device'
+   Busdriver `UNKNOWN', I2C address 0x50 (and 0x51 0x52 0x53 0x54
+0x55 0x56 0x57)
+   Chip `DDC monitor' (confidence: 8)
+
+Driver `not-a-sensor' (should be inserted):
+ Detects correctly:
+ * Bus `SMBus Via Pro adapter at 0400'
+   Busdriver `i2c-viapro', I2C address 0x2f
+   Chip `Winbond W83791SD' (confidence: 3)
+
+Driver `smbus-arp' (should be inserted):
+ Detects correctly:
+ * Bus `SMBus Via Pro adapter at 0400'
+   Busdriver `i2c-viapro', I2C address 0x61
+   Chip `SMBus 2.0 ARP-Capable Device' (confidence: 1)
+
+Driver `w83627hf' (should be inserted):
+ Detects correctly:
+ * ISA bus address 0x0290 (Busdriver `i2c-isa')
+   Chip `Winbond W83627THF Super IO Sensors' (confidence: 9)
+
+------------------------------------------------------------------------
+
+
+nb. the modules ARE all loaded.
 
