@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 06 Oct 2006 12:01:59 +0000
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Sat, 07 Oct 2006 19:35:38 +0000
 Subject: [lm-sensors] [PATCH] k8temp documentation update
-Message-Id: <20061006140159.f65291fe.khali@linux-fr.org>
+Message-Id: <4528018A.5050304@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4524E7C9.3070705@assembler.cz>
 In-Reply-To: <4524E7C9.3070705@assembler.cz>
@@ -10,19 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > Following patch updates the documentation for the k8temp driver.
-> 
-> Missing Signed-off-by.
-> 
-> > I think it should go to 2.6.19, because it contains important note - the driver 
-> > is usable with lm-sensors 2.10.1 and up.
-> 
-> Agreed.
+Hello,
 
-Oh, BTW, could you please add an entry into MAINTAINERS to list you as
-the maintainer for this driver?
+Following patch updates the documentation for the k8temp driver.
+
+Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
+
+I updated the patch and added the missing signature.
 
 Thanks,
--- 
-Jean Delvare
-
+Rudolf
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: docupdate2.patch
+Type: text/x-patch
+Size: 2602 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061007/7f6cc132/attachment.bin 
