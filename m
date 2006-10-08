@@ -1,29 +1,36 @@
-From: james.oden@gmail.com (James Olin Oden)
-Date: Mon, 23 Oct 2006 14:07:52 +0000
-Subject: [lm-sensors] lm93 porting questions
-Message-Id: <ac921f990610230707u5c7b41aeqff0beb8b10ae8c99@mail.gmail.com>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Sun, 08 Oct 2006 16:30:01 +0000
+Subject: [lm-sensors] [patch] hwmon-sysfs.h: add _RO and _RW versions of
+Message-Id: <45292789.5000003@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20061023115852.52689.qmail@web51106.mail.yahoo.com>
-In-Reply-To: <20061023115852.52689.qmail@web51106.mail.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 10/23/06, James Olin Oden <james.oden at gmail.com> wrote:
-> I do believe we already have a patch where I work.  I'll send it to
-> the list in a moment.  In need to hunt it down.  If we don't have one
-> I'll let you know, but I'm pretty sure we do...james
->
-OK, Its not in our source control (we were on the RHEL4 kernel for a
-short period of time).  The guy you want to talk to is Jeff Johnson,
-whose email address is:
+hi Jean,
 
-   "Jeff Johnson" <n3npq.jbj at gmail.com>
+1st attachment adds _RO and _RW versions to the following macros:
+SENSOR_ATTR, SENSOR_DEVICE_ATTR,
+SENSOR_ATTR_2, SENSOR_DEVICE_ATTR_2,
 
-Who I've forwarded a copy of this email to.   He did do a port, which
-may not be perfect, but is likely to be a good place from which to
-start.
+with these defined, the script (2nd attachment) will convert ~800 uses
+(in 17 files) to the correct _RO/_RW version, and remove the linewraps.
+The results compile cleanly (all modules in hwmon).
 
-Cheers...james
-
+Is this something you'd consider applying ? If so, when ?
+Theres obvious timing issues - since this patch touches many drivers, 
+which may have
+work in-queue (yours or other hackers').  Its also why I sent the script 
+- the patch
+it yields is 94KB, so the script is far more inspectable, and with the 
+script, you
+can chose the optimal time(s) w/o synchronization hassles.
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: diff.ro-rw.20061008.094436
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061008/b684751b/attachment.pl 
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: ro-rw-change
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061008/b684751b/attachment-0001.pl 
