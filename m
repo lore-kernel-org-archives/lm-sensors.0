@@ -1,71 +1,65 @@
-From: barrow_dj@yahoo.com (D.J. Barrow)
-Date: Fri, 27 Oct 2006 11:26:59 +0000
-Subject: [lm-sensors] getting lmsensors working with snmp
-Message-Id: <20061027112659.63479.qmail@web51107.mail.yahoo.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 08 Oct 2006 20:02:09 +0000
+Subject: [lm-sensors] [PATCH 6/6] w83627ehf: Fix the detection of fan5
+Message-Id: <20061008220209.b58acd71.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-There is no documentation in the source code
-about getting lm_sensors working with SNMP
-or anywhere on the lmsensors website.
-why is it a black art & not documented anywhere?
-This is a serious ommission, surely SNMP monitoring
-is important to your project.
+From: Rudolf Marek <r.marek at assembler.cz>
+Content-Disposition: inline; filename=hwmon-w83627ehf-fix-fan5-detection.patch
 
+Fix the detection of fan5 and preserve the bit between the
+register writes, because the bit is write only.
 
-The first link I can find which gives any real info on
-SNMP with lmsensors is
+Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ drivers/hwmon/w83627ehf.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-http://people.redhat.com/harald/snmp-lmsensors/HOWTO-SENSORS-SNMPD.html
+--- linux-2.6.19-rc1.orig/drivers/hwmon/w83627ehf.c	2006-10-08 12:29:27.000000000 +0200
++++ linux-2.6.19-rc1/drivers/hwmon/w83627ehf.c	2006-10-08 12:39:24.000000000 +0200
+@@ -354,6 +354,8 @@
+ 	case 0:
+ 		reg = (w83627ehf_read_value(client, W83627EHF_REG_FANDIV1) & 0xcf)
+ 		    | ((data->fan_div[0] & 0x03) << 4);
++		/* fan5 input control bit is write only, compute the value */
++		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
+ 		w83627ehf_write_value(client, W83627EHF_REG_FANDIV1, reg);
+ 		reg = (w83627ehf_read_value(client, W83627EHF_REG_VBAT) & 0xdf)
+ 		    | ((data->fan_div[0] & 0x04) << 3);
+@@ -362,6 +364,8 @@
+ 	case 1:
+ 		reg = (w83627ehf_read_value(client, W83627EHF_REG_FANDIV1) & 0x3f)
+ 		    | ((data->fan_div[1] & 0x03) << 6);
++		/* fan5 input control bit is write only, compute the value */
++		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
+ 		w83627ehf_write_value(client, W83627EHF_REG_FANDIV1, reg);
+ 		reg = (w83627ehf_read_value(client, W83627EHF_REG_VBAT) & 0xbf)
+ 		    | ((data->fan_div[1] & 0x04) << 4);
+@@ -1216,13 +1220,16 @@
+ 	superio_exit();
+ 
+ 	/* It looks like fan4 and fan5 pins can be alternatively used
+-	   as fan on/off switches */
++	   as fan on/off switches, but fan5 control is write only :/
++	   We assume that if the serial interface is disabled, designers
++	   connected fan5 as input unless they are emitting log 1, which
++	   is not the default. */
+ 
+ 	data->has_fan = 0x07; /* fan1, fan2 and fan3 */
+ 	i = w83627ehf_read_value(client, W83627EHF_REG_FANDIV1);
+ 	if ((i & (1 << 2)) && (!fan4pin))
+ 		data->has_fan |= (1 << 3);
+-	if ((i & (1 << 0)) && (!fan5pin))
++	if (!(i & (1 << 1)) && (!fan5pin))
+ 		data->has_fan |= (1 << 4);
+ 
+ 	/* Register sysfs hooks */
 
-& this document is dated from 2000.
-
-The following more recent link has some info on snmp with lmsensors
-with pretty gui pictures included
-http://forums.cacti.net/viewtopic.php?t590
-But there is no info whatsoever on the lmsensors website
-about getting snmp going.
-
-A colleague at work did the following,
-I believe his instructions are incomplete
-as I can't see how the snmp agent is
-registered at the .1.3.6.1.4.1.2021.13.16 OID address
->
-> /etc/snmp/snmpd.conf
->
->a line like
->
-> # lmSensors
-> view	systemview    included   .1.3.6.1.4.1.2021.13.16
->
->and restart snmpd to allow you access to this oid from the localhost.
-> 
-> $ snmpwalk -v 2c -c public -m ALL localhost lmSensors
->
->should then start saying something.  My example above had udp:16000 instead of
->localhost as I had started a 2nd sndmp server on another port to test with.
-
-
-Any help would be greatly appreciated
-& whoever does your documentation should document this stuff.
-
-Thanks,
-D.J. Barrow
-
-
-D.J. Barrow Linux kernel developer
-email: dj_barrow at ariasoft.ie
-email(work) denis.barrow at thalescomputers.fr
-Work: +33-498-163412
-Home: +353-22-47196.
-Mobile (IRL) +353-(0)86 1715438
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+-- 
+Jean Delvare
 
