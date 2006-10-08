@@ -1,56 +1,57 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 08 Oct 2006 19:57:41 +0000
-Subject: [lm-sensors] [PATCH 2/6] adm9240: Update Grant Coady's email address
-Message-Id: <20061008215741.e226180d.khali@linux-fr.org>
+Date: Sun, 08 Oct 2006 19:59:54 +0000
+Subject: [lm-sensors] [PATCH 3/6] hwmon: Fix documentation typos
+Message-Id: <20061008215954.3a00c185.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Grant Coady <gcoady.lk at gmail.com>
-Content-Disposition: inline; filename=hwmon-update-Grant-Coady-email-address.patch
+Content-Disposition: inline; filename=hwmon-documentation-typos.patch
 
-Replace a bouncing email that I cannot recover from Mr Google.
+Fix typos in hardware monitoring documentation.
 
-Signed-off-by: Grant Coady <gcoady.lk at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- Documentation/hwmon/adm9240 |    2 +-
- drivers/hwmon/adm9240.c     |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ Documentation/hwmon/f71805f   |    2 +-
+ Documentation/hwmon/w83627ehf |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- linux-2.6.19-rc1.orig/Documentation/hwmon/adm9240	2006-10-08 12:48:09.000000000 +0200
-+++ linux-2.6.19-rc1/Documentation/hwmon/adm9240	2006-10-08 14:51:50.000000000 +0200
-@@ -24,7 +24,7 @@
-     Frodo Looijaard <frodol at dds.nl>,
-     Philip Edelbrock <phil at netroedge.com>,
-     Michiel Rook <michiel at grendelproject.nl>,
--    Grant Coady <gcoady at gmail.com> with guidance
-+    Grant Coady <gcoady.lk at gmail.com> with guidance
-         from Jean Delvare <khali at linux-fr.org>
+--- linux-2.6.19-rc1.orig/Documentation/hwmon/w83627ehf	2006-10-08 12:48:09.000000000 +0200
++++ linux-2.6.19-rc1/Documentation/hwmon/w83627ehf	2006-10-08 15:04:02.000000000 +0200
+@@ -26,7 +26,7 @@
+ Temperatures are measured in degrees Celsius and measurement resolution is 1
+ degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
+ the temperature gets higher than high limit; it stays on until the temperature
+-falls below the Hysteresis value.
++falls below the hysteresis value.
  
- Interface
---- linux-2.6.19-rc1.orig/drivers/hwmon/adm9240.c	2006-10-08 12:48:09.000000000 +0200
-+++ linux-2.6.19-rc1/drivers/hwmon/adm9240.c	2006-10-08 14:51:50.000000000 +0200
-@@ -5,7 +5,7 @@
-  * Copyright (C) 1999	Frodo Looijaard <frodol at dds.nl>
-  *			Philip Edelbrock <phil at netroedge.com>
-  * Copyright (C) 2003	Michiel Rook <michiel at grendelproject.nl>
-- * Copyright (C) 2005	Grant Coady <gcoady at gmail.com> with valuable
-+ * Copyright (C) 2005	Grant Coady <gcoady.lk at gmail.com> with valuable
-  * 				guidance from Jean Delvare
-  *
-  * Driver supports	Analog Devices		ADM9240
-@@ -774,7 +774,7 @@
- }
+ Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
+ triggered if the rotation speed has dropped below a programmable limit. Fan
+@@ -67,9 +67,9 @@
  
- MODULE_AUTHOR("Michiel Rook <michiel at grendelproject.nl>, "
--		"Grant Coady <gcoady at gmail.com> and others");
-+		"Grant Coady <gcoady.lk at gmail.com> and others");
- MODULE_DESCRIPTION("ADM9240/DS1780/LM81 driver");
- MODULE_LICENSE("GPL");
+ If the temperature is in the range defined by:
  
+-pwm[1-4]_target    - set target temperature, unit millidegree Celcius
++pwm[1-4]_target    - set target temperature, unit millidegree Celsius
+ 		     (range 0 - 127000)
+-pwm[1-4]_tolerance - tolerance, unit millidegree Celcius (range 0 - 15000)
++pwm[1-4]_tolerance - tolerance, unit millidegree Celsius (range 0 - 15000)
+ 
+ there are no changes to fan speed. Once the temperature leaves the interval,
+ fan speed increases (temp is higher) or decreases if lower than desired.
+--- linux-2.6.19-rc1.orig/Documentation/hwmon/f71805f	2006-10-08 12:48:09.000000000 +0200
++++ linux-2.6.19-rc1/Documentation/hwmon/f71805f	2006-10-08 14:59:21.000000000 +0200
+@@ -17,7 +17,7 @@
+ providing additional documentation.
+ 
+ Thanks to Chris Lin from Jetway for providing wiring schematics and
+-anwsering technical questions.
++answering technical questions.
+ 
+ 
+ Description
 
 -- 
 Jean Delvare
