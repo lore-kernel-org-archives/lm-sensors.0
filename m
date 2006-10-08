@@ -1,7 +1,7 @@
 From: kress@hal.saar.de (Michael Kress)
-Date: Sun, 08 Oct 2006 10:25:08 +0000
+Date: Sun, 08 Oct 2006 10:59:42 +0000
 Subject: [lm-sensors] Supermicro X6DH8-G2+ / sensors not working
-Message-Id: <4528D204.6090601@hal.saar.de>
+Message-Id: <4528DA1E.4070206@hal.saar.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <451FF905.60001@hal.saar.de>
 In-Reply-To: <451FF905.60001@hal.saar.de>
@@ -10,106 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare schrieb:
->> [root at matrix PC87427]# modprobe -v pc87427
->> insmod /lib/modules/2.6.16-xen/kernel/drivers/hwmon/pc87427.ko
->> FATAL: Error inserting pc87427
->> (/lib/modules/2.6.16-xen/kernel/drivers/hwmon/pc87427.ko): Invalid
->> module format
->> Have you got an idea what's going wrong?
->>
->>     
->
-> I'm having similar problem with another tester for another driver
-> off-list. It's usually a matter of adding some flag at compilation
-> time. Any hint in the logs (dmesg or /var/log/messages)? Is this a
-> 64-bit system?
+Hi,
+
+Jean Delvare wrote:
+> BTW, lm-sensors SVN now has userspace support for that new driver too,
+> so you can pick it and install it:
+> http://dl.lm-sensors.org/lm-sensors/snapshots/lm-sensors-r4197-20061007.tar.bz2
 >   
-Salut Jean,
+Is there a working, more current spec file available around for building
+the package as an rpm? There's old ones included in the snapshot
+http://dl.lm-sensors.org/lm-sensors/snapshots/lm-sensors-r4197-20061007.tar.bz2
+(versions 2.5.0 and 2.8.3)
+(My distribution is a centos-4.4)
+I tried the one from the centos-4.4 src rpm, but evidently this didn't
+work because of all the patches bundled with it.
 
-thanks a lot for the hint, I didn't see the syslog - it seems to work
-well now:
-Oct  8 11:59:50 matrix kernel: overflow in relocation type 10 val
-ffffffff881b6ec8
-Oct  8 11:59:50 matrix kernel: `pc87427' likely not compiled with
--mcmodel=kernel
+The sensors-detect recognizes the chip:
+Found `Nat. Semi. PC87427 Super IO Fan Sensors'             Success!
+    (address 0x840, driver `pc87427')
+Found `Nat. Semi. PC87427 Super IO Health Sensors'          Success!
+    (address 0x880, driver `to-be-written')
+Driver `pc87427' (should be inserted):
+  Detects correctly:
+  * ISA bus address 0x0840 (Busdriver `i2c-isa')
+    Chip `Nat. Semi. PC87427 Super IO Fan Sensors' (confidence: 9)
 
-so I added -mcmodel=kernel to the Makefile's CFLAGS, which made the
-modprobe working.
+Driver `to-be-written' (should be inserted):
+  Detects correctly:
+  * ISA bus address 0x0880 (Busdriver `i2c-isa')
+    Chip `Nat. Semi. PC87427 Super IO Health Sensors' (confidence: 9)
 
-for i in /sys/class/hwmon/hwmon0/device/fan[1-8]_*; do echo $i; cat $i; done
-[root at matrix PC87427]# /sys/class/hwmon/hwmon0/device/fan1_alarm
-0
-/sys/class/hwmon/hwmon0/device/fan1_fault
-0
-/sys/class/hwmon/hwmon0/device/fan1_input
-3668
-/sys/class/hwmon/hwmon0/device/fan1_min
-712
-/sys/class/hwmon/hwmon0/device/fan2_alarm
-0
-/sys/class/hwmon/hwmon0/device/fan2_fault
-0
-/sys/class/hwmon/hwmon0/device/fan2_input
-3383
-/sys/class/hwmon/hwmon0/device/fan2_min
-712
-/sys/class/hwmon/hwmon0/device/fan3_alarm
-0
-/sys/class/hwmon/hwmon0/device/fan3_fault
-0
-/sys/class/hwmon/hwmon0/device/fan3_input
-3391
-/sys/class/hwmon/hwmon0/device/fan3_min
-712
-/sys/class/hwmon/hwmon0/device/fan4_alarm
-0
-/sys/class/hwmon/hwmon0/device/fan4_fault
-0
-/sys/class/hwmon/hwmon0/device/fan4_input
-3366
-/sys/class/hwmon/hwmon0/device/fan4_min
-712
-/sys/class/hwmon/hwmon0/device/fan5_alarm
-0
-/sys/class/hwmon/hwmon0/device/fan5_fault
-1
-/sys/class/hwmon/hwmon0/device/fan5_input
-0
-/sys/class/hwmon/hwmon0/device/fan5_min
-712
-/sys/class/hwmon/hwmon0/device/fan6_alarm
-0
-/sys/class/hwmon/hwmon0/device/fan6_fault
-0
-/sys/class/hwmon/hwmon0/device/fan6_input
-2848
-/sys/class/hwmon/hwmon0/device/fan6_min
-712
-/sys/class/hwmon/hwmon0/device/fan7_alarm
-0
-/sys/class/hwmon/hwmon0/device/fan7_fault
-1
-/sys/class/hwmon/hwmon0/device/fan7_input
-0
-/sys/class/hwmon/hwmon0/device/fan7_min
-712
-/sys/class/hwmon/hwmon0/device/fan8_alarm
-0
-/sys/class/hwmon/hwmon0/device/fan8_fault
-0
-/sys/class/hwmon/hwmon0/device/fan8_input
-2800
-/sys/class/hwmon/hwmon0/device/fan8_min
-712
+[root at matrix lm-sensors-r4197-20061007/prog/sensors]# ./sensors
+pc87427-isa-0840
+Adapter: ISA adapter
 
-(there's no fans 5 and 7 installed as there's no more room in the chassis).
-
-Perfect - thanks a lot again!
-Although this is already sufficient to monitor I'll try the userspace
-lm-sensors part and I'll give you feedback on that.
-
-Kind Regards - Michael
+Regards - Michael
 
 -- 
 Michael Kress, kress at hal.saar.de
