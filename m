@@ -1,7 +1,7 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Sat, 07 Oct 2006 19:35:38 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 08 Oct 2006 08:31:43 +0000
 Subject: [lm-sensors] [PATCH] k8temp documentation update
-Message-Id: <4528018A.5050304@assembler.cz>
+Message-Id: <20061008103143.3f72dc06.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4524E7C9.3070705@assembler.cz>
 In-Reply-To: <4524E7C9.3070705@assembler.cz>
@@ -10,20 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+> Following patch updates the documentation for the k8temp driver.
+> 
+> Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
+> 
+> I updated the patch and added the missing signature.
 
-Following patch updates the documentation for the k8temp driver.
+Thanks, applied. I will send it to Greg for 2.6.19 later today,
+together with 5 other hwmon patches.
 
-Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
+-- 
+Jean Delvare
 
-I updated the patch and added the missing signature.
-
-Thanks,
-Rudolf
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: docupdate2.patch
-Type: text/x-patch
-Size: 2602 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061007/7f6cc132/attachment.bin 
