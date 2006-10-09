@@ -1,101 +1,354 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Thu, 19 Oct 2006 11:52:49 +0000
-Subject: [lm-sensors] HP Pavilion ZV6000 & Abituguru?
-Message-Id: <45376711.1030108@hhs.nl>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Mon, 09 Oct 2006 01:27:08 +0000
+Subject: [lm-sensors] [patch 1.6.19-rc1+] hwmon/pc87360: separate {min, max,
+Message-Id: <4529A56C.1030507@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200610191334.47848.Samuele.Kaplun@cern.ch>
-In-Reply-To: <200610191334.47848.Samuele.Kaplun@cern.ch>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
 
-I'm the maintainer of the abituguru driver, and I must say I find it
-highly unlikely that you have an abituguru chip as those are only found
-on Abit motherboards. I think pcwizard is bugged here.
+implement separate min, max, alarms for each voltage input,
+and min, max, crit alarms for temps.
 
-Regards,
+Signed-off-by:  Jim Cromie <jim.cromie at gmail.com>
+---
+$ diffstat hwmon-pc87360-separate-alarms.patch
+ pc87360.c |  181 
+++++++++++++++++++++++++++++++++++++++++++++++++--------------
+ 1 files changed, 141 insertions(+), 40 deletions(-)
 
-Hans
+patch is against 19-rc1, you're accepting separate-alarms patches for 
+2.6.20 now ?
+
+It passes this exersise:
+
+#!/bin/bash
+sensors -s
+sensors
+cd /sys/class/hwmon/hwmon0/device
+function set_check {
+    local lim=$1
+    local setting=$2
+    local want=$3
+    echo $setting > $lim
+    sleep 2
+    local in=`cat ${lim}_alarm`
+    [ $in = $want ] && echo ok setting $lim $setting alarm ${lim}_alarm $in
+}
+# in8_input is 1477
+set_check in8_min 1500 1
+set_check in8_min 1400 0
+set_check in8_max 1400 1
+set_check in8_max 1500 0
+# temp3_input is 99000
+set_check temp3_min 101000 1
+set_check temp3_min 95000 0
+set_check temp3_max 95000 1
+set_check temp3_max 101000 0
+set_check temp3_crit 95000 1
+set_check temp3_crit 101000 0
+
+The need for 'sleep 2' above made me think to reset data->valid when any 
+setter callback is called.
+I didnt add it, but it seems the right thing to do.  My preference is to 
+add it into a forthcoming
+2D-callback patch.
 
 
-I find it highly in
 
-Samuele Kaplun wrote:
-> Hello to the list.
-> I have an HP Pavilion zv6069EA Laptop. Following your pages I succeeded in 
-> using i2c-piix4 with eeprom (but 1st question: what can I do now, since this 
-> is not a sensor?) and k8temp. i2c-stub seems to let me find something more, 
-> but I'm not sure. 
-> My question is: using PCWizard (http://www.cpuid.com/pcwizard.php) for the 
-> Windows platform, it discovers that I own an abituguru sensors. 
-> If that is true, how can I use it?
-> here follows my laptop datas:
-> 
-> i2c-detect for piix4:
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 50: 50 51 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
-> 70: XX XX XX XX XX XX XX XX
-> 
-> i2c-detect for stub:
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00:          03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
-> 10: 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f
-> 20: 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f
-> 30: 30 31 32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f
-> 40: 40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f
-> 50: 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f
-> 60: 60 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f
-> 70: 70 71 72 73 74 75 76 77
-> 
-> lspci:
-> 00:00.0 Host bridge: ATI Technologies Inc RS480 Host Bridge
-> 00:01.0 PCI bridge: ATI Technologies Inc RS480 PCI Bridge
-> 00:04.0 PCI bridge: ATI Technologies Inc RS480 PCI Bridge
-> 00:13.0 USB Controller: ATI Technologies Inc IXP SB400 USB Host Controller
-> 00:13.1 USB Controller: ATI Technologies Inc IXP SB400 USB Host Controller
-> 00:13.2 USB Controller: ATI Technologies Inc IXP SB400 USB2 Host Controller
-> 00:14.0 SMBus: ATI Technologies Inc IXP SB400 SMBus Controller (rev 10)
-> 00:14.1 IDE interface: ATI Technologies Inc Standard Dual Channel PCI IDE 
-> Controller ATI
-> 00:14.3 ISA bridge: ATI Technologies Inc IXP SB400 PCI-ISA Bridge
-> 00:14.4 PCI bridge: ATI Technologies Inc IXP SB400 PCI-PCI Bridge
-> 00:14.5 Multimedia audio controller: ATI Technologies Inc IXP SB400 AC'97 
-> Audio Controller (rev 01)
-> 00:14.6 Modem: ATI Technologies Inc ATI SB400 - AC'97 Modem Controller (rev 
-> 01)
-> 00:18.0 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] 
-> HyperTransport Technology Configuration
-> 00:18.1 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] 
-> Address Map
-> 00:18.2 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] DRAM 
-> Controller
-> 00:18.3 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] 
-> Miscellaneous Control
-> 01:05.0 VGA compatible controller: ATI Technologies Inc ATI Radeon XPRESS 200M 
-> 5955 (PCIE)
-> 03:00.0 FireWire (IEEE 1394): Texas Instruments TSB43AB22/A IEEE-1394a-2000 
-> Controller (PHY/Link)
-> 03:02.0 Network controller: Broadcom Corporation BCM4306 802.11b/g Wireless 
-> LAN Controller (rev 03)
-> 03:04.0 CardBus bridge: Texas Instruments PCIxx21/x515 Cardbus Controller
-> 03:04.3 Mass storage controller: Texas Instruments PCIxx21 Integrated 
-> FlashMedia Controller
-> 03:04.4 Class 0805: Texas Instruments PCI6411, PCI6421, PCI6611, PCI6621, 
-> PCI7411, PCI7421, PCI7611, PCI7621 Secure Digital (SD) Controller
-> 03:06.0 Ethernet controller: Realtek Semiconductor Co., Ltd. 
-> RTL-8139/8139C/8139C+ (rev 10)
-> 
-> Is there something else you need to know? Will it be possible, then to use 
-> abituguru on this machine?
-> Kind regards,
-> 	Samuele Kaplun
+diff -ruNp -X dontdiff -X exclude-diffs 19rc1-0/drivers/hwmon/pc87360.c alarms-only/drivers/hwmon/pc87360.c
+--- 19rc1-0/drivers/hwmon/pc87360.c	2006-10-05 20:17:51.000000000 -0600
++++ alarms-only/drivers/hwmon/pc87360.c	2006-10-08 14:43:01.000000000 -0600
+@@ -144,15 +144,14 @@ static inline u8 PWM_TO_REG(int val, int
+  * Voltage registers and conversions
+  */
+ 
++#define PC87365_REG_VID			0x06
+ #define PC87365_REG_IN_CONVRATE		0x07
+ #define PC87365_REG_IN_CONFIG		0x08
++/* per-channel (0-13) registers */
++#define PC87365_REG_IN_STATUS		0x0A
+ #define PC87365_REG_IN			0x0B
+-#define PC87365_REG_IN_MIN		0x0D
+ #define PC87365_REG_IN_MAX		0x0C
+-#define PC87365_REG_IN_STATUS		0x0A
+-#define PC87365_REG_IN_ALARMS1		0x00
+-#define PC87365_REG_IN_ALARMS2		0x01
+-#define PC87365_REG_VID			0x06
++#define PC87365_REG_IN_MIN		0x0D
+ 
+ #define IN_FROM_REG(val,ref)		(((val) * (ref) + 128) / 256)
+ #define IN_TO_REG(val,ref)		((val) < 0 ? 0 : \
+@@ -205,7 +204,6 @@ struct pc87360_data {
+ 	u8 in_max[14];		/* Register value */
+ 	u8 in_crit[3];		/* Register value */
+ 	u8 in_status[14];	/* Register value */
+-	u16 in_alarms;		/* Register values, combined, masked */
+ 	u8 vid_conf;		/* Configuration register value */
+ 	u8 vrm;
+ 	u8 vid;			/* Register value */
+@@ -215,7 +213,6 @@ struct pc87360_data {
+ 	s8 temp_max[3];		/* Register value */
+ 	s8 temp_crit[3];	/* Register value */
+ 	u8 temp_status[3];	/* Register value */
+-	u8 temp_alarms;		/* Register value, masked */
+ };
+ 
+ /*
+@@ -495,7 +492,9 @@ static struct sensor_device_attribute in
+ 	&in_input[X].dev_attr.attr,	\
+ 	&in_status[X].dev_attr.attr,	\
+ 	&in_min[X].dev_attr.attr,	\
+-	&in_max[X].dev_attr.attr
++	&in_max[X].dev_attr.attr,	\
++	&in_min_alarm[X].dev_attr.attr,	\
++	&in_max_alarm[X].dev_attr.attr
+ 
+ static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+@@ -518,12 +517,45 @@ static ssize_t set_vrm(struct device *de
+ }
+ static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
+ 
+-static ssize_t show_in_alarms(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t show_in_max_alarm(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct pc87360_data *data = pc87360_update_device(dev);
++	return sprintf(buf, "%u\n", (data->in_status[attr->index] & 4) >> 2); 
++}
++static struct sensor_device_attribute in_max_alarm[] = {
++	SENSOR_ATTR(in0_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 0),
++	SENSOR_ATTR(in1_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 1),
++	SENSOR_ATTR(in2_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 2),
++	SENSOR_ATTR(in3_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 3),
++	SENSOR_ATTR(in4_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 4),
++	SENSOR_ATTR(in5_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 5),
++	SENSOR_ATTR(in6_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 6),
++	SENSOR_ATTR(in7_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 7),
++	SENSOR_ATTR(in8_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 8),
++	SENSOR_ATTR(in9_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 9),
++	SENSOR_ATTR(in10_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 10),
++};
++
++static ssize_t show_in_min_alarm(struct device *dev, struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", data->in_alarms);
++	return sprintf(buf, "%u\n", (data->in_status[attr->index] & 2) >> 1);
+ }
+-static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
++static struct sensor_device_attribute in_min_alarm[] = {
++	SENSOR_ATTR(in0_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 0),
++	SENSOR_ATTR(in1_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 1),
++	SENSOR_ATTR(in2_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 2),
++	SENSOR_ATTR(in3_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 2),
++	SENSOR_ATTR(in4_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 4),
++	SENSOR_ATTR(in5_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 5),
++	SENSOR_ATTR(in6_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 6),
++	SENSOR_ATTR(in7_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 7),
++	SENSOR_ATTR(in8_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 8),
++	SENSOR_ATTR(in9_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 9),
++	SENSOR_ATTR(in10_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 10),
++};
+ 
+ static struct attribute *pc8736x_vin_attr_array[] = {
+ 	VIN_UNIT_ATTRS(0),
+@@ -539,7 +571,6 @@ static struct attribute *pc8736x_vin_att
+ 	VIN_UNIT_ATTRS(10),
+ 	&dev_attr_cpu0_vid.attr,
+ 	&dev_attr_vrm.attr,
+-	&dev_attr_alarms_in.attr,
+ 	NULL
+ };
+ static const struct attribute_group pc8736x_vin_group = {
+@@ -664,12 +695,60 @@ static struct sensor_device_attribute th
+ 		    show_therm_crit, set_therm_crit, 2+11),
+ };
+ 
++static ssize_t show_therm_min_alarm(struct device *dev, struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct pc87360_data *data = pc87360_update_device(dev);
++	return sprintf(buf, "%u\n", (data->in_status[attr->index] & 2) >> 1); 
++}
++static struct sensor_device_attribute therm_min_alarm[] = {
++	SENSOR_ATTR(temp4_min_alarm, S_IRUGO,
++		    show_therm_min_alarm, NULL, 0+11),
++	SENSOR_ATTR(temp5_min_alarm, S_IRUGO,
++		    show_therm_min_alarm, NULL, 1+11),
++	SENSOR_ATTR(temp6_min_alarm, S_IRUGO,
++		    show_therm_min_alarm, NULL, 2+11),
++};
++
++static ssize_t show_therm_max_alarm(struct device *dev, struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct pc87360_data *data = pc87360_update_device(dev);
++	return sprintf(buf, "%u\n", (data->in_status[attr->index] & 4) >> 2); 
++}
++static struct sensor_device_attribute therm_max_alarm[] = {
++	SENSOR_ATTR(temp4_max_alarm, S_IRUGO,
++		    show_therm_max_alarm, NULL, 0+11),
++	SENSOR_ATTR(temp5_max_alarm, S_IRUGO,
++		    show_therm_max_alarm, NULL, 1+11),
++	SENSOR_ATTR(temp6_max_alarm, S_IRUGO,
++		    show_therm_max_alarm, NULL, 2+11),
++};
++
++static ssize_t show_therm_crit_alarm(struct device *dev, struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct pc87360_data *data = pc87360_update_device(dev);
++	return sprintf(buf, "%u\n", (data->in_status[attr->index] & 8) >> 3); 
++}
++static struct sensor_device_attribute therm_crit_alarm[] = {
++	SENSOR_ATTR(temp4_crit_alarm, S_IRUGO,
++		    show_therm_crit_alarm, NULL, 0+11),
++	SENSOR_ATTR(temp5_crit_alarm, S_IRUGO,
++		    show_therm_crit_alarm, NULL, 1+11),
++	SENSOR_ATTR(temp6_crit_alarm, S_IRUGO,
++		    show_therm_crit_alarm, NULL, 2+11),
++};
++
+ #define THERM_UNIT_ATTRS(X) \
+ 	&therm_input[X].dev_attr.attr,	\
+ 	&therm_status[X].dev_attr.attr,	\
+ 	&therm_min[X].dev_attr.attr,	\
+ 	&therm_max[X].dev_attr.attr,	\
+-	&therm_crit[X].dev_attr.attr
++	&therm_crit[X].dev_attr.attr,	\
++	&therm_min_alarm[X].dev_attr.attr, \
++	&therm_max_alarm[X].dev_attr.attr, \
++	&therm_crit_alarm[X].dev_attr.attr
+ 
+ static struct attribute * pc8736x_therm_attr_array[] = {
+ 	THERM_UNIT_ATTRS(0),
+@@ -792,26 +871,56 @@ static struct sensor_device_attribute te
+ 		    show_temp_crit, set_temp_crit, 2),
+ };
+ 
+-static ssize_t show_temp_alarms(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t show_temp_min_alarm(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", data->temp_alarms);
++	return sprintf(buf, "%u\n", (data->temp_status[attr->index] & 2) >> 1);
+ }
+-static DEVICE_ATTR(alarms_temp, S_IRUGO, show_temp_alarms, NULL);
++static struct sensor_device_attribute temp_min_alarm[] = {
++	SENSOR_ATTR(temp1_min_alarm, S_IRUGO, show_temp_min_alarm, NULL, 0),
++	SENSOR_ATTR(temp2_min_alarm, S_IRUGO, show_temp_min_alarm, NULL, 1),
++	SENSOR_ATTR(temp3_min_alarm, S_IRUGO, show_temp_min_alarm, NULL, 2),
++};
++
++static ssize_t show_temp_max_alarm(struct device *dev, struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct pc87360_data *data = pc87360_update_device(dev);
++	return sprintf(buf, "%u\n", (data->temp_status[attr->index] & 4) >> 2);
++}
++static struct sensor_device_attribute temp_max_alarm[] = {
++	SENSOR_ATTR(temp1_max_alarm, S_IRUGO, show_temp_max_alarm, NULL, 0),
++	SENSOR_ATTR(temp2_max_alarm, S_IRUGO, show_temp_max_alarm, NULL, 1),
++	SENSOR_ATTR(temp3_max_alarm, S_IRUGO, show_temp_max_alarm, NULL, 2),
++};
++
++static ssize_t show_temp_crit_alarm(struct device *dev, struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct pc87360_data *data = pc87360_update_device(dev);
++	return sprintf(buf, "%u\n", (data->temp_status[attr->index] & 8) >> 3);
++}
++static struct sensor_device_attribute temp_crit_alarm[] = {
++	SENSOR_ATTR(temp1_crit_alarm, S_IRUGO, show_temp_crit_alarm, NULL, 2),
++	SENSOR_ATTR(temp2_crit_alarm, S_IRUGO, show_temp_crit_alarm, NULL, 2),
++	SENSOR_ATTR(temp3_crit_alarm, S_IRUGO, show_temp_crit_alarm, NULL, 2),
++};
+ 
+ #define TEMP_UNIT_ATTRS(X) \
+ 	&temp_input[X].dev_attr.attr,	\
+ 	&temp_status[X].dev_attr.attr,	\
+ 	&temp_min[X].dev_attr.attr,	\
+ 	&temp_max[X].dev_attr.attr,	\
+-	&temp_crit[X].dev_attr.attr
++	&temp_crit[X].dev_attr.attr,	\
++	&temp_min_alarm[X].dev_attr.attr, \
++	&temp_max_alarm[X].dev_attr.attr, \
++	&temp_crit_alarm[X].dev_attr.attr
+ 
+ static struct attribute * pc8736x_temp_attr_array[] = {
+ 	TEMP_UNIT_ATTRS(0),
+ 	TEMP_UNIT_ATTRS(1),
+ 	TEMP_UNIT_ATTRS(2),
+-	/* include the few miscellaneous atts here */
+-	&dev_attr_alarms_temp.attr,
+ 	NULL
+ };
+ static const struct attribute_group pc8736x_temp_group = {
+@@ -1032,21 +1141,23 @@ static int pc87360_detect(struct i2c_ada
+ 
+ 	/* create device attr-files for varying sysfs groups */
+ 
+-	if (data->tempnr) {
+-		for (i = 0; i < data->tempnr; i++) {
+-			if ((err = device_create_file(dev,
++	for (i = 0; i < data->tempnr; i++) {
++		if ((err = device_create_file(dev,
+ 					&temp_input[i].dev_attr))
+-			    || (err = device_create_file(dev,
++		    || (err = device_create_file(dev,
+ 					&temp_min[i].dev_attr))
+-			    || (err = device_create_file(dev,
++		    || (err = device_create_file(dev,
+ 					&temp_max[i].dev_attr))
+-			    || (err = device_create_file(dev,
++		    || (err = device_create_file(dev,
+ 					&temp_crit[i].dev_attr))
+-			    || (err = device_create_file(dev,
+-					&temp_status[i].dev_attr)))
+-				goto ERROR3;
+-		}
+-		if ((err = device_create_file(dev, &dev_attr_alarms_temp)))
++		    || (err = device_create_file(dev,
++					&temp_status[i].dev_attr))
++		    || (err = device_create_file(dev,
++					&temp_min_alarm[i].dev_attr))
++		    || (err = device_create_file(dev,
++					&temp_max_alarm[i].dev_attr))
++		    || (err = device_create_file(dev,
++					&temp_crit_alarm[i].dev_attr)))
+ 			goto ERROR3;
+ 	}
+ 
+@@ -1367,11 +1478,6 @@ static struct pc87360_data *pc87360_upda
+ 			}
+ 		}
+ 		if (data->innr) {
+-			data->in_alarms = pc87360_read_value(data, LD_IN,
+-					  NO_BANK, PC87365_REG_IN_ALARMS1)
+-					| ((pc87360_read_value(data, LD_IN,
+-					    NO_BANK, PC87365_REG_IN_ALARMS2)
+-					    & 0x07) << 8);
+ 			data->vid = (data->vid_conf & 0xE0) ?
+ 				    pc87360_read_value(data, LD_IN,
+ 				    NO_BANK, PC87365_REG_VID) : 0x1F;
+@@ -1403,11 +1509,6 @@ static struct pc87360_data *pc87360_upda
+ 						     PC87365_REG_TEMP_CRIT);
+ 			}
+ 		}
+-		if (data->tempnr) {
+-			data->temp_alarms = pc87360_read_value(data, LD_TEMP,
+-					    NO_BANK, PC87365_REG_TEMP_ALARMS)
+-					    & 0x3F;
+-		}
+ 
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
+
+
 
