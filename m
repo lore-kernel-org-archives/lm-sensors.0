@@ -1,61 +1,57 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 09 Oct 2006 20:03:39 +0000
+From: kress@hal.saar.de (Michael Kress)
+Date: Mon, 09 Oct 2006 20:25:22 +0000
 Subject: [lm-sensors] Supermicro X6DH8-G2+ / sensors not working
-Message-Id: <20061009220339.b467d1e9.khali@linux-fr.org>
+Message-Id: <452AB032.9050205@hal.saar.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <451FF905.60001@hal.saar.de>
 In-Reply-To: <451FF905.60001@hal.saar.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-> Hi Jean,
-> 
-> Jean Delvare wrote:
-> > Well hopefully this new version of the driver will just work. However,
-> > be aware that, contrary to the previous version, I couldn't give a try
-> > to this one, so you're the first tester. This means there could be a
-> > couple sharp edges left, please let me know if you notice anything
-> > wrong.
-> >
-> > The changes are essentially in the way the driver is registered, so
-> > basically, if you are able to load, unload and reload the driver, and
-> > everything still works, it's a good sign that the conversion is a
-> > success. You should also see the reserved I/O region in /proc/ioports
-> > as "pc87427 FMC".
-> >
-> > Please give it a try and report!
-> >   
-> 
-> I tried it - i.e. I replaced pc87427.c in a copy of the directory
-> containing the old pc87427.c
-> But I regret to report a failure. I try to document the relevant things...
+Hi Jean,
 
-Is the attached version any better? I had forgotten to create the
-"name" attribute file, and libsensors needs it. This is fixed now,
-hopefully this is all that was missing.
+Jean Delvare wrote:
+>> I tried it - i.e. I replaced pc87427.c in a copy of the directory
+>> containing the old pc87427.c
+>> But I regret to report a failure. I try to document the relevant things.=
+..
+>>    =20
+>
+> Is the attached version any better? I had forgotten to create the
+> "name" attribute file, and libsensors needs it. This is fixed now,
+> hopefully this is all that was missing.
+>
+>  =20
+Yeah, it seems 2b perfect like this - thank you very much for your effort!
 
-> By the way, I found that sensors-detect now detects a PC87360:
-> Found `Nat. Semi. PC87360 Super IO Fan Sensors'
->     (but not activated)
-> If I try a 'modprobe pc87360' I get
-> FATAL: Error inserting pc87360
-> (/lib/modules/2.6.16-xen/kernel/drivers/hwmon/pc87360.ko): No such device
-> pc87360: Device 0x09 not activated
-> pc87360: No active logical device, module not inserted.
-> 
-> I don't know if it's somehow related. I think, it finds it at least
-> since the snapshot you published recently. It definitely didn't
-> recognize before.
+[root at matrix PC87427-platform-driver]# sensors
+pc87427-isa-0840
+Adapter: ISA adapter
+case-fan1:3698 RPM  (min =3D 2000 RPM)
+case-fan2:3400 RPM  (min =3D 2000 RPM)
+case-fan3:3400 RPM  (min =3D 2000 RPM)
+case-fan4:3375 RPM  (min =3D 2000 RPM)
+CPU0-fan: 3075 RPM  (min =3D 2000 RPM)
+CPU1-fan: 2934 RPM  (min =3D 2000 RPM)
 
-I have seen the same of the test system I had access to. I know for
-sure that there is no such chip on the board, this is a misdetection.
-Just ignore it. I can't tell why you didn't see it before.
+[root at matrix PC87427-platform-driver]# dmesg | tail -n 8
+pc87427: readall_fan: data=FFff88003f09e540, nr=3D0
+pc87427: readall_fan: data=FFff88003f09e540, nr=3D1
+pc87427: readall_fan: data=FFff88003f09e540, nr=3D2
+pc87427: readall_fan: data=FFff88003f09e540, nr=3D3
+pc87427: readall_fan: data=FFff88003f09e540, nr=3D4
+pc87427: readall_fan: data=FFff88003f09e540, nr=3D5
+pc87427: readall_fan: data=FFff88003f09e540, nr=3D6
+pc87427: readall_fan: data=FFff88003f09e540, nr=3D7
 
--- 
-Jean Delvare
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: pc87427.c
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061009/46037df5/attachment-0001.c 
+Salut
+Michael
+
+--=20
+Michael Kress, kress at hal.saar.de
+http://www.michael-kress.de / http://kress.net
+P E N G U I N S   A R E   C O O L
+
+
