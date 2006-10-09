@@ -1,8 +1,10 @@
 From: tuharsky@misbb.sk (Mgr. Peter Tuharsky)
-Date: Mon, 09 Oct 2006 13:28:52 +0000
+Date: Mon, 09 Oct 2006 13:31:20 +0000
 Subject: [lm-sensors] Wrong sensors order for MSI K8MM-V (MS7142),
-Message-Id: <452A4E94.5040307@misbb.sk>
+Message-Id: <452A4F28.2070600@misbb.sk>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <452A4E94.5040307@misbb.sk>
+In-Reply-To: <452A4E94.5040307@misbb.sk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -51,5 +53,6 @@ vid:      -0.025 V  (VRM Version 2.4)
 alarms:
 beep_enable:
            Sound alarm enabled
+
 
 
