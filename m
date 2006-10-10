@@ -1,7 +1,7 @@
 From: gregkh@suse.de (gregkh at suse.de)
-Date: Tue, 10 Oct 2006 20:54:31 +0000
-Subject: [lm-sensors] patch hwmon-w83627ehf-fix-fan5-detection.patch added
-Message-Id: <20061010205423.7B0746122ED@imap.suse.de>
+Date: Tue, 10 Oct 2006 20:54:03 +0000
+Subject: [lm-sensors] patch hwmon-documentation-typos.patch added to
+Message-Id: <20061010205356.5E26D8FD5EB@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -11,81 +11,79 @@ To: lm-sensors@vger.kernel.org
 
 This is a note to let you know that I've just added the patch titled
 
-     Subject: [PATCH 6/6] w83627ehf: Fix the detection of fan5
+     Subject: [PATCH 3/6] hwmon: Fix documentation typos
 
 to my gregkh-2.6 tree.  Its filename is
 
-     hwmon-w83627ehf-fix-fan5-detection.patch
+     hwmon-documentation-typos.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-From khali at linux-fr.org Sun Oct  8 13:02:21 2006
-Date: Sun, 8 Oct 2006 22:02:09 +0200
-From: Rudolf Marek <r.marek at assembler.cz>
+From khali at linux-fr.org Sun Oct  8 12:59:58 2006
+Date: Sun, 8 Oct 2006 21:59:54 +0200
+From: Jean Delvare <khali at linux-fr.org>
 To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>, Rudolf Marek <r.marek at assembler.cz>
-Subject: [PATCH 6/6] w83627ehf: Fix the detection of fan5
-Message-Id: <20061008220209.b58acd71.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-w83627ehf-fix-fan5-detection.patch
+Cc: LM Sensors <lm-sensors at lm-sensors.org>
+Subject: [PATCH 3/6] hwmon: Fix documentation typos
+Message-Id: <20061008215954.3a00c185.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-documentation-typos.patch
 
-From: Rudolf Marek <r.marek at assembler.cz>
+Fix typos in hardware monitoring documentation.
 
-Fix the detection of fan5 and preserve the bit between the
-register writes, because the bit is write only.
-
-Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
- drivers/hwmon/w83627ehf.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ Documentation/hwmon/f71805f   |    2 +-
+ Documentation/hwmon/w83627ehf |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- gregkh-2.6.orig/drivers/hwmon/w83627ehf.c
-+++ gregkh-2.6/drivers/hwmon/w83627ehf.c
-@@ -354,6 +354,8 @@ static void w83627ehf_write_fan_div(stru
- 	case 0:
- 		reg = (w83627ehf_read_value(client, W83627EHF_REG_FANDIV1) & 0xcf)
- 		    | ((data->fan_div[0] & 0x03) << 4);
-+		/* fan5 input control bit is write only, compute the value */
-+		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
- 		w83627ehf_write_value(client, W83627EHF_REG_FANDIV1, reg);
- 		reg = (w83627ehf_read_value(client, W83627EHF_REG_VBAT) & 0xdf)
- 		    | ((data->fan_div[0] & 0x04) << 3);
-@@ -362,6 +364,8 @@ static void w83627ehf_write_fan_div(stru
- 	case 1:
- 		reg = (w83627ehf_read_value(client, W83627EHF_REG_FANDIV1) & 0x3f)
- 		    | ((data->fan_div[1] & 0x03) << 6);
-+		/* fan5 input control bit is write only, compute the value */
-+		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
- 		w83627ehf_write_value(client, W83627EHF_REG_FANDIV1, reg);
- 		reg = (w83627ehf_read_value(client, W83627EHF_REG_VBAT) & 0xbf)
- 		    | ((data->fan_div[1] & 0x04) << 4);
-@@ -1216,13 +1220,16 @@ static int w83627ehf_detect(struct i2c_a
- 	superio_exit();
+--- gregkh-2.6.orig/Documentation/hwmon/f71805f
++++ gregkh-2.6/Documentation/hwmon/f71805f
+@@ -17,7 +17,7 @@ Thanks to Kris Chen from Fintek for answ
+ providing additional documentation.
  
- 	/* It looks like fan4 and fan5 pins can be alternatively used
--	   as fan on/off switches */
-+	   as fan on/off switches, but fan5 control is write only :/
-+	   We assume that if the serial interface is disabled, designers
-+	   connected fan5 as input unless they are emitting log 1, which
-+	   is not the default. */
+ Thanks to Chris Lin from Jetway for providing wiring schematics and
+-anwsering technical questions.
++answering technical questions.
  
- 	data->has_fan = 0x07; /* fan1, fan2 and fan3 */
- 	i = w83627ehf_read_value(client, W83627EHF_REG_FANDIV1);
- 	if ((i & (1 << 2)) && (!fan4pin))
- 		data->has_fan |= (1 << 3);
--	if ((i & (1 << 0)) && (!fan5pin))
-+	if (!(i & (1 << 1)) && (!fan5pin))
- 		data->has_fan |= (1 << 4);
  
- 	/* Register sysfs hooks */
+ Description
+--- gregkh-2.6.orig/Documentation/hwmon/w83627ehf
++++ gregkh-2.6/Documentation/hwmon/w83627ehf
+@@ -26,7 +26,7 @@ fan control mode).
+ Temperatures are measured in degrees Celsius and measurement resolution is 1
+ degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
+ the temperature gets higher than high limit; it stays on until the temperature
+-falls below the Hysteresis value.
++falls below the hysteresis value.
+ 
+ Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
+ triggered if the rotation speed has dropped below a programmable limit. Fan
+@@ -67,9 +67,9 @@ Thermal Cruise mode
+ 
+ If the temperature is in the range defined by:
+ 
+-pwm[1-4]_target    - set target temperature, unit millidegree Celcius
++pwm[1-4]_target    - set target temperature, unit millidegree Celsius
+ 		     (range 0 - 127000)
+-pwm[1-4]_tolerance - tolerance, unit millidegree Celcius (range 0 - 15000)
++pwm[1-4]_tolerance - tolerance, unit millidegree Celsius (range 0 - 15000)
+ 
+ there are no changes to fan speed. Once the temperature leaves the interval,
+ fan speed increases (temp is higher) or decreases if lower than desired.
 
 
-Patches currently in gregkh-2.6 which might be from r.marek at assembler.cz are
+Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
 
+i2c/hwmon-documentation-typos.patch
 i2c/hwmon-k8temp-documentation-update.patch
+i2c/hwmon-smsc47m112-documentation.patch
+i2c/hwmon-unchecked-return-status-fixes-w83791d.patch
+i2c/hwmon-update-Grant-Coady-email-address.patch
 i2c/hwmon-w83627ehf-fix-fan5-detection.patch
+driver-class/i2c-dev-device.patch
+driver-class/i2c-dev-device.old.patch
 
