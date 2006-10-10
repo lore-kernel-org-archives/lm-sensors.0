@@ -1,61 +1,91 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 18 Oct 2006 20:09:33 +0000
-Subject: [lm-sensors] [PATCH 2/8] adm9240: Update Grant Coady's email address
-Message-Id: <11612021821403-git-send-email-greg@kroah.com>
+From: gregkh@suse.de (gregkh at suse.de)
+Date: Tue, 10 Oct 2006 20:54:31 +0000
+Subject: [lm-sensors] patch hwmon-w83627ehf-fix-fan5-detection.patch added
+Message-Id: <20061010205423.7B0746122ED@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Grant Coady <gcoady.lk at gmail.com>
 
-Replace a bouncing email that I cannot recover from Mr Google.
+This is a note to let you know that I've just added the patch titled
 
-Signed-off-by: Grant Coady <gcoady.lk at gmail.com>
+     Subject: [PATCH 6/6] w83627ehf: Fix the detection of fan5
+
+to my gregkh-2.6 tree.  Its filename is
+
+     hwmon-w83627ehf-fix-fan5-detection.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+
+
+From khali at linux-fr.org Sun Oct  8 13:02:21 2006
+Date: Sun, 8 Oct 2006 22:02:09 +0200
+From: Rudolf Marek <r.marek at assembler.cz>
+To: Greg KH <greg at kroah.com>
+Cc: LM Sensors <lm-sensors at lm-sensors.org>, Rudolf Marek <r.marek at assembler.cz>
+Subject: [PATCH 6/6] w83627ehf: Fix the detection of fan5
+Message-Id: <20061008220209.b58acd71.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-w83627ehf-fix-fan5-detection.patch
+
+From: Rudolf Marek <r.marek at assembler.cz>
+
+Fix the detection of fan5 and preserve the bit between the
+register writes, because the bit is write only.
+
+Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
 ---
- Documentation/hwmon/adm9240 |    2 +-
- drivers/hwmon/adm9240.c     |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/hwmon/w83627ehf.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/hwmon/adm9240 b/Documentation/hwmon/adm9240
-index 35f618f..2c6f1fe 100644
---- a/Documentation/hwmon/adm9240
-+++ b/Documentation/hwmon/adm9240
-@@ -24,7 +24,7 @@ Authors:
-     Frodo Looijaard <frodol at dds.nl>,
-     Philip Edelbrock <phil at netroedge.com>,
-     Michiel Rook <michiel at grendelproject.nl>,
--    Grant Coady <gcoady at gmail.com> with guidance
-+    Grant Coady <gcoady.lk at gmail.com> with guidance
-         from Jean Delvare <khali at linux-fr.org>
+--- gregkh-2.6.orig/drivers/hwmon/w83627ehf.c
++++ gregkh-2.6/drivers/hwmon/w83627ehf.c
+@@ -354,6 +354,8 @@ static void w83627ehf_write_fan_div(stru
+ 	case 0:
+ 		reg = (w83627ehf_read_value(client, W83627EHF_REG_FANDIV1) & 0xcf)
+ 		    | ((data->fan_div[0] & 0x03) << 4);
++		/* fan5 input control bit is write only, compute the value */
++		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
+ 		w83627ehf_write_value(client, W83627EHF_REG_FANDIV1, reg);
+ 		reg = (w83627ehf_read_value(client, W83627EHF_REG_VBAT) & 0xdf)
+ 		    | ((data->fan_div[0] & 0x04) << 3);
+@@ -362,6 +364,8 @@ static void w83627ehf_write_fan_div(stru
+ 	case 1:
+ 		reg = (w83627ehf_read_value(client, W83627EHF_REG_FANDIV1) & 0x3f)
+ 		    | ((data->fan_div[1] & 0x03) << 6);
++		/* fan5 input control bit is write only, compute the value */
++		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
+ 		w83627ehf_write_value(client, W83627EHF_REG_FANDIV1, reg);
+ 		reg = (w83627ehf_read_value(client, W83627EHF_REG_VBAT) & 0xbf)
+ 		    | ((data->fan_div[1] & 0x04) << 4);
+@@ -1216,13 +1220,16 @@ static int w83627ehf_detect(struct i2c_a
+ 	superio_exit();
  
- Interface
-diff --git a/drivers/hwmon/adm9240.c b/drivers/hwmon/adm9240.c
-index 377961c..aad594a 100644
---- a/drivers/hwmon/adm9240.c
-+++ b/drivers/hwmon/adm9240.c
-@@ -5,7 +5,7 @@
-  * Copyright (C) 1999	Frodo Looijaard <frodol at dds.nl>
-  *			Philip Edelbrock <phil at netroedge.com>
-  * Copyright (C) 2003	Michiel Rook <michiel at grendelproject.nl>
-- * Copyright (C) 2005	Grant Coady <gcoady at gmail.com> with valuable
-+ * Copyright (C) 2005	Grant Coady <gcoady.lk at gmail.com> with valuable
-  * 				guidance from Jean Delvare
-  *
-  * Driver supports	Analog Devices		ADM9240
-@@ -774,7 +774,7 @@ static void __exit sensors_adm9240_exit(
- }
+ 	/* It looks like fan4 and fan5 pins can be alternatively used
+-	   as fan on/off switches */
++	   as fan on/off switches, but fan5 control is write only :/
++	   We assume that if the serial interface is disabled, designers
++	   connected fan5 as input unless they are emitting log 1, which
++	   is not the default. */
  
- MODULE_AUTHOR("Michiel Rook <michiel at grendelproject.nl>, "
--		"Grant Coady <gcoady at gmail.com> and others");
-+		"Grant Coady <gcoady.lk at gmail.com> and others");
- MODULE_DESCRIPTION("ADM9240/DS1780/LM81 driver");
- MODULE_LICENSE("GPL");
+ 	data->has_fan = 0x07; /* fan1, fan2 and fan3 */
+ 	i = w83627ehf_read_value(client, W83627EHF_REG_FANDIV1);
+ 	if ((i & (1 << 2)) && (!fan4pin))
+ 		data->has_fan |= (1 << 3);
+-	if ((i & (1 << 0)) && (!fan5pin))
++	if (!(i & (1 << 1)) && (!fan5pin))
+ 		data->has_fan |= (1 << 4);
  
--- 
-1.4.2.4
+ 	/* Register sysfs hooks */
 
+
+Patches currently in gregkh-2.6 which might be from r.marek at assembler.cz are
+
+i2c/hwmon-k8temp-documentation-update.patch
+i2c/hwmon-w83627ehf-fix-fan5-detection.patch
 
