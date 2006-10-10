@@ -1,7 +1,7 @@
 From: gregkh@suse.de (gregkh at suse.de)
-Date: Tue, 17 Oct 2006 18:27:57 +0000
-Subject: [lm-sensors] patch hwmon-fix-debug-messages-in-w83781d.patch added
-Message-Id: <20061017182857.318F1959515@imap.suse.de>
+Date: Tue, 10 Oct 2006 20:54:14 +0000
+Subject: [lm-sensors] patch hwmon-smsc47m112-documentation.patch added to
+Message-Id: <20061010205406.C5970936ED2@imap.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -11,91 +11,104 @@ To: lm-sensors@vger.kernel.org
 
 This is a note to let you know that I've just added the patch titled
 
-     Subject: hwmon: Fix debug messages in w83781d
+     Subject: [PATCH 4/6] smsc47m1: List the SMSC LPC47M112 as supported
 
 to my gregkh-2.6 tree.  Its filename is
 
-     hwmon-fix-debug-messages-in-w83781d.patch
+     hwmon-smsc47m112-documentation.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
-From khali at linux-fr.org Fri Oct 13 08:03:43 2006
-Date: Fri, 13 Oct 2006 17:03:42 +0200
+From khali at linux-fr.org Sun Oct  8 13:00:48 2006
+Date: Sun, 8 Oct 2006 22:00:44 +0200
 From: Jean Delvare <khali at linux-fr.org>
 To: Greg KH <greg at kroah.com>
 Cc: LM Sensors <lm-sensors at lm-sensors.org>
-Subject: hwmon: Fix debug messages in w83781d
-Message-Id: <20061013170342.3742f94b.khali at linux-fr.org>
+Subject: [PATCH 4/6] smsc47m1: List the SMSC LPC47M112 as supported
+Message-Id: <20061008220044.4a69d85f.khali at linux-fr.org>
+Content-Disposition: inline; filename=hwmon-smsc47m112-documentation.patch
 
-Fix debug messages in w83781d at detection time. We can't use dev_dbg()
-on an i2c client's device before calling i2c_attach_client() on that
-client.
+The SMSC LPC47M112 Super-I/O chip appears to be compatible with the
+LPC47M10x and LPC47M13x as far as hardware monitoring is concerned.
+The device ID is even the same, so it's really only a documentation
+update.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
- drivers/hwmon/w83781d.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ Documentation/hwmon/smsc47m1 |    4 +++-
+ drivers/hwmon/Kconfig        |    4 ++--
+ drivers/hwmon/smsc47m1.c     |   11 ++++++-----
+ 3 files changed, 11 insertions(+), 8 deletions(-)
 
---- gregkh-2.6.orig/drivers/hwmon/w83781d.c
-+++ gregkh-2.6/drivers/hwmon/w83781d.c
-@@ -1099,7 +1099,8 @@ w83781d_detect(struct i2c_adapter *adapt
- 	   bank. */
- 	if (kind < 0) {
- 		if (w83781d_read_value(client, W83781D_REG_CONFIG) & 0x80) {
--			dev_dbg(dev, "Detection failed at step 3\n");
-+			dev_dbg(&adapter->dev, "Detection of w83781d chip "
-+				"failed at step 3\n");
- 			err = -ENODEV;
- 			goto ERROR2;
- 		}
-@@ -1109,7 +1110,8 @@ w83781d_detect(struct i2c_adapter *adapt
- 		if ((!(val1 & 0x07)) &&
- 		    (((!(val1 & 0x80)) && (val2 != 0xa3) && (val2 != 0xc3))
- 		     || ((val1 & 0x80) && (val2 != 0x5c) && (val2 != 0x12)))) {
--			dev_dbg(dev, "Detection failed at step 4\n");
-+			dev_dbg(&adapter->dev, "Detection of w83781d chip "
-+				"failed at step 4\n");
- 			err = -ENODEV;
- 			goto ERROR2;
- 		}
-@@ -1119,7 +1121,8 @@ w83781d_detect(struct i2c_adapter *adapt
- 				  ((val1 & 0x80) && (val2 = 0x5c)))) {
- 			if (w83781d_read_value
- 			    (client, W83781D_REG_I2C_ADDR) != address) {
--				dev_dbg(dev, "Detection failed at step 5\n");
-+				dev_dbg(&adapter->dev, "Detection of w83781d "
-+					"chip failed at step 5\n");
- 				err = -ENODEV;
- 				goto ERROR2;
- 			}
-@@ -1141,8 +1144,8 @@ w83781d_detect(struct i2c_adapter *adapt
- 		else if (val2 = 0x12)
- 			vendid = asus;
- 		else {
--			dev_dbg(dev, "Chip was made by neither "
--				"Winbond nor Asus?\n");
-+			dev_dbg(&adapter->dev, "w83781d chip vendor is "
-+				"neither Winbond nor Asus\n");
- 			err = -ENODEV;
- 			goto ERROR2;
- 		}
-@@ -1161,10 +1164,9 @@ w83781d_detect(struct i2c_adapter *adapt
- 			kind = as99127f;
- 		else {
- 			if (kind = 0)
--				dev_warn(dev, "Ignoring 'force' "
-+				dev_warn(&adapter->dev, "Ignoring 'force' "
- 					 "parameter for unknown chip at "
--					 "adapter %d, address 0x%02x\n",
--					 i2c_adapter_id(adapter), address);
-+					 "address 0x%02x\n", address);
- 			err = -EINVAL;
- 			goto ERROR2;
- 		}
+--- gregkh-2.6.orig/Documentation/hwmon/smsc47m1
++++ gregkh-2.6/Documentation/hwmon/smsc47m1
+@@ -2,12 +2,14 @@ Kernel driver smsc47m1
+ ===========
+ 
+ Supported chips:
+-  * SMSC LPC47B27x, LPC47M10x, LPC47M13x, LPC47M14x, LPC47M15x and LPC47M192
++  * SMSC LPC47B27x, LPC47M112, LPC47M10x, LPC47M13x, LPC47M14x,
++    LPC47M15x and LPC47M192
+     Addresses scanned: none, address read from Super I/O config space
+     Prefix: 'smsc47m1'
+     Datasheets:
+         http://www.smsc.com/main/datasheets/47b27x.pdf
+         http://www.smsc.com/main/datasheets/47m10x.pdf
++        http://www.smsc.com/main/datasheets/47m112.pdf
+         http://www.smsc.com/main/tools/discontinued/47m13x.pdf
+         http://www.smsc.com/main/datasheets/47m14x.pdf
+         http://www.smsc.com/main/tools/discontinued/47m15x.pdf
+--- gregkh-2.6.orig/drivers/hwmon/Kconfig
++++ gregkh-2.6/drivers/hwmon/Kconfig
+@@ -369,8 +369,8 @@ config SENSORS_SMSC47M1
+ 	help
+ 	  If you say yes here you get support for the integrated fan
+ 	  monitoring and control capabilities of the SMSC LPC47B27x,
+-	  LPC47M10x, LPC47M13x, LPC47M14x, LPC47M15x, LPC47M192 and
+-	  LPC47M997 chips.
++	  LPC47M10x, LPC47M112, LPC47M13x, LPC47M14x, LPC47M15x,
++	  LPC47M192 and LPC47M997 chips.
+ 
+ 	  The temperature and voltage sensor features of the LPC47M192
+ 	  and LPC47M997 are supported by another driver, select also
+--- gregkh-2.6.orig/drivers/hwmon/smsc47m1.c
++++ gregkh-2.6/drivers/hwmon/smsc47m1.c
+@@ -2,8 +2,8 @@
+     smsc47m1.c - Part of lm_sensors, Linux kernel modules
+                  for hardware monitoring
+ 
+-    Supports the SMSC LPC47B27x, LPC47M10x, LPC47M13x, LPC47M14x,
+-    LPC47M15x, LPC47M192 and LPC47M997 Super-I/O chips.
++    Supports the SMSC LPC47B27x, LPC47M10x, LPC47M112, LPC47M13x,
++    LPC47M14x, LPC47M15x, LPC47M192 and LPC47M997 Super-I/O chips.
+ 
+     Copyright (C) 2002 Mark D. Studebaker <mdsxyz123 at yahoo.com>
+     Copyright (C) 2004 Jean Delvare <khali at linux-fr.org>
+@@ -380,8 +380,8 @@ static int __init smsc47m1_find(unsigned
+ 	val = superio_inb(SUPERIO_REG_DEVID);
+ 
+ 	/*
+-	 * SMSC LPC47M10x/LPC47M13x (device id 0x59), LPC47M14x (device id
+-	 * 0x5F) and LPC47B27x (device id 0x51) have fan control.
++	 * SMSC LPC47M10x/LPC47M112/LPC47M13x (device id 0x59), LPC47M14x
++	 * (device id 0x5F) and LPC47B27x (device id 0x51) have fan control.
+ 	 * The LPC47M15x and LPC47M192 chips "with hardware monitoring block"
+ 	 * can do much more besides (device id 0x60).
+ 	 * The LPC47M997 is undocumented, but seems to be compatible with
+@@ -390,7 +390,8 @@ static int __init smsc47m1_find(unsigned
+ 	if (val = 0x51)
+ 		printk(KERN_INFO "smsc47m1: Found SMSC LPC47B27x\n");
+ 	else if (val = 0x59)
+-		printk(KERN_INFO "smsc47m1: Found SMSC LPC47M10x/LPC47M13x\n");
++		printk(KERN_INFO "smsc47m1: Found SMSC "
++		       "LPC47M10x/LPC47M112/LPC47M13x\n");
+ 	else if (val = 0x5F)
+ 		printk(KERN_INFO "smsc47m1: Found SMSC LPC47M14x\n");
+ 	else if (val = 0x60)
 
 
 Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
@@ -106,9 +119,6 @@ i2c/hwmon-smsc47m112-documentation.patch
 i2c/hwmon-unchecked-return-status-fixes-w83791d.patch
 i2c/hwmon-update-Grant-Coady-email-address.patch
 i2c/hwmon-w83627ehf-fix-fan5-detection.patch
-i2c/i2c-scx200_acb-handle-pci-errors.patch
-i2c/hwmon-fix-debug-messages-in-w83781d.patch
-i2c/hwmon-let-w83781d-and-lm78-load-again.patch
 driver-class/i2c-dev-device.patch
 driver-class/i2c-dev-device.old.patch
 
