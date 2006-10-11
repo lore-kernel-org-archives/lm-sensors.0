@@ -1,29 +1,28 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Sun, 15 Oct 2006 20:36:02 +0000
-Subject: [lm-sensors] [PATCH 3/3] coretemp driver documentation
-Message-Id: <45329BB2.6040100@assembler.cz>
+From: bezaur@gmail.com (Charles Spirakis)
+Date: Wed, 11 Oct 2006 02:04:10 +0000
+Subject: [lm-sensors] 2.6 kernel and ipmi bmc?
+Message-Id: <5bfe43f80610101904y7d7a9e52g58fe5e302ca245c6@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello all,
+All --
 
-This patch adds documentation to the coretemp driver.
+I now have a board which is known to have the Renesas H8S/2168 sensor
+controller on ipmi. I saw older drivers for the 2.4 kernel (a "fake"
+driver for i2c-ipmi and a bmcsensors.c) but I don't see anything in
+the 2.6 kernel. I tried searching for ipmi and bmc on the lm-sensors
+website and the closest I came was:
+http://www.lm-sensors.org/ticket/1937.
 
-Anyone rated  "native/good" in English here ;) ? Please check it - if it is OK.
+Has anyone gotten sensors sitting in ipmi land working on the 2.6
+kernel using lm-sensors tools?
 
+I am aware of the impiutil and ipmitool and have that working, but I
+was hoping to use the somewhat standardized lm-sensors methodology for
+all the boards I deal with...
 
-Thanks,
+-- charles
 
-Regards
-Rudolf
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: coretemp-add-documentation.patch
-Type: text/x-patch
-Size: 1865 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061015/370629f6/attachment.bin 
