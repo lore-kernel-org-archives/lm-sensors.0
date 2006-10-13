@@ -1,88 +1,95 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 08 Oct 2006 20:01:26 +0000
-Subject: [lm-sensors] [PATCH 5/6] k8temp: Documentation update
-Message-Id: <20061008220126.3bfe9476.khali@linux-fr.org>
+Date: Fri, 13 Oct 2006 14:56:28 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Let w83781d and lm78 load again
+Message-Id: <20061013165628.b258f035.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Rudolf Marek <r.marek at assembler.cz>
-Content-Disposition: inline; filename=hwmon-k8temp-documentation-update.patch
+Let the w83781d and lm78 hardware monitoring drivers load even when
+no chip was detected at the ISA address. There can still be supported
+chips connected to an I2C bus or SMBus.
 
-Update the documentation for the k8temp driver.
+This fixes bug #7293.
 
-Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- Documentation/hwmon/k8temp |   13 ++++++++-----
- MAINTAINERS                |    6 ++++++
- drivers/hwmon/Kconfig      |    6 ++++--
- 3 files changed, 18 insertions(+), 7 deletions(-)
+ drivers/hwmon/lm78.c         |   12 ++++++------
+ drivers/hwmon/w83781d.c      |   12 ++++++------
+ drivers/i2c/busses/i2c-isa.c |    2 +-
+ 3 files changed, 13 insertions(+), 13 deletions(-)
 
---- linux-2.6.19-rc1.orig/Documentation/hwmon/k8temp	2006-10-08 09:52:06.000000000 +0200
-+++ linux-2.6.19-rc1/Documentation/hwmon/k8temp	2006-10-08 09:55:19.000000000 +0200
-@@ -2,7 +2,7 @@
- ==========
+This patch is for 2.6.19.
+
+--- linux-2.6.19-rc1.orig/drivers/hwmon/w83781d.c	2006-10-05 11:04:36.000000000 +0200
++++ linux-2.6.19-rc1/drivers/hwmon/w83781d.c	2006-10-09 23:54:30.000000000 +0200
+@@ -1685,11 +1685,10 @@
+ 	if (res)
+ 		return res;
  
- Supported chips:
--  * AMD K8 CPU
-+  * AMD Athlon64/FX or Opteron CPUs
-     Prefix: 'k8temp'
-     Addresses scanned: PCI space
-     Datasheet: http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
-@@ -13,10 +13,13 @@
- Description
- -----------
+-	res = i2c_isa_add_driver(&w83781d_isa_driver);
+-	if (res) {
+-		i2c_del_driver(&w83781d_driver);
+-		return res;
+-	}
++	/* Don't exit if this one fails, we still want the I2C variants
++	   to work! */
++	if (i2c_isa_add_driver(&w83781d_isa_driver))
++		isa_address = 0;
  
--This driver permits reading temperature sensor(s) embedded inside AMD K8 CPUs.
--Official documentation says that it works from revision F of K8 core, but
--in fact it seems to be implemented for all revisions of K8 except the first
--two revisions (SH-B0 and SH-B3).
-+This driver permits reading temperature sensor(s) embedded inside AMD K8
-+family CPUs (Athlon64/FX, Opteron). Official documentation says that it works
-+from revision F of K8 core, but in fact it seems to be implemented for all
-+revisions of K8 except the first two revisions (SH-B0 and SH-B3).
-+
-+Please note that you will need at least lm-sensors 2.10.1 for proper userspace
-+support.
+ 	return 0;
+ }
+@@ -1697,7 +1696,8 @@
+ static void __exit
+ sensors_w83781d_exit(void)
+ {
+-	i2c_isa_del_driver(&w83781d_isa_driver);
++	if (isa_address)
++		i2c_isa_del_driver(&w83781d_isa_driver);
+ 	i2c_del_driver(&w83781d_driver);
+ }
  
- There can be up to four temperature sensors inside single CPU. The driver
- will auto-detect the sensors and will display only temperatures from
---- linux-2.6.19-rc1.orig/drivers/hwmon/Kconfig	2006-10-08 09:52:06.000000000 +0200
-+++ linux-2.6.19-rc1/drivers/hwmon/Kconfig	2006-10-08 09:54:39.000000000 +0200
-@@ -95,11 +95,13 @@
- 	  will be called adm9240.
+--- linux-2.6.19-rc1.orig/drivers/hwmon/lm78.c	2006-10-05 11:04:36.000000000 +0200
++++ linux-2.6.19-rc1/drivers/hwmon/lm78.c	2006-10-10 07:39:35.000000000 +0200
+@@ -815,18 +815,18 @@
+ 	if (res)
+ 		return res;
  
- config SENSORS_K8TEMP
--	tristate "AMD K8 processor sensor"
-+	tristate "AMD Athlon64/FX or Opteron temperature sensor"
- 	depends on HWMON && X86 && PCI && EXPERIMENTAL
- 	help
- 	  If you say yes here you get support for the temperature
--	  sensor(s) inside your AMD K8 CPU.
-+	  sensor(s) inside your CPU. Supported is whole AMD K8
-+	  microarchitecture. Please note that you will need at least
-+	  lm-sensors 2.10.1 for proper userspace support.
+-	res = i2c_isa_add_driver(&lm78_isa_driver);
+-	if (res) {
+-		i2c_del_driver(&lm78_driver);
+-		return res;
+-	}
++	/* Don't exit if this one fails, we still want the I2C variants
++	   to work! */
++	if (i2c_isa_add_driver(&lm78_isa_driver))
++		isa_address = 0;
  
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called k8temp.
---- linux-2.6.19-rc1.orig/MAINTAINERS	2006-10-08 09:51:15.000000000 +0200
-+++ linux-2.6.19-rc1/MAINTAINERS	2006-10-08 09:53:34.000000000 +0200
-@@ -1666,6 +1666,12 @@
- L:	ext2-devel at lists.sourceforge.net
- S:	Maintained
+ 	return 0;
+ }
  
-+K8TEMP HARDWARE MONITORING DRIVER
-+P:	Rudolf Marek
-+M:	r.marek at assembler.cz
-+L:	lm-sensors at lm-sensors.org
-+S:	Maintained
-+
- KCONFIG
- P:	Roman Zippel
- M:	zippel at linux-m68k.org
+ static void __exit sm_lm78_exit(void)
+ {
+-	i2c_isa_del_driver(&lm78_isa_driver);
++	if (isa_address)
++		i2c_isa_del_driver(&lm78_isa_driver);
+ 	i2c_del_driver(&lm78_driver);
+ }
+ 
+--- linux-2.6.19-rc1.orig/drivers/i2c/busses/i2c-isa.c	2006-10-05 11:04:38.000000000 +0200
++++ linux-2.6.19-rc1/drivers/i2c/busses/i2c-isa.c	2006-10-10 07:38:07.000000000 +0200
+@@ -91,7 +91,7 @@
+ 	/* Now look for clients */
+ 	res = driver->attach_adapter(&isa_adapter);
+ 	if (res) {
+-		dev_err(&isa_adapter.dev,
++		dev_dbg(&isa_adapter.dev,
+ 			"Driver %s failed to attach adapter, unregistering\n",
+ 			driver->driver.name);
+ 		driver_unregister(&driver->driver);
+
 
 -- 
 Jean Delvare
