@@ -1,56 +1,109 @@
-From: oe@hentges.net (Matthias Hentges)
-Date: Mon, 16 Oct 2006 22:07:15 +0000
-Subject: [lm-sensors] [PATCH 0/3] coretemp driver
-Message-Id: <1161036435.4413.15.camel@mhcln03>
+From: bunk@stusta.de (Adrian Bunk)
+Date: Sat, 14 Oct 2006 11:34:09 +0000
+Subject: [lm-sensors] [3/3] 2.6.19-r2: known regressions with patches
+Message-Id: <20061014113409.GL30596@stusta.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45329771.7030108@assembler.cz>
-In-Reply-To: <45329771.7030108@assembler.cz>
+References: <Pine.LNX.4.64.0610130941550.3952@g5.osdl.org>
+	<20061014111458.GI30596@stusta.de>
+In-Reply-To: <20061014111458.GI30596@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: fastboot@osdl.org, Arnd Bergmann <arnd.bergmann@de.ibm.com>, "Noguchi,
+	Masato" <Masato.Noguchi@jp.sony.com>, Trond Myklebust <Trond.Myklebust@netapp.com>, Alex Romosan <romosan@sycorax.lbl.gov>, Torsten Kaiser <kernel@bardioc.dyndns.org>, ak@suse.de, Dave Kleikamp <shaggy@austin.ibm.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, discuss@x86-64.org, ebiederm@xmission.com, linux-usb-devel@lists.sourceforge.net, Steve Fox <drfickle@us.ibm.com>, netdev@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, Magnus Damm <magnus.damm@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Sukadev Bhattiprolu <sukadev@us.ibm.com>, Laurent Riffard <laurent.riffard@free.fr>, Sylvain BERTRAND <sylvain.bertrand@gmail.com>, Matthieu Castet <castet.matthieu@free.fr>, Jean Delvare <khali@linux-fr.org>, jgarzik@pobox.c
 
-Hello Rudolf,
+This email lists some known regressions in 2.6.19-rc2 compared to 2.6.18
+with patches available.
 
-Am Montag, den 16.10.2006, 20:22 +0200 schrieb Rudolf Marek:
-> Hello Mattias,
-> 
-> Thanks for the test.
+Unless there are specific reasons against doing so, we should try to get 
+these patches into -rc3.
 
-thanks for your work on the driver ;)
+(Especially the lad who wrote the patch for the third entry should ush 
+ his patch...)
 
-[...]
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way possibly
+involved with one or more of these issues.
 
-> Please do not include the binary attachments, the mailing list will throw such 
-> mails away...
+Due to the huge amount of recipients, please trim the Cc when answering.
 
-Sorry for that, I'll try to keep it in mind.
 
->  >coretemp.c:(.init.text+0x6e0d): undefined reference to 
->  >`register_hotcpu_notifier'
->  >drivers/built-in.o: In function `coretemp_exit': 
-> 
->  >coretemp.c:(.exit.text+0x82f): undefined reference to 
->  >`unregister_hotcpu_notifier'
->  >make: *** [.tmp_vmlinux1] Fehler 1
-> 
-> Hmm I tried with the rc2 and it does work. (it reports just a complain about 
-> missing function prototype - I fixed that). Please can you send me your .config 
-> file? Maybe you need to make clean; before doing the test?
+Subject    : spufs: fix a memory leak
+References : http://lkml.org/lkml/2006/10/10/63
+Submitter  : "Noguchi, Masato" <Masato.Noguchi at jp.sony.com>
+Caused-By  : Arnd Bergmann <arnd.bergmann at de.ibm.com>
+             commit e1dbff2bafa83f839ef15f51904b0cce9fc89387
+Handled-By : "Noguchi, Masato" <Masato.Noguchi at jp.sony.com>
+Patch      : http://lkml.org/lkml/2006/10/10/63
+Status     : patch available
 
-I certainly made sure to run "make clean" after each run =)
-You can find my kernel .configs here:
-http://hentges.net/tmp/debug/asus-p5w-dh-deluxe/lm-sensors/coretemp/20061016/
 
-Thanks,
--- 
-Matthias 'CoreDump' Hentges 
+Subject    : w83781d modprobing failure
+References : http://bugzilla.kernel.org/show_bug.cgi?idr93
+Submitter  : Sylvain BERTRAND <sylvain.bertrand at gmail.com>
+Caused-By  : David Hubbard <david.c.hubbard at gmail.com> (?)
+             commit 8202632647278eba7223727dc442f49227c040d0 (?)
+Handled-By : Jean Delvare <khali at linux-fr.org>
+Patch      : http://bugzilla.kernel.org/show_bug.cgi?idr93
+Status     : patch available
 
-My OS: Debian SID. Geek by Nature, Linux by Choice
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: Dies ist ein digital signierter Nachrichtenteil
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061017/f572111e/attachment.bin 
+
+Subject    : drivers/char/specialix.c: broken baud conversion
+References : http://lkml.org/lkml/2006/10/8/214
+Submitter  : Adrian Bunk <bunk at stusta.de>
+Caused-By  : Alan Cox <alan at lxorguk.ukuu.org.uk>
+             commit 67cc0161ecc9ebee6eba4af6cbfdba028090b1b9
+Handled-By : Adrian Bunk <bunk at stusta.de>
+Patch      : http://lkml.org/lkml/2006/10/11/9
+Status     : patch available
+
+
+Subject    : ueagle-atm Oops
+References : http://lkml.org/lkml/2006/10/6/390
+Submitter  : Ernst Herzberg <list-lkml at net4u.de>
+Caused-By  : Greg Kroah-Hartman <gregkh at suse.de>
+             commit e7ccdfec087f02930c5cdc81143d4a045ae8d361
+Handled-By : Matthieu Castet <castet.matthieu at free.fr>
+             Laurent Riffard <laurent.riffard at free.fr>
+Patch      : http://lkml.org/lkml/2006/10/11/209
+Status     : patch available
+
+
+Subject    : oops in xfrm_register_mode
+References : http://lkml.org/lkml/2006/10/4/170
+Submitter  : Steve Fox <drfickle at us.ibm.com>
+Handled-By : Vivek Goyal <vgoyal at in.ibm.com>
+Status     : patch available
+
+
+Subject    : airo suspend fails
+References : http://lkml.org/lkml/2006/10/6/3
+Submitter  : Alex Romosan <romosan at sycorax.lbl.gov>
+Caused-By  : Sukadev Bhattiprolu <sukadev at us.ibm.com>  (?)
+             commit 3b4c7d640376dbccfe80fc4f7b8772ecc7de28c5  (?)
+Handled-By : Dave Kleikamp <shaggy at austin.ibm.com>
+Patch      : http://lkml.org/lkml/2006/10/7/139
+Status     : patch available
+
+
+Subject    : kexec broken on x86_64
+References : http://lkml.org/lkml/2006/10/5/86
+Submitter  : Magnus Damm <magnus.damm at gmail.com>
+Handled-By : Vivek Goyal <vgoyal at in.ibm.com>
+Patch      : http://lkml.org/lkml/2006/10/5/199
+Status     : patch available
+
+
+Subject    : NFSv4 fails to mount (timeout)
+References : http://bugzilla.kernel.org/show_bug.cgi?idr74
+Submitter  : Torsten Kaiser <kernel at bardioc.dyndns.org>
+Caused-By  : Trond Myklebust <Trond.Myklebust at netapp.com>
+             commit 51b6ded4d9a94a61035deba1d8f51a54e3a3dd86
+Handled-By : Trond Myklebust <Trond.Myklebust at netapp.com>
+Patch      : http://bugzilla.kernel.org/show_bug.cgi?idr74
+Status     : patch available
+
+
+
