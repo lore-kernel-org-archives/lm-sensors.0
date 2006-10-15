@@ -1,32 +1,22 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 18 Oct 2006 14:59:00 +0000
-Subject: [lm-sensors] Supermicro X6DH8-G2+ / sensors
-Message-Id: <20061018165900.bbac0aa7.khali@linux-fr.org>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Sun, 15 Oct 2006 20:17:53 +0000
+Subject: [lm-sensors] [PATCH 0/3] coretemp driver
+Message-Id: <45329771.7030108@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4533FD74.2050404@hal.saar.de>
-In-Reply-To: <4533FD74.2050404@hal.saar.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Michael,
+Hello all,
 
-On Wed, 18 Oct 2006 06:37:24 +0200, Michael Kress wrote:
-> xen-3.0.3-0 is released now, it comes with kernel 2.6.16.29 and runs
-> flawlessly so far.
-> I was modprob'ing and rmmod'ing pc87427 every 2 secs for some hours now,
-> plus I was running bonnie++ in the background.
-> 
-> Between these 2 secs I was able to do a clean sensors run.
-> 
-> No messages, no crashes, just perfect. You never know, but so far, even
-> my irq messages about "nobody cared" are gone.
+Following series of patches adds support for the temperature sensors inside the
+Intel Core family processors.
 
-Good news! :) Thanks for letting me now.
+It would be nice if someone could test the stuff again and read the
+documentation and code to see if all is OK
 
-The pc87427 driver is in -mm now.
-
--- 
-Jean Delvare
+Thanks,
+Regards
+Rudolf
 
