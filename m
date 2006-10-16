@@ -1,65 +1,51 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 08 Oct 2006 20:02:09 +0000
-Subject: [lm-sensors] [PATCH 6/6] w83627ehf: Fix the detection of fan5
-Message-Id: <20061008220209.b58acd71.khali@linux-fr.org>
+From: tuharsky@misbb.sk (Mgr. Peter Tuharsky)
+Date: Mon, 16 Oct 2006 11:01:49 +0000
+Subject: [lm-sensors] Wrong values for MB QDI Kinetiz7E, VIA686 chipset
+Message-Id: <4533669D.7000709@misbb.sk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Rudolf Marek <r.marek at assembler.cz>
-Content-Disposition: inline; filename=hwmon-w83627ehf-fix-fan5-detection.patch
+Hallo,
 
-Fix the detection of fan5 and preserve the bit between the
-register writes, because the bit is write only.
 
-Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- drivers/hwmon/w83627ehf.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+here is my experience with using sensors on QDI Kinetiz7E MB (VIA686 
+chipset).
 
---- linux-2.6.19-rc1.orig/drivers/hwmon/w83627ehf.c	2006-10-08 12:29:27.000000000 +0200
-+++ linux-2.6.19-rc1/drivers/hwmon/w83627ehf.c	2006-10-08 12:39:24.000000000 +0200
-@@ -354,6 +354,8 @@
- 	case 0:
- 		reg = (w83627ehf_read_value(client, W83627EHF_REG_FANDIV1) & 0xcf)
- 		    | ((data->fan_div[0] & 0x03) << 4);
-+		/* fan5 input control bit is write only, compute the value */
-+		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
- 		w83627ehf_write_value(client, W83627EHF_REG_FANDIV1, reg);
- 		reg = (w83627ehf_read_value(client, W83627EHF_REG_VBAT) & 0xdf)
- 		    | ((data->fan_div[0] & 0x04) << 3);
-@@ -362,6 +364,8 @@
- 	case 1:
- 		reg = (w83627ehf_read_value(client, W83627EHF_REG_FANDIV1) & 0x3f)
- 		    | ((data->fan_div[1] & 0x03) << 6);
-+		/* fan5 input control bit is write only, compute the value */
-+		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
- 		w83627ehf_write_value(client, W83627EHF_REG_FANDIV1, reg);
- 		reg = (w83627ehf_read_value(client, W83627EHF_REG_VBAT) & 0xbf)
- 		    | ((data->fan_div[1] & 0x04) << 4);
-@@ -1216,13 +1220,16 @@
- 	superio_exit();
- 
- 	/* It looks like fan4 and fan5 pins can be alternatively used
--	   as fan on/off switches */
-+	   as fan on/off switches, but fan5 control is write only :/
-+	   We assume that if the serial interface is disabled, designers
-+	   connected fan5 as input unless they are emitting log 1, which
-+	   is not the default. */
- 
- 	data->has_fan = 0x07; /* fan1, fan2 and fan3 */
- 	i = w83627ehf_read_value(client, W83627EHF_REG_FANDIV1);
- 	if ((i & (1 << 2)) && (!fan4pin))
- 		data->has_fan |= (1 << 3);
--	if ((i & (1 << 0)) && (!fan5pin))
-+	if (!(i & (1 << 1)) && (!fan5pin))
- 		data->has_fan |= (1 << 4);
- 
- 	/* Register sysfs hooks */
+1, +2,5V seems need 10x multiplication, or is invalid completely?
+2, SYS Temp should be probably CPU in real
+3, CPU Temp should be SBr temp probably
+4, SBr Temp should be SYS Temp.
 
--- 
-Jean Delvare
+Can the sensors or whatever be adjusted so that it detects the MB 
+correctly and set the variables accordingly? I see there in conf, that 
+VIA686 chipset is used in many motherboards and the behaviour is not 
+consistent. Is it possible to automate things so that user is not 
+demanded to play with sensor.conf?
+
+I am new to this conference and I'm just askin'. I want to help at least 
+with my data that I have access to, to make sensors more useful for 
+users, and to "just work" without the need of config file editing.
+
+
+Here is the output:
+
+via686a-isa-6000
+Adapter: ISA adapter
+CPU core:  +1.78 V  (min =  +0.06 V, max =  +3.10 V)
++2.5V:     +0.29 V  (min =  +2.37 V, max =  +2.62 V)   ALARM
+I/O:       +3.34 V  (min =  +3.13 V, max =  +3.47 V)
++5V:       +4.93 V  (min =  +4.51 V, max =  +5.50 V)
++12V:     +12.37 V  (min = +10.81 V, max = +13.20 V)
+CPU Fan:  2376 RPM  (min =    0 RPM, div = 8)
+P/S Fan:     0 RPM  (min =    0 RPM, div = 8)
+SYS Temp:  +51.2 C  (high =   +45 C, hyst =   +40 C)   ALARM
+CPU Temp:  +36.7 C  (high =   +60 C, hyst =   +55 C)
+SBr Temp:  +27.4 C  (high =   +65 C, hyst =   +60 C)
+
+
+
+Sincerely, Peter
 
