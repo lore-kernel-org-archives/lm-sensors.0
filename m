@@ -1,144 +1,33 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 08 Oct 2006 19:56:29 +0000
-Subject: [lm-sensors] [PATCH 1/6] w83791d: Fix unchecked return status
-Message-Id: <20061008215629.bc6c95ee.khali@linux-fr.org>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Mon, 16 Oct 2006 19:25:26 +0000
+Subject: [lm-sensors] ADT7468 support
+Message-Id: <4533DCA6.6020008@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jim Cromie <jim.cromie at gmail.com>
-Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-w83791d.patch
+Christoph Pittracher wrote:
+> Hello list,
+> what's the state in supporting the ADT7468 chip? I've got a Tyan mainboard 
+> using this one and tried the lm85 adt7463 module forcing the address.
+> I get valid FAN values (the voltage values seems ok too) but the temperature 
+> values are completely wrong.
+> 
+> Is there ongoing support for the ADT7468? Anybody working on it?
+> Should I try to hack a driver myself? If yes, patching the lm85 driver or 
+> writing a completely new one?
 
-Replace all unchecked calls to device_create_file with a single group
-declaration, and one call to sysfs_create_group, and check that one
-return status. Also remove the files on device detach.
+Sorry all I know is just what Jean wrote:
 
-Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
-Signed-off by: Charles Spirakis <bezaur at gmail.com>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- drivers/hwmon/w83791d.c |   85 +++++++++++++++++++++++++++++++----------------
- 1 file changed, 56 insertions(+), 29 deletions(-)
+(2004-04-10) Forcing the lm85 driver, chip adm1027, may work. We have an 
+evaluation board.
 
---- linux-2.6.19-rc1.orig/drivers/hwmon/w83791d.c	2006-10-08 12:48:09.000000000 +0200
-+++ linux-2.6.19-rc1/drivers/hwmon/w83791d.c	2006-10-08 13:24:24.000000000 +0200
-@@ -746,6 +746,52 @@
- 
- static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm_reg, store_vrm_reg);
- 
-+#define IN_UNIT_ATTRS(X) \
-+	&sda_in_input[X].dev_attr.attr, \
-+	&sda_in_min[X].dev_attr.attr,   \
-+	&sda_in_max[X].dev_attr.attr
-+
-+#define FAN_UNIT_ATTRS(X) \
-+	&sda_fan_input[X].dev_attr.attr,        \
-+	&sda_fan_min[X].dev_attr.attr,          \
-+	&sda_fan_div[X].dev_attr.attr
-+
-+#define TEMP_UNIT_ATTRS(X) \
-+	&sda_temp_input[X].dev_attr.attr,       \
-+	&sda_temp_max[X].dev_attr.attr,         \
-+	&sda_temp_max_hyst[X].dev_attr.attr
-+
-+static struct attribute *w83791d_attributes[] = {
-+	IN_UNIT_ATTRS(0),
-+	IN_UNIT_ATTRS(1),
-+	IN_UNIT_ATTRS(2),
-+	IN_UNIT_ATTRS(3),
-+	IN_UNIT_ATTRS(4),
-+	IN_UNIT_ATTRS(5),
-+	IN_UNIT_ATTRS(6),
-+	IN_UNIT_ATTRS(7),
-+	IN_UNIT_ATTRS(8),
-+	IN_UNIT_ATTRS(9),
-+	FAN_UNIT_ATTRS(0),
-+	FAN_UNIT_ATTRS(1),
-+	FAN_UNIT_ATTRS(2),
-+	FAN_UNIT_ATTRS(3),
-+	FAN_UNIT_ATTRS(4),
-+	TEMP_UNIT_ATTRS(0),
-+	TEMP_UNIT_ATTRS(1),
-+	TEMP_UNIT_ATTRS(2),
-+	&dev_attr_alarms.attr,
-+	&sda_beep_ctrl[0].dev_attr.attr,
-+	&sda_beep_ctrl[1].dev_attr.attr,
-+	&dev_attr_cpu0_vid.attr,
-+	&dev_attr_vrm.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group w83791d_group = {
-+	.attrs = w83791d_attributes,
-+};
-+
- /* This function is called when:
-      * w83791d_driver is inserted (when this module is loaded), for each
-        available adapter
-@@ -967,41 +1013,20 @@
- 	}
- 
- 	/* Register sysfs hooks */
-+	if ((err = sysfs_create_group(&client->dev.kobj, &w83791d_group)))
-+		goto error3;
-+
-+	/* Everything is ready, now register the working device */
- 	data->class_dev = hwmon_device_register(dev);
- 	if (IS_ERR(data->class_dev)) {
- 		err = PTR_ERR(data->class_dev);
--		goto error3;
--	}
--
--	for (i = 0; i < NUMBER_OF_VIN; i++) {
--		device_create_file(dev, &sda_in_input[i].dev_attr);
--		device_create_file(dev, &sda_in_min[i].dev_attr);
--		device_create_file(dev, &sda_in_max[i].dev_attr);
--	}
--
--	for (i = 0; i < NUMBER_OF_FANIN; i++) {
--		device_create_file(dev, &sda_fan_input[i].dev_attr);
--		device_create_file(dev, &sda_fan_div[i].dev_attr);
--		device_create_file(dev, &sda_fan_min[i].dev_attr);
--	}
--
--	for (i = 0; i < NUMBER_OF_TEMPIN; i++) {
--		device_create_file(dev, &sda_temp_input[i].dev_attr);
--		device_create_file(dev, &sda_temp_max[i].dev_attr);
--		device_create_file(dev, &sda_temp_max_hyst[i].dev_attr);
-+		goto error4;
- 	}
- 
--	device_create_file(dev, &dev_attr_alarms);
--
--	for (i = 0; i < ARRAY_SIZE(sda_beep_ctrl); i++) {
--		device_create_file(dev, &sda_beep_ctrl[i].dev_attr);
--	}
--
--	device_create_file(dev, &dev_attr_cpu0_vid);
--	device_create_file(dev, &dev_attr_vrm);
--
- 	return 0;
- 
-+error4:
-+	sysfs_remove_group(&client->dev.kobj, &w83791d_group);
- error3:
- 	if (data->lm75[0] != NULL) {
- 		i2c_detach_client(data->lm75[0]);
-@@ -1025,8 +1050,10 @@
- 	int err;
- 
- 	/* main client */
--	if (data)
-+	if (data) {
- 		hwmon_device_unregister(data->class_dev);
-+		sysfs_remove_group(&client->dev.kobj, &w83791d_group);
-+	}
- 
- 	if ((err = i2c_detach_client(client)))
- 		return err;
+Can you try to force the lm85 driver as the adm1027?
 
--- 
-Jean Delvare
+Thanks,
+
+regards
+Rudolf
 
