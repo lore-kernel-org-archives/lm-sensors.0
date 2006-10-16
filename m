@@ -1,77 +1,62 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 18 Oct 2006 15:13:25 +0000
-Subject: [lm-sensors] generic chip support in libsensors
-Message-Id: <20061018171325.3125efc8.khali@linux-fr.org>
+From: kress@hal.saar.de (Michael Kress)
+Date: Mon, 16 Oct 2006 21:45:24 +0000
+Subject: [lm-sensors] Supermicro X6DH8-G2+ / sensors
+Message-Id: <4533FD74.2050404@hal.saar.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44C78622.8060808@hhs.nl>
-In-Reply-To: <44C78622.8060808@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Bob,
+Hi Jean,
 
-Sorry for being so quiet, that's because I am very busy, not because
-I'm not interested. I _am_ very interested by your work.
+Jean Delvare wrote:
+> The previous version of the pc87427 driver (i2c-isa-based) should work
+> on 2.6.9 with minor adjustments, but I admit I'm not really interested
+> in you testing this, as the version of the driver which will be merged
+> is the platform-based one anyway.
+>   
 
-I am worried about how you are currently keeping your changes? At some
-point we'll have to merge your changes upstream, and we are not going
-to take one big patch with all changes. We need incremental changes so
-that we can review and test them properly.
+yes, I can understand that.
 
-It might make sense to open a branch for you in our Subversion
-repository so that you can do these incremental commits right now, and
-we can comment and review and test as you progress.
+>> I can't get another kernel than 2.6.16, because all the xen patches rely
+>> on this version and I need xen.
+>> I will try the newest from the 2.6.16.y series, give me another day to
+>> try it, I think xen provided the oldest 2.6.16 one it could find. I'll
+>> tell you if I got further with that.
+>>     
+>
+> OK, thanks.
+>   
 
-On Tue, 17 Oct 2006 00:02:57 +0200, Bob Schl?rmann wrote:
-> We are currently almost done with modifying the library so that it
-> detects the chip's features from the sysfs entries, it now needs
-> some testing. One problem we had was finding a way to add the new
-> sensors_chip_features entry to the global list of known chips. This is
-> currently handled by making the last places of the global array empty
-> placeholders.
+Sorry, I can't get .29 running under xen-3.0.2. The whole thing
+compiles, but doesn't boot properly.
+I didn't have the time to fiddle about getting it booted, just had time
+to check the basics, but it was no use, so I had to skip the test, sorry.
 
-This means you put an arbitrary limit to the number of entries which
-can be created dynamically. This is certainly OK if this limit is large
-enough, as a first approximation. But dynamic entries are supposed to
-become the one and only way in the future, so it'd be better if we
-could handle them cleanly. This might come naturally when we drop
-support for static entries anyway.
+>> Maybe it's also related with the "nobody cared" phenomena from
+>> http://www.ussg.iu.edu/hypermail/linux/kernel/0610.1/0101.html - I
+>> suspect the irq issue to be Supermicro related.
+>>     
+>
+> I see no relation between the two problems.
+>
+> Anyway my plan is now to get my pc87427 driver in -mm. If others report
+> the same problem you had, we'll have more data points to investigate.
+>   
 
-> For step 2/3 (modify the sensors tool so the per chip print routines are
-> replaced by generic ones) we had some ideas. 
-> 
-> The first idea was to create a sort of object oriented approach by using
-> structs and function pointers, kind of how Gtk works. In the
-> OO-model a Sensor class/struct would be the root class and cpu,
-> voltage, etc. sensors would be implemented as subclasses. This has the
-> advantage (in our opinion) of a clear API and makes adding new sensor
-> types easier.
-> 
-> A simpler approach would be to just create a function that returns the
-> correct sensor type given a sensor_chip_feature struct. The sensors app
-> can then be restructured around this.
+Good idea, as "release! release! release!" is one of the principles of
+Open Source. So release it! :)
 
-This was my original intent, yes. Just add this function to the
-libsensors API and you're done.
+Sorry, can't be no good help today.
 
-> We have currently chosen to first implement the the last approach,
-> because this seems more 'incremental', and when there is enough time
-> left (there probably will be) implement the oo-model as an extra layer.
+ciao - Michael
 
-I prefer the last approach too. No need to make things more complex
-than is required. "sensors" is written in C, not an OO language.
-And we haven't been adding a new sensor type in the past 6 years, I
-pretty much doubt we'll have to add any in a near future, so no need to
-optimize for this unlikely event.
-
-> A patch will be available soon, to show our current progress and
-> hopefully to get some feedback whether we took the right path with step
-> 1,
-
-Great, looking forward :)
+P.S.: I changed the subject :)
 
 -- 
-Jean Delvare
+Michael Kress, kress at hal.saar.de
+http://www.michael-kress.de / http://kress.net
+P E N G U I N S   A R E   C O O L
+
 
