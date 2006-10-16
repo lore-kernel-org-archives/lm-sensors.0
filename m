@@ -1,100 +1,105 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 18 Oct 2006 20:09:35 +0000
-Subject: [lm-sensors] [PATCH 4/8] smsc47m1: List the SMSC LPC47M112 as
-Message-Id: <1161202189122-git-send-email-greg@kroah.com>
+From: tuharsky@misbb.sk (Mgr. Peter Tuharsky)
+Date: Mon, 16 Oct 2006 11:33:35 +0000
+Subject: [lm-sensors] Wrong values from ASUS A7N8X-E Deluxe -EAY0Z,
+Message-Id: <45336E0F.7050007@misbb.sk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali at linux-fr.org>
+Hallo,
 
-The SMSC LPC47M112 Super-I/O chip appears to be compatible with the
-LPC47M10x and LPC47M13x as far as hardware monitoring is concerned.
-The device ID is even the same, so it's really only a documentation
-update.
+This is output from sensors on the machine with said motherboard and 
+chipset. Please note the values with ALARM flag.
+Also note the temp1 high and hyst values. Seems to me that temp3 should 
+be processor, temp1 the SBr and temp2 the SYS.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
----
- Documentation/hwmon/smsc47m1 |    4 +++-
- drivers/hwmon/Kconfig        |    4 ++--
- drivers/hwmon/smsc47m1.c     |   11 ++++++-----
- 3 files changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/hwmon/smsc47m1 b/Documentation/hwmon/smsc47m1
-index c15bbe6..04a1112 100644
---- a/Documentation/hwmon/smsc47m1
-+++ b/Documentation/hwmon/smsc47m1
-@@ -2,12 +2,14 @@ Kernel driver smsc47m1
- ===========
- 
- Supported chips:
--  * SMSC LPC47B27x, LPC47M10x, LPC47M13x, LPC47M14x, LPC47M15x and LPC47M192
-+  * SMSC LPC47B27x, LPC47M112, LPC47M10x, LPC47M13x, LPC47M14x,
-+    LPC47M15x and LPC47M192
-     Addresses scanned: none, address read from Super I/O config space
-     Prefix: 'smsc47m1'
-     Datasheets:
-         http://www.smsc.com/main/datasheets/47b27x.pdf
-         http://www.smsc.com/main/datasheets/47m10x.pdf
-+        http://www.smsc.com/main/datasheets/47m112.pdf
-         http://www.smsc.com/main/tools/discontinued/47m13x.pdf
-         http://www.smsc.com/main/datasheets/47m14x.pdf
-         http://www.smsc.com/main/tools/discontinued/47m15x.pdf
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 9b88b25..e0dede7 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -369,8 +369,8 @@ config SENSORS_SMSC47M1
- 	help
- 	  If you say yes here you get support for the integrated fan
- 	  monitoring and control capabilities of the SMSC LPC47B27x,
--	  LPC47M10x, LPC47M13x, LPC47M14x, LPC47M15x, LPC47M192 and
--	  LPC47M997 chips.
-+	  LPC47M10x, LPC47M112, LPC47M13x, LPC47M14x, LPC47M15x,
-+	  LPC47M192 and LPC47M997 chips.
- 
- 	  The temperature and voltage sensor features of the LPC47M192
- 	  and LPC47M997 are supported by another driver, select also
-diff --git a/drivers/hwmon/smsc47m1.c b/drivers/hwmon/smsc47m1.c
-index 47132fd..beb881c 100644
---- a/drivers/hwmon/smsc47m1.c
-+++ b/drivers/hwmon/smsc47m1.c
-@@ -2,8 +2,8 @@
-     smsc47m1.c - Part of lm_sensors, Linux kernel modules
-                  for hardware monitoring
- 
--    Supports the SMSC LPC47B27x, LPC47M10x, LPC47M13x, LPC47M14x,
--    LPC47M15x, LPC47M192 and LPC47M997 Super-I/O chips.
-+    Supports the SMSC LPC47B27x, LPC47M10x, LPC47M112, LPC47M13x,
-+    LPC47M14x, LPC47M15x, LPC47M192 and LPC47M997 Super-I/O chips.
- 
-     Copyright (C) 2002 Mark D. Studebaker <mdsxyz123 at yahoo.com>
-     Copyright (C) 2004 Jean Delvare <khali at linux-fr.org>
-@@ -380,8 +380,8 @@ static int __init smsc47m1_find(unsigned
- 	val = superio_inb(SUPERIO_REG_DEVID);
- 
- 	/*
--	 * SMSC LPC47M10x/LPC47M13x (device id 0x59), LPC47M14x (device id
--	 * 0x5F) and LPC47B27x (device id 0x51) have fan control.
-+	 * SMSC LPC47M10x/LPC47M112/LPC47M13x (device id 0x59), LPC47M14x
-+	 * (device id 0x5F) and LPC47B27x (device id 0x51) have fan control.
- 	 * The LPC47M15x and LPC47M192 chips "with hardware monitoring block"
- 	 * can do much more besides (device id 0x60).
- 	 * The LPC47M997 is undocumented, but seems to be compatible with
-@@ -390,7 +390,8 @@ static int __init smsc47m1_find(unsigned
- 	if (val = 0x51)
- 		printk(KERN_INFO "smsc47m1: Found SMSC LPC47B27x\n");
- 	else if (val = 0x59)
--		printk(KERN_INFO "smsc47m1: Found SMSC LPC47M10x/LPC47M13x\n");
-+		printk(KERN_INFO "smsc47m1: Found SMSC "
-+		       "LPC47M10x/LPC47M112/LPC47M13x\n");
- 	else if (val = 0x5F)
- 		printk(KERN_INFO "smsc47m1: Found SMSC LPC47M14x\n");
- 	else if (val = 0x60)
--- 
-1.4.2.4
 
+# sensors
+w83627hf-isa-0290
+Adapter: ISA adapter
+VCore 1:   +1.58 V  (min =  +1.42 V, max =  +1.57 V)       ALARM
+VCore 2:   +1.55 V  (min =  +1.42 V, max =  +1.57 V)
++3.3V:     +3.38 V  (min =  +3.14 V, max =  +3.47 V)
++5V:       +5.16 V  (min =  +4.76 V, max =  +5.24 V)
++12V:      +4.92 V  (min = +10.82 V, max = +13.19 V)       ALARM
+-12V:      -1.34 V  (min = -13.18 V, max = -10.80 V)       ALARM
+-5V:       -3.54 V  (min =  -5.25 V, max =  -4.75 V)       ALARM
+V5SB:      +5.64 V  (min =  +4.76 V, max =  +5.24 V)       ALARM
+VBat:      +2.05 V  (min =  +2.40 V, max =  +3.60 V)       ALARM
+fan1:     3375 RPM  (min = 2860 RPM, div = 8)
+fan2:     3013 RPM  (min = 6026 RPM, div = 8)              ALARM
+fan3:        0 RPM  (min = 2033 RPM, div = 8)              ALARM
+temp1:       +36?C  (high =   +88?C, hyst =  -115?C)   sensor = thermistor
+temp2:     +35.5?C  (high =   +80?C, hyst =   +75?C)   sensor = thermistor
+temp3:     +42.5?C  (high =   +80?C, hyst =   +75?C)   sensor = thermistor
+vid:      +1.500 V  (VRM Version 2.4)
+alarms:   Chassis intrusion detection                      ALARM
+beep_enable:
+           Sound alarm enabled
+
+-----------------------------------
+
+
+Here's the current (invalid) entry from sensors.conf file, unchanged:
+
+chip "w83782d-*" "w83627hf-*"
+
+# Same as above for w83781d except that in5 and in6 are computed 
+differently.
+# Rather than an internal inverting op amp, the 82d/83s use standard 
+positive
+# inputs and the negative voltages are level shifted by a 3.6V reference.
+# The math is convoluted, so we hope that your motherboard
+# uses the recommended resistor values.
+
+     label in0 "VCore 1"
+     label in1 "VCore 2"
+     label in2 "+3.3V"
+     label in3 "+5V"
+     label in4 "+12V"
+     label in5 "-12V"
+     label in6 "-5V"
+     label in7 "V5SB"
+     label in8 "VBat"
+
+# Abit BP6 motherboard has a few differences. VCore1 and VCore2 are the core
+# voltages of the two processors. Vtt is memory bus termination resistors
+# voltage.
+#    label in1 "Vtt"
+#    label in8 "VCore2"
+
+     compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+     compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+     compute in5 (5.14 * @) - 14.91  ,  (@ + 14.91) / 5.14
+     compute in6 (3.14 * @) -  7.71  ,  (@ +  7.71) / 3.14
+     compute in7 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+
+# adjust this if your vid is wrong; see doc/vid
+#   set vrm 9.0
+
+# set limits to  5% for the critical voltages
+# set limits to 10% for the non-critical voltages
+# set limits to 20% for the battery voltage
+
+     set in0_min vid*0.95
+     set in0_max vid*1.05
+     set in1_min vid*0.95
+     set in1_max vid*1.05
+     set in2_min 3.3 * 0.95
+     set in2_max 3.3 * 1.05
+     set in3_min 5.0 * 0.95
+     set in3_max 5.0 * 1.05
+     set in4_min 12 * 0.90
+     set in4_max 12 * 1.10
+     set in5_max -12 * 0.90
+     set in5_min -12 * 1.10
+     set in6_max -5 * 0.95
+     set in6_min -5 * 1.05
+     set in7_min 5 * 0.95
+     set in7_max 5 * 1.05
+     set in8_min 3.0 * 0.80
+     set in8_max 3.0 * 1.20
 
