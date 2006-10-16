@@ -1,171 +1,126 @@
-From: gregkh@suse.de (gregkh at suse.de)
-Date: Tue, 10 Oct 2006 20:54:19 +0000
-Subject: [lm-sensors] patch
-Message-Id: <20061010205411.D84D0936C33@imap.suse.de>
+From: jason.craig@gmail.com (Jason Craig)
+Date: Mon, 16 Oct 2006 13:28:14 +0000
+Subject: [lm-sensors] ticket #1986, occasional bad data from lm85
+Message-Id: <453388EE.1090907@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060502054527.8533748769D@imap.suse.de>
-In-Reply-To: <20060502054527.8533748769D@imap.suse.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-This is a note to let you know that I've just added the patch titled
+Issue 1986 was put on the backburner for awhile, but I am now looking into it
+again.  I have done what Khali suggested as far as running i2cdetect and
+i2cdump.  I have some results that may or may not be normal and I was hoping
+someone could help me.  The hardware is the same, Radisys LS855 motherboard.  I
+have lm_sensors 2.9.2 with libsensors 2.9.2 now.  The linux kernel version is
+2.4.31.
 
-     Subject: [PATCH 1/6] w83791d: Fix unchecked return status
+The *new* problem, which I assume is related to the previous one mentioned in
+ticket 2038 is described here.  Assume the system has just booted.
 
-to my gregkh-2.6 tree.  Its filename is
+# lsmod
+Module                  Size  Used by    Not tainted
+i2c-dev                 3808   0  (unused)
+e1000                  67564   0  (unused)
+e100                   47832   1
+rtc                     6012   0  (autoclean)
+eeprom                  3656   0  (unused)
+lm85                   17032   0  (unused)
+i2c-proc                6020   0  [eeprom lm85]
+i2c-i801                4632   0  (unused)
+i2c-core               14852   0  [i2c-dev eeprom lm85 i2c-proc i2c-i801]
+apm                     9096   1
 
-     hwmon-unchecked-return-status-fixes-w83791d.patch
+If I run i2cdetect, I get the following output:
 
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+# i2cdetect -y 0
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+	 00:          XX XX XX XX XX 08 XX XX XX XX XX XX XX
+	 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX UU XX
+	 30: 30 XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 40: XX XX XX XX 44 XX XX XX XX XX XX XX XX XX XX XX
+	 50: UU XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
+	 70: XX XX XX XX XX XX XX XX
 
+>/From what I understand, this means that there are I2C devices at the following
+/addresses: 
 
-From khali at linux-fr.org Sun Oct  8 12:56:34 2006
-Date: Sun, 8 Oct 2006 21:56:29 +0200
-From: Jim Cromie <jim.cromie at gmail.com>
-To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>, Jim Cromie <jim.cromie at gmail.com>, Charles Spirakis <bezaur at gmail.com>
-Subject: [PATCH 1/6] w83791d: Fix unchecked return status
-Message-Id: <20061008215629.bc6c95ee.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-unchecked-return-status-fixes-w83791d.patch
+0x08 0x2e 0x30 0x44 0x50 0x69
 
-From: Jim Cromie <jim.cromie at gmail.com>
+I seem to be able to run i2cdump for all of these addresses except 0x69, which
+from what I gathered from the I2C tools page
+(http://netroedge.com/~lm78/i2ctools.html <http://netroedge.com/%7Elm78/i2ctools.html>) seems to be a clock chip.
 
-Replace all unchecked calls to device_create_file with a single group
-declaration, and one call to sysfs_create_group, and check that one
-return status. Also remove the files on device detach.
+Here is the output I get for this address.
+# i2cdump -y 0 0x69 b
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+	 00: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+	 10: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+	 20: 0f 1f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+	 30: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
+	 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
 
-Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
-Signed-off by: Charles Spirakis <bezaur at gmail.com>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+Basically, the first 4 lines of output are output as normal with a slight delay
+between echos, but then there is a short pause, and the rest of the lines are
+output immediately with no delay.  Subsequent i2cdump commands generate the
+following output immediately (no delay like before for the first 4 lines).
 
----
- drivers/hwmon/w83791d.c |   85 +++++++++++++++++++++++++++++++-----------------
- 1 file changed, 56 insertions(+), 29 deletions(-)
+# i2cdump -y 0 0x69 b
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+	 00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+	 f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
 
---- gregkh-2.6.orig/drivers/hwmon/w83791d.c
-+++ gregkh-2.6/drivers/hwmon/w83791d.c
-@@ -746,6 +746,52 @@ static ssize_t store_vrm_reg(struct devi
- 
- static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm_reg, store_vrm_reg);
- 
-+#define IN_UNIT_ATTRS(X) \
-+	&sda_in_input[X].dev_attr.attr, \
-+	&sda_in_min[X].dev_attr.attr,   \
-+	&sda_in_max[X].dev_attr.attr
-+
-+#define FAN_UNIT_ATTRS(X) \
-+	&sda_fan_input[X].dev_attr.attr,        \
-+	&sda_fan_min[X].dev_attr.attr,          \
-+	&sda_fan_div[X].dev_attr.attr
-+
-+#define TEMP_UNIT_ATTRS(X) \
-+	&sda_temp_input[X].dev_attr.attr,       \
-+	&sda_temp_max[X].dev_attr.attr,         \
-+	&sda_temp_max_hyst[X].dev_attr.attr
-+
-+static struct attribute *w83791d_attributes[] = {
-+	IN_UNIT_ATTRS(0),
-+	IN_UNIT_ATTRS(1),
-+	IN_UNIT_ATTRS(2),
-+	IN_UNIT_ATTRS(3),
-+	IN_UNIT_ATTRS(4),
-+	IN_UNIT_ATTRS(5),
-+	IN_UNIT_ATTRS(6),
-+	IN_UNIT_ATTRS(7),
-+	IN_UNIT_ATTRS(8),
-+	IN_UNIT_ATTRS(9),
-+	FAN_UNIT_ATTRS(0),
-+	FAN_UNIT_ATTRS(1),
-+	FAN_UNIT_ATTRS(2),
-+	FAN_UNIT_ATTRS(3),
-+	FAN_UNIT_ATTRS(4),
-+	TEMP_UNIT_ATTRS(0),
-+	TEMP_UNIT_ATTRS(1),
-+	TEMP_UNIT_ATTRS(2),
-+	&dev_attr_alarms.attr,
-+	&sda_beep_ctrl[0].dev_attr.attr,
-+	&sda_beep_ctrl[1].dev_attr.attr,
-+	&dev_attr_cpu0_vid.attr,
-+	&dev_attr_vrm.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group w83791d_group = {
-+	.attrs = w83791d_attributes,
-+};
-+
- /* This function is called when:
-      * w83791d_driver is inserted (when this module is loaded), for each
-        available adapter
-@@ -967,41 +1013,20 @@ static int w83791d_detect(struct i2c_ada
- 	}
- 
- 	/* Register sysfs hooks */
-+	if ((err = sysfs_create_group(&client->dev.kobj, &w83791d_group)))
-+		goto error3;
-+
-+	/* Everything is ready, now register the working device */
- 	data->class_dev = hwmon_device_register(dev);
- 	if (IS_ERR(data->class_dev)) {
- 		err = PTR_ERR(data->class_dev);
--		goto error3;
--	}
--
--	for (i = 0; i < NUMBER_OF_VIN; i++) {
--		device_create_file(dev, &sda_in_input[i].dev_attr);
--		device_create_file(dev, &sda_in_min[i].dev_attr);
--		device_create_file(dev, &sda_in_max[i].dev_attr);
--	}
--
--	for (i = 0; i < NUMBER_OF_FANIN; i++) {
--		device_create_file(dev, &sda_fan_input[i].dev_attr);
--		device_create_file(dev, &sda_fan_div[i].dev_attr);
--		device_create_file(dev, &sda_fan_min[i].dev_attr);
--	}
--
--	for (i = 0; i < NUMBER_OF_TEMPIN; i++) {
--		device_create_file(dev, &sda_temp_input[i].dev_attr);
--		device_create_file(dev, &sda_temp_max[i].dev_attr);
--		device_create_file(dev, &sda_temp_max_hyst[i].dev_attr);
-+		goto error4;
- 	}
- 
--	device_create_file(dev, &dev_attr_alarms);
--
--	for (i = 0; i < ARRAY_SIZE(sda_beep_ctrl); i++) {
--		device_create_file(dev, &sda_beep_ctrl[i].dev_attr);
--	}
--
--	device_create_file(dev, &dev_attr_cpu0_vid);
--	device_create_file(dev, &dev_attr_vrm);
--
- 	return 0;
- 
-+error4:
-+	sysfs_remove_group(&client->dev.kobj, &w83791d_group);
- error3:
- 	if (data->lm75[0] != NULL) {
- 		i2c_detach_client(data->lm75[0]);
-@@ -1025,8 +1050,10 @@ static int w83791d_detach_client(struct 
- 	int err;
- 
- 	/* main client */
--	if (data)
-+	if (data) {
- 		hwmon_device_unregister(data->class_dev);
-+		sysfs_remove_group(&client->dev.kobj, &w83791d_group);
-+	}
- 
- 	if ((err = i2c_detach_client(client)))
- 		return err;
+I am assuming that I am hosing some hardware registers each time I try to dump
+this clock chip.  Maybe I shouldn't be trying to do that??  I'm not exactly
+sure.  The i2cdumps behave the same way until I reboot the system.  I've tried
+removing the modules from the kernel and then installing them again, but the
+problem? remains.
 
+Furthermore, subsequent i2cdetect commands give the following output:
+# i2cdetect -y 0
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+	 00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX UU XX
+	 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 50: UU XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+	 70: XX XX XX XX XX XX XX XX
 
-Patches currently in gregkh-2.6 which might be from jim.cromie at gmail.com are
+Which shows that I don't have the same addresses as before.
 
-i2c/hwmon-unchecked-return-status-fixes-w83791d.patch
+Thanks for any suggestions.
+
+-Jason
+
 
