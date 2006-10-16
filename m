@@ -1,7 +1,7 @@
-From: oe@hentges.net (Matthias Hentges)
-Date: Sun, 15 Oct 2006 23:46:27 +0000
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Mon, 16 Oct 2006 18:22:40 +0000
 Subject: [lm-sensors] [PATCH 0/3] coretemp driver
-Message-Id: <1160955987.4413.9.camel@mhcln03>
+Message-Id: <4533CDF0.10608@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45329771.7030108@assembler.cz>
 In-Reply-To: <45329771.7030108@assembler.cz>
@@ -10,38 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Rudolf,
+Hello Mattias,
 
-Am Sonntag, den 15.10.2006, 22:17 +0200 schrieb Rudolf Marek:
-> Hello all,
-> 
-> Following series of patches adds support for the temperature sensors inside the
-> Intel Core family processors.
-> 
-> It would be nice if someone could test the stuff again and read the
-> documentation and code to see if all is OK
+Thanks for the test.
 
-I've just applied this patchset to 2.6.19-rc2. If I enable "Processor
-type and features / Support for hot-pluggable CPUs (EXPERIMENTAL)", the
-coretemp driver no longer compiles (not as module and not compiled into
-the kernel).
+> I've just applied this patchset to 2.6.19-rc2. If I enable "Processor
+> type and features / Support for hot-pluggable CPUs (EXPERIMENTAL)", the
+> coretemp driver no longer compiles (not as module and not compiled into
+> the kernel).
+
+Please do not include the binary attachments, the mailing list will throw such 
+mails away...
+
+ >coretemp.c:(.init.text+0x6e0d): undefined reference to 
+ >`register_hotcpu_notifier'
+ >drivers/built-in.o: In function `coretemp_exit': 
+
+ >coretemp.c:(.exit.text+0x82f): undefined reference to 
+ >`unregister_hotcpu_notifier'
+ >make: *** [.tmp_vmlinux1] Fehler 1
+
+Hmm I tried with the rc2 and it does work. (it reports just a complain about 
+missing function prototype - I fixed that). Please can you send me your .config 
+file? Maybe you need to make clean; before doing the test?
 
 Thanks,
--- 
-Matthias 'CoreDump' Hentges 
+Rudolf
 
-My OS: Debian SID. Geek by Nature, Linux by Choice
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: make_bzImage.tmp.gz
-Type: application/x-gzip
-Size: 2257 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061016/fe00d9a3/attachment.gz 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: Dies ist ein digital signierter Nachrichtenteil
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061016/fe00d9a3/attachment.bin 
