@@ -1,29 +1,26 @@
 From: r.marek@assembler.cz (Rudolf Marek)
-Date: Sun, 15 Oct 2006 20:28:40 +0000
+Date: Tue, 17 Oct 2006 21:29:28 +0000
 Subject: [lm-sensors] [PATCH 1/3] export the do_rdmsr/do_wrmsr function
-Message-Id: <453299F8.8020503@assembler.cz>
+Message-Id: <45354B38.7060501@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <453299F8.8020503@assembler.cz>
+In-Reply-To: <453299F8.8020503@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello
+Hello,
 
-Following patch exports the do_rdmsr/do_wrmsr functions from msr.c driver
-because I need them. I think I need to rename them a bit and I'm not sure if I
-need the #ifdef KERNEL stuff in header files. This functions could be used also
-by k8edac driver (currently in -mm).
+Here comes an updated patch. The functions are exported as msr_read and 
+msr_write. I think I fixed the compilation isssues.
 
-I'm open to the suggestion how to name them. Is there any policy for this?
-
-Thanks,
 Regards
 Rudolf
 -------------- next part --------------
 A non-text attachment was scrubbed...
 Name: merge-msr-funcs.patch
 Type: text/x-patch
-Size: 2489 bytes
+Size: 4094 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061015/4ac1dbe3/attachment.bin 
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061017/3c6f20db/attachment.bin 
