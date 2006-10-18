@@ -1,51 +1,67 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 15 Oct 2006 12:09:18 +0000
-Subject: [lm-sensors] [3/3] 2.6.19-r2: known regressions with patches
-Message-Id: <20061015140918.33a6e0a1.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Wed, 18 Oct 2006 20:09:37 +0000
+Subject: [lm-sensors] [PATCH 6/8] w83627ehf: Fix the detection of fan5
+Message-Id: <11612021961186-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.64.0610130941550.3952@g5.osdl.org>
-	<20061014111458.GI30596@stusta.de>
-	<20061014113409.GL30596@stusta.de>
-In-Reply-To: <20061014113409.GL30596@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sylvain BERTRAND <sylvain.bertrand@gmail.com>, David Hubbard <david.c.hubbard@gmail.com>, lm-sensors@lm-sensors.org, Greg Kroah-Hartman <gregkh@suse.de>
+To: lm-sensors@vger.kernel.org
 
-Hi Adrian,
+From: Rudolf Marek <r.marek at assembler.cz>
 
-On Sat, 14 Oct 2006 13:34:09 +0200, Adrian Bunk wrote:
-> This email lists some known regressions in 2.6.19-rc2 compared to 2.6.18
-> with patches available.
-> 
-> Unless there are specific reasons against doing so, we should try to get 
-> these patches into -rc3.
-> 
-> (Especially the lad who wrote the patch for the third entry should ush 
->  his patch...)
-> 
-> If you find your name in the Cc header, you are either submitter of one
-> of the bugs, maintainer of an affectected subsystem or driver, a patch
-> of you caused a breakage or I'm considering you in any other way possibly
-> involved with one or more of these issues.
-> 
-> Due to the huge amount of recipients, please trim the Cc when answering.
-> (...)
-> 
-> Subject    : w83781d modprobing failure
-> References : http://bugzilla.kernel.org/show_bug.cgi?idr93
-> Submitter  : Sylvain BERTRAND <sylvain.bertrand at gmail.com>
-> Caused-By  : David Hubbard <david.c.hubbard at gmail.com> (?)
->              commit 8202632647278eba7223727dc442f49227c040d0 (?)
-> Handled-By : Jean Delvare <khali at linux-fr.org>
-> Patch      : http://bugzilla.kernel.org/show_bug.cgi?idr93
-> Status     : patch available
+Fix the detection of fan5 and preserve the bit between the
+register writes, because the bit is write only.
 
-Patch was tested successfully by Sylvain, I sent it to Greg already,
-who should push it to Linus soon (with 7 other hwmon patches.)
+Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+---
+ drivers/hwmon/w83627ehf.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
 
-Thanks,
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 833faa2..2257806 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -354,6 +354,8 @@ static void w83627ehf_write_fan_div(stru
+ 	case 0:
+ 		reg = (w83627ehf_read_value(client, W83627EHF_REG_FANDIV1) & 0xcf)
+ 		    | ((data->fan_div[0] & 0x03) << 4);
++		/* fan5 input control bit is write only, compute the value */
++		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
+ 		w83627ehf_write_value(client, W83627EHF_REG_FANDIV1, reg);
+ 		reg = (w83627ehf_read_value(client, W83627EHF_REG_VBAT) & 0xdf)
+ 		    | ((data->fan_div[0] & 0x04) << 3);
+@@ -362,6 +364,8 @@ static void w83627ehf_write_fan_div(stru
+ 	case 1:
+ 		reg = (w83627ehf_read_value(client, W83627EHF_REG_FANDIV1) & 0x3f)
+ 		    | ((data->fan_div[1] & 0x03) << 6);
++		/* fan5 input control bit is write only, compute the value */
++		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
+ 		w83627ehf_write_value(client, W83627EHF_REG_FANDIV1, reg);
+ 		reg = (w83627ehf_read_value(client, W83627EHF_REG_VBAT) & 0xbf)
+ 		    | ((data->fan_div[1] & 0x04) << 4);
+@@ -1216,13 +1220,16 @@ static int w83627ehf_detect(struct i2c_a
+ 	superio_exit();
+ 
+ 	/* It looks like fan4 and fan5 pins can be alternatively used
+-	   as fan on/off switches */
++	   as fan on/off switches, but fan5 control is write only :/
++	   We assume that if the serial interface is disabled, designers
++	   connected fan5 as input unless they are emitting log 1, which
++	   is not the default. */
+ 
+ 	data->has_fan = 0x07; /* fan1, fan2 and fan3 */
+ 	i = w83627ehf_read_value(client, W83627EHF_REG_FANDIV1);
+ 	if ((i & (1 << 2)) && (!fan4pin))
+ 		data->has_fan |= (1 << 3);
+-	if ((i & (1 << 0)) && (!fan5pin))
++	if (!(i & (1 << 1)) && (!fan5pin))
+ 		data->has_fan |= (1 << 4);
+ 
+ 	/* Register sysfs hooks */
 -- 
-Jean Delvare
+1.4.2.4
+
 
