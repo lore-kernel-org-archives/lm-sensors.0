@@ -1,89 +1,100 @@
-From: gregkh@suse.de (gregkh at suse.de)
-Date: Tue, 10 Oct 2006 20:54:03 +0000
-Subject: [lm-sensors] patch hwmon-documentation-typos.patch added to
-Message-Id: <20061010205356.5E26D8FD5EB@imap.suse.de>
+From: greg@kroah.com (Greg KH)
+Date: Wed, 18 Oct 2006 20:09:35 +0000
+Subject: [lm-sensors] [PATCH 4/8] smsc47m1: List the SMSC LPC47M112 as
+Message-Id: <1161202189122-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-This is a note to let you know that I've just added the patch titled
-
-     Subject: [PATCH 3/6] hwmon: Fix documentation typos
-
-to my gregkh-2.6 tree.  Its filename is
-
-     hwmon-documentation-typos.patch
-
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
-
-
-From khali at linux-fr.org Sun Oct  8 12:59:58 2006
-Date: Sun, 8 Oct 2006 21:59:54 +0200
 From: Jean Delvare <khali at linux-fr.org>
-To: Greg KH <greg at kroah.com>
-Cc: LM Sensors <lm-sensors at lm-sensors.org>
-Subject: [PATCH 3/6] hwmon: Fix documentation typos
-Message-Id: <20061008215954.3a00c185.khali at linux-fr.org>
-Content-Disposition: inline; filename=hwmon-documentation-typos.patch
 
-Fix typos in hardware monitoring documentation.
+The SMSC LPC47M112 Super-I/O chip appears to be compatible with the
+LPC47M10x and LPC47M13x as far as hardware monitoring is concerned.
+The device ID is even the same, so it's really only a documentation
+update.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
 ---
- Documentation/hwmon/f71805f   |    2 +-
- Documentation/hwmon/w83627ehf |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ Documentation/hwmon/smsc47m1 |    4 +++-
+ drivers/hwmon/Kconfig        |    4 ++--
+ drivers/hwmon/smsc47m1.c     |   11 ++++++-----
+ 3 files changed, 11 insertions(+), 8 deletions(-)
 
---- gregkh-2.6.orig/Documentation/hwmon/f71805f
-+++ gregkh-2.6/Documentation/hwmon/f71805f
-@@ -17,7 +17,7 @@ Thanks to Kris Chen from Fintek for answ
- providing additional documentation.
+diff --git a/Documentation/hwmon/smsc47m1 b/Documentation/hwmon/smsc47m1
+index c15bbe6..04a1112 100644
+--- a/Documentation/hwmon/smsc47m1
++++ b/Documentation/hwmon/smsc47m1
+@@ -2,12 +2,14 @@ Kernel driver smsc47m1
+ ===========
  
- Thanks to Chris Lin from Jetway for providing wiring schematics and
--anwsering technical questions.
-+answering technical questions.
+ Supported chips:
+-  * SMSC LPC47B27x, LPC47M10x, LPC47M13x, LPC47M14x, LPC47M15x and LPC47M192
++  * SMSC LPC47B27x, LPC47M112, LPC47M10x, LPC47M13x, LPC47M14x,
++    LPC47M15x and LPC47M192
+     Addresses scanned: none, address read from Super I/O config space
+     Prefix: 'smsc47m1'
+     Datasheets:
+         http://www.smsc.com/main/datasheets/47b27x.pdf
+         http://www.smsc.com/main/datasheets/47m10x.pdf
++        http://www.smsc.com/main/datasheets/47m112.pdf
+         http://www.smsc.com/main/tools/discontinued/47m13x.pdf
+         http://www.smsc.com/main/datasheets/47m14x.pdf
+         http://www.smsc.com/main/tools/discontinued/47m15x.pdf
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 9b88b25..e0dede7 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -369,8 +369,8 @@ config SENSORS_SMSC47M1
+ 	help
+ 	  If you say yes here you get support for the integrated fan
+ 	  monitoring and control capabilities of the SMSC LPC47B27x,
+-	  LPC47M10x, LPC47M13x, LPC47M14x, LPC47M15x, LPC47M192 and
+-	  LPC47M997 chips.
++	  LPC47M10x, LPC47M112, LPC47M13x, LPC47M14x, LPC47M15x,
++	  LPC47M192 and LPC47M997 chips.
  
+ 	  The temperature and voltage sensor features of the LPC47M192
+ 	  and LPC47M997 are supported by another driver, select also
+diff --git a/drivers/hwmon/smsc47m1.c b/drivers/hwmon/smsc47m1.c
+index 47132fd..beb881c 100644
+--- a/drivers/hwmon/smsc47m1.c
++++ b/drivers/hwmon/smsc47m1.c
+@@ -2,8 +2,8 @@
+     smsc47m1.c - Part of lm_sensors, Linux kernel modules
+                  for hardware monitoring
  
- Description
---- gregkh-2.6.orig/Documentation/hwmon/w83627ehf
-+++ gregkh-2.6/Documentation/hwmon/w83627ehf
-@@ -26,7 +26,7 @@ fan control mode).
- Temperatures are measured in degrees Celsius and measurement resolution is 1
- degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
- the temperature gets higher than high limit; it stays on until the temperature
--falls below the Hysteresis value.
-+falls below the hysteresis value.
+-    Supports the SMSC LPC47B27x, LPC47M10x, LPC47M13x, LPC47M14x,
+-    LPC47M15x, LPC47M192 and LPC47M997 Super-I/O chips.
++    Supports the SMSC LPC47B27x, LPC47M10x, LPC47M112, LPC47M13x,
++    LPC47M14x, LPC47M15x, LPC47M192 and LPC47M997 Super-I/O chips.
  
- Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
- triggered if the rotation speed has dropped below a programmable limit. Fan
-@@ -67,9 +67,9 @@ Thermal Cruise mode
+     Copyright (C) 2002 Mark D. Studebaker <mdsxyz123 at yahoo.com>
+     Copyright (C) 2004 Jean Delvare <khali at linux-fr.org>
+@@ -380,8 +380,8 @@ static int __init smsc47m1_find(unsigned
+ 	val = superio_inb(SUPERIO_REG_DEVID);
  
- If the temperature is in the range defined by:
- 
--pwm[1-4]_target    - set target temperature, unit millidegree Celcius
-+pwm[1-4]_target    - set target temperature, unit millidegree Celsius
- 		     (range 0 - 127000)
--pwm[1-4]_tolerance - tolerance, unit millidegree Celcius (range 0 - 15000)
-+pwm[1-4]_tolerance - tolerance, unit millidegree Celsius (range 0 - 15000)
- 
- there are no changes to fan speed. Once the temperature leaves the interval,
- fan speed increases (temp is higher) or decreases if lower than desired.
+ 	/*
+-	 * SMSC LPC47M10x/LPC47M13x (device id 0x59), LPC47M14x (device id
+-	 * 0x5F) and LPC47B27x (device id 0x51) have fan control.
++	 * SMSC LPC47M10x/LPC47M112/LPC47M13x (device id 0x59), LPC47M14x
++	 * (device id 0x5F) and LPC47B27x (device id 0x51) have fan control.
+ 	 * The LPC47M15x and LPC47M192 chips "with hardware monitoring block"
+ 	 * can do much more besides (device id 0x60).
+ 	 * The LPC47M997 is undocumented, but seems to be compatible with
+@@ -390,7 +390,8 @@ static int __init smsc47m1_find(unsigned
+ 	if (val = 0x51)
+ 		printk(KERN_INFO "smsc47m1: Found SMSC LPC47B27x\n");
+ 	else if (val = 0x59)
+-		printk(KERN_INFO "smsc47m1: Found SMSC LPC47M10x/LPC47M13x\n");
++		printk(KERN_INFO "smsc47m1: Found SMSC "
++		       "LPC47M10x/LPC47M112/LPC47M13x\n");
+ 	else if (val = 0x5F)
+ 		printk(KERN_INFO "smsc47m1: Found SMSC LPC47M14x\n");
+ 	else if (val = 0x60)
+-- 
+1.4.2.4
 
-
-Patches currently in gregkh-2.6 which might be from khali at linux-fr.org are
-
-i2c/hwmon-documentation-typos.patch
-i2c/hwmon-k8temp-documentation-update.patch
-i2c/hwmon-smsc47m112-documentation.patch
-i2c/hwmon-unchecked-return-status-fixes-w83791d.patch
-i2c/hwmon-update-Grant-Coady-email-address.patch
-i2c/hwmon-w83627ehf-fix-fan5-detection.patch
-driver-class/i2c-dev-device.patch
-driver-class/i2c-dev-device.old.patch
 
