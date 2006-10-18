@@ -1,151 +1,53 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 28 Sep 2006 22:48:38 +0000
-Subject: [lm-sensors] [PATCH 18/39] hwmon: Make a dozen drivers no more
-Message-Id: <11594837971334-git-send-email-greg@kroah.com>
+From: hamletmun@fibertel.com.ar (Hamlet)
+Date: Wed, 18 Oct 2006 18:55:10 +0000
+Subject: [lm-sensors] ASUS P5B DELUXE WiFi with Winbond W83627DHG
+Message-Id: <4536788E.8010504@fibertel.com.ar>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali at linux-fr.org>
+Winbond W83627DHG seems to be compatible with lm78
 
-hwmon: Make a dozen drivers no more experimental
+# sensors
+lm78-isa-0290
+Adapter: ISA adapter
+VCore 1:   +2.43 V  (min =  +2.85 V, max =  +3.15 V)
+VCore 2:   +3.66 V  (min =  +2.85 V, max =  +3.15 V)
++3.3V:     +3.31 V  (min =  +3.14 V, max =  +3.47 V)
++5V:       +5.56 V  (min =  +4.76 V, max =  +5.24 V)
++12V:     +12.77 V  (min = +11.37 V, max = +12.59 V)
+-12V:     -11.24 V  (min = -12.63 V, max = -11.40 V)
+-5V:       -4.98 V  (min =  -5.25 V, max =  -4.74 V)
+fan1:        0 RPM  (min = 337500 RPM, div = 2)
+fan2:     20149 RPM  (min = 10074 RPM, div = 1)
+fan3:        0 RPM  (min = 112500 RPM, div = 2)
+temp:      +41.0?C  (high =   +81?C, hyst =  -124?C
 
-Remove the EXPERIMENTAL tag from a dozen hardware monitoring drivers.
-They are in the tree for quite a long time, so we would know by now if
-they were causing trouble.
+# isadump 0x295 0x296
+WARNING! Running this program can cause system crashes, data loss and worse!
+I will probe address register 0x295 and data register 0x296.
+Continue? [Y/n]
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: 04 ff 04 4b 31 00 4c 10 01 4b 01 01 3c 3c 0a 05
+10: 04 ff 50 00 00 01 01 3c 43 17 00 00 ff ff ff c7
+20: 98 e5 cf cf d2 ca cf 29 ff 43 ff c5 b2 c5 b2 d9
+30: c4 c3 b1 cf bb e3 cd da c5 51 84 02 86 06 85 ff
+40: 03 00 00 de ff ff 00 15 2d 00 20 44 18 95 06 a3
+50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+60: 01 9b 31 56 9b 01 3c ff 12 ff 0a ff ff ff ff ff
+70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+80: 04 ff 04 4b 31 00 4c 10 01 4b 01 01 3c 3c 0a 05
+90: 04 ff 50 00 00 01 01 3c 43 17 00 00 ff ff ff c7
+a0: 98 e5 cf cf d2 ca cf 29 ff 43 ff c5 b2 c5 b2 d9
+b0: c4 c3 b1 cf bb e3 cd da c5 51 84 02 86 06 85 ff
+c0: 03 00 00 de ff ff 00 15 2d 00 20 44 18 95 06 a3
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+e0: 01 9b 31 56 9b 01 3c ff 12 ff 0a ff ff ff ff ff
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
 
-Also make it clearer that the VT8231 is a VIA chip.
+I will stay with lm78 because w83627ehf doesn't work, at least for now.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
----
- drivers/hwmon/Kconfig |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index d9f86e9..696543b 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -53,7 +53,7 @@ config SENSORS_ADM1021
- 
- config SENSORS_ADM1025
- 	tristate "Analog Devices ADM1025 and compatibles"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	select HWMON_VID
- 	help
- 	  If you say yes here you get support for Analog Devices ADM1025
-@@ -131,7 +131,7 @@ config SENSORS_ATXP1
- 
- config SENSORS_DS1621
- 	tristate "Dallas Semiconductor DS1621 and DS1625"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for Dallas Semiconductor
- 	  DS1621 and DS1625 sensor chips.
-@@ -151,7 +151,7 @@ config SENSORS_F71805F
- 
- config SENSORS_FSCHER
- 	tristate "FSC Hermes"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for Fujitsu Siemens
- 	  Computers Hermes sensor chips.
-@@ -161,7 +161,7 @@ config SENSORS_FSCHER
- 
- config SENSORS_FSCPOS
- 	tristate "FSC Poseidon"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for Fujitsu Siemens
- 	  Computers Poseidon sensor chips.
-@@ -181,7 +181,7 @@ config SENSORS_GL518SM
- 
- config SENSORS_GL520SM
- 	tristate "Genesys Logic GL520SM"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	select HWMON_VID
- 	help
- 	  If you say yes here you get support for Genesys Logic GL520SM
-@@ -204,7 +204,7 @@ config SENSORS_IT87
- 
- config SENSORS_LM63
- 	tristate "National Semiconductor LM63"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for the National Semiconductor
- 	  LM63 remote diode digital temperature sensor with integrated fan
-@@ -241,7 +241,7 @@ config SENSORS_LM75
- 
- config SENSORS_LM77
- 	tristate "National Semiconductor LM77"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for National Semiconductor LM77
- 	  sensor chips.
-@@ -251,7 +251,7 @@ config SENSORS_LM77
- 
- config SENSORS_LM78
- 	tristate "National Semiconductor LM78 and compatibles"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	select I2C_ISA
- 	select HWMON_VID
- 	help
-@@ -294,7 +294,7 @@ config SENSORS_LM85
- 
- config SENSORS_LM87
- 	tristate "National Semiconductor LM87"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	select HWMON_VID
- 	help
- 	  If you say yes here you get support for National Semiconductor LM87
-@@ -319,7 +319,7 @@ config SENSORS_LM90
- 
- config SENSORS_LM92
- 	tristate "National Semiconductor LM92 and compatibles"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for National Semiconductor LM92
- 	  and Maxim MAX6635 sensor chips.
-@@ -329,7 +329,7 @@ config SENSORS_LM92
- 
- config SENSORS_MAX1619
- 	tristate "Maxim MAX1619 sensor chip"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	help
- 	  If you say yes here you get support for MAX1619 sensor chip.
- 
-@@ -364,7 +364,7 @@ config SENSORS_SIS5595
- 
- config SENSORS_SMSC47M1
- 	tristate "SMSC LPC47M10x and compatibles"
--	depends on HWMON && I2C && EXPERIMENTAL
-+	depends on HWMON && I2C
- 	select I2C_ISA
- 	help
- 	  If you say yes here you get support for the integrated fan
-@@ -418,7 +418,7 @@ config SENSORS_VIA686A
- 	  will be called via686a.
- 
- config SENSORS_VT8231
--	tristate "VT8231"
-+	tristate "VIA VT8231"
- 	depends on HWMON && I2C && PCI && EXPERIMENTAL
- 	select HWMON_VID
- 	select I2C_ISA
--- 
-1.4.2.1
-
+http://forums.gentoo.org//viewtopic-t-508476.html
 
