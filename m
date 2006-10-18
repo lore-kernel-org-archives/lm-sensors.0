@@ -1,37 +1,61 @@
-From: fkraiem@enib.fr (Firas Kraiem)
-Date: Wed, 04 Oct 2006 15:59:46 +0000
-Subject: [lm-sensors] Analog Devices ADT7463
-Message-Id: <4523DA72.1090001@enib.fr>
+From: greg@kroah.com (Greg KH)
+Date: Wed, 18 Oct 2006 20:09:33 +0000
+Subject: [lm-sensors] [PATCH 2/8] adm9240: Update Grant Coady's email address
+Message-Id: <11612021821403-git-send-email-greg@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <451D19F1.5060304@enib.fr>
-In-Reply-To: <451D19F1.5060304@enib.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
+From: Grant Coady <gcoady.lk at gmail.com>
 
->Hi Firas,
->
->  
->
->
->The ADT7463 _is_ listed on our Devices page, it's supported by the lm85
->driver for a long time now.
->
->If sensors-detect didn't find it, it's most probably because Asus
->disabled the SMBus on this laptop as they often do. In order to
->reenable it, a PCI quick is needed. Please provide the output of "lspci
->-vn". Note that this PCI quirk is mutually exclusive with suspend
->support though, so if you want to be able to suspend and resume your
->laptop, you can't have hardware monitoring support (other than the ACPI
->temperature.)
->
->  
->
-Oh damn, I'm an idiot ! Well, I'll try with the lm85 driver this evening 
-when I'll be back home, I don't think the SMBus is disables since I get 
-the sensors info in Windows using Everest. If that still doesn't work, 
-I'll parovide the otput of lspci -vn. Thanks again for the support !
+Replace a bouncing email that I cannot recover from Mr Google.
+
+Signed-off-by: Grant Coady <gcoady.lk at gmail.com>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+---
+ Documentation/hwmon/adm9240 |    2 +-
+ drivers/hwmon/adm9240.c     |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/hwmon/adm9240 b/Documentation/hwmon/adm9240
+index 35f618f..2c6f1fe 100644
+--- a/Documentation/hwmon/adm9240
++++ b/Documentation/hwmon/adm9240
+@@ -24,7 +24,7 @@ Authors:
+     Frodo Looijaard <frodol at dds.nl>,
+     Philip Edelbrock <phil at netroedge.com>,
+     Michiel Rook <michiel at grendelproject.nl>,
+-    Grant Coady <gcoady at gmail.com> with guidance
++    Grant Coady <gcoady.lk at gmail.com> with guidance
+         from Jean Delvare <khali at linux-fr.org>
+ 
+ Interface
+diff --git a/drivers/hwmon/adm9240.c b/drivers/hwmon/adm9240.c
+index 377961c..aad594a 100644
+--- a/drivers/hwmon/adm9240.c
++++ b/drivers/hwmon/adm9240.c
+@@ -5,7 +5,7 @@
+  * Copyright (C) 1999	Frodo Looijaard <frodol at dds.nl>
+  *			Philip Edelbrock <phil at netroedge.com>
+  * Copyright (C) 2003	Michiel Rook <michiel at grendelproject.nl>
+- * Copyright (C) 2005	Grant Coady <gcoady at gmail.com> with valuable
++ * Copyright (C) 2005	Grant Coady <gcoady.lk at gmail.com> with valuable
+  * 				guidance from Jean Delvare
+  *
+  * Driver supports	Analog Devices		ADM9240
+@@ -774,7 +774,7 @@ static void __exit sensors_adm9240_exit(
+ }
+ 
+ MODULE_AUTHOR("Michiel Rook <michiel at grendelproject.nl>, "
+-		"Grant Coady <gcoady at gmail.com> and others");
++		"Grant Coady <gcoady.lk at gmail.com> and others");
+ MODULE_DESCRIPTION("ADM9240/DS1780/LM81 driver");
+ MODULE_LICENSE("GPL");
+ 
+-- 
+1.4.2.4
+
 
