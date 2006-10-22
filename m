@@ -1,7 +1,7 @@
 From: r.marek@assembler.cz (Rudolf Marek)
-Date: Sun, 22 Oct 2006 11:06:12 +0000
+Date: Sun, 22 Oct 2006 20:26:12 +0000
 Subject: [lm-sensors] About the "CPU temp" output of ADM1025A chip
-Message-Id: <453B50A4.7000501@assembler.cz>
+Message-Id: <453BD3E4.8070509@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2ca62ec0610211255g3a2f7866me6fb15f372246014@mail.gmail.com>
 In-Reply-To: <2ca62ec0610211255g3a2f7866me6fb15f372246014@mail.gmail.com>
@@ -10,85 +10,93 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Yongkui,
 
-> I have an Intel D850MV motherboard. There is an ADM1025A sensor chip on
-> the motherboard. Also there is an LPC47M142 I/O chip on the motherboard.
-> My CPU is a Pentium 4 CPU, 1.7GHz.
+> Thanks very much for your help.
 
-And here is your motherboard
-ftp://download.intel.com/design/motherbd/mv/A6514501.pdf
+Well always good to hear it. Unfortunately I have not so much free time recently 
+for this kind of lm-sensors support stuff.
 
-technical guide ;)
+> The pin numbers for the thermal diode in the Pentium 4 CPU are H38 and 
+> E39. I think the PIN 9 and 10 of ADM1025A chip are connected to the PIN 
+> H38 and E39 of the Pentium 4 CPU. So the temperature output "CPU Temp" 
+> from lm-sensors should be the temprature reading of this thermal diode.
 
+Good.
 
-> The following is a sample output for my lm-sensors software.
-> ---------------------------------
-> $ sensors
-> adm1025-i2c-0-2d
-> Adapter: SMBus I801 adapter at efa0
+> The datasheet of my Pentium 4 CPU is here:
+> http://www.intel.com/design/pentium4/datashts/249198.htm
+> ftp://download.intel.com/design/Pentium4/datashts/24919805.pdf
 >  
-> +2.5V:     +2.49 V  (min =  +2.25 V, max =  +2.75 V)
-> VCore:     +1.68 V  (min =  +1.66 V, max =  +1.84 V)
-> +3.3V:     +3.30 V  (min =  +2.97 V, max =  +3.63 V)
-> +5V:       +5.13 V  (min =  +4.50 V, max =  +5.50 V)
-> VCC:       +3.30 V  (min =  +2.97 V, max =  +3.63 V)
-> CPU Temp:  +35.0?C  (low  =   +10?C, high =   +60?C)
-> M/B Temp:  +34.0?C  (low  =   +10?C, high =   +45?C)
-> vid:      +1.750 V  (VRM Version 9.0)
 >  
-> smsc47m1-isa-0800
-> Adapter: ISA adapter
-> fan1:     3233 RPM  (min =  640 RPM, div = 8)
-> fan2:        0 RPM  (min =  640 RPM, div = 8)
-> --------------------------------------------------------------
->  
-> I am interested in the temperature readings from the sensor chip. There
-> are two temperature readings: CPU temp and M/B temp. According the
-> ADM1025A datasheet, I think the M/B temp is the on-chip sensor in the
-> ADM1025A chip, and the CPU temp is the External Temperature Measurement
-> with Remote Diode.
->  
-> My question is: Where is this remote diode located? Is this remote diode
-> the internal thermal diode inside the Pentium 4 CPU chip, or a
-> thermal sensor provided by the motherboard which is attached to the CPU
-> chip very closely?
+> A picture for my CPU chip and the ADM1025A chip is attached. You can see 
+> in the picture that the ADM1025A chip sits close to the Pentium 4 CPU 
+> chip (the top-right location).
 
-According to technical docs from intel, it is Remote thermal diode sensing for
-direct monitoring of processor temperature
+It should be so - the analog lines are as shortest as possible.
 
-inside the CPU.
+> The followings are some observations from my experiments with lm-sensors:
+> -----------------------------------
+> The operating system is idle: CPU5C, M/B4C.
+> I run many CPU-intensive programs to see how high the CPU temperature 
+> can reach.
+> The highest temperature I observed are: CPUUC, M/BGC
+> The largest temperature difference between CPU and M/B is 8C.
+> It takes about 8 minutes for the CPU temp to reach 55C, and then stay at 
+> 55C. This means it reached its steady state temperature.
 
-> I downloaded the manual of Intel D850MV motherboard from Intel's
-> website, but could not get the answer to my question.
+Hmm this indicates perhaps the thermistor instead of the diode. It takes too 
+long. The core temperature should grow very very fast. But if the pins are 
+connected to the socket it must be diode. (and it seems that the chip is for 
+diode only)
 
-I did ;)
+> I expect the CPU temperature could reach 80C or 90C for some 
+> CPU-intensive programs. But unfortunatly, 55C is the highest temperature 
+> I observed so far. 55C is not so high in my opinion, why the CPU 
+> temperature cannot reach 80C or 90C? The critical temperature for the 
+> Pentium 4 CPU chip to shut down is 135C. 
 
-> I opened the computer case, removed the CPU fan, and saw the CPU and the
-> ADM1025A chip sit together on the motherboard, but I could not see from
-> the circuit board whether the PIN 9 and 10 (the two pins connected to
-> the remote diode) of ADM1025A chip are connected to the internal thermal
-> diode inside the Pentium 4 CPU chip.
+Yes true.
 
-Well there is a lot of layers PCB so it is impossible to track it down.
+> Now I am wondering where this thermal diode is located inside the 
+> Pentium 4 CPU. Is this thermal diode located near the Integer Register 
+> unit, or near the Floating-point Multiplication unit,  or near the Level 
+> 2 Cache unit? You know, there is a large temperature difference between 
+> two different locations on the CPU chip.
 
-The manual also suggest that the fan speeds are somehow controlled. This is
-quite interesting. Page 43 Quote:
+Well this is not known. If some parts get too hot the CPU  might throttle a bit 
+to cool down. Maybe you could try the "cpuburn" software.
+http://packages.debian.org/unstable/misc/cpuburn.html
+(for debian)
 
-The temperature sensors that control the fans are initialized by the BIOS at
-power-up to turn on only when the sensor reaches 36 C (96.8 F). The fans switch
-off when their respective sensors
-cool down to 31 C (87.8 F). This prevents the fans from turning off and on when
-the ambient air around the sensor fluctuates around 35?36 C. When the fans
-switch on, they may appear to rotate
-slowly because the fan's duty cycle starts at 70 percent and rises to 100
-percent when the sensor reaches 46 C (114.8 F).
+> Do you have any hints about the thermal diode location in the Pentium 4 
+> CPU chip?
 
-Datasheet is here http://www.datasheets.org.uk/datasheet.php?article 40255
+No but you may take a look to: Intel? 64 and IA-32 Architectures Software 
+Developer's Manual, Volume 3A: System Programming Guide describes the 
+operating-system support environment of an IA-32 and Intel? 64 architectures, 
+including: memory management, protection, task management, interrupt and 
+exception handling, multi-processor support, and thermal and power management 
+features.
 
-It seems it somehow changes the PWM via software (system management interrupt)
+There are some notes and stuff about the thermal monitor (the digital sensor 
+have core/core2 cpus so perhaps not yours)
 
-I hope it helps,
+http://www.intel.com/design/pentium4/manuals/index_new.htm
+
+All in all there is more then one temperature sensor, sometimes there is digital 
+temperature sensor, and even the diode is locate on other place...
+
+
+You may check the "IA32_THERM_STATUS MSR" via MSR reads (/dev/msr/...)
+http://www.google.com/codesearch?q=+rdmsr.c+show:EynqVEYBclg:kdySSoK4L6Y:chKAG6mOivc&sa=N&cd=1&ct=rc&cs_p=http://www.stillhq.com/extracted/x86info-wx.tgz&cs_f=x86info-wx/x86info-1.11/rdmsr.c#a0
+
+To sum it up. You need some cpuburn to burn the cpu. Then the temp should grow 
+quickly. Using the MSR you may check if the CPU defend itself when too hot.
+
+I hope it will help you during your experiments. If you burn the CPU to dead ;), 
+buy Core 2 CPU it has the embedded temperature sensor (and I wrote the driver 
+recently)
 
 Regards
 Rudolf
