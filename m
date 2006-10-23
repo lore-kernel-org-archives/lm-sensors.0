@@ -1,100 +1,50 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 16 Oct 2006 20:53:24 +0000
-Subject: [lm-sensors] ticket #1986, occasional bad data from lm85
-Message-Id: <20061016225324.36ad9059.khali@linux-fr.org>
+From: barrow_dj@yahoo.com (D.J. Barrow)
+Date: Mon, 23 Oct 2006 11:58:52 +0000
+Subject: [lm-sensors] lm93 porting questions
+Message-Id: <20061023115852.52689.qmail@web51106.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <453388EE.1090907@gmail.com>
-In-Reply-To: <453388EE.1090907@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jason,
+Hi Mark/Eric & others,
+I am looking at backporting the lm93 driver 
+( lm93-driver-2.6.13-rc3-mm3-0001.bin ) to Linux version 2.6.9-34
+Red Hat Enterprise Linux 4 to meet a customer requirement.
 
-On Mon, 16 Oct 2006 09:28:14 -0400, Jason Craig wrote:
-> I seem to be able to run i2cdump for all of these addresses except 0x69, which
-> from what I gathered from the I2C tools page
-> (http://netroedge.com/~lm78/i2ctools.html <http://netroedge.com/%7Elm78/i2ctools.html>) seems to be a clock chip.
+The biggest problem with the port to date seems to be incompatible sysfs apis.
+The attr stuff below being the primary source of the problems I think.
+ struct device_attribute *attr
+	struct sensor_device_attribute *s_attr = to_sensor_dev_attr(attr);
+How would one go about dealing with this?
 
-Page which no longer exists, BTW, so I wonder how you read it.
+sensors -v is reporting the following version
+sensors version 2.8.7 with libsensors version 2.8.7
 
-> Here is the output I get for this address.
-> # i2cdump -y 0 0x69 b
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> 	 00: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
-> 	 10: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
-> 	 20: 0f 1f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
-> 	 30: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
-> 	 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 
-> Basically, the first 4 lines of output are output as normal with a slight delay
-> between echos, but then there is a short pause, and the rest of the lines are
-> output immediately with no delay.  Subsequent i2cdump commands generate the
-> following output immediately (no delay like before for the first 4 lines).
-> 
-> # i2cdump -y 0 0x69 b
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> 	 00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 	 f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 
-> I am assuming that I am hosing some hardware registers each time I try to dump
-> this clock chip.  Maybe I shouldn't be trying to do that??  I'm not exactly
-> sure.  The i2cdumps behave the same way until I reboot the system.  I've tried
-> removing the modules from the kernel and then installing them again, but the
-> problem? remains.
+Do the kernel drivers & the user applications libsensors have to be matched,
+is the driver interface exposed to libsensors stable?
+Is backporting a bad idea as the libsensors etc. now
+have to be modified to support the new lm93 driver & left the same
+in parts to suppport the older sensor drivers.
 
-Our FAQ has the following entry of interest:
+If you advise we move to the latest kernel & sensors user applications we will
+need to upgrade other drivers, do any of you know if there will be glibc compatibility
+issues on upgrading the kernel.
 
-Q: What is at I2C address 0x69?
+Thanks in advance for your help,
+D.J. Barrow
 
-A: A clock chip. Often, accessing these clock chips in the wrong way
-will instantly crash your computer. Sensors-detect carefully avoids
-these chips, and you should do too. You have been warned. 
 
-> Furthermore, subsequent i2cdetect commands give the following output:
-> # i2cdetect -y 0
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 	 00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 	 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 	 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX UU XX
-> 	 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 	 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 	 50: UU XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 	 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 	 70: XX XX XX XX XX XX XX XX
-> 
-> Which shows that I don't have the same addresses as before.
-> 
-> Thanks for any suggestions.
+D.J. Barrow Linux kernel developer
+email: dj_barrow at ariasoft.ie
+email(work) denis.barrow at thalescomputers.fr
+Work: +33-498-163412
+Home: +353-22-47196.
+Mobile (IRL) +353-(0)86 1715438
 
-You're good for a cold boot at this point.
-
--- 
-Jean Delvare
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
 
