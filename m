@@ -1,44 +1,29 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 06 Oct 2006 12:37:12 +0000
-Subject: [lm-sensors] [PATCH] PowerPC 4xx I2C driver - add
-Message-Id: <20061006143712.cd5a942f.khali@linux-fr.org>
+From: timm@fnal.gov (Steven Timm)
+Date: Wed, 25 Oct 2006 15:59:20 +0000
+Subject: [lm-sensors] grafting lm-sensors 2.10.1 onto red hat kernel
+Message-Id: <Pine.LNX.4.64.0610251056560.7544@snowball.fnal.gov>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20061004032510.GA10354@gate.ebshome.net>
-In-Reply-To: <20061004032510.GA10354@gate.ebshome.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Eugene,
 
-> On Wed, Oct 04, 2006 at 11:59:46AM +0200, Jean Delvare wrote:
-> > Hi Eugene,
-> > 
-> > Wrong maintainer, and wrong list. I am the i2c maintainer, Greg is no
-> > longer, and there's a mailing list dedicated to i2c:
-> >   http://lists.lm-sensors.org/mailman/listinfo/i2c
-> > 
-> > Please resend to this list, thanks.
-> 
-> Oops, it was a long time since I sent any i2c patches. Frankly though, 
-> I don't understand your request to resend it to the other list as 
-> it seems it reached the right person anyway and patch is beyond 
-> trivial :).
+Has anyone successfully managed to compile i2c 2.10.1 and lm_sensors 
+2.10.1 so that they work with kernels such as "2.6.9-42.0.2.ELsmp" as
+distributed with Red Hat Enterprise Linux 4?
 
-Because I'd like the right audience to see it. I am short of review
-time and would appreciate if others could review the i2c patches from
-times to times. This only has a chance to work if the patches are
-submitted to the right list.
+For some of the 2.9 version of lm_sensors there used to be
+lm_sensors-kmdl and i2c-kmdl rpms available in the ATRPMS repository
+but now I do not see those anymore.  any hints are welcome.
 
-I see that Jean-Baptiste resbumitted the patch to the i2c list already,
-thanks.
+Steve Timm
 
-> Personally I don't care if this patch is accepted or not. Driver is 
-> working just fine without it.
-
-What I really want to know is whether it still works with it.
 
 -- 
-Jean Delvare
+------------------------------------------------------------------
+Steven C. Timm, Ph.D  (630) 840-8525  timm at fnal.gov  http://home.fnal.gov/~timm/
+Fermilab Computing Div/Core Support Services Dept./Scientific Computing Section
+Assistant Group Leader, Farms and Clustered Systems Group
+Lead of Computing Farms Team
 
