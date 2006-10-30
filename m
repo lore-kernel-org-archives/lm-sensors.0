@@ -1,24 +1,42 @@
-From: s.cormier@gmx.net (Stephen Cormier)
-Date: Tue, 24 Oct 2006 19:14:09 +0000
-Subject: [lm-sensors] make fails in lm_sensors-2.10.1
-Message-Id: <200610241614.09269.s.cormier@gmx.net>
+From: i.pilcher@comcast.net (Ian Pilcher)
+Date: Mon, 30 Oct 2006 06:52:25 +0000
+Subject: [lm-sensors] "Built-in" via686a sensors names
+Message-Id: <4545A129.5000600@comcast.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <453E06BF.8070003@e-dict.net>
-In-Reply-To: <453E06BF.8070003@e-dict.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tuesday 24 October 2006 09:27, Ingo Freund wrote:
-> mach_mpspec.h
+The gkrellm package in Fedora Extras 6 has been patched to use
+libsensors.  This causes it to fail to detect the voltage sensors on my
+Abit VP6 motherboard:
 
-A quick search on my Debian install shows that file in both the kernel headers 
-for your running kernel that can be installed and the generic 
-linux-kernel-headers package perhaps you need one/both of these installed.
+[pilcher at home ~]$ gkrellm -d 0x80
+--- GKrellM 2.2.9 ---
+hddtemp_daemon_read: can't connect to 127.0.0.1:7634.
+libsensors error determining type for: via686a at 6000/2.0V
+libsensors error determining type for: via686a at 6000/2.5V
+libsensors error determining type for: via686a at 6000/3.3V
+libsensors error determining type for: via686a at 6000/5.0V
+libsensors error determining type for: via686a at 6000/12V
+libsensors error determining type for: via686a at 6000/alarms
 
-Stephen
+gkrellm expects voltage sensors to to be named "inX", but it is getting
+back the "built-in" names such as "2.0V", etc.  (Built-in names which,
+BTW, are incorrect for my motherboard.)
+
+While I understand the desire to provide meaningful output, this seems
+to be a case where the library is being too clever by half.  Shouldn't
+the library just return the "raw" name (in0, etc.) and let the human-
+readable names be defined in sensors.conf?
+
+Or am I missing something...
+
+Thanks!
 
 -- 
-GPG Pubic Key: http://users.eastlink.ca/~stephencormier/publickey.asc
+====================================
+Ian Pilcher                                        i.pilcher at comcast.net
+====================================
 
