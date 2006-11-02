@@ -1,35 +1,46 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Tue, 21 Nov 2006 20:16:17 +0000
-Subject: [lm-sensors] Request for W83627DHG support in lm_sensors
-Message-Id: <4dfa50520611211216r7ddda4b6v12183050f006fe26@mail.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 02 Nov 2006 08:17:31 +0000
+Subject: [lm-sensors] [Patch] Fintek F75375S/SP chip driver
+Message-Id: <VlDWEaSC.1162455451.6428440.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Daniel,
 
->  Hi David,
->
->  Originally I had sent the email quoted below to Jean Delvare, who then
-> wrote back stating that you were working on this driver.
->
->  But obviously this is not entirely correct.
->
->  I presume you want more people to use your driver. I would like to try it
-> if it's stable. Please let me know.
+Hi Riku,
 
-I posted a prototype DHG driver here:
-http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060906/b139bc4d/attachment-0001.obj
+On 10/31/2006, Riku Voipio wrote:
+>last time I mailed this, I didn't get any feedback - Is this the
+>wrong place to send drivers for chips? Also I can't seem to find a
+>way to register to the wiki to update the devices entry..
 
-Note that it's not acceptable because it breaks compatibility with
-some EHF chips, but it should behave correctly on the DHG.
+It is the right place, unfortunately it seems that nobody had the
+interest and time to reviewing your code, and I'm currently not able to
+do so myself either.
 
-In a few weeks I should have a stable driver ready for testing. I'll
-be sure and email you, as I would really like any feedback / testing I
-can get.
+As for the wiki, we had to disable anonymous changes to avoid being
+spammed. If you intend to become a regular contributor to our project,
+we can create a named account for you, just ask. Otherwise, just tell us
+what change you would like to do on the wiki and we'll do it for you.
+
+> Compared to the previous version posted here, changes are minimal.
+> The driver is slightly more compact and fan is started at full speed
+> by default.
+
+This sounds like a bad idea. Loading the driver should not make any
+change to the device configuration.
+
+> I didn't bother with the libsensors stuff, since supposedly
+> there is a generic sysfs-reading version coming out soon.
+
+"Soon" might take several months. Please provide patches to sensors and
+libsensors, so that your driver can receive proper testing in the
+meantime. Take a look at the f71805f part for a not-too-heavy
+macro-and-loop-based implementation.
 
 Thanks,
-David
+--
+Jean Delvare
 
