@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 04 Nov 2006 14:23:13 +0000
+From: tbm@cyrius.com (Martin Michlmayr)
+Date: Sat, 04 Nov 2006 14:48:54 +0000
 Subject: [lm-sensors] Driver for Fintech F75375S?
-Message-Id: <20061104152313.9692a7da.khali@linux-fr.org>
+Message-Id: <20061104144854.GG3444@deprecation.cyrius.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060810174246.GB8333@deprecation.cyrius.com>
 In-Reply-To: <20060810174246.GB8333@deprecation.cyrius.com>
@@ -10,32 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Martin,
+Jean,
 
-On Thu, 10 Aug 2006 19:42:46 +0200, Martin Michlmayr wrote:
-> I was wondering if anyone is working on a driver for the Fintech
-> F75375S?  According to http://www.lm-sensors.org/wiki/NewDrivers
-> a datasheet is available, but there is "no request".  I have a
+* Jean Delvare <khali at linux-fr.org> [2006-11-04 15:23]:
+> That's still interesting that they provided a Linux driver. If it is
+> publicly available, can you please point me to it?
 
-I've updated the page to mention your request.
+It's included in their GPL source tar ball which can be found at
+http://www.thecus.com/dl.php  The current URL seems to be
+http://www.thecus.com/Downloads/n2100_2.1.01_GPL.tar.bz2
 
-> Thecus N2100, an ARM based NAS device, which has such a sensor
-> and it would be great if it was supported.  While the vendor includes
-> a driver, it is not done in a way that would be appropriate for
-> mainline kernel inclusion.
+> Riku Voipio (Cc'd) has been writing a driver. Nobody reviewed nor
+> tested it yet as far as I know, but you might want to be the first
+> tester (at your own risk, of course.) Riku, can you please send the
+> latest version of your driver to Martin (in private, as the list
+> received it some times ago already)? Thanks.
 
-That's still interesting that they provided a Linux driver. If it is
-publicly available, can you please point me to it?
+I know.  I'm successfully using this driver already.  It would be
+great if someone could review it so it can be included in the mainline
+kernel.
 
-> Is anyone interested in implementing such a driver?  I'd be glad to
-> test it.
-
-Riku Voipio (Cc'd) has been writing a driver. Nobody reviewed nor
-tested it yet as far as I know, but you might want to be the first
-tester (at your own risk, of course.) Riku, can you please send the
-latest version of your driver to Martin (in private, as the list
-received it some times ago already)? Thanks.
-
+Thanks.
 -- 
-Jean Delvare
+Martin Michlmayr
+http://www.cyrius.com/
 
