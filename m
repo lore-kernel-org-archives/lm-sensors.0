@@ -1,27 +1,31 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 21 Nov 2006 14:03:17 +0000
-Subject: [lm-sensors] sensord and missing alarms
-Message-Id: <20061121150317.6cb8b148.khali@linux-fr.org>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Sun, 05 Nov 2006 12:16:11 +0000
+Subject: [lm-sensors] About the "CPU temp" output of ADM1025A chip
+Message-Id: <454DD60B.5010105@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20061110190557.GA25801@dbz.icequake.net>
-In-Reply-To: <20061110190557.GA25801@dbz.icequake.net>
+References: <2ca62ec0610211255g3a2f7866me6fb15f372246014@mail.gmail.com>
+In-Reply-To: <2ca62ec0610211255g3a2f7866me6fb15f372246014@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 17 Nov 2006 12:58:50 -0600, Ryan Underwood wrote:
-> On Fri, Nov 17, 2006 at 07:30:30PM +0100, Jean Delvare wrote:
-> > In general, alarm flags work as intended and applications can use them.
-> > Only the W83781D causes trouble, and it's just bad luck that this is
-> > the chip you are using. So for the W83781D, yes, comparing the readings
-> > with the limit values is better.
-> 
-> What luck.  Should it be considered a bug that W83781D has alarm
-> behavior inconsistent with the rest of the sensors?
+> I run the CPU burn benchmark for only 1 minute (plus 15 minutes system 
+> idle before running cpuburn, and 15 minutes system idle after cpuburn 
+> stops running), I even got the following message when the cpuburn 
+> program started running for less than 1 minute:
+> ---------------------------------------------
+> Message from syslogd at localhost <mailto:syslogd at localhost> at Mon Oct 30 
+> 11:39:21 2006 ...
+> localhost kernel: CPU0: Temperature above threshold
 
-I'd say so, yes.
+I think it is 90C so now you know that the temp is measured correctly. If you 
+have 88C this may be just error of measurement. So your cooling cools quite well.
 
--- 
-Jean Delvare
+  > Any suggestions on controlling the CPU fan speed?
+
+Please check the other thread.
+
+Regards
+Rudolf
 
