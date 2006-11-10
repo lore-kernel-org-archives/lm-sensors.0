@@ -1,35 +1,44 @@
-From: khalid.benamar@hotmail.com (BENAMAR Khalid)
-Date: Tue, 14 Nov 2006 18:12:31 +0000
-Subject: [lm-sensors] Sorry, no chips were detected.
-Message-Id: <BAY121-F23947F5CE1A7EE945BBFA194EB0@phx.gbl>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 10 Nov 2006 13:52:44 +0000
+Subject: [lm-sensors] Display DMI data in sensors-detect output
+Message-Id: <20061110145244.837a3cae.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-hello
+Hi all,
 
-im new in lm-sensors
-i have kernels 2.6.5
-i have installed lm-sensors-2.8.6-1.i386
+When users report about systems where lm-sensors doesn't work, we often
+ask them for the complete output of sensors-detect. And we often ask
+them what motherboard or system they have. I thought that we may save
+some time if the output of sensors-detect included this information
+already. I hacked a patch doing just that, using dmidecode. Thanks to
+the new command line interface introduced in dmidecode 2.7, the need
+for parsing is very limited.
 
-when i launch sensor-detect
+Here is an example of output with the patch applied:
 
-Sorry, no chips were detected.
-Either your sensors are not supported, or they are
-connected to an I2C bus adapter that we do not support.
-See doc/FAQ, doc/lm_sensors-FAQ.html, or
-http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/lm_sensors-FAQ.html
-(FAQ #4.24.3) for further information.
-If you find out what chips are on your board, see
-http://secure.netroedge.com/~lm78/newdrivers.html for driver status.
+# sensors-detect revision 4229 (2006-11-10 10:19:48 +0100)
+# System Manufacturer: Sony Corporation
+# System Product Name: PCG-GR214EP(FR) (01)
+# Chassis Type: Notebook
 
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
+(...)
 
-thanks for your help
+Note that it doesn't make sensors-detect require dmidecode. dmidecode
+will be used when found, else the output is the same as before. Patch
+is attached if you want to give it a try.
 
-_________________________________________________________________
-MSN Messenger : appels gratuits de PC ? PC ! 
-http://www.msn.fr/newhotmail/Default.asp?Ath=f
-
-
+Thoughts anyone?
+-- 
+Jean Delvare
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: sensors-detect-with-dmi-data.patch
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061110/faeb832a/attachment.pl 
