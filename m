@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 04 Nov 2006 16:47:17 +0000
+From: christian.mahr.ulm@arcor.de (Christian Mahr)
+Date: Fri, 10 Nov 2006 23:45:48 +0000
 Subject: [lm-sensors] ASUS P5B DELUXE WiFi with Winbond W83627DHG - here
-Message-Id: <20061104174717.0b4acf72.khali@linux-fr.org>
+Message-Id: <200611110045.48612.christian.mahr.ulm@arcor.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4536788E.8010504@fibertel.com.ar>
 In-Reply-To: <4536788E.8010504@fibertel.com.ar>
@@ -10,24 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 4 Nov 2006 15:03:59 +0100, Christian Mahr wrote:
-> > Why don't you simply use 4-wire fans if that's what the board was
-> > designed for?
-> 
-> yes, that is a solution - of course. But if you look to the
-> market, there is a very big choice of 3-pin fans (several
-> 100-dreds) and very few 4-pin ones (maybe 10 or so).
+>
+> > If you want to use a specific CPU-fan, where you are f.e.
+> > convinced of the low-noise properties, its almost impossible to
+> > find a 4-pin version.
+>
+> OTOH 4-pin fans promise much better fan speed control possibilities, so
+> maybe a "standard" 4-pin fan will do a better job in that respect than
+> an "advanced" 3-pin fan. But well that's your system and your money ;)
 
-I'm not surprised, 4-pin fans is a relatively new technology.
+Hi Jean
 
-> If you want to use a specific CPU-fan, where you are f.e.
-> convinced of the low-noise properties, its almost impossible to
-> find a 4-pin version. 
+I?d tend to agree on the long term - but I want to see a solid market choice here. 
+I know at least one negative example: the cooler that comes with a boxed Core2Duo cannot be controlled below a certain minimum speed even if you manually set the pwm2 value to zero - the fan itself simply insists on a minimum speed. 
 
-OTOH 4-pin fans promise much better fan speed control possibilities, so
-maybe a "standard" 4-pin fan will do a better job in that respect than
-an "advanced" 3-pin fan. But well that's your system and your money ;)
+In my case I prefer a bigger/better cooler where I have full control on the fan speed even down to zero if i like. 
+Just in this moment (in almost zero load condition) I run a good  3 pin cooler at 800 rpm (very quiet) resulting in a CPU temperature of only 36 degrees. 
+If I load the system I can keep fan speed below 1200 (still quiet) and CPU temperature below 45 degrees. 
 
--- 
-Jean Delvare
-
+Best regards
+	Christian
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061111/81254404/attachment.html 
