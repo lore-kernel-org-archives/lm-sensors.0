@@ -1,7 +1,7 @@
 From: r.marek@assembler.cz (Rudolf Marek)
-Date: Sat, 11 Nov 2006 20:44:24 +0000
+Date: Sat, 11 Nov 2006 20:45:55 +0000
 Subject: [lm-sensors] About fancontrol: I could not control the CPU fan
-Message-Id: <45563628.4020605@assembler.cz>
+Message-Id: <45563683.1040406@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2ca62ec0610301925i65568f5ar4449bfe2d9d5c406@mail.gmail.com>
 In-Reply-To: <2ca62ec0610301925i65568f5ar4449bfe2d9d5c406@mail.gmail.com>
