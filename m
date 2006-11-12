@@ -1,29 +1,31 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Fri, 24 Nov 2006 12:52:18 +0000
-Subject: [lm-sensors] The Wiki
-Message-Id: <4566EB02.9000203@assembler.cz>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Sun, 12 Nov 2006 19:06:06 +0000
+Subject: [lm-sensors] sensors wiki: milestones vs. tickets
+Message-Id: <20061112190606.GC8009@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200611212321.47916.till@harbaum.org>
-In-Reply-To: <200611212321.47916.till@harbaum.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Till Harbaum wrote:
-> Hi,
-> 
-> how does one contribute to the wiki? I didn't find information
-> if i need an account and if yes where to get one.
+Hi all:
 
-Yes, just generate the digest and send it back to me or Jean.
+I just marked the 2.10.1 milestone as completed using trac-admin.  I guess we
+should add that to the release checklist, yeah?
 
-htdigest -c myhtdigest lm-sensors/i2c till
+There is one remaining open ticket (http://lm-sensors.org/ticket/2139) that is
+associated with the 2.10.1 milestone.  I just want to make sure: that ticket
+should be re-associated with the next milestone after 2.10.1 right?  I.e. the
+ticket/milestone relationship tells you what is the *goal* for resolving the
+ticket, right?  At least that's how I read it.
 
-Send us the myhtdigest file,
+If you want to describe the version in which a problem was discovered, that
+belongs in the version property.
 
-If you cant use the htdigest (from apache) Mail me a password (insecure)
+Regards,
 
-Thanks,
-Rudolf
+-- 
+Mark M. Hoffman
+mhoffman at lightlink.com
+
 
