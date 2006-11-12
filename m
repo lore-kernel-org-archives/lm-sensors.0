@@ -1,76 +1,410 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Mon, 27 Nov 2006 16:38:28 +0000
-Subject: [lm-sensors] W83627DHG
-Message-Id: <4dfa50520611270838o1b426aadn9d183d52e2d05670@mail.gmail.com>
+From: azummo-lists@towertech.it (Alessandro Zummo)
+Date: Sun, 12 Nov 2006 14:37:24 +0000
+Subject: [lm-sensors] [PATCH] ad7418 driver
+Message-Id: <20061112153724.3e630d32@inspiron>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4dfa50520611191948n5e7d40e3gac33afcfeb5dd640@mail.gmail.com>
-In-Reply-To: <4dfa50520611191948n5e7d40e3gac33afcfeb5dd640@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Dezheng,
 
-I apologize for not responding sooner. I was on vacation. I would like
-having a 627DHG motherboard -- it would certainly be a good way to
-test and debug the kernel driver. I am currently using an Asus
-A8N-VM/CSM as the testbed for the 627EHG chip. It has a socket 939. (I
-am using an Athlon 64 X2 4400+) Can you tell me what motherboard you
-might be thinking of sending? If there is a motherboard with a 627DHG
-and a socket 939, I could easily just swap the processor when testing.
+ This patch add support for AD7417 and AD7418 chips.
 
-This email thread contains an email from Paul Yeh at princeton.
-However, we didn't actually decide to ship a 627DHG evaluation board
-at that time, so I am still relying on testers on the lm-sensors list
-who own Core Duo motherboards.
+ Signed-off-by: Alessandro Zummo <a.zummo at towertech.it>
 
-If there are no motherboards with a 627DHG and a socket 939 processor,
-I could probably find a processor that would fit the motherboard, and
-I would still like having a board for testing.
+---
+ drivers/hwmon/Kconfig  |   10 +
+ drivers/hwmon/Makefile |    1 
+ drivers/hwmon/ad7418.c |  353 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 364 insertions(+)
 
-I feel I can speak for all on the lm-sensors list in saying that
-Winbond has been wonderful in support of the lm-sensors project.
+--- linux-ixp4xx.orig/drivers/hwmon/Makefile	2006-10-19 13:40:47.000000000 +0200
++++ linux-ixp4xx/drivers/hwmon/Makefile	2006-10-19 13:44:08.000000000 +0200
+@@ -50,6 +50,7 @@ obj-$(CONFIG_SENSORS_VT1211)	+= vt1211.o
+ obj-$(CONFIG_SENSORS_VT8231)	+= vt8231.o
+ obj-$(CONFIG_SENSORS_W83627EHF)	+= w83627ehf.o
+ obj-$(CONFIG_SENSORS_W83L785TS)	+= w83l785ts.o
++obj-$(CONFIG_SENSORS_AD7418)	+= ad7418.o
+ 
+ ifeq ($(CONFIG_HWMON_DEBUG_CHIP),y)
+ EXTRA_CFLAGS += -DDEBUG
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-ixp4xx/drivers/hwmon/ad7418.c	2006-10-19 13:55:17.000000000 +0200
+@@ -0,0 +1,353 @@
++/*
++ * An hwmon driver for the Analog Devices AD7417/18
++ * Copyright 2006 Tower Technologies
++ *
++ * Author: Alessandro Zummo <a.zummo at towertech.it>
++ *
++ * Based on lm75.c
++ * Copyright 1998-99 Frodo Looijaard <frodol at dds.nl>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/module.h>
++#include <linux/jiffies.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++
++#define DRV_VERSION "0.2"
++
++/* straight from the datasheet */
++#define AD7418_TEMP_MIN (-55000)
++#define AD7418_TEMP_MAX 125000
++
++/* Addresses to scan */
++static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2A, 0x2B, 0x2C,
++					0x2D, 0x2E, 0x2F, I2C_CLIENT_END };
++
++/* Insmod parameters */
++I2C_CLIENT_INSMOD;
++
++/* AD7418 registers */
++#define AD7418_REG_TEMP		0x00
++#define AD7418_REG_CONF		0x01
++#define AD7418_REG_TEMP_HYST	0x02
++#define AD7418_REG_TEMP_OS	0x03
++#define AD7418_REG_ADC		0x04
++#define AD7418_REG_CONF2	0x05
++
++#define AD7418_REG_ADC_CH(x)	(x << 5)
++
++#define AD7418_CH_TEMP		AD7418_REG_ADC_CH(0)
++#define AD7418_CH_AIN1		AD7418_REG_ADC_CH(1)
++#define AD7418_CH_AIN2		AD7418_REG_ADC_CH(2)
++#define AD7418_CH_AIN3		AD7418_REG_ADC_CH(3)
++#define AD7418_CH_AIN4		AD7418_REG_ADC_CH(4)
++
++struct ad7418_data {
++	struct i2c_client	client;
++	struct class_device	*class_dev;
++	struct mutex		lock;
++	char			valid;		/* !=0 if following fields are valid */
++	unsigned long		last_updated;	/* In jiffies */
++	u16			temp_input;	/* Register values */
++	u16			temp_max;
++	u16			temp_hyst;
++	u16			in1;
++	u16			in2;
++	u16			in3;
++	u16			in4;
++};
++
++static int ad7418_attach_adapter(struct i2c_adapter *adapter);
++static int ad7418_detect(struct i2c_adapter *adapter, int address, int kind);
++static int ad7418_detach_client(struct i2c_client *client);
++
++static struct i2c_driver ad7418_driver = {
++	.driver = {
++		.name	= "ad7418",
++	},
++	.attach_adapter	= ad7418_attach_adapter,
++	.detach_client	= ad7418_detach_client,
++};
++
++/* TEMP: 0.001C/bit (-55C to +125C)
++ * REG: (0.5C/bit, two's complement) << 7
++ */
++static inline u16 AD7418_TEMP_TO_REG(int temp)
++{
++	int ntemp = SENSORS_LIMIT(temp, AD7418_TEMP_MIN, AD7418_TEMP_MAX);
++	ntemp += (ntemp < 0 ? -250 : 250);
++	return (u16)((ntemp / 500) << 7);
++}
++
++static inline int AD7418_TEMP_FROM_REG(u16 reg)
++{
++	/* use integer division instead of equivalent right shift to
++	 * guarantee arithmetic shift and preserve the sign
++	 */
++	return ((s16)reg / 128) * 500;
++}
++
++/* All registers are word-sized, except for the configuration registers.
++ * AD7418 uses a high-byte first convention, which is exactly opposite to
++ * the usual practice.
++ */
++static int ad7418_read(struct i2c_client *client, u8 reg)
++{
++	if (reg = AD7418_REG_CONF || reg = AD7418_REG_CONF2)
++		return i2c_smbus_read_byte_data(client, reg);
++	else
++		return swab16(i2c_smbus_read_word_data(client, reg));
++}
++
++static int ad7418_write(struct i2c_client *client, u8 reg, u16 value)
++{
++	if (reg = AD7418_REG_CONF || reg = AD7418_REG_CONF2)
++		return i2c_smbus_write_byte_data(client, reg, value);
++	else
++		return i2c_smbus_write_word_data(client, reg, swab16(value));
++}
++
++static void ad7418_init_client(struct i2c_client *client)
++{
++	/* Enable if in shutdown mode */
++	int reg = ad7418_read(client, AD7418_REG_CONF);
++	if (reg >= 0 && (reg & 0x01))
++		ad7418_write(client, AD7418_REG_CONF, reg & 0xfe);
++}
++
++static struct ad7418_data *ad7418_update_device(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ad7418_data *data = i2c_get_clientdata(client);
++
++	mutex_lock(&data->lock);
++
++	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
++		|| !data->valid) {
++		u8 cfg;
++		dev_dbg(&client->dev, "starting ad7418 update\n");
++
++		data->temp_input = ad7418_read(client, AD7418_REG_TEMP);
++		data->temp_max = ad7418_read(client, AD7418_REG_TEMP_OS);
++		data->temp_hyst = ad7418_read(client, AD7418_REG_TEMP_HYST);
++
++		/* read config register and clear channel bits */
++		cfg = ad7418_read(client, AD7418_REG_CONF);
++		cfg &= 0x1F;
++
++		ad7418_write(client, AD7418_REG_CONF, cfg | AD7418_CH_AIN1);
++		data->in1 = ad7418_read(client, AD7418_REG_ADC);
++
++		ad7418_write(client, AD7418_REG_CONF, cfg | AD7418_CH_AIN2);
++		data->in2 = ad7418_read(client, AD7418_REG_ADC);
++
++		ad7418_write(client, AD7418_REG_CONF, cfg | AD7418_CH_AIN3);
++		data->in3 = ad7418_read(client, AD7418_REG_ADC);
++
++		ad7418_write(client, AD7418_REG_CONF, cfg | AD7418_CH_AIN4);
++		data->in4 = ad7418_read(client, AD7418_REG_ADC);
++
++		/* restore old configuration value */
++		ad7418_write(client, AD7418_REG_CONF, cfg);
++
++		data->last_updated = jiffies;
++		data->valid = 1;
++	}
++
++	mutex_unlock(&data->lock);
++
++	return data;
++}
++
++#define show(value) \
++static ssize_t show_##value(struct device *dev, struct device_attribute *attr, char *buf)		\
++{									\
++	struct ad7418_data *data = ad7418_update_device(dev);		\
++	return sprintf(buf, "%d\n", AD7418_TEMP_FROM_REG(data->value));	\
++}
++show(temp_max);
++show(temp_hyst);
++show(temp_input);
++
++#define show_adc(value)	\
++static ssize_t show_##value(struct device *dev, struct device_attribute *attr, char *buf)		\
++{								\
++	struct ad7418_data *data = ad7418_update_device(dev);	\
++	return sprintf(buf, "%d\n", data->value >> 6);		\
++}
++
++show_adc(in1);
++show_adc(in2);
++show_adc(in3);
++show_adc(in4);
++
++#define set(value, reg)	\
++static ssize_t set_##value(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)	\
++{								\
++	struct i2c_client *client = to_i2c_client(dev);		\
++	struct ad7418_data *data = i2c_get_clientdata(client);	\
++	int temp = simple_strtoul(buf, NULL, 10);		\
++								\
++	mutex_lock(&data->lock);				\
++	data->value = AD7418_TEMP_TO_REG(temp);			\
++	ad7418_write(client, reg, data->value);		\
++	mutex_unlock(&data->lock);					\
++	return count;						\
++}
++set(temp_max, AD7418_REG_TEMP_OS);
++set(temp_hyst, AD7418_REG_TEMP_HYST);
++
++static DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max, set_temp_max);
++static DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO, show_temp_hyst, set_temp_hyst);
++static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input, NULL);
++
++static DEVICE_ATTR(in1, S_IRUGO, show_in1, NULL);
++static DEVICE_ATTR(in2, S_IRUGO, show_in2, NULL);
++static DEVICE_ATTR(in3, S_IRUGO, show_in3, NULL);
++static DEVICE_ATTR(in4, S_IRUGO, show_in4, NULL);
++
++static int ad7418_attach_adapter(struct i2c_adapter *adapter)
++{
++	if (!(adapter->class & I2C_CLASS_HWMON))
++		return 0;
++	return i2c_probe(adapter, &addr_data, ad7418_detect);
++}
++
++static struct attribute *ad7418_attributes[] = {
++	&dev_attr_temp1_max.attr,
++	&dev_attr_temp1_max_hyst.attr,
++	&dev_attr_temp1_input.attr,
++	&dev_attr_in1.attr,
++	&dev_attr_in2.attr,
++	&dev_attr_in3.attr,
++	&dev_attr_in4.attr,
++	NULL
++};
++
++static const struct attribute_group ad7418_group = {
++	.attrs = ad7418_attributes,
++};
++
++static int ad7418_detect(struct i2c_adapter *adapter, int address, int kind)
++{
++	struct i2c_client *client;
++	struct ad7418_data *data;
++	int err = 0;
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
++					I2C_FUNC_SMBUS_WORD_DATA))
++		goto exit;
++
++	if (!(data = kzalloc(sizeof(struct ad7418_data), GFP_KERNEL))) {
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	client = &data->client;
++	client->addr = address;
++	client->adapter = adapter;
++	client->driver = &ad7418_driver;
++	client->flags = 0;
++
++	i2c_set_clientdata(client, data);
++
++	mutex_init(&data->lock);
++
++	/* AD7418 has a curious behaviour on registers 6 and 7. They
++	 * both always read 0xC071 and are not documented on the datasheet.
++	 * We use them to detect the chip.
++	 */
++	if (kind < 0) {
++		int reg;
++
++		reg = i2c_smbus_read_word_data(client, 0x06);
++		if (reg != 0xC071) {
++			dev_dbg(&adapter->dev, "failed detection at %d: %x\n", 6, reg);
++			err = -ENODEV;
++			goto exit_free;
++		}
++
++		reg = i2c_smbus_read_word_data(client, 0x07);
++		if (reg != 0xC071) {
++			dev_dbg(&adapter->dev, "failed detection at %d: %x\n", 7, reg);
++			err = -ENODEV;
++			goto exit_free;
++		}
++
++		reg = i2c_smbus_read_byte_data(client, AD7418_REG_CONF2);
++
++		/* bits 0-5 must be at 0 */
++		if (reg & 0x3F) {
++			dev_dbg(&adapter->dev, "failed detection at %d: %x\n",
++				AD7418_REG_CONF2, reg);
++			err = -ENODEV;
++		 	goto exit_free;
++		}
++	}
++
++	strlcpy(client->name, ad7418_driver.driver.name, I2C_NAME_SIZE);
++
++	if ((err = i2c_attach_client(client)))
++		goto exit_free;
++
++	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
++
++	/* Initialize the AD7418 chip */
++	ad7418_init_client(client);
++
++	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&client->dev.kobj, &ad7418_group)))
++		goto exit_detach;
++
++	data->class_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		goto exit_remove;
++	}
++
++	return 0;
++
++exit_remove:
++	sysfs_remove_group(&client->dev.kobj, &ad7418_group);
++exit_detach:
++	i2c_detach_client(client);
++exit_free:
++	kfree(data);
++exit:
++	return err;
++}
++
++static int ad7418_detach_client(struct i2c_client *client)
++{
++	struct ad7418_data *data = i2c_get_clientdata(client);
++	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &ad7418_group);
++	i2c_detach_client(client);
++	kfree(data);
++	return 0;
++}
++
++static int __init ad7418_init(void)
++{
++	return i2c_add_driver(&ad7418_driver);
++}
++
++static void __exit ad7418_exit(void)
++{
++	i2c_del_driver(&ad7418_driver);
++}
++
++MODULE_AUTHOR("Alessandro Zummo <a.zummo at towertech.it>");
++MODULE_DESCRIPTION("AD7417/8 driver");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(DRV_VERSION);
++
++module_init(ad7418_init);
++module_exit(ad7418_exit);
+--- linux-ixp4xx.orig/drivers/hwmon/Kconfig	2006-10-19 13:40:47.000000000 +0200
++++ linux-ixp4xx/drivers/hwmon/Kconfig	2006-10-19 13:44:08.000000000 +0200
+@@ -512,6 +512,16 @@ config SENSORS_W83627EHF
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called w83627ehf.
+ 
++config SENSORS_AD7418
++	tristate "Analog Devices AD7417/18"
++	depends on HWMON && I2C && EXPERIMENTAL
++	help
++	  If you say yes here you get support for the Analog Devices AD7417
++	  and AD7418 chips.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called ad7418.
++
+ config SENSORS_HDAPS
+ 	tristate "IBM Hard Drive Active Protection System (hdaps)"
+ 	depends on HWMON && INPUT && X86
 
-Thanks again,
-David
 
-On 11/23/06, DZShen at winbond.com <DZShen at winbond.com> wrote:
->
->
-> Dear all:
->   First of all, please do NOT put this email on lm-sensors mailing list.
-> Please.
->
-> Hi Rudolf and Jean:
->   This is dezheng from Winbond Electronics again!
->   I found that David Hubbard is working on Winbond 627DHG. As a
-> manufacturer, I asked my boss to provide some support to this gentleman by
-> provding him one motherboard with 627DHG embedded. However, we can't provide
-> CPU, RAM and power supply this time.
->
->
-> Hi David:
->   This is dezheng from Winbond Electronics and our team is responsible for
-> lm-sensors drivers for our Winbond hardware monitor chips. I heard that you
-> are working on Winbond 627DHG and would like to help by providing one ASUS
-> motherboard with 627 chip embedded. However, we can't provide you with a
-> full system including CPU, RAM and power supply.
->
->   In your emails, it seems to me you already possed one motherboard with
-> Winbond 627DHG chip embedded. However, what we can do is also to provide you
-> another ASUS motherboard with 627DHG embedded without CPU, RAM and power
-> supply.
->
->   Do you have any suggestion? You can consult with Rudolf and Jean on our
-> past cooperation in private then give me your feedback and suggestion.
->
->   The only reason why we are offering this is that we would like to help
-> lm-sensors group because they have done a lot for providing free hardware
-> monitor device driver to other Linux users. What we can do as one of
-> hardware monitor manufacturers is to provide some support to you guys.
->
-> best regards,
->
-> dz
+
 
