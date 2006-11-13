@@ -1,7 +1,7 @@
-From: tux@tuxslare.org (=?ISO-8859-1?Q?Andr=E9_Lemos?=)
-Date: Sun, 12 Nov 2006 20:04:45 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 13 Nov 2006 20:56:01 +0000
 Subject: [lm-sensors] fan control - w83627hf
-Message-Id: <45577E5D.80905@tuxslare.org>
+Message-Id: <20061113215601.4ffa4a39.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4556E7ED.8020504@sh.cvut.cz>
 In-Reply-To: <4556E7ED.8020504@sh.cvut.cz>
@@ -10,48 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'm having some trouble with fan control on a VIA chipset board (using 
-the module w83627hf).
+Hi Andr?,
 
-I get the following information when running pwmconfig:
+On Sun, 12 Nov 2006 20:04:45 +0000, Andr? Lemos wrote:
+> I'm having some trouble with fan control on a VIA chipset board (using 
+> the module w83627hf).
+> 
+> I get the following information when running pwmconfig:
+> 
+> Found the following PWM controls:
+>    9191-0290/pwm1
+>    9191-0290/pwm2
+> 
+> Found the following fan sensors:
+>    9191-0290/fan1_input     current speed: 1985 RPM
+>    9191-0290/fan2_input     current speed: 3835 RPM
+> 
+> when trying to stop them:
+> 
+> Testing pwm control 9191-0290/pwm1 ...
+>   9191-0290/fan1_input ... speed was 1985 now 2008
+>     no correlation
+>   9191-0290/fan2_input ... speed was 3835 now 3924
+>     no correlation
+> 
+> 
+> Where does the problem lie? Is it a problem with the board? What can I 
+> do to add support?
 
-Found the following PWM controls:
-   9191-0290/pwm1
-   9191-0290/pwm2
+The more likely is that your board is simply not wired to support fan
+speed control. Check the documentation of your motherboard and/or
+system, and check in the BIOS setup screen. If you don't see fan speed
+control advertised anywhere, it's a good indication that you board
+simply doesn't support it, sorry.
 
-Found the following fan sensors:
-   9191-0290/fan1_input     current speed: 1985 RPM
-   9191-0290/fan2_input     current speed: 3835 RPM
-
-when trying to stop them:
-
-Testing pwm control 9191-0290/pwm1 ...
-  9191-0290/fan1_input ... speed was 1985 now 2008
-    no correlation
-  9191-0290/fan2_input ... speed was 3835 now 3924
-    no correlation
-
-
-Where does the problem lie? Is it a problem with the board? What can I 
-do to add support?
-
-
-Thanks
-
-
-Ps.: please CC me if/when replying to the list
-
-
-Rudolf Marek wrote:
-> Andr? Lemos wrote:
->> would it be trivial to add fan control to w83627hf as well?
->
-> I think it already has fan control. What kernel? Did you tried some 
-> recent?
-> Please CC to list.
->
->
-> Regards
-> Rudolf
-
+-- 
+Jean Delvare
 
