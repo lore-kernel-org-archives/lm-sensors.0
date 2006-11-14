@@ -1,38 +1,35 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 17 Nov 2006 10:26:16 +0000
-Subject: [lm-sensors] sensors.conf syntax: anyone use escape sequences?
-Message-Id: <20061117112616.cfa66388.khali@linux-fr.org>
+From: khalid.benamar@hotmail.com (BENAMAR Khalid)
+Date: Tue, 14 Nov 2006 18:12:31 +0000
+Subject: [lm-sensors] Sorry, no chips were detected.
+Message-Id: <BAY121-F23947F5CE1A7EE945BBFA194EB0@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20061112140142.GB8009@jupiter.solarsys.private>
-In-Reply-To: <20061112140142.GB8009@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+hello
 
-On Sun, 12 Nov 2006 09:01:42 -0500, Mark M. Hoffman wrote:
-> This is a question about sensors.conf syntax:
-> 
-> For a quoted string, libsensors currently accepts C language escape sequences
-> like '\n' for newline, etc.  It also accepts octal escapes, like '\015', but
-> for some reason it doesn't accept hex escapes, like '\x20'.
-> 
-> Question: is anyone actually using these escapes?
-> 
-> I wouldn't mind getting rid of them.
+im new in lm-sensors
+i have kernels 2.6.5
+i have installed lm-sensors-2.8.6-1.i386
 
-I've never seen them used. I agree that octal escapes don't sound very
-useful, assuming libsensors accepts all character values in quoted
-strings, and not only the 32-127 range. Same applies to C language
-escape sequences, except \n, as I guess there is no other way to
-include a newline in a string?
+when i launch sensor-detect
 
-Then the question is, how much does it cost? It's not a totally
-unreasonable feature, so we'd need a good reason to get rid of it.
+Sorry, no chips were detected.
+Either your sensors are not supported, or they are
+connected to an I2C bus adapter that we do not support.
+See doc/FAQ, doc/lm_sensors-FAQ.html, or
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/lm_sensors-FAQ.html
+(FAQ #4.24.3) for further information.
+If you find out what chips are on your board, see
+http://secure.netroedge.com/~lm78/newdrivers.html for driver status.
 
-Thanks,
--- 
-Jean Delvare
+
+thanks for your help
+
+_________________________________________________________________
+MSN Messenger : appels gratuits de PC ? PC ! 
+http://www.msn.fr/newhotmail/Default.asp?Ath=f
+
 
