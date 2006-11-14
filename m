@@ -1,91 +1,93 @@
-From: ukessler@uni-bonn.de (=?ISO-8859-1?Q?Ulrich_Ke=DFler?=)
-Date: Tue, 28 Nov 2006 15:35:13 +0000
-Subject: [lm-sensors] CPU temperature(s) of Conroe
-Message-Id: <456C5731.7000408@uni-bonn.de>
+From: paul.aviles@nickelnetworks.com (Paul Aviles)
+Date: Tue, 14 Nov 2006 04:49:31 +0000
+Subject: [lm-sensors] Determine where the thermal sensors are?
+Message-Id: <200611131648.kADGmTKa026887@srv1.nickelnetworks.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <loom.20061123T125301-366@post.gmane.org>
-In-Reply-To: <loom.20061123T125301-366@post.gmane.org>
+References: <200610192118.k9JLINDa006525@et-mia-7.site.stayonline.net>
+In-Reply-To: <200610192118.k9JLINDa006525@et-mia-7.site.stayonline.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi, Till, hi Rudolf,
+BTW, this was a defective motherboard apparently.
 
->Hi,
->
->Am Montag, 27. November 2006 10:14 schrieb Ulrich Ke?ler:
->  
->
->>I tried to remove the old "SUSE version" with YAST but I get a lot of
->>missing dependencies warnings. Is it safe to delete all those things
->>(kdebase3-*, amarok-*,kdeaddons-*, susehelp* etc.)?
->>    
->>
->Uhm, no, don't do that. I think you wouldn't even be able to 
->delete them because there are tons of additional packets depending
->on these and you'd have to remove them as well. You'd end up deleting nearly 
->everything.
->
->  
->
-I got the lm-sensors uninstalled wiht YAST by ignoring all the 
-dependencies warnings.
+Regards,
 
->You might perhaps try to just overwrite the existing files by setting the 
->install prefix to /usr. While this is ugly as well and may cause some problems 
->it will likely allow your yast to be able to continue to work. The only real 
->solution is of course to build a new package for your suse.
->
->
->  
->
-I'm sorry, I don't understand this part.
+Paul Aviles 
 
-In the meantime I have tried to learn a bit about patching kernels etc.
+-----Original Message-----
+From: Jean Delvare [mailto:khali at linux-fr.org] 
+Sent: Wednesday, October 25, 2006 3:51 AM
+To: Paul Aviles
+Cc: lm-sensors at lm-sensors.org
+Subject: Re: [lm-sensors] Determine where the thermal sensors are?
 
-This is what I understand I have to do to get the lm-sensors running 
-with the W83627DHG chip and the Core2Duo temperature sensors:
+Hi Paul,
 
-1. I have to get a driver for the W83627DHG chip. This will be a 
-loadable module w83627ehf.ko in the directory 
-/lib/modules/2.6.16.21-0.25-smp/kernel/drivers/hwmon. SUSE 10.1 has such 
-a driver but it seems too old (a. the documentation of the corresponding 
-(?) w83627ehf.c file in /usr/src/linux/drivers/hwmon says nothing about 
-w83627dhg support; b. I cannot do 'modprobe w83627ehf': no such device). 
-The newer version of the w83627.c file is this:
-http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060906/b139bc4d/attachment-0001.obj
-So I should rename the old w83627ehf.c file and copy the new one to 
-/usr/src/linux/drivers/hwmon.
-Now I have to build the new kernel module. This is the step I don't 
-understand yet.
-After that I can do 'modprobe w83627ehf' and the W83627DHG works with 
-lm-sensors.
+On Fri, 20 Oct 2006 12:31:55 -0400, Paul Aviles wrote:
+> Nice server....
+> [root at srv1 /]# sensors
+> adt7463-i2c-0-2e
+> Adapter: SMBus I801 adapter at 1480
+> ERROR: Can't get alarm mask data!
+> +2.6V:     +2.617 V  (min =  +2.47 V, max =  +2.73 V)
+> CPU Volt:  +1.365 V  (min =  +1.25 V, max =  +1.52 V)
+> +3.3V:     +3.425 V  (min =  +3.13 V, max =  +3.47 V)
+> +5V:      +5.072 V  (min =  +4.74 V, max =  +5.26 V)
+> ERROR: Can't get IN4 data!
+> Fan2:      5769 RPM  (min = 4800 RPM)
+> Fan3:      4144 RPM  (min = 2200 RPM)
+> Fan1:      5769 RPM  (min = 4800 RPM)
+> CPU Temp: +47.75?C  (low  =    +5?C, high =   +68?C)
+> Loc Temp: +38.00?C  (low  =    +5?C, high =   +40?C)
+> Sys Temp: +40.75?C  (low  =    +5?C, high =   +50?C)
+> ERROR: Can't get PWM1 data!
+> ERROR: Can't get PWM2 data!
+> ERROR: Can't get PWM3 data!
+> 
+> [root at srv1 /]# sensors -version
+> sensors version 2.8.7 with libsensors version 2.8.7
+> 
+> Loud one..
+> [root at andeya1 /]# sensors
+> adt7463-i2c-0-2e
+> Adapter: SMBus I801 adapter at 1480
+> ERROR: Can't get alarm mask data!
+> +2.6V:     +2.604 V  (min =  +2.47 V, max =  +2.73 V)
+> CPU Volt:  +1.362 V  (min =  +1.25 V, max =  +1.52 V)
+> +3.3V:     +3.403 V  (min =  +3.13 V, max =  +3.47 V)
+> +5V:      +5.072 V  (min =  +4.74 V, max =  +5.26 V)
+> ERROR: Can't get IN4 data!
+> Fan2:     11157 RPM  (min = 4800 RPM)
+> Fan3:     10671 RPM  (min = 2200 RPM)
+> Fan1:     11180 RPM  (min = 4800 RPM)
+> CPU Temp: +42.75?C  (low  =    +5?C, high =   +68?C)
+> Loc Temp: +40.00?C  (low  =    +5?C, high =   +40?C)
+> Sys Temp: +44.50?C  (low  =    +5?C, high =   +50?C)
+> ERROR: Can't get PWM1 data!
+> ERROR: Can't get PWM2 data!
+> ERROR: Can't get PWM3 data!
+> 
+> [root at andeya1 /]# sensors -version
+> sensors version 2.8.7 with libsensors version 2.8.7
+> 
+> I am sure the issue is not really related to sensors and more likely 
+> something weird in the hardware.
 
-2. Installing the coretemp driver is a bit more tricky because I have to 
-patch msr.c first. I think this works in principle as above: rename 
-/usr/src/linux/arch/i386/kernel/msr.c, copy the new msr.c to this 
-directory and recompile. I think in this case I have to recompile the 
-whole kernel because msr is no loadable module.
-After that I can build the coretemp driver as a loadable module as 
-above: copy coretemp.c to /usr/src/linux/drivers/hwmon, building the 
-module, 'modprobe coretemp'.
+OK, the fan speeds reported clearly match what you hear, fans over 10k RPM
+are likely to be very noisy. There aren't that many differences in reported
+temperatures between the two systems, except that on the loud server, the
+"Loc Temp" matches its high limit. No alarm though... I'm not too familiar
+with this chip but depending on the PWM settings, it could be that this
+comparison causes all fans to go to full speed. So I suggest that you first
+set temp2_max a little higher, say 50 degrees C, on the noisy server, and
+see if that makes it quieter.
 
-In the end, I should add two lines to my file /etc/init.d/boot.local:
-modprobe w83627ehf
-modprobe coretemp
+If not, please report the PWM settings on both servers.
 
-lm-sensors should work then. Eventually I have to correct the file 
-sensors.conf.
+--
+Jean Delvare
 
-Is this correct so far?
-How does the patching thing work?
-I think I should first save my old kernel in case something goes wrong. 
-Is there a preferred way to do this?
-
-Thank you for your help.
-
-Best regards
-Uli
 
 
