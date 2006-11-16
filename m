@@ -1,102 +1,98 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 19 Nov 2006 11:07:40 +0000
-Subject: [lm-sensors] w83627ehf informations
-Message-Id: <20061119120740.6c067426.khali@linux-fr.org>
+From: khalid.benamar@hotmail.com (BENAMAR Khalid)
+Date: Thu, 16 Nov 2006 08:56:08 +0000
+Subject: [lm-sensors] Sorry, no sensors were detected
+Message-Id: <BAY121-F19413DA8BB0DCE420CB59B94E90@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1163284779.5555.34.camel@armageddon>
-In-Reply-To: <1163284779.5555.34.camel@armageddon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 17 Nov 2006 16:04:18 -0700, David Hubbard wrote:
-> Hi Torsten,
-> 
-> The fix you found below may be interesting.
-> 
-> On 11/17/06, torsten goroll <2crazy4you at gmx.de> wrote:
-> > Hi David,
-> >
-> > it took me a long time, but now I habe a 2.6.19-rc5 kernel runnig. The sensors output looks OK:
-> >
-> > w83627ehf-isa-0290
-> > Adapter: ISA adapter
-> > VCore:     +1.38 V  (min =  +0.00 V, max =  +1.74 V)
-> > in1:      +12.25 V  (min =  +2.53 V, max =  +3.01 V) ALARM
-> > AVCC:      +3.25 V  (min =  +2.19 V, max =  +0.37 V) ALARM
-> > 3VCC:      +3.25 V  (min =  +0.34 V, max =  +1.34 V) ALARM
-> > in4:       +1.64 V  (min =  +0.38 V, max =  +0.28 V) ALARM
-> > in5:       +1.71 V  (min =  +0.04 V, max =  +1.59 V) ALARM
-> > in6:       +5.50 V  (min =  +2.92 V, max =  +1.51 V) ALARM
-> > VSB:       +3.25 V  (min =  +2.37 V, max =  +1.68 V) ALARM
-> > VBAT:      +0.51 V  (min =  +0.50 V, max =  +0.72 V)
-> > in9:       +1.58 V  (min =  +0.06 V, max =  +0.26 V) ALARM
-> > Case Fan:  883 RPM  (min =  677 RPM, div = 8)
-> > CPU Fan:  2295 RPM  (min = 3013 RPM, div = 4) ALARM
-> > Aux Fan:     0 RPM  (min =   45 RPM, div = 128) ALARM
-> > fan5:        0 RPM  (min = 23275 RPM, div = 2) ALARM
-> > Sys Temp:    +27?C  (high =  -115?C, hyst =    -8?C)   ALARM
-> > CPU Temp:  +21.5?C  (high = +80.0?C, hyst = +75.0?C)
-> > AUX Temp:  +24.0?C  (high = +80.0?C, hyst = +75.0?C)
-> >
-> > But when I trie to run pwm-config I'm getting those (error)messages:
-> > We will attempt to briefly stop each fan using the pwm controls.
-> > The program will attempt to restore each fan to full speed
-> > after testing. However, it is ** very important ** that you
-> > physically verify that the fans have been to full speed
-> > after the program has completed.
-> >
-> > Found the following PWM controls:
-> >    9191-0290/pwm1
-> > /usr/local/sbin/pwmconfig: line 102: echo: write error: Invalid argument
-> >    9191-0290/pwm2
-> > /usr/local/sbin/pwmconfig: line 102: echo: write error: Invalid argument
-> >    9191-0290/pwm3
-> > /usr/local/sbin/pwmconfig: line 102: echo: write error: Invalid argument
-> >
-> > Found the following fan sensors:
-> >    9191-0290/fan1_input     current speed: 888 RPM
-> >    9191-0290/fan2_input     current speed: 2311 RPM
-> >    9191-0290/fan3_input     current speed: 0 ... skipping!
-> >    9191-0290/fan5_input     current speed: 0 ... skipping!
-> >
-> > Warning!!! This program will stop your fans, one at a time,
-> > for approximately 5 seconds each!!!
-> > This may cause your processor temperature to rise!!!
-> > If you do not want to do this hit control-C now!!!
-> > Hit return to continue:
-> >
-> > Testing pwm control 9191-0290/pwm1 ...
-> >   9191-0290/fan1_input ... speed was 888 now 883
-> > /usr/local/sbin/pwmconfig: line 102: echo: write error: Invalid argument
-> >     no correlation
-> >   9191-0290/fan2_input ... speed was 2311 now 2295
-> > /usr/local/sbin/pwmconfig: line 102: echo: write error: Invalid argument
-> >     no correlation
-> >
-> > Checking the script I found the error. There must not be spaces in line 102.
-> > not: echo 0 > $ENABLE
-> > better:  echo 0>$ENABLE
-> 
-> This is important information. Who maintains the pwmconfig script?
+hello
 
-Nobody in particular (unfortunately.)
+sorry i use this mailing list for asking about lm-sensors
 
-> (Jean, I CC'ed you in case you have more information.) Is this a
-> genuine bug?
+i have installed lm_sensors-2.10.1 (make user and make user_install)
 
-No. Without the space between "0" and ">", you are doing I/O
-redirection, which is something completely different. So it can't be a
-valid fix.
+my kernel 2.6.5
 
-It is expected that this echo command can fail, if the driver doesn't
-support disabling fan speed control. However the failure should be
-silent. I wonder why the error shows in Torsten's case. Torsten, what
-version of bash are you using? Is the pwmconfig script somehow modified
-by your distribution? Or did you modify it by yourself? For now, you
-can just ignore the error messages.
+when i launche sensors-detect it don't found any sensors
 
--- 
-Jean Delvare
+# sensors-detect revision 4171 (2006-09-24 03:37:01 -0700)
+
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
+
+We can start with probing for (PCI) I2C or SMBus adapters.
+Do you want to probe now? (YES/no): yes
+Probing for PCI bus adapters...
+Sorry, no known PCI bus adapters found.
+!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+We will now try to load each adapter module in turn.
+If you have undetectable or unsupported adapters, you can have them
+scanned by manually loading the modules before running this script.
+
+We are now going to do the I2C/SMBus adapter probings. Some chips may
+be double detected; we choose the one with the highest confidence
+value in that case.
+If you found that the adapter hung after probing a certain address,
+you can specify that address to remain unprobed.
+
+Some chips are also accessible through the ISA I/O ports. We have to
+write to arbitrary I/O ports to probe them. This is usually safe though.
+Yes, you do have ISA I/O ports even if you do not have any ISA slots!
+Do you want to scan the ISA I/O ports? (YES/no): yes
+Probing for `National Semiconductor LM78' at 0x290...       No
+Probing for `National Semiconductor LM78-J' at 0x290...     No
+Probing for `National Semiconductor LM79' at 0x290...       No
+Probing for `Winbond W83781D' at 0x290...                   No
+Probing for `Winbond W83782D' at 0x290...                   No
+Probing for `Winbond W83627HF' at 0x290...                  No
+Probing for `Silicon Integrated Systems SIS5595'...         No
+Probing for `VIA VT82C686 Integrated Sensors'...            No
+Probing for `VIA VT8231 Integrated Sensors'...              No
+Probing for `AMD K8 thermal sensors'...                     No
+Probing for `IPMI BMC KCS' at 0xca0...                      No
+Probing for `IPMI BMC SMIC' at 0xca8...                     No
+
+Some Super I/O chips may also contain sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no): yes
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `ITE'...                                      Yes
+Found unknown chip with ID 0xee15
+Trying family `National Semiconductor'...                   Yes
+Found `Nat. Semi. PC8741x Super IO'
+    (no hardware monitoring capabilities)
+Trying family `SMSC'...                                     Yes
+Found unknown chip with ID 0xee15
+Trying family `VIA/Winbond/Fintek'...                       Yes
+Found unknown chip with ID 0xee15
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `ITE'...                                      No
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Fintek'...                       No
+
+Sorry, no sensors were detected.
+!!!!!!!!!!!!!!!!!!!!!!!!!
+Either your sensors are not supported, or they are connected to an
+I2C or SMBus adapter that is not supported. See doc/FAQ,
+doc/lm_sensors-FAQ.html or http://www.lm-sensors.org/wiki/FAQ
+(FAQ #4.24.3) for further information.
+If you find out what chips are on your board, check
+http://www.lm-sensors.org/wiki/Devices for driver status.
+
+i have read FAQ but i can't resolve problems
+
+thanks for your help
+sorry
+
+_________________________________________________________________
+MSN Hotmail : cr?ez votre adresse e-mail gratuite & ? vie ! 
+http://www.msn.fr/newhotmail/Default.asp?Ath=f
+
 
