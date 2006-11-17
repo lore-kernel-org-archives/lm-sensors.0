@@ -1,7 +1,7 @@
-From: nemesis@icequake.net (Ryan Underwood)
-Date: Fri, 17 Nov 2006 18:18:27 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 17 Nov 2006 18:30:30 +0000
 Subject: [lm-sensors] sensord and missing alarms
-Message-Id: <20061117181827.GB10405@dbz.icequake.net>
+Message-Id: <20061117193030.07cc622c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20061110190557.GA25801@dbz.icequake.net>
 In-Reply-To: <20061110190557.GA25801@dbz.icequake.net>
@@ -10,42 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Ryan,
 
-On Fri, Nov 17, 2006 at 01:45:43PM +0100, Jean Delvare wrote:
+On Fri, 17 Nov 2006 12:18:27 -0600, Ryan Underwood wrote:
+> On Fri, Nov 17, 2006 at 01:45:43PM +0100, Jean Delvare wrote:
+> > 
+> > Not really, sorry. How can you be that interested in possible alarms
+> > that happened in the past, but you don't care about what value
+> > triggered it?
 > 
-> Not really, sorry. How can you be that interested in possible alarms
-> that happened in the past, but you don't care about what value
-> triggered it?
+> We want to catch the alarm so we can then check if the condition that
+> triggered it is still true, and if so, take action according to the
+> magnitude of the condition.
 
-We want to catch the alarm so we can then check if the condition that
-triggered it is still true, and if so, take action according to the
-magnitude of the condition.
+For the vast majority of chips, if the condition is still true, then
+the alarm is reasserted immediately after it has been cleared by a read.
 
-> Most chips (including the LM78 and the W83781D) have only
-> one alarm bit for each channel, so you get the same alarm bit set for
-> over-voltage and under-voltage, for example. And an alarm triggering
-> because temperature is 1 degree C too high is quite different from the
-> same alarm flag triggering because temperature reached 110 degrees C
-> and your system is on fire.
+> > This is a completely different need, and one which is already covered
+> > by the drivers. If there is an out-of-range condition, then the alarm
+> > _is_ asserted. That's the other way around which may not be true for
+> > most chips.
+> 
+> It's asserted, but is cleared on read with some chips.  Then the
+> condition remains out of range, but the alarm is cleared.
 
-Yes, but it draws attention to what componene needs attention.
+Most chips don't work that way. Of all (relatively popular) chips I
+know of, only the W83781D chip does behave the way you describe, and
+only for voltages and fans, not for temperatures, if I remember
+correctly. It is due to the fact that this chip doesn't have real-time
+alarm registers, so we are (ab)using the interrupt registers instead.
+In fact we shouldn't have exported these alarm values at all for this
+chip, as they don't match our own standard.
 
-> This is a completely different need, and one which is already covered
-> by the drivers. If there is an out-of-range condition, then the alarm
-> _is_ asserted. That's the other way around which may not be true for
-> most chips.
+> So in general, the alarms are useless and the application should simply
+> check the current value against the ranges always?
 
-It's asserted, but is cleared on read with some chips.  Then the
-condition remains out of range, but the alarm is cleared.
-
-> channel? The simple truth is that, if you are interested in past states,
-> then your user-space application gets to repeatedly poll the sensor
-> values, including alarm flags, and store whatever values you want for
-> future use.
-
-So in general, the alarms are useless and the application should simply
-check the current value against the ranges always?
+In general, alarm flags work as intended and applications can use them.
+Only the W83781D causes trouble, and it's just bad luck that this is
+the chip you are using. So for the W83781D, yes, comparing the readings
+with the limit values is better.
 
 -- 
-Ryan Underwood, <nemesis at icequake.net>
+Jean Delvare
 
