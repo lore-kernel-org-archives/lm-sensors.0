@@ -1,32 +1,35 @@
-From: till@harbaum.org (Till Harbaum)
-Date: Mon, 20 Nov 2006 18:07:46 +0000
-Subject: [lm-sensors] New compass driver
-Message-Id: <200611201907.45656.till@harbaum.org>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 17 Nov 2006 07:37:12 +0000
+Subject: [lm-sensors] EPoX EP1308 driver progress
+Message-Id: <20061117083712.366f0444.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Hans,
 
-i have written a driver for the Devantech CMPS03 compass module. The
-attached tgz contains a driver that i have written for and tested with
-the ubuntu 2.6.17 kernel. Also included is a patch for the sensors-detect 
-script from lm_sensors 2.10.1 that includes detection of the compass.
+Any progress on your driver for the EPoX EP1308?
 
-Is it ok to post this here for inclusion or do you want me to send it
-somewhere else?
+I found recently that Fintek makes a chip named F71882FG which has the
+exact same ID as the EP1308, and the same register map as well. So it
+means that the EP1308 is really only a rebranded F71882. I had one user
+querying me privately for F71882FG support, which is how I discovered
+that fact.
 
-Regards,
-  Till
+This means two things:
+* Your driver would better be named f71882fg than ep1308, as the Fintek
+chip is the original and the EPoX chip is the clone, rather than the
+other way around.
+* The same driver should support both chips with no additional effort,
+which is great, as it also means broader testing.
 
+I already updated sensors-detect to advertise both chips as being the
+Fintek F71882FG, as we don't seem to have any way to differenciate
+between both variants.
+
+Thanks,
 -- 
-Dr. Till Harbaum <Till at Harbaum.org>
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: cmps03.tgz
-Type: application/x-tgz
-Size: 3581 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061120/a2fba87d/attachment.bin 
+Jean Delvare
+
