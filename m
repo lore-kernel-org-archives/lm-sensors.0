@@ -1,46 +1,35 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 02 Nov 2006 08:17:31 +0000
-Subject: [lm-sensors] [Patch] Fintek F75375S/SP chip driver
-Message-Id: <VlDWEaSC.1162455451.6428440.khali@localhost>
+Date: Sun, 19 Nov 2006 20:46:23 +0000
+Subject: [lm-sensors] [RFC-patch 3/3] SuperIO locks coordinator - use in
+Message-Id: <20061119214623.236ceb38.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Mon, 25 Sep 2006 22:33:49 -0600, David Hubbard wrote:
+> Now, I'm not the most knowledgeable one about the I2C subsystem, but I
+> believe that w83627ehf_driver is redeclared a little later with this:
+> 
+> static struct i2c_driver w83627ehf_driver = {
+> 	.driver = {
+> 		.name	= "w83627ehf",
+> 	},
+> 	.attach_adapter	= w83627ehf_detect,
+> 	.detach_client	= w83627ehf_detach_client,
+> };
+> 
+> 
+> Jean mentioned that it might be a good idea to define .name at
+> runtime, depending on whether a w83627ehf or a w83627dhg was detected.
 
-Hi Riku,
+No, the name which depends on the device is the (surprise!) device
+name, not the driver name. As the w83627ehf driver currently is based
+on i2c-isa, this is the name field of an i2c_client structure. The
+driver name must match the source file name, so it's not supposed to
+change.
 
-On 10/31/2006, Riku Voipio wrote:
->last time I mailed this, I didn't get any feedback - Is this the
->wrong place to send drivers for chips? Also I can't seem to find a
->way to register to the wiki to update the devices entry..
-
-It is the right place, unfortunately it seems that nobody had the
-interest and time to reviewing your code, and I'm currently not able to
-do so myself either.
-
-As for the wiki, we had to disable anonymous changes to avoid being
-spammed. If you intend to become a regular contributor to our project,
-we can create a named account for you, just ask. Otherwise, just tell us
-what change you would like to do on the wiki and we'll do it for you.
-
-> Compared to the previous version posted here, changes are minimal.
-> The driver is slightly more compact and fan is started at full speed
-> by default.
-
-This sounds like a bad idea. Loading the driver should not make any
-change to the device configuration.
-
-> I didn't bother with the libsensors stuff, since supposedly
-> there is a generic sysfs-reading version coming out soon.
-
-"Soon" might take several months. Please provide patches to sensors and
-libsensors, so that your driver can receive proper testing in the
-meantime. Take a look at the f71805f part for a not-too-heavy
-macro-and-loop-based implementation.
-
-Thanks,
---
+-- 
 Jean Delvare
 
