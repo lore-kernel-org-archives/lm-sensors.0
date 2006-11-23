@@ -1,30 +1,28 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 04 Nov 2006 21:52:22 +0000
-Subject: [lm-sensors] Driver for Fintech F75375S?
-Message-Id: <20061104225222.d789e0c4.khali@linux-fr.org>
+From: ukessler@uni-bonn.de (Ulrich Kessler)
+Date: Thu, 23 Nov 2006 11:59:53 +0000
+Subject: [lm-sensors] CPU temperature(s) of Conroe
+Message-Id: <loom.20061123T125301-366@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060810174246.GB8333@deprecation.cyrius.com>
-In-Reply-To: <20060810174246.GB8333@deprecation.cyrius.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 4 Nov 2006 15:48:54 +0100, Martin Michlmayr wrote:
-> * Jean Delvare <khali at linux-fr.org> [2006-11-04 15:23]:
-> > Riku Voipio (Cc'd) has been writing a driver. Nobody reviewed nor
-> > tested it yet as far as I know, but you might want to be the first
-> > tester (at your own risk, of course.) Riku, can you please send the
-> > latest version of your driver to Martin (in private, as the list
-> > received it some times ago already)? Thanks.
-> 
-> I know.  I'm successfully using this driver already.  It would be
-> great if someone could review it so it can be included in the mainline
-> kernel.
+Dear all,
 
-True, it would be great, if someone with the appropriate skills would
-have the time to do so. I don't at the moment.
+I have an ASUS P5B-VM with an E6600 and would like to monitor the CPU
+temperatures. Sensors-detect only finds an LM78 chip which has only one
+temparature sensor. The temperature shown by sensors is obviously the
+Mobo-temperature (same as in BIOS).
+I have read that Conroes possess integrated temperature sensors which could be
+read out directly from CPU registers.
+a) Is this correct?
+b) Is this implemented in lm-sensors?
+c) If yes, what do I have to do to get sensors show the CPU temperatures of the
+two cores?
 
--- 
-Jean Delvare
+Thank you for reply. If you need further info, please let me know.
+
+Uli
+
 
