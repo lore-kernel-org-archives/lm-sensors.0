@@ -1,7 +1,7 @@
-From: paul@astropaul.com (Paul Reilly)
-Date: Sat, 25 Nov 2006 13:21:33 +0000
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Sat, 25 Nov 2006 21:10:33 +0000
 Subject: [lm-sensors] Tyan S2877 CPU Temp Erratic
-Message-Id: <1164460893.4568435d2695a@mail.third-rock.net>
+Message-Id: <4568B149.1030302@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1163375222.4557b2764fc69@mail.third-rock.net>
 In-Reply-To: <1163375222.4557b2764fc69@mail.third-rock.net>
@@ -10,53 +10,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-Hi Rudolf,
+> What would it look like if I add a second physical processor in
+> the second socket? Would I get the same lmsensor names repeated?
 
-> Theoretically there could be 4 temps for one physical CPU. Two for each core
-> * 2 = 4. And because your CPU is dualcore, and your CPU supports only 1
-> temperature/core so you see two of them ;) I hope I clarified that.
+Yes, it will be just new instance of the driver. So, there will be 
+k8temp-pci-00xx where xx is something else here for next physical CPU (in fact 
+it is PCI bus address)
 
-Yes, I see from the k8temp.c
-static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0, 0);
-static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, 0, 1);
-static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 1, 0);
-static SENSOR_DEVICE_ATTR_2(temp4_input, S_IRUGO, show_temp, NULL, 1, 1);
+> Here are the logs.
+> It looks like a timeout problem....
+> 
+> syslog:Nov 25 08:31:58 discover kernel: i2c /dev entries driver
+> syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-9191: ISA main adapter
+> registered
+> syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-0: nForce2 SMBus adapter
+> at 0xa000
+> syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-1: nForce2 SMBus adapter
+> at 0xa040
+> syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-0: SMBus Timeout! (0x10)
+> syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-1: SMBus Timeout! (0x10)
+> syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-9191: Driver w83627hf
+> registered
+> syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-0: SMBus Timeout! (0x10)
+> syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-1: SMBus Timeout! (0x10)
+> syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-9191: Driver w83781d-isa
+> registered
+> syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-0: SMBus Timeout! (0x10)
+> syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-1: SMBus Timeout! (0x10)
+> syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-1: SMBus Timeout! (0x10)
 
-So,
-temp1 = CPU#0 Core#0 Temp #0
-temp2 = CPU#0 Core#0 Temp #1
-temp3 = CPU#0 Core#1 Temp #0
-temp4 = CPU#0 Core#1 Temp #1
 
-My Dual Core Opteron (265) only reports temp1, and temp3.
-That is OK. One temperature per core.
+Well this is from probing phase. It might happen that the probed devices are not 
+on that address. It seems the SMBus controller follows the ACPI 2.00 proposal 
+(13.9.1.1 Status Register, SMB_STS ), and 0x10 means: Indicates the transaction 
+failed because the slave device address was not acknowledged.
 
-What would it look like if I add a second physical processor in
-the second socket? Would I get the same lmsensor names repeated?
+I will need part of the log just after you issued the "sensors" command. (when 
+there is some error in log...) also when you will have the error condition, 
+(strange temperature) please send the output of following command:
 
-> So all in all, this works fine. Lets check the i2c bus related problem. And
-> wait for some logs from you ;)
+i2cdump -y 1 0x2e
 
-Here are the logs.
-It looks like a timeout problem....
+This will show if the chip reports sane values in registers, if so then there is 
+something wrong with the "analog" path to the chip.
 
-syslog:Nov 25 08:31:58 discover kernel: i2c /dev entries driver
-syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-9191: ISA main adapter
-registered
-syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-0: nForce2 SMBus adapter
-at 0xa000
-syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-1: nForce2 SMBus adapter
-at 0xa040
-syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-0: SMBus Timeout! (0x10)
-syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-1: SMBus Timeout! (0x10)
-syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-9191: Driver w83627hf
-registered
-syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-0: SMBus Timeout! (0x10)
-syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-1: SMBus Timeout! (0x10)
-syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-9191: Driver w83781d-isa
-registered
-syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-0: SMBus Timeout! (0x10)
-syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-1: SMBus Timeout! (0x10)
-syslog:Nov 25 08:31:58 discover kernel: i2c_adapter i2c-1: SMBus Timeout! (0x10)
+Does it work when you poweroff the machine - unplug the power cable? And try 
+again? What kernel are you using? When it was not working and you entered the 
+BIOS I guess it worked in there? (no need to hurry with real test, the i2cdump 
+will be enough maybe)
+
+Problem is that I dont have the nVidia datasheet, so I need to guess, when it 
+will turn out that there is a problem with bus driver...
+
+Regards
+Rudolf
+
+
+
 
