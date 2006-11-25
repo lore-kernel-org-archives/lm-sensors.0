@@ -1,7 +1,7 @@
-From: paul@astropaul.com (Paul Reilly)
-Date: Sat, 25 Nov 2006 10:02:16 +0000
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Sat, 25 Nov 2006 10:04:40 +0000
 Subject: [lm-sensors] Tyan S2877 CPU Temp Erratic
-Message-Id: <1164448936.456814a8a4730@mail.third-rock.net>
+Message-Id: <45681538.6010401@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1163375222.4557b2764fc69@mail.third-rock.net>
 In-Reply-To: <1163375222.4557b2764fc69@mail.third-rock.net>
@@ -10,28 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-Thanks Rudolf,
+Please CC to the list.
 
-I now use K8-temp and it seems to work.
+Paul Reilly wrote:
+> Hi Rudolf,
+> 
+> Thanks for your help. The temp readings came back for a while,
+> but are now gone again. Interesting they do change, from -199.5
+> to -197.5 etc. So it seems to be affected by possible the real
+> reading from the CPU.
 
-k8temp-pci-00c3
-Adapter: PCI adapter
-CPU#0 Core1: +54?C
-CPU#0 Core2: +59?C
+Or corrupted.
 
-I am using a sensors.conf of:
+> 
+>> cat /proc/acpi/dsdt > /tmp/dsdt.bin
+> 
+> http://astropaul.com/export/dsdt.bin
 
-chip "k8temp-*"
-        label temp1 "CPU#0 Core1"
-        label temp3 "CPU#0 Core2"
-        label temp2 "CPU#1 Core1"
-        label temp4 "CPU#1 Core2"
+Ok I did not found anything suspect here.
 
-Is this correct?
-I get no reading on temp2 or temp4, which is right as I only have
-one dual core Opteron in this two socket board.
 
-Thanks,
-Paul
+> I cannot make too many changes to this machine. It runs a static
+> kernel ( LM85 module is also compiled statically). As suggested I
+> have turned off ACPI thermal zone, and turned on i2c bus debugging.
+> It will be rebooted tomorrow, and I will report back
+
+Good thanks.
+
+> Will K8 Temp work with Opteron chip?
+
+It will but this cool feature is undocumented by AMD for some reason. (for the 
+pre F. rev of cores)
+
+regards
+Rudolf
 
