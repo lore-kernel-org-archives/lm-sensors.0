@@ -1,7 +1,7 @@
 From: r.marek@assembler.cz (Rudolf Marek)
-Date: Sat, 25 Nov 2006 10:04:40 +0000
+Date: Sat, 25 Nov 2006 10:07:56 +0000
 Subject: [lm-sensors] Tyan S2877 CPU Temp Erratic
-Message-Id: <45681538.6010401@assembler.cz>
+Message-Id: <456815FC.8060109@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1163375222.4557b2764fc69@mail.third-rock.net>
 In-Reply-To: <1163375222.4557b2764fc69@mail.third-rock.net>
@@ -12,38 +12,35 @@ To: lm-sensors@vger.kernel.org
 
 Hi,
 
-Please CC to the list.
-
-Paul Reilly wrote:
-> Hi Rudolf,
+> OK, I have patched my kernel 2.6.16.30  with support for K8 Temp
+> and
 > 
-> Thanks for your help. The temp readings came back for a while,
-> but are now gone again. Interesting they do change, from -199.5
-> to -197.5 etc. So it seems to be affected by possible the real
-> reading from the CPU.
+> [*] AMD K8 processor sensor
+> [*] National Semiconductor LM85 and compatibles
 
-Or corrupted.
+Good.
 
-> 
->> cat /proc/acpi/dsdt > /tmp/dsdt.bin
-> 
-> http://astropaul.com/export/dsdt.bin
+> I will not be able to reboot as is is a production machine.
+> We can reboot over the weekend only.
 
-Ok I did not found anything suspect here.
+Ok.
 
+> Do you have an example sensors.conf  entry for the K8
+> sensor to get the temperature values? It looks like there
+> 2 sensors per core, so I should be able to monitor 4 temp
+> with my Opteron? Great!
 
-> I cannot make too many changes to this machine. It runs a static
-> kernel ( LM85 module is also compiled statically). As suggested I
-> have turned off ACPI thermal zone, and turned on i2c bus debugging.
-> It will be rebooted tomorrow, and I will report back
+If your opteron supports 2 temps/core then yes ;)
 
-Good thanks.
+Yes please check this page: 
+http://www.lm-sensors.org/browser/lm-sensors/trunk/etc/sensors.conf.eg
 
-> Will K8 Temp work with Opteron chip?
+hip "k8temp-*"
 
-It will but this cool feature is undocumented by AMD for some reason. (for the 
-pre F. rev of cores)
+    label temp1 "Core0 Temp"
+    label temp2 "Core0 Temp"
+    label temp3 "Core1 Temp"
+    label temp4 "Core1 Temp"
 
-regards
 Rudolf
 
