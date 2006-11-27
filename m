@@ -1,7 +1,7 @@
 From: gtj.devel@peakin.com (George T. Joseph (development))
-Date: Mon, 27 Nov 2006 04:57:12 +0000
-Subject: [lm-sensors]  Working on a driver for the Andigilog aSC7621
-Message-Id: <22E26940476D1E48AA6F292B5316C9C33740@bes1.peakin.com>
+Date: Mon, 27 Nov 2006 23:14:14 +0000
+Subject: [lm-sensors] Working on a driver for the Andigilog aSC7621
+Message-Id: <22E26940476D1E48AA6F292B5316C9C33743@bes1.peakin.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <22E26940476D1E48AA6F292B5316C9C33738@bes1.peakin.com>
 In-Reply-To: <22E26940476D1E48AA6F292B5316C9C33738@bes1.peakin.com>
@@ -10,17 +10,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
- 
-Here's my first cut at the kernel bits.  I haven't worked on the
-userspace stuff or the docs yet pending comments on the kernel driver.
-I'm sure they'll be plenty. :)  Oh yeah, I used 1048 for the driver id.
-I'm not sure what the latest actually is.
+The sensors-detect patch has a little bug:  You're using $mid to test
+for the chip id instead of $cid.   
 
-I'll test the sensors-detect patch tomorrow.  I don't have a specific
-contact at Andigilog but I do have some questions for them so I'll ask
-them about the stepping issue as well.
-
-george
 -----Original Message-----
 From: Rudolf Marek [mailto:r.marek at assembler.cz] 
 Sent: Saturday, November 25, 2006 8:50 AM
@@ -72,10 +64,4 @@ Do you have any good contact at that company to ask?
 Thanks,
 Regards
 Rudolf
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: asc7621.patch
-Type: text/x-patch
-Size: 34416 bytes
-Desc: asc7621.patch
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061126/a7047977/attachment-0001.bin 
+
