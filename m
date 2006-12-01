@@ -1,87 +1,76 @@
-From: maj1224@yahoo.com (Matt Jerdonek)
-Date: Thu, 28 Dec 2006 18:38:54 +0000
-Subject: [lm-sensors] Detecting temp on Xeon
-Message-Id: <20061228183854.53963.qmail@web33506.mail.mud.yahoo.com>
+From: com.ea@tinet.org (com.ea)
+Date: Fri, 01 Dec 2006 22:18:09 +0000
+Subject: [lm-sensors] (fwd) testing w83627hf treiber?
+Message-Id: <n5a1n2dg83f2kk7hseglaibuq19qh0rlbg@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'm pretty new to lm-sensors, and I'm struggling getting a temperature reading off a Xeon (dual core LV aka Sossaman).
+Hello everybody
 
-I first ran sensors-detect and got the following output:
----------------------------------------------------------------------
-To make the sensors modules behave correctly, add these lines to
-/etc/modules.conf:
+I received this message which explains a strange behaviour in a w83627hf that I never heard of.
+It looks like the fans run until the bios loads and then they stop.
+He also explains that he cant modify the monitor registers (as root) which always return 0.
 
-#----cut here----
-# I2C module options
-alias char-major-89 i2c-dev
-#----cut here----
+On Wed, 29 Nov 2006 15:14:34 +0100, Thomas Dohl <Thomas.Dohl at gmx.de> wrote:
 
-To load everything that is needed, add this to some /etc/rc* file:
+>>Hi Carlos,
+>>
+>>I've reed your article at 
+>>http://lists.lm-sensors.org/pipermail/lm-sensors/2006-July/016942.html.
+>>
+>>Now I've got a short question to you.
+>>
+>>I've got the via epia ek-800 board. It's with the w83627hf chip.
+>>
+>>Now I want to control the fan-speed.
+>>Here my problem:
+>>
+>>My kernel is 2.6.17-2.
+>>
+>>Loadet modules are i2c-viapro, i2c-isa, eeprom, w83627hf.
+>>
+>>I can see read the temperatur and I see the
+>>fan devices under :
+>>/sys/bus/i2c/devices/9191-0290/pwm1 and pwm2
+>>
+>>but I can't set values
+>>echo 255 > pwm1
+>>doesn't work.
+>>cat pwm1 always returns 0
+>>
+>>Has anyone an idea?
+>>
+>>If I put the board on, the fan's runs for a short while.
 
-#----cut here----
-# I2C adapter drivers
-modprobe i2c-i801
-modprobe i2c-isa
-# You must also install and load the IPMI modules
-modprobe i2c-ipmi
-# I2C chip drivers
-modprobe eeprom
-modprobe bmcsensors
-# sleep 2 # optional
-/usr/bin/sensors -s # recommended
-#----cut here----
------------------------------------------------------------------------------
+> I dont understand what you mean by that, can you explain it in detail?
 
-I also updated my /etc/sysconfig/lm_sensors file.  Unfortunately, I'm getting an error in the bmcsensors driver:
+>>
+>>I only tried to say, that the fan's are ok. I put on the power of the 
+>>board. The BIOS runs through the memtest. In this time, the fan's are
+>>running. After finishing this, grub starts and the fan's are of.
 
-[root at sprm4 root]# lm_ipmi_kcs_sm: kcs hosed: OBF not ready in time
-bmcsensors.o: Error 0xff on cmd 0xa/0x22; state = 0; probably fatal.
+>Thats certainly a strange behaviour :/
+>
+>Im sending you the driver I modified to include two additional entries called pwmclk1 and pwmclk2,
+>which are used to improve the control of the fan speed. Copy it to the kernel tree in the correct
+>directory and then run the usual 'make modules && make modules_install' (I guess you compile
+>lm-sensors drivers as modules...)
+>
+>Anyway I dont know if it will solve the problem. If you could give me more information, like the
+>output of sensors-detect or any other hint which could explain why the fans are off before any
+>driver is loaded... You should also consider writing to the lm-sensors mailing list, which I am
+>forwarding this message
+>
+>Regards
+>Carlos
 
-So, I took out the bmcsensors and tried both xeontemp and adm1021 driver.  In all cases, this is the output I get from sensors:
-
-[root at sprm4 root]# sensors
-eeprom-i2c-0-50
-Adapter: SMBus I801 adapter at 0540
-Memory type:            DDR2 SDRAM DIMM
-Memory size (MB):       1024
-
-eeprom-i2c-0-51
-Adapter: SMBus I801 adapter at 0540
-Memory type:            DDR2 SDRAM DIMM
-Memory size (MB):       1024
-
-eeprom-i2c-0-53
-Adapter: SMBus I801 adapter at 0540
-Unknown EEPROM type (255).
-
-eeprom-i2c-0-54
-Adapter: SMBus I801 adapter at 0540
-Memory type:            DDR2 SDRAM DIMM
-Memory size (MB):       1024
-
-eeprom-i2c-0-55
-Adapter: SMBus I801 adapter at 0540
-Memory type:            DDR2 SDRAM DIMM
-Memory size (MB):       1024
-
-Does this make sense to anyone?
-
-Some additional info:
-kernel 2.4.21, chipset of Intel E7520 + 6300ESB, sensors version 2.10.0, libsensors version 2.10.0
-
-
-
-Thanks in advance for any help,
--- Matt
-
-
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+>>
+>>Do you have an idea?
+>>
+>>regards
+>>Thomas
+>>Sorry of my bad english, I'm from Germany.
 
