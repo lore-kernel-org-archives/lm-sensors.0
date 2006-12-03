@@ -1,7 +1,7 @@
-From: Thomas.Dohl@gmx.de (Thomas Dohl)
-Date: Sun, 03 Dec 2006 08:38:58 +0000
+From: udovdh@xs4all.nl (Udo van den Heuvel)
+Date: Sun, 03 Dec 2006 08:49:38 +0000
 Subject: [lm-sensors]
-Message-Id: <45728D22.6030801@gmx.de>
+Message-Id: <45728FA2.90707@xs4all.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <87ekb9s3tn.wl%info@wore.ma.cx>
 In-Reply-To: <87ekb9s3tn.wl%info@wore.ma.cx>
@@ -10,22 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Udo,
-
-thank you very much!
-Yes it works.
-
-Regards
-Thomas Dohl
-
-
-Udo van den Heuvel schrieb:
-> in modprobe.conf:
+Thomas Dohl wrote:
+> Hi Udo,
 > 
-> options w83627hf reset=1
-> 
-> 
-> I have a VIA EK8000 which has a similar problem. This is a workaround.
-> Please post if it works.
-> 
+> thank you very much!
+> Yes it works.
+
+So we might have the same problem.
+In my situation I have a VIA EK8000 which has the fans running during a
+boot until the kernel loads/starts. Then the fans stop. So is it a Linux
+issue?
+When the w83627hf module is loaded with the reset=1 parameter the fans
+start again. Fancontrol is functional (although I do not use it).
+
+What can we do to find out more?
 
