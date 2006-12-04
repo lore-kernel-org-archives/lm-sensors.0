@@ -1,46 +1,48 @@
-From: gtj.devel@peakin.com (George T. Joseph (development))
-Date: Thu, 21 Dec 2006 22:27:00 +0000
-Subject: [lm-sensors] Call for 2.10.2
-Message-Id: <22E26940476D1E48AA6F292B5316C9C33766@bes1.peakin.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 04 Dec 2006 08:06:02 +0000
+Subject: [lm-sensors] testing w83627hf treiber?
+Message-Id: <20061204090602.07b8d41b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20061221224611.3c2746af.khali@linux-fr.org>
-In-Reply-To: <20061221224611.3c2746af.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'd like to get my support for the Andigilog asc7xxx sensors in but I'm
-waiting for feedback on the kernel driver submitted on Dec 7th.
+Hi Thomas,
 
-george
+(Huh, please don't use URLs as post subjects.)
 
------Original Message-----
-From: lm-sensors-bounces@lm-sensors.org
-[mailto:lm-sensors-bounces at lm-sensors.org] On Behalf Of Jean Delvare
-Sent: Thursday, December 21, 2006 2:46 PM
-To: LM Sensors
-Subject: [lm-sensors] Call for 2.10.2
+On Sun, 03 Dec 2006 21:20:01 +0100, Thomas Dohl wrote:
+> I've found a strange bug or what ever in the Module. :)
+> I'll try to explain it.
+> If I boot Linux with the module "w83627hf", everything
+> is ok. But if I load the module with the workaround, like
+> "modprobe w83627hf reset=1" I get a 23?C higher temperature
+> of the second sensor.
+> 
+> At boottime:
+> temp1: 34?C
+> temp2: 33?C
+> 
+> after modprobe with reset=1
+> temp1: 34?C
+> temp2: 56?C (23?C more than it is)
+> 
+> This doesn't change after rmmod w83627hf, modprobe w83627hf.
+> Only after reboot, the values return to normal.
+> 
+> What could that be?
 
-Hi all,
+Easy. The W83627*F chips have temperature offset registers. The BIOS
+must write an offset for the temp2 (CPU?) temperature sensor, to
+account for a different thermal diode model for example, or just to
+make it look cooler to the user... When the w83627hf driver resets the
+chip, the offset is reset to 0 as well, so you get the "raw" reading
+again.
 
-We should start planning the release of lm_sensors 2.10.2. I don't
-think I have anything pending myself, if others have things pending
-that should go in, please speak up. I guess we'll all be busy with
-end-of-year festivities in the next two weeks so it's probably better
-to wait for everyone to be back before we freeze the repository and
-do the release. I thus propose the following schedule:
+See, this is exactly the reason why we don't reset the chip by default:
+to preserve BIOS settings.
 
-January 7th, 2007: Freeze of the repository
-January 8th to 13th: Tests
-January 14th: Release of lm_sensors 2.10.2
-
-Thanks,
 -- 
 Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors at lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
