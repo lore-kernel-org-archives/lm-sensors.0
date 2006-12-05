@@ -1,31 +1,54 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 24 Dec 2006 14:09:35 +0000
-Subject: [lm-sensors] [PATCH] ad7418 driver
-Message-Id: <20061224150935.a8327a03.khali@linux-fr.org>
+From: bob2@dsv.nl (Bob =?ISO-8859-1?Q?Schl=E4rmann?=)
+Date: Tue, 05 Dec 2006 22:50:59 +0000
+Subject: [lm-sensors] Status update generic chipset support
+Message-Id: <20061205235059.24a657b4@ws01.atreidis.nl.eu.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20061112153724.3e630d32@inspiron>
-In-Reply-To: <20061112153724.3e630d32@inspiron>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Ah, one more thing...
+Hello all,
 
-On Sun, 12 Nov 2006 15:37:24 +0100, Alessandro Zummo wrote:
-> +#define show_adc(value)	\
-> +static ssize_t show_##value(struct device *dev, struct device_attribute *attr, char *buf)		\
-> +{								\
-> +	struct ad7418_data *data = ad7418_update_device(dev);	\
-> +	return sprintf(buf, "%d\n", data->value >> 6);		\
-> +}
+It has been a while since my last message in which I promised a
+patch soon, due to some other duties it got delayed a bit. However we
+are still working on the changes and a patch will be posted within a
+week.
 
-Here you return (almost) the raw register value, while the sysfs
-interface standard says you must export the value in mV. According to
-the datasheet, the ADC LSB is VREF/1024 with VREF = 2.5V, so you'd need
-to return:
-  ((data->value >> 6) * 2500 + 512) / 1024
+We also started with the printing routine, this is currently finished
+for about 80%. The total lines of additional code is about 300,
+but it should support almost every chipset.
 
--- 
-Jean Delvare
+Some problems we encoutered and how the function currently gets around
+are below:
+
+- Some chipsets support features that aren't supported by any other
+chipset, for example the adm1021 has a die-code feature. 
+
+The function currently ignores these. It could be handled by some
+additional chip specific callback function.
+
+- When reading a certain feature of a chip, some chips return 127 as the
+current value. The print routines of these chips will then either ignore
+or warn about this feature.
+
+The function currently just prints the 127.
+
+- The following chips have a special feature that indicates the type of
+temp. sensor used, (w83781d, it87, f71805f). None of these have
+specifified the main temp. feature as their mapping in lib/chips.c. This
+means the function can't easily find out to which temp. it belongs.
+
+It would be easier when there was a mapping.
+
+- Most chips use a bitmask to indicate which feature holds an alarm. As
+this is chip specific it (almost) can't be used in the function.
+
+Some chips do have a different file/feature for each alarm, changing
+all/most of the chips to this model would be easier for the function.
+
+regards,
+
+--
+Bob
 
