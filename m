@@ -1,28 +1,27 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 03 Dec 2006 10:05:37 +0000
-Subject: [lm-sensors] New Rx8025 RTC driver
-Message-Id: <20061203110537.b7100e7a.khali@linux-fr.org>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Tue, 05 Dec 2006 23:45:32 +0000
+Subject: [lm-sensors] [PATCH] move my mail addr
+Message-Id: <4576049C.7030902@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000701c71503$0ef32750$4450a8c0@003355>
-In-Reply-To: <000701c71503$0ef32750$4450a8c0@003355>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Paul,
+Hello Jean,
 
-On Fri, 1 Dec 2006 12:42:04 +0800, Paul wrote:
-> This is a driver patch for Epson RX8025 SA/NB RTC module.
-> It based on Uwe's patch
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2006-February/015172.html
-> and used new rtc class,It has tested on kernel 2.6.17.11.
+Please apply.
 
-Wrong list, this has nothing to do with sensors. Please check
-MAINTAINERS in the kernel tree for the right person and list to contact
-for RTC drivers.
+This patch changes my e-mail address, the Silicon Hill club is not what it used 
+to be.
 
-Thanks,
--- 
-Jean Delvare
+regards
+Rudolf
 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: ruik-changed-email.patch
+Type: text/x-patch
+Size: 5659 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061206/604e7a23/attachment.bin 
