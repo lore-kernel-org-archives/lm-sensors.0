@@ -1,45 +1,82 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 17 Dec 2006 19:16:12 +0000
-Subject: [lm-sensors] [PATCH] Make lm70_remove a __devexit function
-Message-Id: <20061217201612.1c7ba106.khali@linux-fr.org>
+From: richardvoigt@gmail.com (* *)
+Date: Wed, 06 Dec 2006 03:44:45 +0000
+Subject: [lm-sensors] CPU temperature(s) of Conroe
+Message-Id: <2e59e6970612051944wae7a5cp96f9ca1e107656c6@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20061210192151.GA32262@linux-mips.org>
-In-Reply-To: <20061210192151.GA32262@linux-mips.org>
+References: <loom.20061123T125301-366@post.gmane.org>
+In-Reply-To: <loom.20061123T125301-366@post.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ralf Baechle <ralf@linux-mips.org>
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi Ralf,
+> In the meantime I have tried to learn a bit about patching kernels etc.
+>
+> This is what I understand I have to do to get the lm-sensors running
+> with the W83627DHG chip and the Core2Duo temperature sensors:
+>
+> 1. I have to get a driver for the W83627DHG chip. This will be a
+> loadable module w83627ehf.ko in the directory
+> /lib/modules/2.6.16.21-0.25-smp/kernel/drivers/hwmon. SUSE 10.1 has such
+> a driver but it seems too old (a. the documentation of the corresponding
+> (?) w83627ehf.c file in /usr/src/linux/drivers/hwmon says nothing about
+> w83627dhg support; b. I cannot do 'modprobe w83627ehf': no such device).
+> The newer version of the w83627.c file is this:
+> http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060906/b139bc4d/attachment-0001.obj
+> So I should rename the old w83627ehf.c file and copy the new one to
+> /usr/src/linux/drivers/hwmon.
+> Now I have to build the new kernel module. This is the step I don't
+> understand yet.
+> After that I can do 'modprobe w83627ehf' and the W83627DHG works with
+> lm-sensors.
+>
+> 2. Installing the coretemp driver is a bit more tricky because I have to
+> patch msr.c first. I think this works in principle as above: rename
+> /usr/src/linux/arch/i386/kernel/msr.c, copy the new msr.c to this
+> directory and recompile. I think in this case I have to recompile the
+> whole kernel because msr is no loadable module.
+> After that I can build the coretemp driver as a loadable module as
+> above: copy coretemp.c to /usr/src/linux/drivers/hwmon, building the
+> module, 'modprobe coretemp'.
+>
+> In the end, I should add two lines to my file /etc/init.d/boot.local:
+> modprobe w83627ehf
+> modprobe coretemp
+>
+> lm-sensors should work then. Eventually I have to correct the file
+> sensors.conf.
+>
+> Is this correct so far?
 
-On Sun, 10 Dec 2006 19:21:51 +0000, Ralf Baechle wrote:
-> Saves a few bytes on the module.
-> 
-> Signed-off-by: Ralf Baechle <ralf at linux-mips.org>
-> 
-> diff --git a/drivers/hwmon/lm70.c b/drivers/hwmon/lm70.c
-> index 6ba8473..7eaae38 100644
-> --- a/drivers/hwmon/lm70.c
-> +++ b/drivers/hwmon/lm70.c
-> @@ -126,7 +126,7 @@ out_dev_reg_failed:
->  	return status;
->  }
->  
-> -static int __exit lm70_remove(struct spi_device *spi)
-> +static int __devexit lm70_remove(struct spi_device *spi)
->  {
->  	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
->  
+I used a "add-coretemp-driver.patch" file I found on the internet,
+don't remember which site.
 
-You're not actually saving memory with this change, as __devexit is
-resolved to either __exit (i.e. nothing changes) or nothing (i.e. the
-code is now always compiled in.) This is a bugfix though as currently
-the code may be striped away while the driver still holds a pointer to
-it.
+Then from inside the /usr/src/linux directory, I ran
 
-Good catch, applied (with a different header comment), thanks.
+patch -p1 < /patch/to/add-coretemp-driver.patch
 
--- 
-Jean Delvare
+and ran make menuconfig, selected the Coretemp driver, and rebuilt the kernel.
+
+> How does the patching thing work?
+> I think I should first save my old kernel in case something goes wrong.
+> Is there a preferred way to do this?
+
+Basically, when you get to the stage of copying the new kernel from
+arch/i386/boot/bzImage to /boot, make sure you don't use the same
+filename as the existing kernel.... I actually like to rename my known
+working kernel to bzImage_failsafe and the new one as bzImage, and
+then have entries in grub's menu.lst for each.
+
+>
+> Thank you for your help.
+>
+> Best regards
+> Uli
+>
+>
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors at lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>
 
