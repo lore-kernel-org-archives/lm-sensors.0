@@ -1,54 +1,40 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 27 Dec 2006 10:49:55 +0000
-Subject: [lm-sensors] PC87427 support timeline?
-Message-Id: <20061227114955.8be96ae0.khali@linux-fr.org>
+From: flabbergasted@gmx.de (flabbergasted at gmx.de)
+Date: Wed, 06 Dec 2006 16:42:28 +0000
+Subject: [lm-sensors] fancontrol with IT8705F
+Message-Id: <4576F2F4.9050200@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4586C964.1090103@seltec.ab.ca>
-In-Reply-To: <4586C964.1090103@seltec.ab.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jonathan,
+Hi,
 
-On Mon, 18 Dec 2006 10:01:24 -0700, Jonathan deBoer wrote:
-> I have a server that uses the PC87427 chip for fan monitoring and 
-> control. While I have applied the patch provided on your website for fan 
-> speed monitoring, it does not allow for fan speed control. This machine 
-> is extremely loud. Is there any way to turn down the fans? (They are 
-> currently running at full speed all the time, and there is absolutely no 
-> need.)
+I installed lm-sensors on Ubuntu Edgy today. I have an Asus A7V8X-X mobo 
+wich has an IT8712F/IT8705F chip (that's what speedfan tells me in Windows).
 
-Depends on your motherboard. The PC87427 has fan speed control
-capabilities, but it needs to have been properly wired on your
-motherboard for you to possibly take advantage of it.
+I was able to set up lm-sensors to get the correct values for the CPU 
+fan and the temperatures. However I have problems getting fancontrol to 
+run.
 
-> Is there a possible timeline for full support for this chip?
+pwm2 controls the CPU fan but only for values between 0-10. So for the 
+value 10 it already runs at 100%. I can regulate it by setting it 
+manually between 0-10 but this is problematic with fancontrol which 
+expects to regulate between 0-255. I think I remember that the autor of 
+speedfan also had problems with this and then fixed it somehow. So if 
+this is of any help I could contact him and ask him to provide information.
 
-No timeline. The PC87427 is a rather uncommon chip, we don't have many
-requests, which means it is low priority for us.
+I searched for this problem on the mailing list but there I only found 
+old and not very helpful entries. Can you tell me what I could do about 
+this? I'd really like to get this to work since it is one of the main 
+reasons I still don't use Linux at home on a regular basis.
 
-> I am willing to use this machine as a test platform for driver 
-> development, if needed, as the machine is not mission critical (yet).
+Btw... I am quite good with understanding things but I'm still 
+relatively new to Linux so if you try to give me some information don't 
+expect too much background knowledge on my side. I'm eager to learn, 
+though. :)
 
-Thanks for the proposal. First of all you will want to make sure that
-your board is properly wired. Check the motherboard documentation for
-hints. Then we can try writing to a couple registers and see what
-happens. I can help you with that, if you tell me the base I/O address
-of the FSC unit on your system:
-  modprobe pc87427
-  grep pc87427 /proc/ioports
-If we succeed in changing the fan speeds by writing to the registers
-manually, then it will be worth extending the pc87427 driver to
-implement this feature.
+I really hope you can help. Thanks so much in advance!
 
-That being said, as I underlined above, this is low priority for us, so
-we (which in practice would be me) are not going to work on this right
-now just because you need it. If this is important and/or urgent for
-you, you should consider helping the project, by either funding the
-development, or donating some hardware.
-
--- 
-Jean Delvare
+Tobias Fritz
 
