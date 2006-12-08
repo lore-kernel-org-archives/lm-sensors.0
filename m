@@ -1,7 +1,7 @@
-From: t.j.fritz@gmx.de (Tobias Fritz)
-Date: Thu, 07 Dec 2006 13:10:47 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 08 Dec 2006 19:52:09 +0000
 Subject: [lm-sensors] fancontrol with IT8705F
-Message-Id: <200612071410.47342.t.j.fritz@gmx.de>
+Message-Id: <20061208205209.cb80b161.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4576F2F4.9050200@gmx.de>
 In-Reply-To: <4576F2F4.9050200@gmx.de>
@@ -10,26 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Cool, this helps! If I set it to e.g. 3MHz it seems to change pretty smoothly 
-over the whole range. I have to test this a little more but I don't know when 
-I'll find time for it. 
+Tobias,
 
-If I find a value that suits me, how can I set this permanently? 
+On Thu, 7 Dec 2006 14:10:47 +0100, Tobias Fritz wrote:
+> Cool, this helps! If I set it to e.g. 3MHz it seems to change pretty smoothly 
+> over the whole range. I have to test this a little more but I don't know when 
+> I'll find time for it. 
 
-Thanks so much for your help!
+Great. So I created a patch which will let the user change the PWM
+frequency through a device sysfs file. The patch is against 2.6.18 as
+this is what the machine I had for testing was running. The it87 driver
+was significantly modified since then so this patch will need to be
+rewritten for 2.6.20, I'll do that later.
 
-Tobias
+If you give a try to this patch, note that the frequency you control
+through pwm1_freq is the real PWM base frequency, while the values I
+gave you before were internal frequencies, which are 128 times greater.
+In other words, if "3 MHz" was working for you, you'll need to write
+23437 (3000000/128) to pwm1_freq.
 
-> isaset 0x295 0x296 0x14 0x00 0x70   # 24 MHz
-> isaset 0x295 0x296 0x14 0x10 0x70   # 24 MHz
-> isaset 0x295 0x296 0x14 0x20 0x70   # 12 MHz
-> isaset 0x295 0x296 0x14 0x30 0x70   # 8 MHz
-> isaset 0x295 0x296 0x14 0x40 0x70   # 6 MHz
-> isaset 0x295 0x296 0x14 0x50 0x70   # 3 MHz
-> isaset 0x295 0x296 0x14 0x60 0x70   # 1.5 MHz
-> isaset 0x295 0x296 0x14 0x70 0x70   # 0.75 MHz
->
-> As a rule of thumb, lower frequencies should give your better control,
-> but you might also bring annoying sounds. Please experiment with
-> different values and report.
+> If I find a value that suits me, how can I set this permanently?
 
+You can't, as the IT8705F chip will lose its settings on power-off and
+most probably on reboot as well. So you'll have to make sure the
+frequency is set again at boot time. Without the patch, this can be
+done by calling isaset with the right parameters in one of your system
+boot scripts. With the patch, echo the wanted frequency
+to /sys/devices/platform/i2c-9191/9191-0290/pwm1_freq instead (make
+sure the script is called after the it87 driver is loaded.)
+
+-- 
+Jean Delvare
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: hwmon-it87-pwm-freq.patch
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061208/b2353c17/attachment.pl 
