@@ -1,76 +1,35 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 29 Dec 2006 14:09:37 +0000
-Subject: [lm-sensors] w83793 driver ready
-Message-Id: <xT2SRNdf.1167401377.8757770.khali@localhost>
+Date: Fri, 08 Dec 2006 06:43:43 +0000
+Subject: [lm-sensors] [i2c] M1563 - "Could not allocate I/O space"
+Message-Id: <20061208074343.9e8b36e3.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20061208153817.de1c2b4c.khali@linux-fr.org>
-In-Reply-To: <20061208153817.de1c2b4c.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Brian,
 
-Hi Rudolf,
+Please answer to the list rather than to me only.
 
-On 12/28/2006, "Rudolf Marek" <r.marek at assembler.cz> wrote:
+On Thu, 07 Dec 2006 23:06:46 -0500, Brian Hinz wrote:
+> > Well, first of all, keep the base address at 0x8080. Secondly, 0xE is
+> > actually 14, not 15 (and 0xF is 15, not 16) so maybe you should try
+> > setting the Length to 0x10. Note that I'm not familiar with the DSDT
+> > syntax though, so maybe the 4th value is an offset and not the region
+> > length, in which case 0xF would be correct correct.
+> 
+> Heh, that's embarrassing...  Yeah, so if I had actually thought about it I 
+> would have realized that the i2c driver is requesting 0x10 @ 0x8080, while 
+> the bios is reserving 0x0E @ 0x8080.  So obviously you're right, the length 
+> in the dsdt should be increased.
 
->Jean Delvare wrote:
->> On Tue, 26 Dec 2006 10:08:27 +0100, Jean Delvare wrote:
->>> I searched for "w83793g" in google. And I also searched the lm-sensors
->>> mailing list for reports of users interested in the driver. Sometimes I
->>> had to download the motherboard manual for confirmation. The list I
->>> came up with is:
->>>
->>> Tyan Tempest i5000VF (S5370)
->>> Tyan Tempest i5000PT (S5383)
->>> Supermicro PDSMU
->>> Supermicro X7DBR-3
->>> Supermicro X7DBR-E
->>> Supermicro H8DAE-2
->>
->> Add to the list:
->> Asus DSBF-D
->> Asus DSBF-D/1U
->> Asus DSBF-D/SAS
->
->I add:
->
->wget ftp://ftp.supermicro.com/utility/Supero_Doctor_III/32-Bit_Edition/AllSuperD.ini
-> grep -A 6 793 AllSuperD.ini  | grep \\[_ | sort -u | tr -d _[]
->
->H8DA8-2
->H8DM8-2
->H8DMR-82
->H8QM8
->H8SMI
->H8SSL-I2
->PDSM4+
->PDSMI+
->PDSMI-LN4+
->PDSMU+
->X7DA8
->X7DAL
->X7DB8
->X7DB8-X
->X7DBN
->X7DBP
->X7DBR
->X7DBR-3
->X7DBR-8
->X7DBT
->X7DBU
->X7DBX
->X7DVA
->X7DVL
->X7DVL-3
->
->Enough ;) ?
+OK. Can you please tell us the brand and model name of the affected
+laptop for reference? So that we can help other users affected by the
+problem. I suggest that you report the issue to the laptop manufacturer
+and ask them for a BIOS update (assuming it is not already available -
+did you check that?)
 
-Well done, but what we need is one cheap board. Did you check the typical
-price for the motherboards you listed above? If they are all expensive
-server boards, it doesn't help :(
-
---
+-- 
 Jean Delvare
 
