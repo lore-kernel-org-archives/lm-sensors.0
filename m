@@ -1,37 +1,22 @@
-From: udovdh@xs4all.nl (Udo van den Heuvel)
-Date: Mon, 04 Dec 2006 17:28:55 +0000
-Subject: [lm-sensors] testing w83627hf treiber?
-Message-Id: <45745AD7.50809@xs4all.nl>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Sat, 09 Dec 2006 21:21:40 +0000
+Subject: [lm-sensors] Working on a driver for the Andigilog aSC7621
+Message-Id: <457B28E4.9010205@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20061204090602.07b8d41b.khali@linux-fr.org>
-In-Reply-To: <20061204090602.07b8d41b.khali@linux-fr.org>
+References: <22E26940476D1E48AA6F292B5316C9C33738@bes1.peakin.com>
+In-Reply-To: <22E26940476D1E48AA6F292B5316C9C33738@bes1.peakin.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> On Mon, 04 Dec 2006 09:14:53 +0100, Udo van den Heuvel wrote:
->> Jean Delvare wrote:
->>> See, this is exactly the reason why we don't reset the chip by default:
->>> to preserve BIOS settings.
->> In that case Thomas really has a problem:
->>
->> Either his fans won't work or the temperature will be off.
->> (in my situation it looks like it is just the fans)
->>
->> So how can we fix this?
-> 
-> As I said already: look into the BIOS menu for options to adjust or
-> disable the automatic fan speed control.
+George T. Joseph (development) wrote:
+> The sensors-detect patch has a little bug:  You're using $mid to test
+> for the chip id instead of $cid.   
 
-Will try this later this week, since the Ek8000 having this issue is my
-only firewall.
-I will find a moment to investigate. Maybe I can check the manual for
-such an option as well.
+Ah. I commited fixed version into SVN. Please try that out.
 
-What system does Thmas run?
-
-Udo
-
+> Thanks,
+> Regards
+> Rudolf
 
