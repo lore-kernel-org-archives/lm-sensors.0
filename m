@@ -1,7 +1,7 @@
-From: richardvoigt@gmail.com (* *)
-Date: Wed, 06 Dec 2006 03:44:45 +0000
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Sat, 09 Dec 2006 20:47:32 +0000
 Subject: [lm-sensors] CPU temperature(s) of Conroe
-Message-Id: <2e59e6970612051944wae7a5cp96f9ca1e107656c6@mail.gmail.com>
+Message-Id: <457B20E4.8080701@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <loom.20061123T125301-366@post.gmane.org>
 In-Reply-To: <loom.20061123T125301-366@post.gmane.org>
@@ -10,73 +10,80 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> In the meantime I have tried to learn a bit about patching kernels etc.
->
-> This is what I understand I have to do to get the lm-sensors running
-> with the W83627DHG chip and the Core2Duo temperature sensors:
->
-> 1. I have to get a driver for the W83627DHG chip. This will be a
-> loadable module w83627ehf.ko in the directory
-> /lib/modules/2.6.16.21-0.25-smp/kernel/drivers/hwmon. SUSE 10.1 has such
-> a driver but it seems too old (a. the documentation of the corresponding
-> (?) w83627ehf.c file in /usr/src/linux/drivers/hwmon says nothing about
-> w83627dhg support; b. I cannot do 'modprobe w83627ehf': no such device).
-> The newer version of the w83627.c file is this:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060906/b139bc4d/attachment-0001.obj
-> So I should rename the old w83627ehf.c file and copy the new one to
-> /usr/src/linux/drivers/hwmon.
-> Now I have to build the new kernel module. This is the step I don't
-> understand yet.
-> After that I can do 'modprobe w83627ehf' and the W83627DHG works with
-> lm-sensors.
->
-> 2. Installing the coretemp driver is a bit more tricky because I have to
-> patch msr.c first. I think this works in principle as above: rename
-> /usr/src/linux/arch/i386/kernel/msr.c, copy the new msr.c to this
-> directory and recompile. I think in this case I have to recompile the
-> whole kernel because msr is no loadable module.
-> After that I can build the coretemp driver as a loadable module as
-> above: copy coretemp.c to /usr/src/linux/drivers/hwmon, building the
-> module, 'modprobe coretemp'.
->
-> In the end, I should add two lines to my file /etc/init.d/boot.local:
-> modprobe w83627ehf
-> modprobe coretemp
->
-> lm-sensors should work then. Eventually I have to correct the file
-> sensors.conf.
->
-> Is this correct so far?
+Hi,
 
-I used a "add-coretemp-driver.patch" file I found on the internet,
-don't remember which site.
+*Is here some SuSE user around willing to help Ulrich with compilation please?*
 
-Then from inside the /usr/src/linux directory, I ran
+Ulrich, kernel compilation is not what the beginners should face, if you wait
+few months and then install new Suse (or update) then your system should have
+the drivers and everything should be ok.
 
-patch -p1 < /patch/to/add-coretemp-driver.patch
+Your problem is in two places, you need to update the lm-sensors package first.
+And then modify the kernel to replace the W83627EHF driver and patch the
+coretemp driver.
 
-and ran make menuconfig, selected the Coretemp driver, and rebuilt the kernel.
 
-> How does the patching thing work?
-> I think I should first save my old kernel in case something goes wrong.
-> Is there a preferred way to do this?
+As for the update:
+We agreed with Khali that best is to do
 
-Basically, when you get to the stage of copying the new kernel from
-arch/i386/boot/bzImage to /boot, make sure you don't use the same
-filename as the existing kernel.... I actually like to rename my known
-working kernel to bzImage_failsafe and the new one as bzImage, and
-then have entries in grub's menu.lst for each.
+make user_install
 
->
-> Thank you for your help.
->
-> Best regards
-> Uli
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors at lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+(so the libraries and utils will be 2x in fs)
+
+So, please take the lm-sensors 2.10.1
+
+unpack it, install libsysfs developement package, and issue following command:
+
+cd directory_where_it_is
+make user_install
+
+Then make sure that new utils are linked with correct (new) library:
+
+ldd /usr/local/bin/sensors
+
+ldd /usr/local/bin/sensors
+        libsensors.so.3 => /usr/local/lib/libsensors.so.3 (0x00002b55b27ef000)
+        libc.so.6 => /lib/libc.so.6 (0x00002b55b2948000)
+        libm.so.6 => /lib/libm.so.6 (0x00002b55b2b85000)
+        libsysfs.so.2 => /lib/libsysfs.so.2 (0x00002b55b2d07000)
+        /lib64/ld-linux-x86-64.so.2 (0x00002b55b26d7000)
+
+You should check first line if it is same as mine.
+
+This is *UNFINISHED* how to compile the kernel, you may try some steps,
+hopefully someone SUSE skilled will help about this:
+
+(here is some semi guide, dont follow it just read it
+http://en.opensuse.org/Setting_up_VMware_on_SUSE_Linux)
+
+Generally you need
+
+0) install GNU make, gcc, ncurses devel,
+1) get kernel source package (2.6.18?) and kernel-syms
+2) it will be extracted to directory /usr/src/linux
+3) Then get this file:
+http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060906/b139bc4d/attachment-0001.obj
+
+Rename it to w83627ehf.c and overwrite file in the /usr/src/linux/hwmon/
+
+PI) get all patches for coretemp driver, use patch < ... to change the source.
+
+You may skip this step, right now, lets try to compile the kernel with modified
+EHF driver.
+
+4) return to /usr/src/linux directory
+5) issue make cloneconfig
+6) issue make menuconfig
+
+You should now see a menu, go to device drivers / hardware monitoring, find
+W83627EHF and check if there is <M> symbol.
+
+7) recompile and install kernel, Any suse user tell what exactly needs to be
+done here?
+
+I'm sorry about my support, but to give you detailed instructions would take me
+a lot of time (because I'm not a SUSE user), and unfortunately I dont have it
+right now. I hope that other members of the list will help.
+
+Rudolf
 
