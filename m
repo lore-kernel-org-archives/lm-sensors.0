@@ -1,7 +1,7 @@
-From: gtj.devel@peakin.com (George T. Joseph (development))
-Date: Sat, 09 Dec 2006 19:47:01 +0000
-Subject: [lm-sensors] FW:  Kernel patch for Andigilog asc7512,7611,7621
-Message-Id: <22E26940476D1E48AA6F292B5316C9C33758@bes1.peakin.com>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Sat, 09 Dec 2006 20:56:10 +0000
+Subject: [lm-sensors] Kernel patch for Andigilog asc7512,7611,7621
+Message-Id: <457B22EA.7070107@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <22E26940476D1E48AA6F292B5316C9C33757@bes1.peakin.com>
 In-Reply-To: <22E26940476D1E48AA6F292B5316C9C33757@bes1.peakin.com>
@@ -10,31 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Feedback anyone?
+George T. Joseph (development) wrote:
+> This driver adds support for 3 Andigilog chips used on Intel
+> motherboards.  I'll do the userspace stuff when the driver passes
+> inspection.
+>  
 
-________________________________
+Aaah please be patient. It takes many hours to check it. And please do not begin
+new thread.
 
-From: lm-sensors-bounces@lm-sensors.org
-[mailto:lm-sensors-bounces at lm-sensors.org] On Behalf Of George T. Joseph
-(development)
-Sent: Thursday, December 07, 2006 8:06 PM
-To: LM Sensors
-Subject: [lm-sensors] Kernel patch for Andigilog asc7512,7611,7621
+Regards
+Rudolf
 
 
-This driver adds support for 3 Andigilog chips used on Intel
-motherboards.  I'll do the userspace stuff when the driver passes
-inspection.
- 
-george
- 
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061209/75d3e33f/attachment-0001.html 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: asc7xxx.patch
-Type: text/x-patch
-Size: 52327 bytes
-Desc: asc7xxx.patch
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061209/75d3e33f/attachment-0001.bin 
