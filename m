@@ -1,12 +1,16 @@
 From: paul.aviles@nickelnetworks.com (Paul Aviles)
-Date: Sat, 09 Dec 2006 16:22:33 +0000
-Subject: [lm-sensors] Tyan GS12
-Message-Id: <200612091617.kB9GH16e029812@srv1.nickelnetworks.com>
+Date: Mon, 11 Dec 2006 12:42:50 +0000
+Subject: [lm-sensors] FW: Tyan GS12
+Message-Id: <200612111237.kBBCbJaq007037@srv1.nickelnetworks.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200612091617.kB9GH16e029812@srv1.nickelnetworks.com>
+In-Reply-To: <200612091617.kB9GH16e029812@srv1.nickelnetworks.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Anyone? 
 
 I have one for the masters... A few months I think back I posted a messages
 about two indentical boards having different fan speeds for no reason. At
@@ -46,4 +50,4 @@ Paul
  
 -------------- next part --------------
 An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061209/99ae7c80/attachment.html 
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061211/dafb970f/attachment.html 
