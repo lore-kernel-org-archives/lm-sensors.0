@@ -1,12 +1,29 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 08 Dec 2006 14:38:17 +0000
+From: DZShen@winbond.com (DZShen at winbond.com)
+Date: Mon, 11 Dec 2006 02:37:18 +0000
 Subject: [lm-sensors] w83793 driver ready
-Message-Id: <20061208153817.de1c2b4c.khali@linux-fr.org>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE018E893F@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20061208153817.de1c2b4c.khali@linux-fr.org>
+In-Reply-To: <20061208153817.de1c2b4c.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Jean:
+  Did you get a motherboard with Winbond 793 chip? If so, please let
+know the motherboard brand and model.
+
+Thanks,
+
+dz  
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali at linux-fr.org] 
+Sent: Friday, December 08, 2006 6:38 AM
+To: LM Sensors
+Cc: PI14 DZSHEN; PI14 JGONG; Rudolf Marek
+Subject: w83793 driver ready
 
 Hi all,
 
@@ -30,11 +47,7 @@ drivers for their chips, it's really great.
 
 -- 
 Jean Delvare
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: hwmon-w83793-new-driver.patch
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061208/2cb327a8/attachment-0002.pl 
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: hwmon-w83793-documentation.patch
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061208/2cb327a8/attachment-0003.pl 
+
+
+=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
+
