@@ -1,7 +1,7 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Wed, 13 Dec 2006 17:49:01 +0000
+From: DZShen@winbond.com (DZShen at winbond.com)
+Date: Thu, 14 Dec 2006 02:01:27 +0000
 Subject: [lm-sensors] W83627DHG
-Message-Id: <4dfa50520612130949p68ff4249k535f0696081ccc54@mail.gmail.com>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE0197CAD2@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4dfa50520611191948n5e7d40e3gac33afcfeb5dd640@mail.gmail.com>
 In-Reply-To: <4dfa50520611191948n5e7d40e3gac33afcfeb5dd640@mail.gmail.com>
@@ -9,6 +9,24 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+David:
+  We will start our internal procurement and I will tell you what we
+will ship to you in a few days.
+
+ Give me your shipping address and your cell phone so that express
+service can contact you.
+
+Best regards,
+
+dz
+
+-----Original Message-----
+From: David Hubbard [mailto:david.c.hubbard at gmail.com] 
+Sent: Wednesday, December 13, 2006 9:49 AM
+To: PI14 DZSHEN; PI14 JGONG; PI14 WQWANG; r.marek at assembler.cz;
+khali at linux-fr.org; LM Sensors
+Subject: Re: [lm-sensors] W83627DHG
 
 Hi Dezheng,
 
@@ -26,10 +44,12 @@ I like in the United States, for shipping purposes.
 Thanks for your support!
 David
 
-P.S. There is a request on lm-sensors to backport the driver to the 2.4 kernel:
+P.S. There is a request on lm-sensors to backport the driver to the 2.4
+kernel:
 
 >   As to the backports to PREVIOUS kernels like Red Hat Advanced server
-> (Linux 2.4 kernel), it is OUR (Winbond) responsibility, not yours. Your
+> (Linux 2.4 kernel), it is OUR (Winbond) responsibility, not yours.
+Your
 > job is to look forward to NEWER Linux releases and WE (Winbond) will
 > take care of the backport.
 
@@ -42,14 +62,16 @@ On 12/13/06, DZShen at winbond.com <DZShen at winbond.com> wrote:
 >
 >   Just ended one conversation on the phone and the engineer planned to
 > work on 627DHG is moved to another tight-schedule project so that my
-> boss is willing to donate one ASUS 627 DHG motherboard with Intel Duo 2
+> boss is willing to donate one ASUS 627 DHG motherboard with Intel Duo
+2
 > processor to sponsor your work on 627DHG.
 >
 >   Are you willing to take this offer?
 >
 >   ASUS P5B motherboard + Intel Duo 2 processor, this motherboard comes
 > with DDR2 RAM so that you need DDR2 RAM to make this motherboard work.
-> If you don't have DDR2 RAM, please let me know immediately so that I can
+> If you don't have DDR2 RAM, please let me know immediately so that I
+can
 > talk to my boss again.
 >
 >   If you accept this offer, I would like to ask you to do us a favor.
@@ -60,7 +82,8 @@ On 12/13/06, DZShen at winbond.com <DZShen at winbond.com> wrote:
 > verification work when you get a change.
 >
 >   As to the backports to PREVIOUS kernels like Red Hat Advanced server
-> (Linux 2.4 kernel), it is OUR (Winbond) responsibility, not yours. Your
+> (Linux 2.4 kernel), it is OUR (Winbond) responsibility, not yours.
+Your
 > job is to look forward to NEWER Linux releases and WE (Winbond) will
 > take care of the backport.
 >
@@ -68,12 +91,17 @@ On 12/13/06, DZShen at winbond.com <DZShen at winbond.com> wrote:
 > think carefully about who to do what and to be fair to both sides. If
 > you find anything which is unfair to you, please let me know.
 >
->   The 2006 budget year is coming to an end so that you have to response
-> me quickly in order to meet our Winbond internal budget schedule because
+>   The 2006 budget year is coming to an end so that you have to
+response
+> me quickly in order to meet our Winbond internal budget schedule
+because
 > I persuaded my boss to use the R&D budget left in 2006 to donate ASUS
 > motherboard and Intel Duo 2 processor.
 >
 > Thank you for your work on lm-sensors 627DHG driver
 >
 > dz
+
+
+=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
 
