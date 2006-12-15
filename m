@@ -1,7 +1,7 @@
-From: kernel@kolivas.org (Con Kolivas)
-Date: Fri, 15 Dec 2006 05:14:52 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Fri, 15 Dec 2006 05:48:45 +0000
 Subject: [lm-sensors] Asus P5B Deluxe WiFi AP Sensors
-Message-Id: <200612151614.52853.kernel@kolivas.org>
+Message-Id: <4dfa50520612142148n753321b9lfdfc082916574e4f@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060822145643.GA5632@seahunt.dyndns.org>
 In-Reply-To: <20060822145643.GA5632@seahunt.dyndns.org>
@@ -10,25 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Friday 15 December 2006 14:34, David Hubbard wrote:
-> Hi Colin,
->
-> Thanks for doing that! I have attached a similar patch I submitted for
-> review 4 days ago. Jean is on vacation right now and will probably
-> look at both patches when he gets back. (I don't know exactly when
-> that is.) How would you feel about downloading and testing the patch I
-> have. One of the significant improvements is that it only reports 9
-> voltage inputs, where your patch reports 10. The 627DHG only has 9
-> inputs. In the patch I'm sending you, there's an update to
-> linux/Documentation/hwmon/w83627ehf, which describes a lot of the
-> relevant information about the 627DHG.
->
-> Anyway, I'd love to work with you to get 627DHG support in the kernel.
+David,
 
-Oh mine was never meant to be comprehensive, just a hack as I needed to see 
-the cpu temp. From the looks of your patch it doesn't appear that you need my 
-help anyway :) Thanks for the effort.
+I remember seeing some emails a few weeks ago where people
+successfully detected the 627DHG using the latest sensors checked out
+from the source repository at lm-sensors.org. I haven't verified
+what's there, but I just thought I should point you in that direction.
+(I'm not even sure who to contact about sensorsd, libsensors, and
+sensors. Jean?)
 
--- 
--ck
+Glad to hear you're getting good results.
+
+David
+
+On 12/14/06, David Holl <david at ad5ey.net> wrote:
+> Hey David, I figured out why running the "sensors" didn't produce any output
+> for my DHG chip --- It wasn't added yet to svn:lm-sensors/trunk!  (or is
+> there a different svn branch I should've checked out?)
+>
+>  Anyhow, I attached a patch (svn diff) of the edits to add the DHG to
+> libsensors, sensors, and sensord.  I basically copied the EHF driver but
+> removed any reference to voltage sensor in9.  If you'd prefer, I could try
+> to maximize the code overlap between the EHF & DHG if yall think that'll
+> make the code easier to maintain in the long run.  But for now, I just made
+> the DHG functions & constants completely separate from (but near identical
+> to) their EHF equivalents.
+>
+> So now, running sensors or sensord actually prints my temps / voltages / fan
+> speeds.  :)
+>
+> - David
 
