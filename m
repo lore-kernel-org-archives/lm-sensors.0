@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 17 Dec 2006 09:55:45 +0000
+Date: Sun, 17 Dec 2006 09:59:20 +0000
 Subject: [lm-sensors] Asus P5B Deluxe WiFi AP Sensors
-Message-Id: <20061217105545.0c373f0e.khali@linux-fr.org>
+Message-Id: <20061217105920.2a5a09e8.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060822145643.GA5632@seahunt.dyndns.org>
 In-Reply-To: <20060822145643.GA5632@seahunt.dyndns.org>
@@ -10,27 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-David, Con,
+Hi David,
 
-On Thu, 14 Dec 2006 20:34:13 -0700, David Hubbard wrote:
-> Thanks for doing that! I have attached a similar patch I submitted for
-> review 4 days ago. Jean is on vacation right now and will probably
-> look at both patches when he gets back. (I don't know exactly when
-> that is.) How would you feel about downloading and testing the patch I
-> have. One of the significant improvements is that it only reports 9
-> voltage inputs, where your patch reports 10. The 627DHG only has 9
-> inputs. In the patch I'm sending you, there's an update to
-> linux/Documentation/hwmon/w83627ehf, which describes a lot of the
-> relevant information about the 627DHG.
+On Fri, 15 Dec 2006 00:05:40 -0500, David Holl wrote:
+> Hey David, I figured out why running the "sensors" didn't produce any output
+> for my DHG chip --- It wasn't added yet to svn:lm-sensors/trunk!  (or is
+> there a different svn branch I should've checked out?)
 
-No, I wasn't on vacation, I was away from home for my work. I will be
-in vacation later this month (as pretty much everyone, I guess.)
+Your analysis is correct.
 
-I don't know when I'll have time to review your patch, as I am
-currently busy with large i2c-core cleanups, and am also spending a
-log of time preparing a talk I am giving by the end of January (a
-significant part of that time being needed to just tame OpenOffice
-Impress). Rudolf Marek might be quicker than me on this one.
+> Anyhow, I attached a patch (svn diff) of the edits to add the DHG to
+> libsensors, sensors, and sensord.  I basically copied the EHF driver but
+> removed any reference to voltage sensor in9.  If you'd prefer, I could try
+> to maximize the code overlap between the EHF & DHG if yall think that'll
+> make the code easier to maintain in the long run.  But for now, I just made
+> the DHG functions & constants completely separate from (but near identical
+> to) their EHF equivalents.
+> 
+> So now, running sensors or sensord actually prints my temps / voltages / fan
+> speeds.  :)
+
+Good. However, as I answered in ticket #2157, I would prefer a much
+smaller patch reusing all the w83627ehf structures rather than
+duplicating them. Can you please submit a patch doing this?
 
 Thanks,
 -- 
