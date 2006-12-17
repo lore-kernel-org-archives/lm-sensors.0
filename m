@@ -1,28 +1,46 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Sat, 30 Dec 2006 12:17:07 +0000
-Subject: [lm-sensors] vt1211 internal sensor
-Message-Id: <191fb4ca0612300417s311d6760i13be2343eb1ecfb7@mail.gmail.com>
+From: paul.aviles@nickelnetworks.com (Paul Aviles)
+Date: Sun, 17 Dec 2006 20:30:23 +0000
+Subject: [lm-sensors] ADT7463
+Message-Id: <200612172022.kBHKMM3N011597@srv1.nickelnetworks.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0612260635y1a161255qdeb540ce2e51abc9@mail.gmail.com>
-In-Reply-To: <191fb4ca0612260635y1a161255qdeb540ce2e51abc9@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Udo,
+David, I emailed Margit, but have not received a reply.  There must be
+something goofy with this and I cannot point to it. My inclination will be
+that something in the hardware, as the software has not changed for the
+results I have. 
 
-> I believe the CPU.
-> Now: CPU Temp:  +21.1??C  (high =   +75??C, hyst =   +70??C)
-> With 80% idle. load at 1.x., room temperature below 20 degrees.
-> I do not believe vt1211.
-> Other people have similar experience.
-> What can we do now?
+This unit has a ADT7463 chip on it. I did a test to see if the BIOS based
+fan and temperature controls were working right. 
+The fans that fails is #3, one of the 2 CPU fans. Fans #1 which is left to
+#3 is working perfectly. So is fan #1 in the back of the unit.
 
-You better believe it. If you think about it, 40C is not that high.
-The vt1211 itself doesn't have a heatsink and it needs to dissipate
-some power. Put a finger on the chip and you'll notice it gets quite
-warm.
+I changed the pwm for fan #1 and set it to 255 and rpms go up to like 13K.
+The temp of the cpu goes down and so the other two sensors for local and sys
+temp. I had it running like this for about 5 min and I was expecting fan #3
+to go down in rpms as a result, but nothing. It stayed at the very same rpm.
 
-...juerg
+Then I ran fancontrol and all 3 fans respond to it, with the exception that
+with the other 2 fans, the moment you change pwm it has a direct
+correlation. I normally have pwm set at 64 or 32 which is more than adequate
+for temperature control. I can set fan #3 to pwm of 3 and it does not come
+down from 9400 rpms or so. If I do this to the other 2 fans they will
+probably stop of come very close to it. Is like the response curve for pwm
+is not the same for fan #3 and the other 2 fans.
+
+So, I don't know what is causing this, but is very irritating the noise this
+units make.  Could sensors be causing some corruption like with the
+thinkpads in some memory or register?
+
+Is the fact that the other 2 fans work perfectly and #3 does not an
+indication of bad hardware?
+
+Regards,
+
+Paul Aviles
+
+
 
