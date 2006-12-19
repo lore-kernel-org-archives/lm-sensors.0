@@ -1,27 +1,21 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 27 Dec 2006 11:16:06 +0000
-Subject: [lm-sensors] #2143: Can't detect sensors on Asus DSBF-D
-Message-Id: <20061227121606.6a2a628f.khali@linux-fr.org>
+From: brian@rapsure.net (Brian Beardall)
+Date: Tue, 19 Dec 2006 00:16:40 +0000
+Subject: [lm-sensors] f75383/f75384 driver module code
+Message-Id: <1166487400.7726.2.camel@rapsure.rapsure.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <001201c7294b$fc1acf90$35fe1fac@ocg.ca>
-In-Reply-To: <001201c7294b$fc1acf90$35fe1fac@ocg.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Michelle,
+I'm looking to have my code reviewed for the f75383 driver. I've looked
+over it now, and I've also fixed some bugs. Now that I have a break from
+school I can now work on the driver again.
 
-On Tue, 26 Dec 2006 19:14:33 -0500, Michelle Dupuis wrote:
-> I applied the W83793 driver patch to 2.6.18 kernel, and it worked great.  My
-> asus dsbf-d mobo is now reading fan and temp settings.  (I get one mystery
-> fan reading - since nothing is plugged in there - but that's ok since I just
-> ignore it).
-
-This shouldn't happen. Can you please provide the complete outout of
-"sensors", including this mystery fan reading? Is it stable or changing
-all the time? The driver is new, maybe it can be improved.
-
--- 
-Jean Delvare
-
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: f75383.c
+Type: text/x-csrc
+Size: 17635 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061218/f0a78d14/attachment.bin 
