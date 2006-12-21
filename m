@@ -1,50 +1,56 @@
-From: gtj.devel@peakin.com (George T. Joseph (development))
-Date: Fri, 29 Dec 2006 03:05:39 +0000
-Subject: [lm-sensors] Working on a driver for the Andigilog aSC7621
-Message-Id: <22E26940476D1E48AA6F292B5316C9C3376D@bes1.peakin.com>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 21 Dec 2006 12:44:18 +0000
+Subject: [lm-sensors] sensors.conf syntax: anyone use escape sequences?
+Message-Id: <20061221124418.GB12560@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <22E26940476D1E48AA6F292B5316C9C33738@bes1.peakin.com>
-In-Reply-To: <22E26940476D1E48AA6F292B5316C9C33738@bes1.peakin.com>
+References: <20061112140142.GB8009@jupiter.solarsys.private>
+In-Reply-To: <20061112140142.GB8009@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-All comments welcomed David, thanks.
+Hi Jean:
 
-I actually agree and I'll go through and rename the ones that already
-have established names. It does make sense in the larger picture.
+(resurrecting an old thread here)
 
-george 
+* Jean Delvare <khali at linux-fr.org> [2006-11-17 11:26:16 +0100]:
+> Hi Mark,
+> 
+> On Sun, 12 Nov 2006 09:01:42 -0500, Mark M. Hoffman wrote:
+> > This is a question about sensors.conf syntax:
+> > 
+> > For a quoted string, libsensors currently accepts C language escape sequences
+> > like '\n' for newline, etc.  It also accepts octal escapes, like '\015', but
+> > for some reason it doesn't accept hex escapes, like '\x20'.
+> > 
+> > Question: is anyone actually using these escapes?
+> > 
+> > I wouldn't mind getting rid of them.
+> 
+> I've never seen them used. I agree that octal escapes don't sound very
+> useful, assuming libsensors accepts all character values in quoted
+> strings, and not only the 32-127 range. Same applies to C language
+> escape sequences, except \n, as I guess there is no other way to
+> include a newline in a string?
 
-> -----Original Message-----
-> From: David Hubbard [mailto:david.c.hubbard at gmail.com] 
-> Sent: Thursday, December 28, 2006 7:44 PM
-> To: George T. Joseph (development); Rudolf Marek; LM Sensors
-> Subject: Re: [lm-sensors] Working on a driver for the 
-> Andigilog aSC7621
-> 
-> Hi George,
-> 
-> I'm the developer for the w83627ehf driver, which has many of the same
-> features as the Andigilog chips. So I don't have any influence in this
-> discussion, but I'll chime in and you can ignore me if you want.
-> 
-> > I followed the naming conventions where I could but chose to use
-> > the data sheet's names where there was nothing close or that made
-> > sense.  I can change some of them if you want.
-> 
-> I think there are some important standards for user space tools,
-> including temp1_auto_point1_pwm. Okay, maybe you picked a bad example.
-> But most hardware monitoring chips are going to implement the same set
-> of features in different ways. For example, the auto point for temp1.
-> Since some drivers already export this file and other drivers (like
-> mine) which have the functionality will export it soon (because I'm
-> slow) -- it becomes much easier to write a generic tool in user space,
-> like the pwmconfig script.
-> 
-> Just my two cents.
-> 
-> David
-> 
+You raise a good point here.  The existing scanner accepts any characters from
+the 'alnum' class for unquoted identifiers.  This corresponds to isalnum() of
+the C standard library.  That function changes behavior depending on locale.
+
+The end-result is that the behavior of the scanner depends on the locale
+setting at _compile-time_ instead of at run-time.  (That's when flex checks
+isalnum() to build its static tables.)  That's just nasty.
+
+Right now, the code does accept everything between quotes, which is good.  For
+the unquoted behavior, I think it should accept strictly ASCII (32-127) in
+order to avoid having the run-time behavior influenced by the compile-time
+locale setting.  Any better ideas?
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman at lightlink.com
+
 
