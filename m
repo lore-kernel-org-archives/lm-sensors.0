@@ -1,43 +1,44 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 21 Dec 2006 21:15:50 +0000
-Subject: [lm-sensors] Problem making lmsensors work!
-Message-Id: <20061221221550.ef993527.khali@linux-fr.org>
+From: michaelnel@comcast.net (Michael Nelson)
+Date: Sat, 23 Dec 2006 23:40:12 +0000
+Subject: [lm-sensors] Andigilog aSC7621 & Intel D975XBX2 Motherboard
+Message-Id: <20061223234012.GA5410@seahunt.dyndns.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1bebf72e0612131206r24bdb4c0vd0f35f9da801d8b8@mail.gmail.com>
-In-Reply-To: <1bebf72e0612131206r24bdb4c0vd0f35f9da801d8b8@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rosh,
+Hi...
 
-On Wed, 13 Dec 2006 15:06:59 -0500, Rosh shah wrote:
-> Hello ,
-> I am having trouble in making lmsensors work on my machine. Following are
-> the details:
-> 
-> Motherboard: Via EPIA SP - Series Mini ITX Mainboard
-> Kernel Version: 2.6.16
-> Chipset: VIA VT8237R
-> Sensors version: 2.10
-> 
-> When i run sensors, the following errors comes up:
-> Sensors not found!
-> 
-> Sensors detect gives the following result:
-> 
-> #sensors-detect revision 1.413 (2006/01/19 20:28:00)
-> (...)
-> # Warning: the required module vt1211 is not currently installed on your system.
-> # For status of 2.6 kernel ports see http://secure.netroedge.com/~lm78/supported.html
-> # If driver is built-in to the kernel, or unavailable, comment out the following line.
-> modprobe vt1211
+I've managed to do it again... bought another motherboard that seems to
+have hardware monitoring stuff on it that is not yet supported by
+lm-sensors.
 
-The vt1211 driver was only merged recently in the Linux 2.6 tree,
-you'll need kernel 2.6.19 or later to get it to work. You'll also need
-lm_sensors 2.10.1 or later.
+The board I have is an Intel D975XBX2KR.  Nice board, but I can't find
+anywhere in the documentation on the Intel site or that came with the
+board what kind of hw monitoring chip it has.  The monitoring does work
+(I can see it in the BIOS setup screens), but running sensors-detect
+from lm-sensors 2.10.1 just recommends loading eeprom and i2c-i801.
+Naturally, sensors doesn't work.
+
+I grabbed the nightly lm-sensors-r4270-20061223.tar.bz2 and it will
+compile "make user" and run sensors-detect.
+
+It says: 
+
+	Probing for `Andigilog aSC7621'...  Success!
+          (confidence 5, driver `to-be-written')
+
+So... is someone working on a driver for this chip, or is it a
+mis-detection, or?
+
+Thanks
+Michael
 
 -- 
-Jean Delvare
+If a kid asks where rain comes from, I think a cute thing to tell him is
+"God is crying." And if he asks why God is crying, another cute thing to
+tell him is "Probably because of something you did."
+
+San Francisco, CA
 
