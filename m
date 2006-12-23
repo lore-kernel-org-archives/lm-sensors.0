@@ -1,25 +1,21 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 22 Dec 2006 21:13:28 +0000
-Subject: [lm-sensors] lm-sensors patch for adding adm1029 support
-Message-Id: <20061222221328.8c10b3aa.khali@linux-fr.org>
+From: jerome_bailly@club-internet.fr (=?ISO-8859-1?Q?Bailly_J=E9r=F4me?=)
+Date: Sat, 23 Dec 2006 14:12:26 +0000
+Subject: [lm-sensors] Hidden and disabled SMBus SiS0016, please enable
+Message-Id: <458D394A.2020006@club-internet.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <458B0556.9030807@geomatys.fr>
-In-Reply-To: <458B0556.9030807@geomatys.fr>
+References: <3FE4DB3C.8050504@baldauf.org>
+In-Reply-To: <3FE4DB3C.8050504@baldauf.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Corentin,
+Hello ,
+I have the same notebooks : Mitac 8640 and i want to monitoring it. I 
+can't find the sensors in the dsdt table. If you can send me your DSDT 
+table or explain the processus.
 
-On Thu, 21 Dec 2006 23:06:14 +0100, corentin.labbe wrote:
-> This is my patch for adding adm1029 chip support in user-space.
+Thank
 
-Longs lines were wrapped by your e-mail client, I had to fix them by
-hand :( Please adjust your settings or attach the patch next time.
-
-Anyway, patch applied, thanks for your contribution.
-
--- 
-Jean Delvare
+jerome_bailly at club-internet.fr
 
