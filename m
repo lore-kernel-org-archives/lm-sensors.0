@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 24 Dec 2006 13:27:22 +0000
+From: michaelnel@comcast.net (Michael Nelson)
+Date: Sun, 24 Dec 2006 13:55:10 +0000
 Subject: [lm-sensors] Andigilog aSC7621 & Intel D975XBX2 Motherboard
-Message-Id: <20061224142722.8544b801.khali@linux-fr.org>
+Message-Id: <20061224135510.GA5451@seahunt.dyndns.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20061223234012.GA5410@seahunt.dyndns.org>
 In-Reply-To: <20061223234012.GA5410@seahunt.dyndns.org>
@@ -10,30 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi George,
+The gkrellm display of values is working very well.  The "strange numbers" I
+saw were in some of the voltages where for some reason there were
+multipliers set.  When I set all the multipliers to 1, the values all look
+normal.
 
-On Sat, 23 Dec 2006 17:44:49 -0700, George T. Joseph \(development\) wrote:
-> >So... is someone working on a driver for this chip...
-> 
-> Yep.  I am.  Here's the patch for the kernel.  I was waiting for Jean to
-> review it before doing the lm_sensors bit but since the Bad Axe 2 is
-> becoming more popular maybe I'll just do the lm_sensors now and update
-> it after the review.
+Thanks for the patch!
 
-I am not the only person on earth who can review your driver, and I am
-(as usual) very busy. I am currently working a lot on i2c driver core
-cleanups and evolutions which are long overdue, I can't review
-individual drivers at the same time, I just don't have the time and
-energy.
-
-Having user-space support for your driver will make testing easier, so
-I invite you to add this support to lm_sensors SVN and post the patch
-on this list.
-
-> Anyway, apply the patch to a 2.6.18 or greater kernel.  Sensors-detect
-> won't find the driver but you can add a MODULE line to
-> /etc/sysconfig/lm_sensors manually.
+Michael
 
 -- 
-Jean Delvare
+If a kid asks where rain comes from, I think a cute thing to tell him is
+"God is crying." And if he asks why God is crying, another cute thing to
+tell him is "Probably because of something you did."
+
+San Francisco, CA
 
