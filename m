@@ -1,12 +1,34 @@
-From: michaelnel@comcast.net (Michael Nelson)
-Date: Sat, 23 Dec 2006 23:40:12 +0000
+From: gtj.devel@peakin.com (George T. Joseph (development))
+Date: Sun, 24 Dec 2006 00:44:49 +0000
 Subject: [lm-sensors] Andigilog aSC7621 & Intel D975XBX2 Motherboard
-Message-Id: <20061223234012.GA5410@seahunt.dyndns.org>
+Message-Id: <22E26940476D1E48AA6F292B5316C9C33768@bes1.peakin.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20061223234012.GA5410@seahunt.dyndns.org>
+In-Reply-To: <20061223234012.GA5410@seahunt.dyndns.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+>So... is someone working on a driver for this chip...
+
+Yep.  I am.  Here's the patch for the kernel.  I was waiting for Jean to
+review it before doing the lm_sensors bit but since the Bad Axe 2 is
+becoming more popular maybe I'll just do the lm_sensors now and update
+it after the review.
+
+Anyway, apply the patch to a 2.6.18 or greater kernel.  Sensors-detect
+won't find the driver but you can add a MODULE line to
+/etc/sysconfig/lm_sensors manually.
+
+george
+
+-----Original Message-----
+From: lm-sensors-bounces@lm-sensors.org
+[mailto:lm-sensors-bounces at lm-sensors.org] On Behalf Of Michael Nelson
+Sent: Saturday, December 23, 2006 4:40 PM
+To: lm-sensors at lm-sensors.org
+Subject: [lm-sensors] Andigilog aSC7621 & Intel D975XBX2 Motherboard
 
 Hi...
 
@@ -42,3 +64,14 @@ tell him is "Probably because of something you did."
 
 San Francisco, CA
 
+_______________________________________________
+lm-sensors mailing list
+lm-sensors at lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: asc7xxx.patch
+Type: text/x-patch
+Size: 52327 bytes
+Desc: asc7xxx.patch
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061223/470fd6fc/attachment-0001.bin 
