@@ -1,7 +1,7 @@
-From: gtj.devel@peakin.com (George T. Joseph (development))
-Date: Sun, 24 Dec 2006 01:42:27 +0000
+From: michaelnel@comcast.net (Michael Nelson)
+Date: Sun, 24 Dec 2006 02:11:41 +0000
 Subject: [lm-sensors] Andigilog aSC7621 & Intel D975XBX2 Motherboard
-Message-Id: <22E26940476D1E48AA6F292B5316C9C33769@bes1.peakin.com>
+Message-Id: <20061224021141.GA5428@seahunt.dyndns.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20061223234012.GA5410@seahunt.dyndns.org>
 In-Reply-To: <20061223234012.GA5410@seahunt.dyndns.org>
@@ -10,42 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Interesting.  I've tested the patch on 2.6.16, 2.6.18 and 2.6.19 kernels
-and it works every time.  I have NOT tested it with
-distribution-specific kernels though.  
-
-Was drivers/hwmon/asc7xxx.c actually created?  The message from make
-implies that it wasn't.
-Were there ANY messages from patch?
-Does a 'patch -R' work cleanly? 
-
------Original Message-----
-From: lm-sensors-bounces@lm-sensors.org
-[mailto:lm-sensors-bounces at lm-sensors.org] On Behalf Of Michael Nelson
-Sent: Saturday, December 23, 2006 6:22 PM
-To: lm-sensors at lm-sensors.org
-Subject: Re: [lm-sensors] Andigilog aSC7621 & Intel D975XBX2 Motherboard
-
-On Sat, Dec 23, 2006 at 05:44:49PM -0700, George T. Joseph (development)
-wrote:
+On Sat, Dec 23, 2006 at 06:42:27PM -0700, George T. Joseph (development) wrote:
+> Interesting.  I've tested the patch on 2.6.16, 2.6.18 and 2.6.19 kernels
+> and it works every time.  I have NOT tested it with
+> distribution-specific kernels though.  
 > 
-> Anyway, apply the patch to a 2.6.18 or greater kernel.
+> Was drivers/hwmon/asc7xxx.c actually created?  The message from make
+> implies that it wasn't.
+> Were there ANY messages from patch?
+> Does a 'patch -R' work cleanly? 
 
-I tried applying it to SUSE 10.2's linux-2.6.18.2-34 kernel source.  It
-seemed to apply OK and I enabled it in .config, but when I recompiled
-the
-kernel:
+I found it in /usr/src/linux-2.6.19 ... which apparently it created during
+the patch process.  Anyway, I copied the stuff I found there (including
+asc7xxx.c) into the right places in the linux-2.6.18.2-34 tree and then
+compiled again.  It worked, it built it. Rebooted the new kernel and it
+inserted fine.
 
-<snip>
+Sensors doesn't show much:
 
-  CC [M]  drivers/hwmon/adm1031.o
-  CC [M]  drivers/hwmon/adm9240.o
-make[2]: *** No rule to make target drivers/hwmon/asc7xxx.c', needed by
-drivers/hwmon/asc7xxx.o'.  Stop.
-make[1]: *** [drivers/hwmon] Error 2
-make: *** [drivers] Error 2
-    
-So I guess it actually did not apply the patch correctly.    
+ sensors
+ asc7621-i2c-0-2e
+ Adapter: SMBus I801 adapter at 4000
+ 
+ 
+... but gkrellm's sensor stuff shows five temps (one is the Nvidia GPU
+temp), four fans, and all the voltages.  Some of the numbers are wierd, but
+I suppose a properly tweaked /etc/sensors.conf should bring that in line.
+
+Thanks!
 
 Michael
 
@@ -55,9 +47,4 @@ If a kid asks where rain comes from, I think a cute thing to tell him is
 tell him is "Probably because of something you did."
 
 San Francisco, CA
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors at lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
