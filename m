@@ -1,7 +1,7 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Tue, 26 Dec 2006 09:09:09 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 26 Dec 2006 09:11:25 +0000
 Subject: [lm-sensors] w83793 driver ready
-Message-Id: <4590E6B5.1050409@assembler.cz>
+Message-Id: <20061226101125.f3febb40.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20061208153817.de1c2b4c.khali@linux-fr.org>
 In-Reply-To: <20061208153817.de1c2b4c.khali@linux-fr.org>
@@ -12,6 +12,15 @@ To: lm-sensors@vger.kernel.org
 
 Hi GongJun,
 
+On Tue, 26 Dec 2006 13:47:24 +0800, JGong at winbond.com wrote:
+> It's good news that the w83793 driver has been included in the
+> 2.6.20. Here is a result report from our w83793 test board.
+> It seems all right.
+> 
+> [root at localhost ~]# sensors -v
+> sensors version 2.10.1 with libsensors version 2.10.1
+> [root at localhost ~]# uname -a
+> Linux localhost.localdomain 2.6.20-rc2 #0 SMP Tue Dec 26 11:44:49 CST 2006 i686 i686 i386 GNU/Linux
 > [root at localhost ~]# sensors
 > w83793-i2c-0-2f
 > Adapter: SMBus I801 adapter at 1100
@@ -41,26 +50,15 @@ Hi GongJun,
 > temp6:       +37??C  (high =  +100??C, hyst =   +95??C)
 > cpu0_vid: +1.513 V  (VRM Version 11.0)
 > cpu1_vid: +0.425 V  (VRM Version 11.0)
+> 
+> If you have any idea that wants to be tested on w83793, feel free
+> to contact us.
 
-This is expected to be good, because we tested with the "emulator" for the chip.
-If you want to try that out:
+You could try writing voltage, fan and temperature limits to make sure
+it works OK. Also try setting limits too low and see if the ALARM flags
+are set as expected.
 
-http://assembler.cz/download/w83793/i2c-stub.c
-
-You need to replace original i2c-stub in kernel/driver/i2c/busses and of course
-choose it in menuconfig. When inserted it will just create a fake i2c bus with
-fake chip on address 0x2f. Then if the module w83793 is loaded it will find this
-chip and use it. The i2c-stub fakes the chip registers, so the reads from the
-chip are exactly the same as from real chip - but they dont change. The writes
-work too, because the modified value is stored in fake chip register.
-
-We tried that when I was done with modifications of the drivers, so we at least
-knew that this basic test would pass ;)
-
-> If you have any idea that wants to be tested on w83793, feel free to contact us.
-
-I think better would be to test setting of limits of voltages, fans. The a bit
-of trip points. So generally the writes to the chip.
-
-Rudolf
+Thanks,
+-- 
+Jean Delvare
 
