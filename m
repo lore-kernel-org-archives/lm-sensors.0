@@ -1,7 +1,7 @@
-From: hamletmun@fibertel.com.ar (Hamlet)
-Date: Tue, 26 Dec 2006 10:31:30 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Tue, 26 Dec 2006 23:14:29 +0000
 Subject: [lm-sensors] Asus P5B Deluxe / Winbond 83627DHG
-Message-Id: <4590FA02.2080309@fibertel.com.ar>
+Message-Id: <4dfa50520612261514v58791029xb96e18d01066ba91@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4dfa50520612211313g7906f3b0kbf8d7aebb2ddcda9@mail.gmail.com>
 In-Reply-To: <4dfa50520612211313g7906f3b0kbf8d7aebb2ddcda9@mail.gmail.com>
@@ -10,20 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thank you for your effort David.
-I am using gentoo-sources-2.6.18-r5
-The entire patch list is available in:
-http://dev.gentoo.org/~dsd/genpatches/patches-2.6.18-7.htm
+Hi Hamlet,
 
-So I copied the original w83627ehf.c to w83627ehf.c.orig
-And used your w83627ehf.c.txt as w83627ehf.c
+It looks like your temp3 is wrong and your voltages need a little
+tweaking. To fix the voltages, you will need to edit your
+sensors.conf. That part is not too hard.
 
-The modules works but I am not sure if the numbers are all right.
-The attatchment is the screenshot of gkrellm2
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w83627dhg.jpg
-Type: image/jpeg
-Size: 68374 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061226/3b1578a7/attachment-0001.jpg 
+temp1 is 'SYSTIN,' temp2 is 'CPUTIN,' and temp3 is 'AUXTIN.'  I think
+your system temp and CPU temp look right. Does your AUXTIN value
+change at all? It may be floating or pulled high -- both are
+motherboard design decisions which mean that the temperature input is
+useless. You can add a line to sensors.conf to ignore the temperature.
+
+Hope that helps,
+David
+
