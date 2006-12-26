@@ -1,7 +1,7 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Tue, 26 Dec 2006 14:25:03 +0000
+From: twb0@lymenet.org (Thomas Brown)
+Date: Tue, 26 Dec 2006 22:30:04 +0000
 Subject: [lm-sensors] HP Compaq ProLiant DL380 detect failure
-Message-Id: <191fb4ca0612260625n3ff8b97fh12fdcd8bc25715b8@mail.gmail.com>
+Message-Id: <4591A26C.7040700@lymenet.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4568C502.6070305@lymenet.org>
 In-Reply-To: <4568C502.6070305@lymenet.org>
@@ -10,32 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Thanks all--if we can get this working there is a large community of HP 
+ProLiant server users who will benefit.
 
-> Thanks for the proposal. Basically we want to know what hardware
-> monitoring chips are used in the system, and how they are wired. I
-> suspect that HP uses a non-standard I2C bus, possibly GPIO-driven.
+Upon tracing the "hplog" process behavior, it seems to read the data is 
+by using message queues attached to the Proliant System Health Monitor 
+(hpasmd) process which, in turn, may also rely on data from the HP 
+Lights-Out Drivers and Agents (hprsm) daemon.
 
-If I'm not totaly mistaken it's all controlled by the proprietary iLO
-ASIC which shows up as a PCI device. I don't know the interface to
-that beast and how temp and sensors are connected to it. I'll check
-the schematics as soon as I have established connection to the HP
-intranet. I'm currently slacking away in Switzerland but am supposed
-to work remotely... :-)
-Not a big deal until it starts snowing...
+There are two routes that might be taken here:
 
-...juerg
+1.  Reverse-engineer the hpasmd process and read values directly from 
+the HP/Compaq hardware.
+   or
+2.  Write a shim to work in concert with an existing hpasmd process and 
+feed data back using existing drivers (i.e. /dev/cpqhealth/proc, 
+/dev/cpqhealth/cevt, etc.)
 
-
-> Thomas, I've thought a bit more about your problem, and I'm now almost
-> certain that you won't find anything attached to your motherboard's
-> SMBus, even if you upgrade the BIOS or force the SMBus base address.
-> You said that the "hplog" utility was printing temperature values, so
-> it must get them from somewhere, and it definitely can't get them from
-> anything connected to the currently disabled SMBus. So there has to be
-> another, non-standard I2C bus somewhere on the board.
->
-> --
-> Jean Delvare
->
+-Tom
 
