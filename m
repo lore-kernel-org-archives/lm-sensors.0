@@ -1,27 +1,33 @@
-From: hpa@zytor.com (H. Peter Anvin)
-Date: Wed, 13 Dec 2006 22:45:19 +0000
-Subject: [lm-sensors] [RFC] new MSR r/w functions per CPU
-Message-Id: <4580827F.8080703@zytor.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 26 Dec 2006 18:28:02 +0000
+Subject: [lm-sensors] w83627ehf informations
+Message-Id: <20061226192802.e5b028ff.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45807469.6040609@assembler.cz> <20061213221026.GF2418@redhat.com> <45807C88.6060807@zytor.com> <20061213222616.GJ2418@redhat.com>
-In-Reply-To: <20061213222616.GJ2418@redhat.com>
+References: <1163284779.5555.34.camel@armageddon>
+In-Reply-To: <1163284779.5555.34.camel@armageddon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dave Jones <davej@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Rudolf Marek <r.marek@assembler.cz>, norsk5@xmission.com, lkml <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, bluesmoke-devel@lists.sourceforge.net
+To: lm-sensors@vger.kernel.org
 
-Dave Jones wrote:
-> 
-> Can you explain this a little further? I'm fairly certain
-> there are places in the kernel already doing this (or similar).
-> In fact, I cut-n-pasted most of the above from similar code in the
-> powernow-k8 driver.  What exactly can we deadlock on?
-> 
+On Sun, 19 Nov 2006 16:51:33 +0100, torsten goroll wrote:
+> thanks for your answer. The version of the bash is 3.1.
+> I didn't modify it and compiled lm-sensors from the current
+> sources.
 
-I wanted to change the MSR driver to do the above, and Alan Cox objected 
-that with realtime priority routines and/or user set affinity, that code 
-might never be executed, so I retained the IPI-based code (which 
-executes at the target processor at interrupt priority.)
+Ok, it appears to be a new feature of bash 3.1: it displays an error
+message when a write (echo) to a file returns an error. Previous
+versions of bash didn't. So we need to hide the error in pwmconfig (and
+fancontrol). And while we're at it, we could handle that error
+properly, as it seems we weren't so far.
 
-	-hpa
+Patch is attached, I can't test it right now, so testers are wanted and
+feedback is welcome. If the patch works OK, I'll apply it before we
+release lm_sensors 2.10.2.
 
+-- 
+Jean Delvare
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: pwm-enable-error-check.patch
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20061226/784e1217/attachment.ksh 
