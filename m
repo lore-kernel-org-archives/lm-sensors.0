@@ -1,26 +1,47 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Tue, 12 Dec 2006 16:16:01 +0000
-Subject: [lm-sensors] FW: Tyan GS12
-Message-Id: <4dfa50520612120816o32244f5n1f356856f004c495@mail.gmail.com>
+From: a@gaydenko.com (Andrew Gaydenko)
+Date: Wed, 27 Dec 2006 16:42:59 +0000
+Subject: [lm-sensors] W83627DHG, steps to use
+Message-Id: <200612271943.00165@goldspace.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200612091617.kB9GH16e029812@srv1.nickelnetworks.com>
-In-Reply-To: <200612091617.kB9GH16e029812@srv1.nickelnetworks.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Paul,
+Hi!
 
-You are using the lm85 driver. I found information at
-http://www.lm-sensors.org/browser/lm-sensors/trunk/kernel/chips/lm85.c
-which seems to indicate you will want to ask Margit Schubert-While
-<margitsw at t-online.de> for help locating the PWM frequency and
-debugging your fan behavior. Again, I'm not going to be able to debug
-the driver. But I can point you to the people who may be able to help.
+I'm absolutely new with lm_sensors. After digging in the mail list and the
+site, I suppose, steps to use W83627DHG with Core 2 Duo look like shown
+below. Is this list correct?
 
-Also, you will want to update your version of sensors to the latest
-released version (2.10).
 
-David
+Thanks in advance!
+Andrew
+
+_______
+
+Step 1. adding 'coretemp' kernel module
+
+Apply kernel patch referenced at this message:
+
+http://lists.lm-sensors.org/pipermail/lm-sensors/2006-December/018420.html
+
+It seems like this is last 'coretemp' module version. I have begun from the
+http://www.lm-sensors.org/wiki/Devices list, have found coretemp ref here
+http://lists.lm-sensors.org/pipermail/lm-sensors/2006-October/018100.html
+and followed 'coretemp' subjects at the mailing list till '2006-December'
+
+
+Step 2. patching 'w83627ehf' kernel module
+
+Apply this
+
+http://khali.linux-fr.org/devel/linux-2.6/jdelvare-hwmon/hwmon-w83627ehf-add-w83627dhg-support.patch
+
+kernel patch which is referenced also here http://www.lm-sensors.org/wiki/Devices
+
+
+Step 3. getting and building last lm_sensors from SVN tree (self-explaned).
+
+Step 4. play with lm_sensors.conf file and frontends (self-explaned).
 
