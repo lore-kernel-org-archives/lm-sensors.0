@@ -1,7 +1,7 @@
-From: a@gaydenko.com (Andrew Gaydenko)
-Date: Wed, 27 Dec 2006 22:49:34 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Thu, 28 Dec 2006 06:59:26 +0000
 Subject: [lm-sensors] W83627DHG, steps to use
-Message-Id: <200612280149.34257@goldspace.net>
+Message-Id: <4dfa50520612272259s60543f7fkf76c02c540fa6273@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200612271943.00165@goldspace.net>
 In-Reply-To: <200612271943.00165@goldspace.net>
@@ -10,36 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-OK, being waiting for answer, I have tried to patch a kernel. Patching
-was OK (except for rejecting in ./Documentation/...). Kernel making gives:
+Hi Andrew,
 
-...
-Kernel: arch/x86_64/boot/bzImage is ready  (#25)
-  Building modules, stage 2.
-  MODPOST 165 modules
-WARNING: "msr_read" [drivers/hwmon/coretemp.ko] undefined!
-make[1]: *** [__modpost] Error 1
-make: *** [modules] Error 2
+I'm working on the w83627ehf module (which supports the w83627dhg
+chip). I can tell you that the coretemp module is for your Core 2 Duo.
+The Core 2 Duo reports digital temperatures directly to the coretemp
+module, and does not involve the w83627dhg. As you know, the coretemp
+module is new. It hasn't even been added to the linux/drivers/hwmon
+directory (as of 2.6.20-rc2.
 
-.config contains this row: CONFIG_X86_MSR=y I have tried to see
-all 'msr_read' occurences, 'grep 'msr_read' -R /usr/src/linux-2.6.19-w-r2/*'
-output is:
+> OK, being waiting for answer, I have tried to patch a kernel. Patching
+> was OK (except for rejecting in ./Documentation/...). Kernel making gives:
 
-Binary file /usr/src/linux-2.6.19-w-r2/arch/x86_64/kernel/msr.o matches
-Binary file /usr/src/linux-2.6.19-w-r2/arch/x86_64/kernel/built-in.o matches
-/usr/src/linux-2.6.19-w-r2/arch/i386/kernel/msr.c:static ssize_t msr_read(struct file *file, char __user * buf,
-/usr/src/linux-2.6.19-w-r2/arch/i386/kernel/msr.c:      .read = msr_read,
-Binary file /usr/src/linux-2.6.19-w-r2/arch/i386/kernel/msr.o matches
-/usr/src/linux-2.6.19-w-r2/drivers/hwmon/coretemp.c:            msr_read(data->id, MSR_IA32_THERM_STATUS, &eax, &edx);
-/usr/src/linux-2.6.19-w-r2/drivers/hwmon/coretemp.c:            err = msr_read(data->id, 0xee, &eax, &edx);
-/usr/src/linux-2.6.19-w-r2/drivers/hwmon/coretemp.c:    err = msr_read(data->id, MSR_IA32_THERM_STATUS, &eax, &edx);
-Binary file /usr/src/linux-2.6.19-w-r2/drivers/hwmon/coretemp.o matches
-/usr/src/linux-2.6.19-w-r2/System.map:ffffffff8026b3d0 t msr_read
-Binary file /usr/src/linux-2.6.19-w-r2/vmlinux matches
+The reason the patch does not apply correctly to 2.6.19-rc2 is because
+the patch is meant for 2.6.20-rc1 or later. There were changes to the
+file linux/Documentation/hwmon/w83627ehf that are part of 2.6.20-rc1.
+You should be OK ignoring the patch error unless you encounter
+problems. Then you should update to a 2.6.20 kernel and start from
+there. If the patch doesn't apply cleanly to 2.6.20-rc1, then I'd be
+interested to find out why.
 
-Where is my failt? 
-gentoo-sources-2.6.19-r2 kernel tree is in use.
+> WARNING: "msr_read" [drivers/hwmon/coretemp.ko] undefined!
 
+The latest coretemp sources might fix this. I believe Rudolf Marek is
+still discussing the details of the RDMSR and WRMSR instructions with
+H. Peter Anvin and Alan Cox. That is why you get the error. The code
+might compile OK on a 2.6.18 kernel, since Rudolf wrote the code for
+that kernel.
 
-Andrew
+More information:
+- thread http://lists.lm-sensors.org/pipermail/lm-sensors/2006-December/018438.html
+- message http://lists.lm-sensors.org/pipermail/lm-sensors/2006-December/018443.html
+
+> gentoo-sources-2.6.19-r2 kernel tree is in use.
+
+Thanks for providing enough info (i.e. the kernel version) so I can
+make some guesses.
+
+Again, I'm not the one who wrote coretemp, and it's not in a finished
+state. So, there will be no official support until the driver is
+submitted in final form. In the mean time, happy hacking!
+
+David
 
