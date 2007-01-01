@@ -1,36 +1,41 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Mon, 29 Jan 2007 18:41:03 +0000
-Subject: [lm-sensors] VT1211 at 0x4e/0x4f
-Message-Id: <191fb4ca0701291041y4996a95asea35ae3b2d0a9f26@mail.gmail.com>
+From: 2crazy4you@gmx.de (slompf)
+Date: Mon, 01 Jan 2007 11:03:50 +0000
+Subject: [lm-sensors] w83627ehf informations
+Message-Id: <4598EA96.7000907@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070128202713.a60b89a0.khali@linux-fr.org>
-In-Reply-To: <20070128202713.a60b89a0.khali@linux-fr.org>
+References: <1163284779.5555.34.camel@armageddon>
+In-Reply-To: <1163284779.5555.34.camel@armageddon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Will do.
+Hi,
 
-...juerg
+the patch does work. Though, the script still finds no correlations on 
+my board.
+
+Torsten
 
 
-On 1/28/07, Jean Delvare <khali at linux-fr.org> wrote:
-> Hi Juerg,
+> On Sun, 19 Nov 2006 16:51:33 +0100, torsten goroll wrote:
+>   
+>> thanks for your answer. The version of the bash is 3.1.
+>> I didn't modify it and compiled lm-sensors from the current
+>> sources.
+>>     
 >
-> As almost all Super-I/O chips, the VT1211 can live at two different
-> address pairs, 0x2e/0x2f or 0x4e/0x4f. The vt1211 driver only supports
-> the former at the moment. Some systems use the latter though:
-> http://www.lm-sensors.org/ticket/2149
+> Ok, it appears to be a new feature of bash 3.1: it displays an error
+> message when a write (echo) to a file returns an error. Previous
+> versions of bash didn't. So we need to hide the error in pwmconfig (and
+> fancontrol). And while we're at it, we could handle that error
+> properly, as it seems we weren't so far.
 >
-> Could you please add support for the second address? It shouldn't be
-> too difficult, you can simply turn SIO_REG_{CIP,DIP} into global
-> variables and run vt1211_find() twice, once with each possible address
-> pair. The w83627hf, f71805f, pc87360 and pc87427 drivers do it that way
-> already.
->
-> Thanks,
-> --
-> Jean Delvare
->
+> Patch is attached, I can't test it right now, so testers are wanted and
+> feedback is welcome. If the patch works OK, I'll apply it before we
+> release lm_sensors 2.10.2.
+>   
 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070101/f54b7df0/attachment.html 
