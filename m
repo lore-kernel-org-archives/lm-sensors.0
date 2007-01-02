@@ -1,67 +1,108 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 29 Jan 2007 08:32:20 +0000
-Subject: [lm-sensors] [PATCH] Add Micro-Star as a PCI VENDOR
-Message-Id: <20070129093220.30efba22.khali@linux-fr.org>
+From: vz-sensors@zeitlins.org (Vadim Zeitlin)
+Date: Tue, 02 Jan 2007 15:53:53 +0000
+Subject: [lm-sensors] Tyan S2696 and ADT7470
+Message-Id: <E1H1lxZ-0002Zb-00@smtp.tt-solutions.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <c1cd85210701241715p29fb437dy9400e74afaf8bbf7@mail.gmail.com>
-In-Reply-To: <c1cd85210701241715p29fb437dy9400e74afaf8bbf7@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Gordon,
+ Hello and happy new year to all!
 
-On Mon, 29 Jan 2007 16:52:34 +1100, Gordon Stanton wrote:
-> Hi Jean,
-> Firstly, sorry for the personal reply. I thought it might be better though.
+ First of all, I'm using 2.6.20-rc3 with the svn version of lm-sensors and
+the patches
 
-For what reason? First you send your message to 6 mailing lists, then
-replies go to just one person? I'm adding the relevant lists and
-persons to Cc again.
+http://lists.lm-sensors.org/pipermail/lm-sensors/2006-December/018420.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2006-October/018128.html
 
-> On 1/25/07, Jean Delvare <khali at linux-fr.org> wrote:
-> > Posting to 6 mailing-lists at once, are you mad?
-> > I kept only the relevant ones.
-> 
-> SMBus on PCI with ACPI crosses many areas.
+(coretemp and *_msr visibility). The kernel was built with standard Debian
+options using gcc 4.1.
 
-I fail to see how it is related to ACPI at all.
 
-> I'ts fixes a PCI quirk.(linux-pci)
-> The fix will unhide the SMBus like ASUS needs.(acpi4asus)
+ Now my problem is that I'm trying to set up lm-sensors on a machine using
+Tyan Tempest i5000XT motherboard (also known as S2696, please see
+http://www.tyan.com/products/html/tempesti5000xt.html). It has, according
+both to the specifications and sensors-detect output, not one but 2
+hardware monitoring chips: W83627EHG and ADT7470:
 
-Irrelevant. Asus were the first ones to do it, but half a dozen vendors
-do it by now. And the Asus system users certainly couldn't care less
-that yet another system needs it.
+	# sensors-detect
+	...
+	Now follows a summary of the probes I have just done.
+	Just press ENTER to continue:
 
-> Hopefully enabling some more sensors (like fans) to be
-> seen.(linux-acpi,lm-sensors)
+	Driver `to-be-written' (should be inserted):
+	  Detects correctly:
+	  * Bus `SMBus I801 adapter at 18c0'
+	    Busdriver `i2c-i801', I2C address 0x2e
+	    Chip `Analog Devices ADT7470' (confidence: 5)
+	  * Chip `Intel AMB FB-DIMM thermal sensor' (confidence: 9)
 
-"Hopefully?" You'd better make sure first. We're not going to add an
-unhiding quirk if there's nothing useful on the SMBus in question.
+	Driver `w83627ehf' (should be inserted):
+	  Detects correctly:
+	  * ISA bus, address 0xc00
+	    Chip `Winbond W83627EHF/EHG Super IO Sensors' (confidence: 9)
 
-> > I would suggest PCI_VENDOR_ID_MSI, that's how people know them.
-> 
-> I thought of that but MSI in relation to PCI means "Message Signaled
-> Interrupt" so I would rather go with PCI_VENDOR_MICRO_STAR which also
+	Driver `coretemp' (should be inserted):
+	  Detects correctly:
+	  * Chip `Intel Core family thermal sensor' (confidence: 9)
 
-Come on, the symbol is named PCI_VENDOR_ID_<something>, it's pretty
-clear what it stands for. If someone really thinks that
-PCI_VENDOR_ID_MSI could be related to message-signaled interrupts, that
-person better doesn't touch the kernel code at all.
+Unfortunately it looks that the case fans -- which create the deafening
+noise making the machine all but unusable currently -- are connected to
+ADT7470 and not the W83627EHG because
 
-We already have 62 two- or three-letter PCI vendor ID symbols in
-pci_ids.h, one more really isn't a problem.
+	# sensors
+	coretemp-isa-0000
+	Adapter: ISA adapter
+	temp1:       +29 C  (high =   +85 C)
 
-> tabs in the source code nicely. Although in truth it probably should
+	coretemp-isa-0001
+	Adapter: ISA adapter
+	temp1:       +33 C  (high =   +85 C)
 
-"Tabs in the source code nicely"? What do you mean?
+	coretemp-isa-0002
+	Adapter: ISA adapter
+	temp1:       +32 C  (high =   +85 C)
 
-> be PCI_VENDOR_MICRO_STAR_INTL but that is just getting too long.
+	coretemp-isa-0003
+	Adapter: ISA adapter
+	temp1:       +33 C  (high =   +85 C)
 
-That I couldn't agree more.
+	w83627ehf-isa-0c00
+	Adapter: ISA adapter
+	VCore:     +1.21 V  (min =  +0.00 V, max =  +1.74 V)
+	in1:       +8.29 V  (min = +13.46 V, max = +13.36 V) ALARM
+	AVCC:      +3.31 V  (min =  +3.87 V, max =  +4.02 V) ALARM
+	3VCC:      +3.33 V  (min =  +2.91 V, max =  +2.93 V) ALARM
+	in4:       +1.26 V  (min =  +2.00 V, max =  +1.87 V) ALARM
+	in5:       +1.60 V  (min =  +1.86 V, max =  +1.50 V) ALARM
+	in6:       +5.02 V  (min =  +3.23 V, max =  +4.56 V) ALARM
+	VSB:       +3.28 V  (min =  +0.69 V, max =  +3.06 V) ALARM
+	VBAT:      +1.52 V  (min =  +2.16 V, max =  +2.48 V) ALARM
+	in9:       +1.09 V  (min =  +0.78 V, max =  +1.52 V)
+	Case Fan:    0 RPM  (min = 3515 RPM, div = 128) ALARM
+	CPU Fan:  2083 RPM  (min = 5921 RPM, div = 4) ALARM
+	Aux Fan:     0 RPM  (min =  811 RPM, div = 128) ALARM
+	fan5:        0 RPM  (min = 168750 RPM, div = 8) ALARM
+	Sys Temp:    +39 C  (high =   -65 C, hyst =   -75 C)   ALARM
+	CPU Temp:  +34.5 C  (high = +80.0 C, hyst = +75.0 C)
+	AUX Temp:  +33.5 C  (high = +80.0 C, hyst = +75.0 C)
 
--- 
-Jean Delvare
+(notice the zeros for the case and aux fans). Unsurprisingly, running
+pwmconfig or writing directly to the files mentioned in Documentation/
+hwmon/w83627ehf doesn't affect these fans. More surprisingly, it doesn't
+seem to affect the CPU fan(s) neither but I don't care much about it as
+they're not very noisy anyhow. I care a lot about the 2 case fans though so
+I'd just like to ask if I am doing something wrong with w83627ehf or is it
+just that my guess that these fans are handled by ADT7470 is correct?
+
+ And, in the latter case, is there any hope for ADT7470 support? I'd be
+very willing to help as much as I can but unfortunately I don't really know
+much about this stuff so I'm afraid I have no chance without some/lots of
+guidance. Of course, I'd be also happy to provide any additional
+information that might help.
+
+ Thanks in advance!
+VZ
+
 
