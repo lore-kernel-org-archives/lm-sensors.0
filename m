@@ -1,60 +1,74 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 06 Jan 2007 09:07:51 +0000
-Subject: [lm-sensors] W83627EHF and K8 support patch
-Message-Id: <20070106100751.52ed18c9.khali@linux-fr.org>
+From: dvogel@intercarve.net (Drew Vogel)
+Date: Wed, 03 Jan 2007 21:16:33 +0000
+Subject: [lm-sensors] Bad readouts on ASUS M2V VIA VT8237A
+Message-Id: <459C1D31.4010903@intercarve.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <courier.459C5AC6.00006D6A@radagast.org>
-In-Reply-To: <courier.459C5AC6.00006D6A@radagast.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Dave,
+I ran sensors-detect, accepting all of the defaults (because they seemed
+correct, not because I was clueless) but the readouts I get from
+`sensors` are obviously off. Here is the output:
 
-On Wed, 3 Jan 2007 17:39:12 -0800 (PST), Dave Platt wrote:
-> Hi, all.  After buying an MSI K8MM3-V motherboard and Sempron
-> CPU, I found it expedient to add some additional support to the
-> sensors package in order to monitor things properly.
-> 
-> The attached patch updates the lib/chips.c file in the 2.10.1 
-> distribution, adding support for the W83627EHF voltage-sensing inputs, 
-> and adding support for the "k8temp" PCI-bus temperature sensor
-> (which I assume is actually a sense diode on the K8 CPU itself...
-> it reacts very quickly indeed to CPU-load changes).
 
-k8temp is a digital temperature sensor embedded in the K8 CPU itself.
-The "PCI" refers to the way the driver can access the information, not
-the location of the sensors.
 
-> It's entirely possible that these changes duplicate or conflict
-> with changes someone else has made since 2.10.1 was shipped...
-> I haven't checked.
+# sensors
+k8temp-pci-00c3
+Adapter: PCI adapter
+Core0 Temp:
+             +30?C
+Core1 Temp:
+             +37?C
 
-No, this had not been added yet, so I've applied your patch, with minor
-changes. Thanks for your contribution!
+it8712-isa-0d00
+Adapter: ISA adapter
+VCore 1:   +1.31 V  (min =  +0.00 V, max =  +4.08 V)
+VCore 2:   +4.08 V  (min =  +0.00 V, max =  +4.08 V)   ALARM
++3.3V:     +3.31 V  (min =  +0.00 V, max =  +4.08 V)
++5V:       +4.89 V  (min =  +0.00 V, max =  +6.85 V)
++12V:     +11.90 V  (min =  +0.00 V, max = +16.32 V)
+-12V:      +3.93 V  (min = -27.36 V, max =  +3.93 V)   ALARM
+-5V:       +4.03 V  (min = -13.64 V, max =  +4.03 V)   ALARM
+Stdby:     +6.85 V  (min =  +0.00 V, max =  +6.85 V)   ALARM
+VBat:      +3.31 V
+fan1:     35526 RPM  (min =    0 RPM, div = 2)
+fan2:        0 RPM  (min =    0 RPM, div = 2)
+fan3:        0 RPM  (min =    0 RPM, div = 2)
+M/B Temp:    +36?C  (low  =    -1?C, high =  +127?C)   sensor = thermistor
+CPU Temp:    +42?C  (low  =    -1?C, high =  +127?C)   sensor = thermistor
+Temp3:      +128?C  (low  =    -1?C, high =  +127?C)   sensor = disabled
 
-I just noticed that in9 is not included in the w83627ehf part, I guess
-it's an omission (because you didn't need it on this board) and I can
-add it?
 
-> Also attached are the relevant parts of my /etc/sensors.conf
-> file.
 
-Thanks, I've added it to my collection:
-http://khali.linux-fr.org/devel/lm-sensors/
+k8temp-pci-00c3 should be my NVidia 7600GT card and those seem correct.
+On it8712-isa-0d00 the +voltage readings seem perfect but the -12V and
+-5V voltages read out as positive values. AFAIK, this is impossible,
+because the system wouldn't be stable enough for me to run the sensors
+program (must less install the operating system in the first place). The
+fan1 (CPU fan) reading is clearly wrong because at 35k RPM it should be
+melting the plastic housing.
 
-I've made some reformatting and also changed the limits for VBat which
-didn't look quite right (nominal Vbat is 3.0V not 3.3V.) I also dropped
-the temp3 label as I think I understand this input isn't used on your
-motherboard, right?
+The system is slightly unstable, but not consistently so. It is an
+Athlon64 X2 system running Debian AMD64 (sid). All of my compatibility
+problems are with closed-source software (e.g. Sun's 64bit JRE 1.5
+segfaults) and usually running in a 32bit chroot (e.g. the video game
+Savage with the close-source NVidia drivers, but Sun's 32bit JRE 1.5.0
+runs fine). I thought that I ruled out heat problems, but I suspect
+maybe the 42C CPU temp reading may be too low (due to the other suspect
+readings) because I've ruled out everything but heat and a bad CPU (ran
+memtest86+ for 20 passes, no errors).
 
-> With these changes in place, sensord is capable of logging
-> and round-robin'ing all three of this motherboard's temperature
-> sensors, both fan speeds, and all of the voltages.
+How can I tell if my sensors are bad or if I just need to put a compute
+line in my sensors.conf?
 
-Great :)
+Drew Vogel
 
--- 
-Jean Delvare
+
+
+
+
+
+
 
