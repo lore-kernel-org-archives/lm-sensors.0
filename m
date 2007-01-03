@@ -1,41 +1,28 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Tue, 23 Jan 2007 12:56:37 +0000
-Subject: [lm-sensors] question about vt1211
-Message-Id: <20070123125637.GC8095@jupiter.solarsys.private>
+From: Info@nsr.ru (Nameserver.ru)
+Date: Wed, 03 Jan 2007 19:36:24 +0000
+Subject: [lm-sensors] w83627ehf module floods log file
+Message-Id: <200701032236.24178@goldspace.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0701190725j2620de3dvd521e23c690e72e@mail.gmail.com>
-In-Reply-To: <191fb4ca0701190725j2620de3dvd521e23c690e72e@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Sasha:
+I have noticed the w83627ehf module (with patch to support DHG) floods
+/var/log/messages this way:
 
-> On Mon, 22 Jan 2007 16:51:24 -0800 (PST), Sasha Raykhman wrote:
-> > I need some help in explaining how to install 2.10.2 package.  
-> > 
-> > The problem I have is that I am compiling kernel on my
-> > host computer for a different target board. Installation
-> > instructions and make file presented in the package will
-> > install necessary files on the host, but not in my source
-> > tree which I need to compile for the target .  Is there a
-> > way to solve the problem?
+...
+Jan  3 21:54:40 anli w83627ehf 9191-0290: Increasing fan 4 clock divider from 4 to 8
+Jan  3 21:54:43 anli w83627ehf 9191-0290: Increasing fan 4 clock divider from 4 to 8
+Jan  3 21:54:46 anli w83627ehf 9191-0290: Increasing fan 4 clock divider from 4 to 8
+Jan  3 21:54:49 anli w83627ehf 9191-0290: Increasing fan 4 clock divider from 4 to 8
+Jan  3 21:59:28 anli w83627ehf 9191-0290: Increasing fan 4 clock divider from 4 to 8
+Jan  3 21:59:31 anli w83627ehf 9191-0290: Increasing fan 4 clock divider from 4 to 8
+Jan  3 21:59:34 anli w83627ehf 9191-0290: Increasing fan 4 clock divider from 4 to 8
+Jan  3 21:59:37 anli w83627ehf 9191-0290: Increasing fan 4 clock divider from 4 to 8
+Jan  3 21:59:40 anli w83627ehf 9191-0290: Increasing fan 4 clock divider from 4 to 8
+...
 
-* Jean Delvare <khali at linux-fr.org> [2007-01-23 09:13:08 +0100]:
-> Try setting the DESTDIR variable to your staged installation root.
-> Either edit the Makefile to set it, or pass it on the command line:
-> # make DESTDIR=/tmp/fakeroot user_install
-> Then you can copy the files from /tmp/fakeroot to your target host.
-
-Also:  if the build host has a Linux 2.6.x kernel but the target has a 2.4.x
-kernel (or vice versa)... you may want/need to override SYSFS_SUPPORT in the
-Makefile as well.
-
-Regards,
-
--- 
-Mark M. Hoffman
-mhoffman at lightlink.com
-
+You see, every 3 seconds the module generates new message. Is it possible to
+suppress this logging?
 
