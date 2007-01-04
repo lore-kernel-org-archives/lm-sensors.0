@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 03 Jan 2007 14:36:45 +0000
+From: a@gaydenko.com (Andrew Gaydenko)
+Date: Thu, 04 Jan 2007 02:37:30 +0000
 Subject: [lm-sensors] W83627DHG, steps to use
-Message-Id: <20070103153645.6d9eaa40.khali@linux-fr.org>
+Message-Id: <200701040537.30653@goldspace.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200612271943.00165@goldspace.net>
 In-Reply-To: <200612271943.00165@goldspace.net>
@@ -10,27 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Andrew, David,
+Aha, applied. Thanks! - it helped. Now these sensors are visible too:
 
-On Fri, 29 Dec 2006 06:24:27 +0300, Andrew Gaydenko wrote:
-> Hi, David,
-> 
-> ==== On Friday 29 December 2006 06:09, you wrote: ===> >Setting pwmX_enable to 0 is supposed to disable the pwm output for
-> >that fan, resulting in the maximum fan speed. The w83627ehf and
-> >w83627dhg do not have a way to disable the pwm output. Just write 255
-> >to pwmX.
-> 
-> OK, I'm tracing for SVN tree :-)
+coretemp-isa-0000
+Adapter: ISA adapter
+temp1:       +36?C  (high =   +85?C)
 
-This is a known bug which was first reported here:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2006-November/018291.html
-See my answer here:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2006-December/018521.html
-There's a patch in that post, if you want to try it out, it should solve
-the problem. I didn't have the time to try it myself yet. If it works
-I'll commit it to lm_sensors SVN before we release 2.10.2.
+coretemp-isa-0001
+Adapter: ISA adapter
+temp1:       +36?C  (high =   +85?C)
 
-Thanks,
--- 
-Jean Delvare
+And, sorry, additional questions arised. 
+
+- W83627DHG shows CPU temp about 6-8 grad lower (well, and it is single sensor,
+  and I don't understand what does single sensors show :-)) rather coretemp sensors.
+  Who is more honest? It is important because ASUS P5B-VM seems to not support
+  PWM-regulating, so I have soldered PWM-controller and need to be sure CPU
+  temp is acceptable,
+
+- KDE's SysGuard see the only coretemp sensor. Is it SysGuard-related bug?
+
+
+==== On Wednesday 03 January 2007 04:55, you wrote: ===On 12/27/06, Andrew Gaydenko <a at gaydenko.com> wrote:
+> OK, being waiting for answer, I have tried to patch a kernel. Patching
+> was OK (except for rejecting in ./Documentation/...). Kernel making gives:
+>
+
+You applied one of Rudolph's patches but it was meant to be part of a
+set, you missed one of the files.  It's here:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2006-October/018128.html
 
