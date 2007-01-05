@@ -1,7 +1,7 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Fri, 05 Jan 2007 20:36:39 +0000
+From: hans.edgington@xs4all.nl (Hans Edgington)
+Date: Fri, 05 Jan 2007 21:33:05 +0000
 Subject: [lm-sensors] Problem with MSI K9N6SGM-V motherboard sensors
-Message-Id: <4dfa50520701051236x54495031o491fd9069d874e9c@mail.gmail.com>
+Message-Id: <000b01c73111$169e59f0$1f140a0a@EA002>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <459CA045.7050603@verizon.net>
 In-Reply-To: <459CA045.7050603@verizon.net>
@@ -10,29 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jim,
+Hi Jim & David,
 
-This is the information sensors gives you that identifies your chip:
+The fintek f71882fg or EPoX EP1308 has the same chip-id, but can't find
+anything about it on the net. From the pictures I can find, it could be the
+chip in the top right corner of the mobo. Lm-sensors 2.10.1 won't detect it
+you would need the on in the svn.
 
-> Probing for Super-I/O at 0x4e/0x4f
-> Trying family `ITE'...                                      No
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Fintek'...                       Yes
-> Found unknown chip with ID 0x0541
+You could also check by running
+isadump -k 0x87,0x87 0x4e 0x4f
+And post the results.
 
-I am going to guess it's a new chip not seen before. The MSI K9N6SGM-V
-uses the nVidia MCP-61 chipset. I downloaded the manual from:
+If it is the f71882fg then the driver is being developed and is almost
+finished. I will post it here as soon as it is.
 
-http://www.msi.com.tw/program/support/download/dld/spt_dld_file_record.php?folder=3&kind=1&name=M7309v1.1.zip
+Regards,
+Hans
 
-(JAVASCRIPT WARNING)
-
-In the manual on about page 4, there's a diagram showing the board
-layout. If this is accurate enough, then the hardware monitoring chip
-*must* be integrated in the nVidia MCP-61. The chip is probably only
-recognizable by the chip ID 0x0541. I don't know what chip it is.
-
-Hope that helps,
-David
 
