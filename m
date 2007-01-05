@@ -1,57 +1,38 @@
-From: mill.tek@verizon.net (MillTek)
-Date: Thu, 04 Jan 2007 06:35:49 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Fri, 05 Jan 2007 20:36:39 +0000
 Subject: [lm-sensors] Problem with MSI K9N6SGM-V motherboard sensors
-Message-Id: <459CA045.7050603@verizon.net>
+Message-Id: <4dfa50520701051236x54495031o491fd9069d874e9c@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <459CA045.7050603@verizon.net>
+In-Reply-To: <459CA045.7050603@verizon.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-Been trying to get the fan speeds etc. from this notherboard the last 
-few days.  Kernel is 2.6.19.  Lm_sensors is up-to-date.
-Sensors-detect gives the following; (just an extract where I think the 
-problem is)
+Hi Jim,
 
-Probing for Super-I/O at 0x2e/0x2f
-Trying family `ITE'...                                      No
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Fintek'...                       No
-Probing for Super-I/O at 0x4e/0x4f
-Trying family `ITE'...                                      No
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Fintek'...                       Yes
-Found unknown chip with ID 0x0541
+This is the information sensors gives you that identifies your chip:
 
-The only modprobes recommended are;
+> Probing for Super-I/O at 0x4e/0x4f
+> Trying family `ITE'...                                      No
+> Trying family `National Semiconductor'...                   No
+> Trying family `SMSC'...                                     No
+> Trying family `VIA/Winbond/Fintek'...                       Yes
+> Found unknown chip with ID 0x0541
 
-modprobe eeprom
-modprobe k8temp
+I am going to guess it's a new chip not seen before. The MSI K9N6SGM-V
+uses the nVidia MCP-61 chipset. I downloaded the manual from:
 
-If I run sensors I get;
+http://www.msi.com.tw/program/support/download/dld/spt_dld_file_record.php?folder=3&kind=1&name=M7309v1.1.zip
 
-sensors
-k8temp-pci-00c3
-Adapter: PCI adapter
-Core0 Temp:
-             +26?C
-Core1 Temp:
-             +26?C
+(JAVASCRIPT WARNING)
 
+In the manual on about page 4, there's a diagram showing the board
+layout. If this is accurate enough, then the hardware monitoring chip
+*must* be integrated in the nVidia MCP-61. The chip is probably only
+recognizable by the chip ID 0x0541. I don't know what chip it is.
 
-The Bios shows fan speeds etc.  Is there anything I can do???
-
-
-Jim
-
-
-
-
-
-
-
-
+Hope that helps,
+David
 
