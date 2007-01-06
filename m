@@ -1,39 +1,18 @@
-From: corentin.labbe@geomatys.fr (corentin.labbe)
-Date: Tue, 09 Jan 2007 18:40:08 +0000
-Subject: [lm-sensors] kernel patch for adm1029 support
-Message-Id: <45A3E188.7090208@geomatys.fr>
+From: Bernard@bramlage-aachen.de (Bernard Bramlage)
+Date: Sat, 06 Jan 2007 16:46:38 +0000
+Subject: [lm-sensors] Intel motherborard S3000
+Message-Id: <000001c731b2$3d228280$fbe4fea9@bbhome>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <459FFAC8.40306@geomatys.fr>
-In-Reply-To: <459FFAC8.40306@geomatys.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare a ?crit :
-> Hi Corentin,
-> 
-> On Sat, 06 Jan 2007 20:38:48 +0100, corentin.labbe wrote:
->> Hello
->>
->> This is my patchs for adding ADM1029 support in kernel.
-> 
-> Once again I had to edit the patch by hand before I was able to apply
-> it. Either it wasn't properly generated in the first place, or your
-> mailer is trashing it. Please test next time.
-> 
-> It also lacks your Signed-off-by line, as described in
-> Documentation/SubmittingPatches, section 11. This is mandatory.
-> 
-> Other than that, I am fine with your code, with the exception of minor
-> whitespace problems, which I can fix myself as I submit the patch
-> upstream. Thanks for your contribution!
-> 
+Hi,
+I use Intel's motherboard S3000 with SuSe10.2. I check the hardware with sensors-dectect, but sensors could not find  the sensors. Is it correct or doI have to install some additonal drivers?
 
-Sorry for the mistake
-
-Signed-off-by: LABBE Corentin <corentin.labbe at geomatys.fr>
+Regards
+Bernard
 -------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: kernel_diffs
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070109/a32a4c4d/attachment.pl 
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070106/1fecc60f/attachment.html 
