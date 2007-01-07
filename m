@@ -1,7 +1,7 @@
-From: nromer@arcmailtech.com (Noah Romer)
-Date: Sat, 06 Jan 2007 02:14:30 +0000
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Sun, 07 Jan 2007 11:08:40 +0000
 Subject: [lm-sensors] sensors.conf for supermicro x7dbe+
-Message-Id: <200701051814.30640.nromer@arcmailtech.com>
+Message-Id: <45A0D4B8.5030201@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200701031701.08165.nromer@arcmailtech.com>
 In-Reply-To: <200701031701.08165.nromer@arcmailtech.com>
@@ -10,137 +10,86 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Friday 05 January 2007 14:19, Rudolf Marek <r.marek at assembler.cz> wrote:
-> You may use the 2.6.19. Or a patch for earlier versions. Maybe it will apply
-> to previus recent kernels too. Can you use 2.6.19 or need any earlier
-> kernels? 
+> Had to go with 2.6.20-rc3. 2.6.19 doesn't have the w83793 driver in it. The 
+> output of sensors looks good for the w83793, just need to add a few "ignores" 
+> to sensors.conf for the bits of hardware that don't exist in this chasis. The 
+> output for the w83627hf that sensors-detect finds looks off, though (see 
+> below). SuperMicro didn't mention anything about it.
 
-Had to go with 2.6.20-rc3. 2.6.19 doesn't have the w83793 driver in it. The 
-output of sensors looks good for the w83793, just need to add a few "ignores" 
-to sensors.conf for the bits of hardware that don't exist in this chasis. The 
-output for the w83627hf that sensors-detect finds looks off, though (see 
-below). SuperMicro didn't mention anything about it.
+They did the mistake. It should be w83627hf instead of W83792D.
+It should contain the power failure on some GPIO pin, plus chassis intrusion.
 
-[offset values snipped] 
+If you don't need this. Do not load the hf driver. It is twice there because it
+can be accessed via i2c or via isa.
 
-> > Windbond W83792D, Slave Address=0x2e (0x5C in 8-Bit format)
-> > ==============================> > Chassis Intrusion, Offset 0xaa, BitMask 0x20
-> 
-> Wow I dont believe this. I think it must be wrong... Why to put there the 
-> other chip just for this... Please can you run there a sensors-detect and
-> post it here? 
- 
-Here we are. No W83792D found.
+CPU1 Core Voltage, Offset 0x10  -> in0
+CPU2 Core Voltage, Offset 0x11  -> in1
+-12V Voltage, Offset 0x14 -> in3
++1.5V Voltage, Offset 0x15 -> in4
++3.3V Voltage, Offset 0x16 -> in5
++12V Voltage, Offset 0x17 -> in6
++5V Voltage, Offset 0x18 ->in7
+5Vsb Voltage, Offset 0x19 -> in8
+Battery Voltage, Offset 0x1a -> in9
 
-	Probing for `Winbond W83792D'...                            No
-[snip]
-	Now follows a summary of the probes I have just done.
-	Just press ENTER to continue: 
-	
-	Driver `w83781d' (should be inserted):
-	  Detects correctly:
-	  * Bus `SMBus I801 adapter at 1100'
-	    Busdriver `i2c-i801', I2C address 0x2d
-	    Chip `w83627hf' (confidence: 6)
-	  * Bus `SMBus I801 adapter at 1100'
-	    Busdriver `i2c-i801', I2C address 0x48
-	    Chip `w83627hf subclient' (confidence: 6)
-	  * Bus `SMBus I801 adapter at 1100'
-	    Busdriver `i2c-i801', I2C address 0x49
-	    Chip `w83627hf subclient' (confidence: 6)
-	  * ISA bus address 0x0290 (Busdriver `i2c-isa')
-	    Chip `Winbond W83627HF' (confidence: 8)
-	
-	Driver `w83793' (should be inserted):
-	  Detects correctly:
-	  * Bus `SMBus I801 adapter at 1100'
-	    Busdriver `i2c-i801', I2C address 0x2f
-	    Chip `Winbond W83793R/G' (confidence: 8)
-	
-	Driver `w83627hf' (should be inserted):
-	  Detects correctly:
-	  * ISA bus address 0x0295 (Busdriver `i2c-isa')
-	    Chip `Winbond W83627HF Super IO Sensors' (confidence: 9)
+Our mapping:
+       /*Read, High, Low */
 
+        {0x10, 0x60, 0x61},     /* Vcore A      */
 
-`sensors` says:
+        {0x11, 0x62, 0x63},     /* Vcore B      */
 
-w83627hf-i2c-0-2d
-Adapter: SMBus I801 adapter at 1100
-in0:       +4.08 V  (min =  +0.00 V, max =  +4.08 V)              
-in1:       +4.08 V  (min =  +0.00 V, max =  +4.08 V)              
-in2:       +4.08 V  (min =  +2.82 V, max =  +3.79 V)       ALARM  
-in3:       +3.09 V  (min =  +2.82 V, max =  +3.12 V)              
-in4:       +3.04 V  (min =  +2.85 V, max =  +3.47 V)              
-in5:       +3.09 V  (min =  +0.34 V, max =  +0.78 V)       ALARM  
-in6:       +3.09 V  (min =  +0.78 V, max =  +0.94 V)       ALARM  
-in7:       +3.38 V  (min =  +2.82 V, max =  +3.12 V)       ALARM  
-in8:       +0.06 V  (min =  +2.40 V, max =  +3.60 V)       ALARM  
-fan1:        0 RPM  (min =    0 RPM, div = 2)                     
-fan2:        0 RPM  (min =    0 RPM, div = 2)                     
-fan3:        0 RPM  (min =    0 RPM, div = 2)                     
-temp1:       -48?C  (high =    -1?C, hyst =    -3?C)   sensor = thermistor           
-temp2:     -48.0?C  (high =   +80?C, hyst =   +75?C)   sensor = thermistor           
-temp3:     -48.0?C  (high =   +80?C, hyst =   +75?C)   sensor = thermistor           
-vid:      +0.000 V  (VRM Version 10.0)
-alarms:   
-beep_enable:
-          Sound alarm enabled
+        {0x12, 0x64, 0x65},     /* Vtt          */
 
-w83627hf-isa-0290
-Adapter: ISA adapter
-in0:       +4.08 V  (min =  +0.00 V, max =  +4.08 V)              
-in1:       +4.08 V  (min =  +0.00 V, max =  +4.08 V)              
-in2:       +4.08 V  (min =  +2.82 V, max =  +3.79 V)       ALARM  
-in3:       +3.04 V  (min =  +2.82 V, max =  +3.12 V)              
-in4:       +3.04 V  (min =  +2.85 V, max =  +3.47 V)              
-in5:       +3.09 V  (min =  +0.34 V, max =  +0.78 V)       ALARM  
-in6:       +3.07 V  (min =  +0.78 V, max =  +0.94 V)       ALARM  
-in7:       +3.39 V  (min =  +2.82 V, max =  +3.12 V)       ALARM  
-in8:       +0.06 V  (min =  +2.40 V, max =  +3.60 V)       ALARM  
-fan1:        0 RPM  (min =    0 RPM, div = 2)                     
-fan2:        0 RPM  (min =    0 RPM, div = 2)                     
-fan3:        0 RPM  (min =    0 RPM, div = 2)                     
-temp1:       -48?C  (high =    -1?C, hyst =    -3?C)   sensor = thermistor           
-temp2:     -48.0?C  (high =   +80?C, hyst =   +75?C)   sensor = thermistor           
-temp3:     -48.0?C  (high =   +80?C, hyst =   +75?C)   sensor = thermistor           
-vid:      +0.000 V  (VRM Version 10.0)
-alarms:   
-beep_enable:
-          Sound alarm enabled
+        {0x14, 0x6a, 0x6b},     /* VSEN1        */
 
-w83793-i2c-0-2f
-Adapter: SMBus I801 adapter at 1100
-VCoreA:    +1.22 V  (min =  +0.92 V, max =  +1.49 V)   
-VCoreB:    +1.26 V  (min =  +0.92 V, max =  +1.49 V)   
--12V:      +1.49 V  (min =  +1.34 V, max =  +1.65 V)   
-+1.5V:     +3.30 V  (min =  +2.96 V, max =  +3.63 V)   
-+3.3V:    +11.90 V  (min = +10.75 V, max = +13.25 V)   
-+12V:      +4.97 V  (min =  +4.49 V, max =  +5.50 V)   
-+5V:       +4.92 V  (min =  +4.49 V, max =  +5.50 V)   
-5VSB:      +3.25 V  (min =  +2.99 V, max =  +3.66 V)   
-fan1:        0 RPM  (min =  712 RPM)                   ALARM
-fan2:     4981 RPM  (min =  712 RPM)                   
-fan3:     5192 RPM  (min =  712 RPM)                   
-fan4:     4821 RPM  (min =  712 RPM)                   
-fan5:        0 RPM  (min =  712 RPM)                   ALARM
-fan6:        0 RPM  (min =  712 RPM)                   ALARM
-fan7:        0 RPM  (min =  712 RPM)                   ALARM
-fan8:        0 RPM  (min =  712 RPM)                   ALARM
-fan9:        0 RPM  (min =  712 RPM)                   ALARM
-fan10:       0 RPM  (min =  712 RPM)                   ALARM
-CPU1 Temp: +24.8?C  (high = +80.0?C, hyst = +75.0?C)   
-CPU2 Temp: +23.8?C  (high = +80.0?C, hyst = +75.0?C)   
-temp3:     +24.8?C  (high = +80.0?C, hyst = +75.0?C)   
-temp4:     +24.8?C  (high = +80.0?C, hyst = +75.0?C)   
-temp5:       +28?C  (high =   +50?C, hyst =   +45?C)   
-temp6:       +92?C  (high =  +100?C, hyst =   +95?C)   
-cpu0_vid: +1.075 V  (VRM Version 10.0)
-cpu1_vid: +0.000 V  (VRM Version 10.0)
+        {0x15, 0x6c, 0x6d},     /* VSEN2        */
 
-Thanks,
-Noah
--- 
-Noah Romer <nromer at arcmailtech.com>
-GPG Key Fingerprint: 944E C2F8 EBEC BCC7 EEA9  9381 1B21 0098 CC8D 45BA
+        {0x16, 0x6e, 0x6f},     /* +3VSEN       */
+
+        {0x17, 0x70, 0x71},     /* +12VSEN      */
+
+        {0x18, 0x72, 0x73},     /* 5VDD         */
+
+        {0x19, 0x74, 0x75},     /* 5VSB         */
+
+        {0x1a, 0x76, 0x77},     /* VBAT         */
+
+Your labels should be:
+
+   label in0 "VCoreA"
+    label in1 "VCoreB"
+    label in2 "Vtt - Unknown"
+    label in3 "-12V"
+    label in4 "+1.5V"
+    label in5 "+3.3V"
+    label in6 "+12V"
+    label in7 "+5V"
+    label in8 "5VSB"
+    label in9 "VBAT"
+
+In your dump you have it off by one, please fix the configuration file and post
+the sensors command again. You will need to ask for the -12V formula to
+Supermicro (or try some from sensors.conf)
+
+> fan10:       0 RPM  (min =  712 RPM)                   ALARM
+> CPU1 Temp: +24.8?C  (high = +80.0?C, hyst = +75.0?C)   
+> CPU2 Temp: +23.8?C  (high = +80.0?C, hyst = +75.0?C)   
+> temp3:     +24.8?C  (high = +80.0?C, hyst = +75.0?C)   
+> temp4:     +24.8?C  (high = +80.0?C, hyst = +75.0?C)   
+> temp5:       +28?C  (high =   +50?C, hyst =   +45?C)   
+> temp6:       +92?C  (high =  +100?C, hyst =   +95?C)   
+
+I'm suspecting that this temperature channel is disabled. Please can you check
+the temp6_mode file?
+
+The path to file is something like this, please fix it.
+
+cat /sys/class/hwmon/hwmon?/device/temp6_mode
+> cpu0_vid: +1.075 V  (VRM Version 10.0)
+> cpu1_vid: +0.000 V  (VRM Version 10.0)
+
+This is also bit strange, maybe it is not connected.
+
+Rudolf
 
