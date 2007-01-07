@@ -1,33 +1,50 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 10 Jan 2007 17:27:36 +0000
-Subject: [lm-sensors] HP PAVILLION dv8000
-Message-Id: <20070110182736.c5419d26.khali@linux-fr.org>
+From: christophe.dr@free.fr (Christophe de =?iso-8859-1?q?Rivi=E8re?=)
+Date: Sun, 07 Jan 2007 10:07:42 +0000
+Subject: [lm-sensors] No smbus on asus w1n laptop in spite of quirk > no
+Message-Id: <200701071107.50461.christophe.dr@free.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <beb91d720701061533r15ed4803h42d904ecfb0de1b4@mail.gmail.com>
-In-Reply-To: <beb91d720701061533r15ed4803h42d904ecfb0de1b4@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Salatiel,
+I have reported this problem in many places and searched the internet a long 
+time for a solution but i can't find some suitable fix.
+The problem is that i can't monitor and control the sensor chip datas because 
+of the lack of smbus detection. Yet this problem had been solved about 2 
+years ago when i reported it on this list thanks to the help of Jean 
+Delvare :
+http://archives.andrew.net.au/lm-sensors/msg29507.html
+http://archives.andrew.net.au/lm-sensors/msg29523.html
+I am using now an old mandriva 2006 with kernel 2.6.12-27 that is properly 
+detecting the smbus and it appears on the lspci as :
+00:1f.3 SMBus: Intel Corporation 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) SMBus 
+Controller (rev 03) 
+But now that i want to jump to a newer distro, none of them is able to detect 
+this smbus in spite of the quirks (see above) that is present in the kernel :
+$ cat /usr/src/linux/drivers/pci/quirks.c |grep -i w1
+                        case 0x184b: /* W1N notebook */
+The same lack occured occured on ubuntu 6.10 , suse 10.1, mandriva 2007 and 
+suse 10.2 with recent kernels ranging from 2.6.16 to 2.6.18 . No smbus is 
+appears on the lspci for any of these distro.
+I reported this problem here :
+http://www.suseforums.net/index.php?showtopic%980
+http://qa.mandriva.com/show_bug.cgi?id%281
+But i had no answers.
+The sensor monitor and fan speed control is a very interesting feature on this 
+laptop for battery saving reasons.
+I'd be really glad if someone could help .
+Or please someone point me to a better place to report this problem.
 
-On Wed, 10 Jan 2007 14:03:36 -0300, Salatiel Filho wrote:
-> Sorry, attached now ...
 
-Next time please make sure your attachement has type text/plain and not
-application/octet-stream.
-
-> Coretemp detects cpu temperature but i can not get fan rpm
-
-From the output of sensors-detect, it appears that you do not have any
-fan speed monitoring chip on your system. This is quite common on
-laptops. What makes you believe that it has such a chip? Do you see
-hardware monitoring information in the BIOS, or when using another OS?
-
-Your best chance is probably ACPI here, try loading the "fan" driver
-and check under /proc/acpi/fan is anything shows up.
+Thanks.
 
 -- 
-Jean Delvare
-
+christophe
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 191 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070107/5d18353e/attachment.bin 
