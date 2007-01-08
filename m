@@ -1,42 +1,29 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 22 Jan 2007 13:33:22 +0000
-Subject: [lm-sensors] Asus P4R800-VM with w83627THF sensor
-Message-Id: <20070122143322.2783d77a.khali@linux-fr.org>
+From: Thilo.Cestonaro.external@fujitsu-siemens.com (Cestonaro,
+Date: Mon, 08 Jan 2007 09:04:42 +0000
+Subject: [lm-sensors] new patch for FSC Heimdall Chips
+Message-Id: <F7F9B0BE3E9BD449B110D0B1CEF6CAEF03FA587D@ABGEX01E.abg.fsc.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45B2BB3B.4000603@eltofts.homelinux.com>
-In-Reply-To: <45B2BB3B.4000603@eltofts.homelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Andy,
+Hey,
 
-On Sun, 21 Jan 2007 01:00:43 +0000, Andy Wright wrote:
-> I'm trying to get lm_sensors working on an asus p4r800-vm motherboard. 
-> OS is Centos 4.4 running Kernel 2.6.9-42.0.3.EL and I have installed the 
-> libsysfs library from the lm-sensors.org website.
-> 
-> sensors-detect gives the following;
-> 
-> Driver 'w83627hf' (should be inserted):
->   Detects correctly:
->   *  ISA bus address 0x0228 (Busdriver 'i2c-isa')
->       Chip 'Winbond W83627THF Super IO Sensors' (confidence: 9)
-> 
-> modprobe i2c-isa succeeds
-> 
-> modprobe w83627hf   fails with;
-> 
-> FATAL: Error inserting w83627hf 
-> (/lib/modules/2.6.9-42.0.3.EL/kernel/drivers/i2c/chips/w83627hf.ko): No 
-> such device
-> 
-> Would anyone have any pointers as to how to get this going ?
+the archive includes a patch for kernel 2.6.16 and lm-sensors 2.10.0 for the FSC Heimdall Chip Support.
 
-Was the W83627THF chip found as the "primary" or "secondary" Super-I/O
-chip? (sensors-detect should tell you)
-
--- 
-Jean Delvare
-
+Ciao Th <<fschmd_lm_sensors-2.10.0.patch>> i <<fschmd_kernel_module_2.6.16.21.patch>> lo
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: fschmd_lm_sensors-2.10.0.patch
+Type: application/octet-stream
+Size: 23052 bytes
+Desc: fschmd_lm_sensors-2.10.0.patch
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070108/58eebd7a/attachment-0002.obj 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: fschmd_kernel_module_2.6.16.21.patch
+Type: application/octet-stream
+Size: 26316 bytes
+Desc: fschmd_kernel_module_2.6.16.21.patch
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070108/58eebd7a/attachment-0003.obj 
