@@ -1,30 +1,25 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Thu, 18 Jan 2007 15:41:49 +0000
-Subject: [lm-sensors] PATCH: hwmon-abituguru3-new-driver.patch: Add support
-Message-Id: <45AF953D.2060500@hhs.nl>
+From: aolexiy@gmail.com (Olexiy Avramchenko)
+Date: Mon, 08 Jan 2007 17:50:51 +0000
+Subject: [lm-sensors] MAX6655/6 support added
+Message-Id: <7244bcd20701080950h2bd95726lbf30a6f40ccfa54d@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Hello, list
 
-Can you review this and if ok apply please?
+I've added support for the MAX6655/6 chips *, diff over current SVN is
+attached. Driver and sensors program were tested on linux-2.4.26 (with
+MontaVista patches) running on PowerPC-405GPr target.
 
-This patch adds a new driver for the hardware monitoring features of the 
-third revision of the Abit uGuru chip, found on recent Abit 
-motherboards. This is an entirely different beast then the first and 
-second revision (its again a winbond microcontroller, but the "protocol" 
-to talk to it and the bank addresses are very different.
-
-Regards,
-
-Hans
+Best regards,
+  Olexiy
 -------------- next part --------------
 A non-text attachment was scrubbed...
-Name: hwmon-abituguru3-new-driver.patch
-Type: text/x-patch
-Size: 46126 bytes
+Name: max6655-support.diff.gz
+Type: application/x-gzip
+Size: 10131 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070118/1df60cd9/attachment-0001.bin 
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070108/c6da6e4f/attachment.gz 
