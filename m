@@ -1,39 +1,43 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 26 Jan 2007 08:15:09 +0000
-Subject: [lm-sensors] patch to bmcsensors.c
-Message-Id: <20070126091509.4cf01e79.khali@linux-fr.org>
+From: neodym@ne2000.de (Tobias Zuegel)
+Date: Mon, 08 Jan 2007 22:18:14 +0000
+Subject: [lm-sensors] FoxOne another rebranded F71882FG?
+Message-Id: <45A2C326.4040904@ne2000.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000501c740d5$85a39350$8101a8c0@PERF.PERFORMANCESOFTWARE>
-In-Reply-To: <000501c740d5$85a39350$8101a8c0@PERF.PERFORMANCESOFTWARE>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Charles,
+Hi,
 
-On Thu, 25 Jan 2007 16:07:00 -0700, Charles Grant wrote:
-> Here are some changes I made to get bmcsensors working on our dual-core Xeon
-> ATCA carrier (Kontron 8020).
-> 
-> 1) I modified the code to send an initial "get device ID" command to
-> determine which commands are used to subsequently retrieve the SDR data
-> (this code was taken directly from ipmitool).
-> 
-> 2) When retrieving partial buffers for an SDR, the request for the last
-> buffer would return completion code 0xCA (cannot return number of requested
-> data bytes), causing the code to half its buffer size, try again, and
-> ultimately give up.  To get around this, I modified bmcsensors_get_sdr() and
-> bmcsensors_rcv_sdr_msg() to never request more than the known number of
-> remaining bytes.
-> 
-> 3) Sorry, but I also put "#ifdef DEBUG" around a lot of the printk's
+Just read here, that EPoX EP1308 and F71882FG are identical and that a 
+driver is possible/in development.
+I think, I have found another rebranded F71882FG: the FoxOne chip on my 
+Foxconn P9657AA board. The chip seems to be used quite often on Foxconn 
+boards (e.g. also on the 975X7AA).
 
-Please send 3 separate patches, as these 3 changes appear to be
-independent from each other. Smaller patches have a much higher chance
-to be reviewed and merged.
+Here the relevant output of sensors-detect:
+ > Some Super I/O chips may also contain sensors. We have to write to
+ > standard I/O ports to probe them. This is usually safe.
+ > Do you want to scan for Super I/O sensors? (YES/no):
+ > Probing for Super-I/O at 0x2e/0x2f
+ > Trying family `ITE'...                                      Yes
+ > Found unknown chip with ID 0x0541
+ >     (logical device 4 has address 0x295, could be sensors)
+ > Trying family `National Semiconductor'...                   No
+ > Trying family `SMSC'...                                     No
+ > Trying family `VIA/Winbond/Fintek'...                       Yes
+ > Found `Fintek F71882FG Super IO Sensors'                    Success!
+ >     (address 0x295, driver `to-be-written')
+ > Probing for Super-I/O at 0x4e/0x4f
+ > Trying family `ITE'...                                      No
+ > Trying family `National Semiconductor'...                   No
+ > Trying family `SMSC'...                                     No
+ > Trying family `VIA/Winbond/Fintek'...                       No
 
-Thanks,
--- 
-Jean Delvare
+I am looking forward to seeing it supported at some time. I will read 
+the mailing list from now on and I am available as a tester ...
+
+Greets,
+Toby
 
