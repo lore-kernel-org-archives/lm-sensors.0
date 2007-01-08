@@ -1,46 +1,61 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 08 Jan 2007 17:39:45 +0000
-Subject: [lm-sensors] generic chip support for sensors
-Message-Id: <20070108183945.84115dfc.khali@linux-fr.org>
+From: christophe.dr@free.fr (Christophe de =?iso-8859-1?q?Rivi=E8re?=)
+Date: Mon, 08 Jan 2007 07:39:25 +0000
+Subject: [lm-sensors]
+Message-Id: <200701080839.31792.christophe.dr@free.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20061210000539.1f2f2bbd@ws01.atreidis.nl.eu.org>
-In-Reply-To: <20061210000539.1f2f2bbd@ws01.atreidis.nl.eu.org>
+References: <87ekb9s3tn.wl%info@wore.ma.cx>
+In-Reply-To: <87ekb9s3tn.wl%info@wore.ma.cx>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+Le Dimanche 7 Janvier 2007 15:30, Rudolf Marek a ?crit?:
+> Hello,
+>
+> > But now that i want to jump to a newer distro, none of them is able to
+> > detect this smbus in spite of the quirks (see above) that is present in
+> > the kernel : $ cat /usr/src/linux/drivers/pci/quirks.c |grep -i w1
+> >                         case 0x184b: /* W1N notebook */
+> > The same lack occured occured on ubuntu 6.10 , suse 10.1, mandriva 2007
+> > and suse 10.2 with recent kernels ranging from 2.6.16 to 2.6.18 . No
+> > smbus is appears on the lspci for any of these distro.
+> >[...]
+> Answer is simple. There were some problems with suspend resume, when the
+> smbus was enabled. (from 2.6.17-2.6.19) It is fixed in 2.6.20. You need to
+> disable the ACPI sleep support to re-enable the quirk. I guess it is not
+> what you want.
+> http://www.lm-sensors.org/browser/lm-sensors/trunk/prog/hotplug/unhide_ICH_
+>SMBus?format=raw
 
-On Sun, 7 Jan 2007 14:36:26 -0500, Mark M. Hoffman wrote:
-> Hi Bob:
-> 
-> * Bob Schl?rmann <bob2 at dsv.nl> [2006-12-24 18:29:39 +0100]:
-> > The following patch changes all of the lib/chips.c entries and any function
-> > that uses sensors_chip_feature. Most of the conversion was done through a
-> > perl script, so if you don't agree with the syntax it'll be easy to change.
-> > 
-> > It's a diff against current svn.
-> 
-> Very nice, thanks for doing this.  I have some minor requests though...
-> 
-> * please CC the lm-sensors list with all patches
-> * always prepare patches with lm-sensors as CWD, even if it only touches lib
-> * attach patches as plain text instead of base64 if possible
-> 
-> I fixed up your patch so it applies to latest SVN (adm1029 support was added
-> since then), and IMO we should apply this prior to releasing 2.10.2 even.
-> 
-> BTW: A binary diff between SVN and patched revisions of lib/chips.ao,
-> lib/proc.ao, and lib/access.ao comes up clean.  That is proof enough for me
-> that this transformation was done correctly.
-> 
-> Thanks again Bob.  Here's the revised patch; comments anyone?
+You are simply great ! It simply worked like a charm this morning on a suse 
+10.2 and i suppose it will work on any other distro. !
 
-If you feel like it is safe and can be merged, fine with me, just apply
-that patch. After that, the repository is frozen and the pre-release
-tests can begin. I'd really like to stick to the schedule.
+> > The sensor monitor and fan speed control is a very interesting featur[...]
+>
+> Please can you attach the DSDT table to your mail?
+>
+> cat /proc/acpi/dsdt > /tmp/dsdt.bin
+
+Attached to this email.
+
+> Rudolf
+
+Thanks again for your generous help !!!
 
 -- 
-Jean Delvare
-
+christophe
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: dsdt
+Type: application/octet-stream
+Size: 27981 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070108/827fafb3/attachment-0001.obj 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 191 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070108/827fafb3/attachment-0001.bin 
