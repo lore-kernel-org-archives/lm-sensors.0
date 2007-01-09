@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 08 Jan 2007 14:16:08 +0000
+From: corentin.labbe@geomatys.fr (corentin.labbe)
+Date: Tue, 09 Jan 2007 18:40:08 +0000
 Subject: [lm-sensors] kernel patch for adm1029 support
-Message-Id: <20070108151608.70968e67.khali@linux-fr.org>
+Message-Id: <45A3E188.7090208@geomatys.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <459FFAC8.40306@geomatys.fr>
 In-Reply-To: <459FFAC8.40306@geomatys.fr>
@@ -10,24 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Corentin,
-
-On Sat, 06 Jan 2007 20:38:48 +0100, corentin.labbe wrote:
-> Hello
+Jean Delvare a ?crit :
+> Hi Corentin,
 > 
-> This is my patchs for adding ADM1029 support in kernel.
+> On Sat, 06 Jan 2007 20:38:48 +0100, corentin.labbe wrote:
+>> Hello
+>>
+>> This is my patchs for adding ADM1029 support in kernel.
+> 
+> Once again I had to edit the patch by hand before I was able to apply
+> it. Either it wasn't properly generated in the first place, or your
+> mailer is trashing it. Please test next time.
+> 
+> It also lacks your Signed-off-by line, as described in
+> Documentation/SubmittingPatches, section 11. This is mandatory.
+> 
+> Other than that, I am fine with your code, with the exception of minor
+> whitespace problems, which I can fix myself as I submit the patch
+> upstream. Thanks for your contribution!
+> 
 
-Once again I had to edit the patch by hand before I was able to apply
-it. Either it wasn't properly generated in the first place, or your
-mailer is trashing it. Please test next time.
+Sorry for the mistake
 
-It also lacks your Signed-off-by line, as described in
-Documentation/SubmittingPatches, section 11. This is mandatory.
-
-Other than that, I am fine with your code, with the exception of minor
-whitespace problems, which I can fix myself as I submit the patch
-upstream. Thanks for your contribution!
-
--- 
-Jean Delvare
-
+Signed-off-by: LABBE Corentin <corentin.labbe at geomatys.fr>
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: kernel_diffs
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070109/a32a4c4d/attachment.pl 
