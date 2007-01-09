@@ -1,7 +1,7 @@
 From: Bernard@bramlage-aachen.de (Bernard Bramlage)
-Date: Sun, 07 Jan 2007 21:52:11 +0000
+Date: Tue, 09 Jan 2007 19:11:13 +0000
 Subject: [lm-sensors] Intel motherborard S3000
-Message-Id: <001501c732a6$17318630$fbe4fea9@bbhome>
+Message-Id: <006f01c73421$f111f700$fbe4fea9@bbhome>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <000001c731b2$3d228280$fbe4fea9@bbhome>
 In-Reply-To: <000001c731b2$3d228280$fbe4fea9@bbhome>
@@ -11,27 +11,46 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Hi,
-the board name is Server Boards S3000AH
-The manual descibe regarding to hardware monitoring:
-The server board has implemented hardware monitoring function into the super 
-I/O SCH5027
+I run dmidecode and found:
 
-chip. The chip provides basic server hardware monitoring which alerts a 
-system administrator if
+Processor Information
+        Socket Designation: Intel(R) Genuine processor
+        Type: Central Processor
+        Family: <OUT OF SPEC>
+        Manufacturer: Intel(R) Corporation
+        ID: F6 06 00 00 FF FB EB BF
+        Version: Intel(R) Core(TM)2 CPU          6300  @ 1.86GHz
+        Voltage: 1.6 V
+        External Clock: 266 MHz
+        Max Speed: 4000 MHz
+        Current Speed: 1866 MHz
+        Status: Populated, Enabled
+        Upgrade: Other
+        Serial Number: Not Specified
+        Asset Tag: Intel(R) Genuine processor
+        Part Number: Not Specified
 
-a hardware problem occurs on the board. The SCH5027 chip has implemented 
-some FAN
+Base Board Information
+        Manufacturer: Intel Corporation
+        Product Name: S3000AHLX
+        Version: D40858-204
+        Serial Number: AZAX63701098
+        Asset Tag: Not Specified
+        Features:
+                Board is a hosting board
+                Board is replaceable
+        Location In Chassis: Not Specified
+        Type: Motherboard
 
-speed control/monitor pins. Below is a table of monitored headers and 
-sensors on the server
-
-board.
-
-I could not finde any information about the SCH5027 in lm_sensors.
 
 Regards
 Bernard
-
+----- Original Message ----- 
+From: "Rudolf Marek" <r.marek at assembler.cz>
+To: "Bernard Bramlage" <Bernard at bramlage-aachen.de>
+Cc: <lm-sensors at lm-sensors.org>
+Sent: Sunday, January 07, 2007 3:25 PM
+Subject: Re: [lm-sensors] Intel motherborard S3000
 
 
 > Hi,
