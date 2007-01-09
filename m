@@ -1,47 +1,43 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 15 Jan 2007 17:28:42 +0000
-Subject: [lm-sensors] MAX6655 support
-Message-Id: <20070115182842.4b14ef96.khali@linux-fr.org>
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Tue, 09 Jan 2007 13:28:25 +0000
+Subject: [lm-sensors] HP Compaq ProLiant DL380 detect failure
+Message-Id: <191fb4ca0701090528h6c416c3w80e6d46071715ce6@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <7244bcd20701140424x71f0b2ceue44d7b4a90bb0bff@mail.gmail.com>
-In-Reply-To: <7244bcd20701140424x71f0b2ceue44d7b4a90bb0bff@mail.gmail.com>
+References: <4568C502.6070305@lymenet.org>
+In-Reply-To: <4568C502.6070305@lymenet.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Olexiy,
+I contacted the iLO ASIC guys and they are checking the request for
+providing technical information. I also checked the schematics of the
+DL385G2. The iLO ASIC provides 4 I2C buses to which the temp sensors
+(SMSC EMC1043) are attached to.
+I already wrote the driver for the EMC1043 and have a framework in
+place for the iLO driver. More later...
 
-On Sun, 14 Jan 2007 14:24:27 +0200, Olexiy Avramchenko wrote:
-> Is there any chanse for [1] (MAX6655/6 support) to be included in
-> mainline? I've tried to follow "doc/developers/new_drivers" guideline
-> but if something is missed or screwed in the patch please let me know.
+...juerg
 
-The 2.4 kernel support of lm_sensors is essentially in maintenance
-mode. We hardly have the resources to deal with all the drivers that
-need to be merged in Linux 2.6, things can only get worse if we also
-keep adding new drivers to lm_sensors for Linux 2.4.
 
-So, unless you can find someone trustworthy willing to review your
-driver publicly, it's probably not going to be integrated in lm_sensors
-anytime soon.
-
-The only part I am willing to review and apply is the update to
-sensors-detect, so that at least people with these chips know that they
-have them. I'll apply this part as soon as we are done with releasing
-lm_sensors 2.10.2.
-
-> PS: I'm attaching the copy of the linux 2.4 MAX6655, MAX6656
-> lm-sensors 2.1x chip driver [2] anyway, so one may probably find and
-> use it if needed.
-> 
-> [1] http://lists.lm-sensors.org/pipermail/lm-sensors/2007-January/018635.html
-> [2] some keywords for search engines
-
-I added an entry for the MAX6655 and MAX6656 chips to our "Devices"
-wiki page, with a link to your previous post. That's about all I can
-do, sorry.
-
--- 
-Jean Delvare
+On 12/26/06, Thomas Brown <twb0 at lymenet.org> wrote:
+> Thanks all--if we can get this working there is a large community of HP
+> ProLiant server users who will benefit.
+>
+> Upon tracing the "hplog" process behavior, it seems to read the data is
+> by using message queues attached to the Proliant System Health Monitor
+> (hpasmd) process which, in turn, may also rely on data from the HP
+> Lights-Out Drivers and Agents (hprsm) daemon.
+>
+> There are two routes that might be taken here:
+>
+> 1.  Reverse-engineer the hpasmd process and read values directly from
+> the HP/Compaq hardware.
+>    or
+> 2.  Write a shim to work in concert with an existing hpasmd process and
+> feed data back using existing drivers (i.e. /dev/cpqhealth/proc,
+> /dev/cpqhealth/cevt, etc.)
+>
+> -Tom
+>
 
