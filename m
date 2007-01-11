@@ -1,41 +1,80 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 16 Jan 2007 22:12:12 +0000
-Subject: [lm-sensors] Call for 2.10.2
-Message-Id: <20070116231212.be72cc0e.khali@linux-fr.org>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Thu, 11 Jan 2007 15:34:44 +0000
+Subject: [lm-sensors] FB-DIMM temperature
+Message-Id: <45A65914.6040302@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20061221224611.3c2746af.khali@linux-fr.org>
-In-Reply-To: <20061221224611.3c2746af.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Phil,
+Hello,
 
-On Mon, 15 Jan 2007 16:07:50 -0800, Philip Edelbrock wrote:
-> > Philip, can you please take care of the release? Note that the
-> > libsensors version must be bumped to 3.1.2.
+Thanks for the improvements.
+
 > 
-> OK, the release is done.  I marked the 2.10.2 milestone as complete  
-> and created a new one for 2.10.3 but the due date will need to be  
-> adjusted as necessary.
-
-Great, thanks :)
-
-> Please review the download page to make sure the instructions are  
-> correct:
+> 	#include <sys/mman.h>
+> 	#include <sys/stat.h>
+> 	#include <fcntl.h>
+> 	#include <stdio.h>
 > 
-> http://www.lm-sensors.org/wiki/Download
+> 	int main(void)
+> 	{
+> 	    int i;
+> 	    unsigned char *addr;
+> 	    int fd = open("/dev/mem", O_RDONLY);
+> 
+> 	    if ( fd = -1 ) {
+> 		perror("failed to open /dev/mem");
+> 		return 1;
+> 	    }
+> 
+> 	    addr = mmap(0, 128*1024*1024, PROT_READ, MAP_PRIVATE, fd, 0xFE000000);
+> 
+> 	    if ( addr = MAP_FAILED ) {
+> 		perror("mmap failed");
+> 		return 1;
+> 	    }
+> 
+> 	    /* we want function 3, 4 channels, 16AMB/channel */
+> 	    for ( i = 0; i < 64; i++ ) {
+> 		int idx = i*2048;
+> 		if ( addr[idx] != 0xff || addr[idx+1] != 0xff ) {
+> 		    printf("Intel sig at %i: %02x %02x\n",
+> 	                   i, addr[idx], addr[idx+1]);
 
-Done. I've tried to simplify things a bit, in particular by moving i2c
-out of the scope as people are less likely to need it with every new
-release.
+We should see the 86 80
 
-> Also, please announce on Freshmeat (I forgot who does that these days).
 
-This is usually me although I wouldn't mind if someone else wants to
-take care of it. Anyway, I've done it this time.
 
--- 
-Jean Delvare
+> 		    /* offset 85h function 3 */
+> 		    printf("Current temp is: %fC\n", addr[idx+(256*3)+0x85]/2.);
+> 		}
+> 	    }
+> 
+> 	    munmap(addr, 128*1024*1024);
+> 
+> 	    return 0;
+> 	}
+> 
+> and here are the results:
+> 
+> 	# ./fbdt
+> 	Intel sig at 0: 1d 11
+> 	Current temp is: 71.500000C
+> 	Intel sig at 16: 1d 11
+> 	Current temp is: 0.000000C
+> 	Intel sig at 32: 1d 11
+> 	Current temp is: 61.000000C
+> 	Intel sig at 48: 1d 11
+> 	Current temp is: 0.000000C
+> 
+
+Hmm there is something wrong. Please provide output of lspci -vvv
+and lspci -xxx
+
+Do you have the windows software somewhere to download?
+
+Rudolf
+
 
