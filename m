@@ -1,7 +1,7 @@
 From: vz-sensors@zeitlins.org (Vadim Zeitlin)
-Date: Thu, 11 Jan 2007 17:13:28 +0000
+Date: Thu, 11 Jan 2007 19:56:13 +0000
 Subject: [lm-sensors] FB-DIMM temperature
-Message-Id: <E1H53UW-0006kr-00@smtp.tt-solutions.com>
+Message-Id: <E1H5621-0003wW-00@smtp.tt-solutions.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45A65914.6040302@assembler.cz>
 In-Reply-To: <45A65914.6040302@assembler.cz>
@@ -12,31 +12,63 @@ To: lm-sensors@vger.kernel.org
 
 On Thu, 11 Jan 2007 17:57:38 +0100 Rudolf Marek <r.marek at assembler.cz> wrote:
 
-RM> The 0x111d signature is company called IDT. They manufacture IDTAMB0480
-RM> which may be used there.
+RM> >  FWIW, I've opened the box to try to cool the DIMMs a bit and now the
+RM> > results are
+RM> > 
+RM> > 	# ./fbdt
+RM> > 	Intel sig at 0: 1d 11
+RM> > 	Current temp is: 65.000000C
+RM> > 	Intel sig at 16: 1d 11
+RM> > 	Current temp is: 0.000000C
+RM> > 	Intel sig at 32: 1d 11
+RM> > 	Current temp is: 52.000000C
+RM> > 	Intel sig at 48: 1d 11
+RM> > 	Current temp is: 54.000000C
+RM> > 
+RM> > so not only the values did diminish but there is also 54 instead of 0 for
+RM> > the last one.
 
- FWIW the FB-DIMMs are 1GB PC5300 modules manufactured by Samsung but I
-don't have the model number at hand (but I could look it up).
+ I think I know at least why the temperature is sometimes 0: it's a timing
+issue, apparently you can't read the sensors too quickly. If I insert
+usleep(1000) between access to the signature bytes and the temperature value,
+I can reliably read non zero values. I also looked at the values of the other
+registers described in the section 14.5.3 of Intel datasheet, here is the
+full output:
 
-RM> Question is if the register layout is same as in intel AMB
-RM> 
-RM>  http://www.intel.com/design/chipsets/datashts/313072.htm
+	Sig at 0: 1d 11
+	Device id: 80 04
+	TEMPLO:         106.00C
+	TEMPMID:        109.00C
+	TEMPHI:         124.00C
+	TEMPSTAT:       0x1
+	TEMP:           68.50C
+	Sig at 16: 1d 11
+	Device id: 80 04
+	TEMPLO:         106.00C
+	TEMPMID:        109.00C
+	TEMPHI:         124.00C
+	TEMPSTAT:       0x1
+	TEMP:           68.00C
+	Sig at 32: 1d 11
+	Device id: 80 04
+	TEMPLO:         106.00C
+	TEMPMID:        109.00C
+	TEMPHI:         124.00C
+	TEMPSTAT:       0x1
+	TEMP:           59.00C
+	Sig at 48: 1d 11
+	Device id: 80 04
+	TEMPLO:         106.00C
+	TEMPMID:        109.00C
+	TEMPHI:         124.00C
+	TEMPSTAT:       0x1
+	TEMP:           63.50C
 
- Thanks for the link! I didn't find anything as detailed about IDTAMB0480
-though, all I could find was this:
+So, assuming I interpret TEMPLO/MID/HI correctly (I also divided their
+values by 2 to get the temperature in degrees Celsius), it really does look
+that these DIMMs are supposed to run quite hot.
 
-    http://www.idt.com/products/files/6186383/AMB0480_product_brief.pdf
-
-Astonishingly, at least to me, the max temperature for these things seems
-to be 124C: see page 12 of the above link or section 3.3.1 at page 25 of
-http://download.intel.com/design/chipsets/designex/31306603.pdf
-
- Do I really understand this correctly? Or should it be divided by 2?
-
- I'll read Intel datasheets a bit more tonight, I'm sure they're ideal
-bed-side reading ;-)
-
- Regards,
+ Please let me know if I'm wrong (before I fry them :-),
 VZ
 
 
