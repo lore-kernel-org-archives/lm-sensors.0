@@ -1,80 +1,73 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Thu, 11 Jan 2007 15:34:44 +0000
+From: vz-sensors@zeitlins.org (Vadim Zeitlin)
+Date: Thu, 11 Jan 2007 15:57:47 +0000
 Subject: [lm-sensors] FB-DIMM temperature
-Message-Id: <45A65914.6040302@assembler.cz>
+Message-Id: <E1H52JG-0004Bl-00@smtp.tt-solutions.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <45A65914.6040302@assembler.cz>
+In-Reply-To: <45A65914.6040302@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+On Thu, 11 Jan 2007 16:34:44 +0100 Rudolf Marek <r.marek at assembler.cz> wrote:
 
-Thanks for the improvements.
+RM> > 		    printf("Intel sig at %i: %02x %02x\n",
+RM> > 	                   i, addr[idx], addr[idx+1]);
+RM> 
+RM> We should see the 86 80
 
-> 
-> 	#include <sys/mman.h>
-> 	#include <sys/stat.h>
-> 	#include <fcntl.h>
-> 	#include <stdio.h>
-> 
-> 	int main(void)
-> 	{
-> 	    int i;
-> 	    unsigned char *addr;
-> 	    int fd = open("/dev/mem", O_RDONLY);
-> 
-> 	    if ( fd = -1 ) {
-> 		perror("failed to open /dev/mem");
-> 		return 1;
-> 	    }
-> 
-> 	    addr = mmap(0, 128*1024*1024, PROT_READ, MAP_PRIVATE, fd, 0xFE000000);
-> 
-> 	    if ( addr = MAP_FAILED ) {
-> 		perror("mmap failed");
-> 		return 1;
-> 	    }
-> 
-> 	    /* we want function 3, 4 channels, 16AMB/channel */
-> 	    for ( i = 0; i < 64; i++ ) {
-> 		int idx = i*2048;
-> 		if ( addr[idx] != 0xff || addr[idx+1] != 0xff ) {
-> 		    printf("Intel sig at %i: %02x %02x\n",
-> 	                   i, addr[idx], addr[idx+1]);
+ Ah, this is why it's called "Intel sig", I see...
 
-We should see the 86 80
+RM> > and here are the results:
+RM> > 
+RM> > 	# ./fbdt
+RM> > 	Intel sig at 0: 1d 11
+RM> > 	Current temp is: 71.500000C
+RM> > 	Intel sig at 16: 1d 11
+RM> > 	Current temp is: 0.000000C
+RM> > 	Intel sig at 32: 1d 11
+RM> > 	Current temp is: 61.000000C
+RM> > 	Intel sig at 48: 1d 11
+RM> > 	Current temp is: 0.000000C
+RM> > 
+RM> 
+RM> Hmm there is something wrong.
 
+ FWIW, I've opened the box to try to cool the DIMMs a bit and now the
+results are
 
+	# ./fbdt
+	Intel sig at 0: 1d 11
+	Current temp is: 65.000000C
+	Intel sig at 16: 1d 11
+	Current temp is: 0.000000C
+	Intel sig at 32: 1d 11
+	Current temp is: 52.000000C
+	Intel sig at 48: 1d 11
+	Current temp is: 54.000000C
 
-> 		    /* offset 85h function 3 */
-> 		    printf("Current temp is: %fC\n", addr[idx+(256*3)+0x85]/2.);
-> 		}
-> 	    }
-> 
-> 	    munmap(addr, 128*1024*1024);
-> 
-> 	    return 0;
-> 	}
-> 
-> and here are the results:
-> 
-> 	# ./fbdt
-> 	Intel sig at 0: 1d 11
-> 	Current temp is: 71.500000C
-> 	Intel sig at 16: 1d 11
-> 	Current temp is: 0.000000C
-> 	Intel sig at 32: 1d 11
-> 	Current temp is: 61.000000C
-> 	Intel sig at 48: 1d 11
-> 	Current temp is: 0.000000C
-> 
+so not only the values did diminish but there is also 54 instead of 0 for
+the last one. So I wonder: could it be that the DIMMs really overheat and
+the temp of the 2nd one is just out of the range?
 
-Hmm there is something wrong. Please provide output of lspci -vvv
-and lspci -xxx
+RM> Please provide output of lspci -vvv and lspci -xxx
 
-Do you have the windows software somewhere to download?
+ The files are relatively big so instead of posting them here I put them on
 
-Rudolf
+	http://www.tt-solutions.com/vz/hardware/tyan2696/pci.ls
+	http://www.tt-solutions.com/vz/hardware/tyan2696/pci.dump
+
+Please let me know if you need anything else. I'm afraid I don't really see
+anything helpful in lspci output on my own.
+
+RM> Do you have the windows software somewhere to download?
+
+ No, not really, I use SpeedFan (http://www.almico.com/speedfan.php) but I
+don't know if it's capable of reading FB-DIMMs temperatures and, as I said,
+I don't really want to install Windows on this machine just to try it out.
+
+ Thanks!
+VZ
 
 
