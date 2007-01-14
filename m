@@ -1,34 +1,44 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Wed, 17 Jan 2007 16:13:10 +0000
-Subject: [lm-sensors] HP Compaq ProLiant DL380 detect failure
-Message-Id: <191fb4ca0701170813u5bd07d9ci808220ba83eb1ed6@mail.gmail.com>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Sun, 14 Jan 2007 21:35:00 +0000
+Subject: [lm-sensors] [PATH] coretemp driver - take2
+Message-Id: <45AAA204.5030905@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4568C502.6070305@lymenet.org>
-In-Reply-To: <4568C502.6070305@lymenet.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hello all,
 
-> Hey, it's great to hear you're making progress :) Please keep informed,
-> and good luck!
+It seems there is no agreement how to deal with the unified MSR access. 
+Therefore I have reverted the change back, so there is no dependency to MSR 
+support in kernel. I'm attaching both patches to one mail, and starting new 
+thread for this. In the old one, there are simply too many drivers.
 
-The iLO people came back to me and they are a little bit reluctant at
-this point. They are concerned that we screw up the HW or interfere
-with the BMC if we mock around with fans and I2C registers :-)
+Testing would be nice, because I still run AMD K8 ;)
 
-They suggested to use IPMI, so I started to look into it and it does
-seem promising. I noticed that Yani has a patch to interface IPMI to
-lm-sensors (see
-http://lists.lm-sensors.org/pipermail/lm-sensors/2006-August/017071.html).
+There are no further changes, except the Intel blaming ;)
+(http://softwareforums.intel.com/ISN/Community/en-US/forums/2/30222546/ShowThread.aspx)
 
-What is the state of this patch and is there any chance it'll make it
-into mainline? Anything I can help with, Yani?
+Compile tested: HOTPLUG y SMP no and also with HOTPLUG y and SMP y
 
-I have a DL385 G2 at my hand that I can use and I'll play around with
-the patch probably next week after returning from vacation.
+This driver adds temperature measurement support for Intel Core family of 
+processors.
 
-...juerg
+Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
 
+Rudolf
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: add-coretemp-driver.patch
+Type: text/x-patch
+Size: 13342 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070114/e666982f/attachment-0002.bin 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: coretemp-add-documentation.patch
+Type: text/x-patch
+Size: 1922 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070114/e666982f/attachment-0003.bin 
