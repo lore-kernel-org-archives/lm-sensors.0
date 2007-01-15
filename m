@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 15 Jan 2007 17:00:30 +0000
+From: christophe.dr@free.fr (christophe)
+Date: Mon, 15 Jan 2007 22:41:14 +0000
 Subject: [lm-sensors] No smbus on asus w1n laptop in spite of quirk > no
-Message-Id: <20070115180030.3b2120c5.khali@linux-fr.org>
+Message-Id: <200701152341.24349.christophe.dr@free.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200701071107.50461.christophe.dr@free.fr>
 In-Reply-To: <200701071107.50461.christophe.dr@free.fr>
@@ -10,24 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Christophe,
+Le Lundi 15 Janvier 2007 18:00, vous avez ?crit?:
+> Hi Christophe,
+> > >[...]
+> > > You may read completely wrong temperature, hang the bus, stop the fan,
+> > > force processor to throttle to prevent overheat. I think no real damage
+> > > will happen, but be careful.
+> >
+> > OK, thanks a lot, i'll probably insert a modprobe -r thermmal
+> > in /etc/rc.local .
+>
+> You should be able to prevent it from being loaded at all, which would
+> be even better. Adding "blacklist thermal" to /etc/modprobe.conf or
+> whatever your distribution has, should do the trick.
 
-On Mon, 15 Jan 2007 08:37:16 +0100, Christophe de Rivi?re wrote:
-> Le Dimanche 14 Janvier 2007 21:56, vous avez ?crit?:
-> >[...]but both thermal and lm85
-> > > modules are loaded and no crash detected.
-> > > What is the risk ?
-> > You may read completely wrong temperature, hang the bus, stop the fan,
-> > force processor to throttle to prevent overheat. I think no real damage
-> > will happen, but be careful.
-> 
-> OK, thanks a lot, i'll probably insert a modprobe -r thermmal 
-> in /etc/rc.local .
-
-You should be able to prevent it from being loaded at all, which would
-be even better. Adding "blacklist thermal" to /etc/modprobe.conf or
-whatever your distribution has, should do the trick.
+Ok i'll do that, thanks.
 
 -- 
-Jean Delvare
-
+christophe
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 191 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070115/8b1d0b01/attachment.bin 
