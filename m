@@ -1,7 +1,7 @@
 From: phil_edelbrock@edgedesign.us (Philip Edelbrock)
-Date: Mon, 15 Jan 2007 02:37:36 +0000
+Date: Tue, 16 Jan 2007 00:07:50 +0000
 Subject: [lm-sensors] Call for 2.10.2
-Message-Id: <57C3E035-76C9-4A09-8296-C3B764BE6897@edgedesign.us>
+Message-Id: <9B4AB10F-6E3B-4434-BBFD-D0A301973CDA@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20061221224611.3c2746af.khali@linux-fr.org>
 In-Reply-To: <20061221224611.3c2746af.khali@linux-fr.org>
@@ -32,17 +32,25 @@ On Jan 14, 2007, at 8:45 AM, Jean Delvare wrote:
 > Philip, can you please take care of the release? Note that the
 > libsensors version must be bumped to 3.1.2.
 
-OK, I'll add it to my queue of things to take care of tomorrow (Monday).
+OK, the release is done.  I marked the 2.10.2 milestone as complete  
+and created a new one for 2.10.3 but the due date will need to be  
+adjusted as necessary.
 
-Thanks all for the hard work!
+Please review the download page to make sure the instructions are  
+correct:
+
+http://www.lm-sensors.org/wiki/Download
+
+Also, please announce on Freshmeat (I forgot who does that these days).
+
+Thanks again!
 
 
 Phil
-
 -------------- next part --------------
 A non-text attachment was scrubbed...
 Name: smime.p7s
 Type: application/pkcs7-signature
 Size: 2439 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070114/dd98ba07/attachment.bin 
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070115/66de3238/attachment.bin 
