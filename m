@@ -1,47 +1,51 @@
-From: tmartin@physics.ucsd.edu (Terrence Martin)
-Date: Fri, 19 Jan 2007 20:30:32 +0000
-Subject: [lm-sensors] unresolved symbol is_unsafe_smbus
-Message-Id: <45B12A68.4000309@physics.ucsd.edu>
+From: peter_s_d@fastmail.com.au (Peter D.)
+Date: Tue, 16 Jan 2007 13:35:29 +0000
+Subject: [lm-sensors] IT8716F
+Message-Id: <200701170035.29308.peter_s_d@fastmail.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I am getting the following error when trying to load the i2c-piix4 
-module on RHEL3 with kernel. I am running a Serverworks HT-1000 chipset 
-board with two AMD 275 Processors.
+Hi, 
 
-Code I am trying to use is
-lm_sensors-2.10.2
-i2c-2.10.2
+I have a mother board with an IT8716F on it.  
 
-Kernel is
-Linux cabinet-5-5-0.local 2.4.21-37.0.1.ELsmp #1 SMP Tue Mar 7 12:24:47 
-PST 2006 x86_64 x86_64 x86_64 GNU/Linux
+Your data sheets page <http://www.lm-sensors.org/wiki/DataSheets> does not 
+mention the IT8716F.  Here is a link, 
+<http://www.ite.com.tw/product_info/PC/Brief-IT8716_2.asp> which point to a 
+zip of a pdf of the data sheet itself.  
+
+I've just tried lm-sensors 2.10.2 against kernel 2.6.19.2.  It is 
+working.  :-)  But it might need some configuration.  
+
+->sensors
+it8716-isa-0290
+Adapter: ISA adapter
+in0:       +1.10 V  (min =  +0.00 V, max =  +4.08 V)
+in1:       +3.23 V  (min =  +0.00 V, max =  +4.08 V)
+in2:       +0.00 V  (min =  +0.00 V, max =  +4.08 V)   ALARM
+in3:       +2.85 V  (min =  +0.00 V, max =  +4.08 V)
+in4:       +2.82 V  (min =  +0.00 V, max =  +4.08 V)
+in5:       +0.00 V  (min =  +0.00 V, max =  +4.08 V)   ALARM
+in6:       +0.00 V  (min =  +0.00 V, max =  +4.08 V)   ALARM
+in7:       +2.80 V  (min =  +0.00 V, max =  +4.08 V)
+in8:       +2.94 V
+fan1:     2242 RPM  (min =    0 RPM)
+fan2:        0 RPM  (min =    0 RPM)
+fan3:        0 RPM  (min =    0 RPM)
+temp1:       +38?C  (low  =    -1?C, high =  +127?C)   sensor = diode
+temp2:       +41?C  (low  =    -1?C, high =  +127?C)   sensor = thermistor
+temp3:        -2?C  (low  =    -1?C, high =  +127?C)   sensor = thermistor
+vid:      +1.250 V
+
+There are a few zeros in there.  That could be ASUS's fault.  
+
+The motherboard is an ASUS M2N-E which has an nForce 570 Ultra.  
 
 
-root at cabinet-5-5-0 ~/sensors# modprobe i2c-piix4
-/lib/modules/2.4.21-37.0.1.ELsmp/kernel/drivers/i2c/busses/i2c-piix4.o: 
-unresolved symbol is_unsafe_smbus
-/lib/modules/2.4.21-37.0.1.ELsmp/kernel/drivers/i2c/busses/i2c-piix4.o: 
-insmod 
-/lib/modules/2.4.21-37.0.1.ELsmp/kernel/drivers/i2c/busses/i2c-piix4.o 
-failed
-/lib/modules/2.4.21-37.0.1.ELsmp/kernel/drivers/i2c/busses/i2c-piix4.o: 
-insmod i2c-piix4 failed
-root at cabinet-5-5-0 ~/sensors#                                
-
-According the FAQ symbol errors are often caused by running a different 
-kernel than the compile headers, but I only have the headers for 
-2.4.21-37.0.1 installed and the other i2c modules load fine.
-
-The other question is I am running 2.4, and the sensors-detect said I 
-could use k8temp module, however as far as I can tell that module was 
-not built. Is k8temp 2.6 kernel only?
-
-Thanks,
-
-Terrence
-
+-- 
+sig goes here...
+Peter D.
 
