@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 14 Jan 2007 11:37:10 +0000
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Wed, 17 Jan 2007 16:13:10 +0000
 Subject: [lm-sensors] HP Compaq ProLiant DL380 detect failure
-Message-Id: <20070114123710.9910c113.khali@linux-fr.org>
+Message-Id: <191fb4ca0701170813u5bd07d9ci808220ba83eb1ed6@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4568C502.6070305@lymenet.org>
 In-Reply-To: <4568C502.6070305@lymenet.org>
@@ -10,19 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+Hi Jean,
 
-On Tue, 9 Jan 2007 14:28:25 +0100, Juerg Haefliger wrote:
-> I contacted the iLO ASIC guys and they are checking the request for
-> providing technical information. I also checked the schematics of the
-> DL385G2. The iLO ASIC provides 4 I2C buses to which the temp sensors
-> (SMSC EMC1043) are attached to.
-> I already wrote the driver for the EMC1043 and have a framework in
-> place for the iLO driver. More later...
+> Hey, it's great to hear you're making progress :) Please keep informed,
+> and good luck!
 
-Hey, it's great to hear you're making progress :) Please keep informed,
-and good luck!
+The iLO people came back to me and they are a little bit reluctant at
+this point. They are concerned that we screw up the HW or interfere
+with the BMC if we mock around with fans and I2C registers :-)
 
--- 
-Jean Delvare
+They suggested to use IPMI, so I started to look into it and it does
+seem promising. I noticed that Yani has a patch to interface IPMI to
+lm-sensors (see
+http://lists.lm-sensors.org/pipermail/lm-sensors/2006-August/017071.html).
+
+What is the state of this patch and is there any chance it'll make it
+into mainline? Anything I can help with, Yani?
+
+I have a DL385 G2 at my hand that I can use and I'll play around with
+the patch probably next week after returning from vacation.
+
+...juerg
 
