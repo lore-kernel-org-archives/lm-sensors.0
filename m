@@ -1,27 +1,28 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 03 Jan 2007 14:31:11 +0000
-Subject: [lm-sensors] w83627ehf informations
-Message-Id: <20070103153111.f387b24f.khali@linux-fr.org>
+From: rmurdick@gmail.com (Ryan Murdick)
+Date: Wed, 17 Jan 2007 18:08:09 +0000
+Subject: [lm-sensors] coretemp module
+Message-Id: <f98ab5760701171008v402baf4lb265e2936926d73c@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1163284779.5555.34.camel@armageddon>
-In-Reply-To: <1163284779.5555.34.camel@armageddon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Torsten,
+Hello,
 
-On Mon, 01 Jan 2007 12:03:50 +0100, slompf wrote:
-> the patch does work. Though, the script still finds no correlations on 
-> my board.
+I am having trouble installing the 'coretemp' driver.  I downloaded the
+patch from here:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2006-October/018100.html.
 
-Well, maybe your board is actually not wired for fan speed control, or
-you need to change the base PWM frequency - but the driver doesn't
-support this yet. Do you have any reason to believe that your board
-supports fan speed control (documentation, BIOS options, works under a
-different OS)?
+But I don't know what to do with this file.  It downloads a file with a .bin
+extension.  I have installed lm-sensors, ran sensors-detect.  It seemed to
+detect everything okay, the only thing it said was I have to modprobe
+coretemp driver.  And in addition, the coretemp driver is not found on the
+system.
 
--- 
-Jean Delvare
+Any help would be greatly appreciated.  Thanks.
 
+Ryan Murdick
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070117/e9de4058/attachment.html 
