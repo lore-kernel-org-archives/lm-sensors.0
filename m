@@ -1,29 +1,30 @@
-From: Thilo.Cestonaro.external@fujitsu-siemens.com (Cestonaro,
-Date: Mon, 08 Jan 2007 09:04:42 +0000
-Subject: [lm-sensors] new patch for FSC Heimdall Chips
-Message-Id: <F7F9B0BE3E9BD449B110D0B1CEF6CAEF03FA587D@ABGEX01E.abg.fsc.net>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Thu, 18 Jan 2007 00:35:35 +0000
+Subject: [lm-sensors] [PATCH] W83793 fix VIDs
+Message-Id: <45AEC0D7.2080006@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hey,
+Good night all,
 
-the archive includes a patch for kernel 2.6.16 and lm-sensors 2.10.0 for the FSC Heimdall Chip Support.
+w83793: ignore the VID readings when the motherboard has not designed the 
+function.
+ 
 
-Ciao Th <<fschmd_lm_sensors-2.10.0.patch>> i <<fschmd_kernel_module_2.6.16.21.patch>> lo
+Signed-off-by: Gong Jun <jgong at winbond.com> 
+
+Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
+
+Jun, I fixed your patch, indent, regs and removed the "skip hack". Works on 
+software emulator. Please check the patch, I should be already 90 minutes sleeping.
+
+Good night,
+
+Rudolf
 -------------- next part --------------
-A non-text attachment was scrubbed...
-Name: fschmd_lm_sensors-2.10.0.patch
-Type: application/octet-stream
-Size: 23052 bytes
-Desc: fschmd_lm_sensors-2.10.0.patch
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070108/58eebd7a/attachment-0002.obj 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: fschmd_kernel_module_2.6.16.21.patch
-Type: application/octet-stream
-Size: 26316 bytes
-Desc: fschmd_kernel_module_2.6.16.21.patch
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070108/58eebd7a/attachment-0003.obj 
+An embedded and charset-unspecified text was scrubbed...
+Name: hwmon-patch-w83793-vid-display.patch_fixed
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070118/defa4e49/attachment.pl 
