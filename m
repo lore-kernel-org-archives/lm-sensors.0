@@ -1,22 +1,30 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Sun, 28 Jan 2007 13:20:36 +0000
-Subject: [lm-sensors] looking for AMD K8 brisbane tester
-Message-Id: <45BCA324.5070506@assembler.cz>
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Thu, 18 Jan 2007 15:41:49 +0000
+Subject: [lm-sensors] PATCH: hwmon-abituguru3-new-driver.patch: Add support
+Message-Id: <45AF953D.2060500@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello all,
+Hi all,
 
-I want to add extra resolution bits for k8temp driver. Nice to have it tested,
-however I dont have such CPU. Is someone here with very very recent AMD K8
-processor? Brisbane based (CPU from December imho) ?
+Can you review this and if ok apply please?
 
-It should have the model bigger than 96 in the /proc/cpuinfo
-In other words, extended model should be 06
+This patch adds a new driver for the hardware monitoring features of the 
+third revision of the Abit uGuru chip, found on recent Abit 
+motherboards. This is an entirely different beast then the first and 
+second revision (its again a winbond microcontroller, but the "protocol" 
+to talk to it and the bank addresses are very different.
 
-Thanks,
-Rudolf
+Regards,
 
+Hans
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: hwmon-abituguru3-new-driver.patch
+Type: text/x-patch
+Size: 46126 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070118/1df60cd9/attachment-0001.bin 
