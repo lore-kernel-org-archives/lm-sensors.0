@@ -1,66 +1,33 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 23 Jan 2007 16:34:25 +0000
-Subject: [lm-sensors] [PATCH RFC] hwmon/f71805f: Fix a race condition
-Message-Id: <20070123173425.dc47637e.khali@linux-fr.org>
+From: bob2@dsv.nl (Bob =?ISO-8859-1?Q?Schl=E4rmann?=)
+Date: Fri, 19 Jan 2007 21:27:35 +0000
+Subject: [lm-sensors] generic chip support for libsensors
+Message-Id: <20070119222735.2f12ca0c@ws01.atreidis.nl.eu.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LM Sensors <lm-sensors@lm-sensors.org>
-Cc: LKML <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-Hi all,
+Hello list,
 
-I think I introduced a potential race condition bug with commit
-51c997d80e1f625aea3426a8a9087f5830ac6db3. I didn't realize it
-back then, but platform_device_put and platform_device_release
-both appear to free the platform data associated with the device.
-This makes an explicit kfree redundant at best, and maybe even
-racy, as it might occur while someone still holds a reference
-to the platform device.
+This patch makes it possible for libsensors to handle chips that aren't
+in the static chip definitions list. It works by reading out the sysfs
+directory of the device and filling up a sensors_chip_features
+accordingly.
 
-Can somebody with more experience with platform drivers than I have
-myself confirm that the current code is broken and that the fix below
-is correct?
+Note that printing in sensors only works with the -u switch or the
+generic printing patches [1].
 
-Thanks.
+It has been verified to work on the following chipsets: fscher, it87
+pc87366
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- drivers/hwmon/f71805f.c |    8 +-------
- 1 files changed, 1 insertion(+), 7 deletions(-)
+Any comments are welcome,
 
---- linux-2.6.20-rc5.orig/drivers/hwmon/f71805f.c	2007-01-23 16:54:21.000000000 +0100
-+++ linux-2.6.20-rc5/drivers/hwmon/f71805f.c	2007-01-23 16:55:05.000000000 +0100
-@@ -1290,14 +1290,11 @@
- 	if (err) {
- 		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
- 		       err);
--		goto exit_kfree_data;
-+		goto exit_device_put;
- 	}
- 
- 	return 0;
- 
--exit_kfree_data:
--	kfree(pdev->dev.platform_data);
--	pdev->dev.platform_data = NULL;
- exit_device_put:
- 	platform_device_put(pdev);
- exit:
-@@ -1390,10 +1387,7 @@
- 
- static void __exit f71805f_exit(void)
- {
--	kfree(pdev->dev.platform_data);
--	pdev->dev.platform_data = NULL;
- 	platform_device_unregister(pdev);
--
- 	platform_driver_unregister(&f71805f_driver);
- }
- 
+--
+Bob Schl?rmann (and the generic lmsensors team)
 
-
--- 
-Jean Delvare
-
+1: http://www.atreidis.nl.eu.org/lm_sensors/
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: sensors_dynamic_chip_def.patch
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070119/381772ac/attachment.pl 
