@@ -1,7 +1,7 @@
-From: david@ad5ey.net (David Holl)
-Date: Fri, 19 Jan 2007 22:04:33 +0000
+From: daniel@ceregatti.org (Daniel Ceregatti)
+Date: Fri, 19 Jan 2007 22:11:04 +0000
 Subject: [lm-sensors] Asus P5B Deluxe / Winbond 83627DHG
-Message-Id: <6b59d5890701191404h3acb2bf4q5b7f2d63c8ffec84@mail.gmail.com>
+Message-Id: <45B141F8.7000608@ceregatti.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4dfa50520612211313g7906f3b0kbf8d7aebb2ddcda9@mail.gmail.com>
 In-Reply-To: <4dfa50520612211313g7906f3b0kbf8d7aebb2ddcda9@mail.gmail.com>
@@ -10,42 +10,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hey Daniel, what version of lm-sensors do you have?  I found the "sensors"
-command in lm-sensors 2.10.1 didn't know how to show the w83627dhg info, so
-I submitted a fix which should be in 2.10.2.  :)
+I have 2.10.1, which is the highest version my distro has. Should I
+apply a patch? Grab the latest SVN?
 
-- David
+Daniel
 
-On 1/19/07, David Hubbard <david.c.hubbard at gmail.com> wrote:
+David Holl wrote:
+> Hey Daniel, what version of lm-sensors do you have?  I found the
+> "sensors" command in lm-sensors 2.10.1 didn't know how to show the
+> w83627dhg info, so I submitted a fix which should be in 2.10.2.  :)
 >
-> Update on the issue:
+> - David
 >
-> It looks like the new w83627ehf driver (with patch for official dhg
-> support) works fine. His sensors is reporting the following:
+> On 1/19/07, *David Hubbard* <david.c.hubbard at gmail.com
+> <mailto:david.c.hubbard at gmail.com>> wrote:
 >
-> ------------------
-> w83627dhg-isa-0290
-> Adapter: ISA adapter
+>     Update on the issue:
 >
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> temp1:       +58?C  (high =   +85?C)
+>     It looks like the new w83627ehf driver (with patch for official dhg
+>     support) works fine. His sensors is reporting the following:
 >
-> coretemp-isa-0001
-> Adapter: ISA adapter
-> temp1:       +57?C  (high =   +85?C)
-> ------------------
+>     ------------------
+>     w83627dhg-isa-0290
+>     Adapter: ISA adapter
 >
-> (Note lack of any temperature info from w83627dhg)
+>     coretemp-isa-0000
+>     Adapter: ISA adapter
+>     temp1:       +58?C  (high =   +85?C)
 >
-> But /sys/class/hwmon/hwmon0/device/temp1_input temp2_input temp3_input
-> seem OK. Well ... temp1_input = -65000. That's not right.
+>     coretemp-isa-0001
+>     Adapter: ISA adapter
+>     temp1:       +57?C  (high =   +85?C)
+>     ------------------
 >
-> So sensors should be displaying something. That's as far as we got
-> tonight.
+>     (Note lack of any temperature info from w83627dhg)
 >
-> David
+>     But /sys/class/hwmon/hwmon0/device/temp1_input temp2_input temp3_input
+>     seem OK. Well ... temp1_input = -65000. That's not right.
+>
+>     So sensors should be displaying something. That's as far as we got
+>     tonight.
+>
+>     David
+>
 >
 -------------- next part --------------
 An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070119/4efe45c0/attachment.html 
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070119/9695b3da/attachment.html 
