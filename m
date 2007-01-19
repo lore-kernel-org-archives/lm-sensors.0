@@ -1,54 +1,47 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 25 Jan 2007 12:58:21 +0000
-Subject: [lm-sensors] [PATCH] sensors-detect: Cache the I2C/SMBus register
-Message-Id: <20070125135821.62dd5417.khali@linux-fr.org>
+From: tmartin@physics.ucsd.edu (Terrence Martin)
+Date: Fri, 19 Jan 2007 20:30:32 +0000
+Subject: [lm-sensors] unresolved symbol is_unsafe_smbus
+Message-Id: <45B12A68.4000309@physics.ucsd.edu>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+I am getting the following error when trying to load the i2c-piix4 
+module on RHEL3 with kernel. I am running a Serverworks HT-1000 chipset 
+board with two AMD 275 Processors.
 
-The I2C/SMBus chip detection in sensors-detect is quite dumb, each
-possible device is tested individually, resulting in the same registers
-being read over and over again. We could rethink the probing logic
-completely to workaround that, but that's a huge change and it doesn't
-go without risks.
+Code I am trying to use is
+lm_sensors-2.10.2
+i2c-2.10.2
 
-So I propose a different approach: caching the register values. We can
-do it almost transparently in i2c_smbus_read_byte_data and
-i2c_smbus_read_word_data, clearing the caches when we switch to the
-next address. I implemented that, patch is attached.
+Kernel is
+Linux cabinet-5-5-0.local 2.4.21-37.0.1.ELsmp #1 SMP Tue Mar 7 12:24:47 
+PST 2006 x86_64 x86_64 x86_64 GNU/Linux
 
-One thing that needed special care is that some devices do not answer
-consistently to some reads, and we use it as a detection method. So I
-added a NO_CACHE flag to force actual reads from the chip, for
-detecting these devices properly. The LM75, LM77 and MAX6657/8/9 are
-affected, and I could test that my LM75 is still detected properly
-after the change.
 
-I left the extra instrumentation in this version of the patch if you
-want to play with it. To disable caching, just comment out the
-intermediate return statements in i2c_smbus_read_byte_data and
-i2c_smbus_read_word_data. On my systems, I found that the benefit
-differs greatly depending on the address and chip, from almost none to
-over 50% of cache hits, effectively dividing the probing time by almost
-2.
+root at cabinet-5-5-0 ~/sensors# modprobe i2c-piix4
+/lib/modules/2.4.21-37.0.1.ELsmp/kernel/drivers/i2c/busses/i2c-piix4.o: 
+unresolved symbol is_unsafe_smbus
+/lib/modules/2.4.21-37.0.1.ELsmp/kernel/drivers/i2c/busses/i2c-piix4.o: 
+insmod 
+/lib/modules/2.4.21-37.0.1.ELsmp/kernel/drivers/i2c/busses/i2c-piix4.o 
+failed
+/lib/modules/2.4.21-37.0.1.ELsmp/kernel/drivers/i2c/busses/i2c-piix4.o: 
+insmod i2c-piix4 failed
+root at cabinet-5-5-0 ~/sensors#                                
 
-I kept the byte and word caches separated for now, but we might improve
-the speed even more by sharing them. I wonder if there are drawbacks in
-doing so. I'll look into that later.
+According the FAQ symbol errors are often caused by running a different 
+kernel than the compile headers, but I only have the headers for 
+2.4.21-37.0.1 installed and the other i2c modules load fine.
 
-The attached patch applies on top of current SVN. Cumulated with the
-other cleanups I made since the beginning of the week, this should give
-us a much much faster detection script.
+The other question is I am running 2.4, and the sensors-detect said I 
+could use k8temp module, however as far as I can tell that module was 
+not built. Is k8temp 2.6 kernel only?
 
-Comments anyone?
+Thanks,
 
--- 
-Jean Delvare
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: sensors-detect-register-cache.patch
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070125/a99c466e/attachment.pl 
+Terrence
+
+
