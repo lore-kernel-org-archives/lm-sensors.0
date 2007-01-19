@@ -1,7 +1,7 @@
-From: support@ocg.ca (Michelle Dupuis)
-Date: Fri, 19 Jan 2007 21:08:58 +0000
+From: rsashok@yahoo.com (Sasha Raykhman)
+Date: Fri, 19 Jan 2007 22:19:23 +0000
 Subject: [lm-sensors] question about vt1211
-Message-Id: <00b301c73c0e$098eca30$65fe1fac@ocg.ca>
+Message-Id: <20070119221923.82027.qmail@web35411.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0701190725j2620de3dvd521e23c690e72e@mail.gmail.com>
 In-Reply-To: <191fb4ca0701190725j2620de3dvd521e23c690e72e@mail.gmail.com>
@@ -10,7 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On the same topic...(this answer may address your question too)
+
+Hi Michelle,
+
+I run 2.6.17 and installed patch I found on:
+ 
+ http://hem.bredband.net/ekmlar/vt1211-2.6.17.patch.txt
+
+My 'sensors' command output shows 
+
+vt1211-isa-ec00
+Adapter: ISA adapter
+VCore1:    +4.42 V  (min =  +4.42 V, max =  +4.42 V)   ALARM
++5V:       +6.31 V  (min =  +6.31 V, max =  +6.31 V)   ALARM
++12V:     +15.00 V  (min = +15.00 V, max = +15.00 V)   ALARM
++3.3V:     +4.18 V  (min =  +4.18 V, max =  +4.18 V)   ALARM
+fan1:        0 RPM  (min =    0 RPM, div = 8)          ALARM
+fan2:        0 RPM  (min =    0 RPM, div = 8)          ALARM
+ERROR: Can't get TEMP2 data!
+Proc Temp:+196.9 C  (high =  +196 C, hyst =  +196 C)   ALARM
+ERROR: Can't get TEMP4 data!
+ERROR: Can't get TEMP5 data!
+ERROR: Can't get TEMP6 data!
+ERROR: Can't get TEMP7 data!
+vid:       +0.00 V
+
+Can't make sense out of it!  There is /etc/sensors.conf file for vt1211 setting, should I change anything there? Could you mail me your's to diff them? 
+
+Due to many reasons beyond my control, I can't easily switch to 2.6.19 kernel - I need to deal with 2.6.17 for now.
+
+
+Michelle Dupuis <support at ocg.ca> wrote: On the same topic...(this answer may address your question too)
 
 I just upgraded my kernel from from 2.6.17 to 2.6.18, and my old vt1211.c
 broke.  Although it compiles and runs, my cpu temp is now stuck at 68'C
@@ -82,3 +112,6 @@ http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
 
 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070119/83b3b990/attachment.html 
