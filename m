@@ -1,7 +1,7 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Sat, 20 Jan 2007 15:57:02 +0000
+From: rsashok@yahoo.com (Sasha Raykhman)
+Date: Mon, 22 Jan 2007 18:11:43 +0000
 Subject: [lm-sensors] question about vt1211
-Message-Id: <191fb4ca0701200757p78736eb3y711c9dd189957318@mail.gmail.com>
+Message-Id: <402918.84030.qm@web35409.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0701190725j2620de3dvd521e23c690e72e@mail.gmail.com>
 In-Reply-To: <191fb4ca0701190725j2620de3dvd521e23c690e72e@mail.gmail.com>
@@ -10,7 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-OK, should have read the whole thread before answering :-)
+Hi, 
+
+vt1211 has GPIO's and watchdog.  Do you know if there are drivers supporting this part of the chip?
+
+-- sasha
+
+Juerg Haefliger <juergh at gmail.com> wrote: OK, should have read the whole thread before answering :-)
 
 Here's the deal: Starting with kernel 2.6.19, the vt1211 driver is now
 part of the kernel and there is no need to use Lars Ekman's patch
@@ -29,7 +35,7 @@ support for Lars Ekman's patch.
 ...juerg
 
 
-On 1/19/07, Michelle Dupuis <support at ocg.ca> wrote:
+On 1/19/07, Michelle Dupuis  wrote:
 >
 >
 > It looks like your formulas are way off....here are mine (for a VIA PD1000
@@ -133,7 +139,7 @@ On 1/19/07, Michelle Dupuis <support at ocg.ca> wrote:
 > kernel - I need to deal with 2.6.17 for now.
 >
 >
-> Michelle Dupuis <support at ocg.ca> wrote:
+> Michelle Dupuis  wrote:
 > On the same topic...(this answer may address your question too)
 >
 > I just upgraded my kernel from from 2.6.17 to 2.6.18, and my old vt1211.c
@@ -210,3 +216,6 @@ On 1/19/07, Michelle Dupuis <support at ocg.ca> wrote:
 >
 >
 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070122/27bcd366/attachment-0001.html 
