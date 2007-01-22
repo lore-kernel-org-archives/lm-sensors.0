@@ -1,25 +1,27 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Thu, 18 Jan 2007 12:27:33 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 22 Jan 2007 09:05:25 +0000
 Subject: [lm-sensors] PATCH: hwmon/abituguru.c,
-Message-Id: <45AF67B5.704@hhs.nl>
+Message-Id: <20070122100525.415dc292.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <45AF67B5.704@hhs.nl>
+In-Reply-To: <45AF67B5.704@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi All,
+Hi Hans,
 
-Sorry that this took so long, I just moved homes and was out of 
-internet, and I was very busy with other stuff before that.
+On Thu, 18 Jan 2007 13:27:33 +0100, Hans de Goede wrote:
+> Hi All,
+> 
+> Sorry that this took so long, I just moved homes and was out of 
+> internet, and I was very busy with other stuff before that.
 
-Regards,
+Better late than never :)
 
-Hans
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: hwmon-abituguru-warn.patch
-Type: text/x-patch
-Size: 2017 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070118/3960adbf/attachment.bin 
+Patch applied, thanks.
+
+-- 
+Jean Delvare
+
