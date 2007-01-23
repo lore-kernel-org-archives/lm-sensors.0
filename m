@@ -1,61 +1,33 @@
-From: alanc@pipstechnology.co.uk (Alan Clucas)
-Date: Mon, 29 Jan 2007 11:58:00 +0000
-Subject: [lm-sensors] DS75
-Message-Id: <45BDE148.7020108@pipstechnology.co.uk>
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Tue, 23 Jan 2007 14:37:20 +0000
+Subject: [lm-sensors] DME1737 / A8000 support
+Message-Id: <191fb4ca0701230637t433847f3yb3044ebd77af13df@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-We have a DS75 on a custom board, which is attached to a Compulab iGLX 
-AMD Geode based board - using the CS5536 and an unmodified scx200_acb 
-driver to access the smbus/i2c.
+Jean,
 
-On this board is a DS75. It doesn't identify as the chip correctly with 
-the lm75 driver in 2.6.19.2 due to the fact that it seems to return the 
-last value read for all of its out of spec commands, rather than doing 
-the address cycling which the driver expects for command >8 - e.g. 
-address 8 behaves like addresses 4 through 7. (I can provide a debug log 
-showing this if needed).
+I managed to pick up the datasheet for the SMSC DME1737 (also known as Asus
+A8000) :-) I took a quick glance and the HW monitoring logic is definitely
+an LM85 clone. Even the register descriptions are sometimes copied
+word-to-word. There are a few differences though:
+- additional voltage and fan inputs
+- additional pwm outputs
+- 12bit temp and voltage resolution
+- advanced configuration settings
 
-With the following patch it identifies correctly and works as expected.
+I was wondering if it makes more sense to create a new driver than adding
+support to the current LM85 driver. I fear that support for the DME1737
+would clobber up the LM85 driver even more than it is already. But a
+separate driver would have some significant code redundancy with the LM85.
 
---- linux-2.6.19.2/drivers/hwmon/lm75.c 2007-01-24 16:03:42.000000000 +0000
-+++ linux/drivers/hwmon/lm75.c  2007-01-29 11:41:45.000000000 +0000
-@@ -181,13 +181,6 @@
-                 /* Unused bits */
-                 if (conf & 0xe0)
-                         goto exit_free;
--
--               /* Addresses cycling */
--               for (i = 8; i < 0xff; i += 8)
--                       if (i2c_smbus_read_byte_data(new_client, i + 1) 
-!= conf
--                        || i2c_smbus_read_word_data(new_client, i + 2) 
-!= hyst
--                        || i2c_smbus_read_word_data(new_client, i + 3) 
-!= os)
--                               goto exit_free;
-         }
+I'd prefer to write a new driver, then I could also 'fix' some coding style
+issues...
 
-         /* Determine the chip type - only one kind supported! */
-
-The chip has the following markings on its top:
-
-DS75
-SO6A5
-
-Does anyone out there have a DS75 which is being identified correctly - 
-the patch to change identify in this way went in quite some time ago...
-http://lists.lm-sensors.org/pipermail/lm-sensors/2004-July/008335.html
-
-Alan Clucas
-
+...juerg
 -------------- next part --------------
-A non-text attachment was scrubbed...
-Name: alanc.vcf
-Type: text/x-vcard
-Size: 562 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070129/cc670374/attachment.vcf 
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070123/cf393efe/attachment.html 
