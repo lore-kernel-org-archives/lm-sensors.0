@@ -1,50 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 17 Jan 2007 21:03:59 +0000
-Subject: [lm-sensors] [PATCH] W83793: ignore the temperature readings
-Message-Id: <20070117220359.9d7c2038.khali@linux-fr.org>
+From: fixacpi@gmail.com (Gordon Stanton)
+Date: Thu, 25 Jan 2007 01:15:51 +0000
+Subject: [lm-sensors] [PATCH] Add Micro-Star as a PCI VENDOR
+Message-Id: <c1cd85210701241715p29fb437dy9400e74afaf8bbf7@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45A77F63.5080808@assembler.cz>
-In-Reply-To: <45A77F63.5080808@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, lm-sensors@lm-sensors.org, s270-linux@mail.0pointer.de, linux-pci@atrey.karlin.mff.cuni.cz
 
-Hi Gong,
+Hi,
+I noticed that a common motherboard manufacturer Micro-Star was
+missing it's PCI_VENDOR_ID and so I have sent this patch in.
+Later on I will send a patch to pci/quirks.c to unhide the SMBus on
+the M510C laptop once I have investigated it a bit more. It hides the
+SMBus the same as ASUS (and a couple of others) laptops.
+This is definately the correct ID, see
+http://www.pcidatabase.com/vendor_details.php?idp5
 
-On Tue, 16 Jan 2007 18:25:38 +0800, JGong at winbond.com wrote:
-> >w83793: ignore the temperature readings when its channel is disabled,
-> >ignore AMDSI readings.
-> 
-> >Signed-off-by: Gong Jun <jgong at winbond.com>
-> >Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
-> 
-> In addition I have added the code to skip the unused temperature
-> registers to speed up the update functions. Also it is tested on my
-> motherboard.
+I would also be happy with PCI_VENDOR_ID_MICRO_STAR instead, what do you think?
 
-You've been too generous in your changes:
+Signed-off-by: Gordon Stanton <fixacpi at gmail.com>
 
-> @@ -1445,9 +1491,12 @@ static void w83793_update_nonvolatile(st
->  		}
->  	}
->  
-> -	for (i = 0; i < ARRAY_SIZE(data->temp_mode); i++)
-> +	for (i = 0; i < ARRAY_SIZE(data->temp_mode); i++) {
-> +		if (!(data->has_temp & (1 << i)))
-> +                        continue;
->  		data->temp_mode[i] >  		    w83793_read_value(client, W83793_REG_TEMP_MODE[i]);
-> +	}
->  
->  	for (i = 0; i < ARRAY_SIZE(data->tolerance); i++) {
->  		data->tolerance[i] 
-This change isn't correct, as temp_mode is a two-byte array, not 6. In
-fact we can assume that at least a couple temperature channels will be
-in use on every board so the test isn't really worth the effort.
+---
 
-Patch applied, with Rudolf's cleanups and documentation update.
+--- linux-2.6.20-rc5/include/linux/pci_ids.h	2007-01-13 05:54:26.000000000 +1100
++++ linux/include/linux/pci_ids.h	2007-01-25 11:43:30.478249500 +1100
+@@ -1875,6 +1875,8 @@
 
-Thanks,
--- 
-Jean Delvare
+ #define PCI_VENDOR_ID_SAMSUNG		0x144d
+
++#define PCI_VENDOR_ID_MICROSTAR		0x1462
++
+ #define PCI_VENDOR_ID_MYRICOM		0x14c1
+
+ #define PCI_VENDOR_ID_TITAN		0x14D2
 
