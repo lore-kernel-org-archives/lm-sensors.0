@@ -1,35 +1,29 @@
-From: a@gaydenko.com (Andrew Gaydenko)
-Date: Thu, 04 Jan 2007 03:54:52 +0000
-Subject: [lm-sensors] W83627DHG, steps to use
-Message-Id: <200701040654.52884@goldspace.net>
+From: diggory.hardy@gmail.com (Diggory Hardy)
+Date: Sat, 27 Jan 2007 12:44:56 +0000
+Subject: [lm-sensors] ADT7475
+Message-Id: <45BB4948.5090301@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200612271943.00165@goldspace.net>
-In-Reply-To: <200612271943.00165@goldspace.net>
+References: <20060902193444.a259efdb.khali@linux-fr.org>
+In-Reply-To: <20060902193444.a259efdb.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-==== On Thursday 04 January 2007 06:34, you wrote: ===...
->coretemp is measured at the hottest part of the core, while
->motherboard will tend to measure the surface temperature.  A few
->degrees difference is expected.  Also that's a really nice temperature
->for coretemp, perhaps you have really frigid air conditioning.  My
->overclocked Core2Duo (@3.4 GHz) runs coretemps of 51C idle and up to
->60C under full load... which is a huge improvement from my old Athlon
->MPs which were 56-65C surface temperature.
+Hi,
 
-[OT]
-My aim is a silence rather an overclocking ;-) So I have set Zalaman
-9500 to ~1550 rpm (all fans noise are below Samsung HDD noise now).
+I have a ADT7475 chip (Asus M2N-SLI board), which it would be nice to be 
+able to use.
 
-[T]
-OK, I can conclude, coretemp's temps are more "honest", as expected -
-closer to cores - closer to truth.
+I noticed some posts on the mailing lists about this, but don't really 
+know what's going on.
 
+I could potentially work on this myself if you'd like me to, but I'd 
+need some help getting started. I've done a reasonable amount of 
+higher-level C++ coding, but nothing on drivers or kernel-related 
+programming.
 
->I made a patch for KSensors, I don't use SysGuard.
+Thanks for this great project,
 
-It seems like KSensors project is not under development now :-( 
-At any case I'll try it with your patch, thanks! 
+Diggory Hardy
 
