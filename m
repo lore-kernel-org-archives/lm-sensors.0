@@ -1,10 +1,8 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 23 Jan 2007 15:36:18 +0000
-Subject: [lm-sensors] DME1737 / A8000 support
-Message-Id: <20070123163618.0b56133d.khali@linux-fr.org>
+Date: Sun, 28 Jan 2007 19:27:13 +0000
+Subject: [lm-sensors] VT1211 at 0x4e/0x4f
+Message-Id: <20070128202713.a60b89a0.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0701230637t433847f3yb3044ebd77af13df@mail.gmail.com>
-In-Reply-To: <191fb4ca0701230637t433847f3yb3044ebd77af13df@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -12,30 +10,16 @@ To: lm-sensors@vger.kernel.org
 
 Hi Juerg,
 
-On Tue, 23 Jan 2007 06:37:20 -0800, Juerg Haefliger wrote:
-> Jean,
-> 
-> I managed to pick up the datasheet for the SMSC DME1737 (also known as Asus
-> A8000) :-) I took a quick glance and the HW monitoring logic is definitely
-> an LM85 clone. Even the register descriptions are sometimes copied
-> word-to-word. There are a few differences though:
-> - additional voltage and fan inputs
-> - additional pwm outputs
-> - 12bit temp and voltage resolution
-> - advanced configuration settings
-> 
-> I was wondering if it makes more sense to create a new driver than adding
-> support to the current LM85 driver. I fear that support for the DME1737
-> would clobber up the LM85 driver even more than it is already. But a
-> separate driver would have some significant code redundancy with the LM85.
-> 
-> I'd prefer to write a new driver, then I could also 'fix' some coding style
-> issues...
+As almost all Super-I/O chips, the VT1211 can live at two different
+address pairs, 0x2e/0x2f or 0x4e/0x4f. The vt1211 driver only supports
+the former at the moment. Some systems use the latter though:
+http://www.lm-sensors.org/ticket/2149
 
-I definitely vote for a new driver, the lm85 driver is fat enough as
-is. And my experience with not publicly documented, supposedly
-compatible chips is that they end up bloating the drivers we add them
-to (see the AS99127F support in driver w83781d for example.)
+Could you please add support for the second address? It shouldn't be
+too difficult, you can simply turn SIO_REG_{CIP,DIP} into global
+variables and run vt1211_find() twice, once with each possible address
+pair. The w83627hf, f71805f, pc87360 and pc87427 drivers do it that way
+already.
 
 Thanks,
 -- 
