@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 25 Jan 2007 08:07:00 +0000
+Date: Mon, 29 Jan 2007 08:32:20 +0000
 Subject: [lm-sensors] [PATCH] Add Micro-Star as a PCI VENDOR
-Message-Id: <20070125090700.3d4b14f1.khali@linux-fr.org>
+Message-Id: <20070129093220.30efba22.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <c1cd85210701241715p29fb437dy9400e74afaf8bbf7@mail.gmail.com>
 In-Reply-To: <c1cd85210701241715p29fb437dy9400e74afaf8bbf7@mail.gmail.com>
@@ -12,31 +12,56 @@ To: lm-sensors@vger.kernel.org
 
 Hi Gordon,
 
-Posting to 6 mailing-lists at once, are you mad?
-I kept only the relevant ones.
+On Mon, 29 Jan 2007 16:52:34 +1100, Gordon Stanton wrote:
+> Hi Jean,
+> Firstly, sorry for the personal reply. I thought it might be better though.
 
-On Wed, 24 Jan 2007 17:26:44 -0800, Greg KH wrote:
-> On Thu, Jan 25, 2007 at 12:15:51PM +1100, Gordon Stanton wrote:
-> > Hi,
-> > I noticed that a common motherboard manufacturer Micro-Star was
-> > missing it's PCI_VENDOR_ID and so I have sent this patch in.
-> > Later on I will send a patch to pci/quirks.c to unhide the SMBus on
-> > the M510C laptop once I have investigated it a bit more. It hides the
-> > SMBus the same as ASUS (and a couple of others) laptops.
-> > This is definately the correct ID, see
-> > http://www.pcidatabase.com/vendor_details.php?idp5
-> > 
-> > I would also be happy with PCI_VENDOR_ID_MICRO_STAR instead, what do you 
-> > think?
+For what reason? First you send your message to 6 mailing lists, then
+replies go to just one person? I'm adding the relevant lists and
+persons to Cc again.
 
-I would suggest PCI_VENDOR_ID_MSI, that's how people know them.
+> On 1/25/07, Jean Delvare <khali at linux-fr.org> wrote:
+> > Posting to 6 mailing-lists at once, are you mad?
+> > I kept only the relevant ones.
+> 
+> SMBus on PCI with ACPI crosses many areas.
 
-> I suggest sending this patch in when you need to use it, i.e. at the
-> same time you send the quirk patch in.
+I fail to see how it is related to ACPI at all.
 
-I second this suggestion.
+> I'ts fixes a PCI quirk.(linux-pci)
+> The fix will unhide the SMBus like ASUS needs.(acpi4asus)
 
-Thanks,
+Irrelevant. Asus were the first ones to do it, but half a dozen vendors
+do it by now. And the Asus system users certainly couldn't care less
+that yet another system needs it.
+
+> Hopefully enabling some more sensors (like fans) to be
+> seen.(linux-acpi,lm-sensors)
+
+"Hopefully?" You'd better make sure first. We're not going to add an
+unhiding quirk if there's nothing useful on the SMBus in question.
+
+> > I would suggest PCI_VENDOR_ID_MSI, that's how people know them.
+> 
+> I thought of that but MSI in relation to PCI means "Message Signaled
+> Interrupt" so I would rather go with PCI_VENDOR_MICRO_STAR which also
+
+Come on, the symbol is named PCI_VENDOR_ID_<something>, it's pretty
+clear what it stands for. If someone really thinks that
+PCI_VENDOR_ID_MSI could be related to message-signaled interrupts, that
+person better doesn't touch the kernel code at all.
+
+We already have 62 two- or three-letter PCI vendor ID symbols in
+pci_ids.h, one more really isn't a problem.
+
+> tabs in the source code nicely. Although in truth it probably should
+
+"Tabs in the source code nicely"? What do you mean?
+
+> be PCI_VENDOR_MICRO_STAR_INTL but that is just getting too long.
+
+That I couldn't agree more.
+
 -- 
 Jean Delvare
 
