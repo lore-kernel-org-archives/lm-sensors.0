@@ -1,54 +1,29 @@
-From: thomas536@gmail.com (Thomas Garner)
-Date: Thu, 22 Feb 2007 17:43:46 +0000
-Subject: [lm-sensors] mcp61 sensors support
-Message-Id: <9ef864c50702220943o10ca1b43sbb953fa11d6f5678@mail.gmail.com>
+From: Chuck.Bramlage@valeant.com (Bramlage, Chuck)
+Date: Sat, 03 Feb 2007 01:10:13 +0000
+Subject: [lm-sensors]  Intel motherborard S3000
+Message-Id: <4218A974CA8CB04192340E3CD43612B801C7581A@SNAPITEVS002.Valeant.Corp.vrx>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <9ef864c50702182307q4364770cj53c6dbab30fcd887@mail.gmail.com>
-In-Reply-To: <9ef864c50702182307q4364770cj53c6dbab30fcd887@mail.gmail.com>
+References: <000001c731b2$3d228280$fbe4fea9@bbhome>
+In-Reply-To: <000001c731b2$3d228280$fbe4fea9@bbhome>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Yeah, I can recompile, no problem.
-
-On 2/22/07, Jean Delvare <khali at linux-fr.org> wrote:
-> Hi Thomas,
->
-> On Wed, 21 Feb 2007 22:02:31 -0500, Thomas Garner wrote:
-> > > That being said, there are no sensors on the SMBus, only one EEPROM. If
-> > > there are sensors on your system, they have to be somewhere else, maybe
-> > > in the Super-I/O chip. Did you try running a recent version of
-> > > sensors-detect already? What did it find?
-> >
-> > (...)
-> > [root at ns ~]# sensors-detect
-> > # sensors-detect revision 4171 (2006-09-24 03:37:01 -0700)
-> >
-> > This program will help you determine which kernel modules you need
-> > to load to use lm_sensors most effectively. It is generally safe
-> > and recommended to accept the default answers to all questions,
-> > unless you know what you're doing.
-> > (...)
-> > Some Super I/O chips may also contain sensors. We have to write to
-> > standard I/O ports to probe them. This is usually safe.
-> > Do you want to scan for Super I/O sensors? (YES/no): y
-> > Probing for Super-I/O at 0x2e/0x2f
-> > Trying family `ITE'...                                      Yes
-> > Found unknown chip with ID 0x8726
-> >     (logical device 4 has address 0x290, could be sensors)
->
-> Looks like the latest Super-I/O from ITE, the IT8726F, which we do not
-> support yet. At first sight it appears to be very similar to the
-> IT8716F, which we do support since 2.6.18, so it should be possible to
-> add support to the it87 driver easily. There are some technical details
-> which are unclear in the datasheet though, so I'm waiting a bit before
-> going on.
->
-> Do you have the possibility to recompile your kernel and lm_sensors
-> with some patches applied?
->
-> --
-> Jean Delvare
->
-
+Bernard,
+I'm Chuck Bramlage from the States.  My family history comes from
+forefathers who came from Cloppenburg, Germany in the 1880s to the
+Cincinnati Ohio area.  Can you share any of your family history?
+ 
+Chuck Bramlage
+President-Europe, Middle East & Africa
+Valeant Pharmaceuticals International
+One Enterprise
+Aliso Viejo,  CA  92656
+Tel: 949-461-6060
+Fax: 949-461-6632
+email: chuck.bramlage at valeant.com <mailto:chuck.bramlage at valeant.com> 
+ 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070202/3e9db6aa/attachment.html 
