@@ -1,7 +1,7 @@
-From: Chuck.Bramlage@valeant.com (Bramlage, Chuck)
-Date: Sat, 03 Feb 2007 01:10:13 +0000
-Subject: [lm-sensors]  Intel motherborard S3000
-Message-Id: <4218A974CA8CB04192340E3CD43612B801C7581A@SNAPITEVS002.Valeant.Corp.vrx>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Sun, 04 Feb 2007 14:16:00 +0000
+Subject: [lm-sensors] Intel motherborard S3000
+Message-Id: <45C5EAA0.1040500@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <000001c731b2$3d228280$fbe4fea9@bbhome>
 In-Reply-To: <000001c731b2$3d228280$fbe4fea9@bbhome>
@@ -10,20 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Bernard,
-I'm Chuck Bramlage from the States.  My family history comes from
-forefathers who came from Cloppenburg, Germany in the 1880s to the
-Cincinnati Ohio area.  Can you share any of your family history?
- 
-Chuck Bramlage
-President-Europe, Middle East & Africa
-Valeant Pharmaceuticals International
-One Enterprise
-Aliso Viejo,  CA  92656
-Tel: 949-461-6060
-Fax: 949-461-6632
-email: chuck.bramlage at valeant.com <mailto:chuck.bramlage at valeant.com> 
- 
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070202/3e9db6aa/attachment.html 
+Hello,
+
+Sorry for the delay.
+
+> the board name is Server Boards S3000AH
+> The manual descibe regarding to hardware monitoring:
+> The server board has implemented hardware monitoring function into the super 
+> I/O SCH5027
+
+Hmm I dont know this chip either. It seems it may live on ISA bus and maybe it
+is compatible with SCH311xx.
+
+Please can you try following and post the output back here?
+
+isadump -k 0x55 0x2e 0x2f
+isadump -k 0x87,0x87 0x2e 0x2f
+
+(and full output of sensors-detect from lm-sensors)
+
+Thanks,
+Rudolf
+
