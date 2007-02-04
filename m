@@ -1,28 +1,26 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 14 Feb 2007 12:49:42 +0000
-Subject: [lm-sensors] hai guys good morning.i'm struct with rtc ds1337
-Message-Id: <20070214134942.6ea3e519.khali@linux-fr.org>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Sun, 04 Feb 2007 19:35:14 +0000
+Subject: [lm-sensors] new patch for FSC Heimdall Chips
+Message-Id: <45C63572.1090307@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1171433926.9705.16.camel@titan.picopeta.com>
-In-Reply-To: <1171433926.9705.16.camel@titan.picopeta.com>
+References: <F7F9B0BE3E9BD449B110D0B1CEF6CAEF03FA587D@ABGEX01E.abg.fsc.net>
+In-Reply-To: <F7F9B0BE3E9BD449B110D0B1CEF6CAEF03FA587D@ABGEX01E.abg.fsc.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 14 Feb 2007 11:48:46 +0530, Pavan wrote:
-> That way the RTC will start running from 1970-01-01,if we set the time
-> and date its not effecting and displaying same date and vary in
-> time.please tell me the reason and how to resolve the problem. please
-> let me know as soon as possible .
+Hello again,
 
-You already asked one week ago and I explained to you that this was the
-wrong list for your problem:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-February/018839.html
+Please can you share with me and Khali the chip docs? (if you cant do that in
+public)
 
-Things didn't change since, this is _still_ the wrong list and you're
-not going to get any help here. Please stop abusing our resources.
+Jean thinks that the driver could be merged with the existing one. (this needs
+to be judged). If we do that as new driver  we will need to update the driver
+based on my comments from the 25.11.2006 17:36 and also the patch should be
+against latest 2.6.20 kernel.
 
--- 
-Jean Delvare
+Thanks,
+
+Rudolf
 
