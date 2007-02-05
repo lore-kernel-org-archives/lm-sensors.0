@@ -1,12 +1,25 @@
-From: Holger.Kiehl@dwd.de (Holger Kiehl)
-Date: Mon, 05 Feb 2007 15:09:03 +0000
+From: ppokorny@penguincomputing.com (Philip Pokorny)
+Date: Mon, 05 Feb 2007 15:23:28 +0000
 Subject: [lm-sensors] LM85 problems with 2.6.16.x - 2.6.19.1
-Message-Id: <Pine.LNX.4.64.0702051500420.28290@diagnostix.dwd.de>
+Message-Id: <654FA770A883FB43BAF3CB0B1E1DAC8C831D54@orca.penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <Pine.LNX.4.64.0702051500420.28290@diagnostix.dwd.de>
+In-Reply-To: <Pine.LNX.4.64.0702051500420.28290@diagnostix.dwd.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Can you send all of the 'lm85' lines from dmesg (ie dmesg | grep lm85) to the list.  I would like to confirm which chip was detected.  We may also need 'i2cdump 0 0x2e'
+
+Thanks,
+:v)
+
+ -----Original Message-----
+From: 	Holger Kiehl [mailto:Holger.Kiehl at dwd.de]
+Sent:	Mon Feb 05 07:11:22 2007
+To:	lm-sensors at lm-sensors.org
+Subject:	[lm-sensors] LM85 problems with 2.6.16.x - 2.6.19.1
 
 Hello
 
@@ -44,3 +57,10 @@ Holger
 
 
 
+_______________________________________________
+lm-sensors mailing list
+lm-sensors at lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070205/cc205f2e/attachment.html 
