@@ -1,32 +1,37 @@
-From: david-b@pacbell.net (David Brownell)
-Date: Fri, 16 Feb 2007 06:39:43 +0000
-Subject: [lm-sensors] [patch 2.6.20-git] hwmon should use subsys_init
-Message-Id: <20070216063943.50DDF102FAA@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+From: nick.upson@gmail.com (Nick Upson)
+Date: Mon, 05 Feb 2007 16:56:09 +0000
+Subject: [lm-sensors] install problem
+Message-Id: <36ba31bd0702050856p43e34277se02078d9815328c8@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200702151603.13810.david-b@pacbell.net>
-In-Reply-To: <200702151603.13810.david-b@pacbell.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > This patch makes the hwmon subsystem code register itself appropriately early:
-> > as a subsystem, like other subsystems.
->
-> This patch is already in my tree and planned for inclusion in kernel
-> 2.6.21.
+Hi,
 
-OK ... I thought I'd already sent that along, but didn't have a
-note that I'd done so.
+I get "Can't access procfs/sysfs file" upon running sensors. I'm using
+fedora core 5 which is a 2.6.16 core. sensors-detect seems to work ok
+and produces output that I have used for the modprobe commands below.
+I read every reference I could find but none seem to apply/fix the
+issue. I've used both the tar.gz and rpm with the same effect, both
+2.10.2
 
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+#----cut here----
 
->	I asked Linus to pull the hwmon updates (including this one)
-> from my tree two days ago but he did not yet. I'll ask him again
-> tomorrow if needed.
+To load everything that is needed, add this to some /etc/rc* file:
 
-He has to pull ARM patches too.  Right now ARM can't build, so I
-can't test the latest I2C stuff ... ;)
-
-- Dave
-
+#----cut here----
+# I2C adapter drivers
+modprobe i2c-sis96x
+modprobe i2c-isa
+# Chip drivers
+modprobe eeprom
+modprobe w83627hf
+# sleep 2 # optional
+/usr/local/bin/sensors -s # recommended
+#----cut here----
 
