@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 04 Feb 2007 17:43:08 +0000
+From: alanc@pipstechnology.co.uk (Alan Clucas)
+Date: Mon, 05 Feb 2007 13:12:46 +0000
 Subject: [lm-sensors] DS75
-Message-Id: <20070204184308.96b53030.khali@linux-fr.org>
+Message-Id: <45C72D4E.8070601@pipstechnology.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45BDE148.7020108@pipstechnology.co.uk>
 In-Reply-To: <45BDE148.7020108@pipstechnology.co.uk>
@@ -10,59 +10,112 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Alan,
+> Yes, I'd appreciate a debug log and/or output of i2cdump for a Dallas
+> DS75 chip.
 
-On Mon, 29 Jan 2007 11:58:00 +0000, Alan Clucas wrote:
-> We have a DS75 on a custom board, which is attached to a Compulab iGLX 
-> AMD Geode based board - using the CS5536 and an unmodified scx200_acb 
-> driver to access the smbus/i2c.
-> 
-> On this board is a DS75. It doesn't identify as the chip correctly with 
-> the lm75 driver in 2.6.19.2 due to the fact that it seems to return the 
-> last value read for all of its out of spec commands, rather than doing 
-> the address cycling which the driver expects for command >8 - e.g. 
-> address 8 behaves like addresses 4 through 7. (I can provide a debug log 
-> showing this if needed).
+Hi Jean, this is the output I get for the device:
 
-Yes, I'd appreciate a debug log and/or output of i2cdump for a Dallas
-DS75 chip.
+localhost ~ # i2cdump -y 0 0x48
+No size specified (using byte-data access)
+      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 50 30 4b 50 50 50 50 50 50 50 50 50 50 50 50 50    P0KPPPPPPPPPPPPP
+10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+20: XX XX 4b XX XX XX XX XX XX XX XX XX XX XX XX XX    XXKXXXXXXXXXXXXX
+30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+40: 50 00 4b 50 50 50 50 50 50 50 50 50 50 50 50 50    P.KPPPPPPPPPPPPP
+50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX 50 XX    XXXXXXXXXXXXXXPX
+f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
 
-> With the following patch it identifies correctly and works as expected.
-> 
-> --- linux-2.6.19.2/drivers/hwmon/lm75.c 2007-01-24 16:03:42.000000000 +0000
-> +++ linux/drivers/hwmon/lm75.c  2007-01-29 11:41:45.000000000 +0000
-> @@ -181,13 +181,6 @@
->                  /* Unused bits */
->                  if (conf & 0xe0)
->                          goto exit_free;
-> -
-> -               /* Addresses cycling */
-> -               for (i = 8; i < 0xff; i += 8)
-> -                       if (i2c_smbus_read_byte_data(new_client, i + 1) 
-> != conf
-> -                        || i2c_smbus_read_word_data(new_client, i + 2) 
-> != hyst
-> -                        || i2c_smbus_read_word_data(new_client, i + 3) 
-> != os)
-> -                               goto exit_free;
->          }
-> 
->          /* Determine the chip type - only one kind supported! */
+localhost ~ # i2cdump -y 0 0x48 w
+      0,8  1,9  2,a  3,b  4,c  5,d  6,e  7,f
+00: 8050 0030 004b 0050 0050 0050 0050 0050
+08: 0050 0050 0050 0050 0050 0050 0050 0050
+10: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+18: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+20: XXXX XXXX 004b XXXX XXXX XXXX XXXX XXXX
+28: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+30: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+38: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+40: 8050 0000 004b 0050 0050 0050 0050 0050
+48: 0050 0050 0050 0050 0050 0050 0050 0050
+50: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+58: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+60: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+68: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+70: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+78: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+80: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+88: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+90: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+98: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+a0: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+a8: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+b0: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+b8: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+c0: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+c8: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+d0: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+d8: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+e0: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+e8: XXXX XXXX XXXX XXXX XXXX XXXX 0050 XXXX
+f0: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
+f8: XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX
 
-Your email client is wrapping the long lines so I couldn't apply the
-patch above even if I wanted.
+If there are any other particular parameters to i2cdump you'd like me to 
+try I'll happily do so.
 
-I'm not fine with this approach anyway. I fear that plain dropping the
-check above will again cause non-compatible chips to be attached to the
-lm75 driver. I'd rather leave the LM75 detection code as is and add
-code to explicitely detect the DS75, even though we can have both
-kinds advertised as "lm75" for compatibility reasons. What do you think?
+> Your email client is wrapping the long lines so I couldn't apply the
+> patch above even if I wanted.
 
-Can you use perl on your system? I'd like to add detection for the DS75
-to sensors-detect first, and when it's ready, port the code to the lm75
-driver.
+Argh, does the attached one work for you (just testing, not expecting 
+you to apply it) and comply with guidelines - I'll see it for myself 
+when it arrives back from the list.
+
+> I'm not fine with this approach anyway. I fear that plain dropping the
+> check above will again cause non-compatible chips to be attached to the
+> lm75 driver. I'd rather leave the LM75 detection code as is and add
+> code to explicitely detect the DS75, even though we can have both
+> kinds advertised as "lm75" for compatibility reasons. What do you think?
+
+Only if we can find something else which distinguishes the device 
+correctly, otherwise there isn't much point as it'll detect 
+non-compatible chips as DS75s doing exactly the same thing anyway. The 
+patch which added this address cycling DID add some other tests which 
+the DS75 passes. Leaving it reported as an lm75 makes sense though.
+
+> Can you use perl on your system? I'd like to add detection for the DS75
+> to sensors-detect first, and when it's ready, port the code to the lm75
+> driver.
+
+Yes, I have perl. sensors-detect currently does not detect it as an 
+lm75, agreeing with the unpatched kernel.
+
+We only have a couple of fully functional boards, and I may break stuff 
+or need to run other long term tests, so turnaround on testing may be 
+intermittent.
 
 Thanks,
--- 
-Jean Delvare
-
+Alan
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm75.patch
+Type: text/x-patch
+Size: 553 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070205/bf9e75ec/attachment.bin 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: alanc.vcf
+Type: text/x-vcard
+Size: 562 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070205/bf9e75ec/attachment.vcf 
