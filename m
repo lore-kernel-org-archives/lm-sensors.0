@@ -1,37 +1,25 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 15 Feb 2007 16:28:23 +0000
-Subject: [lm-sensors] DS75
-Message-Id: <20070215172823.6c1a90df.khali@linux-fr.org>
+From: dbailey@digium.com (Doug Bailey)
+Date: Mon, 05 Feb 2007 19:50:37 +0000
+Subject: [lm-sensors] ADT75 sensor
+Message-Id: <15533071.11811170705037131.JavaMail.root@jupiler.digium.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45BDE148.7020108@pipstechnology.co.uk>
-In-Reply-To: <45BDE148.7020108@pipstechnology.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Alan,
+I am writing an interface for a Analog Devices ADT75 using a uClinux distribution for the blackfin processor.  I want to use the HWMON interface to do this.  
 
-On Thu, 15 Feb 2007 11:01:17 +0000, Alan Clucas wrote:
-> Jean Delvare wrote:
-> > OK, patch applied to lm-sensors SVN.
-> > 
-> > I'm still waiting for updated kernel and libsensors/sensors patches.
-> 
-> It is on my todo list still - been side tracked by some other things so 
-> don't expect it until next week. Sorry.
+The distribution does not specifically have an ADT75 sensor but does have a LM75 sensor. Unfortunately, the addition of the one-shot register in the ADT75 causes the LM75_detect portion of the driver to fail.  In addition the temp precision is different on the ADT75 from the LM75.  .  
+		
+I don't see on your web site that anyone has already generated an ADT75 driver. Therefore I made the relatively simple modifications to make the LM75 into an ADT75.  In doing this I have run into a couple of issues: 
+		
+- My problems come in that I do not have an i2c ID for the driver (There is no I2C_DRIVERID_ADT75.)  Is there a way of getting one of these defined?
+ 
+- I would like to access a couple of the ADT75 registers through sysfs that currently do not have defined interfaces. (Most notably the one shot register and the fault queue registers.)  Is there some guideline on how these should be defined?  
+		
+I can easily make these items but I would prefer to follow the guidelines used for the lm-sensors project.  Any suggestions? 
 
-No worry, we're in no hurry.
-
-> I'm not going to try for >9 bit precision. An interesting side effect of 
-> running i2cdump is to change it from 9 bit precision (which it shows it 
-> is setup for the first time it is run after a reset) to the dump that 
-> you saw in my earlier mail. Odd. (Which is why the kernel patch I posted 
-> earlier did work for me).
-
-This is really weird. I just can't explain it. Does my new code in
-sensors-detect produce the same side effect?
-
--- 
-Jean Delvare
+Thanks 
+Doug Bailey
 
