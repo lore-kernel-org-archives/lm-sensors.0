@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 04 Feb 2007 16:46:03 +0000
+From: pengi.films@gmail.com (Joe Friedrichsen)
+Date: Mon, 05 Feb 2007 06:57:58 +0000
 Subject: [lm-sensors] [PATCH] vt1211: add probing of alternate config
-Message-Id: <20070204174603.37e6b7a8.khali@linux-fr.org>
+Message-Id: <ecd00e6d0702042257j60e81dd1hb024b90c5039edab@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0701301437h42a66c81lc7056ecf5ad399ba@mail.gmail.com>
 In-Reply-To: <191fb4ca0701301437h42a66c81lc7056ecf5ad399ba@mail.gmail.com>
@@ -10,19 +10,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+On 2/4/07, Jean Delvare <khali at linux-fr.org> wrote:
+> Patch looks really good, applied, thanks. Hopefully Joe Friedrichsen
+> will also confirm that the new vt1211 driver works OK for him now.
 
-On Tue, 30 Jan 2007 14:37:41 -0800, Juerg Haefliger wrote:
-> The configuration index port of the vt1211 can be accessed at two
-> different addresses 0x2e or 0x4e, depending on pin strappings. This
-> patch adds support to scan both addresses during module
-> initialization.
-> 
-> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+Sorry for the delay -- a friend asked me to help her move house. I
+have tomorrow/Monday off, so expect a report in a few hours.
 
-Patch looks really good, applied, thanks. Hopefully Joe Friedrichsen
-will also confirm that the new vt1211 driver works OK for him now.
-
--- 
-Jean Delvare
+Joe
 
