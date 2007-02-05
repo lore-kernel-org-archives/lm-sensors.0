@@ -1,7 +1,7 @@
 From: r.marek@assembler.cz (Rudolf Marek)
-Date: Mon, 05 Feb 2007 14:38:21 +0000
+Date: Mon, 05 Feb 2007 14:46:15 +0000
 Subject: [lm-sensors] ACPI bytecode hardware registers access
-Message-Id: <45C7415D.9030409@assembler.cz>
+Message-Id: <45C74337.4060105@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45C640CF.2090205@assembler.cz> <3877989d0702050003w3e0be4d3q9c475d2c6706f6a8@mail.gmail.com>
 In-Reply-To: <3877989d0702050003w3e0be4d3q9c475d2c6706f6a8@mail.gmail.com>
