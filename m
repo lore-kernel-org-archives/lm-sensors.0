@@ -1,7 +1,7 @@
 From: georges.giralt@free.fr (Georges Giralt)
-Date: Mon, 05 Feb 2007 05:32:54 +0000
+Date: Wed, 07 Feb 2007 17:39:49 +0000
 Subject: [lm-sensors] Inconsistents results
-Message-Id: <45C6C186.70104@free.fr>
+Message-Id: <45CA0EE5.9090809@free.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45C17E27.70603@free.fr>
 In-Reply-To: <45C17E27.70603@free.fr>
@@ -190,30 +190,32 @@ Rudolf Marek a ?crit :
 > Rudolf
 > 
 > 
-Hi all !
-So here it goes :
-At cold boot up the readings are :
-Core0 Temp:
-               +9?C
-Core1 Temp:
-              +26?C
-temp1:       +15?C  (low  =    -1?C, high =  +127?C)   sensor = diode
-temp2:       +25?C  (low  =    -1?C, high =  +127?C)   sensor = thermistor
-So pretty consistent with the internal CPU probe.
-After a while the temps stabilize as follow :
+Hi !
+May I add the response from AMD regarding the difference between the 
+Core 0 temp and Core 1 temp ?
+I quote :
+==================================
+En ce qui concerne la diff?rence de temp?rature entre les deux core, il
+semblerait que lors du test, un seul des core soit actif car la charge
+de travail ne devait pas n?cessiter l activation du deuxieme core. En
+effet 17? correspond a peu pres a la temperature de l environement ou` le
+PC est plac?.
 
-Core0 Temp:
-              +11?C
-Core1 Temp:
-              +28?C
+En ce qui concerne la difference de temperature annonc? part la carte
+mere, il est normal qu elle soit legerement differente car moins
+precise. En effet la capteur de temperature du processeur est in?gr? a
+celui ci donc plus fiable.
+==================================As it is in French, I translate it roughly as : "the cause of the 
+difference is that the second core is not used at all because the 
+workload is too low. The core 1 temp is about the ambient temp.
+Regarding the difference between the temp of the core0  as seen by the 
+AMD 64 sensor and the Mobo the cause is a difference in precision, the 
+mobo being less precise/accurate thand the in CPU sensor."
 
-temp1:       +17?C  (low  =    -1?C, high =  +127?C)   sensor = diode
-temp2:       +27?C  (low  =    -1?C, high =  +127?C)   sensor = thermistor
-It seems the MOBO gets warm during the initialization phase and then 
-stick to the 25~30 ?C
-And that the CPU slowly rise from the cold to the 17~27 ?C (when I let 
-the CPU go idle it fall to 17 ?C so CPU freq scqlling is working ;-) )
-Thanks a lot Rudolf for your help and advices !
+So my conclusion is that the Fedora Kernel scheduler only use one core 
+unless the load is high. (I'm trying to prove it doing huge compilations 
+whith optimisation turned on)
+Thanks to all who helped so far !
 -- 
 Ce message est constitu? d'au moins 50 % d'?lectrons recycl?s.
 S'il vous pla?t, aidez nous a` conserver nos ressources,
