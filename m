@@ -1,45 +1,38 @@
-From: pavel@ucw.cz (Pavel Machek)
-Date: Wed, 28 Feb 2007 21:38:04 +0000
-Subject: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Message-Id: <20070228213803.GA4877@ucw.cz>
+From: eduardo@ctm.ulpgc.es (Eduardo Suarez)
+Date: Fri, 09 Feb 2007 16:52:37 +0000
+Subject: [lm-sensors] problem with i801
+Message-Id: <45CCA6D5.2080603@ctm.ulpgc.es>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <20070218183805.5a4fd813.khali@linux-fr.org>
-In-Reply-To: <20070218183805.5a4fd813.khali@linux-fr.org>
+References: <4586BC72.5080308@ctm.ulpgc.es>
+In-Reply-To: <4586BC72.5080308@ctm.ulpgc.es>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi!
+I don't understand how sensors work. Is there a way to tell not to test
+the nvidia?
 
-> > Well I had an idea after looking at k8temp -- why not make it default to
-> > doing only reads from the sensor?  You'd only get information from whatever
-> > core/sensor combination that ACPI had last used, but it would be safe.
+Jean Delvare escribi?:
+> On Mon, 18 Dec 2006 16:06:10 +0000, Eduardo Suarez wrote:
+>> Everything compiled fine. Computer hangs when i try sensors -s.
+>> (...)
+>> Dec 18 13:33:40 dogbert eeprom 3-0050: Starting eeprom update, slice 0
+>> Dec 18 13:33:40 dogbert BUG: unable to handle kernel NULL pointer dereference at virtual address 00000000
+>> (...)
+>>     i2c-3       i2c             NVIDIA i2c adapter 2 at 1:00.0
+>>     i2c-2       i2c             NVIDIA i2c adapter 1 at 1:00.0
+>>     i2c-1       i2c             NVIDIA i2c adapter 0 at 1:00.0
+>>     i2c-0       smbus           SMBus I801 adapter at 10c0
 > 
-> ACPI is broken here, not k8temp, so let's fix ACPI instead. ACPI
-> doesn't conflict with only k8temp, but with virtually all hardware
-> monitoring drivers, all I2C/SMBus drivers, and probably other types of
-> drivers too. We just can't restrict or blacklist all these drivers
-> because ACPI misbehaves.
-
-Oops, sorry about that but no, that will not work.
-
-There's piece of paper, called ACPI specification, and we are
-following it.
-
-Bug is not in our implementation.
-
-Bug is in the ACPI specs... it does not explicitely allow you to go
-out and bitbang i2c, and you do it, and you get problems.
-
-Now, you may try to change specs to be hwmon-friendly... good luck.
-
-But currently hw manufacturers follow ACPI specs, so we have to follow
-it, too; bad luck for hwmon. BIOS hiding smbus from you is good hint
-you are doing something wrong...?
-							Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
-
+> I replied to you in ticket #2158 already. The crash is obviously
+> happening in the nvidia binary driver, so we can't help you. Go report
+> your problem to Nvidia.
+> 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: smime.p7s
+Type: application/x-pkcs7-signature
+Size: 3369 bytes
+Desc: S/MIME Cryptographic Signature
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070209/77ec347f/attachment.bin 
