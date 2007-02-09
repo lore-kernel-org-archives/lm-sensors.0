@@ -1,7 +1,7 @@
-From: alanc@pipstechnology.co.uk (Alan Clucas)
-Date: Wed, 07 Feb 2007 10:14:36 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 09 Feb 2007 09:39:22 +0000
 Subject: [lm-sensors] DS75
-Message-Id: <45C9A68C.2020003@pipstechnology.co.uk>
+Message-Id: <20070209103922.33967126.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45BDE148.7020108@pipstechnology.co.uk>
 In-Reply-To: <45BDE148.7020108@pipstechnology.co.uk>
@@ -10,89 +10,154 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Alan,
-> 
-> On Tue, 06 Feb 2007 10:19:21 +0000, Alan Clucas wrote:
->>> Wow. I have to admit it's not exactly what I expected. The fact that
->>> some (seemingly random) unused addresses work while others return an
->>> error instead is rather puzzling. At least this gives us several ways
->>> to detect the DS75.
->> I did run it several times and reboot just to check - those "random" 
->> addresses are fixed and always the same.
-> 
-> OK, thanks for checking this, I was wondering. I'm also curious to know
-> whether other DS75 chips behave exactly the same or if it's
-> chip-specific.
+Hi Alan,
 
-I've tested it on another chip from another batch with exactly the same 
-random addresses (output varied as the temperature of the board was 
-different, but otherwise looked the same). Once we have more running 
-systems I'll do some more tests.
+On Wed, 07 Feb 2007 10:14:36 +0000, Alan Clucas wrote:
+> Attached is the kernel patch and a patch for libsensors as well. The 
+> libsensors patch does not include your sensors-detect patch.
 
->> Your sensors detect patch works fine:
->>
->> Next adapter: CS5535 ACB0 (i2c-0)
->> Do you want to scan it? (YES/no/selectively): yes
->> Client found at address 0x48
->> Probing for `National Semiconductor LM75'...                No
->> Probing for `Dallas Semiconductor DS75'...                  Success!
->>      (confidence 6, driver `lm75')
->> Probing for `National Semiconductor LM77'...                No
->> Probing for `Dallas Semiconductor DS1621'...                No
->> Probing for `Maxim MAX6650/MAX6651'...                      No
->> Probing for `National Semiconductor LM92'...                No
->> Probing for `National Semiconductor LM76'...                No
->> Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
-> 
-> OK, great, thanks for testing. I'll apply the patch to SVN soon.
-> 
->> I'm happy to do the kernel patch for this. Do we want it to continue to 
->> return kind=lm75 as well as name="lm75"; I'm not sure of all the 
->> implications of kind.
-> 
-> For now libsensors needs to know about all names, otherwise it doesn't
-> recognizes the chip features. If we decide to have a separate prefix
-> for the DS75, this means we must update libsensors as well (that's a
-> trivial change but it must be done.) Both approaches make sense, so
-> it's really up to you, whether you prefer a nice separate prefix or
-> compatibility with older versions of libsensors. Note that if you ever
-> want to take benefit of the additional resolution bits of the DS75,
-> having a separate prefix will be useful.
-> 
-> I'm waiting for your patch, if you're quick enough it can make it into
-> kernel 2.6.21.
+Could you please also include the required changes to the sensors
+program and possibly sensord as well? These should be trivial.
 
-Attached is the kernel patch and a patch for libsensors as well. The 
-libsensors patch does not include your sensors-detect patch.
+> I have changed the detected name to ds75, hence the libsensors patch. I 
+> haven't managed to find any lm75 devices here, so I haven't tested this 
+> on one of those, which would be good before it goes too far. The patch 
+> is simple enough, but you never can tell.
 
-I have changed the detected name to ds75, hence the libsensors patch. I 
-haven't managed to find any lm75 devices here, so I haven't tested this 
-on one of those, which would be good before it goes too far. The patch 
-is simple enough, but you never can tell.
+I have an LM75, I just tested and it works OK.
 
-Feedback appreciated.
+Comments on your kernel patch:
+
+> diff -ur linux-2.6.19.2/drivers/hwmon/lm75.c linux/drivers/hwmon/lm75.c
+> --- linux-2.6.19.2/drivers/hwmon/lm75.c	2007-02-06 15:53:57.000000000 +0000
+> +++ linux/drivers/hwmon/lm75.c	2007-02-06 17:45:19.000000000 +0000
+> @@ -34,7 +34,7 @@
+>  					0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
+>  
+>  /* Insmod parameters */
+> -I2C_CLIENT_INSMOD_1(lm75);
+> +I2C_CLIENT_INSMOD_2(lm75, ds75);
+>  
+>  /* Many LM75 constants specified below */
+>  
+> @@ -153,50 +153,63 @@
+>  	new_client->flags = 0;
+>  
+>  	/* Now, we do the remaining detection. There is no identification-
+> -	   dedicated register so we have to rely on several tricks:
+> -	   unused bits, registers cycling over 8-address boundaries,
+> -	   addresses 0x04-0x07 returning the last read value.
+> +	   dedicated register so we have to rely on several tricks.
+> +	   The LM75 and DS75 share unused bits. The LM75 has registers
+> +	   cycling over 8-address boundaries, and addresses 0x04-0x07 
+> +	   returning the last read value.
+> +	   The DS75 has addresses 0x04-0x0f returning the last read value,
+> +	   but does not register cycle.
+>  	   The cycling+unused addresses combination is not tested,
+>  	   since it would significantly slow the detection down and would
+>  	   hardly add any value. */
+>  	if (kind < 0) {
+> -		int cur, conf, hyst, os;
+> +		int cur, conf, hyst, os, addr;
+>  
+>  		/* Unused addresses */
+>  		cur = i2c_smbus_read_word_data(new_client, 0);
+>  		conf = i2c_smbus_read_byte_data(new_client, 1);
+>  		hyst = i2c_smbus_read_word_data(new_client, 2);
+> -		if (i2c_smbus_read_word_data(new_client, 4) != hyst
+> -		 || i2c_smbus_read_word_data(new_client, 5) != hyst
+> -		 || i2c_smbus_read_word_data(new_client, 6) != hyst
+> -		 || i2c_smbus_read_word_data(new_client, 7) != hyst)
+> -		 	goto exit_free;
+> +
+> +		for (addr = 0x04; addr <= 0x0f; addr++)
+> +			if (i2c_smbus_read_word_data(new_client, addr) != hyst)
+> +				break;
+> +
+> +		if (addr < 0x08)
+> +			goto exit_free;
+> +		if (addr = 0x10)
+> +			kind = ds75;
+> +		else
+> +			kind = lm75;
+> +
+>  		os = i2c_smbus_read_word_data(new_client, 3);
+> -		if (i2c_smbus_read_word_data(new_client, 4) != os
+> -		 || i2c_smbus_read_word_data(new_client, 5) != os
+> -		 || i2c_smbus_read_word_data(new_client, 6) != os
+> -		 || i2c_smbus_read_word_data(new_client, 7) != os)
+> -		 	goto exit_free;
+> +		for (addr = 0x04; addr <= 0x0f; addr++)
+> +			if (i2c_smbus_read_word_data(new_client, addr) != os)
+> +				break;
+> +
+> +		if (addr < (kind = ds75 ? 0x10 : 0x08))
+> +			goto exit_free;
+
+It's smart :) I admit I had no clear idea how to implement the
+detection efficiently. I like your approach.
+
+>  
+>  		/* Unused bits */
+>  		if (conf & 0xe0)
+>  		 	goto exit_free;
+
+Note that this requires the DS75 to be in 9-bit resolution mode. The
+dump you provided suggests your DS75 is in 10-bit resolution mode, so I
+expect it not to be detected properly. Maybe this is OK as a first
+approximation, but you may want to submit a second patch to properly
+support the high resolution modes of the DS75.
+
+>  
+> -		/* Addresses cycling */
+> -		for (i = 8; i < 0xff; i += 8)
+> -			if (i2c_smbus_read_byte_data(new_client, i + 1) != conf
+> -			 || i2c_smbus_read_word_data(new_client, i + 2) != hyst
+> -			 || i2c_smbus_read_word_data(new_client, i + 3) != os)
+> -				goto exit_free;
+> -	}
+> +		/* Addresses cycling - LM75 only*/
+
+Missing space before end of comment.
+
+> +		if (kind = lm75)
+> +			for (i = 8; i < 0xff; i += 8)
+> +				if (i2c_smbus_read_byte_data(new_client, i + 1) != conf
+> +				    || i2c_smbus_read_word_data(new_client, i + 2) != hyst
+> +				    || i2c_smbus_read_word_data(new_client, i + 3) != os)
+> +					goto exit_free;
+
+I strongly suggest adding a pair of curly braces for the outer-most if
+statement. Three nested statements without any curly braces is asking
+for trouble on any further change.
+
+>  
+> -	/* Determine the chip type - only one kind supported! */
+> -	if (kind <= 0)
+> -		kind = lm75;
+> +	}
+
+This change breaks the case kind = 0, you'll end up with an empty
+name. You need to force the type to one of the supported ones if the
+user uses force without a kind.
+
+>  
+> +	/* Determine the chip type */
+>  	if (kind = lm75) {
+>  		name = "lm75";
+>  	}
+> +	else if (kind = ds75) {
+> +		name = "ds75";
+> +	}
+>  
+>  	/* Fill in the remaining client fields and put it into the global list */
+>  	strlcpy(new_client->name, name, I2C_NAME_SIZE);
+> 
+
+Can you also please update Documentation/hwmon/lm75 to mention the
+separate prefix?
 
 Thanks,
-Alan
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: lm-sensors-ds75-support.patch
-Type: text/x-patch
-Size: 1507 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070207/1e897e96/attachment.bin 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: kernel-ds75-support.patch
-Type: text/x-patch
-Size: 3374 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070207/1e897e96/attachment-0001.bin 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: alanc.vcf
-Type: text/x-vcard
-Size: 562 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070207/1e897e96/attachment.vcf 
+-- 
+Jean Delvare
+
