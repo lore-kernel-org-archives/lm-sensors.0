@@ -1,14 +1,26 @@
-From: jasperalias@hotmail.com (Jasper Alias)
-Date: Wed, 28 Feb 2007 13:44:04 +0000
-Subject: [lm-sensors] Sensors-detect with DMI detection
-Message-Id: <BAY122-F52564B3CFE22B049919D6A6810@phx.gbl>
+From: pavang_eee@rediffmail.com (Pavan)
+Date: Fri, 09 Feb 2007 08:57:07 +0000
+Subject: [lm-sensors] i have a problem with ds1337,arm linux 2.6.20
+Message-Id: <1171010707.9705.6.camel@titan.picopeta.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <00c901c7568f$60a3ad40$0801a8c0@pinkeltje>
-In-Reply-To: <00c901c7568f$60a3ad40$0801a8c0@pinkeltje>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070228/159a643e/attachment.html 
+the part that enables the RTC after first power up in
+ds1337_init_client() fails to write a status bit in the chip, so we fall
+into the same reset code (that writes zeros in the RTC regs) after each
+reboot.
+
+
+its giving time from zero onwards,if i set the time also its not
+taking ,its taking from zero onwards  ,please tell me the way to come
+out from this problem.
+
+please tell me soon because i struct with this ,from 2 days .....
+
+
+
+
+
