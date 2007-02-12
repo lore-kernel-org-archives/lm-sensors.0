@@ -1,7 +1,7 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Thu, 08 Feb 2007 19:44:35 +0000
+From: king.br@gmail.com (Brett King)
+Date: Mon, 12 Feb 2007 09:04:35 +0000
 Subject: [lm-sensors] Asus P5B Deluxe / Winbond 83627DHG
-Message-Id: <45CB7DA3.1040208@assembler.cz>
+Message-Id: <8cf253380702120104x4fef4abbme28c922e7d4894f4@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4dfa50520612211313g7906f3b0kbf8d7aebb2ddcda9@mail.gmail.com>
 In-Reply-To: <4dfa50520612211313g7906f3b0kbf8d7aebb2ddcda9@mail.gmail.com>
@@ -10,83 +10,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello again
+Success !
+Thanks a great deal David, I couldn't have got this working without
+your expertise - you are indeed a credit to the community.
 
-Sorry for the delay.
-> I figured out why I got zero readings for fan5.  Since my case fans are 
-> lower speed, it seems the divisor was to low.  I remedied this by 
-> settting fan1_min and fan5_min to 700.  This also has the side effect of 
-> setting the divisor to 16.  Now I get readings in the 1100 RPM range for 
-> both fan1 and fan5.
+# modprobe w83627ehf
+# sensors
+w83627dhg-isa-0290
+Adapter: ISA adapter
+in0:       +1.26 V  (min =  +0.00 V, max =  +1.74 V)
+in1:       +1.86 V  (min =  +1.30 V, max =  +0.30 V) ALARM
+in2:       +3.30 V  (min =  +0.54 V, max =  +0.56 V) ALARM
+in3:       +3.30 V  (min =  +2.26 V, max =  +2.08 V) ALARM
+in4:       +1.99 V  (min =  +0.08 V, max =  +0.06 V) ALARM
+in5:       +1.62 V  (min =  +1.10 V, max =  +0.56 V) ALARM
+in6:       +1.98 V  (min =  +0.00 V, max =  +1.18 V) ALARM
+in7:       +3.30 V  (min =  +2.21 V, max =  +2.08 V) ALARM
+in8:       +1.28 V  (min =  +2.05 V, max =  +0.03 V) ALARM
+fan1:        0 RPM  (min = 12500 RPM, div = 4) ALARM
+fan2:     2235 RPM  (min = 2986 RPM, div = 4) ALARM
+fan3:        0 RPM  (min = 10227 RPM, div = 4) ALARM
+fan4:        0 RPM  (min = 225000 RPM, div = 2) ALARM
+fan5:        0 RPM  (min = 4821 RPM, div = 4) ALARM
+temp1:       +34?C  (high =   +73?C, hyst =   +42?C)
+temp2:     +54.5?C  (high = +80.0?C, hyst = +75.0?C)
+temp3:    +124.5?C  (high = +80.0?C, hyst = +75.0?C)   ALARM
 
-Ok. That explains it.
+#
 
-> Here is what I see in the BIOS Hardware Monitor after being on for about 
-> 5 minutes:
-> 
-> CPU Temperature          35.5 C
-> MB Temperature           21 C
-> CPU Fan Speed            2556
-> CPU QFan Control         Enabled
-> CPU Fan Profile          Optimal
-> Chassis Fan1 Speed       1095
-> Chassis Fan2 Speed       1163
-> Chassis Fan3 Speed       N/A
-> Chassis QFan Control     Enabled
-> Chassis Fan Profile      Optimal
-> Power Fan Speed          N/A
-> 
-> VCore Voltage             1.176
-> 3.3V Voltage              3.328
-> 5V Voltage                4.992
-> 12V Voltage              12.144
-> 
-> Here is my Idle sensors output
-> 
-> jharvell at cujo ~ $ sensors
-> w83627dhg-isa-0290
-> Adapter: ISA adapter
-> VCore:     +1.12 V  (min =  +0.00 V, max =  +1.74 V)
-> 12 V:     +12.14 V  (min = +10.82 V, max = +13.20 V)
-> 3.3V:      +3.33 V  (min =  +3.14 V, max =  +3.47 V)
-> 5V:        +5.04 V  (min =  +4.76 V, max =  +5.25 V)
-> VSB:       +3.33 V  (min =  +3.14 V, max =  +3.47 V)
-> CHA_FAN1: 1125 RPM  (min =  703 RPM, div = 16)
-> CPU_FAN:  2518 RPM  (min = 1704 RPM, div = 8)
-> CHA_FAN2: 1222 RPM  (min =  703 RPM, div = 16)
-> Sys Temp:    +28 C  (high =   +40 C, hyst =   +35 C)
-> CPU Temp:  +34.5 C  (high = +55.0 C, hyst = +45.0 C)
-> 
-> Actually, I recently finished a compile, so it may still be cooling 
-> slightly.  Also, I am using CPU Frequency scaling.  So the CPU is at 
-> 1.60 GHz instead of the normal 2.39 GHz.  I don't know what the 
-> operating CPU frequency is in the BIOS.
-> 
-> jharvell at cujo ~ $ cpufreq-info
-> cpufrequtils 002: cpufreq-info (C) Dominik Brodowski 2004-2006
-> Report errors and bugs to linux at brodo.de, please.
-> analyzing CPU 0:
->   driver: centrino
->   CPUs which need to switch frequency at the same time: 0
->   hardware limits: 1.60 GHz - 2.39 GHz
->   available frequency steps: 2.39 GHz, 1.60 GHz
->   available cpufreq governors: ondemand, performance
->   current policy: frequency should be within 1.60 GHz and 2.39 GHz.
->                   The governor "ondemand" may decide which speed to use
->                   within this range.
->   current CPU frequency is 1.60 GHz.
-> analyzing CPU 1:
->   driver: centrino
->   CPUs which need to switch frequency at the same time: 1
->   hardware limits: 1.60 GHz - 2.39 GHz
->   available frequency steps: 2.39 GHz, 1.60 GHz
->   available cpufreq governors: ondemand, performance
->   current policy: frequency should be within 1.60 GHz and 2.39 GHz.
->                   The governor "ondemand" may decide which speed to use
->                   within this range.
->   current CPU frequency is 1.60 GHz.
+Cheers.
 
-Maybe you can also try the coretemp driver if the CPU is pentium M or Core series.
-
-Rudolf
+On 2/8/07, David Hubbard <david.c.hubbard at gmail.com> wrote:
+> Hi Brett,
+>
+> I am sending you the patch and the full driver.
+>
+> It's actually pretty easy to use the patch. You just cd into your
+> kernel directory, say /usr/src/linux-2.6.18
+>
+> # cd /usr/src/linux-2.6.18
+> linux-2.6.18 #
+>
+> Then you run 'patch' like this:
+>
+> linux-2.6.18 # patch -p1 -i
+> /home/yourdirectory/somepath/w83627ehf_add_w83627dhg_support.patch.txt
+>
+> It will tell you it is patching drivers/hwmon/w83627ehf.c and then you
+> have the driver installed and ready to go.
+>
+> linux-2.6.18 # make
+> linux-2.6.18 # make modules_install
+>
+> Any other kernel compile steps would go here. If you are lucky, you
+> won't even need to reboot. The new module will overwrite the old
+> w83627ehf.ko and you can just load the new module like this:
+>
+> linux-2.6.18 # modprobe w83627ehf
+>
+>
+> Finally, the original patch is at this link with all the same information.
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2006-December/018519.html
+>
+> Hope that helps,
+> David
+>
+>
 
