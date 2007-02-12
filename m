@@ -1,98 +1,66 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Fri, 23 Feb 2007 08:10:59 +0000
-Subject: [lm-sensors] #2159: lm-sensors doesn't work on Abit AB9 Pro
-Message-Id: <45DEA193.6050100@hhs.nl>
+From: riwright@vt.edu (Rick Wright)
+Date: Mon, 12 Feb 2007 17:32:34 +0000
+Subject: [lm-sensors] Abit AT8 (non-32X) / Winbond 83627EHF
+Message-Id: <45D0A4B2.6030002@vt.edu>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-lm-sensors wrote:
-> #2159: lm-sensors doesn't work on Abit AB9 Pro
-> -----------------------+----------------------------------------------------
->   Reporter:  ticket    |       Owner:  ruik    
->       Type:  defect    |      Status:  assigned
->   Priority:  major     |   Milestone:          
->  Component:  hardware  |     Version:  2.10.0  
-> Resolution:            |    Keywords:          
-> -----------------------+----------------------------------------------------
-> Comment (by ticket):
-> 
->  I've installed the 2.6.20.1 kernel, temps still aren't working but
->  voltages are. I did an modprobe of the abituguru module, it didn't seem to
->  help. I'm using sensors 2.10.1.
-> 
->  Adapter: ISA adapter
->  VCore:     +2.04 V  (min =  +2.04 V, max =  +2.04 V) ALARM
->  in1:      +13.46 V  (min = +13.46 V, max = +13.46 V) ALARM
->  AVCC:      +4.08 V  (min =  +4.08 V, max =  +4.08 V) ALARM
->  3VCC:      +4.08 V  (min =  +4.08 V, max =  +4.08 V) ALARM
->  in4:       +2.04 V  (min =  +2.04 V, max =  +2.04 V) ALARM
->  in5:       +2.04 V  (min =  +2.04 V, max =  +2.04 V) ALARM
->  in6:       +6.53 V  (min =  +6.53 V, max =  +6.53 V) ALARM
->  VSB:       +4.08 V  (min =  +4.08 V, max =  +4.08 V) ALARM
->  VBAT:      +4.08 V  (min =  +4.08 V, max =  +4.08 V) ALARM
->  in9:       +2.04 V  (min =  +2.04 V, max =  +2.04 V) ALARM
->  Case Fan:    0 RPM  (min =    0 RPM, div = 128) ALARM
->  CPU Fan:     0 RPM  (min =    0 RPM, div = 128) ALARM
->  Aux Fan:     0 RPM  (min =    0 RPM, div = 128) ALARM
->  fan4:        0 RPM  (min =    0 RPM, div = 128) ALARM
->  Sys Temp:     -1?C  (high =    -1?C, hyst =    -1?C)   ALARM
->  CPU Temp:   +0.0?C  (high =  +0.0?C, hyst =  +0.0?C)   ALARM
->  AUX Temp:   +0.0?C  (high =  +0.0?C, hyst =  +0.0?C)   ALARM
-> 
+
+Hello list,
+
+I have the Abit AT8 mobo described in the subject line and I'm trying to 
+get lm_sensors working properly for this board.  I see there is still 
+very recent activity concerning getting this Winbond chip fully 
+supported.  In the latest 2.10.2 release I see Dave Platt added these 
+changes relavent to my board:
+
+Program sensord:
+                        Add w83627ehf voltage support (Dave Platt)
+                        Add k8temp support (Dave Platt)
+
+These additions appear to be working properly OOTB as the "sensors" 
+command produces the following output:
+
+[riwright at box ~]$ sensors
+k8temp-pci-00c3
+Adapter: PCI adapter
+Core0 Temp:
+             +45 ?C
+Core1 Temp:
+             +46 ?C
+
+w83627ehf-isa-0290
+Adapter: ISA adapter
+VCore:     +2.04 V  (min =  +0.00 V, max =  +1.74 V) ALARM
+in1:      +13.46 V  (min = +13.46 V, max = +12.36 V) ALARM
+AVCC:      +3.22 V  (min =  +3.02 V, max =  +4.08 V)
+3VCC:      +3.22 V  (min =  +3.92 V, max =  +3.82 V) ALARM
+in4:       +1.66 V  (min =  +2.01 V, max =  +1.01 V) ALARM
+in5:       +1.66 V  (min =  +1.16 V, max =  +0.95 V) ALARM
+in6:       +5.32 V  (min =  +6.53 V, max =  +6.32 V) ALARM
+VSB:       +3.07 V  (min =  +4.08 V, max =  +3.06 V) ALARM
+VBAT:      +2.16 V  (min =  +2.02 V, max =  +2.38 V)
+in9:       +1.56 V  (min =  +1.98 V, max =  +1.75 V) ALARM
+Case Fan:    0 RPM  (min = 1318 RPM, div = 128) ALARM
+CPU Fan:     0 RPM  (min = 1757 RPM, div = 128) ALARM
+Aux Fan:     0 RPM  (min = 10546 RPM, div = 128) ALARM
+fan4:        0 RPM  (min = 10546 RPM, div = 128) ALARM
+fan5:        0 RPM  (min = 168750 RPM, div = 8) ALARM
+Sys Temp:    -48 ?C  (high =   +45 ?C, hyst =   +40 ?C)
+CPU Temp:  -48.0 ?C  (high = +45.0 ?C, hyst = +40.0 ?C)
+AUX Temp:  -48.0 ?C  (high = +80.0 ?C, hyst = +75.0 ?C)
 
 
-Commenting through mail and not through trac as I don't seem to have the 
-necessary edit rights.
+So, as advertized, the Voltage support seems to be working.  However, 
+the fan speeds and temperatures do not.  Are these items currently 
+supported yet?  Or do I have a configuration problem?  If not yet 
+supported, is this planned for the future?
 
-Yes the AB9 pro probably has an uguru and most likely the 3th revision of the 
-uguru, which doesn't work with the abituguru driver currently in the kernel 
-I've written a driver for the 3th revision called abituguru3, which I've posted 
-for review to the lm-sensors list quite some time ago.
+Any input/hints/pointers greatly appreciated.
 
-Also notice that although the motherboard contains a super-io chip with 
-sensors, this chip is not used by Abit for sensors and the sensors thus cannot 
-be used. As can be seen from the worthless voltage readings (notice reading = 
-min = max) , and the non working fan and temp readings.
-
-The easiest way to get sensors readings on this board is by using the openguru 
-userspace utility I wrote for this (must be run as root):
-http://people.atrpms.net/~hdegoede/openguru2.3.1.tar.gz
-
-Compile it like this:
-gcc -O2 -Wall -o oguru main2.c openGuru.c
-
-And then as root run: ./oguru
-
-Let me know if and how it works for you any feedback is much appreciated.
-
-You can also try the kernel driver I wrote:
-http://people.atrpms.net/~hdegoede/abituguru2-0.1.2.tar.gz
-
-Untar, cd into the dir and run "make", this assumes you have the kernel-devel 
-or equivalent package for your distro installed.
-
-Once its made, do:
-modprobe hwmon
-insmod abituguru2.ko
-
-And then you should have lots of files under 
-/sys/bus/platform/devices/abituguru2.224
-
-When you cat in0_input in this dir you should get a voltage in millivolt, if 
-you want to know which voltage cat in0_label, etc, etc.
-
-Notice that this version is still called abituguru2, in the kernel patch I've 
-send to the list for review I've changed this to abituguru3 as this driver is 
-for revision 3 of the uguru.
-
-Regards,
-
-Hans
-
-
-
-
+Thanks,
+Rick
 
