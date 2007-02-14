@@ -1,7 +1,7 @@
-From: riwright@vt.edu (Rick Wright)
-Date: Wed, 14 Feb 2007 19:26:57 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 14 Feb 2007 19:33:22 +0000
 Subject: [lm-sensors] Abit AT8 (non-32X) / Winbond 83627EHF
-Message-Id: <45D36281.7030509@vt.edu>
+Message-Id: <20070214203322.3a671339.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45D0A4B2.6030002@vt.edu>
 In-Reply-To: <45D0A4B2.6030002@vt.edu>
@@ -10,40 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rick Wright wrote:
-> 
-> I tested this userspace utility and it seems to be more correct, but 
-> gives a strange warning in the immediate output that uGuru wasn't found 
-> on the motherboard.
+David, Rick,
 
-Yeah, the detect code needs work, hence the result of the detect is 
-ignored and the utility continue as if nothing is wrong :)
+Could you please stop top-posting? It's very hard to follow what's
+going on here.
 
->  The manual and BIOS definitely talk about uGuru 
-> (TM!), though.
-> 
-> Output from openguru2.3.1 is attached.  This appears to be correctly 
-> reading the chip info.  Running several time in a row gave small 
-> fluctuations in fan RPM as one would expect.
-> 
+On Wed, 14 Feb 2007 12:12:37 -0700, David Hubbard wrote:
+> Next week I'm going to be out of town. I'm the one who should be
+> figuring this out, but I'm going to pass the buck (at least until the
+> 26th). To Jean and Rudolf: what's the next step in debugging this one?
 
-Yes, you definitely have an uguru motherboard otherwise openguru would 
-be filling the screen with errors instead of usefull readings.
+Given that the W83627EHF chip doesn't appear to provide temperatures
+either, my guess is that there is a second hardware monitoring chip
+taking care of the fans and temperatures. I suggest that Rick provides
+the output of a recent version of sensors-detect.
 
-> I just joined the list so I will have to search the archives for your 
-> kernel patch & instructions.  (unless you want to resend :) )  Thanks 
-> for your help.
-> 
+Rick, please also report what hardware monitoring values are presented
+in the BIOS setup screen.
 
-I wonder where you want to go next, even if you compile and load the 
-kernel module, most applications still won't see the sensors as 
-libsensors the userspace part of sensors also requires updating and I 
-haven't written a patch for that yet.
-
-Regards,
-
-Hans
-
-
-
+-- 
+Jean Delvare
 
