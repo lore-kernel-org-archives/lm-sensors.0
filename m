@@ -1,40 +1,77 @@
-From: hmh@hmh.eng.br (Henrique de Moraes Holschuh)
-Date: Wed, 28 Feb 2007 14:38:36 +0000
-Subject: [lm-sensors] RFC: conversion of ibm-acpi to hwmon sysfs
-Message-Id: <20070228143836.GC30168@khazad-dum.debian.net>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 14 Feb 2007 20:24:17 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 2.6.21
+Message-Id: <20070214212417.c61d5cfe.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070224182024.GA23865@khazad-dum.debian.net>
-	<20070226172716.b2e956b7.khali@linux-fr.org>
-In-Reply-To: <20070226172716.b2e956b7.khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Mon, 26 Feb 2007, Jean Delvare wrote:
-> > I was going to place all fan attributes in a sysfs group (subdirectory)
-> > named "fan", and all thermal attributes in a sysfs group named "thermal". Is
-> > that acceptable?
-> 
-> No, it's not, as it wouldn't be compatible with what all the other
-> drivers do and what libsensors expects.
+Linus,
 
-Ok, I have fan*_* and temp*_input hanging directly from the device (no
-groups).  However, that device has a lot of other stuff that is not even
-remotely accounted for in hwmon, such as control of video outputs and
-hotkeys, the firmware action beeper, etc.
+Please pull the hwmon subsystem updates for Linux 2.6.21 from:
 
-Does that cause problems for lm-sensors, or would it just ignore the extra
-attributes and groups?
+git://jdelvare.pck.nerim.net/jdelvare-2.6 hwmon-for-linus
 
-I can provide two devices, ibm-acpi.0 and ibm-acpi.1, and have the hwmon
-attributes in only one of them, and register just that one with the hwmon
-class.  Would that be better/safer?
+There is one new hardware monitoring driver (adm1029, for the
+relatively rare Analog Devices ADM1029 chip), support for one new chip
+(Winbond W83627DHG), PWM clock frequency control added to the it87
+driver, and individual cleanups and minor fixes to a dozen drivers.
 
+ Documentation/hwmon/it87            |   10 +
+ Documentation/hwmon/sysfs-interface |   15 +
+ Documentation/hwmon/w83627ehf       |   54 +++-
+ MAINTAINERS                         |    6 
+ drivers/hwmon/Kconfig               |   11 +
+ drivers/hwmon/Makefile              |    1 
+ drivers/hwmon/abituguru.c           |   30 +-
+ drivers/hwmon/adm1026.c             |    1 
+ drivers/hwmon/adm1029.c             |  508 +++++++++++++++++++++++++++++++++++
+ drivers/hwmon/f71805f.c             |   30 --
+ drivers/hwmon/hwmon.c               |    2 
+ drivers/hwmon/it87.c                |   84 ++++--
+ drivers/hwmon/lm70.c                |    2 
+ drivers/hwmon/lm78.c                |    6 
+ drivers/hwmon/lm85.c                |    8 -
+ drivers/hwmon/sis5595.c             |    6 
+ drivers/hwmon/via686a.c             |    5 
+ drivers/hwmon/vt1211.c              |   58 ++--
+ drivers/hwmon/w83627ehf.c           |   54 +++-
+ drivers/hwmon/w83627hf.c            |    5 
+ drivers/hwmon/w83781d.c             |   10 -
+ 21 files changed, 769 insertions(+), 137 deletions(-)
+ create mode 100644 drivers/hwmon/adm1029.c
+
+---------------
+
+Corentin Labbe:
+      hwmon: New driver for the Analog Devices ADM1029
+
+David Brownell:
+      hwmon: Use subsys_initcall
+
+David Hubbard:
+      hwmon/w83627ehf: Add support for the W83627DHG chip
+
+Hans de Goede:
+      hwmon/abituguru: Fix unchecked return status
+
+Jean Delvare:
+      hwmon/it87: Add PWM base frequency control
+      hwmon: Drop unused mutexes in two drivers
+      hwmon: Simplify the locking model of two drivers
+      hwmon: Cleanup a bogus legacy comment
+      hwmon/f71805f: Fix a race condition
+
+Juerg Haefliger:
+      hwmon/vt1211: Add probing of alternate config index port
+
+Ralf Baechle:
+      hwmon/lm70: Make lm70_remove a __devexit function
+
+Thanks,
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Jean Delvare
 
