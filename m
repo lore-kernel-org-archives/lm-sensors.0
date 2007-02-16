@@ -1,26 +1,24 @@
 From: cebbert@redhat.com (Chuck Ebbert)
-Date: Fri, 16 Feb 2007 18:14:33 +0000
+Date: Fri, 16 Feb 2007 19:31:44 +0000
 Subject: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Message-Id: <45D5F489.1010704@redhat.com>
+Message-Id: <45D606A0.5020606@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45D5EA88.7090300@redhat.com> <200702161257.23684.lenb@kernel.org>
-In-Reply-To: <200702161257.23684.lenb@kernel.org>
+References: <45D5EA88.7090300@redhat.com> <p73odntg9ga.fsf@bingen.suse.de>
+In-Reply-To: <p73odntg9ga.fsf@bingen.suse.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Len Brown <lenb@kernel.org>
+To: Andi Kleen <andi@firstfloor.org>
 Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Len Brown wrote:
+Andi Kleen wrote:
+> Chuck Ebbert <cebbert at redhat.com> writes:
 >> So, could ACPI and the k8temp driver be at odds?
 > 
-> 
-> Yes.
+> Yes, there is no locking between ACPI and Linux drivers for register access.
+> e.g. if there is a indexed register both try to access (and temperature
+> sensors tend to use these things) they can race and get corrupted data.
 
-Hmm, now it's showing 130 degrees once every five seconds
-and 54 degrees for the other four.
-
-And while I was typing this on another machine I heard a
-click from the notebook -- it shut down again.
+I blacklisted the k8temp driver and everything looks OK now.
 
 
