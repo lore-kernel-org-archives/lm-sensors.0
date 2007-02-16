@@ -1,30 +1,19 @@
-From: christophe.dr@free.fr (christophe)
-Date: Wed, 28 Feb 2007 22:59:36 +0000
-Subject: [lm-sensors] support for Asus F3Jp laptop
-Message-Id: <200702282359.42532.christophe.dr@free.fr>
+From: bishoptf@gmail.com (Tom Bishop)
+Date: Fri, 16 Feb 2007 21:28:55 +0000
+Subject: [lm-sensors] M2NPV-VM ITE Super-I/O, IT8716F
+Message-Id: <fc808e200702161328r54868ffdm3deed3aa26fc63dd@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <e47808320702280701i14a0ee20vb4745361c55d09bb@mail.gmail.com>
-In-Reply-To: <e47808320702280701i14a0ee20vb4745361c55d09bb@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Le Mercredi 28 F?vrier 2007 23:31, Vaidotas Zemlys a ?crit?:
-> [...]
-
-I had the same problem (solved in a thread some weeks ago) with an asus w1n 
-laptop. The problem was that smbus was hidden.
-You can check if your smbus is hidden by runing : 
-lspci|grep SMBus
-
-
--- 
-christophe
+I have this motherboard and would like to get lm-sensors working.....I have
+read and see there are some kernel patches but what I am trying to find out
+what/how do I need to go about patching the kernel to get this working.  I
+am actually re-compiling my kernel (2.6.17) to change some settings so if
+someone could let me know how the best wat to proceed It would be
+appreciated.. Thanks.
 -------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 191 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070228/0ca06677/attachment.bin 
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070216/db944a25/attachment.html 
