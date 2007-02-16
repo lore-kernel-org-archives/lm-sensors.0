@@ -1,34 +1,33 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Wed, 14 Feb 2007 19:10:24 +0000
-Subject: [lm-sensors] can lm_sensors get data from this pci card
-Message-Id: <4dfa50520702141110o7ccaaf2uf29d1a739d094d37@mail.gmail.com>
+From: david-b@pacbell.net (David Brownell)
+Date: Fri, 16 Feb 2007 00:03:13 +0000
+Subject: [lm-sensors] [patch 2.6.20-git] hwmon should use subsys_init
+Message-Id: <200702151603.13810.david-b@pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <36ba31bd0702140219p73b6359bte98542508356ba0d@mail.gmail.com>
-In-Reply-To: <36ba31bd0702140219p73b6359bte98542508356ba0d@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Nick,
+The hwmon subsystem registers itself excessively late when it's not linked
+as a module.  That can cause problems when multifunction chips, that happen
+to have hwmon capabilities and live outside the hwmon subdirectory, need to
+initialize earlier than on various platforms.
 
-First, here is the actual manufacturer's website:
-http://www.sunbeamtech.com/PRODUCTS/Theta/theta_tp101.htm
+This patch makes the hwmon subsystem code register itself appropriately early:
+as a subsystem, like other subsystems.
 
-Second, no, lm_sensors does not currently have support for the
-sunbeamtech theta tp101.
+Signed-off-by: David Brownell <dbrownell at users.sourceforge.net>
 
-But, if you want to get the relevant hardware documentation from them,
-I'll write a driver for it.
-
-Some companies are reluctant to give out such hardware documentation.
-You may be able to negotiate with them to send me the necessary
-information under an NDA (Non-Disclosure Agreement).
-
-If you aren't interested, or if sunbeamtech is unable to provide the
-necessary documentation before 1 April 2007, then let's not worry
-about it. Most new motherboards have similar hardware monitoring
-capabilities, and are supported by lm_sensors.
-
-David
+Index: osk/drivers/hwmon/hwmon.c
+=================================--- osk.orig/drivers/hwmon/hwmon.c	2006-05-02 19:18:31.000000000 -0700
++++ osk/drivers/hwmon/hwmon.c	2006-05-02 19:18:46.000000000 -0700
+@@ -102,7 +102,7 @@ static void __exit hwmon_exit(void)
+ 	class_destroy(hwmon_class);
+ }
+ 
+-module_init(hwmon_init);
++subsys_initcall(hwmon_init);
+ module_exit(hwmon_exit);
+ 
+ EXPORT_SYMBOL_GPL(hwmon_device_register);
 
