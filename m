@@ -1,32 +1,35 @@
-From: allistar@paradise.net.nz (Allistar)
-Date: Mon, 26 Feb 2007 23:35:04 +0000
-Subject: [lm-sensors] W83627DHG on ASUS P5W-DH Deluxe
-Message-Id: <loom.20070227T003347-493@post.gmane.org>
+From: cebbert@redhat.com (Chuck Ebbert)
+Date: Fri, 16 Feb 2007 17:31:52 +0000
+Subject: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Message-Id: <45D5EA88.7090300@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45D907E1.9040906@gmail.com>
-In-Reply-To: <45D907E1.9040906@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Rudolf Marek <r.marek <at> assembler.cz> writes:
+Recently my notebook has started shutting down with
+these messages in the logs:
 
-> 
-> Hello,
-> 
-> I think you need lm-sensors version 2.10.2
-> 
-> Rudolf
+	ACPI: Critical trip point
+	Critical temperature reached (128 C), shutting down.
 
-Yes, 2.10.2 is needed. I get temperature outputs from "sensors". Does anyone
-know what changes I should make to sensors.conf for this chipset?
+But it didn't seem hot at all to me, so I wrote a script to
+cat /proc/acpi/thermal_zone/THRM/temperature once a second
+and eventually caught this (but no shutdown):
 
-Thanks,
-Allistar.
+temperature:             47 C
+temperature:             47 C
+temperature:             128 C
+temperature:             48 C
+temperature:             47 C
 
+Google found several people reporting problems like mine
+after installing lm-sensors, and when I looked at the list
+of loaded modules I found k8temp and hwmon there. Then I
+realized my problems had started after installing a 2.6.19
+kernel that had the new k8temp driver.
 
-
-
-
+So, could ACPI and the k8temp driver be at odds?
 
