@@ -1,37 +1,63 @@
-From: Thilo.Cestonaro.external@fujitsu-siemens.com (Cestonaro,
-Date: Mon, 05 Feb 2007 08:07:45 +0000
-Subject: [lm-sensors] new patch for FSC Heimdall Chips
-Message-Id: <F7F9B0BE3E9BD449B110D0B1CEF6CAEF04AFC5B8@ABGEX01E.abg.fsc.net>
+From: paul@astropaul.com (Paul Reilly)
+Date: Sat, 17 Feb 2007 17:36:18 +0000
+Subject: [lm-sensors] IPMI sysfs support for 2.6.16.x
+Message-Id: <1171733778.45d73d12edf0a@mail.third-rock.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <F7F9B0BE3E9BD449B110D0B1CEF6CAEF03FA587D@ABGEX01E.abg.fsc.net>
-In-Reply-To: <F7F9B0BE3E9BD449B110D0B1CEF6CAEF03FA587D@ABGEX01E.abg.fsc.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
- Hey,
+Hello,
+I am trying to get IPMI Sensors working on kernel 2.6.16.33.
+I have a PenguinComputing Altus Server with inbuilt BMC, and lm-sensors
+suggests I need bmcsensors. Googling I followed the instructions here:
+http://bmcsensors-26.sourceforge.net/
 
-I've asked for a public spec or one which I can give to you. Let's see if we get one.
+It appears I need to do 2 things:
 
-Ciao Thilo
+(A) patch my kernel for ipmi sysfs support
+(B) patch my kernel again with the IPMI sensors patch
 
------Original Message-----
-From: Rudolf Marek [mailto:r.marek at assembler.cz] 
-Sent: Sunday, February 04, 2007 8:35 PM
-To: Cestonaro, Thilo (external)
-Cc: lm-sensors at lm-sensors.org; Jean Delvare
-Subject: Re: [lm-sensors] new patch for FSC Heimdall Chips
+I would love to just use 2.6.17 and skip (A), but I am required to
+use 2.6.16.33 kernel only. So:
 
-Hello again,
+Doing (A) works so far. The patchfile contains patches for 8 files, and
+worked for all except the file "ipmi_si_intf.c" which failed on several chunks:
 
-Please can you share with me and Khali the chip docs? (if you cant do that in
-public)
+patching file drivers/char/ipmi/ipmi_si_intf.c
+Hunk #1 succeeded at 110 with fuzz 2 (offset -2 lines).
+Hunk #2 succeeded at 196 (offset -5 lines).
+Hunk #3 FAILED at 984.
+Hunk #4 succeeded at 1183 with fuzz 2 (offset 19 lines).
+Hunk #5 succeeded at 1331 with fuzz 2 (offset 59 lines).
+Hunk #6 FAILED at 1915.
+Hunk #7 succeeded at 1929 with fuzz 1 (offset 31 lines).
+Hunk #8 succeeded at 1972 (offset 31 lines).
+Hunk #9 succeeded at 1985 (offset 31 lines).
+Hunk #10 FAILED at 2088.
+Hunk #11 FAILED at 2167.
+Hunk #12 succeeded at 2329 (offset -26 lines).
+Hunk #13 FAILED at 2422.
+Hunk #14 succeeded at 2431 with fuzz 1 (offset -31 lines).
+Hunk #15 succeeded at 2552 with fuzz 1 (offset -36 lines).
+Hunk #16 FAILED at 2574.
+6 out of 16 hunks FAILED -- saving rejects to file
+drivers/char/ipmi/ipmi_si_intf.c.rej
 
-Jean thinks that the driver could be merged with the existing one. (this needs to be judged). If we do that as new driver  we will need to update the driver based on my comments from the 25.11.2006 17:36 and also the patch should be against latest 2.6.20 kernel.
+I tried patching manually, but it was beyond me. For example chunk 3
+refers to static LIST_HEAD(smi_infos);  which is not present in my 2.6.16.33 
+ipmi_si_intf.c
+
+How can I tell which 2.6.16.X  branch these patches are meant for?
+Perhaps they apply on an earlier or later 2.6.16.x series kernel.
+
+Can I just copy the whole drivers/char/ipmi/  dir from a 2.6.17 kernel,
+and put it in my 2.6.16.33 ?
 
 Thanks,
 
-Rudolf
+Paul
+-- 
 
