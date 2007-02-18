@@ -1,35 +1,36 @@
-From: cebbert@redhat.com (Chuck Ebbert)
-Date: Sat, 17 Feb 2007 18:14:50 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 18 Feb 2007 17:32:19 +0000
 Subject: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Message-Id: <45D7461A.2040808@redhat.com>
+Message-Id: <20070218183219.557856dc.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz>
-In-Reply-To: <45D6DDCE.5050803@assembler.cz>
+References: <45D5EA88.7090300@redhat.com>
+	<p73odntg9ga.fsf@bingen.suse.de>
+	<45D606A0.5020606@redhat.com>
+In-Reply-To: <45D606A0.5020606@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rudolf Marek <r.marek@assembler.cz>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Chuck Ebbert <cebbert@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-Rudolf Marek wrote:
-> Hello Chuck,
+Hi Chuck,
+
+On Fri, 16 Feb 2007 14:31:44 -0500, Chuck Ebbert wrote:
+> Andi Kleen wrote:
+> > Chuck Ebbert wrote:
+> > > So, could ACPI and the k8temp driver be at odds?
+> > 
+> > Yes, there is no locking between ACPI and Linux drivers for register access.
+> > e.g. if there is a indexed register both try to access (and temperature
+> > sensors tend to use these things) they can race and get corrupted data.
 > 
-> I'm the author of K8temp. Please can you share with us your DSDT table?
-> (cat /proc/acpi/dsdt > /tmp/dsdt.bin)
-> 
+> I blacklisted the k8temp driver and everything looks OK now.
 
-The system is Compaq Presario V2300 series notebook.  I won't be able
-to get the DSDT until tomorrow or Monday.
+You could blacklist the ACPI "thermal" module instead. If you're
+interested in monitoring your CPU temperature, k8temp is IMHO more
+convenient to use than ACPI, as it interfaces properly with libsensors
+and all hardware monitoring user interfaces.
 
->> So, could ACPI and the k8temp driver be at odds?
-> 
-> Yes because ACPI AML code has no synchronization with Linux drivers. Second
-> reason is that ACPI AML code assign resource regions to itself but with cleared
-> busy flag - so other drivers could bind and might possibly interfere  with ACPI.
-
-Well I had an idea after looking at k8temp -- why not make it default to
-doing only reads from the sensor?  You'd only get information from whatever
-core/sensor combination that ACPI had last used, but it would be safe.
-
-
+-- 
+Jean Delvare
 
