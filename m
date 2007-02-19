@@ -1,36 +1,32 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 04 Feb 2007 16:18:31 +0000
-Subject: [lm-sensors] VT8237S - someone?
-Message-Id: <20070204171831.2bc9bb45.khali@linux-fr.org>
+From: phil_edelbrock@edgedesign.us (Philip Edelbrock)
+Date: Mon, 19 Feb 2007 22:12:46 +0000
+Subject: [lm-sensors] Wii Nunchuck is I2C
+Message-Id: <ABDFDFFE-BF9C-4400-A759-3A778C186FC1@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
 
-On Wed, 31 Jan 2007 00:21:06 +0100, Rudolf Marek wrote:
-> I just spotted new PCI ID for VT8237 bridge. This version is called S.
-> 
-> 1106:3372: VT8237S PCI to ISA Bridge
-> http://kernel.org/pub/linux/kernel/people/bart/pata-2.6/patches/via-ide-update.patch
+I thought it was interesting that the Nintendo Wii 'Nunchuck' ($20  
+USD) was an I2C device that plugs into the Wii-Remote's expansion slot:
 
-This file no longer exists... but I guess the code is in the kernel
-tree by now.
+http://www.wiili.org/index.php/Wiimote#Expansion_Port
 
-I've found this document on the VIA site, which mentions the VT8237S:
-http://www.via.com.tw/en/downloads/presentations/events/vtf2006/VTF2006_HDP-VIA-WeberChuang.pdf
+It could be a fun project for somebody to write some drivers for it.   
+It has some simple things (a couple push buttons and a thumb-stick),  
+as well as a three axis motion sensor.
 
-It looks to me like it's similar to the VT8237A but with SATA 2 support
-(instead of SATA 1.) I guess it's safe to assume that the SMBus part
-will be compatible with the VT8237R and VT8237A. Feel free to add the
-ID to the i2c-viapro driver right away.
+Anyways, I thought I would toss it out there in case somebody was  
+looking for an interesting project.  (I wish I had more time.. ;')
 
-> Someone has it?
 
-I don't, sorry.
-
--- 
-Jean Delvare
-
+Phil
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: smime.p7s
+Type: application/pkcs7-signature
+Size: 2439 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070219/30362db4/attachment.bin 
