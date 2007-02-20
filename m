@@ -1,7 +1,7 @@
-From: thomas536@gmail.com (Thomas Garner)
-Date: Mon, 19 Feb 2007 21:36:25 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 20 Feb 2007 08:02:53 +0000
 Subject: [lm-sensors] mcp61 sensors support
-Message-Id: <9ef864c50702191336o2cd8dabpcba5eeac4959169b@mail.gmail.com>
+Message-Id: <20070220090253.215d8fea.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <9ef864c50702182307q4364770cj53c6dbab30fcd887@mail.gmail.com>
 In-Reply-To: <9ef864c50702182307q4364770cj53c6dbab30fcd887@mail.gmail.com>
@@ -10,46 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Sure.
+Hi Thomas,
 
-[root at ns ~]# lspci -v -s 00:01.1
-00:01.1 SMBus: nVidia Corporation MCP61 SMBus (rev a2)
-        Subsystem: Elitegroup Computer Systems Unknown device 2602
-        Flags: 66MHz, fast devsel, IRQ 11
-        I/O ports at fc00 [sized]
-        I/O ports at 1c00 [sized]
-        I/O ports at f400 [sized]
-        Capabilities: [44] Power Management version 2
+On Mon, 19 Feb 2007 16:36:25 -0500, Thomas Garner wrote:
+> [root at ns ~]# lspci -v -s 00:01.1
+> 00:01.1 SMBus: nVidia Corporation MCP61 SMBus (rev a2)
+>         Subsystem: Elitegroup Computer Systems Unknown device 2602
+>         Flags: 66MHz, fast devsel, IRQ 11
+>         I/O ports at fc00 [sized]
+>         I/O ports at 1c00 [sized]
+>         I/O ports at f400 [sized]
+>         Capabilities: [44] Power Management version 2
 
-On 2/19/07, Jean Delvare <khali at linux-fr.org> wrote:
-> On Mon, 19 Feb 2007 14:39:33 -0500, Thomas Garner wrote:
-> > I would be happy to do any testing for you to get this device into
-> > sensors... Here's the output for you.
-> >
-> > [root at ns ~]# lspci -xxx -s 00:01.1
-> > 00:01.1 SMBus: nVidia Corporation MCP61 SMBus (rev a2)
-> > 00: de 10 eb 03 01 00 b0 00 a2 00 05 0c 00 00 80 00
-> > 10: 01 fc 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > 20: 01 1c 00 00 01 f4 00 00 00 00 00 00 19 10 02 26
-> > 30: 00 00 00 00 44 00 00 00 00 00 00 00 0b 01 00 00
-> > 40: 19 10 02 26 01 00 02 c0 00 00 00 00 00 00 00 00
-> > 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > 60: 01 10 00 00 01 14 00 00 01 18 00 00 00 00 00 00
-> > 70: 00 00 00 00 00 00 00 00 00 00 fe fe 01 00 00 00
-> > 80: 00 10 fe fe 00 00 00 00 00 00 00 00 00 00 00 00
-> > 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > c0: d4 30 80 01 01 00 00 00 00 00 00 00 00 00 00 00
-> > d0: 40 00 40 01 10 00 00 00 05 00 00 00 00 00 00 00
-> > e0: 88 10 04 00 04 40 00 07 80 12 04 00 41 44 44 11
-> > f0: 02 ff 1e bf 01 00 00 80 10 00 00 00 00 00 00 00
->
-> Hmm, it looks a bit different than the older models. Can you please
-> also provide the output of:
-> lspci -v -s 00:01.1
->
-> --
-> Jean Delvare
->
+Hmmm, OK. If the MCP61 is similar to the previous models, the two SMBus
+controllers correspond to the 2nd and 3rd I/O port ranges. However I am
+surprised because these used to always live back-to-back. In your case
+the two addresses are completely different, which makes me suspect that
+something is different.
+
+Either way, if you want to try, we can instruct the i2c-nforce2 driver
+to handle your chip as a supported one and see what happens. Here's the
+procedure (as root):
+
+modprobe i2c-nforce2
+modprobe i2c-dev
+echo "10DE 03EB" /sys/bus/pci/drivers/nForce2_smbus/new_id
+(check the logs)
+i2cdetect -l
+(you should see the two nVidia SMBus listed)
+i2cdetect 0
+i2cdetect 1
+(assuming the nVidia SMBus are bus numbers 0 and 1)
+
+Please report your results. Beware that bad things might happen if it
+happens that the MCP61 is not actually compatible with the older chips.
+Hopefully nothing a reboot won't fix, though.
+
+-- 
+Jean Delvare
 
