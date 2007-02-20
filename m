@@ -1,23 +1,49 @@
-From: andi@firstfloor.org (Andi Kleen)
-Date: Sun, 18 Feb 2007 23:22:49 +0000
+From: cebbert@redhat.com (Chuck Ebbert)
+Date: Tue, 20 Feb 2007 15:08:26 +0000
 Subject: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Message-Id: <20070218232249.GA11730@one.firstfloor.org>
+Message-Id: <45DB0EEA.2010205@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45D5EA88.7090300@redhat.com> <p73odntg9ga.fsf@bingen.suse.de> <45D606A0.5020606@redhat.com> <20070218183219.557856dc.khali@linux-fr.org>
-In-Reply-To: <20070218183219.557856dc.khali@linux-fr.org>
+References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <45D8D6AE.3000204@assembler.cz>
+In-Reply-To: <45D8D6AE.3000204@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Chuck Ebbert <cebbert@redhat.com>, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Rudolf Marek <r.marek@assembler.cz>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
 
-> You could blacklist the ACPI "thermal" module instead. If you're
-> interested in monitoring your CPU temperature, k8temp is IMHO more
-> convenient to use than ACPI, as it interfaces properly with libsensors
-> and all hardware monitoring user interfaces.
+Rudolf Marek wrote:
+> Hello all,
+> 
+> I got the DSDT from chuck and it seems there is nothing interesting - no
+> declaration of PCI_config for the registers. If someone wants to check it I can
+> send him the DSDT.
+> 
+> _TMP looks like this:
+> 
+>  Store (\_SB.PCI0.LPC0.EC0.RTMP, Local0)
+>                     Store ("Current temp is: ", Debug)
+> 
+>                     Store (Local0, Debug)
+> 
+>                     Store (Local0, \_SB.CM25)
+> 
+>                     Return (Add (0x0AAC, Multiply (Local0, 0x0A)))
+> 
+> This looks quite OK LPC0.EC0 is embedded controller IO RAM at 0x62. Nothing
+> special. I guess some SMM interrupt is reading the the PCI regs and sends it to EC.
 
-That would be somewhat dangerous because ACPI thermal does more than
-just displaying the temperature. Especially laptops often need it.
+I blacklisted the k8temp driver (and the out-of-tree k8_edac driver
+in Fedora) and the temps were still volatile, so that's not causing
+it. Since then I've upgraded the system BIOS from F.06 to F.27 and
+the problems _may_ have gone away. My own custom 2.6.19 kernel has
+never been a problem, so I'm thinking it's one of these drivers
+loaded by Fedora that I never even compile:
 
--Andi
+	i2c_core
+	i2c_ec
+	i2c_piix4
+	asus_acpi (on a Compaq???)
+	sbs
+
+
 
