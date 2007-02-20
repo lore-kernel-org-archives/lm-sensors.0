@@ -1,49 +1,39 @@
-From: cebbert@redhat.com (Chuck Ebbert)
-Date: Tue, 20 Feb 2007 15:08:26 +0000
+From: mjg59@srcf.ucam.org (Matthew Garrett)
+Date: Tue, 20 Feb 2007 15:18:13 +0000
 Subject: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Message-Id: <45DB0EEA.2010205@redhat.com>
+Message-Id: <20070220151813.GA6581@srcf.ucam.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <45D8D6AE.3000204@assembler.cz>
-In-Reply-To: <45D8D6AE.3000204@assembler.cz>
+References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <20070218183805.5a4fd813.khali@linux-fr.org>
+In-Reply-To: <20070218183805.5a4fd813.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rudolf Marek <r.marek@assembler.cz>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-Rudolf Marek wrote:
-> Hello all,
-> 
-> I got the DSDT from chuck and it seems there is nothing interesting - no
-> declaration of PCI_config for the registers. If someone wants to check it I can
-> send him the DSDT.
-> 
-> _TMP looks like this:
-> 
->  Store (\_SB.PCI0.LPC0.EC0.RTMP, Local0)
->                     Store ("Current temp is: ", Debug)
-> 
->                     Store (Local0, Debug)
-> 
->                     Store (Local0, \_SB.CM25)
-> 
->                     Return (Add (0x0AAC, Multiply (Local0, 0x0A)))
-> 
-> This looks quite OK LPC0.EC0 is embedded controller IO RAM at 0x62. Nothing
-> special. I guess some SMM interrupt is reading the the PCI regs and sends it to EC.
+On Sun, Feb 18, 2007 at 06:38:05PM +0100, Jean Delvare wrote:
 
-I blacklisted the k8temp driver (and the out-of-tree k8_edac driver
-in Fedora) and the temps were still volatile, so that's not causing
-it. Since then I've upgraded the system BIOS from F.06 to F.27 and
-the problems _may_ have gone away. My own custom 2.6.19 kernel has
-never been a problem, so I'm thinking it's one of these drivers
-loaded by Fedora that I never even compile:
+> ACPI is broken here, not k8temp, so let's fix ACPI instead. ACPI
+> doesn't conflict with only k8temp, but with virtually all hardware
+> monitoring drivers, all I2C/SMBus drivers, and probably other types of
+> drivers too. We just can't restrict or blacklist all these drivers
+> because ACPI misbehaves.
 
-	i2c_core
-	i2c_ec
-	i2c_piix4
-	asus_acpi (on a Compaq???)
-	sbs
+No, the simple fact of the matter is that if you're running on an ACPI 
+platform you need to change some of your assumptions. ACPI owns the 
+hardware. The OS doesn't. To an extent this has always been true on 
+laptops and servers /anyway/ - the BIOS is free to have a wide variety 
+of SMM insanity that invalidates basic assumptions like "If I hold this 
+lock, nothing can interrupt me between this write and this read". That's 
+simply not true.
 
+So this isn't about fixing ACPI. It's about trying to find a mechanism 
+that allows ACPI and raw hardware drivers to coexist, which is made 
+somewhat harder by it not being a situation that the platform designers 
+have considered in the slightest. The suggested low-level driver for 
+io-port arbitration would certainly be a step forward in making this 
+work better.
 
+-- 
+Matthew Garrett | mjg59 at srcf.ucam.org
 
