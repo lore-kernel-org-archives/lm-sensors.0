@@ -1,48 +1,85 @@
-From: krzysztof.h1@wp.pl (Krzysztof Helt)
-Date: Fri, 23 Feb 2007 07:16:28 +0000
-Subject: [lm-sensors] [PATCH] THMC50/ADM1022 support for 2.6 kernel
-Message-Id: <45de94cc79ae0@wp.pl>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 21 Feb 2007 08:29:08 +0000
+Subject: [lm-sensors] [PATCH] hwmon/smsc47m192: Document the LPC47M292 as
+Message-Id: <20070221092908.b8465ef0.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This patch adds support for Texas Instruments THMC50 and its
-clone Analog Devices ADM1022. It support temperature sensors and
-fan control on the chip. The ADM1022 chip works only in 2 remote
- temperature sensors mode.
+Subject: hwmon/smsc47m192: Document the LPC47M292 as supported
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1 at wp.pl>
+The new SMSC LPC47M292 Super-I/O chip includes a hardware monitoring
+block which is compatible with those of the LPC47M192.
 
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
+ Documentation/hwmon/smsc47m192 |    7 ++++---
+ drivers/hwmon/Kconfig          |    3 ++-
+ drivers/hwmon/smsc47m192.c     |    4 ++--
+ 3 files changed, 8 insertions(+), 6 deletions(-)
 
-The THMC50 driver is the same as the lmsensor driver with added
-fan control and fix that enables the fan (the fan off signal is
-always set in the original driver).
+--- linux-2.6.21-rc1.orig/Documentation/hwmon/smsc47m192	2007-02-04 19:44:54.000000000 +0100
++++ linux-2.6.21-rc1/Documentation/hwmon/smsc47m192	2007-02-21 08:50:14.000000000 +0100
+@@ -2,12 +2,13 @@ Kernel driver smsc47m192
+ ============
+ 
+ Supported chips:
+-  * SMSC LPC47M192 and LPC47M997
++  * SMSC LPC47M192, LPC47M15x, LPC47M292 and LPC47M997
+     Prefix: 'smsc47m192'
+     Addresses scanned: I2C 0x2c - 0x2d
+     Datasheet: The datasheet for LPC47M192 is publicly available from
+                http://www.smsc.com/
+-               The LPC47M997 is compatible for hardware monitoring.
++               The LPC47M15x, LPC47M292 and LPC47M997 are compatible for
++               hardware monitoring.
+ 
+ Author: Hartmut Rick <linux at rick.claranet.de>
+         Special thanks to Jean Delvare for careful checking
+@@ -18,7 +19,7 @@ Description
+ -----------
+ 
+ This driver implements support for the hardware sensor capabilities
+-of the SMSC LPC47M192 and LPC47M997 Super-I/O chips.
++of the SMSC LPC47M192 and compatible Super-I/O chips.
+ 
+ These chips support 3 temperature channels and 8 voltage inputs
+ as well as CPU voltage VID input.
+--- linux-2.6.21-rc1.orig/drivers/hwmon/Kconfig	2007-02-21 08:36:07.000000000 +0100
++++ linux-2.6.21-rc1/drivers/hwmon/Kconfig	2007-02-21 08:48:55.000000000 +0100
+@@ -437,7 +437,8 @@ config SENSORS_SMSC47M192
+ 	select HWMON_VID
+ 	help
+ 	  If you say yes here you get support for the temperature and
+-	  voltage sensors of the SMSC LPC47M192 and LPC47M997 chips.
++	  voltage sensors of the SMSC LPC47M192, LPC47M15x, LPC47M292
++	  and LPC47M997 chips.
+ 
+ 	  The fan monitoring and control capabilities of these chips
+ 	  are supported by another driver, select
+--- linux-2.6.21-rc1.orig/drivers/hwmon/smsc47m192.c	2007-02-09 09:17:47.000000000 +0100
++++ linux-2.6.21-rc1/drivers/hwmon/smsc47m192.c	2007-02-21 08:43:49.000000000 +0100
+@@ -1,6 +1,6 @@
+ /*
+     smsc47m192.c - Support for hardware monitoring block of
+-                   SMSC LPC47M192 and LPC47M997 Super I/O chips
++                   SMSC LPC47M192 and compatible Super I/O chips
+ 
+     Copyright (C) 2006  Hartmut Rick <linux at rick.claranet.de>
+ 
+@@ -518,7 +518,7 @@ static int smsc47m192_detect(struct i2c_
+ 		 && (i2c_smbus_read_byte_data(client,
+ 				SMSC47M192_REG_VID4) & 0xfe) = 0x80) {
+ 			dev_info(&adapter->dev,
+-				 "found SMSC47M192 or SMSC47M997, "
++				 "found SMSC47M192 or compatible, "
+ 				 "version 2, stepping A%d\n", version & 0x0f);
+ 		} else {
+ 			dev_dbg(&adapter->dev,
 
-The ADM1022 driver works only with 2 remote sensors. Otherwise,
-the fans are forced to full speed on the Compaq AP550. The
-ADM1022 driver has no way currently to switch the ADM1022 sensor
-into the THMC50 mode (with only 1 remote temperature sensor).  
 
-I may extend functionality of this driver later (as time and kids
-allow).
+-- 
+Jean Delvare
 
-Regards,
-Krzysztof
-PS. This driver was diffed against 2.6.20 and do not apply
-cleanly to 2.6.21-rc1. It applies correctly, but there are some
-messages about line numbers.
-
-----------------------------------------------------
-Mistrzostwa Polski w ?lizgu Na Bele Czym 2007, 
-tego jeszcze nie widzia?e? :) 
-http://klik.wp.pl/?adr=http%3A%2F%2Fadv.reklama.wp.pl%2Fas%2Fd76.html&sid28
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: thmc50.patch
-Type: text/x-patch
-Size: 15606 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070223/5ca06dba/attachment-0001.bin 
