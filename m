@@ -1,62 +1,39 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 21 Feb 2007 15:07:17 +0000
+From: cebbert@redhat.com (Chuck Ebbert)
+Date: Wed, 21 Feb 2007 16:03:07 +0000
 Subject: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Message-Id: <20070221160717.d5808ac4.khali@linux-fr.org>
+Message-Id: <45DC6D3B.80500@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45D5EA88.7090300@redhat.com>
-	<45D6DDCE.5050803@assembler.cz>
-	<45D7461A.2040808@redhat.com>
-	<20070218183805.5a4fd813.khali@linux-fr.org>
-	<20070220151813.GA6581@srcf.ucam.org>
-In-Reply-To: <20070220151813.GA6581@srcf.ucam.org>
+References: <45D5EA88.7090300@redhat.com>	<45D6DDCE.5050803@assembler.cz>	<45D7461A.2040808@redhat.com>	<45D8D6AE.3000204@assembler.cz>	<45DB0EEA.2010205@redhat.com> <20070221155444.99386b98.khali@linux-fr.org>
+In-Reply-To: <20070221155444.99386b98.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-Hi Matthew,
+Jean Delvare wrote:
+> Can you try to load the i2c-dev driver, then run the following commands
+> and report the results:
+> $ i2cdetect -l
+> For each bus listed:
+> $ i2cdetect N
 
-On Tue, 20 Feb 2007 15:18:13 +0000, Matthew Garrett wrote:
-> On Sun, Feb 18, 2007 at 06:38:05PM +0100, Jean Delvare wrote:
-> 
-> > ACPI is broken here, not k8temp, so let's fix ACPI instead. ACPI
-> > doesn't conflict with only k8temp, but with virtually all hardware
-> > monitoring drivers, all I2C/SMBus drivers, and probably other types of
-> > drivers too. We just can't restrict or blacklist all these drivers
-> > because ACPI misbehaves.
-> 
-> No, the simple fact of the matter is that if you're running on an ACPI 
-> platform you need to change some of your assumptions. ACPI owns the 
-> hardware. The OS doesn't. To an extent this has always been true on 
+FWIW it's really an ATIIXP chipset, but supposedly PIIX4 compatible:
 
-The Linux device driver model assumes that it owns the hardware. If
-this is not true, then should we prevent any non-ACPI driver from
-loading as soon as ACPI is enabled?
-
-> laptops and servers /anyway/ - the BIOS is free to have a wide variety 
-> of SMM insanity that invalidates basic assumptions like "If I hold this 
-> lock, nothing can interrupt me between this write and this read". That's 
-> simply not true.
-
-Yeah, this is correct, and just as unfortunate. It's amazingly sad that
-hardware vendors as a whole are still repeating the same design
-mistakes over and over again :(
-
-> So this isn't about fixing ACPI. It's about trying to find a mechanism 
-> that allows ACPI and raw hardware drivers to coexist, which is made 
-
-Exactly what I said, you're only rewording it to make it sound nicer ;)
-
-> somewhat harder by it not being a situation that the platform designers 
-> have considered in the slightest. The suggested low-level driver for 
-> io-port arbitration would certainly be a step forward in making this 
-> work better.
-
-I sure hope we can find a solution, by as your said yourself, nothing
-is going to prevent SMM and similar oddities from messing up the drivers
-assumptions.
-
--- 
-Jean Delvare
+# i2cdetect -l
+i2c-0   smbus           SMBus PIIX4 adapter at 8400             Non-I2C SMBus adapter
+# i2cdetect 0
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-0.
+I will probe address range 0x03-0x77.
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
+10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+50: 50 51 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
+70: XX XX XX XX XX XX XX XX
 
