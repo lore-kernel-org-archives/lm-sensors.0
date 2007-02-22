@@ -1,55 +1,49 @@
-From: davej@redhat.com (Dave Jones)
-Date: Wed, 21 Feb 2007 20:19:44 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 22 Feb 2007 16:37:11 +0000
 Subject: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Message-Id: <20070221201944.GD13794@redhat.com>
+Message-Id: <20070222173711.9364695b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <45D8D6AE.3000204@assembler.cz> <45DB0EEA.2010205@redhat.com> <20070220191142.GE16614@redhat.com> <20070221171737.b6592104.khali@linux-fr.org> <20070221173740.GD19851@redhat.com>
-In-Reply-To: <20070221173740.GD19851@redhat.com>
+References: <45D5EA88.7090300@redhat.com>
+	<45D6DDCE.5050803@assembler.cz>
+	<45D7461A.2040808@redhat.com>
+	<45D8D6AE.3000204@assembler.cz>
+	<45DB0EEA.2010205@redhat.com>
+	<20070220191142.GE16614@redhat.com>
+	<20070221171737.b6592104.khali@linux-fr.org>
+	<20070221173740.GD19851@redhat.com>
+	<20070221201944.GD13794@redhat.com>
+In-Reply-To: <20070221201944.GD13794@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Chuck Ebbert <cebbert@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, notting@redhat.com
+To: Dave Jones <davej@redhat.com>
+Cc: Chuck Ebbert <cebbert@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, notting@redhat.com
 
-On Wed, Feb 21, 2007 at 12:37:40PM -0500, Dave Jones wrote:
- > On Wed, Feb 21, 2007 at 05:17:37PM +0100, Jean Delvare wrote:
- >  > On Tue, 20 Feb 2007 14:11:42 -0500, Dave Jones wrote:
- >  > > On Tue, Feb 20, 2007 at 10:08:26AM -0500, Chuck Ebbert wrote:
- >  > >  
- >  > >  > 	i2c_core
- >  > >  > 	i2c_ec
- >  > >  > 	i2c_piix4
- >  > >  > 	asus_acpi (on a Compaq???)
- >  > >  > 	sbs
- >  > > 
- >  > > Something is pulling in asus_acpi as a dependancy. I've never
- >  > > figured out what the cause is.  For a long time I was thinking
- >  > > that we had an explicit modprobe for it in an initscript, but
- >  > > grepping for it in /etc turns up zip.
- >  > 
- >  > How could it be, given that asus_acpi doesn't export any symbol?
- >  
- > If I knew I'd have fixed it by now.
+On Wed, 21 Feb 2007 15:19:44 -0500, Dave Jones wrote:
+> Ah, Fedora has this horror in its initscripts (which explains why I missed
+> it in my grep)..
+> 
+> # Initialize ACPI bits
+> if [ -d /proc/acpi ]; then
+>     for module in /lib/modules/$unamer/kernel/drivers/acpi/* ; do
+>         module=${module##*/}
+>         module=${module%.ko}
+>         modprobe $module >/dev/null 2>&1
+>     done
+> fi
 
-Ah, Fedora has this horror in its initscripts (which explains why I missed
-it in my grep)..
+Ah, this also explains why the i2c_ec and sbs drivers were loaded on
+Chuck's system, although they were not needed.
 
-# Initialize ACPI bits
-if [ -d /proc/acpi ]; then
-    for module in /lib/modules/$unamer/kernel/drivers/acpi/* ; do
-        module=${module##*/}
-        module=${module%.ko}
-        modprobe $module >/dev/null 2>&1
-    done
-fi
+> This is there because there's no clean way for userspace to know whether
+> to load the system specific stuff right now.   Bill Nottingham pointed
+> out that we could add a /sys/class/dmi/modalias and appropriate MODULE_DMI
+> tags to the various modules like asus_acpi to make udev autoload them.
 
-
-This is there because there's no clean way for userspace to know whether
-to load the system specific stuff right now.   Bill Nottingham pointed
-out that we could add a /sys/class/dmi/modalias and appropriate MODULE_DMI
-tags to the various modules like asus_acpi to make udev autoload them.
-
-		Dave
+Something similiar should be doable for i2c_ec, as it's only useful if a
+given ACPI object is present. sbs, in turn, is only useful if i2c_ec is
+loaded.
 
 -- 
-http://www.codemonkey.org.uk
+Jean Delvare
 
