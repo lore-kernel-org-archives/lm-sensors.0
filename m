@@ -1,74 +1,89 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 27 Feb 2007 17:28:58 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Only call vid_which_vrm() when needed
-Message-Id: <20070227182858.2ed88b4d.khali@linux-fr.org>
+Date: Fri, 23 Feb 2007 13:16:57 +0000
+Subject: [lm-sensors] [PATCH] hwmon/smsc47m1: Get rid of a useless mutex
+Message-Id: <20070223141657.3dc5b9b4.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Some hardware monitoring drivers create the VID/VRM interface files
-conditionally depending on the chip model or configuration. We should
-only call vid_which_vrm() when we are actually going to create the
-files. Not only it is more logical and efficient that way, but it also
-prevents printing unnecessary warnings such as the one reported here:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-February/018954.html
+The smsc47m1 driver uses a mutex to protect the accesses to the
+hardware registers. It really doesn't need any protection, as the
+register space is flat. Get rid of that mutex for a smaller and
+faster driver.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- drivers/hwmon/lm87.c     |    2 +-
- drivers/hwmon/w83627hf.c |    9 +++++----
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/hwmon/smsc47m1.c |   33 ++++++++++-----------------------
+ 1 file changed, 10 insertions(+), 23 deletions(-)
 
---- linux-2.6.21-rc1.orig/drivers/hwmon/w83627hf.c	2007-02-25 15:53:06.000000000 +0100
-+++ linux-2.6.21-rc1/drivers/hwmon/w83627hf.c	2007-02-27 17:52:49.000000000 +0100
-@@ -1181,12 +1181,16 @@ static int w83627hf_detect(struct i2c_ad
- 					&dev_attr_temp3_type)))
- 			goto ERROR4;
+--- linux-2.6.21-rc1.orig/drivers/hwmon/smsc47m1.c	2007-02-23 14:04:42.000000000 +0100
++++ linux-2.6.21-rc1/drivers/hwmon/smsc47m1.c	2007-02-23 14:11:52.000000000 +0100
+@@ -116,7 +116,6 @@ struct smsc47m1_data {
+ 	struct i2c_client client;
+ 	enum chips type;
+ 	struct class_device *class_dev;
+-	struct mutex lock;
  
--	if (kind != w83697hf && data->vid != 0xff)
-+	if (kind != w83697hf && data->vid != 0xff) {
-+		/* Convert VID to voltage based on VRM */
-+		data->vrm = vid_which_vrm();
-+
- 		if ((err = device_create_file(&new_client->dev,
- 					&dev_attr_cpu0_vid))
- 		 || (err = device_create_file(&new_client->dev,
- 					&dev_attr_vrm)))
- 			goto ERROR4;
-+	}
+ 	struct mutex update_lock;
+ 	unsigned long last_updated;	/* In jiffies */
+@@ -131,13 +130,19 @@ struct smsc47m1_data {
  
- 	if (kind = w83627thf || kind = w83637hf || kind = w83687thf)
- 		if ((err = device_create_file(&new_client->dev,
-@@ -1420,9 +1424,6 @@ static void w83627hf_init_client(struct 
- 			w83627hf_read_value(client, W83627THF_REG_VRM_OVT_CFG);
- 	}
- 
--	/* Convert VID to voltage based on VRM */
--	data->vrm = vid_which_vrm();
+ static int smsc47m1_detect(struct i2c_adapter *adapter);
+ static int smsc47m1_detach_client(struct i2c_client *client);
 -
- 	tmp = w83627hf_read_value(client, W83781D_REG_SCFG1);
- 	for (i = 1; i <= 3; i++) {
- 		if (!(tmp & BIT_SCFG1[i - 1])) {
---- linux-2.6.21-rc1.orig/drivers/hwmon/lm87.c	2007-02-09 09:17:47.000000000 +0100
-+++ linux-2.6.21-rc1/drivers/hwmon/lm87.c	2007-02-27 18:10:10.000000000 +0100
-@@ -747,6 +747,7 @@ static int lm87_detect(struct i2c_adapte
- 	}
+-static int smsc47m1_read_value(struct i2c_client *client, u8 reg);
+-static void smsc47m1_write_value(struct i2c_client *client, u8 reg, u8 value);
+-
+ static struct smsc47m1_data *smsc47m1_update_device(struct device *dev,
+ 		int init);
  
- 	if (!(data->channel & CHAN_NO_VID)) {
-+		data->vrm = vid_which_vrm();
- 		if ((err = device_create_file(&new_client->dev,
- 					&dev_attr_cpu0_vid))
- 		 || (err = device_create_file(&new_client->dev,
-@@ -779,7 +780,6 @@ static void lm87_init_client(struct i2c_
- 	u8 config;
++static inline int smsc47m1_read_value(struct i2c_client *client, u8 reg)
++{
++	return inb_p(client->addr + reg);
++}
++
++static inline void smsc47m1_write_value(struct i2c_client *client, u8 reg,
++		u8 value)
++{
++	outb_p(value, client->addr + reg);
++}
  
- 	data->channel = lm87_read_value(client, LM87_REG_CHANNEL_MODE);
--	data->vrm = vid_which_vrm();
+ static struct i2c_driver smsc47m1_driver = {
+ 	.driver = {
+@@ -477,7 +482,6 @@ static int smsc47m1_detect(struct i2c_ad
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+ 	new_client->addr = address;
+-	mutex_init(&data->lock);
+ 	new_client->adapter = adapter;
+ 	new_client->driver = &smsc47m1_driver;
+ 	new_client->flags = 0;
+@@ -633,23 +637,6 @@ static int smsc47m1_detach_client(struct
+ 	return 0;
+ }
  
- 	config = lm87_read_value(client, LM87_REG_CONFIG);
- 	if (!(config & 0x01)) {
+-static int smsc47m1_read_value(struct i2c_client *client, u8 reg)
+-{
+-	int res;
+-
+-	mutex_lock(&((struct smsc47m1_data *) i2c_get_clientdata(client))->lock);
+-	res = inb_p(client->addr + reg);
+-	mutex_unlock(&((struct smsc47m1_data *) i2c_get_clientdata(client))->lock);
+-	return res;
+-}
+-
+-static void smsc47m1_write_value(struct i2c_client *client, u8 reg, u8 value)
+-{
+-	mutex_lock(&((struct smsc47m1_data *) i2c_get_clientdata(client))->lock);
+-	outb_p(value, client->addr + reg);
+-	mutex_unlock(&((struct smsc47m1_data *) i2c_get_clientdata(client))->lock);
+-}
+-
+ static struct smsc47m1_data *smsc47m1_update_device(struct device *dev,
+ 		int init)
+ {
 
 
 -- 
