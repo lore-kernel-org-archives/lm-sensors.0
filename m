@@ -1,112 +1,48 @@
-From: dbailey@digium.com (Doug Bailey)
-Date: Thu, 08 Feb 2007 13:29:38 +0000
-Subject: [lm-sensors] Fwd:  ADT75 sensor
-Message-Id: <12356743.60251170941378136.JavaMail.root@jupiler.digium.com>
+From: krzysztof.h1@wp.pl (Krzysztof Helt)
+Date: Fri, 23 Feb 2007 07:16:28 +0000
+Subject: [lm-sensors] [PATCH] THMC50/ADM1022 support for 2.6 kernel
+Message-Id: <45de94cc79ae0@wp.pl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I have not yet ported i2cdump to my embedded appliance.  The problems reside in the detection 
-portion of the the lm75 driver in comparing the valid registers with other registers.  
+This patch adds support for Texas Instruments THMC50 and its
+clone Analog Devices ADM1022. It support temperature sensors and
+fan control on the chip. The ADM1022 chip works only in 2 remote
+ temperature sensors mode.
 
+Signed-off-by: Krzysztof Helt <krzysztof.h1 at wp.pl>
 
-               int cur, conf, hyst, os, i;
+---
 
-                /* Unused addresses */
-                cur = i2c_smbus_read_word_data(new_client, 0);
-                conf = i2c_smbus_read_byte_data(new_client, 1);
-                hyst = i2c_smbus_read_word_data(new_client, 2);
-                if (i2c_smbus_read_word_data(new_client, 4) != hyst
-                 || i2c_smbus_read_word_data(new_client, 5) != hyst
-                 || i2c_smbus_read_word_data(new_client, 6) != hyst
-                 || i2c_smbus_read_word_data(new_client, 7) != hyst)
-                        goto exit_free;
-                os = i2c_smbus_read_word_data(new_client, 3);
-                if (i2c_smbus_read_word_data(new_client, 4) != os
-                 || i2c_smbus_read_word_data(new_client, 5) != os
-                 || i2c_smbus_read_word_data(new_client, 6) != os
-                 || i2c_smbus_read_word_data(new_client, 7) != os)
-                        goto exit_free;
+The THMC50 driver is the same as the lmsensor driver with added
+fan control and fix that enables the fan (the fan off signal is
+always set in the original driver).
 
-                /* Unused bits */
-                if (conf & 0xe0)
-                        goto exit_free;
+The ADM1022 driver works only with 2 remote sensors. Otherwise,
+the fans are forced to full speed on the Compaq AP550. The
+ADM1022 driver has no way currently to switch the ADM1022 sensor
+into the THMC50 mode (with only 1 remote temperature sensor).  
 
-                /* Addresses cycling */
-                for (i = 8; i < 0xff; i += 8)
-                        if (i2c_smbus_read_byte_data(new_client, i + 1) != conf
-                         || i2c_smbus_read_word_data(new_client, i + 2) != hyst
-                         || i2c_smbus_read_word_data(new_client, i + 3) != os)
-                                goto exit_free;
+I may extend functionality of this driver later (as time and kids
+allow).
 
-Even when I remove the one-shot register from the compare (Register at address 4) the comparisons still fail. 
-While the identification process for the lm75 is pretty lame, the adt75 is worse.  (No id register, etc.)
+Regards,
+Krzysztof
+PS. This driver was diffed against 2.6.20 and do not apply
+cleanly to 2.6.21-rc1. It applies correctly, but there are some
+messages about line numbers.
 
-I've reevaluated what you have said and have modified the lm75 driver to reduce the detect checking to a minimum.  
-(I make sure the reserved bit in the config register is zero.)  Given what the intent for the device I am using, 
-the lm75 driver's +/- .5 deg C temperature is fine.  I can do without the one shot for now.  
-
-If I need it, I will probably access it via the i2c ioctl calls as it would be a non-standard application anyway.
-
-Doug 
-
-
-
------ Forwarded Message -----
-From: Jean Delvare <khali at linux-fr.org>
-To: Doug Bailey <dbailey at digium.com>
-Cc: lm-sensors at lm-sensors.org
-Sent: Tuesday, February 6, 2007 9:12:04 AM GMT-0600 US/Central
-Subject: Re: [lm-sensors] ADT75 sensor
-
-Hi Doug,
-
-On Mon, 5 Feb 2007 13:50:37 -0600 (CST), Doug Bailey wrote:
-> I am writing an interface for a Analog Devices ADT75 using
-> a uClinux distribution for the blackfin processor.  I want
-> to use the HWMON interface to do this.  
-> 
-> The distribution does not specifically have an ADT75 sensor
-> but does have a LM75 sensor. Unfortunately, the addition of
-> the one-shot register in the ADT75 causes the LM75_detect
-> portion of the driver to fail.  In addition the temp
-> precision is different on the ADT75 from the LM75.
-
-Can you please provide the output of i2cdump for your ADT75 chip in
-both byte and word modes?
-
-> I don't see on your web site that anyone has already
-> generated an ADT75 driver. Therefore I made the relatively
-> simple modifications to make the LM75 into an ADT75.  In
-> doing this I have run into a couple of issues: 
-> 
-> - My problems come in that I do not have an i2c ID for the
-> driver (There is no I2C_DRIVERID_ADT75.)  Is there a way of
-> getting one of these defined?
-
-You really don't want to write a new driver. Insead you want to add
-support for the ADT75 to the lm75 driver, so you don't need any driver
-id. That way we avoid code duplication.
-
-> - I would like to access a couple of the ADT75 registers through
-> sysfs that currently do not have defined interfaces. (Most notably
-> the one shot register and the fault queue registers.)  Is there
-> some guideline on how these should be defined?
-
-Using the one-shot mode doesn't fit in the hwmon subsystem very well.
-What interface would you like to offer exactly? My fear is that people
-will start reporting to us that "it doesn't work" because applications
-expect the sensor values to be updated in real time. Also, continuous
-monitoring allows the alarm output to be triggered even if no
-application is reading the value.
-
-As for the fault queue, we do not have a standard for it, I tend to
-believe that the BIOS should be setting it if needed. I've never seen
-it useful in practice.
-
--- 
-Jean Delvare
-
-
+----------------------------------------------------
+Mistrzostwa Polski w ?lizgu Na Bele Czym 2007, 
+tego jeszcze nie widzia?e? :) 
+http://klik.wp.pl/?adr=http%3A%2F%2Fadv.reklama.wp.pl%2Fas%2Fd76.html&sid28
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: thmc50.patch
+Type: text/x-patch
+Size: 15606 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070223/5ca06dba/attachment-0001.bin 
