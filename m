@@ -1,72 +1,91 @@
-From: den_tichel@zonnet.nl (Jan van Tiggelen)
-Date: Tue, 27 Feb 2007 22:04:11 +0000
-Subject: [lm-sensors] SMSC47m1 Error inserting and Not configured - will not
-Message-Id: <20070227220412.7D6195920@mta-fe.casema.nl>
+From: hmh@hmh.eng.br (Henrique de Moraes Holschuh)
+Date: Sat, 24 Feb 2007 18:20:24 +0000
+Subject: [lm-sensors] RFC: conversion of ibm-acpi to hwmon sysfs
+Message-Id: <20070224182024.GA23865@khazad-dum.debian.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-The issue's been bugging me for a few days, but nevertheless I hope this is
-an issue which can be sorted out. So here goes with the details:
+I am working on a conversion of ibm-acpi to sysfs, and in the process I am
+trying to do away with every non-generic interface I can.  At least two
+ibm-acpi interfaces map directly to hwmon/lm-sensors style: fan and thermal.
+I'd like to expose them as hwmon attributes, using the hwmon generic
+interfaces for fan control and thermal sensor readings.
 
-FSC micro-atx mainboard (W26361-W39) with an SMC LPC47M107S-MC onboard (I
-physically checked the presence! ;) )
- 
-Installed Fedora Core 6
-2.6.19-1.2911.fc6 
-i686 i686 i386 GNU/Linux
+I would really appreciate feedback from the lm-sensors/hwmon group on how to
+best achieve that.
 
-Sensors version 2.10.1 with libsensors version 2.10.1
+Thermal is relatively easy.  A thinkpad has either 8 or up to 16 thermal
+sensors (typically, 12 sensors), and I can simply export them as
+temp##_input, already converted to milidegree Celcius.
 
-Sensors-detect returns (as it seems) the proper values:
-modprobe.conf:
-# I2C module options
-alias char-major-89 i2c-dev
+However, some thinkpad thermal sensors are hotswappable (they're inside
+battery packs, for example).  What is the recommended way to deal with that?
 
-rc.local:
-# I2C adapter drivers
-modprobe i2c-i801
-modprobe i2c-isa
-# I2C chip drivers
-modprobe eeprom
-modprobe smsc47m1
-sleep 2 # optional
-/usr/bin/sensors -s # recommended
+I was planning to return -ENXIO for sensors thare are currently unavailable,
+and I could also try to make their sysfs attributes go away (and come back
+again) when the driver detects such a change -- note that I don't get events
+from the thinkpad firmware when a sensor gets disconnected or reconnected, I
+need to poll them to know that).  Is that the recommended way to go about
+it?  Or should I just leave all entries there and return -ENXIO on the
+invalid ones (the firmware returns -128 for invalid sensors).
 
-Everything seems to load properly:
-# lsmod |grep i2c
-i2c_isa                 9665  0
-i2c_ec                  9281  1 sbs
-i2c_i810                9797  0
-i2c_algo_bit           12105  1 i2c_i810
-i2c_i801               11853  0
-i2c_core               26049  5 i2c_isa,eeprom,i2c_ec,i2c_algo_bit,i2c_i801
+fan control is a bit more hard to map to the hwmon interface, as the
+thinkpad firmware exports a higher level interface than your regular
+thermal-and-fan-monitor chip (and it is far less documented and far more
+buggy than regular chips :p):
 
-But modprobe smsc47m1 seems to cause the initial error: 
-FATAL: Error inserting smsc47m1
-(/lib/modules/2.6.19-1.2911.fc6/kernel/drivers/hwmon/smsc47m1.ko): No such
-device
+Most thinkpads have a tachometer that returns data in RPM, and that gets
+mapped to fan##_input.  The tachometer can get stale in fan control
+disengaged mode (see below), how should I export that information to
+userspace?  There is nothing in the standard hwmon sysfs for that, and it
+*is* useful to userspace to know the last measured speed, so I don't want to
+return -ENXIO or somesuch on fan##_input...   What do you guys suggest I do?
+Add an ibm-acpi specific fan##_input_valid attribute that reads 0/1?  Or not
+export that information in the first place?  Should I propose such an
+attribute to the generic interface?
 
-And dmesg returns:
-smsc47m1: Found SMSC LPC47M10x/LPC47M112/LPC47M13x
-i2c_adapter i2c-9191: Device at 0x800 is not configured, will not use
+The thinkpad EC has three modes of fan operation: manual, where there are
+seven fan speed levels (0=3Doff, 1=3Dslowest, 7=FAstest) that map to differ=
+ent
+speeds (usually fan stopped plus three different speeds, so it is not a 1:1
+mapping).  auto, where it selects one of the levels by itself, and
+disengaged, where it kicks the fan to its highest speed (which usually is
+quite higher than level 7).  The levels are closed-loop-controlled, and
+track a model-specific desired RPM value.  That allows for consistent
+hardware behaviour with fans that are going old or are somewhat dirty.
 
-Some history I could find on a similar issue is:
-http://www-gatago.com/linux/kernel/14705857.html
+I was thinking of using pwm##_enable to: force manual mode, level 0 (fan
+off) when pwm##_enable is 0, force manual mode when it is 1, and force auto
+mode when it is 2+.  I can query what mode the firmware is in, so reading
+pwm##_enable is not a problem.
 
-But it doesn't really give me a clue on how to resolve this. So any help
-would be appreciated.
+The level for manual mode would be set by pwm##: if it is 0, force level 0.
+If it is between 1..90, I'd select one of the six non-stopped fan speed
+levels.  If it is above 90, I'd select disengaged mode.
 
-Just FYI:
-- I have disabled ALL serial/parallel ports in BIOS
-- ACPI/APM in BIOS is ENABLED
-- I did not make any changes to the original /etc/sensors.conf
+Reading pwm## is not easy.  It is indeterminate if pwm##_enable is set to 2+
+(auto mode)... what should I return, then?   For manual mode, I was planning
+to return the quantized value (i.e. if 1..26 select fan level 1, a read will
+return 26).  For disengaged value (a write of 90..100 with pwm##_enable set
+to 1), I'd always return 100.  Is that a good way to implement it?
 
-Kind regards,
+Note that this interface does not map exacly what the hardware is doing.
+When one sets the fan to disengaged mode, the firmware slowly increases fan
+speed until it hits max, for example.  There is no way to get any feedback
+on what the firmware is *really* doing to the fan, other than the tachometer
+readings.
 
-Jan van Tiggelen
+I was going to place all fan attributes in a sysfs group (subdirectory)
+named "fan", and all thermal attributes in a sysfs group named "thermal". Is
+that acceptable?
 
-
+--=20
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
