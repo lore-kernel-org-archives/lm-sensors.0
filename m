@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 22 Feb 2007 20:21:07 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Sat, 24 Feb 2007 21:06:16 +0000
 Subject: [lm-sensors] [PATCH] hwmon: Request the I/O regions in platform
-Message-Id: <20070222212107.4050b6dc.khali@linux-fr.org>
+Message-Id: <4dfa50520702241306y2b59e136y65f8d324a7c35924@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070221201208.0420dc7d.khali@linux-fr.org>
 In-Reply-To: <20070221201208.0420dc7d.khali@linux-fr.org>
@@ -10,33 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 22 Feb 2007 12:06:18 -0800, Juerg Haefliger wrote:
-> OK, with your patch (http://lkml.org/lkml/diff/2007/2/20/310/1)
-> applied, it works as advertised :-)
+Hi Jean, Juerg,
 
-Great, thanks for testing and reporting.
+On 2/21/07, Jean Delvare <khali at linux-fr.org> wrote:
+> My understanding of the resource management in the Linux 2.6 device
+> driver model is that the devices should declare their resources, and
+> then when a driver attaches to a device, it should request the
+> resources it will be using, so as to mark them busy. This is how the
+> PCI and PNP subsystems work, you can clearly see the two levels of
+> resources (declaration and request) in /proc/ioports for these
+> devices.
+>
+> So I believe that our platform hardware monitoring drivers should
+> follow the same logic. At the moment, we only declare the resources
+> but we do not request them. This patch adds the I/O regions request
+> and release calls.
 
-> However, your platform-io-region patch doesn't apply cleanly:
-> 
-> juno:/usr/src/linux-2.6.21-rc1# patch -p1 < ../jean.patch
-> patching file drivers/hwmon/f71805f.c
-> Hunk #1 succeeded at 35 with fuzz 2.
-> missing header for unified diff at line 11 of patch
-> can't find file to patch at input line 11
-> Perhaps you used the wrong -p or --strip option?
-> The text leading up to this was:
-> --------------------------
-> |
-> | static struct platform_device *pdev;
-> --------------------------
-> File to patch:
+Would this have any effect with the discussion Rudolf Marek started
+about ACPI Thermal monitoring and a race condition with a hwmon driver
+(e.g. w83627ehf), resulting in an invalid reading (which sets off the
+ACPI alarm and shuts down the system)?
 
-I don't understand, I thought you had already applied that one? Either
-way, it smells like a corrupted patch file. It's probably visible if
-you open the patch file with a text editor. I guess your mailer saved
-it with some encoding and you'd need to fix it before you can apply it
-(e.g. using metamail.)
+Would requesting the resources prevent the ACPI Thermal AML from
+accessing the chip? Perhaps I have not understood the ioports region
+code correctly, but it would not make sense to allow something like
+the AML parser to access IO regions marked busy.
 
--- 
-Jean Delvare
+Please comment if you would,
+David
 
