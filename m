@@ -1,34 +1,53 @@
-From: hmh@hmh.eng.br (Henrique de Moraes Holschuh)
-Date: Wed, 28 Feb 2007 14:34:34 +0000
-Subject: [lm-sensors] Conversion of ACPI fan+thermal to hwmon sysfs
-Message-Id: <20070228143433.GB30168@khazad-dum.debian.net>
+From: udovdh@xs4all.nl (Udo van den Heuvel)
+Date: Sun, 25 Feb 2007 17:02:50 +0000
+Subject: [lm-sensors] hwmon-vid: Unknown VRM version of your x86 CPU
+Message-Id: <45E1C13A.2020506@xs4all.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070224182024.GA23865@khazad-dum.debian.net> <20070226172716.b2e956b7.khali@linux-fr.org> <1172655111.11100.50.camel@localhost.localdomain>
-In-Reply-To: <1172655111.11100.50.camel@localhost.localdomain>
+References: <43834A86.6090205@sh.cvut.cz>
+In-Reply-To: <43834A86.6090205@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Jean Delvare <khali@linux-fr.org>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-(ibm-acpi-devel removed from cc, subject changed)
+Hello,
 
-On Wed, 28 Feb 2007, Zhang Rui wrote:
-> I'm converting these two modules to sysfs. I think "thermal" has too
-> much ACPI specific information and is not that easy to have a generic
-> interface.
+Same problem as some time ago when
+Rudolf Marek wrote:
+> Please apply it and see the system log for result. (and of course mail it back)
 
-It is not easy.  In fact, it could be quite complicated.  But when combined
-with the fan objects, it should be possible.
+I now have a VIA Epia EN12000 which shows in dmesg:
 
-hwmon's idea of thermal zones are chip-specific, so the way to get ACPI to
-work with that without much changes is to think of the entire ACPI model as
-a "single chip".  This probably means ACPI fan and thermal zones need to
-cooperate to be ported to the hwmon model.
+hwmon-vid: Unknown VRM version of your x86 CPU
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+# cat /proc/cpuinfo
+processor       : 0
+vendor_id       : CentaurHauls
+cpu family      : 6
+model           : 10
+model name      : VIA Esther processor 1200MHz
+stepping        : 9
+cpu MHz         : 1197.098
+cache size      : 128 KB
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 1
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+cmov pat clflush acpi mmx fxsr sse sse2 tm pni est tm2 rng rng_en ace
+ace_en ace2 ace2_en phe phe_en pmm pmm_en
+bogomips        : 2396.86
+clflush size    : 64
+
+
+Need more info?
+
+Thanks in advance!
+
+Kind regards,
+Udo
 
