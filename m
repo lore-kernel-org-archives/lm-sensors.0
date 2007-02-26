@@ -1,7 +1,7 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Sun, 25 Feb 2007 22:23:21 +0000
+From: allistar@paradise.net.nz (Allistar)
+Date: Mon, 26 Feb 2007 23:35:04 +0000
 Subject: [lm-sensors] W83627DHG on ASUS P5W-DH Deluxe
-Message-Id: <45E20C59.10904@assembler.cz>
+Message-Id: <loom.20070227T003347-493@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45D907E1.9040906@gmail.com>
 In-Reply-To: <45D907E1.9040906@gmail.com>
@@ -10,9 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Rudolf Marek <r.marek <at> assembler.cz> writes:
 
-I think you need lm-sensors version 2.10.2
+> 
+> Hello,
+> 
+> I think you need lm-sensors version 2.10.2
+> 
+> Rudolf
 
-Rudolf
+Yes, 2.10.2 is needed. I get temperature outputs from "sensors". Does anyone
+know what changes I should make to sensors.conf for this chipset?
+
+Thanks,
+Allistar.
+
+
+
+
+
 
