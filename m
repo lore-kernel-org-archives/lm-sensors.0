@@ -1,7 +1,7 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Fri, 23 Feb 2007 07:08:28 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 27 Feb 2007 08:50:31 +0000
 Subject: [lm-sensors] Sensors-detect with DMI detection
-Message-Id: <45DE92EC.9080403@hhs.nl>
+Message-Id: <20070227095031.156c74e5.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <00c901c7568f$60a3ad40$0801a8c0@pinkeltje>
 In-Reply-To: <00c901c7568f$60a3ad40$0801a8c0@pinkeltje>
@@ -10,33 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Ivo,
-> 
-> 
-> This sounds like a good plan, however I'd like to make sure that you do
-> not duplicate efforts that have been going on in this area:
-> 
-> 
-> 2* Back in September 2006, Ivan Barrera proposed something named
-> "sconfig" which looked very similar to your own proposal:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2006-September/017623.html
-> Unfortunately, nobody paid attention to this, despite the fact that
-> everybody seems to agree that such a tool is highly needed. So maybe
-> you want to look at whan Ivan did and/or take contact with him.
-> 
+Hi Ivo,
 
-Actually I did pay attention, as Ivan was doing this for a Google Summer of 
-Code project, which was initiated by my from under the Fedora project umbrella.
+On Thu, 22 Feb 2007 15:40:18 +0100, Ivo Manca wrote:
+> The project plan can be found at 
+> http://souchi.nl/prive/ProjectPlanDMIv1.1.pdf
+> Here you can find all information about our goal. We hope you think the 
+> extension
+> will be useful and wanted. Suggestions and feedback are always welcome.
 
-Since I was Ivan's mentor that project I did closely follow his work, but 
-unfortunately his results where not all that I had hoped for. Hence this new 
-attempt, with lessons learned from the Ivan story. I've already given my 
-students a link to the website where Ivan's stuff is hosted and told them to 
-take a look at the things done and source code created by Ivan as a start.
+I've read the "Background Information" and "Objectives" parts, overall
+it looks good, except that a proofread of the document would be very
+welcome.
 
-Regards,
+My comments:
 
-Hans
+* The primary objective mentions an "internal database". I'm not sure
+what "internal" is supposed to mean here. Do you plan to embed a big
+array of known motherboards inside the sensors-detect script itself?
 
+* I'm very much in favor of command line parameters being added to
+sensors-detect so that for example a non-interactive mode can be
+supported. I wanted to do that myself for some time but could never
+find the time to actually do it. Another useful mode would be a "quiet"
+mode, which would hide all the details and present the probing summary.
+It would still be interactive in that it should not overwrite the
+configuration file without the user's consent, so it would be somewhat
+intermediate between the current mode and a fully automated mode.
+
+BTW, I think you really mean "first objective" and "second objective",
+not primary and secondary.
+
+-- 
+Jean Delvare
 
