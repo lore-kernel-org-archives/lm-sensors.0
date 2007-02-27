@@ -1,7 +1,7 @@
-From: hjk@linutronix.de (=?iso-8859-1?q?Hans-J=FCrgen_Koch?=)
-Date: Mon, 12 Feb 2007 13:48:05 +0000
-Subject: [lm-sensors] [PATCH] Add MAX6650 support
-Message-Id: <200702121448.06283.hjk@linutronix.de>
+From: matejken@gmail.com (Matej Kenda)
+Date: Tue, 27 Feb 2007 15:21:17 +0000
+Subject: [lm-sensors]  Re: [PATCH] Add MAX6650 support
+Message-Id: <200702271621.17832.matejken@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200701171359.46334.hjk@linutronix.de>
 In-Reply-To: <200701171359.46334.hjk@linutronix.de>
@@ -10,85 +10,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Am Sonntag, 11. Februar 2007 17:22 schrieb Hans-J?rgen Koch:
-> Am Sonntag 11 Februar 2007 16:44 schrieb corentin.labbe:
-> > Hello
-> >
-> > i saw some problems in your code:
-> >
-> > On line 141 you excess the 80 characters width
-> > + static ssize_t get_fan(struct device *dev, struct
-> > device_attribute *devattr, char *buf, int nr)
-> >
-> >
-> > On the comment you have written "MAX6650 also" instead of "MAX6551
-> > also" * This module has only been tested with the MAX6650 chip. It
-> > should * work with the MAX6650 also, though with reduced
-> > functionality. It * does not distinguish max6650 and max6651 chips.
-> >
-> >
-> > You must use dev_dbg instead of #ifdef debug
-> >
-> >
-> > On line 535 the while(0) is useless
-> > erase the max6650_init_client function
-> > +static void max6650_init_client(struct i2c_client *client)
-> > +{
-> > +	/* Nothing to do here - assume the BIOS has initialized the chip
-> > */ +	while(0)
-> > +	{
-> > +		;
-> > +	}
-> > +}
-> >
-> >
-> > Don't use down() up()
-> > replace with mutex
-> >
-> > On line 553
-> > 	MAX6650_REG_TACH0, MAX6650_REG_TACH1,
-> > 	MAX6650_REG_TACH2, MAX6650_REG_TACH3
-> > 	one per line
-> > 	"," at the end
-> > like
-> > static const u8 tach_reg[] > > {
-> > 	MAX6650_REG_TACH0,
-> > 	MAX6650_REG_TACH1,
-> > 	MAX6650_REG_TACH2,
-> > 	MAX6650_REG_TACH3,
-> > };
-> >
-> >
-> > Why use max6650_read_value and max6650_write_value?
-> > replace with i2c_smbus_write_byte_data and i2c_smbus_read_byte_data
-> > directly
-> >
-> > Check error return code of i2c_detach_client(client);
-> > like
-> > if ((err = i2c_detach_client(client)))
-> > 	return err;
-> >
-> >
-> > Don't use many device_create_file
-> > use sysfs_create_group
->
-> Thanks for your review, I'll look at the code again and post an
-> updated patch soon.
->
+Hi Hans,
 
-Hi,
-here's the promised patch with these issues hopefully solved. I tested the 
-module on a Kontron CPX board, with a vanilla 2.6.20 kernel, it seems to work 
-fine.
+I have tried the driver with on kernel 2.6.20.1 for platform ARM (processor 
+PXA255) to get fan speeds from the chip max6651.
 
-Thanks again for the review,
+It seems that the driver works, because it exports the values in /sys file 
+system.
 
-Hans
- 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: max6650.patch
-Type: text/x-diff
-Size: 18702 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070212/7ca36436/attachment.bin 
+I have few small comments on the implementation:
+
+* use mutex instead of semaphore
+* define i2c driver ID in the include/i2c-id.h
+
+However I have noticed the following issue, which might be related to the 
+driver of libsensors. Whenever I issue the command sensors to display values 
+of the fans, I get an error:
+
+$ sensors
+max1617a-i2c-0-18
+Adapter: pxa2xx-i2c
+Main PCB:    +40 C  (low  =    +0 C, high =   +50 C)
+
+max1617a-i2c-0-29
+Adapter: pxa2xx-i2c
+Main PCB:    +38 C  (low  =    +0 C, high =   +50 C)
+
+max6650-i2c-0-48
+Adapter: pxa2xx-i2c
+ERROR: Can't get FAN1 data!
+ERROR: Can't get FAN2 data!
+ERROR: Can't get FAN3 data!
+ERROR: Can't get FAN4 data!
+
+max6650-i2c-0-4b
+Adapter: pxa2xx-i2c
+ERROR: Can't get FAN1 data!
+ERROR: Can't get FAN2 data!
+ERROR: Can't get FAN3 data!
+ERROR: Can't get FAN4 data!
+
+$ sensors --version
+sensors version 2.10.2 with libsensors version 2.10.2
+
+
+I tried to rename entries that the driver creates from fan0-fan3 to fan1-fan4 
+as used by the libsensors and sensors, but that didn't help.
+
+Did you have to modify the (lib)sensors in any way to display the values?
+
+Matej
+
+-- 
+Matej Kenda, Senior Software Engineer
+HERMES SoftLab d.d. (www.hermes-softlab.com), Slovenia
+
