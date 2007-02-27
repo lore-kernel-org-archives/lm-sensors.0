@@ -1,7 +1,7 @@
-From: pinkel@gmail.com (Ivo Manca)
-Date: Tue, 27 Feb 2007 12:24:24 +0000
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Tue, 27 Feb 2007 20:41:31 +0000
 Subject: [lm-sensors] Sensors-detect with DMI detection
-Message-Id: <008201c75a6a$38a9bdf0$0901a8c0@pinkeltje>
+Message-Id: <45E4977B.2040903@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <00c901c7568f$60a3ad40$0801a8c0@pinkeltje>
 In-Reply-To: <00c901c7568f$60a3ad40$0801a8c0@pinkeltje>
@@ -10,78 +10,368 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hey Jean
+Hello Ivo,
 
-> Late response? You replied within 2 hours, it took me four days ;)
-True; this response was quite fast. I was actually thinking about the first 
-post of yours and my first response in general ;)
+Back in the 2004 (12.06.2004 15:04 ;) I collected some DMI strings from 
+different machines, please check the attachment for some summary and bellow for 
+the 2004 raw data.
 
-> In this case the correct term would be "local", not "internal".
-How obvious; you're right.
+Rudolf
 
-> I think it is. There's nothing wrong with fetching data file updates
-> from the net. New motherboard models are released so frequently that
-> it's very likely that the user won't find his model in the local
-> database (provided by his distribution, so including a 6 to 9-month old
-> version of lm_sensors.) A remote repository makes sense IMHO.
->
-> But of course having a local cache can be good too. Not everyone has a
-> permanent access to Internet, and our server might be temporarily
-> unresponsive or be moved to a different location.
->
-> So both options are really open. It's up to you. Either option will be
-> better than what we currently have anyway :)
-The local cache is something we wanted to use no matter what. It can be very 
-annoying if software doesn't work, simply because you don't have an internet 
-connection at that moment. But, the cache can get out-dated.
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: ASUSTeK Computer INC.
+                 Product Name: A7N8X2.0
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: ASUSTeK Computer INC.
+                 Product Name: A7N8X2.0
+--
+         DMI type 3, 13 bytes.
+         Chassis Information
+                 Manufacturer: Chassis Manufactture
+                 Type: Desktop
 
-I agree that it should be able to update this cache but I'm not sure yet 
-how. Should the sensors_detect script try and find a new data file every 
-time it's executed with DMI support, or should it get a parameter for either 
-enabling or disabling this feature? That's something we've got to give a 
-thought.
-
-> I'm not sure it makes sense to have command line switches for the
-> interactive mode itself. You can simply propose the user to check the
-> DMI table (default Y), then propose to probe the hardware (default N if
-> the system was found in the database.)
->
-> The command line options would be most valuable for the non-interactive
-> mode: one option to only use the DMI database, one option to only use
-> probing, one option to try DMI first then fallback to probing.
-
-That actually sums up every sensible option, doesn't it? ;). Right now, I 
-can't find a reason not to do it that way.
-
-> True. That being said, in non-interactive mode, it might make sense to
-> backup the old config file and write the new one (by default or with an
-> option.)
-Agree.
-
-> If you meant "most important" and "less important" then "primary" and
-> "secondary" are correct. But my understanding is that the first
-> objective is a required prerequisite to implement the second one, too.
-
-It is.
-However, we are not sure yet if we're going to completely implement the 
-first objective first, before starting on the second. If we make a good 
-design for both objectives we are able to script this webinterface in 
-relatively little time. This can be a big advantage since we only got a 
-fixed amount of weeks to finish this assignment for school ("if we fix 
-things afterwards, they don't count for the project anymore"). After this 
-website is "live" we can easily gather information from various users and 
-configurations, which makes it easier to find (and fix) bugs in an early 
-stage.
-
-After the detection script seems to be more than capable of doing the job, 
-we we can expand the webinterface to make it more user friendly, depending 
-on progress being made.
-
-I hope this clarifies it a bit. I'm not sure whether or not "Primary" and 
-"Secondary" are the correct terms to use, but it seems to cause confusion so 
-it obviously isn't. We should modify that chapter and add some explanation 
-there ;)
-
-Ivo 
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: IBM
+                 Product Name: 2722CDG
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: IBM
+                 Product Name: 2722CDG
+--
+         DMI type 3, 17 bytes.
+         Chassis Information
+                 Manufacturer: IBM
+                 Type: Notebook
 
 
+ANd from my computer in prague.
+        DMI type 1, 25 bytes.
+        System Information Block
+                Vendor: System Manufacturer
+                Product: System Name
+-- 
+        DMI type 2, 8 bytes.
+        Board Information Block
+                Vendor: ASUSTeK Computer INC.
+                Product: P4B533-E
+-- 
+        DMI type 3, 17 bytes.
+        Chassis Information Block
+                Vendor: Chassis Manufacture
+                Chassis Type: Tower
+
+
+triton:~# dmidecode|grep -A 3 'type [123],'
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: VIA Technologies, Inc.
+                 Product Name: VT8366/A-8233
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: <BAD INDEX>
+                 Product Name: <BAD INDEX>
+--
+         DMI type 3, 17 bytes.
+         Chassis Information
+                 Manufacturer: <BAD INDEX>
+                 Type: Desktop
+--
+         DMI type 3, 4 bytes.
+         Chassis Information
+Handle 0x001C
+         DMI type 17, 27 bytes.
+BListy:~# dmidecode|grep -A 3 'type [123],'
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: Intel Corporation
+                 Product Name: SE7505VB2
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: Intel Corporation
+                 Product Name: SE7505VB2 Board
+--
+         DMI type 3, 17 bytes.
+         Chassis Information
+                 Manufacturer: No Enclosure
+                 Type: Tower
+jhr:~# dmidecode|grep -A 3 'type [123],'
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: VIA Technologies, Inc.
+                 Product Name: VT82C692BX
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer:
+                 Product Name: 693-596-ITE
+--
+         DMI type 3, 13 bytes.
+         Chassis Information
+                 Manufacturer:
+                 Type: Unknown
+Imladris:/home/joe# dmidecode|grep -A 3 'type [123],'
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: VIA Technologies, Inc.
+                 Product Name: VT8363
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer:
+                 Product Name: 8363-686B
+--
+         DMI type 3, 17 bytes.
+         Chassis Information
+                 Manufacturer:
+                 Type: Desktop
+ssh:~# dmidecode|grep -A 3 'type [123],'
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: To be Filled
+                 Product Name: To be Filled
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: Supermicro Inc.
+                 Product Name: Intel 440BX/440GX
+--
+         DMI type 3, 13 bytes.
+         Chassis Information
+                 Manufacturer: To be Filled
+                 Type: Desktop
+Lothlorien:/home/joe# dmidecode|grep -A 3 'type [123],'
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: Acer
+                 Product Name: TravelMate 220
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: Acer
+                 Product Name: Intel Almador-M
+--
+         DMI type 3, 13 bytes.
+         Chassis Information
+                 Manufacturer: Acer
+                 Type: Notebook
+jboss:~# dmidecode|grep -A 3 'type [123],'
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: IBM
+                 Product Name: 6893520
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: IBM
+                 Product Name: 6893520
+--
+         DMI type 3, 13 bytes.
+         Chassis Information
+                 Manufacturer: IBM
+                 Type: Desktop
+Moria:~# dmidecode
+# dmidecode 2.4
+# No SMBIOS nor DMI entry point found, sorry.
+Dylan:~# dmidecode|grep -A 3 'type [123],'
+         DMI type 1, 8 bytes.
+         System Information
+                 Manufacturer:
+                 Product Name:
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer:
+                 Product Name: i430TX-8679
+--
+         DMI type 3, 9 bytes.
+         Chassis Information
+                 Manufacturer:
+                 Type: Unknown
+r3:~# dmidecode|grep -A 3 'type [123],'
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: Intel
+                 Product Name:
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: Intel
+                 Product Name: SE7501WV2S
+--
+         DMI type 3, 17 bytes.
+         Chassis Information
+                 Manufacturer: Intel Corporation
+                 Type: Rack Mount Chassis
+gw:~# dmidecode|grep -A 3 'type [123],'
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer:
+                 Product Name:
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: Intel Corporation
+                 Product Name: D815EPE2U
+--
+         DMI type 3, 17 bytes.
+         Chassis Information
+                 Manufacturer:
+                 Type: Unknown
+Gondolin:~# dmidecode|grep -A 3 'type [123],'
+         DMI type 1, 8 bytes.
+         System Information
+                 Manufacturer: System Manufacturer
+                 Product Name: System Name
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: ASUSTeK Computer INC.
+                 Product Name: P2B
+--
+         DMI type 3, 9 bytes.
+         Chassis Information
+                 Manufacturer: Chassis Manufacture
+                 Type: Unknown
+
+
+
+
+root at service:~# dmidecode  |grep -A 3 "type [123],"     DMI type 1, 25
+bytes.
+         System Information
+                 Manufacturer: System Manufacturer
+                 Product Name: System Name
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: ASUSTeK Computer INC.
+                 Product Name: PU-DLS
+--
+         DMI type 3, 17 bytes.
+         Chassis Information
+                 Manufacturer: Chassis Manufacture
+                 Type: Tower
+
+         DMI type 1, 25 bytes.
+         System Information
+
+Manufacturer:
+                 Product Name:
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: Intel Corporation
+                 Product Name: D815EPFV
+--
+         DMI type 3, 17 bytes.
+         Chassis Information
+
+Manufacturer:
+                 Type: Unknown
+
+nms1:~# dmidecode  |grep -A 3 "type [123],"
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer:
+                 Product Name:
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: Gigabyte Technology Co. Ltd.
+                 Product Name: i440BX-W977
+--
+         DMI type 3, 13 bytes.
+         Chassis Information
+                 Manufacturer:
+                 Type: Unknown
+(nms1.sh)
+b0re:/home/wilder# dmidecode  |grep -A 3 "type [123],"
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: System Manufacturer
+                 Product Name: System Name
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: ASUSTeK Computer INC.
+                 Product Name: P4S8X-X
+--
+         DMI type 3, 17 bytes.
+         Chassis Information
+                 Manufacturer: Chassis Manufacture
+                 Type: Tower
+(hysteria.cz)
+
+and this only from one grep
+
+[15:07] <@jammic> jedina informacia z toho grepu je
+Product
+         Name: i440BX-W83977
+[15:07] <@jammic>                 Type: Desktop
+
+fw:~# dmidecode  |grep -A 3 "type [123],"
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: Dell Computer Corp.
+                 Product Name: PowerEdge 350
+--
+         DMI type 2, 8 bytes.
+         Base Board Information
+                 Manufacturer: Intel Corporation
+                 Product Name: TR440BXA
+--
+         DMI type 3, 17 bytes.
+         Chassis Information
+
+Manufacturer:
+                 Type: Unknown
+(zakaznik c.1)
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: Dell Computer Corporation
+                 Product Name: PowerEdge 2550
+--
+         DMI type 3, 13 bytes.
+         Chassis Information
+                 Manufacturer: Dell Computer Corporation
+                 Type: Rack Mount Chassis
+(zakaznik c.2)
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: Dell Computer Corporation
+                 Product Name: PowerEdge 2650
+--
+         DMI type 2, 9 bytes.
+         Base Board Information
+                 Manufacturer: Dell Computer Corporation
+                 Product Name: 0H3099
+--
+         DMI type 3, 17 bytes.
+         Chassis Information
+                 Manufacturer: Dell Computer Corporation
+                 Type: Rack Mount Chassis
+(zakaznik c.3)
+
+
+         DMI type 1, 25 bytes.
+         System Information
+                 Manufacturer: Dell Computer Corporation
+                 Product Name: PowerEdge 2550
+--
+         DMI type 3, 13 bytes.
+         Chassis Information
+                 Manufacturer: Dell Computer Corporation
+                 Type: Rack Mount Chassis
+(zakaznuik c.4)
+
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: dmi_strucs
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070227/af51ee2b/attachment-0001.pl 
