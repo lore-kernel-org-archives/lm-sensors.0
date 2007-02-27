@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 27 Feb 2007 17:49:14 +0000
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Tue, 27 Feb 2007 21:17:05 +0000
 Subject: [lm-sensors] hwmon-vid: Unknown VRM version of your x86 CPU
-Message-Id: <20070227184914.eba4acff.khali@linux-fr.org>
+Message-Id: <45E49FD1.80506@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43834A86.6090205@sh.cvut.cz>
 In-Reply-To: <43834A86.6090205@sh.cvut.cz>
@@ -10,40 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > I now have a VIA Epia EN12000 which shows in dmesg:
-> >
-> > hwmon-vid: Unknown VRM version of your x86 CPU
-> >
-> > # cat /proc/cpuinfo
-> > processor       : 0
-> > vendor_id       : CentaurHauls
-> > cpu family      : 6
-> > model           : 10
-> > model name      : VIA Esther processor 1200MHz
+Hello all,
 
-Reading the document "EPIA-EN User's Manual v.1.10" from
-http://www.via.com.tw/en/products/mainboards/downloads.jsp?motherboard_id99
-there is a list of possible CPU core voltages which reminds me the VRM
-table of the Intel Pentium M / Core. Rudolf, what do you think? What
-about this patch:
+Jean, good catch. I check the Intel datasheet and lowest limit is also 0.7V so 
+it must be this.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- drivers/hwmon/hwmon-vid.c |    1 +
- 1 file changed, 1 insertion(+)
+I also read the VIA datasheet of Eden CPU at 90nm (which core is called Esther)
+http://www.via.com.tw/en/downloads/datasheets/processors/eden_90nm170.zip
+                                                                                   .
+The CPUID family 6 model A core of the VIA Eden is shared with other VIA 
+processors. To identify these brand variants, use the MSR instruction to read 
+register 1153h and use the Exclusive OR (XOR)
+function between bit fields 21:20 and 19:18.
 
---- linux-2.6.21-rc1.orig/drivers/hwmon/hwmon-vid.c	2007-02-04 19:44:54.000000000 +0100
-+++ linux-2.6.21-rc1/drivers/hwmon/hwmon-vid.c	2007-02-27 18:40:05.000000000 +0100
-@@ -176,6 +176,7 @@ static struct vrm_model vrm_models[] = {
- 	{X86_VENDOR_CENTAUR, 0x6, 0x8, 0x7, 85},	/* Ezra T */
- 	{X86_VENDOR_CENTAUR, 0x6, 0x9, 0x7, 85},	/* Nemiah */
- 	{X86_VENDOR_CENTAUR, 0x6, 0x9, ANY, 17},	/* C3-M */
-+	{X86_VENDOR_CENTAUR, 0x6, 0xA, ANY, 13},	/* Esther */
- 	{X86_VENDOR_UNKNOWN, ANY, ANY, ANY, 0}		/* stop here */
- };
- 
+Also:
 
+VIA Eden Type:0  Fam: 6  Model: 10 Stepping: Begins at 9
 
--- 
-Jean Delvare
+Btw the datasheet contains also the Table which is identical to Intel one (page 26)
+
+I will check the other processor not in the table and prepare a patch.
+
+Rudolf
 
