@@ -1,82 +1,72 @@
-From: Holger.Kiehl@dwd.de (Holger Kiehl)
-Date: Wed, 07 Feb 2007 13:00:04 +0000
-Subject: [lm-sensors] LM85 problems with 2.6.16.x - 2.6.19.1
-Message-Id: <Pine.LNX.4.64.0702071240350.19125@diagnostix.dwd.de>
+From: den_tichel@zonnet.nl (Jan van Tiggelen)
+Date: Tue, 27 Feb 2007 22:04:11 +0000
+Subject: [lm-sensors] SMSC47m1 Error inserting and Not configured - will not
+Message-Id: <20070227220412.7D6195920@mta-fe.casema.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.64.0702051500420.28290@diagnostix.dwd.de>
-In-Reply-To: <Pine.LNX.4.64.0702051500420.28290@diagnostix.dwd.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Jean
+The issue's been bugging me for a few days, but nevertheless I hope this is
+an issue which can be sorted out. So here goes with the details:
 
-On Tue, 6 Feb 2007, Jean Delvare wrote:
+FSC micro-atx mainboard (W26361-W39) with an SMC LPC47M107S-MC onboard (I
+physically checked the presence! ;) )
+ 
+Installed Fedora Core 6
+2.6.19-1.2911.fc6 
+i686 i686 i386 GNU/Linux
 
-> Hi Holger,
->
-> On Mon, 5 Feb 2007 15:09:03 +0000 (GMT), Holger Kiehl wrote:
->> Hello
->>
->> I am using a Tyan S4882 motherboard with 4 CPU's that has a LM85 sensor chip
->> which reports the following message during boot:
->
-> Which revision of the S4882 is it?
->
-I was unable to locate that. Looked for a long time and I found only one
-number right in the corner that says 0400Y, but I don't know if that is the
-revision.
+Sensors version 2.10.1 with libsensors version 2.10.1
 
->>
->>      .
->>      .
->>      ipmi device interface
->>      Enabling SMBus multiplexing for Tyan S4882
->
-> It looks like you are using both IPMI and regular SMBus at the same
-> time. I am not an IPMI expert but I suspect it could be the reason of
-> your problems. What do you use IPMI for? Can you try without it?
->
-Yes, that was it. Just unloading the modules did not work. I had to remove
-the IPMI card and now I no longer get those SMBus collision messages and
-the message about lm85 being locked and not ready no longer shows up.
+Sensors-detect returns (as it seems) the proper values:
+modprobe.conf:
+# I2C module options
+alias char-major-89 i2c-dev
 
-I used IPMI to read the log about any system events, like reset button
-being pressed, etc. But I found those IPMI cards did not write much
-into the log that was of use for me, so it is okay for me to just
-remove them. Another reason was that I at first did not know about
-the W83627HF watchdog and I wanted to use the one on the IPMI card.
-But that did not work, it did not reset my system. I then found the
-W83627HF and that worked for me.
+rc.local:
+# I2C adapter drivers
+modprobe i2c-i801
+modprobe i2c-isa
+# I2C chip drivers
+modprobe eeprom
+modprobe smsc47m1
+sleep 2 # optional
+/usr/bin/sensors -s # recommended
 
->>      lm85 0-002e: Client (0,0x2e) config is locked.
->>      lm85 0-002e: Client (0,0x2e) is not ready.
->>      lm85 0-002e: Client (0,0x2e) VxI mode is set. Please report this to the lm85 maintainer.
->>
->> Looking at /var/log/messages I also can see multiple entries of:
->>
->>      i2c_adapter i2c-0: SMBus collision!
->>           OR
->>      i2c_adapter i2c-1: SMBus collision!
->>           OR
->>      i2c_adapter i2c-2: SMBus collision!
->>            OR
->>      i2c_adapter i2c-3: SMBus collision!
->>            OR
->>      i2c_adapter i2c-4: SMBus collision!
->>
->> This happens with lm_sensors 2.9.2 and 2.10.1 and plain kernel.org kernels
->> 2.6.16.x to 2.6.19.1.
->
-> Do these "SMBus collision" messages go away if you stop loading the
-> i2c-amd756-s4882 driver?
->
-I did not try this since removing the IPMI card solved it.
+Everything seems to load properly:
+# lsmod |grep i2c
+i2c_isa                 9665  0
+i2c_ec                  9281  1 sbs
+i2c_i810                9797  0
+i2c_algo_bit           12105  1 i2c_i810
+i2c_i801               11853  0
+i2c_core               26049  5 i2c_isa,eeprom,i2c_ec,i2c_algo_bit,i2c_i801
 
-Many thanks for your help!
+But modprobe smsc47m1 seems to cause the initial error: 
+FATAL: Error inserting smsc47m1
+(/lib/modules/2.6.19-1.2911.fc6/kernel/drivers/hwmon/smsc47m1.ko): No such
+device
 
-Regards,
-Holger
+And dmesg returns:
+smsc47m1: Found SMSC LPC47M10x/LPC47M112/LPC47M13x
+i2c_adapter i2c-9191: Device at 0x800 is not configured, will not use
+
+Some history I could find on a similar issue is:
+http://www-gatago.com/linux/kernel/14705857.html
+
+But it doesn't really give me a clue on how to resolve this. So any help
+would be appreciated.
+
+Just FYI:
+- I have disabled ALL serial/parallel ports in BIOS
+- ACPI/APM in BIOS is ENABLED
+- I did not make any changes to the original /etc/sensors.conf
+
+Kind regards,
+
+Jan van Tiggelen
+
 
 
