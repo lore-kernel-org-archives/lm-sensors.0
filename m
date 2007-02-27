@@ -1,7 +1,7 @@
 From: matejken@gmail.com (Matej Kenda)
-Date: Tue, 27 Feb 2007 16:29:59 +0000
+Date: Tue, 27 Feb 2007 17:03:49 +0000
 Subject: [lm-sensors] [PATCH] Add MAX6650 support
-Message-Id: <df4ec9600702270829j509c65f4tbb5c96d07ecfa8e9@mail.gmail.com>
+Message-Id: <df4ec9600702270903y78452232ha6ecf95e3045997a@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200701171359.46334.hjk@linutronix.de>
 In-Reply-To: <200701171359.46334.hjk@linutronix.de>
@@ -10,34 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-2007/2/27, Jean Delvare <khali at linux-fr.org>:
-> > * define i2c driver ID in the include/i2c-id.h
+2007/2/27, Hans-J?rgen Koch <hjk at linutronix.de>:
+> > > I tried to rename entries that the driver creates from fan0-fan3 to
+> > > fan1-fan4 as used by the libsensors and sensors, but that didn't help.
+> >
+> > The files should actually be named fan1_input to fan4_input (for
+> > measured values.)
 >
-> Even better, don't set an ID if you don't need it.
+> I renamed the files accordingly.
+>
+> I attached the current version of the patch, please tell us if this works for
+> you.
+>
 
-Most of the hwmon drivers set the id. Were they set by inertia or do
-some of the drivers actually need it?
+I have just tried your patch with kernel 2.6.20.1. Now I get values
+with sensors:
 
-> The files should actually be named fan1_input to fan4_input (for
-> measured values.)
+$ sensors
+max6650-i2c-0-48
+Adapter: pxa2xx-i2c
+fan4:       30 RPM
 
-I've modified the names like this:
+max6650-i2c-0-4b
+Adapter: pxa2xx-i2c
+fan4:       30 RPM
 
-static DEVICE_ATTR(fan1_input, S_IRUGO, get_fan1, NULL);
-static DEVICE_ATTR(fan2_input, S_IRUGO, get_fan2, NULL);
-static DEVICE_ATTR(fan3_input, S_IRUGO, get_fan3, NULL);
-static DEVICE_ATTR(fan4_input, S_IRUGO, get_fan4, NULL);
-static DEVICE_ATTR(count, S_IRUGO, get_count, NULL);
-static DEVICE_ATTR(config, S_IRUGO, get_config, NULL);
-static DEVICE_ATTR(speed, S_IWUSR | S_IRUGO, get_speed, set_speed);
-
-Other driver usually have _min and _div files.
-
-Do the count, speed and config also have to be modified to follow a convention?
+However, the values seem very low to me. With kernel 2.4 I got values
+in the range around 4000 RPM. I'll check sensors.conf as well.
 
 Matej
 
 -- 
 Matej Kenda, Senior Software Engineer
 HERMES SoftLab d.d. (www.hermes-softlab.com), Slovenia
-
