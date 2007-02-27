@@ -1,7 +1,7 @@
-From: hjk@linutronix.de (=?utf-8?q?Hans-J=C3=BCrgen_Koch?=)
-Date: Tue, 27 Feb 2007 17:13:16 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 27 Feb 2007 18:07:07 +0000
 Subject: [lm-sensors] [PATCH] Add MAX6650 support
-Message-Id: <200702271813.17494.hjk@linutronix.de>
+Message-Id: <20070227190707.f78b987d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200701171359.46334.hjk@linutronix.de>
 In-Reply-To: <200701171359.46334.hjk@linutronix.de>
@@ -10,29 +10,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Am Dienstag, 27. Februar 2007 18:03 schrieb Matej Kenda:
+On Tue, 27 Feb 2007 17:29:59 +0100, Matej Kenda wrote:
+> 2007/2/27, Jean Delvare <khali at linux-fr.org>:
+> > > * define i2c driver ID in the include/i2c-id.h
+> >
+> > Even better, don't set an ID if you don't need it.
+> 
+> Most of the hwmon drivers set the id. Were they set by inertia or do
+> some of the drivers actually need it?
 
->
-> I have just tried your patch with kernel 2.6.20.1. Now I get values
-> with sensors:
->
-> $ sensors
-> max6650-i2c-0-48
-> Adapter: pxa2xx-i2c
-> fan4:       30 RPM
->
-> max6650-i2c-0-4b
-> Adapter: pxa2xx-i2c
-> fan4:       30 RPM
->
-> However, the values seem very low to me. With kernel 2.4 I got values
-> in the range around 4000 RPM. I'll check sensors.conf as well.
+Inertia, mostly.
 
-30 is the value I get with no fan connected. I hope there's no bug in 
-max6650_update_device() that makes it always return 30. I'll check.
+> > The files should actually be named fan1_input to fan4_input (for
+> > measured values.)
+> 
+> I've modified the names like this:
+> 
+> static DEVICE_ATTR(fan1_input, S_IRUGO, get_fan1, NULL);
+> static DEVICE_ATTR(fan2_input, S_IRUGO, get_fan2, NULL);
+> static DEVICE_ATTR(fan3_input, S_IRUGO, get_fan3, NULL);
+> static DEVICE_ATTR(fan4_input, S_IRUGO, get_fan4, NULL);
+> static DEVICE_ATTR(count, S_IRUGO, get_count, NULL);
+> static DEVICE_ATTR(config, S_IRUGO, get_config, NULL);
+> static DEVICE_ATTR(speed, S_IWUSR | S_IRUGO, get_speed, set_speed);
+> 
+> Other driver usually have _min and _div files.
 
-Bene, could you check on your board?
+It only makes sense if the chip actually supports it!
 
-Hans
+> Do the count, speed and config also have to be modified to follow a convention?
 
+The count and config files are non-standard files so they don't have to
+follow any specific convention. In fact I would even remove these
+files, in particular the config file infringes the fundamental sysfs
+rule. And the count file isn't particularly useful.
+
+The speed file, what is it doing? If it is used to set the desired fan
+speed, then the right name would be fan1_target. Does it only apply to
+one fan or all? Is it always active?
+
+-- 
+Jean Delvare
 
