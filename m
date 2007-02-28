@@ -1,55 +1,45 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 27 Feb 2007 08:45:39 +0000
+From: pavel@ucw.cz (Pavel Machek)
+Date: Wed, 28 Feb 2007 21:38:04 +0000
 Subject: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Message-Id: <20070227094539.7d57b8dc.khali@linux-fr.org>
+Message-Id: <20070228213803.GA4877@ucw.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45D5EA88.7090300@redhat.com>
-In-Reply-To: <45D5EA88.7090300@redhat.com>
+References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <20070218183805.5a4fd813.khali@linux-fr.org>
+In-Reply-To: <20070218183805.5a4fd813.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Mon, 26 Feb 2007 20:03:59 +0100, Hans de Goede wrote:
-> Ok, notice though that although the detection of the abituguru is indeed
-> very weak, it will probably cause tons of false positives, that the
-> driver will not actually load as the driver probe function will do a
-> full test-read, which will fail on anything but an uguru (1 in a million
-> chance this doesn't happen). The problems here are:
-> 1) the read cycle does isa outb's which could upset non uguru hardware
+Hi!
 
-outb is, by definition, a write, which is why we should prevent it from
-happening on systems without the relevant hardware.
-
-> 2) at this point in the mod-loading stage, the insmod has succeeded
->    confusing users, as the see the module but get no sysfs hwmon entries
->    (the driver didn't load but the platform device was created)
+> > Well I had an idea after looking at k8temp -- why not make it default to
+> > doing only reads from the sensor?  You'd only get information from whatever
+> > core/sensor combination that ACPI had last used, but it would be safe.
 > 
-> Now 2 can be fixed by doing the test-read before creating the platform
-> device, but I don't know if thats worth it.
+> ACPI is broken here, not k8temp, so let's fix ACPI instead. ACPI
+> doesn't conflict with only k8temp, but with virtually all hardware
+> monitoring drivers, all I2C/SMBus drivers, and probably other types of
+> drivers too. We just can't restrict or blacklist all these drivers
+> because ACPI misbehaves.
 
-Well there are two approaches:
-1* Keep the platform driver approach, and have the platform device
-created outside the abituguru driver. In this case it is OK to let the
-abituguru driver load when no device is found, same as PCI drivers do.
-* Think of the uGuru as a legacy ISA device. In that case the driver
-should fail if the uGuru isn't found. Maybe you can look into the new
-isa driver type (drivers/base/isa.c). I must look into it myself, it
-might be the right solution to move the lm78 and w83781d drivers out of
-using i2c-isa.
+Oops, sorry about that but no, that will not work.
 
-> Agreed 100% this is _exactly_ the asignment I have given my students,
-> I've even told them to create a web interface to allow people to upload
-> correct sensors.conf settings for a certain motherboatd together with
-> the DMI data. Please read the document they have posted, it is in
-> English and it should contain a product description exactly matching
-> what you describe / want. If you want to fix the requirements I laid
-> down for this now would be THE time.
+There's piece of paper, called ACPI specification, and we are
+following it.
 
-I've read the "Background Information" and "Objectives" parts, overall
-it looks good, except that a proofread of the document would be very
-welcome. I'll comment in the adequate thread.
+Bug is not in our implementation.
 
+Bug is in the ACPI specs... it does not explicitely allow you to go
+out and bitbang i2c, and you do it, and you get problems.
+
+Now, you may try to change specs to be hwmon-friendly... good luck.
+
+But currently hw manufacturers follow ACPI specs, so we have to follow
+it, too; bad luck for hwmon. BIOS hiding smbus from you is good hint
+you are doing something wrong...?
+							Pavel
 -- 
-Jean Delvare
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 
