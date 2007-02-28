@@ -1,32 +1,25 @@
-From: devinsteffler.lists@gmail.com (Devin Steffler)
-Date: Sun, 04 Feb 2007 18:04:11 +0000
-Subject: [lm-sensors] Any hope for a Powermac?
-Message-Id: <e46c17070702041004y51afac7m9596222c8f356964@mail.gmail.com>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Wed, 28 Feb 2007 21:53:21 +0000
+Subject: [lm-sensors] [PATCH] update the VID table
+Message-Id: <45E5F9D1.8090103@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hello
 
-I have a Powermac G4 and would like to see the CPU temperature.  Is there
-any hope that this can be done in Linux?  It looks possible for MacOSX:
-http://www.bresink.com/osx/HardwareMonitor.html although maybe it isn't
-possible for my machine:
-http://www.bresink.com/osx/216202/Docs-en/faq.html#TAU
+Following patch updates the VID type for certain VIA processors and removes
+the Itanium entries.
 
-The Powermac I have is a Gigabit Powermac G4 400MHz with AGP.
+Signed-Off-By: Rudolf Marek <r.marek at assembler.cz>
 
-I tried the following option in the Linux kernel: Platform support ->
-On-chip CPU temperature sensor support, but this showed the CPU temperature
-as 11-13 C (uncalibrated) in /proc/cpuinfo.  Which is obviously wrong, but
-might be correct if calibrated properly.
-
-Any ideas/tips/hints/suggestions?
-
-Thanks,
-Devin
+Rudolf
 -------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070204/214791be/attachment.html 
+A non-text attachment was scrubbed...
+Name: fix-vid-table.patch
+Type: text/x-patch
+Size: 1343 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070228/d485a9b9/attachment-0001.bin 
