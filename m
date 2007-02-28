@@ -1,53 +1,39 @@
-From: hmh@hmh.eng.br (Henrique de Moraes Holschuh)
-Date: Tue, 27 Feb 2007 15:41:18 +0000
+From: rui.zhang@intel.com (Zhang Rui)
+Date: Wed, 28 Feb 2007 09:31:51 +0000
 Subject: [lm-sensors] RFC: conversion of ibm-acpi to hwmon sysfs
-Message-Id: <20070227154118.GA1980@khazad-dum.debian.net>
+Message-Id: <1172655111.11100.50.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070224182024.GA23865@khazad-dum.debian.net> <20070226172716.b2e956b7.khali@linux-fr.org> <20070226180635.GG2909@khazad-dum.debian.net> <20070227100129.fa962c81.khali@linux-fr.org>
-In-Reply-To: <20070227100129.fa962c81.khali@linux-fr.org>
+References: <20070224182024.GA23865@khazad-dum.debian.net>
+	 <20070226172716.b2e956b7.khali@linux-fr.org>
+In-Reply-To: <20070226172716.b2e956b7.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <khali@linux-fr.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, lm-sensors@lm-sensors.org, ibm-acpi-devel@lists.sourceforge.net, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-On Tue, 27 Feb 2007, Jean Delvare wrote:
-> I don't really have time for such long reads, sorry. If there's
-> anything in particular you think I should know, just tell me.
-
-Just that the stale value is indeed useful on one particular case.
-
-> > > pwm#_enable = 0 means fan# at full speed, _not_ fan# stopped. Fan# stopped
-> > > is pwm#_enable = 1 and pwm# = 0.
-> > 
-> > The hwmon sysfs interface documentation is not clear on that.  Turning PWM
-> > off might lock the hardware into 0% duty or 100% duty depending on how it
-> > was designed.
+On Mon, 2007-02-26 at 17:27 +0100, Jean Delvare wrote:
+> Hi Henrique,
 > 
-> Feel free to submit a patch improving the documentation.
-
-Ok.
-
-> > BTW, ibm-acpi implements a "fan watchdog", to help fan-control userspace
-> > applications.  It resets the fan to a safe "on" mode if nothing tries any
-> > control operation on the fans in a given time period.
-> > 
-> > Is there any interest in trying for a fan-watchdog generic interface, or
-> > should I just implement that in sysfs as I see fit for ibm-acpi?
+> On Sat, 24 Feb 2007 16:20:24 -0200, Henrique de Moraes Holschuh wrote:
+> > I am working on a conversion of ibm-acpi to sysfs, and in the process I am
+> > trying to do away with every non-generic interface I can.  At least two
+> > ibm-acpi interfaces map directly to hwmon/lm-sensors style: fan and thermal.
+> > I'd like to expose them as hwmon attributes, using the hwmon generic
+> > interfaces for fan control and thermal sensor readings.
 > 
-> We don't have anything like that in the other drivers. I guess it only
-> applies to manual mode? The idea is interesting, I have to admit. I
-> don't have a particular opinion on how to implement that (specific vs
-> standard), do as you wish.
+> This would be really great. I was thinking about doing the same for the
+> standard ACPI "fan" and "thermal" modules too, but I happen to be too
+> busy for that :( Making these drivers compatible with the hwmon
+> interface is one way to solve the ACPI vs. hwmon issues which have been
+> reported and discussed lately.
+> 
+The standard ACPI "fan" and "thermal" modules?
+I'm converting these two modules to sysfs. I think "thermal" has too
+much ACPI specific information and is not that easy to have a generic
+interface.
+Could you give some more detailed descriptions please? :)
 
-The fan watchdog is a driver thing, it could be implemented by any driver
-for any chip that has a manual mode (it doesn't make sense if the chip is
-always in auto mode).  I will implement it in a suitable-to-be-generic way
-and propose a patch for the sysfs hwmon docs.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Thanks,
+Rui
 
