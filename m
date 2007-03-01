@@ -1,85 +1,49 @@
-From: nicolas@boichat.ch (Nicolas Boichat)
-Date: Thu, 22 Mar 2007 10:36:43 +0000
-Subject: [lm-sensors] [RFC][PATCH] Apple SMC driver (hardware monitoring
-Message-Id: <46025C3B.6010702@boichat.ch>
+From: lmsensors@eltofts.homelinux.com (Andy Wright)
+Date: Thu, 01 Mar 2007 01:07:56 +0000
+Subject: [lm-sensors] Asus P4R800-VM with w83627THF sensor
+Message-Id: <45E6276C.1080903@eltofts.homelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45F7C083.7090504@boichat.ch>	<b6c5339f0703191443l5f8c5271pf43ea62e0c79a614@mail.gmail.com> <20070320110818.1b11c406.khali@linux-fr.org>
-In-Reply-To: <20070320110818.1b11c406.khali@linux-fr.org>
+References: <45B2BB3B.4000603@eltofts.homelinux.com>
+In-Reply-To: <45B2BB3B.4000603@eltofts.homelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Bob Copeland <me@bobcopeland.com>, linux-kernel@hansmi.ch, rlove@rlove.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
 Jean Delvare wrote:
-> On Mon, 19 Mar 2007 17:43:38 -0400, Bob Copeland wrote:
+> Hi Andy,
+>
+> On Sun, 21 Jan 2007 01:00:43 +0000, Andy Wright wrote:
 >   
->> I tried out an earlier version of this patch several months ago just to play
->> around with the joystick part of the accelerometer driver on my MacBook, and
->> found that it was backwards in the y-direction compared to what Neverball
->> seemed to want (of course, NB has no way to invert the joystick).  I think
->> I just did something like this in my own copy:
+>> I'm trying to get lm_sensors working on an asus p4r800-vm motherboard. 
+>> OS is Centos 4.4 running Kernel 2.6.9-42.0.3.EL and I have installed the 
+>> libsysfs library from the lm-sensors.org website.
 >>
->> +       y = -y;
->>         input_report_abs(applesmc_idev, ABS_X, x - rest_x);
->>         input_report_abs(applesmc_idev, ABS_Y, y - rest_y);
+>> sensors-detect gives the following;
 >>
->> I don't claim you necessarily want to change it, but thought I'd pass it
->> along.
+>> Driver 'w83627hf' (should be inserted):
+>>   Detects correctly:
+>>   *  ISA bus address 0x0228 (Busdriver 'i2c-isa')
+>>       Chip 'Winbond W83627THF Super IO Sensors' (confidence: 9)
+>>
+>> modprobe i2c-isa succeeds
+>>
+>> modprobe w83627hf   fails with;
+>>
+>> FATAL: Error inserting w83627hf 
+>> (/lib/modules/2.6.9-42.0.3.EL/kernel/drivers/i2c/chips/w83627hf.ko): No 
+>> such device
+>>
+>> Would anyone have any pointers as to how to get this going ?
 >>     
 >
-> This appears to be a common problem with these devices, the hdaps driver
-> (IBM) needs to invert the axis on some models too, and I seem to
-> remember something similar for the (not yet merged) HP laptops
-> accelerometer driver.
+> Was the W83627THF chip found as the "primary" or "secondary" Super-I/O
+> chip? (sensors-detect should tell you)
+>
 >   
-Ok, so let's invert the axis on the input device.
+Hi,
 
-I think the raw x value in sysfs behaves the same way as hdaps (because
-tools like hdaps-gl don't need any inversion), so I don't invert it.
+It was discovered as the secondary.....
 
-Anyone with an IBM laptop could confirm this please?
- - x value gets more positive when you lift the right side on the laptop
-(= tilted to the left)
- - y value gets more negative when you tilt the laptop backwards
-(simply cat /sys/devices/platform/hdaps/position)
-
-Thanks,
-
-Best regards,
-
-Nicolas
-
-Invert x axis on applesmc input device to make it usable as a joystick.
-
-Signed-off-by: Nicolas Boichat <nicolas at boichat.ch>
-
-
----
-
- drivers/hwmon/applesmc.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index 4060667..581ed3e 100644
---- a/drivers/hwmon/applesmc.c
-+++ b/drivers/hwmon/applesmc.c
-@@ -349,6 +349,7 @@ static void applesmc_calibrate(void)
- {
- 	applesmc_read_motion_sensor(SENSOR_X, &rest_x);
- 	applesmc_read_motion_sensor(SENSOR_Y, &rest_y);
-+	rest_x = -rest_x;
- }
- 
- static void applesmc_mousedev_poll(unsigned long unused)
-@@ -366,6 +367,7 @@ static void applesmc_mousedev_poll(unsigned long unused)
- 	if (applesmc_read_motion_sensor(SENSOR_Y, &y))
- 		goto out;
- 
-+	x = -x;
- 	input_report_abs(applesmc_idev, ABS_X, x - rest_x);
- 	input_report_abs(applesmc_idev, ABS_Y, y - rest_y);
- 	input_sync(applesmc_idev);
-
-
+Andy.
 
