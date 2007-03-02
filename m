@@ -1,7 +1,7 @@
 From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Thu, 01 Mar 2007 02:29:26 +0000
+Date: Fri, 02 Mar 2007 17:52:01 +0000
 Subject: [lm-sensors] Using lmsensors with Winbond w83627ehf
-Message-Id: <4dfa50520702281829u5d8ac210id8beb3f3ad9f4e5a@mail.gmail.com>
+Message-Id: <4dfa50520703020952w5d7f3cc4g7bc0431bbc274c75@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <279611.78053.qm@web53210.mail.yahoo.com>
 In-Reply-To: <279611.78053.qm@web53210.mail.yahoo.com>
@@ -12,56 +12,77 @@ To: lm-sensors@vger.kernel.org
 
 Hi Gnom,
 
-On 2/28/07, Gnom Gnom <gnom108 at yahoo.com> wrote:
-> (if there is better list for "NEWBIEs", please let me know where - thanx)
+On 3/2/07, Gnom Gnom <gnom108 at yahoo.com> wrote:
+> Dear David,
 >
-> I am running Centos 4.4 on system using ASUS P5LD2-VM motherboard.  I have
-> upgrade kernel to 2.6.20:
+> I sent reply to list yesterday but it never was posted.  I will try to post
+> there again if you
+> would prefer to not help me "offline".
+
+I am not sure why your message was not received. I have CCed Axel
+Thimm who operates the mailing list. Axel, can you help us debug this
+issue?
+
+You should not send HTML-only emails. I remember yahoo having an
+option to send plain text.
+
+I will help you, offline if necessary, but the first thing we should
+get resolved is the mailing list issue.
+
+> What I need to figure out is why sensors list temp1, temp2, and temp3, while
+> BIOS only
+> give CPU temp and MOBO temp.  I am experiencing overheating problems with
+> these
+> MOBOs (we are building beowulf cluster) and need to rely on lm_sensors for
+> monitoring
+> temp while system is running processes.
+
+Thank you for this information. It really clears up your question.
+From what I can see, you have the w83627ehf chip working correctly.
+See below for more details, but essentially, you can just put "ignore"
+lines in sensors.conf for the sensors that are not meaningful.
+
+I would be interested to know what kind of overheating problems you
+are having with the Asus P5LD2-VM motherboard. Please post a message
+if you get the problems resolved.
+
+> I did as you suggested in your reply (use cpuburn, record values from
+> "sensors", and
+> then bring down to BIOS and record values, and then compare.   temp2 in
+> "sensors"
+> is very likely what BIOS calls "CPU temp".  And temp1 is probably MOBO temp,
+> but
+> I don't understand temp3.
 >
-> Linux  2.6.20 #1 SMP Fri Feb 16 11:26:35 EST 2007 x86_64 x86_64 x86_64
-> GNU/Linux
+> I can forward you "sensors" outputs if you wish.
 >
-> and use lm_sensors-2.10.2. Here is output from sensors command:
->
-> w83627ehf-isa-0290
-> Adapter: ISA adapter
-> in0:       +1.27 V  (min =  +0.00 V, max =  +1.74 V)
-> in1:       +1.79 V  (min =  +1.88 V, max =  +1.02 V) ALARM
-> in2:       +3.25 V  (min =  +0.21 V, max =  +3.82 V)
-> in3:       +3.44 V  (min =  +4.03 V, max =  +0.75 V) ALARM
-> in4:       +2.04 V  (min =  +1.76 V, max =  +1.61 V) ALARM
-> in5:       +1.62 V  (min =  +1.55 V, max =  +0.96 V) ALARM
-> in6:       +1.60 V  (min =  +0.68 V, max =  +1.52 V) ALARM
-> in7:       +3.41 V  (min =  +1.60 V, max =  +2.99 V) ALARM
-> in8:       +3.97 V  (min =  +3.74 V, max =  +0.99 V) ALARM
-> in9:       +1.58 V  (min =  +1.50 V, max =  +1.68 V)
-> fan1:        0 RPM  (min =  178 RPM, div = 128) ALARM
-> fan2:     4354 RPM  (min = 3260 RPM, div = 2)
-> fan3:        0 RPM  (min =   55 RPM, div = 128) ALARM
-> fan4:        0 RPM  (min = 10546 RPM, div = 128) ALARM
-> fan5:        0 RPM  (min = 168750 RPM, div = 8) ALARM
-> temp1:       +40?C  (high =   +27?C, hyst =  -111?C)   ALARM
-> temp2:     +44.0?C  (high = +80.0?C, hyst = +75.0?C)
-> temp3:     +50.5?C  (high = +80.0?C, hyst = +75.0?C)
->
-> I have trouble finding  information what tells how temp1, temp2, and temp3
-> correspond to CPU temp/motherboard temp value from BIOS. Also for fan1,
-> fan2, etc.
->
-> Please advise, thank you.
->
+> Regards,
 > gnom
 
-To get the correspondence between your BIOS and the output of sensors,
-run a CPU-intensive utility for about five minutes. (Look at cpuburn
-to start.) Save the output of sensors and reboot. Write down the
-temperatures from your BIOS. Then send it all in an email and we'll
-figure it out.
+I did receive your previous email. Once we get the email list to work
+for you, please re-send it to lm-sensors at lm-sensors.org so it is part
+of the official thread.
 
-Just from the output of sensors, you only have one fan that sensors
-can read. Does your motherboard even have more than the CPU fan? Does
-your BIOS report more than one fan speed? These clues will help us
-figure out how the fans are mapped.
+This motherboard (the Asus P5LD2-VM) uses a config often found with
+w83627ehf motherboards. temp2 is wired to the CPUTIN pin on the
+w83627ehf chip, which is connected to the processor's thermal diode.
+It is my opinion that temp3 (the AUXTIN pin) is not connected to
+anything meaningful. It is probably floating. Although the w83627ehf
+reports the voltage on the pin, it does not measure temperature at
+all. temp1 (the SYSTIN thermal diode inside the w83627ehf chip) is
+properly measuring the temperature inside the chip, which represents
+the temperature of the motherboard.
 
+The w83627ehf is also configured to control pwm2 and fan2 based on
+temp2. Since you only have one fan on the motherboard, you should also
+ignore the other fans.
+
+This may not resolve your overheating issues, but you can rely on
+temp2 and fan2_input to give you accurate readings of the CPU temp and
+the fan RPM. Further, you can configure sensors to report alarms when
+the fan RPM goes too low or the CPU temp goes too high. man sensors &&
+man sensors.conf will give you more information.
+
+Hope that helps,
 David
 
