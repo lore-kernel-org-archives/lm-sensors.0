@@ -1,56 +1,45 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 02 Mar 2007 11:13:04 +0000
+From: mjg59@srcf.ucam.org (Matthew Garrett)
+Date: Fri, 02 Mar 2007 11:43:26 +0000
 Subject: [lm-sensors] Conversion of ACPI fan+thermal to hwmon sysfs
-Message-Id: <20070302121304.9db20131.khali@linux-fr.org>
+Message-Id: <20070302114326.GA1212@srcf.ucam.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070224182024.GA23865@khazad-dum.debian.net>
-	<20070226172716.b2e956b7.khali@linux-fr.org>
-	<1172655111.11100.50.camel@localhost.localdomain>
-	<20070228143433.GB30168@khazad-dum.debian.net>
-	<1172797936.14827.33.camel@localhost.localdomain>
-In-Reply-To: <1172797936.14827.33.camel@localhost.localdomain>
+References: <20070224182024.GA23865@khazad-dum.debian.net> <20070226172716.b2e956b7.khali@linux-fr.org> <1172655111.11100.50.camel@localhost.localdomain> <20070228143433.GB30168@khazad-dum.debian.net> <1172797936.14827.33.camel@localhost.localdomain> <20070302121304.9db20131.khali@linux-fr.org>
+In-Reply-To: <20070302121304.9db20131.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, lenb@kernel.org, konstantin.a.karasyov@intel.com
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, lenb@kernel.org, konstantin.a.karasyov@intel.com
 
-Hi Zhang,
+On Fri, Mar 02, 2007 at 12:13:04PM +0100, Jean Delvare wrote:
 
-> On Thu, 2007-03-01 at 08:06 +0100, Jean Delvare wrote: 
-> > Indeed, ACPI thermal zone may have more thermal trip points than the
-> > hwmon interface specifies. Two of the trip points can be mapped to
-> > temp1_max and temp1_crit, respectively. If we want to handle them all,
-> > then probably we have to implement Henrique's suggestion and really
-> > think in terms of thermal zones, i.e. the trip points would be mapped
-> > to temp1_auto_point[1-*]_temp and possibly associated with a fan speed
-> > output.
-> 
-> Well, ACPI thermal zones are not only a logical collection of interfaces
-> to temperature sensors, trip points and thermal property information,
-> but also take charge of thermal controls, i.e. setting platform's
-> cooling mode policies.
-> I don't know if I missed something, but from Documentation/hwmon/sysfs-
-> interface, I can't find any interface that make it possible.
+> As I don't know what these "cooling mode policies" are, I can't really
+> tell. Trip points in hwmon let the user define the desired fan speed
+> depending on a temperature measurement, and that's about it. You can't
+> associate other actions at the moment, essentially because hardware
+> monitoring chips themselves can't do anything else. If it would be
+> convenient for the ACPI case to add something else, we can discuss
+> additional interface files.
 
-As I don't know what these "cooling mode policies" are, I can't really
-tell. Trip points in hwmon let the user define the desired fan speed
-depending on a temperature measurement, and that's about it. You can't
-associate other actions at the moment, essentially because hardware
-monitoring chips themselves can't do anything else. If it would be
-convenient for the ACPI case to add something else, we can discuss
-additional interface files.
+ACPI cooling mode policies may be related to fans, but can also be 
+associated with passive cooling of the CPU by throttling or voltage 
+scaling. Some machines keep the fan under BIOS control, so the only 
+information exposed via the thermal module will be something like:
 
-> And, porting ACPI fan and thermal zones to the hwmon model? That is
-> really complicated.
-> Add Len and Konstantin to cc list and see if they have any ideas. :)
+critical (S5):           95 C
+passive:                 91 C: tc1=5 tc2=4 tsp`0 devices=0xc16dd310 
 
-My original idea was to simply add a read-only hwmon-like interface to
-the acpi fan and thermal modules. I didn't plan to replace the current
-interfaces offered by these modules, at least not directly. There must
-be many user-space tools and scripts relying on these at the moment, so
-we need a transition period anyway.
+indicating that the CPU should be throttled at 91C, and the system 
+forcibly shut down at 95C. 
+
+> My original idea was to simply add a read-only hwmon-like interface to
+> the acpi fan and thermal modules. I didn't plan to replace the current
+> interfaces offered by these modules, at least not directly. There must
+> be many user-space tools and scripts relying on these at the moment, so
+> we need a transition period anyway.
+
+That doesn't sound like a bad plan.
 
 -- 
-Jean Delvare
+Matthew Garrett | mjg59 at srcf.ucam.org
 
