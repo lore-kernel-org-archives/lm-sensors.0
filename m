@@ -1,69 +1,66 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 03 Mar 2007 09:53:16 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Sat, 03 Mar 2007 15:47:21 +0000
 Subject: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Message-Id: <20070303105316.d51e032d.khali@linux-fr.org>
+Message-Id: <4dfa50520703030747g3c887f5bxe25caefd1723c635@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45D6DDCE.5050803@assembler.cz>
-	<45D7461A.2040808@redhat.com>
-	<20070218183805.5a4fd813.khali@linux-fr.org>
-	<20070228213803.GA4877@ucw.cz>
-	<20070301152655.f232db64.khali@linux-fr.org>
-	<20070302114023.GD2163@elf.ucw.cz>
-	<20070302114747.GB1212@srcf.ucam.org>
-	<20070302151055.d2665d66.khali@linux-fr.org>
-	<20070302141840.GA3441@srcf.ucam.org>
-	<20070302220454.a0c66d04.khali@linux-fr.org>
-	<20070302211251.GA10035@srcf.ucam.org>
-In-Reply-To: <20070302211251.GA10035@srcf.ucam.org>
+References: <45D6DDCE.5050803@assembler.cz> <20070228213803.GA4877@ucw.cz>
+	 <20070301152655.f232db64.khali@linux-fr.org>
+	 <20070302114023.GD2163@elf.ucw.cz>
+	 <20070302114747.GB1212@srcf.ucam.org>
+	 <20070302151055.d2665d66.khali@linux-fr.org>
+	 <20070302141840.GA3441@srcf.ucam.org>
+	 <20070302220454.a0c66d04.khali@linux-fr.org>
+	 <20070302211251.GA10035@srcf.ucam.org>
+	 <20070303105316.d51e032d.khali@linux-fr.org>
+In-Reply-To: <20070303105316.d51e032d.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Jean Delvare <khali@linux-fr.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>, Rudolf@atrpms.net
 
-Hi Matthew,
+Hi Jean,
 
-On Fri, 2 Mar 2007 21:12:51 +0000, Matthew Garrett wrote:
-> On Fri, Mar 02, 2007 at 10:04:54PM +0100, Jean Delvare wrote:
-> > It might be more elegant but it won't work. We don't want to prevent
-> > ACPI from accessing these I/O ports. If we need to choose only one
-> > "driver" accessing the I/O port, it must be acpi, at leat for now,
-> > despite the fact that acpi provides very weak hardware monitoring
-> > capabilities compared to the specific drivers.
-> 
-> Assuming arbitration of access, what's the problem with having two 
-> drivers accessing the same hardware? Do these chips generally have any 
-> significant internal state other than trip points and the like?
+> Is there anything preventing us from doing such a walk and pre-allocate
+> all the I/O ranges? I am not familiar with the ACPI code at all, would
+> you possibly propose a patch doing that?
 
-The "assuming arbitration of access" is the key part of your
-sentence ;) The problem is that currently no arbitration is done. If it
-was done, then state would probably not be a problem. Most hardware
-monitoring drivers don't assume any state is preserved between
-accesses, and those which do can easily be changed not to. The ACPI
-side is another story though, I guess we can't assume anything about
-the AML code's assumption on states, as it differs from one machine to
-the next. But we can try to be cooperative and restore the sensible
-registers (e.g. bank selector) in the same state we found them.
+Here's a random idea -- what do you think of it?
 
-Anyway, just because we can't get things right on 100% of the machines
-is no reason not to try anything at all. The current situation is bad,
-any improvement would be welcome.
+ACPI already allocates some I/O ranges, which was a surprise to me:
 
-> > Why would we end up with an overestimation if we check the I/O ports at
-> > boot time? Do you have concrete cases in mind?
-> 
-> ACPI will often describe large operation regions, but won't necessarily 
-> touch all of them. Effectively, every codepath would have to be walked 
-> through at boot time and checked for io access.
+> My machine looks like this:
+>
+> 1000-107f : 0000:00:1f.0
+>  1000-1003 : ACPI PM1a_EVT_BLK
+>  1004-1005 : ACPI PM1a_CNT_BLK
+>  1008-100b : ACPI PM_TMR
+>  1010-1015 : ACPI CPU throttle
+>  1020-1020 : ACPI PM2_CNT_BLK
+>  1028-102b : ACPI GPE0_BLK
+>  102c-102f : ACPI GPE1_BLK
 
-Is there anything preventing us from doing such a walk and pre-allocate
-all the I/O ranges? I am not familiar with the ACPI code at all, would
-you possibly propose a patch doing that?
+For I/O and memory that ACPI accesses and has not reserved, the AML
+interpreter could allocate at run-time.
 
-If we can't do that, the overestimation approach might still work. I
-wonder if it would cause problems in practice. If it does, we're back
-to Pavel's AML lock.
+I'm not sure how to implement exactly. For example, it would be bad to
+have a /proc/ioports that had a lot of single ports allocated, for
+example:
+1000-107f : 0000:00:1f.0
+ 1000-1000 : ACPI PM1a_EVT_BLK
+ 1001-1001 : ACPI PM1a_EVT_BLK
+ 1002-1002 : ACPI PM1a_EVT_BLK
+ 1003-1003 : ACPI PM1a_EVT_BLK
 
--- 
-Jean Delvare
+Thus the AML interpreter would need to have some reasonable
+intelligence when allocating regions. Conflict resolution would also
+be more difficult, e.g. if a hwmon driver was loaded first and then
+acpi as a module, ACPI could not allocate the region. Maybe run-time
+allocating won't work.
+
+And then, how would ACPI release a region after it has used it? The
+easiest method would be to never release anything used even once.
+
+Thoughts?
+
+David
 
