@@ -1,50 +1,68 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 03 Mar 2007 06:44:22 +0000
+Date: Sat, 03 Mar 2007 09:53:16 +0000
 Subject: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Message-Id: <20070303074422.4926e428.khali@linux-fr.org>
+Message-Id: <20070303105316.d51e032d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45D5EA88.7090300@redhat.com>
-	<45D6DDCE.5050803@assembler.cz>
+References: <45D6DDCE.5050803@assembler.cz>
 	<45D7461A.2040808@redhat.com>
 	<20070218183805.5a4fd813.khali@linux-fr.org>
 	<20070228213803.GA4877@ucw.cz>
 	<20070301152655.f232db64.khali@linux-fr.org>
-	<20070301174806.GA4979@redhat.com>
-	<20070302122736.f14a7a22.khali@linux-fr.org>
-	<20070302113158.GC2156@elf.ucw.cz>
-	<20070302143720.cfd8afeb.khali@linux-fr.org>
-	<20070302135706.GE2156@elf.ucw.cz>
-In-Reply-To: <20070302135706.GE2156@elf.ucw.cz>
+	<20070302114023.GD2163@elf.ucw.cz>
+	<20070302114747.GB1212@srcf.ucam.org>
+	<20070302151055.d2665d66.khali@linux-fr.org>
+	<20070302141840.GA3441@srcf.ucam.org>
+	<20070302220454.a0c66d04.khali@linux-fr.org>
+	<20070302211251.GA10035@srcf.ucam.org>
+In-Reply-To: <20070302211251.GA10035@srcf.ucam.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Dave Jones <davej@redhat.com>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Fri, 2 Mar 2007 14:57:06 +0100, Pavel Machek wrote:
-> On Fri 2007-03-02 14:37:20, Jean Delvare wrote:
-> > drivers/pci/quirks.c is full of things we do against the BIOS authors
-> > intent. You don't plan to remove them all, do you?
+Hi Matthew,
+
+On Fri, 2 Mar 2007 21:12:51 +0000, Matthew Garrett wrote:
+> On Fri, Mar 02, 2007 at 10:04:54PM +0100, Jean Delvare wrote:
+> > It might be more elegant but it won't work. We don't want to prevent
+> > ACPI from accessing these I/O ports. If we need to choose only one
+> > "driver" accessing the I/O port, it must be acpi, at leat for now,
+> > despite the fact that acpi provides very weak hardware monitoring
+> > capabilities compared to the specific drivers.
 > 
-> Notice how quirks.c is careful to name machines where given quirk is
-> used.
+> Assuming arbitration of access, what's the problem with having two 
+> drivers accessing the same hardware? Do these chips generally have any 
+> significant internal state other than trip points and the like?
 
-Notice how we unhide the SMBus only on a few named machines as well.
+The "assuming arbitration of access" is the key part of your
+sentence ;) The problem is that currently no arbitration is done. If it
+was done, then state would probably not be a problem. Most hardware
+monitoring drivers don't assume any state is preserved between
+accesses, and those which do can easily be changed not to. The ACPI
+side is another story though, I guess we can't assume anything about
+the AML code's assumption on states, as it differs from one machine to
+the next. But we can try to be cooperative and restore the sensible
+registers (e.g. bank selector) in the same state we found them.
 
-> If you do whitelist "it is okay to do sensors accesses on this board",
-> that is okay with me. But having quirk "on all future Intel chipsets,
-> do foo" would be stupid.
+Anyway, just because we can't get things right on 100% of the machines
+is no reason not to try anything at all. The current situation is bad,
+any improvement would be welcome.
 
-We don't do that, never did, and never planed to do.
+> > Why would we end up with an overestimation if we check the I/O ports at
+> > boot time? Do you have concrete cases in mind?
+> 
+> ACPI will often describe large operation regions, but won't necessarily 
+> touch all of them. Effectively, every codepath would have to be walked 
+> through at boot time and checked for io access.
 
->                    (...) Enabling sensors blindly is pretty similar.
+Is there anything preventing us from doing such a walk and pre-allocate
+all the I/O ranges? I am not familiar with the ACPI code at all, would
+you possibly propose a patch doing that?
 
-This is the view of someone obviously not interested in sensors. Go
-tell that to all the lm-sensors users and they'll reply: "Disabling
-sensors blindly would be stupid." Please realize that we're not writing
-hardware monitoring drivers just for the fun of conflicting with ACPI
-on some machines. We're writing them because users are asking for these
-features.
+If we can't do that, the overestimation approach might still work. I
+wonder if it would cause problems in practice. If it does, we're back
+to Pavel's AML lock.
 
 -- 
 Jean Delvare
