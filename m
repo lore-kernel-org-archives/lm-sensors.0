@@ -1,42 +1,80 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 23 Mar 2007 08:25:22 +0000
-Subject: [lm-sensors] #2195: Fails to detect ITE family chip with ID
-Message-Id: <20070323092522.50c15a43.khali@linux-fr.org>
+Date: Sun, 04 Mar 2007 10:33:41 +0000
+Subject: [lm-sensors] sensors-detect path issue under fc5 / 6 -- fix
+Message-Id: <20070304113341.091c3819.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0703220924o604d104iaf34922f53c7cf83@mail.gmail.com>
-In-Reply-To: <191fb4ca0703220924o604d104iaf34922f53c7cf83@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+Hi Vince,
 
-On Thu, 22 Mar 2007 21:12:25 -0700, Juerg Haefliger wrote:
-> 1) The ITE superio enter sequence also works for the SMSC, so
-> sensor-detects reports both an (unknown) ITE and a dme1737 SMSC chip.
-> I guess there's nothing we can do about this, can we?
+Moving the thread to the lm-sensors list, where it belongs.
 
-We can, and actually I have a local patch fixing it. I am only waiting
-for lm-sensors 2.10.3 to be finally released before I commit it. I'm
-attaching said patch to this post if you want to take a look and/or
-give it a try. Basically, the idea is to test the families from the
-shorter enter sequence (actually empty, for the National Semiconductor
-chips) to the longer, and to stop as soon as one sequence was found to
-work (regardless of whether or not a known chip was found.)
+On Sun, 4 Mar 2007 03:04:42 -0500 (EST), Vince Spinelli wrote:
+> It's a simple one, but it's worth noting.
+> 
+> I'm unawares of other distributions, but under Fedora Core 5 and 6, the
+> i2cdetect command is located in the /usr/sbin directory, not /sbin/ nor
+> /usr/local/sbin.
 
-> 2) Even though the datasheet shows a device ID of 0x78 which matches
-> the sensor-detect output of the ticket reporter, my DME1737 returns
-> 0x77. Should I just add another entry for a DME1737 with dev id 0x77?
+That's the case of pretty much all distributions shipping lm-sensors,
+as /usr/local is meant for things added on top of the original
+distribution.
 
-Hmm, yes, I guess you'll have to.
+> As a result, an error message is encountered when running
+> sensors-detect.sh as either root, sudo root, or a normal user.
 
-[/me rants against manufacturers who can't stick to their own
-standards.]
+There's no such thing as "sensors-detect.sh" in our source package.
+sensors-detect is a perl script.
 
+If your root user doesn't have /usr/sbin in its $PATH, then your setup
+is seriously broken, I doubt sensors-detect will be the only failing
+tool.
+
+sensors-detect can no longer be run as non-root, so this case doesn't
+matter.
+
+The su/sudo case is more problematic though, I can imagine a standard
+user gaining root permissions without getting the $PATH usually
+associated with the root user.
+
+> The fix is as follows... inside of the sensors-detect.sh script, there's a
+> segment to add directories to path.
+> 
+> Change -->
+> # Just in case a root user doesn't have /sbin in his/her path for some reason
+> # (was seen once)
+> $ENV{PATH} = '/sbin:'.$ENV{PATH}
+> 	unless $ENV{PATH} =~ m,(^|:)/sbin/?(:|$),;
+> # Same for /usr/local/sbin since we need i2cdetect which is installed there
+> # by default (reported by Lennard Klein)
+> $ENV{PATH} = '/usr/local/sbin:'.$ENV{PATH}
+> 	unless $ENV{PATH} =~ m,(^|:)/usr/local/sbin/?(:|$),;
+> 
+> To -->
+> # Just in case a root user doesn't have /sbin in his/her path for some reason
+> # (was seen once)
+> $ENV{PATH} = '/sbin:'.$ENV{PATH}
+> 	unless $ENV{PATH} =~ m,(^|:)/sbin/?(:|$),;
+> # Same for /usr/local/sbin since we need i2cdetect which is installed there
+> # by default (reported by Lennard Klein)
+> $ENV{PATH} = '/usr/local/sbin:'.$ENV{PATH}
+> 	unless $ENV{PATH} =~ m,(^|:)/usr/local/sbin/?(:|$),;
+> # Same for /usr/sbin, for FC default dir (location of i2cdetect - V.
+> Spinelli)
+> $ENV{PATH} = '/usr/sbin:'.$ENV{PATH}
+> 	unless $ENV{PATH} =~ m,(^|:)/usr/sbin/?(:|$),;
+> 
+> And that fixes it.
+
+Can you please provide a unified diff as everyone does, so that I can
+just apply it? Something like:
+  diff -u sensors-detect.orig sensors-detect
+should do it.
+
+Thanks,
 -- 
 Jean Delvare
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: sensors-detect-superio-family-order.patch
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070323/2f31c496/attachment.pl 
+
