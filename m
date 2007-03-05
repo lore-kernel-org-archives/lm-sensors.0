@@ -1,74 +1,52 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Sun, 04 Mar 2007 17:29:12 +0000
+From: 7eggert@gmx.de (Bodo Eggert)
+Date: Mon, 05 Mar 2007 13:56:44 +0000
 Subject: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Message-Id: <45EB01E8.5080003@assembler.cz>
+Message-Id: <E1HODgC-0000h8-Vc@be1.lrz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070228213803.GA4877@ucw.cz>	<20070301152655.f232db64.khali@linux-fr.org>	<20070302114023.GD2163@elf.ucw.cz>	<20070302114747.GB1212@srcf.ucam.org>	<20070302151055.d2665d66.khali@linux-fr.org>	<20070302141840.GA3441@srcf.ucam.org>	<20070302220454.a0c66d04.khali@linux-fr.org>	<20070302211251.GA10035@srcf.ucam.org>	<20070303105316.d51e032d.khali@linux-fr.org>	<4dfa50520703030747g3c887f5bxe25caefd1723c635@mail.gmail.com>	<20070303155048.GA22755@srcf.ucam.org> <45E9AB8B.1070804@assembler.cz>
-In-Reply-To: <45E9AB8B.1070804@assembler.cz>
+References: <7PvLN-1cj-3@gated-at.bofh.it> <7TEGV-6Jy-39@gated-at.bofh.it> <7TUBX-6TN-5@gated-at.bofh.it> <7UeqX-4QO-17@gated-at.bofh.it> <7UeqZ-4QO-27@gated-at.bofh.it> <7UgM5-np-1@gated-at.bofh.it> <7UgM8-np-11@gated-at.bofh.it> <7UnaS-2xP-9@gated-at.bofh.it> <7UnkC-2JB-9@gated-at.bofh.it> <7Uzcd-49u-3@gated-at.bofh.it> <7UEEN-4xi-3@gated-at.bofh.it>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Chuck Ebbert <cebbert@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
+To: David Hubbard <david.c.hubbard@gmail.com>, Jean Delvare <khali@linux-fr.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>, Rudolf@atrpms.net
 
-Hello again,
+David Hubbard <david.c.hubbard at gmail.com> wrote:
 
-I produced some code which I proposed in mail above. The patch is not for review
-it is just a PoC to better show what I'm trying to do. It is a test case for my
-motherboard which has W83627EHF chip and ACPI thermal method and w83627ehf
-compete the device.
+> For I/O and memory that ACPI accesses and has not reserved, the AML
+> interpreter could allocate at run-time.
+> 
+> I'm not sure how to implement exactly. For example, it would be bad to
+> have a /proc/ioports that had a lot of single ports allocated, for
+> example:
+> 1000-107f : 0000:00:1f.0
+>  1000-1000 : ACPI PM1a_EVT_BLK
+>  1001-1001 : ACPI PM1a_EVT_BLK
+>  1002-1002 : ACPI PM1a_EVT_BLK
+>  1003-1003 : ACPI PM1a_EVT_BLK
+> 
+> Thus the AML interpreter would need to have some reasonable
+> intelligence when allocating regions. Conflict resolution would also
+> be more difficult, e.g. if a hwmon driver was loaded first and then
+> acpi as a module, ACPI could not allocate the region. Maybe run-time
+> allocating won't work.
+> 
+> And then, how would ACPI release a region after it has used it? The
+> easiest method would be to never release anything used even once.
+> 
+> Thoughts?
 
-When no driver is loaded, acpi is doing its own raw access to device. However
-when the w83627ehf driver is loaded, the ACPI access to ports (0x295/0x296) is
-forwarded to the w83627ehf driver.
+1) Make a general resource allocation lock, if there is none.
+2) make ACPI take this lock whenever it touches ports not allocated by itself
+   and release it on function return.
+3) Make ACPI callback the allocating device if it touches allocated ranges,
+   and on function return.
 
-How it works? I added one pointer to the struct resource which will contain a
-pointer to the structure with callback functions. I know this is not an ideal
-solution, but for a test it works fine. Everytime ACPI wants do IO it will ask
-via ____request_resource(conflict, &res) if some driver claimed the resource,
-if so, it iterates the resource structure to the last entry, if the callback
-structure exists it is called (and device driver context is passed too), if not,
-raw hw access is performed.
+1 + 2 will replace allocating single ports and freeing them again (so ACPI won't
+prevent e.g. the display driver from loading just because it turned on the
+backlight) while preventing races with newly allocated ranges, and 3 allows
+coexistence with other drivers.
+-- 
+The problem with the easy way out is that it has already been mined. 
 
-The routines in EHF driver partly emulates the chip, the address of which next
-acpi access will want to read or write is saved in the data->reg_pointer.
+Fri?, Spammer: TKF8 at jQXoImLG.7eggert.dyndns.org
+ lG at aOkf0g.7eggert.dyndns.org hffltUu at 6au8pBwc.7eggert.dyndns.org
 
-The actual access to the chip is done only when the data port of the chip is
-accessed, and driver generic io function is called. Bank register writes are
-faked to the data->reg_bank. All access to the chip which is done in these
-routines respects the "virtual" bank register which was previously set by ACPI.
-(current emulation is not 100% perfect, but this could be easily fixed)
-If something was written to the chip, driver's register cache is invalidated.
-
-This approach does not need any external locking because the actual device
-access is done by one function of driver (which already locks).
-
-As from ACPI point of view the device behaves same way as real HW, the big plus
-is that the driver actually KNOWs what is ACPI trying to do to the chip. Of
-course if the HW access is done in SMM some other countermeasures must be
-invented like GBL lock or the "take ownership" stuff.
-
-Maybe this forwarder may be used by other drivers, which may want to know what
-is ACPI doing to hardware during suspend/resume methods...
-
-As I wrote earlier the SMBus access could be also virtualized same way, there
-will be only more virtual registers, real transaction will start when the ACPI
-sets the "begin transaction" bits ;).
-
-Maybe the pointer to driver context could be removed, and container_of could be
-used instead to reach it. I will need some advise how to implement this
-randevouz between ACPI and one Linux driver... Exploiting the resource structure
-  is nice but pehaps not acceptable??? Some class maybe? We have only 1:1
-relation...
-
-Thanks,
-Rudolf
-
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: acpi-io-sync.patch
-Type: text/x-diff
-Size: 7824 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070304/8d85322d/attachment.bin 
