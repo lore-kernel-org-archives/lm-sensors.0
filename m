@@ -1,151 +1,93 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 13 Mar 2007 08:47:58 +0000
-Subject: [lm-sensors] [PATH] coretemp driver - take2
-Message-Id: <20070313094758.9d02b20c.khali@linux-fr.org>
+From: den_tichel@zonnet.nl (Jan van Tiggelen)
+Date: Mon, 05 Mar 2007 20:46:46 +0000
+Subject: [lm-sensors] SMSC47m1 Error inserting and Not configured - will
+Message-Id: <20070305204646.10A9F3F34@mta-fe.casema.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45AAA204.5030905@assembler.cz>
-In-Reply-To: <45AAA204.5030905@assembler.cz>
+References: <20070227220412.7D6195920@mta-fe.casema.nl>
+In-Reply-To: <20070227220412.7D6195920@mta-fe.casema.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
+Sorry for posting this message again. But since there's not reply to this
+topic at all, I was still hoping that someone could help out on the issue
+I've described below...
 
-On Mon, 12 Mar 2007 23:54:37 +0100, Rudolf Marek wrote:
-> > It seems that changed recently:
-> >   http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=
-=3Dcommit;h=B077ffb3b767c3efb44d00b998385a9cb127255c
-> >=20
-> > This introduces exported functions rdmsr_on_cpu() and wrmsr_on_cpu()
-> > (check in arch/i386/lib/msr-on-cpu.c) which I think is what you need?
->=20
-> Yep thanks. But it use the RDMSR/WRMSR without exception handling :/
->=20
-> Maybe we can convert add functions later?
 
-What's the problem exactly? If the functions in
-arch/i386/lib/msr-on-cpu.c need to be improved, I'd prefer that you do
-that now rather than duplicating the code and postponing the cleanup to
-later. Others might need the same improvement so your work will benefit
-to them, plus I fear that the cleanup never actually happens if we
-merge the coretemp driver first.
+-----Original Message-----
+From: lm-sensors-bounces@lm-sensors.org
+[mailto:lm-sensors-bounces at lm-sensors.org] On Behalf Of Jan van Tiggelen
+Sent: Tuesday, February 27, 2007 11:04 PM
+To: lm-sensors at lm-sensors.org
+Subject: [lm-sensors] SMSC47m1 Error inserting and Not configured - will
+notuse errors
 
-> > One thing I'm not happy with is the fact that you create one separate
-> > platform device for every temperature sensor, it makes the sensors
-> > output a bit confusing. But I guess it's not possible to support CPU
-> > hotplug otherwise, so, so be it.
->=20
-> And it is quite complicated to get what CPUs are toghether and what are d=
-ifferent.
+The issue's been bugging me for a few days, but nevertheless I hope this is
+an issue which can be sorted out. So here goes with the details:
 
-Well /proc/cpuinfo appears to know so it should be possible. From
-arch/i386/kernel/cpu/proc.c:
+FSC micro-atx mainboard (W26361-W39) with an SMC LPC47M107S-MC onboard (I
+physically checked the presence! ;) )
+ 
+Installed Fedora Core 6
+2.6.19-1.2911.fc6 
+i686 i686 i386 GNU/Linux
 
-	if (c->x86_max_cores * smp_num_siblings > 1) {
-		seq_printf(m, "physical id\t: %d\n", c->phys_proc_id);
-		seq_printf(m, "siblings\t: %d\n", cpus_weight(cpu_core_map[n]));
-		seq_printf(m, "core id\t\t: %d\n", c->cpu_core_id);
-		seq_printf(m, "cpu cores\t: %d\n", c->booted_cores);
-	}
+Sensors version 2.10.1 with libsensors version 2.10.1
 
-So it doesn't look so complicated. However, it can be argued whether
-this is worth the effort. Additionally...
+Sensors-detect returns (as it seems) the proper values:
+modprobe.conf:
+# I2C module options
+alias char-major-89 i2c-dev
 
-> > I'm not even sure if platform devices are the way to go... After all
-> > the CPU cores are already represented in the driver tree:
-> >   /sys/devices/system/cpu/cpu0
-> >   /sys/devices/system/cpu/cpu1
-> > I guess that in theory we should add our stuff there, either in a
-> > subdirectory as cpufreq does, or as a child class device. I'm not too
-> > sure how it'll fit with our hwmon class and libsensors though, so I'm
-> > fine postponing this cleanup to later.
+rc.local:
+# I2C adapter drivers
+modprobe i2c-i801
+modprobe i2c-isa
+# I2C chip drivers
+modprobe eeprom
+modprobe smsc47m1
+sleep 2 # optional
+/usr/bin/sensors -s # recommended
 
-... if we ever manage to move the temperature interface files at the
-right location in the device tree, then we _will_ have one
-subdirectory, virtual device or whatever, per CPU core, there will be
-no way around it. So it might be easier to keep the current
-one-device-per-core design, despite the odd sensors output it results
-in.
+Everything seems to load properly:
+# lsmod |grep i2c
+i2c_isa                 9665  0
+i2c_ec                  9281  1 sbs
+i2c_i810                9797  0
+i2c_algo_bit           12105  1 i2c_i810
+i2c_i801               11853  0
+i2c_core               26049  5 i2c_isa,eeprom,i2c_ec,i2c_algo_bit,i2c_i801
 
-> >> +static struct coretemp_data *coretemp_update_device(struct device *de=
-v)
-> >> +{
-> >> +	struct coretemp_data *data =3D dev_get_drvdata(dev);
-> >> +
-> >> +	mutex_lock(&data->update_lock);
-> >> +
-> >> +	if (!data->valid || time_after(jiffies, data->last_updated + HZ)) {
-> >> +		u32 eax, edx;
-> >> +
-> >> +		data->valid =3D 0;
-> >> +		msr_read(data->id, MSR_IA32_THERM_STATUS, &eax, &edx);
-> >> +		data->therm_status =3D eax;
-> >> +
-> >> +		/* update only if data has been valid */
-> >> +		if (eax & 0x80000000) {
-> >> +			data->temp =3D data->tjmax - (((data->therm_status >> 16)
-> >> +							& 0x7f) * 1000);
-> >> +			data->valid =3D 1;
-> >> +		}
-> >=20
-> > When could the data not be valid? I think it's a problem that we may
-> > return an old cached value to user-space and don't even let the user
-> > know.
->=20
-> I don't know... The data might be valid only when data valid is set to 1,=
- Intel=20
-> documentation is quiet as castle in Carpathian Mountains. Know how? retur=
-n=20
-> EAGAIN? Maybe we can fix that in next iteration once we know that userspa=
-ce can=20
-> handle that.
+But modprobe smsc47m1 seems to cause the initial error: 
+FATAL: Error inserting smsc47m1
+(/lib/modules/2.6.19-1.2911.fc6/kernel/drivers/hwmon/smsc47m1.ko): No such
+device
 
-I was wondering if it would make sense to attempt a few retries
-immediately, as we do in the w83l785ts driver. But of course it depends
-on what this "invalid" bit means and whether we can hope it to be
-cleared on next try or if it takes some time to wear off. Without
-documentation we can't tell.
+And dmesg returns:
+smsc47m1: Found SMSC LPC47M10x/LPC47M112/LPC47M13x
+i2c_adapter i2c-9191: Device at 0x800 is not configured, will not use
 
-Maybe it would be a good idea to add a debug log message when this
-happens, so we have a chance to gather some data on how frequently it
-happens in the real world?
+Some history I could find on a similar issue is:
+http://www-gatago.com/linux/kernel/14705857.html
 
-I don't think we have to wait for the next iteration of the driver to
-return an error. I prefer that we return an error rather than a
-temperature value which is not true. If libsensors and/or sensors need
-to be updated to handle that case, let's do that.
+But it doesn't really give me a clue on how to resolve this. So any help
+would be appreciated.
 
-As a side note, your data structure decisions are a bit inconsistent.
-On the one hand, you store the raw value of eax in data->therm_status,
-but on the other hand you compute the temperature value directly in the
-update function. I think you should decide for one way and stick to it.
-Either you only read the raw data in update and do the processing on
-the sysfs callback functions (as all the other hwmon drivers do), or
-you process everything in the update function, but mixing both styles
-is confusing and inefficient.
+Just FYI:
+- I have disabled ALL serial/parallel ports in BIOS
+- ACPI/APM in BIOS is ENABLED
+- I did not make any changes to the original /etc/sensors.conf
 
-> >> +			/* supported CPU not found, but report the unknown
-> >> +			   family 6 CPU */
-> >> +			if ((c->x86 =3D 0x6) && (c->x86_model > 0xf))
-> >> +				printk(KERN_WARNING DRVNAME ": Unknown CPU, please"
-> >> + 			   " report to the lm-sensors at lm-sensors.org\n");
-> >=20
-> > Errr, no, please don't do that. When Intel releases a new CPU, we don't
-> > want millions of users to report on our mailing list. When such a CPU is
-> > available, we'll know soon enough, I think.
->=20
-> I left: Unknown CPU model...(and model #)
+Kind regards,
 
-OK. This should probably be KERN_NOTICE or KERN_INFO rather than
-KERN_WARNING, too.
+Jan van Tiggelen
 
-> I will post fixed version tomorrow, I think I making more mistakes during=
- late=20
-> night :/ And you and David suffer. Do you want new thread with take3?
 
-Yes, new thread please.
 
---=20
-Jean Delvare
+_______________________________________________
+lm-sensors mailing list
+lm-sensors at lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+
 
