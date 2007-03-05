@@ -1,33 +1,30 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 21 Mar 2007 15:24:45 +0000
-Subject: [lm-sensors] [PATCH] ad7418 driver
-Message-Id: <20070321162445.653fcec6.khali@linux-fr.org>
+From: corentin.labbe@geomatys.fr (corentin.labbe)
+Date: Mon, 05 Mar 2007 21:25:58 +0000
+Subject: [lm-sensors] sensor-detect patch for detecting SMSC SCH5504-NS
+Message-Id: <45EC8AE6.3090804@geomatys.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20061112153724.3e630d32@inspiron>
-In-Reply-To: <20061112153724.3e630d32@inspiron>
+References: <45D5E8AB.9060809@geomatys.fr>
+In-Reply-To: <45D5E8AB.9060809@geomatys.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Alessandro,
+patch patched:)
 
-On Mon, 19 Mar 2007 23:35:33 +0100, Alessandro Zummo wrote:
-> On Sun, 24 Dec 2006 14:53:59 +0100, Jean Delvare wrote:
-> > After reading the datasheet once more, I realize I was confused here:
-> > you actually support the AD7417 (4 voltage inputs), and not the AD7418
-> > (1 voltage input). My comment still holds, though.
-> 
->   I took a bit of time and started applying your suggestions.
->  I tested the driver against both 18 and 17 and they look the same.
->  I haven't found a way to distinguish between them.
-
-Well, what does the AD7418 return when you read a non-existing channel?
-
-If these devices are used in embedded designs, you will be able to use
-the new code contributed by David Brownell to explicitly instantiate
-the devices, without hardware probing. This will solve the problem.
-
--- 
-Jean Delvare
+--- sensors-detect-old  2007-03-04 21:16:18.000000000 +0100
++++ sensors-detect      2007-03-05 22:22:56.000000000 +0100
+@@ -1812,6 +1812,12 @@
+          logdev => 0x08,
+        },
+        {
++        name => "SMSC SCH5504-NS Super IO",
++        # No datasheet
++        driver => "not-a-sensor",
++        devid => 0x79,
++      },
++      {
+          name => "SMSC LPC47M584-NC Super IO",
+          # No datasheet
+          devid => 0x76,
 
