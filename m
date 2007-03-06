@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 06 Mar 2007 14:59:26 +0000
+From: den_tichel@zonnet.nl (Jan van Tiggelen)
+Date: Tue, 06 Mar 2007 18:03:30 +0000
 Subject: [lm-sensors] SMSC47m1 Error inserting and Not configured - will
-Message-Id: <20070306155926.77db2b0a.khali@linux-fr.org>
+Message-Id: <20070306180331.5E4483C20@mta-fe.casema.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070227220412.7D6195920@mta-fe.casema.nl>
 In-Reply-To: <20070227220412.7D6195920@mta-fe.casema.nl>
@@ -9,6 +9,14 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali at linux-fr.org] 
+Sent: Tuesday, March 06, 2007 3:59 PM
+To: Jan van Tiggelen
+Cc: lm-sensors at lm-sensors.org
+Subject: Re: [lm-sensors] SMSC47m1 Error inserting and Not configured - will
+notuse errors
 
 On Mon, 5 Mar 2007 21:46:46 +0100, Jan van Tiggelen wrote:
 > Sorry for posting this message again. But since there's not reply to this
@@ -24,7 +32,8 @@ On Mon, 5 Mar 2007 21:46:46 +0100, Jan van Tiggelen wrote:
 > Subject: [lm-sensors] SMSC47m1 Error inserting and Not configured - will
 > notuse errors
 > 
-> The issue's been bugging me for a few days, but nevertheless I hope this is
+> The issue's been bugging me for a few days, but nevertheless I hope this
+is
 > an issue which can be sorted out. So here goes with the details:
 > 
 > FSC micro-atx mainboard (W26361-W39) with an SMC LPC47M107S-MC onboard (I
@@ -58,7 +67,8 @@ On Mon, 5 Mar 2007 21:46:46 +0100, Jan van Tiggelen wrote:
 > i2c_i810                9797  0
 > i2c_algo_bit           12105  1 i2c_i810
 > i2c_i801               11853  0
-> i2c_core               26049  5 i2c_isa,eeprom,i2c_ec,i2c_algo_bit,i2c_i801
+> i2c_core               26049  5
+i2c_isa,eeprom,i2c_ec,i2c_algo_bit,i2c_i801
 > 
 > But modprobe smsc47m1 seems to cause the initial error: 
 > FATAL: Error inserting smsc47m1
@@ -78,4 +88,22 @@ to this chip?
 
 -- 
 Jean Delvare
+
+-------------------
+Jean, hi,
+
+Honestly speaking I have no other reference (e.g. Windows) than this
+installation to see what the chip is capable of reporting.
+
+I'm assuming that, besides FAN-speeds, it also monitors and reports voltage
+levels, etc... But I couldn't find any datasheet to support those thoughts.
+
+So probably that leaves me with a motherboard of which I cannot monitor
+anything... Or do you have any other suggestions to get readings of, let's
+say CPU core temperature, etc...
+
+Kind regards,
+
+Jan van Tiggelen
+
 
