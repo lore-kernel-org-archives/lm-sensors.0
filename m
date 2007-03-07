@@ -1,172 +1,122 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 06 Mar 2007 21:28:47 +0000
+Date: Wed, 07 Mar 2007 09:17:58 +0000
 Subject: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Message-Id: <20070306222847.85b4aff4.khali@linux-fr.org>
+Message-Id: <20070307101758.8cf2c53d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45D5EA88.7090300@redhat.com>
-	<45D6DDCE.5050803@assembler.cz>
-	<45D7461A.2040808@redhat.com>
-	<20070218183805.5a4fd813.khali@linux-fr.org>
-	<20070228213803.GA4877@ucw.cz>
-	<20070301152655.f232db64.khali@linux-fr.org>
-	<20070302114023.GD2163@elf.ucw.cz>
-	<20070302150313.198b6053.khali@linux-fr.org>
-	<20070302145709.GA3710@srcf.ucam.org>
-	<20070302224155.143b8643.khali@linux-fr.org>
-	<20070302214643.GA10774@srcf.ucam.org>
-In-Reply-To: <20070302214643.GA10774@srcf.ucam.org>
+References: <7PvLN-1cj-3@gated-at.bofh.it>
+	<7TEGV-6Jy-39@gated-at.bofh.it>
+	<7TUBX-6TN-5@gated-at.bofh.it>
+	<7UeqX-4QO-17@gated-at.bofh.it>
+	<7UeqZ-4QO-27@gated-at.bofh.it>
+	<7UgM5-np-1@gated-at.bofh.it>
+	<7UgM8-np-11@gated-at.bofh.it>
+	<7UnaS-2xP-9@gated-at.bofh.it>
+	<7UnkC-2JB-9@gated-at.bofh.it>
+	<7Uzcd-49u-3@gated-at.bofh.it>
+	<7UEEN-4xi-3@gated-at.bofh.it>
+	<E1HODgC-0000h8-Vc@be1.lrz>
+	<20070306161935.025a3ec1.khali@linux-fr.org>
+	<Pine.LNX.4.58.0703061804360.2988@be1.lrz>
+In-Reply-To: <Pine.LNX.4.58.0703061804360.2988@be1.lrz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Bodo Eggert <7eggert@gmx.de>
+Cc: David Hubbard <david.c.hubbard@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>, Rudolf@atrpms.net
 
-Hi Matthew,
+Hi Bodo,
 
-On Fri, 2 Mar 2007 21:46:43 +0000, Matthew Garrett wrote:
-> On Fri, Mar 02, 2007 at 10:41:55PM +0100, Jean Delvare wrote:
+On Tue, 6 Mar 2007 21:40:19 +0100 (CET), Bodo Eggert wrote:
+> On Tue, 6 Mar 2007, Jean Delvare wrote:
+> > On Mon, 05 Mar 2007 14:56:44 +0100, Bodo Eggert wrote:
 > 
-> > I like the patch, after adding some casts to the printf args it
-> > compiles fine. However you print warnings each time a resource has been
-> > reserved... without checking if it hasn't been reserved by ACPI itself!
-> > My machine looks like this:
+> > > 2) make ACPI take this lock whenever it touches ports not allocated by itself
+> > >    and release it on function return.
+> > 
+> > This is costly.
 > 
-> Oops! I'll look into fixing that. Thanks, that's an excellent point...
+> TANSTAAFL. You'll need to take some lock, and if you want port emulation 
+> or per-device-mutex, you'll have to pay the price.
 
-Here is what I have come up with, by mixing your patch with Rudolf
-Marek's one. Again this is only a reporting patch, but now it only
-reports real unreserved accesses. I plan to use it for debugging
-purposes.
+True, but precisely, I wonder what will perform the best in practice, a
+single semaphore that is unconditionally taken by ACPI/AML, or your
+finer-grained approach and its many additional tests.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- drivers/acpi/osl.c |   72 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
+> 
+> > > 3) Make ACPI callback the allocating device if it touches allocated ranges,
+> > >    and on function return.
+> > 
+> > By callback, do you mean port forwarding as Rudolf Marek did, or more
+> > simple "stop touching the device" and "you can touch the device again"
+> > sort of signals? If the latter, this is no different from a mutex.
+> 
+> It may be the described port emulation callback (which is very nice and
+> possibly desired for some devices), but if you add an "I am done tampering
+> with your hardware" callback, the driver can also implement the mutex.
+> 
+> Some drivers will not understand all possible access patterns, they may 
+> try to emulate first, and if they fail, fall back to taking the mutex and 
+> passing the raw port access.
 
---- linux-2.6.21-rc2.orig/drivers/acpi/osl.c	2007-03-06 20:59:00.000000000 +0100
-+++ linux-2.6.21-rc2/drivers/acpi/osl.c	2007-03-06 21:33:13.000000000 +0100
-@@ -35,6 +35,7 @@
- #include <linux/kmod.h>
- #include <linux/delay.h>
- #include <linux/workqueue.h>
-+#include <linux/ioport.h>
- #include <linux/nmi.h>
- #include <linux/acpi.h>
- #include <acpi/acpi.h>
-@@ -370,6 +371,7 @@ u64 acpi_os_get_timer(void)
- acpi_status acpi_os_read_port(acpi_io_address port, u32 * value, u32 width)
- {
- 	u32 dummy;
-+	struct resource *conflict, res;
- 
- 	if (!value)
- 		value = &dummy;
-@@ -388,6 +390,23 @@ acpi_status acpi_os_read_port(acpi_io_ad
- 		BUG();
- 	}
- 
-+	res.flags = IORESOURCE_IO;
-+	res.name = "_ACPI Access";
-+	res.start = port;
-+	res.end = port + width/8 - 1;
-+
-+	conflict = ____request_resource(&ioport_resource, &res);
-+	while (conflict && conflict->child)
-+		conflict = ____request_resource(conflict, &res);
-+
-+	if (conflict && strncmp(conflict->name, "ACPI ", 5)) {
-+		printk (KERN_INFO "ACPI read from allocated ioport %lx, value %lx, width %d\n",
-+			(unsigned long)port, (unsigned long)(*value), (int)width);
-+	}
-+
-+	if (conflict = NULL)
-+		release_resource(&res);
-+
- 	return AE_OK;
- }
- 
-@@ -395,6 +414,25 @@ EXPORT_SYMBOL(acpi_os_read_port);
- 
- acpi_status acpi_os_write_port(acpi_io_address port, u32 value, u32 width)
- {
-+	struct resource *conflict, res;
-+
-+	res.flags = IORESOURCE_IO;
-+	res.name = "_ACPI Access";
-+	res.start = port;
-+	res.end = port + width/8 - 1;
-+
-+	conflict = ____request_resource(&ioport_resource, &res);
-+	while (conflict && conflict->child)
-+		conflict = ____request_resource(conflict, &res);
-+
-+	if (conflict && strncmp(conflict->name, "ACPI ", 5)) {
-+		printk (KERN_INFO "ACPI write to allocated ioport %lx, value %lx, width %d\n",
-+			(unsigned long)port, (unsigned long)(value), (int)width);
-+	}
-+
-+	if (conflict = NULL)
-+		release_resource(&res);
-+
- 	switch (width) {
- 	case 8:
- 		outb(value, port);
-@@ -419,6 +457,7 @@ acpi_os_read_memory(acpi_physical_addres
- {
- 	u32 dummy;
- 	void __iomem *virt_addr;
-+	struct resource *conflict, res;
- 
- 	virt_addr = ioremap(phys_addr, width);
- 	if (!value)
-@@ -440,6 +479,22 @@ acpi_os_read_memory(acpi_physical_addres
- 
- 	iounmap(virt_addr);
- 
-+	res.flags = IORESOURCE_MEM;
-+	res.name = "_ACPI Access";
-+	res.start = phys_addr;
-+	res.end = phys_addr + width/8 - 1;
-+
-+	conflict = ____request_resource(&iomem_resource, &res);
-+	while (conflict && conflict->child)
-+		conflict = ____request_resource(conflict, &res);
-+
-+	if (conflict && strncmp(conflict->name, "ACPI ", 5))
-+		pr_info("ACPI read from allocated iomem %lx, value %lx, width %d\n",
-+			(unsigned long)phys_addr, (unsigned long)(*value), (int)width);
-+
-+	if (conflict = NULL)
-+		release_resource(&res);
-+
- 	return AE_OK;
- }
- 
-@@ -447,6 +502,23 @@ acpi_status
- acpi_os_write_memory(acpi_physical_address phys_addr, u32 value, u32 width)
- {
- 	void __iomem *virt_addr;
-+	struct resource *conflict, res;
-+
-+	res.flags = IORESOURCE_MEM;
-+	res.name = "_ACPI Access";
-+	res.start = phys_addr;
-+	res.end = phys_addr + width/8 - 1;
-+
-+	conflict = ____request_resource(&iomem_resource, &res);
-+	while (conflict && conflict->child)
-+		conflict = ____request_resource(conflict, &res);
-+
-+	if (conflict && strncmp(conflict->name, "ACPI ", 5))
-+		pr_info("ACPI write to allocated iomem %lx, value %lx, width %d\n",
-+			(unsigned long)phys_addr, (unsigned long)value, (int)width);
-+
-+	if (conflict = NULL)
-+		release_resource(&res);
- 
- 	virt_addr = ioremap(phys_addr, width);
- 
+Good point.
 
+> 
+> > > 1 + 2 will replace allocating single ports and freeing them again (so ACPI won't
+> > > prevent e.g. the display driver from loading just because it turned on the
+> > > backlight) while preventing races with newly allocated ranges, and 3 allows
+> > > coexistence with other drivers.
+> > 
+> > What benefit do you see compared to a lock taken by both AML and the
+> > hardware monitoring drivers?
+> 
+> 1) I asume port allocations or ACPI foreign port acces to be rare, so
+>    there would be little impact on (un)registering hardware. Off cause
+>    there are some long ACPI calls (like reading the battery?), in these
+>    cases it might be beneficial to release the global allocation lock
+>    after gaining exclusive access to the driver's port range. (This can
+>    only be done if the device driver is loaded.)
+
+The problem is that the rarity of ACPI foreign port access doesn't
+matter much, as you have to do all the tests first to find out that it
+was a foreign port, and I suspect that these tests will cost more than
+taking the lock itself.
+
+> 2) If there is a global lock for accessing ACPI-tampered hardware, each
+>    driver that *might* conflict with ACPI _must_ take it on each access.  
+>    This would seialize unrelated sensor busses, IDE, graphics ...  (AFAI
+>    can imagine.)  A callback allows using a per-(device|bus)-mutex instead.
+
+True, this is the problem with having a single mutex: everything gets
+serialized. I have no idea how often we are running AML code though, so
+I don't know if this is a real problem in practice.
+
+We may be able to workaround the inter-driver exclusion though, if we
+use a semaphore initialized to N, have ACPI take N, but other drivers
+take just one. This would let ACPI be exclusive with all the other
+drivers, but drivers themselves could otherwise run concurrently. That
+being said, we do not appear to have the required primitives to take
+more than 1 semaphore resource at once at the moment, so we'd need to
+do that first.
+
+OTOH, I certainly hope that not that many drivers are affected on a
+given system, so maybe serialization is acceptable. We'll need some
+field experimentation to find out.
+
+> Rudolph's implementation is close enough to imagine what would be done,
+> the changes would be:
+> 
+> - Add a "done" call to resource_ops
+> 
+> in ACPI:
+> - Check for own region first and do raw access there
+> - get the lock before __request_region
+> - s/__request/__check/
+> 
+> in driver:
+> - If emulation fails, get the local lock and switch to passthrough mode
+> - if in passthrough mode and done is called, release the lock
+
+Yep, that's a bit complex, but should work, thanks for sketching this.
 
 -- 
 Jean Delvare
