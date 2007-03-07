@@ -1,33 +1,38 @@
-From: straterra@gmail.com (Straterra)
-Date: Sun, 18 Mar 2007 19:32:02 +0000
-Subject: [lm-sensors] pwmconfig patch
-Message-Id: <74cdf1b10703181232t5949cc6fude9f624521a91d65@mail.gmail.com>
+From: krzysztof.h1@wp.pl (Krzysztof Helt)
+Date: Wed, 07 Mar 2007 08:49:25 +0000
+Subject: [lm-sensors] [PATCH] THMC50 and ADM1022 support for 2.6 kernel
+Message-Id: <45ee7c951cbed@wp.pl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I have a Shuttle SN25P and like most shuttles, all of the fans in it
-are controlled via PWM. I recently tried pwmconfig to set them up for
-automatic speed control and found that there was an issue in the lm85
-driver that has been known, but not fixed. Hopefully, this patch will
-generate enough of a stir that people with the broken driver will
-email and nag the devs so the fix gets done.
+This patch adds support for THMC50 and ADM1022 chips to 2.6 kernels.
 
-This patch merely detects to see if there was a problem disabling the
-pwm control interfaces. When the user gets an access denied error,
-this is a sure symptom of a problem with the underlying driver. It
-detects this and spits out a warning and instructs the user to let the
-appropriate people know.
+Signed-off-by: Krzysztof Helt <krzysztof.h1 at wp.pl>
 
-Thanks!
--- Thomas "Straterra" York
-straterra<at>gmail<dot>com
+---
+
+This patch is improved comparing to previous one: 
+ * it allows selection of ADM1022 working mode (THMC50 or
+additional remote temperature)
+ * adds doc file 
+ * stops the fan with pwm1 setting to 0
+ * removes interrupt mask and status files from sysfs.
+
+Regards,
+Krzysztof
+
+----------------------------------------------------
+Producenci "Opowie?ci z Narnii" przedstawiaj?: 
+Wielka przygoda w ?wiecie, w kt?rym wszystko jest mo?liwe!
+MOST DO TERABITHII - w kinach od 9 marca!
+http://klik.wp.pl/?adr=http%3A%2F%2Fadv.reklama.wp.pl%2Fas%2Fmost.html&sid44
 -------------- next part --------------
 A non-text attachment was scrubbed...
-Name: pwmconfig.patch
-Type: application/octet-stream
-Size: 2052 bytes
+Name: thmc50b.diff
+Type: text/x-patch
+Size: 19476 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070318/9ba97b52/attachment.obj 
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070307/e89ceb4e/attachment-0001.bin 
