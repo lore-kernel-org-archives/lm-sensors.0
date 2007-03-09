@@ -1,34 +1,41 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 06 Mar 2007 18:15:30 +0000
-Subject: [lm-sensors] Google Summer of Code 2007
-Message-Id: <20070306191530.ff329b32.khali@linux-fr.org>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Fri, 09 Mar 2007 23:07:44 +0000
+Subject: [lm-sensors] get rid of i2c-isa - h now
+Message-Id: <45F1E8C0.6040504@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45ED5B24.2030703@hhs.nl>
-In-Reply-To: <45ED5B24.2030703@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Hello all,
 
-On Tue, 06 Mar 2007 13:14:28 +0100, Hans de Goede wrote:
-> Appearantely the lmsensors autoconfig / DMI based config project I 
-> defined from within Fedora last Google SOC, still is on a webpage 
-> somewhere as I'm getting applicants for it. Since I know have 3 students 
-> working on this (who I see atleast once a week in person which is must 
-> better) I've no intention to run this project as SOC project again, 
-> especially also taking into account the huge success this was last time.
-> 
-> I was planning on telling the applicants this, but maybe there is some 
-> other lm-sensors task which could be done as a Google SOC project (ran 
-> from the Fedora Project)? I think it is very important if we want this 
-> that the requirements are very clear from the beginning. I'm also not 
-> sure at all that we want this, but its an option.
+Jean asked me to help to covert the remaining i2c-isa drivers. Situation is
+following:
 
-It's pretty clear to me that I do not have the time to take part into
-that kind of event, and probably not the interest either.
+it87.c -  montjoie is working on it, Jean can test
+lm78.c - special ISA, Jean can test
+pc87360.c
+sis5595.c
+smsc47b397.c - I can test but bit complicated - it is a server
+smsc47m1.c
+via686a.c
+vt8231.c
+w83627hf.c - Jean can test
+w83627ehf.c - I can test on monday/sunday, passing to David right now ;)
+w83781d.c - special ISA
 
--- 
-Jean Delvare
+Of course my test platform does not boot via the WOL :/  So I cant test the EHF
+driver right now. David, please can you help with that? (the request resource
+part is still missing, please check the Jean's pending patches, the patch
+compiles OK thats all I know) If you don't have time, never mind.
+
+I will try to reboot my workstation on Sunday with new kernel, but I need it
+tomorrow for for some VHDL development.
+
+Maybe others may help? If we finish this in time, we can move to pending patches
+;) I will convert perhaps smsc47b397 tomorrow.
+
+Thanks,
+Rudolf
 
