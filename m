@@ -1,27 +1,26 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 06 Mar 2007 18:18:49 +0000
-Subject: [lm-sensors] #2159: lm-sensors doesn't work on Abit AB9 Pro
-Message-Id: <20070306191849.fec56fdb.khali@linux-fr.org>
+From: drstorm@data.pl (Marcin DrStorm Sliwinski)
+Date: Sat, 10 Mar 2007 17:16:50 +0000
+Subject: [lm-sensors] PC8374L SuperIO chip
+Message-Id: <20070310181650.33ed8ef7@beast>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45DEA193.6050100@hhs.nl>
-In-Reply-To: <45DEA193.6050100@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Hey
+Are there any chances for support for Winbond PC8374L chip ?
+I have it on my Intel D965G mainboard (name on chip: 8347lf2-c/l1). 
+It's SuperIO without internal sensors but with fan RPM measure and PWM
+It has also Sensorpath interface (single-wire sensors interface).
+Basic info can be found here:
+http://www.winbond-usa.com/mambo/content/view/305/528/
+http://www.national.com/nationaledge/jan04/article.html
+In attachment i've put sensors-detect log (lm-sensors-2.10.2)
+I was looking for some docs over the net but found only electric characteristics and pinout
+without any data about internal registers.
+I hope anyone will be able to code driver for this ;)
 
-On Tue, 06 Mar 2007 13:33:59 +0100, Hans de Goede wrote:
-> Once again through the list as I still can do nothing with the ticket, 
-> even though its assigend to me. Notice that just might be me being a 
-> total trac noop, I see no edit link or whatever anywhere and reading the 
-> trac guide learns me that I need to annotate the bug, but I see no 
-> annotate link / button either.
-
-I just checked and indeed you didn't have the proper permissions. It
-should be fixed now, sorry for the inconvenience.
-
--- 
-Jean Delvare
+Best regards
+DrStorm
 
