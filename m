@@ -1,26 +1,25 @@
-From: drstorm@data.pl (Marcin DrStorm Sliwinski)
-Date: Sat, 10 Mar 2007 17:16:50 +0000
+From: drstorm@wp.pl (Marcin DrStorm =?ISO-8859-2?Q?=A6liwi=F1ski?=)
+Date: Sat, 10 Mar 2007 17:24:52 +0000
 Subject: [lm-sensors] PC8374L SuperIO chip
-Message-Id: <20070310181650.33ed8ef7@beast>
+Message-Id: <20070310182452.2e995d9d@beast>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20070310181650.33ed8ef7@beast>
+In-Reply-To: <20070310181650.33ed8ef7@beast>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hey
-Are there any chances for support for Winbond PC8374L chip ?
-I have it on my Intel D965G mainboard (name on chip: 8347lf2-c/l1). 
-It's SuperIO without internal sensors but with fan RPM measure and PWM
-It has also Sensorpath interface (single-wire sensors interface).
-Basic info can be found here:
-http://www.winbond-usa.com/mambo/content/view/305/528/
-http://www.national.com/nationaledge/jan04/article.html
-In attachment i've put sensors-detect log (lm-sensors-2.10.2)
-I was looking for some docs over the net but found only electric characteristics and pinout
-without any data about internal registers.
-I hope anyone will be able to code driver for this ;)
+On Sat, 10 Mar 2007 18:16:50 +0100
+Marcin DrStorm Sliwinski <drstorm at data.pl> wrote:
+
+
+> In attachment i've put sensors-detect log (lm-sensors-2.10.2)
+Sorry, forgot to add attachement
 
 Best regards
 DrStorm
-
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: sensors.txt
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070310/8498f62d/attachment.txt 
