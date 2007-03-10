@@ -1,7 +1,7 @@
-From: drstorm@wp.pl (Marcin DrStorm =?ISO-8859-2?Q?=A6liwi=F1ski?=)
-Date: Sat, 10 Mar 2007 17:24:52 +0000
+From: drstorm@data.pl (Marcin DrStorm =?ISO-8859-2?Q?=A6liwi=F1ski?=)
+Date: Sat, 10 Mar 2007 17:25:46 +0000
 Subject: [lm-sensors] PC8374L SuperIO chip
-Message-Id: <20070310182452.2e995d9d@beast>
+Message-Id: <20070310182546.6813ddb4@beast>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070310181650.33ed8ef7@beast>
 In-Reply-To: <20070310181650.33ed8ef7@beast>
@@ -22,4 +22,4 @@ DrStorm
 -------------- next part --------------
 An embedded and charset-unspecified text was scrubbed...
 Name: sensors.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070310/8498f62d/attachment.txt 
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070310/906f6b4b/attachment.txt 
