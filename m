@@ -1,32 +1,32 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 31 Mar 2007 13:21:49 +0000
-Subject: Re: [lm-sensors] [PATCH] coretemp 2/3 Add the coretemp driver
-Message-Id: <20070331152149.814ae4ee.khali@linux-fr.org>
+From: stefano.brivio@polimi.it (Stefano Brivio)
+Date: Sat, 10 Mar 2007 12:04:02 +0000
+Subject: [lm-sensors] [PATCH] build fix for W83793
+Message-Id: <20070310130402.1d7f90fd@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46006650.8000603@assembler.cz>
-In-Reply-To: <46006650.8000603@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi George,
+We need vid_which_vrm and vid_from_reg in w83793 module.
 
-On Thu, 29 Mar 2007 17:16:32 -0600, George T. Joseph wrote:
-> This may be a little late, but how about a module parameter that sets
-> tjmax (and suppresses the warning). This way if the detection logic
-> fails for some reason, the driver can still be used if the user knows
-> what the tjmax for their processor is.
 
-If this is only an option, I guess it cannot hurt. I have no strong
-opinion on the feature itself, Rudolf will know better. But at any
-rate, it's not too late - open source code is _meant_ to be improved
-over time.
+Signed-off-by: Stefano Brivio <stefano.brivio at polimi.it>
+----
+
+--- drivers/hwmon/Kconfig.orig	2007-03-10 12:54:14.126633998 +0100
++++ drivers/hwmon/Kconfig	2007-03-10 12:55:07.443500176 +0100
+@@ -516,6 +516,7 @@
+ config SENSORS_W83793
+ 	tristate "Winbond W83793"
+ 	depends on HWMON && I2C && EXPERIMENTAL
++	select HWMON_VID
+ 	help
+ 	  If you say yes here you get support for the Winbond W83793
+ 	  hardware monitoring chip.
+
 
 -- 
-Jean Delvare
+Ciao
+Stefano
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
