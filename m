@@ -1,49 +1,44 @@
-From: Axel.Thimm@ATrpms.net (Axel Thimm)
-Date: Mon, 12 Mar 2007 11:21:43 +0000
-Subject: [lm-sensors] libsensors patches
-Message-Id: <20070312112143.GL6176@neu.nirvana>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Sun, 11 Mar 2007 21:57:24 +0000
+Subject: [lm-sensors] get rid of i2c-isa - h now - fixes of w82627ehf
+Message-Id: <45F47B44.8010108@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070311152104.bd092ff9.khali@linux-fr.org>
-In-Reply-To: <20070311152104.bd092ff9.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Mar 12, 2007 at 11:12:36AM +0100, Jean Delvare wrote:
-> Hi Axel, Hans, all,
-> 
-> On Sun, 11 Mar 2007 21:28:46 +0100, Axel Thimm wrote:
-> > On Sun, Mar 11, 2007 at 08:53:43PM +0100, Hans de Goede wrote:
-> > > Agreed, thinking about this some more I'm not so sure that dropping 2.4 
-> > > support is a good idea as there is still plenty of 2.4 usage out there. 
-> > 
-> > I would second keeping 2.4 support if it's not too much pain.
+Hi all,
 
-> Come on, I'm tired of all this whining each time we say that we want
-> to drop 2.4 support.  [...] The drop of 2.4 support is a fact
-> already. We are no longer writing new drivers for 2.4, and when 2.4
-> drivers are backported by others (w83627ehf, smsc47m192) we don't
-> have the time to review them anyway.
+Thanks for the review. I fixed the issues. Moreover I did:
 
-> > But if 2.4 support is slowing down things and developer resources
-> > want to concentrate on 2.6 it will have to go sooner or later.
-> 
-> That's the case exactly. We hardly have time to keep up with the new
-> drivers for 2.6 and all the infrastrcuture changes that are long
-> overdue.
+0) fixed the Kconfig - deps fixed plus now it mentions the DHG.
+1) forgot the name attribute - so it is fixed now
+2) removed unsigned short address * (I put that into sio_data)
+3) removed global REG and VAL for sio access
+4) chip w83627ehg report its name in "name" attribute as w83627ehf
+   to preserve compatibility of libsensors
+4) changed the resource handling, platform device allocates the full 8byte
+region, and report itself there with sio name. So in my case:
 
-I'm instantly redrawing my just-nice-to-have-if-its-no-pain request. :)
+0290-0297 : W83627EHG
+  0295-0296 : w83627ehf
 
-Many thanks for keeping this project up and fresh! I agree that if
-RHEL3 consumers are interested then they should be able to throw in
-resources. But that's not going to happen.
--- 
-Axel.Thimm at ATrpms.net
+The datasheet mentions that the chip decodes just +5 and +6 but it also mentions
+that last three bits belong to the chip. I must check if it will hoose acpi pnp
+or not.
+
+David, this patch works for me, care to test it on DHG too? (Again be careful,
+this is very hot patch ;) Maybe you can read and check the DHG specific changes.
+
+Thanks,
+
+Rudolf
+
 -------------- next part --------------
 A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
+Name: w83627ehf-convert-to-platform-driver.patch
+Type: text/x-diff
+Size: 38392 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070312/fdbf2e30/attachment.bin 
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070311/f8cca0b2/attachment-0001.bin 
