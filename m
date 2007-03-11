@@ -1,290 +1,211 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 19 Mar 2007 12:34:04 +0000
-Subject: [lm-sensors] [PATCH 2/3] lm78: Be less i2c_client-centric
-Message-Id: <20070319133404.8354ea72.khali@linux-fr.org>
+Date: Sun, 11 Mar 2007 08:56:57 +0000
+Subject: [lm-sensors] [PATCH] w83627hf: Preliminary cleanups
+Message-Id: <20070311095657.84e71f8d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Use the driver data structure as the main device reference, instead of
-the i2c client. It makes the driver a bit smaller, and makes more sense
-as this is an hybrid driver, supporting both I2C and ISA devices.
+Some preliminary cleanups to the w83627hf hardware monitoring driver,
+to make its conversion to a platform driver easier:
+
+* Add missing include ioport.h
+* Drop unused enum value any_chip
+* Group module parameters
+* Define and use DRVNAME
+* Drop unused struct member lm75
+* Move the handling of force_addr and device activation to
+  w83627hf_find
+* Consistently use local type in w83627hf_init_client
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- drivers/hwmon/lm78.c |   86 +++++++++++++++++++++++---------------------------
- 1 file changed, 40 insertions(+), 46 deletions(-)
+ drivers/hwmon/w83627hf.c |   76 ++++++++++++++++++++++------------------------
+ 1 file changed, 36 insertions(+), 40 deletions(-)
 
---- linux-2.6.21-rc4.orig/drivers/hwmon/lm78.c	2007-03-19 09:37:45.000000000 +0100
-+++ linux-2.6.21-rc4/drivers/hwmon/lm78.c	2007-03-19 10:05:08.000000000 +0100
-@@ -159,10 +159,10 @@ static int lm78_detach_client(struct i2c
- static int __devinit lm78_isa_probe(struct platform_device *pdev);
- static int __devexit lm78_isa_remove(struct platform_device *pdev);
+--- linux-2.6.21-rc3.orig/drivers/hwmon/w83627hf.c	2007-03-11 08:46:28.000000000 +0100
++++ linux-2.6.21-rc3/drivers/hwmon/w83627hf.c	2007-03-11 09:49:13.000000000 +0100
+@@ -48,9 +48,16 @@
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/ioport.h>
+ #include <asm/io.h>
+ #include "lm75.h"
  
--static int lm78_read_value(struct i2c_client *client, u8 reg);
--static int lm78_write_value(struct i2c_client *client, u8 reg, u8 value);
-+static int lm78_read_value(struct lm78_data *data, u8 reg);
-+static int lm78_write_value(struct lm78_data *data, u8 reg, u8 value);
- static struct lm78_data *lm78_update_device(struct device *dev);
--static void lm78_init_client(struct i2c_client *client);
-+static void lm78_init_device(struct lm78_data *data);
++/* The actual ISA address is read from Super-I/O configuration space */
++static unsigned short address;
++
++#define DRVNAME "w83627hf"
++enum chips { w83627hf, w83627thf, w83697hf, w83637hf, w83687thf };
++
+ static u16 force_addr;
+ module_param(force_addr, ushort, 0);
+ MODULE_PARM_DESC(force_addr,
+@@ -60,12 +67,6 @@ module_param(force_i2c, byte, 0);
+ MODULE_PARM_DESC(force_i2c,
+ 		 "Initialize the i2c address of the sensors");
  
+-/* The actual ISA address is read from Super-I/O configuration space */
+-static unsigned short address;
+-
+-/* Insmod parameters */
+-enum chips { any_chip, w83627hf, w83627thf, w83697hf, w83637hf, w83687thf };
+-
+ static int reset;
+ module_param(reset, bool, 0);
+ MODULE_PARM_DESC(reset, "Set to one to reset chip on load");
+@@ -298,9 +299,6 @@ struct w83627hf_data {
+ 	char valid;		/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
  
- static struct i2c_driver lm78_driver = {
-@@ -207,12 +207,11 @@ static ssize_t set_in_min(struct device 
- 		size_t count, int nr)
+-	struct i2c_client *lm75;	/* for secondary I2C addresses */
+-	/* pointer to array of 2 subclients */
+-
+ 	u8 in[9];		/* Register value */
+ 	u8 in_max[9];		/* Register value */
+ 	u8 in_min[9];		/* Register value */
+@@ -339,7 +337,7 @@ static void w83627hf_init_client(struct 
+ static struct i2c_driver w83627hf_driver = {
+ 	.driver = {
+ 		.owner	= THIS_MODULE,
+-		.name	= "w83627hf",
++		.name	= DRVNAME,
+ 	},
+ 	.attach_adapter	= w83627hf_detect,
+ 	.detach_client	= w83627hf_detach_client,
+@@ -931,6 +929,7 @@ sysfs_sensor(3);
+ 
+ static int __init w83627hf_find(int sioaddr, unsigned short *addr)
  {
- 	struct lm78_data *data = dev_get_drvdata(dev);
--	struct i2c_client *client = &data->client;
- 	unsigned long val = simple_strtoul(buf, NULL, 10);
++	int err = -ENODEV;
+ 	u16 val;
  
- 	mutex_lock(&data->update_lock);
- 	data->in_min[nr] = IN_TO_REG(val);
--	lm78_write_value(client, LM78_REG_IN_MIN(nr), data->in_min[nr]);
-+	lm78_write_value(data, LM78_REG_IN_MIN(nr), data->in_min[nr]);
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
-@@ -221,12 +220,11 @@ static ssize_t set_in_max(struct device 
- 		size_t count, int nr)
- {
- 	struct lm78_data *data = dev_get_drvdata(dev);
--	struct i2c_client *client = &data->client;
- 	unsigned long val = simple_strtoul(buf, NULL, 10);
- 
- 	mutex_lock(&data->update_lock);
- 	data->in_max[nr] = IN_TO_REG(val);
--	lm78_write_value(client, LM78_REG_IN_MAX(nr), data->in_max[nr]);
-+	lm78_write_value(data, LM78_REG_IN_MAX(nr), data->in_max[nr]);
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
-@@ -288,12 +286,11 @@ static ssize_t show_temp_over(struct dev
- static ssize_t set_temp_over(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
- {
- 	struct lm78_data *data = dev_get_drvdata(dev);
--	struct i2c_client *client = &data->client;
- 	long val = simple_strtol(buf, NULL, 10);
- 
- 	mutex_lock(&data->update_lock);
- 	data->temp_over = TEMP_TO_REG(val);
--	lm78_write_value(client, LM78_REG_TEMP_OVER, data->temp_over);
-+	lm78_write_value(data, LM78_REG_TEMP_OVER, data->temp_over);
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
-@@ -307,12 +304,11 @@ static ssize_t show_temp_hyst(struct dev
- static ssize_t set_temp_hyst(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
- {
- 	struct lm78_data *data = dev_get_drvdata(dev);
--	struct i2c_client *client = &data->client;
- 	long val = simple_strtol(buf, NULL, 10);
- 
- 	mutex_lock(&data->update_lock);
- 	data->temp_hyst = TEMP_TO_REG(val);
--	lm78_write_value(client, LM78_REG_TEMP_HYST, data->temp_hyst);
-+	lm78_write_value(data, LM78_REG_TEMP_HYST, data->temp_hyst);
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
-@@ -342,12 +338,11 @@ static ssize_t set_fan_min(struct device
- 		size_t count, int nr)
- {
- 	struct lm78_data *data = dev_get_drvdata(dev);
--	struct i2c_client *client = &data->client;
- 	unsigned long val = simple_strtoul(buf, NULL, 10);
- 
- 	mutex_lock(&data->update_lock);
- 	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
--	lm78_write_value(client, LM78_REG_FAN_MIN(nr), data->fan_min[nr]);
-+	lm78_write_value(data, LM78_REG_FAN_MIN(nr), data->fan_min[nr]);
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
-@@ -366,7 +361,6 @@ static ssize_t set_fan_div(struct device
- 	size_t count, int nr)
- {
- 	struct lm78_data *data = dev_get_drvdata(dev);
--	struct i2c_client *client = &data->client;
- 	unsigned long val = simple_strtoul(buf, NULL, 10);
- 	unsigned long min;
- 	u8 reg;
-@@ -387,7 +381,7 @@ static ssize_t set_fan_div(struct device
- 		return -EINVAL;
+ 	REG = sioaddr;
+@@ -943,21 +942,37 @@ static int __init w83627hf_find(int sioa
+ 	   val != W697_DEVID &&
+ 	   val != W637_DEVID &&
+ 	   val != W687THF_DEVID) {
+-		superio_exit();
+-		return -ENODEV;
++		goto exit;
  	}
  
--	reg = lm78_read_value(client, LM78_REG_VID_FANDIV);
-+	reg = lm78_read_value(data, LM78_REG_VID_FANDIV);
- 	switch (nr) {
- 	case 0:
- 		reg = (reg & 0xcf) | (data->fan_div[nr] << 4);
-@@ -396,11 +390,11 @@ static ssize_t set_fan_div(struct device
- 		reg = (reg & 0x3f) | (data->fan_div[nr] << 6);
- 		break;
+ 	superio_select(W83627HF_LD_HWM);
++	force_addr &= WINB_ALIGNMENT;
++	if (force_addr) {
++		printk(KERN_WARNING DRVNAME ": Forcing address 0x%x\n",
++		       force_addr);
++		superio_outb(WINB_BASE_REG, force_addr >> 8);
++		superio_outb(WINB_BASE_REG + 1, force_addr & 0xff);
++	}
+ 	val = (superio_inb(WINB_BASE_REG) << 8) |
+ 	       superio_inb(WINB_BASE_REG + 1);
+ 	*addr = val & WINB_ALIGNMENT;
+-	if (*addr = 0 && force_addr = 0) {
+-		superio_exit();
+-		return -ENODEV;
++	if (*addr = 0) {
++		printk(KERN_WARNING DRVNAME ": Base address not set, "
++		       "skipping\n");
++		goto exit;
++	}
++
++	val = superio_inb(WINB_ACT_REG);
++	if (!(val & 0x01)) {
++		printk(KERN_WARNING DRVNAME ": Enabling HWM logical device\n");
++		superio_outb(WINB_ACT_REG, val | 0x01);
  	}
--	lm78_write_value(client, LM78_REG_VID_FANDIV, reg);
-+	lm78_write_value(data, LM78_REG_VID_FANDIV, reg);
  
- 	data->fan_min[nr]  		FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
--	lm78_write_value(client, LM78_REG_FAN_MIN(nr), data->fan_min[nr]);
-+	lm78_write_value(data, LM78_REG_FAN_MIN(nr), data->fan_min[nr]);
- 	mutex_unlock(&data->update_lock);
++	err = 0;
++
++ exit:
+ 	superio_exit();
+-	return 0;
++	return err;
+ }
  
- 	return count;
-@@ -563,11 +557,11 @@ static int lm78_detect(struct i2c_adapte
+ static struct attribute *w83627hf_attributes[] = {
+@@ -1047,24 +1062,12 @@ static int w83627hf_detect(struct i2c_ad
+ 	int err = 0;
+ 	const char *client_name = "";
  
- 	/* Now, we do the remaining detection. */
- 	if (kind < 0) {
--		if (lm78_read_value(new_client, LM78_REG_CONFIG) & 0x80) {
-+		if (lm78_read_value(data, LM78_REG_CONFIG) & 0x80) {
- 			err = -ENODEV;
- 			goto ERROR2;
- 		}
--		if (lm78_read_value(new_client, LM78_REG_I2C_ADDR) !+		if (lm78_read_value(data, LM78_REG_I2C_ADDR) ! 		    address) {
- 			err = -ENODEV;
- 			goto ERROR2;
-@@ -576,7 +570,7 @@ static int lm78_detect(struct i2c_adapte
+-	if(force_addr)
+-		address = force_addr & WINB_ALIGNMENT;
+-
+ 	if (!request_region(address + WINB_REGION_OFFSET, WINB_REGION_SIZE,
+ 	                    w83627hf_driver.driver.name)) {
+ 		err = -EBUSY;
+ 		goto ERROR0;
+ 	}
  
- 	/* Determine the chip type. */
- 	if (kind <= 0) {
--		i = lm78_read_value(new_client, LM78_REG_CHIPID);
-+		i = lm78_read_value(data, LM78_REG_CHIPID);
- 		if (i = 0x00 || i = 0x20	/* LM78 */
- 		 || i = 0x40)			/* LM78-J */
- 			kind = lm78;
-@@ -608,7 +602,7 @@ static int lm78_detect(struct i2c_adapte
+-	if(force_addr) {
+-		printk("w83627hf.o: forcing ISA address 0x%04X\n", address);
+-		superio_enter();
+-		superio_select(W83627HF_LD_HWM);
+-		superio_outb(WINB_BASE_REG, address >> 8);
+-		superio_outb(WINB_BASE_REG+1, address & 0xff);
+-		superio_exit();
+-	}
+-
+ 	superio_enter();
+ 	val= superio_inb(DEVID);
+ 	if(val = W627_DEVID)
+@@ -1082,10 +1085,6 @@ static int w83627hf_detect(struct i2c_ad
+ 			 "Unsupported chip (dev_id=0x%02X).\n", val);
+ 		goto ERROR1;
+ 	}
+-
+-	superio_select(W83627HF_LD_HWM);
+-	if((val = 0x01 & superio_inb(WINB_ACT_REG)) = 0)
+-		superio_outb(WINB_ACT_REG, 1);
+ 	superio_exit();
+ 
+ 	/* OK. For now, we presume we have a valid client. We now create the
+@@ -1128,8 +1127,6 @@ static int w83627hf_detect(struct i2c_ad
+ 	if ((err = i2c_attach_client(new_client)))
  		goto ERROR2;
  
- 	/* Initialize the LM78 chip */
--	lm78_init_client(new_client);
-+	lm78_init_device(data);
+-	data->lm75 = NULL;
+-
+ 	/* Initialize the chip */
+ 	w83627hf_init_client(new_client);
  
- 	/* Register sysfs hooks */
- 	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm78_group)))
-@@ -671,7 +665,7 @@ static int __devinit lm78_isa_probe(stru
- 	i2c_set_clientdata(&data->client, data);
- 	platform_set_drvdata(pdev, data);
- 
--	if (lm78_read_value(&data->client, LM78_REG_CHIPID) & 0x80) {
-+	if (lm78_read_value(data, LM78_REG_CHIPID) & 0x80) {
- 		data->type = lm79;
- 		name = "lm79";
- 	} else {
-@@ -681,7 +675,7 @@ static int __devinit lm78_isa_probe(stru
- 	strlcpy(data->client.name, name, I2C_NAME_SIZE);
- 
- 	/* Initialize the LM78 chip */
--	lm78_init_client(&data->client);
-+	lm78_init_device(data);
- 
- 	/* Register sysfs hooks */
- 	if ((err = sysfs_create_group(&pdev->dev.kobj, &lm78_group))
-@@ -724,11 +718,12 @@ static int __devexit lm78_isa_remove(str
-    separately.
-    We ignore the LM78 BUSY flag at this moment - it could lead to deadlocks,
-    would slow down the LM78 access and should not be necessary.  */
--static int lm78_read_value(struct i2c_client *client, u8 reg)
-+static int lm78_read_value(struct lm78_data *data, u8 reg)
+@@ -1374,7 +1371,7 @@ static void w83627hf_init_client(struct 
  {
--	int res;
-+	struct i2c_client *client = &data->client;
-+
- 	if (!client->driver) { /* ISA device */
--		struct lm78_data *data = i2c_get_clientdata(client);
-+		int res;
- 		mutex_lock(&data->lock);
- 		outb_p(reg, client->addr + LM78_ADDR_REG_OFFSET);
- 		res = inb_p(client->addr + LM78_DATA_REG_OFFSET);
-@@ -745,10 +740,11 @@ static int lm78_read_value(struct i2c_cl
-    would slow down the LM78 access and should not be necessary. 
-    There are some ugly typecasts here, but the good new is - they should
-    nowhere else be necessary! */
--static int lm78_write_value(struct i2c_client *client, u8 reg, u8 value)
-+static int lm78_write_value(struct lm78_data *data, u8 reg, u8 value)
- {
-+	struct i2c_client *client = &data->client;
-+
- 	if (!client->driver) { /* ISA device */
--		struct lm78_data *data = i2c_get_clientdata(client);
- 		mutex_lock(&data->lock);
- 		outb_p(reg, client->addr + LM78_ADDR_REG_OFFSET);
- 		outb_p(value, client->addr + LM78_DATA_REG_OFFSET);
-@@ -758,21 +754,20 @@ static int lm78_write_value(struct i2c_c
- 		return i2c_smbus_write_byte_data(client, reg, value);
- }
- 
--static void lm78_init_client(struct i2c_client *client)
-+static void lm78_init_device(struct lm78_data *data)
- {
--	struct lm78_data *data = i2c_get_clientdata(client);
- 	u8 config;
+ 	struct w83627hf_data *data = i2c_get_clientdata(client);
  	int i;
+-	int type = data->type;
++	enum chips type = data->type;
+ 	u8 tmp;
  
- 	/* Start monitoring */
--	config = lm78_read_value(client, LM78_REG_CONFIG);
-+	config = lm78_read_value(data, LM78_REG_CONFIG);
- 	if ((config & 0x09) != 0x01)
--		lm78_write_value(client, LM78_REG_CONFIG,
-+		lm78_write_value(data, LM78_REG_CONFIG,
- 				 (config & 0xf7) | 0x01);
+ 	if (reset) {
+@@ -1407,19 +1404,18 @@ static void w83627hf_init_client(struct 
+ 	w83627hf_write_value(client, W83781D_REG_I2C_ADDR, force_i2c);
  
- 	/* A few vars need to be filled upon startup */
- 	for (i = 0; i < 3; i++) {
--		data->fan_min[i] = lm78_read_value(client,
-+		data->fan_min[i] = lm78_read_value(data,
- 					LM78_REG_FAN_MIN(i));
+ 	/* Read VID only once */
+-	if (w83627hf = data->type || w83637hf = data->type) {
++	if (type = w83627hf || type = w83637hf) {
+ 		int lo = w83627hf_read_value(client, W83781D_REG_VID_FANDIV);
+ 		int hi = w83627hf_read_value(client, W83781D_REG_CHIPID);
+ 		data->vid = (lo & 0x0f) | ((hi & 0x01) << 4);
+-	} else if (w83627thf = data->type) {
++	} else if (type = w83627thf) {
+ 		data->vid = w83627thf_read_gpio5(client);
+-	} else if (w83687thf = data->type) {
++	} else if (type = w83687thf) {
+ 		data->vid = w83687thf_read_vid(client);
  	}
  
-@@ -782,7 +777,6 @@ static void lm78_init_client(struct i2c_
- static struct lm78_data *lm78_update_device(struct device *dev)
- {
- 	struct lm78_data *data = dev_get_drvdata(dev);
--	struct i2c_client *client = &data->client;
- 	int i;
- 
- 	mutex_lock(&data->update_lock);
-@@ -794,35 +788,35 @@ static struct lm78_data *lm78_update_dev
- 
- 		for (i = 0; i <= 6; i++) {
- 			data->in[i] -			    lm78_read_value(client, LM78_REG_IN(i));
-+			    lm78_read_value(data, LM78_REG_IN(i));
- 			data->in_min[i] -			    lm78_read_value(client, LM78_REG_IN_MIN(i));
-+			    lm78_read_value(data, LM78_REG_IN_MIN(i));
- 			data->in_max[i] -			    lm78_read_value(client, LM78_REG_IN_MAX(i));
-+			    lm78_read_value(data, LM78_REG_IN_MAX(i));
- 		}
- 		for (i = 0; i < 3; i++) {
- 			data->fan[i] -			    lm78_read_value(client, LM78_REG_FAN(i));
-+			    lm78_read_value(data, LM78_REG_FAN(i));
- 			data->fan_min[i] -			    lm78_read_value(client, LM78_REG_FAN_MIN(i));
-+			    lm78_read_value(data, LM78_REG_FAN_MIN(i));
- 		}
--		data->temp = lm78_read_value(client, LM78_REG_TEMP);
-+		data->temp = lm78_read_value(data, LM78_REG_TEMP);
- 		data->temp_over -		    lm78_read_value(client, LM78_REG_TEMP_OVER);
-+		    lm78_read_value(data, LM78_REG_TEMP_OVER);
- 		data->temp_hyst -		    lm78_read_value(client, LM78_REG_TEMP_HYST);
--		i = lm78_read_value(client, LM78_REG_VID_FANDIV);
-+		    lm78_read_value(data, LM78_REG_TEMP_HYST);
-+		i = lm78_read_value(data, LM78_REG_VID_FANDIV);
- 		data->vid = i & 0x0f;
- 		if (data->type = lm79)
- 			data->vid |-			    (lm78_read_value(client, LM78_REG_CHIPID) &
-+			    (lm78_read_value(data, LM78_REG_CHIPID) &
- 			     0x01) << 4;
- 		else
- 			data->vid |= 0x10;
- 		data->fan_div[0] = (i >> 4) & 0x03;
- 		data->fan_div[1] = i >> 6;
--		data->alarms = lm78_read_value(client, LM78_REG_ALARM1) +
--		    (lm78_read_value(client, LM78_REG_ALARM2) << 8);
-+		data->alarms = lm78_read_value(data, LM78_REG_ALARM1) +
-+		    (lm78_read_value(data, LM78_REG_ALARM2) << 8);
- 		data->last_updated = jiffies;
- 		data->valid = 1;
- 
+ 	/* Read VRM & OVT Config only once */
+-	if (w83627thf = data->type || w83637hf = data->type
+-	 || w83687thf = data->type) {
++	if (type = w83627thf || type = w83637hf || type = w83687thf) {
+ 		data->vrm_ovt = 
+ 			w83627hf_read_value(client, W83627THF_REG_VRM_OVT_CFG);
+ 	}
 
 
 -- 
