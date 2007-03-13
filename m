@@ -1,8 +1,10 @@
 From: s.cramatte@wanadoo.fr (=?ISO-8859-1?Q?S=E9bastien_CRAMATTE?=)
-Date: Tue, 13 Mar 2007 13:44:37 +0000
+Date: Tue, 13 Mar 2007 13:47:27 +0000
 Subject: [lm-sensors] lm-sensors and 2.6.18 kernel under debian sarge
-Message-Id: <45F6AAC5.5050307@wanadoo.fr>
+Message-Id: <45F6AB6F.8090709@wanadoo.fr>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <45F6AAC5.5050307@wanadoo.fr>
+In-Reply-To: <45F6AAC5.5050307@wanadoo.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,7 +21,7 @@ Moreover values are very strange ... and for example   "set beep_enable
 
 I've patched the kernel with IPMI  too but I don't know how to use it :(
 # ls /boot/modules/2.6.18.3-router.5/kernel/drivers/char/ipmi/*
-ipmi_devintf.ko  ipmi_msghandler.ko  ipmi_poweroff.ko  ipmi_si.ko 
+ipmi_devintf.ko  ipmi_msghandler.ko  ipmi_poweroff.ko  ipmi_si.ko
 ipmi_watchdog.ko
 
 #uname -a
@@ -81,11 +83,11 @@ in8:       +4.08 V  (min =  +4.08 V, max =  +4.08 V)       ALARM  (beep)
 fan1:        0 RPM  (min =    0 RPM, div = 128)              ALARM  (beep)
 fan2:        0 RPM  (min =    0 RPM, div = 128)              ALARM  (beep)
 fan3:        0 RPM  (min =    0 RPM, div = 128)              ALARM  (beep)
-temp1:        -1 C  (high =    -1 C, hyst =    -1 C)   sensor = diode  
+temp1:        -1 C  (high =    -1 C, hyst =    -1 C)   sensor = diode
 ALARM   (beep)
-temp2:      +0.0 C  (high =    +0 C, hyst =    +0 C)   sensor = diode  
+temp2:      +0.0 C  (high =    +0 C, hyst =    +0 C)   sensor = diode
 ALARM   (beep)
-temp3:      +0.0 C  (high =    +0 C, hyst =    +0 C)   sensor = diode  
+temp3:      +0.0 C  (high =    +0 C, hyst =    +0 C)   sensor = diode
 ALARM   (beep)
 vid:      +0.000 V  (VRM Version 10.0)
 alarms:   Chassis intrusion detection                      ALARM
@@ -96,6 +98,7 @@ beep_enable:
 
 Any help is welcome
 Regards
+
 
 
 
