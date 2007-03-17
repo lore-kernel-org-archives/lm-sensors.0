@@ -1,7 +1,7 @@
-From: tglx@linutronix.de (Thomas Gleixner)
-Date: Fri, 16 Mar 2007 21:33:04 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 17 Mar 2007 13:39:53 +0000
 Subject: [lm-sensors] [PATCH] Add MAX6650 support
-Message-Id: <1174080784.13341.296.camel@localhost.localdomain>
+Message-Id: <20070317143953.cbb80c83.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200701171359.46334.hjk@linutronix.de>
 In-Reply-To: <200701171359.46334.hjk@linutronix.de>
@@ -10,33 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 2007-03-16 at 22:19 +0100, Hans-J?rgen Koch wrote:
-> Am Freitag, 16. M?rz 2007 22:19 schrieb Thomas Gleixner:
-> > On Fri, 2007-03-16 at 22:07 +0100, Hans-J?rgen Koch wrote:
-> > > > > /* fan_voltage: 5=5V fan, 12V fan, 0=don't change */
-> > > > > static int fan_voltage = 0;
-> > > > > /* prescaler: Possible values are 1,2,4,8,16, or 0 for don't change
-> > > > > */ static int prescaler = 0;
-> > > >
-> > > > The trick is to _not_ initialize these variables at all. The compiler
-> > > > will put them in a special section and will zero them all at once
-> > > > automatically.
-> > >
-> > > Sounds dangerous. But I trust you :-)
-> >
-> > It's one of the things which actually work reliable in gcc :)
-> >
-> > 	tglx
+Hi Hans-J?rgen,
+
+On Fri, 16 Mar 2007 22:07:52 +0100, Hans-J?rgen Koch wrote:
+> Well, I really appreciate good code quality. If this is the price, I'm willing 
+> to pay it. Actually, I thank you for helping me so much.
+
+Patch accepted, will be in next -mm, and from there will go to 2.6.22.
+Thanks :)
+
+> > Can you please test the user-space support now? I suspect that we need
+> > to update libsensors at least to match the name change of the "speed"
+> > file. We're about to release lm_sensors 2.10.3 (in a few days now) and
+> > I'd like it to support your new driver properly.
 > 
-> Fine, I'll remember that. But I think readability is better if you explicitly 
-> initialize to zero. Is that optimization really worth it?
+> Yes, but not so soon, sorry. I'm not at home the whole next week and will not 
+> have any sensors hardware available. After that, I might find some time to 
+> have a look. I have an LM93 driver almost ready, so that'll be the next thing 
+> I'll keep you busy with :-) In the course of that development I can have a 
+> short look at user space stuff, too.
 
-The zeroed segment is set with memset() in one go, while all explicit
-initializations carry additional code. gcc might be clever enough now to
-move a "=0" initialized variable to the zeroed segment, but it is common
-style since ever. And it removes _three_ characters per variable :)
+I've made the minimum fix for the 2.10.3 release, so that at least no
+error is displayed. Feel free to propose further improvements later.
+I've also updated the Devices on our wiki to reflect the current state
+of the MAX6650/MAX6651 support.
 
-	tglx
+If you start working on the lm93 driver, make sure to search the
+mailing list archives first. I remember that the driver was already
+ported to Linux 2.6, but never reviewed. This was some times ago
+though, many things changed in the kernel meanwhile, so it's up to you
+whether you want to start from an old port or from scratch. Beware, the
+lm93 driver is a fat beast.
 
-
+-- 
+Jean Delvare
 
