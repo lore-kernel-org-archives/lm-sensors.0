@@ -1,64 +1,33 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 15 Mar 2007 12:42:08 +0000
-Subject: [lm-sensors] [PATCH] smsc47m1: Use DRVNAME consistently
-Message-Id: <20070315134208.c7c09a68.khali@linux-fr.org>
+From: straterra@gmail.com (Straterra)
+Date: Sun, 18 Mar 2007 19:32:02 +0000
+Subject: [lm-sensors] pwmconfig patch
+Message-Id: <74cdf1b10703181232t5949cc6fude9f624521a91d65@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Also use pr_info where possible.
+I have a Shuttle SN25P and like most shuttles, all of the fans in it
+are controlled via PWM. I recently tried pwmconfig to set them up for
+automatic speed control and found that there was an issue in the lm85
+driver that has been known, but not fixed. Hopefully, this patch will
+generate enough of a stir that people with the broken driver will
+email and nag the devs so the fix gets done.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- drivers/hwmon/smsc47m1.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+This patch merely detects to see if there was a problem disabling the
+pwm control interfaces. When the user gets an access denied error,
+this is a sure symptom of a problem with the underlying driver. It
+detects this and spits out a warning and instructs the user to let the
+appropriate people know.
 
---- linux-2.6.21-rc3.orig/drivers/hwmon/smsc47m1.c	2007-03-15 13:19:42.000000000 +0100
-+++ linux-2.6.21-rc3/drivers/hwmon/smsc47m1.c	2007-03-15 13:34:05.000000000 +0100
-@@ -437,25 +437,23 @@ static int __init smsc47m1_find(unsigned
- 	 */
- 	switch (val) {
- 	case 0x51:
--		printk(KERN_INFO "smsc47m1: Found SMSC LPC47B27x\n");
-+		pr_info(DRVNAME ": Found SMSC LPC47B27x\n");
- 		sio_data->type = smsc47m1;
- 		break;
- 	case 0x59:
--		printk(KERN_INFO "smsc47m1: Found SMSC "
--		       "LPC47M10x/LPC47M112/LPC47M13x\n");
-+		pr_info(DRVNAME ": Found SMSC LPC47M10x/LPC47M112/LPC47M13x\n");
- 		sio_data->type = smsc47m1;
- 		break;
- 	case 0x5F:
--		printk(KERN_INFO "smsc47m1: Found SMSC LPC47M14x\n");
-+		pr_info(DRVNAME ": Found SMSC LPC47M14x\n");
- 		sio_data->type = smsc47m1;
- 		break;
- 	case 0x60:
--		printk(KERN_INFO "smsc47m1: Found SMSC "
--		       "LPC47M15x/LPC47M192/LPC47M997\n");
-+		pr_info(DRVNAME ": Found SMSC LPC47M15x/LPC47M192/LPC47M997\n");
- 		sio_data->type = smsc47m1;
- 		break;
- 	case 0x6B:
--		printk(KERN_INFO "smsc47m1: Found SMSC LPC47M292\n");
-+		pr_info(DRVNAME ": Found SMSC LPC47M292\n");
- 		sio_data->type = smsc47m2;
- 		break;
- 	default:
-@@ -468,7 +466,7 @@ static int __init smsc47m1_find(unsigned
- 	      |  superio_inb(SUPERIO_REG_BASE + 1);
- 	val = superio_inb(SUPERIO_REG_ACT);
- 	if (*addr = 0 || (val & 0x01) = 0) {
--		printk(KERN_INFO "smsc47m1: Device is disabled, will not use\n");
-+		pr_info(DRVNAME ": Device is disabled, will not use\n");
- 		superio_exit();
- 		return -ENODEV;
- 	}
-
-
--- 
-Jean Delvare
-
+Thanks!
+-- Thomas "Straterra" York
+straterra<at>gmail<dot>com
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: pwmconfig.patch
+Type: application/octet-stream
+Size: 2052 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070318/9ba97b52/attachment.obj 
