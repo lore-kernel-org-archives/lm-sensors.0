@@ -1,113 +1,75 @@
-From: Curt.Blank@curtronics.com (Curt Blank)
-Date: Fri, 23 Mar 2007 14:34:56 +0000
-Subject: [lm-sensors] MSI K9N4 SLI-F sensors-detect says use	w83627ehf
-Message-Id: <4603E590.9090202@curtronics.com>
+From: tomcw@adelphia.net (Tom Weichmann)
+Date: Sun, 18 Mar 2007 14:39:39 +0000
+Subject: [lm-sensors] No Fan output
+Message-Id: <200703181039.39818.tomcw@adelphia.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jan,
+Hello,
 
-den_tichel at zonnet.nl wrote:
-> Hi Curt,
-> 
-> Based on the schematics I've sent you, it seems that there is some 
-> miscomputation.
-> 
->> So, based on your feedback of voltage levels, and with the schematics of the
->> MSI K9N4 SLI-F and the pre-set definitions of the W83627EHF calculations I
->> could suggest for sensors.conf:
->>
->> chip "w83627dhg-*"
->>
->> labels:
->> label in0 "VCore"
->> label in1 "+12V"
->> label in2 "5V"
->> label in3 "-12V"
->> label in5 "AVCC"
->> label in7 "VSB"
->> label in8 "VBAT"
->>
->> computations:
->> compute in1 @*(1+(56/10)), @/(1+(56/10))
->> compute in2 @*(1+(22/10)), @/(1+(22/10))
->> compute in3 -@*(1+(56/10)), -@/(1+(56/10))
->>
->> Let me know if this gives you the correct readings. If
->> it's not, I'll try and get the values for Rin and Rf.
->>
->> Here's the results of plugging in your equations:
->>
->> w83627dhg-isa-0a10
->> Adapter: ISA adapter
->> VCore:     +1.23 V  (min =  +0.00 V, max =  +1.74 V)
->> +12V:     +12.30 V  (min =  +6.97 V, max =  +5.23 V)
->> 5V:       +10.44 V  (min =  +7.48 V, max = +10.75 V)
->> -12V:     -21.54 V  (min =  -5.91 V, max = -18.27 V)
->> in4:       +1.54 V  (min =  +1.23 V, max =  +0.02 V)
->> AVCC:      +1.46 V  (min =  +0.24 V, max =  +0.78 V)
->> in6:       +1.61 V  (min =  +0.17 V, max =  +0.53 V)
->> VSB:       +3.26 V  (min =  +2.18 V, max =  +2.26 V)
->> VBAT:      +2.99 V  (min =  +2.08 V, max =  +0.86 V)
->>
->> -Curt
->>
-> 
-> So right now I could suggest a different computation for:
-> 
-> compute in3 -@*(1+(232/10)), -@/(1+(232/10))
-> 
-> The calculation for the 5V is OK, but then again... in2 is not 5V. So 
-> now I'm guessing in6 is 5V, so change your in2 labels and computation 
-> to in6.
-> 
-> As a last challenge:
-> How are your system temps displayed? After all, they are connected 
-> through thermal resistors on SYS_TMP and CPU_TMP.
-> 
-> Kind regards,
-> 
-> Jan van Tiggelen
+I have just switched over to a new board, an MSI K8MM-V 
+(http://www.msicomputer.com/product/p_spec.asp?model=K8MM-V&class=mb).  I 
+setup lm_sensors on a fresh install of SuSE 10.2, but I don't get any output 
+from my fans.  I do, however get the correct temps for the mobo, and CPU.
 
-I see what you mean on the schematic, but one question, that schematic 
-is for an EHG, this is a DHG. The only reason I mention that is because 
-I put the new computation in and it made it worse:
+Here is my ln_sensors versions:
 
-w83627dhg-isa-0a10
+tom at linux:/mnt/disk3> sudo sensors-detect --version
+root's password:
+# sensors-detect revision 4171 (2006-09-24 03:37:01 -0700)
+
+tom at linux:/mnt/disk3> sensors --version
+sensors version 2.10.1 with libsensors version 2.10.1
+
+
+Here is the output form sensors:
+
+w83627thf-isa-0290
 Adapter: ISA adapter
-VCore:     +1.23 V  (min =  +0.00 V, max =  +1.74 V)
-+12V:     +12.30 V  (min =  +6.97 V, max =  +5.23 V)
-in2:       +3.26 V  (min =  +2.34 V, max =  +3.36 V)
--12V:     -78.99 V  (min = -21.68 V, max = -66.99 V)
-in4:       +1.54 V  (min =  +1.23 V, max =  +0.02 V)
-AVCC:      +1.46 V  (min =  +0.24 V, max =  +0.78 V)
-5V:        +5.15 V  (min =  +0.54 V, max =  +1.69 V)
-VSB:       +3.26 V  (min =  +2.18 V, max =  +2.26 V)
-VBAT:      +2.99 V  (min =  +2.08 V, max =  +0.86 V)
-Case Fan: 5113 RPM  (min = 1205 RPM, div = 8)
-CPU Fan:  2909 RPM  (min = 1004 RPM, div = 8)
-NB Fan :  6887 RPM  (min = 2008 RPM, div = 4)
-Sys Temp:    +41?C  (high =   +55?C, hyst =   +40?C)
-CPU Temp:  +33.5?C  (high = +75.0?C, hyst = +40.0?C)
+VCore:     +1.42 V  (min =  +0.00 V, max =  +3.84 V)
++12V:     +12.28 V  (min =  +9.67 V, max =  +9.00 V)       ALARM
++3.3V:     +3.18 V  (min =  +0.38 V, max =  +3.49 V)
++5V:       +4.91 V  (min =  +4.27 V, max =  +3.76 V)       ALARM
+-12V:     -11.95 V  (min = -14.42 V, max = -12.94 V)       ALARM
+V5SB:      +4.84 V  (min =  +0.30 V, max =  +2.42 V)       ALARM
+VBat:      +3.42 V  (min =  +0.88 V, max =  +2.38 V)       ALARM
+fan1:        0 RPM  (min = 11440 RPM, div = 2)              ALARM
+CPU Fan:     0 RPM  (min = 3515 RPM, div = 2)              ALARM
+fan3:        0 RPM  (min = 112500 RPM, div = 2)              ALARM
+M/B Temp:    +41?C  (high =   -18?C, hyst =    +9?C)   sensor = thermistor   
+ALA                               RM
+CPU Temp:  +35.5?C  (high =   +70?C, hyst =   +65?C)   sensor = thermistor                                     
+temp3:     +66.0?C  (high =   +70?C, hyst =   +65?C)   sensor = thermistor                                     
+vid:      +0.000 V  (VRM Version 2.4)
+alarms:
+beep_enable:
+          Sound alarm enabled
 
-And the Sys Temp seems to be fine, but the CPU Temp is reading low when 
-sensors says 34?C the BIOS says 38?C.
 
-And this is what k8temp is showing at the same time as above:
+You can see that all three fans are listed at 0 RPM.  When I did 
+sensors-detect I suggested four modules: 
 
-k8temp-pci-00c3
-Adapter: PCI adapter
-Core1 Temp:
-              +43?C
-Core2 Temp:
-              +46?C
+i2c-viapro
+eeprom
+k8temp
+w83627hf
 
-I guessed that the temp1 and temp3 were the two cores, if not, what 
-would they be? temp2 and temp4 show nothing.
+K8temp is not on my system so I did not load that, as I already have the temp 
+output I need.  If I build this, will it provide me with my fan output?
 
--Curt
+Thanks,
+
+Tom Weichmann
+
+
+
+
+
+
+
+
 
 
