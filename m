@@ -1,54 +1,66 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Sun, 11 Mar 2007 14:17:18 +0000
-Subject: [lm-sensors] libsensors patch to gkrellm - a report
-Message-Id: <45F40F6E.3030500@hhs.nl>
+From: den_tichel@zonnet.nl (Jan van Tiggelen)
+Date: Tue, 20 Mar 2007 18:19:02 +0000
+Subject: [lm-sensors] MSI K9N4 SLI-F sensors-detect says use
+Message-Id: <20070320181903.A0F4F4DA8@mta-fe.casema.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45F1B914.6050706@hhs.nl>
-In-Reply-To: <45F1B914.6050706@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
-> On Fri, 09 Mar 2007 20:44:20 +0100, Hans de Goede wrote:
->> Rudolf + Jean, would it be a good idea to write a patch for libsensors 
->> to make it automaticly set features not found in sysfs to ignore?
-> 
-> This should no longer be needed once we implement dynamic feature
-> discovery in libsensors. If I had some time to work on libsensors, I'd
-> rather spend it on reviewing these patches we already have than on
-> additional workarounds to make the current design look less broken.
-> 
+Curt / David,
 
-True, I've already poked one of the students who has written the dynamic 
-features support patches to get moving with regards to merging them. However 
-this was a semester project and the semester is over. So I don't know how this 
-will fare. If he doesn't get moving soon I'll jump in and start posting them 
-for review and make the necessary fixes myself.
+Would it be of any help if you get a full spec of the motherboard, including
+the schematics? I have access to that.
 
-That still leaves the question where to put these patches. I myself don't 
-really like the whole grand 3.0 scheme, because we are all really busy with 
-other stuff and IMHO don't seem to have the manpower todo a whole new release, 
-and also I don't see any improvements planned to warrant this version jump and 
-more important to break ABI compatibility. libsensors API is not ideal, if we 
-are going to break the API + ABI, then I would like to first see a redesign of 
-said API. So I would rather see small incremental steps. For example putting 
-dyn features detect in 2.10.x (or 2.12.0), but at first only for new chips, 
-then check with 2.6 only chips, and remove those one at a time from the static 
-list. An other small increment could be adding include directive support to 
-sensors.conf. An other incremenuld be to put in #ifdef's around 2.4 compat / 
-only code so that people who want to can build a version without 2.4 support.
+That way you don't need to take the server apart, and you can be sure that
+the chip is used exactly for what purpose you would expect.
 
-Anyways I think I've made my preference clear. If you and Mark prefer doing a 
-3.0 and putting new features there, then my student or I will start looking at 
-the 3.0 svn branch and adjusting the patches as needed. So let me know what it 
-will be.
+Kind regards,
 
-Regards,
+Jan van Tiggelen
 
-Hans
+
+-----Original Message-----
+From: lm-sensors-bounces@lm-sensors.org
+[mailto:lm-sensors-bounces at lm-sensors.org] On Behalf Of David Hubbard
+Sent: Tuesday, March 20, 2007 7:06 PM
+To: Curt Blank; lm-sensors at lm-sensors.org
+Subject: Re: [lm-sensors] MSI K9N4 SLI-F sensors-detect says use
+w83627ehfbut it won't load
+
+Hi Curt,
+
+On 3/20/07, Curt Blank <curt at curtronics.com> wrote:
+> Ug. Yes I can do that and I will. I was just thinking in order to take a
+> decent picture I'm going to have to disconnect everything and this server
+> has a lot. I'll do that tonight. And thanks for the quick reply.
+>
+> Just for grins yesterday I tried loading all the Winbond drivers and I got
+> a number to load successfully but there were no sensors. Unless having
+> multiple loaded causes a conflict. i2c_dev might not have been loaded
+> though, if that makes a difference.
+>
+> -Curt
+
+You may be able to find a picture of the motherboard online...
+
+You also don't have to take a picture of the motherboard if you can
+identify which is the hardware monitoring chip...
+
+For example: you should be able to find the CPU. It will be close to
+the Northbridge. There might be a southbridge / ATA controller on the
+board. There will be very few other large chips. So just google all
+the letters and numbers on each chip and you should be able to tell
+what each does.
+
+Post results here. :-)
+
+David
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors at lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
 
