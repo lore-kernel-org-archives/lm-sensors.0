@@ -1,23 +1,31 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Thu, 22 Mar 2007 16:47:29 +0000
-Subject: [lm-sensors] [PATCH 2/2 RESEND] hwmon: documentation for new SMSC
-Message-Id: <191fb4ca0703220947s7e16453j4a5a7eb5eee77f1b@mail.gmail.com>
+From: r.marek@assembler.cz (Rudolf Marek)
+Date: Tue, 20 Mar 2007 22:55:12 +0000
+Subject: [lm-sensors] [PATCH] coretemp 2/3 Add the coretemp driver
+Message-Id: <46006650.8000603@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Applied changes based on Hans de Goede's review.
+Hello Jean,
 
----
-This patch adds documentation for the new SMSC DME1737 driver.
+This is just the fixed version of the driver (the small typo Nicolas pointed 
+out). Please can you test/apply to your stack once we know it is OK and once the 
+1/3 patch is applied?
 
-Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+Thanks,
+
+This patch adds the support for the digital temperature sensor found in recent 
+Intel Core CPUs.
+
+Signed-off-by: Rudolf Marek <r.marek at assembler.cz>
+
+Rudolf
 -------------- next part --------------
 A non-text attachment was scrubbed...
-Name: hwmon-dme1737-documentation.patch
-Type: application/octet-stream
-Size: 10193 bytes
+Name: add-coretemp-driver.patch
+Type: text/x-patch
+Size: 12657 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070322/aea204d1/attachment.obj 
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070320/13d3ad68/attachment.bin 
