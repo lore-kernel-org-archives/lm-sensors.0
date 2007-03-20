@@ -1,7 +1,7 @@
-From: curt@curtronics.com (Curt Blank)
-Date: Tue, 20 Mar 2007 18:43:45 +0000
+From: den_tichel@zonnet.nl (Jan van Tiggelen)
+Date: Tue, 20 Mar 2007 18:56:23 +0000
 Subject: [lm-sensors] MSI K9N4 SLI-F sensors-detect says use
-Message-Id: <Pine.LNX.4.63.0703201339360.6950@www.curtronics.com>
+Message-Id: <20070320185623.F0510E2A0@mta-fe.casema.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070320181903.A0F4F4DA8@mta-fe.casema.nl>
 In-Reply-To: <20070320181903.A0F4F4DA8@mta-fe.casema.nl>
@@ -9,6 +9,24 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+OK, the question is out to MSI. I expect it to take up to about a day or 2
+before we have the full answer.
+
+Will post back to you in a personal message when I get the schematics.
+
+Kind regards,
+
+Jan van Tiggelen
+
+
+-----Original Message-----
+From: Curt Blank [mailto:curt at curtronics.com] 
+Sent: Tuesday, March 20, 2007 7:44 PM
+To: David Hubbard
+Cc: Jan van Tiggelen; lm-sensors at lm-sensors.org
+Subject: Re: [lm-sensors] MSI K9N4 SLI-F sensors-detect says use
+w83627ehfbut it won't load
 
 Jan/David
 
@@ -28,10 +46,12 @@ On Tue, 20 Mar 2007, David Hubbard wrote:
 > On 3/20/07, Jan van Tiggelen <den_tichel at zonnet.nl> wrote:
 > > Curt / David,
 > >
-> > Would it be of any help if you get a full spec of the motherboard, including
+> > Would it be of any help if you get a full spec of the motherboard,
+including
 > > the schematics? I have access to that.
 > >
-> > That way you don't need to take the server apart, and you can be sure that
+> > That way you don't need to take the server apart, and you can be sure
+that
 > > the chip is used exactly for what purpose you would expect.
 > >
 > > Kind regards,
@@ -43,4 +63,5 @@ On Tue, 20 Mar 2007, David Hubbard wrote:
 > David
 > 
 > 
+
 
