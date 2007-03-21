@@ -1,7 +1,7 @@
 From: forest@alittletooquiet.net (Forest Bond)
-Date: Wed, 21 Mar 2007 16:58:21 +0000
+Date: Wed, 21 Mar 2007 17:09:06 +0000
 Subject: [lm-sensors] Fintek F71805F on Jetway 627FWE1G
-Message-Id: <20070321165821.GE19205@storm.local.network>
+Message-Id: <20070321170906.GF19205@storm.local.network>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070321155103.GD19205@storm.local.network>
 In-Reply-To: <20070321155103.GD19205@storm.local.network>
@@ -10,68 +10,80 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+On Wed, Mar 21, 2007 at 12:58:21PM -0400, Forest Bond wrote:
+> sensors output and /proc/cpuinfo are attached.
 
-On Wed, Mar 21, 2007 at 05:21:04PM +0100, Jean Delvare wrote:
-> I am the author of the f71805f driver.
+> Output of "isadump 0x295 0x296" is attached.  I am not quite sure how to
+> interpret that, but I belive it is indicating that an offset of 0x5d is being
+> applied to temp1, while temp2 and temp3 are being read as-is.  (Assuming the
+> chip is indeed at that address).
 
-First off, thanks for your time spent on this driver, and thanks for your quick
-response.
+...and I forgot to attach all of those files.  Sorry about that.  They are
+attached here.
 
-> On Wed, 21 Mar 2007 11:51:03 -0400, Forest Bond wrote:
-> > Is it possible that the diode is not characterized correctly?
-> 
-> Yes, this is possible. Hardware monitoring chips are typically meant to
-> be used with one given type of thermal diode, and where a different
-> type is used, the measurements have to be corrected. If the correction
-> is a simple offset, it can be done by the F71805F itself, otherwise it
-> must be done in software.
+-Forest
+-------------- next part --------------
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: 01 09 01 ff ff ff 00 00 ff 37 01 17 0f ff 0f ff 
+10: cf af 87 8a 77 8c 87 86 77 00 00 00 23 23 ff ff 
+20: 01 21 0f ff 0f ff ff ff 0f ff 0f ff 0f ff fc 00 
+30: 00 00 00 80 00 08 80 00 08 00 80 00 ff ff ff ff 
+40: fc 00 fc 00 fc 00 fc 00 fc 00 fc 00 fc 00 80 00 
+50: fc 00 fc 00 ff 00 ff 00 ff 00 03 04 10 19 34 ff 
+60: 24 30 10 80 00 03 93 03 19 00 00 ff ff ff ff ff 
+70: 24 30 25 80 00 03 93 03 10 00 00 ff ff ff ff ff 
+80: 24 30 25 80 00 03 93 03 10 00 00 ff ff ff ff ff 
+90: 5d 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff 
+a0: 64 64 64 ff 0f ff 0f ff 0f ff ff ff ff ff ff ff 
+b0: 64 64 64 ff 0f ff 0f ff 0f ff ff ff ff ff ff ff 
+c0: 64 64 64 ff 0f ff 0f ff 0f ff ff ff ff ff ff ff 
+d0: 00 00 00 00 00 00 00 ff ff ff ff ff ff ff ff ff 
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+f0: 80 00 00 00 00 ff ec ff ff 00 00 00 ff ff ff ff 
+-------------- next part --------------
+processor	: 0
+vendor_id	: CentaurHauls
+cpu family	: 6
+model		: 9
+model name	: VIA Nehemiah
+stepping	: 8
+cpu MHz		: 997.271
+cache size	: 64 KB
+fdiv_bug	: no
+hlt_bug		: no
+f00f_bug	: no
+coma_bug	: no
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 1
+wp		: yes
+flags		: fpu vme de pse tsc msr cx8 mtrr pge cmov pat mmx fxsr sse rng rng_en ace ace_en
+bogomips	: 1995.86
+clflush size	: 32
 
-> Another possibility is that this is a labelling issue, and one of the
-> other two temperatures is actually the CPU temperature. You said that
-> "the other two temperatures appear to be reasonable" but you didn't
-> give us the actual numbers. Please copy the output of "sensors" so that
-> we get an idea. You also did not tell us what CPU model it was.
+-------------- next part --------------
+f71805f-isa-0290
+Adapter: ISA adapter
++3.3V:     +3.31 V  (min =  +0.00 V, max =  +4.03 V)  
+Vtt1.2V:   +1.40 V  (min =  +0.00 V, max =  +2.02 V)  
+Vram:      +2.16 V  (min =  +0.00 V, max =  +4.03 V)  
+Vchip:     +3.45 V  (min =  +0.00 V, max =  +6.31 V)  
++5V:       +4.96 V  (min =  +0.00 V, max = +10.59 V)  
++12V:     +12.23 V  (min =  +0.00 V, max = +22.18 V)  
+Vcc1.5V:   +1.08 V  (min =  +0.00 V, max =  +2.02 V)  
+Vcore:     +1.07 V  (min =  +0.00 V, max =  +1.02 V)  ALARM
+5VSB:      +5.00 V  (min =  +0.00 V, max = +10.59 V)  
+CPU Fan:  5190 RPM  (min =    0 RPM)                  
+Sys Fan:     0 RPM  (min =    0 RPM)                  
+Aux Fan:     0 RPM  (min =    0 RPM)                  
+CPU Temp:     +0 C  (high =  +255 C, hyst =    +0 C)         [diode]
+Sys Temp:    +35 C  (high =  +255 C, hyst =    +0 C)         [thermistor]
+Aux Temp:    +35 C  (high =  +255 C, hyst =    +0 C)         [thermistor]
 
-Well, the other two temperatures happen to be giving me room-temperature
-readings (the mainboard is not in a case), and this is the one that rises
-quickly when I unplug the CPU fan :)
-
-sensors output and /proc/cpuinfo are attached.
-
-> > I have a technical contact at Jetway that may be able to assist.  Should I
-> > pursue this as a BIOS issue, or ought I seek information with regard to how
-> > the circuit is physically wired?
-> 
-> If you could know for sure which temperature channel is connected to
-> what, it would help. You might get a first idea by checking in the
-> BIOS, and comparing the hardware monitoring information there with what
-> "sensors" displays.
-
-This BIOS does display temperature and voltage information at boot time.  Is
-your intent simply for me to match up the readings with those read by sensors?
-I am confident that the reading in question is, in fact, the CPU temperature.
-Or do I misunderstand?
-
-> You can also dump the contents of the F71805F chip to find out if
-> temperature offsets have been set by the BIOS. Assuming that the
-> F71805F lives at the standard address 0x290, you would run:
-> 
-> isadump 0x295 0x296
-> 
-> And look at the values of registers 0x90, 0x91 and 0x92.
-
-Output of "isadump 0x295 0x296" is attached.  I am not quite sure how to
-interpret that, but I belive it is indicating that an offset of 0x5d is being
-applied to temp1, while temp2 and temp3 are being read as-is.  (Assuming the
-chip is indeed at that address).
-
-Thanks again,
-Forest
 -------------- next part --------------
 A non-text attachment was scrubbed...
 Name: not available
 Type: application/pgp-signature
 Size: 189 bytes
 Desc: Digital signature
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070321/78f49085/attachment.bin 
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070321/f2012e60/attachment-0001.bin 
