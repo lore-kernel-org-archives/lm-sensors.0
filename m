@@ -1,32 +1,36 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 27 Mar 2007 14:40:17 +0000
-Subject: Re: [lm-sensors] http://www-new.lm-sensors.org/
-Message-Id: <20070327164017.c72cae61.khali@linux-fr.org>
+From: curt@curtronics.com (Curt Blank)
+Date: Wed, 21 Mar 2007 18:26:17 +0000
+Subject: [lm-sensors] MSI K9N4 SLI-F setting fan divisor
+Message-Id: <Pine.LNX.4.63.0703211322200.2958@www.curtronics.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070326170854.GJ14911@neu.nirvana>
-In-Reply-To: <20070326170854.GJ14911@neu.nirvana>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 26 Mar 2007 21:51:17 +0200, Axel Thimm wrote:
-> On Mon, Mar 26, 2007 at 09:40:38PM +0200, Jean Delvare wrote:
-> > On Mon, 26 Mar 2007 19:08:54 +0200, Axel Thimm wrote:
-> > > is mod-python powered. It will replace http://www.lm-sensors.org/ next
-> > > Monday unless any problems show up.
-> > 
-> > I seem to be unable to login. Is this expected?
-> 
-> Fixed, please try again. BTW should there be any URLs pointing to www
-> instead of www-new, that's OK, it is supposed to become www.
+Motherboard: MSI K9N4 SLI-F
+Chipset: nVidia nForce 500 SLI
+SuSE Linux 10.1
+Kernel: 2.6.16.27-0.9
+Driver: w83627ehf
 
-Yes, it works now, thanks.
+How do I set the fan divisor? I have this in my sensors.conf file:
 
--- 
-Jean Delvare
+   set fan3_div    8
+   set fan4_div    8
+   set fan5_div    8
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+in the proper place. I get this when I do a sensors -s:
+
+Error: Line 2476: Failed to set feature
+Error: Line 2477: Failed to set feature
+Error: Line 2478: Failed to set feature
+w83627dhg-isa-0a10: At least one "set" statement failed
+
+Those 3 "Error: Line"s are those 3 set div commands.
+
+The set fanN_min statements work.
+
+-Curt Blank
+
+
