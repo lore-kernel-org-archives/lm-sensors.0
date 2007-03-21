@@ -1,47 +1,52 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 19 Mar 2007 19:02:40 +0000
-Subject: [lm-sensors] [PATCH 1/3] lm78: No longer use i2c-isa
-Message-Id: <20070319200240.76d35d80.khali@linux-fr.org>
+From: forest@alittletooquiet.net (Forest Bond)
+Date: Wed, 21 Mar 2007 15:51:03 +0000
+Subject: [lm-sensors] Fintek F71805F on Jetway 627FWE1G
+Message-Id: <20070321155103.GD19205@storm.local.network>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070319133231.b2a2a2a0.khali@linux-fr.org>
-In-Reply-To: <20070319133231.b2a2a2a0.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 19 Mar 2007 15:20:46 +0100, Hans de Goede wrote:
-> Jean Delvare wrote:
-> > Contrary to the LM78 / W83781D, which were dedicated hardware
-> > monitoring chips, the PC8374L is a Super-I/O, so it is very unlikely to
-> > be ever found on a daughter board (while for example the W83781D was
-> > used on graphics adapters). So it is rather unlikely that the ISA
-> > (actually LPC) access will not be available. If I were you, I'd write
-> > an ISA/LPC-only driver to start with, and only think of adding I2C
-> > support later if really needed.
-> 
-> Well unfortunately the person who brought PC8374L support up on the list and
-> who is willing todo the testing for me has an intel motherboard and intel loves
-> smbus, iow the hwmon logical device is disabled through the superio config
-> registers, this doesn't actually disable the device, but does disable isa
-> access, so I need to go i2c there, now I could force the logical device to on
-> (assuming the config isn't locked by the bios) but that might interfere with
-> any ACPI / other bios code accessing it (which doesn't seem to be the case but
-> could be) and would require assigning ioports to it. To make things even more
-> interesting the chip can be configured for memorymapped access too, now mmap
-> access would be ideal, but as said I don't like the idea of changing the
-> superio config. Thus the plan is to write a driver with supports all 3, and
-> decides which one to use based on the superio config. This is actually easier
-> then it sounds, because the only code that needs to take this into account is
-> the probe code and the writebyte / readbyte functions.
-> 
-> I'm also thinking about adding a force ioport / mmap io options, so that those
-> modes can be actually tested.
-> 
-> Any input/advice on this is much appreciated.
+Hello,
 
-Your plan sounds good.
+I am getting what appear to be incorrect temperature readings for the CPU on a
+627FWE1G mainboard, which has an F71805F.  The other two temperatures appear to
+be reasonable, but the CPU temperature appears to be low (although it does seem
+to scale appropriately in response to CPU burn-in, momentarily disconnecting the
+fan, etc.).
 
--- 
-Jean Delvare
+From the documentation:
 
+--------------------------------------------------------------------------------
+All temperature channels are external, there is no embedded temperature
+sensor. Each channel can be used for connecting either a thermal diode
+or a thermistor. The driver reports the currently selected mode, but
+doesn't allow changing it. In theory, the BIOS should have configured
+everything properly.
+--------------------------------------------------------------------------------
+
+I'm wondering if the BIOS did not configure the sensor properly, although
+the sensors program reports that the sensor is configured as a diode (which, I
+believe, is correct).
+
+Is it possible that the diode is not characterized correctly?
+
+I have a technical contact at Jetway that may be able to assist.  Should I
+pursue this as a BIOS issue, or ought I seek information with regard to how the
+circuit is physically wired?
+
+Any input you can provide is appreciated.  I am actually using this information
+as a means of characterizing the vt1211 wiring on VIA EPIA boards with the same
+CPU.  If I can get the information I need, I will be happy to pass it all along
+to the lm-sensors project.
+
+thanks,
+Forest
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070321/ab7f5a11/attachment.bin 
