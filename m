@@ -1,42 +1,33 @@
-From: Curt.Blank@curtronics.com (Curt Blank)
-Date: Thu, 22 Mar 2007 06:03:45 +0000
-Subject: [lm-sensors] k8temp
-Message-Id: <46021C41.6070908@curtronics.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 21 Mar 2007 15:24:45 +0000
+Subject: [lm-sensors] [PATCH] ad7418 driver
+Message-Id: <20070321162445.653fcec6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200703212247.05783.tomcw@adelphia.net>
-In-Reply-To: <200703212247.05783.tomcw@adelphia.net>
+References: <20061112153724.3e630d32@inspiron>
+In-Reply-To: <20061112153724.3e630d32@inspiron>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Alessandro,
 
-Tom Weichmann wrote:
-> Does anyone know anything about this kernal module?  imsensors-detect 
-> recommended that I modprobe it, but it is not included with SuSE 10.2 on 
-> kernal 2.6.18.8.  I can't seem to find anything definateive on the web, is 
-> this kernal too old to include this module?
+On Mon, 19 Mar 2007 23:35:33 +0100, Alessandro Zummo wrote:
+> On Sun, 24 Dec 2006 14:53:59 +0100, Jean Delvare wrote:
+> > After reading the datasheet once more, I realize I was confused here:
+> > you actually support the AD7417 (4 voltage inputs), and not the AD7418
+> > (1 voltage input). My comment still holds, though.
 > 
-> Thanks,
-> 
-> Tom Weichmann
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors at lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>   I took a bit of time and started applying your suggestions.
+>  I tested the driver against both 18 and 17 and they look the same.
+>  I haven't found a way to distinguish between them.
 
-Hi Tom,
+Well, what does the AD7418 return when you read a non-existing channel?
 
-Good timing. I just backported it from 2.6.21 to SuSE 10.1 2.6.16 
-yesterday (Wednesday). I would guess that it be the same for you on 10.2 
-or you might have to tweak it a bit. I tar'd it up and put it here:
+If these devices are used in embedded designs, you will be able to use
+the new code contributed by David Brownell to explicitly instantiate
+the devices, without hardware probing. This will solve the problem.
 
-http://www.curtronics.com/patches/
-	k8temp_2.6.21_backport_to_SuSE_10.1_2.6.16.tar.gz
-
-It was extremely easy, complied right up once the change was made to the 
-pci_ids.h file.
-
--Curt Blank
+-- 
+Jean Delvare
 
