@@ -1,7 +1,7 @@
-From: Curt.Blank@curtronics.com (Curt Blank)
-Date: Wed, 21 Mar 2007 01:58:27 +0000
+From: david.c.hubbard@gmail.com (David Hubbard)
+Date: Wed, 21 Mar 2007 16:53:39 +0000
 Subject: [lm-sensors] MSI K9N4 SLI-F sensors-detect says use
-Message-Id: <46009143.6050506@curtronics.com>
+Message-Id: <4dfa50520703210953m6a1375ddsbcf6f45b38f7b82c@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070320181903.A0F4F4DA8@mta-fe.casema.nl>
 In-Reply-To: <20070320181903.A0F4F4DA8@mta-fe.casema.nl>
@@ -10,124 +10,140 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Well that explains it. In kernel 2.6.21 and I have 2.6.16.
+Hi Curt,
 
-If I'm reading things right that's not even a stable kernel yet. Any 
-chance of me being able to backport it to the 2.6.16 w83627ehf driver 
-for my use?
+I have tested the w83627ehf.c file from 2.6.21-rc1 in kernels as old
+as 2.6.17. I have a stock 2.6.16 kernel I could test the driver in,
+but didn't expect anyone to need it. Is there any way you could
+upgrade to 2.6.18? That kernel is pretty popular.
 
-Looks like I'm slightly on the bleeding edge.
+David
 
--Curt
-
-Curt Blank wrote:
-
->In the meantime....
+On 3/20/07, Curt Blank <Curt.Blank at curtronics.com> wrote:
+> Well that explains it. In kernel 2.6.21 and I have 2.6.16.
 >
->Winbond W83627DHG
+> If I'm reading things right that's not even a stable kernel yet. Any
+> chance of me being able to backport it to the 2.6.16 w83627ehf driver
+> for my use?
 >
->http://www.curtronics.com/Pics/MSI_K9N4_SLI-F_Winbond.jpg
+> Looks like I'm slightly on the bleeding edge.
 >
->How's that for Hi-Res. Couldn't use a flash and lighting was a bitch 
->(running server).
+> -Curt
 >
->-Curt
+> Curt Blank wrote:
 >
->Jan van Tiggelen wrote:
+> >In the meantime....
+> >
+> >Winbond W83627DHG
+> >
+> >http://www.curtronics.com/Pics/MSI_K9N4_SLI-F_Winbond.jpg
+> >
+> >How's that for Hi-Res. Couldn't use a flash and lighting was a bitch
+> >(running server).
+> >
+> >-Curt
+> >
+> >Jan van Tiggelen wrote:
+> >
+> >
+> >
+> >>OK, the question is out to MSI. I expect it to take up to about a day or 2
+> >>before we have the full answer.
+> >>
+> >>Will post back to you in a personal message when I get the schematics.
+> >>
+> >>Kind regards,
+> >>
+> >>Jan van Tiggelen
+> >>
+> >>
+> >>-----Original Message-----
+> >>From: Curt Blank [mailto:curt at curtronics.com]
+> >>Sent: Tuesday, March 20, 2007 7:44 PM
+> >>To: David Hubbard
+> >>Cc: Jan van Tiggelen; lm-sensors at lm-sensors.org
+> >>Subject: Re: [lm-sensors] MSI K9N4 SLI-F sensors-detect says use
+> >>w83627ehfbut it won't load
+> >>
+> >>Jan/David
+> >>
+> >>Thanks! Man you guys are great.
+> >>
+> >>I built this server so I am familiar with the MB but it sounds like Jan
+> >>has the answer.
+> >>
+> >>I did try installing all the Winbond drivers one at a time but no luck.
+> >>
+> >>-Curt
+> >>
+> >>On Tue, 20 Mar 2007, David Hubbard wrote:
+> >>
+> >>
+> >>
+> >>
+> >>
+> >>>Hi Jan,
+> >>>
+> >>>On 3/20/07, Jan van Tiggelen <den_tichel at zonnet.nl> wrote:
+> >>>
+> >>>
+> >>>
+> >>>
+> >>>>Curt / David,
+> >>>>
+> >>>>Would it be of any help if you get a full spec of the motherboard,
+> >>>>
+> >>>>
+> >>>>
+> >>>>
+> >>including
+> >>
+> >>
+> >>
+> >>
+> >>>>the schematics? I have access to that.
+> >>>>
+> >>>>That way you don't need to take the server apart, and you can be sure
+> >>>>
+> >>>>
+> >>>>
+> >>>>
+> >>that
+> >>
+> >>
+> >>
+> >>
+> >>>>the chip is used exactly for what purpose you would expect.
+> >>>>
+> >>>>Kind regards,
+> >>>>
+> >>>>Jan van Tiggelen
+> >>>>
+> >>>>
+> >>>>
+> >>>>
+> >>>Yes, that would be the best way.
+> >>>
+> >>>David
+> >>>
+> >>>
+> >>>
+> >>>
+> >>>
+> >>>
+> >
+> >
+> >_______________________________________________
+> >lm-sensors mailing list
+> >lm-sensors at lm-sensors.org
+> >http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+> >
+> >
 >
->  
 >
->>OK, the question is out to MSI. I expect it to take up to about a day or 2
->>before we have the full answer.
->>
->>Will post back to you in a personal message when I get the schematics.
->>
->>Kind regards,
->>
->>Jan van Tiggelen
->>
->>
->>-----Original Message-----
->>From: Curt Blank [mailto:curt at curtronics.com] 
->>Sent: Tuesday, March 20, 2007 7:44 PM
->>To: David Hubbard
->>Cc: Jan van Tiggelen; lm-sensors at lm-sensors.org
->>Subject: Re: [lm-sensors] MSI K9N4 SLI-F sensors-detect says use
->>w83627ehfbut it won't load
->>
->>Jan/David
->>
->>Thanks! Man you guys are great.
->>
->>I built this server so I am familiar with the MB but it sounds like Jan 
->>has the answer.
->>
->>I did try installing all the Winbond drivers one at a time but no luck.
->>
->>-Curt
->>
->>On Tue, 20 Mar 2007, David Hubbard wrote:
->>
->> 
->>
->>    
->>
->>>Hi Jan,
->>>
->>>On 3/20/07, Jan van Tiggelen <den_tichel at zonnet.nl> wrote:
->>>   
->>>
->>>      
->>>
->>>>Curt / David,
->>>>
->>>>Would it be of any help if you get a full spec of the motherboard,
->>>>     
->>>>
->>>>        
->>>>
->>including
->> 
->>
->>    
->>
->>>>the schematics? I have access to that.
->>>>
->>>>That way you don't need to take the server apart, and you can be sure
->>>>     
->>>>
->>>>        
->>>>
->>that
->> 
->>
->>    
->>
->>>>the chip is used exactly for what purpose you would expect.
->>>>
->>>>Kind regards,
->>>>
->>>>Jan van Tiggelen
->>>>     
->>>>
->>>>        
->>>>
->>>Yes, that would be the best way.
->>>
->>>David
->>>
->>>
->>>   
->>>
->>>      
->>>
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors at lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 >
->
->_______________________________________________
->lm-sensors mailing list
->lm-sensors at lm-sensors.org
->http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->  
->
-
 
