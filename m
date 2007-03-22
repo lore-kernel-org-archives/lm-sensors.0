@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 22 Mar 2007 09:33:15 +0000
+From: den_tichel@zonnet.nl (Jan van Tiggelen)
+Date: Thu, 22 Mar 2007 20:47:19 +0000
 Subject: [lm-sensors] MSI K9N4 SLI-F sensors-detect says use w83627ehf
-Message-Id: <20070322103315.581cea81.khali@linux-fr.org>
+Message-Id: <20070322204721.B00CC34DB@mta-fe.casema.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.63.0703201232150.24717@www.curtronics.com>
 In-Reply-To: <Pine.LNX.4.63.0703201232150.24717@www.curtronics.com>
@@ -10,45 +10,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jan,
+Curt, hi,-
 
-On Wed, 21 Mar 2007 20:41:36 +0100, Jan van Tiggelen wrote:
-> The chip is indeed a W83627DHG, instead of the W83627EHF. It's a good catch
-> that you got it working. But, after reviewing the schematics, of which the
-> W83267EHF is public via:
-> http://www.winbond-usa.com/products/winbond_products/pdfs/PCIC/W83627EHF_EHG
-> c.pdf
-> 
-> 1 - The W83627DHG features are at some parts very different from the
-> W83627EHF: It has Intel PECI/SST interface support (why would they use that
-> on an AMD mainboard?), Dual-current mode temperature sensing, 4-pin FAN
-> support, alerting outputs and also a 8 VID I/O. 
+Assuming that you've figured out a correct setting for your FAN divisors,
+last thing left to do is setting right labels and Vin calculation for the
+other channels.
 
-You shouldn't expect the consumer board manufacturers to pick the best
-chip for their board, nor to wire it in an optimal way. In general they
-care more about low prices (which they achieve with high volumes) than
-technical correctness.
+So, based on your feedback of voltage levels, and with the schematics of the
+MSI K9N4 SLI-F and the pre-set definitions of the W83627EHF calculations I
+could suggest for sensors.conf:
 
-> 2 - Derriving from (1) the pin-out purposes are very different in this case.
-> E.g. pin 119 (CPUFAN) which was used as a CPU-fan connection, the 'new pin'
-> used for that function is pin 121 and rated at 'Default High' (probably only
-> at boot time)
-> 
-> 3 - From the (internal) BIOS notes I can tell you that the instruction set
-> in the bios for W627EHF and W627DHG is almost similar, except for the 4-pin
-> FAN feature. The rest of the instruction set is based on SMARTFAN III code.
-> 
-> Lastly, on a side note, I have to say that I'm not 100% sure what impact
-> this has on the suggested 'changes' between 627EHF and 627DHG driver. I'll
-> leave that up to someone else to determine. (David / Jean?)
+chip "w83627dhg-*"
 
-On our side, we don't care that much about pins. We care about
-registers. If the pinout is different but the registers are the same,
-the driver doesn't need any special care. The w83627ehf driver already
-differentiates between the W83627EHF and W83627DHG where it needs to. If
-you see anything that is not handled properly in that respect on a
-real-world motherboard, that's a bug, report it to David.
+labels:
+label in0 "VCore"
+label in1 "+12V"
+label in2 "5V"
+label in3 "-12V"
+label in5 "AVCC"
+label in7 "VSB"
+label in8 "VBAT"
 
--- 
-Jean Delvare
+computations:
+compute in1 @*(1+(56/10)), @/(1+(56/10))
+compute in2 @*(1+(22/10)), @/(1+(22/10))
+compute in3 -@*(1+(56/10)), -@/(1+(56/10))
+
+Let me know if this gives you the correct readings. If it's not, I'll try
+and get the values for Rin and Rf.
+
+And for the FAN labels:
+Label fan3 "Northbridge Fan"
+
+
+Honestly speaking: for the voltage computations I lost track a bit, since
+627EH is derived from 781D in turn...
+Maybe you could post a better update, with the mainboard on hand?
+
+Kind regards,
+
+Jan van Tiggelen
+
 
