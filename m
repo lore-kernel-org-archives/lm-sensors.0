@@ -1,22 +1,23 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Sun, 04 Mar 2007 22:17:16 +0000
-Subject: [lm-sensors] support for Asus F3Jp laptop
-Message-Id: <45EB456C.8020205@assembler.cz>
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Thu, 22 Mar 2007 16:47:29 +0000
+Subject: [lm-sensors] [PATCH 2/2 RESEND] hwmon: documentation for new SMSC
+Message-Id: <191fb4ca0703220947s7e16453j4a5a7eb5eee77f1b@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <e47808320702280701i14a0ee20vb4745361c55d09bb@mail.gmail.com>
-In-Reply-To: <e47808320702280701i14a0ee20vb4745361c55d09bb@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Applied changes based on Hans de Goede's review.
 
-Perhaps you need some header files, in debian the package is called lib6-dev
-and libsysfs-dev.
+---
+This patch adds documentation for the new SMSC DME1737 driver.
 
-Please can you provide full output of sensors-command (the newest one)
-
-Thanks,
-Rudolf
-
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: hwmon-dme1737-documentation.patch
+Type: application/octet-stream
+Size: 10193 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20070322/aea204d1/attachment.obj 
