@@ -1,7 +1,7 @@
-From: david.c.hubbard@gmail.com (David Hubbard)
-Date: Wed, 21 Mar 2007 16:53:39 +0000
+From: den_tichel@zonnet.nl (den_tichel at zonnet.nl)
+Date: Fri, 23 Mar 2007 12:51:10 +0000
 Subject: [lm-sensors] MSI K9N4 SLI-F sensors-detect says use
-Message-Id: <4dfa50520703210953m6a1375ddsbcf6f45b38f7b82c@mail.gmail.com>
+Message-Id: <20070323135110.ou0f4crbpsoc8gos@webmail.versatel.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070320181903.A0F4F4DA8@mta-fe.casema.nl>
 In-Reply-To: <20070320181903.A0F4F4DA8@mta-fe.casema.nl>
@@ -12,138 +12,64 @@ To: lm-sensors@vger.kernel.org
 
 Hi Curt,
 
-I have tested the w83627ehf.c file from 2.6.21-rc1 in kernels as old
-as 2.6.17. I have a stock 2.6.16 kernel I could test the driver in,
-but didn't expect anyone to need it. Is there any way you could
-upgrade to 2.6.18? That kernel is pretty popular.
+Based on the schematics I've sent you, it seems that there is some 
+miscomputation.
 
-David
-
-On 3/20/07, Curt Blank <Curt.Blank at curtronics.com> wrote:
-> Well that explains it. In kernel 2.6.21 and I have 2.6.16.
 >
-> If I'm reading things right that's not even a stable kernel yet. Any
-> chance of me being able to backport it to the 2.6.16 w83627ehf driver
-> for my use?
+> So, based on your feedback of voltage levels, and with the schematics of the
+> MSI K9N4 SLI-F and the pre-set definitions of the W83627EHF calculations I
+> could suggest for sensors.conf:
 >
-> Looks like I'm slightly on the bleeding edge.
+> chip "w83627dhg-*"
+>
+> labels:
+> label in0 "VCore"
+> label in1 "+12V"
+> label in2 "5V"
+> label in3 "-12V"
+> label in5 "AVCC"
+> label in7 "VSB"
+> label in8 "VBAT"
+>
+> computations:
+> compute in1 @*(1+(56/10)), @/(1+(56/10))
+> compute in2 @*(1+(22/10)), @/(1+(22/10))
+> compute in3 -@*(1+(56/10)), -@/(1+(56/10))
+>
+> Let me know if this gives you the correct readings. If
+> it's not, I'll try and get the values for Rin and Rf.
+>
+> Here's the results of plugging in your equations:
+>
+> w83627dhg-isa-0a10
+> Adapter: ISA adapter
+> VCore:     +1.23 V  (min =  +0.00 V, max =  +1.74 V)
+> +12V:     +12.30 V  (min =  +6.97 V, max =  +5.23 V)
+> 5V:       +10.44 V  (min =  +7.48 V, max = +10.75 V)
+> -12V:     -21.54 V  (min =  -5.91 V, max = -18.27 V)
+> in4:       +1.54 V  (min =  +1.23 V, max =  +0.02 V)
+> AVCC:      +1.46 V  (min =  +0.24 V, max =  +0.78 V)
+> in6:       +1.61 V  (min =  +0.17 V, max =  +0.53 V)
+> VSB:       +3.26 V  (min =  +2.18 V, max =  +2.26 V)
+> VBAT:      +2.99 V  (min =  +2.08 V, max =  +0.86 V)
 >
 > -Curt
 >
-> Curt Blank wrote:
->
-> >In the meantime....
-> >
-> >Winbond W83627DHG
-> >
-> >http://www.curtronics.com/Pics/MSI_K9N4_SLI-F_Winbond.jpg
-> >
-> >How's that for Hi-Res. Couldn't use a flash and lighting was a bitch
-> >(running server).
-> >
-> >-Curt
-> >
-> >Jan van Tiggelen wrote:
-> >
-> >
-> >
-> >>OK, the question is out to MSI. I expect it to take up to about a day or 2
-> >>before we have the full answer.
-> >>
-> >>Will post back to you in a personal message when I get the schematics.
-> >>
-> >>Kind regards,
-> >>
-> >>Jan van Tiggelen
-> >>
-> >>
-> >>-----Original Message-----
-> >>From: Curt Blank [mailto:curt at curtronics.com]
-> >>Sent: Tuesday, March 20, 2007 7:44 PM
-> >>To: David Hubbard
-> >>Cc: Jan van Tiggelen; lm-sensors at lm-sensors.org
-> >>Subject: Re: [lm-sensors] MSI K9N4 SLI-F sensors-detect says use
-> >>w83627ehfbut it won't load
-> >>
-> >>Jan/David
-> >>
-> >>Thanks! Man you guys are great.
-> >>
-> >>I built this server so I am familiar with the MB but it sounds like Jan
-> >>has the answer.
-> >>
-> >>I did try installing all the Winbond drivers one at a time but no luck.
-> >>
-> >>-Curt
-> >>
-> >>On Tue, 20 Mar 2007, David Hubbard wrote:
-> >>
-> >>
-> >>
-> >>
-> >>
-> >>>Hi Jan,
-> >>>
-> >>>On 3/20/07, Jan van Tiggelen <den_tichel at zonnet.nl> wrote:
-> >>>
-> >>>
-> >>>
-> >>>
-> >>>>Curt / David,
-> >>>>
-> >>>>Would it be of any help if you get a full spec of the motherboard,
-> >>>>
-> >>>>
-> >>>>
-> >>>>
-> >>including
-> >>
-> >>
-> >>
-> >>
-> >>>>the schematics? I have access to that.
-> >>>>
-> >>>>That way you don't need to take the server apart, and you can be sure
-> >>>>
-> >>>>
-> >>>>
-> >>>>
-> >>that
-> >>
-> >>
-> >>
-> >>
-> >>>>the chip is used exactly for what purpose you would expect.
-> >>>>
-> >>>>Kind regards,
-> >>>>
-> >>>>Jan van Tiggelen
-> >>>>
-> >>>>
-> >>>>
-> >>>>
-> >>>Yes, that would be the best way.
-> >>>
-> >>>David
-> >>>
-> >>>
-> >>>
-> >>>
-> >>>
-> >>>
-> >
-> >
-> >_______________________________________________
-> >lm-sensors mailing list
-> >lm-sensors at lm-sensors.org
-> >http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> >
-> >
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors at lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+
+So right now I could suggest a different computation for:
+
+compute in3 -@*(1+(232/10)), -@/(1+(232/10))
+
+The calculation for the 5V is OK, but then again... in2 is not 5V. So 
+now I'm guessing in6 is 5V, so change your in2 labels and computation 
+to in6.
+
+As a last challenge:
+How are your system temps displayed? After all, they are connected 
+through thermal resistors on SYS_TMP and CPU_TMP.
+
+Kind regards,
+
+Jan van Tiggelen
+
 
