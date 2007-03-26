@@ -1,421 +1,502 @@
-From: azummo-lists@towertech.it (Alessandro Zummo)
-Date: Sun, 25 Mar 2007 20:53:00 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 26 Mar 2007 09:27:33 +0000
 Subject: [lm-sensors] [PATCH] AD7416/17/18 driver
-Message-Id: <20070325225300.6ceec137@inspiron>
+Message-Id: <20070326112733.69d7534d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20070325225300.6ceec137@inspiron>
+In-Reply-To: <20070325225300.6ceec137@inspiron>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Alessandro,
 
+On Sun, 25 Mar 2007 22:53:00 +0200, Alessandro Zummo wrote:
+>  A driver for the Analog Devices AD7416/17/18 chips.
+> 
+>  Signed-off-by: Alessandro Zummo <a.zummo at towertech.it>
+> 
+> ---
+>  drivers/hwmon/Kconfig  |   10 +
+>  drivers/hwmon/Makefile |    1 
+>  drivers/hwmon/ad7418.c |  366 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 377 insertions(+)
+> 
+> --- linux-ixp4xx.orig/drivers/hwmon/Makefile	2007-03-25 19:55:07.000000000 +0200
+> +++ linux-ixp4xx/drivers/hwmon/Makefile	2007-03-25 22:48:52.000000000 +0200
+> @@ -14,6 +14,7 @@ obj-$(CONFIG_SENSORS_W83781D)	+= w83781d
+>  obj-$(CONFIG_SENSORS_W83791D)	+= w83791d.o
+>  
+>  obj-$(CONFIG_SENSORS_ABITUGURU)	+= abituguru.o
+> +obj-$(CONFIG_SENSORS_AD7418)	+= ad7418.o
+>  obj-$(CONFIG_SENSORS_ADM1021)	+= adm1021.o
+>  obj-$(CONFIG_SENSORS_ADM1025)	+= adm1025.o
+>  obj-$(CONFIG_SENSORS_ADM1026)	+= adm1026.o
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ linux-ixp4xx/drivers/hwmon/ad7418.c	2007-03-25 22:48:52.000000000 +0200
+> @@ -0,0 +1,366 @@
+> +/*
+> + * An hwmon driver for the Analog Devices AD7416/17/18
+> + * Copyright (C) 2006-07 Tower Technologies
+> + *
+> + * Author: Alessandro Zummo <a.zummo at towertech.it>
+> + *
+> + * Based on lm75.c
+> + * Copyright (C) 1998-99 Frodo Looijaard <frodol at dds.nl>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License,
+> + * as published by the Free Software Foundation - version 2.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/jiffies.h>
+> +#include <linux/i2c.h>
+> +#include <linux/hwmon.h>
+> +#include <linux/hwmon-sysfs.h>
+> +#include <linux/err.h>
+> +#include <linux/mutex.h>
+> +#include <linux/delay.h>
+> +
+> +#include "lm75.h"
+> +
+> +#define DRV_VERSION "0.3"
+> +
+> +/* Addresses to scan */
+> +static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F,
 
- A driver for the Analog Devices AD7416/17/18 chips.
+Line too long.
 
- Signed-off-by: Alessandro Zummo <a.zummo at towertech.it>
+> +				0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F,
+> +				I2C_CLIENT_END };
+> +/* Insmod parameters */
+> +I2C_CLIENT_INSMOD_3(ad7416, ad7417, ad7418);
+> +
+> +/* AD7418 registers */
+> +#define AD7418_REG_TEMP		0x00
+> +#define AD7418_REG_CONF		0x01
+> +#define AD7418_REG_TEMP_HYST	0x02
+> +#define AD7418_REG_TEMP_OS	0x03
+> +#define AD7418_REG_ADC		0x04
+> +#define AD7418_REG_CONF2	0x05
+> +
+> +#define AD7418_REG_ADC_CH(x)	((x) << 5)
+> +#define AD7418_CH_TEMP		AD7418_REG_ADC_CH(0)
+> +
+> +struct ad7418_data {
+> +	struct i2c_client	client;
+> +	struct class_device	*class_dev;
+> +	struct attribute_group	attrs;
+> +	enum chips		type;
+> +	struct mutex		lock;
+> +	char			valid;		/* != 0 if following fields are valid */
 
----
- drivers/hwmon/Kconfig  |   10 +
- drivers/hwmon/Makefile |    1 
- drivers/hwmon/ad7418.c |  366 +++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 377 insertions(+)
+Line too long.
 
---- linux-ixp4xx.orig/drivers/hwmon/Makefile	2007-03-25 19:55:07.000000000 +0200
-+++ linux-ixp4xx/drivers/hwmon/Makefile	2007-03-25 22:48:52.000000000 +0200
-@@ -14,6 +14,7 @@ obj-$(CONFIG_SENSORS_W83781D)	+= w83781d
- obj-$(CONFIG_SENSORS_W83791D)	+= w83791d.o
- 
- obj-$(CONFIG_SENSORS_ABITUGURU)	+= abituguru.o
-+obj-$(CONFIG_SENSORS_AD7418)	+= ad7418.o
- obj-$(CONFIG_SENSORS_ADM1021)	+= adm1021.o
- obj-$(CONFIG_SENSORS_ADM1025)	+= adm1025.o
- obj-$(CONFIG_SENSORS_ADM1026)	+= adm1026.o
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-ixp4xx/drivers/hwmon/ad7418.c	2007-03-25 22:48:52.000000000 +0200
-@@ -0,0 +1,366 @@
-+/*
-+ * An hwmon driver for the Analog Devices AD7416/17/18
-+ * Copyright (C) 2006-07 Tower Technologies
-+ *
-+ * Author: Alessandro Zummo <a.zummo at towertech.it>
-+ *
-+ * Based on lm75.c
-+ * Copyright (C) 1998-99 Frodo Looijaard <frodol at dds.nl>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License,
-+ * as published by the Free Software Foundation - version 2.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/jiffies.h>
-+#include <linux/i2c.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/err.h>
-+#include <linux/mutex.h>
-+#include <linux/delay.h>
-+
-+#include "lm75.h"
-+
-+#define DRV_VERSION "0.3"
-+
-+/* Addresses to scan */
-+static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F,
-+				0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F,
-+				I2C_CLIENT_END };
-+/* Insmod parameters */
-+I2C_CLIENT_INSMOD_3(ad7416, ad7417, ad7418);
-+
-+/* AD7418 registers */
-+#define AD7418_REG_TEMP		0x00
-+#define AD7418_REG_CONF		0x01
-+#define AD7418_REG_TEMP_HYST	0x02
-+#define AD7418_REG_TEMP_OS	0x03
-+#define AD7418_REG_ADC		0x04
-+#define AD7418_REG_CONF2	0x05
-+
-+#define AD7418_REG_ADC_CH(x)	((x) << 5)
-+#define AD7418_CH_TEMP		AD7418_REG_ADC_CH(0)
-+
-+struct ad7418_data {
-+	struct i2c_client	client;
-+	struct class_device	*class_dev;
-+	struct attribute_group	attrs;
-+	enum chips		type;
-+	struct mutex		lock;
-+	char			valid;		/* != 0 if following fields are valid */
-+	unsigned long		last_updated;	/* In jiffies */
-+	s16			temp[3];	/* Register values */
-+	u16			in[4];
-+};
-+
-+static int ad7418_attach_adapter(struct i2c_adapter *adapter);
-+static int ad7418_detect(struct i2c_adapter *adapter, int address, int kind);
-+static int ad7418_detach_client(struct i2c_client *client);
-+
-+static struct i2c_driver ad7418_driver = {
-+	.driver = {
-+		.name	= "ad7418",
-+	},
-+	.attach_adapter	= ad7418_attach_adapter,
-+	.detach_client	= ad7418_detach_client,
-+};
-+
-+/* All registers are word-sized, except for the configuration registers.
-+ * AD7418 uses a high-byte first convention. Do NOT use those functions to
-+ * access the configuration registers CONF and CONF2, as they are byte-sized.
-+ */
-+static int ad7418_read(struct i2c_client *client, u8 reg)
-+{
-+	return swab16(i2c_smbus_read_word_data(client, reg));
-+}
-+
-+static int ad7418_write(struct i2c_client *client, u8 reg, u16 value)
-+{
-+	return i2c_smbus_write_word_data(client, reg, swab16(value));
-+}
-+
-+static void ad7418_init_client(struct i2c_client *client)
-+{
-+	struct ad7418_data *data = i2c_get_clientdata(client);
-+
-+	int reg = i2c_smbus_read_byte_data(client, AD7418_REG_CONF);
-+	if (reg < 0) {
-+		dev_err(&client->dev, "cannot read configuration register\n");
-+	} else {
-+		dev_info(&client->dev, "configuring for mode 1\n");
-+		i2c_smbus_write_byte_data(client, AD7418_REG_CONF, reg & 0xfe);
-+
-+		if (data->type = ad7417 || data->type = ad7418)
-+			i2c_smbus_write_byte_data(client, AD7418_REG_CONF2, 0x00);
-+	}
-+}
-+
-+static struct ad7418_data *ad7418_update_device(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct ad7418_data *data = i2c_get_clientdata(client);
-+
-+	mutex_lock(&data->lock);
-+
-+	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
-+		|| !data->valid) {
-+		u8 cfg;
-+		int i;
-+
-+		/* read config register and clear channel bits */
-+		cfg = i2c_smbus_read_byte_data(client, AD7418_REG_CONF);
-+		cfg &= 0x1F;
-+
-+		i2c_smbus_write_byte_data(client, AD7418_REG_CONF, cfg | AD7418_CH_TEMP);
-+		udelay(30);
-+
-+		data->temp[0] = ad7418_read(client, AD7418_REG_TEMP);
-+		data->temp[1] = ad7418_read(client, AD7418_REG_TEMP_HYST);
-+		data->temp[2] = ad7418_read(client, AD7418_REG_TEMP_OS);
-+
-+		if (data->type = ad7417) {
-+			for (i = 0; i < 4; i++) {
-+				i2c_smbus_write_byte_data(client, AD7418_REG_CONF,
-+					cfg | AD7418_REG_ADC_CH(i+1));
-+				udelay(15);
-+				data->in[i] = ad7418_read(client, AD7418_REG_ADC);
-+			}
-+		} else if (data->type = ad7418) {
-+			i2c_smbus_write_byte_data(client, AD7418_REG_CONF,
-+				cfg | AD7418_REG_ADC_CH(4));
-+			udelay(15);
-+			data->in[0] = ad7418_read(client, AD7418_REG_ADC);
-+		}
-+
-+		/* restore old configuration value */
-+		ad7418_write(client, AD7418_REG_CONF, cfg);
-+
-+		data->last_updated = jiffies;
-+		data->valid = 1;
-+	}
-+
-+	mutex_unlock(&data->lock);
-+
-+	return data;
-+}
-+
-+static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
-+			char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct ad7418_data *data = ad7418_update_device(dev);
-+	return sprintf(buf, "%d\n", LM75_TEMP_FROM_REG(data->temp[attr->index]));
-+}
-+
-+static ssize_t show_adc(struct device *dev, struct device_attribute *devattr,
-+			char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct ad7418_data *data = ad7418_update_device(dev);
-+
-+	int nr = (data->type = ad7418) ? 0 : attr->index;
-+
-+	return sprintf(buf, "%d\n", ((data->in[nr] >> 6) * 2500 + 512) / 1024);
-+}
-+
-+static ssize_t set_temp(struct device *dev, struct device_attribute *devattr,
-+			const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct ad7418_data *data = i2c_get_clientdata(client);
-+	int temp = simple_strtoul(buf, NULL, 10);
-+
-+	mutex_lock(&data->lock);
-+	data->temp[attr->index] = LM75_TEMP_TO_REG(temp);
-+	ad7418_write(client, attr->index + 1, data->temp[attr->index]);
-+	mutex_unlock(&data->lock);
-+	return count;
-+}
-+
-+static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO, show_temp, set_temp, 1);
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp, set_temp, 2);
-+
-+static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_adc, NULL, 0);
-+static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_adc, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_adc, NULL, 2);
-+static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, show_adc, NULL, 3);
-+
-+static int ad7418_attach_adapter(struct i2c_adapter *adapter)
-+{
-+	if (!(adapter->class & I2C_CLASS_HWMON))
-+		return 0;
-+	return i2c_probe(adapter, &addr_data, ad7418_detect);
-+}
-+
-+static struct attribute *ad7416_attributes[] = {
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	NULL
-+};
-+
-+static struct attribute *ad7417_attributes[] = {
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_in1_input.dev_attr.attr,
-+	&sensor_dev_attr_in2_input.dev_attr.attr,
-+	&sensor_dev_attr_in3_input.dev_attr.attr,
-+	&sensor_dev_attr_in4_input.dev_attr.attr,
-+	NULL
-+};
-+
-+static struct attribute *ad7418_attributes[] = {
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_in1_input.dev_attr.attr,
-+	NULL
-+};
-+
-+static int ad7418_detect(struct i2c_adapter *adapter, int address, int kind)
-+{
-+	struct i2c_client *client;
-+	struct ad7418_data *data;
-+	int err = 0;
-+
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
-+					I2C_FUNC_SMBUS_WORD_DATA))
-+		goto exit;
-+
-+	if (!(data = kzalloc(sizeof(struct ad7418_data), GFP_KERNEL))) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	client = &data->client;
-+	client->addr = address;
-+	client->adapter = adapter;
-+	client->driver = &ad7418_driver;
-+
-+	i2c_set_clientdata(client, data);
-+
-+	mutex_init(&data->lock);
-+
-+	/* AD7418 has a curious behaviour on registers 6 and 7. They
-+	 * both always read 0xC071 and are not documented on the datasheet.
-+	 * We use them to detect the chip.
-+	 */
-+	if (kind <= 0) {
-+		int reg, reg6, reg7;
-+
-+		/* the AD7416 lies within this address range, but I have
-+		 * no means to check.
-+		 */
-+		if (address >= 0x48 && address <= 0x4f) {
-+			/* XXX add tests for AD7416 here */
-+			/* data->type = ad7416; */
-+		}
-+		/* here we might have AD7417 or AD7418 */
-+		else if (address >= 0x28 && address <= 0x2f) {
-+			reg6 = i2c_smbus_read_word_data(client, 0x06);
-+			reg7 = i2c_smbus_read_word_data(client, 0x07);
-+
-+			if (address = 0x28 && reg6 = 0xC071 && reg7 = 0xC071)
-+				data->type = ad7418;
-+
-+			/* XXX add tests for AD7417 here */
-+
-+
-+			/* both AD7417 and AD7418 have bits 0-5 of
-+			 * the CONF2 register at 0
-+			 */
-+			reg = i2c_smbus_read_byte_data(client, AD7418_REG_CONF2);
-+			if (reg & 0x3F)
-+				data->type = any_chip; /* detection failed */
-+		}
-+	} else {
-+		dev_dbg(&adapter->class_dev.dev, "detection forced\n");
-+	}
-+
-+	if (kind > 0)
-+		data->type = kind;
-+	else if (kind < 0 && data->type = any_chip) {
-+		err = -ENODEV;
-+		goto exit_free;
-+	}
-+
-+	switch (data->type) {
-+	case any_chip:
-+	case ad7416:
-+		data->attrs.attrs = ad7416_attributes;
-+		strlcpy(client->name, "ad7416", I2C_NAME_SIZE);
-+		break;
-+
-+	case ad7417:
-+		data->attrs.attrs = ad7417_attributes;
-+		strlcpy(client->name, "ad7417", I2C_NAME_SIZE);
-+		break;
-+
-+	case ad7418:
-+		data->attrs.attrs = ad7418_attributes;
-+		strlcpy(client->name, "ad7418", I2C_NAME_SIZE);
-+		break;
-+	}
-+
-+	if ((err = i2c_attach_client(client)))
-+		goto exit_free;
-+
-+	dev_info(&client->dev, "%s chip found\n", client->name);
-+
-+	/* Initialize the AD7418 chip */
-+	ad7418_init_client(client);
-+
-+	/* Register sysfs hooks */
-+	if ((err = sysfs_create_group(&client->dev.kobj, &data->attrs)))
-+		goto exit_detach;
-+
-+	data->class_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_remove;
-+	}
-+
-+	return 0;
-+
-+exit_remove:
-+	sysfs_remove_group(&client->dev.kobj, &data->attrs);
-+exit_detach:
-+	i2c_detach_client(client);
-+exit_free:
-+	kfree(data);
-+exit:
-+	return err;
-+}
-+
-+static int ad7418_detach_client(struct i2c_client *client)
-+{
-+	struct ad7418_data *data = i2c_get_clientdata(client);
-+	hwmon_device_unregister(data->class_dev);
-+	sysfs_remove_group(&client->dev.kobj, &data->attrs);
-+	i2c_detach_client(client);
-+	kfree(data);
-+	return 0;
-+}
-+
-+static int __init ad7418_init(void)
-+{
-+	return i2c_add_driver(&ad7418_driver);
-+}
-+
-+static void __exit ad7418_exit(void)
-+{
-+	i2c_del_driver(&ad7418_driver);
-+}
-+
-+MODULE_AUTHOR("Alessandro Zummo <a.zummo at towertech.it>");
-+MODULE_DESCRIPTION("AD7416/17/18 driver");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION(DRV_VERSION);
-+
-+module_init(ad7418_init);
-+module_exit(ad7418_exit);
---- linux-ixp4xx.orig/drivers/hwmon/Kconfig	2007-03-25 19:55:07.000000000 +0200
-+++ linux-ixp4xx/drivers/hwmon/Kconfig	2007-03-25 22:48:52.000000000 +0200
-@@ -574,6 +574,16 @@ config SENSORS_W83627EHF
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called w83627ehf.
- 
-+config SENSORS_AD7418
-+	tristate "Analog Devices AD7416/17/18"
-+	depends on HWMON && I2C && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for the Analog Devices
-+	  AD7416, AD7417 and AD7418 temperature monitoring chips.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called ad7418.
-+
- config SENSORS_HDAPS
- 	tristate "IBM Hard Drive Active Protection System (hdaps)"
- 	depends on HWMON && INPUT && X86
+> +	unsigned long		last_updated;	/* In jiffies */
+> +	s16			temp[3];	/* Register values */
+> +	u16			in[4];
+> +};
+> +
+> +static int ad7418_attach_adapter(struct i2c_adapter *adapter);
+> +static int ad7418_detect(struct i2c_adapter *adapter, int address, int kind);
+> +static int ad7418_detach_client(struct i2c_client *client);
+> +
+> +static struct i2c_driver ad7418_driver = {
+> +	.driver = {
+> +		.name	= "ad7418",
+> +	},
+> +	.attach_adapter	= ad7418_attach_adapter,
+> +	.detach_client	= ad7418_detach_client,
+> +};
+> +
+> +/* All registers are word-sized, except for the configuration registers.
+> + * AD7418 uses a high-byte first convention. Do NOT use those functions to
+> + * access the configuration registers CONF and CONF2, as they are byte-sized.
+> + */
+> +static int ad7418_read(struct i2c_client *client, u8 reg)
+> +{
+> +	return swab16(i2c_smbus_read_word_data(client, reg));
+> +}
+> +
+> +static int ad7418_write(struct i2c_client *client, u8 reg, u16 value)
+> +{
+> +	return i2c_smbus_write_word_data(client, reg, swab16(value));
+> +}
+
+You could inline these two functions for better performance (and, I
+suspect, smaller driver.)
+
+> +
+> +static void ad7418_init_client(struct i2c_client *client)
+> +{
+> +	struct ad7418_data *data = i2c_get_clientdata(client);
+> +
+> +	int reg = i2c_smbus_read_byte_data(client, AD7418_REG_CONF);
+> +	if (reg < 0) {
+> +		dev_err(&client->dev, "cannot read configuration register\n");
+> +	} else {
+> +		dev_info(&client->dev, "configuring for mode 1\n");
+> +		i2c_smbus_write_byte_data(client, AD7418_REG_CONF, reg & 0xfe);
+> +
+> +		if (data->type = ad7417 || data->type = ad7418)
+> +			i2c_smbus_write_byte_data(client, AD7418_REG_CONF2, 0x00);
+
+Line too long.
+
+> +	}
+> +}
+> +
+> +static struct ad7418_data *ad7418_update_device(struct device *dev)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct ad7418_data *data = i2c_get_clientdata(client);
+> +
+> +	mutex_lock(&data->lock);
+> +
+> +	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
+> +		|| !data->valid) {
+> +		u8 cfg;
+> +		int i;
+> +
+> +		/* read config register and clear channel bits */
+> +		cfg = i2c_smbus_read_byte_data(client, AD7418_REG_CONF);
+> +		cfg &= 0x1F;
+> +
+> +		i2c_smbus_write_byte_data(client, AD7418_REG_CONF, cfg | AD7418_CH_TEMP);
+
+Line too long.
+
+> +		udelay(30);
+> +
+> +		data->temp[0] = ad7418_read(client, AD7418_REG_TEMP);
+> +		data->temp[1] = ad7418_read(client, AD7418_REG_TEMP_HYST);
+> +		data->temp[2] = ad7418_read(client, AD7418_REG_TEMP_OS);
+> +
+> +		if (data->type = ad7417) {
+> +			for (i = 0; i < 4; i++) {
+> +				i2c_smbus_write_byte_data(client, AD7418_REG_CONF,
+
+Line too long.
+
+> +					cfg | AD7418_REG_ADC_CH(i+1));
+> +				udelay(15);
+> +				data->in[i] = ad7418_read(client, AD7418_REG_ADC);
+
+Line too long.
+
+> +			}
+> +		} else if (data->type = ad7418) {
+> +			i2c_smbus_write_byte_data(client, AD7418_REG_CONF,
+> +				cfg | AD7418_REG_ADC_CH(4));
+> +			udelay(15);
+> +			data->in[0] = ad7418_read(client, AD7418_REG_ADC);
+> +		}
+
+There is some redundancy here, which could be avoided. You could store
+the number of voltage input channels (0 for ad7416, 1 for ad7418, 4 for
+ad7417), and use that as the upper boundary of the for loop.
+
+> +
+> +		/* restore old configuration value */
+> +		ad7418_write(client, AD7418_REG_CONF, cfg);
+> +
+> +		data->last_updated = jiffies;
+> +		data->valid = 1;
+> +	}
+> +
+> +	mutex_unlock(&data->lock);
+> +
+> +	return data;
+> +}
+> +
+> +static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
+> +			char *buf)
+> +{
+> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> +	struct ad7418_data *data = ad7418_update_device(dev);
+> +	return sprintf(buf, "%d\n", LM75_TEMP_FROM_REG(data->temp[attr->index]));
+
+Line too long.
+
+> +}
+> +
+> +static ssize_t show_adc(struct device *dev, struct device_attribute *devattr,
+> +			char *buf)
+> +{
+> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> +	struct ad7418_data *data = ad7418_update_device(dev);
+> +
+> +	int nr = (data->type = ad7418) ? 0 : attr->index;
+
+attr->index will be 0 for the ad7418 anyway, so this test isn't needed.
+
+> +
+> +	return sprintf(buf, "%d\n", ((data->in[nr] >> 6) * 2500 + 512) / 1024);
+> +}
+> +
+> +static ssize_t set_temp(struct device *dev, struct device_attribute *devattr,
+> +			const char *buf, size_t count)
+> +{
+> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct ad7418_data *data = i2c_get_clientdata(client);
+> +	int temp = simple_strtoul(buf, NULL, 10);
+
+Should be strtol, otherwise you cannot set negative limits.
+
+> +
+> +	mutex_lock(&data->lock);
+> +	data->temp[attr->index] = LM75_TEMP_TO_REG(temp);
+> +	ad7418_write(client, attr->index + 1, data->temp[attr->index]);
+
+This is a hack, "attr->index + 1" is AD7418_REG_TEMP_HYST or
+AD7418_REG_TEMP_OS. It works, but it's fragile.
+
+I think that you want to define AD7418_REG_TEMP as a static const array
+of three register values (0x00, 0x02 and 0x03). Then you can use
+AD7418_REG_TEMP[attr->index] here, which is much cleaner. And you can
+loop over that array in ad7418_update_device, too.
+
+> +	mutex_unlock(&data->lock);
+> +	return count;
+> +}
+> +
+> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
+> +static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO, show_temp, set_temp, 1);
+
+Line too long.
+
+> +static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp, set_temp, 2);
+> +
+> +static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_adc, NULL, 0);
+> +static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_adc, NULL, 1);
+> +static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_adc, NULL, 2);
+> +static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, show_adc, NULL, 3);
+> +
+> +static int ad7418_attach_adapter(struct i2c_adapter *adapter)
+> +{
+> +	if (!(adapter->class & I2C_CLASS_HWMON))
+> +		return 0;
+> +	return i2c_probe(adapter, &addr_data, ad7418_detect);
+> +}
+> +
+> +static struct attribute *ad7416_attributes[] = {
+> +	&sensor_dev_attr_temp1_max.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_input.dev_attr.attr,
+> +	NULL
+> +};
+> +
+> +static struct attribute *ad7417_attributes[] = {
+> +	&sensor_dev_attr_temp1_max.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_input.dev_attr.attr,
+> +	&sensor_dev_attr_in1_input.dev_attr.attr,
+> +	&sensor_dev_attr_in2_input.dev_attr.attr,
+> +	&sensor_dev_attr_in3_input.dev_attr.attr,
+> +	&sensor_dev_attr_in4_input.dev_attr.attr,
+> +	NULL
+> +};
+> +
+> +static struct attribute *ad7418_attributes[] = {
+> +	&sensor_dev_attr_temp1_max.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_input.dev_attr.attr,
+> +	&sensor_dev_attr_in1_input.dev_attr.attr,
+> +	NULL
+> +};
+> +
+> +static int ad7418_detect(struct i2c_adapter *adapter, int address, int kind)
+> +{
+> +	struct i2c_client *client;
+> +	struct ad7418_data *data;
+> +	int err = 0;
+> +
+> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+> +					I2C_FUNC_SMBUS_WORD_DATA))
+> +		goto exit;
+> +
+> +	if (!(data = kzalloc(sizeof(struct ad7418_data), GFP_KERNEL))) {
+> +		err = -ENOMEM;
+> +		goto exit;
+> +	}
+> +
+> +	client = &data->client;
+> +	client->addr = address;
+> +	client->adapter = adapter;
+> +	client->driver = &ad7418_driver;
+> +
+> +	i2c_set_clientdata(client, data);
+> +
+> +	mutex_init(&data->lock);
+> +
+> +	/* AD7418 has a curious behaviour on registers 6 and 7. They
+> +	 * both always read 0xC071 and are not documented on the datasheet.
+> +	 * We use them to detect the chip.
+> +	 */
+> +	if (kind <= 0) {
+> +		int reg, reg6, reg7;
+> +
+> +		/* the AD7416 lies within this address range, but I have
+> +		 * no means to check.
+> +		 */
+> +		if (address >= 0x48 && address <= 0x4f) {
+> +			/* XXX add tests for AD7416 here */
+> +			/* data->type = ad7416; */
+> +		}
+
+So for now the only way to get an ad7416 is using module parameters?
+If so, there's no point in leaving the 0x48 - 0x4f address range in
+normal_i2c.
+
+> +		/* here we might have AD7417 or AD7418 */
+> +		else if (address >= 0x28 && address <= 0x2f) {
+> +			reg6 = i2c_smbus_read_word_data(client, 0x06);
+> +			reg7 = i2c_smbus_read_word_data(client, 0x07);
+> +
+> +			if (address = 0x28 && reg6 = 0xC071 && reg7 = 0xC071)
+> +				data->type = ad7418;
+> +
+> +			/* XXX add tests for AD7417 here */
+> +
+> +
+> +			/* both AD7417 and AD7418 have bits 0-5 of
+> +			 * the CONF2 register at 0
+> +			 */
+> +			reg = i2c_smbus_read_byte_data(client, AD7418_REG_CONF2);
+
+Line too long.
+
+> +			if (reg & 0x3F)
+> +				data->type = any_chip; /* detection failed */
+> +		}
+
+Here too, the only way to get an ad7417 is using a module parameter?
+Then you can leave the range 0x29 - 0x2f out of normal_i2c for now.
+
+> +	} else {
+> +		dev_dbg(&adapter->class_dev.dev, "detection forced\n");
+
+adapter->class_dev.dev no longer exists, please use adapter->dev
+instead.
+
+> +	}
+> +
+> +	if (kind > 0)
+> +		data->type = kind;
+> +	else if (kind < 0 && data->type = any_chip) {
+> +		err = -ENODEV;
+> +		goto exit_free;
+> +	}
+> +
+> +	switch (data->type) {
+> +	case any_chip:
+> +	case ad7416:
+> +		data->attrs.attrs = ad7416_attributes;
+> +		strlcpy(client->name, "ad7416", I2C_NAME_SIZE);
+> +		break;
+> +
+> +	case ad7417:
+> +		data->attrs.attrs = ad7417_attributes;
+> +		strlcpy(client->name, "ad7417", I2C_NAME_SIZE);
+> +		break;
+> +
+> +	case ad7418:
+> +		data->attrs.attrs = ad7418_attributes;
+> +		strlcpy(client->name, "ad7418", I2C_NAME_SIZE);
+> +		break;
+> +	}
+> +
+> +	if ((err = i2c_attach_client(client)))
+> +		goto exit_free;
+> +
+> +	dev_info(&client->dev, "%s chip found\n", client->name);
+> +
+> +	/* Initialize the AD7418 chip */
+> +	ad7418_init_client(client);
+> +
+> +	/* Register sysfs hooks */
+> +	if ((err = sysfs_create_group(&client->dev.kobj, &data->attrs)))
+> +		goto exit_detach;
+> +
+> +	data->class_dev = hwmon_device_register(&client->dev);
+> +	if (IS_ERR(data->class_dev)) {
+> +		err = PTR_ERR(data->class_dev);
+> +		goto exit_remove;
+> +	}
+> +
+> +	return 0;
+> +
+> +exit_remove:
+> +	sysfs_remove_group(&client->dev.kobj, &data->attrs);
+> +exit_detach:
+> +	i2c_detach_client(client);
+> +exit_free:
+> +	kfree(data);
+> +exit:
+> +	return err;
+> +}
+> +
+> +static int ad7418_detach_client(struct i2c_client *client)
+> +{
+> +	struct ad7418_data *data = i2c_get_clientdata(client);
+> +	hwmon_device_unregister(data->class_dev);
+> +	sysfs_remove_group(&client->dev.kobj, &data->attrs);
+> +	i2c_detach_client(client);
+> +	kfree(data);
+> +	return 0;
+> +}
+> +
+> +static int __init ad7418_init(void)
+> +{
+> +	return i2c_add_driver(&ad7418_driver);
+> +}
+> +
+> +static void __exit ad7418_exit(void)
+> +{
+> +	i2c_del_driver(&ad7418_driver);
+> +}
+> +
+> +MODULE_AUTHOR("Alessandro Zummo <a.zummo at towertech.it>");
+> +MODULE_DESCRIPTION("AD7416/17/18 driver");
+> +MODULE_LICENSE("GPL");
+> +MODULE_VERSION(DRV_VERSION);
+> +
+> +module_init(ad7418_init);
+> +module_exit(ad7418_exit);
+> --- linux-ixp4xx.orig/drivers/hwmon/Kconfig	2007-03-25 19:55:07.000000000 +0200
+> +++ linux-ixp4xx/drivers/hwmon/Kconfig	2007-03-25 22:48:52.000000000 +0200
+> @@ -574,6 +574,16 @@ config SENSORS_W83627EHF
+>  	  This driver can also be built as a module.  If so, the module
+>  	  will be called w83627ehf.
+>  
+> +config SENSORS_AD7418
+> +	tristate "Analog Devices AD7416/17/18"
+> +	depends on HWMON && I2C && EXPERIMENTAL
+> +	help
+> +	  If you say yes here you get support for the Analog Devices
+> +	  AD7416, AD7417 and AD7418 temperature monitoring chips.
+> +
+> +	  This driver can also be built as a module. If so, the module
+> +	  will be called ad7418.
+> +
+
+Please add this entry in alphabetical order. I also tend to prefer
+device names fully spelled out, so that they can be grep'd for, but
+that's up to you.
+
+>  config SENSORS_HDAPS
+>  	tristate "IBM Hard Drive Active Protection System (hdaps)"
+>  	depends on HWMON && INPUT && X86
+
+Otherwise it looks OK. Please send an updated patch addressing the last
+few problems, and I'll add it to my hwmon patch stack.
+
+Can we have a user-space support patch for lm-sensors, too?
+
+Thanks,
+-- 
+Jean Delvare
 
