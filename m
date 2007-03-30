@@ -1,79 +1,70 @@
-From: r.marek@assembler.cz (Rudolf Marek)
-Date: Tue, 20 Mar 2007 21:51:48 +0000
-Subject: [lm-sensors] coretemp - take3
-Message-Id: <46005774.8030704@assembler.cz>
+From: Aldo Caruso <acaruso@argencasas.com>
+Date: Fri, 30 Mar 2007 01:27:30 +0000
+Subject: [lm-sensors] ITE IT8718F Super IO Sensors
+Message-Id: <460C6782.7010603@argencasas.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45FDC7A4.9070601@assembler.cz>
-In-Reply-To: <45FDC7A4.9070601@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Alexey, Nicolas
+Hi,
 
-> Frankly I don't understand when one should use rdmsr_safe() instead of
-> rdmsr(). p4-clockmod driver worked fine with plain rdmsr/wrmsr.
-> For general education, why this driver uses _safe functions?
+  I'm running debian on a Penium IV with a P4M800PRO-M motherboard.
+  I run sensors-detect and this is the result :
 
-It uses not well documented register 0xEE which might not even exist, and I do 
-not want to oops the kernel. I'm in touch with Intel, but it goes slowly.
+//--------------------------------------------------------------
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
 
-> What's wrong with http://ssh.cz/~ruik/patches/add-msr-io-safe.patch
-> is:
-> a) naming: _on_cpu is suffix and thus should be last
-> 	FOO(...) => FOO_on_cpu(unsigned int cpu, ...)
+Driver `eeprom' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus Via Pro adapter at 0400'
+    Busdriver `i2c-viapro', I2C address 0x50
+    Chip `eeprom' (confidence: 6)
 
-Ok I will name it rdmsr_safe_on_cpu
+  EEPROMs are *NOT* sensors! They are data storage chips commonly
+  found on memory modules (SPD), in monitors (EDID), or in some
+  laptops, for example.
 
-> 
-> b) static qualifier should be first.
+Driver `it87' (should be inserted):
+  Detects correctly:
+  * ISA bus address 0x0290 (Busdriver `i2c-isa')
+    Chip `ITE IT8718F Super IO Sensors' (confidence: 9)
 
-Aha good catch!
+I will now generate the commands needed to load the required modules.
+Just press ENTER to continue:
 
-> c) coding style in wrmsr_on_cpu/rdmsr_on_cpu/...
-> 
-> 	static int foo(...)
-> 	{
-> 		...
-> 	}
+To make the sensors modules behave correctly, add these lines to
+/etc/modules:
 
-Yep sorry I will fix it.
+#----cut here----
+# I2C adapter drivers
+i2c-viapro
+# Chip drivers
+eeprom
+it87
+#----cut here----
+//--------------------------------------------------------------
 
-> 
-> d) +#include <linux/errno.h>
-> 
-> 	what for? those dummy inlines don't include -E*
+I let the program add the former lines to /etc/modules, I reboot, I run 
+sensors and this is the result:
+//--------------------------------------------------------------
+No sensors found!
+Make sure you loaded all the kernel drivers you need.
+Try sensors-detect to find out which these are.
+//--------------------------------------------------------------
 
-Well I tried to compile the kernel with allnoconfig and then just enable SMP and 
-  coretemp, and the kernel screamed for the header files in that rdmsr_safe (so 
-no EIO and the other was not defined) There was a problem even before the 
-coretemp actually started to compile. Maybe it should be in different patch...
+Doing lsmod I found all the above modules listed.
 
->> I will answer the rest in the evening.
+Thanks for any idea,
 
-Small glitch in coretemp_init:
-
-     printk(KERN_NOTICE DRVNAME ": This driver uses undocumented features"
-
-         "of Core CPU. Temperature might be wrong!\n");
+Aldo
 
 
-Ok will fix.
 
-Also, in __wrmsr_on_cpu_safe:
-rv->err = wrmsr_safe(rv->msr_no, &rv->l, &rv->h);
 
-should be:
-rv->err = wrmsr_safe(rv->msr_no, rv->l, rv->h);
-
-Will fix too. Thanks for the feedback. It is real pity that I do not have more 
-time for this those days :/
-
-I will spin the new patches to this thread, with the fixes, so we can start 
-accepting/review phase for individual patches.
-
-Thanks,
-
-Rudolf
-
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
