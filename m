@@ -1,96 +1,42 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 26 Apr 2007 12:45:31 +0000
-Subject: Re: [lm-sensors] Address configuration for scx200_acb
-Message-Id: <20070426144531.4e8f5092@hyperion.delvare>
+From: Pavel Machek <pavel@ucw.cz>
+Date: Sun, 01 Apr 2007 15:39:52 +0000
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Message-Id: <20070401153951.GE5095@ucw.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060427234114.941c9657.khali@linux-fr.org>
-In-Reply-To: <20060427234114.941c9657.khali@linux-fr.org>
+References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <20070218183805.5a4fd813.khali@linux-fr.org> <20070228213803.GA4877@ucw.cz> <20070301152655.f232db64.khali@linux-fr.org> <20070302114023.GD2163@elf.ucw.cz> <20070302114747.GB1212@srcf.ucam.org> <20070302135810.GF2156@elf.ucw.cz> <20070302220052.f93f3976.khali@linux-fr.org>
+In-Reply-To: <20070302220052.f93f3976.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-Hi Thomas,
+Hi!
 
-A long time ago...
+> > Actually for the acpi stuff... we might wrap ACPI interpretter with a
+> > semaphore that needs to be taken before starting any AML code. Then
+> > just make sure sensors take same semaphore?
+> 
+> I like the idea, it should work as long as we are guaranteed that all
+> the hwmon device accesses happen in the AML code? I'm not familiar with
+> ACPI, so you tell me.
+> 
+> In practice it's rather the SMBus drivers which will need to take the
+> lock, as this is what the AML code will access (for SMBus-based
+> hardware monitoring drivers.) For non-SMBus based hardware monitoring
+> drivers, indeed the driver itself should take it. We will have to pay
+> attention to deadlocks on systems with multiple hardware monitoring
+> chips and/or SMBus channels.
+> 
+> Can you please provide a patch implementing your proposal in acpi? Then
+> I could implement the i2c/hwmon part on some selected drivers and start
+> testing real world scenarii.
 
-On Thu, 4 May 2006 08:32:05 +0200, Thomas Andrews wrote:
-> Hi Jim,
-> 
-> On Wed, May 03, 2006 at 11:24:23PM -0400, Jim Cromie wrote:
-> 
-> > This is premature, and hugely incomplete - (basically one observation)
-> 
-> Even so I really appreciate it! :)
->  
-> > >+	// Select ACB0 (LDN 5)
-> > >+	outb(0x07,sio); // LDN select register
-> > >+	outb(0x05,val); // Choose LDN 5 ie ACCESS.bus 1
-> > >+	outb(0x60,sio); // Select I/O port 0 base addr
-> > >+	h1 = inb(val);
-> > >+	outb(0x61,sio);
-> > >+	l1 = inb(val);
-> > >  
-> > 
-> > please use these helper functions - lifted verbatim from another patch.
-> > These show up in various superio drivers in lm-sensors, consistency is good,
-> > and will help later if we need to mediate access to the SIO port,
-> > to share it amongst multiple drivers.
-> > 
-> > +
-> > +static inline void superio_outb(int reg, int val)
-> > +{
-> > +	outb(reg, SIO_REG_CIP);
-> > +	outb(val, SIO_REG_DIP);
-> > +}
-> > +
-> > +static inline int superio_inb(int reg)
-> > +{
-> > +	outb(reg, SIO_REG_CIP);
-> > +	return inb(SIO_REG_DIP);
-> > +}
-> > +
-> > +static inline void superio_select(int ldn)
-> > +{
-> > +	outb(SIO_VT1211_LDN, SIO_REG_CIP);
-> > +	outb(ldn, SIO_REG_DIP);
-> > +}
-> > +
-> > +static inline void superio_enter(void)
-> > +{
-> > +	outb(0x87, SIO_REG_CIP);
-> > +	outb(0x87, SIO_REG_CIP);
-> > +}
-> > +
-> > +static inline void superio_exit(void)
-> > +{
-> > +	outb(0xaa, SIO_REG_CIP);
-> > +}
-> 
-> I can't use those helper functions as is, because the whole purpose of
-> my patch is so that you can move away from using a #define for
-> SIO_REG_CIP. I'll write some equivalents for this module which use a
-> parameter instead.
-> 
-> > I havent actually checked, but it would be nice if you used the -p option
-> >   -p     Show which C function each change is in.
-> 
-> Thanks, I will use -p in future.
-> 
-> > and eventually, you'll probly need to do something about the nesting level.
-> > // and the c++ comments. :-(
-> 
-> I've changed all the comments to /* */ style.
-
-Any news about that patch? It seems that you had something almost ready
-and it was lost?
-
-It would be great if you could update this patch so that it applies on
-top of kernel 2.6.21 or later, and resubmit it.
-
-Thanks,
+I'm sorry, but I do not have time for a patch.... and I'm not really
+acpi expert, anyway. Ask Len?
 -- 
-Jean Delvare
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 
 _______________________________________________
 lm-sensors mailing list
