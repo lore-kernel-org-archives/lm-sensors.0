@@ -1,65 +1,36 @@
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Fri, 20 Apr 2007 04:51:59 +0000
-Subject: Re: [lm-sensors] w83627hf hardware sharing
-Message-Id: <462846EF.2000507@gmail.com>
+From: RusH <citizenr@gmail.com>
+Date: Mon, 02 Apr 2007 00:22:54 +0000
+Subject: Re: [lm-sensors] Asus smbus mux
+Message-Id: <3df49b7b0704011722q1201063eh37253910ddb1e004@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070412121527.GA3132@sirena.org.uk>
-In-Reply-To: <20070412121527.GA3132@sirena.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mark Brown wrote:
-> On Thu, Apr 12, 2007 at 01:26:55PM +0100, P=E1draig Brady wrote:
->  =20
->> Mark Brown wrote:
->>    =20
->
-> [ Currently we have multiplexing problems with multiple drivers trying
->   to control SuperIO devices. ]
->
->  =20
->>> The most straightforward fix appears to be to provide a multiplexing
->>> driver for the chip.  Does this sound like a reasonable approach to
->>>      =20
->
->  =20
->> You're right.
->> Some work has been done wrt this, but I've not tried it:
->> http://marc.info/?l=3Dlinux-kernel&m=115821759424601&w=3D2
->>    =20
->
-> Adding Jim Cromie who wrote the SuperIO multiplexer referenced there -
-> what is the current status of that work?  It looks like exactly what I
-> was after.
->
->  =20
+On 4/1/07, koko <citizenr@gmail.com> wrote:
 
-hi Mark, Padraig,
-thanks for searching, and finding something relevant.
-and sorry for the delay.
+rasz@capek:~$ sudo isadump -f 0xe440 16
+0 1 2 3 4 5 6 7 8 9 a b c d e f
+e440: 10 00 00 00 71 00 00 00 fd 02 c0 00 ff f6 ff 0f
+rasz@capek:~$ sudo i2cdetect -y 0 |grep 50
+50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
 
-$job is demanding my attention these days.
-I also owe a platform_driver patch for pc87360,
-which should come 1st, since its already late :-(
+bit 0 0xe44d
+rasz@capek:~$ sudo isaset -y -f 0xe44d 0xf7
+rasz@capek:~$ sudo i2cdetect -y 0 |grep 50
+50: 50 51 52 XX XX XX XX XX XX XX XX XX XX XX XX XX
 
-Ive evidently done something with the patchset since 9/14
-probably as talked about in the thread.
+spd works :)
+Big thanks to Tamas MIKLOS (Lavalys) and Franck@x86 (x86-secret)
 
--rw-rw-r-- 1 jimc jimc   9536 Oct  6  2006 diff.locks-superio
--rw-rw-r-- 1 jimc jimc   5739 Oct  6  2006 diff.locks-superio-usein-pc87360
--rw-rw-r-- 1 jimc jimc   6288 Oct  6  2006=20
-diff.locks-superio-usein-pc8736x_gpio
+Tamas MIKLOS send me the asus mux code. There are 5 hacks with smbus
+mux switch on IO, and 3 with smbus mux switch on smbus (lol thats
+funny), it covers 31 types of asus boards (plus many more subtypes).
+Oldest board is P3B, newest P4B.
 
-in case you havent already seen it
-http://search.gmane.org/?query=3Dsuperio&group=3Dgmane.linux.drivers.sensors
-
-comments, experiments, trials welcome.
-thanks
-jimc
-
-
+-- 
+Who logs in to gdm? Not I, said the duck.
 
 _______________________________________________
 lm-sensors mailing list
