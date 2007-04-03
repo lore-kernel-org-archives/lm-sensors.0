@@ -1,74 +1,44 @@
-From: Axel Thimm <Axel.Thimm@ATrpms.net>
-Date: Mon, 02 Apr 2007 12:01:41 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Tue, 03 Apr 2007 13:15:28 +0000
 Subject: Re: [lm-sensors] Checking out and comitting to the libsensors-3.x
-Message-Id: <20070402120141.GA4847@neu.nirvana>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1171424574910424834=="
+Message-Id: <20070403131528.GB5464@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4610BC25.8050507@hhs.nl>
 In-Reply-To: <4610BC25.8050507@hhs.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi everyone:
 
---===============1171424574910424834==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jI8keyz6grp/JLjh"
-Content-Disposition: inline
-
-
---jI8keyz6grp/JLjh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, Apr 02, 2007 at 01:36:49PM +0200, Jean Delvare wrote:
 > On Mon, 02 Apr 2007 10:17:41 +0200, Hans de Goede wrote:
-> > I've been really busy lately with Fedora related "work", but I hope to =
-find the=20
-> > time soon to start working on the dyn chip support. Most of the code is=
- already=20
-> > tehre for the 2.x branch (written by my students). ANd my initial testi=
-ng was good.
-> >=20
+> > I've been really busy lately with Fedora related "work", but I hope to find the 
+> > time soon to start working on the dyn chip support. Most of the code is already 
+> > tehre for the 2.x branch (written by my students). ANd my initial testing was good.
+> > 
 > > This leads me to the following questions:
-> > 1) What cmdline magic must I pass to svn to get the 3.x branch when che=
-cking
+> > 1) What cmdline magic must I pass to svn to get the 3.x branch when checking
 > >     out?
->=20
-> svn checkout http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0=
-=2E0
 
-Hans, you should checkout the svnbook that you've been pointed
-at. There is a section that explains svn for CVS people.
+* Jean Delvare <khali@linux-fr.org> [2007-04-02 13:36:49 +0200]:
+> svn checkout http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0
 
-Branches and tags in svn are really nothing more than a folder. You
-can argue that there are no branches and tags at all, if you
-like. Which makes it quite easy to place your own organization of
-things on top of it. You could rename "trunk" to "head" or remove it
-altogether, if it doesn't fit your developing model.
+Correct.
 
-svn is quite flexible. The basic operations concerning branches and
-tags are simple copy operations.
-
-> > 2) Do I need any cmdline magic to make sure a commit goes to the 3.x br=
-anch?
-> >     (I've bad experiences with this with CVS, where a commit would go t=
-o the
+> > 2) Do I need any cmdline magic to make sure a commit goes to the 3.x branch?
+> >     (I've bad experiences with this with CVS, where a commit would go to the
 > >      default branch even though I checkout another)
->=20
+> 
 > I've never done that, so I can't say for sure, but I think svn will
 > remember what branch you checked out from and you don't need to add any
 > parameter. Mark, can you please confirm this?
 
-See above. It is just a folder. And svn will remember what folder you
-checked out like CVS does.
+Correct.
 
-> > 3) Is it ok for me to just start committing this, or should I post it f=
-or
+> > 3) Is it ok for me to just start committing this, or should I post it for
 > >     review here first?
->=20
+> 
 > I am usually committing directly, except when I am not sure myself that
 > this is the right thing to do, in which case I post on the list first,
 > and then sometimes commit the change, sometimes not. So it's up to you,
@@ -76,61 +46,69 @@ or
 > commit them, and use the list if you think something needs to be
 > discussed first. Remember, the whole idea of a separate 3.0.0 branch is
 > that you can put all your changes there quickly.
->=20
+> 
 > Before you start really working on the 3.0.0 branch, we should sync it
 > with the current trunk. Mark created the 3.0.0 branch quite some time
 > ago, many fixes have gone into trunk since then, and I would hate to
 > lose them. I don't know how this is done though. Mark, can you please
 > take care of it? Maybe just kill the branch and recreate it?
 
-Why not define that "trunk :=3D 3.x.x"? And only branch near a release?
-Or do we need two different development areas?
+I synced up the 3.0.0 branch this morning.  I would have just recreated it as
+you suggest, except that I have 3 local copies of it, each with changes that
+I haven't committed yet.  Merging it up to date was easier for me.
 
-Hans, whioch svn you can also create your very personal branch and
-start playing in there. E.g.
+Here's what I did:
 
-http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0-hans
+1. From which revision was the branch created?  The stop-on-copy arg tells svn
+to show me logs going back to when the branch was created.  (A branch is nothing
+more than a directory copy.)
 
-Once you're comfortable you can then either nuke it or merge back any
-production commits back to the main branch or trunk.
+	$ cd <working copy of 3.0.0 branch>
+	$ svn log --stop-on-copy
+
+2. What's the most recent revision on the trunk?
+
+	$ cd <working copy of trunk>
+	$ svn up
+
+3. A merge is: find the differences between an old revision and a newer one,
+apply those differences to the target branch.  (I specify the target branch
+implicity in the following command, it's the branch of the CWD.)
+
+	$ cd <working copy of 3.0.0 branch>
+	$ svn merge -r 4303:4355 http://lm-sensors.org/svn/lm-sensors/trunk
 
 > I also don't know how we are going to handle the later trunk changes,
 > once 3.0.0 development is in progress. Some changes won't apply to the
 > 3.0.0 branch (e.g. adding support for a new chip in libsensors) but
 > many will.
->=20
+
+IMPORTANT NOTE: next time we want to merge trunk changes out to the 3.0.0
+branch, the merge command will be slightly different.  We must not use r4303
+as the starting point, but rather r4355; otherwise we might duplicate some
+changes.  So it is important to remember that we're synced up to r4355.  The
+convention is to record that information in the commit log when the merge is
+committed (which I did.)
+
+If there are changes to trunk that don't make sense in the branch, then we can
+handle that by "anti" cherry-picking them.  E.g. if r4360 is such a change,
+we'll sync r4355:r4359 and then again r4361:whatever.
+
 > Once real work starts on this branch, it should be documented on our
 > Download page how to get the code, if we want testers. It would also be
 > convenient to have nightly snapshots as we do for the trunk version.
 > Axel, can this be done?
 
-Of course. Just say so, once you consider snapshoting to make sense.
---=20
-Axel.Thimm at ATrpms.net
+I don't think this is wanted just yet.  It's a good idea for later though.
 
---jI8keyz6grp/JLjh
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
-iD8DBQFGEPCgQBVS1GOamfERAmPyAJ42+c6u+lZEJYsWpTPNGVzspmOPvQCcDgUm
-e/FoIBCcIehsVy5JYkVfgm4=
-=6fDF
------END PGP SIGNATURE-----
-
---jI8keyz6grp/JLjh--
-
-
---===============1171424574910424834==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1171424574910424834==--
