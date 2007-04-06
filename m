@@ -1,35 +1,25 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 08 Apr 2007 11:13:05 +0000
-Subject: Re: [lm-sensors] Motherboard-specific configurations (sensors4mobo)
-Message-Id: <20070408131305.1c3e3d29.khali@linux-fr.org>
+From: Terrence Martin <tmartin@physics.ucsd.edu>
+Date: Fri, 06 Apr 2007 17:39:13 +0000
+Subject: [lm-sensors] Compiling device drivers without compiling the kernel?
+Message-Id: <461685C1.6050904@physics.ucsd.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46084A44.4070101@eberian.com>
-In-Reply-To: <46084A44.4070101@eberian.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ivo,
+I have a Centos 4.4 system, and I was wondering if it is possible or if 
+there are instructions for compiling the drivers for sensors that did 
+not come stock with the centos kernel? I found the k8temp online, 
+unfortunately the kernel complains the module is in the wrong format.
 
-On Wed, 4 Apr 2007 11:34:37 +0200, Ivo Manca wrote:
-> > Now, what is true of the website database may not be true of the local
-> > cache (files in a directory, if we do that.) We may decide to only
-> > export the confirmed files for the cache, for example, or only one of
-> > the possible configurations (maybe based on a mark given by the site
-> > visitors.) I have no strong opinion on this.
-> 
-> Why not make the user decide about this? Default option: only confirmed. But 
-> a posibility to download the "unconfirmed/experimental" ones also.
-> Ofcourse, we'll have to notify the user with  "These configs are not tested, 
-> bla bla bla".
+The related question is there any docs out there for getting lm sensors 
+with newer sensors working on RHEL4.x based systems (eg. Centos?).
 
-In practice, this will end up being a choice made by the distribtions
-rather than individual users. But yes, we can leave the choice and see
-what distributions decide to do.
+Thanks,
 
--- 
-Jean Delvare
+Terrence
+
 
 _______________________________________________
 lm-sensors mailing list
