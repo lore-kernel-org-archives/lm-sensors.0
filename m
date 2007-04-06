@@ -1,29 +1,32 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 29 Apr 2007 21:25:19 +0000
-Subject: Re: [lm-sensors] No pwm with abituguru driver?
-Message-Id: <46350D3F.3060202@hhs.nl>
+From: jk <lm_sensors@kosowsky.org>
+Date: Fri, 06 Apr 2007 05:21:25 +0000
+Subject: [lm-sensors] =?utf-8?q?asb=5F100_sensor_location_in_/sys_heirarch?=
+Message-Id: <loom.20070406T071342-850@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4632306A.5010904@lysator.liu.se>
-In-Reply-To: <4632306A.5010904@lysator.liu.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Magnus Ekhall wrote:
-> Thanks a lot for the fast and verbatim answer!
-> 
-> If I can help the project with info from my AN8 Fatal1ty I would be
-> happy to. Just let me know.
-> 
+I have a p4pe board with the asb_100 sensor running under linux 2.6.20.
 
-If you could mail me the output of dmidecode on your board, that would be much 
-appreciated. I'm planning on adding support to sensors-detect for all the uguru 
-boards oneday and in order for that I need the dmi info of all uguru motherboards.
+I now notice that the sensors location varies between
+/sys/bus/i2c/drivers/asb100/0-002d and /sys/bus/i2c/drivers/asb100/2-002d
+between reboots.
 
-Thanks & Regards,
+This creates problems for me since I use sensord and a crontab entry to read the
+sensors but now the location of the sensors in /sys varies with each boot.
 
-Hans
+Is this a bug?
+If not is there a way to fix the location of the sensor directory in the /sys
+heirarch? (Otherwise, I will need to write some klugey shell script to try to
+find the location at boot-up and then automatically change the crontab entry
+accordingly.
+
+Thanks!
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
