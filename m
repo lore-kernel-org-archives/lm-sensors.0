@@ -1,43 +1,76 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 02 Apr 2007 07:54:23 +0000
-Subject: Re: [lm-sensors] FW: nforce2 mcp55
-Message-Id: <20070402095423.d437d857.khali@linux-fr.org>
+From: Dieter Jurzitza <dieter.jurzitza@t-online.de>
+Date: Sat, 07 Apr 2007 20:03:23 +0000
+Subject: [lm-sensors] coretemp.ko - progress
+Message-Id: <200704072203.23493.dieter.jurzitza@t-online.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Brady,
+Dear listmembers,
+I found a source package I could build and integrate into my kernel 2.6.18.=
+8=20
+in the meantime. The only change I had to do was to integrate
+#include <linux/cpu.h>=20
+into coretemp.c, but maybe this is an openSUSE issue. The source code stems=
+=20
+from the 29th and 30th of September 2006 (coretemp.c, coretemp.mod.c), I do=
+=20
+not see release information inside. In addition I switched to=20
+lm_sensors-2.10.3 because it's sensors_detect supports the coretemp module.
 
-On Fri, 30 Mar 2007 14:39:24 -0500, brady wrote:
-> I try to get sensors working for this.
->
-> modprobe i2c_nforce2
-> 
-> identify the pci_vendor_id and 
-> 
-> echo "10de:0368 "> /sys/bus/pci/drivers/nForce2_smbus/new_id
-> 
-> error in the log:
+Many many thanks to Rudolf Marek!
 
-You got the syntax wrong. The correct syntax is:
+Nevertheless, two comments / questions from my side:
 
-echo "10de 0368 "> /sys/bus/pci/drivers/nForce2_smbus/new_id
+1.) when building lm_sensors-2.10.3 on my machine, I stumbled over the=20
+following line in prog/pwm/fancontrol.original:
 
-Note the white space instead of the colon.
+@@ -88,7 +88,7 @@
+                echo "  MAXTEMP=3D${AFCMAXTEMP[$fcvcount]}"
+                echo "  MINSTART=3D${AFCMINSTART[$fcvcount]}"
+                echo "  MINSTOP=3D${AFCMINSTOP[$fcvcount]}"
+                let fcvcount=FCvcount+1
 
-> [root@compute-0-0 ~]# uname -r 
-> 
-> 2.6.9-42.0.10.ELsmp
+shouldn't that denote "let fcvcount=3D$fcvcount+1" (see the "$")? I am not =
+a=20
+perl expert, but maybe someone could shade a light on this ....
 
-On top of that, the nForce MCP51 and up use different registers for
-the I/O base address, and the i2c-nforce2 driver in 2.6.9 doesn't
-support that, so unless Red Hat backported that change, the new_id
-trick won't work for this device/kernel version combination.
+2.) after integrating & building the version of coretemp I downloaded I get=
+=20
+the following warning message:
 
--- 
-Jean Delvare
+WARNING: drivers/hwmon/coretemp.o - Section mismatch: reference to .init.te=
+xt:=20
+from .text between 'coretemp_cpu_callback' (at offset 0x1b1) and=20
+'msr_smp_rdmsr'
+could some friendly person explain this to me an tell me whether or not I=20
+should expect issues here?
+
+Thank you very much for all your ongoing support for lm_sensors,
+take care
+
+
+Dieter Jurzitza
+
+
+
+--=20
+-----------------------------------------------------------
+
+                               |
+                                \
+                 /\_/\           |
+                | ~x~ |/-----\   /
+                 \   /-       \_/
+  ^^__   _        /  _  ____   /
+ <=B0=B0__ \- \_/     |  |/    |  |
+  ||  ||         _| _|    _| _|
+
+if you really want to see the pictures above - use some font
+with constant spacing like courier! :-)
+-----------------------------------------------------------
 
 _______________________________________________
 lm-sensors mailing list
