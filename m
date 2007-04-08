@@ -1,140 +1,129 @@
-From: Axel Thimm <Axel.Thimm@ATrpms.net>
-Date: Thu, 05 Apr 2007 20:31:59 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 08 Apr 2007 08:14:30 +0000
 Subject: Re: [lm-sensors] Checking out and comitting to the libsensors-3.x
-Message-Id: <20070405203159.GE16463@neu.nirvana>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2045618199312885832=="
+Message-Id: <20070408101430.cc3e0c9d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4610BC25.8050507@hhs.nl>
 In-Reply-To: <4610BC25.8050507@hhs.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Mark,
 
---===============2045618199312885832==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="a+b56+3nqLzpiR9O"
-Content-Disposition: inline
+On Tue, 3 Apr 2007 09:15:28 -0400, Mark M. Hoffman wrote:
+> Hi everyone:
+> 
+> > On Mon, 02 Apr 2007 10:17:41 +0200, Hans de Goede wrote:
+> > > I've been really busy lately with Fedora related "work", but I hope to find the 
+> > > time soon to start working on the dyn chip support. Most of the code is already 
+> > > tehre for the 2.x branch (written by my students). ANd my initial testing was good.
+> > > 
+> > > This leads me to the following questions:
+> > > 1) What cmdline magic must I pass to svn to get the 3.x branch when checking
+> > >     out?
+> 
+> * Jean Delvare <khali@linux-fr.org> [2007-04-02 13:36:49 +0200]:
+> > svn checkout http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0
+> 
+> Correct.
+> 
+> > > 2) Do I need any cmdline magic to make sure a commit goes to the 3.x branch?
+> > >     (I've bad experiences with this with CVS, where a commit would go to the
+> > >      default branch even though I checkout another)
+> > 
+> > I've never done that, so I can't say for sure, but I think svn will
+> > remember what branch you checked out from and you don't need to add any
+> > parameter. Mark, can you please confirm this?
+> 
+> Correct.
+> 
+> > > 3) Is it ok for me to just start committing this, or should I post it for
+> > >     review here first?
+> > 
+> > I am usually committing directly, except when I am not sure myself that
+> > this is the right thing to do, in which case I post on the list first,
+> > and then sometimes commit the change, sometimes not. So it's up to you,
+> > for changes you are sure of or that have already been discussed, just
+> > commit them, and use the list if you think something needs to be
+> > discussed first. Remember, the whole idea of a separate 3.0.0 branch is
+> > that you can put all your changes there quickly.
+> > 
+> > Before you start really working on the 3.0.0 branch, we should sync it
+> > with the current trunk. Mark created the 3.0.0 branch quite some time
+> > ago, many fixes have gone into trunk since then, and I would hate to
+> > lose them. I don't know how this is done though. Mark, can you please
+> > take care of it? Maybe just kill the branch and recreate it?
+> 
+> I synced up the 3.0.0 branch this morning.  I would have just recreated it as
+> you suggest, except that I have 3 local copies of it, each with changes that
+> I haven't committed yet.  Merging it up to date was easier for me.
 
+OK, no problem.
 
---a+b56+3nqLzpiR9O
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Here's what I did:
+> 
+> 1. From which revision was the branch created?  The stop-on-copy arg tells svn
+> to show me logs going back to when the branch was created.  (A branch is nothing
+> more than a directory copy.)
+> 
+> 	$ cd <working copy of 3.0.0 branch>
+> 	$ svn log --stop-on-copy
+> 
+> 2. What's the most recent revision on the trunk?
+> 
+> 	$ cd <working copy of trunk>
+> 	$ svn up
+> 
+> 3. A merge is: find the differences between an old revision and a newer one,
+> apply those differences to the target branch.  (I specify the target branch
+> implicity in the following command, it's the branch of the CWD.)
+> 
+> 	$ cd <working copy of 3.0.0 branch>
+> 	$ svn merge -r 4303:4355 http://lm-sensors.org/svn/lm-sensors/trunk
 
-Hi,
+Thanks for the lesson, I'm bookmarking this for later.
 
-On Thu, Apr 05, 2007 at 10:15:04PM +0200, Jean Delvare wrote:
-> Hi Axel,
->=20
-> Sorry for the delay.
->=20
-> On Wed, 4 Apr 2007 21:43:17 +0200, Axel Thimm wrote:
-> > Hi,
-> >=20
-> > On Wed, Apr 04, 2007 at 09:29:10PM +0200, Jean Delvare wrote:
-> > > BTW, lm-sensors.org's trac looks broken to me, it spits python errors
-> > > at me for every page but the main page.
-> >=20
-> > That's bad, can you give me a failing URL? I can't seem to be
-> > (un)lucky enough to find one. :/
->=20
-> http://www.lm-sensors.org/wiki/Devices
->=20
-> Oops=E2=80=A6
-> Trac detected an internal error:
->=20
-> If you think this really should work and you can reproduce it, you should=
- consider reporting this problem to the Trac team.
->=20
-> Go to http://trac.edgewall.org/ and create a new ticket where you describ=
-e the problem, how to reproduce it. Don't forget to include the Python trac=
-eback found below.
->=20
-> TracGuide =E2=80=94 The Trac User and Administration Guide
-> Python Traceback
->=20
-> Traceback (most recent call last):
->   File "/usr/lib/python2.4/site-packages/trac/web/main.py", line 387, in =
-dispatch_request
->     dispatcher.dispatch(req)
->   File "/usr/lib/python2.4/site-packages/trac/web/main.py", line 191, in =
-dispatch
->     chosen_handler =3D self._pre_process_request(req, chosen_handler)
->   File "/usr/lib/python2.4/site-packages/trac/web/main.py", line 263, in =
-_pre_process_request
->     chosen_handler =3D f.pre_process_request(req, chosen_handler)
->   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/api.py", lin=
-e 73, in pre_process_request
->     self.get_repository(req.authname) # triggers a sync if applicable
->   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/api.py", lin=
-e 101, in get_repository
->     repos =3D self._connector.get_repository(rtype, rdir, authname)
->   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/svn_fs.py", =
-line 259, in get_repository
->     repos =3D SubversionRepository(dir, None, self.log)
->   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/svn_fs.py", =
-line 281, in __init__
->     self.pool =3D Pool()
->   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/svn_fs.py", =
-line 158, in __init__
->     self._pool =3D core.svn_pool_create(self._parent_pool())
->   File "/usr/lib64/python2.4/site-packages/svn/core.py", line 177, in svn=
-_pool_create
->     return Pool(parent_pool)
->   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 1080, in=
- svn_pool_create
->     return apply(_core.svn_pool_create, args)
->   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 3081, in=
- _wrap
->     obj.set_parent_pool(self)
->   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 2994, in=
- set_parent_pool
->     self._parent_pool =3D parent_pool or application_pool
->   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 2982, in=
- <lambda>
->     __setattr__ =3D lambda self, name, value: _swig_setattr(self, apr_poo=
-l_t, name, value)
->   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 22, in _=
-swig_setattr
->     return _swig_setattr_nondynamic(self,class_type,name,value,0)
->   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 17, in _=
-swig_setattr_nondynamic
->     self.__dict__[name] =3D value
-> RuntimeError: instance.__dict__ not accessible in restricted mode
->=20
-> It's an intermittent error, sometimes I get it, sometimes I don't.
+What would have happened if some of the changes from trunk had been
+conflicting with changes in branch 3.0.0?
 
-That's the errors one loves. Looks like it's a known issue for more
-than a year:
+It seems that we lose the history of changes when merging a branch, the
+logs only show the merge and not the individual log messages. Is this
+expected? I guess so :(
 
-http://trac.edgewall.org/ticket/3371
+> > I also don't know how we are going to handle the later trunk changes,
+> > once 3.0.0 development is in progress. Some changes won't apply to the
+> > 3.0.0 branch (e.g. adding support for a new chip in libsensors) but
+> > many will.
+> 
+> IMPORTANT NOTE: next time we want to merge trunk changes out to the 3.0.0
+> branch, the merge command will be slightly different.  We must not use r4303
+> as the starting point, but rather r4355; otherwise we might duplicate some
+> changes.  So it is important to remember that we're synced up to r4355.  The
+> convention is to record that information in the commit log when the merge is
+> committed (which I did.)
+> 
+> If there are changes to trunk that don't make sense in the branch, then we can
+> handle that by "anti" cherry-picking them.  E.g. if r4360 is such a change,
+> we'll sync r4355:r4359 and then again r4361:whatever.
 
---=20
-Axel.Thimm at ATrpms.net
+Another method would be to commit to both branches in parallel when a
+given change belongs to both branches. Looking at the changes you just
+merged, it seems that only a small amount of these were really needed
+in 3.0.0. All the changes to the kernel drivers, their documentation,
+lib/chips.*, prog/sensors/chips.* and sensors.conf.eg are for 2.10.x
+only. This doesn't leave that many areas where changes really need to
+be merged.
 
---a+b56+3nqLzpiR9O
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Also, parallel commit would have the benefit that we have a better
+history, and no merge delay. Opinion anyone?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iD8DBQFGFVy+QBVS1GOamfERAg95AJ99YlzDvH7tx9XxfGdVV/+O1CaX3gCfYmv4
-B3nuLLJoFl9UhdZPGLZRSy8=
-=ytcr
------END PGP SIGNATURE-----
-
---a+b56+3nqLzpiR9O--
-
-
---===============2045618199312885832==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2045618199312885832==--
