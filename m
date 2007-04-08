@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 08 Apr 2007 17:50:22 +0000
+Date: Sun, 08 Apr 2007 18:40:44 +0000
 Subject: Re: [lm-sensors] asb_100 sensor location in /sys heirarchy changes
-Message-Id: <20070408195022.04b35e90.khali@linux-fr.org>
+Message-Id: <20070408204044.d0112dab.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4615F494.6070403@hhs.nl>
 In-Reply-To: <4615F494.6070403@hhs.nl>
@@ -10,59 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+On 06 Apr 2007 13:21:59 -0400, jk wrote:
+> I am then surprised that many more people are not having this
+> problem. It would seem then that this "race condition" would apply to
+> anybody who had more than one i2c bus.
 
-On Fri, 06 Apr 2007 09:19:48 +0200, Hans de Goede wrote:
-> jk wrote:
-> > I have a p4pe board with the asb_100 sensor running under linux 2.6.20.
-> > 
-> > I now notice that the sensors location varies between
-> > /sys/bus/i2c/drivers/asb100/0-002d and /sys/bus/i2c/drivers/asb100/2-002d
-> > between reboots.
-> > 
-> > This creates problems for me since I use sensord and a crontab entry to read the
-> > sensors but now the location of the sensors in /sys varies with each boot.
-> > 
-> > Is this a bug?
-> > If not is there a way to fix the location of the sensor directory in the /sys
-> > heirarch? (Otherwise, I will need to write some klugey shell script to try to
-> > find the location at boot-up and then automatically change the crontab entry
-> > accordingly.
-> 
-> Interesting, I've been thinking about this for while, as I foresee problems 
-> here in relation to the DMI based motherboard config project we are working on too.
-> 
-> I think that the currently used scheme where busses are purely numbered instead 
-> of named needs fixing.
-> 
-> Here is what I have on my system:
-> /sys/bus/i2c/devices/0-0050
-> /sys/bus/i2c/devices/0-0051
-> 
-> And here is what I would like to have:
-> /sys/bus/i2c/devices/viapro-0-0050
-> /sys/bus/i2c/devices/viapro-0-0051
-> 
-> The idea here is that the 0 added here is in case one can have multiple 
-> instances of the same i2c master driver
+Let me guess, your kernel is compiled with
+CONFIG_PCI_MULTITHREAD_PROBE=y?
 
-Which directly points to a weakness in your proposal: if you have two
-adapters of the same type, they'll get named foo-0 and foo-1. How do
-you know which is which? You don't, so you only moved the problem one
-step further, you didn't solve it.
+> Perhaps though there are not many people who are using sensord/rrd
+> though... (however, if you are and set up the crontab as recommended
+> then you will get cron email errors mailed to you every 5 minutes :)
 
-My understanding is that this is a problem for user-space to solve, it
-should not assume stable device numbering accross reboots. But it used
-to be the case and many user-space tools still rely on this.
+First of all, the right way to look for hardware monitoring devices
+on a reasonably recent Linux 2.6 kernel is through /sys/class/hwmon.
+Historically, tools have been assuming that hardware monitoring devices
+were always presented as I2C devices and looked for them
+in /sys/bus/i2c/devices, but this is no longer correct. Granted though,
+libsensors still identifies i2c devices using their i2c device names
+internally. Maybe we'll need to change that someday. That being said,
+it moves the problem more than it solves it, when more than one
+hardware monitoring device is present on a system (which becomes more
+frequent these days.)
 
-> So if I would also have an i2c driver for my ati radeon, then it would look like:
-> /sys/bus/i2c/devices/viapro-0-0050
-> /sys/bus/i2c/devices/viapro-0-0051
-> /sys/bus/i2c/devices/radeon-0-00xx
-> 
-> This way the order in which the drivers get loaded doesn't matter. We do 
-> ofcourse need to provide compat symlinks with the old names which will still be 
-> driver loading order dependend.
+Secondly, libsensors supports consistent i2c bus numbering for years,
+for specific-device configuration sections. See the "BUS STATEMENT"
+section in sensors.conf(5).
+
+This doesn't cover all cases, but these are things to keep in mind when
+facing device naming issues.
 
 -- 
 Jean Delvare
