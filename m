@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 08 Apr 2007 17:36:47 +0000
+From: =?iso-8859-1?q?Hans-J=FCrgen_Koch?= <hjk@linutronix.de>
+Date: Sun, 08 Apr 2007 18:31:31 +0000
 Subject: Re: [lm-sensors] Proposal
-Message-Id: <4619282F.1000807@hhs.nl>
+Message-Id: <200704082031.31895.hjk@linutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200704081630.17151.hjk@linutronix.de>
 In-Reply-To: <200704081630.17151.hjk@linutronix.de>
@@ -10,33 +10,39 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hans-J=FCrgen Koch wrote:
-> Am Sonntag 08 April 2007 15:51 schrieb Hans de Goede:
->=20
->> The abituguru3 has a register which contains a motherboard ID. The curre=
-nt
->> driver uses this ID, to look up info about the motherboard in a somewhat
->> lenght table in the driver.=20
->=20
-> Can you elaborate your design decision a bit? My first idea would be to h=
-ave
-> a sysfs file that delivers that motherboard ID and then do the lookup in
-> user space.
->=20
+Am Sonntag 08 April 2007 19:36 schrieb Hans de Goede:
+> Hans-J=FCrgen Koch wrote:
+> > Am Sonntag 08 April 2007 15:51 schrieb Hans de Goede:
+> >> The abituguru3 has a register which contains a motherboard ID. The
+> >> current driver uses this ID, to look up info about the motherboard in a
+> >> somewhat lenght table in the driver.
+> >
+> > Can you elaborate your design decision a bit? My first idea would be to
+> > have a sysfs file that delivers that motherboard ID and then do the
+> > lookup in user space.
+>
+> As I don't want the abituguru3 driver to create entries in sysfs for
+> sensors which aren't there, and as without the table in the driver I cann=
+ot
+> be sure wether to create an in / temp / fan device for a given sensor
+> address.=20
 
-As I don't want the abituguru3 driver to create entries in sysfs for sensor=
-s=20
-which aren't there, and as without the table in the driver I cannot be sure=
-=20
-wether to create an in / temp / fan device for a given sensor address. Last=
- but=20
-not least doing things this way allows me to always give a proper reading=20
-without userspace needing to "guess" any further nescesarry calculations to=
- get=20
-from the reading to an actual measurement.
+Good point. Anyway, most sensor drivers have no way of knowing which of the=
+ir
+inputs are actually used. The LM93 driver I'm currently working on is a=20
+monster that creates about 160 (!) sysfs files. I don't find it easy to
+judge what's worse, having a few unused sysfs files or a large table in
+kernel space.
 
-Regards,
+> Last but not least doing things this way allows me to always give=20
+> a proper reading without userspace needing to "guess" any further
+> nescesarry calculations to get from the reading to an actual measurement.
 
+I agree that this is convenient, especially when reading sysfs values e.g.
+from a script (without a library that could do table lookups). This is
+probably a strong argument in favor of your table solution.
+
+Thanks,
 Hans
 
 _______________________________________________
