@@ -1,42 +1,45 @@
-From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
-Date: Tue, 10 Apr 2007 08:45:16 +0000
-Subject: Re: [lm-sensors] What to do ta have new sensor patch included
-Message-Id: <461b4e9c2808b@wp.pl>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Mon, 09 Apr 2007 15:20:52 +0000
+Subject: [lm-sensors] dynamic chip support in libsensors + generic chip
+Message-Id: <461A59D4.2050409@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <461b2ac080b93@wp.pl>
-In-Reply-To: <461b2ac080b93@wp.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
+I've committed everything my students had written + some fixes done by me after 
+some initial testing to the 3.0.0 sensors branch.
 
-Dnia 10-04-2007 o godz. 8:25 Hans de Goede napisa=B3(a):
+I claim in no way that this code is perfect, I did things this way to properly 
+document / atrribute who wrote what, and to give us a starting point as I think 
+the code in general is ok. It needs testing and cleanups, but its not a bad 
+starting point perse.
 
-> I could review your patch, but that useless as Jean then still
-wants to review=20
-> it again himself :(
->=20
-
-I would welcome your review as this is my first driver for
-lmsensors so I expect some simple mistakes. This would make the
-driver more likely pass the Jean's review.
-
-Should I repost it or you could find it (I haven't posted much to
-the list and it was posted a month ago).
+So please test this:
+1) checkout the 3.0.0 branch:
+    svn checkout http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0
+2) comment the entries for your chips int he table at the end of lib/chips.c
+    and in the table near the end of progs/sensors/main.c
+3) compile and install as usual
+4) run sensors and let me/us know how it works
 
 Regards,
-Krzysztof
 
-----------------------------------------------------
-Historia mi=B3osna, kt=F3ra urokiem i ilo=B6ci=B1 wzrusze=F1=20
-dor=F3wnuje "Marzycielowi". Renee Zellweger i Ewan McGregor
-w najpi=EAkniejszym filmie roku! MISS POTTER - w kinach!
-http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Fadv.reklama.wp.pl%2Fas%2Fmisspotter.h=
-tml&sid=1100
+Hans
 
 
+p.s.
+
+I'm planning on doing several cleanups of the code as submitted the coming few 
+days, as time permits. Plans so far:
+-cleanup the regex used to see if a sysfs entry actual is a sysfs sensor file,
+  so that it doesn't match everything (including entries like: uevent, modalias,
+  etc), but only matches the actual known / document sysfs sensor files
+-cleanup the new sensors_feature_get_type to be much more robust / do much
+  exacter matching
 
 _______________________________________________
 lm-sensors mailing list
