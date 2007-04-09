@@ -1,58 +1,68 @@
-From: koko <citizenr@gmail.com>
-Date: Sun, 01 Apr 2007 19:33:16 +0000
-Subject: Re: [lm-sensors] repost: read the spd on A7V133 | without UTF-8
-Message-Id: <3df49b7b0704011233g3e5686dvd3433b3e5ee36d1e@mail.gmail.com>
+From: Jeremy Jackson <jerj@coplanar.net>
+Date: Mon, 09 Apr 2007 00:58:45 +0000
+Subject: Re: [lm-sensors] dme1737 datasheet
+Message-Id: <1176080449.13814.51.camel@ragnarok>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3df49b7b0703311542l79ea2595pcfd8546aab4b07ac@mail.gmail.com>
-	 <3df49b7b0703311629t317db7abt64e10cec7f661a04@mail.gmail.com>
-	 <3df49b7b0704011025n397b164boc2d8c714c86ed9e@mail.gmail.com>
-In-Reply-To: <3df49b7b0704011025n397b164boc2d8c714c86ed9e@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
+To: lm-sensors@vger.kernel.org
 
-On 4/1/07, koko <citizenr@gmail.com> wrote:
-> >blabal
+Hi,
 
-hmmm
+Given the NDA nature it's tricky trying to support the watchdog and
+serial port for LinuxBIOS.  I think I can fly blind using parts of
+publicly available datasheets, but it would save me time if I knew the
+Logical Device #'s of the various superio modules, ie index 7 values
+needed to address parport, serial 1/2, fdc, etc. config registers.
 
-> Mux 0 Asus IO mux, IO 0000e44dh, Ext 4267320
+Any chance someone can hint at what these might be, or a publicly
+available datasheet that's closest:
 
-rasz@capek:~$ cat /proc/ioports|grep e4
-e400-e47f : motherboard
-  e400-e403 : ACPI PM1a_EVT_BLK
-  e404-e405 : ACPI PM1a_CNT_BLK
-  e408-e40b : ACPI PM_TMR
-  e410-e415 : ACPI CPU throttle
-  e420-e423 : ACPI GPE0_BLK
+http://www.smsc.com/main/datasheet.html
 
-I decompiled ACPI DSDT from my bios and found this :
+Ok so they all have serial port as Logical Device 4, so I've summarized
+what the watchdog uses below.
 
-    OperationRegion (\SGPO, SystemIO, 0xE44C, 0x04)
-    Field (SGPO, ByteAcc, NoLock, Preserve)
-    {
-        GPO0,   1,
-                Offset (0x01),
-        GPO8,   1,
-            ,   2,
-        GP11,   1,
-                Offset (0x04)
-    }
+ISA bus types - Config index/data registers at 0x3F0 or 0x370
 
-1 is my  ACPI broken? it doesnt claim 0xe44d as motherboard resource?
-Or is Kernel ACPI handling broken? there are other e4xx regions in my
-DSDT that are not claimed.
-   OperationRegion (GPOB, SystemIO, 0xE42A, 0x02)
-   OperationRegion (GPSC, SystemIO, 0xE42F, 0x01)
-2 which bits exactly should I fiddle with? and how, is there a simple
-way to play with them (like isaset/isadump for ports)?
-3 Is work on i2c-virtual desired? or is this idea abandoned completely
-by now and I should write a hack just for me?
+watchdog uses configuration space of logical device
+
+FDC37b727 Logical Device 8 - Aux I/O 0xF1 - 0xF4 watchdog *
+FDC37b78x Logical Device 8 - Aux I/O 0xF1 - 0xF4 watchdog *
+FDC37c665GT very different - no logical devices
+FDC37c669 very different - no logical devices
+FDC37c672 Logical Device 8 - Aux I/O 0xF1 - 0xF4 watchdog * no
+WDT_TIME_OUT register
+FDC37c78 FDC only
+FDC37c93x Logical Device 8 - Aux I/O 0xF2 - 0xF4 watchdog *
+FDC37M707 Logical Device 8 - Aux I/O 0xF1 - 0xF4 watchdog *
+FDC37m817 Logical Device 8 - Aux I/O 0xF1 - 0xF4 watchdog *
+FDC37n769 very different - no logical devices
+
+* can be configured to allow access to some watchdog registers while in
+run mode
+
+LPC bus types - index/address registers 0x2e/0x2f or 0x4e/0x4f
+
+watchdog uses offset from decoded address set by logical device Primary
+Base Address 
+
+LPC47b272 Logical Device A - Runtime reg offset 0x52 - 0x55 watchdog
+LPC47m10x no WDT
+LPC47m112 no WDT
+LPC47m172 no WDT
+LPC47S45x Logical Device A - Runtime reg offset 0x52 - 0x55 watchdog
+
+I'm leaning towards DME1737 being the same as these LPC parts.
 
 -- 
-Who logs in to gdm? Not I, said the duck.
+Jeremy Jackson
+jerj@coplanar.net Email/Jabber/Google Talk/MSN
+(519)489-4903
+Coplanar Networks
+http://www.coplanar.net
+
 
 _______________________________________________
 lm-sensors mailing list
