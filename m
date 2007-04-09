@@ -1,54 +1,63 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 09 Apr 2007 11:27:21 +0000
+Date: Mon, 09 Apr 2007 12:24:53 +0000
 Subject: Re: [lm-sensors] Proposal
-Message-Id: <20070409132721.86acf12c.khali@linux-fr.org>
+Message-Id: <20070409142453.880b9785.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200704081630.17151.hjk@linutronix.de>
 In-Reply-To: <200704081630.17151.hjk@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Hi Hans,
 
-On Sun, 08 Apr 2007 19:36:47 +0200, Hans de Goede wrote:
-> Hans-J=FCrgen Koch wrote:
-> > Am Sonntag 08 April 2007 15:51 schrieb Hans de Goede:
-> >=20
-> >> The abituguru3 has a register which contains a motherboard ID. The cur=
-rent
-> >> driver uses this ID, to look up info about the motherboard in a somewh=
-at
-> >> lenght table in the driver.=20
-> >=20
-> > Can you elaborate your design decision a bit? My first idea would be to=
- have
-> > a sysfs file that delivers that motherboard ID and then do the lookup in
-> > user space.
+On Sun, 08 Apr 2007 15:51:02 +0200, Hans de Goede wrote:
+> The abituguru3 driver, of which I've just submitted a second version for 
+> review, has a new feature / sysfs file, which I would like to discuss, before 
+> people think I'm trying to keep this new sysfs entry below the radar.
+> 
+> The abituguru3 has a register which contains a motherboard ID. The current 
+> driver uses this ID, to look up info about the motherboard in a somewhat lenght 
+> table in the driver. This is done this way because the uguru3 has 48 sensors, 
+> and the only way to know which one are actually connected and wether they are 
+> connected to voltage / temp / fan is by using this table. The added advantage 
+> of this is that since we know exactly on which motherboard the driver is 
+> running, additional stuff can be don. Like always correct values in mV / milli 
+> degress celcius / RPM at the sysfs level without libsensors needing todo any 
 
-I guess that the motherboard ID can be retrieved in user-space using
-dmidecode, can't it? So it might not even be needed to export it.
+As I already expressed further in the thread: this violates the design
+decision all other hardware monitoring drivers are built upon.
+Conversions, and motherboard support in general, belong to user-space.
 
-> As I don't want the abituguru3 driver to create entries in sysfs for sens=
-ors=20
-> which aren't there, and as without the table in the driver I cannot be su=
-re=20
-> wether to create an in / temp / fan device for a given sensor address. La=
-st but=20
-> not least doing things this way allows me to always give a proper reading=
-=20
-> without userspace needing to "guess" any further nescesarry calculations =
-to get=20
-> from the reading to an actual measurement.
+> conversion. An other additional feature this enables, is telling userspace 
+> which voltage / temp / fan is actually being monitored. So the abituguru3 
+> driver has sysfs entries like:
+> /sys/class/hwmon/hwmon0/in0_label
+> 
+> Catting this file will result (depependend on motherboard) in for example:
+> CPU Core
+> being returned
+> 
+> I personally like this, as with proper userspace support this makes the end 
+> user experience pretty plug and play. so what do you think, good or bad?
+> 
+> Currently libsensors cannot handle this, but I don't think that is an argument 
+> either way.
 
-This is absolutely not different from all other hardware monitoring
-drivers. And all other drivers handle it in user-space, because that's
-the right design. I see no valid reason why it would be different for
-your abituguru3 driver. All you need is one configuration file per
-motherboard.
+I am, however, fine with *_label entries in sysfs, as long as they are
+used with care. The use of these entries should be limited to the case
+where pin use can be probed by the driver from the hardware state.
+BTW, the coretemp driver already creates these files, even though it is
+not properly documented in Documentation/hwmon/sysfs-interface yet. And
+I have plans to create some label files in the it87 driver too.
 
---=20
+These sysfs files should not be seen as a replacement for sensors.conf's
+label statements. They should only be created when the driver knows,
+directly from the hardware, that a given input is used for a
+well-defined function, and user-space couldn't know that.
+
+-- 
 Jean Delvare
 
 _______________________________________________
