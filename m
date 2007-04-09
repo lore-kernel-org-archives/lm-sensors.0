@@ -1,7 +1,7 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Mon, 09 Apr 2007 12:26:06 +0000
+Date: Mon, 09 Apr 2007 12:34:35 +0000
 Subject: Re: [lm-sensors] Proposal
-Message-Id: <461A30DE.80403@hhs.nl>
+Message-Id: <461A32DB.3050209@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200704081630.17151.hjk@linutronix.de>
 In-Reply-To: <200704081630.17151.hjk@linutronix.de>
@@ -30,11 +30,6 @@ at
 > I guess that the motherboard ID can be retrieved in user-space using
 > dmidecode, can't it? So it might not even be needed to export it.
 >=20
-
-Nope, the motherboard ID used by the chip is a 16 bit unsigned int, not som=
-e=20
-kinda string like dmidecode gives.
-
 >> As I don't want the abituguru3 driver to create entries in sysfs for sen=
 sors=20
 >> which aren't there, and as without the table in the driver I cannot be s=
@@ -54,55 +49,18 @@ g=20
 > motherboard.
 >=20
 
-Actually it is _very_ different. The uguru is not a chip, its more a piece =
-of=20
-software (looking from the driver POV) then a chip, thus sensors which aren=
-'t=20
-there really aren't there, they are not just unconnected pins, they _really=
-_=20
-aren't there.
-
-And afaik some drivers have magic and or module options to not generate=20
-generate certain sysfs entries in certain cases, this is no different.
-
-Also this is they way how Abit handles this. The windows software comes wit=
-h an=20
-ini-files, each named with the hex value of the ID, and that is used to=20
-determine how to talk to the uguru (which addresses to use) and what to ask.
-
-Last but not least, this way (with libsensors-support and/or dyn chip suppo=
-rt),=20
-the experience is truely plug and play, isn't that what we want in the end?
-
-The same argument could be made for PCI ID tables in the kernel for hardwar=
-e=20
-not essential to booting (or through ramdisk, even for boot essential hardw=
-are)=20
-why have the PCI-id's in the kernel? Why not have them in userspace and alw=
-ays=20
-use the new_id sysfs files?
-
-Again the same argument could be made for blacklists / whitelists for many =
-
-things in the kernel. There always is a trade-off, between putting this inf=
-o in=20
-the kernel or in userspace. You yourself agreed, that given the limited amo=
-unt=20
-of motherboards featuring the uguru, it might even be an idea to add an exp=
-ort=20
-a dmi-info-table with the supported motherboards to the driver, how is this=
+Oh and another thing I just came up with, last time I checked, it isn't=20
+possible from userspace to change an inX_input to a tempX_input, or are you=
 =20
-different?
+suggesting that I export all 48 sensors, 3 times, once as in, once as temp =
+and=20
+once as fan and them make user space ignore temp1 and fan1, and use in0, as=
+=20
+sensor 0/1 actually is an in sensor?
 
 Regards,
 
 Hans
-
-
-
-
-
-
 
 _______________________________________________
 lm-sensors mailing list
