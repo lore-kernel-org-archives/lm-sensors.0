@@ -1,7 +1,7 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Mon, 09 Apr 2007 12:34:35 +0000
+Date: Mon, 09 Apr 2007 12:50:03 +0000
 Subject: Re: [lm-sensors] Proposal
-Message-Id: <461A32DB.3050209@hhs.nl>
+Message-Id: <461A367B.8040606@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200704081630.17151.hjk@linutronix.de>
 In-Reply-To: <200704081630.17151.hjk@linutronix.de>
@@ -49,18 +49,43 @@ g=20
 > motherboard.
 >=20
 
-Oh and another thing I just came up with, last time I checked, it isn't=20
-possible from userspace to change an inX_input to a tempX_input, or are you=
+Oh and yet another thing, since when should all conversions be done in=20
+userspace? I did exactly that with the abituguru 1/2 driver and there I had=
+ to=20
+change it to give the return the actual pin values in Volts and not registe=
+r=20
+values, iow do the conversion in the driver. You are contradicting yourself!
+
+Sorry, but I'm pissed about this you're bashing a driver at which you haven=
+'t=20
+even looked, even though it has been submitted for review in Januari!
+
+Then I asked if it was a good idea if I would exchange reviews with Juerg a=
+nd=20
+his DME1737 driver, if that was ok with you. I _explictly_ asked this, and =
+then=20
+after the review and a new version was posted by Juerg, you said that you w=
+ould=20
+still have to review it yourself. What was the fricking point then in me=20
+reviewing it in the first place? Why did you think I asked if it was ok for=
 =20
-suggesting that I export all 48 sensors, 3 times, once as in, once as temp =
-and=20
-once as fan and them make user space ignore temp1 and fan1, and use in0, as=
+others to review drivers?? I asked because I already was afraid that you wo=
+uld=20
+not accept reviews done by others, and tada you don't!
+
+This attitude is (needlessly) slowing down lmsensors development, and might=
 =20
-sensor 0/1 actually is an in sensor?
+very well be one of the reasons why there hardly is a development community=
+=20
+surrounding lmsensors.
 
 Regards,
 
 Hans
+
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
