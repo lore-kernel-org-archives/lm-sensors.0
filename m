@@ -1,114 +1,168 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Thu, 12 Apr 2007 07:27:57 +0000
-Subject: Re: [lm-sensors] Hardware monitoring subsystem
-Message-Id: <461DDF7D.1060101@hhs.nl>
+From: Tom Weichmann <tomcw@adelphia.net>
+Date: Tue, 10 Apr 2007 11:58:08 +0000
+Subject: Re: [lm-sensors] openCBM
+Message-Id: <200704100801.11136.tomcw@adelphia.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Boundary-00=_Hy3GGPZpxKv284l"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070410150227.1bac05b5@hyperion.delvare>	<461BB006.9020308@hhs.nl><4dfa50520704100846s7c031ab0i9da94a9e993cbbfc@mail.gmail.com><461C0E0E.5090008@assembler.cz>	<461CA932.4060108@hhs.nl> <461dca480d7ec@wp.pl>
-In-Reply-To: <461dca480d7ec@wp.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+--Boundary-00=_Hy3GGPZpxKv284l
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-To: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+Content-Disposition: inline
 
-Krzysztof Helt wrote:
-> This is comments from someone who is newbie to this list.
-> 
->> 1a) We need a set of review guidelines / a review checklist.
-> Here is a start:
-> 
-> Maybe these guidelines can be described in more details and with
-> links or names of documents with more description.
-> 
+Spiro,
 
-Yes they should, this was just a quick list. Feel free to help writing a better 
-list. And I guess we should put this list in the wiki somewhere.
+Thanks.  I just bought a XA1541 cable and dug out my old original 1541 drive.  
+I downloaded the latest openCBM-0.4.0 and tried to build.
 
->> * Must follow kernel coding style guidelines
-> 
-> Is there any tool to check this? If there is one, a basic
-> instruction how to use it would be great.
-> 
+1st problem I had build died but I found the attached patch that made it work.  
+I am using openSuSE 10.2:
+tom@linux:~> uname -a
+Linux linux 2.6.18.8-0.1-default #1 SMP Fri Mar 2 13:51:59 UTC 2007 i686 
+athlon i386 GNU/Linux
 
-No tool.
+This patch was listed for openSuSE 10.1, but it got me past that error.
 
->> * sysfs interface must be in accordance with
-> Documentation/hwmon/sysfs
-> 
-> The documentation is still confusing to me. Can someone of you
-> update it to answer these questions directly?
-> 
-> A. What is meaning of 0 and 1 values in pwmX_enable ?
-> B. How to stop the fan (pwmX_enable = 1 and pwmX = 0 was
-> suggested to someone on the list)?
-> C. How t o handle situation if the pwm register minimum value (0)
-> does not stop the fan, but there is a separate bit to do it? (do
-> stop emulate with the bit when 0 is written to pwmX?)
-> 
+Next I kept getting 'directory does not exist errors, so I commented the 
+following sub directories out of the Makefile:
 
-I think this is best answered by Jean and/or Mark
+demo/flash demo/morse demo/rpm1541 docs mnib36
 
->> * proper locking to avoid 2 simultaneous attempts to
-> communicate with the
->>    device when for example multiple sysfs files get read at once.
-> 
-> An example or two common errors would be great help.
-> 
+That was the only way I could get it to compile.  I figured that demo stuff 
+and the docs were not that important.  Also mnib was listed as an optional 
+sub dir.  Are any of these important?
 
-Erm, if  someone doesn't know what this means / how to look for this he 
-shouldn't be reviewing a driver.
+After I did 'make dev' and 'make install' I followed the instructions on your 
+web site:
 
->> * check the code for any obvious programming errors, like:
->>    -not freeing resources (in error paths and in general)
->>    -overrunning an array
->>    -not checking return values of calls to other parts of the
-> kernel
->>    -of by one errors / bad loops
->>    -etc.
-> 
-> List them, so a newbie can check the code against it.
-> 
+/sbin/depmod
+/sbin/modprobe parport 
+these were OK
 
-The etc. was because I'm sure there are more but I couldn't come up with any 
-right there and then. And again a newbie shouldn't be reviewing, he should 
-start reading some book in device drivers writing a driver or two himself get 
-those reviewed and then he should no longer be a newbie :)
+then /sbin/insmod cbm lp=0
+insmod: can't read 'cbm': No such file or directory
 
->> 1b) We need to decide somehow who can do reviews. For now I say
-> anyone who
->>    already maintains atleast one hwmon driver. But thats just a
-> wild shot better
->>    ideas are welcome.
->>
-> 
-> There are volunteers already. In order to lessen their work you
-> can require to follow the guidelines (if they got described) by
-> authors of patches .
+so I went to my modules directory:
 
-Yes ofcourse authors should follow the guidelines, and check they did 
-themselves before submitting. Also its great that there are volunteers, but 
-reviewing does require a certain level of competence. There are many other ways 
-to help out for those without the necessary skills todo the reviewing.
+/lib/modules/2.6.18.8-0.1-default/kernel/drivers/
 
-For example you could check out the 3.0.0 branch:
-svn checkout http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0
+and created a cbm directory to install the module
 
-Edit lib/chips.c, goto the long array at the end and comment any entries for 
-chips you have. Optionally edit prog/sensors/main.c goto the array near the end 
-and again comment entries for chips you have.
+/lib/modules/2.6.18.8-0.1-default/kernel/drivers/cbm
 
-Build and install lm-sensors-3.0.0 and let us know how it works, despite the 
-commenting it should still recognize your cips and print the same info as usual 
-(it can now dynamicly recognize new/unknown chips as long as the kernel 
-supports them). When you skipped the optional step run the sensors command as 
-'sensors -g', the normal sensors command will be borked if you skipped this step.
+then put that directory into my config.make and compiles again.  After make 
+install the cbm.ko was 
+in /lib/modules/2.6.18.8-0.1-default/kernel/drivers/cbm but I still get the 
+same error:
 
-Thanks & Regards,
+/sbin/depmod
+/sbin/insmod cbm lp=0
+insmod: can't read 'cbm': No such file or directory
 
-Hans
+----------
 
+Another problem, but maybe related is that if I try to use one of the tools 
+like cbmctrl I get errors too:
+
+tom@linux:/usr/local/bin> cbmcopy --help
+cbmcopy: error while loading shared libraries: libopencbm.so.0: cannot open 
+shared object file: No such file or directory
+tom@linux:/usr/local/bin> cbmctrl --help
+cbmctrl: error while loading shared libraries: libopencbm.so.0: cannot open 
+shared object file: No such file or directory
+
+
+but libopencbm.so.0 is in the /usr/local/lib directory. (cbmctrl et al are 
+in /usr/local/bin)
+
+tom@linux:/usr/local/bin> ls -al  /usr/local/lib/ | grep libopencbm.so.0
+lrwxrwxrwx  1 root root      15 2007-04-09 21:59 libopencbm.so -> 
+libopencbm.so.0
+lrwxrwxrwx  1 root root      19 2007-04-09 21:59 libopencbm.so.0 -> 
+libopencbm.so.0.4.0
+-rwxr-xr-x  1 root root   59021 2007-04-09 21:59 libopencbm.so.0.4.0
+
+
+Can you give me some pointers to getting this to work?
+
+Thanks,
+
+Tom Weichmann
+
+
+
+On Tuesday 10 April 2007 03:22, Spiro Trikaliotis wrote:
+> Hello Tom,
+>
+> * On Mon, Apr 09, 2007 at 10:11:13PM -0400 Tom Weichmann wrote:
+> > I'm not sure if it is OK to e-mail you directly with a problem, please
+> > feel free to re-direct me with an apporiate place to ask questions.
+>
+> well, there is a opencbm-user mailing list at
+> http://sourceforge.net/mail/?group_id=122047. Anyway, as no-one is using
+> it, you can also mail me directly.
+>
+> What is your problem?
+>
+> Regards,
+>    Spiro.
+
+--Boundary-00=_Hy3GGPZpxKv284l
+Content-Type: text/x-diff; charset="iso-8859-1";
+	name="cbm_module.c-suse10.1.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="cbm_module.c-suse10.1.diff"
+
+--- sys/linux/cbm_module.c.orig	2006-04-28 12:40:14.000000000 +0200
++++ sys/linux/cbm_module.c	2006-06-02 08:20:04.123747763 +0200
+@@ -102,20 +102,20 @@
+ 
+ #ifdef KERNEL_VERSION
+ # ifdef DIRECT_PORT_ACCESS
+-MODULE_PARM(port,"i");
++module_param(port,int,0444);
+ MODULE_PARM_DESC(port, "IO portnumber of parallel port. (default 0x378)");
+ 
+-MODULE_PARM(irq,"i");
++module_param(irq,int,0444);
+ MODULE_PARM_DESC(irq, "IRQ number of parallel port. (default 7)");
+ # else
+-MODULE_PARM(lp,"i");
++module_param(lp,int,0444);
+ MODULE_PARM_DESC(lp, "parallel port number. (default 0)");
+ # endif  /* DIRECT_PORT_ACCESS */
+ 
+-MODULE_PARM(cable,"i");
++module_param(cable,int,0444);
+ MODULE_PARM_DESC(cable, "cable type: <0=autodetect, 0=non-inverted (XM1541), >0=inverted (XA1541). (default -1)");
+ 
+-MODULE_PARM(reset,"i");
++module_param(reset,int,0444);
+ MODULE_PARM_DESC(reset, "reset at module load: <0=smart reset, 0=no reset, >0 force reset (default: "
+ #ifdef DIRECT_PORT_ACCESS
+                 "-1"
+@@ -123,7 +123,7 @@
+                 "1"
+ #endif
+                 ")");
+-MODULE_PARM(hold_clk,"i");
++module_param(hold_clk,int,0444);
+ MODULE_PARM_DESC(hold_clk, "0=release CLK when idle, >0=strict C64 behaviour. (default 1)");
+ 
+ MODULE_AUTHOR("Michael Klein");
+
+--Boundary-00=_Hy3GGPZpxKv284l
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--Boundary-00=_Hy3GGPZpxKv284l--
