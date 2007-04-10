@@ -1,7 +1,7 @@
-From: "David Hubbard" <david.c.hubbard@gmail.com>
-Date: Tue, 10 Apr 2007 13:56:28 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Tue, 10 Apr 2007 15:40:54 +0000
 Subject: Re: [lm-sensors] Hardware monitoring subsystem maintainer position
-Message-Id: <4dfa50520704100656n2b8382c5md48f433e460bf582@mail.gmail.com>
+Message-Id: <461BB006.9020308@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070410150227.1bac05b5@hyperion.delvare>
 In-Reply-To: <20070410150227.1bac05b5@hyperion.delvare>
@@ -9,27 +9,11 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <khali@linux-fr.org>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Hans de Goede <j.w.r.degoede@hhs.nl>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>
 
-Jean,
-
-I for one will greatly miss your knowledge and helpful hints when I
-work on hardware monitoring drivers. I hope you find success in all
-the things you do!
-
-I understand the difficult position you're in, and if there's any way
-I could convince you to stay, I would. Maybe you would be willing to
-answer a few low-bandwidth questions from time to time? Or jump on to
-#linux-sensors every once in a while?
-
-Either way, thanks for everything!
-
-Cheers,
-David
-
-On 4/10/07, Jean Delvare <khali@linux-fr.org> wrote:
+Jean Delvare wrote:
 > Hi all,
->
+> 
 > I am resigning from my role as hardware monitoring subsystem
 > (drivers/hwmon) maintainer. This is too much work for me, I do not have
 > the necessary bandwidth to review all the incoming patches, in
@@ -37,48 +21,43 @@ On 4/10/07, Jean Delvare <khali@linux-fr.org> wrote:
 > complaining about this repeatedly. This is no fun for them, and even
 > less for me, so I'd rather let someone else with more spare time take
 > care of it. If there are volunteers, this is the right time to speak up.
->
-> I will still be maintaining the individual hardware monitoring drivers
-> I am listed for in file MAINTAINERS (adm1025, f71805f, lm83 and lm90)
-> as well as the I2C subsystem. No change here.
->
-> I will continue to feed -mm with pending hwmon patches until 2.6.21
-> final is released, then I'll send everything I have to Linus for
-> 2.6.22-rc1, the last of which will be:
->
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
->  MAINTAINERS |    5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
->
-> --- linux-2.6.21-rc6.orig/MAINTAINERS   2007-04-10 13:49:09.000000000 +0200
-> +++ linux-2.6.21-rc6/MAINTAINERS        2007-04-10 14:28:31.000000000 +0200
-> @@ -1467,12 +1467,9 @@ W:       http://gigaset307x.sourceforge.net/
->  S:     Maintained
->
->  HARDWARE MONITORING
-> -P:     Jean Delvare
-> -M:     khali@linux-fr.org
->  L:     lm-sensors@lm-sensors.org
->  W:     http://www.lm-sensors.org/
-> -T:     quilt http://khali.linux-fr.org/devel/linux-2.6/jdelvare-hwmon/
-> -S:     Maintained
-> +S:     Orphan
->
->  HARDWARE RANDOM NUMBER GENERATOR CORE
->  P:     Michael Buesch
->
-> Then I'll probably keep an eye on hwmon in Linus' tree until 2.6.22
-> final is released, and after that I'm done with it.
->
-> --
-> Jean Delvare
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+> 
+
+I'm sorry to hear this and I can't help but think that my, erm, rant* yesterday 
+is somehow involved in you making this decision. This was in no way my 
+intention. My intention was to try and make you change how you handle these 
+things, my intention was to make you less of a perfectionist and to distribute 
+the work more, you cannot do everything yourself. I think that if you could 
+change that you would be able to cope with the load better.
+
+I think you're experience / knowledge when it comes to hwmon stuff is very 
+valuable and if you leave / quit doing hwmon stuff this would be a big loose. I 
+also believe that with a looser management style, you could seriously reduce 
+your workload coming from being the hwmon maintainer and at the same time get a 
+better / faster flow of patches.
+
+But alas, I'm afraid I cannot change your mind, so that brings us to the 
+question who will pickup the task. I've considered volunteering myself, but I'm 
+to inexperienced when it comes to kernel stuff and lm-sensors for me is kinda a 
+side project. I sink most of my spare time into Fedora where I maintain circa 
+120 packages, which really means I have little time left for lm-sensors (to be 
+clear the average package maintainer maintains between 30 - 50 packages).
+
+However I do hereby promise to help the new "Jean" in anyway I can, and 
+although not many know me very well here I think I can safely say I can help in 
+many ways. I'm a (very) experienced c-programmer specialised in lowlevel code, 
+embedded (linux) systems, etc. and I have a bachelor in electronics. So 
+who-ever becomes the new "Jean" don't hesitate to ask for help, the worst thing 
+that can happen is that I say no :)
+
+Jean, thanks for all your hard work the past years!
+
+Regards,
+
+Hans
+
+* for those not on the lmsensors list I am one of the complaining patch authors
+
 
 _______________________________________________
 lm-sensors mailing list
