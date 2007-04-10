@@ -1,47 +1,77 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 08 Apr 2007 17:40:30 +0000
+Date: Tue, 10 Apr 2007 14:23:10 +0000
 Subject: Re: [lm-sensors] Checking out and comitting to the libsensors-3.x
-Message-Id: <20070408194030.b56f4a85.khali@linux-fr.org>
+Message-Id: <20070410162310.746609cd@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4610BC25.8050507@hhs.nl>
 In-Reply-To: <4610BC25.8050507@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
 Hi Axel,
 
-On Sun, 8 Apr 2007 10:33:48 +0200, Axel Thimm wrote:
-> On Sun, Apr 08, 2007 at 10:14:30AM +0200, Jean Delvare wrote:
-> > It seems that we lose the history of changes when merging a branch, the
-> > logs only show the merge and not the individual log messages. Is this
-> > expected? I guess so :(
+On Thu, 5 Apr 2007 22:31:59 +0200, Axel Thimm wrote:
+> On Thu, Apr 05, 2007 at 10:15:04PM +0200, Jean Delvare wrote:
+> > http://www.lm-sensors.org/wiki/Devices
+> > 
+> > Oops…
+> > Trac detected an internal error:
+> > 
+> > If you think this really should work and you can reproduce it, you should consider reporting this problem to the Trac team.
+> > 
+> > Go to http://trac.edgewall.org/ and create a new ticket where you describe the problem, how to reproduce it. Don't forget to include the Python traceback found below.
+> > 
+> > TracGuide — The Trac User and Administration Guide
+> > Python Traceback
+> > 
+> > Traceback (most recent call last):
+> >   File "/usr/lib/python2.4/site-packages/trac/web/main.py", line 387, in dispatch_request
+> >     dispatcher.dispatch(req)
+> >   File "/usr/lib/python2.4/site-packages/trac/web/main.py", line 191, in dispatch
+> >     chosen_handler = self._pre_process_request(req, chosen_handler)
+> >   File "/usr/lib/python2.4/site-packages/trac/web/main.py", line 263, in _pre_process_request
+> >     chosen_handler = f.pre_process_request(req, chosen_handler)
+> >   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/api.py", line 73, in pre_process_request
+> >     self.get_repository(req.authname) # triggers a sync if applicable
+> >   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/api.py", line 101, in get_repository
+> >     repos = self._connector.get_repository(rtype, rdir, authname)
+> >   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/svn_fs.py", line 259, in get_repository
+> >     repos = SubversionRepository(dir, None, self.log)
+> >   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/svn_fs.py", line 281, in __init__
+> >     self.pool = Pool()
+> >   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/svn_fs.py", line 158, in __init__
+> >     self._pool = core.svn_pool_create(self._parent_pool())
+> >   File "/usr/lib64/python2.4/site-packages/svn/core.py", line 177, in svn_pool_create
+> >     return Pool(parent_pool)
+> >   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 1080, in svn_pool_create
+> >     return apply(_core.svn_pool_create, args)
+> >   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 3081, in _wrap
+> >     obj.set_parent_pool(self)
+> >   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 2994, in set_parent_pool
+> >     self._parent_pool = parent_pool or application_pool
+> >   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 2982, in <lambda>
+> >     __setattr__ = lambda self, name, value: _swig_setattr(self, apr_pool_t, name, value)
+> >   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 22, in _swig_setattr
+> >     return _swig_setattr_nondynamic(self,class_type,name,value,0)
+> >   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 17, in _swig_setattr_nondynamic
+> >     self.__dict__[name] = value
+> > RuntimeError: instance.__dict__ not accessible in restricted mode
+> > 
+> > It's an intermittent error, sometimes I get it, sometimes I don't.
 > 
-> The problem is if you have two branches A and B and merge/copy over
-> parts of B onto A, then a file in A has semantically two histories,
-> one for the per-merge copy in A and one for the pre-merge copy in
-> B. Since the history of the B copy remains in B and also since the
-> true history of A != B, there isn't much choice.
+> That's the errors one loves. Looks like it's a known issue for more
+> than a year:
+> 
+> http://trac.edgewall.org/ticket/3371
 
-Well, some source code management tools do handle it just fine, git for
-example. So it's technically feasable.
+Ugh. But we didn't have the problem before. Any idea what changed, that
+could explain why we suddenly have the problem? Maybe the switch to
+mod_python? I think we have to switch back to the previous state until
+the Trac folks provide a fix.
 
->                                                  It is also a conflict
-> of interests: The developer of branch A would like to see what changed
-> from his POV, the one in B from his own.
-
-Not necessarily. In my case, my wish is exactly the opposite, I would
-like to have an history of all the changes, whether they originate from
-my branch or not.
-
-> But you do get a marker for copies or merges that you can follow to
-> fork off A's history into B's.
-
-True, but that's hardly convenient if merges are frequent and/or if the
-number of branches is important. I start understanding why people
-working with many branches don't even consider Subversion.
-
+Thanks,
 -- 
 Jean Delvare
 
