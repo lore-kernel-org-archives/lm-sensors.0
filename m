@@ -1,77 +1,58 @@
-From: "Ivo Manca" <pinkel@gmail.com>
-Date: Wed, 04 Apr 2007 19:59:06 +0000
-Subject: Re: [lm-sensors] sensors-detect path issue under fc5 / 6 -- fix
-Message-Id: <21b001c776f3$b54866e0$0901a8c0@pinkeltje>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 10 Apr 2007 13:02:27 +0000
+Subject: [lm-sensors] Hardware monitoring subsystem maintainer position is
+Message-Id: <20070410150227.1bac05b5@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070304113341.091c3819.khali@linux-fr.org>
-In-Reply-To: <20070304113341.091c3819.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I notice it's fixed now, but this needed to be added anyway, since the same 
-counts for the dmidecode needed in the future, which is also (by default) 
-installed in /usr/sbin instead /usr/local/sbin.
+Hi all,
 
-Just a reminder in case problems related to lmsensors or dmidecode show up 
-in the future,
+I am resigning from my role as hardware monitoring subsystem
+(drivers/hwmon) maintainer. This is too much work for me, I do not have
+the necessary bandwidth to review all the incoming patches, in
+particular new drivers, in a timely manner. Patch authors have been
+complaining about this repeatedly. This is no fun for them, and even
+less for me, so I'd rather let someone else with more spare time take
+care of it. If there are volunteers, this is the right time to speak up.
 
-Ivo
------ Original Message ----- 
-From: "Jean Delvare" <khali@linux-fr.org>
-To: "LM Sensors" <lm-sensors@lm-sensors.org>
-Cc: "Vince Spinelli" <Vince@SpinelliCreations.com>
-Sent: Wednesday 4 April 2007 21:34
-Subject: Re: [lm-sensors] sensors-detect path issue under fc5 / 6 -- fix 
-included.
+I will still be maintaining the individual hardware monitoring drivers
+I am listed for in file MAINTAINERS (adm1025, f71805f, lm83 and lm90)
+as well as the I2C subsystem. No change here.
 
+I will continue to feed -mm with pending hwmon patches until 2.6.21
+final is released, then I'll send everything I have to Linus for
+2.6.22-rc1, the last of which will be:
 
-> On Sun, 4 Mar 2007 11:33:41 +0100, Jean Delvare wrote:
->> On Sun, 4 Mar 2007 03:04:42 -0500 (EST), Vince Spinelli wrote:
->> > It's a simple one, but it's worth noting.
->> >
->> > I'm unawares of other distributions, but under Fedora Core 5 and 6, the
->> > i2cdetect command is located in the /usr/sbin directory, not /sbin/ nor
->> > /usr/local/sbin.
->>
->> That's the case of pretty much all distributions shipping lm-sensors,
->> as /usr/local is meant for things added on top of the original
->> distribution.
->>
->> > As a result, an error message is encountered when running
->> > sensors-detect.sh as either root, sudo root, or a normal user.
->>
->> There's no such thing as "sensors-detect.sh" in our source package.
->> sensors-detect is a perl script.
->>
->> If your root user doesn't have /usr/sbin in its $PATH, then your setup
->> is seriously broken, I doubt sensors-detect will be the only failing
->> tool.
->>
->> sensors-detect can no longer be run as non-root, so this case doesn't
->> matter.
->>
->> The su/sudo case is more problematic though, I can imagine a standard
->> user gaining root permissions without getting the $PATH usually
->> associated with the root user.
->>
->> > The fix is as follows... inside of the sensors-detect.sh script, 
->> > there's a
->> > segment to add directories to path.
->
-> I've made a functionally equivalent change to sensors-detect, committed
-> to our SVN repository. Feel free to give it a try. Hopefully it will
-> make the packagers happier.
->
-> -- 
-> Jean Delvare
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors 
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ MAINTAINERS |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
+--- linux-2.6.21-rc6.orig/MAINTAINERS	2007-04-10 13:49:09.000000000 +0200
++++ linux-2.6.21-rc6/MAINTAINERS	2007-04-10 14:28:31.000000000 +0200
+@@ -1467,12 +1467,9 @@ W:	http://gigaset307x.sourceforge.net/
+ S:	Maintained
+ 
+ HARDWARE MONITORING
+-P:	Jean Delvare
+-M:	khali@linux-fr.org
+ L:	lm-sensors@lm-sensors.org
+ W:	http://www.lm-sensors.org/
+-T:	quilt http://khali.linux-fr.org/devel/linux-2.6/jdelvare-hwmon/
+-S:	Maintained
++S:	Orphan
+ 
+ HARDWARE RANDOM NUMBER GENERATOR CORE
+ P:	Michael Buesch
+
+Then I'll probably keep an eye on hwmon in Linus' tree until 2.6.22
+final is released, and after that I'm done with it.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
