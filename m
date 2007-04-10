@@ -1,43 +1,68 @@
-From: "David Hubbard" <david.c.hubbard@gmail.com>
-Date: Tue, 10 Apr 2007 15:46:36 +0000
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Tue, 10 Apr 2007 22:22:06 +0000
 Subject: Re: [lm-sensors] Hardware monitoring subsystem maintainer position
-Message-Id: <4dfa50520704100846s7c031ab0i9da94a9e993cbbfc@mail.gmail.com>
+Message-Id: <461C0E0E.5090008@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070410150227.1bac05b5@hyperion.delvare>
-	 <461BB006.9020308@hhs.nl>
-In-Reply-To: <461BB006.9020308@hhs.nl>
+References: <20070410150227.1bac05b5@hyperion.delvare>	<461BB006.9020308@hhs.nl> <4dfa50520704100846s7c031ab0i9da94a9e993cbbfc@mail.gmail.com>
+In-Reply-To: <4dfa50520704100846s7c031ab0i9da94a9e993cbbfc@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: Jean Delvare <khali@linux-fr.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: LM Sensors <lm-sensors@lm-sensors.org>
+Cc: David Hubbard <david.c.hubbard@gmail.com>, Hans de Goede <j.w.r.degoede@hhs.nl>, "Mark M. Hoffman" <mhoffman@lightlink.com>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Hans,
+Hello all,
 
-On 4/10/07, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
-> Jean Delvare wrote:
-> > Hi all,
-> >
-> > I am resigning from my role as hardware monitoring subsystem
-> > (drivers/hwmon) maintainer. This is too much work for me, I do not have
-> > the necessary bandwidth to review all the incoming patches, in
-> > particular new drivers, in a timely manner. Patch authors have been
-> > complaining about this repeatedly. This is no fun for them, and even
-> > less for me, so I'd rather let someone else with more spare time take
-> > care of it. If there are volunteers, this is the right time to speak up.
->
-> But alas, I'm afraid I cannot change your mind, so that brings us to the
-> question who will pickup the task. I've considered volunteering myself, but I'm
-> to inexperienced when it comes to kernel stuff and lm-sensors for me is kinda a
-> side project. I sink most of my spare time into Fedora where I maintain circa
-> 120 packages, which really means I have little time left for lm-sensors (to be
-> clear the average package maintainer maintains between 30 - 50 packages).
+First I would like to thank Jean for his great work even if could be seen as 
+"slow". He did the perfect job, allowing only just perfect code to enter the trees.
 
-I haven't seen anything from Rudolf Marek, but he is definitely
-qualified if he wants to step up. I'm personally hoping Jean changes
-his mind.
+> I haven't seen anything from Rudolf Marek, but he is definitely
+> qualified if he wants to step up. I'm personally hoping Jean changes
+> his mind.
 
-David
+Well I'm afraid Jean thought about this twice and I think his decision cannot be 
+changed easily. Personally I think that change of one person to another won't 
+change much. Problem we are facing is long delay between the post of the driver 
+to driver merge.
+
+Review of one complex driver takes hours and hours. If the fixes could be split 
+into critical and non-critical parts driver could be accepted earlier and marked 
+as EXPERIMENTAL in very new (for hwmon ;) meaning of the word. I mean Jean did 
+great job and spotted all troubles during the review, so there were nearly none 
+of bug fixes for already merged drivers.
+
+Maybe we could try following:
+
+1) person post the driver
+2) quick review could be done critical fixes only, driver goes to -mm
+3) review that goes deeper - check for interface conformity and all the stuff 
+which could break - fixes for non-critical stuff
+4) after this driver goes to Linus tree at the very beginning for the merge 
+cycle marked as EXPERIMENTAL
+5) if the person agrees to be in MAINTAINER final review may be done and 
+EXPERIMENTAL could be removed. (This is step which might involve all steps to 
+make the driver really perfect ;)
+
+Well this is just an idea. Neither it does solve the maintainer problem, nor it 
+is perfect solution.
+
+As for the proposal of David. I joined the list in 2004 with my very own driver 
+and learned a lot from Jean and others and on my own ;) During last year??? I 
+was doing some kind of "review preprocessor" to help Jean with that. I still 
+have feeling Jean is simply better. Second reason why I hesitating to say "I 
+will take it" is time. This would cost a lot of time, but unfortunately my free 
+time is very tight. I'm doing PhD and working for a embedded stuff company 
+(SYSGO). Moreover I would like to meet some nice girl for a life, which is quite 
+difficult and also quite time consumptive ;).
+
+Personally better would be go with Jean and some kind of scheme noted above, 
+which would solve our "takes too long problem" and preserve the high quality of 
+drivers. This would mean some co-maintainers to Jean, rather than to live 
+without Jean at all.
+
+Thanks,
+Rudolf
+
 
 _______________________________________________
 lm-sensors mailing list
