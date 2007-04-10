@@ -1,81 +1,81 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 10 Apr 2007 14:23:10 +0000
+From: Axel Thimm <Axel.Thimm@ATrpms.net>
+Date: Tue, 10 Apr 2007 14:43:54 +0000
 Subject: Re: [lm-sensors] Checking out and comitting to the libsensors-3.x
-Message-Id: <20070410162310.746609cd@hyperion.delvare>
+Message-Id: <20070410144354.GE19101@neu.nirvana>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8954026984932476285=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4610BC25.8050507@hhs.nl>
 In-Reply-To: <4610BC25.8050507@hhs.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Hi Axel,
 
-On Thu, 5 Apr 2007 22:31:59 +0200, Axel Thimm wrote:
-> On Thu, Apr 05, 2007 at 10:15:04PM +0200, Jean Delvare wrote:
-> > http://www.lm-sensors.org/wiki/Devices
-> > 
-> > Oops…
-> > Trac detected an internal error:
-> > 
-> > If you think this really should work and you can reproduce it, you should consider reporting this problem to the Trac team.
-> > 
-> > Go to http://trac.edgewall.org/ and create a new ticket where you describe the problem, how to reproduce it. Don't forget to include the Python traceback found below.
-> > 
-> > TracGuide — The Trac User and Administration Guide
-> > Python Traceback
-> > 
-> > Traceback (most recent call last):
-> >   File "/usr/lib/python2.4/site-packages/trac/web/main.py", line 387, in dispatch_request
-> >     dispatcher.dispatch(req)
-> >   File "/usr/lib/python2.4/site-packages/trac/web/main.py", line 191, in dispatch
-> >     chosen_handler = self._pre_process_request(req, chosen_handler)
-> >   File "/usr/lib/python2.4/site-packages/trac/web/main.py", line 263, in _pre_process_request
-> >     chosen_handler = f.pre_process_request(req, chosen_handler)
-> >   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/api.py", line 73, in pre_process_request
-> >     self.get_repository(req.authname) # triggers a sync if applicable
-> >   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/api.py", line 101, in get_repository
-> >     repos = self._connector.get_repository(rtype, rdir, authname)
-> >   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/svn_fs.py", line 259, in get_repository
-> >     repos = SubversionRepository(dir, None, self.log)
-> >   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/svn_fs.py", line 281, in __init__
-> >     self.pool = Pool()
-> >   File "/usr/lib/python2.4/site-packages/trac/versioncontrol/svn_fs.py", line 158, in __init__
-> >     self._pool = core.svn_pool_create(self._parent_pool())
-> >   File "/usr/lib64/python2.4/site-packages/svn/core.py", line 177, in svn_pool_create
-> >     return Pool(parent_pool)
-> >   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 1080, in svn_pool_create
-> >     return apply(_core.svn_pool_create, args)
-> >   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 3081, in _wrap
-> >     obj.set_parent_pool(self)
-> >   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 2994, in set_parent_pool
-> >     self._parent_pool = parent_pool or application_pool
-> >   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 2982, in <lambda>
-> >     __setattr__ = lambda self, name, value: _swig_setattr(self, apr_pool_t, name, value)
-> >   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 22, in _swig_setattr
-> >     return _swig_setattr_nondynamic(self,class_type,name,value,0)
-> >   File "/usr/lib64/python2.4/site-packages/libsvn/core.py", line 17, in _swig_setattr_nondynamic
-> >     self.__dict__[name] = value
-> > RuntimeError: instance.__dict__ not accessible in restricted mode
-> > 
-> > It's an intermittent error, sometimes I get it, sometimes I don't.
-> 
-> That's the errors one loves. Looks like it's a known issue for more
-> than a year:
-> 
-> http://trac.edgewall.org/ticket/3371
+--===============8954026984932476285==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="J4XPiPrVK1ev6Sgr"
+Content-Disposition: inline
 
-Ugh. But we didn't have the problem before. Any idea what changed, that
-could explain why we suddenly have the problem? Maybe the switch to
-mod_python? I think we have to switch back to the previous state until
-the Trac folks provide a fix.
 
-Thanks,
--- 
-Jean Delvare
+--J4XPiPrVK1ev6Sgr
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Tue, Apr 10, 2007 at 04:23:10PM +0200, Jean Delvare wrote:
+> On Thu, 5 Apr 2007 22:31:59 +0200, Axel Thimm wrote:
+> > On Thu, Apr 05, 2007 at 10:15:04PM +0200, Jean Delvare wrote:
+> > > http://www.lm-sensors.org/wiki/Devices
+> > >=20
+> > > Oops=E2=80=A6
+> > > Trac detected an internal error:
+> > >=20
+
+> > > RuntimeError: instance.__dict__ not accessible in restricted mode
+> > >=20
+> > > It's an intermittent error, sometimes I get it, sometimes I don't.
+> >=20
+> > That's the errors one loves. Looks like it's a known issue for more
+> > than a year:
+> >=20
+> > http://trac.edgewall.org/ticket/3371
+>=20
+> Ugh. But we didn't have the problem before. Any idea what changed, that
+> could explain why we suddenly have the problem? Maybe the switch to
+> mod_python? I think we have to switch back to the previous state until
+> the Trac folks provide a fix.
+
+I tried one of the fixes mentioned ("PythonInterpreter
+main_interpreter"), I can't provoke the bug anymore (tried reload on
+the Devices page which previously was giving the error for me). Is
+that true on your side, too?
+--=20
+Axel.Thimm at ATrpms.net
+
+--J4XPiPrVK1ev6Sgr
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQFGG6KqQBVS1GOamfERAhnYAJ0fVt3C0hR9vEVqrvpz0AZVqFowUQCfQhPt
+SgyvUhUJdDS1/Yxhjpvd9gU=
+=4cMf
+-----END PGP SIGNATURE-----
+
+--J4XPiPrVK1ev6Sgr--
+
+
+--===============8954026984932476285==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8954026984932476285==--
