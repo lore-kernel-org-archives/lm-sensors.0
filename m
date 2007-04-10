@@ -1,50 +1,41 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Tue, 10 Apr 2007 06:25:25 +0000
-Subject: Re: [lm-sensors] What to do ta have new sensor patch included in
-Message-Id: <461B2DD5.4030008@hhs.nl>
+From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
+Date: Tue, 10 Apr 2007 08:45:16 +0000
+Subject: Re: [lm-sensors] What to do ta have new sensor patch included
+Message-Id: <461b4e9c2808b@wp.pl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <461b2ac080b93@wp.pl>
 In-Reply-To: <461b2ac080b93@wp.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Krzysztof Helt wrote:
-> Hi,
-> 
-> I tried to port THMC50/ADM1022 driver for 2.6 kernel tree. Where
-> should I post the patch?
-> 
-> I sent it one month ago to this list, but it seemed to get ignored. 
-> 
-> I can report that I happily use this driver in the Compaq AP550
-> workstation with two ADM1022 chips for over a month now.
-> 
-> The sensors command does not handle it correctly (lack of board
-> definition and new 2.6 kernel interface). I can also patch the
-> sensors command, but I need to have accepted interface to the
-> chip (pwm1, tempX_input files).
-> 
 
-I could review your patch, but that useless as Jean then still wants to review 
-it again himself :(
 
-Jean, sorry if I sounded a bit harsh yesterday, but you criticizing a driver 
-you've been ignoring for 3 months brushed my hair the wrong way. With this 
-post, do you see my point now? Now we have 3 drivers awaiting review, and lm93 
-coming soon. Why won't you accept reviews done by others? Its not like Juerg 
-and I have made it easy on ourselves, we both did a pretty thorough review.
+Dnia 10-04-2007 o godz. 8:25 Hans de Goede napisa=B3(a):
 
-Also we're talking about new drivers* here, drivers which won't even get 
-autoloaded, but people need to manually activate. So even if there is a bug, 
-its not like this will cause a regression for existing setups.
+> I could review your patch, but that useless as Jean then still
+wants to review=20
+> it again himself :(
+>=20
 
-*new, but tested my driver has been tried by several people without problems.
+I would welcome your review as this is my first driver for
+lmsensors so I expect some simple mistakes. This would make the
+driver more likely pass the Jean's review.
+
+Should I repost it or you could find it (I haven't posted much to
+the list and it was posted a month ago).
 
 Regards,
+Krzysztof
 
-Hans
+----------------------------------------------------
+Historia mi=B3osna, kt=F3ra urokiem i ilo=B6ci=B1 wzrusze=F1=20
+dor=F3wnuje "Marzycielowi". Renee Zellweger i Ewan McGregor
+w najpi=EAkniejszym filmie roku! MISS POTTER - w kinach!
+http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Fadv.reklama.wp.pl%2Fas%2Fmisspotter.h=
+tml&sid=1100
+
 
 
 _______________________________________________
