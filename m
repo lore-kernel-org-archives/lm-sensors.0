@@ -1,7 +1,7 @@
-From: Ankit Chaturvedi <ankit.chaturvedi@gmail.com>
-Date: Wed, 11 Apr 2007 13:40:04 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 11 Apr 2007 13:56:11 +0000
 Subject: Re: [lm-sensors] w83627ehf reporting ghost fan?
-Message-Id: <461CE264.7020202@gmail.com>
+Message-Id: <20070411155611.59276f51@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <461C3562.2070006@gmail.com>
 In-Reply-To: <461C3562.2070006@gmail.com>
@@ -10,56 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean, Deavid
+Hi Ankit,
 
-Jean Delvare wrote:
-> ---------snip
-> The bug is probably mine, sorry about that. The following patch should
-> fix it. Ankit, can you please apply it to your kernel and report?
-> David, please review and comment.
+On Wed, 11 Apr 2007 18:58:04 +0530, Ankit Chaturvedi wrote:
+> The patch did solve the problem, but not completely though. Fan4
+> messages are gone but there are similar new messages relating to
+> (inexistent) fan5 in the kernel log, as here:
 > 
-> [PATCH] hwmon/w83627ehf: Fix the fan5 clock divider write
+> ankit@hunter ~ $ dmesg |grep w83627ehf
+> [   49.974556] w83627ehf 9191-0a10: Increasing fan5 clock divider from 8
+> to 16
+> [  432.453209] w83627ehf 9191-0a10: Increasing fan5 clock divider from
+> 16 to 32
+> [  437.021310] w83627ehf 9191-0a10: Increasing fan5 clock divider from
+> 32 to 64
+> [  442.016396] w83627ehf 9191-0a10: Increasing fan5 clock divider from
+> 64 to 128
 > 
-> Users have been complaining about the w83627ehf driver flooding their
-> logs with messages like:
 > 
-> w83627ehf 9191-0a10: Increasing fan 4 clock divider from 64 to 128
-> 
-> or:
-> 
-> w83627ehf 9191-0290: Increasing fan 4 clock divider from 4 to 8
-> 
-> The reason is that we failed to actually write the LSB of the encoded
-> clock divider value for that fan, causing the next read to report the
-> same old value again and again.
-> 
-> Additionally, the fan number was improperly reported, making the bug
-> harder to find.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
----snip
+> I have "ignore fan5" set in sensors.conf, so I am guessing this is same
+> as the previous problem. But the messages are not flooding now. So far
+> so good. Thank you for the help. Any ideas about this new issue?
 
-The patch did solve the problem, but not completely though. Fan4
-messages are gone but there are similar new messages relating to
-(inexistent) fan5 in the kernel log, as here:
+This isn't an issue, it works as designed. The ignore statement in your
+configuration file is a user-space thing, the driver doesn't know about
+it. The driver attempts to get a valid reading from the fan input,
+until the clock divider hits the max (128), it cannot differentiate
+between a very slow fan and no fan at all.
 
-ankit@hunter ~ $ dmesg |grep w83627ehf
-[   49.974556] w83627ehf 9191-0a10: Increasing fan5 clock divider from 8
-to 16
-[  432.453209] w83627ehf 9191-0a10: Increasing fan5 clock divider from
-16 to 32
-[  437.021310] w83627ehf 9191-0a10: Increasing fan5 clock divider from
-32 to 64
-[  442.016396] w83627ehf 9191-0a10: Increasing fan5 clock divider from
-64 to 128
+BTW, you get these messages in your logs because you asked for them.
+These are debugging messages, normally not printed.
 
+Thanks for testing and reporting, I'll push the patch upstream.
 
-I have "ignore fan5" set in sensors.conf, so I am guessing this is same
-as the previous problem. But the messages are not flooding now. So far
-so good. Thank you for the help. Any ideas about this new issue?
-
-Regards,
-Ankit Chaturvedi
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
