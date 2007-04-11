@@ -1,50 +1,99 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 19 Apr 2007 12:31:34 +0000
-Subject: Re: [lm-sensors] [PATCH] k8temp - Add the diode offset to reported
-Message-Id: <20070419143134.541103e6@hyperion.delvare>
+Date: Wed, 11 Apr 2007 12:25:56 +0000
+Subject: Re: [lm-sensors] [RFC][PATCH] Apple SMC driver (hardware monitoring
+Message-Id: <20070411142556.16cd1e44@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1176736441.14094.31.camel@ustr-shaha1-linux2.na.uis.unisys.com>
-In-Reply-To: <1176736441.14094.31.camel@ustr-shaha1-linux2.na.uis.unisys.com>
+References: <45F7C083.7090504@boichat.ch>
+In-Reply-To: <45F7C083.7090504@boichat.ch>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Nicolas Boichat <nicolas@boichat.ch>
+Cc: linux-kernel@vger.kernel.org, linux-kernel@hansmi.ch, rlove@rlove.org, lm-sensors@lm-sensors.org
 
-Hi Amul,
+Hi Nicolas,
 
-On Tue, 17 Apr 2007 13:49:20 +0000, Amul Shah wrote:
-> On Tue, 2007-04-17 at 18:24 +0200, Rudolf Marek wrote:
-> > Hello all,
-> > 
-> > Amul Shah wrote:
-> > > This patch adds support to include the CPU diode sensor offset when
-> > > reporting CPU temperature.
-> > > 
-> > > Please see http://www.lm-sensors.org/ticket/2200 for the full problem
-> > > description.
-> > 
-> > Well I dont think this is correct. I believe that diode offset register is
-> > related to analog diode output not the digital sensor. Also I know that AMD is
-> > using my driver and did not make any changes. This leads me to a conclusion that
-> > the sensor simply does not work correctly and this error might be only
-> > compensated for analog part and not the digital. IIRC in some errata AMD states
-> > that the digital temperature sensor might be wrong and urges users to use the
-> > analog output.
-> > 
-> > What do you think?
->
-> Well, I was looking to see what you think. :)  Thanks for the
-> information.  I'll go look for the errata and drop that information into
-> the ticket.  After that we can close it as works as designed. :)  No
-> need to fix what isn't broken.
+Sorry for the delay.
 
-What CPU version do you have exactly? You may want to take a look at
-erratum 154 of document "Revision Guide for AMD Athlon™ 64 and AMD
-Opteron™ Processors":
-http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/25759.pdf
+On Wed, 14 Mar 2007 17:29:39 +0800, Nicolas Boichat wrote:
+> I developed, a while ago, a driver the Apple System Management
+> Controller, which provides an accelerometer (Apple Sudden Motion
+> Sensor), light sensors, temperature sensors, keyboard backlight control
+> and fan control on Intel-based Apple's computers (MacBook Pro, MacBook,
+> MacMini).
+> 
+> This patch has been tested successfully since kernel 2.6.18 (i.e. 3-4
+> months ago) by various users on different systems on the mactel-linux lists.
+> 
+> However, I'm not really satisfied with the way sysfs files are created:
+> I use a lot of preprocessor macros to avoid repetition of code.
+> The files created with these macros in /sys/devices/platform/applesmc are
+> the following (on a Macbook Pro):
+> fan0_actual_speed
+> fan0_manual
+> fan0_maximum_speed
+> fan0_minimum_speed
+> fan0_safe_speed
+> fan0_target_speed
+> fan1_actual_speed
+> fan1_manual
+> fan1_maximum_speed
+> fan1_minimum_speed
+> fan1_safe_speed
+> fan1_target_speed
+> temperature_0
+> temperature_1
+> temperature_2
+> temperature_3
+> temperature_4
+> temperature_5
+> temperature_6
 
-It mentions a 10 degrees C diode offset error. Only the JH-E6 revision
-is affected.
+First of all, please read Documentation/hwmon/sysfs-documentation, and
+rename the entries to match the standard names whenever possible. Also
+make sure that you use the standard units. If you use the standard
+names and units and if you register your device with the hwmon class,
+standard monitoring application will be able to support your driver.
+
+> (i.e. temperature_* is created by one macro, fan*_actual_speed by
+> another, ...)
+> Is it acceptable programming practice? Is there a way to create these
+> files in a more elegant manner?
+
+Some old hardware monitoring drivers are still doing this, but this is
+strongly discouraged for new drivers. It is possible (and easy) to
+avoid using such macros, by sharing callback functions between various
+sysfs files.
+
+This is done by using SENSOR_DEVICE_ATTR instead of DEVICE_ATTR to
+declare the sysfs attributes. It takes an extra parameter, which is the
+entry number/index. You retrieve that index in the callback function:
+
+static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
+			 char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	int nr = attr->index;
+	(...)
+}
+
+Take a look at the hwmon/f71805f.c driver for examples.
+
+> Also, I never call any sysfs_remove_* function, as the files are
+> deleted when the module is unloaded. Is it safe to do so? Doesn't it
+> cause any memory leak?
+
+This is considered a bad practice, as in theory you driver shouldn't
+create the device by itself, and the files are associated to the device,
+not the driver. All hardware monitoring drivers have been fixed now, so
+please add the file removal calls in your driver too. You might find it
+easier to use file groups rather than individual files. Again, see for
+example the f71805f driver, and in particular the f71805f_attributes
+array and f71805f_group structure, and the sysfs_create_group() and
+sysfs_remove_group() calls.
+
+I'm sorry but I really don't have the time for a complete review of
+your driver.
 
 -- 
 Jean Delvare
