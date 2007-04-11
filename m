@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 11 Apr 2007 13:56:11 +0000
+From: Ankit Chaturvedi <ankit.chaturvedi@gmail.com>
+Date: Wed, 11 Apr 2007 15:46:59 +0000
 Subject: Re: [lm-sensors] w83627ehf reporting ghost fan?
-Message-Id: <20070411155611.59276f51@hyperion.delvare>
+Message-Id: <461D0023.4000900@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <461C3562.2070006@gmail.com>
 In-Reply-To: <461C3562.2070006@gmail.com>
@@ -10,41 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ankit,
+Hi Jean,
 
-On Wed, 11 Apr 2007 18:58:04 +0530, Ankit Chaturvedi wrote:
-> The patch did solve the problem, but not completely though. Fan4
-> messages are gone but there are similar new messages relating to
-> (inexistent) fan5 in the kernel log, as here:
+Jean Delvare wrote:
+---snip
 > 
-> ankit@hunter ~ $ dmesg |grep w83627ehf
-> [   49.974556] w83627ehf 9191-0a10: Increasing fan5 clock divider from 8
-> to 16
-> [  432.453209] w83627ehf 9191-0a10: Increasing fan5 clock divider from
-> 16 to 32
-> [  437.021310] w83627ehf 9191-0a10: Increasing fan5 clock divider from
-> 32 to 64
-> [  442.016396] w83627ehf 9191-0a10: Increasing fan5 clock divider from
-> 64 to 128
+> This isn't an issue, it works as designed. The ignore statement in your
+> configuration file is a user-space thing, the driver doesn't know about
+> it. The driver attempts to get a valid reading from the fan input,
+> until the clock divider hits the max (128), it cannot differentiate
+> between a very slow fan and no fan at all.
+
+ Thanks for bringing this to light.
 > 
+> BTW, you get these messages in your logs because you asked for them.
+> These are debugging messages, normally not printed.
+
+ True. I enabled debug to get my CPU fan sensor to get the correct
+divisor. On my earlier Mandriva(kernel 2.6.17-mdv) setup, it always set
+the divisor to 4 and my monitors would go berserk. Back then I changed
+the sensors.conf to correct that but this time (with kernel 2.6.19) it
+just worked so I got interested.
 > 
-> I have "ignore fan5" set in sensors.conf, so I am guessing this is same
-> as the previous problem. But the messages are not flooding now. So far
-> so good. Thank you for the help. Any ideas about this new issue?
+> Thanks for testing and reporting, I'll push the patch upstream.
+> 
 
-This isn't an issue, it works as designed. The ignore statement in your
-configuration file is a user-space thing, the driver doesn't know about
-it. The driver attempts to get a valid reading from the fan input,
-until the clock divider hits the max (128), it cannot differentiate
-between a very slow fan and no fan at all.
+Great.
 
-BTW, you get these messages in your logs because you asked for them.
-These are debugging messages, normally not printed.
-
-Thanks for testing and reporting, I'll push the patch upstream.
-
--- 
-Jean Delvare
+Regards,
+Ankit Chaturvedi
 
 _______________________________________________
 lm-sensors mailing list
