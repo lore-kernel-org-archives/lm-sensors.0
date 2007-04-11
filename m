@@ -1,85 +1,136 @@
-From: "David Hubbard" <david.c.hubbard@gmail.com>
-Date: Tue, 10 Apr 2007 22:59:22 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Wed, 11 Apr 2007 09:24:02 +0000
 Subject: Re: [lm-sensors] Hardware monitoring subsystem maintainer position
-Message-Id: <4dfa50520704101602l626e68e3p5a4c6ecee59d83c7@mail.gmail.com>
+Message-Id: <461CA932.4060108@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070410150227.1bac05b5@hyperion.delvare>
-	 <461BB006.9020308@hhs.nl>
-	 <4dfa50520704100846s7c031ab0i9da94a9e993cbbfc@mail.gmail.com>
-	 <461C0E0E.5090008@assembler.cz>
+References: <20070410150227.1bac05b5@hyperion.delvare>	<461BB006.9020308@hhs.nl> <4dfa50520704100846s7c031ab0i9da94a9e993cbbfc@mail.gmail.com> <461C0E0E.5090008@assembler.cz>
 In-Reply-To: <461C0E0E.5090008@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Rudolf Marek <r.marek@assembler.cz>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, "Mark M. Hoffman" <mhoffman@lightlink.com>, LKML <linux-kernel@vger.kernel.org>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, David Hubbard <david.c.hubbard@gmail.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Rudolf,
-
-On 4/10/07, Rudolf Marek <r.marek@assembler.cz> wrote:
+Rudolf Marek wrote:
 > Hello all,
->
-> First I would like to thank Jean for his great work even if could be seen as
-> "slow". He did the perfect job, allowing only just perfect code to enter the trees.
-
-I completely agree.
-
-> > I haven't seen anything from Rudolf Marek, but he is definitely
-> > qualified if he wants to step up. I'm personally hoping Jean changes
-> > his mind.
->
-> Well I'm afraid Jean thought about this twice and I think his decision cannot be
-> changed easily. Personally I think that change of one person to another won't
-> change much. Problem we are facing is long delay between the post of the driver
-> to driver merge.
->
-> Review of one complex driver takes hours and hours. If the fixes could be split
-> into critical and non-critical parts driver could be accepted earlier and marked
-> as EXPERIMENTAL in very new (for hwmon ;) meaning of the word. I mean Jean did
-> great job and spotted all troubles during the review, so there were nearly none
-> of bug fixes for already merged drivers.
->
+> 
+> 
 > Maybe we could try following:
->
+> 
 > 1) person post the driver
 > 2) quick review could be done critical fixes only, driver goes to -mm
-> 3) review that goes deeper - check for interface conformity and all the stuff
-> which could break - fixes for non-critical stuff
-> 4) after this driver goes to Linus tree at the very beginning for the merge
-> cycle marked as EXPERIMENTAL
-> 5) if the person agrees to be in MAINTAINER final review may be done and
-> EXPERIMENTAL could be removed. (This is step which might involve all steps to
-> make the driver really perfect ;)
->
-> Well this is just an idea. Neither it does solve the maintainer problem, nor it
-> is perfect solution.
+> 3) review that goes deeper - check for interface conformity and all the 
+> stuff which could break - fixes for non-critical stuff
+> 4) after this driver goes to Linus tree at the very beginning for the 
+> merge cycle marked as EXPERIMENTAL
+> 5) if the person agrees to be in MAINTAINER final review may be done and 
+> EXPERIMENTAL could be removed. (This is step which might involve all 
+> steps to make the driver really perfect ;)
+> 
+> Well this is just an idea. Neither it does solve the maintainer problem, 
+> nor it is perfect solution.
+> 
 
-I would be happy to help with quick reviews. I would not be able to do
-the "final" "code-perfect" review. But I would be happy to contribute
-(more) time for this review process if it would help Jean feel more
-comfortable.
+I like the general direction, but I don't really see a clear difference between 
+step 2 and 3, IMO the border between these steps is vague. Also this doesn't 
+address who can do (which kinda) reviews.
 
-> As for the proposal of David. I joined the list in 2004 with my very own driver
-> and learned a lot from Jean and others and on my own ;) During last year??? I
-> was doing some kind of "review preprocessor" to help Jean with that. I still
-> have feeling Jean is simply better. Second reason why I hesitating to say "I
-> will take it" is time. This would cost a lot of time, but unfortunately my free
-> time is very tight. I'm doing PhD and working for a embedded stuff company
-> (SYSGO). Moreover I would like to meet some nice girl for a life, which is quite
-> difficult and also quite time consumptive ;).
+I've been thinking about a solution for the slow path for new driver inclusion 
+myself here is what I propose:
 
-Ah, Rudolf, you and I are in almost exactly the same position. In every detail.
+1a) We need a set of review guidelines / a review checklist. Here is a start:
+* Must follow kernel coding style guidelines
+* sysfs interface must be in accordance with Documentation/hwmon/sysfs
+* proper locking to avoid 2 simultaneous attempts to communicate with the
+   device when for example multiple sysfs files get read at once.
+* check the code for any obvious programming errors, like:
+   -not freeing resources (in error paths and in general)
+   -overrunning an array
+   -not checking return values of calls to other parts of the kernel
+   -of by one errors / bad loops
+   -etc.
+1b) We need to decide somehow who can do reviews. For now I say anyone who
+   already maintains atleast one hwmon driver. But thats just a wild shot better
+   ideas are welcome.
 
-> Personally better would be go with Jean and some kind of scheme noted above,
-> which would solve our "takes too long problem" and preserve the high quality of
-> drivers. This would mean some co-maintainers to Jean, rather than to live
-> without Jean at all.
+2) We need a review process for new drivers, suggestion:
 
-I think our major problem here is that there will not be anyone
-capable of Jean's work, and not for a while yet. I would have thought
-you, Rudolf, were closest. The hwmon project really needs him.
+1.  Person (the submitter) posts driver
+2a. Someone (the reviewer) reviews it according to our checklist / guidelines
+     and posts a detailed report of his findings and what needs fixing
+2b. The submitter posts a fixed version
+2c. The reviewer re-reviews the fixed version and either approves the fixed
+     version, goto 3 or points out things that (still) need fixing, goto 2b.
+3.  The driver gets send to the -mm tree (marked as EXPERIMENTAL)
+4.  Another person (the second reviewer) reviews it, same process as with step
+     2, once approved goto 5
+5.  Send to Linus tree at the very beginning for the merge cycle still marked
+     as EXPERIMENTAL
+6.  After quite some time and positive usage reports without any negative
+     counter reports a patch gets send to Linux to remove EXPERIMENTAL status.
 
-David
+3) We need a review process for fixes to existing drivers, suggestion:
+
+1. Person (the submitter) posts a patch to an existing driver
+2. The driver maintainer is responsible for handling this patch and reviews
+    it. If necessary he either modifies the patch himself or asks the submitter
+    to make modifications.
+3. Once the maintainer is happy with the patch, he sends it to Linus tree at
+    the beginning for the merge cycle.
+
+
+The rationale of doing the new driver thing this way is to avoid having a 
+single person who bears end responsibilities for all reviews and thus becomes a 
+potential bottleneck. The problem with distributing reviews though is that most 
+of us aren't as experienced as Jean is. Thus I decided to just do the review 
+twice, to compensate (a bit) for this.
+
+The rationale of doing modifications of existing drivers through the maintainer 
+is that he knows the code best, and thus can best judge if fixes are really 
+fixes or more bandaids / workarounds. And if these fixes have any unwanted side 
+effects.
+
+To give proper credit: the above is heavily inspired by how Fedora handles new 
+packages, Fedora has thousands of packages written and maintained by 100's of 
+contributers. Using a model where any contributer, once he has taken the first 
+horde of becoming a contributer and thus proving (some) competence can review 
+other contributers new packages.
+
+Problems with the above, I'm not completely happy with my current proposal for 
+deciding who can do reviews. Also I guess that Andrew and Linus would like to 
+have a single person to take hwmon patches from, thus we still need someone 
+todo the actual collecting of approved patches and sending them to Andrew 
+and/or Linus.
+
+Last but not least I want to say that we should not focus too much on review, 
+review can only get us sofar. In my (abituguru) experience most real life hwmon 
+problems do not come from things easily catched by a review, but rather from 
+problems with (certain versions of) the hardware responding different then 
+expected. No amount of review will catch these cases, thus we also need to 
+concentrate on testing.
+
+For both abituguru drivers I've posted to the forums of the abit websites and 
+the lm-sensors list as soon as I got something usable and that way managed to 
+build a small team of circa 8 testers for each version, a team which I send 
+each update to before sending it for upstream inclusion. Especially for the 
+abituguru (rev 1 and 2) driver this has helped my much since this is a strange 
+beast. The abituguru3 driver is more straight forward but also there the 
+testing by others has been invaluable.
+
+
+> Personally better would be go with Jean and some kind of scheme noted 
+> above, which would solve our "takes too long problem" and preserve the 
+> high quality of drivers. This would mean some co-maintainers to Jean, 
+> rather than to live without Jean at all.
+> 
+
++1
+
+Regards,
+
+Hans
+
+
 
 _______________________________________________
 lm-sensors mailing list
