@@ -1,54 +1,69 @@
-From: "Ivo Manca" <pinkel@gmail.com>
-Date: Wed, 18 Apr 2007 16:38:21 +0000
-Subject: Re: [lm-sensors] Father
-Message-Id: <018101c781d7$fb0b4500$0601a8c0@pinkeltje>
+From: Ankit Chaturvedi <ankit.chaturvedi@gmail.com>
+Date: Wed, 11 Apr 2007 01:21:54 +0000
+Subject: [lm-sensors] w83627ehf reporting ghost fan?
+Message-Id: <461C3562.2070006@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46261DB6.6040807@hhs.nl>
-In-Reply-To: <46261DB6.6040807@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hey Hans,
+Hi,
+		I am having this message repeated in my kernel log over and over again :
 
-Congratulations with your daughter! Good to here both the wife and daugther 
-are doing well,
+------
+[100817.346197] w83627ehf 9191-0a10: Increasing fan 4 clock divider from 64 to 128
+[100822.343770] w83627ehf 9191-0a10: Increasing fan 4 clock divider from 64 to 128
+[100827.339333] w83627ehf 9191-0a10: Increasing fan 4 clock divider from 64 to 128
+[100830.901327] w83627ehf 9191-0a10: Increasing fan 4 clock divider from 64 to 128
+[100832.334967] w83627ehf 9191-0a10: Increasing fan 4 clock divider from 64 to 128
+[100837.332900] w83627ehf 9191-0a10: Increasing fan 4 clock divider from 64 to 128
+------
+	I tried adding "ignore fanx" to sensors.conf, as I have only one 3 wire fan(CPU Fan) but the message still shows up. The relevent portion of my sensors.conf file is:
 
-Ivo
------ Original Message ----- 
-From: "Hans de Goede" <j.w.r.degoede@hhs.nl>
-To: "LM Sensors" <lm-sensors@lm-sensors.org>
-Sent: Wednesday 18 April 2007 15:31
-Subject: [lm-sensors] Father
+-------
+   label fan1      "Case Fan"
+   label fan2      "CPU Fan"
+   label fan3      "Aux Fan"
+   ignore fan3
+   ignore fan1
+   ignore fan4
+   ignore fan5
+----
+And the corresponding sensors output goes like this:
 
+-----
+k8temp-pci-00c3
+Adapter: PCI adapter
+Core0 Temp:
+             +35 C
+Core1 Temp:
+             +37 C
 
-> Hi all,
->
-> This morning, 10.35 CET, I've become the father of a daughter for the 
-> second
-> time. Her names is Eowyn and she ways 3.5 Kg.
->
-> Both mother and daughter are well.
->
-> Regards,
->
-> Hans
->
->
-> p.s.
->
-> I'm sure you'll all understand that this means that the coming time I 
-> might be
-> a little less responsive to bugreports / reviews / mails then I normally 
-> am.
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors 
+w83627ehf-isa-0a10
+Adapter: ISA adapter
+VCore:     +1.31 V  (min =  +0.00 V, max =  +1.74 V)
+in1:      +12.46 V  (min = +13.36 V, max =  +6.49 V) ALARM
+AVCC:      +3.36 V  (min =  +3.06 V, max =  +1.20 V) ALARM
+3VCC:      +3.36 V  (min =  +3.79 V, max =  +2.80 V) ALARM
+in4:       +1.62 V  (min =  +0.91 V, max =  +1.49 V) ALARM
+in5:       +1.62 V  (min =  +2.04 V, max =  +1.51 V) ALARM
+in6:       +5.20 V  (min =  +6.53 V, max =  +0.54 V) ALARM
+VSB:       +3.28 V  (min =  +1.90 V, max =  +2.90 V) ALARM
+VBAT:      +3.04 V  (min =  +3.90 V, max =  +3.68 V) ALARM
+in9:       +1.45 V  (min =  +1.26 V, max =  +1.23 V) ALARM
+CPU Fan:  4218 RPM  (min =  892 RPM, div = 8)
+Sys Temp:    +38 C  (high =   -83 C, hyst =  +105 C)
+CPU Temp:  +40.0 C  (high = +80.0 C, hyst = +75.0 C)
+AUX Temp:  +41.0 C  (high = +80.0 C, hyst = +75.0 C)
+-------
 
+	Here only one fan(CPU Fan) is being listed. Earlier another fan(fan4) was also listed with div8 (probably the one referred to in kernel logs) which stopped showing up after adding "ignore fanx" to sensors.conf. But that did not stop printing the line in dmesg output. The sensors are working good otherwise, but it is really annoying as it fills up my whole kernel log, and after 30-40 mins of uptime, I don't have anything else remaining in dmesg output. Any ideas?
+
+	Also, any specific reason why the min and max values are interchanged? Should I set those manually in sensors.conf? Thanks in advance.
+
+Regards,
+Ankit Chaturvedi
 
 _______________________________________________
 lm-sensors mailing list
