@@ -1,62 +1,72 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 22 Apr 2007 10:45:00 +0000
-Subject: Re: [lm-sensors] lmsensors in 2.6.16 on a Tyan 2882-D motherboard,
-Message-Id: <20070422124500.38a1d274@hyperion.delvare>
+Date: Thu, 12 Apr 2007 07:13:54 +0000
+Subject: Re: [lm-sensors] Taking a closer look at lm-sensors,
+Message-Id: <20070412091354.10f4bef7@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44325498.8060805@corky.net>
-In-Reply-To: <44325498.8060805@corky.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 19 Apr 2007 10:57:52 +0100, Just Marc wrote:
-> Jean Delvare wrote:
-> > On Wed, 18 Apr 2007 13:46:26 +0100, Just Marc wrote:
-> >> box:~/lm_sensors-2.10.3# /usr/local/bin/sensors -v
-> >> sensors version 2.10.3 with libsensors version 2.10.3
-> >> box:~/lm_sensors-2.10.3# /usr/local/bin/sensors  
-> >> w83627hf-isa-0290
-> >> Adapter: ISA adapter
-> >> CPU2 Volt: +1.42 V  (min =  +1.33 V, max =  +1.47 V)             
-> >> CPU1 Volt: +1.44 V  (min =  +1.33 V, max =  +1.47 V)             
-> >> 3.3V:      +3.30 V  (min =  +3.14 V, max =  +3.47 V)             
-> >> DDR VTT:   +1.30 V  (min =  +2.85 V, max =  +3.47 V)       ALARM 
-> >> DDR 2.5V:  +2.56 V  (min =  +0.34 V, max =  +0.80 V)       ALARM 
-> >> CPU2 Fan: 3924 RPM  (min = 7670 RPM, div = 8)              ALARM 
-> >> CPU1 Fan: 3443 RPM  (min = 1430 RPM, div = 8)                    
-> >> Fan5:        0 RPM  (min =  730 RPM, div = 8)              ALARM 
-> >> vid:      +1.400 V  (VRM Version 2.4)
-> >> alarms:  
-> >> beep_enable:
-> >>           Sound alarm enabled
-> >>     
-> >
-> > I don't see anything weird here. Just the limits of the two DDR
-> > voltages and fans 1 and 3 need to be set to sensible values, and you're
-> > done
+Hi Hans,
+
+On Mon, 09 Apr 2007 16:03:11 +0200, Hans de Goede wrote:
+> Because of the integration of the dynamic chip support written by my students, 
+> I've been taking a (much) closer look at lm-sensors userspace.
 > 
-> I agree about the fan stuff.     As for the DDR voltage, since I used 
-> the conf provided by Tyan and also tried the conf files found in other 
-> places specifically for this motherboard, why should the DDR voltage 
-> range be tweaked?
+> The current makefile is broken for use by any serious distribution / any 
+> distribution will need to patch it.
+> 
+> Why? Well because of the abundant use of ":=" instead of "="
+> 
+> For example the Makefile says:
+> "PREFIX := /usr/local"
+> 
+> Now when one wants an other prefix, normally in the build script for the distro 
+> one would invoke make like this:
+> 
+> make PREFIX=/usr
+> 
+> however because of the unnecessary use of :=, this isn;'t work as := will 
+> overwrite any environment / make commandline settings. This leads to distro's 
+> using patches to the makefile like the one attached.
 
-I pretty much doubt that your configuration file sets the min and max
-limits of DDR 2.5V to +0.34 V and +0.80 V respectively. More likely,
-the chip is powered up in that state. But given that you did not show
-us your configuration file, I can't comment further on that. What I can
-say is that 1.30 V for DDR VTT and 2.56 V for DDR are good values,
-while the limits set for these voltages, assuming a correct labelling,
-don't make any sense.
+Missing attachment.
 
-> Also, the BIOS is able to report RAM temperatures and a bit more info, 
-> how can we extract this extra stuff using sensors?
+> Is it ok if I fix this in the 3.0.0 branch?
 
-We don't yet support RAM temperatures. As far as I remember, we don't
-have enough documentation to write a driver for that.
+I would need to be convinced that this needs to be fixed first. I wrote
+a minimal Makefile for testing purposes as follows:
 
-As for "a bit more info", we don't support that either, and never
-will ;)
+--- 8< ---
+PREFIX := /usr/local
+BINDIR := $(PREFIX)/bin
+
+all :
+	@echo $(PREFIX)
+	@echo $(BINDIR)
+--- 8< ---
+
+khali@hyperion:~/tmp> make
+/usr/local
+/usr/local/bin
+khali@hyperion:~/tmp> make PREFIX=/usr
+/usr
+/usr/bin
+khali@hyperion:~/tmp>
+
+This is with GNU make 3.81, but I also tested with 3.80 and 3.78.1 with
+the same result. So ":=" seems to allow variable value override from
+the command line just fine, and I fail to see why a distribution would
+need to patch our Makefile. In fact I just tried a "make PREFIX=/foo
+user_install" and it installed lm-sensors in /foo just fine. So what's
+the problem exactly?
+
+Checking the Slackware and openSuse lm-sensors package sources, I see
+that they do indeed patch our Makefile to change the prefix and other
+variables. But given my tests above, this seems to be by choice, and I
+doubt they would do it any differently if we were using "=" instead of
+":=" in the Makefile.
 
 -- 
 Jean Delvare
