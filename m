@@ -1,1206 +1,315 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 24 Apr 2007 17:58:49 +0000
-Subject: Re: [lm-sensors] get rid of i2c-isa - h now - fixes of w82627ehf
-Message-Id: <20070424195849.26d1f333@hyperion.delvare>
+Date: Thu, 12 Apr 2007 13:32:25 +0000
+Subject: Re: [lm-sensors] [PATCH 2/2 RESEND] hwmon: documentation for new
+Message-Id: <20070412153225.55345301@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45F47B44.8010108@assembler.cz>
-In-Reply-To: <45F47B44.8010108@assembler.cz>
+References: <191fb4ca0703220947s7e16453j4a5a7eb5eee77f1b@mail.gmail.com>
+In-Reply-To: <191fb4ca0703220947s7e16453j4a5a7eb5eee77f1b@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David,
+Hi Juerg,
 
-On Thu, 29 Mar 2007 12:13:29 -0700, David Hubbard wrote:
-> Here's a patch for your review.
-
-Sorry for the delay, here's my review. Next time please avoid patches
-as base64 attachments.
-
-> This patch removes i2c-isa from the w83627ehf driver, moving over
-> to a platform driver.
+On Thu, 22 Mar 2007 09:47:29 -0700, Juerg Haefliger wrote:
+> Applied changes based on Hans de Goede's review.
 > 
-> Signed-off-by: David Hubbard <david.c.hubbard@gmail.com>
+> ---
+> This patch adds documentation for the new SMSC DME1737 driver.
 > 
-> Index: linux-2.6.21-rc3/drivers/hwmon/w83627ehf.c
-> =================================> --- linux-2.6.21-rc5/drivers/hwmon/w83627ehf.c	2007-03-28 19:52:44.000000000 -0700
-> +++ linux-2.6.21-rc5/drivers/hwmon/w83627ehf.c	2007-03-29 12:55:53.000000000 -0700
-> @@ -41,8 +41,8 @@
->  #include <linux/module.h>
->  #include <linux/init.h>
->  #include <linux/slab.h>
-> -#include <linux/i2c.h>
-> -#include <linux/i2c-isa.h>
-> +#include <linux/jiffies.h>
-> +#include <linux/platform_device.h>
->  #include <linux/hwmon.h>
->  #include <linux/hwmon-sysfs.h>
->  #include <linux/err.h>
-> @@ -50,25 +50,19 @@
->  #include <asm/io.h>
->  #include "lm75.h"
->  
-> -/* The actual ISA address is read from Super-I/O configuration space */
-> -static unsigned short address;
-> +enum kinds { w83627ehf, w83627dhg };
->  
-> -/*
-> - * Super-I/O constants and functions
-> - */
-> +/* used to set data->name = w83627ehf_device_names[data->kind] */
-> +static const char * w83627ehf_device_names[] = {
-> +	"w83627ehf",
-> +	"w83627dhg",
-> +};
+> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+>
+> diff -uprN -X linux-2.6.21-rc1/Documentation/dontdiff -x drivers -x include linux-2.6.21-rc1.orig/Documentation/hwmon/dme1737 linux-2.6.21-rc1/Documentation/hwmon/dme1737
+> --- linux-2.6.21-rc1.orig/Documentation/hwmon/dme1737	1969-12-31 16:00:00.000000000 -0800
+> +++ linux-2.6.21-rc1/Documentation/hwmon/dme1737	2007-03-20 08:09:17.000000000 -0700
+> @@ -0,0 +1,230 @@
+> +Kernel driver dme1737
+> +==========> +
+> +Supported chips:
+> +  * SMSC DME1737, Asus A8000
+> +    Prefix: 'dme1737'
+> +    Addresses scanned: I2C 0x2c, 0x2d, 0x2e
+> +    Datasheet: Provided by SMSC upon request and under NDA
 > +
-> +#define DRVNAME "w83627ehf"
->  
->  /*
-> - * The three following globals are initialized in w83627ehf_find(), before
-> - * the i2c-isa device is created. Otherwise, they could be stored in
-> - * w83627ehf_data. This is ugly, but necessary, and when the driver is next
-> - * updated to become a platform driver, the globals will disappear.
-> + * Super-I/O constants and functions
->   */
-> -static int REG;		/* The register to read/write */
-> -static int VAL;		/* The value to read/write */
-> -/* The w83627ehf/ehg have 10 voltage inputs, but the w83627dhg has 9. This
-> - * value is also used in w83627ehf_detect() to export a device name in sysfs
-> - * (e.g. w83627ehf or w83627dhg) */
-> -static int w83627ehf_num_in;
->  
->  #define W83627EHF_LD_HWM	0x0b
->  
-> @@ -83,38 +77,38 @@
->  #define SIO_ID_MASK		0xFFF0
->  
->  static inline void
-> -superio_outb(int reg, int val)
-> +superio_outb(int ioreg, int reg, int val)
->  {
-> -	outb(reg, REG);
-> -	outb(val, VAL);
-> +	outb(reg, ioreg);
-> +	outb(val, ioreg + 1);
->  }
->  
->  static inline int
-> -superio_inb(int reg)
-> +superio_inb(int ioreg, int reg)
->  {
-> -	outb(reg, REG);
-> -	return inb(VAL);
-> +	outb(reg, ioreg);
-> +	return inb(ioreg + 1);
->  }
->  
->  static inline void
-> -superio_select(int ld)
-> +superio_select(int ioreg, int ld)
->  {
-> -	outb(SIO_REG_LDSEL, REG);
-> -	outb(ld, VAL);
-> +	outb(SIO_REG_LDSEL, ioreg);
-> +	outb(ld, ioreg + 1);
->  }
->  
->  static inline void
-> -superio_enter(void)
-> +superio_enter(int ioreg)
->  {
-> -	outb(0x87, REG);
-> -	outb(0x87, REG);
-> +	outb(0x87, ioreg);
-> +	outb(0x87, ioreg);
->  }
->  
->  static inline void
-> -superio_exit(void)
-> +superio_exit(int ioreg)
->  {
-> -	outb(0x02, REG);
-> -	outb(0x02, VAL);
-> +	outb(0x02, ioreg);
-> +	outb(0x02, ioreg + 1);
->  }
->  
->  /*
-> @@ -255,7 +249,11 @@
->   */
->  
->  struct w83627ehf_data {
-> -	struct i2c_client client;
-> +	int sioreg;
-> +	enum kinds kind;
-> +	int addr;	/* IO base of hw monitor block */
-> +	const char *name;
+> +Authors:
+> +    Juerg Haefliger <juergh@gmail.com>
 > +
->  	struct class_device *class_dev;
->  	struct mutex lock;
->  
-> @@ -264,6 +262,7 @@
->  	unsigned long last_updated;	/* In jiffies */
->  
->  	/* Register values */
-> +	u8 in_num;		/* number of in inputs we have */
->  	u8 in[10];		/* Register value */
->  	u8 in_max[10];		/* Register value */
->  	u8 in_min[10];		/* Register value */
-> @@ -303,121 +302,117 @@
->     nothing for registers which live in bank 0. For others, they respectively
->     set the bank register to the correct value (before the register is
->     accessed), and back to 0 (afterwards). */
-> -static inline void w83627ehf_set_bank(struct i2c_client *client, u16 reg)
-> +static inline void w83627ehf_set_bank(struct w83627ehf_data *data, u16 reg)
->  {
->  	if (reg & 0xff00) {
-> -		outb_p(W83627EHF_REG_BANK, client->addr + ADDR_REG_OFFSET);
-> -		outb_p(reg >> 8, client->addr + DATA_REG_OFFSET);
-> +		outb_p(W83627EHF_REG_BANK, data->addr + ADDR_REG_OFFSET);
-> +		outb_p(reg >> 8, data->addr + DATA_REG_OFFSET);
->  	}
->  }
->  
-> -static inline void w83627ehf_reset_bank(struct i2c_client *client, u16 reg)
-> +static inline void w83627ehf_reset_bank(struct w83627ehf_data *data, u16 reg)
->  {
->  	if (reg & 0xff00) {
-> -		outb_p(W83627EHF_REG_BANK, client->addr + ADDR_REG_OFFSET);
-> -		outb_p(0, client->addr + DATA_REG_OFFSET);
-> +		outb_p(W83627EHF_REG_BANK, data->addr + ADDR_REG_OFFSET);
-> +		outb_p(0, data->addr + DATA_REG_OFFSET);
->  	}
->  }
->  
-> -static u16 w83627ehf_read_value(struct i2c_client *client, u16 reg)
-> +static u16 w83627ehf_read_value(struct w83627ehf_data *data, u16 reg)
->  {
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client);
->  	int res, word_sized = is_word_sized(reg);
->  
->  	mutex_lock(&data->lock);
->  
-> -	w83627ehf_set_bank(client, reg);
-> -	outb_p(reg & 0xff, client->addr + ADDR_REG_OFFSET);
-> -	res = inb_p(client->addr + DATA_REG_OFFSET);
-> +	w83627ehf_set_bank(data, reg);
-> +	outb_p(reg & 0xff, data->addr + ADDR_REG_OFFSET);
-> +	res = inb_p(data->addr + DATA_REG_OFFSET);
->  	if (word_sized) {
->  		outb_p((reg & 0xff) + 1,
-> -		       client->addr + ADDR_REG_OFFSET);
-> -		res = (res << 8) + inb_p(client->addr + DATA_REG_OFFSET);
-> +		       data->addr + ADDR_REG_OFFSET);
-> +		res = (res << 8) + inb_p(data->addr + DATA_REG_OFFSET);
->  	}
-> -	w83627ehf_reset_bank(client, reg);
-> +	w83627ehf_reset_bank(data, reg);
->  
->  	mutex_unlock(&data->lock);
->  
->  	return res;
->  }
->  
-> -static int w83627ehf_write_value(struct i2c_client *client, u16 reg, u16 value)
-> +static int w83627ehf_write_value(struct w83627ehf_data *data, u16 reg, u16 value)
->  {
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client);
->  	int word_sized = is_word_sized(reg);
->  
->  	mutex_lock(&data->lock);
->  
-> -	w83627ehf_set_bank(client, reg);
-> -	outb_p(reg & 0xff, client->addr + ADDR_REG_OFFSET);
-> +	w83627ehf_set_bank(data, reg);
-> +	outb_p(reg & 0xff, data->addr + ADDR_REG_OFFSET);
->  	if (word_sized) {
-> -		outb_p(value >> 8, client->addr + DATA_REG_OFFSET);
-> +		outb_p(value >> 8, data->addr + DATA_REG_OFFSET);
->  		outb_p((reg & 0xff) + 1,
-> -		       client->addr + ADDR_REG_OFFSET);
-> +		       data->addr + ADDR_REG_OFFSET);
->  	}
-> -	outb_p(value & 0xff, client->addr + DATA_REG_OFFSET);
-> -	w83627ehf_reset_bank(client, reg);
-> +	outb_p(value & 0xff, data->addr + DATA_REG_OFFSET);
-> +	w83627ehf_reset_bank(data, reg);
->  
->  	mutex_unlock(&data->lock);
->  	return 0;
->  }
->  
->  /* This function assumes that the caller holds data->update_lock */
-> -static void w83627ehf_write_fan_div(struct i2c_client *client, int nr)
-> +static void w83627ehf_write_fan_div(struct w83627ehf_data *data, int nr)
->  {
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client);
->  	u8 reg;
->  
->  	switch (nr) {
->  	case 0:
-> -		reg = (w83627ehf_read_value(client, W83627EHF_REG_FANDIV1) & 0xcf)
-> +		reg = (w83627ehf_read_value(data, W83627EHF_REG_FANDIV1) & 0xcf)
->  		    | ((data->fan_div[0] & 0x03) << 4);
->  		/* fan5 input control bit is write only, compute the value */
->  		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
-> -		w83627ehf_write_value(client, W83627EHF_REG_FANDIV1, reg);
-> -		reg = (w83627ehf_read_value(client, W83627EHF_REG_VBAT) & 0xdf)
-> +		w83627ehf_write_value(data, W83627EHF_REG_FANDIV1, reg);
-> +		reg = (w83627ehf_read_value(data, W83627EHF_REG_VBAT) & 0xdf)
->  		    | ((data->fan_div[0] & 0x04) << 3);
-> -		w83627ehf_write_value(client, W83627EHF_REG_VBAT, reg);
-> +		w83627ehf_write_value(data, W83627EHF_REG_VBAT, reg);
->  		break;
->  	case 1:
-> -		reg = (w83627ehf_read_value(client, W83627EHF_REG_FANDIV1) & 0x3f)
-> +		reg = (w83627ehf_read_value(data, W83627EHF_REG_FANDIV1) & 0x3f)
->  		    | ((data->fan_div[1] & 0x03) << 6);
->  		/* fan5 input control bit is write only, compute the value */
->  		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
-> -		w83627ehf_write_value(client, W83627EHF_REG_FANDIV1, reg);
-> -		reg = (w83627ehf_read_value(client, W83627EHF_REG_VBAT) & 0xbf)
-> +		w83627ehf_write_value(data, W83627EHF_REG_FANDIV1, reg);
-> +		reg = (w83627ehf_read_value(data, W83627EHF_REG_VBAT) & 0xbf)
->  		    | ((data->fan_div[1] & 0x04) << 4);
-> -		w83627ehf_write_value(client, W83627EHF_REG_VBAT, reg);
-> +		w83627ehf_write_value(data, W83627EHF_REG_VBAT, reg);
->  		break;
->  	case 2:
-> -		reg = (w83627ehf_read_value(client, W83627EHF_REG_FANDIV2) & 0x3f)
-> +		reg = (w83627ehf_read_value(data, W83627EHF_REG_FANDIV2) & 0x3f)
->  		    | ((data->fan_div[2] & 0x03) << 6);
-> -		w83627ehf_write_value(client, W83627EHF_REG_FANDIV2, reg);
-> -		reg = (w83627ehf_read_value(client, W83627EHF_REG_VBAT) & 0x7f)
-> +		w83627ehf_write_value(data, W83627EHF_REG_FANDIV2, reg);
-> +		reg = (w83627ehf_read_value(data, W83627EHF_REG_VBAT) & 0x7f)
->  		    | ((data->fan_div[2] & 0x04) << 5);
-> -		w83627ehf_write_value(client, W83627EHF_REG_VBAT, reg);
-> +		w83627ehf_write_value(data, W83627EHF_REG_VBAT, reg);
->  		break;
->  	case 3:
-> -		reg = (w83627ehf_read_value(client, W83627EHF_REG_DIODE) & 0xfc)
-> +		reg = (w83627ehf_read_value(data, W83627EHF_REG_DIODE) & 0xfc)
->  		    | (data->fan_div[3] & 0x03);
-> -		w83627ehf_write_value(client, W83627EHF_REG_DIODE, reg);
-> -		reg = (w83627ehf_read_value(client, W83627EHF_REG_SMI_OVT) & 0x7f)
-> +		w83627ehf_write_value(data, W83627EHF_REG_DIODE, reg);
-> +		reg = (w83627ehf_read_value(data, W83627EHF_REG_SMI_OVT) & 0x7f)
->  		    | ((data->fan_div[3] & 0x04) << 5);
-> -		w83627ehf_write_value(client, W83627EHF_REG_SMI_OVT, reg);
-> +		w83627ehf_write_value(data, W83627EHF_REG_SMI_OVT, reg);
->  		break;
->  	case 4:
-> -		reg = (w83627ehf_read_value(client, W83627EHF_REG_DIODE) & 0x73)
-> +		reg = (w83627ehf_read_value(data, W83627EHF_REG_DIODE) & 0x73)
->  		    | ((data->fan_div[4] & 0x03) << 3)
->  		    | ((data->fan_div[4] & 0x04) << 5);
-> -		w83627ehf_write_value(client, W83627EHF_REG_DIODE, reg);
-> +		w83627ehf_write_value(data, W83627EHF_REG_DIODE, reg);
->  		break;
->  	}
->  }
->  
->  static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
->  {
-> -	struct i2c_client *client = to_i2c_client(dev);
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client);
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev);
->  	int pwmcfg = 0, tolerance = 0; /* shut up the compiler */
->  	int i;
->  
-> @@ -426,33 +421,33 @@
->  	if (time_after(jiffies, data->last_updated + HZ)
->  	 || !data->valid) {
->  		/* Fan clock dividers */
-> -		i = w83627ehf_read_value(client, W83627EHF_REG_FANDIV1);
-> +		i = w83627ehf_read_value(data, W83627EHF_REG_FANDIV1);
->  		data->fan_div[0] = (i >> 4) & 0x03;
->  		data->fan_div[1] = (i >> 6) & 0x03;
-> -		i = w83627ehf_read_value(client, W83627EHF_REG_FANDIV2);
-> +		i = w83627ehf_read_value(data, W83627EHF_REG_FANDIV2);
->  		data->fan_div[2] = (i >> 6) & 0x03;
-> -		i = w83627ehf_read_value(client, W83627EHF_REG_VBAT);
-> +		i = w83627ehf_read_value(data, W83627EHF_REG_VBAT);
->  		data->fan_div[0] |= (i >> 3) & 0x04;
->  		data->fan_div[1] |= (i >> 4) & 0x04;
->  		data->fan_div[2] |= (i >> 5) & 0x04;
->  		if (data->has_fan & ((1 << 3) | (1 << 4))) {
-> -			i = w83627ehf_read_value(client, W83627EHF_REG_DIODE);
-> +			i = w83627ehf_read_value(data, W83627EHF_REG_DIODE);
->  			data->fan_div[3] = i & 0x03;
->  			data->fan_div[4] = ((i >> 2) & 0x03)
->  					 | ((i >> 5) & 0x04);
->  		}
->  		if (data->has_fan & (1 << 3)) {
-> -			i = w83627ehf_read_value(client, W83627EHF_REG_SMI_OVT);
-> +			i = w83627ehf_read_value(data, W83627EHF_REG_SMI_OVT);
->  			data->fan_div[3] |= (i >> 5) & 0x04;
->  		}
->  
->  		/* Measured voltages and limits */
-> -		for (i = 0; i < w83627ehf_num_in; i++) {
-> -			data->in[i] = w83627ehf_read_value(client,
-> +		for (i = 0; i < data->in_num; i++) {
-> +			data->in[i] = w83627ehf_read_value(data,
->  				      W83627EHF_REG_IN(i));
-> -			data->in_min[i] = w83627ehf_read_value(client,
-> +			data->in_min[i] = w83627ehf_read_value(data,
->  					  W83627EHF_REG_IN_MIN(i));
-> -			data->in_max[i] = w83627ehf_read_value(client,
-> +			data->in_max[i] = w83627ehf_read_value(data,
->  					  W83627EHF_REG_IN_MAX(i));
->  		}
->  
-> @@ -461,9 +456,9 @@
->  			if (!(data->has_fan & (1 << i)))
->  				continue;
->  
-> -			data->fan[i] = w83627ehf_read_value(client,
-> +			data->fan[i] = w83627ehf_read_value(data,
->  				       W83627EHF_REG_FAN[i]);
-> -			data->fan_min[i] = w83627ehf_read_value(client,
-> +			data->fan_min[i] = w83627ehf_read_value(data,
->  					   W83627EHF_REG_FAN_MIN[i]);
->  
->  			/* If we failed to measure the fan speed and clock
-> @@ -471,16 +466,16 @@
->  			   time */
->  			if (data->fan[i] = 0xff
->  			 && data->fan_div[i] < 0x07) {
-> -			 	dev_dbg(&client->dev, "Increasing fan %d "
-> +			 	dev_dbg(dev, "Increasing fan %d "
->  					"clock divider from %u to %u\n",
->  					i, div_from_reg(data->fan_div[i]),
->  					div_from_reg(data->fan_div[i] + 1));
->  				data->fan_div[i]++;
-> -				w83627ehf_write_fan_div(client, i);
-> +				w83627ehf_write_fan_div(data, i);
->  				/* Preserve min limit if possible */
->  				if (data->fan_min[i] >= 2
->  				 && data->fan_min[i] != 255)
-> -					w83627ehf_write_value(client,
-> +					w83627ehf_write_value(data,
->  						W83627EHF_REG_FAN_MIN[i],
->  						(data->fan_min[i] /= 2));
->  			}
-> @@ -489,9 +484,9 @@
->  		for (i = 0; i < 4; i++) {
->  			/* pwmcfg, tolarance mapped for i=0, i=1 to same reg */
->  			if (i != 1) {
-> -				pwmcfg = w83627ehf_read_value(client,
-> +				pwmcfg = w83627ehf_read_value(data,
->  						W83627EHF_REG_PWM_ENABLE[i]);
-> -				tolerance = w83627ehf_read_value(client,
-> +				tolerance = w83627ehf_read_value(data,
->  						W83627EHF_REG_TOLERANCE[i]);
->  			}
->  			data->pwm_mode[i] > @@ -500,14 +495,14 @@
->  			data->pwm_enable[i] >  					((pwmcfg >> W83627EHF_PWM_ENABLE_SHIFT[i])
->  						& 3) + 1;
-> -			data->pwm[i] = w83627ehf_read_value(client,
-> +			data->pwm[i] = w83627ehf_read_value(data,
->  						W83627EHF_REG_PWM[i]);
-> -			data->fan_min_output[i] = w83627ehf_read_value(client,
-> +			data->fan_min_output[i] = w83627ehf_read_value(data,
->  						W83627EHF_REG_FAN_MIN_OUTPUT[i]);
-> -			data->fan_stop_time[i] = w83627ehf_read_value(client,
-> +			data->fan_stop_time[i] = w83627ehf_read_value(data,
->  						W83627EHF_REG_FAN_STOP_TIME[i]);
->  			data->target_temp[i] > -				w83627ehf_read_value(client,
-> +				w83627ehf_read_value(data,
->  					W83627EHF_REG_TARGET[i]) &
->  					(data->pwm_mode[i] = 1 ? 0x7f : 0xff);
->  			data->tolerance[i] = (tolerance >> (i = 1 ? 4 : 0))
-> @@ -515,26 +510,26 @@
->  		}
->  
->  		/* Measured temperatures and limits */
-> -		data->temp1 = w83627ehf_read_value(client,
-> +		data->temp1 = w83627ehf_read_value(data,
->  			      W83627EHF_REG_TEMP1);
-> -		data->temp1_max = w83627ehf_read_value(client,
-> +		data->temp1_max = w83627ehf_read_value(data,
->  				  W83627EHF_REG_TEMP1_OVER);
-> -		data->temp1_max_hyst = w83627ehf_read_value(client,
-> +		data->temp1_max_hyst = w83627ehf_read_value(data,
->  				       W83627EHF_REG_TEMP1_HYST);
->  		for (i = 0; i < 2; i++) {
-> -			data->temp[i] = w83627ehf_read_value(client,
-> +			data->temp[i] = w83627ehf_read_value(data,
->  					W83627EHF_REG_TEMP[i]);
-> -			data->temp_max[i] = w83627ehf_read_value(client,
-> +			data->temp_max[i] = w83627ehf_read_value(data,
->  					    W83627EHF_REG_TEMP_OVER[i]);
-> -			data->temp_max_hyst[i] = w83627ehf_read_value(client,
-> +			data->temp_max_hyst[i] = w83627ehf_read_value(data,
->  						 W83627EHF_REG_TEMP_HYST[i]);
->  		}
->  
-> -		data->alarms = w83627ehf_read_value(client,
-> +		data->alarms = w83627ehf_read_value(data,
->  					W83627EHF_REG_ALARM1) |
-> -			       (w83627ehf_read_value(client,
-> +			       (w83627ehf_read_value(data,
->  					W83627EHF_REG_ALARM2) << 8) |
-> -			       (w83627ehf_read_value(client,
-> +			       (w83627ehf_read_value(data,
->  					W83627EHF_REG_ALARM3) << 16);
->  
->  		data->last_updated = jiffies;
-> @@ -567,15 +562,14 @@
->  store_in_##reg (struct device *dev, struct device_attribute *attr, \
->  			const char *buf, size_t count) \
->  { \
-> -	struct i2c_client *client = to_i2c_client(dev); \
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client); \
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev); \
->  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
->  	int nr = sensor_attr->index; \
->  	u32 val = simple_strtoul(buf, NULL, 10); \
->   \
->  	mutex_lock(&data->update_lock); \
->  	data->in_##reg[nr] = in_to_reg(val, nr); \
-> -	w83627ehf_write_value(client, W83627EHF_REG_IN_##REG(nr), \
-> +	w83627ehf_write_value(data, W83627EHF_REG_IN_##REG(nr), \
->  			      data->in_##reg[nr]); \
->  	mutex_unlock(&data->update_lock); \
->  	return count; \
-> @@ -673,8 +667,7 @@
->  store_fan_min(struct device *dev, struct device_attribute *attr,
->  	      const char *buf, size_t count)
->  {
-> -	struct i2c_client *client = to_i2c_client(dev);
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client);
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev);
->  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
->  	int nr = sensor_attr->index;
->  	unsigned int val = simple_strtoul(buf, NULL, 10);
-> @@ -725,9 +718,9 @@
->  			nr + 1, div_from_reg(data->fan_div[nr]),
->  			div_from_reg(new_div));
->  		data->fan_div[nr] = new_div;
-> -		w83627ehf_write_fan_div(client, nr);
-> +		w83627ehf_write_fan_div(data, nr);
->  	}
-> -	w83627ehf_write_value(client, W83627EHF_REG_FAN_MIN[nr],
-> +	w83627ehf_write_value(data, W83627EHF_REG_FAN_MIN[nr],
->  			      data->fan_min[nr]);
->  	mutex_unlock(&data->update_lock);
->  
-> @@ -788,13 +781,12 @@
->  store_temp1_##reg(struct device *dev, struct device_attribute *attr, \
->  		  const char *buf, size_t count) \
->  { \
-> -	struct i2c_client *client = to_i2c_client(dev); \
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client); \
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev); \
->  	u32 val = simple_strtoul(buf, NULL, 10); \
->   \
->  	mutex_lock(&data->update_lock); \
->  	data->temp1_##reg = temp1_to_reg(val, -128000, 127000); \
-> -	w83627ehf_write_value(client, W83627EHF_REG_TEMP1_##REG, \
-> +	w83627ehf_write_value(data, W83627EHF_REG_TEMP1_##REG, \
->  			      data->temp1_##reg); \
->  	mutex_unlock(&data->update_lock); \
->  	return count; \
-> @@ -822,15 +814,14 @@
->  store_##reg(struct device *dev, struct device_attribute *attr, \
->  	    const char *buf, size_t count) \
->  { \
-> -	struct i2c_client *client = to_i2c_client(dev); \
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client); \
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev); \
->  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
->  	int nr = sensor_attr->index; \
->  	u32 val = simple_strtoul(buf, NULL, 10); \
->   \
->  	mutex_lock(&data->update_lock); \
->  	data->reg[nr] = LM75_TEMP_TO_REG(val); \
-> -	w83627ehf_write_value(client, W83627EHF_REG_TEMP_##REG[nr], \
-> +	w83627ehf_write_value(data, W83627EHF_REG_TEMP_##REG[nr], \
->  			      data->reg[nr]); \
->  	mutex_unlock(&data->update_lock); \
->  	return count; \
-> @@ -877,8 +868,7 @@
->  store_pwm_mode(struct device *dev, struct device_attribute *attr,
->  			const char *buf, size_t count)
->  {
-> -	struct i2c_client *client = to_i2c_client(dev);
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client);
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev);
->  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
->  	int nr = sensor_attr->index;
->  	u32 val = simple_strtoul(buf, NULL, 10);
-> @@ -887,12 +877,12 @@
->  	if (val > 1)
->  		return -EINVAL;
->  	mutex_lock(&data->update_lock);
-> -	reg = w83627ehf_read_value(client, W83627EHF_REG_PWM_ENABLE[nr]);
-> +	reg = w83627ehf_read_value(data, W83627EHF_REG_PWM_ENABLE[nr]);
->  	data->pwm_mode[nr] = val;
->  	reg &= ~(1 << W83627EHF_PWM_MODE_SHIFT[nr]);
->  	if (!val)
->  		reg |= 1 << W83627EHF_PWM_MODE_SHIFT[nr];
-> -	w83627ehf_write_value(client, W83627EHF_REG_PWM_ENABLE[nr], reg);
-> +	w83627ehf_write_value(data, W83627EHF_REG_PWM_ENABLE[nr], reg);
->  	mutex_unlock(&data->update_lock);
->  	return count;
->  }
-> @@ -901,15 +891,14 @@
->  store_pwm(struct device *dev, struct device_attribute *attr,
->  			const char *buf, size_t count)
->  {
-> -	struct i2c_client *client = to_i2c_client(dev);
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client);
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev);
->  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
->  	int nr = sensor_attr->index;
->  	u32 val = SENSORS_LIMIT(simple_strtoul(buf, NULL, 10), 0, 255);
->  
->  	mutex_lock(&data->update_lock);
->  	data->pwm[nr] = val;
-> -	w83627ehf_write_value(client, W83627EHF_REG_PWM[nr], val);
-> +	w83627ehf_write_value(data, W83627EHF_REG_PWM[nr], val);
->  	mutex_unlock(&data->update_lock);
->  	return count;
->  }
-> @@ -918,8 +907,7 @@
->  store_pwm_enable(struct device *dev, struct device_attribute *attr,
->  			const char *buf, size_t count)
->  {
-> -	struct i2c_client *client = to_i2c_client(dev);
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client);
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev);
->  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
->  	int nr = sensor_attr->index;
->  	u32 val = simple_strtoul(buf, NULL, 10);
-> @@ -928,11 +916,11 @@
->  	if (!val || (val > 2))	/* only modes 1 and 2 are supported */
->  		return -EINVAL;
->  	mutex_lock(&data->update_lock);
-> -	reg = w83627ehf_read_value(client, W83627EHF_REG_PWM_ENABLE[nr]);
-> +	reg = w83627ehf_read_value(data, W83627EHF_REG_PWM_ENABLE[nr]);
->  	data->pwm_enable[nr] = val;
->  	reg &= ~(0x03 << W83627EHF_PWM_ENABLE_SHIFT[nr]);
->  	reg |= (val - 1) << W83627EHF_PWM_ENABLE_SHIFT[nr];
-> -	w83627ehf_write_value(client, W83627EHF_REG_PWM_ENABLE[nr], reg);
-> +	w83627ehf_write_value(data, W83627EHF_REG_PWM_ENABLE[nr], reg);
->  	mutex_unlock(&data->update_lock);
->  	return count;
->  }
-> @@ -955,15 +943,14 @@
->  store_target_temp(struct device *dev, struct device_attribute *attr,
->  			const char *buf, size_t count)
->  {
-> -	struct i2c_client *client = to_i2c_client(dev);
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client);
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev);
->  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
->  	int nr = sensor_attr->index;
->  	u8 val = temp1_to_reg(simple_strtoul(buf, NULL, 10), 0, 127000);
->  
->  	mutex_lock(&data->update_lock);
->  	data->target_temp[nr] = val;
-> -	w83627ehf_write_value(client, W83627EHF_REG_TARGET[nr], val);
-> +	w83627ehf_write_value(data, W83627EHF_REG_TARGET[nr], val);
->  	mutex_unlock(&data->update_lock);
->  	return count;
->  }
-> @@ -972,8 +959,7 @@
->  store_tolerance(struct device *dev, struct device_attribute *attr,
->  			const char *buf, size_t count)
->  {
-> -	struct i2c_client *client = to_i2c_client(dev);
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client);
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev);
->  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
->  	int nr = sensor_attr->index;
->  	u16 reg;
-> @@ -981,13 +967,13 @@
->  	u8 val = temp1_to_reg(simple_strtoul(buf, NULL, 10), 0, 15000);
->  
->  	mutex_lock(&data->update_lock);
-> -	reg = w83627ehf_read_value(client, W83627EHF_REG_TOLERANCE[nr]);
-> +	reg = w83627ehf_read_value(data, W83627EHF_REG_TOLERANCE[nr]);
->  	data->tolerance[nr] = val;
->  	if (nr = 1)
->  		reg = (reg & 0x0f) | (val << 4);
->  	else
->  		reg = (reg & 0xf0) | val;
-> -	w83627ehf_write_value(client, W83627EHF_REG_TOLERANCE[nr], reg);
-> +	w83627ehf_write_value(data, W83627EHF_REG_TOLERANCE[nr], reg);
->  	mutex_unlock(&data->update_lock);
->  	return count;
->  }
-> @@ -1058,14 +1044,13 @@
->  store_##reg(struct device *dev, struct device_attribute *attr, \
->  			    const char *buf, size_t count) \
->  {\
-> -	struct i2c_client *client = to_i2c_client(dev); \
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client); \
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev); \
->  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
->  	int nr = sensor_attr->index; \
->  	u32 val = SENSORS_LIMIT(simple_strtoul(buf, NULL, 10), 1, 255); \
->  	mutex_lock(&data->update_lock); \
->  	data->reg[nr] = val; \
-> -	w83627ehf_write_value(client, W83627EHF_REG_##REG[nr],  val); \
-> +	w83627ehf_write_value(data, W83627EHF_REG_##REG[nr],  val); \
->  	mutex_unlock(&data->update_lock); \
->  	return count; \
->  }
-> @@ -1087,21 +1072,29 @@
->  store_##reg(struct device *dev, struct device_attribute *attr, \
->  			const char *buf, size_t count) \
->  { \
-> -	struct i2c_client *client = to_i2c_client(dev); \
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client); \
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev); \
->  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
->  	int nr = sensor_attr->index; \
->  	u8 val = step_time_to_reg(simple_strtoul(buf, NULL, 10), \
->  					data->pwm_mode[nr]); \
->  	mutex_lock(&data->update_lock); \
->  	data->reg[nr] = val; \
-> -	w83627ehf_write_value(client, W83627EHF_REG_##REG[nr], val); \
-> +	w83627ehf_write_value(data, W83627EHF_REG_##REG[nr], val); \
->  	mutex_unlock(&data->update_lock); \
->  	return count; \
->  } \
->  
->  fan_time_functions(fan_stop_time, FAN_STOP_TIME)
->  
-> +static ssize_t show_name(struct device *dev, struct device_attribute
-> +			 *devattr, char *buf)
-> +{
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev);
 > +
-> +	return sprintf(buf, "%s\n", data->name);
-> +}
+> +Module Parameters
+> +-----------------
 > +
-> +static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
->  
->  static struct sensor_device_attribute sda_sf3_arrays_fan4[] = {
->  	SENSOR_ATTR(pwm4_stop_time, S_IWUSR | S_IRUGO, show_fan_stop_time,
-> @@ -1126,7 +1119,7 @@
->  };
->  
->  /*
-> - * Driver and client management
-> + * Driver and platform management
->   */
->  
->  static void w83627ehf_device_remove_files(struct device *dev)
-> @@ -1134,12 +1127,13 @@
->  	/* some entries in the following arrays may not have been used in
->  	 * device_create_file(), but device_remove_file() will ignore them */
->  	int i;
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev);
->  
->  	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++)
->  		device_remove_file(dev, &sda_sf3_arrays[i].dev_attr);
->  	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++)
->  		device_remove_file(dev, &sda_sf3_arrays_fan4[i].dev_attr);
-> -	for (i = 0; i < w83627ehf_num_in; i++) {
-> +	for (i = 0; i < data->in_num; i++) {
->  		device_remove_file(dev, &sda_in_input[i].dev_attr);
->  		device_remove_file(dev, &sda_in_alarm[i].dev_attr);
->  		device_remove_file(dev, &sda_in_min[i].dev_attr);
-> @@ -1160,86 +1154,73 @@
->  	}
->  	for (i = 0; i < ARRAY_SIZE(sda_temp); i++)
->  		device_remove_file(dev, &sda_temp[i].dev_attr);
-> -}
->  
-> -static struct i2c_driver w83627ehf_driver;
-> +	device_remove_file(dev, &dev_attr_name);
-> +}
->  
-> -static void w83627ehf_init_client(struct i2c_client *client)
-> +/* w83627ehf_init_device() gets the monitoring functions started */
-> +static inline void __devinit w83627ehf_init_device(struct w83627ehf_data *data)
->  {
->  	int i;
->  	u8 tmp;
->  
->  	/* Start monitoring is needed */
-> -	tmp = w83627ehf_read_value(client, W83627EHF_REG_CONFIG);
-> +	tmp = w83627ehf_read_value(data, W83627EHF_REG_CONFIG);
->  	if (!(tmp & 0x01))
-> -		w83627ehf_write_value(client, W83627EHF_REG_CONFIG,
-> +		w83627ehf_write_value(data, W83627EHF_REG_CONFIG,
->  				      tmp | 0x01);
->  
->  	/* Enable temp2 and temp3 if needed */
->  	for (i = 0; i < 2; i++) {
-> -		tmp = w83627ehf_read_value(client,
-> +		tmp = w83627ehf_read_value(data,
->  					   W83627EHF_REG_TEMP_CONFIG[i]);
->  		if (tmp & 0x01)
-> -			w83627ehf_write_value(client,
-> +			w83627ehf_write_value(data,
->  					      W83627EHF_REG_TEMP_CONFIG[i],
->  					      tmp & 0xfe);
->  	}
->  }
->  
-> -static int w83627ehf_detect(struct i2c_adapter *adapter)
-> +/* w83627ehf_probe() looks for a Super-I/O chip at known addresses */
-> +static int __devinit w83627ehf_probe(struct platform_device *pdev)
->  {
-> -	struct i2c_client *client;
-> -	struct w83627ehf_data *data;
-> -	struct device *dev;
-> +	struct device *dev = &pdev->dev;
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev);
->  	u8 fan4pin, fan5pin;
->  	int i, err = 0;
->  
-> -	if (!request_region(address + REGION_OFFSET, REGION_LENGTH,
-> -	                    w83627ehf_driver.driver.name)) {
-> +	if (!request_region(data->addr + REGION_OFFSET, REGION_LENGTH,
-> +			   DRVNAME)) {
->  		err = -EBUSY;
-> +		dev_err(dev, "Failed to request region 0x%lx-0x%lx\n",
-> +			(unsigned long) (data->addr + REGION_OFFSET),
-> +			(unsigned long) (
-> +			data->addr + REGION_OFFSET + REGION_LENGTH - 1));
->  		goto exit;
->  	}
->  
-> -	if (!(data = kzalloc(sizeof(struct w83627ehf_data), GFP_KERNEL))) {
-> -		err = -ENOMEM;
-> -		goto exit_release;
-> -	}
-> -
-> -	client = &data->client;
-> -	i2c_set_clientdata(client, data);
-> -	client->addr = address;
-> -	mutex_init(&data->lock);
-> -	client->adapter = adapter;
-> -	client->driver = &w83627ehf_driver;
-> -	client->flags = 0;
-> -	dev = &client->dev;
-> -
-> -	if (w83627ehf_num_in = 9)
-> -		strlcpy(client->name, "w83627dhg", I2C_NAME_SIZE);
-> -	else	/* just say ehf. 627EHG is 627EHF in lead-free packaging. */
-> -		strlcpy(client->name, "w83627ehf", I2C_NAME_SIZE);
-> +	/* fill in fields in *data so w83627ehf_read_value(), etc., work */
->  
->  	data->valid = 0;
-> +	mutex_init(&data->lock);
->  	mutex_init(&data->update_lock);
->  
-> -	/* Tell the i2c layer a new client has arrived */
-> -	if ((err = i2c_attach_client(client)))
-> -		goto exit_free;
-> +	/* 627EHG and 627EHF have 10 voltage inputs; DHG has 9 */
-> +	data->in_num = (data->kind = w83627dhg) ? 9 : 10;
->  
->  	/* Initialize the chip */
-> -	w83627ehf_init_client(client);
-> +	w83627ehf_init_device(data);
->  
-> -	/* A few vars need to be filled upon startup */
->  	for (i = 0; i < 5; i++)
-> -		data->fan_min[i] = w83627ehf_read_value(client,
-> +		data->fan_min[i] = w83627ehf_read_value(data,
->  				   W83627EHF_REG_FAN_MIN[i]);
->  
->  	/* fan4 and fan5 share some pins with the GPIO and serial flash */
->  
-> -	superio_enter();
-> -	fan5pin = superio_inb(0x24) & 0x2;
-> -	fan4pin = superio_inb(0x29) & 0x6;
-> -	superio_exit();
-> +	superio_enter(data->sioreg);
-> +	fan5pin = superio_inb(data->sioreg, 0x24) & 0x2;
-> +	fan4pin = superio_inb(data->sioreg, 0x29) & 0x6;
-> +	superio_exit(data->sioreg);
->  
->  	/* It looks like fan4 and fan5 pins can be alternatively used
->  	   as fan on/off switches, but fan5 control is write only :/
-> @@ -1248,7 +1229,7 @@
->  	   is not the default. */
->  
->  	data->has_fan = 0x07; /* fan1, fan2 and fan3 */
-> -	i = w83627ehf_read_value(client, W83627EHF_REG_FANDIV1);
-> +	i = w83627ehf_read_value(data, W83627EHF_REG_FANDIV1);
->  	if ((i & (1 << 2)) && (!fan4pin))
->  		data->has_fan |= (1 << 3);
->  	if (!(i & (1 << 1)) && (!fan5pin))
-> @@ -1257,18 +1238,17 @@
->  	/* Register sysfs hooks */
->    	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++)
->  		if ((err = device_create_file(dev,
-> -			&sda_sf3_arrays[i].dev_attr)))
-> +				&sda_sf3_arrays[i].dev_attr)))
->  			goto exit_remove;
->  
->  	/* if fan4 is enabled create the sf3 files for it */
->  	if (data->has_fan & (1 << 3))
-> -		for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++) {
-> +		for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++)
->  			if ((err = device_create_file(dev,
-> -				&sda_sf3_arrays_fan4[i].dev_attr)))
-> +					&sda_sf3_arrays_fan4[i].dev_attr)))
->  				goto exit_remove;
-> -		}
-
-These are cleanups which do not belong to this patch.
-
->  
-> -	for (i = 0; i < w83627ehf_num_in; i++)
-> +	for (i = 0; i < data->in_num; i++)
->  		if ((err = device_create_file(dev, &sda_in_input[i].dev_attr))
->  			|| (err = device_create_file(dev,
->  				&sda_in_alarm[i].dev_attr))
-> @@ -1308,6 +1288,10 @@
->  		if ((err = device_create_file(dev, &sda_temp[i].dev_attr)))
->  			goto exit_remove;
->  
-> +	err = device_create_file(dev, &dev_attr_name);
-> +	if (err)
-> +		goto exit_remove;
+> +* force_start: bool	Enables the monitoring of voltage, fan and temp inputs
+> +			and PWM output control functions. Using this parameter
+> +			shouldn't be required since the BIOS usually takes care
+> +			of this.
 > +
->  	data->class_dev = hwmon_device_register(dev);
->  	if (IS_ERR(data->class_dev)) {
->  		err = PTR_ERR(data->class_dev);
-> @@ -1318,95 +1302,175 @@
->  
->  exit_remove:
->  	w83627ehf_device_remove_files(dev);
-> -	i2c_detach_client(client);
-> -exit_free:
-> -	kfree(data);
-> -exit_release:
-> -	release_region(address + REGION_OFFSET, REGION_LENGTH);
-> +	release_region(data->addr + REGION_OFFSET, REGION_LENGTH);
->  exit:
->  	return err;
->  }
->  
-> -static int w83627ehf_detach_client(struct i2c_client *client)
-> +static int __devexit w83627ehf_remove(struct platform_device *pdev)
->  {
-> -	struct w83627ehf_data *data = i2c_get_clientdata(client);
-> -	int err;
-> +	struct w83627ehf_data *data = platform_get_drvdata(pdev);
->  
->  	hwmon_device_unregister(data->class_dev);
-> -	w83627ehf_device_remove_files(&client->dev);
-> +	w83627ehf_device_remove_files(&pdev->dev);
-> +	platform_set_drvdata(pdev, NULL);
->  
-> -	if ((err = i2c_detach_client(client)))
-> -		return err;
-> -	release_region(client->addr + REGION_OFFSET, REGION_LENGTH);
+> +Note that there is no need to use this parameter if the driver loads without
+> +complaining. The driver will says so if it is necessary.
 
-You shouldn't remove this. You requested the region in .probe(), you
-_must_ release it in .remove()!
-
->  	kfree(data);
-
-OTOH it's weird to free data here while you did not allocate it
-in .probe().
-
->  
->  	return 0;
->  }
->  
-> -static struct i2c_driver w83627ehf_driver = {
-> +static struct platform_driver w83627ehf_driver = {
->  	.driver = {
->  		.owner	= THIS_MODULE,
-> -		.name	= "w83627ehf",
-> +		.name	= DRVNAME,
->  	},
-> -	.attach_adapter	= w83627ehf_detect,
-> -	.detach_client	= w83627ehf_detach_client,
-> +	.probe		= w83627ehf_probe,
-> +	.remove		= __devexit_p(w83627ehf_remove),
->  };
->  
-> -static int __init w83627ehf_find(int sioaddr, unsigned short *addr)
-> +/* w83627ehf_superio_probe() looks for a '627 in the Super-I/O config space */
-> +static int __init w83627ehf_superio_probe(int sioaddr,
-> +					  struct w83627ehf_data *data)
->  {
->  	u16 val;
->  
-> -	REG = sioaddr;
-> -	VAL = sioaddr + 1;
-> -	superio_enter();
-> +	static const char * __initdata sio_names[] = {
-> +		"W83627EHF",
-> +		"W83627EHG",
-> +		"W83627DHG",
-> +	};
-
-This probably doesn't do what you think it does. Here the __initdata
-only applies to the pointers, not to the strings. So you aren't saving
-anything compared to putting the strings directly in the switch/case
-code.
-
-If you really want the strings themselves to be __initdata, then you
-have to define an array of arrays of chars, not an array of pointers:
-
-	static const char __initdata sio_names[][10] = {
-		"W83627EHF",
-		"W83627EHG",
-		"W83627DHG",
-	};
-
-With the drawback that you have to be careful to size the buffers
-properly. gcc will unfortunately not complain if the trailing \0
-doesn't fit, so it seems safer to explicitly add it yourself. (I
-consider it a bug in gcc.)
-
-Quite frankly, I don't think this is worth the trouble, and I would put
-the strings in the code directly.
+will say
 
 > +
-> +	const char * sio_name;
+> +
+> +Description
+> +-----------
+> +
+> +This driver implements support for the hardware monitoring capabilities of the
+> +SMSC DME1737 and Asus A8000 (which are the same) Super-I/O chips. This chip
+> +features monitoring of 3 temp sensors (2 remote diodes and 1 internal),
+> +7 voltages (6 external and 1 internal) and 6 fan speeds. Additionally, the
+> +chip implements 5 PWM outputs for controlling fan speeds both manually and
+> +automatically.
+> +
+> +
+> +Voltage Monitoring
+> +------------------
+> +
+> +The voltage inputs are sampled with 12-bit resolution and have internal
+> +scaling resistors. The values returned by the driver therefore reflect true
+> +millivolts and don't need scaling. The voltage inputs are mapped as follows
+> +(the last column indicates the input ranges):
+> +
+> +	in0: +5VTR	(+5V standby)		0V - 6.64V
+> +	in1: Vccp	(processor core)	0V - 3V
+> +	in2: VCC	(internal +3.3V)	0V - 4.38V
+> +	in3: +5V				0V - 6.64V
+> +	in4: +12V				0V - 16V
+> +	in5: VTR	(+3.3V standby)		0V - 4.38V
+> +	in6: Vbat	(+3.0V)			0V - 4.38V
+> +
+> +Each voltage input has associated min and max limits which trigger an alarm
+> +when crossed.
+> +
+> +
+> +Temperature Monitoring
+> +----------------------
+> +
+> +Temperatures are measured with 12-bit resolution and reported in millidegree
+> +Celsius. The chip also features offsets for all 3 temperature inputs which -
+> +when programmed - get added to the input readings. The chip does all the
+> +scaling by itself and the driver therefore reports true temperatures that don't
+> +need any user-space adjustments. The temperature inputs are mapped as follows
+> +(the last column indicates the input ranges):
+> +
+> +	temp1: Remote diode 1 (3904 type) temperature	-127C - +127C
+> +	temp2: DME1737 internal temperature		-127C - +127C
+> +	temp3: Remote diode 2 (3904 type) temperature	-127C - +127C
+> +
+> +Each temperature input has associated min and max limits which trigger an alarm
+> +when crossed. Additionally, each temperature input has a fault attribute that
+> +returns 1 when a faulty diode or an unconnected input is detected and 0
+> +otherwise.
+> +
+> +
+> +Fan Monitoring
+> +--------------
+> +
+> +Fan RPMs are measured with 16-bit resolution. The chip provides inputs for 6
+> +fan tachometers. All 6 inputs have an associated min limit which triggers an
+> +alarm when crossed. Fan inputs 1-4 provide type attributes that need to be set
+> +to the number of edges per fan revolution that the connected tachometer
+> +generates. Supported values are 2, 3, 5, and 9. Fan inputs 5-6 only support
+> +fans that generate 5 edges per revolution. Fan inputs 5-6 also provide a max
+
+I don't like this term "edges per revolution". It looks incorrect to
+me. The datasheet says that "five edges" correspond to "two pulses". I
+suspect that the 5th edge is needed to make sure we measured a full
+rotation of the fan (between 1st edge and 5th edge), but a standard
+2-pulse-per-revolution (PPR) fan certainly only generates _4_ edges per
+revolution. (If not, someone really needs to explain to me where the
+mysterious 5th one comes from!)
+
+An easy test would be, change the value from 5 to 3, how does the
+reported fan speed change? I suspect it will be multiplied by exactly
+2, not 5/3.
+
+The lm85 driver exports this value in PPR, and even though this isn't
+in our standard, I'd rather have the dme1737 driver do the same. 3
+edges would be 1 PPR, 5 edges would be 2 PPR and 9 edges would be 4
+PPR. I'm puzzled by the 2 edges option - how could a fan emit 1/2 PPR?
+Another mystery someone needs to explain to me.
+
+> +attribute that needs to be set to the maximum attainable RPM (fan at 100% duty-
+> +cycle) of the input. The chip adjusts the sampling rate based on this value.
+> +
+> +
+> +PWM Output Control
+> +------------------
+> +
+> +This chip features 5 PWM outputs. PWM outputs 1-3 are associated with fan
+> +inputs 1-3 and PWM outputs 5-6 are associated with fan inputs 5-6. PWM outputs
+> +1-3 can be configured to operate either in manual or automatic mode by setting
+> +the appropriate enable attribute accordingly. PWM outputs 5-6 can only operate
+> +in manual mode, their enable attributes are therefore read-only. When set to
+> +manual mode, the fan speed is set by writing the duty-cycle value to the
+> +appropriate PWM attribute. In automatic mode, the PWM attribute returns the
+> +current duty-cycle as set by the fan controller in the chip. All PWM outputs
+> +support the setting of the output frequency via the freq attribute.
+> +
+> +In automatic mode, the chip supports the setting of the PWM ramp rate which
+> +defines how fast the PWM output is adjusting to changes of the associated
+> +temperature input. Associating PWM outputs to temperature inputs is done via
+> +the auto_channels_temp attributes. Each PWM output has 2 distinct output
+> +duty-cycles: full and low. Full is internally hard-wired to 255 (100%) and low
+> +can be programmed via the auto_point1_pwm attribute. The thermal thresholds are
+> +programmed via auto_point[1-2]_temp, auto_point1_temp_hyst and
+> +auto_point2_crit, respectively:
+> +
+> +	pwm[1-3]_auto_point2_pwm		full-speed duty-cycle
+> +	pwm[1-3]_auto_point1_pwm		low-speed duty-cycle
+> +
+> +	temp[1-3]_auto_point2_temp_crit		full-speed temp (all outputs)
+> +	temp[1-3]_auto_point2_temp		full-speed temp
+> +	temp[1-3]_auto_point1_temp		low-speed temp
+> +	temp[1-3]_auto_point1_temp_hyst		off temp
+> +
+> +The chip adjusts the output duty-cycle linearly in the range of auto_point1_pwm
+> +to auto_point2_pwm if the temperature of the associated input is between
+> +auto_point1_temp and auto_point2_temp. The fan is turned off if the temperature
+> +drops below the auto_point1_temp_hyst value. If any of the temperatures rise
+> +above the auto_point2_temp_crit value, all PWM outputs are set to 100% duty-
+> +cycle. Following is another representation of how the chip sets the output
+> +duty-cycle based on the temperature of the associated thermal input:
+> +
+> +			Duty-Cycle	Duty-Cycle
+> +	Temperature	Rising Temp	Falling Temp
+> +	-----------	-----------	------------
+> +	full-speed	full-speed	full-speed
+> +
+> +			< linearly adjusted duty-cycle >
+> +
+> +	low-speed	low-speed	low-speed
+> +	off temp	off		low-speed
+> +			off		off
+> +
+> +
+> +Sysfs Attributes
+> +----------------
+> +
+> +Following is a list of all sysfs attributes that the driver provides, their
+> +permissions and a short description:
+> +
+> +Name				Perm	Description
+> +----				----	-----------
+> +cpu0_vid			RO	CPU core reference voltage in
+> +					millivolts.
+> +vrm				RW	Voltage regulator module version
+> +					number.
+> +
+> +in[0-6]_input			RO	Measured voltage in millivolts.
+> +in[0-6]_min			RW	Low limit for voltage input.
+> +in[0-6]_max			RW	High limit for voltage input.
+> +in[0-6]_alarm			RO	Voltage input alarm. Returns 1 if
+> +					voltage input is or went outside the
+> +					associated min-max range, 0 otherwise.
+> +
+> +temp[1-3]_input			RO	Measured temperature in millidegree
+> +					Celsius.
+> +temp[1-3]_min			RW	Low limit for temp input.
+> +temp[1-3]_max			RW	High limit for temp input.
+> +temp[1-3]_offset		RW	Offset for temp input. This value will
+> +					be added by the chip to the measured
+> +					temperature.
+> +temp[1-3]_alarm			RO	Alarm for temp input. Returns 1 if temp
+> +					input is or went outside the associated
+> +					min-max range, 0 otherwise.
+> +temp[1-3]_fault			RO	Temp input fault. Returns 1 if the chip
+> +					detects a faulty thermal diode or an
+> +					unconnected temp input, 0 otherwise.
+> +temp[1-3]_auto_point[1-2]_temp	RW	Auto PWM temp points. Auto_point1 is
+> +					the low-speed temperature. Auto_point2
+> +					is the full-speed temperature.
+> +temp[1-3]_auto_point1_temp_hyst	RW	Auto PWM temp hyst point. This is the
+
+You could spell hysteresis in full here, to make it clearer.
+
+> +					temperature below which the associated
+> +					PWM output is set to 0% duty-cycle.
+> +temp[1-3]_auto_point2_temp_crit	RW	Auto PWM temp crit point. This is the
+
+And critical in full as well.
+
+> +					temperature above which ALL PWM outputs
+> +					are set to 100% duty-cycle.
+> +
+> +fan[1-6]_input			RO	Measured fan speed in RPM. 
+> +fan[1-6]_min			RW	Low limit for fan input.
+> +fan[1-6]_alarm			RO	Alarm for fan input. Returns 1 if fan
+> +					input is or went below the associated
+> +					min value, 0 otherwise.
+> +fan[1-4]_type			RW	Type of attached fan. Expressed in
+> +					number of edges per revolution that the
+> +					fan generates. Supported values are 2,
+> +					3, 5, and 9.
+> +fan[5-6]_max			RW	Max attainable RPM at 100% duty-cycle.
+> +					Required for chip to adjust the
+> +					sampling rate accordingly.
+> +
+> +pmw[1-3,5-6]			RW	Duty-cycle of PWM output. Supported
+> +					values are 0-255 (0%-100%). Only
+> +					writeable if the associated PWM is in
+> +					manual mode.
+> +pwm[1-3]_enable			RW	Enable of PWM outputs 1-3. Supported
+> +					values are:
+> +						-1: turned off (output @ 0%)
+> +						 0: turned off (output @ 100%)
+> +						 1: manual mode
+> +						 2: automatic mode
+> +pwm[5-6]_enable			RO	Enable of PWM outputs 5-6. Always
+> +					returns 1 since these 2 outputs are
+> +					hard-wired to manual mode.
+
+Note that other drivers do not create the file in this case. It is
+assumed that PWM is always manual if pwmN exists and pwmN_enable
+doesn't.
+
+> +pmw[1-3,5-6]_freq		RW	Frequency of PWM output. Supported
+> +					values are in the range 11Hz-30000Hz
+> +					(default is 25000Hz).
+> +pmw[1-3]_ramp_rate		RW	Ramp rate of PWM output. Determines how
+> +					fast the PWM duty-cycle will change
+> +					when the PWM is in automatic mode.
+> +					Expressed in ms per PWM step size.
+
+s/step size/step/
+
+> +					Supported values are in the range
+> +					0ms-206ms (default is 0, which means
+> +					the duty-cycle changes instantly).
+> +pwm[1-3]_auto_channels_temp	RW	PWM output to temp input mapping.
+> +					Supported values are:
+> +						1: temp1
+> +						2: temp2
+> +						4: temp3
+> +						6: highest of temp[2-3]
+> +						7: highest of temp[1-3]
+
+Might be good mentioning that it's a bitfield, in case the reader
+doesn't notice.
+
+> +pwm[1-3]_auto_point[1-2]_pwm	RW	Auto PWM pwm points. Auto_point1 is the
+> +					low-speed duty-cycle. Auto_point2 is
+> +					the full-speed duty-cycle (which is
+> +					hard-wired to 255, i.e., 100% duty-
+> +					cycle).
+> diff -uprN -X linux-2.6.21-rc1/Documentation/dontdiff -x drivers -x include linux-2.6.21-rc1.orig/MAINTAINERS linux-2.6.21-rc1/MAINTAINERS
+> --- linux-2.6.21-rc1.orig/MAINTAINERS	2007-02-20 20:32:30.000000000 -0800
+> +++ linux-2.6.21-rc1/MAINTAINERS	2007-02-22 14:27:07.000000000 -0800
+> @@ -1156,6 +1156,12 @@ M:	tori@unhappy.mine.nu
+>  L:	netdev@vger.kernel.org
+>  S:	Maintained
 >  
-> -	val = (superio_inb(SIO_REG_DEVID) << 8)
-> -	    | superio_inb(SIO_REG_DEVID + 1);
-> +	data->sioreg = sioaddr;
+> +DME1737 HARDWARE MONITOR DRIVER
+> +P:	Juerg Haefliger
+> +M:	juergh@gmail.com
+> +L:	lm-sensors@lm-sensors.org
+> +S:	Maintained
 > +
-> +	superio_enter(data->sioreg);
-> +
-> +	val = (superio_inb(data->sioreg, SIO_REG_DEVID) << 8)
-> +	    | superio_inb(data->sioreg, SIO_REG_DEVID + 1);
->  	switch (val & SIO_ID_MASK) {
-> -	case SIO_W83627DHG_ID:
-> -		w83627ehf_num_in = 9;
-> -		break;
->  	case SIO_W83627EHF_ID:
-> +		data->kind = w83627ehf;
-> +		sio_name = sio_names[0];
-> +		break;
->  	case SIO_W83627EHG_ID:
-> -		w83627ehf_num_in = 10;
-> +		data->kind = w83627ehf;
-> +		sio_name = sio_names[1];
-> +		break;
-> +	case SIO_W83627DHG_ID:
-> +		data->kind = w83627dhg;
-> +		sio_name = sio_names[2];
->  		break;
->  	default:
-> -		printk(KERN_WARNING "w83627ehf: unsupported chip ID: 0x%04x\n",
-> +		pr_info(DRVNAME ": unsupported chip ID: 0x%04x\n",
->  			val);
-> -		superio_exit();
-> +		superio_exit(data->sioreg);
->  		return -ENODEV;
->  	}
->  
-> -	superio_select(W83627EHF_LD_HWM);
-> -	val = (superio_inb(SIO_REG_ADDR) << 8)
-> -	    | superio_inb(SIO_REG_ADDR + 1);
-> -	*addr = val & REGION_ALIGNMENT;
-> -	if (*addr = 0) {
-> -		superio_exit();
-> +	/* we have known chip find the HWMON base */
-> +
-> +	superio_select(data->sioreg, W83627EHF_LD_HWM);
-> +	val = (superio_inb(data->sioreg, SIO_REG_ADDR) << 8)
-> +	    | superio_inb(data->sioreg, SIO_REG_ADDR + 1);
-> +	data->addr = val & REGION_ALIGNMENT;
-> +	if (data->addr = 0) {
-> +		superio_exit(data->sioreg);
+>  DOCBOOK FOR DOCUMENTATION
+>  P:	Randy Dunlap
+>  M:	rdunlap@xenotime.net
 
-Note for a future patch: it would be user-friendly to log the reason
-why we're exiting here.
-
->  		return -ENODEV;
->  	}
->  
->  	/* Activate logical device if needed */
-> -	val = superio_inb(SIO_REG_ENABLE);
-> +	val = superio_inb(data->sioreg, SIO_REG_ENABLE);
->  	if (!(val & 0x01))
-> -		superio_outb(SIO_REG_ENABLE, val | 0x01);
-> +		superio_outb(data->sioreg, SIO_REG_ENABLE, val | 0x01);
-
-Note for a future patch: it would be user-friendly to warn that the
-device was forcibly enabled and that the readings may not make sense.
-
->  
-> -	superio_exit();
-> +	superio_exit(data->sioreg);
-> +	pr_info(DRVNAME ": Found %s chip at %#x\n",
-> +		sio_name, data->addr);
->  	return 0;
->  }
->  
-> +/* when Super-I/O functions move to a separate file, the Super-I/O
-> + * bus will manage the lifetime of the device and the w83627ehf driver
-> + * but since we platform_device_alloc(), we must keep track of the device */
-
-The "and the w83627ehf driver" part of your sentence doesn't make much
-sense and should be removed? Either that, or a part is missing.
-
-> +struct platform_device * pdev;
-
-Should be declared static. Usually we leave no space between the "*"
-and the variable name.
-
-> +
->  static int __init sensors_w83627ehf_init(void)
->  {
-> -	if (w83627ehf_find(0x2e, &address)
-> -	 && w83627ehf_find(0x4e, &address))
-> -		return -ENODEV;
-> +	int err;
-> +	struct resource res;
-> +	struct w83627ehf_data *data;
-> +
-> +	if (!(data = kzalloc(sizeof(struct w83627ehf_data), GFP_KERNEL))) {
-> +		err = -ENOMEM;
-> +		goto exit;
-> +	}
-
-This is an interesting approach. I did it differently in the other
-drivers. Your way saves some memory and some code, but OTOH it breaks
-the device driver model. The platform-specific data is supposed to be
-stored in dev.platform_data, NOT dev.driver_data. The code which
-instantiates the device isn't supposed to know how the driver is
-implemented. Nothing prevents a given device from being supported by
-more than one driver!
-
-So setting dev.driver_dat before .probe() is called sounds bad, and I
-suspect we will have to move this part to the .probe() function once
-we have a superio subsystem, anyway. So we might as well do it now.
-What do you think?
-
-> +
-> +	/* initialize data->kind, data->sioreg, and data->addr.
-> +	 *
-> +	 * when Super-I/O functions move to a separate file, the Super-I/O
-> +	 * driver will probe 0x23 and 0x4e and auto-detect the presence of a
-
-Typo: 0x2e, not Ox23.
-
-> +	 * w83627ehf hardware monitor, and call probe() */
-> +	if (w83627ehf_superio_probe(0x2e, data) &&
-> +	    w83627ehf_superio_probe(0x4e, data)) {
-> +		err = -ENODEV;
-> +		goto exit_free;
-> +	}
->  
-> -	return i2c_isa_add_driver(&w83627ehf_driver);
-> +	if ((err = platform_driver_register(&w83627ehf_driver))!=0)
-> +		goto exit_free;
-
-Please remove the "!=0".
-
-> +
-> +	if (!(pdev = platform_device_alloc(DRVNAME, data->addr))) {
-> +		err = -ENOMEM;
-> +		printk(KERN_ERR DRVNAME ": Device allocation failed\n");
-> +		goto exit_unregister;
-> +	}
-> +
-> +	platform_set_drvdata(pdev, data);
-> +
-> +	memset(&res, 0, sizeof(res));
-> +	data->name = w83627ehf_device_names[data->kind];
-> +	res.name = data->name;
-> +	res.start = data->addr + REGION_OFFSET;
-> +	res.end   = data->addr + REGION_OFFSET + REGION_LENGTH - 1;
-
-No alignment in code blocks please.
-
-> +	res.flags = IORESOURCE_IO;
-> +	err = platform_device_add_resources(pdev, &res, 1);
-> +	if (err) {
-> +		printk(KERN_ERR DRVNAME ": Device resource addition failed "
-> +		       "(%d)\n", err);
-> +		goto exit_device_put;
-> +	}
-> +
-> +	/* platform_device_add calls probe() */
-> +	err = platform_device_add(pdev);
-> +	if (err) {
-> +		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
-> +		       err);
-> +		goto exit_device_put;
-> +	}
-> +
-> +	return 0;
-> +
-> +exit_device_put:
-> +	pdev->dev.platform_data = NULL;
-> +	platform_device_put(pdev);
-> +exit_unregister:
-> +	platform_driver_unregister(&w83627ehf_driver);
-> +exit_free:
-> +	kfree(data);
-> +exit:
-> +	return err;
->  }
->  
->  static void __exit sensors_w83627ehf_exit(void)
->  {
-> -	i2c_isa_del_driver(&w83627ehf_driver);
-> +	/* when Super-I/O functions move to a separate file, devices
-> +	 * will be unregistered before unloading the module.
-
-Not true. When Super-I/O handling is moved to a separate module,
-devices will live their life independently from a driver being loaded
-for them or not. So devices will survive the w83627ehf driver unloading.
-
-> +	 *
-> +	 * for now, only one device is added in sensors_w83627ehf_init */
-> +	platform_device_unregister(pdev);
-> +	platform_driver_unregister(&w83627ehf_driver);
->  }
->  
->  MODULE_AUTHOR("Jean Delvare <khali@linux-fr.org>");
-> --- linux-2.6.21-rc5/drivers/hwmon/Kconfig	2007-03-28 17:25:43.000000000 -0700
-> +++ linux-2.6.21-rc5/drivers/hwmon/Kconfig	2007-03-28 20:50:11.000000000 -0700
-> @@ -527,7 +527,6 @@
->  config SENSORS_W83793
->  	tristate "Winbond W83793"
->  	depends on HWMON && I2C && EXPERIMENTAL
-> -	select HWMON_VID
->  	help
->  	  If you say yes here you get support for the Winbond W83793
->  	  hardware monitoring chip.
-
-You definitely don't want to do that.
-
-> @@ -560,17 +559,15 @@
->  	  will be called w83627hf.
->  
->  config SENSORS_W83627EHF
-> -	tristate "Winbond W83627EHF"
-> -	depends on HWMON && I2C && EXPERIMENTAL
-> -	select I2C_ISA
-> +	tristate "Winbond W83627EHF/DHG"
-> +	depends on HWMON && EXPERIMENTAL
->  	help
-> -	  If you say yes here you get preliminary support for the hardware
-> -	  monitoring functionality of the Winbond W83627EHF Super-I/O chip.
-> -	  Only fan and temperature inputs are supported at the moment, while
-> -	  the chip does much more than that.
-> +	  If you say yes here you get support for the hardware
-> +	  monitoring functionality of the Winbond W83627EHF/DHG Super-I/O chip.
->  
->  	  This driver also supports the W83627EHG, which is the lead-free
-> -	  version of the W83627EHF.
-> +	  version of the W83627EHF. The driver also supports the W83627DHG,
-> +	  which is a version suited for specific Intel processor sensing (PECI).
->  
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called w83627ehf.
-
-Most of this doesn't belong to this patch and should be moved to a
-separate patch.
 
 -- 
 Jean Delvare
