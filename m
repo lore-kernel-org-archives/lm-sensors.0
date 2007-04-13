@@ -1,83 +1,71 @@
-From: "David Hubbard" <david.c.hubbard@gmail.com>
-Date: Sun, 22 Apr 2007 15:23:57 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon/w83627ehf: Don't redefine
-Message-Id: <4dfa50520704220823i14143cbahdf30de104ee55b5c@mail.gmail.com>
+From: TuskenTower <tuskentower@gmail.com>
+Date: Fri, 13 Apr 2007 04:09:54 +0000
+Subject: [lm-sensors] Add the temp offset diode register to the k8temp
+Message-Id: <741eae780704122109t404ba5dbn5e95d15861de83ae@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_104_5874728.1176437394370"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean, Andrew,
+------=_Part_104_5874728.1176437394370
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On 4/22/07, Jean Delvare <khali@linux-fr.org> wrote:
-> On ia64, kernel headers define REGION_OFFSET so we can't use that.
-> Reported by Andrew Morton.
->
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: David Hubbard <david.c.hubbard@gmail.com>
+[CC'ing the lm-sensors list in case the Documentation/hwmon/k8temp
+documentation is out of date]
 
-If you would like to add a Signed-off-by for me, that would be fine. :-)
+Hi Rudolf,
+I have attached my patch (sorry gmail always screws them up for me) to
+have the k8temp utilize the temperature diode offset when calculating
+the reported temperature.
 
-> ---
->  drivers/hwmon/w83627ehf.c |   14 +++++++-------
->  1 file changed, 7 insertions(+), 7 deletions(-)
->
-> --- linux-2.6.21-rc7.orig/drivers/hwmon/w83627ehf.c     2007-04-21 22:18:56.000000000 +0200
-> +++ linux-2.6.21-rc7/drivers/hwmon/w83627ehf.c  2007-04-22 11:11:43.000000000 +0200
-> @@ -121,9 +121,9 @@ superio_exit(void)
->   * ISA constants
->   */
->
-> -#define REGION_ALIGNMENT       ~7
-> -#define REGION_OFFSET          5
-> -#define REGION_LENGTH          2
-> +#define IOREGION_ALIGNMENT     ~7
-> +#define IOREGION_OFFSET                5
-> +#define IOREGION_LENGTH                2
->  #define ADDR_REG_OFFSET                5
->  #define DATA_REG_OFFSET                6
->
-> @@ -1194,7 +1194,7 @@ static int w83627ehf_detect(struct i2c_a
->         u8 fan4pin, fan5pin;
->         int i, err = 0;
->
-> -       if (!request_region(address + REGION_OFFSET, REGION_LENGTH,
-> +       if (!request_region(address + IOREGION_OFFSET, IOREGION_LENGTH,
->                             w83627ehf_driver.driver.name)) {
->                 err = -EBUSY;
->                 goto exit;
-> @@ -1322,7 +1322,7 @@ exit_remove:
->  exit_free:
->         kfree(data);
->  exit_release:
-> -       release_region(address + REGION_OFFSET, REGION_LENGTH);
-> +       release_region(address + IOREGION_OFFSET, IOREGION_LENGTH);
->  exit:
->         return err;
->  }
-> @@ -1337,7 +1337,7 @@ static int w83627ehf_detach_client(struc
->
->         if ((err = i2c_detach_client(client)))
->                 return err;
-> -       release_region(client->addr + REGION_OFFSET, REGION_LENGTH);
-> +       release_region(client->addr + IOREGION_OFFSET, IOREGION_LENGTH);
->         kfree(data);
->
->         return 0;
-> @@ -1380,7 +1380,7 @@ static int __init w83627ehf_find(int sio
->         superio_select(W83627EHF_LD_HWM);
->         val = (superio_inb(SIO_REG_ADDR) << 8)
->             | superio_inb(SIO_REG_ADDR + 1);
-> -       *addr = val & REGION_ALIGNMENT;
-> +       *addr = val & IOREGION_ALIGNMENT;
->         if (*addr = 0) {
->                 superio_exit();
->                 return -ENODEV;
->
->
+Short Story:
+I started looking at this because the k8temp driver reported
+temperatures that were very different from those reported by the BIOS.
+ Since I couldn't make heads or tails of why the numbers were wrong, I
+read the spec sheet and the driver source.  I came up with the changes
+based on spec sheet (see my bug report).  The temperature reported by
+k8temp is not the same as the BIOS, but both CPU temps are uniformly 6
+degrees C lower than BIOS reported temps.  The diode offset corrects
+CPU1 by 4 and CPU 2 by 7.
+
+I was wondering what you thought of my changes.
+
+For the long story , please see http://www.lm-sensors.org/ticket/2200 .
+
+thanks,
+Amul
+
+------=_Part_104_5874728.1176437394370
+Content-Type: application/octet-stream; name=k8temp_diodeoffset.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f0g38u76
+Content-Disposition: attachment; filename="k8temp_diodeoffset.patch"
+
+ZGlmZiAtdXByTiBrZXJuZWwub3JpZy9kcml2ZXJzL2h3bW9uL2s4dGVtcC5jIGtlcm5lbC9kcml2
+ZXJzL2h3bW9uL2s4dGVtcC5jCi0tLSBrZXJuZWwub3JpZy9kcml2ZXJzL2h3bW9uL2s4dGVtcC5j
+CTIwMDctMDQtMTIgMjM6MTU6MDIuMDAwMDAwMDAwIC0wNDAwCisrKyBrZXJuZWwvZHJpdmVycy9o
+d21vbi9rOHRlbXAuYwkyMDA3LTA0LTEyIDIzOjEzOjUzLjAwMDAwMDAwMCAtMDQwMApAQCAtMzMs
+NiArMzMsNyBAQAogI2luY2x1ZGUgPGxpbnV4L211dGV4Lmg+CiAKICNkZWZpbmUgVEVNUF9GUk9N
+X1JFRyh2YWwpCSgoKCgodmFsKSA+PiAxNikgJiAweGZmKSAtIDQ5KSAqIDEwMDApCisjZGVmaW5l
+IE9GRlNFVF9GUk9NX1JFRyh2YWwpCSgodmFsID4+IDgpICYgMHgzZik/KDExIC0gKCh2YWwgPj4g
+OCkgJiAweDNmKSk6MAogI2RlZmluZSBSRUdfVEVNUAkweGU0CiAjZGVmaW5lIFNFTF9QTEFDRQkw
+eDQwCiAjZGVmaW5lIFNFTF9DT1JFCTB4MDQKQEAgLTExNyw3ICsxMTgsOCBAQCBzdGF0aWMgc3Np
+emVfdCBzaG93X3RlbXAoc3RydWN0IGRldmljZSAqCiAJc3RydWN0IGs4dGVtcF9kYXRhICpkYXRh
+ID0gazh0ZW1wX3VwZGF0ZV9kZXZpY2UoZGV2KTsKIAogCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiVk
+XG4iLAotCQkgICAgICAgVEVNUF9GUk9NX1JFRyhkYXRhLT50ZW1wW2NvcmVdW3BsYWNlXSkpOwor
+CQkJKChpbnQpIFRFTVBfRlJPTV9SRUcoZGF0YS0+dGVtcFtjb3JlXVtwbGFjZV0pKSArCisJCQko
+KChpbnQpIE9GRlNFVF9GUk9NX1JFRyhkYXRhLT50ZW1wW2NvcmVdW3BsYWNlXSkpKjEwMDApKTsK
+IH0KIAogLyogY29yZSwgcGxhY2UgKi8K
+------=_Part_104_5874728.1176437394370
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_104_5874728.1176437394370--
