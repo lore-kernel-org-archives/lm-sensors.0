@@ -1,1390 +1,638 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 08 Apr 2007 13:39:23 +0000
-Subject: [lm-sensors] PATCH: hwmon-abituguru3-new-driver.patch: Add support
-Message-Id: <4618F08B.70106@hhs.nl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------040506040009070903050604"
+From: Nicolas Boichat <nicolas@boichat.ch>
+Date: Fri, 13 Apr 2007 05:33:20 +0000
+Subject: [lm-sensors] [PATCH 1/2] Apple SMC driver - standardize and
+Message-Id: <461F1620.1010808@boichat.ch>
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------040506040009070903050604
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Hi all,
-
-This second version is the result of a thorough review by Juerg Haefliger,
-many thanks to him for this! Changes:
--Various cleanups / spelling fixes / code style fixes
--Don't register the device twice with the hwmon class.
-
-This patch adds a new driver for the hardware monitoring features of the
-third revision of the Abit uGuru chip, found on recent Abit
-motherboards. This is an entirely different beast then the first and
-second revision (its again a winbond microcontroller, but the "protocol"
-to talk to it and the bank addresses are very different.
-
-Regards,
-
-Hans
-
-
-
---------------040506040009070903050604
-Content-Type: text/x-patch;
- name="hwmon-abituguru3-new-driver-v2.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="hwmon-abituguru3-new-driver-v2.patch"
-
-This is the second version of my patch adding a new driver for the hardware
-monitoring features of the third revision of the Abit uGuru chip, found on
-recent Abit motherboards. This is an entirely different beast then the first
-and second revision. Its again a winbond microcontroller, but the "protocol" to
-talk to it and the bank addresses are very different.
-
-This second version is the result of a thorough review by Juerg Haefliger,
-many thanks to him for this! Changes:
--Various cleanups / spelling fixes / code style fixes
--Don't register the device twice with the hwmon class.
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-diff -urN linux-2.6.21-rc5-mm4.orig/Documentation/hwmon/abituguru linux-2.6.21-rc5-mm4/Documentation/hwmon/abituguru
---- linux-2.6.21-rc5-mm4.orig/Documentation/hwmon/abituguru	2007-02-04 19:44:54.000000000 +0100
-+++ linux-2.6.21-rc5-mm4/Documentation/hwmon/abituguru	2007-04-08 15:09:45.000000000 +0200
-@@ -2,7 +2,7 @@
- =======================
- 
- Supported chips:
--  * Abit uGuru revision 1-3 (Hardware Monitor part only)
-+  * Abit uGuru revision 1 & 2 (Hardware Monitor part only)
-     Prefix: 'abituguru'
-     Addresses scanned: ISA 0x0E0
-     Datasheet: Not available, this driver is based on reverse engineering.
-@@ -20,8 +20,8 @@
- 	uGuru 2.1.0.0 ~ 2.1.2.8 (AS8, AV8, AA8, AG8, AA8XE, AX8)
- 	uGuru 2.2.0.0 ~ 2.2.0.6 (AA8 Fatal1ty)
- 	uGuru 2.3.0.0 ~ 2.3.0.9 (AN8)
--	uGuru 3.0.0.0 ~ 3.0.1.2 (AW8, AL8, NI8)
--	uGuru 4.xxxxx?          (AT8 32X) (2)
-+	uGuru 3.0.0.0 ~ 3.0.x.x (AW8, AL8, AT8, NI8 SLI, AT8 32X, AN8 32X,
-+				 AW9D-MAX) (2)
- 	1) For revisions 2 and 3 uGuru's the driver can autodetect the
- 	   sensortype (Volt or Temp) for bank1 sensors, for revision 1 uGuru's
- 	   this doesnot always work. For these uGuru's the autodection can
-@@ -30,8 +30,9 @@
- 	   bank1_types=1,1,0,0,0,0,0,2,0,0,0,0,2,0,0,1
- 	   You may also need to specify the fan_sensors option for these boards
- 	   fan_sensors=5
--	2) The current version of the abituguru driver is known to NOT work
--	   on these Motherboards
-+	2) There is a seperate abituguru3 driver for these motherboards,
-+	   the abituguru (without the 3 !) driver will not work on these
-+	   motherboards (and visa versa)!
- 
- Authors:
- 	Hans de Goede <j.w.r.degoede@hhs.nl>,
-@@ -43,8 +44,10 @@
- -----------------
- 
- * force: bool		Force detection. Note this parameter only causes the
--			detection to be skipped, if the uGuru can't be read
--			the module initialization (insmod) will still fail.
-+			detection to be skipped, and thus the insmod to
-+			succeed. If the uGuru can't be read the actual hwmon
-+			driver will not load and thus no hwmon device will get
-+			registered.
- * bank1_types: int[]	Bank1 sensortype autodetection override:
- 			  -1 autodetect (default)
- 			   0 volt sensor
-@@ -69,13 +72,15 @@
- Description
- -----------
- 
--This driver supports the hardware monitoring features of the Abit uGuru chip
--found on Abit uGuru featuring motherboards (most modern Abit motherboards).
--
--The uGuru chip in reality is a Winbond W83L950D in disguise (despite Abit
--claiming it is "a new microprocessor designed by the ABIT Engineers").
--Unfortunatly this doesn't help since the W83L950D is a generic
--microcontroller with a custom Abit application running on it.
-+This driver supports the hardware monitoring features of the first and
-+second revision of the Abit uGuru chip found on Abit uGuru featuring
-+motherboards (most modern Abit motherboards).
-+
-+The first and second revision of the uGuru chip in reality is a Winbond
-+W83L950D in disguise (despite Abit claiming it is "a new microprocessor
-+designed by the ABIT Engineers"). Unfortunatly this doesn't help since the
-+W83L950D is a generic microcontroller with a custom Abit application running
-+on it.
- 
- Despite Abit not releasing any information regarding the uGuru, Olle
- Sandberg <ollebull@gmail.com> has managed to reverse engineer the sensor part
-diff -urN linux-2.6.21-rc5-mm4.orig/Documentation/hwmon/abituguru3 linux-2.6.21-rc5-mm4/Documentation/hwmon/abituguru3
---- linux-2.6.21-rc5-mm4.orig/Documentation/hwmon/abituguru3	1970-01-01 01:00:00.000000000 +0100
-+++ linux-2.6.21-rc5-mm4/Documentation/hwmon/abituguru3	2007-04-08 15:09:41.000000000 +0200
-@@ -0,0 +1,65 @@
-+Kernel driver abituguru3
-+========================
-+
-+Supported chips:
-+  * Abit uGuru revision 3 (Hardware Monitor part, reading only)
-+    Prefix: 'abituguru3'
-+    Addresses scanned: ISA 0x0E0
-+    Datasheet: Not available, this driver is based on reverse engineering.
-+    Note:
-+	The uGuru is a microcontroller with onboard firmware which programs
-+	it to behave as a hwmon IC. There are many different revisions of the
-+	firmware and thus effectivly many different revisions of the uGuru.
-+	Below is an incomplete list with which revisions are used for which
-+	Motherboards:
-+	uGuru 1.00    ~ 1.24    (AI7, KV8-MAX3, AN7)
-+	uGuru 2.0.0.0 ~ 2.0.4.2 (KV8-PRO)
-+	uGuru 2.1.0.0 ~ 2.1.2.8 (AS8, AV8, AA8, AG8, AA8XE, AX8)
-+	uGuru 2.3.0.0 ~ 2.3.0.9 (AN8)
-+	uGuru 3.0.0.0 ~ 3.0.x.x (AW8, AL8, AT8, NI8 SLI, AT8 32X, AN8 32X,
-+				 AW9D-MAX)
-+	The abituguru3 driver is only for revison 3.0.x.x motherboards,
-+	this driver will not work on older motherboards. For older
-+	motherboards use the abituguru (without the 3 !) driver.
-+
-+Authors:
-+	Hans de Goede <j.w.r.degoede@hhs.nl>,
-+	(Initial reverse engineering done by Louis Kruger)
-+
-+
-+Module Parameters
-+-----------------
-+
-+* force: bool		Force detection. Note this parameter only causes the
-+			detection to be skipped, and thus the insmod to
-+			succeed. If the uGuru can't be read the actual hwmon
-+			driver will not load and thus no hwmon device will get
-+			registered.
-+* verbose: bool		Should the driver be verbose?
-+			0/off/false  normal output
-+			1/on/true    + verbose error reporting (default)
-+			Default: 1 (the driver is still in the testing phase)
-+
-+Description
-+-----------
-+
-+This driver supports the hardware monitoring features of the third revision of
-+the Abit uGuru chip, found on recent Abit uGuru featuring motherboards.
-+
-+The 3rd revision of the uGuru chip in reality is a Winbond W83L951G.
-+Unfortunatly this doesn't help since the W83L951G is a generic microcontroller
-+with a custom Abit application running on it.
-+
-+Despite Abit not releasing any information regarding the uGuru revision 3, 
-+Louis Kruger has managed to reverse engineer the sensor part of the uGuru.
-+Without his work this driver would not have been possible.
-+
-+Known Issues
-+------------
-+
-+The voltage and frequency control parts of the Abit uGuru are not supported,
-+neither is writing any of the sensor settings and writing / reading the
-+fanspeed control registers (FanEQ)
-+
-+If you encounter any problems please mail me <j.w.r.degoede@hhs.nl> and
-+include the output of: "dmesg | grep abituguru"
-diff -urN linux-2.6.21-rc5-mm4.orig/drivers/hwmon/Kconfig linux-2.6.21-rc5-mm4/drivers/hwmon/Kconfig
---- linux-2.6.21-rc5-mm4.orig/drivers/hwmon/Kconfig	2007-04-08 12:01:57.000000000 +0200
-+++ linux-2.6.21-rc5-mm4/drivers/hwmon/Kconfig	2007-04-08 12:06:41.000000000 +0200
-@@ -28,17 +28,34 @@
- 	default n
- 
- config SENSORS_ABITUGURU
--	tristate "Abit uGuru"
-+	tristate "Abit uGuru (rev 1 & 2)"
- 	depends on HWMON && EXPERIMENTAL
- 	help
--	  If you say yes here you get support for the Abit uGuru chips
--	  sensor part. The voltage and frequency control parts of the Abit
--	  uGuru are not supported. The Abit uGuru chip can be found on Abit
--	  uGuru featuring motherboards (most modern Abit motherboards).
-+	  If you say yes here you get support for the sensor part of the first
-+	  and second revision of the Abit uGuru chip. The voltage and frequency
-+	  control parts of the Abit uGuru are not supported. The Abit uGuru
-+	  chip can be found on Abit uGuru featuring motherboards (most modern
-+	  Abit motherboards from before end 2005). For more info and a list
-+	  of which motherboards have which revision see
-+	  Documentation/hwmon/abituguru
- 
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called abituguru.
- 
-+config SENSORS_ABITUGURU3
-+	tristate "Abit uGuru (rev 3)"
-+	depends on HWMON && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for the sensor part of the
-+	  third revision of the Abit uGuru chip. Only reading the sensors
-+	  and their settings is supported. The third revision of the Abit
-+	  uGuru chip can be found on recent Abit motherboards (since end
-+	  2005). For more info and a list of which motherboards have which
-+	  revision see Documentation/hwmon/abituguru3
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called abituguru3.
-+
- config SENSORS_AD7418
- 	tristate "Analog Devices AD7416, AD7417 and AD7418"
- 	depends on HWMON && I2C && EXPERIMENTAL
-diff -urN linux-2.6.21-rc5-mm4.orig/drivers/hwmon/Makefile linux-2.6.21-rc5-mm4/drivers/hwmon/Makefile
---- linux-2.6.21-rc5-mm4.orig/drivers/hwmon/Makefile	2007-04-08 12:01:57.000000000 +0200
-+++ linux-2.6.21-rc5-mm4/drivers/hwmon/Makefile	2007-04-08 12:07:05.000000000 +0200
-@@ -14,6 +14,7 @@
- obj-$(CONFIG_SENSORS_W83791D)	+= w83791d.o
- 
- obj-$(CONFIG_SENSORS_ABITUGURU)	+= abituguru.o
-+obj-$(CONFIG_SENSORS_ABITUGURU3)+= abituguru3.o
- obj-$(CONFIG_SENSORS_AD7418)	+= ad7418.o
- obj-$(CONFIG_SENSORS_ADM1021)	+= adm1021.o
- obj-$(CONFIG_SENSORS_ADM1025)	+= adm1025.o
-diff -urN linux-2.6.21-rc5-mm4.orig/drivers/hwmon/abituguru.c linux-2.6.21-rc5-mm4/drivers/hwmon/abituguru.c
---- linux-2.6.21-rc5-mm4.orig/drivers/hwmon/abituguru.c	2007-04-08 12:00:46.000000000 +0200
-+++ linux-2.6.21-rc5-mm4/drivers/hwmon/abituguru.c	2007-04-08 12:04:30.000000000 +0200
-@@ -16,9 +16,9 @@
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
- /*
--    This driver supports the sensor part of the custom Abit uGuru chip found
--    on Abit uGuru motherboards. Note: because of lack of specs the CPU / RAM /
--    etc voltage & frequency control is not supported!
-+    This driver supports the sensor part of the first and second revision of
-+    the custom Abit uGuru chip found on Abit uGuru motherboards. Note: because
-+    of lack of specs the CPU/RAM voltage & frequency control is not supported!
- */
- #include <linux/module.h>
- #include <linux/sched.h>
-diff -urN linux-2.6.21-rc5-mm4.orig/drivers/hwmon/abituguru3.c linux-2.6.21-rc5-mm4/drivers/hwmon/abituguru3.c
---- linux-2.6.21-rc5-mm4.orig/drivers/hwmon/abituguru3.c	1970-01-01 01:00:00.000000000 +0100
-+++ linux-2.6.21-rc5-mm4/drivers/hwmon/abituguru3.c	2007-04-08 14:19:48.000000000 +0200
-@@ -0,0 +1,1112 @@
-+/*
-+    abituguru3.c Copyright (c) 2006 Hans de Goede <j.w.r.degoede@hhs.nl>
-+
-+    This program is free software; you can redistribute it and/or modify
-+    it under the terms of the GNU General Public License as published by
-+    the Free Software Foundation; either version 2 of the License, or
-+    (at your option) any later version.
-+
-+    This program is distributed in the hope that it will be useful,
-+    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+    GNU General Public License for more details.
-+
-+    You should have received a copy of the GNU General Public License
-+    along with this program; if not, write to the Free Software
-+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+*/
-+/*
-+    This driver supports the sensor part of revision 3 of the custom Abit uGuru
-+    chip found on newer Abit uGuru motherboards. Note: because of lack of specs
-+    only reading the sensors and their settings is supported.
-+*/
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/jiffies.h>
-+#include <linux/mutex.h>
-+#include <linux/err.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <asm/io.h>
-+
-+/* uGuru3 bank addresses */
-+#define ABIT_UGURU3_SETTINGS_BANK		0x01
-+#define ABIT_UGURU3_SENSORS_BANK		0x08
-+#define ABIT_UGURU3_MISC_BANK			0x09
-+#define ABIT_UGURU3_ALARMS_START		0x1E
-+#define ABIT_UGURU3_SETTINGS_START		0x24
-+#define ABIT_UGURU3_VALUES_START		0x80
-+#define ABIT_UGURU3_BOARD_ID			0x0A
-+/* uGuru3 sensor bank flags */			     /* Alarm if: */
-+#define ABIT_UGURU3_TEMP_HIGH_ALARM_ENABLE	0x01 /*  temp over warn */
-+#define ABIT_UGURU3_VOLT_HIGH_ALARM_ENABLE	0x02 /*  volt over max */
-+#define ABIT_UGURU3_VOLT_LOW_ALARM_ENABLE	0x04 /*  volt under min */
-+#define ABIT_UGURU3_TEMP_HIGH_ALARM_FLAG	0x10 /* temp is over warn */
-+#define ABIT_UGURU3_VOLT_HIGH_ALARM_FLAG	0x20 /* volt is over max */
-+#define ABIT_UGURU3_VOLT_LOW_ALARM_FLAG		0x40 /* volt is under min */
-+#define ABIT_UGURU3_FAN_LOW_ALARM_ENABLE	0x01 /*   fan under min */
-+#define ABIT_UGURU3_BEEP_ENABLE			0x08 /* beep if alarm */
-+#define ABIT_UGURU3_SHUTDOWN_ENABLE		0x80 /* shutdown if alarm */
-+/* sensor types */
-+#define ABIT_UGURU3_IN_SENSOR			0
-+#define ABIT_UGURU3_TEMP_SENSOR			1
-+#define ABIT_UGURU3_FAN_SENSOR			2
-+
-+/* Timeouts / Retries, if these turn out to need a lot of fiddling we could
-+   convert them to params. Determined by trial and error. I assume this is
-+   cpu-speed independent, since the ISA-bus and not the CPU should be the
-+   bottleneck. */
-+#define ABIT_UGURU3_WAIT_TIMEOUT		250
-+/* Normally the 0xAC at the end of synchronize() is reported after the
-+   first read, but sometimes not and we need to poll */
-+#define ABIT_UGURU3_SYNCHRONIZE_TIMEOUT		5
-+/* utility macros */
-+#define ABIT_UGURU3_NAME			"abituguru3"
-+#define ABIT_UGURU3_DEBUG(format, arg...)	\
-+	if (verbose)				\
-+		printk(KERN_DEBUG ABIT_UGURU3_NAME ": "	format , ## arg)
-+
-+/* Macros to help calculate the sysfs_names array length */
-+#define ABIT_UGURU3_MAX_NO_SENSORS 26
-+/* sum of strlen +1 of: in??_input\0, in??_{min,max}\0, in??_{min,max}_alarm\0,
-+   in??_{min,max}_alarm_enable\0, in??_beep\0, in??_shutdown\0, in??_label\0 */
-+#define ABIT_UGURU3_IN_NAMES_LENGTH (11 + 2 * 9 + 2 * 15 + 2 * 22 + 10 + 14 + 11)
-+/* sum of strlen +1 of: temp??_input\0, temp??_max\0, temp??_crit\0,
-+   temp??_alarm\0, temp??_alarm_enable\0, temp??_beep\0, temp??_shutdown\0,
-+   temp??_label\0 */
-+#define ABIT_UGURU3_TEMP_NAMES_LENGTH (13 + 11 + 12 + 13 + 20 + 12 + 16 + 13)
-+/* sum of strlen +1 of: fan??_input\0, fan??_min\0, fan??_alarm\0,
-+   fan??_alarm_enable\0, fan??_beep\0, fan??_shutdown\0, fan??_label\0 */
-+#define ABIT_UGURU3_FAN_NAMES_LENGTH (12 + 10 + 12 + 19 + 11 + 15 + 12)
-+/* Worst case scenario 16 in sensors (longest names_length) and the rest
-+   temp sensors (second longest names_length). */
-+#define ABIT_UGURU3_SYSFS_NAMES_LENGTH (16 * ABIT_UGURU3_IN_NAMES_LENGTH + \
-+	(ABIT_UGURU3_MAX_NO_SENSORS - 16) * ABIT_UGURU3_TEMP_NAMES_LENGTH)
-+
-+/* All the macros below are named identical to the openguru2 program
-+   reverse engineered by Louis Kruger, hence the names might not be 100%
-+   logical. I could come up with better names, but I prefer keeping the names
-+   identical so that this driver can be compared with his work more easily. */
-+/* Two i/o-ports are used by uGuru */
-+#define ABIT_UGURU3_BASE			0x00E0
-+#define ABIT_UGURU3_CMD				0x00
-+#define ABIT_UGURU3_DATA			0x04
-+#define ABIT_UGURU3_REGION_LENGTH		5
-+/* The wait_xxx functions return this on success and the last contents
-+   of the DATA register (0-255) on failure. */
-+#define ABIT_UGURU3_SUCCESS			-1
-+/* uGuru status flags */
-+#define ABIT_UGURU3_STATUS_READY_FOR_READ	0x01
-+#define ABIT_UGURU3_STATUS_BUSY			0x02
-+
-+
-+/* Structures */
-+struct abituguru3_sensor_info {
-+	const char* name;
-+	int port;
-+	int type;
-+	int multiplier;
-+	int divisor;
-+	int offset;
-+};
-+
-+struct abituguru3_motherboard_info {
-+	u16 id;
-+	const char *name;
-+	/* + 1 -> end of sensors indicated by a sensor with name == NULL */
-+	struct abituguru3_sensor_info sensors[ABIT_UGURU3_MAX_NO_SENSORS + 1];
-+};
-+
-+/* For the Abit uGuru, we need to keep some data in memory.
-+   The structure is dynamically allocated, at the same time when a new
-+   abituguru3 device is allocated. */
-+struct abituguru3_data {
-+	struct class_device *class_dev; /* hwmon registered device */
-+	struct mutex update_lock;	/* protect access to data and uGuru */
-+	unsigned short addr;		/* uguru base address */
-+	char valid;			/* !=0 if following fields are valid */
-+	unsigned long last_updated;	/* In jiffies */
-+
-+	/* For convenience the sysfs attr and their names are generated
-+	   automatically. We have max 10 entries per sensor (for in sensors) */
-+	struct sensor_device_attribute_2 sysfs_attr[ABIT_UGURU3_MAX_NO_SENSORS
-+		* 10];
-+	
-+	/* Buffer to store the dynamically generated sysfs names */
-+	char sysfs_names[ABIT_UGURU3_SYSFS_NAMES_LENGTH];
-+	
-+	/* Pointer to the sensors info for the detected motherboard */
-+	const struct abituguru3_sensor_info *sensors;
-+
-+	/* The abituguru3 supports upto 48 sensors, and thus has registers
-+	   sets for 48 sensors, for convienence reasons / simplicity of the
-+	   code we always read and store all registers for all 48 sensors */
-+	   
-+	/* Alarms for all 48 sensors (1 bit per sensor) */
-+	u8 alarms[48/8];
-+
-+	/* Value of all 48 sensors */
-+	u8 value[48];
-+	
-+	/* Settings of all 48 sensors, note in and temp sensors (the first 32
-+	   sensors) have 3 bytes of settings, while fans only have 2 bytes,
-+	   for convenience we use 3 bytes for all sensors */
-+	u8 settings[48][3];
-+};
-+
-+
-+/* Constants */
-+static const struct abituguru3_motherboard_info abituguru3_motherboards[] = {
-+	{ 0x000C, "unknown", {
-+		{ "CPU Core",		 0, 0, 10, 1, 0 },
-+		{ "DDR",		 1, 0, 10, 1, 0 },
-+		{ "DDR VTT",		 2, 0, 10, 1, 0 },
-+		{ "CPU VTT 1.2V",	 3, 0, 10, 1, 0 },
-+		{ "MCH & PCIE 1.5V",	 4, 0, 10, 1, 0 },
-+		{ "MCH 2.5V",		 5, 0, 20, 1, 0 },
-+		{ "ICH 1.05V",		 6, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	 7, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "+3.3V",		10, 0, 20, 1, 0 },
-+		{ "5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "System ",		25, 1, 1, 1, 0 },
-+		{ "PWM",		26, 1, 1, 1, 0 },
-+		{ "CPU Fan",		32, 2, 60, 1, 0 },
-+		{ "NB Fan",		33, 2, 60, 1, 0 },
-+		{ "SYS FAN",		34, 2, 60, 1, 0 },
-+		{ "AUX1 Fan",		35, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x000D, "Abit AW8", {
-+		{ "CPU Core",		 0, 0, 10, 1, 0 },
-+		{ "DDR",		 1, 0, 10, 1, 0 },
-+		{ "DDR VTT",		 2, 0, 10, 1, 0 },
-+		{ "CPU VTT 1.2V",	 3, 0, 10, 1, 0 },
-+		{ "MCH & PCIE 1.5V",	 4, 0, 10, 1, 0 },
-+		{ "MCH 2.5V",		 5, 0, 20, 1, 0 },
-+		{ "ICH 1.05V",		 6, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	 7, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "+3.3V",		10, 0, 20, 1, 0 },
-+		{ "5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "System ",		25, 1, 1, 1, 0 },
-+		{ "PWM1",		26, 1, 1, 1, 0 },
-+		{ "PWM2",		27, 1, 1, 1, 0 },
-+		{ "PWM3",		28, 1, 1, 1, 0 },
-+		{ "PWM4",		29, 1, 1, 1, 0 },
-+		{ "CPU Fan",		32, 2, 60, 1, 0 },
-+		{ "NB Fan",		33, 2, 60, 1, 0 },
-+		{ "SYS Fan",		34, 2, 60, 1, 0 },
-+		{ "AUX1 Fan",		35, 2, 60, 1, 0 },
-+		{ "AUX2 Fan",		36, 2, 60, 1, 0 },
-+		{ "AUX3 Fan",		37, 2, 60, 1, 0 },
-+		{ "AUX4 Fan",		38, 2, 60, 1, 0 },
-+		{ "AUX5 Fan",		39, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x000E, "AL-8", {
-+		{ "CPU Core",		 0, 0, 10, 1, 0 },
-+		{ "DDR",		 1, 0, 10, 1, 0 },
-+		{ "DDR VTT",		 2, 0, 10, 1, 0 },
-+		{ "CPU VTT 1.2V",	 3, 0, 10, 1, 0 },
-+		{ "MCH & PCIE 1.5V",	 4, 0, 10, 1, 0 },
-+		{ "MCH 2.5V",		 5, 0, 20, 1, 0 },
-+		{ "ICH 1.05V",		 6, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	 7, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "+3.3V",		10, 0, 20, 1, 0 },
-+		{ "5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "System ",		25, 1, 1, 1, 0 },
-+		{ "PWM",		26, 1, 1, 1, 0 },
-+		{ "CPU Fan",		32, 2, 60, 1, 0 },
-+		{ "NB Fan",		33, 2, 60, 1, 0 },
-+		{ "SYS Fan",		34, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x000F, "unknown", {
-+		{ "CPU Core",		 0, 0, 10, 1, 0 },
-+		{ "DDR",		 1, 0, 10, 1, 0 },
-+		{ "DDR VTT",		 2, 0, 10, 1, 0 },
-+		{ "CPU VTT 1.2V",	 3, 0, 10, 1, 0 },
-+		{ "MCH & PCIE 1.5V",	 4, 0, 10, 1, 0 },
-+		{ "MCH 2.5V",		 5, 0, 20, 1, 0 },
-+		{ "ICH 1.05V",		 6, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	 7, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "+3.3V",		10, 0, 20, 1, 0 },
-+		{ "5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "System ",		25, 1, 1, 1, 0 },
-+		{ "PWM",		26, 1, 1, 1, 0 },
-+		{ "CPU Fan",		32, 2, 60, 1, 0 },
-+		{ "NB Fan",		33, 2, 60, 1, 0 },
-+		{ "SYS Fan",		34, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x0010, "Abit NI8 SLI GR", {
-+		{ "CPU Core",		 0, 0, 10, 1, 0 },
-+		{ "DDR",		 1, 0, 10, 1, 0 },
-+		{ "DDR VTT",		 2, 0, 10, 1, 0 },
-+		{ "CPU VTT 1.2V",	 3, 0, 10, 1, 0 },
-+		{ "NB 1.4V",		 4, 0, 10, 1, 0 },
-+		{ "SB 1.5V",		 6, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	 7, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "+3.3V",		10, 0, 20, 1, 0 },
-+		{ "5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "SYS",		25, 1, 1, 1, 0 },
-+		{ "PWM",		26, 1, 1, 1, 0 },
-+		{ "CPU Fan",		32, 2, 60, 1, 0 },
-+		{ "NB Fan",		33, 2, 60, 1, 0 },
-+		{ "SYS Fan",		34, 2, 60, 1, 0 },
-+		{ "AUX1 Fan",		35, 2, 60, 1, 0 },
-+		{ "OTES1 Fan",		36, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x0011, "Abit AT8 32X", {
-+		{ "CPU Core",		 0, 0, 10, 1, 0 },
-+		{ "DDR",		 1, 0, 20, 1, 0 },
-+		{ "DDR VTT",		 2, 0, 10, 1, 0 },
-+		{ "CPU VDDA 2.5V",	 6, 0, 20, 1, 0 },
-+		{ "NB 1.8V",		 4, 0, 10, 1, 0 },
-+		{ "NB 1.8V Dual",	 5, 0, 10, 1, 0 },
-+		{ "HTV 1.2",		 3, 0, 10, 1, 0 },
-+		{ "PCIE 1.2V",		12, 0, 10, 1, 0 },
-+		{ "NB 1.2V",		13, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	 7, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "+3.3V",		10, 0, 20, 1, 0 },
-+		{ "5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "NB",			25, 1, 1, 1, 0 },
-+		{ "System",		26, 1, 1, 1, 0 },
-+		{ "PWM",		27, 1, 1, 1, 0 },
-+		{ "CPU Fan",		32, 2, 60, 1, 0 },
-+		{ "NB Fan",		33, 2, 60, 1, 0 },
-+		{ "SYS Fan",		34, 2, 60, 1, 0 },
-+		{ "AUX1 Fan",		35, 2, 60, 1, 0 },
-+		{ "AUX2 Fan",		36, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x0012, "Abit AN8 32X", {
-+		{ "CPU Core",		 0, 0, 10, 1, 0 },
-+		{ "DDR",		 1, 0, 20, 1, 0 },
-+		{ "DDR VTT",		 2, 0, 10, 1, 0 },
-+		{ "HyperTransport",	 3, 0, 10, 1, 0 },
-+		{ "CPU VDDA 2.5V",	 5, 0, 20, 1, 0 },
-+		{ "NB",			 4, 0, 10, 1, 0 },
-+		{ "SB",			 6, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	 7, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "+3.3V",		10, 0, 20, 1, 0 },
-+		{ "5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "SYS",		25, 1, 1, 1, 0 },
-+		{ "PWM",		26, 1, 1, 1, 0 },
-+		{ "CPU Fan",		32, 2, 60, 1, 0 },
-+		{ "NB Fan",		33, 2, 60, 1, 0 },
-+		{ "SYS Fan",		34, 2, 60, 1, 0 },
-+		{ "AUX1 Fan",		36, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x0013, "unknown", {
-+		{ "CPU Core",		 0, 0, 10, 1, 0 },
-+		{ "DDR",		 1, 0, 10, 1, 0 },
-+		{ "DDR VTT",		 2, 0, 10, 1, 0 },
-+		{ "CPU VTT 1.2V",	 3, 0, 10, 1, 0 },
-+		{ "MCH & PCIE 1.5V",	 4, 0, 10, 1, 0 },
-+		{ "MCH 2.5V",		 5, 0, 20, 1, 0 },
-+		{ "ICH 1.05V",		 6, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	 7, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "+3.3V",		10, 0, 20, 1, 0 },
-+		{ "5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "System ",		25, 1, 1, 1, 0 },
-+		{ "PWM1",		26, 1, 1, 1, 0 },
-+		{ "PWM2",		27, 1, 1, 1, 0 },
-+		{ "PWM3",		28, 1, 1, 1, 0 },
-+		{ "PWM4",		29, 1, 1, 1, 0 },
-+		{ "CPU Fan",		32, 2, 60, 1, 0 },
-+		{ "NB Fan",		33, 2, 60, 1, 0 },
-+		{ "SYS Fan",		34, 2, 60, 1, 0 },
-+		{ "AUX1 Fan",		35, 2, 60, 1, 0 },
-+		{ "AUX2 Fan",		36, 2, 60, 1, 0 },
-+		{ "AUX3 Fan",		37, 2, 60, 1, 0 },
-+		{ "AUX4 Fan",		38, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x0014, "unknown", {
-+		{ "CPU Core",		 0, 0, 10, 1, 0 },
-+		{ "DDR",		 1, 0, 10, 1, 0 },
-+		{ "DDR VTT",		 2, 0, 10, 1, 0 },
-+		{ "CPU VTT 1.2V",	 3, 0, 10, 1, 0 },
-+		{ "MCH & PCIE 1.5V",	 4, 0, 10, 1, 0 },
-+		{ "MCH 2.5V",		 5, 0, 20, 1, 0 },
-+		{ "ICH 1.05V",		 6, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	 7, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "+3.3V",		10, 0, 20, 1, 0 },
-+		{ "5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "System ",		25, 1, 1, 1, 0 },
-+		{ "PWM",		26, 1, 1, 1, 0 },
-+		{ "CPU Fan",		32, 2, 60, 1, 0 },
-+		{ "NB Fan",		33, 2, 60, 1, 0 },
-+		{ "SYS Fan",		34, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x0015, "unknown", {
-+		{ "CPU Core",		 0, 0, 10, 1, 0 },
-+		{ "DDR",		 1, 0, 20, 1, 0 },
-+		{ "DDR VTT",		 2, 0, 10, 1, 0 },
-+		{ "HyperTransport",	 3, 0, 10, 1, 0 },
-+		{ "CPU VDDA 2.5V",	 5, 0, 20, 1, 0 },
-+		{ "NB",			 4, 0, 10, 1, 0 },
-+		{ "SB",			 6, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	 7, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "+3.3V",		10, 0, 20, 1, 0 },
-+		{ "5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "SYS",		25, 1, 1, 1, 0 },
-+		{ "PWM",		26, 1, 1, 1, 0 },
-+		{ "CPU Fan",		32, 2, 60, 1, 0 },
-+		{ "NB Fan",		33, 2, 60, 1, 0 },
-+		{ "SYS Fan",		34, 2, 60, 1, 0 },
-+		{ "AUX1 Fan",		33, 2, 60, 1, 0 },
-+		{ "AUX2 Fan",		35, 2, 60, 1, 0 },
-+		{ "AUX3 Fan",		36, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x0016, "AW9D-MAX", {
-+		{ "CPU Core",		 0, 0, 10, 1, 0 },
-+		{ "DDR2",		 1, 0, 20, 1, 0 },
-+		{ "DDR2 VTT",		 2, 0, 10, 1, 0 },
-+		{ "CPU VTT 1.2V",	 3, 0, 10, 1, 0 },
-+		{ "MCH & PCIE 1.5V",	 4, 0, 10, 1, 0 },
-+		{ "MCH 2.5V",		 5, 0, 20, 1, 0 },
-+		{ "ICH 1.05V",		 6, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	 7, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "+3.3V",		10, 0, 20, 1, 0 },
-+		{ "5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "System ",		25, 1, 1, 1, 0 },
-+		{ "PWM1",		26, 1, 1, 1, 0 },
-+		{ "PWM2",		27, 1, 1, 1, 0 },
-+		{ "PWM3",		28, 1, 1, 1, 0 },
-+		{ "PWM4",		29, 1, 1, 1, 0 },
-+		{ "CPU Fan",		32, 2, 60, 1, 0 },
-+		{ "NB Fan",		33, 2, 60, 1, 0 },
-+		{ "SYS Fan",		34, 2, 60, 1, 0 },
-+		{ "AUX1 Fan",		35, 2, 60, 1, 0 },
-+		{ "AUX2 Fan",		36, 2, 60, 1, 0 },
-+		{ "AUX3 Fan",		37, 2, 60, 1, 0 },
-+		{ "OTES1 Fan",		38, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x0017, "unknown", {
-+		{ "CPU Core",		 0, 0, 10, 1, 0 },
-+		{ "DDR2",		 1, 0, 20, 1, 0 },
-+		{ "DDR2 VTT",		 2, 0, 10, 1, 0 },
-+		{ "HyperTransport",	 3, 0, 10, 1, 0 },
-+		{ "CPU VDDA 2.5V",	 6, 0, 20, 1, 0 },
-+		{ "NB 1.8V",		 4, 0, 10, 1, 0 },
-+		{ "NB 1.2V ",		13, 0, 10, 1, 0 },
-+		{ "SB 1.2V",		 5, 0, 10, 1, 0 },
-+		{ "PCIE 1.2V",		12, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	 7, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "ATX +3.3V",		10, 0, 20, 1, 0 },
-+		{ "ATX 5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "System ",		26, 1, 1, 1, 0 },
-+		{ "PWM",		27, 1, 1, 1, 0 },
-+		{ "CPU FAN",		32, 2, 60, 1, 0 },
-+		{ "SYS FAN",		34, 2, 60, 1, 0 },
-+		{ "AUX1 FAN",		35, 2, 60, 1, 0 },
-+		{ "AUX2 FAN",		36, 2, 60, 1, 0 },
-+		{ "AUX3 FAN",		37, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x0018, "unknown", {
-+		{ "CPU Core",		 0, 0, 10, 1, 0 },
-+		{ "DDR2",		 1, 0, 20, 1, 0 },
-+		{ "DDR2 VTT",		 2, 0, 10, 1, 0 },
-+		{ "CPU VTT",		 3, 0, 10, 1, 0 },
-+		{ "MCH 1.25V",		 4, 0, 10, 1, 0 },
-+		{ "ICHIO 1.5V",		 5, 0, 10, 1, 0 },
-+		{ "ICH 1.05V",		 6, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	 7, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "+3.3V",		10, 0, 20, 1, 0 },
-+		{ "5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "System ",		25, 1, 1, 1, 0 },
-+		{ "PWM Phase1",		26, 1, 1, 1, 0 },
-+		{ "PWM Phase2",		27, 1, 1, 1, 0 },
-+		{ "PWM Phase3",		28, 1, 1, 1, 0 },
-+		{ "PWM Phase4",		29, 1, 1, 1, 0 },
-+		{ "PWM Phase5",		30, 1, 1, 1, 0 },
-+		{ "CPU Fan",		32, 2, 60, 1, 0 },
-+		{ "SYS Fan",		34, 2, 60, 1, 0 },
-+		{ "AUX1 Fan",		33, 2, 60, 1, 0 },
-+		{ "AUX2 Fan",		35, 2, 60, 1, 0 },
-+		{ "AUX3 Fan",		36, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x0019, "unknown", {
-+		{ "CPU Core",		 7, 0, 10, 1, 0 },
-+		{ "DDR2",		13, 0, 20, 1, 0 },
-+		{ "DDR2 VTT",		14, 0, 10, 1, 0 },
-+		{ "CPU VTT",		 3, 0, 20, 1, 0 },
-+		{ "NB 1.2V ",		 4, 0, 10, 1, 0 },
-+		{ "SB 1.5V",		 6, 0, 10, 1, 0 },
-+		{ "HyperTransport",	 5, 0, 10, 1, 0 },
-+		{ "ATX +12V (24-Pin)",	12, 0, 60, 1, 0 },
-+		{ "ATX +12V (4-pin)",	 8, 0, 60, 1, 0 },
-+		{ "ATX +5V",		 9, 0, 30, 1, 0 },
-+		{ "ATX +3.3V",		10, 0, 20, 1, 0 },
-+		{ "ATX 5VSB",		11, 0, 30, 1, 0 },
-+		{ "CPU",		24, 1, 1, 1, 0 },
-+		{ "System ",		25, 1, 1, 1, 0 },
-+		{ "PWM Phase1",		26, 1, 1, 1, 0 },
-+		{ "PWM Phase2",		27, 1, 1, 1, 0 },
-+		{ "PWM Phase3",		28, 1, 1, 1, 0 },
-+		{ "PWM Phase4",		29, 1, 1, 1, 0 },
-+		{ "PWM Phase5",		30, 1, 1, 1, 0 },
-+		{ "CPU FAN",		32, 2, 60, 1, 0 },
-+		{ "SYS FAN",		34, 2, 60, 1, 0 },
-+		{ "AUX1 FAN",		33, 2, 60, 1, 0 },
-+		{ "AUX2 FAN",		35, 2, 60, 1, 0 },
-+		{ "AUX3 FAN",		36, 2, 60, 1, 0 },
-+		{ NULL, 0, 0, 0, 0, 0 } }
-+	},
-+	{ 0x0000, NULL, { { NULL, 0, 0, 0, 0, 0 } } }
-+};
-+
-+
-+/* Insmod parameters */
-+static int force;
-+module_param(force, bool, 0);
-+MODULE_PARM_DESC(force, "Set to one to force detection.");
-+/* Default verbose is 1, since this driver is still in the testing phase */
-+static int verbose = 1;
-+module_param(verbose, bool, 0644);
-+MODULE_PARM_DESC(verbose, "Enable/disable verbose error reporting");
-+
-+
-+/* wait while the uguru is busy (usually after a write) */
-+static int abituguru3_wait_while_busy(struct abituguru3_data *data)
-+{
-+	u8 x;
-+	int timeout = ABIT_UGURU3_WAIT_TIMEOUT;
-+
-+	while ((x = inb_p(data->addr + ABIT_UGURU3_DATA)) &
-+			ABIT_UGURU3_STATUS_BUSY) {
-+		timeout--;
-+		if (timeout == 0)
-+			return x;
-+		/* sleep a bit before our last try, to give the uGuru3 one
-+		   last chance to respond. */
-+		if (timeout == 1)
-+			msleep(1);
-+	}
-+	return ABIT_UGURU3_SUCCESS;
-+}
-+
-+/* wait till uguru is ready to be read */
-+static int abituguru3_wait_for_read(struct abituguru3_data *data)
-+{
-+	u8 x;
-+	int timeout = ABIT_UGURU3_WAIT_TIMEOUT;
-+
-+	while (!((x = inb_p(data->addr + ABIT_UGURU3_DATA)) &
-+			ABIT_UGURU3_STATUS_READY_FOR_READ)) {
-+		timeout--;
-+		if (timeout == 0)
-+			return x;
-+		/* sleep a bit before our last try, to give the uGuru3 one
-+		   last chance to respond. */
-+		if (timeout == 1)
-+			msleep(1);
-+	}
-+	return ABIT_UGURU3_SUCCESS;
-+}
-+
-+/* This synchronizes us with the uGuru3's protocol state machine, this
-+   must be done before each command. */
-+static int abituguru3_synchronize(struct abituguru3_data *data)
-+{
-+	int x, timeout = ABIT_UGURU3_SYNCHRONIZE_TIMEOUT;
-+
-+	if ((x = abituguru3_wait_while_busy(data)) != ABIT_UGURU3_SUCCESS) {
-+		ABIT_UGURU3_DEBUG("synchronize timeout during initial busy "
-+			"wait, status: 0x%02x\n", x);
-+		return -EIO;
-+	}
-+
-+	outb(0x20, data->addr + ABIT_UGURU3_DATA);
-+	if ((x = abituguru3_wait_while_busy(data)) != ABIT_UGURU3_SUCCESS) {
-+		ABIT_UGURU3_DEBUG("synchronize timeout after sending 0x20, "
-+			"status: 0x%02x\n", x);
-+		return -EIO;
-+	}
-+
-+	outb(0x10, data->addr + ABIT_UGURU3_CMD);
-+	if ((x = abituguru3_wait_while_busy(data)) != ABIT_UGURU3_SUCCESS) {
-+		ABIT_UGURU3_DEBUG("synchronize timeout after sending 0x10, "
-+			"status: 0x%02x\n", x);
-+		return -EIO;
-+	}
-+
-+	outb(0x00, data->addr + ABIT_UGURU3_CMD);
-+	if ((x = abituguru3_wait_while_busy(data)) != ABIT_UGURU3_SUCCESS) {
-+		ABIT_UGURU3_DEBUG("synchronize timeout after sending 0x00, "
-+			"status: 0x%02x\n", x);
-+		return -EIO;
-+	}
-+
-+	if ((x = abituguru3_wait_for_read(data)) != ABIT_UGURU3_SUCCESS) {
-+		ABIT_UGURU3_DEBUG("synchronize timeout waiting for read, "
-+			"status: 0x%02x\n", x);
-+		return -EIO;
-+	}
-+
-+	while ((x = inb(data->addr + ABIT_UGURU3_CMD)) != 0xAC) {
-+		timeout--;
-+		if (timeout == 0) {
-+			ABIT_UGURU3_DEBUG("synchronize timeout cmd does not "
-+				"hold 0xAC after synchronize, cmd: 0x%02x\n",
-+				x);
-+			return -EIO;
-+		}
-+		msleep(1);
-+	}
-+	return 0;
-+}
-+
-+/* Read count bytes from sensor sensor_addr in bank bank_addr and store the
-+   result in buf */
-+static int abituguru3_read(struct abituguru3_data *data, u8 bank, u8 offset,
-+	u8 count, u8 *buf)
-+{
-+	int i, x;
-+
-+	if ((x = abituguru3_synchronize(data)))
-+		return x;
-+
-+	outb(0x1A, data->addr + ABIT_UGURU3_DATA);
-+	if ((x = abituguru3_wait_while_busy(data)) != ABIT_UGURU3_SUCCESS) {
-+		ABIT_UGURU3_DEBUG("read from 0x%02x:0x%02x timed out after "
-+			"sending 0x1A, status: 0x%02x\n", (unsigned int)bank,
-+			(unsigned int)offset, x);
-+		return -EIO;
-+	}
-+
-+	outb(bank, data->addr + ABIT_UGURU3_CMD);
-+	if ((x = abituguru3_wait_while_busy(data)) != ABIT_UGURU3_SUCCESS) {
-+		ABIT_UGURU3_DEBUG("read from 0x%02x:0x%02x timed out after "
-+			"sending the bank, status: 0x%02x\n",
-+			(unsigned int)bank, (unsigned int)offset, x);
-+		return -EIO;
-+	}
-+
-+	outb(offset, data->addr + ABIT_UGURU3_CMD);
-+	if ((x = abituguru3_wait_while_busy(data)) != ABIT_UGURU3_SUCCESS) {
-+		ABIT_UGURU3_DEBUG("read from 0x%02x:0x%02x timed out after "
-+			"sending the offset, status: 0x%02x\n",
-+			(unsigned int)bank, (unsigned int)offset, x);
-+		return -EIO;
-+	}
-+
-+	outb(count, data->addr + ABIT_UGURU3_CMD);
-+	if ((x = abituguru3_wait_while_busy(data)) != ABIT_UGURU3_SUCCESS) {
-+		ABIT_UGURU3_DEBUG("read from 0x%02x:0x%02x timed out after "
-+			"sending the count, status: 0x%02x\n",
-+			(unsigned int)bank, (unsigned int)offset, x);
-+		return -EIO;
-+	}
-+
-+	for (i = 0; i < count; i++) {
-+		if ((x = abituguru3_wait_for_read(data)) !=
-+				ABIT_UGURU3_SUCCESS) {
-+			ABIT_UGURU3_DEBUG("timeout reading byte %d from "
-+				"0x%02x:0x%02x, status: 0x%02x\n", i,
-+				(unsigned int)bank, (unsigned int)offset, x);
-+			break;
-+		}
-+		buf[i] = inb(data->addr + ABIT_UGURU3_CMD);
-+	}
-+	return i;
-+}
-+
-+/* Sensor settings are stored 1 byte per offset with the bytes
-+   placed add consecutive offsets. */
-+int abituguru3_read_increment_offset(struct abituguru3_data *data, u8 bank,
-+	u8 offset, u8 count, u8 *buf, int offset_count)
-+{
-+	int i, x;
-+	
-+	for (i = 0; i < offset_count; i++)
-+		if ((x = abituguru3_read(data, bank, offset + i, count,
-+				buf + i * count)) != count)
-+			return i * count + (i && (x < 0)) ? 0 : x;
-+	
-+	return i * count;
-+}
-+
-+/* Following are the sysfs callback functions. These functions expect:
-+   sensor_device_attribute_2->index:   index into the data->sensors array
-+   sensor_device_attribute_2->nr:      register offset, bitmask or NA. */
-+static struct abituguru3_data *abituguru3_update_device(struct device *dev);
-+
-+static ssize_t show_value(struct device *dev,
-+	struct device_attribute *devattr, char *buf)
-+{
-+	int value;
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
-+	struct abituguru3_data *data = abituguru3_update_device(dev);
-+	const struct abituguru3_sensor_info *sensor;
-+	
-+	if (!data)
-+		return -EIO;
-+	
-+	sensor = &data->sensors[attr->index];
-+	
-+	/* are we reading a setting, or is this a normal read? */
-+	if (attr->nr)
-+		value = data->settings[sensor->port][attr->nr];
-+	else
-+		value = data->value[sensor->port];
-+	
-+	/* convert the value */
-+	value = (value * sensor->multiplier) / sensor->divisor +
-+		sensor->offset;
-+	
-+	/* alternatively we could update the sensors settings struct for this,
-+	   but then its contents would differ from the windows sw ini files */
-+	if (sensor->type == ABIT_UGURU3_TEMP_SENSOR)
-+		value *= 1000;
-+	
-+	return sprintf(buf, "%d\n", value);
-+}
-+
-+static ssize_t show_alarm(struct device *dev,
-+	struct device_attribute *devattr, char *buf)
-+{
-+	int port;
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
-+	struct abituguru3_data *data = abituguru3_update_device(dev);
-+	
-+	if (!data)
-+		return -EIO;
-+	
-+	port = data->sensors[attr->index].port;
-+	
-+	/* See if the alarm bit for this sensor is set and if a bitmask is
-+	   given in attr->nr also check if the alarm matches the type of alarm
-+	   we're looking for (for volt it can be either low or high). The type
-+	   is stored in a few readonly bits in the settings of the sensor. */
-+	if ((data->alarms[port / 8] & (0x01 << (port % 8))) &&
-+			(!attr->nr || (data->settings[port][0] & attr->nr)))
-+		return sprintf(buf, "1\n");
-+	else
-+		return sprintf(buf, "0\n");
-+}
-+
-+static ssize_t show_mask(struct device *dev,
-+	struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
-+	struct abituguru3_data *data = dev_get_drvdata(dev);
-+	
-+	if (data->settings[data->sensors[attr->index].port][0] & attr->nr)
-+		return sprintf(buf, "1\n");
-+	else
-+		return sprintf(buf, "0\n");
-+}
-+
-+static ssize_t show_label(struct device *dev,
-+	struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
-+	struct abituguru3_data *data = dev_get_drvdata(dev);
-+	
-+	return sprintf(buf, "%s\n", data->sensors[attr->index].name);
-+}
-+
-+static ssize_t show_name(struct device *dev,
-+	struct device_attribute *devattr, char *buf)
-+{
-+	return sprintf(buf, "%s\n", ABIT_UGURU3_NAME);
-+}
-+
-+/* Sysfs attr templates, the real entries are generated automatically. */
-+static const
-+struct sensor_device_attribute_2 abituguru3_sysfs_templ[3][10] = { {
-+	SENSOR_ATTR_2(in%d_input, 0444, show_value, NULL, 0, 0),
-+	SENSOR_ATTR_2(in%d_min, 0444, show_value, NULL, 1, 0),
-+	SENSOR_ATTR_2(in%d_max, 0444, show_value, NULL, 2, 0),
-+	SENSOR_ATTR_2(in%d_min_alarm, 0444, show_alarm, NULL,
-+		ABIT_UGURU3_VOLT_LOW_ALARM_FLAG, 0),
-+	SENSOR_ATTR_2(in%d_max_alarm, 0444, show_alarm, NULL,
-+		ABIT_UGURU3_VOLT_HIGH_ALARM_FLAG, 0),
-+	SENSOR_ATTR_2(in%d_beep, 0444, show_mask, NULL,
-+		ABIT_UGURU3_BEEP_ENABLE, 0),
-+	SENSOR_ATTR_2(in%d_shutdown, 0444, show_mask, NULL,
-+		ABIT_UGURU3_SHUTDOWN_ENABLE, 0),
-+	SENSOR_ATTR_2(in%d_min_alarm_enable, 0444, show_mask, NULL,
-+		ABIT_UGURU3_VOLT_LOW_ALARM_ENABLE, 0),
-+	SENSOR_ATTR_2(in%d_max_alarm_enable, 0444, show_mask, NULL,
-+		ABIT_UGURU3_VOLT_HIGH_ALARM_ENABLE, 0),
-+	SENSOR_ATTR_2(in%d_label, 0444, show_label, NULL, 0, 0)
-+	}, {
-+	SENSOR_ATTR_2(temp%d_input, 0444, show_value, NULL, 0, 0),
-+	SENSOR_ATTR_2(temp%d_max, 0444, show_value, NULL, 1, 0),
-+	SENSOR_ATTR_2(temp%d_crit, 0444, show_value, NULL, 2, 0),
-+	SENSOR_ATTR_2(temp%d_alarm, 0444, show_alarm, NULL, 0, 0),
-+	SENSOR_ATTR_2(temp%d_beep, 0444, show_mask, NULL,
-+		ABIT_UGURU3_BEEP_ENABLE, 0),
-+	SENSOR_ATTR_2(temp%d_shutdown, 0444, show_mask, NULL,
-+		ABIT_UGURU3_SHUTDOWN_ENABLE, 0),
-+	SENSOR_ATTR_2(temp%d_alarm_enable, 0444, show_mask, NULL,
-+		ABIT_UGURU3_TEMP_HIGH_ALARM_ENABLE, 0),
-+	SENSOR_ATTR_2(temp%d_label, 0444, show_label, NULL, 0, 0)
-+	}, {
-+	SENSOR_ATTR_2(fan%d_input, 0444, show_value, NULL, 0, 0),
-+	SENSOR_ATTR_2(fan%d_min, 0444, show_value, NULL, 1, 0),
-+	SENSOR_ATTR_2(fan%d_alarm, 0444, show_alarm, NULL, 0, 0),
-+	SENSOR_ATTR_2(fan%d_beep, 0444, show_mask, NULL,
-+		ABIT_UGURU3_BEEP_ENABLE, 0),
-+	SENSOR_ATTR_2(fan%d_shutdown, 0444, show_mask, NULL,
-+		ABIT_UGURU3_SHUTDOWN_ENABLE, 0),
-+	SENSOR_ATTR_2(fan%d_alarm_enable, 0444, show_mask, NULL,
-+		ABIT_UGURU3_FAN_LOW_ALARM_ENABLE, 0),
-+	SENSOR_ATTR_2(fan%d_label, 0444, show_label, NULL, 0, 0)
-+} };
-+
-+static struct sensor_device_attribute_2 abituguru3_sysfs_attr[] = {
-+	SENSOR_ATTR_2(name, 0444, show_name, NULL, 0, 0),
-+};
-+
-+static int __devinit abituguru3_probe(struct platform_device *pdev)
-+{
-+	const int no_sysfs_attr[3] = { 10, 8, 7 };
-+	int sensor_index[3] = { 0, 1, 1 };
-+	struct abituguru3_data *data;
-+	int i, j, type, used, sysfs_names_free, sysfs_attr_i, res = -ENODEV;
-+	char *sysfs_filename;
-+	u8 buf[2];
-+	u16 id;
-+	
-+	if (!(data = kzalloc(sizeof(struct abituguru3_data), GFP_KERNEL)))
-+		return -ENOMEM;
-+
-+	data->addr = platform_get_resource(pdev, IORESOURCE_IO, 0)->start;
-+	mutex_init(&data->update_lock);
-+	platform_set_drvdata(pdev, data);
-+
-+	/* Read the motherboard ID */
-+	if ((i = abituguru3_read(data, ABIT_UGURU3_MISC_BANK,
-+			ABIT_UGURU3_BOARD_ID, 2, buf)) != 2) {
-+		goto abituguru3_probe_error;
-+	}
-+	
-+	/* Completely read the uGuru to see if one really is there */
-+	if (!abituguru3_update_device(&pdev->dev))
-+		goto abituguru3_probe_error;
-+
-+	/* lookup the ID in our motherboard table */
-+	id = ((u16)buf[0] << 8) | (u16)buf[1];
-+	for (i = 0; abituguru3_motherboards[i].id; i++)
-+		if (abituguru3_motherboards[i].id == id)
-+			break;
-+	if (!abituguru3_motherboards[i].id) {
-+		printk(KERN_ERR ABIT_UGURU3_NAME ": error unknown motherboard "
-+			"ID: %04X. Please report this to the abituguru3 "
-+			"maintainer (see MAINTAINERS)\n", (unsigned int)id);
-+		goto abituguru3_probe_error;
-+	}
-+	data->sensors = abituguru3_motherboards[i].sensors;
-+	printk(KERN_INFO ABIT_UGURU3_NAME ": found Abit uGuru3, motherboard "
-+		"ID: %04X (%s)\n", (unsigned int)id,
-+		abituguru3_motherboards[i].name);
-+	
-+	/* Fill the sysfs attr array */
-+	sysfs_attr_i = 0;
-+	sysfs_filename = data->sysfs_names;
-+	sysfs_names_free = ABIT_UGURU3_SYSFS_NAMES_LENGTH;
-+	for (i = 0; data->sensors[i].name; i++) {
-+		/* Fail safe check, this should never happen! */
-+		if (i >= ABIT_UGURU3_MAX_NO_SENSORS) {
-+			printk(KERN_ERR ABIT_UGURU3_NAME
-+				": Fatal error motherboard has more sensors "
-+				"then ABIT_UGURU3_MAX_NO_SENSORS. This should "
-+				"never happen please report to the abituguru3 "
-+				"maintainer (see MAINTAINERS)\n");
-+			res = -ENAMETOOLONG;
-+			goto abituguru3_probe_error;
-+		}
-+		type = data->sensors[i].type;
-+		for (j = 0; j < no_sysfs_attr[type]; j++) {
-+			used = snprintf(sysfs_filename, sysfs_names_free,
-+				abituguru3_sysfs_templ[type][j].dev_attr.attr.
-+				name, sensor_index[type]) + 1;
-+			data->sysfs_attr[sysfs_attr_i] =
-+				abituguru3_sysfs_templ[type][j];
-+			data->sysfs_attr[sysfs_attr_i].dev_attr.attr.name =
-+				sysfs_filename;
-+			data->sysfs_attr[sysfs_attr_i].index = i;
-+			sysfs_filename += used;
-+			sysfs_names_free -= used;
-+			sysfs_attr_i++;
-+		}
-+		sensor_index[type]++;
-+	}
-+	/* Fail safe check, this should never happen! */
-+	if (sysfs_names_free < 0) {
-+		printk(KERN_ERR ABIT_UGURU3_NAME
-+			": Fatal error ran out of space for sysfs attr names. "
-+			"This should never happen please report to the "
-+			"abituguru3 maintainer (see MAINTAINERS)\n");
-+		res = -ENAMETOOLONG;
-+		goto abituguru3_probe_error;
-+	}
-+
-+	/* Register sysfs hooks */
-+	for (i = 0; i < sysfs_attr_i; i++)
-+		if (device_create_file(&pdev->dev,
-+				&data->sysfs_attr[i].dev_attr))
-+			goto abituguru3_probe_error;
-+	for (i = 0; i < ARRAY_SIZE(abituguru3_sysfs_attr); i++)
-+		if (device_create_file(&pdev->dev,
-+				&abituguru3_sysfs_attr[i].dev_attr))
-+			goto abituguru3_probe_error;
-+
-+	data->class_dev = hwmon_device_register(&pdev->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		res = PTR_ERR(data->class_dev);
-+		goto abituguru3_probe_error;
-+	}
-+	
-+	return 0; /* success */
-+
-+abituguru3_probe_error:
-+	for (i = 0; data->sysfs_attr[i].dev_attr.attr.name; i++)
-+		device_remove_file(&pdev->dev, &data->sysfs_attr[i].dev_attr);
-+	for (i = 0; i < ARRAY_SIZE(abituguru3_sysfs_attr); i++)
-+		device_remove_file(&pdev->dev,
-+			&abituguru3_sysfs_attr[i].dev_attr);
-+	kfree(data);
-+	return res;
-+}
-+
-+static int __devexit abituguru3_remove(struct platform_device *pdev)
-+{
-+	int i;
-+	struct abituguru3_data *data = platform_get_drvdata(pdev);
-+
-+	platform_set_drvdata(pdev, NULL);
-+	hwmon_device_unregister(data->class_dev);
-+	for (i = 0; data->sysfs_attr[i].dev_attr.attr.name; i++)
-+		device_remove_file(&pdev->dev, &data->sysfs_attr[i].dev_attr);
-+	for (i = 0; i < ARRAY_SIZE(abituguru3_sysfs_attr); i++)
-+		device_remove_file(&pdev->dev,
-+			&abituguru3_sysfs_attr[i].dev_attr);
-+	kfree(data);
-+
-+	return 0;
-+}
-+
-+static struct abituguru3_data *abituguru3_update_device(struct device *dev)
-+{
-+	int i;
-+	struct abituguru3_data *data = dev_get_drvdata(dev);
-+
-+	mutex_lock(&data->update_lock);
-+	if (!data->valid || time_after(jiffies, data->last_updated + HZ)) {
-+		/* Clear data->valid while updating */
-+		data->valid = 0;
-+		/* Read alarms */
-+		if (abituguru3_read_increment_offset(data,
-+				ABIT_UGURU3_SETTINGS_BANK,
-+				ABIT_UGURU3_ALARMS_START,
-+				1, data->alarms, 48/8) != (48/8))
-+			goto LEAVE_UPDATE;
-+		/* Read in and temp sensors (3 byte settings / sensor) */
-+		for (i = 0; i < 32; i++) {
-+			if (abituguru3_read(data, ABIT_UGURU3_SENSORS_BANK,
-+					ABIT_UGURU3_VALUES_START + i,
-+					1, &data->value[i]) != 1)
-+				goto LEAVE_UPDATE;
-+			if (abituguru3_read_increment_offset(data,
-+					ABIT_UGURU3_SETTINGS_BANK,
-+					ABIT_UGURU3_SETTINGS_START + i * 3,
-+					1, 
-+					data->settings[i], 3) != 3)
-+				goto LEAVE_UPDATE;
-+		}
-+		/* Read temp sensors (2 byte settings / sensor) */
-+		for (i = 0; i < 16; i++) {
-+			if (abituguru3_read(data, ABIT_UGURU3_SENSORS_BANK,
-+					ABIT_UGURU3_VALUES_START + 32 + i,
-+					1, &data->value[32 + i]) != 1)
-+				goto LEAVE_UPDATE;
-+			if (abituguru3_read_increment_offset(data,
-+					ABIT_UGURU3_SETTINGS_BANK,
-+					ABIT_UGURU3_SETTINGS_START + 32 * 3 +
-+						i * 2, 1,
-+					data->settings[32 + i], 2) != 2)
-+				goto LEAVE_UPDATE;
-+		}
-+		data->last_updated = jiffies;
-+		data->valid = 1;
-+	}
-+LEAVE_UPDATE:
-+	mutex_unlock(&data->update_lock);
-+	if (data->valid)
-+		return data;
-+	else
-+		return NULL;
-+}
-+
-+#ifdef CONFIG_PM
-+static int abituguru3_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	struct abituguru3_data *data = platform_get_drvdata(pdev);
-+	/* make sure all communications with the uguru3 are done and no new
-+	   ones are started */
-+	mutex_lock(&data->update_lock);
-+	return 0;
-+}
-+
-+static int abituguru3_resume(struct platform_device *pdev)
-+{
-+	struct abituguru3_data *data = platform_get_drvdata(pdev);
-+	mutex_unlock(&data->update_lock);
-+	return 0;
-+}
-+#else
-+#define abituguru3_suspend	NULL
-+#define abituguru3_resume	NULL
-+#endif /* CONFIG_PM */
-+
-+static struct platform_driver abituguru3_driver = {
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= ABIT_UGURU3_NAME,
-+	},
-+	.probe	= abituguru3_probe,
-+	.remove	= __devexit_p(abituguru3_remove),
-+	.suspend = abituguru3_suspend,
-+	.resume = abituguru3_resume
-+};
-+
-+static int __init abituguru3_detect(void)
-+{
-+	/* See if there is an uguru3 there. An idle uGuru3 will hold 0x00
-+	   at DATA and 0xAC at CMD. Sometimes the uGuru3 will hold 0x05 at
-+	   CMD instead, why is unknown. So we test for 0x05 too. */
-+	u8 data_val = inb_p(ABIT_UGURU3_BASE + ABIT_UGURU3_DATA);
-+	u8 cmd_val = inb_p(ABIT_UGURU3_BASE + ABIT_UGURU3_CMD);
-+	if ((data_val == 0x00) && ((cmd_val == 0xAC) || (cmd_val == 0x05)))
-+		return ABIT_UGURU3_BASE;
-+
-+	ABIT_UGURU3_DEBUG("no Abit uGuru3 found, data = 0x%02X, cmd = "
-+		"0x%02X\n", (unsigned int)data_val, (unsigned int)cmd_val);
-+
-+	if (force) {
-+		printk(KERN_INFO ABIT_UGURU3_NAME ": Assuming Abit uGuru3 is "
-+				"present because of \"force\" parameter\n");
-+		return ABIT_UGURU3_BASE;
-+	}
-+
-+	/* No uGuru3 found */
-+	return -ENODEV;
-+}
-+
-+static struct platform_device *abituguru3_pdev;
-+
-+static int __init abituguru3_init(void)
-+{
-+	int address, err;
-+	struct resource res = { .flags = IORESOURCE_IO };
-+
-+	address = abituguru3_detect();
-+	if (address < 0)
-+		return address;
-+
-+	err = platform_driver_register(&abituguru3_driver);
-+	if (err)
-+		goto exit;
-+
-+	abituguru3_pdev = platform_device_alloc(ABIT_UGURU3_NAME, address);
-+	if (!abituguru3_pdev) {
-+		printk(KERN_ERR ABIT_UGURU3_NAME
-+			": Device allocation failed\n");
-+		err = -ENOMEM;
-+		goto exit_driver_unregister;
-+	}
-+
-+	res.start = address;
-+	res.end = address + ABIT_UGURU3_REGION_LENGTH - 1;
-+	res.name = ABIT_UGURU3_NAME;
-+
-+	err = platform_device_add_resources(abituguru3_pdev, &res, 1);
-+	if (err) {
-+		printk(KERN_ERR ABIT_UGURU3_NAME
-+			": Device resource addition failed (%d)\n", err);
-+		goto exit_device_put;
-+	}
-+
-+	err = platform_device_add(abituguru3_pdev);
-+	if (err) {
-+		printk(KERN_ERR ABIT_UGURU3_NAME
-+			": Device addition failed (%d)\n", err);
-+		goto exit_device_put;
-+	}
-+
-+	return 0;
-+
-+exit_device_put:
-+	platform_device_put(abituguru3_pdev);
-+exit_driver_unregister:
-+	platform_driver_unregister(&abituguru3_driver);
-+exit:
-+	return err;
-+}
-+
-+static void __exit abituguru3_exit(void)
-+{
-+	platform_device_unregister(abituguru3_pdev);
-+	platform_driver_unregister(&abituguru3_driver);
-+}
-+
-+MODULE_AUTHOR("Hans de Goede <j.w.r.degoede@hhs.nl>");
-+MODULE_DESCRIPTION("Abit uGuru3 Sensor device");
-+MODULE_LICENSE("GPL");
-+
-+module_init(abituguru3_init);
-+module_exit(abituguru3_exit);
-
---------------040506040009070903050604
-Content-Type: text/plain; charset="us-ascii"
+References: <45F7C083.7090504@boichat.ch> <20070411142556.16cd1e44@hyperion.delvare>
+In-Reply-To: <20070411142556.16cd1e44@hyperion.delvare>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-kernel@hansmi.ch, rlove@rlove.org, lm-sensors@lm-sensors.org, benh@kernel.crashing.org, paulus@samba.org, dtor@insightbb.com
+
+Hi again,
+
+Jean Delvare wrote:
+>>
+>> However, I'm not really satisfied with the way sysfs files are created:
+>> I use a lot of preprocessor macros to avoid repetition of code.
+>> The files created with these macros in /sys/devices/platform/applesmc are
+>> the following (on a Macbook Pro):
+>> fan0_actual_speed
+>> fan0_manual
+>> fan0_maximum_speed
+>> fan0_minimum_speed
+>> fan0_safe_speed
+>> fan0_target_speed
+>> fan1_actual_speed
+>> fan1_manual
+>> fan1_maximum_speed
+>> fan1_minimum_speed
+>> fan1_safe_speed
+>> fan1_target_speed
+>> temperature_0
+>> temperature_1
+>> temperature_2
+>> temperature_3
+>> temperature_4
+>> temperature_5
+>> temperature_6
+>>     
+>
+> First of all, please read Documentation/hwmon/sysfs-documentation, and
+> rename the entries to match the standard names whenever possible. Also
+> make sure that you use the standard units. If you use the standard
+> names and units and if you register your device with the hwmon class,
+> standard monitoring application will be able to support your driver.
+>   
+
+Fixed.
+
+[snip]
+
+>> Also, I never call any sysfs_remove_* function, as the files are
+>> deleted when the module is unloaded. Is it safe to do so? Doesn't it
+>> cause any memory leak?
+>>     
+>
+> This is considered a bad practice, as in theory you driver shouldn't
+> create the device by itself, and the files are associated to the device,
+> not the driver. All hardware monitoring drivers have been fixed now, so
+> please add the file removal calls in your driver too. You might find it
+> easier to use file groups rather than individual files. Again, see for
+> example the f71805f driver, and in particular the f71805f_attributes
+> array and f71805f_group structure, and the sysfs_create_group() and
+> sysfs_remove_group() calls.
+>   
+
+Fixed too.
+
+I also added some sanity checks, and some minor features I discovered
+using key enumeration (see next patch).
+
+Best regards,
+
+Nicolas
+
+- Standardize applesmc to use sysfs filenames recommended by
+  Documentation/hwmon/sysfs-interface, and register the device with the hwmon
+  class.
+- Use snprintf instead of sprintf in sysfs show handlers.
+- Remove the sysfs files properly in case of initialisation problem, and when
+  the driver is unloaded.
+- Add data buffer length sanity checks.
+- Improvements of SMC keys' comments (add data type reported by the device).
+- Add temperature sensors to Macbook Pro.
+- Add support for reading fan physical position (e.g. "Left Side")
+
+Signed-off-by: Nicolas Boichat <nicolas@boichat.ch>
+---
+
+ drivers/hwmon/applesmc.c |  280 ++++++++++++++++++++++++++++++++--------------
+ 1 files changed, 192 insertions(+), 88 deletions(-)
+
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index f7b59fc..531bc9a 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -37,40 +37,48 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <asm/io.h>
+ #include <linux/leds.h>
++#include <linux/hwmon.h>
+ 
+-/* data port used by apple SMC */
++/* data port used by Apple SMC */
+ #define APPLESMC_DATA_PORT	0x300
+-/* command/status port used by apple SMC */
++/* command/status port used by Apple SMC */
+ #define APPLESMC_CMD_PORT	0x304
+ 
+-#define APPLESMC_NR_PORTS	5 /* 0x300-0x304 */
++#define APPLESMC_NR_PORTS	32 /* 0x300-0x31f */
++
++#define APPLESMC_MAX_DATA_LENGTH 32
+ 
+ #define APPLESMC_STATUS_MASK	0x0f
+ #define APPLESMC_READ_CMD	0x10
+ #define APPLESMC_WRITE_CMD	0x11
+ 
+-#define LIGHT_SENSOR_LEFT_KEY	"ALV0" /* r-o length 6 */
+-#define LIGHT_SENSOR_RIGHT_KEY	"ALV1" /* r-o length 6 */
+-#define BACKLIGHT_KEY 		"LKSB" /* w-o */
++#define LIGHT_SENSOR_LEFT_KEY	"ALV0" /* r-o {alv (6 bytes) */
++#define LIGHT_SENSOR_RIGHT_KEY	"ALV1" /* r-o {alv (6 bytes) */
++#define BACKLIGHT_KEY 		"LKSB" /* w-o {lkb (2 bytes) */
+ 
+-#define CLAMSHELL_KEY 		"MSLD" /* r-o length 1 (unused) */
++#define CLAMSHELL_KEY 		"MSLD" /* r-o ui8 (unused) */
+ 
+-#define MOTION_SENSOR_X_KEY	"MO_X" /* r-o length 2 */
+-#define MOTION_SENSOR_Y_KEY	"MO_Y" /* r-o length 2 */
+-#define MOTION_SENSOR_Z_KEY	"MO_Z" /* r-o length 2 */
+-#define MOTION_SENSOR_KEY	"MOCN" /* r/w length 2 */
++#define MOTION_SENSOR_X_KEY	"MO_X" /* r-o sp78 (2 bytes) */
++#define MOTION_SENSOR_Y_KEY	"MO_Y" /* r-o sp78 (2 bytes) */
++#define MOTION_SENSOR_Z_KEY	"MO_Z" /* r-o sp78 (2 bytes) */
++#define MOTION_SENSOR_KEY	"MOCN" /* r/w ui16 */
+ 
+-#define FANS_COUNT		"FNum" /* r-o length 1 */
+-#define FANS_MANUAL		"FS! " /* r-w length 2 */
+-#define FAN_ACTUAL_SPEED	"F0Ac" /* r-o length 2 */
+-#define FAN_MIN_SPEED		"F0Mn" /* r-o length 2 */
+-#define FAN_MAX_SPEED		"F0Mx" /* r-o length 2 */
+-#define FAN_SAFE_SPEED		"F0Sf" /* r-o length 2 */
+-#define FAN_TARGET_SPEED	"F0Tg" /* r-w length 2 */
++#define FANS_COUNT		"FNum" /* r-o ui8 */
++#define FANS_MANUAL		"FS! " /* r-w ui16 */
++#define FAN_ACTUAL_SPEED	"F0Ac" /* r-o fpe2 (2 bytes) */
++#define FAN_MIN_SPEED		"F0Mn" /* r-o fpe2 (2 bytes) */
++#define FAN_MAX_SPEED		"F0Mx" /* r-o fpe2 (2 bytes) */
++#define FAN_SAFE_SPEED		"F0Sf" /* r-o fpe2 (2 bytes) */
++#define FAN_TARGET_SPEED	"F0Tg" /* r-w fpe2 (2 bytes) */
++#define FAN_POSITION		"F0ID" /* r-o char[16] */
+ 
+-/* Temperature sensors keys. First set for Macbook(Pro), second for Macmini */
+-static const char* temperature_sensors_sets[][8] = {
+-	{ "TB0T", "TC0D", "TC0P", "Th0H", "Ts0P", "Th1H", "Ts1P", NULL },
++/*
++ * Temperature sensors keys (sp78 - 2 bytes).
++ * First set for Macbook(Pro), second for Macmini.
++ */
++static const char* temperature_sensors_sets[][13] = {
++	{ "TA0P", "TB0T", "TC0D", "TC0P", "TG0H", "TG0P", "TG0T", "Th0H",
++	  "Th1H", "Tm0P", "Ts0P", "Ts1P", NULL },
+ 	{ "TC0D", "TC0P", NULL }
+ };
+ 
+@@ -110,6 +118,7 @@ static s16 rest_x;
+ static s16 rest_y;
+ static struct timer_list applesmc_timer;
+ static struct input_dev *applesmc_idev;
++static struct class_device *hwmon_class_dev;
+ 
+ /* Indicates whether this computer has an accelerometer. */
+ static unsigned int applesmc_accelerometer;
+@@ -152,17 +161,22 @@ static int __wait_status(u8 val)
+  */
+ static int applesmc_read_key(const char* key, u8* buffer, u8 len)
+ {
+-	int ret = -EIO;
+ 	int i;
+ 
++	if (len > APPLESMC_MAX_DATA_LENGTH) {
++		printk(KERN_ERR	"applesmc_read_key: cannot read more than "
++					"%d bytes\n", APPLESMC_MAX_DATA_LENGTH);
++		return -EINVAL;
++	}
++
+ 	outb(APPLESMC_READ_CMD, APPLESMC_CMD_PORT);
+ 	if (__wait_status(0x0c))
+-		goto out;
++		return -EIO;
+ 	
+ 	for (i = 0; i < 4; i++) {
+ 		outb(key[i], APPLESMC_DATA_PORT);
+ 		if (__wait_status(0x04))
+-			goto out;
++			return -EIO;
+ 	}
+ 	if (debug)
+ 		printk(KERN_DEBUG "<%s", key);
+@@ -173,7 +187,7 @@ static int applesmc_read_key(const char* key, u8* buffer, u8 len)
+ 
+ 	for (i = 0; i < len; i++) {
+ 		if (__wait_status(0x05))
+-			goto out;
++			return -EIO;
+ 		buffer[i] = inb(APPLESMC_DATA_PORT);
+ 		if (debug)
+ 			printk(KERN_DEBUG "<%x", buffer[i]);
+@@ -181,10 +195,7 @@ static int applesmc_read_key(const char* key, u8* buffer, u8 len)
+ 	if (debug)
+ 		printk(KERN_DEBUG "\n");
+ 
+-	ret = 0;
+-
+-out:
+-	return ret;
++	return 0;
+ }
+ 
+ /*
+@@ -194,30 +205,33 @@ out:
+  */
+ static int applesmc_write_key(const char* key, u8* buffer, u8 len)
+ {
+-	int ret = -EIO;
+ 	int i;
+ 
++	if (len > APPLESMC_MAX_DATA_LENGTH) {
++		printk(KERN_ERR	"applesmc_write_key: cannot write more than "
++					"%d bytes\n", APPLESMC_MAX_DATA_LENGTH);
++		return -EINVAL;
++	}
++
+ 	outb(APPLESMC_WRITE_CMD, APPLESMC_CMD_PORT);
+ 	if (__wait_status(0x0c))
+-		goto out;
++		return -EIO;
+ 	
+ 	for (i = 0; i < 4; i++) {
+ 		outb(key[i], APPLESMC_DATA_PORT);
+ 		if (__wait_status(0x04))
+-			goto out;
++			return -EIO;
+ 	}
+ 
+ 	outb(len, APPLESMC_DATA_PORT);
+ 
+ 	for (i = 0; i < len; i++) {
+ 		if (__wait_status(0x04))
+-			goto out;
++			return -EIO;
+ 		outb(buffer[i], APPLESMC_DATA_PORT);
+ 	}
+ 
+-	ret = 0;
+-out:
+-	return ret;
++	return 0;
+ }
+ 
+ /*
+@@ -415,7 +429,7 @@ out:
+ 	if (ret)
+ 		return ret;
+ 	else
+-		return sprintf(buf, "(%d,%d,%d)\n", x, y, z);
++		return snprintf(buf, PAGE_SIZE, "(%d,%d,%d)\n", x, y, z);
+ }
+ 
+ static ssize_t applesmc_light_show(struct device *dev,
+@@ -439,10 +453,10 @@ out:
+ 	if (ret)
+ 		return ret;
+ 	else
+-		return sprintf(sysfsbuf, "(%d,%d)\n", left, right);
++		return snprintf(sysfsbuf, PAGE_SIZE, "(%d,%d)\n", left, right);
+ }
+ 
+-/* Displays degree Celsius * 100 */
++/* Displays degree Celsius * 1000 */
+ static ssize_t applesmc_show_temperature(struct device *dev,
+ 			struct device_attribute *devattr, char *sysfsbuf)
+ {
+@@ -456,15 +470,15 @@ static ssize_t applesmc_show_temperature(struct device *dev,
+ 	mutex_lock(&applesmc_lock);
+ 
+ 	ret = applesmc_read_key(key, buffer, 2);
+-	temp = buffer[0]*100;
+-	temp += (buffer[1] >> 6) * 25;
++	temp = buffer[0]*1000;
++	temp += (buffer[1] >> 6) * 250;
+ 
+ 	mutex_unlock(&applesmc_lock);
+ 
+ 	if (ret)
+ 		return ret;
+ 	else
+-		return sprintf(sysfsbuf, "%u\n", temp);
++		return snprintf(sysfsbuf, PAGE_SIZE, "%u\n", temp);
+ }
+ 
+ static ssize_t applesmc_show_fan_speed(struct device *dev,
+@@ -492,7 +506,7 @@ static ssize_t applesmc_show_fan_speed(struct device *dev,
+ 	if (ret)
+ 		return ret;
+ 	else
+-		return sprintf(sysfsbuf, "%u\n", speed);
++		return snprintf(sysfsbuf, PAGE_SIZE, "%u\n", speed);
+ }
+ 
+ static ssize_t applesmc_store_fan_speed(struct device *dev,
+@@ -547,7 +561,7 @@ static ssize_t applesmc_show_fan_manual(struct device *dev,
+ 	if (ret)
+ 		return ret;
+ 	else
+-		return sprintf(sysfsbuf, "%d\n", manual);
++		return snprintf(sysfsbuf, PAGE_SIZE, "%d\n", manual);
+ }
+ 
+ static ssize_t applesmc_store_fan_manual(struct device *dev,
+@@ -587,10 +601,37 @@ out:
+ 		return count;
+ }
+ 
++static ssize_t applesmc_show_fan_position(struct device *dev,
++				struct device_attribute *attr, char *sysfsbuf)
++{
++	int ret;
++	char newkey[5];
++	u8 buffer[17];
++	struct sensor_device_attribute_2 *sensor_attr +						to_sensor_dev_attr_2(attr);
++
++	newkey[0] = FAN_POSITION[0];
++	newkey[1] = '0' + sensor_attr->index;
++	newkey[2] = FAN_POSITION[2];
++	newkey[3] = FAN_POSITION[3];
++	newkey[4] = 0;
++
++	mutex_lock(&applesmc_lock);
++
++	ret = applesmc_read_key(newkey, buffer, 16);
++	buffer[16] = 0;
++
++	mutex_unlock(&applesmc_lock);
++	if (ret)
++		return ret;
++	else
++		return snprintf(sysfsbuf, PAGE_SIZE, "%s\n", buffer+4);
++}
++
+ static ssize_t applesmc_calibrate_show(struct device *dev,
+ 				struct device_attribute *attr, char *sysfsbuf)
+ {
+-	return sprintf(sysfsbuf, "(%d,%d)\n", rest_x, rest_y);
++	return snprintf(sysfsbuf, PAGE_SIZE, "(%d,%d)\n", rest_x, rest_y);
+ }
+ 
+ static ssize_t applesmc_calibrate_store(struct device *dev,
+@@ -625,6 +666,15 @@ static DEVICE_ATTR(position, 0444, applesmc_position_show, NULL);
+ static DEVICE_ATTR(calibrate, 0644,
+ 			applesmc_calibrate_show, applesmc_calibrate_store);
+ 
++static struct attribute *accelerometer_attributes[] = {
++	&dev_attr_position.attr,
++	&dev_attr_calibrate.attr,
++	NULL
++};
++
++static const struct attribute_group accelerometer_attributes_group +	{ .attrs = accelerometer_attributes };
++
+ static DEVICE_ATTR(light, 0444, applesmc_light_show, NULL);
+ 
+ /*
+@@ -637,31 +687,35 @@ static DEVICE_ATTR(light, 0444, applesmc_light_show, NULL);
+  *  - show/store manual mode
+  */
+ #define sysfs_fan_speeds_offset(offset) \
+-static SENSOR_DEVICE_ATTR_2(fan##offset##_actual_speed, S_IRUGO, \
+-			applesmc_show_fan_speed, NULL, 0, offset); \
++static SENSOR_DEVICE_ATTR_2(fan##offset##_input, S_IRUGO, \
++			applesmc_show_fan_speed, NULL, 0, offset-1); \
+ \
+-static SENSOR_DEVICE_ATTR_2(fan##offset##_minimum_speed, S_IRUGO | S_IWUSR, \
+-	applesmc_show_fan_speed, applesmc_store_fan_speed, 1, offset); \
++static SENSOR_DEVICE_ATTR_2(fan##offset##_min, S_IRUGO | S_IWUSR, \
++	applesmc_show_fan_speed, applesmc_store_fan_speed, 1, offset-1); \
+ \
+-static SENSOR_DEVICE_ATTR_2(fan##offset##_maximum_speed, S_IRUGO, \
+-			applesmc_show_fan_speed, NULL, 2, offset); \
++static SENSOR_DEVICE_ATTR_2(fan##offset##_max, S_IRUGO, \
++			applesmc_show_fan_speed, NULL, 2, offset-1); \
+ \
+-static SENSOR_DEVICE_ATTR_2(fan##offset##_safe_speed, S_IRUGO, \
+-			applesmc_show_fan_speed, NULL, 3, offset); \
++static SENSOR_DEVICE_ATTR_2(fan##offset##_safe, S_IRUGO, \
++			applesmc_show_fan_speed, NULL, 3, offset-1); \
+ \
+-static SENSOR_DEVICE_ATTR_2(fan##offset##_target_speed, S_IRUGO | S_IWUSR, \
+-	applesmc_show_fan_speed, applesmc_store_fan_speed, 4, offset); \
++static SENSOR_DEVICE_ATTR_2(fan##offset##_output, S_IRUGO | S_IWUSR, \
++	applesmc_show_fan_speed, applesmc_store_fan_speed, 4, offset-1); \
+ \
+ static SENSOR_DEVICE_ATTR(fan##offset##_manual, S_IRUGO | S_IWUSR, \
+-	applesmc_show_fan_manual, applesmc_store_fan_manual, offset); \
++	applesmc_show_fan_manual, applesmc_store_fan_manual, offset-1); \
++\
++static SENSOR_DEVICE_ATTR(fan##offset##_position, S_IRUGO, \
++	applesmc_show_fan_position, NULL, offset-1); \
+ \
+ static struct attribute *fan##offset##_attributes[] = { \
+-	&sensor_dev_attr_fan##offset##_actual_speed.dev_attr.attr, \
+-	&sensor_dev_attr_fan##offset##_minimum_speed.dev_attr.attr, \
+-	&sensor_dev_attr_fan##offset##_maximum_speed.dev_attr.attr, \
+-	&sensor_dev_attr_fan##offset##_safe_speed.dev_attr.attr, \
+-	&sensor_dev_attr_fan##offset##_target_speed.dev_attr.attr, \
++	&sensor_dev_attr_fan##offset##_input.dev_attr.attr, \
++	&sensor_dev_attr_fan##offset##_min.dev_attr.attr, \
++	&sensor_dev_attr_fan##offset##_max.dev_attr.attr, \
++	&sensor_dev_attr_fan##offset##_safe.dev_attr.attr, \
++	&sensor_dev_attr_fan##offset##_output.dev_attr.attr, \
+ 	&sensor_dev_attr_fan##offset##_manual.dev_attr.attr, \
++	&sensor_dev_attr_fan##offset##_position.dev_attr.attr, \
+ 	NULL \
+ };
+ 
+@@ -669,42 +723,61 @@ static struct attribute *fan##offset##_attributes[] = { \
+  * Create the needed functions for each fan using the macro defined above 
+  * (2 fans are supported)
+  */
+-sysfs_fan_speeds_offset(0);
+ sysfs_fan_speeds_offset(1);
++sysfs_fan_speeds_offset(2);
+ 
+ static const struct attribute_group fan_attribute_groups[] = {
+-	{ .attrs = fan0_attributes },
+-	{ .attrs = fan1_attributes }
++	{ .attrs = fan1_attributes },
++	{ .attrs = fan2_attributes }
+ };
+ 
+ /*
+  * Temperature sensors sysfs entries.
+  */
+-static SENSOR_DEVICE_ATTR(temperature_0, S_IRUGO,
++static SENSOR_DEVICE_ATTR(temp_1_input, S_IRUGO,
+ 					applesmc_show_temperature, NULL, 0);
+-static SENSOR_DEVICE_ATTR(temperature_1, S_IRUGO,
++static SENSOR_DEVICE_ATTR(temp_2_input, S_IRUGO,
+ 					applesmc_show_temperature, NULL, 1);
+-static SENSOR_DEVICE_ATTR(temperature_2, S_IRUGO,
++static SENSOR_DEVICE_ATTR(temp_3_input, S_IRUGO,
+ 					applesmc_show_temperature, NULL, 2);
+-static SENSOR_DEVICE_ATTR(temperature_3, S_IRUGO,
++static SENSOR_DEVICE_ATTR(temp_4_input, S_IRUGO,
+ 					applesmc_show_temperature, NULL, 3);
+-static SENSOR_DEVICE_ATTR(temperature_4, S_IRUGO,
++static SENSOR_DEVICE_ATTR(temp_5_input, S_IRUGO,
+ 					applesmc_show_temperature, NULL, 4);
+-static SENSOR_DEVICE_ATTR(temperature_5, S_IRUGO,
++static SENSOR_DEVICE_ATTR(temp_6_input, S_IRUGO,
+ 					applesmc_show_temperature, NULL, 5);
+-static SENSOR_DEVICE_ATTR(temperature_6, S_IRUGO,
++static SENSOR_DEVICE_ATTR(temp_7_input, S_IRUGO,
+ 					applesmc_show_temperature, NULL, 6);
++static SENSOR_DEVICE_ATTR(temp_8_input, S_IRUGO,
++					applesmc_show_temperature, NULL, 7);
++static SENSOR_DEVICE_ATTR(temp_9_input, S_IRUGO,
++					applesmc_show_temperature, NULL, 8);
++static SENSOR_DEVICE_ATTR(temp_10_input, S_IRUGO,
++					applesmc_show_temperature, NULL, 9);
++static SENSOR_DEVICE_ATTR(temp_11_input, S_IRUGO,
++					applesmc_show_temperature, NULL, 10);
++static SENSOR_DEVICE_ATTR(temp_12_input, S_IRUGO,
++					applesmc_show_temperature, NULL, 11);
+ 
+ static struct attribute *temperature_attributes[] = {
+-	&sensor_dev_attr_temperature_0.dev_attr.attr,
+-	&sensor_dev_attr_temperature_1.dev_attr.attr,
+-	&sensor_dev_attr_temperature_2.dev_attr.attr,
+-	&sensor_dev_attr_temperature_3.dev_attr.attr,
+-	&sensor_dev_attr_temperature_4.dev_attr.attr,
+-	&sensor_dev_attr_temperature_5.dev_attr.attr,
+-	&sensor_dev_attr_temperature_6.dev_attr.attr,
++	&sensor_dev_attr_temp_1_input.dev_attr.attr,
++	&sensor_dev_attr_temp_2_input.dev_attr.attr,
++	&sensor_dev_attr_temp_3_input.dev_attr.attr,
++	&sensor_dev_attr_temp_4_input.dev_attr.attr,
++	&sensor_dev_attr_temp_5_input.dev_attr.attr,
++	&sensor_dev_attr_temp_6_input.dev_attr.attr,
++	&sensor_dev_attr_temp_7_input.dev_attr.attr,
++	&sensor_dev_attr_temp_8_input.dev_attr.attr,
++	&sensor_dev_attr_temp_9_input.dev_attr.attr,
++	&sensor_dev_attr_temp_10_input.dev_attr.attr,
++	&sensor_dev_attr_temp_11_input.dev_attr.attr,
++	&sensor_dev_attr_temp_12_input.dev_attr.attr,
++	NULL
+ };
+ 
++static const struct attribute_group temperature_attributes_group +	{ .attrs = temperature_attributes };
++
+ /* Module stuff */
+ 
+ /* 
+@@ -734,18 +807,15 @@ static int applesmc_create_accelerometer(void)
+ {
+ 	int ret;
+ 
+-	ret = sysfs_create_file(&pdev->dev.kobj, &dev_attr_position.attr);
+-	if (ret)
+-		goto out;
+-
+-	ret = sysfs_create_file(&pdev->dev.kobj, &dev_attr_calibrate.attr);
++	ret = sysfs_create_group(&pdev->dev.kobj,
++					&accelerometer_attributes_group);
+ 	if (ret)
+ 		goto out;
+ 
+ 	applesmc_idev = input_allocate_device();
+ 	if (!applesmc_idev) {
+ 		ret = -ENOMEM;
+-		goto out;
++		goto out_sysfs;
+ 	}
+ 
+ 	/* initial calibrate for the input device */
+@@ -777,6 +847,9 @@ static int applesmc_create_accelerometer(void)
+ out_idev:
+ 	input_free_device(applesmc_idev);
+ 
++out_sysfs:
++	sysfs_remove_group(&pdev->dev.kobj, &accelerometer_attributes_group);	
++
+ out:
+ 	printk(KERN_WARNING "applesmc: driver init failed (ret=%d)!\n", ret);
+ 	return ret;
+@@ -787,6 +860,7 @@ static void applesmc_release_accelerometer(void)
+ {
+ 	del_timer_sync(&applesmc_timer);
+ 	input_unregister_device(applesmc_idev);
++	sysfs_remove_group(&pdev->dev.kobj, &accelerometer_attributes_group);
+ }
+ 
+ static __initdata struct dmi_match_data applesmc_dmi_data[] = {
+@@ -867,7 +941,7 @@ static int __init applesmc_init(void)
+ 			ret = sysfs_create_group(&pdev->dev.kobj,
+ 						 &fan_attribute_groups[0]);
+ 			if (ret)
+-				goto out_device;
++				goto out_fan_1;
+ 		case 0:
+ 			;
+ 		}
+@@ -876,16 +950,24 @@ static int __init applesmc_init(void)
+ 	for (i = 0;
+ 	     temperature_sensors_sets[applesmc_temperature_set][i] != NULL;
+ 	     i++) {
++		if (temperature_attributes[i] = NULL) {
++			printk(KERN_ERR "applesmc: More temperature sensors "
++				"in temperature_sensors_sets (at least %i)"
++				"than available sysfs files in "
++				"temperature_attributes (%i), please report "
++				"this bug.\n", i, i-1);
++			goto out_temperature;
++		}
+ 		ret = sysfs_create_file(&pdev->dev.kobj,
+ 						temperature_attributes[i]);
+ 		if (ret)
+-			goto out_device;
++			goto out_temperature;
+ 	}
+ 
+ 	if (applesmc_accelerometer) {
+ 		ret = applesmc_create_accelerometer();
+ 		if (ret)
+-			goto out_device;
++			goto out_temperature;
+ 	}
+ 
+ 	if (applesmc_light) {
+@@ -897,15 +979,33 @@ static int __init applesmc_init(void)
+ 		/* register as a led device */
+ 		ret = led_classdev_register(&pdev->dev, &applesmc_backlight);
+ 		if (ret < 0)
+-			goto out_accelerometer;
++			goto out_light_sysfs;
++	}
++
++	hwmon_class_dev = hwmon_device_register(&pdev->dev);
++	if (IS_ERR(hwmon_class_dev)) {
++		ret = PTR_ERR(hwmon_class_dev);
++		goto out_light;
+ 	}
+ 
+ 	printk(KERN_INFO "applesmc: driver successfully loaded.\n");
++
+ 	return 0;
+ 
++out_light:
++	if (applesmc_light)
++		led_classdev_unregister(&applesmc_backlight);
++out_light_sysfs:
++	if (applesmc_light)
++		sysfs_remove_file(&pdev->dev.kobj, &dev_attr_light.attr);
+ out_accelerometer:
+ 	if (applesmc_accelerometer)
+ 		applesmc_release_accelerometer();
++out_temperature:
++	sysfs_remove_group(&pdev->dev.kobj, &temperature_attributes_group);
++	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[0]);
++out_fan_1:
++	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[1]);
+ out_device:
+ 	platform_device_unregister(pdev);
+ out_driver:
+@@ -919,10 +1019,14 @@ out:
+ 
+ static void __exit applesmc_exit(void)
+ {
++	hwmon_device_unregister(hwmon_class_dev);	
+ 	if (applesmc_light)
+ 		led_classdev_unregister(&applesmc_backlight);
+ 	if (applesmc_accelerometer)
+ 		applesmc_release_accelerometer();
++	sysfs_remove_group(&pdev->dev.kobj, &temperature_attributes_group);
++	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[0]);
++	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[1]);
+ 	platform_device_unregister(pdev);
+ 	platform_driver_unregister(&applesmc_driver);
+ 	release_region(APPLESMC_DATA_PORT, APPLESMC_NR_PORTS);
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------040506040009070903050604--
