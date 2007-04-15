@@ -1,95 +1,45 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 15 Apr 2007 09:41:59 +0000
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date: Sun, 15 Apr 2007 20:31:41 +0000
 Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Message-Id: <20070415114159.05026483@hyperion.delvare>
+Message-Id: <200704151431.41503.bjorn.helgaas@hp.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45D5EA88.7090300@redhat.com>
-	<200704131218.44045.bjorn.helgaas@hp.com>
-	<20070413200746.GD28264@elf.ucw.cz>
-	<200704131459.45867.bjorn.helgaas@hp.com>
-In-Reply-To: <200704131459.45867.bjorn.helgaas@hp.com>
+References: <45D5EA88.7090300@redhat.com> <200704131459.45867.bjorn.helgaas@hp.com> <20070415114159.05026483@hyperion.delvare>
+In-Reply-To: <20070415114159.05026483@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: Jean Delvare <khali@linux-fr.org>
 Cc: Pavel Machek <pavel@ucw.cz>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-Hi Bjorn,
-
-On Fri, 13 Apr 2007 14:59:45 -0600, Bjorn Helgaas wrote:
-> On Friday 13 April 2007 14:07, Pavel Machek wrote:
-> > > > ... The primary issue is the concurrent access
-> > > > to resources, which cause lots of trouble which are hard to investigate.
-> > > > If ACPI reserves the ports, then the SMBus or hardware monitoring
-> > > > drivers (or any other conflicting driver) will cleanly fail to load,
-> > > > which would be a move in the right direction. ...
-> > > > 
-> > > > So, can ACPI actually reserve the ports it accesses?
-> > > 
-> > > Sorry to join this discussion so late.
-> > > 
-> > > ACPI tells us the resources used by devices.  Today, we don't
-> > > reserve
-> > 
-> > Problem seems to be that ACPI does _not_ tell us which ports it
-> > accesses from AML code.
+On Sunday 15 April 2007 03:41, Jean Delvare wrote:
+> On Fri, 13 Apr 2007 14:59:45 -0600, Bjorn Helgaas wrote:
+> > Of course, there are always BIOS defects.  But if we could make a
+> > case that a BIOS that doesn't declare the resources used by the AML
+> > is defective, we could add quirks to reserve the undeclared resources.
 > 
-> I think that would violate at least the spirit of the ACPI spec.
-> The example in section 11.6 of the ACPI 3.0 spec shows a _TMP
-> method that runs an EC method to read the temp, and the EC ioport
-> usage is correctly declared in the EC device's _CRS method.
-> 
-> Of course, there are always BIOS defects.  But if we could make a
-> case that a BIOS that doesn't declare the resources used by the AML
-> is defective, we could add quirks to reserve the undeclared resources.
+> Only realistic if the list of systems needing a quirk is small. Do you
+> think that would be the case?
 
-Only realistic if the list of systems needing a quirk is small. Do you
-think that would be the case?
+I don't know.  I confess that I don't clearly understand the problem
+yet.  It sounds like the sensor drivers want to talk to hardware that
+ACPI methods might also use.
 
-> > But we already found a lock we can take; AFAICT we know how to solve
-> > this problem.
+But I missed the details, such as the specific devices in question,
+which ports they use, how they are described in ACPI, which AML
+methods use those ports, and which non-ACPI drivers also use them.
 
-We even have two solutions, but both have drawbacks.
+It also sounds like the non-ACPI drivers provide much more
+functionality than ACPI exposes.  I'd like to understand this,
+too, because an  obvious way to solve the problem would be to
+drop the non-ACPI drivers.  Is this extra functionality available
+on Windows?  If so, do we know whether Windows uses non-ACPI drivers
+or whether they have some smarter way to use ACPI?  In the long
+run, I think the easiest, most reliable route would be to use the
+system in a similar way.  Then we'd be doing things the way the
+manufacturer intended and we'd take advantage of all the Windows-
+focused firmware testing.
 
-The AML lock solution has performance issue. It could be improved with a
-better semaphore primitive, but that needs to be implemented first. It
-also requires to modify all drivers ACPI might conflict with, and
-that's a rather long list.
-
-Rudolf Marek's port forwarding idea should perform better, and might
-also be useful for other problems than ACPI vs. regular drivers,
-however it makes resources bigger, and requires to modify the same long
-list of drivers, and with specific code for every driver. I'm not sure
-that it will be possible for all driver in practice, as this more or
-less requires to forecast the I/O access pattern of ACPI.
-
-> This might solve it, but doesn't seem like a clean way to do it.
-> I don't like the idea of sharing a lock between drivers and ACPI.
-> k8temp happens to be x86-dependent, so we'll always have ACPI, but
-> in principle, we could have the same problem with an arch-independent
-> PCI driver that only has ACPI on x86 and ia64 platforms.
-
-We can protect the additional driver code with #ifdef CONFIG_ACPI, as I
-did in my proof-of-concept. Not particularly elegant, granted, but it
-should work.
-
-If something cleaner can be done, I'm all for it. Could you please
-propose an implementation of your idea? It doesn't need to be perfect,
-but I would like to see what it would look like.
-
-> (BTW, if Chuck's problem was solved by the BIOS update, I assume
-> there *is* another instance of the problem that we're trying to
-> solve with this lock.)
-
-Yes, there are several other systems out there which are known to be
-affected by the problem. And probably many others where ACPI access I/O
-ports reserved by regular drivers and we are simply lucky that nothing
-bad happens. My desktop system has such a motherboard (Jetway K8M8MS).
-But SMP alternatives are becoming more popular, so we might start
-seeing more problems in practice in a near future.
-
--- 
-Jean Delvare
+Bjorn
 
 _______________________________________________
 lm-sensors mailing list
