@@ -1,169 +1,61 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Wed, 11 Apr 2007 15:08:17 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 15 Apr 2007 15:03:20 +0000
 Subject: Re: [lm-sensors] Hardware monitoring subsystem maintainer position
-Message-Id: <191fb4ca0704110808k2c2cf10ct6c2dcab5efeb0939@mail.gmail.com>
+Message-Id: <20070415150320.GA3158@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070410150227.1bac05b5@hyperion.delvare>
-	 <461BB006.9020308@hhs.nl>
-	 <4dfa50520704100846s7c031ab0i9da94a9e993cbbfc@mail.gmail.com>
-	 <461C0E0E.5090008@assembler.cz> <461CA932.4060108@hhs.nl>
-In-Reply-To: <461CA932.4060108@hhs.nl>
+In-Reply-To: <20070410150227.1bac05b5@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: Rudolf Marek <r.marek@assembler.cz>, "Mark M. Hoffman" <mhoffman@lightlink.com>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, David Hubbard <david.c.hubbard@gmail.com>, Rudolf Marek <r.marek@assembler.cz>, Juerg Haefliger <juergh@gmail.com>, Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Hi all,
+Hi Jean, et al:
 
-As pointed out by different people already, this is mainly a process
-issue. If we can get enough people together who are willing to
-contribute we can make this work. Obviously Jean did a great job (big
-thanks!) but I can't blame him for throwing the towel. I was always
-amazed at how much time and effort he put into this. This can't be
-handled by a single person.
+* Jean Delvare <khali@linux-fr.org> [2007-04-10 15:02:27 +0200]:
+> I am resigning from my role as hardware monitoring subsystem
+> (drivers/hwmon) maintainer. This is too much work for me, I do not have
+> the necessary bandwidth to review all the incoming patches, in
+> particular new drivers, in a timely manner. Patch authors have been
+> complaining about this repeatedly. This is no fun for them, and even
+> less for me, so I'd rather let someone else with more spare time take
+> care of it. If there are volunteers, this is the right time to speak up.
+> 
+> I will still be maintaining the individual hardware monitoring drivers
+> I am listed for in file MAINTAINERS (adm1025, f71805f, lm83 and lm90)
+> as well as the I2C subsystem. No change here.
+> 
+> I will continue to feed -mm with pending hwmon patches until 2.6.21
+> final is released, then I'll send everything I have to Linus for
+> 2.6.22-rc1, the last of which will be:
+>  (...)
 
-I believe we need to come up with a process (and I like what Hans
-suggests) and then need to identify individuals for the different jobs
-(reviewers, submitters, ...).
+/me throws hat in
 
-I also think we need to make more use of trac to assign tasks to
-people and to provide progress information/reports so that driver
-submitters know what's going on and in what stage of the pipeline
-their driver currently is.
+I volunteer to become the new MAINTAINER, but in a much more limited sense
+of the term than Jean is/was.  I can take care of a couple git trees, and do
+some detailed reviews when I have time.  For the most part, I will have to
+rely on others to do reviews as well.
 
-...juerg (volunteering as a reviewer)
+I would not be volunteering for this role, if Juerg and others had not also
+volunteered to be more active reviewers.
 
+As for the discussions later in this thread about process... IMHO that's a
+little premature.  I intend to get brand new stuff into -mm perhaps a little
+earlier than Jean did... but it still ain't going to Linus before it's ready.
+Other than that, I would rather just see what works for me and for you (other
+hwmon authors).
 
+Assuming no one else wants the job (ruik?) I'll start working with Jean to
+get things set up as soon as I can.
 
+Thanks & regards,
 
-On 4/11/07, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
-> Rudolf Marek wrote:
-> > Hello all,
-> >
-> >
-> > Maybe we could try following:
-> >
-> > 1) person post the driver
-> > 2) quick review could be done critical fixes only, driver goes to -mm
-> > 3) review that goes deeper - check for interface conformity and all the
-> > stuff which could break - fixes for non-critical stuff
-> > 4) after this driver goes to Linus tree at the very beginning for the
-> > merge cycle marked as EXPERIMENTAL
-> > 5) if the person agrees to be in MAINTAINER final review may be done and
-> > EXPERIMENTAL could be removed. (This is step which might involve all
-> > steps to make the driver really perfect ;)
-> >
-> > Well this is just an idea. Neither it does solve the maintainer problem,
-> > nor it is perfect solution.
-> >
->
-> I like the general direction, but I don't really see a clear difference between
-> step 2 and 3, IMO the border between these steps is vague. Also this doesn't
-> address who can do (which kinda) reviews.
->
-> I've been thinking about a solution for the slow path for new driver inclusion
-> myself here is what I propose:
->
-> 1a) We need a set of review guidelines / a review checklist. Here is a start:
-> * Must follow kernel coding style guidelines
-> * sysfs interface must be in accordance with Documentation/hwmon/sysfs
-> * proper locking to avoid 2 simultaneous attempts to communicate with the
->    device when for example multiple sysfs files get read at once.
-> * check the code for any obvious programming errors, like:
->    -not freeing resources (in error paths and in general)
->    -overrunning an array
->    -not checking return values of calls to other parts of the kernel
->    -of by one errors / bad loops
->    -etc.
-> 1b) We need to decide somehow who can do reviews. For now I say anyone who
->    already maintains atleast one hwmon driver. But thats just a wild shot better
->    ideas are welcome.
->
-> 2) We need a review process for new drivers, suggestion:
->
-> 1.  Person (the submitter) posts driver
-> 2a. Someone (the reviewer) reviews it according to our checklist / guidelines
->      and posts a detailed report of his findings and what needs fixing
-> 2b. The submitter posts a fixed version
-> 2c. The reviewer re-reviews the fixed version and either approves the fixed
->      version, goto 3 or points out things that (still) need fixing, goto 2b.
-> 3.  The driver gets send to the -mm tree (marked as EXPERIMENTAL)
-> 4.  Another person (the second reviewer) reviews it, same process as with step
->      2, once approved goto 5
-> 5.  Send to Linus tree at the very beginning for the merge cycle still marked
->      as EXPERIMENTAL
-> 6.  After quite some time and positive usage reports without any negative
->      counter reports a patch gets send to Linux to remove EXPERIMENTAL status.
->
-> 3) We need a review process for fixes to existing drivers, suggestion:
->
-> 1. Person (the submitter) posts a patch to an existing driver
-> 2. The driver maintainer is responsible for handling this patch and reviews
->     it. If necessary he either modifies the patch himself or asks the submitter
->     to make modifications.
-> 3. Once the maintainer is happy with the patch, he sends it to Linus tree at
->     the beginning for the merge cycle.
->
->
-> The rationale of doing the new driver thing this way is to avoid having a
-> single person who bears end responsibilities for all reviews and thus becomes a
-> potential bottleneck. The problem with distributing reviews though is that most
-> of us aren't as experienced as Jean is. Thus I decided to just do the review
-> twice, to compensate (a bit) for this.
->
-> The rationale of doing modifications of existing drivers through the maintainer
-> is that he knows the code best, and thus can best judge if fixes are really
-> fixes or more bandaids / workarounds. And if these fixes have any unwanted side
-> effects.
->
-> To give proper credit: the above is heavily inspired by how Fedora handles new
-> packages, Fedora has thousands of packages written and maintained by 100's of
-> contributers. Using a model where any contributer, once he has taken the first
-> horde of becoming a contributer and thus proving (some) competence can review
-> other contributers new packages.
->
-> Problems with the above, I'm not completely happy with my current proposal for
-> deciding who can do reviews. Also I guess that Andrew and Linus would like to
-> have a single person to take hwmon patches from, thus we still need someone
-> todo the actual collecting of approved patches and sending them to Andrew
-> and/or Linus.
->
-> Last but not least I want to say that we should not focus too much on review,
-> review can only get us sofar. In my (abituguru) experience most real life hwmon
-> problems do not come from things easily catched by a review, but rather from
-> problems with (certain versions of) the hardware responding different then
-> expected. No amount of review will catch these cases, thus we also need to
-> concentrate on testing.
->
-> For both abituguru drivers I've posted to the forums of the abit websites and
-> the lm-sensors list as soon as I got something usable and that way managed to
-> build a small team of circa 8 testers for each version, a team which I send
-> each update to before sending it for upstream inclusion. Especially for the
-> abituguru (rev 1 and 2) driver this has helped my much since this is a strange
-> beast. The abituguru3 driver is more straight forward but also there the
-> testing by others has been invaluable.
->
->
-> > Personally better would be go with Jean and some kind of scheme noted
-> > above, which would solve our "takes too long problem" and preserve the
-> > high quality of drivers. This would mean some co-maintainers to Jean,
-> > rather than to live without Jean at all.
-> >
->
-> +1
->
-> Regards,
->
-> Hans
->
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
