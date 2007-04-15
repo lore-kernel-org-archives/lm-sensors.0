@@ -1,7 +1,7 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 15 Apr 2007 18:06:48 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 15 Apr 2007 19:46:07 +0000
 Subject: Re: [lm-sensors] kernel/hwmon todo
-Message-Id: <20070415180648.GD3158@jupiter.solarsys.private>
+Message-Id: <462280FF.6080004@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070415161302.GB3158@jupiter.solarsys.private>
 In-Reply-To: <20070415161302.GB3158@jupiter.solarsys.private>
@@ -10,26 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg:
+Hi Mark, All
 
-* Juerg Haefliger <juergh@gmail.com> [2007-04-15 10:49:49 -0700]:
-> > > [PATCH 1/2 RESEND] hwmon: new driver for SMSC DME1737
-> > > http://lists.lm-sensors.org/pipermail/lm-sensors/2007-March/019298.html
-> > > [PATCH 2/2 RESEND] hwmon: documentation for new SMSC DME1737 driver
-> > > http://lists.lm-sensors.org/pipermail/lm-sensors/2007-March/019299.html
-> > > primary reviewer: Hans de Goede
+First of all, Mark great to hear you're stepping in to become the Maintainer 
+and many thanks for this.
+
+Mark M. Hoffman wrote:
+> Hi everyone:
 > 
-> Jean did a 2nd review on these two patches and I need to update and resend them.
+> Here's a list of kernel patches which are not in Jean's queue[1] and which need
+> review.  I've only searched the mailing list archives back through March.  I'm
+> sure I've missed some, or if there are updated patches available for any of
+> these, please let me know.
+> 
 
-ACK.  If you want them to go into 2.6.22 then they'll have to go through Jean.
-I guess that Linus' 2.6.22 merge window will open pretty soon.
+I think you've missed the admXXXX driver backported from 2.4 which was posted a
+while ago.
 
-Regards,
+> PATCH: hwmon-abituguru3-new-driver.patch: Add support for newer uGuru's
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-April/019433.html
+> primary reviewer: Juerg Haefliger
+> 
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+The biggest problem with this patch currently is the discussion about the 
+included chip model/revision/stepping table, which is (somewhat) needed because 
+with the uguru being a software solution every motherboard essentially has its 
+own version of the chip.
 
+Jean didn't like this much because he believes this kinda info belongs in 
+userspace. I've given a long reply to a mail of Jean where I explain why I 
+decided to put the table in kernelspace and that I still believe this to be the 
+right decision. Unfortunately that mail has gotten 0 replies.
+
+Thanks & Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
