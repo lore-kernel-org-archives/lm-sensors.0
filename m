@@ -1,213 +1,37 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 07 Apr 2007 07:06:48 +0000
-Subject: Re: [lm-sensors] Asus smbus mux
-Message-Id: <20070407090648.1d7029f0.khali@linux-fr.org>
+From: Jordan <xero@xeron.cc>
+Date: Sun, 15 Apr 2007 18:58:54 +0000
+Subject: [lm-sensors] w83627dhg msi 975x problems
+Message-Id: <20070415185853.GA11766@xeron.cc>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3df49b7b0704011722q1201063eh37253910ddb1e004@mail.gmail.com>
-In-Reply-To: <3df49b7b0704011722q1201063eh37253910ddb1e004@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Wed, 4 Apr 2007 04:25:10 +0200, RusH wrote:
-> > Is this information public? We don't yet support I2C/SMBus
-> > multiplexing, but when we do, if we have the information, we can add
-> > support for these boards.
-> 
-> Here it is, pseudocode:
-> 
-> 	ulong temp, temp2;
-> 
-> '3V4X'
-> 
-> enable SPD
-> 	temp = inl_port($e44c);
-> 	outl_port ($e44c,(temp & 0xe7ffffff) | 0x08000000);
-> 
-> disable SPD
-> 	outl_port($e44c,temp);
-> 
-> ----------------------
-> 
-> 'K7V'
-> 'A7V'
-> 'A7V133'
-> 'A7P'
-> 'A7M'
-> 
-> enable SPD
-> 	temp = inb_port($e44d);
-> 	outb_port ($e44d,temp | 0x01);
-> 
-> disable SPD
-> 	outb_port($e44d,temp);
-> 
-> This one is tested on A7V133, from DSTD
->   OperationRegion (\SGPO, SystemIO, 0xE44C, 0x04)
->   Field (SGPO, ByteAcc, NoLock, Preserve)
->   {
->       GPO0,   1,
->               Offset (0x01),
->       GPO8,   1, fe
->           ,   2,
->       GP11,   1,
->               Offset (0x04)
->   }
-> 
-> tested
-> 1 1 1 1 0 0 0 0 GPO0
-> 1 0 0 1 1 0 0 1 GPO8
-> 0 1 0 1 1 0 1 0 GP11
-> s c n n n n c s
-> 
-> s=spd + hwmonitor
-> c=clock + hwmonitor
-> n=hwmonitor
-> ----------------------
-> 
-> 'P3B'
-> 'CUBX'
-> 
-> enable SPD
-> 	temp = inb_port($e437);
-> 	outb_port($e437,(temp & 0xe7) | 0x08);
-> 
-> disable SPD
-> 	outb_port($e437,temp);
-> 
-> ----------------------
-> 
-> 'CUPL'
-> 'UV4X'
-> 
-> enable SPD
-> 	temp = inl_port($e44c);
-> 	outl_port($e44c,(temp & 0xfffff6fff) | 0x100);
-> 
-> disable SPD
-> 	outl_port($e44c,temp);
-> 
-> ----------------------
-> 
-> 'USL2'
-> 'CUC2'
-> '-A7V266-E'
-> '-A7V266-M'
-> '-A7V266'
-> 'WEM'
-> '-CUW'
-> '<<CUW>>'
-> 'P3C'
-> 'UEP2'
-> 'TUEG'
-> '-MEW-'
-> '<<MEW>>'
-> '-P3W-E'
-> '<<P3W>>'
-> 'CUSI'
-> 'CUV2'
-> 'A7S'
-> 
-> enable SPD
->          outb_port($2e,$87);
->          outb_port($2e,$87);
->          outb_port($2e,7);
->          outb_port($2f,8);
->          outb_port($2e,$f1);
->          temp = inb_port($2f);
->          outb_port($2e,$f1);
->          outb_port($2f,(temp & 0xe7) | 0x10);
->          outb_port($2e,$aa);
-> 
-> disable SPD
->          outb_port($2e,$87);
->          outb_port($2e,$87);
->          outb_port($2e,7);
->          outb_port($2f,8);
->          outb_port($2e,$f1);
->          outb_port($2f,temp);
->          outb_port($2e,$aa);
-> 
-> ----------------------
-> 
-> 'CUR'
-> 
-> enable SPD
->          temp = inb_port($ec80);
->          outb_port($ec80,(temp & 0xef) | 0x10);
->          temp2 = inb_port($ec84);
->          outb_port($ec84,(temp2 & 0xef) | 0x10);
-> 
-> disable SPD
->          outb_port($ec80,temp);
->          outb_port($ec84,temp2);
-> 
-> ----------------------
-> 
-> 'A7V333'
-> 
-> enable SPD
->          outb_port($2E,$87);
->          outb_port($2E,$87);
->          outb_port($2E,7);
->          outb_port($2F,8);
->          outb_port($2E,$F0);
->          temp = inb_port($2F);
->          outb_port($2E,$F0);
->          outb_port($2F,(temp & 0xE7) | 0x10);
->          outb_port($2E,$F1);
->          temp2 = inb_port($2F);
->          outb_port($2E,$F1);
->          outb_port($2F,(temp2 & 0xE7) | 0x10);
->          outb_port($2E,$AA);
-> 
-> disable SPD
->          outb_port($2E,$87);
->          outb_port($2E,$87);
->          outb_port($2E,7);
->          outb_port($2F,8);
->          outb_port($2E,$F0);
->          outb_port($2F,temp);
->          outb_port($2E,$F1);
->          outb_port($2F,temp2);
->          outb_port($2E,$AA);
-> 
-> ----------------------
-> 
-> '<P4B>'
-> 
-> enable SPD
->          outb_port($2E,$87);
->          outb_port($2E,$87);
->          outb_port($2E,7);
->          outb_port($2F,7);
->          outb_port($2E,$F2);
->          temp = inb_port($2F);
->          outb_port($2E,$F2);
->          outb_port($2F,(temp & 0xFC) | 0x1);
->          outb_port($2E,2);
->          temp2 = inb_port($2F);
->          outb_port($2F,temp2 | 0x2);
->          outb_port($2E,$AA);
-> 
-> disable SPD
->          outb_port($2E,$87);
->          outb_port($2E,$87);
->          outb_port($2E,7);
->          outb_port($2F,7);
->          outb_port($2E,$F2);
->          outb_port($2F,temp);
->          outb_port($2E,$AA);
-> 
+I have a MSI 975x Platinum, which uses the w83627dhg. This one here:
 
-Thanks for the information. I really wonder why Asus tries that hard to
-hide some I2C/SMBus devices behind gates. I fail to see any benefit in
-doing so, and it makes both the hardware more expensive and the code
-more complex.
+http://www.msicomputer.com/product/p_spec.asp?model=975X_Platinum_(Limited_=
+Edition)&class=3Dmb
 
--- 
-Jean Delvare
+I've applied the DHG patch to my kernel (2.6.20) but I'm currently having s=
+ome
+issues controlling the fan speeds. I've tried pwmconfig as well as manually
+echoing some values to pwm1-4 and pwm1-4_enable. It does correctly control
+my case fans, but it doesn't seem to have any effect over my CPU fan. I am
+using one of the new 4 pin cpu fans.
+
+My bios has a "smart fan" option for the CPU fan which does work correctly,
+although this option is not very configurable in the BIOS, it's only an=20
+on/off switch with no way to control the temperature that it raises the fan
+speed at. I found an actual picture of the BIOS screen for reference:
+http://www.hardocp.com/images/articles/1168231380Rzv7IS7G0U_2_15_l.gif
+
+I was hoping to be able to control the CPU fan speed through lm_sensors ins=
+tead.
+Disabling the smart fan in the bios leaves the fan running at full speed, b=
+ut
+this doesn't seem to make a difference, pwm1-4 continue to have no effect on
+the fan speed. Any ideas?
 
 _______________________________________________
 lm-sensors mailing list
