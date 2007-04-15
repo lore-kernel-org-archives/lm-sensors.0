@@ -1,31 +1,36 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 13 Apr 2007 06:51:54 +0000
-Subject: Re: [lm-sensors] Taking a closer look at lm-sensors,
-Message-Id: <20070413085154.4b99020e@hyperion.delvare>
+From: Dmitry Torokhov <dtor@insightbb.com>
+Date: Sun, 15 Apr 2007 02:07:15 +0000
+Subject: Re: [lm-sensors]
+Message-Id: <200704142207.16800.dtor@insightbb.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070412091354.10f4bef7@hyperion.delvare>
-In-Reply-To: <20070412091354.10f4bef7@hyperion.delvare>
+References: <20070410150227.1bac05b5@hyperion.delvare> <461dca480d7ec@wp.pl> <461DDF7D.1060101@hhs.nl>
+In-Reply-To: <461DDF7D.1060101@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, Krzysztof Helt <krzysztof.h1@wp.pl>, "Mark M. Hoffman" <mhoffman@lightlink.com>, LKML <linux-kernel@vger.kernel.org>
 
-Hans,
+Hi,
 
-On Thu, 12 Apr 2007 12:07:51 +0200, Hans de Goede wrote:
-> You are right, still I seem to remember patching Makefiles myself because of := 
-> causing passing stuff on the cmdline to not work. Maybe this has changed and 
-> the patched used by opensuse / slackware (and Fedora) were there because this 
-> didn't use to work??
+On Thursday 12 April 2007 03:27, Hans de Goede wrote:
+> Krzysztof Helt wrote:
+> 
+> >> * Must follow kernel coding style guidelines
+> > 
+> > Is there any tool to check this? If there is one, a basic
+> > instruction how to use it would be great.
+> > 
+> 
+> No tool.
 
-Could be. I noticed that the distributions are usually better at adding
-workarounds in their builds than at cleaning them up when they are no
-longer necessary. That being said, I've tested GNU make 2.78.1, which
-is quite old now, it was released in September 1999, and it does not
-exhibit the behavior you describe. So I'm a bit skeptical.
+Passing new drivres through scripts/Lindent and analyzing the
+dirrerences can highlight differences between kernel style and
+author's (note that I do not advocate mechanically passing
+everything though Lindent).
 
 -- 
-Jean Delvare
+Dmitry
 
 _______________________________________________
 lm-sensors mailing list
