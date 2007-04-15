@@ -1,46 +1,52 @@
-From: Bob =?ISO-8859-1?Q?Schl=E4rmann?= <bob2@dsv.nl>
-Date: Wed, 11 Apr 2007 19:02:44 +0000
-Subject: Re: [lm-sensors] dynamic chip support in libsensors + generic chip
-Message-Id: <20070411210244.13d00b45@ws01.atreidis.nl.eu.org>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 15 Apr 2007 16:13:02 +0000
+Subject: [lm-sensors] kernel/hwmon todo
+Message-Id: <20070415161302.GB3158@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <461A59D4.2050409@hhs.nl>
-In-Reply-To: <461A59D4.2050409@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 11 Apr 2007 14:00:20 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
+Hi everyone:
 
-> Hi Bob
->=20
-> On Mon, 9 Apr 2007 20:31:11 +0200, Bob Schl=E4rmann wrote:
-> > On Mon, 09 Apr 2007 17:20:52 +0200
-> > Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
-> >=20
-> > > So please test this:
-> > > 1) checkout the 3.0.0 branch:
-> > >     svn checkout
-> > > http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0
-> > > 2) comment the entries for your chips int he table at the end of
-> > > lib/chips.c and in the table near the end of progs/sensors/main.c
-> >
-> > Note that this isn't needed if you give sensors the -g argument.
-> > This forces sensors to use the generic printing routines.
->=20
-> How does "sensors -g" differ from "sensors -u"? I thought we would be
-> reusing -u for the generic printing.
->=20
-The difference is that -u prints every feature, -g only prints feature
-types it knows about. So when adding some new special feature type, the
-generic printing routines won't show them (yet) but -u will.=20
+Here's a list of kernel patches which are not in Jean's queue[1] and which need
+review.  I've only searched the mailing list archives back through March.  I'm
+sure I've missed some, or if there are updated patches available for any of
+these, please let me know.
 
-Don't know whether it's worth it to support this extra switch, but I=20
-wanted to change the behaviour of sensors as little as possible.
+Also, some of these patches need a primary reviewer.
 
---
-Bob Schl=E4rmann
+[1] http://khali.linux-fr.org/devel/linux-2.6/jdelvare-hwmon/
+
+[PATCH 1/2 RESEND] hwmon: new driver for SMSC DME1737
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-March/019298.html
+[PATCH 2/2 RESEND] hwmon: documentation for new SMSC DME1737 driver
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-March/019299.html
+primary reviewer: Hans de Goede
+
+PATCH: hwmon-abituguru3-new-driver.patch: Add support for newer uGuru's
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-April/019433.html
+primary reviewer: Juerg Haefliger
+
+[PATCH] Apple SMC driver - fix input device
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-April/019462.html
+
+[PATCH 1/2] Apple SMC driver - standardize and sanitize sysfs tree + minor features addition
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-April/019519.html
+[PATCH 2/2] Apple SMC driver - implement key enumeration
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-April/019520.html
+
+[PATCH] Add LM93 support
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-April/019526.html
+primary reviewer: mmh
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
