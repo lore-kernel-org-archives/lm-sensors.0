@@ -1,105 +1,77 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Sun, 29 Apr 2007 13:56:33 +0000
-Subject: [lm-sensors] [PATCH] coretemp add more safety checks
-Message-Id: <4634A411.4030703@assembler.cz>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------060906040908050400000707"
+From: Mike Cornelison <mikecorn@arcor.de>
+Date: Mon, 16 Apr 2007 08:30:04 +0000
+Subject: [lm-sensors] no sensors found
+Message-Id: <4623340C.9030603@arcor.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <000801c43068$c801a6e0$0100000a@volcano>
+In-Reply-To: <000801c43068$c801a6e0$0100000a@volcano>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060906040908050400000707
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
+I hope this is the right place for this.
+Kindly give me some guidance if not.
 
-Hello all,
+I am unable to get lm-sensors to work with a new MSI mainboard.
 
-I hope I will have more time from now, here my patch. It adds check for Errata
-AE18 of core processors, which causes values not to update after the CPU deep
-sleeps. Intel claims that the TjMax detection might not work for the Core2, warn
-the users about this.
+mainboard:  MSI P6N SLI
+chipset:  nForce 650i SLI C55  +  nForce 430i MCP51
+Linux: Ubuntu 7.04 (beta) with kernel 2.6.20-15
+lm-sensors package: 2.10.1
 
-I would like to ask anyone using coretemp on notebook to test this patch!
+sensors-detect outputs:
 
-In case it is ok (haha) here is the kernel stuff:
+Driver `eeprom' (should be inserted):
+  Detects correctly:
+  * Bus `NVIDIA i2c adapter 0 at 1:00.0'
+    Busdriver `UNKNOWN', I2C address 0x50 (and 0x51 0x52 0x53 0x54 0x55 
+0x56 0x57)
+    Chip `EDID EEPROM' (confidence: 8)
+  * Bus `SMBus nForce2 adapter at 5000'
+    Busdriver `i2c-nforce2', I2C address 0x50
+    Chip `SPD EEPROM' (confidence: 8)
+  * Bus `SMBus nForce2 adapter at 5000'
+    Busdriver `i2c-nforce2', I2C address 0x51
+    Chip `SPD EEPROM' (confidence: 8)
+...
 
-Signed-off-by: Rudolf Marek <r.marek@assembler.cz>
+Driver `lm92' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus nForce2 adapter at 6000'
+    Busdriver `i2c-nforce2', I2C address 0x46
+    Chip `Maxim MAX6633/MAX6634/MAX6635' (confidence: 2)
+...
 
-This patch adds detection of AE18 Errata of Core processor and warns
-users that the absolute readings might be wrong for Core2 users.
+#----cut here----
+# I2C adapter drivers
+# modprobe unknown adapter NVIDIA i2c adapter 0 at 1:00.0
+# modprobe unknown adapter NVIDIA i2c adapter 1 at 1:00.0
+# modprobe unknown adapter NVIDIA i2c adapter 2 at 1:00.0
+i2c-nforce2
+# Chip drivers
+eeprom
+lm92
+#----cut here----
 
-Rudolf
+Do you want to add these lines to /etc/modules automatically? (yes/NO)y
 
---------------060906040908050400000707
-Content-Type: text/x-diff;
- name="disable-coretemp-on-some-cpus.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="disable-coretemp-on-some-cpus.patch"
+root@mico2:/home/mico# modprobe eeprom
+root@mico2:/home/mico# modprobe lm92
+root@mico2:/home/mico# sensors
+No sensors found!
+...
+root@mico2:/home/mico# modprobe i2c-nforce2
+root@mico2:/home/mico# sensors
+No sensors found!
 
-Index: linux-2.6.21-rc3/drivers/hwmon/coretemp.c
-===================================================================
---- linux-2.6.21-rc3.orig/drivers/hwmon/coretemp.c	2007-04-29 14:38:49.440113304 +0200
-+++ linux-2.6.21-rc3/drivers/hwmon/coretemp.c	2007-04-29 15:32:34.263885537 +0200
-@@ -176,6 +176,22 @@
- 		goto exit_free;
- 	}
- 
-+	/* Check if we have problem with errata AE18 of Core processors:
-+	   Readings might stop update when precessor visited too deep sleep,
-+	   fixed for stepping D0 (6EC).
-+	*/
-+
-+	if ((c->x86_model == 0xe) && (c->x86_mask < 0xc)) {
-+		/* check for microcode update */
-+		rdmsr_on_cpu(data->id, MSR_IA32_UCODE_REV, &eax, &edx);
-+		if (edx < 0x39) {
-+			dev_err(&pdev->dev,
-+				"Errata AE18 not fixed, update BIOS or "
-+				"microcode of the CPU!\n");
-+			goto exit_free;
-+		}
-+	}
-+
- 	/* Some processors have Tjmax 85 following magic should detect it
- 	   Intel won't disclose the information without signed NDA, but
- 	   individuals cannot sign it. Catch(ed) 22.
-@@ -193,6 +209,16 @@
- 		}
- 	}
- 
-+	/* Intel says that above should not work for Core2 processors,
-+	   but it seems to work. There is no other way how get the absolute
-+	   readings. Warn the user about this.
-+	*/
-+
-+	if (((c->x86_model == 0xf) {
-+		dev_warn(&pdev->dev, "Using undocumented features, absolute "
-+			 "temperature might be wrong!\n");
-+	}
-+
- 	platform_set_drvdata(pdev, data);
- 
- 	if ((err = sysfs_create_group(&pdev->dev.kobj, &coretemp_group)))
-@@ -328,9 +354,6 @@
- 	int i, err = -ENODEV;
- 	struct pdev_entry *p, *n;
- 
--	printk(KERN_NOTICE DRVNAME ": This driver uses undocumented features"
--		" of Core CPU. Temperature might be wrong!\n");
--
- 	/* quick check if we run Intel */
- 	if (cpu_data[0].x86_vendor != X86_VENDOR_INTEL)
- 		goto exit;
 
---------------060906040908050400000707
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Is this mainboard not supported or should I try something else?
+Thanks.
+
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------060906040908050400000707--
