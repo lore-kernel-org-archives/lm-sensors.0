@@ -1,44 +1,45 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 13 Apr 2007 14:08:00 +0000
-Subject: Re: [lm-sensors] Hardware monitoring subsystem maintainer
-Message-Id: <20070413160800.37488b5d@hyperion.delvare>
+From: Amul Shah <amul.shah@unisys.com>
+Date: Mon, 16 Apr 2007 15:14:01 +0000
+Subject: [lm-sensors] [PATCH] k8temp - Add the diode offset to reported
+Message-Id: <1176736441.14094.31.camel@ustr-shaha1-linux2.na.uis.unisys.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <461dca480d7ec@wp.pl>
-In-Reply-To: <461dca480d7ec@wp.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Krzysztof,
+This patch adds support to include the CPU diode sensor offset when
+reporting CPU temperature.
 
-On Thu, 12 Apr 2007 07:57:28 +0200, Krzysztof Helt wrote:
-> The documentation is still confusing to me. Can someone of you
-> update it to answer these questions directly?
+Please see http://www.lm-sensors.org/ticket/2200 for the full problem
+description.
 
-This is rather off-topic for this thread, so I removed LKML from Cc.
+Signed-off-by: Amul Shah <amul.shah@unisys.com>
+---
+diff -uprN kernel.orig/drivers/hwmon/k8temp.c kernel/drivers/hwmon/k8temp.c
+--- kernel.orig/drivers/hwmon/k8temp.c	2007-04-12 23:15:02.000000000 -0400
++++ kernel/drivers/hwmon/k8temp.c	2007-04-16 14:15:06.000000000 -0400
+@@ -33,6 +33,8 @@
+ #include <linux/mutex.h>
+ 
+ #define TEMP_FROM_REG(val)	(((((val) >> 16) & 0xff) - 49) * 1000)
++#define OFFSET_FROM_REG(val)	((((val) >> 8) & 0x3f)? \
++				((11 - (((val) >> 8) & 0x3f)) * 1000):0)
+ #define REG_TEMP	0xe4
+ #define SEL_PLACE	0x40
+ #define SEL_CORE	0x04
+@@ -117,7 +119,8 @@ static ssize_t show_temp(struct device *
+ 	struct k8temp_data *data = k8temp_update_device(dev);
+ 
+ 	return sprintf(buf, "%d\n",
+-		       TEMP_FROM_REG(data->temp[core][place]));
++		       TEMP_FROM_REG(data->temp[core][place]) +
++		       OFFSET_FROM_REG(data->temp[core][place]));
+ }
+ 
+ /* core, place */
 
-> A. What is meaning of 0 and 1 values in pwmX_enable ?
 
-This is already documented.
-
-> B. How to stop the fan (pwmX_enable = 1 and pwmX = 0 was
-> suggested to someone on the list)?
-
-Yes, this is the correct method.
-
-> C. How t o handle situation if the pwm register minimum value (0)
-> does not stop the fan, but there is a separate bit to do it? (do
-> stop emulate with the bit when 0 is written to pwmX?)
-
-Yes, again that's the correct method.
-
-You seem to understand how it works just fine, so instead of asking us
-to update the document, why don't you do it yourself and send us a
-patch?
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
