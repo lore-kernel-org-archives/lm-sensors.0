@@ -1,82 +1,66 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 22 Apr 2007 20:50:18 +0000
-Subject: Re: [lm-sensors] Need some guidance on adhering to the
-Message-Id: <462BCDB8.50300@hhs.nl>
+From: Just Marc <marc@corky.net>
+Date: Wed, 18 Apr 2007 12:46:26 +0000
+Subject: Re: [lm-sensors] lmsensors in 2.6.16 on a Tyan 2882-D motherboard,
+Message-Id: <46261322.5080005@corky.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <462BC1BA.9070407@hhs.nl>
-In-Reply-To: <462BC1BA.9070407@hhs.nl>
+References: <44325498.8060805@corky.net>
+In-Reply-To: <44325498.8060805@corky.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Juerg Haefliger wrote:
-> On 4/22/07, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
->> Juerg Haefliger wrote:
->>> Hi Jean,
->>>
->>> On 4/22/07, Jean Delvare <khali@linux-fr.org> wrote:
->>>> Hi Juerg,
->>>>
->>>> On Thu, 19 Apr 2007 12:04:28 -0700, Juerg Haefliger wrote:
->>>>> George, Jean,
->>>>>
->>>>> I'm struggling with the same issue for the DME1737 I'm currently
->>>>> working on. This chip also features temp zones and "hottest of x,y,z"
->>>>> PWM control. The current sysfs standard is not flexible enough to
->>>>> handle these features, especially the combination of a single PWM
->>>>> being controlled by multiple temp inputs and multiple PMWs being
->>>>> controlled by the same temp input. I believe we need another layer of
->>>>> mapping. I.e. temp->pwm is not sufficient, but rather temp->zone->pwm.
->>>>>
->>>>> I therefore propose the add the following sysfs attributes to our standard:
->>>>>
->>>>> zone[1-*]_auto_channels_temp   for temp-to-zone mapping
->>>>> pwm[1-*]_auto_channels_zone   for zone-to-pwm mapping
->>>>> zone[1-*]_auto_point[1-*]_temp   for zone temp auto points.
->>>> I don't see what value it adds compared to what we currently have.
->>>>
->>>> We have pwm[1-*]_auto_channels_temp, which is a bit vector. We have one
->>>> file per PWM, one bit per temperature channel, so all in all we have a
->>>> Npwm x Ntemp matrix, or N-N relation between PWM and temperatures. This
->>>> already allows us to handle cases such as "the hottest of tempA and
->>>> tempB control pwmC" or "tempD controls pwmE and pwmF".
->>> Yes, I understand that.
->>>
->>>
->>>> You propose to add the concept of zone. According to the above, each
->>>> zone could include any temperature channel, so we have a N-N relation
->>>> between zones and temperatures. Then you express another N-N relation
->>>> between PWM channels and zones. As far as I can see, this results in a
->>>> N-N relation between temperatures and PWM, just expressed differently.
->>>> Am I missing something? What do you think it would let us express,
->>>> which the current model doesn't?
->>> What I can't seem to map to our current standard (or maybe I just
->>> don't see it) is the concept of multiple sets of thermal thresholds
->>> for a single temp input. Example: pwm2 is controlled by zone2 and pwm3
->>> is controlled by zone3 but both zone2 and zone3 are controlled by
->>> temp3. Both zone2 & 3 have different thermal thresholds.
->>>
->>> With the current standard I can only apply one set of thresholds to
->>> temp3 via temp3_auto_point[1-*]_temp.
->>>
->> Thats easy, AFAIK you can have either temp[1-*]_auto_point[1-*]_temp,
->> or pwm[1-*]_auto_point[1-*]_temp, iow you can couple the autopoints
->> to either a temp channel or a pwm channel depending on if the
->> thresholds are set per temp channel or per pwm channel.
-> 
-> That's not going to work. I can't use temp[1-*]_auto_point[1-*]_temp
-> because there are multiple sets of thresholds for a single temp input
-> and I can't use pwm[1-*]_auto_point[1-*]_temp either because then the
-> "hottest of x,y,z" doesn't work.
-> 
+Has Raphael returned?
 
-Can't you use pwm[1-*]_auto_channels_temp for that?
+ > I will out of office from 4/5 to 4/7.
+
+Maybe he meant April 2007 ... :)
+
+I'm still getting these weird reading with the latest versions: 
+lmsensors 2.10.3  kernel: 2.6.20.7
+
+Hopefully someone can shed some light.   Current output below.
+
+Thanks!
 
 
-Regards,
+box:~/lm_sensors-2.10.3# /usr/local/bin/sensors -v
+sensors version 2.10.3 with libsensors version 2.10.3
+box:~/lm_sensors-2.10.3# /usr/local/bin/sensors  
+w83627hf-isa-0290
+Adapter: ISA adapter
+CPU2 Volt: +1.42 V  (min =  +1.33 V, max =  +1.47 V)             
+CPU1 Volt: +1.44 V  (min =  +1.33 V, max =  +1.47 V)             
+3.3V:      +3.30 V  (min =  +3.14 V, max =  +3.47 V)             
+DDR VTT:   +1.30 V  (min =  +2.85 V, max =  +3.47 V)       ALARM 
+DDR 2.5V:  +2.56 V  (min =  +0.34 V, max =  +0.80 V)       ALARM 
+CPU2 Fan: 3924 RPM  (min = 7670 RPM, div = 8)              ALARM 
+CPU1 Fan: 3443 RPM  (min = 1430 RPM, div = 8)                    
+Fan5:        0 RPM  (min =  730 RPM, div = 8)              ALARM 
+vid:      +1.400 V  (VRM Version 2.4)
+alarms:  
+beep_enable:
+          Sound alarm enabled
 
-Hans
+
+Rudolf Marek wrote:
+>>
+>> w83627hf-isa-0290
+>> Adapter: ISA adapter
+>> +12V:      +4.92 V  (min = +10.82 V, max = +13.19 V)       ALARM
+>> -12V:      -1.59 V  (min = -13.18 V, max = -10.80 V)       ALARM
+>>
+>> I'm mostly concerned about these values, they are not skews ...  are 
+>> they just mis-named 5V and 1.5V readings?
+>>
+>
+>
+> Yes they are, lets wait until Raphael is back.
+>
+> regards
+> Rudolf
+>
+
 
 _______________________________________________
 lm-sensors mailing list
