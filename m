@@ -1,50 +1,74 @@
-From: "David Hubbard" <david.c.hubbard@gmail.com>
-Date: Thu, 26 Apr 2007 17:29:19 +0000
-Subject: Re: [lm-sensors] kernel/hwmon todo
-Message-Id: <4dfa50520704261029t791c956ah6d29387eca472e62@mail.gmail.com>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 22 Apr 2007 20:12:42 +0000
+Subject: Re: [lm-sensors] Need some guidance on adhering to the
+Message-Id: <462BC1BA.9070407@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070415161302.GB3158@jupiter.solarsys.private>
-In-Reply-To: <20070415161302.GB3158@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Juerg Haefliger wrote:
+> Hi Jean,
+> 
+> On 4/22/07, Jean Delvare <khali@linux-fr.org> wrote:
+>> Hi Juerg,
+>>
+>> On Thu, 19 Apr 2007 12:04:28 -0700, Juerg Haefliger wrote:
+>>> George, Jean,
+>>>
+>>> I'm struggling with the same issue for the DME1737 I'm currently
+>>> working on. This chip also features temp zones and "hottest of x,y,z"
+>>> PWM control. The current sysfs standard is not flexible enough to
+>>> handle these features, especially the combination of a single PWM
+>>> being controlled by multiple temp inputs and multiple PMWs being
+>>> controlled by the same temp input. I believe we need another layer of
+>>> mapping. I.e. temp->pwm is not sufficient, but rather temp->zone->pwm.
+>>>
+>>> I therefore propose the add the following sysfs attributes to our standard:
+>>>
+>>> zone[1-*]_auto_channels_temp   for temp-to-zone mapping
+>>> pwm[1-*]_auto_channels_zone   for zone-to-pwm mapping
+>>> zone[1-*]_auto_point[1-*]_temp   for zone temp auto points.
+>> I don't see what value it adds compared to what we currently have.
+>>
+>> We have pwm[1-*]_auto_channels_temp, which is a bit vector. We have one
+>> file per PWM, one bit per temperature channel, so all in all we have a
+>> Npwm x Ntemp matrix, or N-N relation between PWM and temperatures. This
+>> already allows us to handle cases such as "the hottest of tempA and
+>> tempB control pwmC" or "tempD controls pwmE and pwmF".
+> 
+> Yes, I understand that.
+> 
+> 
+>> You propose to add the concept of zone. According to the above, each
+>> zone could include any temperature channel, so we have a N-N relation
+>> between zones and temperatures. Then you express another N-N relation
+>> between PWM channels and zones. As far as I can see, this results in a
+>> N-N relation between temperatures and PWM, just expressed differently.
+>> Am I missing something? What do you think it would let us express,
+>> which the current model doesn't?
+> 
+> What I can't seem to map to our current standard (or maybe I just
+> don't see it) is the concept of multiple sets of thermal thresholds
+> for a single temp input. Example: pwm2 is controlled by zone2 and pwm3
+> is controlled by zone3 but both zone2 and zone3 are controlled by
+> temp3. Both zone2 & 3 have different thermal thresholds.
+> 
+> With the current standard I can only apply one set of thresholds to
+> temp3 via temp3_auto_point[1-*]_temp.
+> 
 
-]> On Tue, 24 Apr 2007 17:59:56 -0700, David Hubbard wrote:
-> > Hi Jean, Mark,
-> >
-> > > > * David Hubbard <david.c.hubbard@gmail.com> [2007-04-15 16:05:39 -0600]:
-> > > > > Also, I think you missed the patch I submitted to get rid of i2c-isa
-> > > > > in the w83627ehf driver. It needs a review, and then can be submitted
-> > > > > to the kernel.
-> > > >
-> > > > Sorry, I still can't find this one.  Link please?  Or just resubmit it.
-> > >
-> > > http://lists.lm-sensors.org/pipermail/lm-sensors/2007-March/019363.html
-> > >
-> > > I'd like to see this patch applied quickly so that it makes it into
-> > > 2.6.22. As Rudolf seems to be busy these days, I'll review it myself
-> > > later today.
-> >
-> > What is the close date for patches to make it into 2.6.22? Jean points
-> > out some good areas for me to change and I'll need until Saturday to
-> > get them tested.
->
-> The close date was "the day Linus releases 2.6.21", which happens to be
-> today. So the w83627ehf driver conversion won't make it into 2.6.22.
-> This doesn't really matter anyway, as there are 5 other i2c-isa-based
-> drivers which are not converted yet, so I can't kill i2c-isa before
-> 2.6.23.
->
-> So please rework the w83627ehf patch according to my comments as your
-> time permits, resubmit it, it'll go to -mm early and will get some
-> testing there before 2.6.23.
+Thats easy, AFAIK you can have either temp[1-*]_auto_point[1-*]_temp,
+or pwm[1-*]_auto_point[1-*]_temp, iow you can couple the autopoints
+to either a temp channel or a pwm channel depending on if the
+thresholds are set per temp channel or per pwm channel.
 
-Thanks!
+I'm not 100% sure though, so lets wait what others have to say too.
 
-David
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
