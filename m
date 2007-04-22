@@ -1,45 +1,77 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 08 Apr 2007 13:51:02 +0000
-Subject: [lm-sensors] Proposal /sys/bus/class/hwmon/hwmon#/device/foo#_label
-Message-Id: <4618F346.3000404@hhs.nl>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 22 Apr 2007 12:02:12 +0000
+Subject: [lm-sensors] [PATCH] hwmon/w83627ehf: Don't redefine REGION_OFFSET
+Message-Id: <20070422140212.69397374@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+On ia64, kernel headers define REGION_OFFSET so we can't use that.
+Reported by Andrew Morton.
 
-The abituguru3 driver, of which I've just submitted a second version for 
-review, has a new feature / sysfs file, which I would like to discuss, before 
-people think I'm trying to keep this new sysfs entry below the radar.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: David Hubbard <david.c.hubbard@gmail.com>
+---
+ drivers/hwmon/w83627ehf.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-The abituguru3 has a register which contains a motherboard ID. The current 
-driver uses this ID, to look up info about the motherboard in a somewhat lenght 
-table in the driver. This is done this way because the uguru3 has 48 sensors, 
-and the only way to know which one are actually connected and wether they are 
-connected to voltage / temp / fan is by using this table. The added advantage 
-of this is that since we know exactly on which motherboard the driver is 
-running, additional stuff can be don. Like always correct values in mV / milli 
-degress celcius / RPM at the sysfs level without libsensors needing todo any 
-conversion. An other additional feature this enables, is telling userspace 
-which voltage / temp / fan is actually being monitored. So the abituguru3 
-driver has sysfs entries like:
-/sys/class/hwmon/hwmon0/in0_label
+--- linux-2.6.21-rc7.orig/drivers/hwmon/w83627ehf.c	2007-04-21 22:18:56.000000000 +0200
++++ linux-2.6.21-rc7/drivers/hwmon/w83627ehf.c	2007-04-22 11:11:43.000000000 +0200
+@@ -121,9 +121,9 @@ superio_exit(void)
+  * ISA constants
+  */
+ 
+-#define REGION_ALIGNMENT	~7
+-#define REGION_OFFSET		5
+-#define REGION_LENGTH		2
++#define IOREGION_ALIGNMENT	~7
++#define IOREGION_OFFSET		5
++#define IOREGION_LENGTH		2
+ #define ADDR_REG_OFFSET		5
+ #define DATA_REG_OFFSET		6
+ 
+@@ -1194,7 +1194,7 @@ static int w83627ehf_detect(struct i2c_a
+ 	u8 fan4pin, fan5pin;
+ 	int i, err = 0;
+ 
+-	if (!request_region(address + REGION_OFFSET, REGION_LENGTH,
++	if (!request_region(address + IOREGION_OFFSET, IOREGION_LENGTH,
+ 	                    w83627ehf_driver.driver.name)) {
+ 		err = -EBUSY;
+ 		goto exit;
+@@ -1322,7 +1322,7 @@ exit_remove:
+ exit_free:
+ 	kfree(data);
+ exit_release:
+-	release_region(address + REGION_OFFSET, REGION_LENGTH);
++	release_region(address + IOREGION_OFFSET, IOREGION_LENGTH);
+ exit:
+ 	return err;
+ }
+@@ -1337,7 +1337,7 @@ static int w83627ehf_detach_client(struc
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	release_region(client->addr + REGION_OFFSET, REGION_LENGTH);
++	release_region(client->addr + IOREGION_OFFSET, IOREGION_LENGTH);
+ 	kfree(data);
+ 
+ 	return 0;
+@@ -1380,7 +1380,7 @@ static int __init w83627ehf_find(int sio
+ 	superio_select(W83627EHF_LD_HWM);
+ 	val = (superio_inb(SIO_REG_ADDR) << 8)
+ 	    | superio_inb(SIO_REG_ADDR + 1);
+-	*addr = val & REGION_ALIGNMENT;
++	*addr = val & IOREGION_ALIGNMENT;
+ 	if (*addr = 0) {
+ 		superio_exit();
+ 		return -ENODEV;
 
-Catting this file will result (depependend on motherboard) in for example:
-CPU Core
-being returned
 
-I personally like this, as with proper userspace support this makes the end 
-user experience pretty plug and play. so what do you think, good or bad?
-
-Currently libsensors cannot handle this, but I don't think that is an argument 
-either way.
-
-Regards,
-
-Hans
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
