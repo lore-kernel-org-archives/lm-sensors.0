@@ -1,52 +1,79 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 20 Apr 2007 13:17:55 +0000
+From: Axel Thimm <Axel.Thimm@ATrpms.net>
+Date: Sun, 22 Apr 2007 19:03:02 +0000
 Subject: Re: [lm-sensors] Checking out and comitting to the libsensors-3.x
-Message-Id: <20070420151755.1956ac3d@hyperion.delvare>
+Message-Id: <20070422190302.GC14565@neu.nirvana>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0889669989757109336=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4610BC25.8050507@hhs.nl>
 In-Reply-To: <4610BC25.8050507@hhs.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
 
-On Sun, 8 Apr 2007 10:14:30 +0200, Jean Delvare wrote:
-> On Tue, 3 Apr 2007 09:15:28 -0400, Mark M. Hoffman wrote:
-> > IMPORTANT NOTE: next time we want to merge trunk changes out to the 3.0.0
-> > branch, the merge command will be slightly different.  We must not use r4303
-> > as the starting point, but rather r4355; otherwise we might duplicate some
-> > changes.  So it is important to remember that we're synced up to r4355.  The
-> > convention is to record that information in the commit log when the merge is
-> > committed (which I did.)
-> > 
-> > If there are changes to trunk that don't make sense in the branch, then we can
-> > handle that by "anti" cherry-picking them.  E.g. if r4360 is such a change,
-> > we'll sync r4355:r4359 and then again r4361:whatever.
-> 
-> Another method would be to commit to both branches in parallel when a
-> given change belongs to both branches. Looking at the changes you just
-> merged, it seems that only a small amount of these were really needed
-> in 3.0.0. All the changes to the kernel drivers, their documentation,
-> lib/chips.*, prog/sensors/chips.* and sensors.conf.eg are for 2.10.x
-> only. This doesn't leave that many areas where changes really need to
-> be merged.
-> 
-> Also, parallel commit would have the benefit that we have a better
-> history, and no merge delay. Opinion anyone?
+--===============0889669989757109336==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="iFRdW5/EC4oqxDHL"
+Content-Disposition: inline
 
-As nobody objected, I am going that route from now on (and will catch
-up with the few commits that already went in since the last merge.)
-Whenever a change applies to both branches, we commit to both in
-parallel, and we no longer merge. I only see benefits in doing things
-this way. I expect both branches to diverge quickly anyway, except for
-sensors-detect.
 
--- 
-Jean Delvare
+--iFRdW5/EC4oqxDHL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Sun, Apr 08, 2007 at 07:40:30PM +0200, Jean Delvare wrote:
+> > But you do get a marker for copies or merges that you can follow to
+> > fork off A's history into B's.
+>=20
+> True, but that's hardly convenient if merges are frequent and/or if the
+> number of branches is important. I start understanding why people
+> working with many branches don't even consider Subversion.
+
+Well, git was written with merges as the first priority, as the kernel
+is being cloned and developed as several places
+simultaneously. mercurial has also better merge support.
+
+I just stumbled over the following (which is why I'm replying to this
+old mail):
+
+http://subversion.tigris.org/merge-tracking/
+http://www.orcaware.com/svn/wiki/Svnmerge.py
+
+E.g. svn will one day have the support you need, but you need it
+today. :(
+
+(and I wouldn't recommend using the semi-official svnmerge.py, because
+the official implemenation may look different and we'd be stuck with
+broken upgrade paths - better to switch to git/mercurial if the need
+becomes larger - mercurial works under trac, too, and git is about to)
+--=20
+Axel.Thimm at ATrpms.net
+
+--iFRdW5/EC4oqxDHL
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQFGK7FmQBVS1GOamfERAqeOAJ97HbjsSOkxKjSahkvIGzA+4V1ZDQCfYcDj
++/PYgKXflfRWUgia/jTYHsw=
+=X2tK
+-----END PGP SIGNATURE-----
+
+--iFRdW5/EC4oqxDHL--
+
+
+--===============0889669989757109336==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0889669989757109336==--
