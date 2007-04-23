@@ -1,7 +1,7 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 22 Apr 2007 19:15:05 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 23 Apr 2007 14:16:16 +0000
 Subject: Re: [lm-sensors] kernel/hwmon todo
-Message-Id: <20070422191505.GB32760@jupiter.solarsys.private>
+Message-Id: <20070423161616.6c395c73@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070415161302.GB3158@jupiter.solarsys.private>
 In-Reply-To: <20070415161302.GB3158@jupiter.solarsys.private>
@@ -10,32 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David:
-
-* David Hubbard <david.c.hubbard@gmail.com> [2007-04-15 16:05:39 -0600]:
-> Hi Mark,
+On Sun, 22 Apr 2007 15:15:05 -0400, Mark M. Hoffman wrote:
+> * David Hubbard <david.c.hubbard@gmail.com> [2007-04-15 16:05:39 -0600]:
+> > Also, I think you missed the patch I submitted to get rid of i2c-isa
+> > in the w83627ehf driver. It needs a review, and then can be submitted
+> > to the kernel.
 > 
-> On 4/15/07, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
-> > Hi Mark, All
-> >
-> > First of all, Mark great to hear you're stepping in to become the Maintainer
-> > and many thanks for this.
-> 
-> I second (third?) the thanks. I'd be happy to help out where I can (as
-> a reviewer of patches).
-> 
-> Also, I think you missed the patch I submitted to get rid of i2c-isa
-> in the w83627ehf driver. It needs a review, and then can be submitted
-> to the kernel.
+> Sorry, I still can't find this one.  Link please?  Or just resubmit it.
 
-Sorry, I still can't find this one.  Link please?  Or just resubmit it.
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-March/019363.html
 
-Thanks & regards,
+I'd like to see this patch applied quickly so that it makes it into
+2.6.22. As Rudolf seems to be busy these days, I'll review it myself
+later today.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
