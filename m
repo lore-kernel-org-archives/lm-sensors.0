@@ -1,31 +1,28 @@
-From: Paul Mackerras <paulus@samba.org>
-Date: Mon, 09 Apr 2007 21:51:09 +0000
-Subject: Re: [lm-sensors] [PATCH] Apple SMC driver - fix input device
-Message-Id: <17946.46413.588746.26184@cargo.ozlabs.ibm.com>
+From: Jacob Heerikhuisen <jacobh@ucr.edu>
+Date: Thu, 26 Apr 2007 22:07:48 +0000
+Subject: [lm-sensors] Fintek F71882 (MSI P965 Platinum)
+Message-Id: <1177625268.10646.14.camel@pierce-dhcp-212.ucr.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45F7C083.7090504@boichat.ch>
-	<45FE1D44.8000805@boichat.ch>
-	<200703221137.35906.dtor@insightbb.com>
-	<461A455C.9040508@boichat.ch>
-	<20070409130432.f4902155.akpm@linux-foundation.org>
-In-Reply-To: <20070409130432.f4902155.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Nicolas Boichat <nicolas@boichat.ch>, Dmitry Torokhov <dtor@insightbb.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, rlove@rlove.org, linux-kernel@hansmi.ch, Jean Delvare <khali@linux-fr.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+To: lm-sensors@vger.kernel.org
 
-Andrew Morton writes:
+Hi Guys,
 
-> I've been assuming that this patch will go via Jean, since it is in
-> drivers/hwmon/applesmc.c.  But perhaps that is inappropriate, and it is
-> more a Paul or Dmitry thing.  Or a me thing.
-> 
-> Who wants to take it??
+Complements on the great work! I have used lm-sensors on several
+machines now with great success.
 
-Not me, and I expect not Ben, since it's an intel-only mac thingy...
+I would just like to add myself to the list of people requesting a
+driver a MSI P965 Platinum motherboard (Fintek F71822, I believe). I
+guess I'm going with the theory that "the squeaky wheel gets the oil"!
 
-Paul.
+I could help with testing, if needed.
+
+Thanks,
+Jacob Heerikhuisen.
+
+
 
 _______________________________________________
 lm-sensors mailing list
