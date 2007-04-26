@@ -1,7 +1,7 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Thu, 26 Apr 2007 12:14:40 +0000
+From: =?iso-8859-1?q?Hans-J=FCrgen_Koch?= <hjk@linutronix.de>
+Date: Thu, 26 Apr 2007 12:37:41 +0000
 Subject: Re: [lm-sensors] LM93 status?
-Message-Id: <20070426121440.GA3155@jupiter.solarsys.private>
+Message-Id: <200704261437.41854.hjk@linutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200704261009.46315.hjk@linutronix.de>
 In-Reply-To: <200704261009.46315.hjk@linutronix.de>
@@ -10,28 +10,32 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hello:
+Am Donnerstag 26 April 2007 14:14 schrieb Mark M. Hoffman:
+> Hello:
+>=20
+> * Hans-J=FCrgen Koch <hjk@linutronix.de> [2007-04-26 10:09:46 +0200]:
+> > Hi,
+> > I recently submitted a patch to add LM93 support. What's the status of =
+this?
+> > Any chance to get this in 2.6.22?
+>=20
+> I am going to review it this weekend. =20
 
-* Hans-J=FCrgen Koch <hjk@linutronix.de> [2007-04-26 10:09:46 +0200]:
-> Hi,
-> I recently submitted a patch to add LM93 support. What's the status of th=
-is?
-> Any chance to get this in 2.6.22?
+Great, thanks.
 
-I am going to review it this weekend.  It is ultimately up to Jean if it can
-go into 2.6.22 or not (as he is still maintainer for this next cycle) but I
-doubt it.
+> It is ultimately up to Jean if it can=20
+> go into 2.6.22 or not (as he is still maintainer for this next cycle) but=
+ I
+> doubt it.
 
-> BTW, possibly I can also add LM94 support to this driver soon.
+So do I. I just read one of his other postings where he said that the day
+2.6.21 appears this cycle is closed.
 
-That would be great.  Thanks.
+Thanks,
+Hans
 
-Regards,
 
---=20
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+=20
 
 _______________________________________________
 lm-sensors mailing list
