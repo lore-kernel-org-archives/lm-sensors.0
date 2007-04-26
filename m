@@ -1,53 +1,102 @@
-From: =?iso-8859-2?B?TOHvYQ==?= <durchanek@gmail.com>
-Date: Wed, 25 Apr 2007 08:42:04 +0000
-Subject: [lm-sensors] Some W83627HG-AW chip
-Message-Id: <007001c78715$99c424e0$0201a8c0@reykjavik>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 26 Apr 2007 12:07:16 +0000
+Subject: Re: [lm-sensors] Some W83627HG-AW chip
+Message-Id: <20070426140716.74ffef1d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <007001c78715$99c424e0$0201a8c0@reykjavik>
+In-Reply-To: <007001c78715$99c424e0$0201a8c0@reykjavik>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-VzgzNjI3SEctQVcgaXMgYW5vdGhlciBzdXJwcmlzZSBmcm9tIFN1cGVyTWljcm8sIHRoZXJlIHNo
-b3VsZCBiZSBXODMyN0VIRyBvbgpib2FyZCAodGhleSBhcmUgbm90IHNvIHByZWNpc2UpLiBIZXJl
-IGlzIHNvbWUgb3V0cHV0IGZyb20gc2Vuc29ycy1kZXRlY3Q6CgpEcml2ZXIgYHc4Mzc5MycgKHNo
-b3VsZCBiZSBpbnNlcnRlZCk6CiAgRGV0ZWN0cyBjb3JyZWN0bHk6CiAgKiBCdXMgYFNNQnVzIEk4
-MDEgYWRhcHRlciBhdCAxMTAwJwogICAgQnVzZHJpdmVyIGBpMmMtaTgwMScsIEkyQyBhZGRyZXNz
-IDB4MmYKICAgIENoaXAgYFdpbmJvbmQgVzgzNzkzUi9HJyAoY29uZmlkZW5jZTogOCkKLi4uLi4K
-RHJpdmVyIGB3ODM3ODFkJyAoc2hvdWxkIGJlIGluc2VydGVkKToKICBEZXRlY3RzIGNvcnJlY3Rs
-eToKICAqIElTQSBidXMgYWRkcmVzcyAweDAyOTAgKEJ1c2RyaXZlciBgaTJjLWlzYScpCiAgICBD
-aGlwIGBXaW5ib25kIFc4MzYyN0hGJyAoY29uZmlkZW5jZTogOCkKRHJpdmVyIGB3ODM2MjdoZicg
-KHNob3VsZCBiZSBpbnNlcnRlZCk6CiAgRGV0ZWN0cyBjb3JyZWN0bHk6CiAgKiBJU0EgYnVzIGFk
-ZHJlc3MgMHgwMjk1IChCdXNkcml2ZXIgYGkyYy1pc2EnKQogICAgQ2hpcCBgV2luYm9uZCBXODM2
-MjdIRiBTdXBlciBJTyBTZW5zb3JzJyAoY29uZmlkZW5jZTogOSkKCmJvdGggbW9kdWxlcyBhcmUg
-Y29tcGlsZWQgaW4ga2VybmVsLCBidXQgc2Vuc29ycyBkb2Vzbid0IHNob3cgdXNlZnVsIG91dHB1
-dDoKCnc4MzYyN2hmLWlzYS0wMjkwCkFkYXB0ZXI6IElTQSBhZGFwdGVyClZDb3JlIDE6ICAgKzAu
-MDMgViAgKG1pbiA9ICArMS4wOSBWLCBtYXggPSAgKzEuNTAgVikgICAgICAgQUxBUk0KVkNvcmUg
-MjogICArMC4wNSBWICAobWluID0gICsxLjA5IFYsIG1heCA9ICArMS41MCBWKSAgICAgICBBTEFS
-TQorMy4zVjogICAgICswLjA1IFYgIChtaW4gPSAgKzIuODIgViwgbWF4ID0gICszLjc5IFYpICAg
-ICAgIEFMQVJNCis1VjogICAgICAgKzUuMDggViAgKG1pbiA9ICArMS4xMCBWLCBtYXggPSAgKzQu
-ODkgVikgICAgICAgQUxBUk0KKzEyVjogICAgICArMC4xMiBWICAobWluID0gKzEzLjgwIFYsIG1h
-eCA9ICArMC41NSBWKSAgICAgICBBTEFSTQotMTJWOiAgICAgLTE0LjY2IFYgIChtaW4gPSAgLTEu
-MDEgViwgbWF4ID0gICsxLjM3IFYpICAgICAgIEFMQVJNCi01VjogICAgICAgLTcuNTYgViAgKG1p
-biA9ICAtNi4wMCBWLCBtYXggPSAgLTEuOTggVikgICAgICAgQUxBUk0KVjVTQjogICAgICArNS41
-OSBWICAobWluID0gICs0Ljc4IFYsIG1heCA9ICArMC41OSBWKSAgICAgICBBTEFSTQpWQmF0OiAg
-ICAgICszLjM2IFYgIChtaW4gPSAgKzMuNzggViwgbWF4ID0gICsyLjE5IFYpICAgICAgIEFMQVJN
-CmZhbjE6ICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNLCBkaXYgPSAyKQpmYW4yOiAgICAg
-ICAgMCBSUE0gIChtaW4gPSA4NzY2IFJQTSwgZGl2ID0gMikgICAgICAgICAgICAgIEFMQVJNCmZh
-bjM6ICAgICAgICAwIFJQTSAgKG1pbiA9IDMwNTQgUlBNLCBkaXYgPSAyKSAgICAgICAgICAgICAg
-QUxBUk0KdGVtcDE6ICAgICAgKzEyNiBDICAoaGlnaCA9ICAgKzI2IEMsIGh5c3QgPSAgIC04NiBD
-KSAgIHNlbnNvciA9IHRoZXJtaXN0b3IKQUxBUk0KdGVtcDI6ICAgICsxMjYuNSBDICAoaGlnaCA9
-ICAgKzgwIEMsIGh5c3QgPSAgICs3NSBDKSAgIHNlbnNvciA9IHRoZXJtaXN0b3IKQUxBUk0KdGVt
-cDM6ICAgICsxMjYuNSBDICAoaGlnaCA9ICAgKzgwIEMsIGh5c3QgPSAgICs3NSBDKSAgIHNlbnNv
-ciA9IHRoZXJtaXN0b3IKQUxBUk0KdmlkOiAgICAgICsxLjUxOSBWICAoVlJNIFZlcnNpb24gMTEu
-MCkKYWxhcm1zOiAgIENoYXNzaXMgaW50cnVzaW9uIGRldGVjdGlvbiAgICAgICAgICAgICAgICAg
-ICAgICBBTEFSTQpiZWVwX2VuYWJsZToKICAgICAgICAgIFNvdW5kIGFsYXJtIGVuYWJsZWQKCkkg
-YW0gdXNpbmcgR2VudG9vIExpbnV4LCBnZW50b28tc291cmNlcy0yLjYuMTksIGFyY2hpdGVjdHVy
-ZSBhbWQ2NC4gQnR3LiBJCndhcyBhIGJpdCBzdXJwcmlzZWQgdGhhdCBhbWQ2NCBrZXJuZWwgaXMg
-bWlzc2luZyBDT05GSUdfSVNBIG9wdGlvbiwgYnV0Cm5lZWRlZCBpMmMtaXNhIHNlZW1zIHRvIGJl
-IGNvbXBpbGVkIHdlbGwgYWNjb3JkaW5nIHRvIGtlcm5lbCBtYWtlIG91dHB1dDoKCkNDICAgICAg
-ZHJpdmVycy9pMmMvYnVzc2VzL2kyYy1pc2EubwoKQW55IGlkZWEgaG93IHRvIGdldCB0aGlzIHdv
-cmtpbmc/IDotKQoKUmVnYXJkcwoKCUzh72EKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
-LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xtLXNlbnNvcnMK
+Hi Láďa,
+
+On Wed, 25 Apr 2007 10:42:04 +0200, Láďa wrote:
+> W83627HG-AW is another surprise from SuperMicro, there should be W8327EHG on
+> board (they are not so precise). Here is some output from sensors-detect:
+> 
+> Driver `w83793' (should be inserted):
+>   Detects correctly:
+>   * Bus `SMBus I801 adapter at 1100'
+>     Busdriver `i2c-i801', I2C address 0x2f
+>     Chip `Winbond W83793R/G' (confidence: 8)
+> .....
+> Driver `w83781d' (should be inserted):
+>   Detects correctly:
+>   * ISA bus address 0x0290 (Busdriver `i2c-isa')
+>     Chip `Winbond W83627HF' (confidence: 8)
+> Driver `w83627hf' (should be inserted):
+>   Detects correctly:
+>   * ISA bus address 0x0295 (Busdriver `i2c-isa')
+>     Chip `Winbond W83627HF Super IO Sensors' (confidence: 9)
+> 
+> both modules are compiled in kernel, but sensors doesn't show useful output:
+
+Which "both"? There are three kernel modules listed above, w83793,
+w83781d and w83627hf. The sensors-detect script is wrongly suggesting
+two drivers for the same device. This is fixed by now, I guess you are
+using a somewhat old version of the script.
+
+So the bottom line is that you should NOT use the w83781d driver.
+
+> 
+> w83627hf-isa-0290
+> Adapter: ISA adapter
+> VCore 1:   +0.03 V  (min =  +1.09 V, max =  +1.50 V)       ALARM
+> VCore 2:   +0.05 V  (min =  +1.09 V, max =  +1.50 V)       ALARM
+> +3.3V:     +0.05 V  (min =  +2.82 V, max =  +3.79 V)       ALARM
+> +5V:       +5.08 V  (min =  +1.10 V, max =  +4.89 V)       ALARM
+> +12V:      +0.12 V  (min = +13.80 V, max =  +0.55 V)       ALARM
+> -12V:     -14.66 V  (min =  -1.01 V, max =  +1.37 V)       ALARM
+> -5V:       -7.56 V  (min =  -6.00 V, max =  -1.98 V)       ALARM
+> V5SB:      +5.59 V  (min =  +4.78 V, max =  +0.59 V)       ALARM
+> VBat:      +3.36 V  (min =  +3.78 V, max =  +2.19 V)       ALARM
+> fan1:        0 RPM  (min =    0 RPM, div = 2)
+> fan2:        0 RPM  (min = 8766 RPM, div = 2)              ALARM
+> fan3:        0 RPM  (min = 3054 RPM, div = 2)              ALARM
+> temp1:      +126 C  (high =   +26 C, hyst =   -86 C)   sensor = thermistor
+> ALARM
+> temp2:    +126.5 C  (high =   +80 C, hyst =   +75 C)   sensor = thermistor
+> ALARM
+> temp3:    +126.5 C  (high =   +80 C, hyst =   +75 C)   sensor = thermistor
+> ALARM
+> vid:      +1.519 V  (VRM Version 11.0)
+> alarms:   Chassis intrusion detection                      ALARM
+> beep_enable:
+>           Sound alarm enabled
+> 
+> I am using Gentoo Linux, gentoo-sources-2.6.19, architecture amd64. Btw. I
+> was a bit surprised that amd64 kernel is missing CONFIG_ISA option, but
+> needed i2c-isa seems to be compiled well according to kernel make output:
+> 
+> CC      drivers/i2c/busses/i2c-isa.o
+
+There are no ISA slots on x86_64 motherboards, so no CONFIG_ISA option,
+but an ISA-like I/O space is still present so i2c-isa works.
+
+> Any idea how to get this working? :-)
+
+The output above strongly suggests that the W83627HF Super-I/O chip is
+not wired for hardware monitoring. As you can see, all values except
+V5SB and VBat are broken or missing.
+
+Given that the motherboard appears to have a dedicated hardware
+monitoring chip (W83793) it makes sense that Supermicro did not use the
+hardware monitoring functions of the Super-I/O. So you want to unload
+the w83267hf driver (or add ignore statements for everything but the
+two working voltage lines in sensors.conf) and load the w83793 driver
+instead. Except that this driver is new in 2.6.20, as can be seen on
+our wiki:
+http://www.lm-sensors.org/wiki/Devices
+
+So you'll need to upgrade your kernel before you can monitor the
+temperatures and fans on this motherboard.
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
