@@ -1,117 +1,76 @@
-From: Nicolas Boichat <nicolas@boichat.ch>
-Date: Wed, 11 Apr 2007 12:47:38 +0000
-Subject: Re: [lm-sensors] [RFC][PATCH] Apple SMC driver (hardware monitoring
-Message-Id: <461CD8EA.4080700@boichat.ch>
+From: Magnus Ekhall <koma@lysator.liu.se>
+Date: Fri, 27 Apr 2007 17:18:34 +0000
+Subject: [lm-sensors] No pwm with abituguru driver?
+Message-Id: <4632306A.5010904@lysator.liu.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45F7C083.7090504@boichat.ch> <20070411142556.16cd1e44@hyperion.delvare>
-In-Reply-To: <20070411142556.16cd1e44@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: linux-kernel@vger.kernel.org, linux-kernel@hansmi.ch, rlove@rlove.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
 Hi,
 
-Thanks for your comments.
+I have an Abit Fatal1ty AN8 motherboard that in Windows uses uGuru to
+read sensors and control fans.
 
-Jean Delvare wrote:
-> Hi Nicolas,
-> 
-> Sorry for the delay.
-> 
-> On Wed, 14 Mar 2007 17:29:39 +0800, Nicolas Boichat wrote:
->> I developed, a while ago, a driver the Apple System Management
->> Controller, which provides an accelerometer (Apple Sudden Motion
->> Sensor), light sensors, temperature sensors, keyboard backlight control
->> and fan control on Intel-based Apple's computers (MacBook Pro, MacBook,
->> MacMini).
->>
->> This patch has been tested successfully since kernel 2.6.18 (i.e. 3-4
->> months ago) by various users on different systems on the mactel-linux lists.
->>
->> However, I'm not really satisfied with the way sysfs files are created:
->> I use a lot of preprocessor macros to avoid repetition of code.
->> The files created with these macros in /sys/devices/platform/applesmc are
->> the following (on a Macbook Pro):
->> fan0_actual_speed
->> fan0_manual
->> fan0_maximum_speed
->> fan0_minimum_speed
->> fan0_safe_speed
->> fan0_target_speed
->> fan1_actual_speed
->> fan1_manual
->> fan1_maximum_speed
->> fan1_minimum_speed
->> fan1_safe_speed
->> fan1_target_speed
->> temperature_0
->> temperature_1
->> temperature_2
->> temperature_3
->> temperature_4
->> temperature_5
->> temperature_6
-> 
-> First of all, please read Documentation/hwmon/sysfs-documentation, and
-> rename the entries to match the standard names whenever possible. Also
-> make sure that you use the standard units. If you use the standard
-> names and units and if you register your device with the hwmon class,
-> standard monitoring application will be able to support your driver.
+In Ubuntu Linux I have tried lm_sensors with both the w83627hf driver
+and the abituguru one.
 
-Ok I'll have a look at this.
+The abituguru seems to be the most successful, I get temperatures and
+fan speeds. However I cannot control the fan speed! (And this is what I
+really want to do.)
 
->> (i.e. temperature_* is created by one macro, fan*_actual_speed by
->> another, ...)
->> Is it acceptable programming practice? Is there a way to create these
->> files in a more elegant manner?
-> 
-> Some old hardware monitoring drivers are still doing this, but this is
-> strongly discouraged for new drivers. It is possible (and easy) to
-> avoid using such macros, by sharing callback functions between various
-> sysfs files.
-> 
-> This is done by using SENSOR_DEVICE_ATTR instead of DEVICE_ATTR to
-> declare the sysfs attributes. It takes an extra parameter, which is the
-> entry number/index. You retrieve that index in the callback function:
-> 
-> static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
-> 			 char *buf)
-> {
-> 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> 	int nr = attr->index;
-> 	(...)
-> }
-> 
-> Take a look at the hwmon/f71805f.c driver for examples.
+In /sys/devices/platform/abituguru.224/ I have some files starting with
+pwm1, for example pwm1_enable. But I cannot write to this "file" even as
+root. I get an access denied.
 
-Yes I'm using something like this in the version that is in the -mm tree
-now.
+And when I run pwmconfig I get:
 
->> Also, I never call any sysfs_remove_* function, as the files are
->> deleted when the module is unloaded. Is it safe to do so? Doesn't it
->> cause any memory leak?
-> 
-> This is considered a bad practice, as in theory you driver shouldn't
-> create the device by itself, and the files are associated to the device,
-> not the driver. All hardware monitoring drivers have been fixed now, so
-> please add the file removal calls in your driver too. You might find it
-> easier to use file groups rather than individual files. Again, see for
-> example the f71805f driver, and in particular the f71805f_attributes
-> array and f71805f_group structure, and the sysfs_create_group() and
-> sysfs_remove_group() calls.
+/usr/sbin/pwmconfig: There are no pwm-capable sensor modules installed
 
-Ok I'll fix this.
+What can I try to get pwm working? I think that there are at least 2
+pwms on this MB.
 
-> I'm sorry but I really don't have the time for a complete review of
-> your driver.
 
-Your comments are already very valuable, thanks.
+sensors-detect report this:
 
-Best regards,
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
 
-Nicolas
+Driver `eeprom' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus nForce2 adapter at 1c00'
+    Busdriver `i2c-nforce2', I2C address 0x50
+    Chip `eeprom' (confidence: 6)
+  * Bus `SMBus nForce2 adapter at 1c00'
+    Busdriver `i2c-nforce2', I2C address 0x51
+    Chip `eeprom' (confidence: 6)
+
+  EEPROMs are *NOT* sensors! They are data storage chips commonly
+  found on memory modules (SPD), in monitors (EDID), or in some
+  laptops, for example.
+
+Driver `k8temp' (should be inserted):
+  Detects correctly:
+  * ISA bus, undetermined address (Busdriver `i2c-isa')
+    Chip `AMD K8 thermal sensors' (confidence: 9)
+
+Driver `w83627hf' (should be inserted):
+  Detects correctly:
+  * ISA bus address 0x0290 (Busdriver `i2c-isa')
+    Chip `Winbond W83627HF Super IO Sensors' (confidence: 9)
+
+
+
+
+
+But using the winbond driver gives me a lot of crap sensor values...
+
+Anyone know what I'm doing wrong?  How can I control the fans?
+
+Thanks,
+
+Magnus E
 
 _______________________________________________
 lm-sensors mailing list
