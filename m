@@ -1,27 +1,45 @@
-From: Jacob Heerikhuisen <jacobh@ucr.edu>
-Date: Thu, 26 Apr 2007 22:07:48 +0000
-Subject: [lm-sensors] Fintek F71882 (MSI P965 Platinum)
-Message-Id: <1177625268.10646.14.camel@pierce-dhcp-212.ucr.edu>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Fri, 27 Apr 2007 06:58:18 +0000
+Subject: Re: [lm-sensors] Fintek F71882 (MSI P965 Platinum)
+Message-Id: <46319F0A.3090204@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1177625268.10646.14.camel@pierce-dhcp-212.ucr.edu>
+In-Reply-To: <1177625268.10646.14.camel@pierce-dhcp-212.ucr.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guys,
+Jacob Heerikhuisen wrote:
+> Hi Guys,
+> 
+> Complements on the great work! I have used lm-sensors on several
+> machines now with great success.
+> 
+> I would just like to add myself to the list of people requesting a
+> driver a MSI P965 Platinum motherboard (Fintek F71822, I believe). I
+> guess I'm going with the theory that "the squeaky wheel gets the oil"!
+> 
+> I could help with testing, if needed.
+> 
+> Thanks,
+> Jacob Heerikhuisen.
+> 
+> 
 
-Complements on the great work! I have used lm-sensors on several
-machines now with great success.
+Jacob,
 
-I would just like to add myself to the list of people requesting a
-driver a MSI P965 Platinum motherboard (Fintek F71822, I believe). I
-guess I'm going with the theory that "the squeaky wheel gets the oil"!
+A student of mine was working on a driver for this, until he had to stop 
+because of personal circumstances. Unfortunately he still hasn't returned the 
+motherboard used for testing.
 
-I could help with testing, if needed.
+This is still on my todo list. Maybe I'll just start writing a driver without 
+the motherboard and then send it to you for testing (without any waranties what 
+soever).
 
-Thanks,
-Jacob Heerikhuisen.
+Regards,
 
+Hans
 
 
 _______________________________________________
