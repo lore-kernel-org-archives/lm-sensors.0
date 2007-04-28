@@ -1,36 +1,31 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 07 Apr 2007 19:04:00 +0000
-Subject: [lm-sensors] [PATCH 5/5] w83781d: Deprecate W83627HF support
-Message-Id: <20070407210400.91b57bc2.khali@linux-fr.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date: Sat, 28 Apr 2007 01:12:55 +0000
+Subject: [lm-sensors] Conversion of ibm-acpi to hwmon sysfs sent to ACPI tree
+Message-Id: <20070428011255.GB23519@khazad-dum.debian.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/w83781d.c |    5 +++++
- 1 file changed, 5 insertions(+)
+FYI: I have sent a group of patches to Len Brown (ACPI tree maintainer) that
+adds hwmon support to thinkpad-acpi (ibm-acpi's new name).  It exports 16
+temperatures and one fan with PWM control through the hwmon interface, and
+targets 2.6.22.
 
---- linux-2.6.21-rc6.orig/drivers/hwmon/w83781d.c	2007-04-07 15:29:18.000000000 +0200
-+++ linux-2.6.21-rc6/drivers/hwmon/w83781d.c	2007-04-07 15:29:21.000000000 +0200
-@@ -1440,6 +1440,11 @@ w83781d_init_device(struct device *dev)
- 	int type = data->type;
- 	u8 tmp;
- 
-+	if (type = w83627hf)
-+		dev_info(dev, "The W83627HF chip is better supported by the "
-+			 "w83627hf driver, support will be dropped from the "
-+			 "w83781d driver soon\n");
-+
- 	if (reset && type != as99127f) { /* this resets registers we don't have
- 					   documentation for on the as99127f */
- 		/* Resetting the chip has been the default for a long time,
+The patches make extensive use of ENXIO for temperature sensors that are
+hotpluggable but for which we cannot detect the plug/unplug events.  Reading
+a sensor that is not present at that instant returns ENXIO.
 
+The patches are available in the ibm-acpi-devel and linux-acpi ML archives,
+and also by request or through
+http://repo.or.cz/w/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
 
 -- 
-Jean Delvare
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
 _______________________________________________
 lm-sensors mailing list
