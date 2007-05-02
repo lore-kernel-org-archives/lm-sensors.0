@@ -1,35 +1,49 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 16 May 2007 10:00:39 +0000
-Subject: [lm-sensors] [PATCH] hwmon/w83627hf: Be quiet when no chip is found
-Message-Id: <20070516120039.2d63152b@hyperion.delvare>
+From: Justin Piszcz <jpiszcz@lucidpixels.com>
+Date: Wed, 02 May 2007 22:41:59 +0000
+Subject: Re: [lm-sensors] coretemp - take3
+Message-Id: <Pine.LNX.4.64.0705021841280.14579@p34.internal.lan>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <45FDC7A4.9070601@assembler.cz> <45FE0EE3.2030201@boichat.ch>
+In-Reply-To: <45FE0EE3.2030201@boichat.ch>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Nicolas Boichat <nicolas@boichat.ch>
+Cc: Rudolf Marek <r.marek@assembler.cz>, LM Sensors <lm-sensors@lm-sensors.org>, bytes@linuxgazette.net, debian-user@lists.debian.org, linux-kernel@vger.kernel.org
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/w83627hf.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- linux-2.6.22-rc1.orig/drivers/hwmon/w83627hf.c	2007-05-16 08:55:57.000000000 +0200
-+++ linux-2.6.22-rc1/drivers/hwmon/w83627hf.c	2007-05-16 11:56:28.000000000 +0200
-@@ -965,8 +965,10 @@ static int __init w83627hf_find(int sioa
- 	case W687THF_DEVID:
- 		sio_data->type = w83687thf;
- 		break;
-+	case 0xff:	/* No device at all */
-+		goto exit;
- 	default:
--		pr_debug(DRVNAME ": Unsupported chip (DEVID=0x%x)\n", val);
-+		pr_debug(DRVNAME ": Unsupported chip (DEVID=0x%02x)\n", val);
- 		goto exit;
- 	}
- 
 
--- 
-Jean Delvare
+On Mon, 19 Mar 2007, Nicolas Boichat wrote:
+
+> Rudolf Marek wrote:
+>> Hello all,
+>>
+>> I'm CCing all interested parties, if some isn't please tell!
+>>
+>> On URL bellow is current version of coretemp driver.
+>>
+>> http://ssh.cz/~ruik/patches/
+>
+> Small glitch in coretemp_init:
+>
+>    printk(KERN_NOTICE DRVNAME ": This driver uses undocumented features"
+>
+>        "of Core CPU. Temperature might be wrong!\n");
+>
+>
+> Prints this in dmesg:
+>
+> [46487.231000] coretemp: This driver uses undocumented featuresof Core CPU. Temperature might be wrong!
+>
+>
+> (Notice the space missing between "features" and "of")
+>
+> Best regards,
+>
+> Nicolas
+>
+
+This did not make it into 2.6.21?  Will it get into 2.6.22?
 
 _______________________________________________
 lm-sensors mailing list
