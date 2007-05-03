@@ -1,37 +1,26 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 08 May 2007 18:49:06 +0000
-Subject: Re: [lm-sensors] [GIT PULL] hwmon updates for 2.6.22
-Message-Id: <20070508204906.7c2c38a4@hyperion.delvare>
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Thu, 03 May 2007 06:40:47 +0000
+Subject: Re: [lm-sensors] coretemp - take3
+Message-Id: <463983EF.4030401@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070508174529.7298cae4@hyperion.delvare>
-	<alpine.LFD.0.98.0705081133250.3974@woody.linux-foundation.org>
-In-Reply-To: <alpine.LFD.0.98.0705081133250.3974@woody.linux-foundation.org>
+References: <45FDC7A4.9070601@assembler.cz> <45FE0EE3.2030201@boichat.ch> <Pine.LNX.4.64.0705021841280.14579@p34.internal.lan>
+In-Reply-To: <Pine.LNX.4.64.0705021841280.14579@p34.internal.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: Justin Piszcz <jpiszcz@lucidpixels.com>
+Cc: Nicolas Boichat <nicolas@boichat.ch>, LM Sensors <lm-sensors@lm-sensors.org>, bytes@linuxgazette.net, debian-user@lists.debian.org, linux-kernel@vger.kernel.org
 
-On Tue, 8 May 2007 11:34:28 -0700 (PDT), Linus Torvalds wrote:
-> 
-> 
-> On Tue, 8 May 2007, Jean Delvare wrote:
-> > 
-> > git://jdelvare.pck.nerim.net/jdelvare-2.6 hwmon-for-linus
-> 
-> This doesn't seem to be the right URL:
-> 
-> 	"fatal: The remote end hung up unexpectedly"
-> 
-> (the git daemon on purpose doesn't tell *why* it hung up, for security 
-> reasons - you don't want to be able to probe other peoples machines for 
-> directory names etc).
+Hi all,
 
-Oops, I messed up when copying the repository. Sorry about that. I just
-fixed it, please try again.
+> This did not make it into 2.6.21?  Will it get into 2.6.22?
 
--- 
-Jean Delvare
+Well this does not depend on me. But this is already in mm:
+
++ x86-msr-add-support-for-safe-variants.patch added to -mm tree
+(this night came some mail, that it has been added - same came few days back)
+
+Rudolf
 
 _______________________________________________
 lm-sensors mailing list
