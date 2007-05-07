@@ -1,479 +1,234 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 22 May 2007 08:35:27 +0000
-Subject: Re: [lm-sensors] get rid of i2c-isa - h now - fixes of w82627ehf
-Message-Id: <20070522103527.5c8a21af@hyperion.delvare>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Mon, 07 May 2007 21:26:28 +0000
+Subject: [lm-sensors] [PATCH 2/2 RESEND] hwmon: documentation for new SMSC
+Message-Id: <191fb4ca0705071426k115d6d81n7c296808cf2e8316@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_86952_30585148.1178573188560"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45F47B44.8010108@assembler.cz>
-In-Reply-To: <45F47B44.8010108@assembler.cz>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <191fb4ca0703220947s7e16453j4a5a7eb5eee77f1b@mail.gmail.com>
+In-Reply-To: <191fb4ca0703220947s7e16453j4a5a7eb5eee77f1b@mail.gmail.com>
 To: lm-sensors@vger.kernel.org
 
-Hi David,
+------=_Part_86952_30585148.1178573188560
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Sat, 19 May 2007 17:57:38 -0700, David Hubbard wrote:
-> > On Thu, 29 Mar 2007 12:13:29 -0700, David Hubbard wrote:
-> > > -static int w83627ehf_detach_client(struct i2c_client *client)
-> > > +static int __devexit w83627ehf_remove(struct platform_device *pdev)
-> > >  {
-> > > -     struct w83627ehf_data *data = i2c_get_clientdata(client);
-> > > -     int err;
-> > > +     struct w83627ehf_data *data = platform_get_drvdata(pdev);
-> > >
-> > >       hwmon_device_unregister(data->class_dev);
-> > > -     w83627ehf_device_remove_files(&client->dev);
-> > > +     w83627ehf_device_remove_files(&pdev->dev);
-> > > +     platform_set_drvdata(pdev, NULL);
-> > >
-> > > -     if ((err = i2c_detach_client(client)))
-> > > -             return err;
-> > > -     release_region(client->addr + REGION_OFFSET, REGION_LENGTH);
-> >
-> > You shouldn't remove this. You requested the region in .probe(), you
-> > _must_ release it in .remove()!
-> >
-> > >       kfree(data);
-> >
-> > OTOH it's weird to free data here while you did not allocate it
-> > in .probe().
-> 
-> So I added release_region() to w83627ehf_remove(). I left the kfree()
-> in place (notice that the patch doesn't move it) even though I
-> modified the way the data was allocated, because it is the simplest
-> way of freeing the data. A more correct approach would be to get
-> pdev->dev.platform_data in sensors_w83627ehf_exit and free it there.
-> It does break the device driver model, and needs revision when the
-> driver is moved over to a Super-I/O bus. I added a comment noting
-> this.
+This patch adds documentation for the new SMSC DME1737 driver.
 
-A more correct approach, actually, would be to allocate data
-in .probe(). The data structure holds driver-specific data. More on
-that below.
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-> > >  static int __init sensors_w83627ehf_init(void)
-> > >  {
-> > > -     if (w83627ehf_find(0x2e, &address)
-> > > -      && w83627ehf_find(0x4e, &address))
-> > > -             return -ENODEV;
-> > > +     int err;
-> > > +     struct resource res;
-> > > +     struct w83627ehf_data *data;
-> > > +
-> > > +     if (!(data = kzalloc(sizeof(struct w83627ehf_data), GFP_KERNEL))) {
-> > > +             err = -ENOMEM;
-> > > +             goto exit;
-> > > +     }
-> >
-> > This is an interesting approach. I did it differently in the other
-> > drivers. Your way saves some memory and some code, but OTOH it breaks
-> > the device driver model. The platform-specific data is supposed to be
-> > stored in dev.platform_data, NOT dev.driver_data. The code which
-> > instantiates the device isn't supposed to know how the driver is
-> > implemented. Nothing prevents a given device from being supported by
-> > more than one driver!
-> >
-> > So setting dev.driver_dat before .probe() is called sounds bad, and I
-> > suspect we will have to move this part to the .probe() function once
-> > we have a superio subsystem, anyway. So we might as well do it now.
-> > What do you think?
-> 
-> Yes, I've changed the code to use dev.platform_data instead of
-> dev.driver_data. I guess I was uncomfortable with dev.platform_data
-> because I looked at the function platform_device_add_data():
-> int platform_device_add_data(struct platform_device *pdev, const void
-> *data, size_t size)
-> {
->         void *d;
-> 
->         d = kmalloc(size, GFP_KERNEL);
->         if (d) {
->                 memcpy(d, data, size);
->                 pdev->dev.platform_data = d;
->         }
->         return d ? 0 : -ENOMEM;
-> }
-> EXPORT_SYMBOL_GPL(platform_device_add_data);
-> 
-> If pdev->dev.platform_data is non-null on entry to this function it
-> does not warn, it just leaks memory. (Example: a broken driver calls
-> platform_device_add_data() twice in a row.) Or, I have misunderstood
-> the function.
+------=_Part_86952_30585148.1178573188560
+Content-Type: text/x-patch; name=hwmon-dme1737-documentation.patch; 
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f1ffzj38
+Content-Disposition: attachment; filename="hwmon-dme1737-documentation.patch"
 
-No, you're right, that's what the function does.
-
-> Is this a bug in platform.c?
-
-No, the bug would be to call this function twice. You really have no
-reason to do that. You shouldn't expect all core functions to correct
-your usage mistakes. I know some functions do, but this has a cost in
-terms of performance and code readability so I'm glad this wasn't
-generalized.
-
-> I notice you just modify
-> pdev->dev.platform_data directly in w83627hf.c (2.6.22-rc2).
-
-I probably didn't know platform_device_add_data() existed! I should
-have been using it, thanks for pointing this out. The w83627hf driver
-should be updated, as well as the f71805f and smsc47m1 drivers. Patch
-follows.
-
-> Either way, the driver needs revision in the future when devices are
-> probed from a Super-I/O bus driver.
-
-Sure, but if the driver already follows the device driver model, the
-amount of required changes will be smaller.
-
-> > > +      * w83627ehf hardware monitor, and call probe() */
-> > > +     if (w83627ehf_superio_probe(0x2e, data) &&
-> > > +         w83627ehf_superio_probe(0x4e, data)) {
-> > > +             err = -ENODEV;
-> > > +             goto exit_free;
-> > > +     }
-> > >
-> > > -     return i2c_isa_add_driver(&w83627ehf_driver);
-> > > +     if ((err = platform_driver_register(&w83627ehf_driver))!=0)
-> > > +             goto exit_free;
-> >
-> > Please remove the "!=0".
-> 
-> When I do that, I get the following warning:
-> 
->   CC [M]  drivers/hwmon/w83627ehf.o
-> drivers/hwmon/w83627ehf.c: In function 'sensors_w83627ehf_init':
-> drivers/hwmon/w83627ehf.c:1428: warning: suggest parentheses around
-> assignment used as truth value
-> 
-> So for now, the !=0 is still there, but I also added a comment.
-
-I suspect you have been removing the !=0 _and_ the extra parentheses.
-If I only remove the !=0 (which is what I wanted you to do) I do not
-get the warning.
-
-> So it's now patch 01. The stuff that belongs in patch 02 is (I think)
-> now all in patch 02. Patch 03 revises the error handling in a couple
-> of places to give more meaningful error messages. Patch 04 fixes a
-> long-standing bug where the driver outputs "Increasing fan 4 clock
-> divider from 4 to 8" and fills up the kernel message log.
-
-Thanks for splitting the changes in multiple patches, this is very much
-appreciated. However there's a major problem with your patchset. The
-bug which your patch 04 fixes... it is _already_ fixed upstream:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h3725ad36d48c09e9537d3d7e680471c298539a9
-The problem is that your patch 02 _reverts_ the fix. I guess you messed
-up when porting your patches to 2.6.22-rc2. I can only suggest using
-quilt to manage your patches.
-
-Likewise, your patch 02 reverts this patch of mine which is upstream as
-well:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h641fceb6bb6b0930db1aadbda1aaf5711d65d6
-
-So I must ask you to rework your patchset so that these two patches are
-no longer reverted. This will make your patch 02 smaller and your patch
-04 will no longer exist.
-
-> Please review when you get time.
-
-Here you go. Patch 01:
-
-> Add descriptions for w83627ehg and w83627dhg chips to Kconfig
-> 
-> Signed-off-by: David Hubbard <david.c.hubbard@gmail.com>
-> 
-> Index: linux-2.6.22-rc2/drivers/hwmon/Kconfig
-> =================================> --- linux-2.6.22-rc2/drivers/hwmon/Kconfig	2007-05-17 11:01:23.000000000 -0700
-> +++ linux-2.6.22-rc2/drivers/hwmon/Kconfig	2007-05-17 11:20:52.000000000 -0700
-> @@ -584,17 +584,17 @@
->  	  will be called w83627hf.
->  
->  config SENSORS_W83627EHF
-> -	tristate "Winbond W83627EHF"
-> +	tristate "Winbond W83627EHF/DHG"
->  	depends on I2C && EXPERIMENTAL
->  	select I2C_ISA
->  	help
-> -	  If you say yes here you get preliminary support for the hardware
-> -	  monitoring functionality of the Winbond W83627EHF Super-I/O chip.
-> -	  Only fan and temperature inputs are supported at the moment, while
-> -	  the chip does much more than that.
-> +	  If you say yes here you get support for the hardware
-> +	  monitoring functionality of the Winbond W83627EHF/DHG Super-I/O chip.
-
-You can't list the DHG as supported here...
-
->  
->  	  This driver also supports the W83627EHG, which is the lead-free
-> -	  version of the W83627EHF.
-> +	  version of the W83627EHF. The driver also supports the W83627DHG,
-> +	  which is a similar chip suited for specific Intel processors that
-> +	  use PECI such as the Core 2 Duo.
-
-... and then say it's "also supported" there.
-
->  
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called w83627ehf.
-
-Otherwise this patch could go in 2.6.22.
-
-Patch 02 (quoting only the relevant parts):
-
-> This patch removes i2c-isa from the w83627ehf driver, and uses
-> a platform driver instead.
-> 
-> Signed-off-by: David Hubbard <david.c.hubbard@gmail.com>
-> 
-> Index: linux-2.6.22-rc2/drivers/hwmon/w83627ehf.c
-> =================================> (...)
-> -static int w83627ehf_detect(struct i2c_adapter *adapter)
-> +/* w83627ehf_probe() looks for a Super-I/O chip at known addresses */
-> +static int __devinit w83627ehf_probe(struct platform_device *pdev)
->  {
-> -	struct i2c_client *client;
-> -	struct w83627ehf_data *data;
-> -	struct device *dev;
-> +	struct device *dev = &pdev->dev;
-> +	struct w83627ehf_data *data = pdev->dev.platform_data;
->  	u8 fan4pin, fan5pin;
->  	int i, err = 0;
->  
-> -	if (!request_region(address + IOREGION_OFFSET, IOREGION_LENGTH,
-> -	                    w83627ehf_driver.driver.name)) {
-> +	if (!request_region(data->addr + REGION_OFFSET, REGION_LENGTH,
-> +			   DRVNAME)) {
->  		err = -EBUSY;
-> +		dev_err(dev, "Failed to request region 0x%lx-0x%lx\n",
-> +			(unsigned long) (data->addr + REGION_OFFSET),
-> +			(unsigned long) (
-> +			data->addr + REGION_OFFSET + REGION_LENGTH - 1));
->  		goto exit;
->  	}
->  
-> -	if (!(data = kzalloc(sizeof(struct w83627ehf_data), GFP_KERNEL))) {
-> -		err = -ENOMEM;
-> -		goto exit_release;
-> -	}
-> -
-> -	client = &data->client;
-> -	i2c_set_clientdata(client, data);
-> -	client->addr = address;
-> -	mutex_init(&data->lock);
-> -	client->adapter = adapter;
-> -	client->driver = &w83627ehf_driver;
-> -	client->flags = 0;
-> -	dev = &client->dev;
-> -
-> -	if (w83627ehf_num_in = 9)
-> -		strlcpy(client->name, "w83627dhg", I2C_NAME_SIZE);
-> -	else	/* just say ehf. 627EHG is 627EHF in lead-free packaging. */
-> -		strlcpy(client->name, "w83627ehf", I2C_NAME_SIZE);
-> +	/* fill in fields in *data so w83627ehf_read_value(), etc., work */
->  
->  	data->valid = 0;
-> +	mutex_init(&data->lock);
->  	mutex_init(&data->update_lock);
->  
-> -	/* Tell the i2c layer a new client has arrived */
-> -	if ((err = i2c_attach_client(client)))
-> -		goto exit_free;
-> +	/* 627EHG and 627EHF have 10 voltage inputs; DHG has 9 */
-> +	data->in_num = (data->kind = w83627dhg) ? 9 : 10;
->  
->  	/* Initialize the chip */
-> -	w83627ehf_init_client(client);
-> +	w83627ehf_init_device(data);
->  
-> -	/* A few vars need to be filled upon startup */
->  	for (i = 0; i < 5; i++)
-> -		data->fan_min[i] = w83627ehf_read_value(client,
-> +		data->fan_min[i] = w83627ehf_read_value(data,
->  				   W83627EHF_REG_FAN_MIN[i]);
->  
->  	/* fan4 and fan5 share some pins with the GPIO and serial flash */
->  
-> -	superio_enter();
-> -	fan5pin = superio_inb(0x24) & 0x2;
-> -	fan4pin = superio_inb(0x29) & 0x6;
-> -	superio_exit();
-> +	superio_enter(data->sioreg);
-> +	fan5pin = superio_inb(data->sioreg, 0x24) & 0x2;
-> +	fan4pin = superio_inb(data->sioreg, 0x29) & 0x6;
-> +	superio_exit(data->sioreg);
->  
->  	/* It looks like fan4 and fan5 pins can be alternatively used
->  	   as fan on/off switches, but fan5 control is write only :/
-> @@ -1248,7 +1229,7 @@
->  	   is not the default. */
->  
->  	data->has_fan = 0x07; /* fan1, fan2 and fan3 */
-> -	i = w83627ehf_read_value(client, W83627EHF_REG_FANDIV1);
-> +	i = w83627ehf_read_value(data, W83627EHF_REG_FANDIV1);
->  	if ((i & (1 << 2)) && (!fan4pin))
->  		data->has_fan |= (1 << 3);
->  	if (!(i & (1 << 1)) && (!fan5pin))
-> @@ -1257,7 +1238,7 @@
->  	/* Register sysfs hooks */
->    	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++)
->  		if ((err = device_create_file(dev,
-> -			&sda_sf3_arrays[i].dev_attr)))
-> +				&sda_sf3_arrays[i].dev_attr)))
->  			goto exit_remove;
->  
->  	/* if fan4 is enabled create the sf3 files for it */
-
-This cleanup would be better moved to the next patch.
-
-> @@ -1268,7 +1249,7 @@
->  				goto exit_remove;
->  		}
->  
-> -	for (i = 0; i < w83627ehf_num_in; i++)
-> +	for (i = 0; i < data->in_num; i++)
->  		if ((err = device_create_file(dev, &sda_in_input[i].dev_attr))
->  			|| (err = device_create_file(dev,
->  				&sda_in_alarm[i].dev_attr))
-> @@ -1308,6 +1289,10 @@
->  		if ((err = device_create_file(dev, &sda_temp[i].dev_attr)))
->  			goto exit_remove;
->  
-> +	err = device_create_file(dev, &dev_attr_name);
-> +	if (err)
-> +		goto exit_remove;
-> +
->  	data->class_dev = hwmon_device_register(dev);
->  	if (IS_ERR(data->class_dev)) {
->  		err = PTR_ERR(data->class_dev);
-> @@ -1318,95 +1303,184 @@
->  
->  exit_remove:
->  	w83627ehf_device_remove_files(dev);
-> -	i2c_detach_client(client);
-> -exit_free:
-> -	kfree(data);
-> -exit_release:
-> -	release_region(address + IOREGION_OFFSET, IOREGION_LENGTH);
-> +	release_region(data->addr + REGION_OFFSET, REGION_LENGTH);
->  exit:
->  	return err;
->  }
-
-> +/* when Super-I/O functions move to a separate file, the Super-I/O
-> + * bus will manage the lifetime of the device and this module will only keep
-> + * track of the w83627ehf driver. But since we platform_device_alloc(), we
-> + * must keep track of the device */
-> +static struct platform_device *pdev;
-> +
->  static int __init sensors_w83627ehf_init(void)
->  {
-> -	if (w83627ehf_find(0x2e, &address)
-> -	 && w83627ehf_find(0x4e, &address))
-> -		return -ENODEV;
-> +	int err;
-> +	struct resource res;
-> +	struct w83627ehf_data *data;
-> +
-> +	if (!(data = kzalloc(sizeof(struct w83627ehf_data), GFP_KERNEL))) {
-> +		err = -ENOMEM;
-> +		goto exit;
-> +	}
-
-I still do not agree with your allocation scheme. It is correct that
-for now the w83627ehf driver must take care of both the platform data
-and the driver data, however these are still two different things. The
-platform data should be allocated and filled before .probe() is called.
-The driver data should be allocated _by_ .probe(). Here you're putting
-everything in the platform data structure, this isn't acceptable.
-Please look at the w83627hf driver and follow the same allocation
-scheme. This is far better than adding comments saying that you're
-aware you're not doing the right thing.
-
-> +
-> +	/* initialize data->kind, data->sioreg, and data->addr.
-> +	 *
-> +	 * when Super-I/O functions move to a separate file, the Super-I/O
-> +	 * driver will probe 0x2e and 0x4e and auto-detect the presence of a
-> +	 * w83627ehf hardware monitor, and call probe() */
-> +	if (w83627ehf_superio_probe(0x2e, data) &&
-> +	    w83627ehf_superio_probe(0x4e, data)) {
-> +		err = -ENODEV;
-> +		goto exit_free;
-> +	}
->  
-> -	return i2c_isa_add_driver(&w83627ehf_driver);
-> +	/* !=0 to suppress warning:
-> +	 * suggest parentheses around assignment used as truth value */
-> +	if ((err = platform_driver_register(&w83627ehf_driver))!=0)
-> +		goto exit_free;
-> +
-> +	if (!(pdev = platform_device_alloc(DRVNAME, data->addr))) {
-> +		err = -ENOMEM;
-> +		printk(KERN_ERR DRVNAME ": Device allocation failed\n");
-> +		goto exit_unregister;
-> +	}
-> +
-> +	pdev->dev.platform_data = data;
-> +
-> +	memset(&res, 0, sizeof(res));
-> +	data->name = w83627ehf_device_names[data->kind];
-> +	res.name = data->name;
-> +	res.start = data->addr + REGION_OFFSET;
-> +	res.end = data->addr + REGION_OFFSET + REGION_LENGTH - 1;
-> +	res.flags = IORESOURCE_IO;
-> +	err = platform_device_add_resources(pdev, &res, 1);
-> +	if (err) {
-> +		printk(KERN_ERR DRVNAME ": Device resource addition failed "
-> +		       "(%d)\n", err);
-> +		goto exit_device_put;
-> +	}
-> +
-> +	/* platform_device_add calls probe() */
-> +	err = platform_device_add(pdev);
-> +	if (err) {
-> +		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
-> +		       err);
-> +		goto exit_device_put;
-> +	}
-> +
-> +	return 0;
-> +
-> +exit_device_put:
-> +	pdev->dev.platform_data = NULL;
-> +	platform_device_put(pdev);
-> +exit_unregister:
-> +	platform_driver_unregister(&w83627ehf_driver);
-> +exit_free:
-> +	kfree(data);
-> +exit:
-> +	return err;
->  }
-
-> --- linux-2.6.22-rc2/drivers/hwmon/Kconfig	2007-05-17 11:20:52.000000000 -0700
-> +++ linux-2.6.22-rc2/drivers/hwmon/Kconfig	2007-05-17 11:20:50.000000000 -0700
-> @@ -585,8 +585,7 @@
->  
->  config SENSORS_W83627EHF
->  	tristate "Winbond W83627EHF/DHG"
-> -	depends on I2C && EXPERIMENTAL
-> -	select I2C_ISA
-> +	depends on HWMON && EXPERIMENTAL
-
-You're adding back HWMON which is no longer needed and has been removed
-upstream:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h72acf91abb327e25137ad2e371c1a788b34e45
-
->  	help
->  	  If you say yes here you get support for the hardware
->  	  monitoring functionality of the Winbond W83627EHF/DHG Super-I/O chip.
-
-Rest looks OK.
-
-Patch 03: OK.
-
-Thanks,
--- 
-Jean Delvare
+ZGlmZiAtdXByTiAtWCBsaW51eC0yLjYuMjEtbW0xL0RvY3VtZW50YXRpb24vZG9udGRpZmYgLXgg
+ZHJpdmVycyAteCBpbmNsdWRlIGxpbnV4LTIuNi4yMS1tbTEub3JpZy9Eb2N1bWVudGF0aW9uL2h3
+bW9uL2RtZTE3MzcgbGludXgtMi42LjIxLW1tMS9Eb2N1bWVudGF0aW9uL2h3bW9uL2RtZTE3MzcK
+LS0tIGxpbnV4LTIuNi4yMS1tbTEub3JpZy9Eb2N1bWVudGF0aW9uL2h3bW9uL2RtZTE3MzcJMTk2
+OS0xMi0zMSAxNjowMDowMC4wMDAwMDAwMDAgLTA4MDAKKysrIGxpbnV4LTIuNi4yMS1tbTEvRG9j
+dW1lbnRhdGlvbi9od21vbi9kbWUxNzM3CTIwMDctMDUtMDcgMTI6MjE6MTQuMDAwMDAwMDAwIC0w
+NzAwCkBAIC0wLDAgKzEsMjUwIEBACitLZXJuZWwgZHJpdmVyIGRtZTE3MzcKKz09PT09PT09PT09
+PT09PT09PT09PQorCitTdXBwb3J0ZWQgY2hpcHM6CisgICogU01TQyBETUUxNzM3IGFuZCBjb21w
+YXRpYmxlcywgQXN1cyBBODAwMAorICAgIFByZWZpeDogJ2RtZTE3MzcnCisgICAgQWRkcmVzc2Vz
+IHNjYW5uZWQ6IEkyQyAweDJjLCAweDJkLCAweDJlCisgICAgRGF0YXNoZWV0OiBQcm92aWRlZCBi
+eSBTTVNDIHVwb24gcmVxdWVzdCBhbmQgdW5kZXIgTkRBCisKK0F1dGhvcnM6CisgICAgSnVlcmcg
+SGFlZmxpZ2VyIDxqdWVyZ2hAZ21haWwuY29tPgorCisKK01vZHVsZSBQYXJhbWV0ZXJzCistLS0t
+LS0tLS0tLS0tLS0tLQorCisqIGZvcmNlX3N0YXJ0OiBib29sCUVuYWJsZXMgdGhlIG1vbml0b3Jp
+bmcgb2Ygdm9sdGFnZSwgZmFuIGFuZCB0ZW1wIGlucHV0cworCQkJYW5kIFBXTSBvdXRwdXQgY29u
+dHJvbCBmdW5jdGlvbnMuIFVzaW5nIHRoaXMgcGFyYW1ldGVyCisJCQlzaG91bGRuJ3QgYmUgcmVx
+dWlyZWQgc2luY2UgdGhlIEJJT1MgdXN1YWxseSB0YWtlcyBjYXJlCisJCQlvZiB0aGlzLgorCitO
+b3RlIHRoYXQgdGhlcmUgaXMgbm8gbmVlZCB0byB1c2UgdGhpcyBwYXJhbWV0ZXIgaWYgdGhlIGRy
+aXZlciBsb2FkcyB3aXRob3V0Citjb21wbGFpbmluZy4gVGhlIGRyaXZlciB3aWxsIHNheSBzbyBp
+ZiBpdCBpcyBuZWNlc3NhcnkuCisKKworRGVzY3JpcHRpb24KKy0tLS0tLS0tLS0tCisKK1RoaXMg
+ZHJpdmVyIGltcGxlbWVudHMgc3VwcG9ydCBmb3IgdGhlIGhhcmR3YXJlIG1vbml0b3JpbmcgY2Fw
+YWJpbGl0aWVzIG9mIHRoZQorU01TQyBETUUxNzM3IGFuZCBBc3VzIEE4MDAwICh3aGljaCBhcmUg
+dGhlIHNhbWUpIFN1cGVyLUkvTyBjaGlwcy4gVGhpcyBjaGlwCitmZWF0dXJlcyBtb25pdG9yaW5n
+IG9mIDMgdGVtcCBzZW5zb3JzIHRlbXBbMS0zXSAoMiByZW1vdGUgZGlvZGVzIGFuZCAxCitpbnRl
+cm5hbCksIDcgdm9sdGFnZXMgaW5bMC02XSAoNiBleHRlcm5hbCBhbmQgMSBpbnRlcm5hbCkgYW5k
+IDYgZmFuIHNwZWVkcworZmFuWzEtNl0uIEFkZGl0aW9uYWxseSwgdGhlIGNoaXAgaW1wbGVtZW50
+cyA1IFBXTSBvdXRwdXRzIHB3bVsxLTMsNS02XSBmb3IKK2NvbnRyb2xsaW5nIGZhbiBzcGVlZHMg
+Ym90aCBtYW51YWxseSBhbmQgYXV0b21hdGljYWxseS4KKworRmFuWzMtNl0gYW5kIHB3bVszLDUt
+Nl0gYXJlIG9wdGlvbmFsIGZlYXR1cmVzIGFuZCB0aGVpciBhdmFpbGFiaWxpdHkgaXMKK2RlcGVu
+ZGVudCBvbiB0aGUgY29uZmlndXJhdGlvbiBvZiB0aGUgY2hpcC4gVGhlIGRyaXZlciB3aWxsIGRl
+dGVjdCB3aGljaAorZmVhdHVyZXMgYXJlIHByZXNlbnQgZHVyaW5nIGluaXRpYWxpemF0aW9uIGFu
+ZCBjcmVhdGUgdGhlIHN5c2ZzIGF0dHJpYnV0ZXMKK2FjY29yZGluZ2x5LgorCisKK1ZvbHRhZ2Ug
+TW9uaXRvcmluZworLS0tLS0tLS0tLS0tLS0tLS0tCisKK1RoZSB2b2x0YWdlIGlucHV0cyBhcmUg
+c2FtcGxlZCB3aXRoIDEyLWJpdCByZXNvbHV0aW9uIGFuZCBoYXZlIGludGVybmFsCitzY2FsaW5n
+IHJlc2lzdG9ycy4gVGhlIHZhbHVlcyByZXR1cm5lZCBieSB0aGUgZHJpdmVyIHRoZXJlZm9yZSBy
+ZWZsZWN0IHRydWUKK21pbGxpdm9sdHMgYW5kIGRvbid0IG5lZWQgc2NhbGluZy4gVGhlIHZvbHRh
+Z2UgaW5wdXRzIGFyZSBtYXBwZWQgYXMgZm9sbG93cworKHRoZSBsYXN0IGNvbHVtbiBpbmRpY2F0
+ZXMgdGhlIGlucHV0IHJhbmdlcyk6CisKKwlpbjA6ICs1VlRSCSgrNVYgc3RhbmRieSkJCTBWIC0g
+Ni42NFYKKwlpbjE6IFZjY3AJKHByb2Nlc3NvciBjb3JlKQkwViAtIDNWCisJaW4yOiBWQ0MJKGlu
+dGVybmFsICszLjNWKQkwViAtIDQuMzhWCisJaW4zOiArNVYJCQkJMFYgLSA2LjY0VgorCWluNDog
+KzEyVgkJCQkwViAtIDE2VgorCWluNTogVlRSCSgrMy4zViBzdGFuZGJ5KQkJMFYgLSA0LjM4Vgor
+CWluNjogVmJhdAkoKzMuMFYpCQkJMFYgLSA0LjM4VgorCitFYWNoIHZvbHRhZ2UgaW5wdXQgaGFz
+IGFzc29jaWF0ZWQgbWluIGFuZCBtYXggbGltaXRzIHdoaWNoIHRyaWdnZXIgYW4gYWxhcm0KK3do
+ZW4gY3Jvc3NlZC4KKworCitUZW1wZXJhdHVyZSBNb25pdG9yaW5nCistLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tCisKK1RlbXBlcmF0dXJlcyBhcmUgbWVhc3VyZWQgd2l0aCAxMi1iaXQgcmVzb2x1dGlv
+biBhbmQgcmVwb3J0ZWQgaW4gbWlsbGlkZWdyZWUKK0NlbHNpdXMuIFRoZSBjaGlwIGFsc28gZmVh
+dHVyZXMgb2Zmc2V0cyBmb3IgYWxsIDMgdGVtcGVyYXR1cmUgaW5wdXRzIHdoaWNoIC0KK3doZW4g
+cHJvZ3JhbW1lZCAtIGdldCBhZGRlZCB0byB0aGUgaW5wdXQgcmVhZGluZ3MuIFRoZSBjaGlwIGRv
+ZXMgYWxsIHRoZQorc2NhbGluZyBieSBpdHNlbGYgYW5kIHRoZSBkcml2ZXIgdGhlcmVmb3JlIHJl
+cG9ydHMgdHJ1ZSB0ZW1wZXJhdHVyZXMgdGhhdCBkb24ndAorbmVlZCBhbnkgdXNlci1zcGFjZSBh
+ZGp1c3RtZW50cy4gVGhlIHRlbXBlcmF0dXJlIGlucHV0cyBhcmUgbWFwcGVkIGFzIGZvbGxvd3MK
+Kyh0aGUgbGFzdCBjb2x1bW4gaW5kaWNhdGVzIHRoZSBpbnB1dCByYW5nZXMpOgorCisJdGVtcDE6
+IFJlbW90ZSBkaW9kZSAxICgzOTA0IHR5cGUpIHRlbXBlcmF0dXJlCS0xMjdDIC0gKzEyN0MKKwl0
+ZW1wMjogRE1FMTczNyBpbnRlcm5hbCB0ZW1wZXJhdHVyZQkJLTEyN0MgLSArMTI3QworCXRlbXAz
+OiBSZW1vdGUgZGlvZGUgMiAoMzkwNCB0eXBlKSB0ZW1wZXJhdHVyZQktMTI3QyAtICsxMjdDCisK
+K0VhY2ggdGVtcGVyYXR1cmUgaW5wdXQgaGFzIGFzc29jaWF0ZWQgbWluIGFuZCBtYXggbGltaXRz
+IHdoaWNoIHRyaWdnZXIgYW4gYWxhcm0KK3doZW4gY3Jvc3NlZC4gQWRkaXRpb25hbGx5LCBlYWNo
+IHRlbXBlcmF0dXJlIGlucHV0IGhhcyBhIGZhdWx0IGF0dHJpYnV0ZSB0aGF0CityZXR1cm5zIDEg
+d2hlbiBhIGZhdWx0eSBkaW9kZSBvciBhbiB1bmNvbm5lY3RlZCBpbnB1dCBpcyBkZXRlY3RlZCBh
+bmQgMAorb3RoZXJ3aXNlLgorCisKK0ZhbiBNb25pdG9yaW5nCistLS0tLS0tLS0tLS0tLQorCitG
+YW4gUlBNcyBhcmUgbWVhc3VyZWQgd2l0aCAxNi1iaXQgcmVzb2x1dGlvbi4gVGhlIGNoaXAgcHJv
+dmlkZXMgaW5wdXRzIGZvciA2CitmYW4gdGFjaG9tZXRlcnMuIEFsbCA2IGlucHV0cyBoYXZlIGFu
+IGFzc29jaWF0ZWQgbWluIGxpbWl0IHdoaWNoIHRyaWdnZXJzIGFuCithbGFybSB3aGVuIGNyb3Nz
+ZWQuIEZhbiBpbnB1dHMgMS00IHByb3ZpZGUgdHlwZSBhdHRyaWJ1dGVzIHRoYXQgbmVlZCB0byBi
+ZSBzZXQKK3RvIHRoZSBudW1iZXIgb2YgcHVsc2VzIHBlciBmYW4gcmV2b2x1dGlvbiB0aGF0IHRo
+ZSBjb25uZWN0ZWQgdGFjaG9tZXRlcgorZ2VuZXJhdGVzLiBTdXBwb3J0ZWQgdmFsdWVzIGFyZSAx
+LCAyLCBhbmQgMy4gRmFuIGlucHV0cyA1LTYgb25seSBzdXBwb3J0IGZhbnMKK3RoYXQgZ2VuZXJh
+dGUgMiBwdWxzZXMgcGVyIHJldm9sdXRpb24uIEZhbiBpbnB1dHMgNS02IGFsc28gcHJvdmlkZSBh
+IG1heAorYXR0cmlidXRlIHRoYXQgbmVlZHMgdG8gYmUgc2V0IHRvIHRoZSBtYXhpbXVtIGF0dGFp
+bmFibGUgUlBNIChmYW4gYXQgMTAwJSBkdXR5LQorY3ljbGUpIG9mIHRoZSBpbnB1dC4gVGhlIGNo
+aXAgYWRqdXN0cyB0aGUgc2FtcGxpbmcgcmF0ZSBiYXNlZCBvbiB0aGlzIHZhbHVlLgorCisKK1BX
+TSBPdXRwdXQgQ29udHJvbAorLS0tLS0tLS0tLS0tLS0tLS0tCisKK1RoaXMgY2hpcCBmZWF0dXJl
+cyA1IFBXTSBvdXRwdXRzLiBQV00gb3V0cHV0cyAxLTMgYXJlIGFzc29jaWF0ZWQgd2l0aCBmYW4K
+K2lucHV0cyAxLTMgYW5kIFBXTSBvdXRwdXRzIDUtNiBhcmUgYXNzb2NpYXRlZCB3aXRoIGZhbiBp
+bnB1dHMgNS02LiBQV00gb3V0cHV0cworMS0zIGNhbiBiZSBjb25maWd1cmVkIHRvIG9wZXJhdGUg
+ZWl0aGVyIGluIG1hbnVhbCBvciBhdXRvbWF0aWMgbW9kZSBieSBzZXR0aW5nCit0aGUgYXBwcm9w
+cmlhdGUgZW5hYmxlIGF0dHJpYnV0ZSBhY2NvcmRpbmdseS4gUFdNIG91dHB1dHMgNS02IGNhbiBv
+bmx5IG9wZXJhdGUKK2luIG1hbnVhbCBtb2RlLCB0aGVpciBlbmFibGUgYXR0cmlidXRlcyBhcmUg
+dGhlcmVmb3JlIHJlYWQtb25seS4gV2hlbiBzZXQgdG8KK21hbnVhbCBtb2RlLCB0aGUgZmFuIHNw
+ZWVkIGlzIHNldCBieSB3cml0aW5nIHRoZSBkdXR5LWN5Y2xlIHZhbHVlIHRvIHRoZQorYXBwcm9w
+cmlhdGUgUFdNIGF0dHJpYnV0ZS4gSW4gYXV0b21hdGljIG1vZGUsIHRoZSBQV00gYXR0cmlidXRl
+IHJldHVybnMgdGhlCitjdXJyZW50IGR1dHktY3ljbGUgYXMgc2V0IGJ5IHRoZSBmYW4gY29udHJv
+bGxlciBpbiB0aGUgY2hpcC4gQWxsIFBXTSBvdXRwdXRzCitzdXBwb3J0IHRoZSBzZXR0aW5nIG9m
+IHRoZSBvdXRwdXQgZnJlcXVlbmN5IHZpYSB0aGUgZnJlcSBhdHRyaWJ1dGUuCisKK0luIGF1dG9t
+YXRpYyBtb2RlLCB0aGUgY2hpcCBzdXBwb3J0cyB0aGUgc2V0dGluZyBvZiB0aGUgUFdNIHJhbXAg
+cmF0ZSB3aGljaAorZGVmaW5lcyBob3cgZmFzdCB0aGUgUFdNIG91dHB1dCBpcyBhZGp1c3Rpbmcg
+dG8gY2hhbmdlcyBvZiB0aGUgYXNzb2NpYXRlZAordGVtcGVyYXR1cmUgaW5wdXQuIEFzc29jaWF0
+aW5nIFBXTSBvdXRwdXRzIHRvIHRlbXBlcmF0dXJlIGlucHV0cyBpcyBkb25lIHZpYQordGVtcGVy
+YXR1cmUgem9uZXMuIFRoZSBjaGlwIGZlYXR1cmVzIDMgem9uZXMgd2hvc2UgYXNzaWdubWVudHMg
+dG8gdGVtcGVyYXR1cmUKK2lucHV0cyBpcyBzdGF0aWMgYW5kIGRldGVybWluZWQgZHVyaW5nIGlu
+aXRpYWxpemF0aW9uLiBUaGVzZSBhc3NpZ25tZW50cyBjYW4KK2JlIHJldHJpZXZlZCB2aWEgdGhl
+IHpvbmVbMS0zXV9hdXRvX2NoYW5uZWxzX3RlbXAgYXR0cmlidXRlcy4gRWFjaCBQV00gb3V0cHV0
+CitpcyBhc3NpZ25lZCB0byBvbmUgKG9yIGhvdHRlc3Qgb2YgbXVsdGlwbGUpIHRlbXBlcmF0dXJl
+IHpvbmUocykgdGhyb3VnaCB0aGUgCitwd21bMS0zXV9hdXRvX2NoYW5uZWxzX3RlbXAgYXR0cmli
+dXRlcy4gRWFjaCBQV00gb3V0cHV0IGhhcyAzIGRpc3RpbmN0IG91dHB1dAorZHV0eS1jeWNsZXM6
+IGZ1bGwsIGxvdywgYW5kIG9mZi4gRnVsbCBpcyBpbnRlcm5hbGx5IGhhcmQtd2lyZWQgdG8gMjU1
+ICgxMDAlKQorYW5kIGxvdyBhbmQgb2ZmIGNhbiBiZSBwcm9ncmFtbWVkIHZpYSB0aGUgcHdtWzEt
+M11fYXV0b19wb2ludFsxLTJdX3B3bQorYXR0cmlidXRlcy4gVGhlIHRoZXJtYWwgdGhyZXNob2xk
+cyBvZiB0aGUgem9uZXMgYXJlIHByb2dyYW1tZWQgdmlhCit6b25lWzEtM11fYXV0b19wb2ludFsx
+LTRdX3RlbXA6CisKKwlwd21bMS0zXV9hdXRvX3BvaW50M19wd20JZnVsbC1zcGVlZCBkdXR5LWN5
+Y2xlICgyNTUsIGkuZS4sIDEwMCUpCisJcHdtWzEtM11fYXV0b19wb2ludDJfcHdtCWxvdy1zcGVl
+ZCBkdXR5LWN5Y2xlCisJcHdtWzEtM11fYXV0b19wb2ludDFfcHdtCW9mZiBkdXR5LWN5Y2xlCisK
+Kwl6b25lWzEtM11fYXV0b19wb2ludDRfdGVtcAlmdWxsLXNwZWVkIHRlbXAgKGFsbCBvdXRwdXRz
+KQorCXpvbmVbMS0zXV9hdXRvX3BvaW50M190ZW1wCWZ1bGwtc3BlZWQgdGVtcAorCXpvbmVbMS0z
+XV9hdXRvX3BvaW50Ml90ZW1wCWxvdy1zcGVlZCB0ZW1wCisJem9uZVsxLTNdX2F1dG9fcG9pbnQx
+X3RlbXAJb2ZmIHRlbXAKKworVGhlIGNoaXAgYWRqdXN0cyB0aGUgb3V0cHV0IGR1dHktY3ljbGUg
+bGluZWFybHkgaW4gdGhlIHJhbmdlIG9mIGF1dG9fcG9pbnQyX3B3bQordG8gYXV0b19wb2ludDNf
+cHdtIGlmIHRoZSB0ZW1wZXJhdHVyZSBvZiB0aGUgYXNzb2NpYXRlZCB6b25lIGlzIGJldHdlZW4K
+K2F1dG9fcG9pbnQyX3RlbXAgYW5kIGF1dG9fcG9pbnQzX3RlbXAuIElmIHRoZSB0ZW1wZXJhdHVy
+ZSBkcm9wcyBiZWxvdyB0aGUKK2F1dG9fcG9pbnQxX3RlbXAgdmFsdWUsIHRoZSBvdXRwdXQgZHV0
+eS1jeWNsZSBpcyBzZXQgdG8gdGhlIGF1dG9fcG9pbnQxX3B3bQordmFsdWUgd2hpY2ggb25seSBz
+dXBwb3J0cyB0d28gdmFsdWVzOiAwIG9yIGF1dG9fcG9pbnQyX3B3bS4gVGhhdCBtZWFucyB0aGF0
+IHRoZQorZmFuIGVpdGhlciB0dXJucyBjb21wbGV0ZWx5IG9mZiBvciBrZWVwcyBzcGlubmluZyB3
+aXRoIHRoZSBsb3ctc3BlZWQKK2R1dHktY3ljbGUuIElmIGFueSBvZiB0aGUgdGVtcGVyYXR1cmVz
+IHJpc2UgYWJvdmUgdGhlIGF1dG9fcG9pbnQ0X3RlbXAgdmFsdWUsCithbGwgUFdNIG91dHB1dHMg
+YXJlIHNldCB0byAxMDAlIGR1dHktY3ljbGUuCisKK0ZvbGxvd2luZyBpcyBhbm90aGVyIHJlcHJl
+c2VudGF0aW9uIG9mIGhvdyB0aGUgY2hpcCBzZXRzIHRoZSBvdXRwdXQgZHV0eS1jeWNsZQorYmFz
+ZWQgb24gdGhlIHRlbXBlcmF0dXJlIG9mIHRoZSBhc3NvY2lhdGVkIHRoZXJtYWwgem9uZToKKwor
+CQkJRHV0eS1DeWNsZQlEdXR5LUN5Y2xlCisJVGVtcGVyYXR1cmUJUmlzaW5nIFRlbXAJRmFsbGlu
+ZyBUZW1wCisJLS0tLS0tLS0tLS0JLS0tLS0tLS0tLS0JLS0tLS0tLS0tLS0tCisJZnVsbC1zcGVl
+ZAlmdWxsLXNwZWVkCWZ1bGwtc3BlZWQKKworCQkJPCBsaW5lYXJseSBhZGp1c3RlZCBkdXR5LWN5
+Y2xlID4KKworCWxvdy1zcGVlZAlsb3ctc3BlZWQJbG93LXNwZWVkCisJCQlvZmYJCWxvdy1zcGVl
+ZAorCW9mZiB0ZW1wCW9mZgkJb2ZmCisJCQlvZmYJCW9mZgorCisKK1N5c2ZzIEF0dHJpYnV0ZXMK
+Ky0tLS0tLS0tLS0tLS0tLS0KKworRm9sbG93aW5nIGlzIGEgbGlzdCBvZiBhbGwgc3lzZnMgYXR0
+cmlidXRlcyB0aGF0IHRoZSBkcml2ZXIgcHJvdmlkZXMsIHRoZWlyCitwZXJtaXNzaW9ucyBhbmQg
+YSBzaG9ydCBkZXNjcmlwdGlvbjoKKworTmFtZQkJCQlQZXJtCURlc2NyaXB0aW9uCistLS0tCQkJ
+CS0tLS0JLS0tLS0tLS0tLS0KK2NwdTBfdmlkCQkJUk8JQ1BVIGNvcmUgcmVmZXJlbmNlIHZvbHRh
+Z2UgaW4KKwkJCQkJbWlsbGl2b2x0cy4KK3ZybQkJCQlSVwlWb2x0YWdlIHJlZ3VsYXRvciBtb2R1
+bGUgdmVyc2lvbgorCQkJCQludW1iZXIuCisKK2luWzAtNl1faW5wdXQJCQlSTwlNZWFzdXJlZCB2
+b2x0YWdlIGluIG1pbGxpdm9sdHMuCitpblswLTZdX21pbgkJCVJXCUxvdyBsaW1pdCBmb3Igdm9s
+dGFnZSBpbnB1dC4KK2luWzAtNl1fbWF4CQkJUlcJSGlnaCBsaW1pdCBmb3Igdm9sdGFnZSBpbnB1
+dC4KK2luWzAtNl1fYWxhcm0JCQlSTwlWb2x0YWdlIGlucHV0IGFsYXJtLiBSZXR1cm5zIDEgaWYK
+KwkJCQkJdm9sdGFnZSBpbnB1dCBpcyBvciB3ZW50IG91dHNpZGUgdGhlCisJCQkJCWFzc29jaWF0
+ZWQgbWluLW1heCByYW5nZSwgMCBvdGhlcndpc2UuCisKK3RlbXBbMS0zXV9pbnB1dAkJCVJPCU1l
+YXN1cmVkIHRlbXBlcmF0dXJlIGluIG1pbGxpZGVncmVlCisJCQkJCUNlbHNpdXMuCit0ZW1wWzEt
+M11fbWluCQkJUlcJTG93IGxpbWl0IGZvciB0ZW1wIGlucHV0LgordGVtcFsxLTNdX21heAkJCVJX
+CUhpZ2ggbGltaXQgZm9yIHRlbXAgaW5wdXQuCit0ZW1wWzEtM11fb2Zmc2V0CQlSVwlPZmZzZXQg
+Zm9yIHRlbXAgaW5wdXQuIFRoaXMgdmFsdWUgd2lsbAorCQkJCQliZSBhZGRlZCBieSB0aGUgY2hp
+cCB0byB0aGUgbWVhc3VyZWQKKwkJCQkJdGVtcGVyYXR1cmUuCit0ZW1wWzEtM11fYWxhcm0JCQlS
+TwlBbGFybSBmb3IgdGVtcCBpbnB1dC4gUmV0dXJucyAxIGlmIHRlbXAKKwkJCQkJaW5wdXQgaXMg
+b3Igd2VudCBvdXRzaWRlIHRoZSBhc3NvY2lhdGVkCisJCQkJCW1pbi1tYXggcmFuZ2UsIDAgb3Ro
+ZXJ3aXNlLgordGVtcFsxLTNdX2ZhdWx0CQkJUk8JVGVtcCBpbnB1dCBmYXVsdC4gUmV0dXJucyAx
+IGlmIHRoZSBjaGlwCisJCQkJCWRldGVjdHMgYSBmYXVsdHkgdGhlcm1hbCBkaW9kZSBvciBhbgor
+CQkJCQl1bmNvbm5lY3RlZCB0ZW1wIGlucHV0LCAwIG90aGVyd2lzZS4KKworem9uZVsxLTNdX2F1
+dG9fY2hhbm5lbHNfdGVtcAlSTwlUZW1wZXJhdHVyZSB6b25lIHRvIHRlbXBlcmF0dXJlIGlucHV0
+CisJCQkJCW1hcHBpbmcuIFRoaXMgYXR0cmlidXRlIGlzIGEgYml0ZmllbGQKKwkJCQkJYW5kIHN1
+cHBvcnRzIHRoZSBmb2xsb3dpbmcgdmFsdWVzOgorCQkJCQkJMTogdGVtcDEKKwkJCQkJCTI6IHRl
+bXAyCisJCQkJCQk0OiB0ZW1wMworem9uZVsxLTNdX2F1dG9fcG9pbnRbMS00XV90ZW1wCVJXCUF1
+dG8gUFdNIHRlbXAgcG9pbnRzLiBBdXRvX3BvaW50MSBpcworCQkJCQl0aGUgb2ZmIHRlbXAsIGF1
+dG9fcG9pbnQyIGlzIHRoZSBsb3ctCisJCQkJCXNwZWVkIHRlbXAsIGF1dG9fcG9pbnQzIGlzIHRo
+ZSBmdWxsLQorCQkJCQlzcGVlZCB0ZW1wIGFuZCBhdXRvX3BvaW50NCBpcyB0aGUgdGVtcAorCQkJ
+CQlhdCB3aGljaCBhbGwgUFdNIG91dHB1dHMgYXJlIHNldCB0bworCQkJCQlmdWxsLXNwZWVkICgx
+MDAlIGR1dHktY3ljbGUpLgorCitmYW5bMS02XV9pbnB1dAkJCVJPCU1lYXN1cmVkIGZhbiBzcGVl
+ZCBpbiBSUE0uIAorZmFuWzEtNl1fbWluCQkJUlcJTG93IGxpbWl0IGZvciBmYW4gaW5wdXQuCitm
+YW5bMS02XV9hbGFybQkJCVJPCUFsYXJtIGZvciBmYW4gaW5wdXQuIFJldHVybnMgMSBpZiBmYW4K
+KwkJCQkJaW5wdXQgaXMgb3Igd2VudCBiZWxvdyB0aGUgYXNzb2NpYXRlZAorCQkJCQltaW4gdmFs
+dWUsIDAgb3RoZXJ3aXNlLgorZmFuWzEtNF1fdHlwZQkJCVJXCVR5cGUgb2YgYXR0YWNoZWQgZmFu
+LiBFeHByZXNzZWQgaW4KKwkJCQkJbnVtYmVyIG9mIHB1bHNlcyBwZXIgcmV2b2x1dGlvbiB0aGF0
+CisJCQkJCXRoZSBmYW4gZ2VuZXJhdGVzLiBTdXBwb3J0ZWQgdmFsdWVzIGFyZQorCQkJCQkxLCAy
+LCBhbmQgMy4KK2Zhbls1LTZdX21heAkJCVJXCU1heCBhdHRhaW5hYmxlIFJQTSBhdCAxMDAlIGR1
+dHktY3ljbGUuCisJCQkJCVJlcXVpcmVkIGZvciBjaGlwIHRvIGFkanVzdCB0aGUKKwkJCQkJc2Ft
+cGxpbmcgcmF0ZSBhY2NvcmRpbmdseS4KKworcG13WzEtMyw1LTZdCQkJUk8vUlcJRHV0eS1jeWNs
+ZSBvZiBQV00gb3V0cHV0LiBTdXBwb3J0ZWQKKwkJCQkJdmFsdWVzIGFyZSAwLTI1NSAoMCUtMTAw
+JSkuIE9ubHkKKwkJCQkJd3JpdGVhYmxlIGlmIHRoZSBhc3NvY2lhdGVkIFBXTSBpcyBpbgorCQkJ
+CQltYW51YWwgbW9kZS4KK3B3bVsxLTNdX2VuYWJsZQkJCVJXCUVuYWJsZSBvZiBQV00gb3V0cHV0
+cyAxLTMuIFN1cHBvcnRlZAorCQkJCQl2YWx1ZXMgYXJlOgorCQkJCQkJIDA6IHR1cm5lZCBvZmYg
+KG91dHB1dCBAIDEwMCUpCisJCQkJCQkgMTogbWFudWFsIG1vZGUKKwkJCQkJCSAyOiBhdXRvbWF0
+aWMgbW9kZQorcHdtWzUtNl1fZW5hYmxlCQkJUk8JRW5hYmxlIG9mIFBXTSBvdXRwdXRzIDUtNi4g
+QWx3YXlzCisJCQkJCXJldHVybnMgMSBzaW5jZSB0aGVzZSAyIG91dHB1dHMgYXJlCisJCQkJCWhh
+cmQtd2lyZWQgdG8gbWFudWFsIG1vZGUuCitwbXdbMS0zLDUtNl1fZnJlcQkJUlcJRnJlcXVlbmN5
+IG9mIFBXTSBvdXRwdXQuIFN1cHBvcnRlZAorCQkJCQl2YWx1ZXMgYXJlIGluIHRoZSByYW5nZSAx
+MUh6LTMwMDAwSHoKKwkJCQkJKGRlZmF1bHQgaXMgMjUwMDBIeikuCitwbXdbMS0zXV9yYW1wX3Jh
+dGUJCVJXCVJhbXAgcmF0ZSBvZiBQV00gb3V0cHV0LiBEZXRlcm1pbmVzIGhvdworCQkJCQlmYXN0
+IHRoZSBQV00gZHV0eS1jeWNsZSB3aWxsIGNoYW5nZQorCQkJCQl3aGVuIHRoZSBQV00gaXMgaW4g
+YXV0b21hdGljIG1vZGUuCisJCQkJCUV4cHJlc3NlZCBpbiBtcyBwZXIgUFdNIHN0ZXAuIFN1cHBv
+cnRlZAorCQkJCQl2YWx1ZXMgYXJlIGluIHRoZSByYW5nZSAwbXMtMjA2bXMKKwkJCQkJKGRlZmF1
+bHQgaXMgMCwgd2hpY2ggbWVhbnMgdGhlIGR1dHktCisJCQkJCWN5Y2xlIGNoYW5nZXMgaW5zdGFu
+dGx5KS4KK3B3bVsxLTNdX2F1dG9fY2hhbm5lbHNfem9uZQlSVwlQV00gb3V0cHV0IHRvIHRlbXBl
+cmF0dXJlIHpvbmUgbWFwcGluZy4KKwkJCQkJVGhpcyBhdHRyaWJ1dGUgaXMgYSBiaXRmaWVsZCBh
+bmQKKwkJCQkJc3VwcG9ydHMgdGhlIGZvbGxvd2luZyB2YWx1ZXM6CisJCQkJCQkxOiB6b25lMQor
+CQkJCQkJMjogem9uZTIKKwkJCQkJCTQ6IHpvbmUzCisJCQkJCQk2OiBoaWdoZXN0IG9mIHpvbmVb
+Mi0zXQorCQkJCQkJNzogaGlnaGVzdCBvZiB6b25lWzEtM10KK3B3bVsxLTNdX2F1dG9fcG9pbnRb
+MS0yXV9wd20JUlcJQXV0byBQV00gcHdtIHBvaW50cy4gQXV0b19wb2ludDEgaXMgdGhlCisJCQkJ
+CW9mZiBkdXR5LWN5Y2xlIGFuZCBhdXRvX3BvaW50MiBpcyB0aGUKKwkJCQkJbG93LXNwZWVkIGR1
+dHktY3ljbGUuCitwd21bMS0zXV9hdXRvX3BvaW50M19wd20JUk8JQXV0byBQV00gcHdtIHBvaW50
+LiBBdXRvX3BvaW50MyBpcyB0aGUKKwkJCQkJZnVsbC1zcGVlZCBkdXR5LWN5Y2xlIHdoaWNoIGlz
+IGhhcmQtCisJCQkJCXdpcmVkIHRvIDI1NSAoMTAwJSBkdXR5LWN5Y2xlKS4KZGlmZiAtdXByTiAt
+WCBsaW51eC0yLjYuMjEtbW0xL0RvY3VtZW50YXRpb24vZG9udGRpZmYgLXggZHJpdmVycyAteCBp
+bmNsdWRlIGxpbnV4LTIuNi4yMS1tbTEub3JpZy9NQUlOVEFJTkVSUyBsaW51eC0yLjYuMjEtbW0x
+L01BSU5UQUlORVJTCi0tLSBsaW51eC0yLjYuMjEtbW0xLm9yaWcvTUFJTlRBSU5FUlMJMjAwNy0w
+NS0wNyAxMjoxNjoyMC4wMDAwMDAwMDAgLTA3MDAKKysrIGxpbnV4LTIuNi4yMS1tbTEvTUFJTlRB
+SU5FUlMJMjAwNy0wNS0wNyAxMjoyNTo1My4wMDAwMDAwMDAgLTA3MDAKQEAgLTEyNDksNiArMTI0
+OSwxMiBAQCBNOgljaHJpc3RvcGhlci5sZWVjaEBpbnRlbC5jb20KIEw6CWxpbnV4LWtlcm5lbEB2
+Z2VyLmtlcm5lbC5vcmcKIFM6CU1haW50YWluZWQKIAorRE1FMTczNyBIQVJEV0FSRSBNT05JVE9S
+IERSSVZFUgorUDoJSnVlcmcgSGFlZmxpZ2VyCitNOglqdWVyZ2hAZ21haWwuY29tCitMOglsbS1z
+ZW5zb3JzQGxtLXNlbnNvcnMub3JnCitTOglNYWludGFpbmVkCisKIERPQ0JPT0sgRk9SIERPQ1VN
+RU5UQVRJT04KIFA6CVJhbmR5IER1bmxhcAogTToJcmR1bmxhcEB4ZW5vdGltZS5uZXQK
+------=_Part_86952_30585148.1178573188560
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_86952_30585148.1178573188560--
