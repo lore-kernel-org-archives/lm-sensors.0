@@ -1,48 +1,42 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 25 May 2007 13:25:19 +0000
-Subject: Re: [lm-sensors] dynamic chip support
-Message-Id: <20070525152519.032dbd7c@hyperion.delvare>
+Date: Tue, 08 May 2007 09:35:45 +0000
+Subject: Re: [lm-sensors] [PATCH] coretemp add more safety checks
+Message-Id: <20070508113545.5ca31f4f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <461B7F5C.5080409@hhs.nl>
-In-Reply-To: <461B7F5C.5080409@hhs.nl>
+References: <4634A411.4030703@assembler.cz>
+In-Reply-To: <4634A411.4030703@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 25 May 2007 10:34:04 +0200, Hans de Goede wrote:
-> I might be getting / reading this wrong, but take a look at adm1021_features
-> in lib/chips.c there it still clearly states:
->      { { SENSORS_ADM1021_REMOTE_TEMP, "remote_temp", NOMAP, NOMAP, R },
->                                       ADM1021_SYSCTL_REMOTE_TEMP, VALUE(3), 0 },
->      { { SENSORS_ADM1021_REMOTE_TEMP_HYST, "remote_temp_low",
-> ...
+Hi Rudolf,
+
+On Sun, 29 Apr 2007 15:56:33 +0200, Rudolf Marek wrote:
+> I hope I will have more time from now, here my patch. It adds check for Errata
+> AE18 of core processors, which causes values not to update after the CPU deep
+> sleeps. Intel claims that the TjMax detection might not work for the Core2, warn
+> the users about this.
 > 
-> I haven't looked at the actual 2.6 driver. If the 2.6 driver indeed calls it 
-> temp2_input, then how does libsensors know this??
+> I would like to ask anyone using coretemp on notebook to test this patch!
+> 
+> In case it is ok (haha) here is the kernel stuff:
+> 
+> Signed-off-by: Rudolf Marek <r.marek@assembler.cz>
+> 
+> This patch adds detection of AE18 Errata of Core processor and warns
+> users that the absolute readings might be wrong for Core2 users.
 
-There is a translation table for common symbol names in lib/proc.c:
+Your patch:
+* Doesn't apply on top of the version of the coretemp driver I have on
+  my hwmon stack [1].
+* Once manually fixed to apply, fails to compile.
 
-static const struct match matches[] = {
-	{ "beeps", "beep_mask", 0 },
-	{ "pwm", "pwm1", 0, "fan1_pwm" },
-	{ "vid", "cpu0_vid", INMAG, "in0_ref" },
-	{ "remote_temp", "temp2_input", TEMPMAG },
-	{ "remote_temp_hyst", "temp2_max_hyst", TEMPMAG },
-	{ "remote_temp_low", "temp2_min", TEMPMAG },
-	{ "remote_temp_over", "temp2_max", TEMPMAG },
-	{ "temp", "temp1_input", TEMPMAG },
-	{ "temp_hyst", "temp1_max_hyst", TEMPMAG },
-	{ "temp_low", "temp1_min", TEMPMAG },
-	{ "temp_over", "temp1_max", TEMPMAG },
-	{ "temp_high", "temp1_max", TEMPMAG },
-	{ "temp_crit", "temp1_crit", TEMPMAG },
-	{ NULL, NULL }
-};
+[1] http://khali.linux-fr.org/devel/linux-2.6/jdelvare-hwmon/hwmon-coretemp-new-driver.patch
 
-Once we are done with the generic code and get rid of the chip-specific
-declarations, all this symbol name translation stuff will be deleted as
-well.
+Can you please provide a patch which at least applies and compiles, so
+that users have a chance to test it? Other than that, it looks good.
+Please resubmit. Thanks.
 
 -- 
 Jean Delvare
