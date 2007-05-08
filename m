@@ -1,31 +1,37 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Tue, 08 May 2007 18:34:28 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 08 May 2007 18:49:06 +0000
 Subject: Re: [lm-sensors] [GIT PULL] hwmon updates for 2.6.22
-Message-Id: <alpine.LFD.0.98.0705081133250.3974@woody.linux-foundation.org>
+Message-Id: <20070508204906.7c2c38a4@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070508174529.7298cae4@hyperion.delvare>
-In-Reply-To: <20070508174529.7298cae4@hyperion.delvare>
+	<alpine.LFD.0.98.0705081133250.3974@woody.linux-foundation.org>
+In-Reply-To: <alpine.LFD.0.98.0705081133250.3974@woody.linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 
-
-
-On Tue, 8 May 2007, Jean Delvare wrote:
+On Tue, 8 May 2007 11:34:28 -0700 (PDT), Linus Torvalds wrote:
 > 
-> git://jdelvare.pck.nerim.net/jdelvare-2.6 hwmon-for-linus
+> 
+> On Tue, 8 May 2007, Jean Delvare wrote:
+> > 
+> > git://jdelvare.pck.nerim.net/jdelvare-2.6 hwmon-for-linus
+> 
+> This doesn't seem to be the right URL:
+> 
+> 	"fatal: The remote end hung up unexpectedly"
+> 
+> (the git daemon on purpose doesn't tell *why* it hung up, for security 
+> reasons - you don't want to be able to probe other peoples machines for 
+> directory names etc).
 
-This doesn't seem to be the right URL:
+Oops, I messed up when copying the repository. Sorry about that. I just
+fixed it, please try again.
 
-	"fatal: The remote end hung up unexpectedly"
-
-(the git daemon on purpose doesn't tell *why* it hung up, for security 
-reasons - you don't want to be able to probe other peoples machines for 
-directory names etc).
-
-		Linus
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
