@@ -1,8 +1,10 @@
 From: Dmitry Torokhov <dtor@insightbb.com>
-Date: Tue, 08 May 2007 04:25:35 +0000
+Date: Wed, 09 May 2007 03:13:13 +0000
 Subject: [lm-sensors] [PATCH] drivers/hwmon - switch to using
-Message-Id: <200705080025.36131.dtor@insightbb.com>
+Message-Id: <200705082313.13748.dtor@insightbb.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200705080025.36131.dtor@insightbb.com>
+In-Reply-To: <200705080025.36131.dtor@insightbb.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,9 +17,12 @@ specifying device position in sysfs tree.
 Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 ---
 
+[Added applesmc to the mix]
+
  drivers/hwmon/ams/ams-input.c |    2 +-
+ drivers/hwmon/applesmc.c      |    2 +-
  drivers/hwmon/hdaps.c         |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
 Index: work/drivers/hwmon/ams/ams-input.c
 =================================--- work.orig/drivers/hwmon/ams/ams-input.c
@@ -34,7 +39,7 @@ Index: work/drivers/hwmon/ams/ams-input.c
 Index: work/drivers/hwmon/hdaps.c
 =================================--- work.orig/drivers/hwmon/hdaps.c
 +++ work/drivers/hwmon/hdaps.c
-@@ -572,7 +572,7 @@ static int __init hdaps_init(void)
+@@ -574,7 +574,7 @@ static int __init hdaps_init(void)
  
  	/* initialize the input class */
  	hdaps_idev->name = "hdaps";
@@ -43,6 +48,18 @@ Index: work/drivers/hwmon/hdaps.c
  	hdaps_idev->evbit[0] = BIT(EV_ABS);
  	input_set_abs_params(hdaps_idev, ABS_X,
  			-256, 256, HDAPS_INPUT_FUZZ, HDAPS_INPUT_FLAT);
+Index: work/drivers/hwmon/applesmc.c
+=================================--- work.orig/drivers/hwmon/applesmc.c
++++ work/drivers/hwmon/applesmc.c
+@@ -1100,7 +1100,7 @@ static int applesmc_create_accelerometer
+ 	/* initialize the input class */
+ 	applesmc_idev->name = "applesmc";
+ 	applesmc_idev->id.bustype = BUS_HOST;
+-	applesmc_idev->cdev.dev = &pdev->dev;
++	applesmc_idev->dev.parent = &pdev->dev;
+ 	applesmc_idev->evbit[0] = BIT(EV_ABS);
+ 	applesmc_idev->open = applesmc_idev_open;
+ 	applesmc_idev->close = applesmc_idev_close;
 
 _______________________________________________
 lm-sensors mailing list
