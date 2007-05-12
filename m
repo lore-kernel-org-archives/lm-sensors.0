@@ -1,21 +1,22 @@
-From: koan <koan00@gmail.com>
-Date: Thu, 26 Apr 2007 14:15:52 +0000
-Subject: [lm-sensors] Any progress on driver for Fintek F71882FG / Epox
-Message-Id: <64d833020704260715y2d8f0318o12ceaa033031213@mail.gmail.com>
+From: "com.ea" <com.ea@tinet.org>
+Date: Sat, 12 May 2007 09:05:39 +0000
+Subject: [lm-sensors] w83627hf.c pwm frequency patch
+Message-Id: <bj0b43lnno3l4t105008r2ou1uan2e4u5c@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hello guys,
 
-I haven't seen much in the mailing list archives regarding this chip
-since January. I was curious if there has been any progress?
+I came back home for a few days and could test the changes I made to the driver to support the pwm
+frequency registers. Anyway I only have a w83697hf at hand to make the tests, and the registers in
+627hf are a bit different. Does someone want to test it?
 
-I can offer testing help if needed.
+Btw, is it ok if I send a patch against 2.6.21.1?
 
-Thanks, Jesse
+Carlos
 
 _______________________________________________
 lm-sensors mailing list
