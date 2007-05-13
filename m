@@ -1,235 +1,56 @@
-From: Dmitry Torokhov <dtor@insightbb.com>
-Date: Fri, 25 May 2007 04:41:00 +0000
-Subject: [lm-sensors] [PATCH] applesmc - switch to using input-polldev
-Message-Id: <200705250041.00843.dtor@insightbb.com>
+From: "Dale" <gfgz@netzero.com>
+Date: Sun, 13 May 2007 18:40:20 +0000
+Subject: [lm-sensors] Sony Ericsson's T650 is set to join the manufacturer's
+Message-Id: <000f01c7958e$28927510$df394ac5@cpdn>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Not tested - no hardware...
+Unsere Auswahl des Monats fliegt!!!
 
--- 
-Dmitry
+CARBON RACE (WKN 15Q105)
+NDGB.F
+Letzter Kurs: 0,95
+52W Spanne: 0,50 - 1,16
 
-HWMON: applesmc - convert to use input-polldev.
+Nachrichten Freigabe fur Montag, den 14. Mai 2007. Unser bestes der
+Woche. DIESES ist das, das du gewartet hast!
 
-Switch to using input-polldev skeleton instead of implementing
-polling loop by itself. This also fixes problem with trylock
-on a mutex in atomic context.
+The screen is clear and colorful, and the interface is much slicker than
+Apple's boring menus.
+We even liked the square keypad on the Maxx Ve better than the wavy
+layout of buttons on the V3xx. According to the company, the glass
+display makes colors appear more intense, makes the screen clearer in
+bright lighting and increases the screen's viewing angle up to 170
+degrees. According to Sony Ericsson, the headset gets about 6 hours of
+talk-time and the same amount for listening time.
+Though the Philips headphones are geared for use with the Nokia handset,
+they are compatible with any device featuring a standard 3.
+The PowerShot SD850 IS Digital ELPH is the more fashionable of the two
+cameras, and features a diminutive design at 3.
+But how good is this fashionable handset for making routine calls?
+The buttons on the N75 are wide and comfortable. Still, heavy
+competition looms, and we wonder if the lack of media features and GPS
+will keep this phone from being a contender.
+The sleek slider features a compact design at 3.
+Palm interface showing its age.
+Still, we liked the lightweight T9 enough to carry it in our front
+pockets for a few days. 0, USB support and a 2-inch QVGA display.
+Footage shot with the HR10 can also be viewed directly on your HDTV via
+HDMI.
+One thing the Pearl does lack is a rechargeable battery; instead it runs
+on a AAA battery, which RCA claims gets about 15 hours of playback.
+The Opal is also capable of playing video and displaying photos. 5-inch
+displays and DIGIC III processors.
+The business-minded slider doesn't only change its name; it also
+upgraded its specs.
+The RAZR Maxx Ve is the best RAZR for pictures, by far, thanks to its
+autofocus feature, and the inclusion of a two-stage button that lets you
+check your focus before you release the shutter.
+0, USB support and a 2-inch QVGA display.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
-
- drivers/hwmon/Kconfig    |    1 
- drivers/hwmon/applesmc.c |   83 ++++++++++++++++-------------------------------
- 2 files changed, 31 insertions(+), 53 deletions(-)
-
-Index: work/drivers/hwmon/Kconfig
-=================================--- work.orig/drivers/hwmon/Kconfig
-+++ work/drivers/hwmon/Kconfig
-@@ -624,6 +624,7 @@ config SENSORS_APPLESMC
- 	depends on HWMON && INPUT && X86
- 	select NEW_LEDS
- 	select LEDS_CLASS
-+	select INPUT_POLLDEV
- 	default n
- 	help
- 	  This driver provides support for the Apple System Management
-Index: work/drivers/hwmon/applesmc.c
-=================================--- work.orig/drivers/hwmon/applesmc.c
-+++ work/drivers/hwmon/applesmc.c
-@@ -28,7 +28,7 @@
- 
- #include <linux/delay.h>
- #include <linux/platform_device.h>
--#include <linux/input.h>
-+#include <linux/input-polldev.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/timer.h>
-@@ -59,9 +59,9 @@
- 
- #define LIGHT_SENSOR_LEFT_KEY	"ALV0" /* r-o {alv (6 bytes) */
- #define LIGHT_SENSOR_RIGHT_KEY	"ALV1" /* r-o {alv (6 bytes) */
--#define BACKLIGHT_KEY 		"LKSB" /* w-o {lkb (2 bytes) */
-+#define BACKLIGHT_KEY		"LKSB" /* w-o {lkb (2 bytes) */
- 
--#define CLAMSHELL_KEY 		"MSLD" /* r-o ui8 (unused) */
-+#define CLAMSHELL_KEY		"MSLD" /* r-o ui8 (unused) */
- 
- #define MOTION_SENSOR_X_KEY	"MO_X" /* r-o sp78 (2 bytes) */
- #define MOTION_SENSOR_Y_KEY	"MO_Y" /* r-o sp78 (2 bytes) */
-@@ -99,7 +99,7 @@ static const char* fan_speed_keys[] = {
- #define INIT_TIMEOUT_MSECS	5000	/* wait up to 5s for device init ... */
- #define INIT_WAIT_MSECS		50	/* ... in 50ms increments */
- 
--#define APPLESMC_POLL_PERIOD	(HZ/20)	/* poll for input every 1/20s */
-+#define APPLESMC_POLL_INTERVAL	50	/* msecs */
- #define APPLESMC_INPUT_FUZZ	4	/* input event threshold */
- #define APPLESMC_INPUT_FLAT	4
- 
-@@ -121,8 +121,7 @@ static const int debug;
- static struct platform_device *pdev;
- static s16 rest_x;
- static s16 rest_y;
--static struct timer_list applesmc_timer;
--static struct input_dev *applesmc_idev;
-+static struct input_polled_dev *applesmc_idev;
- static struct class_device *hwmon_class_dev;
- 
- /* Indicates whether this computer has an accelerometer. */
-@@ -134,7 +133,7 @@ static unsigned int applesmc_light;
- /* Indicates which temperature sensors set to use. */
- static unsigned int applesmc_temperature_set;
- 
--static struct mutex applesmc_lock;
-+static DEFINE_MUTEX(applesmc_lock);
- 
- /*
-  * Last index written to key_at_index sysfs file, and value to use for all other
-@@ -451,27 +450,12 @@ static void applesmc_calibrate(void)
- 	rest_x = -rest_x;
- }
- 
--static int applesmc_idev_open(struct input_dev *dev)
--{
--	add_timer(&applesmc_timer);
--
--	return 0;
--}
--
--static void applesmc_idev_close(struct input_dev *dev)
--{
--	del_timer_sync(&applesmc_timer);
--}
--
--static void applesmc_idev_poll(unsigned long unused)
-+static void applesmc_idev_poll(struct input_polled_dev *dev)
- {
-+	struct input_dev *idev = dev->input;
- 	s16 x, y;
- 
--	/* Cannot sleep.  Try nonblockingly.  If we fail, try again later. */
--	if (!mutex_trylock(&applesmc_lock)) {
--		mod_timer(&applesmc_timer, jiffies + APPLESMC_POLL_PERIOD);
--		return;
--	}
-+	mutex_lock(&applesmc_lock);
- 
- 	if (applesmc_read_motion_sensor(SENSOR_X, &x))
- 		goto out;
-@@ -479,13 +463,11 @@ static void applesmc_idev_poll(unsigned 
- 		goto out;
- 
- 	x = -x;
--	input_report_abs(applesmc_idev, ABS_X, x - rest_x);
--	input_report_abs(applesmc_idev, ABS_Y, y - rest_y);
--	input_sync(applesmc_idev);
-+	input_report_abs(idev, ABS_X, x - rest_x);
-+	input_report_abs(idev, ABS_Y, y - rest_y);
-+	input_sync(idev);
- 
- out:
--	mod_timer(&applesmc_timer, jiffies + APPLESMC_POLL_PERIOD);
--
- 	mutex_unlock(&applesmc_lock);
- }
- 
-@@ -817,8 +799,7 @@ static ssize_t applesmc_key_at_index_rea
- 
- 	if (!ret) {
- 		return info[0];
--	}
--	else {
-+	} else {
- 		return ret;
- 	}
- }
-@@ -1089,6 +1070,7 @@ static int applesmc_dmi_match(struct dmi
- /* Create accelerometer ressources */
- static int applesmc_create_accelerometer(void)
- {
-+	struct input_dev *idev;
- 	int ret;
- 
- 	ret = sysfs_create_group(&pdev->dev.kobj,
-@@ -1096,40 +1078,37 @@ static int applesmc_create_accelerometer
- 	if (ret)
- 		goto out;
- 
--	applesmc_idev = input_allocate_device();
-+	applesmc_idev = input_allocate_polled_device();
- 	if (!applesmc_idev) {
- 		ret = -ENOMEM;
- 		goto out_sysfs;
- 	}
- 
-+	applesmc_idev->poll = applesmc_idev_poll;
-+	applesmc_idev->poll_interval = APPLESMC_POLL_INTERVAL;
-+
- 	/* initial calibrate for the input device */
- 	applesmc_calibrate();
- 
--	/* initialize the input class */
--	applesmc_idev->name = "applesmc";
--	applesmc_idev->id.bustype = BUS_HOST;
--	applesmc_idev->dev.parent = &pdev->dev;
--	applesmc_idev->evbit[0] = BIT(EV_ABS);
--	applesmc_idev->open = applesmc_idev_open;
--	applesmc_idev->close = applesmc_idev_close;
--	input_set_abs_params(applesmc_idev, ABS_X,
-+	/* initialize the input device */
-+	idev = applesmc_idev->input;
-+	idev->name = "applesmc";
-+	idev->id.bustype = BUS_HOST;
-+	idev->dev.parent = &pdev->dev;
-+	idev->evbit[0] = BIT(EV_ABS);
-+	input_set_abs_params(idev, ABS_X,
- 			-256, 256, APPLESMC_INPUT_FUZZ, APPLESMC_INPUT_FLAT);
--	input_set_abs_params(applesmc_idev, ABS_Y,
-+	input_set_abs_params(idev, ABS_Y,
- 			-256, 256, APPLESMC_INPUT_FUZZ, APPLESMC_INPUT_FLAT);
- 
--	ret = input_register_device(applesmc_idev);
-+	ret = input_register_polled_device(applesmc_idev);
- 	if (ret)
- 		goto out_idev;
- 
--	/* start up our timer for the input device */
--	init_timer(&applesmc_timer);
--	applesmc_timer.function = applesmc_idev_poll;
--	applesmc_timer.expires = jiffies + APPLESMC_POLL_PERIOD;
--
- 	return 0;
- 
- out_idev:
--	input_free_device(applesmc_idev);
-+	input_free_polled_device(applesmc_idev);
- 
- out_sysfs:
- 	sysfs_remove_group(&pdev->dev.kobj, &accelerometer_attributes_group);
-@@ -1142,8 +1121,8 @@ out:
- /* Release all ressources used by the accelerometer */
- static void applesmc_release_accelerometer(void)
- {
--	del_timer_sync(&applesmc_timer);
--	input_unregister_device(applesmc_idev);
-+	input_unregister_polled_device(applesmc_idev);
-+	input_free_polled_device(applesmc_idev);
- 	sysfs_remove_group(&pdev->dev.kobj, &accelerometer_attributes_group);
- }
- 
-@@ -1180,8 +1159,6 @@ static int __init applesmc_init(void)
- 	int count;
- 	int i;
- 
--	mutex_init(&applesmc_lock);
--
- 	if (!dmi_check_system(applesmc_whitelist)) {
- 		printk(KERN_WARNING "applesmc: supported laptop not found!\n");
- 		ret = -ENODEV;
 
 _______________________________________________
 lm-sensors mailing list
