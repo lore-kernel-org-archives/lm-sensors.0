@@ -1,53 +1,39 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 28 May 2007 06:23:40 +0000
-Subject: Re: [lm-sensors] Any chances to get THMC50 driver into 2.6.22?
-Message-Id: <20070528082340.4fc06c4e@hyperion.delvare>
+From: "Hans Edgington" <hans@edgington.nl>
+Date: Tue, 15 May 2007 11:13:49 +0000
+Subject: Re: [lm-sensors] Fintek F71882FG Driver -> Problems with
+Message-Id: <000f01c796e2$2af45760$20140a0a@EA002>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4649ac914ece8@wp.pl>
-In-Reply-To: <4649ac914ece8@wp.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Krzysztof,
 
-On Wed, 23 May 2007 20:03:41 +0200, Krzysztof Helt wrote:
-> Jean Delvare wrote:
-> > For example, Rudolf Marek just posted a patch adding support for the
-> > IT8726F:
-> > http://lists.lm-sensors.org/pipermail/lm-sensors/2007-May/019767.html
-> > It should be fairly easy to review. Of course I'll end up doing it if
-> > nobody picks it shortly, but it's probably a good one to get started.
-> 
-> I looked at the changes and I do not see anything wrong. It just additions
-> of constants and if clauses extensions.  The only "trick" is that it8726
-> identifies the driver as it8716 but it may be ok if they both have exactly
-> the same functionality. In short words: it is only addition of the new chip
-> id and nothing more.
+Hi,
 
-OK, thanks for the review. Next time, please reply to the post in
-question, it makes it easier for me to track how much attention a given
-patch received. And Cc'ing the list (as I am doing now) is always
-preferred, so that others know what's going on.
+>Ah, I think I understand now. And those addresses, 0a00-0a01 is where
+>you're 
+>driver detects the hwmon part of the fintek, correct?
 
-> >> B. laptop: sis630 + max1617 (adm1021? driver) + unknown ITE chip (id: ea19).
-> >> I got 2 temperatures (CPU & MB) but no fan control. I suppose this ITE chip
-> >> controls the fan (do you know where I can find manual for it?).
-> > 
-> > Are you sure it is an ITE chip? ID 0xea doesn't sound like an ITE chip
-> > at all, more like National Semiconductor. The earlier versions of
-> > sensors-detect might have been confusing in that respect, please check
-> > again with a recent version.
-> 
-> I am not sure. It is detected as ITE chip as well. It may be the NS chip, though. 
+Yes
 
-Older versions of sensors-detect would list all possible manufacturers,
-which was admittedly confusing. The version in SVN will only list the
-correct manufacturer.
+>IOW, this printk in your driver, gets printed on those MSI boards:
+>printk(KERN_INFO DRVNAME ": Found F71882FG chip at %#x\n", *address);
+>With an address of 0x0a00, correct?
 
--- 
-Jean Delvare
+>And then when creating the platform device in f71882fg_device_add, the
+>device 
+>resource allocation fails, triggering this error printk:
+>		printk(KERN_ERR DRVNAME ": Device resource addition failed
+>%d\n", err);
+
+>Do I have it correct, that this is the problem the MSI users are seeing?
+
+The resource addition failed message is not shown on the test system. 
+
+Regards,
+Hans
+
 
 _______________________________________________
 lm-sensors mailing list
