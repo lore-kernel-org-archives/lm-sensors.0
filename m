@@ -1,41 +1,45 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 15 May 2007 16:38:24 +0000
+From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
+Date: Wed, 16 May 2007 06:16:03 +0000
 Subject: Re: [lm-sensors] Any chances to get THMC50 driver into 2.6.22?
-Message-Id: <20070515183824.077f5597@hyperion.delvare>
+Message-Id: <464aa1a38232f@wp.pl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4649ac914ece8@wp.pl>
 In-Reply-To: <4649ac914ece8@wp.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Krzysztof,
+Dnia 15-05-2007 o godz. 18:38 Jean Delvare napisa=B3(a):
+>
+> What you can do to help your case:
+> * Find someone to make a first review of your driver. Maybe
+someone who
+>   him/herself is waiting for a review. Hans de Goede and Juerg
+>   Haefliger did such a "cross-review" a few weeks ago, and as a
+result
+>   Juerg's dme1737 driver is almost ready for upstream.
 
-On Tue, 15 May 2007 14:50:25 +0200, Krzysztof Helt wrote:
-> Are there any chances to get the driver posted here:
-> 
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-March/019094.html
-> 
-> into the 2.6.22?
+I'll try.
 
-No chance, sorry. The merge window for 2.6.22 is already closed, and
-your driver didn't even receive its first review as far as I can see.
+> * Help the project with something else. The time you save us,
+we can
+>   put in reviewing your code.
+>=20
 
-I can understand your frustration, but as you can see, we're all pretty
-busy, and a driver for a couple rare and old chips can't be given a high
-priority :(
+Can you point me these issues?
 
-What you can do to help your case:
-* Find someone to make a first review of your driver. Maybe someone who
-  him/herself is waiting for a review. Hans de Goede and Juerg
-  Haefliger did such a "cross-review" a few weeks ago, and as a result
-  Juerg's dme1737 driver is almost ready for upstream.
-* Help the project with something else. The time you save us, we can
-  put in reviewing your code.
+Regards,
+Krzysztof
 
--- 
-Jean Delvare
+----------------------------------------------------
+NaS - na jedynym koncercie w Polsce. 8.06 20:00 STODO=A3A=20
+(ul.Batorego 10) Warszawa. Bilety do nabycia w Ticketpro,=20
+Shortcut, kasa Stodo=B3y. Go=B6=E6 spec: J=EAdker /WWO/.=20
+Afterparty - klub Fresh. http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Fadv.reklama.=
+wp.pl%2Fas%2Fnas.html&sid=1140
+
+
 
 _______________________________________________
 lm-sensors mailing list
