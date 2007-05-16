@@ -1,41 +1,48 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 11 May 2007 07:07:05 +0000
-Subject: [lm-sensors] [PATCH] hwmon/lm90: Spelling fix: explicitly
-Message-Id: <20070511090705.3f79f1f1@hyperion.delvare>
+Date: Wed, 16 May 2007 17:58:00 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon/ds1621: Fix swapped temperature
+Message-Id: <20070516195800.19114e56@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- Documentation/hwmon/lm90 |    2 +-
- drivers/hwmon/lm90.c     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+The low temperature limit and the high temperature limit registers
+have been accidentally swapped, causing alarms to trigger
+when they shouldn't.
 
---- linux-2.6.21-git.orig/Documentation/hwmon/lm90	2007-05-10 09:43:48.000000000 +0200
-+++ linux-2.6.21-git/Documentation/hwmon/lm90	2007-05-10 09:52:50.000000000 +0200
-@@ -141,7 +141,7 @@ SMBus Read Byte, and PEC will work prope
- Additionally, the ADM1032 doesn't support SMBus Send Byte with PEC.
- Instead, it will try to write the PEC value to the register (because the
- SMBus Send Byte transaction with PEC is similar to a Write Byte transaction
--without PEC), which is not what we want. Thus, PEC is explicitely disabled
-+without PEC), which is not what we want. Thus, PEC is explicitly disabled
- on SMBus Send Byte transactions in the lm90 driver.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Aurelien Jarno <aurelien@aurel32.net>
+---
+ drivers/hwmon/ds1621.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+--- linux-2.6.22-rc1.orig/drivers/hwmon/ds1621.c	2007-02-04 19:44:54.000000000 +0100
++++ linux-2.6.22-rc1/drivers/hwmon/ds1621.c	2007-05-16 17:39:56.000000000 +0200
+@@ -53,8 +53,8 @@ MODULE_PARM_DESC(polarity, "Output's pol
  
- PEC on byte data transactions represents a significant increase in bandwidth
---- linux-2.6.21-git.orig/drivers/hwmon/lm90.c	2007-05-10 09:43:49.000000000 +0200
-+++ linux-2.6.21-git/drivers/hwmon/lm90.c	2007-05-11 09:00:43.000000000 +0200
-@@ -429,7 +429,7 @@ static DEVICE_ATTR(pec, S_IWUSR | S_IRUG
-  */
+ /* The DS1621 registers */
+ #define DS1621_REG_TEMP			0xAA /* word, RO */
+-#define DS1621_REG_TEMP_MIN		0xA1 /* word, RW */
+-#define DS1621_REG_TEMP_MAX		0xA2 /* word, RW */
++#define DS1621_REG_TEMP_MIN		0xA2 /* word, RW */
++#define DS1621_REG_TEMP_MAX		0xA1 /* word, RW */
+ #define DS1621_REG_CONF			0xAC /* byte, RW */
+ #define DS1621_COM_START		0xEE /* no data */
+ #define DS1621_COM_STOP			0x22 /* no data */
+@@ -328,9 +328,9 @@ static struct ds1621_data *ds1621_update
  
- /* The ADM1032 supports PEC but not on write byte transactions, so we need
--   to explicitely ask for a transaction without PEC. */
-+   to explicitly ask for a transaction without PEC. */
- static inline s32 adm1032_write_byte(struct i2c_client *client, u8 value)
- {
- 	return i2c_smbus_xfer(client->adapter, client->addr,
+ 		/* reset alarms if necessary */
+ 		new_conf = data->conf;
+-		if (data->temp < data->temp_min)
++		if (data->temp > data->temp_min)
+ 			new_conf &= ~DS1621_ALARM_TEMP_LOW;
+-		if (data->temp > data->temp_max)
++		if (data->temp < data->temp_max)
+ 			new_conf &= ~DS1621_ALARM_TEMP_HIGH;
+ 		if (data->conf != new_conf)
+ 			ds1621_write_value(client, DS1621_REG_CONF,
 
 
 -- 
