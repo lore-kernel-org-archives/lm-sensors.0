@@ -1,314 +1,244 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 13 May 2007 08:45:59 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2 RESEND] hwmon: documentation for new
-Message-Id: <20070513104559.492dfd37@hyperion.delvare>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Sat, 19 May 2007 21:15:22 +0000
+Subject: [lm-sensors] [PATCH 2/2 RESEND] hwmon: documentation for new SMSC
+Message-Id: <191fb4ca0705191415q3d18bb87g70a36a78c4b3fa29@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_68800_12356625.1179609322014"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0703220947s7e16453j4a5a7eb5eee77f1b@mail.gmail.com>
 In-Reply-To: <191fb4ca0703220947s7e16453j4a5a7eb5eee77f1b@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+------=_Part_68800_12356625.1179609322014
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Mon, 7 May 2007 14:26:28 -0700, Juerg Haefliger wrote:
-> This patch adds documentation for the new SMSC DME1737 driver.
-> 
-> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+Fixed remaining issues from Jean's latest review.
 
-> diff -uprN -X linux-2.6.21-mm1/Documentation/dontdiff -x drivers -x include linux-2.6.21-mm1.orig/Documentation/hwmon/dme1737 linux-2.6.21-mm1/Documentation/hwmon/dme1737
-> --- linux-2.6.21-mm1.orig/Documentation/hwmon/dme1737	1969-12-31 16:00:00.000000000 -0800
-> +++ linux-2.6.21-mm1/Documentation/hwmon/dme1737	2007-05-07 12:21:14.000000000 -0700
-> @@ -0,0 +1,250 @@
-> +Kernel driver dme1737
-> +==========> +
-> +Supported chips:
-> +  * SMSC DME1737 and compatibles, Asus A8000
+---
+This patch adds documentation for the new SMSC DME1737 driver.
 
-Confusing (as mentioned in the other part of the review already.)
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-> +    Prefix: 'dme1737'
-> +    Addresses scanned: I2C 0x2c, 0x2d, 0x2e
-> +    Datasheet: Provided by SMSC upon request and under NDA
-> +
-> +Authors:
-> +    Juerg Haefliger <juergh@gmail.com>
-> +
-> +
-> +Module Parameters
-> +-----------------
-> +
-> +* force_start: bool	Enables the monitoring of voltage, fan and temp inputs
-> +			and PWM output control functions. Using this parameter
-> +			shouldn't be required since the BIOS usually takes care
-> +			of this.
-> +
-> +Note that there is no need to use this parameter if the driver loads without
-> +complaining. The driver will say so if it is necessary.
-> +
-> +
-> +Description
-> +-----------
-> +
-> +This driver implements support for the hardware monitoring capabilities of the
-> +SMSC DME1737 and Asus A8000 (which are the same) Super-I/O chips. This chip
-> +features monitoring of 3 temp sensors temp[1-3] (2 remote diodes and 1
-> +internal), 7 voltages in[0-6] (6 external and 1 internal) and 6 fan speeds
-> +fan[1-6]. Additionally, the chip implements 5 PWM outputs pwm[1-3,5-6] for
-> +controlling fan speeds both manually and automatically.
-> +
-> +Fan[3-6] and pwm[3,5-6] are optional features and their availability is
-> +dependent on the configuration of the chip. The driver will detect which
-> +features are present during initialization and create the sysfs attributes
-> +accordingly.
-> +
-> +
-> +Voltage Monitoring
-> +------------------
-> +
-> +The voltage inputs are sampled with 12-bit resolution and have internal
-> +scaling resistors. The values returned by the driver therefore reflect true
-> +millivolts and don't need scaling. The voltage inputs are mapped as follows
-> +(the last column indicates the input ranges):
-> +
-> +	in0: +5VTR	(+5V standby)		0V - 6.64V
-> +	in1: Vccp	(processor core)	0V - 3V
-> +	in2: VCC	(internal +3.3V)	0V - 4.38V
-> +	in3: +5V				0V - 6.64V
-> +	in4: +12V				0V - 16V
-> +	in5: VTR	(+3.3V standby)		0V - 4.38V
-> +	in6: Vbat	(+3.0V)			0V - 4.38V
-> +
-> +Each voltage input has associated min and max limits which trigger an alarm
-> +when crossed.
-> +
-> +
-> +Temperature Monitoring
-> +----------------------
-> +
-> +Temperatures are measured with 12-bit resolution and reported in millidegree
-> +Celsius. The chip also features offsets for all 3 temperature inputs which -
-> +when programmed - get added to the input readings. The chip does all the
-> +scaling by itself and the driver therefore reports true temperatures that don't
-> +need any user-space adjustments. The temperature inputs are mapped as follows
-> +(the last column indicates the input ranges):
-> +
-> +	temp1: Remote diode 1 (3904 type) temperature	-127C - +127C
-> +	temp2: DME1737 internal temperature		-127C - +127C
-> +	temp3: Remote diode 2 (3904 type) temperature	-127C - +127C
-> +
-> +Each temperature input has associated min and max limits which trigger an alarm
-> +when crossed. Additionally, each temperature input has a fault attribute that
-> +returns 1 when a faulty diode or an unconnected input is detected and 0
-> +otherwise.
-> +
-> +
-> +Fan Monitoring
-> +--------------
-> +
-> +Fan RPMs are measured with 16-bit resolution. The chip provides inputs for 6
-> +fan tachometers. All 6 inputs have an associated min limit which triggers an
-> +alarm when crossed. Fan inputs 1-4 provide type attributes that need to be set
-> +to the number of pulses per fan revolution that the connected tachometer
-> +generates. Supported values are 1, 2, and 3. Fan inputs 5-6 only support fans
+------=_Part_68800_12356625.1179609322014
+Content-Type: text/x-patch; name=hwmon-dme1737-documentation.patch; 
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f1wkwfpl
+Content-Disposition: attachment; filename="hwmon-dme1737-documentation.patch"
 
-1, 2 or 4
-
-> +that generate 2 pulses per revolution. Fan inputs 5-6 also provide a max
-> +attribute that needs to be set to the maximum attainable RPM (fan at 100% duty-
-> +cycle) of the input. The chip adjusts the sampling rate based on this value.
-> +
-> +
-> +PWM Output Control
-> +------------------
-> +
-> +This chip features 5 PWM outputs. PWM outputs 1-3 are associated with fan
-> +inputs 1-3 and PWM outputs 5-6 are associated with fan inputs 5-6. PWM outputs
-> +1-3 can be configured to operate either in manual or automatic mode by setting
-> +the appropriate enable attribute accordingly. PWM outputs 5-6 can only operate
-> +in manual mode, their enable attributes are therefore read-only. When set to
-> +manual mode, the fan speed is set by writing the duty-cycle value to the
-> +appropriate PWM attribute. In automatic mode, the PWM attribute returns the
-> +current duty-cycle as set by the fan controller in the chip. All PWM outputs
-> +support the setting of the output frequency via the freq attribute.
-> +
-> +In automatic mode, the chip supports the setting of the PWM ramp rate which
-> +defines how fast the PWM output is adjusting to changes of the associated
-> +temperature input. Associating PWM outputs to temperature inputs is done via
-> +temperature zones. The chip features 3 zones whose assignments to temperature
-> +inputs is static and determined during initialization. These assignments can
-> +be retrieved via the zone[1-3]_auto_channels_temp attributes. Each PWM output
-> +is assigned to one (or hottest of multiple) temperature zone(s) through the 
-> +pwm[1-3]_auto_channels_temp attributes. Each PWM output has 3 distinct output
-
-I think this is named pwm[1-3]_auto_channels_zone in the latest version
-of the driver?
-
-> +duty-cycles: full, low, and off. Full is internally hard-wired to 255 (100%)
-> +and low and off can be programmed via the pwm[1-3]_auto_point[1-2]_pwm
-
-Inconsistent with the list below which includes
-pwm[1-3]_auto_point3_pwm.
-
-> +attributes. The thermal thresholds of the zones are programmed via
-> +zone[1-3]_auto_point[1-4]_temp:
-> +
-> +	pwm[1-3]_auto_point3_pwm	full-speed duty-cycle (255, i.e., 100%)
-> +	pwm[1-3]_auto_point2_pwm	low-speed duty-cycle
-> +	pwm[1-3]_auto_point1_pwm	off duty-cycle
-> +
-> +	zone[1-3]_auto_point4_temp	full-speed temp (all outputs)
-> +	zone[1-3]_auto_point3_temp	full-speed temp
-> +	zone[1-3]_auto_point2_temp	low-speed temp
-> +	zone[1-3]_auto_point1_temp	off temp
-> +
-> +The chip adjusts the output duty-cycle linearly in the range of auto_point2_pwm
-> +to auto_point3_pwm if the temperature of the associated zone is between
-> +auto_point2_temp and auto_point3_temp. If the temperature drops below the
-> +auto_point1_temp value, the output duty-cycle is set to the auto_point1_pwm
-> +value which only supports two values: 0 or auto_point2_pwm. That means that the
-> +fan either turns completely off or keeps spinning with the low-speed
-> +duty-cycle. If any of the temperatures rise above the auto_point4_temp value,
-> +all PWM outputs are set to 100% duty-cycle.
-> +
-> +Following is another representation of how the chip sets the output duty-cycle
-> +based on the temperature of the associated thermal zone:
-> +
-> +			Duty-Cycle	Duty-Cycle
-> +	Temperature	Rising Temp	Falling Temp
-> +	-----------	-----------	------------
-> +	full-speed	full-speed	full-speed
-> +
-> +			< linearly adjusted duty-cycle >
-> +
-> +	low-speed	low-speed	low-speed
-> +			off		low-speed
-> +	off temp	off		off
-> +			off		off
-
-This is only true if pwm[1-3]_auto_point1_pwm is set to 0, right?
-
-> +
-> +
-> +Sysfs Attributes
-> +----------------
-> +
-> +Following is a list of all sysfs attributes that the driver provides, their
-> +permissions and a short description:
-> +
-> +Name				Perm	Description
-> +----				----	-----------
-> +cpu0_vid			RO	CPU core reference voltage in
-> +					millivolts.
-> +vrm				RW	Voltage regulator module version
-> +					number.
-> +
-> +in[0-6]_input			RO	Measured voltage in millivolts.
-> +in[0-6]_min			RW	Low limit for voltage input.
-> +in[0-6]_max			RW	High limit for voltage input.
-> +in[0-6]_alarm			RO	Voltage input alarm. Returns 1 if
-> +					voltage input is or went outside the
-> +					associated min-max range, 0 otherwise.
-> +
-> +temp[1-3]_input			RO	Measured temperature in millidegree
-> +					Celsius.
-> +temp[1-3]_min			RW	Low limit for temp input.
-> +temp[1-3]_max			RW	High limit for temp input.
-> +temp[1-3]_offset		RW	Offset for temp input. This value will
-> +					be added by the chip to the measured
-> +					temperature.
-> +temp[1-3]_alarm			RO	Alarm for temp input. Returns 1 if temp
-> +					input is or went outside the associated
-> +					min-max range, 0 otherwise.
-> +temp[1-3]_fault			RO	Temp input fault. Returns 1 if the chip
-> +					detects a faulty thermal diode or an
-> +					unconnected temp input, 0 otherwise.
-> +
-> +zone[1-3]_auto_channels_temp	RO	Temperature zone to temperature input
-> +					mapping. This attribute is a bitfield
-> +					and supports the following values:
-> +						1: temp1
-> +						2: temp2
-> +						4: temp3
-> +zone[1-3]_auto_point[1-4]_temp	RW	Auto PWM temp points. Auto_point1 is
-> +					the off temp, auto_point2 is the low-
-> +					speed temp, auto_point3 is the full-
-> +					speed temp and auto_point4 is the temp
-> +					at which all PWM outputs are set to
-> +					full-speed (100% duty-cycle).
-> +
-> +fan[1-6]_input			RO	Measured fan speed in RPM. 
-> +fan[1-6]_min			RW	Low limit for fan input.
-> +fan[1-6]_alarm			RO	Alarm for fan input. Returns 1 if fan
-> +					input is or went below the associated
-> +					min value, 0 otherwise.
-> +fan[1-4]_type			RW	Type of attached fan. Expressed in
-> +					number of pulses per revolution that
-> +					the fan generates. Supported values are
-> +					1, 2, and 3.
-> +fan[5-6]_max			RW	Max attainable RPM at 100% duty-cycle.
-> +					Required for chip to adjust the
-> +					sampling rate accordingly.
-> +
-> +pmw[1-3,5-6]			RO/RW	Duty-cycle of PWM output. Supported
-> +					values are 0-255 (0%-100%). Only
-> +					writeable if the associated PWM is in
-> +					manual mode.
-> +pwm[1-3]_enable			RW	Enable of PWM outputs 1-3. Supported
-> +					values are:
-> +						 0: turned off (output @ 100%)
-> +						 1: manual mode
-> +						 2: automatic mode
-> +pwm[5-6]_enable			RO	Enable of PWM outputs 5-6. Always
-> +					returns 1 since these 2 outputs are
-> +					hard-wired to manual mode.
-> +pmw[1-3,5-6]_freq		RW	Frequency of PWM output. Supported
-> +					values are in the range 11Hz-30000Hz
-> +					(default is 25000Hz).
-> +pmw[1-3]_ramp_rate		RW	Ramp rate of PWM output. Determines how
-> +					fast the PWM duty-cycle will change
-> +					when the PWM is in automatic mode.
-> +					Expressed in ms per PWM step. Supported
-> +					values are in the range 0ms-206ms
-> +					(default is 0, which means the duty-
-> +					cycle changes instantly).
-> +pwm[1-3]_auto_channels_zone	RW	PWM output to temperature zone mapping.
-> +					This attribute is a bitfield and
-> +					supports the following values:
-> +						1: zone1
-> +						2: zone2
-> +						4: zone3
-> +						6: highest of zone[2-3]
-> +						7: highest of zone[1-3]
-> +pwm[1-3]_auto_point[1-2]_pwm	RW	Auto PWM pwm points. Auto_point1 is the
-> +					off duty-cycle and auto_point2 is the
-> +					low-speed duty-cycle.
-> +pwm[1-3]_auto_point3_pwm	RO	Auto PWM pwm point. Auto_point3 is the
-> +					full-speed duty-cycle which is hard-
-> +					wired to 255 (100% duty-cycle).
-> diff -uprN -X linux-2.6.21-mm1/Documentation/dontdiff -x drivers -x include linux-2.6.21-mm1.orig/MAINTAINERS linux-2.6.21-mm1/MAINTAINERS
-> --- linux-2.6.21-mm1.orig/MAINTAINERS	2007-05-07 12:16:20.000000000 -0700
-> +++ linux-2.6.21-mm1/MAINTAINERS	2007-05-07 12:25:53.000000000 -0700
-> @@ -1249,6 +1249,12 @@ M:	christopher.leech@intel.com
->  L:	linux-kernel@vger.kernel.org
->  S:	Maintained
->  
-> +DME1737 HARDWARE MONITOR DRIVER
-> +P:	Juerg Haefliger
-> +M:	juergh@gmail.com
-> +L:	lm-sensors@lm-sensors.org
-> +S:	Maintained
-> +
->  DOCBOOK FOR DOCUMENTATION
->  P:	Randy Dunlap
->  M:	rdunlap@xenotime.net
-
-
--- 
-Jean Delvare
+ZGlmZiAtdXByTiAtWCBsaW51eC0yLjYuMjEtbW0xL0RvY3VtZW50YXRpb24vZG9udGRpZmYgLXgg
+ZHJpdmVycyAteCBpbmNsdWRlIGxpbnV4LTIuNi4yMS1tbTEub3JpZy9Eb2N1bWVudGF0aW9uL2h3
+bW9uL2RtZTE3MzcgbGludXgtMi42LjIxLW1tMS9Eb2N1bWVudGF0aW9uL2h3bW9uL2RtZTE3MzcK
+LS0tIGxpbnV4LTIuNi4yMS1tbTEub3JpZy9Eb2N1bWVudGF0aW9uL2h3bW9uL2RtZTE3MzcJMTk2
+OS0xMi0zMSAxNjowMDowMC4wMDAwMDAwMDAgLTA4MDAKKysrIGxpbnV4LTIuNi4yMS1tbTEvRG9j
+dW1lbnRhdGlvbi9od21vbi9kbWUxNzM3CTIwMDctMDUtMTUgMTY6NTA6NDguMDAwMDAwMDAwIC0w
+NzAwCkBAIC0wLDAgKzEsMjU3IEBACitLZXJuZWwgZHJpdmVyIGRtZTE3MzcKKz09PT09PT09PT09
+PT09PT09PT09PQorCitTdXBwb3J0ZWQgY2hpcHM6CisgICogU01TQyBETUUxNzM3IGFuZCBjb21w
+YXRpYmxlcywgQXN1cyBBODAwMAorICAgIFByZWZpeDogJ2RtZTE3MzcnCisgICAgQWRkcmVzc2Vz
+IHNjYW5uZWQ6IEkyQyAweDJjLCAweDJkLCAweDJlCisgICAgRGF0YXNoZWV0OiBQcm92aWRlZCBi
+eSBTTVNDIHVwb24gcmVxdWVzdCBhbmQgdW5kZXIgTkRBCisKK0F1dGhvcnM6CisgICAgSnVlcmcg
+SGFlZmxpZ2VyIDxqdWVyZ2hAZ21haWwuY29tPgorCisKK01vZHVsZSBQYXJhbWV0ZXJzCistLS0t
+LS0tLS0tLS0tLS0tLQorCisqIGZvcmNlX3N0YXJ0OiBib29sCUVuYWJsZXMgdGhlIG1vbml0b3Jp
+bmcgb2Ygdm9sdGFnZSwgZmFuIGFuZCB0ZW1wIGlucHV0cworCQkJYW5kIFBXTSBvdXRwdXQgY29u
+dHJvbCBmdW5jdGlvbnMuIFVzaW5nIHRoaXMgcGFyYW1ldGVyCisJCQlzaG91bGRuJ3QgYmUgcmVx
+dWlyZWQgc2luY2UgdGhlIEJJT1MgdXN1YWxseSB0YWtlcyBjYXJlCisJCQlvZiB0aGlzLgorCitO
+b3RlIHRoYXQgdGhlcmUgaXMgbm8gbmVlZCB0byB1c2UgdGhpcyBwYXJhbWV0ZXIgaWYgdGhlIGRy
+aXZlciBsb2FkcyB3aXRob3V0Citjb21wbGFpbmluZy4gVGhlIGRyaXZlciB3aWxsIHNheSBzbyBp
+ZiBpdCBpcyBuZWNlc3NhcnkuCisKKworRGVzY3JpcHRpb24KKy0tLS0tLS0tLS0tCisKK1RoaXMg
+ZHJpdmVyIGltcGxlbWVudHMgc3VwcG9ydCBmb3IgdGhlIGhhcmR3YXJlIG1vbml0b3JpbmcgY2Fw
+YWJpbGl0aWVzIG9mIHRoZQorU01TQyBETUUxNzM3IGFuZCBBc3VzIEE4MDAwICh3aGljaCBhcmUg
+dGhlIHNhbWUpIFN1cGVyLUkvTyBjaGlwcy4gVGhpcyBjaGlwCitmZWF0dXJlcyBtb25pdG9yaW5n
+IG9mIDMgdGVtcCBzZW5zb3JzIHRlbXBbMS0zXSAoMiByZW1vdGUgZGlvZGVzIGFuZCAxCitpbnRl
+cm5hbCksIDcgdm9sdGFnZXMgaW5bMC02XSAoNiBleHRlcm5hbCBhbmQgMSBpbnRlcm5hbCkgYW5k
+IDYgZmFuIHNwZWVkcworZmFuWzEtNl0uIEFkZGl0aW9uYWxseSwgdGhlIGNoaXAgaW1wbGVtZW50
+cyA1IFBXTSBvdXRwdXRzIHB3bVsxLTMsNS02XSBmb3IKK2NvbnRyb2xsaW5nIGZhbiBzcGVlZHMg
+Ym90aCBtYW51YWxseSBhbmQgYXV0b21hdGljYWxseS4KKworRmFuWzMtNl0gYW5kIHB3bVszLDUt
+Nl0gYXJlIG9wdGlvbmFsIGZlYXR1cmVzIGFuZCB0aGVpciBhdmFpbGFiaWxpdHkgaXMKK2RlcGVu
+ZGVudCBvbiB0aGUgY29uZmlndXJhdGlvbiBvZiB0aGUgY2hpcC4gVGhlIGRyaXZlciB3aWxsIGRl
+dGVjdCB3aGljaAorZmVhdHVyZXMgYXJlIHByZXNlbnQgZHVyaW5nIGluaXRpYWxpemF0aW9uIGFu
+ZCBjcmVhdGUgdGhlIHN5c2ZzIGF0dHJpYnV0ZXMKK2FjY29yZGluZ2x5LgorCisKK1ZvbHRhZ2Ug
+TW9uaXRvcmluZworLS0tLS0tLS0tLS0tLS0tLS0tCisKK1RoZSB2b2x0YWdlIGlucHV0cyBhcmUg
+c2FtcGxlZCB3aXRoIDEyLWJpdCByZXNvbHV0aW9uIGFuZCBoYXZlIGludGVybmFsCitzY2FsaW5n
+IHJlc2lzdG9ycy4gVGhlIHZhbHVlcyByZXR1cm5lZCBieSB0aGUgZHJpdmVyIHRoZXJlZm9yZSBy
+ZWZsZWN0IHRydWUKK21pbGxpdm9sdHMgYW5kIGRvbid0IG5lZWQgc2NhbGluZy4gVGhlIHZvbHRh
+Z2UgaW5wdXRzIGFyZSBtYXBwZWQgYXMgZm9sbG93cworKHRoZSBsYXN0IGNvbHVtbiBpbmRpY2F0
+ZXMgdGhlIGlucHV0IHJhbmdlcyk6CisKKwlpbjA6ICs1VlRSCSgrNVYgc3RhbmRieSkJCTBWIC0g
+Ni42NFYKKwlpbjE6IFZjY3AJKHByb2Nlc3NvciBjb3JlKQkwViAtIDNWCisJaW4yOiBWQ0MJKGlu
+dGVybmFsICszLjNWKQkwViAtIDQuMzhWCisJaW4zOiArNVYJCQkJMFYgLSA2LjY0VgorCWluNDog
+KzEyVgkJCQkwViAtIDE2VgorCWluNTogVlRSCSgrMy4zViBzdGFuZGJ5KQkJMFYgLSA0LjM4Vgor
+CWluNjogVmJhdAkoKzMuMFYpCQkJMFYgLSA0LjM4VgorCitFYWNoIHZvbHRhZ2UgaW5wdXQgaGFz
+IGFzc29jaWF0ZWQgbWluIGFuZCBtYXggbGltaXRzIHdoaWNoIHRyaWdnZXIgYW4gYWxhcm0KK3do
+ZW4gY3Jvc3NlZC4KKworCitUZW1wZXJhdHVyZSBNb25pdG9yaW5nCistLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tCisKK1RlbXBlcmF0dXJlcyBhcmUgbWVhc3VyZWQgd2l0aCAxMi1iaXQgcmVzb2x1dGlv
+biBhbmQgcmVwb3J0ZWQgaW4gbWlsbGlkZWdyZWUKK0NlbHNpdXMuIFRoZSBjaGlwIGFsc28gZmVh
+dHVyZXMgb2Zmc2V0cyBmb3IgYWxsIDMgdGVtcGVyYXR1cmUgaW5wdXRzIHdoaWNoIC0KK3doZW4g
+cHJvZ3JhbW1lZCAtIGdldCBhZGRlZCB0byB0aGUgaW5wdXQgcmVhZGluZ3MuIFRoZSBjaGlwIGRv
+ZXMgYWxsIHRoZQorc2NhbGluZyBieSBpdHNlbGYgYW5kIHRoZSBkcml2ZXIgdGhlcmVmb3JlIHJl
+cG9ydHMgdHJ1ZSB0ZW1wZXJhdHVyZXMgdGhhdCBkb24ndAorbmVlZCBhbnkgdXNlci1zcGFjZSBh
+ZGp1c3RtZW50cy4gVGhlIHRlbXBlcmF0dXJlIGlucHV0cyBhcmUgbWFwcGVkIGFzIGZvbGxvd3MK
+Kyh0aGUgbGFzdCBjb2x1bW4gaW5kaWNhdGVzIHRoZSBpbnB1dCByYW5nZXMpOgorCisJdGVtcDE6
+IFJlbW90ZSBkaW9kZSAxICgzOTA0IHR5cGUpIHRlbXBlcmF0dXJlCS0xMjdDIC0gKzEyN0MKKwl0
+ZW1wMjogRE1FMTczNyBpbnRlcm5hbCB0ZW1wZXJhdHVyZQkJLTEyN0MgLSArMTI3QworCXRlbXAz
+OiBSZW1vdGUgZGlvZGUgMiAoMzkwNCB0eXBlKSB0ZW1wZXJhdHVyZQktMTI3QyAtICsxMjdDCisK
+K0VhY2ggdGVtcGVyYXR1cmUgaW5wdXQgaGFzIGFzc29jaWF0ZWQgbWluIGFuZCBtYXggbGltaXRz
+IHdoaWNoIHRyaWdnZXIgYW4gYWxhcm0KK3doZW4gY3Jvc3NlZC4gQWRkaXRpb25hbGx5LCBlYWNo
+IHRlbXBlcmF0dXJlIGlucHV0IGhhcyBhIGZhdWx0IGF0dHJpYnV0ZSB0aGF0CityZXR1cm5zIDEg
+d2hlbiBhIGZhdWx0eSBkaW9kZSBvciBhbiB1bmNvbm5lY3RlZCBpbnB1dCBpcyBkZXRlY3RlZCBh
+bmQgMAorb3RoZXJ3aXNlLgorCisKK0ZhbiBNb25pdG9yaW5nCistLS0tLS0tLS0tLS0tLQorCitG
+YW4gUlBNcyBhcmUgbWVhc3VyZWQgd2l0aCAxNi1iaXQgcmVzb2x1dGlvbi4gVGhlIGNoaXAgcHJv
+dmlkZXMgaW5wdXRzIGZvciA2CitmYW4gdGFjaG9tZXRlcnMuIEFsbCA2IGlucHV0cyBoYXZlIGFu
+IGFzc29jaWF0ZWQgbWluIGxpbWl0IHdoaWNoIHRyaWdnZXJzIGFuCithbGFybSB3aGVuIGNyb3Nz
+ZWQuIEZhbiBpbnB1dHMgMS00IHByb3ZpZGUgdHlwZSBhdHRyaWJ1dGVzIHRoYXQgbmVlZCB0byBi
+ZSBzZXQKK3RvIHRoZSBudW1iZXIgb2YgcHVsc2VzIHBlciBmYW4gcmV2b2x1dGlvbiB0aGF0IHRo
+ZSBjb25uZWN0ZWQgdGFjaG9tZXRlcgorZ2VuZXJhdGVzLiBTdXBwb3J0ZWQgdmFsdWVzIGFyZSAx
+LCAyLCBhbmQgNC4gRmFuIGlucHV0cyA1LTYgb25seSBzdXBwb3J0IGZhbnMKK3RoYXQgZ2VuZXJh
+dGUgMiBwdWxzZXMgcGVyIHJldm9sdXRpb24uIEZhbiBpbnB1dHMgNS02IGFsc28gcHJvdmlkZSBh
+IG1heAorYXR0cmlidXRlIHRoYXQgbmVlZHMgdG8gYmUgc2V0IHRvIHRoZSBtYXhpbXVtIGF0dGFp
+bmFibGUgUlBNIChmYW4gYXQgMTAwJSBkdXR5LQorY3ljbGUpIG9mIHRoZSBpbnB1dC4gVGhlIGNo
+aXAgYWRqdXN0cyB0aGUgc2FtcGxpbmcgcmF0ZSBiYXNlZCBvbiB0aGlzIHZhbHVlLgorCisKK1BX
+TSBPdXRwdXQgQ29udHJvbAorLS0tLS0tLS0tLS0tLS0tLS0tCisKK1RoaXMgY2hpcCBmZWF0dXJl
+cyA1IFBXTSBvdXRwdXRzLiBQV00gb3V0cHV0cyAxLTMgYXJlIGFzc29jaWF0ZWQgd2l0aCBmYW4K
+K2lucHV0cyAxLTMgYW5kIFBXTSBvdXRwdXRzIDUtNiBhcmUgYXNzb2NpYXRlZCB3aXRoIGZhbiBp
+bnB1dHMgNS02LiBQV00gb3V0cHV0cworMS0zIGNhbiBiZSBjb25maWd1cmVkIHRvIG9wZXJhdGUg
+ZWl0aGVyIGluIG1hbnVhbCBvciBhdXRvbWF0aWMgbW9kZSBieSBzZXR0aW5nCit0aGUgYXBwcm9w
+cmlhdGUgZW5hYmxlIGF0dHJpYnV0ZSBhY2NvcmRpbmdseS4gUFdNIG91dHB1dHMgNS02IGNhbiBv
+bmx5IG9wZXJhdGUKK2luIG1hbnVhbCBtb2RlLCB0aGVpciBlbmFibGUgYXR0cmlidXRlcyBhcmUg
+dGhlcmVmb3JlIHJlYWQtb25seS4gV2hlbiBzZXQgdG8KK21hbnVhbCBtb2RlLCB0aGUgZmFuIHNw
+ZWVkIGlzIHNldCBieSB3cml0aW5nIHRoZSBkdXR5LWN5Y2xlIHZhbHVlIHRvIHRoZQorYXBwcm9w
+cmlhdGUgUFdNIGF0dHJpYnV0ZS4gSW4gYXV0b21hdGljIG1vZGUsIHRoZSBQV00gYXR0cmlidXRl
+IHJldHVybnMgdGhlCitjdXJyZW50IGR1dHktY3ljbGUgYXMgc2V0IGJ5IHRoZSBmYW4gY29udHJv
+bGxlciBpbiB0aGUgY2hpcC4gQWxsIFBXTSBvdXRwdXRzCitzdXBwb3J0IHRoZSBzZXR0aW5nIG9m
+IHRoZSBvdXRwdXQgZnJlcXVlbmN5IHZpYSB0aGUgZnJlcSBhdHRyaWJ1dGUuCisKK0luIGF1dG9t
+YXRpYyBtb2RlLCB0aGUgY2hpcCBzdXBwb3J0cyB0aGUgc2V0dGluZyBvZiB0aGUgUFdNIHJhbXAg
+cmF0ZSB3aGljaAorZGVmaW5lcyBob3cgZmFzdCB0aGUgUFdNIG91dHB1dCBpcyBhZGp1c3Rpbmcg
+dG8gY2hhbmdlcyBvZiB0aGUgYXNzb2NpYXRlZAordGVtcGVyYXR1cmUgaW5wdXQuIEFzc29jaWF0
+aW5nIFBXTSBvdXRwdXRzIHRvIHRlbXBlcmF0dXJlIGlucHV0cyBpcyBkb25lIHZpYQordGVtcGVy
+YXR1cmUgem9uZXMuIFRoZSBjaGlwIGZlYXR1cmVzIDMgem9uZXMgd2hvc2UgYXNzaWdubWVudHMg
+dG8gdGVtcGVyYXR1cmUKK2lucHV0cyBpcyBzdGF0aWMgYW5kIGRldGVybWluZWQgZHVyaW5nIGlu
+aXRpYWxpemF0aW9uLiBUaGVzZSBhc3NpZ25tZW50cyBjYW4KK2JlIHJldHJpZXZlZCB2aWEgdGhl
+IHpvbmVbMS0zXV9hdXRvX2NoYW5uZWxzX3RlbXAgYXR0cmlidXRlcy4gRWFjaCBQV00gb3V0cHV0
+CitpcyBhc3NpZ25lZCB0byBvbmUgKG9yIGhvdHRlc3Qgb2YgbXVsdGlwbGUpIHRlbXBlcmF0dXJl
+IHpvbmUocykgdGhyb3VnaCB0aGUgCitwd21bMS0zXV9hdXRvX2NoYW5uZWxzX3pvbmUgYXR0cmli
+dXRlcy4gRWFjaCBQV00gb3V0cHV0IGhhcyAzIGRpc3RpbmN0IG91dHB1dAorZHV0eS1jeWNsZXM6
+IGZ1bGwsIGxvdywgYW5kIG1pbi4gRnVsbCBpcyBpbnRlcm5hbGx5IGhhcmQtd2lyZWQgdG8gMjU1
+ICgxMDAlKQorYW5kIGxvdyBhbmQgbWluIGNhbiBiZSBwcm9ncmFtbWVkIHZpYSBwd21bMS0zXV9h
+dXRvX3BvaW50MV9wd20gYW5kCitwd21bMS0zXV9hdXRvX3B3bV9taW4sIHJlc3BlY3RpdmVseS4g
+VGhlIHRoZXJtYWwgdGhyZXNob2xkcyBvZiB0aGUgem9uZXMgYXJlCitwcm9ncmFtbWVkIHZpYSB6
+b25lWzEtM11fYXV0b19wb2ludFsxLTNdX3RlbXAgYW5kCit6b25lWzEtM11fYXV0b19wb2ludDFf
+dGVtcF9oeXN0IGFuZCA6CisKKwlwd21bMS0zXV9hdXRvX3BvaW50Ml9wd20JZnVsbC1zcGVlZCBk
+dXR5LWN5Y2xlICgyNTUsIGkuZS4sIDEwMCUpCisJcHdtWzEtM11fYXV0b19wb2ludDFfcHdtCWxv
+dy1zcGVlZCBkdXR5LWN5Y2xlCisJcHdtWzEtM11fYXV0b19wd21fbWluCQltaW4tc3BlZWQgZHV0
+eS1jeWNsZQorCisJem9uZVsxLTNdX2F1dG9fcG9pbnQzX3RlbXAJZnVsbC1zcGVlZCB0ZW1wIChh
+bGwgb3V0cHV0cykKKwl6b25lWzEtM11fYXV0b19wb2ludDJfdGVtcAlmdWxsLXNwZWVkIHRlbXAK
+Kwl6b25lWzEtM11fYXV0b19wb2ludDFfdGVtcAlsb3ctc3BlZWQgdGVtcAorCXpvbmVbMS0zXV9h
+dXRvX3BvaW50MV90ZW1wX2h5c3QJbWluLXNwZWVkIHRlbXAKKworVGhlIGNoaXAgYWRqdXN0cyB0
+aGUgb3V0cHV0IGR1dHktY3ljbGUgbGluZWFybHkgaW4gdGhlIHJhbmdlIG9mIGF1dG9fcG9pbnQx
+X3B3bQordG8gYXV0b19wb2ludDJfcHdtIGlmIHRoZSB0ZW1wZXJhdHVyZSBvZiB0aGUgYXNzb2Np
+YXRlZCB6b25lIGlzIGJldHdlZW4KK2F1dG9fcG9pbnQxX3RlbXAgYW5kIGF1dG9fcG9pbnQyX3Rl
+bXAuIElmIHRoZSB0ZW1wZXJhdHVyZSBkcm9wcyBiZWxvdyB0aGUKK2F1dG9fcG9pbnQxX3RlbXBf
+aHlzdCB2YWx1ZSwgdGhlIG91dHB1dCBkdXR5LWN5Y2xlIGlzIHNldCB0byB0aGUgYXV0b19wd21f
+bWluCit2YWx1ZSB3aGljaCBvbmx5IHN1cHBvcnRzIHR3byB2YWx1ZXM6IDAgb3IgYXV0b19wb2lu
+dDFfcHdtLiBUaGF0IG1lYW5zIHRoYXQgdGhlCitmYW4gZWl0aGVyIHR1cm5zIGNvbXBsZXRlbHkg
+b2ZmIG9yIGtlZXBzIHNwaW5uaW5nIHdpdGggdGhlIGxvdy1zcGVlZAorZHV0eS1jeWNsZS4gSWYg
+YW55IG9mIHRoZSB0ZW1wZXJhdHVyZXMgcmlzZSBhYm92ZSB0aGUgYXV0b19wb2ludDNfdGVtcCB2
+YWx1ZSwKK2FsbCBQV00gb3V0cHV0cyBhcmUgc2V0IHRvIDEwMCUgZHV0eS1jeWNsZS4KKworRm9s
+bG93aW5nIGlzIGFub3RoZXIgcmVwcmVzZW50YXRpb24gb2YgaG93IHRoZSBjaGlwIHNldHMgdGhl
+IG91dHB1dCBkdXR5LWN5Y2xlCitiYXNlZCBvbiB0aGUgdGVtcGVyYXR1cmUgb2YgdGhlIGFzc29j
+aWF0ZWQgdGhlcm1hbCB6b25lOgorCisJCQlEdXR5LUN5Y2xlCUR1dHktQ3ljbGUKKwlUZW1wZXJh
+dHVyZQlSaXNpbmcgVGVtcAlGYWxsaW5nIFRlbXAKKwktLS0tLS0tLS0tLQktLS0tLS0tLS0tLQkt
+LS0tLS0tLS0tLS0KKwlmdWxsLXNwZWVkCWZ1bGwtc3BlZWQJZnVsbC1zcGVlZAorCisJCQk8IGxp
+bmVhcmx5IGFkanVzdGVkIGR1dHktY3ljbGUgPgorCisJbG93LXNwZWVkCWxvdy1zcGVlZAlsb3ct
+c3BlZWQKKwkJCW1pbi1zcGVlZAlsb3ctc3BlZWQKKwltaW4tc3BlZWQJbWluLXNwZWVkCW1pbi1z
+cGVlZAorCQkJbWluLXNwZWVkCW1pbi1zcGVlZAorCisKK1N5c2ZzIEF0dHJpYnV0ZXMKKy0tLS0t
+LS0tLS0tLS0tLS0KKworRm9sbG93aW5nIGlzIGEgbGlzdCBvZiBhbGwgc3lzZnMgYXR0cmlidXRl
+cyB0aGF0IHRoZSBkcml2ZXIgcHJvdmlkZXMsIHRoZWlyCitwZXJtaXNzaW9ucyBhbmQgYSBzaG9y
+dCBkZXNjcmlwdGlvbjoKKworTmFtZQkJCQlQZXJtCURlc2NyaXB0aW9uCistLS0tCQkJCS0tLS0J
+LS0tLS0tLS0tLS0KK2NwdTBfdmlkCQkJUk8JQ1BVIGNvcmUgcmVmZXJlbmNlIHZvbHRhZ2UgaW4K
+KwkJCQkJbWlsbGl2b2x0cy4KK3ZybQkJCQlSVwlWb2x0YWdlIHJlZ3VsYXRvciBtb2R1bGUgdmVy
+c2lvbgorCQkJCQludW1iZXIuCisKK2luWzAtNl1faW5wdXQJCQlSTwlNZWFzdXJlZCB2b2x0YWdl
+IGluIG1pbGxpdm9sdHMuCitpblswLTZdX21pbgkJCVJXCUxvdyBsaW1pdCBmb3Igdm9sdGFnZSBp
+bnB1dC4KK2luWzAtNl1fbWF4CQkJUlcJSGlnaCBsaW1pdCBmb3Igdm9sdGFnZSBpbnB1dC4KK2lu
+WzAtNl1fYWxhcm0JCQlSTwlWb2x0YWdlIGlucHV0IGFsYXJtLiBSZXR1cm5zIDEgaWYKKwkJCQkJ
+dm9sdGFnZSBpbnB1dCBpcyBvciB3ZW50IG91dHNpZGUgdGhlCisJCQkJCWFzc29jaWF0ZWQgbWlu
+LW1heCByYW5nZSwgMCBvdGhlcndpc2UuCisKK3RlbXBbMS0zXV9pbnB1dAkJCVJPCU1lYXN1cmVk
+IHRlbXBlcmF0dXJlIGluIG1pbGxpZGVncmVlCisJCQkJCUNlbHNpdXMuCit0ZW1wWzEtM11fbWlu
+CQkJUlcJTG93IGxpbWl0IGZvciB0ZW1wIGlucHV0LgordGVtcFsxLTNdX21heAkJCVJXCUhpZ2gg
+bGltaXQgZm9yIHRlbXAgaW5wdXQuCit0ZW1wWzEtM11fb2Zmc2V0CQlSVwlPZmZzZXQgZm9yIHRl
+bXAgaW5wdXQuIFRoaXMgdmFsdWUgd2lsbAorCQkJCQliZSBhZGRlZCBieSB0aGUgY2hpcCB0byB0
+aGUgbWVhc3VyZWQKKwkJCQkJdGVtcGVyYXR1cmUuCit0ZW1wWzEtM11fYWxhcm0JCQlSTwlBbGFy
+bSBmb3IgdGVtcCBpbnB1dC4gUmV0dXJucyAxIGlmIHRlbXAKKwkJCQkJaW5wdXQgaXMgb3Igd2Vu
+dCBvdXRzaWRlIHRoZSBhc3NvY2lhdGVkCisJCQkJCW1pbi1tYXggcmFuZ2UsIDAgb3RoZXJ3aXNl
+LgordGVtcFsxLTNdX2ZhdWx0CQkJUk8JVGVtcCBpbnB1dCBmYXVsdC4gUmV0dXJucyAxIGlmIHRo
+ZSBjaGlwCisJCQkJCWRldGVjdHMgYSBmYXVsdHkgdGhlcm1hbCBkaW9kZSBvciBhbgorCQkJCQl1
+bmNvbm5lY3RlZCB0ZW1wIGlucHV0LCAwIG90aGVyd2lzZS4KKworem9uZVsxLTNdX2F1dG9fY2hh
+bm5lbHNfdGVtcAlSTwlUZW1wZXJhdHVyZSB6b25lIHRvIHRlbXBlcmF0dXJlIGlucHV0CisJCQkJ
+CW1hcHBpbmcuIFRoaXMgYXR0cmlidXRlIGlzIGEgYml0ZmllbGQKKwkJCQkJYW5kIHN1cHBvcnRz
+IHRoZSBmb2xsb3dpbmcgdmFsdWVzOgorCQkJCQkJMTogdGVtcDEKKwkJCQkJCTI6IHRlbXAyCisJ
+CQkJCQk0OiB0ZW1wMworem9uZVsxLTNdX2F1dG9fcG9pbnQxX3RlbXBfaHlzdAlSVwlBdXRvIFBX
+TSB0ZW1wIHBvaW50MSBoeXN0ZXJlc2lzLiBUaGUKKwkJCQkJb3V0cHV0IG9mIHRoZSBjb3JyZXNw
+b25kaW5nIFBXTSBpcyBzZXQKKwkJCQkJdG8gdGhlIHB3bV9hdXRvX21pbiB2YWx1ZSBpZiB0aGUg
+dGVtcAorCQkJCQlmYWxscyBiZWxvdyB0aGUgYXV0b19wb2ludDFfdGVtcF9oeXN0CisJCQkJCXZh
+bHVlLgorem9uZVsxLTNdX2F1dG9fcG9pbnRbMS0zXV90ZW1wCVJXCUF1dG8gUFdNIHRlbXAgcG9p
+bnRzLiBBdXRvX3BvaW50MSBpcworCQkJCQl0aGUgbG93LXNwZWVkIHRlbXAsIGF1dG9fcG9pbnQy
+IGlzIHRoZQorCQkJCQlmdWxsLXNwZWVkIHRlbXAsIGFuZCBhdXRvX3BvaW50MyBpcyB0aGUKKwkJ
+CQkJdGVtcCBhdCB3aGljaCBhbGwgUFdNIG91dHB1dHMgYXJlIHNldAorCQkJCQl0byBmdWxsLXNw
+ZWVkICgxMDAlIGR1dHktY3ljbGUpLgorCitmYW5bMS02XV9pbnB1dAkJCVJPCU1lYXN1cmVkIGZh
+biBzcGVlZCBpbiBSUE0uIAorZmFuWzEtNl1fbWluCQkJUlcJTG93IGxpbWl0IGZvciBmYW4gaW5w
+dXQuCitmYW5bMS02XV9hbGFybQkJCVJPCUFsYXJtIGZvciBmYW4gaW5wdXQuIFJldHVybnMgMSBp
+ZiBmYW4KKwkJCQkJaW5wdXQgaXMgb3Igd2VudCBiZWxvdyB0aGUgYXNzb2NpYXRlZAorCQkJCQlt
+aW4gdmFsdWUsIDAgb3RoZXJ3aXNlLgorZmFuWzEtNF1fdHlwZQkJCVJXCVR5cGUgb2YgYXR0YWNo
+ZWQgZmFuLiBFeHByZXNzZWQgaW4KKwkJCQkJbnVtYmVyIG9mIHB1bHNlcyBwZXIgcmV2b2x1dGlv
+biB0aGF0CisJCQkJCXRoZSBmYW4gZ2VuZXJhdGVzLiBTdXBwb3J0ZWQgdmFsdWVzIGFyZQorCQkJ
+CQkxLCAyLCBhbmQgNC4KK2Zhbls1LTZdX21heAkJCVJXCU1heCBhdHRhaW5hYmxlIFJQTSBhdCAx
+MDAlIGR1dHktY3ljbGUuCisJCQkJCVJlcXVpcmVkIGZvciBjaGlwIHRvIGFkanVzdCB0aGUKKwkJ
+CQkJc2FtcGxpbmcgcmF0ZSBhY2NvcmRpbmdseS4KKworcG13WzEtMyw1LTZdCQkJUk8vUlcJRHV0
+eS1jeWNsZSBvZiBQV00gb3V0cHV0LiBTdXBwb3J0ZWQKKwkJCQkJdmFsdWVzIGFyZSAwLTI1NSAo
+MCUtMTAwJSkuIE9ubHkKKwkJCQkJd3JpdGVhYmxlIGlmIHRoZSBhc3NvY2lhdGVkIFBXTSBpcyBp
+bgorCQkJCQltYW51YWwgbW9kZS4KK3B3bVsxLTNdX2VuYWJsZQkJCVJXCUVuYWJsZSBvZiBQV00g
+b3V0cHV0cyAxLTMuIFN1cHBvcnRlZAorCQkJCQl2YWx1ZXMgYXJlOgorCQkJCQkJIDA6IHR1cm5l
+ZCBvZmYgKG91dHB1dCBAIDEwMCUpCisJCQkJCQkgMTogbWFudWFsIG1vZGUKKwkJCQkJCSAyOiBh
+dXRvbWF0aWMgbW9kZQorcHdtWzUtNl1fZW5hYmxlCQkJUk8JRW5hYmxlIG9mIFBXTSBvdXRwdXRz
+IDUtNi4gQWx3YXlzCisJCQkJCXJldHVybnMgMSBzaW5jZSB0aGVzZSAyIG91dHB1dHMgYXJlCisJ
+CQkJCWhhcmQtd2lyZWQgdG8gbWFudWFsIG1vZGUuCitwbXdbMS0zLDUtNl1fZnJlcQkJUlcJRnJl
+cXVlbmN5IG9mIFBXTSBvdXRwdXQuIFN1cHBvcnRlZAorCQkJCQl2YWx1ZXMgYXJlIGluIHRoZSBy
+YW5nZSAxMUh6LTMwMDAwSHoKKwkJCQkJKGRlZmF1bHQgaXMgMjUwMDBIeikuCitwbXdbMS0zXV9y
+YW1wX3JhdGUJCVJXCVJhbXAgcmF0ZSBvZiBQV00gb3V0cHV0LiBEZXRlcm1pbmVzIGhvdworCQkJ
+CQlmYXN0IHRoZSBQV00gZHV0eS1jeWNsZSB3aWxsIGNoYW5nZQorCQkJCQl3aGVuIHRoZSBQV00g
+aXMgaW4gYXV0b21hdGljIG1vZGUuCisJCQkJCUV4cHJlc3NlZCBpbiBtcyBwZXIgUFdNIHN0ZXAu
+IFN1cHBvcnRlZAorCQkJCQl2YWx1ZXMgYXJlIGluIHRoZSByYW5nZSAwbXMtMjA2bXMKKwkJCQkJ
+KGRlZmF1bHQgaXMgMCwgd2hpY2ggbWVhbnMgdGhlIGR1dHktCisJCQkJCWN5Y2xlIGNoYW5nZXMg
+aW5zdGFudGx5KS4KK3B3bVsxLTNdX2F1dG9fY2hhbm5lbHNfem9uZQlSVwlQV00gb3V0cHV0IHRv
+IHRlbXBlcmF0dXJlIHpvbmUgbWFwcGluZy4KKwkJCQkJVGhpcyBhdHRyaWJ1dGUgaXMgYSBiaXRm
+aWVsZCBhbmQKKwkJCQkJc3VwcG9ydHMgdGhlIGZvbGxvd2luZyB2YWx1ZXM6CisJCQkJCQkxOiB6
+b25lMQorCQkJCQkJMjogem9uZTIKKwkJCQkJCTQ6IHpvbmUzCisJCQkJCQk2OiBoaWdoZXN0IG9m
+IHpvbmVbMi0zXQorCQkJCQkJNzogaGlnaGVzdCBvZiB6b25lWzEtM10KK3B3bVsxLTNdX2F1dG9f
+cHdtX21pbgkJUlcJQXV0byBQV00gbWluIHB3bS4gTWluaW11bSBQV00gZHV0eS0KKwkJCQkJY3lj
+bGUuIFN1cHBvcnRlZCB2YWx1ZXMgYXJlIDAgb3IKKwkJCQkJQXV0b19wb2ludDFfcHdtLgorcHdt
+WzEtM11fYXV0b19wb2ludDFfcHdtCVJXCUF1dG8gUFdNIHB3bSBwb2ludC4gQXV0b19wb2ludDEg
+aXMgdGhlCisJCQkJCWxvdy1zcGVlZCBkdXR5LWN5Y2xlLgorcHdtWzEtM11fYXV0b19wb2ludDJf
+cHdtCVJPCUF1dG8gUFdNIHB3bSBwb2ludC4gQXV0b19wb2ludDIgaXMgdGhlCisJCQkJCWZ1bGwt
+c3BlZWQgZHV0eS1jeWNsZSB3aGljaCBpcyBoYXJkLQorCQkJCQl3aXJlZCB0byAyNTUgKDEwMCUg
+ZHV0eS1jeWNsZSkuCmRpZmYgLXVwck4gLVggbGludXgtMi42LjIxLW1tMS9Eb2N1bWVudGF0aW9u
+L2RvbnRkaWZmIC14IGRyaXZlcnMgLXggaW5jbHVkZSBsaW51eC0yLjYuMjEtbW0xLm9yaWcvTUFJ
+TlRBSU5FUlMgbGludXgtMi42LjIxLW1tMS9NQUlOVEFJTkVSUwotLS0gbGludXgtMi42LjIxLW1t
+MS5vcmlnL01BSU5UQUlORVJTCTIwMDctMDUtMDcgMTI6MTY6MjAuMDAwMDAwMDAwIC0wNzAwCisr
+KyBsaW51eC0yLjYuMjEtbW0xL01BSU5UQUlORVJTCTIwMDctMDUtMDcgMTI6MjU6NTMuMDAwMDAw
+MDAwIC0wNzAwCkBAIC0xMjQ5LDYgKzEyNDksMTIgQEAgTToJY2hyaXN0b3BoZXIubGVlY2hAaW50
+ZWwuY29tCiBMOglsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnCiBTOglNYWludGFpbmVkCiAK
+K0RNRTE3MzcgSEFSRFdBUkUgTU9OSVRPUiBEUklWRVIKK1A6CUp1ZXJnIEhhZWZsaWdlcgorTToJ
+anVlcmdoQGdtYWlsLmNvbQorTDoJbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZworUzoJTWFpbnRh
+aW5lZAorCiBET0NCT09LIEZPUiBET0NVTUVOVEFUSU9OCiBQOglSYW5keSBEdW5sYXAKIE06CXJk
+dW5sYXBAeGVub3RpbWUubmV0Cg==
+------=_Part_68800_12356625.1179609322014
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_68800_12356625.1179609322014--
