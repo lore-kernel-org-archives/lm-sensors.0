@@ -1,50 +1,46 @@
-From: "Manoj Palhade" <manoj.palhade@gmail.com>
-Date: Wed, 16 May 2007 05:08:10 +0000
-Subject: [lm-sensors] want to have write access to the repository
-Message-Id: <292eb50d0705152156u4af4ce65xdc2ff676cdc91a77@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0173137647089792908=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 21 May 2007 14:53:16 +0000
+Subject: Re: [lm-sensors] want to have write access to the repository
+Message-Id: <20070521165316.39387e6a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <292eb50d0705152156u4af4ce65xdc2ff676cdc91a77@mail.gmail.com>
+In-Reply-To: <292eb50d0705152156u4af4ce65xdc2ff676cdc91a77@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============0173137647089792908==
-Content-Type: multipart/alternative; 
-	boundary="----=_Part_18554_26425062.1179291370144"
+Hi Manoj,
 
-------=_Part_18554_26425062.1179291370144
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Wed, 16 May 2007 10:26:10 +0530, Manoj Palhade wrote:
+> I want access to the latest sources of the i2c bus driver from their
+> cvs-Serve.
+> 
+> Please allow me to access for above code
 
-Hi,
+No. We've never heard of you, you come in and ask for write access to
+our source code repository. You didn't serious think we would accept,
+did you?
 
-I want access to the latest sources of the i2c bus driver from their
-cvs-Serve.
+Please first explain who you are and what you are trying to do. Then
+we'll see how we let you help us.
 
-Please allow me to access for above code
+The I2C bus drivers in SVN on lm-sensors.org are for Linux 2.4 only.
+They are in maintenance mode, no active development is made there.
+Development on the Linux 2.6 I2C bus drivers happens directly in the
+Linux kernel tree. I've set up a page describing the process if you are
+interested:
+http://khali.linux-fr.org/devel/linux-2.6/i2c.html
 
-Thanks
-Manoj
+Lastly, if you are only interested in I2C drivers and not hardware
+monitoring, then the i2c mailing list would be more appropriate than
+the lm-sensors list:
+http://lists.lm-sensors.org/mailman/listinfo/i2c
 
-------=_Part_18554_26425062.1179291370144
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div id="mb_0">Hi,<br><br>I want access to the latest sources of the i2c bus driver from their cvs-Serve.<br><br>Please allow me to access for above code <br><br>Thanks<br><span class="sg">Manoj<br>
-</span></div>
-
-------=_Part_18554_26425062.1179291370144--
-
-
---===============0173137647089792908==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0173137647089792908==--
