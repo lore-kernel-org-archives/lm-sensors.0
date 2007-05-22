@@ -1,7 +1,7 @@
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
-Date: Mon, 21 May 2007 19:19:26 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 22 May 2007 15:38:29 +0000
 Subject: Re: [lm-sensors] Any chances to get THMC50 driver into 2.6.22?
-Message-Id: <46534398.9060705@wp.pl>
+Message-Id: <20070522173829.52a79411@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4649ac914ece8@wp.pl>
 In-Reply-To: <4649ac914ece8@wp.pl>
@@ -10,85 +10,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Krzysztof,
 
-Jean Delvare wrote:
-> Hi Krzysztof,
-
-> Well, user support to start with, both on this mailing list and
-> http://www.lm-sensors.org/report . Some tickets are pretty simple, for
-> example everyone should be able to solve #2208. And review or testing
-> of any patch posted to the list, that's always welcome.
+On Tue, 22 May 2007 21:25:12 +0200, Krzysztof Helt wrote:
+> > Well, user support to start with, both on this mailing list and
+> > http://www.lm-sensors.org/report . Some tickets are pretty simple, for
+> > example everyone should be able to solve #2208. And review or testing
+> > of any patch posted to the list, that's always welcome.
 > 
+> I may try fixing them when I do not have any other task at hand (read:
+> I wait for patches accepted in other areas: sparc/fbdev).
 
-I may try fixing them when I do not have any other task at hand (read: I wait for patches accepted in other areas: sparc/fbdev).
+For example, Rudolf Marek just posted a patch adding support for the
+IT8726F:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-May/019767.html
+It should be fairly easy to review. Of course I'll end up doing it if
+nobody picks it shortly, but it's probably a good one to get started.
 
-
-> You can also test 2.6.22-rc2 or later on your systems and confirm that
-> there are no regressions concerning lm-sensors.
+> I have these three machines:
 > 
-
-Fine. Unfortunately, I can do this easily only on two computers (A and B, see below).
-
-> If you tell us which drivers you can test, I can also look at these
-> drivers for needed cleanups. For example lots of drivers are still
-> using ugly macros instead of "dynamic" sysfs attributes so there is
-> room for improvement.
+> A. Compaq AP550: i82801AA + dual ADM1022 (thmc50 driver) = 5 temperatures
+> and 2 fans. There is also some LPC chip but it is not used I suppose (no
+> other fans).
 > 
+> B. laptop: sis630 + max1617 (adm1021? driver) + unknown ITE chip (id: ea19).
+> I got 2 temperatures (CPU & MB) but no fan control. I suppose this ITE chip
+> controls the fan (do you know where I can find manual for it?).
 
-I have these three machines:
+Are you sure it is an ITE chip? ID 0xea doesn't sound like an ITE chip
+at all, more like National Semiconductor. The earlier versions of
+sensors-detect might have been confusing in that respect, please check
+again with a recent version.
 
-A. Compaq AP550: i82801AA + dual ADM1022 (thmc50 driver) = 5 temperatures and 2 fans. There is also some LPC chip but it is not used I suppose (no other fans).
+The adm1021 driver is still using macro-generated functions instead of
+dynamic callbacks, and doesn't implement individual alarm files. So
+these are two things you could work on if you feel like it.
 
-B. laptop: sis630 + max1617 (adm1021? driver) + unknown ITE chip (id: ea19). I got 2 temperatures (CPU & MB) but no fan control. I suppose this ITE chip controls the fan (do you know where I can find manual for it?).
+> C. White box P3: piix4 + as99127f rev 2. This one is my wife's so the access
+> is more limited.
 
-C. White box P3: piix4 + as99127f rev 2. This one is my wife's so the access is more limited.
+Same thing for the w83781d driver, dynamic callbacks and individual
+alarm files are missing.
 
-> Then we have a number of big projects in progress at the moment:
+> > Oh, and if you have experience with writing drivers for serial (RS232)
+> > devices, please let me know, I am trying to write such a driver for an
+> > evaluation module but am going nowhere.
 > 
-> * Conversion of i2c-isa-based drivers to platform drivers. Six drivers
-> remain to be converted. w83627ehf is handled by David Hubbard and is
-> almost done, it87 and pc87360 are supposedly handled by Corentin Labbe
-> and Jim Cromie respectively, but I didn't see anything yet. vt8231,
-> sis5595 and via686a are PCI-based, how we convert them depends on
-> possible changes to the pci subsystem so I was delaying them a bit, but
-> we want them in 2.6.23 so I will have to decide quickly. So if you have
-> access to a device supported by any of these 6 drivers, you could help
-> with the conversion, either doing it yourself or reviewing or testing.
-> 
+> I do not know how deep knowledge you need.
 
-Sorry, I do not have any of them.
+Basically my problem is that I can't get the driver to bind to my
+device. I am able to "talk" to the device using minicom so I know the
+serial port and the device work OK. But I don't know how to write a
+kernel driver which will bind to the serial port and let me read and
+write "raw" characters from and to it. I tried copying random examples
+from other serial drivers but my .connect() method never gets called.
+LDD3 unfortunately doesn't cover legacy serial drivers.
 
-> * Addition of individual alarm files to all hardware monitoring
-> drivers. A small number of drivers are already converted but there are
-> still many left. Individual alarm files are required for the future
-> libsensors. The naming scheme for these files is described in
-> Documentation/hwmon/sysfs-interface. To figure out the bit mapping of
-> the alarms, you need to refer to either the datasheet or the 2.4 driver
-> (in lm-sensors, under kernel/chips).
-> 
-
-I can add them for the hardware I have.
-
-> * We're also working on the new libsensors in branch "3.0.0" of
-> lm-sensors SVN. The new version scans sysfs for supported files
-> automatically so you no longer need to add support for every new
-> driver. Help is needed with reviewing the new code, and testing how it
-> works with as many drivers and devices as possible. Hans de Goede
-> posted about this some times ago and didn't receive any answer.
-> 
-
-I can test it with the hardware I have.
-
-> Oh, and if you have experience with writing drivers for serial (RS232)
-> devices, please let me know, I am trying to write such a driver for an
-> evaluation module but am going nowhere.
-> 
-
-I do not know how deep knowledge you need.
-
-Kind regards,
-Krzysztof
-
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
