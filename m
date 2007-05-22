@@ -1,70 +1,41 @@
-From: "Goede, J.W.R. de" <j.w.r.degoede@hhs.nl>
-Date: Mon, 21 May 2007 19:49:26 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 22 May 2007 15:19:57 +0000
 Subject: Re: [lm-sensors] THMC50 review
-Message-Id: <web-67221254@hhs.nl>
+Message-Id: <20070522171957.3dc6ea4d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <web-67221254@hhs.nl>
+In-Reply-To: <web-67221254@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 21 May 2007 11:29:42 -0700
- "Juerg Haefliger" <juergh@gmail.com> wrote:
-> I'm about ready to do some reviewing but I need to check
-> with Mark
-> Hofmann to figure out who comes next.  Don't know where
-> your driver is
-> in the queue.
-> 
+On Mon, 21 May 2007 21:49:26 +0200, Goede, J.W.R. de wrote:
+> Actually keeping a queue that can be used with people which
+> have time to review sounds like a plan. I think we should
+> create a page for this at the trac wiki. Mark AFAIK you've
+> been collecting reviews, can you create such a page. (I can
+> do it myself but I don't have a list of everything that
+> needs reviewing).
 
-Actually keeping a queue that can be used with people which
-have time to review sounds like a plan. I think we should
-create a page for this at the trac wiki. Mark AFAIK you've
-been collecting reviews, can you create such a page. (I can
-do it myself but I don't have a list of everything that
-needs reviewing).
+This certainly doesn't prevent you from creating such a page. If the
+list is incomplete, it can be completed later, by Mark or others.
 
-Then we can add links to reviews from the mailinglist
-archive there too :)
+Note that I am already trying to maintain
+http://www.lm-sensors.org/wiki/Devices
+with this information. If you search for "review" on this page, you
+should find most drivers waiting for a review, with a link to the
+latest version that was posted.
 
-Talking about reviews, Mark can you please take a look at
-and respond to the discussion about the table in the
-abituguru3 driver?
+Drivers being ported from lm-sensors SVN to Linux 2.6 are also listed on
+http://www.lm-sensors.org/wiki/Kernel2.6
 
-Regards,
+Not to say that a dedicated page wouldn't give us a better visibility,
+but OTOH I would like to avoid having yet another place were this
+information needs to be updated.
 
-Hans
-
-
-
-> ...juerg
-> 
-> 
-> On 5/22/07, Krzysztof Helt <krzysztof.h1@wp.pl> wrote:
-> > Good afternoon,
-> >
-> > After Jean's suggestion, I polite request any of you to
-> do review my port of the THMC50 driver for the 2.6
-> kernel. I understand that you are busy, but please queue
-> it to your task list.
-> >
-> > I hope it will open the door to the -mm tree.
-> >
-> > If the task get queued I warn you that I am stubborn
-> and I will ask how long it will take about once per
-> month.
-> >
-> > The driver is here:
-> >
->
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-March/019094.html
-> >
-> > Kind regards,
-> > Krzysztof Helt
-> >
-> 
-
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
