@@ -1,36 +1,37 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 22 May 2007 13:03:29 +0000
-Subject: [lm-sensors] [PATCH] hwmon/applesmc: Simplify dependencies
-Message-Id: <20070522150329.01bf36f1@hyperion.delvare>
+From: "David Castelow" <david_castelow@hotmail.com>
+Date: Wed, 23 May 2007 21:41:49 +0000
+Subject: [lm-sensors] Support for PCChips/MSI
+Message-Id: <BAY107-F14963FAF878EA6FEBB2DECFA350@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The dependency upon HWMON is now handled at menu level.
+I have a pcchips M860 motherboard with a Fintek F75383 sensor chip.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Nicolas Boichat <nicolas@boichat.ch>
----
- drivers/hwmon/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I have seen you have had a driver supplied for this, but I do not know how 
+to add this in.
 
---- linux-2.6.22-rc2.orig/drivers/hwmon/Kconfig	2007-05-22 14:33:41.000000000 +0200
-+++ linux-2.6.22-rc2/drivers/hwmon/Kconfig	2007-05-22 14:34:27.000000000 +0200
-@@ -630,7 +630,7 @@ config SENSORS_HDAPS
- 
- config SENSORS_APPLESMC
- 	tristate "Apple SMC (Motion sensor, light sensor, keyboard backlight)"
--	depends on HWMON && INPUT && X86
-+	depends on INPUT && X86
- 	select NEW_LEDS
- 	select LEDS_CLASS
- 	default n
+My system is running Ubuntu Feisty Fawn (7.04).
 
+One of the irritations of the board is that it does not seem to support fan 
+control.
+Is this because of the lack of support for this sensor chip?
 
--- 
-Jean Delvare
+I can read the system temperature (not sure how well calibrated it is, but 
+there are figures) and I can read the fan speed.
+
+Is there any support you could give me?
+
+Thanks
+
+David
+
+_________________________________________________________________
+Could you be the guest MSN Movies presenter? Click Here to Audition 
+http://www.lightscameraaudition.co.uk
+
 
 _______________________________________________
 lm-sensors mailing list
