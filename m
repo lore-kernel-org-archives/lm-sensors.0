@@ -1,333 +1,172 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 21 May 2007 08:51:21 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2 RESEND] hwmon: documentation for new
-Message-Id: <20070521105121.36053f2c@hyperion.delvare>
+From: Dmitry Torokhov <dtor@insightbb.com>
+Date: Fri, 25 May 2007 04:38:34 +0000
+Subject: [lm-sensors] [PATCH] hdaps - switch to using input-polldev
+Message-Id: <200705250038.35585.dtor@insightbb.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0703220947s7e16453j4a5a7eb5eee77f1b@mail.gmail.com>
-In-Reply-To: <191fb4ca0703220947s7e16453j4a5a7eb5eee77f1b@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
-
-On Sun, 20 May 2007 11:16:39 -0700, Juerg Haefliger wrote:
-> On 5/20/07, Jean Delvare <khali@linux-fr.org> wrote:
-> > Hi Juerg,
-> >
-> > On Sat, 19 May 2007 14:15:22 -0700, Juerg Haefliger wrote:
-> > > Fixed remaining issues from Jean's latest review.
-> > >
-> > > ---
-> > > This patch adds documentation for the new SMSC DME1737 driver.
-> > >
-> > > Signed-off-by: Juerg Haefliger <juergh at gmail.com>
-> >
-> > > diff -uprN -X linux-2.6.21-mm1/Documentation/dontdiff -x drivers -x include linux-2.6.21-mm1.orig/Documentation/hwmon/dme1737 linux-2.6.21-mm1/Documentation/hwmon/dme1737
-> > > --- linux-2.6.21-mm1.orig/Documentation/hwmon/dme1737 1969-12-31 16:00:00.000000000 -0800
-> > > +++ linux-2.6.21-mm1/Documentation/hwmon/dme1737      2007-05-15 16:50:48.000000000 -0700
-> > > @@ -0,0 +1,257 @@
-> > > +Kernel driver dme1737
-> > > +==========> > > +
-> > > +Supported chips:
-> > > +  * SMSC DME1737 and compatibles, Asus A8000
-> >
-> > This too should be reworded, as the Kconfig help text was.
-> 
-> How about:
-> SMSC DME1737 and compatibles (like Asus A8000)
-> 
-> 
-> >
-> > > +    Prefix: 'dme1737'
-> > > +    Addresses scanned: I2C 0x2c, 0x2d, 0x2e
-> > > +    Datasheet: Provided by SMSC upon request and under NDA
-> > > +
-> > > +Authors:
-> > > +    Juerg Haefliger <juergh@gmail.com>
-> > > +
-> > > +
-> > > +Module Parameters
-> > > +-----------------
-> > > +
-> > > +* force_start: bool  Enables the monitoring of voltage, fan and temp inputs
-> > > +                     and PWM output control functions. Using this parameter
-> > > +                     shouldn't be required since the BIOS usually takes care
-> > > +                     of this.
-> > > +
-> > > +Note that there is no need to use this parameter if the driver loads without
-> > > +complaining. The driver will say so if it is necessary.
-> > > +
-> > > +
-> > > +Description
-> > > +-----------
-> > > +
-> > > +This driver implements support for the hardware monitoring capabilities of the
-> > > +SMSC DME1737 and Asus A8000 (which are the same) Super-I/O chips. This chip
-> > > +features monitoring of 3 temp sensors temp[1-3] (2 remote diodes and 1
-> > > +internal), 7 voltages in[0-6] (6 external and 1 internal) and 6 fan speeds
-> > > +fan[1-6]. Additionally, the chip implements 5 PWM outputs pwm[1-3,5-6] for
-> > > +controlling fan speeds both manually and automatically.
-> > > +
-> > > +Fan[3-6] and pwm[3,5-6] are optional features and their availability is
-> > > +dependent on the configuration of the chip. The driver will detect which
-> > > +features are present during initialization and create the sysfs attributes
-> > > +accordingly.
-> > > +
-> > > +
-> > > +Voltage Monitoring
-> > > +------------------
-> > > +
-> > > +The voltage inputs are sampled with 12-bit resolution and have internal
-> > > +scaling resistors. The values returned by the driver therefore reflect true
-> > > +millivolts and don't need scaling. The voltage inputs are mapped as follows
-> > > +(the last column indicates the input ranges):
-> > > +
-> > > +     in0: +5VTR      (+5V standby)           0V - 6.64V
-> > > +     in1: Vccp       (processor core)        0V - 3V
-> > > +     in2: VCC        (internal +3.3V)        0V - 4.38V
-> > > +     in3: +5V                                0V - 6.64V
-> > > +     in4: +12V                               0V - 16V
-> > > +     in5: VTR        (+3.3V standby)         0V - 4.38V
-> > > +     in6: Vbat       (+3.0V)                 0V - 4.38V
-> > > +
-> > > +Each voltage input has associated min and max limits which trigger an alarm
-> > > +when crossed.
-> > > +
-> > > +
-> > > +Temperature Monitoring
-> > > +----------------------
-> > > +
-> > > +Temperatures are measured with 12-bit resolution and reported in millidegree
-> > > +Celsius. The chip also features offsets for all 3 temperature inputs which -
-> > > +when programmed - get added to the input readings. The chip does all the
-> > > +scaling by itself and the driver therefore reports true temperatures that don't
-> > > +need any user-space adjustments. The temperature inputs are mapped as follows
-> > > +(the last column indicates the input ranges):
-> > > +
-> > > +     temp1: Remote diode 1 (3904 type) temperature   -127C - +127C
-> > > +     temp2: DME1737 internal temperature             -127C - +127C
-> > > +     temp3: Remote diode 2 (3904 type) temperature   -127C - +127C
-> > > +
-> > > +Each temperature input has associated min and max limits which trigger an alarm
-> > > +when crossed. Additionally, each temperature input has a fault attribute that
-> > > +returns 1 when a faulty diode or an unconnected input is detected and 0
-> > > +otherwise.
-> > > +
-> > > +
-> > > +Fan Monitoring
-> > > +--------------
-> > > +
-> > > +Fan RPMs are measured with 16-bit resolution. The chip provides inputs for 6
-> > > +fan tachometers. All 6 inputs have an associated min limit which triggers an
-> > > +alarm when crossed. Fan inputs 1-4 provide type attributes that need to be set
-> > > +to the number of pulses per fan revolution that the connected tachometer
-> > > +generates. Supported values are 1, 2, and 4. Fan inputs 5-6 only support fans
-> > > +that generate 2 pulses per revolution. Fan inputs 5-6 also provide a max
-> > > +attribute that needs to be set to the maximum attainable RPM (fan at 100% duty-
-> > > +cycle) of the input. The chip adjusts the sampling rate based on this value.
-> > > +
-> > > +
-> > > +PWM Output Control
-> > > +------------------
-> > > +
-> > > +This chip features 5 PWM outputs. PWM outputs 1-3 are associated with fan
-> > > +inputs 1-3 and PWM outputs 5-6 are associated with fan inputs 5-6. PWM outputs
-> > > +1-3 can be configured to operate either in manual or automatic mode by setting
-> > > +the appropriate enable attribute accordingly. PWM outputs 5-6 can only operate
-> > > +in manual mode, their enable attributes are therefore read-only. When set to
-> > > +manual mode, the fan speed is set by writing the duty-cycle value to the
-> > > +appropriate PWM attribute. In automatic mode, the PWM attribute returns the
-> > > +current duty-cycle as set by the fan controller in the chip. All PWM outputs
-> > > +support the setting of the output frequency via the freq attribute.
-> > > +
-> > > +In automatic mode, the chip supports the setting of the PWM ramp rate which
-> > > +defines how fast the PWM output is adjusting to changes of the associated
-> > > +temperature input. Associating PWM outputs to temperature inputs is done via
-> > > +temperature zones. The chip features 3 zones whose assignments to temperature
-> > > +inputs is static and determined during initialization. These assignments can
-> > > +be retrieved via the zone[1-3]_auto_channels_temp attributes. Each PWM output
-> > > +is assigned to one (or hottest of multiple) temperature zone(s) through the
-> > > +pwm[1-3]_auto_channels_zone attributes. Each PWM output has 3 distinct output
-> > > +duty-cycles: full, low, and min. Full is internally hard-wired to 255 (100%)
-> > > +and low and min can be programmed via pwm[1-3]_auto_point1_pwm and
-> > > +pwm[1-3]_auto_pwm_min, respectively. The thermal thresholds of the zones are
-> > > +programmed via zone[1-3]_auto_point[1-3]_temp and
-> > > +zone[1-3]_auto_point1_temp_hyst and :
-> >
-> > The trailing " and " shouldn't be there, should it?
-> 
-> Correct, the 'and' is a copy-paste leftover.
-> 
-> 
-> > > +
-> > > +     pwm[1-3]_auto_point2_pwm        full-speed duty-cycle (255, i.e., 100%)
-> > > +     pwm[1-3]_auto_point1_pwm        low-speed duty-cycle
-> > > +     pwm[1-3]_auto_pwm_min           min-speed duty-cycle
-> > > +
-> > > +     zone[1-3]_auto_point3_temp      full-speed temp (all outputs)
-> > > +     zone[1-3]_auto_point2_temp      full-speed temp
-> > > +     zone[1-3]_auto_point1_temp      low-speed temp
-> > > +     zone[1-3]_auto_point1_temp_hyst min-speed temp
-> > > +
-> > > +The chip adjusts the output duty-cycle linearly in the range of auto_point1_pwm
-> > > +to auto_point2_pwm if the temperature of the associated zone is between
-> > > +auto_point1_temp and auto_point2_temp. If the temperature drops below the
-> > > +auto_point1_temp_hyst value, the output duty-cycle is set to the auto_pwm_min
-> > > +value which only supports two values: 0 or auto_point1_pwm. That means that the
-> > > +fan either turns completely off or keeps spinning with the low-speed
-> > > +duty-cycle. If any of the temperatures rise above the auto_point3_temp value,
-> > > +all PWM outputs are set to 100% duty-cycle.
-> > > +
-> > > +Following is another representation of how the chip sets the output duty-cycle
-> > > +based on the temperature of the associated thermal zone:
-> > > +
-> > > +                     Duty-Cycle      Duty-Cycle
-> > > +     Temperature     Rising Temp     Falling Temp
-> > > +     -----------     -----------     ------------
-> > > +     full-speed      full-speed      full-speed
-> > > +
-> > > +                     < linearly adjusted duty-cycle >
-> > > +
-> > > +     low-speed       low-speed       low-speed
-> > > +                     min-speed       low-speed
-> > > +     min-speed       min-speed       min-speed
-> > > +                     min-speed       min-speed
-> > > +
-> > > +
-> > > +Sysfs Attributes
-> > > +----------------
-> > > +
-> > > +Following is a list of all sysfs attributes that the driver provides, their
-> > > +permissions and a short description:
-> > > +
-> > > +Name                         Perm    Description
-> > > +----                         ----    -----------
-> > > +cpu0_vid                     RO      CPU core reference voltage in
-> > > +                                     millivolts.
-> > > +vrm                          RW      Voltage regulator module version
-> > > +                                     number.
-> > > +
-> > > +in[0-6]_input                        RO      Measured voltage in millivolts.
-> > > +in[0-6]_min                  RW      Low limit for voltage input.
-> > > +in[0-6]_max                  RW      High limit for voltage input.
-> > > +in[0-6]_alarm                        RO      Voltage input alarm. Returns 1 if
-> > > +                                     voltage input is or went outside the
-> > > +                                     associated min-max range, 0 otherwise.
-> > > +
-> > > +temp[1-3]_input                      RO      Measured temperature in millidegree
-> > > +                                     Celsius.
-> > > +temp[1-3]_min                        RW      Low limit for temp input.
-> > > +temp[1-3]_max                        RW      High limit for temp input.
-> > > +temp[1-3]_offset             RW      Offset for temp input. This value will
-> > > +                                     be added by the chip to the measured
-> > > +                                     temperature.
-> > > +temp[1-3]_alarm                      RO      Alarm for temp input. Returns 1 if temp
-> > > +                                     input is or went outside the associated
-> > > +                                     min-max range, 0 otherwise.
-> > > +temp[1-3]_fault                      RO      Temp input fault. Returns 1 if the chip
-> > > +                                     detects a faulty thermal diode or an
-> > > +                                     unconnected temp input, 0 otherwise.
-> > > +
-> > > +zone[1-3]_auto_channels_temp RO      Temperature zone to temperature input
-> > > +                                     mapping. This attribute is a bitfield
-> > > +                                     and supports the following values:
-> > > +                                             1: temp1
-> > > +                                             2: temp2
-> > > +                                             4: temp3
-> > > +zone[1-3]_auto_point1_temp_hyst      RW      Auto PWM temp point1 hysteresis. The
-> > > +                                     output of the corresponding PWM is set
-> > > +                                     to the pwm_auto_min value if the temp
-> > > +                                     falls below the auto_point1_temp_hyst
-> > > +                                     value.
-> > > +zone[1-3]_auto_point[1-3]_temp       RW      Auto PWM temp points. Auto_point1 is
-> > > +                                     the low-speed temp, auto_point2 is the
-> > > +                                     full-speed temp, and auto_point3 is the
-> > > +                                     temp at which all PWM outputs are set
-> > > +                                     to full-speed (100% duty-cycle).
-> > > +
-> > > +fan[1-6]_input                       RO      Measured fan speed in RPM.
-> > > +fan[1-6]_min                 RW      Low limit for fan input.
-> > > +fan[1-6]_alarm                       RO      Alarm for fan input. Returns 1 if fan
-> > > +                                     input is or went below the associated
-> > > +                                     min value, 0 otherwise.
-> > > +fan[1-4]_type                        RW      Type of attached fan. Expressed in
-> > > +                                     number of pulses per revolution that
-> > > +                                     the fan generates. Supported values are
-> > > +                                     1, 2, and 4.
-> > > +fan[5-6]_max                 RW      Max attainable RPM at 100% duty-cycle.
-> > > +                                     Required for chip to adjust the
-> > > +                                     sampling rate accordingly.
-> > > +
-> > > +pmw[1-3,5-6]                 RO/RW   Duty-cycle of PWM output. Supported
-> > > +                                     values are 0-255 (0%-100%). Only
-> > > +                                     writeable if the associated PWM is in
-> > > +                                     manual mode.
-> > > +pwm[1-3]_enable                      RW      Enable of PWM outputs 1-3. Supported
-> > > +                                     values are:
-> > > +                                              0: turned off (output @ 100%)
-> > > +                                              1: manual mode
-> > > +                                              2: automatic mode
-> > > +pwm[5-6]_enable                      RO      Enable of PWM outputs 5-6. Always
-> > > +                                     returns 1 since these 2 outputs are
-> > > +                                     hard-wired to manual mode.
-> > > +pmw[1-3,5-6]_freq            RW      Frequency of PWM output. Supported
-> > > +                                     values are in the range 11Hz-30000Hz
-> > > +                                     (default is 25000Hz).
-> > > +pmw[1-3]_ramp_rate           RW      Ramp rate of PWM output. Determines how
-> > > +                                     fast the PWM duty-cycle will change
-> > > +                                     when the PWM is in automatic mode.
-> > > +                                     Expressed in ms per PWM step. Supported
-> > > +                                     values are in the range 0ms-206ms
-> > > +                                     (default is 0, which means the duty-
-> > > +                                     cycle changes instantly).
-> > > +pwm[1-3]_auto_channels_zone  RW      PWM output to temperature zone mapping.
-> > > +                                     This attribute is a bitfield and
-> > > +                                     supports the following values:
-> > > +                                             1: zone1
-> > > +                                             2: zone2
-> > > +                                             4: zone3
-> > > +                                             6: highest of zone[2-3]
-> > > +                                             7: highest of zone[1-3]
-> > > +pwm[1-3]_auto_pwm_min                RW      Auto PWM min pwm. Minimum PWM duty-
-> > > +                                     cycle. Supported values are 0 or
-> > > +                                     Auto_point1_pwm.
-> >
-> > auto_point1_pwm (no leading capital)?
-> 
-> Correct, all lower-case.
-> 
-> 
-> > > +pwm[1-3]_auto_point1_pwm     RW      Auto PWM pwm point. Auto_point1 is the
-> > > +                                     low-speed duty-cycle.
-> > > +pwm[1-3]_auto_point2_pwm     RO      Auto PWM pwm point. Auto_point2 is the
-> > > +                                     full-speed duty-cycle which is hard-
-> > > +                                     wired to 255 (100% duty-cycle).
-> > > diff -uprN -X linux-2.6.21-mm1/Documentation/dontdiff -x drivers -x include linux-2.6.21-mm1.orig/MAINTAINERS linux-2.6.21-mm1/MAINTAINERS
-> > > --- linux-2.6.21-mm1.orig/MAINTAINERS 2007-05-07 12:16:20.000000000 -0700
-> > > +++ linux-2.6.21-mm1/MAINTAINERS      2007-05-07 12:25:53.000000000 -0700
-> > > @@ -1249,6 +1249,12 @@ M:     christopher.leech@intel.com
-> > >  L:   linux-kernel@vger.kernel.org
-> > >  S:   Maintained
-> > >
-> > > +DME1737 HARDWARE MONITOR DRIVER
-> > > +P:   Juerg Haefliger
-> > > +M:   juergh@gmail.com
-> > > +L:   lm-sensors@lm-sensors.org
-> > > +S:   Maintained
-> > > +
-> > >  DOCBOOK FOR DOCUMENTATION
-> > >  P:   Randy Dunlap
-> > >  M:   rdunlap@xenotime.net
-> >
-> > Other than that, it's OK and I'm taking the patch. I'll adjust it
-> > manually based on your reply to my comments.
-
-OK, I've updated all three points. Thanks.
+Not tested - no hardware...
 
 -- 
-Jean Delvare
+Dmitry
+
+HWMON: hdaps - convert to use input-polldev.
+
+Switch to using input-polldev skeleton instead of implementing
+polling loop by itself. This also fixes problem with trylock
+on a mutex in atomic context.
+
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
+
+ drivers/hwmon/Kconfig |    1 
+ drivers/hwmon/hdaps.c |   55 +++++++++++++++++++++-----------------------------
+ 2 files changed, 25 insertions(+), 31 deletions(-)
+
+Index: work/drivers/hwmon/Kconfig
+=================================--- work.orig/drivers/hwmon/Kconfig
++++ work/drivers/hwmon/Kconfig
+@@ -602,6 +602,7 @@ config SENSORS_W83627EHF
+ config SENSORS_HDAPS
+ 	tristate "IBM Hard Drive Active Protection System (hdaps)"
+ 	depends on INPUT && X86
++	select INPUT_POLLDEV
+ 	default n
+ 	help
+ 	  This driver provides support for the IBM Hard Drive Active Protection
+Index: work/drivers/hwmon/hdaps.c
+=================================--- work.orig/drivers/hwmon/hdaps.c
++++ work/drivers/hwmon/hdaps.c
+@@ -28,7 +28,7 @@
+ 
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
+-#include <linux/input.h>
++#include <linux/input-polldev.h>
+ #include <linux/kernel.h>
+ #include <linux/mutex.h>
+ #include <linux/module.h>
+@@ -61,13 +61,12 @@
+ #define INIT_TIMEOUT_MSECS	4000	/* wait up to 4s for device init ... */
+ #define INIT_WAIT_MSECS		200	/* ... in 200ms increments */
+ 
+-#define HDAPS_POLL_PERIOD	(HZ/20)	/* poll for input every 1/20s */
++#define HDAPS_POLL_INTERVAL	50	/* poll for input every 1/20s (50 ms)*/
+ #define HDAPS_INPUT_FUZZ	4	/* input event threshold */
+ #define HDAPS_INPUT_FLAT	4
+ 
+-static struct timer_list hdaps_timer;
+ static struct platform_device *pdev;
+-static struct input_dev *hdaps_idev;
++static struct input_polled_dev *hdaps_idev;
+ static unsigned int hdaps_invert;
+ static u8 km_activity;
+ static int rest_x;
+@@ -323,24 +322,19 @@ static void hdaps_calibrate(void)
+ 	__hdaps_read_pair(HDAPS_PORT_XPOS, HDAPS_PORT_YPOS, &rest_x, &rest_y);
+ }
+ 
+-static void hdaps_mousedev_poll(unsigned long unused)
++static void hdaps_mousedev_poll(struct input_polled_dev *dev)
+ {
++	struct input_dev *input_dev = dev->input;
+ 	int x, y;
+ 
+-	/* Cannot sleep.  Try nonblockingly.  If we fail, try again later. */
+-	if (mutex_trylock(&hdaps_mtx)) {
+-		mod_timer(&hdaps_timer,jiffies + HDAPS_POLL_PERIOD);
+-		return;
+-	}
++	mutex_lock(&hdaps_mtx);
+ 
+ 	if (__hdaps_read_pair(HDAPS_PORT_XPOS, HDAPS_PORT_YPOS, &x, &y))
+ 		goto out;
+ 
+-	input_report_abs(hdaps_idev, ABS_X, x - rest_x);
+-	input_report_abs(hdaps_idev, ABS_Y, y - rest_y);
+-	input_sync(hdaps_idev);
+-
+-	mod_timer(&hdaps_timer, jiffies + HDAPS_POLL_PERIOD);
++	input_report_abs(input_dev, ABS_X, x - rest_x);
++	input_report_abs(input_dev, ABS_Y, y - rest_y);
++	input_sync(input_dev);
+ 
+ out:
+ 	mutex_unlock(&hdaps_mtx);
+@@ -536,6 +530,7 @@ static struct dmi_system_id __initdata h
+ 
+ static int __init hdaps_init(void)
+ {
++	struct input_dev *idev;
+ 	int ret;
+ 
+ 	if (!dmi_check_system(hdaps_whitelist)) {
+@@ -563,39 +558,37 @@ static int __init hdaps_init(void)
+ 	if (ret)
+ 		goto out_device;
+ 
+-	hdaps_idev = input_allocate_device();
++	hdaps_idev = input_allocate_polled_device();
+ 	if (!hdaps_idev) {
+ 		ret = -ENOMEM;
+ 		goto out_group;
+ 	}
+ 
++	hdaps_idev->poll = hdaps_mousedev_poll;
++	hdaps_idev->poll_interval = HDAPS_POLL_INTERVAL;
++
+ 	/* initial calibrate for the input device */
+ 	hdaps_calibrate();
+ 
+ 	/* initialize the input class */
+-	hdaps_idev->name = "hdaps";
+-	hdaps_idev->dev.parent = &pdev->dev;
+-	hdaps_idev->evbit[0] = BIT(EV_ABS);
+-	input_set_abs_params(hdaps_idev, ABS_X,
++	idev = hdaps_idev->input;
++	idev->name = "hdaps";
++	idev->dev.parent = &pdev->dev;
++	idev->evbit[0] = BIT(EV_ABS);
++	input_set_abs_params(idev, ABS_X,
+ 			-256, 256, HDAPS_INPUT_FUZZ, HDAPS_INPUT_FLAT);
+-	input_set_abs_params(hdaps_idev, ABS_Y,
++	input_set_abs_params(idev, ABS_Y,
+ 			-256, 256, HDAPS_INPUT_FUZZ, HDAPS_INPUT_FLAT);
+ 
+-	ret = input_register_device(hdaps_idev);
++	ret = input_register_polled_device(hdaps_idev);
+ 	if (ret)
+ 		goto out_idev;
+ 
+-	/* start up our timer for the input device */
+-	init_timer(&hdaps_timer);
+-	hdaps_timer.function = hdaps_mousedev_poll;
+-	hdaps_timer.expires = jiffies + HDAPS_POLL_PERIOD;
+-	add_timer(&hdaps_timer);
+-
+ 	printk(KERN_INFO "hdaps: driver successfully loaded.\n");
+ 	return 0;
+ 
+ out_idev:
+-	input_free_device(hdaps_idev);
++	input_free_polled_device(hdaps_idev);
+ out_group:
+ 	sysfs_remove_group(&pdev->dev.kobj, &hdaps_attribute_group);
+ out_device:
+@@ -611,8 +604,8 @@ out:
+ 
+ static void __exit hdaps_exit(void)
+ {
+-	del_timer_sync(&hdaps_timer);
+-	input_unregister_device(hdaps_idev);
++	input_unregister_polled_device(hdaps_idev);
++	input_free_polled_device(hdaps_idev);
+ 	sysfs_remove_group(&pdev->dev.kobj, &hdaps_attribute_group);
+ 	platform_device_unregister(pdev);
+ 	platform_driver_unregister(&hdaps_driver);
 
 _______________________________________________
 lm-sensors mailing list
