@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 25 May 2007 13:47:50 +0000
+Date: Fri, 25 May 2007 14:58:24 +0000
 Subject: Re: [lm-sensors] dynamic chip support in libsensors + generic chip
-Message-Id: <20070525154750.21a78d2a@hyperion.delvare>
+Message-Id: <20070525165824.77ea91bf@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <461A59D4.2050409@hhs.nl>
 In-Reply-To: <461A59D4.2050409@hhs.nl>
@@ -10,62 +10,22 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+On Fri, 25 May 2007 15:47:50 +0200, Jean Delvare wrote:
+> Here is the patch I have come up with, which fixes both problems and
+> makes the generic code work for my ADM1032. Can you please review it and
+> confirm that it doesn't break anything on your side? Thanks.
 
-Better late than never...
+I spoke a bit too fast. There was actually a third problem, alarms
+weren't reported. This is because the ADM1032 has per-limit alarm flags
+and the generic code only supported per-channel alarms for temperatures.
 
-On Mon, 09 Apr 2007 17:20:52 +0200, Hans de Goede wrote:
-> I've committed everything my students had written + some fixes done by me=
- after=20
-> some initial testing to the 3.0.0 sensors branch.
->=20
-> I claim in no way that this code is perfect, I did things this way to pro=
-perly=20
-> document / atrribute who wrote what, and to give us a starting point as I=
- think=20
-> the code in general is ok. It needs testing and cleanups, but its not a b=
-ad=20
-> starting point perse.
->=20
-> So please test this:
-> 1) checkout the 3.0.0 branch:
->     svn checkout http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors=
--3.0.0
-> 2) comment the entries for your chips int he table at the end of lib/chip=
-s.c
->     and in the table near the end of progs/sensors/main.c
-> 3) compile and install as usual
-> 4) run sensors and let me/us know how it works
-
-I've tried that with my ADM1032 today, and this uncovered two problems.
-
-First problem is the way the new library (and sensors) code handles
-temperature hysteresis. It handles it as a "standard" temperature
-limit, which it isn't. An hysteresis value is more like a property
-of other temperature limit. So having a type named
-SENSORS_FEATURE_TEMP_HYST doesn't make sense. We need, instead,
-SENSORS_FEATURE_TEMP_MAX_HYST, and SENSORS_FEATURE_TEMP_CRIT_HYST.
-
-Second problem is that the new code doesn't fill the magnitude when
-creating the dynamic feature tables. It just happens to work in most
-cases thanks to the general symbol name translation code, which
-enforces standard magnitudes as a side effect. This doesn't work when
-we had a dedicated symbol name translation rule for a given chip though
-(which was the case for the hysteresis value of the lm90/adm1032)
-because this rule is part of the chip-specific features table which we
-drop when switching to the generic code. And the general symbol name
-translation is bound to be deleted at some point too, so we shouldn't
-rely on it.
-
-Here is the patch I have come up with, which fixes both problems and
-makes the generic code work for my ADM1032. Can you please review it and
-confirm that it doesn't break anything on your side? Thanks.
+So here is a more complete patch which fixes all three problems.
 
 Index: lib/sensors.h
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D--- lib/sensors.h	(r=E9vision 4405)
 +++ lib/sensors.h	(copie de travail)
-@@ -166,14 +166,16 @@
+@@ -166,15 +166,20 @@
    SENSORS_FEATURE_FAN_DIV,
   =20
    SENSORS_FEATURE_TEMP =3D 0x200,
@@ -81,13 +41,26 @@ Index: lib/sensors.h
    SENSORS_FEATURE_TEMP_CRIT,
 +  SENSORS_FEATURE_TEMP_CRIT_HYST,
    SENSORS_FEATURE_TEMP_ALARM =3D 0x210,
++  SENSORS_FEATURE_TEMP_MAX_ALARM,
++  SENSORS_FEATURE_TEMP_MIN_ALARM,
++  SENSORS_FEATURE_TEMP_CRIT_ALARM,
    SENSORS_FEATURE_TEMP_FAULT,
    SENSORS_FEATURE_TEMP_SENS,
+  =20
+@@ -185,7 +190,7 @@
+  =20
+   /* special the largest number of subfeatures used, iow the=20
+      highest ## from all the 0x?## above + 1*/
+-  SENSORS_FEATURE_MAX_SUB_FEATURES =3D 19
++  SENSORS_FEATURE_MAX_SUB_FEATURES =3D 22
+ } sensors_feature_type;
+=20
+ sensors_feature_type sensors_feature_get_type
 Index: lib/access.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D--- lib/access.c	(r=E9vision 4405)
 +++ lib/access.c	(copie de travail)
-@@ -515,12 +515,14 @@
+@@ -515,13 +515,18 @@
  };
 =20
  static struct feature_type_match temp_matches[] =3D {
@@ -101,8 +74,12 @@ Index: lib/access.c
  	{ "crit", SENSORS_FEATURE_TEMP_CRIT },
 +	{ "crit_hyst", SENSORS_FEATURE_TEMP_CRIT_HYST },
  	{ "alarm", SENSORS_FEATURE_TEMP_ALARM },
++	{ "min_alarm", SENSORS_FEATURE_TEMP_MIN_ALARM },
++	{ "max_alarm", SENSORS_FEATURE_TEMP_MAX_ALARM },
++	{ "crit_alarm", SENSORS_FEATURE_TEMP_CRIT_ALARM },
  	{ "fault", SENSORS_FEATURE_TEMP_FAULT },
  	{ "type", SENSORS_FEATURE_TEMP_SENS },
+ 	{ 0 }
 Index: lib/sysfs.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D--- lib/sysfs.c	(r=E9vision 4405)
@@ -182,7 +159,22 @@ Index: prog/sensors/chips_generic.c
    } else if (TEMP_FEATURE(SENSORS_FEATURE_TEMP_LOW)) {
      min =3D TEMP_FEATURE_VAL(SENSORS_FEATURE_TEMP_LOW);
     =20
-@@ -214,18 +203,14 @@
+@@ -208,24 +197,27 @@
+   if (TEMP_FEATURE(SENSORS_FEATURE_TEMP_FAULT) &&
+       TEMP_FEATURE_VAL(SENSORS_FEATURE_TEMP_FAULT) > 0.5) {
+     printf(" FAULT");
+-  } else if (TEMP_FEATURE(SENSORS_FEATURE_TEMP_ALARM) &&=20
+-      TEMP_FEATURE_VAL(SENSORS_FEATURE_TEMP_ALARM) > 0.5) {
++  } else
++  if ((TEMP_FEATURE(SENSORS_FEATURE_TEMP_ALARM) &&=20
++       TEMP_FEATURE_VAL(SENSORS_FEATURE_TEMP_ALARM) > 0.5)
++   || (type =3D MINMAX &&
++       TEMP_FEATURE(SENSORS_FEATURE_TEMP_MIN_ALARM) &&=20
++       TEMP_FEATURE_VAL(SENSORS_FEATURE_TEMP_MIN_ALARM) > 0.5)
++   || (type =3D MINMAX &&
++       TEMP_FEATURE(SENSORS_FEATURE_TEMP_MAX_ALARM) &&=20
++       TEMP_FEATURE_VAL(SENSORS_FEATURE_TEMP_MAX_ALARM) > 0.5)) {
+     printf(" ALARM");
    }
    printf("\n");
   =20
@@ -204,16 +196,19 @@ Index: prog/sensors/chips_generic.c
      } else {
        type =3D SINGLE;
        min =3D 0.0;
-@@ -239,7 +224,7 @@
+@@ -239,7 +231,11 @@
        if (valid) {
          print_label(label, label_size);
          free(label);
 -        print_temp_info_real(max, min, 0, 0.0, type, 1, 0);
 +        print_temp_info_real(max, min, 0, 0.0, type, 1, 1);
++        if (TEMP_FEATURE(SENSORS_FEATURE_TEMP_CRIT_ALARM) &&
++            TEMP_FEATURE_VAL(SENSORS_FEATURE_TEMP_CRIT_ALARM) > 0.5) {
++          printf(" ALARM");
++        }
          printf("\n");
        }
      }
-
 
 --=20
 Jean Delvare
