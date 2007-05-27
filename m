@@ -1,7 +1,7 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Tue, 22 May 2007 18:34:37 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 27 May 2007 18:14:53 +0000
 Subject: Re: [lm-sensors] THMC50 review
-Message-Id: <191fb4ca0705221134y3c1f3a2cnde81d7b763e0f65f@mail.gmail.com>
+Message-Id: <20070527181453.GF7211@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <web-67221254@hhs.nl>
 In-Reply-To: <web-67221254@hhs.nl>
@@ -10,41 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 5/22/07, Jean Delvare <khali@linux-fr.org> wrote:
-> On Mon, 21 May 2007 21:49:26 +0200, Goede, J.W.R. de wrote:
-> > Actually keeping a queue that can be used with people which
-> > have time to review sounds like a plan. I think we should
-> > create a page for this at the trac wiki. Mark AFAIK you've
-> > been collecting reviews, can you create such a page. (I can
-> > do it myself but I don't have a list of everything that
-> > needs reviewing).
->
-> This certainly doesn't prevent you from creating such a page. If the
-> list is incomplete, it can be completed later, by Mark or others.
->
-> Note that I am already trying to maintain
-> http://www.lm-sensors.org/wiki/Devices
-> with this information. If you search for "review" on this page, you
-> should find most drivers waiting for a review, with a link to the
-> latest version that was posted.
+Hi all:
 
-This is actually already pretty close to perfect. What would further
-help is another column that shows the assigned reviewer and some way
-to indicate the priority/status. Or should we just use the date as the
-priority and a link to a ticket for status updates?
+* Goede, J.W.R. de <j.w.r.degoede@hhs.nl> [2007-05-21 21:49:26 +0200]:
+> On Mon, 21 May 2007 11:29:42 -0700
+>  "Juerg Haefliger" <juergh@gmail.com> wrote:
+> > I'm about ready to do some reviewing but I need to check
+> > with Mark
+> > Hofmann to figure out who comes next.  Don't know where
+> > your driver is
+> > in the queue.
+> > 
+> 
+> Actually keeping a queue that can be used with people which
+> have time to review sounds like a plan. I think we should
+> create a page for this at the trac wiki. Mark AFAIK you've
+> been collecting reviews, can you create such a page. (I can
+> do it myself but I don't have a list of everything that
+> needs reviewing).
 
+Given the later messages in this thread, it seems the consensus is to update
+the existing Devices page in the wiki to track this info.  I've updated the
+lm93 entry as an example.
 
+Maybe this does warrant adding a column to the table: "Reviewer".  Thoughts?
 
-> Drivers being ported from lm-sensors SVN to Linux 2.6 are also listed on
-> http://www.lm-sensors.org/wiki/Kernel2.6
->
-> Not to say that a dedicated page wouldn't give us a better visibility,
-> but OTOH I would like to avoid having yet another place were this
-> information needs to be updated.
->
-> --
-> Jean Delvare
->
+> Then we can add links to reviews from the mailinglist
+> archive there too :)
+> 
+> Talking about reviews, Mark can you please take a look at
+> and respond to the discussion about the table in the
+> abituguru3 driver?
+
+Eventually, yes.
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
