@@ -1,7 +1,7 @@
 From: "Dmitry Bely" <dmitry.bely@gmail.com>
-Date: Sun, 27 May 2007 18:55:00 +0000
-Subject: [lm-sensors] ICH8 HECI temperature sensors
-Message-Id: <90823c940705271155y3199cc48m1f753928f0c501af@mail.gmail.com>
+Date: Sun, 27 May 2007 19:26:39 +0000
+Subject: Re: [lm-sensors] ICH8 HECI temperature sensors
+Message-Id: <90823c940705271226y5eeefd23j8080912b3cd1cee8@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46404132.9020204@assembler.cz>
 In-Reply-To: <46404132.9020204@assembler.cz>
@@ -10,22 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I have found in archives the following Rudolf Marek's message:
+Sorry, just found Rudolf's message in openamt-devel archive -he's
+surely aware of openamt.org HECI driver. So docs are the question... I
+think one should sign NDA to get them from Intel:
 
-> Some users asked us about the support for HECI integrated temperature sensors. I
-> tried to find some relevant documentation, but I could not find anything I could
-> send to HECI to obtain the temperatures, fans etc.
->
-> Please can someone point us to the correct docs? I think aim would be to develop
->   kernel hwmon driver, which will read the data through HECI interface.
->
-> I can tell more info if you need.
+http://softwarecommunity.intel.com/articles/eng/1154.htm
 
-My question is: why to develop a kernel driver if one is already there:
+Intel(r) Active Management Technology Software Development Kit (SDK) User Guide
 
-http://www.openamt.org
+The Intel(r) Active Management Technology (Intel(r) AMT) Software
+Development Kit (SDK) provides the necessary documentation; APIs and
+libraries to utilize Intel AMT features; and an emulator that
+simulates Intel AMT enabled hardware (Refer to the Intel AMT Emulator
+Guide for additional information). This SDK is distributed as a part
+of the Intel(r) Early Access Program (Intel(r) EAP) and is not
+publicly available. The Intel AMT SDK is part of a targeted
+manageability program from Intel and is provided for use only under a
+Non-Disclosure Agreement (NDA) with Intel Corporation.
+[...]
 
-Can it be integrated with lm-sensors?
+Alas, the docs don't seem to be publicly available...
 
 - Dmitry Bely
 
