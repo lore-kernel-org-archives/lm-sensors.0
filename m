@@ -1,170 +1,251 @@
-From: Carlos Olalla =?iso-8859-1?Q?Mart=EDnez?= <com.ea@tinet.org>
-Date: Sat, 26 May 2007 12:55:19 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 28 May 2007 08:14:49 +0000
 Subject: Re: [lm-sensors] hwmon/w83627hf pwm_freq support
-Message-Id: <39975.140.93.65.31.1180184119.squirrel@webmail.tinet.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_20070526145519_14276"
+Message-Id: <20070528101449.64e85fbd@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1075.140.93.65.31.1179669141.squirrel@webmail.tinet.org>
 In-Reply-To: <1075.140.93.65.31.1179669141.squirrel@webmail.tinet.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-------=_20070526145519_14276
-Content-Type: multipart/alternative;
-	boundary="0584fsu_trap_67241_91554162507002_=----"
-Content-Transfer-Encoding: base64
+Hi Carlos,
 
---0584fsu_trap_67241_91554162507002_=----
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
+On Sat, 26 May 2007 14:55:19 +0200 (CEST), Carlos Olalla Mart=EDnez wrote:
+
+> diff -uprN -X linux-2.6.22-rc1/Documentation/dontdiff linux-2.6.22-rc1.or=
+ig/drivers/hwmon/w83627hf.c linux-2.6.22-rc1/drivers/hwmon/w83627hf.c
+> --- linux-2.6.22-rc1.orig/drivers/hwmon/w83627hf.c	2007-05-13 03:45:56.00=
+0000000 +0200
+> +++ linux-2.6.22-rc1/drivers/hwmon/w83627hf.c	2007-05-26 14:45:05.0000000=
+00 +0200
+> @@ -220,6 +220,18 @@ static const u8 regpwm[] =3D { W83627THF_R
+>  #define W836X7HF_REG_PWM(type, nr) (((type) =3D w83627hf) ? \
+>                                       regpwm_627hf[(nr) - 1] : regpwm[(nr=
+) - 1])
+> =20
+> +#define W83627HF_REG_PWM_FREQ		0x5C	/* Only for the 627HF */
+> +
+> +#define W83637HF_REG_PWM_FREQ1		0x00	/* 697HF/687THF too */
+> +#define W83637HF_REG_PWM_FREQ2		0x02	/* 697HF/687THF too */
+> +#define W83637HF_REG_PWM_FREQ3		0x10	/* 687THF too */
+> +
+> +static const u8 W83637HF_REG_PWM_FREQ[] =3D { W83637HF_REG_PWM_FREQ1,=20
+> +					W83637HF_REG_PWM_FREQ2,=20
+> +					W83637HF_REG_PWM_FREQ1 };
+
+This should obviously be W83637HF_REG_PWM_FREQ3.
+
+> +
+> +#define W83627HF_BASE_PWM_FREQ	46870
+> +
+>  #define W83781D_REG_I2C_ADDR 0x48
+>  #define W83781D_REG_I2C_SUBADDR 0x4A
+> =20
+> @@ -267,6 +279,47 @@ static int TEMP_FROM_REG(u8 reg)
+> =20
+>  #define PWM_TO_REG(val) (SENSORS_LIMIT((val),0,255))
+> =20
+> +static inline unsigned long pwm_freq_from_reg_627hf(u8 reg)
+> +{
+> +	unsigned long freq;
+> +	freq =3D W83627HF_BASE_PWM_FREQ >> reg;
+> +	return freq;
+> +}
+> +static inline u8 pwm_freq_to_reg_627hf(unsigned long val)
+> +{
+> +	u8 i;
+> +	/* Only 5 dividers (1 2 4 8 16)... Search for the nearest available fre=
+quency */
+> +	for (i =3D 0; i < 5; i++) {
+> +		if (val > (((W83627HF_BASE_PWM_FREQ >> i) + (W83627HF_BASE_PWM_FREQ >>=
+ (i+1))) / 2))=20
+> +			break;
+> +	}
+> +	return i;
+> +}
+
+This could return with i =3D 5, which isn't correct.
+
+Also, line length is limited to 80, please fold the lines that are
+longer than that. This applies to the rest of your patch too.
+
+> +
+> +static inline unsigned long pwm_freq_from_reg(u8 reg)
+> +{
+> +	/* Clock bit 8 -> 180 kHz or 24 MHz */
+> +	unsigned long clock =3D (reg & 0x80) ? 180000UL : 24000000UL;
+> +
+> +	reg &=3D 0x7f;
+> +	/* This should not happen but anyway... */
+> +	if (reg =3D 0)
+> +		reg++;
+> +	return (clock / (reg << 8));
+> +}
+> +static inline u8 pwm_freq_to_reg(unsigned long val)
+> +{
+> +	/* Minimum divider value is 0x01 and maximum is 0x7F */
+> +	if (val >=3D 93750)	/* The highest we can do */
+> +		return 0x01;
+> +	if (val >=3D 720)	/* Use 24 MHz clock */
+> +		return (24000000UL / (val << 8));
+> +	if (val < 6)		/* The lowest we can do */
+> +		return 0xFF;
+> +	else			/* Use 180 kHz clock */
+> +		return (0x80 | (180000UL / (val << 8)));
+> +}
+> +
+>  #define BEEP_MASK_FROM_REG(val)		 (val)
+>  #define BEEP_MASK_TO_REG(val)		((val) & 0xffffff)
+>  #define BEEP_ENABLE_TO_REG(val)		((val)?1:0)
+> @@ -316,6 +369,7 @@ struct w83627hf_data {
+>  	u32 beep_mask;		/* Register encoding, combined */
+>  	u8 beep_enable;		/* Boolean */
+>  	u8 pwm[3];		/* Register value */
+> +	u8 pwm_freq[3];		/* Register value */=20
+>  	u16 sens[3];		/* 782D/783S only.
+>  				   1 =3D pentium diode; 2 =3D 3904 diode;
+>  				   3000-5000 =3D thermistor beta.
+> @@ -852,6 +906,59 @@ sysfs_pwm(2);
+>  sysfs_pwm(3);
+> =20
+>  static ssize_t
+> +show_pwm_freq_reg(struct device *dev, char *buf, int nr)
+> +{
+> +	struct w83627hf_data *data =3D w83627hf_update_device(dev);
+> +	if (data->type =3D w83627hf)=20
+> +		return sprintf(buf, "%ld\n", pwm_freq_from_reg_627hf(data->pwm_freq[nr=
+ - 1]));
+> +	else
+> +		return sprintf(buf, "%ld\n", pwm_freq_from_reg(data->pwm_freq[nr - 1])=
+);
+> +}
+> +
+> +static ssize_t
+> +store_pwm_freq_reg(struct device *dev, const char *buf, size_t count, in=
+t nr)
+> +{
+> +	struct w83627hf_data *data =3D dev_get_drvdata(dev);
+> +	static const u8 mask[]=3D{0xF8, 0x8F};
+> +	u32 val;
+> +
+> +	val =3D simple_strtoul(buf, NULL, 10);
+> +
+> +	mutex_lock(&data->update_lock);
+> +
+> +	if (data->type =3D w83627hf) {
+> +		data->pwm_freq[nr - 1] =3D pwm_freq_to_reg_627hf(val);
+> +		w83627hf_write_value(data, W83627HF_REG_PWM_FREQ,=20
+> +					(data->pwm_freq[nr - 1] << ((nr - 1)*4)) |=20
+> +					(w83627hf_read_value(data, W83627HF_REG_PWM_FREQ) & mask[nr - 1]));
+> +	} else {
+> +		data->pwm_freq[nr - 1] =3D pwm_freq_to_reg(val);
+> +		w83627hf_write_value(data, W83637HF_REG_PWM_FREQ[nr - 1],
+> +					data->pwm_freq[nr - 1]);
+> +	}
+> +
+> +	mutex_unlock(&data->update_lock);
+> +	return count;
+> +}
+> +
+> +#define sysfs_pwm_freq(offset) \
+> +static ssize_t show_regs_pwm_freq_##offset (struct device *dev, struct d=
+evice_attribute *attr, char *buf) \
+> +{ \
+> +	return show_pwm_freq_reg(dev, buf, offset); \
+> +} \
+> +static ssize_t \
+> +store_regs_pwm_freq_##offset (struct device *dev, struct device_attribut=
+e *attr, const char *buf, size_t count) \
+> +{ \
+> +	return store_pwm_freq_reg(dev, buf, count, offset); \
+> +} \
+> +static DEVICE_ATTR(pwm##offset##_freq, S_IRUGO | S_IWUSR, \
+> +		  show_regs_pwm_freq_##offset, store_regs_pwm_freq_##offset);
+> +
+> +sysfs_pwm_freq(1);
+> +sysfs_pwm_freq(2);
+> +sysfs_pwm_freq(3);
+> +
+> +static ssize_t
+>  show_sensor_reg(struct device *dev, char *buf, int nr)
+>  {
+>  	struct w83627hf_data *data =3D w83627hf_update_device(dev);
+> @@ -1075,6 +1182,9 @@ static struct attribute *w83627hf_attrib
+> =20
+>  	&dev_attr_pwm3.attr,
+> =20
+> +	&dev_attr_pwm1_freq.attr,
+> +	&dev_attr_pwm2_freq.attr,
+> +	&dev_attr_pwm3_freq.attr,
+>  	NULL
+>  };
+> =20
+> @@ -1137,7 +1247,9 @@ static int __devinit w83627hf_probe(stru
+>  		 || (err =3D device_create_file(dev, &dev_attr_in5_max))
+>  		 || (err =3D device_create_file(dev, &dev_attr_in6_input))
+>  		 || (err =3D device_create_file(dev, &dev_attr_in6_min))
+> -		 || (err =3D device_create_file(dev, &dev_attr_in6_max)))
+> +		 || (err =3D device_create_file(dev, &dev_attr_in6_max))
+> +		 || (err =3D device_create_file(dev, &dev_attr_pwm1_freq))
+> +		 || (err =3D device_create_file(dev, &dev_attr_pwm2_freq)))
+>  			goto ERROR4;
+> =20
+>  	if (data->type !=3D w83697hf)
+> @@ -1167,6 +1279,12 @@ static int __devinit w83627hf_probe(stru
+>  		if ((err =3D device_create_file(dev, &dev_attr_pwm3)))
+>  			goto ERROR4;
+> =20
+> +	if (data->type =3D w83637hf || data->type =3D w83687thf)
+> +		if ((err =3D device_create_file(dev, &dev_attr_pwm1_freq))
+> +		 || (err =3D device_create_file(dev, &dev_attr_pwm2_freq))
+> +		 || (err =3D device_create_file(dev, &dev_attr_pwm3_freq)))
+> +			goto ERROR4;
+> +
+>  	data->class_dev =3D hwmon_device_register(dev);
+>  	if (IS_ERR(data->class_dev)) {
+>  		err =3D PTR_ERR(data->class_dev);
+> @@ -1470,6 +1588,22 @@ static struct w83627hf_data *w83627hf_up
+>  			   (data->type =3D w83627hf || data->type =3D w83697hf))
+>  				break;
+>  		}
+> +		if (data->type !=3D w83627thf) {
+> +			if (data->type =3D w83627hf) {
+> +					u8 tmp =3D w83627hf_read_value(data,=20
+> +							W83627HF_REG_PWM_FREQ);
+> +					data->pwm_freq[0] =3D tmp & 0x07;
+> +					data->pwm_freq[1] =3D (tmp >> 4) & 0x07;
+> +				}
+> +			else {
+> +				for (i =3D 1; i <=3D 3; i++) {
+> +					data->pwm_freq[i - 1] =3D w83627hf_read_value(data,
+> +								 W83637HF_REG_PWM_FREQ[i - 1]);
+> +					if(i =3D 2 && (data->type =3D w83697hf))
+> +						break;
+> +				}
+> +			}
+> +		}
+
+The type tests can be optimized:
+
+		if (data->type =3D w83627hf) {
+			(...)
+		} else if (data->type !=3D w83627thf) {
+			(...)
+		}
 
 
+> =20
+>  		data->temp =3D w83627hf_read_value(data, W83781D_REG_TEMP(1));
+>  		data->temp_max=20
+Other than that, your patch looks good to me, thanks. Please provide an
+updated version addressing the few remaining issues and I'll apply it.
 
->Please address my comments, test and resubmit.
-
-Resubmission, sending it as an attachment.
-
-Signed-off-by:
-Carlos Olalla <com.ea@tinet.org>
-
---0584fsu_trap_67241_91554162507002_=----
-Content-Type: text/html; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-
-&gt;Please address my comments, test and resubmit.<br /><br
-/>Resubmission, sending it as an attachment.<br /><br />Signed-off-by:
-Carlos Olalla &lt;com.ea@tinet.org&gt;
---0584fsu_trap_67241_91554162507002_=------
-
-------=_20070526145519_14276
-Content-Type: application/octet-stream; name="patch_2.6.22-rc1"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="patch_2.6.22-rc1"
-
-ZGlmZiAtdXByTiAtWCBsaW51eC0yLjYuMjItcmMxL0RvY3VtZW50YXRpb24vZG9udGRpZmYgbGlu
-dXgtMi42LjIyLXJjMS5vcmlnL2RyaXZlcnMvaHdtb24vdzgzNjI3aGYuYyBsaW51eC0yLjYuMjIt
-cmMxL2RyaXZlcnMvaHdtb24vdzgzNjI3aGYuYwotLS0gbGludXgtMi42LjIyLXJjMS5vcmlnL2Ry
-aXZlcnMvaHdtb24vdzgzNjI3aGYuYwkyMDA3LTA1LTEzIDAzOjQ1OjU2LjAwMDAwMDAwMCArMDIw
-MAorKysgbGludXgtMi42LjIyLXJjMS9kcml2ZXJzL2h3bW9uL3c4MzYyN2hmLmMJMjAwNy0wNS0y
-NiAxNDo0NTowNS4wMDAwMDAwMDAgKzAyMDAKQEAgLTIyMCw2ICsyMjAsMTggQEAgc3RhdGljIGNv
-bnN0IHU4IHJlZ3B3bVtdID0geyBXODM2MjdUSEZfUgogI2RlZmluZSBXODM2WDdIRl9SRUdfUFdN
-KHR5cGUsIG5yKSAoKCh0eXBlKSA9PSB3ODM2MjdoZikgPyBcCiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgcmVncHdtXzYyN2hmWyhucikgLSAxXSA6IHJlZ3B3bVsobnIpIC0g
-MV0pCiAKKyNkZWZpbmUgVzgzNjI3SEZfUkVHX1BXTV9GUkVRCQkweDVDCS8qIE9ubHkgZm9yIHRo
-ZSA2MjdIRiAqLworCisjZGVmaW5lIFc4MzYzN0hGX1JFR19QV01fRlJFUTEJCTB4MDAJLyogNjk3
-SEYvNjg3VEhGIHRvbyAqLworI2RlZmluZSBXODM2MzdIRl9SRUdfUFdNX0ZSRVEyCQkweDAyCS8q
-IDY5N0hGLzY4N1RIRiB0b28gKi8KKyNkZWZpbmUgVzgzNjM3SEZfUkVHX1BXTV9GUkVRMwkJMHgx
-MAkvKiA2ODdUSEYgdG9vICovCisKK3N0YXRpYyBjb25zdCB1OCBXODM2MzdIRl9SRUdfUFdNX0ZS
-RVFbXSA9IHsgVzgzNjM3SEZfUkVHX1BXTV9GUkVRMSwgCisJCQkJCVc4MzYzN0hGX1JFR19QV01f
-RlJFUTIsIAorCQkJCQlXODM2MzdIRl9SRUdfUFdNX0ZSRVExIH07CisKKyNkZWZpbmUgVzgzNjI3
-SEZfQkFTRV9QV01fRlJFUQk0Njg3MAorCiAjZGVmaW5lIFc4Mzc4MURfUkVHX0kyQ19BRERSIDB4
-NDgKICNkZWZpbmUgVzgzNzgxRF9SRUdfSTJDX1NVQkFERFIgMHg0QQogCkBAIC0yNjcsNiArMjc5
-LDQ3IEBAIHN0YXRpYyBpbnQgVEVNUF9GUk9NX1JFRyh1OCByZWcpCiAKICNkZWZpbmUgUFdNX1RP
-X1JFRyh2YWwpIChTRU5TT1JTX0xJTUlUKCh2YWwpLDAsMjU1KSkKIAorc3RhdGljIGlubGluZSB1
-bnNpZ25lZCBsb25nIHB3bV9mcmVxX2Zyb21fcmVnXzYyN2hmKHU4IHJlZykKK3sKKwl1bnNpZ25l
-ZCBsb25nIGZyZXE7CisJZnJlcSA9IFc4MzYyN0hGX0JBU0VfUFdNX0ZSRVEgPj4gcmVnOworCXJl
-dHVybiBmcmVxOworfQorc3RhdGljIGlubGluZSB1OCBwd21fZnJlcV90b19yZWdfNjI3aGYodW5z
-aWduZWQgbG9uZyB2YWwpCit7CisJdTggaTsKKwkvKiBPbmx5IDUgZGl2aWRlcnMgKDEgMiA0IDgg
-MTYpLi4uIFNlYXJjaCBmb3IgdGhlIG5lYXJlc3QgYXZhaWxhYmxlIGZyZXF1ZW5jeSAqLworCWZv
-ciAoaSA9IDA7IGkgPCA1OyBpKyspIHsKKwkJaWYgKHZhbCA+ICgoKFc4MzYyN0hGX0JBU0VfUFdN
-X0ZSRVEgPj4gaSkgKyAoVzgzNjI3SEZfQkFTRV9QV01fRlJFUSA+PiAoaSsxKSkpIC8gMikpIAor
-CQkJYnJlYWs7CisJfQorCXJldHVybiBpOworfQorCitzdGF0aWMgaW5saW5lIHVuc2lnbmVkIGxv
-bmcgcHdtX2ZyZXFfZnJvbV9yZWcodTggcmVnKQoreworCS8qIENsb2NrIGJpdCA4IC0+IDE4MCBr
-SHogb3IgMjQgTUh6ICovCisJdW5zaWduZWQgbG9uZyBjbG9jayA9IChyZWcgJiAweDgwKSA/IDE4
-MDAwMFVMIDogMjQwMDAwMDBVTDsKKworCXJlZyAmPSAweDdmOworCS8qIFRoaXMgc2hvdWxkIG5v
-dCBoYXBwZW4gYnV0IGFueXdheS4uLiAqLworCWlmIChyZWcgPT0gMCkKKwkJcmVnKys7CisJcmV0
-dXJuIChjbG9jayAvIChyZWcgPDwgOCkpOworfQorc3RhdGljIGlubGluZSB1OCBwd21fZnJlcV90
-b19yZWcodW5zaWduZWQgbG9uZyB2YWwpCit7CisJLyogTWluaW11bSBkaXZpZGVyIHZhbHVlIGlz
-IDB4MDEgYW5kIG1heGltdW0gaXMgMHg3RiAqLworCWlmICh2YWwgPj0gOTM3NTApCS8qIFRoZSBo
-aWdoZXN0IHdlIGNhbiBkbyAqLworCQlyZXR1cm4gMHgwMTsKKwlpZiAodmFsID49IDcyMCkJLyog
-VXNlIDI0IE1IeiBjbG9jayAqLworCQlyZXR1cm4gKDI0MDAwMDAwVUwgLyAodmFsIDw8IDgpKTsK
-KwlpZiAodmFsIDwgNikJCS8qIFRoZSBsb3dlc3Qgd2UgY2FuIGRvICovCisJCXJldHVybiAweEZG
-OworCWVsc2UJCQkvKiBVc2UgMTgwIGtIeiBjbG9jayAqLworCQlyZXR1cm4gKDB4ODAgfCAoMTgw
-MDAwVUwgLyAodmFsIDw8IDgpKSk7Cit9CisKICNkZWZpbmUgQkVFUF9NQVNLX0ZST01fUkVHKHZh
-bCkJCSAodmFsKQogI2RlZmluZSBCRUVQX01BU0tfVE9fUkVHKHZhbCkJCSgodmFsKSAmIDB4ZmZm
-ZmZmKQogI2RlZmluZSBCRUVQX0VOQUJMRV9UT19SRUcodmFsKQkJKCh2YWwpPzE6MCkKQEAgLTMx
-Niw2ICszNjksNyBAQCBzdHJ1Y3QgdzgzNjI3aGZfZGF0YSB7CiAJdTMyIGJlZXBfbWFzazsJCS8q
-IFJlZ2lzdGVyIGVuY29kaW5nLCBjb21iaW5lZCAqLwogCXU4IGJlZXBfZW5hYmxlOwkJLyogQm9v
-bGVhbiAqLwogCXU4IHB3bVszXTsJCS8qIFJlZ2lzdGVyIHZhbHVlICovCisJdTggcHdtX2ZyZXFb
-M107CQkvKiBSZWdpc3RlciB2YWx1ZSAqLyAKIAl1MTYgc2Vuc1szXTsJCS8qIDc4MkQvNzgzUyBv
-bmx5LgogCQkJCSAgIDEgPSBwZW50aXVtIGRpb2RlOyAyID0gMzkwNCBkaW9kZTsKIAkJCQkgICAz
-MDAwLTUwMDAgPSB0aGVybWlzdG9yIGJldGEuCkBAIC04NTIsNiArOTA2LDU5IEBAIHN5c2ZzX3B3
-bSgyKTsKIHN5c2ZzX3B3bSgzKTsKIAogc3RhdGljIHNzaXplX3QKK3Nob3dfcHdtX2ZyZXFfcmVn
-KHN0cnVjdCBkZXZpY2UgKmRldiwgY2hhciAqYnVmLCBpbnQgbnIpCit7CisJc3RydWN0IHc4MzYy
-N2hmX2RhdGEgKmRhdGEgPSB3ODM2MjdoZl91cGRhdGVfZGV2aWNlKGRldik7CisJaWYgKGRhdGEt
-PnR5cGUgPT0gdzgzNjI3aGYpIAorCQlyZXR1cm4gc3ByaW50ZihidWYsICIlbGRcbiIsIHB3bV9m
-cmVxX2Zyb21fcmVnXzYyN2hmKGRhdGEtPnB3bV9mcmVxW25yIC0gMV0pKTsKKwllbHNlCisJCXJl
-dHVybiBzcHJpbnRmKGJ1ZiwgIiVsZFxuIiwgcHdtX2ZyZXFfZnJvbV9yZWcoZGF0YS0+cHdtX2Zy
-ZXFbbnIgLSAxXSkpOworfQorCitzdGF0aWMgc3NpemVfdAorc3RvcmVfcHdtX2ZyZXFfcmVnKHN0
-cnVjdCBkZXZpY2UgKmRldiwgY29uc3QgY2hhciAqYnVmLCBzaXplX3QgY291bnQsIGludCBucikK
-K3sKKwlzdHJ1Y3QgdzgzNjI3aGZfZGF0YSAqZGF0YSA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOwor
-CXN0YXRpYyBjb25zdCB1OCBtYXNrW109ezB4RjgsIDB4OEZ9OworCXUzMiB2YWw7CisKKwl2YWwg
-PSBzaW1wbGVfc3RydG91bChidWYsIE5VTEwsIDEwKTsKKworCW11dGV4X2xvY2soJmRhdGEtPnVw
-ZGF0ZV9sb2NrKTsKKworCWlmIChkYXRhLT50eXBlID09IHc4MzYyN2hmKSB7CisJCWRhdGEtPnB3
-bV9mcmVxW25yIC0gMV0gPSBwd21fZnJlcV90b19yZWdfNjI3aGYodmFsKTsKKwkJdzgzNjI3aGZf
-d3JpdGVfdmFsdWUoZGF0YSwgVzgzNjI3SEZfUkVHX1BXTV9GUkVRLCAKKwkJCQkJKGRhdGEtPnB3
-bV9mcmVxW25yIC0gMV0gPDwgKChuciAtIDEpKjQpKSB8IAorCQkJCQkodzgzNjI3aGZfcmVhZF92
-YWx1ZShkYXRhLCBXODM2MjdIRl9SRUdfUFdNX0ZSRVEpICYgbWFza1tuciAtIDFdKSk7CisJfSBl
-bHNlIHsKKwkJZGF0YS0+cHdtX2ZyZXFbbnIgLSAxXSA9IHB3bV9mcmVxX3RvX3JlZyh2YWwpOwor
-CQl3ODM2MjdoZl93cml0ZV92YWx1ZShkYXRhLCBXODM2MzdIRl9SRUdfUFdNX0ZSRVFbbnIgLSAx
-XSwKKwkJCQkJZGF0YS0+cHdtX2ZyZXFbbnIgLSAxXSk7CisJfQorCisJbXV0ZXhfdW5sb2NrKCZk
-YXRhLT51cGRhdGVfbG9jayk7CisJcmV0dXJuIGNvdW50OworfQorCisjZGVmaW5lIHN5c2ZzX3B3
-bV9mcmVxKG9mZnNldCkgXAorc3RhdGljIHNzaXplX3Qgc2hvd19yZWdzX3B3bV9mcmVxXyMjb2Zm
-c2V0IChzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLCBj
-aGFyICpidWYpIFwKK3sgXAorCXJldHVybiBzaG93X3B3bV9mcmVxX3JlZyhkZXYsIGJ1Ziwgb2Zm
-c2V0KTsgXAorfSBcCitzdGF0aWMgc3NpemVfdCBcCitzdG9yZV9yZWdzX3B3bV9mcmVxXyMjb2Zm
-c2V0IChzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLCBj
-b25zdCBjaGFyICpidWYsIHNpemVfdCBjb3VudCkgXAoreyBcCisJcmV0dXJuIHN0b3JlX3B3bV9m
-cmVxX3JlZyhkZXYsIGJ1ZiwgY291bnQsIG9mZnNldCk7IFwKK30gXAorc3RhdGljIERFVklDRV9B
-VFRSKHB3bSMjb2Zmc2V0IyNfZnJlcSwgU19JUlVHTyB8IFNfSVdVU1IsIFwKKwkJICBzaG93X3Jl
-Z3NfcHdtX2ZyZXFfIyNvZmZzZXQsIHN0b3JlX3JlZ3NfcHdtX2ZyZXFfIyNvZmZzZXQpOworCitz
-eXNmc19wd21fZnJlcSgxKTsKK3N5c2ZzX3B3bV9mcmVxKDIpOworc3lzZnNfcHdtX2ZyZXEoMyk7
-CisKK3N0YXRpYyBzc2l6ZV90CiBzaG93X3NlbnNvcl9yZWcoc3RydWN0IGRldmljZSAqZGV2LCBj
-aGFyICpidWYsIGludCBucikKIHsKIAlzdHJ1Y3QgdzgzNjI3aGZfZGF0YSAqZGF0YSA9IHc4MzYy
-N2hmX3VwZGF0ZV9kZXZpY2UoZGV2KTsKQEAgLTEwNzUsNiArMTE4Miw5IEBAIHN0YXRpYyBzdHJ1
-Y3QgYXR0cmlidXRlICp3ODM2MjdoZl9hdHRyaWIKIAogCSZkZXZfYXR0cl9wd20zLmF0dHIsCiAK
-KwkmZGV2X2F0dHJfcHdtMV9mcmVxLmF0dHIsCisJJmRldl9hdHRyX3B3bTJfZnJlcS5hdHRyLAor
-CSZkZXZfYXR0cl9wd20zX2ZyZXEuYXR0ciwKIAlOVUxMCiB9OwogCkBAIC0xMTM3LDcgKzEyNDcs
-OSBAQCBzdGF0aWMgaW50IF9fZGV2aW5pdCB3ODM2MjdoZl9wcm9iZShzdHJ1CiAJCSB8fCAoZXJy
-ID0gZGV2aWNlX2NyZWF0ZV9maWxlKGRldiwgJmRldl9hdHRyX2luNV9tYXgpKQogCQkgfHwgKGVy
-ciA9IGRldmljZV9jcmVhdGVfZmlsZShkZXYsICZkZXZfYXR0cl9pbjZfaW5wdXQpKQogCQkgfHwg
-KGVyciA9IGRldmljZV9jcmVhdGVfZmlsZShkZXYsICZkZXZfYXR0cl9pbjZfbWluKSkKLQkJIHx8
-IChlcnIgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoZGV2LCAmZGV2X2F0dHJfaW42X21heCkpKQorCQkg
-fHwgKGVyciA9IGRldmljZV9jcmVhdGVfZmlsZShkZXYsICZkZXZfYXR0cl9pbjZfbWF4KSkKKwkJ
-IHx8IChlcnIgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoZGV2LCAmZGV2X2F0dHJfcHdtMV9mcmVxKSkK
-KwkJIHx8IChlcnIgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoZGV2LCAmZGV2X2F0dHJfcHdtMl9mcmVx
-KSkpCiAJCQlnb3RvIEVSUk9SNDsKIAogCWlmIChkYXRhLT50eXBlICE9IHc4MzY5N2hmKQpAQCAt
-MTE2Nyw2ICsxMjc5LDEyIEBAIHN0YXRpYyBpbnQgX19kZXZpbml0IHc4MzYyN2hmX3Byb2JlKHN0
-cnUKIAkJaWYgKChlcnIgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoZGV2LCAmZGV2X2F0dHJfcHdtMykp
-KQogCQkJZ290byBFUlJPUjQ7CiAKKwlpZiAoZGF0YS0+dHlwZSA9PSB3ODM2MzdoZiB8fCBkYXRh
-LT50eXBlID09IHc4MzY4N3RoZikKKwkJaWYgKChlcnIgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoZGV2
-LCAmZGV2X2F0dHJfcHdtMV9mcmVxKSkKKwkJIHx8IChlcnIgPSBkZXZpY2VfY3JlYXRlX2ZpbGUo
-ZGV2LCAmZGV2X2F0dHJfcHdtMl9mcmVxKSkKKwkJIHx8IChlcnIgPSBkZXZpY2VfY3JlYXRlX2Zp
-bGUoZGV2LCAmZGV2X2F0dHJfcHdtM19mcmVxKSkpCisJCQlnb3RvIEVSUk9SNDsKKwogCWRhdGEt
-PmNsYXNzX2RldiA9IGh3bW9uX2RldmljZV9yZWdpc3RlcihkZXYpOwogCWlmIChJU19FUlIoZGF0
-YS0+Y2xhc3NfZGV2KSkgewogCQllcnIgPSBQVFJfRVJSKGRhdGEtPmNsYXNzX2Rldik7CkBAIC0x
-NDcwLDYgKzE1ODgsMjIgQEAgc3RhdGljIHN0cnVjdCB3ODM2MjdoZl9kYXRhICp3ODM2MjdoZl91
-cAogCQkJICAgKGRhdGEtPnR5cGUgPT0gdzgzNjI3aGYgfHwgZGF0YS0+dHlwZSA9PSB3ODM2OTdo
-ZikpCiAJCQkJYnJlYWs7CiAJCX0KKwkJaWYgKGRhdGEtPnR5cGUgIT0gdzgzNjI3dGhmKSB7CisJ
-CQlpZiAoZGF0YS0+dHlwZSA9PSB3ODM2MjdoZikgeworCQkJCQl1OCB0bXAgPSB3ODM2MjdoZl9y
-ZWFkX3ZhbHVlKGRhdGEsIAorCQkJCQkJCVc4MzYyN0hGX1JFR19QV01fRlJFUSk7CisJCQkJCWRh
-dGEtPnB3bV9mcmVxWzBdID0gdG1wICYgMHgwNzsKKwkJCQkJZGF0YS0+cHdtX2ZyZXFbMV0gPSAo
-dG1wID4+IDQpICYgMHgwNzsKKwkJCQl9CisJCQllbHNlIHsKKwkJCQlmb3IgKGkgPSAxOyBpIDw9
-IDM7IGkrKykgeworCQkJCQlkYXRhLT5wd21fZnJlcVtpIC0gMV0gPSB3ODM2MjdoZl9yZWFkX3Zh
-bHVlKGRhdGEsCisJCQkJCQkJCSBXODM2MzdIRl9SRUdfUFdNX0ZSRVFbaSAtIDFdKTsKKwkJCQkJ
-aWYoaSA9PSAyICYmIChkYXRhLT50eXBlID09IHc4MzY5N2hmKSkKKwkJCQkJCWJyZWFrOworCQkJ
-CX0KKwkJCX0KKwkJfQogCiAJCWRhdGEtPnRlbXAgPSB3ODM2MjdoZl9yZWFkX3ZhbHVlKGRhdGEs
-IFc4Mzc4MURfUkVHX1RFTVAoMSkpOwogCQlkYXRhLT50ZW1wX21heCA9Cg==
-------=_20070526145519_14276
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_20070526145519_14276--
-
-
