@@ -1,117 +1,117 @@
-From: "Sasha Alexandr" <tsassgirl@hotmail.com>
-Date: Tue, 08 May 2007 20:13:29 +0000
-Subject: [lm-sensors] MSI-6580/845PE Max v2.0 sensors.conf file
-Message-Id: <BAY140-F269F3E6237D16DA3E7E094B9440@phx.gbl>
+From: "David Corlette" <dcorlette@novell.com>
+Date: Thu, 31 May 2007 02:40:01 +0000
+Subject: Re: [lm-sensors] #2198: Would like support for HP nc6230	laptop
+Message-Id: <465DEF31.AAAE.008A.0@novell.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi people! To whom it may concern: keep up the excellent work on the 
-lm_sensors project :)
-Here's my tiny contribution, my sensors.conf file. While it is relatively 
-simple, I had a near-impossible time finding close matches to my own machine 
-for comparison, so for others with the same/similar machine, I hope that 
-this helps you :)
-The resulting outputs match my BIOS screen perfectly, though I am not 100% 
-certain what 'Vcore_2' is reading -- either CPU core voltage #2, or maybe 
-North Bridge voltage?
-And all the other readings are available in the BIOS except Rear Case Fan, 
-which the BIOS doesn't report, but IS readable with lm_sensors.
-Enjoy!
+Not sure this will work, but:
 
-# File begins:
-# Machine: MSI-6580 i845PE Max V2.0 w/Intel P4 Williamette 1.8 Ghz
-# Stock CPU Speed = 1804 Mhz Overclocked to 2410 Mhz
-# i82801 ICH4 (North Bridge?)
-# BIOS - AMIBIOS 63-4000-001109-00101111-040201-845GE/PE-16580000
-# Contrib: Sasha GrapefruiTgirl - tsassgirl at hotmail dot com
-#----------------------------------------------------------------
-# setting up temp sensor types (thermistor is default):
-# 1 = PII/Celeron Diode
-# 2 = 3904 transistor;
-# 3435 = thermistor with Beta
-# adjust vrm if your vid is wrong; see doc/vid
-# CPU Temp reading is offset 10'C from BIOS reading; fixed
-# 3.0V and 3.3V are switched around in BIOS and LM_sensors; fixed
-# Other sensors appear unused; ignore them if desired;
-#----------------------------------------------------------------
+sensors:
+sensors version 2.10.0 with libsensors version 2.10.0
 
-    chip          "w83627hf-isa-0290"
-    set vrm 9.0
+sensors-detect:
+(downloaded today, actually)
 
-    label vid     "(BIOS) VCore ID"
-    label clock	  "CPU MHz"
+Output:
+# sensors-detect revision $Revision$
 
-    label temp1   "System Temp"
-	set temp1_over 45
-	set temp1_hyst 40
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
 
-    label temp2   "Northbridge Temp"
-	set temp2_over 55
-	set temp2_hyst 52
+We can start with probing for (PCI) I2C or SMBus adapters.
+Do you want to probe now? (YES/no): YES
+Probing for PCI bus adapters...
+Sorry, no known PCI bus adapters found.
 
-    label temp3   "CPU Temp"
-	compute temp3 (@ - 10),(@ + 10)
-	set temp3_over 55
-	set temp3_hyst 52
+We will now try to load each adapter module in turn.
+If you have undetectable or unsupported adapters, you can have them
+scanned by manually loading the modules before running this script.
 
-    label fan1    "CPU Fan RPM"
-	set fan1_div 4
-	set fan1_min 2000
+We are now going to do the I2C/SMBus adapter probings. Some chips may
+be double detected; we choose the one with the highest confidence
+value in that case.
+If you found that the adapter hung after probing a certain address,
+you can specify that address to remain unprobed.
 
-    label fan2    "Rear Fan RPM"
-	set fan2_div 4
-	set fan2_min 2000
+Some chips are also accessible through the ISA I/O ports. We have to
+write to arbitrary I/O ports to probe them. This is usually safe though.
+Yes, you do have ISA I/O ports even if you do not have any ISA slots!
+Do you want to scan the ISA I/O ports? (YES/no): YES
+Probing for `National Semiconductor LM78' at 0x290...       No
+Probing for `National Semiconductor LM78-J' at 0x290...     No
+Probing for `National Semiconductor LM79' at 0x290...       No
+Probing for `Winbond W83781D' at 0x290...                   No
+Probing for `Winbond W83782D' at 0x290...                   No
+Probing for `Silicon Integrated Systems SIS5595'...         No
+Probing for `VIA VT82C686 Integrated Sensors'...            No
+Probing for `VIA VT8231 Integrated Sensors'...              No
+Probing for `IPMI BMC KCS' at 0xca0...                      No
+Probing for `IPMI BMC SMIC' at 0xca8...                     No
 
-    ignore fan3
+Some Super I/O chips may also contain sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no): YES
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     Yes
+Found unknown chip with ID 0x0f00
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     Yes
+Found unknown chip with ID 0x3c00
 
-    label in0    "CPU VCore 1"
-	set in0_min vid * 0.95
-	set in0_max vid * 1.025
+Some CPUs or memory controllers may also contain embedded sensors.
+Do you want to scan for them? (YES/no): YES
+AMD K8 thermal sensors...                                   No
+Intel Core family thermal sensor...                         No
+Intel AMB FB-DIMM thermal sensor...                         No
 
-    label in1    "CPU VCore 2"
-	set in1_min vid * 0.95
-	set in1_max vid * 1.025
+Sorry, no sensors were detected.
+Either your sensors are not supported, or they are connected to an
+I2C or SMBus adapter that is not supported. See doc/FAQ,
+doc/lm_sensors-FAQ.html or http://www.lm-sensors.org/wiki/FAQ
+(FAQ #4.24.3) for further information.
+If you find out what chips are on your board, check
+http://www.lm-sensors.org/wiki/Devices for driver status.
 
-    label in2    "+3.0V CMOS Bat"
-        set in2_min 3.0 * 0.95
-	set in2_max 3.0 * 1.05
 
-    label in3    "+5V"
-	compute in3 ((6.8/10)+1)*@ , @/((6.8/10)+1)
-	set in3_min 5.0 * 0.95
-	set in3_max 5.0 * 1.05
 
-    label in4    "+12V"
-	compute in4 ((28/10)+1)*@ , @/((28/10)+1)
-	set in4_min 12 * 0.90
-	set in4_max 12 * 1.10
 
-    label in5    "-12V"
-	compute in5 (5.14 * @) - 14.91 , (@ + 14.91) / 5.14
-	set in5_max -12 * 0.90
-	set in5_min -12 * 1.10
-
-    label in6    "-5V"
-	compute in6 (3.14 * @) - 7.71 , (@ +  7.71) / 3.14
-        set in6_max -5 * 0.95
-	set in6_min -5 * 1.05
-
-    label in7    "+5.0V SB"
-	compute in7 ((6.8/10)+1)*@ , @/((6.8/10)+1)
-        set in7_min 5 * 0.95
-	set in7_max 5 * 1.10
-
-    label in8    "+3.3V"
-	set in8_min 3.3 * 0.980
-	set in8_max 3.3 * 1.02
-
-# EOF
-
-_________________________________________________________________
-http://www.imagine-windowslive.com/Themes/Messenger/Reward/Default.aspx?Locale=en-CA#
+>>> On Fri, May 25, 2007 at  9:39 PM, in message
+<049.4d5647c53b7ff9614f4fa5edeae24e8a@lm-sensors.org>, "lm-sensors"
+<lm-sensors-notify@lm-sensors.org> wrote: 
+> #2198: Would like support for HP nc6230 laptop
+> --------------------------+-------------------------------------------------
+>   Reporter:  ticket       |       Owner:  juergh     
+>       Type:  enhancement  |      Status:  new        
+>   Priority:  minor        |   Milestone:             
+>  Component:  hardware     |     Version:             
+> Resolution:               |    Keywords:  SMSC nc6230
+> --------------------------+-------------------------------------------------
+> Changes (by juergh):
+> 
+>   * owner:  somebody => juergh
+> 
+> Comment:
+> 
+>  Could you please post the sensors-detect and sensors versions and the full
+>  output of sensors-detect?
+> 
+>  I own a nc6000 and will try it over the next couple of days and report
+>  what I find.
+> 
+>  ...juerg
+> 
+> -- 
+> Ticket URL: <http://www.lm-sensors.org/ticket/2198#comment:1>
+> lm-sensors <http://lm-sensors.org/>
+> Linux hardware monitoring
 
 
 _______________________________________________
