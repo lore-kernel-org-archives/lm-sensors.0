@@ -1,212 +1,130 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Fri, 01 Jun 2007 15:59:32 +0000
+From: "KEITH ROMBERG" <k_romberg@msn.com>
+Date: Sat, 02 Jun 2007 06:23:43 +0000
 Subject: Re: [lm-sensors] Intel SRSH4 Motherboard Sensors
-Message-Id: <191fb4ca0706010859u3c573fb4sd2ac348c5f07244f@mail.gmail.com>
+Message-Id: <BAY117-F803E9C9FC742BBA73B4DC93230@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <465336B0.2030304@ucar.edu>
 In-Reply-To: <465336B0.2030304@ucar.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Keith,
 
-On 5/31/07, KEITH ROMBERG <k_romberg@msn.com> wrote:
-> Hey Juerg,
->
-> OK, I also loaded ipmi_msghandler as I was not loading it before.  I am n=
-ot
-> loading these modules in my rc.local file:
->
-> i2c-piix4
-> i2c-ipmi
-> eeprom
-> ipmisensors
-> ipmi_msghandler
-> hwmon
-
-You should load ipmi_msghandler and hwmon first, ipmisensors depends on the=
-m.
-
-
-> in that order.  Looking at /sys/classes, it is empty.
-
-That;s unlikely. There should be lots of stuff in /sys/classes. What
-about /sys/classes/hwmon?
-
-
-> When I manually load
-> the modules, via rmmod & modprobe, and look at /var/log/messages the only
-> entries are:
->
-> May 31 15:01:26 smaug kernel: ipmi message handler version 39.1
-> May 31 15:01:26 smaug kernel: ipmisensors - IPMI BMC sensors interface
-
-Hmm... That doesn't look good. Can you try to just modprobe
-ipmi_msghandler? You should see something like the following in the
-log. It almost looks like ipmi doens't find a BMC on your system. And
-could you please send the output of lsmod to the list?
-
-May 30 14:51:54 clim1 kernel: ipmi message handler version 39.0
-May 30 14:51:54 clim1 kernel: IPMI System Interface driver.
-May 30 14:51:54 clim1 kernel: ipmi_si: Trying SMBIOS-specified KCS
-state machine at I/O address 0xca2, slave address 0x20, irq 0
-May 30 14:51:54 clim1 kernel: ipmi: Found new BMC (man_id: 0x00000b,
-prod_id: 0x0000, dev_id: 0x11)
-May 30 14:51:54 clim1 kernel:  IPMI KCS interface initialized
-May 30 14:51:54 clim1 kernel: ipmi_si: Trying ACPI-specified KCS state
-machine at memory address 0xca2, slave address 0x0, irq 0
-May 30 14:51:54 clim1 kernel:  Could not set up I/O space
-May 30 14:51:54 clim1 kernel: Trying to free nonexistent resource
-<0000000000000ca2-0000000000000ca3>
-May 30 14:51:54 clim1 kernel: Trying to free nonexistent resource
-<0000000000000ca4-0000000000000ca5>
-May 30 14:51:54 clim1 kernel: GSI 27 sharing vector 0xA2 and IRQ 27
-May 30 14:51:54 clim1 kernel: ACPI: PCI Interrupt 0000:00:04.6[A] ->
-GSI 46 (level, low) -> IRQ 162
-May 30 14:51:54 clim1 kernel: ipmi_si: Trying PCI-specified KCS state
-machine at memory address 0xf5ef0000, slave address 0x0, irq 162
-May 30 14:51:54 clim1 kernel:   Using irq 162
-May 30 14:51:54 clim1 kernel: ipmi: interfacing existing BMC (man_id:
-0x00000b, prod_id: 0x0000, dev_id: 0x11)
-May 30 14:51:54 clim1 kernel:  IPMI KCS interface initialized
-May 30 14:51:54 clim1 kernel: ipmi device interface
 
 
 >
-> As I said before I am using 2.6.21 patched with the experimential ipmi
-> patch.  Juerg what kernel are you using and do you also have a SRSH4 based
-> system?  Any other pointers are things to try?
+>Hi Keith,
+>
+>>
+>
+>You should load ipmi_msghandler and hwmon first, ipmisensors depends on 
+>them.
+>
+>
 
-I'm running 2.6.20.9 with the experimental ipmisensors patch on an HP
-DL385G2. This is not an SRSH4 based system.
+OK, I changed the order and now load them
 
-...juerg
+2c-piix4
+2c-ipmi
+eprom
+ipmi_msghandler
+hwmon
+ipmisensors
 
 
-> Thanks,
-> Keith
+
 >
-> >
-> >Keith,
-> >
-> >Make sure you have the ipmisensors and ipmi_msghandler modules
-> >installed. Check if there are any entries under /sys/class/hwmon.
-> >Check /var/log/messages, it should read something like the following
-> >after loading the ipmisensors module:
-> >
-> >May 30 14:37:54 clim1 kernel: ipmisensors - IPMI BMC sensors interface
-> >May 30 14:37:54 clim1 kernel: ipmisensors: Registered IPMI 2.0 BMC
-> >over interface 0
-> >May 30 14:37:54 clim1 kernel: ipmisensors: Skipping SDR type 0xc0
-> >May 30 14:37:54 clim1 kernel: ipmisensors: Skipping SDR type 0x8
-> >May 30 14:37:54 clim1 kernel: ipmisensors: skipping non-threshold sensor
-> >"Fan 1"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: skipping non-threshold sensor
-> >"Fan 2"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: skipping non-threshold sensor
-> >"Fan 3"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: skipping non-threshold sensor
-> >"Fan 4"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: skipping non-threshold sensor
-> >"Fan 5"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: skipping non-threshold sensor
-> >"Fan 6"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: skipping non-threshold sensor
-> >"Fan 7"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: skipping non-threshold sensor
-> >"Fan 8"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: skipping non-threshold sensor
-> >"Fan 9"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: skipping non-threshold
-> >sensor "Fan 10"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: skipping non-threshold
-> >sensor "Fan 11"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: skipping non-threshold
-> >sensor "Fan 12"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: skipping non-threshold sensor
-> >"Fans"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: Skipping SDR type 0x8
-> >May 30 14:37:55 clim1 kernel: ipmisensors: all sensors detected
-> >May 30 14:37:55 clim1 kernel: ipmisensors: registering sensor 27:
-> >(type 0x01) (fmt=3D0; m=3D1; b=3D0; k1=3D0; k2=3D0; cap=3D0xc9; mask=3D0=
-x0030)
-> >May 30 14:37:55 clim1 kernel: ipmisensors: sensors.conf: label temp1 "Te=
-mp
-> >6"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: using upper critical
-> >threshold for upper limit
-> >May 30 14:37:55 clim1 kernel: ipmisensors: registering sensor 26:
-> >(type 0x01) (fmt=3D0; m=3D1; b=3D0; k1=3D0; k2=3D0; cap=3D0xc9; mask=3D0=
-x0030)
-> >May 30 14:37:55 clim1 kernel: ipmisensors: sensors.conf: label temp2 "Te=
-mp
-> >5"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: using upper critical
-> >threshold for upper limit
-> >May 30 14:37:55 clim1 kernel: ipmisensors: registering sensor 25:
-> >(type 0x01) (fmt=3D0; m=3D1; b=3D0; k1=3D0; k2=3D0; cap=3D0xc9; mask=3D0=
-x0030)
-> >May 30 14:37:55 clim1 kernel: ipmisensors: sensors.conf: label temp3 "Te=
-mp
-> >4"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: using upper critical
-> >threshold for upper limit
-> >May 30 14:37:55 clim1 kernel: ipmisensors: registering sensor 24:
-> >(type 0x01) (fmt=3D0; m=3D1; b=3D0; k1=3D0; k2=3D0; cap=3D0xc9; mask=3D0=
-x0030)
-> >May 30 14:37:55 clim1 kernel: ipmisensors: sensors.conf: label temp4 "Te=
-mp
-> >3"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: using upper critical
-> >threshold for upper limit
-> >May 30 14:37:55 clim1 kernel: ipmisensors: registering sensor 23:
-> >(type 0x01) (fmt=3D0; m=3D1; b=3D0; k1=3D0; k2=3D0; cap=3D0xc9; mask=3D0=
-x0030)
-> >May 30 14:37:55 clim1 kernel: ipmisensors: sensors.conf: label temp5 "Te=
-mp
-> >2"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: using upper critical
-> >threshold for upper limit
-> >May 30 14:37:55 clim1 kernel: ipmisensors: registering sensor 22:
-> >(type 0x01) (fmt=3D0; m=3D1; b=3D0; k1=3D0; k2=3D0; cap=3D0xc9; mask=3D0=
-x0030)
-> >May 30 14:37:55 clim1 kernel: ipmisensors: sensors.conf: label temp6 "Te=
-mp
-> >1"
-> >May 30 14:37:55 clim1 kernel: ipmisensors: using upper critical
-> >threshold for upper limit
-> >May 30 14:37:55 clim1 kernel: ipmisensors: registered 6 temp, 0 volt,
-> >0 current, 0 fan sensors
-> >
-> >
-> >Running sensors works fine for me:
-> >
-> >clim1:~# sensors
-> >bmc-isa-0000
-> >Adapter: ISA adapter
-> >temp1:      +0.0=B0C  (high =3D    +7=B0C, hyst =3D    +0=B0C)
-> >temp2:     +44.0=B0C  (high =3D    +6=B0C, hyst =3D    +0=B0C)
-> >temp3:     +40.0=B0C  (high =3D    +6=B0C, hyst =3D    +0=B0C)
-> >temp4:     +31.0=B0C  (high =3D   +10=B0C, hyst =3D    +0=B0C)
-> >temp5:      +0.0=B0C  (high =3D   +10=B0C, hyst =3D    +0=B0C)
-> >temp6:     +18.0=B0C  (high =3D    +4=B0C, hyst =3D    +0=B0C)
-> >
-> >
-> >...juerg
-> >
-> >
-> >
+>That;s unlikely. There should be lots of stuff in /sys/classes. What
+>about /sys/classes/hwmon?
+
+That directory is still empty.
+
 >
 >
 >
+>Hmm... That doesn't look good. Can you try to just modprobe
+>ipmi_msghandler? You should see something like the following in the
+>log. It almost looks like ipmi doens't find a BMC on your system. And
+>could you please send the output of lsmod to the list?
 >
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+
+/var/log/messages still only contains:
+
+Jun  2 00:11:02 smaug kernel: ipmi message handler version 39.1
+Jun  2 00:11:20 smaug kernel: ipmisensors - IPMI BMC sensors interface
+
+Here is the output of lsmod:
+
+[root@smaug ~]# lsmod
+Module                  Size  Used by
+ipmisensors            21896  0
+hwmon                   7556  1 ipmisensors
+ipmi_msghandler        39856  1 ipmisensors
+autofs4                25092  2
+eeprom                 11280  0
+sunrpc                160092  1
+ipv6                  275904  46
+dm_multipath           21896  0
+video                  21128  0
+sbs                    19392  0
+ibm_acpi               34968  0
+i2c_ec                  9344  1 sbs
+dock                   14200  0
+button                 12176  0
+battery                14212  0
+asus_acpi              20636  0
+ac                      9476  0
+lp                     16456  0
+st                     39836  0
+scb2_flash              8844  0
+floppy                 59236  0
+mtdcore                10628  1 scb2_flash
+sg                     37532  0
+chipreg                 7552  1 scb2_flash
+e1000                 117824  0
+map_funcs               6016  1 scb2_flash
+pcspkr                  7296  0
+e100                   37640  0
+mii                     9472  1 e100
+i2c_piix4              12812  0
+i2c_core               24960  3 eeprom,i2c_ec,i2c_piix4
+tulip                  53152  0
+ide_cd                 40736  0
+parport_pc             30244  1
+parport                38728  2 lp,parport_pc
+cdrom                  37408  1 ide_cd
+serio_raw              11012  0
+dm_snapshot            20784  0
+dm_zero                 6144  0
+dm_mirror              25236  0
+dm_mod                 58060  9 dm_multipath,dm_snapshot,dm_zero,dm_mirror
+aic7xxx               137272  0
+scsi_transport_spi     27136  1 aic7xxx
+qla1280               120588  0
+megaraid_mbox          35088  2
+sd_mod                 24192  3
+scsi_mod              138668  7 
+st,sg,aic7xxx,scsi_transport_spi,qla1280,megaraid_mbox,sd_mod
+megaraid_mm            15020  1 megaraid_mbox
+ext3                  125704  2
+jbd                    60712  1 ext3
+ehci_hcd               35468  0
+ohci_hcd               24068  0
+uhci_hcd               26896  0
+
+--------------------------------------------------------------------
+
+I have played around with the Intel ISM cdrom package Intel has.   I am only 
+able to get a little of it working.  It is looking for a specific version of 
+RHEL 4.0 which I do not have.  I am able to get the one util to run called 
+something like smbios that dumps a whole lot of info about the system out.  
+I currently have all of it removed off, but I can install it again if anyone 
+would find it helpful.
+
+Keith
+
+
 
 _______________________________________________
 lm-sensors mailing list
