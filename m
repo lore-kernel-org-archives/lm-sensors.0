@@ -1,7 +1,7 @@
 From: "Phil Endecott" <spam_from_lm_sensors@chezphil.org>
-Date: Sun, 03 Jun 2007 18:08:09 +0000
+Date: Sun, 03 Jun 2007 20:48:29 +0000
 Subject: Re: [lm-sensors] Jetway J7F2 with f71805: PWM not working
-Message-Id: <1180894089842@dmwebmail.belize.chezphil.org>
+Message-Id: <1180903709340@dmwebmail.belize.chezphil.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1180813726137@dmwebmail.belize.chezphil.org>
 In-Reply-To: <1180813726137@dmwebmail.belize.chezphil.org>
@@ -10,31 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> On Sat, 02 Jun 2007 20:48:46 +0100, Phil Endecott wrote:
->> So, has anyone else had any experience with this board?  Has PWM been 
->> known to work with other boards with this chip?  Is it common for fan 
->> connectors to not have PWM control?
->
-> I have a Jetway K8M8MS motherboard with a Fintek F71805F chip, where
-> pwm1 controls fan1. So I am reasonably certain that fan speed control is
-> properly implemented by my f71805f driver. However, you are not the
-> first one to report about being enable to control the fans using this
-> driver. It seems to be common that motherboard manufacturers don't
-> bother wiring things properly :(
+Dear All,
 
-Thanks Jean.  I have scoped the three outputs and they all seem to be 
-outputting the expected PWM waveforms.  Curiously, the PWM1 pin has a 
-track that goes somewhere; it's not a fan (unless I have screwed up) so 
-what could it be?  I'm a bit concerned that it is used for something 
-else that I'm going to break...
+My home-made fan driver circuit seems to be working.  Let me know if 
+you are interested and I will describe the circuit; it's just an NMOS 
+FET and a PNP transistor, as suggested in the Fintek datasheet.
 
-Anyway I have constructed a driver circuit based on the example from 
-the datasheet and will be trying it out soon.  The most difficult part 
-was attaching a wire to the pin; despite a reasonably fine soldering 
-iron and a magnifying glass I still managed to bridge it to its 
-neighbours.  I have glued the wire down to the board as strain-relief 
-for my soldering, and will try it out once the glue is dry.
+However, the fan tacho input is not correctly measured at low PWM 
+values / voltages / speeds.  I believe that this is because the signal 
+on the wire from the fan switches between ground and the fan supply 
+[*].  The motherboard must have a resistor divider to get the 12V on 
+this wire down to the safe input for the chip (again there is a circuit 
+for this in the datasheet).  But if the (average??) fan supply voltage 
+is too low, the input to the chip sees 0.  Or, the tacho signal is 
+modulated by the PWM signal.
+
+I presume that this is a standard problem.  Do other motherboards that 
+have PWM fan control have unreliable tachos at low speed, or do they 
+have extra components between the fan's tacho wire and the chip to deal 
+with this?  Maybe it depends on the PWM frequency?
+
+Google finds an Analogue Devices chip 
+(http://www.analog.com/library/analogdialogue/archives/38-02/fan_speed.html) 
+where they describe this problem, and suggest that when you want to 
+take a tacho reading you should briefly set the PWM output to 100%.  
+Presumably this would have to be done within the chip for the 
+tacho-tracking automatic mode to work, though it could also be 
+implemented by the O.S. for other control mechanisms.
+
+[*] Why they have done it like that I cannot imagine.  It would have 
+been much simpler to have the switch in the fan go from ground to 
+open-circuit, and to have whatever pullup resistor to whatever voltage 
+you need on the motherboard.....
+
 
 Regards,
 
