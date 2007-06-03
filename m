@@ -1,25 +1,23 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 25 Jun 2007 18:44:24 +0000
-Subject: Re: [lm-sensors] Quick Question about latest IBM thinkpads!
-Message-Id: <20070625204424.29228ed7@hyperion.delvare>
+Date: Sun, 03 Jun 2007 11:58:04 +0000
+Subject: [lm-sensors] Converting vt8231 to a platform driver
+Message-Id: <20070603135804.3aa2b7fb@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <524002.68161.qm@web82504.mail.mud.yahoo.com>
-In-Reply-To: <524002.68161.qm@web82504.mail.mud.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 23 Jun 2007 11:05:59 -0300, Henrique de Moraes Holschuh wrote:
-> On Sat, 23 Jun 2007, Jean Delvare wrote:
-> > If you have specific questions on the way, just ask and we'll try to
-> > help. I'll be happy to review (and test) your code when you're done.
-> 
-> I have one.  What is NOSYSCTL and VALUE()? (or where are them documented)?
+Hi Roger,
 
-Old stuff for the Linux 2.4 procfs/sysctl interface. Just put NOSYSCTL
-and VALUE(1) everywhere, that will be fine.
+I would like to get rid of i2c-isa soon now. One of the last few users
+is your vt8231 driver. It needs to be converted to a platform driver
+before I can delete i2c-isa. Would you possibly take care of it? The
+conversion should be similar to what I did for the via686a driver a few
+days ago:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-May/019838.html
 
+Thanks,
 -- 
 Jean Delvare
 
