@@ -1,47 +1,80 @@
-From: Soeren Sonnenburg <kernel@nn7.de>
-Date: Mon, 25 Jun 2007 19:35:28 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon/coretemp: Fix a broken error path
-Message-Id: <1182800128.4674.4.camel@localhost>
+From: "Miles Lane" <miles.lane@gmail.com>
+Date: Wed, 06 Jun 2007 17:58:34 +0000
+Subject: Re: [lm-sensors] 2.6.22-rc4-mm1 -- ERROR:
+Message-Id: <a44ae5cd0706061058u3566e0a4yf178b9e473d17395@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1182026585.4230.8.camel@localhost>
-	 <20070616231745.1b0f7bd9@hyperion.delvare>
-	 <1182071803.4815.5.camel@localhost>  <467575BF.1090207@assembler.cz>
-	 <1182335403.21563.99.camel@localhost>  <467AE640.9090409@assembler.cz>
-	 <1182779850.21781.11.camel@localhost>  <46800759.6040605@assembler.cz>
-In-Reply-To: <46800759.6040605@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rudolf Marek <r.marek@assembler.cz>
-Cc: lkml <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Mon, 2007-06-25 at 20:20 +0200, Rudolf Marek wrote:
-> > Hi Rudolf,
-> > 
-> > just one more update:
-> > 
-> > When I put my machine into s2ram and make it resume, one of the coretemp
-> > sensors gets lost. Ahh and I am already rmmod coretemp / loading
-> > microcode after resume / insmod coretemp...
-> 
-> Hello, If I understand correctly you unload the driver before suspend. Resume, 
-> update microcode, load the driver correct?
+  RELOCS  arch/i386/boot/compressed/vmlinux.relocs
+WARNING: Absolute relocations present
+Offset     Info     Type     Sym.Value Sym.Name
+c0102029 00535201   R_386_32 00000000  xen_irq_disable_direct_reloc
+c0102043 00722e01   R_386_32 00000000  xen_save_fl_direct_reloc
+c014440b 00588001   R_386_32 c0453000  __per_cpu_start
+c0144415 00588001   R_386_32 c0453000  __per_cpu_start
+c014441a 00588001   R_386_32 c0453000  __per_cpu_start
+c0144421 0064f101   R_386_32 c045a4a4  __per_cpu_end
+c014cf79 00588001   R_386_32 c0453000  __per_cpu_start
+c014cf7f 0064f101   R_386_32 c045a4a4  __per_cpu_end
+c014cf87 00588001   R_386_32 c0453000  __per_cpu_start
+c014cf8d 0064f101   R_386_32 c045a4a4  __per_cpu_end
+c014d4c2 00588001   R_386_32 c0453000  __per_cpu_start
+c014df8c 00588001   R_386_32 c0453000  __per_cpu_start
+c040f7d7 0064f101   R_386_32 c045a4a4  __per_cpu_end
+c040f7de 00588001   R_386_32 c0453000  __per_cpu_start
+c040f80d 00588001   R_386_32 c0453000  __per_cpu_start
+c040f81c 0064f101   R_386_32 c045a4a4  __per_cpu_end
+c040f821 00588001   R_386_32 c0453000  __per_cpu_start
+c040f82d 00588001   R_386_32 c0453000  __per_cpu_start
 
-no I did not unload the driver but rmmod it after resume before I load
-the microcode.
-
-> Please can you check dmesg if for example one core complains about bad microcode 
-> version?
-
-indeed core1 still complains. and I just now loaded the new microcode
-( rmmod of coretemp before and insmod after) and voila coretemp displays
-both cpu's again. So I guess the microcode reloading is done to soon
-after resume...
-
-Soeren
--- 
-Sometimes, there's a moment as you're waking, when you become aware of
-the real world around you, but you're still dreaming.
+  BUILD   arch/i386/boot/compressed/vmlinux.bin.all
+  GZIP    arch/i386/boot/compressed/vmlinux.bin.gz
+  LD      arch/i386/boot/compressed/piggy.o
+  LD      arch/i386/boot/compressed/vmlinux
+  OBJCOPY arch/i386/boot/vmlinux.bin
+  HOSTCC  arch/i386/boot/tools/build
+  BUILD   arch/i386/boot/bzImage
+Root device is (8, 11)
+Setup is 10116 bytes (padded to 10240 bytes).
+System is 1721 kB
+Kernel: arch/i386/boot/bzImage is ready  (#13)
+  Building modules, stage 2.
+  MODPOST 784 modules
+WARNING: vmlinux(.text+0xc0101183): Section mismatch: reference to
+.init.text:start_kernel (between 'is386' and 'check_x87')
+WARNING: vmlinux(.text+0xc02b3a5b): Section mismatch: reference to
+.init.text:kernel_init (between 'rest_init' and 'alloc_node_mem_map')
+WARNING: vmlinux(.text+0xc02b74d8): Section mismatch: reference to
+.init.text: (between 'iret_exc' and '_etext')
+WARNING: vmlinux(.text+0xc02b74e5): Section mismatch: reference to
+.init.text: (between 'iret_exc' and '_etext')
+WARNING: vmlinux(.text+0xc02b74f1): Section mismatch: reference to
+.init.text: (between 'iret_exc' and '_etext')
+WARNING: vmlinux(.text+0xc02b74fd): Section mismatch: reference to
+.init.text: (between 'iret_exc' and '_etext')
+WARNING: vmlinux(.text+0xc02b3b13): Section mismatch: reference to
+.init.text:__alloc_bootmem_node (between 'zone_wait_table_init' and
+'fb_find_logo')
+WARNING: vmlinux(.text+0xc01ee474): Section mismatch: reference to
+.init.text:__alloc_bootmem (between 'vgacon_startup' and
+'vgacon_scrolldelta')
+WARNING: vmlinux(.text+0xc02b7b6a): Section mismatch: reference to
+.init.text: (between 'iret_exc' and '_etext')
+WARNING: vmlinux(.text+0xc02b3b64): Section mismatch: reference to
+.init.data:logo_linux_clut224 (between 'fb_find_logo' and 'schedule')
+WARNING: vmlinux(.text+0xc02b7cb6): Section mismatch: reference to
+.init.text: (between 'iret_exc' and '_etext')
+ERROR: "input_register_polled_device" [drivers/hwmon/hdaps.ko] undefined!
+ERROR: "input_allocate_polled_device" [drivers/hwmon/hdaps.ko] undefined!
+ERROR: "input_free_polled_device" [drivers/hwmon/hdaps.ko] undefined!
+ERROR: "input_unregister_polled_device" [drivers/hwmon/hdaps.ko] undefined!
+ERROR: "input_register_polled_device" [drivers/hwmon/applesmc.ko] undefined!
+ERROR: "input_allocate_polled_device" [drivers/hwmon/applesmc.ko] undefined!
+ERROR: "input_free_polled_device" [drivers/hwmon/applesmc.ko] undefined!
+ERROR: "input_unregister_polled_device" [drivers/hwmon/applesmc.ko] undefined!
 
 _______________________________________________
 lm-sensors mailing list
