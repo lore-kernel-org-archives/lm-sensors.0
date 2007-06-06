@@ -1,142 +1,61 @@
-From: "Arjun Veneshetty" <arjun.veneshetty@patni.com>
-Date: Wed, 20 Jun 2007 10:18:51 +0000
-Subject: [lm-sensors] help
-Message-Id: <200706201003.l5KA39bK001472@pcsnoida.patni.com>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Wed, 06 Jun 2007 20:35:44 +0000
+Subject: [lm-sensors] [PATCH] lm-sensors: replace references to bmcsensors
+Message-Id: <191fb4ca0706061335g3a45d590na6d4afaada3bec97@mail.gmail.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----------=_1182333793-1496-126"
+Content-Type: multipart/mixed; boundary="----=_Part_34896_4510316.1181162144622"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020728124708.244675c6.nec@chello.hu>
-In-Reply-To: <20020728124708.244675c6.nec@chello.hu>
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format...
-
-------------=_1182333793-1496-126
-Content-Type: text/plain;
-	charset="us-ascii"
+------=_Part_34896_4510316.1181162144622
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
- 
-Please unsubscribe me from this group.
+This patch replaces all references to bmcsensors and i2c-ipmi with
+ipmisensors and ipmi-si in sensors-detect.
 
- Arjun Veneshetty
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
------Original Message-----
-From: lm-sensors-bounces@lm-sensors.org
-[mailto:lm-sensors-bounces@lm-sensors.org] On Behalf Of
-lm-sensors-request@lm-sensors.org
-Sent: Wednesday, June 20, 2007 3:30 PM
-To: lm-sensors@lm-sensors.org
-Subject: lm-sensors Digest, Vol 26, Issue 52
+------=_Part_34896_4510316.1181162144622
+Content-Type: text/x-patch; name=lm-sensors-replace-ref-to-bmcsensors.patch; 
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f2m9dz0p
+Content-Disposition: attachment;
+	filename="lm-sensors-replace-ref-to-bmcsensors.patch"
 
-Send lm-sensors mailing list submissions to
-	lm-sensors@lm-sensors.org
-
-To subscribe or unsubscribe via the World Wide Web, visit
-	http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-or, via email, send a message with subject or body 'help' to
-	lm-sensors-request@lm-sensors.org
-
-You can reach the person managing the list at
-	lm-sensors-owner@lm-sensors.org
-
-When replying, please edit your Subject line so it is more specific than
-"Re: Contents of lm-sensors digest..."
-
-
-Today's Topics:
-
-   1. Re: initial fintek f71882fg driver, test please (Walt H)
-
-
-----------------------------------------------------------------------
-
-Message: 1
-Date: Tue, 19 Jun 2007 17:47:13 -0500
-From: Walt H <walt_h@lorettotel.net>
-Subject: Re: [lm-sensors] initial fintek f71882fg driver, test please
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: h_siegel@gmx.de, mgri@zaphod.sax.de, LM Sensors
-	<lm-sensors@lm-sensors.org>,	Jacob Heerikhuisen <jacobh@ucr.edu>,
-	holger.bocklet@arcor.de
-Message-ID: <46785CF1.4010307@lorettotel.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-
-Hans de Goede wrote:
-> Hi all,
->
-> Here is my first work on a fintek f71882fg driver (also epox 1308). 
-> Still todo:
-> in1 max, beep and alarm read and write tempX fault read tempX beep and 
-> alarm read and write tempX max / crit / hyst writing fanX fault read 
-> pwm support
->
-> This version should work on non Epox motherboards like MSI too (Thanks 
-> Mathias Grimmberger)
->
-> To test drop fintek71882 and the Makefile in a dir, type make and then 
-> insmod fintek71882.ko
->
-> The easiest way to then read the settings is by using the 3.0 sensors 
-> branch, which comes with dyn chipsupport:
-> remove your current lm-sensors userspace package (for example on 
-> Fedora do rpm -e lm_sensors --nodeps) svn checkout 
-> http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0
-> cd lm-sensors-3.0.0
-> make
-> sudo make install
-> sudo ldconfig
->
->
-> I've also attached a sensors.conf for the Epox M1697 motherboard I'm 
-> using for testing, modify as needed.
->
->
-> Thanks for testing & Regards,
->
-> Hans
-
-Compiled and installed fine against a patched 2.6.21 x86_64 kernel .  
-Looks good so far.  I'm displaying sensor values through gkrellm and the 
-temps and fan values look good.  Vcor1 looks high, and the voltage 
-inputs need tweaks under gkrellm, but I'm mainly interested in temp and 
-fan values anyway.  Appreciate everybody's work on this!  Thanks,
-
--Walt
-
-
-
-
-
-------------------------------
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-
-End of lm-sensors Digest, Vol 26, Issue 52
-******************************************
-
-
-
-http://www.patni.com
-World-Wide Partnerships. World-Class Solutions.
-_____________________________________________________________________
-
-This e-mail message may contain proprietary, confidential or legally
-privileged information for the sole use of the person or entity to
-whom this message was originally addressed. Any review, e-transmission
-dissemination or other use of or taking of any action in reliance upon
-this information by persons or entities other than the intended
-recipient is prohibited. If you have received this e-mail in error
-kindly delete  this e-mail from your records. If it appears that this
-mail has been forwarded to you without proper authority, please notify
-us immediately at netadmin@patni.com and delete this mail. 
-_____________________________________________________________________
-
-------------=_1182333793-1496-126
+LS0tIGxtLXNlbnNvcnMub3JpZy9wcm9nL2RldGVjdC9zZW5zb3JzLWRldGVjdAkyMDA3LTA2LTA2
+IDA5OjUwOjQxLjg4NjM5NDAwMCAtMDcwMAorKysgbG0tc2Vuc29ycy9wcm9nL2RldGVjdC9zZW5z
+b3JzLWRldGVjdAkyMDA3LTA2LTA2IDExOjUzOjIyLjQ4NzIwMTAwMCAtMDcwMApAQCAtMTUxNCwx
+MyArMTUxNCwxMyBAQCB1c2UgdmFycyBxdyhAcGNpX2FkYXB0ZXJzX3NpczU1OTUgQHBjaV9hCiAg
+ICAgIH0sCiAgICAgIHsKICAgICAgICBuYW1lID0+ICJJUE1JIEJNQyBLQ1MiLAotICAgICAgIGRy
+aXZlciA9PiAiYm1jc2Vuc29ycyIsCisgICAgICAgZHJpdmVyID0+ICJpcG1pc2Vuc29ycyIsCiAg
+ICAgICAgaXNhX2FkZHJzID0+IFsgMHgwY2EwIF0sCiAgICAgICAgaXNhX2RldGVjdCA9PiBzdWIg
+eyBpcG1pX2tjc19kZXRlY3QoQF8pOyB9LAogICAgICB9LAogICAgICB7CiAgICAgICAgbmFtZSA9
+PiAiSVBNSSBCTUMgU01JQyIsCi0gICAgICAgZHJpdmVyID0+ICJibWNzZW5zb3JzIiwKKyAgICAg
+ICBkcml2ZXIgPT4gImlwbWlzZW5zb3JzIiwKICAgICAgICBpc2FfYWRkcnMgPT4gWyAweDBjYTgg
+XSwKICAgICAgICBpc2FfZGV0ZWN0ID0+IHN1YiB7IGlwbWlfc21pY19kZXRlY3QoQF8pOyB9LAog
+ICAgICB9LApAQCAtNTQwOSw3ICs1NDA5LDcgQEAgc3ViIGdlbmVyYXRlX21vZHByb2JlcwogICBt
+eSAoJHByZWZlcl9pc2EpID0gQF87CiAKICAgbXkgKCRjaGlwLCRkZXRlY3Rpb24sJG5yLCRpLEBv
+cHRpb25saXN0LEBwcm9iZWxpc3QsJGRyaXZlciwkaXNhLCRhZGFwKTsKLSAgbXkgJGJtY3NlbnNv
+cnMgPSAwOworICBteSAkaXBtaXNlbnNvcnMgPSAwOwogICBteSBAYWRhcHRlcnM7CiAgIG15ICRt
+b2Rwcm9iZXMgPSAiIjsKICAgbXkgJGNvbmZpZ2ZpbGUgPSAiIjsKQEAgLTU0NDksOCArNTQ0OSw4
+IEBAIHN1YiBnZW5lcmF0ZV9tb2Rwcm9iZXMKICAgICAgICAgICBub3QgKGV4aXN0cyAkZGV0ZWN0
+aW9uLT57aTJjX2RyaXZlcn0gYW5kIG5vdCAkcHJlZmVyX2lzYSkpIHsKICAgICAgICAgICAgJGlz
+YT0xOwogICAgICAgfQotICAgICAgaWYgKCRjaGlwLT57ZHJpdmVyfSBlcSAiYm1jc2Vuc29ycyIp
+IHsKLSAgICAgICAgICAgJGJtY3NlbnNvcnM9MTsKKyAgICAgIGlmICgkY2hpcC0+e2RyaXZlcn0g
+ZXEgImlwbWlzZW5zb3JzIikgeworICAgICAgICAgICAkaXBtaXNlbnNvcnM9MTsKICAgICAgIH0K
+ICAgICB9CiAgIH0KQEAgLTU0NzUsOSArNTQ3NSw5IEBAIHN1YiBnZW5lcmF0ZV9tb2Rwcm9iZXMK
+ICAgIyBpMmMtaXNhIGlzIGxvYWRlZCBhdXRvbWF0aWNhbGx5IChhcyBhIGRlcGVuZGVuY3kpIHNp
+bmNlIDIuNi4xNCwKICAgIyBhbmQgd2lsbCBzb29uIGJlIGdvbmUuCiAgICRtb2Rwcm9iZXMgLj0g
+Im1vZHByb2JlIGkyYy1pc2FcbiIgaWYgKCRpc2EgJiYgIWtlcm5lbF92ZXJzaW9uX2F0X2xlYXN0
+KDIsIDYsIDE4KSk7Ci0gIGlmICgkYm1jc2Vuc29ycykgeworICBpZiAoJGlwbWlzZW5zb3JzKSB7
+CiAgICAgJG1vZHByb2JlcyAuPSAiIyBZb3UgbXVzdCBhbHNvIGluc3RhbGwgYW5kIGxvYWQgdGhl
+IElQTUkgbW9kdWxlc1xuIjsKLSAgICAkbW9kcHJvYmVzIC49ICJtb2Rwcm9iZSBpMmMtaXBtaVxu
+IjsKKyAgICAkbW9kcHJvYmVzIC49ICJtb2Rwcm9iZSBpcG1pLXNpXG4iOwogICB9CiAKICAgIyBO
+b3cgZGV0ZXJtaW5lIHRoZSBjaGlwIHByb2JlIGxpbmVzCg==
+------=_Part_34896_4510316.1181162144622
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -146,4 +65,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------------=_1182333793-1496-126--
+------=_Part_34896_4510316.1181162144622--
