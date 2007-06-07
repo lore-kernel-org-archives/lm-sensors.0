@@ -1,68 +1,38 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Wed, 06 Jun 2007 20:35:44 +0000
-Subject: [lm-sensors] [PATCH] lm-sensors: replace references to bmcsensors
-Message-Id: <191fb4ca0706061335g3a45d590na6d4afaada3bec97@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_34896_4510316.1181162144622"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 07 Jun 2007 08:33:17 +0000
+Subject: Re: [lm-sensors] [PATCH] lm-sensors: replace references to
+Message-Id: <20070607103317.41586418@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <191fb4ca0706061335g3a45d590na6d4afaada3bec97@mail.gmail.com>
+In-Reply-To: <191fb4ca0706061335g3a45d590na6d4afaada3bec97@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_34896_4510316.1181162144622
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Juerg,
 
-This patch replaces all references to bmcsensors and i2c-ipmi with
-ipmisensors and ipmi-si in sensors-detect.
+On Wed, 6 Jun 2007 13:35:44 -0700, Juerg Haefliger wrote:
+> This patch replaces all references to bmcsensors and i2c-ipmi with
+> ipmisensors and ipmi-si in sensors-detect.
+> 
+> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+Thanks for giving it a shot. Unfortunately I can't take this first
+version because it breaks 2.4 kernel systems, which _still_ need
+i2c-ipmi + bmcsensors.
 
-------=_Part_34896_4510316.1181162144622
-Content-Type: text/x-patch; name=lm-sensors-replace-ref-to-bmcsensors.patch; 
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f2m9dz0p
-Content-Disposition: attachment;
-	filename="lm-sensors-replace-ref-to-bmcsensors.patch"
+Please rework your change so that we can support both 2.4 and 2.6
+kernels. This shouldn't be too difficult, most of the infrastructure is
+already in place. Look at function chip_special_cases(), it handles the
+case of the W83791D chip which is handled by different drivers under
+2.4 and 2.6. You need to do something similar for IMPI/BMC.
 
-LS0tIGxtLXNlbnNvcnMub3JpZy9wcm9nL2RldGVjdC9zZW5zb3JzLWRldGVjdAkyMDA3LTA2LTA2
-IDA5OjUwOjQxLjg4NjM5NDAwMCAtMDcwMAorKysgbG0tc2Vuc29ycy9wcm9nL2RldGVjdC9zZW5z
-b3JzLWRldGVjdAkyMDA3LTA2LTA2IDExOjUzOjIyLjQ4NzIwMTAwMCAtMDcwMApAQCAtMTUxNCwx
-MyArMTUxNCwxMyBAQCB1c2UgdmFycyBxdyhAcGNpX2FkYXB0ZXJzX3NpczU1OTUgQHBjaV9hCiAg
-ICAgIH0sCiAgICAgIHsKICAgICAgICBuYW1lID0+ICJJUE1JIEJNQyBLQ1MiLAotICAgICAgIGRy
-aXZlciA9PiAiYm1jc2Vuc29ycyIsCisgICAgICAgZHJpdmVyID0+ICJpcG1pc2Vuc29ycyIsCiAg
-ICAgICAgaXNhX2FkZHJzID0+IFsgMHgwY2EwIF0sCiAgICAgICAgaXNhX2RldGVjdCA9PiBzdWIg
-eyBpcG1pX2tjc19kZXRlY3QoQF8pOyB9LAogICAgICB9LAogICAgICB7CiAgICAgICAgbmFtZSA9
-PiAiSVBNSSBCTUMgU01JQyIsCi0gICAgICAgZHJpdmVyID0+ICJibWNzZW5zb3JzIiwKKyAgICAg
-ICBkcml2ZXIgPT4gImlwbWlzZW5zb3JzIiwKICAgICAgICBpc2FfYWRkcnMgPT4gWyAweDBjYTgg
-XSwKICAgICAgICBpc2FfZGV0ZWN0ID0+IHN1YiB7IGlwbWlfc21pY19kZXRlY3QoQF8pOyB9LAog
-ICAgICB9LApAQCAtNTQwOSw3ICs1NDA5LDcgQEAgc3ViIGdlbmVyYXRlX21vZHByb2JlcwogICBt
-eSAoJHByZWZlcl9pc2EpID0gQF87CiAKICAgbXkgKCRjaGlwLCRkZXRlY3Rpb24sJG5yLCRpLEBv
-cHRpb25saXN0LEBwcm9iZWxpc3QsJGRyaXZlciwkaXNhLCRhZGFwKTsKLSAgbXkgJGJtY3NlbnNv
-cnMgPSAwOworICBteSAkaXBtaXNlbnNvcnMgPSAwOwogICBteSBAYWRhcHRlcnM7CiAgIG15ICRt
-b2Rwcm9iZXMgPSAiIjsKICAgbXkgJGNvbmZpZ2ZpbGUgPSAiIjsKQEAgLTU0NDksOCArNTQ0OSw4
-IEBAIHN1YiBnZW5lcmF0ZV9tb2Rwcm9iZXMKICAgICAgICAgICBub3QgKGV4aXN0cyAkZGV0ZWN0
-aW9uLT57aTJjX2RyaXZlcn0gYW5kIG5vdCAkcHJlZmVyX2lzYSkpIHsKICAgICAgICAgICAgJGlz
-YT0xOwogICAgICAgfQotICAgICAgaWYgKCRjaGlwLT57ZHJpdmVyfSBlcSAiYm1jc2Vuc29ycyIp
-IHsKLSAgICAgICAgICAgJGJtY3NlbnNvcnM9MTsKKyAgICAgIGlmICgkY2hpcC0+e2RyaXZlcn0g
-ZXEgImlwbWlzZW5zb3JzIikgeworICAgICAgICAgICAkaXBtaXNlbnNvcnM9MTsKICAgICAgIH0K
-ICAgICB9CiAgIH0KQEAgLTU0NzUsOSArNTQ3NSw5IEBAIHN1YiBnZW5lcmF0ZV9tb2Rwcm9iZXMK
-ICAgIyBpMmMtaXNhIGlzIGxvYWRlZCBhdXRvbWF0aWNhbGx5IChhcyBhIGRlcGVuZGVuY3kpIHNp
-bmNlIDIuNi4xNCwKICAgIyBhbmQgd2lsbCBzb29uIGJlIGdvbmUuCiAgICRtb2Rwcm9iZXMgLj0g
-Im1vZHByb2JlIGkyYy1pc2FcbiIgaWYgKCRpc2EgJiYgIWtlcm5lbF92ZXJzaW9uX2F0X2xlYXN0
-KDIsIDYsIDE4KSk7Ci0gIGlmICgkYm1jc2Vuc29ycykgeworICBpZiAoJGlwbWlzZW5zb3JzKSB7
-CiAgICAgJG1vZHByb2JlcyAuPSAiIyBZb3UgbXVzdCBhbHNvIGluc3RhbGwgYW5kIGxvYWQgdGhl
-IElQTUkgbW9kdWxlc1xuIjsKLSAgICAkbW9kcHJvYmVzIC49ICJtb2Rwcm9iZSBpMmMtaXBtaVxu
-IjsKKyAgICAkbW9kcHJvYmVzIC49ICJtb2Rwcm9iZSBpcG1pLXNpXG4iOwogICB9CiAKICAgIyBO
-b3cgZGV0ZXJtaW5lIHRoZSBjaGlwIHByb2JlIGxpbmVzCg==
-------=_Part_34896_4510316.1181162144622
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_34896_4510316.1181162144622--
