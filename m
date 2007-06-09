@@ -1,35 +1,40 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sat, 09 Jun 2007 16:00:31 +0000
-Subject: [lm-sensors] New hwmon maintainer
-Message-Id: <20070609160031.GE3357@jupiter.solarsys.private>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Sat, 09 Jun 2007 16:43:50 +0000
+Subject: Re: [lm-sensors] New hwmon maintainer
+Message-Id: <20070609094350.cdde52b3.akpm@linux-foundation.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20070609160031.GE3357@jupiter.solarsys.private>
+In-Reply-To: <20070609160031.GE3357@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Hi Andrew:
+On Sat, 9 Jun 2007 12:00:31 -0400 "Mark M. Hoffman" <mhoffman@lightlink.com> wrote:
 
-I am maintaining a git tree for the hwmon subsystem now.  You may pull from
-it here:
+> Hi Andrew:
+> 
+> I am maintaining a git tree for the hwmon subsystem now.  You may pull from
+> it here:
+> 
+> 	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git testing
+> 
+> The current contents include the remainder of Jean Delvare's quilt patch
+> series, plus a single patch to MAINTAINERS.  Once you start pulling from
+> this git tree, Jean said he will delete his patch series entirely.
+> 
+> BTW: None of these patches are needed before 2.6.23.
+> 
+> Thanks & regards,
 
-	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git testing
+np, thanks.
 
-The current contents include the remainder of Jean Delvare's quilt patch
-series, plus a single patch to MAINTAINERS.  Once you start pulling from
-this git tree, Jean said he will delete his patch series entirely.
+> PS: Thanks for your good work and help, Jean.
 
-BTW: None of these patches are needed before 2.6.23.
+Yes, Jean's work is of high quality.
 
-Thanks & regards,
-
-PS: Thanks for your good work and help, Jean.
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Please don't forget to alter ./MAINTAINERS.
 
 _______________________________________________
 lm-sensors mailing list
