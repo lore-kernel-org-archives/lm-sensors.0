@@ -1,57 +1,41 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 23 Jun 2007 14:36:48 +0000
-Subject: Re: [lm-sensors] Howto name fintek 71882 temp sysfs files?
-Message-Id: <20070623163648.7f2d8fca@hyperion.delvare>
+From: Max Baker <max@warped.org>
+Date: Sat, 09 Jun 2007 19:12:29 +0000
+Subject: [lm-sensors] Fintek F71805F on Jetway J7F4K1G5D - fancontrol?
+Message-Id: <20070609191229.GB16891@warped.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46764961.5080602@hhs.nl>
-In-Reply-To: <46764961.5080602@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Hi,
 
-On Mon, 18 Jun 2007 10:59:13 +0200, Hans de Goede wrote:
-> The temp sensors in this chip have an OVT (over temperature) and a high 
-> temperature limit, both have a shared hysteresis. This hysteresis is a true 
-> hysteresis. When a temp is over either limit a flag gets set, when it gets 
-> below limit-hysteresis the flag gets cleared again.
-> 
-> I've been digging through the datasheets to try and find the differences 
-> between the 2 limits.
-> 
-> Both limits have flags, can cause interrupts and PME events.
-> 
-> The main difference seems to be OVT Output Enable Register 1  Index 66h
-> at page 75 of the datasheet:
-> http://www.fintek.com.tw/files/productfiles/F71882_V0.24P.pdf
-> 
-> The high limit has alert events coupled to its, which can not be enabled (read 
-> only). Where as the ovt has an over temperature (OVT) mechanism, which can be 
-> enabled and is active for the CPU temp by default, the OVT mechanism, has an 
-> output pin reserved which it can control when an OVT conditions happens.
-> 
-> The high limit can be coupled to forcing fans to go full speed.
-> 
-> To me this sounds like the high limit should be mapped to temp#_max and the OVT 
-> to temp#_crit,
+Newbie question here.  I have a Jetway J7F4K1G5D, w/ a VIA C7, CN700 North
+bridge and VT8237R south bridge.   It has the super i/o Fintek F71805F.
 
-Yes.
+I'm trying to get basic fan control working .  Right now I've got it to
+the point that when i type 'sensors' I can see all the voltages and fan
+speeds.
 
-> and since the hyst is for both limits it should be temp#_hyst.
+This post is a similar request:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-March/019278.html
+that Jean Delvare was able to address.
 
-No. This kind of shortcut was excluded from the standard sysfs
-interface on purpose, because it is error prone. A given feature should
-correspond to one and only one sysfs file name.
+Is there some magic register I can poke w/ isaset like the one in that
+email in order to slow down fan#2? 
 
-Additionally, an hysteresis is an attribute of a temperature limit, not
-an attribute of the temperature sensor itself. This must show in the
-name of the attribute. People are already confused enough with the
-concept of hysteresis, let's not add to it.
+> isaset 0x295 0x296 0x90 0x00
 
--- 
-Jean Delvare
+Or can I possibly get the full fancontrol program working?    I have zero
+experience in this realm and have already burned 5 hours on it (no pun
+intended).
+
+My basic problem is that i'm building a mythTv box and the case fan is on
+at 8,000 rpm and it sounds like a hair dryer.  I think I could run it at
+about one quarter that duty cycle and still achieve adequate cooling.
+
+Thanks!
+-m
 
 _______________________________________________
 lm-sensors mailing list
