@@ -1,143 +1,162 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 09 Jun 2007 15:44:08 +0000
+From: "Phil Endecott" <phil_lftzl_endecott@chezphil.org>
+Date: Sat, 09 Jun 2007 17:40:06 +0000
 Subject: Re: [lm-sensors] f71805f + J7F2;
-Message-Id: <20070609174408.170bfb85@hyperion.delvare>
+Message-Id: <1181410806892@dmwebmail.belize.chezphil.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20070609174408.170bfb85@hyperion.delvare>
+In-Reply-To: <20070609174408.170bfb85@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Phil,
+Jean Delvare wrote:
+> On Fri, 08 Jun 2007 22:00:59 +0100, Phil Endecott wrote:
+>> Something that I noticed at this point was that the default PWM speed 
+>> of 187 kHz didn't give very good waveforms because the turn-off slope 
+>> is quite slow, e.g. with a 50% duty cycle the waveform actually looked 
+>> like this on the scope:
+>> 
+>> ----.   .----.   .---
+>>       \ |      \ |
+>>        \|       \|
+>>         v        v
+>
+> Interesting. I had observed that high frequencies (including the
+> default 187 kHz) did not allow proper fan control, but without a scope
+> I couldn't watch what the signal looked like. See this graph I had been
+> drawing:
+> http://khali.linux-fr.org/devel/lm-sensors/pwm_response_curves.png
+> 160 kHz gives almost no control at all.
 
-On Fri, 08 Jun 2007 22:00:59 +0100, Phil Endecott wrote:
-> I have been trying to get fan speed control working on my Jetway J7F2 
-> motherboard, which has a Fintek F71805 chip.  Last weekend I posted a 
-> couple of messages about the first part of the process, in which I 
-> discovered that the chip's PWM outputs aren't actually connected to the 
-> board's fan connectors; I fixed that problem with some careful 
-> soldering onto one of the chip's PWM outputs and a small circuit based 
-> on the example in the Fintek datasheet.  So I was then able to control 
-> the fan speed in manual PWM mode.
-> 
-> Something that I noticed at this point was that the default PWM speed 
-> of 187 kHz didn't give very good waveforms because the turn-off slope 
-> is quite slow, e.g. with a 50% duty cycle the waveform actually looked 
-> like this on the scope:
-> 
-> ----.   .----.   .---
->       \ |      \ |
->        \|       \|
->         v        v
+Yes, that agrees with what I was seeing; though your driver-circuit 
+and/or fan seem to have a capacitance at least an order of magnitude 
+higher than mine.
 
-Interesting. I had observed that high frequencies (including the
-default 187 kHz) did not allow proper fan control, but without a scope
-I couldn't watch what the signal looked like. See this graph I had been
-drawing:
-http://khali.linux-fr.org/devel/lm-sensors/pwm_response_curves.png
-160 kHz gives almost no control at all.
+>> I am currently using 40 kHz.  This is still well above audio range, but 
+>> the waveforms actually look like square waves giving better control.  
+>> Would this be a better default?  It would depend to some extent on the 
+>> particular fan.
+>
+> The default is from the chip, not from the driver. Usually we don't put
+> arbitrary initializations in the hardware monitoring drivers, unless
+> a given hardware default is particularly bad. This case might qualify.
+> Do you think we should initialize the PWM frequency to 40 kHz at driver
+> load time (if and only if the hardware default value is found)?
+>
+> Me, I am using 1500 Hz, but I agree that it wouldn't be a good default
+> as I suppose it could create an audible noise (2000 Hz and 400 Hz do
+> for me, for example.)
 
-> I am currently using 40 kHz.  This is still well above audio range, but 
-> the waveforms actually look like square waves giving better control.  
-> Would this be a better default?  It would depend to some extent on the 
-> particular fan.
+My fan makes an audible tone at any frequency within the normal hearing range.
 
-The default is from the chip, not from the driver. Usually we don't put
-arbitrary initializations in the hardware monitoring drivers, unless
-a given hardware default is particularly bad. This case might qualify.
-Do you think we should initialize the PWM frequency to 40 kHz at driver
-load time (if and only if the hardware default value is found)?
+It's clear that the right frequency to choose will depend on the 
+particular hardware, but I don't think we'll find anything where 187 
+kHz is a good choice.  It could perhaps be considered bizarre to choose 
+a default based on what I found worked with my unique home-made 
+hardware :-)  Jean, you must have written a script to get the numbers 
+in that graph; if you post it, perhaps other people can try it out and 
+we can see if there is a consensus?  (The 'other people' don't need to 
+be F71805 users since it's mainly measuring the characteristics of the 
+fan itself.)
 
-Me, I am using 1500 Hz, but I agree that it wouldn't be a good default
-as I suppose it could create an audible noise (2000 Hz and 400 Hz do
-for me, for example.)
+>> The next problem was that the fan's tacho output is thoroughly garbled 
+>> whenever PWM is used: during the off portion of the PWM waveform, the 
+>> tacho output first goes low and then floats high.  Google found one 
+>> suggestion to fix this by briefly turn the PWM to 100% before taking a 
+>> reading, but this doesn't help when you want to use the chip's 
+>> automatic mode.  I am curious to know if there are any motherboards out 
+>> there with additional components to fix this problem.
 
-> The next problem was that the fan's tacho output is thoroughly garbled 
-> whenever PWM is used: during the off portion of the PWM waveform, the 
-> tacho output first goes low and then floats high.  Google found one 
-> suggestion to fix this by briefly turn the PWM to 100% before taking a 
-> reading, but this doesn't help when you want to use the chip's 
-> automatic mode.  I am curious to know if there are any motherboards out 
-> there with additional components to fix this problem.  One solution is 
-> the "4 pin fan", but they don't seem to be widely available.  I 
-> considered various analogue solutions to extract the tacho signal from 
-> the PWM garbling, but settled on a digital one: I have a 4013 D-type 
-> flip-flop chip (4000-series logic has the benefit of operating at 12 
-> volts) which samples the tacho signal on the falling edge of the PWM 
-> waveform.  This works fine in all cases except one, which I didn't 
-> consider until I tried it out: duty0%, which has no edges!  Any 
-> ideas for how to fix this would be welcome.  In manual mode it's not a 
-> problem because I can avoid using 100%; 99% gives essentially the same 
-> fan speed.  But in tracking mode I don't think there's a way to tell 
-> the chip not to go above a certain duty cycle (is there?).
+Jean, I assume that you got the numbers for your graph without any 
+hardware mods to make the tacho work.  So presumably there is something 
+on your motherboard to 'fix' this problem?
 
-Assuming that what you call "tracking mode" is what the datasheet calls
-"fan speed mode", then no, you cannot ensure that it won't attempt to
-drive the fan at 100% duty cycle at some point in time. You can only
-_hope_ that it won't, if you ask for a fan speed which is low enough.
-Anyway, this mode isn't particularly useful so it probably doesn't
-really matter.
+> Out of curiosity, which PWM output did you wire to which fan? The
+> F71805F pretty much expects that PWM1 controls fan1, PWM2 controls
+> fan2, etc.
 
-In manual (software-driven) mode, you can make sure you'll never ask
-for a 100% duty cycle, however the current implementation of our
-fancontrol script doesn't support defining a maximum PWM value. Nor does
-it support defining a minimum PWM value, which would be even more useful
-IMHO (you never want your CPU fan to stop, do you?) These features
-could be easily added. Want to give it a try? Or I can.
+Indeed it does.  Currently I'm using the connections for fan 1, which 
+is the CPU fan - but it's not physically connected to the CPU.  This is 
+a low-power "fanless" motherboard, but I'm putting it in a rather 
+airless 1U rackmount case; I plan to monitor the CPU temperature and 
+switch on the case fan if it gets too high.
 
-4-wire fans are indeed not widely available. And more importantly, they
-only work properly if your motherboard has 4-wire fan headers and they
-are wired properly to a hardware monitoring chip which supports them.
-But they are certainly the way to go.
+> Given that you're wiring everything yourself, you could also try the DC
+> control mode. I don't know what effect it has on speed monitoring
+> though. Could be even worse than PWM.
 
-Out of curiosity, which PWM output did you wire to which fan? The
-F71805F pretty much expects that PWM1 controls fan1, PWM2 controls
-fan2, etc.
+Yes it should help a bit with the tacho problem, but it makes the 
+driver-circuit more complex; the example in the Fintek datasheet has 
+op-amps and I think the power transistor would need a heatsink.
 
-Given that you're wiring everything yourself, you could also try the DC
-control mode. I don't know what effect it has on speed monitoring
-though. Could be even worse than PWM.
+>> I had to read the source to work out how to use speed tracking mode, 
+>> because the documentation file for the f71805f doesn't give the 
+>> pwm*_enable values for the modes and lists them in the order manual 
+>> (1), speed (3) and temperature (2).  I can submit a documentation patch 
+>> for this if you like.
+>
+> I admit the documentation isn't very clear on this particular point. I
+> would welcome a patch improving it.
 
-From the graph I mentioned above, you can see that I am having trouble
-monitoring speeds below 1000 RPM, too. But this was never a problem in
-practice, I do not want my CPU fan to spin that slowly anyway. It's a
-2500 RPM fan and it usually doesn't go below 2000 RPM with my current
-settings.
+Here's something...
 
-> I had to read the source to work out how to use speed tracking mode, 
-> because the documentation file for the f71805f doesn't give the 
-> pwm*_enable values for the modes and lists them in the order manual 
-> (1), speed (3) and temperature (2).  I can submit a documentation patch 
-> for this if you like.
+--- linux-2.6.21/Documentation/hwmon/f71805f.orig	2007-06-09 
+18:27:21.000000000 +0100
++++ linux-2.6.21/Documentation/hwmon/f71805f	2007-06-09 
+18:32:28.000000000 +0100
+@@ -136,16 +136,20 @@
+  corresponds to a pwm value of 106 for the driver. The driver doesn't
+  enforce this limit though.
 
-I admit the documentation isn't very clear on this particular point. I
-would welcome a patch improving it.
+-Three different fan control modes are supported:
++Three different fan control modes are supported; the mode number is written
++to the pwm<n>_enable file:
 
-> So the next challenge is temperature tracking.  I understand that this 
-> is not currently implemented by the driver (I'm looking at the 2.6.21 
-> source; please let me know and accept my apologies if this driver has 
-> been updated since then).  I could perhaps add this functionality, but 
-> first I'd like to know if there was some problem that prevented the 
-> original author from doing so.
+-* Manual mode
+-  You ask for a specific PWM duty cycle or DC voltage.
++* 1: Manual mode
++  You ask for a specific PWM duty cycle or DC voltage by writing to the
++  pwm<n> file.
 
-This is still not implemented. The reason was a mix of lack of time and
-lack of interest. My CPU fan is pretty silent anyway, so I could live
-with it at full speed all the time. However, if you want to implement
-this feature, this is welcome, and I'll be happy to review and test
-your patch. This is probably the last missing feature in this driver
-for the F71805F. (For the F71872F, VID support is also missing.)
+-* Fan speed mode
+-  You ask for a specific fan speed. This mode assumes that pwm1
+-  corresponds to fan1, pwm2 to fan2 and pwm3 to fan3.
+-
+-* Temperature mode
++* 2: Temperature mode
+    You define 3 temperature/fan speed trip points, and the fan speed is
+    adjusted depending on the measured temperature, using interpolation.
+    This mode is not yet supported by the driver.
++
++* 3: Fan speed mode
++  You ask for a specific fan speed by writing to the fan<n>_target file.
++  This mode assumes that pwm1  corresponds to fan1, pwm2 to fan2 and pwm3
++  to fan3.
++
 
-> Something else that I'm curious about is the "CPU thermal throttling" 
-> that is offered by my BIOS.  My guess is that the "OVT" (over 
-> tempterature) output signal from the Fintek chip goes off to the CPU 
-> clock generator, or something like that.  Does anyone know how this works?
+>> So the next challenge is temperature tracking.  I understand that this 
+>> is not currently implemented by the driver (I'm looking at the 2.6.21 
+>> source; please let me know and accept my apologies if this driver has 
+>> been updated since then).  I could perhaps add this functionality, but 
+>> first I'd like to know if there was some problem that prevented the 
+>> original author from doing so.
+>
+> This is still not implemented. The reason was a mix of lack of time and
+> lack of interest. My CPU fan is pretty silent anyway, so I could live
+> with it at full speed all the time. However, if you want to implement
+> this feature, this is welcome, and I'll be happy to review and test
+> your patch. This is probably the last missing feature in this driver
+> for the F71805F. (For the F71872F, VID support is also missing.)
 
-You'd need to ask your motherboard vendor. Your guess makes sense and
-could be correct, but it could also be implemented completely
-differently.
+OK, I'll have a look at it.
 
--- 
-Jean Delvare
+
+Phil.
+
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
