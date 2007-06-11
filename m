@@ -1,90 +1,80 @@
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Tue, 05 Jun 2007 22:17:58 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon/pc87360: Convert to a platform driver
-Message-Id: <4665E116.7020807@gmail.com>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Mon, 11 Jun 2007 19:48:47 +0000
+Subject: Re: [lm-sensors] dme1737 datasheet
+Message-Id: <191fb4ca0706111248i4cabde67ud1471a3dacb73b50@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070521171943.420aa00b@hyperion.delvare>
-In-Reply-To: <20070521171943.420aa00b@hyperion.delvare>
+References: <1176080449.13814.51.camel@ragnarok>
+In-Reply-To: <1176080449.13814.51.camel@ragnarok>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> On Thu, 24 May 2007 09:34:37 -0600, Jim Cromie wrote:
->   
->> Jean Delvare wrote:
->>     
->>> I finally found some time to convert the pc87360 driver to a platform
->>> driver. Jim (or anyone else with access to supported hardware), could
->>> you please give it a try and confirm that it works OK?
->>>       
->> yes it works!
->>
->> these are with the conf in debian unstable -
->>
->> soekris:~# uname -a
->> Linux soekris 2.6.22-rc2-sk #2 Mon May 21 19:15:36 MDT 2007 i586 GNU/Linux
->> soekris:~#
->> soekris:~# sensors
->> pc87366-isa-6620
->> Adapter: ISA adapter
->> in0:       +3.01 V  (min =  +0.00 V, max =  +3.01 V)      
->> in1:       +2.01 V  (min =  +0.00 V, max =  +3.01 V)      
->> in2:       +2.48 V  (min =  +0.00 V, max =  +3.01 V)      
->> in3:       +0.66 V  (min =  +0.00 V, max =  +3.01 V)      
->> in4:       +2.46 V  (min =  +0.00 V, max =  +3.01 V)      
->> in5:       +2.49 V  (min =  +0.00 V, max =  +3.01 V)      
->> in6:       +0.00 V  (min =  +0.00 V, max =  +3.01 V)      
->> Vsb:       +3.31 V  (min =  +0.00 V, max =  +6.03 V)      
->> Vdd:       +2.98 V  (min =  +0.00 V, max =  +6.03 V)      
->> Vbat:      +3.01 V  (min =  +0.00 V, max =  +3.01 V)      
->> AVdd:      +3.28 V  (min =  +0.00 V, max =  +6.03 V)      
->> CPU0 Temp:  +127 C  (low  =   -55 C, high =  +127 C)   OPEN
->> CPU0 Crit:  +127 C ALARM
->> CPU1 Temp:  +127 C  (low  =   -55 C, high =  +127 C)   OPEN
->> CPU1 Crit:  +127 C ALARM
->> S-IO Temp:   +93 C  (low  =   -55 C, high =  +127 C) 
->> S-IO Crit:  +127 C
->>     
+Jeremy,
+
+The DME1737 is compatible to the SCH311X ->
+http://www.nuhorizons.com/FeaturedProducts/Volume1/SMSC/311x.pdf
+
+...juerg
+
+
+On 4/8/07, Jeremy Jackson <jerj@coplanar.net> wrote:
+> Hi,
 >
-> Thanks for the report, Jim! Hopefully the output looks the same as
-> without my patch? Did you try unloading and reloading the driver too?
+> Given the NDA nature it's tricky trying to support the watchdog and
+> serial port for LinuxBIOS.  I think I can fly blind using parts of
+> publicly available datasheets, but it would save me time if I knew the
+> Logical Device #'s of the various superio modules, ie index 7 values
+> needed to address parport, serial 1/2, fdc, etc. config registers.
 >
->   
-
-Sorry for delay, I thought Id sent this earlier, but no..
-
-I tested using 22-rc1  and 22-rc2 + 360-platform-patch,
-with 2 different configs - ( my best-config for my board, and debian's 
-dist-config
-and captured `sensors > files`.
-
-Then compared the 2 pairs, using this program,
-http://jim.cromie.googlepages.com/linux-page
-which parses the output, and looks for a 5% difference before reporting 
-problems.
-I find it easier than reading the voltages closely :-)
-comments, suggestions and complaints welcome..
-
-
-> This patch is now in -mm.
+> Any chance someone can hint at what these might be, or a publicly
+> available datasheet that's closest:
 >
->   
->> [ 1903.061714] hwmon-vid: requested unknown VRM version
->> vid:      +0.000 V  (VRM Version 0.0)
->>     
+> http://www.smsc.com/main/datasheet.html
 >
-> Hmmm, we should probably fix this warning, too. Maybe your CPU doesn't
-> even have VID pins. Patch follows.
+> Ok so they all have serial port as Logical Device 4, so I've summarized
+> what the watchdog uses below.
 >
->   
-
-good++
-
-
-thanks Jean,
--jimc
+> ISA bus types - Config index/data registers at 0x3F0 or 0x370
+>
+> watchdog uses configuration space of logical device
+>
+> FDC37b727 Logical Device 8 - Aux I/O 0xF1 - 0xF4 watchdog *
+> FDC37b78x Logical Device 8 - Aux I/O 0xF1 - 0xF4 watchdog *
+> FDC37c665GT very different - no logical devices
+> FDC37c669 very different - no logical devices
+> FDC37c672 Logical Device 8 - Aux I/O 0xF1 - 0xF4 watchdog * no
+> WDT_TIME_OUT register
+> FDC37c78 FDC only
+> FDC37c93x Logical Device 8 - Aux I/O 0xF2 - 0xF4 watchdog *
+> FDC37M707 Logical Device 8 - Aux I/O 0xF1 - 0xF4 watchdog *
+> FDC37m817 Logical Device 8 - Aux I/O 0xF1 - 0xF4 watchdog *
+> FDC37n769 very different - no logical devices
+>
+> * can be configured to allow access to some watchdog registers while in
+> run mode
+>
+> LPC bus types - index/address registers 0x2e/0x2f or 0x4e/0x4f
+>
+> watchdog uses offset from decoded address set by logical device Primary
+> Base Address
+>
+> LPC47b272 Logical Device A - Runtime reg offset 0x52 - 0x55 watchdog
+> LPC47m10x no WDT
+> LPC47m112 no WDT
+> LPC47m172 no WDT
+> LPC47S45x Logical Device A - Runtime reg offset 0x52 - 0x55 watchdog
+>
+> I'm leaning towards DME1737 being the same as these LPC parts.
+>
+> --
+> Jeremy Jackson
+> jerj@coplanar.net Email/Jabber/Google Talk/MSN
+> (519)489-4903
+> Coplanar Networks
+> http://www.coplanar.net
+>
+>
 
 _______________________________________________
 lm-sensors mailing list
