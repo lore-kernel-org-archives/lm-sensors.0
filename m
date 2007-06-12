@@ -1,29 +1,49 @@
-From: "Roger Lucas" <roger@planbit.co.uk>
-Date: Mon, 11 Jun 2007 21:51:05 +0000
-Subject: [lm-sensors] VT8231 patch to convert to platform driver
-Message-Id: <000f01c7ac72$9c6c7030$8001a8c0@wolverine>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 12 Jun 2007 19:04:08 +0000
+Subject: Re: [lm-sensors] VT8231 patch to convert to platform driver
+Message-Id: <20070612210408.7410e63b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <000f01c7ac72$9c6c7030$8001a8c0@wolverine>
+In-Reply-To: <000f01c7ac72$9c6c7030$8001a8c0@wolverine>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hi Roger,
 
-Attached is the vt8231 patch against the latest stable kernel (2.6.21.5).
+On Mon, 11 Jun 2007 22:51:05 +0100, Roger Lucas wrote:
+> Attached is the vt8231 patch against the latest stable kernel (2.6.21.5).
+> 
+> It works on my VIA Epia motherboard under the 2.6.16.20 kernel.  It
+> has the release resource problem mentioned in the earlier mail but this
+> should be resolved with your patch (although I haven't updated to the
+> latest kernel and applied your patch to explicitly test this).
 
-It works on my VIA Epia motherboard under the 2.6.16.20 kernel.  It has the release resource problem mentioned in the
-earlier mail but this should be resolved with your patch (although I haven't updated to the latest kernel and applied
-your patch to explicitly test this).
+Excellent work, it was almost perfect! I simply updated the dependencies
+in Kconfig, fixed one use of s_bridge before it was defined, and fixed
+indentation at places to make the patch smaller. Here is the version I
+came up with. Mark, please apply. Roger, please test again just in case
+- but I changed so little from your patch that I could hardly have
+broken anything.
 
-Best regards,
+* * * * *
 
-Roger
+From: Roger Lucas <roger@planbit.co.uk>
+Subject: hwmon/vt8231: Convert to a platform driver
+
+Convert the vt8231 driver from the nonsensical i2c-isa hack to a
+regular platform driver.
 
 Signed-off-by: Roger Lucas <roger@planbit.co.uk>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/Kconfig  |    3 
+ drivers/hwmon/vt8231.c |  317 ++++++++++++++++++++++++++----------------------
+ 2 files changed, 174 insertions(+), 146 deletions(-)
 
---- a/drivers/hwmon/vt8231.c	2007-06-11 19:37:06.000000000 +0100
-+++ b/drivers/hwmon/vt8231.c	2007-06-09 11:12:15.000000000 +0100
+--- linux-2.6.22-rc4.orig/drivers/hwmon/vt8231.c	2007-04-26 18:29:52.000000000 +0200
++++ linux-2.6.22-rc4/drivers/hwmon/vt8231.c	2007-06-12 20:47:28.000000000 +0200
 @@ -29,8 +29,7 @@
  #include <linux/slab.h>
  #include <linux/pci.h>
@@ -34,7 +54,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  #include <linux/hwmon.h>
  #include <linux/hwmon-sysfs.h>
  #include <linux/hwmon-vid.h>
-@@ -42,10 +41,7 @@
+@@ -42,10 +41,7 @@ static int force_addr;
  module_param(force_addr, int, 0);
  MODULE_PARM_DESC(force_addr, "Initialize the base address of the sensors");
  
@@ -46,7 +66,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  
  #define VT8231_EXTENT 0x80
  #define VT8231_BASE_REG 0x70
-@@ -148,7 +144,9 @@
+@@ -148,7 +144,9 @@ static inline u8 FAN_TO_REG(long rpm, in
  #define FAN_FROM_REG(val, div) ((val) = 0 ? 0 : 1310720 / ((val) * (div)))
  
  struct vt8231_data {
@@ -57,7 +77,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	struct mutex update_lock;
  	struct class_device *class_dev;
  	char valid;		/* !=0 if following fields are valid */
-@@ -168,20 +166,20 @@
+@@ -168,20 +166,20 @@ struct vt8231_data {
  };
  
  static struct pci_dev *s_bridge;
@@ -85,7 +105,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  }
  
  /* following are the sysfs callback functions */
-@@ -220,13 +218,12 @@
+@@ -220,13 +218,12 @@ static ssize_t set_in_min(struct device 
  {
  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
  	int nr = sensor_attr->index;
@@ -101,7 +121,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	mutex_unlock(&data->update_lock);
  	return count;
  }
-@@ -236,13 +233,12 @@
+@@ -236,13 +233,12 @@ static ssize_t set_in_max(struct device 
  {
  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
  	int nr = sensor_attr->index;
@@ -117,7 +137,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	mutex_unlock(&data->update_lock);
  	return count;
  }
-@@ -278,14 +274,13 @@
+@@ -278,14 +274,13 @@ static ssize_t show_in5_max(struct devic
  static ssize_t set_in5_min(struct device *dev, struct device_attribute *attr,
  		const char *buf, size_t count)
  {
@@ -134,7 +154,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	mutex_unlock(&data->update_lock);
  	return count;
  }
-@@ -293,14 +288,13 @@
+@@ -293,14 +288,13 @@ static ssize_t set_in5_min(struct device
  static ssize_t set_in5_max(struct device *dev, struct device_attribute *attr,
  		const char *buf, size_t count)
  {
@@ -151,7 +171,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	mutex_unlock(&data->update_lock);
  	return count;
  }
-@@ -348,26 +342,24 @@
+@@ -348,26 +342,24 @@ static ssize_t show_temp0_min(struct dev
  static ssize_t set_temp0_max(struct device *dev, struct device_attribute *attr,
  		const char *buf, size_t count)
  {
@@ -182,7 +202,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	mutex_unlock(&data->update_lock);
  	return count;
  }
-@@ -404,13 +396,12 @@
+@@ -404,13 +396,12 @@ static ssize_t set_temp_max(struct devic
  {
  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
  	int nr = sensor_attr->index;
@@ -198,7 +218,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	mutex_unlock(&data->update_lock);
  	return count;
  }
-@@ -419,13 +410,12 @@
+@@ -419,13 +410,12 @@ static ssize_t set_temp_min(struct devic
  {
  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
  	int nr = sensor_attr->index;
@@ -214,7 +234,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	mutex_unlock(&data->update_lock);
  	return count;
  }
-@@ -486,13 +476,12 @@
+@@ -486,13 +476,12 @@ static ssize_t set_fan_min(struct device
  {
  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
  	int nr = sensor_attr->index;
@@ -230,7 +250,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	mutex_unlock(&data->update_lock);
  	return count;
  }
-@@ -500,12 +489,11 @@
+@@ -500,12 +489,11 @@ static ssize_t set_fan_min(struct device
  static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
  		const char *buf, size_t count)
  {
@@ -245,7 +265,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	long min = FAN_FROM_REG(data->fan_min[nr],
  				 DIV_FROM_REG(data->fan_div[nr]));
  
-@@ -516,7 +504,7 @@
+@@ -516,7 +504,7 @@ static ssize_t set_fan_div(struct device
  	case 4: data->fan_div[nr] = 2; break;
  	case 8: data->fan_div[nr] = 3; break;
  	default:
@@ -254,7 +274,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  		        "Choose one of 1, 2, 4 or 8!\n", val);
  		mutex_unlock(&data->update_lock);
  		return -EINVAL;
-@@ -524,10 +512,10 @@
+@@ -524,10 +512,10 @@ static ssize_t set_fan_div(struct device
  
  	/* Correct the fan minimum speed */
  	data->fan_min[nr] = FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
@@ -267,7 +287,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	mutex_unlock(&data->update_lock);
  	return count;
  }
-@@ -551,9 +539,16 @@
+@@ -551,9 +539,16 @@ static ssize_t show_alarms(struct device
  	struct vt8231_data *data = vt8231_update_device(dev);
  	return sprintf(buf, "%d\n", data->alarms);
  }
@@ -285,7 +305,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  static struct attribute *vt8231_attributes_temps[6][4] = {
  	{
  		&dev_attr_temp1_input.attr,
-@@ -648,6 +643,7 @@
+@@ -648,6 +643,7 @@ static struct attribute *vt8231_attribut
  	&sensor_dev_attr_fan1_div.dev_attr.attr,
  	&sensor_dev_attr_fan2_div.dev_attr.attr,
  	&dev_attr_alarms.attr,
@@ -293,15 +313,14 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	NULL
  };
  
-@@ -655,13 +651,13 @@
+@@ -655,13 +651,13 @@ static const struct attribute_group vt82
  	.attrs = vt8231_attributes,
  };
  
 -static struct i2c_driver vt8231_driver = {
 +static struct platform_driver vt8231_driver = {
  	.driver = {
--		.owner	= THIS_MODULE,
-+		.owner  = THIS_MODULE,
+ 		.owner	= THIS_MODULE,
  		.name	= "vt8231",
  	},
 -	.attach_adapter	= vt8231_detect,
@@ -311,7 +330,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  };
  
  static struct pci_device_id vt8231_pci_ids[] = {
-@@ -680,75 +676,43 @@
+@@ -680,40 +676,18 @@ static struct pci_driver vt8231_pci_driv
  	.probe		= vt8231_pci_probe,
  };
  
@@ -343,26 +362,21 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
 -							  val | 0x0001))
 -			return -ENODEV;
 -	}
--
--	/* Reserve the ISA region */
+ 
+ 	/* Reserve the ISA region */
 -	if (!request_region(isa_address, VT8231_EXTENT,
 -			    vt8231_pci_driver.name)) {
 -		dev_err(&adapter->dev, "region 0x%x already in use!\n",
 -			   isa_address);
--		return -ENODEV;
--	}
-+ 
-+ 	/* Reserve the ISA region */
 +	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
 +	if (!request_region(res->start, VT8231_EXTENT,
-+ 			    vt8231_driver.driver.name)) {
++			    vt8231_driver.driver.name)) {
 +		dev_err(&pdev->dev, "Region 0x%lx-0x%lx already in use!\n",
 +			(unsigned long)res->start, (unsigned long)res->end);
-+ 		return -ENODEV;
-+ 	}
+ 		return -ENODEV;
+ 	}
  
- 	if (!(data = kzalloc(sizeof(struct vt8231_data), GFP_KERNEL))) {
- 		err = -ENOMEM;
+@@ -722,33 +696,23 @@ int vt8231_detect(struct i2c_adapter *ad
  		goto exit_release;
  	}
  
@@ -400,16 +414,16 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++) {
  		if (ISTEMP(i, data->uch_config)) {
 -			if ((err = sysfs_create_group(&client->dev.kobj,
-+			if ((err = sysfs_create_group(&pdev->dev.kobj, 
++			if ((err = sysfs_create_group(&pdev->dev.kobj,
  					&vt8231_group_temps[i])))
  				goto exit_remove_files;
  		}
-@@ -756,13 +720,13 @@
+@@ -756,13 +720,13 @@ int vt8231_detect(struct i2c_adapter *ad
  
  	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++) {
  		if (ISVOLT(i, data->uch_config)) {
 -			if ((err = sysfs_create_group(&client->dev.kobj,
-+			if ((err = sysfs_create_group(&pdev->dev.kobj, 
++			if ((err = sysfs_create_group(&pdev->dev.kobj,
  					&vt8231_group_volts[i])))
  				goto exit_remove_files;
  		}
@@ -420,20 +434,17 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	if (IS_ERR(data->class_dev)) {
  		err = PTR_ERR(data->class_dev);
  		goto exit_remove_files;
-@@ -770,57 +734,52 @@
- 	return 0;
+@@ -771,56 +735,51 @@ int vt8231_detect(struct i2c_adapter *ad
  
  exit_remove_files:
--	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
+ 	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
 -		sysfs_remove_group(&client->dev.kobj, &vt8231_group_volts[i]);
-+	for(i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
 +		sysfs_remove_group(&pdev->dev.kobj, &vt8231_group_volts[i]);
-+
-+	for(i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
-+		sysfs_remove_group(&pdev->dev.kobj, &vt8231_group_temps[i]);
  
--	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
+ 	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
 -		sysfs_remove_group(&client->dev.kobj, &vt8231_group_temps[i]);
++		sysfs_remove_group(&pdev->dev.kobj, &vt8231_group_temps[i]);
++
 +	sysfs_remove_group(&pdev->dev.kobj, &vt8231_group);
  
 -	sysfs_remove_group(&client->dev.kobj, &vt8231_group);
@@ -458,26 +469,24 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  
  	hwmon_device_unregister(data->class_dev);
  
--	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
+ 	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
 -		sysfs_remove_group(&client->dev.kobj, &vt8231_group_volts[i]);
-+	for(i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++)
 +		sysfs_remove_group(&pdev->dev.kobj, &vt8231_group_volts[i]);
  
--	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
+ 	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
 -		sysfs_remove_group(&client->dev.kobj, &vt8231_group_temps[i]);
-+	for(i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++)
-+		sysfs_remove_group(&pdev->dev.kobj, &vt8231_group_temps[i]);
- 
+-
 -	sysfs_remove_group(&client->dev.kobj, &vt8231_group);
-+	sysfs_remove_group(&pdev->dev.kobj, &vt8231_group);
++		sysfs_remove_group(&pdev->dev.kobj, &vt8231_group_temps[i]);
  
 -	if ((err = i2c_detach_client(client))) {
 -		return err;
 -	}
--
++	sysfs_remove_group(&pdev->dev.kobj, &vt8231_group);
+ 
 -	release_region(client->addr, VT8231_EXTENT);
 +	release_region(data->addr, VT8231_EXTENT);
-+	platform_set_drvdata(pdev,NULL);
++	platform_set_drvdata(pdev, NULL);
  	kfree(data);
 -
  	return 0;
@@ -500,28 +509,28 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  	int i;
  	u16 low;
  
-@@ -830,41 +789,33 @@
+@@ -830,41 +789,41 @@ static struct vt8231_data *vt8231_update
  	    || !data->valid) {
  		for (i = 0; i < 6; i++) {
  			if (ISVOLT(i, data->uch_config)) {
 -				data->in[i] = vt8231_read_value(client,
--						regvolt[i]);
++				data->in[i] = vt8231_read_value(data,
+ 						regvolt[i]);
 -				data->in_min[i] = vt8231_read_value(client,
--						regvoltmin[i]);
++				data->in_min[i] = vt8231_read_value(data,
+ 						regvoltmin[i]);
 -				data->in_max[i] = vt8231_read_value(client,
--						regvoltmax[i]);
-+				data->in[i] = vt8231_read_value(data, regvolt[i]);
-+				data->in_min[i] = vt8231_read_value(data,regvoltmin[i]);
-+				data->in_max[i] = vt8231_read_value(data, regvoltmax[i]);
++				data->in_max[i] = vt8231_read_value(data,
+ 						regvoltmax[i]);
  			}
  		}
  		for (i = 0; i < 2; i++) {
 -			data->fan[i] = vt8231_read_value(client,
--						VT8231_REG_FAN(i));
++			data->fan[i] = vt8231_read_value(data,
+ 						VT8231_REG_FAN(i));
 -			data->fan_min[i] = vt8231_read_value(client,
--						VT8231_REG_FAN_MIN(i));
-+			data->fan[i] = vt8231_read_value(data, VT8231_REG_FAN(i));
-+			data->fan_min[i] = vt8231_read_value(data, VT8231_REG_FAN_MIN(i));
++			data->fan_min[i] = vt8231_read_value(data,
+ 						VT8231_REG_FAN_MIN(i));
  		}
  
 -		low = vt8231_read_value(client, VT8231_REG_TEMP_LOW01);
@@ -532,15 +541,15 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  		for (i = 0; i < 6; i++) {
  			if (ISTEMP(i, data->uch_config)) {
 -				data->temp[i] = (vt8231_read_value(client,
--						       regtemp[i]) << 2)
-+				data->temp[i] = (vt8231_read_value(data, regtemp[i]) << 2)
++				data->temp[i] = (vt8231_read_value(data,
+ 						       regtemp[i]) << 2)
  						| ((low >> (2 * i)) & 0x03);
 -				data->temp_max[i] = vt8231_read_value(client,
--						      regtempmax[i]);
++				data->temp_max[i] = vt8231_read_value(data,
+ 						      regtempmax[i]);
 -				data->temp_min[i] = vt8231_read_value(client,
--						      regtempmin[i]);
-+				data->temp_max[i] = vt8231_read_value(data, regtempmax[i]);
-+				data->temp_min[i] = vt8231_read_value(data, regtempmin[i]);
++				data->temp_min[i] = vt8231_read_value(data,
+ 						      regtempmin[i]);
  			}
  		}
  
@@ -555,7 +564,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  
  		/* Set alarm flags correctly */
  		if (!data->fan[0] && data->fan_min[0]) {
-@@ -888,34 +839,103 @@
+@@ -888,33 +847,102 @@ static struct vt8231_data *vt8231_update
  	return data;
  }
  
@@ -604,7 +613,7 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
 -	u16 val;
 +	u16 address, val;
 +	if (force_addr) {
-+		address = force_addr & ~(VT8231_EXTENT - 1);
++		address = force_addr & 0xff00;
 +		dev_warn(&dev->dev, "Forcing ISA address 0x%x\n",
 +			 address);
 +
@@ -635,15 +644,11 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
 -		s_bridge = NULL;
 +	if (!(val & 0x0001)) {
 +		dev_warn(&dev->dev, "enabling sensors\n");
-+		if (PCIBIOS_SUCCESSFUL !+			pci_write_config_word(s_bridge, VT8231_ENABLE_REG,
-+							  val | 0x0001))
++		if (PCIBIOS_SUCCESSFUL !+			pci_write_config_word(dev, VT8231_ENABLE_REG,
++							val | 0x0001))
 +			return -ENODEV;
  	}
  
--	/* Always return failure here.  This is to allow other drivers to bind
--	 * to this pci device.  We don't really want to have control over the
--	 * pci device, we only wanted to read as few register values from it.
--	 */
 +	if (platform_driver_register(&vt8231_driver))
 +		goto exit;
 +
@@ -651,24 +656,23 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
 +	if (vt8231_device_add(address))
 +		goto exit_unregister;
 +
-+ 	/* Always return failure here.  This is to allow other drivers to bind
-+ 	 * to this pci device.  We don't really want to have control over the
-+ 	 * pci device, we only wanted to read as few register values from it.
-+ 	 */
+ 	/* Always return failure here.  This is to allow other drivers to bind
+ 	 * to this pci device.  We don't really want to have control over the
+ 	 * pci device, we only wanted to read as few register values from it.
+ 	 */
 +
-+	// We do, however, mark ourselves as using the PCI device to stop it
-+	// getting unloaded.
++	/* We do, however, mark ourselves as using the PCI device to stop it
++	   getting unloaded. */
 +	s_bridge = pci_dev_get(dev);
- 	return -ENODEV;
++	return -ENODEV;
 +
 +exit_unregister:
 +	platform_driver_unregister(&vt8231_driver);
 +exit:
-+ 	return -ENODEV;
+ 	return -ENODEV;
  }
  
- static int __init sm_vt8231_init(void)
-@@ -927,7 +947,8 @@
+@@ -927,7 +955,8 @@ static void __exit sm_vt8231_exit(void)
  {
  	pci_unregister_driver(&vt8231_pci_driver);
  	if (s_bridge != NULL) {
@@ -678,7 +682,22 @@ Signed-off-by: Roger Lucas <roger@planbit.co.uk>
  		pci_dev_put(s_bridge);
  		s_bridge = NULL;
  	}
+--- linux-2.6.22-rc4.orig/drivers/hwmon/Kconfig	2007-06-12 10:15:52.000000000 +0200
++++ linux-2.6.22-rc4/drivers/hwmon/Kconfig	2007-06-12 20:48:30.000000000 +0200
+@@ -517,9 +517,8 @@ config SENSORS_VT1211
+ 
+ config SENSORS_VT8231
+ 	tristate "VIA VT8231"
+-	depends on I2C && PCI && EXPERIMENTAL
++	depends on PCI
+ 	select HWMON_VID
+-	select I2C_ISA
+ 	help
+ 	  If you say yes here then you get support for the integrated sensors
+ 	  in the VIA VT8231 device.
 
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
