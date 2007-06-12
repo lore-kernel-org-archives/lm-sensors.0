@@ -1,29 +1,30 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Mon, 18 Jun 2007 19:55:35 +0000
-Subject: Re: [lm-sensors] Is it possible to raise the abituguru voltage test
-Message-Id: <4676E337.9020401@hhs.nl>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Tue, 12 Jun 2007 16:29:47 +0000
+Subject: [lm-sensors] dme1737 and sch311x similarities
+Message-Id: <191fb4ca0706120929k2b63b7afy25e5e92b2dec756b@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070613121553.17775.qmail@science.horizon.com>
-In-Reply-To: <20070613121553.17775.qmail@science.horizon.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-linux@horizon.com wrote:
-> 
-> Okay.  Is it worth asking about the poll-every-10-ms option?  It's a
-> fairly minor change, and does speed up initialization.
-> 
+All,
 
-On your motherboard that may work, but on others I have seen problems trying to 
-play clever tricks like this. The firmware in older uguru's is a bit buggy and 
-easily rubbed the wrong way. If you really care about the initialisation speed 
-use the bank1_types param.
+I looked through the SMSC sch311x datasheet and discovered that the HW
+monitoring capabilities of the two chips are nearly identical. The
+sch311x is missing some of the optional features like fan4 and pwmA
+and pwmB and registers are accessed through the LPC interface rather
+than an SMBus interface as is the case for the dme1737.
+So if I were to enhance the dme1737 driver to support the sch311x
+family this would imply that sch311x owners would also need to load
+i2c modules which aren't really necessary/used in this case.
+On the other hand, two separate drivers means a lot of code redundancy...
 
-Regards,
+Any thoughts on which way to go? Personally I prefer a single driver,
+way easier to maintain.
 
-Hans
+Thanks
+...juerg
 
 _______________________________________________
 lm-sensors mailing list
