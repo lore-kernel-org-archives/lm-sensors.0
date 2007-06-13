@@ -1,94 +1,56 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 23 Jun 2007 16:03:23 +0000
-Subject: Re: [lm-sensors] question about dyn chip support generic temp print
-Message-Id: <20070623180323.6552c338@hyperion.delvare>
+From: R Kimber <rkimber@ntlworld.com>
+Date: Wed, 13 Jun 2007 21:36:45 +0000
+Subject: [lm-sensors] Change in reported CPU temperatures
+Message-Id: <20070613223645.40f82f42.rkimber@ntlworld.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46767C9D.8040006@hhs.nl>
-In-Reply-To: <46767C9D.8040006@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 18 Jun 2007 08:52:12 -0700, Juerg Haefliger wrote:
-> On 6/18/07, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
-> > As said already I'm working on the fintek 71882 driver, I've currently =
-given it
-> > a tempX_input tempX_max tempX_max_hyst and a tempX_crit, with the curre=
-nt dyn
-> > chip + generic print support this results in:
-> > CPU:            +38.0=B0C  (high =3D +80.0=B0C, hyst =3D  +4.0=B0C)  se=
-nsor =3D transistor
-> > temp1_crit:     +81.0=B0C
-> >
-> > This is because currently for max + hyst chips the first line gets prin=
-ted, and
-> > then for chips which have a crit to a sensors_get_label_and_valid is do=
-ne on
-> > the sensors_feature_data describing tempX_crit. Wouldn't it be better t=
-o reuse
-> > the main temp label and value, resulting in:
-> > CPU:            +38.0=B0C  (high =3D +80.0=B0C, hyst =3D  +4.0=B0C)  se=
-nsor =3D transistor
-> > CPU:            +38.0=B0C  (crit =3D +81.0=B0C)
-> >
-> > Maybe change the label into all whitespace / "CPU (continued)"? The cur=
-rent
-> > printout seems very wrong, but my suggested one doesn't feel right eith=
-er.
->=20
-> Hmm... Neither looks right to me. I can see user comments/bug reports
-> flying in...
+I have:-
 
-At least the current way has been in use for years now. "sensors"
-prints something like that for the LM90/ADM1032 PC87366 chips already,
-and I don't remember anybody complaining. OTOH, printing the same value
-twice seems pretty wrong. So while I agree none of these methods are
-ideal, the latter seems even worse to me.
+Asus M2N-E with amd64x2
+Ubuntu 7.04
+lm-sensors 1:2.10.1-2ubuntu2
 
-> Isn't there a way to make the print routine collect all the data and
-> print in on a single line?
+When I upgraded to Ubuntu 7.04 I got kernel 2.6.20-15.14
+This allowed me to monitor CPU temperatures with k8temp.
 
-We could do that, the problem is that the list can get quite long.
-There can be up to 5 limits for each temperature input: min, max,
-max_hyst, crit and crit_hyst. A chip like the ADM1032 has all of them!
+When running Boinc (5.4.11-5) projects on both processors, CPU
+temperatures were reported as being around 53C.  Idle temperature was
+around 28C.
 
-I think that the idea with multiple lines was to make the output fit in
-80 columns. If we want to stick to that, this means a maximum of two
-limits per line. So we could present things that way:
+However, on 1 June the kernel was upgraded to 2.6.20-16.28 and the
+reported temperatures immediately dropped to around 38C, without any
+config changes on my part, or as far as I know a Boinc-manager/client
+upgrade. Idle temperature remained the same.
 
-CPU:            +38.0=B0C  (high =3D +80.0=B0C, hyst =3D  +4.0=B0C,
-                          crit =3D +81.0=B0C)                  sensor =3D t=
-ransistor
+On 9 June the kernel was upgraded again to 2.6.20-16.29 and the
+reported temperatures remained around 38C.
 
-The exact algorithm is not trivial because of hysteresis values, which
-we always want on the same line as the limit they correspond to.
+Is k8temp reliable? Was there a significant change to it with the
+recent kernels? Which set of temperatures should I trust? If the
+higher, how should I go about getting the correct report?
 
-Or maybe we can have "sensors" read the COLUMNS environment
-variable and print things differently depending on the value, for
-example on multiple lines if COLUMNS=80 and all on one line if
-COLUMNS>80. This can quickly get complex to implement though, and
-might also be confusing (COLUMNS isn't exported by default.)
+I have seen newsgroup comments from two other people both reporting
+different levels on similar machines !
 
-> And our sysfs standard defines hyst to be an absolute value, not relative.
+The bios is set for optimal fan performance (varying with temp). The
+reported fan revs are consistent with the temperatures (i.e. lower revs
+with 38C) and the machine feels, subjectively, very cool (exhaust air
+feels cool to the hand, unlike previous machines I have owned).
 
-True.
+I should be grateful for any comments on this. I would not be overly
+worried with 53C at current ambient temperatures, but when the
+weather gets really hot I suspect it might rise quite a lot.
 
-> > Also as already "explained" in my previous question, this chip has one
-> > hysteresis for both max and crit, now to make the current code work I w=
-ould
-> > need to put that twice into sysfs, which would result in to both changi=
-ng if
-> > one gets written (I can make only one rw to make this obvious).
->=20
-> That should be OK. I did something similar in the vt1211 where a
-> single register was exported twice and one of the attributes was
-> read-only.
+Naturally, I'd be very happy with 38C.
 
-Yes, that's the way to go.
-
---=20
-Jean Delvare
+- Richard
+-- 
+Richard Kimber
+http://www.psr.keele.ac.uk/
 
 _______________________________________________
 lm-sensors mailing list
