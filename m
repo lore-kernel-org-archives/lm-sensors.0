@@ -1,33 +1,42 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 10 Jun 2007 20:35:35 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Thu, 14 Jun 2007 12:42:12 +0000
 Subject: Re: [lm-sensors] svn commit: r4435 - lm-sensors/trunk/prog/py-smbus
-Message-Id: <20070610223535.6159056b@hyperion.delvare>
+Message-Id: <20070614124212.GB18894@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20070610223535.6159056b@hyperion.delvare>
+In-Reply-To: <20070610223535.6159056b@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 9 Jun 2007 18:19:45 +0200 (CEST), lm-sensors-notify@lm-sensors.org wrote:
->       Author: mmh
->         Date: Sat Jun  9 18:19:37 2007
-> New Revision: 4435
->    Changeset: http://lm-sensors.org/changeset/4435
-> 
-> Modified:
->    lm-sensors/trunk/prog/py-smbus/smbusmodule.c
-> 
-> Log:
-> Allow i2c block transfers with of length < 32 on kernels that support it.
+Hi Jean:
 
->  	if (i2c_smbus_access(self->fd, I2C_SMBUS_READ, (__u8)cmd,
-> +				len = 32 ? I2C_SMBUS_I2C_BLOCK_BROKEN:
->  				I2C_SMBUS_I2C_BLOCK_DATA, &data)) {
+* Jean Delvare <khali@linux-fr.org> [2007-06-10 22:35:35 +0200]:
+> On Sat, 9 Jun 2007 18:19:45 +0200 (CEST), lm-sensors-notify@lm-sensors.org wrote:
+> >       Author: mmh
+> >         Date: Sat Jun  9 18:19:37 2007
+> > New Revision: 4435
+> >    Changeset: http://lm-sensors.org/changeset/4435
+> > 
+> > Modified:
+> >    lm-sensors/trunk/prog/py-smbus/smbusmodule.c
+> > 
+> > Log:
+> > Allow i2c block transfers with of length < 32 on kernels that support it.
+> 
+> >  	if (i2c_smbus_access(self->fd, I2C_SMBUS_READ, (__u8)cmd,
+> > +				len = 32 ? I2C_SMBUS_I2C_BLOCK_BROKEN:
+> >  				I2C_SMBUS_I2C_BLOCK_DATA, &data)) {
+> 
+> This looks wrong to me, should be "len = 32"?
 
-This looks wrong to me, should be "len = 32"?
+Yep, fixed.  Thanks.
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
