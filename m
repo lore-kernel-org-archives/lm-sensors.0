@@ -1,7 +1,7 @@
 From: "Roger Lucas" <roger@planbit.co.uk>
-Date: Tue, 12 Jun 2007 22:02:16 +0000
+Date: Thu, 14 Jun 2007 20:15:38 +0000
 Subject: Re: [lm-sensors] VT8231 patch to convert to platform driver
-Message-Id: <002501c7ad3d$57354e30$8001a8c0@wolverine>
+Message-Id: <000001c7aec0$c66ffb90$8001a8c0@wolverine>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <000f01c7ac72$9c6c7030$8001a8c0@wolverine>
 In-Reply-To: <000f01c7ac72$9c6c7030$8001a8c0@wolverine>
@@ -12,9 +12,12 @@ To: lm-sensors@vger.kernel.org
 
 Hi Jean,
 
-I am out for the next couple of days but will test the changes on Thu and confirm the update.
+I've just checked the driver and it runs fine.  Thanks for spotting the bug in the address mask and the dev/s_bridge
+mixup.
 
-- Roger
+Best regards,
+
+Roger
 
 > -----Original Message-----
 > From: Jean Delvare [mailto:khali@linux-fr.org]
