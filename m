@@ -1,33 +1,64 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Tue, 19 Jun 2007 14:49:57 +0000
-Subject: [lm-sensors] I'll be away (on holliday) for the coming week
-Message-Id: <4677ED15.3030500@hhs.nl>
+From: "Mircea Balan" <office@lanexim.ro>
+Date: Fri, 15 Jun 2007 10:07:24 +0000
+Subject: [lm-sensors] Aux-temp
+Message-Id: <000901c7af34$f9ff8060$9601a8c0@lnx>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============9207859913632364233=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4677ECDA.6050100@hhs.nl>
-In-Reply-To: <4677ECDA.6050100@hhs.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+This is a multi-part message in MIME format.
 
-A close friend of mine is getting maried in Israel in two days, I'll be flying 
-to Israel tonight, and stay there for about a week.
+--===============9207859913632364233==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0005_01C7AF4E.1DA1EE90"
 
-Thus I will not be available to answer bug reports, etc. I hereby give others 
-with CVS access permission to make any necessary fixes for urgent issues like 
-broken deps in rawhide. I might have internet access at the hotel and then I 
-might read my mail, but don't count on it :)
+This is a multi-part message in MIME format.
 
-Regards,
+------=_NextPart_000_0005_01C7AF4E.1DA1EE90
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Hans
+Could this be wrong?
+Aux temp: 119=B0C
+http://hub.xboss.ro/sys/
+What can i do to show the real temp.?
+------=_NextPart_000_0005_01C7AF4E.1DA1EE90
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2900.3132" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2>Could this be wrong?</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>Aux temp: <FONT=20
+face=3D"Times New Roman">119=B0C</FONT></FONT></DIV>
+<DIV><FONT face=3DArial size=3D2><A=20
+href=3D"http://hub.xboss.ro/sys/">http://hub.xboss.ro/sys/</A></FONT></DI=
+V>
+<DIV><FONT face=3DArial size=3D2>What can i do to show the real=20
+temp.?</FONT></DIV></BODY></HTML>
+
+------=_NextPart_000_0005_01C7AF4E.1DA1EE90--
 
 
 
+--===============9207859913632364233==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============9207859913632364233==--
+
