@@ -1,7 +1,7 @@
 From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sat, 16 Jun 2007 15:21:24 +0000
+Date: Sat, 16 Jun 2007 15:42:13 +0000
 Subject: Re: [lm-sensors] Proposal
-Message-Id: <20070616152124.GB20595@jupiter.solarsys.private>
+Message-Id: <20070616154213.GC20595@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200704081630.17151.hjk@linutronix.de>
 In-Reply-To: <200704081630.17151.hjk@linutronix.de>
@@ -10,39 +10,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all:
+Hi Hans:
 
-* Jean Delvare <khali@linux-fr.org> [2007-04-11 13:49:01 +0200]:
-> Hi Hans,
-> 
-> On Mon, 09 Apr 2007 14:34:35 +0200, Hans de Goede wrote:
-> > Oh and another thing I just came up with, last time I checked, it isn't 
-> > possible from userspace to change an inX_input to a tempX_input, or are you 
-> > suggesting that I export all 48 sensors, 3 times, once as in, once as temp and 
-> > once as fan and them make user space ignore temp1 and fan1, and use in0, as 
-> > sensor 0/1 actually is an in sensor?
-> 
-> You're right, this isn't possible, because it's not needed. The drivers
-> are usually able to read the device configuration from its registers,
-> and create the right sysfs entries based on that information. The only
-> exceptions being the vt1211 and gl520sm drivers, which I mentioned in
-> my previous reply.
+> Jean Delvare wrote:
+> > This is absolutely not different from all other hardware monitoring
+> > drivers. And all other drivers handle it in user-space, because that's
+> > the right design. I see no valid reason why it would be different for
+> > your abituguru3 driver. All you need is one configuration file per
+> > motherboard.
 
-In this case, there is no practical difference between reading that info from a
-register on the chip and inferring it from a register on the motherboard.
+* Hans de Goede <j.w.r.degoede@hhs.nl> [2007-04-09 14:50:03 +0200]:
+> Oh and yet another thing, since when should all conversions be done in 
+> userspace? I did exactly that with the abituguru 1/2 driver and there I had to 
+> change it to give the return the actual pin values in Volts and not register 
+> values, iow do the conversion in the driver.
+> [...]
 
-They are a matched pair, indivisible.  You can't just buy a tube of uguru3s
-from digikey and wire them up to random projects like you can w/ e.g. lm93.
+The kernel-to-userspace interface for hwmon is the *measured* value at the
+*pin*, in natural units.
 
-> So I seem to understand that, for the abituguru3, you are not able to
-> read the configuration from the device? Again I must blame Abit for
-> their very poor design and/or lack of documentation :(
+If the pin on a chip can measure e.g. 0.0-5.0 volts, then the sysfs file will
+report that voltage.
 
-See above.  Lack of docs is bad, of course; but I don't see any problem with
-that design.  It's just different.  
+If that same pin is wired into a circuit which is used for measuring a 12V
+power supply (and thus needs further conversion) that is *irrelevant* to the
+driver.  The hwmon driver for a well-documented and general purpose sensor chip
+need not concern itself with external circuitry.
 
-> Didn't you have the same problem originally in the first abiturugu
-> driver? If so, how did you solve it?
+(It cannot, short of moving all of libsensors or its equivalent into the kernel,
+which would be horrible.  Even if we could track all mainboard types and
+somehow update the kernel with all that info, you still need a way for embedded
+people to reconfigure it for their custom boards or whatever.  *That* is why
+we keep libsensors out of the kernel.  Not because of "if it can be done in
+userspace, it should" or any nonsense like that.)
+
+A chip like uguru breaks this model, because we have *no* *idea* what it might
+be measuring at the *pin*.  But it turns out, it doesn't matter.  It's so
+tightly coupled to the mainboard that we can treat the whole thing as a "chip".
+The embedded case goes away (like I mentioned in another thread) because nobody
+is designing the uguru into custom boards anyway.
+
+I hope this rationale for the kernel/userspace API is clear now.
 
 Regards,
 
