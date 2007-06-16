@@ -1,37 +1,57 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 11 Jun 2007 15:22:11 +0000
-Subject: Re: [lm-sensors] New hwmon maintainer
-Message-Id: <20070611172211.24d29a87@hyperion.delvare>
+Date: Sat, 16 Jun 2007 09:53:50 +0000
+Subject: Re: [lm-sensors] ASUS M2NPV-VM problems
+Message-Id: <20070616115350.7e5f40d2@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070609160031.GE3357@jupiter.solarsys.private>
-In-Reply-To: <20070609160031.GE3357@jupiter.solarsys.private>
+References: <465D7955.7060307@zerone.se>
+In-Reply-To: <465D7955.7060307@zerone.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Sat, 9 Jun 2007 12:00:31 -0400, Mark M. Hoffman wrote:
-> I am maintaining a git tree for the hwmon subsystem now.  You may pull from
-> it here:
+Hi Raivo,
+
+On Wed, 30 May 2007 15:17:09 +0200, Raivo Kask wrote:
+> My configuration looks like this:
 > 
-> 	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git testing
+> MB:         ASUS M2NPV-VM
+> CPU:        AMD 64 X2 Dual Core Processor 4800+
+> OS:         Ubuntu 7.04 (Linux 2.6.20-16-generic #2 SMP)
+> lm_sensors: 1:2.10.1-2ubuntu2 (feisy)
 > 
-> The current contents include the remainder of Jean Delvare's quilt patch
-> series, plus a single patch to MAINTAINERS.  Once you start pulling from
-> this git tree, Jean said he will delete his patch series entirely.
+> I have spent many hours to get it working (scanning all forums and 
+> documentation) ... but I am lost.
+> Hope someone can sort it our for me.
+> Here is what I get from sensors output and it looks strange to me ...
+> 
+>     - why are there 2 temps for Core0 and Core1
 
-Mark has my blessing, needless to say.
-http://marc.info/?l=lm-sensors&m7621009823952&w=2
+Please read Documentation/hwmon/k8temp:
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob_plain;f=Documentation/hwmon/k8temp
 
-> BTW: None of these patches are needed before 2.6.23.
+>     - what is temp1/2/3
 
-Confirmed.
+Sensor wiring is board-specific, so ask your motherboard manufacturer.
+You can also compare the order and values with what your BIOS displays.
+When you find out, add label statements to sensors.conf.
 
-> PS: Thanks for your good work and help, Jean.
+>     - should VID be = 0.000 V
 
-Well, thanks Mark for taking over :) I have no doubt you'll make good
-work too.
+This suggests that the VID inputs of the IT8716F aren't wired to the
+VID output pins of the CPU on your motherboard. This can happen,
+because these pins can alternatively be used as GPI (general purpose
+inputs).
+
+It could also be that your device has the VID value in a different
+register. The IT8716F datasheet mentions two possible registers to get
+the VID value. The it87 driver uses one (the same as was used for the
+IT8712F) but maybe that's not correct for you. If you provide a dump of
+your chip, I will take a look:
+
+rmmod it87
+isadump 0x295 0x296
+isadump -k 0x87,0x01,0x55,0x55 0x2e 0x2f 7
 
 -- 
 Jean Delvare
