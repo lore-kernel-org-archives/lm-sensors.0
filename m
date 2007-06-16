@@ -1,7 +1,7 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sat, 16 Jun 2007 19:35:56 +0000
+Date: Sat, 16 Jun 2007 19:40:42 +0000
 Subject: Re: [lm-sensors] Proposal
-Message-Id: <46743B9C.7060401@hhs.nl>
+Message-Id: <46743CBA.7070009@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200704081630.17151.hjk@linutronix.de>
 In-Reply-To: <200704081630.17151.hjk@linutronix.de>
@@ -11,35 +11,60 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Mark M. Hoffman wrote:
-> Hi all:
+> Hi Hans:
 > 
-> * Jean Delvare <khali@linux-fr.org> [2007-04-11 13:49:01 +0200]:
->> Hi Hans,
->>
->> On Mon, 09 Apr 2007 14:34:35 +0200, Hans de Goede wrote:
->>> Oh and another thing I just came up with, last time I checked, it isn't 
->>> possible from userspace to change an inX_input to a tempX_input, or are you 
->>> suggesting that I export all 48 sensors, 3 times, once as in, once as temp and 
->>> once as fan and them make user space ignore temp1 and fan1, and use in0, as 
->>> sensor 0/1 actually is an in sensor?
->> You're right, this isn't possible, because it's not needed. The drivers
->> are usually able to read the device configuration from its registers,
->> and create the right sysfs entries based on that information. The only
->> exceptions being the vt1211 and gl520sm drivers, which I mentioned in
->> my previous reply.
+>> Jean Delvare wrote:
+>>> This is absolutely not different from all other hardware monitoring
+>>> drivers. And all other drivers handle it in user-space, because that's
+>>> the right design. I see no valid reason why it would be different for
+>>> your abituguru3 driver. All you need is one configuration file per
+>>> motherboard.
 > 
-> In this case, there is no practical difference between reading that info from a
-> register on the chip and inferring it from a register on the motherboard.
->
+> * Hans de Goede <j.w.r.degoede@hhs.nl> [2007-04-09 14:50:03 +0200]:
+>> Oh and yet another thing, since when should all conversions be done in 
+>> userspace? I did exactly that with the abituguru 1/2 driver and there I had to 
+>> change it to give the return the actual pin values in Volts and not register 
+>> values, iow do the conversion in the driver.
+>> [...]
+> 
+> The kernel-to-userspace interface for hwmon is the *measured* value at the
+> *pin*, in natural units.
+> 
+> If the pin on a chip can measure e.g. 0.0-5.0 volts, then the sysfs file will
+> report that voltage.
+> 
+> If that same pin is wired into a circuit which is used for measuring a 12V
+> power supply (and thus needs further conversion) that is *irrelevant* to the
+> driver.  The hwmon driver for a well-documented and general purpose sensor chip
+> need not concern itself with external circuitry.
+> 
+> (It cannot, short of moving all of libsensors or its equivalent into the kernel,
+> which would be horrible.  Even if we could track all mainboard types and
+> somehow update the kernel with all that info, you still need a way for embedded
+> people to reconfigure it for their custom boards or whatever.  *That* is why
+> we keep libsensors out of the kernel.  Not because of "if it can be done in
+> userspace, it should" or any nonsense like that.)
+> 
+> A chip like uguru breaks this model, because we have *no* *idea* what it might
+> be measuring at the *pin*.  But it turns out, it doesn't matter.  It's so
+> tightly coupled to the mainboard that we can treat the whole thing as a "chip".
+> The embedded case goes away (like I mentioned in another thread) because nobody
+> is designing the uguru into custom boards anyway.
+> 
+> I hope this rationale for the kernel/userspace API is clear now.
+> 
 
-To be precise, the info actually is read from a register on the chip, not a 
-register on the motherboard (the chip is on the motherboard ofcourse).
+It is and always was, but as you say the uguru is a bit of a special case here.
 
-So there really is no difference here, a register gets read and based on its 
-contents it gets determined what inputs are available and what their types are.
+I've got some good news about the fintek f77882fg / epox ep1308 chipb btw, my 
+student (Hans Edgington) has returned the motherboard and last friday I build a 
+system with it. I also compiled his driver and I've added / fixed reading of 
+the voltages, There I'm doing exactly what you describe above, return a sysfs 
+reading between 0 and 2.048 volts, and then let libsensors scale it depending 
+on the attached divider circuit.
 
-As an added bonus, one can also determine the scaling factors and labels for 
-the inputs too.
+I still need to merge the patch for true fintek / msi board support and then 
+I'll post an initial version.
 
 Regards,
 
