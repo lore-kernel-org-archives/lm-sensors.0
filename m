@@ -1,7 +1,7 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sat, 16 Jun 2007 19:40:42 +0000
+Date: Sat, 16 Jun 2007 19:50:20 +0000
 Subject: Re: [lm-sensors] Proposal
-Message-Id: <46743CBA.7070009@hhs.nl>
+Message-Id: <46743EFC.7090206@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200704081630.17151.hjk@linutronix.de>
 In-Reply-To: <200704081630.17151.hjk@linutronix.de>
@@ -11,60 +11,85 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Mark M. Hoffman wrote:
-> Hi Hans:
+> Hi everyone:
 > 
+> Finally, back to the thread that resulted in change of maintainers, but not
+> yet any merged code. ;)
+> 
+> * Hans de Goede <j.w.r.degoede@hhs.nl> [2007-04-11 15:49:08 +0200]:
 >> Jean Delvare wrote:
->>> This is absolutely not different from all other hardware monitoring
->>> drivers. And all other drivers handle it in user-space, because that's
->>> the right design. I see no valid reason why it would be different for
->>> your abituguru3 driver. All you need is one configuration file per
->>> motherboard.
+>>> Hans,
+>>>
+>>> On Mon, 09 Apr 2007 14:26:06 +0200, Hans de Goede wrote:
+>>>> Jean Delvare wrote:
+>>>>> This is absolutely not different from all other hardware monitoring
+>>>>> drivers. And all other drivers handle it in user-space, because that's
+>>>>> the right design. I see no valid reason why it would be different for
+>>>>> your abituguru3 driver. All you need is one configuration file per
+>>>>> motherboard.
+>>>> Actually it is _very_ different. The uguru is not a chip, its more a piece of 
+>>>> software (looking from the driver POV) then a chip, thus sensors which aren't 
+>>>> there really aren't there, they are not just unconnected pins, they _really_ 
+>>>> aren't there.
 > 
-> * Hans de Goede <j.w.r.degoede@hhs.nl> [2007-04-09 14:50:03 +0200]:
->> Oh and yet another thing, since when should all conversions be done in 
->> userspace? I did exactly that with the abituguru 1/2 driver and there I had to 
->> change it to give the return the actual pin values in Volts and not register 
->> values, iow do the conversion in the driver.
->> [...]
+> There is another way to look at it: the uguru3 is not a single chip, it is a
+> *family* of chips.  With that model, we would end up with a compromise between
+> your positions that has precedent in other drivers.
 > 
-> The kernel-to-userspace interface for hwmon is the *measured* value at the
-> *pin*, in natural units.
+> I.e. Append the motherboard ID to the chip name, and also use that to create
+> the needed sysfs files.  Voila, you don't need "label" sysfs files anymore
+> because you can put a section in sensors.conf for each variant of uguru3.
 > 
-> If the pin on a chip can measure e.g. 0.0-5.0 volts, then the sysfs file will
-> report that voltage.
-> 
-> If that same pin is wired into a circuit which is used for measuring a 12V
-> power supply (and thus needs further conversion) that is *irrelevant* to the
-> driver.  The hwmon driver for a well-documented and general purpose sensor chip
-> need not concern itself with external circuitry.
-> 
-> (It cannot, short of moving all of libsensors or its equivalent into the kernel,
-> which would be horrible.  Even if we could track all mainboard types and
-> somehow update the kernel with all that info, you still need a way for embedded
-> people to reconfigure it for their custom boards or whatever.  *That* is why
-> we keep libsensors out of the kernel.  Not because of "if it can be done in
-> userspace, it should" or any nonsense like that.)
-> 
-> A chip like uguru breaks this model, because we have *no* *idea* what it might
-> be measuring at the *pin*.  But it turns out, it doesn't matter.  It's so
-> tightly coupled to the mainboard that we can treat the whole thing as a "chip".
-> The embedded case goes away (like I mentioned in another thread) because nobody
-> is designing the uguru into custom boards anyway.
-> 
-> I hope this rationale for the kernel/userspace API is clear now.
+> It's not that I'm against the label files per se.  But IMHO this suggestion
+> is the closest fit to the existing model of operation.
 > 
 
-It is and always was, but as you say the uguru is a bit of a special case here.
+I could do that, actually making the ID available in some way to userspace is a 
+good idea, however I'm still in favor of the fooX_label approach because:
 
-I've got some good news about the fintek f77882fg / epox ep1308 chipb btw, my 
-student (Hans Edgington) has returned the motherboard and last friday I build a 
-system with it. I also compiled his driver and I've added / fixed reading of 
-the voltages, There I'm doing exactly what you describe above, return a sysfs 
-reading between 0 and 2.048 volts, and then let libsensors scale it depending 
-on the attached divider circuit.
+1) The driver will need the table it currently has no matter what, to determine
+    which inputs the model / this specific member of the family has, and at
+    which addresses these inputs reside and what type they have.
 
-I still need to merge the patch for true fintek / msi board support and then 
-I'll post an initial version.
+    Since the table is already there, I might as well at the labels there and
+    have all info in a single place = less maintainance / no sync problems
+
+2) With dyn chip support in place (soon hopefully) a newer kernel with support
+    for new motherboards added to the table, will just work without requiring
+    userspace updates. When the labels are in sensors.conf userspace will need
+    updating too, and if sensors.conf has been edited, it will require manual
+    intervention / editing  even.
+
+    More in general if other drivers, for example CPU / chipset internal
+    sensor temp drivers get added, they can have foo#_label sysfs entries too,
+    and the new dyn chip support libsensors will do the right thing.
+
+    Atleast Fedora, and probably other distro's update the kernel way more often
+    then userspace tools.
+
+>> So is this one, its reading the configuration register which tells the driver 
+>> which model/stepping we are running on.
+> 
+> Yep, this leads directly to my suggestion above.  Guys, is that acceptable?
+> (/me is out, but leaving the rest uncut since it's such an old thread)
+> 
+
+If the above solution is what it takes to gets the driver integrated, then 
+maybe I can agree, but I see big pain (mainly for me) in having to maintain the 
+needed table partly in the driver and partly in sensors.conf, since the driver 
+will need a table anyways, why not put all the info in one place?
+
+---
+
+I've feeling we're arguing about 2 different things at once here, so here is a 
+try to split them:
+
+1) do we want foo#_label sysfs entries for devices were we can give a sensible
+    label to userspace, like cpu temp drivers
+2) if we agree that we want / will allow 1), is it ok for the uguru3 driver to
+    generate foo#_label sysfs entries using the contents of an uguru3 register
+    which addresses a lookup table with the actual info.
+
 
 Regards,
 
