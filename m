@@ -1,41 +1,48 @@
-From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-Date: Mon, 18 Jun 2007 16:02:33 +0000
-Subject: Re: [lm-sensors] Possible support for the SMSC SCH5317? (found on
-Message-Id: <4676AC99.9080504@onelan.co.uk>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 17 Jun 2007 14:09:12 +0000
+Subject: [lm-sensors] [PATCH] hwmon/w83627ehf: Preserve speed reading when
+Message-Id: <20070617160912.1717d208@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46711ACE.3070809@onelan.co.uk>
-In-Reply-To: <46711ACE.3070809@onelan.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Juerg Haefliger wrote:
-> If you have a sensors.conf for your system, please post it and I'll
-> put it in the Wiki.
-> 
-> Thanks
-> ...juerg
-> 
-I'm just using the following, as I don't need to track all the fans or
-temperatures:
+The w83627ehf driver changes the fan clock divider automatically when
+a new min fan speed is set. It is supposed to preserve the fan speed
+reading while doing so, bug doesn't really. Fix it.
 
-chip "smsc47b397-*"
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/w83627ehf.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-    label fan1 "CPU Fan"
-    label fan4 "Sys Fan"
+--- linux-2.6.22-rc5.orig/drivers/hwmon/w83627ehf.c	2007-06-16 23:02:58.000000000 +0200
++++ linux-2.6.22-rc5/drivers/hwmon/w83627ehf.c	2007-06-17 15:46:59.000000000 +0200
+@@ -716,10 +716,15 @@ store_fan_min(struct device *dev, struct
+ 	/* Write both the fan clock divider (if it changed) and the new
+ 	   fan min (unconditionally) */
+ 	if (new_div != data->fan_div[nr]) {
+-		if (new_div > data->fan_div[nr])
+-			data->fan[nr] >>= (data->fan_div[nr] - new_div);
+-		else
+-			data->fan[nr] <<= (new_div - data->fan_div[nr]);
++		/* Preserve the fan speed reading */
++		if (data->fan[nr] != 0xff) {
++			if (new_div > data->fan_div[nr])
++				data->fan[nr] >>= new_div - data->fan_div[nr];
++			else if (data->fan[nr] & 0x80)
++				data->fan[nr] = 0xff;
++			else
++				data->fan[nr] <<= data->fan_div[nr] - new_div;
++		}
+ 
+ 		dev_dbg(dev, "fan%u clock divider changed from %u to %u\n",
+ 			nr + 1, div_from_reg(data->fan_div[nr]),
 
-    label temp1 "CPU Temp"
-    label temp3 "Sys Temp"
 
-I think I could add:
-    label temp2 "M/B Temp"
-    label fan3 "PSU Fan"
-
-to get all the fans and temperatures on the HP dc7700 labelled properly.
 -- 
-Simon Farnsworth
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
