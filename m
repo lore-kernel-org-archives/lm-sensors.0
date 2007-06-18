@@ -1,7 +1,7 @@
-From: linux@horizon.com
-Date: Mon, 18 Jun 2007 17:26:04 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Mon, 18 Jun 2007 19:55:35 +0000
 Subject: Re: [lm-sensors] Is it possible to raise the abituguru voltage test
-Message-Id: <20070618172604.14110.qmail@science.horizon.com>
+Message-Id: <4676E337.9020401@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070613121553.17775.qmail@science.horizon.com>
 In-Reply-To: <20070613121553.17775.qmail@science.horizon.com>
@@ -10,33 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> That case already gets caught by the first check:
->	if ((val < 10u) || (val > 250u)) {
->
-> You remove this check, because with having both voltage checks variants it 
-> isn't needed, I kept it because if a reading is THAT close to the absolutely 
-> min / max reading possible, something is wrong.
+linux@horizon.com wrote:
+> 
+> Okay.  Is it worth asking about the poll-every-10-ms option?  It's a
+> fairly minor change, and does speed up initialization.
+> 
 
-Oh!  Sorry, I missed that.  I allowed any voltage, so I was looking for
-the check between the voltage and temperature tests, and it wasn't
-there.
+On your motherboard that may work, but on others I have seen problems trying to 
+play clever tricks like this. The firmware in older uguru's is a bit buggy and 
+easily rubbed the wrong way. If you really care about the initialisation speed 
+use the bank1_types param.
 
-> My (tested and working) variant is enclosed.  Note the "temp too low
-> to test" condition you don't have.  Another version is coming next e-mail.
+Regards,
 
-> Thanks but no thanks, I'll stick with my minimal changes version. It
-> took me many days of debugging and back and forward mails with testers
-> to get code that works everywhere (except appearantly your mobo).
-
-Well, the code works, my mobo just uses it close to the limits by
-running a 3.3V input into a 3.5V Vref ADC.
-
-> I've also seen your do both tests in one go version, its clever, but it's
-> also definitively programming the "chip" outside its specs; the 2 flags
-> should normally never be set at the same time. So thanks but no thanks.
-
-Okay.  Is it worth asking about the poll-every-10-ms option?  It's a
-fairly minor change, and does speed up initialization.
+Hans
 
 _______________________________________________
 lm-sensors mailing list
