@@ -1,69 +1,55 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 12 Jun 2007 20:31:42 +0000
-Subject: Re: [lm-sensors] f71805f + J7F2;
-Message-Id: <20070612223142.67125e40@hyperion.delvare>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Mon, 18 Jun 2007 08:59:13 +0000
+Subject: [lm-sensors] Howto name fintek 71882 temp sysfs files?
+Message-Id: <46764961.5080602@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070609174408.170bfb85@hyperion.delvare>
-In-Reply-To: <20070609174408.170bfb85@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Phil,
+Hi all,
 
-On Mon, 11 Jun 2007 00:56:45 +0100, Phil Endecott wrote:
-> Jean Delvare wrote:
-> > I published my script here:
-> > http://khali.linux-fr.org/devel/lm-sensors/draw_pwm_response.pl
-> > It writes the results to a CSV file, it's up to you to make a graph out
-> > of it (I think I used OOo calc).
-> 
-> Mine is here; I modified your script a bit: duty cycle increases on the 
-> X axis, it uses a different range of PWM frequencies, and I plotted it 
-> using gnuplot:
-> 
-> http://chezphil.org/tmp/fanplot.png
-> 
-> Based on this I think I'll reduce mine below 40 kHz, maybe 25 kHz or 
-> something like that.
+As already explained my student (Hans Edgington), has returned the Epox 
+motherboard to school and now I'm working on cleaning up his driver and adding 
+missing features.
 
-You graph looks good, you fan seems to be better than mine. Admittedly,
-this is a rather old 80 mm fan which I nailed on top of my CPU heatsink
-just because it was relatively silent, compared to everything I bought
-since then. It didn't originally meant to control its speed.
+The temp sensors in this chip have an OVT (over temperature) and a high 
+temperature limit, both have a shared hysteresis. This hysteresis is a true 
+hysteresis. When a temp is over either limit a flag gets set, when it gets 
+below limit-hysteresis the flag gets cleared again.
 
-I agree that my X axis is in the wrong direction and that's somewhat
-confusing. I did it that way because it's easier (and safer) to sample
-the speeds while the PWM duty cycle decreases rather than increases -
-but I should have reversed the array of values before drawing the graph.
+I've been digging through the datasheets to try and find the differences 
+between the 2 limits.
 
-> > I confirm that I didn't modify my board in any way, maybe it includes
-> > some additional circuitry. The problem isn't totally fixed though, as
-> > you can see on the graph, below 1000 RPMs I lose the fan speed readings
-> > (there were a couple bogus values which removed from the graph to make
-> > it clearer.) Is it even worst on your side?
-> 
-> Are you sure that it was a reading problem, not that the fan had 
-> actually stopped?  I could believe that fans have a minimum speed below 
-> which they don't have enough rotational momentum to get past the "dead 
-> points" in the magnetic field.
-> 
-> As you can see, my fan runs down to a few hundred RPM.  I haven't 
-> experimented further with that.
+Both limits have flags, can cause interrupts and PME events.
 
-This was one part of the effect I observed back then, and my graph
-shows it for low frequencies: the fan stops way before the 0% duty
-cycle. But on top of that, before the full stop, some values were
-obviously bogus: I could see the fan spin relatively slowly as
-expected, but the driver was telling me speeds like 3000 RPM - more
-than this fan can actually do. So I think that artifacts were confusing
-the tachometer somehow. This is something to remember, because when
-this happens, this means that the given frequency isn't suitable for
-automatic fan speed control.
+The main difference seems to be OVT Output Enable Register 1  Index 66h
+at page 75 of the datasheet:
+http://www.fintek.com.tw/files/productfiles/F71882_V0.24P.pdf
 
--- 
-Jean Delvare
+The high limit has alert events coupled to its, which can not be enabled (read 
+only). Where as the ovt has an over temperature (OVT) mechanism, which can be 
+enabled and is active for the CPU temp by default, the OVT mechanism, has an 
+output pin reserved which it can control when an OVT conditions happens.
+
+The high limit can be coupled to forcing fans to go full speed.
+
+To me this sounds like the high limit should be mapped to temp#_max and the OVT 
+to temp#_crit, and since the hyst is for both limits it should be temp#_hyst.
+
+Does this sound like a plan?
+
+Regards,
+
+Hans
+
+
+
+
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
