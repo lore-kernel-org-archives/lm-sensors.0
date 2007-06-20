@@ -1,33 +1,85 @@
-From: Roman Zippel <zippel@linux-m68k.org>
-Date: Fri, 08 Jun 2007 16:07:36 +0000
-Subject: Re: [lm-sensors] 2.6.22-rc4-mm1 -- ERROR:
-Message-Id: <Pine.LNX.4.64.0706081804200.1817@scrub.home>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Wed, 20 Jun 2007 15:26:54 +0000
+Subject: [lm-sensors] [PATCH] lm-sensors: add detection for non-standard
+Message-Id: <191fb4ca0706200826kc97f051g58873d3c8820cde@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_110505_12584623.1182353214571"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <a44ae5cd0706061058u3566e0a4yf178b9e473d17395@mail.gmail.com>
-In-Reply-To: <a44ae5cd0706061058u3566e0a4yf178b9e473d17395@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+------=_Part_110505_12584623.1182353214571
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Wed, 6 Jun 2007, Dmitry Torokhov wrote:
+This patch adds detection logic for non-standard SMSC Super I/Os.
+These chips have their device ID register at address 0x0d rather than
+0x20.
 
-> I understand that there are scenarios where select is wrong but I
-> believe here it is theproper construct. Input-polldev is a library
-> module and will never be used on its own, it just provides some
-> services for the drivers (the only reason it even has a visible entry
-> in Kconfig is that there may be out of tree modules using it).
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-If you select one dependecy you have to select all dependencies. If you 
-don't want to repeat a list of selects everywhere, you can use a helper 
-config entry, which does this selection and everything else just selects 
-this symbol.
+------=_Part_110505_12584623.1182353214571
+Content-Type: text/x-patch; 
+	name=lm-sensors-non-standard-superio-detection.patch; 
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f35yi002
+Content-Disposition: attachment;
+	filename="lm-sensors-non-standard-superio-detection.patch"
 
-bye, Roman
+LS0tIGxtLXNlbnNvcnMub3JpZy9wcm9nL2RldGVjdC9zZW5zb3JzLWRldGVjdAkyMDA3LTA2LTEz
+IDA4OjE4OjM5Ljk4MTI5ODAwMCAtMDcwMAorKysgbG0tc2Vuc29ycy9wcm9nL2RldGVjdC9zZW5z
+b3JzLWRldGVjdAkyMDA3LTA2LTIwIDA4OjE3OjI2LjIwMTA0MzAwMCAtMDcwMApAQCAtMTgzMiw2
+ICsxODMyLDM4IEBAIHVzZSB2YXJzIHF3KEBjaGlwX2tlcm4yNF9pZHMgQGNoaXBfa2VybjIKIAlk
+ZXZpZCA9PiAweDc3LAogICAgICAgfSwKICAgICBdLAorICAgICMgTm9uLXN0YW5kYXJkIFNNU0Mg
+ZGV0ZWN0aW9uIGNhbGxiYWNrIGFuZCBjaGlwIGxpc3QuIFRoZXNlIGNoaXBzIGRpZmZlcgorICAg
+ICMgZnJvbSB0aGUgc3RhbmRhcmQgb25lcyBsaXN0ZWQgYWJvdmUgaW4gdGhhdCB0aGUgZGV2aWNl
+IElEIHJlZ2lzdGVyIAorICAgICMgYWRkcmVzcyBpcyAweDBkIGluc3RlYWQgb2YgMHgyMCAoYXMg
+c3BlY2lmaWVkIGJ5IHRoZSBJU0EgUE5QIHNwZWMpLgorICAgIG5zX2RldGVjdCA9PiBcJnNtc2Nf
+bnNfZGV0ZWN0X3N1cGVyaW8sCisgICAgbnNfY2hpcHMgPT4KKyAgICBbCisgICAgICB7CisJbmFt
+ZSA9PiAiU01TQyBGREMzN0M2NjUgU3VwZXIgSU8iLAorCWRyaXZlciA9PiAibm90LWEtc2Vuc29y
+IiwKKwlkZXZpZCA9PiAweDY1LAorICAgICAgfSwKKyAgICAgIHsKKwluYW1lID0+ICJTTVNDIEZE
+QzM3QzY2NiBTdXBlciBJTyIsCisJZHJpdmVyID0+ICJub3QtYS1zZW5zb3IiLAorCWRldmlkID0+
+IDB4NjYsCisgICAgICB9LAorICAgICAgeworCW5hbWUgPT4gIlNNU0MgRkRDMzdDNjY5IFN1cGVy
+IElPIiwKKwlkcml2ZXIgPT4gIm5vdC1hLXNlbnNvciIsCisJZGV2aWQgPT4gMHgwMywKKyAgICAg
+IH0sCisgICAgICB7CisJbmFtZSA9PiAiU01TQyBGREMzN043NjkgU3VwZXIgSU8iLAorCWRyaXZl
+ciA9PiAibm90LWEtc2Vuc29yIiwKKwlkZXZpZCA9PiAweDI4LAorICAgICAgfSwKKyAgICAgIHsK
+KwluYW1lID0+ICJTTVNDIExQQzQ3TjIyNyBTdXBlciBJTyIsCisJZHJpdmVyID0+ICJub3QtYS1z
+ZW5zb3IiLAorCWRldmlkID0+IDB4NWEsCisgICAgICB9LAorICAgIF0sCiAgIH0sCiAgIHsKICAg
+ICBmYW1pbHkgPT4gIlZJQS9XaW5ib25kL0ZpbnRlayIsCkBAIC0zMTg5LDYgKzMyMjEsMzggQEAg
+c3ViIHByb2JlX3N1cGVyaW8oJCQkKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICRuZXdfaGFzaDsKIH0KIAorIyBEZXRlY3Rpb24gcm91dGluZSBmb3Igbm9uLXN0YW5k
+YXJkIFNNU0MgU3VwZXIgSS9PIGNoaXBzCisjICRfWzBdOiBTdXBlciBJL08gTFBDIGFkZHJlc3Mg
+cG9ydAorIyAkX1sxXTogU3VwZXIgSS9PIExQQyBkYXRhIHBvcnQKKyMgJF9bMl06IFJlZmVyZW5j
+ZSB0byBjaGlwIGZhbWlseSBoYXNoCitzdWIgc21zY19uc19kZXRlY3Rfc3VwZXJpbworeworICAg
+IG15ICgkYWRkcnJlZywgJGRhdGFyZWcsICRmYW1pbHkpID0gQF87CisgICAgbXkgKCR2YWwsICRm
+b3VuZCk7CisKKyAgICAjIHJlYWQgYWx0ZXJuYXRlIGRldmljZSBJRCByZWdpc3RlcgorICAgIG91
+dGIoJGFkZHJyZWcsIDB4MGQpOworICAgICR2YWwgPSBpbmIoJGRhdGFyZWcpOworICAgIGlmICgk
+dmFsID09IDB4MDAgfHwgJHZhbCA9PSAweGZmKSB7CisJcmV0dXJuIDA7CisgICAgfQorICAgICMg
+cmVhZCByZXZpc2lvbiAgIAorICAgIG91dGIoJGFkZHJyZWcsIDB4MGUpOworICAgICR2YWwgPSAo
+JHZhbCA8PCA4KSB8IGluYigkZGF0YXJlZyk7CisKKyAgICBwcmludCAiWWVzXG4iOworCisgICAg
+Zm9yZWFjaCBteSAkY2hpcCAoQHskZmFtaWx5LT57bnNfY2hpcHN9fSkgeworCWlmICgkY2hpcC0+
+e2RldmlkfSA9PSAoJHZhbCA+PiA4KSkgeworCSAgICBwcm9iZV9zdXBlcmlvKCRhZGRycmVnLCAk
+ZGF0YXJlZywgJGNoaXApOworCSAgICByZXR1cm4gMTsKKwl9CisgICAgfQorCisgICAgcHJpbnRm
+KCJGb3VuZCB1bmtub3duIG5vbi1zdGFuZGFyZCBjaGlwIHdpdGggSUQgMHglMDR4XG4iLCAkdmFs
+KTsKKyAgICByZXR1cm4gMTsKK30KKwogc3ViIHNjYW5fc3VwZXJpbwogewogICBteSAoJGFkZHJy
+ZWcsICRkYXRhcmVnKSA9IEBfOwpAQCAtMzIwNiw2ICszMjcwLDEyIEBAIHN1YiBzY2FuX3N1cGVy
+aW8KICAgICBmb3JlYWNoICR2YWwgKEB7JGZhbWlseS0+e2VudGVyfS0+eyRhZGRycmVnfX0pIHsK
+ICAgICAgIG91dGIoJGFkZHJyZWcsICR2YWwpOwogICAgIH0KKyMgY2FsbCB0aGUgbm9uLXN0YW5k
+YXJkIGRldGVjdGlvbiByb3V0aW5lIGZpcnN0IGlmIGl0IGV4aXN0cworICAgIGlmIChkZWZpbmVk
+KCRmYW1pbHktPntuc19kZXRlY3R9KSAmJiAKKwkmeyRmYW1pbHktPntuc19kZXRlY3R9fSgkYWRk
+cnJlZywgJGRhdGFyZWcsICRmYW1pbHkpKSB7CisJZXhpdF9zdXBlcmlvKCRhZGRycmVnLCAkZGF0
+YXJlZyk7CisJbGFzdCBGQU1JTFk7CisgICAgfQogIyBkaWQgaXQgd29yaz8KICAgICBvdXRiKCRh
+ZGRycmVnLCAkc3VwZXJpb3tkZXZpZHJlZ30pOwogICAgICR2YWwgPSBpbmIoJGRhdGFyZWcpOwo=
+
+------=_Part_110505_12584623.1182353214571
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_110505_12584623.1182353214571--
