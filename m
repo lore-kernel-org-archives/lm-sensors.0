@@ -1,74 +1,76 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 06 Jun 2007 16:52:12 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon/sis5595: Convert to a platform
-Message-Id: <20070606185212.60b36554@hyperion.delvare>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Wed, 20 Jun 2007 22:41:33 +0000
+Subject: [lm-sensors] [PATCH] hwmon: add SCH5317 to smsc47b397 driver
+Message-Id: <191fb4ca0706201541s2416f573o74e8a34fab258d3a@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_116082_19764945.1182379293605"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070603174224.44353a33@hyperion.delvare>
-In-Reply-To: <20070603174224.44353a33@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 6 Jun 2007 17:47:36 +0200, Ivo Manca wrote:
-> Yeah, it seems like this was the problem.
-> Strange though, since it did work in my 2.6.19 kernel.
+------=_Part_116082_19764945.1182379293605
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Depends on the order in which the modules are loaded, and a number of
-different things can change that. The good news is that my patch seems
-to work. Please try unloaded and reloading the sis5595 driver to make
-sure (without i2c-sis5595 nor i2c-sis630 loaded, of course.)
+This patch adds the SMSC SCH5317 chip (device ID 0x85) as a supported
+device to the smsc47b397 driver.
 
-The conflict between sis5595 and i2c-sis5595/i2c-sis630 is of the same
-nature as the conflict between via686a/vt8231 and i2c-viapro. It _was_
-solved for the VIA drivers (in 2.6.10), but seemingly not for the SiS
-drivers. I'm surprised nobody ever reported it, I guess SiS hardware is
-way less popular than VIA hardware. It's not too difficult to fix, I
-could give it a try if you want.
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-> Loading them in the way sensors-detect suggest (first i2c-sis5595, then 
-> sis5595), gives me the following output:
-> 
-> Jun  6 15:23:01 localhost kernel: i2c-dev: adapter [SMBus SIS5595 adapter at 
-> 0438] registered as minor 0
-> Jun  6 15:23:02 localhost kernel: i2c-adapter i2c-0: ioctl, cmd=0x705, 
-> arg=0xbf886b54
-> Jun  6 15:23:03 localhost kernel: i2c-adapter i2c-0: ioctl, cmd=0x5401, 
-> arg=0xbfa9e818
-> Jun  6 15:23:03 localhost kernel: i2c-adapter i2c-0: i2c ioctl, cmd: 0x5401, 
-> arg: 0xbfa9e818
-> Jun  6 15:23:03 localhost kernel: i2c-adapter i2c-0: ioctl, cmd=0x705, 
-> arg=0x82ff3c0
-> Jun  6 15:23:03 localhost kernel: i2c-adapter i2c-0: ioctl, cmd=0x703, 
-> arg=0x09
-> Jun  6 15:23:03 localhost kernel: i2c-adapter i2c-0: ioctl, cmd=0x720, 
-> arg=0x82ff550
-> Jun  6 15:23:03 localhost kernel: i2c-adapter i2c-0: SMBus busy (0400). 
-> Resetting...
-> Jun  6 15:23:03 localhost kernel: i2c-adapter i2c-0: Failed! (400)
-> 
-> Then it repeats:
-> Jun  6 15:23:07 localhost kernel: i2c-adapter i2c-0: ioctl, cmd=0x703, 
-> arg=0x77
-> Jun  6 15:23:07 localhost kernel: i2c-adapter i2c-0: ioctl, cmd=0x720, 
-> arg=0x82ff550
-> Jun  6 15:23:07 localhost kernel: i2c-adapter i2c-0: SMBus busy (0400). 
-> Resetting...
-> Jun  6 15:23:08 localhost kernel: i2c-adapter i2c-0: Failed! (400)
-> 
-> Where it changes the 0x77 from 0x09 to 0x77
-> Bug or feature?
+------=_Part_116082_19764945.1182379293605
+Content-Type: text/x-patch; name=hwmon-add-sch5317.patch; 
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f36dv89m
+Content-Disposition: attachment; filename="hwmon-add-sch5317.patch"
 
-You see these messages only because you have CONFIG_I2C_DEBUG_BUS=y.
-I'm a bit surprised that the reset is said to have failed, but other
-than that, these messages are caused by failed probes, which
-sensors-detect and i2c-detect do a lot by design, so you can just
-ignore them.
-
--- 
-Jean Delvare
+ZGlmZiAtdXByTiAtWCBsaW51eC0yLjYuMjEuMS9Eb2N1bWVudGF0aW9uL2RvbnRkaWZmIGxpbnV4
+LTIuNi4yMS4xLm9yaWcvRG9jdW1lbnRhdGlvbi9od21vbi9zbXNjNDdiMzk3IGxpbnV4LTIuNi4y
+MS4xL0RvY3VtZW50YXRpb24vaHdtb24vc21zYzQ3YjM5NwotLS0gbGludXgtMi42LjIxLjEub3Jp
+Zy9Eb2N1bWVudGF0aW9uL2h3bW9uL3Ntc2M0N2IzOTcJMjAwNy0wNC0yNyAxNDo0OToyNi4wMDAw
+MDAwMDAgLTA3MDAKKysrIGxpbnV4LTIuNi4yMS4xL0RvY3VtZW50YXRpb24vaHdtb24vc21zYzQ3
+YjM5NwkyMDA3LTA2LTIwIDExOjAxOjUyLjAwMDAwMDAwMCAtMDcwMApAQCAtNCw2ICs0LDcgQEAg
+S2VybmVsIGRyaXZlciBzbXNjNDdiMzk3CiBTdXBwb3J0ZWQgY2hpcHM6CiAgICogU01TQyBMUEM0
+N0IzOTctTkMKICAgKiBTTVNDIFNDSDUzMDctTlMKKyAgKiBTTVNDIFNDSDUzMTcKICAgICBQcmVm
+aXg6ICdzbXNjNDdiMzk3JwogICAgIEFkZHJlc3NlcyBzY2FubmVkOiBub25lLCBhZGRyZXNzIHJl
+YWQgZnJvbSBTdXBlciBJL08gY29uZmlnIHNwYWNlCiAgICAgRGF0YXNoZWV0OiBJbiB0aGlzIGZp
+bGUKQEAgLTE4LDggKzE5LDggQEAgVGhlIGZvbGxvd2luZyBzcGVjaWZpY2F0aW9uIGRlc2NyaWJl
+cyB0aAogcHJvdmlkZWQgYnkgQ3JhaWcgS2VsbHkgKEluLVN0b3JlIEJyb2FkY2FzdCBOZXR3b3Jr
+KSBhbmQgZWRpdGVkL2NvcnJlY3RlZAogYnkgTWFyayBNLiBIb2ZmbWFuIDxtaG9mZm1hbkBsaWdo
+dGxpbmsuY29tPi4KIAotWzFdIEFuZCBTTVNDIFNDSDUzMDctTlMsIHdoaWNoIGhhcyBhIGRpZmZl
+cmVudCBkZXZpY2UgSUQgYnV0IGlzIG90aGVyd2lzZQotY29tcGF0aWJsZS4KK1sxXSBBbmQgU01T
+QyBTQ0g1MzA3LU5TIGFuZCBTQ0g1MzE3LCB3aGljaCBoYXZlIGRpZmZlcmVudCBkZXZpY2UgSURz
+IGJ1dCBhcmUKK290aGVyd2lzZSBjb21wYXRpYmxlLgogCiAqICogKiAqICoKIApAQCAtMTMxLDcg
+KzEzMiw3IEBAIE9VVAlEWCxBTAogVGhlIHJlZ2lzdGVycyBvZiBpbnRlcmVzdCBmb3IgaWRlbnRp
+ZnlpbmcgdGhlIFNJTyBvbiB0aGUgZGM3MTAwIGFyZSBEZXZpY2UgSUQKICgweDIwKSBhbmQgRGV2
+aWNlIFJldiAgKDB4MjEpLgogCi1UaGUgRGV2aWNlIElEIHdpbGwgcmVhZCAweDZGIChmb3IgU0NI
+NTMwNy1OUywgMHg4MSkKK1RoZSBEZXZpY2UgSUQgd2lsbCByZWFkIDB4NkYgKDB4ODEgZm9yIFND
+SDUzMDctTlMsIGFuZCAweDg1IGZvciBTQ0g1MzE3KQogVGhlIERldmljZSBSZXYgY3VycmVudGx5
+IHJlYWRzIDB4MDEKIAogT2J0YWluaW5nIHRoZSBIV00gQmFzZSBBZGRyZXNzLgpkaWZmIC11cHJO
+IC1YIGxpbnV4LTIuNi4yMS4xL0RvY3VtZW50YXRpb24vZG9udGRpZmYgbGludXgtMi42LjIxLjEu
+b3JpZy9kcml2ZXJzL2h3bW9uL3Ntc2M0N2IzOTcuYyBsaW51eC0yLjYuMjEuMS9kcml2ZXJzL2h3
+bW9uL3Ntc2M0N2IzOTcuYwotLS0gbGludXgtMi42LjIxLjEub3JpZy9kcml2ZXJzL2h3bW9uL3Nt
+c2M0N2IzOTcuYwkyMDA3LTA0LTI3IDE0OjQ5OjI2LjAwMDAwMDAwMCAtMDcwMAorKysgbGludXgt
+Mi42LjIxLjEvZHJpdmVycy9od21vbi9zbXNjNDdiMzk3LmMJMjAwNy0wNi0yMCAxMTowMjo0OS4w
+MDAwMDAwMDAgLTA3MDAKQEAgLTMwOSw3ICszMDksNyBAQCBzdGF0aWMgaW50IF9faW5pdCBzbXNj
+NDdiMzk3X2ZpbmQodW5zaWduCiAJc3VwZXJpb19lbnRlcigpOwogCWlkID0gc3VwZXJpb19pbmIo
+U1VQRVJJT19SRUdfREVWSUQpOwogCi0JaWYgKChpZCAhPSAweDZmKSAmJiAoaWQgIT0gMHg4MSkp
+IHsKKwlpZiAoKGlkICE9IDB4NmYpICYmIChpZCAhPSAweDgxKSAmJiAoaWQgIT0gMHg4NSkpIHsK
+IAkJc3VwZXJpb19leGl0KCk7CiAJCXJldHVybiAtRU5PREVWOwogCX0KQEAgLTMyMiw3ICszMjIs
+OCBAQCBzdGF0aWMgaW50IF9faW5pdCBzbXNjNDdiMzk3X2ZpbmQodW5zaWduCiAKIAlwcmludGso
+S0VSTl9JTkZPICJzbXNjNDdiMzk3OiBmb3VuZCBTTVNDICVzICIKIAkJIihiYXNlIGFkZHJlc3Mg
+MHglMDR4LCByZXZpc2lvbiAldSlcbiIsCi0JCWlkID09IDB4ODEgPyAiU0NINTMwNy1OUyIgOiAi
+TFBDNDdCMzk3LU5DIiwgKmFkZHIsIHJldik7CisJCWlkID09IDB4ODEgPyAiU0NINTMwNy1OUyIg
+OiBpZCA9PSAweDg1ID8gIlNDSDUzMTciIDogCisJICAgICAgICJMUEM0N0IzOTctTkMiLCAqYWRk
+ciwgcmV2KTsKIAogCXN1cGVyaW9fZXhpdCgpOwogCXJldHVybiAwOwo=
+------=_Part_116082_19764945.1182379293605
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_116082_19764945.1182379293605--
