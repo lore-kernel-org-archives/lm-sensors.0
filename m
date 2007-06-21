@@ -1,7 +1,7 @@
 From: Rudolf Marek <r.marek@assembler.cz>
-Date: Thu, 21 Jun 2007 18:49:46 +0000
+Date: Thu, 21 Jun 2007 19:02:02 +0000
 Subject: Re: [lm-sensors] [RFC] ACPI based hwmon driver for ASUS
-Message-Id: <467AC84A.303@assembler.cz>
+Message-Id: <467ACB2A.4070707@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070513223329.GA29207@dreamland.darkstar.lan> <46520F36.4080006@assembler.cz> <68676e00705211453n69de6868lc5da2cad64f65699@mail.gmail.com> <46528B6F.3050701@assembler.cz> <20070602222829.GA11893@dreamland.darkstar.lan>
 In-Reply-To: <20070602222829.GA11893@dreamland.darkstar.lan>
@@ -11,72 +11,34 @@ Content-Transfer-Encoding: 7bit
 To: Luca Tettamanti <kronos.it@gmail.com>
 Cc: lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hello Luca,
+Hi again,
 
-Sorry for delay,
+Of course it is not there because I removed it myself :/ The "sensors" command 
+will just produce "general parse error" this is because of the unknown device 
+class (imho). So I removed that and forgot. Well now I have the sysfs files:
 
-> Ok, it makes sense :)
-> 
-> Name (FBUF, Package (0x06)
-> {
->     0x03,
->     CPUF,
->     CHAF,
->     PWRF,
->     CHPF,
->     CH2F
-> })
-> 
-> Clearly the first number is not the number of available readings (though
-> it matches the count in the other DSDTs I've seen); don't know what it
-> is :|
-
-Maybe study the Pro2.dll from Asus Probe II?
+/sys/class/hwmon/hwmon2/device/:
+bus         fan0_min    fan2_input  fan3_label    in0_input  in1_label  in2_max 
+    in3_min    temp0_crit   temp1_input
+driver      fan1_input  fan2_label  fan3_max      in0_label  in1_max    in2_min 
+    name       temp0_input  temp1_label
+fan0_input  fan1_label  fan2_max    fan3_min      in0_max    in1_min 
+in3_input  path       temp0_label  temp1_max
+fan0_label  fan1_max    fan2_min    hid           in0_min    in2_input 
+in3_label  power      temp0_max    uevent
+fan0_max    fan1_min    fan3_input  hwmon:hwmon2  in1_input  in2_label  in3_max 
+    subsystem  temp1_crit
 
 
-> The last field of the individual fan packages is far more interesting: 0
-> means disabled, anything else means enabled. In your DSDT "CHIPSET FAN
-> Speed" is marked as disabled and there's no AML code to read the
-> rotation.
-> This may be true also for the other packages (temp and voltage), but for
-> now I've modified only the fan code.
+Please note that in kernelsrc/Documentation/hwmon/sysfs-interface
+is defined the interface. We have fans starting from 1 and not 0
+Also temperatures are in milidegrees. So your 3200 should be 32000.
+Temps file starts also from 1 and not 0. (so no temp0...)
 
-Ok.
-
-Fan3 is disabled because the chip is programed to disabled - (IO pin)
-
-> Here's another iteration of the driver, please give it a try:
-
-It loads now. I have moved my extra fan to some other connector, now it is fan1 
-for w83627EHF chip.
-
-
-ATK0110 ATK0110:00: removing...
-ATK0110 ATK0110:00: atk: adding...
-ATK0110 ATK0110:00: board ID = A8VE-SE
-ATK0110 ATK0110:00: temp 0: 0x6030000 CPU Temperature [900-1250]
-ATK0110 ATK0110:00: temp 1: 0x6030001 MB Temperature [700-1250]
-ATK0110 ATK0110:00: voltage 0: 0x6020000 Vcore Voltage [1450-1750]
-ATK0110 ATK0110:00: voltage 1: 0x6020001  +3.3 Voltage [3000-3600]
-ATK0110 ATK0110:00: voltage 2: 0x6020002  +5.0 Voltage [4500-5500]
-ATK0110 ATK0110:00: voltage 3: 0x6020003 +12.0 Voltage [11200-13200]
-ATK0110 ATK0110:00: atk_enumerate_fan: invalid fan count? 3 (should be 5)
-ATK0110 ATK0110:00: fan 0: 0x6040000 CPU FAN Speed [0-1800] enabled
-ATK0110 ATK0110:00: fan 1: 0x6040001 CHASSIS FAN Speed [0-1800] enabled
-ATK0110 ATK0110:00: fan 2: 0x6040002 POWER FAN Speed [0-1800] enabled
-ATK0110 ATK0110:00: fan 3: 0x6040005 CHIPSET FAN Speed [0-1800] disabled
-ATK0110 ATK0110:00: fan 4: 0x6040006 CHASSIS2 FAN Speed [0-1800] enabled
-ATK0110 ATK0110:00: registering hwmon device
-ATK0110 ATK0110:00: populating sysfs directory
-
-Although it says it has been registered to hwmon class, I cant find it in sysfs. 
-I have loaded/unloaded the driver several times before I checked the dir, so 
-maybe is something wrong?
-
-Does it show up in your /sys/class/hwmon?
+Please can you fix this issues? I will do the review later once this things are 
+fixed. Values seems to match.
 
 Thanks,
-
 Rudolf
 
 _______________________________________________
