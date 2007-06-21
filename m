@@ -1,139 +1,74 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 11 Jun 2007 14:23:54 +0000
-Subject: Re: [lm-sensors] f71805f; getting fan speed temperature mode working
-Message-Id: <20070611162354.647c688a@hyperion.delvare>
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Thu, 21 Jun 2007 20:57:36 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon/coretemp: Fix a broken error path -
+Message-Id: <467AE640.9090409@assembler.cz>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------080108010306050006020209"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1181429233737@dmwebmail.belize.chezphil.org>
-In-Reply-To: <1181429233737@dmwebmail.belize.chezphil.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+References: <1182026585.4230.8.camel@localhost>	 <20070616231745.1b0f7bd9@hyperion.delvare>	 <1182071803.4815.5.camel@localhost>  <467575BF.1090207@assembler.cz> <1182335403.21563.99.camel@localhost>
+In-Reply-To: <1182335403.21563.99.camel@localhost>
+To: Soeren Sonnenburg <kernel@nn7.de>
+Cc: lkml <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+
+This is a multi-part message in MIME format.
+--------------080108010306050006020209
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
 
-Hi Phil,
+Hello Soeren,
 
-On Sat, 09 Jun 2007 23:47:13 +0100, Phil Endecott wrote:
-> Jean Delvare wrote:
-> >> So the next challenge is temperature tracking.  I understand that this 
-> >> is not currently implemented by the driver (I'm looking at the 2.6.21 
-> >> source; please let me know and accept my apologies if this driver has 
-> >> been updated since then).  I could perhaps add this functionality, but 
-> >> first I'd like to know if there was some problem that prevented the 
-> >> original author from doing so.
-> >
-> > This is still not implemented. The reason was a mix of lack of time and
-> > lack of interest. My CPU fan is pretty silent anyway, so I could live
-> > with it at full speed all the time. However, if you want to implement
-> > this feature, this is welcome, and I'll be happy to review and test
-> > your patch. This is probably the last missing feature in this driver
-> > for the F71805F. (For the F71872F, VID support is also missing.)
-> 
-> This doesn't fit in very well with the scheme described in Documentation/hwmon/sysfs-interface:
-> 
-> <quote>
-> pwm[1-*]_auto_channels_temp
->                  Select which temperature channels affect this PWM output in
->                  auto mode. Bitfield, 1 is temp1, 2 is temp2, 4 is temp3 etc...
->                  Which values are possible depend on the chip used.
->                  RW
-> 
-> pwm[1-*]_auto_point[1-*]_pwm
-> pwm[1-*]_auto_point[1-*]_temp
-> pwm[1-*]_auto_point[1-*]_temp_hyst
->                  Define the PWM vs temperature curve. Number of trip points is
->                  chip-dependent. Use this for chips which associate trip points
->                  to PWM output channels.
->                  RW
-> 
-> OR
-> 
-> temp[1-*]_auto_point[1-*]_pwm
-> temp[1-*]_auto_point[1-*]_temp
-> temp[1-*]_auto_point[1-*]_temp_hyst
->                  Define the PWM vs temperature curve. Number of trip points is
->                  chip-dependent. Use this for chips which associate trip points
->                  to temperature channels.
->                  RW
-> </quote>
-> 
-> 
-> In contrast to that framework,
-> 
-> 1. This chip ties pwm<n>, fan<n> and temp<n> together, so the 
-> 'channels' idea doesn't apply.
+Sorry for the delay.
 
-It does apply just fine, just that the channels are hardwired and
-can't be changed by the user. This means that the
-pwm[1-*]_auto_channels_temp file would be read-only (if we decide to
-implement them at all, not sure it's worth it.)
-Documentation/hwmon/sysfs-interface documents the maximum permissions
-for each file, it's OK to be more restrictive depending on each
-device's capabilities.
+I'm ccing all lists maybe some other people are interested. There is known 
+errata AE18 which prevents coretemp from working correctly on some mobile Core 
+processors (family 6 model e). My driver refuses to load and now thanks to 
+soeren will not crash ;) However what to do when no microcode update (no new 
+BIOS) is available?
 
-> 2. The points relate fan speeds and temperatures, not pwm values and temperatures.
+Soeren pointed at some T60, T60p BIOS update and luckily, there is a easy way 
+how to extract the microcode update and even convert it into the .txt format as 
+microcode update utility (http://www.urbanmyth.org/microcode/) expects.
+Attached scripts generates the mcode.txt file which may be used by the update 
+utility. Please can you give a try?
 
-Indeed, this is pretty new (and a good idea if you ask me.) It
-shouldn't be too hard to extend our naming scheme to support this.
+It seems that there is microcode update for CPUID 06E8 version 0x39 just as my 
+driver is checking. So if your CPUID is 06e8 too you should get the coretemp 
+driver working.
 
-> 3. It doesn't have variable hysteresis.
+If so I will post a patch and document the script in documentation directory (or 
+at least some general instructions how to do that)
 
-Does it have hysteresis at all? Either way, this isn't a problem.
-Documentation/hwmon/sysfs-interface documents what is possible, each
-device implements only a subset of it. If the device doesn't support a
-given feature, you simply don't create the file in question, or you
-create it read-only if it makes sense.
+Please tell me your stepping:
+cat /proc/cpuinfo  | grep stepping
 
-> It defines a temp/speed staircase with three (temp,speed) pairs:
-> 
-> - When temp<temp1, fan is off.
-> - When temp1<temp<temp2, fan adjusts to make speed=speed1.
-> - When temp2<temp<temp3, fan adjusts to make speed=speed2.
-> - When temp3<temp, fan adjusts to make speed=speed3.
-> 
-> ..except that actually it interpolates an additional two pairs between 
-> the ones that you define.
+Thanks,
 
-I am curious if these are really only two pairs. This is what the
-datasheet says in the paragraph describing the "temperature mode".
-However, in the register description section, the "main" trip points are
-numbered 1, 5 and 9, which suggests 6 intermediate trip points rather
-than just 2. Tests will tell which part is correct.
+Rudolf
 
-Another strange thing is the wording in the description of registers
-0xA0, 0xA1 and 0xA2. It suggests that the temperature and fan speed is
-_decreasing_ when the segment number increases. This would be quite
-confusing, so I can only hope this is not true. What do you think?
-Again I guess that tests will tell us where is the truth.
 
-> So, I propose the following sysfs files:
-> 
-> for n in 1 2 3
->    for p in 1 2 3
->      pwm$n_auto_point$p_temp
->      pwm$n_auto_point$p_fan
-> 
-> 
-> but I'm open to alternative ideas.
 
-Looks good to me, go on.
+--------------080108010306050006020209
+Content-Type: text/plain;
+ name="gen_mcode.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="gen_mcode.txt"
 
-> So I believe that I need to:
-> 
-> - Create the sysfs stuff.
-> - Extend the mode-change stuff to adjust file permissions appropriately.
+#!/bin/bash
 
-Which files in particular do you think need their permissions changed?
+#get the BIOS http://www-307.ibm.com/pc/support/site.wss/MIGR-63024.html
+wget ftp://ftp.software.ibm.com/pc/pccbbs/mobiles/79uj20us.exe
+cabextract -F "*PAT" 79uj20us.exe
+ ls -1 *PAT | while read line; do echo "/* Microcode from $line */" ;  hexdump -e  ' 4/4 "0x%08X, " "\n"'  $line ;done >mcode.txt
 
-> - Add show/set functions that access the device registers.
-> 
-> and that's about it.  What have I forgotten?
-
-- Test. :)
-
--- 
-Jean Delvare
+--------------080108010306050006020209
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------080108010306050006020209--
