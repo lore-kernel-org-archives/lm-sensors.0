@@ -1,64 +1,66 @@
-From: Axel Thimm <Axel.Thimm@ATrpms.net>
-Date: Mon, 25 Jun 2007 17:23:55 +0000
-Subject: Re: [lm-sensors] Downloaded patches text format
-Message-Id: <20070625172355.GB11289@puariko.nirvana>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8575053815706323131=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 23 Jun 2007 12:58:22 +0000
+Subject: [lm-sensors] [PATCH] hwmon/smsc47b397: Don't report missing fans as
+Message-Id: <20070623145822.3ea1bc2b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070625190625.71477f2b@hyperion.delvare>
-In-Reply-To: <20070625190625.71477f2b@hyperion.delvare>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
+On Mon, 18 Jun 2007 16:23:53 +0100, Simon Farnsworth wrote:
+> Simon Farnsworth wrote:
+> > sensors output:
+> >=20
+> > # sensors
+> > smsc47b397-isa-0480
+> > Adapter: ISA adapter
+> > temp1:       +44=B0C
+> > temp2:       +53=B0C
+> > temp3:       +26=B0C
+> > temp4:      -128=B0C
+> > fan1:     2011 RPM
+> > fan2:       82 RPM
+> > fan3:     1262 RPM
+> > fan4:     1095 RPM
+> (...)
+>=20
+> I've now experimented with cpuburn and stopping fans. It looks like 82
+> RPM is the lowest speed this chip reports, as stopping a fan briefly
+> caused it to report 82 RPM.
 
---===============8575053815706323131==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TRYliJ5NKNqkz5bu"
-Content-Disposition: inline
+Correct, and I consider it a bug in the driver. A stopped or missing
+fan should really be reported as 0 RPM, not 82. Here's a patch fixing
+it.
 
+* * * * *
 
---TRYliJ5NKNqkz5bu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Also protects ourselves against a possible division by zero.
 
-Hi,
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/smsc47b397.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-On Mon, Jun 25, 2007 at 07:06:25PM +0200, Jean Delvare wrote:
-> When downloading patches from trac's source tree browser, I get files
-> in DOS (CR+LF) text format, instead of the expected UNIX (LF) text
-> format. "patch" complains about that. Is it possible to tweak trac to
-> provide the patches in UNIX text format directly?
+--- linux-2.6.22-rc5.orig/drivers/hwmon/smsc47b397.c	2007-05-13 10:01:15.00=
+0000000 +0200
++++ linux-2.6.22-rc5/drivers/hwmon/smsc47b397.c	2007-06-23 14:53:09.0000000=
+00 +0200
+@@ -174,6 +174,8 @@ static SENSOR_DEVICE_ATTR(temp4_input, S
+    REG: count of 90kHz pulses / revolution */
+ static int fan_from_reg(u16 reg)
+ {
++	if (reg =3D 0 || reg =3D 0xffff)
++		return 0;
+ 	return 90000 * 60 / reg;
+ }
+=20
 
-Hm, it looks like it's hardcoded :(
-
-               req.write('--- %s (revision %s)' % old_node_info + CRLF)
 
 --=20
-Axel.Thimm at ATrpms.net
-
---TRYliJ5NKNqkz5bu
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iD8DBQFGf/orQBVS1GOamfERAvUTAJ9XfkTGY43gm2y2J3xGUdZyaIrvhQCgmkqs
-Ld1ZgoQS/K0+m3UMEXqIPMs=
-=NRQF
------END PGP SIGNATURE-----
-
---TRYliJ5NKNqkz5bu--
-
-
---===============8575053815706323131==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8575053815706323131==--
