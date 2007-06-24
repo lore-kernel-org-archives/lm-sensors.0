@@ -1,53 +1,39 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 24 Jun 2007 09:17:09 +0000
-Subject: [lm-sensors] [PATCH 04/10] hwmon/w83627ehf: Add error messages for
-Message-Id: <20070624111709.6881542a@hyperion.delvare>
+Date: Sun, 24 Jun 2007 09:23:41 +0000
+Subject: [lm-sensors] [PATCH 10/10] hwmon/w83627ehf: Be quiet when no chip
+Message-Id: <20070624112341.3294be8e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-From: David Hubbard <david.c.hubbard@gmail.com>
+This fixes bug #8593:
+http://bugzilla.kernel.org/show_bug.cgi?id=8593
 
-If the Super-I/O device is disabled, it is likely the BIOS has a good
-reason for leaving it disabled, so give a warning when enabling it --
-it's not likely to be wired correctly or be able to give good data.
-
-Also, if the Super-I/O device is configured with an address of 0, the
-driver refuses to initialize it.
-
-Signed-off-by: David Hubbard <david.c.hubbard@gmail.com>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/hwmon/w83627ehf.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/hwmon/w83627ehf.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- linux-2.6.22-rc5.orig/drivers/hwmon/w83627ehf.c	2007-06-24 10:03:39.000000000 +0200
-+++ linux-2.6.22-rc5/drivers/hwmon/w83627ehf.c	2007-06-24 10:06:44.000000000 +0200
-@@ -1387,14 +1387,19 @@ static int __init w83627ehf_find(int sio
- 	    | superio_inb(sioaddr, SIO_REG_ADDR + 1);
- 	*addr = val & IOREGION_ALIGNMENT;
- 	if (*addr = 0) {
-+		printk(KERN_ERR DRVNAME ": Refusing to enable a Super-I/O "
-+		       "device with a base I/O port 0.\n");
+--- linux-2.6.22-rc5.orig/drivers/hwmon/w83627ehf.c	2007-06-24 10:46:24.000=
+000000 +0200
++++ linux-2.6.22-rc5/drivers/hwmon/w83627ehf.c	2007-06-24 10:48:34.00000000=
+0 +0200
+@@ -1445,8 +1445,9 @@ static int __init w83627ehf_find(int sio
+ 		sio_name =3D sio_name_W83627DHG;
+ 		break;
+ 	default:
+-		pr_info(DRVNAME ": unsupported chip ID: 0x%04x\n",
+-			val);
++		if (val !=3D 0xffff)
++			pr_debug(DRVNAME ": unsupported chip ID: 0x%04x\n",
++				 val);
  		superio_exit(sioaddr);
  		return -ENODEV;
  	}
- 
- 	/* Activate logical device if needed */
- 	val = superio_inb(sioaddr, SIO_REG_ENABLE);
--	if (!(val & 0x01))
-+	if (!(val & 0x01)) {
-+		printk(KERN_WARNING DRVNAME ": Forcibly enabling Super-I/O. "
-+		       "Sensor is probably unusable.\n");
- 		superio_outb(sioaddr, SIO_REG_ENABLE, val | 0x01);
-+	}
- 
- 	superio_exit(sioaddr);
- 	pr_info(DRVNAME ": Found %s chip at %#x\n", sio_name, *addr);
 
--- 
+--=20
 Jean Delvare
 
 _______________________________________________
