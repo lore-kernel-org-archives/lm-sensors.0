@@ -1,52 +1,39 @@
-From: Nicolas Boichat <nicolas@boichat.ch>
-Date: Sat, 23 Jun 2007 10:07:22 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 24 Jun 2007 16:05:18 +0000
 Subject: Re: [lm-sensors] Fw: [PATCH] applesmc - switch to using
-Message-Id: <467CF0DA.9070309@boichat.ch>
+Message-Id: <20070624160518.GC26335@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <467CF0DA.9070309@boichat.ch>
+In-Reply-To: <467CF0DA.9070309@boichat.ch>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Hi Dmitry:
 
-Jean Delvare wrote:
-> Hi Nicolas,
->=20
-> Forwarding this one to you as Dmitry says his mails to you are bouncing
-> back.
->=20
-> Thanks.
->=20
-> ----- Message Transf=E9r=E9 -----
->=20
-> Date: Fri, 25 May 2007 00:41:00 -0400
-> De: Dmitry Torokhov <dtor@insightbb.com>
-> =C0: lm-sensors@lm-sensors.org
-> Cc: khali@linux-fr.org, Andrew Morton <akpm@linux-foundation.org>,       =
- Nicolas Boichat <nicolas@boichat.ch>
-> Sujet: [PATCH] applesmc - switch to using input-polldev
->=20
->=20
-> Not tested - no hardware...
+* Nicolas Boichat <nicolas@boichat.ch> [2007-06-23 12:07:22 +0200]:
+> I finally got a chance to test it, and it works.
+> 
+> > Dmitry
+> >
+> > HWMON: applesmc - convert to use input-polldev.
+> >
+> > Switch to using input-polldev skeleton instead of implementing
+> > polling loop by itself. This also fixes problem with trylock
+> > on a mutex in atomic context.
+> >
+> > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+> Signed-off-by: Nicolas Boichat <nicolas@boichat.ch>
 
-I finally got a chance to test it, and it works.
+I was about to pick this patch, but I couldn't determine the base version.
+Can you respin it against 2.6.22-rc5 please?
 
-> Dmitry
->
-> HWMON: applesmc - convert to use input-polldev.
->
-> Switch to using input-polldev skeleton instead of implementing
-> polling loop by itself. This also fixes problem with trylock
-> on a mutex in atomic context.
->
-> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Signed-off-by: Nicolas Boichat <nicolas@boichat.ch>
+Thanks & regards,
 
-Best regards,
-
-Nicolas
-
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
 
 _______________________________________________
