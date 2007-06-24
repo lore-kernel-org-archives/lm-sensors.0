@@ -1,45 +1,35 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 10 Jun 2007 12:51:00 +0000
-Subject: [lm-sensors] Improvements to fancontrol
-Message-Id: <20070610145100.73595707@hyperion.delvare>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 24 Jun 2007 13:50:55 +0000
+Subject: [lm-sensors] guidelines for kernel patches (was Re: [PATCH] hwmon:
+Message-Id: <20070624135055.GC3289@mars.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Hi again:
 
-I made some improvements to our fancontrol script today. From the SVN logs:
+* Mark M. Hoffman <mhoffman@lightlink.com> [2007-06-24 09:27:44 -0400]:
+> Indeed, that went well.  So in general, people don't have to worry too much
+> about the base version for their patches.
 
-* Use let for arithmetic evaluation. Patch taken from the Suse package.
-* Kill old commented-out code.
-* No longer depend on grep. We already depend on egrep so let's use it
-  everywhere.
-* Don't depend on awk to compute the target PWM value. Bash has an arithmetic
-  expression evaluation engine which does the job just fine.
-* Use read instead of cat to read the sensor values. read is built-in, so
-  it's cheaper.
-* When sysfs is used (2.6 kernel), do not postproces the sensor value reads
-  with cut, as it is not needed.
-* Update the dependency list.
+Some clarifications though...
 
-Testers are welcome. I also plan to add support for defining minimum
-and maximum PWM values other than 0 and 255 when the measured
-temperature is out of the interpolation range.
+1) I need to be able to *tell* what the base version was.  Juerg's patch was
+clearly based on 2.6.21.1.
 
-One interesting thing is that fancontrol now only calls one external
-program (sleep) for each iteration when using a 2.6 kernel. Beforehand,
-it was calling up to 10 external programs (3 cat, 5 cut, 1 awk, 1
-sleep) for each iteration. The number of external programs being called
-was one of the reason for reimplementing fancontrol in perl. Now that
-the bash script behaves better, my feeling is that the perl script is
-no longer needed, and I'd like to get rid of it in lm-sensors 3.0.0, to
-lower our maintenance workload. Does anyone have a strong opinion
-against this decision?
+2) Speaking of that... I would strongly prefer patches against Linus' tree,
+rather than any of the stable branches.  If it happens to apply to Linus' tree
+without trouble (as this one did) then that's fine, but otherwise I'll toss it
+back for a respin.
+
+Thanks & regards,
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
