@@ -1,57 +1,47 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 27 Jun 2007 19:26:08 +0000
-Subject: [lm-sensors] Subject: hwmon: Improve the pwmN_enable documentation
-Message-Id: <20070627212608.6c787baa@hyperion.delvare>
+Date: Sun, 24 Jun 2007 09:19:01 +0000
+Subject: [lm-sensors] [PATCH 05/10] hwmon/w83627ehf: Fix timing issues
+Message-Id: <20070624111901.5327aad5@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Riku,
-
-On Wed, 27 Jun 2007 16:23:52 +0300, Riku Voipio wrote:
-> Jean Delvare wrote:
-> > Sounds like a bug in the driver then. Setting pwm1_enable to 0 should
-> > turn the fan to full speed.
->
-> The sysfs interface states that pwm_enable to 0 turns off pwm control... 
-> How would that turn fans to full speed?
-
-I agree that Documentation/hwmon/sysfs-interface is particularly
-confusing. I thought we had fixed it, but it seems not. What about the
-following patch?
-
-* * * * *
-
-The documentation of the pwmN_enable interface file is not very clear,
-and has been confusing several driver authors already. Make it clearer.
+* I have experimental evidence that the W83627EHG needs more than 1
+second to refresh all the measured values. Increase the caching time to
+1.5 second.
+* When changing a fan clock divider, the corresponding fan speed
+measurement register is no longer valid, until the next time the chip
+will refresh it. One way to fix this is to pretend that the cache is
+still valid for one more period (1.5 second.)
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- Documentation/hwmon/sysfs-interface |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/hwmon/w83627ehf.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- linux-2.6.22-rc6.orig/Documentation/hwmon/sysfs-interface	2007-06-27 21:08:40.000000000 +0200
-+++ linux-2.6.22-rc6/Documentation/hwmon/sysfs-interface	2007-06-27 21:21:57.000000000 +0200
-@@ -172,11 +172,10 @@ pwm[1-*]	Pulse width modulation fan cont
- 		255 is max or 100%.
+--- linux-2.6.22-rc5.orig/drivers/hwmon/w83627ehf.c	2007-06-24 10:07:49.000000000 +0200
++++ linux-2.6.22-rc5/drivers/hwmon/w83627ehf.c	2007-06-24 10:25:18.000000000 +0200
+@@ -421,7 +421,7 @@ static struct w83627ehf_data *w83627ehf_
  
- pwm[1-*]_enable
--		Switch PWM on and off.
--		Not always present even if pwmN is.
--		0: turn off
--		1: turn on in manual mode
--		2+: turn on in automatic mode
-+		Fan speed control method:
-+		0: no fan speed control (i.e. fan at full speed)
-+		1: manual fan speed control enabled (using pwm[1-*])
-+		2+: automatic fan speed control enabled
- 		Check individual chip documentation files for automatic mode
- 		details.
- 		RW
+ 	mutex_lock(&data->update_lock);
+ 
+-	if (time_after(jiffies, data->last_updated + HZ)
++	if (time_after(jiffies, data->last_updated + HZ + HZ/2)
+ 	 || !data->valid) {
+ 		/* Fan clock dividers */
+ 		i = w83627ehf_read_value(data, W83627EHF_REG_FANDIV1);
+@@ -727,6 +727,8 @@ store_fan_min(struct device *dev, struct
+ 			div_from_reg(new_div));
+ 		data->fan_div[nr] = new_div;
+ 		w83627ehf_write_fan_div(data, nr);
++		/* Give the chip time to sample a new speed value */
++		data->last_updated = jiffies;
+ 	}
+ 	w83627ehf_write_value(data, W83627EHF_REG_FAN_MIN[nr],
+ 			      data->fan_min[nr]);
 
-Thanks,
 -- 
 Jean Delvare
 
