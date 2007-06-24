@@ -1,65 +1,54 @@
-From: "Voipio Riku" <Riku.Voipio@movial.fi>
-Date: Thu, 28 Jun 2007 23:10:03 +0000
-Subject: Re: [lm-sensors] Subject: hwmon: Improve the pwmN_enable
-Message-Id: <55662.80.222.56.248.1183072203.squirrel@webmail.movial.fi>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 24 Jun 2007 09:17:09 +0000
+Subject: [lm-sensors] [PATCH 04/10] hwmon/w83627ehf: Add error messages for
+Message-Id: <20070624111709.6881542a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Hi Riku,
->
-> On Wed, 27 Jun 2007 16:23:52 +0300, Riku Voipio wrote:
->> Jean Delvare wrote:
->> > Sounds like a bug in the driver then. Setting pwm1_enable to 0 should
->> > turn the fan to full speed.
->>
->> The sysfs interface states that pwm_enable to 0 turns off pwm control...
->> How would that turn fans to full speed?
->
-> I agree that Documentation/hwmon/sysfs-interface is particularly
-> confusing. I thought we had fixed it, but it seems not. What about the
-> following patch?
+From: David Hubbard <david.c.hubbard@gmail.com>
 
-Looks good for me. Thanks.
+If the Super-I/O device is disabled, it is likely the BIOS has a good
+reason for leaving it disabled, so give a warning when enabling it --
+it's not likely to be wired correctly or be able to give good data.
 
-> * * * * *
->
-> The documentation of the pwmN_enable interface file is not very clear,
-> and has been confusing several driver authors already. Make it clearer.
->
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
->  Documentation/hwmon/sysfs-interface |    9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
->
-> --- linux-2.6.22-rc6.orig/Documentation/hwmon/sysfs-interface	2007-06-27
-> 21:08:40.000000000 +0200
-> +++ linux-2.6.22-rc6/Documentation/hwmon/sysfs-interface	2007-06-27
-> 21:21:57.000000000 +0200
-> @@ -172,11 +172,10 @@ pwm[1-*]	Pulse width modulation fan cont
->  		255 is max or 100%.
->
->  pwm[1-*]_enable
-> -		Switch PWM on and off.
-> -		Not always present even if pwmN is.
-> -		0: turn off
-> -		1: turn on in manual mode
-> -		2+: turn on in automatic mode
-> +		Fan speed control method:
-> +		0: no fan speed control (i.e. fan at full speed)
-> +		1: manual fan speed control enabled (using pwm[1-*])
-> +		2+: automatic fan speed control enabled
->  		Check individual chip documentation files for automatic mode
->  		details.
->  		RW
->
-> Thanks,
-> --
-> Jean Delvare
->
+Also, if the Super-I/O device is configured with an address of 0, the
+driver refuses to initialize it.
 
+Signed-off-by: David Hubbard <david.c.hubbard@gmail.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/w83627ehf.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+--- linux-2.6.22-rc5.orig/drivers/hwmon/w83627ehf.c	2007-06-24 10:03:39.000000000 +0200
++++ linux-2.6.22-rc5/drivers/hwmon/w83627ehf.c	2007-06-24 10:06:44.000000000 +0200
+@@ -1387,14 +1387,19 @@ static int __init w83627ehf_find(int sio
+ 	    | superio_inb(sioaddr, SIO_REG_ADDR + 1);
+ 	*addr = val & IOREGION_ALIGNMENT;
+ 	if (*addr = 0) {
++		printk(KERN_ERR DRVNAME ": Refusing to enable a Super-I/O "
++		       "device with a base I/O port 0.\n");
+ 		superio_exit(sioaddr);
+ 		return -ENODEV;
+ 	}
+ 
+ 	/* Activate logical device if needed */
+ 	val = superio_inb(sioaddr, SIO_REG_ENABLE);
+-	if (!(val & 0x01))
++	if (!(val & 0x01)) {
++		printk(KERN_WARNING DRVNAME ": Forcibly enabling Super-I/O. "
++		       "Sensor is probably unusable.\n");
+ 		superio_outb(sioaddr, SIO_REG_ENABLE, val | 0x01);
++	}
+ 
+ 	superio_exit(sioaddr);
+ 	pr_info(DRVNAME ": Found %s chip at %#x\n", sio_name, *addr);
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
