@@ -1,232 +1,166 @@
-From: jimc <jim.cromie@gmail.com>
-Date: Thu, 14 Jun 2007 23:07:46 +0000
-Subject: [lm-sensors] [ patch 3/4 RFC for 2.6.23-rc0 ] use superio-locks in
-Message-Id: <4671CA42.9020703@gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------040404040608050102020407"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 24 Jun 2007 09:19:42 +0000
+Subject: [lm-sensors] [PATCH 06/10] hwmon/w83627ehf: Add support for the VID
+Message-Id: <20070624111942.117770c3@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040404040608050102020407
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+The W83627EHF and similar chips have 6 VID input pins, add support
+for them. The driver changes the input voltage level automatically
+if the current setting is not correct for the detected CPU model.
 
-
-use superio-locks in hwmon/pc87360
-
-
-Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
-
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
+ Documentation/hwmon/w83627ehf |    6 ++--
+ drivers/hwmon/Kconfig         |    1 
+ drivers/hwmon/w83627ehf.c     |   50 +++++++++++++++++++++++++++++++++++++++--
+ 3 files changed, 52 insertions(+), 5 deletions(-)
 
-[jimc@harpo mylocks]$ diffstat diff.locks-superio-usein-pc87360
-  Kconfig   |    2 +
-  pc87360.c |   78 
-++++++++++++++++++++++++++++----------------------------------
-  2 files changed, 38 insertions(+), 42 deletions(-)
-
-
---------------040404040608050102020407
-Content-Type: text/plain;
- name="diff.locks-superio-usein-pc87360"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="diff.locks-superio-usein-pc87360"
-
-diff -ruNp -X exclude-diffs locks-1/drivers/hwmon/Kconfig locks-2/drivers/hwmon/Kconfig
---- locks-1/drivers/hwmon/Kconfig	2007-06-13 12:05:30.000000000 -0600
-+++ locks-2/drivers/hwmon/Kconfig	2007-06-13 12:06:00.000000000 -0600
-@@ -354,6 +354,7 @@ config SENSORS_LM87
- 	tristate "National Semiconductor LM87"
- 	depends on I2C
- 	select HWMON_VID
-+	select SUPERIO_LOCKS
+--- linux-2.6.22-rc5.orig/Documentation/hwmon/w83627ehf	2007-06-24 08:50:37.000000000 +0200
++++ linux-2.6.22-rc5/Documentation/hwmon/w83627ehf	2007-06-24 10:33:39.000000000 +0200
+@@ -22,9 +22,9 @@ This driver implements support for the W
+ W83627DHG super I/O chips. We will refer to them collectively as Winbond chips.
+ 
+ The chips implement three temperature sensors, five fan rotation
+-speed sensors, ten analog voltage sensors (only nine for the 627DHG), alarms
+-with beep warnings (control unimplemented), and some automatic fan regulation
+-strategies (plus manual fan control mode).
++speed sensors, ten analog voltage sensors (only nine for the 627DHG), one
++VID (6 pins), alarms with beep warnings (control unimplemented), and
++some automatic fan regulation strategies (plus manual fan control mode).
+ 
+ Temperatures are measured in degrees Celsius and measurement resolution is 1
+ degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
+--- linux-2.6.22-rc5.orig/drivers/hwmon/Kconfig	2007-06-24 09:32:18.000000000 +0200
++++ linux-2.6.22-rc5/drivers/hwmon/Kconfig	2007-06-24 10:33:39.000000000 +0200
+@@ -590,6 +590,7 @@ config SENSORS_W83627HF
+ 
+ config SENSORS_W83627EHF
+ 	tristate "Winbond W83627EHF/DHG"
++	select HWMON_VID
  	help
- 	  If you say yes here you get support for National Semiconductor LM87
- 	  sensor chips.
-@@ -407,6 +408,7 @@ config SENSORS_MAX6650
- config SENSORS_PC87360
- 	tristate "National Semiconductor PC87360 family"
- 	select HWMON_VID
-+	select SUPERIO_LOCKS
- 	help
- 	  If you say yes here you get access to the hardware monitoring
- 	  functions of the National Semiconductor PC8736x Super-I/O chips.
-diff -ruNp -X exclude-diffs locks-1/drivers/hwmon/pc87360.c locks-2/drivers/hwmon/pc87360.c
---- locks-1/drivers/hwmon/pc87360.c	2007-06-13 10:28:01.000000000 -0600
-+++ locks-2/drivers/hwmon/pc87360.c	2007-06-13 12:06:00.000000000 -0600
-@@ -41,6 +41,7 @@
+ 	  If you say yes here you get support for the hardware
+ 	  monitoring functionality of the Winbond W83627EHF Super-I/O chip.
+--- linux-2.6.22-rc5.orig/drivers/hwmon/w83627ehf.c	2007-06-24 10:25:18.000000000 +0200
++++ linux-2.6.22-rc5/drivers/hwmon/w83627ehf.c	2007-06-24 10:33:39.000000000 +0200
+@@ -45,6 +45,7 @@
+ #include <linux/platform_device.h>
  #include <linux/hwmon.h>
  #include <linux/hwmon-sysfs.h>
- #include <linux/hwmon-vid.h>
-+#include <linux/superio-locks.h>
++#include <linux/hwmon-vid.h>
  #include <linux/err.h>
  #include <linux/mutex.h>
  #include <asm/io.h>
-@@ -68,6 +69,17 @@ MODULE_PARM_DESC(init,
- #define ACT	0x30	/* Register: Device activation */
- #define BASE	0x60	/* Register: Base address */
+@@ -68,8 +69,11 @@ static const char * w83627ehf_device_nam
  
-+u16 cmdreg_addrs[] = { 0x2E, 0x4E, 0 };
-+u16 device_ids[]   = { 0xE1, 0xE8, 0xE4, 0xE5, 0xE9, 0 };
-+
-+static struct superio_search where = {
-+	.cmdreg_addrs = cmdreg_addrs,
-+	.device_ids   = device_ids,
-+	.devid_addr   = DEVID,
-+	.devid_mask   = 0,
-+	.devid_word   = 0,
-+};
-+
- #define FSCM	0x09	/* Logical device: fans */
- #define VLM	0x0d	/* Logical device: voltages */
- #define TMS	0x0e	/* Logical device: temperatures */
-@@ -77,24 +89,6 @@ static const u8 logdev[3] = { FSCM, VLM,
- #define LD_IN		1
- #define LD_TEMP		2
+ #define SIO_REG_LDSEL		0x07	/* Logical device select */
+ #define SIO_REG_DEVID		0x20	/* Device ID (2 bytes) */
++#define SIO_REG_EN_VRM10	0x2C	/* GPIO3, GPIO4 selection */
+ #define SIO_REG_ENABLE		0x30	/* Logical device enable */
+ #define SIO_REG_ADDR		0x60	/* Logical device address (2 bytes) */
++#define SIO_REG_VID_CTRL	0xF0	/* VID control */
++#define SIO_REG_VID_DATA	0xF1	/* VID data */
  
--static inline void superio_outb(int sioaddr, int reg, int val)
--{
--	outb(reg, sioaddr);
--	outb(val, sioaddr+1);
--}
--
--static inline int superio_inb(int sioaddr, int reg)
--{
--	outb(reg, sioaddr);
--	return inb(sioaddr+1);
--}
--
--static inline void superio_exit(int sioaddr)
--{
--	outb(0x02, sioaddr);
--	outb(0x02, sioaddr+1);
--}
--
+ #define SIO_W83627EHF_ID	0x8850
+ #define SIO_W83627EHG_ID	0x8860
+@@ -285,6 +289,9 @@ struct w83627ehf_data {
+ 
+ 	u8 fan_min_output[4]; /* minimum fan speed */
+ 	u8 fan_stop_time[4];
++
++	u8 vid;
++	u8 vrm;
+ };
+ 
+ struct w83627ehf_sio_data {
+@@ -1127,6 +1134,14 @@ static struct sensor_device_attribute sd
+ 		    store_fan_min_output, 2),
+ };
+ 
++static ssize_t
++show_vid(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct w83627ehf_data *data = dev_get_drvdata(dev);
++	return sprintf(buf, "%d\n", vid_from_reg(data->vid, data->vrm));
++}
++static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
++
  /*
-  * Logical devices
+  * Driver and device management
   */
-@@ -817,17 +811,22 @@ static DEVICE_ATTR(name, S_IRUGO, show_n
-  * Device detection, registration and update
-  */
+@@ -1165,6 +1180,8 @@ static void w83627ehf_device_remove_file
+ 		device_remove_file(dev, &sda_temp[i].dev_attr);
  
--static int __init pc87360_find(int sioaddr, u8 *devid, unsigned short *addresses)
-+static int __init pc87360_find(unsigned short *addresses)
- {
- 	u16 val;
--	int i;
--	int nrdev; /* logical device count */
-+	int i, nrdev; /* logical device count */
- 
--	/* No superio_enter */
-+	struct superio* const gate = superio_find(&where);
-+	if (!gate) {
-+		printk(KERN_WARNING "pc87360: superio port not detected, "
-+		       "module not intalled.\n");
-+		return -ENODEV;
-+	}
-+	superio_enter(gate);
-+	devid = gate->devid;		/* Remember the device id */
- 
- 	/* Identify device */
--	val = superio_inb(sioaddr, DEVID);
--	switch (val) {
-+	switch (devid) {
- 	case 0xE1: /* PC87360 */
- 	case 0xE8: /* PC87363 */
- 	case 0xE4: /* PC87364 */
-@@ -838,25 +837,23 @@ static int __init pc87360_find(int sioad
- 		nrdev = 3;
- 		break;
- 	default:
--		superio_exit(sioaddr);
-+		superio_exit(gate);
- 		return -ENODEV;
- 	}
--	/* Remember the device id */
--	*devid = val;
- 
- 	for (i = 0; i < nrdev; i++) {
- 		/* select logical device */
--		superio_outb(sioaddr, DEV, logdev[i]);
-+		superio_outb(gate, DEV, logdev[i]);
- 
--		val = superio_inb(sioaddr, ACT);
-+		val = superio_inb(gate, ACT);
- 		if (!(val & 0x01)) {
- 			printk(KERN_INFO "pc87360: Device 0x%02x not "
- 			       "activated\n", logdev[i]);
- 			continue;
- 		}
- 
--		val = (superio_inb(sioaddr, BASE) << 8)
--		    | superio_inb(sioaddr, BASE + 1);
-+		val = (superio_inb(gate, BASE) << 8)
-+		    | superio_inb(gate, BASE + 1);
- 		if (!val) {
- 			printk(KERN_INFO "pc87360: Base address not set for "
- 			       "device 0x%02x\n", logdev[i]);
-@@ -866,8 +863,8 @@ static int __init pc87360_find(int sioad
- 		addresses[i] = val;
- 
- 		if (i==0) { /* Fans */
--			confreg[0] = superio_inb(sioaddr, 0xF0);
--			confreg[1] = superio_inb(sioaddr, 0xF1);
-+			confreg[0] = superio_inb(gate, 0xF0);
-+			confreg[1] = superio_inb(gate, 0xF1);
- 
- #ifdef DEBUG
- 			printk(KERN_DEBUG "pc87360: Fan 1: mon=%d "
-@@ -882,12 +879,12 @@ static int __init pc87360_find(int sioad
- #endif
- 		} else if (i==1) { /* Voltages */
- 			/* Are we using thermistors? */
--			if (*devid == 0xE9) { /* PC87366 */
-+			if (devid == 0xE9) { /* PC87366 */
- 				/* These registers are not logical-device
- 				   specific, just that we won't need them if
- 				   we don't use the VLM device */
--				confreg[2] = superio_inb(sioaddr, 0x2B);
--				confreg[3] = superio_inb(sioaddr, 0x25);
-+				confreg[2] = superio_inb(gate, 0x2B);
-+				confreg[3] = superio_inb(gate, 0x25);
- 
- 				if (confreg[2] & 0x40) {
- 					printk(KERN_INFO "pc87360: Using "
-@@ -903,7 +900,8 @@ static int __init pc87360_find(int sioad
- 		}
- 	}
- 
--	superio_exit(sioaddr);
-+	superio_exit(gate);
-+	superio_release(gate);	/* not needed for any post-load operations */
- 	return 0;
+ 	device_remove_file(dev, &dev_attr_name);
++	if (data->vid != 0x3f)
++		device_remove_file(dev, &dev_attr_cpu0_vid);
  }
  
-@@ -1449,12 +1447,8 @@ static int __init pc87360_init(void)
- 	int err, i;
- 	unsigned short address = 0;
+ /* Get the monitoring functions started */
+@@ -1196,7 +1213,7 @@ static int __devinit w83627ehf_probe(str
+ 	struct w83627ehf_sio_data *sio_data = dev->platform_data;
+ 	struct w83627ehf_data *data;
+ 	struct resource *res;
+-	u8 fan4pin, fan5pin;
++	u8 fan4pin, fan5pin, en_vrm10;
+ 	int i, err = 0;
  
--	if (pc87360_find(0x2e, &devid, extra_isa)
--	 && pc87360_find(0x4e, &devid, extra_isa)) {
--		printk(KERN_WARNING "pc87360: PC8736x not detected, "
--		       "module not inserted.\n");
-+	if (pc87360_find(extra_isa))
- 		return -ENODEV;
--	}
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+@@ -1230,9 +1247,32 @@ static int __devinit w83627ehf_probe(str
+ 		data->fan_min[i] = w83627ehf_read_value(data,
+ 				   W83627EHF_REG_FAN_MIN[i]);
  
- 	/* Arbitrarily pick one of the addresses */
- 	for (i = 0; i < 3; i++) {
++	data->vrm = vid_which_vrm();
++	superio_enter(sio_data->sioreg);
++	/* Set VID input sensibility if needed. In theory the BIOS should
++	   have set it, but in practice it's not always the case. */
++	en_vrm10 = superio_inb(sio_data->sioreg, SIO_REG_EN_VRM10);
++	if ((en_vrm10 & 0x08) && data->vrm != 100) {
++		dev_warn(dev, "Setting VID input voltage to TTL\n");
++		superio_outb(sio_data->sioreg, SIO_REG_EN_VRM10,
++			     en_vrm10 & ~0x08);
++	} else if (!(en_vrm10 & 0x08) && data->vrm = 100) {
++		dev_warn(dev, "Setting VID input voltage to VRM10\n");
++		superio_outb(sio_data->sioreg, SIO_REG_EN_VRM10,
++			     en_vrm10 | 0x08);
++	}
++	/* Read VID value */
++	superio_select(sio_data->sioreg, W83627EHF_LD_HWM);
++	if (superio_inb(sio_data->sioreg, SIO_REG_VID_CTRL) & 0x80)
++		data->vid = superio_inb(sio_data->sioreg, SIO_REG_VID_DATA) & 0x3f;
++	else {
++		dev_info(dev, "VID pins in output mode, CPU VID not "
++			 "available\n");
++		data->vid = 0x3f;
++	}
++
+ 	/* fan4 and fan5 share some pins with the GPIO and serial flash */
+ 
+-	superio_enter(sio_data->sioreg);
+ 	fan5pin = superio_inb(sio_data->sioreg, 0x24) & 0x2;
+ 	fan4pin = superio_inb(sio_data->sioreg, 0x29) & 0x6;
+ 	superio_exit(sio_data->sioreg);
+@@ -1308,6 +1348,12 @@ static int __devinit w83627ehf_probe(str
+ 	if (err)
+ 		goto exit_remove;
+ 
++	if (data->vid != 0x3f) {
++		err = device_create_file(dev, &dev_attr_cpu0_vid);
++		if (err)
++			goto exit_remove;
++	}
++
+ 	data->class_dev = hwmon_device_register(dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
 
---------------040404040608050102020407
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------040404040608050102020407--
