@@ -1,76 +1,94 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Wed, 20 Jun 2007 22:41:33 +0000
-Subject: [lm-sensors] [PATCH] hwmon: add SCH5317 to smsc47b397 driver
-Message-Id: <191fb4ca0706201541s2416f573o74e8a34fab258d3a@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_116082_19764945.1182379293605"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 24 Jun 2007 10:19:56 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: add SCH5317 to smsc47b397 driver
+Message-Id: <20070624121956.51bfb856@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <191fb4ca0706201541s2416f573o74e8a34fab258d3a@mail.gmail.com>
+In-Reply-To: <191fb4ca0706201541s2416f573o74e8a34fab258d3a@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_116082_19764945.1182379293605
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Juerg,
 
-This patch adds the SMSC SCH5317 chip (device ID 0x85) as a supported
-device to the smsc47b397 driver.
+On Wed, 20 Jun 2007 15:41:33 -0700, Juerg Haefliger wrote:
+> This patch adds the SMSC SCH5317 chip (device ID 0x85) as a supported
+> device to the smsc47b397 driver.
+> 
+> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+Patch is functionally correct, just one thing...
 
-------=_Part_116082_19764945.1182379293605
-Content-Type: text/x-patch; name=hwmon-add-sch5317.patch; 
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f36dv89m
-Content-Disposition: attachment; filename="hwmon-add-sch5317.patch"
+> diff -uprN -X linux-2.6.21.1/Documentation/dontdiff linux-2.6.21.1.orig/Documentation/hwmon/smsc47b397 linux-2.6.21.1/Documentation/hwmon/smsc47b397
+> --- linux-2.6.21.1.orig/Documentation/hwmon/smsc47b397	2007-04-27 14:49:26.000000000 -0700
+> +++ linux-2.6.21.1/Documentation/hwmon/smsc47b397	2007-06-20 11:01:52.000000000 -0700
+> @@ -4,6 +4,7 @@ Kernel driver smsc47b397
+>  Supported chips:
+>    * SMSC LPC47B397-NC
+>    * SMSC SCH5307-NS
+> +  * SMSC SCH5317
+>      Prefix: 'smsc47b397'
+>      Addresses scanned: none, address read from Super I/O config space
+>      Datasheet: In this file
+> @@ -18,8 +19,8 @@ The following specification describes th
+>  provided by Craig Kelly (In-Store Broadcast Network) and edited/corrected
+>  by Mark M. Hoffman <mhoffman@lightlink.com>.
+>  
+> -[1] And SMSC SCH5307-NS, which has a different device ID but is otherwise
+> -compatible.
+> +[1] And SMSC SCH5307-NS and SCH5317, which have different device IDs but are
+> +otherwise compatible.
+>  
+>  * * * * *
+>  
+> @@ -131,7 +132,7 @@ OUT	DX,AL
+>  The registers of interest for identifying the SIO on the dc7100 are Device ID
+>  (0x20) and Device Rev  (0x21).
+>  
+> -The Device ID will read 0x6F (for SCH5307-NS, 0x81)
+> +The Device ID will read 0x6F (0x81 for SCH5307-NS, and 0x85 for SCH5317)
+>  The Device Rev currently reads 0x01
+>  
+>  Obtaining the HWM Base Address.
+> diff -uprN -X linux-2.6.21.1/Documentation/dontdiff linux-2.6.21.1.orig/drivers/hwmon/smsc47b397.c linux-2.6.21.1/drivers/hwmon/smsc47b397.c
+> --- linux-2.6.21.1.orig/drivers/hwmon/smsc47b397.c	2007-04-27 14:49:26.000000000 -0700
+> +++ linux-2.6.21.1/drivers/hwmon/smsc47b397.c	2007-06-20 11:02:49.000000000 -0700
+> @@ -309,7 +309,7 @@ static int __init smsc47b397_find(unsign
+>  	superio_enter();
+>  	id = superio_inb(SUPERIO_REG_DEVID);
+>  
+> -	if ((id != 0x6f) && (id != 0x81)) {
+> +	if ((id != 0x6f) && (id != 0x81) && (id != 0x85)) {
+>  		superio_exit();
+>  		return -ENODEV;
+>  	}
+> @@ -322,7 +322,8 @@ static int __init smsc47b397_find(unsign
+>  
+>  	printk(KERN_INFO "smsc47b397: found SMSC %s "
+>  		"(base address 0x%04x, revision %u)\n",
+> -		id = 0x81 ? "SCH5307-NS" : "LPC47B397-NC", *addr, rev);
+> +		id = 0x81 ? "SCH5307-NS" : id = 0x85 ? "SCH5317" : 
+> +	       "LPC47B397-NC", *addr, rev);
 
-ZGlmZiAtdXByTiAtWCBsaW51eC0yLjYuMjEuMS9Eb2N1bWVudGF0aW9uL2RvbnRkaWZmIGxpbnV4
-LTIuNi4yMS4xLm9yaWcvRG9jdW1lbnRhdGlvbi9od21vbi9zbXNjNDdiMzk3IGxpbnV4LTIuNi4y
-MS4xL0RvY3VtZW50YXRpb24vaHdtb24vc21zYzQ3YjM5NwotLS0gbGludXgtMi42LjIxLjEub3Jp
-Zy9Eb2N1bWVudGF0aW9uL2h3bW9uL3Ntc2M0N2IzOTcJMjAwNy0wNC0yNyAxNDo0OToyNi4wMDAw
-MDAwMDAgLTA3MDAKKysrIGxpbnV4LTIuNi4yMS4xL0RvY3VtZW50YXRpb24vaHdtb24vc21zYzQ3
-YjM5NwkyMDA3LTA2LTIwIDExOjAxOjUyLjAwMDAwMDAwMCAtMDcwMApAQCAtNCw2ICs0LDcgQEAg
-S2VybmVsIGRyaXZlciBzbXNjNDdiMzk3CiBTdXBwb3J0ZWQgY2hpcHM6CiAgICogU01TQyBMUEM0
-N0IzOTctTkMKICAgKiBTTVNDIFNDSDUzMDctTlMKKyAgKiBTTVNDIFNDSDUzMTcKICAgICBQcmVm
-aXg6ICdzbXNjNDdiMzk3JwogICAgIEFkZHJlc3NlcyBzY2FubmVkOiBub25lLCBhZGRyZXNzIHJl
-YWQgZnJvbSBTdXBlciBJL08gY29uZmlnIHNwYWNlCiAgICAgRGF0YXNoZWV0OiBJbiB0aGlzIGZp
-bGUKQEAgLTE4LDggKzE5LDggQEAgVGhlIGZvbGxvd2luZyBzcGVjaWZpY2F0aW9uIGRlc2NyaWJl
-cyB0aAogcHJvdmlkZWQgYnkgQ3JhaWcgS2VsbHkgKEluLVN0b3JlIEJyb2FkY2FzdCBOZXR3b3Jr
-KSBhbmQgZWRpdGVkL2NvcnJlY3RlZAogYnkgTWFyayBNLiBIb2ZmbWFuIDxtaG9mZm1hbkBsaWdo
-dGxpbmsuY29tPi4KIAotWzFdIEFuZCBTTVNDIFNDSDUzMDctTlMsIHdoaWNoIGhhcyBhIGRpZmZl
-cmVudCBkZXZpY2UgSUQgYnV0IGlzIG90aGVyd2lzZQotY29tcGF0aWJsZS4KK1sxXSBBbmQgU01T
-QyBTQ0g1MzA3LU5TIGFuZCBTQ0g1MzE3LCB3aGljaCBoYXZlIGRpZmZlcmVudCBkZXZpY2UgSURz
-IGJ1dCBhcmUKK290aGVyd2lzZSBjb21wYXRpYmxlLgogCiAqICogKiAqICoKIApAQCAtMTMxLDcg
-KzEzMiw3IEBAIE9VVAlEWCxBTAogVGhlIHJlZ2lzdGVycyBvZiBpbnRlcmVzdCBmb3IgaWRlbnRp
-ZnlpbmcgdGhlIFNJTyBvbiB0aGUgZGM3MTAwIGFyZSBEZXZpY2UgSUQKICgweDIwKSBhbmQgRGV2
-aWNlIFJldiAgKDB4MjEpLgogCi1UaGUgRGV2aWNlIElEIHdpbGwgcmVhZCAweDZGIChmb3IgU0NI
-NTMwNy1OUywgMHg4MSkKK1RoZSBEZXZpY2UgSUQgd2lsbCByZWFkIDB4NkYgKDB4ODEgZm9yIFND
-SDUzMDctTlMsIGFuZCAweDg1IGZvciBTQ0g1MzE3KQogVGhlIERldmljZSBSZXYgY3VycmVudGx5
-IHJlYWRzIDB4MDEKIAogT2J0YWluaW5nIHRoZSBIV00gQmFzZSBBZGRyZXNzLgpkaWZmIC11cHJO
-IC1YIGxpbnV4LTIuNi4yMS4xL0RvY3VtZW50YXRpb24vZG9udGRpZmYgbGludXgtMi42LjIxLjEu
-b3JpZy9kcml2ZXJzL2h3bW9uL3Ntc2M0N2IzOTcuYyBsaW51eC0yLjYuMjEuMS9kcml2ZXJzL2h3
-bW9uL3Ntc2M0N2IzOTcuYwotLS0gbGludXgtMi42LjIxLjEub3JpZy9kcml2ZXJzL2h3bW9uL3Nt
-c2M0N2IzOTcuYwkyMDA3LTA0LTI3IDE0OjQ5OjI2LjAwMDAwMDAwMCAtMDcwMAorKysgbGludXgt
-Mi42LjIxLjEvZHJpdmVycy9od21vbi9zbXNjNDdiMzk3LmMJMjAwNy0wNi0yMCAxMTowMjo0OS4w
-MDAwMDAwMDAgLTA3MDAKQEAgLTMwOSw3ICszMDksNyBAQCBzdGF0aWMgaW50IF9faW5pdCBzbXNj
-NDdiMzk3X2ZpbmQodW5zaWduCiAJc3VwZXJpb19lbnRlcigpOwogCWlkID0gc3VwZXJpb19pbmIo
-U1VQRVJJT19SRUdfREVWSUQpOwogCi0JaWYgKChpZCAhPSAweDZmKSAmJiAoaWQgIT0gMHg4MSkp
-IHsKKwlpZiAoKGlkICE9IDB4NmYpICYmIChpZCAhPSAweDgxKSAmJiAoaWQgIT0gMHg4NSkpIHsK
-IAkJc3VwZXJpb19leGl0KCk7CiAJCXJldHVybiAtRU5PREVWOwogCX0KQEAgLTMyMiw3ICszMjIs
-OCBAQCBzdGF0aWMgaW50IF9faW5pdCBzbXNjNDdiMzk3X2ZpbmQodW5zaWduCiAKIAlwcmludGso
-S0VSTl9JTkZPICJzbXNjNDdiMzk3OiBmb3VuZCBTTVNDICVzICIKIAkJIihiYXNlIGFkZHJlc3Mg
-MHglMDR4LCByZXZpc2lvbiAldSlcbiIsCi0JCWlkID09IDB4ODEgPyAiU0NINTMwNy1OUyIgOiAi
-TFBDNDdCMzk3LU5DIiwgKmFkZHIsIHJldik7CisJCWlkID09IDB4ODEgPyAiU0NINTMwNy1OUyIg
-OiBpZCA9PSAweDg1ID8gIlNDSDUzMTciIDogCisJICAgICAgICJMUEM0N0IzOTctTkMiLCAqYWRk
-ciwgcmV2KTsKIAogCXN1cGVyaW9fZXhpdCgpOwogCXJldHVybiAwOwo=
-------=_Part_116082_19764945.1182379293605
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Coding style issues here: trailing white space, and last line is aligned
+differently than the previous ones. Please make it consistent. Also,
+there was some fuzz applying this part. I suspect that the patch was
+generated against a 2.6.21 kernel tree. You should generate your
+patches against 2.6.22-rc5 or later to make sure they apply cleanly
+when Mark picks them.
+
+>  
+>  	superio_exit();
+>  	return 0;
+
+Can we also have a sensors-detect patch?
+
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_116082_19764945.1182379293605--
