@@ -1,85 +1,149 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Wed, 20 Jun 2007 15:26:54 +0000
-Subject: [lm-sensors] [PATCH] lm-sensors: add detection for non-standard
-Message-Id: <191fb4ca0706200826kc97f051g58873d3c8820cde@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_110505_12584623.1182353214571"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 24 Jun 2007 11:31:40 +0000
+Subject: Re: [lm-sensors] [PATCH] lm-sensors: add detection for non-standard
+Message-Id: <20070624133140.3e75a838@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <191fb4ca0706200826kc97f051g58873d3c8820cde@mail.gmail.com>
+In-Reply-To: <191fb4ca0706200826kc97f051g58873d3c8820cde@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_110505_12584623.1182353214571
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Juerg,
 
-This patch adds detection logic for non-standard SMSC Super I/Os.
-These chips have their device ID register at address 0x0d rather than
-0x20.
+On Wed, 20 Jun 2007 08:26:54 -0700, Juerg Haefliger wrote:
+> This patch adds detection logic for non-standard SMSC Super I/Os.
+> These chips have their device ID register at address 0x0d rather than
+> 0x20.
+> 
+> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+I don't know what you and others think, but personally I prefer this
+version over the previous one.
 
-------=_Part_110505_12584623.1182353214571
-Content-Type: text/x-patch; 
-	name=lm-sensors-non-standard-superio-detection.patch; 
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f35yi002
-Content-Disposition: attachment;
-	filename="lm-sensors-non-standard-superio-detection.patch"
+Comments:
 
-LS0tIGxtLXNlbnNvcnMub3JpZy9wcm9nL2RldGVjdC9zZW5zb3JzLWRldGVjdAkyMDA3LTA2LTEz
-IDA4OjE4OjM5Ljk4MTI5ODAwMCAtMDcwMAorKysgbG0tc2Vuc29ycy9wcm9nL2RldGVjdC9zZW5z
-b3JzLWRldGVjdAkyMDA3LTA2LTIwIDA4OjE3OjI2LjIwMTA0MzAwMCAtMDcwMApAQCAtMTgzMiw2
-ICsxODMyLDM4IEBAIHVzZSB2YXJzIHF3KEBjaGlwX2tlcm4yNF9pZHMgQGNoaXBfa2VybjIKIAlk
-ZXZpZCA9PiAweDc3LAogICAgICAgfSwKICAgICBdLAorICAgICMgTm9uLXN0YW5kYXJkIFNNU0Mg
-ZGV0ZWN0aW9uIGNhbGxiYWNrIGFuZCBjaGlwIGxpc3QuIFRoZXNlIGNoaXBzIGRpZmZlcgorICAg
-ICMgZnJvbSB0aGUgc3RhbmRhcmQgb25lcyBsaXN0ZWQgYWJvdmUgaW4gdGhhdCB0aGUgZGV2aWNl
-IElEIHJlZ2lzdGVyIAorICAgICMgYWRkcmVzcyBpcyAweDBkIGluc3RlYWQgb2YgMHgyMCAoYXMg
-c3BlY2lmaWVkIGJ5IHRoZSBJU0EgUE5QIHNwZWMpLgorICAgIG5zX2RldGVjdCA9PiBcJnNtc2Nf
-bnNfZGV0ZWN0X3N1cGVyaW8sCisgICAgbnNfY2hpcHMgPT4KKyAgICBbCisgICAgICB7CisJbmFt
-ZSA9PiAiU01TQyBGREMzN0M2NjUgU3VwZXIgSU8iLAorCWRyaXZlciA9PiAibm90LWEtc2Vuc29y
-IiwKKwlkZXZpZCA9PiAweDY1LAorICAgICAgfSwKKyAgICAgIHsKKwluYW1lID0+ICJTTVNDIEZE
-QzM3QzY2NiBTdXBlciBJTyIsCisJZHJpdmVyID0+ICJub3QtYS1zZW5zb3IiLAorCWRldmlkID0+
-IDB4NjYsCisgICAgICB9LAorICAgICAgeworCW5hbWUgPT4gIlNNU0MgRkRDMzdDNjY5IFN1cGVy
-IElPIiwKKwlkcml2ZXIgPT4gIm5vdC1hLXNlbnNvciIsCisJZGV2aWQgPT4gMHgwMywKKyAgICAg
-IH0sCisgICAgICB7CisJbmFtZSA9PiAiU01TQyBGREMzN043NjkgU3VwZXIgSU8iLAorCWRyaXZl
-ciA9PiAibm90LWEtc2Vuc29yIiwKKwlkZXZpZCA9PiAweDI4LAorICAgICAgfSwKKyAgICAgIHsK
-KwluYW1lID0+ICJTTVNDIExQQzQ3TjIyNyBTdXBlciBJTyIsCisJZHJpdmVyID0+ICJub3QtYS1z
-ZW5zb3IiLAorCWRldmlkID0+IDB4NWEsCisgICAgICB9LAorICAgIF0sCiAgIH0sCiAgIHsKICAg
-ICBmYW1pbHkgPT4gIlZJQS9XaW5ib25kL0ZpbnRlayIsCkBAIC0zMTg5LDYgKzMyMjEsMzggQEAg
-c3ViIHByb2JlX3N1cGVyaW8oJCQkKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICRuZXdfaGFzaDsKIH0KIAorIyBEZXRlY3Rpb24gcm91dGluZSBmb3Igbm9uLXN0YW5k
-YXJkIFNNU0MgU3VwZXIgSS9PIGNoaXBzCisjICRfWzBdOiBTdXBlciBJL08gTFBDIGFkZHJlc3Mg
-cG9ydAorIyAkX1sxXTogU3VwZXIgSS9PIExQQyBkYXRhIHBvcnQKKyMgJF9bMl06IFJlZmVyZW5j
-ZSB0byBjaGlwIGZhbWlseSBoYXNoCitzdWIgc21zY19uc19kZXRlY3Rfc3VwZXJpbworeworICAg
-IG15ICgkYWRkcnJlZywgJGRhdGFyZWcsICRmYW1pbHkpID0gQF87CisgICAgbXkgKCR2YWwsICRm
-b3VuZCk7CisKKyAgICAjIHJlYWQgYWx0ZXJuYXRlIGRldmljZSBJRCByZWdpc3RlcgorICAgIG91
-dGIoJGFkZHJyZWcsIDB4MGQpOworICAgICR2YWwgPSBpbmIoJGRhdGFyZWcpOworICAgIGlmICgk
-dmFsID09IDB4MDAgfHwgJHZhbCA9PSAweGZmKSB7CisJcmV0dXJuIDA7CisgICAgfQorICAgICMg
-cmVhZCByZXZpc2lvbiAgIAorICAgIG91dGIoJGFkZHJyZWcsIDB4MGUpOworICAgICR2YWwgPSAo
-JHZhbCA8PCA4KSB8IGluYigkZGF0YXJlZyk7CisKKyAgICBwcmludCAiWWVzXG4iOworCisgICAg
-Zm9yZWFjaCBteSAkY2hpcCAoQHskZmFtaWx5LT57bnNfY2hpcHN9fSkgeworCWlmICgkY2hpcC0+
-e2RldmlkfSA9PSAoJHZhbCA+PiA4KSkgeworCSAgICBwcm9iZV9zdXBlcmlvKCRhZGRycmVnLCAk
-ZGF0YXJlZywgJGNoaXApOworCSAgICByZXR1cm4gMTsKKwl9CisgICAgfQorCisgICAgcHJpbnRm
-KCJGb3VuZCB1bmtub3duIG5vbi1zdGFuZGFyZCBjaGlwIHdpdGggSUQgMHglMDR4XG4iLCAkdmFs
-KTsKKyAgICByZXR1cm4gMTsKK30KKwogc3ViIHNjYW5fc3VwZXJpbwogewogICBteSAoJGFkZHJy
-ZWcsICRkYXRhcmVnKSA9IEBfOwpAQCAtMzIwNiw2ICszMjcwLDEyIEBAIHN1YiBzY2FuX3N1cGVy
-aW8KICAgICBmb3JlYWNoICR2YWwgKEB7JGZhbWlseS0+e2VudGVyfS0+eyRhZGRycmVnfX0pIHsK
-ICAgICAgIG91dGIoJGFkZHJyZWcsICR2YWwpOwogICAgIH0KKyMgY2FsbCB0aGUgbm9uLXN0YW5k
-YXJkIGRldGVjdGlvbiByb3V0aW5lIGZpcnN0IGlmIGl0IGV4aXN0cworICAgIGlmIChkZWZpbmVk
-KCRmYW1pbHktPntuc19kZXRlY3R9KSAmJiAKKwkmeyRmYW1pbHktPntuc19kZXRlY3R9fSgkYWRk
-cnJlZywgJGRhdGFyZWcsICRmYW1pbHkpKSB7CisJZXhpdF9zdXBlcmlvKCRhZGRycmVnLCAkZGF0
-YXJlZyk7CisJbGFzdCBGQU1JTFk7CisgICAgfQogIyBkaWQgaXQgd29yaz8KICAgICBvdXRiKCRh
-ZGRycmVnLCAkc3VwZXJpb3tkZXZpZHJlZ30pOwogICAgICR2YWwgPSBpbmIoJGRhdGFyZWcpOwo=
+> --- lm-sensors.orig/prog/detect/sensors-detect	2007-06-13 08:18:39.981298000 -0700
+> +++ lm-sensors/prog/detect/sensors-detect	2007-06-20 08:17:26.201043000 -0700
+> @@ -1832,6 +1832,38 @@ use vars qw(@chip_kern24_ids @chip_kern2
+>  	devid => 0x77,
+>        },
+>      ],
+> +    # Non-standard SMSC detection callback and chip list. These chips differ
+> +    # from the standard ones listed above in that the device ID register 
+> +    # address is 0x0d instead of 0x20 (as specified by the ISA PNP spec).
+> +    ns_detect => \&smsc_ns_detect_superio,
+> +    ns_chips =>
+> +    [
+> +      {
+> +	name => "SMSC FDC37C665 Super IO",
+> +	driver => "not-a-sensor",
+> +	devid => 0x65,
+> +      },
+> +      {
+> +	name => "SMSC FDC37C666 Super IO",
+> +	driver => "not-a-sensor",
+> +	devid => 0x66,
+> +      },
+> +      {
+> +	name => "SMSC FDC37C669 Super IO",
+> +	driver => "not-a-sensor",
+> +	devid => 0x03,
+> +      },
+> +      {
+> +	name => "SMSC FDC37N769 Super IO",
+> +	driver => "not-a-sensor",
+> +	devid => 0x28,
+> +      },
+> +      {
+> +	name => "SMSC LPC47N227 Super IO",
+> +	driver => "not-a-sensor",
+> +	devid => 0x5a,
+> +      },
+> +    ],
+>    },
+>    {
+>      family => "VIA/Winbond/Fintek",
 
-------=_Part_110505_12584623.1182353214571
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Originally I didn't expect this non-standard list to be embedded in the
+main list, but after all, maybe it's a good idea to have all the
+declarations in the same place.
+
+> @@ -3189,6 +3221,38 @@ sub probe_superio($$$)
+>                                          $new_hash;
+>  }
+>  
+> +# Detection routine for non-standard SMSC Super I/O chips
+> +# $_[0]: Super I/O LPC address port
+> +# $_[1]: Super I/O LPC data port
+> +# $_[2]: Reference to chip family hash
+
+Maybe explain the return value convention too.
+
+> +sub smsc_ns_detect_superio
+> +{
+> +    my ($addrreg, $datareg, $family) = @_;
+> +    my ($val, $found);
+
+Unused variable $found.
+
+> +
+> +    # read alternate device ID register
+> +    outb($addrreg, 0x0d);
+> +    $val = inb($datareg);
+> +    if ($val = 0x00 || $val = 0xff) {
+> +	return 0;
+> +    }
+> +    # read revision   
+> +    outb($addrreg, 0x0e);
+> +    $val = ($val << 8) | inb($datareg);
+
+Why do you bother with the revision? You don't even use it for
+identification. Remember, we want this non-standard stuff to be as
+simple as possible.
+
+> +
+> +    print "Yes\n";
+> +
+> +    foreach my $chip (@{$family->{ns_chips}}) {
+> +	if ($chip->{devid} = ($val >> 8)) {
+> +	    probe_superio($addrreg, $datareg, $chip);
+> +	    return 1;
+> +	}
+> +    }
+> +
+> +    printf("Found unknown non-standard chip with ID 0x%04x\n", $val);
+> +    return 1;
+> +}
+> +
+>  sub scan_superio
+>  {
+>    my ($addrreg, $datareg) = @_;
+> @@ -3206,6 +3270,12 @@ sub scan_superio
+>      foreach $val (@{$family->{enter}->{$addrreg}}) {
+>        outb($addrreg, $val);
+>      }
+> +# call the non-standard detection routine first if it exists
+> +    if (defined($family->{ns_detect}) && 
+> +	&{$family->{ns_detect}}($addrreg, $datareg, $family)) {
+
+I'd suggest passing $family->{ns_chips} directly as the 3rd parameter.
+I can't think of a valid reason why you'd need access to the full
+family hash in the ns_detect callback.
+
+> +	exit_superio($addrreg, $datareg);
+> +	last FAMILY;
+> +    }
+>  # did it work?
+>      outb($addrreg, $superio{devidreg});
+>      $val = inb($datareg);
+
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_110505_12584623.1182353214571--
