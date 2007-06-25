@@ -1,69 +1,78 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 25 Jun 2007 09:12:44 +0000
-Subject: [lm-sensors] Separate package for i2c tools
-Message-Id: <20070625111244.1ca5327a@hyperion.delvare>
+From: Axel Thimm <Axel.Thimm@ATrpms.net>
+Date: Mon, 25 Jun 2007 09:22:30 +0000
+Subject: Re: [lm-sensors] Separate package for i2c tools
+Message-Id: <20070625092230.GD3561@puariko.nirvana>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============4164816498154488853=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <20070625111244.1ca5327a@hyperion.delvare>
+In-Reply-To: <20070625111244.1ca5327a@hyperion.delvare>
 To: lm-sensors@vger.kernel.org
 
-Hi all,
 
-As part of the libsensors rewrite that is ongoing, the lm-sensors
-package is being reorganized. For example I already deleted all the
-Linux 2.4 kernel drivers that were previously part of the package.
-Another step which I'd like to take is moving the i2c tools to a
-separate package.
+--===============4164816498154488853==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oj4kGyHlBMXGt3Le"
+Content-Disposition: inline
 
-Rationale:
-* Many users of lm-sensors no longer need them, because their hardware
-monitoring chip is on the LPC or PCI bus and not on the SMBus.
-* Even for users of SMBus hardware monitoring chips, the i2c tools are
-only needed for debugging, so most users don't need them.
-* There are many other I2C devices out there (RTC, video...),
-developers of drivers for these devices could make use of these tools,
-but they may not even know they exist, or they know but they don't
-want to bother installing the whole lm-sensors package.
-* The future lm-sensors will only support 2.6 kernels, while the i2c
-tools will still support older kernels.
 
-We need to find a package name. I propose "i2c-tools". Objections?
+--oj4kGyHlBMXGt3Le
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-We also need to agree on which files should be moved. Some parts of the
-(current) lm-sensors package clearly belong to the new i2c tools
-package: i2cdetect, i2cdump, i2cget, i2cset, ddcmon, decode-dimms.pl,
-decode-edid.pl, decode-vaio.pl, decode-xeon.pl, eepromer/*, py-smbus/*,
-i2c-dev.h. For some others it's not so clear.
+On Mon, Jun 25, 2007 at 11:12:44AM +0200, Jean Delvare wrote:
+> Axel, how can I create a brand new project in SVN? Do I need your help?
 
-* isadump, isaset: Not strictly sensors-specific, but not i2c-related
-either. They share their command line syntax and a very small amount of
-code with i2cdump. I'd rather leave them where they are.
+Not really (but see below for acls), technically it is one project, so
+all you need to do is
 
-* unhide_ICH_SMBus: Not strictly sensors-specific, but I don't think
-people really need this unless they are trying to get their sensors to
-work. No opinion.
+svn mkdir my-new-project
 
-* matorb/*: Last touched 8 years ago. Hmm, delete?
+at the top level next to lm_sensors and i2c.
 
-* mkdev.sh: Not strictly sensors-related, but the FAQ, INSTALL and
-sensors-detect refer to it. It probably doesn't really matter as these
-device nodes are created by udev nowadays. No opinion.
+The only thing that I need to do is setting up the acls in the httpd
+config you want to use on that project. It can be
+lm-sensors-commiters, i2c-commiters or something new.
 
-I plan to remove the dependency between sensors-detect and i2cdetect as
-part of this change, otherwise we lose much of the benefit.
-sensors-detect only uses i2cdetect to list the available i2c buses, it
-should be easy to do the same in perl directly.
+> Is it possible to preserve the history while moving the files from one
+> project to another?
 
-Axel, how can I create a brand new project in SVN? Do I need your help?
-Is it possible to preserve the history while moving the files from one
-project to another?
+Just use svn mv instead of svn rm/del and svn add. Move operations are
+like copy and delete, and copy operations are crossed over when
+traversing history unless you explicitely use --stop-on-copy.
 
-Thanks,
--- 
-Jean Delvare
+See also
+
+svn mkdir -h
+svn mv -h
+svn log -h
+--=20
+Axel.Thimm at ATrpms.net
+
+--oj4kGyHlBMXGt3Le
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQFGf4lWQBVS1GOamfERAuLRAJ9n3T5Ku2xdQ59VeWcyToxVKD2ZPwCglmlc
+LgP5jo+502ymdq012j00oZ0=
+=75KX
+-----END PGP SIGNATURE-----
+
+--oj4kGyHlBMXGt3Le--
+
+
+--===============4164816498154488853==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============4164816498154488853==--
