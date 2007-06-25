@@ -1,84 +1,28 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Mon, 25 Jun 2007 16:07:59 +0000
-Subject: [lm-sensors] [PATCH RESEND] lm-sensors: add detection for
-Message-Id: <191fb4ca0706250907x92f1189gb62ffbe5ec800172@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_4325_27218175.1182787679455"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 25 Jun 2007 19:02:35 +0000
+Subject: Re: [lm-sensors] [PATCH RESEND] lm-sensors: add detection for
+Message-Id: <20070625210235.3060ffeb@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <191fb4ca0706250907x92f1189gb62ffbe5ec800172@mail.gmail.com>
+In-Reply-To: <191fb4ca0706250907x92f1189gb62ffbe5ec800172@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_4325_27218175.1182787679455
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Mon, 25 Jun 2007 09:07:59 -0700, Juerg Haefliger wrote:
+> This patch adds detection logic for non-standard SMSC Super I/Os.
+> These chips have their device ID register at address 0x0d rather than
+> 0x20.
+> 
+> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-This patch adds detection logic for non-standard SMSC Super I/Os.
-These chips have their device ID register at address 0x0d rather than
-0x20.
+Applied, thanks.
 
-Signed-off-by: Juerg Haefliger <juergh at gmail.com>
-
-------=_Part_4325_27218175.1182787679455
-Content-Type: text/x-patch; 
-	name=lm-sensors-non-standard-superio-detection.patch; 
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f3d56uti
-Content-Disposition: attachment;
-	filename="lm-sensors-non-standard-superio-detection.patch"
-
-LS0tIGxtLXNlbnNvcnMub3JpZy9wcm9nL2RldGVjdC9zZW5zb3JzLWRldGVjdAkyMDA3LTA2LTEz
-IDA4OjE4OjM5Ljk4MTI5ODAwMCAtMDcwMAorKysgbG0tc2Vuc29ycy9wcm9nL2RldGVjdC9zZW5z
-b3JzLWRldGVjdAkyMDA3LTA2LTI1IDA5OjA1OjQxLjQyMTAyMjAwMCAtMDcwMApAQCAtMTgzMiw2
-ICsxODMyLDM4IEBAIHVzZSB2YXJzIHF3KEBjaGlwX2tlcm4yNF9pZHMgQGNoaXBfa2VybjIKIAlk
-ZXZpZCA9PiAweDc3LAogICAgICAgfSwKICAgICBdLAorICAgICMgTm9uLXN0YW5kYXJkIFNNU0Mg
-ZGV0ZWN0aW9uIGNhbGxiYWNrIGFuZCBjaGlwIGxpc3QuIFRoZXNlIGNoaXBzIGRpZmZlcgorICAg
-ICMgZnJvbSB0aGUgc3RhbmRhcmQgb25lcyBsaXN0ZWQgYWJvdmUgaW4gdGhhdCB0aGUgZGV2aWNl
-IElEIHJlZ2lzdGVyIAorICAgICMgYWRkcmVzcyBpcyAweDBkIGluc3RlYWQgb2YgMHgyMCAoYXMg
-c3BlY2lmaWVkIGJ5IHRoZSBJU0EgUE5QIHNwZWMpLgorICAgIG5zX2RldGVjdCA9PiBcJnNtc2Nf
-bnNfZGV0ZWN0X3N1cGVyaW8sCisgICAgbnNfY2hpcHMgPT4KKyAgICBbCisgICAgICB7CisJbmFt
-ZSA9PiAiU01TQyBGREMzN0M2NjUgU3VwZXIgSU8iLAorCWRyaXZlciA9PiAibm90LWEtc2Vuc29y
-IiwKKwlkZXZpZCA9PiAweDY1LAorICAgICAgfSwKKyAgICAgIHsKKwluYW1lID0+ICJTTVNDIEZE
-QzM3QzY2NiBTdXBlciBJTyIsCisJZHJpdmVyID0+ICJub3QtYS1zZW5zb3IiLAorCWRldmlkID0+
-IDB4NjYsCisgICAgICB9LAorICAgICAgeworCW5hbWUgPT4gIlNNU0MgRkRDMzdDNjY5IFN1cGVy
-IElPIiwKKwlkcml2ZXIgPT4gIm5vdC1hLXNlbnNvciIsCisJZGV2aWQgPT4gMHgwMywKKyAgICAg
-IH0sCisgICAgICB7CisJbmFtZSA9PiAiU01TQyBGREMzN043NjkgU3VwZXIgSU8iLAorCWRyaXZl
-ciA9PiAibm90LWEtc2Vuc29yIiwKKwlkZXZpZCA9PiAweDI4LAorICAgICAgfSwKKyAgICAgIHsK
-KwluYW1lID0+ICJTTVNDIExQQzQ3TjIyNyBTdXBlciBJTyIsCisJZHJpdmVyID0+ICJub3QtYS1z
-ZW5zb3IiLAorCWRldmlkID0+IDB4NWEsCisgICAgICB9LAorICAgIF0sCiAgIH0sCiAgIHsKICAg
-ICBmYW1pbHkgPT4gIlZJQS9XaW5ib25kL0ZpbnRlayIsCkBAIC0zMTg5LDYgKzMyMjEsMzYgQEAg
-c3ViIHByb2JlX3N1cGVyaW8oJCQkKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICRuZXdfaGFzaDsKIH0KIAorIyBEZXRlY3Rpb24gcm91dGluZSBmb3Igbm9uLXN0YW5k
-YXJkIFNNU0MgU3VwZXIgSS9PIGNoaXBzCisjICRfWzBdOiBTdXBlciBJL08gTFBDIGNvbmZpZy9p
-bmRleCBwb3J0CisjICRfWzFdOiBTdXBlciBJL08gTFBDIGRhdGEgcG9ydAorIyAkX1syXTogUmVm
-ZXJlbmNlIHRvIGFycmF5IG9mIG5vbi1zdGFuZGFyZCBjaGlwcworIyBSZXR1cm4gdmFsdWVzOiAx
-IGlmIG5vbi1zdGFuZGFyZCBjaGlwIGZvdW5kLCAwIG90aGVyd2lzZQorc3ViIHNtc2NfbnNfZGV0
-ZWN0X3N1cGVyaW8KK3sKKyAgICBteSAoJGFkZHJyZWcsICRkYXRhcmVnLCAkbnNfY2hpcHMpID0g
-QF87CisgICAgbXkgKCR2YWwsICRjaGlwKTsKKworICAgICMgcmVhZCBhbHRlcm5hdGUgZGV2aWNl
-IElEIHJlZ2lzdGVyCisgICAgb3V0YigkYWRkcnJlZywgMHgwZCk7CisgICAgJHZhbCA9IGluYigk
-ZGF0YXJlZyk7CisgICAgaWYgKCR2YWwgPT0gMHgwMCB8fCAkdmFsID09IDB4ZmYpIHsKKwlyZXR1
-cm4gMDsKKyAgICB9CisKKyAgICBwcmludCAiWWVzXG4iOworCisgICAgZm9yZWFjaCAkY2hpcCAo
-QHskbnNfY2hpcHN9KSB7CisJaWYgKCRjaGlwLT57ZGV2aWR9ID09ICR2YWwpIHsKKwkgICAgcHJv
-YmVfc3VwZXJpbygkYWRkcnJlZywgJGRhdGFyZWcsICRjaGlwKTsKKwkgICAgcmV0dXJuIDE7CisJ
-fQorICAgIH0KKworICAgIHByaW50ZigiRm91bmQgdW5rbm93biBub24tc3RhbmRhcmQgY2hpcCB3
-aXRoIElEIDB4JTAyeFxuIiwgJHZhbCk7CisgICAgcmV0dXJuIDE7Cit9CisKIHN1YiBzY2FuX3N1
-cGVyaW8KIHsKICAgbXkgKCRhZGRycmVnLCAkZGF0YXJlZykgPSBAXzsKQEAgLTMyMDYsNiArMzI2
-OCwxMiBAQCBzdWIgc2Nhbl9zdXBlcmlvCiAgICAgZm9yZWFjaCAkdmFsIChAeyRmYW1pbHktPntl
-bnRlcn0tPnskYWRkcnJlZ319KSB7CiAgICAgICBvdXRiKCRhZGRycmVnLCAkdmFsKTsKICAgICB9
-CisjIGNhbGwgdGhlIG5vbi1zdGFuZGFyZCBkZXRlY3Rpb24gcm91dGluZSBmaXJzdCBpZiBpdCBl
-eGlzdHMKKyAgICBpZiAoZGVmaW5lZCgkZmFtaWx5LT57bnNfZGV0ZWN0fSkgJiYgCisJJnskZmFt
-aWx5LT57bnNfZGV0ZWN0fX0oJGFkZHJyZWcsICRkYXRhcmVnLCAkZmFtaWx5LT57bnNfY2hpcHN9
-KSkgeworCWV4aXRfc3VwZXJpbygkYWRkcnJlZywgJGRhdGFyZWcpOworCWxhc3QgRkFNSUxZOwor
-ICAgIH0KICMgZGlkIGl0IHdvcms/CiAgICAgb3V0YigkYWRkcnJlZywgJHN1cGVyaW97ZGV2aWRy
-ZWd9KTsKICAgICAkdmFsID0gaW5iKCRkYXRhcmVnKTsK
-------=_Part_4325_27218175.1182787679455
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_4325_27218175.1182787679455--
