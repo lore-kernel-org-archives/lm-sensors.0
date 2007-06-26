@@ -1,7 +1,7 @@
 From: "Phil Endecott" <phil_lftzl_endecott@chezphil.org>
-Date: Mon, 25 Jun 2007 22:37:12 +0000
+Date: Tue, 26 Jun 2007 21:50:40 +0000
 Subject: Re: [lm-sensors] [PATCH] Add temperature-tracking mode to
-Message-Id: <1182811032812@dmwebmail.belize.chezphil.org>
+Message-Id: <1182894640566@dmwebmail.belize.chezphil.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1182682179001@dmwebmail.belize.chezphil.org>
 In-Reply-To: <1182682179001@dmwebmail.belize.chezphil.org>
@@ -11,36 +11,39 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Jean Delvare wrote:
-
-(in the sysfs documentation)
->> +OR
->> +
->> +pwm[1-*]_auto_point[1-*]_temp
->> +pwm[1-*]_auto_point[1-*]_fan
->> +		Define the fan speed vs temperature curve for chips which
->> +		associate trip points to PWM output channels.  Number of trip
->> +		points is chip-dependent.
->>  		RW
+>> --- linux-2.6-2.6.21/drivers/hwmon/f71805f.c.orig	2007-06-16 00:10:54.000000000 +0100
+>> +++ linux-2.6-2.6.21/drivers/hwmon/f71805f.c	2007-06-19 21:07:26.000000000 +0100
+[snip]
+>> @@ -931,6 +1029,58 @@
+>>  			  show_pwm_freq, set_pwm_freq, 2);
+>>  static SENSOR_DEVICE_ATTR(pwm3_mode, S_IRUGO, show_pwm_mode, NULL, 2);
+>>  
+>> +static SENSOR_DEVICE_ATTR(pwm1_auto_channels_temp, S_IRUGO,
+>> +					show_pwm_auto_channels, NULL, 0);
+>> +static SENSOR_DEVICE_ATTR(pwm2_auto_channels_temp, S_IRUGO,
+>> +					show_pwm_auto_channels, NULL, 1);
+>> +static SENSOR_DEVICE_ATTR(pwm3_auto_channels_temp, S_IRUGO,
+>> +					show_pwm_auto_channels, NULL, 2);
+>> +static SENSOR_DEVICE_ATTR(pwm1_auto_channels_fan, S_IRUGO,
+>> +					show_pwm_auto_channels, NULL, 0);
+>> +static SENSOR_DEVICE_ATTR(pwm2_auto_channels_fan, S_IRUGO,
+>> +					show_pwm_auto_channels, NULL, 1);
+>> +static SENSOR_DEVICE_ATTR(pwm3_auto_channels_fan, S_IRUGO,
+>> +					show_pwm_auto_channels, NULL, 2);
 >
-> This was discussed some times ago and the consensus was that we did not
-> want to extend this documentation for every new chip doing things
-> differently
+> Not sure what others think about this (Mark? Juerg?) but this (pwm1 to
+> fan1 and to temp1, etc.) seems to be the usual mapping for chips where
+> the mappings can't be changed, so I wonder what's the benefit of
+> creating read-only sysfs files to express it. I think I'd be just as
+> happy with no channel files at all (and it's cheaper.) No strong
+> opinion though.
 
-Well currently the file documents 2 of the n ways in which it can work 
-as if they are the only two ways.
-
-Would you not prefer to insert at least some mention that it could work 
-in other ways?  Put yourself in the position of someone who has a board 
-with one of these chips, who wants to configure it.  If the method is 
-left undocumented, they have to guess or read the source.
-
-I would not be pleased if the functionality that I have added goes 
-unused because the documentation for it has been rejected.
+If anyone would like to express an opinion on this please do so as soon 
+as possible.  The hardware on which I am able to test this will soon 
+become unavailable.
 
 
 Phil.
-
-
 
 
 
