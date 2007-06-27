@@ -1,68 +1,53 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 26 Jun 2007 12:20:55 +0000
-Subject: [lm-sensors] Hacking on libsensors
-Message-Id: <20070626142055.079a4d89@hyperion.delvare>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Wed, 27 Jun 2007 15:19:56 +0000
+Subject: Re: [lm-sensors] Hacking on libsensors
+Message-Id: <4682801C.3050303@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20070626142055.079a4d89@hyperion.delvare>
+In-Reply-To: <20070626142055.079a4d89@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Jean Delvare wrote:
+> Hi all,
+> 
+> My employer, Novell, has organized a "hack week". This is one week where
+> every employee is free to hack on whatever he/she wants [1].
+> Unsurprisingly I decided I would spend that time on libsensors. I
+> posted the idea here:
+> http://idea.opensuse.org/content/ideas/generic-sensors-library
+> 
 
-My employer, Novell, has organized a "hack week". This is one week where
-every employee is free to hack on whatever he/she wants [1].
-Unsurprisingly I decided I would spend that time on libsensors. I
-posted the idea here:
-http://idea.opensuse.org/content/ideas/generic-sensors-library
 
-I already made preliminary cleanups yesterday and this morning.
-Tomorrow, serious things will begin. I thought I'd mention my plans
-here, so that people get a chance to object before I commit my changes.
+It sounds like an excellent plan to start working on the 3.0 branch! Let me 
+know if you need any help, and/or when you want me to test this on the machines 
+I have access too.
 
-First of all, I want to remove all chip-specific code from both
-libsensors and sensors. I think we all agree that it will ultimately go
-away, and removing it from the way right now will make it easier to
-focus on the new interface we want to expose. This will break sensord
-(and all 3rd party libsensors users), but I don't really care. sensord
-is not built by default, and we can fix it later. 3rd party apps will
-need to be fixed later too.
+Regards,
 
-Secondly, the sensors command-line interface. I would like to get rid
-of -u (Treat chips as unknown ones) and -g (Use generic printing
-routine for all chips), because they will be the default (and only way)
-with the new libsensors interface.
+Hans
 
-I am also thinking of getting rid of -U (Do not show unknown chips),
-because with the hwmon class, such chips can't be reached to start
-with. However this raises the question of which kernel versions we want
-the new libsensors (and the lm-sensors package in general) to support.
-I don't think we want to support anything before 2.6.5 because the
-sysfs interface changed too much before this version, and i2c had some
-problems too (e.g. i2c-dev numbers not in sync with i2c-adapter
-numbers.) But if we only support hwmon class access, this means we only
-support kernels 2.6.14 and later. This is perfectly fine with me, but
-I'm curious if others will object.
+p.s.
 
-Then I'll be inspecting the libsensors interface as it is now. This is
-the single most important thing to look at in order to be able to
-release a new libsensors quickly. The rest can be improved later, but
-the interface will be pretty much carved in stone for the next 8 years
-(assuming the new library lasts as long as the previous one did, and I
-hope so) once we release the first public version. Everyone, please
-realize that the new interface will not be compatible with the old one,
-and the new libsensors will get a new .so number. This means that this
-is the perfect time to make all the cleanups and changes we can't do in
-a stable library. It's basically now or never.
+Some time ago we had a discussion about amongst other things some bad 
+assumptions in the generic voltage printing code. I promised to fix this, but 
+its still on my todo, I will happily fix this once things stabilize (I would 
+like to avoid svn commit conflicts), if you feel inclined to fix it yourself 
+thats fine too, here is the important part of our previous conversation on this:
 
-In parallel, I want to write a perl script to convert libsensors
-configuration files from the old symbol names to the new ones. And move
-the i2c tools to a separate package, as mentioned yesterday.
+ > Also print_generic_chip_in(), has some dangerous and unneeded assumptions, for
+ > example:
+ > -it assumes that if there is a inX_max that there will also always be a inX_min
+ > -it assumes that if there is no inX_max there will also be no alarms
+ >
+Somewhat less "unneeded" assumption
+ > -it doesn't check for inX_max_alarm without an inX_min_alarm and visa versa, I
+ >   admit this would be a driver bug, as then the driver should have just a
+ >   inX_alarm, but still we might want to concider this.
 
-[1] http://idea.opensuse.org/content/hackweek
 
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
