@@ -1,96 +1,64 @@
-From: Axel Thimm <Axel.Thimm@ATrpms.net>
-Date: Wed, 27 Jun 2007 08:58:47 +0000
-Subject: Re: [lm-sensors] Separate package for i2c tools
-Message-Id: <20070627085847.GA5688@puariko.nirvana>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8506561504211114486=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 27 Jun 2007 18:29:47 +0000
+Subject: Re: [lm-sensors] [i2c] Separate package for i2c tools
+Message-Id: <20070627202947.1e0aef5b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070625111244.1ca5327a@hyperion.delvare>
 In-Reply-To: <20070625111244.1ca5327a@hyperion.delvare>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
---===============8506561504211114486==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
-Content-Disposition: inline
+On Mon, 25 Jun 2007 11:12:44 +0200, Jean Delvare wrote:
+> As part of the libsensors rewrite that is ongoing, the lm-sensors
+> package is being reorganized. For example I already deleted all the
+> Linux 2.4 kernel drivers that were previously part of the package.
+> Another step which I'd like to take is moving the i2c tools to a
+> separate package.
+> (...)
+> We need to find a package name. I propose "i2c-tools". Objections?
+> 
+> We also need to agree on which files should be moved. Some parts of the
+> (current) lm-sensors package clearly belong to the new i2c tools
+> package: i2cdetect, i2cdump, i2cget, i2cset, ddcmon, decode-dimms.pl,
+> decode-edid.pl, decode-vaio.pl, decode-xeon.pl, eepromer/*, py-smbus/*,
+> i2c-dev.h.
 
+OK, this is done now.
 
---VbJkn9YxBvnuCH5J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>            For some others it's not so clear.
+>
+> * isadump, isaset: Not strictly sensors-specific, but not i2c-related
+> either. They share their command line syntax and a very small amount of
+> code with i2cdump. I'd rather leave them where they are.
+> 
+> * unhide_ICH_SMBus: Not strictly sensors-specific, but I don't think
+> people really need this unless they are trying to get their sensors to
+> work. No opinion.
+> 
+> * matorb/*: Last touched 8 years ago. Hmm, delete?
+> 
+> * mkdev.sh: Not strictly sensors-related, but the FAQ, INSTALL and
+> sensors-detect refer to it. It probably doesn't really matter as these
+> device nodes are created by udev nowadays. No opinion.
 
-Hi,
+I didn't touch these yet, so this can still be discussed.
 
-On Wed, Jun 27, 2007 at 10:18:28AM +0200, Jean Delvare wrote:
-> On Mon, 25 Jun 2007 11:22:30 +0200, Axel Thimm wrote:
-> > On Mon, Jun 25, 2007 at 11:12:44AM +0200, Jean Delvare wrote:
-> > > Axel, how can I create a brand new project in SVN? Do I need your hel=
-p?
-> >=20
-> > Not really (but see below for acls), technically it is one project, so
-> > all you need to do is
-> >=20
-> > svn mkdir my-new-project
-> >=20
-> > at the top level next to lm_sensors and i2c.
->=20
-> This is so easy :) OK, done that.
->=20
-> > The only thing that I need to do is setting up the acls in the httpd
-> > config you want to use on that project. It can be
-> > lm-sensors-commiters, i2c-commiters or something new.
->=20
-> That would be something new: i2c-tools-commiters. This is an
-> essentially separate package, that could have developers with no
-> interest in sensors at all. And i2c-commiters is a restricted group, so
-> it wouldn't fit either.
+> I plan to remove the dependency between sensors-detect and i2cdetect as
+> part of this change, otherwise we lose much of the benefit.
+> sensors-detect only uses i2cdetect to list the available i2c buses, it
+> should be easy to do the same in perl directly.
 
-OK, the group is setup.
+This is done too. I even backported this change to lm-sensors/trunk, as
+I am trying to keep sensors-detect in sync for now.
 
-> BTW, how come that I was allowed to create and fill the i2c-tools
-> directory before you created the new group? Am I almighty or something? ;)
-
-Every lm-sensors committer is almighty :)
-
-> > > Is it possible to preserve the history while moving the files from one
-> > > project to another?
-> >=20
-> > Just use svn mv instead of svn rm/del and svn add. Move operations are
-> > like copy and delete, and copy operations are crossed over when
-> > traversing history unless you explicitely use --stop-on-copy.
->=20
-> Wow, very nice.
->=20
-> Thanks,
-
---=20
-Axel.Thimm at ATrpms.net
-
---VbJkn9YxBvnuCH5J
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iD8DBQFGgibGQBVS1GOamfERAmqaAJ9vRYlNxaZNo6Y9LUYuZw7gzOjrygCeNMzY
-kpMoTHP5wN8VIt6soIBDz7k=
-=nPxA
------END PGP SIGNATURE-----
-
---VbJkn9YxBvnuCH5J--
-
-
---===============8506561504211114486==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8506561504211114486==--
