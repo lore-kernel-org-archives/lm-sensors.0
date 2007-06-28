@@ -1,68 +1,65 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 16 Jun 2007 09:30:06 +0000
-Subject: Re: [lm-sensors] lm_sensors -->Temp too high
-Message-Id: <20070616113006.5d6a3e9d@hyperion.delvare>
+From: "Voipio Riku" <Riku.Voipio@movial.fi>
+Date: Thu, 28 Jun 2007 23:10:03 +0000
+Subject: Re: [lm-sensors] Subject: hwmon: Improve the pwmN_enable
+Message-Id: <55662.80.222.56.248.1183072203.squirrel@webmail.movial.fi>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Shawn,
+> Hi Riku,
+>
+> On Wed, 27 Jun 2007 16:23:52 +0300, Riku Voipio wrote:
+>> Jean Delvare wrote:
+>> > Sounds like a bug in the driver then. Setting pwm1_enable to 0 should
+>> > turn the fan to full speed.
+>>
+>> The sysfs interface states that pwm_enable to 0 turns off pwm control...
+>> How would that turn fans to full speed?
+>
+> I agree that Documentation/hwmon/sysfs-interface is particularly
+> confusing. I thought we had fixed it, but it seems not. What about the
+> following patch?
 
-On Wed, 30 May 2007 14:19:21 -0400, Shawn Casler wrote:
-> I'm having a problem fixing all of these elements. Mostly, I need the
-> temperature to work correctly. Not to mention, the alarms aren't
-> necessarily going off when they should be, only one of the fans is
-> working and the BIOS has all 4 fans working, and a few other minor
-> things..
->=20
-> kernel - 2.6.9-55
->=20
-> w83627hf-isa-0c00
-> Adapter: ISA adapter
-> VCore 1:   +1.55 V  (min =3D  +1.26 V, max =3D  +1.39 V)
-> VCore 2:   +1.31 V  (min =3D  +1.26 V, max =3D  +1.39 V)
-> +3.3V:     +3.33 V  (min =3D  +3.14 V, max =3D  +3.47 V)
-> +5V:       +4.97 V  (min =3D  +4.76 V, max =3D  +5.24 V)
-> +12V:      +4.99 V  (min =3D +10.82 V, max =3D +13.19 V)
-> -12V:      -1.42 V  (min =3D -13.18 V, max =3D -10.80 V)
-> -5V:       -3.94 V  (min =3D  -5.25 V, max =3D  -4.75 V)
-> V5SB:      +5.54 V  (min =3D  +4.76 V, max =3D  +5.24 V)
-> VBat:      +3.28 V  (min =3D  +2.40 V, max =3D  +3.60 V)
-> fan1:        0 RPM  (min =3D 21093 RPM, div =3D 4)
-> fan2:     2576 RPM  (min =3D 2986 RPM, div =3D 4)
-> fan3:        0 RPM  (min =3D 21093 RPM, div =3D 4)
-> temp1:      +127=B0C  (high =3D   +80=B0C, hyst =3D   +75=B0C)   sensor =
-=3D diode
-> temp2:    +127.5=B0C  (high =3D   +80=B0C, hyst =3D   +75=B0C)   sensor =
-=3D diode
-> ALARM
-> temp3:    +127.5=B0C  (high =3D   +80=B0C, hyst =3D   +75=B0C)   sensor =
-=3D diode
-> ALARM
-> vid:      +1.325 V  (VRM Version 8.5)
-> alarms:
-> beep_enable:
->           Sound alarm enabled
+Looks good for me. Thanks.
 
-The W83627HF only had 3 fan inputs, so if you see 4 fan speed values in
-your BIOS, this suggests that there's another hardware monitoring chip
-on the board. This would also explain why the temperatures reported by
-the W83627HF aren't valid, if temperatures are monitored by this second
-chip. The second chip is likely to be connected to the SMBus.
+> * * * * *
+>
+> The documentation of the pwmN_enable interface file is not very clear,
+> and has been confusing several driver authors already. Make it clearer.
+>
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> ---
+>  Documentation/hwmon/sysfs-interface |    9 ++++-----
+>  1 file changed, 4 insertions(+), 5 deletions(-)
+>
+> --- linux-2.6.22-rc6.orig/Documentation/hwmon/sysfs-interface	2007-06-27
+> 21:08:40.000000000 +0200
+> +++ linux-2.6.22-rc6/Documentation/hwmon/sysfs-interface	2007-06-27
+> 21:21:57.000000000 +0200
+> @@ -172,11 +172,10 @@ pwm[1-*]	Pulse width modulation fan cont
+>  		255 is max or 100%.
+>
+>  pwm[1-*]_enable
+> -		Switch PWM on and off.
+> -		Not always present even if pwmN is.
+> -		0: turn off
+> -		1: turn on in manual mode
+> -		2+: turn on in automatic mode
+> +		Fan speed control method:
+> +		0: no fan speed control (i.e. fan at full speed)
+> +		1: manual fan speed control enabled (using pwm[1-*])
+> +		2+: automatic fan speed control enabled
+>  		Check individual chip documentation files for automatic mode
+>  		details.
+>  		RW
+>
+> Thanks,
+> --
+> Jean Delvare
+>
 
-It seems that you are running a relatively old system. You should give
-a try to a more recent version of sensors-detect, it may be able to
-find out the second chip. Try either the version from lm-sensors 2.10.3
-or even from lm-sensors SVN. You can run the script in place, no need
-to install it.
-
-Keep in mind that the driver for this chip, if it exists, is however
-unlikely to be included in your 2.6.9 kernel.
-
---=20
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
