@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 27 Jun 2007 19:02:44 +0000
+Date: Thu, 28 Jun 2007 21:04:47 +0000
 Subject: Re: [lm-sensors] Hacking on libsensors
-Message-Id: <20070627210244.3da5a09a@hyperion.delvare>
+Message-Id: <20070628230447.7012e72c@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070626142055.079a4d89@hyperion.delvare>
 In-Reply-To: <20070626142055.079a4d89@hyperion.delvare>
@@ -10,50 +10,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
-
-On Wed, 27 Jun 2007 17:19:56 +0200, Hans de Goede wrote:
-> Jean Delvare wrote:
-> > Hi all,
-> > 
-> > My employer, Novell, has organized a "hack week". This is one week where
-> > every employee is free to hack on whatever he/she wants [1].
-> > Unsurprisingly I decided I would spend that time on libsensors. I
-> > posted the idea here:
-> > http://idea.opensuse.org/content/ideas/generic-sensors-library
+On Wed, 27 Jun 2007 21:02:44 +0200, Jean Delvare wrote:
+> On Wed, 27 Jun 2007 17:19:56 +0200, Hans de Goede wrote:
+> > It sounds like an excellent plan to start working on the 3.0 branch! Let me 
+> > know if you need any help, and/or when you want me to test this on the machines 
+> > I have access too.
 > 
-> It sounds like an excellent plan to start working on the 3.0 branch! Let me 
-> know if you need any help, and/or when you want me to test this on the machines 
-> I have access too.
+> I'll let you know. However, I fear that I've been spending too much
+> time on the cleanup steps. 3 days have passed already, only 2 left, and
+> I still didn't have a look at the libsensors interface. Not to say that
+> the work I've done wasn't needed, it certainly was, but I don't think
+> there will be much to test at the end of this week. I'll have to find
+> more time to keep working on it in the next few weeks.
 
-I'll let you know. However, I fear that I've been spending too much
-time on the cleanup steps. 3 days have passed already, only 2 left, and
-I still didn't have a look at the libsensors interface. Not to say that
-the work I've done wasn't needed, it certainly was, but I don't think
-there will be much to test at the end of this week. I'll have to find
-more time to keep working on it in the next few weeks.
+OK, I've managed to make some significant progress today. All the
+chip-specific code is gone:
+http://www.lm-sensors.org/changeset/4503
+http://www.lm-sensors.org/changeset/4506
+http://www.lm-sensors.org/changeset/4507
 
-> Some time ago we had a discussion about amongst other things some bad 
-> assumptions in the generic voltage printing code. I promised to fix this, but 
-> its still on my todo, I will happily fix this once things stabilize (I would 
-> like to avoid svn commit conflicts), if you feel inclined to fix it yourself 
-> thats fine too, here is the important part of our previous conversation on this:
-> 
->  > Also print_generic_chip_in(), has some dangerous and unneeded assumptions, for
->  > example:
->  > -it assumes that if there is a inX_max that there will also always be a inX_min
->  > -it assumes that if there is no inX_max there will also be no alarms
->  >
-> Somewhat less "unneeded" assumption
->  > -it doesn't check for inX_max_alarm without an inX_min_alarm and visa versa, I
->  >   admit this would be a driver bug, as then the driver should have just a
->  >   inX_alarm, but still we might want to concider this.
+Then I've unified the sensors_proc_chips and sensors_chip_features_list
+arrays so the code handling the chip information gathered from sysfs is
+more simple and more efficient, memory-wise:
+http://www.lm-sensors.org/changeset/4508
+http://www.lm-sensors.org/changeset/4510
 
-Please commit your changes as soon as possible. Don't worry about
-conflicts, I won't touch this part of the code before you've committed
-your own changes.
+And lastly, the parallel feature names and magnitudes are gone:
+http://www.lm-sensors.org/changeset/4513
 
-Thanks,
+Needless to say, the size of the libsensors, in terms of both number of
+lines of code, and binary size, went down drastically:
+-rwxr-xr-x 1 root root 342310 jun 25 13:34 libsensors.so.3.1.3
+-rwxr-xr-x 1 root root  73206 jun 28 22:59 libsensors.so.4.0.0
+
+And same goes for sensors itself:
+-rwxr-xr-x 1 root root 153255 jun 25 13:34 sensors
+-rwxr-xr-x 1 root root  26535 jun 28 22:59 sensors3
+
+But I've also hit a minor problem, which I'm an not sure how to solve.
+The *_input sysfs files are handled differently in libsensors, because
+they act as the main feature for each channel, so they are referenced
+by the channel name instead of the sysfs file name (e.g. temp1 instead
+of temp1_input). For all the other values, the symbol name is the same
+as the sysfs file name. For now I've handled it with a hack in
+sensors_read_proc() and sensors_write_proc() so that the right file is
+accessed, but this isn't clean, and not very efficient either.
+
+I am wondering if we shouldn't introduce the concept of channel in the
+new libsensors. These would be kind of group leaders as far as feature
+mappings are concerned, and they would get the label and compute
+statements too. Group leaders would be special in that they wouldn't
+correspond to a sysfs file. This would make things cleaner, and there
+may be some room for performance and memory consumption improvements
+too if we go that way. But it would also add some complexity. I need to
+think about it some more, for now it's only an idea - and not one I can
+implement this week, anyway. Comments are welcome.
+
 -- 
 Jean Delvare
 
