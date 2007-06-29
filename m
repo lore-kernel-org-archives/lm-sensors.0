@@ -1,49 +1,32 @@
-From: Justin Piszcz <jpiszcz@lucidpixels.com>
-Date: Wed, 02 May 2007 22:41:59 +0000
-Subject: Re: [lm-sensors] coretemp - take3
-Message-Id: <Pine.LNX.4.64.0705021841280.14579@p34.internal.lan>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 29 Jun 2007 11:44:34 +0000
+Subject: [lm-sensors] VRM value in libsensors/sensors
+Message-Id: <20070629134434.66d96ab3@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <45FDC7A4.9070601@assembler.cz> <45FE0EE3.2030201@boichat.ch>
-In-Reply-To: <45FE0EE3.2030201@boichat.ch>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Nicolas Boichat <nicolas@boichat.ch>
-Cc: Rudolf Marek <r.marek@assembler.cz>, LM Sensors <lm-sensors@lm-sensors.org>, bytes@linuxgazette.net, debian-user@lists.debian.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
+Hi all,
 
+I am thinking of removing SENSORS_FEATURE_VRM from the new libsensors.
+A first reason for that is that the newer VRM codes as used in the 2.6
+kernel are arbitrary numbers and don't match the Intel specification
+numbers as the first ones did. So we may display things like "VRM
+version 1.3" and that's confusing because it doesn't correspond to
+anything real. A second reason is that Rudolf Marek added code to set
+the VRM version automatically depending on the CPU model some times ago
+already, and it works very well, so the users no longer have to care
+about VRM versions.
 
-On Mon, 19 Mar 2007, Nicolas Boichat wrote:
+I would even go as far as switching the vrm attribute of the hwmon
+kernel drivers to read-only... or even remove them entirely.
 
-> Rudolf Marek wrote:
->> Hello all,
->>
->> I'm CCing all interested parties, if some isn't please tell!
->>
->> On URL bellow is current version of coretemp driver.
->>
->> http://ssh.cz/~ruik/patches/
->
-> Small glitch in coretemp_init:
->
->    printk(KERN_NOTICE DRVNAME ": This driver uses undocumented features"
->
->        "of Core CPU. Temperature might be wrong!\n");
->
->
-> Prints this in dmesg:
->
-> [46487.231000] coretemp: This driver uses undocumented featuresof Core CPU. Temperature might be wrong!
->
->
-> (Notice the space missing between "features" and "of")
->
-> Best regards,
->
-> Nicolas
->
+Thoughts anyone?
 
-This did not make it into 2.6.21?  Will it get into 2.6.22?
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
