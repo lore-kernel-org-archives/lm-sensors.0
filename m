@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Thu, 28 Jun 2007 21:17:17 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 30 Jun 2007 15:35:50 +0000
 Subject: Re: [lm-sensors] Hacking on libsensors
-Message-Id: <4684255D.1080305@hhs.nl>
+Message-Id: <20070630173550.3028c81e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070626142055.079a4d89@hyperion.delvare>
 In-Reply-To: <20070626142055.079a4d89@hyperion.delvare>
@@ -10,19 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
+On Thu, 28 Jun 2007 23:17:17 +0200, Hans de Goede wrote:
+> Jean Delvare wrote:
+> > Hi Hans,
+> > 
+> > Please commit your changes as soon as possible. Don't worry about
+> > conflicts, I won't touch this part of the code before you've committed
+> > your own changes.
 > 
-> Please commit your changes as soon as possible. Don't worry about
-> conflicts, I won't touch this part of the code before you've committed
-> your own changes.
-> 
+> Done.
 
-Done.
+Looks good, thanks.
 
-Regards,
-
-Hans
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
