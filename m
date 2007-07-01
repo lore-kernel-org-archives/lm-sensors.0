@@ -1,14 +1,28 @@
-From: John Beavers <jabeavers@yahoo.com>
-Date: Thu, 05 Jul 2007 22:03:40 +0000
-Subject: [lm-sensors] Additional Info
-Message-Id: <loom.20070706T000246-955@post.gmane.org>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 01 Jul 2007 16:12:22 +0000
+Subject: Re: [lm-sensors] Subject: hwmon: Improve the pwmN_enable
+Message-Id: <20070701161222.GE18198@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-By the way, I am running FC6 with lm_sensors 2.10.1
+Hi:
+
+* Jean Delvare <khali@linux-fr.org> [2007-06-27 21:26:08 +0200]:
+> The documentation of the pwmN_enable interface file is not very clear,
+> and has been confusing several driver authors already. Make it clearer.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+Applied to testing, thanks.
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
 
 _______________________________________________
