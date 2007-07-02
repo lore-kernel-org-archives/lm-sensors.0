@@ -1,331 +1,126 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Thu, 26 Jul 2007 17:04:33 +0000
-Subject: Re: [lm-sensors] [PATCH v2] adt7470: Update sensors periodically
-Message-Id: <46A8D421.1060301@hhs.nl>
+From: Dong Li <dragonicebox@yahoo.com.cn>
+Date: Mon, 02 Jul 2007 17:30:24 +0000
+Subject: [lm-sensors] ADT7467
+Message-Id: <681988.38608.qm@web92003.mail.cnb.yahoo.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0408466021839601489=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070726165842.GQ19586@tree.beaverton.ibm.com>
-In-Reply-To: <20070726165842.GQ19586@tree.beaverton.ibm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Darrick J. Wong wrote:
-> To avoid blocking for 1s in the sysfs read functions, make it so
-> that adt7470 updates are done periodically with a delayed workqueue
-> instead of being called from the read functions directly.  This
-> causes near-instant reading of sensors at the cost of reading them
-> even if nobody's watching them.
-> 
+--===============0408466021839601489==
+Content-Type: multipart/alternative; boundary="0-1876152852-1183397424=:38608"
+Content-Transfer-Encoding: 8bit
 
-As already explained in a previous thread, I'm not sure we want this. It seems 
-that other drivers have been having 1.5 second delays too and that hasn't 
-caused any problems, so I think that we shouldn't do this.
+--0-1876152852-1183397424=:38608
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 
-Again sorry for the inconvenience .
+SGksCkkgaW5zdGFsbGVkIGFuIEFEVDc0NjcgZXZhbHVhdGlvbiBib2FyZCBvbiBteSBtb3RoZXJi
+b2FyZC4gVGhlIHNlbnNvcnMtZGV0ZWN0IChsbS1zZW5zb3IgMTAuMykgY2FuIGRldGVjdCBpdCBp
+biBteSBzeXN0ZW0gKGxpbnV4IGtlcm5lbCAyLjYuMjEpLgoKKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioKRHJpdmVyICd0by1iZS13cml0
+dGVuJyAoc2hvdWxkIGJlIGluc2VydGVkKQpEZXRlY3RzIGNvcnJlY3RseQoqIEJ1cyAnJ1NNQlVT
+IFBJSVg0IGFkYXB0ZXIgYXQgMDUwMCIKICBCdXNkcml2ZXIgJ2kyYy1waWl4NCcsIEkyQyBhZGRy
+ZXNzIDB4MmUKICBDaGlwICdBbmFsb2cgRGV2aWNlIEFEVDc0Njcgb3IgQURUNzQ2OCcgKENvbmZp
+ZGVuY2U6NykKCioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioKSG93ZXZlciB3aGVuIEkgcnVuIHRoZSBzZW5zb3JzLWRldGVjdCBhZ2Fp
+biwgaXQgY2FuJ3QgZGV0ZWN0IHRoZSBBRFQ3NDY3IGFueSBtb3JlLiBPbmx5IGFmdGVyIEkgcmVi
+b290IHRoZSBzeXN0ZW0gYW5kIHJ1biBzZW5zb3JzLWRldGVjdCwgaXQgY2FuIGRldGVjdCBpdCBh
+Z2Fpbi4KCkFueSBjb21tZW50IGhlcmU/CgpJbiBhZGRpdGlvbiwgSSB3cm90ZSBhIHNpbXBsZSBw
+cm9ncmFtIHRvIHJlYWQgdGhlIGNvbXBhbnkgaW5mbyBmcm9tIHRoZSBBRFQ3NDY3IGNoaXAuCgoq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqCiAgZmlsZSA9IG9wZW5faTJjX2RldihpMmNidXMsIGZpbGVuYW1lLCAwKTsgICAgLyogaTJj
+YnVzPTAuIE9ubHkgb25lIGkyYyBkZXZpY2UqLwogIGlmIChmaWxlIDwgMCkgewogICAgZXhpdCgx
+KTsKICB9CiAgLyogY2hlY2sgYWRhcHRlciBmdW5jdGlvbmFsaXR5ICovCiAgaWYgKGlvY3RsKGZp
+bGUsIEkyQ19GVU5DUywgJmZ1bmNzKSA8IDApIHsKICAgIGZwcmludGYoc3RkZXJyLCAiRXJyb3I6
+IENvdWxkIG5vdCBnZXQgdGhlIGFkYXB0ZXIgIgogICAgICAgICJmdW5jdGlvbmFsaXR5IG1hdHJp
+eDogJXNcbiIsIHN0cmVycm9yKGVycm5vKSk7CiAgICBleGl0KDEpOwogIH0KICAvKiBzcGVjaWZ5
+IHdpdGggd2hhdCBkZXZpY2UgYWRkcmVzcyB5b3Ugd2FudCB0byBjb21tdW5pY2F0ZSAqLwogIGlm
+IChpb2N0bChmaWxlLEkyQ19TTEFWRSxhZGRyZXNzKSA8IDApIHsgICAvKmFkZHJlc3MgaXMgMHgy
+ZSovCiAgICBpZihlcnJubyA9PSBFQlVTWSkKICAgICAgZnByaW50ZihzdGRlcnIsICJEZXZpY2Ug
+YnVzeT8uLi4gVHJ5IGxhdGVyXG4iKTsKICAgIGVsc2UKICAgICAgZnByaW50ZihzdGRlcnIsICJF
+cnJvcjogQ291bGQgbm90IHNldCBhZGRyZXNzIHRvICVkOiAlc1xuIiwKICAgICAgICAgICAgICAg
+ICAgICAgICAgYWRkcmVzcywgc3RyZXJyb3IoZXJybm8pKTsKICAgIGV4aXQoMSk7CiAgfQoKIGNv
+bXBhbnkgPSBpMmNfc21idXNfcmVhZF9ieXRlX2RhdGEoZmlsZSwgQURUNzQ2N19SRUdfQ09NUEFO
+WSk7CiAgdmVyc3RlcCA9IGkyY19zbWJ1c19yZWFkX2J5dGVfZGF0YShmaWxlLCBBRFQ3NDY3X1JF
+R19WRVJTVEVQKTsKCiAgaWYoIGNvbXBhbnkgPT0gQURUNzQ2N19DT01QQU5ZX0FOQUxPR19ERVYK
+ICAgICAgICAmJiAodmVyc3RlcCA9PSBBRFQ3NDY3X1ZFUlNURVBfMiB8fCB2ZXJzdGVwID09ICAg
+ICAgICAgCiAgICAgICAgQURUNzQ2N19WRVJTVEVQXzEpKQogIHByaW50ZigiT2tleS4gSXQgbG9v
+a3MgbGlrZSBhIEFEVDc0NjdcbiIpOwoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqCgpUaGUgcmVzdWx0IGlzIGxpa2UKaTJjX2FkYXB0
+ZXIgaTJjLTA6IEZhaWxlZCEgKDAxKQppMmNfYWRhcHRlciBpMmMtMDogRmFpbGVkISAoMDEpCgpp
+MmNfc21idXNfcmVhZF9ieXRlX2RhdGEgcmV0dXJucyAtMS4gSXQgc2VlbXMgaTJjIHRyYW5zYWN0
+aW9uIGZhaWxlZC4KCkFueSBjb21tZW50cyBoZXJlPwoKVGhhbmsgeW91LgoKLURvbmcKCgoKCgoK
+CgogICAgICAgCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQrHwNei0cW7osPit9HT
+ys/kMy41R8jdwb+jrDIwTbi9vP6joSA=
 
-Regards,
+--0-1876152852-1183397424=:38608
+Content-Type: text/html; charset="gb2312"
+Content-Transfer-Encoding: base64
 
-Hans
+SGksPGJyPkkgaW5zdGFsbGVkIGFuIEFEVDc0NjcgZXZhbHVhdGlvbiBib2FyZCBvbiBteSBtb3Ro
+ZXJib2FyZC4gVGhlIHNlbnNvcnMtZGV0ZWN0IChsbS1zZW5zb3IgMTAuMykgY2FuIGRldGVjdCBp
+dCBpbiBteSBzeXN0ZW0gKGxpbnV4IGtlcm5lbCAyLjYuMjEpLjxicj48YnI+KioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio8YnI+RHJpdmVy
+ICd0by1iZS13cml0dGVuJyAoc2hvdWxkIGJlIGluc2VydGVkKTxicj5EZXRlY3RzIGNvcnJlY3Rs
+eTxicj4qIEJ1cyAnJ1NNQlVTIFBJSVg0IGFkYXB0ZXIgYXQgMDUwMCI8YnI+Jm5ic3A7IEJ1c2Ry
+aXZlciAnaTJjLXBpaXg0JywgSTJDIGFkZHJlc3MgMHgyZTxicj4mbmJzcDsgQ2hpcCAnQW5hbG9n
+IERldmljZSBBRFQ3NDY3IG9yIEFEVDc0NjgnIChDb25maWRlbmNlOjcpPGJyPjxicj4qKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqPGJy
+Pkhvd2V2ZXIgd2hlbiBJIHJ1biB0aGUgc2Vuc29ycy1kZXRlY3QgYWdhaW4sIGl0IGNhbid0IGRl
+dGVjdCB0aGUgQURUNzQ2NyBhbnkgbW9yZS4gT25seSBhZnRlciBJIHJlYm9vdCB0aGUgc3lzdGVt
+IGFuZCBydW4gc2Vuc29ycy1kZXRlY3QsIGl0IGNhbiBkZXRlY3QgaXQgYWdhaW4uPGJyPjxicj5B
+bnkgY29tbWVudCBoZXJlPzxicj48YnI+SW4gYWRkaXRpb24sIEkgd3JvdGUgYSBzaW1wbGUgcHJv
+Z3JhbSB0byByZWFkIHRoZSBjb21wYW55IGluZm8gZnJvbSB0aGUgQURUNzQ2NyBjaGlwLjxicj48
+YnI+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKjxicj4mbmJzcDsgZmlsZSA9IG9wZW5faTJjX2RldihpMmNidXMsIGZpbGVuYW1lLCAw
+KTsmbmJzcDsmbmJzcDsmbmJzcDsgLyogaTJjYnVzPTAuIE9ubHkgb25lIGkyYyBkZXZpY2UqLzxi
+cj4mbmJzcDsgaWYgKGZpbGUKICZsdDsgMCkgezxicj4mbmJzcDsmbmJzcDsmbmJzcDsgZXhpdCgx
+KTs8YnI+Jm5ic3A7IH08YnI+Jm5ic3A7IC8qIGNoZWNrIGFkYXB0ZXIgZnVuY3Rpb25hbGl0eSAq
+Lzxicj4mbmJzcDsgaWYgKGlvY3RsKGZpbGUsIEkyQ19GVU5DUywgJmFtcDtmdW5jcykgJmx0OyAw
+KSB7PGJyPiZuYnNwOyZuYnNwOyZuYnNwOyBmcHJpbnRmKHN0ZGVyciwgIkVycm9yOiBDb3VsZCBu
+b3QgZ2V0IHRoZSBhZGFwdGVyICI8YnI+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7ICJmdW5jdGlvbmFsaXR5IG1hdHJpeDogJXNcbiIsIHN0cmVycm9yKGVycm5vKSk7
+PGJyPiZuYnNwOyZuYnNwOyZuYnNwOyBleGl0KDEpOzxicj4mbmJzcDsgfTxicj4mbmJzcDsgLyog
+c3BlY2lmeSB3aXRoIHdoYXQgZGV2aWNlIGFkZHJlc3MgeW91IHdhbnQgdG8gY29tbXVuaWNhdGUg
+Ki88YnI+Jm5ic3A7IGlmIChpb2N0bChmaWxlLEkyQ19TTEFWRSxhZGRyZXNzKSAmbHQ7IDApIHsm
+bmJzcDsmbmJzcDsgLyphZGRyZXNzIGlzIDB4MmUqLzxicj4mbmJzcDsmbmJzcDsmbmJzcDsgaWYo
+ZXJybm8gPT0gRUJVU1kpPGJyPiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBmcHJpbnRm
+KHN0ZGVyciwgIkRldmljZSBidXN5Py4uLiBUcnkgbGF0ZXJcbiIpOzxicj4mbmJzcDsmbmJzcDsm
+bmJzcDsgZWxzZTxicj4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgZnByaW50ZihzdGRl
+cnIsICJFcnJvcjogQ291bGQgbm90IHNldCBhZGRyZXNzIHRvICVkOiAlc1xuIiw8YnI+Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7IGFkZHJlc3MsIHN0cmVycm9yKGVycm5vKSk7PGJyPiZuYnNwOyZu
+YnNwOyZuYnNwOyBleGl0KDEpOzxicj4mbmJzcDsKIH08YnI+PGJyPiZuYnNwO2NvbXBhbnkgPSBp
+MmNfc21idXNfcmVhZF9ieXRlX2RhdGEoZmlsZSwgQURUNzQ2N19SRUdfQ09NUEFOWSk7PGJyPiZu
+YnNwOyB2ZXJzdGVwID0gaTJjX3NtYnVzX3JlYWRfYnl0ZV9kYXRhKGZpbGUsIEFEVDc0NjdfUkVH
+X1ZFUlNURVApOzxicj48YnI+Jm5ic3A7IGlmKCBjb21wYW55ID09IEFEVDc0NjdfQ09NUEFOWV9B
+TkFMT0dfREVWPGJyPiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyAm
+YW1wOyZhbXA7ICh2ZXJzdGVwID09IEFEVDc0NjdfVkVSU1RFUF8yIHx8IHZlcnN0ZXAgPT0mbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgPGJyPiZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBBRFQ3NDY3X1ZFUlNURVBfMSkpPGJy
+PiZuYnNwOyBwcmludGYoIk9rZXkuIEl0IGxvb2tzIGxpa2UgYSBBRFQ3NDY3XG4iKTs8YnI+Kioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+Kjxicj48YnI+VGhlIHJlc3VsdCBpcyBsaWtlPGJyPmkyY19hZGFwdGVyIGkyYy0wOiBGYWlsZWQh
+ICgwMSk8YnI+aTJjX2FkYXB0ZXIgaTJjLTA6IEZhaWxlZCEgKDAxKTxicj48YnI+aTJjX3NtYnVz
+X3JlYWRfYnl0ZV9kYXRhIHJldHVybnMgLTEuIEl0IHNlZW1zIGkyYyB0cmFuc2FjdGlvbiBmYWls
+ZWQuPGJyPjxicj5BbnkgY29tbWVudHMgaGVyZT88YnI+PGJyPlRoYW5rIHlvdS48YnI+PGJyPi1E
+b25nPGJyPjxicj48YnI+PGJyPjxicj48YnI+PGJyPjxicj48cD4mIzMyOwoKCgogICAgICA8aHIg
+c2l6ZT0xPjxhIGhyZWY9Imh0dHA6Ly9jbi5tYWlsLnlhaG9vLmNvbSIgdGFyZ2V0PWJsYW5rPsfA
+16LRxbuiw+K30dPKz+QzLjVHyN3Bv6OsMjBNuL28/qOhPC9hPiA=
+
+--0-1876152852-1183397424=:38608--
 
 
-> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-> ---
-> 
->  drivers/hwmon/adt7470.c |  103 +++++++++++++++++++++++++++++++++++------------
->  1 files changed, 76 insertions(+), 27 deletions(-)
-> 
-> diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
-> index 75aee3b..78d858e 100644
-> --- a/drivers/hwmon/adt7470.c
-> +++ b/drivers/hwmon/adt7470.c
-> @@ -28,6 +28,7 @@
->  #include <linux/mutex.h>
->  #include <linux/delay.h>
->  #include <linux/log2.h>
-> +#include <linux/workqueue.h>
->  
->  /* Addresses to scan */
->  static unsigned short normal_i2c[] = { 0x2C, 0x2E, 0x2F, I2C_CLIENT_END };
-> @@ -105,7 +106,8 @@ I2C_CLIENT_INSMOD_1(adt7470);
->  /* "all temps" according to hwmon sysfs interface spec */
->  #define ADT7470_PWM_ALL_TEMPS	0x3FF
->  
-> -#define REFRESH_INTERVAL	(5 * HZ)
-> +/* update sensors every 5 seconds */
-> +#define DEFAULT_REFRESH_INTERVAL	5000
->  
->  /* sleep 1s while gathering temperature data */
->  #define TEMP_COLLECTION_TIME	1000
-> @@ -118,12 +120,19 @@ I2C_CLIENT_INSMOD_1(adt7470);
->  #define FAN_PERIOD_INVALID	65535
->  #define FAN_DATA_VALID(x)	((x) && (x) != FAN_PERIOD_INVALID)
->  
-> +static int refresh_interval = DEFAULT_REFRESH_INTERVAL;
-> +module_param_named(refresh_interval, refresh_interval, int, S_IRUGO);
-> +MODULE_PARM_DESC(refresh_interval, "\n"
-> +	"\tHow often (in ms) to update the sensor readings.\n"
-> +	"\tDefault: 5000 (5s)");
-> +
->  struct adt7470_data {
->  	struct i2c_client	client;
->  	struct class_device	*class_dev;
->  	struct mutex		lock;
->  	char			valid;
-> -	unsigned long		last_updated;	/* In jiffies */
-> +	struct delayed_work	ref_start;
-> +	struct delayed_work	ref_finish;
->  
->  	s8			temp[ADT7470_TEMP_COUNT];
->  	s8			temp_min[ADT7470_TEMP_COUNT];
-> @@ -184,17 +193,12 @@ static void adt7470_init_client(struct i2c_client *client)
->  	}
->  }
->  
-> -static struct adt7470_data *adt7470_update_device(struct device *dev)
-> +static void adt7470_begin_update(struct adt7470_data *data)
->  {
-> -	struct i2c_client *client = to_i2c_client(dev);
-> -	struct adt7470_data *data = i2c_get_clientdata(client);
-> +	struct i2c_client *client = &data->client;
->  	u8 cfg;
-> -	int i;
->  
->  	mutex_lock(&data->lock);
-> -	if (time_before(jiffies, data->last_updated + REFRESH_INTERVAL)
-> -		&& data->valid)
-> -		goto out;
->  
->  	/* start reading temperature sensors */
->  	cfg = i2c_smbus_read_byte_data(client, ADT7470_REG_CFG);
-> @@ -205,9 +209,19 @@ static struct adt7470_data *adt7470_update_device(struct device *dev)
->  	 * Delay is 200ms * number of tmp05 sensors.  Too bad
->  	 * there's no way to figure out how many are connected.
->  	 * For now, assume 1s will work.
-> +	 *
-> +	 * (Sleep now handled by delayed workqueue)
->  	 */
-> -	msleep(TEMP_COLLECTION_TIME);
-> +	mutex_unlock(&data->lock);
-> +}
-> +
-> +static void adt7470_end_update(struct adt7470_data *data)
-> +{
-> +	struct i2c_client *client = &data->client;
-> +	u8 cfg;
-> +	int i;
->  
-> +	mutex_lock(&data->lock);
->  	/* done reading temperature sensors */
->  	cfg = i2c_smbus_read_byte_data(client, ADT7470_REG_CFG);
->  	cfg &= ~0x80;
-> @@ -272,11 +286,36 @@ static struct adt7470_data *adt7470_update_device(struct device *dev)
->  	data->alarms_mask = adt7470_read_word_data(client,
->  						   ADT7470_REG_ALARM1_MASK);
->  
-> -	data->last_updated = jiffies;
->  	data->valid = 1;
->  
-> -out:
->  	mutex_unlock(&data->lock);
-> +}
-> +
-> +static void adt7470_start_reading(struct work_struct *work)
-> +{
-> +	struct adt7470_data *data > +		container_of(work, struct adt7470_data, ref_start.work);
-> +
-> +	adt7470_begin_update(data);
-> +	schedule_delayed_work(&data->ref_finish,
-> +			      msecs_to_jiffies(TEMP_COLLECTION_TIME));
-> +}
-> +
-> +static void adt7470_finish_reading(struct work_struct *work)
-> +{
-> +	struct adt7470_data *data > +		container_of(work, struct adt7470_data, ref_finish.work);
-> +
-> +	adt7470_end_update(data);
-> +	schedule_delayed_work(&data->ref_start,
-> +			      msecs_to_jiffies(refresh_interval));
-> +}
-> +
-> +static struct adt7470_data *dev_to_adt7470_data(struct device *dev)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct adt7470_data *data = i2c_get_clientdata(client);
-> +
->  	return data;
->  }
->  
-> @@ -285,7 +324,7 @@ static ssize_t show_temp_min(struct device *dev,
->  			     char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  	return sprintf(buf, "%d\n", 1000 * data->temp_min[attr->index]);
->  }
->  
-> @@ -313,7 +352,7 @@ static ssize_t show_temp_max(struct device *dev,
->  			     char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  	return sprintf(buf, "%d\n", 1000 * data->temp_max[attr->index]);
->  }
->  
-> @@ -340,7 +379,7 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
->  			 char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  	return sprintf(buf, "%d\n", 1000 * data->temp[attr->index]);
->  }
->  
-> @@ -349,7 +388,7 @@ static ssize_t show_alarms(struct device *dev,
->  			   char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  
->  	if (attr->index)
->  		return sprintf(buf, "%x\n", data->alarms);
-> @@ -362,7 +401,7 @@ static ssize_t show_fan_max(struct device *dev,
->  			    char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  
->  	if (FAN_DATA_VALID(data->fan_max[attr->index]))
->  		return sprintf(buf, "%d\n",
-> @@ -397,7 +436,7 @@ static ssize_t show_fan_min(struct device *dev,
->  			    char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  
->  	if (FAN_DATA_VALID(data->fan_min[attr->index]))
->  		return sprintf(buf, "%d\n",
-> @@ -431,7 +470,7 @@ static ssize_t show_fan(struct device *dev, struct device_attribute *devattr,
->  			char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  
->  	if (FAN_DATA_VALID(data->fan[attr->index]))
->  		return sprintf(buf, "%d\n",
-> @@ -444,7 +483,7 @@ static ssize_t show_force_pwm_max(struct device *dev,
->  				  struct device_attribute *devattr,
->  				  char *buf)
->  {
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  	return sprintf(buf, "%d\n", data->force_pwm_max);
->  }
->  
-> @@ -475,7 +514,7 @@ static ssize_t show_pwm(struct device *dev, struct device_attribute *devattr,
->  			char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  	return sprintf(buf, "%d\n", data->pwm[attr->index]);
->  }
->  
-> @@ -500,7 +539,7 @@ static ssize_t show_pwm_max(struct device *dev,
->  			    char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  	return sprintf(buf, "%d\n", data->pwm_max[attr->index]);
->  }
->  
-> @@ -528,7 +567,7 @@ static ssize_t show_pwm_min(struct device *dev,
->  			    char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  	return sprintf(buf, "%d\n", data->pwm_min[attr->index]);
->  }
->  
-> @@ -556,7 +595,7 @@ static ssize_t show_pwm_tmax(struct device *dev,
->  			     char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  	/* the datasheet says that tmax = tmin + 20C */
->  	return sprintf(buf, "%d\n", 1000 * (20 + data->pwm_tmin[attr->index]));
->  }
-> @@ -566,7 +605,7 @@ static ssize_t show_pwm_tmin(struct device *dev,
->  			     char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  	return sprintf(buf, "%d\n", 1000 * data->pwm_tmin[attr->index]);
->  }
->  
-> @@ -594,7 +633,7 @@ static ssize_t show_pwm_auto(struct device *dev,
->  			     char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  	return sprintf(buf, "%d\n", 1 + data->pwm_automatic[attr->index]);
->  }
->  
-> @@ -638,7 +677,7 @@ static ssize_t show_pwm_auto_temp(struct device *dev,
->  				  char *buf)
->  {
->  	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> -	struct adt7470_data *data = adt7470_update_device(dev);
-> +	struct adt7470_data *data = dev_to_adt7470_data(dev);
->  	u8 ctrl = data->pwm_auto_temp[attr->index];
->  
->  	if (ctrl)
-> @@ -913,6 +952,13 @@ static int adt7470_detect(struct i2c_adapter *adapter, int address, int kind)
->  		goto exit_remove;
->  	}
->  
-> +	/* Initialize automatic sensor refresh mechanism */
-> +	INIT_DELAYED_WORK(&data->ref_start, adt7470_start_reading);
-> +	INIT_DELAYED_WORK(&data->ref_finish, adt7470_finish_reading);
-> +
-> +	/* Start reading sensors immediately */
-> +	schedule_delayed_work(&data->ref_start, 0);
-> +
->  	return 0;
->  
->  exit_remove:
-> @@ -930,6 +976,9 @@ static int adt7470_detach_client(struct i2c_client *client)
->  	struct adt7470_data *data = i2c_get_clientdata(client);
->  	int i;
->  
-> +	flush_scheduled_work();
-> +	cancel_delayed_work_sync(&data->ref_start);
-> +	cancel_delayed_work_sync(&data->ref_finish);
->  	hwmon_device_unregister(data->class_dev);
->  	for (i = 0; i < ARRAY_SIZE(adt7470_attr); i++)
->  		device_remove_file(&client->dev, &adt7470_attr[i].dev_attr);
-> 
-> 
-> ------------------------------------------------------------------------
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-
+--===============0408466021839601489==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0408466021839601489==--
