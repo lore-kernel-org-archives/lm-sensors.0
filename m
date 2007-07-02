@@ -1,36 +1,32 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 05 Jul 2007 12:28:02 +0000
-Subject: Re: [lm-sensors] generic in and fan print code update headsup
-Message-Id: <20070705142802.03dfccad@hyperion.delvare>
+From: =?iso-8859-15?q?Hans-J=FCrgen_Koch?= <hjk@linutronix.de>
+Date: Mon, 02 Jul 2007 20:23:47 +0000
+Subject: Re: [lm-sensors] [PATCH] Add LM93 support
+Message-Id: <200707022223.48046.hjk@linutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <468AA345.30209@hhs.nl>
-In-Reply-To: <468AA345.30209@hhs.nl>
+References: <200704131723.42773.hjk@linutronix.de>
+In-Reply-To: <200704131723.42773.hjk@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Am Sonntag 01 Juli 2007 00:35 schrieb Hans-J=FCrgen Koch:
 
-On Tue, 03 Jul 2007 21:41:02 +0200, Hans de Goede wrote:
-> Hans de Goede wrote:
-> > I'm working on and will shortly commit an update to the generic in and fan 
-> > print code.
-> > 
-> > The in code currently will not print the ")" after printing the min voltage if 
-> > an in input has a min limit but not a max.
-> > 
-> > The fan code currently will not print the divider for chips without a min 
-> > limit, such as the fscpos ans fscher chips.
-> > 
-> > The update will fix this.
-> (...)
-> This update also adds fanX_fault handling.
+>=20
+> I didn't have the time to test that patch until now. In fact, I
+> cannot test everything with my current equipment. I'll test as
+> good as I can until Monday evening, perhaps you or somebody else
+> can help testing, too.
 
-Looks good, thanks.
+I tested that patch on a Xeon machine now, looks allright to me.=20
 
--- 
-Jean Delvare
+Ah, and I forgot (as always):
+
+Signed-off-by: Hans J. Koch <hjk@linutronix.de>
+
+Thanks,
+Hans
+
 
 _______________________________________________
 lm-sensors mailing list
