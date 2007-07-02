@@ -1,31 +1,46 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 06 Jul 2007 08:31:53 +0000
-Subject: Re: [lm-sensors] [lm-sensors-notify] svn commit: r4555 -
-Message-Id: <20070706103153.25b9adb0@hyperion.delvare>
+From: "Tom Bishop" <bishoptf@gmail.com>
+Date: Mon, 02 Jul 2007 13:34:25 +0000
+Subject: [lm-sensors] Toshiba satellite
+Message-Id: <fc808e200707020634wabd706g19fd0d5e1a1601a7@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============4832683925508295369=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
->       Author: jwrdegoede
->         Date: Thu Jul  5 18:15:27 2007
-> New Revision: 4555
->    Changeset: http://lm-sensors.org/changeset/4555
-> 
-> Modified:
->    lm-sensors/branches/lm-sensors-3.0.0/prog/detect/sensors-detect
-> 
-> Log:
-> update fintek f71882fg sensors-detect entry
+--===============4832683925508295369==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_18783_21770193.1183383265785"
 
-Hans, please don't forget to commit this to the trunk as well.
+------=_Part_18783_21770193.1183383265785
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Thanks,
--- 
-Jean Delvare
+I have just purchased a Toshiba satellite a135-2386, laptop and would like
+to get lm-sensors working on it but so far have been unsucessfull.  If
+anyone has any suggestions or ideas would be appreciated.  I'm not sure
+sense its a laptop what chipsets are being used so I need to do some more
+diggin on that front.  Thanks.
+
+------=_Part_18783_21770193.1183383265785
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+I have just purchased a Toshiba satellite a135-2386, laptop and would like to get lm-sensors working on it but so far have been unsucessfull.&nbsp; If anyone has any suggestions or ideas would be appreciated.&nbsp; I&#39;m not sure sense its a laptop what chipsets are being used so I need to do some more diggin on that front.&nbsp; Thanks.
+<br>
+
+------=_Part_18783_21770193.1183383265785--
+
+
+--===============4832683925508295369==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============4832683925508295369==--
