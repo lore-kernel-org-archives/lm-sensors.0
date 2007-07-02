@@ -1,46 +1,25 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Wed, 25 Jul 2007 02:01:39 +0000
-Subject: Re: [lm-sensors] [PATCH][07/37] Clean up duplicate includes in
-Message-Id: <20070725020139.GB3767@jupiter.solarsys.private>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Mon, 02 Jul 2007 15:12:13 +0000
+Subject: [lm-sensors] concentrate efforts on libsensor-3.x or also add
+Message-Id: <468915CD.5020300@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200707211702.01755.jesper.juhl@gmail.com>
-In-Reply-To: <200707211702.01755.jesper.juhl@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Stelian Pop <stelian@popies.net>, Michael Hanselmann <linux-kernel@hansmi.ch>, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi Jesper:
+Hi All,
 
-* Jesper Juhl <jesper.juhl@gmail.com> [2007-07-21 17:02:01 +0200]:
-> Hi,
-> 
-> This patch cleans up duplicate includes in
-> 	drivers/hwmon/
-> 
-> 
-> Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-> ---
-> 
-> diff --git a/drivers/hwmon/ams/ams-core.c b/drivers/hwmon/ams/ams-core.c
-> index 6db9737..a112a03 100644
-> --- a/drivers/hwmon/ams/ams-core.c
-> +++ b/drivers/hwmon/ams/ams-core.c
-> @@ -23,7 +23,6 @@
->  #include <linux/types.h>
->  #include <linux/errno.h>
->  #include <linux/init.h>
-> -#include <linux/module.h>
->  #include <asm/pmac_pfunc.h>
->  #include <asm/of_platform.h>
->  
+I'm wondering when are libsensors-3.x alpha / beta releases planned? I'm 
+tending towards not adding support for the abituguru3 and the f71882fg to 
+lm_sensors-2.10.x because 3.x will hopefully soon be available and I can spend 
+my time only once. OTOH, the 2.10.x line may continue to exist and be used for 
+a while so it might be a good idea to add support there too, what do you guys 
+think?
 
-Applied to hwmon-2.6.git/testing, thanks.
+Regards,
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+hans
 
 
 _______________________________________________
