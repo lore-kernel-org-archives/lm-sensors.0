@@ -1,33 +1,30 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sat, 07 Jul 2007 07:26:42 +0000
-Subject: Re: [lm-sensors] ADT7475
-Message-Id: <468F4032.10006@hhs.nl>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 02 Jul 2007 16:04:12 +0000
+Subject: Re: [lm-sensors] Status update generic chipset support
+Message-Id: <20070702180412.490d03f0@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060902193444.a259efdb.khali@linux-fr.org>
-In-Reply-To: <20060902193444.a259efdb.khali@linux-fr.org>
+References: <20061205235059.24a657b4@ws01.atreidis.nl.eu.org>
+In-Reply-To: <20061205235059.24a657b4@ws01.atreidis.nl.eu.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Joel McKee Cooper wrote:
-> Greetings!
-> 
-> I've got this chip on my ASUS M2N-SLI motherboard and am willing to
-> hack on the code a bit.  Any thoughts/decisions as to whether it
-> should be it's own driver or added into the lm85?
-> 
+On Thu, 7 Dec 2006 08:51:54 -0500, Mark M. Hoffman wrote:
+> * Bob Schl=E4rmann <bob2@dsv.nl> [2006-12-05 23:50:59 +0100]:
+> > - The following chips have a special feature that indicates the type of
+> > temp. sensor used, (w83781d, it87, f71805f). None of these have
+> > specifified the main temp. feature as their mapping in lib/chips.c. This
+> > means the function can't easily find out to which temp. it belongs.
+> >=20
+> > It would be easier when there was a mapping.
+>=20
+> Don't be afraid to patch this also. ;)
 
-That would depend on how similar it is, if it can easily (without klutering up 
-the driver) can be added to lm85, then thats a good idea,\. If it would become 
-a bit messy a new driver might be a better idea.
+This is fixed now.
 
-Notice that a driver for the ADT7470 was just posted the list, maybe it would 
-be better / easier to add ADT7475 support there?
-
-Regards,
-
-Hans
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
