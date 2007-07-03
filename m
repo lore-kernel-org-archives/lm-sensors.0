@@ -1,62 +1,36 @@
-From: Axel Thimm <Axel.Thimm@ATrpms.net>
-Date: Sun, 22 Jul 2007 19:33:43 +0000
-Subject: Re: [lm-sensors] 2.10.4 fails on 2.4 platform (RHEL3)
-Message-Id: <20070722193343.GC11686@puariko.nirvana>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5565187461958900690=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 03 Jul 2007 08:22:11 +0000
+Subject: Re: [lm-sensors] Do we need regex in libsensors?
+Message-Id: <20070703102211.4beb2348@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070722183807.GA11686@puariko.nirvana>
-In-Reply-To: <20070722183807.GA11686@puariko.nirvana>
+References: <20070629190035.36806ea8@hyperion.delvare>
+In-Reply-To: <20070629190035.36806ea8@hyperion.delvare>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Fri, 29 Jun 2007 20:25:38 +0200, Hans de Goede wrote:
+> Jean Delvare wrote:
+> > I've made a performance regression test on the new libsensors. It shows
+> > a significant performance drop. Valgrind showed that almost half of the
+> > total CPU cycles were spent in sensors_feature_get_type(), and in
+> > particular in regexec(). Looking at what the code does, I don't think
+> > that we need the power of the regex engine; sscanf() should be enough.
+> > I've reimplemented the function using sscanf(), it seems to work just
+> > fine, and is much faster (although not yet as fast as the original, but
+> > I guess this is expected due to the dynamic feature gathering.)
+> (...)
+> 
+> The patch looks fine to me. I applied it over here and did some testing, I 
+> couldn't find any issues. So as far as I'm concerned its ok to apply.
 
---===============5565187461958900690==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CblX+4bnyfN0pR09"
-Content-Disposition: inline
+OK, done. Thanks for testing.
 
-
---CblX+4bnyfN0pR09
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Sun, Jul 22, 2007 at 08:38:07PM +0200, Axel Thimm wrote:
-> building the kernel modules parts for RHEL3 (kernel 2.4.21 based) the
-> build fails with the log below.
-
-sorry, false alarm! For being able to build userland vs kernelland I
-had to hardwire a SRCDIR=3D"... kernel ..." some time back to support
-just kmdl builds (and no userland at all), so I was carrying the
-obsoleted kernel subdir build.
---=20
-Axel.Thimm at ATrpms.net
-
---CblX+4bnyfN0pR09
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iD8DBQFGo7EXQBVS1GOamfERAlGmAKCNjVB5r5TLEnVJ5+uFwC0t5mAXUACfVudj
-CG1TiB42/k7337OUCV39R5Y=
-=rWgh
------END PGP SIGNATURE-----
-
---CblX+4bnyfN0pR09--
-
-
---===============5565187461958900690==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5565187461958900690==--
