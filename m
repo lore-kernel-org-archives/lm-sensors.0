@@ -1,35 +1,36 @@
-From: "Jean Delvare" <khali@linux-fr.org>
-Date: Wed, 25 Jul 2007 09:51:42 +0000
-Subject: Re: [lm-sensors] PATCH: hwmon-lm78-detect-isa-with-chipid-0x20.patch
-Message-Id: <nSazR1k9.1185357102.8260940.khali@localhost>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Wed, 04 Jul 2007 06:55:48 +0000
+Subject: [lm-sensors] Howto handle alarms which need to be reset?
+Message-Id: <468B4474.5070309@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46A670C0.2020403@hhs.nl>
-In-Reply-To: <46A670C0.2020403@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
-On 7/24/2007, "Hans de Goede" <j.w.r.degoede@hhs.nl> wrote:
->Here is a small but important bugfix to the lm78 driver. I found out about
->this problem because a Fedora user filed a bug that the lm78 driver no
->longer worked on his system:
->https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id$9428
->
->The problem is that sometime ago the isa lm78 detection was made more
->stringent and this new code now checks the chip-id, but does not accept
->a chip-id of 20h, however a chip-id of 20h is valid, and is excepted in
->the main probe function of the driver, see line 551. This fixed also
->makes the isa detection code accept the chip-id of 0x20 fixing this
->issue.
->
->Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+Anonymous has been so kind as to send me a datasheet for the fscpos sensor. 
+Because of this I'm working on improved individual alarm file patches for the 
+fscher (which is documented in Documentation/hwmon/fscher) and the fscpos as I 
+now have a better understanding of these 2 chips.
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Once an alarm condition has been signaled, it needs to be reset by software 
+otherwise the alarm will stay present even if there no longer is a cause.
 
---
-Jean Delvare
+I see 2 solutions for this:
+1) clear an alarm when it gets read by userspace, assuming the chip will set it
+    again if the condition prevails (I need to test if this is true)
+2) make the fooX_alarm file rw and make a write of 0 from userspace clear it
+
+I prefer 1), asumming my assumption is true.
+
+Suggestions, comments, advice?
+
+Regards,
+
+Hans
+
 
 _______________________________________________
 lm-sensors mailing list
