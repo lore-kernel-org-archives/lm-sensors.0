@@ -1,126 +1,54 @@
-From: Dong Li <dragonicebox@yahoo.com.cn>
-Date: Mon, 02 Jul 2007 17:30:24 +0000
-Subject: [lm-sensors] ADT7467
-Message-Id: <681988.38608.qm@web92003.mail.cnb.yahoo.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0408466021839601489=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 04 Jul 2007 06:37:19 +0000
+Subject: Re: [lm-sensors] ADT7467
+Message-Id: <20070704083719.68d638f1@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <681988.38608.qm@web92003.mail.cnb.yahoo.com>
+In-Reply-To: <681988.38608.qm@web92003.mail.cnb.yahoo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============0408466021839601489==
-Content-Type: multipart/alternative; boundary="0-1876152852-1183397424=:38608"
-Content-Transfer-Encoding: 8bit
+Hi Dong,
 
---0-1876152852-1183397424=:38608
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+On Tue, 3 Jul 2007 01:30:24 +0800 (CST), Dong Li wrote:
+> I installed an ADT7467 evaluation board on my motherboard. The
+> sensors-detect (lm-sensor 10.3) can detect it in my system
+> (linux kernel 2.6.21).
+> 
+> ***********************************************************
+> Driver 'to-be-written' (should be inserted)
+> Detects correctly
+> * Bus ''SMBUS PIIX4 adapter at 0500"
+>   Busdriver 'i2c-piix4', I2C address 0x2e
+>   Chip 'Analog Device ADT7467 or ADT7468' (Confidence:7)
+> 
+> *************************************************************
+> However when I run the sensors-detect again, it can't detect the
+> ADT7467 any more. Only after I reboot the system and run
+> sensors-detect, it can detect it again.
+> 
+> Any comment here?
+> (...)
+> By the way, the evaluation board attached to the motherboard
+> through PCI bus.
 
-SGksCkkgaW5zdGFsbGVkIGFuIEFEVDc0NjcgZXZhbHVhdGlvbiBib2FyZCBvbiBteSBtb3RoZXJi
-b2FyZC4gVGhlIHNlbnNvcnMtZGV0ZWN0IChsbS1zZW5zb3IgMTAuMykgY2FuIGRldGVjdCBpdCBp
-biBteSBzeXN0ZW0gKGxpbnV4IGtlcm5lbCAyLjYuMjEpLgoKKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioKRHJpdmVyICd0by1iZS13cml0
-dGVuJyAoc2hvdWxkIGJlIGluc2VydGVkKQpEZXRlY3RzIGNvcnJlY3RseQoqIEJ1cyAnJ1NNQlVT
-IFBJSVg0IGFkYXB0ZXIgYXQgMDUwMCIKICBCdXNkcml2ZXIgJ2kyYy1waWl4NCcsIEkyQyBhZGRy
-ZXNzIDB4MmUKICBDaGlwICdBbmFsb2cgRGV2aWNlIEFEVDc0Njcgb3IgQURUNzQ2OCcgKENvbmZp
-ZGVuY2U6NykKCioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioKSG93ZXZlciB3aGVuIEkgcnVuIHRoZSBzZW5zb3JzLWRldGVjdCBhZ2Fp
-biwgaXQgY2FuJ3QgZGV0ZWN0IHRoZSBBRFQ3NDY3IGFueSBtb3JlLiBPbmx5IGFmdGVyIEkgcmVi
-b290IHRoZSBzeXN0ZW0gYW5kIHJ1biBzZW5zb3JzLWRldGVjdCwgaXQgY2FuIGRldGVjdCBpdCBh
-Z2Fpbi4KCkFueSBjb21tZW50IGhlcmU/CgpJbiBhZGRpdGlvbiwgSSB3cm90ZSBhIHNpbXBsZSBw
-cm9ncmFtIHRvIHJlYWQgdGhlIGNvbXBhbnkgaW5mbyBmcm9tIHRoZSBBRFQ3NDY3IGNoaXAuCgoq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqCiAgZmlsZSA9IG9wZW5faTJjX2RldihpMmNidXMsIGZpbGVuYW1lLCAwKTsgICAgLyogaTJj
-YnVzPTAuIE9ubHkgb25lIGkyYyBkZXZpY2UqLwogIGlmIChmaWxlIDwgMCkgewogICAgZXhpdCgx
-KTsKICB9CiAgLyogY2hlY2sgYWRhcHRlciBmdW5jdGlvbmFsaXR5ICovCiAgaWYgKGlvY3RsKGZp
-bGUsIEkyQ19GVU5DUywgJmZ1bmNzKSA8IDApIHsKICAgIGZwcmludGYoc3RkZXJyLCAiRXJyb3I6
-IENvdWxkIG5vdCBnZXQgdGhlIGFkYXB0ZXIgIgogICAgICAgICJmdW5jdGlvbmFsaXR5IG1hdHJp
-eDogJXNcbiIsIHN0cmVycm9yKGVycm5vKSk7CiAgICBleGl0KDEpOwogIH0KICAvKiBzcGVjaWZ5
-IHdpdGggd2hhdCBkZXZpY2UgYWRkcmVzcyB5b3Ugd2FudCB0byBjb21tdW5pY2F0ZSAqLwogIGlm
-IChpb2N0bChmaWxlLEkyQ19TTEFWRSxhZGRyZXNzKSA8IDApIHsgICAvKmFkZHJlc3MgaXMgMHgy
-ZSovCiAgICBpZihlcnJubyA9PSBFQlVTWSkKICAgICAgZnByaW50ZihzdGRlcnIsICJEZXZpY2Ug
-YnVzeT8uLi4gVHJ5IGxhdGVyXG4iKTsKICAgIGVsc2UKICAgICAgZnByaW50ZihzdGRlcnIsICJF
-cnJvcjogQ291bGQgbm90IHNldCBhZGRyZXNzIHRvICVkOiAlc1xuIiwKICAgICAgICAgICAgICAg
-ICAgICAgICAgYWRkcmVzcywgc3RyZXJyb3IoZXJybm8pKTsKICAgIGV4aXQoMSk7CiAgfQoKIGNv
-bXBhbnkgPSBpMmNfc21idXNfcmVhZF9ieXRlX2RhdGEoZmlsZSwgQURUNzQ2N19SRUdfQ09NUEFO
-WSk7CiAgdmVyc3RlcCA9IGkyY19zbWJ1c19yZWFkX2J5dGVfZGF0YShmaWxlLCBBRFQ3NDY3X1JF
-R19WRVJTVEVQKTsKCiAgaWYoIGNvbXBhbnkgPT0gQURUNzQ2N19DT01QQU5ZX0FOQUxPR19ERVYK
-ICAgICAgICAmJiAodmVyc3RlcCA9PSBBRFQ3NDY3X1ZFUlNURVBfMiB8fCB2ZXJzdGVwID09ICAg
-ICAgICAgCiAgICAgICAgQURUNzQ2N19WRVJTVEVQXzEpKQogIHByaW50ZigiT2tleS4gSXQgbG9v
-a3MgbGlrZSBhIEFEVDc0NjdcbiIpOwoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqCgpUaGUgcmVzdWx0IGlzIGxpa2UKaTJjX2FkYXB0
-ZXIgaTJjLTA6IEZhaWxlZCEgKDAxKQppMmNfYWRhcHRlciBpMmMtMDogRmFpbGVkISAoMDEpCgpp
-MmNfc21idXNfcmVhZF9ieXRlX2RhdGEgcmV0dXJucyAtMS4gSXQgc2VlbXMgaTJjIHRyYW5zYWN0
-aW9uIGZhaWxlZC4KCkFueSBjb21tZW50cyBoZXJlPwoKVGhhbmsgeW91LgoKLURvbmcKCgoKCgoK
-CgogICAgICAgCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQrHwNei0cW7osPit9HT
-ys/kMy41R8jdwb+jrDIwTbi9vP6joSA=
+I have such an evaluation board from Analog Devices too, and I could
+never get it to work properly when plugged into a PCI slot. So instead,
+I powered it using the molex connector (+5V and +12V) and the USB
+connector (+3.3V), and I connected the I2C bus directly to the
+motherboard (I have an SMBus header on my motherboard.) As far as I
+remember, that worked well. Maybe you want to try that way too.
 
---0-1876152852-1183397424=:38608
-Content-Type: text/html; charset="gb2312"
-Content-Transfer-Encoding: base64
+BTW, you also need to make sure that you do not have another chip at
+address 0x2e on this I2C bus, for example a hardware monitoring chip on
+the motherboard itself. Otherwise it'll never work.
 
-SGksPGJyPkkgaW5zdGFsbGVkIGFuIEFEVDc0NjcgZXZhbHVhdGlvbiBib2FyZCBvbiBteSBtb3Ro
-ZXJib2FyZC4gVGhlIHNlbnNvcnMtZGV0ZWN0IChsbS1zZW5zb3IgMTAuMykgY2FuIGRldGVjdCBp
-dCBpbiBteSBzeXN0ZW0gKGxpbnV4IGtlcm5lbCAyLjYuMjEpLjxicj48YnI+KioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio8YnI+RHJpdmVy
-ICd0by1iZS13cml0dGVuJyAoc2hvdWxkIGJlIGluc2VydGVkKTxicj5EZXRlY3RzIGNvcnJlY3Rs
-eTxicj4qIEJ1cyAnJ1NNQlVTIFBJSVg0IGFkYXB0ZXIgYXQgMDUwMCI8YnI+Jm5ic3A7IEJ1c2Ry
-aXZlciAnaTJjLXBpaXg0JywgSTJDIGFkZHJlc3MgMHgyZTxicj4mbmJzcDsgQ2hpcCAnQW5hbG9n
-IERldmljZSBBRFQ3NDY3IG9yIEFEVDc0NjgnIChDb25maWRlbmNlOjcpPGJyPjxicj4qKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqPGJy
-Pkhvd2V2ZXIgd2hlbiBJIHJ1biB0aGUgc2Vuc29ycy1kZXRlY3QgYWdhaW4sIGl0IGNhbid0IGRl
-dGVjdCB0aGUgQURUNzQ2NyBhbnkgbW9yZS4gT25seSBhZnRlciBJIHJlYm9vdCB0aGUgc3lzdGVt
-IGFuZCBydW4gc2Vuc29ycy1kZXRlY3QsIGl0IGNhbiBkZXRlY3QgaXQgYWdhaW4uPGJyPjxicj5B
-bnkgY29tbWVudCBoZXJlPzxicj48YnI+SW4gYWRkaXRpb24sIEkgd3JvdGUgYSBzaW1wbGUgcHJv
-Z3JhbSB0byByZWFkIHRoZSBjb21wYW55IGluZm8gZnJvbSB0aGUgQURUNzQ2NyBjaGlwLjxicj48
-YnI+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKjxicj4mbmJzcDsgZmlsZSA9IG9wZW5faTJjX2RldihpMmNidXMsIGZpbGVuYW1lLCAw
-KTsmbmJzcDsmbmJzcDsmbmJzcDsgLyogaTJjYnVzPTAuIE9ubHkgb25lIGkyYyBkZXZpY2UqLzxi
-cj4mbmJzcDsgaWYgKGZpbGUKICZsdDsgMCkgezxicj4mbmJzcDsmbmJzcDsmbmJzcDsgZXhpdCgx
-KTs8YnI+Jm5ic3A7IH08YnI+Jm5ic3A7IC8qIGNoZWNrIGFkYXB0ZXIgZnVuY3Rpb25hbGl0eSAq
-Lzxicj4mbmJzcDsgaWYgKGlvY3RsKGZpbGUsIEkyQ19GVU5DUywgJmFtcDtmdW5jcykgJmx0OyAw
-KSB7PGJyPiZuYnNwOyZuYnNwOyZuYnNwOyBmcHJpbnRmKHN0ZGVyciwgIkVycm9yOiBDb3VsZCBu
-b3QgZ2V0IHRoZSBhZGFwdGVyICI8YnI+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
-c3A7Jm5ic3A7ICJmdW5jdGlvbmFsaXR5IG1hdHJpeDogJXNcbiIsIHN0cmVycm9yKGVycm5vKSk7
-PGJyPiZuYnNwOyZuYnNwOyZuYnNwOyBleGl0KDEpOzxicj4mbmJzcDsgfTxicj4mbmJzcDsgLyog
-c3BlY2lmeSB3aXRoIHdoYXQgZGV2aWNlIGFkZHJlc3MgeW91IHdhbnQgdG8gY29tbXVuaWNhdGUg
-Ki88YnI+Jm5ic3A7IGlmIChpb2N0bChmaWxlLEkyQ19TTEFWRSxhZGRyZXNzKSAmbHQ7IDApIHsm
-bmJzcDsmbmJzcDsgLyphZGRyZXNzIGlzIDB4MmUqLzxicj4mbmJzcDsmbmJzcDsmbmJzcDsgaWYo
-ZXJybm8gPT0gRUJVU1kpPGJyPiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBmcHJpbnRm
-KHN0ZGVyciwgIkRldmljZSBidXN5Py4uLiBUcnkgbGF0ZXJcbiIpOzxicj4mbmJzcDsmbmJzcDsm
-bmJzcDsgZWxzZTxicj4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgZnByaW50ZihzdGRl
-cnIsICJFcnJvcjogQ291bGQgbm90IHNldCBhZGRyZXNzIHRvICVkOiAlc1xuIiw8YnI+Jm5ic3A7
-Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
-c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
-Jm5ic3A7Jm5ic3A7Jm5ic3A7IGFkZHJlc3MsIHN0cmVycm9yKGVycm5vKSk7PGJyPiZuYnNwOyZu
-YnNwOyZuYnNwOyBleGl0KDEpOzxicj4mbmJzcDsKIH08YnI+PGJyPiZuYnNwO2NvbXBhbnkgPSBp
-MmNfc21idXNfcmVhZF9ieXRlX2RhdGEoZmlsZSwgQURUNzQ2N19SRUdfQ09NUEFOWSk7PGJyPiZu
-YnNwOyB2ZXJzdGVwID0gaTJjX3NtYnVzX3JlYWRfYnl0ZV9kYXRhKGZpbGUsIEFEVDc0NjdfUkVH
-X1ZFUlNURVApOzxicj48YnI+Jm5ic3A7IGlmKCBjb21wYW55ID09IEFEVDc0NjdfQ09NUEFOWV9B
-TkFMT0dfREVWPGJyPiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyAm
-YW1wOyZhbXA7ICh2ZXJzdGVwID09IEFEVDc0NjdfVkVSU1RFUF8yIHx8IHZlcnN0ZXAgPT0mbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgPGJyPiZuYnNwOyZu
-YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBBRFQ3NDY3X1ZFUlNURVBfMSkpPGJy
-PiZuYnNwOyBwcmludGYoIk9rZXkuIEl0IGxvb2tzIGxpa2UgYSBBRFQ3NDY3XG4iKTs8YnI+Kioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-Kjxicj48YnI+VGhlIHJlc3VsdCBpcyBsaWtlPGJyPmkyY19hZGFwdGVyIGkyYy0wOiBGYWlsZWQh
-ICgwMSk8YnI+aTJjX2FkYXB0ZXIgaTJjLTA6IEZhaWxlZCEgKDAxKTxicj48YnI+aTJjX3NtYnVz
-X3JlYWRfYnl0ZV9kYXRhIHJldHVybnMgLTEuIEl0IHNlZW1zIGkyYyB0cmFuc2FjdGlvbiBmYWls
-ZWQuPGJyPjxicj5BbnkgY29tbWVudHMgaGVyZT88YnI+PGJyPlRoYW5rIHlvdS48YnI+PGJyPi1E
-b25nPGJyPjxicj48YnI+PGJyPjxicj48YnI+PGJyPjxicj48cD4mIzMyOwoKCgogICAgICA8aHIg
-c2l6ZT0xPjxhIGhyZWY9Imh0dHA6Ly9jbi5tYWlsLnlhaG9vLmNvbSIgdGFyZ2V0PWJsYW5rPsfA
-16LRxbuiw+K30dPKz+QzLjVHyN3Bv6OsMjBNuL28/qOhPC9hPiA=
-
---0-1876152852-1183397424=:38608--
-
-
---===============0408466021839601489==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0408466021839601489==--
