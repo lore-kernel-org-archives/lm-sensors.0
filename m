@@ -1,27 +1,115 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 13 Jul 2007 17:24:31 +0000
-Subject: Re: [lm-sensors] Hello, Bill Gatliff,
-Message-Id: <20070713192431.6ae3f9fd@hyperion.delvare>
+Date: Thu, 05 Jul 2007 18:37:21 +0000
+Subject: [lm-sensors] [PATCH 2/5] hwmon/lm85: Export in5,
+Message-Id: <20070705203721.4138e022@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <8fff000d0707130245t4fcfe440vad28dd44cf7d1f79@mail.gmail.com>
-In-Reply-To: <8fff000d0707130245t4fcfe440vad28dd44cf7d1f79@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 13 Jul 2007 17:45:12 +0800, JACK Huang wrote:
-> Hello,Bill Gatliff
-> 
->   I was at the
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2005-November/014227.html
-> know you have write the TSC2003touchscreen driver.Can you send me the linux
-> kernel  source which work well with the TSC2003
-> 
-> Please help me .Thanks.
+The SMSC EMC6D100 supports 3 additional voltage channels. The lm85
+driver reads the register values for these, but doesn't create the
+corresponding sysfs files, so the user can't read the values nor write
+the limits. Create the missing sysfs files.
 
-Do you realize that you are writing to a mailing list and not an
-individual?
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/lm85.c |   48 +++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 37 insertions(+), 11 deletions(-)
+
+--- linux-2.6.22-rc6.orig/drivers/hwmon/lm85.c	2007-07-01 11:08:58.000000000 +0200
++++ linux-2.6.22-rc6/drivers/hwmon/lm85.c	2007-07-01 12:41:52.000000000 +0200
+@@ -595,6 +595,9 @@ show_in_reg(1);
+ show_in_reg(2);
+ show_in_reg(3);
+ show_in_reg(4);
++show_in_reg(5);
++show_in_reg(6);
++show_in_reg(7);
+ 
+ /* Temps */
+ 
+@@ -1030,15 +1033,32 @@ static const struct attribute_group lm85
+ 	.attrs = lm85_attributes,
+ };
+ 
+-static struct attribute *lm85_attributes_opt[] = {
++static struct attribute *lm85_attributes_in4[] = {
+ 	&sensor_dev_attr_in4_input.dev_attr.attr,
+ 	&sensor_dev_attr_in4_min.dev_attr.attr,
+ 	&sensor_dev_attr_in4_max.dev_attr.attr,
+ 	NULL
+ };
+ 
+-static const struct attribute_group lm85_group_opt = {
+-	.attrs = lm85_attributes_opt,
++static const struct attribute_group lm85_group_in4 = {
++	.attrs = lm85_attributes_in4,
++};
++
++static struct attribute *lm85_attributes_in567[] = {
++	&sensor_dev_attr_in5_input.dev_attr.attr,
++	&sensor_dev_attr_in6_input.dev_attr.attr,
++	&sensor_dev_attr_in7_input.dev_attr.attr,
++	&sensor_dev_attr_in5_min.dev_attr.attr,
++	&sensor_dev_attr_in6_min.dev_attr.attr,
++	&sensor_dev_attr_in7_min.dev_attr.attr,
++	&sensor_dev_attr_in5_max.dev_attr.attr,
++	&sensor_dev_attr_in6_max.dev_attr.attr,
++	&sensor_dev_attr_in7_max.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group lm85_group_in567 = {
++	.attrs = lm85_attributes_in567,
+ };
+ 
+ static int lm85_detect(struct i2c_adapter *adapter, int address,
+@@ -1186,12 +1206,14 @@ static int lm85_detect(struct i2c_adapte
+ 	   as a sixth digital VID input rather than an analog input. */
+ 	data->vid = lm85_read_value(new_client, LM85_REG_VID);
+ 	if (!(kind = adt7463 && (data->vid & 0x80)))
+-		if ((err = device_create_file(&new_client->dev,
+-					&sensor_dev_attr_in4_input.dev_attr))
+-		 || (err = device_create_file(&new_client->dev,
+-					&sensor_dev_attr_in4_min.dev_attr))
+-		 || (err = device_create_file(&new_client->dev,
+-					&sensor_dev_attr_in4_max.dev_attr)))
++		if ((err = sysfs_create_group(&new_client->dev.kobj,
++					&lm85_group_in4)))
++			goto ERROR3;
++
++	/* The EMC6D100 has 3 additional voltage inputs */
++	if (kind = emc6d100)
++		if ((err = sysfs_create_group(&new_client->dev.kobj,
++					&lm85_group_in567)))
+ 			goto ERROR3;
+ 
+ 	data->class_dev = hwmon_device_register(&new_client->dev);
+@@ -1205,7 +1227,9 @@ static int lm85_detect(struct i2c_adapte
+ 	/* Error out and cleanup code */
+     ERROR3:
+ 	sysfs_remove_group(&new_client->dev.kobj, &lm85_group);
+-	sysfs_remove_group(&new_client->dev.kobj, &lm85_group_opt);
++	sysfs_remove_group(&new_client->dev.kobj, &lm85_group_in4);
++	if (kind = emc6d100)
++		sysfs_remove_group(&new_client->dev.kobj, &lm85_group_in567);
+     ERROR2:
+ 	i2c_detach_client(new_client);
+     ERROR1:
+@@ -1219,7 +1243,9 @@ static int lm85_detach_client(struct i2c
+ 	struct lm85_data *data = i2c_get_clientdata(client);
+ 	hwmon_device_unregister(data->class_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &lm85_group);
+-	sysfs_remove_group(&client->dev.kobj, &lm85_group_opt);
++	sysfs_remove_group(&client->dev.kobj, &lm85_group_in4);
++	if (data->type = emc6d100)
++		sysfs_remove_group(&client->dev.kobj, &lm85_group_in567);
+ 	i2c_detach_client(client);
+ 	kfree(data);
+ 	return 0;
+
 
 -- 
 Jean Delvare
