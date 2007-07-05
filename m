@@ -1,25 +1,52 @@
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
-Date: Thu, 26 Jul 2007 21:18:31 +0000
-Subject: [lm-sensors] lmsensors 2.x: how to hide entry from 2.4 driver that
-Message-Id: <20070726231831.9f5c2ad1.krzysztof.h1@wp.pl>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 05 Jul 2007 18:39:40 +0000
+Subject: [lm-sensors] [PATCH 5/5] hwmon/lm85: Let the user set the fan min
+Message-Id: <20070705203940.2f510856@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Trying to set the fan min limit to 0 currently writes 0 to the
+register, which is an invalid value. It's read back as -1 and the
+alarm flag is raised. Instead we should write 0xffff (maximum
+value), which reads back as 0 and no alarm flag is raised.
 
-The THMC50 driver for the 2.4 kernel has a feature called "die code". It does not exists in the 2.6 driver. How should I hide it so no message:
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/lm85.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-"ERROR: Can't get feature `die_code' data!"
+--- linux-2.6.22-rc6.orig/drivers/hwmon/lm85.c	2007-07-01 14:30:37.000000000 +0200
++++ linux-2.6.22-rc6/drivers/hwmon/lm85.c	2007-07-01 17:00:44.000000000 +0200
+@@ -145,7 +145,12 @@ static int lm85_scaling[] = {  /* .001 V
+ #define INS_FROM_REG(n,val)	SCALE((val), 192, lm85_scaling[n])
+ 
+ /* FAN speed is measured using 90kHz clock */
+-#define FAN_TO_REG(val)		(SENSORS_LIMIT( (val)<=0?0: 5400000/(val),0,65534))
++static inline u16 FAN_TO_REG(unsigned long val)
++{
++	if (!val)
++		return 0xffff;
++	return SENSORS_LIMIT(5400000 / val, 1, 0xfffe);
++}
+ #define FAN_FROM_REG(val)	((val)=0?-1:(val)=0xffff?0:5400000/(val))
+ 
+ /* Temperature is reported in .001 degC increments */
+@@ -391,7 +396,7 @@ static ssize_t set_fan_min(struct device
+ 	int nr = to_sensor_dev_attr(attr)->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm85_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
++	unsigned long val = simple_strtoul(buf, NULL, 10);
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->fan_min[nr] = FAN_TO_REG(val);
 
-is not displayed.
 
-Another question is to how to hide one of tempX features if it does not exists (it depends on chip working mode). The chip name is the same for both modes.
-
-Regards,
-Krzysztof
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
