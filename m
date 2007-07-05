@@ -1,7 +1,7 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Thu, 05 Jul 2007 14:26:02 +0000
+Date: Thu, 05 Jul 2007 16:01:44 +0000
 Subject: Re: [lm-sensors] Howto handle alarms which need to be reset?
-Message-Id: <468CFF7A.3030603@hhs.nl>
+Message-Id: <468D15E8.4010408@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <468B4474.5070309@hhs.nl>
 In-Reply-To: <468B4474.5070309@hhs.nl>
@@ -10,78 +10,89 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
-> On Wed, 04 Jul 2007 11:03:31 +0200, Hans de Goede wrote:
->> Anonymous has been so kind as to send me a datasheet for the fscpos sensor.
->> Because of this I'm working on improved individual alarm file patches for the
->> fscher (which is documented in Documentation/hwmon/fscher) and the fscpos as I
->> now have a better understanding of these 2 chips.
+Hi all,
+
+Replying to my own mails seems to become a bad habbit of mine.
+
+Hans de Goede wrote:
+> Jean Delvare wrote:
+>> Hi Hans,
 >>
->> Once an alarm condition has been signaled, it needs to be reset by software
->> otherwise the alarm will stay present even if there no longer is a cause.
+>> On Wed, 04 Jul 2007 11:03:31 +0200, Hans de Goede wrote:
+>> We have another example of the behavior you describe with the DS1621
+>> chip. Here is how the alarm handling is implemented in the ds1621
+>> driver, maybe you can just do the same in the fscher driver?
 >>
->> I see 2 solutions for this:
->> 1) clear an alarm when it gets read by userspace, assuming the chip will set it
->>     again if the condition prevails (I need to test if this is true)
->> 2) make the fooX_alarm file rw and make a write of 0 from userspace clear it
+>>         /* reset alarms if necessary */
+>>         new_conf = data->conf;
+>>         if (data->temp[0] > data->temp[1])    /* input > min */
+>>             new_conf &= ~DS1621_ALARM_TEMP_LOW;
+>>         if (data->temp[0] < data->temp[2])    /* input < max */
+>>             new_conf &= ~DS1621_ALARM_TEMP_HIGH;
+>>         if (data->conf != new_conf)
+>>             ds1621_write_value(client, DS1621_REG_CONF,
+>>                        new_conf);
 >>
->> I prefer 1), asumming my assumption is true.
->>
->> Suggestions, comments, advice?
->> (...)
->> It looks like its going to be 2) as the hardware only raises the alarm once 
->> when an alarm condition occurs, it will only raise it again when the condition 
->> has been cleared and the reoccurs.
 > 
-> In other words, we are abusing interrupt flags as if they were
-> real-time alarm flags. Frankly, the proper fix would probably be to not
-> export alarms flags at all.
+> Unfortunately the limits for temperature are hardwired into the fscher / 
+> fscpos chip and not specified, so although the above sounds feasible, I 
+> don't know when to clear the alarm. For the fans this is feasible, and 
+> it is already implemented in the fscpos driver, but not in the fscher 
+> driver.
 > 
-> I don't like your option 2 at all. Alarm files are specified as being
-> read only and reflecting the alarm state in the chip. If some drivers
-> make them read only and require a write from user-space to clear them,
-> how are you going to handle this in libsensors? Check the attribute
-> file permissions, if it's writable, compare the reading to the limits
-> (and which limits?) to decide whether you need to clear it? This is
-> adding complexity to the library, just to handle a couple of unpopular
-> drivers. I'd rather have the workaround in the drivers themselves, it's
-> much more efficient.
+> Notice that the fscpos driver also already has a mechanism to reset the 
+> temp alarms, using an tempX_reset file, which is identical to making the 
+> alarm files rw if you ask me, except that it adds yet another sysfs 
+> attribute.
+> 
+> So summarising, I can make the fan alarms auto-reset, but temperature is 
+> a problem. Suggestions ? Once we have a solution for this I'll write a 
+> third revision of the fscher / fscpos patches as time permits.
 > 
 
-I agree its not pretty, better solutions are much welcome. I'm not sure not 
-supporting the alarm flags at all is the answer though. On my fsc pc, when I 
-cause an alarm an annoying led starts blinking at the front of the PC and it 
-won't stop until cleared by software.
+I think I've solved this I've done some reverse engineering on the fscher using 
+i2cdump and i2cset and I've found the following undocumented registers (there 
+are more undocumented ones, but for these I've now found the meaning)
 
-> We have another example of the behavior you describe with the DS1621
-> chip. Here is how the alarm handling is implemented in the ds1621
-> driver, maybe you can just do the same in the fscher driver?
-> 
-> 		/* reset alarms if necessary */
-> 		new_conf = data->conf;
-> 		if (data->temp[0] > data->temp[1])	/* input > min */
-> 			new_conf &= ~DS1621_ALARM_TEMP_LOW;
-> 		if (data->temp[0] < data->temp[2])	/* input < max */
-> 			new_conf &= ~DS1621_ALARM_TEMP_HIGH;
-> 		if (data->conf != new_conf)
-> 			ds1621_write_value(client, DS1621_REG_CONF,
-> 					   new_conf);
-> 
+0x73 temp1_auto_point1_temp (unit degrees celcius + 128, just like temp1_input)
+0x75 temp1_auto_point2_temp (unit degrees celcius + 128, just like temp1_input)
+0x76 temp1_max              (unit degrees celcius + 128, just like temp1_input)
 
-Unfortunately the limits for temperature are hardwired into the fscher / fscpos 
-chip and not specified, so although the above sounds feasible, I don't know 
-when to clear the alarm. For the fans this is feasible, and it is already 
-implemented in the fscpos driver, but not in the fscher driver.
+This I'm close to 100% sure off.
 
-Notice that the fscpos driver also already has a mechanism to reset the temp 
-alarms, using an tempX_reset file, which is identical to making the alarm files 
-rw if you ask me, except that it adds yet another sysfs attribute.
+and:
+0x83 temp2_auto_point1_temp (unit degrees celcius + 128, just like temp2_input)
+0x86 temp2_max              (unit degrees celcius + 128, just like temp2_input)
 
-So summarising, I can make the fan alarms auto-reset, but temperature is a 
-problem. Suggestions ? Once we have a solution for this I'll write a third 
-revision of the fscher / fscpos patches as time permits.
+Notice that 0x85 is missing, its 00 and cannot be written too, perhaps this has 
+todo with the fact that my system has only one fan lowering 0x83 below temp2 
+does make that one fan increase its speed. I guess 0x85 being 0 and 0x83 
+influencing the same fan as which is controlled by the temp1 autopoints is 
+regulated through the flags in 0x84, which are different from those in 0x74, I 
+have no idea what these flags mean however.
+
+and I think:
+0x93 temp3_auto_point1_temp (unit degrees celcius + 128, just like temp3_input)
+0x96 temp3_max              (unit degrees celcius + 128, just like temp3_input)
+
+I say I think as my system doesn't have a third temp sensor connected, but they 
+both have pretty realistic value for a system / case temp sensor, also notice 
+the regular intervals between all the addresses.
+
+Unfortunately I do not have access to an fscpos machine and thus cannot check 
+if the same is true for the fscpos.
+
+How to move forward now?
+
+My plan is to write an updated fscher patch which adds tempX_max rw sysfs 
+attributes, and use those to automatically reset the alarm.
+
+I'm also considering adding autopoints sysfs attributes, but only for those 
+autopoints which do not read 0, as the chip seems to have the ability to 
+disable the 2nd autopoint for each temp and when it is disabled it reads as 0.
+
+What do you think of adding the autopoints (I'm certain about the ones for 
+temp1, they behave 100% as expected)?
 
 Regards,
 
