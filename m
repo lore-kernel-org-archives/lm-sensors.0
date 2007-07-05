@@ -1,78 +1,70 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 08 Jul 2007 17:08:12 +0000
-Subject: Re: [lm-sensors] Howto handle alarms which need to be reset?
-Message-Id: <20070708190812.4c0c3466@hyperion.delvare>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Thu, 05 Jul 2007 16:32:06 +0000
+Subject: [lm-sensors] [PATCH] lm-sensors: detect more SMSC chips
+Message-Id: <191fb4ca0707050932w43ccb9fbub40e4b3098a71f36@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_116972_24211236.1183653126493"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <468B4474.5070309@hhs.nl>
-In-Reply-To: <468B4474.5070309@hhs.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+------=_Part_116972_24211236.1183653126493
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Sorry for the late reply.
+This patch adds more known SMSC Super IO chips to sensors-detect.
 
-On Thu, 05 Jul 2007 18:01:44 +0200, Hans de Goede wrote:
-> Replying to my own mails seems to become a bad habbit of mine.
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-Well, at least that makes always at least one person who replies to
-your posts ;)
+------=_Part_116972_24211236.1183653126493
+Content-Type: text/x-patch; name=lm-sensors-detect-more-smsc-chips.patch; 
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f3rgfm92
+Content-Disposition: attachment;
+	filename="lm-sensors-detect-more-smsc-chips.patch"
 
-> I think I've solved this I've done some reverse engineering on the fscher using 
-> i2cdump and i2cset and I've found the following undocumented registers (there 
-> are more undocumented ones, but for these I've now found the meaning)
-> 
-> 0x73 temp1_auto_point1_temp (unit degrees celcius + 128, just like temp1_input)
-> 0x75 temp1_auto_point2_temp (unit degrees celcius + 128, just like temp1_input)
-> 0x76 temp1_max              (unit degrees celcius + 128, just like temp1_input)
-> 
-> This I'm close to 100% sure off.
-> 
-> and:
-> 0x83 temp2_auto_point1_temp (unit degrees celcius + 128, just like temp2_input)
-> 0x86 temp2_max              (unit degrees celcius + 128, just like temp2_input)
-> 
-> Notice that 0x85 is missing, its 00 and cannot be written too, perhaps this has 
-> todo with the fact that my system has only one fan lowering 0x83 below temp2 
-> does make that one fan increase its speed. I guess 0x85 being 0 and 0x83 
-> influencing the same fan as which is controlled by the temp1 autopoints is 
-> regulated through the flags in 0x84, which are different from those in 0x74, I 
-> have no idea what these flags mean however.
-> 
-> and I think:
-> 0x93 temp3_auto_point1_temp (unit degrees celcius + 128, just like temp3_input)
-> 0x96 temp3_max              (unit degrees celcius + 128, just like temp3_input)
-> 
-> I say I think as my system doesn't have a third temp sensor connected, but they 
-> both have pretty realistic value for a system / case temp sensor, also notice 
-> the regular intervals between all the addresses.
-> 
-> Unfortunately I do not have access to an fscpos machine and thus cannot check 
-> if the same is true for the fscpos.
-> 
-> How to move forward now?
-> 
-> My plan is to write an updated fscher patch which adds tempX_max rw sysfs 
-> attributes, and use those to automatically reset the alarm.
-
-Sounds like a good plan.
-
-> I'm also considering adding autopoints sysfs attributes, but only for those 
-> autopoints which do not read 0, as the chip seems to have the ability to 
-> disable the 2nd autopoint for each temp and when it is disabled it reads as 0.
-> 
-> What do you think of adding the autopoints (I'm certain about the ones for 
-> temp1, they behave 100% as expected)?
-
-Please make it a separate patch. As these registers are undocumented,
-you need to find testers before pushing such a patch upstream.
-
--- 
-Jean Delvare
+LS0tIGxtLXNlbnNvcnMub3JpZy9wcm9nL2RldGVjdC9zZW5zb3JzLWRldGVjdAkyMDA3LTA3LTA1
+IDA4OjA3OjMwLjMzMjY2MzAwMCAtMDcwMAorKysgbG0tc2Vuc29ycy9wcm9nL2RldGVjdC9zZW5z
+b3JzLWRldGVjdAkyMDA3LTA3LTA1IDA5OjE1OjI4LjE5NDgwMTAwMCAtMDcwMApAQCAtMTc3MCw2
+ICsxNzcwLDc2IEBAIHVzZSB2YXJzIHF3KEBjaGlwX2tlcm4yNF9pZHMgQGNoaXBfa2VybjIKIAlk
+cml2ZXIgPT4gInZpYS1zbWJ1cy1vbmx5IiwKIAlkZXZpZCA9PiAweDc3LAogICAgICAgfSwKKyAg
+ICAgIHsKKwluYW1lID0+ICJTTVNDIEZEQzM3QjcyeCBTdXBlciBJTyIsCisJZHJpdmVyID0+ICJu
+b3QtYS1zZW5zb3IiLAorCWRldmlkID0+IDB4NGMsCisgICAgICB9LAorICAgICAgeworCW5hbWUg
+PT4gIlNNU0MgRkRDMzdCNzh4IFN1cGVyIElPIiwKKwlkcml2ZXIgPT4gIm5vdC1hLXNlbnNvciIs
+CisJZGV2aWQgPT4gMHg0NCwKKyAgICAgIH0sCisgICAgICB7CisJbmFtZSA9PiAiU01TQyBGREMz
+N0M2NzIgU3VwZXIgSU8iLAorCWRyaXZlciA9PiAibm90LWEtc2Vuc29yIiwKKwlkZXZpZCA9PiAw
+eDQwLAorICAgICAgfSwKKyAgICAgIHsKKwluYW1lID0+ICJTTVNDIEZEQzM3TTcwNyBTdXBlciBJ
+TyIsCisJZHJpdmVyID0+ICJub3QtYS1zZW5zb3IiLAorCWRldmlkID0+IDB4NDIsCisgICAgICB9
+LAorICAgICAgeworCW5hbWUgPT4gIlNNU0MgRkRDMzdNODF4IFN1cGVyIElPIiwKKwlkcml2ZXIg
+PT4gIm5vdC1hLXNlbnNvciIsCisJZGV2aWQgPT4gMHg0ZCwKKyAgICAgIH0sCisgICAgICB7CisJ
+bmFtZSA9PiAiU01TQyBMUEM0N0IzNHggU3VwZXIgSU8iLAorCWRyaXZlciA9PiAibm90LWEtc2Vu
+c29yIiwKKwlkZXZpZCA9PiAweDU2LAorICAgICAgfSwKKyAgICAgIHsKKwluYW1lID0+ICJTTVND
+IExQQzQ3QjM1NyBTdXBlciBJTyIsCisJIyBubyBkYXRhc2hlZXQKKwlkZXZpZCA9PiAweDVkLAor
+ICAgICAgfSwKKyAgICAgIHsKKwluYW1lID0+ICJTTVNDIExQQzQ3QjM3eCBTdXBlciBJTyIsCisJ
+ZHJpdmVyID0+ICJ0by1iZS13cml0dGVuIiwKKwlkZXZpZCA9PiAweDUyLAorICAgICAgfSwKKyAg
+ICAgIHsKKwluYW1lID0+ICJTTVNDIExQQzQ3TjI1MiBTdXBlciBJTyIsCisJZHJpdmVyID0+ICJ0
+by1iZS13cml0dGVuIiwKKwlkZXZpZCA9PiAweDBlLAorICAgICAgfSwKKyAgICAgIHsKKwluYW1l
+ID0+ICJTTVNDIExQQzQ3VTMzeCBTdXBlciBJTyIsCisJZHJpdmVyID0+ICJ0by1iZS13cml0dGVu
+IiwKKwlkZXZpZCA9PiAweDU0LAorICAgICAgfSwKKyAgICAgIHsKKwluYW1lID0+ICJTTVNDIFND
+SDMxMTIgU3VwZXIgSU8iLAorCWRyaXZlciA9PiAiZG1lMTczNyIsCisJZGV2aWQgPT4gMHg3YywK
+KyAgICAgIH0sCisgICAgICB7CisJbmFtZSA9PiAiU01TQyBTQ0gzMTE0IFN1cGVyIElPIiwKKwlk
+cml2ZXIgPT4gImRtZTE3MzciLAorCWRldmlkID0+IDB4N2QsCisgICAgICB9LAorICAgICAgewor
+CW5hbWUgPT4gIlNNU0MgU0NIMzExNiBTdXBlciBJTyIsCisJZHJpdmVyID0+ICJkbWUxNzM3IiwK
+KwlkZXZpZCA9PiAweDdmLAorICAgICAgfSwKKyAgICAgIHsKKwluYW1lID0+ICJTTVNDIFNDSDQz
+MDcgU3VwZXIgSU8iLAorCWRyaXZlciA9PiAidG8tYmUtd3JpdHRlbiIsCisJZGV2aWQgPT4gMHg5
+MCwKKyAgICAgIH0sCiAgICAgXSwKICAgICAjIE5vbi1zdGFuZGFyZCBTTVNDIGRldGVjdGlvbiBj
+YWxsYmFjayBhbmQgY2hpcCBsaXN0LiBUaGVzZSBjaGlwcyBkaWZmZXIKICAgICAjIGZyb20gdGhl
+IHN0YW5kYXJkIG9uZXMgbGlzdGVkIGFib3ZlIGluIHRoYXQgdGhlIGRldmljZSBJRCByZWdpc3Rl
+ciAK
+------=_Part_116972_24211236.1183653126493
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_116972_24211236.1183653126493--
