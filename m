@@ -1,106 +1,91 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Tue, 24 Jul 2007 03:41:03 +0000
-Subject: [lm-sensors] [PATCH 2/3] hwmon/dme1737: group functions logically
-Message-Id: <191fb4ca0707232041o3b7f26d9q4bb6e25f7064e6d1@mail.gmail.com>
+From: "John Beavers" <john@lightningsoftwaresolutions.com>
+Date: Thu, 05 Jul 2007 21:52:52 +0000
+Subject: [lm-sensors] Using libsensors in custom application
+Message-Id: <000001c7bf4e$d7dce200$0500a8c0@LSSDESIGN>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_146560_19774896.1185248463082"
+Content-Type: multipart/mixed; boundary="===============5675582010154215226=="
 List-Id: <lm-sensors.vger.kernel.org>
 To: lm-sensors@vger.kernel.org
 
-------=_Part_146560_19774896.1185248463082
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+This is a multi-part message in MIME format.
+
+--===============5675582010154215226==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0001_01C7BF24.EF0923F0"
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0001_01C7BF24.EF0923F0
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-Move functions to group them logically. Device and I2C functions go in separate
-places. No functional changes (really!).
+Hello,
+ 
+I'm trying to develop an application that can get the temperature of the CPU
+/ MB and send it to another machine on the network for remote temperature
+monitoring.  I've managed to compile and run a program that successfully
+sends test data over the network, reads chip data like sensors (using the
+same code), but I cannot get it to do both together.  Basically, I cannot
+tell where / how sensors is getting the information it is outputting to the
+screen.  I've tracked it down to m->fn(&name); in the do_a_print() function,
+but I cannot see how that line prints out the chip information.  My question
+is, is there a tutorial of how to use libsensors in an application
+somewhere, or can you give me a brief explanation of how to get the CPU  &
+MB temp from libsensors?
+ 
+Thanks,
+John Beavers
 
-Signed-off-by: Juerg Haefliger <juergh at gmail.com>
----
+------=_NextPart_000_0001_01C7BF24.EF0923F0
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-------=_Part_146560_19774896.1185248463082
-Content-Type: text/x-patch; 
-	name=hwmon-dme1737-group-functions-logically.patch; 
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f4hu8pmv
-Content-Disposition: attachment;
-	filename="hwmon-dme1737-group-functions-logically.patch"
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii">
+<META content=3D"MSHTML 6.00.3790.2920" name=3DGENERATOR></HEAD>
+<BODY>
+<DIV><SPAN class=3D890264621-05072007><FONT face=3DArial=20
+size=3D2>Hello,</FONT></SPAN></DIV>
+<DIV><SPAN class=3D890264621-05072007><FONT face=3DArial=20
+size=3D2></FONT></SPAN>&nbsp;</DIV>
+<DIV><SPAN class=3D890264621-05072007><FONT face=3DArial size=3D2>I'm =
+trying to=20
+develop an application that can get the temperature of the CPU / MB and =
+send it=20
+to another machine on the network for remote temperature =
+monitoring.&nbsp; I've=20
+managed to compile and run a program that successfully sends test data =
+over the=20
+network, reads chip data like sensors (using the same code), but I =
+cannot get it=20
+to do both together.&nbsp; Basically, I cannot tell where / how sensors =
+is=20
+getting the information it is outputting to the screen.&nbsp; I've =
+tracked it=20
+down to m-&gt;fn(&amp;name); in the do_a_print() function, but I cannot =
+see how=20
+that line prints out the chip information.&nbsp; My question is, is =
+there a=20
+tutorial of how to use libsensors in an application somewhere, or can =
+you give=20
+me a brief explanation of how to get the CPU&nbsp; &amp; MB temp from=20
+libsensors?</FONT></SPAN></DIV>
+<DIV><SPAN class=3D890264621-05072007><FONT face=3DArial=20
+size=3D2></FONT></SPAN>&nbsp;</DIV>
+<DIV><SPAN class=3D890264621-05072007><FONT face=3DArial=20
+size=3D2>Thanks,</FONT></SPAN></DIV>
+<DIV><SPAN class=3D890264621-05072007><FONT face=3DArial size=3D2>John=20
+Beavers</FONT></SPAN></DIV></BODY></HTML>
 
-TW92ZSBmdW5jdGlvbnMgdG8gZ3JvdXAgdGhlbSBsb2dpY2FsbHkuIERldmljZSBhbmQgSTJDIGZ1
-bmN0aW9ucyBnbyBpbiBzZXBhcmF0ZQpwbGFjZXMuIE5vIGZ1bmN0aW9uYWwgY2hhbmdlcyAocmVh
-bGx5ISkuCgpTaWduZWQtb2ZmLWJ5OiBKdWVyZyBIYWVmbGlnZXIgPGp1ZXJnaCBhdCBnbWFpbC5j
-b20+Ci0tLQpJbmRleDogbGludXgtMi42L2RyaXZlcnMvaHdtb24vZG1lMTczNy5jCj09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT0KLS0tIGxpbnV4LTIuNi5vcmlnL2RyaXZlcnMvaHdtb24vZG1lMTczNy5jCTIwMDctMDctMjMg
-MjA6MzU6MTYuMDAwMDAwMDAwIC0wNzAwCisrKyBsaW51eC0yLjYvZHJpdmVycy9od21vbi9kbWUx
-NzM3LmMJMjAwNy0wNy0yMyAyMDozNToyMi4wMDAwMDAwMDAgLTA3MDAKQEAgLTE2OTcsNTggKzE2
-OTcsMTEgQEAKIAlvdXRiKHZhbCwgc2lvX2NpcCArIDEpOwogfQogCi1zdGF0aWMgaW50IGRtZTE3
-MzdfaTJjX2dldF9mZWF0dXJlcyhpbnQgc2lvX2NpcCwgc3RydWN0IGRtZTE3MzdfZGF0YSAqZGF0
-YSkKLXsKLQlpbnQgZXJyID0gMCwgcmVnOwotCXUxNiBhZGRyOwotCi0JZG1lMTczN19zaW9fZW50
-ZXIoc2lvX2NpcCk7Ci0KLQkvKiBDaGVjayBkZXZpY2UgSUQKLQkgKiBUaGUgRE1FMTczNyBjYW4g
-cmV0dXJuIGVpdGhlciAweDc4IG9yIDB4NzcgYXMgaXRzIGRldmljZSBJRC4gKi8KLQlyZWcgPSBk
-bWUxNzM3X3Npb19pbmIoc2lvX2NpcCwgMHgyMCk7Ci0JaWYgKCEocmVnID09IDB4NzcgfHwgcmVn
-ID09IDB4NzgpKSB7Ci0JCWVyciA9IC1FTk9ERVY7Ci0JCWdvdG8gZXhpdDsKLQl9Ci0KLQkvKiBT
-ZWxlY3QgbG9naWNhbCBkZXZpY2UgQSAocnVudGltZSByZWdpc3RlcnMpICovCi0JZG1lMTczN19z
-aW9fb3V0YihzaW9fY2lwLCAweDA3LCAweDBhKTsKLQotCS8qIEdldCB0aGUgYmFzZSBhZGRyZXNz
-IG9mIHRoZSBydW50aW1lIHJlZ2lzdGVycyAqLwotCWlmICghKGFkZHIgPSAoZG1lMTczN19zaW9f
-aW5iKHNpb19jaXAsIDB4NjApIDw8IDgpIHwKLQkJICAgICAgZG1lMTczN19zaW9faW5iKHNpb19j
-aXAsIDB4NjEpKSkgewotCQllcnIgPSAtRU5PREVWOwotCQlnb3RvIGV4aXQ7Ci0JfQotCi0JLyog
-UmVhZCB0aGUgcnVudGltZSByZWdpc3RlcnMgdG8gZGV0ZXJtaW5lIHdoaWNoIG9wdGlvbmFsIGZl
-YXR1cmVzCi0JICogYXJlIGVuYWJsZWQgYW5kIGF2YWlsYWJsZS4gQml0cyBbMzoyXSBvZiByZWdp
-c3RlcnMgMHg0My0weDQ2IGFyZSBzZXQKLQkgKiB0byAnMTAnIGlmIHRoZSByZXNwZWN0aXZlIGZl
-YXR1cmUgaXMgZW5hYmxlZC4gKi8KLQlpZiAoKGluYihhZGRyICsgMHg0MykgJiAweDBjKSA9PSAw
-eDA4KSB7IC8qIGZhbjYgKi8KLQkJZGF0YS0+aGFzX2ZhbiB8PSAoMSA8PCA1KTsKLQl9Ci0JaWYg
-KChpbmIoYWRkciArIDB4NDQpICYgMHgwYykgPT0gMHgwOCkgeyAvKiBwd202ICovCi0JCWRhdGEt
-Pmhhc19wd20gfD0gKDEgPDwgNSk7Ci0JfQotCWlmICgoaW5iKGFkZHIgKyAweDQ1KSAmIDB4MGMp
-ID09IDB4MDgpIHsgLyogZmFuNSAqLwotCQlkYXRhLT5oYXNfZmFuIHw9ICgxIDw8IDQpOwotCX0K
-LQlpZiAoKGluYihhZGRyICsgMHg0NikgJiAweDBjKSA9PSAweDA4KSB7IC8qIHB3bTUgKi8KLQkJ
-ZGF0YS0+aGFzX3B3bSB8PSAoMSA8PCA0KTsKLQl9Ci0KLWV4aXQ6Ci0JZG1lMTczN19zaW9fZXhp
-dChzaW9fY2lwKTsKLQotCXJldHVybiBlcnI7Ci19Ci0KIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogICogRGV2
-aWNlIGRldGVjdGlvbiwgcmVnaXN0cmF0aW9uIGFuZCBpbml0aWFsaXphdGlvbgogICogLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tICovCiAKLXN0YXRpYyBzdHJ1Y3QgaTJjX2RyaXZlciBkbWUxNzM3X2kyY19kcml2ZXI7
-CitzdGF0aWMgaW50IGRtZTE3MzdfaTJjX2dldF9mZWF0dXJlcyhpbnQsIHN0cnVjdCBkbWUxNzM3
-X2RhdGEqKTsKIAogc3RhdGljIHZvaWQgZG1lMTczN19jaG1vZF9maWxlKHN0cnVjdCBkZXZpY2Ug
-KmRldiwKIAkJCSAgICAgICBzdHJ1Y3QgYXR0cmlidXRlICphdHRyLCBtb2RlX3QgbW9kZSkKQEAg
-LTE5NjcsNiArMTkyMCw1OSBAQAogCXJldHVybiAwOwogfQogCisvKiAtLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KKyAq
-IEkyQyBkZXZpY2UgZGV0ZWN0aW9uIGFuZCByZWdpc3RyYXRpb24KKyAqIC0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAq
-LworCitzdGF0aWMgc3RydWN0IGkyY19kcml2ZXIgZG1lMTczN19pMmNfZHJpdmVyOworCitzdGF0
-aWMgaW50IGRtZTE3MzdfaTJjX2dldF9mZWF0dXJlcyhpbnQgc2lvX2NpcCwgc3RydWN0IGRtZTE3
-MzdfZGF0YSAqZGF0YSkKK3sKKwlpbnQgZXJyID0gMCwgcmVnOworCXUxNiBhZGRyOworCisJZG1l
-MTczN19zaW9fZW50ZXIoc2lvX2NpcCk7CisKKwkvKiBDaGVjayBkZXZpY2UgSUQKKwkgKiBUaGUg
-RE1FMTczNyBjYW4gcmV0dXJuIGVpdGhlciAweDc4IG9yIDB4NzcgYXMgaXRzIGRldmljZSBJRC4g
-Ki8KKwlyZWcgPSBkbWUxNzM3X3Npb19pbmIoc2lvX2NpcCwgMHgyMCk7CisJaWYgKCEocmVnID09
-IDB4NzcgfHwgcmVnID09IDB4NzgpKSB7CisJCWVyciA9IC1FTk9ERVY7CisJCWdvdG8gZXhpdDsK
-Kwl9CisKKwkvKiBTZWxlY3QgbG9naWNhbCBkZXZpY2UgQSAocnVudGltZSByZWdpc3RlcnMpICov
-CisJZG1lMTczN19zaW9fb3V0YihzaW9fY2lwLCAweDA3LCAweDBhKTsKKworCS8qIEdldCB0aGUg
-YmFzZSBhZGRyZXNzIG9mIHRoZSBydW50aW1lIHJlZ2lzdGVycyAqLworCWlmICghKGFkZHIgPSAo
-ZG1lMTczN19zaW9faW5iKHNpb19jaXAsIDB4NjApIDw8IDgpIHwKKwkJICAgICAgZG1lMTczN19z
-aW9faW5iKHNpb19jaXAsIDB4NjEpKSkgeworCQllcnIgPSAtRU5PREVWOworCQlnb3RvIGV4aXQ7
-CisJfQorCisJLyogUmVhZCB0aGUgcnVudGltZSByZWdpc3RlcnMgdG8gZGV0ZXJtaW5lIHdoaWNo
-IG9wdGlvbmFsIGZlYXR1cmVzCisJICogYXJlIGVuYWJsZWQgYW5kIGF2YWlsYWJsZS4gQml0cyBb
-MzoyXSBvZiByZWdpc3RlcnMgMHg0My0weDQ2IGFyZSBzZXQKKwkgKiB0byAnMTAnIGlmIHRoZSBy
-ZXNwZWN0aXZlIGZlYXR1cmUgaXMgZW5hYmxlZC4gKi8KKwlpZiAoKGluYihhZGRyICsgMHg0Mykg
-JiAweDBjKSA9PSAweDA4KSB7IC8qIGZhbjYgKi8KKwkJZGF0YS0+aGFzX2ZhbiB8PSAoMSA8PCA1
-KTsKKwl9CisJaWYgKChpbmIoYWRkciArIDB4NDQpICYgMHgwYykgPT0gMHgwOCkgeyAvKiBwd202
-ICovCisJCWRhdGEtPmhhc19wd20gfD0gKDEgPDwgNSk7CisJfQorCWlmICgoaW5iKGFkZHIgKyAw
-eDQ1KSAmIDB4MGMpID09IDB4MDgpIHsgLyogZmFuNSAqLworCQlkYXRhLT5oYXNfZmFuIHw9ICgx
-IDw8IDQpOworCX0KKwlpZiAoKGluYihhZGRyICsgMHg0NikgJiAweDBjKSA9PSAweDA4KSB7IC8q
-IHB3bTUgKi8KKwkJZGF0YS0+aGFzX3B3bSB8PSAoMSA8PCA0KTsKKwl9CisKK2V4aXQ6CisJZG1l
-MTczN19zaW9fZXhpdChzaW9fY2lwKTsKKworCXJldHVybiBlcnI7Cit9CisKIHN0YXRpYyBpbnQg
-ZG1lMTczN19pMmNfZGV0ZWN0KHN0cnVjdCBpMmNfYWRhcHRlciAqYWRhcHRlciwgaW50IGFkZHJl
-c3MsCiAJCQkgICAgICBpbnQga2luZCkKIHsKQEAgLTIwOTAsNiArMjA5NiwxMCBAQAogCS5kZXRh
-Y2hfY2xpZW50ID0gZG1lMTczN19pMmNfZGV0YWNoX2NsaWVudCwKIH07CiAKKy8qIC0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLQorICogTW9kdWxlIGluaXRpYWxpemF0aW9uIGFuZCBjbGVhbnVwCisgKiAtLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0gKi8KKwogc3RhdGljIGludCBfX2luaXQgZG1lMTczN19pbml0KHZvaWQpCiB7CiAJcmV0dXJu
-IGkyY19hZGRfZHJpdmVyKCZkbWUxNzM3X2kyY19kcml2ZXIpOwo=
-------=_Part_146560_19774896.1185248463082
+------=_NextPart_000_0001_01C7BF24.EF0923F0--
+
+
+
+--===============5675582010154215226==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -110,4 +95,5 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_146560_19774896.1185248463082--
+--===============5675582010154215226==--
+
