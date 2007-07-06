@@ -1,7 +1,7 @@
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
-Date: Fri, 06 Jul 2007 15:56:06 +0000
+From: "Bart van Kuik" <lmsensors@vankuik.nl>
+Date: Fri, 06 Jul 2007 16:33:44 +0000
 Subject: Re: [lm-sensors] Odp:  Sensors working on DL360?
-Message-Id: <20070706175606.b42cb918.krzysztof.h1@wp.pl>
+Message-Id: <40196.83.87.167.242.1183739624.squirrel@webmail4.transip.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <468e04f3cde05@wp.pl>
 In-Reply-To: <468e04f3cde05@wp.pl>
@@ -10,36 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 6 Jul 2007 15:57:22 +0200 (CEST)
-"Bart van Kuik" <lmsensors@vankuik.nl> wrote:
+> Devices logo (white square with black triangle) in the middle of the chip.
+> The top line says "1022" or "1022A" (it depends on chip revision).
 
-> Hi Krzysztof,
-> 
-> Then compiled and installed with "make user && make user_install". But I
-> don't get results:
-> 
->     # sensors -c /etc/sensors.conf "thmc-*"
->     Specified sensor(s) not found!
-> 
+Yeah, it's there and I made a photo of it. It's right in the middle of the
+picture:
 
-There is no thmc50 module in the 2.6.18 kernel. You need to download the patch from the
-list and compile the kernel by yourself. If you need help, please email me directly.
+  http://www.vankuik.nl/download/1022a_on_compaq_dl360_motherboard
 
-> Also, can I visually identify this chipset somehow on the motherboard?
-> I've tried to look for an IC marked "TI", but couldn't find it.
-> 
-I have a Compaq motherboard from the same era (dual Pentium3) and it uses ADM1022 chip
-(which is also handled by thmc50 driver). A manufacturer marking is a small Analog
-Devices logo (white square with black triangle) in the middle of the chip. The top line
-says "1022" or "1022A" (it depends on chip revision). The chips are quite small about
-6x4 mm and at least one should be located next to CPU slots (the one which controls CPU
-temperature).
+I found only one and I looked pretty thoroughly. Anyway, it's not even
+_close_ to the CPU sockets (two sockets, one taken), a bit funny that.
 
-It would be great if you can confirm that the DL360 uses this chip type (or maybe not
-use).
+Some ASCII art
 
-Regards,
-Krzysztof
+ -------------Casing-------------
+ |                              |
+ |                              |
+ |           --------           |
+ |           |      |           |
+ |           |      --Mobo----  |
+ |           |               |  |
+ |           |               |  |
+ |           |               |  |
+ |           |               |  |
+ |           |           CPU0|  |
+ |           | Sens          |  |
+ |           |           CPU1|  |
+ |           |               |  |
+ |           |               |  |
+ |           -----------------  |
+ --------------------------------
+
+
+I'm going to try and compile the patch.
+
+B
+
 
 _______________________________________________
 lm-sensors mailing list
