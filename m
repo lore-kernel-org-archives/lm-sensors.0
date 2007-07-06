@@ -1,53 +1,45 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sat, 07 Jul 2007 18:58:47 +0000
-Subject: Re: [lm-sensors] add f71882fg sensors.conf.eg entry
-Message-Id: <468FE267.8020608@hhs.nl>
+From: "Bart van Kuik" <lmsensors@vankuik.nl>
+Date: Fri, 06 Jul 2007 07:38:31 +0000
+Subject: [lm-sensors] Sensors working on DL360?
+Message-Id: <57849.83.87.167.242.1183707511.squirrel@webmail4.transip.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070707203611.7fc66d12@hyperion.delvare>
-In-Reply-To: <20070707203611.7fc66d12@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
->>       Author: jwrdegoede
->>         Date: Sat Jul  7 18:57:07 2007
->> New Revision: 4580
->>    Changeset: http://lm-sensors.org/changeset/4580
->>
->> Modified:
->>    lm-sensors/branches/lm-sensors-3.0.0/etc/sensors.conf.eg
->>
->> Log:
->> add f71882fg sensors.conf.eg entry
-> 
->> +# Fans
->> +    label fan1        "CPU"
->> +    ignore fan2
->> +    ignore fan3
->> +    ignore fan4
-> 
-> I don't think that having ignore statements by default is a very good
-> idea. I can already hear users asking on the mailing list where are
-> their missing fan values. The entries in sensors.conf.eg should be
-> relatively generic.
+Hi list,
 
-Good point, I guess the motherboard may haven connectors, I just haven't 
-plugged anything in. I'll try to see how the connectors are labeled this monday 
-and update sensors.conf.eg accordingly.
+I'm trying to get sensor readouts on a Compaq DL360 (not the later HP
+branded ones, but the series with a Pentium 3). sensors-detect didn't
+return any possible chipsets, but if you're interested, here's the output:
 
-> If you have a good configuration file for your
-> motherboard, better add it to the wiki.
->
+ http://www.vankuik.nl/download/Compaq_sensors-detect_readout
 
-Already done :)
+Output of lspci -v -v gives:
 
-Regards,
+ 00:04.0 System peripheral: Compaq Computer Corporation Advanced System
+         Management Controller
+         Subsystem: Compaq Computer Corporation Unknown device b0f3
+         Control: I/O- Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop-
+                  ParErr- Stepping- SERR+ FastB2B-
+         Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium
+                 >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+         Interrupt: pin A routed to IRQ 255
+         Region 0: I/O ports at 1800 [disabled] [size%6]
+         Region 1: Memory at c3ffef00 (32-bit, non-prefetchable) [size%6]
 
-Hans
+Output of ls-pci -n gives for this peripheral:
+ 00:04.0 0880: 0e11:a0f0
+
+I've found references to a "Compaq health & Welness driver" but it's
+binary and very old (pre 2.6). I'm running CentOS 5 (i.e. a RedHat AS
+clone), kernel version 2.6.18 and lm_sensors 2.10.
+
+Has anyone gotten this working?
+
+Thanks,
+Bart
 
 
 _______________________________________________
