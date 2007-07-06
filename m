@@ -1,69 +1,39 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Tue, 24 Jul 2007 21:01:04 +0000
-Subject: Re: [lm-sensors] ADT7475 lm_sensors / linux driver
-Message-Id: <46A66890.6060900@hhs.nl>
+From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
+Date: Fri, 06 Jul 2007 09:01:39 +0000
+Subject: [lm-sensors] Odp:  Sensors working on DL360?
+Message-Id: <468e04f3cde05@wp.pl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46A6071C.5020809@hhs.nl>
-In-Reply-To: <46A6071C.5020809@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Joel McKee Cooper wrote:
-> Hans -
-> 
-> I got sidetracked with, well, Deathly Hallows (among other things) and
-> haven't had a chance yet to look into the driver :)  Feel free to have
-> the slaves^H^H^H^H^H^H students take a whack at it - sounds like a
-> great idea!
-> 
-> I've got an ASUS M2N-SLI Deluxe Socket AM2 NVIDIA nForce 570 SLI MCP
-> ATX AMD Motherboard.  Here's the sensors-detect output:
-> 
+Dnia 6-07-2007 o godz. 9:38 Bart van Kuik napisa=B3(a):
+> Hi list,
+>=20
+> I'm trying to get sensor readouts on a Compaq DL360 (not the
+later HP
+> branded ones, but the series with a Pentium 3).
 
-Thanks for the reply, I'll keep this driver on my list of possible lab 
-assignments then, do you happen to know if the non SLI versions of the ASUS M2N 
-familiy have the same chip?
+My bet it uses thmc50 driver which is just being ported to 2.6.
+You can download my latest patch and try.
 
-Thanks & Regards,
+It does not work with lmsensors 2.x, you need to download the
+latest lmsensors 3 branch.
 
-Hans
+It is I2C sensor. The I2C sensors were not scanned by your
+detection script for unknown reason.
+
+Regards,
+Krzysztof
 
 
-> On 7/24/07, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
->> Hi,
->>
->> Short intro: I'm the author of several 2.6 hwmon drivers, and I'm also a
->> teacher in computer science at a Dutch University. Coming September I 
->> will be
->> giving a class in writing Linux device drivers and I want to use some 
->> real
->> world examples as lab exercises.
->>
->> This could include letting the students write a driver for the 
->> ADT7475, which I
->> will then submit to the kernel and maintain, unless the students want 
->> to do
->> this him / her self.
->>
->> Which leads me to the question what the status is of your attempts to 
->> write a
->> driver, I preferably don't want my students to do something that has 
->> already be
->> done. Also what asus motherboard do you have _exactly_, because if my 
->> students
->> are going to take a go at this, I will need to buy a motherboard with 
->> this chip
->> on it for them to develop on.
->>
->> Thanks & Regards,
->>
->> Hans
->>
->>
->>
-> 
+----------------------------------------------------
+Zobacz, co m=F3wi=B1 wakacyjne przepowiednie tarota.
+Czy b=EAd=B1 to wakacje Twoich marze=F1?
+http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Fadv.reklama.wp.pl%2Fas%2Fd116.html&si=
+d=1215
+
 
 
 _______________________________________________
