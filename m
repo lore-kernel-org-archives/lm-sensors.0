@@ -1,220 +1,176 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 04 Jul 2007 14:42:57 +0000
-Subject: [lm-sensors] PATCH: hwmon-fscpos-individual-alarm-files-v2.patch
-Message-Id: <468BB1F1.9010401@hhs.nl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------050409010402090605060206"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 06 Jul 2007 15:55:05 +0000
+Subject: [lm-sensors] [PATCH] hwmon/it87: Add support for fan4 and fan5
+Message-Id: <20070706175505.33f91d9f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <468A46FC.5070505@hhs.nl>
-In-Reply-To: <468A46FC.5070505@hhs.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050409010402090605060206
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Add support for the IT8716F and IT8718F fan4 and fan5. The late
+revisions of the IT8712F have these too but support is harder to add
+and nobody asked for it yet, so I didn't include it.
 
-Hi all,
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ Documentation/hwmon/it87 |    3 +-
+ drivers/hwmon/it87.c     |   54 +++++++++++++++++++++++++++++++++-------------
+ 2 files changed, 41 insertions(+), 16 deletions(-)
 
-This is version 2 (non incremental) of the patch adding individual alarm and
-fault files to the fscpos driver. This driver uses the status registers for
-the alarms instead of the global event register, allowing seperate alarms
-for all sensors. Also it makes the _alarm files r/w, writing 0 to them
-resets the alarm flag (this is not done automatically be the hardware once an
-alarm condition is cleared).
-
-Notice that:
-- I now have an PDF so all used registers and masks are verified now
-- Since I do not have a machine with such a beast this patch is NOT tested!
-- Since writing the alarm files with 0 clears the alarm, the tempX_reset
-   sysfs attributes may be removed
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-
-Regards,
-
-Hans
-
---------------050409010402090605060206
-Content-Type: text/x-patch; name="hwmon-fscpos-individual-alarm-files-v2.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="hwmon-fscpos-individual-alarm-files-v2.patch"
-
-This is version 2 (non incremental) of the patch adding individual alarm and
-fault files to the fscpos driver. This driver uses the status registers for
-the alarms instead of the global event register, allowing seperate alarms
-for all sensors. Also it makes the _alarm files r/w, writing 0 to them
-resets the alarm flag (this is not done automatically be the hardware once an
-alarm condition is cleared).
-
-Notice that:
-- I now have an PDF so all used registers and masks are verified now
-- Since I do not have a machine with such a beast this patch is NOT tested!
-- Since writing the alarm files with 0 clears the alarm, the tempX_reset
-  sysfs attributes may be removed
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-diff -up linux-2.6.22-rc4/drivers/hwmon/fscpos.c~ linux-2.6.22-rc4/drivers/hwmon/fscpos.c
---- linux-2.6.22-rc4/drivers/hwmon/fscpos.c~	2007-07-03 14:34:43.000000000 +0200
-+++ linux-2.6.22-rc4/drivers/hwmon/fscpos.c	2007-07-04 16:30:00.000000000 +0200
-@@ -150,6 +150,15 @@ static ssize_t show_temp_status(struct f
- 	return sprintf(buf, "%u\n", data->temp_status[nr - 1] & 0x03);
- }
+--- linux-2.6.22-rc7.orig/drivers/hwmon/it87.c	2007-07-06 13:02:39.000000000 +0200
++++ linux-2.6.22-rc7/drivers/hwmon/it87.c	2007-07-06 16:38:28.000000000 +0200
+@@ -141,10 +141,10 @@ static int fix_pwm_polarity;
  
-+static ssize_t show_temp_fault(struct fscpos_data *data, char *buf, int nr)
-+{
-+	/* bit 0 set means sensor working ok, so no fault! */
-+	if (data->temp_status[nr - 1] & 0x01)
-+		return sprintf(buf, "0\n");
-+	else
-+		return sprintf(buf, "1\n");
-+}
-+
- static ssize_t show_temp_reset(struct fscpos_data *data, char *buf, int nr)
- {
- 	return sprintf(buf, "1\n");
-@@ -241,6 +250,60 @@ static ssize_t set_pwm(struct i2c_client
+ /* Monitors: 9 voltage (0 to 7, battery), 3 temp (1 to 3), 3 fan (1 to 3) */
+ 
+-#define IT87_REG_FAN(nr)       (0x0d + (nr))
+-#define IT87_REG_FAN_MIN(nr)   (0x10 + (nr))
+-#define IT87_REG_FANX(nr)      (0x18 + (nr))
+-#define IT87_REG_FANX_MIN(nr)  (0x1b + (nr))
++static const u8 IT87_REG_FAN[]		= { 0x0d, 0x0e, 0x0f, 0x80, 0x82 };
++static const u8 IT87_REG_FAN_MIN[]	= { 0x10, 0x11, 0x12, 0x84, 0x86 };
++static const u8 IT87_REG_FANX[]		= { 0x18, 0x19, 0x1a, 0x81, 0x83 };
++static const u8 IT87_REG_FANX_MIN[]	= { 0x1b, 0x1c, 0x1d, 0x85, 0x87 };
+ #define IT87_REG_FAN_MAIN_CTRL 0x13
+ #define IT87_REG_FAN_CTL       0x14
+ #define IT87_REG_PWM(nr)       (0x15 + (nr))
+@@ -235,8 +235,8 @@ struct it87_data {
+ 	u8 in_max[8];		/* Register value */
+ 	u8 in_min[8];		/* Register value */
+ 	u8 has_fan;		/* Bitfield, fans enabled */
+-	u16 fan[3];		/* Register values, possibly combined */
+-	u16 fan_min[3];		/* Register values, possibly combined */
++	u16 fan[5];		/* Register values, possibly combined */
++	u16 fan_min[5];		/* Register values, possibly combined */
+ 	u8 temp[3];		/* Register value */
+ 	u8 temp_high[3];	/* Register value */
+ 	u8 temp_low[3];		/* Register value */
+@@ -555,7 +555,7 @@ static ssize_t set_fan_min(struct device
+ 	}
+ 
+ 	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
+-	it87_write_value(data, IT87_REG_FAN_MIN(nr), data->fan_min[nr]);
++	it87_write_value(data, IT87_REG_FAN_MIN[nr], data->fan_min[nr]);
+ 	mutex_unlock(&data->update_lock);
  	return count;
  }
+@@ -596,7 +596,7 @@ static ssize_t set_fan_div(struct device
  
-+static ssize_t set_fan_alarm(struct i2c_client *client, struct fscpos_data *data,
-+			      const char *buf, size_t count, int nr, int reg)
-+{
-+	unsigned long v = simple_strtoul(buf, NULL, 10);
-+
-+	if (v == 0) { /* clear alarm? */
-+		mutex_lock(&data->update_lock);
-+		fscpos_write_value(client, reg, 0x04);
-+		data->fan_status[nr - 1] &= ~0x04;
-+		mutex_unlock(&data->update_lock);
-+	}
-+	return count;
-+}
-+
-+static ssize_t show_fan_alarm (struct fscpos_data *data, char *buf, int nr)
-+{
-+	if (data->fan_status[nr - 1] & 0x04)
-+		return sprintf(buf, "1\n");
-+	else
-+		return sprintf(buf, "0\n");
-+}
-+
-+static ssize_t set_temp_alarm(struct i2c_client *client, struct fschpos_data *data,
-+			       const char *buf, size_t count, int nr, int reg)
-+{
-+	unsigned long v = simple_strtoul(buf, NULL, 10);
-+
-+	if (v == 0) { /* clear alarm? */
-+		mutex_lock(&data->update_lock);
-+		fscpos_write_value(client, reg, 0x02);
-+		data->temp_status[nr - 1] &= ~0x02;
-+		mutex_unlock(&data->update_lock);
-+	}
-+	return count;
-+}
-+
-+static ssize_t show_temp_alarm (struct fscpos_data *data, char *buf, int nr)
-+{
-+	/* only signal an alarm if the sensor is working and alert == 1 */
-+	if ((data->temp_status[nr - 1] & 0x03) == 0x03)
-+		return sprintf(buf, "1\n");
-+	else
-+		return sprintf(buf, "0\n");
-+}
-+
-+static ssize_t show_wdog_alarm (struct fscpos_data *data, char *buf)
-+{
-+	if (data->global_event & 0x08)
-+		return sprintf(buf, "1\n");
-+	else
-+		return sprintf(buf, "0\n");
-+}
-+
-+
- static void reset_fan_alarm(struct i2c_client *client, int nr)
- {
- 	fscpos_write_value(client, FSCPOS_REG_FAN_STATE[nr], 4);
-@@ -386,6 +449,10 @@ static ssize_t show_event(struct device 
- 	create_getter_n(kind, offset, sub); \
- 	create_sysfs_device_ro(kind, sub, offset);
+ 	/* Restore fan min limit */
+ 	data->fan_min[nr] = FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
+-	it87_write_value(data, IT87_REG_FAN_MIN(nr), data->fan_min[nr]);
++	it87_write_value(data, IT87_REG_FAN_MIN[nr], data->fan_min[nr]);
  
-+#define sysfs_ro(kind, sub) \
-+	create_getter(kind, sub); \
-+	create_sysfs_device_ro(kind, sub,);
-+
- #define sysfs_rw_n(kind, sub, offset, reg) \
- 	create_getter_n(kind, offset, sub); \
- 	create_setter_n(kind, offset, sub, reg); \
-@@ -403,14 +470,18 @@ static ssize_t show_event(struct device 
- #define sysfs_fan(offset, reg_status, reg_ripple) \
- 	sysfs_ro_n(fan, _input, offset); \
- 	sysfs_ro_n(fan, _status, offset); \
-+	sysfs_rw_n(fan, _alarm, offset, reg_status); \
- 	sysfs_rw_n(fan, _ripple, offset, reg_ripple);
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+@@ -729,9 +729,9 @@ static ssize_t set_fan16_min(struct devi
  
- #define sysfs_temp(offset, reg_status) \
- 	sysfs_ro_n(temp, _input, offset); \
- 	sysfs_ro_n(temp, _status, offset); \
-+	sysfs_rw_n(temp, _alarm, offset, reg_status); \
-+	sysfs_ro_n(temp, _fault, offset); \
- 	sysfs_rw_n(temp, _reset, offset, reg_status);
+ 	mutex_lock(&data->update_lock);
+ 	data->fan_min[nr] = FAN16_TO_REG(val);
+-	it87_write_value(data, IT87_REG_FAN_MIN(nr),
++	it87_write_value(data, IT87_REG_FAN_MIN[nr],
+ 			 data->fan_min[nr] & 0xff);
+-	it87_write_value(data, IT87_REG_FANX_MIN(nr),
++	it87_write_value(data, IT87_REG_FANX_MIN[nr],
+ 			 data->fan_min[nr] >> 8);
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+@@ -751,6 +751,8 @@ static struct sensor_device_attribute se
+ show_fan16_offset(1);
+ show_fan16_offset(2);
+ show_fan16_offset(3);
++show_fan16_offset(4);
++show_fan16_offset(5);
  
- #define sysfs_watchdog(reg_wdog_preset, reg_wdog_state, reg_wdog_control) \
-+	sysfs_ro(wdog, _alarm); \
- 	sysfs_rw(wdog, _control, reg_wdog_control); \
- 	sysfs_rw(wdog, _preset, reg_wdog_preset); \
- 	sysfs_rw(wdog, _state, reg_wdog_state);
-@@ -442,28 +513,38 @@ static struct attribute *fscpos_attribut
- 	&dev_attr_wdog_control.attr,
- 	&dev_attr_wdog_preset.attr,
- 	&dev_attr_wdog_state.attr,
-+	&dev_attr_wdog_alarm.attr,
+ /* Alarms */
+ static ssize_t show_alarms(struct device *dev, struct device_attribute *attr, char *buf)
+@@ -851,6 +853,10 @@ static struct attribute *it87_attributes
+ 	&sensor_dev_attr_fan2_min16.dev_attr.attr,
+ 	&sensor_dev_attr_fan3_input16.dev_attr.attr,
+ 	&sensor_dev_attr_fan3_min16.dev_attr.attr,
++	&sensor_dev_attr_fan4_input16.dev_attr.attr,
++	&sensor_dev_attr_fan4_min16.dev_attr.attr,
++	&sensor_dev_attr_fan5_input16.dev_attr.attr,
++	&sensor_dev_attr_fan5_min16.dev_attr.attr,
  
- 	&dev_attr_temp1_input.attr,
- 	&dev_attr_temp1_status.attr,
- 	&dev_attr_temp1_reset.attr,
-+	&dev_attr_temp1_fault.attr,
-+	&dev_attr_temp1_alarm.attr,
- 	&dev_attr_temp2_input.attr,
- 	&dev_attr_temp2_status.attr,
- 	&dev_attr_temp2_reset.attr,
-+	&dev_attr_temp2_fault.attr,
-+	&dev_attr_temp2_alarm.attr,
- 	&dev_attr_temp3_input.attr,
- 	&dev_attr_temp3_status.attr,
- 	&dev_attr_temp3_reset.attr,
-+	&dev_attr_temp3_fault.attr,
-+	&dev_attr_temp3_alarm.attr,
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_min.dev_attr.attr,
+@@ -1024,6 +1030,20 @@ static int __devinit it87_probe(struct p
+ 			     &sensor_dev_attr_fan3_min16.dev_attr)))
+ 				goto ERROR4;
+ 		}
++		if (data->has_fan & (1 << 3)) {
++			if ((err = device_create_file(dev,
++			     &sensor_dev_attr_fan4_input16.dev_attr))
++			 || (err = device_create_file(dev,
++			     &sensor_dev_attr_fan4_min16.dev_attr)))
++				goto ERROR4;
++		}
++		if (data->has_fan & (1 << 4)) {
++			if ((err = device_create_file(dev,
++			     &sensor_dev_attr_fan5_input16.dev_attr))
++			 || (err = device_create_file(dev,
++			     &sensor_dev_attr_fan5_min16.dev_attr)))
++				goto ERROR4;
++		}
+ 	} else {
+ 		/* 8-bit tachometers with clock divider */
+ 		if (data->has_fan & (1 << 0)) {
+@@ -1260,6 +1280,10 @@ static void __devinit it87_init_device(s
+ 			it87_write_value(data, IT87_REG_FAN_16BIT,
+ 					 tmp | 0x07);
+ 		}
++		if (tmp & (1 << 4))
++			data->has_fan |= (1 << 3);	/* fan4 enabled */
++		if (tmp & (1 << 5))
++			data->has_fan |= (1 << 4);	/* fan5 enabled */
+ 	}
  
- 	&dev_attr_fan1_input.attr,
- 	&dev_attr_fan1_status.attr,
- 	&dev_attr_fan1_ripple.attr,
-+	&dev_attr_fan1_alarm.attr,
- 	&dev_attr_pwm1.attr,
- 	&dev_attr_fan2_input.attr,
- 	&dev_attr_fan2_status.attr,
- 	&dev_attr_fan2_ripple.attr,
-+	&dev_attr_fan2_alarm.attr,
- 	&dev_attr_pwm2.attr,
- 	&dev_attr_fan3_input.attr,
- 	&dev_attr_fan3_status.attr,
- 	&dev_attr_fan3_ripple.attr,
-+	&dev_attr_fan3_alarm.attr,
- 	NULL
- };
+ 	/* Set current fan mode registers and the default settings for the
+@@ -1314,21 +1338,21 @@ static struct it87_data *it87_update_dev
+ 		data->in[8]  		    it87_read_value(data, IT87_REG_VIN(8));
  
+-		for (i = 0; i < 3; i++) {
++		for (i = 0; i < 5; i++) {
+ 			/* Skip disabled fans */
+ 			if (!(data->has_fan & (1 << i)))
+ 				continue;
+ 
+ 			data->fan_min[i] -			    it87_read_value(data, IT87_REG_FAN_MIN(i));
++			    it87_read_value(data, IT87_REG_FAN_MIN[i]);
+ 			data->fan[i] = it87_read_value(data,
+-				       IT87_REG_FAN(i));
++				       IT87_REG_FAN[i]);
+ 			/* Add high byte if in 16-bit mode */
+ 			if (data->type = it8716 || data->type = it8718) {
+ 				data->fan[i] |= it87_read_value(data,
+-						IT87_REG_FANX(i)) << 8;
++						IT87_REG_FANX[i]) << 8;
+ 				data->fan_min[i] |= it87_read_value(data,
+-						IT87_REG_FANX_MIN(i)) << 8;
++						IT87_REG_FANX_MIN[i]) << 8;
+ 			}
+ 		}
+ 		for (i = 0; i < 3; i++) {
+--- linux-2.6.22-rc7.orig/Documentation/hwmon/it87	2007-07-04 10:50:11.000000000 +0200
++++ linux-2.6.22-rc7/Documentation/hwmon/it87	2007-07-06 14:02:26.000000000 +0200
+@@ -90,7 +90,8 @@ upper VID bits share their pins with vol
+ can't have both on a given board.
+ 
+ The IT8716F, IT8718F and later IT8712F revisions have support for
+-2 additional fans. They are not yet supported by the driver.
++2 additional fans. They are supported by the driver for the IT8716F and
++IT8718F but not for the IT8712F
+ 
+ The IT8716F and IT8718F, and late IT8712F and IT8705F also have optional
+ 16-bit tachometer counters for fans 1 to 3. This is better (no more fan
 
---------------050409010402090605060206
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------050409010402090605060206--
-
