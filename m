@@ -1,38 +1,44 @@
-From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
-Date: Fri, 06 Jul 2007 09:01:39 +0000
-Subject: [lm-sensors] Odp:  Sensors working on DL360?
-Message-Id: <468e04f3cde05@wp.pl>
+From: "Bart van Kuik" <lmsensors@vankuik.nl>
+Date: Fri, 06 Jul 2007 13:57:22 +0000
+Subject: Re: [lm-sensors] Odp:  Sensors working on DL360?
+Message-Id: <50821.83.87.167.242.1183730242.squirrel@webmail4.transip.nl>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <468e04f3cde05@wp.pl>
+In-Reply-To: <468e04f3cde05@wp.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dnia 6-07-2007 o godz. 9:38 Bart van Kuik napisa=B3(a):
-> Hi list,
->=20
-> I'm trying to get sensor readouts on a Compaq DL360 (not the
-later HP
-> branded ones, but the series with a Pentium 3).
+Hi Krzysztof,
 
-My bet it uses thmc50 driver which is just being ported to 2.6.
-You can download my latest patch and try.
+>> I'm trying to get sensor readouts on a Compaq DL360
+> My bet it uses thmc50 driver which is just being ported to 2.6.
 
-It does not work with lmsensors 2.x, you need to download the
-latest lmsensors 3 branch.
+I must be doing something wrong. I've retrieved the latest lm-sensors code
+from SVN using
 
-It is I2C sensor. The I2C sensors were not scanned by your
-detection script for unknown reason.
+    svn checkout http://lm-sensors.org/svn/lm-sensors/trunk lm-sensors
 
-Regards,
-Krzysztof
+Then compiled and installed with "make user && make user_install". But I
+don't get results:
 
+    # sensors -c /etc/sensors.conf "thmc-*"
+    Specified sensor(s) not found!
 
-----------------------------------------------------
-Zobacz, co m=F3wi=B1 wakacyjne przepowiednie tarota.
-Czy b=EAd=B1 to wakacje Twoich marze=F1?
-http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Fadv.reklama.wp.pl%2Fas%2Fd116.html&si=
-d=1215
+Also, can I visually identify this chipset somehow on the motherboard?
+I've tried to look for an IC marked "TI", but couldn't find it.
+
+Output of lsmod is here:
+    http://www.vankuik.nl/download/lsmod_output
+
+Output of "uname -r" is:
+
+    2.6.18-8.1.6.el5xen
+
+Any ideas?
+
+Bart
 
 
 
