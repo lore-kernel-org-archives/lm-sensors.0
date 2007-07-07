@@ -1,63 +1,48 @@
-From: =?windows-1250?Q?Petr_Jake=9A?= <petr.jakes@tpc.cz>
-Date: Wed, 11 Jul 2007 18:08:41 +0000
-Subject: Re: [lm-sensors] py-smbus
-Message-Id: <8110465348.20070711200841@tpc.cz>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 07 Jul 2007 15:49:35 +0000
+Subject: Re: [lm-sensors] Better generic print fault handling
+Message-Id: <20070707174935.7d4e56e4@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1183894739.4690ccd3a0748@webmail.monix.cz>
-In-Reply-To: <1183894739.4690ccd3a0748@webmail.monix.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Thu, 5 Jul 2007 23:03:12 +0200 (CEST), lm-sensors-notify@lm-sensors.org wrote:
+>       Author: jwrdegoede
+>         Date: Thu Jul  5 23:03:06 2007
+> New Revision: 4559
+>    Changeset: http://lm-sensors.org/changeset/4559
+> 
+> Modified:
+>    lm-sensors/branches/lm-sensors-3.0.0/prog/sensors/chips.c
+>    lm-sensors/branches/lm-sensors-3.0.0/prog/sensors/chips_generic.c
+> 
+> Log:
+> Better generic print fault handling
 
-MMH> Hi Petr:
+OK, it works (tested with an ADM1032 in both degrees C and F) but I
+can't say I find using HUGE_VAL particularly aesthetic. I have to admit
+that this was certainly the quickest way to implement proper
+temperature fault handling without changing the temp_print_info()
+signature. But OTOH, temp_print_info() is only called once, so changing
+its signature wouldn't be a big problem.
 
-MMH> * petr@tpc.cz <petr@tpc.cz> [2007-07-08 13:38:59 +0200]:
->> Hi,
->> trying to install py-smbus but no success. I am sending install log in the
->> attachment. Thanks for your comments and suggestions...
->> Petr Jakes
+I guess that the main problem here is that we have an artificial split
+of temp_print_info() outside of the generic temperature printing
+function, while we shouldn't. This explains in part why the this
+generic temperature printing function doesn't look quite good.
 
-MMH> Log file says...
->> smbusmodule.c:19:20: Python.h: No such file or directory
+This is something that can be fixed later on though, so I won't be
+working on it now. So I've created a new milestone in trac (3.0.1), and
+I've created ticket #2231 for this.
 
-MMH> On RedHat/Fedora systems, this is resolved by installing the python-devel
-MMH> package.  Whatever is the equivalent for Ubuntu - install it and try again.
+Oh, and I also created new components "sensors" and "libsensors" for
+trac tickets. The component list we had so far didn't make much sense
+to me, I never know what to choose.
 
-Mark,
-I am sending this message to provide feedback for other users:
-
-I have successfully installed py-smbus on command line version of
-Ubuntu 7.04 "Feisty Fawn".
-
-My hardware is AMD Geode GX low power (1.1W) motherboard (equipped by
-the SMBus connector).
-
-Before to install py-smbus it was (according to your suggestions) necessary:
-1) install package python-dev
-2) install package libsysfs-dev
-3) download lm-sensors and install: 'make user && sudo make user_install'
-
-   After that it was possible to installl py-smbus
-4) download py-smbus and install
-
-5) my board is equipped by the AMD Geode CS5536 south bridge, so
-   necessary SMBus module is "scx200_acb"
-   "modprobe scx200_acb" installs this module to the kernel
-
-6) finally: "modprobe i2c-dev" allows to access smbus(0)
-
-many thanks
-
-Regards
-
-Petr Jakes
-
-
-
-
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
