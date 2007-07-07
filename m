@@ -1,7 +1,7 @@
-From: <JGong@winbond.com>
-Date: Thu, 05 Jul 2007 11:27:40 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 07 Jul 2007 12:09:37 +0000
 Subject: Re: [lm-sensors] Help wanted: individual alarm files
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE01A31748@weshml03.winbond.com.tw>
+Message-Id: <20070707140937.301119b1@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070701220005.1dda9d8f@hyperion.delvare>
 In-Reply-To: <20070701220005.1dda9d8f@hyperion.delvare>
@@ -10,30 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hi Gong Jun,
 
->The future libsensors assumes that all hardware monitoring drivers
->follow the standard sysfs interface defined in
->Documentation/hwmon/sysfs-interface. They all mostly do already, except
->for one thing: alarms. Most drivers are still only exposing a single
->file with all alarms in a bit-vector, in chip-dependent order. In order
->to let the new libsenors display the alarms properly, we must add
->individual alarm files to these drivers. For some drivers, fault and/or
->beep files need to be added too.
+On Thu, 5 Jul 2007 19:27:40 +0800, JGong@winbond.com wrote:
+> >The future libsensors assumes that all hardware monitoring drivers
+> >follow the standard sysfs interface defined in
+> >Documentation/hwmon/sysfs-interface. They all mostly do already, except
+> >for one thing: alarms. Most drivers are still only exposing a single
+> >file with all alarms in a bit-vector, in chip-dependent order. In order
+> >to let the new libsenors display the alarms properly, we must add
+> >individual alarm files to these drivers. For some drivers, fault and/or
+> >beep files need to be added too.
+> 
+> I'd like to take care of w83792d chip's converting work. It will be
+> finished in the next week.
 
-I'd like to take care of w83792d chip's converting work. It will be
-finished in the next week.
+Great, thanks!
 
-And could you please give me some information about the ASUS motherboard
-with w83791d chip using for hardware monitor function? 
+> And could you please give me some information about the ASUS motherboard
+> with w83791d chip using for hardware monitor function? 
+> 
+> Any help will be welcome.
 
-Any help will be welcome.
+I don't know, sorry. The only system I know using a W83791D is the Acer
+Altos R300 server. Charles Spirakis (Cc'd) wrote the Linux 2.6 w83791d
+driver, he should be able to tell you which system he was using.
 
-Best regards,
-Gong Jun
-
-
-=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
