@@ -1,127 +1,37 @@
-From: petr@tpc.cz
-Date: Sun, 08 Jul 2007 11:38:59 +0000
-Subject: [lm-sensors] py-smbus
-Message-Id: <1183894739.4690ccd3a0748@webmail.monix.cz>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="-MOQ1183894739cb7de9d953f26f4ddadd1e210e2c8d64"
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 08 Jul 2007 13:28:34 +0000
+Subject: Re: [lm-sensors] py-smbus
+Message-Id: <20070708132834.GC3584@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1183894739.4690ccd3a0748@webmail.monix.cz>
+In-Reply-To: <1183894739.4690ccd3a0748@webmail.monix.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Petr:
 
-This message is in MIME format.
+* petr@tpc.cz <petr@tpc.cz> [2007-07-08 13:38:59 +0200]:
+> Hi,
+> trying to install py-smbus but no success. I am sending install log in the
+> attachment. Thanks for your comments and suggestions...
+> Petr Jakes
 
----MOQ1183894739cb7de9d953f26f4ddadd1e210e2c8d64
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 8bit
+Log file says...
+> smbusmodule.c:19:20: Python.h: No such file or directory
 
-Hi,
-trying to install py-smbus but no success. I am sending install log in the
-attachment. Thanks for your comments and suggestions...
-Petr Jakes
+On RedHat/Fedora systems, this is resolved by installing the python-devel
+package.  Whatever is the equivalent for Ubuntu - install it and try again.
 
-my system: AMD Geode GX, Ubuntu 7.04 (Feisty Fawn)
-installed lm-sensors_2.10.1-2ubuntu2_i386.deb
+Regards,
 
-gcc version as follows:
-root@ubuntu:/home/petr# gcc -v
-Reading specs from /usr/lib/gcc/i486-linux-gnu/3.4.6/specs
-Configured with: ../src/configure -v --enable-languages=c,c++,f77,pascal
---prefix=/usr --libexecdir=/usr/lib --with-gxx-include-dir=/usr/include/c++/3.4
---enable-shared --with-system-zlib --enable-nls --without-included-gettext
---program-suffix=-3.4 --enable-__cxa_atexit --enable-clocale=gnu
---enable-libstdcxx-debug --with-tune=pentium4 i486-linux-gnu
-Thread model: posix
-gcc version 3.4.6 (Ubuntu 3.4.6-5ubuntu1)
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
----MOQ1183894739cb7de9d953f26f4ddadd1e210e2c8d64
-Content-Type: application/x-zip-compressed; name="putty.zip"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="putty.zip"
-
-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
-
-
----MOQ1183894739cb7de9d953f26f4ddadd1e210e2c8d64
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
----MOQ1183894739cb7de9d953f26f4ddadd1e210e2c8d64--
-
