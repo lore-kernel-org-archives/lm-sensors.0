@@ -1,73 +1,125 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 22 Jul 2007 08:05:35 +0000
-Subject: Re: [lm-sensors] sensors problem
-Message-Id: <20070722100535.060375d1@hyperion.delvare>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Sun, 08 Jul 2007 05:30:55 +0000
+Subject: [lm-sensors] [PATCH RESEND] lm-sensors: detect more SMSC chips
+Message-Id: <191fb4ca0707072230y35763ae3l439eb35220201380@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_137570_18349782.1183872655509"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <017801c1eb62$f826cfa0$c36fa83e@compclub.sk>
-In-Reply-To: <017801c1eb62$f826cfa0$c36fa83e@compclub.sk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Ryan,
+------=_Part_137570_18349782.1183872655509
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Mon, 9 Jul 2007 11:07:06 -0500, Ryan Underwood wrote:
->=20
-> I have a MSI BXMaster, and lm-sensors 2.10.3 from Debian and kernel
-> 2.6.21.1.  Why am I having the following issues in the sensors output:
->=20
-> $ sensors
-> w83782d-i2c-0-2d
-> Adapter: SMBus PIIX4 adapter at 5000
-> VCore 1:   +1.47 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> VCore 2:   +1.50 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> +3.3V:     +3.41 V  (min =3D  +2.82 V, max =3D  +3.79 V)
-> +5V:       +5.05 V  (min =3D  +5.75 V, max =3D  +4.27 V)       ALARM
-> +12V:     +12.34 V  (min =3D +15.50 V, max =3D  +7.72 V)       ALARM
-> -12V:     -12.11 V  (min =3D  -9.40 V, max =3D  +3.10 V)       ALARM
-> -5V:       -5.15 V  (min =3D  +5.10 V, max =3D  +1.89 V)       ALARM
-> V5SB:      +5.05 V  (min =3D  +4.87 V, max =3D  +1.69 V)       ALARM
-> VBat:      +2.90 V  (min =3D  +0.85 V, max =3D  +3.57 V)
-> fan1:     3443 RPM  (min =3D 1670 RPM, div =3D 8)
-> fan2:        0 RPM  (min =3D  669 RPM, div =3D 8)              ALARM
-> fan3:     5232 RPM  (min =3D 2922 RPM, div =3D 2)
-> temp1:       +42=B0C  (high =3D  +124=B0C, hyst =3D   -28=B0C)   sensor =
-=3D thermistor     =20
-> temp2:     +39.0=B0C  (high =3D   +80=B0C, hyst =3D   +75=B0C)   sensor =
-=3D thermistor     =20
-> temp3:     +40.5=B0C  (high =3D   +80=B0C, hyst =3D   +75=B0C)   sensor =
-=3D thermistor     =20
-> vid:      +1.500 V  (VRM Version 8.5)
-> alarms:
-> beep_enable:
->           Sound alarm enabled
->=20
-> It appears the sensors themselves are correct, but the ranges are all wro=
-ng...
-> in fact the range slope is reversed.  I am using the default sensors.conf
-> packaged with lm-sensors and ensured that it was active with sensors -s.
+This patch adds more known SMSC Super IO chips to sensors-detect. It
+also sorts the list of SMSC chips by chip name.
 
-If you are using the stock 2.10.3 sensors.conf, set statements are
-commented out by default. We did this because they were causing trouble
-(beeps, reboot etc.) on some systems. It seems that your BIOS leaves
-most limits uninitialized. Uncomment the set statements in the
-w83782d-* section, run "sensors -s" again and it should be better.
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-For some features (e.g. fan2) you will have to add your own set
-statement (set fan2_min 0) or even better ignore this fan if you don't
-have it (ignore fan2).
+------=_Part_137570_18349782.1183872655509
+Content-Type: text/x-patch; name=lm-sensors-detect-more-smsc-chips.patch; 
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f3v2peop
+Content-Disposition: attachment;
+	filename="lm-sensors-detect-more-smsc-chips.patch"
 
-> Not sure when this started, I had my monitoring script disabled for a whi=
-le.
-> At one point (year ago?) it worked fine.
-
-Until 2.10.0, set statements were enabled by default.
-
---=20
-Jean Delvare
+LS0tIGxtLXNlbnNvcnMub3JpZy9wcm9nL2RldGVjdC9zZW5zb3JzLWRldGVjdAkyMDA3LTA3LTA3
+IDIxOjI3OjQ3LjAwMDAwMDAwMCAtMDcwMAorKysgbG0tc2Vuc29ycy9wcm9nL2RldGVjdC9zZW5z
+b3JzLWRldGVjdAkyMDA3LTA3LTA3IDIyOjEyOjI3LjAwMDAwMDAwMCAtMDcwMApAQCAtMTY3NCwx
+MiArMTY3NCw3MyBAQCB1c2UgdmFycyBxdyhAY2hpcF9rZXJuMjRfaWRzIEBjaGlwX2tlcm4yCiAg
+ICAgY2hpcHMgPT4KICAgICBbCiAgICAgICB7CisJbmFtZSA9PiAiU01TQyBETUUxNzM3IFN1cGVy
+IElPIiwKKwkjIEhhcmR3YXJlIG1vbml0b3JpbmcgZmVhdHVyZXMgYXJlIGFjY2Vzc2VkIG9uIHRo
+ZSBTTUJ1cworCWRyaXZlciA9PiAidmlhLXNtYnVzLW9ubHkiLAorCWRldmlkID0+IDB4NzgsCisg
+ICAgICB9LAorICAgICAgeworCW5hbWUgPT4gIlNNU0MgRE1FMTczNyBTdXBlciBJTyIsCisJIyBU
+aGUgRE1FMTczNyBzaG93cyB1cCB0d2ljZSBpbiB0aGlzIGxpc3QgYmVjYXVzZSBpdCBjYW4gcmV0
+dXJuIGVpdGhlcgorCSMgMHg3OCBvciAweDc3IGFzIGl0cyBkZXZpY2UgSUQuCisJIyBIYXJkd2Fy
+ZSBtb25pdG9yaW5nIGZlYXR1cmVzIGFyZSBhY2Nlc3NlZCBvbiB0aGUgU01CdXMKKwlkcml2ZXIg
+PT4gInZpYS1zbWJ1cy1vbmx5IiwKKwlkZXZpZCA9PiAweDc3LAorICAgICAgfSwKKyAgICAgIHsK
+KwluYW1lID0+ICJTTVNDIEZEQzM3QjcyeCBTdXBlciBJTyIsCisJZHJpdmVyID0+ICJub3QtYS1z
+ZW5zb3IiLAorCWRldmlkID0+IDB4NGMsCisgICAgICB9LAorICAgICAgeworCW5hbWUgPT4gIlNN
+U0MgRkRDMzdCNzh4IFN1cGVyIElPIiwKKwlkcml2ZXIgPT4gIm5vdC1hLXNlbnNvciIsCisJZGV2
+aWQgPT4gMHg0NCwKKyAgICAgIH0sCisgICAgICB7CisJbmFtZSA9PiAiU01TQyBGREMzN0M2NzIg
+U3VwZXIgSU8iLAorCWRyaXZlciA9PiAibm90LWEtc2Vuc29yIiwKKwlkZXZpZCA9PiAweDQwLAor
+ICAgICAgfSwKKyAgICAgIHsKKwluYW1lID0+ICJTTVNDIEZEQzM3TTcwNyBTdXBlciBJTyIsCisJ
+ZHJpdmVyID0+ICJub3QtYS1zZW5zb3IiLAorCWRldmlkID0+IDB4NDIsCisgICAgICB9LAorICAg
+ICAgeworCW5hbWUgPT4gIlNNU0MgRkRDMzdNODF4IFN1cGVyIElPIiwKKwlkcml2ZXIgPT4gIm5v
+dC1hLXNlbnNvciIsCisJZGV2aWQgPT4gMHg0ZCwKKyAgICAgIH0sCisgICAgICB7CiAJbmFtZSA9
+PiAiU01TQyBMUEM0N0IyN3ggU3VwZXIgSU8gRmFuIFNlbnNvcnMiLAogCWRyaXZlciA9PiAic21z
+YzQ3bTEiLAogCWRldmlkID0+IDB4NTEsCiAJbG9nZGV2ID0+IDB4MGEsCiAgICAgICB9LAogICAg
+ICAgeworCW5hbWUgPT4gIlNNU0MgTFBDNDdCMzR4IFN1cGVyIElPIiwKKwlkcml2ZXIgPT4gIm5v
+dC1hLXNlbnNvciIsCisJZGV2aWQgPT4gMHg1NiwKKyAgICAgIH0sCisgICAgICB7CisJbmFtZSA9
+PiAiU01TQyBMUEM0N0IzNTcgU3VwZXIgSU8iLAorCSMgbm8gZGF0YXNoZWV0CisJZGV2aWQgPT4g
+MHg1ZCwKKyAgICAgIH0sCisgICAgICB7CisJbmFtZSA9PiAiU01TQyBMUEM0N0IzN3ggU3VwZXIg
+SU8gRmFuIFNlbnNvcnMiLAorCWRyaXZlciA9PiAidG8tYmUtd3JpdHRlbiIsCisJZGV2aWQgPT4g
+MHg1MiwKKwlsb2dkZXYgPT4gMHgwYSwKKyAgICAgIH0sCisgICAgICB7CisJbmFtZSA9PiAiU01T
+QyBMUEM0N0IzOTctTkMgU3VwZXIgSU8iLAorCWRyaXZlciA9PiAic21zYzQ3YjM5NyIsCisJZGV2
+aWQgPT4gMHg2ZiwKKwlsb2dkZXYgPT4gMHgwOCwKKyAgICAgIH0sCisgICAgICB7CiAJbmFtZSA9
+PiAiU01TQyBMUEM0N00xMHgvMTEyLzEzeCBTdXBlciBJTyBGYW4gU2Vuc29ycyIsCiAJZHJpdmVy
+ID0+ICJzbXNjNDdtMSIsCiAJZGV2aWQgPT4gMHg1OSwKQEAgLTE2OTgsMTIgKzE3NTksMzUgQEAg
+dXNlIHZhcnMgcXcoQGNoaXBfa2VybjI0X2lkcyBAY2hpcF9rZXJuMgogCWxvZ2RldiA9PiAweDBh
+LAogICAgICAgfSwKICAgICAgIHsKKwluYW1lID0+ICJTTVNDIExQQzQ3TTE3MiBTdXBlciBJTyBG
+YW4gU2Vuc29ycyIsCisJZHJpdmVyID0+ICJ0by1iZS13cml0dGVuIiwKKwlkZXZpZCA9PiAweDE0
+LAorCWxvZ2RldiA9PiAweDBhLAorICAgICAgfSwKKyAgICAgIHsKKwluYW1lID0+ICJTTVNDIExQ
+QzQ3TTE4MiBTdXBlciBJTyBGYW4gU2Vuc29ycyIsCisJZHJpdmVyID0+ICJ0by1iZS13cml0dGVu
+IiwKKwlkZXZpZCA9PiAweDc0LAorCWxvZ2RldiA9PiAweDBhLAorICAgICAgfSwKKyAgICAgIHsK
+IAluYW1lID0+ICJTTVNDIExQQzQ3TTI5MiBTdXBlciBJTyBGYW4gU2Vuc29ycyIsCiAJZHJpdmVy
+ID0+ICJzbXNjNDdtMSIsCiAJZGV2aWQgPT4gMHg2YiwKIAlsb2dkZXYgPT4gMHgwYSwKICAgICAg
+IH0sCiAgICAgICB7CisJbmFtZSA9PiAiU01TQyBMUEM0N001ODQtTkMgU3VwZXIgSU8iLAorCSMg
+Tm8gZGF0YXNoZWV0CisJZGV2aWQgPT4gMHg3NiwKKyAgICAgIH0sCisgICAgICB7CisJbmFtZSA9
+PiAiU01TQyBMUEM0N04yNTIgU3VwZXIgSU8gRmFuIFNlbnNvcnMiLAorCWRyaXZlciA9PiAidG8t
+YmUtd3JpdHRlbiIsCisJZGV2aWQgPT4gMHgwZSwKKwlsb2dkZXYgPT4gMHgwOSwKKyAgICAgIH0s
+CisgICAgICB7CiAJbmFtZSA9PiAiU01TQyBMUEM0N1M0MnggU3VwZXIgSU8gRmFuIFNlbnNvcnMi
+LAogCWRyaXZlciA9PiAidG8tYmUtd3JpdHRlbiIsCiAJZGV2aWQgPT4gMHg1NywKQEAgLTE3MTYs
+NTkgKzE4MDAsNDkgQEAgdXNlIHZhcnMgcXcoQGNoaXBfa2VybjI0X2lkcyBAY2hpcF9rZXJuMgog
+CWxvZ2RldiA9PiAweDBhLAogICAgICAgfSwKICAgICAgIHsKLQluYW1lID0+ICJTTVNDIExQQzQ3
+TTE3MiBTdXBlciBJTyBGYW4gU2Vuc29ycyIsCisJbmFtZSA9PiAiU01TQyBMUEM0N1UzM3ggU3Vw
+ZXIgSU8gRmFuIFNlbnNvcnMiLAogCWRyaXZlciA9PiAidG8tYmUtd3JpdHRlbiIsCi0JZGV2aWQg
+PT4gMHgxNCwKKwlkZXZpZCA9PiAweDU0LAogCWxvZ2RldiA9PiAweDBhLAogICAgICAgfSwKICAg
+ICAgIHsKLQluYW1lID0+ICJTTVNDIExQQzQ3TTE4MiBTdXBlciBJTyBGYW4gU2Vuc29ycyIsCi0J
+ZHJpdmVyID0+ICJ0by1iZS13cml0dGVuIiwKLQlkZXZpZCA9PiAweDc0LAotCWxvZ2RldiA9PiAw
+eDBhLAotICAgICAgfSwKLSAgICAgIHsKLSAgICAgICAgbmFtZSA9PiAiU01TQyBMUEM0N0IzOTct
+TkMgU3VwZXIgSU8iLAotICAgICAgICBkcml2ZXIgPT4gInNtc2M0N2IzOTciLAotICAgICAgICBk
+ZXZpZCA9PiAweDZmLAotICAgICAgICBsb2dkZXYgPT4gMHgwOCwKKwluYW1lID0+ICJTTVNDIFND
+SDMxMTIgU3VwZXIgSU8iLAorCWRyaXZlciA9PiAiZG1lMTczNyIsCisJZGV2aWQgPT4gMHg3YywK
+ICAgICAgIH0sCiAgICAgICB7Ci0gICAgICAgIG5hbWUgPT4gIlNNU0MgU0NINTMwNy1OUyBTdXBl
+ciBJTyIsCi0gICAgICAgIGRyaXZlciA9PiAic21zYzQ3YjM5NyIsCi0gICAgICAgIGRldmlkID0+
+IDB4ODEsCi0gICAgICAgIGxvZ2RldiA9PiAweDA4LAorCW5hbWUgPT4gIlNNU0MgU0NIMzExNCBT
+dXBlciBJTyIsCisJZHJpdmVyID0+ICJkbWUxNzM3IiwKKwlkZXZpZCA9PiAweDdkLAogICAgICAg
+fSwKICAgICAgIHsKLSAgICAgICAgbmFtZSA9PiAiU01TQyBTQ0g1MzE3IFN1cGVyIElPIiwKLSAg
+ICAgICAgZHJpdmVyID0+ICJzbXNjNDdiMzk3IiwKLSAgICAgICAgZGV2aWQgPT4gMHg4NSwKLSAg
+ICAgICAgbG9nZGV2ID0+IDB4MDgsCisJbmFtZSA9PiAiU01TQyBTQ0gzMTE2IFN1cGVyIElPIiwK
+Kwlkcml2ZXIgPT4gImRtZTE3MzciLAorCWRldmlkID0+IDB4N2YsCiAgICAgICB9LAogICAgICAg
+ewotICAgICAgICBuYW1lID0+ICJTTVNDIFNDSDU1MDQtTlMgU3VwZXIgSU8iLAotICAgICAgICAj
+IE5vIGRhdGFzaGVldAotICAgICAgICBkcml2ZXIgPT4gIm5vdC1hLXNlbnNvciIsCi0gICAgICAg
+IGRldmlkID0+IDB4NzksCisJbmFtZSA9PiAiU01TQyBTQ0g0MzA3IFN1cGVyIElPIEZhbiBTZW5z
+b3JzIiwKKwlkcml2ZXIgPT4gInRvLWJlLXdyaXR0ZW4iLAorCWRldmlkID0+IDB4OTAsCisJbG9n
+ZGV2ID0+IDB4MDgsCiAgICAgICB9LAogICAgICAgewotICAgICAgICBuYW1lID0+ICJTTVNDIExQ
+QzQ3TTU4NC1OQyBTdXBlciBJTyIsCi0gICAgICAgICMgTm8gZGF0YXNoZWV0Ci0gICAgICAgIGRl
+dmlkID0+IDB4NzYsCisJbmFtZSA9PiAiU01TQyBTQ0g1MzA3LU5TIFN1cGVyIElPIiwKKwlkcml2
+ZXIgPT4gInNtc2M0N2IzOTciLAorCWRldmlkID0+IDB4ODEsCisJbG9nZGV2ID0+IDB4MDgsCiAg
+ICAgICB9LAogICAgICAgewotCW5hbWUgPT4gIlNNU0MgRE1FMTczNyBTdXBlciBJTyIsCi0JIyBI
+YXJkd2FyZSBtb25pdG9yaW5nIGZlYXR1cmVzIGFyZSBhY2Nlc3NlZCBvbiB0aGUgU01CdXMKLQlk
+cml2ZXIgPT4gInZpYS1zbWJ1cy1vbmx5IiwKLQlkZXZpZCA9PiAweDc4LAorCW5hbWUgPT4gIlNN
+U0MgU0NINTMxNyBTdXBlciBJTyIsCisJZHJpdmVyID0+ICJzbXNjNDdiMzk3IiwKKwlkZXZpZCA9
+PiAweDg1LAorCWxvZ2RldiA9PiAweDA4LAogICAgICAgfSwKICAgICAgIHsKLQluYW1lID0+ICJT
+TVNDIERNRTE3MzcgU3VwZXIgSU8iLAotCSMgVGhlIERNRTE3Mzcgc2hvd3MgdXAgdHdpY2UgaW4g
+dGhpcyBsaXN0IGJlY2F1c2UgaXQgY2FuIHJldHVybiBlaXRoZXIKLQkjIDB4Nzggb3IgMHg3NyBh
+cyBpdHMgZGV2aWNlIElELgotCSMgSGFyZHdhcmUgbW9uaXRvcmluZyBmZWF0dXJlcyBhcmUgYWNj
+ZXNzZWQgb24gdGhlIFNNQnVzCi0JZHJpdmVyID0+ICJ2aWEtc21idXMtb25seSIsCi0JZGV2aWQg
+PT4gMHg3NywKKwluYW1lID0+ICJTTVNDIFNDSDU1MDQtTlMgU3VwZXIgSU8iLAorCSMgTm8gZGF0
+YXNoZWV0CisJZHJpdmVyID0+ICJub3QtYS1zZW5zb3IiLAorCWRldmlkID0+IDB4NzksCiAgICAg
+ICB9LAogICAgIF0sCiAgICAgIyBOb24tc3RhbmRhcmQgU01TQyBkZXRlY3Rpb24gY2FsbGJhY2sg
+YW5kIGNoaXAgbGlzdC4gVGhlc2UgY2hpcHMgZGlmZmVyCg==
+------=_Part_137570_18349782.1183872655509
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_137570_18349782.1183872655509--
