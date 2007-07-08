@@ -1,38 +1,63 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Mon, 23 Jul 2007 17:14:46 +0000
-Subject: Re: [lm-sensors] xsensors ported to the future libsensors
-Message-Id: <46A4E206.7090507@hhs.nl>
+Date: Sun, 08 Jul 2007 18:56:16 +0000
+Subject: [lm-sensors] fintek f71806f "support"
+Message-Id: <46913350.70300@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070720213455.644b5f50@hyperion.delvare>
-In-Reply-To: <20070720213455.644b5f50@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> On Sun, 22 Jul 2007 20:06:02 +0200, Hans de Goede wrote:
->> Jean Delvare wrote:
->>> I'm curious how gnome sensors-applet and gkrellm managed to use the
->>> current libsensors without chip-specific code at all, as it definitely
->>> wasn't designed to be used that way.
->> They both basically have there own version of sensors_get_feature_type, both 
->> assuming to be running on a 2.6 kernel, and thus have sysfs interface standard 
->> feature names.
-> 
-> I'm surprised, as the feature names exposed by libsensors are the old
-> (non-standard) ones, even for 2.6 kernels. The mapping to the new
-> symbols is internal as far as I can see. "sensors -u" returns the old
-> feature names. So I guess they assume that old names are somewhat
-> standard, and it doesn't work for all drivers?
-> 
+Hi all,
 
-Correct, but gkrellm does for example contain code to also work with the 
-via686a 2.0V style volt feature names
+While updating the f71882fg wiki entry I noticed the f71806f entry said that 
+there is no datasheet, however the same webpage offering the f71882fg datasheet 
+has the f71806f datasheet too.
+
+So I downloaded it to add detection code to sensors-detect, but we already 
+detect it as a ... f71872f, because they have the same devid (fintek did the 
+same with the f71882fg and the f71883fg) . I've been comparing all the hwmon 
+pages of the f71806f and f71872f page by page, here are the results:
+
+Harmless differences:
+---------------------
+
+1) The 71872 has hwmon register 09h "documented" as External BJT Offset
+    Register, with all bits reserved.
+
+2) The 71872 has  VIN_FAULT Mode Register 3  Index 39h, bit 7 documented,
+    marked as r/w and ... reserved, the 71806 has it as just reserved
+
+3) VIN_FAULT STATUS Register  Index 3Ah, bit 7 idem as 2)
+
+
+Troublesome differences:
+------------------------
+
+1) The 71872 has T1 OFFSET Register -- Index 90h, and T2 at 91h and T3 at
+    92h, which the 71806 lacks according to its datasheet
+
+
+VID differences:
+----------------
+
+1) The 71872 has bit 3 of VID Control Register  Index 00h defined, for the
+    71806 this bit is reserved
+
+
+Notice that the identical device id means that sofar sensors-detect has been 
+identifying the 71806 as a 71872, and most likely people have been loading and 
+using the 71872 driver on this chip too, I assume that the 71872 driver uses 
+the temp offset registers, and this could cause some troubles. Unfortunately I 
+haven't been able to find a way in the datasheets to find out which chip we are 
+really dealing with.
 
 Regards,
 
 Hans
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
