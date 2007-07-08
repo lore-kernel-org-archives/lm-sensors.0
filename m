@@ -1,7 +1,7 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 08 Jul 2007 17:52:45 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 08 Jul 2007 18:06:10 +0000
 Subject: Re: [lm-sensors] PATCH: hwmon-abituguru-check-dmi-vendor.patch
-Message-Id: <20070708175245.GE3591@jupiter.solarsys.private>
+Message-Id: <46912792.7020708@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4690D52A.7040402@hhs.nl>
 In-Reply-To: <4690D52A.7040402@hhs.nl>
@@ -10,38 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans:
+Mark M. Hoffman wrote:
+> Hi Hans:
+> 
+> * Hans de Goede <j.w.r.degoede@hhs.nl> [2007-07-08 14:14:34 +0200]:
+>> Hi all,
+>>
+>> With this patch the abituguru refuses to load on non Abit motherboards, as
+>> discussed in lkml CONFIG_BREAK_MY_MACHINE thread.
+>>
+>> Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+>>
+>> Regards,
+>>
+>> Hans
+> 
+>> With this patch the abituguru refuses to load on non Abit motherboards, as 
+>> discussed in lkml CONFIG_BREAK_MY_MACHINE thread.
+>>
+>> Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+> 
+> That thread worries me a bit.  Should this get in before 2.6.22?
 
-* Hans de Goede <j.w.r.degoede@hhs.nl> [2007-07-08 14:14:34 +0200]:
-> Hi all,
-> 
-> With this patch the abituguru refuses to load on non Abit motherboards, as
-> discussed in lkml CONFIG_BREAK_MY_MACHINE thread.
-> 
-> Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-> 
-> Regards,
-> 
-> Hans
-
-> With this patch the abituguru refuses to load on non Abit motherboards, as 
-> discussed in lkml CONFIG_BREAK_MY_MACHINE thread.
-> 
-> Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-That thread worries me a bit.  Should this get in before 2.6.22?  I would
-rather *not* try to get it in at this late hour, as it could potentially
-cause regression for a lot of ABIT owners.  But if you think the alternative
-is worse, then let me know ASAP and I'll send it.
-
-For now, it's applied to testing (queued for the 2.6.23 merge window).
+No 2.6.23 is fine. No worries, they should have named the thread 
+CONFIG_SHOOT_MYSELF_IN_THE_FOOT. This patch is just a layer of security to 
+prevent people doing stupid things. I only wrote the patch because some people 
+thought it would be a good idea to prevent people from doing stupid things with 
+regards to medling with the kernel, however when you enter into that realm 
+there is really no end of stupid things one can do, so I wonder how wise it is 
+to try and protect people against themselves.
 
 Regards,
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Hans
 
 _______________________________________________
 lm-sensors mailing list
