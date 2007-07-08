@@ -1,38 +1,30 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 29 Jul 2007 20:13:18 +0000
-Subject: Re: [lm-sensors] [PATCH] adm1021 clean ups (rev. 3)
-Message-Id: <20070729201318.GC31314@jupiter.solarsys.private>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 08 Jul 2007 09:28:26 +0000
+Subject: [lm-sensors] Any questions you would like to ask the pc wizard
+Message-Id: <4690AE3A.3090008@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070719080017.447a618f.krzysztof.h1@wp.pl>
-In-Reply-To: <20070719080017.447a618f.krzysztof.h1@wp.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
+Hi all,
 
-* Jean Delvare <khali@linux-fr.org> [2007-07-20 17:11:46 +0200]:
-> On Thu, 19 Jul 2007 08:00:17 +0200, Krzysztof Helt wrote:
-> > From: Krzysztof Helt <krzysztof.h1@wp.pl>
-> > 
-> > This patch provides some coding standard cleanups and general code improvements (more debug info, signed values for
-> > temperatures, changed names of ADM1023 regs, removed read/write_value functions).
-> > 
-> > Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-> > 
-> > ---
-> > This patch fixes last two issues found by Jean Delvare.
-> 
-> Very good, thank you. Mark, please apply.
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
+I've been contacted by Franck Delattre, the author of a windows utility called 
+pc wizard, for permission to use my uguru3 code (and I've given him permission 
+to use it).
 
-Applied to hwmon-2.6.git/testing, thanks.
+He has offered to answer any questions he can about things which are supported 
+by PC wizard but not by lm-sensors. So if you have any questions send them my 
+way and I'll forward them.
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+For more info about PC Wizard, see:
+http://www.cpuid.com/pcwizard.php
+
+Regards,
+
+Hans
+
 
 
 _______________________________________________
