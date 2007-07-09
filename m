@@ -1,40 +1,35 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 15 Jul 2007 08:34:58 +0000
-Subject: Re: [lm-sensors] fintek f71806f "support"
-Message-Id: <20070715103458.271a8aa1@hyperion.delvare>
+From: <JGong@winbond.com>
+Date: Mon, 09 Jul 2007 11:12:05 +0000
+Subject: [lm-sensors] w83791d motherboard help
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE01A31754@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46913350.70300@hhs.nl>
-In-Reply-To: <46913350.70300@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Hi, Charles,
 
-On Tue, 10 Jul 2007 23:44:24 +0200, Hans de Goede wrote:
-> Jean Delvare wrote:
-> > As said above, the f71805f driver does not use these offset registers.
-> > If said offset registers are read-only on the F71806F, that would be a
-> > way to differentiate between both chips (arguably ugly, but...)
-> 
-> Yes, but then again the F71806F may have those registers too.
+The w83791d can be found on a lot of motherboards now, but I am not sure
+that all of them have used the w83791d for hardware monitor usage, e.g.
+some ASUS motherboards use it for speech function only.
 
-I've asked my Fintek contact about this, waiting for him to answer. He
-already confirmed that the F71806F/FG and F71872F/FG really had the
-same chip ID and it wasn't an error in the datasheet.
+I find ASUS P5N32-E SLI PLUS config file at
+(http://www.lm-sensors.org/wiki/Configurations/Asus/P5N32-E%20SLI%20Plus
+).
+Unfortunately all the temperature readings of w83791d and several
+voltage readings of w83791d has been ignored. 
 
-> > Now, the f71805f driver (and documentation) would need to be updated to
-> > list the F71806F/FG as supported. Can you please submit such a patch,
-> > or do you want me to do it?
-> 
-> Well since you are the maintainer of the f71805f driver, I think its best and 
-> easiest if you do it.
+And Jean told me that you had written the 2.6 kernel w83791d driver. So
+could you please give me any information about your w83791d test board?
 
-OK, I'll post a patch in a few minutes.
+Any help will be welcome!
 
--- 
-Jean Delvare
+Best regards,
+Gong Jun
+
+
+=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
 
 _______________________________________________
 lm-sensors mailing list
