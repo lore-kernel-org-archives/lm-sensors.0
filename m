@@ -1,148 +1,337 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 05 Jul 2007 12:26:49 +0000
-Subject: Re: [lm-sensors] concentrate efforts on libsensor-3.x or also add
-Message-Id: <20070705142649.7c908d91@hyperion.delvare>
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Date: Mon, 09 Jul 2007 21:55:44 +0000
+Subject: [lm-sensors] [PATCH] adm1021 clean ups
+Message-Id: <20070709235544.a4353718.krzysztof.h1@wp.pl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <468915CD.5020300@hhs.nl>
-In-Reply-To: <468915CD.5020300@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-On Wed, 04 Jul 2007 06:52:42 +0200, Hans de Goede wrote:
-> First of all who is running the show here you or Mark? Having 2 captains on a 
-> ship doesn't work all that well IMHO.
+This patch provides some coding standard cleanups and general code improvements (more debug info, signed values for
+temperatures, changed names of ADM1023 regs, removed read/write_value functions).
 
-Who said there was a captain? ;)
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Mark initiated the lm-sensors-3.0.0 branch. You populated it with your
-student's work and fixed it a bit. I am now reviewing it and cleaning
-it up. Everyone of us has spent time and energy when he could. This is
-how small open-source projects work, you shouldn't be surprised.
+---
+This is first part of the patch which I already posted and was asked to divide it into two parts.
 
-Mark has limited time to work on the lm-sensors project. Well, we all
-do, but I think I can assert that I have more time for the project than
-Mark does, at the time being. And Mark agreed to take over me as the new
-hwmon subsystem maintainer. All the time he puts there, he can't put in
-libsensors.
+--- linux-2.6.21.old/drivers/hwmon/adm1021.c	2007-04-26 05:08:32.000000000 +0200
++++ linux-2.6.22/drivers/hwmon/adm1021.c	2007-07-09 23:42:37.058371876 +0200
+@@ -1,6 +1,6 @@
+ /*
+     adm1021.c - Part of lm_sensors, Linux kernel modules for hardware
+-             monitoring
++		monitoring
+     Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl> and
+     Philip Edelbrock <phil@netroedge.com>
+ 
+@@ -32,11 +32,12 @@
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x18, 0x19, 0x1a,
+ 					0x29, 0x2a, 0x2b,
+-					0x4c, 0x4d, 0x4e, 
++					0x4c, 0x4d, 0x4e,
+ 					I2C_CLIENT_END };
+ 
+ /* Insmod parameters */
+-I2C_CLIENT_INSMOD_8(adm1021, adm1023, max1617, max1617a, thmc10, lm84, gl523sm, mc1066);
++I2C_CLIENT_INSMOD_8(adm1021, adm1023, max1617, max1617a, thmc10, lm84, gl523sm,
++			mc1066);
+ 
+ /* adm1021 constants specified below */
+ 
+@@ -45,8 +46,10 @@ I2C_CLIENT_INSMOD_8(adm1021, adm1023, ma
+ #define ADM1021_REG_TEMP		0x00
+ #define ADM1021_REG_REMOTE_TEMP		0x01
+ #define ADM1021_REG_STATUS		0x02
+-#define ADM1021_REG_MAN_ID		0x0FE	/* 0x41 = AMD, 0x49 = TI, 0x4D = Maxim, 0x23 = Genesys , 0x54 = Onsemi*/
+-#define ADM1021_REG_DEV_ID		0x0FF	/* ADM1021 = 0x0X, ADM1023 = 0x3X */
++/* 0x41 = AD, 0x49 = TI, 0x4D = Maxim, 0x23 = Genesys , 0x54 = Onsemi */
++#define ADM1021_REG_MAN_ID		0x0FE
++/* ADM1021 = 0x0X, ADM1023 = 0x3X */
++#define ADM1021_REG_DEV_ID		0x0FF
+ #define ADM1021_REG_DIE_CODE		0x0FF	/* MAX1617A */
+ /* These use different addresses for reading/writing */
+ #define ADM1021_REG_CONFIG_R		0x03
+@@ -54,11 +57,11 @@ I2C_CLIENT_INSMOD_8(adm1021, adm1023, ma
+ #define ADM1021_REG_CONV_RATE_R		0x04
+ #define ADM1021_REG_CONV_RATE_W		0x0A
+ /* These are for the ADM1023's additional precision on the remote temp sensor */
+-#define ADM1021_REG_REM_TEMP_PREC	0x010
+-#define ADM1021_REG_REM_OFFSET		0x011
+-#define ADM1021_REG_REM_OFFSET_PREC	0x012
+-#define ADM1021_REG_REM_TOS_PREC	0x013
+-#define ADM1021_REG_REM_THYST_PREC	0x014
++#define ADM1023_REG_REM_TEMP_PREC	0x010
++#define ADM1023_REG_REM_OFFSET		0x011
++#define ADM1023_REG_REM_OFFSET_PREC	0x012
++#define ADM1023_REG_REM_TOS_PREC	0x013
++#define ADM1023_REG_REM_THYST_PREC	0x014
+ /* limits */
+ #define ADM1021_REG_TOS_R		0x05
+ #define ADM1021_REG_TOS_W		0x0B
+@@ -77,14 +80,13 @@ I2C_CLIENT_INSMOD_8(adm1021, adm1023, ma
+    these macros are called: arguments may be evaluated more than once.
+    Fixing this is just not worth it. */
+ /* Conversions  note: 1021 uses normal integer signed-byte format*/
+-#define TEMP_FROM_REG(val)	(val > 127 ? (val-256)*1000 : val*1000)
+-#define TEMP_TO_REG(val)	(SENSORS_LIMIT((val < 0 ? (val/1000)+256 : val/1000),0,255))
++#define TEMP_TO_REG(val)	(SENSORS_LIMIT((val) / 1000, -128, 127))
+ 
+ /* Initial values */
+ 
+-/* Note: Even though I left the low and high limits named os and hyst, 
+-they don't quite work like a thermostat the way the LM75 does.  I.e., 
+-a lower temp than THYST actually triggers an alarm instead of 
++/* Note: Even though I left the low and high limits named os and hyst,
++they don't quite work like a thermostat the way the LM75 does.  I.e.,
++a lower temp than THYST actually triggers an alarm instead of
+ clearing it.  Weird, ey?   --Phil  */
+ 
+ /* Each client has this additional data */
+@@ -97,12 +99,12 @@ struct adm1021_data {
+ 	char valid;		/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
+ 
+-	u8	temp_max;	/* Register values */
+-	u8	temp_hyst;
+-	u8	temp_input;
+-	u8	remote_temp_max;
+-	u8	remote_temp_hyst;
+-	u8	remote_temp_input;
++	s8	temp_max;	/* Register values */
++	s8	temp_hyst;
++	s8	temp_input;
++	s8	remote_temp_max;
++	s8	remote_temp_hyst;
++	s8	remote_temp_input;
+ 	u8	alarms;
+         /* Special values for ADM1023 only */
+ 	u8	remote_temp_prec;
+@@ -116,9 +118,6 @@ static int adm1021_attach_adapter(struct
+ static int adm1021_detect(struct i2c_adapter *adapter, int address, int kind);
+ static void adm1021_init_client(struct i2c_client *client);
+ static int adm1021_detach_client(struct i2c_client *client);
+-static int adm1021_read_value(struct i2c_client *client, u8 reg);
+-static int adm1021_write_value(struct i2c_client *client, u8 reg,
+-			       u16 value);
+ static struct adm1021_data *adm1021_update_device(struct device *dev);
+ 
+ /* (amalysh) read only mode, otherwise any limit's writing confuse BIOS */
+@@ -139,7 +138,7 @@ static struct i2c_driver adm1021_driver 
+ static ssize_t show_##value(struct device *dev, struct device_attribute *attr, char *buf)		\
+ {									\
+ 	struct adm1021_data *data = adm1021_update_device(dev);		\
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->value));	\
++	return sprintf(buf, "%d\n", data->value);	\
+ }
+ show(temp_max);
+ show(temp_hyst);
+@@ -148,13 +147,13 @@ show(remote_temp_max);
+ show(remote_temp_hyst);
+ show(remote_temp_input);
+ 
+-#define show2(value)	\
+-static ssize_t show_##value(struct device *dev, struct device_attribute *attr, char *buf)		\
+-{									\
+-	struct adm1021_data *data = adm1021_update_device(dev);		\
+-	return sprintf(buf, "%d\n", data->value);			\
++static ssize_t show_alarms(struct device *dev,
++			    struct device_attribute *attr,
++			    char *buf)
++{
++	struct adm1021_data *data = adm1021_update_device(dev);
++	return sprintf(buf, "%u\n", data->alarms);
+ }
+-show2(alarms);
+ 
+ #define set(value, reg)	\
+ static ssize_t set_##value(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)	\
+@@ -165,7 +164,7 @@ static ssize_t set_##value(struct device
+ 								\
+ 	mutex_lock(&data->update_lock);				\
+ 	data->value = TEMP_TO_REG(temp);			\
+-	adm1021_write_value(client, reg, data->value);		\
++	i2c_smbus_write_byte_data(client, reg, data->value);		\
+ 	mutex_unlock(&data->update_lock);			\
+ 	return count;						\
+ }
+@@ -212,15 +211,20 @@ static int adm1021_detect(struct i2c_ada
+ 	struct adm1021_data *data;
+ 	int err = 0;
+ 	const char *type_name = "";
++	int conv_rate, status, config;
+ 
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
++		pr_debug("adm1021: detect failed, "
++			 "smbus byte data not supported!\n");
+ 		goto error0;
++	}
+ 
+ 	/* OK. For now, we presume we have a valid client. We now create the
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access adm1021_{read,write}_value. */
+ 
+ 	if (!(data = kzalloc(sizeof(struct adm1021_data), GFP_KERNEL))) {
++		pr_debug("adm1021: detect failed, kzalloc failed!\n");
+ 		err = -ENOMEM;
+ 		goto error0;
+ 	}
+@@ -230,13 +234,17 @@ static int adm1021_detect(struct i2c_ada
+ 	new_client->addr = address;
+ 	new_client->adapter = adapter;
+ 	new_client->driver = &adm1021_driver;
+-	new_client->flags = 0;
++	status = i2c_smbus_read_byte_data(new_client, ADM1021_REG_STATUS);
++	conv_rate = i2c_smbus_read_byte_data(new_client,
++					     ADM1021_REG_CONV_RATE_R);
++	config = i2c_smbus_read_byte_data(new_client, ADM1021_REG_CONFIG_R);
+ 
+ 	/* Now, we do the remaining detection. */
+ 	if (kind < 0) {
+-		if ((adm1021_read_value(new_client, ADM1021_REG_STATUS) & 0x03) != 0x00
+-		 || (adm1021_read_value(new_client, ADM1021_REG_CONFIG_R) & 0x3F) != 0x00
+-		 || (adm1021_read_value(new_client, ADM1021_REG_CONV_RATE_R) & 0xF8) != 0x00) {
++		if ((status & 0x03) != 0x00 || (config & 0x3F) != 0x00
++		    || (conv_rate & 0xF8) != 0x00) {
++			pr_debug("adm1021: detect failed, "
++				 "chip not detected!\n");
+ 			err = -ENODEV;
+ 			goto error1;
+ 		}
+@@ -244,9 +252,10 @@ static int adm1021_detect(struct i2c_ada
+ 
+ 	/* Determine the chip type. */
+ 	if (kind <= 0) {
+-		i = adm1021_read_value(new_client, ADM1021_REG_MAN_ID);
++		i = i2c_smbus_read_byte_data(new_client, ADM1021_REG_MAN_ID);
+ 		if (i = 0x41)
+-			if ((adm1021_read_value(new_client, ADM1021_REG_DEV_ID) & 0x0F0) = 0x030)
++			if ((i2c_smbus_read_byte_data(new_client,
++					ADM1021_REG_DEV_ID) & 0x0F0) = 0x030)
+ 				kind = adm1023;
+ 			else
+ 				kind = adm1021;
+@@ -255,15 +264,16 @@ static int adm1021_detect(struct i2c_ada
+ 		else if (i = 0x23)
+ 			kind = gl523sm;
+ 		else if ((i = 0x4d) &&
+-			 (adm1021_read_value(new_client, ADM1021_REG_DEV_ID) = 0x01))
++			 (i2c_smbus_read_byte_data(new_client,
++						   ADM1021_REG_DEV_ID) = 0x01))
+ 			kind = max1617a;
+ 		else if (i = 0x54)
+ 			kind = mc1066;
+ 		/* LM84 Mfr ID in a different place, and it has more unused bits */
+-		else if (adm1021_read_value(new_client, ADM1021_REG_CONV_RATE_R) = 0x00
+-		      && (kind = 0 /* skip extra detection */
+-		       || ((adm1021_read_value(new_client, ADM1021_REG_CONFIG_R) & 0x7F) = 0x00
+-			&& (adm1021_read_value(new_client, ADM1021_REG_STATUS) & 0xAB) = 0x00)))
++		else if (conv_rate = 0x00
++			 && (kind = 0 /* skip extra detection */
++			     || ((config & 0x7F) = 0x00
++				 && (status & 0xAB) = 0x00)))
+ 			kind = lm84;
+ 		else
+ 			kind = max1617;
+@@ -286,11 +296,12 @@ static int adm1021_detect(struct i2c_ada
+ 	} else if (kind = mc1066) {
+ 		type_name = "mc1066";
+ 	}
++	pr_debug("adm1021: Detected chip %s at adapter %d, address 0x%02x.\n",
++		 type_name, i2c_adapter_id(adapter), address);
+ 
+-	/* Fill in the remaining client fields and put it into the global list */
++	/* Fill in the remaining client fields */
+ 	strlcpy(new_client->name, type_name, I2C_NAME_SIZE);
+ 	data->type = kind;
+-	data->valid = 0;
+ 	mutex_init(&data->update_lock);
+ 
+ 	/* Tell the I2C layer a new client has arrived */
+@@ -326,10 +337,10 @@ error0:
+ static void adm1021_init_client(struct i2c_client *client)
+ {
+ 	/* Enable ADC and disable suspend mode */
+-	adm1021_write_value(client, ADM1021_REG_CONFIG_W,
+-		adm1021_read_value(client, ADM1021_REG_CONFIG_R) & 0xBF);
++	i2c_smbus_write_byte_data(client, ADM1021_REG_CONFIG_W,
++		i2c_smbus_read_byte_data(client, ADM1021_REG_CONFIG_R) & 0xBF);
+ 	/* Set Conversion rate to 1/sec (this can be tinkered with) */
+-	adm1021_write_value(client, ADM1021_REG_CONV_RATE_W, 0x04);
++	i2c_smbus_write_byte_data(client, ADM1021_REG_CONV_RATE_W, 0x04);
+ }
+ 
+ static int adm1021_detach_client(struct i2c_client *client)
+@@ -347,19 +358,6 @@ static int adm1021_detach_client(struct 
+ 	return 0;
+ }
+ 
+-/* All registers are byte-sized */
+-static int adm1021_read_value(struct i2c_client *client, u8 reg)
+-{
+-	return i2c_smbus_read_byte_data(client, reg);
+-}
+-
+-static int adm1021_write_value(struct i2c_client *client, u8 reg, u16 value)
+-{
+-	if (!read_only)
+-		return i2c_smbus_write_byte_data(client, reg, value);
+-	return 0;
+-}
+-
+ static struct adm1021_data *adm1021_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -371,19 +369,36 @@ static struct adm1021_data *adm1021_upda
+ 	    || !data->valid) {
+ 		dev_dbg(&client->dev, "Starting adm1021 update\n");
+ 
+-		data->temp_input = adm1021_read_value(client, ADM1021_REG_TEMP);
+-		data->temp_max = adm1021_read_value(client, ADM1021_REG_TOS_R);
+-		data->temp_hyst = adm1021_read_value(client, ADM1021_REG_THYST_R);
+-		data->remote_temp_input = adm1021_read_value(client, ADM1021_REG_REMOTE_TEMP);
+-		data->remote_temp_max = adm1021_read_value(client, ADM1021_REG_REMOTE_TOS_R);
+-		data->remote_temp_hyst = adm1021_read_value(client, ADM1021_REG_REMOTE_THYST_R);
+-		data->alarms = adm1021_read_value(client, ADM1021_REG_STATUS) & 0x7c;
++		data->temp_input = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_TEMP);
++		data->temp_max = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_TOS_R);
++		data->temp_hyst = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_THYST_R);
++		data->remote_temp_input = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_REMOTE_TEMP);
++		data->remote_temp_max = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_REMOTE_TOS_R);
++		data->remote_temp_hyst = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_REMOTE_THYST_R);
++		data->alarms = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_STATUS) & 0x7c;
+ 		if (data->type = adm1023) {
+-			data->remote_temp_prec = adm1021_read_value(client, ADM1021_REG_REM_TEMP_PREC);
+-			data->remote_temp_os_prec = adm1021_read_value(client, ADM1021_REG_REM_TOS_PREC);
+-			data->remote_temp_hyst_prec = adm1021_read_value(client, ADM1021_REG_REM_THYST_PREC);
+-			data->remote_temp_offset = adm1021_read_value(client, ADM1021_REG_REM_OFFSET);
+-			data->remote_temp_offset_prec = adm1021_read_value(client, ADM1021_REG_REM_OFFSET_PREC);
++			data->remote_temp_prec +				i2c_smbus_read_byte_data(client,
++						ADM1023_REG_REM_TEMP_PREC);
++			data->remote_temp_os_prec +				i2c_smbus_read_byte_data(client,
++						ADM1023_REG_REM_TOS_PREC);
++			data->remote_temp_hyst_prec +				i2c_smbus_read_byte_data(client,
++						ADM1023_REG_REM_THYST_PREC);
++			data->remote_temp_offset +				i2c_smbus_read_byte_data(client,
++						ADM1023_REG_REM_OFFSET);
++			data->remote_temp_offset_prec +				i2c_smbus_read_byte_data(client,
++						ADM1023_REG_REM_OFFSET_PREC);
+ 		}
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
 
-I'm not sure what worries you. I don't think that Mark and myself are
-in disagreement on the course of action we should take.
-
-> Second, this is not what was agreed too when the generic chip support was first 
-> merged, I argued that it should go to the 2.x branch, which it could have (and 
-> still can) since if its added to the 2.x branch as was suggested, so that it 
-> only gets used for new / unknown chips, then it cannot cause regressions for 
-> existing users, as those will never enter a codepath which uses it.
-
-You forget to mention that the generic chip support relies on the new
-sensors_feature_get_type interface. This means that not only
-libsensors needs to be modified, but also sensors and all the other
-tools which rely on libsensors. I am not willing to ask the developers
-of these tools to add support for a preliminary version of the generic
-chip support now, and then again for libsensors.so.4 (as we already
-know it will not be compatible.) And having support in only sensors and
-not the other tools isn't really an option either, users would complain
-loudly.
-
-When I proposed to add generic chip support to the 2.x branch, I had
-not realized the compatibility issues that were involved. I agree that
-it added unneeded constraints to your student's work and I'm sorry
-about that. But now that we decided to add the code to the 3.x branch
-and the biggest part of the work is done there, there's no way we step
-back and start it all over again. A decision was made and we will stick
-to it.
-
-> Also the generic chip support was designed exactly to stop the mind numbing 
-> pain of having to write similar but subtile different printing routines for 
-> each chip, pain which now is being induced upon all of us be delaying a release 
-> of libsensors with generic chipsupport added.
-
-The pain is mainly on the user's side, not ours. Adding support for a
-new chip to libsensors.so.3  and sensors is not that difficult. It's a
-matter of 15 minutes for us, I'd say. Copy and paste isn't funny, but
-it's not difficult.
-
-> With that said, I must say I agree with the cleaning happening for the 3.x 
-> branch. I also technically agree with taking a good look at the API+ABI before
-> releasing a new soname version, I would like to notice though this wasn't on 
-> the original roadmap and working on features only to have them delayed by new 
-> stuff being put on the roadmap makes me grumpy. Esp. because this (thinking of 
-> new things todo for release) is a process which can be repeated endlessly, thus 
-> delaying the release of said new features endlessly.
-
-I don't plan to wait for libsensors.so.4 to be perfect before we
-release it. All I want is that the interface is clean enough so that we
-can be reasonably certain we won't have to change it in the next 8
-years. The rest can be improved endlessly, but later. I was hoping to
-have the time to look at the interface last week, but I did not. This
-is still at the top of my todo list, but I have a lot to do for my day
-job again.
-
-> So can we please create a new (short) roadmap + timeline for 3.x and stick to it?
-
-See http://www.lm-sensors.org/roadmap
-
-This is the roadmap, in terms of remaining tasks. It can be argued
-whether these are all blockers for 3.0.0. Some of the items could
-probably be postponed to 3.0.1. For example, #2174 (Add 'include'
-functionality for sensors.conf) is in no way required for 3.0.0.
-
-If there are other things you think need to be done for 3.0.0, please
-add them. And feel free to create a new 3.0.1 milestone and propose
-moving some of the items from 3.0.0 to 3.0.1 if they don't look like
-blockers to you.
-
-> > 2.10.4 will be released very soon. And after that I think we'll have at
-> > least 2.10.5 before the 2.x branch can go to sleep. And distributions
-> > need time before they switch to a new branch of a product. So I don't
-> > think you can spare the time needed to add support for your chips to
-> > the 2.10.x branch, unless you don't want distribution users to use your
-> > drivers before another 6 months, at best. Only after 3.x is released,
-> > we can stop adding support for new chips in 2.x, methinks.
-> 
-> Unfortunately I agree. I say Unfortunately because that means I have to write 
-> libsensors + sensors 2.x support for the abituguru3 and the fintek f71882fg.
-
-As I wrote above, it's not that difficult.
-
-> I see 2 options here:
-> 1) I'll scramble to write abituguru3 and fintek f71882fg support for 2.10.x
->     before the july 8th deadline. If we go this way, is it ok to directly
->     commit this to svn? (I might need slightly more time in which case I would
->     like to ask for a short delay, but I'll try to make the july 8th deadline)
-
-If you need more time, just tell me. The deadline is not set in stone,
-we can change it.
-
-> 2) Do a 2.11.0 (with RC / beta first) soon after 2.10.4 with the current
->     generic chip support code from 3.x merged in the way it was originally
->     intented (iow only comes into play for unknown chips)
-
-Please, no. This would be a waste of your time and mine. The current
-2.x method is bad (otherwise we wouldn't be working on 3.x) but it is
-mastered by us and well understood by distributions, application
-authors and users. We have been living with it for 8 years, a couple
-additional months really aren't a problem. If you have time to put in
-the project, please contribute to 3.x (or help with support so that I
-can contribute to 3.x) rather that starting your own development
-branch. 3.x isn't not that far from being ready, if we all work on it.
-
-> I prefer 2, because that means that we will have a 2.x for more conservative 
-> users, which will automatically work with new chips as they are added to the 
-> kernel, and this might save us from having todo a 2.10.6 (2.11.0 is about as 
-> much work as 2.10.5 I guess).
->
-> Please let me know which one it will be, then I'll start working on the choosen 
-> path.
-
-Option 1, definitely.
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
