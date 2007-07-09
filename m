@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 08 Jul 2007 19:09:27 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 09 Jul 2007 18:16:07 +0000
 Subject: Re: [lm-sensors] kernel TODO 20070708
-Message-Id: <46913667.5060404@hhs.nl>
+Message-Id: <20070709201607.5a25b87a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070708181411.GE3584@jupiter.solarsys.private>
 In-Reply-To: <20070708181411.GE3584@jupiter.solarsys.private>
@@ -10,21 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mark M. Hoffman wrote:
-> Hi all:
-> 
-> PATCH: hwmon-fscpos-individual-alarm-files-v2.patch
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020253.html
+On Sun, 8 Jul 2007 14:14:11 -0400, Mark M. Hoffman wrote:
+> [PATCH] Apple SMC driver - fix input device
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-April/019462.html
+> status: not sure it belongs in my tree, will deal with it later
+
+Same comment as last time: this one is already upstream!
+
+> [ patch ]  de-macro-fy w83627hf.c
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020340.html
 > status: wants reviewer
-> 
 
-Notice that this patch has issues (alarms which need to be reset by userspace), 
-  since I lack the hardware to test an improved version, and fixing this cannot 
-be done without testing, I hereby withdraw this patch.
+I will test this one after Jim provides a patch that applies on top of
+your stack.
 
-Regards,
+> [PATCH] adm1021 dynamic sysfs callbacks added
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020344.html
+> status: wants reviewer
 
-Hans
+I will review this one once Krzysztof will have split the cleanup parts
+to a separate patch.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
