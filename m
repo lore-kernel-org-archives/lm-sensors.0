@@ -1,7 +1,7 @@
-From: Pavel Machek <pavel@ucw.cz>
-Date: Mon, 09 Jul 2007 20:37:00 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 10 Jul 2007 09:43:40 +0000
 Subject: Re: [lm-sensors] PATCH: hwmon-abituguru-check-dmi-vendor.patch
-Message-Id: <20070709203700.GB1967@elf.ucw.cz>
+Message-Id: <20070710114340.42f1dcbd@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4690D52A.7040402@hhs.nl>
 In-Reply-To: <4690D52A.7040402@hhs.nl>
@@ -10,7 +10,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon 2007-07-09 20:27:46, Jean Delvare wrote:
+Hans,
+
+On Mon, 9 Jul 2007 20:27:46 +0200, Jean Delvare wrote:
 > On Sun, 08 Jul 2007 14:14:34 +0200, Hans de Goede wrote:
 > > With this patch the abituguru refuses to load on non Abit motherboards, as
 > > discussed in lkml CONFIG_BREAK_MY_MACHINE thread.
@@ -21,11 +23,12 @@ On Mon 2007-07-09 20:27:46, Jean Delvare wrote:
 > 
 > Acked-by: Jean Delvare <khali@linux-fr.org>
 
-I guess I should say "thanks", too...
-									Pavel
+Thinking about it some more... You may want to skip the DMI test if the
+force module parameter is used, in case Abit stops being consistent for
+the DMI board vendor name field.
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
