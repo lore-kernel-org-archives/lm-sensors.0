@@ -1,807 +1,340 @@
-From: Riku Voipio <riku.voipio@movial.fi>
-Date: Tue, 10 Jul 2007 10:01:53 +0000
+From: Christian Emmerich <christian_emmerich@yahoo.de>
+Date: Tue, 10 Jul 2007 19:08:39 +0000
 Subject: Re: [lm-sensors] [PATCH] Add f75375s driver
-Message-Id: <46935911.9030704@movial.fi>
+Message-Id: <86964.93262.qm@web25108.mail.ukl.yahoo.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------080302000902040302060107"
+Content-Type: multipart/mixed; boundary="===============2352998862216373815=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070628230725.GA29698@kos.to>
 In-Reply-To: <20070628230725.GA29698@kos.to>
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080302000902040302060107
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+--===============2352998862216373815==
+Content-Type: multipart/alternative; boundary="0-1793519341-1184094519=:93262"
+Content-Transfer-Encoding: 8bit
 
-Christian Emmerich wrote:
-> Hi Riku,
+--0-1793519341-1184094519=:93262
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+Hi Riku,
+
+Thanks for your reply & the new version of the driver.
+
+> > OK, this was my fault if i set the value by hand i could also see the
+> > value using 'cat temp1_max_hyst' and sensors, i thought there would be
+> > an automatic entry i can read out.
+> > What does this value exactly stand for, is it usefull for sensors or
+> > just a value i can read out using sensors?
 >
-> > Thanks for your time reviewing and testing the driver.
-> No problem. Without the driver i would't be able to manage the 
-> temperature/fan speed of my pc, so i have to thank you for your work.
->
->
-> > temp1_max_hyst
-> > ALL6500:/sys/devices/platform/IOP3xx-I2C.0/i2c-0/0-002e# cat 
-> temp1_max_hyst
-> > 61000
->
-> > So it appears to work as expected. According to sysfs-interface temp*
-> > should report and accept millidegrees or millivolts. We are outputting
-> > millidegrees.
->
-> OK, this was my fault if i set the value by hand i could also see the 
-> value using 'cat temp1_max_hyst' and sensors, i thought there would be 
-> an automatic entry i can read out.
-> What does this value exactly stand for, is it usefull for sensors or 
-> just a value i can read out using sensors?
->
-It has a default value, 60 degrees, but your bios might overwrite it. 
-Which reminds me: if you don't mind, please verify that values reported 
-by sensors match the ones reported
-by bios. Often bios's come with a screen that shows of hwmon 
-information. as I understand, hysteresis is a kind of "soft" limit, or 
-warning zone before the critical
-temperature hits.
-> Another problem i forget in my last mail. I don't know what's the 
-> reason, but if i do the following:
-> root@pc:/sys/devices/pci0000:00/0000:00:01.1/i2c-1/1-002d# cat fan1_min
-> i got following output:
-> <output>
-> root@pc:/sys/devices/pci0000:00/0000:00:01.1/i2c-1/1-002d# cat fan1_min
-> Segmentation fault
-> root@pc:/sys/devices/pci0000:00/0000:00:01.1/i2c-1/1-002d#
-Oops. the new REG_TO_RPM code did not take in account if the rpm count 
-is zero.. should be fixed with the attached version..
+> It has a default value, 60 degrees, but your bios might overwrite it.
+It seems that the bios overwrites it, the value is always zero until i chan=
+ge it. If i set it by hand, i can see a value using cat and also using sens=
+ors.
 
---------------080302000902040302060107
-Content-Type: text/x-patch;
- name="0001-Add-f75375s-driver.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="0001-Add-f75375s-driver.patch"
+> Which reminds me: if you don't mind, please verify that values reported
+> by sensors match the ones reported
+> by bios. Often bios's come with a screen that shows of hwmon
+> information.
+I can see following values:
+             bios-hwmon             sensors
+CPU Temp:       51=B0C                 +50=B0C
+SYS Temp:       43=B0C                 +44=B0C
+CPU Fan         1800                 1777
+SYS Fan           not connected in my pc
+VCC:            n.a.                 +1.72 V
+V1:             n.a.                 +1.34 V
+V2:             n.a.                 +1.01 V
+V3:             n.a.                 +0.81 V
+Values i can also see in my bios seems to be ok. The voltage values of the =
+fintek chip are not shown in the bios. I have a second chip ( w83627hf ), t=
+he voltage values of this chip are displayed in the bios.
 
-From c809c6b59e9a18e2c97e67fd10a76abdd75f9c4a Mon Sep 17 00:00:00 2001
-From: Riku Voipio <nchip@watergate-2.(none)>
-Date: Fri, 29 Jun 2007 01:21:03 +0300
-Subject: [PATCH] Add f75375s driver
+> > Another problem i forget in my last mail. I don't know what's the
+> > reason, but if i do the following:
+> > root at pc:/sys/devices/pci0000:00/0000:00:01.1/i2c-1/1-002d# cat fan1_=
+min
+> > i got following output:
+> > <output>
+> > root at pc:/sys/devices/pci0000:00/0000:00:01.1/i2c-1/1-002d# cat fan1_=
+min
+> > Segmentation fault
+> > root at pc:/sys/devices/pci0000:00/0000:00:01.1/i2c-1/1-002d#
+> Oops. the new REG_TO_RPM code did not take in account if the rpm count
+> is zero.. should be fixed with the attached version..
+OK, now i can make a cat fan1_min. The value is zero until i set it by hand=
+. But if i set it to zero it leads to an segmentation fault again.
+<output>
+root@pc:/sys/devices/pci0000:00/0000:00:01.1/i2c-1/1-002d# echo 0 > fan1_min
+Segmentation fault
+mythtv@pc:~$
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000] divide error: 0000 [#1]
 
-Signed-off-by: Riku Voipio <riku.voipio@movial.fi>
----
- drivers/hwmon/Kconfig   |   10 +
- drivers/hwmon/Makefile  |    1 +
- drivers/hwmon/f75375s.c |  683 +++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 694 insertions(+), 0 deletions(-)
- create mode 100644 drivers/hwmon/f75375s.c
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000] CPU:    0
 
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 13eea47..9138604 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -199,6 +199,16 @@ config SENSORS_F71805F
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called f71805f.
- 
-+config SENSORS_F75375S
-+	tristate "Fintek F75375S/SP and F75373";
-+	depends on I2C && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for hardware monitoring
-+	  features of the Fintek F75375S/SP and F75373
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called f75375s.
-+
- config SENSORS_FSCHER
- 	tristate "FSC Hermes"
- 	depends on I2C
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index cfaf338..689131a 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -27,6 +27,7 @@ obj-$(CONFIG_SENSORS_ATXP1)	+= atxp1.o
- obj-$(CONFIG_SENSORS_CORETEMP)	+= coretemp.o
- obj-$(CONFIG_SENSORS_DS1621)	+= ds1621.o
- obj-$(CONFIG_SENSORS_F71805F)	+= f71805f.o
-+obj-$(CONFIG_SENSORS_F75375S)	+= f75375s.o
- obj-$(CONFIG_SENSORS_FSCHER)	+= fscher.o
- obj-$(CONFIG_SENSORS_FSCPOS)	+= fscpos.o
- obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
-diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
-new file mode 100644
-index 0000000..9cc9fba
---- /dev/null
-+++ b/drivers/hwmon/f75375s.c
-@@ -0,0 +1,683 @@
-+/*
-+ * f75375s.c - driver for the Fintek F75375/SP and F75373
-+ *             hardware monitoring features
-+ * Copyright (C) 2006-2007  Riku Voipio <riku.voipio@movial.fi>
-+ *
-+ * Datasheets available at:
-+ *
-+ * f75375:
-+ * http://www.fintek.com.tw/files/productfiles/2005111152950.pdf
-+ *
-+ * f75373:
-+ * http://www.fintek.com.tw/files/productfiles/2005111153128.pdf
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/jiffies.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/i2c.h>
-+#include <linux/err.h>
-+#include <linux/mutex.h>
-+
-+/* Addresses to scan */
-+static unsigned short normal_i2c[] = { 0x2d, 0x2e, I2C_CLIENT_END };
-+
-+/* Insmod parameters */
-+I2C_CLIENT_INSMOD_1(f75375);
-+
-+/* Fintek F75375 registers  */
-+#define F75375_REG_CONFIG0		0x0
-+#define F75375_REG_CONFIG1		0x1
-+#define F75375_REG_CONFIG2		0x2
-+#define F75375_REG_CONFIG3		0x3
-+#define F75375_REG_ADDR			0x4
-+#define F75375_REG_INTR			0x31
-+#define F75375_CHIP_ID			0x5A
-+#define F75375_REG_VERSION		0x5C
-+#define F75375_REG_VENDOR		0x5D
-+#define F75375_REG_FAN_TIMER		0x60
-+
-+#define F75375_REG_VOLT(nr)		(0x10 + (nr))
-+#define F75375_REG_VOLT_HIGH(nr)	(0x20 + (nr) * 2 )
-+#define F75375_REG_VOLT_LOW(nr)		(0x21 + (nr) * 2 )
-+
-+#define F75375_REG_TEMP(nr)		(0x14 + (nr))
-+#define F75375_REG_TEMP_HIGH(nr)	(0x28 + (nr) * 2 )
-+#define F75375_REG_TEMP_HYST(nr)	(0x29 + (nr) * 2 )
-+
-+#define F75375_REG_FAN(nr)		(0x16 + (nr) * 2 )
-+#define F75375_REG_FAN_MIN(nr)		(0x2C + (nr) * 2 )
-+#define F75375_REG_FAN_FULL(nr)		(0x70 + (nr) * 0x10 )
-+#define F75375_REG_FAN_PWM_DUTY(nr)	(0x76 + (nr) * 0x10 )
-+#define F75375_REG_FAN_PWM_CLOCK(nr)	(0x7D + (nr) * 0x10 )
-+
-+#define F75375_REG_FAN_EXP(nr)		(0x74 + (nr) * 0x10 )
-+#define F75375_REG_FAN_B_TEMP(nr, step)	((0xA0 + (nr) * 0x10) + (step))
-+#define F75375_REG_FAN_B_SPEED(nr, step) \
-+	((0xA5 + (nr) * 0x10) + (step) * 2 )
-+
-+#define F75375_REG_PWM1_RAISE_DUTY	0x69
-+#define F75375_REG_PWM2_RAISE_DUTY	0x6A
-+#define F75375_REG_PWM1_DROP_DUTY	0x6B
-+#define F75375_REG_PWM2_DROP_DUTY	0x6C
-+
-+#define FAN_CTRL_LINEAR(nr)		(4+nr)
-+#define FAN_CTRL_MODE(nr)		(5+(nr*2))
-+
-+enum kinds {F75375, F75373};
-+
-+/*
-+ * Data structures and manipulation thereof
-+ */
-+
-+struct f75375_data {
-+	unsigned short addr;
-+	struct i2c_client client;
-+	struct class_device *class_dev;
-+
-+	const char *name;
-+	enum kinds kind;
-+	struct mutex update_lock; /* protect register access */
-+	char valid;
-+	unsigned long last_updated;	/* In jiffies */
-+	unsigned long last_limits;	/* In jiffies */
-+
-+	/* Register values */
-+	u8 in[4];
-+	u8 in_max[4];
-+	u8 in_min[4];
-+	u16 fan[2];
-+	u16 fan_min[2];
-+	u16 fan_full[2];
-+	u16 fan_exp[2];
-+	u8 fan_timer;
-+	u8 pwm[2];
-+	u8 pwm_mode[2];
-+	u8 pwm_enable[2];
-+	u8 temp[2];
-+	s8 temp_high[2];
-+	s8 temp_max_hyst[2];
-+};
-+
-+static int f75375_attach_adapter(struct i2c_adapter *adapter);
-+static int f75375_detect(struct i2c_adapter *adapter, int address, int kind);
-+static int f75375_detach_client(struct i2c_client *client);
-+
-+static struct i2c_driver f75375_driver = {
-+	.driver = {
-+		.name = "f75375",
-+	},
-+	.attach_adapter = f75375_attach_adapter,
-+	.detach_client = f75375_detach_client,
-+};
-+
-+static inline int f75375_read8(struct i2c_client *client, u8 reg)
-+{
-+	return i2c_smbus_read_byte_data(client, reg);
-+}
-+static inline u16 f75375_read16(struct i2c_client *client, u8 reg)
-+{
-+	return ((i2c_smbus_read_byte_data(client, reg) << 8)
-+		| i2c_smbus_read_byte_data(client, reg + 1));
-+}
-+
-+static inline int f75375_write8(struct i2c_client *client, u8 reg,
-+		u8 value)
-+{
-+	return i2c_smbus_write_byte_data(client, reg, value);
-+}
-+static inline int f75375_write16(struct i2c_client *client, u8 reg,
-+		u16 value)
-+{
-+	int err = i2c_smbus_write_byte_data(client, reg, (value << 8));
-+	if (err)
-+		return err;
-+	return i2c_smbus_write_byte_data(client, reg + 1, (value & 0xFF));
-+}
-+static struct f75375_data *f75375_update_device(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct f75375_data *data = i2c_get_clientdata(client);
-+	int nr;
-+
-+	mutex_lock(&data->update_lock);
-+
-+	/* Limit registers cache is refreshed after 60 seconds */
-+	if (time_after(jiffies, data->last_updated + 60 * HZ)
-+		|| !data->valid) {
-+		for (nr = 0; nr < 2; nr++) {
-+			data->temp_high[nr] =
-+				f75375_read8(client, F75375_REG_TEMP_HIGH(nr));
-+			data->temp_max_hyst[nr] =
-+				f75375_read8(client, F75375_REG_TEMP_HYST(nr));
-+			data->fan_full[nr] =
-+				f75375_read16(client, F75375_REG_FAN_FULL(nr));
-+			data->fan_min[nr] =
-+				f75375_read16(client, F75375_REG_FAN_MIN(nr));
-+			data->fan_exp[nr] =
-+				f75375_read16(client, F75375_REG_FAN_EXP(nr));
-+			data->pwm[nr] =	f75375_read8(client,
-+				F75375_REG_FAN_PWM_DUTY(nr));
-+
-+		}
-+		for (nr = 0; nr < 4; nr++) {
-+			data->in_max[nr] =
-+				f75375_read8(client, F75375_REG_VOLT_HIGH(nr));
-+			data->in_min[nr] =
-+				f75375_read8(client, F75375_REG_VOLT_LOW(nr));
-+		}
-+		data->fan_timer = f75375_read8(client, F75375_REG_FAN_TIMER);
-+		data->last_limits = jiffies;
-+	}
-+
-+	/* Measurement registers cache is refreshed after 2 second */
-+	if (time_after(jiffies, data->last_updated + 2 * HZ)
-+		|| !data->valid) {
-+		for (nr = 0; nr < 2; nr++) {
-+			data->temp[nr] =
-+				f75375_read8(client, F75375_REG_TEMP(nr));
-+			data->fan[nr] =
-+				f75375_read16(client, F75375_REG_FAN(nr));
-+		}
-+		for (nr = 0; nr < 4; nr++) {
-+			data->in[nr] =
-+				f75375_read8(client, F75375_REG_VOLT(nr));
-+		}
-+		data->last_updated = jiffies;
-+		data->valid = 1;
-+	}
-+
-+	mutex_unlock(&data->update_lock);
-+	return data;
-+}
-+
-+
-+#define RPM_FROM_REG(val) ((val == 65535 || val == 0 ) ? 0 : 1500000/(val))
-+#define RPM_TO_REG(val) (1500000/(val))
-+
-+static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct f75375_data *data = i2c_get_clientdata(client);
-+	int val = simple_strtol(buf, NULL, 10);
-+
-+	mutex_lock(&data->update_lock);
-+	data->fan_min[nr] = RPM_TO_REG(val);
-+	f75375_write16(client, F75375_REG_FAN_MIN(nr), data->fan_min[nr]);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+static ssize_t set_fan_exp(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct f75375_data *data = i2c_get_clientdata(client);
-+	int val = simple_strtol(buf, NULL, 10);
-+
-+	mutex_lock(&data->update_lock);
-+	data->fan_exp[nr] = RPM_TO_REG(val);
-+	f75375_write16(client, F75375_REG_FAN_MIN(nr), data->fan_exp[nr]);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct f75375_data *data = i2c_get_clientdata(client);
-+	int val = simple_strtol(buf, NULL, 10);
-+
-+	if (val > 255)
-+		val = 255;
-+
-+	mutex_lock(&data->update_lock);
-+	data->pwm[nr] = val;
-+	f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr), data->pwm[nr]);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+static ssize_t show_pwm_enable(struct device *dev, struct device_attribute
-+		*attr, char *buf)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct f75375_data *data = f75375_update_device(dev);
-+	return sprintf(buf, "%d\n", data->pwm_enable[nr]);
-+}
-+
-+static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct f75375_data *data = i2c_get_clientdata(client);
-+	int val = simple_strtol(buf, NULL, 10);
-+	u8 fanmode;
-+
-+	if (val < 0 || val > 4)
-+		return -EINVAL;
-+
-+	mutex_lock(&data->update_lock);
-+	fanmode = f75375_read8(client, F75375_REG_FAN_TIMER);
-+	fanmode = ~(3 << FAN_CTRL_MODE(nr) );
-+
-+	switch (val) {
-+	case 0: /* Full speed */
-+		fanmode  |= (3 << FAN_CTRL_MODE(nr) );
-+		data->pwm[nr] = 255;
-+		f75375_write8(	client, F75375_REG_FAN_PWM_DUTY(nr),
-+				data->pwm[nr]);
-+		break;
-+	case 1: /* PWM */
-+		fanmode  |= (3 << FAN_CTRL_MODE(nr) );
-+		break;
-+	case 2: /* AUTOMATIC*/
-+		fanmode  |= (2 << FAN_CTRL_MODE(nr) );
-+		break;
-+	case 3: /* fan speed */
-+		break;
-+	}
-+	f75375_write8(client, F75375_REG_FAN_TIMER, fanmode);
-+	data->pwm_enable[nr] = val;
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct f75375_data *data = i2c_get_clientdata(client);
-+	int kind = data->kind;
-+	int val = simple_strtol(buf, NULL, 10);
-+	u8 conf = 0;
-+
-+	if (val != 0 || val != 1 || kind == F75373 )
-+		return -EINVAL;
-+
-+	mutex_lock(&data->update_lock);
-+	conf = f75375_read8(client, F75375_REG_CONFIG1);
-+	conf = ~(1 << FAN_CTRL_LINEAR(nr) );
-+
-+	if (val == 0)
-+		conf |= (1 << FAN_CTRL_LINEAR(nr) ) ;
-+
-+	f75375_write8(client, F75375_REG_CONFIG1, conf);
-+	data->pwm_mode[nr] = val;
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+static ssize_t show_pwm(struct device *dev, struct device_attribute
-+		*attr, char *buf)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct f75375_data *data = f75375_update_device(dev);
-+	return sprintf(buf, "%d\n", data->pwm[nr]);
-+}
-+static ssize_t show_pwm_mode(struct device *dev, struct device_attribute
-+		*attr, char *buf)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct f75375_data *data = f75375_update_device(dev);
-+	return sprintf(buf, "%d\n", data->pwm_mode[nr]);
-+}
-+
-+#define VOLT_FROM_REG(val) ((val)*8)
-+#define VOLT_TO_REG(val) ((val)/8)
-+
-+static ssize_t show_in(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct f75375_data *data = f75375_update_device(dev);
-+	return sprintf(buf, "%d\n", VOLT_FROM_REG(data->in[nr]));
-+}
-+
-+static ssize_t show_in_max(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct f75375_data *data = f75375_update_device(dev);
-+	return sprintf(buf, "%d\n", VOLT_FROM_REG(data->in_max[nr]));
-+}
-+
-+static ssize_t show_in_min(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct f75375_data *data = f75375_update_device(dev);
-+	return sprintf(buf, "%d\n", VOLT_FROM_REG(data->in_min[nr]));
-+}
-+
-+static ssize_t set_in_max(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct f75375_data *data = i2c_get_clientdata(client);
-+	int val = simple_strtol(buf, NULL, 10);
-+	if (VOLT_TO_REG(val) > 255)
-+		return -EINVAL;
-+	mutex_lock(&data->update_lock);
-+	data->in_max[nr] = VOLT_TO_REG(val);
-+	f75375_write8(client, F75375_REG_VOLT_HIGH(nr), data->in_max[nr]);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+static ssize_t set_in_min(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct f75375_data *data = i2c_get_clientdata(client);
-+	int val = simple_strtol(buf, NULL, 10);
-+	if (VOLT_TO_REG(val) > 255)
-+		return -EINVAL;
-+	mutex_lock(&data->update_lock);
-+	data->in_min[nr] = VOLT_TO_REG(val);
-+	f75375_write8(client, F75375_REG_VOLT_LOW(nr), data->in_min[nr]);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+#define TEMP_FROM_REG(val) ((val)*1000)
-+#define TEMP_TO_REG(val) ((val)/1000)
-+
-+static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct f75375_data *data = f75375_update_device(dev);
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr]));
-+}
-+
-+static ssize_t show_temp_max(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct f75375_data *data = f75375_update_device(dev);
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_high[nr]));
-+}
-+
-+static ssize_t show_temp_max_hyst(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct f75375_data *data = f75375_update_device(dev);
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_max_hyst[nr]));
-+}
-+
-+static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct f75375_data *data = i2c_get_clientdata(client);
-+	int val = simple_strtol(buf, NULL, 10);
-+	if (TEMP_TO_REG(val) > 255)
-+		return -EINVAL;
-+	mutex_lock(&data->update_lock);
-+	data->temp_high[nr] = TEMP_TO_REG(val);
-+	f75375_write8(client, F75375_REG_TEMP_HIGH(nr), data->temp_high[nr]);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+static ssize_t set_temp_max_hyst(struct device *dev,
-+	struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct f75375_data *data = i2c_get_clientdata(client);
-+	int val = simple_strtol(buf, NULL, 10);
-+	if (TEMP_TO_REG(val) > 255)
-+		return -EINVAL;
-+
-+	mutex_lock(&data->update_lock);
-+	data->temp_max_hyst[nr] = TEMP_TO_REG(val);
-+	f75375_write8(client, F75375_REG_TEMP_HYST(nr),
-+		data->temp_max_hyst[nr]);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+#define show_fan(thing) \
-+static ssize_t show_##thing(struct device *dev, struct device_attribute *attr, \
-+			char *buf)\
-+{\
-+	int nr = to_sensor_dev_attr(attr)->index;\
-+	struct f75375_data *data = f75375_update_device(dev); \
-+	return sprintf(buf, "%d\n", RPM_FROM_REG(data->thing[nr])); \
-+}
-+
-+show_fan(fan);
-+show_fan(fan_min);
-+show_fan(fan_full);
-+show_fan(fan_exp);
-+
-+static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, show_in, NULL, 0);
-+static SENSOR_DEVICE_ATTR(in0_max, S_IRUGO|S_IWUSR,
-+	show_in_max, set_in_max, 0);
-+static SENSOR_DEVICE_ATTR(in0_min, S_IRUGO|S_IWUSR,
-+	show_in_min, set_in_min, 0);
-+static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_in, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in1_max, S_IRUGO|S_IWUSR,
-+	show_in_max, set_in_max, 1);
-+static SENSOR_DEVICE_ATTR(in1_min, S_IRUGO|S_IWUSR,
-+	show_in_min, set_in_min, 1);
-+static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_in, NULL, 2);
-+static SENSOR_DEVICE_ATTR(in2_max, S_IRUGO|S_IWUSR,
-+	show_in_max, set_in_max, 2);
-+static SENSOR_DEVICE_ATTR(in2_min, S_IRUGO|S_IWUSR,
-+	show_in_min, set_in_min, 2);
-+static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_in, NULL, 3);
-+static SENSOR_DEVICE_ATTR(in3_max, S_IRUGO|S_IWUSR,
-+	show_in_max, set_in_max, 3);
-+static SENSOR_DEVICE_ATTR(in3_min, S_IRUGO|S_IWUSR,
-+	show_in_min, set_in_min, 3);
-+static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IRUGO|S_IWUSR,
-+	show_temp_max_hyst, set_temp_max_hyst, 0);
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO|S_IWUSR,
-+	show_temp_max, set_temp_max, 0);
-+static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp2_max_hyst, S_IRUGO|S_IWUSR,
-+	show_temp_max_hyst, set_temp_max_hyst, 1);
-+static SENSOR_DEVICE_ATTR(temp2_max, S_IRUGO|S_IWUSR,
-+	show_temp_max, set_temp_max, 1);
-+static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0);
-+static SENSOR_DEVICE_ATTR(fan1_full, S_IRUGO, show_fan_full, NULL, 0);
-+static SENSOR_DEVICE_ATTR(fan1_min, S_IRUGO|S_IWUSR,
-+	show_fan_min, set_fan_min, 0);
-+static SENSOR_DEVICE_ATTR(fan1_exp, S_IRUGO|S_IWUSR,
-+	show_fan_exp, set_fan_exp, 0);
-+static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1);
-+static SENSOR_DEVICE_ATTR(fan2_full, S_IRUGO, show_fan_full, NULL, 1);
-+static SENSOR_DEVICE_ATTR(fan2_min, S_IRUGO|S_IWUSR,
-+	show_fan_min, set_fan_min, 1);
-+static SENSOR_DEVICE_ATTR(fan2_exp, S_IRUGO|S_IWUSR,
-+	show_fan_exp, set_fan_exp, 1);
-+static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO|S_IWUSR,
-+	show_pwm, set_pwm, 0);
-+static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO|S_IWUSR,
-+	show_pwm_enable, set_pwm_enable, 0);
-+static SENSOR_DEVICE_ATTR(pwm1_mode, S_IRUGO|S_IWUSR,
-+	show_pwm_mode, set_pwm_mode, 0);
-+static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR,
-+	show_pwm, set_pwm, 1);
-+static SENSOR_DEVICE_ATTR(pwm2_enable, S_IRUGO|S_IWUSR,
-+	show_pwm_enable, set_pwm_enable, 1);
-+static SENSOR_DEVICE_ATTR(pwm2_mode, S_IRUGO|S_IWUSR,
-+	show_pwm_mode, set_pwm_mode, 1);
-+
-+static struct attribute *f75375_attributes[] = {
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp2_input.dev_attr.attr,
-+	&sensor_dev_attr_temp2_max.dev_attr.attr,
-+	&sensor_dev_attr_temp2_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_fan1_input.dev_attr.attr,
-+	&sensor_dev_attr_fan1_full.dev_attr.attr,
-+	&sensor_dev_attr_fan1_min.dev_attr.attr,
-+	&sensor_dev_attr_fan1_exp.dev_attr.attr,
-+	&sensor_dev_attr_fan2_input.dev_attr.attr,
-+	&sensor_dev_attr_fan2_full.dev_attr.attr,
-+	&sensor_dev_attr_fan2_min.dev_attr.attr,
-+	&sensor_dev_attr_fan2_exp.dev_attr.attr,
-+	&sensor_dev_attr_pwm1.dev_attr.attr,
-+	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm1_mode.dev_attr.attr,
-+	&sensor_dev_attr_pwm2.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_mode.dev_attr.attr,
-+	&sensor_dev_attr_in0_input.dev_attr.attr,
-+	&sensor_dev_attr_in0_max.dev_attr.attr,
-+	&sensor_dev_attr_in0_min.dev_attr.attr,
-+	&sensor_dev_attr_in1_input.dev_attr.attr,
-+	&sensor_dev_attr_in1_max.dev_attr.attr,
-+	&sensor_dev_attr_in1_min.dev_attr.attr,
-+	&sensor_dev_attr_in2_input.dev_attr.attr,
-+	&sensor_dev_attr_in2_max.dev_attr.attr,
-+	&sensor_dev_attr_in2_min.dev_attr.attr,
-+	&sensor_dev_attr_in3_input.dev_attr.attr,
-+	&sensor_dev_attr_in3_max.dev_attr.attr,
-+	&sensor_dev_attr_in3_min.dev_attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group f75375_group =
-+{
-+	.attrs = f75375_attributes,
-+};
-+
-+static int f75375_detach_client(struct i2c_client *client)
-+{
-+	struct f75375_data *data = i2c_get_clientdata(client);
-+	int err;
-+
-+	sysfs_remove_group(&client->dev.kobj, &f75375_group);
-+	hwmon_device_unregister(data->class_dev);
-+
-+	err = i2c_detach_client(client);
-+	if (err) {
-+		dev_err(&client->dev,
-+			"Client deregistration failed, "
-+			"client not detached.\n");
-+		return err;
-+	}
-+	kfree(data);
-+	return 0;
-+}
-+
-+static int f75375_attach_adapter(struct i2c_adapter *adapter)
-+{
-+	return i2c_probe(adapter, &addr_data, f75375_detect);
-+}
-+
-+
-+/* This function is called by i2c_probe */
-+static int f75375_detect(struct i2c_adapter *adapter, int address, int kind)
-+{
-+	struct i2c_client *client;
-+	struct f75375_data *data;
-+	u8 version = 0;
-+	int err = 0;
-+	char *name = "";
-+
-+	if (!(data = kzalloc(sizeof(struct f75375_data), GFP_KERNEL))) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+	client = &data->client;
-+	i2c_set_clientdata(client, data);
-+	client->addr = address;
-+	client->adapter = adapter;
-+	client->driver = &f75375_driver;
-+	client->flags = 0;
-+
-+	if (kind < 0) {
-+		u16 vendid = f75375_read16(client, F75375_REG_VENDOR);
-+		u16 chipid = f75375_read16(client, F75375_CHIP_ID);
-+		version = f75375_read8(client, F75375_REG_VERSION);
-+		if (chipid == 0x0306 && vendid == 0x1934) {
-+			name = "f75375";
-+			data->kind = F75375;
-+		} else if (chipid == 0x0204 && vendid == 0x1934) {
-+			name = "f75373";
-+			data->kind = F75373;
-+		} else {
-+			dev_err(&adapter->dev,
-+				"failed,%02X,%02X,%02X\n",
-+				chipid, version, vendid);
-+			goto exit_free;
-+		}
-+	}
-+	dev_info(&adapter->dev, "found %s version: %02X\n", name, version);
-+	strlcpy(client->name, name, I2C_NAME_SIZE);
-+	data->valid = 0;
-+	mutex_init(&data->update_lock);
-+	if ((err = i2c_attach_client(client)))
-+		goto exit_free;
-+
-+	if ((err = sysfs_create_group(&client->dev.kobj, &f75375_group)))
-+		goto exit_detach;
-+
-+	data->class_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_remove;
-+	}
-+
-+	return 0;
-+
-+exit_remove:
-+	sysfs_remove_group(&client->dev.kobj, &f75375_group);
-+exit_detach:
-+	i2c_detach_client(client);
-+exit_free:
-+	kfree(data);
-+exit:
-+	return err;
-+}
-+
-+static int __init sensors_f75375_init(void)
-+{
-+	return i2c_add_driver(&f75375_driver);
-+}
-+
-+static void __exit sensors_f75375_exit(void)
-+{
-+	i2c_del_driver(&f75375_driver);
-+}
-+
-+MODULE_AUTHOR("Riku Voipio <riku.voipio@movial.fi> ");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("F75373/F75375 hardware monitoring driver");
-+
-+module_init(sensors_f75375_init);
-+module_exit(sensors_f75375_exit);
--- 
-1.5.0.3
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000] EIP is at set_fan_min+0x4b/0xa0 [f75375s]
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000] eax: 0016e360   ebx: 00000000   ecx: 00000000 =
+  edx: 00000000
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000] esi: dd9d2e00   edi: 00000000   ebp: dd9d2e04 =
+  esp: d927df34
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000] ds: 007b   es: 007b   ss: 0068
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000] Process bash (pid: 18265, threadinfo=3Dd927c00=
+0 task=3Ddba575c0)
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000] Stack: dd9d2f94 000280d0 e0b777e0 e0b7a1c0 dd9=
+d2e80 00000002 c0228ebd 00000002
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000]        deead0d4 c0367514 d66401a0 c0195e87 000=
+00002 d09356e0 d66401b4 d09356e0
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000]        080fc808 d927dfa4 00000002 c0158b0e d92=
+7dfa4 c0195e00 d09356e0 fffffff7
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000] Call Trace:
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000]  <e0b777e0> set_fan_min+0x0/0xa0 [f75375s]  <c=
+0228ebd> dev_attr_store+0x2d/0x40
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000]  <c0195e87> sysfs_write_file+0x87/0xf0  <c0158=
+b0e> vfs_write+0xbe/0x190
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000]  <c0195e00> sysfs_write_file+0x0/0xf0  <c01591=
+71> sys_write+0x41/0x70
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000]  <c0102dbb> sysenter_past_esp+0x54/0x79
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000] Code: 7a 14 31 d2 8b b5 f8 00 00 00 e8 01 40 6=
+5 df 89 c3 8d 86 94 01 00 00 89 04 24 e8 01 ea 74 df ba 60 e3 16 00 31 c9 8=
+9 d0 c1 fa 1f <f7> fb 8d 5c 3f 2c 0f b6 d3 66 89 44 24 06 66 89 84 7e bc 01=
+ 00
+
+Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...
+pc kernel: [17190005.040000] EIP: [pg0+544229419/1069069312] set_fan_min+0x=
+4b/0xa0 [f75375s] SS:ESP 0068:d927df34
+</output>
+
+best regards
+christian.
+
+      =20
+---------------------------------
+ Die etwas anderen Infos rund um das Thema Reisen. BE A BETTER WELTENBUMMLE=
+R!
+--0-1793519341-1184094519=:93262
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<span style=3D"font-family: courier;">Hi Riku,</span><br style=3D"font-fami=
+ly: courier;"><br style=3D"font-family: courier;"><span style=3D"font-famil=
+y: courier;">Thanks for your reply &amp; the new version of the driver.</sp=
+an><br style=3D"font-family: courier;"><br style=3D"font-family: courier;">=
+<span style=3D"font-family: courier;">&gt; &gt; OK, this was my fault if i =
+set the value by hand i could also see the</span><br style=3D"font-family: =
+courier;"><span style=3D"font-family: courier;">&gt; &gt; value using 'cat =
+temp1_max_hyst' and sensors, i thought there would be</span><br style=3D"fo=
+nt-family: courier;"><span style=3D"font-family: courier;">&gt; &gt; an aut=
+omatic entry i can read out.</span><br style=3D"font-family: courier;"><spa=
+n style=3D"font-family: courier;">&gt; &gt; What does this value exactly st=
+and for, is it usefull for sensors or</span><br style=3D"font-family: couri=
+er;"><span style=3D"font-family: courier;">&gt; &gt; just a value i can rea=
+d out using sensors?</span><br
+ style=3D"font-family: courier;"><span style=3D"font-family: courier;">&gt;=
+</span><br style=3D"font-family: courier;"><span style=3D"font-family: cour=
+ier;">&gt; It has a default value, 60 degrees, but your bios might overwrit=
+e it.</span><br style=3D"font-family: courier;"><span style=3D"font-family:=
+ courier;">It seems that the bios overwrites it, the value is always zero u=
+ntil i change it. If i set it by hand, i can see a value using cat and also=
+ using sensors.</span><br style=3D"font-family: courier;"><br style=3D"font=
+-family: courier;"><span style=3D"font-family: courier;">&gt; Which reminds=
+ me: if you don't mind, please verify that values reported</span><br style=
+=3D"font-family: courier;"><span style=3D"font-family: courier;">&gt; by se=
+nsors match the ones reported</span><br style=3D"font-family: courier;"><sp=
+an style=3D"font-family: courier;">&gt; by bios. Often bios's come with a s=
+creen that shows of hwmon</span><br style=3D"font-family: courier;"><span s=
+tyle=3D"font-family: courier;">&gt;
+ information.</span><br style=3D"font-family: courier;"><span style=3D"font=
+-family: courier;">I can see following values:</span><br style=3D"font-fami=
+ly: courier;"><span style=3D"font-family: courier;">&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bios-hwmon&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; sensors</span><br=
+ style=3D"font-family: courier;"><span style=3D"font-family: courier;">CPU =
+Temp:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 51=B0C&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +50=
+=B0C</span><br style=3D"font-family: courier;"><span style=3D"font-family: =
+courier;">SYS Temp:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 43=B0C&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp; +44=B0C</span><br style=3D"font-family: courier;"><span style=3D"f=
+ont-family: courier;">CPU Fan&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;
+ 1800&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp; 1777</span><br style=3D"font-family: courier;"><=
+span style=3D"font-family: courier;">SYS Fan&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp; not connected in my pc</span><br style=3D"fon=
+t-family: courier;"><span style=3D"font-family: courier;">VCC:&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; n.a.&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp; +1.72 V</span><br style=3D"font-family: courier;"><span style=3D"font-=
+family: courier;">V1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp; n.a.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +1.34 V</span><br style=3D"fon=
+t-family: courier;"><span style=3D"font-family: courier;">V2:&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ n.a.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp; +1.01 V</span><br style=3D"font-family: courier;=
+"><span style=3D"font-family: courier;">V3:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; n.a.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +0.81 V<=
+/span><br style=3D"font-family: courier;"><span style=3D"font-family: couri=
+er;">Values i can also see in my bios seems to be ok. The voltage values of=
+ the fintek chip are not shown in the bios. I have a second chip ( w83627hf=
+ ), the voltage values of this chip are displayed in the bios.</span><br st=
+yle=3D"font-family: courier;"><br style=3D"font-family: courier;"><span sty=
+le=3D"font-family: courier;">&gt; &gt; Another problem i forget in my last =
+mail. I don't know what's the</span><br style=3D"font-family: courier;"><sp=
+an style=3D"font-family: courier;">&gt; &gt; reason, but if i do the follow=
+ing:</span><br
+ style=3D"font-family: courier;"><span style=3D"font-family: courier;">&gt;=
+ &gt; root at pc:/sys/devices/pci0000:00/0000:00:01.1/i2c-1/1-002d# cat fan=
+1_min</span><br style=3D"font-family: courier;"><span style=3D"font-family:=
+ courier;">&gt; &gt; i got following output:</span><br style=3D"font-family=
+: courier;"><span style=3D"font-family: courier;">&gt; &gt; &lt;output&gt;<=
+/span><br style=3D"font-family: courier;"><span style=3D"font-family: couri=
+er;">&gt; &gt; root at pc:/sys/devices/pci0000:00/0000:00:01.1/i2c-1/1-002d=
+# cat fan1_min</span><br style=3D"font-family: courier;"><span style=3D"fon=
+t-family: courier;">&gt; &gt; Segmentation fault</span><br style=3D"font-fa=
+mily: courier;"><span style=3D"font-family: courier;">&gt; &gt; root at pc:=
+/sys/devices/pci0000:00/0000:00:01.1/i2c-1/1-002d#</span><br style=3D"font-=
+family: courier;"><span style=3D"font-family: courier;">&gt; Oops. the new =
+REG_TO_RPM code did not take in account if the rpm count</span><br style=3D=
+"font-family: courier;"><span
+ style=3D"font-family: courier;">&gt; is zero.. should be fixed with the at=
+tached version..</span><br style=3D"font-family: courier;"><span style=3D"f=
+ont-family: courier;">OK, now i can make a cat fan1_min. The value is zero =
+until i set it by hand. But if i set it to zero it leads to an segmentation=
+ fault again.</span><br style=3D"font-family: courier;"><span style=3D"font=
+-family: courier;">&lt;output&gt;</span><br style=3D"font-family: courier;"=
+><span style=3D"font-family: courier;">root@pc:/sys/devices/pci0000:00/0000=
+:00:01.1/i2c-1/1-002d# echo 0 &gt; fan1_min</span><br style=3D"font-family:=
+ courier;"><span style=3D"font-family: courier;">Segmentation fault</span><=
+br style=3D"font-family: courier;"><span style=3D"font-family: courier;">my=
+thtv@pc:~$</span><br style=3D"font-family: courier;"><span style=3D"font-fa=
+mily: courier;">Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...</sp=
+an><br style=3D"font-family: courier;"><span style=3D"font-family: courier;=
+">pc kernel: [17190005.040000] divide
+ error: 0000 [#1]</span><br style=3D"font-family: courier;"><br style=3D"fo=
+nt-family: courier;"><span style=3D"font-family: courier;">Message from sys=
+logd@pc at Tue Jul 10 20:44:47 2007 ...</span><br style=3D"font-family: cou=
+rier;"><span style=3D"font-family: courier;">pc kernel: [17190005.040000] C=
+PU:&nbsp;&nbsp;&nbsp; 0</span><br style=3D"font-family: courier;"><br style=
+=3D"font-family: courier;"><span style=3D"font-family: courier;">Message fr=
+om syslogd@pc at Tue Jul 10 20:44:47 2007 ...</span><br style=3D"font-famil=
+y: courier;"><span style=3D"font-family: courier;">pc kernel: [17190005.040=
+000] EIP is at set_fan_min+0x4b/0xa0 [f75375s]</span><br style=3D"font-fami=
+ly: courier;"><br style=3D"font-family: courier;"><span style=3D"font-famil=
+y: courier;">Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...</span>=
+<br style=3D"font-family: courier;"><span style=3D"font-family: courier;">p=
+c kernel: [17190005.040000] eax: 0016e360&nbsp;&nbsp; ebx: 00000000&nbsp;&n=
+bsp; ecx: 00000000&nbsp;&nbsp; edx:
+ 00000000</span><br style=3D"font-family: courier;"><br style=3D"font-famil=
+y: courier;"><span style=3D"font-family: courier;">Message from syslogd@pc =
+at Tue Jul 10 20:44:47 2007 ...</span><br style=3D"font-family: courier;"><=
+span style=3D"font-family: courier;">pc kernel: [17190005.040000] esi: dd9d=
+2e00&nbsp;&nbsp; edi: 00000000&nbsp;&nbsp; ebp: dd9d2e04&nbsp;&nbsp; esp: d=
+927df34</span><br style=3D"font-family: courier;"><br style=3D"font-family:=
+ courier;"><span style=3D"font-family: courier;">Message from syslogd@pc at=
+ Tue Jul 10 20:44:47 2007 ...</span><br style=3D"font-family: courier;"><sp=
+an style=3D"font-family: courier;">pc kernel: [17190005.040000] ds: 007b&nb=
+sp;&nbsp; es: 007b&nbsp;&nbsp; ss: 0068</span><br style=3D"font-family: cou=
+rier;"><br style=3D"font-family: courier;"><span style=3D"font-family: cour=
+ier;">Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...</span><br sty=
+le=3D"font-family: courier;"><span style=3D"font-family: courier;">pc kerne=
+l: [17190005.040000] Process bash (pid:
+ 18265, threadinfo=3Dd927c000 task=3Ddba575c0)</span><br style=3D"font-fami=
+ly: courier;"><br style=3D"font-family: courier;"><span style=3D"font-famil=
+y: courier;">Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...</span>=
+<br style=3D"font-family: courier;"><span style=3D"font-family: courier;">p=
+c kernel: [17190005.040000] Stack: dd9d2f94 000280d0 e0b777e0 e0b7a1c0 dd9d=
+2e80 00000002 c0228ebd 00000002</span><br style=3D"font-family: courier;"><=
+br style=3D"font-family: courier;"><span style=3D"font-family: courier;">Me=
+ssage from syslogd@pc at Tue Jul 10 20:44:47 2007 ...</span><br style=3D"fo=
+nt-family: courier;"><span style=3D"font-family: courier;">pc kernel: [1719=
+0005.040000]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; deead0d4 c0367514 d6=
+6401a0 c0195e87 00000002 d09356e0 d66401b4 d09356e0</span><br style=3D"font=
+-family: courier;"><br style=3D"font-family: courier;"><span style=3D"font-=
+family: courier;">Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...</=
+span><br style=3D"font-family:
+ courier;"><span style=3D"font-family: courier;">pc kernel: [17190005.04000=
+0]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 080fc808 d927dfa4 00000002 c01=
+58b0e d927dfa4 c0195e00 d09356e0 fffffff7</span><br style=3D"font-family: c=
+ourier;"><br style=3D"font-family: courier;"><span style=3D"font-family: co=
+urier;">Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...</span><br s=
+tyle=3D"font-family: courier;"><span style=3D"font-family: courier;">pc ker=
+nel: [17190005.040000] Call Trace:</span><br style=3D"font-family: courier;=
+"><br style=3D"font-family: courier;"><span style=3D"font-family: courier;"=
+>Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...</span><br style=3D=
+"font-family: courier;"><span style=3D"font-family: courier;">pc kernel: [1=
+7190005.040000]&nbsp; &lt;e0b777e0&gt; set_fan_min+0x0/0xa0 [f75375s]&nbsp;=
+ &lt;c0228ebd&gt; dev_attr_store+0x2d/0x40</span><br style=3D"font-family: =
+courier;"><br style=3D"font-family: courier;"><span style=3D"font-family: c=
+ourier;">Message from syslogd@pc at Tue
+ Jul 10 20:44:47 2007 ...</span><br style=3D"font-family: courier;"><span s=
+tyle=3D"font-family: courier;">pc kernel: [17190005.040000]&nbsp; &lt;c0195=
+e87&gt; sysfs_write_file+0x87/0xf0&nbsp; &lt;c0158b0e&gt; vfs_write+0xbe/0x=
+190</span><br style=3D"font-family: courier;"><br style=3D"font-family: cou=
+rier;"><span style=3D"font-family: courier;">Message from syslogd@pc at Tue=
+ Jul 10 20:44:47 2007 ...</span><br style=3D"font-family: courier;"><span s=
+tyle=3D"font-family: courier;">pc kernel: [17190005.040000]&nbsp; &lt;c0195=
+e00&gt; sysfs_write_file+0x0/0xf0&nbsp; &lt;c0159171&gt; sys_write+0x41/0x7=
+0</span><br style=3D"font-family: courier;"><br style=3D"font-family: couri=
+er;"><span style=3D"font-family: courier;">Message from syslogd@pc at Tue J=
+ul 10 20:44:47 2007 ...</span><br style=3D"font-family: courier;"><span sty=
+le=3D"font-family: courier;">pc kernel: [17190005.040000]&nbsp; &lt;c0102db=
+b&gt; sysenter_past_esp+0x54/0x79</span><br style=3D"font-family: courier;"=
+><br style=3D"font-family:
+ courier;"><span style=3D"font-family: courier;">Message from syslogd@pc at=
+ Tue Jul 10 20:44:47 2007 ...</span><br style=3D"font-family: courier;"><sp=
+an style=3D"font-family: courier;">pc kernel: [17190005.040000] Code: 7a 14=
+ 31 d2 8b b5 f8 00 00 00 e8 01 40 65 df 89 c3 8d 86 94 01 00 00 89 04 24 e8=
+ 01 ea 74 df ba 60 e3 16 00 31 c9 89 d0 c1 fa 1f &lt;f7&gt; fb 8d 5c 3f 2c =
+0f b6 d3 66 89 44 24 06 66 89 84 7e bc 01 00</span><br style=3D"font-family=
+: courier;"><br style=3D"font-family: courier;"><span style=3D"font-family:=
+ courier;">Message from syslogd@pc at Tue Jul 10 20:44:47 2007 ...</span><b=
+r style=3D"font-family: courier;"><span style=3D"font-family: courier;">pc =
+kernel: [17190005.040000] EIP: [pg0+544229419/1069069312] set_fan_min+0x4b/=
+0xa0 [f75375s] SS:ESP 0068:d927df34</span><br style=3D"font-family: courier=
+;"><span style=3D"font-family: courier;">&lt;/output&gt;</span><br style=3D=
+"font-family: courier;"><br style=3D"font-family: courier;"><span style=3D"=
+font-family: courier;">best
+ regards</span><br style=3D"font-family: courier;"><span style=3D"font-fami=
+ly: courier;">christian.</span><br style=3D"font-family: courier;"><p>&#32;
+      <hr size=3D1> Die etwas anderen Infos rund um das Thema Reisen.=20
+<a href=3D"http://de.rd.yahoo.com/evt=3D48734/*http://de.promotions.yahoo.c=
+om/clever/be-a-better/weltenbummler.html" target=3D_new >
+<b>BE A BETTER WELTENBUMMLER!</b></a>
+--0-1793519341-1184094519=:93262--
 
 
---------------080302000902040302060107
+--===============2352998862216373815==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -811,4 +344,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------080302000902040302060107--
+--===============2352998862216373815==--
