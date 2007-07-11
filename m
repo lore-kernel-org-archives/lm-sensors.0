@@ -1,7 +1,7 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 11 Jul 2007 05:23:39 +0000
+Date: Wed, 11 Jul 2007 12:47:00 +0000
 Subject: Re: [lm-sensors] [PATCH] First cut of a adt7470 driver
-Message-Id: <4694695B.3070300@hhs.nl>
+Message-Id: <4694D144.3030909@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070706211144.GI3435@tree.beaverton.ibm.com>
 In-Reply-To: <20070706211144.GI3435@tree.beaverton.ibm.com>
@@ -11,31 +11,8 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Darrick J. Wong wrote:
-> On Sat, Jul 07, 2007 at 10:21:57AM +0200, Hans de Goede wrote:
-> 
->> Why all the base defines? Why not put the base address directly in the () 
->> macros? You do not seem to use them anywhere else.
-> 
-> I prefer to put all the register and bit-field definitions in one place
-> so that later I can construct a map of all known registers after I've
-> forgotten which ones the driver talks to and which ones it doesn't.  The
-> accessor macros that come after that are merely sugar, which is why I
-> don't like encoding the base register address directly into the macro.
-> 
 
-Ok, leave them in then.
-
->> Are you sure you only want to support revision 2? What are the differences? 
->> Shouldn't the driver be able to support other revisions too? Maybe only 
->> print a warning when its used with an untested revision?
-> 
-> I don't have a data sheet for other revisions, so the safest thing to do is
-> to reject that which we don't know about; an interested user can always
-> bypass those safety checks with force_adt7470= at a later point in time
-> and post a patch if the driver still works ok.
-> 
-
-Good point about using the force parameter, ok.
+I just realized I failed to respond to this point, here is my response:
 
 >> Why use read_byte twice in read16, but write_word in write16?
 > 
@@ -44,27 +21,40 @@ Good point about using the force parameter, ok.
 > weird helper functions.
 > 
 
+Here is the code you use for this:
 
++static inline int adt7470_read_word_data(struct i2c_client *client, u8 reg)
++{
++	u16 foo;
++	foo = i2c_smbus_read_byte_data(client, reg);
++	foo |= ((u16)i2c_smbus_read_byte_data(client, reg + 1) << 8);
++	return foo;
++}
++
++static inline int adt7470_write_word_data(struct i2c_client *client, u8 reg,
++					  u16 value)
++{
++	u16 x = cpu_to_le16(value);
++
++	return i2c_smbus_write_word_data(client, reg, x & 0xFF)
++	       && i2c_smbus_write_word_data(client, reg + 1, x >> 8);
++}
++
 
+I understand that you need to somehow read / write a byte 2 times to get a 
+word, but why in adt7470_read_word_data() call i2c_smbus_read_byte_data twice? 
+while in adt7470_write_word_data() you use cpu_to_le16() and then 
+i2c_smbus_write_word_data(). Why not use i2c_smbus_read_word_data() in 
+adt7470_read_word_data() instead of calling i2c_smbus_read_byte_data twice?
 
->>> +		/* delay is 200ms * number of tmp05 sensors */
->>> +		udelay(TEMP_COLLECTION_TIME);
->> ugh, sleep here please.
-> 
-> Would msleep_interruptible() work here?  Some informal testing shows
-> that it seems to work ok, though I've not subjected it to a rigorous ^C
-> test to see if I can hit weird crash conditions.
-> 
-
-Well msleep_interruptible() can be interrupted (you check the return value for 
-this) so if a user presses control-C, then your sleep will be cut short. So 
-either you must be prepared to handle this, or sleep uninterruptible. I would 
-sleep uninterruptible if I were you, using regular msleep.
-
+BTW I have serious doubts about you calling cpu_to_le16(), I would expect that 
+i2c_smbus_write_word_data() wants the data to be in cpu endianness.
 
 Regards,
 
 Hans
+
+
 
 _______________________________________________
 lm-sensors mailing list
