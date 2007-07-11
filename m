@@ -1,50 +1,157 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 01 Jul 2007 17:07:25 +0000
-Subject: Re: [lm-sensors] [RESEND][PATCH] THMC50 and ADM1022 support for 2.6
-Message-Id: <20070701170725.GM3516@jupiter.solarsys.private>
+From: <JGong@winbond.com>
+Date: Wed, 11 Jul 2007 05:50:38 +0000
+Subject: [lm-sensors] [PATCH] hwmon-w83792d-individual-alarm-files.patch
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE01A31758@weshml03.winbond.com.tw>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C7C37F.68BF4041"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <467FD8F2.1000409@wp.pl>
-In-Reply-To: <467FD8F2.1000409@wp.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Krzysztof:
+This is a multi-part message in MIME format.
 
-* Krzysztof Helt <krzysztof.h1@wp.pl> [2007-07-01 18:36:55 +0200]:
-> Thank you very much for the review.
-> 
-> There is one thing I still need help with.
-> 
-> On Sun, 1 Jul 2007 10:03:25 -0400
-> "Mark M. Hoffman" <mhoffman@lightlink.com> wrote:
-> 
-> > > +	if (kind = thmc50) {
-> > > +		type_name = "thmc50";
-> > > +	/* Remove temp3 attributes */
-> > > +		thmc50_group.attrs[8] = NULL;
-> > > +		thmc50_group.attrs[9] = NULL;
-> > > +		thmc50_group.attrs[10] = NULL;
-> > 
-> > Hrm, fragile.  Please just put these in a separate group, as other hwmon
-> > drivers do.  Ultimately, the attr arrays should be defined const as well
-> > anyway, but for some missing const modifiers in the driver core.
-> 
-> I know it is kind of hack. Can you point me to the "other hwmon drivers"? The drivers
-> which use groups to remove/add some of attributes depending on mode/chip type in correct
-> way.
+------_=_NextPart_001_01C7C37F.68BF4041
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-One such driver is w83627hf.c.
+Hi Jean,
 
-Regards,
+w83792d: add individual alarm files for the new libsensors.
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+I have tested it on my w83792d motherboard, please apply.
 
+Signed-off-by: Gong Jun <jgong@winbond.com>
+
+Best regards=20
+Gong Jun
+
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+The privileged confidential information contained in this email is =
+intended for use only by the addressees as indicated by the original =
+sender of this email. If you are not the addressee indicated in this =
+email or are not responsible for delivery of the email to such  a =
+person, please kindly reply to the sender indicating this fact and =
+delete all copies of it from your computer and network server =
+immediately. Your cooperation is highly appreciated. It is advised that =
+any unauthorized use of confidential information of Winbond is strictly =
+prohibited; and any information in this email irrelevant to the official =
+business of Winbond shall be deemed as neither given nor endorsed by =
+Winbond.
+
+------_=_NextPart_001_01C7C37F.68BF4041
+Content-Type: application/octet-stream;
+	name="hwmon-w83792d-individual-alarm-files.patch"
+Content-Transfer-Encoding: base64
+Content-Description: hwmon-w83792d-individual-alarm-files.patch
+Content-Disposition: attachment;
+	filename="hwmon-w83792d-individual-alarm-files.patch"
+
+RnJvbTogR29uZyBKdW4gPGpnb25nQHdpbmJvbmQuY29tPgoKdzgzNzkyZDogYWRkIGluZGl2aWR1
+YWwgYWxhcm0gZmlsZXMgZm9yIHRoZSBuZXcgbGlic2Vuc29ycy4KClNpZ25lZC1vZmYtYnk6IEdv
+bmcgSnVuIDxqZ29uZ0B3aW5ib25kLmNvbT4KCi0tLQogdzgzNzkyZC5jIHwgICA0OSArKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystCiAxIGZpbGUgY2hhbmdl
+ZCwgNDggaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQoKLS0tIGxpbnV4LTIuNi4yMi93ODM3
+OTJkLmMub3JpZwkyMDA3LTA3LTExIDE5OjMwOjE2LjAwMDAwMDAwMCArMDgwMAorKysgbGludXgt
+Mi42LjIyL3c4Mzc5MmQuYwkyMDA3LTA3LTExIDE5OjMwOjEyLjAwMDAwMDAwMCArMDgwMApAQCAt
+NTQwLDYgKzU0MCwxNSBAQCBzaG93X2FsYXJtc19yZWcoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1
+CiAJcmV0dXJuIHNwcmludGYoYnVmLCAiJWRcbiIsIGRhdGEtPmFsYXJtcyk7CiB9CiAKK3N0YXRp
+YyBzc2l6ZV90IHNob3dfYWxhcm0oc3RydWN0IGRldmljZSAqZGV2LAorICAgICAgICAgICAgICAg
+ICAgICAgICAgICBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwgY2hhciAqYnVmKQorewor
+ICAgICAgICBzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1dGUgKnNlbnNvcl9hdHRyID0gdG9f
+c2Vuc29yX2Rldl9hdHRyKGF0dHIpOworCWludCBuciA9IHNlbnNvcl9hdHRyLT5pbmRleDsKKyAg
+ICAgICAgc3RydWN0IHc4Mzc5MmRfZGF0YSAqZGF0YSA9IHc4Mzc5MmRfdXBkYXRlX2RldmljZShk
+ZXYpOworICAgICAgICByZXR1cm4gc3ByaW50ZihidWYsICIlZFxuIiwgKGRhdGEtPmFsYXJtcyA+
+PiBucikgJiAxKTsKK30KKwogc3RhdGljIHNzaXplX3QKIHNob3dfcHdtKHN0cnVjdCBkZXZpY2Ug
+KmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCiAJCWNoYXIgKmJ1ZikKQEAgLTEw
+MTUsNiArMTAyNCwyNSBAQCBzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSXzIodGVtcDJfbWF4X2h5
+CiBzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSXzIodGVtcDNfbWF4X2h5c3QsIFNfSVJVR08gfCBT
+X0lXVVNSLAogCQkJc2hvd190ZW1wMjMsIHN0b3JlX3RlbXAyMywgMSwgNCk7CiBzdGF0aWMgREVW
+SUNFX0FUVFIoYWxhcm1zLCBTX0lSVUdPLCBzaG93X2FsYXJtc19yZWcsIE5VTEwpOworc3RhdGlj
+IFNFTlNPUl9ERVZJQ0VfQVRUUihpbjBfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxhcm0sIE5VTEws
+IDApOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihpbjFfYWxhcm0sIFNfSVJVR08sIHNob3df
+YWxhcm0sIE5VTEwsIDEpOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUih0ZW1wMV9hbGFybSwg
+U19JUlVHTywgc2hvd19hbGFybSwgTlVMTCwgMik7CitzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRS
+KHRlbXAyX2FsYXJtLCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAzKTsKK3N0YXRpYyBTRU5T
+T1JfREVWSUNFX0FUVFIodGVtcDNfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxhcm0sIE5VTEwsIDQp
+Oworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihmYW4xX2FsYXJtLCBTX0lSVUdPLCBzaG93X2Fs
+YXJtLCBOVUxMLCA1KTsKK3N0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIoZmFuMl9hbGFybSwgU19J
+UlVHTywgc2hvd19hbGFybSwgTlVMTCwgNik7CitzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKGZh
+bjNfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxhcm0sIE5VTEwsIDcpOworc3RhdGljIFNFTlNPUl9E
+RVZJQ0VfQVRUUihpbjJfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxhcm0sIE5VTEwsIDgpOworc3Rh
+dGljIFNFTlNPUl9ERVZJQ0VfQVRUUihpbjNfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxhcm0sIE5V
+TEwsIDkpOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihpbjRfYWxhcm0sIFNfSVJVR08sIHNo
+b3dfYWxhcm0sIE5VTEwsIDEwKTsKK3N0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIoaW41X2FsYXJt
+LCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAxMSk7CitzdGF0aWMgU0VOU09SX0RFVklDRV9B
+VFRSKGluNl9hbGFybSwgU19JUlVHTywgc2hvd19hbGFybSwgTlVMTCwgMTIpOworc3RhdGljIFNF
+TlNPUl9ERVZJQ0VfQVRUUihmYW43X2FsYXJtLCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAx
+NSk7CitzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKGluN19hbGFybSwgU19JUlVHTywgc2hvd19h
+bGFybSwgTlVMTCwgMTkpOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihpbjhfYWxhcm0sIFNf
+SVJVR08sIHNob3dfYWxhcm0sIE5VTEwsIDIwKTsKK3N0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIo
+ZmFuNF9hbGFybSwgU19JUlVHTywgc2hvd19hbGFybSwgTlVMTCwgMjEpOworc3RhdGljIFNFTlNP
+Ul9ERVZJQ0VfQVRUUihmYW41X2FsYXJtLCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAyMik7
+CitzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKGZhbjZfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxh
+cm0sIE5VTEwsIDIzKTsKIHN0YXRpYyBERVZJQ0VfQVRUUihjaGFzc2lzLCBTX0lSVUdPLCBzaG93
+X3JlZ3NfY2hhc3NpcywgTlVMTCk7CiBzdGF0aWMgREVWSUNFX0FUVFIoY2hhc3Npc19jbGVhciwg
+U19JUlVHTyB8IFNfSVdVU1IsCiAJCQlzaG93X2NoYXNzaXNfY2xlYXIsIHN0b3JlX2NoYXNzaXNf
+Y2xlYXIpOwpAQCAtMTEyMywyNiArMTE1MSwzMCBAQCBzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRS
+KGZhbjZfZGl2LCBTX0lXCiBzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKGZhbjdfZGl2LCBTX0lX
+VVNSIHwgU19JUlVHTywKIAkJCXNob3dfZmFuX2Rpdiwgc3RvcmVfZmFuX2RpdiwgNyk7CiAKLXN0
+YXRpYyBzdHJ1Y3QgYXR0cmlidXRlICp3ODM3OTJkX2F0dHJpYnV0ZXNfZmFuWzRdWzRdID0gewor
+c3RhdGljIHN0cnVjdCBhdHRyaWJ1dGUgKnc4Mzc5MmRfYXR0cmlidXRlc19mYW5bNF1bNV0gPSB7
+CiAJewogCQkmc2Vuc29yX2Rldl9hdHRyX2ZhbjRfaW5wdXQuZGV2X2F0dHIuYXR0ciwKIAkJJnNl
+bnNvcl9kZXZfYXR0cl9mYW40X21pbi5kZXZfYXR0ci5hdHRyLAogCQkmc2Vuc29yX2Rldl9hdHRy
+X2ZhbjRfZGl2LmRldl9hdHRyLmF0dHIsCisJCSZzZW5zb3JfZGV2X2F0dHJfZmFuNF9hbGFybS5k
+ZXZfYXR0ci5hdHRyLAogCQlOVUxMCiAJfSwgewogCQkmc2Vuc29yX2Rldl9hdHRyX2ZhbjVfaW5w
+dXQuZGV2X2F0dHIuYXR0ciwKIAkJJnNlbnNvcl9kZXZfYXR0cl9mYW41X21pbi5kZXZfYXR0ci5h
+dHRyLAogCQkmc2Vuc29yX2Rldl9hdHRyX2ZhbjVfZGl2LmRldl9hdHRyLmF0dHIsCisJCSZzZW5z
+b3JfZGV2X2F0dHJfZmFuNV9hbGFybS5kZXZfYXR0ci5hdHRyLAogCQlOVUxMCiAJfSwgewogCQkm
+c2Vuc29yX2Rldl9hdHRyX2ZhbjZfaW5wdXQuZGV2X2F0dHIuYXR0ciwKIAkJJnNlbnNvcl9kZXZf
+YXR0cl9mYW42X21pbi5kZXZfYXR0ci5hdHRyLAogCQkmc2Vuc29yX2Rldl9hdHRyX2ZhbjZfZGl2
+LmRldl9hdHRyLmF0dHIsCisJCSZzZW5zb3JfZGV2X2F0dHJfZmFuNl9hbGFybS5kZXZfYXR0ci5h
+dHRyLAogCQlOVUxMCiAJfSwgewogCQkmc2Vuc29yX2Rldl9hdHRyX2ZhbjdfaW5wdXQuZGV2X2F0
+dHIuYXR0ciwKIAkJJnNlbnNvcl9kZXZfYXR0cl9mYW43X21pbi5kZXZfYXR0ci5hdHRyLAogCQkm
+c2Vuc29yX2Rldl9hdHRyX2ZhbjdfZGl2LmRldl9hdHRyLmF0dHIsCisJCSZzZW5zb3JfZGV2X2F0
+dHJfZmFuN19hbGFybS5kZXZfYXR0ci5hdHRyLAogCQlOVUxMCiAJfQogfTsKQEAgLTEyMDEsNiAr
+MTIzMywxOCBAQCBzdGF0aWMgc3RydWN0IGF0dHJpYnV0ZSAqdzgzNzkyZF9hdHRyaWJ1CiAJJnNl
+bnNvcl9kZXZfYXR0cl9wd20zX21vZGUuZGV2X2F0dHIuYXR0ciwKIAkmc2Vuc29yX2Rldl9hdHRy
+X3B3bTNfZW5hYmxlLmRldl9hdHRyLmF0dHIsCiAJJmRldl9hdHRyX2FsYXJtcy5hdHRyLAorCSZz
+ZW5zb3JfZGV2X2F0dHJfaW4wX2FsYXJtLmRldl9hdHRyLmF0dHIsCisgICAgICAgICZzZW5zb3Jf
+ZGV2X2F0dHJfaW4xX2FsYXJtLmRldl9hdHRyLmF0dHIsCisgICAgICAgICZzZW5zb3JfZGV2X2F0
+dHJfdGVtcDFfYWxhcm0uZGV2X2F0dHIuYXR0ciwKKyAgICAgICAgJnNlbnNvcl9kZXZfYXR0cl90
+ZW1wMl9hbGFybS5kZXZfYXR0ci5hdHRyLAorICAgICAgICAmc2Vuc29yX2Rldl9hdHRyX3RlbXAz
+X2FsYXJtLmRldl9hdHRyLmF0dHIsCisgICAgICAgICZzZW5zb3JfZGV2X2F0dHJfaW4yX2FsYXJt
+LmRldl9hdHRyLmF0dHIsCisgICAgICAgICZzZW5zb3JfZGV2X2F0dHJfaW4zX2FsYXJtLmRldl9h
+dHRyLmF0dHIsCisgICAgICAgICZzZW5zb3JfZGV2X2F0dHJfaW40X2FsYXJtLmRldl9hdHRyLmF0
+dHIsCisgICAgICAgICZzZW5zb3JfZGV2X2F0dHJfaW41X2FsYXJtLmRldl9hdHRyLmF0dHIsCisg
+ICAgICAgICZzZW5zb3JfZGV2X2F0dHJfaW42X2FsYXJtLmRldl9hdHRyLmF0dHIsCisgICAgICAg
+ICZzZW5zb3JfZGV2X2F0dHJfaW43X2FsYXJtLmRldl9hdHRyLmF0dHIsCisgICAgICAgICZzZW5z
+b3JfZGV2X2F0dHJfaW44X2FsYXJtLmRldl9hdHRyLmF0dHIsCiAJJmRldl9hdHRyX2NoYXNzaXMu
+YXR0ciwKIAkmZGV2X2F0dHJfY2hhc3Npc19jbGVhci5hdHRyLAogCSZzZW5zb3JfZGV2X2F0dHJf
+dG9sZXJhbmNlMS5kZXZfYXR0ci5hdHRyLApAQCAtMTIzMywxMiArMTI3NywxNSBAQCBzdGF0aWMg
+c3RydWN0IGF0dHJpYnV0ZSAqdzgzNzkyZF9hdHRyaWJ1CiAJJnNlbnNvcl9kZXZfYXR0cl9mYW4x
+X2lucHV0LmRldl9hdHRyLmF0dHIsCiAJJnNlbnNvcl9kZXZfYXR0cl9mYW4xX21pbi5kZXZfYXR0
+ci5hdHRyLAogCSZzZW5zb3JfZGV2X2F0dHJfZmFuMV9kaXYuZGV2X2F0dHIuYXR0ciwKKwkmc2Vu
+c29yX2Rldl9hdHRyX2ZhbjFfYWxhcm0uZGV2X2F0dHIuYXR0ciwKIAkmc2Vuc29yX2Rldl9hdHRy
+X2ZhbjJfaW5wdXQuZGV2X2F0dHIuYXR0ciwKIAkmc2Vuc29yX2Rldl9hdHRyX2ZhbjJfbWluLmRl
+dl9hdHRyLmF0dHIsCiAJJnNlbnNvcl9kZXZfYXR0cl9mYW4yX2Rpdi5kZXZfYXR0ci5hdHRyLAor
+CSZzZW5zb3JfZGV2X2F0dHJfZmFuMl9hbGFybS5kZXZfYXR0ci5hdHRyLAogCSZzZW5zb3JfZGV2
+X2F0dHJfZmFuM19pbnB1dC5kZXZfYXR0ci5hdHRyLAogCSZzZW5zb3JfZGV2X2F0dHJfZmFuM19t
+aW4uZGV2X2F0dHIuYXR0ciwKIAkmc2Vuc29yX2Rldl9hdHRyX2ZhbjNfZGl2LmRldl9hdHRyLmF0
+dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9mYW4zX2FsYXJtLmRldl9hdHRyLmF0dHIsCiAJTlVMTAog
+fTsKIAo=
+
+------_=_NextPart_001_01C7C37F.68BF4041
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------_=_NextPart_001_01C7C37F.68BF4041--
