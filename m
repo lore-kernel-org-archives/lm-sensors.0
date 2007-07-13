@@ -1,63 +1,52 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 29 Jul 2007 19:18:42 +0000
-Subject: Re: [lm-sensors] [PATCH] adt7470: Update sensors periodically via
-Message-Id: <20070729191842.GK3796@jupiter.solarsys.private>
+From: "JACK Huang" <besthyq@gmail.com>
+Date: Fri, 13 Jul 2007 09:45:12 +0000
+Subject: [lm-sensors] Hello, Bill Gatliff,
+Message-Id: <8fff000d0707130245t4fcfe440vad28dd44cf7d1f79@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============3884586503454620585=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070726010421.GM19586@tree.beaverton.ibm.com>
-In-Reply-To: <20070726010421.GM19586@tree.beaverton.ibm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans, Darrick:
+--===============3884586503454620585==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_48615_17796513.1184319912432"
 
-* Hans de Goede <j.w.r.degoede@hhs.nl> [2007-07-26 18:58:18 +0200]:
-> Darrick J. Wong wrote:
-> > On Thu, Jul 26, 2007 at 08:08:09AM -0700, Juerg Haefliger wrote:
-> >> Hi Darrick,
-> >>
-> >> I guess I'm not seeing the big picture :-) The problem you're trying to
-> >> solve is that the reading of the registers takes a long time and needs to
-> >> be able to sleep?
-> > 
-> > Yes, and also that sleeping in the sysfs read function is not desirable.
-> > Personally, I was fine with that, but Mr. de Goede was concerned about it,
-> > so I decided to try to fix it.  I admit, the dual-delayed-workqueue method
-> > is a bit strange, but it solves the reading problem at a slight cost of
-> > waking up the CPU even if nobody's watching the sensors.
-> > 
-> 
-> I just read in another thread, that other hwmon drivers suffer from similar
-> problems, so I guess userspace will just have to be able to deal with this,
-> and the best fix is not to fix it. Sorry to waist everybody's time on this.
+------=_Part_48615_17796513.1184319912432
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Yes, and in this case the cure is worse than the disease.  As I mentioned in
-another thread recently, most I2C bus drivers are very slow and polled, using
-%100 cpu while doing transfers.
+Hello,Bill Gatliff
 
-To put that kind of load on a system periodically just to keep the app from
-blocking would be IMHO a terrible tradeoff.
+  I was at the
+http://lists.lm-sensors.org/pipermail/lm-sensors/2005-November/014227.html
+know you have write the TSC2003touchscreen driver.Can you send me the linux
+kernel  source which work well with the TSC2003
 
-The root cause of the speed problem is in the I2C bus drivers, not the hwmon
-drivers.
+Please help me .Thanks.
 
-> You could still try to shave some time off by not reading all the limits etc 
-> each update.
+------=_Part_48615_17796513.1184319912432
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Notwithstanding what I wrote above, this is still a good idea.  But don't go
-too far with it... we do still want to read/update the limits occasionally.
-Sometimes that's the only way a user can find out that the BIOS or ACPI or
-whatever is modifying chip values behind our backs.
+<div>Hello,Bill Gatliff<br>&nbsp;</div>
+<div>&nbsp; I&nbsp;was&nbsp;at the <a onclick="return top.js.OpenExtLink(window,event,this)" href="http://lists.lm-sensors.org/pipermail/lm-sensors/2005-November/014227.html" target="_blank">http://lists.lm-sensors.org/pipermail/lm-sensors/2005-November/014227.html
+</a>&nbsp; know you have write the TSC2003touchscreen driver.Can you send me the linux kernel&nbsp; source which work well with the TSC2003</div>
+<div>&nbsp;</div>
+<div>Please help me .Thanks.</div>
 
-Regards,
+------=_Part_48615_17796513.1184319912432--
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
 
+--===============3884586503454620585==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============3884586503454620585==--
