@@ -1,162 +1,143 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Tue, 24 Jul 2007 14:40:08 +0000
-Subject: Re: [lm-sensors] Fujitsu-Siemens Scylla (fscscy)
-Message-Id: <46A60F48.7080309@hhs.nl>
+From: Thomas Renninger <trenn@suse.de>
+Date: Fri, 13 Jul 2007 12:58:12 +0000
+Subject: [lm-sensors] [PATCH - 0/2] Identify native drivers and ACPI
+Message-Id: <1184331492.3960.100.camel@d88.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46933578.3010701@miloi.de>
-In-Reply-To: <46933578.3010701@miloi.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel <linux-kernel@vger.kernel.org>
+Cc: Bernhard Walle <bwalle@suse.de>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, akpm <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Jean Delvare <khali@linux-fr.org>
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
-> On Mon, 23 Jul 2007 16:33:12 +0200, Hans de Goede wrote:
->> Jean Delvare wrote:
->>> Hi Hans,
->>>
->>> You may also want to take a look at the pending driver for the new FSC
->>> Heimdall chip:
->>> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-January/018629.html
->>> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-February/018787.html
->>> I wonder if it is also similar. I just added an entry to wiki/Devices.
->> It is indeed similar too, for some reason FSC keeps changes fan and temp 
->> register addresses, but that can easily be handled with an array addressed with 
->> the chip-type.
-> 
-> It depends on how different they are, but in general, different
-> register maps is the reason #1 for writing different drivers.
-> 
+Hi,
 
-I understand, but in this case a simple 2d lookup table addressed with the 
-chiptype and sensor number is all thats needed as the contents of the registers 
-haven't changed (same scaling / same bits used in status registers), for some 
-reason FSC has just shuffled them around a bit, and then really only a bit, 
-just enough to make the lookup tabel the easiest solution, see below.
+(after review and some discussion) this is meant for -mm.
 
->> Also they seem to have done strange things with temp sensor numbers, for the 
->> fscpos and fscher the temp sensors are identical, however the fscscy adds a 
->> fourth sensor, but in the 2.4 sensors puts that in as temp2 moving temp2 and 3 
->> to temp3 and 4 when compared to the fscher / fscpos, I guess its best to just 
->> clone this erm "interesting" numbering in the 2.6 driver.
-> 
-> If you're going for a new driver, and it makes it easier to number them
-> differently, go for it.
-> 
+In the recent past more and more cases appeared where (mainly
+hwmon/sensors) drivers interfered with ACPI subsystem.
 
-Well, for example lets look at the fan registers, here is what my WIP has for 
-them now:
+Such interference can show up in all kind of bugs (messed up
+temperature, thermal management which is rather sever,..), that
+are hard to identify -> Remove potential drivers and wait ...
 
-static const u8 FSCPOS_REG_FAN_MIN[4][6] = {
-	{ 0x55, 0x65 },					/* pos */
-	{ 0x55, 0x65, 0xb5 },				/* her */
-	{ 0x65, 0x65, 0x55, 0xa5, 0x55, 0xa5 },		/* scy */
-	{ 0x55, 0x65, 0xa5, 0xb5, 0xc5 } };		/* hmd */
+This patch should:
+a) Identify machines where potentially ACPI interference can happen and
+   tell the user which legacy drivers are affected.
+b) Identify drivers/HW where we might need an ACPI driver in future
+c) If it works out (if not too much important drivers are affected)
+   enforce that native, non-ACPI drivers using the same IO/System
+   memory addresses as declared in ACPI namespace fail to load.
 
-/* actual fan speed */	
-static const u8 FSCPOS_REG_FAN_ACT[4][6] = {
-	{ 0x0e, 0x6b, 0xab },				/* pos */
-	{ 0x0e, 0x6b, 0xbb },				/* her */
-	{ 0x6b, 0x6c, 0x0e, 0xab, 0x5c, 0xbb },		/* scy */
-	{ 0x5b, 0x6b, 0xab, 0xbb, 0xcb } };		/* hmd */
 
-/* fan status registers */
-static const u8 FSCPOS_REG_FAN_STATE[4][6] = {
-	{ 0x0d, 0x62, 0xa2 },				/* pos */
-	{ 0x0d, 0x62, 0xb2 },				/* her */
-	{ 0x62, 0x61, 0x0d, 0xa2, 0x52, 0xb2 },		/* scy */
-	{ 0x52, 0x62, 0xa2, 0xb2, 0xc2 } };		/* hmd */
-	
-/* fan ripple / divider registers */	
-static const u8 FSCPOS_REG_FAN_RIPPLE[] = {
-	{ 0x0f, 0x6f, 0xaf },				/* pos */
-	{ 0x0f, 0x6f, 0xbf },				/* her */
-	{ 0x6f, 0x6f, 0x0f, 0xaf, 0x0f, 0xbf },		/* scy */
-	{ 0x5f, 0x6f, 0xaf, 0xbf, 0xcf } };		/* hmd */
+There are two kind of IO/System memory declarations in ACPI ASL
+language: general variables and device specific resource
+declarations.
+The latter is already handled by pnpacpi and resources get requested 
+from pnpacpi already. These resources can (with this patch) partly
+already be requested by the general ACPI declarations and this patch
+should handle this gracefully.
 
-And when I reshuffle the scy to match the pos and her you get:
+ACPI drivers (e.g. pnpacpi and others) are allowed to request these
+resources (marked IORESOURCE_SHARED) through acpi_request_region().
+Depending on strict, lax, no(default) others (drivers not using ACPI)
+requesting ACPI variable resources will:
+  strict: fail to request the resource -> driver normally will not load
+  lax:    you get a syslog entry which resource might conflict with a
+          "shared resource" and a "System might run unstable.." warning.
+  no:     same behaviour as without the patch
 
-static const u8 FSCPOS_REG_FAN_MIN[4][6] = {
-	{ 0x55, 0x65 },					/* pos */
-	{ 0x55, 0x65, 0xb5 },				/* her */
-	{ 0x55, 0x65, 0xa5, 0x65, 0x55, 0xa5 },		/* scy */
-	{ 0x55, 0x65, 0xa5, 0xb5, 0xc5 } };		/* hmd */
 
-/* actual fan speed */	
-static const u8 FSCPOS_REG_FAN_ACT[4][6] = {
-	{ 0x0e, 0x6b, 0xab },				/* pos */
-	{ 0x0e, 0x6b, 0xbb },				/* her */
-	{ 0x0e, 0x6b, 0xab, 0x6c, 0x5c, 0xbb },		/* scy */
-	{ 0x5b, 0x6b, 0xab, 0xbb, 0xcb } };		/* hmd */
+strict and no params should work as described.
+Unfortunately there is one unresolved problem with the lax option:
 
-/* fan status registers */
-static const u8 FSCPOS_REG_FAN_STATE[4][6] = {
-	{ 0x0d, 0x62, 0xa2 },				/* pos */
-	{ 0x0d, 0x62, 0xb2 },				/* her */
-	{ 0x0d, 0x62, 0xa2, 0x61, 0x52, 0xb2 },		/* scy */
-	{ 0x52, 0x62, 0xa2, 0xb2, 0xc2 } };		/* hmd */
-	
-/* fan ripple / divider registers */	
-static const u8 FSCPOS_REG_FAN_RIPPLE[] = {
-	{ 0x0f, 0x6f, 0xaf },				/* pos */
-	{ 0x0f, 0x6f, 0xbf },				/* her */
-	{ 0x0f, 0x6f, 0xaf, 0x6f, 0x0f, 0xbf },		/* scy */
-	{ 0x5f, 0x6f, 0xaf, 0xbf, 0xcf } };		/* hmd */
+Here two examples of not nice things that could happen with lax option:
 
-Notice that for the first 3 fans, all chips are almost identical. Thr only 
-differences are that the hmd uses 0x5* instead of 0x0* for the 3 of the 4 fan1 
-registers and that the fscher uses 0xb* instead of 0xa*. Also the 4th and 5th 
-fan of the scy and hmd are much more different from one another.
+ a) legacy drivers (in this case arch/x86_64/setup.c) request resources
+    before ACPI variables (shared resources) are requested:
+(/proc/ioports):
+0080-008f : dma page reg
+  0080-0080 : ACPI DEB0*
+    In this case it's working as "dma page reg" includes the ACPI 
+    SystemIO variable's space. If the ACPI variable is bigger, I expect
+    the ACPI variable would not get inserted...
 
-To me the almost the same and same register contents warrents using a unified 
-driver, especially since for example the voltage registers are on the same 
-place for all. However taking all these smalle register map differences 
-together, the easiest path for a unified driver is to use the lookup tables 
-above, and once the lookup tables are there, its really easy to keep the order 
-of the sensors in the fscscy as with the 2.4 driver. Let me know if you prefer 
-the hussled order, as that does make it clearer that they are one and the same 
-family of chips.
+ b) A legacy driver requests resources bigger than the ACPI SystemIO 
+    variable, but the ACPI resource variable lies within the requested
+    space. Example:
+(/proc/ioports):
+0070-0071 : rtc0
+0072-0073 : ACPI KSB0*
+(syslog):
+IO region [rtc] conflicts with [ACPI KSB0].  Ignoring.., system might
+run unstable.
+rtc: I/O resource 70 is not free.
 
->>> * I discourage the use of "x" in the driver names. It looks great only
->>> until the day a new chip is released, those name matches the mask, but
->>> which isn't compatible at all. For hardware monitoring drivers, we tend
->>> to name the driver after the first supported chip, and consider the
->>> others as "mostly foo-compatible."
->> Okay, so I will call it fscpos_new then.
-> 
-> If you're going to include Scylla support in it, it might make sense to
-> name it fscscy instead, as this driver doesn't yet exist in 2.6, this
-> will save us the pain of renaming the driver at a later date.
-> 
+    The rtc driver seems to request the whole rtc space (0x70-0x77)
+    which fails because 0x72-0x73 has already been requested SHARED by
+    an ACPI SystemIO variable. At least parts of the rtc space got
+    requested (rtc0), I haven't checked whether the device was working
+    correctly...
+    This is the case where lax would not behave as expected, which is
+    kind of sad, because lax was my favorite default option.
+    I have no idea how this issue could get addressed cleanly..., maybe
+    someone has an idea...
 
-Good idea, I'll do that.
 
-> In general, I suggest that you avoid pushing in the kernel support for
-> random chips which are not known to be in use in real-world hardware.
-> Even if you maintain them yourself, you won't do it forever, and having
-> unused drivers only slows things down and lower the average quality. So
-> better pick chips from the Devices page where at least one user
-> requested support already (as the ADM1024, ADT7475/76, F75387SG/RG or
-> MAX6648/92.)
-> 
+Another issue that needs fix up is that the motherboad driver is not
+requesting it's resources anymore (which it still did with 2.6.18 - I
+didn't dig here anymore, maybe someone can comment why this has changed)
+Example:
+2.6.22.1:
+(syslog with lax option):
+IO region [amd756_smbus] conflicts with [ACPI PMIO].  Ignoring.., system
+might run unstable.
+(/proc/ioports)
+5000-50fe : ACPI PMIO*
+  5000-5003 : ACPI PM1a_EVT_BLK
+  5004-5005 : ACPI PM1a_CNT_BLK
+  5008-500b : ACPI PM_TMR
+  5020-5023 : ACPI GPE0_BLK
+  50b0-50b7 : ACPI GPE1_BLK
+  50e0-50ef : amd756_smbus       # with strict this one must not be here
 
-Good point, I fully agree and thanks for the input. I haven't checked all the 
-links on the device wiki yet, will do, but you don't happen to know motherboard 
-models which come with these chips do you? Or even better have a spare one you 
-can miss (I have a small budget for the labs, so I can pay for shipping + 
-something extra).
+This is because the non-acpi driver amd756_smbus tries to request from
+an ACPI reserved region -> this is what we try to find and eliminate.
+In 2.6.18 a motherboard ACPI driver reserved space via acpipnp which
+would look like this then (which is what we want):
+5000-50fe : ACPI PMIO*          # ACPI SystemIO variable
+..
+  50e0-50ff : motherboard       # PNP0C02 motherboard driver reserves region via acpipnp shared
+    50e0-50ef : amd756_smbus    # amd756_smbus allowed to get resources from motherboard driver
+..
 
-> If your 1st year students learn how to write drivers, maybe in 2nd year
-> you can teach them how to review drivers? ;) That's what we need the
-> most.
 
-Erm, they are 4th year students, but if the want to stay another year I can try :)
+One example DSDT and bugreport of ACPI interfering with hwmon driver is
+here (with strict there the it87 module, trying to access 0x29[56] would
+not load. We also would get a pointer that on this one an ACPI driver is
+needed to control this device -> there are some vendor/BIOS specific
+ACPI functions providing functionality for this device like: SFAN, FON,
+FOFF, RTMP, STHY, STOS, SCFG):
+https://bugzilla.novell.com/show_bug.cgi?id%9992
 
-Thanks & Regards,
 
-Hans
+Summary:
+  - IMO good enough for -mm, no functional change with default param
+    -> Would be nice if more people test, this one is very machine
+       specific, especially that if not activated (no param or
+       acpi_enforce_resources=no) nothing changes.
+  - motherboard driver not reserving _CRS resources currently, needs
+    to be addressed so that the patch does not throw false positive
+    interference on motherboard subdrivers.
+  - Not fixable (maybe someone has an idea): If ACPI IO region declares
+    a smaller IO part than the later native driver (e.g. example above
+    with rtc driver), the partially overlapping resource cannot be
+    registered and the native driver fails to load with strict and lax
+    option.
+
+Thanks,
+
+   Thomas
+
 
 _______________________________________________
 lm-sensors mailing list
