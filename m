@@ -1,143 +1,113 @@
-From: Thomas Renninger <trenn@suse.de>
-Date: Fri, 13 Jul 2007 12:58:12 +0000
-Subject: [lm-sensors] [PATCH - 0/2] Identify native drivers and ACPI
-Message-Id: <1184331492.3960.100.camel@d88.suse.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date: Fri, 13 Jul 2007 16:56:45 +0000
+Subject: Re: [lm-sensors] [PATCH - 0/2] Identify native drivers and ACPI
+Message-Id: <200707131056.46193.bjorn.helgaas@hp.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1184331492.3960.100.camel@d88.suse.de>
+In-Reply-To: <1184331492.3960.100.camel@d88.suse.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel <linux-kernel@vger.kernel.org>
-Cc: Bernhard Walle <bwalle@suse.de>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, akpm <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Jean Delvare <khali@linux-fr.org>
+To: trenn@suse.de
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Bernhard Walle <bwalle@suse.de>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, akpm <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>
 
-Hi,
+On Friday 13 July 2007 06:58:12 am Thomas Renninger wrote:
+> This patch should:
+> a) Identify machines where potentially ACPI interference can happen and
+>    tell the user which legacy drivers are affected.
+> b) Identify drivers/HW where we might need an ACPI driver in future
+> c) If it works out (if not too much important drivers are affected)
+>    enforce that native, non-ACPI drivers using the same IO/System
+>    memory addresses as declared in ACPI namespace fail to load.
 
-(after review and some discussion) this is meant for -mm.
+I like some of the ideas here, but as you say, there are some
+issues to work out.
 
-In the recent past more and more cases appeared where (mainly
-hwmon/sensors) drivers interfered with ACPI subsystem.
+> There are two kind of IO/System memory declarations in ACPI ASL
+> language: general variables and device specific resource
+> declarations.
+> The latter is already handled by pnpacpi and resources get requested 
+> from pnpacpi already. These resources can (with this patch) partly
+> already be requested by the general ACPI declarations and this patch
+> should handle this gracefully.
 
-Such interference can show up in all kind of bugs (messed up
-temperature, thermal management which is rather sever,..), that
-are hard to identify -> Remove potential drivers and wait ...
+The PNP core does not request resources for devices that are active
+at boot.  Those resources currently don't get requested until a driver
+claims the device.  I think this is a bug that we should fix.
 
-This patch should:
-a) Identify machines where potentially ACPI interference can happen and
-   tell the user which legacy drivers are affected.
-b) Identify drivers/HW where we might need an ACPI driver in future
-c) If it works out (if not too much important drivers are affected)
-   enforce that native, non-ACPI drivers using the same IO/System
-   memory addresses as declared in ACPI namespace fail to load.
+> ACPI drivers (e.g. pnpacpi and others) are allowed to request these
+> resources (marked IORESOURCE_SHARED) through acpi_request_region().
 
+I'm not a fan of IORESOURCE_SHARED.  I think that will make people
+think it's acceptable to share a device between several drivers.  It
+would be better to keep the ugliness of forcibly taking over a resource,
+just as an incentive to clean up the drivers.
 
-There are two kind of IO/System memory declarations in ACPI ASL
-language: general variables and device specific resource
-declarations.
-The latter is already handled by pnpacpi and resources get requested 
-from pnpacpi already. These resources can (with this patch) partly
-already be requested by the general ACPI declarations and this patch
-should handle this gracefully.
+> Here two examples of not nice things that could happen with lax option:
+> 
+>  a) legacy drivers (in this case arch/x86_64/setup.c) request resources
+>     before ACPI variables (shared resources) are requested:
+> (/proc/ioports):
+> 0080-008f : dma page reg
+>   0080-0080 : ACPI DEB0*
+>     In this case it's working as "dma page reg" includes the ACPI 
+>     SystemIO variable's space. If the ACPI variable is bigger, I expect
+>     the ACPI variable would not get inserted...
 
-ACPI drivers (e.g. pnpacpi and others) are allowed to request these
-resources (marked IORESOURCE_SHARED) through acpi_request_region().
-Depending on strict, lax, no(default) others (drivers not using ACPI)
-requesting ACPI variable resources will:
-  strict: fail to request the resource -> driver normally will not load
-  lax:    you get a syslog entry which resource might conflict with a
-          "shared resource" and a "System might run unstable.." warning.
-  no:     same behaviour as without the patch
+I think the best thing would be to reserve the PNP (including ACPI)
+resources first, then the legacy things from setup.c.  I haven't looked
+into that to see whether it's feasible.  Then you might have something
+like this:
 
+  0080-008f : 00:07 PNP0200
+    0080-008f : dma page reg
 
-strict and no params should work as described.
-Unfortunately there is one unresolved problem with the lax option:
+>  b) A legacy driver requests resources bigger than the ACPI SystemIO 
+>     variable, but the ACPI resource variable lies within the requested
+>     space. Example:
+> (/proc/ioports):
+> 0070-0071 : rtc0
+> 0072-0073 : ACPI KSB0*
+> (syslog):
+> IO region [rtc] conflicts with [ACPI KSB0].  Ignoring.., system might
+> run unstable.
+> rtc: I/O resource 70 is not free.
+> 
+>     The rtc driver seems to request the whole rtc space (0x70-0x77)
+>     which fails because 0x72-0x73 has already been requested SHARED by
+>     an ACPI SystemIO variable. At least parts of the rtc space got
+>     requested (rtc0), I haven't checked whether the device was working
+>     correctly...
 
-Here two examples of not nice things that could happen with lax option:
+I tripped over a couple of these when I changed the PNP core to request
+resources for active devices.  The RTC is one; often BIOS says the RTC
+is at 0x70-0x71 and 0x72-0x73, but the rtc drivers like to claim 0x8
+(RTC_IO_EXTENT) ports.  However, I think the driver only *uses* two
+ports, so we should change the driver to only request what it is
+using.
 
- a) legacy drivers (in this case arch/x86_64/setup.c) request resources
-    before ACPI variables (shared resources) are requested:
-(/proc/ioports):
-0080-008f : dma page reg
-  0080-0080 : ACPI DEB0*
-    In this case it's working as "dma page reg" includes the ACPI 
-    SystemIO variable's space. If the ACPI variable is bigger, I expect
-    the ACPI variable would not get inserted...
+Another case is the "dma1" region from e820.c.  Currently this is
+0x0-0x1f, but most PNP0c02 devices only respond from 0x10-0x1f.  So
+I think we should start by splitting "dma1" into 0x0-0xf and 0x10-0x1f.
 
- b) A legacy driver requests resources bigger than the ACPI SystemIO 
-    variable, but the ACPI resource variable lies within the requested
-    space. Example:
-(/proc/ioports):
-0070-0071 : rtc0
-0072-0073 : ACPI KSB0*
-(syslog):
-IO region [rtc] conflicts with [ACPI KSB0].  Ignoring.., system might
-run unstable.
-rtc: I/O resource 70 is not free.
+> Another issue that needs fix up is that the motherboad driver is not
+> requesting it's resources anymore (which it still did with 2.6.18 - I
+> didn't dig here anymore, maybe someone can comment why this has changed)
 
-    The rtc driver seems to request the whole rtc space (0x70-0x77)
-    which fails because 0x72-0x73 has already been requested SHARED by
-    an ACPI SystemIO variable. At least parts of the rtc space got
-    requested (rtc0), I haven't checked whether the device was working
-    correctly...
-    This is the case where lax would not behave as expected, which is
-    kind of sad, because lax was my favorite default option.
-    I have no idea how this issue could get addressed cleanly..., maybe
-    someone has an idea...
+I don't know what's up here; I haven't looked at this recently.
 
+> Summary:
+> ...
+>   - Not fixable (maybe someone has an idea): If ACPI IO region declares
+>     a smaller IO part than the later native driver (e.g. example above
+>     with rtc driver), the partially overlapping resource cannot be
+>     registered and the native driver fails to load with strict and lax
+>     option.
 
-Another issue that needs fix up is that the motherboad driver is not
-requesting it's resources anymore (which it still did with 2.6.18 - I
-didn't dig here anymore, maybe someone can comment why this has changed)
-Example:
-2.6.22.1:
-(syslog with lax option):
-IO region [amd756_smbus] conflicts with [ACPI PMIO].  Ignoring.., system
-might run unstable.
-(/proc/ioports)
-5000-50fe : ACPI PMIO*
-  5000-5003 : ACPI PM1a_EVT_BLK
-  5004-5005 : ACPI PM1a_CNT_BLK
-  5008-500b : ACPI PM_TMR
-  5020-5023 : ACPI GPE0_BLK
-  50b0-50b7 : ACPI GPE1_BLK
-  50e0-50ef : amd756_smbus       # with strict this one must not be here
+Assuming the BIOS describes the region correctly, I'd say a driver
+that claims a larger region is buggy and should be fixed.
 
-This is because the non-acpi driver amd756_smbus tries to request from
-an ACPI reserved region -> this is what we try to find and eliminate.
-In 2.6.18 a motherboard ACPI driver reserved space via acpipnp which
-would look like this then (which is what we want):
-5000-50fe : ACPI PMIO*          # ACPI SystemIO variable
-..
-  50e0-50ff : motherboard       # PNP0C02 motherboard driver reserves region via acpipnp shared
-    50e0-50ef : amd756_smbus    # amd756_smbus allowed to get resources from motherboard driver
-..
-
-
-One example DSDT and bugreport of ACPI interfering with hwmon driver is
-here (with strict there the it87 module, trying to access 0x29[56] would
-not load. We also would get a pointer that on this one an ACPI driver is
-needed to control this device -> there are some vendor/BIOS specific
-ACPI functions providing functionality for this device like: SFAN, FON,
-FOFF, RTMP, STHY, STOS, SCFG):
-https://bugzilla.novell.com/show_bug.cgi?id%9992
-
-
-Summary:
-  - IMO good enough for -mm, no functional change with default param
-    -> Would be nice if more people test, this one is very machine
-       specific, especially that if not activated (no param or
-       acpi_enforce_resources=no) nothing changes.
-  - motherboard driver not reserving _CRS resources currently, needs
-    to be addressed so that the patch does not throw false positive
-    interference on motherboard subdrivers.
-  - Not fixable (maybe someone has an idea): If ACPI IO region declares
-    a smaller IO part than the later native driver (e.g. example above
-    with rtc driver), the partially overlapping resource cannot be
-    registered and the native driver fails to load with strict and lax
-    option.
-
-Thanks,
-
-   Thomas
-
+Bjorn
 
 _______________________________________________
 lm-sensors mailing list
