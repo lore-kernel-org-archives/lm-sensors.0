@@ -1,7 +1,7 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 11 Jul 2007 12:47:00 +0000
+Date: Fri, 13 Jul 2007 12:08:53 +0000
 Subject: Re: [lm-sensors] [PATCH] First cut of a adt7470 driver
-Message-Id: <4694D144.3030909@hhs.nl>
+Message-Id: <46976B55.8010803@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070706211144.GI3435@tree.beaverton.ibm.com>
 In-Reply-To: <20070706211144.GI3435@tree.beaverton.ibm.com>
@@ -10,50 +10,55 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Darrick J. Wong wrote:
+Hi All,
 
-I just realized I failed to respond to this point, here is my response:
+While actually updating the driver I realized I didn't respond to all points 
+raised (I think), so here is my reply to the other points.
 
->> Why use read_byte twice in read16, but write_word in write16?
+>> +static struct f71882fg_data *f71882fg_update_device(struct device * dev)
+>> +{
+>> +	struct f71882fg_data *data = dev_get_drvdata(dev);
+>> +	int nr, reg, reg2;
+>> +
+>> +	mutex_lock(&data->update_lock);
+>> +	
+>> +	/* Update once every 60 seconds */
+>> +	if ( time_after(jiffies, data->last_updated + 60 * HZ ) ||
+>> +			!data->valid) {
 > 
-> A "16 bit" register is really two 8 bit register reads/writes, and the
-> register with the lower address has to be read/written first.  Hence the
-> weird helper functions.
+> You test last_updated here but update last_limits below.  Is that
+> really what you intended?  last_limits isn't used anywhere in
+> the driver.
 > 
 
-Here is the code you use for this:
+Good catch, will fix.
 
-+static inline int adt7470_read_word_data(struct i2c_client *client, u8 reg)
-+{
-+	u16 foo;
-+	foo = i2c_smbus_read_byte_data(client, reg);
-+	foo |= ((u16)i2c_smbus_read_byte_data(client, reg + 1) << 8);
-+	return foo;
-+}
-+
-+static inline int adt7470_write_word_data(struct i2c_client *client, u8 reg,
-+					  u16 value)
-+{
-+	u16 x = cpu_to_le16(value);
-+
-+	return i2c_smbus_write_word_data(client, reg, x & 0xFF)
-+	       && i2c_smbus_write_word_data(client, reg + 1, x >> 8);
-+}
-+
+>> +static ssize_t store_in_max(struct device *dev, struct device_attribute
+>> +	*devattr, const char *buf, size_t count)
+>> +{
+>> +	struct f71882fg_data *data = dev_get_drvdata(dev);
+>> +	int val = simple_strtoul(buf, NULL, 10) / 8;
+>> +	
+>> +	if (val > 255)
+>> +		val = 255;
+> 
+> This check won't catch the case where I feed your sysfs file "-4096"
+> and the value inside f71882fg_data won't match what gets written to the
+> port.  Granted, the maxim "If you write garbage to the control systems
+> you deserve what you get" might apply here too.
+> 
 
-I understand that you need to somehow read / write a byte 2 times to get a 
-word, but why in adt7470_read_word_data() call i2c_smbus_read_byte_data twice? 
-while in adt7470_write_word_data() you use cpu_to_le16() and then 
-i2c_smbus_write_word_data(). Why not use i2c_smbus_read_word_data() in 
-adt7470_read_word_data() instead of calling i2c_smbus_read_byte_data twice?
+Notice that I use simple_strtoul, so val will never be < 0, if you write -4096 
+strtoul will not recognize the - and return 0.
 
-BTW I have serious doubts about you calling cpu_to_le16(), I would expect that 
-i2c_smbus_write_word_data() wants the data to be in cpu endianness.
+I know it looks strange to store the return value in an int then, but in some 
+of the other store methods I need val to be signed, and for consistency I've 
+thus stored it into an int everywhere.
+
 
 Regards,
 
 Hans
-
 
 
 _______________________________________________
