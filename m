@@ -1,20 +1,24 @@
 From: <JGong@winbond.com>
-Date: Wed, 11 Jul 2007 05:50:38 +0000
+Date: Fri, 13 Jul 2007 09:27:47 +0000
 Subject: [lm-sensors] [PATCH] hwmon-w83792d-individual-alarm-files.patch
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE01A31758@weshml03.winbond.com.tw>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE01A3175F@weshml03.winbond.com.tw>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C7C37F.68BF4041"
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C7C530.130FFFE1"
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECE01A31758@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE01A31758@weshml03.winbond.com.tw>
 To: lm-sensors@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C7C37F.68BF4041
+------_=_NextPart_001_01C7C530.130FFFE1
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
 Hi Jean,
+
+It seems the mail can not reach the mailing list, so I send it again...
 
 w83792d: add individual alarm files for the new libsensors.
 
@@ -42,7 +46,7 @@ prohibited; and any information in this email irrelevant to the official =
 business of Winbond shall be deemed as neither given nor endorsed by =
 Winbond.
 
-------_=_NextPart_001_01C7C37F.68BF4041
+------_=_NextPart_001_01C7C530.130FFFE1
 Content-Type: application/octet-stream;
 	name="hwmon-w83792d-individual-alarm-files.patch"
 Content-Transfer-Encoding: base64
@@ -144,7 +148,7 @@ aW4uZGV2X2F0dHIuYXR0ciwKIAkmc2Vuc29yX2Rldl9hdHRyX2ZhbjNfZGl2LmRldl9hdHRyLmF0
 dHIsCisJJnNlbnNvcl9kZXZfYXR0cl9mYW4zX2FsYXJtLmRldl9hdHRyLmF0dHIsCiAJTlVMTAog
 fTsKIAo=
 
-------_=_NextPart_001_01C7C37F.68BF4041
+------_=_NextPart_001_01C7C530.130FFFE1
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -154,4 +158,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------_=_NextPart_001_01C7C37F.68BF4041--
+------_=_NextPart_001_01C7C530.130FFFE1--
