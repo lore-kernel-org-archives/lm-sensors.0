@@ -1,7 +1,7 @@
-From: Vadim Zeitlin <vz-sensors@zeitlins.org>
-Date: Sat, 14 Jul 2007 15:00:34 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sat, 14 Jul 2007 17:22:41 +0000
 Subject: Re: [lm-sensors] [PATCH] v3 of a adt7470 driver\
-Message-Id: <loom.20070714T164807-527@post.gmane.org>
+Message-Id: <46990661.6080402@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070713002836.GR3435@tree.beaverton.ibm.com>
 In-Reply-To: <20070713002836.GR3435@tree.beaverton.ibm.com>
@@ -10,102 +10,54 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hans de Goede <j.w.r.degoede <at> hhs.nl> writes:
+Vadim Zeitlin wrote:
+> On Sat, 14 Jul 2007 18:19:22 +0200 Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
+> 
+> HdG> > and the AMB sensors 2 and 3 were not being taken into account. Without knowing
+> HdG> > anything about libsensors I thought it was because the file names in
+> HdG> > /sys/devices/platform/i5k_amb.0 were named {temp0,temp16,temp32,temp48}_xxx and
+> HdG> > not temp[1234] as usual
+> HdG> 
+> HdG> Yes, thats a rather severe violation of the hwmon sysfs standard. I do not see 
+> HdG> this i5k_amb driver in the standard kernel, I assume its an addon driver?
+> 
+>  Hello Hans,
+> 
+>  This is the patch recently posted to the list:
+> 
+> 	http://article.gmane.org/gmane.linux.drivers.sensors/14004
+> 
+> sorry for not mentioning it (I forgot I was replying in a different thread
+> from my reply in that one).
+> 
 
-> I assume this means sofar you've only been testing by catting sysfs files? In 
-> that case it is a good idea to test with the 3.0.0 branch of lm_sensors, which 
-> on longer needs support code for each chip, instead it "queries" sysfs to find 
-> out what features a chip has.
+Duh, I actually still have that mail in my Inbox, as I'm planning on reviewing 
+it as time permits.
 
- Hello again,
+> HdG> > and now everything seems to work fine for me except for the 2
+> HdG> > problems mentioned in my previous message (long delay when accessing
+> HdG> > the sensors and manifestly incorrect values for temp[256]):
+> HdG> 
+> HdG> Does this long delay always happen? If you run sensors in 2 quick
+> HdG> successions, the second call should be quite fast.
+> 
+>  No, the delay is always present and always the same.
+> 
 
- I've just tried to do this with rev 4608 and I was getting a lot of errors like
-this:
+Hmm,
 
-libsensors error, more sensors of one type then MAX_SENSORS_PER_TYPE, ignoring
-feature: temp32_alarm
+I see it refresh the readings every 2 seconds, since reading things takes 1 sec 
+minimum, I think it would be a good idea to make this somewhat bigger. Darrick, 
+can you post a new version and or an incremental patch with a slower read 
+frequency, say once every 5 or 10 seconds?
 
-and the AMB sensors 2 and 3 were not being taken into account. Without knowing
-anything about libsensors I thought it was because the file names in
-/sys/devices/platform/i5k_amb.0 were named {temp0,temp16,temp32,temp48}_xxx and
-not temp[1234] as usual and so I tested this trivial patch:
+Also I notice that you are still doing a full read of the chip to data->raw, 
+this might very well explain some if the slowness. Please remove raw[] from 
+data and the full read code from the update() function.
 
---- i5k_amb.c.orig      2007-07-14 16:52:42.000000000 +0200
-+++ i5k_amb.c   2007-07-14 16:54:36.000000000 +0200
-@@ -219,5 +219,5 @@
- static int __devinit i5k_amb_hwmon_init(struct platform_device *pdev)
- {
--   int i, j, k;
-+   int i, j, k, d = 0;
-    u16 c;
-    char *n;
-@@ -250,7 +250,9 @@
-                continue;
+Thanks & Regards,
 
-+           ++d;
-+
-            /* Temperature sysfs knob */
-            n = kmalloc(13, GFP_KERNEL);
--           sprintf(n, "temp%d_input", k);
-+           sprintf(n, "temp%d_input", d);
-            data->attrs[data->num_attrs].dev_attr.attr.name = n;
-            data->attrs[data->num_attrs].dev_attr.attr.mode @@ -267,5 +269,5 @@
-            /* Temperature min sysfs knob */
-            n = kmalloc(13, GFP_KERNEL);
--           sprintf(n, "temp%d_min", k);
-+           sprintf(n, "temp%d_min", d);
-            data->attrs[data->num_attrs].dev_attr.attr.name = n;
-            data->attrs[data->num_attrs].dev_attr.attr.mode @@ -284,5 +286,5 @@
-            /* Temperature mid sysfs knob */
-            n = kmalloc(13, GFP_KERNEL);
--           sprintf(n, "temp%d_mid", k);
-+           sprintf(n, "temp%d_mid", d);
-            data->attrs[data->num_attrs].dev_attr.attr.name = n;
-            data->attrs[data->num_attrs].dev_attr.attr.mode @@ -301,5 +303,5 @@
-            /* Temperature max sysfs knob */
-            n = kmalloc(13, GFP_KERNEL);
--           sprintf(n, "temp%d_max", k);
-+           sprintf(n, "temp%d_max", d);
-            data->attrs[data->num_attrs].dev_attr.attr.name = n;
-            data->attrs[data->num_attrs].dev_attr.attr.mode @@ -318,5 +320,5 @@
-            /* Temperature alarm sysfs knob */
-            n = kmalloc(13, GFP_KERNEL);
--           sprintf(n, "temp%d_alarm", k);
-+           sprintf(n, "temp%d_alarm", d);
-            data->attrs[data->num_attrs].dev_attr.attr.name = n;
-            data->attrs[data->num_attrs].dev_attr.attr.mode 
-and now everything seems to work fine for me except for the 2 problems mentioned
-in my previous message (long delay when accessing the sensors and manifestly
-incorrect values for temp[256]):
-
-% sensors3
-adt7470-i2c-0-2e
-Adapter: SMBus I801 adapter at 18c0
-fan1:       2015 RPM  (min =    0 RPM)
-fan2:          0 RPM  (min =    0 RPM)
-fan3:       1704 RPM  (min =    0 RPM)
-fan4:       1545 RPM  (min =    0 RPM)
-temp1:        +1.0 C  (low  = +129.0 C, high = +127.0 C)
-temp2:      +229.0 C  (low  = +129.0 C, high = +127.0 C)
-temp3:       +59.0 C  (low  = +129.0 C, high = +127.0 C)
-temp4:       +54.0 C  (low  = +129.0 C, high = +127.0 C)
-temp5:      +227.0 C  (low  = +129.0 C, high = +127.0 C)
-temp6:      +228.0 C  (low  = +129.0 C, high = +127.0 C)
-temp7:       +59.0 C  (low  = +129.0 C, high = +127.0 C)
-temp8:       +55.0 C  (low  = +129.0 C, high = +127.0 C)
-temp9:       +50.0 C  (low  = +129.0 C, high = +127.0 C)
-temp10:      +49.0 C  (low  = +129.0 C, high = +127.0 C)
-
-i5k_amb-isa-0000
-Adapter: ISA adapter
-temp1:       +78.5 C  (low  = +106.0 C, high = +124.0 C)
-temp2:       +75.0 C  (low  = +106.0 C, high = +124.0 C)
-temp3:       +64.5 C  (low  = +106.0 C, high = +124.0 C)
-temp4:       +63.5 C  (low  = +106.0 C, high = +124.0 C)
-
- I hope this information can be useful,
-VZ
-
+Hans
 
 _______________________________________________
 lm-sensors mailing list
