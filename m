@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Fri, 13 Jul 2007 12:49:12 +0000
+From: Vadim Zeitlin <vz-sensors@zeitlins.org>
+Date: Sat, 14 Jul 2007 15:00:34 +0000
 Subject: Re: [lm-sensors] [PATCH] v3 of a adt7470 driver\
-Message-Id: <469774C8.8010905@hhs.nl>
+Message-Id: <loom.20070714T164807-527@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070713002836.GR3435@tree.beaverton.ibm.com>
 In-Reply-To: <20070713002836.GR3435@tree.beaverton.ibm.com>
@@ -10,72 +10,101 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Darrick J. Wong wrote:
-> On Thu, Jul 12, 2007 at 11:42:43AM +0200, Hans de Goede wrote:
->> Darrick J. Wong wrote:
->>> Resend with correct title and patch included just once.
->>> ---
->>> adt7470: new hwmon driver for adt7470 chip.
->>>
->>> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
->> Looks good now, as far I'm concerned this is ready to get merged.
->> Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
->>
->> Mark, any chance you can pick this up soonish, maybe it can make 2.6.23 
->> then.
->>
->> Darrick, have you already written support for this driver for libsensors 
->> and sensors? If not could you please do that ASAP? Then I'll review it and 
->> with some luck and Jean's permission we can still get support for this chip 
->> included into lm_sensors 2.10.4
-> 
-> I ... can't say that I have a working config.  I've added this into /etc/sensors.conf:
-> chip "adt7470-*"
->         label fan1 "CPU0 Fan"
->         label fan2 "CPU1 Fan"
->         label temp1 "CPU0 Temp"
->         label temp3 "CPU1 temp"
->         label pwm1 "CPU0 Fan Control"
->         label pwm2 "CPU1 Fan Control"
-> 
-> (There are more pwm/fan/temp widgets but on the Z30 they're not
-> connected to anything.)
-> 
-> But every time I run sensors (from svn) I see only this:
-> root@elm3a181:/usr/local/src/lm_sensors/prog# sensors/sensors -c
-> /tmp/sensors.conf 
-> adt7470-i2c-0-2f
-> Can't get adapter name for bus 0
-> 
+Hans de Goede <j.w.r.degoede <at> hhs.nl> writes:
 
-While the "Can't get adapter name for bus 0" message is strange, its also 
-harmless. Its normal for sensors to not print anything for chips libsensors 
-doesn't know, thats why I asked you to write libsensors support. See 
-lib/chips.{c,h} for many many examples, just add an entry at the end for the 
-adt7470. If you then recompile and install libsensors, sensors should give you 
-some (ugly) output.
+> I assume this means sofar you've only been testing by catting sysfs files? In 
+> that case it is a good idea to test with the 3.0.0 branch of lm_sensors, which 
+> on longer needs support code for each chip, instead it "queries" sysfs to find 
+> out what features a chip has.
 
-In order to get better output for sensors, you must also add support to sensors 
-itself see prog/sensors/chips.{c,h} and don't forget to also add the printing 
-routine to the table in prog/sensors/main.c once you are done writing it.
+ Hello again,
 
-I assume this means sofar you've only been testing by catting sysfs files? In 
-that case it is a good idea to test with the 3.0.0 branch of lm_sensors, which 
-on longer needs support code for each chip, instead it "queries" sysfs to find 
-out what features a chip has.
+ I've just tried to do this with rev 4608 and I was getting a lot of errors like
+this:
 
-To try it do:
-svn checkout http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0
-cd lm-sensors-3.0.0
-make
-sudo make install                          # will put it in /usr/local
-sensors3
+libsensors error, more sensors of one type then MAX_SENSORS_PER_TYPE, ignoring
+feature: temp32_alarm
 
-Notice that you can install and use sensors3 and the 2.10.x brnch in parallel.
+and the AMB sensors 2 and 3 were not being taken into account. Without knowing
+anything about libsensors I thought it was because the file names in
+/sys/devices/platform/i5k_amb.0 were named {temp0,temp16,temp32,temp48}_xxx and
+not temp[1234] as usual and so I tested this trivial patch:
 
-Regards,
+--- i5k_amb.c.orig      2007-07-14 16:52:42.000000000 +0200
++++ i5k_amb.c   2007-07-14 16:54:36.000000000 +0200
+@@ -219,5 +219,5 @@
+ static int __devinit i5k_amb_hwmon_init(struct platform_device *pdev)
+ {
+-   int i, j, k;
++   int i, j, k, d = 0;
+    u16 c;
+    char *n;
+@@ -250,7 +250,9 @@
+                continue;
 
-Hans
++           ++d;
++
+            /* Temperature sysfs knob */
+            n = kmalloc(13, GFP_KERNEL);
+-           sprintf(n, "temp%d_input", k);
++           sprintf(n, "temp%d_input", d);
+            data->attrs[data->num_attrs].dev_attr.attr.name = n;
+            data->attrs[data->num_attrs].dev_attr.attr.mode @@ -267,5 +269,5 @@
+            /* Temperature min sysfs knob */
+            n = kmalloc(13, GFP_KERNEL);
+-           sprintf(n, "temp%d_min", k);
++           sprintf(n, "temp%d_min", d);
+            data->attrs[data->num_attrs].dev_attr.attr.name = n;
+            data->attrs[data->num_attrs].dev_attr.attr.mode @@ -284,5 +286,5 @@
+            /* Temperature mid sysfs knob */
+            n = kmalloc(13, GFP_KERNEL);
+-           sprintf(n, "temp%d_mid", k);
++           sprintf(n, "temp%d_mid", d);
+            data->attrs[data->num_attrs].dev_attr.attr.name = n;
+            data->attrs[data->num_attrs].dev_attr.attr.mode @@ -301,5 +303,5 @@
+            /* Temperature max sysfs knob */
+            n = kmalloc(13, GFP_KERNEL);
+-           sprintf(n, "temp%d_max", k);
++           sprintf(n, "temp%d_max", d);
+            data->attrs[data->num_attrs].dev_attr.attr.name = n;
+            data->attrs[data->num_attrs].dev_attr.attr.mode @@ -318,5 +320,5 @@
+            /* Temperature alarm sysfs knob */
+            n = kmalloc(13, GFP_KERNEL);
+-           sprintf(n, "temp%d_alarm", k);
++           sprintf(n, "temp%d_alarm", d);
+            data->attrs[data->num_attrs].dev_attr.attr.name = n;
+            data->attrs[data->num_attrs].dev_attr.attr.mode 
+and now everything seems to work fine for me except for the 2 problems mentioned
+in my previous message (long delay when accessing the sensors and manifestly
+incorrect values for temp[256]):
+
+% sensors3
+adt7470-i2c-0-2e
+Adapter: SMBus I801 adapter at 18c0
+fan1:       2015 RPM  (min =    0 RPM)
+fan2:          0 RPM  (min =    0 RPM)
+fan3:       1704 RPM  (min =    0 RPM)
+fan4:       1545 RPM  (min =    0 RPM)
+temp1:        +1.0 C  (low  = +129.0 C, high = +127.0 C)
+temp2:      +229.0 C  (low  = +129.0 C, high = +127.0 C)
+temp3:       +59.0 C  (low  = +129.0 C, high = +127.0 C)
+temp4:       +54.0 C  (low  = +129.0 C, high = +127.0 C)
+temp5:      +227.0 C  (low  = +129.0 C, high = +127.0 C)
+temp6:      +228.0 C  (low  = +129.0 C, high = +127.0 C)
+temp7:       +59.0 C  (low  = +129.0 C, high = +127.0 C)
+temp8:       +55.0 C  (low  = +129.0 C, high = +127.0 C)
+temp9:       +50.0 C  (low  = +129.0 C, high = +127.0 C)
+temp10:      +49.0 C  (low  = +129.0 C, high = +127.0 C)
+
+i5k_amb-isa-0000
+Adapter: ISA adapter
+temp1:       +78.5 C  (low  = +106.0 C, high = +124.0 C)
+temp2:       +75.0 C  (low  = +106.0 C, high = +124.0 C)
+temp3:       +64.5 C  (low  = +106.0 C, high = +124.0 C)
+temp4:       +63.5 C  (low  = +106.0 C, high = +124.0 C)
+
+ I hope this information can be useful,
+VZ
 
 
 _______________________________________________
