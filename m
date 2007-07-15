@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 15 Jul 2007 09:07:25 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 15 Jul 2007 09:40:34 +0000
 Subject: Re: [lm-sensors] PATCH: hwmon-fscher-support-fscpos.patch
-Message-Id: <20070715110725.0961ce50@hyperion.delvare>
+Message-Id: <4699EB92.3020309@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46922D2E.60400@hhs.nl>
 In-Reply-To: <46922D2E.60400@hhs.nl>
@@ -10,255 +10,160 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
-
-On Mon, 09 Jul 2007 14:42:55 +0200, Hans de Goede wrote:
-> As already mentioned in various post to the lm-sensors mailing list, the fscher
-> and fscpos chip are very very similar, this patch adds support for the fscpos
-> chip to the fscher driver, so that over time the fscpos driver can be dropped.
+Jean Delvare wrote:
+> Hi Hans,
 > 
-> Notice that this patch applies on top of the earlier posted max alarms patch
-> for the fscher:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020301.html
+> On Mon, 09 Jul 2007 14:42:55 +0200, Hans de Goede wrote:
+>> As already mentioned in various post to the lm-sensors mailing list, the fscher
+>> and fscpos chip are very very similar, this patch adds support for the fscpos
+>> chip to the fscher driver, so that over time the fscpos driver can be dropped.
+>>
+>> Notice that this patch applies on top of the earlier posted max alarms patch
+>> for the fscher:
+>> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020301.html
+> 
+> Patch looks overall good, just a couple comments:
+> 
+>> @@ -355,6 +375,11 @@ static int fscher_detect(struct i2c_adap
+>>  	/* Register sysfs hooks */
+>>  	if ((err = sysfs_create_group(&new_client->dev.kobj, &fscher_group)))
+>>  		goto exit_detach;
+>> +	
+>> +	/* only the fscher has a min fan speed register for fan 3 */ 
+>> +	if (data->kind = fscher && (err = device_create_file(&new_client->dev,
+>> +			&dev_attr_pwm3)))
+>> +		goto exit_remove_files;
+> 
+> This comment is strange. "pwm3" is supposed to be about controlling a
+> fan. "min fan speed for fan 3" would be fan3_min.
+> 
 
-Patch looks overall good, just a couple comments:
+I agree, let me try to explain, the fscpos / fscher has fanX_min _registers_ 
+(thats what they are called in the driver data struct and in the datasheet).
 
-> diff -up linux-2.6.22-rc4/drivers/hwmon/fscher.c.orig linux-2.6.22-rc4/drivers/hwmon/fscher.c
-> --- linux-2.6.22-rc4/drivers/hwmon/fscher.c.orig	2007-07-09 13:18:28.000000000 +0200
-> +++ linux-2.6.22-rc4/drivers/hwmon/fscher.c	2007-07-09 13:23:52.000000000 +0200
-> @@ -2,6 +2,7 @@
->   * fscher.c - Part of lm_sensors, Linux kernel modules for hardware
->   * monitoring
->   * Copyright (C) 2003, 2004 Reinhard Nissl <rnissl@gmx.de>
-> + * Copyright (C) 2007 Hans de Goede <j.w.r.degoede@hhs.nl>
->   * 
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License as published by
-> @@ -46,7 +47,7 @@ static unsigned short normal_i2c[] = { 0
->   * Insmod parameters
->   */
->  
-> -I2C_CLIENT_INSMOD_1(fscher);
-> +I2C_CLIENT_INSMOD_2(fscher, fscpos);
->  
->  /*
->   * The FSCHER registers
-> @@ -72,6 +73,11 @@ I2C_CLIENT_INSMOD_1(fscher);
->  #define FSCHER_REG_VOLT_5		0x42
->  #define FSCHER_REG_VOLT_BATT		0x48
->  
-> +/* special (different) fan 3 addresses for fscpos support */
-> +#define FSCPOS_REG_FAN3_ACT		0xab
-> +#define FSCPOS_REG_FAN3_STATE		0xa2
-> +#define FSCPOS_REG_FAN3_RIPPLE		0xaf
-> +
->  /* fans */
->  static const u8 FSCHER_REG_FAN_MIN[] =		{ 0x55, 0x65, 0xb5 };
->  static const u8 FSCHER_REG_FAN_ACT[] =		{ 0x0e, 0x6b, 0xbb };
-> @@ -117,6 +123,7 @@ static struct i2c_driver fscher_driver >   */
->  
->  struct fscher_data {
-> +	enum chips kind;
->  	struct i2c_client client;
->  	struct class_device *class_dev;
->  	struct mutex update_lock;
-> @@ -268,7 +275,6 @@ static struct attribute *fscher_attribut
->  	&dev_attr_fan3_div.attr,
->  	&dev_attr_fan3_input.attr,
->  	&dev_attr_fan3_alarm.attr,
-> -	&dev_attr_pwm3.attr,
->  
->  	&dev_attr_temp1_status.attr,
->  	&dev_attr_temp1_input.attr,
-> @@ -329,20 +335,34 @@ static int fscher_detect(struct i2c_adap
->  	new_client->driver = &fscher_driver;
->  	new_client->flags = 0;
->  
-> -	/* Do the remaining detection unless force or force_fscher parameter */
-> -	if (kind < 0) {
-> +	/* Detect & Identify the chip */
-> +	if (kind <= 0) {
->  		if ((i2c_smbus_read_byte_data(new_client,
-> -		     FSCHER_REG_IDENT_0) != 0x48)	/* 'H' */
-> -		 || (i2c_smbus_read_byte_data(new_client,
-> -		     FSCHER_REG_IDENT_1) != 0x45)	/* 'E' */
-> -		 || (i2c_smbus_read_byte_data(new_client,
-> -		     FSCHER_REG_IDENT_2) != 0x52))	/* 'R' */
-> +				FSCHER_REG_IDENT_0) = 0x48)	/* 'H' */
-> +			&& (i2c_smbus_read_byte_data(new_client,
-> +				FSCHER_REG_IDENT_1) = 0x45)	/* 'E' */
-> +			&& (i2c_smbus_read_byte_data(new_client,
-> +				FSCHER_REG_IDENT_2) = 0x52))	/* 'R' */
-> +			data->kind = fscher;
-> +		else if ((i2c_smbus_read_byte_data(new_client,
-> +				FSCHER_REG_IDENT_0) = 0x50)	/* 'P' */
-> +			&& (i2c_smbus_read_byte_data(new_client,
-> +				FSCHER_REG_IDENT_1) = 0x45)	/* 'E' */
-> +			&& (i2c_smbus_read_byte_data(new_client,
-> +				FSCHER_REG_IDENT_2) = 0x47))	/* 'G' */
-> +			data->kind = fscpos;
-> +		else
->  			goto exit_free;
-> -	}
-> +	} else
-> +		data->kind = kind;
->  
->  	/* Fill in the remaining client fields and put it into the
->  	 * global list */
-> -	strlcpy(new_client->name, "fscher", I2C_NAME_SIZE);
-> +	if (data->kind = fscher)
-> +		strlcpy(new_client->name, "fscher", I2C_NAME_SIZE);
-> +	else
-> +		strlcpy(new_client->name, "fscpos", I2C_NAME_SIZE);
-> +
->  	data->valid = 0;
->  	mutex_init(&data->update_lock);
->  
-> @@ -355,6 +375,11 @@ static int fscher_detect(struct i2c_adap
->  	/* Register sysfs hooks */
->  	if ((err = sysfs_create_group(&new_client->dev.kobj, &fscher_group)))
->  		goto exit_detach;
-> +	
-> +	/* only the fscher has a min fan speed register for fan 3 */ 
-> +	if (data->kind = fscher && (err = device_create_file(&new_client->dev,
-> +			&dev_attr_pwm3)))
-> +		goto exit_remove_files;
+However these registers do not control a limit which is used for a fan alarm, 
+as the fanX_min sysfs attr export. These registers contain the minimum value at 
+which the fan will spin, even if the temperature would allow it to go lower, so 
+this really should be pwm_X_autopoint1_pwm, however I kept is as pwmX as I 
+didn't want to change the kernel -> userspace API.
 
-This comment is strange. "pwm3" is supposed to be about controlling a
-fan. "min fan speed for fan 3" would be fan3_min.
+Notice that the fscher / fscpos driver have more issues like this, for example 
+they export a raw version of the temp status registers as tempX_status, with 
+the individual alarms patch, this is no longer needed as the 2 used bits in 
+this register are exported as tempX_alarm resp tempX_fault, however they cannot 
+be removed because libsensors/sensors expect them to be there.
 
->  
->  	data->class_dev = hwmon_device_register(&new_client->dev);
->  	if (IS_ERR(data->class_dev)) {
-> @@ -366,6 +391,7 @@ static int fscher_detect(struct i2c_adap
->  
->  exit_remove_files:
->  	sysfs_remove_group(&new_client->dev.kobj, &fscher_group);
-> +	device_remove_file(&new_client->dev, &dev_attr_pwm3);
->  exit_detach:
->  	i2c_detach_client(new_client);
->  exit_free:
-> @@ -381,6 +407,7 @@ static int fscher_detach_client(struct i
->  
->  	hwmon_device_unregister(data->class_dev);
->  	sysfs_remove_group(&client->dev.kobj, &fscher_group);
-> +	device_remove_file(&client->dev, &dev_attr_pwm3);
->  
->  	if ((err = i2c_detach_client(client)))
->  		return err;
-> @@ -440,14 +467,25 @@ static struct fscher_data *fscher_update
->  				fscher_write_value(client,
->  					FSCHER_REG_TEMP_STATE[i], 0x02);
->  					
-> -			data->fan_act[i] = fscher_read_value(client,
-> +			/* The fscpos' third fan has its registers at different
-> +			   addresses and doesn't have a fan_min */
-> +			if (data->kind = fscpos && i = 2) {
-> +				data->fan_act[i] = fscher_read_value(client,
-> +						FSCPOS_REG_FAN3_ACT);
-> +				data->fan_status[i] = fscher_read_value(client,
-> +						FSCPOS_REG_FAN3_STATE);
-> +				data->fan_ripple[i] = fscher_read_value(client,
-> +						FSCPOS_REG_FAN3_RIPPLE);
-> +			} else {
-> +				data->fan_act[i] = fscher_read_value(client,
->  						FSCHER_REG_FAN_ACT[i]);
-> -			data->fan_status[i] = fscher_read_value(client,
-> +				data->fan_status[i] = fscher_read_value(client,
->  						FSCHER_REG_FAN_STATE[i]);
-> -			data->fan_min[i] = fscher_read_value(client,
-> -						FSCHER_REG_FAN_MIN[i]);
-> -			data->fan_ripple[i] = fscher_read_value(client,
-> +				data->fan_ripple[i] = fscher_read_value(client,
->  						FSCHER_REG_FAN_RIPPLE[i]);
-> +				data->fan_min[i] = fscher_read_value(client,
-> +						FSCHER_REG_FAN_MIN[i]);
-> +			}
->  
->  			/* reset fan status if speed is back to > 0 */
->  			if ((data->fan_status[i] & 0x04) && data->fan_act[i])
-> @@ -464,6 +502,8 @@ static struct fscher_data *fscher_update
->  		data->watchdog[2] = fscher_read_value(client, FSCHER_REG_WDOG_CONTROL);
->  
->  		data->global_event = fscher_read_value(client, FSCHER_REG_EVENT_STATE);
-> +		data->global_control = fscher_read_value(client,
-> +							FSCHER_REG_CONTROL);
+Despite you saying that the individual alarms patch should be split up I 
+actually tried to make as little changes as possible. I'm not sure now if that 
+is the best plan, these 2 drivers really need a cleanup, they also need dyn 
+sysfs attr + handlers for example, but I wanted to safe that for later to keep 
+the patches small / manageable.
 
-This looks like a bugfix, this should have been in the fscher driver
-already. Could you please submit a separate patch for this? So that
-Mark can push it into 2.6.23.
+>> @@ -464,6 +502,8 @@ static struct fscher_data *fscher_update
+>>  		data->watchdog[2] = fscher_read_value(client, FSCHER_REG_WDOG_CONTROL);
+>>  
+>>  		data->global_event = fscher_read_value(client, FSCHER_REG_EVENT_STATE);
+>> +		data->global_control = fscher_read_value(client,
+>> +							FSCHER_REG_CONTROL);
+> 
+> This looks like a bugfix, this should have been in the fscher driver
+> already. Could you please submit a separate patch for this? So that
+> Mark can push it into 2.6.23.
+> 
 
->  
->  		data->last_updated = jiffies;
->  		data->valid = 1;                 
-> @@ -696,11 +736,18 @@ static ssize_t set_watchdog_control(stru
->  				    fscher_data *data, const char *buf, size_t count,
->  				    int nr, int reg)
->  {
-> -	/* bits 0..3 reserved => mask with 0xf0 */  
-> -	unsigned long v = simple_strtoul(buf, NULL, 10) & 0xf0;
-> +	unsigned long v = simple_strtoul(buf, NULL, 10);
-> +	u8 mask;
-> +
-> +	if (data->kind = fscher)
-> +		mask = 0xf0; /* bits 0..3 reserved */
-> +	else
-> +		mask = 0xb0; /* bits 0..3 & 6 reserved */
+Your right, I will write a seperate patch for this, as always as time permits.
 
-The fscpos driver uses mask 0xf0 here...
+>>  
+>>  		data->last_updated = jiffies;
+>>  		data->valid = 1;                 
+>> @@ -696,11 +736,18 @@ static ssize_t set_watchdog_control(stru
+>>  				    fscher_data *data, const char *buf, size_t count,
+>>  				    int nr, int reg)
+>>  {
+>> -	/* bits 0..3 reserved => mask with 0xf0 */  
+>> -	unsigned long v = simple_strtoul(buf, NULL, 10) & 0xf0;
+>> +	unsigned long v = simple_strtoul(buf, NULL, 10);
+>> +	u8 mask;
+>> +
+>> +	if (data->kind = fscher)
+>> +		mask = 0xf0; /* bits 0..3 reserved */
+>> +	else
+>> +		mask = 0xb0; /* bits 0..3 & 6 reserved */
+> 
+> The fscpos driver uses mask 0xf0 here...
+> 
 
-> +
-> +	v &= mask;
->  
->  	mutex_lock(&data->update_lock);
-> -	data->watchdog[2] &= ~0xf0;
-> +	data->watchdog[2] &= ~mask;
->  	data->watchdog[2] |= v;
->  	fscher_write_value(client, reg, data->watchdog[2]);
->  	mutex_unlock(&data->update_lock);
-> @@ -709,8 +756,14 @@ static ssize_t set_watchdog_control(stru
->  
->  static ssize_t show_watchdog_control(struct fscher_data *data, char *buf, int nr)
->  {
-> -	/* bits 0..3 reserved, bit 5 write only => mask with 0xd0 */
-> -	return sprintf(buf, "%u\n", data->watchdog[2] & 0xd0);
-> +	u8 mask;
-> +
-> +	if (data->kind = fscher)
-> +		mask = 0xd0; /* bits 0..3 reserved, 5 write only */
-> +	else
-> +		mask = 0x90; /* bits 0..3 & 6 reserved, 5 write only */
+It does, but according to the datasheet for the fscpos, bit 6 is reserved on 
+the fscpos too. Notice that the wachdog interface in general is poorly designed 
+just like the tempX_status register its really nothing more then a raw export 
+of registers.
 
-... and 0xb0 here. Any reason why you use different values? If you
-think the fscpos driver uses the wrong masks, please send a patch to
-fix them.
+>> +
+>> +	v &= mask;
+>>  
+>>  	mutex_lock(&data->update_lock);
+>> -	data->watchdog[2] &= ~0xf0;
+>> +	data->watchdog[2] &= ~mask;
+>>  	data->watchdog[2] |= v;
+>>  	fscher_write_value(client, reg, data->watchdog[2]);
+>>  	mutex_unlock(&data->update_lock);
+>> @@ -709,8 +756,14 @@ static ssize_t set_watchdog_control(stru
+>>  
+>>  static ssize_t show_watchdog_control(struct fscher_data *data, char *buf, int nr)
+>>  {
+>> -	/* bits 0..3 reserved, bit 5 write only => mask with 0xd0 */
+>> -	return sprintf(buf, "%u\n", data->watchdog[2] & 0xd0);
+>> +	u8 mask;
+>> +
+>> +	if (data->kind = fscher)
+>> +		mask = 0xd0; /* bits 0..3 reserved, 5 write only */
+>> +	else
+>> +		mask = 0x90; /* bits 0..3 & 6 reserved, 5 write only */
+> 
+> ... and 0xb0 here. Any reason why you use different values? If you
+> think the fscpos driver uses the wrong masks, please send a patch to
+> fix them.
+> 
 
-(As a side node, it is probably OK to use the less restrictive mask for
-both chips in this function, as reserved bits are very likely to return
-0.)
+Bit 5 is write only, so we have no idea what it will return when read, so yes I 
+believe the fscpos driver is using the wrong masks. Alternatively to fixing 
+this we could concider ripping out the watchdog support completely, I would 
+actually prefer that, because as said its nothing more then a couple of raw 
+registers exports. If peope want to get to the raw registers they can use i2c-dev.
 
-> +
-> +	return sprintf(buf, "%u\n", data->watchdog[2] & mask);
->  }
->  
->  static ssize_t set_watchdog_status(struct i2c_client *client, struct fscher_data *data,
-> @@ -720,7 +773,7 @@ static ssize_t set_watchdog_status(struc
->  	unsigned long v = simple_strtoul(buf, NULL, 10) & 0x02;
->  
->  	mutex_lock(&data->update_lock);
-> -	data->watchdog[1] &= ~v;
-> +	data->watchdog[1] &= ~v; /* write 1 to clear */
+>> @@ -720,7 +773,7 @@ static ssize_t set_watchdog_status(struc
+>>  	unsigned long v = simple_strtoul(buf, NULL, 10) & 0x02;
+>>  
+>>  	mutex_lock(&data->update_lock);
+>> -	data->watchdog[1] &= ~v;
+>> +	data->watchdog[1] &= ~v; /* write 1 to clear */
+> 
+> This comment is confusing. You say "write 1 to clear" while the code
+> sets the bit in question to 0, not 1. Please clarify.
+> 
+>>  	fscher_write_value(client, reg, v);
+>>  	mutex_unlock(&data->update_lock);
+>>  	return count;
+> 
 
-This comment is confusing. You say "write 1 to clear" while the code
-sets the bit in question to 0, not 1. Please clarify.
+The code in question confused me, hence I added the comment to try and clarify 
+it. Notice how v gets masked with 0x02, and thus can only be 0 or 0x02, if its 
+zero, the this line: "data->watchdog[1] &= ~v" does nothing, if its 0x02, then 
+bit 1 of our copy of the watchdog register gets cleared. IOW if the user writes 
+1 to bit 1 its gets cleared. We update our local copy of the register to 
+reflect this, clearing the bit if a one is written, notice that v is used later 
+to write to the chip, not our copy of the register, so a 1 gets written, 
+clearing the bit and the statement I added the comment to updates our in memory 
+copy to reflect the change caused by this write.
 
->  	fscher_write_value(client, reg, v);
->  	mutex_unlock(&data->update_lock);
->  	return count;
+Suggestions for a clearer comment, while not using as much text as I just did, 
+are welcome. Alternatively, we could just leave it as is, without any comment 
+at all. Or even better just kill off the pseudo watchdog support entirely.
 
+Regards,
 
--- 
-Jean Delvare
+Hans
+
 
 _______________________________________________
 lm-sensors mailing list
