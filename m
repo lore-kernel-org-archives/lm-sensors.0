@@ -1,46 +1,76 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 14 Jul 2007 20:00:27 +0000
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Mon, 16 Jul 2007 20:07:38 +0000
 Subject: Re: [lm-sensors] [PATCH] v3 of a adt7470 driver\
-Message-Id: <20070714220027.20c2d903@hyperion.delvare>
+Message-Id: <20070716200738.GA2619@tree.beaverton.ibm.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============4490268310067424324=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070713002836.GR3435@tree.beaverton.ibm.com>
 In-Reply-To: <20070713002836.GR3435@tree.beaverton.ibm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans, hi Darrick,
 
-On Fri, 13 Jul 2007 14:49:12 +0200, Hans de Goede wrote:
-> Darrick J. Wong wrote:
-> > But every time I run sensors (from svn) I see only this:
-> > root@elm3a181:/usr/local/src/lm_sensors/prog# sensors/sensors -c
-> > /tmp/sensors.conf 
-> > adt7470-i2c-0-2f
-> > Can't get adapter name for bus 0
-> 
-> While the "Can't get adapter name for bus 0" message is strange, its also 
-> harmless.
+--===============4490268310067424324==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BXVAT5kNtrzKuDFl"
+Content-Disposition: inline
 
-I confirm it is harmless. Typically, it happens when you are using
-lm-sensors <= 2.10.2, a kernel >= 2.6.22, and you did not enable
-CONFIG_SYSFS_DEPRECATED in your kernel. So the fix is to either upgrade
-to lm-sensors 2.10.3 or later, or rebuild your kernel with
-CONFIG_SYSFS_DEPRECATED=y.
 
-This is explained on this page for reference:
-http://www.lm-sensors.org/wiki/Kernel2.6
+--BXVAT5kNtrzKuDFl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Now Darrick says he has the problem with lm-sensors SVN, which is more
-surprising. Maybe sensors is linking with an older version of
-libsensors present on the system. This theory can be confirmed by
-running "sensors -v".
+On Sat, Jul 14, 2007 at 07:22:41PM +0200, Hans de Goede wrote:
+> Hmm,
+>=20
+> I see it refresh the readings every 2 seconds, since reading things takes=
+ 1=20
+> sec minimum, I think it would be a good idea to make this somewhat bigger=
+=2E=20
+> Darrick, can you post a new version and or an incremental patch with a=20
+> slower read frequency, say once every 5 or 10 seconds?
 
--- 
-Jean Delvare
+Will do.  The data sheet says you have to wait 200ms *
+number_of_temperature_sensor_chips.  Unfortunately, there's no way to find
+out how many sensor chips there are before you read them, but 1s seemed to
+work ok for all my systems.  I suppose I could modify the init function
+to do the read once with the long delay, then lower it to 200ms *
+however many temperature sensors read a "sane" value.
+
+> Also I notice that you are still doing a full read of the chip to=20
+> data->raw, this might very well explain some if the slowness. Please remo=
+ve=20
+> raw[] from data and the full read code from the update() function.
+
+That was pulled from v3.
+
+--D
+
+--BXVAT5kNtrzKuDFl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFGm9AKa6vRYYgWQuURApG/AJ4l5cr+73JC1DJ0dqmqxzX5YXuvdgCgp1Sr
+LbSnkeP5PpZHHiRzG+G+jec=
+=YV2l
+-----END PGP SIGNATURE-----
+
+--BXVAT5kNtrzKuDFl--
+
+
+--===============4490268310067424324==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============4490268310067424324==--
