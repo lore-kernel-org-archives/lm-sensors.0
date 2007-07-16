@@ -1,53 +1,37 @@
 From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Mon, 16 Jul 2007 20:07:38 +0000
+Date: Mon, 16 Jul 2007 20:09:55 +0000
 Subject: Re: [lm-sensors] [PATCH] v3 of a adt7470 driver\
-Message-Id: <20070716200738.GA2619@tree.beaverton.ibm.com>
+Message-Id: <20070716200954.GB2619@tree.beaverton.ibm.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============4490268310067424324=="
+Content-Type: multipart/mixed; boundary="===============2186934170164958412=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070713002836.GR3435@tree.beaverton.ibm.com>
 In-Reply-To: <20070713002836.GR3435@tree.beaverton.ibm.com>
 To: lm-sensors@vger.kernel.org
 
 
---===============4490268310067424324==
+--===============2186934170164958412==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BXVAT5kNtrzKuDFl"
+	protocol="application/pgp-signature"; boundary="WYTEVAkct0FjGQmd"
 Content-Disposition: inline
 
 
---BXVAT5kNtrzKuDFl
+--WYTEVAkct0FjGQmd
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Sat, Jul 14, 2007 at 07:22:41PM +0200, Hans de Goede wrote:
-> Hmm,
->=20
-> I see it refresh the readings every 2 seconds, since reading things takes=
- 1=20
-> sec minimum, I think it would be a good idea to make this somewhat bigger=
-=2E=20
-> Darrick, can you post a new version and or an incremental patch with a=20
-> slower read frequency, say once every 5 or 10 seconds?
+On Sat, Jul 14, 2007 at 10:00:27PM +0200, Jean Delvare wrote:
 
-Will do.  The data sheet says you have to wait 200ms *
-number_of_temperature_sensor_chips.  Unfortunately, there's no way to find
-out how many sensor chips there are before you read them, but 1s seemed to
-work ok for all my systems.  I suppose I could modify the init function
-to do the read once with the long delay, then lower it to 200ms *
-however many temperature sensors read a "sane" value.
+> Now Darrick says he has the problem with lm-sensors SVN, which is more
+> surprising. Maybe sensors is linking with an older version of
+> libsensors present on the system. This theory can be confirmed by
+> running "sensors -v".
 
-> Also I notice that you are still doing a full read of the chip to=20
-> data->raw, this might very well explain some if the slowness. Please remo=
-ve=20
-> raw[] from data and the full read code from the update() function.
-
-That was pulled from v3.
+Yep, I'd linked it with an old version.  2.10.3 and 3.0.0 are both fine.
 
 --D
 
---BXVAT5kNtrzKuDFl
+--WYTEVAkct0FjGQmd
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -55,15 +39,15 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iD8DBQFGm9AKa6vRYYgWQuURApG/AJ4l5cr+73JC1DJ0dqmqxzX5YXuvdgCgp1Sr
-LbSnkeP5PpZHHiRzG+G+jec=
-=YV2l
+iD8DBQFGm9CSa6vRYYgWQuURAghKAJ0bjJ/LdIqXCwffS+ND5cYq/IaF4wCgh0w6
+A4h7qcxi32Y3esSa0e27aJQ=
+=Zkw4
 -----END PGP SIGNATURE-----
 
---BXVAT5kNtrzKuDFl--
+--WYTEVAkct0FjGQmd--
 
 
---===============4490268310067424324==
+--===============2186934170164958412==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -73,4 +57,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============4490268310067424324==--
+--===============2186934170164958412==--
