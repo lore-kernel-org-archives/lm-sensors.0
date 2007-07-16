@@ -1,81 +1,75 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 24 Jul 2007 13:00:17 +0000
-Subject: Re: [lm-sensors] drivers/hwmon/lm93.c: array overruns
-Message-Id: <20070724130017.GA5101@jupiter.solarsys.private>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 16 Jul 2007 13:25:34 +0000
+Subject: [lm-sensors] [PATCH 3/3] libsensors4: Optimize
+Message-Id: <20070716152534.1755ba05@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070723005453.GS26212@stusta.de> <200707230936.58135.hjk@linutronix.de>
-In-Reply-To: <200707230936.58135.hjk@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: =?iso-8859-1?Q?Hans-J=FCrgen?= Koch <hjk@linutronix.de>
-Cc: Adrian Bunk <bunk@stusta.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-* Hans-J=FCrgen Koch <hjk@linutronix.de> [2007-07-23 09:36:57 +0200]:
-> Am Montag 23 Juli 2007 02:54 schrieb Adrian Bunk:
-> > The Coverity checker spotted the following array overruns
-> > in drivers/hwmon/lm93.c:
-> >=20
-> > <--  snip  -->
-> >=20
-> > ...
-> > struct lm93_data {
-> > ...
-> >         struct {
-> >                 u8 min;
-> >                 u8 max;
-> >         } temp_lim[3];
-> > ...
-> > };
-> > ...
-> > static void lm93_update_client_common(struct lm93_data *data,
-> >                                       struct i2c_client *client)
-> > {
-> > ...
-> >         for (i =3D 0; i < 4; i++) {
-> >                 data->temp_lim[i].min > >                         lm93_=
-read_byte(client, LM93_REG_TEMP_MIN(i));
-> >                 data->temp_lim[i].max > >                         lm93_=
-read_byte(client, LM93_REG_TEMP_MAX(i));
-> >         }
-> > ...
-> >=20
-> > <--  snip  -->
->=20
-> This patch should fix it. Thanks a lot, Adrian!
->=20
-> ----
-> This fixes an array overflow bug. We have 4 pairs of min/max temperature =
+Minor optimizations to sensors_feature_get_type():
+* We no longer support any single type, so no need to handle this case.
+* We can start looking for "_" at offset 3 rather than the beginning
+  of the string (the shortest valid prefix is "in0", 3 characters.)
 
-> limits, not 3.
->=20
-> Signed-off-by: Hans J. Koch <hjk@linutronix.de>
->=20
-> --
-> Index: linux-2.6.23-rc/drivers/hwmon/lm93.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D> --- linux-2.6.23-rc.orig/drivers/hwmon/lm93.c	=
-2007-07-23 09:22:56.000000000 +0200
-> +++ linux-2.6.23-rc/drivers/hwmon/lm93.c	2007-07-23 09:29:37.000000000 +0=
-200
-> @@ -234,7 +234,7 @@
->  	struct {
->  		u8 min;
->  		u8 max;
-> -	} temp_lim[3];
-> +	} temp_lim[4];
-> =20
->  	/* vin1 - vin16: low and high limits */
->  	struct {
->=20
->=20
+---
+ lib/access.c |   23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-Applied to testing, thanks.
+--- lm-sensors-3.orig/lib/access.c	2007-07-16 14:48:55.000000000 +0200
++++ lm-sensors-3/lib/access.c	2007-07-16 14:51:19.000000000 +0200
+@@ -522,8 +522,6 @@ struct feature_subtype_match
+ struct feature_type_match
+ {
+ 	const char *name;
+-	sensors_feature_type type;
+-	
+ 	const struct feature_subtype_match *submatches;
+ };
+ 
+@@ -568,10 +566,10 @@ static const struct feature_subtype_matc
+ };
+ 
+ static struct feature_type_match matches[] = { 
+-	{ "temp%d%c", SENSORS_FEATURE_UNKNOWN, temp_matches },
+-	{ "in%d%c", SENSORS_FEATURE_UNKNOWN, in_matches },
+-	{ "fan%d%c", SENSORS_FEATURE_UNKNOWN, fan_matches },
+-	{ "cpu%d%c", SENSORS_FEATURE_UNKNOWN, cpu_matches },
++	{ "temp%d%c", temp_matches },
++	{ "in%d%c", in_matches },
++	{ "fan%d%c", fan_matches },
++	{ "cpu%d%c", cpu_matches },
+ };
+ 
+ /* Return the feature type and channel number based on the feature name */
+@@ -585,18 +583,13 @@ sensors_feature_type sensors_feature_get
+ 		if ((count = sscanf(name, matches[i].name, nr, &c)))
+ 			break;
+ 	
+-	if (i = ARRAY_SIZE(matches)) /* no match */
+-		return SENSORS_FEATURE_UNKNOWN;
+-	else if (count = 1) /* single type */
+-		return matches[i].type;
+-
+-	/* assert: count = 2 */
+-	if (c != '_')
+-		return SENSORS_FEATURE_UNKNOWN;
++	if (i = ARRAY_SIZE(matches) || count != 2 || c != '_')
++		return SENSORS_FEATURE_UNKNOWN;  /* no match */
+ 
+ 	submatches = matches[i].submatches;
++	name = strchr(name + 3, '_') + 1;
+ 	for (i = 0; submatches[i].name != NULL; i++)
+-		if (!strcmp(strchr(name, '_') + 1, submatches[i].name))
++		if (!strcmp(name, submatches[i].name))
+ 			return submatches[i].type;
+ 	
+ 	return SENSORS_FEATURE_UNKNOWN;
 
---=20
-Mark M. Hoffman
-mhoffman@lightlink.com
 
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
