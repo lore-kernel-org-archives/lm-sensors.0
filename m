@@ -1,39 +1,49 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 24 Jul 2007 12:24:25 +0000
-Subject: Re: [lm-sensors] [PATCH] THMC50 support for 2.6 (4th revision)
-Message-Id: <20070724122425.GB3796@jupiter.solarsys.private>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Tue, 17 Jul 2007 01:35:36 +0000
+Subject: [lm-sensors] [PATCH] hwmon: fix temp fault in dme1737 driver
+Message-Id: <191fb4ca0707161835x101f9a7dx51da4c275b0133bb@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_63671_24798546.1184636136122"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070708224300.4507035b.krzysztof.h1@wp.pl>
-In-Reply-To: <20070708224300.4507035b.krzysztof.h1@wp.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Krzysztof:
+------=_Part_63671_24798546.1184636136122
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> On Sun, 8 Jul 2007 22:43:00 +0200, Krzysztof Helt wrote:
-> > I deliberately left the adm1022 always with 3 temperatures. It can be
-> > changed later if the 3 temperatures should be available only in 3
-> > temperatures mode. It is simpler to ignore unused one with config file at
-> > the moment.
+Fix temp?_fault attribute. The temp was incorrectly compared against
+0x0800 rather than 0x8000.
 
-* Jean Delvare <khali@linux-fr.org> [2007-07-09 20:03:06 +0200]:
-> I already expressed my disagreement. I really believe that the files
-> for the 3rd temperature should only be created in 3 temperature mode.
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-I've applied this patch to testing... hopefully Linus will take it prior to
-v2.6.23-rc2.  I would appreciate if you send an incremental patch which follows
-Jean's advice about temp3.
+------=_Part_63671_24798546.1184636136122
+Content-Type: text/x-patch; name=hwmon-dme1737-fix-temp-fault.patch; 
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f47ppg7l
+Content-Disposition: attachment; filename="hwmon-dme1737-fix-temp-fault.patch"
 
-Thanks & regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Rml4IHRlbXA/X2ZhdWx0IGF0dHJpYnV0ZS4gVGhlIHRlbXAgd2FzIGluY29ycmVjdGx5IGNvbXBh
+cmVkIGFnYWluc3QgMHgwODAwIHJhdGhlciB0aGFuIDB4ODAwMC4KClNpZ25lZC1vZmYtYnk6IEp1
+ZXJnIEhhZWZsaWdlciA8anVlcmdoIGF0IGdtYWlsLmNvbT4KLS0tCkluZGV4OiBsaW51eC0yLjYv
+ZHJpdmVycy9od21vbi9kbWUxNzM3LmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gbGludXgtMi42Lm9yaWcvZHJp
+dmVycy9od21vbi9kbWUxNzM3LmMJMjAwNy0wNy0xNiAxNzozMTowNC4wMDAwMDAwMDAgLTA3MDAK
+KysrIGxpbnV4LTIuNi9kcml2ZXJzL2h3bW9uL2RtZTE3MzcuYwkyMDA3LTA3LTE2IDE3OjQ4OjIz
+LjAwMDAwMDAwMCAtMDcwMApAQCAtNzUwLDcgKzc1MCw3IEBACiAJCXJlcyA9IChkYXRhLT5hbGFy
+bXMgPj4gRE1FMTczN19CSVRfQUxBUk1fVEVNUFtpeF0pICYgMHgwMTsKIAkJYnJlYWs7CiAJY2Fz
+ZSBTWVNfVEVNUF9GQVVMVDoKLQkJcmVzID0gKGRhdGEtPnRlbXBbaXhdID09IDB4MDgwMCk7CisJ
+CXJlcyA9IChkYXRhLT50ZW1wW2l4XSA9PSAoczE2KTB4ODAwMCk7CiAJCWJyZWFrOwogCWRlZmF1
+bHQ6CiAJCXJlcyA9IDA7Cg==
+------=_Part_63671_24798546.1184636136122
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_63671_24798546.1184636136122--
