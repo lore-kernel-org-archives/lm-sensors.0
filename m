@@ -1,122 +1,436 @@
-From: Philip Edelbrock <phil_edelbrock@edgedesign.us>
-Date: Thu, 19 Jul 2007 23:51:22 +0000
-Subject: Re: [lm-sensors] Call for 2.10.4
-Message-Id: <6CE73EEB-DA69-452B-A89F-367295107939@edgedesign.us>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1812159335792583214=="
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Date: Tue, 17 Jul 2007 19:27:13 +0000
+Subject: [lm-sensors] [PATCH] adm1021 clean ups (rev. 2)
+Message-Id: <20070717212713.8269c7e7.krzysztof.h1@wp.pl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070625101648.511dc9c4@hyperion.delvare>
-In-Reply-To: <20070625101648.511dc9c4@hyperion.delvare>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
---===============1812159335792583214==
-Content-Type: multipart/signed; micalg=sha1; boundary=Apple-Mail-39-423452223;
-	protocol="application/pkcs7-signature"
+This patch provides some coding standard cleanups and general code improvements (more debug info, signed values for
+temperatures, changed names of ADM1023 regs, removed read/write_value functions).
 
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 
---Apple-Mail-39-423452223
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain;
-	charset=US-ASCII;
-	delsp=yes;
-	format=flowed
+---
+This is first part of the patch which I already posted and was asked to divide it into two parts.
 
+It fixes all errors pointed by Jean Delvare in the previous version, even the most nonsense ones like 
+breaking long lines and alignment of the trailing backslashes in macros which are being gone with the second
+part of the patch (remember? it is the first part of dynamic sysfs callbacks patch).
 
-On Jul 19, 2007, at 9:25 AM, Jean Delvare wrote:
+Fun is driving my work and Jean takes fun away from work in this list, like requesting dividing cleanup patches into
+ separate patches which removes dots, patches which removes spaces, patches which folds one-shot functions
+ into callers, etc. It is very time consuming, counterproductive, discouraging and disappointing.
+ I understand that you have one task done in one patch but maybe tasks can be more general
+(like 'massive cleanup' or if one kills most of macros with the conversion to dynamic sysfs he can kill rest of macros in one go)?
 
-> On Wed, 18 Jul 2007 16:26:55 +0200, Axel Thimm wrote:
->> the new devel server was just missing symlinks which I now added  
->> in. I
->> haven't tested if everything works under devel as it did under
->> devel-old (actually I also let the date for introducing the new devel
->> server slip, as we just had our son get born :).
->
-> Wow! All my wishes of happiness :)
->
+Simply, I don't care anymore. I just want to send the work I have already done (adm1021) and
+ finish the thmc50 driver support (or maybe not if I got sucked by task in another kernel area).
+I have deleted a cleanup patch for w83781d (which was planned as the first step to individual alarms conversion)
+- I don't want to be irritated by forcing me to do needless work. Someone else will do the patch sooner or later.
 
-Ditto!
+Most of people does the work as hobby and they are not perfectionist. Forcing the people to
+be perfect is the best way to put them down.
 
->> If something is
->> broken/missing on devel please ping me in PM and use devel-old
->> instead. Once you're happy on devel (new) we can decomission
->> devel-old, but there is no hurry.
->
-> OK, I've completed the release by copying the files from Phil's home
-> to /srv/lm-sensors/dl, and updating the wiki. Only thing missing  
-> now is
-> the download mirror, which doesn't yet have the new files. Phil,  
-> can you
-> please copy them there?
+Regards,
+Krzysztof
 
-Thanks for finishing the release.  I've put copies on the mirror, too.
-
-
-Phil
-
-
---Apple-Mail-39-423452223
-Content-Transfer-Encoding: base64
-Content-Type: application/pkcs7-signature;
-	name=smime.p7s
-Content-Disposition: attachment;
-	filename=smime.p7s
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGOTCCAvIw
-ggJboAMCAQICEB3T2LOOSxQTALAFxZ8KF6YwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
-JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
-ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MTExNDIwNTc0NVoXDTA3MTExNDIwNTc0
-NVowTjEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjErMCkGCSqGSIb3DQEJARYccGhp
-bF9lZGVsYnJvY2tAZWRnZWRlc2lnbi51czCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
-ANriZ0rz4fljJCvNkkyHqnr8OD4xSy8SfcYXMKNWkEuhcvdToRoEcw8OUBslSMFJWuIHigK4M0Or
-0uqyujMZg7oq7ZuPNNFmktc1TVv+9IuJpXbIRRsE+cvlVqLxUKNTClik6e5jMU7UAkZnccHL0mhr
-Z2+7PDPPP2WR0NpubMepWQOUx2rFD4+Ay3TGq4ix7fMn3zs6Uahn7oVcdwfswGTfZn0k+Bfcckor
-iGoarY1xClBj22M6H06PFETkbtja20TR7dY+HvV468irtprGG1vJrPg9cwZzu3Y71rwhVWKkv83g
-rBiKa5V5rjlgE3Y0RD7mH8muxjsmNnKOzVqIBJsCAwEAAaM5MDcwJwYDVR0RBCAwHoEccGhpbF9l
-ZGVsYnJvY2tAZWRnZWRlc2lnbi51czAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUAA4GBABPl
-xWFL+hyDucFHLG+V0BV9TPKQ9H4K6mJawxVmFZSDiUICEUMhXGiR896Hyt8kPyIZ6y0PDLltrRPN
-o7TqHsOI9Ez9XdpoGRTYiXv38N2M/veunzQrAtWXsKlSOsyXweSluROeSXLOxmZ1yCA7n+rlNcPJ
-pLdUenggfFNltJD8MIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUFADCB0TELMAkGA1UEBhMC
-WkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2FwZSBUb3duMRowGAYDVQQKExFU
-aGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNhdGlvbiBTZXJ2aWNlcyBEaXZpc2lv
-bjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIENBMSswKQYJKoZIhvcNAQkBFhxw
-ZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4XDTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1
-OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4x
-LDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3
-DQEBAQUAA4GNADCBiQKBgQDEpjxVc1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9R
-zgHU5VAKMNcCY1osiRVwjt3J8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CA
-AmTXp6a7n2XRxSpUhQ9IBH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYB
-Af8CAQAwQwYDVR0fBDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNv
-bmFsRnJlZW1haWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQ
-cml2YXRlTGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+wheh
-Q5aUnX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3d
-qZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCAxAwggMM
-AgEBMHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0
-ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBAhAd09izjksU
-EwCwBcWfChemMAkGBSsOAwIaBQCgggFvMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-hvcNAQkFMQ8XDTA3MDcxOTIzNTEyMlowIwYJKoZIhvcNAQkEMRYEFHkeOuJWgIzBKHrA9myrTpfr
-xsu6MIGFBgkrBgEEAYI3EAQxeDB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29u
-c3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNz
-dWluZyBDQQIQHdPYs45LFBMAsAXFnwoXpjCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYT
-AlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3
-dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQHdPYs45LFBMAsAXFnwoXpjANBgkqhkiG
-9w0BAQEFAASCAQB8liYza0ggYd4rdZBCQSG5tsvyom41TAvaCUtO+VYaAeRtmGt9m0RGJcy6LdGE
-DjVkCKJ4sV3vNDTGL21dc96D8jnRcPEyG5EgZaa7BGmLJdfcvXAxrXb/VBkLXaWsifF8YzWROB1c
-k4FvdTqz/z9SbAifna0wjHX3wULe/mpOrkNWY7G/b5/PMcddFe3ywkux+StDu1XAhgPSnEmrj9BJ
-RuEXYX0/8LttJuRXJReEdpQFKjl+yRSd50rNgE03qs+IMHsaZD4uFzieKjpGu4DdUUN8X6KRpy8Y
-S+Sn47/FTycCBeNOQHKQefTx0wCDO3XraVYbjvD1OLaRjOVYIjCEAAAAAAAA
-
---Apple-Mail-39-423452223--
-
-
---===============1812159335792583214==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+--- linux-2.6.22.old/drivers/hwmon/adm1021.c	2007-04-26 05:08:32.000000000 +0200
++++ linux-2.6.22/drivers/hwmon/adm1021.c	2007-07-17 20:48:39.013918947 +0200
+@@ -1,6 +1,6 @@
+ /*
+     adm1021.c - Part of lm_sensors, Linux kernel modules for hardware
+-             monitoring
++		monitoring
+     Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl> and
+     Philip Edelbrock <phil@netroedge.com>
+ 
+@@ -32,11 +32,12 @@
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x18, 0x19, 0x1a,
+ 					0x29, 0x2a, 0x2b,
+-					0x4c, 0x4d, 0x4e, 
++					0x4c, 0x4d, 0x4e,
+ 					I2C_CLIENT_END };
+ 
+ /* Insmod parameters */
+-I2C_CLIENT_INSMOD_8(adm1021, adm1023, max1617, max1617a, thmc10, lm84, gl523sm, mc1066);
++I2C_CLIENT_INSMOD_8(adm1021, adm1023, max1617, max1617a, thmc10, lm84, gl523sm,
++			mc1066);
+ 
+ /* adm1021 constants specified below */
+ 
+@@ -45,20 +46,22 @@ I2C_CLIENT_INSMOD_8(adm1021, adm1023, ma
+ #define ADM1021_REG_TEMP		0x00
+ #define ADM1021_REG_REMOTE_TEMP		0x01
+ #define ADM1021_REG_STATUS		0x02
+-#define ADM1021_REG_MAN_ID		0x0FE	/* 0x41 = AMD, 0x49 = TI, 0x4D = Maxim, 0x23 = Genesys , 0x54 = Onsemi*/
+-#define ADM1021_REG_DEV_ID		0x0FF	/* ADM1021 = 0x0X, ADM1023 = 0x3X */
+-#define ADM1021_REG_DIE_CODE		0x0FF	/* MAX1617A */
++/* 0x41 = AD, 0x49 = TI, 0x4D = Maxim, 0x23 = Genesys , 0x54 = Onsemi */
++#define ADM1021_REG_MAN_ID		0xFE
++/* ADM1021 = 0x0X, ADM1023 = 0x3X */
++#define ADM1021_REG_DEV_ID		0xFF
++#define ADM1021_REG_DIE_CODE		0xFF	/* MAX1617A */
+ /* These use different addresses for reading/writing */
+ #define ADM1021_REG_CONFIG_R		0x03
+ #define ADM1021_REG_CONFIG_W		0x09
+ #define ADM1021_REG_CONV_RATE_R		0x04
+ #define ADM1021_REG_CONV_RATE_W		0x0A
+ /* These are for the ADM1023's additional precision on the remote temp sensor */
+-#define ADM1021_REG_REM_TEMP_PREC	0x010
+-#define ADM1021_REG_REM_OFFSET		0x011
+-#define ADM1021_REG_REM_OFFSET_PREC	0x012
+-#define ADM1021_REG_REM_TOS_PREC	0x013
+-#define ADM1021_REG_REM_THYST_PREC	0x014
++#define ADM1023_REG_REM_TEMP_PREC	0x10
++#define ADM1023_REG_REM_OFFSET		0x11
++#define ADM1023_REG_REM_OFFSET_PREC	0x12
++#define ADM1023_REG_REM_TOS_PREC	0x13
++#define ADM1023_REG_REM_THYST_PREC	0x14
+ /* limits */
+ #define ADM1021_REG_TOS_R		0x05
+ #define ADM1021_REG_TOS_W		0x0B
+@@ -77,14 +80,13 @@ I2C_CLIENT_INSMOD_8(adm1021, adm1023, ma
+    these macros are called: arguments may be evaluated more than once.
+    Fixing this is just not worth it. */
+ /* Conversions  note: 1021 uses normal integer signed-byte format*/
+-#define TEMP_FROM_REG(val)	(val > 127 ? (val-256)*1000 : val*1000)
+-#define TEMP_TO_REG(val)	(SENSORS_LIMIT((val < 0 ? (val/1000)+256 : val/1000),0,255))
++#define TEMP_TO_REG(val)	SENSORS_LIMIT((val) / 1000, -128, 127)
+ 
+ /* Initial values */
+ 
+-/* Note: Even though I left the low and high limits named os and hyst, 
+-they don't quite work like a thermostat the way the LM75 does.  I.e., 
+-a lower temp than THYST actually triggers an alarm instead of 
++/* Note: Even though I left the low and high limits named os and hyst,
++they don't quite work like a thermostat the way the LM75 does.  I.e.,
++a lower temp than THYST actually triggers an alarm instead of
+ clearing it.  Weird, ey?   --Phil  */
+ 
+ /* Each client has this additional data */
+@@ -97,12 +99,12 @@ struct adm1021_data {
+ 	char valid;		/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
+ 
+-	u8	temp_max;	/* Register values */
+-	u8	temp_hyst;
+-	u8	temp_input;
+-	u8	remote_temp_max;
+-	u8	remote_temp_hyst;
+-	u8	remote_temp_input;
++	s8	temp_max;	/* Register values */
++	s8	temp_hyst;
++	s8	temp_input;
++	s8	remote_temp_max;
++	s8	remote_temp_hyst;
++	s8	remote_temp_input;
+ 	u8	alarms;
+         /* Special values for ADM1023 only */
+ 	u8	remote_temp_prec;
+@@ -116,9 +118,6 @@ static int adm1021_attach_adapter(struct
+ static int adm1021_detect(struct i2c_adapter *adapter, int address, int kind);
+ static void adm1021_init_client(struct i2c_client *client);
+ static int adm1021_detach_client(struct i2c_client *client);
+-static int adm1021_read_value(struct i2c_client *client, u8 reg);
+-static int adm1021_write_value(struct i2c_client *client, u8 reg,
+-			       u16 value);
+ static struct adm1021_data *adm1021_update_device(struct device *dev);
+ 
+ /* (amalysh) read only mode, otherwise any limit's writing confuse BIOS */
+@@ -135,11 +134,12 @@ static struct i2c_driver adm1021_driver 
+ 	.detach_client	= adm1021_detach_client,
+ };
+ 
+-#define show(value)	\
+-static ssize_t show_##value(struct device *dev, struct device_attribute *attr, char *buf)		\
++#define show(value)							\
++static ssize_t show_##value(struct device *dev,				\
++			    struct device_attribute *attr, char *buf)	\
+ {									\
+ 	struct adm1021_data *data = adm1021_update_device(dev);		\
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->value));	\
++	return sprintf(buf, "%d\n", 1000 * data->value);		\
+ }
+ show(temp_max);
+ show(temp_hyst);
+@@ -148,26 +148,29 @@ show(remote_temp_max);
+ show(remote_temp_hyst);
+ show(remote_temp_input);
+ 
+-#define show2(value)	\
+-static ssize_t show_##value(struct device *dev, struct device_attribute *attr, char *buf)		\
+-{									\
+-	struct adm1021_data *data = adm1021_update_device(dev);		\
+-	return sprintf(buf, "%d\n", data->value);			\
++static ssize_t show_alarms(struct device *dev,
++			   struct device_attribute *attr,
++			   char *buf)
++{
++	struct adm1021_data *data = adm1021_update_device(dev);
++	return sprintf(buf, "%u\n", data->alarms);
+ }
+-show2(alarms);
+ 
+-#define set(value, reg)	\
+-static ssize_t set_##value(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)	\
+-{								\
+-	struct i2c_client *client = to_i2c_client(dev);		\
+-	struct adm1021_data *data = i2c_get_clientdata(client);	\
+-	int temp = simple_strtoul(buf, NULL, 10);		\
+-								\
+-	mutex_lock(&data->update_lock);				\
+-	data->value = TEMP_TO_REG(temp);			\
+-	adm1021_write_value(client, reg, data->value);		\
+-	mutex_unlock(&data->update_lock);			\
+-	return count;						\
++#define set(value, reg)							\
++static ssize_t set_##value(struct device *dev,				\
++			   struct device_attribute *attr,		\
++			   const char *buf, size_t count)		\
++{									\
++	struct i2c_client *client = to_i2c_client(dev);			\
++	struct adm1021_data *data = i2c_get_clientdata(client);		\
++	int temp = simple_strtoul(buf, NULL, 10);			\
++									\
++	mutex_lock(&data->update_lock);					\
++	data->value = TEMP_TO_REG(temp);				\
++	if (!read_only)							\
++		i2c_smbus_write_byte_data(client, reg, data->value);	\
++	mutex_unlock(&data->update_lock);				\
++	return count;							\
+ }
+ set(temp_max, ADM1021_REG_TOS_W);
+ set(temp_hyst, ADM1021_REG_THYST_W);
+@@ -208,35 +211,44 @@ static const struct attribute_group adm1
+ static int adm1021_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	int i;
+-	struct i2c_client *new_client;
++	struct i2c_client *client;
+ 	struct adm1021_data *data;
+ 	int err = 0;
+ 	const char *type_name = "";
++	int conv_rate, status, config;
+ 
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
++		pr_debug("adm1021: detect failed, "
++			 "smbus byte data not supported!\n");
+ 		goto error0;
++	}
+ 
+ 	/* OK. For now, we presume we have a valid client. We now create the
+ 	   client structure, even though we cannot fill it completely yet.
+-	   But it allows us to access adm1021_{read,write}_value. */
++	   But it allows us to access adm1021 register values. */
+ 
+ 	if (!(data = kzalloc(sizeof(struct adm1021_data), GFP_KERNEL))) {
++		pr_debug("adm1021: detect failed, kzalloc failed!\n");
+ 		err = -ENOMEM;
+ 		goto error0;
+ 	}
+ 
+-	new_client = &data->client;
+-	i2c_set_clientdata(new_client, data);
+-	new_client->addr = address;
+-	new_client->adapter = adapter;
+-	new_client->driver = &adm1021_driver;
+-	new_client->flags = 0;
++	client = &data->client;
++	i2c_set_clientdata(client, data);
++	client->addr = address;
++	client->adapter = adapter;
++	client->driver = &adm1021_driver;
++	status = i2c_smbus_read_byte_data(client, ADM1021_REG_STATUS);
++	conv_rate = i2c_smbus_read_byte_data(client,
++					     ADM1021_REG_CONV_RATE_R);
++	config = i2c_smbus_read_byte_data(client, ADM1021_REG_CONFIG_R);
+ 
+ 	/* Now, we do the remaining detection. */
+ 	if (kind < 0) {
+-		if ((adm1021_read_value(new_client, ADM1021_REG_STATUS) & 0x03) != 0x00
+-		 || (adm1021_read_value(new_client, ADM1021_REG_CONFIG_R) & 0x3F) != 0x00
+-		 || (adm1021_read_value(new_client, ADM1021_REG_CONV_RATE_R) & 0xF8) != 0x00) {
++		if ((status & 0x03) != 0x00 || (config & 0x3F) != 0x00
++		    || (conv_rate & 0xF8) != 0x00) {
++			pr_debug("adm1021: detect failed, "
++				 "chip not detected!\n");
+ 			err = -ENODEV;
+ 			goto error1;
+ 		}
+@@ -244,9 +256,10 @@ static int adm1021_detect(struct i2c_ada
+ 
+ 	/* Determine the chip type. */
+ 	if (kind <= 0) {
+-		i = adm1021_read_value(new_client, ADM1021_REG_MAN_ID);
++		i = i2c_smbus_read_byte_data(client, ADM1021_REG_MAN_ID);
+ 		if (i = 0x41)
+-			if ((adm1021_read_value(new_client, ADM1021_REG_DEV_ID) & 0x0F0) = 0x030)
++			if ((i2c_smbus_read_byte_data(client,
++					ADM1021_REG_DEV_ID) & 0xF0) = 0x30)
+ 				kind = adm1023;
+ 			else
+ 				kind = adm1021;
+@@ -255,15 +268,16 @@ static int adm1021_detect(struct i2c_ada
+ 		else if (i = 0x23)
+ 			kind = gl523sm;
+ 		else if ((i = 0x4d) &&
+-			 (adm1021_read_value(new_client, ADM1021_REG_DEV_ID) = 0x01))
++			 (i2c_smbus_read_byte_data(client,
++						   ADM1021_REG_DEV_ID) = 0x01))
+ 			kind = max1617a;
+ 		else if (i = 0x54)
+ 			kind = mc1066;
+ 		/* LM84 Mfr ID in a different place, and it has more unused bits */
+-		else if (adm1021_read_value(new_client, ADM1021_REG_CONV_RATE_R) = 0x00
+-		      && (kind = 0 /* skip extra detection */
+-		       || ((adm1021_read_value(new_client, ADM1021_REG_CONFIG_R) & 0x7F) = 0x00
+-			&& (adm1021_read_value(new_client, ADM1021_REG_STATUS) & 0xAB) = 0x00)))
++		else if (conv_rate = 0x00
++			 && (kind = 0 /* skip extra detection */
++			     || ((config & 0x7F) = 0x00
++				 && (status & 0xAB) = 0x00)))
+ 			kind = lm84;
+ 		else
+ 			kind = max1617;
+@@ -286,26 +300,27 @@ static int adm1021_detect(struct i2c_ada
+ 	} else if (kind = mc1066) {
+ 		type_name = "mc1066";
+ 	}
++	pr_debug("adm1021: Detected chip %s at adapter %d, address 0x%02x.\n",
++		 type_name, i2c_adapter_id(adapter), address);
+ 
+-	/* Fill in the remaining client fields and put it into the global list */
+-	strlcpy(new_client->name, type_name, I2C_NAME_SIZE);
++	/* Fill in the remaining client fields */
++	strlcpy(client->name, type_name, I2C_NAME_SIZE);
+ 	data->type = kind;
+-	data->valid = 0;
+ 	mutex_init(&data->update_lock);
+ 
+ 	/* Tell the I2C layer a new client has arrived */
+-	if ((err = i2c_attach_client(new_client)))
++	if ((err = i2c_attach_client(client)))
+ 		goto error1;
+ 
+ 	/* Initialize the ADM1021 chip */
+ 	if (kind != lm84)
+-		adm1021_init_client(new_client);
++		adm1021_init_client(client);
+ 
+ 	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&new_client->dev.kobj, &adm1021_group)))
++	if ((err = sysfs_create_group(&client->dev.kobj, &adm1021_group)))
+ 		goto error2;
+ 
+-	data->class_dev = hwmon_device_register(&new_client->dev);
++	data->class_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+ 		goto error3;
+@@ -314,9 +329,9 @@ static int adm1021_detect(struct i2c_ada
+ 	return 0;
+ 
+ error3:
+-	sysfs_remove_group(&new_client->dev.kobj, &adm1021_group);
++	sysfs_remove_group(&client->dev.kobj, &adm1021_group);
+ error2:
+-	i2c_detach_client(new_client);
++	i2c_detach_client(client);
+ error1:
+ 	kfree(data);
+ error0:
+@@ -325,11 +340,13 @@ error0:
+ 
+ static void adm1021_init_client(struct i2c_client *client)
+ {
+-	/* Enable ADC and disable suspend mode */
+-	adm1021_write_value(client, ADM1021_REG_CONFIG_W,
+-		adm1021_read_value(client, ADM1021_REG_CONFIG_R) & 0xBF);
+-	/* Set Conversion rate to 1/sec (this can be tinkered with) */
+-	adm1021_write_value(client, ADM1021_REG_CONV_RATE_W, 0x04);
++	if (!read_only) {
++		/* Enable ADC and disable suspend mode */
++		i2c_smbus_write_byte_data(client, ADM1021_REG_CONFIG_W,
++			i2c_smbus_read_byte_data(client, ADM1021_REG_CONFIG_R) & 0xBF);
++		/* Set Conversion rate to 1/sec (this can be tinkered with) */
++		i2c_smbus_write_byte_data(client, ADM1021_REG_CONV_RATE_W, 0x04);
++	}
+ }
+ 
+ static int adm1021_detach_client(struct i2c_client *client)
+@@ -347,19 +364,6 @@ static int adm1021_detach_client(struct 
+ 	return 0;
+ }
+ 
+-/* All registers are byte-sized */
+-static int adm1021_read_value(struct i2c_client *client, u8 reg)
+-{
+-	return i2c_smbus_read_byte_data(client, reg);
+-}
+-
+-static int adm1021_write_value(struct i2c_client *client, u8 reg, u16 value)
+-{
+-	if (!read_only)
+-		return i2c_smbus_write_byte_data(client, reg, value);
+-	return 0;
+-}
+-
+ static struct adm1021_data *adm1021_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -371,19 +375,36 @@ static struct adm1021_data *adm1021_upda
+ 	    || !data->valid) {
+ 		dev_dbg(&client->dev, "Starting adm1021 update\n");
+ 
+-		data->temp_input = adm1021_read_value(client, ADM1021_REG_TEMP);
+-		data->temp_max = adm1021_read_value(client, ADM1021_REG_TOS_R);
+-		data->temp_hyst = adm1021_read_value(client, ADM1021_REG_THYST_R);
+-		data->remote_temp_input = adm1021_read_value(client, ADM1021_REG_REMOTE_TEMP);
+-		data->remote_temp_max = adm1021_read_value(client, ADM1021_REG_REMOTE_TOS_R);
+-		data->remote_temp_hyst = adm1021_read_value(client, ADM1021_REG_REMOTE_THYST_R);
+-		data->alarms = adm1021_read_value(client, ADM1021_REG_STATUS) & 0x7c;
++		data->temp_input = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_TEMP);
++		data->temp_max = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_TOS_R);
++		data->temp_hyst = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_THYST_R);
++		data->remote_temp_input = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_REMOTE_TEMP);
++		data->remote_temp_max = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_REMOTE_TOS_R);
++		data->remote_temp_hyst = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_REMOTE_THYST_R);
++		data->alarms = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_STATUS) & 0x7c;
+ 		if (data->type = adm1023) {
+-			data->remote_temp_prec = adm1021_read_value(client, ADM1021_REG_REM_TEMP_PREC);
+-			data->remote_temp_os_prec = adm1021_read_value(client, ADM1021_REG_REM_TOS_PREC);
+-			data->remote_temp_hyst_prec = adm1021_read_value(client, ADM1021_REG_REM_THYST_PREC);
+-			data->remote_temp_offset = adm1021_read_value(client, ADM1021_REG_REM_OFFSET);
+-			data->remote_temp_offset_prec = adm1021_read_value(client, ADM1021_REG_REM_OFFSET_PREC);
++			data->remote_temp_prec +				i2c_smbus_read_byte_data(client,
++						ADM1023_REG_REM_TEMP_PREC);
++			data->remote_temp_os_prec +				i2c_smbus_read_byte_data(client,
++						ADM1023_REG_REM_TOS_PREC);
++			data->remote_temp_hyst_prec +				i2c_smbus_read_byte_data(client,
++						ADM1023_REG_REM_THYST_PREC);
++			data->remote_temp_offset +				i2c_smbus_read_byte_data(client,
++						ADM1023_REG_REM_OFFSET);
++			data->remote_temp_offset_prec +				i2c_smbus_read_byte_data(client,
++						ADM1023_REG_REM_OFFSET_PREC);
+ 		}
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1812159335792583214==--
