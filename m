@@ -1,49 +1,43 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 08 Jul 2007 13:39:10 +0000
-Subject: Re: [lm-sensors] [2.6 patch] make coretemp_device_remove() static
-Message-Id: <20070708133910.GB3591@jupiter.solarsys.private>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 18 Jul 2007 18:14:09 +0000
+Subject: [lm-sensors] No longer reviewing random hwmon patches
+Message-Id: <20070718201409.1c1077d0@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070705232306.GY3492@stusta.de> <20070707212228.1e776ff8@hyperion.delvare>
-In-Reply-To: <20070707212228.1e776ff8@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Adrian Bunk <bunk@stusta.de>, r.marek@assembler.cz, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi Jean, Adrian:
+Hi all,
 
-* Jean Delvare <khali@linux-fr.org> [2007-07-07 21:22:28 +0200]:
-> Hi Adrian,
-> 
-> On Fri, 6 Jul 2007 01:23:06 +0200, Adrian Bunk wrote:
-> > coretemp_device_remove() can become static.
-> > 
-> > Signed-off-by: Adrian Bunk <bunk@stusta.de>
-> 
-> Obviously correct.
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-> 
-> > ---
-> > --- linux-2.6.22-rc6-mm1/drivers/hwmon/coretemp.c.old	2007-07-04 20:46:05.000000000 +0200
-> > +++ linux-2.6.22-rc6-mm1/drivers/hwmon/coretemp.c	2007-07-04 20:46:20.000000000 +0200
-> > @@ -318,7 +318,7 @@
-> >  }
-> >  
-> >  #ifdef CONFIG_HOTPLUG_CPU
-> > -void coretemp_device_remove(unsigned int cpu)
-> > +static void coretemp_device_remove(unsigned int cpu)
-> >  {
-> >  	struct pdev_entry *p, *n;
-> >  	mutex_lock(&pdev_list_mutex);
+Twice in the past 2 weeks, I have been criticized for being too
+demanding in my hwmon patch reviews. I have been told that I was
+wasting developers' time and taking the fun away from them. Well, I am
+also no longer having fun reviewing patches when I am "rewarded" this
+way. Not that reviewing patches is really fun to start with, you
+usually don't receive much thank nor praise, but receiving criticism is
+going one step too far.
 
-Applied to my testing tree; thanks.
+It has been suggested that I should review patches differently and
+accept more divergence from what I consider the right way. This isn't
+going to happen, sorry. Given that I am not paid for the job, nobody
+gets to tell me which patches I should review and how. But I also don't
+want to cause contributors to leave the project.
+
+As a consequence, I have decided to change my behavior with regards to
+the patches which are posted to the lm-sensors list. I will no longer
+review random patches. I will only review patches meeting any of the
+following conditions:
+* I asked for that patch.
+* The patch is for a hwmon driver I am maintaining.
+* The author explicitly asked me to review his/her work, and I feel
+  like it.
+* Mark asked me to review the patch.
+
+Hopefully this will prevent further tensions from arising.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
