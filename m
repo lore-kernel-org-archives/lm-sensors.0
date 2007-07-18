@@ -1,7 +1,7 @@
-From: Marcin Dawidowicz <marcin.dawidowicz@kontron.pl>
-Date: Tue, 17 Jul 2007 14:26:37 +0000
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Wed, 18 Jul 2007 00:29:34 +0000
 Subject: Re: [lm-sensors] Support for sch311x
-Message-Id: <469CD19D.2040206@kontron.pl>
+Message-Id: <191fb4ca0707171729j68638d55pb530433111fd9c71@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0707090909j63416c60lfc7ca6f689091966@mail.gmail.com>
 In-Reply-To: <191fb4ca0707090909j63416c60lfc7ca6f689091966@mail.gmail.com>
@@ -10,22 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+Hi Marcin,
 
-Yes, it is fine now. Thanks a lot.
 
-Regards,
-Marcin
-
-Juerg Haefliger wrote:
-> Hi Marcin,
+> Hi Juerg,
 >
-> Could you please test the attached updated driver and let me know if
-> the 2 issues you found are fixed?
->
-> Thanks
-> ...juerg
+> Yes, it is fine now. Thanks a lot.
 
+Very good, thanks a lot for testing.
+
+...juerg
+
+
+
+> Regards,
+> Marcin
+>
+> Juerg Haefliger wrote:
+> > Hi Marcin,
+> >
+> > Could you please test the attached updated driver and let me know if
+> > the 2 issues you found are fixed?
+> >
+> > Thanks
+> > ...juerg
+>
+>
 
 _______________________________________________
 lm-sensors mailing list
