@@ -1,40 +1,30 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 18 Jul 2007 21:09:35 +0000
+From: "David Hubbard" <david.c.hubbard@gmail.com>
+Date: Thu, 19 Jul 2007 06:37:44 +0000
 Subject: Re: [lm-sensors] No longer reviewing random hwmon patches
-Message-Id: <20070718230935.29c80aae@hyperion.delvare>
+Message-Id: <4dfa50520707182337w7f62b09aod67dc85e925dcaff@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070718201409.1c1077d0@hyperion.delvare>
 In-Reply-To: <20070718201409.1c1077d0@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Hi all,
 
-On Wed, 18 Jul 2007 21:27:17 +0200, Hans-J=FCrgen Koch wrote:
-> I remember when you sent me back my max6650 patch 16 times.
+Wow, I liked reading this thread. I just wanted to second (fifth?)
+what has been said. Jean, your reviews of my patches are always
+helpful and I have never felt unhappy with the stringent quality
+standards. FreeBSD claims to be superior to Linux because only "well
+written" code is accepted. I don't want to compare the two, but it's
+great to be in a part of the Linux kernel where there is a high
+standard of code quality. (On the other hand, since I haven't really
+worked in many parts of the kernel, what do I know?)
 
-You've got to be kidding ;)
+So I will probably be requesting reviews from you in the future, when
+I get time to write more code. :-)
 
-> > I will only review patches meeting any of the=20
-> > following conditions:
-> > * I asked for that patch.
-> > * The patch is for a hwmon driver I am maintaining.
-> > * The author explicitly asked me to review his/her work, and I feel
-> >   like it.
-> > * Mark asked me to review the patch.
-> >=20
-> > Hopefully this will prevent further tensions from arising.
->=20
-> Actually, I think this is a big loss for hwmon. I'd still be glad if
-> you reviewed my patches (there will be more soon).
-
-See item #3 in my list: you only have to ask, and I'll review your
-patch(es) as my time permits.
-
---=20
-Jean Delvare
+David
 
 _______________________________________________
 lm-sensors mailing list
