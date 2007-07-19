@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Thu, 19 Jul 2007 14:04:00 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Thu, 19 Jul 2007 18:26:46 +0000
 Subject: Re: [lm-sensors] patches vs. 2.6.22 for release - last chance
-Message-Id: <469F6F50.6090607@hhs.nl>
+Message-Id: <20070719182646.GE3406@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070718203038.GC3406@jupiter.solarsys.private>
 In-Reply-To: <20070718203038.GC3406@jupiter.solarsys.private>
@@ -10,48 +10,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mark M. Hoffman wrote:
-> Hi all:
+Hi Hans:
+
+* Hans de Goede <j.w.r.degoede@hhs.nl> [2007-07-18 23:28:16 +0200]:
+> Mark M. Hoffman wrote:
+> >Hi all:
+> >
+> >I'm back from my vacation, and of course the email has piled up.
+> >
+> >Linus released 2.6.22 so I've updated my testing and release trees; they 
+> >are
+> >now identical:
+> >
+> >http://lm-sensors.org/kernel?p=kernel/mhoffman/hwmon-2.6.git;a=shortlog;h=release
+> >
+> >Unless I hear good reasons, I'll ask Linus to pull from this tomorrow.
+> >
+> >Also, I realize there's still a backlog of patches.  In the past, Linus has
+> >not objected to merging brand new drivers in addition to bugfixes after 
+> >-rc1,
+> >so I think there is still the chance to get some of these in if we can work
+> >quickly.  Unfortunately, the alarm file patches qualify as neither of 
+> >these,
+> >so they'll have to wait until the next round.
+> >
 > 
-> I'm back from my vacation, and of course the email has piled up.
+> Mark can you please drop the:
+> "hwmon: fix Abit Uguru3 driver detection on some motherboards" Patch, there 
+> is an updated version in your inbox with skips the dmi vendor check when 
+> the force module param is present.
 > 
-> Linus released 2.6.22 so I've updated my testing and release trees; they are
-> now identical:
-> 
-> http://lm-sensors.org/kernel?p=kernel/mhoffman/hwmon-2.6.git;a=shortlog;h=release
-> 
-> Unless I hear good reasons, I'll ask Linus to pull from this tomorrow.
-> 
-> Also, I realize there's still a backlog of patches.  In the past, Linus has
-> not objected to merging brand new drivers in addition to bugfixes after -rc1,
-> so I think there is still the chance to get some of these in if we can work
-> quickly.  Unfortunately, the alarm file patches qualify as neither of these,
-> so they'll have to wait until the next round.
-> 
+> If that is a problem I can make that an incremental patch.
 
-Mark,
+No problem, I've dropped it.  We'll try to get the updated one in after -rc1.
 
-If possible I would like to see the fintek f71882fg driver included into 
-2.6.23, it has been reviewed and I've posted a second version with all issues 
-raised during the review fixed (unfortunately there has been no ack on the 
-ammended version though).
+BTW: I would have liked to keep a consistent revision history on my release
+branch, but of course dropping a patch will blow that up.  I could just revert
+it to keep the history intact, but I don't think Linus considers *that* to be
+kosher for *him* to pull from.  My mistake, basically: I should have updated
+just the testing tree, and only updated the release tree just before asking
+Linus to pull.  Next time around, that's what I'll do.
 
-Its available here:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020441.html
+So for other GIT users out there... what this means is if you pulled from my
+release branch yesterday, you should blow that away and redo it.  Sorry.
 
-Also I've reviewed and acked the adt7470 driver posted here:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020429.html
+(some time later...)
 
-If you pick this up, also please include these 2 bugfixes to it:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020487.html
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020490.html
+Argh, at the last second I realized that you didn't mean this one:
 
-Since I haven't done that yet, I hereby ack these 2 bugfixes:
-Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+	"hwmon: fix Abit Uguru3 driver detection on some motherboards"
 
-Thanks & Regards,
+you actually meant this one:
 
-Hans
+	PATCH: hwmon-abituguru-check-dmi-vendor.patch
+
+Since I see that Jean acked it and it's trivial enough, I'll stuff it in there.
+Please let's not make a habit of this last-minute business.
+
+(grumble, redo, grumble)
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
 
 _______________________________________________
