@@ -1,34 +1,63 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Thu, 19 Jul 2007 20:59:29 +0000
+From: Axel Thimm <Axel.Thimm@ATrpms.net>
+Date: Thu, 19 Jul 2007 23:39:39 +0000
 Subject: Re: [lm-sensors] Call for 2.10.4
-Message-Id: <469FD0B1.1090700@hhs.nl>
+Message-Id: <20070719233939.GA18500@puariko.nirvana>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============2210217823359952026=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070625101648.511dc9c4@hyperion.delvare>
 In-Reply-To: <20070625101648.511dc9c4@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
->> If something is
->> broken/missing on devel please ping me in PM and use devel-old
->> instead. Once you're happy on devel (new) we can decomission
->> devel-old, but there is no hurry.
-> 
-> OK, I've completed the release by copying the files from Phil's home
-> to /srv/lm-sensors/dl, and updating the wiki.
 
-I've just completed building and testing this for Fedora development, so with 
-the next daily Fedora development snapshot 2.10.4 should become available. It 
-will also become available as a test update for Fedora 7 real soon, and 
-eventually it should become a regular update.
+--===============2210217823359952026==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+Content-Disposition: inline
 
-Regards,
 
-Hans
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+> Axel Thimm wrote:
+> > (actually I also let the date for introducing the new devel
+> > server slip, as we just had our son get born :).
+
+On Wed, Jul 18, 2007 at 04:46:57PM +0200, Hans de Goede wrote:
+> Congratulations !
+
+On Thu, Jul 19, 2007 at 06:25:17PM +0200, Jean Delvare wrote:
+> Wow! All my wishes of happiness :)
+
+Thanks! :)
+--=20
+Axel.Thimm at ATrpms.net
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQFGn/Y7QBVS1GOamfERAsWkAJ4qYcyYD/GbkG0ZiHPuS/bptONUHgCfQ1rT
+a3/whxZv11ZWTWse5ZdkdoA=
+=85D1
+-----END PGP SIGNATURE-----
+
+--mP3DRpeJDSE+ciuQ--
+
+
+--===============2210217823359952026==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2210217823359952026==--
