@@ -1,44 +1,89 @@
-From: "Jeremy Harmon" <intrathink@gmail.com>
-Date: Sun, 15 Jul 2007 00:40:05 +0000
-Subject: Re: [lm-sensors] Weird Voltage Values on a nForce4 motherboard
-Message-Id: <67017e450707141740n160ffa30ie13acb3ac7ae2175@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2523251037118543295=="
+From: Jonathan Murphy <typetosmurky@yahoo.com.au>
+Date: Fri, 20 Jul 2007 09:54:10 +0000
+Subject: [lm-sensors] sensors trouble
+Message-Id: <3azje6yl.fsf@yahoo.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <67017e450707062111w7f81898y1a1274474341b979@mail.gmail.com>
-In-Reply-To: <67017e450707062111w7f81898y1a1274474341b979@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============2523251037118543295==
-Content-Type: multipart/alternative; 
-	boundary="----=_Part_35497_13922206.1184460005876"
+Hi Folks,
 
-------=_Part_35497_13922206.1184460005876
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I can't get sensors working. Kernel is 2.6.22.1, lm_sensors-2.10.4. 
 
-The motherboard is a MSI K8N-Neo3F, when I get some time later I'll get the
-values from the BIOS.
+Relevant lspci:
 
-------=_Part_35497_13922206.1184460005876
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+00:07.0 ISA bridge: ALi Corporation M1533 PCI to ISA Bridge [Aladdin IV]
 
-<br>The motherboard is a MSI K8N-Neo3F, when I get some time later I&#39;ll get the values from the BIOS.<br>
+Relevant config:
 
-------=_Part_35497_13922206.1184460005876--
+CONFIG_I2C=y
+CONFIG_I2C_ALI1535=m
+CONFIG_I2C_ALI15X3=m
+CONFIG_SENSORS_EEPROM=m
+
+Output of sensors-detect:
+
+We can start with probing for (PCI) I2C or SMBus adapters.
+Do you want to probe now? (YES/no): y
+Probing for PCI bus adapters...
+Use driver `i2c-ali15x3' for device 0000:00:11.0: Acer Labs 1533/1543
+Use driver `i2c-ali1535' for device 0000:00:11.0: Acer Labs 1535
+
+We will now try to load each adapter module in turn.
+Load `i2c-ali15x3' (say NO if built into your kernel)? (YES/no): y
+Module loaded successfully.
+Load `i2c-ali1535' (say NO if built into your kernel)? (YES/no): n
+If you have undetectable or unsupported adapters, you can have them
+scanned by manually loading the modules before running this script.
+
+To continue, we need module `i2c-dev' to be loaded.
+Do you want to load `i2c-dev' now? (YES/no): y
+Module loaded successfully.
+
+[....]
+
+Sorry, no sensors were detected.
+Either your sensors are not supported, or they are connected to an
+I2C or SMBus adapter that is not supported. See doc/FAQ,
+doc/lm_sensors-FAQ.html or http://www.lm-sensors.org/wiki/FAQ
+(FAQ #4.24.3) for further information.
+If you find out what chips are on your board, check
+http://www.lm-sensors.org/wiki/Devices for driver status.
 
 
---===============2523251037118543295==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+However, if I run sensors-detect choosing i2c-ali1535 instead, then I
+get:
+
+Next adapter: SMBus ALI1535 adapter at 8040 (i2c-0)
+Do you want to scan it? (YES/no/selectively): y
+Client found at address 0x50
+Probing for `Analog Devices ADM1033'...                     No
+Probing for `Analog Devices ADM1034'...                     No
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 8, driver `eeprom')
+Probing for `EDID EEPROM'...                                No
+Probing for `Maxim MAX6900'...                              No
+Client found at address 0x51
+Probing for `Analog Devices ADM1033'...                     No
+Probing for `Analog Devices ADM1034'...                     No
+Probing for `SPD EEPROM'...                                 Success!
+    (confidence 8, driver `eeprom')
+
+
+However sensors gives:
+
+No sensors found!
+Make sure you loaded all the kernel drivers you need.
+Try sensors-detect to find out which these are.
+
+Thanks in advance,
+Jonathan.
+
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2523251037118543295==--
