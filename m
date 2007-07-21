@@ -1,48 +1,32 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 08 Jul 2007 09:25:07 +0000
-Subject: Re: [lm-sensors] f71882fg suggestions
-Message-Id: <4690AD73.1000902@hhs.nl>
+From: Gabriel C <nix.or.die@googlemail.com>
+Date: Sat, 21 Jul 2007 22:30:56 +0000
+Subject: [lm-sensors] drivers/hwmon - 'defined but not used' warnings
+Message-Id: <46A28920.9060704@googlemail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: mhoffman@lightlink.com, lm-sensors@lm-sensors.org
 
-Krzysztof Helt wrote:
-> Hi,
-> 
-> Here are 3 suggestions to your f71882fg driver (I have no code to 
-> comment directly, but they should be easy to locate).
-> 
-> 1. You should be an author in the MODULE_AUTHOR() macro.
+Hi ,
 
-Good point!
+I noticed this warnings on current git:
 
-> 2. You should not set data.addr in f71882fg_find()
-Wrong, I must do that, because after that I call f71882fg_read8(data, ...)
-and 71882fg_read8 needs addr to be set, notice that I'm operating on a 
-temporary data struct on the stack here, which is used only to call 
-f71882fg_read8, to read the config register and see if the hwmon is enabled.
+...
 
-> 3. I wonder why you add all these sysfs entries one by one (in 
-> loops) instead of creating a group and add them with one function 
-> call (see the asb100 driver). You need to create 3 groups, one 
-> for each loop.
+drivers/hwmon/pc87360.c:1082: warning: 'pc87360_remove' defined but not used
+drivers/hwmon/sis5595.c:580: warning: 'sis5595_remove' defined but not used
+drivers/hwmon/smsc47m1.c:608: warning: 'smsc47m1_remove' defined but not used
+drivers/hwmon/via686a.c:648: warning: 'via686a_remove' defined but not used
+drivers/hwmon/vt8231.c:755: warning: 'vt8231_remove' defined but not used
 
-I do it this way because I have an array of attributes, not an array of 
-attribute addresses as the group register function expects. Walking my array 
-with a loop is easier then then first creating an array of addresses (with a 
-loop, or handfilling it, which is even worse) and then calling the group 
-register function.
+...
 
-Now if there would be a group register function which I can pass the address of 
-a set of attr, the offsets between all the attr (one needs to specify the 
-offset ebcause we use sensor_attr not sysfs_attr which is larger) and the no of 
-attr, then that would be great.
 
 Regards,
 
-Hans
+Gabriel C
 
 _______________________________________________
 lm-sensors mailing list
