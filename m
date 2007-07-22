@@ -1,44 +1,64 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 08 Jul 2007 15:59:30 +0000
-Subject: Re: [lm-sensors] PATCH: hwmon-abituguru3-detect.patch
-Message-Id: <20070708155930.GD3591@jupiter.solarsys.private>
+From: mike corn <mikecorn@arcor.de>
+Date: Sun, 22 Jul 2007 08:10:22 +0000
+Subject: [lm-sensors] Intel D975XBX2 motherboard "no sensors found"
+Message-Id: <46A310EE.4080206@arcor.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4689694A.3040708@hhs.nl>
-In-Reply-To: <4689694A.3040708@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans:
+Motherboard: Intel D975XBX2
+CPU: Core 2 Quad 6600
+Linux: Ubuntu 7.04
+lm-sensors: 2.10.1
 
-* Hans de Goede <j.w.r.degoede@hhs.nl> [2007-07-02 23:08:26 +0200]:
-> Hi All, Mark,
-> 
-> Mark, this fixes the abituguru3 driver not detecting the uguru3 on some 
-> motherboards without the force=1 parameter, see:
-> https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id"0160
-> 
-> Can you apply this to your testing tree please? Thanks!
-> 
-> Regards,
-> 
-> Hans
+Your online docs are in shambles, so perhaps I did not understand them.
+Here is exactly what I did:
 
-> This patch changes the driver to also detect uguru3's which hold 0x08 at DATA
-> initially, as has been reported here:
-> https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id"0160
-> 
-> Also when an uguru3's holds 0x0014 in the ID register it will now report 
-> "Abit AB9 Pro" as motherboard identification.
-> 
-> Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+1. sensors-detect: found i2c-i801 and eeprom
+(I answered YES to all queries, including the auto add to /etc/modules)
+2. modprobe i2c-i801 and eeprom
+3. sensors --> "no sensors found"
 
-Applied to testing; thanks.
+Relevant outputs are pasted below.
+Note "unknown adaptor NVIDIA i2c".
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+regards,
+Mike
+
+===================
+
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
+
+Driver `eeprom' (should be inserted):
+  Detects correctly:
+  * Bus `NVIDIA i2c adapter 0 at 2:00.0'
+    Busdriver `UNKNOWN', I2C address 0x50 (and 0x51 0x52 0x53 0x54 0x55 
+0x56 0x57)
+    Chip `EDID EEPROM' (confidence: 8)
+  * Bus `SMBus I801 adapter at 4000'
+    Busdriver `i2c-i801', I2C address 0x50
+    Chip `eeprom' (confidence: 6)
+  * Bus `SMBus I801 adapter at 4000'
+    Busdriver `i2c-i801', I2C address 0x52
+    Chip `eeprom' (confidence: 6)
+
+====================
+To make the sensors modules behave correctly, add these lines to
+/etc/modules:
+
+#----cut here----
+# I2C adapter drivers
+# modprobe unknown adapter NVIDIA i2c adapter 0 at 2:00.0
+# modprobe unknown adapter NVIDIA i2c adapter 1 at 2:00.0
+# modprobe unknown adapter NVIDIA i2c adapter 2 at 2:00.0
+i2c-i801
+# Chip drivers
+eeprom
+#----cut here----
+
 
 
 _______________________________________________
