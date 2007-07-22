@@ -1,77 +1,91 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 08 Jul 2007 19:01:36 +0000
-Subject: Re: [lm-sensors] add AMDSI PECI sensortype support to
-Message-Id: <46913490.9040508@hhs.nl>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 22 Jul 2007 14:53:37 +0000
+Subject: [lm-sensors] [PATCh 4/4] Speed up sensors_get_ignored()
+Message-Id: <20070722165337.20c91514@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070707170959.63922c3e@hyperion.delvare>
-In-Reply-To: <20070707170959.63922c3e@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
-> On Sat, 07 Jul 2007 21:23:40 +0200, Hans de Goede wrote:
->> Jean Delvare wrote:
->>> The sensors3 patch should be pretty easy, maybe you could take care of
->>> it? It's needed anyway, whether my kernel patch gets applied or not.
->> Ok, here is a proposal:
->>
->> Index: prog/sensors/chips_generic.c
->> =================================>> --- prog/sensors/chips_generic.c        (revision 4566)
->> +++ prog/sensors/chips_generic.c        (working copy)
->> @@ -209,6 +209,11 @@
->>     /* print out temperature sensor info */
->>     if (TEMP_FEATURE(SENSORS_FEATURE_TEMP_SENS)) {
->>       int sens = (int)TEMP_FEATURE_VAL(SENSORS_FEATURE_TEMP_SENS);
->> +
->> +    /* older kernels / drivers sometimes report a beta value for thermistors */
->> +    if (sens > 1000)
->> +      sens = 4;
->> +
->>       printf("sensor = %s", sens = 0 ? "disabled" :
->>                             sens = 1 ? "diode" :
->>                             sens = 2 ? "transistor" :
->>
->> The idea here is that a beta value should (reasonably) always be > 1000, and we 
->> don't want to assume thermistor for any unknown value as we might add new types 
->> to the list later. Does this look ok?
-> 
-> Yes, that's fine with me.
-> 
+Now that sensors_get_ignored() is an internal function, we can change
+its prototype to suit our needs better.
 
-committed
+* Pass the chip name by address.
+* Pass the feature directly rather than its number.
+* Switch to a sane convention for the returned value.
+* Don't check for errors that can't happen.
 
->>> I'm still not sure which minimum version we want to support. I don't
->>> want to support anything older than 2.6.5 for sure, things were just
->>> too badly broken before that. And I don't want to clutter the
->>> libsensors code too much to deal with the non-standard things that some
->>> old kernels had. Unless someone has a better plan, I think we'll make
->>> things work for the systems we developers are using, and release that,
->>> and then if users complain that it doesn't work with some older kernel
->>> they're using, we'll consider adding support on a case-by-case basis,
->>> depending on how intrusive that would be.
->> That sounds like a plan, but not like something one would put in a README, 
->> which then brings me to the question what do we put in the readme, just that it 
->> requires a kernel > 2.6.5, or maybe we should require one which has the hwmon 
->> class?
-> 
-> Well, requiring the hwmon class would let us cleanup a number of things
-> for sure, so it may be a good idea. That would mean we "only" support
-> kernels >= 2.6.14. But even then, the README will have to mention that
-> some features are not available before much more recent kernels. Most
-> notably, the alarms for most devices won't be available before 2.6.24.
-> 
+---
+ lib/access.c |   41 ++++++++++++++++++-----------------------
+ 1 file changed, 18 insertions(+), 23 deletions(-)
 
-2.6.14 sounds ok as a base, most people shoild be using something newer then 
-that by now.
+--- lm-sensors-3.orig/lib/access.c	2007-07-22 14:53:41.000000000 +0200
++++ lm-sensors-3/lib/access.c	2007-07-22 15:08:41.000000000 +0200
+@@ -193,34 +193,29 @@ sensors_get_label_exit:
+ 	return 0;
+ }
+ 
+-/* Looks up whether a feature should be ignored. Returns <0 on failure,
+-   0 if it should be ignored, 1 if it is valid. This function takes
++/* Looks up whether a feature should be ignored. Returns
++   1 if it should be ignored, 0 if not. This function takes
+    logical mappings into account. */
+-static int sensors_get_ignored(sensors_chip_name name, int feature)
++static int sensors_get_ignored(const sensors_chip_name *name,
++			       const sensors_chip_feature *feature)
+ {
+ 	const sensors_chip *chip;
+-	const sensors_chip_feature *featureptr;
+-	const sensors_chip_feature *alt_featureptr;
++	const char *main_feature_name;
+ 	int i;
+ 
+-	if (sensors_chip_name_has_wildcards(name))
+-		return -SENSORS_ERR_WILDCARDS;
+-	if (!(featureptr = sensors_lookup_feature_nr(&name, feature)))
+-		return -SENSORS_ERR_NO_ENTRY;
+-	if (featureptr->data.mapping = SENSORS_NO_MAPPING)
+-		alt_featureptr = NULL;
+-	else if (!(alt_featureptr -		   sensors_lookup_feature_nr(&name,
+-					     featureptr->data.mapping)))
+-		return -SENSORS_ERR_NO_ENTRY;
+-	for (chip = NULL; (chip = sensors_for_all_config_chips(name, chip));)
++	if (feature->data.mapping = SENSORS_NO_MAPPING)
++		main_feature_name = NULL;
++	else
++		main_feature_name = sensors_lookup_feature_nr(name,
++					feature->data.mapping)->data.name;
++
++	for (chip = NULL; (chip = sensors_for_all_config_chips(*name, chip));)
+ 		for (i = 0; i < chip->ignores_count; i++)
+-			if (!strcasecmp(featureptr->data.name, chip->ignores[i].name) ||
+-			    (alt_featureptr &&
+-			     !strcasecmp(alt_featureptr->data.name, chip->ignores[i].name)))
+-				return 0;
+-	/* valid */
+-	return 1;
++			if (!strcasecmp(feature->data.name, chip->ignores[i].name) ||
++			    (main_feature_name &&
++			     !strcasecmp(main_feature_name, chip->ignores[i].name)))
++				return 1;
++	return 0;
+ }
+ 
+ /* Read the value of a feature of a certain chip. Note that chip should not
+@@ -347,7 +342,7 @@ const sensors_feature_data *sensors_get_
+ 		if (sensors_match_chip(sensors_proc_chips[i].chip, name)) {
+ 			feature_list = sensors_proc_chips[i].feature;
+ 			while (feature_list[*nr].data.name
+-			    && sensors_get_ignored(name, feature_list[*nr].data.number) != 1)
++			    && sensors_get_ignored(&name, &feature_list[*nr]))
+ 				(*nr)++;
+ 			if (!feature_list[*nr].data.name)
+ 				return NULL;
 
-Regards,
 
-Hans
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
