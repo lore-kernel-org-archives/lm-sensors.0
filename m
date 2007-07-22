@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 22 Jul 2007 08:45:24 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 22 Jul 2007 14:28:58 +0000
 Subject: Re: [lm-sensors] PATCH: hwmon-f71882fg-new-driver-v2.patch
-Message-Id: <20070722104524.53568b8d@hyperion.delvare>
+Message-Id: <46A369AA.3020006@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4697714B.9090606@hhs.nl>
 In-Reply-To: <4697714B.9090606@hhs.nl>
@@ -10,17 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Jean Delvare wrote:
+> Hi Hans,
+> 
+> On Fri, 13 Jul 2007 14:34:19 +0200, Hans de Goede wrote:
+>> Here is the second version of my fintek f71882fg driver. Many thanks to Darrick 
+>> J. Wong for the review.
+> 
+> Can you please update the link in the wiki?
+> 
 
-On Fri, 13 Jul 2007 14:34:19 +0200, Hans de Goede wrote:
-> Here is the second version of my fintek f71882fg driver. Many thanks to Darrick 
-> J. Wong for the review.
+Done.
 
-Can you please update the link in the wiki?
+Regards,
 
-Thanks,
--- 
-Jean Delvare
+Hans
 
 _______________________________________________
 lm-sensors mailing list
