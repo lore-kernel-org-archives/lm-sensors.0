@@ -1,68 +1,54 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Mon, 23 Jul 2007 18:16:49 +0000
-Subject: Re: [lm-sensors] [patch] AMB FB DIMM driver
-Message-Id: <20070723181649.GA19586@tree.beaverton.ibm.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6620327692950915187=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 24 Jul 2007 12:06:04 +0000
+Subject: Re: [lm-sensors]
+Message-Id: <20070724140604.43773b09@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070523000559.GA7009@jgarrett.org>
-In-Reply-To: <20070523000559.GA7009@jgarrett.org>
+References: <87ekb9s3tn.wl%info@wore.ma.cx>
+In-Reply-To: <87ekb9s3tn.wl%info@wore.ma.cx>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
+Hi Christian,
 
---===============6620327692950915187==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nFreZHaLTZJo0R7j"
-Content-Disposition: inline
-
-
---nFreZHaLTZJo0R7j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Jul 17, 2007 at 05:24:00PM +0200, Rudolf Marek wrote:
-> Hi all,
+On Tue, 24 Jul 2007 11:35:37 +0200, Christian Hohnstaedt wrote:
+> writing values < 0=B0C to TLow and THigh of the LM75 is not=20
+> supported by the driver, since it strtoul()s instead
+> of strtol()ing.
 >=20
-> I'm leaving soon for two weeks to the summer camp. I will be offline ther=
-e=20
-> so I cant resolve this soon. Maybe others will help?
->=20
-> It seems we have two drivers now... So question is what now? Let win bett=
-er=20
-> one ;) ?
+> Trivial fix attached.
 
-Mr. Garrett's driver looks fine to me... except that the driver ought to
-be a bit clearer that it's for Intel chipsets only--perhaps call it
-'intel-ambtemp' to avoid confusion if/when other chipset designers
-expose the AMB registers via different methods.
+Good catch, however your fix is not correct:
 
---D
+> diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+> index a40166f..4fa3220 100644
+> --- a/drivers/hwmon/lm75.c
+> +++ b/drivers/hwmon/lm75.c
+> @@ -95,7 +95,7 @@ static ssize_t set_temp(struct device *dev, struct devi=
+ce_attribute *da,
+>  	struct i2c_client *client =3D to_i2c_client(dev);
+>  	struct lm75_data *data =3D i2c_get_clientdata(client);
+>  	int nr =3D attr->index;
+> -	unsigned long temp =3D simple_strtoul(buf, NULL, 10);
+> +	int temp =3D simple_strtol(buf, NULL, 10);
+> =20
+>  	mutex_lock(&data->update_lock);
+>  	data->temp[nr] =3D LM75_TEMP_TO_REG(temp);
 
---nFreZHaLTZJo0R7j
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+temp should be a long rather than an int. Otherwise the input value
+might wrap before LM75_TEMP_TO_REG has a chance to clamp it.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+Your patch also lacks a Signed-off-by line (see
+Documentation/SubmittingPatches, section 12.)
 
-iD8DBQFGpPCRa6vRYYgWQuURAp2oAJ4/IWWPfYoCGRc5Nbch6QQmZi2nygCfS9Wp
-XnsojsOZMi4oqddJnYOHQH8=
-=uer3
------END PGP SIGNATURE-----
+Care to resend an updated patch?
 
---nFreZHaLTZJo0R7j--
-
-
---===============6620327692950915187==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks,
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6620327692950915187==--
