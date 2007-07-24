@@ -1,56 +1,113 @@
-From: cilly <cilly@cilly.mine.nu>
-Date: Sat, 28 Jul 2007 00:05:04 +0000
-Subject: Re: [lm-sensors] VT1211: wrong vid, vcore
-Message-Id: <F916B6C7-106F-43E9-BF38-B9F9234DE531@cilly.mine.nu>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Tue, 24 Jul 2007 03:41:03 +0000
+Subject: [lm-sensors] [PATCH 2/3] hwmon/dme1737: group functions logically
+Message-Id: <191fb4ca0707232041o3b7f26d9q4bb6e25f7064e6d1@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_146560_19774896.1185248463082"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <08D6463A-3693-42BE-B8E5-6D32758A3C03@cilly.mine.nu>
-In-Reply-To: <08D6463A-3693-42BE-B8E5-6D32758A3C03@cilly.mine.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Jul 28, 2007, at 1:23 AM, Juerg Haefliger wrote:
+------=_Part_146560_19774896.1185248463082
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> Hi cilly,
->
-> I'm in the process of adding PMW fan control to my M10000. Hopefully I
-> can reproduce your findings then and be able to figure out what's
-> going on. Give my a couple of days...
->
-> ...juerg
+Move functions to group them logically. Device and I2C functions go in separate
+places. No functional changes (really!).
 
-Hi Juerg,
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+---
 
-thx for helping. Take the time you need. Next week, I am out on a =20
-trip to Black Forrest and won't be able to access my machine =20
-physically, i.e. adding a fan. It runs - with the heatpipes - totally =20
-without fans as you can see:
+------=_Part_146560_19774896.1185248463082
+Content-Type: text/x-patch; 
+	name=hwmon-dme1737-group-functions-logically.patch; 
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f4hu8pmv
+Content-Disposition: attachment;
+	filename="hwmon-dme1737-group-functions-logically.patch"
 
-$ sensors
-vt1211-isa-6000
-Adapter: ISA adapter
-+3.3V:     +3.30 V  (min =3D  +3.14 V, max =3D  +3.47 V)
-+2.5V:     +2.46 V  (min =3D  +2.37 V, max =3D  +2.63 V)
-VCore:     +1.40 V  (min =3D  +1.35 V, max =3D  +1.44 V)
-+5V:       +5.05 V  (min =3D  +4.51 V, max =3D  +5.51 V)
-+12V:     +12.09 V  (min =3D +10.77 V, max =3D +13.22 V)
-+3.3V:     +3.28 V  (min =3D  +3.13 V, max =3D  +3.46 V)
-Case Fan:    0 RPM  (min =3D    0 RPM, div =3D 2)
-CPU Fan:     0 RPM  (min =3D    0 RPM, div =3D 2)
-CPU Temp:  +47.5=B0C  (high =3D   +85=B0C, hyst =3D   +79=B0C)
-Int Temp:  +62.0=B0C  (high =3D   +65=B0C, hyst =3D   +60=B0C)
-vid:      +1.250 V  (VRM Version 8.5)
-
-While running burnMMX (cpuburn) for about 3-4 hours, the cpu reaches =20
-a top of 65 =B0C while the internal temp goes up to max. 67-68 =B0C.
-
-Regards,
-
-c.
-
+TW92ZSBmdW5jdGlvbnMgdG8gZ3JvdXAgdGhlbSBsb2dpY2FsbHkuIERldmljZSBhbmQgSTJDIGZ1
+bmN0aW9ucyBnbyBpbiBzZXBhcmF0ZQpwbGFjZXMuIE5vIGZ1bmN0aW9uYWwgY2hhbmdlcyAocmVh
+bGx5ISkuCgpTaWduZWQtb2ZmLWJ5OiBKdWVyZyBIYWVmbGlnZXIgPGp1ZXJnaCBhdCBnbWFpbC5j
+b20+Ci0tLQpJbmRleDogbGludXgtMi42L2RyaXZlcnMvaHdtb24vZG1lMTczNy5jCj09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT0KLS0tIGxpbnV4LTIuNi5vcmlnL2RyaXZlcnMvaHdtb24vZG1lMTczNy5jCTIwMDctMDctMjMg
+MjA6MzU6MTYuMDAwMDAwMDAwIC0wNzAwCisrKyBsaW51eC0yLjYvZHJpdmVycy9od21vbi9kbWUx
+NzM3LmMJMjAwNy0wNy0yMyAyMDozNToyMi4wMDAwMDAwMDAgLTA3MDAKQEAgLTE2OTcsNTggKzE2
+OTcsMTEgQEAKIAlvdXRiKHZhbCwgc2lvX2NpcCArIDEpOwogfQogCi1zdGF0aWMgaW50IGRtZTE3
+MzdfaTJjX2dldF9mZWF0dXJlcyhpbnQgc2lvX2NpcCwgc3RydWN0IGRtZTE3MzdfZGF0YSAqZGF0
+YSkKLXsKLQlpbnQgZXJyID0gMCwgcmVnOwotCXUxNiBhZGRyOwotCi0JZG1lMTczN19zaW9fZW50
+ZXIoc2lvX2NpcCk7Ci0KLQkvKiBDaGVjayBkZXZpY2UgSUQKLQkgKiBUaGUgRE1FMTczNyBjYW4g
+cmV0dXJuIGVpdGhlciAweDc4IG9yIDB4NzcgYXMgaXRzIGRldmljZSBJRC4gKi8KLQlyZWcgPSBk
+bWUxNzM3X3Npb19pbmIoc2lvX2NpcCwgMHgyMCk7Ci0JaWYgKCEocmVnID09IDB4NzcgfHwgcmVn
+ID09IDB4NzgpKSB7Ci0JCWVyciA9IC1FTk9ERVY7Ci0JCWdvdG8gZXhpdDsKLQl9Ci0KLQkvKiBT
+ZWxlY3QgbG9naWNhbCBkZXZpY2UgQSAocnVudGltZSByZWdpc3RlcnMpICovCi0JZG1lMTczN19z
+aW9fb3V0YihzaW9fY2lwLCAweDA3LCAweDBhKTsKLQotCS8qIEdldCB0aGUgYmFzZSBhZGRyZXNz
+IG9mIHRoZSBydW50aW1lIHJlZ2lzdGVycyAqLwotCWlmICghKGFkZHIgPSAoZG1lMTczN19zaW9f
+aW5iKHNpb19jaXAsIDB4NjApIDw8IDgpIHwKLQkJICAgICAgZG1lMTczN19zaW9faW5iKHNpb19j
+aXAsIDB4NjEpKSkgewotCQllcnIgPSAtRU5PREVWOwotCQlnb3RvIGV4aXQ7Ci0JfQotCi0JLyog
+UmVhZCB0aGUgcnVudGltZSByZWdpc3RlcnMgdG8gZGV0ZXJtaW5lIHdoaWNoIG9wdGlvbmFsIGZl
+YXR1cmVzCi0JICogYXJlIGVuYWJsZWQgYW5kIGF2YWlsYWJsZS4gQml0cyBbMzoyXSBvZiByZWdp
+c3RlcnMgMHg0My0weDQ2IGFyZSBzZXQKLQkgKiB0byAnMTAnIGlmIHRoZSByZXNwZWN0aXZlIGZl
+YXR1cmUgaXMgZW5hYmxlZC4gKi8KLQlpZiAoKGluYihhZGRyICsgMHg0MykgJiAweDBjKSA9PSAw
+eDA4KSB7IC8qIGZhbjYgKi8KLQkJZGF0YS0+aGFzX2ZhbiB8PSAoMSA8PCA1KTsKLQl9Ci0JaWYg
+KChpbmIoYWRkciArIDB4NDQpICYgMHgwYykgPT0gMHgwOCkgeyAvKiBwd202ICovCi0JCWRhdGEt
+Pmhhc19wd20gfD0gKDEgPDwgNSk7Ci0JfQotCWlmICgoaW5iKGFkZHIgKyAweDQ1KSAmIDB4MGMp
+ID09IDB4MDgpIHsgLyogZmFuNSAqLwotCQlkYXRhLT5oYXNfZmFuIHw9ICgxIDw8IDQpOwotCX0K
+LQlpZiAoKGluYihhZGRyICsgMHg0NikgJiAweDBjKSA9PSAweDA4KSB7IC8qIHB3bTUgKi8KLQkJ
+ZGF0YS0+aGFzX3B3bSB8PSAoMSA8PCA0KTsKLQl9Ci0KLWV4aXQ6Ci0JZG1lMTczN19zaW9fZXhp
+dChzaW9fY2lwKTsKLQotCXJldHVybiBlcnI7Ci19Ci0KIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogICogRGV2
+aWNlIGRldGVjdGlvbiwgcmVnaXN0cmF0aW9uIGFuZCBpbml0aWFsaXphdGlvbgogICogLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tICovCiAKLXN0YXRpYyBzdHJ1Y3QgaTJjX2RyaXZlciBkbWUxNzM3X2kyY19kcml2ZXI7
+CitzdGF0aWMgaW50IGRtZTE3MzdfaTJjX2dldF9mZWF0dXJlcyhpbnQsIHN0cnVjdCBkbWUxNzM3
+X2RhdGEqKTsKIAogc3RhdGljIHZvaWQgZG1lMTczN19jaG1vZF9maWxlKHN0cnVjdCBkZXZpY2Ug
+KmRldiwKIAkJCSAgICAgICBzdHJ1Y3QgYXR0cmlidXRlICphdHRyLCBtb2RlX3QgbW9kZSkKQEAg
+LTE5NjcsNiArMTkyMCw1OSBAQAogCXJldHVybiAwOwogfQogCisvKiAtLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KKyAq
+IEkyQyBkZXZpY2UgZGV0ZWN0aW9uIGFuZCByZWdpc3RyYXRpb24KKyAqIC0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAq
+LworCitzdGF0aWMgc3RydWN0IGkyY19kcml2ZXIgZG1lMTczN19pMmNfZHJpdmVyOworCitzdGF0
+aWMgaW50IGRtZTE3MzdfaTJjX2dldF9mZWF0dXJlcyhpbnQgc2lvX2NpcCwgc3RydWN0IGRtZTE3
+MzdfZGF0YSAqZGF0YSkKK3sKKwlpbnQgZXJyID0gMCwgcmVnOworCXUxNiBhZGRyOworCisJZG1l
+MTczN19zaW9fZW50ZXIoc2lvX2NpcCk7CisKKwkvKiBDaGVjayBkZXZpY2UgSUQKKwkgKiBUaGUg
+RE1FMTczNyBjYW4gcmV0dXJuIGVpdGhlciAweDc4IG9yIDB4NzcgYXMgaXRzIGRldmljZSBJRC4g
+Ki8KKwlyZWcgPSBkbWUxNzM3X3Npb19pbmIoc2lvX2NpcCwgMHgyMCk7CisJaWYgKCEocmVnID09
+IDB4NzcgfHwgcmVnID09IDB4NzgpKSB7CisJCWVyciA9IC1FTk9ERVY7CisJCWdvdG8gZXhpdDsK
+Kwl9CisKKwkvKiBTZWxlY3QgbG9naWNhbCBkZXZpY2UgQSAocnVudGltZSByZWdpc3RlcnMpICov
+CisJZG1lMTczN19zaW9fb3V0YihzaW9fY2lwLCAweDA3LCAweDBhKTsKKworCS8qIEdldCB0aGUg
+YmFzZSBhZGRyZXNzIG9mIHRoZSBydW50aW1lIHJlZ2lzdGVycyAqLworCWlmICghKGFkZHIgPSAo
+ZG1lMTczN19zaW9faW5iKHNpb19jaXAsIDB4NjApIDw8IDgpIHwKKwkJICAgICAgZG1lMTczN19z
+aW9faW5iKHNpb19jaXAsIDB4NjEpKSkgeworCQllcnIgPSAtRU5PREVWOworCQlnb3RvIGV4aXQ7
+CisJfQorCisJLyogUmVhZCB0aGUgcnVudGltZSByZWdpc3RlcnMgdG8gZGV0ZXJtaW5lIHdoaWNo
+IG9wdGlvbmFsIGZlYXR1cmVzCisJICogYXJlIGVuYWJsZWQgYW5kIGF2YWlsYWJsZS4gQml0cyBb
+MzoyXSBvZiByZWdpc3RlcnMgMHg0My0weDQ2IGFyZSBzZXQKKwkgKiB0byAnMTAnIGlmIHRoZSBy
+ZXNwZWN0aXZlIGZlYXR1cmUgaXMgZW5hYmxlZC4gKi8KKwlpZiAoKGluYihhZGRyICsgMHg0Mykg
+JiAweDBjKSA9PSAweDA4KSB7IC8qIGZhbjYgKi8KKwkJZGF0YS0+aGFzX2ZhbiB8PSAoMSA8PCA1
+KTsKKwl9CisJaWYgKChpbmIoYWRkciArIDB4NDQpICYgMHgwYykgPT0gMHgwOCkgeyAvKiBwd202
+ICovCisJCWRhdGEtPmhhc19wd20gfD0gKDEgPDwgNSk7CisJfQorCWlmICgoaW5iKGFkZHIgKyAw
+eDQ1KSAmIDB4MGMpID09IDB4MDgpIHsgLyogZmFuNSAqLworCQlkYXRhLT5oYXNfZmFuIHw9ICgx
+IDw8IDQpOworCX0KKwlpZiAoKGluYihhZGRyICsgMHg0NikgJiAweDBjKSA9PSAweDA4KSB7IC8q
+IHB3bTUgKi8KKwkJZGF0YS0+aGFzX3B3bSB8PSAoMSA8PCA0KTsKKwl9CisKK2V4aXQ6CisJZG1l
+MTczN19zaW9fZXhpdChzaW9fY2lwKTsKKworCXJldHVybiBlcnI7Cit9CisKIHN0YXRpYyBpbnQg
+ZG1lMTczN19pMmNfZGV0ZWN0KHN0cnVjdCBpMmNfYWRhcHRlciAqYWRhcHRlciwgaW50IGFkZHJl
+c3MsCiAJCQkgICAgICBpbnQga2luZCkKIHsKQEAgLTIwOTAsNiArMjA5NiwxMCBAQAogCS5kZXRh
+Y2hfY2xpZW50ID0gZG1lMTczN19pMmNfZGV0YWNoX2NsaWVudCwKIH07CiAKKy8qIC0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLQorICogTW9kdWxlIGluaXRpYWxpemF0aW9uIGFuZCBjbGVhbnVwCisgKiAtLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0gKi8KKwogc3RhdGljIGludCBfX2luaXQgZG1lMTczN19pbml0KHZvaWQpCiB7CiAJcmV0dXJu
+IGkyY19hZGRfZHJpdmVyKCZkbWUxNzM3X2kyY19kcml2ZXIpOwo=
+------=_Part_146560_19774896.1185248463082
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_146560_19774896.1185248463082--
