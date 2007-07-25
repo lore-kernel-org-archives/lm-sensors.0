@@ -1,7 +1,7 @@
-From: Gabriel C <nix.or.die@googlemail.com>
-Date: Sun, 22 Jul 2007 11:03:33 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Wed, 25 Jul 2007 02:09:32 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Add missing __devexit tags in
-Message-Id: <46A33985.4060007@googlemail.com>
+Message-Id: <20070725020932.GB5101@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46A28920.9060704@googlemail.com> <20070722120948.0609d79b@hyperion.delvare>
 In-Reply-To: <20070722120948.0609d79b@hyperion.delvare>
@@ -9,22 +9,18 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <khali@linux-fr.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, mhoffman@lightlink.com, lm-sensors@lm-sensors.org
+Cc: Gabriel C <nix.or.die@googlemail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-Jean Delvare wrote:
+Hi Jean:
+* Jean Delvare <khali@linux-fr.org> [2007-07-22 12:09:48 +0200]:
 > On Sun, 22 Jul 2007 00:30:56 +0200, Gabriel C wrote:
->> I noticed this warnings on current git:
->>
->> drivers/hwmon/pc87360.c:1082: warning: 'pc87360_remove' defined but not used
->> drivers/hwmon/sis5595.c:580: warning: 'sis5595_remove' defined but not used
->> drivers/hwmon/smsc47m1.c:608: warning: 'smsc47m1_remove' defined but not used
->> drivers/hwmon/via686a.c:648: warning: 'via686a_remove' defined but not used
->> drivers/hwmon/vt8231.c:755: warning: 'vt8231_remove' defined but not used
-
-
-Thx , the patch fixes all this warnings.
-
-
+> > I noticed this warnings on current git:
+> > 
+> > drivers/hwmon/pc87360.c:1082: warning: 'pc87360_remove' defined but not used
+> > drivers/hwmon/sis5595.c:580: warning: 'sis5595_remove' defined but not used
+> > drivers/hwmon/smsc47m1.c:608: warning: 'smsc47m1_remove' defined but not used
+> > drivers/hwmon/via686a.c:648: warning: 'via686a_remove' defined but not used
+> > drivers/hwmon/vt8231.c:755: warning: 'vt8231_remove' defined but not used
 > 
 > Signed-off-by: Jean Delvare <khali@linux-fr.org>
 > ---
@@ -125,6 +121,13 @@ Thx , the patch fixes all this warnings.
 >  static int w83627hf_write_value(struct w83627hf_data *data, u16 reg, u16 value);
 > 
 > 
+
+Applied to hwmon-2.6.git/testing, thanks.
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
