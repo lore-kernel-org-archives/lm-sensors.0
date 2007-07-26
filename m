@@ -1,41 +1,23 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 29 Jul 2007 20:29:08 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon/w83792d: Add individual alarm files
-Message-Id: <20070729202908.GD31314@jupiter.solarsys.private>
+From: =?ISO-8859-1?Q?S=E9bastien_CRAMATTE?= <s.cramatte@wanadoo.fr>
+Date: Thu, 26 Jul 2007 08:19:33 +0000
+Subject: [lm-sensors] Someone could send me a sensors.conf for Fintek
+Message-Id: <46A85915.5060802@wanadoo.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070713184554.22090f2f@hyperion.delvare>
-In-Reply-To: <20070713184554.22090f2f@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
+Hello
 
-> On Fri, 13 Jul 2007 17:27:47 +0800, JGong@winbond.com wrote:
-> > w83792d: add individual alarm files for the new libsensors.
-> > 
-> > I have tested it on my w83792d motherboard, please apply.
-> > 
-> > Signed-off-by: Gong Jun <jgong@winbond.com>
+Someone could send me a sensors.conf for Fintek f71882fg chipset ?
+I've got a MSI P35 Platinum and I'm currently compiling a 2.6.20 kernel
+with  hwmon-f71882fg-new-driver-v2.patch under Ubuntu feisty
 
-* Jean Delvare <khali@linux-fr.org> [2007-07-13 18:45:54 +0200]:
-> Looks good. I simply fixed the patch header and the indentation (spaces
-> were used instead of tabs in various places).
-> 
-> From: Gong Jun <jgong@winbond.com>
-> 
-> w83792d: add individual alarm files for the new libsensors.
-> 
-> Signed-off-by: Gong Jun <jgong@winbond.com>
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Wich version of lm-sensors is required ? I've builded the *lm_sensors-2.10.3
 
-Applied to hwmon-2.6.git/testing, thanks.
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+regards
+*
 
 _______________________________________________
 lm-sensors mailing list
