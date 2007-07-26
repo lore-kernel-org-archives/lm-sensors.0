@@ -1,7 +1,7 @@
 From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Thu, 26 Jul 2007 16:24:37 +0000
+Date: Thu, 26 Jul 2007 19:51:56 +0000
 Subject: Re: [lm-sensors] VT1211: wrong vid, vcore
-Message-Id: <191fb4ca0707260924s12b0bd9fq1f5ff4b2bad9494@mail.gmail.com>
+Message-Id: <191fb4ca0707261251u60f7a2a0x73d6ab33d5d03183@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <08D6463A-3693-42BE-B8E5-6D32758A3C03@cilly.mine.nu>
 In-Reply-To: <08D6463A-3693-42BE-B8E5-6D32758A3C03@cilly.mine.nu>
@@ -12,165 +12,193 @@ To: lm-sensors@vger.kernel.org
 
 Hi cilly,
 
+
+> On Jul 26, 2007, at 6:24 PM, Juerg Haefliger wrote:
+>
 > Hi Juerg,
 >
-> > Are you saying you compiled the vt1211 statically into the kernel and
-> > not as a module?
+> > Looks all good. I guess your running on older version of sensors. What
+> > does 'sensors -v' show? You might want to consider upgrading to the
+> > latest version.
 >
-> yes, I did compile it into the kernel.
+> I am using:
 >
-> > Hmm... What does 'ls /sys/class/hwmon*/*' return?
+> sensors version 2.10.1 with libsensors version 2.10.1
 >
-> I am on gentoo, kernel 2.6.21.6.
+> Do I have to upgrade to 2.10.4 to perform the following steps?
+
+No. Not necessary.
+
+
+> In the following, I report the standard values:
+> > Anyhow, pwmconfig will not work with the vt1211 driver since the
+> > driver doesn't support manual mode which pwmconfig relies on. I
+> > couldn't get manual mode to work. The driver does support automatic
+> > mode though and you can abuse the automatic mode to behave like manual
+> > mode (but it still will not work with pwmconfig).
+> > The idea is to set the automatic mode parameters to extreme values so
+> > that the pwm controller stays always in the same pwm zone. Then you
+> > can change the pwm value for that zone to manually control your fan.
+> >
+> > Try the follwowing (assuming your fan is controlled by pwm2 and the
+> > vt1211 is registered under hwmon0):
+> >
+> > cd /sys/class/hwmon/hwmon0/device
+> > # pwm2 is controlled by temp2
+> > echo 2 > pwm2_auto_channels_temp
 >
-> /sys/class/hwmon/:
-> total 0
-> drwxr-xr-x  3 root root 0 2007-07-21 21:28 .
-> drwxr-xr-x 21 root root 0 2007-07-21 21:29 ..
-> drwxr-xr-x  2 root root 0 2007-07-25 02:15 hwmon0
+> # cat pwm2_auto_channels_temp
+> 1
+
+That's the chip default.
+
+
+> > # enable auto mode
+> > echo 2 > pwm2_enable
 >
-> /sys/class/hwmon/hwmon0:
-> total 0
-> drwxr-xr-x 2 root root    0 2007-07-25 02:15 .
-> drwxr-xr-x 3 root root    0 2007-07-21 21:28 ..
-> lrwxrwxrwx 1 root root    0 2007-07-25 02:15 device -> ../../../
-> devices/platform/vt1211.24
-> 576
-> lrwxrwxrwx 1 root root    0 2007-07-25 02:15 subsystem -> ../../../
-> class/hwmon
-> --w------- 1 root root 4096 2007-07-25 02:15 uevent
+> # cat pwm2_enable
+> 0
+
+That's the chip default.
+
+
+> > # set the temp boundaries to extreme values
+> > echo -99999 > pwm1_auto_point1_temp
+> > echo -99999 > pwm1_auto_point2_temp
+> > echo 999999 > pwm1_auto_point3_temp
+> > echo 999999 > pwm1_auto_point4_temp
 >
-> /sys/class/hwmon/hwmon0/device/:
-> total 0
-> drwxr-xr-x 3 root root    0 2007-07-25 02:15 .
-> drwxr-xr-x 7 root root    0 2007-07-21 21:28 ..
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 alarms
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 cpu0_vid
-> lrwxrwxrwx 1 root root    0 2007-07-25 02:15 driver -> ../../../bus/
-> platform/drivers/vt1211
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 fan1_alarm
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 fan1_div
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 fan1_input
-> -rw-r--r-- 1 root root    0 2007-07-25 02:58 fan1_min
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 fan2_alarm
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 fan2_div
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 fan2_input
-> -rw-r--r-- 1 root root    0 2007-07-25 02:58 fan2_min
-> -r--r--r-- 1 root root 4096 2007-07-24 02:30 in0_alarm
-> -r--r--r-- 1 root root 4096 2007-07-24 02:30 in0_input
-> -rw-r--r-- 1 root root    0 2007-07-25 04:41 in0_max
-> -rw-r--r-- 1 root root    0 2007-07-25 04:41 in0_min
-> -r--r--r-- 1 root root 4096 2007-07-24 02:30 in1_alarm
-> -r--r--r-- 1 root root 4096 2007-07-24 02:30 in1_input
-> -rw-r--r-- 1 root root    0 2007-07-25 04:41 in1_max
-> -rw-r--r-- 1 root root    0 2007-07-25 04:41 in1_min
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 in2_alarm
-> -r--r--r-- 1 root root 4096 2007-07-24 02:30 in2_input
-> -rw-r--r-- 1 root root    0 2007-07-25 04:41 in2_max
-> -rw-r--r-- 1 root root    0 2007-07-25 04:41 in2_min
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 in3_alarm
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 in3_input
-> -rw-r--r-- 1 root root    0 2007-07-25 04:41 in3_max
-> -rw-r--r-- 1 root root    0 2007-07-25 04:41 in3_min
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 in4_alarm
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 in4_input
-> -rw-r--r-- 1 root root    0 2007-07-25 04:41 in4_max
-> -rw-r--r-- 1 root root    0 2007-07-25 04:41 in4_min
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 in5_alarm
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 in5_input
-> -rw-r--r-- 1 root root    0 2007-07-25 04:41 in5_max
-> -rw-r--r-- 1 root root    0 2007-07-25 04:41 in5_min
-> -r--r--r-- 1 root root 4096 2007-07-24 02:30 modalias
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 name
-> drwxr-xr-x 2 root root    0 2007-07-25 17:43 power
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 pwm1
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 pwm1_auto_channels_temp
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 pwm1_auto_point1_pwm
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 pwm1_auto_point1_temp
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 pwm1_auto_point2_pwm
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 pwm1_auto_point2_temp
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 pwm1_auto_point3_pwm
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 pwm1_auto_point3_temp
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 pwm1_auto_point4_pwm
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 pwm1_auto_point4_temp
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 pwm1_enable
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 pwm1_freq
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 pwm2
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 pwm2_auto_channels_temp
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 pwm2_auto_point1_pwm
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 pwm2_auto_point1_temp
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 pwm2_auto_point2_pwm
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 pwm2_auto_point2_temp
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 pwm2_auto_point3_pwm
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 pwm2_auto_point3_temp
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 pwm2_auto_point4_pwm
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 pwm2_auto_point4_temp
-> -rw-r--r-- 1 root root 4096 2007-07-25 02:15 pwm2_enable
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 pwm2_freq
-> lrwxrwxrwx 1 root root    0 2007-07-24 02:30 subsystem -> ../../../
-> bus/platform
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 temp1_alarm
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 temp1_input
-> -rw-r--r-- 1 root root    0 2007-07-25 02:58 temp1_max
-> -rw-r--r-- 1 root root    0 2007-07-25 02:58 temp1_max_hyst
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 temp2_alarm
-> -r--r--r-- 1 root root 4096 2007-07-25 02:15 temp2_input
-> -rw-r--r-- 1 root root    0 2007-07-25 02:54 temp2_max
-> -rw-r--r-- 1 root root    0 2007-07-25 02:54 temp2_max_hyst
-> --w------- 1 root root 4096 2007-07-24 02:30 uevent
-> -rw-r--r-- 1 root root    0 2007-07-25 04:41 vrm
+> All above values are set to:
+> 0
+
+That's the chip default.
+
+
 >
-> /sys/class/hwmon/hwmon0/device/power:
-> total 0
-> drwxr-xr-x 2 root root    0 2007-07-25 17:43 .
-> drwxr-xr-x 3 root root    0 2007-07-25 02:15 ..
-> -rw-r--r-- 1 root root 4096 2007-07-25 17:43 wakeup
+> >
+> > You only need to issue the above command once to setup the vt1211. Now
+> > to change the pwm value to xyz, you have to do the following
+> >
+> > echo xyz > pwm2_auto_point3_pwm
+>
+> What value do you recommend for xyz?
 
-Looks all good. I guess your running on older version of sensors. What
-does 'sensors -v' show? You might want to consider upgrading to the
-latest version.
+Well this is just to try to figure out if you can actually control the
+fan. Currently pwm2 is set to 255 so the fan should be running at full
+speed. You can try 0 and see if the fan stops. But be careful, if the
+fan is actually cooling something that something could overheat and
+die if you disable the fan!
 
-Anyhow, pwmconfig will not work with the vt1211 driver since the
-driver doesn't support manual mode which pwmconfig relies on. I
-couldn't get manual mode to work. The driver does support automatic
-mode though and you can abuse the automatic mode to behave like manual
-mode (but it still will not work with pwmconfig).
-The idea is to set the automatic mode parameters to extreme values so
-that the pwm controller stays always in the same pwm zone. Then you
-can change the pwm value for that zone to manually control your fan.
 
-Try the follwowing (assuming your fan is controlled by pwm2 and the
-vt1211 is registered under hwmon0):
+> # cat pwm2_auto_point3_temp
+> 0
 
-cd /sys/class/hwmon/hwmon0/device
-# pwm2 is controlled by temp2
-echo 2 > pwm2_auto_channels_temp
-# enable auto mode
-echo 2 > pwm2_enable
-# set the temp boundaries to extreme values
-echo -99999 > pwm1_auto_point1_temp
-echo -99999 > pwm1_auto_point2_temp
-echo 999999 > pwm1_auto_point3_temp
-echo 999999 > pwm1_auto_point4_temp
+Chip default.
 
-You only need to issue the above command once to setup the vt1211. Now
-to change the pwm value to xyz, you have to do the following
 
-echo xyz > pwm2_auto_point3_pwm
-echo -99999 > pwm1_auto_point3_temp
-echo 999999 > pwm1_auto_point3_temp
+> > echo -99999 > pwm1_auto_point3_temp
+> > echo 999999 > pwm1_auto_point3_temp
+> >
+> > And you can check the current pwm value:
+> > grep "" pwm2
+>
+> grep "" pwm2
+> 255
+>
+> > If your fan is controlled by pwm1, change pwm2 to pwm1 in the above
+> > commands.
+> >
+> > After you issued the above commands, can you post the output of
+> > 'grep "" *'?
+> > Let me know how it goes.
+>
+> alarms:4608
+> cpu0_vid:1250
+> fan1_alarm:0
+> fan1_div:2
+> fan1_input:0
+> fan1_min:3006
+> fan2_alarm:0
+> fan2_div:2
+> fan2_input:0
+> fan2_min:3006
+> in0_alarm:0
+> in0_input:1962
+> in0_max:2067
+> in0_min:1868
+> in1_alarm:0
+> in1_input:1973
+> in1_max:2119
+> in1_min:1910
+> in2_alarm:0
+> in2_input:1221
+> in2_max:1253
+> in2_min:1180
+> in3_alarm:0
+> in3_input:1942
+> in3_max:2119
+> in3_min:1733
+> in4_alarm:0
+> in4_input:2004
+> in4_max:2203
+> in4_min:1795
+> in5_alarm:0
+> in5_input:3283
+> in5_max:3465
+> in5_min:3133
+> modalias:vt1211
+> name:vt1211
+> pwm1:255
+> pwm1_auto_channels_temp:1
+> pwm1_auto_point1_pwm:0
+> pwm1_auto_point1_temp:0
+> pwm1_auto_point2_pwm:255
+> pwm1_auto_point2_temp:0
+> pwm1_auto_point3_pwm:255
+> pwm1_auto_point3_temp:0
+> pwm1_auto_point4_pwm:255
+> pwm1_auto_point4_temp:0
+> pwm1_enable:0
+> pwm1_freq:45000
+> pwm2:255
+> pwm2_auto_channels_temp:1
+> pwm2_auto_point1_pwm:0
+> pwm2_auto_point1_temp:0
+> pwm2_auto_point2_pwm:255
+> pwm2_auto_point2_temp:0
+> pwm2_auto_point3_pwm:255
+> pwm2_auto_point3_temp:0
+> pwm2_auto_point4_pwm:255
+> pwm2_auto_point4_temp:0
+> pwm2_enable:0
+> pwm2_freq:45000
+> temp1_alarm:0
+> temp1_input:111000
+> temp1_max:147000
+> temp1_max_hyst:142000
+> temp2_alarm:0
+> temp2_input:63000
+> temp2_max:65000
+> temp2_max_hyst:60000
+> vrm:85
+>
+> Will I have to perform the following steps on each reboot?
 
-And you can check the current pwm value:
-grep "" pwm2
+Yes. But if you really plan on using a fan and if it can be controlled
+by the vt1211 I recommend using the automatic mode. Then the vt1211 is
+picking the pwm value based on the measured temp and you don't have to
+deal with it. You still need to set the chip up after every reboot.
 
-If your fan is controlled by pwm1, change pwm2 to pwm1 in the above commands.
-
-After you issued the above commands, can you post the output of 'grep "" *'?
-Let me know how it goes.
+But let's try manual control first and if that works, we'll go from there.
 
 ...juerg
 
 
+> Regards,
+>
+> c.
+>
+>
 >
 >
 
