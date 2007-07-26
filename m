@@ -1,46 +1,25 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 31 Jul 2007 01:40:00 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (adm1031) Fix broken links in
-Message-Id: <11858460011957-git-send-email-mhoffman@lightlink.com>
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Date: Thu, 26 Jul 2007 21:18:31 +0000
+Subject: [lm-sensors] lmsensors 2.x: how to hide entry from 2.4 driver that
+Message-Id: <20070726231831.9f5c2ad1.krzysztof.h1@wp.pl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jean Delvare <khali@linux-fr.org>
+Hi,
 
-The Analog Devices chip information pages moved to a different location.
+The THMC50 driver for the 2.4 kernel has a feature called "die code". It does not exists in the 2.6 driver. How should I hide it so no message:
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
----
- Documentation/hwmon/adm1031 |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+"ERROR: Can't get feature `die_code' data!"
 
-diff --git a/Documentation/hwmon/adm1031 b/Documentation/hwmon/adm1031
-index 130a383..be92a77 100644
---- a/Documentation/hwmon/adm1031
-+++ b/Documentation/hwmon/adm1031
-@@ -6,13 +6,13 @@ Supported chips:
-     Prefix: 'adm1030'
-     Addresses scanned: I2C 0x2c to 0x2e
-     Datasheet: Publicly available at the Analog Devices website
--               http://products.analog.com/products/info.asp?product=ADM1030
-+               http://www.analog.com/en/prod/0%2C2877%2CADM1030%2C00.html
-=20
-   * Analog Devices ADM1031
-     Prefix: 'adm1031'
-     Addresses scanned: I2C 0x2c to 0x2e
-     Datasheet: Publicly available at the Analog Devices website
--               http://products.analog.com/products/info.asp?product=ADM1031
-+               http://www.analog.com/en/prod/0%2C2877%2CADM1031%2C00.html
-=20
- Authors:
-         Alexandre d'Alton <alex@alexdalton.org>
---=20
-1.5.2.2
+is not displayed.
 
+Another question is to how to hide one of tempX features if it does not exists (it depends on chip working mode). The chip name is the same for both modes.
+
+Regards,
+Krzysztof
 
 _______________________________________________
 lm-sensors mailing list
