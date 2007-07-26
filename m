@@ -1,58 +1,71 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 29 Jul 2007 20:32:46 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon/adm1031: Fix broken links in
-Message-Id: <20070729203246.GL3796@jupiter.solarsys.private>
+From: Guillaume Chazarain <guichaz@yahoo.fr>
+Date: Thu, 26 Jul 2007 23:04:22 +0000
+Subject: [lm-sensors] [PATCH] Fix regression caused by typo in lm90.c
+Message-Id: <20070726230422.2955.70451.sendpatchset@localhost.localdomain>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6015460229564349280=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070713142941.160b839a@hyperion.delvare>
-In-Reply-To: <20070713142941.160b839a@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi:
+--===============6015460229564349280==
 
-* Jean Delvare <khali@linux-fr.org> [2007-07-13 14:29:41 +0200]:
-> The Analog Devices chip information pages moved to a different location.
->=20
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
->  Documentation/hwmon/adm1031 |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->=20
-> --- linux-2.6.23-pre.orig/Documentation/hwmon/adm1031	2007-02-04 19:44:54=
-.000000000 +0100
-> +++ linux-2.6.23-pre/Documentation/hwmon/adm1031	2007-07-13 14:27:26.0000=
-00000 +0200
-> @@ -6,13 +6,13 @@ Supported chips:
->      Prefix: 'adm1030'
->      Addresses scanned: I2C 0x2c to 0x2e
->      Datasheet: Publicly available at the Analog Devices website
-> -               http://products.analog.com/products/info.asp?product=ADM1=
-030
-> +               http://www.analog.com/en/prod/0%2C2877%2CADM1030%2C00.html
-> =20
->    * Analog Devices ADM1031
->      Prefix: 'adm1031'
->      Addresses scanned: I2C 0x2c to 0x2e
->      Datasheet: Publicly available at the Analog Devices website
-> -               http://products.analog.com/products/info.asp?product=ADM1=
-031
-> +               http://www.analog.com/en/prod/0%2C2877%2CADM1031%2C00.html
-> =20
->  Authors:
->          Alexandre d'Alton <alex@alexdalton.org>
->=20
->=20
+Hi,
 
-Applied to hwmon-2.6.git/testing, thanks.
+The commit http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=32c82a934759b2c9939c9e25865c2d7d1204b9e8
+broke lm90 for my (Asus V6VA) laptop.
 
---=20
-Mark M. Hoffman
-mhoffman@lightlink.com
+Before 2.6.23-rc1 and with the following patch, I get:
 
+[g ~]$ sensors
+max6657-i2c-0-4c
+Adapter: SMBus I801 adapter at 0400
+M/B Temp:    +64������C  (low  =    +0������C, high =  +127������C)   
+CPU Temp:  +78.9������C  (low  = +73.2������C, high = +88.2������C)   
+M/B Crit:   +105������C  (hyst =   +95������C)                   
+CPU Crit:   +105������C  (hyst =   +95������C)                   
+
+Which regressed into:
+
+[g ~]$ sensors
+No sensors found!
+Make sure you loaded all the kernel drivers you need.
+Try sensors-detect to find out which these are.
+zsh: 2701 exit 1     sensors
+
+and dmesg contains:
+
+i2c-adapter i2c-0: Unsupported chip (man_id=0x4D, chip_id=0x4D).
+
+It seems to be a typo, as address 0X4F is mentionned nowhere else in the file,
+and my chip is actually at 0x4C.
+
+Thanks.
+
+Signed-off-by: Guillaume Chazarain <guichaz@yahoo.fr>
+---
+
+diff -r 4cad6fced1a8 drivers/hwmon/lm90.c
+--- a/drivers/hwmon/lm90.c	Thu Jul 26 13:44:58 2007 -0700
++++ b/drivers/hwmon/lm90.c	Tue Jul 24 00:02:52 2007 +0200
+@@ -585,7 +585,7 @@ static int lm90_detect(struct i2c_adapte
+ 			 * those of the man_id register.
+ 			 */
+ 			if (chip_id == man_id
+-			 && (address == 0x4F || address == 0x4D)
++			 && (address == 0x4C || address == 0x4D)
+ 			 && (reg_config1 & 0x1F) == (man_id & 0x0F)
+ 			 && reg_convrate <= 0x09) {
+ 			 	kind = max6657;
+
+
+--===============6015460229564349280==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6015460229564349280==--
