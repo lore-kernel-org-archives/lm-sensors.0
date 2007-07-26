@@ -1,30 +1,35 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 25 Jul 2007 07:31:23 +0000
-Subject: Re: [lm-sensors] [PATCh 4/4] Speed up sensors_get_ignored()
-Message-Id: <46A6FC4B.7010608@hhs.nl>
+From: Eric Sandeen <sandeen@sandeen.net>
+Date: Thu, 26 Jul 2007 03:31:10 +0000
+Subject: [lm-sensors] dme1737 very slow read...
+Message-Id: <46A8157E.7040003@sandeen.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070722165337.20c91514@hyperion.delvare>
-In-Reply-To: <20070722165337.20c91514@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
-> On Sun, 22 Jul 2007 17:09:28 +0200, Hans de Goede wrote:
->> Let me know when this all lands, then I'll run another round of tests.
-> 
-> All 4 patches committed now.
-> 
+I was very happy to see dme1737 support added, thank you!  Now I can get
+all the info out of my compaq sr1710nx cheapo server.  :)
 
-Things still work fine here.
+It all works - I did notice, though, that when I run "sensors" it's very
+slow to read the sysfs file:
 
-Regards,
+write(1, "Adapter: SMBus PIIX4 adapter at "..., 37) = 37 <0.000055>
+open("/sys/class/i2c-adapter/i2c-0/0-002e/in0_input", O_RDONLY) = 3
+<0.000032>
+fstat(3, {st_mode=S_IFREG|0444, st_size@96, ...}) = 0 <0.000009>
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0)
+= 0x2b7f69d6b000 <0.000014>
+read(3, "0\n", 4096)                    = 2 <1.535188>
 
-Hans
+1.53 seconds to read "0\n" !  :)
 
+Any idea if this is a hardware or software delay?  I haven't yet dug
+into profiling the kernel code to see what might be taking so long...
+
+Thanks,
+
+-Eric
 
 _______________________________________________
 lm-sensors mailing list
