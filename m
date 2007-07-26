@@ -1,58 +1,72 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Thu, 26 Jul 2007 15:08:09 +0000
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Thu, 26 Jul 2007 16:57:25 +0000
 Subject: Re: [lm-sensors] [PATCH] adt7470: Update sensors periodically via
-Message-Id: <191fb4ca0707260808n5af0c37bmc1cf8e095ea5cf71@mail.gmail.com>
+Message-Id: <20070726165725.GP19586@tree.beaverton.ibm.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============2557882299257002992=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070726010421.GM19586@tree.beaverton.ibm.com>
 In-Reply-To: <20070726010421.GM19586@tree.beaverton.ibm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Darrick,
 
-I guess I'm not seeing the big picture :-) The problem you're trying
-to solve is that the reading of the registers takes a long time and
-needs to be able to sleep?
-
-> > Hi Darrick,
-> >
-> > Why using a workqueue at all? Can't you just run a timer and do the
-> > update when it expires and restart the timer?
->
-> Currently, I use mutexes (and msleep) which require the ability to
-> sleep.  Timers can't sleep because they are implemented as a softirq.
-
-True.
+--===============2557882299257002992==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4ZQ/M1iA+qg8otEW"
+Content-Disposition: inline
 
 
-> That said, I think the solution is to have two workqueue items--one to
-> start the read and another to run after the temperature sensors have
-> been read.  The delays for both can be handled via schedule_delayed_work().
-> It could be done with two timers and spinlocks, but ... yuck.
+--4ZQ/M1iA+qg8otEW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hmm... Sounds rather complicated. Is there a problem with blocking
-apps for that long?
-How about forking off a kernel thread instead of using workqueues?
+On Thu, Jul 26, 2007 at 08:08:09AM -0700, Juerg Haefliger wrote:
+> Hi Darrick,
+>=20
+> I guess I'm not seeing the big picture :-) The problem you're trying
+> to solve is that the reading of the registers takes a long time and
+> needs to be able to sleep?
 
-...juerg
+Yes, and also that sleeping in the sysfs read function is not desirable.
+Personally, I was fine with that, but Mr. de Goede was concerned about
+it, so I decided to try to fix it.  I admit, the dual-delayed-workqueue
+method is a bit strange, but it solves the reading problem at a slight
+cost of waking up the CPU even if nobody's watching the sensors.
+
+> Hmm... Sounds rather complicated. Is there a problem with blocking
+> apps for that long?
+> How about forking off a kernel thread instead of using workqueues?
+
+I was trying to use as little resources as possible, and a kernel thread
+seemed like overkill for a hwmon device.
+
+--D
+
+--4ZQ/M1iA+qg8otEW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFGqNJ1a6vRYYgWQuURAgU1AKCb2Ffv0onLkC6a0HC5mhZprIn5SACfXQXq
+b3ZGlgGZfoAZiJW16SmWquE=
+=A2od
+-----END PGP SIGNATURE-----
+
+--4ZQ/M1iA+qg8otEW--
 
 
-> New patch forthcoming.
->
-> --D
->
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.4.6 (GNU/Linux)
->
-> iD8DBQFGqE2ga6vRYYgWQuURApRaAKCAKsf8b2EQWGDJ3TSFT4dDY5cNsACdFzlI
-> yvfRi5A+xgLK8bJ7ea7oVZA> =8vm8
-> -----END PGP SIGNATURE-----
->
->
+--===============2557882299257002992==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2557882299257002992==--
