@@ -1,7 +1,7 @@
 From: cilly <cilly@cilly.mine.nu>
-Date: Fri, 27 Jul 2007 21:19:09 +0000
+Date: Fri, 27 Jul 2007 21:33:32 +0000
 Subject: Re: [lm-sensors] VT1211: wrong vid, vcore
-Message-Id: <8F65EA87-F92D-431E-A53A-0988B99877C9@cilly.mine.nu>
+Message-Id: <DB3036CF-CAFA-4768-B90C-895B10540AA3@cilly.mine.nu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <08D6463A-3693-42BE-B8E5-6D32758A3C03@cilly.mine.nu>
 In-Reply-To: <08D6463A-3693-42BE-B8E5-6D32758A3C03@cilly.mine.nu>
@@ -47,7 +47,7 @@ Data mismatch, wrote 0x00, read 0xff back.
 6060: ff ff ff 00 00 00 00 00 00 00 00 00 00 00 00 00
 6070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
-now, what to do?
+now, what to do? --- reboot
 
 _______________________________________________
 lm-sensors mailing list
