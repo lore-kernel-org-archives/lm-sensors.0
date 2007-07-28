@@ -1,582 +1,792 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Tue, 31 Jul 2007 18:37:07 +0000
-Subject: [lm-sensors] [PATCH] v2 of Intel FB-DIMM AMB temperature sensors
-Message-Id: <20070731183706.GG2795@tree.beaverton.ibm.com>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sat, 28 Jul 2007 18:54:30 +0000
+Subject: [lm-sensors] FSC Scylla (and Poseidon,
+Message-Id: <46AB90E6.4000801@hhs.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------050809070706070404070708"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-New driver to read FB-DIMM temperature sensors on systems with the
-Intel 5000 series chipsets, and now with all subsequent patches rolled
-into one.
+This is a multi-part message in MIME format.
+--------------050809070706070404070708
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
----
+Hi All,
 
- drivers/hwmon/Kconfig   |   10 +
- drivers/hwmon/Makefile  |    1 
- drivers/hwmon/i5k_amb.c |  529 +++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 540 insertions(+), 0 deletions(-)
+As some of you know I've been working on a unified driver for the Fujitsu 
+Siemens hwmon chip family. Attached is the resulting driver. I would be much 
+obliged if some of you could test this.
 
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 0fe3c52..00dc6fb 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -215,6 +215,16 @@ config SENSORS_DS1621
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called ds1621.
- 
-+config SENSORS_I5K_AMB
-+	tristate "FB-DIMM AMB temperature sensor on Intel 5000 series chipsets"
-+	depends on I2C && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for FB-DIMM AMB temperature
-+	  monitoring chips on systems with the Intel 5000 series chipset.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called i5k_amb.
-+
- config SENSORS_F71805F
- 	tristate "Fintek F71805F/FG and F71872F/FG"
- 	depends on EXPERIMENTAL
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index bd75b44..a29805e 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -35,6 +35,7 @@ obj-$(CONFIG_SENSORS_FSCPOS)	+= fscpos.o
- obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
- obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
- obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
-+obj-$(CONFIG_SENSORS_I5K_AMB)	+= i5k_amb.o
- obj-$(CONFIG_SENSORS_IT87)	+= it87.o
- obj-$(CONFIG_SENSORS_K8TEMP)	+= k8temp.o
- obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
-diff --git a/drivers/hwmon/i5k_amb.c b/drivers/hwmon/i5k_amb.c
-new file mode 100644
-index 0000000..4e5072c
---- /dev/null
-+++ b/drivers/hwmon/i5k_amb.c
-@@ -0,0 +1,529 @@
-+/*
-+ * A hwmon driver for the Intel 5000 series chipset FB-DIMM AMB
-+ * temperature sensors
-+ * Copyright (C) 2007 IBM
-+ *
-+ * Author: Darrick J. Wong <djwong@us.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/jiffies.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/err.h>
-+#include <linux/mutex.h>
-+#include <linux/delay.h>
-+#include <linux/log2.h>
-+#include <linux/pci.h>
-+#include <linux/platform_device.h>
-+
-+#define DRVNAME "i5k_amb"
-+
-+#define PCI_VENDOR_INTEL		0x8086
-+#define PCI_DEVICE_INTEL_5K_MEM		0x25F0
-+#define PCI_DEVICE_INTEL_5K_FBD0	0x25F5
-+#define PCI_DEVICE_INTEL_5K_FBD1	0x25F6
-+
-+#define I5K_REG_AMB_BASE_ADDR		0x48
-+#define I5K_REG_AMB_LEN_ADDR		0x50
-+#define I5K_REG_CHAN0_PRESENCE_ADDR	0x64
-+#define I5K_REG_CHAN1_PRESENCE_ADDR	0x66
-+
-+#define AMB_REG_TEMP_MIN_ADDR		0x80
-+#define AMB_REG_TEMP_MID_ADDR		0x81
-+#define AMB_REG_TEMP_MAX_ADDR		0x82
-+#define AMB_REG_TEMP_STATUS_ADDR	0x84
-+#define AMB_REG_TEMP_ADDR		0x85
-+
-+#define AMB_CONFIG_SIZE			2048
-+#define AMB_FUNC_3_OFFSET		768
-+
-+#define AMB_REG_TEMP_STATUS(amb)	((amb) * AMB_CONFIG_SIZE + \
-+			AMB_FUNC_3_OFFSET + AMB_REG_TEMP_STATUS_ADDR)
-+#define AMB_REG_TEMP_MIN(amb)		((amb) * AMB_CONFIG_SIZE + \
-+			AMB_FUNC_3_OFFSET + AMB_REG_TEMP_MIN_ADDR)
-+#define AMB_REG_TEMP_MID(amb)		((amb) * AMB_CONFIG_SIZE + \
-+			AMB_FUNC_3_OFFSET + AMB_REG_TEMP_MID_ADDR)
-+#define AMB_REG_TEMP_MAX(amb)		((amb) * AMB_CONFIG_SIZE + \
-+			AMB_FUNC_3_OFFSET + AMB_REG_TEMP_MAX_ADDR)
-+#define AMB_REG_TEMP(amb)		((amb) * AMB_CONFIG_SIZE + \
-+			AMB_FUNC_3_OFFSET + AMB_REG_TEMP_ADDR)
-+
-+#define MAX_MEM_CHANNELS		4
-+#define MAX_AMBS_PER_CHANNEL		16
-+#define MAX_AMBS			(MAX_MEM_CHANNELS * \
-+					 MAX_AMBS_PER_CHANNEL)
-+/*
-+ * Ugly hack: For some reason the highest bit is set if there
-+ * are _any_ DIMMs in the channel.  Attempting to read from
-+ * this "high-order" AMB results in a memory bus error, so
-+ * for now we'll just ignore that top bit, even though that
-+ * might prevent us from seeing the 16th DIMM in the channel.
-+ */
-+#define REAL_MAX_AMBS_PER_CHANNEL	15
-+#define KNOBS_PER_AMB			5
-+
-+#define AMB_NUM_FROM_REG(byte_num, bit_num)	((byte_num) * \
-+			MAX_AMBS_PER_CHANNEL) + (bit_num)
-+
-+struct i5k_amb_data {
-+	struct class_device *class_dev;
-+	struct resource *resource;
-+
-+	unsigned long amb_base;
-+	unsigned long amb_len;
-+	u16 amb_present[MAX_MEM_CHANNELS];
-+	void __iomem *amb_mmio;
-+	struct sensor_device_attribute *attrs;
-+	unsigned int num_attrs;
-+};
-+
-+static ssize_t show_name(struct device *dev, struct device_attribute *devattr,
-+			 char *buf)
-+{
-+	return sprintf(buf, "%s\n", DRVNAME);
-+}
-+
-+
-+static SENSOR_DEVICE_ATTR(name, S_IRUGO, show_name, NULL, 0);
-+
-+static struct platform_device *amb_pdev = NULL;
-+
-+static u8 amb_read_byte(struct i5k_amb_data *data, unsigned long offset)
-+{
-+	return (*(u8*)(data->amb_mmio + offset));
-+}
-+
-+static void amb_write_byte(struct i5k_amb_data *data, unsigned long offset,
-+			   u8 val)
-+{
-+	(*(u8*)(data->amb_mmio + offset)) = val;
-+}
-+
-+static ssize_t show_amb_alarm(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i5k_amb_data *data = dev_get_drvdata(dev);
-+
-+	if ( !(amb_read_byte(data, AMB_REG_TEMP_STATUS(attr->index)) & 0x20) &&
-+	      (amb_read_byte(data, AMB_REG_TEMP_STATUS(attr->index)) & 0x8) )
-+		return sprintf(buf, "1\n");
-+	else
-+		return sprintf(buf, "0\n");
-+}
-+
-+static ssize_t store_amb_min(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     const char *buf,
-+			     size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i5k_amb_data *data = dev_get_drvdata(dev);
-+	int temp = simple_strtol(buf, NULL, 10) / 500;
-+
-+	if (temp > 255)
-+		temp = 255;
-+
-+	amb_write_byte(data, AMB_REG_TEMP_MIN(attr->index), temp);
-+	return count;
-+}
-+
-+static ssize_t store_amb_mid(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     const char *buf,
-+			     size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i5k_amb_data *data = dev_get_drvdata(dev);
-+	int temp = simple_strtol(buf, NULL, 10) / 500;
-+
-+	if (temp > 255)
-+		temp = 255;
-+
-+	amb_write_byte(data, AMB_REG_TEMP_MID(attr->index), temp);
-+	return count;
-+}
-+
-+static ssize_t store_amb_max(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     const char *buf,
-+			     size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i5k_amb_data *data = dev_get_drvdata(dev);
-+	int temp = simple_strtol(buf, NULL, 10) / 500;
-+
-+	if (temp > 255)
-+		temp = 255;
-+
-+	amb_write_byte(data, AMB_REG_TEMP_MAX(attr->index), temp);
-+	return count;
-+}
-+
-+static ssize_t show_amb_min(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i5k_amb_data *data = dev_get_drvdata(dev);
-+	return sprintf(buf, "%d\n",
-+		500 * amb_read_byte(data, AMB_REG_TEMP_MIN(attr->index)));
-+}
-+
-+static ssize_t show_amb_mid(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i5k_amb_data *data = dev_get_drvdata(dev);
-+	return sprintf(buf, "%d\n",
-+		500 * amb_read_byte(data, AMB_REG_TEMP_MID(attr->index)));
-+}
-+
-+static ssize_t show_amb_max(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i5k_amb_data *data = dev_get_drvdata(dev);
-+	return sprintf(buf, "%d\n",
-+		500 * amb_read_byte(data, AMB_REG_TEMP_MAX(attr->index)));
-+}
-+
-+static ssize_t show_amb_temp(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i5k_amb_data *data = dev_get_drvdata(dev);
-+	return sprintf(buf, "%d\n",
-+		500 * amb_read_byte(data, AMB_REG_TEMP(attr->index)));
-+}
-+
-+static int __devinit i5k_amb_hwmon_init(struct platform_device *pdev)
-+{
-+	int i, j, k, d = 0;
-+	u16 c;
-+	char *n;
-+	int res = 0;
-+	int num_ambs = 0;
-+	struct i5k_amb_data *data = platform_get_drvdata(pdev);
-+
-+	/* Count the number of AMBs found */
-+	for (i = 0; i < MAX_MEM_CHANNELS; i++) {
-+		c = data->amb_present[i];
-+		for (j = 0; j < REAL_MAX_AMBS_PER_CHANNEL; j++) {
-+			if (c & 0x1)
-+				num_ambs++;
-+			c >>= 1;
-+		}
-+	}
-+
-+	/* Set up sysfs stuff */
-+	data->attrs = kzalloc(sizeof(*data->attrs) * num_ambs * KNOBS_PER_AMB,
-+				GFP_KERNEL);
-+	if (!data->attrs)
-+		return -ENOMEM;
-+	data->num_attrs = 0;
-+
-+	for (i = 0; i < MAX_MEM_CHANNELS; i++) {
-+		c = data->amb_present[i];
-+		for (j = 0; j < REAL_MAX_AMBS_PER_CHANNEL; j++, c >>= 1) {
-+			k = AMB_NUM_FROM_REG(i, j);
-+			if (!(c & 0x1))
-+				continue;
-+			d++;
-+
-+			/* Temperature sysfs knob */
-+			n = kmalloc(13, GFP_KERNEL);
-+			sprintf(n, "temp%d_input", d);
-+			data->attrs[data->num_attrs].dev_attr.attr.name = n;
-+			data->attrs[data->num_attrs].dev_attr.attr.mode +					S_IRUGO;
-+			data->attrs[data->num_attrs].dev_attr.show +					show_amb_temp;
-+			data->attrs[data->num_attrs].index = k;
-+			res = device_create_file(&pdev->dev,
-+					&data->attrs[data->num_attrs].dev_attr);
-+			if (res)
-+				goto exit_remove;
-+			data->num_attrs++;
-+
-+			/* Temperature min sysfs knob */
-+			n = kmalloc(13, GFP_KERNEL);
-+			sprintf(n, "temp%d_min", d);
-+			data->attrs[data->num_attrs].dev_attr.attr.name = n;
-+			data->attrs[data->num_attrs].dev_attr.attr.mode +					S_IWUSR | S_IRUGO;
-+			data->attrs[data->num_attrs].dev_attr.show +					show_amb_min;
-+			data->attrs[data->num_attrs].dev_attr.store +					store_amb_min;
-+			data->attrs[data->num_attrs].index = k;
-+			res = device_create_file(&pdev->dev,
-+					&data->attrs[data->num_attrs].dev_attr);
-+			if (res)
-+				goto exit_remove;
-+			data->num_attrs++;
-+
-+			/* Temperature mid sysfs knob */
-+			n = kmalloc(13, GFP_KERNEL);
-+			sprintf(n, "temp%d_mid", d);
-+			data->attrs[data->num_attrs].dev_attr.attr.name = n;
-+			data->attrs[data->num_attrs].dev_attr.attr.mode +					S_IWUSR | S_IRUGO;
-+			data->attrs[data->num_attrs].dev_attr.show +					show_amb_mid;
-+			data->attrs[data->num_attrs].dev_attr.store +					store_amb_mid;
-+			data->attrs[data->num_attrs].index = k;
-+			res = device_create_file(&pdev->dev,
-+					&data->attrs[data->num_attrs].dev_attr);
-+			if (res)
-+				goto exit_remove;
-+			data->num_attrs++;
-+
-+			/* Temperature max sysfs knob */
-+			n = kmalloc(13, GFP_KERNEL);
-+			sprintf(n, "temp%d_max", d);
-+			data->attrs[data->num_attrs].dev_attr.attr.name = n;
-+			data->attrs[data->num_attrs].dev_attr.attr.mode +					S_IWUSR | S_IRUGO;
-+			data->attrs[data->num_attrs].dev_attr.show +					show_amb_max;
-+			data->attrs[data->num_attrs].dev_attr.store +					store_amb_max;
-+			data->attrs[data->num_attrs].index = k;
-+			res = device_create_file(&pdev->dev,
-+					&data->attrs[data->num_attrs].dev_attr);
-+			if (res)
-+				goto exit_remove;
-+			data->num_attrs++;
-+
-+			/* Temperature alarm sysfs knob */
-+			n = kmalloc(13, GFP_KERNEL);
-+			sprintf(n, "temp%d_alarm", d);
-+			data->attrs[data->num_attrs].dev_attr.attr.name = n;
-+			data->attrs[data->num_attrs].dev_attr.attr.mode +					S_IRUGO;
-+			data->attrs[data->num_attrs].dev_attr.show +					show_amb_alarm;
-+			data->attrs[data->num_attrs].index = k;
-+			res = device_create_file(&pdev->dev,
-+					&data->attrs[data->num_attrs].dev_attr);
-+			if (res)
-+				goto exit_remove;
-+			data->num_attrs++;
-+		}
-+	}
-+
-+	res = device_create_file(&pdev->dev, &sensor_dev_attr_name.dev_attr);
-+	if (res)
-+		goto exit_remove;
-+
-+	data->class_dev = hwmon_device_register(&pdev->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		res = PTR_ERR(data->class_dev);
-+		goto exit_remove;
-+	}
-+
-+	return res;
-+
-+exit_remove:
-+	device_remove_file(&pdev->dev, &sensor_dev_attr_name.dev_attr);
-+	for (i = 0; i < data->num_attrs; i++) {
-+		device_remove_file(&pdev->dev, &data->attrs[i].dev_attr);
-+		kfree(data->attrs[i].dev_attr.attr.name);
-+	}
-+	kfree(data->attrs);
-+
-+	return res;
-+}
-+
-+static int __devinit i5k_amb_add(void)
-+{
-+	int res = -ENODEV;
-+
-+	/* only ever going to be one of these */
-+	amb_pdev = platform_device_alloc(DRVNAME, 0);
-+	if (!amb_pdev)
-+		return -ENOMEM;
-+
-+	res = platform_device_add(amb_pdev);
-+	if (res)
-+		goto err;
-+	return 0;
-+
-+err:
-+	platform_device_put(amb_pdev);
-+	return res;
-+}
-+
-+static int __devinit i5k_amb_probe(struct platform_device *pdev)
-+{
-+	struct pci_dev *pcidev;
-+	struct i5k_amb_data *data;
-+	struct resource *reso;
-+	u32 val32;
-+	u16 val16;
-+	int res = -ENOMEM;
-+
-+	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
-+	/* Figure out where the AMB registers live */
-+	pcidev = pci_get_device(PCI_VENDOR_INTEL, PCI_DEVICE_INTEL_5K_MEM,
-+				NULL);
-+	if (!pcidev)
-+		goto out;
-+
-+	if (pci_read_config_dword(pcidev, I5K_REG_AMB_BASE_ADDR, &val32))
-+		goto err_free_dev;
-+	data->amb_base = val32;
-+
-+	if (pci_read_config_dword(pcidev, I5K_REG_AMB_LEN_ADDR, &val32))
-+		goto err_free_dev;
-+	data->amb_len = val32;
-+
-+	pci_dev_put(pcidev);
-+
-+	if (data->amb_len < AMB_CONFIG_SIZE * MAX_AMBS) {
-+		printk(KERN_ERR DRVNAME "AMB region too small!\n");
-+		goto out;
-+	}
-+
-+
-+	/* Copy the DIMM presence map for the first two channels */
-+	pcidev = pci_get_device(PCI_VENDOR_INTEL, PCI_DEVICE_INTEL_5K_FBD0,
-+				NULL);
-+	if (!pcidev)
-+		goto out;
-+
-+	if (pci_read_config_word(pcidev, I5K_REG_CHAN0_PRESENCE_ADDR, &val16))
-+		goto err_free_dev;
-+	data->amb_present[0] = val16;
-+	if (pci_read_config_word(pcidev, I5K_REG_CHAN1_PRESENCE_ADDR, &val16))
-+		goto err_free_dev;
-+	data->amb_present[1] = val16;
-+
-+	pci_dev_put(pcidev);
-+
-+	/* Copy the DIMM presence map for the optional second two channels */
-+	pcidev = pci_get_device(PCI_VENDOR_INTEL, PCI_DEVICE_INTEL_5K_FBD1,
-+				NULL);
-+	if (!pcidev)
-+		goto setup_resources;
-+
-+	if (pci_read_config_word(pcidev, I5K_REG_CHAN0_PRESENCE_ADDR, &val16))
-+		goto err_free_dev;
-+	data->amb_present[2] = val16;
-+	if (pci_read_config_word(pcidev, I5K_REG_CHAN1_PRESENCE_ADDR, &val16))
-+		goto err_free_dev;
-+	data->amb_present[3] = val16;
-+
-+	pci_dev_put(pcidev);
-+
-+setup_resources:
-+	/* Set up resource regions */
-+	reso = request_mem_region(data->amb_base, data->amb_len, DRVNAME);
-+	if (!reso) {
-+		res = -EBUSY;
-+		goto out;
-+	}
-+	
-+	data->amb_mmio = ioremap_nocache(data->amb_base, data->amb_len);
-+	if (!data->amb_mmio)
-+		goto err2;
-+
-+	platform_set_drvdata(pdev, data);
-+
-+	res = i5k_amb_hwmon_init(pdev);
-+	if (res)
-+		goto err;
-+		
-+	return res;
-+
-+err:
-+	iounmap(data->amb_mmio);
-+	platform_set_drvdata(pdev, NULL);
-+err2:
-+	release_mem_region(data->amb_base, data->amb_len);
-+	goto out;
-+err_free_dev:
-+	pci_dev_put(pcidev);
-+out:
-+	kfree(data);
-+	return res;
-+}
-+
-+static int __devexit i5k_amb_remove(struct platform_device *pdev)
-+{
-+	int i;
-+	struct i5k_amb_data *data = platform_get_drvdata(pdev);
-+
-+	hwmon_device_unregister(data->class_dev);
-+	device_remove_file(&pdev->dev, &sensor_dev_attr_name.dev_attr);
-+	for (i = 0; i < data->num_attrs; i++) {
-+		device_remove_file(&pdev->dev, &data->attrs[i].dev_attr);
-+		kfree(data->attrs[i].dev_attr.attr.name);
-+	}
-+	iounmap(data->amb_mmio);
-+	release_mem_region(data->amb_base, data->amb_len);
-+	platform_set_drvdata(pdev, NULL);
-+	kfree(data);
-+	return 0;
-+}
-+
-+static struct platform_driver i5k_amb_driver = {
-+	.driver = {
-+		.owner = THIS_MODULE,
-+		.name = DRVNAME,
-+	},
-+	.probe = i5k_amb_probe,
-+	.remove = __devexit_p(i5k_amb_remove),
-+};
-+
-+static int __init i5k_amb_init(void)
-+{
-+	int res;
-+
-+	res = platform_driver_register(&i5k_amb_driver);
-+	if (res)
-+		return res;
-+
-+	res = i5k_amb_add();
-+	if (res)
-+		platform_driver_unregister(&i5k_amb_driver);
-+
-+	return res;
-+}
-+
-+static void __exit i5k_amb_exit(void)
-+{
-+	platform_device_unregister(amb_pdev);
-+	platform_driver_unregister(&i5k_amb_driver);
-+}
-+
-+MODULE_AUTHOR("Darrick J. Wong <djwong@us.ibm.com>");
-+MODULE_DESCRIPTION("Intel 5000 chipset FB-DIMM AMB temperature sensor");
-+MODULE_LICENSE("GPL");
-+
-+module_init(i5k_amb_init);
-+module_exit(i5k_amb_exit);
+To test drop the attached fscscy.c and Makefile in a dir, type make and then 
+insmod fscscy.ko
+
+The easiest way to then read the settings is by using the 3.0 sensors branch, 
+which comes with dyn chipsupport:
+remove your current lm-sensors userspace package (for example on Fedora do rpm 
+-e lm_sensors --nodeps)
+svn checkout http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0
+cd lm-sensors-3.0.0
+make
+sudo make install
+sudo ldconfig
+
+lm_sensors-2.x will not work, and probably do funky things as it expects the 
+old very different 2.4 fscscy driver, so resuing the fscscy name wasn't a good 
+idea after all, suggestions welcome.
+
+Note 1: I have not been able to test this driver myself as I currently do not 
+have access to the fscher equiped machine I was using, I will get access to 
+that again in a few weeks, but for now I just hope this works.
+
+Note 2: I will be away on vacation for 6 days starting coming monday, so I will 
+be reading my mail tomorrow (Sunday) and maybe monday morning and then things 
+will go quiet for 6 days.
+
+Thanks for testing & Regards,
+
+Hans
+
+--------------050809070706070404070708
+Content-Type: text/plain;
+ name="Makefile"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="Makefile"
+
+obj-m += fscscy.o
+
+all:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+
+clean:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+
+--------------050809070706070404070708
+Content-Type: text/x-csrc;
+ name="fscscy.c"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline;
+ filename="fscscy.c"
+
+/*
+ * fscscy.c - Part of lm_sensors, Linux kernel modules for hardware
+ * monitoring
+ * Copyright (C) 2007 Hans de Goede <j.w.r.degoede@hhs.nl>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+/* 
+ *  New merged Fujitsu Siemens hwmon driver, supporting the Scylla, Poseidon,
+ *  Hermes and Heimdall chips
+ *
+ *  Based on the original 2.4 fscscy, 2.6 fscpos, 2.6 fscher and 2.6
+ *  (candidate) fschmd drivers:
+ *  Copyright (C) 2006 Thilo Cestonaro <thilo.cestonaro.external@fujitsu-siemens.com>
+ *  Copyright (C) 2003, 2004 Reinhard Nissl <rnissl@gmx.de>
+ *  Copyright (C) 2000 Hermann Jung <hej@odn.de>
+ *  Copyright (C) 1998, 1999 Frodo Looijaard <frodol@dds.nl>
+ *  and Philip Edelbrock <phil@netroedge.com>
+ */
+
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/slab.h>
+#include <linux/jiffies.h>
+#include <linux/i2c.h>
+#include <linux/hwmon.h>
+#include <linux/hwmon-sysfs.h>
+#include <linux/err.h>
+#include <linux/mutex.h>
+#include <linux/sysfs.h>
+
+/* Addresses to scan */
+static unsigned short normal_i2c[] = { 0x73, I2C_CLIENT_END };
+
+/* Insmod parameters */
+I2C_CLIENT_INSMOD_4(fscscy, fscpos, fscher, fschmd);
+
+/*
+ * The FSCSCY registers and other defines
+ */
+
+/* chip identification */
+#define FSCSCY_REG_IDENT_0		0x00
+#define FSCSCY_REG_IDENT_1		0x01
+#define FSCSCY_REG_IDENT_2		0x02
+#define FSCSCY_REG_REVISION		0x03
+
+/* global control and status */
+#define FSCSCY_REG_EVENT_STATE		0x04
+#define FSCSCY_REG_CONTROL		0x05
+
+/* watchdog (support to be implemented) */
+#define FSCSCY_REG_WDOG_PRESET		0x28
+#define FSCSCY_REG_WDOG_STATE		0x23
+#define FSCSCY_REG_WDOG_CONTROL		0x21
+
+/* voltage supervision */
+#define FSCSCY_REG_VOLT_12		0x45
+#define FSCSCY_REG_VOLT_5		0x42
+#define FSCSCY_REG_VOLT_BATT		0x48
+
+/* minimum pwm at which the fan is driven (pwm can by increased depending on
+   the temp. Notice that for the scy some fans share there minimum speed.
+   Also notice that with the scy the sensor order is different then with the
+   other chips, this order was in the 2.4 driver and kept for consistency. */
+static const u8 FSCSCY_REG_FAN_MIN[4][6] = {
+	{ 0x65, 0x65, 0x55, 0xa5, 0x55, 0xa5 },		/* scy */
+	{ 0x55, 0x65 },					/* pos */
+	{ 0x55, 0x65, 0xb5 },				/* her */
+	{ 0x55, 0x65, 0xa5, 0xb5, 0xc5 } };		/* hmd */
+
+/* actual fan speed */	
+static const u8 FSCSCY_REG_FAN_ACT[4][6] = {
+	{ 0x6b, 0x6c, 0x0e, 0xab, 0x5c, 0xbb },		/* scy */
+	{ 0x0e, 0x6b, 0xab },				/* pos */
+	{ 0x0e, 0x6b, 0xbb },				/* her */
+	{ 0x5b, 0x6b, 0xab, 0xbb, 0xcb } };		/* hmd */
+
+/* fan status registers */
+static const u8 FSCSCY_REG_FAN_STATE[4][6] = {
+	{ 0x62, 0x61, 0x0d, 0xa2, 0x52, 0xb2 },		/* scy */
+	{ 0x0d, 0x62, 0xa2 },				/* pos */
+	{ 0x0d, 0x62, 0xb2 },				/* her */
+	{ 0x52, 0x62, 0xa2, 0xb2, 0xc2 } };		/* hmd */
+	
+/* fan ripple / divider registers */	
+static const u8 FSCSCY_REG_FAN_RIPPLE[4][6] = {
+	{ 0x6f, 0x6f, 0x0f, 0xaf, 0x0f, 0xbf },		/* scy */
+	{ 0x0f, 0x6f, 0xaf },				/* pos */
+	{ 0x0f, 0x6f, 0xbf },				/* her */
+	{ 0x5f, 0x6f, 0xaf, 0xbf, 0xcf } };		/* hmd */
+
+static const int FSCSCY_NO_FAN_SENSORS[4] = { 6, 3, 3, 5 };
+
+
+/* actual temperature registers */
+static const u8 FSCSCY_REG_TEMP_ACT[4][5] = {
+	{ 0x64, 0xD0, 0x32, 0x35 },			/* scy */
+	{ 0x64, 0x32, 0x35 },				/* pos */
+	{ 0x64, 0x32, 0x35 },				/* her */
+	{ 0x70, 0x80, 0x90, 0xd0, 0xe0 } };		/* hmd */
+
+/* temperature state registers */
+static const u8 FSCSCY_REG_TEMP_STATE[4][5] = {
+	{ 0x71, 0xd1, 0x81, 0x91 },			/* scy */
+	{ 0x71, 0x81, 0x91 },				/* pos */
+	{ 0x71, 0x81, 0x91 },				/* her */
+	{ 0x71, 0x81, 0x91, 0xd1, 0xe1 } };		/*������hmd */
+
+/* temperature high limit registers, FSC does not document these. Proven to be
+   there with field testing on the fscher, already supported / used in the
+   fscscy 2.4 driver. FSC has confirmed that the fschmd has registers at these
+   addresses, but doesn't want to confirm they are the same as with the fscher?
+   For the fscpos these still needs to be tested / confirmed. */
+static const u8 FSCSCY_REG_TEMP_LIMIT[4][5] = {
+	{ 0x76, 0xd6, 0x86, 0x96 },			/* scy */
+	{ 0x76, 0x86, 0x96 },				/* pos */
+	{ 0x76, 0x86, 0x96 },				/* her */
+	{ 0x76, 0x86, 0x96, 0xd6, 0xe6 } };		/*������hmd */	
+
+/* These were found through experimenting with an fscher, currently they are
+   not used, but we keep them around for future reference.
+static const u8 FSCHER_REG_TEMP_AUTOP1[] =	{ 0x73, 0x83, 0x93 };
+static const u8 FSCHER_REG_TEMP_AUTOP2[] =	{ 0x75, 0x85, 0x95 }; */
+
+static const int FSCSCY_NO_TEMP_SENSORS[4] = { 4, 3, 3, 5 }; 
+
+#define FSCSCY_NAME "fscscy"
+
+/*
+ * Functions declarations
+ */
+
+static int fscscy_attach_adapter(struct i2c_adapter *adapter);
+static int fscscy_detach_client(struct i2c_client *client);
+static struct fscscy_data *fscscy_update_device(struct device *dev);
+
+/*
+ * Driver data (common to all clients)
+ */
+
+static struct i2c_driver fscscy_driver = {
+	.driver = {
+		.name	= FSCSCY_NAME,
+	},
+	.attach_adapter	= fscscy_attach_adapter,
+	.detach_client	= fscscy_detach_client,
+};
+
+/*
+ * Client data (each client gets its own)
+ */
+
+struct fscscy_data {
+	enum chips kind;
+	struct i2c_client client;
+	struct class_device *class_dev;
+	struct mutex update_lock;
+	char valid; /* zero until following fields are valid */
+	unsigned long last_updated; /* in jiffies */
+
+	/* register values */
+	u8 global_control;	/* global control register */
+	u8 volt[3];		/* 12, 5, battery voltage */ 
+	u8 temp_act[5];		/* temperature */
+	u8 temp_status[5];	/* status of sensor */
+	u8 temp_max[6];		/* high temp limit, notice: undocumented! */
+	u8 fan_act[6];		/* fans revolutions per second */
+	u8 fan_status[6];	/* fan status */
+	u8 fan_min[6];		/* fan min value for rps */
+	u8 fan_ripple[6];	/* divider for rps */
+};
+
+/*
+ * Sysfs attr show / store functions
+ */
+
+static ssize_t show_in_value(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	const int max_reading[3] = { 14200, 6600, 3300 };
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fscscy_data *data = fscscy_update_device(dev);
+
+	return sprintf(buf, "%d\n", (data->volt[attr->index] *
+		max_reading[attr->index]) / 255);
+}
+
+
+#define TEMP_FROM_REG(val)	(((val) - 128) * 1000)
+
+static ssize_t show_temp_value(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fscscy_data *data = fscscy_update_device(dev);
+
+	return sprintf(buf, "%d\n",
+		TEMP_FROM_REG(data->temp_act[attr->index]));
+}
+
+static ssize_t show_temp_max(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fscscy_data *data = fscscy_update_device(dev);
+
+	return sprintf(buf, "%d\n", TEMP_FROM_REG(
+		data->temp_max[attr->index]));
+}
+
+static ssize_t store_temp_max(struct device *dev, struct device_attribute
+	*devattr, const char *buf, size_t count)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fscscy_data *data = i2c_get_clientdata(to_i2c_client(dev));
+	long v = simple_strtoul(buf, NULL, 10) / 1000;
+
+	SENSORS_LIMIT(v, -128, 127);
+	v += 128;
+
+	mutex_lock(&data->update_lock);
+	i2c_smbus_write_byte_data(&data->client,
+		FSCSCY_REG_TEMP_LIMIT[data->kind][attr->index], v);
+	data->temp_max[attr->index] = v;
+	mutex_unlock(&data->update_lock);
+
+	return count;
+}
+
+static ssize_t show_temp_fault(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fscscy_data *data = fscscy_update_device(dev);
+
+	/* bit 0 set means sensor working ok, so no fault! */
+	if (data->temp_status[attr->index] & 0x01)
+		return sprintf(buf, "0\n");
+	else
+		return sprintf(buf, "1\n");
+}
+
+static ssize_t show_temp_alarm(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fscscy_data *data = fscscy_update_device(dev);
+
+	/* only signal an alarm if the sensor is working and alert == 1 */
+	if ((data->temp_status[attr->index] & 0x03) == 0x03)
+		return sprintf(buf, "1\n");
+	else
+		return sprintf(buf, "0\n");
+}
+
+
+#define RPM_FROM_REG(val)	(val*60)
+
+static ssize_t show_fan_value(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fscscy_data *data = fscscy_update_device(dev);
+
+	return sprintf(buf, "%u\n", RPM_FROM_REG(data->fan_act[attr->index]));
+}
+
+static ssize_t show_fan_div(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fscscy_data *data = fscscy_update_device(dev);
+
+	/* bits 2..7 reserved => mask with 3 */  
+	return sprintf(buf, "%d\n", 1 << (data->fan_ripple[attr->index] & 3));
+}
+
+static ssize_t store_fan_div(struct device *dev, struct device_attribute
+	*devattr, const char *buf, size_t count)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fscscy_data *data = fscscy_update_device(dev);
+	/* supported values: 2, 4, 8 */
+	unsigned long v = simple_strtoul(buf, NULL, 10);
+
+	switch (v) {
+		case 2: v = 1; break;
+		case 4: v = 2; break;
+		case 8: v = 3; break;
+		default:
+			dev_err(&data->client.dev, "fan_div value %lu not "
+				 "supported. Choose one of 2, 4 or 8!\n", v);
+			return -EINVAL;
+	}
+
+	mutex_lock(&data->update_lock);
+
+	/* bits 2..7 reserved => mask with 0x03 */
+	data->fan_ripple[attr->index] &= ~0x03;
+	data->fan_ripple[attr->index] |= v;
+
+	i2c_smbus_write_byte_data(&data->client,
+		FSCSCY_REG_FAN_RIPPLE[data->kind][attr->index],
+		data->fan_ripple[attr->index]);
+
+	mutex_unlock(&data->update_lock);
+
+	return count;
+}
+
+static ssize_t show_fan_alarm(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fscscy_data *data = fscscy_update_device(dev);
+
+	if (data->fan_status[attr->index] & 0x04)
+		return sprintf(buf, "1\n");
+	else
+		return sprintf(buf, "0\n");
+}
+
+
+static ssize_t show_pwm_auto_point1_pwm(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	int val = fscscy_update_device(dev)->fan_min[attr->index];
+
+	/* 0 = allow turning off, 1-255 = 50-100% */
+	if (val)
+		val = val / 2 + 128;
+	
+	return sprintf(buf, "%d\n", val);
+}
+
+static ssize_t store_pwm_auto_point1_pwm(struct device *dev,
+	struct device_attribute *devattr, const char *buf, size_t count)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fscscy_data *data = i2c_get_clientdata(to_i2c_client(dev));
+	unsigned long v = simple_strtoul(buf, NULL, 10);
+	
+	/* register: 0 = allow turning off, 1-255 = 50-100% */
+	if (v) {
+		SENSORS_LIMIT(v, 128, 255);
+		v = (v - 128) * 2 + 1;
+	}
+
+	mutex_lock(&data->update_lock);
+
+	i2c_smbus_write_byte_data(&data->client,
+		FSCSCY_REG_FAN_MIN[data->kind][attr->index], v);
+	data->fan_min[attr->index] = v;
+
+	mutex_unlock(&data->update_lock);
+	
+	return count;
+}
+
+
+/* The FSC hwmon family has the ability to force an attached alert led to flash
+   from software, we export this as an alert_led sysfs attr */
+static ssize_t show_alert_led(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct fscscy_data *data = fscscy_update_device(dev);
+
+	if (data->global_control & 0x01)
+		return sprintf(buf, "1\n");
+	else
+		return sprintf(buf, "0\n");
+}
+
+static ssize_t store_alert_led(struct device *dev,
+	struct device_attribute *devattr, const char *buf, size_t count)
+{
+	struct fscscy_data *data = fscscy_update_device(dev);
+	unsigned long v = simple_strtoul(buf, NULL, 10);
+
+	mutex_lock(&data->update_lock);
+	
+	if (v)
+		data->global_control |= 0x01;
+	else
+		data->global_control &= ~0x01;
+
+	i2c_smbus_write_byte_data(&data->client, FSCSCY_REG_CONTROL, v);
+	mutex_unlock(&data->update_lock);
+
+	return count;
+}
+
+static struct sensor_device_attribute fscscy_attr[] = {
+	SENSOR_ATTR(in0_input, 0444, show_in_value, NULL, 0),
+	SENSOR_ATTR(in1_input, 0444, show_in_value, NULL, 1),
+	SENSOR_ATTR(in2_input, 0444, show_in_value, NULL, 2),
+	SENSOR_ATTR(alert_led, 0644, show_alert_led, store_alert_led, 0),
+};
+
+static struct sensor_device_attribute fscscy_temp_attr[] = {
+	SENSOR_ATTR(temp1_input, 0444, show_temp_value, NULL, 0),
+	SENSOR_ATTR(temp1_max,   0644, show_temp_max, store_temp_max, 0),
+	SENSOR_ATTR(temp1_fault, 0444, show_temp_fault, NULL, 0),
+	SENSOR_ATTR(temp1_alarm, 0444, show_temp_alarm, NULL, 0),
+	SENSOR_ATTR(temp2_input, 0444, show_temp_value, NULL, 1),
+	SENSOR_ATTR(temp2_max,   0644, show_temp_max, store_temp_max, 1),
+	SENSOR_ATTR(temp2_fault, 0444, show_temp_fault, NULL, 1),
+	SENSOR_ATTR(temp2_alarm, 0444, show_temp_alarm, NULL, 1),
+	SENSOR_ATTR(temp3_input, 0444, show_temp_value, NULL, 2),
+	SENSOR_ATTR(temp3_max,   0644, show_temp_max, store_temp_max, 2),
+	SENSOR_ATTR(temp3_fault, 0444, show_temp_fault, NULL, 2),
+	SENSOR_ATTR(temp3_alarm, 0444, show_temp_alarm, NULL, 2),
+	SENSOR_ATTR(temp4_input, 0444, show_temp_value, NULL, 3),
+	SENSOR_ATTR(temp4_max,   0644, show_temp_max, store_temp_max, 3),
+	SENSOR_ATTR(temp4_fault, 0444, show_temp_fault, NULL, 3),
+	SENSOR_ATTR(temp4_alarm, 0444, show_temp_alarm, NULL, 3),
+	SENSOR_ATTR(temp5_input, 0444, show_temp_value, NULL, 4),
+	SENSOR_ATTR(temp5_max,   0644, show_temp_max, store_temp_max, 4),
+	SENSOR_ATTR(temp5_fault, 0444, show_temp_fault, NULL, 4),
+	SENSOR_ATTR(temp5_alarm, 0444, show_temp_alarm, NULL, 4),
+};
+
+static struct sensor_device_attribute fscscy_fan_attr[] = {
+	SENSOR_ATTR(fan1_input, 0444, show_fan_value, NULL, 0),
+	SENSOR_ATTR(fan1_div,   0644, show_fan_div, store_fan_div, 0),
+	SENSOR_ATTR(fan1_alarm, 0444, show_fan_alarm, NULL, 0),
+	SENSOR_ATTR(pwm1_auto_point1_pwm, 0644, show_pwm_auto_point1_pwm,
+		store_pwm_auto_point1_pwm, 0),
+	SENSOR_ATTR(fan2_input, 0444, show_fan_value, NULL, 1),
+	SENSOR_ATTR(fan2_div,   0644, show_fan_div, store_fan_div, 1),
+	SENSOR_ATTR(fan2_alarm, 0444, show_fan_alarm, NULL, 1),
+	SENSOR_ATTR(pwm2_auto_point1_pwm, 0644, show_pwm_auto_point1_pwm,
+		store_pwm_auto_point1_pwm, 1),
+	SENSOR_ATTR(fan3_input, 0444, show_fan_value, NULL, 2),
+	SENSOR_ATTR(fan3_div,   0644, show_fan_div, store_fan_div, 2),
+	SENSOR_ATTR(fan3_alarm, 0444, show_fan_alarm, NULL, 2),
+	SENSOR_ATTR(pwm3_auto_point1_pwm, 0644, show_pwm_auto_point1_pwm,
+		store_pwm_auto_point1_pwm, 2),
+	SENSOR_ATTR(fan4_input, 0444, show_fan_value, NULL, 3),
+	SENSOR_ATTR(fan4_div,   0644, show_fan_div, store_fan_div, 3),
+	SENSOR_ATTR(fan4_alarm, 0444, show_fan_alarm, NULL, 3),
+	SENSOR_ATTR(pwm4_auto_point1_pwm, 0644, show_pwm_auto_point1_pwm,
+		store_pwm_auto_point1_pwm, 3),
+	SENSOR_ATTR(fan5_input, 0444, show_fan_value, NULL, 4),
+	SENSOR_ATTR(fan5_div,   0644, show_fan_div, store_fan_div, 4),
+	SENSOR_ATTR(fan5_alarm, 0444, show_fan_alarm, NULL, 4),
+	SENSOR_ATTR(pwm5_auto_point1_pwm, 0644, show_pwm_auto_point1_pwm,
+		store_pwm_auto_point1_pwm, 4),
+	SENSOR_ATTR(fan6_input, 0444, show_fan_value, NULL, 5),
+	SENSOR_ATTR(fan6_div,   0644, show_fan_div, store_fan_div, 5),
+	SENSOR_ATTR(fan6_alarm, 0444, show_fan_alarm, NULL, 5),
+	SENSOR_ATTR(pwm6_auto_point1_pwm, 0644, show_pwm_auto_point1_pwm,
+		store_pwm_auto_point1_pwm, 5),
+};
+
+
+/*
+ * Real code
+ */
+
+static int fscscy_detect(struct i2c_adapter *adapter, int address, int kind)
+{
+	struct i2c_client *new_client;
+	struct fscscy_data *data;
+	u8 revision;
+	const char *names[4] = { "Scylla", "Poseidon", "Hermes", "Heimdall" };
+	/* We cannot just use FSCSCY_NO_FAN_SENSORS * 4, because the fscpos
+	   doesn't have a FAN_MIN register for its third (last) fan */
+	int fan_sysfs_attr = 0, i, err = 0;
+
+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+		return 0;
+
+	/* OK. For now, we presume we have a valid client. We now create the
+	 * client structure, even though we cannot fill it completely yet.
+	 * But it allows us to access i2c_smbus_read_byte_data. */
+	if (!(data = kzalloc(sizeof(struct fscscy_data), GFP_KERNEL)))
+		return -ENOMEM;
+
+	/* The common I2C client data is placed right before the
+	 * Poseidon-specific data. */
+	new_client = &data->client;
+	i2c_set_clientdata(new_client, data);
+	new_client->addr = address;
+	new_client->adapter = adapter;
+	new_client->driver = &fscscy_driver;
+	new_client->flags = 0;
+	strlcpy(new_client->name, FSCSCY_NAME, I2C_NAME_SIZE);
+	data->valid = 0;
+	mutex_init(&data->update_lock);
+
+	/* Detect & Identify the chip */
+	if (kind <= 0) {
+		char id[4];
+		
+		id[0] = i2c_smbus_read_byte_data(new_client,
+				FSCSCY_REG_IDENT_0);
+		id[1] = i2c_smbus_read_byte_data(new_client,
+				FSCSCY_REG_IDENT_1);
+		id[2] = i2c_smbus_read_byte_data(new_client,
+				FSCSCY_REG_IDENT_2);
+		id[3] = 0;
+		
+		if (!strcmp(id, "SCY")) {
+			data->kind = fscscy;
+			fan_sysfs_attr = 6 * 4;
+		} else if (!strcmp(id, "PEG")) {
+			data->kind = fscpos;
+			fan_sysfs_attr = 2 * 4 + 3;
+		} else if (!strcmp(id, "HER")) {
+			data->kind = fscher;
+			fan_sysfs_attr = 3 * 4;
+		} else if (!strcmp(id, "HMD")) {
+			data->kind = fschmd;
+			fan_sysfs_attr = 5 * 4;
+		} else
+			goto exit_free;
+	} else
+		data->kind = kind;
+
+	/* Tell the I2C layer a new client has arrived */
+	if ((err = i2c_attach_client(new_client)))
+		goto exit_free;
+		
+	for (i = 0; i < ARRAY_SIZE(fscscy_attr); i++) {
+		err = device_create_file(&new_client->dev,
+					&fscscy_attr[i].dev_attr);
+		if (err)
+			goto exit_remove_files;
+	}
+
+	for (i = 0; i < (FSCSCY_NO_TEMP_SENSORS[data->kind] * 4); i++) {
+		err = device_create_file(&new_client->dev,
+					&fscscy_temp_attr[i].dev_attr);
+		if (err)
+			goto exit_remove_files;
+	}
+
+	for (i = 0; i < fan_sysfs_attr; i++) {
+		err = device_create_file(&new_client->dev,
+					&fscscy_fan_attr[i].dev_attr);
+		if (err)
+			goto exit_remove_files;
+	}
+
+	data->class_dev = hwmon_device_register(&new_client->dev);
+	if (IS_ERR(data->class_dev)) {
+		err = PTR_ERR(data->class_dev);
+		goto exit_remove_files;
+	}
+
+	revision = i2c_smbus_read_byte_data(new_client, FSCSCY_REG_REVISION);
+	printk(KERN_INFO "fscscy: Detected FSC %s chip, revision: %d\n",
+		names[data->kind], (int) revision);
+
+	return 0;
+
+exit_remove_files:
+	for (i = 0; i < ARRAY_SIZE(fscscy_attr); i++)
+		device_remove_file(&new_client->dev, &fscscy_attr[i].dev_attr);
+	for (i = 0; i < (FSCSCY_NO_TEMP_SENSORS[data->kind] * 4); i++)
+		device_remove_file(&new_client->dev,
+					&fscscy_temp_attr[i].dev_attr);
+	for (i = 0; i < fan_sysfs_attr; i++)
+		device_remove_file(&new_client->dev,
+					&fscscy_fan_attr[i].dev_attr);
+	i2c_detach_client(new_client);
+exit_free:
+	kfree(data);
+	return err;
+}
+
+static int fscscy_attach_adapter(struct i2c_adapter *adapter)
+{
+	if (!(adapter->class & I2C_CLASS_HWMON))
+		return 0;
+	return i2c_probe(adapter, &addr_data, fscscy_detect);
+}
+
+static int fscscy_detach_client(struct i2c_client *client)
+{
+	struct fscscy_data *data = i2c_get_clientdata(client);
+	int i, err;
+
+	hwmon_device_unregister(data->class_dev);
+	for (i = 0; i < ARRAY_SIZE(fscscy_attr); i++)
+		device_remove_file(&client->dev, &fscscy_attr[i].dev_attr);
+	for (i = 0; i < (FSCSCY_NO_TEMP_SENSORS[data->kind] * 4); i++)
+		device_remove_file(&client->dev,
+					&fscscy_temp_attr[i].dev_attr);
+	for (i = 0; i < (FSCSCY_NO_FAN_SENSORS[data->kind] * 4); i++)
+		device_remove_file(&client->dev,
+					&fscscy_fan_attr[i].dev_attr);
+
+	if ((err = i2c_detach_client(client)))
+		return err;
+
+	kfree(data);
+	return 0;
+}
+
+static struct fscscy_data *fscscy_update_device(struct device *dev)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct fscscy_data *data = i2c_get_clientdata(client);
+	int i;
+
+	mutex_lock(&data->update_lock);
+
+	if (time_after(jiffies, data->last_updated + 2 * HZ) || !data->valid) {
+
+		dev_dbg(&client->dev, "Starting fscscy update\n");
+		
+		for (i = 0; i < FSCSCY_NO_TEMP_SENSORS[data->kind]; i++) {
+			data->temp_act[i] = i2c_smbus_read_byte_data(client,
+					FSCSCY_REG_TEMP_ACT[data->kind][i]);
+			data->temp_status[i] = i2c_smbus_read_byte_data(client,
+					FSCSCY_REG_TEMP_STATE[data->kind][i]);
+			data->temp_max[i] = i2c_smbus_read_byte_data(client,
+					FSCSCY_REG_TEMP_LIMIT[data->kind][i]);
+				
+			/* reset alarm if the alarm condition is gone,
+			   the chip doesn't do this itself */
+			if ((data->temp_status[i] & 0x02) &&
+					data->temp_act[i] < data->temp_max[i])
+				i2c_smbus_write_byte_data(client,
+					FSCSCY_REG_TEMP_STATE[data->kind][i],
+					0x02);
+		}
+					
+		for (i = 0; i < FSCSCY_NO_FAN_SENSORS[data->kind]; i++) {
+			data->fan_act[i] = i2c_smbus_read_byte_data(client,
+					FSCSCY_REG_FAN_ACT[data->kind][i]);
+			data->fan_status[i] = i2c_smbus_read_byte_data(client,
+					FSCSCY_REG_FAN_STATE[data->kind][i]);
+			data->fan_ripple[i] = i2c_smbus_read_byte_data(client,
+					FSCSCY_REG_FAN_RIPPLE[data->kind][i]);
+
+			/* The fscpos third doesn't have a fan_min */
+			if (FSCSCY_REG_FAN_MIN[data->kind][i])
+				data->fan_min[i] = i2c_smbus_read_byte_data(
+					client,
+					FSCSCY_REG_FAN_MIN[data->kind][i]);
+
+			/* reset fan status if speed is back to > 0 */
+			if ((data->fan_status[i] & 0x04) && data->fan_act[i])
+				i2c_smbus_write_byte_data(client,
+					FSCSCY_REG_FAN_STATE[data->kind][i],
+					0x04);
+		}
+
+		data->global_control = i2c_smbus_read_byte_data(client,
+						FSCSCY_REG_CONTROL);
+
+		data->volt[0] = i2c_smbus_read_byte_data(client,
+						FSCSCY_REG_VOLT_12);
+		data->volt[1] = i2c_smbus_read_byte_data(client,
+						FSCSCY_REG_VOLT_5);
+		data->volt[2] = i2c_smbus_read_byte_data(client,
+						FSCSCY_REG_VOLT_BATT);
+
+		/* To be implemented in the future
+		data->watchdog[0] = i2c_smbus_read_byte_data(client,
+						FSCSCY_REG_WDOG_PRESET);
+		data->watchdog[1] = i2c_smbus_read_byte_data(client,
+						FSCSCY_REG_WDOG_STATE);
+		data->watchdog[2] = i2c_smbus_read_byte_data(client,
+						FSCSCY_REG_WDOG_CONTROL); */
+
+		data->last_updated = jiffies;
+		data->valid = 1;
+	}
+
+	mutex_unlock(&data->update_lock);
+
+	return data;
+}
+
+static int __init fscscy_init(void)
+{
+	return i2c_add_driver(&fscscy_driver);
+}
+
+static void __exit fscscy_exit(void)
+{
+	i2c_del_driver(&fscscy_driver);
+}
+
+MODULE_AUTHOR("Hans de Goede <j.w.r.degoede@hhs.nl>");
+MODULE_DESCRIPTION("FSC Scylla (and Poseidon, Hermes and Heimdall) driver");
+MODULE_LICENSE("GPL");
+
+module_init(fscscy_init);
+module_exit(fscscy_exit);
+
+--------------050809070706070404070708
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------050809070706070404070708--
