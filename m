@@ -1,28 +1,49 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 21 Jul 2007 19:42:44 +0000
-Subject: Re: [lm-sensors] Help wanted: individual alarm files
-Message-Id: <20070721214244.248941aa@hyperion.delvare>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 29 Jul 2007 16:08:46 +0000
+Subject: Re: [lm-sensors] [2.6 patch] make
+Message-Id: <46ACBB8E.9080302@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070701220005.1dda9d8f@hyperion.delvare>
-In-Reply-To: <20070701220005.1dda9d8f@hyperion.delvare>
+References: <20070729145701.GJ16817@stusta.de>
+In-Reply-To: <20070729145701.GJ16817@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hi Charles,
-
-On Thu, 19 Jul 2007 18:27:37 -0700, Charles Spirakis wrote:
-> A little late to the party, but I'll take care of converting the w83791d.
+Adrian Bunk wrote:
+> abituguru3_read_increment_offset() can become static.
 > 
-> I'll try to get this done either this weekend or next (is there a
-> preferred time frame)?
+> Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-"As your time permits" if the preferred time frame :)
+Looks good, good catch.
 
-Thanks,
--- 
-Jean Delvare
+Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+> 
+> ---
+> --- linux-2.6.23-rc1-mm1/drivers/hwmon/abituguru3.c.old	2007-07-26 08:56:33.000000000 +0200
+> +++ linux-2.6.23-rc1-mm1/drivers/hwmon/abituguru3.c	2007-07-26 08:57:00.000000000 +0200
+> @@ -691,8 +691,9 @@
+>  
+>  /* Sensor settings are stored 1 byte per offset with the bytes
+>     placed add consecutive offsets. */
+> -int abituguru3_read_increment_offset(struct abituguru3_data *data, u8 bank,
+> -	u8 offset, u8 count, u8 *buf, int offset_count)
+> +static int abituguru3_read_increment_offset(struct abituguru3_data *data,
+> +					    u8 bank, u8 offset, u8 count,
+> +					    u8 *buf, int offset_count)
+>  {
+>  	int i, x;
+>  
+> 
+> 
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+> 
+
 
 _______________________________________________
 lm-sensors mailing list
