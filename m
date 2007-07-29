@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 22 Jul 2007 16:24:28 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 29 Jul 2007 07:13:03 +0000
 Subject: Re: [lm-sensors] Proposal: howto handle sysfs attribute writes with
-Message-Id: <20070722182428.4b1b144b@hyperion.delvare>
+Message-Id: <46AC3DFF.2080402@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <469F7CFC.4040306@hhs.nl>
 In-Reply-To: <469F7CFC.4040306@hhs.nl>
@@ -10,92 +10,85 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
-
-On Thu, 19 Jul 2007 17:02:20 +0200, Hans de Goede wrote:
-> Since there was some discussion about how I'm handling sysfs attr writes with 
-> invalid values in the f71882fg driver, and since I've seen other discussions 
-> about it, here is a proposal to try and create a standard way to handle this.
+Jean Delvare wrote:
+> Hi Hans,
 > 
-> This is intended to become a part of Documentation/hwmon/sysfs eventually.
-> 
-> ---
-> 
-> Howto check the validity of user written values to sysfs attributes:
-> 
-> hwmon sysfs attributes always contain numbers, so the first thing todo is to
-> convert the input to a number, there are 2 ways todo this depending wether
+> On Thu, 19 Jul 2007 17:02:20 +0200, Hans de Goede wrote:
+>> Since there was some discussion about how I'm handling sysfs attr writes with 
+>> invalid values in the f71882fg driver, and since I've seen other discussions 
+>> about it, here is a proposal to try and create a standard way to handle this.
+>>
+>> This is intended to become a part of Documentation/hwmon/sysfs eventually.
+>>
 
-s/todo/to do/, s/wether/whether/
+Thanks for the feedback Jean, here is a reworded version with all your feedback 
+incorporated.
 
-> the number can be negative or not:
-> unsigned long u = simple_strtoul(buf, NULL, 10);
-> long s = simple_strtol(buf, NULL, 10);
-> 
-> With buf being the buffer with the user input being passed by the kernel.
-> Notice that we do not use the second argument of strto[u]l, and thus cannot
-> tell when 0 is returned, if this was really 0 or is caused by invalid input.
-> This is done deliberately as checking this everywhere would add a lot of
-> code to the kernel. We do need to document clearly that writing a non-number 
-> will be seen as writing 0.
+---
 
-Agreed.
+Howto check the validity of user written values to sysfs attributes:
 
-> Notice that it is important to always store the converted value in an unsigned 
-> long or long, so that no wrap around can happen before any further checking.
+hwmon sysfs attributes always contain numbers, so the first thing to do is to
+convert the input to a number, there are 2 ways todo this depending whether
+the number can be negative or not:
+unsigned long u = simple_strtoul(buf, NULL, 10);
+long s = simple_strtol(buf, NULL, 10);
 
-True.
+With buf being the buffer with the user input being passed by the kernel.
+Notice that we do not use the second argument of strto[u]l, and thus cannot
+tell when 0 is returned, if this was really 0 or is caused by invalid input.
+This is done deliberately as checking this everywhere would add a lot of
+code to the kernel. We do need to document clearly that writing a non-number
+will be seen as writing 0.
 
-> After conversion and storing the converted value in the right type, and 
-> preferably before any conversions on the value, the value should be checked if 
+Notice that it is important to always store the converted value in an unsigned
+long or long, so that no wrap around can happen before any further checking.
 
-Not sure about the "preferably before any conversions on the value". In
-some cases it's easy to get it wrong that way, and converting first is
-more obvious.
+After conversion and storing the converted value in the right type, the value
+should be checked if its acceptable. Be carefull with further conversions on the
+value before checking it for validity, as these conversions could still cause a
+wrap around before the check. For example do not multiply the result, and only add
+/ substract if it has been divided before the add / substract.
 
-> it its acceptable. For example if its a temperature limit being stored in an 
+What to do if a value is found to be invalid, depends on the type of the sysfs 
+attribute that is being set. If its a continuous setting like a tempX_max or 
+inX_max attribute, then the value should be clamped to its limits using 
+SENSORS_LIMIT(value, min_limit, max_limit). If its not continuous like for 
+example a tempX_type, then when an invalid value is written, -EINVAL should be 
+returned.
 
-   s/its/is/                      s/its/it is/
+Example1, temp1_max, register presents -128 - 127 degrees as 0 - 255:
+long v = simple_strtol(buf, NULL, 10) / 1000;
+SENSORS_LIMIT(v, -128, 127);
+v += 128;
+/* write v to register */
 
-> unsigned 8 bit register, we should have something like this:
+Example2, fan divider setting, valid values 2, 4 and 8
+unsigned long v = simple_strtoul(buf, NULL, 10);
 
-Probably not a very good example, as temperature values are almost
-never u8. s8 is much more frequent.
+switch (v) {
+        case 2: v = 1; break;
+        case 4: v = 2; break;
+        case 8: v = 3; break;
+        default:
+                return -EINVAL;
+}
+/* write v to register */
 
-> 
-> unsigned long u = simple_strtoul(buf, NULL, 10);
-> if (u > 255000)
-> 	return -EINVAL;
-> 
-> One could argue to clamp instead of returning EINVAL, but what todo then when 
+---
 
-As said it another thread, I indeed believe that continuous values
-should be clamped. We even have a helper function for this,
-SENSORS_LIMIT(), which you may want to mention. This is how the
-majority of hwmon drivers behave right now.
+So, let me know what you think of the new version above and if its acceptable 
+I'll do a patch adding this to the sysfs interface doc, or should it be in 
+another doc?
 
-> something that is not a continues range like temp sensor type gets written? In 
-> the not a continues range scenario returning -EINVAL is the only thing that 
-> makes sense, so we do this in the continues range scenario too to be consistent.
+Regards,
 
-I see no problem making different rules for different case. The lists
-aren't that long so we could even be explicit:
+Hans
 
-* temperature, fan and voltage limits: clamp.
-* fan div, pwm... well, all the rest: error.
+p.s.
 
-> 
-> ---
-> 
-> So does this make sense? I know that many drivers are currently doing this 
-> different, some clamp, some don't check at all, thus effectively wrapping 
-> around in most cases, all these different ways are exactly the reason for me 
-> writing this proposal.
-
-Yes, I think this is a good idea.
-
--- 
-Jean Delvare
+Tomorrow I'm going on vacation for 6 days, so don't expect a follow up on any 
+replies soon.
 
 _______________________________________________
 lm-sensors mailing list
