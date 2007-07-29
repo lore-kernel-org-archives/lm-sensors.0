@@ -1,66 +1,39 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 31 Jul 2007 01:39:58 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Fix regression caused by typo in lm90.c
-Message-Id: <11858460011331-git-send-email-mhoffman@lightlink.com>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 29 Jul 2007 17:55:11 +0000
+Subject: [lm-sensors] Thinkpad ACPI "hwmon" driver needs libsensors support
+Message-Id: <46ACD47F.2060003@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Guillaume Chazarain <guichaz@yahoo.fr>
+Hi All,
 
-The commit http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h2c82a934759b2c9939c9e25865c2d7d1204b9e8
-broke lm90 for my (Asus V6VA) laptop.
+I just received this bug report:
+https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id%0013
 
-Before 2.6.23-rc1 and with the following patch, I get:
+This is caused because the thinkpad_acpi driver now exports its sensors through 
+the standard hwmon interface, while libsensors does not know how to handle them 
+  (for now).
 
-[g ~]$ sensors
-max6657-i2c-0-4c
-Adapter: SMBus I801 adapter at 0400
-M/B Temp:    +64Â°C  (low  =    +0Â°C, high =  +127Â°C)
-CPU Temp:  +78.9Â°C  (low  = +73.2Â°C, high = +88.2Â°C)
-M/B Crit:   +105Â°C  (hyst =   +95Â°C)
-CPU Crit:   +105Â°C  (hyst =   +95Â°C)
+As already said in various posts I'll be away on vacation for 6 days, after 
+that I will start writing libsensors support for the thinkpad_acpi "chip" to 
+resolve this issue. If anyone starts work on this, or has already started 
+please let me know ASAP to stop us from doing double work.
 
-Which regressed into:
+Also a word to the person implementing these changes in the thinkpad_acpi 
+driver, the conversion to the standard hwmon interface is a good thing! But you 
+  should have kept the old interface for backward compatibility. You cannot 
+just go and remove kernel <-> userland interfaces which have been in active use 
+for quite some time!
 
-[g ~]$ sensors
-No sensors found!
-Make sure you loaded all the kernel drivers you need.
-Try sensors-detect to find out which these are.
-zsh: 2701 exit 1     sensors
+Luckily this bug ended up in my mailbox and know whats going on as I'm an 
+lm_sensors developer, but this is sure to be also causing problems elsewhere!!
 
-and dmesg contains:
+Regards,
 
-i2c-adapter i2c-0: Unsupported chip (man_id=0x4D, chip_id=0x4D).
-
-It seems to be a typo, as address 0X4F is mentionned nowhere else in the file,
-and my chip is actually at 0x4C.
-
-Signed-off-by: Guillaume Chazarain <guichaz@yahoo.fr>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
----
- drivers/hwmon/lm90.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index 48833ff..af541d6 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -585,7 +585,7 @@ static int lm90_detect(struct i2c_adapter *adapter, int address, int kind)
- 			 * those of the man_id register.
- 			 */
- 			if (chip_id = man_id
--			 && (address = 0x4F || address = 0x4D)
-+			 && (address = 0x4C || address = 0x4D)
- 			 && (reg_config1 & 0x1F) = (man_id & 0x0F)
- 			 && reg_convrate <= 0x09) {
- 			 	kind = max6657;
--- 
-1.5.2.2
-
+Hans
 
 _______________________________________________
 lm-sensors mailing list
