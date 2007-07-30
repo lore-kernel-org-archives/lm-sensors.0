@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Thu, 12 Jul 2007 09:42:43 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Mon, 30 Jul 2007 04:11:22 +0000
 Subject: Re: [lm-sensors] [PATCH] v3 of a adt7470 driver
-Message-Id: <4695F793.9060605@hhs.nl>
+Message-Id: <20070730041122.GH31314@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070711183825.GP3435@tree.beaverton.ibm.com>
 In-Reply-To: <20070711183825.GP3435@tree.beaverton.ibm.com>
@@ -10,28 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Darrick J. Wong wrote:
+Hi Darrick:
+
+A few comments inline...
+
+* Darrick J. Wong <djwong@us.ibm.com> [2007-07-11 11:38:26 -0700]:
 > Resend with correct title and patch included just once.
 > ---
 > adt7470: new hwmon driver for adt7470 chip.
 > 
 > Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-
-Looks good now, as far I'm concerned this is ready to get merged.
-Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-Mark, any chance you can pick this up soonish, maybe it can make 2.6.23 then.
-
-Darrick, have you already written support for this driver for libsensors and 
-sensors? If not could you please do that ASAP? Then I'll review it and with 
-some luck and Jean's permission we can still get support for this chip included 
-into lm_sensors 2.10.4
-
-Regards,
-
-Hans
-
-
 > ---
 > 
 >  drivers/hwmon/Kconfig   |   10 
@@ -57,6 +45,11 @@ Hans
 > +	  This driver can also be built as a module. If so, the module
 > +	  will be called adt7470.
 > +
+
+Keep these in alpha order please.  I wouldn't have noticed except that git
+threw a merge conflict here due to the new abituguru3 driver that is on my
+testing branch.
+
 >  config SENSORS_AD7418
 >  	tristate "Analog Devices AD7416, AD7417 and AD7418"
 >  	depends on I2C && EXPERIMENTAL
@@ -69,6 +62,9 @@ Hans
 >  
 >  obj-$(CONFIG_SENSORS_ABITUGURU)	+= abituguru.o
 > +obj-$(CONFIG_SENSORS_ADT7470)	+= adt7470.o
+
+Move this into alpha order as well.
+
 >  obj-$(CONFIG_SENSORS_AD7418)	+= ad7418.o
 >  obj-$(CONFIG_SENSORS_ADM1021)	+= adm1021.o
 >  obj-$(CONFIG_SENSORS_ADM1025)	+= adm1025.o
@@ -928,6 +924,10 @@ Hans
 > +
 > +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
 > +				     I2C_FUNC_SMBUS_WORD_DATA))
+
+AFAICT, you're not using any SMBus word data transfers, so you should drop
+that.
+
 > +		goto exit;
 > +
 > +	if (!(data = kzalloc(sizeof(struct adt7470_data), GFP_KERNEL))) {
@@ -986,6 +986,9 @@ Hans
 > +			goto exit_remove;
 > +	}
 > +
+
+Please just use sysfs_create_group() here, as seen in many other hwmon drivers.
+
 > +	data->class_dev = hwmon_device_register(&client->dev);
 > +	if (IS_ERR(data->class_dev)) {
 > +		err = PTR_ERR(data->class_dev);
@@ -997,6 +1000,9 @@ Hans
 > +exit_remove:
 > +	for (i = 0; i < ARRAY_SIZE(adt7470_attr); i++)
 > +		device_remove_file(&client->dev, &adt7470_attr[i].dev_attr);
+
+Likewise sysfs_remove_group().
+
 > +	i2c_detach_client(client);
 > +exit_free:
 > +	kfree(data);
@@ -1012,6 +1018,9 @@ Hans
 > +	hwmon_device_unregister(data->class_dev);
 > +	for (i = 0; i < ARRAY_SIZE(adt7470_attr); i++)
 > +		device_remove_file(&client->dev, &adt7470_attr[i].dev_attr);
+
+Ditto.
+
 > +	i2c_detach_client(client);
 > +	kfree(data);
 > +	return 0;
@@ -1033,15 +1042,12 @@ Hans
 > +
 > +module_init(adt7470_init);
 > +module_exit(adt7470_exit);
-> 
-> 
-> ------------------------------------------------------------------------
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
+Thanks & regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
 
 _______________________________________________
