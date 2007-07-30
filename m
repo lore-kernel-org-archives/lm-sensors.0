@@ -1,66 +1,38 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Mon, 30 Jul 2007 19:26:09 +0000
+From: Vadim Zeitlin <vadim@zeitlins.org>
+Date: Mon, 30 Jul 2007 21:41:06 +0000
 Subject: Re: [lm-sensors] [PATCH] v1 Intel FB-DIMM AMB temperature sensor
-Message-Id: <20070730192606.GD2795@tree.beaverton.ibm.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============4872004999046760103=="
+Message-Id: <E1IFd2l-0007oU-Hv@teufli.physik.fu-berlin.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070713014814.GS3435@tree.beaverton.ibm.com>
 In-Reply-To: <20070713014814.GS3435@tree.beaverton.ibm.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Mon, 30 Jul 2007 12:26:09 -0700 "Darrick J. Wong" <djwong@us.ibm.com> wrote:
 
---===============4872004999046760103==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PEIAKu/WMn1b1Hv9"
-Content-Disposition: inline
+DJW> On Sun, Jul 29, 2007 at 11:38:40PM -0400, Mark M. Hoffman wrote:
+DJW> 
+DJW> > Um, I can't find Vadim's patch - it doesn't look like it ever hit the list.
+DJW> > 
+DJW> > 1) Could one of you please roll the original+fix into a single patch and resend?
+DJW> 
+DJW> I can't combine them due to restrictions from IBM legal.  However, that
+DJW> doesn't stop me from sending you a URL to Vadim's patch:
+DJW> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020459.html
+DJW> 
+DJW> (The patch lacks a Signed-off-by tag, which is why I can't touch it.)
 
+ I'm sorry, I didn't think it was worth doing it for such a trivial patch,
+do you need me to resend it with the extra "Signed off by" line or is it
+already ok?
 
---PEIAKu/WMn1b1Hv9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+ Thanks,
+VZ
 
-On Sun, Jul 29, 2007 at 11:38:40PM -0400, Mark M. Hoffman wrote:
-
-> Um, I can't find Vadim's patch - it doesn't look like it ever hit the lis=
-t.
->=20
-> 1) Could one of you please roll the original+fix into a single patch and =
-resend?
-
-I can't combine them due to restrictions from IBM legal.  However, that
-doesn't stop me from sending you a URL to Vadim's patch:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020459.html
-
-(The patch lacks a Signed-off-by tag, which is why I can't touch it.)
-
---D
-
---PEIAKu/WMn1b1Hv9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD4DBQFGrjtOa6vRYYgWQuURAlQsAKCprxCwe0HLcPlhUdKheuVcXOGO4gCY9wxw
-hH63nGzwdvjt+GEAi1CXHQ==
-=nTdO
------END PGP SIGNATURE-----
-
---PEIAKu/WMn1b1Hv9--
-
-
---===============4872004999046760103==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============4872004999046760103==--
