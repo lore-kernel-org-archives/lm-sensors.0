@@ -1,32 +1,46 @@
-From: Till Harbaum / Lists <lists@harbaum.org>
-Date: Thu, 19 Jul 2007 17:27:32 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Mon, 30 Jul 2007 03:12:47 +0000
 Subject: Re: [lm-sensors] No longer reviewing random hwmon patches
-Message-Id: <200707191927.32781.lists@harbaum.org>
+Message-Id: <20070730031247.GM3796@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070718201409.1c1077d0@hyperion.delvare>
 In-Reply-To: <20070718201409.1c1077d0@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi all:
 
-Am Mittwoch 18 Juli 2007 schrieb Hans-J=FCrgen Koch:
-> I absolutely agree.
-I just wanted to say: Me too!
+* Roger Lucas <roger@planbit.co.uk> [2007-07-18 20:57:31 +0100]:
+> I just hope that lm-sensors' code quality doesn't slowly degrade over time if
+> the review process is relaxed.  Please Mark H., follow Jean's prior practice
+> at enforcing thorough reviews before accepting code into the kernel.
 
-I really appreciated your feedback and it was nice to get some
-tipps from someone who knows this stuff better than me. That
-indeed gave me the feeling that i wasn't submitting code
-that included unnecessary glitches.
+I intend to do that, but I will need help.  At this time, there is no way I
+could review all patches to the level of detail that Jean did and still does.
 
-I am sure there are far more people appreciating your work than=20
-criticising it. The people complaining are usually louder
-than the ones feeling comfortable with your work, so please
-don't listen too much to these guys.
+Also btw: I may be a bit less picky about some things than Jean... but I don't
+want to hear whining about his or anyone else's reviews.  As a rule, each
+review comment should be addressed as if the reviewer were ultimately the one
+making the merge decision.  If an author flatly rejects a review, it should be
+expected that the patch will drop to the end of my queue, if it's not deleted
+outright - no matter who reviewed it.
 
-Till
+There is a threshold beyond which I would theoretically step in and ask a
+reviewer to back off - but it hasn't nearly been reached by Jean or anyone
+else.
+
+So, thank you to everyone who has stepped up with some reviews since I took
+over.  When I'm more comfortable with the process and we've killed the patch
+backlog, I will be doing more (but probably not all) reviews myself.  In the
+meantime, I'm leaning on the rest of you.
+
+Thanks & regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
 
 _______________________________________________
