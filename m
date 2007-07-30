@@ -1,29 +1,33 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sat, 28 Jul 2007 18:54:30 +0000
+Date: Mon, 30 Jul 2007 08:20:45 +0000
 Subject: [lm-sensors] FSC Scylla (and Poseidon,
-Message-Id: <46AB90E6.4000801@hhs.nl>
+Message-Id: <46AD9F5D.2030601@hhs.nl>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------050809070706070404070708"
+Content-Type: multipart/mixed; boundary="------------050302080809040902050600"
 List-Id: <lm-sensors.vger.kernel.org>
+References: <46AB90E6.4000801@hhs.nl>
+In-Reply-To: <46AB90E6.4000801@hhs.nl>
 To: lm-sensors@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------050809070706070404070708
+--------------050302080809040902050600
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
+Note: new version the previous one had a nasty bug, please use this one.
+
 Hi All,
 
-As some of you know I've been working on a unified driver for the Fujitsu 
-Siemens hwmon chip family. Attached is the resulting driver. I would be much 
+As some of you know I've been working on a unified driver for the Fujitsu
+Siemens hwmon chip family. Attached is the resulting driver. I would be much
 obliged if some of you could test this.
 
-To test drop the attached fscscy.c and Makefile in a dir, type make and then 
+To test drop the attached fscscy.c and Makefile in a dir, type make and then
 insmod fscscy.ko
 
-The easiest way to then read the settings is by using the 3.0 sensors branch, 
+The easiest way to then read the settings is by using the 3.0 sensors branch,
 which comes with dyn chipsupport:
-remove your current lm-sensors userspace package (for example on Fedora do rpm 
+remove your current lm-sensors userspace package (for example on Fedora do rpm
 -e lm_sensors --nodeps)
 svn checkout http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0
 cd lm-sensors-3.0.0
@@ -31,23 +35,24 @@ make
 sudo make install
 sudo ldconfig
 
-lm_sensors-2.x will not work, and probably do funky things as it expects the 
-old very different 2.4 fscscy driver, so resuing the fscscy name wasn't a good 
+lm_sensors-2.x will not work, and probably do funky things as it expects the
+old very different 2.4 fscscy driver, so resuing the fscscy name wasn't a good
 idea after all, suggestions welcome.
 
-Note 1: I have not been able to test this driver myself as I currently do not 
-have access to the fscher equiped machine I was using, I will get access to 
+Note 1: I have not been able to test this driver myself as I currently do not
+have access to the fscher equiped machine I was using, I will get access to
 that again in a few weeks, but for now I just hope this works.
 
-Note 2: I will be away on vacation for 6 days starting coming monday, so I will 
-be reading my mail tomorrow (Sunday) and maybe monday morning and then things 
+Note 2: I will be away on vacation for 6 days starting coming monday, so I will
+be reading my mail tomorrow (Sunday) and maybe monday morning and then things
 will go quiet for 6 days.
 
 Thanks for testing & Regards,
 
 Hans
 
---------------050809070706070404070708
+
+--------------050302080809040902050600
 Content-Type: text/plain;
  name="Makefile"
 Content-Transfer-Encoding: 7bit
@@ -62,8 +67,9 @@ all:
 clean:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
 
---------------050809070706070404070708
-Content-Type: text/x-csrc;
+
+--------------050302080809040902050600
+Content-Type: text/plain;
  name="fscscy.c"
 Content-Transfer-Encoding: 8bit
 Content-Disposition: inline;
@@ -298,7 +304,7 @@ static ssize_t store_temp_max(struct device *dev, struct device_attribute
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct fscscy_data *data = i2c_get_clientdata(to_i2c_client(dev));
-	long v = simple_strtoul(buf, NULL, 10) / 1000;
+	long v = simple_strtol(buf, NULL, 10) / 1000;
 
 	SENSORS_LIMIT(v, -128, 127);
 	v += 128;
@@ -604,6 +610,9 @@ static int fscscy_detect(struct i2c_adapter *adapter, int address, int kind)
 	} else
 		data->kind = kind;
 
+	/* i2c kind goes from 1-4, we want from 0-3 to address arrays */
+	data->kind--;
+
 	/* Tell the I2C layer a new client has arrived */
 	if ((err = i2c_attach_client(new_client)))
 		goto exit_free;
@@ -779,7 +788,7 @@ MODULE_LICENSE("GPL");
 module_init(fscscy_init);
 module_exit(fscscy_exit);
 
---------------050809070706070404070708
+--------------050302080809040902050600
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -789,4 +798,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------050809070706070404070708--
+--------------050302080809040902050600--
