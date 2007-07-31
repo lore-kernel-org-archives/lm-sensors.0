@@ -1,65 +1,86 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 31 Jul 2007 13:06:54 +0000
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Tue, 31 Jul 2007 15:24:45 +0000
 Subject: Re: [lm-sensors] [PATCH] v3 of a adt7470 driver
-Message-Id: <20070731130654.GA3747@jupiter.solarsys.private>
+Message-Id: <20070731152444.GE2795@tree.beaverton.ibm.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============3739280823225938428=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070711183825.GP3435@tree.beaverton.ibm.com>
 In-Reply-To: <20070711183825.GP3435@tree.beaverton.ibm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Darrick:
 
-* Darrick J. Wong <djwong@us.ibm.com> [2007-07-30 11:11:39 -0700]:
-> On Mon, Jul 30, 2007 at 12:11:22AM -0400, Mark M. Hoffman wrote:
-> > > +	/* Register sysfs hooks */
-> > > +	for (i = 0; i < ARRAY_SIZE(adt7470_attr); i++) {
-> > > +		err = device_create_file(&client->dev,
-> > > +					 &adt7470_attr[i].dev_attr);
-> > > +		if (err)
-> > > +			goto exit_remove;
-> > > +	}
-> > > +
-> > 
-> > Please just use sysfs_create_group() here, as seen in many other hwmon drivers.
-> 
-> I _removed_ the giant static array of struct attribute and the
-> sysfs_create_group call at Mr. deGoede's suggestion:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020316.html
-> 
-> I'd rather not spend time on busy work re-adding all of that...
+--===============3739280823225938428==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FkmkrVfFsRoUs1wW"
+Content-Disposition: inline
 
-My bad.  I see you sent a patch for it anyway, so I'll leave it up to you.
 
-> (I'll implement the rest of your suggestions and send out another
-> patch.)
+--FkmkrVfFsRoUs1wW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Could you please just respin a single patch to add the driver with all
-cleanups, against v2.6.23-rc1?  What you've given me at this point is...
+On Tue, Jul 31, 2007 at 09:06:54AM -0400, Mark M. Hoffman wrote:
+> My bad.  I see you sent a patch for it anyway, so I'll leave it up to you.
 
-1) adt7470 v3 against v2.6.22
+sparse complains about ARRAY_SIZE() so your method of structuring code
+is less likely to raise eyebrows. :)
+>=20
+> Could you please just respin a single patch to add the driver with all
+> cleanups, against v2.6.23-rc1?  What you've given me at this point is...
+>=20
+> 1) adt7470 v3 against v2.6.22
+>=20
+> 	(you must have done a merge up to v2.6.23-rc1 here)
+> 	=09
+> 2) cleanups against #1 + v2.6.23-rc1
+>=20
+> 3) etc.
+>=20
+> I shouldn't have to reproduce that merge here.
+>=20
+> I'm sorry if you feel like I'm being a PITA here... but it's not my prima=
+ry
+> goal as a volunteer to optimize the use of your (employer's) time.
 
-	(you must have done a merge up to v2.6.23-rc1 here)
-		
-2) cleanups against #1 + v2.6.23-rc1
+Merging a patchset isn't a problem; I can take care of that pretty
+quickly.  However, I thought that it would be a good idea to have a
+public airing of those last three patches individually.
 
-3) etc.
+Sorry I came off a bit more harshly than I intended in that last email.
+My apologies.
 
-I shouldn't have to reproduce that merge here.
+Also, I think git has the ability to import a patchset from a series of
+emails in mbox format.  That said, I know a lot of new drivers tend to
+show up as a giant block of code and not a patch stream. :)
 
-I'm sorry if you feel like I'm being a PITA here... but it's not my primary
-goal as a volunteer to optimize the use of your (employer's) time.
+--D
 
-Regards,
+--FkmkrVfFsRoUs1wW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
+iD8DBQFGr1Q8a6vRYYgWQuURAjFyAJ4jdEGuGYXcdUuGwflRHE3FDlq3LgCfXjat
+FQutTTsSEfntqeiVhCDxqNc=
+=8dDv
+-----END PGP SIGNATURE-----
+
+--FkmkrVfFsRoUs1wW--
+
+
+--===============3739280823225938428==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============3739280823225938428==--
