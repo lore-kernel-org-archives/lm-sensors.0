@@ -1,74 +1,65 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Mon, 30 Jul 2007 18:11:39 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Tue, 31 Jul 2007 13:06:54 +0000
 Subject: Re: [lm-sensors] [PATCH] v3 of a adt7470 driver
-Message-Id: <20070730181138.GB29140@tree.beaverton.ibm.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2963608990772009167=="
+Message-Id: <20070731130654.GA3747@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070711183825.GP3435@tree.beaverton.ibm.com>
 In-Reply-To: <20070711183825.GP3435@tree.beaverton.ibm.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Darrick:
 
---===============2963608990772009167==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BwCQnh7xodEAoBMC"
-Content-Disposition: inline
+* Darrick J. Wong <djwong@us.ibm.com> [2007-07-30 11:11:39 -0700]:
+> On Mon, Jul 30, 2007 at 12:11:22AM -0400, Mark M. Hoffman wrote:
+> > > +	/* Register sysfs hooks */
+> > > +	for (i = 0; i < ARRAY_SIZE(adt7470_attr); i++) {
+> > > +		err = device_create_file(&client->dev,
+> > > +					 &adt7470_attr[i].dev_attr);
+> > > +		if (err)
+> > > +			goto exit_remove;
+> > > +	}
+> > > +
+> > 
+> > Please just use sysfs_create_group() here, as seen in many other hwmon drivers.
+> 
+> I _removed_ the giant static array of struct attribute and the
+> sysfs_create_group call at Mr. deGoede's suggestion:
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020316.html
+> 
+> I'd rather not spend time on busy work re-adding all of that...
 
+My bad.  I see you sent a patch for it anyway, so I'll leave it up to you.
 
---BwCQnh7xodEAoBMC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> (I'll implement the rest of your suggestions and send out another
+> patch.)
 
-On Mon, Jul 30, 2007 at 12:11:22AM -0400, Mark M. Hoffman wrote:
-> > +	/* Register sysfs hooks */
-> > +	for (i =3D 0; i < ARRAY_SIZE(adt7470_attr); i++) {
-> > +		err =3D device_create_file(&client->dev,
-> > +					 &adt7470_attr[i].dev_attr);
-> > +		if (err)
-> > +			goto exit_remove;
-> > +	}
-> > +
->=20
-> Please just use sysfs_create_group() here, as seen in many other hwmon dr=
-ivers.
+Could you please just respin a single patch to add the driver with all
+cleanups, against v2.6.23-rc1?  What you've given me at this point is...
 
-I _removed_ the giant static array of struct attribute and the
-sysfs_create_group call at Mr. deGoede's suggestion:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020316.html
+1) adt7470 v3 against v2.6.22
 
-I'd rather not spend time on busy work re-adding all of that...
+	(you must have done a merge up to v2.6.23-rc1 here)
+		
+2) cleanups against #1 + v2.6.23-rc1
 
-(I'll implement the rest of your suggestions and send out another
-patch.)
+3) etc.
 
---D
+I shouldn't have to reproduce that merge here.
 
---BwCQnh7xodEAoBMC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+I'm sorry if you feel like I'm being a PITA here... but it's not my primary
+goal as a volunteer to optimize the use of your (employer's) time.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+Regards,
 
-iD8DBQFGrinaa6vRYYgWQuURAgZrAJ9nfHvceciJQ2URsNtd7Iy36LfglQCfS1tq
-rpEWdNkgOgp4cIYBxqQCbmk=
-=Y0K7
------END PGP SIGNATURE-----
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
---BwCQnh7xodEAoBMC--
-
-
---===============2963608990772009167==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2963608990772009167==--
