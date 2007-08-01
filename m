@@ -1,32 +1,88 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 27 Aug 2007 08:17:14 +0000
-Subject: Re: [lm-sensors] [PATCH] Allow writing of negative trigger
-Message-Id: <20070827101714.53f2106e@hyperion.delvare>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Wed, 01 Aug 2007 01:08:25 +0000
+Subject: [lm-sensors] [GIT PATCH] hwmon updates against ~v2.6.23-rc1-git8
+Message-Id: <20070801010825.GC3747@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070816081353.GF10132@tweety>
-In-Reply-To: <20070816081353.GF10132@tweety>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Hi Mark,
+Hi Linus:
 
-On Sun, 26 Aug 2007 14:50:17 -0400, Mark M. Hoffman wrote:
-> Hi Jean, Christian:
-> 
-> * Jean Delvare <khali@linux-fr.org> [2007-08-16 11:40:10 +0200]:
-> > I retested w83627ehf and it's now OK for all temperature channels. I
-> > also tested adm1021, successfully. I can't test lm77 nor lm93 but the
-> > code looks right.
-> 
-> There's always i2c-stub, but yeah, it looks OK to me too.
+Please pull from:
+	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git release
 
-Unfortunately, I have neither lm77 nor lm93 dumps to load i2c-stub
-with. If anyone has such dumps and could share them...
+You'll get a handful of cleanups and bugfixes (including a couple that fix
+regressions since 2.6.22).  The Macbook gets some additional sensors, and
+there's also one brand new driver, which has spent some time in the latest =
+-mm.
 
--- 
-Jean Delvare
+This patch series was also posted to the lm-sensors list yesterday:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020730.html
+
+Thanks & regards,
+
+ Documentation/hwmon/adm1031  |    4 +-
+ Documentation/hwmon/thmc50   |   74 +++++++
+ drivers/hwmon/Kconfig        |   10 +
+ drivers/hwmon/Makefile       |    1 +
+ drivers/hwmon/abituguru3.c   |    5 +-
+ drivers/hwmon/ams/ams-core.c |    1 -
+ drivers/hwmon/applesmc.c     |   14 +-
+ drivers/hwmon/dme1737.c      |    2 +-
+ drivers/hwmon/fscher.c       |    4 +-
+ drivers/hwmon/it87.c         |    2 +-
+ drivers/hwmon/lm78.c         |    2 +-
+ drivers/hwmon/lm90.c         |    2 +-
+ drivers/hwmon/lm93.c         |    2 +-
+ drivers/hwmon/pc87360.c      |    2 +-
+ drivers/hwmon/sis5595.c      |    2 +-
+ drivers/hwmon/smsc47m1.c     |    2 +-
+ drivers/hwmon/thmc50.c       |  440 ++++++++++++++++++++++++++++++++++++++=
+++++
+ drivers/hwmon/via686a.c      |    2 +-
+ drivers/hwmon/vt8231.c       |    4 +-
+ drivers/hwmon/w83627hf.c     |    2 +-
+ 20 files changed, 554 insertions(+), 23 deletions(-)
+ create mode 100644 Documentation/hwmon/thmc50
+ create mode 100644 drivers/hwmon/thmc50.c
+
+Adrian Bunk (1):
+      hwmon: make abituguru3_read_increment_offset() static
+
+Guillaume Chazarain (1):
+      hwmon: Fix regression caused by typo in lm90.c
+
+Hans de Goede (3):
+      hwmon: fix lm78 detection regression
+      hwmon: fscher control update bugfix
+      hwmon: fscher read control bugfix
+
+Hans-J=FCrgen Koch (1):
+      hwmon: fix array overruns in lm93.c
+
+Jean Delvare (2):
+      hwmon: Add missing __devexit tags in various drivers
+      hwmon: (adm1031) Fix broken links in documentation
+
+Jesper Juhl (1):
+      hwmon: clean up duplicate includes
+
+Juerg Haefliger (1):
+      hwmon: fix dme1737 temp fault attribute
+
+Krzysztof Helt (1):
+      hwmon: add support for THMC50 and ADM1022
+
+Martin Szulecki (1):
+      hwmon: (applesmc) add temperature sensors set for Macbook
+
+--=20
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
