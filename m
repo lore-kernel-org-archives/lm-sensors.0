@@ -1,58 +1,44 @@
-From: Axel Thimm <Axel.Thimm@ATrpms.net>
-Date: Wed, 15 Aug 2007 16:51:25 +0000
-Subject: Re: [lm-sensors] #2179: Treat strange fan speed (like 675 000 rpm)
-Message-Id: <20070815165125.GA10629@puariko.nirvana>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2973420634168909815=="
+From: Riku Voipio <riku.voipio@movial.fi>
+Date: Thu, 02 Aug 2007 12:36:27 +0000
+Subject: Re: [lm-sensors] [PATCH] [RESEND #8] f75375s driver
+Message-Id: <46B1CFCB.4070907@movial.fi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2ecba3930708141118t4486af7bo425e1f89a7a1f72e@mail.gmail.com>
-In-Reply-To: <2ecba3930708141118t4486af7bo425e1f89a7a1f72e@mail.gmail.com>
+References: <469F7C18.80200@movial.fi>
+In-Reply-To: <469F7C18.80200@movial.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Mark M. Hoffman wrote:
+> Comments are inline...
+>   
+Thanks for review, fixing most issues was straightforward
+for all except:
+>> +static inline u16 f75375_read16(struct i2c_client *client, u8 reg)
+>> +{
+>> +	return ((i2c_smbus_read_byte_data(client, reg) << 8)
+>> +		| i2c_smbus_read_byte_data(client, reg + 1));
+>> +}
+>> +
+>>     
+>
+> This is horrible hardware design.  A single _read_word_data() would be much
+> better here, but the datasheet apparently doesn't allow for it.  Neither does
+> the datasheet give advice for how to read the word-sized values coherently.
+>
+> E.g. it's common in such situations for the hardware to lock the second byte
+> from updating for some time after the first byte is read.  That's what I was
+> looking for in the datasheet to make sure you did the accesses in the right
+> order.  AFAICT, nothing - so it's possible this thing is inherently racy.
+>
+>   
 
---===============2973420634168909815==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HlL+5n6rz5pIUxbD"
-Content-Disposition: inline
-
-
---HlL+5n6rz5pIUxbD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Aug 14, 2007 at 09:26:06PM +0200, Jean Delvare wrote:
-> Axel, is it possible to remove the Reply-To header from the mails sent
-> by the trac ticket system? It is almost an invitation to do the wrong
-> thing, and that has happened a number of times already.
-
-OK, done!
---=20
-Axel.Thimm at ATrpms.net
-
---HlL+5n6rz5pIUxbD
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iD8DBQFGwy8NQBVS1GOamfERAsKqAJ9nuGeReAjxfBGhu+sM9iDriW5XewCfRsd9
-VKyOVqh5OT9NktZ0EJTAbik=
-=uJPP
------END PGP SIGNATURE-----
-
---HlL+5n6rz5pIUxbD--
-
-
---===============2973420634168909815==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I could use the update_mutex to avoid reading words when they are being
+updated, but that does not protect from the chip modifying the values 
+itself?
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2973420634168909815==--
