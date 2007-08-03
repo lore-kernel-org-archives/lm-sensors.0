@@ -1,156 +1,134 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Tue, 28 Aug 2007 15:07:31 +0000
-Subject: Re: [lm-sensors] dme1737 module
-Message-Id: <191fb4ca0708280807n6f1eb0f1ufacabdd60eb91f7a@mail.gmail.com>
+From: Sebastian Flothow <lists@flothow.de>
+Date: Fri, 03 Aug 2007 21:48:09 +0000
+Subject: [lm-sensors] Andigilog aSC7621 on Intel 975XBX2 - mostly working
+Message-Id: <92c1df30b17dfff3995ea85f5562ddfc@flothow.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
-In-Reply-To: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juergen,
+Hi,
+
+I obtained an Intel 975XBX2 Mainboard a while ago, and finally got 
+round to have a look at the sensors. I'm using the asc7xxx driver I 
+found in the list archives (posted by George T. Joseph in December), 
+which compiles, loads and detects the aSC7621 just fine.
+The machine is equipped with an Intel Core 2 Duo E6600 and is running 
+Gentoo Linux with a Xen-patched 2.6.16.49 kernel (Gentoo package 
+xen-sources-2.6.16.49); sensors is version 2.10.3 with libsensors 
+version 2.10.3.
+
+sensors isn't quite happy though, the output ist just:
+
+| asc7621-i2c-0-2e
+| Adapter: SMBus I801 adapter at 2000
+
+So I suppose it doesn't recognise the aSC7621 as a valid sensor chip, 
+but there doesn't appear to be a --force option or some such to get it 
+to read the values anyway. Any suggestions on this?
+
+Meanwhile, I had a look at the input files in 
+/sys/devices/pci0000:00/0000:00:1f.3/i2c-0/0-002e:
+
+| magrathea 0-002e # grep . *input
+| fan1_input:360
+
+This is the CPU fan (4 wires), reading is correct.
+
+| fan2_input:364
+
+Intel labels this one as 'auxiliary' or 'auxiliary rear' fan, 4 wires, 
+reading correct.
+
+| fan3_input:301
+
+Front fan, 3 wires. The reading sometimes jumps to twice this value, 
+and then back again after a while. I found that this fan will speed up 
+a bit when calling up the hardware monitoring screen in the BIOS, 
+probably because pulse stretching gets enabled, yet it doesn't do so 
+when loading the driver - maybe the driver ought to set some bit for 
+pulse stretching in the aSC7621? The BIOS shows this one with about 840 
+rpm.
+
+| fan4_input:354
+
+Rear fan, 3 wires. Same as fan3, though this one doesn't change its 
+reading when stopping the fan, yet goes to 0 when disconnecting it 
+entirely. However, this likely an issue of the fan (maybe pulses in 
+supply voltage propagating to the tach output). About 720 rpm in BIOS.
+
+Next, the voltages with the corresponding BIOS labels:
+| in0_input:1533
+
+V1.5
+
+| in1_input:1187
+
+Vccp, BIOS says 1.300 though.
+
+| in2_input:3293
+
+V3.3
+
+| in3_input:4986
+
+V5.0
+
+| in4_input:12077
+
+V12.0
+
+Except for Vccp, the readings are close to what the BIOS shows.
 
 
-> So, which version is needed to run the dme1737 on the asus board (Which I=
- think doesnt have the
-> SCH3114 Super I/O chip)?
->
-> debian testing and unstable both have 2.10.4 at the moment, which is the =
-same version as
-> http://www.lm-sensors.org/wiki/Download. Will it be enough to install thi=
-s version?
+| peci_temp1_input:-28481
+| peci_temp2_input:-92501
+| peci_temp3_input:-31110
+| peci_temp4_input:-29297
 
-2.10.4 and kernel 2.6.23 is sufficient if you don't have the sch311x.
+If I'm understanding PECI correctly, these are CPU temperatures 
+relative to the tripping point, and hence negative. Is this correct?
+Assuming it is, 1 2 and 4 seem roughly reasonable (or do they? I ought 
+to look up the 'zero' temperature for the E6600), however, these values 
+don't change at all, even after several days. Is there some way to 
+force a refresh?
+
+Now, time for some cooling spray to locate the other temp sensors...
+
+| temp1_input:33750
+
+This is the CPU temperature. As the aSC7621 has diode inputs, does this 
+mean the CPU has a traditional diode in addition to that PECI stuff?
+The reading is somewhat lower than the BIOS shows, but that may be due 
+to the BIOS code not making use of some power saving features.
+
+| temp2_input:43500
+
+This is the aSC7621 itself, located close to the CPU socket, well 
+within the air flow coming from the CPU heatsink. Reading matches BIOS.
+
+| temp3_input:41750
+
+A diode between the RAM sockets. Matches BIOS.
+
+| temp4_input:0
+
+What's this? According to Documentation/hwmon/asc7xxx the aSC7621 
+supports two remote diodes and its internal one - where is the fourth 
+reading supposed to come from?
 
 
-> By the way: Does anyone know of backports to etch?
+Regards,
+Sebastian
 
-No.
+-- 
+Sebastian Flothow
+sebastian@flothow.de
 
-...juerg
+Because it reverses the logical flow of conversation.
+ > Why is top posting frowned upon?
 
-
-> Juergen
->
->
-> > -----Urspr=FCngliche Nachricht-----
-> > Von: Kushal Koolwal <kushalkoolwal@hotmail.com>
-> > Gesendet: 28.08.07 00:56:24
-> > An:  "Juergen. Bausa" <juergen.bausa@web.de>
-> > CC: <lm-sensors@lm-sensors.org>
-> > Betreff: RE: [lm-sensors] dme1737 module
->
-> Hello,
-> >
-> > Actually I have tried the newest version of lm-sensors on Debian sid an=
-d dme1737 does not show any output for my SCH3114 Super I/O chip.
-> >
-> > I have also opened a ticket for the same last week.
-> >
-> > Here is the URL of the ticket:
-> > http://www.lm-sensors.org/ticket/2243
-> >
-> > Thanks
-> >
-> > Kushal Koolwal
-> >
-> > > Date: Mon, 27 Aug 2007 14:26:16 -0700
-> > > From: juergh@gmail.com
-> > > To: Juergen.Bausa@web.de
-> > > CC: lm-sensors@lm-sensors.org
-> > > Subject: Re: [lm-sensors] dme1737 module
-> > >
-> > > Hi Juergen,
-> > >
-> > >
-> > > > Juerg Haefliger <juergh <at> gmail.com> writes:
-> > > >
-> > > > >
-> > > > > > I own a barebone made by asus which needs the dme1737 module for
-> > > > > > lm-sensors to work correctly. Since it had been included in ker=
-nel
-> > > > > > 2.6.23 and I am running 2.6.18 (from
-> > > > > > debian etch) I was wondering if there is a stand alone version
-> > > > > > of the module, that I could
-> > > > > > compile for my kernel? Is there any way to use it with 2.6.18?
-> > > > >
-> > > > > Copy the file dme1737.c from the 2.6.23 kernel to a temp director=
-y and
-> > > > > create a Makefile in the same directory that contains the followi=
-ng
-> > > > > lines:
-> > > > >
-> > > > > obj-m :=3D dme1737.o
-> > > > > all:
-> > > > > make -C /lib/modules/`uname -r`/build M=3D$(PWD) modules
-> > > > >
-> > > > > Then run 'make' which will compile the module. You also need to h=
-ave
-> > > > > the kernel headers installed to be able to compile.
-> > > > > Additionally, you will also need the latest 'lm-sensors' package
-> > > > > (2.10.4 ) or the dme1737 will not be recognized.
-> > > > >
-> > > >
-> > > > Thanks a lot, the module seems to work fine. I used the newest sens=
-ors-detect
-> > > > and it found out the modules I have to use. However, the output of =
-sensors
-> > > > is quite short:
-> > > >
-> > > > jba@lisa:~$ sensors
-> > > > k8temp-pci-00c3
-> > > > Adapter: PCI adapter
-> > > > Core0 Temp:
-> > > > -1=B0C
-> > > > Core0 Temp:
-> > > > +1=B0C
-> > > > Core1 Temp:
-> > > > +6=B0C
-> > > > Core1 Temp:
-> > > > +6=B0C
-> > > >
-> > > > dme1737-i2c-0-2e
-> > > > Adapter: SMBus nForce2 adapter at 4c00
-> > > >
-> > > > k8temp values are wrong, but that is another problem. But why doent
-> > > > dme1737 display anything? Is it because of the older lm-sensors ver=
-sion in
-> > > > debian (2.10.1-3). Or will it be sufficiant to update the config fi=
-le?
-> > > > If possible I would like to keep the etch version of lm-sensors.
-> > >
-> > > You need a newer lm-sensors. 2.10.1 doesn't know about the dme1737.
-> > > Just updating the config file is not enough.
-> > >
-> > > ...juerg
-> > >
-> > >
-> > > > Juergen
-> > > >
-> > > >
-> > > > _______________________________________________
-> > > > lm-sensors mailing list
-> > > > lm-sensors@lm-sensors.org
-> > > > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> > >
-> > > _______________________________________________
-> > > lm-sensors mailing list
-> > > lm-sensors@lm-sensors.org
-> > > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> >
-> >
-> > -----------------------------------------------------------------
-> > Get news, entertainment and everything you care about at Live.com. Chec=
-k it out!
->
->
-> _____________________________________________________________________
-> Der WEB.DE SmartSurfer hilft bis zu 70% Ihrer Onlinekosten zu sparen!
-> http://smartsurfer.web.de/?mc=100071&distributionid=000000000066
->
->
 
 _______________________________________________
 lm-sensors mailing list
