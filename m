@@ -1,34 +1,117 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 14 Aug 2007 19:31:11 +0000
-Subject: Re: [lm-sensors] #2234: Can Lm-sensors calculate power use?
-Message-Id: <20070814213111.741295d0@hyperion.delvare>
+From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
+Date: Sat, 04 Aug 2007 11:56:31 +0000
+Subject: [lm-sensors] [PATCH] thmc50: individual alarm and fault files
+Message-Id: <46b4696f8c716@wp.pl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="part46b4696f8ee21"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46C1FAB6.9627.200313@localhost>
-In-Reply-To: <46C1FAB6.9627.200313@localhost>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Boyd,
+This is a multi-part message in MIME format.
 
-On Tue, 14 Aug 2007 18:55:50 +0200, Boyd Noorda wrote:
-> I'm quite surprised to find that the tickets are online on the web 
-> site, including E-mail addresses ...
-> This always leads to more spam, often within a day.
-> Could you please refrain from publishing E-mail addresses or construct 
-> an archive bots can't access?
+--part46b4696f8ee21
+Content-Type: text/plain; charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-This is how open software development works. You posted on our public
-website (and right now, to our publicly archived mailing list), you
-published your e-mail address to the public on your own. If you didn't
-want it to be known to the public, then you should have refrained from
-adding it to the support ticket when you created it, sorry.
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
--- 
-Jean Delvare
+This patch adds individual alarm and fault files to
+the thmc50 driver. These sysfs entries are required
+for a new libsensors library.
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+
+
+
+----------------------------------------------------
+Najwa=BFniejsze koncertowe wydarzenie tego lata! METAL HAMMER FESTIVAL
+TOOL, Chris Cornell, Dir en Grey, Coma i inni=20
+12.08.2007 - Katowice, Spodek. Start: godz.: 15:00
+http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Fadv.reklama.wp.pl%2Fas%2Fmetalhammer.=
+html&sid=3D1246
+
+--part46b4696f8ee21
+Content-Type: application/octet-stream; name="thmc50-individual-alarms.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="thmc50-individual-alarms.diff"
+
+RnJvbTogS3J6eXN6dG9mIEhlbHQgPGtyenlzenRvZi5oMUB3cC5wbD4KClRoaXMgcGF0Y2ggYWRk
+cyBpbmRpdmlkdWFsIGFsYXJtIGFuZCBmYXVsdCBmaWxlcyB0bwp0aGUgdGhtYzUwIGRyaXZlci4g
+VGhlc2Ugc3lzZnMgZW50cmllcyBhcmUgcmVxdWlyZWQKZm9yIGEgbmV3IGxpYnNlbnNvcnMgbGli
+cmFyeS4KClNpZ25lZC1vZmYtYnk6IEtyenlzenRvZiBIZWx0IDxrcnp5c3p0b2YuaDFAd3AucGw+
+CgotLS0KCmRpZmYgLXVycCBsaW51eC0yLjYuMjMub2xkL2RyaXZlcnMvaHdtb24vdGhtYzUwLmMg
+bGludXgtMi42LjIzL2RyaXZlcnMvaHdtb24vdGhtYzUwLmMKLS0tIGxpbnV4LTIuNi4yMy5vbGQv
+ZHJpdmVycy9od21vbi90aG1jNTAuYwkyMDA3LTA4LTAyIDEwOjIxOjAwLjAwMDAwMDAwMCArMDIw
+MAorKysgbGludXgtMi42LjIzL2RyaXZlcnMvaHdtb24vdGhtYzUwLmMJMjAwNy0wOC0wMyAyMDo0
+NjozMy4wMDAwMDAwMDAgKzAyMDAKQEAgLTQ2LDYgKzQ2LDExIEBAIEkyQ19DTElFTlRfTU9EVUxF
+X1BBUk0oYWRtMTAyMl90ZW1wMywgIkwKICNkZWZpbmUgVEhNQzUwX1JFR19DT01QQU5ZX0lECQkJ
+MHgzRQogI2RlZmluZSBUSE1DNTBfUkVHX0RJRV9DT0RFCQkJMHgzRgogI2RlZmluZSBUSE1DNTBf
+UkVHX0FOQUxPR19PVVQJCQkweDE5CisvKgorICogV2UgdXNlIG1pcnJvciBzdGF0dXMgcmVnaXN0
+ZXIgZm9yIHJlYWRpbmcgYWxhcm1zCisgKiBzbyBBQ1BJIGNhbiB1c2UgdGhlIHByaW1hcnkgc3Rh
+dHVzIHJlZ2lzdGVyLgorICovCisjZGVmaW5lIFRITUM1MF9SRUdfSU5UUl9NSVJST1IJCQkweDRD
+CiAKIGNvbnN0IHN0YXRpYyB1OCBUSE1DNTBfUkVHX1RFTVBbXSA9IHsgMHgyNywgMHgyNiwgMHgy
+MCB9OwogY29uc3Qgc3RhdGljIHU4IFRITUM1MF9SRUdfVEVNUF9NSU5bXSA9IHsgMHgzQSwgMHgz
+OCwgMHgyQyB9OwpAQCAtNjksNiArNzQsNyBAQCBzdHJ1Y3QgdGhtYzUwX2RhdGEgewogCXM4IHRl
+bXBfbWF4WzNdOwogCXM4IHRlbXBfbWluWzNdOwogCXU4IGFuYWxvZ19vdXQ7CisJdTggYWxhcm1z
+OwogfTsKCiBzdGF0aWMgaW50IHRobWM1MF9hdHRhY2hfYWRhcHRlcihzdHJ1Y3QgaTJjX2FkYXB0
+ZXIgKmFkYXB0ZXIpOwpAQCAtMTgwLDEzICsxODYsNDYgQEAgc3RhdGljIHNzaXplX3Qgc2V0X3Rl
+bXBfbWF4KHN0cnVjdCBkZXZpYwogCXJldHVybiBjb3VudDsKIH0KIAorc3RhdGljIHNzaXplX3Qg
+c2hvd19hbGFybShzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICph
+dHRyLAorCQkJICBjaGFyICpidWYpCit7CisJaW50IGluZGV4ID0gdG9fc2Vuc29yX2Rldl9hdHRy
+KGF0dHIpLT5pbmRleDsKKwlzdHJ1Y3QgdGhtYzUwX2RhdGEgKmRhdGEgPSB0aG1jNTBfdXBkYXRl
+X2RldmljZShkZXYpOworCWludCBhbGFybSA9IGRhdGEtPmFsYXJtczsKKworCWlmIChpbmRleCA9
+PSAxKQorCQlhbGFybSA+Pj0gNTsKKwllbHNlIGlmIChpbmRleCA9PSAyKQorCQlhbGFybSA+Pj0g
+MTsKKworCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiV1XG4iLCBhbGFybSAmIDEpOworfQorCitzdGF0
+aWMgc3NpemVfdCBzaG93X2ZhdWx0KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9h
+dHRyaWJ1dGUgKmF0dHIsCisJCQkgIGNoYXIgKmJ1ZikKK3sKKwlpbnQgaW5kZXggPSB0b19zZW5z
+b3JfZGV2X2F0dHIoYXR0ciktPmluZGV4OworCXN0cnVjdCB0aG1jNTBfZGF0YSAqZGF0YSA9IHRo
+bWM1MF91cGRhdGVfZGV2aWNlKGRldik7CisJaW50IGZhdWx0ID0gZGF0YS0+YWxhcm1zID4+IDI7
+CisKKwlpZiAoaW5kZXggPT0gMSkKKwkJZmF1bHQgPj49IDU7CisKKwlyZXR1cm4gc3ByaW50Zihi
+dWYsICIldVxuIiwgZmF1bHQgJiAxKTsKK30KKwogI2RlZmluZSB0ZW1wX3JlZyhvZmZzZXQpCQkJ
+CQkJXAogc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUih0ZW1wIyNvZmZzZXQjI19pbnB1dCwgU19J
+UlVHTywgc2hvd190ZW1wLAlcCiAJCQlOVUxMLCBvZmZzZXQgLSAxKTsJCQkJXAogc3RhdGljIFNF
+TlNPUl9ERVZJQ0VfQVRUUih0ZW1wIyNvZmZzZXQjI19taW4sIFNfSVJVR08gfCBTX0lXVVNSLAlc
+CiAJCQlzaG93X3RlbXBfbWluLCBzZXRfdGVtcF9taW4sIG9mZnNldCAtIDEpOwlcCiBzdGF0aWMg
+U0VOU09SX0RFVklDRV9BVFRSKHRlbXAjI29mZnNldCMjX21heCwgU19JUlVHTyB8IFNfSVdVU1Is
+CVwKLQkJCXNob3dfdGVtcF9tYXgsIHNldF90ZW1wX21heCwgb2Zmc2V0IC0gMSk7CisJCQlzaG93
+X3RlbXBfbWF4LCBzZXRfdGVtcF9tYXgsIG9mZnNldCAtIDEpOwlcCitzdGF0aWMgU0VOU09SX0RF
+VklDRV9BVFRSKHRlbXAjI29mZnNldCMjX2FsYXJtLCBTX0lSVUdPLAkJXAorCQkJc2hvd19hbGFy
+bSwgTlVMTCwgb2Zmc2V0IC0gMSk7CisKK3N0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDJf
+ZmF1bHQsIFNfSVJVR08sIHNob3dfZmF1bHQsIE5VTEwsIDEpOworc3RhdGljIFNFTlNPUl9ERVZJ
+Q0VfQVRUUih0ZW1wM19mYXVsdCwgU19JUlVHTywgc2hvd19mYXVsdCwgTlVMTCwgMik7CiAKIHRl
+bXBfcmVnKDEpOwogdGVtcF9yZWcoMik7CkBAIC0yMDAsOSArMjM5LDEyIEBAIHN0YXRpYyBzdHJ1
+Y3QgYXR0cmlidXRlICp0aG1jNTBfYXR0cmlidXQKIAkmc2Vuc29yX2Rldl9hdHRyX3RlbXAxX21h
+eC5kZXZfYXR0ci5hdHRyLAogCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDFfbWluLmRldl9hdHRyLmF0
+dHIsCiAJJnNlbnNvcl9kZXZfYXR0cl90ZW1wMV9pbnB1dC5kZXZfYXR0ci5hdHRyLAorCSZzZW5z
+b3JfZGV2X2F0dHJfdGVtcDFfYWxhcm0uZGV2X2F0dHIuYXR0ciwKIAkmc2Vuc29yX2Rldl9hdHRy
+X3RlbXAyX21heC5kZXZfYXR0ci5hdHRyLAogCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDJfbWluLmRl
+dl9hdHRyLmF0dHIsCiAJJnNlbnNvcl9kZXZfYXR0cl90ZW1wMl9pbnB1dC5kZXZfYXR0ci5hdHRy
+LAorCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDJfYWxhcm0uZGV2X2F0dHIuYXR0ciwKKwkmc2Vuc29y
+X2Rldl9hdHRyX3RlbXAyX2ZhdWx0LmRldl9hdHRyLmF0dHIsCiAJJnNlbnNvcl9kZXZfYXR0cl9w
+d20xLmRldl9hdHRyLmF0dHIsCiAJJnNlbnNvcl9kZXZfYXR0cl9wd20xX21vZGUuZGV2X2F0dHIu
+YXR0ciwKIAlOVUxMCkBAIC0yMTcsNiArMjU5LDggQEAgc3RhdGljIHN0cnVjdCBhdHRyaWJ1dGUg
+KmFkbTEwMjJfYXR0cmlidQogCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDNfbWF4LmRldl9hdHRyLmF0
+dHIsCiAJJnNlbnNvcl9kZXZfYXR0cl90ZW1wM19taW4uZGV2X2F0dHIuYXR0ciwKIAkmc2Vuc29y
+X2Rldl9hdHRyX3RlbXAzX2lucHV0LmRldl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl90
+ZW1wM19hbGFybS5kZXZfYXR0ci5hdHRyLAorCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDNfZmF1bHQu
+ZGV2X2F0dHIuYXR0ciwKIAlOVUxMCiB9OwogCkBAIC00MTQsNiArNDU4LDggQEAgc3RhdGljIHN0
+cnVjdCB0aG1jNTBfZGF0YSAqdGhtYzUwX3VwZGF0ZQogCQl9CiAJCWRhdGEtPmFuYWxvZ19vdXQg
+PQogCQkgICAgaTJjX3NtYnVzX3JlYWRfYnl0ZV9kYXRhKGNsaWVudCwgVEhNQzUwX1JFR19BTkFM
+T0dfT1VUKTsKKwkJZGF0YS0+YWxhcm1zID0KKwkJICAgIGkyY19zbWJ1c19yZWFkX2J5dGVfZGF0
+YShjbGllbnQsIFRITUM1MF9SRUdfSU5UUl9NSVJST1IpOwogCQlkYXRhLT5sYXN0X3VwZGF0ZWQg
+PSBqaWZmaWVzOwogCQlkYXRhLT52YWxpZCA9IDE7CiAJfQo=
+
+--part46b4696f8ee21
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--part46b4696f8ee21--
+
+
