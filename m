@@ -1,45 +1,57 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 30 Aug 2007 09:57:43 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Add power meters to
-Message-Id: <20070830115743.4dd8b2d5@hyperion.delvare>
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Date: Sun, 05 Aug 2007 11:20:48 +0000
+Subject: [lm-sensors] 2.6.23-rc1 regression: hwmon/w83627ehf: wrong fan speed
+Message-Id: <46B5B290.4040907@s5r6.in-berlin.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070827211446.GG32667@tree.beaverton.ibm.com>
-	<20070828015029.GA10107@khazad-dum.debian.net>
-	<20070828131942.18449886@hyperion.delvare>
-	<20070828164440.GL32667@tree.beaverton.ibm.com>
-	<20070829111052.503a73a5@hyperion.delvare>
-	<20070829145002.GQ32667@tree.beaverton.ibm.com>
-In-Reply-To: <20070829145002.GQ32667@tree.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Darrick J. Wong" <djwong@us.ibm.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Mark M. Hoffman" <mhoffman@lightlink.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org, "Mark M. Hoffman" <mhoffman@lightlink.com>, Jean Delvare <khali@linux-fr.org>
 
-Hi Darrick,
+Now that I booted from 2.6.22-rc5 to 2.6.23-rc2 I noticed that ksensors
+displayed 1/16 of the actual speed of the CPU fan (correct is ca. 1400
+RPM under light load) and 0 for the case fan (correct is ca. 480 RPM
+under light load).
 
-On Wed, 29 Aug 2007 07:50:03 -0700, Darrick J. Wong wrote:
-> On Wed, Aug 29, 2007 at 11:10:52AM +0200, Jean Delvare wrote:
-> 
-> > I'm not sure if we want these "historical" files. We don't have them for
-> > the other input types, and I believe that it's not the driver's job to
-> > compute and export these values. If anyone cares about the history of
-> 
-> In the case of ibmpex, it is the _hardware_ that computes the historical
-> data; the driver merely exports what it sees.
+I reverted patch
+	hwmon/w83627ehf: No need to initialize fan_min
+and the behaviour changed as follows:  ksensors displays the correct CPU
+fan speed when loaded for the first time after the w83627ehf was loaded,
+then drops to 1/16th the next time it refreshes the display.  (I
+configured 30s update interval in ksensors.)  But the case fan's speed
+is now correctly displayed all the time.  Ksensors' fan speed
+multipliers are configured as 1.
 
-OK, that's a bit different then, but I'm still not sure that there is
-much value in exporting these values in sysfs, in particular if there
-is no way to reset them.
+I then also reverted
+	hwmon/w83627ehf: Be quiet when no chip is found
+	hwmon/w83627ehf: Export the thermal sensor types
+	hwmon/w83627ehf: Enable VBAT monitoring
+	hwmon/w83627ehf: Add support for the VID inputs
+	hwmon/w83627ehf: Fix timing issues
+	hwmon/w83627ehf: Add error messages for two error cases
+one after another but it didn't change anything.  More surprisingly, if
+I put all patches including "No need to initialize fan_min" back in, the
+behaviour remains like after referting that single patch, i.e. wrong CPU
+fan speed after first display update, correct case fan speed.  I didn't
+reboot between tests though, I only unloaded and reloaded w83627ehf.
 
-I am also not happy with the names you proposed: power1_max_input and
-power1_min_input are somewhat confusing IMHO, I'd suggest
-power1_input_highest and power1_input_lowest to make them clearly
-different from the min and max limits we have for other sensor types.
-If we have them at all, of course.
+I wasn't able to revert
+	hwmon/w83627ehf: Convert to a platform driver
+to something that compiles but I didn't try very hard.
 
+Kernel messages when I load the drivers:
+w83627ehf: unsupported chip ID: 0xffff
+w83627ehf: Found W83627EHG chip at 0x290
+The former message is normally suppressed by patch "Be quiet when no
+chip is found".  Mainboard is an MSI 945GT Speedster-A4R, userland is
+Gentoo's lm_sensors-2.10.1 and ksensors-0.7.3.
+
+Booting back into 2.6.22-rc5 (which seems identical with 2.6.22 as far
+as w83627ehf is concerned) brings back the correct fan speeds.
 -- 
-Jean Delvare
+Stefan Richter
+-===-=-== =--- --=-http://arcgraph.de/sr/
 
 _______________________________________________
 lm-sensors mailing list
