@@ -1,7 +1,7 @@
 From: Rudolf Marek <r.marek@assembler.cz>
-Date: Sun, 05 Aug 2007 08:41:45 +0000
+Date: Sun, 05 Aug 2007 08:43:52 +0000
 Subject: Re: [lm-sensors] Hardware monitoring on Asus A6JM laptop
-Message-Id: <46B58D49.6010900@assembler.cz>
+Message-Id: <46B58DC8.3040809@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46B395DF.30504@free.fr>
 In-Reply-To: <46B395DF.30504@free.fr>
