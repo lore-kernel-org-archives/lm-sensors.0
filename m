@@ -1,29 +1,19 @@
-From: joe@perches.com
-Date: Mon, 13 Aug 2007 06:22:20 +0000
-Subject: [lm-sensors] [PATCH] [30/2many] MAINTAINERS - ADM1029 HARDWARE
-Message-Id: <46bff89c.FBiaofxrQB6NbVOc%joe@perches.com>
+From: Brett Beach <bbeach@ciprico.com>
+Date: Tue, 07 Aug 2007 13:54:44 +0000
+Subject: [lm-sensors] PCA954x chip driver
+Message-Id: <loom.20070807T154944-400@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, corentin.labbe@geomatys.fr, akpm@linux-foundation.org
+To: lm-sensors@vger.kernel.org
 
-Add file pattern to MAINTAINER entry
+Can anyone tell me the state of this driver.  I do not have the part (9544A) to
+try at this time.  It looks complete and implements a virtual bus that
+represents each of the muxed busses.  Does the virtual bus mechanism work?  I
+assume that after this driver is started a sensors-detect pass would find
+additional busses?
 
-Signed-off-by: Joe Perches <joe@perches.com>
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 91bc5cd..641cebb 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -314,6 +314,7 @@ P:	Corentin Labbe
- M:	corentin.labbe@geomatys.fr
- L:	lm-sensors@lm-sensors.org
- S:	Maintained
-+F:	drivers/hwmon/adm1029.c
- 
- ADT746X FAN DRIVER
- P:	Colin Leroy
 
 _______________________________________________
 lm-sensors mailing list
