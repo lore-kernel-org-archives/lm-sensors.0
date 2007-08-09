@@ -1,109 +1,259 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date: Wed, 01 Aug 2007 17:52:24 +0000
-Subject: Re: [lm-sensors] Thinkpad ACPI "hwmon" driver needs libsensors
-Message-Id: <20070801175224.GA4516@khazad-dum.debian.net>
+From: =?UTF-8?Q?czezz?= <czezz@o2.pl>
+Date: Thu, 09 Aug 2007 08:00:07 +0000
+Subject: [lm-sensors] =?utf-8?q?lm=5Fsensors_-_What_am_I_doinng_wrong_=3F?=
+Message-Id: <4fe21272.9116f6b.46bac987.27ae8@o2.pl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 29 Jul 2007, Hans de Goede wrote:
-> I just received this bug report:
-> https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id%0013
->
-> This is caused because the thinkpad_acpi driver now exports its sensors 
-> through the standard hwmon interface, while libsensors does not know how to 
-> handle them  (for now).
+Hi everyone.
+Hope thi is good place to post that.
 
-Yeah.  I had to choose between adding support for current libsensors, and
-improving hot key support a great deal in thinkpad-acpi.  Since AFAIK the
-forthcoming new libsensors already knows how to deal with generic hwmon
-interfaces, I decided to priorize work on the hot key support.
+What I am trying to do is run lm_sensors on Slackware 12 - no success so far :(.
+With Slackware 12 I'm using binary packages lm_sensors-2.10.3-i486-1 (instead of compiling sources)
+Hardware that Im trying to run on lm_sensors is - Laptop HP Omnibook 510.
 
-> As already said in various posts I'll be away on vacation for 6 days, after 
-> that I will start writing libsensors support for the thinkpad_acpi "chip" 
-> to resolve this issue. If anyone starts work on this, or has already 
-> started please let me know ASAP to stop us from doing double work.
+I have 2 kernels:
+- default Slackware 12 kernel - vmlinuz-huge-smp-2.6.21.5-smp
+- compilled by my self with taht requirements http://www.lm-sensors.org/wiki/Kernel2.6
 
-Feel free to add support to libsensors 2.x for thinkpad-acpi, I don't
-believe anyone else is working on it.  At least, nobody told me about it,
-yet.  If 3.x needs some thinkpad-acpi specific stuff, feel free to do it as
-well.
 
-You can probably do it better than I do, I don't know lm-sensors that well.
+This is what happaned when I start "sensors-detect"
+It looks good for me:
 
-And if you have any doubts about something in thinkpad-acpi, or if you find
-any bugs in the thinkpad-acpi side, drop me a note and I will be on it as
-soon as possible.
+====================================
+root@hp:/# sensors-detect
+# sensors-detect revision 4348 (2007-03-18 02:45:21 -0700)
 
-> Also a word to the person implementing these changes in the thinkpad_acpi 
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
 
-That would be me.
+We can start with probing for (PCI) I2C or SMBus adapters.
+Do you want to probe now? (YES/no):
+Probing for PCI bus adapters...
+Use driver `i2c-i801' for device 0000:00:1f.3: Intel 82801CA/CAM ICH3
 
-> driver, the conversion to the standard hwmon interface is a good thing! But 
-> you  should have kept the old interface for backward compatibility. You 
-> cannot just go and remove kernel <-> userland interfaces which have been in 
-> active use for quite some time!
+We will now try to load each adapter module in turn.
+Module `i2c-i801' already loaded.
+If you have undetectable or unsupported adapters, you can have them
+scanned by manually loading the modules before running this script.
 
-Well...
+We are now going to do the I2C/SMBus adapter probings. Some chips may
+be double detected; we choose the one with the highest confidence
+value in that case.
+If you found that the adapter hung after probing a certain address,
+you can specify that address to remain unprobed.
 
-There is a reason why I want procfs support gone as soon as pratical, and
-code like what is inside gnome sensors-applet is it.
+Next adapter: SMBus I801 adapter at 1880 (i2c-0)
+Do you want to scan it? (YES/no/selectively):
+Client found at address 0x4c
+Probing for `National Semiconductor LM75'...                No
+Probing for `Dallas Semiconductor DS75'...                  Success!
+    (confidence 3, driver `lm75')
+Probing for `Analog Devices ADT7466'...                     No
+Probing for `Andigilog aSC7511'...                          No
+Probing for `Dallas Semiconductor DS1621'...                No
+Probing for `Analog Devices ADM1021'...                     No
+Probing for `Analog Devices ADM1021A/ADM1023'...            No
+Probing for `Maxim MAX1617'...                              No
+Probing for `Maxim MAX1617A'...                             No
+Probing for `Maxim MAX1668'...                              No
+Probing for `Maxim MAX1805'...                              No
+Probing for `Maxim MAX1989'...                              No
+Probing for `Maxim MAX6655/MAX6656'...                      No
+Probing for `TI THMC10'...                                  No
+Probing for `National Semiconductor LM84'...                No
+Probing for `Genesys Logic GL523SM'...                      No
+Probing for `Onsemi MC1066'...                              No
+Probing for `Maxim MAX1619'...                              No
+Probing for `National Semiconductor LM82/LM83'...           No
+Probing for `National Semiconductor LM90'...                No
+Probing for `National Semiconductor LM89/LM99'...           No
+Probing for `National Semiconductor LM86'...                No
+Probing for `Analog Devices ADM1032'...                     No
+Probing for `Maxim MAX6657/MAX6658/MAX6659'...              No
+Probing for `Maxim MAX6648/MAX6692'...                      No
+Probing for `National Semiconductor LM63'...                No
+Probing for `Fintek F75363SG'...                            No
+Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+Probing for `Analog Devices ADT7461'...                     No
+Probing for `Fintek F75383S/M'...                           No
+Client found at address 0x50
+Handled by driver `eeprom' (already loaded), chip type `eeprom'
 
-Let's have a look at it, shall we?
+Some chips are also accessible through the ISA I/O ports. We have to
+write to arbitrary I/O ports to probe them. This is usually safe though.
+Yes, you do have ISA I/O ports even if you do not have any ISA slots!
+Do you want to scan the ISA I/O ports? (YES/no):
+Probing for `National Semiconductor LM78' at 0x290...       No
+Probing for `National Semiconductor LM78-J' at 0x290...     No
+Probing for `National Semiconductor LM79' at 0x290...       No
+Probing for `Winbond W83781D' at 0x290...                   No
+Probing for `Winbond W83782D' at 0x290...                   No
+Probing for `Silicon Integrated Systems SIS5595'...         No
+Probing for `VIA VT82C686 Integrated Sensors'...            No
+Probing for `VIA VT8231 Integrated Sensors'...              No
+Probing for `IPMI BMC KCS' at 0xca0...                      No
+Probing for `IPMI BMC SMIC' at 0xca8...                     No
 
-(from sensors-applet-1.8.1/src/ibm-acpi-sensors-interface.c):
-[...]
-fscanf(fp, "%*[^\n]");   /* Skip to the End of the Line */
-fscanf(fp, "%*1[\n]");   /* Skip One Newline */
-if (fscanf(fp, "speed:   %d", &fan_speed) != 1) {
-	(error stuff)
-[...]
+Some Super I/O chips may also contain sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no):
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `ITE'...                                      Yes
+Found unknown chip with ID 0xea11
+Trying family `National Semiconductor'...                   Yes
+Found `Nat. Semi. PC8739x Super IO'
+    (no hardware monitoring capabilities)
+Trying family `SMSC'...                                     Yes
+Found unknown chip with ID 0xea11
+Trying family `VIA/Winbond/Fintek'...                       Yes
+Found unknown chip with ID 0xea11
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `ITE'...                                      No
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Fintek'...                       No
 
-Is the above an acceptable way to parse a key: value list of records inside
-a file?  The order of the records has never been guaranteed anywhere, and in
-fact, it *did change* a little depending on thinkpad model.
+Some CPUs or memory controllers may also contain embedded sensors.
+Do you want to scan for them? (YES/no):
+AMD K8 thermal sensors...                                   No
+Intel Core family thermal sensor...                         No
+Intel AMB FB-DIMM thermal sensor...                         No
 
-All in all, whomever wrote that just took a BIG shortcut to parsing key:
-value files, instead of looking after the key he wanted, skipping all the
-blanks, and getting the data he needed (which is something all people using
-shell scripts got right.  Go figure!).
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
 
-Apparently, the applet also behaves very badly in error conditions (as your
-bug reporter found out) instead of doing something sensible like showing
-"N/A" in the field it couldn't read.
+Driver `lm75' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus I801 adapter at 1880'
+    Busdriver `i2c-i801', I2C address 0x4c
+    Chip `Dallas Semiconductor DS75' (confidence: 3)
 
-Whomever wrote that code never bothered asking anyone about the interface
-AFAIK, or even bothered to read the kernel driver code.  From a fast look
-over the code, it looks like it never handled properly the full range of
-procfs output ibm-acpi could generate, either.
+Driver `eeprom' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus I801 adapter at 1880'
+    Busdriver `i2c-i801', I2C address 0x50
+    Chip `eeprom' (confidence: 6)
 
-Also, properly written stuff that talks to ibm-acpi procfs already deals
-with missing procfs files in an intelligent way: ibm-acpi used to add new
-ones from time to time, so you had to always consider that they might not be
-there if the user was running an older kernel.   The application should have
-shown "N/A" (for not available) or somesuch if a file it wanted was not
-available in procfs.
+  EEPROMs are *NOT* sensors! They are data storage chips commonly
+  found on memory modules (SPD), in monitors (EDID), or in some
+  laptops, for example.
 
-It's like trying to read a sysfs attribute, and never expecting any errors
-(EIO, ENXIO, EBUSY, EAGAIN, whatever) back.  It *will* eventually break.
-Badly.
+I will now generate the commands needed to load the required modules.
+Just press ENTER to continue:
 
-> Luckily this bug ended up in my mailbox and know whats going on as I'm an 
-> lm_sensors developer, but this is sure to be also causing problems 
-> elsewhere!!
+To make the sensors modules behave correctly, add these lines to
+/etc/modules.conf:
 
-I suppose so.
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+#----cut here----
 
-As for it causing problems elsewhere, I didn't get any reports of other
-stuff breaking.  So far.
+To load everything that is needed, add this to some /etc/rc* file:
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+#----cut here----
+# I2C adapter drivers
+modprobe i2c-i801
+# Chip drivers
+modprobe lm75
+modprobe eeprom
+# sleep 2 # optional
+/usr/bin/sensors -s # recommended
+#----cut here----
+
+If you have some drivers built into your kernel, the list above will
+contain too many modules. Skip the appropriate ones! You really
+should try these commands right now to make sure everything is
+working properly. Monitoring programs won't work until the needed
+modules are loaded.
+
+Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no):
+Copy prog/init/lm_sensors.init to /etc/init.d/lm_sensors
+for initialization at boot time.
+====================================
+
+I have put proper lines shown above to /etc/modules.conf and /etc/rc.d/rc.local
+
+Here is what "lsmod" shows: 
+
+====================================
+root@hp:~# lsmod
+Module                  Size  Used by
+eeprom                  9616  0
+lm75                   10384  0
+hwmon                   6404  1 lm75
+snd_seq_dummy           6788  0
+snd_seq_oss            32896  0
+snd_seq_midi_event     10112  1 snd_seq_oss
+snd_seq                50640  5 snd_seq_dummy,snd_seq_oss,snd_seq_midi_event
+snd_seq_device         10508  3 snd_seq_dummy,snd_seq_oss,snd_seq
+snd_pcm_oss            42784  0
+snd_mixer_oss          18048  1 snd_pcm_oss
+ipv6                  254496  12
+nls_utf8                5760  1
+ntfs                  222016  1
+capability              7304  0
+commoncap               9344  1 capability
+lp                     13736  0
+parport_pc             27812  1
+parport                34632  2 lp,parport_pc
+pcspkr                  6528  0
+psmouse                39048  0
+pcmcia                 34452  0
+yenta_socket           27148  1
+rsrc_nonstatic         13312  1 yenta_socket
+snd_maestro3           24484  0
+snd_ac97_codec         98980  1 snd_maestro3
+ac97_bus                6016  1 snd_ac97_codec
+serio_raw               9220  0
+pcmcia_core            36500  3 pcmcia,yenta_socket,rsrc_nonstatic
+snd_pcm                72068  3 snd_pcm_oss,snd_maestro3,snd_ac97_codec
+snd_timer              22532  2 snd_seq,snd_pcm
+snd_page_alloc         11528  1 snd_pcm
+eepro100               30608  0
+snd                    47204  9 snd_seq_oss,snd_seq,snd_seq_device,snd_pcm_oss,snd_mixer_oss,snd_maestro3,snd_ac97_codec,snd_pcm,snd_timer
+mii                     8576  1 eepro100
+soundcore               9824  1 snd
+i2c_i801               11408  0
+i2c_core               21120  3 eeprom,lm75,i2c_i801
+piix                   12932  0 [permanent]
+intel_agp              25116  1
+agpgart                31432  1 intel_agp
+shpchp                 33172  0
+uhci_hcd               25612  0
+iTCO_wdt               12964  0
+iTCO_vendor_support     7172  1 iTCO_wdt
+evdev                  11904  0
+ext3                  122888  1
+jbd                    55720  1 ext3
+mbcache                10628  1 ext3
+====================================
+
+And finally... this is what makes me upset:
+
+====================================
+root@hp:/# sensors -s
+No sensors found!
+Make sure you loaded all the kernel drivers you need.
+Try sensors-detect to find out which these are.
+====================================
+
+...and this way also doesnt work:
+
+====================================
+root@hp:/# sensors
+No sensors found!
+Make sure you loaded all the kernel drivers you need.
+Try sensors-detect to find out which these are.
+====================================
+
+I have done this same on other hardware and the result is also unsuccessful.
 
 _______________________________________________
 lm-sensors mailing list
