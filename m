@@ -1,239 +1,162 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 11 Aug 2007 11:57:05 +0000
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Date: Sat, 11 Aug 2007 15:41:39 +0000
 Subject: Re: [lm-sensors] 2.6.23-rc1 regression: hwmon/w83627ehf: wrong fan
-Message-Id: <20070811135705.0d0688d7@hyperion.delvare>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="MP_EZHtUH6tfh_g3tanik=BfJQ"
+Message-Id: <46BDD8B3.8070708@s5r6.in-berlin.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46B5B290.4040907@s5r6.in-berlin.de>
-	<20070805162141.GI6221@jupiter.solarsys.private>
-	<46B6053E.2050708@s5r6.in-berlin.de>
-	<20070810230831.59cbc50f@hyperion.delvare>
-	<46BCE6D0.7060300@s5r6.in-berlin.de>
-In-Reply-To: <46BCE6D0.7060300@s5r6.in-berlin.de>
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+References: <46B5B290.4040907@s5r6.in-berlin.de>	<20070805162141.GI6221@jupiter.solarsys.private>	<46B6053E.2050708@s5r6.in-berlin.de>	<20070810230831.59cbc50f@hyperion.delvare>	<46BCE6D0.7060300@s5r6.in-berlin.de> <20070811135705.0d0688d7@hyperion.delvare>
+In-Reply-To: <20070811135705.0d0688d7@hyperion.delvare>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Jean Delvare <khali@linux-fr.org>
 Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
---MP_EZHtUH6tfh_g3tanik=BfJQ
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-Hi Stefan,
-
-On Sat, 11 Aug 2007 00:29:36 +0200, Stefan Richter wrote:
-> Jean Delvare wrote:
-> > I just tried 2.6.23-rc2 on a system where I use the w83627ehf hardware
-> > monitoring driver, and was not able to reproduce the problem you
-> > described. Fan speeds are reported properly for me. Which I kind of
-> > expected, as I tested all my w83627ehf patches on this system before
-> > submitting them.
+Jean Delvare wrote:
+> On Sat, 11 Aug 2007 00:29:36 +0200, Stefan Richter wrote:
+...
+>> The motherboard controls the CPU fan and I believe also the case fan,
+>> probably based on temperatures.  (The manual is buried somewhere and
+>> MSI's download site is down right in this moment.)
 >=20
-> Thanks that you are still after it.  I was busy with other stuff the
-> whole week, hence no git bisect result from me yet.
+> I would like to know what it is doing exactly, and how. Can this
+> feature be disabled? If the BIOS accesses the W83627EHG chip in our
+> back, this can cause lots of trouble, such as what you are seeing.
+
+While I test-booted 2.6.22(-rc) yesterday I had a look into the BIOS
+setup.  There is a fan speed control based on a temperature threshold,
+separately for CPU fan and case fan.  The thresholds are currently 55=B0C
+and 50=B0C respectively.
+
+During the time I spent in the BIOS setup, the CPU fan speed was
+displayed as something more than 1400, and the case fan speed was
+displayed as 0.  The latter is AFAIK typical with slow fans.
+
+...
+>> When I now re-run sensors I get
+>> ...
+>> Case Fan:  484 RPM  (min =3D 12053 RPM, div =3D 16) ALARM
+[instead of what was shown a minute before:
+   Case Fan:    0 RPM  (min =3D  753 RPM, div =3D 128) ALARM]
+>> CPU Fan:    89 RPM  (min =3D  659 RPM, div =3D 64) ALARM
+>> Aux Fan:     0 RPM  (min =3D 10546 RPM, div =3D 128) ALARM
+>> fan5:        0 RPM  (min =3D 1506 RPM, div =3D 128) ALARM
+>> ...
+>>
+>> (I'm still in 2.6.23-rc2.  Ksensors picked the 484 RPM of the case fan
+>> up too, and that's most certainly the correct speed.  Just the CPU fan's
+>> speed is still wrong; or rather its divider should be 16 rather than 64.)
 >=20
-> > Please try using sensors instead of ksensors, and confirm that the
-> > behavior is the same. I'd like to rule out a problem in ksensors
-> > itself. sensors will also report the fan divs, this is a useful
-> > information given the problem you have.
+> Divider should be 4,not 16, methinks.
+
+Yes, years of reliance on pocket calculators did that to me.
+
+> You can dump the chip registers using the following command:
+> isadump 0x295 0x296
+> From now on, whenever you paste the output of "sensors", please dump
+> the contents of the chip too and include the output.
 >=20
-> # sensors
-> w83627ehf-isa-0290
-> Adapter: ISA adapter
-> VCore:     +0.95 V  (min =3D  +0.00 V, max =3D  +1.74 V)
-> in1:      +12.30 V  (min =3D  +1.64 V, max =3D  +3.22 V) ALARM
-> AVCC:      +3.28 V  (min =3D  +1.89 V, max =3D  +1.94 V) ALARM
-> 3VCC:      +3.26 V  (min =3D  +0.18 V, max =3D  +0.72 V) ALARM
-> in4:       +1.58 V  (min =3D  +0.57 V, max =3D  +0.90 V) ALARM
-> in5:       +1.70 V  (min =3D  +0.41 V, max =3D  +1.19 V) ALARM
-> in6:       +3.43 V  (min =3D  +0.31 V, max =3D  +3.05 V) ALARM
-> VSB:       +3.25 V  (min =3D  +0.37 V, max =3D  +3.01 V) ALARM
-> VBAT:      +3.18 V  (min =3D  +3.94 V, max =3D  +0.74 V) ALARM
-> in9:       +1.88 V  (min =3D  +0.79 V, max =3D  +1.40 V) ALARM
-> Case Fan:    0 RPM  (min =3D  753 RPM, div =3D 128) ALARM
-> CPU Fan:    88 RPM  (min =3D  659 RPM, div =3D 64) ALARM
-> Aux Fan:     0 RPM  (min =3D 10546 RPM, div =3D 128) ALARM
-> fan5:        0 RPM  (min =3D  753 RPM, div =3D 128) ALARM
-> Sys Temp:    +44 C  (high =3D    -5 C, hyst =3D   -34 C)   ALARM
-> CPU Temp:  +38.0 C  (high =3D +80.0 C, hyst =3D +75.0 C)
-> AUX Temp:  +43.5 C  (high =3D +80.0 C, hyst =3D +75.0 C)
+>>> Other than that, I can only ask for the same things Mark already
+>>> suggested: compile with HWMON debugging and provide the logs (this will
+>>> show what fan div the driver is trying to select), and try bisecting
+>>> using git to find out which patch exactly caused the problem.
+>> How comes the divider of one of the fans changed from one minute to the
+>> other?
 >=20
-> coretemp-isa-0000
-> Adapter: ISA adapter
+> No idea. The new driver can only increase, not decrease, the clock
+> divider when you poll for a speed value. So the change above (from 128
+> to 16) is not supposed to happen. However... I also can't explain why
+> the original reading is 0 (with div=128). A reading of 0 only happens
+> if the divider is too low (i.e. less than 16.) If the driver increased
+> the divider to 16, it means that it was previously 8, not 128.
 >=20
-> coretemp-isa-0001
-> Adapter: ISA adapter
-
-Note: a more recent version of lm-sensors would give you additional
-temperature values here.
-
+> Now, given how dividers are encoded:
+> 128 -> 111b
+>  64 -> 110b
+>   8 -> 011b
+>   4 -> 010b
 >=20
-> (The aux fan and fan5 are not connected.)
+> See the pattern? The case fan's clock divider reads 128 when it is 8,
+> the CPU fan's clock divider reads 64 when it is 4. In both cases, it is
+> the most significant bit that is wrong. And it happens that this bit is
+> in a separate register (VBAT, 0x5d), which happens to be in the banked
+> register range of the W83627EHG (0x50-0x5f).
 >=20
-> > Your original post suggests that the fan speed is supposed to change
-> > depending on the system load? Or temperature? Please describe the
-> > mechanism used to achieve this. Could it be that this mechanism isn't
-> > working properly, and the reported (low) speeds are actually true?
+> So my theory is that something else (BIOS, ACPI?) is changing the bank,
+> probably to read temperature values which are in banks 1 and 2, causing
+> the w83627ehf to get a wrong value for the VBAT register. If I am
+> right, then the attached patch should help. Please give it a try and
+> report.
+
+Will try it in a minute.
+
+> Mark: the previous version of the driver was initializing the fan mins.
+> This wasn't needed, however the bank was reset to 0 as a side effect
+> when initializing fan5_min. When removing the unneeded code, I caused
+> the initial bank value to become undefined. This explains in part the
+> odd behavior reported by Stefan. The fix is to either set the bank to 0
+> explicitly on driver load, or to stop assuming that bank is 0 by
+> default. My patch does the latter, as it might also help in case
+> something is later doing concurrent accesses to the chip.
 >=20
-> The motherboard controls the CPU fan and I believe also the case fan,
-> probably based on temperatures.  (The manual is buried somewhere and
-> MSI's download site is down right in this moment.)
-
-I would like to know what it is doing exactly, and how. Can this
-feature be disabled? If the BIOS accesses the W83627EHG chip in our
-back, this can cause lots of trouble, such as what you are seeing.
-
-> The low speeds or the dividers incorrect.  I'll reboot in a minute into
-> 2.6.22(-rc5)  and post the "sensors" output.
+>> FWIW, the ``chip "w83627ehf-*"=B4=B4 section in Gentoo's /etc/sensors.co=
+nf
+>> provides only labels for fan{1,2,3}. It is titled
+>> # Winbond W83627EHF configuration originally contributed by Leon Moonen
+>> # This is for an Asus P5P800, voltages for A8V-E SE.
 >=20
-> > What fan inputs are used by your CPU and system fans? "sensors
-> > -c /dev/null" will tell.
+> This is from the standard default sensors configuration file. It is
+> expected that you tweak the labels, limits etc. to match your own
+> motherboard.
 >=20
-> ...
-> fan1:      484 RPM  (min =3D 12053 RPM, div =3D 16) ALARM
-> fan2:       89 RPM  (min =3D  659 RPM, div =3D 64) ALARM
-> fan3:        0 RPM  (min =3D 10546 RPM, div =3D 128) ALARM
-> fan5:        0 RPM  (min =3D 1506 RPM, div =3D 128) ALARM
-> ...
-
-Note: 89 RPM with div=3D64 corresponds to the same register value as 1424
-RPM with div=3D4 (as shown in your next post). As if the chip and the
-driver didn't agree on what the actual divider is.
-
-> Hmm, interesting.  When I now re-run sensors I get
-> ...
-> Case Fan:  484 RPM  (min =3D 12053 RPM, div =3D 16) ALARM
-> CPU Fan:    89 RPM  (min =3D  659 RPM, div =3D 64) ALARM
-> Aux Fan:     0 RPM  (min =3D 10546 RPM, div =3D 128) ALARM
-> fan5:        0 RPM  (min =3D 1506 RPM, div =3D 128) ALARM
-> ...
+>> Should I hardwire correct dividers or pulse per rev in sensors.conf or
+>> is the driver supposed to work the correct dividers out --- like it did
+>> before 2.6.23-rc?
 >=20
-> (I'm still in 2.6.23-rc2.  Ksensors picked the 484 RPM of the case fan
-> up too, and that's most certainly the correct speed.  Just the CPU fan's
-> speed is still wrong; or rather its divider should be 16 rather than 64.)
+> The driver is supposed to pick the best divider if you set the min fan
+> speed limits properly (which it seems you didn't.) If you don't set the
+> min limits, all the driver will do is increase the divider as long as
+> it gets a 0 reading, so the dividers will be good, but not necessarily
+> optimum.
 
-Divider should be 4,not 16, methinks.
+I now updated to Gentoo's ksensors-0.7.3-r1 (which is v0.7.3 plus
+patches from Debian) and lm_sensors-2.10.4, added
 
-You can dump the chip registers using the following command:
-isadump 0x295 0x296
-=46rom now on, whenever you paste the output of "sensors", please dump
-the contents of the chip too and include the output.
+    ignore fan5
+    set fan1_min    200
+    set fan2_min    1000
+    set fan3_min    0
 
-> > Other than that, I can only ask for the same things Mark already
-> > suggested: compile with HWMON debugging and provide the logs (this will
-> > show what fan div the driver is trying to select), and try bisecting
-> > using git to find out which patch exactly caused the problem.
->=20
-> How comes the divider of one of the fans changed from one minute to the
-> other?
+to sensors.conf, compiled the drivers with CONFIG_HWMON_DEBUG_CHIP=3Dy,
+and "sensors" alone seems to behave fine now.  Or maybe it did so
+already before that.  But as soon as I start "ksensors", "sensors" shows
+that the CPU fan divider suddenly changed from 8 to 128.  "sensors -s"
+will then cause the kernel to log
+    w83627ehf w83627ehf.656: fan2 clock divider changed from 128 to 8
+    w83627ehf w83627ehf.656: fan3 low limit and alarm disabled
+and sensors will show the correct CPU fan speed again --- but soon after
+that the divider will go up to 128 again if ksensors is running in parallel.
 
-No idea. The new driver can only increase, not decrease, the clock
-divider when you poll for a speed value. So the change above (from 128
-to 16) is not supposed to happen. However... I also can't explain why
-the original reading is 0 (with div=3D128). A reading of 0 only happens
-if the divider is too low (i.e. less than 16.) If the driver increased
-the divider to 16, it means that it was previously 8, not 128.
+If I quit ksensors and run "sensors -s", sensors will continue to show
+correct speeds.  Actually with ksensors running, "while sensors | grep
+'CPU Fan'; do sleep .2; done" shows that the CPU fan divider oscillates
+between 8 and 128 in ca. 5 seconds long periods:  16 times in a row it
+prints div =3D 8, and 8 times it prints div =3D 128, then div =3D 8 again, =
+and
+so forth.  There are no dmesg messages during all that.
 
-Now, given how dividers are encoded:
-128 -> 111b
- 64 -> 110b
-  8 -> 011b
-  4 -> 010b
+ksensors has different update interval settings, and although I had the
+w83627ehf readings configured to be updated every 30 seconds, some
+seemingly unrelated setting was at 5 seconds.  I changed that to 30
+seconds too and the period of above loop increased to ca. 30 seconds
+(127 times div =3D 8, 8 times div =3D 128).
 
-See the pattern? The case fan's clock divider reads 128 when it is 8,
-the CPU fan's clock divider reads 64 when it is 4. In both cases, it is
-the most significant bit that is wrong. And it happens that this bit is
-in a separate register (VBAT, 0x5d), which happens to be in the banked
-register range of the W83627EHG (0x50-0x5f).
-
-So my theory is that something else (BIOS, ACPI?) is changing the bank,
-probably to read temperature values which are in banks 1 and 2, causing
-the w83627ehf to get a wrong value for the VBAT register. If I am
-right, then the attached patch should help. Please give it a try and
-report.
-
-Mark: the previous version of the driver was initializing the fan mins.
-This wasn't needed, however the bank was reset to 0 as a side effect
-when initializing fan5_min. When removing the unneeded code, I caused
-the initial bank value to become undefined. This explains in part the
-odd behavior reported by Stefan. The fix is to either set the bank to 0
-explicitly on driver load, or to stop assuming that bank is 0 by
-default. My patch does the latter, as it might also help in case
-something is later doing concurrent accesses to the chip.
-
-> FWIW, the ``chip "w83627ehf-*"=B4=B4 section in Gentoo's /etc/sensors.conf
-> provides only labels for fan{1,2,3}. It is titled
-> # Winbond W83627EHF configuration originally contributed by Leon Moonen
-> # This is for an Asus P5P800, voltages for A8V-E SE.
-
-This is from the standard default sensors configuration file. It is
-expected that you tweak the labels, limits etc. to match your own
-motherboard.
-
-> Should I hardwire correct dividers or pulse per rev in sensors.conf or
-> is the driver supposed to work the correct dividers out --- like it did
-> before 2.6.23-rc?
-
-The driver is supposed to pick the best divider if you set the min fan
-speed limits properly (which it seems you didn't.) If you don't set the
-min limits, all the driver will do is increase the divider as long as
-it gets a 0 reading, so the dividers will be good, but not necessarily
-optimum.
-
-Thanks,
+So the BIOS seems innocent.
 --=20
-Jean Delvare
-
---MP_EZHtUH6tfh_g3tanik=BfJQ
-Content-Type: text/x-patch; name=hwmon-w83627ehf-dont-assume-bank-0.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=hwmon-w83627ehf-dont-assume-bank-0.patch
-
-Don't assume that the default bank is 0. For one thing, we don't even
-set it to 0 when the driver is loaded, so the initial state might be
-different. For another, something (say, the BIOS) might access the chip
-and leave with the bank set to something different, so assuming that
-the bank value is 0 is not safe.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/w83627ehf.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
-
---- linux-2.6.23-rc2.orig/drivers/hwmon/w83627ehf.c	2007-07-23 16:44:35.000000000 +0200
-+++ linux-2.6.23-rc2/drivers/hwmon/w83627ehf.c	2007-08-11 12:55:58.000000000 +0200
-@@ -309,18 +309,16 @@ static inline int is_word_sized(u16 reg)
- 	      || (reg & 0x00ff) == 0x55));
- }
- 
--/* We assume that the default bank is 0, thus the following two functions do
--   nothing for registers which live in bank 0. For others, they respectively
--   set the bank register to the correct value (before the register is
--   accessed), and back to 0 (afterwards). */
-+/* Registers 0x50-0x5f are banked */
- static inline void w83627ehf_set_bank(struct w83627ehf_data *data, u16 reg)
- {
--	if (reg & 0xff00) {
-+	if ((reg & 0x00f0) == 0x50) {
- 		outb_p(W83627EHF_REG_BANK, data->addr + ADDR_REG_OFFSET);
- 		outb_p(reg >> 8, data->addr + DATA_REG_OFFSET);
- 	}
- }
- 
-+/* Not strictly necessary, but play it safe for now */
- static inline void w83627ehf_reset_bank(struct w83627ehf_data *data, u16 reg)
- {
- 	if (reg & 0xff00) {
-
---MP_EZHtUH6tfh_g3tanik=BfJQ
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Stefan Richter
+-=3D=3D=3D-=3D-=3D=3D =3D--- -=3D-=3D
+http://arcgraph.de/sr/
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---MP_EZHtUH6tfh_g3tanik=BfJQ--
