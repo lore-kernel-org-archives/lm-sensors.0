@@ -1,51 +1,48 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Tue, 14 Aug 2007 06:52:35 +0000
-Subject: Re: [lm-sensors] [PATCHES] hwmon: update against ~v2.6.23-rc2
-Message-Id: <46C15133.3020004@hhs.nl>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 12 Aug 2007 10:01:46 +0000
+Subject: Re: [lm-sensors] Fujitsu-Siemens Scylla (fscscy)
+Message-Id: <20070812120146.5da50cfd@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <11869444521807-git-send-email-mhoffman@lightlink.com>
-In-Reply-To: <11869444521807-git-send-email-mhoffman@lightlink.com>
+References: <46933578.3010701@miloi.de>
+In-Reply-To: <46933578.3010701@miloi.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mark M. Hoffman wrote:
-> Hi Hans:
+Hi Hans,
+
+On Tue, 24 Jul 2007 16:40:08 +0200, Hans de Goede wrote:
+> To me the almost the same and same register contents warrents using a unified 
+> driver, especially since for example the voltage registers are on the same 
+> place for all. However taking all these smalle register map differences 
+> together, the easiest path for a unified driver is to use the lookup tables 
+> above, and once the lookup tables are there, its really easy to keep the order 
+> of the sensors in the fscscy as with the 2.4 driver. Let me know if you prefer 
+> the hussled order, as that does make it clearer that they are one and the same 
+> family of chips.
+
+It's up to you, really, I don't care either way.
+
+> > In general, I suggest that you avoid pushing in the kernel support for
+> > random chips which are not known to be in use in real-world hardware.
+> > Even if you maintain them yourself, you won't do it forever, and having
+> > unused drivers only slows things down and lower the average quality. So
+> > better pick chips from the Devices page where at least one user
+> > requested support already (as the ADM1024, ADT7475/76, F75387SG/RG or
+> > MAX6648/92.)
 > 
-> * Hans de Goede <j.w.r.degoede@hhs.nl> [2007-08-12 21:21:23 +0200]:
->> Mark M. Hoffman wrote:
->>> The following four patches are in my hwmon-2.6.git/release branch.  I will 
->>> ask
->>> Linus to merge this branch very soon.
->>>
->> Any chance the f71882fg driver could make it in, the second version has 
->> been acked by Darrick J. Wong now, who reviewed the first version.
->>
->> Here is the mail with the patch:
->> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020441.html
->>
-> 
-> It's not going in before v2.6.23, if that's what you mean.  I doubt Linus
-> would accept it even if I tried.  It is very close to the head of my queue
-> though.  Now that all the known regressions are dead, it will hit testing
-> (and therefore -mm) very soon.
-> 
+> Good point, I fully agree and thanks for the input. I haven't checked all the 
+> links on the device wiki yet, will do, but you don't happen to know motherboard 
+> models which come with these chips do you? Or even better have a spare one you 
+> can miss (I have a small budget for the labs, so I can pay for shipping + 
+> something extra).
 
-Hmm,
+No, I don't. But the wiki/Devices page may have pointers to people with
+such motherboards.
 
-Can't you atleast try. It already has many users now (without any troubles, I'm 
-about to upload a verified sensors.conf for a third motherboard using this 
-driver), and was requested a lot because its a popular chip. I thought Linus 
-didn't mind doing new drivers after the freeze as they cannot cause regressions 
-(normally) snd I dislike the idea of this driver having to wait another cycle, 
-I already submitted it at the end of the 2.6.22 cycle.
-
-Either way its your call.
-
-Regards,
-
-Hans
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
