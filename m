@@ -1,33 +1,42 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 21 Aug 2007 09:07:34 +0000
-Subject: Re: [lm-sensors] Questions about sysfs
-Message-Id: <20070821110734.4e9b1e8c@hyperion.delvare>
+Date: Sun, 12 Aug 2007 12:15:27 +0000
+Subject: Re: [lm-sensors] dme1737 very slow read...
+Message-Id: <20070812141527.097bd969@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5628d8010708170444i76bdc033t900cec37a726e2c1@mail.gmail.com>
-In-Reply-To: <5628d8010708170444i76bdc033t900cec37a726e2c1@mail.gmail.com>
+References: <46A8157E.7040003@sandeen.net>
+In-Reply-To: <46A8157E.7040003@sandeen.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 21 Aug 2007 15:29:30 +0800, dave jones wrote:
-> Thanks.  I used 2.10.0. After installing lm-sensors 2.10.4 without modifying
-> my driver, run pwmconfig, the result is:
-> 
-> Found the following devices:
->    hwmon0/device is w83l786ng
-> 
-> Found the following PWM controls:
->    hwmon0/device/pwm1
-> hwmon0/device/pwm1_enable stuck to 1
-> Failed to set pwmhwmon0/device/pwm1 to full speed
-> Something's wrong, check your fans!
-> 
-> Did I miss something? Why it can't detect my fans? Thank you.
+Hi Mark, all,
 
-This is a driver issue. The script attempted to set the fan to full
-speed, but failed. As I said before, we can't help you with this
-without seeing the source code.
+On Thu, 26 Jul 2007 07:39:58 -0400, Mark M. Hoffman wrote:
+> Max rate for standard I2C/SMBus is 100KHz.  However, the hardware which is
+> most common on PCs usually runs at something like 10KHz.
+
+Speed which our drivers don't even reach because they don't use
+interrupts.
+
+> > > Ok, I thought it might be along those lines.  Is there any other
+> > > performance impact to the system while it's waiting for the I2C bus?
+> > 
+> > Good question, I don't know. That's more a question for the I2C
+> > mailing list. Jean?
+> 
+> It depends on the specific I2C bus driver.  All of the most common ones use
+> polling, so unfortunately you will see CPU % go to 100 during that 1.5 sec.
+
+I don't think so. The I2C bus drivers sleep between polls, so most of
+the time is spent sleeping. If we were "actively" polling (without
+sleeping) it would be much faster, but would indeed suck the CPU time
+so we don't do that.
+
+Whoever is really concerned about slow I2C bus speed could spend some
+time converting his/her I2C bus driver to use interrupts instead of
+polling. I wanted to convert the i2c-i801 driver that way but could
+never find the time for it.
 
 -- 
 Jean Delvare
