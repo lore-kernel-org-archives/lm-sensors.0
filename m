@@ -1,100 +1,47 @@
-From: <gadgets.limited@yahoo.co.uk>
-Date: Thu, 16 Aug 2007 14:04:36 +0000
-Subject: [lm-sensors] JUMBO SALES AND GET 2 APPLE IPHONE 8GB FREE
-Message-Id: <200708161404.l7GE4aCe018621@webgateinc.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 12 Aug 2007 11:58:50 +0000
+Subject: [lm-sensors] [PATCH] hwmon/smsc47m1: Restore missing name attribute
+Message-Id: <20070812135850.04c5089a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E1ILlN1-0000Tf-Jo@server1.mavendns3.com>
-In-Reply-To: <E1ILlN1-0000Tf-Jo@server1.mavendns3.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-JUMBO SALES AND GET 2 APPLE IPHONE 8GB FREE
+The smsc47m1 driver no longer creates the name attribute used by
+libsensors to identify chip types. It was lost during the conversion
+to a platform driver. I was fooled by the fact that we do have a
+group with all attributes, but only to delete them all at once. The
+group is not used to create the attributes, so we have to explicitly
+create the name attribute.
+
+This fixes lm-sensors ticket #2236:
+http://lm-sensors.org/ticket/2236
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Mark, this fixes a regression in 2.6.22. This means that this patch
+must be sent to Linus for 2.6.23, but also to the stable team for
+2.6.22.3.
+
+ drivers/hwmon/smsc47m1.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+--- linux-2.6.23-rc2.orig/drivers/hwmon/smsc47m1.c	2007-08-11 16:14:14.000000000 +0200
++++ linux-2.6.23-rc2/drivers/hwmon/smsc47m1.c	2007-08-11 17:25:29.000000000 +0200
+@@ -585,6 +585,8 @@ static int __devinit smsc47m1_probe(stru
+ 
+ 	if ((err = device_create_file(dev, &dev_attr_alarms)))
+ 		goto error_remove_files;
++	if ((err = device_create_file(dev, &dev_attr_name)))
++		goto error_remove_files;
+ 
+ 	data->class_dev = hwmon_device_register(dev);
+ 	if (IS_ERR(data->class_dev)) {
 
 
-We are offering The Revolutionary Apple iPhone 8GB.......$290 per unit
-
-10 units Apple iPhone 8GB.......$2500 USD+FREE SHIPPING 
-10 units Playstation 3 ........ $2500 USD+FREE SHIPPING 
-10 units Nintendo Wii...........$2000 USD+FREE SHIPPING 
-10 units Xbox 360 Platinum..... $1400 USD+FREE SHIPPING 
-
-NOTE - YOU GET 2 FREE Apple iPhone 8GB... FOR ANY 10 UNITS ORDER IN OUR JUMBO OFFER 
-
-
-
-SAMPLE PRODUCTS PRICE LIST
-
-
-Video Games
-Playstation 3 ........$300
-Nintendo Wii......... $200
-Sony PSP......... ....$140
-Xbox 360 Platinum.... $140
-Xbox 360 Premium..... $120
-
-Apple ipod Nano 4gb....$100 
-Apple ipod Nano 80gb...$250
-
-GSM PHONES
-Nokia 8800 sirocco....$350
-Motorola V3i D&G......$250
-Nokia N95......... ...$320
-Nokia N93......... ...$260
-Nokia N93i ...........$280
-Nokia N70 ............$160
-Nokia N72 ............$175
-Nokia N73 ............$250
-Nokia N80 ............$200
-Nokia N90 ............$200
-Nokia N91 ............$200
-
-
-Sony Ericsson
-
-Sony Ericsson W800i....$200
-Sony Ericsson W810i....$225
-Sony Ericsson W900i....$250
-Sony Ericsson K510i....$105
-Sony Ericsson W800i....$150
-Sony Ericsson k750i....$165
-Sony Ericsson M600.....$302
-Sony Ericsson k700.....$100
-Sony Ericsson W600.....$156
-Sony Ericsson w850.....$230
-
-PDA
-Palm Treo 650........$170
-Palm Treo 700w.......$250
-Palm Treo 750........$240
-QTEK 9000 ...........$300
-QTEK S110 ...........$250
-HTC P3300 ...........$300
-HTC P3600 ...........$350
-Dell Axim X51V.......$350  
-i-mate Jam ..........$400
-i-mate K-Jam ........$420
-
-
-All GSM Phones,Brand New,Tri- Band and Video Games are also Brand new with 
-Complete Accessories plus Int'l Warranty .
-
-
-NOTE: ALL ENQUIRES SHOULD BE DIRECTED VIA EMAIL
-
-
-
-Emails:gadgets.limited@yahoo.co.uk
-CC Emails:gadgets.limited11@yahoo.co.uk
-
-GADGETS LIMITED 
-Registered No. 05881519 
-THE OLD STABLES, ARUNDEL ROAD, 
-POLING, ARUNDEL, WEST SUSSEX, BN18 9QA 
-
-
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
