@@ -1,27 +1,23 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 24 Aug 2007 09:10:47 +0000
-Subject: Re: [lm-sensors] [PATCH 4/4] libsensors4: Drop SENSORS_MODE_NO_RW
-Message-Id: <20070824111047.75a65c97@hyperion.delvare>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 12 Aug 2007 18:47:28 +0000
+Subject: [lm-sensors] [PATCHES] hwmon: update against ~v2.6.23-rc2
+Message-Id: <11869444521807-git-send-email-mhoffman@lightlink.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070821212900.6d1fd920@hyperion.delvare>
-In-Reply-To: <20070821212900.6d1fd920@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 22 Aug 2007 14:04:50 +0200, Hans de Goede wrote:
-> Jean Delvare wrote:
-> > Drop SENSORS_MODE_NO_RW and SENSORS_MODE_RW. The mode is a bitfield,
-> > we typically set, or test for, a specific bit.
-> 
-> Looks good to me,
+The following four patches are in my hwmon-2.6.git/release branch.  I will ask
+Linus to merge this branch very soon.
 
-OK, thanks. All 4 patches committed now. I have 3 more waiting, I'll try
-to put them in shape for submission later today.
+Regards,
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
+
 
 _______________________________________________
 lm-sensors mailing list
