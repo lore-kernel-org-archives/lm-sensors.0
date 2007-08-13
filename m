@@ -1,37 +1,31 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Mon, 13 Aug 2007 16:55:30 +0000
+From: Joe Perches <joe@perches.com>
+Date: Mon, 13 Aug 2007 16:59:48 +0000
 Subject: Re: [lm-sensors] [PATCH] [159/2many] MAINTAINERS - DME1737 HARDWARE
-Message-Id: <191fb4ca0708130955l5ee0d263o4e01c4caa96bf811@mail.gmail.com>
+Message-Id: <1187024389.10249.120.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46bff993.7OEwF3qQrioxyBDU%joe@perches.com>
-In-Reply-To: <46bff993.7OEwF3qQrioxyBDU%joe@perches.com>
+	 <191fb4ca0708130955l5ee0d263o4e01c4caa96bf811@mail.gmail.com>
+In-Reply-To: <191fb4ca0708130955l5ee0d263o4e01c4caa96bf811@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "joe@perches.com" <joe@perches.com>
+To: Juerg Haefliger <juergh@gmail.com>
 Cc: torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
 
-On 8/12/07, joe@perches.com <joe@perches.com> wrote:
-> Add file pattern to MAINTAINER entry
->
-> Signed-off-by: Joe Perches <joe@perches.com>
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 70e5070..2fafb83 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -1553,6 +1553,7 @@ P:        Juerg Haefliger
->  M:     juergh@gmail.com
->  L:     lm-sensors@lm-sensors.org
->  S:     Maintained
+On Mon, 2007-08-13 at 09:55 -0700, Juerg Haefliger wrote:
+> +F:     Documentation/hwmon/dme1737
 
-+F:     Documentation/hwmon/dme1737
+Saved as:
 
-> +F:     drivers/hwmon/dme1737.c
->
->  DOCBOOK FOR DOCUMENTATION
->  P:     Randy Dunlap
->
+DME1737 HARDWARE MONITOR DRIVER
+P:	Juerg Haefliger
+M:	juergh@gmail.com
+L:	lm-sensors@lm-sensors.org
+S:	Maintained
+F:	Documentation/hwmon/dme1737
+F:	drivers/hwmon/dme1737.c
+
+
 
 _______________________________________________
 lm-sensors mailing list
