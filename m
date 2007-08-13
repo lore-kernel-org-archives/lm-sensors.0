@@ -1,30 +1,38 @@
 From: joe@perches.com
-Date: Mon, 13 Aug 2007 06:35:48 +0000
-Subject: [lm-sensors] [PATCH] [435/2many] MAINTAINERS - SIS 96X I2C/SMBUS
-Message-Id: <46bffbc4./AOzDIg28g0KVR/0%joe@perches.com>
+Date: Mon, 13 Aug 2007 06:39:34 +0000
+Subject: [lm-sensors] [PATCH] [537/2many] MAINTAINERS - W83791D HARDWARE
+Message-Id: <46bffca6.C3ZDFVo2GLTkFeKl%joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org, mhoffman@lightlink.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+To: torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, bezaur@gmail.com, akpm@linux-foundation.org
 
 Add file pattern to MAINTAINER entry
 
 Signed-off-by: Joe Perches <joe@perches.com>
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index b74e343..761029d 100644
+index 3871621..4e7906f 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -4142,6 +4142,8 @@ P:	Mark M. Hoffman
- M:	mhoffman@lightlink.com
+@@ -5070,12 +5070,16 @@ W1 DALLAS'S 1-WIRE BUS
+ P:	Evgeniy Polyakov
+ M:	johnpol@2ka.mipt.ru
+ S:	Maintained
++F:	Documentation/w1/
++F:	drivers/w1/
+ 
+ W83791D HARDWARE MONITORING DRIVER
+ P:	Charles Spirakis
+ M:	bezaur@gmail.com
  L:	lm-sensors@lm-sensors.org
  S:	Maintained
-+F:	Documentation/i2c/busses/i2c-sis96x
-+F:	drivers/i2c/busses/i2c-sis96x.c
++F:	Documentation/hwmon/w83791d
++F:	drivers/hwmon/w83791d.c
  
- SIS FRAMEBUFFER DRIVER
- P:	Thomas Winischhofer
+ W83793 HARDWARE MONITORING DRIVER
+ P:	Rudolf Marek
 
 _______________________________________________
 lm-sensors mailing list
