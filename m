@@ -1,19 +1,30 @@
-From: Brett Beach <bbeach@ciprico.com>
-Date: Tue, 07 Aug 2007 13:54:44 +0000
-Subject: [lm-sensors] PCA954x chip driver
-Message-Id: <loom.20070807T154944-400@post.gmane.org>
+From: joe@perches.com
+Date: Mon, 13 Aug 2007 06:31:26 +0000
+Subject: [lm-sensors] [PATCH] [300/2many] MAINTAINERS - LM90 HARDWARE
+Message-Id: <46bffabe.ezGWPX+Et/7FTcVC%joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, khali@linux-fr.org, akpm@linux-foundation.org
 
-Can anyone tell me the state of this driver.  I do not have the part (9544A) to
-try at this time.  It looks complete and implements a virtual bus that
-represents each of the muxed busses.  Does the virtual bus mechanism work?  I
-assume that after this driver is started a sensors-detect pass would find
-additional busses?
+Add file pattern to MAINTAINER entry
 
+Signed-off-by: Joe Perches <joe@perches.com>
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 9a65d56..be709c1 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2882,6 +2882,8 @@ P:	Jean Delvare
+ M:	khali@linux-fr.org
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
++F:	Documentation/hwmon/lm90
++F:	drivers/hwmon/lm90.c
+ 
+ LOGICAL DISK MANAGER SUPPORT (LDM, Windows 2000/XP/Vista Dynamic Disks)
+ P:	Richard Russon (FlatCap)
 
 _______________________________________________
 lm-sensors mailing list
