@@ -1,29 +1,29 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 24 Aug 2007 08:57:33 +0000
-Subject: Re: [lm-sensors] lm-sensors-3.0.0 snapshots
-Message-Id: <20070824105733.6c3284f5@hyperion.delvare>
+From: joe@perches.com
+Date: Mon, 13 Aug 2007 06:26:27 +0000
+Subject: [lm-sensors] [PATCH] [159/2many] MAINTAINERS - DME1737 HARDWARE
+Message-Id: <46bff993.7OEwF3qQrioxyBDU%joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070818175926.6ed4411e@hyperion.delvare>
-In-Reply-To: <20070818175926.6ed4411e@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, juergh@gmail.com, akpm@linux-foundation.org
 
-On Mon, 20 Aug 2007 15:32:40 +0200, Axel Thimm wrote:
-> On Mon, Aug 20, 2007 at 02:07:07PM +0200, Jean Delvare wrote:
-> > > OK, done. I manually kicked in the first snapshots, the next should
-> > > follow once bits in the respective dir change (in daily frequencies).
-> > 
-> > Doesn't seem to work. No new snapshots this morning for lm-sensors nor
-> > lm-sensors-3 despite my commits yesterday evening. Can you please check?
-> 
-> Forgot to reload the cron service. :)
+Add file pattern to MAINTAINER entry
 
-Works alright now, thanks :)
+Signed-off-by: Joe Perches <joe@perches.com>
 
--- 
-Jean Delvare
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 70e5070..2fafb83 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1553,6 +1553,7 @@ P:	Juerg Haefliger
+ M:	juergh@gmail.com
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
++F:	drivers/hwmon/dme1737.c
+ 
+ DOCBOOK FOR DOCUMENTATION
+ P:	Randy Dunlap
 
 _______________________________________________
 lm-sensors mailing list
