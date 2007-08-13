@@ -1,38 +1,29 @@
 From: joe@perches.com
-Date: Mon, 13 Aug 2007 06:39:34 +0000
-Subject: [lm-sensors] [PATCH] [537/2many] MAINTAINERS - W83791D HARDWARE
-Message-Id: <46bffca6.C3ZDFVo2GLTkFeKl%joe@perches.com>
+Date: Mon, 13 Aug 2007 06:21:55 +0000
+Subject: [lm-sensors] [PATCH] [17/2many] MAINTAINERS - ABIT UGURU HARDWARE
+Message-Id: <46bff883.o9E4xFtxERfeWZpB%joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, bezaur@gmail.com, akpm@linux-foundation.org
+To: torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, j.w.r.degoede@hhs.nl, akpm@linux-foundation.org
 
 Add file pattern to MAINTAINER entry
 
 Signed-off-by: Joe Perches <joe@perches.com>
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 3871621..4e7906f 100644
+index 2de2083..909875d 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -5070,12 +5070,16 @@ W1 DALLAS'S 1-WIRE BUS
- P:	Evgeniy Polyakov
- M:	johnpol@2ka.mipt.ru
- S:	Maintained
-+F:	Documentation/w1/
-+F:	drivers/w1/
- 
- W83791D HARDWARE MONITORING DRIVER
- P:	Charles Spirakis
- M:	bezaur@gmail.com
+@@ -209,6 +209,7 @@ P:	Hans de Goede
+ M:	j.w.r.degoede@hhs.nl
  L:	lm-sensors@lm-sensors.org
  S:	Maintained
-+F:	Documentation/hwmon/w83791d
-+F:	drivers/hwmon/w83791d.c
++F:	drivers/hwmon/abitguru*
  
- W83793 HARDWARE MONITORING DRIVER
- P:	Rudolf Marek
+ ACENIC DRIVER
+ P:	Jes Sorensen
 
 _______________________________________________
 lm-sensors mailing list
