@@ -1,80 +1,31 @@
-From: Dawn Light <dawnlight@lavabit.com>
-Date: Mon, 06 Aug 2007 07:13:00 +0000
-Subject: [lm-sensors] sensors.conf for Abit VA-20 motherboard
-Message-Id: <200708060713.00943.dawnlight@lavabit.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Boundary-00=_8nstGEz4X/LaBp5"
+From: joe@perches.com
+Date: Mon, 13 Aug 2007 06:23:39 +0000
+Subject: [lm-sensors] [PATCH] [72/2many] MAINTAINERS - ASUS ASB100 HARDWARE
+Message-Id: <46bff8eb.i5dgFSy2ayFkYfzx%joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
---Boundary-00=_8nstGEz4X/LaBp5
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-S2VlcCB1cCB0aGUgZ29vZCB3b3JrIQotLSAKRGF3biBMaWdodArXqdeX16gg15DXldeoCTA1MC03
-OTY2NjY0Cg==
-
---Boundary-00=_8nstGEz4X/LaBp5
-Content-Type: text/plain;
-  charset="utf-8";
-  name="sensors.conf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="sensors.conf"
-
-#### Abit VA-20 contributed by DawnLight ####
-
-chip "it87-*" "it8712-*"
-
-    label in0 "CPU VCore"
-    label in1 "+2.5V"
-    label in2 "+3.3V"
-    label in3 "+5V"
-    label in4 "+12V"
-    ignore in5
-    ignore in6
-    ignore in7
-    label in8 "VBat"
-
-    ignore  vid
-
-    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
-    compute in4 ((30/10) +1)*@  , @/((30/10) +1)
-    
-    set in0_min 1.55 * 0.95
-    set in0_max 1.55 * 1.05
-    set in1_min 2.4
-    set in1_max 2.6
-    set in2_min 3.3 * 0.95
-    set in2_max 3.3 * 1.05
-    set in3_min 5.0 * 0.95
-    set in3_max 5.0 * 1.05
-    set in4_min 12.5 * 0.95
-    set in4_max 12.5 * 1.05
-
-    label temp1       "M/B Temp"
-    set   temp1_over  44
-    set   temp1_low   15
-    label temp2       "CPU Temp"
-    set   temp2_over  45
-    set   temp2_low   15
-   ignore temp3
-
-    set fan1_min 3000
-    ignore fan2
-    ignore fan3
-
---Boundary-00=_8nstGEz4X/LaBp5
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: torvalds@linux-foundation.org, mhoffman@lightlink.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+
+Add file pattern to MAINTAINER entry
+
+Signed-off-by: Joe Perches <joe@perches.com>
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 622a600..a165698 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -716,6 +716,7 @@ P:	Mark M. Hoffman
+ M:	mhoffman@lightlink.com
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
++F:	drivers/hwmon/asb100.c
+ 
+ ASUS LAPTOP EXTRAS DRIVER
+ P:	Corentin Chary
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---Boundary-00=_8nstGEz4X/LaBp5--
-
