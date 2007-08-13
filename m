@@ -1,213 +1,111 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 26 Aug 2007 07:20:17 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] libsensors4: New prototype for
-Message-Id: <20070826092017.1f9235ec@hyperion.delvare>
+From: "Krzysztof Helt" <krzysztof.h1@wp.pl>
+Date: Mon, 13 Aug 2007 19:42:49 +0000
+Subject: [lm-sensors] [PATCH] thmc50: individual alarm files (2nd rev)
+Message-Id: <46c0b439a0530@wp.pl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="part46c0b439a2c49"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070825150259.0a936215@hyperion.delvare>
-In-Reply-To: <20070825150259.0a936215@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 25 Aug 2007 19:18:19 +0200, Hans de Goede wrote:
-> Jean Delvare wrote:
-> > Add a parameter to sensors_get_detected_chips(), to optionally let the
-> > caller select which subset of chips it wants. This is slightly better
-> > size-wise than letting all applications do the filtering by themselves.
-> > 
-> > This will change the way the command line parameters of "sensors" are
-> > interpreted. Beforehand, the chips were always returned in the order
-> > in which they were listed by the library. Also, each chip could be listed
-> > only once. From now on, the chips will be listed in the order in which
-> > they are passed on the command line, which I think makes more sense. A
-> > side effect is that chips can be listed more than once, if that's what
-> > the user asks for. Not very useful though.
-> > 
-> > This change makes it possible to make sensors_match_chip() internal
-> > to the library. Filtering the list of chips returned by
-> > sensors_get_detected_chips() was the last known external use for this
-> > function.
-> > 
-> > This patch looks much bigger than it really is, but the largest part is
-> > really only code reindentation.
-> >
-> 
-> Yes, making it harder to review, anyways reviewed and it looks good.
-> 
-> Maybe next time when there is lot of indentation changes include 2 patches, the 
-> real one and one made with diff -uBb, the second one will then only show the 
-> real changes.
+This is a multi-part message in MIME format.
 
-Yes, good idea.
+--part46c0b439a2c49
+Content-Type: text/plain; charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Here's the result for this one patch:
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Index: lm-sensors-3/lib/access.c
-=================================--- lm-sensors-3.orig/lib/access.c	2007-08-25 15:00:11.000000000 +0200
-+++ lm-sensors-3/lib/access.c	2007-08-26 09:13:45.000000000 +0200
-@@ -303,13 +303,17 @@
- 	return 0;
- }
- 
--const sensors_chip_name *sensors_get_detected_chips(int *nr)
-+const sensors_chip_name *sensors_get_detected_chips(const sensors_chip_name
-+						    *match, int *nr)
- {
- 	const sensors_chip_name *res;
--	res = (*nr >= sensors_proc_chips_count ?
--			NULL : &sensors_proc_chips[*nr].chip);
--	(*nr)++;
-+
-+	while (*nr < sensors_proc_chips_count) {
-+		res = &sensors_proc_chips[(*nr)++].chip;
-+		if (!match || sensors_match_chip(res, match))
- 	return res;
-+	}
-+	return NULL;
- }
- 
- const char *sensors_get_adapter_name(const sensors_bus_id *bus)
-@@ -480,10 +484,9 @@
- 	const sensors_chip_name *found_name;
- 	int res = 0;
- 
--	for (nr = 0; (found_name = sensors_get_detected_chips(&nr));)
--		if (sensors_match_chip(name, found_name)) {
-+	for (nr = 0; (found_name = sensors_get_detected_chips(name, &nr));) {
- 			this_res = sensors_do_this_chip_sets(found_name);
--			if (!res)
-+		if (this_res)
- 				res = this_res;
- 		}
- 	return res;
-Index: lm-sensors-3/lib/libsensors.3
-=================================--- lm-sensors-3.orig/lib/libsensors.3	2007-08-25 15:00:11.000000000 +0200
-+++ lm-sensors-3/lib/libsensors.3	2007-08-26 09:13:45.000000000 +0200
-@@ -44,7 +44,8 @@
- .B int sensors_set_value(const sensors_chip_name *name, int feature,
-                       \fBdouble value);\fP
- .B int sensors_do_chip_sets(const sensors_chip_name *name);
--.B const sensors_chip_name *sensors_get_detected_chips(int *nr);
-+.B const sensors_chip_name *sensors_get_detected_chips(const sensors_chip_name
-+                                                    \fB*match, int *nr);\fP
- .B const sensors_feature_data *sensors_get_all_features 
-              \fB(const sensors_chip_name *name, int *nr);\fP
- .B const char *libsensors_version;
-@@ -98,10 +99,14 @@
- .br
- Execute all set statements for this particular chip. The chip may contain wildcards!  This function will return 0 on success, and <0 on failure.
- 
--\fBconst sensors_chip_name *sensors_get_detected_chips
--                        (int *nr);\fP
-+\fBconst sensors_chip_name *sensors_get_detected_chips(const sensors_chip_name
-+                                                    *match, int *nr);\fP
- .br
--This function returns all detected chips, one by one. To start at the beginning of the list, use 0 for nr; NULL is returned if we are at the end of the list. Do not try to change these chip names, as they point to internal structures! Do not use nr for anything else.
-+This function returns all detected chips that match a given chip name,
-+one by one. If no chip name is provided, all detected chips are returned.
-+To start at the beginning of the list, use 0 for nr; NULL is returned if
-+we are at the end of the list. Do not try to change these chip names, as
-+they point to internal structures!
- 
- This structure is used when you want to get all features of a specific chip.
- .br
-Index: lm-sensors-3/lib/sensors.h
-=================================--- lm-sensors-3.orig/lib/sensors.h	2007-08-25 15:00:11.000000000 +0200
-+++ lm-sensors-3/lib/sensors.h	2007-08-26 09:13:45.000000000 +0200
-@@ -109,11 +109,13 @@
-    wildcards!  This function will return 0 on success, and <0 on failure. */
- int sensors_do_chip_sets(const sensors_chip_name *name);
- 
--/* This function returns all detected chips, one by one. To start at the
--   beginning of the list, use 0 for nr; NULL is returned if we are
--   at the end of the list. Do not try to change these chip names, as
--   they point to internal structures! Do not use nr for anything else. */
--const sensors_chip_name *sensors_get_detected_chips(int *nr);
-+/* This function returns all detected chips that match a given chip name,
-+   one by one. If no chip name is provided, all detected chips are returned.
-+   To start at the beginning of the list, use 0 for nr; NULL is returned if
-+   we are at the end of the list. Do not try to change these chip names, as
-+   they point to internal structures! */
-+const sensors_chip_name *sensors_get_detected_chips(const sensors_chip_name
-+						    *match, int *nr);
- 
- /* These defines are used in the mode field of sensors_feature_data */
- #define SENSORS_MODE_R 1
-Index: lm-sensors-3/prog/sensors/main.c
-=================================--- lm-sensors-3.orig/prog/sensors/main.c	2007-08-25 15:00:11.000000000 +0200
-+++ lm-sensors-3/prog/sensors/main.c	2007-08-26 09:13:45.000000000 +0200
-@@ -251,18 +251,18 @@
-   int cnt = 0;
- 
-   *error = 0;
--  for (chip_nr = 0; (chip = sensors_get_detected_chips(&chip_nr));)
--    for(i = 0; i < chips_count; i++)
--      if (sensors_match_chip(chip, &chips[i])) {
--        if(do_sets) {
-+  for (i = 0; i < chips_count; i++) {
-+    chip_nr = 0;
-+    while ((chip = sensors_get_detected_chips(&chips[i], &chip_nr))) {
-+      if (do_sets) {
-           if (do_a_set(chip))
-             *error = 1;
-         } else
-           do_a_print(chip);
--        i = chips_count;
- 	cnt++;
-       }
--   return(cnt);
-+  }
-+  return cnt;
- }
- 
- /* returns 1 on error */
-Index: lm-sensors-3/prog/sensord/rrd.c
-=================================--- lm-sensors-3.orig/prog/sensord/rrd.c	2007-08-25 15:00:11.000000000 +0200
-+++ lm-sensors-3/prog/sensord/rrd.c	2007-08-25 15:19:49.000000000 +0200
-@@ -139,9 +139,8 @@
-   const sensors_chip_name *chip;
-   int i = 0, j, ret = 0, num = 0;
- 
--  while ((ret = 0) && ((chip = sensors_get_detected_chips (&i)) != NULL)) {
-     for (j = 0; (ret = 0) && (j < numChipNames); ++ j) {
--      if (sensors_match_chip (chip, &chipNames[j])) {
-+    while ((ret = 0) && ((chip = sensors_get_detected_chips (&chipNames[j], &i)) != NULL)) {
-         int index0, subindex, chipindex = -1;
-         for (index0 = 0; knownChips[index0]; ++ index0)
-           for (subindex = 0; knownChips[index0]->names[subindex]; ++ subindex)
-@@ -177,7 +176,6 @@
-         }
-       }
-     }
--  }
- 
-   return ret;
- }
-Index: lm-sensors-3/prog/sensord/sense.c
-=================================--- lm-sensors-3.orig/prog/sensord/sense.c	2007-08-25 15:00:11.000000000 +0200
-+++ lm-sensors-3/prog/sensord/sense.c	2007-08-25 15:19:49.000000000 +0200
-@@ -238,13 +238,11 @@
-   const sensors_chip_name *chip;
-   int i = 0, j, ret = 0;
- 
--  while ((ret = 0) && ((chip = sensors_get_detected_chips (&i)) != NULL)) {
-     for (j = 0; (ret = 0) && (j < numChipNames); ++ j) {
--      if (sensors_match_chip (chip, &chipNames[j])) {
-+    while ((ret = 0) && ((chip = sensors_get_detected_chips (&chipNames[j], &i)) != NULL)) {
-         ret = doChip (chip, action);
-       }
-     }
--  }
- 
-   return ret;
- }
+This patch adds individual alarm and fault files to
+the thmc50 driver. These sysfs entries are required
+for a new libsensors library.
 
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 
--- 
-Jean Delvare
+---
+
+----------------------------------------------------
+Najnowszy album =B6wiatowej klasy DJ'a Paula van Dyka=20
+"In Between" ju=BF w sklepach! Kompilacja zawiera singiel=20
+"White Lies" z udzia=B3em Jessica Sutta z Pussycat Dolls.
+http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Fadv.reklama.wp.pl%2Fas%2Fpaul.html&si=
+d=3D1260
+
+--part46c0b439a2c49
+Content-Type: application/octet-stream; name="thmc50-individual-alarms.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="thmc50-individual-alarms.diff"
+
+RnJvbTogS3J6eXN6dG9mIEhlbHQgPGtyenlzenRvZi5oMUB3cC5wbD4KClRoaXMgcGF0Y2ggYWRk
+cyBpbmRpdmlkdWFsIGFsYXJtIGFuZCBmYXVsdCBmaWxlcyB0bwp0aGUgdGhtYzUwIGRyaXZlci4g
+VGhlc2Ugc3lzZnMgZW50cmllcyBhcmUgcmVxdWlyZWQKZm9yIGEgbmV3IGxpYnNlbnNvcnMgbGli
+cmFyeS4KClNpZ25lZC1vZmYtYnk6IEtyenlzenRvZiBIZWx0IDxrcnp5c3p0b2YuaDFAd3AucGw+
+CgotLS0KCmRpZmYgLXVycCBsaW51eC0yLjYuMjMuMi9kcml2ZXJzL2h3bW9uL3RobWM1MC5jIGxp
+bnV4LTIuNi4yMy9kcml2ZXJzL2h3bW9uL3RobWM1MC5jCi0tLSBsaW51eC0yLjYuMjMuMi9kcml2
+ZXJzL2h3bW9uL3RobWM1MC5jCTIwMDctMDgtMDQgMjI6MTM6MDIuMDAwMDAwMDAwICswMjAwCisr
+KyBsaW51eC0yLjYuMjMvZHJpdmVycy9od21vbi90aG1jNTAuYwkyMDA3LTA4LTEzIDEzOjA2OjU1
+LjAwMDAwMDAwMCArMDIwMApAQCAtNDYsNiArNDYsMTEgQEAgSTJDX0NMSUVOVF9NT0RVTEVfUEFS
+TShhZG0xMDIyX3RlbXAzLCAiTAogI2RlZmluZSBUSE1DNTBfUkVHX0NPTVBBTllfSUQJCQkweDNF
+CiAjZGVmaW5lIFRITUM1MF9SRUdfRElFX0NPREUJCQkweDNGCiAjZGVmaW5lIFRITUM1MF9SRUdf
+QU5BTE9HX09VVAkJCTB4MTkKKy8qCisgKiBXZSB1c2UgbWlycm9yIHN0YXR1cyByZWdpc3RlciBm
+b3IgcmVhZGluZyBhbGFybXMKKyAqIHNvIEFDUEkgY2FuIHVzZSB0aGUgcHJpbWFyeSBzdGF0dXMg
+cmVnaXN0ZXIuCisgKi8KKyNkZWZpbmUgVEhNQzUwX1JFR19JTlRSX01JUlJPUgkJCTB4NEMKIAog
+Y29uc3Qgc3RhdGljIHU4IFRITUM1MF9SRUdfVEVNUFtdID0geyAweDI3LCAweDI2LCAweDIwIH07
+CiBjb25zdCBzdGF0aWMgdTggVEhNQzUwX1JFR19URU1QX01JTltdID0geyAweDNBLCAweDM4LCAw
+eDJDIH07CkBAIC02OSw2ICs3NCw3IEBAIHN0cnVjdCB0aG1jNTBfZGF0YSB7CiAJczggdGVtcF9t
+YXhbM107CiAJczggdGVtcF9taW5bM107CiAJdTggYW5hbG9nX291dDsKKwl1OCBhbGFybXM7CiB9
+OwogCiBzdGF0aWMgaW50IHRobWM1MF9hdHRhY2hfYWRhcHRlcihzdHJ1Y3QgaTJjX2FkYXB0ZXIg
+KmFkYXB0ZXIpOwpAQCAtMTgwLDYgKzE4NiwxNSBAQCBzdGF0aWMgc3NpemVfdCBzZXRfdGVtcF9t
+YXgoc3RydWN0IGRldmljCiAJcmV0dXJuIGNvdW50OwogfQogCitzdGF0aWMgc3NpemVfdCBzaG93
+X2FsYXJtKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIs
+CisJCQkgIGNoYXIgKmJ1ZikKK3sKKwlpbnQgaW5kZXggPSB0b19zZW5zb3JfZGV2X2F0dHIoYXR0
+ciktPmluZGV4OworCXN0cnVjdCB0aG1jNTBfZGF0YSAqZGF0YSA9IHRobWM1MF91cGRhdGVfZGV2
+aWNlKGRldik7CisKKwlyZXR1cm4gc3ByaW50ZihidWYsICIldVxuIiwgKGRhdGEtPmFsYXJtcyA+
+PiBpbmRleCkgJiAxKTsKK30KKwogI2RlZmluZSB0ZW1wX3JlZyhvZmZzZXQpCQkJCQkJXAogc3Rh
+dGljIFNFTlNPUl9ERVZJQ0VfQVRUUih0ZW1wIyNvZmZzZXQjI19pbnB1dCwgU19JUlVHTywgc2hv
+d190ZW1wLAlcCiAJCQlOVUxMLCBvZmZzZXQgLSAxKTsJCQkJXApAQCAtMTkyLDYgKzIwNywxMiBA
+QCB0ZW1wX3JlZygxKTsKIHRlbXBfcmVnKDIpOwogdGVtcF9yZWcoMyk7CiAKK3N0YXRpYyBTRU5T
+T1JfREVWSUNFX0FUVFIodGVtcDFfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxhcm0sIE5VTEwsIDAp
+Oworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUih0ZW1wMl9hbGFybSwgU19JUlVHTywgc2hvd19h
+bGFybSwgTlVMTCwgNSk7CitzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXAzX2FsYXJtLCBT
+X0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAxKTsKK3N0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIo
+dGVtcDJfZmF1bHQsIFNfSVJVR08sIHNob3dfYWxhcm0sIE5VTEwsIDcpOworc3RhdGljIFNFTlNP
+Ul9ERVZJQ0VfQVRUUih0ZW1wM19mYXVsdCwgU19JUlVHTywgc2hvd19hbGFybSwgTlVMTCwgMik7
+CisKIHN0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIocHdtMSwgU19JUlVHTyB8IFNfSVdVU1IsIHNo
+b3dfYW5hbG9nX291dCwKIAkJCSAgc2V0X2FuYWxvZ19vdXQsIDApOwogc3RhdGljIFNFTlNPUl9E
+RVZJQ0VfQVRUUihwd20xX21vZGUsIFNfSVJVR08sIHNob3dfcHdtX21vZGUsIE5VTEwsIDApOwpA
+QCAtMjAwLDkgKzIyMSwxMiBAQCBzdGF0aWMgc3RydWN0IGF0dHJpYnV0ZSAqdGhtYzUwX2F0dHJp
+YnV0CiAJJnNlbnNvcl9kZXZfYXR0cl90ZW1wMV9tYXguZGV2X2F0dHIuYXR0ciwKIAkmc2Vuc29y
+X2Rldl9hdHRyX3RlbXAxX21pbi5kZXZfYXR0ci5hdHRyLAogCSZzZW5zb3JfZGV2X2F0dHJfdGVt
+cDFfaW5wdXQuZGV2X2F0dHIuYXR0ciwKKwkmc2Vuc29yX2Rldl9hdHRyX3RlbXAxX2FsYXJtLmRl
+dl9hdHRyLmF0dHIsCiAJJnNlbnNvcl9kZXZfYXR0cl90ZW1wMl9tYXguZGV2X2F0dHIuYXR0ciwK
+IAkmc2Vuc29yX2Rldl9hdHRyX3RlbXAyX21pbi5kZXZfYXR0ci5hdHRyLAogCSZzZW5zb3JfZGV2
+X2F0dHJfdGVtcDJfaW5wdXQuZGV2X2F0dHIuYXR0ciwKKwkmc2Vuc29yX2Rldl9hdHRyX3RlbXAy
+X2FsYXJtLmRldl9hdHRyLmF0dHIsCisJJnNlbnNvcl9kZXZfYXR0cl90ZW1wMl9mYXVsdC5kZXZf
+YXR0ci5hdHRyLAogCSZzZW5zb3JfZGV2X2F0dHJfcHdtMS5kZXZfYXR0ci5hdHRyLAogCSZzZW5z
+b3JfZGV2X2F0dHJfcHdtMV9tb2RlLmRldl9hdHRyLmF0dHIsCiAJTlVMTApAQCAtMjE3LDYgKzI0
+MSw4IEBAIHN0YXRpYyBzdHJ1Y3QgYXR0cmlidXRlICphZG0xMDIyX2F0dHJpYnUKIAkmc2Vuc29y
+X2Rldl9hdHRyX3RlbXAzX21heC5kZXZfYXR0ci5hdHRyLAogCSZzZW5zb3JfZGV2X2F0dHJfdGVt
+cDNfbWluLmRldl9hdHRyLmF0dHIsCiAJJnNlbnNvcl9kZXZfYXR0cl90ZW1wM19pbnB1dC5kZXZf
+YXR0ci5hdHRyLAorCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDNfYWxhcm0uZGV2X2F0dHIuYXR0ciwK
+Kwkmc2Vuc29yX2Rldl9hdHRyX3RlbXAzX2ZhdWx0LmRldl9hdHRyLmF0dHIsCiAJTlVMTAogfTsK
+IApAQCAtNDE0LDYgKzQ0MCw4IEBAIHN0YXRpYyBzdHJ1Y3QgdGhtYzUwX2RhdGEgKnRobWM1MF91
+cGRhdGUKIAkJfQogCQlkYXRhLT5hbmFsb2dfb3V0ID0KIAkJICAgIGkyY19zbWJ1c19yZWFkX2J5
+dGVfZGF0YShjbGllbnQsIFRITUM1MF9SRUdfQU5BTE9HX09VVCk7CisJCWRhdGEtPmFsYXJtcyA9
+CisJCSAgICBpMmNfc21idXNfcmVhZF9ieXRlX2RhdGEoY2xpZW50LCBUSE1DNTBfUkVHX0lOVFJf
+TUlSUk9SKTsKIAkJZGF0YS0+bGFzdF91cGRhdGVkID0gamlmZmllczsKIAkJZGF0YS0+dmFsaWQg
+PSAxOwogCX0K
+
+--part46c0b439a2c49
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--part46c0b439a2c49--
+
+
