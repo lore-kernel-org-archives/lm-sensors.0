@@ -1,24 +1,29 @@
-From: Fabio Checconi <fabio@gandalf.sssup.it>
-Date: Tue, 28 Aug 2007 09:42:56 +0000
-Subject: [lm-sensors] Status of at24c i2c EEPROM driver
-Message-Id: <20070828094256.GZ13696@gandalf.sssup.it>
+From: joe@perches.com
+Date: Mon, 13 Aug 2007 06:39:32 +0000
+Subject: [lm-sensors] [PATCH] [536/2many] MAINTAINERS - VT8231 HARDWARE
+Message-Id: <46bffca4.6Lu3UWtUI5Nk5hzk%joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linux-foundation.org, roger@planbit.co.uk, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
 
-Hi,
+Add file pattern to MAINTAINER entry
 
-the lm-sensors.org wiki, for at24c support, points there:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2005-July/013021.html
+Signed-off-by: Joe Perches <joe@perches.com>
 
-but the patch is quite old, are you still working on it or do you
-know if anyone else is ?  is there any other driver supporting the
-same hardware ?
-
-thanks in advance,
-fabio
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 52b7742..3871621 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5064,6 +5064,7 @@ P:	Roger Lucas
+ M:	roger@planbit.co.uk
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
++F:	drivers/hwmon/vt8231.c
+ 
+ W1 DALLAS'S 1-WIRE BUS
+ P:	Evgeniy Polyakov
 
 _______________________________________________
 lm-sensors mailing list
