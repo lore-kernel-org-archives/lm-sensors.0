@@ -1,27 +1,30 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 26 Aug 2007 18:50:03 +0000
-Subject: Re: [lm-sensors] [PATCH] v4 of adt7470 driver
-Message-Id: <20070826185003.GB3679@jupiter.solarsys.private>
+From: joe@perches.com
+Date: Mon, 13 Aug 2007 06:27:26 +0000
+Subject: [lm-sensors] [PATCH] [189/2many] MAINTAINERS - F71805F HARDWARE
+Message-Id: <46bff9ce.q5IFWhx41NPHIs5g%joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, khali@linux-fr.org, akpm@linux-foundation.org
 
-Hi Darrick:
+Add file pattern to MAINTAINER entry
 
-* Darrick J. Wong <djwong@us.ibm.com> [2007-07-31 11:06:52 -0700]:
-> New driver to expose temperature and fan controls attached to Analog
-> Devices ADT7470 hwmon chips.
-> 
-> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 
-Applied to hwmon-2.6.git/testing, thanks.
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 992a314..73ce5d8 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1824,6 +1824,8 @@ P:	Jean Delvare
+ M:	khali@linux-fr.org
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
++F:	Documentation/hwmon/f71805f
++F:	drivers/hwmon/f71805f.c
+ 
+ FARSYNC SYNCHRONOUS DRIVER
+ P:	Kevin Curtis
 
 _______________________________________________
 lm-sensors mailing list
