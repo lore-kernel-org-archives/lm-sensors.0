@@ -1,85 +1,43 @@
 From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Wed, 01 Aug 2007 01:08:25 +0000
-Subject: [lm-sensors] [GIT PATCH] hwmon updates against ~v2.6.23-rc1-git8
-Message-Id: <20070801010825.GC3747@jupiter.solarsys.private>
+Date: Tue, 14 Aug 2007 01:50:28 +0000
+Subject: [lm-sensors] [GIT PATCH] hwmon updates against ~v2.6.23-rc2-git
+Message-Id: <20070814015028.GA7748@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20070801010825.GC3747@jupiter.solarsys.private>
+In-Reply-To: <20070801010825.GC3747@jupiter.solarsys.private>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
 Hi Linus:
 
 Please pull from:
 	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git release
 
-You'll get a handful of cleanups and bugfixes (including a couple that fix
-regressions since 2.6.22).  The Macbook gets some additional sensors, and
-there's also one brand new driver, which has spent some time in the latest =
--mm.
+You'll get four bugfixes.  This takes care of all known hwmon regressions, and
+hopefully it's the last you'll hear from me before v2.6.23 goes final.
 
 This patch series was also posted to the lm-sensors list yesterday:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020730.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-August/020843.html
 
 Thanks & regards,
 
- Documentation/hwmon/adm1031  |    4 +-
- Documentation/hwmon/thmc50   |   74 +++++++
- drivers/hwmon/Kconfig        |   10 +
- drivers/hwmon/Makefile       |    1 +
- drivers/hwmon/abituguru3.c   |    5 +-
- drivers/hwmon/ams/ams-core.c |    1 -
- drivers/hwmon/applesmc.c     |   14 +-
- drivers/hwmon/dme1737.c      |    2 +-
- drivers/hwmon/fscher.c       |    4 +-
- drivers/hwmon/it87.c         |    2 +-
- drivers/hwmon/lm78.c         |    2 +-
- drivers/hwmon/lm90.c         |    2 +-
- drivers/hwmon/lm93.c         |    2 +-
- drivers/hwmon/pc87360.c      |    2 +-
- drivers/hwmon/sis5595.c      |    2 +-
- drivers/hwmon/smsc47m1.c     |    2 +-
- drivers/hwmon/thmc50.c       |  440 ++++++++++++++++++++++++++++++++++++++=
-++++
- drivers/hwmon/via686a.c      |    2 +-
- drivers/hwmon/vt8231.c       |    4 +-
- drivers/hwmon/w83627hf.c     |    2 +-
- 20 files changed, 554 insertions(+), 23 deletions(-)
- create mode 100644 Documentation/hwmon/thmc50
- create mode 100644 drivers/hwmon/thmc50.c
-
-Adrian Bunk (1):
-      hwmon: make abituguru3_read_increment_offset() static
-
-Guillaume Chazarain (1):
-      hwmon: Fix regression caused by typo in lm90.c
-
-Hans de Goede (3):
-      hwmon: fix lm78 detection regression
-      hwmon: fscher control update bugfix
-      hwmon: fscher read control bugfix
-
-Hans-J=FCrgen Koch (1):
-      hwmon: fix array overruns in lm93.c
+ drivers/hwmon/smsc47m1.c  |    2 +
+ drivers/hwmon/w83627ehf.c |   56 +++++++++++++++++++++++++-------------------
+ drivers/hwmon/w83781d.c   |    4 +-
+ 3 files changed, 36 insertions(+), 26 deletions(-)
 
 Jean Delvare (2):
-      hwmon: Add missing __devexit tags in various drivers
-      hwmon: (adm1031) Fix broken links in documentation
+      hwmon: (w83627ehf) don't assume bank 0
+      hwmon: (smsc47m1) restore missing name attribute
 
-Jesper Juhl (1):
-      hwmon: clean up duplicate includes
+Mark M. Hoffman (2):
+      hwmon: fix w83781d temp sensor type setting
+      hwmon: (w83627ehf) read fan_div values during probe
 
-Juerg Haefliger (1):
-      hwmon: fix dme1737 temp fault attribute
-
-Krzysztof Helt (1):
-      hwmon: add support for THMC50 and ADM1022
-
-Martin Szulecki (1):
-      hwmon: (applesmc) add temperature sensors set for Macbook
-
---=20
+-- 
 Mark M. Hoffman
 mhoffman@lightlink.com
 
