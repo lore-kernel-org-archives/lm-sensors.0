@@ -1,45 +1,28 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 14 Aug 2007 01:59:45 +0000
+From: Joe Perches <joe@perches.com>
+Date: Tue, 14 Aug 2007 03:13:07 +0000
 Subject: Re: [lm-sensors] [PATCH] [210/2many] MAINTAINERS - HARDWARE
-Message-Id: <20070814015945.GC7748@jupiter.solarsys.private>
+Message-Id: <1187061187.10249.376.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46bffa04.JW3S0ykNGAQACMv1%joe@perches.com>
-In-Reply-To: <46bffa04.JW3S0ykNGAQACMv1%joe@perches.com>
+	 <20070814015945.GC7748@jupiter.solarsys.private>
+In-Reply-To: <20070814015945.GC7748@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: joe@perches.com
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Joe:
+On Mon, 2007-08-13 at 21:59 -0400, Mark M. Hoffman wrote:
+> If you collect the hwmon stuff into one (1) patch, I'll take it.
 
-* joe@perches.com <joe@perches.com> [2007-08-12 23:28:20 -0700]:
-> Add file pattern to MAINTAINER entry
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index e35e29c..f422277 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -2015,6 +2015,7 @@ L:	lm-sensors@lm-sensors.org
->  W:	http://www.lm-sensors.org/
->  T:	git lm-sensors.org:/kernel/mhoffman/hwmon-2.6.git
->  S:	Maintained
-> +F:	drivers/hwmon/
->  
->  HARDWARE RANDOM NUMBER GENERATOR CORE
->  P:	Michael Buesch
+I suspect that someone will either take or reject the
+whole thing.
 
-I guess you know by now not to ever do that again.
+I'll send a batch of 10 or so patches to MAINTAINERS
+with all the collected changes tomorrow along with
+the modified script.
 
-If you collect the hwmon stuff into one (1) patch, I'll take it.
-
-Now you'll excuse me while I drive a nail through my delete key.
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Thanks,  Joe
 
 
 _______________________________________________
