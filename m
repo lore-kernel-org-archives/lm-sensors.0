@@ -1,61 +1,86 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 24 Aug 2007 09:21:17 +0000
-Subject: Re: [lm-sensors] coretemp and sensors.conf
-Message-Id: <20070824112117.21e0edbc@hyperion.delvare>
+From: "Piotr Czepek" <piotr.czepek@gmail.com>
+Date: Tue, 14 Aug 2007 18:18:23 +0000
+Subject: Re: [lm-sensors] #2179: Treat strange fan speed (like 675 000 rpm)
+Message-Id: <2ecba3930708141118t4486af7bo425e1f89a7a1f72e@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46C81AB3.90306@wanadoo.fr>
-In-Reply-To: <46C81AB3.90306@wanadoo.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 19 Aug 2007 12:25:55 +0200, S=E9bastien CRAMATTE wrote:
-> I've just build a 2.6.22.1 kernel and latest lm-sensors with coretemp
-> driver
-> coretemp.ko is driver loaded properly ....
-> (...)
-> Unfortunately when I exectute
-> #/usr/local/bin/sensors
->=20
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> ERROR: Can't get temperature data!
->=20
-> w83793-i2c-0-2f
-> Can't get adapter name for bus 0
-> VCoreA:    +1.32 V  (min =3D  +0.92 V, max =3D  +1.49 V) =20
-> VCoreB:    +1.53 V  (min =3D  +0.92 V, max =3D  +1.49 V)   ALARM
-> Vtt:       +1.21 V  (min =3D  +1.08 V, max =3D  +1.33 V) =20
-> in3:       +0.51 V  (min =3D  +0.38 V, max =3D  +0.69 V) =20
-> in4:       +1.82 V  (min =3D  +1.62 V, max =3D  +1.98 V) =20
-> +3.3V:     +3.38 V  (min =3D  +2.96 V, max =3D  +3.63 V) =20
-> +12V:     +11.81 V  (min =3D +10.75 V, max =3D +13.25 V) =20
-> +5V:       +5.00 V  (min =3D  +4.64 V, max =3D  +5.65 V) =20
-> 5VSB:      +5.07 V  (min =3D  +4.64 V, max =3D  +5.65 V) =20
-> VBAT:      +3.23 V  (min =3D  +2.99 V, max =3D  +3.66 V) =20
-> fan1:     11637 RPM  (min =3D  712 RPM)                 =20
-> fan2:     11440 RPM  (min =3D  712 RPM)                 =20
-> CPU1 Temp: +37.2 C  (high =3D +60.0 C, hyst =3D +55.0 C) =20
-> CPU2 Temp:-110.5 C  (high =3D +60.0 C, hyst =3D +55.0 C) =20
-> temp3:    -128.0 C  (high =3D +60.0 C, hyst =3D +55.0 C) =20
-> temp4:    -128.0 C  (high =3D +60.0 C, hyst =3D +55.0 C) =20
-> temp5:       +39 C  (high =3D   +80 C, hyst =3D   +75 C) =20
->=20
-> coretemp-isa-0001
-> Adapter: ISA adapter
-> ERROR: Can't get temperature data!
+2007/8/13, lm-sensors <lm-sensors-notify@lm-sensors.org>:
+> #2179: Treat strange fan speed (like 675 000 rpm) as "0"
+> -------------------------------------+--------------------------------------
+>   Reporter:  piotr.czepek@gmail.com  |       Owner:  khali
+>       Type:  enhancement             |      Status:  assigned
+>   Priority:  minor                   |   Milestone:
+>  Component:  fancontrol              |     Version:
+> Resolution:                          |    Keywords:
 
-Odd. What does "/usr/local/bin/sensors -v" return? Please unload the
-w83793 driver and provide the output of "strace /usr/local/bin/sensors".
+> -------------------------------------+--------------------------------------
+> Changes (by khali):
+>
+>   * status:  new => assigned
+>   * reporter:  ticket => piotr.czepek@gmail.com
+>  * cc: piotr.czepek@gmail.com (removed)
+>   * component:  misc => fancontrol
+>   * priority:  trivial => minor
+>   * owner:  somebody => khali
+>   * keywords:  fan speed  driver =>
+>
+> Comment:
+>
+>  What driver are you using? I can't remember seeing a driver report high
+>  speeds for stopped fans.
+>
+>  I don't much like the idea of arbitrarily discarding some reported fan
+>  speed values. You should probably simply avoid using low duty cycle PWM if
+>  it results in bad speed readings. You may get better results by using a
+>  lower base frequency for the PWM.
+>
+> --
+> Ticket URL: <http://lm-sensors.org/ticket/2179#comment:1>
+> lm-sensors <http://lm-sensors.org/>
+> Linux hardware monitoring
 
-Please also look in /sys/bus/platform/devices, you should find two
-entries for the coretemp driver, please list the files (ls -l) in these
-directories.
+Hi,
 
---=20
-Jean Delvare
+I use w83627hf driver.
+I agree, discarding some fan speed values is bad idea.
+But, AFAIK there is no way to change base frequency for PWM output.
+I use fancontrol to control fan speed, so I think I need to patch
+fancontrol to make some duty cycle limits.
 
+Anyway, problem is caused by low duty PWM and  I can't find good
+solution for this hardware problem.
+
+sensors output:
+
+w83627hf-isa-0290
+Adapter: ISA adapter
+VCore 1:   +1.76 V  (min =  +1.54 V, max =  +1.95 V)
+VCore 2:   +1.52 V  (min =  +1.54 V, max =  +1.95 V)       ALARM
++3.3V:     +3.25 V  (min =  +2.82 V, max =  +3.79 V)
++5V:       +4.78 V  (min =  +0.00 V, max =  +0.00 V)       ALARM
++12V:     +12.40 V  (min =  +7.78 V, max =  +0.61 V)       ALARM
+-12V:     -12.28 V  (min = -13.59 V, max =  -9.65 V)
+-5V:       -5.50 V  (min =  -7.31 V, max =  -7.71 V)       ALARM
+V5SB:      +5.48 V  (min =  +0.00 V, max =  +0.86 V)       ALARM
+VBat:      +3.09 V  (min =  +0.00 V, max =  +0.00 V)       ALARM
+fan1:        0 RPM  (min =   -1 RPM, div = 2)              ALARM
+fan2:        0 RPM  (min = 21093 RPM, div = 2)              ALARM
+fan3:     675000 RPM  (min =   -1 RPM, div = 2)              ALARM
+temp1:       +40°C  (high =    +0°C, hyst =  -128°C)   sensor thermistor   ALARM
+temp2:     +46.0°C  (high =   +66°C, hyst =   +61°C)   sensor = diode
+         (beep)
+temp3:     +42.5°C  (high =   +66°C, hyst =   +61°C)   sensor thermistor           (beep)
+vid:      +1.750 V  (VRM Version 8.2)
+alarms:
+beep_enable:
+          Sound alarm enabled
+
+-- 
+Best regards piotr
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
