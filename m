@@ -1,42 +1,57 @@
-From: Sebastian Flothow <lists@flothow.de>
-Date: Wed, 22 Aug 2007 19:45:41 +0000
-Subject: Re: [lm-sensors] Submitting motherboard-specific support? (w/
-Message-Id: <4e09dc1e74aa0f49f00638b0d635f15b@flothow.de>
+From: "Boyd Noorda" <boyd2006@sociamedia.nl>
+Date: Tue, 14 Aug 2007 16:55:50 +0000
+Subject: Re: [lm-sensors] #2234: Can Lm-sensors calculate power use?
+Message-Id: <46C1FAB6.9627.200313@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46C997B4.50509@dolbeau.org>
-In-Reply-To: <46C997B4.50509@dolbeau.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Am 21. Aug 2007 um 19:17 Uhr schrieb Jean Delvare:
-> Do we really need a mail validation mechanism (as bugzilla and mailman
-> do) AND a captcha? I thought that we only needed one method. I've
-> always seen the captcha as a replacement for email validation when
-> email validation is considered too much.
+Hi,
 
-My experience from running online fora (using phpBB) suggests that 
-captchas are actually a harder test than email verification - 
-apparently spambots do read their mail and follow through on 
-confirmation links.
+I'm quite surprised to find that the tickets are online on the web 
+site, including E-mail addresses ...
+This always leads to more spam, often within a day.
+Could you please refrain from publishing E-mail addresses or construct 
+an archive bots can't access?
 
-So, email verification has its place for confirming address ownership 
-(to catch typos and prevent abuse), but it's not much use when the 
-spambot _is_ the legitimate owner of an email address. Also, even the 
-bots who don't go to this trouble still end up creating loads of bogus 
-user accounts.
+Thanks,
+Boyd Noorda
 
-Captchas aren't perfect, either - some bots succeed reading them, but 
-maybe phpBB's captcha generator is too deterministic. Still, they have 
-reduced the amount of spam by many orders of magnitude, to about two or 
-three posts per month, making manual deletion feasible.
+> #2234: Can Lm-sensors calculate power use?
+> -------------------------------------+----------------------------------
+> ----
+>   Reporter:  boyd2006@sociamedia.nl  |       Owner:  khali             
+>       Type:  enhancement             |      Status:  assigned          
+>   Priority:  major                   |   Milestone:                    
+>  Component:  hardware                |     Version:                   
+> Resolution:                          |    Keywords:  CPU/HD power usage
+> -------------------------------------+----------------------------------
+> ---- Changes (by khali):
+> 
+>  * cc: boyd2006@sociamedia.nl (removed)
+>   * owner:  somebody => khali
+>   * status:  new => assigned
+>   * reporter:  ticket => boyd2006@sociamedia.nl
+> 
+> Comment:
+> 
+>  No, lm_sensors can't be used to compute power consumption. We'd need to
+>  know how much current is drawn on every power line, but hardware
+>  monitoring chips don't measure this value.
+> 
+>  I use an external device to measure how much power my systems consume.
+>  It's named Voltcraft Energy Check 3000, google for it if interested.
+>  You simply plug any device in it and it gives you the power
+>  consumption, very handy. That won't necessarily be very practical for
+>  production use though, as it is external to the system.
+> 
+> -- 
+> Ticket URL: <http://lm-sensors.org/ticket/2234#comment:1>
+> lm-sensors <http://lm-sensors.org/>
+> Linux hardware monitoring
 
-
-> In the case of trac we want an email address anyway (for ticket change 
-> notifications).
-
-Which would indeed suggest having both mechanisms, IMO.
 
 
 _______________________________________________
