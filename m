@@ -1,29 +1,31 @@
-From: joe@perches.com
-Date: Mon, 13 Aug 2007 06:25:36 +0000
-Subject: [lm-sensors] [PATCH] [134/2many] MAINTAINERS - CORETEMP HARDWARE
-Message-Id: <46bff960.WIP0LRYr3U/rYI1a%joe@perches.com>
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Wed, 15 Aug 2007 17:07:34 +0000
+Subject: Re: [lm-sensors] [PATCH] [134/2many] MAINTAINERS - CORETEMP
+Message-Id: <46C332D6.1060907@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <46bff960.WIP0LRYr3U/rYI1a%joe@perches.com>
+In-Reply-To: <46bff960.WIP0LRYr3U/rYI1a%joe@perches.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org, r.marek@assembler.cz, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: joe@perches.com
+Cc: torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
 
-Add file pattern to MAINTAINER entry
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Hi,
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index d0a436a..a51b89e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1294,6 +1294,7 @@ P:	Rudolf Marek
- M:	r.marek@assembler.cz
- L:	lm-sensors@lm-sensors.org
- S:	Maintained
-+F:	drivers/hwmon/coretemp.c
- 
- COSA/SRP SYNC SERIAL DRIVER
- P:	Jan "Yenya" Kasprzak
+There is documentation file too. Documentation/hwmon/coretemp
+
+Rudolf
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFGwzLV3J9wPJqZRNURAgdmAJ9az/Zm2rq1k+sxwivhSnLMj4pfbwCgy+LI
+5kU9ohmTljh3FNnEGTImodI=D5Rg
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 lm-sensors mailing list
