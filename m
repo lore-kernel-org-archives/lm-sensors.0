@@ -1,31 +1,32 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Wed, 15 Aug 2007 17:07:34 +0000
+From: Joe Perches <joe@perches.com>
+Date: Wed, 15 Aug 2007 17:12:29 +0000
 Subject: Re: [lm-sensors] [PATCH] [134/2many] MAINTAINERS - CORETEMP
-Message-Id: <46C332D6.1060907@assembler.cz>
+Message-Id: <1187197949.7443.9.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46bff960.WIP0LRYr3U/rYI1a%joe@perches.com>
-In-Reply-To: <46bff960.WIP0LRYr3U/rYI1a%joe@perches.com>
+	 <46C332D6.1060907@assembler.cz>
+In-Reply-To: <46C332D6.1060907@assembler.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: joe@perches.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Rudolf Marek <r.marek@assembler.cz>
 Cc: torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wed, 2007-08-15 at 19:07 +0200, Rudolf Marek wrote:
+> There is documentation file too. Documentation/hwmon/coretemp
 
-Hi,
+Thanks.  I've now got:
 
-There is documentation file too. Documentation/hwmon/coretemp
+CORETEMP HARDWARE MONITORING DRIVER
+P:	Rudolf Marek
+M:	r.marek@assembler.cz
+L:	lm-sensors@lm-sensors.org
+S:	Maintained
+F:	Documentation/hwmon/coretemp
+F:	drivers/hwmon/coretemp.c
 
-Rudolf
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+cheers,  Joe
 
-iD8DBQFGwzLV3J9wPJqZRNURAgdmAJ9az/Zm2rq1k+sxwivhSnLMj4pfbwCgy+LI
-5kU9ohmTljh3FNnEGTImodI=D5Rg
------END PGP SIGNATURE-----
 
 _______________________________________________
 lm-sensors mailing list
