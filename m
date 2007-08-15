@@ -1,77 +1,102 @@
-From: Joerg Sommrey <jo@sommrey.de>
-Date: Thu, 09 Aug 2007 07:09:15 +0000
-Subject: Re: [lm-sensors] bad temperature values from w83781d in 2.6.22
-Message-Id: <20070809070915.GA24252@sommrey.de>
+From: "Boyd Noorda" <boyd2006@sociamedia.nl>
+Date: Wed, 15 Aug 2007 16:58:06 +0000
+Subject: [lm-sensors] Please clean up procedures here (also against climate
+Message-Id: <46C34CBE.20612.105BF55@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070805183219.0d54802b.akpm@linux-foundation.org> <20070808010316.GB3584@jupiter.solarsys.private> <20070808151716.GA6053@sommrey.de> <20070809035642.GE3584@jupiter.solarsys.private>
-In-Reply-To: <20070809035642.GE3584@jupiter.solarsys.private>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+Dear Jean,
 
-On Wed, Aug 08, 2007 at 11:56:42PM -0400, Mark M. Hoffman wrote:
-> Hi Joerg:
->=20
-> * Joerg Sommrey <jo@sommrey.de> [2007-08-08 17:17:16 +0200]:
-> > Hi Mark,
-> >=20
-> > just to eliminate as many impacts as possible, I did:
-> > - reinstall the unmodified sensors.conf from Tyan's support page
-> > - power off before rebooting
-> >=20
-> > A call to "sensors -s" is done without errors in all cases.
-> > The module parameters I use currently with both kernels:
-> >=20
-> > options w83781d force_w83782d=3D0,0x2d force_subclients=3D0,0x2d,0x48,0=
-x49
-> > options w83627hf force_addr=3D0x0c00
-> >=20
-> > When I first realized the problem, I didn't use w83627hf yet.  Results
-> > are the same when w83781d is used as driver for w83627hf.
-> > Parameters in that case just from Tyan:
-> >=20
-> > options w83781d force_w83782d=3D0,0x2d force_subclients=3D0,0x2d,0x48,0=
-x49 force_w83627hf=3D0,0x2c force_subclients=3D0,0x2c,0x4a,0x4b init=3D0
-> >=20
-> > "My" i2cdump doesn't accept an -y option, maybe a Debianism.  Results
-> > see below.
->=20
-> Newer i2cdump skips the 5-second warning when given -y, that's all.
->=20
-> > ### 2.6.21 ###############################
-> > Script started on Wed Aug  8 16:53:10 2007
-> > bear:~/hwmon# i2cdump 0 0x2d b 0 0x4e
->=20
-> (snip tons of results)
->=20
-> Thanks for sending all that.  I see one bug clearly, and I'm pretty close=
- to
-> seeing the other one.  But for tonight, I need sleep.
->=20
-> In the meantime, please try this command as root, against the newer kerne=
-l,
-> *after* you've done 'sensors -s':
->=20
-> 	# i2cset -f 0 0x2d 0x5d 0x0e b
->=20
-> Wait > 2 seconds for the hardware to update itself, then run 'sensors' ag=
-ain.
-> I'm pretty sure you'll see the correct temps.
-The displayed temperatures changed to 67.5=B0C / 66.0=B0C.  Still, this see=
-ms to
-be too high.  The power supply's fan runs too slow for such CPU
-temperatures. In older kernels it becomes noisy above 50=B0C.
+> > I'm quite surprised to find that the tickets are online on the web
+> > site, including E-mail addresses ... This always leads to more spam,
+> > often within a day. Could you please refrain from publishing E-mail
+> > addresses or construct an archive bots can't access?
+> 
+> This is how open software development works.
 
-Under load the temperatures shown are around 95=B0C, way too high.
+?? I don't think it's normal netiquette to publish someone's E-mail 
+address on a web site, without the person in question knowing, in any 
+circles. OK, it happens, but by people not knowing about these things. 
+I don't expect that here ...
 
--jo
+> You posted on our public website (and right now, to our publicly
+> archived mailing list), you published your e-mail address to the public
+> on your own. If you didn't want it to be known to the public, then you
+> should have refrained from adding it to the support ticket when you
+> created it, sorry. 
 
---=20
--rw-r--r-- 1 jo users 62 2007-08-08 21:06 /home/jo/.signature
+There is something very wrong with procedures here, I'll explain:
+
+- I had a simple user question and followed the 'Contact and Support'
+  link.
+- At this page (now called 'Feedback and Support') I simply followed
+  directions under 'Support Ticket'.
+  There it says: "Note: In order to get rid of spammers, we had to
+  block anonymous creation and edition of support tickets. We created a
+  fake account you have to use instead. First log in with name "ticket"
+  and password "need help" (in one word), then you can create a new
+  ticket and later edit it. Put to CC: your mail please!"
+- So nothing there which warns me I'll be publishing my E-mail address,
+  quite the contrary: you seem aware of the risk of spammers. The
+  urgent request: "Put to CC: your mail please!" (in bold) is not
+  explained(!), but seems logical: I'll get a copy myself and you know
+  to which address to answer.
+- I got an answer by E-mail (thanks :) which even contains the line
+  "* cc: boyd2006@sociamedia.nl (removed)"
+- At this point my message is already up on a wiki page, with my
+  address!
+- By replying to your answer, I automatically post to your mailing list
+  and to a public archive, again publishing my E-mail address.
+  And again there is no way to know that. There simply is a 'reply to:'
+  address (lm-sensors@lm-sensors.org) in the header.
+- Only when I would be very suspicious (why? no reason up to now) I
+  would examine the address lm-sensors@lm-sensors.org via a web search,
+  to find out it's a mailing list address. And I 'could have read' a
+  blurb on mailing lists on the 'Feedback and Support' page and maybe
+  could have noticed from memory (...) this could be the address I'm
+  automatically replying to. Quite a long shot, isn't it?
+  And I did not read that, I did not want to subscribe, I just had a
+  question, so moved on to the 'Support Ticket' blurb on the page.
+
+Besides this, I'm also very surprised to find you publish all addresses 
+of posters in the public mailing list archive too. Subscribers don't 
+need these addresses, they already see them in the mail.
+And what's more: the version of Mailman you're using, makes it very 
+simple to remove (machine) readable addresses from the web archive 
+(feature added by 'public demand') ...
+
+Now I'm quite prepared for these things happening as you can see from 
+my disposable address. (Most people are not, just having one address 
+with their provider). Still I'd like to restrict the harvesting of my 
+addresses to not preventable cases, like infected PC's :)
+
+I also hope to convince you to take action for other reasons:
+Fighting spam with 'software filtering' (I guess you do that 
+extensively, since mailing lists are even open to non subscribers) is 
+very 'old school' these days. As you will know there are days when over 
+90% of E-mail traffic are spam and viruses. This means the 
+infrastructure and servers need 10 times the capacity they would need 
+to just handle normal E-mail, and you need overhead to run heavy 
+filtering software.
+Any idea what this means for energy use and climate change? In the US 
+already 1.2% of all electricity is used by internet servers (and their 
+cooling) only!
+
+So fighting spam and viruses should be done by prevention as much as 
+possible (like using images of E-mail addresses with mailto scripts and 
+refusing most spam and virusses 'at the front door'). It works and 
+saves money too. Many years back our P166 server (30-41 watt) with 
+loads of web sites, mailing lists and E-mail addresses was already 
+choking during spam waves. Since we implemented preventive actions, 
+it's running over 95% idle again most of the time. No need to upgrade, 
+w're even 'downgrading' to a more energy efficient server :)  
+
+All the best,
+Boyd Noorda
+
 
 _______________________________________________
 lm-sensors mailing list
