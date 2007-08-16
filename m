@@ -1,8 +1,10 @@
-From: GADGETS LIMITED  <gadgets.limited@yahoo.co.uk>
-Date: Thu, 16 Aug 2007 13:56:25 +0000
+From: <gadgets.limited@yahoo.co.uk>
+Date: Thu, 16 Aug 2007 14:04:36 +0000
 Subject: [lm-sensors] JUMBO SALES AND GET 2 APPLE IPHONE 8GB FREE
-Message-Id: <E1ILlN1-0000Tf-Jo@server1.mavendns3.com>
+Message-Id: <200708161404.l7GE4aCe018621@webgateinc.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <E1ILlN1-0000Tf-Jo@server1.mavendns3.com>
+In-Reply-To: <E1ILlN1-0000Tf-Jo@server1.mavendns3.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
