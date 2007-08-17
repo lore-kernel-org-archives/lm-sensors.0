@@ -1,296 +1,808 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 13 Aug 2007 12:51:57 +0000
-Subject: Re: [lm-sensors] lm_sensors - What am I doinng wrong ?
-Message-Id: <20070813145157.07b6b844@hyperion.delvare>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Fri, 17 Aug 2007 12:14:40 +0000
+Subject: [lm-sensors] FSC Poseidon, Hermes, Scylla,
+Message-Id: <46C59130.5000306@hhs.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------040200010407070807090403"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 09 Aug 2007 10:00:07 +0200, czezz wrote:
-> Hi everyone.
-> Hope thi is good place to post that.
+This is a multi-part message in MIME format.
+--------------040200010407070807090403
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Yes it is.
+Hi All,
 
-> What I am trying to do is run lm_sensors on Slackware 12 - no success so far :(.
-> With Slackware 12 I'm using binary packages lm_sensors-2.10.3-i486-1 (instead of compiling sources)
-> Hardware that Im trying to run on lm_sensors is - Laptop HP Omnibook 510.
-> 
-> I have 2 kernels:
-> - default Slackware 12 kernel - vmlinuz-huge-smp-2.6.21.5-smp
+As you know I've been working on a unified driver for the Fujitsu Siemens hwmon 
+chip family. Attached is a new version of this driver. I would be much
+obliged if some of you could test this. Changes:
+-Rename the driver to fschmd, as there once already was an fscscy driver and
+  libsensors and sensors will expect this driver to behave as the old fscscy if
+  we reuse the name.
+-Add support for the FSC HRC (Hercules?) chip
+-The Poseidon I doesn't have temp limits registers, it uses hardwired limits.
 
-Not related to your problem, but "huge-smp" doesn't seem to be a very
-appropriate kernel flavor for a laptop.
+To test drop the attached fschmd.c and Makefile in a dir, type make and then
+insmod fschmd.ko
 
-> - compilled by my self with taht requirements http://www.lm-sensors.org/wiki/Kernel2.6
-> 
-> 
-> This is what happaned when I start "sensors-detect"
-> It looks good for me:
-> 
-> ====================================
-> root@hp:/# sensors-detect
-> # sensors-detect revision 4348 (2007-03-18 02:45:21 -0700)
-> 
-> This program will help you determine which kernel modules you need
-> to load to use lm_sensors most effectively. It is generally safe
-> and recommended to accept the default answers to all questions,
-> unless you know what you're doing.
-> 
-> We can start with probing for (PCI) I2C or SMBus adapters.
-> Do you want to probe now? (YES/no):
-> Probing for PCI bus adapters...
-> Use driver `i2c-i801' for device 0000:00:1f.3: Intel 82801CA/CAM ICH3
-> 
-> We will now try to load each adapter module in turn.
-> Module `i2c-i801' already loaded.
-> If you have undetectable or unsupported adapters, you can have them
-> scanned by manually loading the modules before running this script.
-> 
-> We are now going to do the I2C/SMBus adapter probings. Some chips may
-> be double detected; we choose the one with the highest confidence
-> value in that case.
-> If you found that the adapter hung after probing a certain address,
-> you can specify that address to remain unprobed.
-> 
-> Next adapter: SMBus I801 adapter at 1880 (i2c-0)
-> Do you want to scan it? (YES/no/selectively):
-> Client found at address 0x4c
-> Probing for `National Semiconductor LM75'...                No
-> Probing for `Dallas Semiconductor DS75'...                  Success!
->     (confidence 3, driver `lm75')
-> Probing for `Analog Devices ADT7466'...                     No
-> Probing for `Andigilog aSC7511'...                          No
-> Probing for `Dallas Semiconductor DS1621'...                No
-> Probing for `Analog Devices ADM1021'...                     No
-> Probing for `Analog Devices ADM1021A/ADM1023'...            No
-> Probing for `Maxim MAX1617'...                              No
-> Probing for `Maxim MAX1617A'...                             No
-> Probing for `Maxim MAX1668'...                              No
-> Probing for `Maxim MAX1805'...                              No
-> Probing for `Maxim MAX1989'...                              No
-> Probing for `Maxim MAX6655/MAX6656'...                      No
-> Probing for `TI THMC10'...                                  No
-> Probing for `National Semiconductor LM84'...                No
-> Probing for `Genesys Logic GL523SM'...                      No
-> Probing for `Onsemi MC1066'...                              No
-> Probing for `Maxim MAX1619'...                              No
-> Probing for `National Semiconductor LM82/LM83'...           No
-> Probing for `National Semiconductor LM90'...                No
-> Probing for `National Semiconductor LM89/LM99'...           No
-> Probing for `National Semiconductor LM86'...                No
-> Probing for `Analog Devices ADM1032'...                     No
-> Probing for `Maxim MAX6657/MAX6658/MAX6659'...              No
-> Probing for `Maxim MAX6648/MAX6692'...                      No
-> Probing for `National Semiconductor LM63'...                No
-> Probing for `Fintek F75363SG'...                            No
-> Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
-> Probing for `Analog Devices ADT7461'...                     No
-> Probing for `Fintek F75383S/M'...                           No
-> Client found at address 0x50
-> Handled by driver `eeprom' (already loaded), chip type `eeprom'
-> 
-> Some chips are also accessible through the ISA I/O ports. We have to
-> write to arbitrary I/O ports to probe them. This is usually safe though.
-> Yes, you do have ISA I/O ports even if you do not have any ISA slots!
-> Do you want to scan the ISA I/O ports? (YES/no):
-> Probing for `National Semiconductor LM78' at 0x290...       No
-> Probing for `National Semiconductor LM78-J' at 0x290...     No
-> Probing for `National Semiconductor LM79' at 0x290...       No
-> Probing for `Winbond W83781D' at 0x290...                   No
-> Probing for `Winbond W83782D' at 0x290...                   No
-> Probing for `Silicon Integrated Systems SIS5595'...         No
-> Probing for `VIA VT82C686 Integrated Sensors'...            No
-> Probing for `VIA VT8231 Integrated Sensors'...              No
-> Probing for `IPMI BMC KCS' at 0xca0...                      No
-> Probing for `IPMI BMC SMIC' at 0xca8...                     No
-> 
-> Some Super I/O chips may also contain sensors. We have to write to
-> standard I/O ports to probe them. This is usually safe.
-> Do you want to scan for Super I/O sensors? (YES/no):
-> Probing for Super-I/O at 0x2e/0x2f
-> Trying family `ITE'...                                      Yes
-> Found unknown chip with ID 0xea11
-> Trying family `National Semiconductor'...                   Yes
-> Found `Nat. Semi. PC8739x Super IO'
->     (no hardware monitoring capabilities)
-> Trying family `SMSC'...                                     Yes
-> Found unknown chip with ID 0xea11
-> Trying family `VIA/Winbond/Fintek'...                       Yes
-> Found unknown chip with ID 0xea11
-> Probing for Super-I/O at 0x4e/0x4f
-> Trying family `ITE'...                                      No
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Fintek'...                       No
-> 
-> Some CPUs or memory controllers may also contain embedded sensors.
-> Do you want to scan for them? (YES/no):
-> AMD K8 thermal sensors...                                   No
-> Intel Core family thermal sensor...                         No
-> Intel AMB FB-DIMM thermal sensor...                         No
-> 
-> Now follows a summary of the probes I have just done.
-> Just press ENTER to continue:
-> 
-> Driver `lm75' (should be inserted):
->   Detects correctly:
->   * Bus `SMBus I801 adapter at 1880'
->     Busdriver `i2c-i801', I2C address 0x4c
->     Chip `Dallas Semiconductor DS75' (confidence: 3)
-> 
-> Driver `eeprom' (should be inserted):
->   Detects correctly:
->   * Bus `SMBus I801 adapter at 1880'
->     Busdriver `i2c-i801', I2C address 0x50
->     Chip `eeprom' (confidence: 6)
-> 
->   EEPROMs are *NOT* sensors! They are data storage chips commonly
->   found on memory modules (SPD), in monitors (EDID), or in some
->   laptops, for example.
-> 
-> I will now generate the commands needed to load the required modules.
-> Just press ENTER to continue:
-> 
-> To make the sensors modules behave correctly, add these lines to
-> /etc/modules.conf:
-> 
-> #----cut here----
-> # I2C module options
-> alias char-major-89 i2c-dev
-> #----cut here----
-> 
-> To load everything that is needed, add this to some /etc/rc* file:
-> 
-> #----cut here----
-> # I2C adapter drivers
-> modprobe i2c-i801
-> # Chip drivers
-> modprobe lm75
-> modprobe eeprom
-> # sleep 2 # optional
-> /usr/bin/sensors -s # recommended
-> #----cut here----
-> 
-> If you have some drivers built into your kernel, the list above will
-> contain too many modules. Skip the appropriate ones! You really
-> should try these commands right now to make sure everything is
-> working properly. Monitoring programs won't work until the needed
-> modules are loaded.
-> 
-> Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no):
-> Copy prog/init/lm_sensors.init to /etc/init.d/lm_sensors
-> for initialization at boot time.
-> ====================================
-> 
-> I have put proper lines shown above to /etc/modules.conf and /etc/rc.d/rc.local
-> 
-> Here is what "lsmod" shows: 
-> 
-> ====================================
-> root@hp:~# lsmod
-> Module                  Size  Used by
-> eeprom                  9616  0
-> lm75                   10384  0
-> hwmon                   6404  1 lm75
-> snd_seq_dummy           6788  0
-> snd_seq_oss            32896  0
-> snd_seq_midi_event     10112  1 snd_seq_oss
-> snd_seq                50640  5 snd_seq_dummy,snd_seq_oss,snd_seq_midi_event
-> snd_seq_device         10508  3 snd_seq_dummy,snd_seq_oss,snd_seq
-> snd_pcm_oss            42784  0
-> snd_mixer_oss          18048  1 snd_pcm_oss
-> ipv6                  254496  12
-> nls_utf8                5760  1
-> ntfs                  222016  1
-> capability              7304  0
-> commoncap               9344  1 capability
-> lp                     13736  0
-> parport_pc             27812  1
-> parport                34632  2 lp,parport_pc
-> pcspkr                  6528  0
-> psmouse                39048  0
-> pcmcia                 34452  0
-> yenta_socket           27148  1
-> rsrc_nonstatic         13312  1 yenta_socket
-> snd_maestro3           24484  0
-> snd_ac97_codec         98980  1 snd_maestro3
-> ac97_bus                6016  1 snd_ac97_codec
-> serio_raw               9220  0
-> pcmcia_core            36500  3 pcmcia,yenta_socket,rsrc_nonstatic
-> snd_pcm                72068  3 snd_pcm_oss,snd_maestro3,snd_ac97_codec
-> snd_timer              22532  2 snd_seq,snd_pcm
-> snd_page_alloc         11528  1 snd_pcm
-> eepro100               30608  0
-> snd                    47204  9 snd_seq_oss,snd_seq,snd_seq_device,snd_pcm_oss,snd_mixer_oss,snd_maestro3,snd_ac97_codec,snd_pcm,snd_timer
-> mii                     8576  1 eepro100
-> soundcore               9824  1 snd
-> i2c_i801               11408  0
-> i2c_core               21120  3 eeprom,lm75,i2c_i801
-> piix                   12932  0 [permanent]
-> intel_agp              25116  1
-> agpgart                31432  1 intel_agp
-> shpchp                 33172  0
-> uhci_hcd               25612  0
-> iTCO_wdt               12964  0
-> iTCO_vendor_support     7172  1 iTCO_wdt
-> evdev                  11904  0
-> ext3                  122888  1
-> jbd                    55720  1 ext3
-> mbcache                10628  1 ext3
-> ====================================
-> 
-> And finally... this is what makes me upset:
-> 
-> ====================================
-> root@hp:/# sensors -s
-> No sensors found!
-> Make sure you loaded all the kernel drivers you need.
-> Try sensors-detect to find out which these are.
-> ====================================
-> 
-> ...and this way also doesnt work:
-> 
-> ====================================
-> root@hp:/# sensors
-> No sensors found!
-> Make sure you loaded all the kernel drivers you need.
-> Try sensors-detect to find out which these are.
-> ====================================
+The easiest way to then read the settings is by using the 3.0 sensors branch,
+which comes with dyn chipsupport:
+remove your current lm-sensors userspace package (for example on Fedora do rpm
+-e lm_sensors --nodeps)
+svn checkout http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0
+cd lm-sensors-3.0.0
+make
+sudo make install
+sudo ldconfig
 
-The lm75 driver doesn't really support the Dallas DS75, or more
-exactly, it supports it but fails to identify it. There was a patch
-adding support floating around but it got lost somehow. So you need to
-force the lm75 to attach to your chip:
+lm_sensors-2.x will not work, as it doesn't know howto handle a fschmd driver.
 
-modprobe lm75 force_lm75=0,0x4c
+Thanks for testing & Regards,
 
-(or add "options lm75 force_lm75=0,0x4c" to /etc/modprobe.conf or
-equivalent.)
+Hans
 
-However... The confidence level is rather low (3) and I have to say I'd
-be surprised to find a DS75 in a recent laptop. So it might as well be
-a misdetection. Please download the latest version of sensors-detect:
 
-http://www.lm-sensors.org/browser/lm-sensors/trunk/prog/detect/sensors-detect?format=txt
+--------------040200010407070807090403
+Content-Type: text/plain;
+ name="Makefile"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="Makefile"
 
-And give it a try (no need to install it.) Maybe it'll identify your
-chip differently. If not, please provide the output of:
+obj-m += fschmd.o
 
-i2cdump 0 0x4c b
+all:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
-And I'll tell you whether this is a DS75 or something else.
+clean:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
 
-> I have done this same on other hardware and the result is also unsuccessful.
+--------------040200010407070807090403
+Content-Type: text/x-csrc;
+ name="fschmd.c"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline;
+ filename="fschmd.c"
 
-Every system is different so this is hardly relevant.
+/*
+ * fschmd.c - Part of lm_sensors, Linux kernel modules for hardware
+ * monitoring
+ * Copyright (C) 2007 Hans de Goede <j.w.r.degoede@hhs.nl>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
 
--- 
-Jean Delvare
+/* 
+ *  New merged Fujitsu Siemens hwmon driver, supporting the Poseidon, Hermes,
+ *  Scylla, Hercules and Heimdall chips
+ *
+ *  Based on the original 2.4 fscscy, 2.6 fscpos, 2.6 fscher and 2.6
+ *  (candidate) fschmd drivers:
+ *  Copyright (C) 2006 Thilo Cestonaro <thilo.cestonaro.external@fujitsu-siemens.com>
+ *  Copyright (C) 2003, 2004 Reinhard Nissl <rnissl@gmx.de>
+ *  Copyright (C) 2000 Hermann Jung <hej@odn.de>
+ *  Copyright (C) 1998, 1999 Frodo Looijaard <frodol@dds.nl>
+ *  and Philip Edelbrock <phil@netroedge.com>
+ */
+
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/slab.h>
+#include <linux/jiffies.h>
+#include <linux/i2c.h>
+#include <linux/hwmon.h>
+#include <linux/hwmon-sysfs.h>
+#include <linux/err.h>
+#include <linux/mutex.h>
+#include <linux/sysfs.h>
+
+/* Addresses to scan */
+static unsigned short normal_i2c[] = { 0x73, I2C_CLIENT_END };
+
+/* Insmod parameters */
+I2C_CLIENT_INSMOD_5(fscpos, fscher, fscscy, fschrc, fschmd);
+
+/*
+ * The FSCHMD registers and other defines
+ */
+
+/* chip identification */
+#define FSCHMD_REG_IDENT_0		0x00
+#define FSCHMD_REG_IDENT_1		0x01
+#define FSCHMD_REG_IDENT_2		0x02
+#define FSCHMD_REG_REVISION		0x03
+
+/* global control and status */
+#define FSCHMD_REG_EVENT_STATE		0x04
+#define FSCHMD_REG_CONTROL		0x05
+
+/* watchdog (support to be implemented) */
+#define FSCHMD_REG_WDOG_PRESET		0x28
+#define FSCHMD_REG_WDOG_STATE		0x23
+#define FSCHMD_REG_WDOG_CONTROL		0x21
+
+/* voltage supervision */
+#define FSCHMD_REG_VOLT_12		0x45
+#define FSCHMD_REG_VOLT_5		0x42
+#define FSCHMD_REG_VOLT_BATT		0x48
+
+/* minimum pwm at which the fan is driven (pwm can by increased depending on
+   the temp. Notice that for the scy some fans share there minimum speed.
+   Also notice that with the scy the sensor order is different then with the
+   other chips, this order was in the 2.4 driver and kept for consistency. */
+static const u8 FSCHMD_REG_FAN_MIN[5][6] = {
+	{ 0x55, 0x65 },					/* pos */
+	{ 0x55, 0x65, 0xb5 },				/* her */
+	{ 0x65, 0x65, 0x55, 0xa5, 0x55, 0xa5 },		/* scy */
+	{ 0x55, 0x65, 0xa5, 0xb5 },			/* hrc */
+	{ 0x55, 0x65, 0xa5, 0xb5, 0xc5 } };		/* hmd */
+
+/* actual fan speed */	
+static const u8 FSCHMD_REG_FAN_ACT[5][6] = {
+	{ 0x0e, 0x6b, 0xab },				/* pos */
+	{ 0x0e, 0x6b, 0xbb },				/* her */
+	{ 0x6b, 0x6c, 0x0e, 0xab, 0x5c, 0xbb },		/* scy */
+	{ 0x0e, 0x6b, 0xab, 0xbb },			/* hrc */
+	{ 0x5b, 0x6b, 0xab, 0xbb, 0xcb } };		/* hmd */
+
+/* fan status registers */
+static const u8 FSCHMD_REG_FAN_STATE[5][6] = {
+	{ 0x0d, 0x62, 0xa2 },				/* pos */
+	{ 0x0d, 0x62, 0xb2 },				/* her */
+	{ 0x62, 0x61, 0x0d, 0xa2, 0x52, 0xb2 },		/* scy */
+	{ 0x0d, 0x62, 0xa2, 0xb2 },			/* hrc */
+	{ 0x52, 0x62, 0xa2, 0xb2, 0xc2 } };		/* hmd */
+	
+/* fan ripple / divider registers */	
+static const u8 FSCHMD_REG_FAN_RIPPLE[5][6] = {
+	{ 0x0f, 0x6f, 0xaf },				/* pos */
+	{ 0x0f, 0x6f, 0xbf },				/* her */
+	{ 0x6f, 0x6f, 0x0f, 0xaf, 0x0f, 0xbf },		/* scy */
+	{ 0x0f, 0x6f, 0xaf, 0xbf },			/* hrc */
+	{ 0x5f, 0x6f, 0xaf, 0xbf, 0xcf } };		/* hmd */
+
+static const int FSCHMD_NO_FAN_SENSORS[5] = { 3, 3, 6, 4, 5 };
+
+
+/* actual temperature registers */
+static const u8 FSCHMD_REG_TEMP_ACT[5][5] = {
+	{ 0x64, 0x32, 0x35 },				/* pos */
+	{ 0x64, 0x32, 0x35 },				/* her */
+	{ 0x64, 0xD0, 0x32, 0x35 },			/* scy */
+	{ 0x64, 0x32, 0x35 },				/* hrc */
+	{ 0x70, 0x80, 0x90, 0xd0, 0xe0 } };		/* hmd */
+
+/* temperature state registers */
+static const u8 FSCHMD_REG_TEMP_STATE[5][5] = {
+	{ 0x71, 0x81, 0x91 },				/* pos */
+	{ 0x71, 0x81, 0x91 },				/* her */
+	{ 0x71, 0xd1, 0x81, 0x91 },			/* scy */
+	{ 0x71, 0x81, 0x91 },				/* hrc */
+	{ 0x71, 0x81, 0x91, 0xd1, 0xe1 } };		/*������hmd */
+
+/* temperature high limit registers, FSC does not document these. Proven to be
+   there with field testing on the fscher and fschrc, already supported / used
+   in the fscscy 2.4 driver. FSC has confirmed that the fschmd has registers
+   at these addresses, but doesn't want to confirm they are the same as with
+   the fscher?? */
+static const u8 FSCHMD_REG_TEMP_LIMIT[5][5] = {
+	{ 0, 0, 0 },					/* pos */
+	{ 0x76, 0x86, 0x96 },				/* her */
+	{ 0x76, 0xd6, 0x86, 0x96 },			/* scy */
+	{ 0x76, 0x86, 0x96 },				/* hrc */
+	{ 0x76, 0x86, 0x96, 0xd6, 0xe6 } };		/*������hmd */	
+
+/* These were found through experimenting with an fscher, currently they are
+   not used, but we keep them around for future reference.
+static const u8 FSCHER_REG_TEMP_AUTOP1[] =	{ 0x73, 0x83, 0x93 };
+static const u8 FSCHER_REG_TEMP_AUTOP2[] =	{ 0x75, 0x85, 0x95 }; */
+
+static const int FSCHMD_NO_TEMP_SENSORS[5] = { 3, 3, 4, 3, 5 };
+
+#define FSCHMD_NAME "fschmd"
+
+/*
+ * Functions declarations
+ */
+
+static int fschmd_attach_adapter(struct i2c_adapter *adapter);
+static int fschmd_detach_client(struct i2c_client *client);
+static struct fschmd_data *fschmd_update_device(struct device *dev);
+
+/*
+ * Driver data (common to all clients)
+ */
+
+static struct i2c_driver fschmd_driver = {
+	.driver = {
+		.name	= FSCHMD_NAME,
+	},
+	.attach_adapter	= fschmd_attach_adapter,
+	.detach_client	= fschmd_detach_client,
+};
+
+/*
+ * Client data (each client gets its own)
+ */
+
+struct fschmd_data {
+	enum chips kind;
+	struct i2c_client client;
+	struct class_device *class_dev;
+	struct mutex update_lock;
+	char valid; /* zero until following fields are valid */
+	unsigned long last_updated; /* in jiffies */
+
+	/* register values */
+	u8 global_control;	/* global control register */
+	u8 volt[3];		/* 12, 5, battery voltage */ 
+	u8 temp_act[5];		/* temperature */
+	u8 temp_status[5];	/* status of sensor */
+	u8 temp_max[6];		/* high temp limit, notice: undocumented! */
+	u8 fan_act[6];		/* fans revolutions per second */
+	u8 fan_status[6];	/* fan status */
+	u8 fan_min[6];		/* fan min value for rps */
+	u8 fan_ripple[6];	/* divider for rps */
+};
+
+/*
+ * Sysfs attr show / store functions
+ */
+
+static ssize_t show_in_value(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	const int max_reading[3] = { 14200, 6600, 3300 };
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fschmd_data *data = fschmd_update_device(dev);
+
+	return sprintf(buf, "%d\n", (data->volt[attr->index] *
+		max_reading[attr->index]) / 255);
+}
+
+
+#define TEMP_FROM_REG(val)	(((val) - 128) * 1000)
+
+static ssize_t show_temp_value(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fschmd_data *data = fschmd_update_device(dev);
+
+	return sprintf(buf, "%d\n",
+		TEMP_FROM_REG(data->temp_act[attr->index]));
+}
+
+static ssize_t show_temp_max(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fschmd_data *data = fschmd_update_device(dev);
+
+	return sprintf(buf, "%d\n", TEMP_FROM_REG(
+		data->temp_max[attr->index]));
+}
+
+static ssize_t store_temp_max(struct device *dev, struct device_attribute
+	*devattr, const char *buf, size_t count)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fschmd_data *data = i2c_get_clientdata(to_i2c_client(dev));
+	long v = simple_strtol(buf, NULL, 10) / 1000;
+
+	SENSORS_LIMIT(v, -128, 127);
+	v += 128;
+
+	mutex_lock(&data->update_lock);
+	i2c_smbus_write_byte_data(&data->client,
+		FSCHMD_REG_TEMP_LIMIT[data->kind][attr->index], v);
+	data->temp_max[attr->index] = v;
+	mutex_unlock(&data->update_lock);
+
+	return count;
+}
+
+static ssize_t show_temp_fault(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fschmd_data *data = fschmd_update_device(dev);
+
+	/* bit 0 set means sensor working ok, so no fault! */
+	if (data->temp_status[attr->index] & 0x01)
+		return sprintf(buf, "0\n");
+	else
+		return sprintf(buf, "1\n");
+}
+
+static ssize_t show_temp_alarm(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fschmd_data *data = fschmd_update_device(dev);
+
+	/* only signal an alarm if the sensor is working and alert == 1 */
+	if ((data->temp_status[attr->index] & 0x03) == 0x03)
+		return sprintf(buf, "1\n");
+	else
+		return sprintf(buf, "0\n");
+}
+
+
+#define RPM_FROM_REG(val)	(val*60)
+
+static ssize_t show_fan_value(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fschmd_data *data = fschmd_update_device(dev);
+
+	return sprintf(buf, "%u\n", RPM_FROM_REG(data->fan_act[attr->index]));
+}
+
+static ssize_t show_fan_div(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fschmd_data *data = fschmd_update_device(dev);
+
+	/* bits 2..7 reserved => mask with 3 */  
+	return sprintf(buf, "%d\n", 1 << (data->fan_ripple[attr->index] & 3));
+}
+
+static ssize_t store_fan_div(struct device *dev, struct device_attribute
+	*devattr, const char *buf, size_t count)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fschmd_data *data = fschmd_update_device(dev);
+	/* supported values: 2, 4, 8 */
+	unsigned long v = simple_strtoul(buf, NULL, 10);
+
+	switch (v) {
+		case 2: v = 1; break;
+		case 4: v = 2; break;
+		case 8: v = 3; break;
+		default:
+			dev_err(&data->client.dev, "fan_div value %lu not "
+				 "supported. Choose one of 2, 4 or 8!\n", v);
+			return -EINVAL;
+	}
+
+	mutex_lock(&data->update_lock);
+
+	/* bits 2..7 reserved => mask with 0x03 */
+	data->fan_ripple[attr->index] &= ~0x03;
+	data->fan_ripple[attr->index] |= v;
+
+	i2c_smbus_write_byte_data(&data->client,
+		FSCHMD_REG_FAN_RIPPLE[data->kind][attr->index],
+		data->fan_ripple[attr->index]);
+
+	mutex_unlock(&data->update_lock);
+
+	return count;
+}
+
+static ssize_t show_fan_alarm(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fschmd_data *data = fschmd_update_device(dev);
+
+	if (data->fan_status[attr->index] & 0x04)
+		return sprintf(buf, "1\n");
+	else
+		return sprintf(buf, "0\n");
+}
+
+
+static ssize_t show_pwm_auto_point1_pwm(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	int val = fschmd_update_device(dev)->fan_min[attr->index];
+
+	/* 0 = allow turning off, 1-255 = 50-100% */
+	if (val)
+		val = val / 2 + 128;
+	
+	return sprintf(buf, "%d\n", val);
+}
+
+static ssize_t store_pwm_auto_point1_pwm(struct device *dev,
+	struct device_attribute *devattr, const char *buf, size_t count)
+{
+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+	struct fschmd_data *data = i2c_get_clientdata(to_i2c_client(dev));
+	unsigned long v = simple_strtoul(buf, NULL, 10);
+	
+	/* register: 0 = allow turning off, 1-255 = 50-100% */
+	if (v) {
+		SENSORS_LIMIT(v, 128, 255);
+		v = (v - 128) * 2 + 1;
+	}
+
+	mutex_lock(&data->update_lock);
+
+	i2c_smbus_write_byte_data(&data->client,
+		FSCHMD_REG_FAN_MIN[data->kind][attr->index], v);
+	data->fan_min[attr->index] = v;
+
+	mutex_unlock(&data->update_lock);
+	
+	return count;
+}
+
+
+/* The FSC hwmon family has the ability to force an attached alert led to flash
+   from software, we export this as an alert_led sysfs attr */
+static ssize_t show_alert_led(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	struct fschmd_data *data = fschmd_update_device(dev);
+
+	if (data->global_control & 0x01)
+		return sprintf(buf, "1\n");
+	else
+		return sprintf(buf, "0\n");
+}
+
+static ssize_t store_alert_led(struct device *dev,
+	struct device_attribute *devattr, const char *buf, size_t count)
+{
+	struct fschmd_data *data = fschmd_update_device(dev);
+	unsigned long v = simple_strtoul(buf, NULL, 10);
+
+	mutex_lock(&data->update_lock);
+	
+	if (v)
+		data->global_control |= 0x01;
+	else
+		data->global_control &= ~0x01;
+
+	i2c_smbus_write_byte_data(&data->client, FSCHMD_REG_CONTROL, v);
+	mutex_unlock(&data->update_lock);
+
+	return count;
+}
+
+static struct sensor_device_attribute fschmd_attr[] = {
+	SENSOR_ATTR(in0_input, 0444, show_in_value, NULL, 0),
+	SENSOR_ATTR(in1_input, 0444, show_in_value, NULL, 1),
+	SENSOR_ATTR(in2_input, 0444, show_in_value, NULL, 2),
+	SENSOR_ATTR(alert_led, 0644, show_alert_led, store_alert_led, 0),
+};
+
+static struct sensor_device_attribute fschmd_temp_attr[] = {
+	SENSOR_ATTR(temp1_input, 0444, show_temp_value, NULL, 0),
+	SENSOR_ATTR(temp1_max,   0644, show_temp_max, store_temp_max, 0),
+	SENSOR_ATTR(temp1_fault, 0444, show_temp_fault, NULL, 0),
+	SENSOR_ATTR(temp1_alarm, 0444, show_temp_alarm, NULL, 0),
+	SENSOR_ATTR(temp2_input, 0444, show_temp_value, NULL, 1),
+	SENSOR_ATTR(temp2_max,   0644, show_temp_max, store_temp_max, 1),
+	SENSOR_ATTR(temp2_fault, 0444, show_temp_fault, NULL, 1),
+	SENSOR_ATTR(temp2_alarm, 0444, show_temp_alarm, NULL, 1),
+	SENSOR_ATTR(temp3_input, 0444, show_temp_value, NULL, 2),
+	SENSOR_ATTR(temp3_max,   0644, show_temp_max, store_temp_max, 2),
+	SENSOR_ATTR(temp3_fault, 0444, show_temp_fault, NULL, 2),
+	SENSOR_ATTR(temp3_alarm, 0444, show_temp_alarm, NULL, 2),
+	SENSOR_ATTR(temp4_input, 0444, show_temp_value, NULL, 3),
+	SENSOR_ATTR(temp4_max,   0644, show_temp_max, store_temp_max, 3),
+	SENSOR_ATTR(temp4_fault, 0444, show_temp_fault, NULL, 3),
+	SENSOR_ATTR(temp4_alarm, 0444, show_temp_alarm, NULL, 3),
+	SENSOR_ATTR(temp5_input, 0444, show_temp_value, NULL, 4),
+	SENSOR_ATTR(temp5_max,   0644, show_temp_max, store_temp_max, 4),
+	SENSOR_ATTR(temp5_fault, 0444, show_temp_fault, NULL, 4),
+	SENSOR_ATTR(temp5_alarm, 0444, show_temp_alarm, NULL, 4),
+};
+
+static struct sensor_device_attribute fschmd_fan_attr[] = {
+	SENSOR_ATTR(fan1_input, 0444, show_fan_value, NULL, 0),
+	SENSOR_ATTR(fan1_div,   0644, show_fan_div, store_fan_div, 0),
+	SENSOR_ATTR(fan1_alarm, 0444, show_fan_alarm, NULL, 0),
+	SENSOR_ATTR(pwm1_auto_point1_pwm, 0644, show_pwm_auto_point1_pwm,
+		store_pwm_auto_point1_pwm, 0),
+	SENSOR_ATTR(fan2_input, 0444, show_fan_value, NULL, 1),
+	SENSOR_ATTR(fan2_div,   0644, show_fan_div, store_fan_div, 1),
+	SENSOR_ATTR(fan2_alarm, 0444, show_fan_alarm, NULL, 1),
+	SENSOR_ATTR(pwm2_auto_point1_pwm, 0644, show_pwm_auto_point1_pwm,
+		store_pwm_auto_point1_pwm, 1),
+	SENSOR_ATTR(fan3_input, 0444, show_fan_value, NULL, 2),
+	SENSOR_ATTR(fan3_div,   0644, show_fan_div, store_fan_div, 2),
+	SENSOR_ATTR(fan3_alarm, 0444, show_fan_alarm, NULL, 2),
+	SENSOR_ATTR(pwm3_auto_point1_pwm, 0644, show_pwm_auto_point1_pwm,
+		store_pwm_auto_point1_pwm, 2),
+	SENSOR_ATTR(fan4_input, 0444, show_fan_value, NULL, 3),
+	SENSOR_ATTR(fan4_div,   0644, show_fan_div, store_fan_div, 3),
+	SENSOR_ATTR(fan4_alarm, 0444, show_fan_alarm, NULL, 3),
+	SENSOR_ATTR(pwm4_auto_point1_pwm, 0644, show_pwm_auto_point1_pwm,
+		store_pwm_auto_point1_pwm, 3),
+	SENSOR_ATTR(fan5_input, 0444, show_fan_value, NULL, 4),
+	SENSOR_ATTR(fan5_div,   0644, show_fan_div, store_fan_div, 4),
+	SENSOR_ATTR(fan5_alarm, 0444, show_fan_alarm, NULL, 4),
+	SENSOR_ATTR(pwm5_auto_point1_pwm, 0644, show_pwm_auto_point1_pwm,
+		store_pwm_auto_point1_pwm, 4),
+	SENSOR_ATTR(fan6_input, 0444, show_fan_value, NULL, 5),
+	SENSOR_ATTR(fan6_div,   0644, show_fan_div, store_fan_div, 5),
+	SENSOR_ATTR(fan6_alarm, 0444, show_fan_alarm, NULL, 5),
+	SENSOR_ATTR(pwm6_auto_point1_pwm, 0644, show_pwm_auto_point1_pwm,
+		store_pwm_auto_point1_pwm, 5),
+};
+
+
+/*
+ * Real code
+ */
+
+static int fschmd_detect(struct i2c_adapter *adapter, int address, int kind)
+{
+	struct i2c_client *new_client;
+	struct fschmd_data *data;
+	u8 revision;
+	const char *names[4] = { "Scylla", "Poseidon", "Hermes", "Heimdall" };
+	int i, err = 0;
+
+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+		return 0;
+
+	/* OK. For now, we presume we have a valid client. We now create the
+	 * client structure, even though we cannot fill it completely yet.
+	 * But it allows us to access i2c_smbus_read_byte_data. */
+	if (!(data = kzalloc(sizeof(struct fschmd_data), GFP_KERNEL)))
+		return -ENOMEM;
+
+	/* The common I2C client data is placed right before the
+	 * Poseidon-specific data. */
+	new_client = &data->client;
+	i2c_set_clientdata(new_client, data);
+	new_client->addr = address;
+	new_client->adapter = adapter;
+	new_client->driver = &fschmd_driver;
+	new_client->flags = 0;
+	strlcpy(new_client->name, FSCHMD_NAME, I2C_NAME_SIZE);
+	data->valid = 0;
+	mutex_init(&data->update_lock);
+
+	/* Detect & Identify the chip */
+	if (kind <= 0) {
+		char id[4];
+		
+		id[0] = i2c_smbus_read_byte_data(new_client,
+				FSCHMD_REG_IDENT_0);
+		id[1] = i2c_smbus_read_byte_data(new_client,
+				FSCHMD_REG_IDENT_1);
+		id[2] = i2c_smbus_read_byte_data(new_client,
+				FSCHMD_REG_IDENT_2);
+		id[3] = 0;
+		
+		if (!strcmp(id, "PEG")) {
+			kind = fscpos;
+			/* The Poseidon has hardwired temp limits, fill these
+			   in for the alarm resetting code */ 
+			data->temp_max[0] = 70 + 128;
+			data->temp_max[1] = 50 + 128;
+			data->temp_max[2] = 50 + 128;
+		} else if (!strcmp(id, "HER"))
+			kind = fscher;
+		else if (!strcmp(id, "SCY"))
+			kind = fscscy;
+		else if (!strcmp(id, "HRC"))
+			kind = fschrc;
+		else if (!strcmp(id, "HMD"))
+			kind = fschmd;
+		else
+			goto exit_free;
+	}
+
+	/* i2c kind goes from 1-4, we want from 0-3 to address arrays */
+	data->kind = kind - 1;
+
+	/* Tell the I2C layer a new client has arrived */
+	if ((err = i2c_attach_client(new_client)))
+		goto exit_free;
+		
+	for (i = 0; i < ARRAY_SIZE(fschmd_attr); i++) {
+		err = device_create_file(&new_client->dev,
+					&fschmd_attr[i].dev_attr);
+		if (err)
+			goto exit_remove_files;
+	}
+
+	for (i = 0; i < (FSCHMD_NO_TEMP_SENSORS[data->kind] * 4); i++) {
+		/* Poseidon doesn't have TEMP_LIMIT registers */
+		if (kind == fscpos && (i % 4) == 1)
+			continue;
+		
+		err = device_create_file(&new_client->dev,
+					&fschmd_temp_attr[i].dev_attr);
+		if (err)
+			goto exit_remove_files;
+	}
+
+	for (i = 0; i < (FSCHMD_NO_FAN_SENSORS[data->kind] * 4); i++) {
+		/* Poseidon doesn't have a FAN_MIN register for its 3th fan */
+		if (kind == fscpos && i == (2 * 4 + 3))
+			continue;
+		
+		err = device_create_file(&new_client->dev,
+					&fschmd_fan_attr[i].dev_attr);
+		if (err)
+			goto exit_remove_files;
+	}
+
+	data->class_dev = hwmon_device_register(&new_client->dev);
+	if (IS_ERR(data->class_dev)) {
+		err = PTR_ERR(data->class_dev);
+		goto exit_remove_files;
+	}
+
+	revision = i2c_smbus_read_byte_data(new_client, FSCHMD_REG_REVISION);
+	printk(KERN_INFO "fschmd: Detected FSC %s chip, revision: %d\n",
+		names[data->kind], (int) revision);
+
+	return 0;
+
+exit_remove_files:
+	for (i = 0; i < ARRAY_SIZE(fschmd_attr); i++)
+		device_remove_file(&new_client->dev, &fschmd_attr[i].dev_attr);
+	for (i = 0; i < (FSCHMD_NO_TEMP_SENSORS[data->kind] * 4); i++)
+		device_remove_file(&new_client->dev,
+					&fschmd_temp_attr[i].dev_attr);
+	for (i = 0; i < (FSCHMD_NO_FAN_SENSORS[data->kind] * 4); i++)
+		device_remove_file(&new_client->dev,
+					&fschmd_fan_attr[i].dev_attr);
+	i2c_detach_client(new_client);
+exit_free:
+	kfree(data);
+	return err;
+}
+
+static int fschmd_attach_adapter(struct i2c_adapter *adapter)
+{
+	if (!(adapter->class & I2C_CLASS_HWMON))
+		return 0;
+	return i2c_probe(adapter, &addr_data, fschmd_detect);
+}
+
+static int fschmd_detach_client(struct i2c_client *client)
+{
+	struct fschmd_data *data = i2c_get_clientdata(client);
+	int i, err;
+
+	hwmon_device_unregister(data->class_dev);
+	for (i = 0; i < ARRAY_SIZE(fschmd_attr); i++)
+		device_remove_file(&client->dev, &fschmd_attr[i].dev_attr);
+	for (i = 0; i < (FSCHMD_NO_TEMP_SENSORS[data->kind] * 4); i++)
+		device_remove_file(&client->dev,
+					&fschmd_temp_attr[i].dev_attr);
+	for (i = 0; i < (FSCHMD_NO_FAN_SENSORS[data->kind] * 4); i++)
+		device_remove_file(&client->dev,
+					&fschmd_fan_attr[i].dev_attr);
+
+	if ((err = i2c_detach_client(client)))
+		return err;
+
+	kfree(data);
+	return 0;
+}
+
+static struct fschmd_data *fschmd_update_device(struct device *dev)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct fschmd_data *data = i2c_get_clientdata(client);
+	int i;
+
+	mutex_lock(&data->update_lock);
+
+	if (time_after(jiffies, data->last_updated + 2 * HZ) || !data->valid) {
+		
+		for (i = 0; i < FSCHMD_NO_TEMP_SENSORS[data->kind]; i++) {
+			data->temp_act[i] = i2c_smbus_read_byte_data(client,
+					FSCHMD_REG_TEMP_ACT[data->kind][i]);
+			data->temp_status[i] = i2c_smbus_read_byte_data(client,
+					FSCHMD_REG_TEMP_STATE[data->kind][i]);
+
+			/* The fscpos doesn't have TEMP_LIMIT registers */
+			if (FSCHMD_REG_TEMP_LIMIT[data->kind][i])
+				data->temp_max[i] = i2c_smbus_read_byte_data(
+					client,
+					FSCHMD_REG_TEMP_LIMIT[data->kind][i]);
+				
+			/* reset alarm if the alarm condition is gone,
+			   the chip doesn't do this itself */
+			if ((data->temp_status[i] & 0x02) &&
+					data->temp_act[i] < data->temp_max[i])
+				i2c_smbus_write_byte_data(client,
+					FSCHMD_REG_TEMP_STATE[data->kind][i],
+					0x02);
+		}
+					
+		for (i = 0; i < FSCHMD_NO_FAN_SENSORS[data->kind]; i++) {
+			data->fan_act[i] = i2c_smbus_read_byte_data(client,
+					FSCHMD_REG_FAN_ACT[data->kind][i]);
+			data->fan_status[i] = i2c_smbus_read_byte_data(client,
+					FSCHMD_REG_FAN_STATE[data->kind][i]);
+			data->fan_ripple[i] = i2c_smbus_read_byte_data(client,
+					FSCHMD_REG_FAN_RIPPLE[data->kind][i]);
+
+			/* The fscpos third fan doesn't have a fan_min */
+			if (FSCHMD_REG_FAN_MIN[data->kind][i])
+				data->fan_min[i] = i2c_smbus_read_byte_data(
+					client,
+					FSCHMD_REG_FAN_MIN[data->kind][i]);
+
+			/* reset fan status if speed is back to > 0 */
+			if ((data->fan_status[i] & 0x04) && data->fan_act[i])
+				i2c_smbus_write_byte_data(client,
+					FSCHMD_REG_FAN_STATE[data->kind][i],
+					0x04);
+		}
+
+		data->global_control = i2c_smbus_read_byte_data(client,
+						FSCHMD_REG_CONTROL);
+
+		data->volt[0] = i2c_smbus_read_byte_data(client,
+						FSCHMD_REG_VOLT_12);
+		data->volt[1] = i2c_smbus_read_byte_data(client,
+						FSCHMD_REG_VOLT_5);
+		data->volt[2] = i2c_smbus_read_byte_data(client,
+						FSCHMD_REG_VOLT_BATT);
+
+		/* To be implemented in the future
+		data->watchdog[0] = i2c_smbus_read_byte_data(client,
+						FSCHMD_REG_WDOG_PRESET);
+		data->watchdog[1] = i2c_smbus_read_byte_data(client,
+						FSCHMD_REG_WDOG_STATE);
+		data->watchdog[2] = i2c_smbus_read_byte_data(client,
+						FSCHMD_REG_WDOG_CONTROL); */
+
+		data->last_updated = jiffies;
+		data->valid = 1;
+	}
+
+	mutex_unlock(&data->update_lock);
+
+	return data;
+}
+
+static int __init fschmd_init(void)
+{
+	return i2c_add_driver(&fschmd_driver);
+}
+
+static void __exit fschmd_exit(void)
+{
+	i2c_del_driver(&fschmd_driver);
+}
+
+MODULE_AUTHOR("Hans de Goede <j.w.r.degoede@hhs.nl>");
+MODULE_DESCRIPTION("FSC Poseidon, Hermes, Scylla, Hercules and Heimdall driver");
+MODULE_LICENSE("GPL");
+
+module_init(fschmd_init);
+module_exit(fschmd_exit);
+
+--------------040200010407070807090403
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------040200010407070807090403--
