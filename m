@@ -1,38 +1,60 @@
-From: "Kok, Auke" <auke-jan.h.kok@intel.com>
-Date: Mon, 13 Aug 2007 15:40:13 +0000
-Subject: Re: [lm-sensors] [PATCH] [29/2many] MAINTAINERS - ADM1025 HARDWARE
-Message-Id: <46C07B5D.1080909@intel.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 17 Aug 2007 15:21:23 +0000
+Subject: [lm-sensors] [PATCH 3/4] libsensors4: Fix corner case bug in
+Message-Id: <20070817172123.3823d3d8@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46bff89a.xYL7oyBOdTr8eyH/%joe@perches.com> <20070813113531.0632f551@hyperion.delvare>
-In-Reply-To: <20070813113531.0632f551@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: joe@perches.com, torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Joe,
-> 
-> What a storm :( This should have been one single patch IMHO, or grouped
-> by maintainer or subsystem or something.
-> 
-> On Sun, 12 Aug 2007 23:22:18 -0700, joe@perches.com wrote:
->> Add file pattern to MAINTAINER entry
-> 
-> Can you please point me to where this new pattern was discussed?
+Contrary to what the comment says, sensors_proc_bus_count may be a
+perfectly valid bus number. We need to use a different value for
+chip configuration entries we want to ignore.
 
-I came up with the idea at OLS talking to Dan Aloni, who posted the same problem 
-but with a different solution (he suggested separate files in each directory).
+---
+ lib/data.c    |    8 ++++----
+ lib/sensors.h |    1 +
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-See: http://lkml.org/lkml/2007/6/29/300
+--- lm-sensors-3.orig/lib/data.c	2007-08-17 10:53:33.000000000 +0200
++++ lm-sensors-3/lib/data.c	2007-08-17 10:57:46.000000000 +0200
+@@ -192,7 +192,7 @@ int sensors_substitute_chip(sensors_chip
+ 
+ 	if (i = sensors_config_busses_count) {
+ 		sensors_parse_error("Undeclared bus id referenced", lineno);
+-		name->bus.nr = sensors_proc_bus_count;
++		name->bus.nr = SENSORS_BUS_NR_IGNORE;
+ 		return -SENSORS_ERR_BUS_NAME;
+ 	}
+ 
+@@ -205,9 +205,9 @@ int sensors_substitute_chip(sensors_chip
+ 		}
+ 	}
+ 
+-	/* We did not find anything. sensors_proc_bus_count is not
+-	   a valid bus number, so it will never be matched. Good. */
+-	name->bus.nr = sensors_proc_bus_count;
++	/* We did not find a matching bus name, simply ignore this chip
++	   config entry. */
++	name->bus.nr = SENSORS_BUS_NR_IGNORE;
+ 	return 0;
+ }
+ 
+--- lm-sensors-3.orig/lib/sensors.h	2007-08-17 09:24:35.000000000 +0200
++++ lm-sensors-3/lib/sensors.h	2007-08-17 10:57:46.000000000 +0200
+@@ -34,6 +34,7 @@
+ #define SENSORS_BUS_TYPE_ISA	1
+ #define SENSORS_BUS_TYPE_PCI	2
+ #define SENSORS_BUS_NR_ANY	(-1)
++#define SENSORS_BUS_NR_IGNORE	(-2)
+ 
+ #ifdef __cplusplus
+ extern "C" {
 
-Joe did a great job on the perl script though ;)
 
-Cheers,
-
-
-Auke
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
