@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Fri, 17 Aug 2007 16:17:52 +0000
+From: Kaiwan N Billimoria <kaiwan@designergraphix.com>
+Date: Sat, 18 Aug 2007 06:26:22 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon/lm70: Add a name attribute
-Message-Id: <46C5CA30.9030405@hhs.nl>
+Message-Id: <1187417662.8526.7.camel@kaiwan-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070817173135.5eaffc0e@hyperion.delvare>
 In-Reply-To: <20070817173135.5eaffc0e@hyperion.delvare>
@@ -10,7 +10,6 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
 > Add a name attribute to the lm70 devices. This is required for
 > libsensors to recognize them.
 > 
@@ -20,9 +19,9 @@ Jean Delvare wrote:
 > 
 > Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-Looks good to me.
+Yup, fine with me.
 
-Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+Acked-by: Kaiwan <kaiwan@designergraphix.com>
 
 > ---
 >  drivers/hwmon/lm70.c |   15 +++++++++++++--
@@ -69,6 +68,8 @@ Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 >  
 >  out_dev_create_file_failed:
 > +	device_remove_file(&spi->dev, &dev_attr_temp1_input);
+Ah. Thanks!
+
 >  	hwmon_device_unregister(p_lm70->cdev);
 >  out_dev_reg_failed:
 >  	dev_set_drvdata(&spi->dev, NULL);
