@@ -1,100 +1,75 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date: Mon, 20 Aug 2007 12:46:56 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 20 Aug 2007 13:50:46 +0000
 Subject: Re: [lm-sensors] [PATCH 1/4] libsensors4: Support more bus types,
-Message-Id: <20070820124656.GA24206@khazad-dum.debian.net>
+Message-Id: <20070820155046.6c323864@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070817171414.5a61ab6a@hyperion.delvare>
 In-Reply-To: <20070817171414.5a61ab6a@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 20 Aug 2007, Jean Delvare wrote:
-> On Mon, 20 Aug 2007 08:53:30 -0300, Henrique de Moraes Holschuh wrote:
-> > On Sun, 19 Aug 2007, Henrique de Moraes Holschuh wrote:
-> > > On Sun, 19 Aug 2007, Jean Delvare wrote:
-> > > > Basically, two changes: add a "name" attribute to the device, and g=
-ive
-> > > > the platform device an instance number.
-> > > >=20
-> > > > The name attribute is needed and must be added to the thinkpad_acpi
-> > > > driver now, otherwise it won't work with libsensors (neither curren=
-t nor
-> > > > libsensors4). This is where libsensors gets the "prefix" part of a
-> > > > chip name.
-> > >=20
-> > > I will bake up a patch and send it for inclusion in 2.6.23-rc ASAP. I=
-f Len
-> > > and Linus will take it (they should, it is an obviously safe thing th=
-at
-> > > affects one driver only...).
-> >=20
-> > Ok, I have one tentative patch ready, but I better make sure I got it r=
-ight
-> > on the first try.
-> >=20
-> > First, is the "name" attribute documented anywhere?  I may have to chan=
-ge
-> > its contents later, if I break up thinkpad-acpi into various modules.  =
-Does
-> > anything else other than libsensors4 uses it?
->=20
-> The name attribute is also used by libsensors3 and pwmconfig.
+Hi Henrique,
 
-Better document it in Documentation/hwmon/sysfs-interface, then...  I'd do
-it, but I don't know the specifics.
+On Sun, 19 Aug 2007 16:21:37 -0300, Henrique de Moraes Holschuh wrote:
+> On Sun, 19 Aug 2007, Jean Delvare wrote:
+> > Thanks for pointing this out, indeed we need to make sure that the new
+> > libsensors will work properly with the thinkpad_acpi driver and other
+> > similar drivers. However I do not think that we need a special bus type
+> > for these. The thinkpad_acpi driver instantiates a platform device (as
+> > you mentioned yourself), and platform drivers are covered by the "ISA"
+> > bus type in libsensors (for historical reasons mainly.)
+> 
+> This sounds a bit of an ugliness that might be best fixed, since it is a
+> rare time window where one can actually do those.  If it is not too painful,
+> why not add BUS_HOST to attach stuff that is not on PCI/PCIe, nor ISA, nor
+> I2C/SMBUS?
 
-> > it anyway, at least it is future-proof.  It is probably safer to defer
-> > thinkpad-acpi libsensors4 support to 2.6.24 if the change is not accept=
-ed
-> > for -rc4.
->=20
-> I would aim at 2.6.24. As you can see there are still a number of
+I agree that it's the right time to fix things, however I'm not sure
+what problem we are trying to solve here. The only purpose of the bus
+types in libsensors is to qualify the bus numbers and addresses that
+follow them in a chip name (e.g. lm78-i2c-1-2d means the LM78 chip that
+is connected to the I2C bus #1 and lives at address 0x2d). The whole
+purpose of these chip names being to be able to have different
+configurations for similar chips (for example one W83781D chip on the
+motherboard connected to ISA and one W83781D chip on the graphics
+adapter connected to I2C, or two LM90 chips on the motherboard's
+SMBus). In the case of "host" devices such as thinkpad_acpi, the device
+is unique almost by definition, so there is no need to differentiate.
+Thus naming it thinkpad-isa-0000 or thinkpad-host-0000 or
+thinkpad-foo-42 doesn't make any difference.
 
-Agreed.  Scheduled for 2.6.24, then.
+> I mean, it is weird enough with ACPI, but there is also on-die sensors in
+> CPUs, and their ilk... and attaching those to BUS_ISA or BUS_PCI sounds like
+> something out of an acid trip IMHO, never mind that it would work just fine
+> (unlike most stuff that could come out of an acid trip, I suppose) :-)
 
-> > Second, the libsensors configuration for thinkpad-acpi depends on the
-> > thinkpad model.  I *can* export its model to libsensors4 (I have that
-> > information), but how do I go about it?
->=20
-> Good question. Hans de Goede and myself had a heated discussion about
-> this some times ago about his abituguru3 driver. He finally decided to
-> let the driver export the labels to user-space (files are names
-> temp1_label, fan1_label etc...) because it was easier for him that way
+The K8 thermal sensors are actually reported through a PCI device, so
+k8temp-pci-00c3 is a perfectly correct name.
 
-I was not really thinking about exporting labels, but rather to export
-something that can be a match key in the libsensors config file.
+For Core thermal sensors, admittedly, the coretemp-isa-0000 name has no
+physical sense. This is the exact same "problem" as for the thinkpad
+driver, with the exception that there can actually be more than one
+Core temperature sensor, so we use the "ISA address" to distinguish
+between them.
 
-> in the case of the Abit =B5Guru. My own preference would be to handle it
-> in user-space: get the DMI data for the system, and download the right
-> configuration file for the given system. However it essentially depends
+> I'm glat to know it is only a mostly cosmetic thing, but still, if it is not
+> too painful to fix...
 
-Make it "get the DMI data and allow for AND matches in libsensors config",
-and I will agree.  And I wouldn't even have to do anything in the kernel,
-since there is already support for it both in sysfs, and directly through
-userspace.
+Actually, this isn't trivial. To build a chip name, libsensors uses the
+device's subsystem in sysfs. i2c -> i2c, pci -> pci, platform -> isa.
+"Host" sensors are implemented as platform drivers, and this is the
+reason why libsensors names them foo-isa-0000. So having libsensors
+differentiate between host devices and ISA devices would require that
+we add a brand new mechanism. We could, of course... if it was solving
+a problem. BTW, most "ISA" hardware monitoring chips these days are
+actually connected through the LPC bus and not the ISA bus, but we
+have been reporting all of them as isa because it's more simple that
+way.
 
-That would allow one to match a config to "thinkpad-sensors-*" AND "ThinkPad
-T43", for example.  We even have a *good* template to use when constructing
-such strings, see commit 4f5c791a850e5305a5b1b48d0e4b4de248dc96f9 (which is
-already in 2.6.23).
-
-> > See, that's why I'd really like BUS_HOST.  Unlike ISA which has port
-> > numbers, or PCI, which has PCI-IDs, BUS_HOST is suitable to model and
-> > version numbers as a way to differentiate various devices.
->=20
-> ISA port numbers and PCI IDs are unrelated. It's more PCI device number
-
-I know.  I was trying to convey the idea that what comes after the "name"
-for BUS_HOST could be DMI data, instead of ISA port numbers (used in ISA
-stuff) or PCI IDs (used in PCI stuff), or I2C IDs (used in I2C/smbus)...
-
---=20
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
