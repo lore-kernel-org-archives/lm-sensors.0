@@ -1,7 +1,7 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date: Mon, 20 Aug 2007 17:49:52 +0000
+Date: Mon, 20 Aug 2007 17:53:08 +0000
 Subject: Re: [lm-sensors] [PATCH 1/4] libsensors4: Support more bus types,
-Message-Id: <20070820174952.GA4603@khazad-dum.debian.net>
+Message-Id: <20070820175308.GB4603@khazad-dum.debian.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070817171414.5a61ab6a@hyperion.delvare>
 In-Reply-To: <20070817171414.5a61ab6a@hyperion.delvare>
@@ -11,31 +11,31 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 On Mon, 20 Aug 2007, Jean Delvare wrote:
-> On Mon, 20 Aug 2007 09:46:56 -0300, Henrique de Moraes Holschuh wrote:
-> > I was not really thinking about exporting labels, but rather to export
-> > something that can be a match key in the libsensors config file.
+> For Core thermal sensors, admittedly, the coretemp-isa-0000 name has no
+> physical sense. This is the exact same "problem" as for the thinkpad
+> driver, with the exception that there can actually be more than one
+> Core temperature sensor, so we use the "ISA address" to distinguish
+> between them.
 > 
-> Except that libsensors4 is totally chip-agnostic by design, and I'd
-> like it to stay that way. We already have two mechanisms to label the
-> inputs (label files in sysfs and sensors.conf), I'd rather not add a
-> 3rd one.
-
-Well, as long as we can have different configurations for libsensors on
-different thinkpad models, I don't really care :-)
-
-> > > ISA port numbers and PCI IDs are unrelated. It's more PCI device number
-> > 
-> > I know.  I was trying to convey the idea that what comes after the "name"
-> > for BUS_HOST could be DMI data, instead of ISA port numbers (used in ISA
-> > stuff) or PCI IDs (used in PCI stuff), or I2C IDs (used in I2C/smbus)...
+> > I'm glat to know it is only a mostly cosmetic thing, but still, if it is not
+> > too painful to fix...
 > 
-> And I was trying to explain why using the "address" field of
-> libsensors' chip name wasn't a good idea, because this field is there
-> to differentiate between similar chips on a given machine, and not to
-> identify a unique chip configuration. Using one field for different
-> purposes could quickly lead to confusion IMHO.
+> Actually, this isn't trivial. To build a chip name, libsensors uses the
+> device's subsystem in sysfs. i2c -> i2c, pci -> pci, platform -> isa.
+> "Host" sensors are implemented as platform drivers, and this is the
+> reason why libsensors names them foo-isa-0000. So having libsensors
 
-I see.
+Is there a good reason why we couldn't rename the "isa" bus to "platform",
+then?  It is far more correct to call every hwmon ISA device a platform
+device, than to call every platform device an ISA device :p
+
+> a problem. BTW, most "ISA" hardware monitoring chips these days are
+> actually connected through the LPC bus and not the ISA bus, but we
+> have been reporting all of them as isa because it's more simple that
+> way.
+
+It is just cosmetics, indeed.  But still, it is the right time to ask about
+it.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
