@@ -1,53 +1,25 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 12 Aug 2007 18:14:37 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon/smsc47m1: Restore missing name
-Message-Id: <20070812181437.GB7411@jupiter.solarsys.private>
+From: Romain Dolbeau <romain@dolbeau.org>
+Date: Mon, 20 Aug 2007 13:31:32 +0000
+Subject: [lm-sensors] Submitting motherboard-specific support? (w/ attached
+Message-Id: <46C997B4.50509@dolbeau.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070812135850.04c5089a@hyperion.delvare>
-In-Reply-To: <20070812135850.04c5089a@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Jean Delvare <khali@linux-fr.org> [2007-08-12 13:58:50 +0200]:
-> The smsc47m1 driver no longer creates the name attribute used by
-> libsensors to identify chip types. It was lost during the conversion
-> to a platform driver. I was fooled by the fact that we do have a
-> group with all attributes, but only to delete them all at once. The
-> group is not used to create the attributes, so we have to explicitly
-> create the name attribute.
-> 
-> This fixes lm-sensors ticket #2236:
-> http://lm-sensors.org/ticket/2236
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
-> Mark, this fixes a regression in 2.6.22. This means that this patch
-> must be sent to Linus for 2.6.23, but also to the stable team for
-> 2.6.22.3.
-> 
->  drivers/hwmon/smsc47m1.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> --- linux-2.6.23-rc2.orig/drivers/hwmon/smsc47m1.c	2007-08-11 16:14:14.000000000 +0200
-> +++ linux-2.6.23-rc2/drivers/hwmon/smsc47m1.c	2007-08-11 17:25:29.000000000 +0200
-> @@ -585,6 +585,8 @@ static int __devinit smsc47m1_probe(stru
->  
->  	if ((err = device_create_file(dev, &dev_attr_alarms)))
->  		goto error_remove_files;
-> +	if ((err = device_create_file(dev, &dev_attr_name)))
-> +		goto error_remove_files;
->  
->  	data->class_dev = hwmon_device_register(dev);
->  	if (IS_ERR(data->class_dev)) {
-> 
+Hi,
 
-Applied to hwmon-2.6.git/testing, thanks.
+I've (a long time ago) written an conf entry for my Supermicro H8DC8
+(attached to this mail).
+
+Since about forever, the wiki has been read-only, even in the Sandbox ;
+what's the recommended way of submitting motherboard-specific 
+configuration theses days?
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Romain Dolbeau
+<romain@dolbeau.org>
 
 
 _______________________________________________
