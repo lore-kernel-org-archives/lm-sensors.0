@@ -1,7 +1,7 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Mon, 20 Aug 2007 17:27:34 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 20 Aug 2007 17:58:42 +0000
 Subject: Re: [lm-sensors] Submitting motherboard-specific support? (w/
-Message-Id: <191fb4ca0708201027k76d5c9fbk1afbee4d6afda0d1@mail.gmail.com>
+Message-Id: <20070820195842.7e5836d2@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46C997B4.50509@dolbeau.org>
 In-Reply-To: <46C997B4.50509@dolbeau.org>
@@ -10,173 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Romain,
+On Mon, 20 Aug 2007 10:27:34 -0700, Juerg Haefliger wrote:
+> > I've already done the later a while ago. By curiosity, what
+> > is the point of a read-only wiki? In particular the sandbox...
+> 
+> Not sure. You'd have to ask one of the maintainers (Jean, Marc?).
 
+Because otherwise spambots create random accounts and spam all the wiki
+pages and tickets. If a future version of track implements more strict
+account creations (as bugzilla does for example) then we can allow
+users to create their own account and edit the wiki, but not before
+then.
 
-> Juerg Haefliger wrote:
->
-> > Attachment is missing. If you send it again, I'll put it in the wiki.
->
-> Here it comes, sorry about that.
+Also, storing the configuration files in the wiki is probably the worse
+thing we could come up with in these conditions, but hopefully we'll
+have something better shortly after lm-sensors 3.0.1 is released.
 
-Ok, it's in the wiki now.
-
-> > Send it to the list or open a ticket.
->
-> Open a ticket with the config files, or a ticket about the wiki?
-
-Ticket with the config file.
-
-
-> I've already done the later a while ago. By curiosity, what
-> is the point of a read-only wiki? In particular the sandbox...
-
-Not sure. You'd have to ask one of the maintainers (Jean, Marc?).
-
-...juerg
-
-
-> --
-> Romain Dolbeau
-> <romain.dolbeau@caps-entreprise.com>
->
->
-> # settings for the supermicro H8DC8
-> # here are the details supplied by the technical support:
-> ##Bus Type = SMBus
-> ##One WindBond W83627HF, One Analog Devices ADM1026
-> ##
-> ##Analog Devices ADM1026, Slave Address=0x2c (0x58 in 8-Bit format)
-> ##===============================
-> ##Fan1 Fan Speed, Offset 0x38           RPM50000/8/Reading
-> ##Fan2 Fan Speed, Offset 0x39           RPM50000/8/Reading
-> ##Fan3 Fan Speed, Offset 0x3a           RPM50000/8/Reading
-> ##Fan4 Fan Speed, Offset 0x3b           RPM50000/8/Reading
-> ##Fan5 Fan Speed, Offset 0x3c           RPM50000/8/Reading
-> ##Fan6 Fan Speed, Offset 0x3d           RPM50000/8/Reading
-> ##Fan7 Fan Speed, Offset 0x3e           RPM50000/8/Reading
-> ##Fan8 Fan Speed, Offset 0x3f           RPM50000/8/Reading
-> ##CPU1 Core Voltage, Offset 0x2d                Voltage=(Reading * 3)/256
-> ##CPU2 Core Voltage, Offset 0x37                Voltage=(Reading * 2.5)/256
-> ##+5VSB Voltage, offset 0x30            Voltage=(Reading * 6)/256
-> ##+1.5V Voltage, offset 0x32            Voltage=(Reading * 3)/256
-> ##+5V Voltage, offset 0x2c              Voltage=(Reading * 6.66)/256
-> ##+12V Voltage, offset 0x2e             Voltage=(Reading * 16)/256
-> ##-12V Voltage, offset 0x2f             Voltage=((Reading* 18.5)/256)-16
-> ##DIMM Voltage, offset 0x33             Voltage=(Reading * 3)/256
-> ##Battery Voltage, Offset 0x26
-> ##Voltage=(((Reading-128)*2)/128)+2)
-> ##System Temperature, Offset 0x1f               C=Reading
-> ##CPU1 Temperature, Offset 0x28         C=Reading
-> ##CPU2 Temperature, Offset 0x29         C=Reading
-> ##Chassis Intrusion, Offset 0x23, BitMask@
-> ##
-> ##
-> ##Power Supply Failure (From W82627HF), GP12
-> #
-> # Notes:
-> # 1) no section for the W82627HF yet.
-> # 2) the temperature min/max are ballpark estimate,
-> #    you may need to fix them depening on your environment
-> #    such as the setting of your air conditionner.
-> # 3) According to the support, in11 and in12 (both +3.3V
-> #    lines) aren't hooked up, yet they supply proper readings
-> #    (as specified by the manufacturer of the chip for those
-> #    lines).
-> #    You may want to disable them.
-> #
-> # Originally written by Romain Dolbeau <romain@dolbeau.org>
-> # Uses at your own risk !
->
-> chip "adm1026-i2c-*-2c"
->
->    label fan0 "FAN0 Speed"
->    label fan1 "FAN1 Speed"
->    label fan2 "FAN2 Speed"
->    label fan3 "FAN3 Speed"
->    label fan4 "FAN4 Speed"
->    label fan5 "FAN5 Speed"
->    label fan6 "FAN6 Speed"
->    label fan7 "FAN7 Speed"
->
->    set fan0_div 8
->    set fan1_div 8
->    set fan2_div 8
->    set fan3_div 8
->    set fan4_div 8
->    set fan5_div 8
->    set fan6_div 8
->    set fan7_div 8
->
->    label in0 "+5VSB Voltage"
->    compute in0 @*2,@/2
->    set in0_min 5*0.90
->    set in0_max 5*1.1
->
->    ignore in1
->
->    label in2 "+1.5V Voltage"
->    set in2_min 1.5*0.95
->    set in2_max 1.5*1.05
->
->    label in3 "DIMM Voltage"
->    set in3_min 2.5*0.95
->    set in3_max 2.5*1.05
->
->    ignore in4
->    ignore in5
->    ignore in6
->
->    label in7 "CPU2 Core Voltage"
->    set in7_min 1.35*0.95
->    set in7_max 1.35*1.05
->
->    ignore in8
->    ignore in9
->
->    label in10 "Battery Voltage"
->    set in10_min 3*0.95
->    set in10_max 3*1.05
->
->    # for in11 & in12, see comments above
->    #ignore in11
->    #ignore in12
->
->    label in11 "3.3V Standby"
->    set in11_min 3.3*0.95
->    set in11_max 3.3*1.05
->
->    label in12 "3.3V Main"
->    set in12_min 3.3*0.95
->    set in12_max 3.3*1.05
->
->    label in13 "+5V Voltage"
->    set in13_min 5*0.95
->    set in13_max 5*1.05
->
->    label in14 "CPU1 Core Voltage"
->    set in14_min 1.35*0.95
->    set in14_max 1.35*1.05
->
->    label in15 "+12V Voltage"
->    set in15_min 12*0.95
->    set in15_max 12*1.05
->
->    label in16 "-12V Voltage"
->    set in16_max -12*0.95
->    set in16_min -12*1.05
->
->    label temp1 "System Temperature"
->    set temp1_min 18
->    set temp1_max 40
->    label temp2 "CPU1 Temperature"
->    set temp2_min 20
->    set temp2_max 45
->    label temp3 "CPU2 Temperature"
->    set temp3_min 20
->    set temp3_max 45
->
->
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
