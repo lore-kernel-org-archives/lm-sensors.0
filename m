@@ -1,31 +1,36 @@
-From: Christoph Scheurer <christoph.scheurer@web.de>
-Date: Wed, 15 Aug 2007 17:35:30 +0000
-Subject: Re: [lm-sensors] lm_sensors + max1668
-Message-Id: <20070815173530.GJ12587@scheurer-clark.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 21 Aug 2007 09:01:34 +0000
+Subject: [lm-sensors] Moving the "useful addresses" list to the wiki
+Message-Id: <20070821110134.1c7af7d6@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46BAAD23.4060202@assembler.cz>
-In-Reply-To: <46BAAD23.4060202@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi all,
 
-I just saw your (Rudolf Marek) recent e-mail (in this thread) which was also
-cc'ed to me and the earlier post relating to this driver:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-February/018784.html
+I propose that we move doc/useful_addresses.html to
+lm-sensors.org/wiki. Reasons for that are:
 
-I apologize but currently I don't have any time to spend on the changes you
-suggested.  I guess I have to orphan this driver/patch for now.  I would be
-glad if somebody else could get it in a state for mainline inclusion.
+* It will be much more visible there. I don't expect users to find this
+file under /usr/share/doc. Some distributions don't even package it.
 
-Kind regards,
+* It is version-independent.
 
-Ch. Scheurer
+* It will be easier to maintain in the wiki, more people can change it
+there so there is a chance that the document becomes more useful over
+time.
+
+If nothing else, this will be one less file to keep in sync between
+both lm-sensors branches.
+
+Opinions?
+
+Is there a volunteer for the task?
 
 -- 
-Christoph Scheurer                                  GnuPG key Id: 0x6128C6B6
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
