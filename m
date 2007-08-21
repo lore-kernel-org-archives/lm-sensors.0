@@ -1,113 +1,79 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Aug 2007 15:36:23 +0000
-Subject: [lm-sensors] [PATCH 1/6] libsensors4: Drop dummy adapter type
-Message-Id: <20070815173623.2626979b@hyperion>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Tue, 21 Aug 2007 12:53:31 +0000
+Subject: Re: [lm-sensors] Submitting motherboard-specific support?
+Message-Id: <46CAE04B.9010107@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Drop support for "dummy" bus types. The kernel no longer supports
-such fake i2c buses, so neither should we. Instead, non-i2c buses are
-handled explicitly.
+Axel Thimm wrote:
+> On Tue, Aug 21, 2007 at 10:45:10AM +0200, Jean Delvare wrote:
+>>> I do have a friend who is a php guru who is willing to write a php driven site 
+>>> for us if we can provide him with proper specs.
+>>>
+>>> I can start writing a spec for the website as time permits, then discuss it 
+>>> here, and once approved ask him to write it (under an OSS license of course).
+>> Writing it is one thing, hosting it is another. Axel, maybe I already
+>> asked, can't remember: can we host a PHP app on lm-sensors.org?
+> 
+> Sure, as long as someone manages the app and any involved security
+> issues. PHP is rather tricky and needs good care security-wise.
+> 
 
----
- lib/access.c        |    2 --
- lib/data.c          |    8 +-------
- lib/sensors.h       |    3 +--
- lib/sysfs.c         |    2 +-
- prog/sensors/main.c |    3 ---
- 5 files changed, 3 insertions(+), 15 deletions(-)
+I know, and I know that friend well (for 15 years now) and I believe he will 
+stick around to maintain it, but as discussed below, maybe it would be better 
+(and a whole lot quicker to get setup / started) to start with using the wiki 
+for now. If that turns out to not scale we can always switch.
 
---- lm-sensors-3.orig/lib/access.c	2007-08-15 12:00:23.000000000 +0200
-+++ lm-sensors-3/lib/access.c	2007-08-15 12:02:41.000000000 +0200
-@@ -326,8 +326,6 @@ const char *sensors_get_adapter_name(int
- 		return "ISA adapter";
- 	if (bus_nr = SENSORS_CHIP_NAME_BUS_PCI)
- 		return "PCI adapter";
--	if (bus_nr = SENSORS_CHIP_NAME_BUS_DUMMY)
--		return "Dummy adapter";
- 	for (i = 0; i < sensors_proc_bus_count; i++)
- 		if (sensors_proc_bus[i].number = bus_nr)
- 			return sensors_proc_bus[i].adapter;
---- lm-sensors-3.orig/lib/data.c	2007-08-11 17:28:56.000000000 +0200
-+++ lm-sensors-3/lib/data.c	2007-08-15 12:02:18.000000000 +0200
-@@ -171,10 +171,6 @@ DONE2:;
-     if (part2)
-       *(part2-1) = '-';
-     *(part3-1) = '-';
--  } else if(part3 && part4) {
--    res->bus = SENSORS_CHIP_NAME_BUS_DUMMY;
--    if (! (res->busname = strdup(part3)))
--      sensors_fatal_error("sensors_parse_chip_name","Allocating new busname");
-   } else
-     goto ERROR;
-     
-@@ -202,8 +198,7 @@ int sensors_parse_i2cbus_name(const char
-     return 0;
-   }
-   if (strncmp(name,"i2c-",4)) {
--    *res = SENSORS_CHIP_NAME_BUS_DUMMY;
--    return 0;
-+    return -SENSORS_ERR_BUS_NAME;
-   }
-   name += 4;
-   if ((strlen(name) > 3) || (strlen(name) = 0))
-@@ -265,7 +260,6 @@ int sensors_substitute_busses(void)
-     for(j = 0; j < chips->fits_count; j++)
-       if ((chips->fits[j].bus != SENSORS_CHIP_NAME_BUS_ISA) &&
-           (chips->fits[j].bus != SENSORS_CHIP_NAME_BUS_PCI) &&
--          (chips->fits[j].bus != SENSORS_CHIP_NAME_BUS_DUMMY) &&
-           (chips->fits[j].bus != SENSORS_CHIP_NAME_BUS_ANY) &&
-           (chips->fits[j].bus != SENSORS_CHIP_NAME_BUS_ANY_I2C))
-         if ((err = sensors_substitute_chip(chips->fits+j, lineno)))
---- lm-sensors-3.orig/lib/sensors.h	2007-08-15 12:00:23.000000000 +0200
-+++ lm-sensors-3/lib/sensors.h	2007-08-15 12:02:18.000000000 +0200
-@@ -29,7 +29,6 @@
- #define SENSORS_CHIP_NAME_BUS_ISA -1
- #define SENSORS_CHIP_NAME_BUS_ANY -2
- #define SENSORS_CHIP_NAME_BUS_ANY_I2C -3
--#define SENSORS_CHIP_NAME_BUS_DUMMY -4
- #define SENSORS_CHIP_NAME_BUS_PCI -5
- #define SENSORS_CHIP_NAME_ADDR_ANY -1
- 
-@@ -44,7 +43,7 @@ typedef struct sensors_chip_name {
-   char *prefix;
-   int bus;
-   int addr;
--  char *busname;	/* if dummy */
-+  char *busname;
- } sensors_chip_name;
- 
- /* (Re)load the configuration file and the detected chips list. If this 
---- lm-sensors-3.orig/lib/sysfs.c	2007-08-13 22:16:38.000000000 +0200
-+++ lm-sensors-3/lib/sysfs.c	2007-08-15 12:02:18.000000000 +0200
-@@ -382,7 +382,7 @@ int sensors_read_sysfs_bus(void)
- 		if (!strncmp(entry.adapter, "ISA ", 4)) {
- 			entry.number = SENSORS_CHIP_NAME_BUS_ISA;
- 		} else if (sscanf(clsdev->name, "i2c-%d", &entry.number) != 1) {
--			entry.number = SENSORS_CHIP_NAME_BUS_DUMMY;
-+			continue;
- 		}
- 
- 		sensors_add_proc_bus(&entry);
---- lm-sensors-3.orig/prog/sensors/main.c	2007-08-15 12:00:23.000000000 +0200
-+++ lm-sensors-3/prog/sensors/main.c	2007-08-15 12:02:18.000000000 +0200
-@@ -302,9 +302,6 @@ const char *sprintf_chip_name(const sens
-     snprintf(buf, BUF_SIZE, "%s-isa-%04x", name->prefix, name->addr);
-   else if (name->bus = SENSORS_CHIP_NAME_BUS_PCI)
-     snprintf(buf, BUF_SIZE, "%s-pci-%04x", name->prefix, name->addr);
--  else if (name->bus = SENSORS_CHIP_NAME_BUS_DUMMY)
--    snprintf(buf, BUF_SIZE, "%s-%s-%04x", name->prefix, name->busname,
--             name->addr);
-   else
-     snprintf(buf, BUF_SIZE, "%s-i2c-%d-%02x", name->prefix, name->bus,
-              name->addr);
+>>> Another option would be to stay with the wiki, add some special
+>>> markup comments for the dmi strings and write a script to generate
+>>> a tarbal / "database" for the dmi based detect code. For me
+>>> putting the info in the wiki works well, its not like we are
+>>> getting multiple motherboard configs per day, and the wiki keeps
+>>> history which can be benifitial (a sufficiently advanced website
+>>> could do this too).
+>> I'd prefer a dedicated interface where anyone can contribute its
+>> configuration. The target configuration count is in hundreds if not
+>> thousands, that's not something we want to handle manually.
+>>
+>> That being said, if someone _else_ is going to take care, it doesn't
+>> matter that much to me ;) The usual open development rule applies:
+>> whoever does the job decides how it should be done. I simply haven't
+>> looked enough into it all yet, for now I'm focusing on getting
+>> libsensors4 ready so that we can release it before the end of the
+>> year.
+> 
+> I would also tend to recommend a wiki. The stumbing block is the spam
+> issue, and I think if we write a simple mailman like registration
+> module (for example in PHP :) we could have people register once and
+> then use wiki/trac/tickets/svn etc. as you like (not as flat as it
+> sounds, but with some lm-sensors heads elevating permissions as
+> needed, e.g. self-registration allows wiki/ticket editing, and svn
+> write access needs a bit flip by an lm-sensors leader etc)
+> 
+> Hans, maybe your PHP friend expert (is that Romain copied in the Cc?)
+> would be interested in this general purpose registration module
+> stealing some methods from mailman?
+> 
 
+As Romain already answered he is not the one I'm talking about. I'll ask him if 
+he doesn't mind his mail address getting used on mailing lists and then put him 
+in the CC.
 
--- 
-Jean Delvare
+Let me check if I understand you correctly, you want to have a registration 
+module, for users to register themselves as trac user, which has some spam bot 
+prevention methods, like sending a confirmation mail and maybe also such a 
+picture with bad readable text? (which has a name I know, but not right now :)
+
+But wouldn't it be better to write such a thing in python and submit it for 
+upstream trac inclusion? Has anyone already searched the web to see if such a 
+thing exists?
+
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
