@@ -1,31 +1,82 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 27 Aug 2007 08:28:35 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3] sensors3: Optimize command line
-Message-Id: <20070827102835.4b358a50@hyperion.delvare>
+Date: Tue, 21 Aug 2007 19:25:36 +0000
+Subject: [lm-sensors] [PATCH 1/4] libsensors4: No longer allow reloading
+Message-Id: <20070821212536.61ce7a69@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070825151433.0fab41fe@hyperion.delvare>
-In-Reply-To: <20070825151433.0fab41fe@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 25 Aug 2007 19:23:42 +0200, Hans de Goede wrote:
-> Jean Delvare wrote:
-> > Thanks to the new prototype of sensors_get_detected_chips, we no
-> > longer need to build an array from the chip names passed on the
-> > command line. Instead, we can process them one after the other
-> > directly. This saves some memory and allows for minor code cleanups.
-> > 
-> Looks good to me,
+Drop support for reloading the configuration with sensors_init().
+Instead, the application will have to call sensors_exit() explicitly
+before calling sensors_init() again. Most applications don't offer
+any way to reload the configuration file, so better optimize for the
+initial load.
 
-Thanks. All 3 patches applied now. I also made a big cleanup to
-"sensors", mainly to better understand what exactly it needs from
-libsensors, in the hope it'll help me in the last part of the API
-review: sensors_get_all_features() and all the underlying features
-gathering, designation and storage code. I'll work on this as time
-permits during the week, and hopefully I can send a proposal for
-discussion at the end of the week.
+---
+ lib/init.c         |    2 +-
+ lib/libsensors.3   |    5 ++++-
+ lib/sensors.h      |    8 +++++---
+ prog/sensord/lib.c |    4 +++-
+ 4 files changed, 13 insertions(+), 6 deletions(-)
+
+--- lm-sensors-3.orig/lib/init.c	2007-08-21 20:08:05.000000000 +0200
++++ lm-sensors-3/lib/init.c	2007-08-21 20:08:27.000000000 +0200
+@@ -40,7 +40,7 @@ static void free_expr(sensors_expr *expr
+ int sensors_init(FILE *input)
+ {
+   int res;
+-  sensors_cleanup();
++
+   if (!sensors_init_sysfs())
+     return -SENSORS_ERR_PROC;
+   if ((res = sensors_read_sysfs_bus()) || (res = sensors_read_sysfs_chips()))
+--- lm-sensors-3.orig/lib/libsensors.3	2007-08-21 20:08:05.000000000 +0200
++++ lm-sensors-3/lib/libsensors.3	2007-08-21 21:24:11.000000000 +0200
+@@ -53,7 +53,10 @@ libsensors \- publicly accessible functi
+ .SH DESCRIPTION
+ .B int sensors_init(FILE *input);
+ .br
+-(Re)load the configuration file and the detected chips list. If this returns a value unequal to zero, you are in trouble; you can not assume anything will be initialized properly.
++Load the configuration file and the detected chips list. If this returns a
++value unequal to zero, you are in trouble; you can not assume anything will
++be initialized properly. If you want to reload the configuration file, call
++sensors_cleanup() below before calling sensors_init() again.
+ 
+ .B void sensors_cleanup(void);
+ .br
+--- lm-sensors-3.orig/lib/sensors.h	2007-08-21 20:08:05.000000000 +0200
++++ lm-sensors-3/lib/sensors.h	2007-08-21 21:24:11.000000000 +0200
+@@ -56,9 +56,11 @@ typedef struct sensors_chip_name {
+ 	char *path;
+ } sensors_chip_name;
+ 
+-/* (Re)load the configuration file and the detected chips list. If this
+-    returns a value unequal to zero, you are in trouble; you can not
+-    assume anything will be initialized properly. */
++/* Load the configuration file and the detected chips list. If this
++   returns a value unequal to zero, you are in trouble; you can not
++   assume anything will be initialized properly. If you want to
++   reload the configuration file, call sensors_cleanup() below before
++   calling sensors_init() again. */
+ int sensors_init(FILE *input);
+ 
+ /* Clean-up function: You can't access anything after
+--- lm-sensors-3.orig/prog/sensord/lib.c	2007-04-02 13:20:58.000000000 +0200
++++ lm-sensors-3/prog/sensord/lib.c	2007-08-21 20:29:01.000000000 +0200
+@@ -90,8 +90,10 @@ loadConfig
+     sensorLog (LOG_ERR, "Error stating sensors configuration file: %s", cfgPath);
+     ret = 10;
+   } else if (!reload || (difftime (stats.st_mtime, cfgLastModified) > 0.0)) {
+-    if (reload)
++    if (reload) {
+       sensorLog (LOG_INFO, "configuration reloading");
++      sensors_cleanup ();
++    }
+     if (!(cfg = fopen (cfgPath, "r"))) {
+       sensorLog (LOG_ERR, "Error opening sensors configuration file: %s", cfgPath);
+       ret = 11;
 
 -- 
 Jean Delvare
