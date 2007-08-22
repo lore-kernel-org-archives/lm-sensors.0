@@ -1,150 +1,204 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 15 Aug 2007 17:00:32 +0000
-Subject: Re: [lm-sensors] [PATCH 5/6] libsensors4: sensors_snprintf_chip_name
-Message-Id: <46C33130.6050702@hhs.nl>
+Date: Wed, 22 Aug 2007 12:04:06 +0000
+Subject: Re: [lm-sensors] [PATCH 3/4] libsensors4:
+Message-Id: <46CC2636.3030009@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070815174429.0e221e21@hyperion>
-In-Reply-To: <20070815174429.0e221e21@hyperion>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Jean Delvare wrote:
-> Add a new function to libsensors doing the opposite of
-> sensors_parse_chip_name(). sensors_snprintf_chip_name() converts
-> a chip name from its internal representation to a human readable
-> string. So far, each user program had to reimplement this function.
+> Rename sensors_get_feature() and sensors_set_feature() to
+> sensors_get_value() and sensors_set_value(), respectively.
+> The new names better reflect what the functions do.
 > 
 
-Looks good too, again I'll run some tests once things hit svn.
+Looks good to me,
 
 Regards,
 
 Hans
 
 > ---
->  lib/access.c         |    2 +-
->  lib/access.h         |    5 +++++
->  lib/data.c           |   20 ++++++++++++++++++++
->  lib/sensors.h        |    6 ++++++
->  prog/sensord/sense.c |    8 ++------
->  prog/sensors/main.c  |    9 ++-------
->  6 files changed, 36 insertions(+), 14 deletions(-)
+>  lib/access.c                 |   12 ++++++------
+>  lib/libsensors.3             |   16 ++++++++--------
+>  lib/sensors.h                |    8 ++++----
+>  prog/sensord/sense.c         |    8 ++++----
+>  prog/sensors/chips.c         |    4 ++--
+>  prog/sensors/chips_generic.c |    2 +-
+>  6 files changed, 25 insertions(+), 25 deletions(-)
 > 
-> --- lm-sensors-3.orig/lib/data.c	2007-08-15 12:19:24.000000000 +0200
-> +++ lm-sensors-3/lib/data.c	2007-08-15 13:59:44.000000000 +0200
-> @@ -20,6 +20,7 @@
->  #include <stdlib.h>
->  #include <string.h>
+> --- lm-sensors-3.orig/lib/libsensors.3	2007-08-21 20:38:49.000000000 +0200
+> +++ lm-sensors-3/lib/libsensors.3	2007-08-21 20:46:37.000000000 +0200
+> @@ -39,10 +39,10 @@ libsensors \- publicly accessible functi
+>                         \fBconst sensors_chip_name *chip2);\fP
+>  .B const char *sensors_get_adapter_name(int bus_nr);
+>  .B char *sensors_get_label(const sensors_chip_name *name, int feature);\fP
+> -.B int sensors_get_feature(const sensors_chip_name *name, int feature,
+> -                        \fBdouble *result);\fP
+> -.B int sensors_set_feature(const sensors_chip_name *name, int feature,
+> -                        \fBdouble value);\fP
+> +.B int sensors_get_value(const sensors_chip_name *name, int feature,
+> +                      \fBdouble *value);\fP
+> +.B int sensors_set_value(const sensors_chip_name *name, int feature,
+> +                      \fBdouble value);\fP
+>  .B int sensors_do_chip_sets(const sensors_chip_name *name);
+>  .B const sensors_chip_name *sensors_get_detected_chips(int *nr);
+>  .B const sensors_feature_data *sensors_get_all_features 
+> @@ -84,13 +84,13 @@ contain wildcard values! The returned st
+>  yourself). On failure, NULL is returned.
+>  If no label exists for this feature, its name is returned itself.
 >  
-> +#include "access.h"
->  #include "error.h"
->  #include "data.h"
->  #include "sensors.h"
-> @@ -154,6 +155,25 @@ ERROR:
->    return -SENSORS_ERR_CHIP_NAME;
->  }
+> -\fBint sensors_get_feature(const sensors_chip_name *name,
+> -                        int feature, double *result);\fP
+> +\fBint sensors_get_value(const sensors_chip_name *name,
+> +                      int feature, double *value);\fP
+>  .br
+>  Read the value of a feature of a certain chip. Note that chip should not contain wildcard values! This function will return 0 on success, and <0 on failure.
 >  
-> +int sensors_snprintf_chip_name(char *str, size_t size,
-> +			       const sensors_chip_name *chip)
-> +{
-> +	if (sensors_chip_name_has_wildcards(chip))
-> +		return -SENSORS_ERR_WILDCARDS;
-> +
-> +	switch (chip->bus) {
-> +	case SENSORS_CHIP_NAME_BUS_ISA:
-> +		return snprintf(str, size, "%s-isa-%04x", chip->prefix,
-> +				chip->addr);
-> +	case SENSORS_CHIP_NAME_BUS_PCI:
-> +		return snprintf(str, size, "%s-pci-%04x", chip->prefix,
-> +				chip->addr);
-> +	default:
-> +		return snprintf(str, size, "%s-i2c-%d-%02x", chip->prefix,
-> +				chip->bus, chip->addr);
-> +	}
-> +}
-> +
->  int sensors_parse_i2cbus_name(const char *name, int *res)
+> -\fBint sensors_set_feature(const sensors_chip_name *name,
+> -                        int feature, double value);\fP
+> +\fBint sensors_set_value(const sensors_chip_name *name,
+> +                      int feature, double value);\fP
+>  .br
+>  Set the value of a feature of a certain chip. Note that chip should not contain wildcard values! This function will return 0 on success, and <0 on failure.
+>  
+> --- lm-sensors-3.orig/lib/sensors.h	2007-08-21 20:38:49.000000000 +0200
+> +++ lm-sensors-3/lib/sensors.h	2007-08-21 20:46:50.000000000 +0200
+> @@ -96,14 +96,14 @@ char *sensors_get_label(const sensors_ch
+>  /* Read the value of a feature of a certain chip. Note that chip should not
+>     contain wildcard values! This function will return 0 on success, and <0
+>     on failure.  */
+> -int sensors_get_feature(const sensors_chip_name *name, int feature,
+> -			double *result);
+> +int sensors_get_value(const sensors_chip_name *name, int feature,
+> +		      double *value);
+>  
+>  /* Set the value of a feature of a certain chip. Note that chip should not
+>     contain wildcard values! This function will return 0 on success, and <0
+>     on failure. */
+> -int sensors_set_feature(const sensors_chip_name *name, int feature,
+> -			double value);
+> +int sensors_set_value(const sensors_chip_name *name, int feature,
+> +		      double value);
+>  
+>  /* Execute all set statements for this particular chip. The chip may contain
+>     wildcards!  This function will return 0 on success, and <0 on failure. */
+> --- lm-sensors-3.orig/prog/sensord/sense.c	2007-08-21 20:38:49.000000000 +0200
+> +++ lm-sensors-3/prog/sensord/sense.c	2007-08-21 20:39:20.000000000 +0200
+> @@ -108,7 +108,7 @@ readUnknownChip
+>        /* skip invalid */
+>      } else if (!(sensor->mode & SENSORS_MODE_R)) {
+>        sensorLog (LOG_INFO, "%s: %s", sensor->name, label);
+> -    } else if ((ret = sensors_get_feature (chip, sensor->number, &value))) {
+> +    } else if ((ret = sensors_get_value (chip, sensor->number, &value))) {
+>        sensorLog (LOG_ERR, "Error getting sensor data: %s/%s: %s", chip->prefix, sensor->name, sensors_strerror (ret));
+>        ret = 22;
+>      } else {
+> @@ -133,7 +133,7 @@ doKnownChip
+>    if (action = DO_READ)
+>      ret = idChip (chip);
+>    if (!ret && descriptor->alarmNumber) {
+> -    if ((ret = sensors_get_feature (chip, descriptor->alarmNumber, &tmp))) {
+> +    if ((ret = sensors_get_value (chip, descriptor->alarmNumber, &tmp))) {
+>        sensorLog (LOG_ERR, "Error getting sensor data: %s/#%d: %s", chip->prefix, descriptor->alarmNumber, sensors_strerror (ret));
+>        ret = 20;
+>      } else {
+> @@ -141,7 +141,7 @@ doKnownChip
+>      }
+>    }
+>    if (!ret && descriptor->beepNumber) {
+> -    if ((ret = sensors_get_feature (chip, descriptor->beepNumber, &tmp))) {
+> +    if ((ret = sensors_get_value (chip, descriptor->beepNumber, &tmp))) {
+>        sensorLog (LOG_ERR, "Error getting sensor data: %s/#%d: %s", chip->prefix, descriptor->beepNumber, sensors_strerror (ret));
+>        ret = 21;
+>      } else {
+> @@ -168,7 +168,7 @@ doKnownChip
+>        double values[MAX_DATA];
+>  
+>        for (subindex = 0; !ret && (feature->dataNumbers[subindex] >= 0); ++ subindex) {
+> -        if ((ret = sensors_get_feature (chip, feature->dataNumbers[subindex], values + subindex))) {
+> +        if ((ret = sensors_get_value (chip, feature->dataNumbers[subindex], values + subindex))) {
+>            sensorLog (LOG_ERR, "Error getting sensor data: %s/#%d: %s", chip->prefix, feature->dataNumbers[subindex], sensors_strerror (ret));
+>            ret = 23;
+>          }
+> --- lm-sensors-3.orig/prog/sensors/chips.c	2007-08-21 20:38:49.000000000 +0200
+> +++ lm-sensors-3/prog/sensors/chips.c	2007-08-21 20:39:20.000000000 +0200
+> @@ -92,7 +92,7 @@ void print_vid_info(const sensors_chip_n
+>    double vid;
+>  
+>    if ((label = sensors_get_label(name, f_vid))
+> -      && !sensors_get_feature(name, f_vid, &vid)) {
+> +      && !sensors_get_value(name, f_vid, &vid)) {
+>      print_label(label, label_size);
+>      printf("%+6.3f V\n", vid);
+>    }
+> @@ -113,7 +113,7 @@ void print_unknown_chip(const sensors_ch
+>        continue;
+>      }
+>      if (data->mode & SENSORS_MODE_R) {
+> -      if(sensors_get_feature(name, data->number, &val)) {
+> +      if (sensors_get_value(name, data->number, &val)) {
+>          printf("ERROR: Can't get feature `%s' data!\n",data->name);
+>          continue;
+>        }
+> --- lm-sensors-3.orig/prog/sensors/chips_generic.c	2007-08-21 20:38:49.000000000 +0200
+> +++ lm-sensors-3/prog/sensors/chips_generic.c	2007-08-21 20:39:20.000000000 +0200
+> @@ -30,7 +30,7 @@ static int get_feature_value(const senso
+>                               const sensors_feature_data *feature, 
+>                               double *val)
 >  {
->    char *endptr;
-> --- lm-sensors-3.orig/lib/sensors.h	2007-08-15 12:09:52.000000000 +0200
-> +++ lm-sensors-3/lib/sensors.h	2007-08-15 13:32:31.000000000 +0200
-> @@ -60,6 +60,12 @@ extern void sensors_cleanup(void);
->  extern int sensors_parse_chip_name(const char *orig_name,
->                                     sensors_chip_name *res);
->  
-> +/* Print a chip name from its internal representation. Note that chip should
-> +   not contain wildcard values! Return the number of characters printed on
-> +   success (same as snprintf), <0 on error. */
-> +int sensors_snprintf_chip_name(char *str, size_t size,
-> +			       const sensors_chip_name *chip);
-> +
->  /* Compare two chips name descriptions, to see whether they could match.
->     Return 0 if it does not match, return 1 if it does match. */
->  extern int sensors_match_chip(const sensors_chip_name *chip1,
-> --- lm-sensors-3.orig/prog/sensors/main.c	2007-08-15 12:08:23.000000000 +0200
-> +++ lm-sensors-3/prog/sensors/main.c	2007-08-15 13:33:34.000000000 +0200
-> @@ -298,13 +298,8 @@ const char *sprintf_chip_name(const sens
->    #define BUF_SIZE 200
->    static char buf[BUF_SIZE];
->  
-> -  if (name->bus = SENSORS_CHIP_NAME_BUS_ISA)
-> -    snprintf(buf, BUF_SIZE, "%s-isa-%04x", name->prefix, name->addr);
-> -  else if (name->bus = SENSORS_CHIP_NAME_BUS_PCI)
-> -    snprintf(buf, BUF_SIZE, "%s-pci-%04x", name->prefix, name->addr);
-> -  else
-> -    snprintf(buf, BUF_SIZE, "%s-i2c-%d-%02x", name->prefix, name->bus,
-> -             name->addr);
-> +  if (sensors_snprintf_chip_name(buf, BUF_SIZE, name) < 0)
-> +    return NULL;
->    return buf;
+> -  return sensors_get_feature(name, feature->number, val);
+> +  return sensors_get_value(name, feature->number, val);
 >  }
 >  
-> --- lm-sensors-3.orig/prog/sensord/sense.c	2007-08-15 12:00:23.000000000 +0200
-> +++ lm-sensors-3/prog/sensord/sense.c	2007-08-15 13:33:47.000000000 +0200
-> @@ -74,12 +74,8 @@ static const char *
->  chipName
->  (const sensors_chip_name *chip) {
->    static char buffer[256];
-> -  if (chip->bus = SENSORS_CHIP_NAME_BUS_ISA)
-> -    sprintf (buffer, "%s-isa-%04x", chip->prefix, chip->addr);
-> -  else if (chip->bus = SENSORS_CHIP_NAME_BUS_PCI)
-> -	    sprintf (buffer, "%s-pci-%04x", chip->prefix, chip->addr);
-> -  else
-> -    sprintf (buffer, "%s-i2c-%d-%02x", chip->prefix, chip->bus, chip->addr);
-> +  if (sensors_snprintf_chip_name(buffer, 256, chip) < 0)
-> +    return NULL;
->    return buffer;
->  }
->  
-> --- lm-sensors-3.orig/lib/access.c	2007-08-15 12:09:52.000000000 +0200
-> +++ lm-sensors-3/lib/access.c	2007-08-15 13:34:20.000000000 +0200
-> @@ -133,7 +133,7 @@ sensors_lookup_feature_name(const sensor
->  /* Check whether the chip name is an 'absolute' name, which can only match
->     one chip, or whether it has wildcards. Returns 0 if it is absolute, 1
->     if there are wildcards. */
-> -static int sensors_chip_name_has_wildcards(const sensors_chip_name *chip)
-> +int sensors_chip_name_has_wildcards(const sensors_chip_name *chip)
+>  static void sensors_get_available_features(const sensors_chip_name *name, 
+> --- lm-sensors-3.orig/lib/access.c	2007-08-21 20:38:49.000000000 +0200
+> +++ lm-sensors-3/lib/access.c	2007-08-21 20:50:24.000000000 +0200
+> @@ -216,8 +216,8 @@ static int sensors_get_ignored(const sen
+>  /* Read the value of a feature of a certain chip. Note that chip should not
+>     contain wildcard values! This function will return 0 on success, and <0
+>     on failure. */
+> -int sensors_get_feature(const sensors_chip_name *name, int feature,
+> -			double *result)
+> +int sensors_get_value(const sensors_chip_name *name, int feature,
+> +		      double *result)
 >  {
->  	if ((chip->prefix = SENSORS_CHIP_NAME_PREFIX_ANY) ||
->  	    (chip->bus = SENSORS_CHIP_NAME_BUS_ANY) ||
-> --- lm-sensors-3.orig/lib/access.h	2007-07-22 14:24:18.000000000 +0200
-> +++ lm-sensors-3/lib/access.h	2007-08-15 13:35:15.000000000 +0200
-> @@ -29,6 +29,11 @@
->  extern const sensors_chip_feature *sensors_lookup_feature_nr(const sensors_chip_name *chip,
->                                                               int feature);
->  
-> +/* Check whether the chip name is an 'absolute' name, which can only match
-> +   one chip, or whether it has wildcards. Returns 0 if it is absolute, 1
-> +   if there are wildcards. */
-> +int sensors_chip_name_has_wildcards(const sensors_chip_name *chip);
-> +
->  sensors_feature_type sensors_feature_get_type(const char *name, int *nr);
->  
->  #endif /* def LIB_SENSORS_ACCESS_H */
+>  	const sensors_chip_feature *main_feature;
+>  	const sensors_chip_feature *alt_feature;
+> @@ -261,8 +261,8 @@ int sensors_get_feature(const sensors_ch
+>  /* Set the value of a feature of a certain chip. Note that chip should not
+>     contain wildcard values! This function will return 0 on success, and <0
+>     on failure. */
+> -int sensors_set_feature(const sensors_chip_name *name, int feature,
+> -			double value)
+> +int sensors_set_value(const sensors_chip_name *name, int feature,
+> +		      double value)
+>  {
+>  	const sensors_chip_feature *main_feature;
+>  	const sensors_chip_feature *alt_feature;
+> @@ -377,7 +377,7 @@ int sensors_eval_expr(const sensors_chip
+>  		if (!(feature = sensors_lookup_feature_name(name,
+>  							    expr->data.var)))
+>  			return SENSORS_ERR_NO_ENTRY;
+> -		if (!(res = sensors_get_feature(name, feature->data.number, result)))
+> +		if (!(res = sensors_get_value(name, feature->data.number, result)))
+>  			return res;
+>  		return 0;
+>  	}
+> @@ -461,7 +461,7 @@ static int sensors_do_this_chip_sets(con
+>  				err = res;
+>  				continue;
+>  			}
+> -			if ((res = sensors_set_feature(name, feature_nr, value))) {
+> +			if ((res = sensors_set_value(name, feature_nr, value))) {
+>  				sensors_parse_error("Failed to set feature",
+>  						chip->sets[i].lineno);
+>  				err = res;
 > 
 > 
+
 
 
 _______________________________________________
