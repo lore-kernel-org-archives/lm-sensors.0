@@ -1,164 +1,230 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Aug 2007 21:25:57 +0000
-Subject: Re: [lm-sensors] Please clean up procedures here (also against
-Message-Id: <20070815232557.270c2da6@hyperion.delvare>
+From: Boleslaw Ciesielski <bolek-sensors@curl.com>
+Date: Wed, 22 Aug 2007 01:29:05 +0000
+Subject: [lm-sensors] Backporting coretemp and w83793 to 2.6.18
+Message-Id: <46CB9161.5090408@curl.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------040708090107040506060101"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46C34CBE.20612.105BF55@localhost>
-In-Reply-To: <46C34CBE.20612.105BF55@localhost>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Boyd,
+This is a multi-part message in MIME format.
+--------------040708090107040506060101
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Wed, 15 Aug 2007 18:58:06 +0200, Boyd Noorda wrote:
-> > This is how open software development works.
-> 
-> ?? I don't think it's normal netiquette to publish someone's E-mail 
-> address on a web site, without the person in question knowing, in any 
-> circles. OK, it happens, but by people not knowing about these things. 
-> I don't expect that here ...
+Hi,
 
-If you "didn't know" that writing your e-mail address to a public
-website could result in it being known to the world, then I'm sorry
-but you're not very smart. If you had taken a look at a few random
-tickets on our site, you'd have noticed immediately that the e-mail
-address of the reporters was publicly visible. And we're not the only
-ticket system doing that, for example bugzilla.kernel.org publish
-e-mail addresses of reported as well.
+I am new to this list and hopefully this is not too stupid...
 
-> > You posted on our public website (and right now, to our publicly
-> > archived mailing list), you published your e-mail address to the public
-> > on your own. If you didn't want it to be known to the public, then you
-> > should have refrained from adding it to the support ticket when you
-> > created it, sorry. 
-> 
-> There is something very wrong with procedures here, I'll explain:
-> 
-> - I had a simple user question and followed the 'Contact and Support'
->   link.
-> - At this page (now called 'Feedback and Support') I simply followed
->   directions under 'Support Ticket'.
+I have this new server based on the Asus DSBF-DE/SAS motherboard and a
+pair of Xeons 5355. I want to run CentOS 5.0 (RHEL 5 clone) on it.
+CentOS 5.0 is based on the 2.6.18 kernel and as such has drivers for
+everything *except* for the sensors. The motherboard uses 83793 chip.
 
-I've changed the link from 'Contact and Support' to 'Feedback and
-Support' for consistency.
+So, I wanted to backport the w83793 and coretemp drivers to 2.6.18
+kernel. I took the source from 2.6.22.3 for these two and tried to
+compile them for 2.6.18.
 
->   There it says: "Note: In order to get rid of spammers, we had to
->   block anonymous creation and edition of support tickets. We created a
->   fake account you have to use instead. First log in with name "ticket"
->   and password "need help" (in one word), then you can create a new
->   ticket and later edit it. Put to CC: your mail please!"
-> - So nothing there which warns me I'll be publishing my E-mail address,
->   quite the contrary: you seem aware of the risk of spammers. The
->   urgent request: "Put to CC: your mail please!" (in bold) is not
->   explained(!), but seems logical: I'll get a copy myself and you know
->   to which address to answer.
+The w83793 compiles and loads as is, without any changes.
 
-The note about spam refers to our wiki being spammed, not the
-reporters. The sentence is rather clear about that, if you take the
-time to read it.
+coretemp required some changes related to msr so I just restored the
+code that was in there when coretemp was floating around as a patch
+before it made it to the kernel. See the attached patch for detail.
 
-We ask people creating tickets to add their address to Cc so that they
-get a notification when there's a reply to the ticket. It can take some time
-before anyone has the time (and interest) to reply to a ticket, and it
-is very frustrating when you spend time to solve a problem, ask the
-reporter for additional information and never get any answer because
-the reporter doesn't know you need his/her input.
+Anyway, with those changes both coretemp and w83793 compile and load. I
+also copied sensors.conf from 2.10.4 and ran "sensors -s". However,
+neither is providing any data. Output looks like this:
 
-I've improved the text at the bottom of this wiki page a bit, hopefully
-it will prevent rants like yours in the future, but I'm not holding my
-breath: people tend to jump directly to what they need without reading
-the help text.
+$ sensors
+coretemp-isa-0000
+Adapter: ISA adapter
 
-> - I got an answer by E-mail (thanks :) which even contains the line
->   "* cc: boyd2006@sociamedia.nl (removed)"
+coretemp-isa-0001
+Adapter: ISA adapter
 
-When we reply to a ticket, we move the reporter's address from the "Cc"
-field to the "Reported By" field, as this makes more sense.
+coretemp-isa-0002
+Adapter: ISA adapter
 
-> - At this point my message is already up on a wiki page, with my
->   address!
+coretemp-isa-0003
+Adapter: ISA adapter
 
-It was already before, at the moment you created the ticket. In other
-words, you did it, not me.
+coretemp-isa-0004
+Adapter: ISA adapter
 
-> - By replying to your answer, I automatically post to your mailing list
->   and to a public archive, again publishing my E-mail address.
->   And again there is no way to know that. There simply is a 'reply to:'
->   address (lm-sensors@lm-sensors.org) in the header.
-> - Only when I would be very suspicious (why? no reason up to now) I
->   would examine the address lm-sensors@lm-sensors.org via a web search,
->   to find out it's a mailing list address. And I 'could have read' a
->   blurb on mailing lists on the 'Feedback and Support' page and maybe
->   could have noticed from memory (...) this could be the address I'm
->   automatically replying to. Quite a long shot, isn't it?
->   And I did not read that, I did not want to subscribe, I just had a
->   question, so moved on to the 'Support Ticket' blurb on the page.
+coretemp-isa-0005
+Adapter: ISA adapter
 
-Again you're not very smart if you do not at least suspect that
-"lm-sensors@lm-sensors.org" is a mailing list address. Nevertheless, I
-completely agree that this Reply-To header was confusing, and we will
-remove it.
+coretemp-isa-0006
+Adapter: ISA adapter
 
-> Besides this, I'm also very surprised to find you publish all addresses 
-> of posters in the public mailing list archive too. Subscribers don't 
-> need these addresses, they already see them in the mail.
-> And what's more: the version of Mailman you're using, makes it very 
-> simple to remove (machine) readable addresses from the web archive 
-> (feature added by 'public demand') ...
+coretemp-isa-0007
+Adapter: ISA adapter
 
-It seems that you really don't get how open-source development works.
-Being able to contact people is a key feature. There are lots of people
-finding information in the list archive and contacting the relevant
-persons. This is very useful, and this is the reason why almost all
-mailing lists include the posters' addresses. See for example
-http://marc.info/, it archives literally hundreds of mailing lists and
-includes e-mail addresses. Same for http://gmane.org/.
+w83793-i2c-0-2f
+Adapter: SMBus I801 adapter at 1100
 
-> Now I'm quite prepared for these things happening as you can see from 
-> my disposable address. (Most people are not, just having one address 
-> with their provider). Still I'd like to restrict the harvesting of my 
-> addresses to not preventable cases, like infected PC's :)
-> 
-> I also hope to convince you to take action for other reasons:
-> Fighting spam with 'software filtering' (I guess you do that 
-> extensively, since mailing lists are even open to non subscribers) is 
-> very 'old school' these days. As you will know there are days when over 
-> 90% of E-mail traffic are spam and viruses. This means the 
-> infrastructure and servers need 10 times the capacity they would need 
-> to just handle normal E-mail, and you need overhead to run heavy 
-> filtering software.
-> Any idea what this means for energy use and climate change? In the US 
-> already 1.2% of all electricity is used by internet servers (and their 
-> cooling) only!
->
-> So fighting spam and viruses should be done by prevention as much as 
-> possible (like using images of E-mail addresses with mailto scripts and 
-> refusing most spam and virusses 'at the front door'). It works and 
-> saves money too. Many years back our P166 server (30-41 watt) with 
-> loads of web sites, mailing lists and E-mail addresses was already 
-> choking during spam waves. Since we implemented preventive actions, 
-> it's running over 95% idle again most of the time. No need to upgrade, 
-> w're even 'downgrading' to a more energy efficient server :)  
 
-This is very true, and also totally unrelated with the problem at hand.
-You're talking as if I was responsible for the world-wide spam problem.
-I'm not. The guys sending the spam, are. The guys writing software that
-makes it easy to send spam, are. The guys who refuse to make the e-mail
-system more robust to spam, are (how comes that any PC in the world is
-allowed to send e-mail?) The guys who refuse to vote laws to punish
-spammers, are. If you feel concerned, please go after all these people,
-not me.
+$
 
-I'm a bit fed up with people who get support from us for free and who
-dare to complain that things are not the way they like. If more people
-complain about this ticket system, we'll just close it.
+Am I missing something obvious? I did verify that I can get good sensor 
+reading on this motherboard using Fedora 7 and 2.6.22 kernel but that's 
+not what I want to run in production.
 
--- 
-Jean Delvare
+Any help will be appreciated.
+
+Thanks,
+
+Bolek
+
+
+--------------040708090107040506060101
+Content-Type: text/x-patch;
+ name="coretemp-2.6.18.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="coretemp-2.6.18.patch"
+
+--- /tmp/linux-2.6.22.3/drivers/hwmon/coretemp.c	2007-08-15 12:25:39.000000000 -0400
++++ drivers/hwmon/coretemp.c	2007-08-21 20:50:38.000000000 -0400
+@@ -36,6 +36,71 @@
+ #include <asm/msr.h>
+ #include <asm/processor.h>
+ 
++/*
++   Following part ripped from the msr.c. It should be merged with generic MSR
++   infrastructure (once ready)
++*/
++
++static inline int rdmsr_eio(u32 reg, u32 *eax, u32 *edx)
++{
++	int err;
++
++	err = rdmsr_safe(reg, eax, edx);
++	if (err)
++		err = -EIO;
++	return err;
++}
++
++#ifdef CONFIG_SMP
++
++struct msr_command {
++	int cpu;
++	int err;
++	u32 reg;
++	u32 data[2];
++};
++
++static void msr_smp_rdmsr(void *cmd_block)
++{
++	struct msr_command *cmd = (struct msr_command *)cmd_block;
++
++	if (cmd->cpu == smp_processor_id())
++		cmd->err = rdmsr_eio(cmd->reg, &cmd->data[0], &cmd->data[1]);
++}
++
++static inline int msr_read(int cpu, u32 reg, u32 * eax, u32 * edx)
++{
++	struct msr_command cmd;
++	int ret;
++
++	preempt_disable();
++	if (cpu == smp_processor_id()) {
++		ret = rdmsr_eio(reg, eax, edx);
++	} else {
++		cmd.cpu = cpu;
++		cmd.reg = reg;
++
++		smp_call_function(msr_smp_rdmsr, &cmd, 1, 1);
++
++		*eax = cmd.data[0];
++		*edx = cmd.data[1];
++
++		ret = cmd.err;
++	}
++	preempt_enable();
++	return ret;
++}
++
++#else				/* ! CONFIG_SMP */
++
++static inline int msr_read(int cpu, u32 reg, u32 *eax, u32 *edx)
++{
++	return rdmsr_eio(reg, eax, edx);
++}
++
++#endif				/* ! CONFIG_SMP */
++
++
+ #define DRVNAME	"coretemp"
+ 
+ typedef enum { SHOW_TEMP, SHOW_TJMAX, SHOW_LABEL, SHOW_NAME } SHOW;
+@@ -132,7 +197,7 @@
+ 		u32 eax, edx;
+ 
+ 		data->valid = 0;
+-		rdmsr_on_cpu(data->id, MSR_IA32_THERM_STATUS, &eax, &edx);
++		msr_read(data->id, MSR_IA32_THERM_STATUS, &eax, &edx);
+ 		data->alarm = (eax >> 5) & 1;
+ 		/* update only if data has been valid */
+ 		if (eax & 0x80000000) {
+@@ -169,7 +234,7 @@
+ 	data->tjmax = 100000;
+ 
+ 	/* test if we can access the THERM_STATUS MSR */
+-	err = rdmsr_safe_on_cpu(data->id, MSR_IA32_THERM_STATUS, &eax, &edx);
++	err = msr_read(data->id, MSR_IA32_THERM_STATUS, &eax, &edx);
+ 	if (err) {
+ 		dev_err(&pdev->dev,
+ 			"Unable to access THERM_STATUS MSR, giving up\n");
+@@ -183,7 +248,7 @@
+ 
+ 	if ((c->x86_model == 0xe) && (c->x86_mask < 0xc)) {
+ 		/* check for microcode update */
+-		rdmsr_on_cpu(data->id, MSR_IA32_UCODE_REV, &eax, &edx);
++		msr_read(data->id, MSR_IA32_UCODE_REV, &eax, &edx);
+ 		if (edx < 0x39) {
+ 			err = -ENODEV;
+ 			dev_err(&pdev->dev,
+@@ -200,7 +265,7 @@
+ 
+ 	if (((c->x86_model == 0xf) && (c->x86_mask > 3)) ||
+ 		(c->x86_model == 0xe))  {
+-		err = rdmsr_safe_on_cpu(data->id, 0xee, &eax, &edx);
++		err = msr_read(data->id, 0xee, &eax, &edx);
+ 		if (err) {
+ 			dev_warn(&pdev->dev,
+ 				 "Unable to access MSR 0xEE, Tjmax left at %d "
+@@ -216,7 +281,7 @@
+ 	   bit 50 of MSR_IA32_PLATFORM_ID should be 0.
+ 	*/
+ 
+-	rdmsr_safe_on_cpu(data->id, MSR_IA32_PLATFORM_ID, &eax, &edx);
++	msr_read(data->id, MSR_IA32_PLATFORM_ID, &eax, &edx);
+ 
+ 	if ((c->x86_model == 0xf) && (!(edx & 0x00040000))) {
+ 		dev_warn(&pdev->dev, "Using undocumented features, absolute "
+@@ -339,11 +404,9 @@
+ 
+ 	switch (action) {
+ 	case CPU_ONLINE:
+-	case CPU_ONLINE_FROZEN:
+ 		coretemp_device_add(cpu);
+ 		break;
+ 	case CPU_DEAD:
+-	case CPU_DEAD_FROZEN:
+ 		coretemp_device_remove(cpu);
+ 		break;
+ 	}
+
+
+--------------040708090107040506060101
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------040708090107040506060101--
