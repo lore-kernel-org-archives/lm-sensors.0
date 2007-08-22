@@ -1,45 +1,51 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Thu, 16 Aug 2007 08:42:52 +0000
-Subject: Re: [lm-sensors] [PATCH 4/6] libsensors4: Use strtoul
-Message-Id: <46C40E0C.8060901@hhs.nl>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Wed, 22 Aug 2007 16:11:13 +0000
+Subject: Re: [lm-sensors] dme1737 module
+Message-Id: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070815174240.34ddf040@hyperion>
-In-Reply-To: <20070815174240.34ddf040@hyperion>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
-> On Wed, 15 Aug 2007 18:59:25 +0200, Hans de Goede wrote:
->> Jean Delvare wrote:
->>> Use strtoul() instead of parsing integers on our own.
->> Erm, why all the < 0 checks on the return value of strtoul, are the variable in 
->> which the return value gets stored signed and can we have a wrap?
-> 
-> Yes, this is the reason why I added these "< 0" checks.
-> 
->> In that case wouldn't it be better to first store in an unsigned long and then 
->> explicitly check the limits we want to enforce?
-> 
-> There's no specific limit I want to enforce, I only want to make sure
-> that we don't end up with a negative value due to a possible wrap. This
-> is pure paranoia, BTW, no sane user would ever trigger it. I agree that
-> letting the overflow happen and checking for it afterwards isn't very
-> elegant, but it works and it is efficient, so I am a bit reluctant to
-> make the code more complex than it needs be.
-> 
-> I could probably use strtol instead of strtoul if you prefer, though.
-> 
+Hi Juergen,
 
-No its fine as is then.
+I'm copying the list so others can profit.
 
-Regards,
 
-Hans
+> Dear Juerg,
+>
+> I own a barebone made by asus which needs the dme1737 module for lm-senso=
+rs to
+> work correctly. Since it had been included in kernel 2.6.23 and I am runn=
+ing 2.6.18 (from
+> debian etch) I was wondering if there is a stand alone version of the mod=
+ule, that I could
+> compile for my kernel? Is there any way to use it with 2.6.18?
 
+Copy the file dme1737.c from the 2.6.23 kernel to a temp directory and
+create a Makefile in the same directory that contains the following
+lines:
+
+obj-m :=3D dme1737.o
+all:
+        make -C /lib/modules/`uname -r`/build M=3D$(PWD) modules
+
+Then run 'make' which will compile the module. You also need to have
+the kernel headers installed to be able to compile.
+Additionally, you will also need the latest 'lm-sensors' package
+(2.10.4 ) or the dme1737 will not be recognized.
+
+Let me know if you need additional help.
+...juerg
+
+
+> J=FCrgen
+> _______________________________________________________________________
+> Jetzt neu! Sch=FCtzen Sie Ihren PC mit McAfee und WEB.DE. 3 Monate
+> kostenlos testen. http://www.pc-sicherheit.web.de/startseite/?mc=022220
+>
+>
 
 _______________________________________________
 lm-sensors mailing list
