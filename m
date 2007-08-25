@@ -1,917 +1,268 @@
-From: Kevin Lo <kevlo@kevlo.org>
-Date: Fri, 31 Aug 2007 01:04:32 +0000
-Subject: [lm-sensors] [PATCH] Driver for Winbond W83L786NG/NR
-Message-Id: <1188522272.5885.8.camel@monet>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-6O5rm8isPkhehBwZHJkN"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 25 Aug 2007 13:02:59 +0000
+Subject: [lm-sensors] [PATCH 1/3] libsensors4: New prototype for
+Message-Id: <20070825150259.0a936215@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Add a parameter to sensors_get_detected_chips(), to optionally let the
+caller select which subset of chips it wants. This is slightly better
+size-wise than letting all applications do the filtering by themselves.
 
---=-6O5rm8isPkhehBwZHJkN
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+This will change the way the command line parameters of "sensors" are
+interpreted. Beforehand, the chips were always returned in the order
+in which they were listed by the library. Also, each chip could be listed
+only once. From now on, the chips will be listed in the order in which
+they are passed on the command line, which I think makes more sense. A
+side effect is that chips can be listed more than once, if that's what
+the user asks for. Not very useful though.
 
-Hi,
+This change makes it possible to make sensors_match_chip() internal
+to the library. Filtering the list of chips returned by
+sensors_get_detected_chips() was the last known external use for this
+function.
 
-Attached is a patch(against linux-2.6.23-rc4) that adds 
-Winbond W83L786NG/NR support. 
+This patch looks much bigger than it really is, but the largest part is
+really only code reindentation.
 
-Regards,
-Kevin.
+---
+ lib/access.c         |   25 ++++++++++--------
+ lib/libsensors.3     |   13 ++++++---
+ lib/sensors.h        |   12 +++++----
+ prog/sensord/rrd.c   |   66 ++++++++++++++++++++++++--------------------------
+ prog/sensord/sense.c |    8 ++----
+ prog/sensors/main.c  |   24 +++++++++---------
+ 6 files changed, 77 insertions(+), 71 deletions(-)
 
---=-6O5rm8isPkhehBwZHJkN
-Content-Disposition: attachment; filename=patch-w83l786ng
-Content-Type: text/x-patch; name=patch-w83l786ng; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-diff -uprN -X linux-2.6.23-rc4-vanilla/Documentation/dontdiff linux-2.6.23-rc4-vanilla/drivers/hwmon/Kconfig linux-2.6.23-rc4/drivers/hwmon/Kconfig
---- linux-2.6.23-rc4-vanilla/drivers/hwmon/Kconfig	2007-08-28 09:32:35.000000000 +0800
-+++ linux-2.6.23-rc4/drivers/hwmon/Kconfig	2007-08-30 17:06:47.000000000 +0800
-@@ -615,6 +615,16 @@ config SENSORS_W83L785TS
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called w83l785ts.
+--- lm-sensors-3.orig/lib/access.c	2007-08-25 13:44:04.000000000 +0200
++++ lm-sensors-3/lib/access.c	2007-08-25 13:53:15.000000000 +0200
+@@ -303,13 +303,17 @@ int sensors_set_value(const sensors_chip
+ 	return 0;
+ }
  
-+config SENSORS_W83L786NG
-+	tristate "Winbond W83L786NG, W83L786NR"
-+	depends on I2C && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for the Winbond W83L786NG
-+	  and W83L786NR sensor chips.
+-const sensors_chip_name *sensors_get_detected_chips(int *nr)
++const sensors_chip_name *sensors_get_detected_chips(const sensors_chip_name
++						    *match, int *nr)
+ {
+ 	const sensors_chip_name *res;
+-	res = (*nr >= sensors_proc_chips_count ?
+-			NULL : &sensors_proc_chips[*nr].chip);
+-	(*nr)++;
+-	return res;
 +
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called w83l786ng.
-+
- config SENSORS_W83627HF
- 	tristate "Winbond W83627HF, W83627THF, W83637HF, W83687THF, W83697HF"
- 	select HWMON_VID
-diff -uprN -X linux-2.6.23-rc4-vanilla/Documentation/dontdiff linux-2.6.23-rc4-vanilla/drivers/hwmon/Makefile linux-2.6.23-rc4/drivers/hwmon/Makefile
---- linux-2.6.23-rc4-vanilla/drivers/hwmon/Makefile	2007-08-28 09:32:35.000000000 +0800
-+++ linux-2.6.23-rc4/drivers/hwmon/Makefile	2007-08-30 17:07:14.000000000 +0800
-@@ -62,6 +62,7 @@ obj-$(CONFIG_SENSORS_VT1211)	+= vt1211.o
- obj-$(CONFIG_SENSORS_VT8231)	+= vt8231.o
- obj-$(CONFIG_SENSORS_W83627EHF)	+= w83627ehf.o
- obj-$(CONFIG_SENSORS_W83L785TS)	+= w83l785ts.o
-+obj-$(CONFIG_SENSORS_W83L786NG)	+= w83l786ng.o
++	while (*nr < sensors_proc_chips_count) {
++		res = &sensors_proc_chips[(*nr)++].chip;
++		if (!match || sensors_match_chip(res, match))
++			return res;
++	}
++	return NULL;
+ }
  
- ifeq ($(CONFIG_HWMON_DEBUG_CHIP),y)
- EXTRA_CFLAGS += -DDEBUG
-diff -uprN -X linux-2.6.23-rc4-vanilla/Documentation/dontdiff linux-2.6.23-rc4-vanilla/drivers/hwmon/w83l786ng.c linux-2.6.23-rc4/drivers/hwmon/w83l786ng.c
---- linux-2.6.23-rc4-vanilla/drivers/hwmon/w83l786ng.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-2.6.23-rc4/drivers/hwmon/w83l786ng.c	2007-08-30 17:04:18.000000000 +0800
-@@ -0,0 +1,842 @@
-+/*
-+    w83l786ng.c - Linux kernel driver for hardware monitoring
-+    Copyright (c) 2007 Kevin Lo <kevlo@kevlo.org>
-+
-+    This program is free software; you can redistribute it and/or modify
-+    it under the terms of the GNU General Public License as published by
-+    the Free Software Foundation - version 2.
-+
-+    This program is distributed in the hope that it will be useful,
-+    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+    GNU General Public License for more details.
-+
-+    You should have received a copy of the GNU General Public License
-+    along with this program; if not, write to the Free Software
-+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-+    02110-1301 USA.
-+*/
-+
-+/*
-+    Supports following chips:
-+
-+    Chip	#vin	#fanin	#pwm	#temp	wchipid	vendid	i2c	ISA
-+    w83l786ng	3	2	2	2	0x7b	0x5ca3	yes	no
-+*/
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/i2c.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-vid.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/err.h>
-+#include <linux/mutex.h>
-+
-+/* Addresses to scan */
-+static unsigned short normal_i2c[] = { 0x2e, 0x2f, I2C_CLIENT_END };
-+
-+/* Insmod parameters */
-+I2C_CLIENT_INSMOD_1(w83l786ng);
-+
-+static int reset;
-+module_param(reset, bool, 0);
-+MODULE_PARM_DESC(reset, "Set to 1 to reset chip, not recommended");
-+
-+#define W83L786NG_REG_IN_MIN(nr)	(0x2C + (nr) * 2)
-+#define W83L786NG_REG_IN_MAX(nr)	(0x2B + (nr) * 2)
-+#define W83L786NG_REG_IN(nr)		((nr) + 0x20)
-+
-+#define W83L786NG_REG_FAN(nr)		((nr) + 0x28)
-+#define W83L786NG_REG_FAN_MIN(nr)	((nr) + 0x3B)
-+
-+#define W83L786NG_REG_CONFIG		0x40
-+#define W83L786NG_REG_ALARM1		0x41
-+#define W83L786NG_REG_ALARM2 		0x42
-+#define W83L786NG_REG_GPIO_EN		0x47
-+#define W83L786NG_REG_MAN_ID2		0x4C
-+#define W83L786NG_REG_MAN_ID1		0x4D
-+#define W83L786NG_REG_CHIP_ID		0x4E
-+
-+#define W83L786NG_REG_DIODE		0x53
-+#define W83L786NG_REG_FAN_DIV		0x54
-+#define W83L786NG_REG_FAN_CFG		0x80
-+
-+#define W83L786NG_REG_TOLERANCE		0x8D
-+
-+static const u8 W83L786NG_REG_TEMP[2][3] = {
-+	{ 0x25,		/* TEMP 0 in DataSheet */
-+	  0x35,		/* TEMP 0 Over in DataSheet */
-+	  0x36 },	/* TEMP 0 Hyst in DataSheet */
-+	{ 0x26,		/* TEMP 1 in DataSheet */
-+	  0x37,		/* TEMP 1 Over in DataSheet */
-+	  0x38 }	/* TEMP 1 Hyst in DataSheet */
-+};
-+
-+static const u8 W83L786NG_PWM_MODE_SHIFT[] = {6, 7};
-+static const u8 W83L786NG_PWM_ENABLE_SHIFT[] = {2, 4};
-+
-+/* FAN Duty Cycle, be used to control */
-+static const u8 W83L786NG_REG_PWM[] = {0x81, 0x87};
-+
-+
-+static inline u8
-+FAN_TO_REG(long rpm, int div)
-+{
-+	if (rpm == 0)
-+		return 255;
-+	rpm = SENSORS_LIMIT(rpm, 1, 1000000);
-+	return SENSORS_LIMIT((1350000 + rpm * div / 2) / (rpm * div), 1, 254);
-+}
-+
-+#define FAN_FROM_REG(val,div)	((val) == 0   ? -1 : \
-+				((val) == 255 ? 0 : \
-+				1350000 / ((val) * (div))))
-+
-+/* for temp */
-+#define TEMP_TO_REG(val)	(SENSORS_LIMIT(((val) < 0 ? (val)+0x100*1000 \
-+				    : (val)) / 1000, 0, 0xff))
-+#define TEMP_FROM_REG(val)	(((val) & 0x80 ? (val)-0x100 : (val)) * 1000)
-+
-+/* The analog voltage inputs have 8mV LSB. Since the sysfs output is
-+   in mV as would be measured on the chip input pin, need to just
-+   multiply/divide by 8 to translate from/to register values. */
-+#define IN_TO_REG(val)          (SENSORS_LIMIT((((val) + 4) / 8), 0, 255))
-+#define IN_FROM_REG(val)	((val) * 8)
-+
-+#define DIV_FROM_REG(val)	(1 << (val))
-+
-+static inline u8
-+DIV_TO_REG(long val)
-+{
-+	int i;
-+	val = SENSORS_LIMIT(val, 1, 128) >> 1;
-+	for (i = 0; i < 7; i++) {
-+		if (val == 0)
-+			break;
-+		val >>= 1;
+ const char *sensors_get_adapter_name(const sensors_bus_id *bus)
+@@ -480,12 +484,11 @@ int sensors_do_chip_sets(const sensors_c
+ 	const sensors_chip_name *found_name;
+ 	int res = 0;
+ 
+-	for (nr = 0; (found_name = sensors_get_detected_chips(&nr));)
+-		if (sensors_match_chip(name, found_name)) {
+-			this_res = sensors_do_this_chip_sets(found_name);
+-			if (!res)
+-				res = this_res;
+-		}
++	for (nr = 0; (found_name = sensors_get_detected_chips(name, &nr));) {
++		this_res = sensors_do_this_chip_sets(found_name);
++		if (this_res)
++			res = this_res;
 +	}
-+	return ((u8) i);
-+}
-+
-+struct w83l786ng_data {
-+	struct i2c_client client;
-+	struct class_device *class_dev;
-+	struct mutex update_lock;
-+	char valid;			/* !=0 if following fields are valid */
-+	unsigned long last_updated;	/* In jiffies */
-+	unsigned long last_nonvolatile;	/* In jiffies, last time we update the
-+					   nonvolatile registers */
-+
-+	u8 in[3];
-+	u8 in_max[3];
-+	u8 in_min[3];
-+	u8 fan[2];
-+	u8 fan_div[2];
-+	u8 fan_min[2];
-+	u8 temp_type[2];
-+	u8 temp[2][3];
-+	u8 pwm[2];
-+	u8 pwm_mode[2];	/* 0->DC variable voltage
-+			   1->PWM variable duty cycle */
-+
-+	u8 pwm_enable[2]; /* 1->manual
-+			     2->thermal cruise (also called SmartFan I) */
-+	u8 tolerance[2];
-+};
-+
-+static u8 w83l786ng_read_value(struct i2c_client *client, u8 reg);
-+static int w83l786ng_write_value(struct i2c_client *client, u8 reg, u8 value);
-+static int w83l786ng_attach_adapter(struct i2c_adapter *adapter);
-+static int w83l786ng_detect(struct i2c_adapter *adapter, int address, int kind);
-+static int w83l786ng_detach_client(struct i2c_client *client);
-+static void w83l786ng_init_client(struct i2c_client *client);
-+static struct w83l786ng_data *w83l786ng_update_device(struct device *dev);
-+
-+static struct i2c_driver w83l786ng_driver = {
-+	.driver = {
-+		   .name = "w83l786ng",
-+	},
-+	.attach_adapter = w83l786ng_attach_adapter,
-+	.detach_client = w83l786ng_detach_client,
-+};
-+
-+static u8 
-+w83l786ng_read_value(struct i2c_client *client, u8 reg)
-+{
-+	return i2c_smbus_read_byte_data(client, reg);
-+}
-+
-+static int
-+w83l786ng_write_value(struct i2c_client *client, u8 reg, u8 value)
-+{
-+	return i2c_smbus_write_byte_data(client, reg, value);
-+}
-+
-+/* following are the sysfs callback functions */
-+#define show_in_reg(reg) \
-+static ssize_t \
-+show_##reg(struct device *dev, struct device_attribute *attr, \
-+           char *buf) \
-+{ \
-+	struct w83l786ng_data *data = w83l786ng_update_device(dev); \
-+	struct sensor_device_attribute *sensor_attr = \
-+		to_sensor_dev_attr(attr); \
-+	int nr = sensor_attr->index; \
-+	return sprintf(buf,"%d\n", IN_FROM_REG(data->reg[nr])); \
-+}
-+
-+show_in_reg(in)
-+show_in_reg(in_min)
-+show_in_reg(in_max)
-+
-+#define store_in_reg(REG, reg) \
-+static ssize_t \
-+store_in_##reg (struct device *dev, struct device_attribute *attr, \
-+			const char *buf, size_t count) \
-+{ \
-+	struct sensor_device_attribute *sensor_attr = \
-+		to_sensor_dev_attr(attr); \
-+	struct i2c_client *client = to_i2c_client(dev); \
-+	struct w83l786ng_data *data = i2c_get_clientdata(client); \
-+	unsigned long val = simple_strtoul(buf, NULL, 10); \
-+	int nr = sensor_attr->index; \
-+	mutex_lock(&data->update_lock); \
-+	data->in_##reg[nr] = IN_TO_REG(val); \
-+	w83l786ng_write_value(client, W83L786NG_REG_IN_##REG(nr), \
-+				data->in_##reg[nr]); \
-+	mutex_unlock(&data->update_lock); \
-+	return count; \
-+}
-+
-+store_in_reg(MIN, min)
-+store_in_reg(MAX, max)
-+
-+static struct sensor_device_attribute sda_in_input[] = {
-+	SENSOR_ATTR(in0_input, S_IRUGO, show_in, NULL, 0),
-+	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
-+	SENSOR_ATTR(in2_input, S_IRUGO, show_in, NULL, 2),
-+};
-+
-+static struct sensor_device_attribute sda_in_min[] = {
-+	SENSOR_ATTR(in0_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 0),
-+	SENSOR_ATTR(in1_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 1),
-+	SENSOR_ATTR(in2_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 2),
-+};
-+
-+static struct sensor_device_attribute sda_in_max[] = {
-+	SENSOR_ATTR(in0_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 0),
-+	SENSOR_ATTR(in1_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 1),
-+	SENSOR_ATTR(in2_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 2),
-+};
-+
-+#define show_fan_reg(reg) \
-+static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
-+    char *buf) \
-+{ \
-+	struct sensor_device_attribute *sensor_attr = \
-+	    to_sensor_dev_attr(attr); \
-+	struct w83l786ng_data *data = w83l786ng_update_device(dev); \
-+	int nr = sensor_attr->index; \
-+        return sprintf(buf,"%d\n", \
-+                FAN_FROM_REG(data->fan[nr], DIV_FROM_REG(data->fan_div[nr]))); \
-+}
-+
-+show_fan_reg(fan);
-+show_fan_reg(fan_min);
-+
-+static ssize_t
-+store_fan_min(struct device *dev, struct device_attribute *attr,
-+    const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct w83l786ng_data *data = i2c_get_clientdata(client);
-+	u32 val;
-+
-+	val = simple_strtoul(buf, NULL, 10);
-+	mutex_lock(&data->update_lock);
-+	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
-+	w83l786ng_write_value(client, W83L786NG_REG_FAN_MIN(nr),
-+	    data->fan_min[nr]);
-+	mutex_unlock(&data->update_lock);
-+
-+	return count;
-+}
-+
-+static ssize_t
-+show_fan_div(struct device *dev, struct device_attribute *attr,
-+    char *buf)
-+{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	struct w83l786ng_data *data = w83l786ng_update_device(dev);
-+	return sprintf(buf, "%u\n", DIV_FROM_REG(data->fan_div[nr]));
-+}
-+
-+/* Note: we save and restore the fan minimum here, because its value is
-+   determined in part by the fan divisor.  This follows the principle of
-+   least surprise; the user doesn't expect the fan minimum to change just
-+   because the divisor changed. */
-+static ssize_t
-+store_fan_div(struct device *dev, struct device_attribute *attr,
-+    const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct w83l786ng_data *data = i2c_get_clientdata(client);
-+
-+	unsigned long min;
-+	u8 tmp_fan_div;
-+	u8 fan_div_reg;
-+	u8 keep_mask = 0;
-+	u8 new_shift = 0;
-+
-+	/* Save fan_min */
-+	mutex_lock(&data->update_lock);
-+	min = FAN_FROM_REG(data->fan_min[nr], DIV_FROM_REG(data->fan_div[nr]));
-+
-+	data->fan_div[nr] = DIV_TO_REG(simple_strtoul(buf, NULL, 10));
-+
-+	switch (nr) {
-+	case 0:
-+		keep_mask = 0xf8;
-+		new_shift = 0;
-+		break;
-+	case 1:
-+		keep_mask = 0x8f;
-+		new_shift = 4;
-+		break;
-+	}
-+
-+	fan_div_reg = w83l786ng_read_value(client, W83L786NG_REG_FAN_DIV)
-+	    & keep_mask;
-+
-+	tmp_fan_div = (data->fan_div[nr] << new_shift) & ~keep_mask;
-+
-+	w83l786ng_write_value(client, W83L786NG_REG_FAN_DIV, 
-+	    fan_div_reg | tmp_fan_div);
-+
-+	/* Restore fan_min */
-+	data->fan_min[nr] = FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
-+	w83l786ng_write_value(client, W83L786NG_REG_FAN_MIN(nr), 
-+	    data->fan_min[nr]);
-+	mutex_unlock(&data->update_lock);
-+
-+	return count;
-+}
-+
-+static struct sensor_device_attribute sda_fan_input[] = {
-+	SENSOR_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0),
-+	SENSOR_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1),
-+};
-+
-+static struct sensor_device_attribute sda_fan_min[] = {
-+	SENSOR_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan_min,
-+	    store_fan_min, 0),
-+	SENSOR_ATTR(fan2_min, S_IWUSR | S_IRUGO, show_fan_min,
-+	    store_fan_min, 1),
-+};
-+
-+static struct sensor_device_attribute sda_fan_div[] = {
-+	SENSOR_ATTR(fan1_div, S_IWUSR | S_IRUGO, show_fan_div,
-+	    store_fan_div, 0),
-+	SENSOR_ATTR(fan2_div, S_IWUSR | S_IRUGO, show_fan_div,
-+	    store_fan_div, 1),
-+};
-+
-+
-+/* read/write the temperature, includes measured value and limits */
-+
-+static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
-+    char *buf)
-+{
-+	struct sensor_device_attribute_2 *sensor_attr =
-+	    to_sensor_dev_attr_2(attr);
-+	int nr = sensor_attr->nr;
-+	int index = sensor_attr->index;
-+	struct w83l786ng_data *data = w83l786ng_update_device(dev);
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr][index]));
-+}
-+
-+static ssize_t store_temp(struct device *dev, struct device_attribute *attr,
-+    const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute_2 *sensor_attr = 
-+	    to_sensor_dev_attr_2(attr);
-+	int nr = sensor_attr->nr;
-+	int index = sensor_attr->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct w83l786ng_data *data = i2c_get_clientdata(client);
-+	s32 val;
-+
-+	val = simple_strtol(buf, NULL, 10);
-+	mutex_lock(&data->update_lock);
-+	data->temp[nr][index] = TEMP_TO_REG(val);
-+	w83l786ng_write_value(client, W83L786NG_REG_TEMP[nr][index], 
-+	    data->temp[nr][index]);
-+	mutex_unlock(&data->update_lock);
-+
-+        return count;
-+}
-+
-+static struct sensor_device_attribute_2 sda_temp_input[] = {
-+	SENSOR_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0, 0),
-+	SENSOR_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, 1, 0),
-+};
-+
-+static struct sensor_device_attribute_2 sda_temp_max[] = {
-+	SENSOR_ATTR_2(temp1_max, S_IRUGO | S_IWUSR,
-+	    show_temp, store_temp, 0, 1),
-+	SENSOR_ATTR_2(temp2_max, S_IRUGO | S_IWUSR,
-+	    show_temp, store_temp, 1, 1),
-+};
-+
-+static struct sensor_device_attribute_2 sda_temp_max_hyst[] = {
-+	SENSOR_ATTR_2(temp1_max_hyst, S_IRUGO | S_IWUSR,
-+	    show_temp, store_temp, 0, 2),
-+	SENSOR_ATTR_2(temp2_max_hyst, S_IRUGO | S_IWUSR,
-+	    show_temp, store_temp, 1, 2),
-+};
-+
-+#define show_pwm_reg(reg) \
-+static ssize_t show_##reg (struct device *dev, struct device_attribute *attr, \
-+     char *buf) \
-+{ \
-+	struct w83l786ng_data *data = w83l786ng_update_device(dev); \
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	int nr = sensor_attr->index; \
-+	return sprintf(buf, "%d\n", data->reg[nr]); \
-+}
-+
-+show_pwm_reg(pwm_mode)
-+show_pwm_reg(pwm_enable)
-+show_pwm_reg(pwm)
-+
-+static ssize_t
-+store_pwm_mode(struct device *dev, struct device_attribute *attr,
-+    const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct w83l786ng_data *data = i2c_get_clientdata(client);
-+	u32 val = simple_strtoul(buf, NULL, 10);
-+	u8 reg;
-+
-+	if (val > 1)
-+		return -EINVAL;
-+	mutex_lock(&data->update_lock);
-+	data->pwm_mode[nr] = val;
-+	reg = w83l786ng_read_value(client, W83L786NG_REG_FAN_CFG);
-+	reg &= ~(1 << W83L786NG_PWM_MODE_SHIFT[nr]);
-+	if (!val)
-+		reg |= 1 << W83L786NG_PWM_MODE_SHIFT[nr];
-+	w83l786ng_write_value(client, W83L786NG_REG_FAN_CFG, reg);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+static ssize_t
-+store_pwm(struct device *dev, struct device_attribute *attr,
-+    const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct w83l786ng_data *data = i2c_get_clientdata(client);
-+	u32 val = SENSORS_LIMIT(simple_strtoul(buf, NULL, 10), 0, 255);
-+
-+	mutex_lock(&data->update_lock);
-+	data->pwm[nr] = val;
-+	w83l786ng_write_value(client, W83L786NG_REG_PWM[nr], val);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+static ssize_t
-+store_pwm_enable(struct device *dev, struct device_attribute *attr,
-+    const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct w83l786ng_data *data = i2c_get_clientdata(client);
-+	u32 val = simple_strtoul(buf, NULL, 10);
-+
-+	u8 reg;
-+
-+	if (!val || (val > 2))  /* only modes 1 and 2 are supported */
-+		return -EINVAL;
-+
-+	mutex_lock(&data->update_lock);
-+	reg = w83l786ng_read_value(client, W83L786NG_REG_FAN_CFG);
-+	data->pwm_enable[nr] = val;
-+	reg &= ~(0x02 << W83L786NG_PWM_ENABLE_SHIFT[nr]);
-+	reg |= (val - 1) << W83L786NG_PWM_ENABLE_SHIFT[nr];
-+	w83l786ng_write_value(client, W83L786NG_REG_FAN_CFG, reg);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+static struct sensor_device_attribute sda_pwm[] = {
-+	SENSOR_ATTR(pwm1, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 0),
-+	SENSOR_ATTR(pwm2, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 1),
-+};
-+
-+static struct sensor_device_attribute sda_pwm_mode[] = {
-+	SENSOR_ATTR(pwm1_mode, S_IWUSR | S_IRUGO, show_pwm_mode,
-+	    store_pwm_mode, 0),
-+	SENSOR_ATTR(pwm2_mode, S_IWUSR | S_IRUGO, show_pwm_mode,
-+	    store_pwm_mode, 1),
-+};
-+
-+static struct sensor_device_attribute sda_pwm_enable[] = {
-+	SENSOR_ATTR(pwm1_enable, S_IWUSR | S_IRUGO, show_pwm_enable,
-+	    store_pwm_enable, 0),
-+	SENSOR_ATTR(pwm2_enable, S_IWUSR | S_IRUGO, show_pwm_enable,
-+	    store_pwm_enable, 1),
-+};
-+
-+/* For Smart Fan I/Thermal Cruise and Smart Fan II */
-+static ssize_t
-+show_tolerance(struct device *dev, struct device_attribute *attr,
-+    char *buf)
-+{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	struct w83l786ng_data *data = w83l786ng_update_device(dev);
-+	return sprintf(buf, "%ld\n", (long)data->tolerance[nr]);
-+}
-+
-+static ssize_t
-+store_tolerance(struct device *dev, struct device_attribute *attr,
-+    const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct w83l786ng_data *data = i2c_get_clientdata(client);
-+	u32 val;
-+	u8 tol_tmp, tol_mask;
-+
-+	val = simple_strtoul(buf, NULL, 10);
-+
-+	mutex_lock(&data->update_lock);
-+	tol_mask = w83l786ng_read_value(client,
-+	    W83L786NG_REG_TOLERANCE) & ((nr == 1) ? 0x0f : 0xf0);
-+	tol_tmp = SENSORS_LIMIT(val, 0, 15);
-+	tol_tmp &= 0x0f;
-+	data->tolerance[nr] = tol_tmp;
-+	if (nr == 1) {
-+		tol_tmp <<= 4;
-+	}
-+
-+	w83l786ng_write_value(client, W83L786NG_REG_TOLERANCE,
-+	    tol_mask | tol_tmp);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
-+static struct sensor_device_attribute sda_tolerance[] = {
-+	SENSOR_ATTR(pwm1_tolerance, S_IWUSR | S_IRUGO, 
-+	    show_tolerance, store_tolerance, 0),
-+	SENSOR_ATTR(pwm2_tolerance, S_IWUSR | S_IRUGO, 
-+	    show_tolerance, store_tolerance, 1),
-+};
-+
-+
-+#define IN_UNIT_ATTRS(X)	\
-+	&sda_in_input[X].dev_attr.attr,		\
-+	&sda_in_min[X].dev_attr.attr,		\
-+	&sda_in_max[X].dev_attr.attr
-+
-+#define FAN_UNIT_ATTRS(X)	\
-+	&sda_fan_input[X].dev_attr.attr,	\
-+	&sda_fan_min[X].dev_attr.attr,		\
-+	&sda_fan_div[X].dev_attr.attr
-+
-+#define TEMP_UNIT_ATTRS(X)	\
-+	&sda_temp_input[X].dev_attr.attr,	\
-+	&sda_temp_max[X].dev_attr.attr,		\
-+	&sda_temp_max_hyst[X].dev_attr.attr
-+
-+#define PWM_UNIT_ATTRS(X)	\
-+	&sda_pwm[X].dev_attr.attr,		\
-+	&sda_pwm_mode[X].dev_attr.attr,		\
-+	&sda_pwm_enable[X].dev_attr.attr
-+
-+#define TOLERANCE_UNIT_ATTRS(X)	\
-+	&sda_tolerance[X].dev_attr.attr
-+
-+static struct attribute *w83l786ng_attributes[] = {
-+	IN_UNIT_ATTRS(0),
-+	IN_UNIT_ATTRS(1),
-+	IN_UNIT_ATTRS(2),
-+	FAN_UNIT_ATTRS(0),
-+	FAN_UNIT_ATTRS(1),
-+	TEMP_UNIT_ATTRS(0),
-+	TEMP_UNIT_ATTRS(1),
-+	PWM_UNIT_ATTRS(0),
-+	PWM_UNIT_ATTRS(1),
-+	TOLERANCE_UNIT_ATTRS(0),
-+	TOLERANCE_UNIT_ATTRS(1),
-+	NULL
-+};
-+
-+static const struct attribute_group w83l786ng_group = {
-+	.attrs = w83l786ng_attributes,
-+};
-+
-+static int 
-+w83l786ng_attach_adapter(struct i2c_adapter *adapter)
-+{
-+	if (!(adapter->class & I2C_CLASS_HWMON))
-+		return 0;
-+	return i2c_probe(adapter, &addr_data, w83l786ng_detect);
-+}
-+
-+static int 
-+w83l786ng_detect(struct i2c_adapter *adapter, int address, int kind)
-+{
-+	struct i2c_client *client;
-+	struct device *dev;
-+	struct w83l786ng_data *data;
-+	int i, err = 0;
-+
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
-+		goto exit;
-+	}
-+
-+	/* OK. For now, we presume we have a valid client. We now create the
-+	   client structure, even though we cannot fill it completely yet.
-+	   But it allows us to access w83l786ng_{read,write}_value. */
-+
-+	if (!(data = kzalloc(sizeof(struct w83l786ng_data), GFP_KERNEL))) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	client = &data->client;
-+	dev = &client->dev;
-+	i2c_set_clientdata(client, data);
-+	client->addr = address;
-+	client->adapter = adapter;
-+	client->driver = &w83l786ng_driver;
-+	client->flags = 0;
-+
-+	/*
-+	 * Now we do the remaining detection. A negative kind means that
-+	 * the driver was loaded with no force parameter (default), so we
-+	 * must both detect and identify the chip (actually there is only
-+	 * one possible kind of chip for now, W83L786NG). A zero kind means
-+	 * that the driver was loaded with the force parameter, the detection
-+	 * step shall be skipped. A positive kind means that the driver
-+	 * was loaded with the force parameter and a given kind of chip is
-+	 * requested, so both the detection and the identification steps
-+	 * are skipped.
-+	 */
-+	if (kind < 0) { /* detection */	
-+		if (((w83l786ng_read_value(client,
-+		    W83L786NG_REG_CONFIG) & 0x80) != 0x00)) {
-+		    	dev_dbg(&adapter->dev,
-+			    "W83L786NG detection failed at 0x%02x.\n",
-+			    address);
-+			goto exit_free;
-+		}
-+	}
-+
-+	if (kind <= 0) { /* identification */
-+		u16 man_id;
-+		u8 chip_id;
-+
-+		man_id = (w83l786ng_read_value(client,
-+		    W83L786NG_REG_MAN_ID1) << 8) +
-+		    w83l786ng_read_value(client,
-+		        W83L786NG_REG_MAN_ID2);
-+		chip_id = w83l786ng_read_value(client,
-+		    W83L786NG_REG_CHIP_ID);
-+
-+		if (man_id == 0x5CA3) { /* Winbond */
-+			if (chip_id == 0x80) { /* W83L786NG */
-+				kind = w83l786ng;
-+			}
-+		}
-+
-+		if (kind <= 0) { /* identification failed */
-+			dev_info(&adapter->dev,
-+			    "Unsupported chip (man_id=0x%04X, "
-+			    "chip_id=0x%02X).\n", man_id, chip_id);
-+			goto exit_free;
-+		}
-+	}
-+
-+	/* Fill in the remaining client fields and put into the global list */
-+	strlcpy(client->name, "w83l786ng", I2C_NAME_SIZE);
-+	data->valid = 0;
-+	mutex_init(&data->update_lock);
-+
-+	/* Tell the I2C layer a new client has arrived */
-+	if ((err = i2c_attach_client(client)))
-+		goto exit_free;
-+
-+	/* Initialize the chip */
-+	w83l786ng_init_client(client);
-+
-+	/* A few vars need to be filled upon startup */
-+	for (i = 0; i < 2; i++) {
-+		data->fan_min[i] = w83l786ng_read_value(client,
-+		    W83L786NG_REG_FAN_MIN(i));
-+	}
-+
-+	/* Register sysfs hooks */
-+	if ((err = sysfs_create_group(&client->dev.kobj, &w83l786ng_group)))
-+		goto exit_remove;
-+
-+	data->class_dev = hwmon_device_register(dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_remove;
-+	}
-+
-+	return 0;
-+
-+	/* Unregister sysfs hooks */
-+
-+exit_remove:
-+	sysfs_remove_group(&client->dev.kobj, &w83l786ng_group);
-+	i2c_detach_client(client);
-+exit_free:
-+	kfree(data);
-+exit:
-+	return err;
-+}
-+
-+static int
-+w83l786ng_detach_client(struct i2c_client *client)
-+{
-+	struct w83l786ng_data *data = i2c_get_clientdata(client);
-+	int err;
-+
-+	/* main client */
-+	if (data) {
-+		hwmon_device_unregister(data->class_dev);
-+		sysfs_remove_group(&client->dev.kobj, &w83l786ng_group);
-+	}
-+
-+	if ((err = i2c_detach_client(client)))
-+		return err;
-+
-+	/* main client */
-+	if (data)
-+		 kfree(data);
-+	/* subclient */
-+	else
-+		kfree(client);
-+
-+	return 0;
-+}
-+
-+static void
-+w83l786ng_init_client(struct i2c_client *client)
-+{
-+	u8 tmp;
-+
-+	/* Start monitoring */
-+	tmp = w83l786ng_read_value(client, W83L786NG_REG_CONFIG);
-+	if (!(tmp & 0x01))
-+		w83l786ng_write_value(client, W83L786NG_REG_CONFIG, tmp | 0x01);
-+}
-+
-+static struct w83l786ng_data *w83l786ng_update_device(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct w83l786ng_data *data = i2c_get_clientdata(client);
-+	int i, j;
-+	u8 reg_tmp, pwmcfg;
-+
-+	mutex_lock(&data->update_lock);
-+	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
-+	    || !data->valid) {
-+		dev_dbg(&client->dev, "Updating w83l786ng data.\n");
-+
-+		/* Update the voltages measured value and limits */
-+		for (i = 0; i < 3; i++) {
-+			data->in[i] = w83l786ng_read_value(client,
-+			    W83L786NG_REG_IN(i));
-+			data->in_min[i] = w83l786ng_read_value(client,
-+			    W83L786NG_REG_IN_MIN(i));
-+			data->in_max[i] = w83l786ng_read_value(client,
-+			    W83L786NG_REG_IN_MAX(i));
-+		}
-+
-+		/* Update the fan counts and limits */
-+		for (i = 0; i < 2; i++) {
-+			/* Update the Fan measured value and limits */
-+			data->fan[i] = w83l786ng_read_value(client, 
-+			    W83L786NG_REG_FAN(i));
-+			data->fan_min[i] = w83l786ng_read_value(client, 
-+			    W83L786NG_REG_FAN_MIN(i));
-+		}
-+
-+		/* Update the fan divisor */
-+		reg_tmp = w83l786ng_read_value(client, W83L786NG_REG_FAN_DIV);
-+		data->fan_div[0] = reg_tmp & 0x07;
-+		data->fan_div[1] = (reg_tmp >> 4) & 0x07;
-+		
-+		pwmcfg = w83l786ng_read_value(client, W83L786NG_REG_FAN_CFG);
-+		for (i = 0; i < 2; i++) {
-+			data->pwm_mode[i] =
-+			    ((pwmcfg >> W83L786NG_PWM_MODE_SHIFT[i]) & 1)
-+			    ? 0 : 1;
-+			data->pwm_enable[i] =
-+			    ((pwmcfg >> W83L786NG_PWM_ENABLE_SHIFT[i]) & 2) + 1;
-+			data->pwm[i] = w83l786ng_read_value(client,
-+			    W83L786NG_REG_PWM[i]);
-+		}
-+			
-+
-+		/* Update the temperature sensors */
-+		for (i = 0; i < 2; i++) {
-+			for (j = 0; j < 3; j++) {
-+				data->temp[i][j] = w83l786ng_read_value(client,
-+				    W83L786NG_REG_TEMP[i][j]);
-+			}
-+		}
-+
-+		/* Update Smart Fan I/II tolerance */
-+		reg_tmp = w83l786ng_read_value(client, W83L786NG_REG_TOLERANCE);
-+		data->tolerance[0] = reg_tmp & 0x0f;
-+		data->tolerance[1] = (reg_tmp >> 4) & 0x0f;
-+
-+		data->last_updated = jiffies;
-+		data->valid = 1;
-+
-+	}
-+
-+	mutex_unlock(&data->update_lock);
-+
-+	return data;
-+}
-+
-+static int __init 
-+sensors_w83l786ng_init(void)
-+{
-+	return i2c_add_driver(&w83l786ng_driver);
-+}
-+
-+static void __exit 
-+sensors_w83l786ng_exit(void)
-+{
-+	i2c_del_driver(&w83l786ng_driver);
-+}
-+
-+MODULE_AUTHOR("Kevin Lo");
-+MODULE_DESCRIPTION("w83l786ng driver");
-+MODULE_LICENSE("GPL");
-+
-+module_init(sensors_w83l786ng_init);
-+module_exit(sensors_w83l786ng_exit);
+ 	return res;
+ }
+ 
+--- lm-sensors-3.orig/lib/libsensors.3	2007-08-25 13:44:04.000000000 +0200
++++ lm-sensors-3/lib/libsensors.3	2007-08-25 13:53:15.000000000 +0200
+@@ -44,7 +44,8 @@ libsensors \- publicly accessible functi
+ .B int sensors_set_value(const sensors_chip_name *name, int feature,
+                       \fBdouble value);\fP
+ .B int sensors_do_chip_sets(const sensors_chip_name *name);
+-.B const sensors_chip_name *sensors_get_detected_chips(int *nr);
++.B const sensors_chip_name *sensors_get_detected_chips(const sensors_chip_name
++                                                    \fB*match, int *nr);\fP
+ .B const sensors_feature_data *sensors_get_all_features 
+              \fB(const sensors_chip_name *name, int *nr);\fP
+ .B const char *libsensors_version;
+@@ -98,10 +99,14 @@ Set the value of a feature of a certain 
+ .br
+ Execute all set statements for this particular chip. The chip may contain wildcards!  This function will return 0 on success, and <0 on failure.
+ 
+-\fBconst sensors_chip_name *sensors_get_detected_chips
+-                        (int *nr);\fP
++\fBconst sensors_chip_name *sensors_get_detected_chips(const sensors_chip_name
++                                                    *match, int *nr);\fP
+ .br
+-This function returns all detected chips, one by one. To start at the beginning of the list, use 0 for nr; NULL is returned if we are at the end of the list. Do not try to change these chip names, as they point to internal structures! Do not use nr for anything else.
++This function returns all detected chips that match a given chip name,
++one by one. If no chip name is provided, all detected chips are returned.
++To start at the beginning of the list, use 0 for nr; NULL is returned if
++we are at the end of the list. Do not try to change these chip names, as
++they point to internal structures!
+ 
+ This structure is used when you want to get all features of a specific chip.
+ .br
+--- lm-sensors-3.orig/lib/sensors.h	2007-08-25 13:44:04.000000000 +0200
++++ lm-sensors-3/lib/sensors.h	2007-08-25 13:53:15.000000000 +0200
+@@ -109,11 +109,13 @@ int sensors_set_value(const sensors_chip
+    wildcards!  This function will return 0 on success, and <0 on failure. */
+ int sensors_do_chip_sets(const sensors_chip_name *name);
+ 
+-/* This function returns all detected chips, one by one. To start at the
+-   beginning of the list, use 0 for nr; NULL is returned if we are
+-   at the end of the list. Do not try to change these chip names, as
+-   they point to internal structures! Do not use nr for anything else. */
+-const sensors_chip_name *sensors_get_detected_chips(int *nr);
++/* This function returns all detected chips that match a given chip name,
++   one by one. If no chip name is provided, all detected chips are returned.
++   To start at the beginning of the list, use 0 for nr; NULL is returned if
++   we are at the end of the list. Do not try to change these chip names, as
++   they point to internal structures! */
++const sensors_chip_name *sensors_get_detected_chips(const sensors_chip_name
++						    *match, int *nr);
+ 
+ /* These defines are used in the mode field of sensors_feature_data */
+ #define SENSORS_MODE_R 1
+--- lm-sensors-3.orig/prog/sensors/main.c	2007-08-25 13:44:04.000000000 +0200
++++ lm-sensors-3/prog/sensors/main.c	2007-08-25 13:53:15.000000000 +0200
+@@ -251,18 +251,18 @@ int do_the_real_work(int *error)
+   int cnt = 0;
+ 
+   *error = 0;
+-  for (chip_nr = 0; (chip = sensors_get_detected_chips(&chip_nr));)
+-    for(i = 0; i < chips_count; i++)
+-      if (sensors_match_chip(chip, &chips[i])) {
+-        if(do_sets) {
+-          if (do_a_set(chip))
+-            *error = 1;
+-        } else
+-          do_a_print(chip);
+-        i = chips_count;
+-	cnt++;
+-      }
+-   return(cnt);
++  for (i = 0; i < chips_count; i++) {
++    chip_nr = 0;
++    while ((chip = sensors_get_detected_chips(&chips[i], &chip_nr))) {
++      if (do_sets) {
++        if (do_a_set(chip))
++          *error = 1;
++      } else
++        do_a_print(chip);
++      cnt++;
++    }
++  }
++  return cnt;
+ }
+ 
+ /* returns 1 on error */
+--- lm-sensors-3.orig/prog/sensord/rrd.c	2007-08-25 13:44:04.000000000 +0200
++++ lm-sensors-3/prog/sensord/rrd.c	2007-08-25 13:53:15.000000000 +0200
+@@ -139,41 +139,39 @@ applyToFeatures
+   const sensors_chip_name *chip;
+   int i = 0, j, ret = 0, num = 0;
+ 
+-  while ((ret = 0) && ((chip = sensors_get_detected_chips (&i)) != NULL)) {
+-    for (j = 0; (ret = 0) && (j < numChipNames); ++ j) {
+-      if (sensors_match_chip (chip, &chipNames[j])) {
+-        int index0, subindex, chipindex = -1;
+-        for (index0 = 0; knownChips[index0]; ++ index0)
+-          for (subindex = 0; knownChips[index0]->names[subindex]; ++ subindex)
+-            if (!strcmp (chip->prefix, knownChips[index0]->names[subindex]))
+-              chipindex = index0;
+-        if (chipindex >= 0) {
+-          const ChipDescriptor *descriptor = knownChips[chipindex];
+-          const FeatureDescriptor *features = descriptor->features;
+-
+-          for (index0 = 0; (ret = 0) && (num < MAX_RRD_SENSORS) && features[index0].format; ++ index0) {
+-            const FeatureDescriptor *feature = features + index0;
+-            int labelNumber = feature->dataNumbers[0];
+-            const char *rawLabel = NULL;
+-            char *label = NULL;
+-            int valid = 0;
+-            if (getValid (chip, labelNumber, &valid)) {
+-              sensorLog (LOG_ERR, "Error getting sensor validity: %s/#%d", chip->prefix, labelNumber);
+-              ret = -1;
+-            } else if (getRawLabel (chip, labelNumber, &rawLabel)) {
+-              sensorLog (LOG_ERR, "Error getting raw sensor label: %s/#%d", chip->prefix, labelNumber);
+-              ret = -1;
+-            } else if (!(label = sensors_get_label (chip, labelNumber))) {
+-              sensorLog (LOG_ERR, "Error getting sensor label: %s/#%d", chip->prefix, labelNumber);
+-              ret = -1;
+-            } else if (valid) {
+-              rrdCheckLabel (rawLabel, num);
+-              ret = fn (data, rrdLabels[num], label, feature);
+-              ++ num;
+-            }
+-            if (label)
+-              free (label);
++  for (j = 0; (ret = 0) && (j < numChipNames); ++ j) {
++    while ((ret = 0) && ((chip = sensors_get_detected_chips (&chipNames[j], &i)) != NULL)) {
++      int index0, subindex, chipindex = -1;
++      for (index0 = 0; knownChips[index0]; ++ index0)
++        for (subindex = 0; knownChips[index0]->names[subindex]; ++ subindex)
++          if (!strcmp (chip->prefix, knownChips[index0]->names[subindex]))
++            chipindex = index0;
++      if (chipindex >= 0) {
++        const ChipDescriptor *descriptor = knownChips[chipindex];
++        const FeatureDescriptor *features = descriptor->features;
++
++        for (index0 = 0; (ret = 0) && (num < MAX_RRD_SENSORS) && features[index0].format; ++ index0) {
++          const FeatureDescriptor *feature = features + index0;
++          int labelNumber = feature->dataNumbers[0];
++          const char *rawLabel = NULL;
++          char *label = NULL;
++          int valid = 0;
++          if (getValid (chip, labelNumber, &valid)) {
++            sensorLog (LOG_ERR, "Error getting sensor validity: %s/#%d", chip->prefix, labelNumber);
++            ret = -1;
++          } else if (getRawLabel (chip, labelNumber, &rawLabel)) {
++            sensorLog (LOG_ERR, "Error getting raw sensor label: %s/#%d", chip->prefix, labelNumber);
++            ret = -1;
++          } else if (!(label = sensors_get_label (chip, labelNumber))) {
++            sensorLog (LOG_ERR, "Error getting sensor label: %s/#%d", chip->prefix, labelNumber);
++            ret = -1;
++          } else if (valid) {
++            rrdCheckLabel (rawLabel, num);
++            ret = fn (data, rrdLabels[num], label, feature);
++            ++ num;
+           }
++          if (label)
++            free (label);
+         }
+       }
+     }
+--- lm-sensors-3.orig/prog/sensord/sense.c	2007-08-25 13:44:04.000000000 +0200
++++ lm-sensors-3/prog/sensord/sense.c	2007-08-25 13:53:15.000000000 +0200
+@@ -238,11 +238,9 @@ doChips
+   const sensors_chip_name *chip;
+   int i = 0, j, ret = 0;
+ 
+-  while ((ret = 0) && ((chip = sensors_get_detected_chips (&i)) != NULL)) {
+-    for (j = 0; (ret = 0) && (j < numChipNames); ++ j) {
+-      if (sensors_match_chip (chip, &chipNames[j])) {
+-        ret = doChip (chip, action);
+-      }
++  for (j = 0; (ret = 0) && (j < numChipNames); ++ j) {
++    while ((ret = 0) && ((chip = sensors_get_detected_chips (&chipNames[j], &i)) != NULL)) {
++      ret = doChip (chip, action);
+     }
+   }
+ 
 
---=-6O5rm8isPkhehBwZHJkN
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---=-6O5rm8isPkhehBwZHJkN--
-
