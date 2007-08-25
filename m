@@ -1,98 +1,71 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 28 Aug 2007 21:36:23 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3] hwmon/dme1737: add sch311x support
-Message-Id: <20070828233623.1840229e@hyperion.delvare>
+Date: Sat, 25 Aug 2007 13:07:46 +0000
+Subject: [lm-sensors] [PATCH 2/3] libsensors4: Make sensors_match_chip()
+Message-Id: <20070825150746.5ca3f95e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0707232042g73c21d34ic63f715f0e8438b8@mail.gmail.com>
-In-Reply-To: <191fb4ca0707232042g73c21d34ic63f715f0e8438b8@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+Make sensors_match_chip internal to libsensors. It is no longer used by
+applications in practice.
 
-On Tue, 28 Aug 2007 14:16:34 -0700, Juerg Haefliger wrote:
-> On 8/28/07, Jean Delvare <khali@linux-fr.org> wrote:
-> > On Sun, 26 Aug 2007 20:25:31 -0700, Juerg Haefliger wrote:
-> > > +static int dme1737_isa_detect(int sio_cip, unsigned short *addr)
-> >
-> > Could be declared __init.
-> 
-> What does this do?
+---
+ lib/access.c     |    2 +-
+ lib/libsensors.3 |    7 -------
+ lib/sensors.h    |    5 -----
+ 3 files changed, 1 insertion(+), 13 deletions(-)
 
-This allows the kernel to drop the code from memory after module
-initialization has completed. dme1737_isa_detect() is only called from
-dme1737_init(), which itself is __init, so dme1737_isa_detect() can be
-declared __init too.
+--- lm-sensors-3.orig/lib/access.c	2007-08-19 20:34:35.000000000 +0200
++++ lm-sensors-3/lib/access.c	2007-08-19 20:47:49.000000000 +0200
+@@ -34,7 +34,7 @@ static int sensors_eval_expr(const senso
+ 
+ /* Compare two chips name descriptions, to see whether they could match.
+    Return 0 if it does not match, return 1 if it does match. */
+-int sensors_match_chip(const sensors_chip_name *chip1,
++static int sensors_match_chip(const sensors_chip_name *chip1,
+ 		       const sensors_chip_name *chip2)
+ {
+ 	if ((chip1->prefix != SENSORS_CHIP_NAME_PREFIX_ANY) &&
+--- lm-sensors-3.orig/lib/libsensors.3	2007-08-19 20:37:13.000000000 +0200
++++ lm-sensors-3/lib/libsensors.3	2007-08-19 20:48:06.000000000 +0200
+@@ -35,8 +35,6 @@ libsensors \- publicly accessible functi
+ .B void sensors_cleanup(void);
+ .B int sensors_parse_chip_name(const char *orig_name,
+                             \fBsensors_chip_name *res);\fP
+-.B int sensors_match_chip(const sensors_chip_name *chip1,
+-                       \fBconst sensors_chip_name *chip2);\fP
+ .B const char *sensors_get_adapter_name(int bus_nr);
+ .B char *sensors_get_label(const sensors_chip_name *name, int feature);\fP
+ .B int sensors_get_value(const sensors_chip_name *name, int feature,
+@@ -68,11 +66,6 @@ Clean-up function: You can't access anyt
+ .br
+ Parse a chip name to the internal representation. Return 0 on succes, <0 on error.
+ 
+-\fBint sensors_match_chip(const sensors_chip_name *chip1,
+-                       const sensors_chip_name *chip2);\fP
+-.br
+-Compare two chips name descriptions, to see whether they could match. Return 0 if it does not match, return 1 if it does match.
+-
+ .B const char *sensors_get_adapter_name(int bus_nr);
+ .br
+ This function returns the adapter name of a bus number, as used within the
+--- lm-sensors-3.orig/lib/sensors.h	2007-08-19 20:37:29.000000000 +0200
++++ lm-sensors-3/lib/sensors.h	2007-08-19 20:48:14.000000000 +0200
+@@ -77,11 +77,6 @@ int sensors_parse_chip_name(const char *
+ int sensors_snprintf_chip_name(char *str, size_t size,
+ 			       const sensors_chip_name *chip);
+ 
+-/* Compare two chips name descriptions, to see whether they could match.
+-   Return 0 if it does not match, return 1 if it does match. */
+-int sensors_match_chip(const sensors_chip_name *chip1,
+-		       const sensors_chip_name *chip2);
+-
+ /* This function returns the adapter name of a bus,
+    as used within the sensors_chip_name structure. If it could not be found,
+    it returns NULL */
 
-> > > +
-> > > +     client = &data->client;
-> > > +     i2c_set_clientdata(client, data);
-> > > +     client->addr = res->start;
-> > > +     platform_set_drvdata(pdev, data);
-> > > +     dev = &pdev->dev;
-> > > +
-> > > +     company = dme1737_read(&data->client, DME1737_REG_COMPANY);
-> > > +     device = dme1737_read(&data->client, DME1737_REG_DEVICE);
-> >
-> > You could use just "client" here. If you don't, it's probably not worth
-> > having this local variable at all.
-> 
-> I don't understand. What do you mean by using 'client'?
-
-I mean that you can do:
-
-	company = dme1737_read(client, DME1737_REG_COMPANY);
-	device = dme1737_read(client, DME1737_REG_DEVICE);
-
-i.e. use the local variable "client" instead of "&data->client".
-
-> > > +
-> > > +     /* Initialize the chip */
-> > > +     if ((err = dme1737_init_device(dev))) {
-> > > +             dev_err(dev, "Failed to initialize device.\n");
-> > > +             goto exit_kfree;
-> > > +     }
-> > > +
-> > > +     /* Create sysfs files */
-> > > +     if ((err = dme1737_create_files(dev))) {
-> > > +             dev_err(dev, "Failed to create sysfs files.\n");
-> > > +             goto exit_kfree;
-> > > +     }
-> >
-> > As this is a non-i2c device, you also need to create the "name" file.
-> > See the lm78 driver for an example. Without that file, libsensors will
-> > discard the device.
-> 
-> Ah. That might be the reason why people don't get sensor readings with
-> this driver. Even though I thought someone reported success. I have to
-> go back and check my emails
-
-Yes, I think that this is the fix for ticket #2243.
-
-> > > +}
-> > > +
-> > > +static struct platform_driver dme1737_isa_driver = {
-> > > +     .driver = {
-> > > +             .owner = THIS_MODULE,
-> > > +             .name = "dme1737",
-> > > +     },
-> > > +     .probe = dme1737_isa_probe,
-> > > +     .remove = dme1737_isa_remove,
-> >
-> > Missing __devexit_p().
-> 
-> Ok. What does it do?
-
-You declared dme1737_isa_remove() __devexit, which means that the code
-is not included if the driver is built into the kernel and hotplug is
-disabled. If it's not included, it has no address so you can't assign
-its address to .remove; compilation will fail. The __devexit_p macro
-takes care of that, replacing the function name by NULL when needed.
-
-__init, __devexit etc. are documented in Documentation/pci.txt if you
-want to know the details.
 
 -- 
 Jean Delvare
