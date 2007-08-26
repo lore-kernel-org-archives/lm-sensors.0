@@ -1,30 +1,27 @@
-From: joe@perches.com
-Date: Mon, 13 Aug 2007 06:31:48 +0000
-Subject: [lm-sensors] [PATCH] [312/2many] MAINTAINERS - MAX6650 HARDWARE
-Message-Id: <46bffad4.XniGtsVMOQCJEtM1%joe@perches.com>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 26 Aug 2007 18:50:03 +0000
+Subject: Re: [lm-sensors] [PATCH] v4 of adt7470 driver
+Message-Id: <20070826185003.GB3679@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, hjk@linutronix.de, akpm@linux-foundation.org
+To: lm-sensors@vger.kernel.org
 
-Add file pattern to MAINTAINER entry
+Hi Darrick:
 
-Signed-off-by: Joe Perches <joe@perches.com>
+* Darrick J. Wong <djwong@us.ibm.com> [2007-07-31 11:06:52 -0700]:
+> New driver to expose temperature and fan controls attached to Analog
+> Devices ADT7470 hwmon chips.
+> 
+> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f200501..ab3a4ae 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3006,6 +3006,8 @@ P:	Hans J. Koch
- M:	hjk@linutronix.de
- L:	lm-sensors@lm-sensors.org
- S:	Maintained
-+F:	Documentation/hwmon/max6650
-+F:	drivers/hwmon/max6650.c
- 
- MEGARAID SCSI DRIVERS
- P:	Neela Syam Kolli
+Applied to hwmon-2.6.git/testing, thanks.
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
