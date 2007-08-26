@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 18 Aug 2007 14:07:18 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 26 Aug 2007 18:50:32 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon/lm70: Add a name attribute
-Message-Id: <20070818160718.1607f7ca@hyperion.delvare>
+Message-Id: <20070826185032.GG3679@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070817173135.5eaffc0e@hyperion.delvare>
 In-Reply-To: <20070817173135.5eaffc0e@hyperion.delvare>
@@ -10,38 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Kaiwan,
-
-On Sat, 18 Aug 2007 11:44:22 +0530, Kaiwan N Billimoria wrote:
-> > @@ -115,7 +123,8 @@ static int __devinit lm70_probe(struct s
-> >  	}
-> >  	dev_set_drvdata(&spi->dev, p_lm70);
-> >  
-> > -	if ((status = device_create_file(&spi->dev, &dev_attr_temp1_input))) {
-> > +	if ((status = device_create_file(&spi->dev, &dev_attr_temp1_input))
-> > +	 || (status = device_create_file(&spi->dev, &dev_attr_name))) {
-> >  		dev_dbg(&spi->dev, "device_create_file failure.\n");
-> >  		goto out_dev_create_file_failed;
-> >  	}
-> > @@ -123,6 +132,7 @@ static int __devinit lm70_probe(struct s
-> >  	return 0;
-> >  
-> >  out_dev_create_file_failed:
-> > +	device_remove_file(&spi->dev, &dev_attr_temp1_input);
->
-> Ah. Thanks!
+* Hans de Goede <j.w.r.degoede@hhs.nl> [2007-08-17 18:17:52 +0200]:
+> Jean Delvare wrote:
+> > Add a name attribute to the lm70 devices. This is required for
+> > libsensors to recognize them.
+> > 
+> > Also drop the "+" before the temperature value, even though it did
+> > not cause problems to libsensors, other hardware monitoring drivers
+> > don't print it, so it's more consistent that way.
+> > 
+> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
 > 
-> >  	hwmon_device_unregister(p_lm70->cdev);
-> >  out_dev_reg_failed:
-> >  	dev_set_drvdata(&spi->dev, NULL);
+> Looks good to me.
+> 
+> Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 
-Just to make it clear: there was no bug there. This call to
-device_remove_file() is now needed in the case where the temp1_input
-file would be successfully created but the name file creation would
-fail.
+Applied to hwmon-2.6.git/testing, thanks.
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
