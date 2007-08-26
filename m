@@ -1,66 +1,104 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Mon, 06 Aug 2007 16:07:17 +0000
-Subject: Re: [lm-sensors] modprobe f71882fg trouble
-Message-Id: <20070806160717.GO2795@tree.beaverton.ibm.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8010258368201702874=="
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 26 Aug 2007 18:49:51 +0000
+Subject: Re: [lm-sensors] PATCH: hwmon-f71882fg-new-driver-v2.patch
+Message-Id: <20070826184951.GA3679@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46B6E1BB.5090609@akontech.ru>
-In-Reply-To: <46B6E1BB.5090609@akontech.ru>
+References: <4697714B.9090606@hhs.nl>
+In-Reply-To: <4697714B.9090606@hhs.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Hans:
 
---===============8010258368201702874==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="W/D3X8sky0X3AmG5"
-Content-Disposition: inline
+* Hans de Goede <j.w.r.degoede@hhs.nl> [2007-07-13 14:34:19 +0200]:
+> Hi all,
+> 
+> Here is the second version of my fintek f71882fg driver. Many thanks to 
+> Darrick J. Wong for the review.
 
+Applied to hwmon-2.6.git/testing (with much trailing whitespace deleted), thanks.
+Some additional text in Documenation/hwmon would be nice.
 
---W/D3X8sky0X3AmG5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Also, I've applied the following patch on top of yours...
 
-On Mon, Aug 06, 2007 at 11:15:36AM +0200, Hans de Goede wrote:
->=20
-> It hasn't made it into the kernel yet, a patch for it is here:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020441.html
->=20
-> Talking about this Mark, any chance this could get merged anytime soon? I=
-t=20
-> was reviewed by Darrick J. Wong.
->=20
-> Darrick can you verify that this second version fixes the things you=20
-> spotted during review, and then ack it please?
+commit 9b4ed78e6e9a64ad4f9f40e6895b207316106d79
+Author: Mark M. Hoffman <mhoffman@lightlink.com>
+Date:   Tue Aug 21 23:10:46 2007 -0400
 
-Looks good to me:
+    hwmon: (f71882fg) trivial whitespace cleanup
+    
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 
-Acked-by: Darrick J. Wong <djwong@us.ibm.com>
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index 68f5102..b4ff0f9 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -384,7 +384,7 @@ static struct f71882fg_data *f71882fg_update_device(struct device * dev)
+ 	}
+ 
+ 	/* Update every second */
+-	if (time_after(jiffies, data->last_updated + HZ) || !data->valid)  {
++	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
+ 		data->temp_status = f71882fg_read8(data,
+ 						F71882FG_REG_TEMP_STATUS);
+ 		data->temp_diode_open = f71882fg_read8(data,
+@@ -614,7 +614,7 @@ static ssize_t store_temp_max_hyst(struct device *dev, struct device_attribute
+ 	data->temp_hyst[nr] = val;
+ 
+ 	/* convert value to register contents */
+-	switch(nr) {
++	switch (nr) {
+ 		case 0:
+ 			val = val << 4;
+ 			break;
+@@ -748,7 +748,7 @@ static int __devinit f71882fg_probe(struct platform_device * pdev)
+ 	int err, i;
+ 	u8 start_reg;
+ 
+-	if(!(data = kzalloc(sizeof(struct f71882fg_data), GFP_KERNEL)))
++	if (!(data = kzalloc(sizeof(struct f71882fg_data), GFP_KERNEL)))
+ 		return -ENOMEM;
+ 
+ 	data->addr = platform_get_resource(pdev, IORESOURCE_IO, 0)->start;
+@@ -850,7 +850,7 @@ static int __init f71882fg_find(int sioaddr, unsigned short *address)
+ 	}
+ 
+ 	superio_select(sioaddr, SIO_F71882FG_LD_HWM);
+-	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01))  {
++	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01)) {
+ 		printk(KERN_WARNING DRVNAME ": Device not activated\n");
+ 		goto exit;
+ 	}
+@@ -890,18 +890,18 @@ static int __init f71882fg_device_add(unsigned short address)
+ 	int err;
+ 
+ 	f71882fg_pdev = platform_device_alloc(DRVNAME, address);
+-	if(!f71882fg_pdev)
++	if (!f71882fg_pdev)
+ 		return -ENOMEM;
+ 
+ 	res.name = f71882fg_pdev->name;
+ 	err = platform_device_add_resources(f71882fg_pdev, &res, 1);
+-	if(err) {
++	if (err) {
+ 		printk(KERN_ERR DRVNAME ": Device resource addition failed\n");
+ 		goto exit_device_put;
+ 	}
+ 
+ 	err = platform_device_add(f71882fg_pdev);
+-	if(err) {
++	if (err) {
+ 		printk(KERN_ERR DRVNAME ": Device addition failed\n");
+ 		goto exit_device_put;
+ 	}
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
---W/D3X8sky0X3AmG5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFGt0c1a6vRYYgWQuURAsS6AJ9sfP4mLnxy1MLNsLu7jCa9dSHUiwCfV+LZ
-mgN+1PKwEqMeBVkPZzzoGl0=
-=ZQxu
------END PGP SIGNATURE-----
-
---W/D3X8sky0X3AmG5--
-
-
---===============8010258368201702874==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8010258368201702874==--
