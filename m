@@ -1,45 +1,27 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 16 Aug 2007 12:33:37 +0000
-Subject: [lm-sensors] [PATCH] hwmon/smsc47m1: No confusing debugging messages
-Message-Id: <20070816143337.5f3486d1@hyperion.delvare>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 26 Aug 2007 18:50:37 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon/smsc47m1: No confusing debugging
+Message-Id: <20070826185037.GH3679@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20070816143337.5f3486d1@hyperion.delvare>
+In-Reply-To: <20070816143337.5f3486d1@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-It's confusing to display debugging messages for fan3 and pwm3 for
-chips which don't have them.
+* Jean Delvare <khali@linux-fr.org> [2007-08-16 14:33:37 +0200]:
+> It's confusing to display debugging messages for fan3 and pwm3 for
+> chips which don't have them.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/smsc47m1.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
---- linux-2.6.23-rc2.orig/drivers/hwmon/smsc47m1.c	2007-08-08 16:53:14.000000000 +0200
-+++ linux-2.6.23-rc2/drivers/hwmon/smsc47m1.c	2007-08-10 20:22:26.000000000 +0200
-@@ -553,7 +553,7 @@ static int __devinit smsc47m1_probe(stru
- 		 || (err = device_create_file(dev,
- 				&sensor_dev_attr_fan3_div.dev_attr)))
- 			goto error_remove_files;
--	} else
-+	} else if (data->type = smsc47m2)
- 		dev_dbg(dev, "Fan 3 not enabled by hardware, skipping\n");
- 
- 	if (pwm1) {
-@@ -580,7 +580,7 @@ static int __devinit smsc47m1_probe(stru
- 		 || (err = device_create_file(dev,
- 				&sensor_dev_attr_pwm3_enable.dev_attr)))
- 			goto error_remove_files;
--	} else
-+	} else if (data->type = smsc47m2)
- 		dev_dbg(dev, "PWM 3 not enabled by hardware, skipping\n");
- 
- 	if ((err = device_create_file(dev, &dev_attr_alarms)))
-
+Applied to hwmon-2.6.git/testing, thanks.
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
