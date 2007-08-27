@@ -1,7 +1,7 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 26 Aug 2007 18:50:17 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 27 Aug 2007 08:17:14 +0000
 Subject: Re: [lm-sensors] [PATCH] Allow writing of negative trigger
-Message-Id: <20070826185017.GD3679@jupiter.solarsys.private>
+Message-Id: <20070827101714.53f2106e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070816081353.GF10132@tweety>
 In-Reply-To: <20070816081353.GF10132@tweety>
@@ -10,42 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean, Christian:
+Hi Mark,
 
-* Jean Delvare <khali@linux-fr.org> [2007-08-16 11:40:10 +0200]:
-> I retested w83627ehf and it's now OK for all temperature channels. I
-> also tested adm1021, successfully. I can't test lm77 nor lm93 but the
-> code looks right.
-
-There's always i2c-stub, but yeah, it looks OK to me too.
-
-> I had to rediff the adm1021 part due to this patch from Krzysztof Helt
-> in Mark's tree:
-> http://lm-sensors.org/kernel?p=kernel/mhoffman/hwmon-2.6.git;a=commit;ha040d50b43652607ad4677fb4b0ba91ea33be3
-
-I'm surprised that git couldn't merge that automatically (I tried).
-
-BTW I don't mind if I have to do a bit of fixup to get a patch to apply to my
-testing branch.  But of course I appreciate it if it's already taken care of -
-thanks Jean.
-
-> So here is the updated patch. Mark, please apply.
+On Sun, 26 Aug 2007 14:50:17 -0400, Mark M. Hoffman wrote:
+> Hi Jean, Christian:
 > 
-> From: Christian Hohnstaedt <chohnstaedt@innominate.com>
-> Subject: hwmon: Allow writing of negative trigger temperatures
+> * Jean Delvare <khali@linux-fr.org> [2007-08-16 11:40:10 +0200]:
+> > I retested w83627ehf and it's now OK for all temperature channels. I
+> > also tested adm1021, successfully. I can't test lm77 nor lm93 but the
+> > code looks right.
 > 
-> - replace differing temperature variable types by long
-> - use strtol() instead of strtoul() for conversion
-> 
-> Signed-off-by: Christian Hohnstaedt <chohnstaedt@innominate.com>
-> Acked-by: Jean Delvare <khali@linux-fr.org>
+> There's always i2c-stub, but yeah, it looks OK to me too.
 
-Applied to hwmon-2.6.git/testing, thanks.
+Unfortunately, I have neither lm77 nor lm93 dumps to load i2c-stub
+with. If anyone has such dumps and could share them...
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
