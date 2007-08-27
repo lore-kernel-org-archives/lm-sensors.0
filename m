@@ -1,50 +1,32 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Mon, 27 Aug 2007 17:53:20 +0000
-Subject: Re: [lm-sensors] [PATCH 0/3 RESEND] hwmon/dme1737: support for
-Message-Id: <191fb4ca0708271053t399bb347yce842499ae8bb25b@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 27 Aug 2007 08:53:30 +0000
+Subject: Re: [lm-sensors] [PATCH 1/5] hwmon/lm85: Use dynamic sysfs callbacks
+Message-Id: <20070827105330.2d81222c@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0708262022w7f2c2645oe09333ceef128b44@mail.gmail.com>
-In-Reply-To: <191fb4ca0708262022w7f2c2645oe09333ceef128b44@mail.gmail.com>
+References: <20070705203612.7e630af2@hyperion.delvare>
+In-Reply-To: <20070705203612.7e630af2@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hi Mark,
 
+On Mon, 9 Jul 2007 17:52:36 +0200, Krzysztof Helt wrote:
+> On Thu, 5 Jul 2007 20:36:12 +0200
+> Jean Delvare <khali@linux-fr.org> wrote:
+> 
+> >  drivers/hwmon/lm85.c |  551 ++++++++++++++++++++++----------------------------
+> >  1 file changed, 244 insertions(+), 307 deletions(-)
+> 
+> I reviewed this patch and I don't see anything wrong. It is repetitive change of
+> API for set/show functions.
 
-> Hi Juerg,
->
-> On Sun, 26 Aug 2007 20:22:07 -0700, Juerg Haefliger wrote:
-> > The following patchset adds support of the SMSC sch311x Super-I/O
-> > chips to the dme1737 driver. It's a regeneration - with no functional
-> > changes - of the previously submitted patches against Linus' current
-> > git tree.
->
-> I also have a number of hwmon patches pending for review:
->
-> 4 lm85 patches:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020277.html
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020278.html
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020279.html
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020280.html
->
-> 1 it87 patch:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020303.html
->
-> I will review your dme1737 patches if in exchange you review (some of)
-> my patches listed above. Do we have a deal?
+As this patch was reviewed, can it please be added to hwmon-testing?
 
-Sure, I'll take a look at the lm85 patches. Give me a couple of days,
-I'm currently swamped both at work and home...
-
-...juerg
-
-
-> Thanks,
-> --
-> Jean Delvare
->
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
