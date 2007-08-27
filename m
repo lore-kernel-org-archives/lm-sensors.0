@@ -1,32 +1,33 @@
-From: Joe Perches <joe@perches.com>
-Date: Wed, 15 Aug 2007 17:12:29 +0000
-Subject: Re: [lm-sensors] [PATCH] [134/2many] MAINTAINERS - CORETEMP
-Message-Id: <1187197949.7443.9.camel@localhost>
+From: Auke Kok <auke-jan.h.kok@intel.com>
+Date: Mon, 27 Aug 2007 23:17:01 +0000
+Subject: [lm-sensors] [PATCH 4/8] sis5595: re-use s_bridge->revision
+Message-Id: <20070827231655.27448.9252.stgit@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46bff960.WIP0LRYr3U/rYI1a%joe@perches.com>
-	 <46C332D6.1060907@assembler.cz>
-In-Reply-To: <46C332D6.1060907@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rudolf Marek <r.marek@assembler.cz>
-Cc: torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+To: lm-sensors@vger.kernel.org
 
-On Wed, 2007-08-15 at 19:07 +0200, Rudolf Marek wrote:
-> There is documentation file too. Documentation/hwmon/coretemp
+Signed-off-by: Auke Kok <auke-jan.h.kok@intel.com>
+Cc: lm-sensors@lm-sensors.org
+---
 
-Thanks.  I've now got:
+ drivers/hwmon/sis5595.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-CORETEMP HARDWARE MONITORING DRIVER
-P:	Rudolf Marek
-M:	r.marek@assembler.cz
-L:	lm-sensors@lm-sensors.org
-S:	Maintained
-F:	Documentation/hwmon/coretemp
-F:	drivers/hwmon/coretemp.c
-
-cheers,  Joe
-
+diff --git a/drivers/hwmon/sis5595.c b/drivers/hwmon/sis5595.c
+index 92956eb..3d20a0c 100644
+--- a/drivers/hwmon/sis5595.c
++++ b/drivers/hwmon/sis5595.c
+@@ -517,7 +517,7 @@ static int __devinit sis5595_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, data);
+ 
+ 	/* Check revision and pin registers to determine whether 4 or 5 voltages */
+-	pci_read_config_byte(s_bridge, PCI_REVISION_ID, &data->revision);
++	data->revision = s_bridge->revision;
+ 	/* 4 voltages, 1 temp */
+ 	data->maxins = 3;
+ 	if (data->revision >= REV2MIN) {
 
 _______________________________________________
 lm-sensors mailing list
