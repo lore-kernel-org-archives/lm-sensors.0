@@ -1,53 +1,43 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Wed, 22 Aug 2007 16:11:13 +0000
+From: "Juergen.Bausa" <Juergen.Bausa@web.de>
+Date: Mon, 27 Aug 2007 20:48:17 +0000
 Subject: Re: [lm-sensors] dme1737 module
-Message-Id: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
+Message-Id: <loom.20070827T224229-289@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
+In-Reply-To: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="euc-kr"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Juergen,
-
-I'm copying the list so others can profit.
-
-
-> Dear Juerg,
->
-> I own a barebone made by asus which needs the dme1737 module for lm-senso=
-rs to
-> work correctly. Since it had been included in kernel 2.6.23 and I am runn=
-ing 2.6.18 (from
-> debian etch) I was wondering if there is a stand alone version of the mod=
-ule, that I could
-> compile for my kernel? Is there any way to use it with 2.6.18?
-
-Copy the file dme1737.c from the 2.6.23 kernel to a temp directory and
-create a Makefile in the same directory that contains the following
-lines:
-
-obj-m :=3D dme1737.o
-all:
-        make -C /lib/modules/`uname -r`/build M=3D$(PWD) modules
-
-Then run 'make' which will compile the module. You also need to have
-the kernel headers installed to be able to compile.
-Additionally, you will also need the latest 'lm-sensors' package
-(2.10.4 ) or the dme1737 will not be recognized.
-
-Let me know if you need additional help.
-...juerg
-
-
-> J=FCrgen
-> _______________________________________________________________________
-> Jetzt neu! Sch=FCtzen Sie Ihren PC mit McAfee und WEB.DE. 3 Monate
-> kostenlos testen. http://www.pc-sicherheit.web.de/startseite/?mc=022220
->
->
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SnVlcmcgSGFlZmxpZ2VyIDxqdWVyZ2ggPGF0PiBnbWFpbC5jb20+IHdyaXRlczoKCj4gCj4gPiBJ
+IG93biBhIGJhcmVib25lIG1hZGUgYnkgYXN1cyB3aGljaCBuZWVkcyB0aGUgZG1lMTczNyBtb2R1
+bGUgZm9yIAo+ID4gbG0tc2Vuc29ycyB0byB3b3JrIGNvcnJlY3RseS4gU2luY2UgaXQgaGFkIGJl
+ZW4gaW5jbHVkZWQgaW4ga2VybmVsIAo+ID4gMi42LjIzIGFuZCBJIGFtIHJ1bm5pbmcgMi42LjE4
+IChmcm9tCj4gPiBkZWJpYW4gZXRjaCkgSSB3YXMgd29uZGVyaW5nIGlmIHRoZXJlIGlzIGEgc3Rh
+bmQgYWxvbmUgdmVyc2lvbiAKPiA+IG9mIHRoZSBtb2R1bGUsIHRoYXQgSSBjb3VsZAo+ID4gY29t
+cGlsZSBmb3IgbXkga2VybmVsPyBJcyB0aGVyZSBhbnkgd2F5IHRvIHVzZSBpdCB3aXRoIDIuNi4x
+OD8KPiAKPiBDb3B5IHRoZSBmaWxlIGRtZTE3MzcuYyBmcm9tIHRoZSAyLjYuMjMga2VybmVsIHRv
+IGEgdGVtcCBkaXJlY3RvcnkgYW5kCj4gY3JlYXRlIGEgTWFrZWZpbGUgaW4gdGhlIHNhbWUgZGly
+ZWN0b3J5IHRoYXQgY29udGFpbnMgdGhlIGZvbGxvd2luZwo+IGxpbmVzOgo+IAo+IG9iai1tIDo9
+IGRtZTE3Mzcubwo+IGFsbDoKPiAgICAgICAgIG1ha2UgLUMgL2xpYi9tb2R1bGVzL2B1bmFtZSAt
+cmAvYnVpbGQgTT0kKFBXRCkgbW9kdWxlcwo+IAo+IFRoZW4gcnVuICdtYWtlJyB3aGljaCB3aWxs
+IGNvbXBpbGUgdGhlIG1vZHVsZS4gWW91IGFsc28gbmVlZCB0byBoYXZlCj4gdGhlIGtlcm5lbCBo
+ZWFkZXJzIGluc3RhbGxlZCB0byBiZSBhYmxlIHRvIGNvbXBpbGUuCj4gQWRkaXRpb25hbGx5LCB5
+b3Ugd2lsbCBhbHNvIG5lZWQgdGhlIGxhdGVzdCAnbG0tc2Vuc29ycycgcGFja2FnZQo+ICgyLjEw
+LjQgKSBvciB0aGUgZG1lMTczNyB3aWxsIG5vdCBiZSByZWNvZ25pemVkLgo+IAoKVGhhbmtzIGEg
+bG90LCB0aGUgbW9kdWxlIHNlZW1zIHRvIHdvcmsgZmluZS4gSSB1c2VkIHRoZSBuZXdlc3Qgc2Vu
+c29ycy1kZXRlY3QKYW5kIGl0IGZvdW5kIG91dCB0aGUgbW9kdWxlcyBJIGhhdmUgdG8gdXNlLiBI
+b3dldmVyLCB0aGUgb3V0cHV0IG9mIHNlbnNvcnMKaXMgcXVpdGUgc2hvcnQ6CgpqYmFAbGlzYTp+
+JCBzZW5zb3JzCms4dGVtcC1wY2ktMDBjMwpBZGFwdGVyOiBQQ0kgYWRhcHRlcgpDb3JlMCBUZW1w
+OgogICAgICAgICAgICAgIC0xwrBDCkNvcmUwIFRlbXA6CiAgICAgICAgICAgICAgKzHCsEMKQ29y
+ZTEgVGVtcDoKICAgICAgICAgICAgICArNsKwQwpDb3JlMSBUZW1wOgogICAgICAgICAgICAgICs2
+wrBDCgpkbWUxNzM3LWkyYy0wLTJlCkFkYXB0ZXI6IFNNQnVzIG5Gb3JjZTIgYWRhcHRlciBhdCA0
+YzAwCgprOHRlbXAgdmFsdWVzIGFyZSB3cm9uZywgYnV0IHRoYXQgaXMgYW5vdGhlciBwcm9ibGVt
+LiBCdXQgd2h5IGRvZW50CmRtZTE3MzcgZGlzcGxheSBhbnl0aGluZz8gSXMgaXQgYmVjYXVzZSBv
+ZiB0aGUgb2xkZXIgbG0tc2Vuc29ycyB2ZXJzaW9uIGluCmRlYmlhbiAoMi4xMC4xLTMpLiBPciB3
+aWxsIGl0IGJlIHN1ZmZpY2lhbnQgdG8gdXBkYXRlIHRoZSBjb25maWcgZmlsZT8KSWYgcG9zc2li
+bGUgSSB3b3VsZCBsaWtlIHRvIGtlZXAgdGhlIGV0Y2ggdmVyc2lvbiBvZiBsbS1zZW5zb3JzLgoK
+SnVlcmdlbgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDov
+L2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycwo=
