@@ -1,341 +1,555 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Mon, 27 Aug 2007 03:25:31 +0000
-Subject: [lm-sensors] [PATCH 3/3] hwmon/dme1737: add sch311x support
-Message-Id: <191fb4ca0708262025q15af63cbucb3647b7749d24e@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_56306_7676160.1188185131318"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 28 Aug 2007 18:33:07 +0000
+Subject: Re: [lm-sensors] [PATCH 3/3] hwmon/dme1737: add sch311x support
+Message-Id: <20070828203307.5a954621@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0707232042g73c21d34ic63f715f0e8438b8@mail.gmail.com>
 In-Reply-To: <191fb4ca0707232042g73c21d34ic63f715f0e8438b8@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_56306_7676160.1188185131318
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Juerg,
 
-This patch adds support for the SMSC SCH3112, SCH3114, and SCH3116 Super-I/O
-chips. These chips feature identical hardware monitoring capabilites with the
-exception that some of the fan inputs and pmw outputs don't exist.
+On Sun, 26 Aug 2007 20:25:31 -0700, Juerg Haefliger wrote:
+> This patch adds support for the SMSC SCH3112, SCH3114, and SCH3116 Super-I/O
+> chips. These chips feature identical hardware monitoring capabilites with the
+> exception that some of the fan inputs and pmw outputs don't exist.
+> 
+> The hardware monitoring features of the SCH311x chips can only be accessed via
+> the ISA bus. The driver therefore registers as a platform driver, if such a
+> chip is detected.
+> 
+> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-The hardware monitoring features of the SCH311x chips can only be accessed via
-the ISA bus. The driver therefore registers as a platform driver, if such a
-chip is detected.
+Review:
 
-Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+> Index: linux-2.6/drivers/hwmon/dme1737.c
+> =================================> --- linux-2.6.orig/drivers/hwmon/dme1737.c	2007-08-26 20:10:16.000000000 -0700
+> +++ linux-2.6/drivers/hwmon/dme1737.c	2007-08-26 20:10:21.000000000 -0700
+> @@ -1,12 +1,13 @@
+>  /*
+> - * dme1737.c - driver for the SMSC DME1737 and Asus A8000 Super-I/O chips
+> - *             integrated hardware monitoring features.
+> + * dme1737.c - Driver for the SMSC DME1737, Asus A8000, and SMSC SCH311x
+> + *             Super-I/O chips integrated hardware monitoring features.
+>   * Copyright (c) 2007 Juerg Haefliger <juergh@gmail.com>
+>   *
+> - * This driver is based on the LM85 driver. The hardware monitoring
+> - * capabilities of the DME1737 are very similar to the LM85 with some
+> - * additional features. Even though the DME1737 is a Super-I/O chip, the
+> - * hardware monitoring registers are only accessible via SMBus.
+> + * This driver is an I2C/ISA hybrid, meaning that it registers as an I2C client
+> + * driver if a DME1737 (or A8000) is found and as a platform driver if a
+> + * SCH311x chip is found. Both types of chips have very similar hardware
+> + * monitoring capabilities but differ in the way they can be accessed, either
+> + * via I2C or ISA.
 
-------=_Part_56306_7676160.1188185131318
-Content-Type: text/x-patch; name=hwmon-dme1737-add-sch311x-support.patch; 
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f5uek4q8
-Content-Disposition: attachment;
-	filename="hwmon-dme1737-add-sch311x-support.patch"
+This comment is not totally true: the driver registers as an I2C device
+driver in all cases (and quite rightly so.) Only the platform driver is
+conditional.
 
-VGhpcyBwYXRjaCBhZGRzIHN1cHBvcnQgZm9yIHRoZSBTTVNDIFNDSDMxMTIsIFNDSDMxMTQsIGFu
-ZCBTQ0gzMTE2IFN1cGVyLUkvTwpjaGlwcy4gVGhlc2UgY2hpcHMgZmVhdHVyZSBpZGVudGljYWwg
-aGFyZHdhcmUgbW9uaXRvcmluZyBjYXBhYmlsaXRlcyB3aXRoIHRoZQpleHBlY3Rpb24gdGhhdCBz
-b21lIG9mIHRoZSBmYW4gaW5wdXRzIGFuZCBwbXcgb3V0cHV0cyBkb24ndCBleGlzdC4KClRoZSBo
-YXJkd2FyZSBtb25pdG9yaW5nIGZlYXR1cmVzIG9mIHRoZSBTQ0gzMTF4IGNoaXBzIGNhbiBvbmx5
-IGJlIGFjY2Vzc2VkIHZpYQp0aGUgSVNBIGJ1cy4gVGhlIGRyaXZlciB0aGVyZWZvcmUgcmVnaXN0
-ZXJzIGFzIGEgcGxhdGZvcm0gZHJpdmVyLCBpZiBzdWNoIGEgCmNoaXAgaXMgZGV0ZWN0ZWQuCgpT
-aWduZWQtb2ZmLWJ5OiBKdWVyZyBIYWVmbGlnZXIgPGp1ZXJnaCBhdCBnbWFpbC5jb20+Ci0tLQoK
-SW5kZXg6IGxpbnV4LTIuNi9kcml2ZXJzL2h3bW9uL2RtZTE3MzcuYwo9PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBs
-aW51eC0yLjYub3JpZy9kcml2ZXJzL2h3bW9uL2RtZTE3MzcuYwkyMDA3LTA4LTI2IDIwOjEwOjE2
-LjAwMDAwMDAwMCAtMDcwMAorKysgbGludXgtMi42L2RyaXZlcnMvaHdtb24vZG1lMTczNy5jCTIw
-MDctMDgtMjYgMjA6MTA6MjEuMDAwMDAwMDAwIC0wNzAwCkBAIC0xLDEyICsxLDEzIEBACiAvKgot
-ICogZG1lMTczNy5jIC0gZHJpdmVyIGZvciB0aGUgU01TQyBETUUxNzM3IGFuZCBBc3VzIEE4MDAw
-IFN1cGVyLUkvTyBjaGlwcwotICogICAgICAgICAgICAgaW50ZWdyYXRlZCBoYXJkd2FyZSBtb25p
-dG9yaW5nIGZlYXR1cmVzLgorICogZG1lMTczNy5jIC0gRHJpdmVyIGZvciB0aGUgU01TQyBETUUx
-NzM3LCBBc3VzIEE4MDAwLCBhbmQgU01TQyBTQ0gzMTF4CisgKiAgICAgICAgICAgICBTdXBlci1J
-L08gY2hpcHMgaW50ZWdyYXRlZCBoYXJkd2FyZSBtb25pdG9yaW5nIGZlYXR1cmVzLgogICogQ29w
-eXJpZ2h0IChjKSAyMDA3IEp1ZXJnIEhhZWZsaWdlciA8anVlcmdoQGdtYWlsLmNvbT4KICAqCi0g
-KiBUaGlzIGRyaXZlciBpcyBiYXNlZCBvbiB0aGUgTE04NSBkcml2ZXIuIFRoZSBoYXJkd2FyZSBt
-b25pdG9yaW5nCi0gKiBjYXBhYmlsaXRpZXMgb2YgdGhlIERNRTE3MzcgYXJlIHZlcnkgc2ltaWxh
-ciB0byB0aGUgTE04NSB3aXRoIHNvbWUKLSAqIGFkZGl0aW9uYWwgZmVhdHVyZXMuIEV2ZW4gdGhv
-dWdoIHRoZSBETUUxNzM3IGlzIGEgU3VwZXItSS9PIGNoaXAsIHRoZQotICogaGFyZHdhcmUgbW9u
-aXRvcmluZyByZWdpc3RlcnMgYXJlIG9ubHkgYWNjZXNzaWJsZSB2aWEgU01CdXMuCisgKiBUaGlz
-IGRyaXZlciBpcyBhbiBJMkMvSVNBIGh5YnJpZCwgbWVhbmluZyB0aGF0IGl0IHJlZ2lzdGVycyBh
-cyBhbiBJMkMgY2xpZW50CisgKiBkcml2ZXIgaWYgYSBETUUxNzM3IChvciBBODAwMCkgaXMgZm91
-bmQgYW5kIGFzIGEgcGxhdGZvcm0gZHJpdmVyIGlmIGEKKyAqIFNDSDMxMXggY2hpcCBpcyBmb3Vu
-ZC4gQm90aCB0eXBlcyBvZiBjaGlwcyBoYXZlIHZlcnkgc2ltaWxhciBoYXJkd2FyZQorICogbW9u
-aXRvcmluZyBjYXBhYmlsaXRpZXMgYnV0IGRpZmZlciBpbiB0aGUgd2F5IHRoZXkgY2FuIGJlIGFj
-Y2Vzc2VkLCBlaXRoZXIKKyAqIHZpYSBJMkMgb3IgSVNBLgogICoKICAqIFRoaXMgcHJvZ3JhbSBp
-cyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5CiAg
-KiBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFz
-IHB1Ymxpc2hlZCBieQpAQCAtMjgsNiArMjksNyBAQAogI2luY2x1ZGUgPGxpbnV4L3NsYWIuaD4K
-ICNpbmNsdWRlIDxsaW51eC9qaWZmaWVzLmg+CiAjaW5jbHVkZSA8bGludXgvaTJjLmg+CisjaW5j
-bHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+CiAjaW5jbHVkZSA8bGludXgvaHdtb24uaD4K
-ICNpbmNsdWRlIDxsaW51eC9od21vbi1zeXNmcy5oPgogI2luY2x1ZGUgPGxpbnV4L2h3bW9uLXZp
-ZC5oPgpAQCAtMzUsNiArMzcsOSBAQAogI2luY2x1ZGUgPGxpbnV4L211dGV4Lmg+CiAjaW5jbHVk
-ZSA8YXNtL2lvLmg+CiAKKy8qIElTQSBkZXZpY2UsIGlmIGZvdW5kICovCitzdGF0aWMgc3RydWN0
-IHBsYXRmb3JtX2RldmljZSAqcGRldjsKKwogLyogTW9kdWxlIGxvYWQgcGFyYW1ldGVycyAqLwog
-c3RhdGljIGludCBmb3JjZV9zdGFydDsKIG1vZHVsZV9wYXJhbShmb3JjZV9zdGFydCwgYm9vbCwg
-MCk7CkBAIC0xMzMsNiArMTM4LDcgQEAKIHN0YXRpYyBjb25zdCB1OCBETUUxNzM3X0JJVF9BTEFS
-TV9GQU5bXSA9IHsxMCwgMTEsIDEyLCAxMywgMjIsIDIzfTsKIAogLyogTWlzY2VsbGFuZW91cyBy
-ZWdpc3RlcnMgKi8KKyNkZWZpbmUgRE1FMTczN19SRUdfREVWSUNFCQkweDNkCiAjZGVmaW5lIERN
-RTE3MzdfUkVHX0NPTVBBTlkJCTB4M2UKICNkZWZpbmUgRE1FMTczN19SRUdfVkVSU1RFUAkJMHgz
-ZgogI2RlZmluZSBETUUxNzM3X1JFR19DT05GSUcJCTB4NDAKQEAgLTE0OCwxMSArMTU0LDE0IEBA
-CiAjZGVmaW5lIERNRTE3MzdfQ09NUEFOWV9TTVNDCTB4NWMKICNkZWZpbmUgRE1FMTczN19WRVJT
-VEVQCQkweDg4CiAjZGVmaW5lIERNRTE3MzdfVkVSU1RFUF9NQVNLCTB4ZjgKKyNkZWZpbmUgU0NI
-MzExWF9ERVZJQ0UJCTB4OGMKIAogLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAgKiBEYXRhIHN0cnVjdHVyZXMg
-YW5kIG1hbmlwdWxhdGlvbiB0aGVyZW9mCiAgKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KIAorLyogRm9yIElT
-QSBjaGlwcywgd2UgYWJ1c2UgdGhlIGkyY19jbGllbnQgYWRkciBhbmQgbmFtZSBmaWVsZHMuIFdl
-IGFsc28gdXNlCisgICB0aGUgZHJpdmVyIGZpZWxkIHRvIGRpZmZlcmVudGlhdGUgYmV0d2VlbiBJ
-MkMgYW5kIElTQSBjaGlwcy4gKi8KIHN0cnVjdCBkbWUxNzM3X2RhdGEgewogCXN0cnVjdCBpMmNf
-Y2xpZW50IGNsaWVudDsKIAlzdHJ1Y3QgY2xhc3NfZGV2aWNlICpjbGFzc19kZXY7CkBAIC00Njks
-MjMgKzQ3OCwzOSBAQAogCiBzdGF0aWMgdTggZG1lMTczN19yZWFkKHN0cnVjdCBpMmNfY2xpZW50
-ICpjbGllbnQsIHU4IHJlZykKIHsKLQlzMzIgdmFsID0gaTJjX3NtYnVzX3JlYWRfYnl0ZV9kYXRh
-KGNsaWVudCwgcmVnKTsKKwlzMzIgdmFsOworCisJaWYgKGNsaWVudC0+ZHJpdmVyKSB7IC8qIEky
-QyBkZXZpY2UgKi8KKwkJdmFsID0gaTJjX3NtYnVzX3JlYWRfYnl0ZV9kYXRhKGNsaWVudCwgcmVn
-KTsKIAotCWlmICh2YWwgPCAwKSB7Ci0JCWRldl93YXJuKCZjbGllbnQtPmRldiwgIlJlYWQgZnJv
-bSByZWdpc3RlciAweCUwMnggZmFpbGVkISAiCi0JCQkgIlBsZWFzZSByZXBvcnQgdG8gdGhlIGRy
-aXZlciBtYWludGFpbmVyLlxuIiwgcmVnKTsKKwkJaWYgKHZhbCA8IDApIHsKKwkJCWRldl93YXJu
-KCZjbGllbnQtPmRldiwgIlJlYWQgZnJvbSByZWdpc3RlciAiCisJCQkJICIweCUwMnggZmFpbGVk
-ISBQbGVhc2UgcmVwb3J0IHRvIHRoZSBkcml2ZXIgIgorCQkJCSAibWFpbnRhaW5lci5cbiIsIHJl
-Zyk7CisJCX0KKwl9IGVsc2UgeyAvKiBJU0EgZGV2aWNlICovCisJCW91dGIocmVnLCBjbGllbnQt
-PmFkZHIpOworCQl2YWwgPSBpbmIoY2xpZW50LT5hZGRyICsgMSk7CiAJfQogCiAJcmV0dXJuIHZh
-bDsKIH0KIAotc3RhdGljIHMzMiBkbWUxNzM3X3dyaXRlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGll
-bnQsIHU4IHJlZywgdTggdmFsdWUpCitzdGF0aWMgczMyIGRtZTE3Mzdfd3JpdGUoc3RydWN0IGky
-Y19jbGllbnQgKmNsaWVudCwgdTggcmVnLCB1OCB2YWwpCiB7Ci0JczMyIHJlcyA9IGkyY19zbWJ1
-c193cml0ZV9ieXRlX2RhdGEoY2xpZW50LCByZWcsIHZhbHVlKTsKKwlzMzIgcmVzID0gMDsKKwor
-CWlmIChjbGllbnQtPmRyaXZlcikgeyAvKiBJMkMgZGV2aWNlICovCisJCXJlcyA9IGkyY19zbWJ1
-c193cml0ZV9ieXRlX2RhdGEoY2xpZW50LCByZWcsIHZhbCk7CiAKLQlpZiAocmVzIDwgMCkgewot
-CQlkZXZfd2FybigmY2xpZW50LT5kZXYsICJXcml0ZSB0byByZWdpc3RlciAweCUwMnggZmFpbGVk
-ISAiCi0JCQkgIlBsZWFzZSByZXBvcnQgdG8gdGhlIGRyaXZlciBtYWludGFpbmVyLlxuIiwgcmVn
-KTsKKwkJaWYgKHJlcyA8IDApIHsKKwkJCWRldl93YXJuKCZjbGllbnQtPmRldiwgIldyaXRlIHRv
-IHJlZ2lzdGVyICIKKwkJCQkgIjB4JTAyeCBmYWlsZWQhIFBsZWFzZSByZXBvcnQgdG8gdGhlIGRy
-aXZlciAiCisJCQkJICJtYWludGFpbmVyLlxuIiwgcmVnKTsKKwkJfQorCX0gZWxzZSB7IC8qIElT
-QSBkZXZpY2UgKi8KKwkJb3V0YihyZWcsIGNsaWVudC0+YWRkcik7CisJCW91dGIodmFsLCBjbGll
-bnQtPmFkZHIgKyAxKTsKIAl9CiAKIAlyZXR1cm4gcmVzOwpAQCAtNjMwLDYgKzY1NSwyNCBAQAog
-CQkJCQkJRE1FMTczN19SRUdfQUxBUk0zKSA8PCAxNjsKIAkJfQogCisJCS8qIFRoZSBJU0EgY2hp
-cHMgcmVxdWlyZSBleHBsaWNpdCBjbGVhcmluZyBvZiBhbGFybSBiaXRzLgorCQkgKiBEb24ndCB3
-b3JyeSwgYW4gYWxhcm0gd2lsbCBjb21lIGJhY2sgaWYgdGhlIGNvbmRpdGlvbgorCQkgKiB0aGF0
-IGNhdXNlcyBpdCBzdGlsbCBleGlzdHMgKi8KKwkJaWYgKCFjbGllbnQtPmRyaXZlcikgeworCQkJ
-aWYgKGRhdGEtPmFsYXJtcyAmIDB4ZmYwMDAwKSB7CisJCQkJZG1lMTczN193cml0ZShjbGllbnQs
-IERNRTE3MzdfUkVHX0FMQVJNMywKKwkJCQkJICAgICAgMHhmZik7CisJCQl9CisJCQlpZiAoZGF0
-YS0+YWxhcm1zICYgMHhmZjAwKSB7CisJCQkJZG1lMTczN193cml0ZShjbGllbnQsIERNRTE3Mzdf
-UkVHX0FMQVJNMiwKKwkJCQkJICAgICAgMHhmZik7CisJCQl9CisJCQlpZiAoZGF0YS0+YWxhcm1z
-ICYgMHhmZikgeworCQkJCWRtZTE3Mzdfd3JpdGUoY2xpZW50LCBETUUxNzM3X1JFR19BTEFSTTEs
-CisJCQkJCSAgICAgIDB4ZmYpOworCQkJfQorCQl9CisKIAkJZGF0YS0+bGFzdF91cGRhdGUgPSBq
-aWZmaWVzOwogCQlkYXRhLT52YWxpZCA9IDE7CiAJfQpAQCAtMTY5OCw3ICsxNzQxLDcgQEAKIH0K
-IAogLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tCi0gKiBEZXZpY2UgZGV0ZWN0aW9uLCByZWdpc3RyYXRpb24gYW5k
-IGluaXRpYWxpemF0aW9uCisgKiBEZXZpY2UgaW5pdGlhbGl6YXRpb24KICAqIC0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LSAqLwogCiBzdGF0aWMgaW50IGRtZTE3MzdfaTJjX2dldF9mZWF0dXJlcyhpbnQsIHN0cnVjdCBk
-bWUxNzM3X2RhdGEqKTsKQEAgLTE4NDAsMjkgKzE4ODMsMzggQEAKIAkJcmV0dXJuIC1FRkFVTFQ7
-CiAJfQogCi0JZGF0YS0+Y29uZmlnMiA9IGRtZTE3MzdfcmVhZChjbGllbnQsIERNRTE3MzdfUkVH
-X0NPTkZJRzIpOwotCS8qIENoZWNrIGlmIG9wdGlvbmFsIGZhbjMgaW5wdXQgaXMgZW5hYmxlZCAq
-LwotCWlmIChkYXRhLT5jb25maWcyICYgMHgwNCkgeworCS8qIERldGVybWluZSB3aGljaCBvcHRp
-b25hbCBmYW4gYW5kIHB3bSBmZWF0dXJlcyBhcmUgZW5hYmxlZC9wcmVzZW50ICovCisJaWYgKGNs
-aWVudC0+ZHJpdmVyKSB7ICAgLyogSTJDIGNoaXAgKi8KKwkJZGF0YS0+Y29uZmlnMiA9IGRtZTE3
-MzdfcmVhZChjbGllbnQsIERNRTE3MzdfUkVHX0NPTkZJRzIpOworCQkvKiBDaGVjayBpZiBvcHRp
-b25hbCBmYW4zIGlucHV0IGlzIGVuYWJsZWQgKi8KKwkJaWYgKGRhdGEtPmNvbmZpZzIgJiAweDA0
-KSB7CisJCQlkYXRhLT5oYXNfZmFuIHw9ICgxIDw8IDIpOworCQl9CisKKwkJLyogRmFuNCBhbmQg
-cHdtMyBhcmUgb25seSBhdmFpbGFibGUgaWYgdGhlIGNsaWVudCdzIEkyQyBhZGRyZXNzCisJCSAq
-IGlzIHRoZSBkZWZhdWx0IDB4MmUuIE90aGVyd2lzZSB0aGUgSS9PcyBhc3NvY2lhdGVkIHdpdGgK
-KwkJICogdGhlc2UgZnVuY3Rpb25zIGFyZSB1c2VkIGZvciBhZGRyIGVuYWJsZS9zZWxlY3QuICov
-CisJCWlmIChkYXRhLT5jbGllbnQuYWRkciA9PSAweDJlKSB7CisJCQlkYXRhLT5oYXNfZmFuIHw9
-ICgxIDw8IDMpOworCQkJZGF0YS0+aGFzX3B3bSB8PSAoMSA8PCAyKTsKKwkJfQorCisJCS8qIERl
-dGVybWluZSB3aGljaCBvZiB0aGUgb3B0aW9uYWwgZmFuWzUtNl0gYW5kIHB3bVs1LTZdCisJCSAq
-IGZlYXR1cmVzIGFyZSBlbmFibGVkLiBGb3IgdGhpcywgd2UgbmVlZCB0byBxdWVyeSB0aGUgcnVu
-dGltZQorCQkgKiByZWdpc3RlcnMgdGhyb3VnaCB0aGUgU3VwZXItSU8gTFBDIGludGVyZmFjZS4g
-VHJ5IGJvdGgKKwkJICogY29uZmlnIHBvcnRzIDB4MmUgYW5kIDB4NGUuICovCisJCWlmIChkbWUx
-NzM3X2kyY19nZXRfZmVhdHVyZXMoMHgyZSwgZGF0YSkgJiYKKwkJICAgIGRtZTE3MzdfaTJjX2dl
-dF9mZWF0dXJlcygweDRlLCBkYXRhKSkgeworCQkJZGV2X3dhcm4oZGV2LCAiRmFpbGVkIHRvIHF1
-ZXJ5IFN1cGVyLUlPIGZvciBvcHRpb25hbCAiCisJCQkJICJmZWF0dXJlcy5cbiIpOworCQl9CisJ
-fSBlbHNlIHsgICAvKiBJU0EgY2hpcCAqLworCQkvKiBGYW4zIGFuZCBwd20zIGFyZSBhbHdheXMg
-YXZhaWxhYmxlLiBGYW5bNC01XSBhbmQgcHdtWzUtNl0KKwkJICogZG9uJ3QgZXhpc3QgaW4gdGhl
-IElTQSBjaGlwLiAqLwogCQlkYXRhLT5oYXNfZmFuIHw9ICgxIDw8IDIpOwotCX0KLQotCS8qIEZh
-bjQgYW5kIHB3bTMgYXJlIG9ubHkgYXZhaWxhYmxlIGlmIHRoZSBjbGllbnQncyBJMkMgYWRkcmVz
-cwotCSAqIGlzIHRoZSBkZWZhdWx0IDB4MmUuIE90aGVyd2lzZSB0aGUgSS9PcyBhc3NvY2lhdGVk
-IHdpdGggdGhlc2UKLQkgKiBmdW5jdGlvbnMgYXJlIHVzZWQgZm9yIGFkZHIgZW5hYmxlL3NlbGVj
-dC4gKi8KLQlpZiAoY2xpZW50LT5hZGRyID09IDB4MmUpIHsKLQkJZGF0YS0+aGFzX2ZhbiB8PSAo
-MSA8PCAzKTsKIAkJZGF0YS0+aGFzX3B3bSB8PSAoMSA8PCAyKTsKIAl9CiAKLQkvKiBEZXRlcm1p
-bmUgaWYgdGhlIG9wdGlvbmFsIGZhbls1LTZdIGFuZC9vciBwd21bNS02XSBhcmUgZW5hYmxlZC4K
-LQkgKiBGb3IgdGhpcywgd2UgbmVlZCB0byBxdWVyeSB0aGUgcnVudGltZSByZWdpc3RlcnMgdGhy
-b3VnaCB0aGUKLQkgKiBTdXBlci1JTyBMUEMgaW50ZXJmYWNlLiBUcnkgYm90aCBjb25maWcgcG9y
-dHMgMHgyZSBhbmQgMHg0ZS4gKi8KLQlpZiAoZG1lMTczN19pMmNfZ2V0X2ZlYXR1cmVzKDB4MmUs
-IGRhdGEpICYmCi0JICAgIGRtZTE3MzdfaTJjX2dldF9mZWF0dXJlcygweDRlLCBkYXRhKSkgewot
-CQlkZXZfd2FybihkZXYsICJGYWlsZWQgdG8gcXVlcnkgU3VwZXItSU8gZm9yIG9wdGlvbmFsICIK
-LQkJCSAiZmVhdHVyZXMuXG4iKTsKLQl9Ci0KIAkvKiBGYW4xLCBmYW4yLCBwd20xLCBhbmQgcHdt
-MiBhcmUgYWx3YXlzIHByZXNlbnQgKi8KIAlkYXRhLT5oYXNfZmFuIHw9IDB4MDM7CiAJZGF0YS0+
-aGFzX3B3bSB8PSAweDAzOwpAQCAtMTg3OSwxMyArMTkzMSwxOSBAQAogCiAJcmVnID0gZG1lMTcz
-N19yZWFkKGNsaWVudCwgRE1FMTczN19SRUdfVEFDSF9QV00pOwogCS8qIEluZm9ybSBpZiBmYW4t
-dG8tcHdtIG1hcHBpbmcgZGlmZmVycyBmcm9tIHRoZSBkZWZhdWx0ICovCi0JaWYgKHJlZyAhPSAw
-eGE0KSB7CisJaWYgKGNsaWVudC0+ZHJpdmVyICYmIHJlZyAhPSAweGE0KSB7ICAgLyogSTJDIGNo
-aXAgKi8KIAkJZGV2X3dhcm4oZGV2LCAiTm9uLXN0YW5kYXJkIGZhbiB0byBwd20gbWFwcGluZzog
-IgogCQkJICJmYW4xLT5wd20lZCwgZmFuMi0+cHdtJWQsIGZhbjMtPnB3bSVkLCAiCiAJCQkgImZh
-bjQtPnB3bSVkLiBQbGVhc2UgcmVwb3J0IHRvIHRoZSBkcml2ZXIgIgogCQkJICJtYWludGFpbmVy
-LlxuIiwKIAkJCSAocmVnICYgMHgwMykgKyAxLCAoKHJlZyA+PiAyKSAmIDB4MDMpICsgMSwKIAkJ
-CSAoKHJlZyA+PiA0KSAmIDB4MDMpICsgMSwgKChyZWcgPj4gNikgJiAweDAzKSArIDEpOworCX0g
-ZWxzZSBpZiAoIWNsaWVudC0+ZHJpdmVyICYmIHJlZyAhPSAweDI0KSB7ICAgLyogSVNBIGNoaXAg
-Ki8KKwkJZGV2X3dhcm4oZGV2LCAiTm9uLXN0YW5kYXJkIGZhbiB0byBwd20gbWFwcGluZzogIgor
-CQkJICJmYW4xLT5wd20lZCwgZmFuMi0+cHdtJWQsIGZhbjMtPnB3bSVkLiAiCisJCQkgIlBsZWFz
-ZSByZXBvcnQgdG8gdGhlIGRyaXZlciBtYWludGFpbmVyLlxuIiwKKwkJCSAocmVnICYgMHgwMykg
-KyAxLCAoKHJlZyA+PiAyKSAmIDB4MDMpICsgMSwKKwkJCSAoKHJlZyA+PiA0KSAmIDB4MDMpICsg
-MSk7CiAJfQogCiAJLyogU3dpdGNoIHB3bVsxLTNdIHRvIG1hbnVhbCBtb2RlIGlmIHRoZXkgYXJl
-IGN1cnJlbnRseSBkaXNhYmxlZCBhbmQKQEAgLTIwOTcsMTYgKzIxNTUsMjEzIEBACiB9OwogCiAv
-KiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0KKyAqIElTQSBkZXZpY2UgZGV0ZWN0aW9uIGFuZCByZWdpc3RyYXRpb24K
-KyAqIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLSAqLworCitzdGF0aWMgaW50IGRtZTE3MzdfaXNhX2RldGVjdChpbnQg
-c2lvX2NpcCwgdW5zaWduZWQgc2hvcnQgKmFkZHIpCit7CisJaW50IGVyciA9IDAsIHJlZzsKKwl1
-bnNpZ25lZCBzaG9ydCBiYXNlX2FkZHI7CisKKwlkbWUxNzM3X3Npb19lbnRlcihzaW9fY2lwKTsK
-KworCS8qIENoZWNrIGRldmljZSBJRAorCSAqIFdlIGN1cnJlbnRseSBrbm93IGFib3V0IFNDSDMx
-MTIgKDB4N2MpLCBTQ0gzMTE0ICgweDdkKSwgYW5kCisJICogU0NIMzExNiAoMHg3ZikuICovCisJ
-cmVnID0gZG1lMTczN19zaW9faW5iKHNpb19jaXAsIDB4MjApOworCWlmICghKHJlZyA9PSAweDdj
-IHx8IHJlZyA9PSAweDdkIHx8IHJlZyA9PSAweDdmKSkgeworCQllcnIgPSAtRU5PREVWOworCQln
-b3RvIGV4aXQ7CisJfQorCisJLyogU2VsZWN0IGxvZ2ljYWwgZGV2aWNlIEEgKHJ1bnRpbWUgcmVn
-aXN0ZXJzKSAqLworCWRtZTE3Mzdfc2lvX291dGIoc2lvX2NpcCwgMHgwNywgMHgwYSk7CisKKwkv
-KiBHZXQgdGhlIGJhc2UgYWRkcmVzcyBvZiB0aGUgcnVudGltZSByZWdpc3RlcnMgKi8KKwlpZiAo
-IShiYXNlX2FkZHIgPSAoZG1lMTczN19zaW9faW5iKHNpb19jaXAsIDB4NjApIDw8IDgpIHwKKwkJ
-CSAgIGRtZTE3Mzdfc2lvX2luYihzaW9fY2lwLCAweDYxKSkpIHsKKwkJcHJpbnRrKEtFUk5fRVJS
-ICJkbWUxNzM3OiBCYXNlIGFkZHJlc3Mgbm90IHNldC5cbiIpOworCQllcnIgPSAtRU5PREVWOwor
-CQlnb3RvIGV4aXQ7CisJfQorCisJLyogQWNjZXNzIHRvIHRoZSBod21vbiByZWdpc3RlcnMgaXMg
-dGhyb3VnaCBhbiBpbmRleC9kYXRhIHJlZ2lzdGVyCisJICogcGFpciBsb2NhdGVkIGF0IG9mZnNl
-dCAweDcwLzB4NzEuICovCisJKmFkZHIgPSBiYXNlX2FkZHIgKyAweDcwOworCitleGl0OgorCWRt
-ZTE3Mzdfc2lvX2V4aXQoc2lvX2NpcCk7CisKKwlyZXR1cm4gZXJyOworfQorCitzdGF0aWMgaW50
-IF9faW5pdCBkbWUxNzM3X2lzYV9kZXZpY2VfYWRkKHVuc2lnbmVkIHNob3J0IGFkZHIpCit7CisJ
-c3RydWN0IHJlc291cmNlIHJlcyA9IHsKKwkJLnN0YXJ0CT0gYWRkciwKKwkJLmVuZAk9IGFkZHIg
-KyAxLAorCQkubmFtZQk9ICJkbWUxNzM3IiwKKwkJLmZsYWdzCT0gSU9SRVNPVVJDRV9JTywKKwl9
-OworCWludCBlcnI7CisKKwlpZiAoIShwZGV2ID0gcGxhdGZvcm1fZGV2aWNlX2FsbG9jKCJkbWUx
-NzM3IiwgYWRkcikpKSB7CisJCXByaW50ayhLRVJOX0VSUiAiZG1lMTczNzogRmFpbGVkIHRvIGFs
-bG9jYXRlIGRldmljZS5cbiIpOworCQllcnIgPSAtRU5PTUVNOworCQlnb3RvIGV4aXQ7CisJfQor
-CisJaWYgKChlcnIgPSBwbGF0Zm9ybV9kZXZpY2VfYWRkX3Jlc291cmNlcyhwZGV2LCAmcmVzLCAx
-KSkpIHsKKwkJcHJpbnRrKEtFUk5fRVJSICJkbWUxNzM3OiBGYWlsZWQgdG8gYWRkIGRldmljZSBy
-ZXNvdXJjZS5cbiIpOworCQlnb3RvIGV4aXRfZGV2aWNlX3B1dDsKKwl9CisKKwlpZiAoKGVyciA9
-IHBsYXRmb3JtX2RldmljZV9hZGQocGRldikpKSB7CisJCXByaW50ayhLRVJOX0VSUiAiZG1lMTcz
-NzogRmFpbGVkIHRvIGFkZCBkZXZpY2UuXG4iKTsKKwkJZ290byBleGl0X2RldmljZV9wdXQ7CisJ
-fQorCisJcmV0dXJuIDA7CisKKyBleGl0X2RldmljZV9wdXQ6CisJcGxhdGZvcm1fZGV2aWNlX3B1
-dChwZGV2KTsKKyBleGl0OgorCXBkZXYgPSBOVUxMOworCXJldHVybiBlcnI7Cit9CisKK3N0YXRp
-YyBpbnQgX19kZXZpbml0IGRtZTE3MzdfaXNhX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ug
-KnBkZXYpCit7CisJdTggY29tcGFueSwgZGV2aWNlOworCXN0cnVjdCByZXNvdXJjZSAqcmVzID0g
-cGxhdGZvcm1fZ2V0X3Jlc291cmNlKHBkZXYsIElPUkVTT1VSQ0VfSU8sIDApOworCXN0cnVjdCBp
-MmNfY2xpZW50ICpjbGllbnQ7CisJc3RydWN0IGRtZTE3MzdfZGF0YSAqZGF0YTsKKwlzdHJ1Y3Qg
-ZGV2aWNlICpkZXY7CisJaW50IGVycjsKKworCWlmICghKGRhdGEgPSBremFsbG9jKHNpemVvZihz
-dHJ1Y3QgZG1lMTczN19kYXRhKSwgR0ZQX0tFUk5FTCkpKSB7CisJCWRldl9lcnIoJnBkZXYtPmRl
-diwgIkZhaWxlZCB0byBhbGxvY2F0ZSBtZW1vcnkuXG4iKTsKKwkJZXJyID0gLUVOT01FTTsKKwkJ
-Z290byBleGl0OworCX0KKworCWNsaWVudCA9ICZkYXRhLT5jbGllbnQ7CisJaTJjX3NldF9jbGll
-bnRkYXRhKGNsaWVudCwgZGF0YSk7CisJY2xpZW50LT5hZGRyID0gcmVzLT5zdGFydDsKKwlwbGF0
-Zm9ybV9zZXRfZHJ2ZGF0YShwZGV2LCBkYXRhKTsKKwlkZXYgPSAmcGRldi0+ZGV2OworCisJY29t
-cGFueSA9IGRtZTE3MzdfcmVhZCgmZGF0YS0+Y2xpZW50LCBETUUxNzM3X1JFR19DT01QQU5ZKTsK
-KwlkZXZpY2UgPSBkbWUxNzM3X3JlYWQoJmRhdGEtPmNsaWVudCwgRE1FMTczN19SRUdfREVWSUNF
-KTsKKworCWlmICghKChjb21wYW55ID09IERNRTE3MzdfQ09NUEFOWV9TTVNDKSAmJgorCSAgICAg
-IChkZXZpY2UgPT0gU0NIMzExWF9ERVZJQ0UpKSkgeworCQllcnIgPSAtRU5PREVWOworCQlnb3Rv
-IGV4aXRfa2ZyZWU7CisJfQorCisJLyogRmlsbCBpbiB0aGUgcmVtYWluaW5nIGNsaWVudCBmaWVs
-ZHMgYW5kIHB1dCBpdCBpbnRvIHRoZSBnbG9iYWwKKwkgKiBsaXN0ICovCisJc3RybGNweShjbGll
-bnQtPm5hbWUsICJzY2gzMTF4IiwgSTJDX05BTUVfU0laRSk7CisJbXV0ZXhfaW5pdCgmZGF0YS0+
-dXBkYXRlX2xvY2spOworCisJZGV2X2luZm8oZGV2LCAiRm91bmQgYSBTQ0gzMTFYIGNoaXAgYXQg
-MHglMDR4XG4iLCBjbGllbnQtPmFkZHIpOworCisJLyogSW5pdGlhbGl6ZSB0aGUgY2hpcCAqLwor
-CWlmICgoZXJyID0gZG1lMTczN19pbml0X2RldmljZShkZXYpKSkgeworCQlkZXZfZXJyKGRldiwg
-IkZhaWxlZCB0byBpbml0aWFsaXplIGRldmljZS5cbiIpOworCQlnb3RvIGV4aXRfa2ZyZWU7CisJ
-fQorCisJLyogQ3JlYXRlIHN5c2ZzIGZpbGVzICovCisJaWYgKChlcnIgPSBkbWUxNzM3X2NyZWF0
-ZV9maWxlcyhkZXYpKSkgeworCQlkZXZfZXJyKGRldiwgIkZhaWxlZCB0byBjcmVhdGUgc3lzZnMg
-ZmlsZXMuXG4iKTsKKwkJZ290byBleGl0X2tmcmVlOworCX0KKworCS8qIFJlZ2lzdGVyIGRldmlj
-ZSAqLworCWRhdGEtPmNsYXNzX2RldiA9IGh3bW9uX2RldmljZV9yZWdpc3RlcihkZXYpOworCWlm
-IChJU19FUlIoZGF0YS0+Y2xhc3NfZGV2KSkgeworCQlkZXZfZXJyKGRldiwgIkZhaWxlZCB0byBy
-ZWdpc3RlciBkZXZpY2UuXG4iKTsKKwkJZXJyID0gUFRSX0VSUihkYXRhLT5jbGFzc19kZXYpOwor
-CQlnb3RvIGV4aXRfcmVtb3ZlX2ZpbGVzOworCX0KKworCXJldHVybiAwOworCitleGl0X3JlbW92
-ZV9maWxlczoKKwlkbWUxNzM3X3JlbW92ZV9maWxlcyhkZXYpOworZXhpdF9rZnJlZToKKwlrZnJl
-ZShkYXRhKTsKKyBleGl0OgorCXJldHVybiBlcnI7Cit9CisKK3N0YXRpYyBpbnQgX19kZXZleGl0
-IGRtZTE3MzdfaXNhX3JlbW92ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQoreworCXN0
-cnVjdCBkbWUxNzM3X2RhdGEgKmRhdGEgPSBwbGF0Zm9ybV9nZXRfZHJ2ZGF0YShwZGV2KTsKKwor
-CWh3bW9uX2RldmljZV91bnJlZ2lzdGVyKGRhdGEtPmNsYXNzX2Rldik7CisJZG1lMTczN19yZW1v
-dmVfZmlsZXMoJnBkZXYtPmRldik7CisJcGxhdGZvcm1fc2V0X2RydmRhdGEocGRldiwgTlVMTCk7
-CisgCWtmcmVlKGRhdGEpOworCisgCXJldHVybiAwOworfQorCitzdGF0aWMgc3RydWN0IHBsYXRm
-b3JtX2RyaXZlciBkbWUxNzM3X2lzYV9kcml2ZXIgPSB7CisJLmRyaXZlciA9IHsKKwkJLm93bmVy
-ID0gVEhJU19NT0RVTEUsCisJCS5uYW1lID0gImRtZTE3MzciLAorCX0sCisJLnByb2JlID0gZG1l
-MTczN19pc2FfcHJvYmUsCisJLnJlbW92ZSA9IGRtZTE3MzdfaXNhX3JlbW92ZSwKK307CisKKy8q
-IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLQogICogTW9kdWxlIGluaXRpYWxpemF0aW9uIGFuZCBjbGVhbnVwCiAgKiAt
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0gKi8KIAogc3RhdGljIGludCBfX2luaXQgZG1lMTczN19pbml0KHZvaWQpCiB7
-Ci0JcmV0dXJuIGkyY19hZGRfZHJpdmVyKCZkbWUxNzM3X2kyY19kcml2ZXIpOworCWludCBlcnI7
-CisJdW5zaWduZWQgc2hvcnQgYWRkcjsKKworCWlmICgoZXJyID0gaTJjX2FkZF9kcml2ZXIoJmRt
-ZTE3MzdfaTJjX2RyaXZlcikpKSB7CisJCWdvdG8gZXhpdDsKKwl9CisKKwlpZiAoZG1lMTczN19p
-c2FfZGV0ZWN0KDB4MmUsICZhZGRyKSAmJgorCSAgICBkbWUxNzM3X2lzYV9kZXRlY3QoMHg0ZSwg
-JmFkZHIpKSB7CisJCWdvdG8gZXhpdDsKKwl9CisKKwlpZiAoKGVyciA9IHBsYXRmb3JtX2RyaXZl
-cl9yZWdpc3RlcigmZG1lMTczN19pc2FfZHJpdmVyKSkpIHsKKwkJZ290byBleGl0X2RlbF9kcml2
-ZXI7CisJfQorCisJLyogU2V0cyBnbG9iYWwgcGRldiBhcyBhIHNpZGUgZWZmZWN0ICovCisJaWYg
-KChlcnIgPSBkbWUxNzM3X2lzYV9kZXZpY2VfYWRkKGFkZHIpKSkgeworCQlnb3RvIGV4aXRfdW5y
-ZWdpc3RlcjsKKwl9CisKKwlyZXR1cm4gMDsKKworZXhpdF91bnJlZ2lzdGVyOgorCXBsYXRmb3Jt
-X2RyaXZlcl91bnJlZ2lzdGVyKCZkbWUxNzM3X2lzYV9kcml2ZXIpOworZXhpdF9kZWxfZHJpdmVy
-OgorCWkyY19kZWxfZHJpdmVyKCZkbWUxNzM3X2kyY19kcml2ZXIpOworZXhpdDoKKwlyZXR1cm4g
-ZXJyOwogfQogCiBzdGF0aWMgdm9pZCBfX2V4aXQgZG1lMTczN19leGl0KHZvaWQpCiB7CisJaWYg
-KHBkZXYpIHsKKwkJcGxhdGZvcm1fZGV2aWNlX3VucmVnaXN0ZXIocGRldik7CisJCXBsYXRmb3Jt
-X2RyaXZlcl91bnJlZ2lzdGVyKCZkbWUxNzM3X2lzYV9kcml2ZXIpOworCX0KKwogCWkyY19kZWxf
-ZHJpdmVyKCZkbWUxNzM3X2kyY19kcml2ZXIpOwogfQogCkluZGV4OiBsaW51eC0yLjYvRG9jdW1l
-bnRhdGlvbi9od21vbi9kbWUxNzM3Cj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGxpbnV4LTIuNi5vcmlnL0RvY3Vt
-ZW50YXRpb24vaHdtb24vZG1lMTczNwkyMDA3LTA4LTI2IDIwOjA3OjU4LjAwMDAwMDAwMCAtMDcw
-MAorKysgbGludXgtMi42L0RvY3VtZW50YXRpb24vaHdtb24vZG1lMTczNwkyMDA3LTA4LTI2IDIw
-OjEwOjIxLjAwMDAwMDAwMCAtMDcwMApAQCAtNiw2ICs2LDEwIEBACiAgICAgUHJlZml4OiAnZG1l
-MTczNycKICAgICBBZGRyZXNzZXMgc2Nhbm5lZDogSTJDIDB4MmMsIDB4MmQsIDB4MmUKICAgICBE
-YXRhc2hlZXQ6IFByb3ZpZGVkIGJ5IFNNU0MgdXBvbiByZXF1ZXN0IGFuZCB1bmRlciBOREEKKyAg
-KiBTTVNDIFNDSDMxMTIsIFNDSDMxMTQsIFNDSDMxMTYKKyAgICBQcmVmaXg6ICdzY2gzMTF4Jwor
-ICAgIEFkZHJlc3NlcyBzY2FubmVkOiBub25lLCBhZGRyZXNzIHJlYWQgZnJvbSBTdXBlci1JL08g
-Y29uZmlnIHNwYWNlCisgICAgRGF0YXNoZWV0OiBodHRwOi8vd3d3Lm51aG9yaXpvbnMuY29tL0Zl
-YXR1cmVkUHJvZHVjdHMvVm9sdW1lMS9TTVNDLzMxMXgucGRmCiAKIEF1dGhvcnM6CiAgICAgSnVl
-cmcgSGFlZmxpZ2VyIDxqdWVyZ2hAZ21haWwuY29tPgpAQCAtMjcsMTYgKzMxLDI1IEBACiAtLS0t
-LS0tLS0tLQogCiBUaGlzIGRyaXZlciBpbXBsZW1lbnRzIHN1cHBvcnQgZm9yIHRoZSBoYXJkd2Fy
-ZSBtb25pdG9yaW5nIGNhcGFiaWxpdGllcyBvZiB0aGUKLVNNU0MgRE1FMTczNyBhbmQgQXN1cyBB
-ODAwMCAod2hpY2ggYXJlIHRoZSBzYW1lKSBTdXBlci1JL08gY2hpcHMuIFRoaXMgY2hpcAotZmVh
-dHVyZXMgbW9uaXRvcmluZyBvZiAzIHRlbXAgc2Vuc29ycyB0ZW1wWzEtM10gKDIgcmVtb3RlIGRp
-b2RlcyBhbmQgMQotaW50ZXJuYWwpLCA3IHZvbHRhZ2VzIGluWzAtNl0gKDYgZXh0ZXJuYWwgYW5k
-IDEgaW50ZXJuYWwpIGFuZCA2IGZhbiBzcGVlZHMKLWZhblsxLTZdLiBBZGRpdGlvbmFsbHksIHRo
-ZSBjaGlwIGltcGxlbWVudHMgNSBQV00gb3V0cHV0cyBwd21bMS0zLDUtNl0gZm9yCi1jb250cm9s
-bGluZyBmYW4gc3BlZWRzIGJvdGggbWFudWFsbHkgYW5kIGF1dG9tYXRpY2FsbHkuCi0KLUZhblsz
-LTZdIGFuZCBwd21bMyw1LTZdIGFyZSBvcHRpb25hbCBmZWF0dXJlcyBhbmQgdGhlaXIgYXZhaWxh
-YmlsaXR5IGlzCi1kZXBlbmRlbnQgb24gdGhlIGNvbmZpZ3VyYXRpb24gb2YgdGhlIGNoaXAuIFRo
-ZSBkcml2ZXIgd2lsbCBkZXRlY3Qgd2hpY2gKLWZlYXR1cmVzIGFyZSBwcmVzZW50IGR1cmluZyBp
-bml0aWFsaXphdGlvbiBhbmQgY3JlYXRlIHRoZSBzeXNmcyBhdHRyaWJ1dGVzCi1hY2NvcmRpbmds
-eS4KK1NNU0MgRE1FMTczNyBhbmQgQXN1cyBBODAwMCAod2hpY2ggYXJlIHRoZSBzYW1lKSBhbmQg
-U01TQyBTQ0gzMTF4IFN1cGVyLUkvTworY2hpcHMuIFRoZXNlIGNoaXBzIGZlYXR1cmUgbW9uaXRv
-cmluZyBvZiAzIHRlbXAgc2Vuc29ycyB0ZW1wWzEtM10gKDIgcmVtb3RlCitkaW9kZXMgYW5kIDEg
-aW50ZXJuYWwpLCA3IHZvbHRhZ2VzIGluWzAtNl0gKDYgZXh0ZXJuYWwgYW5kIDEgaW50ZXJuYWwp
-IGFuZCB1cAordG8gNiBmYW4gc3BlZWRzIGZhblsxLTZdLiBBZGRpdGlvbmFsbHksIHRoZSBjaGlw
-cyBpbXBsZW1lbnQgdXAgdG8gNSBQV00KK291dHB1dHMgcHdtWzEtMyw1LTZdIGZvciBjb250cm9s
-bGluZyBmYW4gc3BlZWRzIGJvdGggbWFudWFsbHkgYW5kCithdXRvbWF0aWNhbGx5LgorCitGb3Ig
-dGhlIERNRTE3MzcgYW5kIEE4MDAwLCBmYW5bMS0yXSBhbmQgcHdtWzEtMl0gYXJlIGFsd2F5cyBw
-cmVzZW50LiBGYW5bMy02XQorYW5kIHB3bVszLDUtNl0gYXJlIG9wdGlvbmFsIGZlYXR1cmVzIGFu
-ZCB0aGVpciBhdmFpbGFiaWxpdHkgZGVwZW5kcyBvbiB0aGUKK2NvbmZpZ3VyYXRpb24gb2YgdGhl
-IGNoaXAuIFRoZSBkcml2ZXIgd2lsbCBkZXRlY3Qgd2hpY2ggZmVhdHVyZXMgYXJlIHByZXNlbnQK
-K2R1cmluZyBpbml0aWFsaXphdGlvbiBhbmQgY3JlYXRlIHRoZSBzeXNmcyBhdHRyaWJ1dGVzIGFj
-Y29yZGluZ2x5LgorCitGb3IgdGhlIFNDSDMxMXgsIGZhblsxLTNdIGFuZCBwd21bMS0zXSBhcmUg
-YWx3YXlzIHByZXNlbnQgYW5kIGZhbls0LTZdIGFuZAorcHdtWzUtNl0gZG9uJ3QgZXhpc3QuCisK
-K1RoZSBoYXJkd2FyZSBtb25pdG9yaW5nIGZlYXR1cmVzIG9mIHRoZSBETUUxNzM3IGFuZCBBODAw
-MCBhcmUgb25seSBhY2Nlc3NpYmxlCit2aWEgU01CdXMsIHdoaWxlIHRoZSBTQ0gzMTF4IG9ubHkg
-cHJvdmlkZXMgYWNjZXNzIHZpYSB0aGUgSVNBIGJ1cy4gVGhlIGRyaXZlcgord2lsbCB0aGVyZWZv
-cmUgcmVnaXN0ZXIgaXRzZWxmIGFzIGFuIEkyQyBjbGllbnQgZHJpdmVyIGlmIGl0IGRldGVjdHMg
-YSBETUUxNzM3CitvciBBODAwMCBhbmQgYXMgYSBwbGF0Zm9ybSBkcml2ZXIgaWYgaXQgZGV0ZWN0
-cyBhIFNDSDMxMXggY2hpcC4KIAogCiBWb2x0YWdlIE1vbml0b3JpbmcKSW5kZXg6IGxpbnV4LTIu
-Ni9kcml2ZXJzL2h3bW9uL0tjb25maWcKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gbGludXgtMi42Lm9yaWcvZHJp
-dmVycy9od21vbi9LY29uZmlnCTIwMDctMDgtMjYgMjA6MDc6NTguMDAwMDAwMDAwIC0wNzAwCisr
-KyBsaW51eC0yLjYvZHJpdmVycy9od21vbi9LY29uZmlnCTIwMDctMDgtMjYgMjA6MTA6MjEuMDAw
-MDAwMDAwIC0wNzAwCkBAIC00NjYsMTMgKzQ2NiwxMyBAQAogCSAgd2lsbCBiZSBjYWxsZWQgc2lz
-NTU5NS4KIAogY29uZmlnIFNFTlNPUlNfRE1FMTczNwotCXRyaXN0YXRlICJTTVNDIERNRTE3Mzcg
-YW5kIGNvbXBhdGlibGVzIgorCXRyaXN0YXRlICJTTVNDIERNRTE3MzcsIFNDSDMxMXggYW5kIGNv
-bXBhdGlibGVzIgogCWRlcGVuZHMgb24gSTJDICYmIEVYUEVSSU1FTlRBTAogCXNlbGVjdCBIV01P
-Tl9WSUQKIAloZWxwCiAJICBJZiB5b3Ugc2F5IHllcyBoZXJlIHlvdSBnZXQgc3VwcG9ydCBmb3Ig
-dGhlIGhhcmR3YXJlIG1vbml0b3JpbmcKIAkgIGFuZCBmYW4gY29udHJvbCBmZWF0dXJlcyBvZiB0
-aGUgU01TQyBETUUxNzM3IChhbmQgY29tcGF0aWJsZXMKLQkgIGxpa2UgdGhlIEFzdXMgQTgwMDAp
-IFN1cGVyLUkvTyBjaGlwLgorCSAgbGlrZSB0aGUgQXN1cyBBODAwMCkgYW5kIFNDSDMxMXggU3Vw
-ZXItSS9PIGNoaXBzLgogCiAJICBUaGlzIGRyaXZlciBjYW4gYWxzbyBiZSBidWlsdCBhcyBhIG1v
-ZHVsZS4gIElmIHNvLCB0aGUgbW9kdWxlCiAJICB3aWxsIGJlIGNhbGxlZCBkbWUxNzM3Lgo=
-------=_Part_56306_7676160.1188185131318
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>   *
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of the GNU General Public License as published by
+> @@ -28,6 +29,7 @@
+>  #include <linux/slab.h>
+>  #include <linux/jiffies.h>
+>  #include <linux/i2c.h>
+> +#include <linux/platform_device.h>
+>  #include <linux/hwmon.h>
+>  #include <linux/hwmon-sysfs.h>
+>  #include <linux/hwmon-vid.h>
+> @@ -35,6 +37,9 @@
+>  #include <linux/mutex.h>
+>  #include <asm/io.h>
+>  
+> +/* ISA device, if found */
+> +static struct platform_device *pdev;
+> +
+>  /* Module load parameters */
+>  static int force_start;
+>  module_param(force_start, bool, 0);
+> @@ -133,6 +138,7 @@
+>  static const u8 DME1737_BIT_ALARM_FAN[] = {10, 11, 12, 13, 22, 23};
+>  
+>  /* Miscellaneous registers */
+> +#define DME1737_REG_DEVICE		0x3d
+>  #define DME1737_REG_COMPANY		0x3e
+>  #define DME1737_REG_VERSTEP		0x3f
+>  #define DME1737_REG_CONFIG		0x40
+> @@ -148,11 +154,14 @@
+>  #define DME1737_COMPANY_SMSC	0x5c
+>  #define DME1737_VERSTEP		0x88
+>  #define DME1737_VERSTEP_MASK	0xf8
+> +#define SCH311X_DEVICE		0x8c
+>  
+>  /* ---------------------------------------------------------------------
+>   * Data structures and manipulation thereof
+>   * --------------------------------------------------------------------- */
+>  
+> +/* For ISA chips, we abuse the i2c_client addr and name fields. We also use
+> +   the driver field to differentiate between I2C and ISA chips. */
+>  struct dme1737_data {
+>  	struct i2c_client client;
+>  	struct class_device *class_dev;
+> @@ -469,23 +478,39 @@
+>  
+>  static u8 dme1737_read(struct i2c_client *client, u8 reg)
+>  {
+> -	s32 val = i2c_smbus_read_byte_data(client, reg);
+> +	s32 val;
+> +
+> +	if (client->driver) { /* I2C device */
+> +		val = i2c_smbus_read_byte_data(client, reg);
+>  
+> -	if (val < 0) {
+> -		dev_warn(&client->dev, "Read from register 0x%02x failed! "
+> -			 "Please report to the driver maintainer.\n", reg);
+> +		if (val < 0) {
+> +			dev_warn(&client->dev, "Read from register "
+> +				 "0x%02x failed! Please report to the driver "
+> +				 "maintainer.\n", reg);
+> +		}
+> +	} else { /* ISA device */
+> +		outb(reg, client->addr);
+> +		val = inb(client->addr + 1);
+>  	}
+>  
+>  	return val;
+>  }
+>  
+> -static s32 dme1737_write(struct i2c_client *client, u8 reg, u8 value)
+> +static s32 dme1737_write(struct i2c_client *client, u8 reg, u8 val)
+>  {
+> -	s32 res = i2c_smbus_write_byte_data(client, reg, value);
+> +	s32 res = 0;
+> +
+> +	if (client->driver) { /* I2C device */
+> +		res = i2c_smbus_write_byte_data(client, reg, val);
+>  
+> -	if (res < 0) {
+> -		dev_warn(&client->dev, "Write to register 0x%02x failed! "
+> -			 "Please report to the driver maintainer.\n", reg);
+> +		if (res < 0) {
+> +			dev_warn(&client->dev, "Write to register "
+> +				 "0x%02x failed! Please report to the driver "
+> +				 "maintainer.\n", reg);
+> +		}
+> +	} else { /* ISA device */
+> +		outb(reg, client->addr);
+> +		outb(val, client->addr + 1);
+>  	}
+>  
+>  	return res;
+
+Because the ISA access is through an index/data I/O port pair, it needs
+to be protected by a mutex during runtime. You happen to have such a
+mutex (data->update_lock) and the code is already correct, however I
+suggest adding a comment before both dme1737_read() and dme1737_write()
+reminding that these functions can only be safely called when holding
+data->update_lock (except during initialization).
+
+> @@ -630,6 +655,24 @@
+>  						DME1737_REG_ALARM3) << 16;
+>  		}
+>  
+> +		/* The ISA chips require explicit clearing of alarm bits.
+> +		 * Don't worry, an alarm will come back if the condition
+> +		 * that causes it still exists */
+> +		if (!client->driver) {
+> +			if (data->alarms & 0xff0000) {
+> +				dme1737_write(client, DME1737_REG_ALARM3,
+> +					      0xff);
+> +			}
+> +			if (data->alarms & 0xff00) {
+> +				dme1737_write(client, DME1737_REG_ALARM2,
+> +					      0xff);
+> +			}
+> +			if (data->alarms & 0xff) {
+> +				dme1737_write(client, DME1737_REG_ALARM1,
+> +					      0xff);
+> +			}
+> +		}
+> +
+>  		data->last_update = jiffies;
+>  		data->valid = 1;
+>  	}
+> @@ -1698,7 +1741,7 @@
+>  }
+>  
+>  /* ---------------------------------------------------------------------
+> - * Device detection, registration and initialization
+> + * Device initialization
+>   * --------------------------------------------------------------------- */
+>  
+>  static int dme1737_i2c_get_features(int, struct dme1737_data*);
+> @@ -1840,29 +1883,38 @@
+>  		return -EFAULT;
+>  	}
+>  
+> -	data->config2 = dme1737_read(client, DME1737_REG_CONFIG2);
+> -	/* Check if optional fan3 input is enabled */
+> -	if (data->config2 & 0x04) {
+> +	/* Determine which optional fan and pwm features are enabled/present */
+> +	if (client->driver) {   /* I2C chip */
+> +		data->config2 = dme1737_read(client, DME1737_REG_CONFIG2);
+> +		/* Check if optional fan3 input is enabled */
+> +		if (data->config2 & 0x04) {
+> +			data->has_fan |= (1 << 2);
+> +		}
+> +
+> +		/* Fan4 and pwm3 are only available if the client's I2C address
+> +		 * is the default 0x2e. Otherwise the I/Os associated with
+> +		 * these functions are used for addr enable/select. */
+> +		if (data->client.addr = 0x2e) {
+> +			data->has_fan |= (1 << 3);
+> +			data->has_pwm |= (1 << 2);
+> +		}
+> +
+> +		/* Determine which of the optional fan[5-6] and pwm[5-6]
+> +		 * features are enabled. For this, we need to query the runtime
+> +		 * registers through the Super-IO LPC interface. Try both
+> +		 * config ports 0x2e and 0x4e. */
+> +		if (dme1737_i2c_get_features(0x2e, data) &&
+> +		    dme1737_i2c_get_features(0x4e, data)) {
+> +			dev_warn(dev, "Failed to query Super-IO for optional "
+> +				 "features.\n");
+> +		}
+> +	} else {   /* ISA chip */
+> +		/* Fan3 and pwm3 are always available. Fan[4-5] and pwm[5-6]
+> +		 * don't exist in the ISA chip. */
+>  		data->has_fan |= (1 << 2);
+> -	}
+> -
+> -	/* Fan4 and pwm3 are only available if the client's I2C address
+> -	 * is the default 0x2e. Otherwise the I/Os associated with these
+> -	 * functions are used for addr enable/select. */
+> -	if (client->addr = 0x2e) {
+> -		data->has_fan |= (1 << 3);
+>  		data->has_pwm |= (1 << 2);
+>  	}
+>  
+> -	/* Determine if the optional fan[5-6] and/or pwm[5-6] are enabled.
+> -	 * For this, we need to query the runtime registers through the
+> -	 * Super-IO LPC interface. Try both config ports 0x2e and 0x4e. */
+> -	if (dme1737_i2c_get_features(0x2e, data) &&
+> -	    dme1737_i2c_get_features(0x4e, data)) {
+> -		dev_warn(dev, "Failed to query Super-IO for optional "
+> -			 "features.\n");
+> -	}
+> -
+>  	/* Fan1, fan2, pwm1, and pwm2 are always present */
+>  	data->has_fan |= 0x03;
+>  	data->has_pwm |= 0x03;
+> @@ -1879,13 +1931,19 @@
+>  
+>  	reg = dme1737_read(client, DME1737_REG_TACH_PWM);
+>  	/* Inform if fan-to-pwm mapping differs from the default */
+> -	if (reg != 0xa4) {
+> +	if (client->driver && reg != 0xa4) {   /* I2C chip */
+>  		dev_warn(dev, "Non-standard fan to pwm mapping: "
+>  			 "fan1->pwm%d, fan2->pwm%d, fan3->pwm%d, "
+>  			 "fan4->pwm%d. Please report to the driver "
+>  			 "maintainer.\n",
+>  			 (reg & 0x03) + 1, ((reg >> 2) & 0x03) + 1,
+>  			 ((reg >> 4) & 0x03) + 1, ((reg >> 6) & 0x03) + 1);
+> +	} else if (!client->driver && reg != 0x24) {   /* ISA chip */
+> +		dev_warn(dev, "Non-standard fan to pwm mapping: "
+> +			 "fan1->pwm%d, fan2->pwm%d, fan3->pwm%d. "
+> +			 "Please report to the driver maintainer.\n",
+> +			 (reg & 0x03) + 1, ((reg >> 2) & 0x03) + 1,
+> +			 ((reg >> 4) & 0x03) + 1);
+>  	}
+>  
+>  	/* Switch pwm[1-3] to manual mode if they are currently disabled and
+> @@ -2097,16 +2155,213 @@
+>  };
+>  
+>  /* ---------------------------------------------------------------------
+> + * ISA device detection and registration
+> + * --------------------------------------------------------------------- */
+> +
+> +static int dme1737_isa_detect(int sio_cip, unsigned short *addr)
+
+Could be declared __init.
+
+> +{
+> +	int err = 0, reg;
+> +	unsigned short base_addr;
+> +
+> +	dme1737_sio_enter(sio_cip);
+> +
+> +	/* Check device ID
+> +	 * We currently know about SCH3112 (0x7c), SCH3114 (0x7d), and
+> +	 * SCH3116 (0x7f). */
+> +	reg = dme1737_sio_inb(sio_cip, 0x20);
+> +	if (!(reg = 0x7c || reg = 0x7d || reg = 0x7f)) {
+> +		err = -ENODEV;
+> +		goto exit;
+> +	}
+> +
+> +	/* Select logical device A (runtime registers) */
+> +	dme1737_sio_outb(sio_cip, 0x07, 0x0a);
+> +
+> +	/* Get the base address of the runtime registers */
+> +	if (!(base_addr = (dme1737_sio_inb(sio_cip, 0x60) << 8) |
+> +			   dme1737_sio_inb(sio_cip, 0x61))) {
+> +		printk(KERN_ERR "dme1737: Base address not set.\n");
+> +		err = -ENODEV;
+> +		goto exit;
+> +	}
+> +
+> +	/* Access to the hwmon registers is through an index/data register
+> +	 * pair located at offset 0x70/0x71. */
+> +	*addr = base_addr + 0x70;
+> +
+> +exit:
+> +	dme1737_sio_exit(sio_cip);
+> +
+> +	return err;
+> +}
+> +
+> +static int __init dme1737_isa_device_add(unsigned short addr)
+> +{
+> +	struct resource res = {
+> +		.start	= addr,
+> +		.end	= addr + 1,
+> +		.name	= "dme1737",
+> +		.flags	= IORESOURCE_IO,
+> +	};
+> +	int err;
+> +
+> +	if (!(pdev = platform_device_alloc("dme1737", addr))) {
+> +		printk(KERN_ERR "dme1737: Failed to allocate device.\n");
+> +		err = -ENOMEM;
+> +		goto exit;
+> +	}
+> +
+> +	if ((err = platform_device_add_resources(pdev, &res, 1))) {
+> +		printk(KERN_ERR "dme1737: Failed to add device resource.\n");
+
+Printing the value of err would help investigating the problem if this
+ever happens.
+
+> +		goto exit_device_put;
+> +	}
+> +
+> +	if ((err = platform_device_add(pdev))) {
+> +		printk(KERN_ERR "dme1737: Failed to add device.\n");
+
+Ditto.
+
+> +		goto exit_device_put;
+> +	}
+> +
+> +	return 0;
+> +
+> + exit_device_put:
+> +	platform_device_put(pdev);
+> + exit:
+> +	pdev = NULL;
+
+Minor optimization: the "pdev = NULL" can be moved before the "exit:"
+label.
+
+> +	return err;
+> +}
+> +
+> +static int __devinit dme1737_isa_probe(struct platform_device *pdev)
+> +{
+> +	u8 company, device;
+> +	struct resource *res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+> +	struct i2c_client *client;
+> +	struct dme1737_data *data;
+> +	struct device *dev;
+> +	int err;
+> +
+> +	if (!(data = kzalloc(sizeof(struct dme1737_data), GFP_KERNEL))) {
+> +		dev_err(&pdev->dev, "Failed to allocate memory.\n");
+> +		err = -ENOMEM;
+> +		goto exit;
+> +	}
+
+You're missing a call to request_region() here. At this point the I/O
+region is declared but not requested, which means that another driver
+could request it. See the lm78 driver for an example.
+
+> +
+> +	client = &data->client;
+> +	i2c_set_clientdata(client, data);
+> +	client->addr = res->start;
+> +	platform_set_drvdata(pdev, data);
+> +	dev = &pdev->dev;
+> +
+> +	company = dme1737_read(&data->client, DME1737_REG_COMPANY);
+> +	device = dme1737_read(&data->client, DME1737_REG_DEVICE);
+
+You could use just "client" here. If you don't, it's probably not worth
+having this local variable at all.
+
+> +
+> +	if (!((company = DME1737_COMPANY_SMSC) &&
+> +	      (device = SCH311X_DEVICE))) {
+> +		err = -ENODEV;
+> +		goto exit_kfree;
+> +	}
+> +
+> +	/* Fill in the remaining client fields and put it into the global
+> +	 * list */
+
+Comment is wrong, you are thankfully not adding this fake client
+structure to the global list!
+
+> +	strlcpy(client->name, "sch311x", I2C_NAME_SIZE);
+> +	mutex_init(&data->update_lock);
+> +
+> +	dev_info(dev, "Found a SCH311X chip at 0x%04x\n", client->addr);
+
+I'd suggest a lower case x in the chip name.
+
+> +
+> +	/* Initialize the chip */
+> +	if ((err = dme1737_init_device(dev))) {
+> +		dev_err(dev, "Failed to initialize device.\n");
+> +		goto exit_kfree;
+> +	}
+> +
+> +	/* Create sysfs files */
+> +	if ((err = dme1737_create_files(dev))) {
+> +		dev_err(dev, "Failed to create sysfs files.\n");
+> +		goto exit_kfree;
+> +	}
+
+As this is a non-i2c device, you also need to create the "name" file.
+See the lm78 driver for an example. Without that file, libsensors will
+discard the device.
+
+> +
+> +	/* Register device */
+> +	data->class_dev = hwmon_device_register(dev);
+> +	if (IS_ERR(data->class_dev)) {
+> +		dev_err(dev, "Failed to register device.\n");
+> +		err = PTR_ERR(data->class_dev);
+> +		goto exit_remove_files;
+> +	}
+> +
+> +	return 0;
+> +
+> +exit_remove_files:
+> +	dme1737_remove_files(dev);
+> +exit_kfree:
+
+Even though it's not strictly necessary, I suggest adding
+	platform_set_drvdata(pdev, NULL);
+here.
+
+> +	kfree(data);
+> + exit:
+> +	return err;
+
+The indentation of labels is inconsistent.
+
+> +}
+> +
+> +static int __devexit dme1737_isa_remove(struct platform_device *pdev)
+> +{
+> +	struct dme1737_data *data = platform_get_drvdata(pdev);
+> +
+> +	hwmon_device_unregister(data->class_dev);
+> +	dme1737_remove_files(&pdev->dev);
+> +	platform_set_drvdata(pdev, NULL);
+> + 	kfree(data);
+
+Stray space at beginning of line.
+
+> +
+> + 	return 0;
+
+Ditto.
+
+> +}
+> +
+> +static struct platform_driver dme1737_isa_driver = {
+> +	.driver = {
+> +		.owner = THIS_MODULE,
+> +		.name = "dme1737",
+> +	},
+> +	.probe = dme1737_isa_probe,
+> +	.remove = dme1737_isa_remove,
+
+Missing __devexit_p().
+
+> +};
+> +
+> +/* ---------------------------------------------------------------------
+>   * Module initialization and cleanup
+>   * --------------------------------------------------------------------- */
+>  
+>  static int __init dme1737_init(void)
+>  {
+> -	return i2c_add_driver(&dme1737_i2c_driver);
+> +	int err;
+> +	unsigned short addr;
+> +
+> +	if ((err = i2c_add_driver(&dme1737_i2c_driver))) {
+> +		goto exit;
+> +	}
+> +
+> +	if (dme1737_isa_detect(0x2e, &addr) &&
+> +	    dme1737_isa_detect(0x4e, &addr)) {
+> +		goto exit;
+
+It took me some time to realize that this code is correct. A plain
+"return 0" would IMHO be more obvious. Or, if you don't want to change
+the code, add a comment to clarify that err = 0 so you're returning
+with success not error.
+
+> +	}
+> +
+> +	if ((err = platform_driver_register(&dme1737_isa_driver))) {
+> +		goto exit_del_driver;
+> +	}
+> +
+> +	/* Sets global pdev as a side effect */
+> +	if ((err = dme1737_isa_device_add(addr))) {
+> +		goto exit_unregister;
+> +	}
+> +
+> +	return 0;
+> +
+> +exit_unregister:
+> +	platform_driver_unregister(&dme1737_isa_driver);
+> +exit_del_driver:
+> +	i2c_del_driver(&dme1737_i2c_driver);
+
+These labels might be better named exit_del_isa_driver and
+exit_del_i2c_driver or something like that.
+
+> +exit:
+> +	return err;
+>  }
+>  
+>  static void __exit dme1737_exit(void)
+>  {
+> +	if (pdev) {
+> +		platform_device_unregister(pdev);
+> +		platform_driver_unregister(&dme1737_isa_driver);
+> +	}
+> +
+>  	i2c_del_driver(&dme1737_i2c_driver);
+>  }
+>  
+
+Additionally, you have a number of occurrences of "&client->dev" left
+in common code (set_fan, set_pwm twice), which will break in the ISA
+case. You should use "dev" instead.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_56306_7676160.1188185131318--
