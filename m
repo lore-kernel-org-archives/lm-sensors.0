@@ -1,118 +1,58 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Mon, 13 Aug 2007 17:03:19 +0000
-Subject: [lm-sensors] vt1211 manual pwm control
-Message-Id: <191fb4ca0708131003h34b3689cm9417778429fec69b@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_14021_22093097.1187024599510"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 29 Aug 2007 08:39:57 +0000
+Subject: [lm-sensors] [PATCH] hwmon: End of I/O region off-by-one
+Message-Id: <20070829103957.69691bff@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_14021_22093097.1187024599510
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Fix an off-by-one error in the I/O region declaration of two
+hardware monitoring drivers (lm78 and w83781d.) We were requesting
+one extra port at the end of the region.
 
-Hi cilly,
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Mark, can you please apply this fix quickly? It should probably go to
+2.6.22-stable as well, as in theory it could prevent drivers from
+loading.
 
-> On Jul 28, 2007, at 1:23 AM, Juerg Haefliger wrote:
->
-> > I'm in the process of adding PMW fan control to my M10000. Hopefully I
-> > can reproduce your findings then and be able to figure out what's
-> > going on. Give my a couple of days...
-> >
-> > ...juerg
->
-> Hi Juerg,
->
-> any news so far?
+Personal note: having different conventions for declaring resources and
+requesting them really sucks :(
 
-Yes, I do. Try the attached script.
-Do
-> vt1211_pwm.sh -i
-first to initialize the vt1211 and then you can do
-> vt1211_pwm.sh -s -p X -v Y
-to set pwmX to Y. X can be 1 or 2 and Y can be 0-255.
+ drivers/hwmon/lm78.c    |    2 +-
+ drivers/hwmon/w83781d.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Let me know how it goes.
-...juerg
+--- linux-2.6.23-rc4.orig/drivers/hwmon/lm78.c	2007-08-08 16:53:14.000000000 +0200
++++ linux-2.6.23-rc4/drivers/hwmon/lm78.c	2007-08-28 18:17:22.000000000 +0200
+@@ -882,7 +882,7 @@ static int __init lm78_isa_device_add(un
+ {
+ 	struct resource res = {
+ 		.start	= address,
+-		.end	= address + LM78_EXTENT,
++		.end	= address + LM78_EXTENT - 1,
+ 		.name	= "lm78",
+ 		.flags	= IORESOURCE_IO,
+ 	};
+--- linux-2.6.23-rc4.orig/drivers/hwmon/w83781d.c	2007-08-28 12:56:37.000000000 +0200
++++ linux-2.6.23-rc4/drivers/hwmon/w83781d.c	2007-08-28 18:17:15.000000000 +0200
+@@ -1748,7 +1748,7 @@ w83781d_isa_device_add(unsigned short ad
+ {
+ 	struct resource res = {
+ 		.start	= address,
+-		.end	= address + W83781D_EXTENT,
++		.end	= address + W83781D_EXTENT - 1,
+ 		.name	= "w83781d",
+ 		.flags	= IORESOURCE_IO,
+ 	};
 
 
-> c.
->
-
-------=_Part_14021_22093097.1187024599510
-Content-Type: application/x-sh; name=vt1211_pwm.sh
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f5b7p1nd
-Content-Disposition: attachment; filename="vt1211_pwm.sh"
-
-IyEvYmluL3NoCiMKIyB2dDEyMTFfcHdtIC0gQ29udHJvbCB0aGUgUFdNIG91dHB1dHMgb2YgdGhl
-IFZJQSB2dDEyMTEgU3VwZXItSS9PCiMKIyBDb3B5cmlnaHQgKEMpIDIwMDcgIEp1ZXJnIEhhZWZs
-aWdlciAoanVlcmdoIGF0IGdtYWlsLmNvbT4KIwojIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3
-YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5CiMgaXQgdW5kZXIgdGhl
-IHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNoZWQgYnkK
-IyB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRoZXIgdmVyc2lvbiAyIG9mIHRoZSBM
-aWNlbnNlLCBvcgojIChhdCB5b3VyIG9wdGlvbikgYW55IGxhdGVyIHZlcnNpb24uCiMKIyBUaGlz
-IHByb2dyYW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhhdCBpdCB3aWxsIGJlIHVzZWZ1
-bCwKIyBidXQgV0lUSE9VVCBBTlkgV0FSUkFOVFk7IHdpdGhvdXQgZXZlbiB0aGUgaW1wbGllZCB3
-YXJyYW50eSBvZgojIE1FUkNIQU5UQUJJTElUWSBvciBGSVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIg
-UFVSUE9TRS4gIFNlZSB0aGUKIyBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBk
-ZXRhaWxzLgojCiMgWW91IHNob3VsZCBoYXZlIHJlY2VpdmVkIGEgY29weSBvZiB0aGUgR05VIEdl
-bmVyYWwgUHVibGljIExpY2Vuc2UKIyBhbG9uZyB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYgbm90LCB3
-cml0ZSB0byB0aGUgRnJlZSBTb2Z0d2FyZQojIEZvdW5kYXRpb24sIEluYy4sIDY3NSBNYXNzIEF2
-ZSwgQ2FtYnJpZGdlLCBNQSAwMjEzOSwgVVNBLgojCgpmdW5jdGlvbiB1c2FnZSB7CiAgICBlY2hv
-ICJVc2FnZTogdnQxMjExX3B3bSBBQ1RJT04gW09QVElPTlNdIgogICAgZWNobwogICAgZWNobyAi
-QUNUSU9OUyIKICAgIGVjaG8gIiAgLWkgICAgICAgICAgICBJbml0aWFsaXplIHRoZSB2dDEyMTEg
-Zm9yIG1hbnVhbCBQV00gY29udHJvbC4iCiAgICBlY2hvICIgIC1zIFtPUFRJT05TXSAgU2V0IHRo
-ZSBQV00gb3V0cHV0IGR1dHktY3ljbGUuIFNlZSBTRVQgT1BUSU9OUyBiZWxvdy4iCiAgICBlY2hv
-CiAgICBlY2hvICJTRVQgT1BUSU9OUyIKICAgIGVjaG8gIiAgLXAgPG51bT4gICBQV00gbnVtYmVy
-ICgxLTIpLiIKICAgIGVjaG8gIiAgLXYgPG51bT4gICBQV00gZHV0eS1jeWNsZSAoMC0yNTUpLiIK
-ICAgIGVjaG8KICAgIGV4aXQgMgp9CgojIGNoZWNrIGlmIHdlIGhhdmUgdGhlIHJpZ2h0IHBlcm1p
-c3Npb25zIHRvIHJ1bgppZiBbIGB3aG9hbWlgICE9ICJyb290IiBdIDsgdGhlbgogICAgZWNobyAi
-WW91IG11c3QgYmUgcm9vdCB0byBydW4gdGhpcyBzY3JpcHQuIgogICAgZXhpdCAxCmZpCgojIHBh
-cnNlIHRoZSBjb21tYW5kIGxpbmUgb3B0aW9ucwppZmxhZz0Kc2ZsYWc9CnBmbGFnPQp2ZmxhZz0K
-d2hpbGUgZ2V0b3B0cyBpc3A6djogb3B0IDsgZG8KICAgIGNhc2UgJG9wdCBpbgoJaSkgIGlmbGFn
-PTE7OwoJcykgIHNmbGFnPTE7OwoJcCkgIHBmbGFnPTEKCSAgICBwdmFsPSIkT1BUQVJHIjs7Cgl2
-KSAgdmZsYWc9MQoJICAgIHZ2YWw9IiRPUFRBUkciOzsKCT8pICB1c2FnZTs7CiAgICBlc2FjCmRv
-bmUKCiMgZGV0ZXJtaW5lIHRoZSBhY3Rpb24gd2UgbmVlZCB0byBwZXJmb3JtCmFjdGlvbj0KaWYg
-WyAtbiAiJGlmbGFnIiAtYSAteiAiJHNmbGFnIiAtYSAteiAiJHBmbGFnIiAtYSAteiAiJHZmbGFn
-IiBdOyB0aGVuCiAgICBhY3Rpb249ImluaXQiCmVsaWYgWyAteiAiJGlmbGFnIiAtYSAtbiAiJHNm
-bGFnIiAtYSAtbiAiJHBmbGFnIiAtYSAtbiAiJHZmbGFnIiBdOyB0aGVuCiAgICBhY3Rpb249InNl
-dCIKZWxzZQogICAgdXNhZ2UKZmkKCiMgQUNUSU9OOiBpbml0CmlmIFsgJGFjdGlvbiA9ICJpbml0
-IiBdIDsgdGhlbgogICAgIyBsb2FkIHRoZSBrZXJuZWwgbW9kdWxlIGlmIG5lY2Vzc2FyeQogICAg
-bHNtb2QgfCBncmVwIC1xIHZ0MTIxMSB8fCBtb2Rwcm9iZSB2dDEyMTEKCiAgICAjIHNldCB0aGUg
-cGF0aCB0byB0aGUgZGV2aWNlCiAgICBkZXY9YGxzIC1kIC9zeXMvZGV2aWNlcy9wbGF0Zm9ybS92
-dDEyMTEuKmAKCiAgICAjIHNldCB0aGUgcHdtLXRvLXRlbXAgbWFwcGluZwogICAgIyB1c2UgdGhl
-IGludGVybmFsIHRlbXAgYXMgYSByZWZlcmVuY2UKICAgIGVjaG8gMiA+ICR7ZGV2fS9wd20xX2F1
-dG9fY2hhbm5lbHNfdGVtcAogICAgZWNobyAyID4gJHtkZXZ9L3B3bTJfYXV0b19jaGFubmVsc190
-ZW1wCgogICAgIyBlbmFibGUgdGhlIHB3bSBjb250cm9sbGVyCiAgICBlY2hvIDIgPiAke2Rldn0v
-cHdtMV9lbmFibGUKICAgIGVjaG8gMiA+ICR7ZGV2fS9wd20yX2VuYWJsZQoKICAgICMgc2V0IHRo
-ZSB0ZW1wIGJvdW5kYXJpZXMgdG8gZXh0cmVtIHZhbHVlcwogICAgZWNobyAtOTk5OTkgPiAke2Rl
-dn0vcHdtMV9hdXRvX3BvaW50MV90ZW1wCiAgICBlY2hvIC05OTk5OSA+ICR7ZGV2fS9wd20xX2F1
-dG9fcG9pbnQyX3RlbXAKICAgIGVjaG8gOTk5OTk5ID4gJHtkZXZ9L3B3bTFfYXV0b19wb2ludDNf
-dGVtcAogICAgZWNobyA5OTk5OTkgPiAke2Rldn0vcHdtMV9hdXRvX3BvaW50NF90ZW1wCgogICAg
-ZXhpdApmaQoKIyBBQ1RJT046IHNldAppZiBbICRhY3Rpb24gPSAic2V0IiBdIDsgdGhlbgogICAg
-IyBjaGVjayB0aGUgUFdNIG51bWJlcgogICAgaWYgWyAkcHZhbCAtbHQgMSAtbyAkcHZhbCAtZ3Qg
-MiBdIDsgdGhlbgoJZWNobyAicHdtJHtwdmFsfSBkb2Vzbid0IGV4aXN0LiIKCWV4aXQgMQogICAg
-ZmkKCiAgICAjIGNsYW1wIHRoZSBkdXR5LWN5Y2xlCiAgICBbICR2dmFsIC1sdCAwIF0gICAgJiYg
-dnZhbD0wCiAgICBbICR2dmFsIC1ndCAyNTUgXSAgJiYgdnZhbD0yNTUKCiAgICAjIHNldCB0aGUg
-cGF0aCB0byB0aGUgZGV2aWNlCiAgICBkZXY9YGxzIC1kIC9zeXMvZGV2aWNlcy9wbGF0Zm9ybS92
-dDEyMTEuKmAKCiAgICAjIHNldCB0aGUgUFdNIGR1dHktY3ljbGUKICAgIGVjaG8gJHZ2YWwgICA+
-ICR7ZGV2fS9wd20ke3B2YWx9X2F1dG9fcG9pbnQzX3B3bQoKICAgICMgZm9vbCB0aGUgdnQxMjEx
-IGludG8gYmVsaWV2aW5nIHRoZXJlIGlzIGEgdGVtcCBjaGFuZ2UKICAgICMgb3RoZXJ3aXNlIHRo
-ZSBuZXcgUFdNIGR1dHktY3ljbGUgZG9lc24ndCB0YWtlIGVmZmVjdAogICAgZWNobyAtOTk5OTkg
-PiAke2Rldn0vcHdtMV9hdXRvX3BvaW50M190ZW1wCiAgICBlY2hvIDk5OTk5OSA+ICR7ZGV2fS9w
-d20xX2F1dG9fcG9pbnQzX3RlbXAKCiAgICAjIHJlYWQgdGhlIG5ldyBQV00gZHV0eS1jeWNsZSBi
-YWNrIGFuZCBwcmludCBpdAogICAgdmFsPWBjYXQgJHtkZXZ9L3B3bSR7cHZhbH1gCiAgICBlY2hv
-ICJwd20ke3B2YWx9IGlzIG5vdyBhdCAke3ZhbH0uIgoKICAgIGV4aXQKZmkK
-------=_Part_14021_22093097.1187024599510
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_14021_22093097.1187024599510--
