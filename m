@@ -1,31 +1,52 @@
-From: Joe Perches <joe@perches.com>
-Date: Mon, 13 Aug 2007 16:59:48 +0000
-Subject: Re: [lm-sensors] [PATCH] [159/2many] MAINTAINERS - DME1737 HARDWARE
-Message-Id: <1187024389.10249.120.camel@localhost>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 31 Aug 2007 15:16:37 +0000
+Subject: Re: [lm-sensors] [PATCH lm_sensors-2.10.4][RESEND] sensors-detect:
+Message-Id: <20070831171637.2c343762@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46bff993.7OEwF3qQrioxyBDU%joe@perches.com>
-	 <191fb4ca0708130955l5ee0d263o4e01c4caa96bf811@mail.gmail.com>
-In-Reply-To: <191fb4ca0708130955l5ee0d263o4e01c4caa96bf811@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Juerg Haefliger <juergh@gmail.com>
-Cc: torvalds@linux-foundation.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Mon, 2007-08-13 at 09:55 -0700, Juerg Haefliger wrote:
-> +F:     Documentation/hwmon/dme1737
+Hi Jason,
 
-Saved as:
+For next time: patches to lm-sensors should be sent to the lm-sensors
+list, not the i2c list.
 
-DME1737 HARDWARE MONITOR DRIVER
-P:	Juerg Haefliger
-M:	juergh@gmail.com
-L:	lm-sensors@lm-sensors.org
-S:	Maintained
-F:	Documentation/hwmon/dme1737
-F:	drivers/hwmon/dme1737.c
+On Thu, 30 Aug 2007 17:47:51 -0700, Jason Gaston wrote:
+> Resend without wordwrap.
+>=20
+> This patch adds the Intel Tolapai SMBus Controller DID to the sensors-det=
+ect=20
+> script.
+>=20
+> Signed-off-by: =A0Jason Gaston <jason.d.gaston@intel.com>
+>=20
+> --- lm_sensors-2.10.4/prog/detect/sensors-detect.orig	2007-08-30 15:51:39=
+.000000000 -0700
+> +++ lm_sensors-2.10.4/prog/detect/sensors-detect	2007-08-30 15:53:06.0000=
+00000 -0700
+> @@ -166,7 +166,14 @@
+>         procid =3D> "Intel ICH9",
+>         driver =3D> "i2c-i801",
+>         match =3D> qr/^SMBus I801 adapter at [0-9a-f]{4}/,
+> -     },=20
+> +     },
+> +     {=20
+> +       vendid =3D> 0x8086,
+> +       devid  =3D> 0x5032,
+> +       procid =3D> "Intel Tolapai",
+> +       driver =3D> "i2c-i801",
+> +       match =3D> qr/^SMBus I801 adapter at [0-9a-f]{4}/,
+> +     }, =20
+>       {=20
+>         vendid =3D> 0x1106,
+>         devid  =3D> 0x3040,
 
+Applied, thanks.
 
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
