@@ -1,33 +1,48 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 02 Sep 2007 15:34:51 +0000
-Subject: Re: [lm-sensors] [PATCH] Allow writing of negative trigger
-Message-Id: <20070902173451.1117652d@hyperion.delvare>
+From: Pavel Machek <pavel@ucw.cz>
+Date: Sat, 01 Sep 2007 17:10:48 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: Add power meters to
+Message-Id: <20070901171048.GA3883@ucw.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070816081353.GF10132@tweety>
-In-Reply-To: <20070816081353.GF10132@tweety>
+References: <20070827211446.GG32667@tree.beaverton.ibm.com> <20070828015029.GA10107@khazad-dum.debian.net> <20070828131942.18449886@hyperion.delvare> <20070828164440.GL32667@tree.beaverton.ibm.com>
+In-Reply-To: <20070828164440.GL32667@tree.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Mark M. Hoffman" <mhoffman@lightlink.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Sun, 2 Sep 2007 11:06:42 -0400, Mark M. Hoffman wrote:
-> * Jean Delvare <khali@linux-fr.org> [2007-08-27 10:17:14 +0200]:
-> > Unfortunately, I have neither lm77 nor lm93 dumps to load i2c-stub
-> > with. If anyone has such dumps and could share them...
-> 
-> BTW: you don't need them in this case.  The following works just fine...
-> 
-> # modprobe i2c-stub chip-addr=0x2c
-> 
-> # modprobe lm93 force_lm93=1,0x2c	# replace '1' w/ ID of stub
+Hi!
 
-Ah, good point, I didn't think about the force parameter.
+> diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+> index b3a9e1b..da546ce 100644
+> --- a/Documentation/hwmon/sysfs-interface
+> +++ b/Documentation/hwmon/sysfs-interface
+> @@ -304,6 +304,21 @@ curr[1-*]_input	Current input value
+>  		Unit: milliampere
+>  		RO
+>  
+> +*********
+> +* Power *
+> +*********
+> +
+> +power[1-*]_input	Current power use
+> +			Unit: milliWatt
+> +			RO
+> +
+> +power[1-*]_max_input	Historical maximum power use
+> +			Unit: milliWatt
+> +			RO
+> +
+> +power[1-*]_min_input	Historical minimum power use
+> +			Unit: milliWatt
+> +			RO
 
-That being said, I would still enjoy having dumps of these chips for
-more general testing where forcing an empty chip isn't sufficient.
-
+Should we add power?_10sec_avg_input? IIRC thinkpads export that,
+too.
+							Pavel
 -- 
-Jean Delvare
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 
 _______________________________________________
 lm-sensors mailing list
