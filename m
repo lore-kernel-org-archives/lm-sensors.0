@@ -1,113 +1,120 @@
-From: Henrique de Moraes Holschuh <hmh@debian.org>
-Date: Sun, 30 Sep 2007 14:54:29 +0000
-Subject: Re: [lm-sensors] lm-sensors 3.0.0-rc1 has been released!
-Message-Id: <20070930145429.GA16963@khazad-dum.debian.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 02 Sep 2007 20:23:33 +0000
+Subject: [lm-sensors] [PATCH 7/7] libsensors4: Don't store scaling factors
+Message-Id: <20070902222333.6a46e91b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070925233316.7afaa297@hyperion.delvare>
-In-Reply-To: <20070925233316.7afaa297@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 30 Sep 2007, Jean Delvare wrote:
-> libsensors wouldn't cope with that anyway, so I'm glad you're not doing
-> it. libsensors probes for available features at initialization time.
+Now that we can deduce the scaling factor required for each feature
+from its type, there's no need to store this scaling factor. We can
+instead compute it at runtime. This saves some memory (about 10 kB
+in my real-world test), and the runtime overhead is totally
+negligible.
 
-We better document that in the kernel docs, then.  Because AFAIK sysfs
-interfaces are actually supposed to make those attributes come and go when
-possible.
+Note that the structures sensors_chip_feature and sensors_feature_data
+are now exactly the same, so we could use one structure everywhere.
+The only advantage to have two structures is that sensors_feature_data
+is part of the API, while sensors_chip_feature is not, so if we
+ever need to add internal attributes, for example to improve performance,
+having an internal structure can be helpful. Question is, will we
+actually ever need this? Opinion anyone?
 
-> After that, the feature list doesn't change and applications can count
-> on it not changing. Of course, applications can run sensors_init()
-> again to get a fresher view of the hardware state, but this is pretty
-> expensive and not something that we want applications to do every other
-> second.
+---
+ lib/data.h  |    5 +----
+ lib/sysfs.c |   18 ++++++------------
+ 2 files changed, 7 insertions(+), 16 deletions(-)
 
-I've seen that cause endless problems in ACPI drivers (thinkpad-acpi has
-this issue on some deprecated codepaths).  It is really something to avoid
-if at all possible.
+--- lm-sensors-3.orig/lib/data.h	2007-09-02 16:18:38.000000000 +0200
++++ lm-sensors-3/lib/data.h	2007-09-02 16:22:06.000000000 +0200
+@@ -131,12 +131,9 @@ typedef struct sensors_bus {
+      fan_div)
+    flags is a bitfield, its value is a combination of SENSORS_MODE_R (readable),
+      SENSORS_MODE_W (writable) and SENSORS_COMPUTE_MAPPING (affected by the
+-     computation rules of the main feature).
+-   scaling is the number of decimal points to scale by.
+-     Divide the read value by 10**scaling to get the real value. */
++     computation rules of the main feature). */
+ typedef struct sensors_chip_feature {
+ 	sensors_feature_data data;
+-	int scaling;
+ } sensors_chip_feature;
+ 
+ /* Internal data about all features of a type of chip */
+--- lm-sensors-3.orig/lib/sysfs.c	2007-09-02 16:19:42.000000000 +0200
++++ lm-sensors-3/lib/sysfs.c	2007-09-02 16:22:06.000000000 +0200
+@@ -48,16 +48,16 @@ int get_type_scaling(int type)
+ 	switch (type & 0xFF10) {
+ 	case SENSORS_FEATURE_IN:
+ 	case SENSORS_FEATURE_TEMP:
+-		return 3;
++		return 1000;
+ 	case SENSORS_FEATURE_FAN:
+-		return 0;
++		return 1;
+ 	}
+ 
+ 	switch (type) {
+ 	case SENSORS_FEATURE_VID:
+-		return 3;
++		return 1000;
+ 	default:
+-		return 0;
++		return 1;
+ 	}
+ }
+ 
+@@ -155,8 +155,6 @@ static int sensors_read_dynamic_chip(sen
+ 		if (attr->method & SYSFS_METHOD_STORE)
+ 			feature.data.flags |= SENSORS_MODE_W;
+ 
+-		feature.scaling = get_type_scaling(type);
+-
+ 		features[i] = feature;
+ 		fnum++;
+ 	}
+@@ -422,7 +420,6 @@ int sensors_read_sysfs_attr(const sensor
+ 			    double *value)
+ {
+ 	const sensors_chip_feature *the_feature;
+-	int mag;
+ 	char n[NAME_MAX];
+ 	FILE *f;
+ 	const char *suffix = "";
+@@ -443,8 +440,7 @@ int sensors_read_sysfs_attr(const sensor
+ 		fclose(f);
+ 		if (res != 1)
+ 			return -SENSORS_ERR_PROC;
+-		for (mag = the_feature->scaling; mag > 0; mag --)
+-			*value /= 10.0;
++		*value /= get_type_scaling(the_feature->data.type);
+ 	} else
+ 		return -SENSORS_ERR_PROC;
+ 
+@@ -455,7 +451,6 @@ int sensors_write_sysfs_attr(const senso
+ 			     double value)
+ {
+ 	const sensors_chip_feature *the_feature;
+-	int mag;
+ 	char n[NAME_MAX];
+ 	FILE *f;
+ 	const char *suffix = "";
+@@ -472,8 +467,7 @@ int sensors_write_sysfs_attr(const senso
+ 	snprintf(n, NAME_MAX, "%s/%s%s", name->path, the_feature->data.name,
+ 		 suffix);
+ 	if ((f = fopen(n, "w"))) {
+-		for (mag = the_feature->scaling; mag > 0; mag --)
+-			value *= 10.0;
++		value *= get_type_scaling(the_feature->data.type);
+ 		fprintf(f, "%d", (int) value);
+ 		fclose(f);
+ 	} else
 
-> I agree it would be nice to have some form of hotplug support in
-> libsensors, not just for features being added or removed, but primarily
-> for _devices_ being added or removed. But I didn't have the time to
-> think about it. It was hard enough (and long enough) to get lm-sensors
-> 3.0.0 ready to be released, I just can't do more myself.
-
-Fair enough.
-
-> > Retrying on EINTR is pretty much needed, AFAIK.  If the library doesn't do
-> > retries by itself, we must return a separate return code so that the library
-> > user can.  I have never heard of EINTR being anything but a very temporary
-> > condition, though.
-> 
-> I just don't understand when -EINTR is supposed to be returned, sorry.
-> I don't think we have any hardware monitoring driver returning this at
-> the moment, do we?
-
-I know of thinkpad-acpi, but I didn't search for others.
-
-> > (...)
-> > Drivers *do* often retry, if the hardware is busy.  But if they get a
-> > signal, what should they do, then?  AFAIK at least for stuff like sysfs, one
-> > is to return to userspace with EINTR to let userspace handle its signals,
-> > and resubmit the request if it wants to.
-> > 
-> > My sources of EINTR in thinkpad-acpi are from mutex_lock_interruptible.
-> 
-> I really need you to explain in details how and why EINTR is generated
-> and what we are supposed to do with it. I can't implement anything in
-> libsensors as long as I don't understand what we are dealing with.
-> Ideally, you would even be writing the libsensors patch, as you seem to
-> understand the needs much better than I do.
-
-I am not completely sure I do understand EINTR, mind you.  But here's a
-typical path in thinkpad-acpi that can return EINTR as per the
-mutex_lock_interruptible documentation:
-
-static ssize_t hotkey_mask_show(struct device *dev,
-                           struct device_attribute *attr,
-                           char *buf)
-{
-        int res;
-
-        res = mutex_lock_interruptible(&hotkey_mutex);
-        if (res < 0)
-                return res;
-        res = hotkey_mask_get();
-        mutex_unlock(&hotkey_mutex);
-
-        return (res)?
-                res : snprintf(buf, PAGE_SIZE, "0x%08x\n", hotkey_mask);
-}
-
-It may return -EINTR from mutex_lock_interruptible, or -EIO from
-hotkey_mask_get (a function internal to thinkpad-acpi).
-
-AFAIK, all cases I have seen for EINTR on the kernel allow one to do
-something like this in userspace:
-
-rc = -EINTR;
-while (rc = -EINTR) {
-	(check if any of our signal handlers have signalled that a signal
-         was receivied, e.g. sigterm)
-	(kernel operation that can return EINTR);
-}
-
-Because EINTR is something that is one-shot.  You get it when a signal is
-delivered, and that's it.  Many syscalls can even be told to restart
-themselves in case of an EINTR (but I don't know much about that, sorry).
-
-Thinking a bit more about it, it looks to me like libsensors4 needs to be
-able to pass EINTR down the chain, and must let its user (the application)
-do the retries.  So, as you said, no retries within libsensors4... but we
-need an extra status code for EINTR.
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
