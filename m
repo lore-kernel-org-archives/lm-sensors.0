@@ -1,131 +1,264 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 23 Sep 2007 21:01:27 +0000
-Subject: Re: [lm-sensors] [patch lm-sensors 2.10.4] i2cdetect mislabels PEC
-Message-Id: <20070923230127.0317c4de@hyperion.delvare>
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Date: Sun, 02 Sep 2007 11:37:41 +0000
+Subject: [lm-sensors] [PATCH] adm1021: dynamic sysfs callbacks conversion
+Message-Id: <20070902133741.f17f30fc.krzysztof.h1@wp.pl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070917205024.0A35D230DBC@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-In-Reply-To: <20070917205024.0A35D230DBC@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+References: <46a4515e7829b@wp.pl>
+In-Reply-To: <46a4515e7829b@wp.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David,
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-On Fri, 21 Sep 2007 10:11:28 -0700, David Brownell wrote:
-> Like this... which doesn't update "i2cdetect"
-> 
-> =====	CUT HERE
-> Rename I2C_FUNC_SMBUS_HWPEC_CALC as I2C_FUNC_SMBUS_PEC, and list that
-> functionality as always available through the software implementation.
-> Update documentation accordingly (and list similar requirements).
-> 
-> The way it's currently packaged doesn't present the capability in a
-> useful way.  Basically, it's always available -- except when the I2C
-> stack is running on SMBus hardware without PEC support in hardware.
+This is conversion of the driver  to the dynamic sysfs callbacks.
 
-Actually, except when the driver does not support it (drivers could lack
-PEC support while the hardware can do it.) Such drivers are frequent
-on PC hardware: the popular i2c-piix4 and i2c-viapro drivers do not
-have PEC support. In fact, only nVidia and recent Intel chips have PEC
-supported. So, what seems to be the exception from your embedded point
-of view (where SMBus is most often emulated on top of I2C), isn't
-really.
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  Documentation/i2c/dev-interface  |   10 +++++++---
->  drivers/i2c/busses/i2c-amd8111.c |    2 +-
->  drivers/i2c/busses/i2c-i801.c    |    2 +-
->  include/linux/i2c.h              |    5 +++--
->  4 files changed, 12 insertions(+), 7 deletions(-)
-> 
-> --- g26.orig/Documentation/i2c/dev-interface	2007-09-21 09:15:36.000000000 -0700
-> +++ g26/Documentation/i2c/dev-interface	2007-09-21 09:21:29.000000000 -0700
-> @@ -90,12 +90,14 @@ ioctl(file,I2C_SLAVE,long addr)
->  
->  ioctl(file,I2C_TENBIT,long select)
->    Selects ten bit addresses if select not equals 0, selects normal 7 bit
-> -  addresses if select equals 0. Default 0.
-> +  addresses if select equals 0. Default 0.  This request is only valid
-> +  if the adapter has I2C_FUNC_10BIT_ADDR.
->  
->  ioctl(file,I2C_PEC,long select)
->    Selects SMBus PEC (packet error checking) generation and verification
->    if select not equals 0, disables if select equals 0. Default 0.
-> -  Used only for SMBus transactions.
-> +  Used only for SMBus transactions; only valid if the adapter has
-> +  I2C_FUNC_SMBUS_PEC.
+---
 
-Not correct. PEC being optional, chip drivers (or i2c-dev users) can
-declare themselves PEC-compliant and let the adapter driver decide
-whether it can actually do PEC or not. This is the right way to do it.
-So a better wording would be "only has an effect if..."
+This is the patch I posted some time ago. 
+This revision is redone after applying the patch which fixes negative
+value writes.
 
->  
->  ioctl(file,I2C_FUNCS,unsigned long *funcs)
->    Gets the adapter functionality and puts it in *funcs.
-> @@ -103,8 +105,10 @@ ioctl(file,I2C_FUNCS,unsigned long *func
->  ioctl(file,I2C_RDWR,struct i2c_rdwr_ioctl_data *msgset)
->  
->    Do combined read/write transaction without stop in between.
-> -  The argument is a pointer to a struct i2c_rdwr_ioctl_data {
-> +  Only valid if the adapter has I2C_FUNC_I2C.  The argument is
-> +  a pointer to a
->  
-> +  struct i2c_rdwr_ioctl_data {
->        struct i2c_msg *msgs;  /* ptr to array of simple messages */
->        int nmsgs;             /* number of messages to exchange */
->    }
-> --- g26.orig/drivers/i2c/busses/i2c-amd8111.c	2007-09-21 09:10:09.000000000 -0700
-> +++ g26/drivers/i2c/busses/i2c-amd8111.c	2007-09-21 09:10:21.000000000 -0700
-> @@ -326,7 +326,7 @@ static u32 amd8111_func(struct i2c_adapt
->  		I2C_FUNC_SMBUS_BYTE_DATA |
->  		I2C_FUNC_SMBUS_WORD_DATA | I2C_FUNC_SMBUS_BLOCK_DATA |
->  		I2C_FUNC_SMBUS_PROC_CALL | I2C_FUNC_SMBUS_BLOCK_PROC_CALL |
-> -		I2C_FUNC_SMBUS_I2C_BLOCK | I2C_FUNC_SMBUS_HWPEC_CALC;
-> +		I2C_FUNC_SMBUS_I2C_BLOCK | I2C_FUNC_SMBUS_PEC;
->  }
->  
->  static const struct i2c_algorithm smbus_algorithm = {
-> --- g26.orig/drivers/i2c/busses/i2c-i801.c	2007-09-21 09:10:09.000000000 -0700
-> +++ g26/drivers/i2c/busses/i2c-i801.c	2007-09-21 09:10:26.000000000 -0700
-> @@ -515,7 +515,7 @@ static u32 i801_func(struct i2c_adapter 
->  	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
->  	    I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
->  	    I2C_FUNC_SMBUS_BLOCK_DATA | I2C_FUNC_SMBUS_WRITE_I2C_BLOCK
-> -	     | (isich4 ? I2C_FUNC_SMBUS_HWPEC_CALC : 0);
-> +	     | (isich4 ? I2C_FUNC_SMBUS_PEC : 0);
->  }
->  
->  static const struct i2c_algorithm smbus_algorithm = {
-> --- g26.orig/include/linux/i2c.h	2007-09-21 09:07:49.000000000 -0700
-> +++ g26/include/linux/i2c.h	2007-09-21 09:23:42.000000000 -0700
-> @@ -467,7 +467,7 @@ struct i2c_msg {
->  #define I2C_FUNC_I2C			0x00000001
->  #define I2C_FUNC_10BIT_ADDR		0x00000002
->  #define I2C_FUNC_PROTOCOL_MANGLING	0x00000004 /* I2C_M_{REV_DIR_ADDR,NOSTART,..} */
-> -#define I2C_FUNC_SMBUS_HWPEC_CALC	0x00000008 /* SMBus 2.0 */
-> +#define I2C_FUNC_SMBUS_PEC		0x00000008
->  #define I2C_FUNC_SMBUS_BLOCK_PROC_CALL	0x00008000 /* SMBus 2.0 */
->  #define I2C_FUNC_SMBUS_QUICK		0x00010000
->  #define I2C_FUNC_SMBUS_READ_BYTE	0x00020000
-> @@ -503,7 +503,8 @@ struct i2c_msg {
->                               I2C_FUNC_SMBUS_WORD_DATA | \
->                               I2C_FUNC_SMBUS_PROC_CALL | \
->                               I2C_FUNC_SMBUS_WRITE_BLOCK_DATA | \
-> -                             I2C_FUNC_SMBUS_I2C_BLOCK)
-> +			     I2C_FUNC_SMBUS_I2C_BLOCK | \
-> +			     I2C_FUNC_SMBUS_PEC)
->  
->  /*
->   * Data for SMBus Messages
+Regards,
+Krzysztof
 
-Rest of the patch looks all right, thanks.
-
--- 
-Jean Delvare
-
+--- linux-2.6.23.orig/drivers/hwmon/adm1021.c	2007-09-02 13:11:35.000000000 +0200
++++ linux-2.6.23/drivers/hwmon/adm1021.c	2007-09-02 13:17:32.878031937 +0200
+@@ -25,6 +25,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/i2c.h>
+ #include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ 
+@@ -73,14 +74,6 @@ I2C_CLIENT_INSMOD_8(adm1021, adm1023, ma
+ /* write-only */
+ #define ADM1021_REG_ONESHOT		0x0F
+ 
+-
+-/* Conversions. Rounding and limit checking is only done on the TO_REG
+-   variants. Note that you should be a bit careful with which arguments
+-   these macros are called: arguments may be evaluated more than once.
+-   Fixing this is just not worth it. */
+-/* Conversions  note: 1021 uses normal integer signed-byte format*/
+-#define TEMP_TO_REG(val)	SENSORS_LIMIT((val) / 1000, -128, 127)
+-
+ /* Initial values */
+ 
+ /* Note: Even though I left the low and high limits named os and hyst,
+@@ -98,19 +91,16 @@ struct adm1021_data {
+ 	char valid;		/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
+ 
+-	s8	temp_max;	/* Register values */
+-	s8	temp_hyst;
+-	s8	temp_input;
+-	s8	remote_temp_max;
+-	s8	remote_temp_hyst;
+-	s8	remote_temp_input;
+-	u8	alarms;
+-        /* Special values for ADM1023 only */
+-	u8	remote_temp_prec;
+-	u8	remote_temp_os_prec;
+-	u8	remote_temp_hyst_prec;
+-	u8	remote_temp_offset;
+-	u8	remote_temp_offset_prec;
++	s8 temp_max[2];		/* Register values */
++	s8 temp_min[2];
++	s8 temp[2];
++	u8 alarms;
++	/* Special values for ADM1023 only */
++	u8 remote_temp_prec;
++	u8 remote_temp_os_prec;
++	u8 remote_temp_hyst_prec;
++	u8 remote_temp_offset;
++	u8 remote_temp_offset_prec;
+ };
+ 
+ static int adm1021_attach_adapter(struct i2c_adapter *adapter);
+@@ -133,19 +123,32 @@ static struct i2c_driver adm1021_driver 
+ 	.detach_client	= adm1021_detach_client,
+ };
+ 
+-#define show(value)							\
+-static ssize_t show_##value(struct device *dev,				\
+-			    struct device_attribute *attr, char *buf)	\
+-{									\
+-	struct adm1021_data *data = adm1021_update_device(dev);		\
+-	return sprintf(buf, "%d\n", 1000 * data->value);		\
+-}
+-show(temp_max);
+-show(temp_hyst);
+-show(temp_input);
+-show(remote_temp_max);
+-show(remote_temp_hyst);
+-show(remote_temp_input);
++static ssize_t show_temp(struct device *dev,
++			 struct device_attribute *devattr, char *buf)
++{
++	int index = to_sensor_dev_attr(devattr)->index;
++	struct adm1021_data *data = adm1021_update_device(dev);
++
++	return sprintf(buf, "%d\n", 1000 * data->temp[index]);
++}
++
++static ssize_t show_temp_max(struct device *dev,
++			     struct device_attribute *devattr, char *buf)
++{
++	int index = to_sensor_dev_attr(devattr)->index;
++	struct adm1021_data *data = adm1021_update_device(dev);
++
++	return sprintf(buf, "%d\n", 1000 * data->temp_max[index]);
++}
++
++static ssize_t show_temp_min(struct device *dev,
++			     struct device_attribute *devattr, char *buf)
++{
++	int index = to_sensor_dev_attr(devattr)->index;
++	struct adm1021_data *data = adm1021_update_device(dev);
++
++	return sprintf(buf, "%d\n", 1000 * data->temp_min[index]);
++}
+ 
+ static ssize_t show_alarms(struct device *dev,
+ 			   struct device_attribute *attr,
+@@ -155,35 +158,52 @@ static ssize_t show_alarms(struct device
+ 	return sprintf(buf, "%u\n", data->alarms);
+ }
+ 
+-#define set(value, reg)							\
+-static ssize_t set_##value(struct device *dev,				\
+-			   struct device_attribute *attr,		\
+-			   const char *buf, size_t count)		\
+-{									\
+-	struct i2c_client *client = to_i2c_client(dev);			\
+-	struct adm1021_data *data = i2c_get_clientdata(client);		\
+-	long temp = simple_strtol(buf, NULL, 10);			\
+-									\
+-	mutex_lock(&data->update_lock);					\
+-	data->value = TEMP_TO_REG(temp);				\
+-	if (!read_only)							\
+-		i2c_smbus_write_byte_data(client, reg, data->value);	\
+-	mutex_unlock(&data->update_lock);				\
+-	return count;							\
+-}
+-set(temp_max, ADM1021_REG_TOS_W);
+-set(temp_hyst, ADM1021_REG_THYST_W);
+-set(remote_temp_max, ADM1021_REG_REMOTE_TOS_W);
+-set(remote_temp_hyst, ADM1021_REG_REMOTE_THYST_W);
+-
+-static DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max, set_temp_max);
+-static DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp_hyst, set_temp_hyst);
+-static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input, NULL);
+-static DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_remote_temp_max, set_remote_temp_max);
+-static DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_remote_temp_hyst, set_remote_temp_hyst);
+-static DEVICE_ATTR(temp2_input, S_IRUGO, show_remote_temp_input, NULL);
+-static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
++static ssize_t set_temp_max(struct device *dev,
++			    struct device_attribute *devattr,
++			    const char *buf, size_t count)
++{
++	int index = to_sensor_dev_attr(devattr)->index;
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adm1021_data *data = i2c_get_clientdata(client);
++	long temp = simple_strtol(buf, NULL, 10) / 1000;
+ 
++	mutex_lock(&data->update_lock);
++	data->temp_max[index] = SENSORS_LIMIT(temp, -128, 127);
++	i2c_smbus_write_byte_data(client, ADM1021_REG_TOS_W + 2 * index, temp);
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
++static ssize_t set_temp_min(struct device *dev,
++			    struct device_attribute *devattr,
++			    const char *buf, size_t count)
++{
++	int index = to_sensor_dev_attr(devattr)->index;
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adm1021_data *data = i2c_get_clientdata(client);
++	long temp = simple_strtol(buf, NULL, 10) / 1000;
++
++	mutex_lock(&data->update_lock);
++	data->temp_max[index] = SENSORS_LIMIT(temp, -128, 127);
++	i2c_smbus_write_byte_data(client,
++				  ADM1021_REG_THYST_W + 2 * index, temp);
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max,
++			  set_temp_max, 0);
++static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp_min,
++			  set_temp_min, 0);
++static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_temp_max,
++			  set_temp_max, 1);
++static SENSOR_DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_temp_min,
++			  set_temp_min, 1);
++static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
+ static int adm1021_attach_adapter(struct i2c_adapter *adapter)
+ {
+@@ -193,12 +213,12 @@ static int adm1021_attach_adapter(struct
+ }
+ 
+ static struct attribute *adm1021_attributes[] = {
+-	&dev_attr_temp1_max.attr,
+-	&dev_attr_temp1_min.attr,
+-	&dev_attr_temp1_input.attr,
+-	&dev_attr_temp2_max.attr,
+-	&dev_attr_temp2_min.attr,
+-	&dev_attr_temp2_input.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp1_min.dev_attr.attr,
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
+ 	&dev_attr_alarms.attr,
+ 	NULL
+ };
+@@ -370,21 +390,22 @@ static struct adm1021_data *adm1021_upda
+ 
+ 	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
+ 	    || !data->valid) {
++		int i;
++
+ 		dev_dbg(&client->dev, "Starting adm1021 update\n");
+ 
+-		data->temp_input = i2c_smbus_read_byte_data(client,
+-						ADM1021_REG_TEMP);
+-		data->temp_max = i2c_smbus_read_byte_data(client,
+-						ADM1021_REG_TOS_R);
+-		data->temp_hyst = i2c_smbus_read_byte_data(client,
+-						ADM1021_REG_THYST_R);
+-		data->remote_temp_input = i2c_smbus_read_byte_data(client,
+-						ADM1021_REG_REMOTE_TEMP);
+-		data->remote_temp_max = i2c_smbus_read_byte_data(client,
+-						ADM1021_REG_REMOTE_TOS_R);
+-		data->remote_temp_hyst = i2c_smbus_read_byte_data(client,
+-						ADM1021_REG_REMOTE_THYST_R);
+-		data->alarms = i2c_smbus_read_byte_data(client,
++		for (i = 0; i < 2; i++) {
++			data->temp[i] = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_TEMP + i);
++			data->temp_max[i] +				i2c_smbus_read_byte_data(client,
++						ADM1021_REG_TOS_R + 2 * i);
++			data->temp_min[i] +				i2c_smbus_read_byte_data(client,
++						ADM1021_REG_THYST_R + 2 * i);
++		}
++		data->alarms +			i2c_smbus_read_byte_data(client,
+ 						ADM1021_REG_STATUS) & 0x7c;
+ 		if (data->type = adm1023) {
+ 			data->remote_temp_prec 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
