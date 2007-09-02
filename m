@@ -1,210 +1,87 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 26 Sep 2007 21:39:01 +0000
-Subject: [lm-sensors] [PATCH]hwmon/lm87: Add individual alarm files
-Message-Id: <20070926233901.1ea7aace@hyperion.delvare>
+From: Juergen Bausa <Juergen.Bausa@web.de>
+Date: Sun, 02 Sep 2007 12:57:32 +0000
+Subject: Re: [lm-sensors] dme1737 module
+Message-Id: <1557257505@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
+In-Reply-To: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Add individual alarm files to the lm87 driver. The new libsensors
-needs this.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/lm87.c |   67 +++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 61 insertions(+), 6 deletions(-)
-
---- linux-2.6.23-rc8.orig/drivers/hwmon/lm87.c	2007-09-25 11:28:55.000000000 +0200
-+++ linux-2.6.23-rc8/drivers/hwmon/lm87.c	2007-09-26 19:39:27.000000000 +0200
-@@ -58,6 +58,7 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
- #include <linux/hwmon-vid.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-@@ -531,6 +532,29 @@ static ssize_t set_aout(struct device *d
- }
- static DEVICE_ATTR(aout_output, S_IRUGO | S_IWUSR, show_aout, set_aout);
- 
-+static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
-+			  char *buf)
-+{
-+	struct lm87_data *data = lm87_update_device(dev);
-+	int bitnr = to_sensor_dev_attr(attr)->index;
-+	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
-+}
-+static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
-+static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2);
-+static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3);
-+static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 8);
-+static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 9);
-+static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 6);
-+static SENSOR_DEVICE_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 7);
-+static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4);
-+static SENSOR_DEVICE_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 5);
-+static SENSOR_DEVICE_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 5);
-+static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 6);
-+static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 7);
-+static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_alarm, NULL, 14);
-+static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_alarm, NULL, 15);
-+
- /*
-  * Real code
-  */
-@@ -546,24 +570,31 @@ static struct attribute *lm87_attributes
- 	&dev_attr_in1_input.attr,
- 	&dev_attr_in1_min.attr,
- 	&dev_attr_in1_max.attr,
-+	&sensor_dev_attr_in1_alarm.dev_attr.attr,
- 	&dev_attr_in2_input.attr,
- 	&dev_attr_in2_min.attr,
- 	&dev_attr_in2_max.attr,
-+	&sensor_dev_attr_in2_alarm.dev_attr.attr,
- 	&dev_attr_in3_input.attr,
- 	&dev_attr_in3_min.attr,
- 	&dev_attr_in3_max.attr,
-+	&sensor_dev_attr_in3_alarm.dev_attr.attr,
- 	&dev_attr_in4_input.attr,
- 	&dev_attr_in4_min.attr,
- 	&dev_attr_in4_max.attr,
-+	&sensor_dev_attr_in4_alarm.dev_attr.attr,
- 
- 	&dev_attr_temp1_input.attr,
- 	&dev_attr_temp1_max.attr,
- 	&dev_attr_temp1_min.attr,
- 	&dev_attr_temp1_crit.attr,
-+	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
- 	&dev_attr_temp2_input.attr,
- 	&dev_attr_temp2_max.attr,
- 	&dev_attr_temp2_min.attr,
- 	&dev_attr_temp2_crit.attr,
-+	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp2_fault.dev_attr.attr,
- 
- 	&dev_attr_alarms.attr,
- 	&dev_attr_aout_output.attr,
-@@ -579,30 +610,38 @@ static struct attribute *lm87_attributes
- 	&dev_attr_in6_input.attr,
- 	&dev_attr_in6_min.attr,
- 	&dev_attr_in6_max.attr,
-+	&sensor_dev_attr_in6_alarm.dev_attr.attr,
- 
- 	&dev_attr_fan1_input.attr,
- 	&dev_attr_fan1_min.attr,
- 	&dev_attr_fan1_div.attr,
-+	&sensor_dev_attr_fan1_alarm.dev_attr.attr,
- 
- 	&dev_attr_in7_input.attr,
- 	&dev_attr_in7_min.attr,
- 	&dev_attr_in7_max.attr,
-+	&sensor_dev_attr_in7_alarm.dev_attr.attr,
- 
- 	&dev_attr_fan2_input.attr,
- 	&dev_attr_fan2_min.attr,
- 	&dev_attr_fan2_div.attr,
-+	&sensor_dev_attr_fan2_alarm.dev_attr.attr,
- 
- 	&dev_attr_temp3_input.attr,
- 	&dev_attr_temp3_max.attr,
- 	&dev_attr_temp3_min.attr,
- 	&dev_attr_temp3_crit.attr,
-+	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp3_fault.dev_attr.attr,
- 
- 	&dev_attr_in0_input.attr,
- 	&dev_attr_in0_min.attr,
- 	&dev_attr_in0_max.attr,
-+	&sensor_dev_attr_in0_alarm.dev_attr.attr,
- 	&dev_attr_in5_input.attr,
- 	&dev_attr_in5_min.attr,
- 	&dev_attr_in5_max.attr,
-+	&sensor_dev_attr_in5_alarm.dev_attr.attr,
- 
- 	&dev_attr_cpu0_vid.attr,
- 	&dev_attr_vrm.attr,
-@@ -690,7 +729,9 @@ static int lm87_detect(struct i2c_adapte
- 		 || (err = device_create_file(&new_client->dev,
- 					&dev_attr_in6_min))
- 		 || (err = device_create_file(&new_client->dev,
--					&dev_attr_in6_max)))
-+					&dev_attr_in6_max))
-+		 || (err = device_create_file(&new_client->dev,
-+					&sensor_dev_attr_in6_alarm.dev_attr)))
- 			goto exit_remove;
- 	} else {
- 		if ((err = device_create_file(&new_client->dev,
-@@ -698,7 +739,9 @@ static int lm87_detect(struct i2c_adapte
- 		 || (err = device_create_file(&new_client->dev,
- 					&dev_attr_fan1_min))
- 		 || (err = device_create_file(&new_client->dev,
--					&dev_attr_fan1_div)))
-+					&dev_attr_fan1_div))
-+		 || (err = device_create_file(&new_client->dev,
-+					&sensor_dev_attr_fan1_alarm.dev_attr)))
- 			goto exit_remove;
- 	}
- 
-@@ -708,7 +751,9 @@ static int lm87_detect(struct i2c_adapte
- 		 || (err = device_create_file(&new_client->dev,
- 					&dev_attr_in7_min))
- 		 || (err = device_create_file(&new_client->dev,
--					&dev_attr_in7_max)))
-+					&dev_attr_in7_max))
-+		 || (err = device_create_file(&new_client->dev,
-+					&sensor_dev_attr_in7_alarm.dev_attr)))
- 			goto exit_remove;
- 	} else {
- 		if ((err = device_create_file(&new_client->dev,
-@@ -716,7 +761,9 @@ static int lm87_detect(struct i2c_adapte
- 		 || (err = device_create_file(&new_client->dev,
- 					&dev_attr_fan2_min))
- 		 || (err = device_create_file(&new_client->dev,
--					&dev_attr_fan2_div)))
-+					&dev_attr_fan2_div))
-+		 || (err = device_create_file(&new_client->dev,
-+					&sensor_dev_attr_fan2_alarm.dev_attr)))
- 			goto exit_remove;
- 	}
- 
-@@ -728,7 +775,11 @@ static int lm87_detect(struct i2c_adapte
- 		 || (err = device_create_file(&new_client->dev,
- 					&dev_attr_temp3_min))
- 		 || (err = device_create_file(&new_client->dev,
--					&dev_attr_temp3_crit)))
-+					&dev_attr_temp3_crit))
-+		 || (err = device_create_file(&new_client->dev,
-+					&sensor_dev_attr_temp3_alarm.dev_attr))
-+		 || (err = device_create_file(&new_client->dev,
-+					&sensor_dev_attr_temp3_fault.dev_attr)))
- 			goto exit_remove;
- 	} else {
- 		if ((err = device_create_file(&new_client->dev,
-@@ -738,11 +789,15 @@ static int lm87_detect(struct i2c_adapte
- 		 || (err = device_create_file(&new_client->dev,
- 					&dev_attr_in0_max))
- 		 || (err = device_create_file(&new_client->dev,
-+					&sensor_dev_attr_in0_alarm.dev_attr))
-+		 || (err = device_create_file(&new_client->dev,
- 					&dev_attr_in5_input))
- 		 || (err = device_create_file(&new_client->dev,
- 					&dev_attr_in5_min))
- 		 || (err = device_create_file(&new_client->dev,
--					&dev_attr_in5_max)))
-+					&dev_attr_in5_max))
-+		 || (err = device_create_file(&new_client->dev,
-+					&sensor_dev_attr_in5_alarm.dev_attr)))
- 			goto exit_remove;
- 	}
- 
+> -----Urspr=FCngliche Nachricht-----
+> Von: "Juerg Haefliger" <juergh@gmail.com>
+> Gesendet: 28.08.07 17:07:38
+> An: "Juergen Bausa" <Juergen.Bausa@web.de>
+> CC: "Kushal Koolwal" <kushalkoolwal@hotmail.com>, lm-sensors@lm-sensors.o=
+rg
+> Betreff: Re: [lm-sensors] dme1737 module
 
 
--- 
-Jean Delvare
+>=20
+>=20
+> > So, which version is needed to run the dme1737 on the asus board (Which=
+ I think doesnt have the
+> > SCH3114 Super I/O chip)?
+> >
+> > debian testing and unstable both have 2.10.4 at the moment, which is th=
+e same version as
+> > http://www.lm-sensors.org/wiki/Download. Will it be enough to install t=
+his version?
+>=20
+> 2.10.4 and kernel 2.6.23 is sufficient if you don't have the sch311x.
+>=20
+
+Now it works with lm-sensors 2.10.4 which can easily backported drom debian=
+ testing.
+
+However, I get strange temperatures for the cpu. With the fan at 3000 rpm a=
+nd idle cpu I get a temperature
+of 17 =B0C, while room temperature is 20=B0C. I think this is not possible.=
+=20
+
+I now use fancontrol which turns fan speed to 0 rpm. Here is the output of =
+sensors:
+
+dme1737-i2c-0-2e
+Adapter: SMBus nForce2 adapter at 4c00
+V5stby:    +0.00 V  (min =3D  +0.00 V, max =3D  +6.64 V)  ALARM
+Vccp:      +1.10 V  (min =3D  +0.00 V, max =3D  +2.99 V)
+V3.3:      +3.28 V  (min =3D  +0.00 V, max =3D  +4.38 V)
+V5:        +4.94 V  (min =3D  +0.00 V, max =3D  +6.64 V)
+V12:      +11.80 V  (min =3D  +0.00 V, max =3D +15.94 V)
+V3.3stby:  +3.29 V  (min =3D  +0.00 V, max =3D  +4.38 V)
+Vbat:      +2.98 V  (min =3D  +0.00 V, max =3D  +4.38 V)
+Int Temp:    +34=B0C  (low  =3D  -127=B0C, high =3D  +127=B0C)
+CPU Temp:    +29=B0C  (low  =3D  -127=B0C, high =3D  +127=B0C)
+CPU_Fan:     0 RPM  (min =3D    0 RPM)
+ERROR: Can't get fan3 data!
+ERROR: Can't get fan5 data!
+ERROR: Can't get fan6 data!
+CPU_PWM:     0      (enable =3D 1, freq =3D  25000 Hz)
+ERROR: Can't get pwm5 data!
+ERROR: Can't get pwm6 data!
+cpu0_vid: +1.550 V  (VRM Version 2.4)
+
+I think 29 =B0C is also very low for idle and no fan, even for my AMD BE-23=
+50=20
+(45 w maximum power consumption). Also, Int-Temperature (is this board temp=
+erature?)
+is higher than cpu- temperature. This changes only for high load, where
+cpu-temperature increases more than int-temperature.
+
+At first I thought that temperature calculation is wrong in lm-sensors. How=
+ever,
+BIOS shows nearly the same temperatures.
+
+So, is there anything wrong here?
+
+Juergen
+_________________________________________________________________________
+In 5 Schritten zur eigenen Homepage. Jetzt Domain sichern und gestalten!=20
+Nur 3,99 EUR/Monat! http://www.maildomain.web.de/?mc=021114
+
 
 _______________________________________________
 lm-sensors mailing list
