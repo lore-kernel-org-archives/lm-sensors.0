@@ -1,36 +1,45 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 26 Sep 2007 20:16:56 +0000
-Subject: [lm-sensors] [PATCH] hwmon/lm87: Fix a division by zero
-Message-Id: <20070926221656.6442f1b2@hyperion.delvare>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 02 Sep 2007 15:06:42 +0000
+Subject: Re: [lm-sensors] [PATCH] Allow writing of negative trigger
+Message-Id: <20070902150642.GI3484@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20070816081353.GF10132@tweety>
+In-Reply-To: <20070816081353.GF10132@tweety>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Missing parentheses in the definition of FAN_FROM_REG cause a division
-by zero for a specific register value.
+Hi Jean:
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/lm87.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+* Jean Delvare <khali@linux-fr.org> [2007-08-27 10:17:14 +0200]:
+> Hi Mark,
+> 
+> On Sun, 26 Aug 2007 14:50:17 -0400, Mark M. Hoffman wrote:
+> > Hi Jean, Christian:
+> > 
+> > * Jean Delvare <khali@linux-fr.org> [2007-08-16 11:40:10 +0200]:
+> > > I retested w83627ehf and it's now OK for all temperature channels. I
+> > > also tested adm1021, successfully. I can't test lm77 nor lm93 but the
+> > > code looks right.
+> > 
+> > There's always i2c-stub, but yeah, it looks OK to me too.
+> 
+> Unfortunately, I have neither lm77 nor lm93 dumps to load i2c-stub
+> with. If anyone has such dumps and could share them...
 
---- linux-2.6.23-rc8.orig/drivers/hwmon/lm87.c	2007-09-26 21:33:40.000000000 +0200
-+++ linux-2.6.23-rc8/drivers/hwmon/lm87.c	2007-09-26 21:34:24.000000000 +0200
-@@ -129,7 +129,7 @@ static u8 LM87_REG_TEMP_LOW[3] = { 0x3A,
- 				 (((val) < 0 ? (val)-500 : (val)+500) / 1000))
- 
- #define FAN_FROM_REG(reg,div)	((reg) = 255 || (reg) = 0 ? 0 : \
--				 1350000 + (reg)*(div) / 2) / ((reg)*(div))
-+				 (1350000 + (reg)*(div) / 2) / ((reg)*(div)))
- #define FAN_TO_REG(val,div)	((val)*(div) * 255 <= 1350000 ? 255 : \
- 				 (1350000 + (val)*(div) / 2) / ((val)*(div)))
- 
+BTW: you don't need them in this case.  The following works just fine...
 
+# modprobe i2c-stub chip-addr=0x2c
+
+# modprobe lm93 force_lm93=1,0x2c	# replace '1' w/ ID of stub
+
+Regards,
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
