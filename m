@@ -1,200 +1,275 @@
-From: "Charles Spirakis" <bezaur@gmail.com>
-Date: Sun, 02 Sep 2007 22:41:16 +0000
-Subject: [lm-sensors] [PATCH] update w83791d driver with new sysfs
-Message-Id: <5bfe43f80709021541p381974dftc4f725e65d2b8189@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_4_27327283.1188772876270"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 03 Sep 2007 18:30:20 +0000
+Subject: Re: [lm-sensors] [PATCH] update w83791d driver with new sysfs
+Message-Id: <20070903203020.545f4864@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <5bfe43f80709021541p381974dftc4f725e65d2b8189@mail.gmail.com>
+In-Reply-To: <5bfe43f80709021541p381974dftc4f725e65d2b8189@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_4_27327283.1188772876270
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Charles,
 
-All --
+On Sun, 2 Sep 2007 15:41:16 -0700, Charles Spirakis wrote:
+> This patch was made against the 2.6.23.rc1-git10 tree. Please review
+> at your leisure and also please let me know if you would like the
+> patch updated for a newer version of the kernel.
 
-This patch was made against the 2.6.23.rc1-git10 tree. Please review
-at your leisure and also please let me know if you would like the
-patch updated for a newer version of the kernel.
+Thanks for working on this. Here's my review:
 
--- charles
+> Signed-off by: Charles Spirakis <bezaur@gmail.com>
 
----
-Add new sysfs alarm methodology to w83791d driver
+Note: should be "Signed-off-by" with two dashes.
 
-Signed-off by: Charles Spirakis <bezaur@gmail.com>
----
+> diff -urpN linux-2.6.23-rc1-git10/Documentation/hwmon/w83791d linux-2.6.23-rc1-git10_w83791d/Documentation/hwmon/w83791d
+> --- linux-2.6.23-rc1-git10/Documentation/hwmon/w83791d	2007-07-22 13:41:00.000000000 -0700
+> +++ linux-2.6.23-rc1-git10_w83791d/Documentation/hwmon/w83791d	2007-08-28 17:04:44.000000000 -0700
+> @@ -115,6 +115,4 @@ often will do no harm, but will return '
+>  
+>  W83791D TODO:
+>  ---------------
+> -Provide a patch for per-file alarms and beep enables as defined in the hwmon
+> -	documentation (Documentation/hwmon/sysfs-interface)
+>  Provide a patch for smart-fan control (still need appropriate motherboard/fans)
 
- Documentation/hwmon/w83791d |    2
- MAINTAINERS                 |    2
- drivers/hwmon/w83791d.c     |  127 ++++++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 124 insertions(+), 7 deletions(-)
+A few lines above in this document, is written:
 
-------=_Part_4_27327283.1188772876270
-Content-Type: application/octet-stream; name="w83791d_alarms.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="w83791d_alarms.patch";
-	filename="w83791d_alarms.patch"; filename="w83791d_alarms.patch";
-	filename="w83791d_alarms.patch"
-X-Attachment-Id: f_f644dgf90
+*** NOTE: It is the responsibility of user-space code to handle the fact
+that the beep enable and alarm bits are in different positions when using that
+feature of the chip.
 
-LS0tCkFkZCBuZXcgc3lzZnMgYWxhcm0gbWV0aG9kb2xvZ3kgdG8gdzgzNzkxZCBkcml2ZXIKClNp
-Z25lZC1vZmYgYnk6IENoYXJsZXMgU3BpcmFraXMgPGJlemF1ckBnbWFpbC5jb20+Ci0tLQoKIERv
-Y3VtZW50YXRpb24vaHdtb24vdzgzNzkxZCB8ICAgIDIgCiBNQUlOVEFJTkVSUyAgICAgICAgICAg
-ICAgICAgfCAgICAyIAogZHJpdmVycy9od21vbi93ODM3OTFkLmMgICAgIHwgIDEyNyArKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLQogMyBmaWxlcyBjaGFuZ2VkLCAx
-MjQgaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkKCmRpZmYgLXVycE4gbGludXgtMi42LjIz
-LXJjMS1naXQxMC9Eb2N1bWVudGF0aW9uL2h3bW9uL3c4Mzc5MWQgbGludXgtMi42LjIzLXJjMS1n
-aXQxMF93ODM3OTFkL0RvY3VtZW50YXRpb24vaHdtb24vdzgzNzkxZAotLS0gbGludXgtMi42LjIz
-LXJjMS1naXQxMC9Eb2N1bWVudGF0aW9uL2h3bW9uL3c4Mzc5MWQJMjAwNy0wNy0yMiAxMzo0MTow
-MC4wMDAwMDAwMDAgLTA3MDAKKysrIGxpbnV4LTIuNi4yMy1yYzEtZ2l0MTBfdzgzNzkxZC9Eb2N1
-bWVudGF0aW9uL2h3bW9uL3c4Mzc5MWQJMjAwNy0wOC0yOCAxNzowNDo0NC4wMDAwMDAwMDAgLTA3
-MDAKQEAgLTExNSw2ICsxMTUsNCBAQCBvZnRlbiB3aWxsIGRvIG5vIGhhcm0sIGJ1dCB3aWxsIHJl
-dHVybiAnCiAKIFc4Mzc5MUQgVE9ETzoKIC0tLS0tLS0tLS0tLS0tLQotUHJvdmlkZSBhIHBhdGNo
-IGZvciBwZXItZmlsZSBhbGFybXMgYW5kIGJlZXAgZW5hYmxlcyBhcyBkZWZpbmVkIGluIHRoZSBo
-d21vbgotCWRvY3VtZW50YXRpb24gKERvY3VtZW50YXRpb24vaHdtb24vc3lzZnMtaW50ZXJmYWNl
-KQogUHJvdmlkZSBhIHBhdGNoIGZvciBzbWFydC1mYW4gY29udHJvbCAoc3RpbGwgbmVlZCBhcHBy
-b3ByaWF0ZSBtb3RoZXJib2FyZC9mYW5zKQpkaWZmIC11cnBOIGxpbnV4LTIuNi4yMy1yYzEtZ2l0
-MTAvTUFJTlRBSU5FUlMgbGludXgtMi42LjIzLXJjMS1naXQxMF93ODM3OTFkL01BSU5UQUlORVJT
-Ci0tLSBsaW51eC0yLjYuMjMtcmMxLWdpdDEwL01BSU5UQUlORVJTCTIwMDctMDgtMDUgMjM6MTg6
-MjcuMDAwMDAwMDAwIC0wNzAwCisrKyBsaW51eC0yLjYuMjMtcmMxLWdpdDEwX3c4Mzc5MWQvTUFJ
-TlRBSU5FUlMJMjAwNy0wOC0zMSAxNTo0ODo0MS4wMDAwMDAwMDAgLTA3MDAKQEAgLTQwNzAsNyAr
-NDA3MCw3IEBAIFc4Mzc5MUQgSEFSRFdBUkUgTU9OSVRPUklORyBEUklWRVIKIFA6CUNoYXJsZXMg
-U3BpcmFraXMKIE06CWJlemF1ckBnbWFpbC5jb20KIEw6CWxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
-cmcKLVM6CU1haW50YWluZWQKK1M6CU9kZCBGaXhlcwogCiBXODM3OTMgSEFSRFdBUkUgTU9OSVRP
-UklORyBEUklWRVIKIFA6CVJ1ZG9sZiBNYXJlawpkaWZmIC11cnBOIGxpbnV4LTIuNi4yMy1yYzEt
-Z2l0MTAvZHJpdmVycy9od21vbi93ODM3OTFkLmMgbGludXgtMi42LjIzLXJjMS1naXQxMF93ODM3
-OTFkL2RyaXZlcnMvaHdtb24vdzgzNzkxZC5jCi0tLSBsaW51eC0yLjYuMjMtcmMxLWdpdDEwL2Ry
-aXZlcnMvaHdtb24vdzgzNzkxZC5jCTIwMDctMDctMjIgMTM6NDE6MDAuMDAwMDAwMDAwIC0wNzAw
-CisrKyBsaW51eC0yLjYuMjMtcmMxLWdpdDEwX3c4Mzc5MWQvZHJpdmVycy9od21vbi93ODM3OTFk
-LmMJMjAwNy0wOS0wMSAxNzoxMDozMi4wMDAwMDAwMDAgLTA3MDAKQEAgLTIsNyArMiw3IEBACiAg
-ICAgdzgzNzkxZC5jIC0gUGFydCBvZiBsbV9zZW5zb3JzLCBMaW51eCBrZXJuZWwgbW9kdWxlcyBm
-b3IgaGFyZHdhcmUKICAgICAgICAgICAgICAgICBtb25pdG9yaW5nCiAKLSAgICBDb3B5cmlnaHQg
-KEMpIDIwMDYgQ2hhcmxlcyBTcGlyYWtpcyA8YmV6YXVyQGdtYWlsLmNvbT4KKyAgICBDb3B5cmln
-aHQgKEMpIDIwMDYtMjAwNyBDaGFybGVzIFNwaXJha2lzIDxiZXphdXJAZ21haWwuY29tPgogCiAg
-ICAgVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0
-IGFuZC9vciBtb2RpZnkKICAgICBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFs
-IFB1YmxpYyBMaWNlbnNlIGFzIHB1Ymxpc2hlZCBieQpAQCAtMzg0LDYgKzM4NCw4OCBAQCBzdGF0
-aWMgc3RydWN0IHNlbnNvcl9kZXZpY2VfYXR0cmlidXRlIHNkCiAJU0VOU09SX0FUVFIoaW45X21h
-eCwgU19JV1VTUiB8IFNfSVJVR08sIHNob3dfaW5fbWF4LCBzdG9yZV9pbl9tYXgsIDkpLAogfTsK
-IAorCitzdGF0aWMgc3NpemVfdCBzaG93X2JlZXAoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3Qg
-ZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwKKwkJCWNoYXIgKmJ1ZikKK3sKKwlzdHJ1Y3Qgc2Vuc29y
-X2RldmljZV9hdHRyaWJ1dGUgKnNlbnNvcl9hdHRyID0KKwkJCQkJCXRvX3NlbnNvcl9kZXZfYXR0
-cihhdHRyKTsKKwlzdHJ1Y3QgdzgzNzkxZF9kYXRhICpkYXRhID0gdzgzNzkxZF91cGRhdGVfZGV2
-aWNlKGRldik7CisJaW50IGJpdG5yID0gc2Vuc29yX2F0dHItPmluZGV4OworCisJcmV0dXJuIHNw
-cmludGYoYnVmLCAiJWRcbiIsIChkYXRhLT5iZWVwX21hc2sgPj4gYml0bnIpICYgMSk7Cit9CisK
-K3N0YXRpYyBzc2l6ZV90IHN0b3JlX2JlZXAoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2
-aWNlX2F0dHJpYnV0ZSAqYXR0ciwKKwkJCWNvbnN0IGNoYXIgKmJ1Ziwgc2l6ZV90IGNvdW50KQor
-eworCXN0cnVjdCBzZW5zb3JfZGV2aWNlX2F0dHJpYnV0ZSAqc2Vuc29yX2F0dHIgPQorCQkJCQkJ
-dG9fc2Vuc29yX2Rldl9hdHRyKGF0dHIpOworCXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0
-b19pMmNfY2xpZW50KGRldik7CisJc3RydWN0IHc4Mzc5MWRfZGF0YSAqZGF0YSA9IHc4Mzc5MWRf
-dXBkYXRlX2RldmljZShkZXYpOworCWludCBiaXRuciA9IHNlbnNvcl9hdHRyLT5pbmRleDsKKwls
-b25nIHZhbCA9IHNpbXBsZV9zdHJ0b2woYnVmLCBOVUxMLCAxMCkgPyAxIDogMDsKKwlsb25nIGJl
-ZXBfYml0ID0gdmFsID8gKDEgPDwgYml0bnIpIDogMDsKKwlpbnQgaTsKKworCW11dGV4X2xvY2so
-JmRhdGEtPnVwZGF0ZV9sb2NrKTsKKworCWRhdGEtPmJlZXBfbWFzayAmPSB+KDEgPDwgYml0bnIp
-OworCWRhdGEtPmJlZXBfbWFzayB8PSAoYmVlcF9iaXQpOworCisJdmFsID0gZGF0YS0+YmVlcF9t
-YXNrOworCisJLyogSW4gdGhlb3J5LCBiYXNlZCBvbiB0aGUgYml0IHdlIGNoYW5nZWQgd2Ugb25s
-eSBuZWVkIHRvIHVwZGF0ZQorCSAgIG9uZSByZWdpc3RlciwgYnV0IHdoeSBib3RoZXIsIHRoaXMg
-aXNuJ3QgdGltZSBjcml0aWNhbCBjb2RlLi4uICovCisJZm9yIChpID0gMDsgaSA8IDM7IGkrKykg
-eworCQl3ODM3OTFkX3dyaXRlKGNsaWVudCwgVzgzNzkxRF9SRUdfQkVFUF9DVFJMW2ldLCAodmFs
-ICYgMHhmZikpOworCQl2YWwgPj49IDg7CisJfQorCisJbXV0ZXhfdW5sb2NrKCZkYXRhLT51cGRh
-dGVfbG9jayk7CisKKwlyZXR1cm4gY291bnQ7Cit9CisKK3N0YXRpYyBzc2l6ZV90IHNob3dfYWxh
-cm0oc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwKKwkJ
-CWNoYXIgKmJ1ZikKK3sKKwlzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1dGUgKnNlbnNvcl9h
-dHRyID0KKwkJCQkJCXRvX3NlbnNvcl9kZXZfYXR0cihhdHRyKTsKKwlzdHJ1Y3QgdzgzNzkxZF9k
-YXRhICpkYXRhID0gdzgzNzkxZF91cGRhdGVfZGV2aWNlKGRldik7CisJaW50IGJpdG5yID0gc2Vu
-c29yX2F0dHItPmluZGV4OworCisJcmV0dXJuIHNwcmludGYoYnVmLCAiJWRcbiIsIChkYXRhLT5h
-bGFybXMgPj4gYml0bnIpICYgMSk7Cit9CisKKy8qIE5vdGU6IFRoZSBiaXRtYXNrIGZvciB0aGUg
-YmVlcCBlbmFibGUvZGlzYWJsZSBpcyBkaWZmZXJlbnQgdGhhbgorICAgdGhlIGJpdG1hc2sgZm9y
-IHRoZSBhbGFybS4gKi8KK3N0YXRpYyBzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1dGUgc2Rh
-X2luX2JlZXBbXSA9IHsKKwlTRU5TT1JfQVRUUihpbjBfYmVlcCwgU19JV1VTUiB8IFNfSVJVR08s
-IHNob3dfYmVlcCwgc3RvcmVfYmVlcCwgMCksCisJU0VOU09SX0FUVFIoaW4xX2JlZXAsIFNfSVdV
-U1IgfCBTX0lSVUdPLCBzaG93X2JlZXAsIHN0b3JlX2JlZXAsIDEzKSwKKwlTRU5TT1JfQVRUUihp
-bjJfYmVlcCwgU19JV1VTUiB8IFNfSVJVR08sIHNob3dfYmVlcCwgc3RvcmVfYmVlcCwgMiksCisJ
-U0VOU09SX0FUVFIoaW4zX2JlZXAsIFNfSVdVU1IgfCBTX0lSVUdPLCBzaG93X2JlZXAsIHN0b3Jl
-X2JlZXAsIDMpLAorCVNFTlNPUl9BVFRSKGluNF9iZWVwLCBTX0lXVVNSIHwgU19JUlVHTywgc2hv
-d19iZWVwLCBzdG9yZV9iZWVwLCA4KSwKKwlTRU5TT1JfQVRUUihpbjVfYmVlcCwgU19JV1VTUiB8
-IFNfSVJVR08sIHNob3dfYmVlcCwgc3RvcmVfYmVlcCwgOSksCisJU0VOU09SX0FUVFIoaW42X2Jl
-ZXAsIFNfSVdVU1IgfCBTX0lSVUdPLCBzaG93X2JlZXAsIHN0b3JlX2JlZXAsIDEwKSwKKwlTRU5T
-T1JfQVRUUihpbjdfYmVlcCwgU19JV1VTUiB8IFNfSVJVR08sIHNob3dfYmVlcCwgc3RvcmVfYmVl
-cCwgMTYpLAorCVNFTlNPUl9BVFRSKGluOF9iZWVwLCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd19i
-ZWVwLCBzdG9yZV9iZWVwLCAxNyksCisJU0VOU09SX0FUVFIoaW45X2JlZXAsIFNfSVdVU1IgfCBT
-X0lSVUdPLCBzaG93X2JlZXAsIHN0b3JlX2JlZXAsIDE0KSwKK307CisKK3N0YXRpYyBzdHJ1Y3Qg
-c2Vuc29yX2RldmljZV9hdHRyaWJ1dGUgc2RhX2luX2FsYXJtW10gPSB7CisJU0VOU09SX0FUVFIo
-aW4wX2FsYXJtLCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAwKSwKKwlTRU5TT1JfQVRUUihp
-bjFfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxhcm0sIE5VTEwsIDEpLAorCVNFTlNPUl9BVFRSKGlu
-Ml9hbGFybSwgU19JUlVHTywgc2hvd19hbGFybSwgTlVMTCwgMiksCisJU0VOU09SX0FUVFIoaW4z
-X2FsYXJtLCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAzKSwKKwlTRU5TT1JfQVRUUihpbjRf
-YWxhcm0sIFNfSVJVR08sIHNob3dfYWxhcm0sIE5VTEwsIDgpLAorCVNFTlNPUl9BVFRSKGluNV9h
-bGFybSwgU19JUlVHTywgc2hvd19hbGFybSwgTlVMTCwgOSksCisJU0VOU09SX0FUVFIoaW42X2Fs
-YXJtLCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAxMCksCisJU0VOU09SX0FUVFIoaW43X2Fs
-YXJtLCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAxOSksCisJU0VOU09SX0FUVFIoaW44X2Fs
-YXJtLCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAyMCksCisJU0VOU09SX0FUVFIoaW45X2Fs
-YXJtLCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAxNCksCit9OworCiAjZGVmaW5lIHNob3df
-ZmFuX3JlZyhyZWcpIFwKIHN0YXRpYyBzc2l6ZV90IHNob3dfIyNyZWcoc3RydWN0IGRldmljZSAq
-ZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwgXAogCQkJCWNoYXIgKmJ1ZikgXApA
-QCAtNTM2LDYgKzYxOCwyMiBAQCBzdGF0aWMgc3RydWN0IHNlbnNvcl9kZXZpY2VfYXR0cmlidXRl
-IHNkCiAJCQlzaG93X2Zhbl9kaXYsIHN0b3JlX2Zhbl9kaXYsIDQpLAogfTsKIAorc3RhdGljIHN0
-cnVjdCBzZW5zb3JfZGV2aWNlX2F0dHJpYnV0ZSBzZGFfZmFuX2JlZXBbXSA9IHsKKwlTRU5TT1Jf
-QVRUUihmYW4xX2JlZXAsIFNfSVdVU1IgfCBTX0lSVUdPLCBzaG93X2JlZXAsIHN0b3JlX2JlZXAs
-IDYpLAorCVNFTlNPUl9BVFRSKGZhbjJfYmVlcCwgU19JV1VTUiB8IFNfSVJVR08sIHNob3dfYmVl
-cCwgc3RvcmVfYmVlcCwgNyksCisJU0VOU09SX0FUVFIoZmFuM19iZWVwLCBTX0lXVVNSIHwgU19J
-UlVHTywgc2hvd19iZWVwLCBzdG9yZV9iZWVwLCAxMSksCisJU0VOU09SX0FUVFIoZmFuNF9iZWVw
-LCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd19iZWVwLCBzdG9yZV9iZWVwLCAyMSksCisJU0VOU09S
-X0FUVFIoZmFuNV9iZWVwLCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd19iZWVwLCBzdG9yZV9iZWVw
-LCAyMikKK307CisKK3N0YXRpYyBzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1dGUgc2RhX2Zh
-bl9hbGFybVtdID0geworCVNFTlNPUl9BVFRSKGZhbjFfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxh
-cm0sIE5VTEwsIDYpLAorCVNFTlNPUl9BVFRSKGZhbjJfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxh
-cm0sIE5VTEwsIDcpLAorCVNFTlNPUl9BVFRSKGZhbjNfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxh
-cm0sIE5VTEwsIDExKSwKKwlTRU5TT1JfQVRUUihmYW40X2FsYXJtLCBTX0lSVUdPLCBzaG93X2Fs
-YXJtLCBOVUxMLCAyMSksCisJU0VOU09SX0FUVFIoZmFuNV9hbGFybSwgU19JUlVHTywgc2hvd19h
-bGFybSwgTlVMTCwgMjIpCit9OworCiAvKiByZWFkL3dyaXRlIHRoZSB0ZW1wZXJhdHVyZTEsIGlu
-Y2x1ZGVzIG1lYXN1cmVkIHZhbHVlIGFuZCBsaW1pdHMgKi8KIHN0YXRpYyBzc2l6ZV90IHNob3df
-dGVtcDEoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqZGV2YXR0
-ciwKIAkJCQljaGFyICpidWYpCkBAIC02MTgsNiArNzE2LDE5IEBAIHN0YXRpYyBzdHJ1Y3Qgc2Vu
-c29yX2RldmljZV9hdHRyaWJ1dGVfMiAKIAkJCXNob3dfdGVtcDIzLCBzdG9yZV90ZW1wMjMsIDEs
-IDIpLAogfTsKIAorLyogTm90ZTogVGhlIGJpdG1hc2sgZm9yIHRoZSBiZWVwIGVuYWJsZS9kaXNh
-YmxlIGlzIGRpZmZlcmVudCB0aGFuCisgICB0aGUgYml0bWFzayBmb3IgdGhlIGFsYXJtLiAqLwor
-c3RhdGljIHN0cnVjdCBzZW5zb3JfZGV2aWNlX2F0dHJpYnV0ZSBzZGFfdGVtcF9iZWVwW10gPSB7
-CisJU0VOU09SX0FUVFIodGVtcDFfYmVlcCwgU19JV1VTUiB8IFNfSVJVR08sIHNob3dfYmVlcCwg
-c3RvcmVfYmVlcCwgNCksCisJU0VOU09SX0FUVFIodGVtcDJfYmVlcCwgU19JV1VTUiB8IFNfSVJV
-R08sIHNob3dfYmVlcCwgc3RvcmVfYmVlcCwgNSksCisJU0VOU09SX0FUVFIodGVtcDNfYmVlcCwg
-U19JV1VTUiB8IFNfSVJVR08sIHNob3dfYmVlcCwgc3RvcmVfYmVlcCwgMSkKK307CisKK3N0YXRp
-YyBzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1dGUgc2RhX3RlbXBfYWxhcm1bXSA9IHsKKwlT
-RU5TT1JfQVRUUih0ZW1wMV9hbGFybSwgU19JUlVHTywgc2hvd19hbGFybSwgTlVMTCwgNCksCisJ
-U0VOU09SX0FUVFIodGVtcDJfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxhcm0sIE5VTEwsIDUpLAor
-CVNFTlNPUl9BVFRSKHRlbXAzX2FsYXJtLCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAxMykK
-K307CiAKIC8qIGdldCByZWF0aW1lIHN0YXR1cyBvZiBhbGwgc2Vuc29ycyBpdGVtczogdm9sdGFn
-ZSwgdGVtcCwgZmFuICovCiBzdGF0aWMgc3NpemVfdCBzaG93X2FsYXJtc19yZWcoc3RydWN0IGRl
-dmljZSAqZGV2LApAQCAtNzQ5LDE3ICs4NjAsMjMgQEAgc3RhdGljIERFVklDRV9BVFRSKHZybSwg
-U19JUlVHTyB8IFNfSVdVUwogI2RlZmluZSBJTl9VTklUX0FUVFJTKFgpIFwKIAkmc2RhX2luX2lu
-cHV0W1hdLmRldl9hdHRyLmF0dHIsIFwKIAkmc2RhX2luX21pbltYXS5kZXZfYXR0ci5hdHRyLCAg
-IFwKLQkmc2RhX2luX21heFtYXS5kZXZfYXR0ci5hdHRyCisJJnNkYV9pbl9tYXhbWF0uZGV2X2F0
-dHIuYXR0ciwgICBcCisJJnNkYV9pbl9iZWVwW1hdLmRldl9hdHRyLmF0dHIsICBcCisJJnNkYV9p
-bl9hbGFybVtYXS5kZXZfYXR0ci5hdHRyCiAKICNkZWZpbmUgRkFOX1VOSVRfQVRUUlMoWCkgXAog
-CSZzZGFfZmFuX2lucHV0W1hdLmRldl9hdHRyLmF0dHIsICAgICAgICBcCiAJJnNkYV9mYW5fbWlu
-W1hdLmRldl9hdHRyLmF0dHIsICAgICAgICAgIFwKLQkmc2RhX2Zhbl9kaXZbWF0uZGV2X2F0dHIu
-YXR0cgorCSZzZGFfZmFuX2RpdltYXS5kZXZfYXR0ci5hdHRyLCAgICAgICAgICBcCisJJnNkYV9m
-YW5fYmVlcFtYXS5kZXZfYXR0ci5hdHRyLCAgICAgICAgIFwKKwkmc2RhX2Zhbl9hbGFybVtYXS5k
-ZXZfYXR0ci5hdHRyCiAKICNkZWZpbmUgVEVNUF9VTklUX0FUVFJTKFgpIFwKIAkmc2RhX3RlbXBf
-aW5wdXRbWF0uZGV2X2F0dHIuYXR0ciwgICAgICAgXAogCSZzZGFfdGVtcF9tYXhbWF0uZGV2X2F0
-dHIuYXR0ciwgICAgICAgICBcCi0JJnNkYV90ZW1wX21heF9oeXN0W1hdLmRldl9hdHRyLmF0dHIK
-Kwkmc2RhX3RlbXBfbWF4X2h5c3RbWF0uZGV2X2F0dHIuYXR0ciwgICAgXAorCSZzZGFfdGVtcF9i
-ZWVwW1hdLmRldl9hdHRyLmF0dHIsICAgICAgICBcCisJJnNkYV90ZW1wX2FsYXJtW1hdLmRldl9h
-dHRyLmF0dHIKIAogc3RhdGljIHN0cnVjdCBhdHRyaWJ1dGUgKnc4Mzc5MWRfYXR0cmlidXRlc1td
-ID0gewogCUlOX1VOSVRfQVRUUlMoMCksCkBAIC0xMjgwLDMgKzEzOTcsNSBAQCBNT0RVTEVfTElD
-RU5TRSgiR1BMIik7CiAKIG1vZHVsZV9pbml0KHNlbnNvcnNfdzgzNzkxZF9pbml0KTsKIG1vZHVs
-ZV9leGl0KHNlbnNvcnNfdzgzNzkxZF9leGl0KTsKKworLyogdmltOiBzZXQgdHM9OCBzdz04IHR3
-PTc4IHN0cz0wIG5vZXQgYWkgY2luIGNpbm89IGZvcm1hdG9wdGlvbnM9Y3JvcWw6ICovCg==
-------=_Part_4_27327283.1188772876270
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Maybe it would be good to mention that this problem doesn't exist when
+using the new individual alarm and beep files?
+
+> diff -urpN linux-2.6.23-rc1-git10/MAINTAINERS linux-2.6.23-rc1-git10_w83791d/MAINTAINERS
+> --- linux-2.6.23-rc1-git10/MAINTAINERS	2007-08-05 23:18:27.000000000 -0700
+> +++ linux-2.6.23-rc1-git10_w83791d/MAINTAINERS	2007-08-31 15:48:41.000000000 -0700
+> @@ -4070,7 +4070,7 @@ W83791D HARDWARE MONITORING DRIVER
+>  P:	Charles Spirakis
+>  M:	bezaur@gmail.com
+>  L:	lm-sensors@lm-sensors.org
+> -S:	Maintained
+> +S:	Odd Fixes
+
+Thank you for maintaining this driver for a year, BTW. This was very
+much appreciated.
+
+> diff -urpN linux-2.6.23-rc1-git10/drivers/hwmon/w83791d.c linux-2.6.23-rc1-git10_w83791d/drivers/hwmon/w83791d.c
+> --- linux-2.6.23-rc1-git10/drivers/hwmon/w83791d.c	2007-07-22 13:41:00.000000000 -0700
+> +++ linux-2.6.23-rc1-git10_w83791d/drivers/hwmon/w83791d.c	2007-09-01 17:10:32.000000000 -0700
+> @@ -2,7 +2,7 @@
+>      w83791d.c - Part of lm_sensors, Linux kernel modules for hardware
+>                  monitoring
+>  
+> -    Copyright (C) 2006 Charles Spirakis <bezaur@gmail.com>
+> +    Copyright (C) 2006-2007 Charles Spirakis <bezaur@gmail.com>
+>  
+>      This program is free software; you can redistribute it and/or modify
+>      it under the terms of the GNU General Public License as published by
+> @@ -384,6 +384,88 @@ static struct sensor_device_attribute sd
+>  	SENSOR_ATTR(in9_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 9),
+>  };
+>  
+> +
+> +static ssize_t show_beep(struct device *dev, struct device_attribute *attr,
+> +			char *buf)
+> +{
+> +	struct sensor_device_attribute *sensor_attr > +						to_sensor_dev_attr(attr);
+> +	struct w83791d_data *data = w83791d_update_device(dev);
+> +	int bitnr = sensor_attr->index;
+> +
+> +	return sprintf(buf, "%d\n", (data->beep_mask >> bitnr) & 1);
+> +}
+
+Some times ago, Mark M. Hoffman proposed a more compact alternative to
+retrieve the index value:
+
+	int bitnr = to_sensor_dev_attr(attr)->index;
+
+You may want to use this.
+
+> +static ssize_t store_beep(struct device *dev, struct device_attribute *attr,
+> +			const char *buf, size_t count)
+> +{
+> +	struct sensor_device_attribute *sensor_attr > +						to_sensor_dev_attr(attr);
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct w83791d_data *data = w83791d_update_device(dev);
+
+We normally don't call the big update function in write callbacks. This
+function reads dozens of register values which you don't need here,
+this will make the write very slow. The preferred way is to read just
+the register(s) you need. This should be fairly easy in your case.
+
+> +	int bitnr = sensor_attr->index;
+> +	long val = simple_strtol(buf, NULL, 10) ? 1 : 0;
+> +	long beep_bit = val ? (1 << bitnr) : 0;
+
+More simply written val << bitnr.
+
+> +	int i;
+> +
+> +	mutex_lock(&data->update_lock);
+> +
+> +	data->beep_mask &= ~(1 << bitnr);
+> +	data->beep_mask |= (beep_bit);
+> +
+> +	val = data->beep_mask;
+> +
+> +	/* In theory, based on the bit we changed we only need to update
+> +	   one register, but why bother, this isn't time critical code... */
+> +	for (i = 0; i < 3; i++) {
+> +		w83791d_write(client, W83791D_REG_BEEP_CTRL[i], (val & 0xff));
+> +		val >>= 8;
+> +	}
+
+I agree that this isn't time critical, but I2C transactions can be slow
+and selecting the right byte is really easy:
+
+	int bytenr = bitnr / 8;
+	w83791d_write(client, W83791D_REG_BEEP_CTRL[bytenr],
+		      (data->beep_mask >> (bytenr * 8)) & 0xff);
+
+So maybe you can do it after all?
+
+> +
+> +	mutex_unlock(&data->update_lock);
+> +
+> +	return count;
+> +}
+> +
+> +static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
+> +			char *buf)
+> +{
+> +	struct sensor_device_attribute *sensor_attr > +						to_sensor_dev_attr(attr);
+> +	struct w83791d_data *data = w83791d_update_device(dev);
+> +	int bitnr = sensor_attr->index;
+> +
+> +	return sprintf(buf, "%d\n", (data->alarms >> bitnr) & 1);
+> +}
+> +
+> +/* Note: The bitmask for the beep enable/disable is different than
+> +   the bitmask for the alarm. */
+> +static struct sensor_device_attribute sda_in_beep[] = {
+> +	SENSOR_ATTR(in0_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 0),
+> +	SENSOR_ATTR(in1_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 13),
+> +	SENSOR_ATTR(in2_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 2),
+> +	SENSOR_ATTR(in3_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 3),
+> +	SENSOR_ATTR(in4_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 8),
+> +	SENSOR_ATTR(in5_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 9),
+> +	SENSOR_ATTR(in6_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 10),
+> +	SENSOR_ATTR(in7_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 16),
+> +	SENSOR_ATTR(in8_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 17),
+> +	SENSOR_ATTR(in9_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 14),
+> +};
+> +
+> +static struct sensor_device_attribute sda_in_alarm[] = {
+> +	SENSOR_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0),
+> +	SENSOR_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1),
+> +	SENSOR_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2),
+> +	SENSOR_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3),
+> +	SENSOR_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 8),
+> +	SENSOR_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 9),
+> +	SENSOR_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 10),
+> +	SENSOR_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 19),
+> +	SENSOR_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 20),
+> +	SENSOR_ATTR(in9_alarm, S_IRUGO, show_alarm, NULL, 14),
+> +};
+> +
+>  #define show_fan_reg(reg) \
+>  static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
+>  				char *buf) \
+> @@ -536,6 +618,22 @@ static struct sensor_device_attribute sd
+>  			show_fan_div, store_fan_div, 4),
+>  };
+>  
+> +static struct sensor_device_attribute sda_fan_beep[] = {
+> +	SENSOR_ATTR(fan1_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 6),
+> +	SENSOR_ATTR(fan2_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 7),
+> +	SENSOR_ATTR(fan3_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 11),
+> +	SENSOR_ATTR(fan4_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 21),
+> +	SENSOR_ATTR(fan5_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 22)
+
+Please add a trailing comma, and below too (4 times total.)
+
+> +};
+> +
+> +static struct sensor_device_attribute sda_fan_alarm[] = {
+> +	SENSOR_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 6),
+> +	SENSOR_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 7),
+> +	SENSOR_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 11),
+> +	SENSOR_ATTR(fan4_alarm, S_IRUGO, show_alarm, NULL, 21),
+> +	SENSOR_ATTR(fan5_alarm, S_IRUGO, show_alarm, NULL, 22)
+> +};
+> +
+>  /* read/write the temperature1, includes measured value and limits */
+>  static ssize_t show_temp1(struct device *dev, struct device_attribute *devattr,
+>  				char *buf)
+> @@ -618,6 +716,19 @@ static struct sensor_device_attribute_2 
+>  			show_temp23, store_temp23, 1, 2),
+>  };
+>  
+> +/* Note: The bitmask for the beep enable/disable is different than
+> +   the bitmask for the alarm. */
+> +static struct sensor_device_attribute sda_temp_beep[] = {
+> +	SENSOR_ATTR(temp1_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 4),
+> +	SENSOR_ATTR(temp2_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 5),
+> +	SENSOR_ATTR(temp3_beep, S_IWUSR | S_IRUGO, show_beep, store_beep, 1)
+> +};
+> +
+> +static struct sensor_device_attribute sda_temp_alarm[] = {
+> +	SENSOR_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4),
+> +	SENSOR_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 5),
+> +	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13)
+> +};
+>  
+>  /* get reatime status of all sensors items: voltage, temp, fan */
+>  static ssize_t show_alarms_reg(struct device *dev,
+> @@ -749,17 +860,23 @@ static DEVICE_ATTR(vrm, S_IRUGO | S_IWUS
+>  #define IN_UNIT_ATTRS(X) \
+>  	&sda_in_input[X].dev_attr.attr, \
+>  	&sda_in_min[X].dev_attr.attr,   \
+> -	&sda_in_max[X].dev_attr.attr
+> +	&sda_in_max[X].dev_attr.attr,   \
+> +	&sda_in_beep[X].dev_attr.attr,  \
+> +	&sda_in_alarm[X].dev_attr.attr
+>  
+>  #define FAN_UNIT_ATTRS(X) \
+>  	&sda_fan_input[X].dev_attr.attr,        \
+>  	&sda_fan_min[X].dev_attr.attr,          \
+> -	&sda_fan_div[X].dev_attr.attr
+> +	&sda_fan_div[X].dev_attr.attr,          \
+> +	&sda_fan_beep[X].dev_attr.attr,         \
+> +	&sda_fan_alarm[X].dev_attr.attr
+>  
+>  #define TEMP_UNIT_ATTRS(X) \
+>  	&sda_temp_input[X].dev_attr.attr,       \
+>  	&sda_temp_max[X].dev_attr.attr,         \
+> -	&sda_temp_max_hyst[X].dev_attr.attr
+> +	&sda_temp_max_hyst[X].dev_attr.attr,    \
+> +	&sda_temp_beep[X].dev_attr.attr,        \
+> +	&sda_temp_alarm[X].dev_attr.attr
+>  
+>  static struct attribute *w83791d_attributes[] = {
+>  	IN_UNIT_ATTRS(0),
+> @@ -1280,3 +1397,5 @@ MODULE_LICENSE("GPL");
+>  
+>  module_init(sensors_w83791d_init);
+>  module_exit(sensors_w83791d_exit);
+> +
+> +/* vim: set ts=8 sw=8 twx sts=0 noet ai cin cino= formatoptions=croql: */
+
+I'd venture that you did not really want this to be part of your patch?
+
+Overall it looks good, can you generate an updated patch based on my
+comments? Then Mark can apply it.
+
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_4_27327283.1188772876270--
