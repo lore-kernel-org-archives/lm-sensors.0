@@ -1,82 +1,117 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 29 Sep 2007 20:33:16 +0000
-Subject: Re: [lm-sensors] [patch 2.6.23-rc8 3/3] lm75: use 12 bit samples
-Message-Id: <20070929223316.49bcc9f6@hyperion.delvare>
+Date: Tue, 04 Sep 2007 21:25:33 +0000
+Subject: [lm-sensors] [PATCH] hwmon/lm78: Add individual alarm files
+Message-Id: <20070904232533.40609f1f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070925052306.24D6023942D@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-In-Reply-To: <20070925052306.24D6023942D@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David,
+Add individual alarm files to the lm78 driver, these are needed by
+the next version of libsensors.
 
-On Thu, 27 Sep 2007 16:02:03 -0700, David Brownell wrote:
-> >	The lm75 driver caches
-> > the sampled temperature value for 1.5 second, so assuming that the chip
-> > stops converting when I2C transactions are in progress (the LM75 does
-> > that!), it is crucial that the conversion takes less than 1.5 second.
-> > And a resolution of 0.0625 degrees C is probably better than most
-> > people need anyway, 0.125 degree C is already very nice to have.
-> 
-> Not all chips that take 12 bit samples (0.0625) can take 11 bit
-> samples (0.125) ... what drawback could there be in using that
-> extra bit?
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ Documentation/hwmon/lm78 |   10 ----------
+ drivers/hwmon/lm78.c     |   30 ++++++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+), 10 deletions(-)
 
-None, you're right.
-
-> (...)
-> > The rounding is there because the user doesn't know the resolution.
-> 
-> That could now be exposed...
-
-We do not have a standard sysfs file name for this, and quite frankly I
-don't see the value.
-
-> (...)
-> But I updated it to just say that it's "round away from zero",
-> which is "unusual".  The squirrely bit is that rounding should
-> be done on the fixed point binary value, although I don't see
-> any motivation for using "round away from zero" here.
-
-It's not rounding "away from zero" (whatever you mean with that
-expression). It's just rounding to the nearest representable value, I
-see nothing unusual there. If you see anything else than regular
-rounding, that would be a bug, please explain and we'll fix it.
-
-> (...)
-> > The original code was stripping away the undefined bits, while yours
-> > doesn't. You can't assume that these unused bits will always be 0. So it
-> > matters to divide first and multiply last, taking the effective chip
-> > resolution into account. Please fix.
-> 
-> No can do ... that's where the fractional precision is stored!
-> Dividing by 256 would discard all fractional bits, producing
-> a resolution of 8 bits not (max) 12.  These routines are set
-> to handle arbitrary resolution, not just 9 bits.
-> 
-> I can mask off those low order bits though.
-
-You could do it, it's mathematically doable. Masking the unused bits
-afterwards as you plan to do is probably more efficient and cleaner
-though.
-
-> (...)
-> > > +	} else if (strcmp(client->name, "ds75") = 0
-> > > +			|| strcmp(client->name, "mcp980x") = 0
-> > > +			|| strcmp(client->name, "tmp100") = 0
-> > > +			|| strcmp(client->name, "tmp101") = 0
-> >
-> > Please align things better than that.
-> 
-> It *is* aligned.  All tabs, per CodingStyle.
-
-It is indented, but not aligned. There's nothing wrong with using tabs
-followed by spaces for alignment, as long as the amount of spaces is <
-8. Just try and run scripts/checkpatch.pl on your patch, you'll see it
-doesn't complain. So I have to insist, please align your code to make
-it look nicer, as everybody else does.
+--- linux-2.6.23-rc5.orig/drivers/hwmon/lm78.c	2007-09-04 11:40:51.000000000 +0200
++++ linux-2.6.23-rc5/drivers/hwmon/lm78.c	2007-09-04 20:47:27.000000000 +0200
+@@ -438,6 +438,25 @@ static ssize_t show_alarms(struct device
+ }
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
++static ssize_t show_alarm(struct device *dev, struct device_attribute *da,
++			  char *buf)
++{
++	struct lm78_data *data = lm78_update_device(dev);
++	int nr = to_sensor_dev_attr(da)->index;
++	return sprintf(buf, "%u\n", (data->alarms >> nr) & 1);
++}
++static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
++static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
++static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3);
++static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 8);
++static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 9);
++static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 10);
++static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 6);
++static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 7);
++static SENSOR_DEVICE_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 11);
++static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4);
++
+ /* This function is called when:
+      * lm78_driver is inserted (when this module is loaded), for each
+        available adapter
+@@ -453,36 +472,47 @@ static struct attribute *lm78_attributes
+ 	&sensor_dev_attr_in0_input.dev_attr.attr,
+ 	&sensor_dev_attr_in0_min.dev_attr.attr,
+ 	&sensor_dev_attr_in0_max.dev_attr.attr,
++	&sensor_dev_attr_in0_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in1_input.dev_attr.attr,
+ 	&sensor_dev_attr_in1_min.dev_attr.attr,
+ 	&sensor_dev_attr_in1_max.dev_attr.attr,
++	&sensor_dev_attr_in1_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in2_input.dev_attr.attr,
+ 	&sensor_dev_attr_in2_min.dev_attr.attr,
+ 	&sensor_dev_attr_in2_max.dev_attr.attr,
++	&sensor_dev_attr_in2_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in3_input.dev_attr.attr,
+ 	&sensor_dev_attr_in3_min.dev_attr.attr,
+ 	&sensor_dev_attr_in3_max.dev_attr.attr,
++	&sensor_dev_attr_in3_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in4_input.dev_attr.attr,
+ 	&sensor_dev_attr_in4_min.dev_attr.attr,
+ 	&sensor_dev_attr_in4_max.dev_attr.attr,
++	&sensor_dev_attr_in4_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in5_input.dev_attr.attr,
+ 	&sensor_dev_attr_in5_min.dev_attr.attr,
+ 	&sensor_dev_attr_in5_max.dev_attr.attr,
++	&sensor_dev_attr_in5_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in6_input.dev_attr.attr,
+ 	&sensor_dev_attr_in6_min.dev_attr.attr,
+ 	&sensor_dev_attr_in6_max.dev_attr.attr,
++	&sensor_dev_attr_in6_alarm.dev_attr.attr,
+ 	&dev_attr_temp1_input.attr,
+ 	&dev_attr_temp1_max.attr,
+ 	&dev_attr_temp1_max_hyst.attr,
++	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_min.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_div.dev_attr.attr,
++	&sensor_dev_attr_fan1_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_fan2_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan2_min.dev_attr.attr,
+ 	&sensor_dev_attr_fan2_div.dev_attr.attr,
++	&sensor_dev_attr_fan2_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_fan3_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan3_min.dev_attr.attr,
+ 	&sensor_dev_attr_fan3_div.dev_attr.attr,
++	&sensor_dev_attr_fan3_alarm.dev_attr.attr,
+ 	&dev_attr_alarms.attr,
+ 	&dev_attr_cpu0_vid.attr,
+ 
+--- linux-2.6.23-rc5.orig/Documentation/hwmon/lm78	2007-02-04 19:44:54.000000000 +0100
++++ linux-2.6.23-rc5/Documentation/hwmon/lm78	2007-09-04 23:23:59.000000000 +0200
+@@ -56,16 +56,6 @@ should work with. This is hardcoded by t
+ It is a value in volts. When it is unconnected, you will often find the
+ value 3.50 V here.
+ 
+-In addition to the alarms described above, there are a couple of additional
+-ones. There is a BTI alarm, which gets triggered when an external chip has
+-crossed its limits. Usually, this is connected to all LM75 chips; if at
+-least one crosses its limits, this bit gets set. The CHAS alarm triggers
+-if your computer case is open. The FIFO alarms should never trigger; it
+-indicates an internal error. The SMI_IN alarm indicates some other chip
+-has triggered an SMI interrupt. As we do not use SMI interrupts at all,
+-this condition usually indicates there is a problem with some other
+-device.
+-
+ If an alarm triggers, it will remain triggered until the hardware register
+ is read at least once. This means that the cause for the alarm may
+ already have disappeared! Note that in the current implementation, all
 
 -- 
 Jean Delvare
