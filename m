@@ -1,7 +1,7 @@
-From: "Juergen.Bausa" <Juergen.Bausa@web.de>
-Date: Wed, 05 Sep 2007 19:01:22 +0000
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Thu, 06 Sep 2007 07:21:35 +0000
 Subject: Re: [lm-sensors] k8temp, BE-2350 CPU
-Message-Id: <loom.20070905T205947-248@post.gmane.org>
+Message-Id: <46DFAA7F.2060803@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46BAABD3.5000103@assembler.cz>
 In-Reply-To: <46BAABD3.5000103@assembler.cz>
@@ -10,34 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rudolf Marek <rudolf.marek <at> sysgo.com> writes:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> 
-> Bernhard Seibold wrote:
-> > On Di, 2007-09-04 at 20:53 +0200, Rudolf Marek wrote:
-> >> Are you sure those are correct? The datasheets suggest that you need first
-> >> extract the 0.25 degC from two lowest bits and THEN subtract 49.
-> >>
-> >> Your code does it first. Your method will work only if AMD made a mistake in
-> >> documentation. Are you sure?
-> > 
-> > You're right, it should be (raw * 250) - 49000, as M. G. Berberich also
-> > pointed out to me.
-> > 
-> > This means the original formula should have worked, so either the
-> > documentation is wrong, or the sensors are broken (as someone at the AMD
-> > forums claims).
-> 
-> Yes it is broken, some Errata suggests this :/
-> 
+> I just installed the patch on my BE-2350 system and the results seem reasonable.
+> Does this mean that the hardware sensor itself is broken and that the results
+> are reasonable by chance?
 
-I just installed the patch on my BE-2350 system and the results seem reasonable.
-Does this mean that the hardware sensor itself is broken and that the results
-are reasonable by chance?
+No it seems that only certain CPUs have problems. If it is reasonable than it
+probably works. What is your CPUID? (cat /proc/cpuinfo or run cpuid util)
 
-Juergen
+Thanks,
+Rudolf
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-
+iD8DBQFG36p/3J9wPJqZRNURAvveAJ93MDSGly9HBs4LQyO6PI56Hqc4hACeMs/h
+C5dEUHaCnW5Mlf44yezRq88=Vm+M
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 lm-sensors mailing list
