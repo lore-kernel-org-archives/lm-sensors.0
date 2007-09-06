@@ -1,66 +1,29 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Tue, 04 Sep 2007 22:43:38 +0000
-Subject: [lm-sensors] [PATCH] lm-sensors: add sch311x support
-Message-Id: <191fb4ca0709041543j66eadd45hb058274ec2aa4422@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_20657_5151593.1188945818707"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 06 Sep 2007 09:12:52 +0000
+Subject: Re: [lm-sensors] [PATCH] lm-sensors: add sch311x support
+Message-Id: <20070906111252.68dd6e9b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <191fb4ca0709041543j66eadd45hb058274ec2aa4422@mail.gmail.com>
+In-Reply-To: <191fb4ca0709041543j66eadd45hb058274ec2aa4422@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_20657_5151593.1188945818707
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Juerg,
 
-This patch adds support for the SMSC sch311x Super-I/O to lm-sensors.
+On Tue, 4 Sep 2007 15:43:38 -0700, Juerg Haefliger wrote:
+> This patch adds support for the SMSC sch311x Super-I/O to lm-sensors.
 
-Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+Great, patch applied, thank you.
 
-------=_Part_20657_5151593.1188945818707
-Content-Type: text/x-patch; name=lm-sensors-add-sch311x-support.patch; 
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f66zniug
-Content-Disposition: attachment;
-	filename="lm-sensors-add-sch311x-support.patch"
+I can't remember if I already proposed: do you want write access to
+the SVN repository? You only have to ask.
 
-SW5kZXg6IGxtLXNlbnNvcnMvbGliL2NoaXBzLmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gbG0tc2Vuc29ycy5v
-cmlnL2xpYi9jaGlwcy5jCTIwMDctMDktMDQgMTI6NDk6MjIuMDAwMDAwMDAwIC0wNzAwCisrKyBs
-bS1zZW5zb3JzL2xpYi9jaGlwcy5jCTIwMDctMDktMDQgMTI6NTM6MzkuMDAwMDAwMDAwIC0wNzAw
-CkBAIC02MzIwLDYgKzYzMjAsNyBAQAogIHsgU0VOU09SU19LOFRFTVBfUFJFRklYLCBrOHRlbXBf
-ZmVhdHVyZXMgfSwKICB7IFNFTlNPUlNfQ09SRVRFTVBfUFJFRklYLCBjb3JldGVtcF9mZWF0dXJl
-cyB9LAogIHsgU0VOU09SU19ETUUxNzM3X1BSRUZJWCwgZG1lMTczN19mZWF0dXJlcyB9LAorIHsg
-U0VOU09SU19TQ0gzMTFYX1BSRUZJWCwgZG1lMTczN19mZWF0dXJlcyB9LAogIHsgU0VOU09SU19B
-UFBMRVNNQ19QUkVGSVgsIGFwcGxlc21jX2ZlYXR1cmVzIH0sCiAgeyBTRU5TT1JTX0Y3MTg4MkZH
-X1BSRUZJWCwgZjcxODgyZmdfZmVhdHVyZXMgfSwKICB7IDAgfQpJbmRleDogbG0tc2Vuc29ycy9s
-aWIvY2hpcHMuaAo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsbS1zZW5zb3JzLm9yaWcvbGliL2NoaXBzLmgJMjAw
-Ny0wOS0wNCAxMjo0ODoxNS4wMDAwMDAwMDAgLTA3MDAKKysrIGxtLXNlbnNvcnMvbGliL2NoaXBz
-LmgJMjAwNy0wOS0wNCAxMjo0OTowNC4wMDAwMDAwMDAgLTA3MDAKQEAgLTIyNzQsOSArMjI3NCwx
-MCBAQAogI2RlZmluZSBTRU5TT1JTX0NPUkVURU1QX1RFTVAxX0NSSVQJCTB4MDIgLyogUiAqLwog
-I2RlZmluZSBTRU5TT1JTX0NPUkVURU1QX1RFTVAxX0NSSVRfQUxBUk0JMHgwMyAvKiBSICovCiAK
-LS8qIERNRTE3MzcgKi8KKy8qIERNRTE3MzcgY2hpcHMgKi8KIAogI2RlZmluZSBTRU5TT1JTX0RN
-RTE3MzdfUFJFRklYICJkbWUxNzM3IgorI2RlZmluZSBTRU5TT1JTX1NDSDMxMVhfUFJFRklYICJz
-Y2gzMTF4IgogCiAvKiBpbiBuIGZyb20gMCB0byA2ICovCiAjZGVmaW5lIFNFTlNPUlNfRE1FMTcz
-N19JTihuKQkJCSgweDAxICsgKG4pKSAvKiBSICovCkluZGV4OiBsbS1zZW5zb3JzL3Byb2cvc2Vu
-c29ycy9tYWluLmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PQotLS0gbG0tc2Vuc29ycy5vcmlnL3Byb2cvc2Vuc29ycy9t
-YWluLmMJMjAwNy0wOS0wNCAxMjo1MDo1OS4wMDAwMDAwMDAgLTA3MDAKKysrIGxtLXNlbnNvcnMv
-cHJvZy9zZW5zb3JzL21haW4uYwkyMDA3LTA5LTA0IDEyOjUyOjExLjAwMDAwMDAwMCAtMDcwMApA
-QCAtNDI0LDYgKzQyNCw3IEBACiAgCXsgIms4dGVtcCIsIHByaW50X2s4dGVtcCB9LAogIAl7ICJj
-b3JldGVtcCIsIHByaW50X2NvcmV0ZW1wIH0sCiAgCXsgImRtZTE3MzciLCBwcmludF9kbWUxNzM3
-IH0sCisgCXsgInNjaDMxMXgiLCBwcmludF9kbWUxNzM3IH0sCiAJeyAiYXBwbGVzbWMiLCBwcmlu
-dF9hcHBsZXNtYyB9LAogCXsgImY3MTg4MmZnIiwgcHJpbnRfZjcxODgyZmcgfSwKIAl7IE5VTEws
-IE5VTEwgfQo=
-------=_Part_20657_5151593.1188945818707
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_20657_5151593.1188945818707--
