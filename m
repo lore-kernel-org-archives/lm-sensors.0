@@ -1,133 +1,137 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 02 Sep 2007 20:07:32 +0000
-Subject: [lm-sensors] [PATCH 2/7] libsensors4: Rename
-Message-Id: <20070902220732.072bd6b0@hyperion.delvare>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Sat, 08 Sep 2007 13:26:05 +0000
+Subject: Re: [lm-sensors] [PATCH 3/5] hwmon/lm85: Add individual alarm files
+Message-Id: <191fb4ca0709080626y2cd0cbe6pd47194227c3ba8a2@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rename sensors_feature_data.mode to flags, as we plan to use it to
-store non-mode flags soon.
+> The future libsensors needs these individual alarm and fault files.
+>
+> Also delete old and unused alarm defines.
+>
+> Signed-off-by: Jean Delvare <khali at linux-fr.org>
+> ---
+>  drivers/hwmon/lm85.c |   60 +++++++++++++++++++++++++++++++++++---------------
+>  1 file changed, 43 insertions(+), 17 deletions(-)
+>
+> --- linux-2.6.22-rc6.orig/drivers/hwmon/lm85.c	2007-07-01 13:40:58.000000000 +0200
+> +++ linux-2.6.22-rc6/drivers/hwmon/lm85.c	2007-07-01 13:50:32.000000000 +0200
+> @@ -123,23 +123,6 @@ I2C_CLIENT_INSMOD_6(lm85b, lm85c, adm102
+>  #define	EMC6D102_REG_EXTEND_ADC3	0x87
+>  #define	EMC6D102_REG_EXTEND_ADC4	0x88
+>
+> -#define	LM85_ALARM_IN0			0x0001
+> -#define	LM85_ALARM_IN1			0x0002
+> -#define	LM85_ALARM_IN2			0x0004
+> -#define	LM85_ALARM_IN3			0x0008
+> -#define	LM85_ALARM_TEMP1		0x0010
+> -#define	LM85_ALARM_TEMP2		0x0020
+> -#define	LM85_ALARM_TEMP3		0x0040
+> -#define	LM85_ALARM_ALARM2		0x0080
+> -#define	LM85_ALARM_IN4			0x0100
+> -#define	LM85_ALARM_RESERVED		0x0200
+> -#define	LM85_ALARM_FAN1			0x0400
+> -#define	LM85_ALARM_FAN2			0x0800
+> -#define	LM85_ALARM_FAN3			0x1000
+> -#define	LM85_ALARM_FAN4			0x2000
+> -#define	LM85_ALARM_TEMP1_FAULT		0x4000
+> -#define	LM85_ALARM_TEMP3_FAULT		0x8000
+> -
+>
+>  /* Conversions. Rounding and limit checking is only done on the TO_REG
+>     variants. Note that you should be a bit careful with which arguments
+> @@ -477,6 +460,32 @@ static ssize_t show_alarms_reg(struct de
+>
+>  static DEVICE_ATTR(alarms, S_IRUGO, show_alarms_reg, NULL);
+>
+> +static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
+> +		char *buf)
+> +{
+> +	int nr = to_sensor_dev_attr(attr)->index;
+> +	struct lm85_data *data = lm85_update_device(dev);
+> +	return sprintf(buf, "%u\n", (data->alarms >> nr) & 1);
+> +}
+> +
+> +static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
+> +static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
+> +static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2);
+> +static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3);
+> +static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 8);
+> +static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 18);
+> +static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 16);
+> +static SENSOR_DEVICE_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 17);
+> +static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4);
+> +static SENSOR_DEVICE_ATTR(temp1_fault, S_IRUGO, show_alarm, NULL, 14);
+> +static SENSOR_DEVICE_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 5);
+> +static SENSOR_DEVICE_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 6);
+> +static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_alarm, NULL, 15);
+> +static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 10);
+> +static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 11);
+> +static SENSOR_DEVICE_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 12);
+> +static SENSOR_DEVICE_ATTR(fan4_alarm, S_IRUGO, show_alarm, NULL, 13);
+> +
+>  /* pwm */
+>
+>  static ssize_t show_pwm(struct device *dev, struct device_attribute *attr,
+> @@ -966,6 +975,10 @@ static struct attribute *lm85_attributes
+>  	&sensor_dev_attr_fan2_min.dev_attr.attr,
+>  	&sensor_dev_attr_fan3_min.dev_attr.attr,
+>  	&sensor_dev_attr_fan4_min.dev_attr.attr,
+> +	&sensor_dev_attr_fan1_alarm.dev_attr.attr,
+> +	&sensor_dev_attr_fan2_alarm.dev_attr.attr,
+> +	&sensor_dev_attr_fan3_alarm.dev_attr.attr,
+> +	&sensor_dev_attr_fan4_alarm.dev_attr.attr,
+>
+>  	&sensor_dev_attr_pwm1.dev_attr.attr,
+>  	&sensor_dev_attr_pwm2.dev_attr.attr,
+> @@ -986,6 +999,10 @@ static struct attribute *lm85_attributes
+>  	&sensor_dev_attr_in1_max.dev_attr.attr,
+>  	&sensor_dev_attr_in2_max.dev_attr.attr,
+>  	&sensor_dev_attr_in3_max.dev_attr.attr,
+> +	&sensor_dev_attr_in0_alarm.dev_attr.attr,
+> +	&sensor_dev_attr_in1_alarm.dev_attr.attr,
+> +	&sensor_dev_attr_in2_alarm.dev_attr.attr,
+> +	&sensor_dev_attr_in3_alarm.dev_attr.attr,
+>
+>  	&sensor_dev_attr_temp1_input.dev_attr.attr,
+>  	&sensor_dev_attr_temp2_input.dev_attr.attr,
+> @@ -996,6 +1013,11 @@ static struct attribute *lm85_attributes
+>  	&sensor_dev_attr_temp1_max.dev_attr.attr,
+>  	&sensor_dev_attr_temp2_max.dev_attr.attr,
+>  	&sensor_dev_attr_temp3_max.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
+> +	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
+> +	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_fault.dev_attr.attr,
+> +	&sensor_dev_attr_temp3_fault.dev_attr.attr,
+>
+>  	&sensor_dev_attr_pwm1_auto_channels.dev_attr.attr,
+>  	&sensor_dev_attr_pwm2_auto_channels.dev_attr.attr,
+> @@ -1037,6 +1059,7 @@ static struct attribute *lm85_attributes
+>  	&sensor_dev_attr_in4_input.dev_attr.attr,
+>  	&sensor_dev_attr_in4_min.dev_attr.attr,
+>  	&sensor_dev_attr_in4_max.dev_attr.attr,
+> +	&sensor_dev_attr_in4_alarm.dev_attr.attr,
+>  	NULL
+>  };
+>
+> @@ -1054,6 +1077,9 @@ static struct attribute *lm85_attributes
+>  	&sensor_dev_attr_in5_max.dev_attr.attr,
+>  	&sensor_dev_attr_in6_max.dev_attr.attr,
+>  	&sensor_dev_attr_in7_max.dev_attr.attr,
+> +	&sensor_dev_attr_in5_alarm.dev_attr.attr,
+> +	&sensor_dev_attr_in6_alarm.dev_attr.attr,
+> +	&sensor_dev_attr_in7_alarm.dev_attr.attr,
+>  	NULL
+>  };
+>
 
----
- lib/access.c         |    4 ++--
- lib/data.h           |    2 +-
- lib/libsensors.3     |    4 ++--
- lib/sensors.h        |    4 ++--
- lib/sysfs.c          |    4 ++--
- prog/sensord/sense.c |    2 +-
- prog/sensors/chips.c |    2 +-
- 7 files changed, 11 insertions(+), 11 deletions(-)
+Looks good.
 
---- lm-sensors-3.orig/lib/sensors.h	2007-09-02 16:16:15.000000000 +0200
-+++ lm-sensors-3/lib/sensors.h	2007-09-02 16:16:53.000000000 +0200
-@@ -112,7 +112,7 @@ int sensors_do_chip_sets(const sensors_c
- const sensors_chip_name *sensors_get_detected_chips(const sensors_chip_name
- 						    *match, int *nr);
- 
--/* These defines are used in the mode field of sensors_feature_data */
-+/* These defines are used in the flags field of sensors_feature_data */
- #define SENSORS_MODE_R 1
- #define SENSORS_MODE_W 2
- 
-@@ -164,7 +164,7 @@ typedef struct sensors_feature_data {
- 	sensors_feature_type type;
- 	int mapping;
- 	int compute_mapping;
--	int mode;
-+	unsigned int flags;
- } sensors_feature_data;
- 
- /* This returns all features of a specific chip. They are returned in
---- lm-sensors-3.orig/lib/access.c	2007-09-02 16:16:15.000000000 +0200
-+++ lm-sensors-3/lib/access.c	2007-09-02 16:16:53.000000000 +0200
-@@ -238,7 +238,7 @@ int sensors_get_value(const sensors_chip
- 		alt_feature = sensors_lookup_feature_nr(name,
- 					main_feature->data.compute_mapping);
- 
--	if (!(main_feature->data.mode & SENSORS_MODE_R))
-+	if (!(main_feature->data.flags & SENSORS_MODE_R))
- 		return -SENSORS_ERR_ACCESS_R;
- 	for (chip = NULL;
- 	     !expr && (chip = sensors_for_all_config_chips(name, chip));)
-@@ -285,7 +285,7 @@ int sensors_set_value(const sensors_chip
- 		alt_feature = sensors_lookup_feature_nr(name,
- 					main_feature->data.compute_mapping);
- 
--	if (!(main_feature->data.mode & SENSORS_MODE_W))
-+	if (!(main_feature->data.flags & SENSORS_MODE_W))
- 		return -SENSORS_ERR_ACCESS_W;
- 	for (chip = NULL;
- 	     !expr && (chip = sensors_for_all_config_chips(name, chip));)
---- lm-sensors-3.orig/lib/sysfs.c	2007-09-02 16:16:15.000000000 +0200
-+++ lm-sensors-3/lib/sysfs.c	2007-09-02 16:16:53.000000000 +0200
-@@ -153,9 +153,9 @@ static int sensors_read_dynamic_chip(sen
- 		}
- 
- 		if (attr->method & SYSFS_METHOD_SHOW)
--			feature.data.mode |= SENSORS_MODE_R;
-+			feature.data.flags |= SENSORS_MODE_R;
- 		if (attr->method & SYSFS_METHOD_STORE)
--			feature.data.mode |= SENSORS_MODE_W;
-+			feature.data.flags |= SENSORS_MODE_W;
- 
- 		feature.scaling = get_type_scaling(type);
- 
---- lm-sensors-3.orig/prog/sensord/sense.c	2007-09-02 16:16:15.000000000 +0200
-+++ lm-sensors-3/prog/sensord/sense.c	2007-09-02 16:16:53.000000000 +0200
-@@ -88,7 +88,7 @@ readUnknownChip
-     if (!(label = sensors_get_label (chip, sensor->number))) {
-       sensorLog (LOG_ERR, "Error getting sensor label: %s/%s", chip->prefix, sensor->name);
-       ret = 21;
--    } else if (!(sensor->mode & SENSORS_MODE_R)) {
-+    } else if (!(sensor->flags & SENSORS_MODE_R)) {
-       sensorLog (LOG_INFO, "%s: %s", sensor->name, label);
-     } else if ((ret = sensors_get_value (chip, sensor->number, &value))) {
-       sensorLog (LOG_ERR, "Error getting sensor data: %s/%s: %s", chip->prefix, sensor->name, sensors_strerror (ret));
---- lm-sensors-3.orig/prog/sensors/chips.c	2007-09-02 16:16:15.000000000 +0200
-+++ lm-sensors-3/prog/sensors/chips.c	2007-09-02 16:16:53.000000000 +0200
-@@ -41,7 +41,7 @@ void print_chip_raw(const sensors_chip_n
- 			       data->name);
- 			continue;
- 		}
--		if (data->mode & SENSORS_MODE_R) {
-+		if (data->flags & SENSORS_MODE_R) {
- 			if (sensors_get_value(name, data->number, &val))
- 				printf("ERROR: Can't get feature `%s' data!\n",
- 				       data->name);
---- lm-sensors-3.orig/lib/data.h	2007-09-02 16:16:15.000000000 +0200
-+++ lm-sensors-3/lib/data.h	2007-09-02 16:16:53.000000000 +0200
-@@ -132,7 +132,7 @@ typedef struct sensors_bus {
-    compute_mapping is like logical_mapping, only it refers to another
-      feature whose compute line will be inherited (a group could be fan and
-      fan_max, but not fan_div)
--   mode is a bitfield, its value is a combination of SENSORS_MODE_R (readable)
-+   flags is a bitfield, its value is a combination of SENSORS_MODE_R (readable)
-      and SENSORS_MODE_W (writable).
-    scaling is the number of decimal points to scale by.
-      Divide the read value by 10**scaling to get the real value. */
---- lm-sensors-3.orig/lib/libsensors.3	2007-09-02 16:16:15.000000000 +0200
-+++ lm-sensors-3/lib/libsensors.3	2007-09-02 16:16:53.000000000 +0200
-@@ -115,11 +115,11 @@ This structure is used when you want to 
- .br
-   int compute_mapping;
- .br
--  int mode;
-+  unsigned int flags;
- .br
- } sensors_feature_data;\fP
- .br
--The mode field is a bitfield, its value is a combination of
-+The flags field is a bitfield, its value is a combination of
- SENSORS_MODE_R (readable) and SENSORS_MODE_W (writable).
- 
- \fBconst sensors_feature_data *sensors_get_all_features
-
-
--- 
-Jean Delvare
+Acked-by: Juerg Haefliger <juergh at gmail.com>
 
 _______________________________________________
 lm-sensors mailing list
