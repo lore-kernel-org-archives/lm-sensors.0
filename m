@@ -1,7 +1,7 @@
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
-Date: Sun, 02 Sep 2007 11:37:41 +0000
+From: Krzysztof Helt <krzysztof.h1@gmail.com>
+Date: Sun, 09 Sep 2007 17:51:14 +0000
 Subject: [lm-sensors] [PATCH] adm1021: dynamic sysfs callbacks conversion
-Message-Id: <20070902133741.f17f30fc.krzysztof.h1@wp.pl>
+Message-Id: <20070909195114.2baa4f66.krzysztof.h1@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46a4515e7829b@wp.pl>
 In-Reply-To: <46a4515e7829b@wp.pl>
@@ -18,15 +18,8 @@ Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 
 ---
 
-This is the patch I posted some time ago. 
-This revision is redone after applying the patch which fixes negative
-value writes.
-
-Regards,
-Krzysztof
-
---- linux-2.6.23.orig/drivers/hwmon/adm1021.c	2007-09-02 13:11:35.000000000 +0200
-+++ linux-2.6.23/drivers/hwmon/adm1021.c	2007-09-02 13:17:32.878031937 +0200
+--- linux-2.6.22/drivers/hwmon/adm1021.c	2007-09-09 19:36:59.782610177 +0200
++++ linux-2.6.23/drivers/hwmon/adm1021.c	2007-09-09 19:41:49.535122232 +0200
 @@ -25,6 +25,7 @@
  #include <linux/jiffies.h>
  #include <linux/i2c.h>
@@ -35,7 +28,34 @@ Krzysztof
  #include <linux/err.h>
  #include <linux/mutex.h>
  
-@@ -73,14 +74,6 @@ I2C_CLIENT_INSMOD_8(adm1021, adm1023, ma
+@@ -43,8 +44,8 @@ I2C_CLIENT_INSMOD_8(adm1021, adm1023, ma
+ 
+ /* The adm1021 registers */
+ /* Read-only */
+-#define ADM1021_REG_TEMP		0x00
+-#define ADM1021_REG_REMOTE_TEMP		0x01
++/* For nr in 0-1 */
++#define ADM1021_REG_TEMP(nr)		(nr)
+ #define ADM1021_REG_STATUS		0x02
+ /* 0x41 = AD, 0x49 = TI, 0x4D = Maxim, 0x23 = Genesys , 0x54 = Onsemi */
+ #define ADM1021_REG_MAN_ID		0xFE
+@@ -62,25 +63,14 @@ I2C_CLIENT_INSMOD_8(adm1021, adm1023, ma
+ #define ADM1023_REG_REM_TOS_PREC	0x13
+ #define ADM1023_REG_REM_THYST_PREC	0x14
+ /* limits */
+-#define ADM1021_REG_TOS_R		0x05
+-#define ADM1021_REG_TOS_W		0x0B
+-#define ADM1021_REG_REMOTE_TOS_R	0x07
+-#define ADM1021_REG_REMOTE_TOS_W	0x0D
+-#define ADM1021_REG_THYST_R		0x06
+-#define ADM1021_REG_THYST_W		0x0C
+-#define ADM1021_REG_REMOTE_THYST_R	0x08
+-#define ADM1021_REG_REMOTE_THYST_W	0x0E
++/* For nr in 0-1 */
++#define ADM1021_REG_TOS_R(nr)		(0x05 + 2 * (nr))
++#define ADM1021_REG_TOS_W(nr)		(0x0B + 2 * (nr))
++#define ADM1021_REG_THYST_R(nr)		(0x06 + 2 * (nr))
++#define ADM1021_REG_THYST_W(nr)		(0x0C + 2 * (nr))
  /* write-only */
  #define ADM1021_REG_ONESHOT		0x0F
  
@@ -50,7 +70,7 @@ Krzysztof
  /* Initial values */
  
  /* Note: Even though I left the low and high limits named os and hyst,
-@@ -98,19 +91,16 @@ struct adm1021_data {
+@@ -98,19 +88,16 @@ struct adm1021_data {
  	char valid;		/* !=0 if following fields are valid */
  	unsigned long last_updated;	/* In jiffies */
  
@@ -80,7 +100,7 @@ Krzysztof
  };
  
  static int adm1021_attach_adapter(struct i2c_adapter *adapter);
-@@ -133,19 +123,32 @@ static struct i2c_driver adm1021_driver 
+@@ -133,19 +120,32 @@ static struct i2c_driver adm1021_driver 
  	.detach_client	= adm1021_detach_client,
  };
  
@@ -126,7 +146,7 @@ Krzysztof
  
  static ssize_t show_alarms(struct device *dev,
  			   struct device_attribute *attr,
-@@ -155,35 +158,52 @@ static ssize_t show_alarms(struct device
+@@ -155,35 +155,55 @@ static ssize_t show_alarms(struct device
  	return sprintf(buf, "%u\n", data->alarms);
  }
  
@@ -166,10 +186,12 @@ Krzysztof
 +	struct i2c_client *client = to_i2c_client(dev);
 +	struct adm1021_data *data = i2c_get_clientdata(client);
 +	long temp = simple_strtol(buf, NULL, 10) / 1000;
- 
++
 +	mutex_lock(&data->update_lock);
 +	data->temp_max[index] = SENSORS_LIMIT(temp, -128, 127);
-+	i2c_smbus_write_byte_data(client, ADM1021_REG_TOS_W + 2 * index, temp);
++	if (!read_only)
++		i2c_smbus_write_byte_data(client, ADM1021_REG_TOS_W(index),
++					  data->temp_max[index]);
 +	mutex_unlock(&data->update_lock);
 +
 +	return count;
@@ -183,11 +205,12 @@ Krzysztof
 +	struct i2c_client *client = to_i2c_client(dev);
 +	struct adm1021_data *data = i2c_get_clientdata(client);
 +	long temp = simple_strtol(buf, NULL, 10) / 1000;
-+
+ 
 +	mutex_lock(&data->update_lock);
-+	data->temp_max[index] = SENSORS_LIMIT(temp, -128, 127);
-+	i2c_smbus_write_byte_data(client,
-+				  ADM1021_REG_THYST_W + 2 * index, temp);
++	data->temp_min[index] = SENSORS_LIMIT(temp, -128, 127);
++	if (!read_only)
++		i2c_smbus_write_byte_data(client, ADM1021_REG_THYST_W(index),
++					  data->temp_min[index]);
 +	mutex_unlock(&data->update_lock);
 +
 +	return count;
@@ -226,7 +249,7 @@ Krzysztof
  	&dev_attr_alarms.attr,
  	NULL
  };
-@@ -370,21 +390,22 @@ static struct adm1021_data *adm1021_upda
+@@ -370,20 +390,18 @@ static struct adm1021_data *adm1021_upda
  
  	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
  	    || !data->valid) {
@@ -246,19 +269,18 @@ Krzysztof
 -						ADM1021_REG_REMOTE_TOS_R);
 -		data->remote_temp_hyst = i2c_smbus_read_byte_data(client,
 -						ADM1021_REG_REMOTE_THYST_R);
--		data->alarms = i2c_smbus_read_byte_data(client,
 +		for (i = 0; i < 2; i++) {
 +			data->temp[i] = i2c_smbus_read_byte_data(client,
-+						ADM1021_REG_TEMP + i);
-+			data->temp_max[i] +				i2c_smbus_read_byte_data(client,
-+						ADM1021_REG_TOS_R + 2 * i);
-+			data->temp_min[i] +				i2c_smbus_read_byte_data(client,
-+						ADM1021_REG_THYST_R + 2 * i);
++						ADM1021_REG_TEMP(i));
++			data->temp_max[i] = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_TOS_R(i));
++			data->temp_min[i] = i2c_smbus_read_byte_data(client,
++						ADM1021_REG_THYST_R(i));
 +		}
-+		data->alarms +			i2c_smbus_read_byte_data(client,
+ 		data->alarms = i2c_smbus_read_byte_data(client,
  						ADM1021_REG_STATUS) & 0x7c;
  		if (data->type = adm1023) {
- 			data->remote_temp_prec 
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
