@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 06 Sep 2007 09:30:47 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 09 Sep 2007 15:38:58 +0000
 Subject: Re: [lm-sensors] [PATCH] update w83791d driver with new sysfs
-Message-Id: <20070906113047.4132e4a1@hyperion.delvare>
+Message-Id: <20070909153858.GF31992@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5bfe43f80709021541p381974dftc4f725e65d2b8189@mail.gmail.com>
 In-Reply-To: <5bfe43f80709021541p381974dftc4f725e65d2b8189@mail.gmail.com>
@@ -10,30 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Charles,
+Hi:
 
-On Tue, 4 Sep 2007 13:31:56 -0700, Charles Spirakis wrote:
-> Significant documentation changes. Hopefully it reads better now and I
-> believe I've cleaned up the global beep enable vs. beep bitmask vs.
-> alarm bitmap aspect.
+* Jean Delvare <khali@linux-fr.org> [2007-09-06 11:30:47 +0200]:
+> Hi Charles,
 > 
-> Also cleaned up the store_beep() per your earlier comment in this thread.
+> On Tue, 4 Sep 2007 13:31:56 -0700, Charles Spirakis wrote:
+> > Significant documentation changes. Hopefully it reads better now and I
+> > believe I've cleaned up the global beep enable vs. beep bitmask vs.
+> > alarm bitmap aspect.
+> > 
+> > Also cleaned up the store_beep() per your earlier comment in this thread.
+> > 
+> > -- charles
+> > 
+> > ---
+> > Add new sysfs alarm methodology to w83791d driver
+> > 
+> > Signed-off-by: Charles Spirakis <bezaur@gmail.com>
 > 
-> -- charles
+> Looks good to me, thanks!
 > 
-> ---
-> Add new sysfs alarm methodology to w83791d driver
-> 
-> Signed-off-by: Charles Spirakis <bezaur@gmail.com>
+> Acked-by: Jean Delvare <khali@linux-fr.org>
 
-Looks good to me, thanks!
-
-Acked-by: Jean Delvare <khali@linux-fr.org>
-
-Mark, please apply.
+Applied to hwmon-2.6.git/testing, thanks.
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
