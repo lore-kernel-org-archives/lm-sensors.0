@@ -1,43 +1,68 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 06 Sep 2007 09:34:29 +0000
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Tue, 11 Sep 2007 16:43:49 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Add power meters to
-Message-Id: <20070906113429.1c88c844@hyperion.delvare>
+Message-Id: <20070911164348.GD30825@tree.beaverton.ibm.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7117140338720151571=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070827211446.GG32667@tree.beaverton.ibm.com>
-	<20070828015029.GA10107@khazad-dum.debian.net>
-	<20070828131942.18449886@hyperion.delvare>
-	<20070828164440.GL32667@tree.beaverton.ibm.com>
-	<20070901171048.GA3883@ucw.cz>
-	<41840b750709011105s6c434217t50d965a0b17df643@mail.gmail.com>
-	<20070901194417.GA24897@khazad-dum.debian.net>
-	<20070902213837.7293d6fa@hyperion.delvare>
-	<20070903020200.GA8948@khazad-dum.debian.net>
-	<20070903180636.4096e7d5@hyperion.delvare>
-	<20070903232225.GD3899@khazad-dum.debian.net>
-In-Reply-To: <20070903232225.GD3899@khazad-dum.debian.net>
-MIME-Version: 1.0
+References: <20070827211446.GG32667@tree.beaverton.ibm.com> <20070828015029.GA10107@khazad-dum.debian.net> <20070828131942.18449886@hyperion.delvare> <20070828164440.GL32667@tree.beaverton.ibm.com> <20070829111052.503a73a5@hyperion.delvare> <20070829145002.GQ32667@tree.beaverton.ibm.com> <20070830115743.4dd8b2d5@hyperion.delvare>
+In-Reply-To: <20070830115743.4dd8b2d5@hyperion.delvare>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Mark M. Hoffman" <mhoffman@lightlink.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============7117140338720151571==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="veXX9dWIonWZEC6h"
+Content-Disposition: inline
+
+
+--veXX9dWIonWZEC6h
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Aug 30, 2007 at 11:57:43AM +0200, Jean Delvare wrote:
+> OK, that's a bit different then, but I'm still not sure that there is
+> much value in exporting these values in sysfs, in particular if there
+> is no way to reset them.
+
+It turns out there _is_ a way to reset them; the next iteration of the
+driver will have it.
+
+> I am also not happy with the names you proposed: power1_max_input and
+> power1_min_input are somewhat confusing IMHO, I'd suggest
+> power1_input_highest and power1_input_lowest to make them clearly
+> different from the min and max limits we have for other sensor types.
+> If we have them at all, of course.
+
+Agreed and changed.
+
+--D
+
+--veXX9dWIonWZEC6h
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFG5sXEa6vRYYgWQuURAqy4AJwNw7mv4nUYd2pGi+u6L1dc5l9uwgCgs6ij
+nFhUr8RHhsPwSHunxbJKWks=
+=Ee3w
+-----END PGP SIGNATURE-----
+
+--veXX9dWIonWZEC6h--
+
+
+--===============7117140338720151571==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, "Darrick J. Wong" <djwong@us.ibm.com>
-
-On Mon, 3 Sep 2007 20:22:25 -0300, Henrique de Moraes Holschuh wrote:
-> On Mon, 03 Sep 2007, Jean Delvare wrote:
-> > I see that the power supply class units are 10^-6 A and 10^-6 W, so if
-> > we are supposed to be compatible, I guess we'll have to use this too.
-> 
-> There was a good reason for that, and people who deal with small portables
-> said that they needed 10^-4 A or somesuch, at which point it makes more
-> sense to just go to 10^-6 already.  I don't recall why 10^-6 W, though.
-
-Well, if we need 10^-4 A, and we use voltages in the 1-2 V range
-(that's what CPU, AGP etc. use these days), then we obviously need
-10^-4 W as well.
-
--- 
-Jean Delvare
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7117140338720151571==--
