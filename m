@@ -1,137 +1,51 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 09 Sep 2007 15:20:41 +0000
+From: Juergen Bausa <Juergen.Bausa@web.de>
+Date: Wed, 12 Sep 2007 13:27:19 +0000
 Subject: Re: [lm-sensors] dme1737 module
-Message-Id: <20070909172041.7c30b57e@hyperion.delvare>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="MP_4pninQRu6JH_FitB2GR1ilj"
+Message-Id: <1606388921@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
 In-Reply-To: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
---MP_4pninQRu6JH_FitB2GR1ilj
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-Hi Juerg,
+> -----Urspr=FCngliche Nachricht-----
+> Von: "Juerg Haefliger" <juergh@gmail.com>
+> Gesendet: 08.09.07 15:41:35
+> An: "Juergen Bausa" <Juergen.Bausa@web.de>
+> CC: lm-sensors@lm-sensors.org
+> Betreff: Re: [lm-sensors] dme1737 module
 
-On Thu, 6 Sep 2007 20:01:04 -0700, Juerg Haefliger wrote:
-> > We must rework the checks in the dme1737 printing functions to process
-> > the ignore statements properly, and to only display errors for missing
-> > features, not missing channels. I'm attaching the patch I have come up
-> > with. I can't test it as I do not have the hardware. Juergen, can you
-> > please test and report?
-> >
-> > Juerg, can you please review and test too?
-> 
-> Ok I'm officially confused now. Your patch only prevents error
-> messages if ignore statements are added. Is that the intended
-> behavior?
+>=20
+> The contents of the temperature registers match the output of sensors,
+> so it's not a conversion/display issue. The dme1737 does advertise the
+> measured temp as 16C. The only thing that's left is that the CPU diode
+> is not a 3904-type diode and the dme1737 gets the calculation wrong.
+> It wants to see a 3904 diode attached to its remote diode pins. If you
+> want closure, you need to check the docs for your CPU.
+>=20
 
-No, it's not. See how confusing the API is, it managed to fool me.
-sensors_get_label() succeeds even for missing features!
+So the actual sensor is on the cpu and the processing is done on the board?
 
-Attached is an updated patch. Voltages and temperatures part is
-unchanged (honor ignore statements), fans and pwms part is much more
-simple (simply ignore errors). Please test and report.
+Is processing done by the bios or by dme1737?
 
--- 
-Jean Delvare
+The type of my cpu  is very new.  At boot up, the bios displays "unknown=20
+cpu type". So, this might be the reason why it does not know how to handle =
 
---MP_4pninQRu6JH_FitB2GR1ilj
-Content-Type: text/x-patch; name=sensors-dme1737-hide-errors-v2.patch
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment; filename=sensors-dme1737-hide-errors-v2.patch
+the sensor output. If this is true, next bios revision might solve the prob=
+lem.
 
-Index: prog/sensors/chips.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- prog/sensors/chips.c	(r=C3=A9vision 4791)
-+++ prog/sensors/chips.c	(copie de travail)
-@@ -6016,17 +6016,17 @@
-=20
-   if (!sensors_get_label_and_valid(*name, SENSORS_DME1737_IN(i), &label,
- 				   &valid) &&
--      !sensors_get_feature(*name, SENSORS_DME1737_IN(i), &cur) &&
--      !sensors_get_feature(*name, SENSORS_DME1737_IN_MIN(i), &min) &&
--      !sensors_get_feature(*name, SENSORS_DME1737_IN_MAX(i), &max) &&
--      !sensors_get_feature(*name, SENSORS_DME1737_IN_ALARM(i), &alarm)) {
--    if (valid) {
-+      valid) {
-+    if (!sensors_get_feature(*name, SENSORS_DME1737_IN(i), &cur) &&
-+        !sensors_get_feature(*name, SENSORS_DME1737_IN_MIN(i), &min) &&
-+        !sensors_get_feature(*name, SENSORS_DME1737_IN_MAX(i), &max) &&
-+        !sensors_get_feature(*name, SENSORS_DME1737_IN_ALARM(i), &alarm)) {
-       print_label(label, 10);
-       printf("%+6.2f V  (min =3D %+6.2f V, max =3D %+6.2f V)  %s\n",
- 	     cur, min, max, alarm ? "ALARM" : "");
-+    } else {
-+      printf("ERROR: Can't get in%d data!\n", i);
-     }
--  } else {
--    printf("ERROR: Can't get in%d data!\n", i);
-   }
-   free(label);
- }
-@@ -6039,18 +6039,18 @@
-=20
-   if (!sensors_get_label_and_valid(*name, SENSORS_DME1737_TEMP(i), &label,
- 				   &valid) &&
--      !sensors_get_feature(*name, SENSORS_DME1737_TEMP(i), &cur) &&
--      !sensors_get_feature(*name, SENSORS_DME1737_TEMP_MIN(i), &min) &&
--      !sensors_get_feature(*name, SENSORS_DME1737_TEMP_MAX(i), &max) &&
--      !sensors_get_feature(*name, SENSORS_DME1737_TEMP_ALARM(i), &alarm) &&
--      !sensors_get_feature(*name, SENSORS_DME1737_TEMP_FAULT(i), &fault)) {
--    if (valid) {
-+      valid) {
-+    if (!sensors_get_feature(*name, SENSORS_DME1737_TEMP(i), &cur) &&
-+        !sensors_get_feature(*name, SENSORS_DME1737_TEMP_MIN(i), &min) &&
-+        !sensors_get_feature(*name, SENSORS_DME1737_TEMP_MAX(i), &max) &&
-+        !sensors_get_feature(*name, SENSORS_DME1737_TEMP_ALARM(i), &alarm)=
- &&
-+        !sensors_get_feature(*name, SENSORS_DME1737_TEMP_FAULT(i), &fault)=
-) {
-       print_label(label, 10);
-       print_temp_info(cur, max, min, MINMAX, 0, 0);
-       printf("%s%s\n", fault ? "FAULT  " : "", alarm ? "ALARM" : "");
-+    } else {
-+      printf("ERROR: Can't get temp%d data!\n", i);
-     }
--  } else {
--    printf("ERROR: Can't get temp%d data!\n", i);
-   }
-   free(label);
- }
-@@ -6071,8 +6071,6 @@
-       printf("%4.0f RPM  (min =3D %4.0f RPM)  %s\n",=20
- 	     cur, min, alarm ? "ALARM" : "");
-     }
--  } else {
--    printf("ERROR: Can't get fan%d data!\n", i);
-   }
-   free(label);
- }
-@@ -6092,8 +6090,6 @@
-       print_label(label, 10);
-       printf("%4.0f      (enable =3D %1.0f, freq =3D %6.0f Hz)\n", cur, en=
-able, freq);
-     }
--  } else {
--    printf("ERROR: Can't get pwm%d data!\n", i);
-   }
-   free(label);
- }
+Is this correct?
 
---MP_4pninQRu6JH_FitB2GR1ilj
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Juergen
+______________________________________________________________________
+XXL-Speicher, PC-Virenschutz, Spartarife & mehr: Nur im WEB.DE Club!	=09
+Jetzt testen! http://produkte.web.de/club/?mc=021130
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---MP_4pninQRu6JH_FitB2GR1ilj--
