@@ -1,41 +1,59 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 09 Sep 2007 14:39:44 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: End of I/O region off-by-one
-Message-Id: <20070909143944.GB31992@jupiter.solarsys.private>
+From: "Marcelo Iturbe" <marcelo@tigabytes.com>
+Date: Thu, 13 Sep 2007 16:26:28 +0000
+Subject: [lm-sensors] Missing driver, coretemp and 2.6.15
+Message-Id: <271366470709130926l3c4e1f97w2ff697eecc46cb41@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+Hello,
+I am using Ubuntu kernel 2.6.15-29-server on an Intel D946GZTS motherboard
 
-* Jean Delvare <khali@linux-fr.org> [2007-08-29 10:39:57 +0200]:
-> Fix an off-by-one error in the I/O region declaration of two
-> hardware monitoring drivers (lm78 and w83781d.) We were requesting
-> one extra port at the end of the region.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Running the latest sensors-detect as per instructions at
+http://www.lm-sensors.org/wiki/iwiza...ensorsDetected
 
-Applied to hwmon-2.6.git/testing, thanks.
+I get the following
 
-> ---
-> Mark, can you please apply this fix quickly? It should probably go to
-> 2.6.22-stable as well, as in theory it could prevent drivers from
-> loading.
-> 
-> Personal note: having different conventions for declaring resources and
-> requesting them really sucks :(
+#----cut here----
+# I2C adapter drivers
+modprobe i2c-i801
+# Chip drivers
+# no driver for Andigilog aSC7611 yet
+# Warning: the required module coretemp is not currently installed
+# on your system. For status of 2.6 kernel ports check
+# http://www.lm-sensors.org/wiki/Devices. If driver is built
+# into the kernel, or unavailable, comment out the following line.
+modprobe coretemp
+# sleep 2 # optional
+/usr/bin/sensors -s # recommended
+#----cut here----
 
-True that, and btw good catch.  I'll pull this one into my release tree and
-submit it now.
+Two things captured my atention:
+1 - "no driver for Andigilog aSC7611 yet"
+In the URL http://www.lm-sensors.org/wiki/Devices I found a link to a
+patch to this driver
+So I figured I would download the SVN version to apply the patch, but
+then in the Download page it states:
+  "Driver development for 2.6 kernels is taking place directly in the
+kernel using GIT. Do not use the drivers from our SVN repository for
+2.6 kernels, it will not work."
 
-Regards,
+So what are my options to install this driver? How do I proceed?
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+2 - "Warning: the required module coretemp is not currently installed
+on your system"
+modprobe coretemp fails, indicating that the module does not exist.
+Looking around in the forums I see that many people upgraded to 2.6.22
+just to solve this.
 
+Is there a way to solve this without changing the kernel?
+
+I built a 2U server with this board and I need to keep an eye on the
+CPU/MB to make sure the ventilation that I placed is enough.
+
+Thanks
 
 _______________________________________________
 lm-sensors mailing list
