@@ -1,49 +1,90 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Wed, 12 Sep 2007 22:06:28 +0000
+From: Juergen Bausa <Juergen.Bausa@web.de>
+Date: Thu, 13 Sep 2007 20:54:59 +0000
 Subject: Re: [lm-sensors] dme1737 module
-Message-Id: <191fb4ca0709121506x2b543946wed02125821ca1b36@mail.gmail.com>
+Message-Id: <1611120968@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
 In-Reply-To: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On 9/12/07, Jean Delvare <khali@linux-fr.org> wrote:
->
-> Hi Juerg, Juergen,
->
-> On 9/12/2007, Juerg Haefliger wrote:
-> >> If this is true, next bios revision might solve the problem.
-> >
-> >A BIOS upgrade might fix the display of the temp numbers on the BIOS
-> >config screen it will not affect the output of sensors. The Linux
-> >driver reads the temp directly from the dme1737, the BIOS is not
-> >involved at all. If it turns out that the temp diode in your CPU is
-> >not a 3904 type, the only 2 options are:
-> >1) Tweak the dme1737 to recognize the diode type (not sure if that's
-> >possible, I have to look at the datasheet).
-> >2) Come up with a conversion algorithm and put it into sensors.conf.
->
-> This isn't totally correct in the case of the DME1737, as it has
-> temperature offset registers. It would be possible for the BIOS to set
-> the CPU temperature offset depending on the CPU model, and that would
-> affect Linux as well. That would mean a very well written BIOS, that's
-> rather rare in my experience.
 
-Yes, that's what I meant by tweaking the dme1737, just poorly
-formulated. I'm not sure if there's other registers besides the offset
-registers. And you're right, if the BIOS does it we're OK.
+> -----Urspr=FCngliche Nachricht-----
+> Von: "Juerg Haefliger" <juergh@gmail.com>
 
 
-> If the BIOS doesn't write the offset, you can do it. But of course you
-> have to know the correction factor for your CPU, and I'm not sure where
-> you can find this information.
->
-> --
-> Jean Delvare
->
+>=20
+> > The type of my cpu  is very new.  At boot up, the bios displays "unknown
+> > cpu type". So, this might be the reason why it does not know how to han=
+dle
+> > the sensor output.
+>=20
+> Can you send the output of 'cat /proc/cpuinfo'?
+>=20
+
+It is a amd athlon x2 BE-2350
+
+jba@lisa:~$ cat /proc/cpuinfo
+processor       : 0
+vendor_id       : AuthenticAMD
+cpu family      : 15
+model           : 107
+model name      : AMD Processor model unknown
+stepping        : 1
+cpu MHz         : 1000.000
+cache size      : 512 KB
+physical id     : 0
+siblings        : 2
+core id         : 0
+cpu cores       : 2
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 1
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca =
+cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt lm 3=
+dnowext 3dnow pni cx16 lahf_lm cmp_legacy svm cr8legacy ts fid vid ttp tm s=
+tc [6]
+bogomips        : 2011.01
+
+processor       : 1
+vendor_id       : AuthenticAMD
+cpu family      : 15
+model           : 107
+model name      : AMD Processor model unknown
+stepping        : 1
+cpu MHz         : 1000.000
+cache size      : 512 KB
+physical id     : 0
+siblings        : 2
+core id         : 1
+cpu cores       : 2
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 1
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca =
+cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt lm 3=
+dnowext 3dnow pni cx16 lahf_lm cmp_legacy svm cr8legacy ts fid vid ttp tm s=
+tc [6]
+bogomips        : 2011.01
+
+
+Juergen
+_____________________________________________________________________
+Der WEB.DE SmartSurfer hilft bis zu 70% Ihrer Onlinekosten zu sparen!
+http://smartsurfer.web.de/?mc=100071&distributionid=000000000066
+
 
 _______________________________________________
 lm-sensors mailing list
