@@ -1,7 +1,7 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 11 Sep 2007 11:21:15 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 18 Sep 2007 21:19:34 +0000
 Subject: Re: [lm-sensors] kernel TODO 20070909
-Message-Id: <20070911112115.GC31999@jupiter.solarsys.private>
+Message-Id: <20070918231934.347b0286@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070909162146.GA31999@jupiter.solarsys.private>
 In-Reply-To: <20070909162146.GA31999@jupiter.solarsys.private>
@@ -10,43 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Krzysztof:
+Hi Mark,
 
-* Krzysztof Helt <krzysztof.h1@wp.pl> [2007-09-09 18:50:09 +0200]:
-> On Sun, 9 Sep 2007 12:21:46 -0400
-> "Mark M. Hoffman" <mhoffman@lightlink.com> wrote:
-> 
-> > Hi all:
-> > 
-> > Here's a list of kernel patches (oldest first) which are not in my queue[1] and
-> > their status.  If your patch is not in my queue *and* it is missing from this
-> > list, please resend it to me + CC the list.
-> [...]
-> > [PATCH] adm1021 dynamic sysfs callbacks added
-> > http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020344.html
-> > http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021107.html
-> > status: reviewed, updated, wants ack'ed
-> > reviewer: Jean Delvare
-> > 
-> [...]
-> > 
-> > [PATCH] adm1021: dynamic sysfs callbacks conversion
-> > http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020593.html
-> > status: reviewed, wants updated
-> > reviewer: Jean Delvare
-> > 
-> 
-> The both of them are probably the same patch. I created 3 adm1021: cleanup (already applied),
-> dyn-sys-fs and individual-alarms.
+Sorry for the late reply.
 
-Ack.  I noticed it but then forgot to fix it before sending anyway.
+On Sun, 9 Sep 2007 12:21:46 -0400, Mark M. Hoffman wrote:
+> Here's a list of kernel patches (oldest first) which are not in my queue[1] and
+> their status.  If your patch is not in my queue *and* it is missing from this
+> list, please resend it to me + CC the list.
+> (...)
+> [PATCH] adm1021: dynamic sysfs callbacks conversion
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-July/020593.html
+> status: reviewed, wants updated
+> reviewer: Jean Delvare
 
-Regards,
+Updated, reviewed and acked.
+
+> [PATCH] adm1021: individual alarm files
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021177.html
+> status: wants reviewer
+
+Reviewed, updated, reviewed again and acked.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
