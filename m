@@ -1,71 +1,79 @@
-From: Greg KH <greg@kroah.com>
-Date: Sun, 09 Sep 2007 17:25:15 +0000
-Subject: Re: [lm-sensors] [PATCH 2.6.23-rc4][reRESEND] irq: irq and pci_ids
-Message-Id: <20070909172515.GB14004@kroah.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 18 Sep 2007 16:44:42 +0000
+Subject: [lm-sensors] [PATCH] hwmon/thmc50: Don't create temp3 if not enabled
+Message-Id: <20070918184442.1bef286f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200708302033.48362.jason.d.gaston@intel.com> <39B20DF628532344BC7A2692CB6AEE0701B9A4C4@orsmsx420.amr.corp.intel.com>
-In-Reply-To: <39B20DF628532344BC7A2692CB6AEE0701B9A4C4@orsmsx420.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Gaston, Jason D" <jason.d.gaston@intel.com>
-Cc: gregkh@suse.de, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, khali@linux-fr.org, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Thu, Sep 06, 2007 at 10:24:54AM -0700, Gaston, Jason D wrote:
-> >-----Original Message-----
-> >From: Gaston, Jason D
-> >Sent: Thursday, August 30, 2007 8:34 PM
-> >To: gregkh@suse.de; linux-kernel@vger.kernel.org; linux-
-> >pci@atrey.karlin.mff.cuni.cz; khali@linux-fr.org; i2c@lm-sensors.nu;
-> >Gaston, Jason D
-> >Subject: [PATCH 2.6.23-rc4][reRESEND] irq: irq and pci_ids patch for
-> Intel
-> >Tolapai
-> >
-> >Resend with uppercase define.
-> >
-> >This updated patch adds the Intel Tolapai LPC and SMBus controller
-> DID's.
-> >
-> >Signed-off-by:  Jason Gaston <jason.d.gaston@intel.com>
-> >
-> >--- linux-2.6.23-rc4/arch/i386/pci/irq.c.orig	2007-08-27
-> >18:32:35.000000000 -0700
-> >+++ linux-2.6.23-rc4/arch/i386/pci/irq.c	2007-08-30
-> 20:23:49.000000000 -
-> >0700
-> >@@ -550,6 +550,7 @@
-> > 		case PCI_DEVICE_ID_INTEL_ICH9_3:
-> > 		case PCI_DEVICE_ID_INTEL_ICH9_4:
-> > 		case PCI_DEVICE_ID_INTEL_ICH9_5:
-> >+		case PCI_DEVICE_ID_INTEL_TOLAPAI_0:
-> > 			r->name = "PIIX/ICH";
-> > 			r->get = pirq_piix_get;
-> > 			r->set = pirq_piix_set;
-> >--- linux-2.6.23-rc4/include/linux/pci_ids.h.orig	2007-08-27
-> >18:32:35.000000000 -0700
-> >+++ linux-2.6.23-rc4/include/linux/pci_ids.h	2007-08-30
-> >20:23:08.000000000 -0700
-> >@@ -2293,6 +2293,8 @@
-> > #define PCI_DEVICE_ID_INTEL_MCH_PC	0x3599
-> > #define PCI_DEVICE_ID_INTEL_MCH_PC1	0x359a
-> > #define PCI_DEVICE_ID_INTEL_E7525_MCH	0x359e
-> >+#define PCI_DEVICE_ID_INTEL_TOLAPAI_0	0x5031
-> >+#define PCI_DEVICE_ID_INTEL_TOLAPAI_1	0x5032
-> > #define PCI_DEVICE_ID_INTEL_82371SB_0	0x7000
-> > #define PCI_DEVICE_ID_INTEL_82371SB_1	0x7010
-> > #define PCI_DEVICE_ID_INTEL_82371SB_2	0x7020
-> 
-> Greg,
-> 
-> Is this patch acceptable?  I need to get this in before the i2c-i801
-> patch will be accepted.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+---
+ drivers/hwmon/thmc50.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-I've just applied it to my trees.
+--- linux-2.6.23-rc6.orig/drivers/hwmon/thmc50.c	2007-09-18 17:05:29.000000000 +0200
++++ linux-2.6.23-rc6/drivers/hwmon/thmc50.c	2007-09-18 17:13:29.000000000 +0200
+@@ -237,7 +237,7 @@ static const struct attribute_group thmc
+ };
+ 
+ /* for ADM1022 3rd temperature mode */
+-static struct attribute *adm1022_attributes[] = {
++static struct attribute *temp3_attributes[] = {
+ 	&sensor_dev_attr_temp3_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_input.dev_attr.attr,
+@@ -246,8 +246,8 @@ static struct attribute *adm1022_attribu
+ 	NULL
+ };
+ 
+-static const struct attribute_group adm1022_group = {
+-	.attrs = adm1022_attributes,
++static const struct attribute_group temp3_group = {
++	.attrs = temp3_attributes,
+ };
+ 
+ static int thmc50_detect(struct i2c_adapter *adapter, int address, int kind)
+@@ -345,9 +345,9 @@ static int thmc50_detect(struct i2c_adap
+ 		goto exit_detach;
+ 
+ 	/* Register ADM1022 sysfs hooks */
+-	if (data->type = adm1022)
++	if (data->has_temp3)
+ 		if ((err = sysfs_create_group(&client->dev.kobj,
+-					      &adm1022_group)))
++					      &temp3_group)))
+ 			goto exit_remove_sysfs_thmc50;
+ 
+ 	/* Register a new directory entry with module sensors */
+@@ -360,8 +360,8 @@ static int thmc50_detect(struct i2c_adap
+ 	return 0;
+ 
+ exit_remove_sysfs:
+-	if (data->type = adm1022)
+-		sysfs_remove_group(&client->dev.kobj, &adm1022_group);
++	if (data->has_temp3)
++		sysfs_remove_group(&client->dev.kobj, &temp3_group);
+ exit_remove_sysfs_thmc50:
+ 	sysfs_remove_group(&client->dev.kobj, &thmc50_group);
+ exit_detach:
+@@ -386,8 +386,8 @@ static int thmc50_detach_client(struct i
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &thmc50_group);
+-	if (data->type = adm1022)
+-		sysfs_remove_group(&client->dev.kobj, &adm1022_group);
++	if (data->has_temp3)
++		sysfs_remove_group(&client->dev.kobj, &temp3_group);
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
 
-thanks,
 
-greg k-h
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
