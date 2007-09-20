@@ -1,7 +1,7 @@
 From: "Sebastian Thias, ATEBIS GmbH" <s.thias@atebis.info>
-Date: Wed, 19 Sep 2007 07:25:59 +0000
+Date: Thu, 20 Sep 2007 08:28:11 +0000
 Subject: Re: [lm-sensors] "sensord --rrd-file" cant't find a sensor
-Message-Id: <46F0CF07.4080005@atebis.info>
+Message-Id: <46F22F1B.4040100@atebis.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46DE9261.8030900@sthias.de>
 In-Reply-To: <46DE9261.8030900@sthias.de>
@@ -10,13 +10,26 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Jean,
+Hi Jean,
 
-thank you very much for your reply and your patch. I'll test it during
-the next days and give you report!
+I applied the patch and recompiled lm_sensors.
 
-Thanks and greetings!
+Trying sensord with your patch yielded:
+
+	sensord: Error getting sensor validity: w83793/#10
+
+Sensord even gives this error-message if I add ignore statements for all
+sensor-features in sensors.conf.
+
+It works, though, if I comment out the element
+	SENSORS_W83793_IN(10)
+in chips.c
+
+Thanks a lot!
+
+Sincerely
 Sebastian
+
 
 Jean Delvare schrieb:
 > Hi again Sebastian,
@@ -35,7 +48,8 @@ Jean Delvare schrieb:
 > * Alarms are not supported.
 > * You may have to add ignore statements in sensors.conf for missing
 >   features.
-
+>=20
+>=20
 
 
 --=20
