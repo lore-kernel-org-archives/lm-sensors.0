@@ -1,7 +1,7 @@
-From: David Brownell <david-b@pacbell.net>
-Date: Wed, 19 Sep 2007 21:55:37 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 20 Sep 2007 11:02:58 +0000
 Subject: Re: [lm-sensors] [patch lm-sensors 2.10.4] i2cdetect mislabels PEC
-Message-Id: <200709191455.37630.david-b@pacbell.net>
+Message-Id: <20070920130258.7f87c2b9@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070917205024.0A35D230DBC@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 In-Reply-To: <20070917205024.0A35D230DBC@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
@@ -10,51 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wednesday 19 September 2007, Jean Delvare wrote:
-> Hi David,
-> 
-> On Tue, 18 Sep 2007 15:45:36 -0700, David Brownell wrote:
-> > > > -	  .name = "SMBus PEC" },
-> > > > +	  .name = "SMBus PEC in Hardware" },
-> > >
-> > > I agree that the current situation is confusing, I had noticed this
-> > > already when reworking the PEC support in 2.6.15, but postponed fixing
-> > > it.
-> > >
-> > > However, I don't think that what you proposed is the proper fix. We
-> > > don't care whether PEC is implemented in hardware or software. What
-> > > really matters is whether it is implemented at all, or not. So I'd
-> > > rather rename I2C_FUNC_SMBUS_HWPEC_CALC to I2C_FUNC_SMBUS_PEC, and have
-> > > i2c-algo-bit and other drivers declare that they support it. What do
-> > > you think?
-> > 
-> > How about just not exposing that capability from i2cdetect at all?
-> > 
-> > There's a software implementation that's always available.  Whether
-> > that's used, or a (presumably accelerated) hardware one is used is
-> > purely an implementation issue, not an interface issue that a driver
-> > would have any reason to care about.
-> 
-> This is not true. Software PEC support is only available for adapters
-> emulating SMBus support using I2C-level messaging (e.g. i2c-algo-bit.)
+Hi David,
 
-OK.  I never use non-emulated SMBus, so it's hard to remember
-about that other option.
+On Wed, 19 Sep 2007 14:55:37 -0700, David Brownell wrote:
+> At some point, Jean Delvare wrote:
+> > However, I don't think that what you proposed is the proper fix. We
+> > don't care whether PEC is implemented in hardware or software. What
+> > really matters is whether it is implemented at all, or not. So I'd
+> > rather rename I2C_FUNC_SMBUS_HWPEC_CALC to I2C_FUNC_SMBUS_PEC, and have
+> > i2c-algo-bit and other drivers declare that they support it. What do
+> > you think?
+> (...)
+> Right ... then your suggestion above would seem to be The Answer,
+> although rather than modify algo-bit etc I'd just add that flag
+> into I2C_FUNC_SMBUS_EMUL.  Maybe that's what you meant.
 
+That's not what I meant, but this seems to be the right thing to do,
+yes. This should make the patch pretty simple.
 
-> For non-I2C SMBus masters, PEC support is there only if the hardware
-> explicitly supports it, it cannot be emulated. For example the Intel
-> ICH3 can't do PEC. That's the reason why having a functionality bit for
-> SMBus PEC makes sense.
+> The "rename" would presumably involve leaving the old symbol around
+> for a while, deprecated so gcc warns when it's used.
 
-Right ... then your suggestion above would seem to be The Answer,
-although rather than modify algo-bit etc I'd just add that flag
-into I2C_FUNC_SMBUS_EMUL.  Maybe that's what you meant.
+Inside the kernel, we do not care. For the user-space interface through
+i2c-dev (i.e. lm-sensors' i2c-dev.h), well... I do not expect anyone to
+actually use this flag, except "i2cdetect -F". There's simply no
+real-world use case for the old semantic that bit had. So I think you
+can just rename it and be done with it.
 
-The "rename" would presumably involve leaving the old symbol around
-for a while, deprecated so gcc warns when it's used.
-
-- Dave
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
