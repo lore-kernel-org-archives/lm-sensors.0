@@ -1,92 +1,123 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 30 Sep 2007 12:55:42 +0000
-Subject: Re: [lm-sensors] foo_fault attributes: why?
-Message-Id: <20070930145542.3fa31f4a@hyperion.delvare>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Fri, 21 Sep 2007 15:03:32 +0000
+Subject: [lm-sensors] PATCH:
+Message-Id: <46F3DD44.4070307@hhs.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------010604070703030701070001"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070930011719.GB3164@khazad-dum.debian.net>
-In-Reply-To: <20070930011719.GB3164@khazad-dum.debian.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Henrique,
+This is a multi-part message in MIME format.
+--------------010604070703030701070001
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Sat, 29 Sep 2007 22:17:19 -0300, Henrique de Moraes Holschuh wrote:
-> On Sat, 29 Sep 2007, Henrique de Moraes Holschuh wrote:
-> > I will look for the fooN_fault file docs, and implement that post haste,
-> > then.
-> 
-> Patch nearly done.  Should I keep returning an error (might as well be
-> ENXIO) if someone tries to read foo (when foo_fault is indicating a
-> problem), or should I return a stupid bogus value?
+Hi All,
 
-Other drivers return the value they got from the hardware (even though
-we know it doesn't make any sense.) When a fault attribute is
-available, applications are supposed to check its value first, and if
-it's not 1, they read the sensor value. Hmmm, not sure if even
-"sensors" is implementing this properly, I'll take a look.
+Here is a patch adding some text to the sysfs interface documentation on how
+settings written to sysfs attributes should be handled, focussing mainly on
+error handling. This version incorperates Jean's latest comments.
 
-> I liked the ENXIO a lot more.  Why should I force userspace to do *twice*
-> the ammount of sysfs attribute readings, just to know if the values it is
-> getting are valid?  If a sensor is faulty, is there a point on returning its
-> value at all?  When you return an error, userspace does NOT get an invalid
-> reading it could use because of a bug.  It follows the principle of least
-> suprise, the KISS principle, and it keeps the information of faults in-band.
+signed-off-by: j.w.r.degoede@hhs.nl
 
-The reason is historical. We had alarms files reporting various status
-bits reported by the hardware. Most of these are alarms (measures value
-outside of defined boundaries), but some chips also reported broken or
-missing hardware. When we decided to split the single "alarms" file
-into individual fooN_alarm files, we naturally created individual fault
-files as well. Most frequently this is available for missing or broken
-remote thermal diodes (tempN_fault), and sometimes also for missing or
-stuck fans (fanN_fault).
+Regards,
 
-> If the sensor driver knows how to implement foo_fault, it could well
-> implement an ENXIO return on the faulty sensor, instead.   What was the
-> design reason to use foo_fault instead of an error return in the attributes
-> of the sensor that is faulty?
+Hans
 
-This isn't so much a design decision than a non-decision: we are simply
-transmitting the information reported by the hardware. It seems that
-nobody gave much thought to this problem yet, simple as that.
+--------------010604070703030701070001
+Content-Type: text/x-patch;
+	name="documentation-hwmon-sysfs-interface-attr-write.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename*0="documentation-hwmon-sysfs-interface-attr-write.patch"
 
-> I can understand implementing *both*, though.  Makes it easier to just
-> monitor sensors for faults in an application, which *could* be faster in
-> some chips.
+Here is a patch adding some text to the sysfs interface documentation on how
+settings written to sysfs attributes should be handled, focussing mainly on
+error handling. This version incorperates Jean's latest comments.
 
-Another value of these separate files is that they tell that the
-hardware _can_ report failure for a given sensor. If the fault file
-doesn't exist, it means that the hardware cannot report failures when
-then happen.
+signed-off-by: j.w.r.degoede@hhs.nl
+diff -ur linux-2.6.23-rc6.git4/Documentation.orig/hwmon/sysfs-interface linux-2.6.23-rc6.git4/Documentation/hwmon/sysfs-interface
+--- linux-2.6.23-rc6.git4/Documentation.orig/hwmon/sysfs-interface	2007-09-21 15:33:10.000000000 +0200
++++ linux-2.6.23-rc6.git4/Documentation/hwmon/sysfs-interface	2007-09-21 16:55:09.000000000 +0200
+@@ -67,6 +67,10 @@
+ alarm (for example, whether a threshold must be met or must be exceeded
+ to cause an alarm) is chip-dependent.
+ 
++When setting values of hwmon sysfs attributes, the string representation of
++the desired value must be written, note that strings which are not a number
++are interpreted as 0! For more on how written strings are interpreted see the
++"sysfs attribute writes interpretation" section at the end of this file.
+ 
+ -------------------------------------------------------------------------
+ 
+@@ -404,3 +408,57 @@
+ 		0: disable
+ 		1: enable
+ 		RW
++
++
++sysfs attribute writes interpretation
++-------------------------------------
++
++hwmon sysfs attributes always contain numbers, so the first thing to do is to
++convert the input to a number, there are 2 ways todo this depending whether
++the number can be negative or not:
++unsigned long u = simple_strtoul(buf, NULL, 10);
++long s = simple_strtol(buf, NULL, 10);
++
++With buf being the buffer with the user input being passed by the kernel.
++Notice that we do not use the second argument of strto[u]l, and thus cannot
++tell when 0 is returned, if this was really 0 or is caused by invalid input.
++This is done deliberately as checking this everywhere would add a lot of
++code to the kernel.
++
++Notice that it is important to always store the converted value in an
++unsigned long or long, so that no wrap around can happen before any further
++checking.
++
++After the input string is converted to an (unsigned) long, the value should be
++checked if its acceptable. Be careful with further conversions on the value
++before checking it for validity, as these conversions could still cause a wrap
++around before the check. For example do not multiply the result, and only
++add/subtract if it has been divided before the add/subtract.
++
++What to do if a value is found to be invalid, depends on the type of the
++sysfs attribute that is being set. If it is a continuous setting like a
++tempX_max or inX_max attribute, then the value should be clamped to its
++limits using SENSORS_LIMIT(value, min_limit, max_limit). If it is not
++continuous like for example a tempX_type, then when an invalid value is
++written, -EINVAL should be returned.
++
++Example1, temp1_max, register is a signed 8 bit value (-128 - 127 degrees):
++--- begin code ---
++long v = simple_strtol(buf, NULL, 10) / 1000;
++SENSORS_LIMIT(v, -128, 127);
++/* write v to register */
++--- end code ---
++
++Example2, fan divider setting, valid values 2, 4 and 8:
++--- begin code ---
++unsigned long v = simple_strtoul(buf, NULL, 10);
++
++switch (v) {
++       case 2: v = 1; break;
++       case 4: v = 2; break;
++       case 8: v = 3; break;
++       default:
++               return -EINVAL;
++}
++/* write v to register */
++--- end code ---
 
-> But for drivers like thinkpad-acpi, if I have to export foo_fault, until I
-> add some not-so-simple TTL-aware caching, it will cause *twice* the number
-> of slow ACPI EC accesses, and libsensors will do *twice* the number of sysfs
-> open+read+close...  I don't like it.  I will do it if you tell me I must,
-> but I'd rather have the interface extended to allow for some error return to
-> replace foo_fault, or to require both (the error return, and the foo_fault
-> attribute).
-
-Not that many drivers have fault files at the moment, and usually only
-for a few attributes, so performance has never been an issue. On top of
-that, almost all hardware monitoring chips read all the registers at
-once and cache the result for a second, so reading two files instead of
-one doesn't really make a difference.
-
-I agree that there is probably some room for improvement here, and that
-returning -ENXIO when a sensor is not available makes sense. That
-doesn't mean that we're going to convert all the other drivers right
-now (I really don't have the time for this and we have more urgent
-things to do), but we could update libsensors so that it gracefully
-transmits the information to applications. Care to send a patch?
-
-Thanks,
--- 
-Jean Delvare
+--------------010604070703030701070001
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------010604070703030701070001--
+
