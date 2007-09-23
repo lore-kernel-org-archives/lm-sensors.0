@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Fri, 21 Sep 2007 07:24:00 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 23 Sep 2007 21:18:49 +0000
 Subject: Re: [lm-sensors] libsensors API changes
-Message-Id: <46F37190.7060601@hhs.nl>
+Message-Id: <20070923231849.6321afbb@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070919234452.4896c76d@hyperion.delvare>
 In-Reply-To: <20070919234452.4896c76d@hyperion.delvare>
@@ -10,78 +10,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi all,
+Hi Hans,
+
+On Fri, 21 Sep 2007 09:24:00 +0200, Hans de Goede wrote:
+> Jean Delvare wrote:
+> > Looking at the code of several user-space applications using
+> > libsensors, this interface is not very convenient. Except for "sensors
+> > -u", which makes some sense as I think it is the reason why this
+> > interface exists in the first place. Here is a list of things I found
+> > the applications would take benefit of if libsensors would propose a
+> > suitable interface:
+> > 
+> > * Separate lists for main features and subfeatures of each main feature.
+> > 
 > 
-> In the past few days, I have been thinking about the libsensors4 API,
-> in particular the way the chip features are accessed. Right now we have
-> a single function, sensors_get_all_features(), returning all features
-> in sequence, mixing main features and subfeatures. Actually, main
-> features and subfeatures are only differentiated by the mapping field
-> value, but otherwise they are represented by the same structure.
+> +1
+
+Implemented in r4831. We now have:
+
+/* This returns all main features of a specific chip. nr is an internally
+   used variable. Set it to zero to start at the begin of the list. If no
+   more features are found NULL is returned.
+   Do not try to change the returned structure; you will corrupt internal
+   data structures. */
+const sensors_feature *
+sensors_get_features(const sensors_chip_name *name, int *nr);
+
+/* This returns all subfeatures of a given main feature. nr is an internally
+   used variable. Set it to zero to start at the begin of the list. If no
+   more features are found NULL is returned.
+   Do not try to change the returned structure; you will corrupt internal
+   data structures. */
+const sensors_subfeature *
+sensors_get_all_subfeatures(const sensors_chip_name *name,
+			    const sensors_feature *feature, int *nr);
+
+
+> > * Subfeature existence information (does feature F of chip C have
+> > subfeature X?)
+> > 
 > 
-> Looking at the code of several user-space applications using
-> libsensors, this interface is not very convenient. Except for "sensors
-> -u", which makes some sense as I think it is the reason why this
-> interface exists in the first place. Here is a list of things I found
-> the applications would take benefit of if libsensors would propose a
-> suitable interface:
+> +1
 > 
-> * Separate lists for main features and subfeatures of each main feature.
+> > * Direct subfeature value lookup (what's the value of subfeature X of
+> > feature F of chip C?)
+> > 
 > 
+> +1
 
-+1
+Both implemented in r4846:
 
-> * Subfeature existence information (does feature F of chip C have
-> subfeature X?)
+/* This returns the subfeature of the given type for a given main feature,
+   if it exists, NULL otherwise.
+   Do not try to change the returned structure; you will corrupt internal
+   data structures. */
+const sensors_subfeature *
+sensors_get_subfeature(const sensors_chip_name *name,
+		       const sensors_feature *feature,
+		       sensors_subfeature_type type);
+
+> (...)
+> > I am working on some patches implementing these API changes, I hope to
+> > be able to post them for comments and review at the end of the week.
+> > Until then, I would also welcome comments on the general ideas I just
+> > exposed.
 > 
+> The basic ideas I'm vary much in favor off, as for the under the hood 
+> implementation, I haven't given much thought to that, I trust you will come up 
+> with something good.
 
-+1
+I've committed all my patches now, so that we don't lose too much time.
+Still, if you or anyone else has objections to what I did, please speak
+up and we'll address them.
 
-> * Direct subfeature value lookup (what's the value of subfeature X of
-> feature F of chip C?)
-> 
+I'm done with the libsensors API review. I've done my best to make it
+more convenient to use. I've also made quite a lot of performance
+improvements. I sincerely hope that this new library will work for as
+long as its predecessor did.
 
-+1
+This basically means that we are next to the point where we can release
+lm-sensors 3.0.0! My plan is to release a RC1 next week, and give
+application authors some time to port their application to the new API
+and comment on it. Or we can try porting them on our own and see how it
+goes. I've ported xsensors already. It would be good to have all
+popular sensor apps ported quickly so as to make sure that the new API
+fits the needs. If you need help with a port, just ask me.
 
-> So I am in the process of extending the libsensors4 API to implement
-> these interfaces. The first point can be either done easily (simply
-> splitting sensors_get_all_features() to two separate functions) or
-> taken further: I think it would make sense to have a separate structure
-> for main features or "channels" (e.g. in0, temp1...) and for
-> subfeatures (e.g. in0_input, temp1_min...) This would make things much
-> more structured. For example, labels essentially apply to main
-> features, not subfeatures. Same goes for compute statements. OTOH, set
-> statements apply to subfeatures, not main features.
-> 
-> Going that route would speed up the library code at some places. It
-> would also let us clear the fooN / fooN_input confusion which forces us
-> to have some ugly hard-coded exceptions in the library. The drawback is
-> that we may lose some flexibility by going that route, so I'm not sure
-> how far we want to go.
-> 
-> The last two points would avoid some duplication in applications, and
-> would make their code look much nicer. There is a concern with
-> algorithmic complexity though: direct value lookups are likely to be in
-> O(N) while for example "sensors" manages to do it in O(1) at the
-> moment. However, the number of subfeatures being relatively small for
-> each main feature, it might not be an issue at all.
-> 
-> I am working on some patches implementing these API changes, I hope to
-> be able to post them for comments and review at the end of the week.
-> Until then, I would also welcome comments on the general ideas I just
-> exposed.
-> 
-
-
-The basic ideas I'm vary much in favor off, as for the under the hood 
-implementation, I haven't given much thought to that, I trust you will come up 
-with something good.
-
-Regards,
-
-Hans
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
