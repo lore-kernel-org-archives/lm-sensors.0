@@ -1,10 +1,10 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date: Sun, 23 Sep 2007 14:24:16 +0000
+Date: Sun, 23 Sep 2007 14:39:06 +0000
 Subject: [lm-sensors] [PATCH 8/9] ACPI: thinkpad-acpi: use a separate
-Message-Id: <11905574583315-git-send-email-hmh@hmh.eng.br>
+Message-Id: <11905583482864-git-send-email-hmh@hmh.eng.br>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1190557457539-git-send-email-hmh@hmh.eng.br>
-In-Reply-To: <1190557457539-git-send-email-hmh@hmh.eng.br>
+References: <11905583473293-git-send-email-hmh@hmh.eng.br>
+In-Reply-To: <11905583473293-git-send-email-hmh@hmh.eng.br>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -89,7 +89,7 @@ index 60953d6..029bb43 100644
 +		and the hwmon class for lm_sensors4 compatibility.
 +		Moved all hwmon attributes to this new platform device.
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 8bd6c83..4a85ede 100644
+index 0a33c6e..a0d9925 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
 @@ -22,7 +22,7 @@
