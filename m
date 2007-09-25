@@ -1,31 +1,69 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 24 Sep 2007 16:43:28 +0000
+Date: Tue, 25 Sep 2007 16:00:06 +0000
 Subject: Re: [lm-sensors] [PATCH 8/9] ACPI: thinkpad-acpi: use a separate
-Message-Id: <20070924184328.74bfbb9e@hyperion.delvare>
+Message-Id: <20070925180006.74e06c4e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1190557457539-git-send-email-hmh@hmh.eng.br>
 	<11905574583315-git-send-email-hmh@hmh.eng.br>
 	<20070924171128.19f91009@hyperion.delvare>
-In-Reply-To: <20070924171128.19f91009-ig7AzVSIIG7kN2dkZ6Wm7A@public.gmane.org>
+	<20070925023958.GA15111@khazad-dum.debian.net>
+In-Reply-To: <20070925023958.GA15111@khazad-dum.debian.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: LM-cy1Wll9GaHOsTnJN9+BGXg@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len-MRDXTZLjjMs8G+1z+Pypc6QD96bmaF075NbjCUgZEJk@public.gmane.org, Sensors ML <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, LM Sensors ML <lm-sensors@lm-sensors.org>, linux-acpi@vger.kernel.org
 
-On Mon, 24 Sep 2007 17:11:28 +0200, Jean Delvare wrote:
-> On Sun, 23 Sep 2007 11:24:16 -0300, Henrique de Moraes Holschuh wrote:
-> > +	tpacpi_sensors_pdev = platform_device_register_simple(
-> > +							IBM_HWMON_DRVR_NAME,
-> > +							-1, NULL, 0);
+On Mon, 24 Sep 2007 23:39:58 -0300, Henrique de Moraes Holschuh wrote:
+> On Mon, 24 Sep 2007, Jean Delvare wrote:
+> > The name attribute should really read "thinkpad" not "thinkpad_hwmon",
+> > otherwise "sensors" will present the chip as "thinkpad_hwmon-isa-0000",
+> > its section in /etc/sensors.conf will be named chip "thinkpad_hwmon-*",
+> > etc. That's pretty redundant and unaesthetic.
 > 
-> As explained before, libsensors won't pick this device. You'd need to
-> give it an id of 0 instead of -1. Hmm, I'll see if I can hack something
-> in libsensors4 until that part of the code is reimplemented in a better
-> way.
+> -isa- in platform drivers where there is not even a ISA bus in sight is also
+> very unaesthetic.
 
-OK, it's fixed in libsensors4 now, the above code will work OK, no need
-to change it.
+It's about I/O addressing space, not bus. OK, technically speaking,
+recent systems' I/O space follows the LPC standard, not ISA, but for the
+user it's essentially the same.
+
+Most applications will only present the prefix of the hardware
+monitoring name (i.e. the contents of the name sysfs attribute), so the
+rest of the naming syntax isn't that important.
+
+> That said, I will change it to "thinkpad", but I still would rather have
+> thinkpad-platform from a cosmetic point of view, than thinkpad-isa-0001.
+
+Great, thanks. thinkpad-platform wouldn't be a valid name for
+libsensors, names have to be in the form $prefix-$bus-$address. And
+again, there's no easy way for libsensors to tell between an ISA or LPC
+device (which have been around for years and named *-isa-*) and a true
+platform device, otherwise I would of course do it.
+
+> > I'm still not convinced that we want a separate device for this. If you
+> 
+> It is there for ease of breaking thinkpad-acpi into many modules.  It makes
+> life easier for me, and also it makes it pretty damn clear to userspace
+> app writers that they better use the proper ABI (libsensors4) or else.
+
+I don't understand what you mean here, sorry.
+
+> (...)
+> > > Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> > > Cc: LM Sensors ML <lm-sensors@lm-sensors.org>
+> > 
+> > It's pretty pointless to have a mailing list listed here, as the list
+> > itself can't ack nor nack your patch.
+> 
+> People in the list certainly can :-)  But if you'd rather I cc you directly,
+> I will change it.
+
+Actually you'd rather Cc the hwmon subsystem maintainer, if anyone, and
+that's not me. But I was really only commenting on the Cc: in the
+header of the patch, not the Cc: when sending the patch. Cc'ing the
+lm-sensors list when sending your patch was of course correct. Just
+writing it down in the patch header doesn't make sense.
 
 -- 
 Jean Delvare
