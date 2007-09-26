@@ -1,26 +1,33 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 24 Sep 2007 16:54:03 +0000
-Subject: Re: [lm-sensors] [PATCH] Remove error message if die-code is missing
-Message-Id: <20070924185403.196e3d37@hyperion.delvare>
+Date: Wed, 26 Sep 2007 20:16:56 +0000
+Subject: [lm-sensors] [PATCH] hwmon/lm87: Fix a division by zero
+Message-Id: <20070926221656.6442f1b2@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070924082613.GA2787@hall.aurel32.net>
-In-Reply-To: <20070924082613.GA2787@hall.aurel32.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Aurelien,
+Missing parentheses in the definition of FAN_FROM_REG cause a division
+by zero for a specific register value.
 
-On Mon, 24 Sep 2007 10:26:13 +0200, Aurelien Jarno wrote:
-> The simple patch below removes the error message if the die-code entry
-> is missing in /sys. It has been removed from the 2.6 kernels for a long
-> time.
-> 
-> It is still present for 2.4 kernels though, so we should keep the code
-> reading this entry.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/lm87.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Patch applied, thanks.
+--- linux-2.6.23-rc8.orig/drivers/hwmon/lm87.c	2007-09-26 21:33:40.000000000 +0200
++++ linux-2.6.23-rc8/drivers/hwmon/lm87.c	2007-09-26 21:34:24.000000000 +0200
+@@ -129,7 +129,7 @@ static u8 LM87_REG_TEMP_LOW[3] = { 0x3A,
+ 				 (((val) < 0 ? (val)-500 : (val)+500) / 1000))
+ 
+ #define FAN_FROM_REG(reg,div)	((reg) = 255 || (reg) = 0 ? 0 : \
+-				 1350000 + (reg)*(div) / 2) / ((reg)*(div))
++				 (1350000 + (reg)*(div) / 2) / ((reg)*(div)))
+ #define FAN_TO_REG(val,div)	((val)*(div) * 255 <= 1350000 ? 255 : \
+ 				 (1350000 + (val)*(div) / 2) / ((val)*(div)))
+ 
+
 
 -- 
 Jean Delvare
