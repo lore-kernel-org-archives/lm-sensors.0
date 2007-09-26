@@ -1,59 +1,233 @@
-From: "Marcelo Iturbe" <marcelo@tigabytes.com>
-Date: Thu, 13 Sep 2007 16:26:28 +0000
-Subject: [lm-sensors] Missing driver, coretemp and 2.6.15
-Message-Id: <271366470709130926l3c4e1f97w2ff697eecc46cb41@mail.gmail.com>
+From: Riku Voipio <riku.voipio@iki.fi>
+Date: Wed, 26 Sep 2007 10:14:01 +0000
+Subject: [lm-sensors] [PATCH] f75375s: new style driver binding
+Message-Id: <20070926101401.GA5725@kos.to>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
-I am using Ubuntu kernel 2.6.15-29-server on an Intel D946GZTS motherboard
+Following the example of David Brownell's work on lm75.
 
-Running the latest sensors-detect as per instructions at
-http://www.lm-sensors.org/wiki/iwiza...ensorsDetected
+ - Create a second driver struct, using new-style driver binding methods.
 
-I get the following
+ - Rename the old driver struct as f75375_legacy_driver.
 
-#----cut here----
-# I2C adapter drivers
-modprobe i2c-i801
-# Chip drivers
-# no driver for Andigilog aSC7611 yet
-# Warning: the required module coretemp is not currently installed
-# on your system. For status of 2.6 kernel ports check
-# http://www.lm-sensors.org/wiki/Devices. If driver is built
-# into the kernel, or unavailable, comment out the following line.
-modprobe coretemp
-# sleep 2 # optional
-/usr/bin/sensors -s # recommended
-#----cut here----
+ - Make the legacy bind/unbind logic delegate all its work. 
 
-Two things captured my atention:
-1 - "no driver for Andigilog aSC7611 yet"
-In the URL http://www.lm-sensors.org/wiki/Devices I found a link to a
-patch to this driver
-So I figured I would download the SVN version to apply the patch, but
-then in the Download page it states:
-  "Driver development for 2.6 kernels is taking place directly in the
-kernel using GIT. Do not use the drivers from our SVN repository for
-2.6 kernels, it will not work."
+Signed-off-by: Riku Voipio <riku.voipio@movial.fi>
+---
+ drivers/hwmon/f75375s.c |  112 +++++++++++++++++++++++++++++++++++-----------
+ 1 files changed, 85 insertions(+), 27 deletions(-)
 
-So what are my options to install this driver? How do I proceed?
+diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+index 6425184..9336f5e 100644
+--- a/drivers/hwmon/f75375s.c
++++ b/drivers/hwmon/f75375s.c
+@@ -86,7 +86,7 @@ I2C_CLIENT_INSMOD_2(f75373, f75375);
+ 
+ struct f75375_data {
+ 	unsigned short addr;
+-	struct i2c_client client;
++	struct i2c_client *client;
+ 	struct class_device *class_dev;
+ 
+ 	const char *name;
+@@ -116,15 +116,26 @@ struct f75375_data {
+ static int f75375_attach_adapter(struct i2c_adapter *adapter);
+ static int f75375_detect(struct i2c_adapter *adapter, int address, int kind);
+ static int f75375_detach_client(struct i2c_client *client);
++static int f75375_probe(struct i2c_client *client);
++static int f75375_remove(struct i2c_client *client);
+ 
+-static struct i2c_driver f75375_driver = {
++static struct i2c_driver f75375_legacy_driver = {
+ 	.driver = {
+-		.name = "f75375",
++		.name = "f75375_legacy",
+ 	},
+ 	.attach_adapter = f75375_attach_adapter,
+ 	.detach_client = f75375_detach_client,
+ };
+ 
++static struct i2c_driver f75375_driver = {
++	.driver = {
++		.name = "f75375",
++	},
++	.probe = f75375_probe,
++	.remove = f75375_remove,
++};
++
++
+ static inline int f75375_read8(struct i2c_client *client, u8 reg)
+ {
+ 	return i2c_smbus_read_byte_data(client, reg);
+@@ -580,12 +591,8 @@ static const struct attribute_group f75375_group = {
+ 
+ static int f75375_detach_client(struct i2c_client *client)
+ {
+-	struct f75375_data *data = i2c_get_clientdata(client);
+ 	int err;
+-
+-	hwmon_device_unregister(data->class_dev);
+-	sysfs_remove_group(&client->dev.kobj, &f75375_group);
+-
++	f75375_remove(client);
+ 	err = i2c_detach_client(client);
+ 	if (err) {
+ 		dev_err(&client->dev,
+@@ -593,10 +600,64 @@ static int f75375_detach_client(struct i2c_client *client)
+ 			"client not detached.\n");
+ 		return err;
+ 	}
++	kfree(client);
++	return 0;
++}
++
++static int f75375_probe(struct i2c_client *client)
++{
++	struct f75375_data *data = i2c_get_clientdata(client);
++	int err;
++
++	if (!i2c_check_functionality(client->adapter,
++				I2C_FUNC_SMBUS_BYTE_DATA))
++		return -EIO;
++	if (!(data = kzalloc(sizeof(struct f75375_data), GFP_KERNEL)))
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, data);
++	data->client = client;
++	mutex_init(&data->update_lock);
++
++	if (strcmp(client->name, "f75375") = 0)
++		data->kind = f75375;
++	else if (strcmp(client->name, "f75373") = 0)
++		data->kind = f75373;
++	else {
++		dev_err(&client->dev, "Unsupported device: %s\n", client->name);
++		return -ENODEV;
++	}
++
++	if ((err = sysfs_create_group(&client->dev.kobj, &f75375_group)))
++		goto exit_free;
++
++	data->class_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		goto exit_remove;
++	}
++
++	return 0;
++
++exit_remove:
++	sysfs_remove_group(&client->dev.kobj, &f75375_group);
++exit_free:
+ 	kfree(data);
++	i2c_set_clientdata(client, NULL);
++	return err;
++}
++
++static int f75375_remove(struct i2c_client *client)
++{
++	struct f75375_data *data = i2c_get_clientdata(client);
++	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &f75375_group);
++	kfree(data);
++	i2c_set_clientdata(client, NULL);
+ 	return 0;
+ }
+ 
++
+ static int f75375_attach_adapter(struct i2c_adapter *adapter)
+ {
+ 	if (!(adapter->class & I2C_CLASS_HWMON))
+@@ -608,20 +669,17 @@ static int f75375_attach_adapter(struct i2c_adapter *adapter)
+ static int f75375_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	struct i2c_client *client;
+-	struct f75375_data *data;
+ 	u8 version = 0;
+ 	int err = 0;
+ 	const char *name = "";
+ 
+-	if (!(data = kzalloc(sizeof(struct f75375_data), GFP_KERNEL))) {
++	if (!(client = kzalloc(sizeof(*client), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	client = &data->client;
+-	i2c_set_clientdata(client, data);
+ 	client->addr = address;
+ 	client->adapter = adapter;
+-	client->driver = &f75375_driver;
++	client->driver = &f75375_legacy_driver;
+ 
+ 	if (kind < 0) {
+ 		u16 vendid = f75375_read16(client, F75375_REG_VENDOR);
+@@ -644,42 +702,42 @@ static int f75375_detect(struct i2c_adapter *adapter, int address, int kind)
+ 	} else if (kind = f75373) {
+ 		name = "f75373";
+ 	}
+-
+ 	dev_info(&adapter->dev, "found %s version: %02X\n", name, version);
+ 	strlcpy(client->name, name, I2C_NAME_SIZE);
+-	data->kind = kind;
+-	mutex_init(&data->update_lock);
++
+ 	if ((err = i2c_attach_client(client)))
+ 		goto exit_free;
+ 
+-	if ((err = sysfs_create_group(&client->dev.kobj, &f75375_group)))
++	if ((err = f75375_probe(client)) < 0)
+ 		goto exit_detach;
+ 
+-	data->class_dev = hwmon_device_register(&client->dev);
+-	if (IS_ERR(data->class_dev)) {
+-		err = PTR_ERR(data->class_dev);
+-		goto exit_remove;
+-	}
+-
+ 	return 0;
+ 
+-exit_remove:
+-	sysfs_remove_group(&client->dev.kobj, &f75375_group);
+ exit_detach:
+ 	i2c_detach_client(client);
+ exit_free:
+-	kfree(data);
++	kfree(client);
+ exit:
+ 	return err;
+ }
+ 
+ static int __init sensors_f75375_init(void)
+ {
+-	return i2c_add_driver(&f75375_driver);
++	int status;
++	status = i2c_add_driver(&f75375_driver);
++	if (status < 0)
++		return status;
++
++	status = i2c_add_driver(&f75375_legacy_driver);
++	if (status < 0)
++		i2c_del_driver(&f75375_driver);
++
++	return status;
+ }
+ 
+ static void __exit sensors_f75375_exit(void)
+ {
++	i2c_del_driver(&f75375_legacy_driver);
+ 	i2c_del_driver(&f75375_driver);
+ }
+ 
+-- 
+1.5.3.1
 
-2 - "Warning: the required module coretemp is not currently installed
-on your system"
-modprobe coretemp fails, indicating that the module does not exist.
-Looking around in the forums I see that many people upgraded to 2.6.22
-just to solve this.
 
-Is there a way to solve this without changing the kernel?
-
-I built a 2U server with this board and I need to keep an eye on the
-CPU/MB to make sure the ventilation that I placed is enough.
-
-Thanks
+-- 
+"rm -rf" only sounds scary if you don't have backups
 
 _______________________________________________
 lm-sensors mailing list
