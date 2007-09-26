@@ -1,64 +1,153 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 18 Sep 2007 16:48:16 +0000
-Subject: [lm-sensors] [PATCH] hwmon/thmc50: Fix a debug message
-Message-Id: <20070918184816.769f15f1@hyperion.delvare>
+From: Riku Voipio <riku.voipio@iki.fi>
+Date: Wed, 26 Sep 2007 10:14:40 +0000
+Subject: [lm-sensors] [PATCH] f75375s allow setting up fans with
+Message-Id: <20070926101440.GA6135@kos.to>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-type_name was used before being set. See why I don't like play-it-safe
-variable initializations: they prevent the compiler from warning you
-about such mistakes. So fix that as well.
+Allow initializing fans on systems where BIOS does not do that by
+default.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+ - define f75375s_platform_data in new file f75375s.h
+ - if platform_data was provided, set fans accordingly in f75375_init()
+ - split set_pwm_enable() to a sysfs callback and directly usable
+   set_pwm_enable_direct()
+
+Signed-off-by: Riku Voipio <riku.voipio@movial.fi>
 ---
- drivers/hwmon/thmc50.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/hwmon/f75375s.c |   42 +++++++++++++++++++++++++++++++++++-------
+ include/linux/f75375s.h |   21 +++++++++++++++++++++
+ 2 files changed, 56 insertions(+), 7 deletions(-)
+ create mode 100644 include/linux/f75375s.h
 
---- linux-2.6.23-rc6.orig/drivers/hwmon/thmc50.c	2007-09-18 18:04:18.000000000 +0200
-+++ linux-2.6.23-rc6/drivers/hwmon/thmc50.c	2007-09-18 18:33:06.000000000 +0200
-@@ -259,7 +259,7 @@ static int thmc50_detect(struct i2c_adap
- 	struct thmc50_data *data;
- 	struct device *dev;
- 	int err = 0;
--	const char *type_name = "";
-+	const char *type_name;
+diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+index 9336f5e..3074f74 100644
+--- a/drivers/hwmon/f75375s.c
++++ b/drivers/hwmon/f75375s.c
+@@ -34,6 +34,7 @@
+ #include <linux/i2c.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/f75375s.h>
  
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		pr_debug("thmc50: detect failed, "
-@@ -309,13 +309,9 @@ static int thmc50_detect(struct i2c_adap
- 		pr_debug("thmc50: Detection of THMC50/ADM1022 failed\n");
- 		goto exit_free;
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x2d, 0x2e, I2C_CLIENT_END };
+@@ -287,19 +288,14 @@ static ssize_t show_pwm_enable(struct device *dev, struct device_attribute
+ 	return sprintf(buf, "%d\n", data->pwm_enable[nr]);
+ }
+ 
+-static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr,
+-		const char *buf, size_t count)
++static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ {
+-	int nr = to_sensor_dev_attr(attr)->index;
+-	struct i2c_client *client = to_i2c_client(dev);
+ 	struct f75375_data *data = i2c_get_clientdata(client);
+-	int val = simple_strtoul(buf, NULL, 10);
+ 	u8 fanmode;
+ 
+ 	if (val < 0 || val > 4)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&data->update_lock);
+ 	fanmode = f75375_read8(client, F75375_REG_FAN_TIMER);
+ 	fanmode = ~(3 << FAN_CTRL_MODE(nr));
+ 
+@@ -321,8 +317,22 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr,
  	}
--	pr_debug("thmc50: Detected %s (version %x, revision %x)\n",
--		 type_name, (revision >> 4) - 0xc, revision & 0xf);
- 	data->type = kind;
+ 	f75375_write8(client, F75375_REG_FAN_TIMER, fanmode);
+ 	data->pwm_enable[nr] = val;
++	return 0;
++}
++
++static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr,
++		const char *buf, size_t count)
++{
++	int nr = to_sensor_dev_attr(attr)->index;
++	struct i2c_client *client = to_i2c_client(dev);
++	struct f75375_data *data = i2c_get_clientdata(client);
++	int val = simple_strtoul(buf, NULL, 10);
++	int err = 0;
++
++	mutex_lock(&data->update_lock);
++	err = set_pwm_enable_direct(client, nr, val);
+ 	mutex_unlock(&data->update_lock);
+-	return count;
++	return err ? err : count;
+ }
  
--	if (kind = thmc50)
--		type_name = "thmc50";
--	else if (kind = adm1022) {
-+	if (kind = adm1022) {
- 		int id = i2c_adapter_id(client->adapter);
- 		int i;
+ static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
+@@ -604,9 +614,24 @@ static int f75375_detach_client(struct i2c_client *client)
+ 	return 0;
+ }
  
-@@ -328,7 +324,11 @@ static int thmc50_detect(struct i2c_adap
- 				data->has_temp3 = 1;
- 				break;
- 			}
-+	} else {
-+		type_name = "thmc50";
++static void f75375_init(struct i2c_client *client, struct f75375_data *data,
++		struct f75375s_platform_data *f75375s_pdata)
++{
++	int nr;
++	set_pwm_enable_direct(client, 0, f75375s_pdata->pwm_enable[0]);
++	set_pwm_enable_direct(client, 1, f75375s_pdata->pwm_enable[1]);
++	for (nr = 0; nr < 2; nr++) {
++		data->pwm[nr] = SENSORS_LIMIT(f75375s_pdata->pwm[nr], 0, 255);
++		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
++			data->pwm[nr]);
++	}
++
++}
++
+ static int f75375_probe(struct i2c_client *client)
+ {
+ 	struct f75375_data *data = i2c_get_clientdata(client);
++	struct f75375s_platform_data *f75375s_pdata = client->dev.platform_data;
+ 	int err;
+ 
+ 	if (!i2c_check_functionality(client->adapter,
+@@ -637,6 +662,9 @@ static int f75375_probe(struct i2c_client *client)
+ 		goto exit_remove;
  	}
-+	pr_debug("thmc50: Detected %s (version %x, revision %x)\n",
-+		 type_name, (revision >> 4) - 0xc, revision & 0xf);
  
- 	/* Fill in the remaining client fields & put it into the global list */
- 	strlcpy(client->name, type_name, I2C_NAME_SIZE);
++	if (f75375s_pdata != NULL)
++		f75375_init(client, data, f75375s_pdata);
++
+ 	return 0;
+ 
+ exit_remove:
+diff --git a/include/linux/f75375s.h b/include/linux/f75375s.h
+new file mode 100644
+index 0000000..e99e225
+--- /dev/null
++++ b/include/linux/f75375s.h
+@@ -0,0 +1,21 @@
++/*
++ * f75375s.h - platform data structure for f75375s sensor
++ *
++ * This file is subject to the terms and conditions of the GNU General Public
++ * License.  See the file "COPYING" in the main directory of this archive
++ * for more details.
++ *
++ * Copyright (C) 2007, Riku Voipio <riku.voipio@iki.fi>
++ */
++
++#ifndef __LINUX_F75375S_H
++#define __LINUX_F75375S_H
++
++/* We want to set fans spinning on systems where there is no
++ * BIOS to do that for us */
++struct f75375s_platform_data {
++	u8 pwm[2];
++	u8 pwm_enable[2];
++};
++
++#endif /* __LINUX_F75375S_H */
+-- 
+1.5.3.1
 
 
 -- 
-Jean Delvare
+"rm -rf" only sounds scary if you don't have backups
 
 _______________________________________________
 lm-sensors mailing list
