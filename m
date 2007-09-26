@@ -1,40 +1,88 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 20 Sep 2007 11:20:11 +0000
-Subject: Re: [lm-sensors] "sensord --rrd-file" cant't find a sensor
-Message-Id: <20070920132011.3bc80c0b@hyperion.delvare>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Wed, 26 Sep 2007 13:13:50 +0000
+Subject: [lm-sensors] possible ACPI vs w83627hf conflict,
+Message-Id: <46FA5B0E.6040801@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46DE9261.8030900@sthias.de>
-In-Reply-To: <46DE9261.8030900@sthias.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Sebastian,
+James wrote:
+> G'day all,
+>=20
+> I'm having problems with what seems to be lm_sensors and the kernel=20
+> having an argument in fedora! Instead of re-writing the content of my=20
+> posts to fedora forum and bugzilla I will post the links here if that is =
 
-On Thu, 20 Sep 2007 10:28:11 +0200, Sebastian Thias, ATEBIS GmbH wrote:
-> I applied the patch and recompiled lm_sensors.
-> 
-> Trying sensord with your patch yielded:
-> 
-> 	sensord: Error getting sensor validity: w83793/#10
-> 
-> Sensord even gives this error-message if I add ignore statements for all
-> sensor-features in sensors.conf.
-> 
-> It works, though, if I comment out the element
-> 	SENSORS_W83793_IN(10)
-> in chips.c
+> ok? If anyone could help me resolve this issue I'd appreciate it!=20
+> lm_sensors isnt vital for my system but it is handy!
+>=20
+> System:
+> Fedora 7, (Linux JamesFedora 2.6.22.5-76.fc7 #1 SMP Thu Aug 30 13:47:21=20
+> EDT 2007 i686 athlon i386 GNU/Linux)
+>=20
+> Original questions on:
+> http://www.fedoraforum.org/forum/showthread.php?p=871271#post871271
+>=20
+> Reported to bugzilla about lm_sensors but then moved as explained...
+> https://bugzilla.redhat.com/show_bug.cgi?id06801
+>=20
+> Can I provide any more information to help the problem?
+> I've temporarily disabled lm_sensors to try to prevent filesystem damage =
 
-Oops, yes, you're correct. The W83793 has no in10. I've fixed my patch
-and applied it to SVN now.
+> while im work on an important document, in a week or so I can continue=20
+> testing it.
+>=20
 
-> Thanks a lot!
+Indeed there is no need to type your Fedora report again, but next time ple=
+ase=20
+copy and paste it for reader convenience (I've done that for you now):
 
-You're welcome. Thanks for your testing and report.
+---
 
--- 
-Jean Delvare
+Description of problem:
+System freezes completely. Scanning logs only turns up kernel null-pointer =
+bugs
+that appear to be linked in to the sensors files....see my post
+http://www.fedoraforum.org/forum/showthread.php?p=871271#post871271
+
+Version-Release number of selected component (if applicable):
+lm_sensors-2.10.4-1.fc7
+
+How reproducible:
+Random, but a couple of times per day. Causes file system damage when the s=
+ystem
+has locked up and needs a hard reset.
+
+Steps to Reproduce:
+1.Impossible to tell, however usually doing something fairly intensive when=
+ it
+occurs, but never in the same package. Always listening to music over and N=
+FS
+shared mount at the time.
+2.
+3.
+
+Actual results:
+-
+
+Expected results:
+-
+
+Additional info:
+I'm not sure if this is an lm_sensors fault, but it seems that the last sys=
+ file
+used every time is the hardware monitor file:
+/devices/platform/w83627hf.656/....
+
+---
+
+Regards,
+
+Hans
+
+
 
 _______________________________________________
 lm-sensors mailing list
