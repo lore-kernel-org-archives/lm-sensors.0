@@ -1,7 +1,7 @@
-From: David Brownell <david-b@pacbell.net>
-Date: Thu, 27 Sep 2007 21:34:48 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 28 Sep 2007 21:18:02 +0000
 Subject: Re: [lm-sensors] [patch 2.6.23-rc8 2/3] lm75: new style driver
-Message-Id: <20070927213448.23AE523532C@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+Message-Id: <20070928231802.340cdb14@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070925051926.7349F23942D@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 In-Reply-To: <20070925051926.7349F23942D@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
@@ -10,356 +10,142 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Teach the LM75 driver how to use new-style driver binding:
+Hi David,
 
- - Create a second driver struct, using new-style driver binding methods
-   cribbed from the legacy code.
+On Thu, 27 Sep 2007 14:33:40 -0700, David Brownell wrote:
+> Well, the lm75.h code expects 9 bit precision.  It trashes any
+> extra LSBs in either direction.  Perhaps "fail" is too strong,
+> but certainly the alarm mechanism checks those LSBs if they're
+> available ... so discarding available precision can lead to
+> some odd results.  Disabling extra precision prevents that.
 
- - Make the legacy probe logic delegate all its work to this new code.
+Ah, good point, I had missed that problem. I doubt it caused much
+trouble in practice, but that's still worth fixing.
 
- - The old driver struct was renamed as "lm75_legacy".
+> (...)
+> Also, "temp[3]" should be s16; those values are fixed-point with sign.
+> (I accidentally dropped that.)
 
- - Sensor limits are chip-specific; record them, and use them in new
-   routines to interconvert temperature and register values.
+Yes, it should. I've fixed many drivers that way already, but not all.
 
- - More careful initialization.  Chips are put into 9-bit mode so
-   that extra precision can't cause any confusion with alarms.
+> (...)
+> > SENSORS_LIMIT() is your friend.
+> 
+> Not _my_ friend; hiding logic that simple is just obfuscation.
+> Plus, function names should NEVER SHOUT AT ME. ;)
 
- - Save the original chip configuration, and restore it on exit.
+It used to be a macro, this is why. Admittedly it could (and should)
+have been renamed since then.
 
-A later patch updates those interconversion routines to support
-higher resolution measurements on chips which support them.
+> (...)
+> I noticed there are other drivers using "lm75.h"; those all looked
+> kind of ugly to me.  Drivers should never grot around in other
+> drivers' header files.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
- drivers/hwmon/Kconfig |    9 +-
- drivers/hwmon/lm75.c  |  191 +++++++++++++++++++++++++++++++++++++-------------
- 2 files changed, 149 insertions(+), 51 deletions(-)
+Who said that "lm75.h" was lm75.c's header file? The functions in
+lm75.h are for all drivers of chips which behave like the (de-facto
+standard) LM75 chip does. lm75.c is one of these drivers. There's
+really nothing wrong there.
 
---- a/drivers/hwmon/Kconfig	2007-09-27 12:57:10.000000000 -0700
-+++ b/drivers/hwmon/Kconfig	2007-09-27 13:50:47.000000000 -0700
-@@ -312,9 +312,12 @@ config SENSORS_LM75
- 		- TelCom (now Microchip) TCN75
- 		- Texas Instruments TMP100, TMP101, TMP75, TMP175, TMP275
- 
--	  The DS75 and DS1775 in 10- to 12-bit precision modes will require
--	  a force module parameter. The driver will not handle the extra
--	  precision anyhow.
-+	  This driver supports driver model based binding through board
-+	  specific I2C device tables.
-+
-+	  It also supports the "legacy" style of driver binding.  To use
-+	  that with some chips which don't replicate LM75 quirks exactly,
-+	  you may need the "force" module parameter.
- 
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called lm75.
---- a/drivers/hwmon/lm75.c	2007-09-27 13:38:42.000000000 -0700
-+++ b/drivers/hwmon/lm75.c	2007-09-27 14:26:44.000000000 -0700
-@@ -54,18 +54,19 @@ static const u8 LM75_REG_TEMP[3] = {
- 
- /* Each client has this additional data */
- struct lm75_data {
--	struct i2c_client	client;
-+	struct i2c_client	*client;
- 	struct device		*hwmon_dev;
- 	struct mutex		update_lock;
-+	long			min, max;
-+	u8			orig_conf;
- 	char			valid;		/* !=0 if registers are valid */
- 	unsigned long		last_updated;	/* In jiffies */
--	u16			temp[3];	/* Register values,
-+	s16			temp[3];	/* Register values,
- 						   0 = input
- 						   1 = max
- 						   2 = hyst */
- };
- 
--static void lm75_init_client(struct i2c_client *client);
- static int lm75_read_value(struct i2c_client *client, u8 reg);
- static int lm75_write_value(struct i2c_client *client, u8 reg, u16 value);
- static struct lm75_data *lm75_update_device(struct device *dev);
-@@ -75,13 +76,28 @@ static struct lm75_data *lm75_update_dev
- 
- /* sysfs attributes for hwmon */
- 
-+static inline s16 temp_to_reg(struct lm75_data *lm75, long temp)
-+{
-+	if (temp < lm75->min)
-+		temp = lm75->min;
-+	else if (temp > lm75->max)
-+		temp = lm75->max;
-+
-+	return LM75_TEMP_TO_REG(temp);
-+}
-+
-+static inline int reg_to_temp(s16 reg)
-+{
-+	return LM75_TEMP_FROM_REG(reg);
-+}
-+
- static ssize_t show_temp(struct device *dev, struct device_attribute *da,
- 			 char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
- 	struct lm75_data *data = lm75_update_device(dev);
--	return sprintf(buf, "%d\n",
--		       LM75_TEMP_FROM_REG(data->temp[attr->index]));
-+
-+	return sprintf(buf, "%d\n", reg_to_temp(data->temp[attr->index]));
- }
- 
- static ssize_t set_temp(struct device *dev, struct device_attribute *da,
-@@ -94,7 +110,7 @@ static ssize_t set_temp(struct device *d
- 	long temp = simple_strtol(buf, NULL, 10);
- 
- 	mutex_lock(&data->update_lock);
--	data->temp[nr] = LM75_TEMP_TO_REG(temp);
-+	data->temp[nr] = temp_to_reg(data, temp);
- 	lm75_write_value(client, LM75_REG_TEMP[nr], data->temp[nr]);
- 	mutex_unlock(&data->update_lock);
- 	return count;
-@@ -120,16 +136,112 @@ static const struct attribute_group lm75
- 
- /*-----------------------------------------------------------------------*/
- 
-+/* "New style" I2C driver binding -- following the driver model */
-+
-+static int lm75_probe(struct i2c_client *client)
-+{
-+	struct lm75_data *data;
-+	int status;
-+	u8 set_mask, clr_mask;
-+	int new;
-+
-+	if (!i2c_check_functionality(client->adapter,
-+			I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA))
-+		return -EIO;
-+
-+	if (!(data = kzalloc(sizeof(struct lm75_data), GFP_KERNEL)))
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(client, data);
-+
-+	data->client = client;
-+	mutex_init(&data->update_lock);
-+
-+	/* Set to LM75 resolution (9 bits, 1/2 degree C) and range.
-+	 * Then tweak to be more precise when appropriate.
-+	 */
-+	set_mask = 0;
-+	clr_mask = (1 << 0)			/* continuous conversions */
-+		| (1 << 6) | (1 << 5);		/* 9-bit mode */
-+
-+	data->min = -55 * 1000;
-+	data->max = 125 * 1000;
-+
-+	/* for tmp175 or tmp275, use name "tmp75" */
-+	if (strcmp(client->name, "tmp75") = 0)
-+		data->min = -40 * 1000;
-+
-+	/* NOTE:  also need to ensure that the chip is in interrupt mode
-+	 * in various cases, and maybe handle SMBALERT#.
-+	 */
-+
-+	/* configure as specified */
-+	status = lm75_read_value(client, LM75_REG_CONF);
-+	if (status < 0) {
-+		dev_dbg(&client->dev, "Can't read config? %d\n", status);
-+		goto exit_free;
-+	}
-+	data->orig_conf = status;
-+	new = status & ~clr_mask;
-+	new |= set_mask;
-+	if (status != new)
-+		lm75_write_value(client, LM75_REG_CONF, new);
-+	dev_dbg(&client->dev, "Config %02x\n", new);
-+
-+	/* Register sysfs hooks */
-+	if ((status = sysfs_create_group(&client->dev.kobj, &lm75_group)))
-+		goto exit_free;
-+
-+	data->hwmon_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(data->hwmon_dev)) {
-+		status = PTR_ERR(data->hwmon_dev);
-+		goto exit_remove;
-+	}
-+
-+	dev_info(&client->dev, "%s: sensor '%s'\n",
-+		data->hwmon_dev->bus_id, client->name);
-+
-+	return 0;
-+
-+exit_remove:
-+	sysfs_remove_group(&client->dev.kobj, &lm75_group);
-+exit_free:
-+	i2c_set_clientdata(client, NULL);
-+	kfree(data);
-+	return status;
-+}
-+
-+static int lm75_remove(struct i2c_client *client)
-+{
-+	struct lm75_data *data = i2c_get_clientdata(client);
-+
-+	hwmon_device_unregister(data->hwmon_dev);
-+	sysfs_remove_group(&client->dev.kobj, &lm75_group);
-+	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
-+	i2c_set_clientdata(client, NULL);
-+	kfree(data);
-+	return 0;
-+}
-+
-+static struct i2c_driver lm75_driver = {
-+	.driver = {
-+		.name	= "lm75",
-+	},
-+	.probe		= lm75_probe,
-+	.remove		= lm75_remove,
-+};
-+
-+/*-----------------------------------------------------------------------*/
-+
- /* "Legacy" I2C driver binding */
- 
--static struct i2c_driver lm75_driver;
-+static struct i2c_driver lm75_legacy_driver;
- 
- /* This function is called by i2c_probe */
- static int lm75_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	int i;
- 	struct i2c_client *new_client;
--	struct lm75_data *data;
- 	int err = 0;
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
-@@ -139,16 +251,14 @@ static int lm75_detect(struct i2c_adapte
- 	/* OK. For now, we presume we have a valid address. We create the
- 	   client structure, even though there may be no sensor present.
- 	   But it allows us to access i2c_smbus_read_*_data() calls. */
--	if (!(data = kzalloc(sizeof(struct lm75_data), GFP_KERNEL))) {
-+	if (!(new_client = kzalloc(sizeof *new_client, GFP_KERNEL))) {
- 		err = -ENOMEM;
- 		goto exit;
- 	}
- 
--	new_client = &data->client;
--	i2c_set_clientdata(new_client, data);
- 	new_client->addr = address;
- 	new_client->adapter = adapter;
--	new_client->driver = &lm75_driver;
-+	new_client->driver = &lm75_legacy_driver;
- 	new_client->flags = 0;
- 
- 	/* Now, we do the remaining detection. There is no identification-
-@@ -189,38 +299,24 @@ static int lm75_detect(struct i2c_adapte
- 				goto exit_free;
- 	}
- 
--	/* NOTE: we treat "force=..." and "force_lm75=..." the same. */
-+	/* NOTE: we treat "force=..." and "force_lm75=..." the same.
-+	 * Only new-style driver binding distinguishes chip types.
-+	 */
- 	strlcpy(new_client->name, "lm75", I2C_NAME_SIZE);
- 
--	/* Fill in the remaining client fields and put it into the global list */
--	data->valid = 0;
--	mutex_init(&data->update_lock);
--
- 	/* Tell the I2C layer a new client has arrived */
- 	if ((err = i2c_attach_client(new_client)))
- 		goto exit_free;
- 
--	/* Initialize the LM75 chip */
--	lm75_init_client(new_client);
--
--	/* Register sysfs hooks */
--	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm75_group)))
-+	if ((err = lm75_probe(new_client)) < 0)
- 		goto exit_detach;
- 
--	data->hwmon_dev = hwmon_device_register(&new_client->dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		err = PTR_ERR(data->hwmon_dev);
--		goto exit_remove;
--	}
--
- 	return 0;
- 
--exit_remove:
--	sysfs_remove_group(&new_client->dev.kobj, &lm75_group);
- exit_detach:
- 	i2c_detach_client(new_client);
- exit_free:
--	kfree(data);
-+	kfree(new_client);
- exit:
- 	return err;
- }
-@@ -234,17 +330,15 @@ static int lm75_attach_adapter(struct i2
- 
- static int lm75_detach_client(struct i2c_client *client)
- {
--	struct lm75_data *data = i2c_get_clientdata(client);
--	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&client->dev.kobj, &lm75_group);
-+	lm75_remove(client);
- 	i2c_detach_client(client);
--	kfree(data);
-+	kfree(client);
- 	return 0;
- }
- 
--static struct i2c_driver lm75_driver = {
-+static struct i2c_driver lm75_legacy_driver = {
- 	.driver = {
--		.name	= "lm75",
-+		.name	= "lm75_legacy",
- 	},
- 	.attach_adapter	= lm75_attach_adapter,
- 	.detach_client	= lm75_detach_client,
-@@ -273,16 +367,6 @@ static int lm75_write_value(struct i2c_c
- 		return i2c_smbus_write_word_data(client, reg, swab16(value));
- }
- 
--static void lm75_init_client(struct i2c_client *client)
--{
--	int reg;
--
--	/* Enable if in shutdown mode */
--	reg = lm75_read_value(client, LM75_REG_CONF);
--	if (reg >= 0 && (reg & 0x01))
--		lm75_write_value(client, LM75_REG_CONF, reg & 0xfe);
--}
--
- static struct lm75_data *lm75_update_device(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
-@@ -313,11 +397,22 @@ static struct lm75_data *lm75_update_dev
- 
- static int __init sensors_lm75_init(void)
- {
--	return i2c_add_driver(&lm75_driver);
-+	int status;
-+
-+	status = i2c_add_driver(&lm75_driver);
-+	if (status < 0)
-+		return status;
-+
-+	status = i2c_add_driver(&lm75_legacy_driver);
-+	if (status < 0)
-+		i2c_del_driver(&lm75_driver);
-+
-+	return status;
- }
- 
- static void __exit sensors_lm75_exit(void)
- {
-+	i2c_del_driver(&lm75_legacy_driver);
- 	i2c_del_driver(&lm75_driver);
- }
- 
+> (...)
+> > Useless. Either keep calling LM75_TEMP_FROM_REG() directly, or
+> > duplicate its contents.
+> 
+> Again, that's fully addressed in the third patch.  This one
+> is consistent in the style change:  the conversion routines
+> called in the sysfs attribute logic are normal no-shouting
+> inline functions.
+
+"Badness of this patch is fixed in the next patch" is a recurrent lame
+excuse. This isn't how things work, sorry. Each patch should be
+reviewable and acceptable in its own right. The maintainer might not
+like your patch #3 for whatever reason, and reject it. Now, if your
+patch #2 is not acceptable without patch #3, it has to be rejected as
+well.
+
+The whole point of splitting patches is because smaller patches are
+easier to review. If your patches are not independent and I need to
+read patch #3 to find out whether patch #2 is acceptable, then all the
+benefit is lost.
+
+> > > +static int lm75_probe(struct i2c_client *client)
+> > > +{
+> > > +	struct lm75_data	*data;
+> > > +	int			status;
+> > > +	u8			set_mask, clr_mask;
+> > > +	int			new;
+> >
+> > Please use the same coding style for variable declarations that is use
+> > in the rest of the driver: just one space between type and name(s).
+> 
+> That's ugly and hard to read, but ... ok.
+
+No, the above is ugly and hard to read :p And more importantly, is
+rarely used in the kernel tree, and not at all in the hwmon drivers.
+
+> > > +	/* NOTE:  also need to ensure that the chip is in interrupt mode
+> > > +	 * in various cases, and maybe handle SMBALERT#.
+> > > +	 */
+> >
+> > This comment doesn't make any sense to me.
+> 
+> In what way?  When the chip's IRQ is wired up, that should
+> be handled ...
+
+If you "need" to do it, and your patch doesn't, then we can't accept
+your patch, can we? ;) What confuses me is that the comment doesn't
+correspond to any code, and looks more like an item of your personal
+to-do list having leaked into public source code.
+
+> > > +	/* configure as specified */
+> > > +	status = lm75_read_value(client, LM75_REG_CONF);
+> > > +	if (status < 0) {
+> > > +		dev_dbg(&client->dev, "can't read config? %d\n", status);
+> >
+> > Please uppercase the first letter, and add parentheses around %d. Just
+> > because it's a debug message doesn't mean it doesn't have to look
+> > nice ;) BTW, shouldn't this rather be a dev_warn or even dev_err?
+> 
+> CodingStyle ch13 say no useless parens.
+
+I didn't know about that rule, and I fail to see the point. Sometimes
+having parentheses around the number makes sense, sometimes it doesn't.
+Stating as a universal rule that parentheses should never be used is
+silly. As a matter of fact, this rule doesn't seem to be respected at
+all: grepping the kernel source tree for '(%d)' and its variants
+returns more than 3000 occurrences.
+
+I'll send a patch to remove this sentence from CodingStyle.
+
+> Warn or error?  Why?
+> 
+> As a general policy, I avoid non-dbg messaging from driver probe
+> faults.  They just waste object file space, except in systems
+> which are misbehaving and thus need debugging.  When debugging,
+> the first thing to do is enable debug messaging.  Then turn it off
+> again when done, and the memory footprint goes back to "slim".
+
+As someone doing Linux support for a living, I hate having to tell the
+customer that they have to recompile their kernel with debugging
+enabled before I can look into their problems. The above is a run-time
+error, something that should not happen, but could if for example the
+underlying I2C bus is broken. If it does, as a user, I would like to
+know about it, without recompiling everything. The additional 32 bytes
+or so, compared to the 13 kB of the lm75 driver, are negligible.
+
+I'm not saying that we should bloat all out drivers with dozens of
+useless log messages. But errors need to be reported as such, and in a
+way which lets the users do useful reports.
+
+> (...)
+> Yeah ... and once that's all done, phasing out legacy binding
+> can begin in earnest!
+
+As far as hardware monitoring drivers are concerned, I don't know how
+this is going to happen at all.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
