@@ -1,103 +1,109 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 21 Sep 2007 08:43:26 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: Update
-Message-Id: <20070921104326.36f0ee1e@hyperion.delvare>
+From: admin@incred.org
+Date: Sat, 29 Sep 2007 03:32:10 +0000
+Subject: [lm-sensors] lm-sensors with VIA vt82c596b
+Message-Id: <20070929033210.GA30044@cyberspace>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070827211446.GG32667@tree.beaverton.ibm.com>
-	<20070828015029.GA10107@khazad-dum.debian.net>
-	<20070828131942.18449886@hyperion.delvare>
-	<20070828164905.GM32667@tree.beaverton.ibm.com>
-	<20070828232504.GP32667@tree.beaverton.ibm.com>
-	<20070911132335.GJ31992@jupiter.solarsys.private>
-	<20070914192924.GL30825@tree.beaverton.ibm.com>
-	<20070917192808.44ad60cc@hyperion.delvare>
-	<20070917184310.GN30825@tree.beaverton.ibm.com>
-In-Reply-To: <20070917184310.GN30825@tree.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Darrick J. Wong" <djwong@us.ibm.com>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, haveblue@us.ibm.com
+To: lm-sensors@vger.kernel.org
 
-Hi Darrick,
+Hello!
 
-On Mon, 17 Sep 2007 11:43:11 -0700, Darrick J. Wong wrote:
-> On Mon, Sep 17, 2007 at 07:28:08PM +0200, Jean Delvare wrote:
-> > First of all, please think of a better subject line for this patch.
-> > "Update Documentation/hwmon/sysfs-interface" is too vague when your
-> > patch is rather specific.
-> 
-> Will change to:
-> "Add power meter spec to Documentation/hwmon/sysfs-interface"
+I have a trouble with detecting sensors.
+System:
+	$ sensors -v
+	sensors version 2.10.1 with libsensors version 2.10.1
+	
+	Kernel 2.6.21 (Gentoo)
 
-Sounds good, thanks.
+	Hardware:
+	00:00.0 Host bridge: VIA Technologies, Inc. VT82C693A/694x
+	[Apollo PRO133x] (rev 44)
+	00:01.0 PCI bridge: VIA Technologies, Inc. VT82C598/694x [Apollo
+	MVP3/Pro133x AGP]
+	00:07.0 ISA bridge: VIA Technologies, Inc. VT82C596 ISA [Mobile
+	South] (rev 23)
+	00:07.1 IDE interface: VIA Technologies, Inc.
+	VT82C586A/B/VT82C686/A/B/VT823x/A/C PIPC Bus Master IDE (rev 10)
+	00:07.2 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI
+	USB 1.1 Controller (rev 11)
+	00:07.3 Host bridge: VIA Technologies, Inc. VT82C596 Power
+	Management (rev 30)
+	00:0a.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
+	RTL-8139/8139C/8139C+ (rev 10)
+	00:0b.0 Multimedia audio controller: Ensoniq 5880 AudioPCI (rev
+	02)
+	01:00.0 VGA compatible controller: nVidia Corporation NV11
+	[GeForce2 MX/MX 400] (rev b2)
+Actually, support for vt82c596b exists, but during detecting sensors i
+got:
 
-> > > +power[1-*]_average_lowest	Historical average minimum power use
-> > > +				Unit: microWatt
-> > > +				RO
-> > 
-> > How useful are historical extremes of an average?
-> 
-> I don't know if anybody ever really requires this data, but the device
-> I'm talking to records the extremes in hardware, so I put it in the driver.
+Driver `eeprom' (should be inserted):
+  Detects correctly:
+    * Bus `SMBus Via Pro adapter at 5000'
+        Busdriver `i2c-viapro', I2C address 0x51
+	    Chip `eeprom' (confidence: 6)
 
-OK, fine with me then.
+	      EEPROMs are *NOT* sensors! They are data storage chips
+	      commonly
+	        found on memory modules (SPD), in monitors (EDID), or in
+		some
+		  laptops, for example.
 
-> > > +power[1-*]_high_low_reset	Reset input_highest/input_lowest.
-> > > +				WO
-> > 
-> > I don't much like this name. It sounds like a name crafted for the
-> > specific feature of a given chip, while we try to use generic names for
-> 
-> Guilty as charged.  Since ibmpex is the only on-board power meter hardware
-> to which I have access, the interface proposal includes the various odd
-> pieces that the hardware provides in addition to the meters.  I
-> could take the historical extreme and reset bits out of the proposal and
-> put them in something like Documentation/hwmon/ibmpex.txt as extra
-> chip-specific features if people prefer that.
+		  I will now generate the commands needed to load the
+		  required modules.
+		  Just press ENTER to continue: 
 
-I'm fine having them in the spec as long as the interface is made
-generic enough.
 
-> > the standard interface. I would rather go for power[1-*]_reset_history
-> 
-> Me too.
-> 
-> > if we have a single file for resetting all the extremes of a given
-> > channel, or power[1-*]_input_lowest_reset and
-> > power[1-*]_input_highest_reset if we go for a per-value reset.
-> 
-> The ibmpex hardware only knows how to reset all of them.
+		  If you want to load the modules at startup, generate a
+		  config file
+		  below and make sure lm_sensors gets started at boot
+		  time; e.g
+		  $ rc-update add lm_sensors default
+		  To make the sensors modules behave correctly, add
+		  these lines to
+		  /etc/modules.d/lm_sensors and run modules-update:
 
-This doesn't mean we do not want separate files. The same problem
-exists for many other hardware monitoring features. For example most
-thermal sensor chips have one high temperature limit per temperature
-channel. However some of them have a single limit register for several
-channels! The approach we have taken so far was to have individual
-files, and it's up to the driver to keep them in sync.
+		  #----cut here----
+		  # I2C module options
+		  alias char-major-89 i2c-dev
+		  #----cut here----
 
-Another example is alarm files. Some chips have a single alarm for
-out-of-range voltage measurements. Others have separate alarms for low
-voltage and high voltage limit crossing. In that case, we decided to
-have either a single file (in0_alarm) or separate files (in0_min_alarm
-and in0_max_alarm) depending on what the chip supports. Admittedly this
-is not very consistent with what we did for the shared temperature
-limits.
+		  If you have some drivers built into your kernel, the
+		  list above will
+		  contain too many modules. Skip the appropriate ones!
+		  You really
+		  should try these commands right now to make sure
+		  everything is
+		  working properly. Monitoring programs won't work until
+		  the needed
+		  modules are loaded.
 
-> > Alternatively, we could simply make the power[1-*]_input_lowest and
-> > power[1-*]_input_highest files writable, and "cat power1_input >
-> > power1_input_lowest" (or any write?) would reset the history.
-> 
-> I'd prefer to leave it explicitly called out as a separate sysfs knob,
-> unless there are established precedents for resetting a sensor by
-> writing something to its sysfs file.
+		  To load everything that is needed, execute the
+		  commands below...
 
-No, there's no such established precedent. This was only a suggestion
-from me as it seems to make some sense. If you don't like the idea,
-just ignore it.
+		  #----cut here----
+		  # I2C adapter drivers
+		  modprobe i2c-viapro
+		  # Chip drivers
+		  modprobe eeprom
+		  # sleep 2 # optional
+		  /usr/bin/sensors -s # recommended
+		  #----end cut here----
 
--- 
-Jean Delvare
+
+After load i2c-viapro and eeprom:
+
+ # sensors -s
+ No sensors found!
+ Make sure you loaded all the kernel drivers you need.
+ Try sensors-detect to find out which these are.
+
+how can i solve this trouble? (I want to look temperature of CPU )
+
+/Thank You...
+
 
 _______________________________________________
 lm-sensors mailing list
