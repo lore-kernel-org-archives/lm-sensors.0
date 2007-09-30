@@ -1,7 +1,7 @@
-From: Henrique de Moraes Holschuh <hmh@debian.org>
-Date: Sun, 30 Sep 2007 00:56:18 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 30 Sep 2007 11:54:16 +0000
 Subject: Re: [lm-sensors] lm-sensors 3.0.0-rc1 has been released!
-Message-Id: <20070930005618.GA3164@khazad-dum.debian.net>
+Message-Id: <20070930135416.501e03b7@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070925233316.7afaa297@hyperion.delvare>
 In-Reply-To: <20070925233316.7afaa297@hyperion.delvare>
@@ -10,81 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 29 Sep 2007, Jean Delvare wrote:
-> > I think we should differentiate ENXIO (sensor is not there right now) from
-> > EIO (real IO error).
-> 
-> ENXIO should probably not be returned in the first place. Missing,
-> disabled or otherwise non-working sensors are reported through
-> fooN_fault files. When a fault is reported, user-space doesn't make use
-> of the (invalid or missing) input sensor value.
-
-This is not what I was told in this list in the past, which is why I return
-ENXIO if one tries to access a hotplug thermal sensor in a thinkpad.  If the
-EC would notify me when sensors come and go, I could add/remove the
-attributes from sysfs and avoid the whole issue, but that's wishful
-thinking.
-
-I will look for the fooN_fault file docs, and implement that post haste,
-then.
-
-> >                       We can tack missing sysfs attributes along with ENXIO
-> > as they are about the same thing, I think.
-> 
-> What "missing sysfs attributes"? libsensors gets the list of attributes
-> from sysfs, it doesn't expect any file (except "name") to be there. So,
-> unless files disappear afterwards, attributes can't be missing.
-
-Sorry, what I meant is: some sensor that is exported in sysfs because it
-*might* be in the hardware, and the driver can only tell if it is there or
-not when it tries to access it (otherwise the driver would not have exported
-the attribute to sysfs in the first place), and the sensor can come and go
-at runtime without any sort of notification.
-
-> No, libsensors doesn't retry on EBUSY and EINTR/EAGAIN (as I said it
-> ignores the returned error code at the moment), and I don't think it
-> should. For how long would it wait? How many times would it retry
-
-Retrying on EINTR is pretty much needed, AFAIK.  If the library doesn't do
-retries by itself, we must return a separate return code so that the library
-user can.  I have never heard of EINTR being anything but a very temporary
-condition, though.
-
-EBUSY is something else.  That one can be quite permanent, so retrying on it
-is best not done I suppose.
-
-> before giving up? If we are going to hard-code a policy in libsensors,
-> giving applications no control, then we might as well let the drivers
-> handle the retries by themselves, at least they know how much they
-> should wait between retries and when to give up depending on the
-> hardware (some drivers do that already, e.g. w83l785ts.)
-
-Drivers *do* often retry, if the hardware is busy.  But if they get a
-signal, what should they do, then?  AFAIK at least for stuff like sysfs, one
-is to return to userspace with EINTR to let userspace handle its signals,
-and resubmit the request if it wants to.
-
-My sources of EINTR in thinkpad-acpi are from mutex_lock_interruptible.
-
-> Most monitoring applications are repeatedly polling the sensor values
-> every few seconds anyway, so if one measurement is missing, it will
-> probably be back on the next cycle. In other words, the retry mechanism
-> is already in place there, at the application level. Reimplementing it
-> in libsensors sounds wrong to me.
-
-Even for EINTR?
-
+On Sat, 29 Sep 2007 15:39:19 +0200, Jean Delvare wrote:
 > So, from the above, it seems that what we both agree on is that a
 > separate error value for I/O errors would be needed. I'll work up a
 > patch implementing this.
 
-Thanks.
+I've committed a patch:
+http://www.lm-sensors.org/changeset/4899
+
+While testing it, I found that libsysfs will silently discard
+attributes which return errors when being read. This means that an
+attribute which returns an error at libsensors initialization time will
+be forever missing, even if it can be successfully read again later.
+This is no good. One more reason to get rid of libsysfs, I presume.
+
+This also revealed that libsysfs reads the value from all attributes
+when we do the device feature detection, even though we did not ask for
+it and don't need the attribute values at all at this point. This
+triggers a cache refresh at the device driver level (for most drivers
+at least). No big deal for "sensors", but it's needlessly slowing down
+"sensors -s". It might even have hidden driver bugs, as it means the
+cache is always up-to-date when "sensors -s" is run, while drivers
+should be able to cope with "sensors -s" when the cache is not yet
+populated. Oh well, we really have to move away from libsysfs. I've
+created a ticket in trac for that, it's scheduled for lm-sensors 3.0.1:
+
+http://www.lm-sensors.org/ticket/2262
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
