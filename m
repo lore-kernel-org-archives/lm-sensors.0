@@ -1,17 +1,20 @@
 From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Mon, 01 Oct 2007 18:51:26 +0000
+Date: Mon, 01 Oct 2007 21:46:06 +0000
 Subject: Re: [lm-sensors] dme1737 error messages
-Message-Id: <191fb4ca0710011151j4fe81ban7a61db5e60a5d3d1@mail.gmail.com>
+Message-Id: <191fb4ca0710011446g6d783275la64c6d8a3fd40b0c@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <191fb4ca0710011151j4fe81ban7a61db5e60a5d3d1@mail.gmail.com>
+In-Reply-To: <191fb4ca0710011151j4fe81ban7a61db5e60a5d3d1@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Borislav,
+Oh and could you please post the full content of the system log
+(relevant section only). Grepping for dme doesn't provide all the
+information.
 
-Can you please run 'i2cdump 0 0x2e' and post the output?
-
+Thanks
 ...juerg
 
 
