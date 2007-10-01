@@ -1,77 +1,119 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 24 Oct 2007 11:51:09 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon/lm90: Quiet down error messages when
-Message-Id: <20071024135109.46047552@hyperion.delvare>
+From: Stian Jordet <liste@jordet.net>
+Date: Mon, 01 Oct 2007 07:57:55 +0000
+Subject: [lm-sensors] IPMI and ipmisensors on an Intel SC450NX
+Message-Id: <4700A883.9040101@jordet.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071023225323.GA9467@lixom.net>
-In-Reply-To: <20071023225323.GA9467@lixom.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Olof,
+Hi,
 
-On Tue, 23 Oct 2007 17:53:23 -0500, Olof Johansson wrote:
-> The commit "hwmon/lm90: Add support for the Maxim MAX6680/MAX6681"
-> added a number of new addresses to probe for lm90 devices, which for me
-> resulted in a bunch of these during boot (26 of them!):
-> 
-> Register 0xfe read failed (-1)
-> Register 0xfe read failed (-1)
-> Register 0xfe read failed (-1)
-> 
-> I.e. one for every failed probe -- 3 busses, 9 addresses.
-> 
-> No other hwmon driver prints debug info like this, so let's just get
-> rid of it.
+Sorry, this is going to be long and probably cross-posted too many
+places, but it isn't easy to know where to direct this! The persons in
+the CC-field I have found after searching on the net, hoping any of them
+have some bright ideas!
 
-It's not "debug info", it's reporting an actual read error. It would
-actually be good if other drivers would report these errors instead or
-ignoring them. Some do, BTW (lm93 at least.)
+I've used the weekend (again!) trying to get sensors working on my good
+old Intel SC450NX server, with no luck.
 
-The question is, how do you manage to get that many errors reported,
-when I don't get any when loading the lm90 driver, despite the 6 I2C
-buses on my system. When you reach this point in the lm90 driver, it
-means that i2c-core successfully probed that there was a device at said
-address on the given bus. I have a hard time believing that you have
-chips at 0x18, 0x19, 0x1a, 0x29, 0x2a, 0x2b, 0x4c, 0x4d and 0x4e on 3
-different I2C buses on your system.
+First of all, I'm not even sure what IPMI version this system has. I
+found this mail:
 
-It sounds like the underlying bus driver is broken and report chips
-where they aren't. What are these I2C buses? Their driver(s) needs
-fixing.
+http://sourceforge.net/mailarchive/message.php?msg_idtA9A71929931E40967CA9F27B1D7396014D46A2%40hdsmsx401.amr.corp.intel.com
 
-> Signed-off-by: Olof Johansson <olof@lixom.net>
-> 
-> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-> index 960df9f..b21ca19 100644
-> --- a/drivers/hwmon/lm90.c
-> +++ b/drivers/hwmon/lm90.c
-> @@ -470,11 +470,8 @@ static int lm90_read_reg(struct i2c_client* client, u8 reg, u8 *value)
->   	} else
->   		err = i2c_smbus_read_byte_data(client, reg);
->  
-> -	if (err < 0) {
-> -		dev_warn(&client->dev, "Register %#02x read failed (%d)\n",
-> -			 reg, err);
-> +	if (err < 0)
->  		return err;
-> -	}
->  	*value = err;
->  
->  	return 0;
+where an Intel employee thinks it is IPMI 1.0, and either way it should
+work with the ipmi_imb emulation driver, which supposedly uses the same
+interface as the original Intel Server Manager uses. I'm still afraid it
+is IPMI 0.9 I have.
 
-I'm not taking this, sorry. We _do_ want I/O errors to be reported.
+I have updated both BIOS, BMC and FRUSDR (whatever that is) to the
+latest available versions. dmidecode doesn't have any traces of ipmi.
+But lm-sensors sensors-detect reports this:
 
-If something needs to be changed here, it's rather the fact that
-lm90_read_reg() is used during device probe. Calling
-i2c_smbus_read_byte_data() instead would make more sense, and
-incidentally wouldn't flood your logs on error (even though, again, the
-underlying i2c bus driver is broken, not lm90).
+[...]
+Probing for `IPMI BMC KCS' at 0xca0...                      Success!
+     (confidence 4, driver `ipmisensors')
+Probing for `IPMI BMC SMIC' at 0xca8...                     No
+[...]
 
--- 
-Jean Delvare
+which at least gave me some hope. The ipmisensors page says I need to
+use ipmi_si before loading the ipmisensors-module. I then tried loading
+some modules...
+
+root@buick:~# modprobe ipmi_si
+IPMI System Interface driver.
+ipmi_si: Unable to find any System Interface(s)
+FATAL: Error inserting ipmi_si
+(/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_si.ko): No such
+device
+
+root@buick:~# modprobe ipmi_si type="kcs" addrs="0xca0"
+IPMI System Interface driver.
+ipmi_si: Trying hardcoded-specified kcs state machine at mem address
+0xca0, slave address 0x0, irq 0
+Could not set up I/O space
+ipmi_si: Unable to find any System Interface(s)
+FATAL: Error inserting ipmi_si
+(/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_si.ko): No such
+device
+
+After applying ipmi_emu.diff from http://openipmi.sf.net, I tried the
+earlier promised ipmi_imb driver:
+
+root@buick:~# modprobe ipmi_imb
+ipmi: can't create user -22
+FATAL: Error inserting ipmi_imb
+(/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_imb.ko): Invalid
+argument
+
+Not looking that good... What does "can't create user -22" mean? I found
+this in my dmesg:
+
+pnp: 00:01: ioport range 0xca0-0xca7 has been reserved
+
+Which gave me hope that pnp was "locking" the ipmi addresses. Booted
+with pnpbios=no and pnpacpi=off and even acpi=off, no difference.
+
+I ran the FRUSDR utility from a boot disk, and got this output:
+
+a:\>frusdr /p /d fru
+
+    FRU & SDR Load Utility Version 3.4
+
+    FRU IMBDEVICE on bus FFh, IMB address 20h, LUN 00
+
+Display Header Area
+Common Header Area      (Version 1, Length 8)
+    Internal Area Offset    = 01h
+    Chassis Area Offset     = 1Ah
+    Board Area Offset       = 1Eh
+    Product Area Offset     = 26h
+    Multirecord Area Offset = 00h
+    PAD                     = 00h
+    CHECKSUM                = A0h
+
+Don't know what any of this means, except it kinda says it does have a
+"imbdevice" (Which I had some hopes the ipmi_imb driver would
+support...)
+
+Ok, I found this http://bubble.nsys.by/projects/ipmi/ and this
+http://archives.andrew.net.au/lm-sensors/msg29983.html on the web,
+showing at least two attempts trying to get bmcsensors working with IPMI
+0.9 (if that's what my system has), but I haven't found any sign of
+success or not. I am especially curious as to whether Yani's attempt to
+make bmcsensors working with IPMI 0.9 will have any effect now that
+ipmisensors seems to use ipmi_si and OpenIPMI does not suppoert IPMI
+0.9...
+
+Anyone have any bright ideas where to look next? Or am I really out of
+luck?
+
+Thanks.
+
+Regards,
+Stian
 
 _______________________________________________
 lm-sensors mailing list
