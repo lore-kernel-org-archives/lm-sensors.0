@@ -1,47 +1,99 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 07 Oct 2007 20:07:42 +0000
-Subject: Re: [lm-sensors] [PATCH]hwmon/lm87: Add individual alarm files
-Message-Id: <20071007220742.51afe59b@hyperion.delvare>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Mon, 01 Oct 2007 18:45:30 +0000
+Subject: Re: [lm-sensors] dme1737 module
+Message-Id: <191fb4ca0710011145j4c39855cl3be11926caeab250@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070926233901.1ea7aace@hyperion.delvare>
-In-Reply-To: <20070926233901.1ea7aace@hyperion.delvare>
+References: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
+In-Reply-To: <191fb4ca0708220911q4affac9flb4bca592c3ba3850@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Sun, 7 Oct 2007 11:55:36 -0400, Mark M. Hoffman wrote:
-> Hi:
-> 
-> * Hans de Goede <j.w.r.degoede@hhs.nl> [2007-10-05 09:38:33 +0200]:
-> > Hi All,
-> > 
-> > In this post:
-> > http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021290.html]
-> > 
-> > Jean Delvare wrote:
-> > --------------------------------------------
-> > Add individual alarm files to the lm87 driver. The new libsensors
-> > needs this.
-> > 
-> > Signed-off-by: Jean Delvare <khali at linux-fr.org>
-> 
-> (...)
-> 
-> > Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-> 
-> Applied to hwmon-2.6.git/testing, thanks.
-> 
-> BTW Jean: is it common for alarm bits to be shared like that?  I don't
-> remember seeing anything like that on the other drivers that I wrote or
-> worked on in the past.
+Hi Juergen,
 
-It's rather uncommon, fortunately. The only example I can remember is
-the W83781D: it has only one alarm bit for temp2 and temp3 (same as
-the LM87).
 
--- 
-Jean Delvare
+> > -----Urspr=FCngliche Nachricht-----
+> > Von: "Juerg Haefliger" <juergh@gmail.com>
+>
+>
+> >
+> > > The type of my cpu  is very new.  At boot up, the bios displays "unkn=
+own
+> > > cpu type". So, this might be the reason why it does not know how to h=
+andle
+> > > the sensor output.
+> >
+> > Can you send the output of 'cat /proc/cpuinfo'?
+> >
+>
+> It is a amd athlon x2 BE-2350
+>
+> jba@lisa:~$ cat /proc/cpuinfo
+> processor       : 0
+> vendor_id       : AuthenticAMD
+> cpu family      : 15
+> model           : 107
+> model name      : AMD Processor model unknown
+> stepping        : 1
+> cpu MHz         : 1000.000
+> cache size      : 512 KB
+> physical id     : 0
+> siblings        : 2
+> core id         : 0
+> cpu cores       : 2
+> fdiv_bug        : no
+> hlt_bug         : no
+> f00f_bug        : no
+> coma_bug        : no
+> fpu             : yes
+> fpu_exception   : yes
+> cpuid level     : 1
+> wp              : yes
+> flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mc=
+a cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt lm=
+ 3dnowext 3dnow pni cx16 lahf_lm cmp_legacy svm cr8legacy ts fid vid ttp tm=
+ stc [6]
+> bogomips        : 2011.01
+>
+> processor       : 1
+> vendor_id       : AuthenticAMD
+> cpu family      : 15
+> model           : 107
+> model name      : AMD Processor model unknown
+> stepping        : 1
+> cpu MHz         : 1000.000
+> cache size      : 512 KB
+> physical id     : 0
+> siblings        : 2
+> core id         : 1
+> cpu cores       : 2
+> fdiv_bug        : no
+> hlt_bug         : no
+> f00f_bug        : no
+> coma_bug        : no
+> fpu             : yes
+> fpu_exception   : yes
+> cpuid level     : 1
+> wp              : yes
+> flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mc=
+a cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt lm=
+ 3dnowext 3dnow pni cx16 lahf_lm cmp_legacy svm cr8legacy ts fid vid ttp tm=
+ stc [6]
+> bogomips        : 2011.01
+>
+
+No specs available for this processor, sorry.
+
+...juerg
+
+
+> Juergen
+> _____________________________________________________________________
+> Der WEB.DE SmartSurfer hilft bis zu 70% Ihrer Onlinekosten zu sparen!
+> http://smartsurfer.web.de/?mc=100071&distributionid=000000000066
+>
+>
 
 _______________________________________________
 lm-sensors mailing list
