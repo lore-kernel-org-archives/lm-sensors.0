@@ -1,7 +1,7 @@
-From: Stian Jordet <liste@jordet.net>
-Date: Mon, 01 Oct 2007 21:36:39 +0000
+From: "Cress, Andrew R" <andrew.r.cress@intel.com>
+Date: Mon, 01 Oct 2007 22:02:21 +0000
 Subject: Re: [lm-sensors] IPMI and ipmisensors on an Intel SC450NX
-Message-Id: <1191274600.20524.5.camel@localhost.localdomain>
+Message-Id: <102A51607473A4449F0D3E2EF6FFCAD602612645@orsmsx416.amr.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4700A883.9040101@jordet.net>
 In-Reply-To: <4700A883.9040101@jordet.net>
@@ -9,6 +9,27 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Your driver can't be loaded for some reason, and it should be pre-built
+in 2.6.21, so that's odd.  Does the /var/log/messages say that it didn't
+get a response, or something else?
+
+Another option is to try the user-space KCS code in ipmiutil.
+See http://ipmiutil.sf.net, and try 
+  ipmiutil health -x
+That should show some debug to see if there is any response at 0xca2 at
+all.
+
+Andy
+ 
+
+-----Original Message-----
+From: Stian Jordet [mailto:liste@jordet.net] 
+Sent: Monday, October 01, 2007 5:37 PM
+To: Cress, Andrew R
+Cc: lm-sensors@lm-sensors.org; yani.ioannou@gmail.com; slava@nsys.by;
+openipmi-developer@lists.sourceforge.net; minyard@acm.org
+Subject: RE: IPMI and ipmisensors on an Intel SC450NX
 
 
 On man, 2007-10-01 at 05:53 -0700, Cress, Andrew R wrote:
@@ -24,11 +45,17 @@ On man, 2007-10-01 at 05:53 -0700, Cress, Andrew R wrote:
 Unfortunately, neither of this works. I've tried 
 
 root@buick:~# modprobe ipmi_si
-FATAL: Error inserting ipmi_si (/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_si.ko): No such device
+FATAL: Error inserting ipmi_si
+(/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_si.ko): No such
+device
 root@buick:~# modprobe ipmi_si type="kcs" ports="0xca0"
-FATAL: Error inserting ipmi_si (/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_si.ko): No such device
+FATAL: Error inserting ipmi_si
+(/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_si.ko): No such
+device
 root@buick:~# modprobe ipmi_si type="kcs" ports="0xca2"
-FATAL: Error inserting ipmi_si (/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_si.ko): No such device
+FATAL: Error inserting ipmi_si
+(/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_si.ko): No such
+device
 
 I don't really know if there is more to try. But as you say, the board
 should support IPMI, so I don't really know why it doesn't seem to.
@@ -52,21 +79,27 @@ Stian
 > 
 > Sorry, this is going to be long and probably cross-posted too many
 > places, but it isn't easy to know where to direct this! The persons in
-> the CC-field I have found after searching on the net, hoping any of them
+> the CC-field I have found after searching on the net, hoping any of
+them
 > have some bright ideas!
 > 
-> I've used the weekend (again!) trying to get sensors working on my good
+> I've used the weekend (again!) trying to get sensors working on my
+good
 > old Intel SC450NX server, with no luck.
 > 
 > First of all, I'm not even sure what IPMI version this system has. I
 > found this mail:
 > 
-> http://sourceforge.net/mailarchive/message.php?msg_idtA9A71929931E4096
+>
+http://sourceforge.net/mailarchive/message.php?msg_idtA9A71929931E4096
 > 7CA9F27B1D7396014D46A2%40hdsmsx401.amr.corp.intel.com
 > 
-> where an Intel employee thinks it is IPMI 1.0, and either way it should
-> work with the ipmi_imb emulation driver, which supposedly uses the same
-> interface as the original Intel Server Manager uses. I'm still afraid it
+> where an Intel employee thinks it is IPMI 1.0, and either way it
+should
+> work with the ipmi_imb emulation driver, which supposedly uses the
+same
+> interface as the original Intel Server Manager uses. I'm still afraid
+it
 > is IPMI 0.9 I have.
 > 
 > I have updated both BIOS, BMC and FRUSDR (whatever that is) to the
@@ -80,7 +113,8 @@ Stian
 > [...]
 > 
 > which at least gave me some hope. The ipmisensors page says I need to
-> use ipmi_si before loading the ipmisensors-module. I then tried loading
+> use ipmi_si before loading the ipmisensors-module. I then tried
+loading
 > some modules...
 > 
 > root@buick:~# modprobe ipmi_si
@@ -109,7 +143,8 @@ Stian
 > (/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_imb.ko): Invalid
 > argument
 > 
-> Not looking that good... What does "can't create user -22" mean? I found
+> Not looking that good... What does "can't create user -22" mean? I
+found
 > this in my dmesg:
 > 
 > pnp: 00:01: ioport range 0xca0-0xca7 has been reserved
@@ -141,9 +176,11 @@ Stian
 > 
 > Ok, I found this http://bubble.nsys.by/projects/ipmi/ and this
 > http://archives.andrew.net.au/lm-sensors/msg29983.html on the web,
-> showing at least two attempts trying to get bmcsensors working with IPMI
+> showing at least two attempts trying to get bmcsensors working with
+IPMI
 > 0.9 (if that's what my system has), but I haven't found any sign of
-> success or not. I am especially curious as to whether Yani's attempt to
+> success or not. I am especially curious as to whether Yani's attempt
+to
 > make bmcsensors working with IPMI 0.9 will have any effect now that
 > ipmisensors seems to use ipmi_si and OpenIPMI does not suppoert IPMI
 > 0.9...
@@ -156,7 +193,6 @@ Stian
 > Regards,
 > Stian
 > 
-
 
 _______________________________________________
 lm-sensors mailing list
