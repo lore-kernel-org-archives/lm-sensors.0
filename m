@@ -1,64 +1,48 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 24 Oct 2007 08:38:02 +0000
-Subject: Re: [lm-sensors] [patch 1/1] applesmc for Mac Pro 2 x Quad-Core
-Message-Id: <20071024103802.46267b07@hyperion.delvare>
+From: Dick Middleton <dick@fouter.net>
+Date: Mon, 01 Oct 2007 19:23:47 +0000
+Subject: [lm-sensors] k8temp does produce sensible results
+Message-Id: <47014943.9080104@fouter.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071023120239.GD30546@jupiter.solarsys.private>
-In-Reply-To: <20071023120239.GD30546@jupiter.solarsys.private>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 23 Oct 2007 20:40:55 -0400, Mark M. Hoffman wrote:
-> Hi Jean:
->=20
-> * Jean Delvare <khali@linux-fr.org> [2007-10-23 23:01:36 +0200]:
-> > On Tue, 23 Oct 2007 08:02:39 -0400, Mark M. Hoffman wrote:
-> > > Ren=E9: there is a series of patches for the f75375s hwmon driver tha=
-t allow fans
-> > > to be initialized with platform data.  Although I haven't reviewed th=
-e series
-> > > in detail yet, IMO the concept looks OK and it may be appropriate for=
- the Macs
-> > > also.
-> > >=20
-> > > http://lists.lm-sensors.org/pipermail/lm-sensors/2007-October/021597.=
-html
-> > > http://lists.lm-sensors.org/pipermail/lm-sensors/2007-October/021598.=
-html
-> > > http://lists.lm-sensors.org/pipermail/lm-sensors/2007-October/021599.=
-html
-> >=20
-> > I still need to be convinced why this has to be hard-coded in the
-> > kernel when the same can be done, and fine-tuned, in user-space just
-> > fine.
->=20
-> For the same reasons that it would be better still if it were done by the=
- BIOS.
->=20
-> When the machine's safety is at stake, you initialize the hardware into a=
- sane,
-> safe state as early as possible.  Fine tuning is not the issue here.  Whe=
-n you
-> *know* that the hardware does not come up into a safe state, you should c=
-orrect
-> that ASAP.
->=20
-> Say fsck fails out to a shell during early inits... so the fans run full-=
-on,
-> big deal the machine needs attention anyway.  That sure beats having some
-> unrelated early userspace problem cause your power supply to catch fire.
->=20
-> Is that good hardware design?  No, but that's irrelevant.
->=20
-> You are going to have to convince *me* why that patch series is a bad ide=
-a.
+I wonder if somebody could throw some light on the following.  I have a new AMD 
+690 based mobo.  It seems to need k8temp sensor driver.  The i2c_piix4 module 
+also get loaded.
 
-OK, you're right.
+The data produced by sensors is complete rubbish:
 
---=20
-Jean Delvare
+k8temp-pci-00c3
+Adapter: PCI adapter
+Core0 Temp:
+              +11 C
+Core0 Temp:
+              -11 C
+Core1 Temp:
+               +2 C
+Core1 Temp:
+               +4 C
+
+I notice the sensors.conf file has no computations for this chip so I assume it 
+is supposed to produce correct answers directly:
+
+chip "k8temp-*"
+
+    label temp1 "Core0 Temp"
+    label temp2 "Core0 Temp"
+    label temp3 "Core1 Temp"
+    label temp4 "Core1 Temp"
+
+Does anybody know what is happening here and whether there is any resolution to 
+this problem available?
+
+Many thanks
+
+Dick
+
+
 
 _______________________________________________
 lm-sensors mailing list
