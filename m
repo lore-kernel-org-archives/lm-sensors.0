@@ -1,12 +1,32 @@
-From: Stian Jordet <liste@jordet.net>
-Date: Mon, 01 Oct 2007 07:57:55 +0000
-Subject: [lm-sensors] IPMI and ipmisensors on an Intel SC450NX
-Message-Id: <4700A883.9040101@jordet.net>
+From: "Cress, Andrew R" <andrew.r.cress@intel.com>
+Date: Mon, 01 Oct 2007 12:53:33 +0000
+Subject: Re: [lm-sensors] IPMI and ipmisensors on an Intel SC450NX
+Message-Id: <102A51607473A4449F0D3E2EF6FFCAD602611F19@orsmsx416.amr.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4700A883.9040101@jordet.net>
+In-Reply-To: <4700A883.9040101@jordet.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Stian,
+
+I believe the port should be 0xCA2, not 0xCA0.  
+According to the docs, it does have IPMI support, but it would be only
+local (no IPMI LAN).
+
+Try modprobe ipmi_si type="kcs" addrs="0xca0"
+or just modprobe ipmi_si
+
+Andy  
+
+-----Original Message-----
+From: Stian Jordet [mailto:liste@jordet.net] 
+Sent: Monday, October 01, 2007 3:58 AM
+To: lm-sensors@lm-sensors.org
+Cc: yani.ioannou@gmail.com; Cress, Andrew R; slava@nsys.by
+Subject: IPMI and ipmisensors on an Intel SC450NX
 
 Hi,
 
@@ -21,7 +41,8 @@ old Intel SC450NX server, with no luck.
 First of all, I'm not even sure what IPMI version this system has. I
 found this mail:
 
-http://sourceforge.net/mailarchive/message.php?msg_idtA9A71929931E40967CA9F27B1D7396014D46A2%40hdsmsx401.amr.corp.intel.com
+http://sourceforge.net/mailarchive/message.php?msg_idtA9A71929931E4096
+7CA9F27B1D7396014D46A2%40hdsmsx401.amr.corp.intel.com
 
 where an Intel employee thinks it is IPMI 1.0, and either way it should
 work with the ipmi_imb emulation driver, which supposedly uses the same
