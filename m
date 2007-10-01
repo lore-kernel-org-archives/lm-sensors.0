@@ -1,77 +1,272 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 31 Oct 2007 19:40:21 +0000
-Subject: Re: [lm-sensors] Intel DP35DP - P35 Sensor Support?
-Message-Id: <20071031204021.1a4ce840@hyperion.delvare>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Mon, 01 Oct 2007 18:51:26 +0000
+Subject: Re: [lm-sensors] dme1737 error messages
+Message-Id: <191fb4ca0710011151j4fe81ban7a61db5e60a5d3d1@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <loom.20071015T022008-788@post.gmane.org>
-In-Reply-To: <loom.20071015T022008-788@post.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Tue, 30 Oct 2007 15:26:55 -0700, d. d. gmane wrote:
-> Here are the results of:  isadump 0x2e 0x2f 0x08
-> 
-> [root@skippy dump]# pwd
-> /home/david/lm_sensors-3.0.0-rc3/prog/dump
-> 
-> [root@skippy dump]# ./isadump 0x2e 0x2f 0x08
-> WARNING! Running this program can cause system crashes, data loss and worse!
-> I will probe address register 0x2e and data register 0x2f.
-> Probing bank 8 using bank register 0x07.
-> Continue? [Y/n] Y
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00 00
-> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 41
-> 20: f1 91 00 00 c1 01 00 91 00 91 00 00 00 00 00 00
-> 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 70: 00 03 00 00 04 04 00 00 00 00 00 00 00 00 00 00
-> 80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> f0: 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Hi Borislav,
 
-OK, access to the hardware monitoring device is disabled. If you want
-to investigate a bit further, you can attempt to enable it:
+Can you please run 'i2cdump 0 0x2e' and post the output?
 
-* Search in /proc/ioports for a free space of at least 256 bytes,
-aligned on a 256-byte boundary (e.g. 0x0a00 to 0x0aff).
+...juerg
 
-* Write the address in question to the PC8374L chip and
-  enable the logical device:
 
-isaset 0x2e 0x2f 0x07 0x08
-isaset 0x2e 0x2f 0x60 0x0a # <-- high byte of the address
-isaset 0x2e 0x2f 0x61 0x00 # <-- low byte of the address
-isaset 0x2e 0x2f 0x30 0x01
-
-* Run isadump again and check that the writes were successful:
-
-isadump 0x2e 0x2f 0x08
-
-* If registers 0x30, 0x60 and 0x61 have the expected values, try
-  dumping the logical device's I/O area:
-
-isadump -f 0x0a00 # <-- adjust with the address you used
-
-Only do that if you are really motivated in getting the voltage
-readings. I don't know the PC8374L very well and it seems to be a
-somewhat complex chip - or at least different from what I'm used to.
-Even if the sequence above reveals something interesting, there's
-probably a long way to go before you can get the voltage readings, and
-I am almost certain that you won't get temperatures nor fan speeds from
-that device anyway.
-
--- 
-Jean Delvare
+On 9/27/07, Borislav Davitkov <davitkov@gmail.com> wrote:
+> Hi,
+>
+> Thanks for adding support for this chip.
+> I have a PTGD1-LA (Puffer) mobo.
+> http://h10025.www1.hp.com/ewfrf/wc/genericDocument?cc=3Dus&docname=C00208=
+497&lc=3Den#
+> It is made by ASUS for HP, so it has the A8000 chip.
+>
+> After updating my kernel to 2.6.23-rc7 and lm-sensors to 2.10.4 I managed=
+ to
+> get  it working. However, dmesg  shows these messages:
+>
+> dmesg| grep dme
+> dme1737 0-002e: Optional features: pwm3=3Dyes, pwm5=3Dno, pwm6=3Dno, fan3=
+=3Dno,
+> fan4=3Dyes, fan5=3Dno, fan6=3Dno.
+> dme1737 0-002e: Optional features: pwm3=3Dyes, pwm5=3Dno, pwm6=3Dno, fan3=
+=3Dno,
+> fan4=3Dyes, fan5=3Dno, fan6=3Dno.
+> dme1737 0-002e: Optional features: pwm3=3Dyes, pwm5=3Dno, pwm6=3Dno, fan3=
+=3Dno,
+> fan4=3Dyes, fan5=3Dno, fan6=3Dno.
+> dme1737 0-002e: Read from register 0x46 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x47 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x22 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x48 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x49 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x23 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x4a failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x4b failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x24 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x4c failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x4d failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x99 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x9b failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x9c failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x9a failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x9d failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x9e failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x25 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x4e failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x4f failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x1f failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x26 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x50 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x51 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x1d failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x27 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x52 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x53 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x1e failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x84 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x85 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x86 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x87 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x88 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x28 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x29 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x54 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x55 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x90 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x2a failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x2b failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x56 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x57 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x91 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x2e failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x2f failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x5a failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x5b failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x93 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x30 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x5f failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x5c failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x64 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x31 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x60 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x5d failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x65 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x32 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x61 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x5e failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x66 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x62 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x63 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x67 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x6a failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x68 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x6b failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x69 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x6c failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x6d failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x6e failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x41 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x42 failed! Please report to the driv=
+er
+> maintainer.
+> dme1737 0-002e: Read from register 0x83 failed! Please report to the driv=
+er
+> maintainer.
+>
+> So I am reporting to the driver maintainer. :)
+> I will be more that happy if I could help in some way.
+>
+> Regards,
+> Borislav
+>
 
 _______________________________________________
 lm-sensors mailing list
