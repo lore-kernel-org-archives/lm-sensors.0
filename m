@@ -1,35 +1,58 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 23 Oct 2007 11:29:33 +0000
-Subject: Re: [lm-sensors] PATCH: hwmon-abituguru3-new-motherboards-v2.patch
-Message-Id: <20071023112933.GC30546@jupiter.solarsys.private>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 02 Oct 2007 10:50:55 +0000
+Subject: Re: [lm-sensors] [patch 1/1] de-macro w83627hf
+Message-Id: <20071002125055.22e8e8c4@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <47190047.6020803@hhs.nl>
-In-Reply-To: <47190047.6020803@hhs.nl>
+References: <cfe85dfa0709301138u30442dbch1f2508c4c8ccf337@mail.gmail.com>
+In-Reply-To: <cfe85dfa0709301138u30442dbch1f2508c4c8ccf337@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
+Hi Jim,
 
-* Jean Delvare <khali@linux-fr.org> [2007-10-21 20:36:17 +0200]:
-> On Sun, 21 Oct 2007 00:55:35 +0200, Hans de Goede wrote:
-> > Hi All,
-> > 
-> > This patch adds support for 2 new motherboards to the abituguru3 driver. This
-> > time with list terminators and closing brackets, sorry about the bad previous
-> > patch.
-> > 
-> > Signed-of-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+On Sun, 30 Sep 2007 12:38:36 -0600, Jim Cromie wrote:
+> this patch to drivers/hwmon/w83627hf converts many sysfs items from DEVICE_ATTRs
+> to SENSOR_DEVICE_ATTRs, and replaces macros which expand to define redundant
+> callbacks, with callbacks which use the SENSOR_DEV.nr to know what to do.
 > 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
+> Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
+> ---
+> $ diffstat hwmon-w83627hf-demacro.patch
+>  w83627hf.c |  695 +++++++++++++++++++++++++++++--------------------------------
+>  1 file changed, 335 insertions(+), 360 deletions(-)
+> 
+> hi Jean,
+> I have
+> - avoided cosmetic changes
+> - left sysfs-beep macros, since simple change didnt shrink driver
+> - hoisted most nr-1 offset calcs into declarations
+>     I left a few where the callback functions operated differently
+> based upon the nr
+> - changed callback names to match common naming convention in hwmon/*.c
+>     I thought this appropriate, since _reg(s)?_ in the names indicated
+> a wrapper/adaptor
+>     If I were to keep one of the names in a multi-call-chain, which one ?
+> 
+> Im attaching, via webmail.  If this gets mangled, Ill resend from
+> pop/thunderbird.
 
-Applied to hwmon-2.6.git/testing, thanks.
+Patch is not mangled, however it doesn't apply on top of Mark's tree.
+Please make sure that you have the following patches applied:
+* hwmon: Allow writing of negative trigger temperatures
+* hwmon: Don't export thermistor beta
+* hwmon: Convert from class_device to device
 
+You can fetch these patches from:
+http://lm-sensors.org/kernel?p=kernel/mhoffman/hwmon-2.6.git;a=shortlog;h=testing
+
+Once you send a patch that I can apply on top of Mark's tree, I'll
+review it.
+
+Thanks,
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
