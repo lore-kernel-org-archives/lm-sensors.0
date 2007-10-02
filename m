@@ -1,200 +1,112 @@
-From: "Cress, Andrew R" <andrew.r.cress@intel.com>
-Date: Mon, 01 Oct 2007 22:02:21 +0000
-Subject: Re: [lm-sensors] IPMI and ipmisensors on an Intel SC450NX
-Message-Id: <102A51607473A4449F0D3E2EF6FFCAD602612645@orsmsx416.amr.corp.intel.com>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Tue, 02 Oct 2007 04:20:28 +0000
+Subject: [lm-sensors] [PATCH 2/3 RESEND 2] hwmon/dme1737: group functions
+Message-Id: <191fb4ca0710012120i78564214l6f3953df09f98136@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_8555_1748835.1191298828946"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4700A883.9040101@jordet.net>
-In-Reply-To: <4700A883.9040101@jordet.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Your driver can't be loaded for some reason, and it should be pre-built
-in 2.6.21, so that's odd.  Does the /var/log/messages say that it didn't
-get a response, or something else?
+------=_Part_8555_1748835.1191298828946
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Another option is to try the user-space KCS code in ipmiutil.
-See http://ipmiutil.sf.net, and try 
-  ipmiutil health -x
-That should show some debug to see if there is any response at 0xca2 at
-all.
+Move functions to group them logically. Device and I2C functions go in separate
+places. No functional changes (really!).
 
-Andy
- 
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
------Original Message-----
-From: Stian Jordet [mailto:liste@jordet.net] 
-Sent: Monday, October 01, 2007 5:37 PM
-To: Cress, Andrew R
-Cc: lm-sensors@lm-sensors.org; yani.ioannou@gmail.com; slava@nsys.by;
-openipmi-developer@lists.sourceforge.net; minyard@acm.org
-Subject: RE: IPMI and ipmisensors on an Intel SC450NX
+------=_Part_8555_1748835.1191298828946
+Content-Type: text/x-patch;
+	name="hwmon-dme1737-group-functions-logically.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="hwmon-dme1737-group-functions-logically.patch"; 
+	filename="hwmon-dme1737-group-functions-logically.patch"
+X-Attachment-Id: f_f79w96kd
 
-
-On man, 2007-10-01 at 05:53 -0700, Cress, Andrew R wrote:
-> Stian,
-> 
-> I believe the port should be 0xCA2, not 0xCA0.  
-> According to the docs, it does have IPMI support, but it would be only
-> local (no IPMI LAN).
-> 
-> Try modprobe ipmi_si type="kcs" addrs="0xca0"
-> or just modprobe ipmi_si
-
-Unfortunately, neither of this works. I've tried 
-
-root@buick:~# modprobe ipmi_si
-FATAL: Error inserting ipmi_si
-(/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_si.ko): No such
-device
-root@buick:~# modprobe ipmi_si type="kcs" ports="0xca0"
-FATAL: Error inserting ipmi_si
-(/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_si.ko): No such
-device
-root@buick:~# modprobe ipmi_si type="kcs" ports="0xca2"
-FATAL: Error inserting ipmi_si
-(/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_si.ko): No such
-device
-
-I don't really know if there is more to try. But as you say, the board
-should support IPMI, so I don't really know why it doesn't seem to.
-Hmm. 
-
-I guess it was worth a try :)
-
-Thanks to everyone who replied :)
-
-Regards,
-Stian
-
-> -----Original Message-----
-> From: Stian Jordet [mailto:liste@jordet.net] 
-> Sent: Monday, October 01, 2007 3:58 AM
-> To: lm-sensors@lm-sensors.org
-> Cc: yani.ioannou@gmail.com; Cress, Andrew R; slava@nsys.by
-> Subject: IPMI and ipmisensors on an Intel SC450NX
-> 
-> Hi,
-> 
-> Sorry, this is going to be long and probably cross-posted too many
-> places, but it isn't easy to know where to direct this! The persons in
-> the CC-field I have found after searching on the net, hoping any of
-them
-> have some bright ideas!
-> 
-> I've used the weekend (again!) trying to get sensors working on my
-good
-> old Intel SC450NX server, with no luck.
-> 
-> First of all, I'm not even sure what IPMI version this system has. I
-> found this mail:
-> 
->
-http://sourceforge.net/mailarchive/message.php?msg_idtA9A71929931E4096
-> 7CA9F27B1D7396014D46A2%40hdsmsx401.amr.corp.intel.com
-> 
-> where an Intel employee thinks it is IPMI 1.0, and either way it
-should
-> work with the ipmi_imb emulation driver, which supposedly uses the
-same
-> interface as the original Intel Server Manager uses. I'm still afraid
-it
-> is IPMI 0.9 I have.
-> 
-> I have updated both BIOS, BMC and FRUSDR (whatever that is) to the
-> latest available versions. dmidecode doesn't have any traces of ipmi.
-> But lm-sensors sensors-detect reports this:
-> 
-> [...]
-> Probing for `IPMI BMC KCS' at 0xca0...                      Success!
->      (confidence 4, driver `ipmisensors')
-> Probing for `IPMI BMC SMIC' at 0xca8...                     No
-> [...]
-> 
-> which at least gave me some hope. The ipmisensors page says I need to
-> use ipmi_si before loading the ipmisensors-module. I then tried
-loading
-> some modules...
-> 
-> root@buick:~# modprobe ipmi_si
-> IPMI System Interface driver.
-> ipmi_si: Unable to find any System Interface(s)
-> FATAL: Error inserting ipmi_si
-> (/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_si.ko): No such
-> device
-> 
-> root@buick:~# modprobe ipmi_si type="kcs" addrs="0xca0"
-> IPMI System Interface driver.
-> ipmi_si: Trying hardcoded-specified kcs state machine at mem address
-> 0xca0, slave address 0x0, irq 0
-> Could not set up I/O space
-> ipmi_si: Unable to find any System Interface(s)
-> FATAL: Error inserting ipmi_si
-> (/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_si.ko): No such
-> device
-> 
-> After applying ipmi_emu.diff from http://openipmi.sf.net, I tried the
-> earlier promised ipmi_imb driver:
-> 
-> root@buick:~# modprobe ipmi_imb
-> ipmi: can't create user -22
-> FATAL: Error inserting ipmi_imb
-> (/lib/modules/2.6.21/kernel/drivers/char/ipmi/ipmi_imb.ko): Invalid
-> argument
-> 
-> Not looking that good... What does "can't create user -22" mean? I
-found
-> this in my dmesg:
-> 
-> pnp: 00:01: ioport range 0xca0-0xca7 has been reserved
-> 
-> Which gave me hope that pnp was "locking" the ipmi addresses. Booted
-> with pnpbios=no and pnpacpi=off and even acpi=off, no difference.
-> 
-> I ran the FRUSDR utility from a boot disk, and got this output:
-> 
-> a:\>frusdr /p /d fru
-> 
->     FRU & SDR Load Utility Version 3.4
-> 
->     FRU IMBDEVICE on bus FFh, IMB address 20h, LUN 00
-> 
-> Display Header Area
-> Common Header Area      (Version 1, Length 8)
->     Internal Area Offset    = 01h
->     Chassis Area Offset     = 1Ah
->     Board Area Offset       = 1Eh
->     Product Area Offset     = 26h
->     Multirecord Area Offset = 00h
->     PAD                     = 00h
->     CHECKSUM                = A0h
-> 
-> Don't know what any of this means, except it kinda says it does have a
-> "imbdevice" (Which I had some hopes the ipmi_imb driver would
-> support...)
-> 
-> Ok, I found this http://bubble.nsys.by/projects/ipmi/ and this
-> http://archives.andrew.net.au/lm-sensors/msg29983.html on the web,
-> showing at least two attempts trying to get bmcsensors working with
-IPMI
-> 0.9 (if that's what my system has), but I haven't found any sign of
-> success or not. I am especially curious as to whether Yani's attempt
-to
-> make bmcsensors working with IPMI 0.9 will have any effect now that
-> ipmisensors seems to use ipmi_si and OpenIPMI does not suppoert IPMI
-> 0.9...
-> 
-> Anyone have any bright ideas where to look next? Or am I really out of
-> luck?
-> 
-> Thanks.
-> 
-> Regards,
-> Stian
-> 
+TW92ZSBmdW5jdGlvbnMgdG8gZ3JvdXAgdGhlbSBsb2dpY2FsbHkuIERldmljZSBhbmQgSTJDIGZ1
+bmN0aW9ucyBnbyBpbiBzZXBhcmF0ZQpwbGFjZXMuIE5vIGZ1bmN0aW9uYWwgY2hhbmdlcyAocmVh
+bGx5ISkuCgpTaWduZWQtb2ZmLWJ5OiBKdWVyZyBIYWVmbGlnZXIgPGp1ZXJnaCBhdCBnbWFpbC5j
+b20+Ci0tLQpJbmRleDogbGludXgtMi42L2RyaXZlcnMvaHdtb24vZG1lMTczNy5jCj09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT0KLS0tIGxpbnV4LTIuNi5vcmlnL2RyaXZlcnMvaHdtb24vZG1lMTczNy5jCTIwMDctMTAtMDEg
+MjE6MDU6MjIuMDAwMDAwMDAwIC0wNzAwCisrKyBsaW51eC0yLjYvZHJpdmVycy9od21vbi9kbWUx
+NzM3LmMJMjAwNy0xMC0wMSAyMTowOTozMS4wMDAwMDAwMDAgLTA3MDAKQEAgLTE2OTcsNTggKzE2
+OTcsMTEgQEAKIAlvdXRiKHZhbCwgc2lvX2NpcCArIDEpOwogfQogCi1zdGF0aWMgaW50IGRtZTE3
+MzdfaTJjX2dldF9mZWF0dXJlcyhpbnQgc2lvX2NpcCwgc3RydWN0IGRtZTE3MzdfZGF0YSAqZGF0
+YSkKLXsKLQlpbnQgZXJyID0gMCwgcmVnOwotCXUxNiBhZGRyOwotCi0JZG1lMTczN19zaW9fZW50
+ZXIoc2lvX2NpcCk7Ci0KLQkvKiBDaGVjayBkZXZpY2UgSUQKLQkgKiBUaGUgRE1FMTczNyBjYW4g
+cmV0dXJuIGVpdGhlciAweDc4IG9yIDB4NzcgYXMgaXRzIGRldmljZSBJRC4gKi8KLQlyZWcgPSBk
+bWUxNzM3X3Npb19pbmIoc2lvX2NpcCwgMHgyMCk7Ci0JaWYgKCEocmVnID09IDB4NzcgfHwgcmVn
+ID09IDB4NzgpKSB7Ci0JCWVyciA9IC1FTk9ERVY7Ci0JCWdvdG8gZXhpdDsKLQl9Ci0KLQkvKiBT
+ZWxlY3QgbG9naWNhbCBkZXZpY2UgQSAocnVudGltZSByZWdpc3RlcnMpICovCi0JZG1lMTczN19z
+aW9fb3V0YihzaW9fY2lwLCAweDA3LCAweDBhKTsKLQotCS8qIEdldCB0aGUgYmFzZSBhZGRyZXNz
+IG9mIHRoZSBydW50aW1lIHJlZ2lzdGVycyAqLwotCWlmICghKGFkZHIgPSAoZG1lMTczN19zaW9f
+aW5iKHNpb19jaXAsIDB4NjApIDw8IDgpIHwKLQkJICAgICAgZG1lMTczN19zaW9faW5iKHNpb19j
+aXAsIDB4NjEpKSkgewotCQllcnIgPSAtRU5PREVWOwotCQlnb3RvIGV4aXQ7Ci0JfQotCi0JLyog
+UmVhZCB0aGUgcnVudGltZSByZWdpc3RlcnMgdG8gZGV0ZXJtaW5lIHdoaWNoIG9wdGlvbmFsIGZl
+YXR1cmVzCi0JICogYXJlIGVuYWJsZWQgYW5kIGF2YWlsYWJsZS4gQml0cyBbMzoyXSBvZiByZWdp
+c3RlcnMgMHg0My0weDQ2IGFyZSBzZXQKLQkgKiB0byAnMTAnIGlmIHRoZSByZXNwZWN0aXZlIGZl
+YXR1cmUgaXMgZW5hYmxlZC4gKi8KLQlpZiAoKGluYihhZGRyICsgMHg0MykgJiAweDBjKSA9PSAw
+eDA4KSB7IC8qIGZhbjYgKi8KLQkJZGF0YS0+aGFzX2ZhbiB8PSAoMSA8PCA1KTsKLQl9Ci0JaWYg
+KChpbmIoYWRkciArIDB4NDQpICYgMHgwYykgPT0gMHgwOCkgeyAvKiBwd202ICovCi0JCWRhdGEt
+Pmhhc19wd20gfD0gKDEgPDwgNSk7Ci0JfQotCWlmICgoaW5iKGFkZHIgKyAweDQ1KSAmIDB4MGMp
+ID09IDB4MDgpIHsgLyogZmFuNSAqLwotCQlkYXRhLT5oYXNfZmFuIHw9ICgxIDw8IDQpOwotCX0K
+LQlpZiAoKGluYihhZGRyICsgMHg0NikgJiAweDBjKSA9PSAweDA4KSB7IC8qIHB3bTUgKi8KLQkJ
+ZGF0YS0+aGFzX3B3bSB8PSAoMSA8PCA0KTsKLQl9Ci0KLWV4aXQ6Ci0JZG1lMTczN19zaW9fZXhp
+dChzaW9fY2lwKTsKLQotCXJldHVybiBlcnI7Ci19Ci0KIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogICogRGV2
+aWNlIGRldGVjdGlvbiwgcmVnaXN0cmF0aW9uIGFuZCBpbml0aWFsaXphdGlvbgogICogLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tICovCiAKLXN0YXRpYyBzdHJ1Y3QgaTJjX2RyaXZlciBkbWUxNzM3X2kyY19kcml2ZXI7
+CitzdGF0aWMgaW50IGRtZTE3MzdfaTJjX2dldF9mZWF0dXJlcyhpbnQsIHN0cnVjdCBkbWUxNzM3
+X2RhdGEqKTsKIAogc3RhdGljIHZvaWQgZG1lMTczN19jaG1vZF9maWxlKHN0cnVjdCBkZXZpY2Ug
+KmRldiwKIAkJCSAgICAgICBzdHJ1Y3QgYXR0cmlidXRlICphdHRyLCBtb2RlX3QgbW9kZSkKQEAg
+LTE5NjcsNiArMTkyMCw1OSBAQAogCXJldHVybiAwOwogfQogCisvKiAtLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KKyAq
+IEkyQyBkZXZpY2UgZGV0ZWN0aW9uIGFuZCByZWdpc3RyYXRpb24KKyAqIC0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAq
+LworCitzdGF0aWMgc3RydWN0IGkyY19kcml2ZXIgZG1lMTczN19pMmNfZHJpdmVyOworCitzdGF0
+aWMgaW50IGRtZTE3MzdfaTJjX2dldF9mZWF0dXJlcyhpbnQgc2lvX2NpcCwgc3RydWN0IGRtZTE3
+MzdfZGF0YSAqZGF0YSkKK3sKKwlpbnQgZXJyID0gMCwgcmVnOworCXUxNiBhZGRyOworCisJZG1l
+MTczN19zaW9fZW50ZXIoc2lvX2NpcCk7CisKKwkvKiBDaGVjayBkZXZpY2UgSUQKKwkgKiBUaGUg
+RE1FMTczNyBjYW4gcmV0dXJuIGVpdGhlciAweDc4IG9yIDB4NzcgYXMgaXRzIGRldmljZSBJRC4g
+Ki8KKwlyZWcgPSBkbWUxNzM3X3Npb19pbmIoc2lvX2NpcCwgMHgyMCk7CisJaWYgKCEocmVnID09
+IDB4NzcgfHwgcmVnID09IDB4NzgpKSB7CisJCWVyciA9IC1FTk9ERVY7CisJCWdvdG8gZXhpdDsK
+Kwl9CisKKwkvKiBTZWxlY3QgbG9naWNhbCBkZXZpY2UgQSAocnVudGltZSByZWdpc3RlcnMpICov
+CisJZG1lMTczN19zaW9fb3V0YihzaW9fY2lwLCAweDA3LCAweDBhKTsKKworCS8qIEdldCB0aGUg
+YmFzZSBhZGRyZXNzIG9mIHRoZSBydW50aW1lIHJlZ2lzdGVycyAqLworCWlmICghKGFkZHIgPSAo
+ZG1lMTczN19zaW9faW5iKHNpb19jaXAsIDB4NjApIDw8IDgpIHwKKwkJICAgICAgZG1lMTczN19z
+aW9faW5iKHNpb19jaXAsIDB4NjEpKSkgeworCQllcnIgPSAtRU5PREVWOworCQlnb3RvIGV4aXQ7
+CisJfQorCisJLyogUmVhZCB0aGUgcnVudGltZSByZWdpc3RlcnMgdG8gZGV0ZXJtaW5lIHdoaWNo
+IG9wdGlvbmFsIGZlYXR1cmVzCisJICogYXJlIGVuYWJsZWQgYW5kIGF2YWlsYWJsZS4gQml0cyBb
+MzoyXSBvZiByZWdpc3RlcnMgMHg0My0weDQ2IGFyZSBzZXQKKwkgKiB0byAnMTAnIGlmIHRoZSBy
+ZXNwZWN0aXZlIGZlYXR1cmUgaXMgZW5hYmxlZC4gKi8KKwlpZiAoKGluYihhZGRyICsgMHg0Mykg
+JiAweDBjKSA9PSAweDA4KSB7IC8qIGZhbjYgKi8KKwkJZGF0YS0+aGFzX2ZhbiB8PSAoMSA8PCA1
+KTsKKwl9CisJaWYgKChpbmIoYWRkciArIDB4NDQpICYgMHgwYykgPT0gMHgwOCkgeyAvKiBwd202
+ICovCisJCWRhdGEtPmhhc19wd20gfD0gKDEgPDwgNSk7CisJfQorCWlmICgoaW5iKGFkZHIgKyAw
+eDQ1KSAmIDB4MGMpID09IDB4MDgpIHsgLyogZmFuNSAqLworCQlkYXRhLT5oYXNfZmFuIHw9ICgx
+IDw8IDQpOworCX0KKwlpZiAoKGluYihhZGRyICsgMHg0NikgJiAweDBjKSA9PSAweDA4KSB7IC8q
+IHB3bTUgKi8KKwkJZGF0YS0+aGFzX3B3bSB8PSAoMSA8PCA0KTsKKwl9CisKK2V4aXQ6CisJZG1l
+MTczN19zaW9fZXhpdChzaW9fY2lwKTsKKworCXJldHVybiBlcnI7Cit9CisKIHN0YXRpYyBpbnQg
+ZG1lMTczN19pMmNfZGV0ZWN0KHN0cnVjdCBpMmNfYWRhcHRlciAqYWRhcHRlciwgaW50IGFkZHJl
+c3MsCiAJCQkgICAgICBpbnQga2luZCkKIHsKQEAgLTIwODcsNiArMjA5MywxMCBAQAogCS5kZXRh
+Y2hfY2xpZW50ID0gZG1lMTczN19pMmNfZGV0YWNoX2NsaWVudCwKIH07CiAKKy8qIC0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLQorICogTW9kdWxlIGluaXRpYWxpemF0aW9uIGFuZCBjbGVhbnVwCisgKiAtLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0gKi8KKwogc3RhdGljIGludCBfX2luaXQgZG1lMTczN19pbml0KHZvaWQpCiB7CiAJcmV0dXJu
+IGkyY19hZGRfZHJpdmVyKCZkbWUxNzM3X2kyY19kcml2ZXIpOwo=
+------=_Part_8555_1748835.1191298828946
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_8555_1748835.1191298828946--
