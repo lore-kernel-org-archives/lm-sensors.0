@@ -1,190 +1,122 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 14 Oct 2007 19:29:53 +0000
-Subject: [lm-sensors] [GIT PATCH] hwmon updates against v2.6.23
-Message-Id: <20071014192953.GA9122@jupiter.solarsys.private>
+From: David Brownell <david-b@pacbell.net>
+Date: Wed, 03 Oct 2007 19:58:37 +0000
+Subject: Re: [lm-sensors] [patch 2.6.23-rc6] lm75 should handle I/O errors
+Message-Id: <20071003195837.2E900239415@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20070918165107.7C0D2239772@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+In-Reply-To: <20070918165107.7C0D2239772@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Hi Linus:
+> > > The patch looks correct and could be applied, however... While I agree
+> > > that the error handling mechanism belongs to the lm75 driver, the retry
+> > > mechanism doesn't. Duplicating this retry mechanism in all chip drivers
+> > > doesn't look good. Don't you think it would be better implemented at
+> > > i2c adapter level, or even better at i2c core level?
+> > 
+> > Nope.  It's not OK to retry all messages.  In *this* case, reads have no
+> > side effects (the TMP75 had SMBALERT# cleared using that SMBus patch),
+> > and the writes are idempotent ... so it's safe.  That's not true in general.
+> > (Simple counter-example:  messages may update counters, explicitly or
+> > implicitly.  Retries would bork the counters...)
+>
+> Let me play the devil's advocate here. We retry only if a transaction
+> failed. If the transaction failed, how could it have any side effect?
 
-Please pull from:
-	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git release
+Partial failures are the norm in complex systems ... and I2C doesn't
+even have transactional semantics.  (No ACID guarantees, etc.)  Messages
+aren't guaranteed to have atomic effects.  So a fault happening half way
+through could leave the message half-acted-upon... the half that was
+acted upon could easily have had a side effect.
 
-You'll get five new drivers, cleanups and fixes all over the place.  The
-addition of individual alarm sysfs files to all drivers continues.  Also, the
-conversion from struct class_device to struct device touched every driver.
-Most of these patches have spent some time in -mm.
 
-Thanks & regards,
+> > It's message-specific whether retrying is safe ... and context-specific
+> > whether it's desirable.  And by "message" I mean an entire array of
+> > "struct i2c_msg" instances, not an individual "i2c_msg".
+>
+> I did not suggest retrying individual i2c_msg, that wouldn't make any
+> sense. But retrying arrays of i2c_msgs (aka transactions) sounds rather
+> safe to me. Do you have a real-world example where it is not, or are
+> you playing it safe just in case?
 
- Documentation/hwmon/coretemp        |    2 
- Documentation/hwmon/dme1737         |   33 -
- Documentation/hwmon/f71805f         |    7 
- Documentation/hwmon/it87            |    3 
- Documentation/hwmon/lm78            |   10 
- Documentation/hwmon/lm93            |  126 ----
- Documentation/hwmon/sysfs-interface |  131 +++-
- Documentation/hwmon/w83791d         |   96 +--
- MAINTAINERS                         |    5 
- drivers/hwmon/Kconfig               |   79 ++
- drivers/hwmon/Makefile              |    5 
- drivers/hwmon/abituguru.c           |   10 
- drivers/hwmon/abituguru3.c          |   10 
- drivers/hwmon/ad7418.c              |   12 
- drivers/hwmon/adm1021.c             |  373 +++++++-----
- drivers/hwmon/adm1025.c             |   12 
- drivers/hwmon/adm1026.c             |   12 
- drivers/hwmon/adm1029.c             |   10 
- drivers/hwmon/adm1031.c             |   10 
- drivers/hwmon/adm9240.c             |   10 
- drivers/hwmon/adt7470.c             | 1050 ++++++++++++++++++++++++++++++++++++
- drivers/hwmon/applesmc.c            |   10 
- drivers/hwmon/asb100.c              |   16 
- drivers/hwmon/atxp1.c               |   10 
- drivers/hwmon/coretemp.c            |   19 
- drivers/hwmon/dme1737.c             |  954 +++++++++++++++++++++-----------
- drivers/hwmon/ds1621.c              |   12 
- drivers/hwmon/f71805f.c             |   15 
- drivers/hwmon/f71882fg.c            |  950 ++++++++++++++++++++++++++++++++
- drivers/hwmon/f75375s.c             |  691 +++++++++++++++++++++++
- drivers/hwmon/fscher.c              |   10 
- drivers/hwmon/fschmd.c              |  778 ++++++++++++++++++++++++++
- drivers/hwmon/fscpos.c              |   10 
- drivers/hwmon/gl518sm.c             |   10 
- drivers/hwmon/gl520sm.c             |   10 
- drivers/hwmon/hwmon.c               |   27 
- drivers/hwmon/ibmpex.c              |  607 ++++++++++++++++++++
- drivers/hwmon/it87.c                |   66 +-
- drivers/hwmon/k8temp.c              |   10 
- drivers/hwmon/lm63.c                |   10 
- drivers/hwmon/lm70.c                |   27 
- drivers/hwmon/lm75.c                |   12 
- drivers/hwmon/lm75.h                |    2 
- drivers/hwmon/lm77.c                |   12 
- drivers/hwmon/lm78.c                |   48 +
- drivers/hwmon/lm80.c                |   10 
- drivers/hwmon/lm83.c                |   10 
- drivers/hwmon/lm85.c                |  704 +++++++++++-------------
- drivers/hwmon/lm87.c                |   83 ++
- drivers/hwmon/lm90.c                |   39 +
- drivers/hwmon/lm92.c                |   10 
- drivers/hwmon/lm93.c                |   28 
- drivers/hwmon/max1619.c             |   10 
- drivers/hwmon/max6650.c             |   10 
- drivers/hwmon/pc87360.c             |   12 
- drivers/hwmon/pc87427.c             |   10 
- drivers/hwmon/sis5595.c             |   21 
- drivers/hwmon/smsc47b397.c          |   10 
- drivers/hwmon/smsc47m1.c            |   14 
- drivers/hwmon/smsc47m192.c          |   12 
- drivers/hwmon/thmc50.c              |   68 +-
- drivers/hwmon/via686a.c             |   10 
- drivers/hwmon/vt1211.c              |   10 
- drivers/hwmon/vt8231.c              |   12 
- drivers/hwmon/w83627ehf.c           |   16 
- drivers/hwmon/w83627hf.c            |  812 +++++++++++++--------------
- drivers/hwmon/w83781d.c             |  206 ++++++-
- drivers/hwmon/w83791d.c             |  134 ++++
- drivers/hwmon/w83792d.c             |   59 +-
- drivers/hwmon/w83793.c              |   10 
- drivers/hwmon/w83l785ts.c           |   10 
- drivers/input/touchscreen/ads7846.c |    4 
- drivers/misc/thinkpad_acpi.c        |    2 
- drivers/misc/thinkpad_acpi.h        |    2 
- include/linux/hwmon.h               |    4 
- 75 files changed, 6818 insertions(+), 1846 deletions(-)
+The PMBus "clear fault" request needs only a single i2c_message,
+whether it's part of such a "transaction" or not.
 
-Auke Kok (1):
-      hwmon: (sis5595) re-use s_bridge->revision
+Scenario:  issue the clear fault request; a new fault is reported;
+retry clear_fault.  Now you've lost a fault notification.
 
-Charles Spirakis (1):
-      hwmon: (w83791d) new sysfs beep/alarm methodology
 
-Christian Hohnstaedt (1):
-      hwmon: Allow writing of negative trigger temperatures
+> I guess that your point of view is the reason why i2c-algo-bit and
+> i2c-algo-pcf only retry if the address byte wasn't acked, and not after
+> that.
 
-Darrick J. Wong (3):
-      hwmon: add support for adt7470
-      hwmon: IBM power meter driver
-      hwmon: (ibmpex) Release IPMI user if hwmon registration fails
+And in fact, I noticed that the comment for the I2C_RETRIES ioctl
+is explicit that it only applies to the address.  If any driver
+retries anything more, that'd be incorrect ...
 
-Gong Jun (1):
-      hwmon: (w83792d) Add individual alarm files
+Also:  given that definition, SMBus devices shouldn't be retried,
+since they must always acknowledge their addresses.  If this retry
+mechanism sticks around, maybe it should be coupled with a flag
+like I2C_CLIENT_SMBUS, with SMBus devices never getting retries.
 
-Hans de Goede (3):
-      hwmon: add support for Fintek F71882FG and F71883FG
-      hwmon: update sysfs interface document - error handling
-      hwmon: Add new combined driver for FSC chips
 
-Jean Delvare (26):
-      hwmon: (f71805f) List the F71806F/FG as supported
-      hwmon: Don't export thermistor beta
-      hwmon: (lm93) Documentation fixes
-      hwmon: (lm70) Add a name attribute
-      hwmon: (smsc47m1) No confusing debugging messages
-      hwmon: Update the sysfs interface documentation
-      hwmon: (lm85) Use dynamic sysfs callbacks
-      hwmon: (lm85) Export in5, in6 and in7 voltage channels
-      hwmon: (lm85) Add individual alarm files
-      hwmon: (lm85) Clean up the handling of additional resolution bits
-      hwmon: (lm85) Let the user set the fan min limit to 0
-      hwmon: (lm93) Use standard names for vid files
-      hwmon: (it87) Add support for fan4 and fan5
-      hwmon: Kconfig dependency cleanups
-      hwmon: (lm90) Export temperature offset values
-      hwmon: (lm78) Add individual alarm files
-      hwmon: (lm87) Fix a division by zero
-      hwmon: (lm87) Add individual alarm files
-      hwmon: (thmc50) Don't create temp3 if not enabled
-      hwmon: (thmc50) Fix a debug message
-      hwmon: Fix the code examples in documentation
-      hwmon: VRM is not read from registers
-      hwmon: (w83781d) Add individual alarm and beep files
-      hwmon: (lm87) Disable VID when it should be
-      hwmon: (w83627hf) Fix setting fan min right after driver load
-      hwmon: (w83627hf) don't assume bank 0
+> > > We have i2c_adapter.retries for that already, however it seems that the
+> > > code to handle retries is missing in most bus drivers. Only
+> > > i2c-algo-bit, i2c-algo-pcf, i2c-pxa and i2c-s3c2410 appear to implement
+> > > it, and not even the same way: the former two only retry if the address
+> > > byte is not acked, while the latter two retry on any failure.
 
-Jim Cromie (1):
-      hwmon: (w83627hf) De-macro sysfs callback functions
+So it seems like i2c-pxa and i2c-s3c2410 should at least be
+bugfixed to match the I2C_RETRIES semantics (address only).
 
-Juerg Haefliger (3):
-      hwmon: (dme1737) cleanups
-      hwmon: (dme1737) group functions logically
-      hwmon: (dme1737) Add sch311x support
 
-Krzysztof Helt (5):
-      hwmon: adm1021 clean ups
-      hwmon: (thmc50) add individual alarm & fault files
-      hwmon: (thmc50) Fix alarms clearing
-      hwmon: (adm1021) dynamic sysfs callbacks conversion
-      hwmon: (adm1021) individual alarm files
+> > No wonder this "retry" thing has always seemed like a puzzle to me!
+> > 
+> > I do know that when I tripped over algo-bit retrying, it seemed more
+> > buglike than not.  (Eight retries to establish that the alert response
+> > message had done its job?  Puhleeeze!)
+>
+> Admittedly, if you are doing reads and expect them to fail (which is
+> also the case when we use zero-byte messages to probe for chip
+> presence) the retry mechanism is not so desirable and only slows things
+> down.
 
-Mark M. Hoffman (5):
-      hwmon: (f71882fg) trivial whitespace cleanup
-      MAINTAINERS: update hwmon subsystem git trees
-      hwmon: (dme1737) Fix some merge conflicts
-      hwmon: (sis5595) fix sparse warning
-      hwmon: (vt8231) fix sparse warning
+When you're probing for an SMBus device with a QUICK zero-byte
+message, a lack of response should be definitive.  I2C devices
+are allowed ignore the address stage if they're too busy.
 
-Riku Voipio (1):
-      hwmon: Add f75375s driver
 
-Rudolf Marek (1):
-      hwmon: (coretemp) Add support for Celeron 4xx
+> > > What about moving the retry mechanism to i2c-core (in i2c_smbus_xfer
+> > > and i2c_transfer)?
+> > 
+> > Retry logic certainly doesn't belong in the lowlevel (adapter) code.
+> > 
+> > If it needs to exist at all, I'd rather see it controlled by whoever
+> > issues the call.  Maybe an I2C_M_RETRIES mask for a two-bit field,
+> > defaulting to no retries, which could be assigned by the caller iff
+> > they know it's safe to retry ... though the i2c_smbus_*() calls
+> > have no way to pass such stuff.
+>
+> There is a way: we can make this an i2c_client attribute or flag. just
+> like I2C_CLIENT_TEN sets I2C_M_TEN, I2C_CLIENT_RETRIES (2-bit flag)
+> could set I2C_M_RETRIES.
 
-Satyam Sharma (1):
-      hwmon: (coretemp) Remove bogus __cpuinitdata etc cleanup
+If the mechanism is needed, yes.  But as you noted, it's hardly
+supported at all ... so it's not being relied on, and thus wouldn't
+seem to need a replacement.
 
-Tony Jones (1):
-      hwmon: Convert from class_device to device
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+> > It'd be best IMO if the retry mechanism were just removed.
+>
+> If you have strong arguments for that, just send a patch.
+
+I may do that.  There don't seem to be any real requirements to
+have it, and half of its (four) implementations violate even its
+current loose specification.
+
+- Dave
 
 
 _______________________________________________
