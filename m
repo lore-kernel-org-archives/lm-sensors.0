@@ -1,69 +1,53 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 28 Oct 2007 19:03:52 +0000
-Subject: Re: [lm-sensors] svn commit: r4959 -
-Message-Id: <20071028200352.1fc445f1@hyperion.delvare>
+From: David Brownell <david-b@pacbell.net>
+Date: Wed, 03 Oct 2007 19:23:31 +0000
+Subject: Re: [lm-sensors] [patch lm-sensors 2.10.4] i2cdetect mislabels PEC
+Message-Id: <20071003192332.53BBC2393FA@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071019232531.3c767d99@hyperion.delvare>
-In-Reply-To: <20071019232531.3c767d99@hyperion.delvare>
+References: <20070917205024.0A35D230DBC@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+In-Reply-To: <20070917205024.0A35D230DBC@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+> > Rename I2C_FUNC_SMBUS_HWPEC_CALC as I2C_FUNC_SMBUS_PEC, and list that
+> > functionality as always available through the software implementation.
+> > Update documentation accordingly (and list similar requirements).
+> > 
+> > The way it's currently packaged doesn't present the capability in a
+> > useful way.  Basically, it's always available -- except when the I2C
+> > stack is running on SMBus hardware without PEC support in hardware.
+>
+> Actually, except when the driver does not support it (drivers could lack
+> PEC support while the hardware can do it.)
 
-On Sun, 28 Oct 2007 14:16:11 +0100, Hans de Goede wrote:
-> Jean Delvare wrote:
-> > I'm not sure what exactly is parsed in the kernel. It seems that it's
-> > only extracting a couple identification strings and specific data and
-> > doesn't give you access to arbitrary record data. So you'll probably
-> > have to add your own FSC-specific handler, and to find a way to export
-> > the data. Not sure if that will be accepted upstream.
-> 
-> You are right, so of to userspace we go.
-> 
-> This brings us to 2 questions:
-> 1) What to use as conversion / divider in the driver? I see 2 options:
->   a) Use the fscpos datasheet divider everywhere
->   b) Use the fscpos datasheet divider for the fscpos and others which lack
->      the DMI info, and use the old fscher divider / multiplier of 10 mv / step
->      for those with DMI data.
-> 
->   I must say I do not have much preference a) leads to a somewhat simpler
->   driver, b) means that the old configs will stay working even when switching to
->   the fschmd driver. So which one will it be>
+Fair enough, although that's not very distinguishable from the
+case of no hardware support.  Feel free to update that part of
+the patch comment appropriately.
 
-Option b) gets my favor. First reason is that it preserves compatibility
-with the old drivers. Second reason is that you will otherwise have to
-undo the scaling in user-space for the Hermes chip, before you apply
-the one from the DMI table, which is a bit confusing.
+> >  
+> >  ioctl(file,I2C_TENBIT,long select)
+> >    Selects ten bit addresses if select not equals 0, selects normal 7 bit
+> > -  addresses if select equals 0. Default 0.
+> > +  addresses if select equals 0. Default 0.  This request is only valid
+> > +  if the adapter has I2C_FUNC_10BIT_ADDR.
+> >  
+> >  ioctl(file,I2C_PEC,long select)
+> >    Selects SMBus PEC (packet error checking) generation and verification
+> >    if select not equals 0, disables if select equals 0. Default 0.
+> > -  Used only for SMBus transactions.
+> > +  Used only for SMBus transactions; only valid if the adapter has
+> > +  I2C_FUNC_SMBUS_PEC.
+>
+> Not correct. PEC being optional, chip drivers (or i2c-dev users) can
+> declare themselves PEC-compliant and let the adapter driver decide
+> whether it can actually do PEC or not. This is the right way to do it.
+> So a better wording would be "only has an effect if..."
 
-One problem with this approach is that we need to know what to do for
-the Heimdall and Heracles chips right now. Changing teh way we handle
-them at a later point would only add to confusion.
-
-I agree that it's not so nice. Really, too bad that you can't (easily)
-get the DMI data from the kernel, that would have made things much
-nicer. I'm wondering if it wouldn't be worth giving it a try anyway. If
-dmi_scan_machine() was not __init and could take a record handler as a
-parameter (as dmi_table does) then it would be possible to access and
-process arbitrary DMI records from various kernel drivers even after
-boot. I'm curious if other drivers would benefit from that or if your
-fschmd driver is an isolated case.
-
-> 2) How? I can write a specific utility to spit out the conversion formulas (I
->   guess that is where I'll start). But at the end we may want to include this in
->   sensors-detect. However currently sensors-detect does not touch sensors.conf,
-> 
->   I guess its best to for now write a userspace utility which generates the
->   conversion formulas for users, and integrate this into sensors-detect when we
->   integrate dmi-based autoconfig into it.
-
-Agreed. For now you can simply add a note in the default sensors.conf
-file, pointing the user to your user-space tool for chips which need it.
-
--- 
-Jean Delvare
+Depends on what you mean by "valid"; from my perspective,
+it's not valid without efficacy.  That happens to be part
+of the first definition in my handy dictionary.
+ 
 
 _______________________________________________
 lm-sensors mailing list
