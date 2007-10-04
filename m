@@ -1,151 +1,137 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 06 Oct 2007 21:47:30 +0000
-Subject: Re: [lm-sensors] PATCH: hwmon-fschmd-new-driver.patch
-Message-Id: <20071006234730.2847a4f5@hyperion.delvare>
+From: Uwe Hermann <uwe@hermann-uwe.de>
+Date: Thu, 04 Oct 2007 18:38:39 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: List more Winbond chips
+Message-Id: <20071004183839.GH32267@greenwood>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8352833952035077079=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46F3D714.1030104@hhs.nl>
-In-Reply-To: <46F3D714.1030104@hhs.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 06 Oct 2007 21:40:55 +0200, Hans de Goede wrote:
-> Thanks! I agree with most comments and will address them with a new version 
-> asap. I have questions about a few of them, see below.
-> Further more I've been thinking about replacing:
-> 
-> 		/* Poseidon doesn't have TEMP_LIMIT registers */
-> 		if (kind = fscpos && (i % 4) = 1)
-> 			continue;
-> 
-> with (pseudo code for now):
-> 		/* Poseidon doesn't have TEMP_LIMIT registers */
-> 		if (kind = fscpos &&
-> 			sscanf(fschmd_temp_attr[i].dev_attr.attr.name,
-> 				"temp%d_ma%c", &dummy, &dummy) = 2)
-> 			continue;
-> 
-> In this context:
-> 	for (i = 0; i < (FSCHMD_NO_TEMP_SENSORS[data->kind] * 4); i++) {
-> 		/* Poseidon doesn't have TEMP_LIMIT registers */
-> 		if (kind = fscpos && (i % 4) = 1)
-> 			continue;
-> 		
-> 		err = device_create_file(&new_client->dev,
-> 					&fschmd_temp_attr[i].dev_attr);
-> 		if (err)
-> 			goto exit_remove_files;
-> 	}
-> 
-> With the idea that the replacement code is better readable, and is (somewhat) 
-> resistent against adding attributes to the array. I'm not sure though, is this 
-> a change for the better or does it make things worse?
 
-Worse. sscanf is very slow compared to a modulo, and your pseudo-code
-above isn't that robust either. For example your sscanf would match an
-hypothetical temp1_max_hyst. And it's everything but elegant anyway.
+--===============8352833952035077079==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TKDEsImF70pdVIl+"
+Content-Disposition: inline
 
-I agree that your original code isn't very robust, but if you want to
-make it better, I'd rather suggest one of the following approaches:
 
-* Move the conditional attributes to a dedicated array and instantiate
-  them separately.
+--TKDEsImF70pdVIl+
+Content-Type: multipart/mixed; boundary="oyqLL/JqMvClXZi1"
+Content-Disposition: inline
 
-* Test for kind = fscpos && fschmd_temp_attr[i].dev_attr.show =
-  show_temp_max.
 
-> >> + *  Scylla, Heracles and Heimdall chips
-> >> + *
-> >> + *  Based on the original 2.4 fscscy, 2.6 fscpos, 2.6 fscher and 2.6
-> >> + *  (candidate) fschmd drivers:
-> >> + *  Copyright (C) 2006 Thilo Cestonaro <thilo.cestonaro.external@fujitsu-siemens.com>
-> > 
-> > Line longer than 80 columns.
-> 
-> Suggestions for breaking it up, without things becoming ugly? I think since 
-> this is just a comment its best left as is.
+--oyqLL/JqMvClXZi1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I agree that it's not easy to break. That's probably the longest e-mail
-address I've seen ;) Belonging to a human being, at least.
+Hi,
 
-> >> +/*
-> >> + * Sysfs attr show / store functions
-> >> + */
-> >> +
-> >> +static ssize_t show_in_value(struct device *dev,
-> >> +	struct device_attribute *devattr, char *buf)
-> >> +{
-> >> +	const int max_reading[3] = { 14200, 6600, 3300 };
-> > 
-> > Could be static.
-> 
-> With what advantage? Its const so it goes to the code segment, so no stack 
-> usage, or am I missing something here?
+here's a first patch to add some more recognized chips to the
+sensors-detect output. No new IDs, just alternate names of existing
+chips (which all have the same IDs).
 
-You're right, just ignore me.
+More patches will follow.
 
-> >> +	struct fschmd_data *data;
-> >> +	u8 revision;
-> >> +	const char *names[5] = { "Scylla", "Poseidon", "Hermes", "Heracles",
-> >> +			"Heimdall" };
-> > 
-> > Could be static.
-> 
-> Or constify the pointers with the same result as above? Which one is prefered?
+Uwe.
+--=20
+http://www.hermann-uwe.de  | http://www.holsham-traders.de
+http://www.crazy-hacks.org | http://www.unmaintained-free-software.org
 
-Either way is fine with me.
+--oyqLL/JqMvClXZi1
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="sensors-detect-winbond.patch"
 
-> >> +	strlcpy(new_client->name, FSCHMD_NAME, I2C_NAME_SIZE);
-> > 
-> > No! The _client_ name goes there, not the driver name. You want the
-> > Poseidon to appear as "fscpos", etc.
-> 
-> AFAIK this determines what gets put in the name sysfs attribute, do I have this 
-> correct? I'm asking because in that case putting in fscpos, fscher or fscscy is 
-> not an option as libsensors and sensors 2.x have certain expectations about the 
-> old driver, they expect various non Documentation/hwmon/sysfs-interface 
-> compliant attributes to be there. If I'm mistaken and this is not what gets put 
-> in the name sysfs attr, then I'll modify it, otherwise we need another 
-> solution, maybe something not pretty like fscpos-new, fscher-new, etc.
+List some more Winbond chips which can be detected with the same IDs.
 
-You are right, the client name is used for the name attribute, and we
-want this attribute to reflect the actual chip type. Using "fschmd" for
-all FSC chips would be very confusing. And unnecessary. If libsensors
-2.x has problems with your driver, we'll fix libsensors 2.x. I see no
-major incompatibility between the old drivers and the new driver, you
-even preserved the fan channel order, so it should be doable. The only
-difference I can think of is the alarms, we can just ignore them when
-they are missing.
+Signed-off-by: Uwe Hermann <uwe@hermann-uwe.de>
 
-So, no "-new" suffix please, just use fscpos, fscher etc. and we'll
-deal with it.
+Index: sensors-detect
+===================================================================
+--- sensors-detect	(Revision 4915)
++++ sensors-detect	(Arbeitskopie)
+@@ -1921,20 +1921,20 @@
+ 	alias_detect => sub { vt1211_alias_detect(0, @_); },
+       },
+       {
+-	name => "Winbond W83627HF Super IO Sensors",
++	name => "Winbond W83627HF/F/HG/G Super IO Sensors",
+ 	driver => "w83627hf",
+ 	devid => 0x52,
+ 	logdev => 0x0b,
+ 	alias_detect => sub { w83781d_alias_detect(3, @_); },
+       },
+       {
+-	name => "Winbond W83627THF Super IO Sensors",
++	name => "Winbond W83627THF/THG Super IO Sensors",
+ 	driver => "w83627hf",
+ 	devid => 0x82,
+ 	logdev => 0x0b,
+       },
+       {
+-	name => "Winbond W83637HF Super IO Sensors",
++	name => "Winbond W83637HF/HG Super IO Sensors",
+ 	driver => "w83627hf",
+ 	devid => 0x70,
+ 	logdev => 0x0b,
+@@ -1946,19 +1946,19 @@
+ 	logdev => 0x0b,
+       },
+       {
+-	name => "Winbond W83697HF Super IO Sensors",
++	name => "Winbond W83697HF/F/HG Super IO Sensors",
+ 	driver => "w83627hf",
+ 	devid => 0x60,
+ 	logdev => 0x0b,
+       },
+       {
+-	name => "Winbond W83697SF/UF Super IO PWM",
++	name => "Winbond W83697SF/UF/UG Super IO PWM",
+ 	driver => "to-be-written",
+ 	devid => 0x68,
+ 	logdev => 0x0b,
+       },
+       {
+-	name => "Winbond W83627EHF/EHG Super IO Sensors",
++	name => "Winbond W83627EHF/EF/EHG/EG Super IO Sensors",
+ 	driver => "w83627ehf",
+ 	# W83627EHF datasheet says 0x886x but 0x8853 was seen, thus the
+ 	# broader mask. W83627EHG was seen with ID 0x8863.
+@@ -1976,7 +1976,7 @@
+ 	alias_detect => sub { w83781d_alias_detect(10, @_); },
+       },
+       {
+-	name => "Winbond W83L517D Super IO",
++	name => "Winbond W83L517D/D-F Super IO",
+ 	driver => "not-a-sensor",
+ 	devid => 0x61,
+       },
 
-> >> +MODULE_AUTHOR("Hans de Goede <j.w.r.degoede@hhs.nl>");
-> >> +MODULE_DESCRIPTION("FSC Poseidon, Hermes, Scylla, Heracles and Heimdall driver");
-> >> +MODULE_LICENSE("GPL");
-> > 
-> > MODULE_DESCRIPTION Line longer that 80 characters.
-> 
-> I don't know how stringent the guidelines are when it comes to the 80 chars 
-> limit, but to me breaking the MODULE_DESCRIPTION line up doesn't improve the 
-> readability.
+--oyqLL/JqMvClXZi1--
 
-The guidelines are rather strict:
+--TKDEsImF70pdVIl+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-"The limit on the length of lines is 80 columns and this is a hard limit."
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-(Which doesn't mean that it is always enforced though...)
+iD8DBQFHBTMvXdVoV3jWIbQRAi/MAJ9TPPOgB1BXWTffw2uHSwU5fPVeQACfSxDs
+r+pNJiAfVL4EWv3opH08jxI=
+=GUt2
+-----END PGP SIGNATURE-----
 
-You can split strings in C, so this one is easy:
+--TKDEsImF70pdVIl+--
 
-MODULE_DESCRIPTION("FSC Poseidon, Hermes, Scylla, Heracles and "
-		   "Heimdall driver");
 
--- 
-Jean Delvare
+--===============8352833952035077079==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8352833952035077079==--
