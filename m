@@ -1,46 +1,33 @@
-From: Philip Edelbrock <phil_edelbrock@edgedesign.us>
-Date: Fri, 26 Oct 2007 01:18:37 +0000
-Subject: Re: [lm-sensors] Call for 2.10.5
-Message-Id: <D458F124-6407-4DA7-9A32-403210C70A34@edgedesign.us>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Fri, 05 Oct 2007 08:09:11 +0000
+Subject: [lm-sensors] Working on adt7475 driver
+Message-Id: <4705F127.8010600@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071007114017.27909e43@hyperion.delvare>
-In-Reply-To: <20071007114017.27909e43@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
-On Oct 25, 2007, at 12:54 PM, Jean Delvare wrote:
+I just wanted to let everyone know that I've bought an asus m2n sli deluxe 
+motherboard and that I now have a group of students working on writing a driver 
+for the adt7475 as part of a Linux device driver course I'm teaching. They have 
+gotten past the initial problems of learning kernel space thinking and leanring 
+  to read datasheets, so I think they will succeed.
 
-> Hi Philip,
->
-> On Wed, 24 Oct 2007 21:40:52 -0700, Philip Edelbrock wrote:
->> On Oct 23, 2007, at 10:36 AM, Philip Edelbrock wrote:
->>> On Oct 23, 2007, at 8:15 AM, Jean Delvare wrote:
->>>> Philip, will you have the time to do a lm-sensors release this  
->>>> week?
->>>
->>> Hi Jean, sure I'll try to get the release done today or tomorrow.
->>
->> OK, the release is done. I did both an lm-sensors and i2c for 2.10.5.
->
-> Great, thank you. You didn't tag the i2c repository though?
+Depending on how much they like writing drivers they, or I myself, will submit 
+this for review when its done.
 
-Good catch, thanks.  Done.  I also prep'ed the CHANGES and version  
-headers.
+I also have groups working on:
+-watchdog support for the FSC hwmon IC's following the standard watchdog
+  userspace ABI, for the new fschmd driver
+-pwm support for the f71882fg driver
+-interrupt support for the intel801 i2c adapter driver
 
->
->> Please check and make wiki/other changes as needed.
->
-> I've added a news item on the main page to announce the new release.
-> I've also posted an announcement on Freshmeat.
+Regards,
 
-OK, thanks.
-
-
-Phil
-
+Hans
 
 _______________________________________________
 lm-sensors mailing list
