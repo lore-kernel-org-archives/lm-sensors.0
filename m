@@ -1,44 +1,30 @@
-From: Ivo Manca <pinkel@gmail.com>
-Date: Sun, 07 Oct 2007 16:39:06 +0000
-Subject: Re: [lm-sensors] Help wanted: individual alarm files
-Message-Id: <47090BAA.6050701@gmail.com>
+From: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Date: Fri, 05 Oct 2007 15:12:00 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon/thmc50: Don't create temp3 if not
+Message-Id: <20071005171200.5286b9c1.krzysztof.h1@poczta.fm>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070701220005.1dda9d8f@hyperion.delvare>
-In-Reply-To: <20070701220005.1dda9d8f@hyperion.delvare>
+References: <20070918184442.1bef286f@hyperion.delvare>
+In-Reply-To: <20070918184442.1bef286f@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hey Jean,
+On Tue, 18 Sep 2007 18:44:42 +0200
+Jean Delvare <khali@linux-fr.org> wrote:
 
-To be honest, I've haven't looked into it, yet. I'll try to hook up my 
-machine this evening to get it running. Then, I'll try to convert it as 
-soon as possible.
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+> ---
 
-I'll report back next weekend.
+The patch is already reviewed and tested.
 
-Ivo
 
-Jean Delvare wrote:
-> Hi Ivo,
->
-> Hans de Goede wrote:
->   
->>> Ivo, if you are reading this, any chance you could try to convert the 
->>> sis5595 driver?
->>>       
->
-> On Sun, 1 Jul 2007 23:05:55 +0200, Ivo Manca wrote:
->   
->> I will give it a shot. Since I am _completely_ new to this, it might take a 
->> while.
->>     
->
-> Any news on this?
->
-> Thanks,
->   
+----------------------------------------------------------------------
+Fajne i smieszne. Zobacz najlepsze filmiki!
+
+>>> http://link.interia.pl/f1bbb
+
 
 _______________________________________________
 lm-sensors mailing list
