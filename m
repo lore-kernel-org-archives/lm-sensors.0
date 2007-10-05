@@ -1,47 +1,139 @@
-From: Greg Vickers <daehenoc@optusnet.com.au>
-Date: Wed, 24 Oct 2007 10:29:19 +0000
-Subject: Re: [lm-sensors] sensors report all zero readings on Dell PowerEdge
-Message-Id: <471F1E7F.9070907@optusnet.com.au>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Fri, 05 Oct 2007 07:30:21 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon/lm78: Add individual alarm files
+Message-Id: <4705E80D.6080507@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <471C8AA4.7090903@optusnet.com.au>
-In-Reply-To: <471C8AA4.7090903@optusnet.com.au>
+References: <20070904232533.40609f1f@hyperion.delvare>
+In-Reply-To: <20070904232533.40609f1f@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi All,
 
-Frank Phillips wrote:
-> On 10/22/07, Greg Vickers <daehenoc@optusnet.com.au> wrote:
->> Hi,
->>
->> I have installed lm-sensors v2.10.1-3 on a Dell PowerEdge 830 with
->> Debian Etch (stable) installed on it.  (This version is the version of
->> lm-sensors that is part of Debian Etch.)  sensors-detect works and
-> Try running a more recent version of the script:
-> 
-> http://www.lm-sensors.org/browser/lm-sensors/trunk/prog/detect/sensors-detect?revI66&format=txt
+In this post:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021151.html
 
-I ran that script and it didn't detect any extra modules apart from the 
-ones that I have already loaded.
+Jean Delvare wrote:
+--------------------------------------------
+Add individual alarm files to the lm78 driver, these are needed by
+the next version of libsensors.
 
-> By looking at the specs, the Poweredge 830 is an IPMI-controlled
-> machine. The Baseboard Management Controller controls all the sensors.
-> You will need support in your kernel for IPMI and ipmisensors. The
-> patch for ipmisensors is here if it is not already in your distro
-> kernel (CONFIG_SENSORS_IPMI):
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+  Documentation/hwmon/lm78 |   10 ----------
+  drivers/hwmon/lm78.c     |   30 ++++++++++++++++++++++++++++++
+  2 files changed, 30 insertions(+), 10 deletions(-)
 
-Huh, CONFIG_SENSORS_IPMI is not present in 2.6.18 on Debian.
+--- linux-2.6.23-rc5.orig/drivers/hwmon/lm78.c	2007-09-04 11:40:51.000000000 +0200
++++ linux-2.6.23-rc5/drivers/hwmon/lm78.c	2007-09-04 20:47:27.000000000 +0200
+@@ -438,6 +438,25 @@ static ssize_t show_alarms(struct device
+  }
+  static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
 
-> http://bmcsensors-26.sourceforge.net/
++static ssize_t show_alarm(struct device *dev, struct device_attribute *da,
++			  char *buf)
++{
++	struct lm78_data *data = lm78_update_device(dev);
++	int nr = to_sensor_dev_attr(da)->index;
++	return sprintf(buf, "%u\n", (data->alarms >> nr) & 1);
++}
++static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
++static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
++static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3);
++static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 8);
++static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 9);
++static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 10);
++static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 6);
++static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 7);
++static SENSOR_DEVICE_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 11);
++static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4);
++
+  /* This function is called when:
+       * lm78_driver is inserted (when this module is loaded), for each
+         available adapter
+@@ -453,36 +472,47 @@ static struct attribute *lm78_attributes
+  	&sensor_dev_attr_in0_input.dev_attr.attr,
+  	&sensor_dev_attr_in0_min.dev_attr.attr,
+  	&sensor_dev_attr_in0_max.dev_attr.attr,
++	&sensor_dev_attr_in0_alarm.dev_attr.attr,
+  	&sensor_dev_attr_in1_input.dev_attr.attr,
+  	&sensor_dev_attr_in1_min.dev_attr.attr,
+  	&sensor_dev_attr_in1_max.dev_attr.attr,
++	&sensor_dev_attr_in1_alarm.dev_attr.attr,
+  	&sensor_dev_attr_in2_input.dev_attr.attr,
+  	&sensor_dev_attr_in2_min.dev_attr.attr,
+  	&sensor_dev_attr_in2_max.dev_attr.attr,
++	&sensor_dev_attr_in2_alarm.dev_attr.attr,
+  	&sensor_dev_attr_in3_input.dev_attr.attr,
+  	&sensor_dev_attr_in3_min.dev_attr.attr,
+  	&sensor_dev_attr_in3_max.dev_attr.attr,
++	&sensor_dev_attr_in3_alarm.dev_attr.attr,
+  	&sensor_dev_attr_in4_input.dev_attr.attr,
+  	&sensor_dev_attr_in4_min.dev_attr.attr,
+  	&sensor_dev_attr_in4_max.dev_attr.attr,
++	&sensor_dev_attr_in4_alarm.dev_attr.attr,
+  	&sensor_dev_attr_in5_input.dev_attr.attr,
+  	&sensor_dev_attr_in5_min.dev_attr.attr,
+  	&sensor_dev_attr_in5_max.dev_attr.attr,
++	&sensor_dev_attr_in5_alarm.dev_attr.attr,
+  	&sensor_dev_attr_in6_input.dev_attr.attr,
+  	&sensor_dev_attr_in6_min.dev_attr.attr,
+  	&sensor_dev_attr_in6_max.dev_attr.attr,
++	&sensor_dev_attr_in6_alarm.dev_attr.attr,
+  	&dev_attr_temp1_input.attr,
+  	&dev_attr_temp1_max.attr,
+  	&dev_attr_temp1_max_hyst.attr,
++	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
+  	&sensor_dev_attr_fan1_input.dev_attr.attr,
+  	&sensor_dev_attr_fan1_min.dev_attr.attr,
+  	&sensor_dev_attr_fan1_div.dev_attr.attr,
++	&sensor_dev_attr_fan1_alarm.dev_attr.attr,
+  	&sensor_dev_attr_fan2_input.dev_attr.attr,
+  	&sensor_dev_attr_fan2_min.dev_attr.attr,
+  	&sensor_dev_attr_fan2_div.dev_attr.attr,
++	&sensor_dev_attr_fan2_alarm.dev_attr.attr,
+  	&sensor_dev_attr_fan3_input.dev_attr.attr,
+  	&sensor_dev_attr_fan3_min.dev_attr.attr,
+  	&sensor_dev_attr_fan3_div.dev_attr.attr,
++	&sensor_dev_attr_fan3_alarm.dev_attr.attr,
+  	&dev_attr_alarms.attr,
+  	&dev_attr_cpu0_vid.attr,
 
-Ah, thanks.  In the meantime I've found ipmitool for Debian and 
-check_ipmi_sensors.pl for Nagios, which hopefully will do what I want it 
-to do.
+--- linux-2.6.23-rc5.orig/Documentation/hwmon/lm78	2007-02-04 
+19:44:54.000000000 +0100
++++ linux-2.6.23-rc5/Documentation/hwmon/lm78	2007-09-04 23:23:59.000000000 +0200
+@@ -56,16 +56,6 @@ should work with. This is hardcoded by t
+  It is a value in volts. When it is unconnected, you will often find the
+  value 3.50 V here.
 
-Thanks,
-Greg
+-In addition to the alarms described above, there are a couple of additional
+-ones. There is a BTI alarm, which gets triggered when an external chip has
+-crossed its limits. Usually, this is connected to all LM75 chips; if at
+-least one crosses its limits, this bit gets set. The CHAS alarm triggers
+-if your computer case is open. The FIFO alarms should never trigger; it
+-indicates an internal error. The SMI_IN alarm indicates some other chip
+-has triggered an SMI interrupt. As we do not use SMI interrupts at all,
+-this condition usually indicates there is a problem with some other
+-device.
+-
+  If an alarm triggers, it will remain triggered until the hardware register
+  is read at least once. This means that the cause for the alarm may
+  already have disappeared! Note that in the current implementation, all
+
+-- 
+Jean Delvare
+--------------------------------------------
+
+Looks good:
+Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+Regards,
+
+Hans
+
 
 _______________________________________________
 lm-sensors mailing list
