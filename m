@@ -1,311 +1,91 @@
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Mon, 15 Oct 2007 05:07:02 +0000
-Subject: [lm-sensors] [ patch .24-rc0 2/5 ] SuperIO locks coordinator - use
-Message-Id: <4712F576.3080005@gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 07 Oct 2007 20:44:33 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Fix the code examples in documentation
+Message-Id: <20071007224433.1471452a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linux kernel <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-02 - use superio-locks in drivers/hwmon/w83627hf.c
+Hi Mark,
 
-tested on an AMD-Barton mobo.
+On Sun, 7 Oct 2007 14:28:46 -0400, Mark M. Hoffman wrote:
+> Hi Jean:
+> 
+> > Jean Delvare wrote:
+> > > Additionally, I think that the examples are a bit difficult to read,
+> > > one level of indentation would probably be better than the begin/end
+> > > code markers. Thus, I propose the following incremental patch:
+> > > 
+> > >  Documentation/hwmon/sysfs-interface |   30 ++++++++++++++----------------
+> > >  1 file changed, 14 insertions(+), 16 deletions(-)
+> 
+> * Hans de Goede <j.w.r.degoede@hhs.nl> [2007-10-07 13:37:53 +0200]:
+> > I agree with all changes, Mark pleaee apply:
+> > 
+> > Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+> 
+> Could you please re-generate this one against the hwmon testing tree and
+> w/ a Signed-off-by?
 
+Sorry, I expected Hans or you to merge my changes into Hans' original
+patch, that's why I omitted the Signed-off-by and the log message.
 
-Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
+* * * * *
+
+Fix a bug in the code examples, make them comply with CodingStyle,
+and indent them for a better redability.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 ---
-hwmon-superio-w83627hf
- Kconfig    |    1 
- w83627hf.c |  140 ++++++++++++++++++++++++-------------------------------------
- 2 files changed, 58 insertions(+), 83 deletions(-)
+ Documentation/hwmon/sysfs-interface |   30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
-diff -ruNp -X dontdiff -X exclude-diffs hwmon-fan-push-offset/drivers/hwmon/Kconfig hwmon-superio.old/drivers/hwmon/Kconfig
---- hwmon-fan-push-offset/drivers/hwmon/Kconfig	2007-10-14 13:00:24.000000000 -0600
-+++ hwmon-superio.old/drivers/hwmon/Kconfig	2007-10-14 17:22:23.000000000 -0600
-@@ -675,6 +688,7 @@ config SENSORS_W83L785TS
- config SENSORS_W83627HF
- 	tristate "Winbond W83627HF, W83627THF, W83637HF, W83687THF, W83697HF"
- 	select HWMON_VID
-+	select SUPERIO_LOCKS
- 	help
- 	  If you say yes here you get support for the Winbond W836X7 series
- 	  of sensor chips: the W83627HF, W83627THF, W83637HF, W83687THF and
-diff -ruNp -X dontdiff -X exclude-diffs hwmon-fan-push-offset/drivers/hwmon/w83627hf.c hwmon-superio.old/drivers/hwmon/w83627hf.c
---- hwmon-fan-push-offset/drivers/hwmon/w83627hf.c	2007-10-14 17:13:47.000000000 -0600
-+++ hwmon-superio.old/drivers/hwmon/w83627hf.c	2007-10-14 17:22:23.000000000 -0600
-@@ -50,6 +50,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/ioport.h>
-+#include <linux/superio-locks.h>
- #include <asm/io.h>
- #include "lm75.h"
+--- linux-2.6.23-rc9.orig/Documentation/hwmon/sysfs-interface	2007-10-07 10:12:33.000000000 +0200
++++ linux-2.6.23-rc9/Documentation/hwmon/sysfs-interface	2007-10-07 10:13:43.000000000 +0200
+@@ -450,22 +450,20 @@ continuous like for example a tempX_type
+ written, -EINVAL should be returned.
  
-@@ -75,11 +76,6 @@ static int init = 1;
- module_param(init, bool, 0);
- MODULE_PARM_DESC(init, "Set to zero to bypass chip initialization");
- 
--/* modified from kernel/include/traps.c */
--static int REG;		/* The register to read/write */
--#define	DEV	0x07	/* Register: Logical device select */
--static int VAL;		/* The value to read/write */
--
- /* logical device numbers for superio_select (below) */
- #define W83627HF_LD_FDC		0x00
- #define W83627HF_LD_PRT		0x01
-@@ -97,8 +93,6 @@ static int VAL;		/* The value to read/wr
- #define W83627HF_LD_ACPI	0x0a
- #define W83627HF_LD_HWM		0x0b
- 
--#define	DEVID	0x20	/* Register: Device ID */
--
- #define W83627THF_GPIO5_EN	0x30 /* w83627thf only */
- #define W83627THF_GPIO5_IOSR	0xf3 /* w83627thf only */
- #define W83627THF_GPIO5_DR	0xf4 /* w83627thf only */
-@@ -107,47 +101,25 @@ static int VAL;		/* The value to read/wr
- #define W83687THF_VID_CFG	0xF0 /* w83687thf only */
- #define W83687THF_VID_DATA	0xF1 /* w83687thf only */
- 
--static inline void
--superio_outb(int reg, int val)
--{
--	outb(reg, REG);
--	outb(val, VAL);
--}
--
--static inline int
--superio_inb(int reg)
--{
--	outb(reg, REG);
--	return inb(VAL);
--}
--
--static inline void
--superio_select(int ld)
--{
--	outb(DEV, REG);
--	outb(ld, VAL);
--}
--
--static inline void
--superio_enter(void)
--{
--	outb(0x87, REG);
--	outb(0x87, REG);
--}
--
--static inline void
--superio_exit(void)
--{
--	outb(0xAA, REG);
--}
-+#define W627_DEVID		0x52
-+#define W627THF_DEVID		0x82
-+#define W697_DEVID		0x60
-+#define W637_DEVID		0x70
-+#define W687THF_DEVID		0x85
+ Example1, temp1_max, register is a signed 8 bit value (-128 - 127 degrees):
+---- begin code ---
+-long v = simple_strtol(buf, NULL, 10) / 1000;
+-SENSORS_LIMIT(v, -128, 127);
+-/* write v to register */
+---- end code ---
 +
-+#define WINB_ACT_REG		0x30
-+#define WINB_BASE_REG		0x60
++	long v = simple_strtol(buf, NULL, 10) / 1000;
++	v = SENSORS_LIMIT(v, -128, 127);
++	/* write v to register */
+ 
+ Example2, fan divider setting, valid values 2, 4 and 8:
+---- begin code ---
+-unsigned long v = simple_strtoul(buf, NULL, 10);
+ 
+-switch (v) {
+-       case 2: v = 1; break;
+-       case 4: v = 2; break;
+-       case 8: v = 3; break;
+-       default:
+-               return -EINVAL;
+-}
+-/* write v to register */
+---- end code ---
++	unsigned long v = simple_strtoul(buf, NULL, 10);
 +
-+static struct superio* gate;
-+
-+static __devinit struct superio_search where = {
-+	.cmdreg_addrs = { 0x2e, 0x4e },
-+	.device_ids   = { W627_DEVID, W627THF_DEVID, W697_DEVID,
-+			  W637_DEVID, W687THF_DEVID, 0 },
-+	.enter_seq    = { 0x87, 0x87, 0 },
-+	.exit_seq     = { 0xAA, 0 }
-+};
- 
--#define W627_DEVID 0x52
--#define W627THF_DEVID 0x82
--#define W697_DEVID 0x60
--#define W637_DEVID 0x70
--#define W687THF_DEVID 0x85
--#define WINB_ACT_REG 0x30
--#define WINB_BASE_REG 0x60
- /* Constants specified below */
- 
- /* Alignment of the base address */
-@@ -995,12 +967,10 @@ show_name(struct device *dev, struct dev
- 	return sprintf(buf, "%s\n", data->name);
- }
- static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
--
--static int __init w83627hf_find(int sioaddr, unsigned short *addr,
--				struct w83627hf_sio_data *sio_data)
-+				
-+static u16 __init w83627hf_find(struct w83627hf_sio_data *sio_data)
- {
--	int err = -ENODEV;
--	u16 val;
-+	u16 val, addr = 0;
- 
- 	static const __initdata char *names[] = {
- 		"W83627HF",
-@@ -1010,11 +980,15 @@ static int __init w83627hf_find(int sioa
- 		"W83687THF",
- 	};
- 
--	REG = sioaddr;
--	VAL = sioaddr + 1;
-+	gate = superio_find(&where);
-+	if (!gate) {
-+		printk(KERN_WARNING DRVNAME ": superio port not detected, "
-+		       "module not intalled.\n");
-+		return 0;
++	switch (v) {
++	case 2: v = 1; break;
++	case 4: v = 2; break;
++	case 8: v = 3; break;
++	default:
++		return -EINVAL;
 +	}
-+	superio_enter(gate);
-+	val = superio_devid(gate);
- 
--	superio_enter();
--	val= superio_inb(DEVID);
- 	switch (val) {
- 	case W627_DEVID:
- 		sio_data->type = w83627hf;
-@@ -1038,36 +1012,34 @@ static int __init w83627hf_find(int sioa
- 		goto exit;
- 	}
- 
--	superio_select(W83627HF_LD_HWM);
-+	superio_select(gate, W83627HF_LD_HWM);
- 	force_addr &= WINB_ALIGNMENT;
- 	if (force_addr) {
- 		printk(KERN_WARNING DRVNAME ": Forcing address 0x%x\n",
- 		       force_addr);
--		superio_outb(WINB_BASE_REG, force_addr >> 8);
--		superio_outb(WINB_BASE_REG + 1, force_addr & 0xff);
-+		superio_outb(gate, WINB_BASE_REG, force_addr >> 8);
-+		superio_outb(gate, WINB_BASE_REG + 1, force_addr & 0xff);
- 	}
--	val = (superio_inb(WINB_BASE_REG) << 8) |
--	       superio_inb(WINB_BASE_REG + 1);
--	*addr = val & WINB_ALIGNMENT;
--	if (*addr = 0) {
-+	val = superio_inw(gate, WINB_BASE_REG);
-+	addr = val & WINB_ALIGNMENT;
-+	if (addr = 0) {
- 		printk(KERN_WARNING DRVNAME ": Base address not set, "
- 		       "skipping\n");
- 		goto exit;
- 	}
- 
--	val = superio_inb(WINB_ACT_REG);
-+	val = superio_inb(gate, WINB_ACT_REG);
- 	if (!(val & 0x01)) {
- 		printk(KERN_WARNING DRVNAME ": Enabling HWM logical device\n");
--		superio_outb(WINB_ACT_REG, val | 0x01);
-+		superio_outb(gate, WINB_ACT_REG, val | 0x01);
- 	}
- 
--	err = 0;
- 	pr_info(DRVNAME ": Found %s chip at %#x\n",
--		names[sio_data->type], *addr);
-+		names[sio_data->type], addr);
- 
-  exit:
--	superio_exit();
--	return err;
-+	superio_exit(gate);
-+	return addr;
- }
- 
- #define VIN_UNIT_ATTRS(_X_)	\
-@@ -1337,18 +1309,18 @@ static int __devinit w83627thf_read_gpio
- {
- 	int res = 0xff, sel;
- 
--	superio_enter();
--	superio_select(W83627HF_LD_GPIO5);
-+	superio_enter(gate);
-+	superio_select(gate, W83627HF_LD_GPIO5);
- 
- 	/* Make sure these GPIO pins are enabled */
--	if (!(superio_inb(W83627THF_GPIO5_EN) & (1<<3))) {
-+	if (!(superio_inb(gate, W83627THF_GPIO5_EN) & (1<<3))) {
- 		dev_dbg(&pdev->dev, "GPIO5 disabled, no VID function\n");
- 		goto exit;
- 	}
- 
- 	/* Make sure the pins are configured for input
- 	   There must be at least five (VRM 9), and possibly 6 (VRM 10) */
--	sel = superio_inb(W83627THF_GPIO5_IOSR) & 0x3f;
-+	sel = superio_inb(gate, W83627THF_GPIO5_IOSR) & 0x3f;
- 	if ((sel & 0x1f) != 0x1f) {
- 		dev_dbg(&pdev->dev, "GPIO5 not configured for VID "
- 			"function\n");
-@@ -1356,10 +1328,10 @@ static int __devinit w83627thf_read_gpio
- 	}
- 
- 	dev_info(&pdev->dev, "Reading VID from GPIO5\n");
--	res = superio_inb(W83627THF_GPIO5_DR) & sel;
-+	res = superio_inb(gate, W83627THF_GPIO5_DR) & sel;
- 
- exit:
--	superio_exit();
-+	superio_exit(gate);
- 	return res;
- }
- 
-@@ -1367,26 +1339,26 @@ static int __devinit w83687thf_read_vid(
- {
- 	int res = 0xff;
- 
--	superio_enter();
--	superio_select(W83627HF_LD_HWM);
-+	superio_enter(gate);
-+	superio_select(gate, W83627HF_LD_HWM);
- 
- 	/* Make sure these GPIO pins are enabled */
--	if (!(superio_inb(W83687THF_VID_EN) & (1 << 2))) {
-+	if (!(superio_inb(gate, W83687THF_VID_EN) & (1 << 2))) {
- 		dev_dbg(&pdev->dev, "VID disabled, no VID function\n");
- 		goto exit;
- 	}
- 
- 	/* Make sure the pins are configured for input */
--	if (!(superio_inb(W83687THF_VID_CFG) & (1 << 4))) {
-+	if (!(superio_inb(gate, W83687THF_VID_CFG) & (1 << 4))) {
- 		dev_dbg(&pdev->dev, "VID configured as output, "
- 			"no VID function\n");
- 		goto exit;
- 	}
- 
--	res = superio_inb(W83687THF_VID_DATA) & 0x3f;
-+	res = superio_inb(gate, W83687THF_VID_DATA) & 0x3f;
- 
- exit:
--	superio_exit();
-+	superio_exit(gate);
- 	return res;
- }
- 
-@@ -1669,8 +1641,8 @@ static int __init sensors_w83627hf_init(
- 	unsigned short address;
- 	struct w83627hf_sio_data sio_data;
- 
--	if (w83627hf_find(0x2e, &address, &sio_data)
--	 && w83627hf_find(0x4e, &address, &sio_data))
-+	address = w83627hf_find(&sio_data);
-+	if (!address)
- 		return -ENODEV;
- 
- 	err = platform_driver_register(&w83627hf_driver);
-@@ -1692,6 +1664,8 @@ exit:
- 
- static void __exit sensors_w83627hf_exit(void)
- {
-+	if (gate)
-+		superio_release(gate);
- 	platform_device_unregister(pdev);
- 	platform_driver_unregister(&w83627hf_driver);
- }
++	/* write v to register */
 
 
-
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
