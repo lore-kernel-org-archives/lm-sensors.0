@@ -1,38 +1,55 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 16 Oct 2007 11:09:29 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon/sis5595: Split
-Message-Id: <20071016110929.GF3731@jupiter.solarsys.private>
+From: Alistair John Strachan <alistair@devzero.co.uk>
+Date: Sun, 07 Oct 2007 23:53:25 +0000
+Subject: Re: [lm-sensors] k8temp, BE-2350 CPU
+Message-Id: <200710080053.25906.alistair@devzero.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071015204125.643d149d@hyperion.delvare>
-In-Reply-To: <20071015204125.643d149d@hyperion.delvare>
+References: <46BAABD3.5000103@assembler.cz>
+In-Reply-To: <46BAABD3.5000103@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
+On Thursday 09 August 2007 07:38:29 Alistair John Strachan wrote:
+> On Thursday 09 August 2007 06:53:23 Rudolf Marek wrote:
+> > Hi,
+> >
+> > Sorry for the delay. I'm CCing the list too please do too.
+> >
+> > Alistair John Strachan wrote:
+> > > Hi,
+> > >
+> > > I've noticed a problem with the k8temp driver on a new BE-2350
+> > > processor. It seems the sensors report bogus values on this CPU. This
+> > > is when it is idling:
+> > >
+> > > root@joyeuse:~# cat /sys/bus/pci/drivers/k8temp/0000\:00\:18.3/temp*
+> > > -5000
+> > > -5000
+> > > -3000
+> > > 1000
+> > >
+> > > And this is under load:
+> > >
+> > > root@joyeuse:~# cat /sys/bus/pci/drivers/k8temp/0000\:00\:18.3/temp*
+> > > 7000
+> > > 12000
+> > > 11000
+> > > 17000
+> > >
+> > > This is a socket AM2 processor. Any idea what's wrong? Using kernel
+> > > 2.6.23-rc1, but it's also broken on Debian's 2.6.22.
+> >
+> > Hmm perhaps the formula does not work anymore :/ Can you send me output
+> > of cat /proc/cpuinfo?
 
-> On Mon, 15 Oct 2007 13:27:13 +0200, Ivo Manca wrote:
-> > From: Ivo Manca <pinkel@gmail.com>
-> > 
-> > Use sysfs_create_group instead of individual calls to device_create_file by splitting sis5595_attributes_opt into sis5595_attributes_in4 and sis5595_attributes_temp1.
-> > 
-> > Signed-off-by: Ivo Manca <pinkel@gmail.com>
-> > ---
-> >  sis5595.c |   39 ++++++++++++++++++---------------------
-> >  1 file changed, 18 insertions(+), 21 deletions(-)
-
-* Jean Delvare <khali@linux-fr.org> [2007-10-15 20:41:25 +0200]:
-> Looks good, I like it.
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-
-Applied to hwmon-2.6.git/testing, thanks.
+Sorry to nag, Rudolf, but has there been any progress on this issue?
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Cheers,
+Alistair.
 
+137/1 Warrender Park Road, Edinburgh, UK.
 
 _______________________________________________
 lm-sensors mailing list
