@@ -1,31 +1,40 @@
-From: Dmitry <admin@incred.org>
-Date: Sun, 07 Oct 2007 11:27:19 +0000
-Subject: Re: [lm-sensors] lm-sensors with VIA vt82c596b
-Message-Id: <feafqm$pdq$1@sea.gmane.org>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 07 Oct 2007 09:31:11 +0000
+Subject: [lm-sensors] lm-sensors 3.0.0-rc2 to be released soon
+Message-Id: <20071007113111.2e0a275f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070929033210.GA30044@cyberspace>
-In-Reply-To: <20070929033210.GA30044@cyberspace>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-In letter Tue, 02 Oct 2007 21:29:14 -0700, Juerg Haefliger wrote:
+Hi all,
+
+I plan to release lm-sensors 3.0.0-rc2 tomorrow or the day after. The
+changes from rc1 are as follows (from CHANGES):
+
+  Makefile: Add sensors-conf-convert to make install
+  libsensors: Notify the caller when writing a value fails
+              Differentiate between different read error types
+              Report I/O errors as such
+  sensord: Log the error code on failure
+           Drop the configuration file search path mechanism (#2259)
+           Manual page update
+  sensors: Fix spurious critical temperature alarm
+           Print error messages to stderr
+           Make error messages more helpful and consistent
+           Better handling of the fault flags
+  sensors-conf-convert: Add a short help text
+  sensors-detect: Fix SMSC SCH311x detection
 
 
->>
->>
-> Sensors-detect didn't find anything. What makes you think you have a
-> HW-monitoring chip? Does the BIOS show any voltages/temps? Have you
-> tried the latest version of sensors-detect (2.10.4)? What's your mobo
-> model?
-> 
-> ...juerg
+I am not yet sure if this will be the last release candidate before the
+final release. On the one hand, it seems to work really well, but on
+the other hand I really would like at least one additional application
+to be ported to the new libsensors API to confirm that it is OK.
 
-
-BIOS doesn't  show any temps...
-hmm..
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
