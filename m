@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 07 Oct 2007 20:41:02 +0000
+Date: Sun, 07 Oct 2007 22:05:33 +0000
 Subject: Re: [lm-sensors] PATCH:
-Message-Id: <20071007224102.611bc5a4@hyperion.delvare>
+Message-Id: <20071008000533.4dc3bd0a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46F3DD44.4070307@hhs.nl>
 In-Reply-To: <46F3DD44.4070307@hhs.nl>
@@ -10,17 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Hi Mark,
 
-On Sun, 07 Oct 2007 13:37:53 +0200, Hans de Goede wrote:
-> Notice that this is what happens when you make a function look like a macro by 
-> giving it all caps names. Note: I'm not trying to talk my mistake right, just 
-> trying to explain how I came to the mistake. Maybe we should rename SENSORS_LIMIT?
+On Sun, 7 Oct 2007 15:33:01 -0400, Mark M. Hoffman wrote:
+> Although, I suppose it would be easier for you and maybe Jean if I just publish
+> a patch series myself.  It shouldn't be too hard to script that up; I'll look
+> into it.
 
-David Brownell would agree:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021304.html
+I don't need it too much, as I am tracking the hwmon patches myself so
+my stack and yours are very similar; when I'm missing a patch, I
+cherry-pick it from git-web.
 
-And I do agree, too.
+But I agree that it would be convenient to have the possibility for
+others to get all the patches as either a single patch or a patch
+series. For now I have been pointing developers to git-hwmon.patch in
+Andrew's tree, but it may become quickly out-of-date if Andrew doesn't
+release a new kernel in a while.
 
 -- 
 Jean Delvare
