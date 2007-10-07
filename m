@@ -1,7 +1,7 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 07 Oct 2007 18:28:46 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 07 Oct 2007 20:41:02 +0000
 Subject: Re: [lm-sensors] PATCH:
-Message-Id: <20071007182846.GI3835@jupiter.solarsys.private>
+Message-Id: <20071007224102.611bc5a4@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46F3DD44.4070307@hhs.nl>
 In-Reply-To: <46F3DD44.4070307@hhs.nl>
@@ -10,30 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+Hi Hans,
 
-> Jean Delvare wrote:
-> > Additionally, I think that the examples are a bit difficult to read,
-> > one level of indentation would probably be better than the begin/end
-> > code markers. Thus, I propose the following incremental patch:
-> > 
-> >  Documentation/hwmon/sysfs-interface |   30 ++++++++++++++----------------
-> >  1 file changed, 14 insertions(+), 16 deletions(-)
+On Sun, 07 Oct 2007 13:37:53 +0200, Hans de Goede wrote:
+> Notice that this is what happens when you make a function look like a macro by 
+> giving it all caps names. Note: I'm not trying to talk my mistake right, just 
+> trying to explain how I came to the mistake. Maybe we should rename SENSORS_LIMIT?
 
-* Hans de Goede <j.w.r.degoede@hhs.nl> [2007-10-07 13:37:53 +0200]:
-> I agree with all changes, Mark pleaee apply:
-> 
-> Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+David Brownell would agree:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021304.html
 
-Could you please re-generate this one against the hwmon testing tree and
-w/ a Signed-off-by?
-
-Thanks & regards,
+And I do agree, too.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
