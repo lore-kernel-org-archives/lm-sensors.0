@@ -1,28 +1,31 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Tue, 09 Oct 2007 12:03:14 +0000
-Subject: [lm-sensors] syfs attributes for signaling powersupply availability
-Message-Id: <470B6E02.9070504@hhs.nl>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 07 Oct 2007 16:47:18 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon/thmc50: Fix a debug message
+Message-Id: <20071007164718.GG3835@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Hi:
 
-I just got some info from Siemens (Thanks Thilo) on howto detect the presence 
-of up to 2 power supplies with the fscscy and fscpos IC's and the status (OK or 
-fail) of these. So we need to come up with a sysfs interface for this.
+* Jean Delvare <khali@linux-fr.org> [2007-09-18 18:48:16 +0200]:
+> type_name was used before being set. See why I don't like play-it-safe
+> variable initializations: they prevent the compiler from warning you
+> about such mistakes. So fix that as well.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> ---
+>  drivers/hwmon/thmc50.c |   12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
 
-I suggest:
-powersupplyX_present
-powersupplyX_fault
+Applied to hwmon-2.6.git/testing, thanks.
 
-How does that sound?
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
-Regards,
-
-Hans
 
 _______________________________________________
 lm-sensors mailing list
