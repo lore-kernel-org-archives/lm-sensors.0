@@ -1,47 +1,33 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 31 Oct 2007 15:17:39 +0000
-Subject: Re: [lm-sensors] PATCH:
-Message-Id: <20071031161739.6d187af3@hyperion.delvare>
+Date: Mon, 08 Oct 2007 20:48:10 +0000
+Subject: [lm-sensors] [PATCH] hwmon/lm87: Disable VID when it should be
+Message-Id: <20071008224810.4e80536d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46F3DD44.4070307@hhs.nl>
-In-Reply-To: <46F3DD44.4070307@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 31 Oct 2007 09:42:38 +0100, Hans de Goede wrote:
-> Hi All,
-> 
-> As discussed on the lm-sensors list, using the fixed scaling factors from the
-> fscpos datasheet for the fscher and newer models as wel, was nood a good idea,
-> as the actual scaling factors may be different and can be read from OEM DMI
-> entries.
-> 
-> This patch changes the behaviour of the merged FSC familiy fschmd driver to be
-> the same as the old standalone fscher driver for fscher and newer models,
-> leaving the scaling to userspace.
-> 
-> This also preserves compatibility of existing sensors.conf files.
-> 
-> Signed-of-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-> 
-> ---
-> 
-> Jean, can you review this please?
-> Mark, can you send this to Linus for 2.6.24 please, otherwise we will have one 
-> official kernel release with different scaling for the voltage inputs of the 
-> fschmd compared to the next releases.
-> 
-> 
-> And yes I tested my patch this time.
+A stupid bit shifting bug caused the VID value to be always exported
+even when the hardware is configured for something different.
 
-Assuming that you definitely excluded the possibility to retrieve the
-DMI data from the kernel and you have additional information about the
-Heimdall and Heracles also using DMI data for the scaling, then the
-patch is correct:
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/lm87.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+--- linux-2.6.23-rc9.orig/drivers/hwmon/lm87.c	2007-10-08 21:26:20.000000000 +0200
++++ linux-2.6.23-rc9/drivers/hwmon/lm87.c	2007-10-08 22:14:50.000000000 +0200
+@@ -146,7 +146,7 @@ static u8 LM87_REG_TEMP_LOW[3] = { 0x3A,
+ #define CHAN_NO_FAN(nr)		(1 << (nr))
+ #define CHAN_TEMP3		(1 << 2)
+ #define CHAN_VCC_5V		(1 << 3)
+-#define CHAN_NO_VID		(1 << 8)
++#define CHAN_NO_VID		(1 << 7)
+ 
+ /*
+  * Functions declaration
+
 
 -- 
 Jean Delvare
