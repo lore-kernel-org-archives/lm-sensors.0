@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 08 Oct 2007 08:49:04 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon/w83781d: Add individual alarm and
-Message-Id: <20071008104904.63c28574@hyperion.delvare>
+Date: Mon, 08 Oct 2007 16:29:43 +0000
+Subject: [lm-sensors] [PATCH] hwmon/w83781d: Add individual alarm and beep
+Message-Id: <20071008182943.48ef9fa3@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20071007205740.0c52f8cf@hyperion.delvare>
 In-Reply-To: <20071007205740.0c52f8cf@hyperion.delvare>
@@ -10,84 +10,243 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+The upcoming libsensors 3 needs these individual alarm and beep files.
+For the W83781D, this is quirky because this chip has a single alarm
+bit for both temp2 and temp3.
 
-Thanks for the fast review :)
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Second revision after Hans de Goede's review.
 
-On Sun, 07 Oct 2007 21:11:20 +0200, Hans de Goede wrote:
-> Jean Delvare wrote:
-> > The upcoming libsensors 3 needs these individual alarm and beep files.
-> > For the W83781D, this is quirky because this chip has a single alarm
-> > bit for both temp2 and temp3.
-> 
-> Here is a quick review:
-> 
-> <snip>
-> 
-> > +static ssize_t
-> > +store_beep(struct device *dev, struct device_attribute *attr,
-> > +		const char *buf, size_t count)
-> > +{
-> > +	struct w83781d_data *data = w83781d_update_device(dev);
-> > +	int bitnr = to_sensor_dev_attr(attr)->index;
-> > +	unsigned long bit;
-> > +	u8 reg;
-> > +
-> 
-> You've just thought me not to call foo_update_device() in store functions, 
-> since I agree with your assessment that calling foo_update_device() in store 
-> functions is bad, please fix this.
+ drivers/hwmon/w83781d.c |  168 +++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 162 insertions(+), 6 deletions(-)
 
-You're totally right. Probably the result of a careless copy-and-paste.
-I'll fix and resubmit.
+--- linux-2.6.23-rc9.orig/drivers/hwmon/w83781d.c	2007-10-07 22:59:59.000000000 +0200
++++ linux-2.6.23-rc9/drivers/hwmon/w83781d.c	2007-10-08 10:38:54.000000000 +0200
+@@ -480,6 +480,39 @@ show_alarms_reg(struct device *dev, stru
+ 
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms_reg, NULL);
+ 
++static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	struct w83781d_data *data = w83781d_update_device(dev);
++	int bitnr = to_sensor_dev_attr(attr)->index;
++	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
++}
++
++/* The W83781D has a single alarm bit for temp2 and temp3 */
++static ssize_t show_temp3_alarm(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct w83781d_data *data = w83781d_update_device(dev);
++	int bitnr = (data->type = w83781d) ? 5 : 13;
++	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
++}
++
++static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
++static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
++static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3);
++static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 8);
++static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 9);
++static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 10);
++static SENSOR_DEVICE_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 16);
++static SENSOR_DEVICE_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 17);
++static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 6);
++static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 7);
++static SENSOR_DEVICE_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 11);
++static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4);
++static SENSOR_DEVICE_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 5);
++static SENSOR_DEVICE_ATTR(temp3_alarm, S_IRUGO, show_temp3_alarm, NULL, 0);
++
+ static ssize_t show_beep_mask (struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct w83781d_data *data = w83781d_update_device(dev);
+@@ -543,6 +576,100 @@ static DEVICE_ATTR(beep_mask, S_IRUGO | 
+ static DEVICE_ATTR(beep_enable, S_IRUGO | S_IWUSR,
+ 		show_beep_enable, store_beep_enable);
+ 
++static ssize_t show_beep(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	struct w83781d_data *data = w83781d_update_device(dev);
++	int bitnr = to_sensor_dev_attr(attr)->index;
++	return sprintf(buf, "%u\n", (data->beep_mask >> bitnr) & 1);
++}
++
++static ssize_t
++store_beep(struct device *dev, struct device_attribute *attr,
++		const char *buf, size_t count)
++{
++	struct w83781d_data *data = dev_get_drvdata(dev);
++	int bitnr = to_sensor_dev_attr(attr)->index;
++	unsigned long bit;
++	u8 reg;
++
++	bit = simple_strtoul(buf, NULL, 10);
++	if (bit & ~1)
++		return -EINVAL;
++
++	mutex_lock(&data->update_lock);
++	if (bit)
++		data->beep_mask |= (1 << bitnr);
++	else
++		data->beep_mask &= ~(1 << bitnr);
++
++	if (bitnr < 8) {
++		reg = w83781d_read_value(data, W83781D_REG_BEEP_INTS1);
++		if (bit)
++			reg |= (1 << bitnr);
++		else
++			reg &= ~(1 << bitnr);
++		w83781d_write_value(data, W83781D_REG_BEEP_INTS1, reg);
++	} else if (bitnr < 16) {
++		reg = w83781d_read_value(data, W83781D_REG_BEEP_INTS2);
++		if (bit)
++			reg |= (1 << (bitnr - 8));
++		else
++			reg &= ~(1 << (bitnr - 8));
++		w83781d_write_value(data, W83781D_REG_BEEP_INTS2, reg);
++	} else {
++		reg = w83781d_read_value(data, W83781D_REG_BEEP_INTS3);
++		if (bit)
++			reg |= (1 << (bitnr - 16));
++		else
++			reg &= ~(1 << (bitnr - 16));
++		w83781d_write_value(data, W83781D_REG_BEEP_INTS3, reg);
++	}
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
++/* The W83781D has a single beep bit for temp2 and temp3 */
++static ssize_t show_temp3_beep(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct w83781d_data *data = w83781d_update_device(dev);
++	int bitnr = (data->type = w83781d) ? 5 : 13;
++	return sprintf(buf, "%u\n", (data->beep_mask >> bitnr) & 1);
++}
++
++static SENSOR_DEVICE_ATTR(in0_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 0);
++static SENSOR_DEVICE_ATTR(in1_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 1);
++static SENSOR_DEVICE_ATTR(in2_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 2);
++static SENSOR_DEVICE_ATTR(in3_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 3);
++static SENSOR_DEVICE_ATTR(in4_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 8);
++static SENSOR_DEVICE_ATTR(in5_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 9);
++static SENSOR_DEVICE_ATTR(in6_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 10);
++static SENSOR_DEVICE_ATTR(in7_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 16);
++static SENSOR_DEVICE_ATTR(in8_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 17);
++static SENSOR_DEVICE_ATTR(fan1_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 6);
++static SENSOR_DEVICE_ATTR(fan2_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 7);
++static SENSOR_DEVICE_ATTR(fan3_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 11);
++static SENSOR_DEVICE_ATTR(temp1_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 4);
++static SENSOR_DEVICE_ATTR(temp2_beep, S_IRUGO | S_IWUSR,
++			show_beep, store_beep, 5);
++static SENSOR_DEVICE_ATTR(temp3_beep, S_IRUGO,
++			show_temp3_beep, store_beep, 13);
++
+ static ssize_t
+ show_fan_div(struct device *dev, struct device_attribute *da, char *buf)
+ {
+@@ -876,17 +1003,23 @@ ERROR_SC_0:
+ #define IN_UNIT_ATTRS(X)					\
+ 	&sensor_dev_attr_in##X##_input.dev_attr.attr,		\
+ 	&sensor_dev_attr_in##X##_min.dev_attr.attr,		\
+-	&sensor_dev_attr_in##X##_max.dev_attr.attr
++	&sensor_dev_attr_in##X##_max.dev_attr.attr, 		\
++	&sensor_dev_attr_in##X##_alarm.dev_attr.attr,		\
++	&sensor_dev_attr_in##X##_beep.dev_attr.attr
+ 
+ #define FAN_UNIT_ATTRS(X)					\
+ 	&sensor_dev_attr_fan##X##_input.dev_attr.attr,		\
+ 	&sensor_dev_attr_fan##X##_min.dev_attr.attr,		\
+-	&sensor_dev_attr_fan##X##_div.dev_attr.attr
++	&sensor_dev_attr_fan##X##_div.dev_attr.attr,		\
++	&sensor_dev_attr_fan##X##_alarm.dev_attr.attr,		\
++	&sensor_dev_attr_fan##X##_beep.dev_attr.attr
+ 
+ #define TEMP_UNIT_ATTRS(X)					\
+ 	&sensor_dev_attr_temp##X##_input.dev_attr.attr,		\
+ 	&sensor_dev_attr_temp##X##_max.dev_attr.attr,		\
+-	&sensor_dev_attr_temp##X##_max_hyst.dev_attr.attr
++	&sensor_dev_attr_temp##X##_max_hyst.dev_attr.attr,	\
++	&sensor_dev_attr_temp##X##_alarm.dev_attr.attr,		\
++	&sensor_dev_attr_temp##X##_beep.dev_attr.attr
+ 
+ static struct attribute* w83781d_attributes[] = {
+ 	IN_UNIT_ATTRS(0),
+@@ -945,7 +1078,11 @@ w83781d_create_files(struct device *dev,
+ 		    || (err = device_create_file(dev,
+ 				&sensor_dev_attr_in1_min.dev_attr))
+ 		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in1_max.dev_attr)))
++				&sensor_dev_attr_in1_max.dev_attr))
++		    || (err = device_create_file(dev,
++				&sensor_dev_attr_in1_alarm.dev_attr))
++		    || (err = device_create_file(dev,
++				&sensor_dev_attr_in1_beep.dev_attr)))
+ 			return err;
+ 	}
+ 	if (kind != as99127f && kind != w83781d && kind != w83783s) {
+@@ -956,11 +1093,19 @@ w83781d_create_files(struct device *dev,
+ 		    || (err = device_create_file(dev,
+ 				&sensor_dev_attr_in7_max.dev_attr))
+ 		    || (err = device_create_file(dev,
++				&sensor_dev_attr_in7_alarm.dev_attr))
++		    || (err = device_create_file(dev,
++				&sensor_dev_attr_in7_beep.dev_attr))
++		    || (err = device_create_file(dev,
+ 				&sensor_dev_attr_in8_input.dev_attr))
+ 		    || (err = device_create_file(dev,
+ 				&sensor_dev_attr_in8_min.dev_attr))
+ 		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in8_max.dev_attr)))
++				&sensor_dev_attr_in8_max.dev_attr))
++		    || (err = device_create_file(dev,
++				&sensor_dev_attr_in8_alarm.dev_attr))
++		    || (err = device_create_file(dev,
++				&sensor_dev_attr_in8_beep.dev_attr)))
+ 			return err;
+ 	}
+ 	if (kind != w83783s) {
+@@ -969,8 +1114,19 @@ w83781d_create_files(struct device *dev,
+ 		    || (err = device_create_file(dev,
+ 				&sensor_dev_attr_temp3_max.dev_attr))
+ 		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_temp3_max_hyst.dev_attr)))
++				&sensor_dev_attr_temp3_max_hyst.dev_attr))
++		    || (err = device_create_file(dev,
++				&sensor_dev_attr_temp3_alarm.dev_attr))
++		    || (err = device_create_file(dev,
++				&sensor_dev_attr_temp3_beep.dev_attr)))
+ 			return err;
++
++		if (kind != w83781d)
++			err = sysfs_chmod_file(&dev->kobj,
++				&sensor_dev_attr_temp3_alarm.dev_attr.attr,
++				S_IRUGO | S_IWUSR);
++			if (err)
++				return err;
+ 	}
+ 
+ 	if (kind != w83781d && kind != as99127f) {
 
-> > +	bit = simple_strtoul(buf, NULL, 10);
-> > +	if (bit & ~1)
-> > +		return -EINVAL;
->  > +	bit <<= bitnr;
->  > +
->  > +	mutex_lock(&data->update_lock);
->  > +	data->beep_mask &= ~(1 << bitnr);
->  > +	data->beep_mask |= bit;
-> 
-> Hmm, we need a clearer convention for writes to sysfs attr which are a boolean. 
-> In both of my abituguru drivers and in the fschmd driver I use:
-> 	unsigned long bool = bit = simple_strtoul(buf, NULL, 10);
-> 
-> And then
-> 	if (bool)
-> 		...
-> 	else
-> 		...
-> 
-> Your code above does things different. So I think we need a convention for this 
-> (and add the conention to the sysfs-interface doc). I prefer my way, if only 
-> for not having to change it everywhere.
-
-We already have a convention. From sysfs-interface: "If it is not
-continuous like for example a tempX_type, then when an invalid value is
-written, -EINVAL should be returned." Boolean values fall under this
-"not continuous" category, which means that unsupported values should
-trigger an error.
-
-> I would like to suggest the following 
-> for your code:
->
->  > +	bit = simple_strtoul(buf, NULL, 10);
->  > +
->  > +	mutex_lock(&data->update_lock);
->  > +	if (bit)
->  > +		data->beep_mask |= 1 << bitnr;
->  > +	else
->  > +		data->beep_mask &= ~(1 << bitnr);
-> 
-> I must say I also find this more readable / cleaner.
-
-I was a bit reluctant at first because it makes the code larger, but
-well, if you think it's more readable that way, this section isn't
-time-critical so why not.
-
-I'll retest and resubmit my patch later today.
 
 -- 
 Jean Delvare
