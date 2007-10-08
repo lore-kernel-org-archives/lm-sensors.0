@@ -1,29 +1,58 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Thu, 25 Oct 2007 02:18:54 +0000
-Subject: Re: [lm-sensors] [PATCH] Hardware Monitor LM70: Convert semaphore
-Message-Id: <20071025021854.GE30546@jupiter.solarsys.private>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Mon, 08 Oct 2007 20:23:43 +0000
+Subject: Re: [lm-sensors] Moving the "useful addresses" list to the wiki
+Message-Id: <191fb4ca0710081323j2aa945fbkc2c5120367668fdd@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071024125909.GA9095@traven>
-In-Reply-To: <20071024125909.GA9095@traven>
+References: <20070821110134.1c7af7d6@hyperion.delvare>
+In-Reply-To: <20070821110134.1c7af7d6@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>, Jean Delvare <khali@linux-fr.org>, Greg Kroah-Hartman <gregkh@suse.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+To: lm-sensors@vger.kernel.org
 
-Hi:
+Hi Jean,
 
-* Matthias Kaehlcke <matthias.kaehlcke@gmail.com> [2007-10-24 14:59:09 +0200]:
-> Hardware Monitor LM70: Convert the semaphore lm70->sem to the mutex
-> API
-> 
-> Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+On 8/24/07, Jean Delvare <khali@linux-fr.org> wrote:
+> Hi Juerg,
+>
+> On Wed, 22 Aug 2007 09:13:39 -0700, Juerg Haefliger wrote:
+> > On 8/21/07, Jean Delvare <khali@linux-fr.org> wrote:
+> > > I propose that we move doc/useful_addresses.html to
+> > > lm-sensors.org/wiki. Reasons for that are:
+> > >
+> > > * It will be much more visible there. I don't expect users to find this
+> > > file under /usr/share/doc. Some distributions don't even package it.
+> > >
+> > > * It is version-independent.
+> > >
+> > > * It will be easier to maintain in the wiki, more people can change it
+> > > there so there is a chance that the document becomes more useful over
+> > > time.
+> > >
+> > > If nothing else, this will be one less file to keep in sync between
+> > > both lm-sensors branches.
+> > >
+> > > Opinions?
+> > >
+> > > Is there a volunteer for the task?
+> >
+> > I'll take care of it.
+>
+> Great, thank you! I've created a task for you in trac:
+> http://www.lm-sensors.org/ticket/2242
 
-Applied to hwmon-2.6.git/testing, thanks.
+I'm done with the conversion. Can you update the link on the start
+page to point to wiki/UsefulLinks? I can't edit the start page.
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+...juerg
 
+
+
+> BTW, feel free to add yourself to wiki/AuthorsAndContributors.
+>
+> --
+> Jean Delvare
+>
 
 _______________________________________________
 lm-sensors mailing list
