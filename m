@@ -1,52 +1,64 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 14 Oct 2007 12:27:04 +0000
-Subject: Re: [lm-sensors] Abituguru needs force=y
-Message-Id: <47120B18.1050307@hhs.nl>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Tue, 09 Oct 2007 20:39:24 +0000
+Subject: [lm-sensors] [PATCH v3] hwmon: Add power meter spec
+Message-Id: <20071009203923.GJ16752@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <470DDE3C.1050209@hhs.nl>
-In-Reply-To: <470DDE3C.1050209@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Jean Delvare wrote:
-> On Thu, 11 Oct 2007 10:26:36 +0200, Hans de Goede wrote:
->> Graham Murray wrote:
->>> Hans de Goede <j.w.r.degoede@hhs.nl> writes:
->>>
->>>> Interesting, thanks for the notification. The version in 2.6.23 check
->>>> a few DMI strings to make sure its running on an Abit motherboard
->>>> before randomly bit banging some io-ports. So I guess your motherboard
->>>> has different DMI strings then most, can you please mail me the output
->>>> of the dmidecode command? Then I'll make sure this gets fixed in
->>>> 2.6.24.
->>> I think that the problem is that DMI does not work on my system. At boot
->>> I get the message "DMI not present or invalid" and running dmidecode
->>> confirms this. For the i386, there is no user option to disable DMI
->>> during kernel configuration.
->>>
->>> newton ~ # dmidecode
->>> # dmidecode 2.9
->>> # No SMBIOS nor DMI entry point found, sorry.
->>>
->> Hmm,
->>
->> Have you tried updating your BIOS?
-> 
-> Was there an answer to this question?
-> 
+Update the hwmon sysfs interface documentation to include a specification
+for power meters.
 
-Hmm,
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
 
-I just checked the motherboard in question, the Abit AA-8 durumax, and it 
-actually isn't one of the first. Its much newer then my uguru motherboard whcih 
-does DMI just fine, could you try updating the BIOS please, also do you have 
-ACPI enabled in the BIOS?
+ Documentation/hwmon/sysfs-interface |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+), 0 deletions(-)
 
-Regards,
-
-Hans
+diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+index db7bb4a..4e0fb20 100644
+--- a/Documentation/hwmon/sysfs-interface
++++ b/Documentation/hwmon/sysfs-interface
+@@ -324,6 +324,37 @@ curr[1-*]_input	Current input value
+ 		Unit: milliampere
+ 		RO
+ 
++*********
++* Power *
++*********
++
++power[1-*]_average		Average power use
++				Unit: microWatt
++				RO
++
++power[1-*]_average_highest	Historical average maximum power use
++				Unit: microWatt
++				RO
++
++power[1-*]_average_lowest	Historical average minimum power use
++				Unit: microWatt
++				RO
++
++power[1-*]_input		Instantaneous power use
++				Unit: microWatt
++				RO
++
++power[1-*]_input_highest	Historical maximum power use
++				Unit: microWatt
++				RO
++
++power[1-*]_input_lowest		Historical minimum power use
++				Unit: microWatt
++				RO
++
++power[1-*]_reset_history	Reset input_highest, input_lowest,
++				average_highest and average_lowest.
++				WO
+ 
+ **********
+ * Alarms *
 
 _______________________________________________
 lm-sensors mailing list
