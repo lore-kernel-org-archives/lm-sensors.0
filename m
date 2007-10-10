@@ -1,54 +1,71 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 25 Oct 2007 11:59:56 +0000
-Subject: Re: [lm-sensors] [PATCH] On n2100 systems,
-Message-Id: <20071025135956.6be6a7a3@hyperion.delvare>
+From: Pinkel <pinkel@gmail.com>
+Date: Wed, 10 Oct 2007 16:26:51 +0000
+Subject: [lm-sensors] Problems reloading sis5595 since kernel upgrade to
+Message-Id: <470CFD4B.3050809@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071016100857.GA25544@kos.to>
-In-Reply-To: <20071016100857.GA25544@kos.to>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Riku,
+Hey,
 
-On Wed, 24 Oct 2007 17:03:28 +0300, Riku Voipio wrote:
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> 00: 01 03 82 40 5c 18 ff ff ff ff ff ff ff ff ff ff    ???@\?..........
-> 10: d8 a8 d7 72 24 22 ff ff ff ff ff ff ff ff ff ff    ???r$"..........
-> 20: ff 00 ff 00 ff 00 ff 00 3c 37 3c 37 ff ff ff ff    ........<7<7....
-> 30: 00 00 00 00 00 f0 00 03 00 ff ff ff ff ff ff ff    .....?.?........
-> 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> 50: ff ff ff ff ff ff ff ff ff ff 03 06 15 19 34 ff    ..........????4.
-> 60: 50 02 09 00 00 00 09 89 89 30 30 10 10 33 32 00    P??...???00??32.
-> 70: ff ff ff ff ff ff 00 05 0a ff ff ff f5 00 ff ff    .......??...?...
-> 80: ff ff ff ff ff ff 00 05 0a ff ff ff f5 00 ff ff    .......??...?...
-> 90: 00 00 0d ff ff ff ff ff ff ff ff ff ff ff ff ff    ..?.............
-> a0: 3c 32 28 1e ff ff ff ff ff ff ff ff ff ff ff ff    <2(?............
-> b0: 3c 32 28 1e ff ff ff ff ff ff ff ff ff ff ff ff    <2(?............
-> c0: ae 04 ae 04 ff ff ff ff ff ff ff ff ff ff ff ff    ????............
-> d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> f0: 80 80 00 00 00 03 5b 06 c0 00 00 ff ff ff ff 1d    ??...?[??......?
+Yesterday, I upgraded my kernel on my sis5595 "PC" to 2.6.22.9, while 
+trying to converting the sis5595 device driver to support individual 
+alarm files.
+The first thing I noticed, is that when I loaded my patched version, 
+nothing happened. I couldn't find any file in sysfs and sensors said 'No 
+sensors were found.'.
+First, I thought I messed things up, which wouldn't be very surprising.
+However, after rebooting, I noticed that it also seem to happen in the 
+original sis5595:
 
-Register 0x60 has value 0x50, meaning that both fans are in manual
-mode. This is _not_ the chip default according to the datasheet.
-Registers 0x76 and 0x86 have value 0x00, which mean PWM duty cycle at
-0% for both fans. Again this is _not_ the chip default according to the
-datasheet.
+1. I boot my pc. I run sensors (vanilla config) and....
+--
+[ivo@localhost ~]$ sensors
+sis5595-isa-0290
+Adapter: ISA adapter
+VCore 1:   +2.96 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+VCore 2:   +3.41 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
++3.3V:     +2.75 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
++5V:       +3.44 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
++12V:     +14.71 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+fan1:        0 RPM  (min =   -1 RPM, div = 2)          ALARM
+fan2:        0 RPM  (min =   -1 RPM, div = 2)          ALARM
+alarms:   Board temperature input (usually LM75 chips) ALARM
 
-So, assuming that the dump above was really taken right after boot
-before the Linux kernel driver had a chance to change register values,
-and also assuming that the datasheet provided by Fintek is correct,
-this really means that Thecus are voluntarily stopping the fans at boot
-time. That's a pretty stupid thing to do.
+2. I reload the module
+--
+[ivo@localhost ~]$ sudo /sbin/rmmod sis5595
+[ivo@localhost ~]$ sudo /sbin/modprobe sis5595
 
-This doesn't imply whether we should or shouldn't start the fans at a
-later point, of course. But at least it explains why the fans aren't
-spinning at boot when the datasheet defaults suggested that they should.
+3. Then I run sensors
+[ivo@localhost ~]$ sensors
+No sensors found!
+Make sure you loaded all the kernel drivers you need.
+Try sensors-detect to find out which these are.
 
--- 
-Jean Delvare
+[ivo@localhost ~]$ sudo /sbin/lsmod | grep sis5595
+sis5595                17993  0
+i2c_sis5595            11077  0
+hwmon                   7365  1 sis5595
+i2c_isa                 8257  1 sis5595
+i2c_core               27841  4 sis5595,i2c_sis630,i2c_sis5595,i2c_isa
+
+[root@localhost sis]# uname -r
+2.6.22.9-61.fc6
+
+Any idea what happens here? I'm clueless. Can't find anything in any log 
+file either.
+The only thing that shows up after playing around with loading and 
+unloading modules, and running sensors-detect is
+--
+Oct  8 04:25:20 localhost kernel: spurious 8259A interrupt: IRQ7.
+
+But I suppose that's unrelated?
+
+--
+Ivo
 
 _______________________________________________
 lm-sensors mailing list
