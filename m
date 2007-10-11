@@ -1,73 +1,101 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 10 Oct 2007 18:09:17 +0000
-Subject: Re: [lm-sensors] Problems reloading sis5595 since kernel upgrade to
-Message-Id: <20071010200917.7c2a919a@hyperion.delvare>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Thu, 11 Oct 2007 04:08:27 +0000
+Subject: [lm-sensors] hwmon driver authors: please read (was Re: [PATCH
+Message-Id: <20071011040827.GA3994@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <470CFD4B.3050809@gmail.com>
-In-Reply-To: <470CFD4B.3050809@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ivo,
+Hi everyone:
 
-On Wed, 10 Oct 2007 18:26:51 +0200, Pinkel wrote:
-> Yesterday, I upgraded my kernel on my sis5595 "PC" to 2.6.22.9, while 
-> trying to converting the sis5595 device driver to support individual 
-> alarm files.
-> The first thing I noticed, is that when I loaded my patched version, 
-> nothing happened. I couldn't find any file in sysfs and sensors said 'No 
-> sensors were found.'.
-> First, I thought I messed things up, which wouldn't be very surprising.
-> However, after rebooting, I noticed that it also seem to happen in the 
-> original sis5595:
-> 
-> 1. I boot my pc. I run sensors (vanilla config) and....
-> --
-> [ivo@localhost ~]$ sensors
-> sis5595-isa-0290
-> Adapter: ISA adapter
-> VCore 1:   +2.96 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
-> VCore 2:   +3.41 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
-> +3.3V:     +2.75 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
-> +5V:       +3.44 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
-> +12V:     +14.71 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
-> fan1:        0 RPM  (min =   -1 RPM, div = 2)          ALARM
-> fan2:        0 RPM  (min =   -1 RPM, div = 2)          ALARM
-> alarms:   Board temperature input (usually LM75 chips) ALARM
-> 
-> 2. I reload the module
-> --
-> [ivo@localhost ~]$ sudo /sbin/rmmod sis5595
-> [ivo@localhost ~]$ sudo /sbin/modprobe sis5595
-> 
-> 3. Then I run sensors
-> [ivo@localhost ~]$ sensors
-> No sensors found!
-> Make sure you loaded all the kernel drivers you need.
-> Try sensors-detect to find out which these are.
-> 
-> [ivo@localhost ~]$ sudo /sbin/lsmod | grep sis5595
-> sis5595                17993  0
-> i2c_sis5595            11077  0
-> hwmon                   7365  1 sis5595
-> i2c_isa                 8257  1 sis5595
-> i2c_core               27841  4 sis5595,i2c_sis630,i2c_sis5595,i2c_isa
-> 
-> [root@localhost sis]# uname -r
-> 2.6.22.9-61.fc6
-> 
-> Any idea what happens here? I'm clueless. Can't find anything in any log 
-> file either.
+> On Sun, 7 Oct 2007 21:27:35 -0700, Juerg Haefliger wrote:
+> > 3rd iteration of the patch:
+> > - fixed header comment
+> > - replaced dme1737_update_device with dev_get_drvdata in show_name
+> > - replaced class_dev with hwmon_dev
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Try unloading i2c-sis5595 before you reload sis5595. The i2c-sis5595
-driver refuses to share the PCI device with other drivers until 2.6.23.
-See:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;hs75cd822d600b4e8b83cbc025422e4267bf5fac
+No, you didn't do that in this patch.  You prepared this patch against a tree
+in which this had been done... even though the first two patches in your series
+were not prepared that way.  Git makes this fairly easy for me to deal with,
+actually, but I shouldn't have to.  More on that later.
+
+NOTE TO ALL HWMON DRIVER AUTHORS:
+
+If you have multiple patches in a series, make sure that they are all prepared
+against the same base version and that they can be applied in order.  Also,
+please give me some indication of what that base version is, roughly.  If you
+use git ('format-patch') that info is automatically included.  If you use quilt,
+you'll have to tell me what it is.  If you use bare diff, just give your trees
+meaningful names (e.g. v2.6.23-rc4 vs. v2.6.23-rc4.orig).
+
+And, I *don't* particularly care what the base version is.  I just don't want
+to have to *guess*.
+
+So back to Juerg's series... it would be better for all three patches to apply
+against e.g. v2.6.23-rc6.  Then I would have just branched with that as a base,
+committed the whole series, and then merged the whole branch.  That way, the
+patches would have gone into the repo exactly as Juerg sent them to me, in that
+exact order.  Pre-merge, the code is exactly as he tested it.  Post-merge, if
+I screwed it up, it's obviously my fault.
+
+
+             ------------------o--o--o <- Juerg's 3 patches
+            /                         \
+           /             o-(etc)-o--o--o <- merge results
+          /             /              ^
+  -o--o--o--o-(etc)-o--o          hwmon.testing
+         ^             ^
+     v2.6.23-rc6    v2.6.23
+
+Contrast with what actually happened here:
+
+The first two patches applied cleanly to v2.6.23 (a guess on my part - not
+specified in the patch itself).  The third one didn't, because it presumed the
+class_dev -> hwmon_dev change.  Really, I don't know the base of this patch,
+except that it seemed to include enough of the Tony Jones patch to require it
+as an ancestor.
+
+
+             ------------------o--o <- Juerg's 1,2 of 3
+            /                      \
+           /             o-(etc)-o--o----------o <- Juerg's 3 of 3
+          /             /           ^          ^
+  -o--o--o--o-(etc)-o--o           merge  hwmon.testing
+         ^             ^
+     v2.6.23-rc6    v2.6.23
+
+(If you clone my repo with git, you can run gitk to see the same diagram with
+actual graphics instead of ASCII art.  [And it would be vertical, instead of
+horizontal, but I digress.])
+
+That's unsound for a couple of reasons:
+
+1) Whatever Juerg did to create a base for the 3rd patch, I had to recreate.
+I.e. he must have done a merge by hand to even generate the 3rd patch.
+
+2) I might have done (1) differently than he did.
+
+So now I would like to know if the resulting drivers/hwmon/dme1737.c in my
+testing branch is the same as what you (Juerg) actually intended and tested.
+
+Juerg: I don't mean to pick on you.  Others have done this too (Hi Hans!),
+even with merge conflicts from patches that aren't in any tree I know about
+(Hi Darrick!)  ;)
+
+Basically, whatever tree you guys use to start a patch series, keep using that
+one until the series is done.  If I have to resolve conflicts to merge the
+whole series, that's fine - it's my "job" now. ;) But I shouldn't need to merge
+midway through a series and guess at the ancestry of each patch in it.
+
+Thanks & regards,
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
