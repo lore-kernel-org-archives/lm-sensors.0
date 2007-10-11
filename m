@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 09 Oct 2007 16:18:28 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Thu, 11 Oct 2007 04:12:28 +0000
 Subject: Re: [lm-sensors] [PATCH RESEND 3] hwmon/dme1737: add sch311x support
-Message-Id: <20071009181828.37bec781@hyperion.delvare>
+Message-Id: <20071011041228.GD3994@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0710072127j7113780dx8a60b475d7a8f772@mail.gmail.com>
 In-Reply-To: <191fb4ca0710072127j7113780dx8a60b475d7a8f772@mail.gmail.com>
@@ -10,31 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+Hi:
 
-On Sun, 7 Oct 2007 21:27:35 -0700, Juerg Haefliger wrote:
-> 3rd iteration of the patch:
-> - fixed header comment
-> - replaced dme1737_update_device with dev_get_drvdata in show_name
-> - replaced class_dev with hwmon_dev
+* Jean Delvare <khali@linux-fr.org> [2007-10-09 18:18:28 +0200]:
+> Hi Juerg,
 > 
+> On Sun, 7 Oct 2007 21:27:35 -0700, Juerg Haefliger wrote:
+> > 3rd iteration of the patch:
+> > - fixed header comment
+> > - replaced dme1737_update_device with dev_get_drvdata in show_name
+> > - replaced class_dev with hwmon_dev
+> > 
+> > 
+> > This patch adds support for the SMSC SCH3112, SCH3114, and SCH3116 Super-I/O
+> > chips. These chips feature identical hardware monitoring capabilites with the
+> > exception that some of the fan inputs and pmw outputs don't exist.
+> > 
+> > The hardware monitoring features of the SCH311x chips can only be accessed via
+> > the ISA bus. The driver therefore registers as a platform driver, if such a
+> > chip is detected.
+> > 
+> > Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 > 
-> This patch adds support for the SMSC SCH3112, SCH3114, and SCH3116 Super-I/O
-> chips. These chips feature identical hardware monitoring capabilites with the
-> exception that some of the fan inputs and pmw outputs don't exist.
+> No more comments.
 > 
-> The hardware monitoring features of the SCH311x chips can only be accessed via
-> the ISA bus. The driver therefore registers as a platform driver, if such a
-> chip is detected.
-> 
-> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+> Acked-by: Jean Delvare <khali@linux-fr.org>
 
-No more comments.
-
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Applied to hwmon-2.6.git/testing.  Please make sure that my merge results are
+identical to yours - thanks.
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
