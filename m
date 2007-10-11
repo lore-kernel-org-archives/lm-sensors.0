@@ -1,39 +1,49 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 14 Oct 2007 00:53:12 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (w83627hf) don't assume bank 0
-Message-Id: <20071014005312.GA9586@jupiter.solarsys.private>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Thu, 11 Oct 2007 08:26:36 +0000
+Subject: Re: [lm-sensors] Abituguru needs force=y
+Message-Id: <470DDE3C.1050209@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071010163023.5b9f87e8@hyperion.delvare>
-In-Reply-To: <20071010163023.5b9f87e8@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
-
-* Jean Delvare <khali@linux-fr.org> [2007-10-10 16:30:23 +0200]:
-> The bank switching code assumes that the bank selector is set to 0
-> when the driver is loaded. This might not be the case. This is exactly
-> the same bug as was fixed in the w83627ehf driver two months ago:
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h	56895aa6f8dc6a33210967252fd7787652537d
+Graham Murray wrote:
+> Hans de Goede <j.w.r.degoede@hhs.nl> writes:
 > 
-> In practice, this bug was causing the sensor thermal types to be
-> improperly reported for my W83627THF the first time I was loading the
-> w83627hf driver. From the driver history, I'd say that it has been
-> broken since September 2005 (when we stopped resetting the chip by
-> default at driver load.)
+>> Interesting, thanks for the notification. The version in 2.6.23 check
+>> a few DMI strings to make sure its running on an Abit motherboard
+>> before randomly bit banging some io-ports. So I guess your motherboard
+>> has different DMI strings then most, can you please mail me the output
+>> of the dmidecode command? Then I'll make sure this gets fixed in
+>> 2.6.24.
 > 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
->  drivers/hwmon/w83627hf.c |   44 ++++++++++++++++++++++----------------------
->  1 file changed, 22 insertions(+), 22 deletions(-)
+> I think that the problem is that DMI does not work on my system. At boot
+> I get the message "DMI not present or invalid" and running dmidecode
+> confirms this. For the i386, there is no user option to disable DMI
+> during kernel configuration.
+> 
+> newton ~ # dmidecode
+> # dmidecode 2.9
+> # No SMBIOS nor DMI entry point found, sorry.
+> 
 
-Applied to hwmon-2.6.git/testing, thanks.
+Hmm,
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Have you tried updating your BIOS?
+
+Taking this to the lm-sensors list:
+
+Hi all,
+
+As you can read above the new DMI checks in the abituguru driver are causing 
+problems for this user, because he has one of the first abituguru motherboards 
+which appearantly  doesn't have dmi. So I guess we should remove the check on 
+systems where the BIOS doesn't have DMI? Does anyone have a better idea?
+
+Regards,
+
+Hans
 
 
 _______________________________________________
