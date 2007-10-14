@@ -1,190 +1,268 @@
-From: "Jim Cromie" <jim.cromie@gmail.com>
-Date: Fri, 12 Oct 2007 23:56:41 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 14 Oct 2007 08:36:56 +0000
 Subject: Re: [lm-sensors] [patch 1/1] w83627hf hoist nr-1 offset out of
-Message-Id: <cfe85dfa0710121656y10cbe821oc85cfb0c1d283780@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_27946_17533180.1192233401275"
+Message-Id: <20071014103656.47fc34b7@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <cfe85dfa0710121550l3eef3a9dvd4ade68510ab8003@mail.gmail.com>
 In-Reply-To: <cfe85dfa0710121550l3eef3a9dvd4ade68510ab8003@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_27946_17533180.1192233401275
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Jim,
 
-this patch replaces last, fixing (long) cast placement,
-and one previously missed (nr>=2) -> (nr)
+On Fri, 12 Oct 2007 17:56:41 -0600, Jim Cromie wrote:
+> this patch replaces last, fixing (long) cast placement,
+> and one previously missed (nr>=2) -> (nr)
+> 
+> This hoists nr-1 offset out of (show|store)_temp_*(.*) callbacks, and into
+> SENSOR_DEVICE_ATTRs for sysfs tempN_X files.  It also combines
+> temp[1] and temp_add[2] (array) fields in w83627hf_data into 3 elem arrays,
+> which simplifies special-case handling of nr, allowing simplification
+> of callback bodies and rerolling a flattened loop in
+> w83627hf_update_device(struct device *dev).
 
-This hoists nr-1 offset out of (show|store)_temp_*(.*) callbacks, and into
-SENSOR_DEVICE_ATTRs for sysfs tempN_X files.  It also combines
-temp[1] and temp_add[2] (array) fields in w83627hf_data into 3 elem arrays,
-which simplifies special-case handling of nr, allowing simplification
-of callback bodies and rerolling a flattened loop in
-w83627hf_update_device(struct device *dev).
+Very nice cleanup, thanks.
 
-The array conversion changes temp[1] from u8 to u16, but this was
-happening implicitly via the helper functions anyway.
+> The array conversion changes temp[1] from u8 to u16, but this was
+> happening implicitly via the helper functions anyway.
+> 
+> Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
+> ---
+> $ diffstat diff.hwmon-w83627hf-hoist-temp-offsets
+>  drivers/hwmon/w83627hf.c |  120 +++++++++++++++++------------------------------
+>  1 files changed, 44 insertions(+), 76 deletions(-)
+> 
+> 
+> > size shrinks too:
+> >   12982    2652      36   15670    3d36 hwmon-demacro/drivers/hwmon/w83627hf.ko
+> >   12850    2652      36   15538    3cb2 hwmon-hf-2/drivers/hwmon/w83627hf.ko
+> >
+> > and the u8->u16 doesnt seem to cost anything in the data section. (padding?)
 
-Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
----
-$ diffstat diff.hwmon-w83627hf-hoist-temp-offsets
- drivers/hwmon/w83627hf.c |  120 +++++++++++++++++------------------------------
- 1 files changed, 44 insertions(+), 76 deletions(-)
+The struct w83627hf_data is allocated dynamically so it doesn't appear
+in any section of the binary. The 3 static reg_temp arrays should show
+in the data section... not sure why they don't.
 
+Review:
 
-> size shrinks too:
->   12982    2652      36   15670    3d36 hwmon-demacro/drivers/hwmon/w83627hf.ko
->   12850    2652      36   15538    3cb2 hwmon-hf-2/drivers/hwmon/w83627hf.ko
->
-> and the u8->u16 doesnt seem to cost anything in the data section. (padding?)
->
->
+> --- hwmon-demacro/drivers/hwmon/w83627hf.c	2007-10-11 16:03:10.000000000 -0600
+> +++ hwmon-hf-1/drivers/hwmon/w83627hf.c	2007-10-12 17:42:11.000000000 -0600
+> @@ -175,15 +175,10 @@ superio_exit(void)
+>  
+>  #define W83781D_REG_TEMP2_CONFIG 0x152
+>  #define W83781D_REG_TEMP3_CONFIG 0x252
+> -#define W83781D_REG_TEMP(nr)		((nr = 3) ? (0x0250) : \
+> -					((nr = 2) ? (0x0150) : \
+> -					             (0x27)))
+> -#define W83781D_REG_TEMP_HYST(nr)	((nr = 3) ? (0x253) : \
+> -					((nr = 2) ? (0x153) : \
+> -					             (0x3A)))
+> -#define W83781D_REG_TEMP_OVER(nr)	((nr = 3) ? (0x255) : \
+> -					((nr = 2) ? (0x155) : \
+> -					             (0x39)))
+> +/* these are zero-based, unlike config constants above */
+> +static u16 w83781d_reg_temp[]		= { 0x27, 0x150, 0x250 };
+> +static u16 w83781d_reg_temp_hyst[]	= { 0x3A, 0x153, 0x253 };
+> +static u16 w83781d_reg_temp_over[]	= { 0x39, 0x155, 0x255 };
 
-------=_Part_27946_17533180.1192233401275
-Content-Type: application/octet-stream;
-	name="diff.hwmon-w83627hf-hoist-temp-offsets"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="diff.hwmon-w83627hf-hoist-temp-offsets"; 
-	filename="diff.hwmon-w83627hf-hoist-temp-offsets"
-X-Attachment-Id: f_f7pcy5ki
+Could be made const. Please also name these w83627hf_reg_* instead of
+w83781d_reg_*. Ultimately we want to remove all references to w83781d
+from this driver.
 
-QmluYXJ5IGZpbGVzIGh3bW9uLWRlbWFjcm8vYXJjaC9pMzg2L2Jvb3Qvc2V0dXAuZWxmIGFuZCBo
-d21vbi1oZi0xL2FyY2gvaTM4Ni9ib290L3NldHVwLmVsZiBkaWZmZXIKZGlmZiAtcnVOcCAtWCBk
-b250ZGlmZiAtWCBleGNsdWRlLWRpZmZzIGh3bW9uLWRlbWFjcm8vZHJpdmVycy9od21vbi93ODM2
-MjdoZi5jIGh3bW9uLWhmLTEvZHJpdmVycy9od21vbi93ODM2MjdoZi5jCi0tLSBod21vbi1kZW1h
-Y3JvL2RyaXZlcnMvaHdtb24vdzgzNjI3aGYuYwkyMDA3LTEwLTExIDE2OjAzOjEwLjAwMDAwMDAw
-MCAtMDYwMAorKysgaHdtb24taGYtMS9kcml2ZXJzL2h3bW9uL3c4MzYyN2hmLmMJMjAwNy0xMC0x
-MiAxNzo0MjoxMS4wMDAwMDAwMDAgLTA2MDAKQEAgLTE3NSwxNSArMTc1LDEwIEBAIHN1cGVyaW9f
-ZXhpdCh2b2lkKQogCiAjZGVmaW5lIFc4Mzc4MURfUkVHX1RFTVAyX0NPTkZJRyAweDE1MgogI2Rl
-ZmluZSBXODM3ODFEX1JFR19URU1QM19DT05GSUcgMHgyNTIKLSNkZWZpbmUgVzgzNzgxRF9SRUdf
-VEVNUChucikJCSgobnIgPT0gMykgPyAoMHgwMjUwKSA6IFwKLQkJCQkJKChuciA9PSAyKSA/ICgw
-eDAxNTApIDogXAotCQkJCQkgICAgICAgICAgICAgKDB4MjcpKSkKLSNkZWZpbmUgVzgzNzgxRF9S
-RUdfVEVNUF9IWVNUKG5yKQkoKG5yID09IDMpID8gKDB4MjUzKSA6IFwKLQkJCQkJKChuciA9PSAy
-KSA/ICgweDE1MykgOiBcCi0JCQkJCSAgICAgICAgICAgICAoMHgzQSkpKQotI2RlZmluZSBXODM3
-ODFEX1JFR19URU1QX09WRVIobnIpCSgobnIgPT0gMykgPyAoMHgyNTUpIDogXAotCQkJCQkoKG5y
-ID09IDIpID8gKDB4MTU1KSA6IFwKLQkJCQkJICAgICAgICAgICAgICgweDM5KSkpCisvKiB0aGVz
-ZSBhcmUgemVyby1iYXNlZCwgdW5saWtlIGNvbmZpZyBjb25zdGFudHMgYWJvdmUgKi8KK3N0YXRp
-YyB1MTYgdzgzNzgxZF9yZWdfdGVtcFtdCQk9IHsgMHgyNywgMHgxNTAsIDB4MjUwIH07CitzdGF0
-aWMgdTE2IHc4Mzc4MWRfcmVnX3RlbXBfaHlzdFtdCT0geyAweDNBLCAweDE1MywgMHgyNTMgfTsK
-K3N0YXRpYyB1MTYgdzgzNzgxZF9yZWdfdGVtcF9vdmVyW10JPSB7IDB4MzksIDB4MTU1LCAweDI1
-NSB9OwogCiAjZGVmaW5lIFc4Mzc4MURfUkVHX0JBTksgMHg0RQogCkBAIC0zNjAsMTIgKzM1NSw5
-IEBAIHN0cnVjdCB3ODM2MjdoZl9kYXRhIHsKIAl1OCBpbl9taW5bOV07CQkvKiBSZWdpc3RlciB2
-YWx1ZSAqLwogCXU4IGZhblszXTsJCS8qIFJlZ2lzdGVyIHZhbHVlICovCiAJdTggZmFuX21pblsz
-XTsJCS8qIFJlZ2lzdGVyIHZhbHVlICovCi0JdTggdGVtcDsKLQl1OCB0ZW1wX21heDsJCS8qIFJl
-Z2lzdGVyIHZhbHVlICovCi0JdTggdGVtcF9tYXhfaHlzdDsJLyogUmVnaXN0ZXIgdmFsdWUgKi8K
-LQl1MTYgdGVtcF9hZGRbMl07CS8qIFJlZ2lzdGVyIHZhbHVlICovCi0JdTE2IHRlbXBfbWF4X2Fk
-ZFsyXTsJLyogUmVnaXN0ZXIgdmFsdWUgKi8KLQl1MTYgdGVtcF9tYXhfaHlzdF9hZGRbMl07IC8q
-IFJlZ2lzdGVyIHZhbHVlICovCisJdTE2IHRlbXBbM107CisJdTE2IHRlbXBfbWF4WzNdOwkvKiBS
-ZWdpc3RlciB2YWx1ZSAqLworCXUxNiB0ZW1wX21heF9oeXN0WzNdOwkvKiBSZWdpc3RlciB2YWx1
-ZSAqLwogCXU4IGZhbl9kaXZbM107CQkvKiBSZWdpc3RlciBlbmNvZGluZywgc2hpZnRlZCByaWdo
-dCAqLwogCXU4IHZpZDsJCQkvKiBSZWdpc3RlciBlbmNvZGluZywgY29tYmluZWQgKi8KIAl1MzIg
-YWxhcm1zOwkJLyogUmVnaXN0ZXIgZW5jb2RpbmcsIGNvbWJpbmVkICovCkBAIC02MTAsMTIgKzYw
-MiwxMCBAQCBzaG93X3RlbXAoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2CiB7CiAJaW50
-IG5yID0gdG9fc2Vuc29yX2Rldl9hdHRyKGRldmF0dHIpLT5pbmRleDsKIAlzdHJ1Y3QgdzgzNjI3
-aGZfZGF0YSAqZGF0YSA9IHc4MzYyN2hmX3VwZGF0ZV9kZXZpY2UoZGV2KTsKLQlpZiAobnIgPj0g
-MikgewkvKiBURU1QMiBhbmQgVEVNUDMgKi8KLQkJcmV0dXJuIHNwcmludGYoYnVmLCAiJWxkXG4i
-LAotCQkJKGxvbmcpTE03NV9URU1QX0ZST01fUkVHKGRhdGEtPnRlbXBfYWRkW25yLTJdKSk7Ci0J
-fSBlbHNlIHsJLyogVEVNUDEgKi8KLQkJcmV0dXJuIHNwcmludGYoYnVmLCAiJWxkXG4iLCAobG9u
-ZylURU1QX0ZST01fUkVHKGRhdGEtPnRlbXApKTsKLQl9CisKKwl1MTYgdG1wID0gZGF0YS0+dGVt
-cFtucl07CisJcmV0dXJuIHNwcmludGYoYnVmLCAiJWxkXG4iLCAobnIpID8gKGxvbmcpIExNNzVf
-VEVNUF9GUk9NX1JFRyh0bXApCisJCQkJCSAgOiAobG9uZykgVEVNUF9GUk9NX1JFRyh0bXApKTsK
-IH0KIAogc3RhdGljIHNzaXplX3QKQEAgLTYyNCwxMyArNjE0LDEwIEBAIHNob3dfdGVtcF9tYXgo
-c3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QKIHsKIAlpbnQgbnIgPSB0b19zZW5zb3JfZGV2X2F0
-dHIoZGV2YXR0ciktPmluZGV4OwogCXN0cnVjdCB3ODM2MjdoZl9kYXRhICpkYXRhID0gdzgzNjI3
-aGZfdXBkYXRlX2RldmljZShkZXYpOwotCWlmIChuciA+PSAyKSB7CS8qIFRFTVAyIGFuZCBURU1Q
-MyAqLwotCQlyZXR1cm4gc3ByaW50ZihidWYsICIlbGRcbiIsCi0JCQkobG9uZylMTTc1X1RFTVBf
-RlJPTV9SRUcoZGF0YS0+dGVtcF9tYXhfYWRkW25yLTJdKSk7Ci0JfSBlbHNlIHsJLyogVEVNUDEg
-Ki8KLQkJcmV0dXJuIHNwcmludGYoYnVmLCAiJWxkXG4iLAotCQkJKGxvbmcpVEVNUF9GUk9NX1JF
-RyhkYXRhLT50ZW1wX21heCkpOwotCX0KKworCXUxNiB0bXAgPSBkYXRhLT50ZW1wX21heFtucl07
-CisJcmV0dXJuIHNwcmludGYoYnVmLCAiJWxkXG4iLCAobnIpID8gKGxvbmcpIExNNzVfVEVNUF9G
-Uk9NX1JFRyh0bXApCisJCQkJCSAgOiAobG9uZykgVEVNUF9GUk9NX1JFRyh0bXApKTsKIH0KIAog
-c3RhdGljIHNzaXplX3QKQEAgLTYzOSwxMyArNjI2LDEwIEBAIHNob3dfdGVtcF9tYXhfaHlzdChz
-dHJ1Y3QgZGV2aWNlICpkZXYsIHMKIHsKIAlpbnQgbnIgPSB0b19zZW5zb3JfZGV2X2F0dHIoZGV2
-YXR0ciktPmluZGV4OwogCXN0cnVjdCB3ODM2MjdoZl9kYXRhICpkYXRhID0gdzgzNjI3aGZfdXBk
-YXRlX2RldmljZShkZXYpOwotCWlmIChuciA+PSAyKSB7CS8qIFRFTVAyIGFuZCBURU1QMyAqLwot
-CQlyZXR1cm4gc3ByaW50ZihidWYsICIlbGRcbiIsCi0JCQkobG9uZylMTTc1X1RFTVBfRlJPTV9S
-RUcoZGF0YS0+dGVtcF9tYXhfaHlzdF9hZGRbbnItMl0pKTsKLQl9IGVsc2UgewkvKiBURU1QMSAq
-LwotCQlyZXR1cm4gc3ByaW50ZihidWYsICIlbGRcbiIsCi0JCQkobG9uZylURU1QX0ZST01fUkVH
-KGRhdGEtPnRlbXBfbWF4X2h5c3QpKTsKLQl9CisKKwl1MTYgdG1wID0gZGF0YS0+dGVtcF9tYXhf
-aHlzdFtucl07CisJcmV0dXJuIHNwcmludGYoYnVmLCAiJWxkXG4iLCAobnIpID8gKGxvbmcpIExN
-NzVfVEVNUF9GUk9NX1JFRyh0bXApCisJCQkJCSAgOiAobG9uZykgVEVNUF9GUk9NX1JFRyh0bXAp
-KTsKIH0KIAogc3RhdGljIHNzaXplX3QKQEAgLTY1NSwxOCArNjM5LDE2IEBAIHN0b3JlX3RlbXBf
-bWF4KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWMKIAlpbnQgbnIgPSB0b19zZW5zb3JfZGV2X2F0
-dHIoZGV2YXR0ciktPmluZGV4OwogCXN0cnVjdCB3ODM2MjdoZl9kYXRhICpkYXRhID0gZGV2X2dl
-dF9kcnZkYXRhKGRldik7CiAJbG9uZyB2YWwgPSBzaW1wbGVfc3RydG9sKGJ1ZiwgTlVMTCwgMTAp
-OworCXUxNiB0bXA7CiAKIAltdXRleF9sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7CiAKLQlpZiAo
-bnIgPj0gMikgewkvKiBURU1QMiBhbmQgVEVNUDMgKi8KLQkJZGF0YS0+dGVtcF9tYXhfYWRkW25y
-LTJdID0gTE03NV9URU1QX1RPX1JFRyh2YWwpOwotCQl3ODM2MjdoZl93cml0ZV92YWx1ZShkYXRh
-LCBXODM3ODFEX1JFR19URU1QX09WRVIobnIpLAotCQkJCWRhdGEtPnRlbXBfbWF4X2FkZFtuci0y
-XSk7Ci0JfSBlbHNlIHsJLyogVEVNUDEgKi8KLQkJZGF0YS0+dGVtcF9tYXggPSBURU1QX1RPX1JF
-Ryh2YWwpOwotCQl3ODM2MjdoZl93cml0ZV92YWx1ZShkYXRhLCBXODM3ODFEX1JFR19URU1QX09W
-RVIobnIpLAotCQkJZGF0YS0+dGVtcF9tYXgpOwotCX0KKwl0bXAgPSAobnIpID8gTE03NV9URU1Q
-X1RPX1JFRyh2YWwpCisJCSAgIDogVEVNUF9UT19SRUcodmFsKTsKKworCWRhdGEtPnRlbXBfbWF4
-W25yXSA9IHRtcDsKKwl3ODM2MjdoZl93cml0ZV92YWx1ZShkYXRhLCB3ODM3ODFkX3JlZ190ZW1w
-X292ZXJbbnJdLCB0bXApOworCiAJbXV0ZXhfdW5sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7CiAJ
-cmV0dXJuIGNvdW50OwogfQpAQCAtNjc4LDI5ICs2NjAsMjcgQEAgc3RvcmVfdGVtcF9tYXhfaHlz
-dChzdHJ1Y3QgZGV2aWNlICpkZXYsIAogCWludCBuciA9IHRvX3NlbnNvcl9kZXZfYXR0cihkZXZh
-dHRyKS0+aW5kZXg7CiAJc3RydWN0IHc4MzYyN2hmX2RhdGEgKmRhdGEgPSBkZXZfZ2V0X2RydmRh
-dGEoZGV2KTsKIAlsb25nIHZhbCA9IHNpbXBsZV9zdHJ0b2woYnVmLCBOVUxMLCAxMCk7CisJdTE2
-IHRtcDsKIAogCW11dGV4X2xvY2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsKIAotCWlmIChuciA+PSAy
-KSB7CS8qIFRFTVAyIGFuZCBURU1QMyAqLwotCQlkYXRhLT50ZW1wX21heF9oeXN0X2FkZFtuci0y
-XSA9IExNNzVfVEVNUF9UT19SRUcodmFsKTsKLQkJdzgzNjI3aGZfd3JpdGVfdmFsdWUoZGF0YSwg
-VzgzNzgxRF9SRUdfVEVNUF9IWVNUKG5yKSwKLQkJCQlkYXRhLT50ZW1wX21heF9oeXN0X2FkZFtu
-ci0yXSk7Ci0JfSBlbHNlIHsJLyogVEVNUDEgKi8KLQkJZGF0YS0+dGVtcF9tYXhfaHlzdCA9IFRF
-TVBfVE9fUkVHKHZhbCk7Ci0JCXc4MzYyN2hmX3dyaXRlX3ZhbHVlKGRhdGEsIFc4Mzc4MURfUkVH
-X1RFTVBfSFlTVChuciksCi0JCQlkYXRhLT50ZW1wX21heF9oeXN0KTsKLQl9CisJdG1wID0gKG5y
-KSA/IExNNzVfVEVNUF9UT19SRUcodmFsKQorCQkgICA6IFRFTVBfVE9fUkVHKHZhbCk7CisKKwlk
-YXRhLT50ZW1wX21heF9oeXN0W25yXSA9IHRtcDsKKwl3ODM2MjdoZl93cml0ZV92YWx1ZShkYXRh
-LCB3ODM3ODFkX3JlZ190ZW1wX2h5c3RbbnJdLCB0bXApOworCiAJbXV0ZXhfdW5sb2NrKCZkYXRh
-LT51cGRhdGVfbG9jayk7CiAJcmV0dXJuIGNvdW50OwogfQogCiAjZGVmaW5lIHN5c2ZzX3RlbXBf
-ZGVjbChvZmZzZXQpIFwKIHN0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcCMjb2Zmc2V0IyNf
-aW5wdXQsIFNfSVJVR08sCQlcCi0JCQkgIHNob3dfdGVtcCwgTlVMTCwgb2Zmc2V0KTsJCQlcCisJ
-CQkgIHNob3dfdGVtcCwgTlVMTCwgb2Zmc2V0IC0gMSk7CQkJXAogc3RhdGljIFNFTlNPUl9ERVZJ
-Q0VfQVRUUih0ZW1wIyNvZmZzZXQjI19tYXgsIFNfSVJVR098U19JV1VTUiwJIAlcCi0JCQkgIHNo
-b3dfdGVtcF9tYXgsIHN0b3JlX3RlbXBfbWF4LCBvZmZzZXQpOwlcCisJCQkgIHNob3dfdGVtcF9t
-YXgsIHN0b3JlX3RlbXBfbWF4LCBvZmZzZXQgLSAxKTsJXAogc3RhdGljIFNFTlNPUl9ERVZJQ0Vf
-QVRUUih0ZW1wIyNvZmZzZXQjI19tYXhfaHlzdCwgU19JUlVHT3xTX0lXVVNSLAlcCi0JCQkgIHNo
-b3dfdGVtcF9tYXhfaHlzdCwgc3RvcmVfdGVtcF9tYXhfaHlzdCwgb2Zmc2V0KTsKKwkJCSAgc2hv
-d190ZW1wX21heF9oeXN0LCBzdG9yZV90ZW1wX21heF9oeXN0LCBvZmZzZXQgLSAxKTsKIAogc3lz
-ZnNfdGVtcF9kZWNsKDEpOwogc3lzZnNfdGVtcF9kZWNsKDIpOwpAQCAtMTU0Myw3ICsxNTIzLDcg
-QEAgc3RhdGljIHZvaWQgX19kZXZpbml0IHc4MzYyN2hmX2luaXRfZGV2aQogc3RhdGljIHN0cnVj
-dCB3ODM2MjdoZl9kYXRhICp3ODM2MjdoZl91cGRhdGVfZGV2aWNlKHN0cnVjdCBkZXZpY2UgKmRl
-dikKIHsKIAlzdHJ1Y3QgdzgzNjI3aGZfZGF0YSAqZGF0YSA9IGRldl9nZXRfZHJ2ZGF0YShkZXYp
-OwotCWludCBpOworCWludCBpLCBudW1fdGVtcHMgPSAoZGF0YS0+dHlwZSA9PSB3ODM2OTdoZikg
-PyAyIDogMzsKIAogCW11dGV4X2xvY2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsKIApAQCAtMTU5Niwy
-NSArMTU3NiwxMyBAQCBzdGF0aWMgc3RydWN0IHc4MzYyN2hmX2RhdGEgKnc4MzYyN2hmX3VwCiAJ
-CQkJCWJyZWFrOwogCQkJfQogCQl9Ci0KLQkJZGF0YS0+dGVtcCA9IHc4MzYyN2hmX3JlYWRfdmFs
-dWUoZGF0YSwgVzgzNzgxRF9SRUdfVEVNUCgxKSk7Ci0JCWRhdGEtPnRlbXBfbWF4ID0KLQkJICAg
-IHc4MzYyN2hmX3JlYWRfdmFsdWUoZGF0YSwgVzgzNzgxRF9SRUdfVEVNUF9PVkVSKDEpKTsKLQkJ
-ZGF0YS0+dGVtcF9tYXhfaHlzdCA9Ci0JCSAgICB3ODM2MjdoZl9yZWFkX3ZhbHVlKGRhdGEsIFc4
-Mzc4MURfUkVHX1RFTVBfSFlTVCgxKSk7Ci0JCWRhdGEtPnRlbXBfYWRkWzBdID0KLQkJICAgIHc4
-MzYyN2hmX3JlYWRfdmFsdWUoZGF0YSwgVzgzNzgxRF9SRUdfVEVNUCgyKSk7Ci0JCWRhdGEtPnRl
-bXBfbWF4X2FkZFswXSA9Ci0JCSAgICB3ODM2MjdoZl9yZWFkX3ZhbHVlKGRhdGEsIFc4Mzc4MURf
-UkVHX1RFTVBfT1ZFUigyKSk7Ci0JCWRhdGEtPnRlbXBfbWF4X2h5c3RfYWRkWzBdID0KLQkJICAg
-IHc4MzYyN2hmX3JlYWRfdmFsdWUoZGF0YSwgVzgzNzgxRF9SRUdfVEVNUF9IWVNUKDIpKTsKLQkJ
-aWYgKGRhdGEtPnR5cGUgIT0gdzgzNjk3aGYpIHsKLQkJCWRhdGEtPnRlbXBfYWRkWzFdID0KLQkJ
-CSAgdzgzNjI3aGZfcmVhZF92YWx1ZShkYXRhLCBXODM3ODFEX1JFR19URU1QKDMpKTsKLQkJCWRh
-dGEtPnRlbXBfbWF4X2FkZFsxXSA9Ci0JCQkgIHc4MzYyN2hmX3JlYWRfdmFsdWUoZGF0YSwgVzgz
-NzgxRF9SRUdfVEVNUF9PVkVSKDMpKTsKLQkJCWRhdGEtPnRlbXBfbWF4X2h5c3RfYWRkWzFdID0K
-LQkJCSAgdzgzNjI3aGZfcmVhZF92YWx1ZShkYXRhLCBXODM3ODFEX1JFR19URU1QX0hZU1QoMykp
-OworCQlmb3IgKGk9MDsgaTxudW1fdGVtcHM7IGkrKykgeworCQkJZGF0YS0+dGVtcFtpXSA9IHc4
-MzYyN2hmX3JlYWRfdmFsdWUoCisJCQkJCQlkYXRhLCB3ODM3ODFkX3JlZ190ZW1wW2ldKTsKKwkJ
-CWRhdGEtPnRlbXBfbWF4W2ldID0gdzgzNjI3aGZfcmVhZF92YWx1ZSgKKwkJCQkJCWRhdGEsIHc4
-Mzc4MWRfcmVnX3RlbXBfb3ZlcltpXSk7CisJCQlkYXRhLT50ZW1wX21heF9oeXN0W2ldID0gdzgz
-NjI3aGZfcmVhZF92YWx1ZSgKKwkJCQkJCWRhdGEsIHc4Mzc4MWRfcmVnX3RlbXBfaHlzdFtpXSk7
-CiAJCX0KIAogCQlpID0gdzgzNjI3aGZfcmVhZF92YWx1ZShkYXRhLCBXODM3ODFEX1JFR19WSURf
-RkFORElWKTsK
-------=_Part_27946_17533180.1192233401275
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>  
+>  #define W83781D_REG_BANK 0x4E
+>  
+> @@ -360,12 +355,9 @@ struct w83627hf_data {
+>  	u8 in_min[9];		/* Register value */
+>  	u8 fan[3];		/* Register value */
+>  	u8 fan_min[3];		/* Register value */
+> -	u8 temp;
+> -	u8 temp_max;		/* Register value */
+> -	u8 temp_max_hyst;	/* Register value */
+> -	u16 temp_add[2];	/* Register value */
+> -	u16 temp_max_add[2];	/* Register value */
+> -	u16 temp_max_hyst_add[2]; /* Register value */
+> +	u16 temp[3];
+
+These are register values as well.
+
+> +	u16 temp_max[3];	/* Register value */
+> +	u16 temp_max_hyst[3];	/* Register value */
+>  	u8 fan_div[3];		/* Register encoding, shifted right */
+>  	u8 vid;			/* Register encoding, combined */
+>  	u32 alarms;		/* Register encoding, combined */
+> @@ -610,12 +602,10 @@ show_temp(struct device *dev, struct dev
+>  {
+>  	int nr = to_sensor_dev_attr(devattr)->index;
+>  	struct w83627hf_data *data = w83627hf_update_device(dev);
+> -	if (nr >= 2) {	/* TEMP2 and TEMP3 */
+> -		return sprintf(buf, "%ld\n",
+> -			(long)LM75_TEMP_FROM_REG(data->temp_add[nr-2]));
+> -	} else {	/* TEMP1 */
+> -		return sprintf(buf, "%ld\n", (long)TEMP_FROM_REG(data->temp));
+> -	}
+> +
+> +	u16 tmp = data->temp[nr];
+> +	return sprintf(buf, "%ld\n", (nr) ? (long) LM75_TEMP_FROM_REG(tmp)
+> +					  : (long) TEMP_FROM_REG(tmp));
+>  }
+>  
+>  static ssize_t
+> @@ -624,13 +614,10 @@ show_temp_max(struct device *dev, struct
+>  {
+>  	int nr = to_sensor_dev_attr(devattr)->index;
+>  	struct w83627hf_data *data = w83627hf_update_device(dev);
+> -	if (nr >= 2) {	/* TEMP2 and TEMP3 */
+> -		return sprintf(buf, "%ld\n",
+> -			(long)LM75_TEMP_FROM_REG(data->temp_max_add[nr-2]));
+> -	} else {	/* TEMP1 */
+> -		return sprintf(buf, "%ld\n",
+> -			(long)TEMP_FROM_REG(data->temp_max));
+> -	}
+> +
+> +	u16 tmp = data->temp_max[nr];
+> +	return sprintf(buf, "%ld\n", (nr) ? (long) LM75_TEMP_FROM_REG(tmp)
+> +					  : (long) TEMP_FROM_REG(tmp));
+>  }
+>  
+>  static ssize_t
+> @@ -639,13 +626,10 @@ show_temp_max_hyst(struct device *dev, s
+>  {
+>  	int nr = to_sensor_dev_attr(devattr)->index;
+>  	struct w83627hf_data *data = w83627hf_update_device(dev);
+> -	if (nr >= 2) {	/* TEMP2 and TEMP3 */
+> -		return sprintf(buf, "%ld\n",
+> -			(long)LM75_TEMP_FROM_REG(data->temp_max_hyst_add[nr-2]));
+> -	} else {	/* TEMP1 */
+> -		return sprintf(buf, "%ld\n",
+> -			(long)TEMP_FROM_REG(data->temp_max_hyst));
+> -	}
+> +
+> +	u16 tmp = data->temp_max_hyst[nr];
+> +	return sprintf(buf, "%ld\n", (nr) ? (long) LM75_TEMP_FROM_REG(tmp)
+> +					  : (long) TEMP_FROM_REG(tmp));
+>  }
+>  
+>  static ssize_t
+> @@ -655,18 +639,16 @@ store_temp_max(struct device *dev, struc
+>  	int nr = to_sensor_dev_attr(devattr)->index;
+>  	struct w83627hf_data *data = dev_get_drvdata(dev);
+>  	long val = simple_strtol(buf, NULL, 10);
+> +	u16 tmp;
+>  
+>  	mutex_lock(&data->update_lock);
+>  
+> -	if (nr >= 2) {	/* TEMP2 and TEMP3 */
+> -		data->temp_max_add[nr-2] = LM75_TEMP_TO_REG(val);
+> -		w83627hf_write_value(data, W83781D_REG_TEMP_OVER(nr),
+> -				data->temp_max_add[nr-2]);
+> -	} else {	/* TEMP1 */
+> -		data->temp_max = TEMP_TO_REG(val);
+> -		w83627hf_write_value(data, W83781D_REG_TEMP_OVER(nr),
+> -			data->temp_max);
+> -	}
+> +	tmp = (nr) ? LM75_TEMP_TO_REG(val)
+> +		   : TEMP_TO_REG(val);
+
+This instruction could be moved outside of the lock-holding section.
+
+> +
+> +	data->temp_max[nr] = tmp;
+> +	w83627hf_write_value(data, w83781d_reg_temp_over[nr], tmp);
+> +
+>  	mutex_unlock(&data->update_lock);
+>  	return count;
+>  }
+> @@ -678,29 +660,27 @@ store_temp_max_hyst(struct device *dev, 
+>  	int nr = to_sensor_dev_attr(devattr)->index;
+>  	struct w83627hf_data *data = dev_get_drvdata(dev);
+>  	long val = simple_strtol(buf, NULL, 10);
+> +	u16 tmp;
+>  
+>  	mutex_lock(&data->update_lock);
+>  
+> -	if (nr >= 2) {	/* TEMP2 and TEMP3 */
+> -		data->temp_max_hyst_add[nr-2] = LM75_TEMP_TO_REG(val);
+> -		w83627hf_write_value(data, W83781D_REG_TEMP_HYST(nr),
+> -				data->temp_max_hyst_add[nr-2]);
+> -	} else {	/* TEMP1 */
+> -		data->temp_max_hyst = TEMP_TO_REG(val);
+> -		w83627hf_write_value(data, W83781D_REG_TEMP_HYST(nr),
+> -			data->temp_max_hyst);
+> -	}
+> +	tmp = (nr) ? LM75_TEMP_TO_REG(val)
+> +		   : TEMP_TO_REG(val);
+
+Same here.
+
+> +
+> +	data->temp_max_hyst[nr] = tmp;
+> +	w83627hf_write_value(data, w83781d_reg_temp_hyst[nr], tmp);
+> +
+>  	mutex_unlock(&data->update_lock);
+>  	return count;
+>  }
+>  
+>  #define sysfs_temp_decl(offset) \
+>  static SENSOR_DEVICE_ATTR(temp##offset##_input, S_IRUGO,		\
+> -			  show_temp, NULL, offset);			\
+> +			  show_temp, NULL, offset - 1);			\
+>  static SENSOR_DEVICE_ATTR(temp##offset##_max, S_IRUGO|S_IWUSR,	 	\
+> -			  show_temp_max, store_temp_max, offset);	\
+> +			  show_temp_max, store_temp_max, offset - 1);	\
+>  static SENSOR_DEVICE_ATTR(temp##offset##_max_hyst, S_IRUGO|S_IWUSR,	\
+> -			  show_temp_max_hyst, store_temp_max_hyst, offset);
+> +			  show_temp_max_hyst, store_temp_max_hyst, offset - 1);
+>  
+>  sysfs_temp_decl(1);
+>  sysfs_temp_decl(2);
+> @@ -1543,7 +1523,7 @@ static void __devinit w83627hf_init_devi
+>  static struct w83627hf_data *w83627hf_update_device(struct device *dev)
+>  {
+>  	struct w83627hf_data *data = dev_get_drvdata(dev);
+> -	int i;
+> +	int i, num_temps = (data->type = w83697hf) ? 2 : 3;
+>  
+>  	mutex_lock(&data->update_lock);
+>  
+> @@ -1596,25 +1576,13 @@ static struct w83627hf_data *w83627hf_up
+>  					break;
+>  			}
+>  		}
+> -
+> -		data->temp = w83627hf_read_value(data, W83781D_REG_TEMP(1));
+> -		data->temp_max > -		    w83627hf_read_value(data, W83781D_REG_TEMP_OVER(1));
+> -		data->temp_max_hyst > -		    w83627hf_read_value(data, W83781D_REG_TEMP_HYST(1));
+> -		data->temp_add[0] > -		    w83627hf_read_value(data, W83781D_REG_TEMP(2));
+> -		data->temp_max_add[0] > -		    w83627hf_read_value(data, W83781D_REG_TEMP_OVER(2));
+> -		data->temp_max_hyst_add[0] > -		    w83627hf_read_value(data, W83781D_REG_TEMP_HYST(2));
+> -		if (data->type != w83697hf) {
+> -			data->temp_add[1] > -			  w83627hf_read_value(data, W83781D_REG_TEMP(3));
+> -			data->temp_max_add[1] > -			  w83627hf_read_value(data, W83781D_REG_TEMP_OVER(3));
+> -			data->temp_max_hyst_add[1] > -			  w83627hf_read_value(data, W83781D_REG_TEMP_HYST(3));
+> +		for (i=0; i<num_temps; i++) {
+
+Coding style: add spaces around "=" and "<".
+
+> +			data->temp[i] = w83627hf_read_value(
+> +						data, w83781d_reg_temp[i]);
+> +			data->temp_max[i] = w83627hf_read_value(
+> +						data, w83781d_reg_temp_over[i]);
+> +			data->temp_max_hyst[i] = w83627hf_read_value(
+> +						data, w83781d_reg_temp_hyst[i]);
+>  		}
+>  
+>  		i = w83627hf_read_value(data, W83781D_REG_VID_FANDIV);
+
+Other than these minor things, the patch looks OK and testing is OK as
+well. Please send an updated version and I'll ack it.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_27946_17533180.1192233401275--
