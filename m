@@ -1,97 +1,127 @@
-From: "Jim Cromie" <jim.cromie@gmail.com>
-Date: Sat, 13 Oct 2007 02:03:26 +0000
-Subject: [lm-sensors] [patch 1/1] w83627hf push nr+1 offset into *_REG_FAN
-Message-Id: <cfe85dfa0710121903r766b4b2ei69c81afab3c1e323@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_28135_15280110.1192241006815"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 14 Oct 2007 08:48:07 +0000
+Subject: Re: [lm-sensors] [patch 1/1] w83627hf push nr+1 offset into
+Message-Id: <20071014104807.234f2367@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <cfe85dfa0710121903r766b4b2ei69c81afab3c1e323@mail.gmail.com>
+In-Reply-To: <cfe85dfa0710121903r766b4b2ei69c81afab3c1e323@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-------=_Part_28135_15280110.1192241006815
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Jim,
 
-patch changes 2 macros to incorporate the +1, and drops the +1 from
-all the callers.
-This also allows a 'reroll' of an expanded loop, and adjusting indexes
-and loop limits
-on another.
+On Fri, 12 Oct 2007 20:03:26 -0600, Jim Cromie wrote:
+> patch changes 2 macros to incorporate the +1, and drops the +1 from
+> all the callers.
+> This also allows a 'reroll' of an expanded loop, and adjusting indexes
+> and loop limits
+> on another.
+>=20
+> Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
+> ---
+>  drivers/hwmon/w83627hf.c |   22 +++++++++++-----------
+>  2 files changed, 11 insertions(+), 11 deletions(-)
+>=20
+> this gives a small shrink : 22 bytes on i686
+>   12850    2652      36   15538    3cb2 hwmon-hf-1/drivers/hwmon/w83627hf=
+.ko
+>   12818    2652      36   15506    3c92 hwmon-hf-2/drivers/hwmon/w83627hf=
+.ko
 
-Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
----
- drivers/hwmon/w83627hf.c |   22 +++++++++++-----------
- 2 files changed, 11 insertions(+), 11 deletions(-)
+Review:
 
-this gives a small shrink : 22 bytes on i686
-  12850    2652      36   15538    3cb2 hwmon-hf-1/drivers/hwmon/w83627hf.ko
-  12818    2652      36   15506    3c92 hwmon-hf-2/drivers/hwmon/w83627hf.ko
+> --- hwmon-hf-1/drivers/hwmon/w83627hf.c	2007-10-12 17:42:11.000000000 -06=
+00
+> +++ hwmon-hf-2/drivers/hwmon/w83627hf.c	2007-10-12 18:03:23.000000000 -06=
+00
+> @@ -170,8 +170,8 @@ superio_exit(void)
+>  #define W83781D_REG_IN(nr)     ((nr < 7) ? (0x20 + (nr)) : \
+>  					   (0x550 + (nr) - 7))
+> =20
+> -#define W83781D_REG_FAN_MIN(nr) (0x3a + (nr))
+> -#define W83781D_REG_FAN(nr) (0x27 + (nr))
+> +#define W83781D_REG_FAN_MIN(nr) (0x3b + (nr))
+> +#define W83781D_REG_FAN(nr) (0x28 + (nr))
 
-------=_Part_28135_15280110.1192241006815
-Content-Type: application/octet-stream;
-	name="diff.hwmon-w83627hf-fan-offset-into-macro"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="diff.hwmon-w83627hf-fan-offset-into-macro"; 
-	filename="diff.hwmon-w83627hf-fan-offset-into-macro"
-X-Attachment-Id: f_f7phhf53
+Here again, please rename these W83627HF_* while you're here. Maybe
+also tab-align the definitions for readability. I would also appreciate
+a comment giving the valid values of nr, just to clear up any possible
+confusion.
 
-QmluYXJ5IGZpbGVzIGh3bW9uLWhmLTEvYXJjaC9pMzg2L2Jvb3Qvc2V0dXAuZWxmIGFuZCBod21v
-bi1oZi0yL2FyY2gvaTM4Ni9ib290L3NldHVwLmVsZiBkaWZmZXIKZGlmZiAtcnVOcCAtWCBkb250
-ZGlmZiAtWCBleGNsdWRlLWRpZmZzIGh3bW9uLWhmLTEvZHJpdmVycy9od21vbi93ODM2MjdoZi5j
-IGh3bW9uLWhmLTIvZHJpdmVycy9od21vbi93ODM2MjdoZi5jCi0tLSBod21vbi1oZi0xL2RyaXZl
-cnMvaHdtb24vdzgzNjI3aGYuYwkyMDA3LTEwLTEyIDE3OjQyOjExLjAwMDAwMDAwMCAtMDYwMAor
-KysgaHdtb24taGYtMi9kcml2ZXJzL2h3bW9uL3c4MzYyN2hmLmMJMjAwNy0xMC0xMiAxODowMzoy
-My4wMDAwMDAwMDAgLTA2MDAKQEAgLTE3MCw4ICsxNzAsOCBAQCBzdXBlcmlvX2V4aXQodm9pZCkK
-ICNkZWZpbmUgVzgzNzgxRF9SRUdfSU4obnIpICAgICAoKG5yIDwgNykgPyAoMHgyMCArIChucikp
-IDogXAogCQkJCQkgICAoMHg1NTAgKyAobnIpIC0gNykpCiAKLSNkZWZpbmUgVzgzNzgxRF9SRUdf
-RkFOX01JTihucikgKDB4M2EgKyAobnIpKQotI2RlZmluZSBXODM3ODFEX1JFR19GQU4obnIpICgw
-eDI3ICsgKG5yKSkKKyNkZWZpbmUgVzgzNzgxRF9SRUdfRkFOX01JTihucikgKDB4M2IgKyAobnIp
-KQorI2RlZmluZSBXODM3ODFEX1JFR19GQU4obnIpICgweDI4ICsgKG5yKSkKIAogI2RlZmluZSBX
-ODM3ODFEX1JFR19URU1QMl9DT05GSUcgMHgxNTIKICNkZWZpbmUgVzgzNzgxRF9SRUdfVEVNUDNf
-Q09ORklHIDB4MjUyCkBAIC01ODEsNyArNTgxLDcgQEAgc3RvcmVfZmFuX21pbihzdHJ1Y3QgZGV2
-aWNlICpkZXYsIHN0cnVjdAogCiAJbXV0ZXhfbG9jaygmZGF0YS0+dXBkYXRlX2xvY2spOwogCWRh
-dGEtPmZhbl9taW5bbnJdID0gRkFOX1RPX1JFRyh2YWwsIERJVl9GUk9NX1JFRyhkYXRhLT5mYW5f
-ZGl2W25yXSkpOwotCXc4MzYyN2hmX3dyaXRlX3ZhbHVlKGRhdGEsIFc4Mzc4MURfUkVHX0ZBTl9N
-SU4obnIrMSksCisJdzgzNjI3aGZfd3JpdGVfdmFsdWUoZGF0YSwgVzgzNzgxRF9SRUdfRkFOX01J
-TihuciksCiAJCQkgICAgIGRhdGEtPmZhbl9taW5bbnJdKTsKIAogCW11dGV4X3VubG9jaygmZGF0
-YS0+dXBkYXRlX2xvY2spOwpAQCAtODIzLDcgKzgyMyw3IEBAIHN0b3JlX2Zhbl9kaXYoc3RydWN0
-IGRldmljZSAqZGV2LCBzdHJ1Y3QKIAogCS8qIFJlc3RvcmUgZmFuX21pbiAqLwogCWRhdGEtPmZh
-bl9taW5bbnJdID0gRkFOX1RPX1JFRyhtaW4sIERJVl9GUk9NX1JFRyhkYXRhLT5mYW5fZGl2W25y
-XSkpOwotCXc4MzYyN2hmX3dyaXRlX3ZhbHVlKGRhdGEsIFc4Mzc4MURfUkVHX0ZBTl9NSU4obnIr
-MSksIGRhdGEtPmZhbl9taW5bbnJdKTsKKwl3ODM2MjdoZl93cml0ZV92YWx1ZShkYXRhLCBXODM3
-ODFEX1JFR19GQU5fTUlOKG5yKSwgZGF0YS0+ZmFuX21pbltucl0pOwogCiAJbXV0ZXhfdW5sb2Nr
-KCZkYXRhLT51cGRhdGVfbG9jayk7CiAJcmV0dXJuIGNvdW50OwpAQCAtMTE0OSw3ICsxMTQ5LDcg
-QEAgc3RhdGljIGludCBfX2RldmluaXQgdzgzNjI3aGZfcHJvYmUoc3RydQogCXN0cnVjdCB3ODM2
-MjdoZl9zaW9fZGF0YSAqc2lvX2RhdGEgPSBkZXYtPnBsYXRmb3JtX2RhdGE7CiAJc3RydWN0IHc4
-MzYyN2hmX2RhdGEgKmRhdGE7CiAJc3RydWN0IHJlc291cmNlICpyZXM7Ci0JaW50IGVycjsKKwlp
-bnQgZXJyLCBpOwogCiAJc3RhdGljIGNvbnN0IGNoYXIgKm5hbWVzW10gPSB7CiAJCSJ3ODM2Mjdo
-ZiIsCkBAIC0xMTgzLDkgKzExODMsOSBAQCBzdGF0aWMgaW50IF9fZGV2aW5pdCB3ODM2MjdoZl9w
-cm9iZShzdHJ1CiAJdzgzNjI3aGZfaW5pdF9kZXZpY2UocGRldik7CiAKIAkvKiBBIGZldyB2YXJz
-IG5lZWQgdG8gYmUgZmlsbGVkIHVwb24gc3RhcnR1cCAqLwotCWRhdGEtPmZhbl9taW5bMF0gPSB3
-ODM2MjdoZl9yZWFkX3ZhbHVlKGRhdGEsIFc4Mzc4MURfUkVHX0ZBTl9NSU4oMSkpOwotCWRhdGEt
-PmZhbl9taW5bMV0gPSB3ODM2MjdoZl9yZWFkX3ZhbHVlKGRhdGEsIFc4Mzc4MURfUkVHX0ZBTl9N
-SU4oMikpOwotCWRhdGEtPmZhbl9taW5bMl0gPSB3ODM2MjdoZl9yZWFkX3ZhbHVlKGRhdGEsIFc4
-Mzc4MURfUkVHX0ZBTl9NSU4oMykpOworCWZvciAoaSA9IDA7IGkgPD0gMjsgaSsrKQorCQlkYXRh
-LT5mYW5fbWluW2ldID0KKwkJCXc4MzYyN2hmX3JlYWRfdmFsdWUoZGF0YSwgVzgzNzgxRF9SRUdf
-RkFOX01JTihpKSk7CiAKIAkvKiBSZWdpc3RlciBjb21tb24gZGV2aWNlIGF0dHJpYnV0ZXMgKi8K
-IAlpZiAoKGVyciA9IHN5c2ZzX2NyZWF0ZV9ncm91cCgmZGV2LT5rb2JqLCAmdzgzNjI3aGZfZ3Jv
-dXApKSkKQEAgLTE1NDQsMTAgKzE1NDQsMTAgQEAgc3RhdGljIHN0cnVjdCB3ODM2MjdoZl9kYXRh
-ICp3ODM2MjdoZl91cAogCQkJICAgIHc4MzYyN2hmX3JlYWRfdmFsdWUoZGF0YSwKIAkJCQkJICAg
-ICAgIFc4Mzc4MURfUkVHX0lOX01BWChpKSk7CiAJCX0KLQkJZm9yIChpID0gMTsgaSA8PSAzOyBp
-KyspIHsKLQkJCWRhdGEtPmZhbltpIC0gMV0gPQorCQlmb3IgKGkgPSAwOyBpIDw9IDI7IGkrKykg
-eworCQkJZGF0YS0+ZmFuW2ldID0KIAkJCSAgICB3ODM2MjdoZl9yZWFkX3ZhbHVlKGRhdGEsIFc4
-Mzc4MURfUkVHX0ZBTihpKSk7Ci0JCQlkYXRhLT5mYW5fbWluW2kgLSAxXSA9CisJCQlkYXRhLT5m
-YW5fbWluW2ldID0KIAkJCSAgICB3ODM2MjdoZl9yZWFkX3ZhbHVlKGRhdGEsCiAJCQkJCSAgICAg
-ICBXODM3ODFEX1JFR19GQU5fTUlOKGkpKTsKIAkJfQo=
-------=_Part_28135_15280110.1192241006815
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> =20
+>  #define W83781D_REG_TEMP2_CONFIG 0x152
+>  #define W83781D_REG_TEMP3_CONFIG 0x252
+> @@ -581,7 +581,7 @@ store_fan_min(struct device *dev, struct
+> =20
+>  	mutex_lock(&data->update_lock);
+>  	data->fan_min[nr] =3D FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
+> -	w83627hf_write_value(data, W83781D_REG_FAN_MIN(nr+1),
+> +	w83627hf_write_value(data, W83781D_REG_FAN_MIN(nr),
+>  			     data->fan_min[nr]);
+> =20
+>  	mutex_unlock(&data->update_lock);
+> @@ -823,7 +823,7 @@ store_fan_div(struct device *dev, struct
+> =20
+>  	/* Restore fan_min */
+>  	data->fan_min[nr] =3D FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
+> -	w83627hf_write_value(data, W83781D_REG_FAN_MIN(nr+1), data->fan_min[nr]=
+);
+> +	w83627hf_write_value(data, W83781D_REG_FAN_MIN(nr), data->fan_min[nr]);
+> =20
+>  	mutex_unlock(&data->update_lock);
+>  	return count;
+> @@ -1149,7 +1149,7 @@ static int __devinit w83627hf_probe(stru
+>  	struct w83627hf_sio_data *sio_data =3D dev->platform_data;
+>  	struct w83627hf_data *data;
+>  	struct resource *res;
+> -	int err;
+> +	int err, i;
+> =20
+>  	static const char *names[] =3D {
+>  		"w83627hf",
+> @@ -1183,9 +1183,9 @@ static int __devinit w83627hf_probe(stru
+>  	w83627hf_init_device(pdev);
+> =20
+>  	/* A few vars need to be filled upon startup */
+> -	data->fan_min[0] =3D w83627hf_read_value(data, W83781D_REG_FAN_MIN(1));
+> -	data->fan_min[1] =3D w83627hf_read_value(data, W83781D_REG_FAN_MIN(2));
+> -	data->fan_min[2] =3D w83627hf_read_value(data, W83781D_REG_FAN_MIN(3));
+> +	for (i =3D 0; i <=3D 2; i++)
+> +		data->fan_min[i] > +			w83627hf_read_value(data, W83781D_REG_FAN_MIN(i=
+));
+
+At this point your patch conflicts with one I sent a few days ago:
+hwmon: (w83627hf) Fix setting fan min right after driver load
+http://lm-sensors.org/kernel?p=3Dkernel/mhoffman/hwmon-2.6.git;a=3Dcommitdi=
+ff;h=C09c5184a26158da32801e89d5849d774605f0dd
+
+Please make sure you have this patch applied on your local tree before
+regenerating and resending your patch.
+
+> =20
+>  	/* Register common device attributes */
+>  	if ((err =3D sysfs_create_group(&dev->kobj, &w83627hf_group)))
+> @@ -1544,10 +1544,10 @@ static struct w83627hf_data *w83627hf_up
+>  			    w83627hf_read_value(data,
+>  					       W83781D_REG_IN_MAX(i));
+>  		}
+> -		for (i =3D 1; i <=3D 3; i++) {
+> -			data->fan[i - 1] > +		for (i =3D 0; i <=3D 2; i++) {
+> +			data->fan[i] >  			    w83627hf_read_value(data, W83781D_REG_FAN(i));
+> -			data->fan_min[i - 1] > +			data->fan_min[i] >  			    w83627hf_read_v=
+alue(data,
+>  					       W83781D_REG_FAN_MIN(i));
+>  		}
+
+Rest looks OK and testing is OK as well.
+
+Thanks,
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_28135_15280110.1192241006815--
