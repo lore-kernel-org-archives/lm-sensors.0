@@ -1,103 +1,250 @@
-From: Uwe Hermann <uwe@hermann-uwe.de>
-Date: Tue, 09 Oct 2007 14:55:11 +0000
-Subject: Re: [lm-sensors] hwmon/lm87: Add support for the Analog
-Message-Id: <20071009145511.GE13822@greenwood>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1393325433308977160=="
+From: Jim Cromie <jim.cromie@gmail.com>
+Date: Mon, 15 Oct 2007 05:08:31 +0000
+Subject: [lm-sensors] [ patch .24-rc0 4/5 ] SuperIO locks coordinator - use
+Message-Id: <4712F5CF.3030807@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
-
---===============1393325433308977160==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pY3vCvL1qV+PayAL"
-Content-Disposition: inline
-
-
---pY3vCvL1qV+PayAL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Untested, and I'm not an lm-sensors or kernel expert anyway, but here are
-some comments:
-
-On Tue, Oct 09, 2007 at 03:22:22PM +0200, Jean Delvare wrote:
-> --- linux-2.6.23-rc9.orig/Documentation/hwmon/lm87	2007-10-09 08:42:48.00=
-0000000 +0200
-> +++ linux-2.6.23-rc9/Documentation/hwmon/lm87	2007-10-09 11:14:05.0000000=
-00 +0200
-> @@ -4,8 +4,12 @@ Kernel driver lm87
->  Supported chips:
->    * National Semiconductor LM87
->      Prefix: 'lm87'
-> -    Addresses scanned: I2C 0x2c - 0x2f
-> +    Addresses scanned: I2C 0x2c - 0x2e
-
-Is this intentional? Was the previous value incorrect?
-
-
->      Datasheet: http://www.national.com/pf/LM/LM87.html
-> +  * Analog Devices ADM1024
-> +    Prefix: 'adm1024'
-> +    Addresses scanned: I2C 0x2c - 0x2e
-> +    Datasheet: http://www.analog.com/en/prod/0,2877,ADM1024,00.html
-[...]
-> @@ -686,11 +692,18 @@ static int lm87_detect(struct i2c_adapte
-> =20
->  	/* Now, we do the remaining detection. */
->  	if (kind < 0) {
-> +		u8 cid =3D lm87_read_value(new_client, LM87_REG_COMPANY_ID);
->  		u8 rev =3D lm87_read_value(new_client, LM87_REG_REVISION);
-> =20
-> -		if (rev < 0x01 || rev > 0x08
-> -		 || (lm87_read_value(new_client, LM87_REG_CONFIG) & 0x80)
-> -		 || lm87_read_value(new_client, LM87_REG_COMPANY_ID) !=3D 0x02) {
-> +		if (cid =3D=3D 0x02			/* National Semiconductor */
-> +		 && (rev >=3D 0x01 && rev <=3D 0x08))
-> +			kind =3D lm87;
-> +		else if (cid =3D=3D 0x41		/* Analog Devices */
-
-I don't know how this is handled in the rest of the code, but personally I'd
-make them #defines, e.g. like this:
-
-#define COMPANY_ID_NATSEMI		0x02
-#define COMPANY_ID_ANALOG_DEVICES	0x41
-
-(maybe even in some common header file which other drivers can use, too)
-
-A lot more readable IMO, and you don't need any code comment anymore.
-
-
-HTH, Uwe.
---=20
-http://www.hermann-uwe.de  | http://www.holsham-traders.de
-http://www.crazy-hacks.org | http://www.unmaintained-free-software.org
-
---pY3vCvL1qV+PayAL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHC5ZPXdVoV3jWIbQRAjEqAJ9At7jHkjiUHt2expkk+e2fLGMaBACgm3py
-0InOeaV376M2E09BBRLuyVk=
-=kEvc
------END PGP SIGNATURE-----
-
---pY3vCvL1qV+PayAL--
-
-
---===============1393325433308977160==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Linux kernel <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+
+04 - use superio-locks in drivers/char/pc8736x_gpio
+
+this driver keeps the slot for the lifetime of the driver 
+( __init til __exit ), since the driver needs the sio-port
+to change pin configurations.
+
+patches 03,04 were tested on a soekris 4801 a year ago,
+the box is currently busy.  Together they sanity-test
+the sharing of a reservation with 2 different life-cycles.
+
+
+Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
+---
+hwmon-superio-pc8736x-gpio
+ Kconfig        |    1 
+ pc8736x_gpio.c |   83 ++++++++++++++++++++++-----------------------------------
+ 2 files changed, 34 insertions(+), 50 deletions(-)
+
+diff -ruNp -X dontdiff -X exclude-diffs hwmon-fan-push-offset/drivers/char/Kconfig hwmon-superio.old/drivers/char/Kconfig
+--- hwmon-fan-push-offset/drivers/char/Kconfig	2007-10-14 13:00:24.000000000 -0600
++++ hwmon-superio.old/drivers/char/Kconfig	2007-10-14 17:22:23.000000000 -0600
+@@ -943,6 +943,7 @@ config PC8736x_GPIO
+ 	depends on X86
+ 	default SCx200_GPIO	# mostly N
+ 	select NSC_GPIO		# needed for support routines
++	select SUPERIO_LOCKS
+ 	help
+ 	  Give userspace access to the GPIO pins on the National
+ 	  Semiconductor PC-8736x (x=[03456]) SuperIO chip.  The chip
+diff -ruNp -X dontdiff -X exclude-diffs hwmon-fan-push-offset/drivers/char/pc8736x_gpio.c hwmon-superio.old/drivers/char/pc8736x_gpio.c
+--- hwmon-fan-push-offset/drivers/char/pc8736x_gpio.c	2007-10-14 13:00:24.000000000 -0600
++++ hwmon-superio.old/drivers/char/pc8736x_gpio.c	2007-10-14 17:22:23.000000000 -0600
+@@ -20,6 +20,7 @@
+ #include <linux/mutex.h>
+ #include <linux/nsc_gpio.h>
+ #include <linux/platform_device.h>
++#include <linux/superio-locks.h>
+ #include <asm/uaccess.h>
+ 
+ #define DEVNAME "pc8736x_gpio"
+@@ -36,13 +37,12 @@ static DEFINE_MUTEX(pc8736x_gpio_config_
+ static unsigned pc8736x_gpio_base;
+ static u8 pc8736x_gpio_shadow[4];
+ 
+-#define SIO_BASE1       0x2E	/* 1st command-reg to check */
+-#define SIO_BASE2       0x4E	/* alt command-reg to check */
++static struct superio* gate;
+ 
+-#define SIO_SID		0x20	/* SuperI/O ID Register */
+-#define SIO_SID_VALUE	0xe9	/* Expected value in SuperI/O ID Register */
+-
+-#define SIO_CF1		0x21	/* chip config, bit0 is chip enable */
++static __devinit struct superio_search where = {
++	.cmdreg_addrs = { 0x2E, 0x4E },
++	.device_ids   = { 0xE1, 0xE8, 0xE4, 0xE5, 0xE9, 0 },
++};
+ 
+ #define PC8736X_GPIO_RANGE	16 /* ioaddr range */
+ #define PC8736X_GPIO_CT		32 /* minors matching 4 8 bit ports */
+@@ -52,6 +52,7 @@ static u8 pc8736x_gpio_shadow[4];
+ #define SIO_GPIO_UNIT	0x7	/* unit number of GPIO */
+ #define SIO_VLM_UNIT	0x0D
+ #define SIO_TMS_UNIT	0x0E
++#define SIO_CF1		0x21	/* chip config, bit0 is chip enable */
+ 
+ /* config-space addrs to read/write each unit's runtime addr */
+ #define SIO_BASE_HADDR		0x60
+@@ -62,7 +63,6 @@ static u8 pc8736x_gpio_shadow[4];
+ #define SIO_GPIO_PIN_CONFIG     0xF1
+ #define SIO_GPIO_PIN_EVENT      0xF2
+ 
+-static unsigned char superio_cmd = 0;
+ static unsigned char selected_device = 0xFF;	/* bogus start val */
+ 
+ /* GPIO port runtime access, functionality */
+@@ -76,35 +76,9 @@ static int port_offset[] = { 0, 4, 8, 10
+ 
+ static struct platform_device *pdev;  /* use in dev_*() */
+ 
+-static inline void superio_outb(int addr, int val)
+-{
+-	outb_p(addr, superio_cmd);
+-	outb_p(val, superio_cmd + 1);
+-}
+-
+-static inline int superio_inb(int addr)
+-{
+-	outb_p(addr, superio_cmd);
+-	return inb_p(superio_cmd + 1);
+-}
+-
+-static int pc8736x_superio_present(void)
+-{
+-	/* try the 2 possible values, read a hardware reg to verify */
+-	superio_cmd = SIO_BASE1;
+-	if (superio_inb(SIO_SID) = SIO_SID_VALUE)
+-		return superio_cmd;
+-
+-	superio_cmd = SIO_BASE2;
+-	if (superio_inb(SIO_SID) = SIO_SID_VALUE)
+-		return superio_cmd;
+-
+-	return 0;
+-}
+-
+ static void device_select(unsigned devldn)
+ {
+-	superio_outb(SIO_UNIT_SEL, devldn);
++	superio_select(gate, devldn);
+ 	selected_device = devldn;
+ }
+ 
+@@ -112,7 +86,7 @@ static void select_pin(unsigned iminor)
+ {
+ 	/* select GPIO port/pin from device minor number */
+ 	device_select(SIO_GPIO_UNIT);
+-	superio_outb(SIO_GPIO_PIN_SELECT,
++	superio_outb(gate, SIO_GPIO_PIN_SELECT,
+ 		     ((iminor << 1) & 0xF0) | (iminor & 0x7));
+ }
+ 
+@@ -121,19 +95,19 @@ static inline u32 pc8736x_gpio_configure
+ {
+ 	u32 config, new_config;
+ 
++	superio_enter(gate);
+ 	mutex_lock(&pc8736x_gpio_config_lock);
+ 
+-	device_select(SIO_GPIO_UNIT);
++	/* read pin's current config value */
+ 	select_pin(index);
+-
+-	/* read current config value */
+-	config = superio_inb(func_slct);
++	config = superio_inb(gate, func_slct);
+ 
+ 	/* set new config */
+ 	new_config = (config & mask) | bits;
+-	superio_outb(func_slct, new_config);
++	superio_outb(gate, func_slct, new_config);
+ 
+ 	mutex_unlock(&pc8736x_gpio_config_lock);
++	superio_exit(gate);
+ 
+ 	return config;
+ }
+@@ -259,40 +233,44 @@ static int __init pc8736x_gpio_init(void
+ 		rc = -ENODEV;
+ 		goto undo_platform_dev_alloc;
+ 	}
++	pc8736x_gpio_ops.dev = &pdev->dev;
++
+ 	dev_info(&pdev->dev, "NatSemi pc8736x GPIO Driver Initializing\n");
+ 
+-	if (!pc8736x_superio_present()) {
++	gate = superio_find(&where);
++	if (!gate) {
+ 		rc = -ENODEV;
+-		dev_err(&pdev->dev, "no device found\n");
++		dev_err(&pdev->dev, "no superio port found\n");
++		// goto err2;
+ 		goto undo_platform_dev_add;
+ 	}
+-	pc8736x_gpio_ops.dev = &pdev->dev;
+ 
+ 	/* Verify that chip and it's GPIO unit are both enabled.
+ 	   My BIOS does this, so I take minimum action here
+ 	 */
+-	rc = superio_inb(SIO_CF1);
++	superio_enter(gate);
++	rc = superio_inb(gate, SIO_CF1);
+ 	if (!(rc & 0x01)) {
+ 		rc = -ENODEV;
+ 		dev_err(&pdev->dev, "device not enabled\n");
+-		goto undo_platform_dev_add;
++		goto undo_superio_enter;
+ 	}
+ 	device_select(SIO_GPIO_UNIT);
+-	if (!superio_inb(SIO_UNIT_ACT)) {
++	if (!superio_inb(gate, SIO_UNIT_ACT)) {
+ 		rc = -ENODEV;
+ 		dev_err(&pdev->dev, "GPIO unit not enabled\n");
+-		goto undo_platform_dev_add;
++		goto undo_superio_enter;
+ 	}
+ 
+ 	/* read the GPIO unit base addr that chip responds to */
+-	pc8736x_gpio_base = (superio_inb(SIO_BASE_HADDR) << 8
+-			     | superio_inb(SIO_BASE_LADDR));
++	pc8736x_gpio_base = (superio_inb(gate, SIO_BASE_HADDR) << 8
++			     | superio_inb(gate, SIO_BASE_LADDR));
+ 
+ 	if (!request_region(pc8736x_gpio_base, PC8736X_GPIO_RANGE, DEVNAME)) {
+ 		rc = -ENODEV;
+ 		dev_err(&pdev->dev, "GPIO ioport %x busy\n",
+ 			pc8736x_gpio_base);
+-		goto undo_platform_dev_add;
++		goto undo_superio_enter;
+ 	}
+ 	dev_info(&pdev->dev, "GPIO ioport %x reserved\n", pc8736x_gpio_base);
+ 
+@@ -319,10 +297,14 @@ static int __init pc8736x_gpio_init(void
+ 	cdev_init(&pc8736x_gpio_cdev, &pc8736x_gpio_fileops);
+ 	cdev_add(&pc8736x_gpio_cdev, devid, PC8736X_GPIO_CT);
+ 
++	superio_exit(gate);	/* no release, we need to stay registered */
+ 	return 0;
+ 
+ undo_request_region:
+ 	release_region(pc8736x_gpio_base, PC8736X_GPIO_RANGE);
++undo_superio_enter:
++	superio_exit(gate);
++	superio_release(gate);
+ undo_platform_dev_add:
+ 	platform_device_del(pdev);
+ undo_platform_dev_alloc:
+@@ -341,6 +323,7 @@ static void __exit pc8736x_gpio_cleanup(
+ 
+ 	platform_device_del(pdev);
+ 	platform_device_put(pdev);
++	superio_release(gate);
+ }
+ 
+ module_init(pc8736x_gpio_init);
+
+
+
+
+
+
+
+
+
+ 
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1393325433308977160==--
