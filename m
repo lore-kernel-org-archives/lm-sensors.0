@@ -1,7 +1,7 @@
 From: "David Hubbard" <david.c.hubbard@gmail.com>
-Date: Mon, 15 Oct 2007 17:35:54 +0000
+Date: Mon, 15 Oct 2007 17:36:28 +0000
 Subject: Re: [lm-sensors] [ patch .24-rc0 5/5 ] SuperIO locks coordinator -
-Message-Id: <4dfa50520710151035j2ed8ce27x9e8c4d6ec676eeef@mail.gmail.com>
+Message-Id: <4dfa50520710151036h3ee7a326rcfaf26d8df49fa8b@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4712F66F.8040806@gmail.com>
 In-Reply-To: <4712F66F.8040806@gmail.com>
@@ -62,8 +62,6 @@ On 10/15/07, Axel Thimm <Axel.Thimm@atrpms.net> wrote:
 > git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git
 >
 > HTH
-> --
-> Axel.Thimm at ATrpms.net
 
 I can't connect to any git servers on the git port. Can you please
 look at the http url?
