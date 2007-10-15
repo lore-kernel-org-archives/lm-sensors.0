@@ -1,41 +1,38 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Mon, 15 Oct 2007 06:33:18 +0000
+From: Justin Piszcz <jpiszcz@lucidpixels.com>
+Date: Mon, 15 Oct 2007 08:06:52 +0000
 Subject: Re: [lm-sensors] 2.6.23.1 x86 hardware monitoring bug?
-Message-Id: <471309AE.408@hhs.nl>
+Message-Id: <Pine.LNX.4.64.0710150406220.9867@p34.internal.lan>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="-1463747160-1898563921-1192435612=:9867"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.64.0710141526590.3935@p34.internal.lan> <20071015025331.GA3676@jupiter.solarsys.private>
+References: <Pine.LNX.4.64.0710141526590.3935@p34.internal.lan>
+ <20071015025331.GA3676@jupiter.solarsys.private>
 In-Reply-To: <20071015025331.GA3676@jupiter.solarsys.private>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Justin Piszcz <jpiszcz@lucidpixels.com>, linux-kernel@vger.kernel.org, apiszcz@solarrain.com, lm-sensors <lm-sensors@lm-sensors.org>
+Cc: linux-kernel@vger.kernel.org, apiszcz@solarrain.com, Hans de Goede <j.w.r.degoede@hhs.nl>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Mark M. Hoffman wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---1463747160-1898563921-1192435612=:9867
+Content-Type: TEXT/PLAIN; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Sun, 14 Oct 2007, Mark M. Hoffman wrote:
+
 > Hi Justin:
->=20
+>
 > (added some CCs)
->=20
+>
 > * Justin Piszcz <jpiszcz@lucidpixels.com> [2007-10-14 15:30:18 -0400]:
 >> As a regular user, I cannot see the sensors on the A-bit board, but I ca=
-n=20
+n
 >> see the CPU temperature, how come I can see one but not the other?
 >>
-
-What does "which sensors" say as user, and what as root?
-What does "ldd `which sensors`" say as user and what as root?
-
-I have the feeling you have 2 different versions of lm-sensors installed in=
-=20
-root is using one, and the user the other.
-
-Regards,
-
-Hans
-
-
 >> Kernel: $ uname -a
->> Linux mybox 2.6.23.1 #4 SMP PREEMPT Sun Oct 14 15:20:53 EDT 2007 i686=20
+>> Linux mybox 2.6.23.1 #4 SMP PREEMPT Sun Oct 14 15:20:53 EDT 2007 i686
 >> GNU/Linux
 >> Distribution: Debian Lenny
 >>
@@ -95,15 +92,280 @@ Hans
 >> coretemp-isa-0001
 >> Adapter: ISA adapter
 >> Core 1:      +39=B0C  (high =3D   +85=B0C)
->=20
+>
 > Strange.  What does 'ls -lH /sys/class/hwmon/hwmon*/device' say?
->=20
+>
 > Regards,
->=20
+>
+> --=20
+> Mark M. Hoffman
+> mhoffman@lightlink.com
+>
 
+Output from ls -lH /sys/class/hwmon/hwmon*/device:
 
+/sys/class/hwmon/hwmon0/device:
+total 0
+lrwxrwxrwx 1 root root    0 2007-10-15 03:59 driver -> ../../../bus/platfor=
+m/drivers/abituguru3
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan1_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan1_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan1_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan1_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan1_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan1_min
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan1_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan2_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan2_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan2_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan2_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan2_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan2_min
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan2_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan3_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan3_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan3_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan3_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan3_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan3_min
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan3_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan4_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan4_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan4_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan4_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan4_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan4_min
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan4_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan5_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan5_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan5_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan5_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan5_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan5_min
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan5_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan6_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan6_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan6_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan6_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan6_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan6_min
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan6_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan7_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan7_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan7_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan7_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan7_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 fan7_min
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 fan7_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in0_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in0_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in0_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in0_max
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in0_max_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in0_max_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in0_min
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in0_min_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in0_min_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in0_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in10_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in10_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in10_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in10_max
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in10_max_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in10_max_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in10_min
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in10_min_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in10_min_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in10_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in11_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in11_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in11_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in11_max
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in11_max_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in11_max_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in11_min
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in11_min_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in11_min_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in11_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in1_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in1_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in1_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in1_max
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in1_max_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in1_max_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in1_min
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in1_min_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in1_min_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in1_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in2_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in2_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in2_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in2_max
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in2_max_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in2_max_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in2_min
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in2_min_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in2_min_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in2_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in3_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in3_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in3_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in3_max
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in3_max_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in3_max_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in3_min
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in3_min_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in3_min_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in3_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in4_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in4_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in4_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in4_max
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in4_max_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in4_max_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in4_min
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in4_min_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in4_min_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in4_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in5_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in5_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in5_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in5_max
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in5_max_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in5_max_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in5_min
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in5_min_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in5_min_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in5_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in6_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in6_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in6_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in6_max
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in6_max_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in6_max_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in6_min
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in6_min_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in6_min_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in6_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in7_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in7_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in7_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in7_max
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in7_max_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in7_max_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in7_min
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in7_min_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in7_min_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in7_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in8_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in8_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in8_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in8_max
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in8_max_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in8_max_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in8_min
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in8_min_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in8_min_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in8_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in9_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in9_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in9_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in9_max
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in9_max_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in9_max_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in9_min
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 in9_min_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in9_min_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 in9_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 modalias
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 name
+lrwxrwxrwx 1 root root    0 2007-10-15 03:59 subsystem -> ../../../bus/plat=
+form
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp1_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp1_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp1_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp1_crit
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp1_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp1_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp1_max
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp1_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp2_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp2_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp2_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp2_crit
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp2_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp2_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp2_max
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp2_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp3_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp3_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp3_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp3_crit
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp3_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp3_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp3_max
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp3_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp4_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp4_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp4_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp4_crit
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp4_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp4_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp4_max
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp4_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp5_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp5_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp5_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp5_crit
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp5_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp5_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp5_max
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp5_shutdown
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp6_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp6_alarm_enable
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp6_beep
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp6_crit
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp6_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp6_label
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp6_max
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 temp6_shutdown
+-rw-r--r-- 1 root root 4096 2007-10-14 23:59 uevent
+
+/sys/class/hwmon/hwmon1/device:
+total 0
+lrwxrwxrwx 1 root root    0 2007-10-15 03:59 driver -> ../../../bus/platfor=
+m/drivers/coretemp
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 modalias
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 name
+lrwxrwxrwx 1 root root    0 2007-10-15 03:59 subsystem -> ../../../bus/plat=
+form
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp1_crit
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp1_crit_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp1_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp1_label
+-rw-r--r-- 1 root root 4096 2007-10-14 23:59 uevent
+
+/sys/class/hwmon/hwmon2/device:
+total 0
+lrwxrwxrwx 1 root root    0 2007-10-15 03:59 driver -> ../../../bus/platfor=
+m/drivers/coretemp
+-r--r--r-- 1 root root 4096 2007-10-15 04:06 modalias
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 name
+lrwxrwxrwx 1 root root    0 2007-10-15 03:59 subsystem -> ../../../bus/plat=
+form
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp1_crit
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp1_crit_alarm
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp1_input
+-r--r--r-- 1 root root 4096 2007-10-15 03:59 temp1_label
+-rw-r--r-- 1 root root 4096 2007-10-14 23:59 uevent
+---1463747160-1898563921-1192435612=:9867
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+---1463747160-1898563921-1192435612=:9867--
