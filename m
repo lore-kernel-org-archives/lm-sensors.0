@@ -1,38 +1,23 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 20 Oct 2007 20:52:00 +0000
-Subject: Re: [lm-sensors] k8temp does produce sensible results
-Message-Id: <20071020225200.30e38a94@hyperion.delvare>
+From: "d.d." <gmanesensors@dubin.org>
+Date: Mon, 15 Oct 2007 02:23:17 +0000
+Subject: [lm-sensors] Intel DP35DP - P35 Sensor Support?
+Message-Id: <loom.20071015T022008-788@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <47014943.9080104@fouter.net>
-In-Reply-To: <47014943.9080104@fouter.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 20 Oct 2007 10:38:38 +0100, Dick Middleton wrote:
-> Jean Delvare wrote:
-> 
-> > On Sun, 07 Oct 2007 18:58:32 +0100, Dick Middleton wrote:
-> >> Sensors-detect finds:
-> >>
-> >> Driver `f71882fg' (should be inserted):
-> >>    Detects correctly:
-> >>    * ISA bus, address 0x600
-> >>      Chip `Fintek F71882FG/F71883FG Super IO Sensors' (confidence: 9)
-> >> (...)
-> >>
-> >> I don't have the f71882fg driver although I am thinking that is the one I need.
-> > 
-> > Correct. This driver is new in (upcoming) kernel 2.4.24, so you'll have
-> > to use a bleeding edge kernel if you want it, or wait a bit.
-> 
-> Thanks for the clarification. I assume you mean 2.6.24 ;-)
+I'm seeing only 2 CPU core temperatures, but am unable to pick off any other
+sensors (but I know they are there...)
 
-Oh, yeah, of course, sorry.
+Any luck with the Intel Desktop DP35DP Motherboard / P35 / ICH9 ?
 
--- 
-Jean Delvare
+Running Linux Kernel:
+2.6.22.9-91.fc7 #1 SMP Thu Sep 27 20:47:39 EDT 2007 x86_64 x86_64 x86_64
+GNU/Linux
+
+
 
 _______________________________________________
 lm-sensors mailing list
