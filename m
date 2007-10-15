@@ -1,260 +1,116 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Thu, 25 Oct 2007 11:21:20 +0000
-Subject: Re: [lm-sensors] [PATCH] f75375s: Add new style bindings
-Message-Id: <20071025112120.GG30546@jupiter.solarsys.private>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 15 Oct 2007 18:41:25 +0000
+Subject: Re: [lm-sensors] [PATCH 2/2] hwmon/sis5595: Split
+Message-Id: <20071015204125.643d149d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071016094649.GA23926@kos.to>
-In-Reply-To: <20071016094649.GA23926@kos.to>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
+Hi Ivo,
 
-This is really nice.  I only found a couple nits, so I just made the changes
-(inline below) and applied it to hwmon-2.6.git/testing; thanks.
-
-* Riku Voipio <riku.voipio@movial.fi> [2007-10-16 12:46:49 +0300]:
-> Unsuprisingly, the first version was plain ignored. So this patch had to be
-> refreshed against 2.6.23...
+On Mon, 15 Oct 2007 13:27:13 +0200, Ivo Manca wrote:
+> From: Ivo Manca <pinkel@gmail.com>
 > 
-> Following the example of David Brownell's work on lm75:
+> Use sysfs_create_group instead of individual calls to device_create_file by splitting sis5595_attributes_opt into sis5595_attributes_in4 and sis5595_attributes_temp1.
 > 
->  - Create a second driver struct, using new-style driver binding methods.
-> 
->  - Rename the old driver struct as f75375_legacy_driver.
-> 
->  - Make the legacy bind/unbind logic delegate all its work.
-> 
-> Signed-off-by: Riku Voipio <riku.voipio@movial.fi>
+> Signed-off-by: Ivo Manca <pinkel@gmail.com>
 > ---
->  drivers/hwmon/f75375s.c |  112 +++++++++++++++++++++++++++++++++++-----------
->  1 files changed, 85 insertions(+), 27 deletions(-)
+>  sis5595.c |   39 ++++++++++++++++++---------------------
+>  1 file changed, 18 insertions(+), 21 deletions(-)
 > 
-> diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
-> index 13a0413..0ac3fc2 100644
-> --- a/drivers/hwmon/f75375s.c
-> +++ b/drivers/hwmon/f75375s.c
-> @@ -86,7 +86,7 @@ I2C_CLIENT_INSMOD_2(f75373, f75375);
->  
->  struct f75375_data {
->  	unsigned short addr;
-> -	struct i2c_client client;
-> +	struct i2c_client *client;
->  	struct device *hwmon_dev;
->  
->  	const char *name;
-> @@ -116,15 +116,26 @@ struct f75375_data {
->  static int f75375_attach_adapter(struct i2c_adapter *adapter);
->  static int f75375_detect(struct i2c_adapter *adapter, int address, int kind);
->  static int f75375_detach_client(struct i2c_client *client);
-> +static int f75375_probe(struct i2c_client *client);
-> +static int f75375_remove(struct i2c_client *client);
->  
-> -static struct i2c_driver f75375_driver = {
-> +static struct i2c_driver f75375_legacy_driver = {
->  	.driver = {
-> -		.name = "f75375",
-> +		.name = "f75375_legacy",
->  	},
->  	.attach_adapter = f75375_attach_adapter,
->  	.detach_client = f75375_detach_client,
+> --- linux-2.6.23.1.orig/drivers/hwmon/sis5595.c	2007-10-15 12:52:47.359375000 +0200
+> +++ linux-2.6.23.1/drivers/hwmon/sis5595.c	2007-10-15 12:58:48.187500000 +0200
+> @@ -494,12 +494,19 @@ static const struct attribute_group sis5
+>  	.attrs = sis5595_attributes,
 >  };
 >  
-> +static struct i2c_driver f75375_driver = {
-> +	.driver = {
-> +		.name = "f75375",
-> +	},
-> +	.probe = f75375_probe,
-> +	.remove = f75375_remove,
+> -static struct attribute *sis5595_attributes_opt[] = {
+> +static struct attribute *sis5595_attributes_in4[] = {
+>  	&sensor_dev_attr_in4_input.dev_attr.attr,
+>  	&sensor_dev_attr_in4_min.dev_attr.attr,
+>  	&sensor_dev_attr_in4_max.dev_attr.attr,
+>  	&sensor_dev_attr_in4_alarm.dev_attr.attr,
+> +	NULL
 > +};
 > +
-> +
-
-extra newline
-
->  static inline int f75375_read8(struct i2c_client *client, u8 reg)
->  {
->  	return i2c_smbus_read_byte_data(client, reg);
-> @@ -580,12 +591,8 @@ static const struct attribute_group f75375_group = {
+> +static const struct attribute_group sis5595_group_in4 = {
+> +	.attrs = sis5595_attributes_in4,
+> +};
 >  
->  static int f75375_detach_client(struct i2c_client *client)
->  {
-> -	struct f75375_data *data = i2c_get_clientdata(client);
->  	int err;
-> -
-> -	hwmon_device_unregister(data->hwmon_dev);
-> -	sysfs_remove_group(&client->dev.kobj, &f75375_group);
-> -
-
-added a newline here
-
-> +	f75375_remove(client);
->  	err = i2c_detach_client(client);
->  	if (err) {
->  		dev_err(&client->dev,
-> @@ -593,10 +600,64 @@ static int f75375_detach_client(struct i2c_client *client)
->  			"client not detached.\n");
->  		return err;
->  	}
-> +	kfree(client);
-> +	return 0;
-> +}
-> +
-> +static int f75375_probe(struct i2c_client *client)
-> +{
-> +	struct f75375_data *data = i2c_get_clientdata(client);
-> +	int err;
-> +
-> +	if (!i2c_check_functionality(client->adapter,
-> +				I2C_FUNC_SMBUS_BYTE_DATA))
-> +		return -EIO;
-> +	if (!(data = kzalloc(sizeof(struct f75375_data), GFP_KERNEL)))
-> +		return -ENOMEM;
-> +
-> +	i2c_set_clientdata(client, data);
-> +	data->client = client;
-> +	mutex_init(&data->update_lock);
-> +
-> +	if (strcmp(client->name, "f75375") = 0)
-> +		data->kind = f75375;
-> +	else if (strcmp(client->name, "f75373") = 0)
-> +		data->kind = f75373;
-> +	else {
-> +		dev_err(&client->dev, "Unsupported device: %s\n", client->name);
-> +		return -ENODEV;
-> +	}
-> +
-> +	if ((err = sysfs_create_group(&client->dev.kobj, &f75375_group)))
-> +		goto exit_free;
-> +
-> +	data->hwmon_dev = hwmon_device_register(&client->dev);
-> +	if (IS_ERR(data->hwmon_dev)) {
-> +		err = PTR_ERR(data->hwmon_dev);
-> +		goto exit_remove;
-> +	}
-> +
-> +	return 0;
-> +
-> +exit_remove:
-> +	sysfs_remove_group(&client->dev.kobj, &f75375_group);
-> +exit_free:
->  	kfree(data);
-> +	i2c_set_clientdata(client, NULL);
-> +	return err;
-> +}
-> +
-> +static int f75375_remove(struct i2c_client *client)
-> +{
-> +	struct f75375_data *data = i2c_get_clientdata(client);
-> +	hwmon_device_unregister(data->hwmon_dev);
-> +	sysfs_remove_group(&client->dev.kobj, &f75375_group);
-> +	kfree(data);
-> +	i2c_set_clientdata(client, NULL);
->  	return 0;
->  }
+> +static struct attribute *sis5595_attributes_temp1[] = {
+>  	&dev_attr_temp1_input.attr,
+>  	&dev_attr_temp1_max.attr,
+>  	&dev_attr_temp1_max_hyst.attr,
+> @@ -507,8 +514,8 @@ static struct attribute *sis5595_attribu
+>  	NULL
+>  };
 >  
-> +
-
-extra newline
-
->  static int f75375_attach_adapter(struct i2c_adapter *adapter)
->  {
->  	if (!(adapter->class & I2C_CLASS_HWMON))
-> @@ -608,20 +669,17 @@ static int f75375_attach_adapter(struct i2c_adapter *adapter)
->  static int f75375_detect(struct i2c_adapter *adapter, int address, int kind)
->  {
->  	struct i2c_client *client;
-> -	struct f75375_data *data;
->  	u8 version = 0;
->  	int err = 0;
->  	const char *name = "";
->  
-> -	if (!(data = kzalloc(sizeof(struct f75375_data), GFP_KERNEL))) {
-> +	if (!(client = kzalloc(sizeof(*client), GFP_KERNEL))) {
->  		err = -ENOMEM;
->  		goto exit;
->  	}
-> -	client = &data->client;
-> -	i2c_set_clientdata(client, data);
->  	client->addr = address;
->  	client->adapter = adapter;
-> -	client->driver = &f75375_driver;
-> +	client->driver = &f75375_legacy_driver;
->  
->  	if (kind < 0) {
->  		u16 vendid = f75375_read16(client, F75375_REG_VENDOR);
-> @@ -644,42 +702,42 @@ static int f75375_detect(struct i2c_adapter *adapter, int address, int kind)
->  	} else if (kind = f75373) {
->  		name = "f75373";
->  	}
-> -
->  	dev_info(&adapter->dev, "found %s version: %02X\n", name, version);
->  	strlcpy(client->name, name, I2C_NAME_SIZE);
-> -	data->kind = kind;
-> -	mutex_init(&data->update_lock);
-> +
->  	if ((err = i2c_attach_client(client)))
+> -static const struct attribute_group sis5595_group_opt = {
+> -	.attrs = sis5595_attributes_opt,
+> +static const struct attribute_group sis5595_group_temp1 = {
+> +	.attrs = sis5595_attributes_temp1,
+>  };
+>   
+>  /* This is called when the module is loaded */
+> @@ -563,24 +570,12 @@ static int __devinit sis5595_probe(struc
+>  	if ((err = sysfs_create_group(&pdev->dev.kobj, &sis5595_group)))
 >  		goto exit_free;
+>  	if (data->maxins = 4) {
+> -		if ((err = device_create_file(&pdev->dev,
+> -					&sensor_dev_attr_in4_input.dev_attr))
+> -		 || (err = device_create_file(&pdev->dev,
+> -					&sensor_dev_attr_in4_min.dev_attr))
+> -		 || (err = device_create_file(&pdev->dev,
+> -					&sensor_dev_attr_in4_max.dev_attr))
+> -		 || (err = device_create_file(&pdev->dev,
+> -					&sensor_dev_attr_in4_alarm.dev_attr)))
+> +		if ((err = sysfs_create_group(&pdev->dev.kobj,
+> +					      &sis5595_group_in4)))
+>  			goto exit_remove_files;
+>  	} else {
+> -		if ((err = device_create_file(&pdev->dev,
+> -					      &dev_attr_temp1_input))
+> -		 || (err = device_create_file(&pdev->dev,
+> -					      &dev_attr_temp1_max))
+> -		 || (err = device_create_file(&pdev->dev,
+> -					      &dev_attr_temp1_max_hyst))
+> -		 || (err = device_create_file(&pdev->dev,
+> -				&sensor_dev_attr_temp1_alarm.dev_attr)))
+> +		if ((err = sysfs_create_group(&pdev->dev.kobj,
+> +					      &sis5595_group_temp1)))
+>  			goto exit_remove_files;
+>  	}
 >  
-> -	if ((err = sysfs_create_group(&client->dev.kobj, &f75375_group)))
-> +	if ((err = f75375_probe(client)) < 0)
->  		goto exit_detach;
+> @@ -594,7 +589,8 @@ static int __devinit sis5595_probe(struc
 >  
-> -	data->hwmon_dev = hwmon_device_register(&client->dev);
-> -	if (IS_ERR(data->hwmon_dev)) {
-> -		err = PTR_ERR(data->hwmon_dev);
-> -		goto exit_remove;
-> -	}
-> -
->  	return 0;
->  
-> -exit_remove:
-> -	sysfs_remove_group(&client->dev.kobj, &f75375_group);
->  exit_detach:
->  	i2c_detach_client(client);
+>  exit_remove_files:
+>  	sysfs_remove_group(&pdev->dev.kobj, &sis5595_group);
+> -	sysfs_remove_group(&pdev->dev.kobj, &sis5595_group_opt);
+> +	sysfs_remove_group(&pdev->dev.kobj, &sis5595_group_in4);
+> +	sysfs_remove_group(&pdev->dev.kobj, &sis5595_group_temp1);
 >  exit_free:
-> -	kfree(data);
-> +	kfree(client);
->  exit:
->  	return err;
->  }
+>  	kfree(data);
+>  exit_release:
+> @@ -609,7 +605,8 @@ static int __devexit sis5595_remove(stru
 >  
->  static int __init sensors_f75375_init(void)
->  {
-> -	return i2c_add_driver(&f75375_driver);
-> +	int status;
-> +	status = i2c_add_driver(&f75375_driver);
-> +	if (status < 0)
-
-if (status)
-
-> +		return status;
-> +
-> +	status = i2c_add_driver(&f75375_legacy_driver);
-> +	if (status < 0)
-
-ditto
-
-> +		i2c_del_driver(&f75375_driver);
-> +
-> +	return status;
->  }
+>  	hwmon_device_unregister(data->class_dev);
+>  	sysfs_remove_group(&pdev->dev.kobj, &sis5595_group);
+> -	sysfs_remove_group(&pdev->dev.kobj, &sis5595_group_opt);
+> +	sysfs_remove_group(&pdev->dev.kobj, &sis5595_group_in4);
+> +	sysfs_remove_group(&pdev->dev.kobj, &sis5595_group_temp1);
 >  
->  static void __exit sensors_f75375_exit(void)
->  {
-> +	i2c_del_driver(&f75375_legacy_driver);
->  	i2c_del_driver(&f75375_driver);
->  }
->  
-> -- 
-> 1.5.3.1
+>  	release_region(data->addr, SIS5595_EXTENT);
+>  	platform_set_drvdata(pdev, NULL);
+> 
+
+Looks good, I like it.
+
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
