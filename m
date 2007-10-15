@@ -1,74 +1,70 @@
-From: "David Hubbard" <david.c.hubbard@gmail.com>
-Date: Mon, 15 Oct 2007 17:36:28 +0000
+From: Axel Thimm <Axel.Thimm@ATrpms.net>
+Date: Mon, 15 Oct 2007 17:44:25 +0000
 Subject: Re: [lm-sensors] [ patch .24-rc0 5/5 ] SuperIO locks coordinator -
-Message-Id: <4dfa50520710151036h3ee7a326rcfaf26d8df49fa8b@mail.gmail.com>
+Message-Id: <20071015174425.GC373@puariko.nirvana>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6219172379874573897=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4712F66F.8040806@gmail.com>
 In-Reply-To: <4712F66F.8040806@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Axel,
 
-On 10/15/07, Axel Thimm <Axel.Thimm@atrpms.net> wrote:
-> On Sun, Oct 14, 2007 at 11:34:11PM -0700, David Hubbard wrote:
-> > Hi Jim, Axel,
-> >
-> > On 10/14/07, David Hubbard <david.c.hubbard@gmail.com> wrote:
-> > > Hi Jim,
-> > >
-> > > On 10/14/07, Jim Cromie <jim.cromie@gmail.com> wrote:
-> > > > 05 - use superio-locks in rest of drivers/hwmon/*.c
-> > > >
-> > > > this patch is compile-tested only, please review for sanity before you
-> > > > try running them.  Things to look for - missing superio_release(),
-> > > > opportunities to use superio_devid(), superio_inw(), etc.
-> > > >
-> > > >
-> > > > Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
-> > > > ---
-> > > > hwmon-superio-others
-> > > >  Kconfig      |    6 +++
-> > > >  f71805f.c    |   86 +++++++++++++++-------------------------------
-> > > >  it87.c       |   80 +++++++++++++++---------------------------
-> > > >  smsc47b397.c |   63 ++++++++++++---------------------
-> > > >  smsc47m1.c   |   69 +++++++++++++------------------------
-> > > >  vt1211.c     |   70 +++++++++++++------------------------
-> > > >  w83627ehf.c  |  110 +++++++++++++++++++++++++----------------------------------
-> > >
-> > > I'll test on w83627ehf hardware and report.
-> > >
-> > > David
-> >
-> > This appears to be pasted in and needs to be updated:
-> > printk(KERN_WARNING "pc87360: superio port not detected, "
-> >
-> > I am unable to clone the hwmon.git repository. I believe the git port
-> > is blocked by my ISP, and I may be able to get it opened, but I tried
-> > cloning this way, and failed:
-> >
-> > $ git clone http://lm-sensors.org/kernel?p=kernel/mhoffman/hwmon-2.6.git
-> > hwmon.git
-> > Initialized empty Git repository in hwmon.git/.git/
-> > Cannot get remote repository information.
-> > Perhaps git-update-server-info needs to be run there?
-> >
-> > Axel, is this something easy to fix on the server side?
->
-> Looks more like a broken URL, where did you get the above? The correct
-> one is:
-> git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git
->
-> HTH
+--===============6219172379874573897==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DSayHWYpDlRfCAAQ"
+Content-Disposition: inline
 
-I can't connect to any git servers on the git port. Can you please
-look at the http url?
 
-David
+--DSayHWYpDlRfCAAQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Oct 15, 2007 at 11:35:54AM -0600, David Hubbard wrote:
+> > > $ git clone http://lm-sensors.org/kernel?p=3Dkernel/mhoffman/hwmon-2.=
+6.git
+> > > hwmon.git
+
+> > Looks more like a broken URL, where did you get the above? The correct
+> > one is:
+> > git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git
+> >
+> > HTH
+>=20
+> I can't connect to any git servers on the git port. Can you please
+> look at the http url?
+
+There is no http URL and the git server/port is working - I just checked
+again. Try
+
+nmap -sT -p9418 lm-sensors.org
+--=20
+Axel.Thimm at ATrpms.net
+
+--DSayHWYpDlRfCAAQ
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQFHE6b4QBVS1GOamfERAkxEAKCPFO7AOxm43Y5hZJT52R7ACblgrACfYEda
+rddYJiBa1xa3PyS/a87CRc8=
+=49Ln
+-----END PGP SIGNATURE-----
+
+--DSayHWYpDlRfCAAQ--
+
+
+--===============6219172379874573897==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6219172379874573897==--
