@@ -1,106 +1,152 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 24 Oct 2007 15:11:19 +0000
-Subject: [lm-sensors] [PATCH 3/6] No default configuration file name in
-Message-Id: <20071024171119.33e90128@hyperion.delvare>
+From: Riku Voipio <riku.voipio@movial.fi>
+Date: Tue, 16 Oct 2007 09:47:27 +0000
+Subject: Re: [lm-sensors] [PATCH] f75375s allow setting up fans
+Message-Id: <471488AF.9050607@movial.fi>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-"sensord" no longer needs a default configuration file name. If no
-file name is provided on the command line, use the libsensors default.
+This patch still applies as is.
 
----
- prog/sensord/args.c    |    8 +++-----
- prog/sensord/lib.c     |    8 ++++----
- prog/sensord/sensord.8 |    4 ++--
- 3 files changed, 9 insertions(+), 11 deletions(-)
+Riku Voipio wrote:
+> Allow initializing fans on systems where BIOS does not do that by
+> default.
+>
+>  - define f75375s_platform_data in new file f75375s.h
+>  - if platform_data was provided, set fans accordingly in f75375_init()
+>  - split set_pwm_enable() to a sysfs callback and directly usable
+>    set_pwm_enable_direct()
+>
+> Signed-off-by: Riku Voipio <riku.voipio@movial.fi>
+> ---
+>  drivers/hwmon/f75375s.c |   42 +++++++++++++++++++++++++++++++++++-------
+>  include/linux/f75375s.h |   21 +++++++++++++++++++++
+>  2 files changed, 56 insertions(+), 7 deletions(-)
+>  create mode 100644 include/linux/f75375s.h
+>
+> diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+> index 9336f5e..3074f74 100644
+> --- a/drivers/hwmon/f75375s.c
+> +++ b/drivers/hwmon/f75375s.c
+> @@ -34,6 +34,7 @@
+>  #include <linux/i2c.h>
+>  #include <linux/err.h>
+>  #include <linux/mutex.h>
+> +#include <linux/f75375s.h>
+>  
+>  /* Addresses to scan */
+>  static unsigned short normal_i2c[] = { 0x2d, 0x2e, I2C_CLIENT_END };
+> @@ -287,19 +288,14 @@ static ssize_t show_pwm_enable(struct device *dev, struct device_attribute
+>  	return sprintf(buf, "%d\n", data->pwm_enable[nr]);
+>  }
+>  
+> -static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr,
+> -		const char *buf, size_t count)
+> +static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+>  {
+> -	int nr = to_sensor_dev_attr(attr)->index;
+> -	struct i2c_client *client = to_i2c_client(dev);
+>  	struct f75375_data *data = i2c_get_clientdata(client);
+> -	int val = simple_strtoul(buf, NULL, 10);
+>  	u8 fanmode;
+>  
+>  	if (val < 0 || val > 4)
+>  		return -EINVAL;
+>  
+> -	mutex_lock(&data->update_lock);
+>  	fanmode = f75375_read8(client, F75375_REG_FAN_TIMER);
+>  	fanmode = ~(3 << FAN_CTRL_MODE(nr));
+>  
+> @@ -321,8 +317,22 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr,
+>  	}
+>  	f75375_write8(client, F75375_REG_FAN_TIMER, fanmode);
+>  	data->pwm_enable[nr] = val;
+> +	return 0;
+> +}
+> +
+> +static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr,
+> +		const char *buf, size_t count)
+> +{
+> +	int nr = to_sensor_dev_attr(attr)->index;
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct f75375_data *data = i2c_get_clientdata(client);
+> +	int val = simple_strtoul(buf, NULL, 10);
+> +	int err = 0;
+> +
+> +	mutex_lock(&data->update_lock);
+> +	err = set_pwm_enable_direct(client, nr, val);
+>  	mutex_unlock(&data->update_lock);
+> -	return count;
+> +	return err ? err : count;
+>  }
+>  
+>  static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
+> @@ -604,9 +614,24 @@ static int f75375_detach_client(struct i2c_client *client)
+>  	return 0;
+>  }
+>  
+> +static void f75375_init(struct i2c_client *client, struct f75375_data *data,
+> +		struct f75375s_platform_data *f75375s_pdata)
+> +{
+> +	int nr;
+> +	set_pwm_enable_direct(client, 0, f75375s_pdata->pwm_enable[0]);
+> +	set_pwm_enable_direct(client, 1, f75375s_pdata->pwm_enable[1]);
+> +	for (nr = 0; nr < 2; nr++) {
+> +		data->pwm[nr] = SENSORS_LIMIT(f75375s_pdata->pwm[nr], 0, 255);
+> +		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
+> +			data->pwm[nr]);
+> +	}
+> +
+> +}
+> +
+>  static int f75375_probe(struct i2c_client *client)
+>  {
+>  	struct f75375_data *data = i2c_get_clientdata(client);
+> +	struct f75375s_platform_data *f75375s_pdata = client->dev.platform_data;
+>  	int err;
+>  
+>  	if (!i2c_check_functionality(client->adapter,
+> @@ -637,6 +662,9 @@ static int f75375_probe(struct i2c_client *client)
+>  		goto exit_remove;
+>  	}
+>  
+> +	if (f75375s_pdata != NULL)
+> +		f75375_init(client, data, f75375s_pdata);
+> +
+>  	return 0;
+>  
+>  exit_remove:
+> diff --git a/include/linux/f75375s.h b/include/linux/f75375s.h
+> new file mode 100644
+> index 0000000..e99e225
+> --- /dev/null
+> +++ b/include/linux/f75375s.h
+> @@ -0,0 +1,21 @@
+> +/*
+> + * f75375s.h - platform data structure for f75375s sensor
+> + *
+> + * This file is subject to the terms and conditions of the GNU General Public
+> + * License.  See the file "COPYING" in the main directory of this archive
+> + * for more details.
+> + *
+> + * Copyright (C) 2007, Riku Voipio <riku.voipio@iki.fi>
+> + */
+> +
+> +#ifndef __LINUX_F75375S_H
+> +#define __LINUX_F75375S_H
+> +
+> +/* We want to set fans spinning on systems where there is no
+> + * BIOS to do that for us */
+> +struct f75375s_platform_data {
+> +	u8 pwm[2];
+> +	u8 pwm_enable[2];
+> +};
+> +
+> +#endif /* __LINUX_F75375S_H */
+>   
 
---- lm-sensors-3.orig/prog/sensord/args.c	2007-10-24 16:21:23.000000000 +0200
-+++ lm-sensors-3/prog/sensord/args.c	2007-10-24 16:22:57.000000000 +0200
-@@ -30,12 +30,10 @@
- #include "lib/error.h"
- #include "version.h"
- 
--#define DEFAULT_CONFIG_FILE	ETCDIR "/sensors.conf"
--
- #define MAX_CHIP_NAMES 32
- 
- int isDaemon = 0;
--const char *sensorsCfgFile = DEFAULT_CONFIG_FILE;
-+const char *sensorsCfgFile = NULL;
- const char *pidFile = "/var/run/sensord.pid";
- const char *rrdFile = NULL;
- const char *cgiDir = NULL;
-@@ -104,7 +102,7 @@ static const char *daemonSyntax    "  -t, --rrd-interval <time> -- interval between updating RRD file (default 5m)\n"
-   "  -T, --rrd-no-average      -- switch RRD in non-average mode\n"
-   "  -r, --rrd-file <file>     -- RRD file (default <none>)\n"
--  "  -c, --config-file <file>  -- configuration file (default " DEFAULT_CONFIG_FILE ")\n"
-+  "  -c, --config-file <file>  -- configuration file\n"
-   "  -p, --pid-file <file>     -- PID file (default /var/run/sensord.pid)\n"
-   "  -f, --syslog-facility <f> -- syslog facility to use (default local4)\n"
-   "  -g, --rrd-cgi <img-dir>   -- output an RRD CGI script and exit\n"
-@@ -129,7 +127,7 @@ static const char *appSyntax    "  -a, --alarm-scan          -- only scan for alarms\n"
-   "  -s, --set                 -- execute set statements (root only)\n"
-   "  -r, --rrd-file <file>     -- only update RRD file\n"
--  "  -c, --config-file <file>  -- configuration file (default " DEFAULT_CONFIG_FILE ")\n"
-+  "  -c, --config-file <file>  -- configuration file\n"
-   "  -d, --debug               -- display some debug information\n"
-   "  -v, --version             -- display version and exit\n"
-   "  -h, --help                -- display help and exit\n"
---- lm-sensors-3.orig/prog/sensord/lib.c	2007-10-24 16:21:23.000000000 +0200
-+++ lm-sensors-3/prog/sensord/lib.c	2007-10-24 16:22:57.000000000 +0200
-@@ -38,7 +38,7 @@ loadConfig
-   FILE *cfg = NULL;
-   int ret = 0;
- 
--  if (!strcmp (cfgPath, "-")) {
-+  if (cfgPath && !strcmp (cfgPath, "-")) {
-     if (!reload) {
-       if ((ret = sensors_init (stdin))) {
-         sensorLog (LOG_ERR, "Error loading sensors configuration file <stdin>: %s",
-@@ -46,7 +46,7 @@ loadConfig
-         ret = 12;
-       }
-     }
--  } else if (stat (cfgPath, &stats) < 0) {
-+  } else if (cfgPath && stat (cfgPath, &stats) < 0) {
-     sensorLog (LOG_ERR, "Error stating sensors configuration file: %s", cfgPath);
-     ret = 10;
-   } else {
-@@ -54,12 +54,12 @@ loadConfig
-       sensorLog (LOG_INFO, "configuration reloading");
-       sensors_cleanup ();
-     }
--    if (!(cfg = fopen (cfgPath, "r"))) {
-+    if (cfgPath && !(cfg = fopen (cfgPath, "r"))) {
-       sensorLog (LOG_ERR, "Error opening sensors configuration file: %s", cfgPath);
-       ret = 11;
-     } else if ((ret = sensors_init (cfg))) {
-       sensorLog (LOG_ERR, "Error loading sensors configuration file %s: %s",
--                 cfgPath, sensors_strerror (ret));
-+                 cfgPath ? cfgPath : "(default)", sensors_strerror (ret));
-       ret = 11;
-     }
-     if (cfg)
---- lm-sensors-3.orig/prog/sensord/sensord.8	2007-10-21 16:20:25.000000000 +0200
-+++ lm-sensors-3/prog/sensord/sensord.8	2007-10-24 16:26:08.000000000 +0200
-@@ -79,8 +79,8 @@ below for more details.
- .IP "-c, --config-file file"
- Specify a
- .BR libsensors (3)
--configuration file. If no file is specified, the default configuration file
--is used.
-+configuration file. If no file is specified, the libsensors default
-+configuration file is used.
- 
- .IP "-p, --pid-file file"
- Specify what PID file to write; the default is to write the file
-
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
