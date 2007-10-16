@@ -1,7 +1,7 @@
-From: "David Hubbard" <david.c.hubbard@gmail.com>
-Date: Mon, 15 Oct 2007 20:30:38 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Tue, 16 Oct 2007 01:13:02 +0000
 Subject: Re: [lm-sensors] [ patch .24-rc0 5/5 ] SuperIO locks coordinator -
-Message-Id: <4dfa50520710151330w4ed12a35vdefc5319f2e7ddbc@mail.gmail.com>
+Message-Id: <20071016011302.GA3731@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4712F66F.8040806@gmail.com>
 In-Reply-To: <4712F66F.8040806@gmail.com>
@@ -10,32 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Axel,
+Hi David:
 
-Thank you for checking the server, but would you be so kind as to
-enable http access? I am trying to convince my ISP to unblock the git
-port, but I may not be able to convince them.
+> > On Sun, Oct 14, 2007 at 11:34:11PM -0700, David Hubbard wrote:
+> > > $ git clone http://lm-sensors.org/kernel?p=kernel/mhoffman/hwmon-2.6.git
+> > > hwmon.git
+> > > Initialized empty Git repository in hwmon.git/.git/
+> > > Cannot get remote repository information.
+> > > Perhaps git-update-server-info needs to be run there?
+> > >
+> > > Axel, is this something easy to fix on the server side?
 
-$ sudo nmap -sT -p9418 lm-sensors.org
+That's a gitweb URL, for browsers.  You can't 'git clone' from that.
 
-Starting Nmap 4.20 ( http://insecure.org ) at 2007-10-15 14:21 PDT
-Interesting ports on teufli.physik.fu-berlin.de (130.133.35.29):
-PORT     STATE    SERVICE
-9418/tcp filtered unknown
+> On 10/15/07, Axel Thimm <Axel.Thimm@atrpms.net> wrote:
+> > Looks more like a broken URL, where did you get the above? The correct
+> > one is:
+> > git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git
 
-Nmap finished: 1 IP address (1 host up) scanned in 13.709 seconds
+This is correct.  Also, I gave some step-by-step instructions in an earlier
+message to Hans:
 
-$ git clone git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git
- hwmon.git
-Initialized empty Git repository in /usr/src/patches/hwmon.git/.git/
-lm-sensors.org[0: 130.133.35.29]: errno=Connection timed out
-fatal: unable to connect a socket (Connection timed out)
-fetch-pack from 'git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git' failed.
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-October/021440.html
 
-I'm fairly certain it's my ISP. They block a large number of ports,
-"to prevent file sharing."
+* David Hubbard <david.c.hubbard@gmail.com> [2007-10-15 11:35:54 -0600]:
+> I can't connect to any git servers on the git port. Can you please
+> look at the http url?
 
-David
+At the moment, you can get by without git by grabbing the 2.6.23-git8 patch
+from kernel.org.  That includes all the patches I've accepted up to now.
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
