@@ -1,44 +1,43 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Fri, 05 Oct 2007 06:58:49 +0000
-Subject: Re: [lm-sensors] Can someone review the new fschmd before the
-Message-Id: <4705E0A9.3050200@hhs.nl>
+From: Adrian Bunk <bunk@kernel.org>
+Date: Wed, 17 Oct 2007 19:54:39 +0000
+Subject: [lm-sensors] hwmon/f75375s.c: buggy if()
+Message-Id: <20071017195439.GD3778@stusta.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4703FD55.8030405@hhs.nl>
-In-Reply-To: <4703FD55.8030405@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Riku Voipio <riku.voipio@iki.fi>, "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
-> On Wed, 03 Oct 2007 22:36:37 +0200, Hans de Goede wrote:
->> Can someone review the new fschmd driver I posted:
->> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021250.html
->> Before the 2.6.24 merge window starts, please?
-> 
-> I'm trading the review of your driver against reviews of these patches
-> of mine:
-> 
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-August/021089.html
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021151.html
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021154.html
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021288.html
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021290.html
-> 
-> (Yes, that's 5 patches for one, but they don't even sum up to the size
-> of yours, so I think it's fair.)
-> 
-> Do we have a deal?
-> 
+drivers/hwmon/f75375s.c contains the following code:
 
-Sounds like a good deal to me. I'll start working on reviewing the patches 
-right away.
+<--  snip  -->
 
-Regards,
+...
+static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
+                const char *buf, size_t count)
+{
+...
+        if (val != 0 || val != 1 || data->kind = f75373)
+                return -EINVAL;
+...
 
-Hans
+<--  snip  -->
+
+I'm not sure what exactly was intended, but it was for sure not intended 
+to always return -EINVAL...
+
+Spotted by the Coverity checker.
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
 
 _______________________________________________
