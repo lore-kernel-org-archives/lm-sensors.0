@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 17 Oct 2007 15:16:39 +0000
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Thu, 18 Oct 2007 16:24:23 +0000
 Subject: Re: [lm-sensors] Compaq EVO W8000 Sensor/Chip Support
-Message-Id: <20071017171639.200c4201@hyperion.delvare>
+Message-Id: <191fb4ca0710180924of9e4216w837a15a85fb76eda@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1192538331.4059.17.camel@tiger.atd.ucar.edu>
 In-Reply-To: <1192538331.4059.17.camel@tiger.atd.ucar.edu>
@@ -10,49 +10,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg, Keith,
+Hi Keith,
 
-> On Tue, 2007-10-16 at 19:33 -0700, Juerg Haefliger wrote:
-> > Hmm... Don't count on it. I'm not sure how safe it is to unhide things...
 
-Depends on how old the hardware is, and what the BIOS is doing. Keith's
-system seems to be relatively old so it may be safe. On more recent
-systems it's more risky.
+On 10/16/07, Keith Romberg <romberg@ucar.edu> wrote:
+> Hello,
+>
+> I have a Compaq EVO W8000 machine that I have been trying to get
+> lm_sensors to work on.  The machine is a dual Xeon board with the
+> following chips/sensors I believe it has:
+>
+> 82801BA - work in progress
+> LPC47m967 - unknown support
+> ADM1021/LM84 - supported
+> ADM1032/lm90 - supported
 
-The first thing to check is the ACPI DSDT table. If it somehow accesses
-the SMBus I/O ports (0xfc00-0xfc1f) then unhiding the SMBus is a bad
-idea. Keith, can you please send your DSDT table to Juerg and myself in
-private?
+FYI, I just stumbled over a W8000 and opened it up. The Super-IO is a
+LPC47B357. Don't know why speedfan identifies it as a m967.
 
-You can also try loading the ACPI "fan" and "thermal" drivers, and see
-if anything interesting shows up in /proc/acpi/fan
-and /proc/acpi/thermal_zone, respectively. If nothing shows up, chances
-are good that ACPI isn't making use of the ADM1023 chips.
+...juerg
 
-Lastly, you should also pay attention to the ADM1023 limits. If you see
-them change magically, this means that the BIOS is using the ADM1023
-chips somehow. If this happens, then it's not safe to unhide the SMBus.
 
-I can't help but notice that the CPU temperature limit is set to 61
-degrees C which is _not_ the chip default according to the datasheet -
-so this suggests that the BIOS has set this limit at boot time.
-Although this doesn't imply that it's touching the chip after that.
-
-If you go through all these tests and nothing suspect shows up, then we
-can patch the kernel to unhide the SMBus automatically on your
-system... Although it might not be easy because not many PCI devices
-have a sub-ID on your system.
-
-On Wed, 17 Oct 2007 06:42:57 -0600, Keith Romberg wrote:
-> So far things are stable under continuous changing load over 12 hours
-> now.  I am sure the reason why Compaq hide the sensors/chips/buses is
-> that they want the 'customer' to use their crappy system management
-> software.
-
-That's possible, yeah.
-
--- 
-Jean Delvare
+> Looking at the Devices page, I believe they have the corresponding
+> support.
+>
+> The machine is running Fedora Core 6 x86 with lm_sensors 2.10.4.  When I
+> run sensors-detect, nothing is found.  I was kind of expecting the LM84
+> and LM90 chips to be found, but they where not.  Are they dependent on
+> the 82801BA and LPC47m967 being found supported?  Has anyone gotten
+> lm_sensors to with with this machine?
+>
+> Below is the output from speedfan which is a Windoze app....
+>
+> Thanks,
+> Keith
+>
+> //---------------------------------------------------------------------->>
+>
+> Win9x:NO  64Bit:NO  GiveIO:YES  SpeedFan:YES
+> I/O properly initialized
+> Linked ISA BUS at $0290
+> SMBus successfully enabled
+> Linked Intel 82801BA ICH2 SMBUS at $FC00
+> Scanning ISA BUS at $0290...
+> SuperIO Chip=LPC47m967
+> Scanning Intel SMBus at $FC00...
+> ADM1021 (ID=$00) found on SMBus at $18
+> ADM1032 (ID=$00) found on SMBus at $4C
+> SMART Enabled for drive 0
+> Found SAMSUNG SP0802N (80.1GB)
+> Found SCSI drive ST318436LW (18.4GB)
+> Found SCSI drive ATLAS IV 18 WLS (18.4GB)
+> End of detection
+> Loaded 0 events
+>
+>
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>
 
 _______________________________________________
 lm-sensors mailing list
