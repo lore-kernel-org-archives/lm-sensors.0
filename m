@@ -1,68 +1,45 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 07 Oct 2007 20:45:20 +0000
-Subject: Re: [lm-sensors] [patch 2.6.23-rc6] lm75: new-style i2c binding,
-Message-Id: <20071007224520.124ef77d@hyperion.delvare>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Thu, 18 Oct 2007 21:57:55 +0000
+Subject: [lm-sensors] [PATCH] lm-sensors: update info for SMSC LPC47B357
+Message-Id: <191fb4ca0710181457h15f781a9o72f767e7f0734168@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_2325_18859289.1192744675629"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070916234519.861D3C24EE@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-In-Reply-To: <20070916234519.861D3C24EE@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 7 Oct 2007 14:57:48 -0400, Mark M. Hoffman wrote:
-> Hi Jean, David:
-> 
-> > On Mon, 24 Sep 2007 13:18:39 -0700, David Brownell wrote:
-> > > The location of that tree seems to be hidden.  I did find a GIT
-> > > tree of Mark's, but it didn't have any lm75 changes.
-> 
-> * Jean Delvare <khali@linux-fr.org> [2007-09-25 11:24:53 +0200]:
-> > MAINTAINERS says:
-> > 
-> > T:	git lm-sensors.org:/kernel/mhoffman/hwmon-2.6.git
-> > 
-> > It indeed doesn't mention the testing branch, while this is the
-> > interesting one. Mark, is there something that can be done to improve
-> > the situation?
-> 
-> This helps?  No other "T:" line specifies a branch this way, but it seems
-> natural enough.
+------=_Part_2325_18859289.1192744675629
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Yes, I think you should apply something like this.
+Update the info for the SMSC LPC47B357 in sensors-detect.
 
-Thanks.
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-> From f115afe21e8399473d166d2fb5652446e748bc16 Mon Sep 17 00:00:00 2001
-> From: Mark M. Hoffman <mhoffman@lightlink.com>
-> Date: Sun, 7 Oct 2007 14:45:26 -0400
-> Subject: [PATCH] MAINTAINERS: update hwmon subsystem git trees
-> 
-> Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
-> ---
->  MAINTAINERS |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 62931db..9f50955 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -1661,7 +1661,8 @@ P:	Mark M. Hoffman
->  M:	mhoffman@lightlink.com
->  L:	lm-sensors@lm-sensors.org
->  W:	http://www.lm-sensors.org/
-> -T:	git lm-sensors.org:/kernel/mhoffman/hwmon-2.6.git
-> +T:	git lm-sensors.org:/kernel/mhoffman/hwmon-2.6.git testing
-> +T:	git lm-sensors.org:/kernel/mhoffman/hwmon-2.6.git release
->  S:	Maintained
->  
->  HARDWARE RANDOM NUMBER GENERATOR CORE
+------=_Part_2325_18859289.1192744675629
+Content-Type: text/x-patch; name=sensors-detect-update-for-lpc47b357.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f7xtbnow
+Content-Disposition: attachment;
+	filename=sensors-detect-update-for-lpc47b357.patch
 
-
--- 
-Jean Delvare
+SW5kZXg6IGxtLXNlbnNvcnMvcHJvZy9kZXRlY3Qvc2Vuc29ycy1kZXRlY3QKPT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQot
+LS0gbG0tc2Vuc29ycy5vcmlnL3Byb2cvZGV0ZWN0L3NlbnNvcnMtZGV0ZWN0CTIwMDctMTAtMTgg
+MTQ6NTQ6MTYuNDE3MjU1MDAwIC0wNzAwCisrKyBsbS1zZW5zb3JzL3Byb2cvZGV0ZWN0L3NlbnNv
+cnMtZGV0ZWN0CTIwMDctMTAtMTggMTQ6NTU6MTYuMTA1MTY2MDAwIC0wNzAwCkBAIC0xNzUyLDgg
+KzE3NTIsOCBAQAogCWRldmlkID0+IDB4NTYsCiAgICAgICB9LAogICAgICAgewotCW5hbWUgPT4g
+IlNNU0MgTFBDNDdCMzU3IFN1cGVyIElPIiwKLQkjIG5vIGRhdGFzaGVldAorCW5hbWUgPT4gIlNN
+U0MgTFBDNDdCMzU3L005NjcgU3VwZXIgSU8iLAorCWRyaXZlciA9PiAibm90LWEtc2Vuc29yIiwK
+IAlkZXZpZCA9PiAweDVkLAogICAgICAgfSwKICAgICAgIHsK
+------=_Part_2325_18859289.1192744675629
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_2325_18859289.1192744675629--
