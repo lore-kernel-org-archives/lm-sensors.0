@@ -1,7 +1,7 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Wed, 17 Oct 2007 21:10:04 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Thu, 18 Oct 2007 13:34:52 +0000
 Subject: Re: [lm-sensors] [2.6 patch] hwmon/ibmpex.c: fix NULL dereference
-Message-Id: <20071017211004.GA31309@tree.beaverton.ibm.com>
+Message-Id: <20071018133452.GB3526@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20071017192902.GB3778@stusta.de>
 In-Reply-To: <20071017192902.GB3778@stusta.de>
@@ -9,9 +9,11 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Adrian Bunk <bunk@kernel.org>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Wed, Oct 17, 2007 at 09:29:02PM +0200, Adrian Bunk wrote:
+Hi:
+
+* Adrian Bunk <bunk@kernel.org> [2007-10-17 21:29:02 +0200]:
 > Don't dereference "data" when we know for sure it's NULL.
 > 
 > Spotted by the Coverity checker.
@@ -32,11 +34,14 @@ On Wed, Oct 17, 2007 at 09:29:02PM +0200, Adrian Bunk wrote:
 > +		       "interface.\n");
 >  		return;
 >  	}
-> 
-> 
-ACK.
+>  
 
---D
+Applied to hwmon-2.6.git/testing, thanks.
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
