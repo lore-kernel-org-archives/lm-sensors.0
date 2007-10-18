@@ -1,54 +1,90 @@
-From: Riku Voipio <riku.voipio@iki.fi>
-Date: Wed, 17 Oct 2007 20:45:08 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Thu, 18 Oct 2007 13:37:44 +0000
 Subject: Re: [lm-sensors] hwmon/f75375s.c: buggy if()
-Message-Id: <20071017204508.GA32110@kos.to>
+Message-Id: <20071018133744.GC3526@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071017195439.GD3778@stusta.de>
-In-Reply-To: <20071017195439.GD3778@stusta.de>
+References: <20071017195439.GD3778@stusta.de> <20071017204508.GA32110@kos.to>
+In-Reply-To: <20071017204508.GA32110@kos.to>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Adrian Bunk <bunk@kernel.org>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Riku Voipio <riku.voipio@iki.fi>
+Cc: Adrian Bunk <bunk@kernel.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-> <--  snip  -->
+Hi:
+
+* Riku Voipio <riku.voipio@iki.fi> [2007-10-17 23:45:08 +0300]:
+> > <--  snip  -->
+> > 
+> > ...
+> > static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
+> >                 const char *buf, size_t count)
+> > {
+> > ...
+> >         if (val != 0 || val != 1 || data->kind = f75373)
+> >                 return -EINVAL;
+> > ...
+> > 
+> > <--  snip  -->
 > 
-> ...
-> static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
->                 const char *buf, size_t count)
-> {
-> ...
->         if (val != 0 || val != 1 || data->kind = f75373)
->                 return -EINVAL;
-> ...
+> > I'm not sure what exactly was intended, but it was for sure not intended 
+> > to always return -EINVAL...
 > 
-> <--  snip  -->
+> Aiee. val should be 1 or 0, and kind must not be f75373.
+> 
+> Signed-off-by: Riku Voipio <riku.voipio@iki.fi>
+> ---
+>  drivers/hwmon/f75375s.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+> index f1df57a..885bfe9 100644
+> --- a/drivers/hwmon/f75375s.c
+> +++ b/drivers/hwmon/f75375s.c
+> @@ -344,7 +344,7 @@ static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
+>     int val = simple_strtoul(buf, NULL, 10);
+>     u8 conf = 0;
+> 
+> -   if (val != 0 || val != 1 || data->kind = f75373)
+> +   if (!(val = 0 || val = 1 ) || data->kind = f75373)
+>         return -EINVAL;
+> 
+>     mutex_lock(&data->update_lock);
+> --
+> 1.5.3.1
 
-> I'm not sure what exactly was intended, but it was for sure not intended 
-> to always return -EINVAL...
+That patch doesn't apply here, so I applied this:
 
-Aiee. val should be 1 or 0, and kind must not be f75373.
+commit 805763cd743f2aed41dc61a55569fa43cf1f240c
+Author: Riku Voipio <riku.voipio@iki.fi>
+Date:   Thu Oct 18 09:29:53 2007 -0400
 
-Signed-off-by: Riku Voipio <riku.voipio@iki.fi>
----
- drivers/hwmon/f75375s.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+    hwmon: (f75375s) fix pwm mode setting
+    
+    Spotted by the Coverity checker. (Thanks Adrian Bunk)
+    
+    Signed-off-by: Riku Voipio <riku.voipio@iki.fi>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 
 diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
-index f1df57a..885bfe9 100644
+index 13a0413..59a3470 100644
 --- a/drivers/hwmon/f75375s.c
 +++ b/drivers/hwmon/f75375s.c
-@@ -344,7 +344,7 @@ static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
-    int val = simple_strtoul(buf, NULL, 10);
-    u8 conf = 0;
+@@ -323,7 +323,7 @@ static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
+ 	int val = simple_strtoul(buf, NULL, 10);
+ 	u8 conf = 0;
+ 
+-	if (val != 0 || val != 1 || data->kind = f75373)
++	if (!(val = 0 || val = 1) || data->kind = f75373)
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&data->update_lock);
 
--   if (val != 0 || val != 1 || data->kind = f75373)
-+   if (!(val = 0 || val = 1 ) || data->kind = f75373)
-        return -EINVAL;
+Thanks & regards,
 
-    mutex_lock(&data->update_lock);
---
-1.5.3.1
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
 
 _______________________________________________
