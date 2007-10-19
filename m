@@ -1,80 +1,69 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 19 Oct 2007 14:46:35 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Fri, 19 Oct 2007 20:18:02 +0000
 Subject: Re: [lm-sensors] lm-sensors 3.0.0-rc1 has been released!
-Message-Id: <20071019164635.23c02fc5@hyperion.delvare>
+Message-Id: <471910FA.4030802@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070925233316.7afaa297@hyperion.delvare>
 In-Reply-To: <20070925233316.7afaa297@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Aurelien,
+Jean Delvare wrote:
+> Hi Hans,
+> 
+> On Wed, 26 Sep 2007 23:02:31 +0200, Hans de Goede wrote:
+>> Excellent work Jean! I've given this a test run on all my systems / test rigs 
+>> and it works great everywhere. I'll create patches for ksensors, gkrellm, and 
+>> gome's sensors-applet as time permits. I'm afraid this will take a while as 
+>> currently I'm very busy with stuff regarding the upcoming Fedora 8.
+> 
+> Any news on this? I am more or less waiting for this to happen before
+> we can release lm-sensors 3.0.0 final.
+> 
 
-On Thu, 18 Oct 2007 10:18:16 +0200, Aurelien Jarno wrote:
-> Jean Delvare a =E9crit :
-> > Any news on this? I am more or less waiting for this to happen before
-> > we can release lm-sensors 3.0.0 final.
->=20
-> I have just given a try. It works nicely here.
+Okay,
 
-Great, thanks for the testing and report.
+I've ported my first application over: gkrellm. gkrellm only uses the main 
+featuree (_input values) so I instinctively wrote this:
 
-> However I have a remark to ease the transition from version 2.x.x to
-> version 3.0.0: it is currently possible to have the two libraries
-> installed, but they both use the same configuration file. What about
-> having different config files for the two versions (e.g. sensors.conf
-> and sensors3.conf) ?
+	while ((feature = sensors_get_features(name, &nr1))) {
+		/* ..... */
+		result = sensors_get_value(name, feature->number, &val);
 
-Technically speaking, the libraries themselves don't have default
-configuration files. Applications do. That makes the matter only worse.
+Which to my surprise doesn't work I now know this should be:
+	while ((feature = sensors_get_features(name, &nr1))) {
+		/* ..... */
+		result = sensors_get_value(name,
+			sensors_get_subfeature(name,                             				feature, 
+SENSORS_SUBFEATURE_IN_INPUT),
+			feature->number, &val);
 
-For openSuse, my plan was to get plain rid of lm-sensors 2 and all
-applications using it as soon as possible, so that no such conflict
-happens. I don't think we'll package libsensors v2.10.x in the next
-release. I don't know what Hans' plans are for Fedora. Of course, if
-you intend to guarantee backwards compatibility by shipping the old
-libsensors for a longer time in Debian, then indeed you have a problem.
+Which must be put in a switch statement on feature->type to put in 
+SENSORS_SUBFEATURE_IN_INPUT / SENSORS_SUBFEATURE_FAN_INPUT / 
+SENSORS_SUBFEATURE_TEMP_INPUT
 
-The fact that applications, rather than the library, set the default
-configuration file name, means that it's essentially out of our control.
-We could change sensors and sensord in lm-sensors 3.0.0 to use a
-different default, but that won't solve the problem for all the 3rd
-party applications out there. You'd need to change them all. Either the
-authors do, or the packagers will have to.
+Ideally my first naive code should just work for simple applications which only 
+want to read the main / _input feature, I haven't checked yet, but I think 
+making my initial code work, doesn't match well with the current libsensors 
+structure, so how about adding an "int input_subfeature_number" to the
+sensors_feature struct, so that my original code will work like this:
 
-If you want to use /etc/sensors3.conf as the default for applications
-using lm-sensors 3 in Debian, there's nothing preventing you from doing
-that. This doesn't really have to be done upstream. That being said, I
-agree that it would become confusing if different distributions come up
-with different naming schemes.
+	while ((feature = sensors_get_features(name, &nr1))) {
+		/* ..... */
+		result = sensors_get_value(name,
+		 	feature->input_subfeature_number, &val);
 
-Coming to think about it, I think it's silly to have the default
-configuration file name in applications. There's really no reason why
-an application would want to use a different default, is there? So it
-might be the right time to change this and put the default
-configuration file name in libsensors. Calling sensors_init(NULL) would
-use that default. It would make it easier to change the default if a
-distribution wants to, and it would enforce a common default for
-applications using the new library. Opinions?
 
-I don't much like the idea of using /etc/sensors3.conf for lm-sensors
-3. Soon enough, lm-sensors 2 will be history, sensors.conf will no
-longer exist, and we'll be stuck with /etc/sensors3.conf. That's a bit
-unaesthetic, isn't it? A slightly different approach would be to
-use /etc/sensors3.conf if it exists, and /etc/sensors.conf otherwise
-(as was done for the XFree86 configuration file from version 3.x to
-version 4.x; remember?) This approach preserves compatibility with
-existing installations and offers a nice upgrade path. But of course
-this can only be (easily) implemented if the default is handled in
-libsensors rather than in the applications themselves, as I proposed
-above.
+Or alternatively a sensors_get_main_value(name, feature, &val) function?
 
-We have to decide ourselves quickly, as 3.0.0 is almost there now.
+Besides that adding a define to sensors.h which can be tested to find out 
+against which libsensors version code is compiling would be a good idea too.
 
---=20
-Jean Delvare
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
