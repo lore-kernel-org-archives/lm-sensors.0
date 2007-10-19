@@ -1,166 +1,61 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Thu, 18 Oct 2007 04:53:42 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 19 Oct 2007 15:07:33 +0000
 Subject: Re: [lm-sensors] dme1737 0-002e: Write to register 0x30 failed!
-Message-Id: <191fb4ca0710172153k5e7d7004oafff3972d7441708@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_282_19510368.1192683222802"
+Message-Id: <20071019170733.363fc5ad@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1642847378@web.de>
 In-Reply-To: <1642847378@web.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-------=_Part_282_19510368.1192683222802
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi Jean, Juergen,
-
-
-On 10/17/07, Jean Delvare <khali@linux-fr.org> wrote:
-> Hi Juerg,
->
-> On Wed, 17 Oct 2007 12:43:16 -0700, Juerg Haefliger wrote:
-> > On 10/17/07, Juergen Bausa <Juergen.Bausa@web.de> wrote:
-> > > Here is what I found in /var/log:
-> > >
-> > > /var/log/messages:Oct 17 09:16:00 lisa kernel: i2c_adapter i2c-0: nForce2 SMBus adapter at 0x4c00
-> > > /var/log/messages:Oct 17 09:16:00 lisa kernel: i2c_adapter i2c-1: nForce2 SMBus adapter at 0x4c40
-> > > /var/log/messages:Oct 17 09:16:00 lisa kernel: i2c_adapter i2c-0: Found a DME1737 chip at 0x2e (rev 0x8a)
-> > >
-> > > /var/log/debug:Oct 17 09:16:00 lisa kernel: i2c_adapter i2c-0: SMBus Timeout! (0x10)
-> > > /var/log/debug:Oct 17 09:16:00 lisa kernel: i2c_adapter i2c-0: SMBus Timeout! (0x10)
-> > > /var/log/debug:Oct 17 09:16:00 lisa kernel: i2c_adapter i2c-1: SMBus Timeout! (0x10)
-> >
-> > These are all errors that occur when the drivers (i2c and dme1737) get
-> > loaded. The dme1737 is not printing any errors so they are not
-> > transactions initiated by the dme1737. The 0x10 means "SMBus Device
-> > Address Not Acknowledged" according to the ACPI spec. Not sure how
-> > this can happen... Signal integrity problems on the board level? In
-> > any case, these errors should probably be retried. Not sure at what
-> > level though. Jean?
->
-> These are not errors at all, it's only i2c-core probing at work. The
-> dme1737 driver specifies three possible addresses (0x2c, 0x2d, 0x2e),
-> the probes at 0x2c and 0x2d on bus 0 fail, these are the first two
-> "SMBus Timeout!" messages above. Then the probe at 0x2e succeeds. Then
-> i2c-core goes on with bus 1. There should have been 3 failing probes
-> there, but surprisingly, there's only one "SMBus Timeout!" for bus 1. I
-> can't explain it.
->
-> Juergen, can you please attach the output of:
->
-> modprobe i2c-dev
-> i2cdetect -y 0
-> i2cdetect -y 1
-
-Ah, Jean, you're certainly right! On my machine, I get the following
-when loading the driver:
-
-Oct 17 21:38:09 localhost kernel: i2c-adapter i2c-0: SMBus Timeout! (0x10)
-Oct 17 21:38:09 localhost kernel: i2c-adapter i2c-0: SMBus Timeout! (0x10)
-Oct 17 21:38:09 localhost kernel: dme1737 0-002e: Found a DME1737 chip
-at 0x2e (rev 0x8a).
-Oct 17 21:38:09 localhost kernel: dme1737 0-002e: Optional features:
-pwm3=yes, pwm5=no, pwm6=no, fan3=no, fan4=yes, fan5=no, fan6=no.
-Oct 17 21:38:09 localhost kernel: i2c-adapter i2c-0: nForce2 SMBus
-adapter at 0x4c00
-Oct 17 21:38:09 localhost kernel: i2c-adapter i2c-1: SMBus Timeout! (0x10)
-Oct 17 21:38:09 localhost last message repeated 2 times
-Oct 17 21:38:09 localhost kernel: i2c-adapter i2c-1: nForce2 SMBus
-adapter at 0x4c40
-
-
-> Either way these 3 log messages can safely be ignored.
->
-> > > /var/log/debug:Oct 17 19:35:30 lisa kernel: i2c_adapter i2c-0: SMBus Timeout! (0x1a)
-> > >
-> > > /var/log/messages:Oct 17 09:16:00 lisa kernel: dme1737 0-002e: Optional features: pwm3=yes, pwm5=no, pwm6=no, fan3=no, fan4=yes, fan5=no, fan6=no.
-> > > /var/log/messages:Oct 17 19:35:30 lisa kernel: dme1737 0-002e: Write to register 0x30 failed (-1)! Please report to the driver maintainer.
-> >
-> > Aha, this is an error as a result of a dme1737 initiated write. 0x1a
-> > means "SMBus Busy". So the dme1737 driver is colliding with something
-> > else in the system that tries to talk to a chip on the same bus.
->
-> This can only happen on a multi-master I2C bus, which is rather rare on
-> consumer PCs. Juergen, do you have detailed technical documentation
-> about your system? It would be interesting to find out what chip the
-> other master is talking to. If it's the DME1737 chip, this could lead
-> to problems.
-
-Hmm... What about ACPI? Couldn't it interfere with the dme1737 module
-by going after the same resources.
-
-
-> >                                                                  That
-> > should definitely get retried. I can certainly do that at the dme1737
-> > level but I don't think that's the right place. Jean?
->
-> Assuming that "busy" means that the nForce chip did not even attempt to
-> send the message (or lost arbitration, which is equivalent), this
-> specific error could be handled in i2c-nforce2, by retrying. The
-> problem is that you have to decide how many times you retry, and how
-> much time you wait between retries (there doesn't seem to be a way to
-> test if the SMBus is busy before trying, right?)
-
-The i2c-nforce2 driver already spins for 10 msecs before deciding to
-give up. I'd just retry once after that and see what happens.
-
-Juergen: Can you apply the attached patch and give it a whirl?
-
-...juerg
-
-
-> We have "timeout" and "retries" fields in struct i2c_adapter, which
-> could be used for this. The meaning of "retries" is a bit different
-> though, it's supposed to be the number of nacks the bus driver accepts
-> when attempting to contact a chip before giving up. This doesn't appear
-> to be very useful though so I wouldn't mind recycling this field for
-> the more interesting usage you need. Most bus drivers don't set nor use
-> "timeout".
->
-> As a first aid solution, you could simply hardcode the timeout and
-> retry values, just to confirm that it solves Juergen's problem. Then
-> we can see how to make it cleaner. Error handling is an area where the
-> i2c subsystem needs to be improved.
->
-> --
-> Jean Delvare
->
-
-------=_Part_282_19510368.1192683222802
-Content-Type: text/x-patch; name=i2c-nforce2-retry-if-busy.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f7wsfvcj
-Content-Disposition: attachment; filename=i2c-nforce2-retry-if-busy.patch
-
-SW5kZXg6IGxpbnV4LTIuNi4yMy9kcml2ZXJzL2kyYy9idXNzZXMvaTJjLW5mb3JjZTIuYwo9PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09Ci0tLSBsaW51eC0yLjYuMjMub3JpZy9kcml2ZXJzL2kyYy9idXNzZXMvaTJjLW5mb3Jj
-ZTIuYwkyMDA3LTEwLTE3IDIxOjMwOjIzLjAwMDAwMDAwMCAtMDcwMAorKysgbGludXgtMi42LjIz
-L2RyaXZlcnMvaTJjL2J1c3Nlcy9pMmMtbmZvcmNlMi5jCTIwMDctMTAtMTcgMjE6NTQ6MjMuMDAw
-MDAwMDAwIC0wNzAwCkBAIC0xNjgsMTggKzE2OCwyMiBAQAogCX0KIAogCW91dGJfcCgoYWRkciAm
-IDB4N2YpIDw8IDEsIE5WSURJQV9TTUJfQUREUik7Ci0Jb3V0Yl9wKHByb3RvY29sLCBOVklESUFf
-U01CX1BSVENMKTsKIAotCXRlbXAgPSBpbmJfcChOVklESUFfU01CX1NUUyk7CisJaSA9IDE7CisJ
-ZG8geworCQlvdXRiX3AocHJvdG9jb2wsIE5WSURJQV9TTUJfUFJUQ0wpOwogCi0JaWYgKH50ZW1w
-ICYgTlZJRElBX1NNQl9TVFNfRE9ORSkgewotCQl1ZGVsYXkoNTAwKTsKIAkJdGVtcCA9IGluYl9w
-KE5WSURJQV9TTUJfU1RTKTsKLQl9Ci0JaWYgKH50ZW1wICYgTlZJRElBX1NNQl9TVFNfRE9ORSkg
-ewotCQltc2xlZXAoMTApOwotCQl0ZW1wID0gaW5iX3AoTlZJRElBX1NNQl9TVFMpOwotCX0KKwor
-CQlpZiAofnRlbXAgJiBOVklESUFfU01CX1NUU19ET05FKSB7CisJCQl1ZGVsYXkoNTAwKTsKKwkJ
-CXRlbXAgPSBpbmJfcChOVklESUFfU01CX1NUUyk7CisJCX0KKwkJaWYgKH50ZW1wICYgTlZJRElB
-X1NNQl9TVFNfRE9ORSkgeworCQkJbXNsZWVwKDEwKTsKKwkJCXRlbXAgPSBpbmJfcChOVklESUFf
-U01CX1NUUyk7CisJCX0KKwl9IHdoaWxlIChpLS0gJiYgKHRlbXAgJiBOVklESUFfU01CX1NUU19T
-VEFUVVMpID09IDB4MWEpOwogCiAJaWYgKCh+dGVtcCAmIE5WSURJQV9TTUJfU1RTX0RPTkUpIHx8
-ICh0ZW1wICYgTlZJRElBX1NNQl9TVFNfU1RBVFVTKSkgewogCQlkZXZfZGJnKCZhZGFwLT5kZXYs
-ICJTTUJ1cyBUaW1lb3V0ISAoMHglMDJ4KVxuIiwgdGVtcCk7Cg==
-------=_Part_282_19510368.1192683222802
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_282_19510368.1192683222802--
+SGkgSnVlcmcsCgpPbiBXZWQsIDE3IE9jdCAyMDA3IDIxOjUzOjQyIC0wNzAwLCBKdWVyZyBIYWVm
+bGlnZXIgd3JvdGU6Cj4gT24gMTAvMTcvMDcsIEplYW4gRGVsdmFyZSA8a2hhbGlAbGludXgtZnIu
+b3JnPiB3cm90ZToKPiA+IE9uIFdlZCwgMTcgT2N0IDIwMDcgMTI6NDM6MTYgLTA3MDAsIEp1ZXJn
+IEhhZWZsaWdlciB3cm90ZToKPiA+ID4gQWhhLCB0aGlzIGlzIGFuIGVycm9yIGFzIGEgcmVzdWx0
+IG9mIGEgZG1lMTczNyBpbml0aWF0ZWQgd3JpdGUuIDB4MWEKPiA+ID4gbWVhbnMgIlNNQnVzIEJ1
+c3kiLiBTbyB0aGUgZG1lMTczNyBkcml2ZXIgaXMgY29sbGlkaW5nIHdpdGggc29tZXRoaW5nCj4g
+PiA+IGVsc2UgaW4gdGhlIHN5c3RlbSB0aGF0IHRyaWVzIHRvIHRhbGsgdG8gYSBjaGlwIG9uIHRo
+ZSBzYW1lIGJ1cy4KPiA+Cj4gPiBUaGlzIGNhbiBvbmx5IGhhcHBlbiBvbiBhIG11bHRpLW1hc3Rl
+ciBJMkMgYnVzLCB3aGljaCBpcyByYXRoZXIgcmFyZSBvbgo+ID4gY29uc3VtZXIgUENzLiBKdWVy
+Z2VuLCBkbyB5b3UgaGF2ZSBkZXRhaWxlZCB0ZWNobmljYWwgZG9jdW1lbnRhdGlvbgo+ID4gYWJv
+dXQgeW91ciBzeXN0ZW0/IEl0IHdvdWxkIGJlIGludGVyZXN0aW5nIHRvIGZpbmQgb3V0IHdoYXQg
+Y2hpcCB0aGUKPiA+IG90aGVyIG1hc3RlciBpcyB0YWxraW5nIHRvLiBJZiBpdCdzIHRoZSBETUUx
+NzM3IGNoaXAsIHRoaXMgY291bGQgbGVhZAo+ID4gdG8gcHJvYmxlbXMuCj4gCj4gSG1tLi4uIFdo
+YXQgYWJvdXQgQUNQST8gQ291bGRuJ3QgaXQgaW50ZXJmZXJlIHdpdGggdGhlIGRtZTE3MzcgbW9k
+dWxlCj4gYnkgZ29pbmcgYWZ0ZXIgdGhlIHNhbWUgcmVzb3VyY2VzLgoKSXQgY291bGQsIGJ1dCBJ
+IGp1c3QgY2FuJ3QgdGhpbmsgb2YgYSB2YWxpZCByZWFzb24gd2h5IEFDUEkgd291bGRuJ3QKdXNl
+IHRoZSBuRm9yY2UyIFNNQnVzIGNvbnRyb2xsZXIgaXRzZWxmLgoKQXJlIHlvdSBjZXJ0YWluIHRo
+YXQgdGhlICJidXN5IiBlcnJvciBjb2RlIG1lYW5zIHRoYXQgdGhlICpidXMqIGlzCmJ1c3k/IERv
+ZXNuJ3QgaXQgcmF0aGVyIG1lYW4gdGhhdCB0aGUgKm5Gb3JjZSBTTUJ1cyBjb250cm9sbGVyKiBp
+dHNlbGYKaXMgYnVzeSAoaS5lLiB0aGUgcHJldmlvdXMgY29tbWFuZCBpcyBzdGlsbCBiZWluZyBw
+cm9jZXNzZWQpPyBUaGUgbGF0dGVyCndvdWxkIGluZGVlZCBzdWdnZXN0IHRoYXQgQUNQSSBpcyBy
+dW5uaW5nIFNNQnVzIHRyYW5zYWN0aW9ucyBpbiBvdXIKYmFjaywgd2hpY2ggd291bGQgYmUgYSBw
+cm9ibGVtLiBBdCBsZWFzdCwgaWYgdGhlIFNNQnVzIGNvbnRyb2xsZXIgbGV0cwp1cyBrbm93LCB3
+ZSdsbCBhdm9pZCBjb3JydXB0aW9uLCBidXQgYmFkIHRoaW5ncyBjYW4gc3RpbGwgaGFwcGVuLgoK
+SnVlcmdlbiwgaWYgeW91IGxvYWQgdGhlICJ0aGVybWFsIiBkcml2ZXIgYW5kIGxvb2sKaW4gL3By
+b2MvYWNwaS90aGVybWFsX3pvbmUsIGRvIHlvdSBzZWUgYSB0ZW1wZXJhdHVyZSByZXBvcnRlZCwg
+d2l0aCB0aGUKc2FtZSB2YWx1ZSBhcyBvbmUgb2YgdGhlIERNRTE3MzcgdGVtcGVyYXR1cmUgY2hh
+bm5lbHM/CgpJZiB5b3UgdW5sb2FkIHRoZSAidGhlcm1hbCIgZHJpdmVyLCBkbyB0aGUgZG1lMTcz
+NyB3cml0ZSBlcnJvcnMgZ28gYXdheT8KCj4gPiBBc3N1bWluZyB0aGF0ICJidXN5IiBtZWFucyB0
+aGF0IHRoZSBuRm9yY2UgY2hpcCBkaWQgbm90IGV2ZW4gYXR0ZW1wdCB0bwo+ID4gc2VuZCB0aGUg
+bWVzc2FnZSAob3IgbG9zdCBhcmJpdHJhdGlvbiwgd2hpY2ggaXMgZXF1aXZhbGVudCksIHRoaXMK
+PiA+IHNwZWNpZmljIGVycm9yIGNvdWxkIGJlIGhhbmRsZWQgaW4gaTJjLW5mb3JjZTIsIGJ5IHJl
+dHJ5aW5nLiBUaGUKPiA+IHByb2JsZW0gaXMgdGhhdCB5b3UgaGF2ZSB0byBkZWNpZGUgaG93IG1h
+bnkgdGltZXMgeW91IHJldHJ5LCBhbmQgaG93Cj4gPiBtdWNoIHRpbWUgeW91IHdhaXQgYmV0d2Vl
+biByZXRyaWVzICh0aGVyZSBkb2Vzbid0IHNlZW0gdG8gYmUgYSB3YXkgdG8KPiA+IHRlc3QgaWYg
+dGhlIFNNQnVzIGlzIGJ1c3kgYmVmb3JlIHRyeWluZywgcmlnaHQ/KQo+IAo+IFRoZSBpMmMtbmZv
+cmNlMiBkcml2ZXIgYWxyZWFkeSBzcGlucyBmb3IgMTAgbXNlY3MgYmVmb3JlIGRlY2lkaW5nIHRv
+Cj4gZ2l2ZSB1cC4gSSdkIGp1c3QgcmV0cnkgb25jZSBhZnRlciB0aGF0IGFuZCBzZWUgd2hhdCBo
+YXBwZW5zLgoKRGVwZW5kcyBvbiB3aGF0IGtlcm5lbCBKdWVyZ2VuIGlzIHJ1bm5pbmcuIE9sZWcg
+Unlqa292IGhhcyBzdWJtaXR0ZWQKaW50ZXJlc3RpbmcgcGF0Y2hlcyB0aGF0IGNsZWFuIHVwIHRo
+aXMgcGFydCBvZiB0aGUgaTJjLW5mb3JjZTIgZHJpdmVyOgpodHRwOi8vZ2l0Lmtlcm5lbC5vcmcv
+P3A9bGludXgva2VybmVsL2dpdC90b3J2YWxkcy9saW51eC0yLjYuZ2l0O2E9Y29tbWl0ZGlmZjto
+QTUzNTQ5NzM0Y2JkYmEyNGU5Y2Y1ZWIyMDBiNzBiN2IxNTcyZTE1Cmh0dHA6Ly9naXQua2VybmVs
+Lm9yZy8/cD1saW51eC9rZXJuZWwvZ2l0L3RvcnZhbGRzL2xpbnV4LTIuNi5naXQ7YT1jb21taXRk
+aWZmO2jUOTU4NGM0YTM3YzcyMjhlNzc3OGJjYjYwZjc5ZTdhMDg0NzJmYTgKVGhlc2UgYXJlIGFs
+cmVhZHkgaW4gTGludXMnIHRyZWUgZm9yIDIuNi4yNC4KCi0tIApKZWFuIERlbHZhcmUKCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFp
+bGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNv
+cnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw==
