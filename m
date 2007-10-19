@@ -1,43 +1,131 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Fri, 19 Oct 2007 18:33:46 +0000
+From: "David Hubbard" <david.c.hubbard@gmail.com>
+Date: Fri, 19 Oct 2007 18:34:54 +0000
 Subject: Re: [lm-sensors] ABIT IP35 Pro mainboard wrong values from 'sensors'
-Message-Id: <4718F88A.5040105@hhs.nl>
+Message-Id: <4dfa50520710191134i6154899dnd64420a32a1ec856@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1192816904.8203.11.camel@homedev.skoona.net>
 In-Reply-To: <1192816904.8203.11.camel@homedev.skoona.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-James Scott Jr wrote:
->     Folks,
-> 
-> I have a system with an Intel Q6600 quad core on a ABit IP35 Pro
-> mainboard, using Fedora 7 x64, and lm_sensors-2.10.4-1.fc7.  The output
-> from sensors is wrong.  Is there a preformatted config file for these
-> mainboard somewhere that I can find?  Or can you give me a hit on what I
-> need to know in order to create/adjust one?
-> 
+Hi James,
 
-Abit usually does not use the sensors of the super io chip (which the w83627dhg 
-is), instead they use their own solution called uguru. There is a driver for 
-this, but the uguru isn't detected by sensors-detect.
+>  I have a system with an Intel Q6600 quad core on a ABit IP35 Pro mainboa=
+rd,
+> using Fedora 7 x64, and lm_sensors-2.10.4-1.fc7.  The output from sensors=
+ is
+> wrong.  Is there a preformatted config file for these mainboard somewhere
+> that I can find?  Or can you give me a hit on what I need to know in order
+> to create/adjust one?
 
-Try modprobe abituguru3, and then try running sensors again.
+I think you'll need to create one. I haven't seen any emails on the
+lm-sensors list about your motherboard.
 
-The abituguru3 driver is only available in kernel 2.6.23 and higher, to install 
-this kernel for F-7 do:
-yum update --enable-repo=updates-testing kernel
+Creating a new config file isn't too hard. Look at the man page for
+sensors.conf: http://www.lm-sensors.org/wiki/man/sensors.conf
 
-After rebooting into the new kernel do
-modprobe abituguru3
-sensors
+You should also have one already (maybe in /etc/sensors.conf) and
+reading it is very helpful.
 
+>  The cpu cores are really in the high 30's, cpu  & case fans are not
+> present, ....
 
-Regards,
+I'm looking at the IP32 pro manual, page 11, and I see six fans
+(CPUfan1, SYSfan1, AUXfan1-4). The w83627dhg only reads the RPM from 5
+fans, which makes me wonder if your southbridge (possibly an Intel
+ICH9) is controlling one fan. Do you have zero fans connected? Or just
+one (a CPU fan?). Page 22 of the manual mentions "abit's exclusive
+Guru Panel." Do you have a uguru on the motherboard? (I'm not really
+familiar with abit's uguru, but there are some other people here on
+lm-sensors who know a lot more about it.)
 
-Hans
+The sensors.conf file we figure out here, for the sake of all IP32 pro
+users, should probably not disable the fan input readings and alarms.
+But if you want, you can set "ignore" statements for all the fans, so
+they don't show up in the sensors output, since you don't have fans
+connected to the motherboard.
+
+>  [jscott@vserv ~]$ sensors
+>  w83627dhg-isa-0290
+>  Adapter: ISA adapter
+
+OK, the above lines are fine.
+
+>  VCore:     +1.46 V  (min =3D  +1.03 V, max =3D  +1.74 V)
+>  in1:       +8.76 V  (min =3D +11.30 V, max =3D  +2.80 V) ALARM
+>  AVCC:      +3.20 V  (min =3D  +2.06 V, max =3D  +0.88 V) ALARM
+>  3VCC:      +3.20 V  (min =3D  +1.87 V, max =3D  +0.58 V) ALARM
+>  in4:       +1.48 V  (min =3D  +0.34 V, max =3D  +1.20 V) ALARM
+>  in5:       +1.34 V  (min =3D  +1.03 V, max =3D  +1.03 V) ALARM
+>  in6:       +4.28 V  (min =3D  +5.99 V, max =3D  +3.30 V) ALARM
+>  VSB:       +3.10 V  (min =3D  +3.47 V, max =3D  +2.02 V) ALARM
+>  VBAT:      +0.51 V  (min =3D  +0.99 V, max =3D  +2.06 V) ALARM
+
+It would be really helpful to match these voltages against voltages in
+your BIOS. Also, try to find information on what the min and max for
+each should be. The most important ones, of course, are VCore, 3VCC,
+VBAT, and 12V (which I don't see there).
+
+This means that the voltages are not being calculated correctly. This
+isn't a surprise. The w83627dhg chip reads voltages, but each
+motherboard is wired differently, so the voltage arriving at the 'dhg
+pins is never the same.
+
+>  Case Fan:    0 RPM  (min =3D 10546 RPM, div =3D 128) ALARM
+>  CPU Fan:     0 RPM  (min =3D 10546 RPM, div =3D 128) ALARM
+>  Aux Fan:     0 RPM  (min =3D 10546 RPM, div =3D 128) ALARM
+>  fan4:        0 RPM  (min =3D  439 RPM, div =3D 128) ALARM
+>  fan5:        0 RPM  (min =3D   81 RPM, div =3D 128) ALARM
+
+So it looks like nothing's connected to your fans. We'll just leave
+them there for now.
+
+>  Sys Temp:    +21=B0C  (high =3D   +58=B0C, hyst =3D   +78=B0C)
+>  CPU Temp:  +30.0=B0C  (high =3D -126.0=B0C, hyst =3D +75.5=B0C)
+>  AUX Temp:  -23.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)
+
+The temps don't look right. I think coretemp is reporting the right
+temperature, and sensors.conf will need to scale the temps it gets
+(which are just voltages) to match coretemp.
+
+>  coretemp-isa-0000
+>  Adapter: ISA adapter
+>  Core 0:      +54=B0C  (high =3D  +100=B0C)
+>
+>  coretemp-isa-0001
+>  Adapter: ISA adapter
+>  Core 1:      +51=B0C  (high =3D  +100=B0C)
+>
+>  coretemp-isa-0002
+>  Adapter: ISA adapter
+>  Core 2:      +49=B0C  (high =3D  +100=B0C)
+>
+>  coretemp-isa-0003
+>  Adapter: ISA adapter
+>  Core 3:      +52=B0C  (high =3D  +100=B0C)
+>
+>  [jscott@vserv ~]$
+>
+>
+>
+>  [jscott@vserv ~]$ cat /etc/sysconfig/lm_sensors
+>  ...
+>  #
+>  # Generated by sensors-detect on Fri Oct 19 00:26:53 2007
+>  MODULE_0=3Dw83627ehf
+>  MODULE_1=3Dcoretemp
+>  [jscott@vserv ~]$
+
+Well, that's a start. Please reply with information about what chips
+you have (you can run 'lspci -n' for that) and look at your BIOS setup
+screen for voltages and temperatures. The numbers reported by BIOS
+will be the most accurate. We'll try to match those numbers in
+sensors.
+
+HTH,
+David
 
 _______________________________________________
 lm-sensors mailing list
