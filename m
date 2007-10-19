@@ -1,46 +1,25 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Thu, 11 Oct 2007 04:10:30 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3 RESEND 2] hwmon/dme1737: cleanups
-Message-Id: <20071011041030.GB3994@jupiter.solarsys.private>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Fri, 19 Oct 2007 09:22:31 +0000
+Subject: [lm-sensors] What todo with driver entry in sensors-detect for FSC
+Message-Id: <47187757.3000308@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0710012119s713699efhd479c6326c9dbcb@mail.gmail.com>
-In-Reply-To: <191fb4ca0710012119s713699efhd479c6326c9dbcb@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
+Hi All,
 
-* Jean Delvare <khali@linux-fr.org> [2007-10-04 17:23:45 +0200]:
-> On Mon, 1 Oct 2007 21:19:04 -0700, Juerg Haefliger wrote:
-> > This patch cleans up and prepares the dme1737 driver for support of the sch311x
-> > chips. (Almost) no functional changes.
-> > 
-> > - Replaced whitespaces with tabs.
-> > - Removed empty lines.
-> > - Added _i2c_ to names of functions that are strictly I2C related.
-> > - Added 4 new functions: dme1737_create_files, dme1737_remove_files,
-> >  dme1737_sio_enter, and dme1737_sio_exit.
-> > - Added error messages in case client attach/detach fails.
-> 
-> Not really, as you backed up (most of) these changes. Anyway...
-> 
-> > Signed-off-by: Juerg Haefliger <juergh at gmail.com>
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-> 
-> Note that I had to replace all occurrences of "class_dev" to
-> "hwmon_dev", otherwise this patch doesn't apply on top of "hwmon:
-> Convert from class_device to device" in Mark's tree.
+I just remembered that I still need to update 2.10.5's sensors-detect for the 
+new fschmd driver. I've left the fscpos and fscher drivers in there for now as 
+fschmd will not be available until 2.6.24 gets released.
 
-(More about that in another message)
+But what should I do with the fscscy entry? The fscscy driver is only available 
+in 2.4 and in 2.6 the fschmd driver should be used.
 
-Applied to hwmon-2.6.git/testing, thanks.
+Thanks & Regards,
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Hans
 
 
 _______________________________________________
