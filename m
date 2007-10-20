@@ -1,61 +1,162 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 19 Oct 2007 15:07:33 +0000
+From: Juergen Bausa <Juergen.Bausa@web.de>
+Date: Sat, 20 Oct 2007 19:28:02 +0000
 Subject: Re: [lm-sensors] dme1737 0-002e: Write to register 0x30 failed!
-Message-Id: <20071019170733.363fc5ad@hyperion.delvare>
+Message-Id: <1711683869@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1642847378@web.de>
 In-Reply-To: <1642847378@web.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGkgSnVlcmcsCgpPbiBXZWQsIDE3IE9jdCAyMDA3IDIxOjUzOjQyIC0wNzAwLCBKdWVyZyBIYWVm
-bGlnZXIgd3JvdGU6Cj4gT24gMTAvMTcvMDcsIEplYW4gRGVsdmFyZSA8a2hhbGlAbGludXgtZnIu
-b3JnPiB3cm90ZToKPiA+IE9uIFdlZCwgMTcgT2N0IDIwMDcgMTI6NDM6MTYgLTA3MDAsIEp1ZXJn
-IEhhZWZsaWdlciB3cm90ZToKPiA+ID4gQWhhLCB0aGlzIGlzIGFuIGVycm9yIGFzIGEgcmVzdWx0
-IG9mIGEgZG1lMTczNyBpbml0aWF0ZWQgd3JpdGUuIDB4MWEKPiA+ID4gbWVhbnMgIlNNQnVzIEJ1
-c3kiLiBTbyB0aGUgZG1lMTczNyBkcml2ZXIgaXMgY29sbGlkaW5nIHdpdGggc29tZXRoaW5nCj4g
-PiA+IGVsc2UgaW4gdGhlIHN5c3RlbSB0aGF0IHRyaWVzIHRvIHRhbGsgdG8gYSBjaGlwIG9uIHRo
-ZSBzYW1lIGJ1cy4KPiA+Cj4gPiBUaGlzIGNhbiBvbmx5IGhhcHBlbiBvbiBhIG11bHRpLW1hc3Rl
-ciBJMkMgYnVzLCB3aGljaCBpcyByYXRoZXIgcmFyZSBvbgo+ID4gY29uc3VtZXIgUENzLiBKdWVy
-Z2VuLCBkbyB5b3UgaGF2ZSBkZXRhaWxlZCB0ZWNobmljYWwgZG9jdW1lbnRhdGlvbgo+ID4gYWJv
-dXQgeW91ciBzeXN0ZW0/IEl0IHdvdWxkIGJlIGludGVyZXN0aW5nIHRvIGZpbmQgb3V0IHdoYXQg
-Y2hpcCB0aGUKPiA+IG90aGVyIG1hc3RlciBpcyB0YWxraW5nIHRvLiBJZiBpdCdzIHRoZSBETUUx
-NzM3IGNoaXAsIHRoaXMgY291bGQgbGVhZAo+ID4gdG8gcHJvYmxlbXMuCj4gCj4gSG1tLi4uIFdo
-YXQgYWJvdXQgQUNQST8gQ291bGRuJ3QgaXQgaW50ZXJmZXJlIHdpdGggdGhlIGRtZTE3MzcgbW9k
-dWxlCj4gYnkgZ29pbmcgYWZ0ZXIgdGhlIHNhbWUgcmVzb3VyY2VzLgoKSXQgY291bGQsIGJ1dCBJ
-IGp1c3QgY2FuJ3QgdGhpbmsgb2YgYSB2YWxpZCByZWFzb24gd2h5IEFDUEkgd291bGRuJ3QKdXNl
-IHRoZSBuRm9yY2UyIFNNQnVzIGNvbnRyb2xsZXIgaXRzZWxmLgoKQXJlIHlvdSBjZXJ0YWluIHRo
-YXQgdGhlICJidXN5IiBlcnJvciBjb2RlIG1lYW5zIHRoYXQgdGhlICpidXMqIGlzCmJ1c3k/IERv
-ZXNuJ3QgaXQgcmF0aGVyIG1lYW4gdGhhdCB0aGUgKm5Gb3JjZSBTTUJ1cyBjb250cm9sbGVyKiBp
-dHNlbGYKaXMgYnVzeSAoaS5lLiB0aGUgcHJldmlvdXMgY29tbWFuZCBpcyBzdGlsbCBiZWluZyBw
-cm9jZXNzZWQpPyBUaGUgbGF0dGVyCndvdWxkIGluZGVlZCBzdWdnZXN0IHRoYXQgQUNQSSBpcyBy
-dW5uaW5nIFNNQnVzIHRyYW5zYWN0aW9ucyBpbiBvdXIKYmFjaywgd2hpY2ggd291bGQgYmUgYSBw
-cm9ibGVtLiBBdCBsZWFzdCwgaWYgdGhlIFNNQnVzIGNvbnRyb2xsZXIgbGV0cwp1cyBrbm93LCB3
-ZSdsbCBhdm9pZCBjb3JydXB0aW9uLCBidXQgYmFkIHRoaW5ncyBjYW4gc3RpbGwgaGFwcGVuLgoK
-SnVlcmdlbiwgaWYgeW91IGxvYWQgdGhlICJ0aGVybWFsIiBkcml2ZXIgYW5kIGxvb2sKaW4gL3By
-b2MvYWNwaS90aGVybWFsX3pvbmUsIGRvIHlvdSBzZWUgYSB0ZW1wZXJhdHVyZSByZXBvcnRlZCwg
-d2l0aCB0aGUKc2FtZSB2YWx1ZSBhcyBvbmUgb2YgdGhlIERNRTE3MzcgdGVtcGVyYXR1cmUgY2hh
-bm5lbHM/CgpJZiB5b3UgdW5sb2FkIHRoZSAidGhlcm1hbCIgZHJpdmVyLCBkbyB0aGUgZG1lMTcz
-NyB3cml0ZSBlcnJvcnMgZ28gYXdheT8KCj4gPiBBc3N1bWluZyB0aGF0ICJidXN5IiBtZWFucyB0
-aGF0IHRoZSBuRm9yY2UgY2hpcCBkaWQgbm90IGV2ZW4gYXR0ZW1wdCB0bwo+ID4gc2VuZCB0aGUg
-bWVzc2FnZSAob3IgbG9zdCBhcmJpdHJhdGlvbiwgd2hpY2ggaXMgZXF1aXZhbGVudCksIHRoaXMK
-PiA+IHNwZWNpZmljIGVycm9yIGNvdWxkIGJlIGhhbmRsZWQgaW4gaTJjLW5mb3JjZTIsIGJ5IHJl
-dHJ5aW5nLiBUaGUKPiA+IHByb2JsZW0gaXMgdGhhdCB5b3UgaGF2ZSB0byBkZWNpZGUgaG93IG1h
-bnkgdGltZXMgeW91IHJldHJ5LCBhbmQgaG93Cj4gPiBtdWNoIHRpbWUgeW91IHdhaXQgYmV0d2Vl
-biByZXRyaWVzICh0aGVyZSBkb2Vzbid0IHNlZW0gdG8gYmUgYSB3YXkgdG8KPiA+IHRlc3QgaWYg
-dGhlIFNNQnVzIGlzIGJ1c3kgYmVmb3JlIHRyeWluZywgcmlnaHQ/KQo+IAo+IFRoZSBpMmMtbmZv
-cmNlMiBkcml2ZXIgYWxyZWFkeSBzcGlucyBmb3IgMTAgbXNlY3MgYmVmb3JlIGRlY2lkaW5nIHRv
-Cj4gZ2l2ZSB1cC4gSSdkIGp1c3QgcmV0cnkgb25jZSBhZnRlciB0aGF0IGFuZCBzZWUgd2hhdCBo
-YXBwZW5zLgoKRGVwZW5kcyBvbiB3aGF0IGtlcm5lbCBKdWVyZ2VuIGlzIHJ1bm5pbmcuIE9sZWcg
-Unlqa292IGhhcyBzdWJtaXR0ZWQKaW50ZXJlc3RpbmcgcGF0Y2hlcyB0aGF0IGNsZWFuIHVwIHRo
-aXMgcGFydCBvZiB0aGUgaTJjLW5mb3JjZTIgZHJpdmVyOgpodHRwOi8vZ2l0Lmtlcm5lbC5vcmcv
-P3A9bGludXgva2VybmVsL2dpdC90b3J2YWxkcy9saW51eC0yLjYuZ2l0O2E9Y29tbWl0ZGlmZjto
-QTUzNTQ5NzM0Y2JkYmEyNGU5Y2Y1ZWIyMDBiNzBiN2IxNTcyZTE1Cmh0dHA6Ly9naXQua2VybmVs
-Lm9yZy8/cD1saW51eC9rZXJuZWwvZ2l0L3RvcnZhbGRzL2xpbnV4LTIuNi5naXQ7YT1jb21taXRk
-aWZmO2jUOTU4NGM0YTM3YzcyMjhlNzc3OGJjYjYwZjc5ZTdhMDg0NzJmYTgKVGhlc2UgYXJlIGFs
-cmVhZHkgaW4gTGludXMnIHRyZWUgZm9yIDIuNi4yNC4KCi0tIApKZWFuIERlbHZhcmUKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFp
-bGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNv
-cnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw==
+
+> Von: Jean Delvare <khali@linux-fr.org>
+> Gesendet: 17.10.07 23:32:28
+>
+> On Wed, 17 Oct 2007 12:43:16 -0700, Juerg Haefliger wrote:
+> > On 10/17/07, Juergen Bausa <Juergen.Bausa@web.de> wrote:
+> > > Here is what I found in /var/log:
+> > >
+> > > /var/log/messages:Oct 17 09:16:00 lisa kernel: i2c_adapter i2c-0: nFo=
+rce2 SMBus adapter at 0x4c00
+> > > /var/log/messages:Oct 17 09:16:00 lisa kernel: i2c_adapter i2c-1: nFo=
+rce2 SMBus adapter at 0x4c40
+> > > /var/log/messages:Oct 17 09:16:00 lisa kernel: i2c_adapter i2c-0: Fou=
+nd a DME1737 chip at 0x2e (rev 0x8a)
+> > >
+> > > /var/log/debug:Oct 17 09:16:00 lisa kernel: i2c_adapter i2c-0: SMBus =
+Timeout! (0x10)
+> > > /var/log/debug:Oct 17 09:16:00 lisa kernel: i2c_adapter i2c-0: SMBus =
+Timeout! (0x10)
+> > > /var/log/debug:Oct 17 09:16:00 lisa kernel: i2c_adapter i2c-1: SMBus =
+Timeout! (0x10)
+> >=20
+> > These are all errors that occur when the drivers (i2c and dme1737) get
+> > loaded. The dme1737 is not printing any errors so they are not
+> > transactions initiated by the dme1737. The 0x10 means "SMBus Device
+> > Address Not Acknowledged" according to the ACPI spec. Not sure how
+> > this can happen... Signal integrity problems on the board level? In
+> > any case, these errors should probably be retried. Not sure at what
+> > level though. Jean?
+>=20
+> These are not errors at all, it's only i2c-core probing at work. The
+> dme1737 driver specifies three possible addresses (0x2c, 0x2d, 0x2e),
+> the probes at 0x2c and 0x2d on bus 0 fail, these are the first two
+> "SMBus Timeout!" messages above. Then the probe at 0x2e succeeds. Then
+> i2c-core goes on with bus 1. There should have been 3 failing probes
+> there, but surprisingly, there's only one "SMBus Timeout!" for bus 1. I
+> can't explain it.
+
+I greped the mesages. Maybe, there was a 'message repeated xx times' in the=
+ log, that wasnt displayed.
+
+>=20
+> Juergen, can you please attach the output of:
+>=20
+> modprobe i2c-dev
+> i2cdetect -y 0
+> i2cdetect -y 1
+
+lisa:/home/jba# modprobe i2c-dev
+lisa:/home/jba# i2cdetect -y 0
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- 08 -- -- -- -- 0d -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- UU --
+30: 30 31 -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: 50 51 -- -- -- -- -- -- -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --
+lisa:/home/jba# i2cdetect -y 1
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- 08 -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --
+lisa:/home/jba#                                         =20
+
+
+>=20
+> Either way these 3 log messages can safely be ignored.
+>=20
+> > > /var/log/debug:Oct 17 19:35:30 lisa kernel: i2c_adapter i2c-0: SMBus =
+Timeout! (0x1a)
+> > >
+> > > /var/log/messages:Oct 17 09:16:00 lisa kernel: dme1737 0-002e: Option=
+al features: pwm3=3Dyes, pwm5=3Dno, pwm6=3Dno, fan3=3Dno, fan4=3Dyes, fan5=
+=3Dno, fan6=3Dno.
+> > > /var/log/messages:Oct 17 19:35:30 lisa kernel: dme1737 0-002e: Write =
+to register 0x30 failed (-1)! Please report to the driver maintainer.
+> >=20
+> > Aha, this is an error as a result of a dme1737 initiated write. 0x1a
+> > means "SMBus Busy". So the dme1737 driver is colliding with something
+> > else in the system that tries to talk to a chip on the same bus.
+>=20
+> This can only happen on a multi-master I2C bus, which is rather rare on
+> consumer PCs. Juergen, do you have detailed technical documentation
+> about your system? It would be interesting to find out what chip the
+> other master is talking to. If it's the DME1737 chip, this could lead
+> to problems.
+
+No. I dont have detailes information. Its an asus barebone.
+
+Asus borads have a feature called 'ASUS Q-Fan Technology'. Its a BIOS-based=
+ controller for the=20
+FAN/CPU-temperature. This is turned on in the bios. However, when booting l=
+inux, the script
+'fancontrol' is started and then controls cpu-temperature. Maybe the Q-fan =
+still tries to access
+the fan and this is the reason for the collision?
+
+>=20
+> >                                                                  That
+> > should definitely get retried. I can certainly do that at the dme1737
+> > level but I don't think that's the right place. Jean?
+>=20
+> Assuming that "busy" means that the nForce chip did not even attempt to
+> send the message (or lost arbitration, which is equivalent), this
+> specific error could be handled in i2c-nforce2, by retrying. The
+> problem is that you have to decide how many times you retry, and how
+> much time you wait between retries (there doesn't seem to be a way to
+> test if the SMBus is busy before trying, right?)
+>=20
+> We have "timeout" and "retries" fields in struct i2c_adapter, which
+> could be used for this. The meaning of "retries" is a bit different
+> though, it's supposed to be the number of nacks the bus driver accepts
+> when attempting to contact a chip before giving up. This doesn't appear
+> to be very useful though so I wouldn't mind recycling this field for
+> the more interesting usage you need. Most bus drivers don't set nor use
+> "timeout".
+>=20
+> As a first aid solution, you could simply hardcode the timeout and
+> retry values, just to confirm that it solves Juergen's problem. Then
+> we can see how to make it cleaner. Error handling is an area where the
+> i2c subsystem needs to be improved.
+>=20
+
+Just to make it clear: The messages are no real problem. fancontrol is work=
+ing very fine.
+Maybe its not successful in setting fan speed sometimes (once a day). But i=
+t just sets thge=20
+fan speed in the next iteration 5 seconds later. Thats no problem.
+
+However,  I am also interested in the solution of this.
+
+Juergen
+
+__________________________________________________________________________
+Erweitern Sie FreeMail zu einem noch leistungsst=E4rkeren E-Mail-Postfach!	=
+=09
+Mehr Infos unter http://produkte.web.de/club/?mc=021131
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
