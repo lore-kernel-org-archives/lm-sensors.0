@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Fri, 19 Oct 2007 13:15:05 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 20 Oct 2007 08:51:50 +0000
 Subject: Re: [lm-sensors] What todo with driver entry in sensors-detect for
-Message-Id: <4718ADD9.8000502@hhs.nl>
+Message-Id: <20071020105150.6cf61ae2@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <47187757.3000308@hhs.nl>
 In-Reply-To: <47187757.3000308@hhs.nl>
@@ -10,44 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
-> On Fri, 19 Oct 2007 11:22:31 +0200, Hans de Goede wrote:
->> I just remembered that I still need to update 2.10.5's sensors-detect for the 
->> new fschmd driver. I've left the fscpos and fscher drivers in there for now as 
->> fschmd will not be available until 2.6.24 gets released.
->>
->> But what should I do with the fscscy entry? The fscscy driver is only available 
->> in 2.4 and in 2.6 the fschmd driver should be used.
-> 
-> We have a mechanism for that already, search for @chip_kern24_ids and
-> @chip_kern26_ids. When a different driver should be used for 2.4 and
-> 2.6 kernels, add one entry in each of these lists instead of @chip_ids.
-> 
-> The fscher and fscpos cases are actually more difficult to handle. You
-> changed sensors-detect in branch lm-sensors-3.0.0 to always select the
-> new driver (fschmd) for all FSC chips. This is only correct for kernels
->> = 2.6.24, while this branch is supposed to support kernels as old as
-> 2.6.5! So you need to update sensors-detect to take this into account,
-> and select the old driver for kernels 2.6.23 and older. Look at
-> chip_special_cases and do something similar.
-> 
-> On top of that, please keep in mind that trunk should still support 2.6
-> kernels, including future ones, as much as possible. This means that it
-> should also know about the fschmd driver for kernels >= 2.6.24. In
-> fact, I would like to keep sensors-detect in both branches in sync as
-> long as possible, it's much easier to maintain that way.
-> 
+Hi Hans,
 
-I've changed sensors-detect so that it will only advice the use of the fschmd 
-driver for chips with alternatives when the running kernel >= 2.6.24 and I've 
-made sensors-detect identical in both branches again.
+On Fri, 19 Oct 2007 15:15:05 +0200, Hans de Goede wrote:
+> I've changed sensors-detect so that it will only advice the use of the fschmd 
+> driver for chips with alternatives when the running kernel >= 2.6.24 and I've 
+> made sensors-detect identical in both branches again.
 
-Regards,
+OK, great. I've made some cleanups on top of that, I hope you don't mind:
+* Renamed the arrays to something clearer.
+* Moved fscscy to the standard 2.4 vs. 2.6 arrays.
 
-Hans
+Please also remember to add a line to CHANGES when doing non-trivial
+changes.
 
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
