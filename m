@@ -1,60 +1,94 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 13 Oct 2007 12:58:54 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon/sis5595: Add individual alarm files
-Message-Id: <20071013145854.26b96602@hyperion.delvare>
+From: Greg Vickers <daehenoc@optusnet.com.au>
+Date: Mon, 22 Oct 2007 11:33:56 +0000
+Subject: [lm-sensors] sensors report all zero readings on Dell PowerEdge 830
+Message-Id: <471C8AA4.7090903@optusnet.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <470E6494.7000408@gmail.com>
-In-Reply-To: <470E6494.7000408@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ivo,
+Hi,
 
-On Fri, 12 Oct 2007 23:49:19 +0200, Ivo Manca wrote:
-> Hey Jean,
-> 
-> Thanks for the quick review. It's starting to show I'm new to this, 
-> isn't it? ;)
+I have installed lm-sensors v2.10.1-3 on a Dell PowerEdge 830 with 
+Debian Etch (stable) installed on it.  (This version is the version of 
+lm-sensors that is part of Debian Etch.)  sensors-detect works and 
+detects the i801 chipset:
 
-New contributors are always welcome :)
+<snip>
+Next adapter: SMBus I801 adapter at 08c0
+Do you want to scan it? (YES/no/selectively):
+Client found at address 0x08
+Client found at address 0x2e
+Handled by driver `lm85' (already loaded), chip type `lm85'
+Client found at address 0x44
+Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+Client found at address 0x50
+Handled by driver `eeprom' (already loaded), chip type `eeprom'
+Client found at address 0x52
+Handled by driver `eeprom' (already loaded), chip type `eeprom'
+Client found at address 0x60
+Client found at address 0x69
+<snip>
+#----cut here----
+# I2C adapter drivers
+i2c-i801
+# Chip drivers
+lm85
+eeprom
+#----cut here----
 
-> Anyway, one question while making the patch for 2.6.23.1:
-> 
-> @@ -553,7 +578,9 @@
->           || (err = device_create_file(&pdev->dev,
->                            &dev_attr_temp1_max))
->           || (err = device_create_file(&pdev->dev,
-> -                          &dev_attr_temp1_max_hyst)))
-> +                          &dev_attr_temp1_max_hyst))
-> +         || (err = device_create_file(&pdev->dev,
-> +                          &sensor_dev_attr_temp1_alarm.dev_attr)))
->              goto exit_remove_files;
-> (E-mail client will most likely mess this up, however, it's also in the 
-> original patch you just reviewed...).
-> The line "&sensor_dev_attr_temp1_alarm.dev_attr)))" can not fit within 
-> 80 characters using the same indentation as the lines above it; it takes 
-> 87 characters. However, removing the spaces before it, will still make 
-> it use 81 chars... I can't see any hint about it in the CodingStyles and 
-> removing some tabs will make it look just plain ugly. Any hint how to 
-> format it? Patch against 2.6.23.1 is ready, just waiting to be sure how 
-> to do this correct :p
+So those modules are loaded successfully:
+# lsmod | egrep "i801|eeprom|i2c|lm85"
+i2c_dev                 8548  0
+eeprom                  7024  0
+lm85                   27556  0
+hwmon_vid               2784  1 lm85
+i2c_i801                7468  0
+i2c_core               19680  4 i2c_dev,eeprom,lm85,i2c_i801
 
-The usual way to workaround this is indeed to reduce the level of
-indentation. Not necessarily very nice, but the easiest. In this
-particular case, if you don't want to do that, I see two alternatives
-(probably for a different patch though):
+Output from dmesg:
+# dmesg | grep i2c
+i2c_adapter i2c-0: Unrecognized version/stepping 0x68 Defaulting to LM85.
+i2c /dev entries driver
 
-1* Move the creation of these individual files to a separate function.
-This saves one level of indentation, so it should fit.
+But when I run sensors:
+# sensors
+lm85-i2c-0-2e
+Adapter: SMBus I801 adapter at 08c0
+V1.5:       +0.00 V  (min =  +0.00 V, max =  +3.32 V)
+VCore:      +0.00 V  (min =  +0.00 V, max =  +2.99 V)
+V3.3:       +0.00 V  (min =  +0.00 V, max =  +4.38 V)
+V5:        +0.00 V  (min =  +0.00 V, max =  +6.64 V)
+V12:       +0.00 V  (min =  +0.00 V, max = +15.94 V)
+CPU_Fan:      0 RPM  (min =    0 RPM)                     ALARM
+fan2:         0 RPM  (min =    0 RPM)                     ALARM
+fan3:         0 RPM  (min =    0 RPM)                     ALARM
+fan4:         0 RPM  (min =    0 RPM)                     ALARM
+CPU Temp:     +0 C  (low  =  -127 C, high =  +127 C)
+Board Temp:   +0 C  (low  =  -127 C, high =  +127 C)
+Remote Temp:  +0 C  (low  =  -127 C, high =  +127 C)
+CPU_PWM:   255
+Fan2_PWM:  255
+Fan3_PWM:  255
+vid:      +1.088 V  (VRM Version 10.0)
 
-2* Split sis5595_attributes_opt into sis5595_attributes_in4 and
-sis5595_attributes_temp1, and use sysfs_create_group on these instead
-of individual calls to device_create_file.
+All of the sensors are at zero?  So something is not working :(
 
--- 
-Jean Delvare
+I've found a lm-sensors ticket #2182 logged in February this year, 
+(http://www.lm-sensors.org/ticket/2182) which appears to be the same 
+problem and there hasn't been an update to this ticket.
+
+I posted to the Debian users list and was told that I might have more 
+success here :)
+
+I've checked the FAQ and can't find anything in particular relating to 
+lm85 or to Dell hosts - am I missing something?
+
+If anyone has any suggestions, hints or tips I would love to hear from you!
+
+Thanks,
+Greg
 
 _______________________________________________
 lm-sensors mailing list
