@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Mon, 22 Oct 2007 08:13:27 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 22 Oct 2007 08:23:22 +0000
 Subject: Re: [lm-sensors] lm-sensors 3.0.0-rc1 has been released!
-Message-Id: <471C5BA7.7050901@hhs.nl>
+Message-Id: <20071022102322.6d650d94@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20070925233316.7afaa297@hyperion.delvare>
 In-Reply-To: <20070925233316.7afaa297@hyperion.delvare>
@@ -10,20 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
->> Also you will need to create a package for the now seperated i2c tools. I still 
->> need todo this too, you may use mine as a base once its there.
+On Mon, 22 Oct 2007 10:13:27 +0200, Hans de Goede wrote:
+> Jean Delvare wrote:
+> >> Also you will need to create a package for the now seperated i2c tools. I still 
+> >> need todo this too, you may use mine as a base once its there.
+> > 
+> > This is done already, I started with this right after releasing
+> > i2c-tools 3.0.0.
 > 
-> This is done already, I started with this right after releasing
-> i2c-tools 3.0.0.
-> 
+> Good, could you send me the .spec file, please? Then I have something to start 
+> with for Fedora.
 
-Good, could you send me the .spec file, please? Then I have something to start 
-with for Fedora.
+Will do (in private.)
 
-Regards,
-
-Hans
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
