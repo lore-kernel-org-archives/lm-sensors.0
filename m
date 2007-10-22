@@ -1,144 +1,120 @@
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Mon, 15 Oct 2007 05:04:20 +0000
-Subject: [lm-sensors] [ patch .24-rc0 0/5 ] SuperIO locks coordinator
-Message-Id: <4712F4D4.4050707@gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 22 Oct 2007 15:47:16 +0000
+Subject: [lm-sensors] [PATCH 4/5] hwmon: (gl518sm) Add individual alarm and
+Message-Id: <20071022174716.2e41f277@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linux kernel <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-this patchset (on hwmon-git) re-introduces superio_locks module, 
-previously RFC'd here, where I 'borrowed' another thread..
+The new libsensors needs these.
 
-http://marc.info/?l=linux-kernel&m5821759424601&w=2
-
-The module shares out slots/shared-reservations containing
-a mutex, so that multiple modules can coordinate access to
-the sio-port.
-
-Im crossposting - LKML for more reviewers, lm-sensors for
-folks with the hardware and (perhaps) more interest.
-
-If its not too late, please consider for 2.6.24-rc0
-
-01 - adds superio_locks module
-
-User-drivers specify the sio-port characteristics they can support
-device-ids, sio-port-addrs, enter & exit sequences, etc in 
-a struct superio_search (in __devinit, preferably). 
-
-superio_find() then searches existing slots/shared-reservations 
-for a matching sio-port, and returns it if found. 
-Otherwize it probes port-addrs, specified by find() user, 
-and makes and returns a new reservation.
-
-    superio_find()	finds and reserves the slot, 
-			returned as ptr or null
-    superio_release()	relinguishes the slot (ref-counted)
-
-Once theyve got the reservation in struct superio * gate 
-(as named in patches 2-5) they *may* use
-
-    superio_lock(gate)
-    superio_enter/exit(gate)
-    superio_inb/w(gate, regaddr),
-    superio_outb/w(gate, regaddr, val)
-
-or they can do it themselves with inb/outb, by using gate->sioaddr, etc.
-
-The API names (superio_find etc) were chosen to fit the idiom 
-used in hwmon/*.c, patches 2-5 remove the per-user-driver
-copies of the superio_*() fns.
-
-I added the module to /drivers/hwmon, mostly cuz thats where
-Ive used it - perhaps drivers/isa is better ?
-
-
-02 - use superio-locks in drivers/hwmon/w83627hf.c
-
-tested on an AMD-Barton mobo.
-
-
-03 - use superio-locks in drivers/hwmon/pc87360
-
-this driver keeps the slot for only during __init, since it 
-only needs the sio-port to read the ISA addresses of the 
-Logical Devices in the chip, which are then used exclusively.
-
-
-04 - use superio-locks in drivers/char/pc8736x_gpio
-
-this driver keeps the slot for the lifetime of the driver 
-( __init til __exit ), since the driver needs the sio-port
-to change pin configurations.
-
-patches 03,04 were tested on a soekris 4801 a year ago,
-the box is currently busy.  Together they sanity-test
-the sharing of a reservation with 2 different life-cycles.
-
-
-05 - use superio-locks in rest of drivers/hwmon/*.c
-
-this patch is compile-tested only, please review for sanity before you 
-try running them.  Things to look for - missing superio_release(),
-opportunities to use superio_devid(), superio_inw(), etc.
-
-
-Driver sizes:
-without/with DEBUG
-   2364     664      96    3124     c34 drivers/hwmon/superio_locks.ko
-   2938     664      96    3698     e72 drivers/hwmon/superio_locks.ko
-
-effect on user-driver sizes:
-before/after
-  12209    4004      36   16249    3f79 drivers/hwmon/pc87360.ko
-  12434    4068      36   16538    409a drivers/hwmon/pc87360.ko
-
-I hope this is small enough; per the link, there apparently are 
-actual problems (not just theoretical) that this should help with.
-
-OPERATION
-
-The previous thread includes cut-paste from dmesg, from when 
-I tested on the soekris.  No point in repasting here..
-
-RANDOM POINTS/CAVEATS
-
-- Ive not tested the 16-bit device-id check (no hardware)
-
-- superio_(enter|exit) and superio(un)?lock are nearly redundant.
-The former also sends the active/idle command sequences, with a tiny
-overhead when none are needed (forex the pc87360 chip).  One driver
-in patch 5 needed a my_superio_enter() due to an odd unlock sequence.
-
-- uses request_region - this might detect a 'rogue' sio-port user
-(which requests region, but doesnt use this module).
-It did detect a missing superio_release(), which I hacked around
-with the paranoid mod-option (easier than rebooting)
-
-- superio-locks.h has static-inline fns, probably not enough
-code to do an export for, since >2 sio-ports is probably rare.
-
-- superio_locks may be relevant elsewhere (ACPI ?) 
-but I havent thought about them, hwmon seemed like a good testcase.
-
-- implements several defaults (byte-sized devid, ldn-addr=7, 
-devid-addr ).  Perhaps more are possible, as long as theres
-an override.  I avoided setting the defaults into struct superio_search,
-so that it could be const'd.
-
-Please identify those that are standard enough.
-This could include #define LPC_* constants, for use in
-superio_inb(gate, LPC_LDN), superio_inw(gate, LPC_ISA_ADDR) 
-then user drivers could just #define SIO_* for non-standard registers.
-
-- Hans, I think Ive added all your suggestions, thanks.
-
-Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- 
+ drivers/hwmon/gl518sm.c |   69 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 69 insertions(+)
 
+--- linux-2.6.24-rc0.orig/drivers/hwmon/gl518sm.c	2007-10-22 15:17:44.000000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/gl518sm.c	2007-10-22 15:21:24.000000000 +0200
+@@ -345,6 +345,61 @@ static DEVICE_ATTR(beep_enable, S_IWUSR|
+ static DEVICE_ATTR(beep_mask, S_IWUSR|S_IRUGO,
+ 	show_beep_mask, set_beep_mask);
+ 
++static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
++			  char *buf)
++{
++	int bitnr = to_sensor_dev_attr(attr)->index;
++	struct gl518_data *data = gl518_update_device(dev);
++	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
++}
++
++static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
++static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
++static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3);
++static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4);
++static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 5);
++static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 6);
++
++static ssize_t show_beep(struct device *dev, struct device_attribute *attr,
++			  char *buf)
++{
++	int bitnr = to_sensor_dev_attr(attr)->index;
++	struct gl518_data *data = gl518_update_device(dev);
++	return sprintf(buf, "%u\n", (data->beep_mask >> bitnr) & 1);
++}
++
++static ssize_t set_beep(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct gl518_data *data = i2c_get_clientdata(client);
++	int bitnr = to_sensor_dev_attr(attr)->index;
++	unsigned long bit;
++
++	bit = simple_strtoul(buf, NULL, 10);
++	if (bit & ~1)
++		return -EINVAL;
++
++	mutex_lock(&data->update_lock);
++	data->beep_mask = gl518_read_value(client, GL518_REG_ALARM);
++	if (bit)
++		data->beep_mask |= (1 << bitnr);
++	else
++		data->beep_mask &= ~(1 << bitnr);
++	gl518_write_value(client, GL518_REG_ALARM, data->beep_mask);
++	mutex_unlock(&data->update_lock);
++	return count;
++}
++
++static SENSOR_DEVICE_ATTR(in0_beep, S_IRUGO|S_IWUSR, show_beep, set_beep, 0);
++static SENSOR_DEVICE_ATTR(in1_beep, S_IRUGO|S_IWUSR, show_beep, set_beep, 1);
++static SENSOR_DEVICE_ATTR(in2_beep, S_IRUGO|S_IWUSR, show_beep, set_beep, 2);
++static SENSOR_DEVICE_ATTR(in3_beep, S_IRUGO|S_IWUSR, show_beep, set_beep, 3);
++static SENSOR_DEVICE_ATTR(temp1_beep, S_IRUGO|S_IWUSR, show_beep, set_beep, 4);
++static SENSOR_DEVICE_ATTR(fan1_beep, S_IRUGO|S_IWUSR, show_beep, set_beep, 5);
++static SENSOR_DEVICE_ATTR(fan2_beep, S_IRUGO|S_IWUSR, show_beep, set_beep, 6);
++
+ static struct attribute *gl518_attributes[] = {
+ 	&dev_attr_in3_input.attr,
+ 	&dev_attr_in0_min.attr,
+@@ -355,6 +410,14 @@ static struct attribute *gl518_attribute
+ 	&dev_attr_in1_max.attr,
+ 	&dev_attr_in2_max.attr,
+ 	&dev_attr_in3_max.attr,
++	&sensor_dev_attr_in0_alarm.dev_attr.attr,
++	&sensor_dev_attr_in1_alarm.dev_attr.attr,
++	&sensor_dev_attr_in2_alarm.dev_attr.attr,
++	&sensor_dev_attr_in3_alarm.dev_attr.attr,
++	&sensor_dev_attr_in0_beep.dev_attr.attr,
++	&sensor_dev_attr_in1_beep.dev_attr.attr,
++	&sensor_dev_attr_in2_beep.dev_attr.attr,
++	&sensor_dev_attr_in3_beep.dev_attr.attr,
+ 
+ 	&dev_attr_fan1_auto.attr,
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+@@ -363,10 +426,16 @@ static struct attribute *gl518_attribute
+ 	&sensor_dev_attr_fan2_min.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_div.dev_attr.attr,
+ 	&sensor_dev_attr_fan2_div.dev_attr.attr,
++	&sensor_dev_attr_fan1_alarm.dev_attr.attr,
++	&sensor_dev_attr_fan2_alarm.dev_attr.attr,
++	&sensor_dev_attr_fan1_beep.dev_attr.attr,
++	&sensor_dev_attr_fan2_beep.dev_attr.attr,
+ 
+ 	&dev_attr_temp1_input.attr,
+ 	&dev_attr_temp1_max.attr,
+ 	&dev_attr_temp1_max_hyst.attr,
++	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_beep.dev_attr.attr,
+ 
+ 	&dev_attr_alarms.attr,
+ 	&dev_attr_beep_enable.attr,
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
