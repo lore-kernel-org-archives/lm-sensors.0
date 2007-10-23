@@ -1,57 +1,58 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 10 Oct 2007 07:05:02 +0000
-Subject: Re: [lm-sensors] syfs attributes for signaling
-Message-Id: <470C799E.5030407@hhs.nl>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Tue, 23 Oct 2007 12:02:39 +0000
+Subject: Re: [lm-sensors] [patch 1/1] applesmc for Mac Pro 2 x Quad-Core
+Message-Id: <20071023120239.GD30546@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071010004000.GA952@khazad-dum.debian.net>
-In-Reply-To: <20071010004000.GA952@khazad-dum.debian.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Henrique de Moraes Holschuh wrote:
-> On Tue, 09 Oct 2007, Hans de Goede wrote:
->> I just got some info from Siemens (Thanks Thilo) on howto detect the presence 
->> of up to 2 power supplies with the fscscy and fscpos IC's and the status (OK or 
->> fail) of these. So we need to come up with a sysfs interface for this.
->>
->> I suggest:
->> powersupplyX_present
->> powersupplyX_fault
->>
->> How does that sound?
+Hi:
+
+* Andrew Morton <akpm@linux-foundation.org> [2007-10-16 14:19:20 -0700]:
+> From: Ren� Rebe <rene@exactcode.de>
 > 
-> Don't we have a sysfs powersupply class?  It should probably be used
-> instead.
+> At least the 2x Quad-Core Apple Mac Pro appears to have some over-heat
+> protection which suddenly powers off the whole box under load.  This adds
+> support for the fans and temerature sensors in the Mac Pro - later some
+> "windwarm" a-like code should probably monitor the values.  For now
+> manually tweaking the fans prevents the sudden shutdown for me.
+> 
+> cd /sys/devices/platform/applesmc.768
+> for x in fan{1,2,3,4}; do
+> 	echo 1 > ${x}_manual
+> 	echo 1285 > ${x}_output
+> done
 > 
 
-That would be a good idea if the darn thing was documented:
-[hans@localhost linux-2.6.23-rc9.git4]$ grep -r powersupply Documentation
-Documentation/arm/SA1100/LART:through a number of connectors. The powersupply 
-accepts voltages
-[hans@localhost linux-2.6.23-rc9.git4]$
+Ren�: there is a series of patches for the f75375s hwmon driver that allow fans
+to be initialized with platform data.  Although I haven't reviewed the series
+in detail yet, IMO the concept looks OK and it may be appropriate for the Macs
+also.
 
-And:
-[hans@localhost linux-2.6.23-rc9.git4]$ find -name '*powersupply*.c'
-[hans@localhost linux-2.6.23-rc9.git4]$
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-October/021597.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-October/021598.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-October/021599.html
 
-And:
+> Two sensors are 0, while four are 129 �C, those might be removed again,
+> later.
+> 
+> Signed-off-by: Ren� Rebe <rene@exactcode.de>
+> Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+> Cc: Nicolas Boichat <nicolas@boichat.ch>
+> Cc: Jean Delvare <khali@linux-fr.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  drivers/hwmon/applesmc.c |  107 ++++++++++++++++++++++++++++++++++---
+>  1 file changed, 101 insertions(+), 6 deletions(-)
 
-[hans@localhost linux-2.6.23-rc9.git4]$ grep -r powersupply .
-./Documentation/arm/SA1100/LART:through a number of connectors. The powersupply 
-accepts voltages
-./drivers/sbus/char/bbc_envctrl.c:       * power for cpu/system and 'on' fo the 
-powersupply fan
-[hans@localhost linux-2.6.23-rc9.git4]$
+Applied to hwmon-2.6.git/testing, thanks.
 
-So either it isn't named powersupply or it is very well hiden.
-
-GRR, found it, actually it is named power_supply. Yes that will work well, thanks!
-
-Regards,
-
-Hans
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
 
 _______________________________________________
