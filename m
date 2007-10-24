@@ -1,59 +1,64 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 09 Oct 2007 12:13:40 +0000
-Subject: Re: [lm-sensors] Moving the "useful addresses" list to the wiki
-Message-Id: <20071009141340.7c2de269@hyperion.delvare>
+Date: Wed, 24 Oct 2007 22:05:43 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm90) Use generic i2c reads during
+Message-Id: <20071025000543.67dc6edb@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20070821110134.1c7af7d6@hyperion.delvare>
-In-Reply-To: <20070821110134.1c7af7d6@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+As indirectly reported by Olof Johansson, the lm90 driver uses a
+custom i2c read function even during detection, at which point we
+don't know yet what device we're talking with. It would make more
+sense to only use the generic i2c read function at this point, so
+that we don't log irrelevant errors on misdetection.
 
-On Mon, 8 Oct 2007 13:23:43 -0700, Juerg Haefliger wrote:
-> Hi Jean,
-> 
-> On 8/24/07, Jean Delvare <khali@linux-fr.org> wrote:
-> > Hi Juerg,
-> >
-> > On Wed, 22 Aug 2007 09:13:39 -0700, Juerg Haefliger wrote:
-> > > On 8/21/07, Jean Delvare <khali@linux-fr.org> wrote:
-> > > > I propose that we move doc/useful_addresses.html to
-> > > > lm-sensors.org/wiki. Reasons for that are:
-> > > >
-> > > > * It will be much more visible there. I don't expect users to find this
-> > > > file under /usr/share/doc. Some distributions don't even package it.
-> > > >
-> > > > * It is version-independent.
-> > > >
-> > > > * It will be easier to maintain in the wiki, more people can change it
-> > > > there so there is a chance that the document becomes more useful over
-> > > > time.
-> > > >
-> > > > If nothing else, this will be one less file to keep in sync between
-> > > > both lm-sensors branches.
-> > > >
-> > > > Opinions?
-> > > >
-> > > > Is there a volunteer for the task?
-> > >
-> > > I'll take care of it.
-> >
-> > Great, thank you! I've created a task for you in trac:
-> > http://www.lm-sensors.org/ticket/2242
-> 
-> I'm done with the conversion. Can you update the link on the start
-> page to point to wiki/UsefulLinks? I can't edit the start page.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/lm90.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-Great, just in time for the release :)
+--- linux-2.6.24-rc1.orig/drivers/hwmon/lm90.c	2007-10-24 09:59:28.000000000 +0200
++++ linux-2.6.24-rc1/drivers/hwmon/lm90.c	2007-10-24 23:56:32.000000000 +0200
+@@ -531,24 +531,24 @@ static int lm90_detect(struct i2c_adapte
+ 		kind = lm90;
+ 
+ 	if (kind < 0) { /* detection and identification */
+-		u8 man_id, chip_id, reg_config1, reg_convrate;
++		int man_id, chip_id, reg_config1, reg_convrate;
+ 
+-		if (lm90_read_reg(new_client, LM90_REG_R_MAN_ID,
+-				  &man_id) < 0
+-		 || lm90_read_reg(new_client, LM90_REG_R_CHIP_ID,
+-		 		  &chip_id) < 0
+-		 || lm90_read_reg(new_client, LM90_REG_R_CONFIG1,
+-		 		  &reg_config1) < 0
+-		 || lm90_read_reg(new_client, LM90_REG_R_CONVRATE,
+-		 		  &reg_convrate) < 0)
++		if ((man_id = i2c_smbus_read_byte_data(new_client,
++						LM90_REG_R_MAN_ID) < 0)
++		 || (chip_id = i2c_smbus_read_byte_data(new_client,
++						LM90_REG_R_CHIP_ID) < 0)
++		 || (reg_config1 = i2c_smbus_read_byte_data(new_client,
++						LM90_REG_R_CONFIG1) < 0)
++		 || (reg_convrate = i2c_smbus_read_byte_data(new_client,
++						LM90_REG_R_CONVRATE) < 0))
+ 			goto exit_free;
+ 		
+ 		if ((address = 0x4C || address = 0x4D)
+ 		 && man_id = 0x01) { /* National Semiconductor */
+-			u8 reg_config2;
++			int reg_config2;
+ 
+-			if (lm90_read_reg(new_client, LM90_REG_R_CONFIG2,
+-					  &reg_config2) < 0)
++			if ((reg_config2 = i2c_smbus_read_byte_data(new_client,
++						LM90_REG_R_CONFIG2)) < 0)
+ 				goto exit_free;
+ 
+ 			if ((reg_config1 & 0x2A) = 0x00
 
-I've updated the link to point to the new wiki page. I've also deleted
-the old HTML file from SVN (both branches) and updated all references
-thereto.
-
-Thanks!
 
 -- 
 Jean Delvare
