@@ -1,7 +1,7 @@
 From: Philip Edelbrock <phil_edelbrock@edgedesign.us>
-Date: Tue, 23 Oct 2007 17:36:50 +0000
+Date: Thu, 25 Oct 2007 04:40:52 +0000
 Subject: Re: [lm-sensors] Call for 2.10.5
-Message-Id: <5A0996E7-4AF9-49E1-B6A5-66AABDC69437@edgedesign.us>
+Message-Id: <D35C10C5-673F-434B-ABF5-5155F55F3AC4@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20071007114017.27909e43@hyperion.delvare>
 In-Reply-To: <20071007114017.27909e43@hyperion.delvare>
@@ -11,23 +11,34 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-On Oct 23, 2007, at 8:15 AM, Jean Delvare wrote:
+On Oct 23, 2007, at 10:36 AM, Philip Edelbrock wrote:
 
-> On Mon, 15 Oct 2007 23:09:19 +0200, Jean Delvare wrote:
->> It looks like we're all done with merging stuff in trunk? So let the
->> testing phase begin. Updated schedule:
+>
+> On Oct 23, 2007, at 8:15 AM, Jean Delvare wrote:
+>
+>> On Mon, 15 Oct 2007 23:09:19 +0200, Jean Delvare wrote:
+>>> It looks like we're all done with merging stuff in trunk? So let the
+>>> testing phase begin. Updated schedule:
+>>>
+>>> * October 15th: SVN freeze
+>>> * October 16th-21st: testing
+>>> * October 22nd: release
 >>
->> * October 15th: SVN freeze
->> * October 16th-21st: testing
->> * October 22nd: release
+>> I am done with testing, I've committed patches for the minor issues I
+>> found while testing. So, as far as I am concerned, we are ready to
+>> release.
+>>
+>> Philip, will you have the time to do a lm-sensors release this week?
 >
-> I am done with testing, I've committed patches for the minor issues I
-> found while testing. So, as far as I am concerned, we are ready to
-> release.
+> Hi Jean, sure I'll try to get the release done today or tomorrow.
 >
-> Philip, will you have the time to do a lm-sensors release this week?
+>
+> Phil
 
-Hi Jean, sure I'll try to get the release done today or tomorrow.
+
+OK, the release is done. I did both an lm-sensors and i2c for 2.10.5.
+
+Please check and make wiki/other changes as needed.
 
 
 Phil
