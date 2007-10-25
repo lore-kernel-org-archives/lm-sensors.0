@@ -1,236 +1,260 @@
-From: Riku Voipio <riku.voipio@movial.fi>
-Date: Tue, 16 Oct 2007 09:46:49 +0000
-Subject: [lm-sensors] [PATCH] f75375s: Add new style bindings
-Message-Id: <20071016094649.GA23926@kos.to>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Thu, 25 Oct 2007 11:21:20 +0000
+Subject: Re: [lm-sensors] [PATCH] f75375s: Add new style bindings
+Message-Id: <20071025112120.GG30546@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20071016094649.GA23926@kos.to>
+In-Reply-To: <20071016094649.GA23926@kos.to>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Unsuprisingly, the first version was plain ignored. So this patch had to be
-refreshed against 2.6.23...
+Hi:
 
-Following the example of David Brownell's work on lm75:
+This is really nice.  I only found a couple nits, so I just made the changes
+(inline below) and applied it to hwmon-2.6.git/testing; thanks.
 
- - Create a second driver struct, using new-style driver binding methods.
+* Riku Voipio <riku.voipio@movial.fi> [2007-10-16 12:46:49 +0300]:
+> Unsuprisingly, the first version was plain ignored. So this patch had to be
+> refreshed against 2.6.23...
+> 
+> Following the example of David Brownell's work on lm75:
+> 
+>  - Create a second driver struct, using new-style driver binding methods.
+> 
+>  - Rename the old driver struct as f75375_legacy_driver.
+> 
+>  - Make the legacy bind/unbind logic delegate all its work.
+> 
+> Signed-off-by: Riku Voipio <riku.voipio@movial.fi>
+> ---
+>  drivers/hwmon/f75375s.c |  112 +++++++++++++++++++++++++++++++++++-----------
+>  1 files changed, 85 insertions(+), 27 deletions(-)
+> 
+> diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+> index 13a0413..0ac3fc2 100644
+> --- a/drivers/hwmon/f75375s.c
+> +++ b/drivers/hwmon/f75375s.c
+> @@ -86,7 +86,7 @@ I2C_CLIENT_INSMOD_2(f75373, f75375);
+>  
+>  struct f75375_data {
+>  	unsigned short addr;
+> -	struct i2c_client client;
+> +	struct i2c_client *client;
+>  	struct device *hwmon_dev;
+>  
+>  	const char *name;
+> @@ -116,15 +116,26 @@ struct f75375_data {
+>  static int f75375_attach_adapter(struct i2c_adapter *adapter);
+>  static int f75375_detect(struct i2c_adapter *adapter, int address, int kind);
+>  static int f75375_detach_client(struct i2c_client *client);
+> +static int f75375_probe(struct i2c_client *client);
+> +static int f75375_remove(struct i2c_client *client);
+>  
+> -static struct i2c_driver f75375_driver = {
+> +static struct i2c_driver f75375_legacy_driver = {
+>  	.driver = {
+> -		.name = "f75375",
+> +		.name = "f75375_legacy",
+>  	},
+>  	.attach_adapter = f75375_attach_adapter,
+>  	.detach_client = f75375_detach_client,
+>  };
+>  
+> +static struct i2c_driver f75375_driver = {
+> +	.driver = {
+> +		.name = "f75375",
+> +	},
+> +	.probe = f75375_probe,
+> +	.remove = f75375_remove,
+> +};
+> +
+> +
 
- - Rename the old driver struct as f75375_legacy_driver.
+extra newline
 
- - Make the legacy bind/unbind logic delegate all its work.
+>  static inline int f75375_read8(struct i2c_client *client, u8 reg)
+>  {
+>  	return i2c_smbus_read_byte_data(client, reg);
+> @@ -580,12 +591,8 @@ static const struct attribute_group f75375_group = {
+>  
+>  static int f75375_detach_client(struct i2c_client *client)
+>  {
+> -	struct f75375_data *data = i2c_get_clientdata(client);
+>  	int err;
+> -
+> -	hwmon_device_unregister(data->hwmon_dev);
+> -	sysfs_remove_group(&client->dev.kobj, &f75375_group);
+> -
 
-Signed-off-by: Riku Voipio <riku.voipio@movial.fi>
----
- drivers/hwmon/f75375s.c |  112 +++++++++++++++++++++++++++++++++++-----------
- 1 files changed, 85 insertions(+), 27 deletions(-)
+added a newline here
 
-diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
-index 13a0413..0ac3fc2 100644
---- a/drivers/hwmon/f75375s.c
-+++ b/drivers/hwmon/f75375s.c
-@@ -86,7 +86,7 @@ I2C_CLIENT_INSMOD_2(f75373, f75375);
- 
- struct f75375_data {
- 	unsigned short addr;
--	struct i2c_client client;
-+	struct i2c_client *client;
- 	struct device *hwmon_dev;
- 
- 	const char *name;
-@@ -116,15 +116,26 @@ struct f75375_data {
- static int f75375_attach_adapter(struct i2c_adapter *adapter);
- static int f75375_detect(struct i2c_adapter *adapter, int address, int kind);
- static int f75375_detach_client(struct i2c_client *client);
-+static int f75375_probe(struct i2c_client *client);
-+static int f75375_remove(struct i2c_client *client);
- 
--static struct i2c_driver f75375_driver = {
-+static struct i2c_driver f75375_legacy_driver = {
- 	.driver = {
--		.name = "f75375",
-+		.name = "f75375_legacy",
- 	},
- 	.attach_adapter = f75375_attach_adapter,
- 	.detach_client = f75375_detach_client,
- };
- 
-+static struct i2c_driver f75375_driver = {
-+	.driver = {
-+		.name = "f75375",
-+	},
-+	.probe = f75375_probe,
-+	.remove = f75375_remove,
-+};
-+
-+
- static inline int f75375_read8(struct i2c_client *client, u8 reg)
- {
- 	return i2c_smbus_read_byte_data(client, reg);
-@@ -580,12 +591,8 @@ static const struct attribute_group f75375_group = {
- 
- static int f75375_detach_client(struct i2c_client *client)
- {
--	struct f75375_data *data = i2c_get_clientdata(client);
- 	int err;
--
--	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&client->dev.kobj, &f75375_group);
--
-+	f75375_remove(client);
- 	err = i2c_detach_client(client);
- 	if (err) {
- 		dev_err(&client->dev,
-@@ -593,10 +600,64 @@ static int f75375_detach_client(struct i2c_client *client)
- 			"client not detached.\n");
- 		return err;
- 	}
-+	kfree(client);
-+	return 0;
-+}
-+
-+static int f75375_probe(struct i2c_client *client)
-+{
-+	struct f75375_data *data = i2c_get_clientdata(client);
-+	int err;
-+
-+	if (!i2c_check_functionality(client->adapter,
-+				I2C_FUNC_SMBUS_BYTE_DATA))
-+		return -EIO;
-+	if (!(data = kzalloc(sizeof(struct f75375_data), GFP_KERNEL)))
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(client, data);
-+	data->client = client;
-+	mutex_init(&data->update_lock);
-+
-+	if (strcmp(client->name, "f75375") = 0)
-+		data->kind = f75375;
-+	else if (strcmp(client->name, "f75373") = 0)
-+		data->kind = f75373;
-+	else {
-+		dev_err(&client->dev, "Unsupported device: %s\n", client->name);
-+		return -ENODEV;
-+	}
-+
-+	if ((err = sysfs_create_group(&client->dev.kobj, &f75375_group)))
-+		goto exit_free;
-+
-+	data->hwmon_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(data->hwmon_dev)) {
-+		err = PTR_ERR(data->hwmon_dev);
-+		goto exit_remove;
-+	}
-+
-+	return 0;
-+
-+exit_remove:
-+	sysfs_remove_group(&client->dev.kobj, &f75375_group);
-+exit_free:
- 	kfree(data);
-+	i2c_set_clientdata(client, NULL);
-+	return err;
-+}
-+
-+static int f75375_remove(struct i2c_client *client)
-+{
-+	struct f75375_data *data = i2c_get_clientdata(client);
-+	hwmon_device_unregister(data->hwmon_dev);
-+	sysfs_remove_group(&client->dev.kobj, &f75375_group);
-+	kfree(data);
-+	i2c_set_clientdata(client, NULL);
- 	return 0;
- }
- 
-+
- static int f75375_attach_adapter(struct i2c_adapter *adapter)
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
-@@ -608,20 +669,17 @@ static int f75375_attach_adapter(struct i2c_adapter *adapter)
- static int f75375_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *client;
--	struct f75375_data *data;
- 	u8 version = 0;
- 	int err = 0;
- 	const char *name = "";
- 
--	if (!(data = kzalloc(sizeof(struct f75375_data), GFP_KERNEL))) {
-+	if (!(client = kzalloc(sizeof(*client), GFP_KERNEL))) {
- 		err = -ENOMEM;
- 		goto exit;
- 	}
--	client = &data->client;
--	i2c_set_clientdata(client, data);
- 	client->addr = address;
- 	client->adapter = adapter;
--	client->driver = &f75375_driver;
-+	client->driver = &f75375_legacy_driver;
- 
- 	if (kind < 0) {
- 		u16 vendid = f75375_read16(client, F75375_REG_VENDOR);
-@@ -644,42 +702,42 @@ static int f75375_detect(struct i2c_adapter *adapter, int address, int kind)
- 	} else if (kind = f75373) {
- 		name = "f75373";
- 	}
--
- 	dev_info(&adapter->dev, "found %s version: %02X\n", name, version);
- 	strlcpy(client->name, name, I2C_NAME_SIZE);
--	data->kind = kind;
--	mutex_init(&data->update_lock);
-+
- 	if ((err = i2c_attach_client(client)))
- 		goto exit_free;
- 
--	if ((err = sysfs_create_group(&client->dev.kobj, &f75375_group)))
-+	if ((err = f75375_probe(client)) < 0)
- 		goto exit_detach;
- 
--	data->hwmon_dev = hwmon_device_register(&client->dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		err = PTR_ERR(data->hwmon_dev);
--		goto exit_remove;
--	}
--
- 	return 0;
- 
--exit_remove:
--	sysfs_remove_group(&client->dev.kobj, &f75375_group);
- exit_detach:
- 	i2c_detach_client(client);
- exit_free:
--	kfree(data);
-+	kfree(client);
- exit:
- 	return err;
- }
- 
- static int __init sensors_f75375_init(void)
- {
--	return i2c_add_driver(&f75375_driver);
-+	int status;
-+	status = i2c_add_driver(&f75375_driver);
-+	if (status < 0)
-+		return status;
-+
-+	status = i2c_add_driver(&f75375_legacy_driver);
-+	if (status < 0)
-+		i2c_del_driver(&f75375_driver);
-+
-+	return status;
- }
- 
- static void __exit sensors_f75375_exit(void)
- {
-+	i2c_del_driver(&f75375_legacy_driver);
- 	i2c_del_driver(&f75375_driver);
- }
- 
+> +	f75375_remove(client);
+>  	err = i2c_detach_client(client);
+>  	if (err) {
+>  		dev_err(&client->dev,
+> @@ -593,10 +600,64 @@ static int f75375_detach_client(struct i2c_client *client)
+>  			"client not detached.\n");
+>  		return err;
+>  	}
+> +	kfree(client);
+> +	return 0;
+> +}
+> +
+> +static int f75375_probe(struct i2c_client *client)
+> +{
+> +	struct f75375_data *data = i2c_get_clientdata(client);
+> +	int err;
+> +
+> +	if (!i2c_check_functionality(client->adapter,
+> +				I2C_FUNC_SMBUS_BYTE_DATA))
+> +		return -EIO;
+> +	if (!(data = kzalloc(sizeof(struct f75375_data), GFP_KERNEL)))
+> +		return -ENOMEM;
+> +
+> +	i2c_set_clientdata(client, data);
+> +	data->client = client;
+> +	mutex_init(&data->update_lock);
+> +
+> +	if (strcmp(client->name, "f75375") = 0)
+> +		data->kind = f75375;
+> +	else if (strcmp(client->name, "f75373") = 0)
+> +		data->kind = f75373;
+> +	else {
+> +		dev_err(&client->dev, "Unsupported device: %s\n", client->name);
+> +		return -ENODEV;
+> +	}
+> +
+> +	if ((err = sysfs_create_group(&client->dev.kobj, &f75375_group)))
+> +		goto exit_free;
+> +
+> +	data->hwmon_dev = hwmon_device_register(&client->dev);
+> +	if (IS_ERR(data->hwmon_dev)) {
+> +		err = PTR_ERR(data->hwmon_dev);
+> +		goto exit_remove;
+> +	}
+> +
+> +	return 0;
+> +
+> +exit_remove:
+> +	sysfs_remove_group(&client->dev.kobj, &f75375_group);
+> +exit_free:
+>  	kfree(data);
+> +	i2c_set_clientdata(client, NULL);
+> +	return err;
+> +}
+> +
+> +static int f75375_remove(struct i2c_client *client)
+> +{
+> +	struct f75375_data *data = i2c_get_clientdata(client);
+> +	hwmon_device_unregister(data->hwmon_dev);
+> +	sysfs_remove_group(&client->dev.kobj, &f75375_group);
+> +	kfree(data);
+> +	i2c_set_clientdata(client, NULL);
+>  	return 0;
+>  }
+>  
+> +
+
+extra newline
+
+>  static int f75375_attach_adapter(struct i2c_adapter *adapter)
+>  {
+>  	if (!(adapter->class & I2C_CLASS_HWMON))
+> @@ -608,20 +669,17 @@ static int f75375_attach_adapter(struct i2c_adapter *adapter)
+>  static int f75375_detect(struct i2c_adapter *adapter, int address, int kind)
+>  {
+>  	struct i2c_client *client;
+> -	struct f75375_data *data;
+>  	u8 version = 0;
+>  	int err = 0;
+>  	const char *name = "";
+>  
+> -	if (!(data = kzalloc(sizeof(struct f75375_data), GFP_KERNEL))) {
+> +	if (!(client = kzalloc(sizeof(*client), GFP_KERNEL))) {
+>  		err = -ENOMEM;
+>  		goto exit;
+>  	}
+> -	client = &data->client;
+> -	i2c_set_clientdata(client, data);
+>  	client->addr = address;
+>  	client->adapter = adapter;
+> -	client->driver = &f75375_driver;
+> +	client->driver = &f75375_legacy_driver;
+>  
+>  	if (kind < 0) {
+>  		u16 vendid = f75375_read16(client, F75375_REG_VENDOR);
+> @@ -644,42 +702,42 @@ static int f75375_detect(struct i2c_adapter *adapter, int address, int kind)
+>  	} else if (kind = f75373) {
+>  		name = "f75373";
+>  	}
+> -
+>  	dev_info(&adapter->dev, "found %s version: %02X\n", name, version);
+>  	strlcpy(client->name, name, I2C_NAME_SIZE);
+> -	data->kind = kind;
+> -	mutex_init(&data->update_lock);
+> +
+>  	if ((err = i2c_attach_client(client)))
+>  		goto exit_free;
+>  
+> -	if ((err = sysfs_create_group(&client->dev.kobj, &f75375_group)))
+> +	if ((err = f75375_probe(client)) < 0)
+>  		goto exit_detach;
+>  
+> -	data->hwmon_dev = hwmon_device_register(&client->dev);
+> -	if (IS_ERR(data->hwmon_dev)) {
+> -		err = PTR_ERR(data->hwmon_dev);
+> -		goto exit_remove;
+> -	}
+> -
+>  	return 0;
+>  
+> -exit_remove:
+> -	sysfs_remove_group(&client->dev.kobj, &f75375_group);
+>  exit_detach:
+>  	i2c_detach_client(client);
+>  exit_free:
+> -	kfree(data);
+> +	kfree(client);
+>  exit:
+>  	return err;
+>  }
+>  
+>  static int __init sensors_f75375_init(void)
+>  {
+> -	return i2c_add_driver(&f75375_driver);
+> +	int status;
+> +	status = i2c_add_driver(&f75375_driver);
+> +	if (status < 0)
+
+if (status)
+
+> +		return status;
+> +
+> +	status = i2c_add_driver(&f75375_legacy_driver);
+> +	if (status < 0)
+
+ditto
+
+> +		i2c_del_driver(&f75375_driver);
+> +
+> +	return status;
+>  }
+>  
+>  static void __exit sensors_f75375_exit(void)
+>  {
+> +	i2c_del_driver(&f75375_legacy_driver);
+>  	i2c_del_driver(&f75375_driver);
+>  }
+>  
+> -- 
+> 1.5.3.1
+
 -- 
-1.5.3.1
+Mark M. Hoffman
+mhoffman@lightlink.com
 
-
--- 
-"rm -rf" only sounds scary if you don't have backups
 
 _______________________________________________
 lm-sensors mailing list
