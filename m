@@ -1,34 +1,25 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 11 Oct 2007 16:32:39 +0000
-Subject: Re: [lm-sensors] lm-sensors 3.0.0-rc2 to be released soon
-Message-Id: <20071011183239.50c64bba@hyperion.delvare>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sat, 27 Oct 2007 08:47:56 +0000
+Subject: [lm-sensors] What to use as prefix for TI TMP401 IC,
+Message-Id: <4722FB3C.9010402@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071007113111.2e0a275f@hyperion.delvare>
-In-Reply-To: <20071007113111.2e0a275f@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ivo,
+Hi All,
 
-On Thu, 11 Oct 2007 18:28:43 +0200, Pinkel wrote:
-> Hey Jean,
-> 
-> Just tried to download it, but the download location says:
-> The requested URL /lm-sensors/releases/lm_sensors-3.0.0-rc2.tar.gz was 
-> not found on this server.
-> Seems that the correct url is: 
-> http://dl.lm-sensors.org/lm-sensors/releases/lm_sensors-3.0.0-rc2.tar.bz2
-> (bz2 instead of gz ;))
-> 
-> Anyway, it's luckily an open dir, so I could still locate it.
 
-You're completely right, I forgot to update that part when doing the
-release. Thanks for reporting! It's fixed now.
+As part of the linuxdriverproject:
+http://linuxdriverproject.org
 
--- 
-Jean Delvare
+I'm working on a TI TMP401 driver, but what should I use as prefix:
+ti_tmp401 or just tmp401?
+
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
