@@ -1,29 +1,26 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 16 Oct 2007 10:47:42 +0000
-Subject: Re: [lm-sensors] [patch 1/1] w83627hf push nr+1 offset into
-Message-Id: <20071016104742.GD3731@jupiter.solarsys.private>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 28 Oct 2007 10:15:56 +0000
+Subject: [lm-sensors] lm_sensors 3.0.0 rc3 release?
+Message-Id: <4724615C.4000909@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cfe85dfa0710121903r766b4b2ei69c81afab3c1e323@mail.gmail.com>
-In-Reply-To: <cfe85dfa0710121903r766b4b2ei69c81afab3c1e323@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jim:
+Hi All,
 
-* Jim Cromie <jim.cromie@gmail.com> [2007-10-14 17:20:50 -0600]:
-> Binary files hwmon-hoist-temp/arch/i386/boot/setup.elf and hwmon-fan-push-offset/arch/i386/boot/setup.elf differ
-> diff -ruNp -X dontdiff -X exclude-diffs hwmon-hoist-temp/drivers/hwmon/w83627hf.c hwmon-fan-push-offset/drivers/hwmon/w83627hf.c
-> --- hwmon-hoist-temp/drivers/hwmon/w83627hf.c	2007-10-14 16:58:56.000000000 -0600
-> +++ hwmon-fan-push-offset/drivers/hwmon/w83627hf.c	2007-10-14 17:13:47.000000000 -0600
+I'm planning on creating a package of lm_sensors 3.0.0 for Fedora in the next 
+couple of days, so that its ready at the beginning of the next Fedora 
+development cycle and there is time to convert all Fedora packages which use 
+libsensors to the new API (and to send patches upstream).
 
-Applied to hwmon-2.6.git/testing, thanks.
+I want to have the new /etc/sensors.conf locating code in these packages, and I 
+would rather not use an svn snapshot. Any chance we could do a 3.0.0 rc3?
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Regards,
 
+Hans
 
 _______________________________________________
 lm-sensors mailing list
