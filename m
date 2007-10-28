@@ -1,294 +1,65 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 28 Oct 2007 10:26:48 +0000
-Subject: [lm-sensors] PATCH: add support for lm_sensors 3.0.0 to gkrellm
-Message-Id: <472463E8.8060109@hhs.nl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------030400080702050202050105"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 28 Oct 2007 14:05:13 +0000
+Subject: Re: [lm-sensors] PATCH: add support for lm_sensors 3.0.0 to gkrellm
+Message-Id: <20071028150513.6a8f296b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <472463E8.8060109@hhs.nl>
+In-Reply-To: <472463E8.8060109@hhs.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030400080702050202050105
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Hans,
 
-Hi all,
+On Sun, 28 Oct 2007 11:26:48 +0100, Hans de Goede wrote:
+> For those interested. I've made the patch so that gkrellm can be compiled 
+> against the new version (or the old) and so that the identification strings of 
+> the sensors do not change and thus old gkrellm configs will continue to work as is.
 
-For those interested. I've made the patch so that gkrellm can be compiled 
-against the new version (or the old) and so that the identification strings of 
-the sensors do not change and thus old gkrellm configs will continue to work as is.
+Random comments:
 
-Regards,
+> +			snprintf(sensor_path, sizeof (sensor_path), "%s:%s",
+> +				name->prefix, name->path ? name->path : "NULL");
 
-Hans
+name->path can't actually be NULL. BTW, I wonder why you need
+name->path at all. This is meant for libsensors internal use,
+applications shouldn't care about it. Also note that the path is not
+guaranteed to be consistent across reboots.
 
-p.s.
+> +			/* failsafe tests, will bus type and nr fit in 8 bits
+> +			   signed and addr fit in 16 bits signed ?
+> +			*/
 
-I've also send this upstream, and its available here:
-http://people.atrpms.net/~hdegoede/gkrellm-2.3.0-libsensors4.patch
+Unfortunately not: for SPI, the bus number can require 16 bits. It's
+due to the weird way spi-core uses to number buses dynamically, it
+should really be addressed someday, but at the moment it isn't.
 
-The later is to be able to put up a link on the download page for the 3.0.0 
-RC's from the wiki, I haven't done this yet as this patch will not work with 
-rc2, it requires current svn.
+> I've also send this upstream, and its available here:
+> http://people.atrpms.net/~hdegoede/gkrellm-2.3.0-libsensors4.patch
 
---------------030400080702050202050105
-Content-Type: text/x-patch;
- name="gkrellm-2.3.0-libsensors4.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="gkrellm-2.3.0-libsensors4.patch"
+Note that I've stopped referring to "libsensors4" after I realized it
+could cause confusion. While the binary file will be named
+"libsensors.so.4", the library version will be advertised as
+"libsensors 3.0.0". So for example I've renamed the xsensors patch to:
 
-diff -up gkrellm-2.3.0/src/sysdeps/linux.c.libsensors4 gkrellm-2.3.0/src/sysdeps/linux.c
---- gkrellm-2.3.0/src/sysdeps/linux.c.libsensors4	2007-07-07 01:57:20.000000000 +0200
-+++ gkrellm-2.3.0/src/sysdeps/linux.c	2007-10-28 11:08:47.000000000 +0100
-@@ -2055,14 +2055,14 @@ check_voltage_name(const gchar *name, gi
- static gboolean
- libsensors_init(void)
- 	{
--	gint			nr, nr1, nr2, len;
--	const sensors_chip_name		*name;
--	const sensors_feature_data	*feature;
--	gchar			*label, *s;
--	FILE			*f;
-+	gint			nr, len, iodev;
-+	const sensors_chip_name	*name;
-+	gchar			*label, *busname, *s;
- 	gchar			id_name[512], sensor_path[512];
- 	gint			type, n_sensors_added;
- 	ConfigMap		*config_map;
-+#if SENSORS_API_VERSION < 0x400 /* libsensor 3 code */
-+	FILE			*f;
- 
- 	f = fopen("/etc/sensors.conf", "r");
- 	if (!f)
-@@ -2087,7 +2087,8 @@ libsensors_init(void)
- 	nr = 0;
- 	while ((name = sensors_get_detected_chips(&nr)))
- 		{
--		nr1 = 0, nr2 = 0;
-+		const sensors_feature_data	*feature;
-+		gint nr1 = 0, nr2 = 0;
- 		while ((feature = sensors_get_all_features(*name, &nr1, &nr2)))
- 			{
- 			if (   sensors_get_ignored(*name, feature->number)
-@@ -2137,6 +2138,11 @@ libsensors_init(void)
- 					continue;
- 					}
- 
-+				/* notice that we store the bus and addr both in iodev as
-+				|  2 _signed 16 bit ints. */
-+				iodev = (name->bus & 0xFFFF) | (name->addr << 16);
-+				busname = name->busname;
-+				
- 				if (sensors_get_label(*name, feature->number, &label) != 0)
- 					{
- 					if (_GK.debug_level & DEBUG_SENSORS)
-@@ -2144,7 +2150,119 @@ libsensors_init(void)
- 								id_name);
- 					label = NULL;
- 					}
-+#else /* libsensors4 code */
-+	if (sensors_init(NULL) != 0)
-+		{
-+		if (_GK.debug_level & DEBUG_SENSORS)
-+			printf("libsensors: init failed!\n");
-+		return FALSE;
-+		}
-+
-+	if (_GK.debug_level & DEBUG_SENSORS)
-+		printf("libsensors: init OK\n");
-+
-+	n_sensors_added = 0;
-+	nr = 0;
-+	while ((name = sensors_get_detected_chips(NULL, &nr)))
-+		{
-+		const sensors_subfeature *feature;
-+		const sensors_feature *main_feature;
-+		gint nr1 = 0;
-+		while ((main_feature = sensors_get_features(name, &nr1)))
-+			{
-+			switch (name->bus.type)
-+			  {
-+			  case SENSORS_BUS_TYPE_I2C:
-+			  case SENSORS_BUS_TYPE_SPI:
-+				snprintf(id_name, sizeof(id_name), "%s@%d:%x/%s",
-+					name->prefix, name->bus.nr, name->addr, main_feature->name);
-+				break;
-+			  default:
-+				snprintf(id_name, sizeof(id_name), "%s@%x/%s",
-+					name->prefix, name->addr, main_feature->name);
-+			          
-+			  }
-+			/* We need to store both the prefix and the path, but we
-+			|  only have one string, so concat them together separated by :
-+			*/
-+			snprintf(sensor_path, sizeof (sensor_path), "%s:%s",
-+				name->prefix, name->path ? name->path : "NULL");
-+
-+			switch (main_feature->type)
-+			  {
-+			  case SENSORS_FEATURE_IN:
-+				type = SENSOR_VOLTAGE;
-+				feature = sensors_get_subfeature(name, 
-+						main_feature, SENSORS_SUBFEATURE_IN_INPUT);
-+			  	break;
-+			  case SENSORS_FEATURE_FAN:
-+				type = SENSOR_FAN;
-+				feature = sensors_get_subfeature(name, 
-+						main_feature, SENSORS_SUBFEATURE_FAN_INPUT);
-+				break;
-+			  case SENSORS_FEATURE_TEMP:
-+				type = SENSOR_TEMPERATURE;
-+				feature = sensors_get_subfeature(name, 
-+						main_feature, SENSORS_SUBFEATURE_TEMP_INPUT);
-+				break;
-+			  default:
-+				if (_GK.debug_level & DEBUG_SENSORS)
-+					printf("libsensors: error determining type for: %s\n",
-+							id_name);
-+				continue;
-+			  }
-+
-+			if (!feature)
-+				{
-+				if (_GK.debug_level & DEBUG_SENSORS)
-+					printf("libsensors: error could not get input subfeature for: %s\n",
-+							id_name);
-+				continue;
-+				}
-+
-+			/* failsafe tests, will bus type and nr fit in 8 bits
-+			   signed and addr fit in 16 bits signed ?
-+			*/
-+			if (name->bus.type != ((name->bus.type << 24) >> 24))
-+				{
-+				if (_GK.debug_level & DEBUG_SENSORS)
-+					printf("libsensors: bus-type bigger than 8 bits: %s\n",
-+							id_name);
-+				continue;
-+				}
-+			if (name->bus.nr != ((name->bus.nr << 24) >> 24))
-+				{
-+				if (_GK.debug_level & DEBUG_SENSORS)
-+					printf("libsensors: bus-nr bigger than 8 bits: %s\n",
-+							id_name);
-+				continue;
-+				}
-+			if (name->addr != ((name->addr << 16) >> 16))
-+				{
-+				if (_GK.debug_level & DEBUG_SENSORS)
-+					printf("libsensors: addr bigger than 16 bits: %s\n",
-+							id_name);
-+				continue;
-+				}
- 
-+			/* notice that we store the bus id, type and addr in
-+			   iodev as 2 signed 8 bit ints and one 16 bit int */
-+			iodev = (name->bus.type & 0xFF) |
-+				((name->bus.nr & 0xFF) << 8) |
-+				(name->addr << 16);
-+			busname = name->path;
-+
-+			label = sensors_get_label(name, main_feature);
-+			if (!label && (_GK.debug_level & DEBUG_SENSORS))
-+				printf("libsensors: error getting label for: %s\n",
-+						id_name);
-+
-+			/* additional { to match "if (get_ignored(..) {"
-+			   from libsensors3 code */
-+				{
-+#endif
-+				if (label)
-+				{
- 				/* Strip some common post/prefixes for smaller default labels
- 				*/
- 				len = strlen(label);
-@@ -2171,14 +2289,13 @@ libsensors_init(void)
- 						memmove(label, label + 4, strlen (label + 4) + 1);
- 					break;
- 				  }
--				/* notice that we store the bus and addr both in iodev as
--				|  2 _signed 16 bit ints.  Default factor of zero tells
--				|  sensor.c that sensor formula is handled, ie via
-+				}
-+				/* Default factor of zero tells sensor.c
-+				|  that sensor formula is handled, ie via
- 				|  /etc/sensors.conf.
- 				*/
- 				gkrellm_sensors_add_sensor(type, sensor_path, id_name,
--							feature->number,
--							(name->bus & 0xFFFF) | (name->addr << 16),
-+							feature->number, iodev,
- 							LIBSENSORS_INTERFACE, 0.0, 0.0,
- 							NULL, label);
- 				++n_sensors_added;
-@@ -2188,10 +2305,10 @@ libsensors_init(void)
- 				if (_GK.debug_level & DEBUG_SENSORS)
- 					printf("%s %s %x\n",
- 							sensor_path, id_name,
--							(name->bus & 0xFFFF) | (name->addr << 16));
-+							iodev);
- 
--				if (   name->busname
--				    && (s = strrchr(name->busname, '/')) != NULL
-+				if (   busname
-+				    && (s = strrchr(busname, '/')) != NULL
- 				    && *(s + 1)
- 				   )
- 					{
-@@ -2229,8 +2346,9 @@ libsensors_get_value(char *sensor_path, 
- 		}
- 	*p = 0;						/* We must undo this !! (or make a copy) */
- 	name.prefix = sensor_path;
--	name.bus = (iodev << 16) >> 16;	/* sign extend the low 16 bits */
- 	name.addr = iodev >> 16;
-+#if SENSORS_API_VERSION < 0x400 /* libsensor 3 code */
-+	name.bus = (iodev << 16) >> 16;	/* sign extend the low 16 bits */
- 	name.busname = p + 1;
- 	if (!strcmp(name.busname, "NULL"))
- 		name.busname = NULL;
-@@ -2248,6 +2366,32 @@ libsensors_get_value(char *sensor_path, 
- 					name.prefix, name.addr, id);
- 		}
- 
-+#else /* libsensors4 code */
-+	name.bus.type = (iodev << 24) >> 24; /* sign extend the low 8 bits */
-+	name.bus.nr   = (iodev << 16) >> 24; /* sign extend the 2nd byte */
-+	name.path = p + 1;
-+	if (!strcmp(name.path, "NULL"))
-+		name.path = NULL;
-+
-+	result = sensors_get_value(&name, id, &val) == 0;
-+	
-+	if (!result && (_GK.debug_level & DEBUG_SENSORS))
-+		{
-+			switch (name.bus.type)
-+			  {
-+			  case SENSORS_BUS_TYPE_I2C:
-+			  case SENSORS_BUS_TYPE_SPI:
-+				printf(
-+					"libsensors: error getting value for: %s@%d:%x feature: %d\n",
-+					name.prefix, (int)name.bus.nr, name.addr, id);
-+				break;
-+			  default:
-+				printf("libsensors: error getting value for: %s@%x feature: %d\n",
-+					name.prefix, name.addr, id);
-+			  }
-+		}
-+#endif
-+
- 	if (value)
- 		*value = val;
- 
+xsensors-0.60-libsensors-3.patch
 
---------------030400080702050202050105
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+And I suggest that you do the same. The soname is an internal detail
+end users don't even need to know.
+
+> The later is to be able to put up a link on the download page for the 3.0.0 
+> RC's from the wiki, I haven't done this yet as this patch will not work with 
+> rc2, it requires current svn.
+
+rc3 is released now, so you could proceed. However you'll need special
+permissions to edit the Download page. So I can either grant you these
+permissions if you want, or I can add the link for you if you prefer.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------030400080702050202050105--
