@@ -1,562 +1,294 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Tue, 23 Oct 2007 16:51:38 +0000
-Subject: Re: [lm-sensors] Toshiba Satellite M100-164 no data from sensors
-Message-Id: <191fb4ca0710230951r2cf8a5b7hd9546c38408c0b16@mail.gmail.com>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 28 Oct 2007 10:26:48 +0000
+Subject: [lm-sensors] PATCH: add support for lm_sensors 3.0.0 to gkrellm
+Message-Id: <472463E8.8060109@hhs.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------030400080702050202050105"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071022151206.GA30401@mail.irix-servis.cz>
-In-Reply-To: <20071022151206.GA30401@mail.irix-servis.cz>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Petr,
+This is a multi-part message in MIME format.
+--------------030400080702050202050105
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
+Hi all,
 
-On 10/23/07, Petr Bartel <bartel@irix.cz> wrote:
-> Thanks for a fast answer. I supposed every motherboard has these sensors.
-> Am I wrong ?
+For those interested. I've made the patch so that gkrellm can be compiled 
+against the new version (or the old) and so that the identification strings of 
+the sensors do not change and thus old gkrellm configs will continue to work as is.
 
-No, not every motherboard has these features.
+Regards,
 
+Hans
 
- The BIOS isn't able to show any other information. Is there
-> possibility, that I haven't got any sensors on my motherboard ?
+p.s.
 
-Yes, it's quite possible that your machine doesn't have any sensors
-that Linux can access.
+I've also send this upstream, and its available here:
+http://people.atrpms.net/~hdegoede/gkrellm-2.3.0-libsensors4.patch
 
+The later is to be able to put up a link on the download page for the 3.0.0 
+RC's from the wiki, I haven't done this yet as this patch will not work with 
+rc2, it requires current svn.
 
-> chipset Mobile Intel 945GM Express Chipset
-> processor Core Duo T2300
-> model Toshiba Satellite m100-154
+--------------030400080702050202050105
+Content-Type: text/x-patch;
+ name="gkrellm-2.3.0-libsensors4.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="gkrellm-2.3.0-libsensors4.patch"
 
-I don't know Toshiba laptops. Don't know if they have sensors or not.
-Maybe someone else on the list does.
+diff -up gkrellm-2.3.0/src/sysdeps/linux.c.libsensors4 gkrellm-2.3.0/src/sysdeps/linux.c
+--- gkrellm-2.3.0/src/sysdeps/linux.c.libsensors4	2007-07-07 01:57:20.000000000 +0200
++++ gkrellm-2.3.0/src/sysdeps/linux.c	2007-10-28 11:08:47.000000000 +0100
+@@ -2055,14 +2055,14 @@ check_voltage_name(const gchar *name, gi
+ static gboolean
+ libsensors_init(void)
+ 	{
+-	gint			nr, nr1, nr2, len;
+-	const sensors_chip_name		*name;
+-	const sensors_feature_data	*feature;
+-	gchar			*label, *s;
+-	FILE			*f;
++	gint			nr, len, iodev;
++	const sensors_chip_name	*name;
++	gchar			*label, *busname, *s;
+ 	gchar			id_name[512], sensor_path[512];
+ 	gint			type, n_sensors_added;
+ 	ConfigMap		*config_map;
++#if SENSORS_API_VERSION < 0x400 /* libsensor 3 code */
++	FILE			*f;
+ 
+ 	f = fopen("/etc/sensors.conf", "r");
+ 	if (!f)
+@@ -2087,7 +2087,8 @@ libsensors_init(void)
+ 	nr = 0;
+ 	while ((name = sensors_get_detected_chips(&nr)))
+ 		{
+-		nr1 = 0, nr2 = 0;
++		const sensors_feature_data	*feature;
++		gint nr1 = 0, nr2 = 0;
+ 		while ((feature = sensors_get_all_features(*name, &nr1, &nr2)))
+ 			{
+ 			if (   sensors_get_ignored(*name, feature->number)
+@@ -2137,6 +2138,11 @@ libsensors_init(void)
+ 					continue;
+ 					}
+ 
++				/* notice that we store the bus and addr both in iodev as
++				|  2 _signed 16 bit ints. */
++				iodev = (name->bus & 0xFFFF) | (name->addr << 16);
++				busname = name->busname;
++				
+ 				if (sensors_get_label(*name, feature->number, &label) != 0)
+ 					{
+ 					if (_GK.debug_level & DEBUG_SENSORS)
+@@ -2144,7 +2150,119 @@ libsensors_init(void)
+ 								id_name);
+ 					label = NULL;
+ 					}
++#else /* libsensors4 code */
++	if (sensors_init(NULL) != 0)
++		{
++		if (_GK.debug_level & DEBUG_SENSORS)
++			printf("libsensors: init failed!\n");
++		return FALSE;
++		}
++
++	if (_GK.debug_level & DEBUG_SENSORS)
++		printf("libsensors: init OK\n");
++
++	n_sensors_added = 0;
++	nr = 0;
++	while ((name = sensors_get_detected_chips(NULL, &nr)))
++		{
++		const sensors_subfeature *feature;
++		const sensors_feature *main_feature;
++		gint nr1 = 0;
++		while ((main_feature = sensors_get_features(name, &nr1)))
++			{
++			switch (name->bus.type)
++			  {
++			  case SENSORS_BUS_TYPE_I2C:
++			  case SENSORS_BUS_TYPE_SPI:
++				snprintf(id_name, sizeof(id_name), "%s@%d:%x/%s",
++					name->prefix, name->bus.nr, name->addr, main_feature->name);
++				break;
++			  default:
++				snprintf(id_name, sizeof(id_name), "%s@%x/%s",
++					name->prefix, name->addr, main_feature->name);
++			          
++			  }
++			/* We need to store both the prefix and the path, but we
++			|  only have one string, so concat them together separated by :
++			*/
++			snprintf(sensor_path, sizeof (sensor_path), "%s:%s",
++				name->prefix, name->path ? name->path : "NULL");
++
++			switch (main_feature->type)
++			  {
++			  case SENSORS_FEATURE_IN:
++				type = SENSOR_VOLTAGE;
++				feature = sensors_get_subfeature(name, 
++						main_feature, SENSORS_SUBFEATURE_IN_INPUT);
++			  	break;
++			  case SENSORS_FEATURE_FAN:
++				type = SENSOR_FAN;
++				feature = sensors_get_subfeature(name, 
++						main_feature, SENSORS_SUBFEATURE_FAN_INPUT);
++				break;
++			  case SENSORS_FEATURE_TEMP:
++				type = SENSOR_TEMPERATURE;
++				feature = sensors_get_subfeature(name, 
++						main_feature, SENSORS_SUBFEATURE_TEMP_INPUT);
++				break;
++			  default:
++				if (_GK.debug_level & DEBUG_SENSORS)
++					printf("libsensors: error determining type for: %s\n",
++							id_name);
++				continue;
++			  }
++
++			if (!feature)
++				{
++				if (_GK.debug_level & DEBUG_SENSORS)
++					printf("libsensors: error could not get input subfeature for: %s\n",
++							id_name);
++				continue;
++				}
++
++			/* failsafe tests, will bus type and nr fit in 8 bits
++			   signed and addr fit in 16 bits signed ?
++			*/
++			if (name->bus.type != ((name->bus.type << 24) >> 24))
++				{
++				if (_GK.debug_level & DEBUG_SENSORS)
++					printf("libsensors: bus-type bigger than 8 bits: %s\n",
++							id_name);
++				continue;
++				}
++			if (name->bus.nr != ((name->bus.nr << 24) >> 24))
++				{
++				if (_GK.debug_level & DEBUG_SENSORS)
++					printf("libsensors: bus-nr bigger than 8 bits: %s\n",
++							id_name);
++				continue;
++				}
++			if (name->addr != ((name->addr << 16) >> 16))
++				{
++				if (_GK.debug_level & DEBUG_SENSORS)
++					printf("libsensors: addr bigger than 16 bits: %s\n",
++							id_name);
++				continue;
++				}
+ 
++			/* notice that we store the bus id, type and addr in
++			   iodev as 2 signed 8 bit ints and one 16 bit int */
++			iodev = (name->bus.type & 0xFF) |
++				((name->bus.nr & 0xFF) << 8) |
++				(name->addr << 16);
++			busname = name->path;
++
++			label = sensors_get_label(name, main_feature);
++			if (!label && (_GK.debug_level & DEBUG_SENSORS))
++				printf("libsensors: error getting label for: %s\n",
++						id_name);
++
++			/* additional { to match "if (get_ignored(..) {"
++			   from libsensors3 code */
++				{
++#endif
++				if (label)
++				{
+ 				/* Strip some common post/prefixes for smaller default labels
+ 				*/
+ 				len = strlen(label);
+@@ -2171,14 +2289,13 @@ libsensors_init(void)
+ 						memmove(label, label + 4, strlen (label + 4) + 1);
+ 					break;
+ 				  }
+-				/* notice that we store the bus and addr both in iodev as
+-				|  2 _signed 16 bit ints.  Default factor of zero tells
+-				|  sensor.c that sensor formula is handled, ie via
++				}
++				/* Default factor of zero tells sensor.c
++				|  that sensor formula is handled, ie via
+ 				|  /etc/sensors.conf.
+ 				*/
+ 				gkrellm_sensors_add_sensor(type, sensor_path, id_name,
+-							feature->number,
+-							(name->bus & 0xFFFF) | (name->addr << 16),
++							feature->number, iodev,
+ 							LIBSENSORS_INTERFACE, 0.0, 0.0,
+ 							NULL, label);
+ 				++n_sensors_added;
+@@ -2188,10 +2305,10 @@ libsensors_init(void)
+ 				if (_GK.debug_level & DEBUG_SENSORS)
+ 					printf("%s %s %x\n",
+ 							sensor_path, id_name,
+-							(name->bus & 0xFFFF) | (name->addr << 16));
++							iodev);
+ 
+-				if (   name->busname
+-				    && (s = strrchr(name->busname, '/')) != NULL
++				if (   busname
++				    && (s = strrchr(busname, '/')) != NULL
+ 				    && *(s + 1)
+ 				   )
+ 					{
+@@ -2229,8 +2346,9 @@ libsensors_get_value(char *sensor_path, 
+ 		}
+ 	*p = 0;						/* We must undo this !! (or make a copy) */
+ 	name.prefix = sensor_path;
+-	name.bus = (iodev << 16) >> 16;	/* sign extend the low 16 bits */
+ 	name.addr = iodev >> 16;
++#if SENSORS_API_VERSION < 0x400 /* libsensor 3 code */
++	name.bus = (iodev << 16) >> 16;	/* sign extend the low 16 bits */
+ 	name.busname = p + 1;
+ 	if (!strcmp(name.busname, "NULL"))
+ 		name.busname = NULL;
+@@ -2248,6 +2366,32 @@ libsensors_get_value(char *sensor_path, 
+ 					name.prefix, name.addr, id);
+ 		}
+ 
++#else /* libsensors4 code */
++	name.bus.type = (iodev << 24) >> 24; /* sign extend the low 8 bits */
++	name.bus.nr   = (iodev << 16) >> 24; /* sign extend the 2nd byte */
++	name.path = p + 1;
++	if (!strcmp(name.path, "NULL"))
++		name.path = NULL;
++
++	result = sensors_get_value(&name, id, &val) == 0;
++	
++	if (!result && (_GK.debug_level & DEBUG_SENSORS))
++		{
++			switch (name.bus.type)
++			  {
++			  case SENSORS_BUS_TYPE_I2C:
++			  case SENSORS_BUS_TYPE_SPI:
++				printf(
++					"libsensors: error getting value for: %s@%d:%x feature: %d\n",
++					name.prefix, (int)name.bus.nr, name.addr, id);
++				break;
++			  default:
++				printf("libsensors: error getting value for: %s@%x feature: %d\n",
++					name.prefix, name.addr, id);
++			  }
++		}
++#endif
++
+ 	if (value)
+ 		*value = val;
+ 
 
-All I can suggest is to run speedfan under windows or any other
-hardware monitoring tool that Toshiba provides with the machine. If
-any of the tools show any useful information you know at least that
-it's there and accessible. That doesn't help much to get the info
-under Linux though but it might give us some clues about the sensor
-hardware.
+--------------030400080702050202050105
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-...juerg
-
-
-
-> probably distributed only across Europe
->
-> Peter
->
-> --
-> **************************************************
-> * ICQ 74097173                  tel. 312 244 018 *
-> * Irix a.s.        Petr Bartel            servis *
-> *               Fingerprint kl=ED=E8e                *
-> 8DB8 3AB2 6865 45F4 3E84  4980 CCED 20B1 CC6B B649
-> **************************************************
->
-> Mon, Oct 22, 2007 at 05:40:21PM CEST, juergh@gmail.com napsal(a):
-> > Hi Petr,
-> >
-> >
-> > On 10/22/07, Petr Bartel <bartel@irix.cz> wrote:
-> > > Good afternoon,
-> > > I can't get any data from sensors (CPU fan, voltage....).
-> > > Can you advise to me, what will I do ?
-> > >
-> > > lspci -vvv
-> > >
-> > > 00:00.0 Host bridge: Intel Corporation Mobile 945GM/PM/GMS/940GML and=
- 945GT Express Memory Controller Hub (rev 03)
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR+ FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort=
-- <TAbort- <MAbort+ >SERR- <PERR-
-> > >         Latency: 0
-> > >         Capabilities: <access denied>
-> > >
-> > > 00:02.0 VGA compatible controller: Intel Corporation Mobile 945GM/GMS=
-/940GML Express Integrated Graphics Controller (rev 03) (prog-if 00 [VGA])
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0
-> > >         Interrupt: pin A routed to IRQ 17
-> > >         Region 0: Memory at d0200000 (32-bit, non-prefetchable) [size=
-Q2K]
-> > >         Region 1: I/O ports at 1800 [size=3D8]
-> > >         Region 2: Memory at c0000000 (32-bit, prefetchable) [size%6M]
-> > >         Region 3: Memory at d0300000 (32-bit, non-prefetchable) [size=
-%6K]
-> > >         Capabilities: <access denied>
-> > >
-> > > 00:02.1 Display controller: Intel Corporation Mobile 945GM/GMS/940GML=
- Express Integrated Graphics Controller (rev 03)
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0
-> > >         Region 0: Memory at d0280000 (32-bit, non-prefetchable) [size=
-Q2K]
-> > >         Capabilities: <access denied>
-> > >
-> > > 00:1b.0 Audio device: Intel Corporation 82801G (ICH7 Family) High Def=
-inition Audio Controller (rev 02)
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=FAst >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0, Cache Line Size: 64 bytes
-> > >         Interrupt: pin A routed to IRQ 22
-> > >         Region 0: Memory at d0340000 (64-bit, non-prefetchable) [size=
-=16K]
-> > >         Capabilities: <access denied>
-> > >
-> > > 00:1c.0 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Expres=
-s Port 1 (rev 02) (prog-if 00 [Normal decode])
-> > >         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=FAst >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0, Cache Line Size: 64 bytes
-> > >         Bus: primary=00, secondary=02, subordinate=02, sec-latency=3D0
-> > >         I/O behind bridge: 0000f000-00000fff
-> > >         Memory behind bridge: fff00000-000fffff
-> > >         Prefetchable memory behind bridge: 00000000fff00000-000000000=
-00fffff
-> > >         Secondary status: 66MHz- FastB2B- ParErr- DEVSEL=FAst >TAbort=
-- <TAbort- <MAbort+ <SERR- <PERR-
-> > >         BridgeCtl: Parity- SERR- NoISA+ VGA- MAbort- >Reset- FastB2B-
-> > >         Capabilities: <access denied>
-> > >
-> > > 00:1c.1 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Expres=
-s Port 2 (rev 02) (prog-if 00 [Normal decode])
-> > >         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=FAst >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0, Cache Line Size: 64 bytes
-> > >         Bus: primary=00, secondary=03, subordinate=03, sec-latency=3D0
-> > >         I/O behind bridge: 0000f000-00000fff
-> > >         Memory behind bridge: d0100000-d01fffff
-> > >         Prefetchable memory behind bridge: 00000000fff00000-000000000=
-00fffff
-> > >         Secondary status: 66MHz- FastB2B- ParErr- DEVSEL=FAst >TAbort=
-- <TAbort- <MAbort+ <SERR- <PERR-
-> > >         BridgeCtl: Parity- SERR- NoISA+ VGA- MAbort- >Reset- FastB2B-
-> > >         Capabilities: <access denied>
-> > >
-> > > 00:1d.0 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UH=
-CI #1 (rev 02) (prog-if 00 [UHCI])
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0
-> > >         Interrupt: pin A routed to IRQ 20
-> > >         Region 4: I/O ports at 1820 [size2]
-> > >
-> > > 00:1d.1 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UH=
-CI #2 (rev 02) (prog-if 00 [UHCI])
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0
-> > >         Interrupt: pin B routed to IRQ 18
-> > >         Region 4: I/O ports at 1840 [size2]
-> > >
-> > > 00:1d.2 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UH=
-CI #3 (rev 02) (prog-if 00 [UHCI])
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0
-> > >         Interrupt: pin C routed to IRQ 21
-> > >         Region 4: I/O ports at 1860 [size2]
-> > >
-> > > 00:1d.3 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UH=
-CI #4 (rev 02) (prog-if 00 [UHCI])
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0
-> > >         Interrupt: pin D routed to IRQ 17
-> > >         Region 4: I/O ports at 1880 [size2]
-> > >
-> > > 00:1d.7 USB Controller: Intel Corporation 82801G (ICH7 Family) USB2 E=
-HCI Controller (rev 02) (prog-if 20 [EHCI])
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0
-> > >         Interrupt: pin A routed to IRQ 20
-> > >         Region 0: Memory at d0544000 (32-bit, non-prefetchable) [size=
-=3D1K]
-> > >         Capabilities: <access denied>
-> > >
-> > > 00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev e2=
-) (prog-if 01 [Subtractive decode])
-> > >         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=FAst >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0
-> > >         Bus: primary=00, secondary=05, subordinate	, sec-latencyd
-> > >         I/O behind bridge: 00002000-00002fff
-> > >         Memory behind bridge: d0000000-d00fffff
-> > >         Prefetchable memory behind bridge: 0000000050000000-000000005=
-3ffffff
-> > >         Secondary status: 66MHz- FastB2B+ ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort+ <SERR- <PERR-
-> > >         BridgeCtl: Parity- SERR- NoISA+ VGA- MAbort- >Reset- FastB2B-
-> > >         Capabilities: <access denied>
-> > >
-> > > 00:1f.0 ISA bridge: Intel Corporation 82801GBM (ICH7-M) LPC Interface=
- Bridge (rev 02)
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0
-> > >         Capabilities: <access denied>
-> > >
-> > > 00:1f.2 IDE interface: Intel Corporation 82801GBM/GHM (ICH7 Family) S=
-erial ATA Storage Controller IDE (rev 02) (prog-if 80 [Master])
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0
-> > >         Interrupt: pin B routed to IRQ 18
-> > >         Region 0: I/O ports at 01f0 [size=3D8]
-> > >         Region 1: I/O ports at 03f4 [size=3D1]
-> > >         Region 2: I/O ports at 0170 [size=3D8]
-> > >         Region 3: I/O ports at 0374 [size=3D1]
-> > >         Region 4: I/O ports at 18b0 [size=16]
-> > >         Capabilities: <access denied>
-> > >
-> > > 00:1f.3 SMBus: Intel Corporation 82801G (ICH7 Family) SMBus Controlle=
-r (rev 02)
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Interrupt: pin B routed to IRQ 18
-> > >         Region 4: I/O ports at 18c0 [size2]
-> > >
-> > > 03:00.0 Network controller: Intel Corporation PRO/Wireless 3945ABG Ne=
-twork Connection (rev 02)
-> > >         Subsystem: Intel Corporation Unknown device 1041
-> > >         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=FAst >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 0, Cache Line Size: 64 bytes
-> > >         Interrupt: pin A routed to IRQ 16
-> > >         Region 0: Memory at d0100000 (32-bit, non-prefetchable) [size=
-=3D4K]
-> > >         Capabilities: <access denied>
-> > >
-> > > 05:06.0 CardBus bridge: Texas Instruments PCIxx12 Cardbus Controller
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 168, Cache Line Size: 128 bytes
-> > >         Interrupt: pin A routed to IRQ 17
-> > >         Region 0: Memory at d0004000 (32-bit, non-prefetchable) [size=
-=3D4K]
-> > >         Bus: primary=05, secondary=06, subordinate	, sec-latency=176
-> > >         Memory window 0: 50000000-53fff000 (prefetchable)
-> > >         Memory window 1: 54000000-57fff000
-> > >         I/O window 0: 00002400-000024ff
-> > >         I/O window 1: 00002800-000028ff
-> > >         BridgeCtl: Parity- SERR- ISA- VGA- MAbort- >Reset+ 16bInt+ Po=
-stWrite+
-> > >         16-bit legacy interface ports at 0001
-> > >
-> > > 05:06.1 FireWire (IEEE 1394): Texas Instruments PCIxx12 OHCI Complian=
-t IEEE 1394 Host Controller (prog-if 10 [OHCI])
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 32 (500ns min, 1000ns max), Cache Line Size: 64 bytes
-> > >         Interrupt: pin B routed to IRQ 16
-> > >         Region 0: Memory at d0007000 (32-bit, non-prefetchable) [size=
-=3D2K]
-> > >         Region 1: Memory at d0000000 (32-bit, non-prefetchable) [size=
-=16K]
-> > >         Capabilities: <access denied>
-> > >
-> > > 05:06.2 Mass storage controller: Texas Instruments 5-in-1 Multimedia =
-Card Reader (SD/MMC/MS/MS PRO/xD)
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 57 (1750ns min, 1000ns max), Cache Line Size: 64 byt=
-es
-> > >         Interrupt: pin C routed to IRQ 21
-> > >         Region 0: Memory at d0005000 (32-bit, non-prefetchable) [size=
-=3D4K]
-> > >         Capabilities: <access denied>
-> > >
-> > > 05:06.3 Generic system peripheral [0805]: Texas Instruments PCIxx12 S=
-DA Standard Compliant SD Host Controller (prog-if 01)
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 57 (1750ns min, 1000ns max), Cache Line Size: 64 byt=
-es
-> > >         Interrupt: pin D routed to IRQ 18
-> > >         Region 0: Memory at d0007800 (32-bit, non-prefetchable) [size=
-%6]
-> > >         Capabilities: <access denied>
-> > >
-> > > 05:08.0 Ethernet controller: Intel Corporation PRO/100 VM Network Con=
-nection (rev 02)
-> > >         Subsystem: Toshiba America Info Systems Unknown device ff00
-> > >         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- P=
-arErr- Stepping- SERR- FastB2B-
-> > >         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TA=
-bort- <TAbort- <MAbort- >SERR- <PERR-
-> > >         Latency: 66 (2000ns min, 14000ns max), Cache Line Size: 64 by=
-tes
-> > >         Interrupt: pin A routed to IRQ 19
-> > >         Region 0: Memory at d0006000 (32-bit, non-prefetchable) [size=
-=3D4K]
-> > >         Region 1: I/O ports at 2000 [sized]
-> > >         Capabilities: <access denied>
-> > >
-> > >
-> > > sensors-detect
-> > >
-> > > # sensors-detect revision 4609 (2007-07-14 09:28:39 -0700)
-> > >
-> > > This program will help you determine which kernel modules you need
-> > > to load to use lm_sensors most effectively. It is generally safe
-> > > and recommended to accept the default answers to all questions,
-> > > unless you know what you're doing.
-> > >
-> > > We can start with probing for (PCI) I2C or SMBus adapters.
-> > > Do you want to probe now? (YES/no): Probing for PCI bus adapters...
-> > > Use driver `i2c-i801' for device 0000:00:1f.3: Intel 82801G ICH7
-> > >
-> > > We will now try to load each adapter module in turn.
-> > > Module `i2c-i801' already loaded.
-> > > If you have undetectable or unsupported adapters, you can have them
-> > > scanned by manually loading the modules before running this script.
-> > >
-> > > We are now going to do the I2C/SMBus adapter probings. Some chips may
-> > > be double detected; we choose the one with the highest confidence
-> > > value in that case.
-> > > If you found that the adapter hung after probing a certain address,
-> > > you can specify that address to remain unprobed.
-> > >
-> > > Next adapter: SMBus I801 adapter at 18c0 (i2c-0)
-> > > Do you want to scan it? (YES/no/selectively): Client found at address=
- 0x44
-> > > Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
-> > > Client found at address 0x50
-> > > Probing for `Analog Devices ADM1033'...                     No
-> > > Probing for `Analog Devices ADM1034'...                     No
-> > > Probing for `SPD EEPROM'...                                 Yes
-> > >     (confidence 8, not a hardware monitoring chip)
-> > > Probing for `EDID EEPROM'...                                No
-> > > Client found at address 0x52
-> > > Probing for `Analog Devices ADM1033'...                     No
-> > > Probing for `Analog Devices ADM1034'...                     No
-> > > Probing for `SPD EEPROM'...                                 Yes
-> > >     (confidence 8, not a hardware monitoring chip)
-> > > Probing for `EDID EEPROM'...                                No
-> > >
-> > > Some chips are also accessible through the ISA I/O ports. We have to
-> > > write to arbitrary I/O ports to probe them. This is usually safe thou=
-gh.
-> > > Yes, you do have ISA I/O ports even if you do not have any ISA slots!
-> > > Do you want to scan the ISA I/O ports? (YES/no): Probing for `Nationa=
-l Semiconductor LM78' at 0x290...       No
-> > > Probing for `National Semiconductor LM78-J' at 0x290...     No
-> > > Probing for `National Semiconductor LM79' at 0x290...       No
-> > > Probing for `Winbond W83781D' at 0x290...                   No
-> > > Probing for `Winbond W83782D' at 0x290...                   No
-> > > Probing for `Silicon Integrated Systems SIS5595'...         No
-> > > Probing for `VIA VT82C686 Integrated Sensors'...            No
-> > > Probing for `VIA VT8231 Integrated Sensors'...              No
-> > > Probing for `IPMI BMC KCS' at 0xca0...                      No
-> > > Probing for `IPMI BMC SMIC' at 0xca8...                     No
-> > >
-> > > Some Super I/O chips may also contain sensors. We have to write to
-> > > standard I/O ports to probe them. This is usually safe.
-> > > Do you want to scan for Super I/O sensors? (YES/no): Probing for Supe=
-r-I/O at 0x2e/0x2f
-> > > Trying family `National Semiconductor'...                   No
-> > > Trying family `SMSC'...                                     No
-> > > Trying family `VIA/Winbond/Fintek'...                       No
-> > > Trying family `ITE'...                                      No
-> > > Probing for Super-I/O at 0x4e/0x4f
-> > > Trying family `National Semiconductor'...                   No
-> > > Trying family `SMSC'...                                     No
-> > > Trying family `VIA/Winbond/Fintek'...                       No
-> > > Trying family `ITE'...                                      No
-> > >
-> > > Some CPUs or memory controllers may also contain embedded sensors.
-> > > Do you want to scan for them? (YES/no): AMD K8 thermal sensors...    =
-                               No
-> > > Intel Core family thermal sensor...                         Success!
-> > >     (driver `coretemp')
-> > > Intel AMB FB-DIMM thermal sensor...                         No
-> > >
-> > > Now follows a summary of the probes I have just done.
-> > > Just press ENTER to continue:
-> > > Driver `coretemp' (should be inserted):
-> > >   Detects correctly:
-> > >   * Chip `Intel Core family thermal sensor' (confidence: 9)
-> > >
-> > > I will now generate the commands needed to load the required modules.
-> > > Just press ENTER to continue:
-> > > To make the sensors modules behave correctly, add these lines to
-> > > /etc/modules:
-> > >
-> > > #----cut here----
-> > > # Chip drivers
-> > > coretemp
-> > > #----cut here----
-> > >
-> > > Do you want to add these lines to /etc/modules automatically? (yes/NO)
-> > >
-> > > lsmod
-> > >
-> > > Module                  Size  Used by
-> > > i2c_dev                 8196  0
-> > > i915                   25216  2
-> > > drm                    83348  3 i915
-> > > tun                    11776  1
-> > > af_packet              23176  2
-> > > parport_pc             36260  0
-> > > ppdev                   9732  0
-> > > parport                37448  2 parport_pc,ppdev
-> > > ipv6                  265188  14
-> > > dm_snapshot            18984  0
-> > > dm_mirror              24832  0
-> > > dm_mod                 59200  2 dm_snapshot,dm_mirror
-> > > coretemp                7808  0
-> > > tifm_sd                12168  0
-> > > ipw3945               198176  0
-> > > ieee80211              35656  1 ipw3945
-> > > ieee80211_crypt         6400  1 ieee80211
-> > > snd_hda_intel         277532  1
-> > > snd_pcm_oss            43680  0
-> > > snd_pcm                80388  2 snd_hda_intel,snd_pcm_oss
-> > > snd_mixer_oss          17280  1 snd_pcm_oss
-> > > snd_seq_dummy           4100  0
-> > > snd_seq_oss            33152  0
-> > > snd_seq_midi            8736  0
-> > > snd_rawmidi            24992  1 snd_seq_midi
-> > > snd_seq_midi_event      7680  2 snd_seq_oss,snd_seq_midi
-> > > joydev                 10688  0
-> > > snd_seq                53072  6 snd_seq_dummy,snd_seq_oss,snd_seq_mid=
-i,snd_seq_midi_event
-> > > snd_timer              23940  2 snd_pcm,snd_seq
-> > > snd_seq_device          8588  5 snd_seq_dummy,snd_seq_oss,snd_seq_mid=
-i,snd_rawmidi,snd_seq
-> > > sdhci                  18444  0
-> > > shpchp                 33812  0
-> > > rtc                    13592  0
-> > > tifm_7xx1               8192  0
-> > > i2c_i801                9360  0
-> > > ehci_hcd               34700  0
-> > > uhci_hcd               25868  0
-> > > intel_agp              24724  1
-> > > mmc_core               29444  2 tifm_sd,sdhci
-> > > tsdev                   8768  0
-> > > ohci1394               32944  0
-> > > ieee1394               94264  1 ohci1394
-> > > tifm_core              10756  2 tifm_sd,tifm_7xx1
-> > > pci_hotplug            31776  1 shpchp
-> > > e100                   36620  0
-> > > mii                     5760  1 e100
-> > > i2c_core               25600  2 i2c_dev,i2c_i801
-> > > evdev                  10624  0
-> > > psmouse                39568  0
-> > > agpgart                34252  3 drm,intel_agp
-> > > usbcore               142212  3 ehci_hcd,uhci_hcd
-> > > snd                    54628  11 snd_hda_intel,snd_pcm_oss,snd_pcm,sn=
-d_mixer_oss,snd_seq_oss,snd_rawmidi,snd_seq,snd_timer,snd_seq_device
-> > > soundcore               8672  1 snd
-> > > snd_page_alloc         10632  2 snd_hda_intel,snd_pcm
-> > > unix                   28976  88
-> > >
-> > > sensors
-> > >
-> > > coretemp-isa-0000
-> > > Adapter: ISA adapter
-> > > Core 0:      +16=B0C  (high =3D  +100=B0C)
-> > >
-> > > coretemp-isa-0001
-> > > Adapter: ISA adapter
-> > > Core 1:      +16=B0C  (high =3D  +100=B0C)
-> > >
-> > > No others data :(
-> >
-> > What makes you think your machine can provide any other information
-> > than the core temp? Does the BIOS show any temperature/voltage
-> > information? What is the brand and model of your machine and
-> > motherboard?
-> >
-> > ...juerg
-> >
-> >
-> > > Thanks a lot for your support
-> > >
-> > > Your sincerely
-> > >      Petr Bartel
-> > >
-> > > _______________________________________________
-> > > lm-sensors mailing list
-> > > lm-sensors@lm-sensors.org
-> > > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> > >
-> >
-> >
-> > ________ Information from NOD32 ________
-> > This message was checked by NOD32 Antivirus System for Linux Mail Serve=
-rs.
-> >   part000.txt - is OK
-> > http://www.eset.com
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------030400080702050202050105--
