@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 28 Oct 2007 19:20:54 +0000
+Date: Sun, 28 Oct 2007 20:09:37 +0000
 Subject: Re: [lm-sensors] What to use as prefix for TI TMP401 IC,
-Message-Id: <20071028202054.4bd13dc2@hyperion.delvare>
+Message-Id: <20071028210937.4725b928@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4722FB3C.9010402@hhs.nl>
 In-Reply-To: <4722FB3C.9010402@hhs.nl>
@@ -10,32 +10,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 28 Oct 2007 13:55:45 +0100, Hans de Goede wrote:
+Hi Hans,
+
+On Sun, 28 Oct 2007 15:24:06 +0100, Hans de Goede wrote:
 > Jean Delvare wrote:
-> > Did you check first if the TMP401 was compatible with another device we
-> > already support? After a quick look, the register map reminds me those
-> > of the LM90/ADM1032 a lot. It would be worth checking that the TMP401
-> > device couldn't be supported by the lm90 driver by just adding the
-> > device and manufacturer ID...
-> 
-> I did, its indeed like the lm90, except that the local (on chip) temp sensor 
-> registers all are 16 bits (split in a low and high reg) insetad of the 8 bits 
-> of the lm90, which esp with all the special cases already in lm90.c seems like 
-> enough of a divergence to me to warrant a new driver.
-
-Good point, I agree that a separate driver is fine in this case. You
-might still be able to copy-n-paste a good load of code from the lm90
-driver, as it is state-of-the-art when it comes to dynamic sysfs
-callbacks, individual alarm files, etc.
-
 > > Also, I suggest that you add detection for the TMP401 to sensors-detect
 > > right away. That's the best way to find early testers for your work.
 > 
-> Will do.
+> Done. (not tested I don't have access to the actual hardware at this moment).
 
-Thank you. Other than a misplaced parenthesis in a comment, it looks OK
-to me. Can you please also add an entry in the Devices table on the
-wiki, so that everybody can follow your progress?
+In this kind of situation, I can only recommend using Mark Hoffman's
+i2c-stub driver. It allows emulating one or more I2C/SMBus chips from
+dumps. It works as follows:
+
+* On the machine with the chip, use i2cdump to dump the registers of
+the chip:
+
+i2cdump -y 0 0x4c b > tmp401.dump
+
+* On your own workstation, build the i2c-stub driver
+(CONFIG_I2C_STUB=m) and load it. You must pass the chip address as a
+parameter, so that the driver will emulate a chip at this specific
+address:
+
+modprobe i2c-stub chip_addr=0x4c
+
+* Program the emulated chip from the dump. Get my helper script from:
+
+http://jdelvare.pck.nerim.net/sensors/stub-from-dump.pl
+
+Run that script on the dump and it will generate a shell script to
+program the emulated chip:
+
+./stub-from-dump.pl tmp401.dump > set_tmp401.sh
+
+Then as root, run the script in question:
+
+sh set_tmp401.sh 6 0x4c
+
+Adjust the bus number so that it matches those of i2c-stub, check with
+i2cdetect -l. The script simply runs i2cset for each register.
+
+At this point you have an emulated chip to play with. It will let you
+test sensors-detect, device detection at driver load, the sysfs
+interface, etc.
+
+Limitations:
+* Driver must only use byte register access. i2c-stub supports word
+  access by my script doesn't (yet).
+* Device must not have banks (as Winbond devices do).
+* You can't test alarms this way, obviously.
+
+Beware that i2c-stub is very verbose and will flood your logs. This
+might help a lot when debugging the driver though.
+
+If this proves useful, I should probably cleanup stub-from-dump.pl and
+include it in i2c-tools so that others can benefit.
 
 -- 
 Jean Delvare
