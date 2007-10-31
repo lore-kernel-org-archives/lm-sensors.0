@@ -1,36 +1,101 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 07 Oct 2007 22:05:33 +0000
-Subject: Re: [lm-sensors] PATCH:
-Message-Id: <20071008000533.4dc3bd0a@hyperion.delvare>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Wed, 31 Oct 2007 08:42:38 +0000
+Subject: [lm-sensors] PATCH:
+Message-Id: <47283FFE.4000105@hhs.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------080106040703050906060905"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46F3DD44.4070307@hhs.nl>
 In-Reply-To: <46F3DD44.4070307@hhs.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+This is a multi-part message in MIME format.
+--------------080106040703050906060905
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Sun, 7 Oct 2007 15:33:01 -0400, Mark M. Hoffman wrote:
-> Although, I suppose it would be easier for you and maybe Jean if I just publish
-> a patch series myself.  It shouldn't be too hard to script that up; I'll look
-> into it.
+Hi All,
 
-I don't need it too much, as I am tracking the hwmon patches myself so
-my stack and yours are very similar; when I'm missing a patch, I
-cherry-pick it from git-web.
+As discussed on the lm-sensors list, using the fixed scaling factors from the
+fscpos datasheet for the fscher and newer models as wel, was nood a good idea,
+as the actual scaling factors may be different and can be read from OEM DMI
+entries.
 
-But I agree that it would be convenient to have the possibility for
-others to get all the patches as either a single patch or a patch
-series. For now I have been pointing developers to git-hwmon.patch in
-Andrew's tree, but it may become quickly out-of-date if Andrew doesn't
-release a new kernel in a while.
+This patch changes the behaviour of the merged FSC familiy fschmd driver to be
+the same as the old standalone fscher driver for fscher and newer models,
+leaving the scaling to userspace.
 
--- 
-Jean Delvare
+This also preserves compatibility of existing sensors.conf files.
+
+Signed-of-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+---
+
+Jean, can you review this please?
+Mark, can you send this to Linus for 2.6.24 please, otherwise we will have one 
+official kernel release with different scaling for the voltage inputs of the 
+fschmd compared to the next releases.
+
+
+And yes I tested my patch this time.
+
+Thanks & Regards,
+
+Hans
+
+--------------080106040703050906060905
+Content-Type: text/x-patch;
+	name="hwmon-fschmd-fscher-and-newer-no-fixed-scaling.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename*0="hwmon-fschmd-fscher-and-newer-no-fixed-scaling.patch"
+
+As discussed on the lm-sensors list, using the fixed scaling factors from the
+fscpos datasheet for the fscher and newer models as wel, was nood a good idea,
+as the actual scaling factors may be different and can be read from OEM DMI
+entries.
+
+This patch changes the behaviour of the merged FSC familiy fschmd driver to be
+the same as the old standalone fscher driver for fscher and newer models,
+leaving the scaling to userspace.
+
+This also preserves compatibility of existing sensors.conf files.
+
+Signed-of-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+diff -up linux-2.6.24-rc1-git7/drivers/hwmon/fschmd.c~ linux-2.6.24-rc1-git7/drivers/hwmon/fschmd.c
+--- linux-2.6.24-rc1-git7/drivers/hwmon/fschmd.c~	2007-10-30 22:30:43.000000000 +0100
++++ linux-2.6.24-rc1-git7/drivers/hwmon/fschmd.c	2007-10-30 22:30:43.000000000 +0100
+@@ -221,8 +221,17 @@ static ssize_t show_in_value(struct devi
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct fschmd_data *data = fschmd_update_device(dev);
+ 
+-	return sprintf(buf, "%d\n", (data->volt[index] *
+-		max_reading[index] + 128) / 255);
++	/* Only use fixed scaling factor for the fscpos and fscscy, the newer
++	   models have the scaling factors stored in the BIOS DMI tables, so
++	   here we use a scale of 10mv / step like the standalone fscher driver
++	   does (did) and let userspace do the real scaling. There is a
++	   userspace utility called fscher-dmi2compute to generate the proper
++	   compute lines from the DMI info for the fscher and newer chips. */
++	if (data->kind == (fscpos - 1) || data->kind == (fscscy - 1))
++		return sprintf(buf, "%d\n", (data->volt[index] *
++			max_reading[index] + 128) / 255);
++	else
++		return sprintf(buf, "%d\n", data->volt[index] * 10);
+ }
+ 
+ 
+
+--------------080106040703050906060905
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------080106040703050906060905--
+
