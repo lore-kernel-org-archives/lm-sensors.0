@@ -1,114 +1,146 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 24 Oct 2007 11:18:05 +0000
-Subject: Re: [lm-sensors] lm-sensors-3.0.0 and /etc/sensors.conf [was:
-Message-Id: <471F29ED.8020705@hhs.nl>
+Date: Wed, 31 Oct 2007 08:50:10 +0000
+Subject: [lm-sensors] Utility for creating computate sensors.conf lines for
+Message-Id: <472841C2.5060701@hhs.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------050407090401080502070904"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <471F1302.7030302@hhs.nl>
-In-Reply-To: <471F1302.7030302@hhs.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
-> On Wed, 24 Oct 2007 11:40:18 +0200, Hans de Goede wrote:
->> Hi All,
->>
->> In another thread Jean Delvare wrote:
->>
->> ---
->>
->>  > However I have a remark to ease the transition from version 2.x.x to
->>  > version 3.0.0: it is currently possible to have the two libraries
->>  > installed, but they both use the same configuration file. What about
->>  > having different config files for the two versions (e.g. sensors.conf
->>  > and sensors3.conf) ?
->>
->> Technically speaking, the libraries themselves don't have default
->> configuration files. Applications do. That makes the matter only worse.
->>
->> For openSuse, my plan was to get plain rid of lm-sensors 2 and all
->> applications using it as soon as possible, so that no such conflict
->> happens. I don't think we'll package libsensors v2.10.x in the next
->> release. I don't know what Hans' plans are for Fedora. Of course, if
->> you intend to guarantee backwards compatibility by shipping the old
->> libsensors for a longer time in Debian, then indeed you have a problem.
->>
->> The fact that applications, rather than the library, set the default
->> configuration file name, means that it's essentially out of our control.
->> We could change sensors and sensord in lm-sensors 3.0.0 to use a
->> different default, but that won't solve the problem for all the 3rd
->> party applications out there. You'd need to change them all. Either the
->> authors do, or the packagers will have to.
->>
->> If you want to use /etc/sensors3.conf as the default for applications
->> using lm-sensors 3 in Debian, there's nothing preventing you from doing
->> that. This doesn't really have to be done upstream. That being said, I
->> agree that it would become confusing if different distributions come up
->> with different naming schemes.
->>
->> Coming to think about it, I think it's silly to have the default
->> configuration file name in applications. There's really no reason why
->> an application would want to use a different default, is there? So it
->> might be the right time to change this and put the default
->> configuration file name in libsensors. Calling sensors_init(NULL) would
->> use that default. It would make it easier to change the default if a
->> distribution wants to, and it would enforce a common default for
->> applications using the new library. Opinions?
->>
->> I don't much like the idea of using /etc/sensors3.conf for lm-sensors
->> 3. Soon enough, lm-sensors 2 will be history, sensors.conf will no
->> longer exist, and we'll be stuck with /etc/sensors3.conf. That's a bit
->> unaesthetic, isn't it? A slightly different approach would be to
->> use /etc/sensors3.conf if it exists, and /etc/sensors.conf otherwise
->> (as was done for the XFree86 configuration file from version 3.x to
->> version 4.x; remember?) This approach preserves compatibility with
->> existing installations and offers a nice upgrade path. But of course
->> this can only be (easily) implemented if the default is handled in
->> libsensors rather than in the applications themselves, as I proposed
->> above.
->>
->> ---
->>
->> My vote goes to removing the configfile argument to sensors_init, and hardcode
->> /etc/sensors.conf in libsensors.
-> 
-> I don't like this. While I do agree that most applications shouldn't
-> use this parameter, it is still very convenient to be able to do
-> "sensors -c <something>" as a user to test a custom configuration file
-> before you copy that file to /etc/sensors.conf (or whatever it will
-> be.) Also, being able to ask the users to report the output of sensors
-> with no configuration file interfering (sensors -c /dev/null) is very
-> valuable for debugging and investigating, and I wouldn't want to lose
-> this ability.
-> 
-> There seems to be a consensus on the fact that the default should be in
-> libsensors and not in the applications though, so I can implement this
-> now.
-> 
->>                                  Then we can make this /etc/sensors3.conf for
->> lm-sensors-3.x.x so that the 2 libs can be installed in parallel for distro's
->> who want to have a compatibility lib for the old 2.x version.
->>
->> I agree that having /etc/sensors3.conf isn't pretty, but it isn't horrible 
->> either, so I think its a good compromise.
-> 
-> My proposal to use /etc/sensors3.conf if present and fall back
-> to /etc/sensors.conf if not, achieves this as well. Do you see any
-> reason not to do this?
-> 
+This is a multi-part message in MIME format.
+--------------050407090401080502070904
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-No not all, I should have more verbose on that, checking for /etc/sensors3.conf 
-first and then /etc/sensors.conf, when the sensors_init argument is NULL, 
-sounds like a good plan to me.
+Hi all,
+
+As discussed here is an utility for creating computate sensors.conf lines for 
+fscher and newer from DMI tables.
+
+I wrote it in C as I'm most fluent in that language. I've it attached, shall I 
+import it somewhere under progs?
 
 Regards,
 
 Hans
 
+--------------050407090401080502070904
+Content-Type: text/x-csrc;
+ name="fscher-dmi2compute.c"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="fscher-dmi2compute.c"
+
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+
+int main(void)
+{
+   char buf[512];
+   unsigned int x;
+   FILE *f;
+   int i, count, entities_found;;
+   int in0_mult, in1_mult, in2_mult, in0_offset, in1_offset, in2_offset, vref;
+   
+   if (getuid())
+   {
+      fprintf(stderr, "Error this program must be run as root because it "
+                      "invokes / uses dmidecode which requires root rights\n");
+      return 1;
+   }
+   
+   f = popen("/usr/sbin/dmidecode", "r");
+   
+   if (!f)
+   {
+      perror("Error invoking dmidecode failed");
+      return 1;
+   }
+   
+   while (fgets(buf, sizeof(buf), f))
+   {
+      if (strcmp(buf, "OEM-specific Type\n"))
+         continue;
+
+      if (!fgets(buf, sizeof(buf), f))
+         break;
+
+      if (strcmp(buf, "\tHeader and Data:\n"))
+         continue;
+
+      count = 0;
+      entities_found = 0;
+      
+      while (fscanf(f, "%x", &x) == 1)
+      {
+         buf[count] = x;
+         count++;
+      }
+
+      /* we are looking for what Siemens calls "subtype" 19, the subtype
+         is stored in byte 5 of the dmi block */
+      if (buf[4] != 19)
+         continue;
+         
+      /* After the subtype comes 1 unknown byte and then blocks of 5 bytes,
+         consisting of what Siemens calls an "Entity" number, followed by
+         2 16 bit words in LSB first order */
+      for (i = 6; (i + 4) < count; i += 5)
+      {
+         if (buf[i] == 1) /* entity 1 5 volt / in1 multiplier and offset */
+         {
+            in1_mult   = buf[i + 1] | (buf[i + 2] << 8);
+            in1_offset = buf[i + 3] | (buf[i + 4] << 8);
+            entities_found += 0x0001;
+         }
+         if (buf[i] == 2) /* entity 2 12 volt / in0 multiplier and offset */
+         {
+            in0_mult   = buf[i + 1] | (buf[i + 2] << 8);
+            in0_offset = buf[i + 3] | (buf[i + 4] << 8);
+            entities_found += 0x0010;
+         }
+         if (buf[i] == 3) /* entity 3 vbat / in2 multiplier and offset */
+         {
+            in2_mult   = buf[i + 1] | (buf[i + 2] << 8);
+            in2_offset = buf[i + 3] | (buf[i + 4] << 8);
+            entities_found += 0x0100;
+         }
+         if (buf[i] == 7) /* entity 7 reference voltage */
+         {
+            vref = buf[i + 1] | (buf[i + 2] << 8);
+            entities_found += 0x1000;
+         }
+         
+      }
+      
+      if (entities_found == 0x1111)
+      {
+         printf("    compute in0       (@ * (%d * %d) / 255) + (%d * 10), (@ - (%d * 10)) * 255 / (%d * %d)\n",
+            in0_mult, vref, in0_offset, in0_offset, in0_mult, vref);
+         printf("    compute in1       (@ * (%d * %d) / 255) + (%d * 10), (@ - (%d * 10)) * 255 / (%d * %d)\n",
+            in1_mult, vref, in1_offset, in1_offset, in1_mult, vref);
+         printf("    compute in2       (@ * (%d * %d) / 255) + (%d * 10), (@ - (%d * 10)) * 255 / (%d * %d)\n",
+            in2_mult, vref, in2_offset, in2_offset, in2_mult, vref);
+         fclose(f);
+         return 0;
+      }
+   }
+   
+   fclose(f);
+
+   return 0;
+}
+
+--------------050407090401080502070904
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------050407090401080502070904--
+
