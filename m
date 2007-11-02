@@ -1,76 +1,37 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 24 Oct 2007 15:08:15 +0000
-Subject: [lm-sensors] [PATCH 1/6] Add a default configuration file name to
-Message-Id: <20071024170815.76deb8ec@hyperion.delvare>
+Date: Fri, 02 Nov 2007 10:17:58 +0000
+Subject: Re: [lm-sensors] lm_sensors on ASUS M2NPV-VM motherboard using
+Message-Id: <20071102111758.25abeab3@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <46ED7EFC.4030609@Winfirst.Com>
+In-Reply-To: <46ED7EFC.4030609@Winfirst.Com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Let libsensors know the default path to its configuration file.
-That way, applications no longer have to care.
+On Wed, 31 Oct 2007 12:20:24 -0700, Mark E. Hansen wrote:
+> On 10/31/07 11:47, Jean Delvare wrote:
+> > Depends on what kernel version you're using. I added support for the
+> > IT8716F in 2.6.19. For 2.6.17 and 2.6.18, there are kernel patches.
+> 
+> Oh, this may be a problem. I'm running CentOS 4.5, which uses kernel 2.6.9.
+> I would imagine that it would take more than just building a new kernel to
+> get my machine up to that level (I'm assuming there would be a lot of
+> dependent packages that would need to be upgraded first, etc.).
 
----
- Makefile   |    4 ++--
- lib/init.c |   24 ++++++++++++++++++++----
- 2 files changed, 22 insertions(+), 6 deletions(-)
+Indeed, upgrading the kernel only, without touching the supporting
+user-space packages, would certainly fail.
 
---- lm-sensors-3.orig/lib/init.c	2007-10-20 16:02:44.000000000 +0200
-+++ lm-sensors-3/lib/init.c	2007-10-20 16:08:42.000000000 +0200
-@@ -29,6 +29,8 @@
- #include "scanner.h"
- #include "init.h"
- 
-+#define DEFAULT_CONFIG_FILE	ETCDIR "/sensors.conf"
-+
- int sensors_init(FILE *input)
- {
- 	int res;
-@@ -38,10 +40,24 @@ int sensors_init(FILE *input)
- 	if ((res = sensors_read_sysfs_bus()) ||
- 	    (res = sensors_read_sysfs_chips()))
- 		return res;
--	if ((res = sensors_scanner_init(input)))
--		return -SENSORS_ERR_PARSE;
--	if ((res = sensors_yyparse()))
--		return -SENSORS_ERR_PARSE;
-+
-+	if (input) {
-+		if (sensors_scanner_init(input) ||
-+		    sensors_yyparse())
-+			return -SENSORS_ERR_PARSE;
-+	} else {
-+		/* No configuration provided, use default */
-+		input = fopen(DEFAULT_CONFIG_FILE, "r");
-+		if (!input)
-+			return -SENSORS_ERR_PARSE;
-+		if (sensors_scanner_init(input) ||
-+		    sensors_yyparse()) {
-+			fclose(input);
-+			return -SENSORS_ERR_PARSE;
-+		}
-+		fclose(input);
-+	}
-+
- 	if ((res = sensors_substitute_busses()))
- 		return res;
- 	return 0;
---- lm-sensors-3.orig/Makefile	2007-10-20 16:02:44.000000000 +0200
-+++ lm-sensors-3/Makefile	2007-10-20 16:06:18.000000000 +0200
-@@ -144,9 +144,9 @@ ALL_CFLAGS += $(CFLAGS)
- 
- PROGCPPFLAGS := -DETCDIR="\"$(ETCDIR)\"" $(ALL_CPPFLAGS)
- PROGCFLAGS := $(ALL_CFLAGS)
--ARCPPFLAGS := $(ALL_CPPFLAGS)
-+ARCPPFLAGS := -DETCDIR="\"$(ETCDIR)\"" $(ALL_CPPFLAGS)
- ARCFLAGS := $(ALL_CFLAGS)
--LIBCPPFLAGS := $(ALL_CPPFLAGS)
-+LIBCPPFLAGS := -DETCDIR="\"$(ETCDIR)\"" $(ALL_CPPFLAGS)
- LIBCFLAGS := -fpic -D_REENTRANT $(ALL_CFLAGS)
- 
- .PHONY: all user clean install user_install uninstall user_uninstall
+> Is there any way to apply this patch to a 2.6.9 kernel? (probably not...)
 
+This would require a complete, expensive backport.
+
+> I guess I'll start looking into upgrading my machine to CentOS 5.0 (which
+> uses kernel 2.6.18, if I understand the site correctly).
+
+If you care about hardware monitoring, that's definitely the most
+reasonable solution, yes.
 
 -- 
 Jean Delvare
