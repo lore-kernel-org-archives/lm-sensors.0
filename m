@@ -1,36 +1,49 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 25 Nov 2007 01:53:53 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (gl518sm) Fix the reported fan	speed
-Message-Id: <20071125015353.GL13717@jupiter.solarsys.private>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 03 Nov 2007 14:37:46 +0000
+Subject: Re: [lm-sensors] IT8702F request
+Message-Id: <20071103153746.4cee67da@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071023140224.0f8ca055@hyperion.delvare>
-In-Reply-To: <20071023140224.0f8ca055@hyperion.delvare>
+References: <472486C0.2080907@edv2g.de>
+In-Reply-To: <472486C0.2080907@edv2g.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+Hallo Gerold,
 
-* Jean Delvare <khali@linux-fr.org> [2007-10-23 14:02:24 +0200]:
-> The fan speeds reported by the gl518sm driver are twice as much as they
-> should. It's currently reporting the number of pulses per minute, not
-> rotations per minute, while typical fans emit two pulses per rotation.
-> This explains why all reports with this driver had very high speed
-> values (between 9000 to 12000 RPM). Odd that nobody ever actually
-> complained about this bug.
+On Sun, 28 Oct 2007 13:55:28 +0100, Gerold Gruber wrote:
+> the list http://www.lm-sensors.org/wiki/Devices says,
+> there is a data sheet for the IT8702F sensor, and three requests.
 > 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
->  drivers/hwmon/gl518sm.c |    6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+> Well, you can add me to the list of requesters ;-)
 
-Applied to hwmon-2.6.git/testing, thanks.
+Done.
+
+> I could take part in testing.
+
+Note that I wouldn't be surprised if most IT8702F chips were not wired
+for monitoring. These chips are rare and only include fan speed
+sensors, no voltage sensors nor thermal sensors as other ITE Super-I/O
+chips do. Does the BIOS report any fan speed?
+
+You may provide a dump of the hardware monitoring I/O area of your chip
+and I'll tell you whether it appears to be actually monitoring fans.
+This will prevent you from waiting for a driver that you don't actually
+need. It's relatively easy. Take the address sensors-detect reported
+the chip was at. Typically it's 0x290. Then call isadump on this
+address with offsets 5 and 6, typically:
+
+isadump 0x295 0x296
+
+From the output I can tell you whether fans are monitored or not.
+
+BTW, if someone wants to write this missing driver, that should be an
+easy one. I would do it myself if I had the time (or if someone pays me
+to do the work.)
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
