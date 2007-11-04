@@ -1,55 +1,29 @@
-From: "David Hubbard" <david.c.hubbard@gmail.com>
-Date: Thu, 29 Nov 2007 21:27:50 +0000
-Subject: Re: [lm-sensors] [ patch .24-rc0 5/5 ] SuperIO locks coordinator -
-Message-Id: <4dfa50520711291327r27b3953en18248cce0c0fe5cf@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 04 Nov 2007 22:07:39 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (gl518sm) Fix the reported fan speed
+Message-Id: <20071104230739.5ecebed9@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4712F66F.8040806@gmail.com>
-In-Reply-To: <4712F66F.8040806@gmail.com>
+References: <20071023140224.0f8ca055@hyperion.delvare>
+In-Reply-To: <20071023140224.0f8ca055@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jim,
+On Tue, 23 Oct 2007 14:02:24 +0200, Jean Delvare wrote:
+> The fan speeds reported by the gl518sm driver are twice as much as they
+> should. It's currently reporting the number of pulses per minute, not
+> rotations per minute, while typical fans emit two pulses per rotation.
+> This explains why all reports with this driver had very high speed
+> values (between 9000 to 12000 RPM). Odd that nobody ever actually
+> complained about this bug.
+> (...)
 
-Good to hear from you! Merry Christmas, Joyous Noel, whatever ... you
-get patches for your holidays this year.
+Hong-Gunn Chew tested the gl518sm driver with my 6 patches applied and
+reported success.
 
-I'm excited for the possibilities these patches open up ... especially
-for w83627ehf.
-
-Take care,
-David
-
-On Nov 29, 2007 2:01 PM, Jim Cromie <jim.cromie@gmail.com> wrote:
-> David Hubbard wrote:
-> > Hi Jim,
-> >
-> > I pulled the w83627ehf.c patch out of patch #5, so patch #5 is
-> > (mostly) unchanged, and then put some of the superio-locks.c changes
-> > in patch #1 to support changes to w83627ehf. So w83627ehf changes are
-> > in my patch #6, where I did the things we have talked about.
-> >
-> >
->
-> Hi David,
->
-> thanks so much for pushing forward with this.
->
-> Sorry for the long delay - I was trying to get facile with git,
-> then I moved, and things (hw) are still in cartons, scattered to the
-> winds, etc,
-> and internet access is rare/inconvenient.
->
-> I hope to be able to make some progress in Dec, despite travel
-> interruptions,
-> holidays etc.  I hope that this slowness is only a little annoying.
->
-> And now that you've reworked the patches on top of something fresh,
-> that simplifies things greatly :-) and I'll try them out asap.
->
-> thanks again.
->
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
