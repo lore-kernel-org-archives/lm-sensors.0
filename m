@@ -1,40 +1,30 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 02 Nov 2007 10:17:58 +0000
-Subject: Re: [lm-sensors] lm_sensors on ASUS M2NPV-VM motherboard using
-Message-Id: <20071102111758.25abeab3@hyperion.delvare>
+From: Daniel Lucio <lucio@cs.utk.edu>
+Date: Wed, 07 Nov 2007 20:44:23 +0000
+Subject: [lm-sensors] web link is not working
+Message-Id: <F51AA7B3-0C9A-45D7-A432-C44D16E4C289@cs.utk.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <46ED7EFC.4030609@Winfirst.Com>
-In-Reply-To: <46ED7EFC.4030609@Winfirst.Com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 31 Oct 2007 12:20:24 -0700, Mark E. Hansen wrote:
-> On 10/31/07 11:47, Jean Delvare wrote:
-> > Depends on what kernel version you're using. I added support for the
-> > IT8716F in 2.6.19. For 2.6.17 and 2.6.18, there are kernel patches.
-> 
-> Oh, this may be a problem. I'm running CentOS 4.5, which uses kernel 2.6.9.
-> I would imagine that it would take more than just building a new kernel to
-> get my machine up to that level (I'm assuming there would be a lot of
-> dependent packages that would need to be upgraded first, etc.).
+Hi,
 
-Indeed, upgrading the kernel only, without touching the supporting
-user-space packages, would certainly fail.
+I want to report that the link
 
-> Is there any way to apply this patch to a 2.6.9 kernel? (probably not...)
+'Identify Your Hardware' Flowchart?
+http://lm-sensors.org/wiki/IdentifyHardware
 
-This would require a complete, expensive backport.
+from
 
-> I guess I'll start looking into upgrading my machine to CentOS 5.0 (which
-> uses kernel 2.6.18, if I understand the site correctly).
+http://lm-sensors.org/wiki/ProjectInformation
 
-If you care about hardware monitoring, that's definitely the most
-reasonable solution, yes.
 
--- 
-Jean Delvare
+is not working.
+
+Best regards!
+
+Daniel.
 
 _______________________________________________
 lm-sensors mailing list
