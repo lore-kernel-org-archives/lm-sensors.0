@@ -1,36 +1,31 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Fri, 02 Nov 2007 07:46:55 +0000
-Subject: Re: [lm-sensors] Utility for creating computate sensors.conf lines
-Message-Id: <472AD5EF.7000706@hhs.nl>
+Date: Sun, 11 Nov 2007 19:37:08 +0000
+Subject: [lm-sensors] ksensors ported to 3.x.x
+Message-Id: <473759E4.1070301@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <472841C2.5060701@hhs.nl>
-In-Reply-To: <472841C2.5060701@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> On Wed, 31 Oct 2007 21:38:45 +0100, Hans de Goede wrote:
->> Jean Delvare wrote:
->>> You could use dmidecode's command line parameters to ease your parsing
->>> work or at least speed it up. In particular, option -t, and maybe -u.
->> I tried using -t, but although it works for types that dmidecode knows about 
->> like 20, it does not work for type 185, when I specify -t 185 I get no output.
-> 
-> Really? That would be a bug. Which version of dmidecode are you using?
-> An equivalent test case works fine here with both 2.8 and CVS.
-> 
+Hi all,
 
-Never mind, for some reason Fedora has been stuck at 2.7 for a long time, a 2.9 
-build is queued for inclusion in the development branch when its unfrozen at 
-the start of the F-9 cycle.
+A tarbal with ksensors 0.7.3 ported to lm_sensors-3.x is available from:
+http://www.lm-sensors.org/wiki/Download
 
-With 2.9 "dmidecode -t 185" works fine.
+Note, its a tarbal, since the patch I did is incremental to a lot of other 
+patches as upstream has been dead for a while.
+
+If someone wants to see the last increment (the one adding lm_sensors-3x 
+support) let me know.
+
+Porting was quite easy, I think the new API works well. Next on my hitlist is 
+sensors-applet from gnome.
 
 Regards,
 
 Hans
+
 
 
 _______________________________________________
