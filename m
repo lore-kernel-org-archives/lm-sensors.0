@@ -1,29 +1,30 @@
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Date: Sat, 24 Nov 2007 17:40:11 +0000
-Subject: Re: [lm-sensors] Linux 2.6.24-rc* regression: sensors says "No
-Message-Id: <474861FB.1080104@s5r6.in-berlin.de>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Mon, 12 Nov 2007 21:14:47 +0000
+Subject: [lm-sensors] lm-sensors-3.0.0 patch for (gnome) sensors-applet
+Message-Id: <4738C247.4030501@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4748606D.6050501@s5r6.in-berlin.de>
-In-Reply-To: <4748606D.6050501@s5r6.in-berlin.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-Stefan Richter wrote:
-> I just booted 2.6.24-rc3 on two different PCs, one with i945 based MSI
-> motherboard and i386 kernel and one with i945 based Apple motherboard
-> and x86-64 kernel.  Before that I ran linux 2.6.23.
->=20
-> On both PCs, "sensors" exits with
->> No sensors found!
+Hi All,
 
-now logged at http://bugzilla.kernel.org/show_bug.cgi?id=9451
---=20
-Stefan Richter
--=3D=3D=3D-=3D-=3D=3D =3D-=3D =3D---
-http://arcgraph.de/sr/
+A patch for compiling sensors-applet against lm_sensors-3.0.0 is now available 
+from: http://www.lm-sensors.org/wiki/Download
+
+Note that this patch also adds support to the lm_sensors-2.x code for reading 
+the low and high (sensors-applet speak for min and max) values from libsensors 
+instead of using hardcoded defaults depending on the sensor type.
+
+This is thrown into the mix as the lm_sensors-3x support patch is incremental 
+to the min/max reading patch for the 2.x code.
+
+Both patches have been send upstream.
+
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
