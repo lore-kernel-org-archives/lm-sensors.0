@@ -1,40 +1,27 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 13 Nov 2007 21:00:30 +0000
+Date: Tue, 13 Nov 2007 21:05:30 +0000
 Subject: Re: [lm-sensors] [GIT PATCH] hwmon updates against v2.6.24-rc2
-Message-Id: <20071113220030.6dd5e0d7@hyperion.delvare>
+Message-Id: <20071113220530.6a2c7b8b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071113131210.GA2674@jupiter.solarsys.private>
-In-Reply-To: <20071113131210.GA2674@jupiter.solarsys.private>
+References: <20071014192953.GA9122@jupiter.solarsys.private>
+In-Reply-To: <20071014192953.GA9122@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
 Hi Mark,
 
+Off-list on purpose...
+
 On Tue, 13 Nov 2007 08:12:10 -0500, Mark M. Hoffman wrote:
-> Hi Linus:
-> 
-> Please pull from:
-> 	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git release
-> 
-> You'll get one new driver, a few cleanups, and a few bugfixes.  This
-> takes care of all known regressions; hopefully it's the last you hear
-> from me before 2.6.24-final.
-> 
-> Note: the f75375s/n2100 patches especially are critical to avoid
-> possible overheating problems on that platform (yay crappy BIOS).
-> 
-> All of these patches have spent considerable time in -mm.
+> Jim Cromie (2):
+>       hwmon: (w83627hf) hoist nr-1 offset out of show-store-temp-X
+>       hwmon: (w83627hf) push nr+1 offset into *_REG_FAN macros and simplify
 
-Let me have a doubt, considering that the last public -mm kernel was
-released over a month ago (October 12th), which is before your previous
-pull request (October 14th). I don't think that any of these patches
-has been in even one public -mm tree, so in practice they probably
-didn't receive any public testing at all.
-
-Now let's hope that nothing breaks.
+Definitely not the kind of patches I would have sent at this point of
+the release cycle. As a user, I'd rather not see large, intrusive
+cleanups go in the tree after -rc2.
 
 -- 
 Jean Delvare
