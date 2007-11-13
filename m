@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Tue, 13 Nov 2007 21:08:48 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 13 Nov 2007 21:56:35 +0000
 Subject: Re: [lm-sensors] lm-sensors-3.0.0 patch for (gnome) sensors-applet
-Message-Id: <473A1260.6050301@hhs.nl>
+Message-Id: <20071113225635.25def70b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4738C247.4030501@hhs.nl>
 In-Reply-To: <4738C247.4030501@hhs.nl>
@@ -10,38 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
+Hi Hans,
+
+On Tue, 13 Nov 2007 22:08:48 +0100, Hans de Goede wrote:
+> Jean Delvare wrote:
+> > So, are you done with your porting work? If so, and if you didn't find
+> > any problem with the new libsensors API, is there any reason to delay
+> > the release of lm-sensors 3.0.0 any further?
 > 
-> On Mon, 12 Nov 2007 22:14:47 +0100, Hans de Goede wrote:
->> A patch for compiling sensors-applet against lm_sensors-3.0.0 is now available 
->> from: http://www.lm-sensors.org/wiki/Download
->>
->> Note that this patch also adds support to the lm_sensors-2.x code for reading 
->> the low and high (sensors-applet speak for min and max) values from libsensors 
->> instead of using hardcoded defaults depending on the sensor type.
->>
->> This is thrown into the mix as the lm_sensors-3x support patch is incremental 
->> to the min/max reading patch for the 2.x code.
->>
->> Both patches have been send upstream.
-> 
-> Great, thanks for doing this!
-> 
-> So, are you done with your porting work? If so, and if you didn't find
-> any problem with the new libsensors API, is there any reason to delay
-> the release of lm-sensors 3.0.0 any further?
+> I'm not done with my porting work, next on the list is net-snmp, which looks 
+> easy to fix, I'll take a shot at it tomorrow. Then we also have an xfce applet 
 
-I'm not done with my porting work, next on the list is net-snmp, which looks 
-easy to fix, I'll take a shot at it tomorrow. Then we also have an xfce applet 
-and kdelibs (although that might only depend on lm_sensors through net-snmp).
+I am interested in net-snmp as well, so maybe we can work on this
+together. Well, you'll certainly be quicker than me on the code, but I
+can review your patch and push it in opensuse.
 
-However judging from my experience sofar the API is fine, so I see no reason to 
-delay 3.0.0
+> and kdelibs (although that might only depend on lm_sensors through net-snmp).
 
-Regards,
+On my end (opensuse), I have kdegraphics and kdeutils which depend on
+net-snmp. Only kdebase depends on libsensors directly (for ksysguard.)
 
-Hans
+> However judging from my experience sofar the API is fine, so I see no reason to 
+> delay 3.0.0
+
+Excellent. I'll do the release as my time permits. I'm very busy this
+week though, so it might not be until next week.
+
+P.S.: Please remember to add a short comment to your wiki edits so that
+others see what's happening.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
