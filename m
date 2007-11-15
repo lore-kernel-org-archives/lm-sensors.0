@@ -1,57 +1,39 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Wed, 14 Nov 2007 02:24:39 +0000
-Subject: Re: [lm-sensors] [GIT PATCH] hwmon updates against v2.6.24-rc2
-Message-Id: <20071114022439.GD2674@jupiter.solarsys.private>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Thu, 15 Nov 2007 22:23:27 +0000
+Subject: Re: [lm-sensors] Working on adt7475 driver
+Message-Id: <191fb4ca0711151423s2347cf48wf019b8edc05b3450@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071113131210.GA2674@jupiter.solarsys.private> <20071113220030.6dd5e0d7@hyperion.delvare>
-In-Reply-To: <20071113220030.6dd5e0d7@hyperion.delvare>
+References: <4705F127.8010600@hhs.nl>
+In-Reply-To: <4705F127.8010600@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Jean:
+Hi Hans,
 
-> On Tue, 13 Nov 2007 08:12:10 -0500, Mark M. Hoffman wrote:
-> > Hi Linus:
-> > 
-> > Please pull from:
-> > 	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git release
-> > 
-> > You'll get one new driver, a few cleanups, and a few bugfixes.  This
-> > takes care of all known regressions; hopefully it's the last you hear
-> > from me before 2.6.24-final.
-> > 
-> > Note: the f75375s/n2100 patches especially are critical to avoid
-> > possible overheating problems on that platform (yay crappy BIOS).
-> > 
-> > All of these patches have spent considerable time in -mm.
+Are your students in fact working on this driver? I ordered some
+samples of the ADT7475 & ADT7476 and could slap together a demo board
+and start working on a driver.
 
-* Jean Delvare <khali@linux-fr.org> [2007-11-13 22:00:30 +0100]:
-> Let me have a doubt, considering that the last public -mm kernel was
-> released over a month ago (October 12th), which is before your previous
-> pull request (October 14th). I don't think that any of these patches
-> has been in even one public -mm tree, so in practice they probably
-> didn't receive any public testing at all.
+...juerg
 
-Well, zero is a "considerable" number. ;)
 
-Seriously though, my bad.  In my (weak) defense, I will point out that
-all but a couple of these patches were *available* for -mm on my testing
-branch for at least two weeks; Oct 28 was the most recent addition.
 
-> Now let's hope that nothing breaks.
-
-I admit: post-rc2 was later than it should have been for some of this.
-But there was no rocket science in any of these.  I think we'll be OK.
-
-Regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+> I just wanted to let everyone know that I've bought an asus m2n sli deluxe
+> motherboard and that I now have a group of students working on writing a driver
+> for the adt7475 as part of a Linux device driver course I'm teaching. They have
+> gotten past the initial problems of learning kernel space thinking and leanring
+>   to read datasheets, so I think they will succeed.
+>
+> Depending on how much they like writing drivers they, or I myself, will submit
+> this for review when its done.
+>
+> I also have groups working on:
+> -watchdog support for the FSC hwmon IC's following the standard watchdog
+>   userspace ABI, for the new fschmd driver
+> -pwm support for the f71882fg driver
+> -interrupt support for the intel801 i2c adapter driver
 
 _______________________________________________
 lm-sensors mailing list
