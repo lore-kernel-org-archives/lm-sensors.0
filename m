@@ -1,7 +1,7 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Thu, 15 Nov 2007 22:23:27 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Fri, 16 Nov 2007 08:29:09 +0000
 Subject: Re: [lm-sensors] Working on adt7475 driver
-Message-Id: <191fb4ca0711151423s2347cf48wf019b8edc05b3450@mail.gmail.com>
+Message-Id: <473D54D5.9060602@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4705F127.8010600@hhs.nl>
 In-Reply-To: <4705F127.8010600@hhs.nl>
@@ -10,30 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Juerg Haefliger wrote:
+> Hi Hans,
+> 
+> Are your students in fact working on this driver? I ordered some
+> samples of the ADT7475 & ADT7476 and could slap together a demo board
+> and start working on a driver.
+> 
 
-Are your students in fact working on this driver? I ordered some
-samples of the ADT7475 & ADT7476 and could slap together a demo board
-and start working on a driver.
+Yes,
 
-...juerg
+They are actually working on this, still a demo bord would be good, as on the 
+motherboard they are using for testing (Asus M2N SLI Deluxe) it is the second 
+hwmon chip, mainly used to monitor and control additional fans.
 
+I'll ask them to send what they have sofar my way and I'll send it to you, I'll 
+see them again coming wednesday.
 
+Regards,
 
-> I just wanted to let everyone know that I've bought an asus m2n sli deluxe
-> motherboard and that I now have a group of students working on writing a driver
-> for the adt7475 as part of a Linux device driver course I'm teaching. They have
-> gotten past the initial problems of learning kernel space thinking and leanring
->   to read datasheets, so I think they will succeed.
->
-> Depending on how much they like writing drivers they, or I myself, will submit
-> this for review when its done.
->
-> I also have groups working on:
-> -watchdog support for the FSC hwmon IC's following the standard watchdog
->   userspace ABI, for the new fschmd driver
-> -pwm support for the f71882fg driver
-> -interrupt support for the intel801 i2c adapter driver
+Hans
+
 
 _______________________________________________
 lm-sensors mailing list
