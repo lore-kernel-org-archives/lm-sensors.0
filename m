@@ -1,52 +1,36 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 09 Nov 2007 13:19:02 +0000
+From: Heiko Schocher <hs@denx.de>
+Date: Sat, 17 Nov 2007 10:36:32 +0000
 Subject: Re: [lm-sensors] LM75: "ERROR: Can't get temperature data!"
-Message-Id: <20071109141902.14752d62@hyperion.delvare>
+Message-Id: <473EC430.5070401@denx.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1194039013.25315.2.camel@louie>
 In-Reply-To: <1194039013.25315.2.camel@louie>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Michael,
-
-On Tue, 06 Nov 2007 18:45:06 -0600, Michael Brian Willis wrote:
-> On Tue, 2007-11-06 at 22:51 +0100, Jean Delvare wrote:
-> > Unrelated to your problem, but it seems to me that your clock is slightly off ;)
-> Just slightly :) I just haven't set up my ntp server yet. 
-> 
-> > But this one does not! The attributes are in a subdirectory ("lm75")
-> > instead of being directly in the device's directory. libsensors doesn't
-> > expect this and fails. The lm75 driver in the vanilla kernel does NOT
-> > do this, so I suspect that you're using a modified driver.
-> I am using the LM75 driver that comes with the Denx embedded linux
-> kernel. I found the place in the LM75 driver (drivers/hwmon/lm75.c)
-> where it specifies the attributes to be placed in a separate folder: 
-> 
-> static const struct attribute_group lm75_group = {
-> 	
-> 	//don't put attritube files in a separate folder
-> 	//.name  = "lm75",
-> 	.attrs = lm75_attributes,
-> };
-> 
-> Commenting out the .name line fixes the problem and I can now read
-> temperature data from the LM75. 
-> 
-> Thank you so much for all of your help! I'm very glad to get this issue
-> resolved. 
-
-Glad to know. That's really weird from Denx to have done that, as it
-breaks lm-sensors as you can see, and I fail to see what advantage
-there can be to have the attributes in a subfolder anyway. Feel free to
-complain loudly to them for wasting everybody's time.
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGVsbG8gSmVhbiwKCiA+T24gRnJpLCA5IE5vdiAyMDA3IDE0OjE5OjAyICswMTAwIEplYW4gRGVs
+dmFyZSB3cm90ZToKID4gPk9uIFR1ZSwgMDYgTm92IDIwMDcgMTg6NDU6MDYgLTA2MDAsIE1pY2hh
+ZWwgQnJpYW4gV2lsbGlzIHdyb3RlOgogPiA+CiA+ID4gc3RhdGljIGNvbnN0IHN0cnVjdCBhdHRy
+aWJ1dGVfZ3JvdXAgbG03NV9ncm91cCA9IHsKID4gPiAJCiA+ID4gCS8vZG9uJ3QgcHV0IGF0dHJp
+dHViZSBmaWxlcyBpbiBhIHNlcGFyYXRlIGZvbGRlcgogPiA+IAkvLy5uYW1lICA9ICJsbTc1IiwK
+ID4gPiAJLmF0dHJzID0gbG03NV9hdHRyaWJ1dGVzLAogPiA+IH07CiA+ID4KID4gPiBDb21tZW50
+aW5nIG91dCB0aGUgLm5hbWUgbGluZSBmaXhlcyB0aGUgcHJvYmxlbSBhbmQgSSBjYW4gbm93IHJl
+YWQKID4gPiB0ZW1wZXJhdHVyZSBkYXRhIGZyb20gdGhlIExNNzUuCiA+ID4KID4gPiBUaGFuayB5
+b3Ugc28gbXVjaCBmb3IgYWxsIG9mIHlvdXIgaGVscCEgSSdtIHZlcnkgZ2xhZCB0byBnZXQgdGhp
+cyBpc3N1ZQogPiA+IHJlc29sdmVkLgogPgogPiBHbGFkIHRvIGtub3cuIFRoYXQncyByZWFsbHkg
+d2VpcmQgZnJvbSBEZW54IHRvIGhhdmUgZG9uZSB0aGF0LCBhcyBpdAogPiBicmVha3MgbG0tc2Vu
+c29ycyBhcyB5b3UgY2FuIHNlZSwgYW5kIEkgZmFpbCB0byBzZWUgd2hhdCBhZHZhbnRhZ2UKID4g
+dGhlcmUgY2FuIGJlIHRvIGhhdmUgdGhlIGF0dHJpYnV0ZXMgaW4gYSBzdWJmb2xkZXIgYW55d2F5
+LiBGZWVsIGZyZWUgdG8KID4gY29tcGxhaW4gbG91ZGx5IHRvIHRoZW0gZm9yIHdhc3RpbmcgZXZl
+cnlib2R5J3MgdGltZS4KCmZpeGVkIHRoaXMgaXNzdWUgaW4gdGhlIERlbnggS2VybmVsLCBzZWU6
+CgpodHRwOi8vd3d3LmRlbnguZGUvY2dpLWJpbi9naXR3ZWIuY2dpP3A9bGludXgtMi42LWRlbngu
+Z2l0O2E9Y29tbWl0ZGlmZjto1Dg5YjU2N2Y5NDBkMmU4M2Q3ZjFkOTgzMjFjODA0MzVjNjNjZTk3
+O2hwBTcyZjdiNmQ3NGIyNDE1NThiNjM4OTVlYTlkYTk3NDRiMjRlOGE4Cgp0aGFua3MKSGVpa28K
+LS0gCkRFTlggU29mdHdhcmUgRW5naW5lZXJpbmcgR21iSCwgICAgIE1EOiBXb2xmZ2FuZyBEZW5r
+ICYgRGV0bGV2IFp1bmRlbApIUkIgMTY1MjM1IE11bmljaCwgT2ZmaWNlOiBLaXJjaGVuc3RyLjUs
+IEQtODIxOTQgR3JvZWJlbnplbGwsIEdlcm1hbnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
+bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbG0tc2Vuc29ycw==
