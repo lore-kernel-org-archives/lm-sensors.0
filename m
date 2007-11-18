@@ -1,57 +1,66 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Mon, 12 Nov 2007 08:31:20 +0000
-Subject: Re: [lm-sensors] ksensors ported to 3.x.x
-Message-Id: <47380F58.7090306@hhs.nl>
+From: Jiri Slaby <jirislaby@gmail.com>
+Date: Sun, 18 Nov 2007 22:27:02 +0000
+Subject: Re: [lm-sensors] broken suspend [Was: 2.6.24-rc2-mm1]
+Message-Id: <4740BC36.2070200@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <473759E4.1070301@hhs.nl>
-In-Reply-To: <473759E4.1070301@hhs.nl>
+References: <Pine.LNX.4.44L0.0711181203220.5712-100000@netrider.rowland.org> <47408DFF.9070701@gmail.com>
+In-Reply-To: <47408DFF.9070701@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Kernel development list <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, r.marek@assembler.cz, lm-sensors@lm-sensors.org
 
-Aurelien Jarno wrote:
-> Hans de Goede a =E9crit :
->> Hi all,
->>
->> A tarbal with ksensors 0.7.3 ported to lm_sensors-3.x is available from:
->> http://www.lm-sensors.org/wiki/Download
->>
->> Note, its a tarbal, since the patch I did is incremental to a lot of oth=
-er=20
->> patches as upstream has been dead for a while.
->>
->> If someone wants to see the last increment (the one adding lm_sensors-3x=
-=20
->> support) let me know.
->>
->=20
-> I confirm that the upstream is dead, but I should still have CVS access
-> to the project. Would it be possible to send me the patch that adds
-> lm_sensors-3x support? I would also be interested by other patches.
->=20
+Aah, we probably should let coretemp people known.
 
-I'm afraid not, I can send a patch consisting of all Debian + Fedora fixes,=
- I=20
-can even first send a patch with the Debian patches and then a few incremen=
-tal=20
-patches with the Fedora fixes (including lm_sensors-3x support), porting th=
-e=20
-lm_sensors-3x patch to CVS / 0.7.3 is not worth it IMHO, especially since m=
-ost=20
-of the other fixes are very much worth their while.
+Whole thread:
+http://marc.info/?t9507205800001&r=1&w=2
 
-> BTW, if somebody is interested to continue upstream work, just ask me, I
-> think I have enough privileges on the sourceforce project to give CVS
-> access. Unfortunately I personally don't have time to work on that.
->=20
+On 11/18/2007 08:09 PM, Jiri Slaby wrote:
+> On 11/18/2007 06:07 PM, Alan Stern wrote:
+>> You'll get more useful results if you redo your changes to 
+>> notifier_call_chain().  Have it print out the address of the routine 
+>> _before_ making the call, and don't limit it to 20.  That way you'll 
+>> know exactly which notifier routine ends up hanging.
+> 
+> The problem is, that notifier_call_chain is called again and again zillion times
+> by somebody else...
+> 
+> Anyway you led me to another idea:
+> * _cpu_down
+>         printk("%s: u\n", __func__);
+>         BUBAK=1;
+>         /* CPU is completely dead: tell everyone.  Too late to complain. */
+>         if (raw_notifier_call_chain(&cpu_chain, CPU_DEAD | 0x88000 | mod,
+>                                     hcpu) = NOTIFY_BAD)
+>                 BUG();
+>         BUBAK=0;
+> -----
+> * notifier_call_chain
+>         unsigned int a = val & 0x88000;
+>         unsigned int yes = a = 0x88000;
+> 
+>         nb = rcu_dereference(*nl);
+> 
+>         if (a && a != 0x88000)
+>                 printk("Somebody calls with val: %lx\n", val);
+>         else
+>                 val &= ~0x88000;
+> 
+>         while (nb && nr_to_call) {
+>                 next_nb = rcu_dereference(nb->next);
+>                 if (unlikely(BUBAK && yes))
+>                         printk("%s: %p\n", __func__, nb->notifier_call);
+>                 ret = nb->notifier_call(nb, val, v);
+> -----
+> gives coretemp_cpu_callback -> coretemp_device_remove ->
+> platform_device_unregister, so coretemp seems to be what I have and you don't.
 
-I think that would be great, but alas I do not have the time, nor any=20
-experience with QT / KDE.
+Just in case you are curious:
+http://www.fi.muni.cz/~xslaby/sklad/susp_hang3.diff
+produces:
+http://www.fi.muni.cz/~xslaby/sklad/susp_hang3.png
 
-Thanks & Regards,
-
-Hans
 
 
 _______________________________________________
