@@ -1,19 +1,17 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Date: Mon, 19 Nov 2007 20:27:14 +0000
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Date: Mon, 19 Nov 2007 21:53:40 +0000
 Subject: Re: [lm-sensors] broken suspend [Was: 2.6.24-rc2-mm1]
-Message-Id: <Pine.LNX.4.44L0.0711191521170.3129-100000@iolanthe.rowland.org>
+Message-Id: <200711192253.41532.rjw@sisk.pl>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <Pine.LNX.4.44L0.0711182156330.22727-100000@netrider.rowland.org> <4741EB91.9080000@assembler.cz>
 In-Reply-To: <4741EB91.9080000@assembler.cz>
-References: <4740BC36.2070200@gmail.com>
-In-Reply-To: <4740BC36.2070200@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 To: Rudolf Marek <r.marek@assembler.cz>
-Cc: Jiri Slaby <jirislaby@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Kernel development list <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, lm-sensors@lm-sensors.org
+Cc: Alan Stern <stern@rowland.harvard.edu>, Jiri Slaby <jirislaby@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Kernel development list <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, lm-sensors@lm-sensors.org
 
-On Mon, 19 Nov 2007, Rudolf Marek wrote:
-
+On Monday, 19 of November 2007, Rudolf Marek wrote:
 > Hello all,
 > >>> gives coretemp_cpu_callback -> coretemp_device_remove ->
 > >>> platform_device_unregister, so coretemp seems to be what I have and y=
@@ -39,35 +37,22 @@ ng
 > http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dco=
 mmit;h=8Bb7844286fb8c9fce6f65d8288aeb09d03a5e0d
 
-That does look like it was meant for exactly this sort of situation.
+Well, in principle you can use the observation that the _FROZEN versions
+are used during suspend/hibernation.  Thus, if you only unregister the devi=
+ce
+for CPU_DEAD, but you won't do that for CPU_DEAD_FROZEN, it will work as lo=
+ng
+as the freezer is there.
 
 > > It's not clear what the best way is to fix this.  Perhaps the CPU=20
 > > notification should be sent along with a special flag indicating that=20
 > > the CPU transition is part of a system sleep (although this seems=20
-> > racy).  Perhaps the driver should notice when a system sleep begins,=20
-> > and defer all CPU-change handling until after the sleep is over.
->=20
-> maybe it does exist?  CPU_DOWN_PREPARE ?
->=20
-> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dbl=
-ob;f=3DDocumentation/cpu-hotplug.txt;hb=3DHEAD
->=20
-> Unfortunately I'm not very familiar with this, calling the=20
-> coretemp_device_remove from CPU_DOWN_PREPARE would help? Looking at micro=
-code=20
-> driver, seems it just hide sysfs interface from user.
+> > racy).
 
-I'm not sure exactly what you want to do here.  But it seems like a=20
-waste to unregister the coretemp devices at the start of a system sleep=20
-and then register them back at the end.
+In fact, it's already done that way and I don't think it's racy (see above).
 
-Could you simply leave the devices registered throughout the entire
-sleep?  Of course, at the end you would have to check that all the CPUs
-really did come back up, and unregister the devices for the CPUs that
-are still offline.
-
-Alan Stern
-
+Greetings,
+Rafael
 
 _______________________________________________
 lm-sensors mailing list
