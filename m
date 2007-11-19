@@ -1,31 +1,30 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 25 Nov 2007 01:54:07 +0000
-Subject: Re: [lm-sensors] [PATCH 2/4] hwmon: (gl520sm) Put
-Message-Id: <20071125015407.GO13717@jupiter.solarsys.private>
+From: "Alan Bennett" <embedded@akb.net>
+Date: Mon, 19 Nov 2007 22:14:52 +0000
+Subject: [lm-sensors] request for direction
+Message-Id: <bfa0697f0711191414v706b92dcu443f87cacbb53d9b@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+I'm not sure where to begin looking, but here's what I'd like to do:
 
-* Jean Delvare <khali@linux-fr.org> [2007-11-04 23:44:52 +0100]:
-> This allows for some code refactoring, making the binary slightly
-> smaller. This is also required to use dynamic sysfs callbacks for
-> voltage and temperature files.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
->  drivers/hwmon/gl520sm.c |  104 ++++++++++++++++++-----------------------------
->  1 file changed, 40 insertions(+), 64 deletions(-)
+I have a device that reads data from userspace and writes it to a
+hardware location and then 'burns' that data for a variable amount of
+time depending on a i2c temperature sensor.
 
-Applied to hwmon-2.6.git/testing, thanks.
+I have a lookup table that defines my temperature values, I can read
+and write the i2c values using the i2c-dev interface, however, I'd
+like to have my driver go fetch new i2c values every X number of
+cycles and get updated temperatures without having to go out to
+user-space and back.  I don't even need the information for a cycle or
+2, so speed is not a big requirement
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Is there a good example of something like this within the kernel for
+reading an i2c device from within a driver?
 
+-Alan
 
 _______________________________________________
 lm-sensors mailing list
