@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 18 Nov 2007 16:43:54 +0000
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Date: Tue, 20 Nov 2007 12:59:37 +0000
 Subject: Re: [lm-sensors] switching from at91 to gpio driver
-Message-Id: <20071118174354.1c238226@hyperion.delvare>
+Message-Id: <20071120.215937.126571551.anemo@mba.ocn.ne.jp>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <loom.20071115T225659-359@post.gmane.org>
 In-Reply-To: <loom.20071115T225659-359@post.gmane.org>
@@ -10,35 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Sergei,
-
-On Thu, 15 Nov 2007 23:10:51 +0000 (UTC), Sergei Sharonov wrote:
-> I switched from at91 i2c driver (hardware controller) to i2c-gpio driver in
-> kernel 2.6.23.1. All chip drivers failed to hook into i2c-gpio. The problem was
-> traced to the fact that in case of i2c-gpio adapter->class is not set to
-> I2C_CLASS_HWMON whereas in case of i2c-at91 it is. Chip driver (e.g. lm92)
-> checks for it in xxx_attach_adapter() function and does not call i2c_probe() if
-> it is not set.
-> Skipping the check allows lm92 driver to function.
+On Sun, 18 Nov 2007 17:43:54 +0100, Jean Delvare <khali@linux-fr.org> wrote:
+> Indeed there needs to be a way to set the class of i2c-gpio buses to
+> I2C_CLASS_HWMON. We could change the driver to set the class to
+> I2C_CLASS_HWMON for all buses by default, but that's not very flexible.
+> It would IMHO make more sense to add a field to struct
+> i2c_gpio_platform_data, and let each user of i2c-gpio set the class to
+> whatever they want.
 > 
-> Now, is it a bug or there is a place where I can tell i2c-gpio driver to set
-> class?
+> Maybe you, Haavard or Atsushi can submit a patch doing this? I'd be
+> happy to review and merge it quickly.
 
-Thanks for reporting, good catch. I'm adding the i2c list in Cc, as
-well as the author of the i2c-gpio driver and one of its users.
+I think just setting I2C_CLASS_HWMON (or I2C_CLASS_ALL) in
+i2c_gpio_probe would be enough.
 
-Indeed there needs to be a way to set the class of i2c-gpio buses to
-I2C_CLASS_HWMON. We could change the driver to set the class to
-I2C_CLASS_HWMON for all buses by default, but that's not very flexible.
-It would IMHO make more sense to add a field to struct
-i2c_gpio_platform_data, and let each user of i2c-gpio set the class to
-whatever they want.
+Well, frankly, I cannot understand the purpose of I2C_CLASS_XXX at
+all.  For example, what is an requirement for I2C_CLASS_HWMON?
 
-Maybe you, Haavard or Atsushi can submit a patch doing this? I'd be
-happy to review and merge it quickly.
-
--- 
-Jean Delvare
+---
+Atsushi Nemoto
 
 _______________________________________________
 lm-sensors mailing list
