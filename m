@@ -1,94 +1,138 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Fri, 16 Nov 2007 16:34:06 +0000
+From: "Kessia Pinheiro" <kessiapinheiro@gmail.com>
+Date: Tue, 20 Nov 2007 22:30:40 +0000
 Subject: Re: [lm-sensors] no sensors were detected with Intel Corporation
-Message-Id: <191fb4ca0711160834v675114f1g908854464a616e69@mail.gmail.com>
+Message-Id: <c8faca170711201430i7d24e904xe53e8a4e916380cc@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6565255215392880524=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <c8faca170711081606t6acc5928hfdcd9200ba1d421f@mail.gmail.com>
 In-Reply-To: <c8faca170711081606t6acc5928hfdcd9200ba1d421f@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Kessia,
+--===============6565255215392880524==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_23149_10820554.1195597840964"
 
-Please keep the list in the loop for future replies.
+------=_Part_23149_10820554.1195597840964
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+VGhlIG91dHB1dCBpcyBiZWxvdzoKCiMgaXNhZHVtcCAtZiAweDBjOTAKV0FSTklORyEgUnVubmlu
+ZyB0aGlzIHByb2dyYW0gY2FuIGNhdXNlIHN5c3RlbSBjcmFzaGVzLCBkYXRhIGxvc3MgYW5kIHdv
+cnNlIQpJIHdpbGwgcHJvYmUgYWRkcmVzcyByYW5nZSAweGMwMCB0byAweGNmZi4KQ29udGludWU/
+IFtZL25dCiAgMCAxIDIgMyA0IDUgNiA3IDggOSBhIGIgYyBkIGUgZgowYzAwOiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgowYzEwOiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgowYzIwOiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgowYzMwOiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgowYzQwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgowYzUwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgowYzYwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZgowYzcwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZgowYzgwOiAwYSBmZiBmZiBmZiAwOCBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZgowYzkwOiAzNCBmZiBmZiBmZiAwMCBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZgowY2EwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZgowY2IwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZgowY2MwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZgowY2QwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgow
+Y2UwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgowY2Yw
+OiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiAwMCBmZiBmZiBmZiBmZiBmZiBmZgoKCk9uIDEx
+LzE2LzA3LCBKdWVyZyBIYWVmbGlnZXIgPGp1ZXJnaEBnbWFpbC5jb20+IHdyb3RlOgo+Cj4gSGkg
+S2Vzc2lhLAo+Cj4gUGxlYXNlIGtlZXAgdGhlIGxpc3QgaW4gdGhlIGxvb3AgZm9yIGZ1dHVyZSBy
+ZXBsaWVzLgo+Cj4KPiA+IFRoZSBpc2FkdW1wIG91dHB1dCBpcyBiZWxvdywgYnV0IHRoZSBCSU9T
+IGluZm8gaSBzZW5kIGxhdGVyLgo+ID4KPiA+ICAgICAgMCAgMSAgMiAgMyAgNCAgNSAgNiAgNyAg
+OCAgOSAgYSAgYiAgYyAgZCAgZSAgZgo+ID4gMDA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDBlIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwCj4gPiAxMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAKPiA+IDIwOiAzMiAwMSAwMCAwMCAwMCAwNCAyZSAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMAo+ID4gMzA6IDAxIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwCj4gPiA0MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAKPiA+IDUwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMAo+ID4gIDYwOiAwYyA5MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMAo+ID4gNzA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwCj4gPiA4MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAKPiA+IDkwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMAo+ID4gYTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIGZmIGZm
+IGZmIGZmIGZmIGZmCj4gPiBiMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAKPiA+IGMwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMAo+ID4gZDA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwCj4gPiBlMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAKPiA+ICBmMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAKPiA+Cj4KPiBPSywgY2FuIHlvdSBub3cgcnVuICdpc2FkdW1wIC1mIDB4MGM5MCc/
+Cj4KPiAuLi5qdWVyZwo+Cj4KCgotLSAKS2Vzc2lhIFBpbmhlaXJvCkJhY2hhcmVsYW5kYSBlbSBD
+acOqbmNpYSBkYSBDb21wdXRhw6fDo28KVW5pdmVyc2lkYWRlIEZlZGVyYWwgZGEgQmFoaWEKTGlu
+dXggQ291bnRlciBVc2VyICMzODk2OTUgW2h0dHA6Ly9jb3VudGVyLmxpLm9yZ10K
+------=_Part_23149_10820554.1195597840964
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+PHA+VGhlIG91dHB1dCBpcyBiZWxvdzo8L3A+PHA+IyBpc2FkdW1wIC1mIDB4MGM5MDxicj48L3A+
+V0FSTklORyEgUnVubmluZyB0aGlzIHByb2dyYW0gY2FuIGNhdXNlIHN5c3RlbSBjcmFzaGVzLCBk
+YXRhIGxvc3MgYW5kIHdvcnNlITxicj5JIHdpbGwgcHJvYmUgYWRkcmVzcyByYW5nZSAweGMwMCB0
+byAweGNmZi48YnI+Q29udGludWU/IFtZL25dPGJyPiZuYnNwOyAgICAgIDAgIDEgIDIgIDMgIDQg
+IDUgIDYgIDcgIDggIDkgIGEgIGIgIGMgIGQgIGUgIGYKPGJyPjBjMDA6IGZmIGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmPGJyPjBjMTA6IGZmIGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmPGJyPjBjMjA6IGZmIGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmPGJyPjBjMzA6IGZmIGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCjxicj4wYzQwOiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZjxicj4wYzUwOiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZjxicj4wYzYwOiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZjxicj4wYzcwOiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo8YnI+MGM4MDogMGEgZmYgZmYgZmYg
+MDggZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmY8YnI+MGM5MDogMzQgZmYgZmYgZmYg
+MDAgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmY8YnI+MGNhMDogZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmY8YnI+MGNiMDogZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKPGJyPjBjYzA6IGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmPGJyPjBjZDA6IGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmPGJyPjBjZTA6IGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmPGJyPjBjZjA6IGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIDAwIGZmIGZmIGZmIGZmIGZmIGZmCjxicj48YnI+PGJyPjxkaXY+PHNw
+YW4gY2xhc3M9ImdtYWlsX3F1b3RlIj5PbiAxMS8xNi8wNywgPGIgY2xhc3M9ImdtYWlsX3NlbmRl
+cm5hbWUiPkp1ZXJnIEhhZWZsaWdlcjwvYj4gJmx0OzxhIGhyZWY9Im1haWx0bzpqdWVyZ2hAZ21h
+aWwuY29tIj5qdWVyZ2hAZ21haWwuY29tPC9hPiZndDsgd3JvdGU6PC9zcGFuPjxibG9ja3F1b3Rl
+IGNsYXNzPSJnbWFpbF9xdW90ZSIgc3R5bGU9Im1hcmdpbjowO21hcmdpbi1sZWZ0OjAuOGV4O2Jv
+cmRlci1sZWZ0OjFweCAjY2NjIHNvbGlkO3BhZGRpbmctbGVmdDoxZXgiPgpIaSBLZXNzaWEsPGJy
+Pjxicj5QbGVhc2Uga2VlcCB0aGUgbGlzdCBpbiB0aGUgbG9vcCBmb3IgZnV0dXJlIHJlcGxpZXMu
+PGJyPjxicj48YnI+Jmd0OyBUaGUgaXNhZHVtcCBvdXRwdXQgaXMgYmVsb3csIGJ1dCB0aGUgQklP
+UyBpbmZvIGkgc2VuZCBsYXRlci48YnI+Jmd0Ozxicj4mZ3Q7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7MCZuYnNwOyZuYnNwOzEmbmJzcDsmbmJzcDsyJm5ic3A7Jm5ic3A7MyZu
+YnNwOyZuYnNwOzQmbmJzcDsmbmJzcDs1Jm5ic3A7Jm5ic3A7NiZuYnNwOyZuYnNwOzcmbmJzcDsm
+bmJzcDs4Jm5ic3A7Jm5ic3A7OSZuYnNwOyZuYnNwO2EmbmJzcDsmbmJzcDtiJm5ic3A7Jm5ic3A7
+YyZuYnNwOyZuYnNwO2QmbmJzcDsmbmJzcDtlJm5ic3A7Jm5ic3A7Zjxicj4mZ3Q7IDAwOiAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwZSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAo8YnI+Jmd0OyAxMDog
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDA8YnI+Jmd0OyAy
+MDogMzIgMDEgMDAgMDAgMDAgMDQgMmUgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDA8YnI+Jmd0
+OyAzMDogMDEgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDA8YnI+
+Jmd0OyA0MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAK
+PGJyPiZndDsgNTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwPGJyPiZndDsmbmJzcDsmbmJzcDs2MDogMGMgOTAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDA8YnI+Jmd0OyA3MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDA8YnI+Jmd0OyA4MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKPGJyPiZndDsgOTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwPGJyPiZndDsgYTA6IDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIGZmIGZmIGZmIGZmIGZmIGZmPGJyPiZndDsgYjA6IDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwPGJyPiZndDsgYzA6IDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCjxicj4mZ3Q7IGQwOiAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMDxicj4mZ3Q7IGUwOiAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMDxicj4mZ3Q7Jm5ic3A7
+Jm5ic3A7ZjA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+PGJyPiZndDs8YnI+PGJyPk9LLCBjYW4geW91IG5vdyBydW4gJiMzOTtpc2FkdW1wIC1mIDB4MGM5
+MCYjMzk7Pwo8YnI+PGJyPi4uLmp1ZXJnPGJyPjxicj48L2Jsb2NrcXVvdGU+PC9kaXY+PGJyPjxi
+ciBjbGVhcj0iYWxsIj48YnI+LS0gPGJyPktlc3NpYSBQaW5oZWlybzxicj5CYWNoYXJlbGFuZGEg
+ZW0gQ2nDqm5jaWEgZGEgQ29tcHV0YcOnw6NvPGJyPlVuaXZlcnNpZGFkZSBGZWRlcmFsIGRhIEJh
+aGlhPGJyPkxpbnV4IENvdW50ZXIgVXNlciAjMzg5Njk1IFs8YSBocmVmPSJodHRwOi8vY291bnRl
+ci5saS5vcmciPgpodHRwOi8vY291bnRlci5saS5vcmc8L2E+XQo=
+------=_Part_23149_10820554.1195597840964--
 
 
-> The isadump output is below, but the BIOS info i send later.
->
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 00 00 00 00 00 00 00 0e 00 00 00 00 00 00 00 00
-> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 20: 32 01 00 00 00 04 2e 00 00 00 00 00 00 00 00 00
-> 30: 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->  60: 0c 90 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> a0: 00 00 00 00 00 00 00 00 00 00 ff ff ff ff ff ff
-> b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->  f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->
-
-OK, can you now run 'isadump -f 0x0c90'?
-
-...juerg
-
-
-
->
-> On Nov 15, 2007 3:04 PM, Juerg Haefliger <juergh@gmail.com> wrote:
-> > Hi Kessia,
-> >
-> >
-> > >
-> > >
-> > > The SpeedFan say me that... I think isnt good. I think was my laptop
-> model
-> > > very new for support.
-> > >
-> > >
-> > >
-> > > ERROR collecting CPU Usage : 1 (Unable to locate the "Processor"
-> performance
-> > > object)
-> > > Win9x:NO 64Bit:NO GiveIO:YES SpeedFan:YES
-> > > I/O properly initialized
-> > > Linked ISA BUS at $0290
-> > > Linked Intel 82801HB ICH8 SMBUS at $10C0
-> > > Scanning ISA BUS at $0290...
-> > > DELL Support Enabling has been disabled
-> > > because SYSTEM CALLS were unsuccessful
-> > > Please, report if you think this is an error
-> > > Scanning Intel SMBus at $10C0...
-> > > End of detection
-> > > INFO : NO SUPPORTED CHIP DETECTED
-> > >
-> >
-> > Do you see any voltage/fan information in the BIOS? Can you run
-> > 'isadump -k 0x55 0x2e 0x2f' and post the output to the list?
-> >
-> > ...juerg
-> >
-> >
-> >
-> >
-> >
-> >
->
-> --
-> Kessia Pinheiro
-> Bacharelanda em Ci=EAncia da Computa=E7=E3o
-> Universidade Federal da Bahia
-> Linux Counter User #389695 [ http://counter.li.org]
+--===============6565255215392880524==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6565255215392880524==--
