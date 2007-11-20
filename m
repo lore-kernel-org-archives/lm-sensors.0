@@ -1,61 +1,52 @@
-From: Kevin Lo <kevlo@kevlo.org>
-Date: Thu, 29 Nov 2007 02:19:04 +0000
-Subject: Re: [lm-sensors] [PATCH] Driver for Winbond W83L786NG/NR
-Message-Id: <1196302744.6088.16.camel@monet>
+From: Joe Perches <joe@perches.com>
+Date: Tue, 20 Nov 2007 01:48:07 +0000
+Subject: [lm-sensors] [PATCH 15/59] drivers/hwmon: Add missing "space"
+Message-Id: <e2a957ca2937d67956712a66e7388dcd2f95cf90.1195454435.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1188522272.5885.8.camel@monet>
-In-Reply-To: <1188522272.5885.8.camel@monet>
+References: 1234567
+ <1195523331-15303-1-git-send-email-joe@perches.com>
+ <1195523331-15303-2-git-send-email-joe@perches.com>
+ <1195523331-15303-3-git-send-email-joe@perches.com>
+ <1195523331-15303-4-git-send-email-joe@perches.com>
+ <1195523331-15303-5-git-send-email-joe@perches.com>
+ <1195523331-15303-6-git-send-email-joe@perches.com>
+ <1195523331-15303-7-git-send-email-joe@perches.com>
+ <1195523331-15303-8-git-send-email-joe@perches.com>
+ <1195523331-15303-9-git-send-email-joe@perches.com>
+ <1195523331-15303-10-git-send-email-joe@perches.com>
+ <1195523331-15303-11-git-send-email-joe@perches.com>
+ <1195523331-15303-12-git-send-email-joe@perches.com>
+ <1195523331-15303-13-git-send-email-joe@perches.com>
+ <1195523331-15303-14-git-send-email-joe@perches.com>
+ <1195523331-15303-15-git-send-email-joe@perches.com>
+In-Reply-To: <1195523331-15303-15-git-send-email-joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, Roger Lucas <roger@planbit.co.uk>, lm-sensors@lm-sensors.org
 
-Jean Delvare wrote:
-> Hi Kevin,
 
-Hi Jean,
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/hwmon/vt8231.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> On Mon, 26 Nov 2007 09:38:54 +0800, Kevin Lo wrote:
-> > On Sun, 2007-11-25 at 13:39 +0100, Jean Delvare wrote:
-> > > On Fri, 23 Nov 2007 09:31:52 +0800, Kevin Lo wrote:
-> > > > Here is the revised patch which fixes the issues that you mentioned.
-> > > > 
-> > > > Signed-off-by: Kevin Lo <kevlo@kevlo.org>
-> > > 
-> > > Dave, can you please test this new iteration of Kevin's driver and
-> > > confirm that it works fine for you?
-> > > 
-> > > The patch is here if you're not subscribed to the list:
-> > > http://lists.lm-sensors.org/pipermail/lm-sensors/2007-November/021975.html
-> > > 
-> > > Kevin, did you test your driver with lm-sensors 3.0.0?
-> > 
-> > No, but I tested my patch with lm-sensors 2.10.5, it worked fine. 
-> 
-> I don't get it. For lm-sensors 2.10.5, you need chip-specific code for
-> every new driver, and there's no such code for the W83L786NG yet. So I
-> don't quite see how you could have tested it. Or do you have a patch
-> for lm-sensors that adds support? If so, please post it so that it can
-> be reviewed and applied.
-
-First off, sorry for the confusion. I had the w83l786ng driver patch for
-lm-sensors 2.10.5. I lost the patch due to my hard disk crash, that's
-why
-I didn't submit it :-( 
-
-> Anyway, lm-sensors 3.0.0 only supports the standard kernel interface,
-> so it is a very interesting test to make sure that your driver
-> implements the standard interface properly. Please give it a try.
-
-I'll try lm-sensors 3.0.0 in a couple of days, thanks.
-
-> Thanks,
-> -- 
-> Jean Delvare
-
-Regards,
-Kevin.
-
+diff --git a/drivers/hwmon/vt8231.c b/drivers/hwmon/vt8231.c
+index 2196a84..f876617 100644
+--- a/drivers/hwmon/vt8231.c
++++ b/drivers/hwmon/vt8231.c
+@@ -504,7 +504,7 @@ static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
+ 	case 4: data->fan_div[nr] = 2; break;
+ 	case 8: data->fan_div[nr] = 3; break;
+ 	default:
+-		dev_err(dev, "fan_div value %ld not supported."
++		dev_err(dev, "fan_div value %ld not supported. "
+ 		        "Choose one of 1, 2, 4 or 8!\n", val);
+ 		mutex_unlock(&data->update_lock);
+ 		return -EINVAL;
+-- 
+1.5.3.5.652.gf192c
 
 
 _______________________________________________
