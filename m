@@ -1,39 +1,75 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 09 Nov 2007 14:11:12 +0000
-Subject: Re: [lm-sensors] web link is not working
-Message-Id: <20071109151112.4dca93e7@hyperion.delvare>
+From: Herbert Valerio Riedel <hvr@gnu.org>
+Date: Sat, 24 Nov 2007 21:26:21 +0000
+Subject: Re: [lm-sensors] [PATCH 3/5] hwmon: (gl518sm) Refactor fan functions
+Message-Id: <1195939581.14108.15.camel@pbook.intra>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <F51AA7B3-0C9A-45D7-A432-C44D16E4C289@cs.utk.edu>
-In-Reply-To: <F51AA7B3-0C9A-45D7-A432-C44D16E4C289@cs.utk.edu>
+References: <20071022174642.3c3ce8f0@hyperion.delvare>
+In-Reply-To: <20071022174642.3c3ce8f0@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Daniel,
+hello,
 
-On Wed, 7 Nov 2007 15:44:23 -0500, Daniel Lucio wrote:
-> Hi,
-> 
-> I want to report that the link
-> 
-> 'Identify Your Hardware' Flowchart?
-> http://lm-sensors.org/wiki/IdentifyHardware
-> 
-> from
-> 
-> http://lm-sensors.org/wiki/ProjectInformation
-> 
-> 
-> is not working.
 
-Thanks for reporting. This page was never migrated from the old
-website. I don't think it was particularly useful anyway, these days
-all you have to do is run "sensors-detect". So I deleted the link
-(actually the whole section, as it had little interest IMHO.)
+On Mon, 2007-10-22 at 17:46 +0200, Jean Delvare wrote:
+> This makes the code more readable and the binary smaller (by 5% or so).
 
--- 
-Jean Delvare
+:-)
+
+> +static ssize_t show_fan_input(struct device *dev,
+> +			      struct device_attribute *attr, char *buf)
+> +{
+> +	int nr = to_sensor_dev_attr(attr)->index;
+> +	struct gl518_data *data = gl518_update_device(dev);
+> +	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_in[nr],
+> +					DIV_FROM_REG(data->fan_div[nr])));
+> +}
+> +
+> +static ssize_t show_fan_min(struct device *dev,
+> +			    struct device_attribute *attr, char *buf)
+> +{
+> +	int nr = to_sensor_dev_attr(attr)->index;
+> +	struct gl518_data *data = gl518_update_device(dev);
+> +	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[nr],
+> +					DIV_FROM_REG(data->fan_div[nr])));
+> +}
+> +
+> +static ssize_t show_fan_div(struct device *dev,
+> +			    struct device_attribute *attr, char *buf)
+> +{
+> +	int nr = to_sensor_dev_attr(attr)->index;
+> +	struct gl518_data *data = gl518_update_device(dev);
+> +	return sprintf(buf, "%d\n", DIV_FROM_REG(data->fan_div[nr]));
+> +}
+
+imho, it would have been ok to reduce those 3 instantiations to a macro
+template and 3 expansions... but I guess it's a matter of preference :-)
+
+> -	data->fan_min[0] = FAN_TO_REG(val,
+> -		DIV_FROM_REG(data->fan_div[0]));
+> -	regvalue = (regvalue & 0x00ff) | (data->fan_min[0] << 8);
+> +	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
+
+> +	regvalue = (regvalue & (0xff << (8 * nr)))
+> +		 | (data->fan_min[nr] << (8 * (1 - nr)));
+
+this shifting/masking looks a bit confusing to me; as 'nr' is supposed
+to take only 2 values, wouldn't it be more readable to use an if/else
+construct or an ?: operator? 
+
+> +	regvalue = (regvalue & ~(0xc0 >> (2 * nr)))
+> +		 | (data->fan_div[nr] << (6 - 2 * nr));
+
+same thing
+
+
+except for stylistic comments, patch looks good to me :-)
+
+cheers,
+hvr
+
 
 _______________________________________________
 lm-sensors mailing list
