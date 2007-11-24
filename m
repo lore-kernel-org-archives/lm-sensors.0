@@ -1,36 +1,43 @@
-From: Heiko Schocher <hs@denx.de>
-Date: Sat, 17 Nov 2007 10:36:32 +0000
-Subject: Re: [lm-sensors] LM75: "ERROR: Can't get temperature data!"
-Message-Id: <473EC430.5070401@denx.de>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 24 Nov 2007 14:34:09 +0000
+Subject: [lm-sensors] lm-sensors 3.0.0 has been released!
+Message-Id: <20071124153409.6e644e9f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1194039013.25315.2.camel@louie>
-In-Reply-To: <1194039013.25315.2.camel@louie>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8gSmVhbiwKCiA+T24gRnJpLCA5IE5vdiAyMDA3IDE0OjE5OjAyICswMTAwIEplYW4gRGVs
-dmFyZSB3cm90ZToKID4gPk9uIFR1ZSwgMDYgTm92IDIwMDcgMTg6NDU6MDYgLTA2MDAsIE1pY2hh
-ZWwgQnJpYW4gV2lsbGlzIHdyb3RlOgogPiA+CiA+ID4gc3RhdGljIGNvbnN0IHN0cnVjdCBhdHRy
-aWJ1dGVfZ3JvdXAgbG03NV9ncm91cCA9IHsKID4gPiAJCiA+ID4gCS8vZG9uJ3QgcHV0IGF0dHJp
-dHViZSBmaWxlcyBpbiBhIHNlcGFyYXRlIGZvbGRlcgogPiA+IAkvLy5uYW1lICA9ICJsbTc1IiwK
-ID4gPiAJLmF0dHJzID0gbG03NV9hdHRyaWJ1dGVzLAogPiA+IH07CiA+ID4KID4gPiBDb21tZW50
-aW5nIG91dCB0aGUgLm5hbWUgbGluZSBmaXhlcyB0aGUgcHJvYmxlbSBhbmQgSSBjYW4gbm93IHJl
-YWQKID4gPiB0ZW1wZXJhdHVyZSBkYXRhIGZyb20gdGhlIExNNzUuCiA+ID4KID4gPiBUaGFuayB5
-b3Ugc28gbXVjaCBmb3IgYWxsIG9mIHlvdXIgaGVscCEgSSdtIHZlcnkgZ2xhZCB0byBnZXQgdGhp
-cyBpc3N1ZQogPiA+IHJlc29sdmVkLgogPgogPiBHbGFkIHRvIGtub3cuIFRoYXQncyByZWFsbHkg
-d2VpcmQgZnJvbSBEZW54IHRvIGhhdmUgZG9uZSB0aGF0LCBhcyBpdAogPiBicmVha3MgbG0tc2Vu
-c29ycyBhcyB5b3UgY2FuIHNlZSwgYW5kIEkgZmFpbCB0byBzZWUgd2hhdCBhZHZhbnRhZ2UKID4g
-dGhlcmUgY2FuIGJlIHRvIGhhdmUgdGhlIGF0dHJpYnV0ZXMgaW4gYSBzdWJmb2xkZXIgYW55d2F5
-LiBGZWVsIGZyZWUgdG8KID4gY29tcGxhaW4gbG91ZGx5IHRvIHRoZW0gZm9yIHdhc3RpbmcgZXZl
-cnlib2R5J3MgdGltZS4KCmZpeGVkIHRoaXMgaXNzdWUgaW4gdGhlIERlbnggS2VybmVsLCBzZWU6
-CgpodHRwOi8vd3d3LmRlbnguZGUvY2dpLWJpbi9naXR3ZWIuY2dpP3A9bGludXgtMi42LWRlbngu
-Z2l0O2E9Y29tbWl0ZGlmZjto1Dg5YjU2N2Y5NDBkMmU4M2Q3ZjFkOTgzMjFjODA0MzVjNjNjZTk3
-O2hwBTcyZjdiNmQ3NGIyNDE1NThiNjM4OTVlYTlkYTk3NDRiMjRlOGE4Cgp0aGFua3MKSGVpa28K
-LS0gCkRFTlggU29mdHdhcmUgRW5naW5lZXJpbmcgR21iSCwgICAgIE1EOiBXb2xmZ2FuZyBEZW5r
-ICYgRGV0bGV2IFp1bmRlbApIUkIgMTY1MjM1IE11bmljaCwgT2ZmaWNlOiBLaXJjaGVuc3RyLjUs
-IEQtODIxOTQgR3JvZWJlbnplbGwsIEdlcm1hbnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
-bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbG0tc2Vuc29ycw==
+Hi all,
+
+After over 7 months of work and 3 release candidates, lm-sensors 3.0.0
+is finally there!
+
+Important changes compared to lm-sensors 2.10:
+* lm-sensors 3 only supports kernels 2.6.5 and later.
+* It is now a user-space-only package, it no longer contains kernel
+  drivers.
+* The i2c tools have been moved to a separate package (surprisingly
+  named i2c-tools).
+* libsensors' internal version was bumped to 4.0.0, as it has a
+  completely new API we had to increase the .so version. This new
+  library contains no chip-specific knowledge, it assumes that hardware
+  monitoring drivers follow the standard sysfs interface. A very nice
+  benefit of this is that the size of the library has been divided by
+  4 (down from 222 kB to 55 kB on i386).
+* sensors.conf is not fully compatible between the old and the new
+  library. The lm-sensors 3 package includes a conversion script
+  from the old format to the new one.
+* Some kernel drivers still don't implement the standard interface
+  for alarms, so alarm flags won't show.
+
+I would like to thank Hans de Goede and his students for contributing
+the initial rewrite of libsensors, which made it all possible.
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
