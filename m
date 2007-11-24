@@ -1,50 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 26 Nov 2007 09:28:00 +0000
-Subject: Re: [lm-sensors] [PATCH 3/5] hwmon: (gl518sm) Refactor fan functions
-Message-Id: <20071126102800.7b84f3a4@hyperion.delvare>
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Date: Sat, 24 Nov 2007 17:33:33 +0000
+Subject: [lm-sensors] Linux 2.6.24-rc* regression: sensors says "No sensors
+Message-Id: <4748606D.6050501@s5r6.in-berlin.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071022174642.3c3ce8f0@hyperion.delvare>
-In-Reply-To: <20071022174642.3c3ce8f0@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
 
-Hi Herbert,
+I just booted 2.6.24-rc3 on two different PCs, one with i945 based MSI
+motherboard and i386 kernel and one with i945 based Apple motherboard
+and x86-64 kernel.  Before that I ran linux 2.6.23.
 
-On Sun, 25 Nov 2007 15:29:43 +0100, Herbert Valerio Riedel wrote:
-> On Sun, 2007-11-25 at 14:08 +0100, Jean Delvare wrote:
-> > +static ssize_t show_fan_input(struct device *dev,
-> > +			      struct device_attribute *attr, char *buf)
-> > +{
-> > +	int nr = to_sensor_dev_attr(attr)->index;
-> > +	struct gl518_data *data = gl518_update_device(dev);
-> > +	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_in[nr],
-> > +					DIV_FROM_REG(data->fan_div[nr])));
-> > +}
-> > +
-> > +static ssize_t show_fan_min(struct device *dev,
-> > +			    struct device_attribute *attr, char *buf)
-> > +{
-> > +	int nr = to_sensor_dev_attr(attr)->index;
-> > +	struct gl518_data *data = gl518_update_device(dev);
-> > +	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[nr],
-> > +					DIV_FROM_REG(data->fan_div[nr])));
-> > +}
-> 
-> one thing just sprang to my mind... is it safe to assume that the
-> expressions data->fan_min[nr] and data->fan_div[nr] are evaluated
-> atomically? or to put it differently, why don't we need a rw-lock here
-> to protect against interleaved updates?
+On both PCs, "sensors" exits with
+> No sensors found!
+> Make sure you loaded all the kernel drivers you need.
+> Try sensors-detect to find out which these are.
 
-This is a very good question. We always assumed that reading from the
-register cache did not require to hold the lock. However for this to be
-true on all architectures, I guess that we should be declaring all the
-register values with type atomic_t. So you're probably right, our code
-is probably not safe on some architectures.
+Modules loaded on the i386, among others:
+coretemp, w83627ehf, hwmon_vid, hwmon
 
+Modules loaded on the x86-64, among others:
+i2c_dev, applesmc, led_class, input_polldev, coretemp, hwmon, eeprom
+
+The configuration scripts are the same as I used them under 2.6.23.
+sensors-detect doesn't come up with anything which I didn't know and had
+configured already.  On both PCs:
+$ sensors -v
+sensors version 2.10.4 with libsensors version 2.10.4
 -- 
-Jean Delvare
+Stefan Richter
+-===-=-== =-= =---
+http://arcgraph.de/sr/
 
 _______________________________________________
 lm-sensors mailing list
