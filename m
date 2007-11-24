@@ -1,76 +1,381 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 21 Nov 2007 22:16:18 +0000
-Subject: Re: [lm-sensors] PWMconfig problem with Asus P5B Deluxe / Winbond
-Message-Id: <20071121231618.61a8def2@hyperion.delvare>
+From: Herbert Valerio Riedel <hvr@gnu.org>
+Date: Sat, 24 Nov 2007 19:25:44 +0000
+Subject: [lm-sensors] [RFC,
+Message-Id: <1195932344-15551-1-git-send-email-hvr@gnu.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4dfa50520711142226r2e6d1c3fy229e05d4ca43d032@mail.gmail.com>
-In-Reply-To: <4dfa50520711142226r2e6d1c3fy229e05d4ca43d032@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David,
+This controller can be found on the D-Link DNS-323 for instance,
+where it is to be configured via static i2c_board_info in the
+board-specific mach-orion/dns323-setup.c; this driver supports only
+the new-style driver model.
 
-On Sun, 18 Nov 2007 23:32:12 -0700, David Hubbard wrote:
-> I just thought I'd throw in another test point. I was curious if the
-> w83627ehf driver was somehow storing "0\n255" or some similar wrong
-> behavior:
-> 
-> # echo 1 > pwm3_enable
-> # echo 175 > pwm3
-> # echo "0
-> > 175" > pwm3
-> # cat pwm3
-> 175
-> # echo -e "0\n175"
-> 0
-> 175
-> # echo -e "0\n175" > pwm3
-> # cat pwm3
-> 175
-> # dmesg | tail
-> [  291.436322] allocating slot 0, addr 2e for device 8860
-> [  291.436323] found devid:8860 port:2e users:1
-> [  291.436331] w83627ehf: Found W83627EHG chip at 0x290
-> [  291.436536] releasing last user of superio-port 2e
-> [  301.088199] w83627ehf w83627ehf.656: Increasing fan3 clock divider
-> from 2 to 4
-> [  301.088233] w83627ehf w83627ehf.656: Increasing fan5 clock divider
-> from 1 to 2
-> [  302.644499] w83627ehf w83627ehf.656: Increasing fan5 clock divider
-> from 2 to 4
-> [  304.884458] w83627ehf w83627ehf.656: Increasing fan5 clock divider
-> from 4 to 8
-> [  309.069573] w83627ehf w83627ehf.656: Increasing fan5 clock divider
-> from 8 to 16
-> [  313.797610] w83627ehf w83627ehf.656: Increasing fan5 clock divider
-> from 16 to 32
-> 
-> 
-> Alex, I wonder if your bash is creating a file with "0\n255" in it?
-> Because I would feel fairly confident in saying the driver will not be
-> able to store a string for later retrieval in pwm3, or pwm1.
+Signed-off-by: Herbert Valerio Riedel <hvr@gnu.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+---
+wrt to the previous g760a patch, this one is significantly smaller, since I
+removed all legacy code; I also changed the pwm1 sysfs file to reflect the 
+convention of 0x00 being lowest  and 0xff being maximum fanspeed;
 
-The driver doesn't store the input. It parses it and does something out
-of the result, and later it prints a value from a register. So it's
-strictly impossible for the driver to return something else than a
-single integer value when you read from pwm3.
+in the code I assume somehow a kind of fan-divider of 2 pulses per rotation;
+as that is the case on the dns323, and as the g760a has no "fan1_div" register
+in hardware, I didn't implement a virtual fan1_div sysfs object either...
 
-I've added some debugging to the driver and came to the following
-conclusion: sysfs splits multi-line writes, and the driver's callback
-is called for each line separately. This matches your experience above:
-the value written last is returned on the following read.
+ Documentation/hwmon/g760a |   37 +++++++
+ drivers/hwmon/Kconfig     |   10 ++
+ drivers/hwmon/Makefile    |    1 +
+ drivers/hwmon/g760a.c     |  260 +++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 308 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/g760a
+ create mode 100644 drivers/hwmon/g760a.c
 
-This however doesn't completely explain Alexander's experience, as for
-him, only the _first_ value (the struck 0) appears to be considered by
-the driver. But as it seems to be a bash bug specific to Ubuntu (at
-least that's what the currently available evidences suggest), there's
-little point in spending more time on this. The bug should be reported
-to the maintainer of the Ubuntu bash package.
-
+diff --git a/Documentation/hwmon/g760a b/Documentation/hwmon/g760a
+new file mode 100644
+index 0000000..d3f32a5
+--- /dev/null
++++ b/Documentation/hwmon/g760a
+@@ -0,0 +1,37 @@
++Kernel driver g760a
++=========+
++Supported chips:
++  * Global Mixed-mode Technology Inc. G760A
++    Prefix: 'g760a'
++    Datasheet: Publicly available at the GMT website
++      http://www.gmt.com.tw/datasheet/g760a.pdf
++
++Author: Herbert Valerio Riedel <hvr@gnu.org>
++
++Description
++-----------
++
++The GMT G760A Fan Speed PWM Controller is connected directly to a fan
++and performs closed-loop control of the fan speed.
++
++The fan speed is programmed by setting the period via 'pwm1' of two
++consecutive speed pulses. The period is defined in terms of clock
++cycle counts of an assumed 32kHz clock source.
++
++Setting a period of 0 stops the fan; setting the period to 255 sets
++fan to maximum speed.
++
++The measured fan rotation speed returned via 'fan1_input' is derived
++from the measured speed pulse period by assuming again a 32kHz clock
++source and a 2 pulse-per-revolution fan.
++
++The 'alarms' file provides access to the two alarm bits provided by
++the G760A chip's status register: Bit 0 is set when the actual fan
++speed differs more than 20% with respect to the programmed fan speed;
++bit 1 is set when fan speed is below 1920 rpm.
++ 
++The g760a driver will not update its values more frequently than every
++other second; reading them more often will do no harm, but will return
++'old' values.
++
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index a0445be..6ce8c12 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -291,6 +291,16 @@ config SENSORS_FSCHMD
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called fschmd.
+ 
++config SENSORS_G760A
++	tristate "GMT G760A"
++	depends on I2C
++	help
++	  If you say yes here you get support for Global Mixed-mode
++	  Technology Inc G760A fan speed pwm controller chips.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called g760a.
++
+ config SENSORS_GL518SM
+ 	tristate "Genesys Logic GL518SM"
+ 	depends on I2C
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 55595f6..93d78a8 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -35,6 +35,7 @@ obj-$(CONFIG_SENSORS_F75375S)	+= f75375s.o
+ obj-$(CONFIG_SENSORS_FSCHER)	+= fscher.o
+ obj-$(CONFIG_SENSORS_FSCHMD)	+= fschmd.o
+ obj-$(CONFIG_SENSORS_FSCPOS)	+= fscpos.o
++obj-$(CONFIG_SENSORS_G760A)	+= g760a.o
+ obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
+ obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
+ obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
+diff --git a/drivers/hwmon/g760a.c b/drivers/hwmon/g760a.c
+new file mode 100644
+index 0000000..dc503c4
+--- /dev/null
++++ b/drivers/hwmon/g760a.c
+@@ -0,0 +1,260 @@
++/*
++    g760a - Driver for the Global Mixed-mode Technology Inc. G760A
++	    fan speed PWM controller chip
++
++    Copyright (C) 2007  Herbert Valerio Riedel <hvr@gnu.org>
++
++    Complete datasheet is available at GMT's website:
++      http://www.gmt.com.tw/datasheet/g760a.pdf
++
++    This program is free software; you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation; either version 2 of the License, or
++    (at your option) any later version.
++*/
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/jiffies.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++#include <linux/sysfs.h>
++
++enum g760a_regs {
++	G760A_REG_SET_CNT = 0x00,
++	G760A_REG_ACT_CNT = 0x01,
++	G760A_REG_FAN_STA = 0x02
++};
++
++#define G760A_REG_FAN_STA_RPM_OFF 0x1 /* 20% off */
++#define G760A_REG_FAN_STA_RPM_LOW 0x2 /* below 1920rpm */
++
++/* register data is read (and cached) at most once per second */
++#define G760A_UPDATE_INTERVAL (HZ)
++
++struct g760a_data {
++	struct i2c_client *client;
++	struct device *hwmon_dev;
++	struct mutex update_lock;
++
++	/* board specific parameters */
++	u32 clk; /* default 32kHz */
++	u16 fan_div; /* default P=2 */
++
++	/* g760a register cache */
++	int valid:1;
++	unsigned long last_updated; /* In jiffies */
++
++	u8 set_cnt; /* PWM (period) count number; 0xff stops fan	*/
++	u8 act_cnt; /*   formula: cnt = (CLK * 30)/(rpm * P)		*/
++	u8 fan_sta; /* bit 0: set when actual fan speed more than %20
++		     *   outside requested fan speed
++		     * bit 1: set when fan speed below 1920 rpm		*/
++};
++
++#define G760A_DEFAULT_CLK 32768
++#define G760A_DEFAULT_FAN_DIV 2
++
++#define RPM_FROM_REG(val, clk, div) \
++	((0x00 = (val)) ? 0 : (((clk)*30)/((val)*(div))))
++
++#define PWM_FROM_CNT(cnt)	(0xff-(cnt))
++#define PWM_TO_CNT(pwm)		(0xff-(pwm))
++
++/* new-style driver model */
++static int g760a_probe(struct i2c_client *client);
++static int g760a_remove(struct i2c_client *client);
++
++static struct i2c_driver g760a_driver = {
++	.driver = {
++		.name	= "g760a",
++	},
++	.probe	= g760a_probe,
++	.remove	= g760a_remove,
++};
++
++/* read/write wrappers */
++static int g760a_read_value(struct i2c_client *client, enum g760a_regs reg)
++{
++	return i2c_smbus_read_byte_data(client, reg);
++}
++
++static int g760a_write_value(struct i2c_client *client, enum g760a_regs reg,
++			     u16 value)
++{
++	return i2c_smbus_write_byte_data(client, reg, value);
++}
++
++/****************************************************************************
++ * sysfs attributes
++ */
++
++static struct g760a_data *g760a_update_client(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g760a_data *data = i2c_get_clientdata(client);
++
++	mutex_lock(&data->update_lock);
++
++	if (time_after(jiffies, data->last_updated + G760A_UPDATE_INTERVAL)
++	    || !data->valid) {
++		dev_dbg(&client->dev, "Starting g760a update\n");
++
++		data->set_cnt = g760a_read_value(client, G760A_REG_SET_CNT);
++		data->act_cnt = g760a_read_value(client, G760A_REG_ACT_CNT);
++		data->fan_sta = g760a_read_value(client, G760A_REG_FAN_STA);
++
++		data->last_updated = jiffies;
++		data->valid = 1;
++	}
++
++	mutex_unlock(&data->update_lock);
++
++	return data;
++}
++
++static ssize_t show_fan(struct device *dev, struct device_attribute *da,
++			char *buf)
++{
++	struct g760a_data *data = g760a_update_client(dev);
++	int rpm = 0;
++
++	mutex_lock(&data->update_lock);
++	if (!(data->fan_sta & G760A_REG_FAN_STA_RPM_LOW))
++		rpm = RPM_FROM_REG(data->act_cnt, data->clk, data->fan_div);
++	mutex_unlock(&data->update_lock);
++
++	return sprintf(buf, "%d\n", rpm);
++}
++
++static ssize_t show_fan_alarm(struct device *dev, struct device_attribute *da,
++			      char *buf)
++{
++	struct g760a_data *data = g760a_update_client(dev);
++
++	int fan_alarm = (data->fan_sta & G760A_REG_FAN_STA_RPM_OFF) ? 1 : 0;
++
++	return sprintf(buf, "%d\n", fan_alarm);
++}
++
++static ssize_t get_pwm(struct device *dev, struct device_attribute *da,
++		       char *buf)
++{
++	struct g760a_data *data = g760a_update_client(dev);
++
++	return sprintf(buf, "%d\n", PWM_FROM_CNT(data->set_cnt));
++}
++
++static ssize_t set_pwm(struct device *dev, struct device_attribute *da,
++		       const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct g760a_data *data = g760a_update_client(dev);
++
++	const long val = simple_strtol(buf, NULL, 10);
++
++	mutex_lock(&data->update_lock);
++	data->set_cnt = PWM_TO_CNT(SENSORS_LIMIT(val, 0, 255));
++	g760a_write_value(client, G760A_REG_SET_CNT, data->set_cnt);
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
++static DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, get_pwm, set_pwm);
++static DEVICE_ATTR(fan1_input, S_IRUGO, show_fan, NULL);
++static DEVICE_ATTR(fan1_alarm, S_IRUGO, show_fan_alarm, NULL);
++
++static struct attribute *g760a_attributes[] = {
++	&dev_attr_pwm1.attr,
++	&dev_attr_fan1_input.attr,
++	&dev_attr_fan1_alarm.attr,
++	NULL
++};
++
++static const struct attribute_group g760a_group = {
++	.attrs = g760a_attributes,
++};
++
++/****************************************************************************
++ * new-style driver model code
++ */
++
++static int g760a_probe(struct i2c_client *client)
++{
++	struct g760a_data *data;
++	int err;
++
++	if (!i2c_check_functionality(client->adapter,
++				     I2C_FUNC_SMBUS_BYTE_DATA))
++		return -EIO;
++
++	data = kzalloc(sizeof(struct g760a_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, data);
++
++	data->client = client;
++	mutex_init(&data->update_lock);
++
++	/* setup default configuration for now */
++	data->fan_div = G760A_DEFAULT_FAN_DIV;
++	data->clk = G760A_DEFAULT_CLK;
++
++	/* Register sysfs hooks */
++	err = sysfs_create_group(&client->dev.kobj, &g760a_group);
++	if (err)
++		goto error_sysfs_create_group;
++
++	data->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto error_hwmon_device_register;
++	}
++
++	return 0;
++
++error_hwmon_device_register:
++	sysfs_remove_group(&client->dev.kobj, &g760a_group);
++error_sysfs_create_group:
++	kfree(data);
++	i2c_set_clientdata(client, NULL);
++
++	return err;
++}
++
++static int g760a_remove(struct i2c_client *client)
++{
++	struct g760a_data *data = i2c_get_clientdata(client);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &g760a_group);
++	kfree(data);
++	i2c_set_clientdata(client, NULL);
++
++	return 0;
++}
++
++/* module management */
++
++static int __init g760a_init(void)
++{
++	return i2c_add_driver(&g760a_driver);
++}
++
++static void __exit g760a_exit(void)
++{
++	i2c_del_driver(&g760a_driver);
++}
++
++MODULE_AUTHOR("Herbert Valerio Riedel <hvr@gnu.org>");
++MODULE_DESCRIPTION("GMT G760A driver");
++MODULE_LICENSE("GPL");
++
++module_init(g760a_init);
++module_exit(g760a_exit);
 -- 
-Jean Delvare
+1.5.3.4
+
 
 _______________________________________________
 lm-sensors mailing list
