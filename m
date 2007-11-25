@@ -1,32 +1,31 @@
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Date: Sat, 24 Nov 2007 20:22:32 +0000
-Subject: [lm-sensors] (solved) Re: Linux 2.6.24-rc* regression: sensors says
-Message-Id: <47488808.2000104@s5r6.in-berlin.de>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 25 Nov 2007 01:53:08 +0000
+Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (adm1025) Use dynamic
+Message-Id: <20071125015308.GC13717@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4748606D.6050501@s5r6.in-berlin.de> <474861FB.1080104@s5r6.in-berlin.de>
-In-Reply-To: <474861FB.1080104@s5r6.in-berlin.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-> Stefan Richter wrote:
->> I just booted 2.6.24-rc3 on two different PCs, one with i945 based MSI
->> motherboard and i386 kernel and one with i945 based Apple motherboard
->> and x86-64 kernel.  Before that I ran linux 2.6.23.
->>
->> On both PCs, "sensors" exits with
->>> No sensors found!
->=20
-> now logged at http://bugzilla.kernel.org/show_bug.cgi?id=9451
+Hi Jean:
 
-Updating sysfsutils from version 1.3.0 to 2.1.0 cured this on both PCs.
-Thanks to Jean for pointing me to sysfsutils.
---=20
-Stefan Richter
--=3D=3D=3D-=3D-=3D=3D =3D-=3D =3D---
-http://arcgraph.de/sr/
+* Jean Delvare <khali@linux-fr.org> [2007-10-10 21:11:01 +0200]:
+> This lets us get rid of macro-generated functions and shrinks the
+> driver size by about 30%.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> ---
+>  drivers/hwmon/adm1025.c |  291 ++++++++++++++++++++++++-----------------------
+>  1 file changed, 154 insertions(+), 137 deletions(-)
+> 
+
+Applied to hwmon-2.6.git/testing, thanks.
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
