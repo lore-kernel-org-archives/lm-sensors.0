@@ -1,30 +1,45 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 24 Nov 2007 09:31:27 +0000
-Subject: Re: [lm-sensors] PATCH: fix building of 3.0.0-rc3 on powerpc and
-Message-Id: <20071124103127.3d6ea720@hyperion.delvare>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 25 Nov 2007 01:53:35 +0000
+Subject: Re: [lm-sensors] [PATCH 2/5] hwmon: (gl518sm) Don't create
+Message-Id: <20071125015335.GH13717@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <473ECD90.5090603@hhs.nl>
-In-Reply-To: <473ECD90.5090603@hhs.nl>
+References: <20071022174617.6866b875@hyperion.delvare>
+In-Reply-To: <20071022174617.6866b875@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 23 Nov 2007 20:52:20 +0100, Hans de Goede wrote:
-> Jean Delvare wrote:
-> > There was an unrelated bug in etc/Module.mk, which your changes
-> > uncovered. Sorry about that. It is fixed in SVN now, please give it a
-> > try again. Your patch looks OK to me, so if no other problem arises,
-> > please commit it to SVN.
-> 
-> Ah yes, your latest SVN commit makes my patch work and makes things compile 
-> fine on i386, x86_64, ppc and pcc64, I've just commited my patch to svn.
+Hi Jean:
 
-Excellent, thank you. I'll release lm-sensors 3.0.0 later today after a
-last round of testing on my machines!
+* Jean Delvare <khali@linux-fr.org> [2007-10-22 17:46:17 +0200]:
+> The early revisions of the GL518SM do not report voltage values for
+> the first 3 voltage channels. We should not create sysfs attributes
+> for these missing features.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> ---
+>  drivers/hwmon/gl518sm.c |   23 +++++++++++++++++++----
+>  1 file changed, 19 insertions(+), 4 deletions(-)
+
+Applied to hwmon-2.6.git/testing, thanks.  One minor comment though...
+
+> @@ -496,6 +509,8 @@ static int gl518_detach_client(struct i2
+>  
+>  	hwmon_device_unregister(data->hwmon_dev);
+>  	sysfs_remove_group(&client->dev.kobj, &gl518_group);
+> +	if (data->type = gl518sm_r80)
+> +		sysfs_remove_group(&client->dev.kobj, &gl518_group_r80);
+>  
+>  	if ((err = i2c_detach_client(client)))
+>  		return err;
+
+Don't forget: you can do sysfs_remove_group() unconditionally.
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
