@@ -1,87 +1,130 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 22 Nov 2007 20:18:04 +0000
+From: "Kessia Pinheiro" <kessiapinheiro@gmail.com>
+Date: Sun, 25 Nov 2007 20:22:44 +0000
 Subject: Re: [lm-sensors] no sensors were detected with Intel Corporation
-Message-Id: <20071122211804.6e74aaab@hyperion.delvare>
+Message-Id: <c8faca170711251222j5fdbca83xda7e23c22e4b16@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6842925870174378931=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <c8faca170711081606t6acc5928hfdcd9200ba1d421f@mail.gmail.com>
 In-Reply-To: <c8faca170711081606t6acc5928hfdcd9200ba1d421f@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 20 Nov 2007 20:30:40 -0200, Kessia Pinheiro wrote:
-> The output is below:
-> 
-> # isadump -f 0x0c90
-> WARNING! Running this program can cause system crashes, data loss and worse!
-> I will probe address range 0xc00 to 0xcff.
-> Continue? [Y/n]
->   0 1 2 3 4 5 6 7 8 9 a b c d e f
-> 0c00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 0c10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 0c20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 0c30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 0c40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 0c50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 0c60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 0c70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 0c80: 0a ff ff ff 08 ff ff ff ff ff ff ff ff ff ff ff
-> 0c90: 34 ff ff ff 00 ff ff ff ff ff ff ff ff ff ff ff
-> 0ca0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 0cb0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 0cc0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 0cd0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 0ce0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> 0cf0: ff ff ff ff ff ff ff ff ff 00 ff ff ff ff ff ff
+--===============6842925870174378931==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_33371_20154739.1196022164377"
 
-This doesn't look like a hardware monitoring chip...
+------=_Part_33371_20154739.1196022164377
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-> On 11/16/07, Juerg Haefliger <juergh@gmail.com> wrote:
-> >
-> > Hi Kessia,
-> >
-> > Please keep the list in the loop for future replies.
-> >
-> >
-> > > The isadump output is below, but the BIOS info i send later.
-> > >
-> > >      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> > > 00: 00 00 00 00 00 00 00 0e 00 00 00 00 00 00 00 00
-> > > 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > > 20: 32 01 00 00 00 04 2e 00 00 00 00 00 00 00 00 00
-> > > 30: 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > > 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > > 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > >  60: 0c 90 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > > 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > > 80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > > 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > > a0: 00 00 00 00 00 00 00 00 00 00 ff ff ff ff ff ff
-> > > b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > > c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > > d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > > e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > >  f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > >
-> >
-> > OK, can you now run 'isadump -f 0x0c90'?
+U29ycnkgZm9yIG91dCBwb3N0LCBidXQgcmVwbHkgaXMgZm9yIHdobyBzZW5kIG1lc3NhZ2UuIC4g
+LiBIZXJlIGlzIGEgb3V0cHV0CmZvciBpc2FkdW1wJ3M6CgojIGlzYWR1bXAgLWsgMHg1NSAweDJl
+IDB4MmYgMHhhCldBUk5JTkchIFJ1bm5pbmcgdGhpcyBwcm9ncmFtIGNhbiBjYXVzZSBzeXN0ZW0g
+Y3Jhc2hlcywgZGF0YSBsb3NzIGFuZCB3b3JzZSEKSSB3aWxsIHByb2JlIGFkZHJlc3MgcmVnaXN0
+ZXIgMHgyZSBhbmQgZGF0YSByZWdpc3RlciAweDJmLgpQcm9iaW5nIGJhbmsgMTAgdXNpbmcgYmFu
+ayByZWdpc3RlciAweDA3LgpDb250aW51ZT8gW1kvbl0KICAwIDEgMiAzIDQgNSA2IDcgOCA5IGEg
+YiBjIGQgZSBmCjAwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwYSAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMAoxMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAK
+MjA6IDMyIDAxIDAwIDAwIDAwIDA0IDJlIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCjMwOiAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAo0MDogMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKNTA6IDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCjYwOiAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAo3MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKODA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwCjkwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMAphMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgZmYgZmYg
+ZmYgZmYgZmYgZmYKYjA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwCmMwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MApkMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKZTA6
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCmYwOiAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAoKIyBpc2FkdW1wIC1r
+IDB4NTUgMHgyZSAweDJmIDB4OApXQVJOSU5HISBSdW5uaW5nIHRoaXMgcHJvZ3JhbSBjYW4gY2F1
+c2Ugc3lzdGVtIGNyYXNoZXMsIGRhdGEgbG9zcyBhbmQgd29yc2UhCkkgd2lsbCBwcm9iZSBhZGRy
+ZXNzIHJlZ2lzdGVyIDB4MmUgYW5kIGRhdGEgcmVnaXN0ZXIgMHgyZi4KUHJvYmluZyBiYW5rIDgg
+dXNpbmcgYmFuayByZWdpc3RlciAweDA3LgpDb250aW51ZT8gW1kvbl0KICAwIDEgMiAzIDQgNSA2
+IDcgOCA5IGEgYiBjIGQgZSBmCjAwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwOCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMAoxMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAKMjA6IDMyIDAxIDAwIDAwIDAwIDA0IDJlIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwCjMwOiAwMSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAo0
+MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKNTA6IDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCjYwOiAwMCA2MiAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAo3MDogMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKODA6IDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCjkwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAphMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgZmYgZmYgZmYgZmYgZmYgZmYKYjA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwCmMwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMApkMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAKZTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+CmYwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAoKCgot
+LSAKS2Vzc2lhIFBpbmhlaXJvCkJhY2hhcmVsYW5kYSBlbSBDacOqbmNpYSBkYSBDb21wdXRhw6fD
+o28KVW5pdmVyc2lkYWRlIEZlZGVyYWwgZGEgQmFoaWEKTGludXggQ291bnRlciBVc2VyICMzODk2
+OTUgW2h0dHA6Ly9jb3VudGVyLmxpLm9yZ10K
+------=_Part_33371_20154739.1196022164377
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-... which isn't all that surprising, as the LDN is 0x0e which is never
-used for hardware monitoring features on SMSC Super-I/O chips. Most of
-them use LDN 0x0a or 0x08. Only one model uses LDN 0x09.
+PHA+U29ycnkgZm9yIG91dCBwb3N0LCBidXQgcmVwbHkgaXMgZm9yIHdobyBzZW5kIG1lc3NhZ2Uu
+IC4gLiBIZXJlIGlzIGEgb3V0cHV0IGZvciBpc2FkdW1wJiMzOTtzOjwvcD48cD4jIGlzYWR1bXAg
+LWsgMHg1NSAweDJlIDB4MmYgMHhhPGJyPldBUk5JTkchIFJ1bm5pbmcgdGhpcyBwcm9ncmFtIGNh
+biBjYXVzZSBzeXN0ZW0gY3Jhc2hlcywgZGF0YSBsb3NzIGFuZCB3b3JzZSE8YnI+SSB3aWxsIHBy
+b2JlIGFkZHJlc3MgcmVnaXN0ZXIgMHgyZSBhbmQgZGF0YSByZWdpc3RlciAweDJmLgo8YnI+UHJv
+YmluZyBiYW5rIDEwIHVzaW5nIGJhbmsgcmVnaXN0ZXIgMHgwNy48YnI+Q29udGludWU/IFtZL25d
+PGJyPiZuYnNwOyAgICAwICAxICAyICAzICA0ICA1ICA2ICA3ICA4ICA5ICBhICBiICBjICBkICBl
+ICBmPGJyPjAwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwYSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MDxicj4xMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAK
+PGJyPjIwOiAzMiAwMSAwMCAwMCAwMCAwNCAyZSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMDxi
+cj4zMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDA8YnI+
+NDA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwPGJyPjUw
+OiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMDxicj4KNjA6
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwPGJyPjcwOiAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMDxicj44MDogMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDA8YnI+OTA6IDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwPGJyPmEwOiAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCBmZiBmZiBmZiBmZiBmZiBmZgo8YnI+YjA6IDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwPGJyPmMwOiAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMDxicj5kMDogMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDA8YnI+ZTA6IDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwPGJyPgpmMDogMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDA8YnI+PC9wPjxwPjwvcD48cD48L3A+PHA+
+IyBpc2FkdW1wIC1rIDB4NTUgMHgyZSAweDJmIDB4ODxicj5XQVJOSU5HISBSdW5uaW5nIHRoaXMg
+cHJvZ3JhbSBjYW4gY2F1c2Ugc3lzdGVtIGNyYXNoZXMsIGRhdGEgbG9zcyBhbmQgd29yc2UhPGJy
+Pkkgd2lsbCBwcm9iZSBhZGRyZXNzIHJlZ2lzdGVyIDB4MmUgYW5kIGRhdGEgcmVnaXN0ZXIgMHgy
+Zi4KPGJyPlByb2JpbmcgYmFuayA4IHVzaW5nIGJhbmsgcmVnaXN0ZXIgMHgwNy48YnI+Q29udGlu
+dWU/IFtZL25dPGJyPiZuYnNwOyAgICAwICAxICAyICAzICA0ICA1ICA2ICA3ICA4ICA5ICBhICBi
+ICBjICBkICBlICBmPGJyPjAwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwOCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMDxicj4xMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAKPGJyPjIwOiAzMiAwMSAwMCAwMCAwMCAwNCAyZSAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMDxicj4zMDogMDEgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDA8YnI+NDA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwPGJyPjUwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MDxicj4KNjA6IDAwIDYyIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+PGJyPjcwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMDxi
+cj44MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDA8YnI+
+OTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwPGJyPmEw
+OiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCBmZiBmZiBmZiBmZiBmZiBmZgo8YnI+YjA6
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwPGJyPmMwOiAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMDxicj5kMDogMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDA8YnI+ZTA6IDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwPGJyPgpmMDogMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDA8YnI+PGJyPjwvcD48cD48
+L3A+PHA+PGJyPjwvcD48YnI+LS0gPGJyPktlc3NpYSBQaW5oZWlybzxicj5CYWNoYXJlbGFuZGEg
+ZW0gQ2nDqm5jaWEgZGEgQ29tcHV0YcOnw6NvPGJyPlVuaXZlcnNpZGFkZSBGZWRlcmFsIGRhIEJh
+aGlhPGJyPkxpbnV4IENvdW50ZXIgVXNlciAjMzg5Njk1IFs8YSBocmVmPSJodHRwOi8vY291bnRl
+ci5saS5vcmciPgpodHRwOi8vY291bnRlci5saS5vcmc8L2E+XQo=
+------=_Part_33371_20154739.1196022164377--
 
-So, Kessia, please provide the output of the following commands:
 
-isadump -k 0x55 0x2e 0x2f 0xa
-isadump -k 0x55 0x2e 0x2f 0x8
-
-(Please keep posting your replie to the mailing list.)
-
--- 
-Jean Delvare
+--===============6842925870174378931==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6842925870174378931==--
