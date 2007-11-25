@@ -1,67 +1,40 @@
-From: Alexander Kiel <alexanderkiel@gmx.net>
-Date: Thu, 22 Nov 2007 09:50:23 +0000
-Subject: Re: [lm-sensors] PWMconfig problem with Asus P5B Deluxe /
-Message-Id: <1195725023.6411.2.camel@alex>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0241272538911538731=="
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 25 Nov 2007 01:53:02 +0000
+Subject: Re: [lm-sensors] hwmon/lm87: Add support for the Analog
+Message-Id: <20071125015302.GB13717@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Jean:
 
---===============0241272538911538731==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-dsUdrAgYBMkgb3YL5t8l"
+* Jean Delvare <khali@linux-fr.org> [2007-10-09 15:22:22 +0200]:
+> It happens that the Analog Devices ADM1024 is fully compatible with
+> the National Semiconductor LM87, so support for the former can easily
+> be added to the lm87 driver.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> ---
+> Steven, Murray, can you please test this patch and confirm that it
+> works for you? I can also provide a standalone driver if it's easier
+> for you to test. Thanks.
+> 
+>  Documentation/hwmon/lm87 |   11 ++++++++---
+>  drivers/hwmon/Kconfig    |    4 ++--
+>  drivers/hwmon/lm87.c     |   25 +++++++++++++++++++------
+>  3 files changed, 29 insertions(+), 11 deletions(-)
+> 
 
+Applied to hwmon-2.6.git/testing, thanks.
 
---=-dsUdrAgYBMkgb3YL5t8l
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
-Hi Jean,
-
-> This however doesn't completely explain Alexander's experience, as for
-> him, only the _first_ value (the struck 0) appears to be considered by
-> the driver. But as it seems to be a bash bug specific to Ubuntu (at
-> least that's what the currently available evidences suggest), there's
-> little point in spending more time on this. The bug should be reported
-> to the maintainer of the Ubuntu bash package.
-
-Yes I'm on the way to do this. I had no time the past days. I only
-searched for this bug and did not find anything related. But I will file
-this as bug.
-
-Another thing I could do is take a live cd from another distri and try
-the same.=20
-
-Regards
-Alex
-
---=-dsUdrAgYBMkgb3YL5t8l
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQBHRVDeCGe1jnrXt2QRAkuQAKCFKTEraRkRMDwZqMiQB0YuZmvlFgCghD8i
-3CW3e6UgptLDoe8orDOG4UA=
-=2bPh
------END PGP SIGNATURE-----
-
---=-dsUdrAgYBMkgb3YL5t8l--
-
-
-
---===============0241272538911538731==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0241272538911538731==--
-
