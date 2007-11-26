@@ -1,37 +1,54 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Date: Wed, 21 Nov 2007 19:19:43 +0000
+From: Jiri Slaby <jirislaby@gmail.com>
+Date: Mon, 26 Nov 2007 08:57:38 +0000
 Subject: Re: [lm-sensors] broken suspend [Was: 2.6.24-rc2-mm1]
-Message-Id: <200711212019.45071.rjw@sisk.pl>
+Message-Id: <474A8A82.6040303@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.44L0.0711211053140.3226-100000@iolanthe.rowland.org>
-In-Reply-To: <Pine.LNX.4.44L0.0711211053140.3226-100000@iolanthe.rowland.org>
+References: <4741EB91.9080000@assembler.cz> <Pine.LNX.4.44L0.0711191521170.3129-100000@iolanthe.rowland.org> <20071120131520.GC12077@jupiter.solarsys.private> <200711210100.43049.rjw@sisk.pl>
+In-Reply-To: <200711210100.43049.rjw@sisk.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, Rudolf Marek <r.marek@assembler.cz>, Jiri Slaby <jirislaby@gmail.com>, Greg KH <greg@kroah.com>, Kernel development list <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Andrew Morton <akpm@linux-foundation.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, Alan Stern <stern@rowland.harvard.edu>, Rudolf Marek <r.marek@assembler.cz>, Greg KH <greg@kroah.com>, Kernel development list <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Andrew Morton <akpm@linux-foundation.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
 
-On Wednesday, 21 of November 2007, Alan Stern wrote:
-> On Wed, 21 Nov 2007, Rafael J. Wysocki wrote:
+On 11/21/2007 01:00 AM, Rafael J. Wysocki wrote:
+> On Tuesday, 20 of November 2007, Mark M. Hoffman wrote:
+>> commit ce9c7b78c839a6304696d90083eac08baad524ce
+>> Author: Mark M. Hoffman <mhoffman@lightlink.com>
+>> Date:   Tue Nov 20 07:51:50 2007 -0500
+>>
+>>     hwmon: (coretemp) fix suspend/resume hang
+>>     
+>>     Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 > 
-> > > Is it possible to unregister a driver on CPU_DOWN_PREPARE_FROZEN?
-> > 
-> > No.  In that case the suspend core is holding the device's mutex and your
-> > attempt to unregister it will deadlock with it.
-> > 
-> > Do you _have_ _to_ unregister the device at all?  Why don't you just leave
-> > it registered on CPU_DOWN_PREPARE_FROZEN?  The CPU is not going away
-> > physically in this case and it's _guaranteed_ that _cpu_up() will be called on
-> > it as soon as the hibernation image is ready or we are back from suspend.
+> I'd do it like this:
 > 
-> This leaves the device registered if for some reason the number of CPUs 
-> after resuming from hibernation is smaller than the number of CPUs 
-> before hibernation.  Of course, in theory that's never supposed to 
-> happen...
+>> diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+>> index 5c82ec7..afe2d31 100644
+>> --- a/drivers/hwmon/coretemp.c
+>> +++ b/drivers/hwmon/coretemp.c
+>> @@ -338,10 +338,12 @@ static int coretemp_cpu_callback(struct notifier_block *nfb,
+>>  	switch (action) {
+>>  	case CPU_ONLINE:
+>>  	case CPU_ONLINE_FROZEN:
+>> +	case CPU_DOWN_FAILED:
+>>  		coretemp_device_add(cpu);
+> +	case CPU_DOWN_FAILED_FROZEN: 
+>>  		break;
+>> -	case CPU_DEAD:
+>> -	case CPU_DEAD_FROZEN:
+>> +	case CPU_DOWN_PREPARE:
+>>  		coretemp_device_remove(cpu);
+> +	case CPU_DOWN_PREPARE_FROZEN:
+>>  		break;
+>>  	}
 
-Yes, that clearly would be a bug.
+Sorry for the delay, this (trimmed version) solves the problem!
 
-Rafael
+thanks,
+-- 
+Jiri Slaby (jirislaby@gmail.com)
+Faculty of Informatics, Masaryk University
 
 _______________________________________________
 lm-sensors mailing list
