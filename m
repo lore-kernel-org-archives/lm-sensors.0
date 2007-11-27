@@ -1,7 +1,7 @@
-From: "David Hubbard" <david.c.hubbard@gmail.com>
-Date: Mon, 26 Nov 2007 07:00:49 +0000
+From: "Joseph L. Casale" <jcasale@ActiveNetwerx.com>
+Date: Tue, 27 Nov 2007 00:46:45 +0000
 Subject: Re: [lm-sensors] Beginner Question
-Message-Id: <4dfa50520711252300y566c5104sa4c14e6770e6daf5@mail.gmail.com>
+Message-Id: <1C8CF1EA1A5B5940B81B0710B2A4C93823D5A5C64D@an-ex.ActiveNetwerx.int>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1C8CF1EA1A5B5940B81B0710B2A4C93823D5A5C63E@an-ex.ActiveNetwerx.int>
 In-Reply-To: <1C8CF1EA1A5B5940B81B0710B2A4C93823D5A5C63E@an-ex.ActiveNetwerx.int>
@@ -9,6 +9,14 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+David,
+
+-----Original Message-----
+From: David Hubbard [mailto:david.c.hubbard@gmail.com]
+Sent: Monday, November 26, 2007 12:01 AM
+To: Joseph L. Casale; lm-sensors@lm-sensors.org
+Subject: Re: [lm-sensors] Beginner Question
 
 Hi Joseph,
 
@@ -49,6 +57,12 @@ that would be appreciated.
 
 Good luck,
 David
+-----End Original Message-----
+
+As powerful as VMware is, it won't allow access to the host's hardware in this manner. So if I glean correctly, there does not exist a method without compiling in drivers currently?
+
+Thanks,
+jlc
 
 _______________________________________________
 lm-sensors mailing list
