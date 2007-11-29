@@ -1,323 +1,1073 @@
-From: Chris Picton <chrisp@tangent.co.za>
-Date: Mon, 19 Nov 2007 10:06:23 +0000
-Subject: [lm-sensors] Sensors on an nforce2 motherboard giving incorrect
-Message-Id: <1195466783.8463.19.camel@jabberwock>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3736113183993163556=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 29 Nov 2007 22:46:42 +0000
+Subject: [lm-sensors] [PATCH 2/4] hwmon: (adm1026) Whitespace cleanups
+Message-Id: <20071129234642.002cb6ff@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Whitespace cleanups only:
+* Trim trailing whitespace.
+* Use tabs for indentation and alignment.
+* Add missing space after commas.
+* Remove extra spaces.
 
---===============3736113183993163556==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-qJbuHp/PT1RXh2SO/eqi"
+No functional change, binary is identical before and after this patch.
 
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/adm1026.c |  459 +++++++++++++++++++++++------------------------
+ 1 file changed, 231 insertions(+), 228 deletions(-)
 
---=-qJbuHp/PT1RXh2SO/eqi
-Content-Type: multipart/mixed; boundary="=-CYG2iPIhy+BOpWHkK/t4"
+--- linux-2.6.24-rc3.orig/drivers/hwmon/adm1026.c	2007-11-29 23:14:24.000000000 +0100
++++ linux-2.6.24-rc3/drivers/hwmon/adm1026.c	2007-11-29 23:16:40.000000000 +0100
+@@ -40,8 +40,8 @@ static unsigned short normal_i2c[] = { 0
+ /* Insmod parameters */
+ I2C_CLIENT_INSMOD_1(adm1026);
+ 
+-static int gpio_input[17]  = { -1, -1, -1, -1, -1, -1, -1, -1, -1,
+-				-1, -1, -1, -1, -1, -1, -1, -1 }; 
++static int gpio_input[17] = { -1, -1, -1, -1, -1, -1, -1, -1, -1,
++				-1, -1, -1, -1, -1, -1, -1, -1 };
+ static int gpio_output[17] = { -1, -1, -1, -1, -1, -1, -1, -1, -1,
+ 				-1, -1, -1, -1, -1, -1, -1, -1 };
+ static int gpio_inverted[17] = { -1, -1, -1, -1, -1, -1, -1, -1, -1,
+@@ -49,46 +49,49 @@ static int gpio_inverted[17] = { -1, -1,
+ static int gpio_normal[17] = { -1, -1, -1, -1, -1, -1, -1, -1, -1,
+ 				-1, -1, -1, -1, -1, -1, -1, -1 };
+ static int gpio_fan[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
+-module_param_array(gpio_input,int,NULL,0);
+-MODULE_PARM_DESC(gpio_input,"List of GPIO pins (0-16) to program as inputs");
+-module_param_array(gpio_output,int,NULL,0);
+-MODULE_PARM_DESC(gpio_output,"List of GPIO pins (0-16) to program as "
++module_param_array(gpio_input, int, NULL, 0);
++MODULE_PARM_DESC(gpio_input, "List of GPIO pins (0-16) to program as inputs");
++module_param_array(gpio_output, int, NULL, 0);
++MODULE_PARM_DESC(gpio_output, "List of GPIO pins (0-16) to program as "
+ 	"outputs");
+-module_param_array(gpio_inverted,int,NULL,0);
+-MODULE_PARM_DESC(gpio_inverted,"List of GPIO pins (0-16) to program as "
++module_param_array(gpio_inverted, int, NULL, 0);
++MODULE_PARM_DESC(gpio_inverted, "List of GPIO pins (0-16) to program as "
+ 	"inverted");
+-module_param_array(gpio_normal,int,NULL,0);
+-MODULE_PARM_DESC(gpio_normal,"List of GPIO pins (0-16) to program as "
++module_param_array(gpio_normal, int, NULL, 0);
++MODULE_PARM_DESC(gpio_normal, "List of GPIO pins (0-16) to program as "
+ 	"normal/non-inverted");
+-module_param_array(gpio_fan,int,NULL,0);
+-MODULE_PARM_DESC(gpio_fan,"List of GPIO pins (0-7) to program as fan tachs");
++module_param_array(gpio_fan, int, NULL, 0);
++MODULE_PARM_DESC(gpio_fan, "List of GPIO pins (0-7) to program as fan tachs");
+ 
+ /* Many ADM1026 constants specified below */
+ 
+ /* The ADM1026 registers */
+-#define ADM1026_REG_CONFIG1  0x00
+-#define CFG1_MONITOR     0x01
+-#define CFG1_INT_ENABLE  0x02
+-#define CFG1_INT_CLEAR   0x04
+-#define CFG1_AIN8_9      0x08
+-#define CFG1_THERM_HOT   0x10
+-#define CFG1_DAC_AFC     0x20
+-#define CFG1_PWM_AFC     0x40
+-#define CFG1_RESET       0x80
+-#define ADM1026_REG_CONFIG2  0x01
++#define ADM1026_REG_CONFIG1	0x00
++#define CFG1_MONITOR		0x01
++#define CFG1_INT_ENABLE		0x02
++#define CFG1_INT_CLEAR		0x04
++#define CFG1_AIN8_9		0x08
++#define CFG1_THERM_HOT		0x10
++#define CFG1_DAC_AFC		0x20
++#define CFG1_PWM_AFC		0x40
++#define CFG1_RESET		0x80
++
++#define ADM1026_REG_CONFIG2	0x01
+ /* CONFIG2 controls FAN0/GPIO0 through FAN7/GPIO7 */
+-#define ADM1026_REG_CONFIG3  0x07
+-#define CFG3_GPIO16_ENABLE  0x01
+-#define CFG3_CI_CLEAR  0x02
+-#define CFG3_VREF_250  0x04
+-#define CFG3_GPIO16_DIR  0x40
+-#define CFG3_GPIO16_POL  0x80
+-#define ADM1026_REG_E2CONFIG  0x13
+-#define E2CFG_READ  0x01
+-#define E2CFG_WRITE  0x02
+-#define E2CFG_ERASE  0x04
+-#define E2CFG_ROM  0x08
+-#define E2CFG_CLK_EXT  0x80
++
++#define ADM1026_REG_CONFIG3	0x07
++#define CFG3_GPIO16_ENABLE	0x01
++#define CFG3_CI_CLEAR		0x02
++#define CFG3_VREF_250		0x04
++#define CFG3_GPIO16_DIR		0x40
++#define CFG3_GPIO16_POL		0x80
++
++#define ADM1026_REG_E2CONFIG	0x13
++#define E2CFG_READ		0x01
++#define E2CFG_WRITE		0x02
++#define E2CFG_ERASE		0x04
++#define E2CFG_ROM		0x08
++#define E2CFG_CLK_EXT		0x80
+ 
+ /* There are 10 general analog inputs and 7 dedicated inputs
+  * They are:
+@@ -129,48 +132,48 @@ static u16 ADM1026_REG_TEMP_TMIN[] = { 0
+ static u16 ADM1026_REG_TEMP_THERM[] = { 0x0d, 0x0e, 0x0f };
+ static u16 ADM1026_REG_TEMP_OFFSET[] = { 0x1e, 0x6e, 0x6f };
+ 
+-#define ADM1026_REG_FAN(nr) (0x38 + (nr))
+-#define ADM1026_REG_FAN_MIN(nr) (0x60 + (nr))
+-#define ADM1026_REG_FAN_DIV_0_3 0x02
+-#define ADM1026_REG_FAN_DIV_4_7 0x03
+-
+-#define ADM1026_REG_DAC  0x04
+-#define ADM1026_REG_PWM  0x05
+-
+-#define ADM1026_REG_GPIO_CFG_0_3 0x08
+-#define ADM1026_REG_GPIO_CFG_4_7 0x09
+-#define ADM1026_REG_GPIO_CFG_8_11 0x0a
+-#define ADM1026_REG_GPIO_CFG_12_15 0x0b
++#define ADM1026_REG_FAN(nr)		(0x38 + (nr))
++#define ADM1026_REG_FAN_MIN(nr)		(0x60 + (nr))
++#define ADM1026_REG_FAN_DIV_0_3		0x02
++#define ADM1026_REG_FAN_DIV_4_7		0x03
++
++#define ADM1026_REG_DAC			0x04
++#define ADM1026_REG_PWM			0x05
++
++#define ADM1026_REG_GPIO_CFG_0_3	0x08
++#define ADM1026_REG_GPIO_CFG_4_7	0x09
++#define ADM1026_REG_GPIO_CFG_8_11	0x0a
++#define ADM1026_REG_GPIO_CFG_12_15	0x0b
+ /* CFG_16 in REG_CFG3 */
+-#define ADM1026_REG_GPIO_STATUS_0_7 0x24
+-#define ADM1026_REG_GPIO_STATUS_8_15 0x25
++#define ADM1026_REG_GPIO_STATUS_0_7	0x24
++#define ADM1026_REG_GPIO_STATUS_8_15	0x25
+ /* STATUS_16 in REG_STATUS4 */
+-#define ADM1026_REG_GPIO_MASK_0_7 0x1c
+-#define ADM1026_REG_GPIO_MASK_8_15 0x1d
++#define ADM1026_REG_GPIO_MASK_0_7	0x1c
++#define ADM1026_REG_GPIO_MASK_8_15	0x1d
+ /* MASK_16 in REG_MASK4 */
+ 
+-#define ADM1026_REG_COMPANY 0x16
+-#define ADM1026_REG_VERSTEP 0x17
++#define ADM1026_REG_COMPANY		0x16
++#define ADM1026_REG_VERSTEP		0x17
+ /* These are the recognized values for the above regs */
+-#define ADM1026_COMPANY_ANALOG_DEV 0x41
+-#define ADM1026_VERSTEP_GENERIC 0x40
+-#define ADM1026_VERSTEP_ADM1026 0x44
+-
+-#define ADM1026_REG_MASK1 0x18
+-#define ADM1026_REG_MASK2 0x19
+-#define ADM1026_REG_MASK3 0x1a
+-#define ADM1026_REG_MASK4 0x1b
+-
+-#define ADM1026_REG_STATUS1 0x20
+-#define ADM1026_REG_STATUS2 0x21
+-#define ADM1026_REG_STATUS3 0x22
+-#define ADM1026_REG_STATUS4 0x23
++#define ADM1026_COMPANY_ANALOG_DEV	0x41
++#define ADM1026_VERSTEP_GENERIC		0x40
++#define ADM1026_VERSTEP_ADM1026		0x44
++
++#define ADM1026_REG_MASK1		0x18
++#define ADM1026_REG_MASK2		0x19
++#define ADM1026_REG_MASK3		0x1a
++#define ADM1026_REG_MASK4		0x1b
++
++#define ADM1026_REG_STATUS1		0x20
++#define ADM1026_REG_STATUS2		0x21
++#define ADM1026_REG_STATUS3		0x22
++#define ADM1026_REG_STATUS4		0x23
+ 
+ #define ADM1026_FAN_ACTIVATION_TEMP_HYST -6
+-#define ADM1026_FAN_CONTROL_TEMP_RANGE 20
+-#define ADM1026_PWM_MAX 255
++#define ADM1026_FAN_CONTROL_TEMP_RANGE	20
++#define ADM1026_PWM_MAX			255
+ 
+-/* Conversions. Rounding and limit checking is only done on the TO_REG 
++/* Conversions. Rounding and limit checking is only done on the TO_REG
+  * variants. Note that you should be a bit careful with which arguments
+  * these macros are called: arguments may be evaluated more than once.
+  */
+@@ -186,47 +189,47 @@ static u16 ADM1026_REG_TEMP_OFFSET[] = {
+  * The values in this table are based on Table II, page 15 of the
+  *    datasheet.
+  */
+-static int adm1026_scaling[] = {  /* .001 Volts */
+-		2250, 2250, 2250, 2250, 2250, 2250, 
+-		1875, 1875, 1875, 1875, 3000, 3330, 
++static int adm1026_scaling[] = { /* .001 Volts */
++		2250, 2250, 2250, 2250, 2250, 2250,
++		1875, 1875, 1875, 1875, 3000, 3330,
+ 		3330, 4995, 2250, 12000, 13875
+ 	};
+ #define NEG12_OFFSET  16000
+-#define SCALE(val,from,to) (((val)*(to) + ((from)/2))/(from))
+-#define INS_TO_REG(n,val)  (SENSORS_LIMIT(SCALE(val,adm1026_scaling[n],192),\
+-	0,255))
+-#define INS_FROM_REG(n,val) (SCALE(val,192,adm1026_scaling[n]))
++#define SCALE(val, from, to) (((val)*(to) + ((from)/2))/(from))
++#define INS_TO_REG(n, val)  (SENSORS_LIMIT(SCALE(val, adm1026_scaling[n], 192),\
++	0, 255))
++#define INS_FROM_REG(n, val) (SCALE(val, 192, adm1026_scaling[n]))
+ 
+ /* FAN speed is measured using 22.5kHz clock and counts for 2 pulses
+  *   and we assume a 2 pulse-per-rev fan tach signal
+  *      22500 kHz * 60 (sec/min) * 2 (pulse) / 2 (pulse/rev) = 1350000
+  */
+-#define FAN_TO_REG(val,div)  ((val)<=0 ? 0xff : SENSORS_LIMIT(1350000/((val)*\
+-	(div)),1,254)) 
+-#define FAN_FROM_REG(val,div) ((val)=0?-1:(val)=0xff ? 0 : 1350000/((val)*\
+-	(div)))
++#define FAN_TO_REG(val, div)  ((val) <= 0 ? 0xff : \
++				SENSORS_LIMIT(1350000/((val)*(div)), 1, 254))
++#define FAN_FROM_REG(val, div) ((val) = 0 ? -1:(val) = 0xff ? 0 : \
++				1350000/((val)*(div)))
+ #define DIV_FROM_REG(val) (1<<(val))
+-#define DIV_TO_REG(val) ((val)>=8 ? 3 : (val)>=4 ? 2 : (val)>=2 ? 1 : 0)
++#define DIV_TO_REG(val) ((val) >= 8 ? 3 : (val) >= 4 ? 2 : (val) >= 2 ? 1 : 0)
+ 
+ /* Temperature is reported in 1 degC increments */
+ #define TEMP_TO_REG(val) (SENSORS_LIMIT(((val)+((val)<0 ? -500 : 500))/1000,\
+-	-127,127))
++	-127, 127))
+ #define TEMP_FROM_REG(val) ((val) * 1000)
+ #define OFFSET_TO_REG(val) (SENSORS_LIMIT(((val)+((val)<0 ? -500 : 500))/1000,\
+-	-127,127))
++	-127, 127))
+ #define OFFSET_FROM_REG(val) ((val) * 1000)
+ 
+-#define PWM_TO_REG(val) (SENSORS_LIMIT(val,0,255))
++#define PWM_TO_REG(val) (SENSORS_LIMIT(val, 0, 255))
+ #define PWM_FROM_REG(val) (val)
+ 
+ #define PWM_MIN_TO_REG(val) ((val) & 0xf0)
+ #define PWM_MIN_FROM_REG(val) (((val) & 0xf0) + ((val) >> 4))
+ 
+-/* Analog output is a voltage, and scaled to millivolts.  The datasheet 
+- *   indicates that the DAC could be used to drive the fans, but in our 
++/* Analog output is a voltage, and scaled to millivolts.  The datasheet
++ *   indicates that the DAC could be used to drive the fans, but in our
+  *   example board (Arima HDAMA) it isn't connected to the fans at all.
+  */
+-#define DAC_TO_REG(val) (SENSORS_LIMIT(((((val)*255)+500)/2500),0,255)) 
++#define DAC_TO_REG(val) (SENSORS_LIMIT(((((val)*255)+500)/2500), 0, 255))
+ #define DAC_FROM_REG(val) (((val)*2500)/255)
+ 
+ /* Typically used with systems using a v9.1 VRM spec ? */
+@@ -243,8 +246,8 @@ static int adm1026_scaling[] = {  /* .00
+  *    So, we keep the config data up to date in the cache
+  *    when it is written and only sample it once every 5 *minutes*
+  */
+-#define ADM1026_DATA_INTERVAL  (1 * HZ)
+-#define ADM1026_CONFIG_INTERVAL  (5 * 60 * HZ)
++#define ADM1026_DATA_INTERVAL		(1 * HZ)
++#define ADM1026_CONFIG_INTERVAL		(5 * 60 * HZ)
+ 
+ /* We allow for multiple chips in a single system.
+  *
+@@ -268,30 +271,30 @@ struct adm1026_data {
+ 	unsigned long last_reading;	/* In jiffies */
+ 	unsigned long last_config;	/* In jiffies */
+ 
+-	u8 in[17];              /* Register value */
+-	u8 in_max[17];          /* Register value */
+-	u8 in_min[17];          /* Register value */
+-	s8 temp[3];             /* Register value */
+-	s8 temp_min[3];         /* Register value */
+-	s8 temp_max[3];         /* Register value */
+-	s8 temp_tmin[3];        /* Register value */
+-	s8 temp_crit[3];        /* Register value */
+-	s8 temp_offset[3];      /* Register value */
+-	u8 fan[8];              /* Register value */
+-	u8 fan_min[8];          /* Register value */
+-	u8 fan_div[8];          /* Decoded value */
+-	struct pwm_data pwm1;   /* Pwm control values */
+-	int vid;                /* Decoded value */
+-	u8 vrm;                 /* VRM version */
++	u8 in[17];		/* Register value */
++	u8 in_max[17];		/* Register value */
++	u8 in_min[17];		/* Register value */
++	s8 temp[3];		/* Register value */
++	s8 temp_min[3];		/* Register value */
++	s8 temp_max[3];		/* Register value */
++	s8 temp_tmin[3];	/* Register value */
++	s8 temp_crit[3];	/* Register value */
++	s8 temp_offset[3];	/* Register value */
++	u8 fan[8];		/* Register value */
++	u8 fan_min[8];		/* Register value */
++	u8 fan_div[8];		/* Decoded value */
++	struct pwm_data pwm1;	/* Pwm control values */
++	int vid;		/* Decoded value */
++	u8 vrm;			/* VRM version */
+ 	u8 analog_out;		/* Register value (DAC) */
+-	long alarms;            /* Register encoding, combined */
+-	long alarm_mask;        /* Register encoding, combined */
+-	long gpio;              /* Register encoding, combined */
+-	long gpio_mask;         /* Register encoding, combined */
+-	u8 gpio_config[17];     /* Decoded value */
+-	u8 config1;             /* Register value */
+-	u8 config2;             /* Register value */
+-	u8 config3;             /* Register value */
++	long alarms;		/* Register encoding, combined */
++	long alarm_mask;	/* Register encoding, combined */
++	long gpio;		/* Register encoding, combined */
++	long gpio_mask;		/* Register encoding, combined */
++	u8 gpio_config[17];	/* Decoded value */
++	u8 config1;		/* Register value */
++	u8 config2;		/* Register value */
++	u8 config3;		/* Register value */
+ };
+ 
+ static int adm1026_attach_adapter(struct i2c_adapter *adapter);
+@@ -301,7 +304,7 @@ static int adm1026_detach_client(struct 
+ static int adm1026_read_value(struct i2c_client *client, u8 reg);
+ static int adm1026_write_value(struct i2c_client *client, u8 reg, int value);
+ static void adm1026_print_gpio(struct i2c_client *client);
+-static void adm1026_fixup_gpio(struct i2c_client *client); 
++static void adm1026_fixup_gpio(struct i2c_client *client);
+ static struct adm1026_data *adm1026_update_device(struct device *dev);
+ static void adm1026_init_client(struct i2c_client *client);
+ 
+@@ -311,7 +314,7 @@ static struct i2c_driver adm1026_driver 
+ 		.name	= "adm1026",
+ 	},
+ 	.attach_adapter = adm1026_attach_adapter,
+-	.detach_client  = adm1026_detach_client,
++	.detach_client	= adm1026_detach_client,
+ };
+ 
+ static int adm1026_attach_adapter(struct i2c_adapter *adapter)
+@@ -355,7 +358,7 @@ static void adm1026_init_client(struct i
+ 	int value, i;
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+ 
+-        dev_dbg(&client->dev, "Initializing device\n");
++	dev_dbg(&client->dev, "Initializing device\n");
+ 	/* Read chip config */
+ 	data->config1 = adm1026_read_value(client, ADM1026_REG_CONFIG1);
+ 	data->config2 = adm1026_read_value(client, ADM1026_REG_CONFIG2);
+@@ -426,10 +429,10 @@ static void adm1026_init_client(struct i
+ 	 *   configured, we don't want to mess with them.
+ 	 *   If they weren't, the default is 100% PWM, no
+ 	 *   control and will suffice until 'sensors -s'
+-	 *   can be run by the user.  We DO set the default 
++	 *   can be run by the user.  We DO set the default
+ 	 *   value for pwm1.auto_pwm_min to its maximum
+ 	 *   so that enabling automatic pwm fan control
+-	 *   without first setting a value for pwm1.auto_pwm_min 
++	 *   without first setting a value for pwm1.auto_pwm_min
+ 	 *   will not result in potentially dangerous fan speed decrease.
+ 	 */
+ 	data->pwm1.auto_pwm_min%5;
+@@ -453,7 +456,7 @@ static void adm1026_init_client(struct i
+ static void adm1026_print_gpio(struct i2c_client *client)
+ {
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+-	int  i;
++	int i;
+ 
+ 	dev_dbg(&client->dev, "GPIO config is:");
+ 	for (i = 0;i <= 7;++i) {
+@@ -477,7 +480,7 @@ static void adm1026_print_gpio(struct i2
+ 			data->gpio_config[16] & 0x02 ? "" : "!",
+ 			data->gpio_config[16] & 0x01 ? "OUT" : "IN");
+ 	} else {
+-		/* GPIO16 is THERM  */
++		/* GPIO16 is THERM */
+ 		dev_dbg(&client->dev, "\tTHERM\n");
+ 	}
+ }
+@@ -485,8 +488,8 @@ static void adm1026_print_gpio(struct i2
+ static void adm1026_fixup_gpio(struct i2c_client *client)
+ {
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+-	int  i;
+-	int  value;
++	int i;
++	int value;
+ 
+ 	/* Make the changes requested. */
+ 	/* We may need to unlock/stop monitoring or soft-reset the
+@@ -516,14 +519,14 @@ static void adm1026_fixup_gpio(struct i2
+ 		}
+ 	}
+ 
+-	/* Inverted  */
++	/* Inverted */
+ 	for (i = 0;i <= 16;++i) {
+ 		if (gpio_inverted[i] >= 0 && gpio_inverted[i] <= 16) {
+ 			data->gpio_config[gpio_inverted[i]] &= ~ 0x02;
+ 		}
+ 	}
+ 
+-	/* Normal overrides inverted  */
++	/* Normal overrides inverted */
+ 	for (i = 0;i <= 16;++i) {
+ 		if (gpio_normal[i] >= 0 && gpio_normal[i] <= 16) {
+ 			data->gpio_config[gpio_normal[i]] |= 0x02;
+@@ -569,7 +572,7 @@ static struct adm1026_data *adm1026_upda
+ 	if (!data->valid
+ 	    || time_after(jiffies, data->last_reading + ADM1026_DATA_INTERVAL)) {
+ 		/* Things that change quickly */
+-		dev_dbg(&client->dev,"Reading sensor values\n");
++		dev_dbg(&client->dev, "Reading sensor values\n");
+ 		for (i = 0;i <= 16;++i) {
+ 			data->in[i]  			    adm1026_read_value(client, ADM1026_REG_IN[i]);
+@@ -582,18 +585,18 @@ static struct adm1026_data *adm1026_upda
+ 
+ 		for (i = 0;i <= 2;++i) {
+ 			/* NOTE: temp[] is s8 and we assume 2's complement
+-			 *   "conversion" in the assignment   */
++			 *   "conversion" in the assignment */
+ 			data->temp[i]  			    adm1026_read_value(client, ADM1026_REG_TEMP[i]);
+ 		}
+ 
+-		data->pwm1.pwm = adm1026_read_value(client, 
++		data->pwm1.pwm = adm1026_read_value(client,
+ 			ADM1026_REG_PWM);
+-		data->analog_out = adm1026_read_value(client, 
++		data->analog_out = adm1026_read_value(client,
+ 			ADM1026_REG_DAC);
+ 		/* GPIO16 is MSbit of alarms, move it to gpio */
+ 		alarms = adm1026_read_value(client, ADM1026_REG_STATUS4);
+-		gpio = alarms & 0x80 ? 0x0100 : 0;  /* GPIO16 */
++		gpio = alarms & 0x80 ? 0x0100 : 0; /* GPIO16 */
+ 		alarms &= 0x7f;
+ 		alarms <<= 8;
+ 		alarms |= adm1026_read_value(client, ADM1026_REG_STATUS3);
+@@ -604,24 +607,24 @@ static struct adm1026_data *adm1026_upda
+ 		data->alarms = alarms;
+ 
+ 		/* Read the GPIO values */
+-		gpio |= adm1026_read_value(client, 
++		gpio |= adm1026_read_value(client,
+ 			ADM1026_REG_GPIO_STATUS_8_15);
+ 		gpio <<= 8;
+-		gpio |= adm1026_read_value(client, 
++		gpio |= adm1026_read_value(client,
+ 			ADM1026_REG_GPIO_STATUS_0_7);
+ 		data->gpio = gpio;
+ 
+ 		data->last_reading = jiffies;
+-	};  /* last_reading */
++	}; /* last_reading */
+ 
+ 	if (!data->valid ||
+ 	    time_after(jiffies, data->last_config + ADM1026_CONFIG_INTERVAL)) {
+ 		/* Things that don't change often */
+ 		dev_dbg(&client->dev, "Reading config values\n");
+ 		for (i = 0;i <= 16;++i) {
+-			data->in_min[i] = adm1026_read_value(client, 
++			data->in_min[i] = adm1026_read_value(client,
+ 				ADM1026_REG_IN_MIN[i]);
+-			data->in_max[i] = adm1026_read_value(client, 
++			data->in_max[i] = adm1026_read_value(client,
+ 				ADM1026_REG_IN_MAX[i]);
+ 		}
+ 
+@@ -629,32 +632,32 @@ static struct adm1026_data *adm1026_upda
+ 			| (adm1026_read_value(client, ADM1026_REG_FAN_DIV_4_7)
+ 			<< 8);
+ 		for (i = 0;i <= 7;++i) {
+-			data->fan_min[i] = adm1026_read_value(client, 
++			data->fan_min[i] = adm1026_read_value(client,
+ 				ADM1026_REG_FAN_MIN(i));
+ 			data->fan_div[i] = DIV_FROM_REG(value & 0x03);
+ 			value >>= 2;
+ 		}
+ 
+ 		for (i = 0; i <= 2; ++i) {
+-			/* NOTE: temp_xxx[] are s8 and we assume 2's 
++			/* NOTE: temp_xxx[] are s8 and we assume 2's
+ 			 *    complement "conversion" in the assignment
+ 			 */
+-			data->temp_min[i] = adm1026_read_value(client, 
++			data->temp_min[i] = adm1026_read_value(client,
+ 				ADM1026_REG_TEMP_MIN[i]);
+-			data->temp_max[i] = adm1026_read_value(client, 
++			data->temp_max[i] = adm1026_read_value(client,
+ 				ADM1026_REG_TEMP_MAX[i]);
+-			data->temp_tmin[i] = adm1026_read_value(client, 
++			data->temp_tmin[i] = adm1026_read_value(client,
+ 				ADM1026_REG_TEMP_TMIN[i]);
+-			data->temp_crit[i] = adm1026_read_value(client, 
++			data->temp_crit[i] = adm1026_read_value(client,
+ 				ADM1026_REG_TEMP_THERM[i]);
+-			data->temp_offset[i] = adm1026_read_value(client, 
++			data->temp_offset[i] = adm1026_read_value(client,
+ 				ADM1026_REG_TEMP_OFFSET[i]);
+ 		}
+ 
+ 		/* Read the STATUS/alarm masks */
+-		alarms  = adm1026_read_value(client, ADM1026_REG_MASK4);
+-		gpio    = alarms & 0x80 ? 0x0100 : 0;  /* GPIO16 */
+-		alarms  = (alarms & 0x7f) << 8;
++		alarms = adm1026_read_value(client, ADM1026_REG_MASK4);
++		gpio = alarms & 0x80 ? 0x0100 : 0; /* GPIO16 */
++		alarms = (alarms & 0x7f) << 8;
+ 		alarms |= adm1026_read_value(client, ADM1026_REG_MASK3);
+ 		alarms <<= 8;
+ 		alarms |= adm1026_read_value(client, ADM1026_REG_MASK2);
+@@ -663,24 +666,24 @@ static struct adm1026_data *adm1026_upda
+ 		data->alarm_mask = alarms;
+ 
+ 		/* Read the GPIO values */
+-		gpio |= adm1026_read_value(client, 
++		gpio |= adm1026_read_value(client,
+ 			ADM1026_REG_GPIO_MASK_8_15);
+ 		gpio <<= 8;
+ 		gpio |= adm1026_read_value(client, ADM1026_REG_GPIO_MASK_0_7);
+ 		data->gpio_mask = gpio;
+ 
+ 		/* Read various values from CONFIG1 */
+-		data->config1 = adm1026_read_value(client, 
++		data->config1 = adm1026_read_value(client,
+ 			ADM1026_REG_CONFIG1);
+ 		if (data->config1 & CFG1_PWM_AFC) {
+ 			data->pwm1.enable = 2;
+-			data->pwm1.auto_pwm_min = 
++			data->pwm1.auto_pwm_min  				PWM_MIN_FROM_REG(data->pwm1.pwm);
+ 		}
+ 		/* Read the GPIO config */
+-		data->config2 = adm1026_read_value(client, 
++		data->config2 = adm1026_read_value(client,
+ 			ADM1026_REG_CONFIG2);
+-		data->config3 = adm1026_read_value(client, 
++		data->config3 = adm1026_read_value(client,
+ 			ADM1026_REG_CONFIG3);
+ 		data->gpio_config[16] = (data->config3 >> 6) & 0x03;
+ 
+@@ -695,7 +698,7 @@ static struct adm1026_data *adm1026_upda
+ 		}
+ 
+ 		data->last_config = jiffies;
+-	};  /* last_config */
++	}; /* last_config */
+ 
+ 	dev_dbg(&client->dev, "Setting VID from GPIO11-15.\n");
+ 	data->vid = (data->gpio >> 11) & 0x1f;
+@@ -710,15 +713,15 @@ static ssize_t show_in(struct device *de
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", INS_FROM_REG(nr, data->in[nr]));
++	return sprintf(buf, "%d\n", INS_FROM_REG(nr, data->in[nr]));
+ }
+ static ssize_t show_in_min(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+ {
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+-	struct adm1026_data *data = adm1026_update_device(dev); 
+-	return sprintf(buf,"%d\n", INS_FROM_REG(nr, data->in_min[nr]));
++	struct adm1026_data *data = adm1026_update_device(dev);
++	return sprintf(buf, "%d\n", INS_FROM_REG(nr, data->in_min[nr]));
+ }
+ static ssize_t set_in_min(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+@@ -733,7 +736,7 @@ static ssize_t set_in_min(struct device 
+ 	data->in_min[nr] = INS_TO_REG(nr, val);
+ 	adm1026_write_value(client, ADM1026_REG_IN_MIN[nr], data->in_min[nr]);
+ 	mutex_unlock(&data->update_lock);
+-	return count; 
++	return count;
+ }
+ static ssize_t show_in_max(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -741,7 +744,7 @@ static ssize_t show_in_max(struct device
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", INS_FROM_REG(nr, data->in_max[nr]));
++	return sprintf(buf, "%d\n", INS_FROM_REG(nr, data->in_max[nr]));
+ }
+ static ssize_t set_in_max(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+@@ -788,13 +791,13 @@ in_reg(15);
+ static ssize_t show_in16(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", INS_FROM_REG(16, data->in[16]) -
++	return sprintf(buf, "%d\n", INS_FROM_REG(16, data->in[16]) -
+ 		NEG12_OFFSET);
+ }
+ static ssize_t show_in16_min(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+-	struct adm1026_data *data = adm1026_update_device(dev); 
+-	return sprintf(buf,"%d\n", INS_FROM_REG(16, data->in_min[16])
++	struct adm1026_data *data = adm1026_update_device(dev);
++	return sprintf(buf, "%d\n", INS_FROM_REG(16, data->in_min[16])
+ 		- NEG12_OFFSET);
+ }
+ static ssize_t set_in16_min(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+@@ -807,12 +810,12 @@ static ssize_t set_in16_min(struct devic
+ 	data->in_min[16] = INS_TO_REG(16, val + NEG12_OFFSET);
+ 	adm1026_write_value(client, ADM1026_REG_IN_MIN[16], data->in_min[16]);
+ 	mutex_unlock(&data->update_lock);
+-	return count; 
++	return count;
+ }
+ static ssize_t show_in16_max(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", INS_FROM_REG(16, data->in_max[16])
++	return sprintf(buf, "%d\n", INS_FROM_REG(16, data->in_max[16])
+ 			- NEG12_OFFSET);
+ }
+ static ssize_t set_in16_max(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+@@ -843,7 +846,7 @@ static ssize_t show_fan(struct device *d
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", FAN_FROM_REG(data->fan[nr],
++	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[nr],
+ 		data->fan_div[nr]));
+ }
+ static ssize_t show_fan_min(struct device *dev, struct device_attribute *attr,
+@@ -852,7 +855,7 @@ static ssize_t show_fan_min(struct devic
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", FAN_FROM_REG(data->fan_min[nr],
++	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[nr],
+ 		data->fan_div[nr]));
+ }
+ static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
+@@ -872,10 +875,10 @@ static ssize_t set_fan_min(struct device
+ 	return count;
+ }
+ 
+-#define fan_offset(offset)                                         		\
+-static SENSOR_DEVICE_ATTR(fan##offset##_input, S_IRUGO, show_fan, NULL, 	\
+-		offset - 1);							\
+-static SENSOR_DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR,           	\
++#define fan_offset(offset)						\
++static SENSOR_DEVICE_ATTR(fan##offset##_input, S_IRUGO, show_fan, NULL,	\
++		offset - 1);						\
++static SENSOR_DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR,		\
+ 		show_fan_min, set_fan_min, offset - 1);
+ 
+ fan_offset(1);
+@@ -892,8 +895,8 @@ static void fixup_fan_min(struct device 
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+-	int    new_min;
+-	int    new_div = data->fan_div[fan];
++	int new_min;
++	int new_div = data->fan_div[fan];
+ 
+ 	/* 0 and 0xff are special.  Don't adjust them */
+ 	if (data->fan_min[fan] = 0 || data->fan_min[fan] = 0xff) {
+@@ -913,7 +916,7 @@ static ssize_t show_fan_div(struct devic
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", data->fan_div[nr]);
++	return sprintf(buf, "%d\n", data->fan_div[nr]);
+ }
+ static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+@@ -922,10 +925,10 @@ static ssize_t set_fan_div(struct device
+ 	int nr = sensor_attr->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+-	int    val,orig_div,new_div,shift;
++	int val, orig_div, new_div, shift;
+ 
+ 	val = simple_strtol(buf, NULL, 10);
+-	new_div = DIV_TO_REG(val); 
++	new_div = DIV_TO_REG(val);
+ 	if (new_div = 0) {
+ 		return -EINVAL;
+ 	}
+@@ -946,14 +949,14 @@ static ssize_t set_fan_div(struct device
+ 	}
+ 
+ 	if (data->fan_div[nr] != orig_div) {
+-		fixup_fan_min(dev,nr,orig_div);
++		fixup_fan_min(dev, nr, orig_div);
+ 	}
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+ 
+-#define fan_offset_div(offset)                                          \
+-static SENSOR_DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR,         \
++#define fan_offset_div(offset)						\
++static SENSOR_DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR,		\
+ 		show_fan_div, set_fan_div, offset - 1);
+ 
+ fan_offset_div(1);
+@@ -972,7 +975,7 @@ static ssize_t show_temp(struct device *
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", TEMP_FROM_REG(data->temp[nr]));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr]));
+ }
+ static ssize_t show_temp_min(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -980,7 +983,7 @@ static ssize_t show_temp_min(struct devi
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", TEMP_FROM_REG(data->temp_min[nr]));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_min[nr]));
+ }
+ static ssize_t set_temp_min(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+@@ -1004,7 +1007,7 @@ static ssize_t show_temp_max(struct devi
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", TEMP_FROM_REG(data->temp_max[nr]));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_max[nr]));
+ }
+ static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+@@ -1024,7 +1027,7 @@ static ssize_t set_temp_max(struct devic
+ }
+ 
+ #define temp_reg(offset)						\
+-static SENSOR_DEVICE_ATTR(temp##offset##_input, S_IRUGO, show_temp, 	\
++static SENSOR_DEVICE_ATTR(temp##offset##_input, S_IRUGO, show_temp,	\
+ 		NULL, offset - 1);					\
+ static SENSOR_DEVICE_ATTR(temp##offset##_min, S_IRUGO | S_IWUSR,	\
+ 		show_temp_min, set_temp_min, offset - 1);		\
+@@ -1042,7 +1045,7 @@ static ssize_t show_temp_offset(struct d
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", TEMP_FROM_REG(data->temp_offset[nr]));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_offset[nr]));
+ }
+ static ssize_t set_temp_offset(struct device *dev,
+ 		struct device_attribute *attr, const char *buf,
+@@ -1076,7 +1079,7 @@ static ssize_t show_temp_auto_point1_tem
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", TEMP_FROM_REG(
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(
+ 		ADM1026_FAN_ACTIVATION_TEMP_HYST + data->temp_tmin[nr]));
+ }
+ static ssize_t show_temp_auto_point2_temp(struct device *dev,
+@@ -1085,7 +1088,7 @@ static ssize_t show_temp_auto_point2_tem
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", TEMP_FROM_REG(data->temp_tmin[nr] +
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_tmin[nr] +
+ 		ADM1026_FAN_CONTROL_TEMP_RANGE));
+ }
+ static ssize_t show_temp_auto_point1_temp(struct device *dev,
+@@ -1094,7 +1097,7 @@ static ssize_t show_temp_auto_point1_tem
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", TEMP_FROM_REG(data->temp_tmin[nr]));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_tmin[nr]));
+ }
+ static ssize_t set_temp_auto_point1_temp(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t count)
+@@ -1113,13 +1116,13 @@ static ssize_t set_temp_auto_point1_temp
+ 	return count;
+ }
+ 
+-#define temp_auto_point(offset)							\
+-static SENSOR_DEVICE_ATTR(temp##offset##_auto_point1_temp, S_IRUGO | S_IWUSR,	\
+-		show_temp_auto_point1_temp, set_temp_auto_point1_temp, 		\
+-		offset - 1);							\
+-static SENSOR_DEVICE_ATTR(temp##offset##_auto_point1_temp_hyst, S_IRUGO,	\
+-		show_temp_auto_point1_temp_hyst, NULL, offset - 1);		\
+-static SENSOR_DEVICE_ATTR(temp##offset##_auto_point2_temp, S_IRUGO,		\
++#define temp_auto_point(offset)						\
++static SENSOR_DEVICE_ATTR(temp##offset##_auto_point1_temp,		\
++		S_IRUGO | S_IWUSR, show_temp_auto_point1_temp,		\
++		set_temp_auto_point1_temp, offset - 1);			\
++static SENSOR_DEVICE_ATTR(temp##offset##_auto_point1_temp_hyst, S_IRUGO,\
++		show_temp_auto_point1_temp_hyst, NULL, offset - 1);	\
++static SENSOR_DEVICE_ATTR(temp##offset##_auto_point2_temp, S_IRUGO,	\
+ 		show_temp_auto_point2_temp, NULL, offset - 1);
+ 
+ temp_auto_point(1);
+@@ -1130,7 +1133,7 @@ static ssize_t show_temp_crit_enable(str
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", (data->config1 & CFG1_THERM_HOT) >> 4);
++	return sprintf(buf, "%d\n", (data->config1 & CFG1_THERM_HOT) >> 4);
+ }
+ static ssize_t set_temp_crit_enable(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t count)
+@@ -1142,7 +1145,7 @@ static ssize_t set_temp_crit_enable(stru
+ 	if ((val = 1) || (val=0)) {
+ 		mutex_lock(&data->update_lock);
+ 		data->config1 = (data->config1 & ~CFG1_THERM_HOT) | (val << 4);
+-		adm1026_write_value(client, ADM1026_REG_CONFIG1, 
++		adm1026_write_value(client, ADM1026_REG_CONFIG1,
+ 			data->config1);
+ 		mutex_unlock(&data->update_lock);
+ 	}
+@@ -1163,7 +1166,7 @@ static ssize_t show_temp_crit(struct dev
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", TEMP_FROM_REG(data->temp_crit[nr]));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_crit[nr]));
+ }
+ static ssize_t set_temp_crit(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+@@ -1193,7 +1196,7 @@ temp_crit_reg(3);
+ static ssize_t show_analog_out_reg(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", DAC_FROM_REG(data->analog_out));
++	return sprintf(buf, "%d\n", DAC_FROM_REG(data->analog_out));
+ }
+ static ssize_t set_analog_out_reg(struct device *dev, struct device_attribute *attr, const char *buf,
+ 		size_t count)
+@@ -1209,20 +1212,20 @@ static ssize_t set_analog_out_reg(struct
+ 	return count;
+ }
+ 
+-static DEVICE_ATTR(analog_out, S_IRUGO | S_IWUSR, show_analog_out_reg, 
++static DEVICE_ATTR(analog_out, S_IRUGO | S_IWUSR, show_analog_out_reg,
+ 	set_analog_out_reg);
+ 
+ static ssize_t show_vid_reg(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", vid_from_reg(data->vid & 0x3f, data->vrm));
++	return sprintf(buf, "%d\n", vid_from_reg(data->vid & 0x3f, data->vrm));
+ }
+ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid_reg, NULL);
+ 
+ static ssize_t show_vrm_reg(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = dev_get_drvdata(dev);
+-	return sprintf(buf,"%d\n", data->vrm);
++	return sprintf(buf, "%d\n", data->vrm);
+ }
+ static ssize_t store_vrm_reg(struct device *dev, struct device_attribute *attr, const char *buf,
+ 		size_t count)
+@@ -1284,7 +1287,7 @@ static SENSOR_DEVICE_ATTR(in8_alarm, S_I
+ static ssize_t show_alarm_mask(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%ld\n", data->alarm_mask);
++	return sprintf(buf, "%ld\n", data->alarm_mask);
+ }
+ static ssize_t set_alarm_mask(struct device *dev, struct device_attribute *attr, const char *buf,
+ 		size_t count)
+@@ -1320,7 +1323,7 @@ static DEVICE_ATTR(alarm_mask, S_IRUGO |
+ static ssize_t show_gpio(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%ld\n", data->gpio);
++	return sprintf(buf, "%ld\n", data->gpio);
+ }
+ static ssize_t set_gpio(struct device *dev, struct device_attribute *attr, const char *buf,
+ 		size_t count)
+@@ -1328,16 +1331,16 @@ static ssize_t set_gpio(struct device *d
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+ 	int val = simple_strtol(buf, NULL, 10);
+-	long   gpio;
++	long gpio;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->gpio = val & 0x1ffff;
+ 	gpio = data->gpio;
+-	adm1026_write_value(client, ADM1026_REG_GPIO_STATUS_0_7,gpio & 0xff);
++	adm1026_write_value(client, ADM1026_REG_GPIO_STATUS_0_7, gpio & 0xff);
+ 	gpio >>= 8;
+-	adm1026_write_value(client, ADM1026_REG_GPIO_STATUS_8_15,gpio & 0xff);
++	adm1026_write_value(client, ADM1026_REG_GPIO_STATUS_8_15, gpio & 0xff);
+ 	gpio = ((gpio >> 1) & 0x80) | (data->alarms >> 24 & 0x7f);
+-	adm1026_write_value(client, ADM1026_REG_STATUS4,gpio & 0xff);
++	adm1026_write_value(client, ADM1026_REG_STATUS4, gpio & 0xff);
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+@@ -1348,7 +1351,7 @@ static DEVICE_ATTR(gpio, S_IRUGO | S_IWU
+ static ssize_t show_gpio_mask(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%ld\n", data->gpio_mask);
++	return sprintf(buf, "%ld\n", data->gpio_mask);
+ }
+ static ssize_t set_gpio_mask(struct device *dev, struct device_attribute *attr, const char *buf,
+ 		size_t count)
+@@ -1356,16 +1359,16 @@ static ssize_t set_gpio_mask(struct devi
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+ 	int val = simple_strtol(buf, NULL, 10);
+-	long   mask;
++	long mask;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->gpio_mask = val & 0x1ffff;
+ 	mask = data->gpio_mask;
+-	adm1026_write_value(client, ADM1026_REG_GPIO_MASK_0_7,mask & 0xff);
++	adm1026_write_value(client, ADM1026_REG_GPIO_MASK_0_7, mask & 0xff);
+ 	mask >>= 8;
+-	adm1026_write_value(client, ADM1026_REG_GPIO_MASK_8_15,mask & 0xff);
++	adm1026_write_value(client, ADM1026_REG_GPIO_MASK_8_15, mask & 0xff);
+ 	mask = ((mask >> 1) & 0x80) | (data->alarm_mask >> 24 & 0x7f);
+-	adm1026_write_value(client, ADM1026_REG_MASK1,mask & 0xff);
++	adm1026_write_value(client, ADM1026_REG_MASK1, mask & 0xff);
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+@@ -1375,7 +1378,7 @@ static DEVICE_ATTR(gpio_mask, S_IRUGO | 
+ static ssize_t show_pwm_reg(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", PWM_FROM_REG(data->pwm1.pwm));
++	return sprintf(buf, "%d\n", PWM_FROM_REG(data->pwm1.pwm));
+ }
+ static ssize_t set_pwm_reg(struct device *dev, struct device_attribute *attr, const char *buf,
+ 		size_t count)
+@@ -1396,7 +1399,7 @@ static ssize_t set_pwm_reg(struct device
+ static ssize_t show_auto_pwm_min(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", data->pwm1.auto_pwm_min);
++	return sprintf(buf, "%d\n", data->pwm1.auto_pwm_min);
+ }
+ static ssize_t set_auto_pwm_min(struct device *dev, struct device_attribute *attr, const char *buf,
+ 		size_t count)
+@@ -1406,10 +1409,10 @@ static ssize_t set_auto_pwm_min(struct d
+ 	int val = simple_strtol(buf, NULL, 10);
+ 
+ 	mutex_lock(&data->update_lock);
+-	data->pwm1.auto_pwm_min = SENSORS_LIMIT(val,0,255);
++	data->pwm1.auto_pwm_min = SENSORS_LIMIT(val, 0, 255);
+ 	if (data->pwm1.enable = 2) { /* apply immediately */
+ 		data->pwm1.pwm = PWM_TO_REG((data->pwm1.pwm & 0x0f) |
+-			PWM_MIN_TO_REG(data->pwm1.auto_pwm_min)); 
++			PWM_MIN_TO_REG(data->pwm1.auto_pwm_min));
+ 		adm1026_write_value(client, ADM1026_REG_PWM, data->pwm1.pwm);
+ 	}
+ 	mutex_unlock(&data->update_lock);
+@@ -1417,12 +1420,12 @@ static ssize_t set_auto_pwm_min(struct d
+ }
+ static ssize_t show_auto_pwm_max(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+-	return sprintf(buf,"%d\n", ADM1026_PWM_MAX);
++	return sprintf(buf, "%d\n", ADM1026_PWM_MAX);
+ }
+ static ssize_t show_pwm_enable(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf,"%d\n", data->pwm1.enable);
++	return sprintf(buf, "%d\n", data->pwm1.enable);
+ }
+ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *attr, const char *buf,
+ 		size_t count)
+@@ -1430,7 +1433,7 @@ static ssize_t set_pwm_enable(struct dev
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+ 	int val = simple_strtol(buf, NULL, 10);
+-	int     old_enable;
++	int old_enable;
+ 
+ 	if ((val >= 0) && (val < 3)) {
+ 		mutex_lock(&data->update_lock);
+@@ -1440,15 +1443,15 @@ static ssize_t set_pwm_enable(struct dev
+ 				| ((val = 2) ? CFG1_PWM_AFC : 0);
+ 		adm1026_write_value(client, ADM1026_REG_CONFIG1,
+ 			data->config1);
+-		if (val = 2) {  /* apply pwm1_auto_pwm_min to pwm1 */
++		if (val = 2) { /* apply pwm1_auto_pwm_min to pwm1 */
+ 			data->pwm1.pwm = PWM_TO_REG((data->pwm1.pwm & 0x0f) |
+-				PWM_MIN_TO_REG(data->pwm1.auto_pwm_min)); 
+-			adm1026_write_value(client, ADM1026_REG_PWM, 
++				PWM_MIN_TO_REG(data->pwm1.auto_pwm_min));
++			adm1026_write_value(client, ADM1026_REG_PWM,
+ 				data->pwm1.pwm);
+ 		} else if (!((old_enable = 1) && (val = 1))) {
+ 			/* set pwm to safe value */
+ 			data->pwm1.pwm = 255;
+-			adm1026_write_value(client, ADM1026_REG_PWM, 
++			adm1026_write_value(client, ADM1026_REG_PWM,
+ 				data->pwm1.pwm);
+ 		}
+ 		mutex_unlock(&data->update_lock);
+@@ -1457,20 +1460,20 @@ static ssize_t set_pwm_enable(struct dev
+ }
+ 
+ /* enable PWM fan control */
+-static DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, show_pwm_reg, set_pwm_reg); 
+-static DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR, show_pwm_reg, set_pwm_reg); 
+-static DEVICE_ATTR(pwm3, S_IRUGO | S_IWUSR, show_pwm_reg, set_pwm_reg); 
+-static DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR, show_pwm_enable, 
++static DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, show_pwm_reg, set_pwm_reg);
++static DEVICE_ATTR(pwm2, S_IRUGO | S_IWUSR, show_pwm_reg, set_pwm_reg);
++static DEVICE_ATTR(pwm3, S_IRUGO | S_IWUSR, show_pwm_reg, set_pwm_reg);
++static DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR, show_pwm_enable,
+ 	set_pwm_enable);
+-static DEVICE_ATTR(pwm2_enable, S_IRUGO | S_IWUSR, show_pwm_enable, 
++static DEVICE_ATTR(pwm2_enable, S_IRUGO | S_IWUSR, show_pwm_enable,
+ 	set_pwm_enable);
+-static DEVICE_ATTR(pwm3_enable, S_IRUGO | S_IWUSR, show_pwm_enable, 
++static DEVICE_ATTR(pwm3_enable, S_IRUGO | S_IWUSR, show_pwm_enable,
+ 	set_pwm_enable);
+-static DEVICE_ATTR(temp1_auto_point1_pwm, S_IRUGO | S_IWUSR, 
++static DEVICE_ATTR(temp1_auto_point1_pwm, S_IRUGO | S_IWUSR,
+ 	show_auto_pwm_min, set_auto_pwm_min);
+-static DEVICE_ATTR(temp2_auto_point1_pwm, S_IRUGO | S_IWUSR, 
++static DEVICE_ATTR(temp2_auto_point1_pwm, S_IRUGO | S_IWUSR,
+ 	show_auto_pwm_min, set_auto_pwm_min);
+-static DEVICE_ATTR(temp3_auto_point1_pwm, S_IRUGO | S_IWUSR, 
++static DEVICE_ATTR(temp3_auto_point1_pwm, S_IRUGO | S_IWUSR,
+ 	show_auto_pwm_min, set_auto_pwm_min);
+ 
+ static DEVICE_ATTR(temp1_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
+@@ -1695,7 +1698,7 @@ static int adm1026_detect(struct i2c_ada
+ 			dev_dbg(&new_client->dev, ": Autodetection "
+ 				"failed\n");
+ 			/* Not an ADM1026 ... */
+-			if (kind = 0)  { /* User used force=x,y */
++			if (kind = 0) { /* User used force=x,y */
+ 				dev_err(&adapter->dev, "Generic ADM1026 not "
+ 					"found at %d,0x%02x.  Try "
+ 					"force_adm1026.\n",
+@@ -1775,14 +1778,14 @@ static int __init sm_adm1026_init(void)
+ 	return i2c_add_driver(&adm1026_driver);
+ }
+ 
+-static void  __exit sm_adm1026_exit(void)
++static void __exit sm_adm1026_exit(void)
+ {
+ 	i2c_del_driver(&adm1026_driver);
+ }
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Philip Pokorny <ppokorny@penguincomputing.com>, "
+-              "Justin Thiessen <jthiessen@penguincomputing.com>");
++	      "Justin Thiessen <jthiessen@penguincomputing.com>");
+ MODULE_DESCRIPTION("ADM1026 driver");
+ 
+ module_init(sm_adm1026_init);
 
-
---=-CYG2iPIhy+BOpWHkK/t4
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-Hi
-
-I have an aopen XC cube EZ18 with an nforce2 based motherboard
-
-I am trying to get lm-sensors working, but am not getting the correct
-readings
-
-I have attached outputs of lspci -v, lspci -n, sensors-detect, dmidecode
-
-smartbatt and pca9540 don't seem to exist in my kernel sources
-(linux-2.6.22-gentoo-r8)
-
-w83627hf and max6650 do load without errors
-
-when I run sensors, I get what I have pasted below
-
-Note how no fan speeds are detected and temps are way too low (my
-ambient is about 28 C)
-In my bios, all speeds/temps seem to be picked up OK
-
-Regards
-
-Chris
-
-
----------------------------------
-w83627hf-isa-0290
-Adapter: ISA adapter
-VCore 1:   +1.55 V  (min =3D  +0.00 V, max =3D  +4.08 V)             =20
-VCore 2:   +1.58 V  (min =3D  +0.00 V, max =3D  +4.08 V)             =20
-+3.3V:     +3.31 V  (min =3D  +2.82 V, max =3D  +3.79 V)             =20
-+5V:       +4.97 V  (min =3D  +0.08 V, max =3D  +1.80 V)       ALARM =20
-+12V:     +11.86 V  (min =3D  +0.79 V, max =3D  +8.33 V)       ALARM =20
--12V:     -11.87 V  (min =3D  -4.14 V, max =3D -13.59 V)       ALARM =20
--5V:       -5.05 V  (min =3D  +2.19 V, max =3D  -2.43 V)       ALARM =20
-V5SB:      +5.46 V  (min =3D  +0.48 V, max =3D  +0.38 V)       ALARM =20
-VBat:      +3.18 V  (min =3D  +0.13 V, max =3D  +3.65 V)             =20
-fan1:        0 RPM  (min =3D 42187 RPM, div =3D 2)              ALARM =20
-fan2:        0 RPM  (min =3D 4856 RPM, div =3D 2)              ALARM =20
-fan3:        0 RPM  (min =3D 9926 RPM, div =3D 2)              ALARM =20
-temp1:       +17 C  (high =3D   +99 C, hyst =3D   +11 C)   sensor =3D
-thermistor          =20
-temp2:     +18.5 C  (high =3D   +70 C, hyst =3D   +65 C)   sensor =3D
-thermistor          =20
-temp3:     +19.0 C  (high =3D   +80 C, hyst =3D   +80 C)   sensor =3D
-thermistor          =20
-vid:      +0.000 V  (VRM Version 9.0)
-alarms:  =20
-beep_enable:
-          Sound alarm disabled
-
-max6650-i2c-5-1b
-Adapter: NVIDIA i2c adapter=20
-fan1:     configured 59531 RPM, actual    0 RPM.
-fan2:        0 RPM
-fan3:        0 RPM
-fan4:        0 RPM
-
-max6650-i2c-5-1f
-Adapter: NVIDIA i2c adapter=20
-fan1:     configured 59531 RPM, actual    0 RPM.
-fan2:        0 RPM
-fan3:        0 RPM
-fan4:        0 RPM
-
-max6650-i2c-5-48
-Adapter: NVIDIA i2c adapter=20
-fan1:     configured 59531 RPM, actual    0 RPM.
-fan2:        0 RPM
-fan3:        0 RPM
-fan4:        0 RPM
-
-max6650-i2c-5-4b
-Adapter: NVIDIA i2c adapter=20
-fan1:     configured 59531 RPM, actual    0 RPM.
-fan2:        0 RPM
-fan3:        0 RPM
-fan4:        0 RPM
----------------------------------------
-
----------------------+-----------------------------------------------------=
---
-        Chris Picton | PGP Key ID: 9D28A988 (wwwkeys.pgp.net)
-  Technical Director | PGP Key Fingerprint:
-     Tangent Systems | 2B46 29EA D530 79EC D9EA 3ED0 229D 6DD6 9D28 A988
-        011 447 8096 |=20
-chrisp@tangent.co.za | http://www.tangent.co.za/keys/chrisp.asc
----------------------+-----------------------------------------------------=
---
-
---=-CYG2iPIhy+BOpWHkK/t4
-Content-Disposition: attachment; filename=dmidecode.txt.bz2
-Content-Type: application/x-bzip; name=dmidecode.txt.bz2
-Content-Transfer-Encoding: base64
-
-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
-1B6Rsf8XckU4UJA49D73
-
-
---=-CYG2iPIhy+BOpWHkK/t4
-Content-Disposition: attachment; filename=lspcin.txt.bz2
-Content-Type: application/x-bzip; name=lspcin.txt.bz2
-Content-Transfer-Encoding: base64
-
-QlpoOTFBWSZTWe0vWtsAAG3ZgAAQQGF/8D8AEQAwAOYBk1J6T0kyZ6EBQaNGgyA0ERQplHppogaU
-ZgCM/+Jtd857l77RWFgaIGRGMWcF6N2QR6QRggjVwYZjVNRMyHmkXGyf9xNtaqqTF5fwDlehDjb1
-27p4/RDY865+DRpTVl3ZQ7FqYr84CCV2L1FHKZyodw/CmnSpB1ANGhKlrU3xgMLjFWxA4lN/vzjP
-MHjxLu0zgkHqDspCARkMySx25UMWTCWAlsy+lD6KntE1faJUT/F3JFOFCQ7S9a2w
-
-
---=-CYG2iPIhy+BOpWHkK/t4
-Content-Disposition: attachment; filename=lspciv.txt.bz2
-Content-Type: application/x-bzip; name=lspciv.txt.bz2
-Content-Transfer-Encoding: base64
-
-QlpoOTFBWSZTWY5XXNgAA1rfgHwQQGf/8r/v/8o/79/wYAbc+6MqWwMhQAAAA5gCMExAMAmCaMho
-YBMEYmGijU0ZHqfqmjRoGgAAAAAAAOYAjBMQDAJgmjIaGATBGJhJqSERHonqBk/Saj0nqDR6jQya
-NDINAA5gCMExAMAmCaMhoYBMEYmCpJATTQKbRT0yMjSJ5T9JqehoTCMjGiZMxOeMDLJCDz9MHsyZ
-UUueZZCvcNfj4kzqze36RtpLsFMiO0Ylqxq6rddykC8vSgzffuxH7/rhXLPMw7ecQGckRg1p1VLV
-VV11ubvjnQBRh2Y9KehPxLzb0ZgyQb/pEKJNgNANagojE0ycHkmFMM8F+S6WuVc9ieqJjym9eHrx
-9n1fPg3PS5e6cYqbHhIXtd3Tay2FaXr7uMi1vtD9G1k83MmUbDN564+uy8nblexz7tndp+y7HNr8
-5L5fut+t6Wx3TJIFrMOEPHfayqsg8JA7Qa1V+FVIOgqbJwajVuSRw1eBMIXsFXQb5KgH5BgeiD5q
-km+SUbHCO4maGkhhEwz6/xi+MBJcE1Du7CQ2IxiqQO9pUmap321UJ4by+yvr0cEMPTE9HdMlddT+
-oLSSmDRxDHXJVt/3ksHunUPi64lIXuHo0+nb7Ptc+ezK+sbqWa4Mk4s4t429PHUlVeEyXYRJhIgR
-ZDCMOGmsVCJkiJan21yGI8mKFgLU6pwKZaOkCAQIEuXLpbQ33Jt20nBdmhrdhV+5nyO9czL4ytab
-amri+BLlz6/0yXNb8JHGtsstyib6K3ovbFBgtKbGS6rVf8cJllLOGds1PuC23RJhLbLVjt08pNpT
-Hp1p8YnlrcnTOolzWbdmzJmul2bJhMoi6Q4dNVrbyZz8ydi/frwpTdZPQ4cKpjwwmqT/W0ntT3B8
-rbZVyDql8pVfVT6Yvvibe4wmcQvMFWAjJNfUeXsQ6oIBTLESes6T28c+wXF0gXnEqAGwZ9eYUsad
-oAwTKI3yHD0k8W8xz0+yXG+Q882xc8VRLiiP2J6XZU+arL2zWOpseuQwytVib6hrJKN4Vc/7FTs0
-DsfRTkym8Lv3uJtU7abJFJ2SKU5paMEPY8FyHmqT8q4155CjSaKhDMrCIgCbcLb2PnOBLY0Fa8C+
-4tTicsvVX22wsXS6o7FrMeDo6XbT1tPLJHNzoP4kPzI9kfZNXlJ5Iitr2v/R1k07nhEbH+ydOcpr
-BndJOAni3N8GusRgu98tNPhIf5DptCZE5MZKQ42klNqGct2MmaZkW5WdBGLZUpNGkGBKnbeM2MXz
-W+VU2KW0WkGtiTE8dG2Pli82O5gfcsdCpgron5Uh4bpehklV0PxE8drF+7udlPfeqzWPMMkjD75/
-DGI1Q3E75IzqkugomebZI/kmAWhzeonheWdMk7ZD3urvZEaxGsiWmI6/V34DGWgx7SKmVS3Vjs7v
-OLoemBuSOSTOa4SRdxT4VfC0hdIeAw1kMJeXOidnK6LJL5VIV/L+W2MI5aBq65C8zE3sU5LRyigq
-NIjdJOLu1RNudIdMhaQ5jRDoXzZJKKkXSIomEh2JQLeyiG4mWTxQzgtMpet7pMonxTOZRM2OZFLq
-qm4mzyqRgoi15DyRKtPbIpKl7a74jmRsfBjEXj0ySfcon0E1TjIf1f+BuiN3aqO1FKVKp/gZuckc
-6qkT+60RYlEXJKdvUqng4vIhlsiKl38OqS2DYwl0uGRGLCIwklDOKjRSJRpjFSTxTGQqSWmMXNx6
-ojjySdNe8SzHXWCuaFg2OSGe28y7W210i0FQrSJgHFkwXMSLMUKgoMZ8mpPwYZSHgWiO9kRojpfI
-6o1epD5X1zR0e43mbovklToiMemSWSvki0RzQ5uqSeSIU0d7khUhuE/+LuSKcKEhHK65sA==
-
-
---=-CYG2iPIhy+BOpWHkK/t4
-Content-Disposition: attachment; filename=sensors-detect.txt.bz2
-Content-Type: application/x-bzip; name=sensors-detect.txt.bz2
-Content-Transfer-Encoding: base64
-
-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
-
-
---=-CYG2iPIhy+BOpWHkK/t4--
-
---=-qJbuHp/PT1RXh2SO/eqi
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iD8DBQBHQWAfIp1t1p0oqYgRAqrxAJ9gH0djkL65XFBUvwLznwChCvhrCQCfQRRv
-t/Rc0HH1eFZbj8qGqzrBIN0=
-=XWpT
------END PGP SIGNATURE-----
-
---=-qJbuHp/PT1RXh2SO/eqi--
-
-
-
---===============3736113183993163556==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3736113183993163556==--
-
