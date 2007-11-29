@@ -1,84 +1,182 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 30 Nov 2007 22:52:44 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (w83781d) Misc cleanups
-Message-Id: <20071130235244.0435cf19@hyperion.delvare>
+Date: Thu, 29 Nov 2007 22:45:22 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon: (adm1026) Add individual alarm files
+Message-Id: <20071129234522.754a76d1@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Drop unused defines
-* Drop unused driver ID
-* Remove trailing whitespace
+The new libsensors needs these.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/hwmon/w83781d.c |   13 ++++---------
- include/linux/i2c-id.h  |    1 -
- 2 files changed, 4 insertions(+), 10 deletions(-)
+ drivers/hwmon/adm1026.c |   65 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
---- linux-2.6.24-rc3.orig/drivers/hwmon/w83781d.c	2007-11-30 22:32:41.000000000 +0100
-+++ linux-2.6.24-rc3/drivers/hwmon/w83781d.c	2007-11-30 22:49:08.000000000 +0100
-@@ -151,10 +151,6 @@ static const u8 BIT_SCFG2[] = { 0x10, 0x
+--- linux-2.6.24-rc3.orig/drivers/hwmon/adm1026.c	2007-10-24 09:59:28.000000000 +0200
++++ linux-2.6.24-rc3/drivers/hwmon/adm1026.c	2007-11-29 21:29:01.000000000 +0100
+@@ -1244,6 +1244,43 @@ static ssize_t show_alarms_reg(struct de
  
- #define W83781D_DEFAULT_BETA		3435
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms_reg, NULL);
  
--/* RT Table registers */
--#define W83781D_REG_RT_IDX		0x50
--#define W83781D_REG_RT_VAL		0x51
--
- /* Conversions */
- #define IN_TO_REG(val)			SENSORS_LIMIT(((val) + 8) / 16, 0, 255)
- #define IN_FROM_REG(val)		((val) * 16)
-@@ -269,7 +265,6 @@ static struct i2c_driver w83781d_driver 
- 	.driver = {
- 		.name = "w83781d",
- 	},
--	.id = I2C_DRIVERID_W83781D,
- 	.attach_adapter = w83781d_attach_adapter,
- 	.detach_client = w83781d_detach_client,
- };
-@@ -694,7 +689,7 @@ store_fan_div(struct device *dev, struct
- 	unsigned long val = simple_strtoul(buf, NULL, 10);
- 
- 	mutex_lock(&data->update_lock);
--	
++static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
++			  char *buf)
++{
++	struct adm1026_data *data = adm1026_update_device(dev);
++	int bitnr = to_sensor_dev_attr(attr)->index;
++	return sprintf(buf, "%ld\n", (data->alarms >> bitnr) & 1);
++}
 +
- 	/* Save fan_min */
- 	min = FAN_FROM_REG(data->fan_min[nr],
- 			   DIV_FROM_REG(data->fan_div[nr]));
-@@ -1000,7 +995,7 @@ ERROR_SC_0:
- #define IN_UNIT_ATTRS(X)					\
- 	&sensor_dev_attr_in##X##_input.dev_attr.attr,		\
- 	&sensor_dev_attr_in##X##_min.dev_attr.attr,		\
--	&sensor_dev_attr_in##X##_max.dev_attr.attr, 		\
-+	&sensor_dev_attr_in##X##_max.dev_attr.attr,		\
- 	&sensor_dev_attr_in##X##_alarm.dev_attr.attr,		\
- 	&sensor_dev_attr_in##X##_beep.dev_attr.attr
- 
-@@ -1441,9 +1436,9 @@ w83781d_isa_remove(struct platform_devic
- }
- 
- /* The SMBus locks itself, usually, but nothing may access the Winbond between
--   bank switches. ISA access must always be locked explicitly! 
-+   bank switches. ISA access must always be locked explicitly!
-    We ignore the W83781D BUSY flag at this moment - it could lead to deadlocks,
--   would slow down the W83781D access and should not be necessary. 
-+   would slow down the W83781D access and should not be necessary.
-    There are some ugly typecasts here, but the good news is - they should
-    nowhere else be necessary! */
- static int
---- linux-2.6.24-rc3.orig/include/linux/i2c-id.h	2007-11-30 14:19:47.000000000 +0100
-+++ linux-2.6.24-rc3/include/linux/i2c-id.h	2007-11-30 22:48:52.000000000 +0100
-@@ -131,7 +131,6 @@
- #define I2C_DRIVERID_LM78 1002
- #define I2C_DRIVERID_LM75 1003
- #define I2C_DRIVERID_EEPROM 1005
--#define I2C_DRIVERID_W83781D 1006
- #define I2C_DRIVERID_LM80 1007
- #define I2C_DRIVERID_ADM1021 1008
- #define I2C_DRIVERID_ADM9240 1009
++static SENSOR_DEVICE_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 1);
++static SENSOR_DEVICE_ATTR(in9_alarm, S_IRUGO, show_alarm, NULL, 1);
++static SENSOR_DEVICE_ATTR(in11_alarm, S_IRUGO, show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(in12_alarm, S_IRUGO, show_alarm, NULL, 3);
++static SENSOR_DEVICE_ATTR(in13_alarm, S_IRUGO, show_alarm, NULL, 4);
++static SENSOR_DEVICE_ATTR(in14_alarm, S_IRUGO, show_alarm, NULL, 5);
++static SENSOR_DEVICE_ATTR(in15_alarm, S_IRUGO, show_alarm, NULL, 6);
++static SENSOR_DEVICE_ATTR(in16_alarm, S_IRUGO, show_alarm, NULL, 7);
++static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 8);
++static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 9);
++static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 10);
++static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 11);
++static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 12);
++static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 13);
++static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 14);
++static SENSOR_DEVICE_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL, 15);
++static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 16);
++static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 17);
++static SENSOR_DEVICE_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 18);
++static SENSOR_DEVICE_ATTR(fan4_alarm, S_IRUGO, show_alarm, NULL, 19);
++static SENSOR_DEVICE_ATTR(fan5_alarm, S_IRUGO, show_alarm, NULL, 20);
++static SENSOR_DEVICE_ATTR(fan6_alarm, S_IRUGO, show_alarm, NULL, 21);
++static SENSOR_DEVICE_ATTR(fan7_alarm, S_IRUGO, show_alarm, NULL, 22);
++static SENSOR_DEVICE_ATTR(fan8_alarm, S_IRUGO, show_alarm, NULL, 23);
++static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 24);
++static SENSOR_DEVICE_ATTR(in10_alarm, S_IRUGO, show_alarm, NULL, 25);
++static SENSOR_DEVICE_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL, 26);
++
+ static ssize_t show_alarm_mask(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+@@ -1444,87 +1481,115 @@ static struct attribute *adm1026_attribu
+ 	&sensor_dev_attr_in0_input.dev_attr.attr,
+ 	&sensor_dev_attr_in0_max.dev_attr.attr,
+ 	&sensor_dev_attr_in0_min.dev_attr.attr,
++	&sensor_dev_attr_in0_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in1_input.dev_attr.attr,
+ 	&sensor_dev_attr_in1_max.dev_attr.attr,
+ 	&sensor_dev_attr_in1_min.dev_attr.attr,
++	&sensor_dev_attr_in1_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in2_input.dev_attr.attr,
+ 	&sensor_dev_attr_in2_max.dev_attr.attr,
+ 	&sensor_dev_attr_in2_min.dev_attr.attr,
++	&sensor_dev_attr_in2_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in3_input.dev_attr.attr,
+ 	&sensor_dev_attr_in3_max.dev_attr.attr,
+ 	&sensor_dev_attr_in3_min.dev_attr.attr,
++	&sensor_dev_attr_in3_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in4_input.dev_attr.attr,
+ 	&sensor_dev_attr_in4_max.dev_attr.attr,
+ 	&sensor_dev_attr_in4_min.dev_attr.attr,
++	&sensor_dev_attr_in4_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in5_input.dev_attr.attr,
+ 	&sensor_dev_attr_in5_max.dev_attr.attr,
+ 	&sensor_dev_attr_in5_min.dev_attr.attr,
++	&sensor_dev_attr_in5_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in6_input.dev_attr.attr,
+ 	&sensor_dev_attr_in6_max.dev_attr.attr,
+ 	&sensor_dev_attr_in6_min.dev_attr.attr,
++	&sensor_dev_attr_in6_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in7_input.dev_attr.attr,
+ 	&sensor_dev_attr_in7_max.dev_attr.attr,
+ 	&sensor_dev_attr_in7_min.dev_attr.attr,
++	&sensor_dev_attr_in7_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in8_input.dev_attr.attr,
+ 	&sensor_dev_attr_in8_max.dev_attr.attr,
+ 	&sensor_dev_attr_in8_min.dev_attr.attr,
++	&sensor_dev_attr_in8_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in9_input.dev_attr.attr,
+ 	&sensor_dev_attr_in9_max.dev_attr.attr,
+ 	&sensor_dev_attr_in9_min.dev_attr.attr,
++	&sensor_dev_attr_in9_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in10_input.dev_attr.attr,
+ 	&sensor_dev_attr_in10_max.dev_attr.attr,
+ 	&sensor_dev_attr_in10_min.dev_attr.attr,
++	&sensor_dev_attr_in10_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in11_input.dev_attr.attr,
+ 	&sensor_dev_attr_in11_max.dev_attr.attr,
+ 	&sensor_dev_attr_in11_min.dev_attr.attr,
++	&sensor_dev_attr_in11_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in12_input.dev_attr.attr,
+ 	&sensor_dev_attr_in12_max.dev_attr.attr,
+ 	&sensor_dev_attr_in12_min.dev_attr.attr,
++	&sensor_dev_attr_in12_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in13_input.dev_attr.attr,
+ 	&sensor_dev_attr_in13_max.dev_attr.attr,
+ 	&sensor_dev_attr_in13_min.dev_attr.attr,
++	&sensor_dev_attr_in13_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in14_input.dev_attr.attr,
+ 	&sensor_dev_attr_in14_max.dev_attr.attr,
+ 	&sensor_dev_attr_in14_min.dev_attr.attr,
++	&sensor_dev_attr_in14_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in15_input.dev_attr.attr,
+ 	&sensor_dev_attr_in15_max.dev_attr.attr,
+ 	&sensor_dev_attr_in15_min.dev_attr.attr,
++	&sensor_dev_attr_in15_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in16_input.dev_attr.attr,
+ 	&sensor_dev_attr_in16_max.dev_attr.attr,
+ 	&sensor_dev_attr_in16_min.dev_attr.attr,
++	&sensor_dev_attr_in16_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_div.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_min.dev_attr.attr,
++	&sensor_dev_attr_fan1_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_fan2_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan2_div.dev_attr.attr,
+ 	&sensor_dev_attr_fan2_min.dev_attr.attr,
++	&sensor_dev_attr_fan2_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_fan3_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan3_div.dev_attr.attr,
+ 	&sensor_dev_attr_fan3_min.dev_attr.attr,
++	&sensor_dev_attr_fan3_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_fan4_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan4_div.dev_attr.attr,
+ 	&sensor_dev_attr_fan4_min.dev_attr.attr,
++	&sensor_dev_attr_fan4_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_fan5_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan5_div.dev_attr.attr,
+ 	&sensor_dev_attr_fan5_min.dev_attr.attr,
++	&sensor_dev_attr_fan5_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_fan6_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan6_div.dev_attr.attr,
+ 	&sensor_dev_attr_fan6_min.dev_attr.attr,
++	&sensor_dev_attr_fan6_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_fan7_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan7_div.dev_attr.attr,
+ 	&sensor_dev_attr_fan7_min.dev_attr.attr,
++	&sensor_dev_attr_fan7_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_fan8_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan8_div.dev_attr.attr,
+ 	&sensor_dev_attr_fan8_min.dev_attr.attr,
++	&sensor_dev_attr_fan8_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_min.dev_attr.attr,
++	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_min.dev_attr.attr,
++	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_offset.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_offset.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_offset.dev_attr.attr,
 
 
 -- 
