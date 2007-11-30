@@ -1,51 +1,84 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 18 Nov 2007 22:46:10 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Update the lm-sensors website address
-Message-Id: <20071118234610.5f3d9dab@hyperion.delvare>
+Date: Fri, 30 Nov 2007 22:52:44 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (w83781d) Misc cleanups
+Message-Id: <20071130235244.0435cf19@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-It's about time to reflect the move of the lm-sensors project to
-lm-sensors.org.
+* Drop unused defines
+* Drop unused driver ID
+* Remove trailing whitespace
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- Documentation/hwmon/userspace-tools |    2 +-
- Documentation/hwmon/w83627hf        |    3 +--
- Documentation/i2c/busses/i2c-piix4  |    2 +-
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/hwmon/w83781d.c |   13 ++++---------
+ include/linux/i2c-id.h  |    1 -
+ 2 files changed, 4 insertions(+), 10 deletions(-)
 
---- linux-2.6.24-rc3.orig/Documentation/hwmon/userspace-tools	2007-02-04 19:44:54.000000000 +0100
-+++ linux-2.6.24-rc3/Documentation/hwmon/userspace-tools	2007-11-18 23:43:32.000000000 +0100
-@@ -14,7 +14,7 @@ Lm-sensors
+--- linux-2.6.24-rc3.orig/drivers/hwmon/w83781d.c	2007-11-30 22:32:41.000000000 +0100
++++ linux-2.6.24-rc3/drivers/hwmon/w83781d.c	2007-11-30 22:49:08.000000000 +0100
+@@ -151,10 +151,6 @@ static const u8 BIT_SCFG2[] = { 0x10, 0x
  
- Core set of utilities that will allow you to obtain health information,
- setup monitoring limits etc. You can get them on their homepage
--http://www.lm-sensors.nu/ or as a package from your Linux distribution.
-+http://www.lm-sensors.org/ or as a package from your Linux distribution.
+ #define W83781D_DEFAULT_BETA		3435
  
- If from website:
- Get lm-sensors from project web site. Please note, you need only userspace
---- linux-2.6.24-rc3.orig/Documentation/hwmon/w83627hf	2007-02-04 19:44:54.000000000 +0100
-+++ linux-2.6.24-rc3/Documentation/hwmon/w83627hf	2007-11-18 23:43:21.000000000 +0100
-@@ -73,5 +73,4 @@ doesn't help, you may just ignore the bo
- 
- For further information on this driver see the w83781d driver documentation.
- 
--[1] http://www2.lm-sensors.nu/~lm78/cvs/browse.cgi/lm_sensors2/doc/vid
+-/* RT Table registers */
+-#define W83781D_REG_RT_IDX		0x50
+-#define W83781D_REG_RT_VAL		0x51
 -
-+[1] http://www.lm-sensors.org/browser/lm-sensors/trunk/doc/vid
---- linux-2.6.24-rc3.orig/Documentation/i2c/busses/i2c-piix4	2007-10-10 09:58:06.000000000 +0200
-+++ linux-2.6.24-rc3/Documentation/i2c/busses/i2c-piix4	2007-11-18 23:42:48.000000000 +0100
-@@ -95,4 +95,4 @@ of all affected systems, so the only saf
- the SMBus on all IBM systems (detected using DMI data.)
+ /* Conversions */
+ #define IN_TO_REG(val)			SENSORS_LIMIT(((val) + 8) / 16, 0, 255)
+ #define IN_FROM_REG(val)		((val) * 16)
+@@ -269,7 +265,6 @@ static struct i2c_driver w83781d_driver 
+ 	.driver = {
+ 		.name = "w83781d",
+ 	},
+-	.id = I2C_DRIVERID_W83781D,
+ 	.attach_adapter = w83781d_attach_adapter,
+ 	.detach_client = w83781d_detach_client,
+ };
+@@ -694,7 +689,7 @@ store_fan_div(struct device *dev, struct
+ 	unsigned long val = simple_strtoul(buf, NULL, 10);
  
- For additional information, read:
--http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/README.thinkpad
-+http://www.lm-sensors.org/browser/lm-sensors/trunk/README.thinkpad
+ 	mutex_lock(&data->update_lock);
+-	
++
+ 	/* Save fan_min */
+ 	min = FAN_FROM_REG(data->fan_min[nr],
+ 			   DIV_FROM_REG(data->fan_div[nr]));
+@@ -1000,7 +995,7 @@ ERROR_SC_0:
+ #define IN_UNIT_ATTRS(X)					\
+ 	&sensor_dev_attr_in##X##_input.dev_attr.attr,		\
+ 	&sensor_dev_attr_in##X##_min.dev_attr.attr,		\
+-	&sensor_dev_attr_in##X##_max.dev_attr.attr, 		\
++	&sensor_dev_attr_in##X##_max.dev_attr.attr,		\
+ 	&sensor_dev_attr_in##X##_alarm.dev_attr.attr,		\
+ 	&sensor_dev_attr_in##X##_beep.dev_attr.attr
+ 
+@@ -1441,9 +1436,9 @@ w83781d_isa_remove(struct platform_devic
+ }
+ 
+ /* The SMBus locks itself, usually, but nothing may access the Winbond between
+-   bank switches. ISA access must always be locked explicitly! 
++   bank switches. ISA access must always be locked explicitly!
+    We ignore the W83781D BUSY flag at this moment - it could lead to deadlocks,
+-   would slow down the W83781D access and should not be necessary. 
++   would slow down the W83781D access and should not be necessary.
+    There are some ugly typecasts here, but the good news is - they should
+    nowhere else be necessary! */
+ static int
+--- linux-2.6.24-rc3.orig/include/linux/i2c-id.h	2007-11-30 14:19:47.000000000 +0100
++++ linux-2.6.24-rc3/include/linux/i2c-id.h	2007-11-30 22:48:52.000000000 +0100
+@@ -131,7 +131,6 @@
+ #define I2C_DRIVERID_LM78 1002
+ #define I2C_DRIVERID_LM75 1003
+ #define I2C_DRIVERID_EEPROM 1005
+-#define I2C_DRIVERID_W83781D 1006
+ #define I2C_DRIVERID_LM80 1007
+ #define I2C_DRIVERID_ADM1021 1008
+ #define I2C_DRIVERID_ADM9240 1009
 
 
 -- 
