@@ -1,80 +1,185 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 02 Dec 2007 10:06:46 +0000
-Subject: Re: [lm-sensors] Sensors on an nforce2 motherboard giving incorrect
-Message-Id: <20071202110646.152cc616@hyperion.delvare>
+Date: Sat, 01 Dec 2007 10:24:17 +0000
+Subject: Re: [lm-sensors] [PATCH 3/4] hwmon: (adm1026) More cleanups
+Message-Id: <20071201112417.445ceeea@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Chris,
+Various cleanups:
+* Drop an unused define.
+* Drop unused struct member "type".
+* Drop one useless instruction.
+* Drop redundant initializations to 0.
+* Rename new_client to client.
+* Drop a useless cast.
+* Minor code cleanup.
 
-On Mon, 19 Nov 2007 12:06:23 +0200, Chris Picton wrote:
-> I have an aopen XC cube EZ18 with an nforce2 based motherboard
-> 
-> I am trying to get lm-sensors working, but am not getting the correct
-> readings
-> 
-> I have attached outputs of lspci -v, lspci -n, sensors-detect, dmidecode
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Updated: I had missed two easy cleanups.
 
-One of the I2C buses on your nVidia graphics adapter is hosed and added
-a lot of noise to sensors-detect. Try again but say N when asked to
-probe the "NVIDIA i2c adapter" buses, you'll get a much more readable
-output.
+ drivers/hwmon/adm1026.c |   52 ++++++++++++++++++-----------------------------
+ 1 file changed, 21 insertions(+), 31 deletions(-)
 
-> 
-> smartbatt and pca9540 don't seem to exist in my kernel sources
-> (linux-2.6.22-gentoo-r8)
-
-True, but you don't actually have these chips anyway (see above.)
-
-> 
-> w83627hf and max6650 do load without errors
-
-You don't have the latter either, only the former. Do not load the
-max6650 driver.
-
-> 
-> when I run sensors, I get what I have pasted below
-> 
-> Note how no fan speeds are detected and temps are way too low (my
-> ambient is about 28 C)
-> In my bios, all speeds/temps seem to be picked up OK
-> (...)
-> ---------------------------------
-> w83627hf-isa-0290
-> Adapter: ISA adapter
-> VCore 1:   +1.55 V  (min =  +0.00 V, max =  +4.08 V)              
-> VCore 2:   +1.58 V  (min =  +0.00 V, max =  +4.08 V)              
-> +3.3V:     +3.31 V  (min =  +2.82 V, max =  +3.79 V)              
-> +5V:       +4.97 V  (min =  +0.08 V, max =  +1.80 V)       ALARM  
-> +12V:     +11.86 V  (min =  +0.79 V, max =  +8.33 V)       ALARM  
-> -12V:     -11.87 V  (min =  -4.14 V, max = -13.59 V)       ALARM  
-> -5V:       -5.05 V  (min =  +2.19 V, max =  -2.43 V)       ALARM  
-> V5SB:      +5.46 V  (min =  +0.48 V, max =  +0.38 V)       ALARM  
-> VBat:      +3.18 V  (min =  +0.13 V, max =  +3.65 V)              
-> fan1:        0 RPM  (min = 42187 RPM, div = 2)              ALARM  
-> fan2:        0 RPM  (min = 4856 RPM, div = 2)              ALARM  
-> fan3:        0 RPM  (min = 9926 RPM, div = 2)              ALARM  
-> temp1:       +17 C  (high =   +99 C, hyst =   +11 C)   sensor > thermistor           
-> temp2:     +18.5 C  (high =   +70 C, hyst =   +65 C)   sensor > thermistor           
-> temp3:     +19.0 C  (high =   +80 C, hyst =   +80 C)   sensor > thermistor           
-> vid:      +0.000 V  (VRM Version 9.0)
-> alarms:   
-> beep_enable:
->           Sound alarm disabled
-
-The important line you missed in the output of sensors-detect is:
-
-Probing for `Fintek F75373S/SG'...                          Success!
-    (confidence 7, driver `to-be-written')
-
-This is your primary hardware monitoring chip. Your missing fan speeds
-and temperatures are certainly there. By now, a driver for this chip
-has been written by Riku Voipio (Cc'd). It is available in the upstream
-kernel in 2.6.24-rc. You'll have to upgrade to the latest kernel, or
-backport the driver to your 2.6.22 kernel.
+--- linux-2.6.24-rc3.orig/drivers/hwmon/adm1026.c	2007-11-30 14:19:47.000000000 +0100
++++ linux-2.6.24-rc3/drivers/hwmon/adm1026.c	2007-12-01 10:37:31.000000000 +0100
+@@ -232,9 +232,6 @@ static int adm1026_scaling[] = { /* .001
+ #define DAC_TO_REG(val) (SENSORS_LIMIT(((((val)*255)+500)/2500), 0, 255))
+ #define DAC_FROM_REG(val) (((val)*2500)/255)
+ 
+-/* Typically used with systems using a v9.1 VRM spec ? */
+-#define ADM1026_INIT_VRM  91
+-
+ /* Chip sampling rates
+  *
+  * Some sensors are not updated more frequently than once per second
+@@ -264,7 +261,6 @@ struct pwm_data {
+ struct adm1026_data {
+ 	struct i2c_client client;
+ 	struct device *hwmon_dev;
+-	enum chips type;
+ 
+ 	struct mutex update_lock;
+ 	int valid;		/* !=0 if following fields are valid */
+@@ -387,7 +383,6 @@ static void adm1026_init_client(struct i
+ 			"and temp limits enabled.\n");
+ 	}
+ 
+-	value = data->config3;
+ 	if (data->config3 & CFG3_GPIO16_ENABLE) {
+ 		dev_dbg(&client->dev, "GPIO16 enabled.  THERM "
+ 			"pin disabled.\n");
+@@ -1230,8 +1225,7 @@ static ssize_t show_vrm_reg(struct devic
+ static ssize_t store_vrm_reg(struct device *dev, struct device_attribute *attr, const char *buf,
+ 		size_t count)
+ {
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct adm1026_data *data = i2c_get_clientdata(client);
++	struct adm1026_data *data = dev_get_drvdata(dev);
+ 
+ 	data->vrm = simple_strtol(buf, NULL, 10);
+ 	return count;
+@@ -1242,7 +1236,7 @@ static DEVICE_ATTR(vrm, S_IRUGO | S_IWUS
+ static ssize_t show_alarms_reg(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1026_data *data = adm1026_update_device(dev);
+-	return sprintf(buf, "%ld\n", (long) (data->alarms));
++	return sprintf(buf, "%ld\n", data->alarms);
+ }
+ 
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms_reg, NULL);
+@@ -1641,7 +1635,7 @@ static int adm1026_detect(struct i2c_ada
+ 			  int kind)
+ {
+ 	int company, verstep;
+-	struct i2c_client *new_client;
++	struct i2c_client *client;
+ 	struct adm1026_data *data;
+ 	int err = 0;
+ 	const char *type_name = "";
+@@ -1660,26 +1654,25 @@ static int adm1026_detect(struct i2c_ada
+ 		goto exit;
+ 	}
+ 
+-	new_client = &data->client;
+-	i2c_set_clientdata(new_client, data);
+-	new_client->addr = address;
+-	new_client->adapter = adapter;
+-	new_client->driver = &adm1026_driver;
+-	new_client->flags = 0;
++	client = &data->client;
++	i2c_set_clientdata(client, data);
++	client->addr = address;
++	client->adapter = adapter;
++	client->driver = &adm1026_driver;
+ 
+ 	/* Now, we do the remaining detection. */
+ 
+-	company = adm1026_read_value(new_client, ADM1026_REG_COMPANY);
+-	verstep = adm1026_read_value(new_client, ADM1026_REG_VERSTEP);
++	company = adm1026_read_value(client, ADM1026_REG_COMPANY);
++	verstep = adm1026_read_value(client, ADM1026_REG_VERSTEP);
+ 
+-	dev_dbg(&new_client->dev, "Detecting device at %d,0x%02x with"
++	dev_dbg(&client->dev, "Detecting device at %d,0x%02x with"
+ 		" COMPANY: 0x%02x and VERSTEP: 0x%02x\n",
+-		i2c_adapter_id(new_client->adapter), new_client->addr,
++		i2c_adapter_id(client->adapter), client->addr,
+ 		company, verstep);
+ 
+ 	/* If auto-detecting, Determine the chip type. */
+ 	if (kind <= 0) {
+-		dev_dbg(&new_client->dev, "Autodetecting device at %d,0x%02x "
++		dev_dbg(&client->dev, "Autodetecting device at %d,0x%02x "
+ 			"...\n", i2c_adapter_id(adapter), address);
+ 		if (company = ADM1026_COMPANY_ANALOG_DEV
+ 		    && verstep = ADM1026_VERSTEP_ADM1026) {
+@@ -1695,7 +1688,7 @@ static int adm1026_detect(struct i2c_ada
+ 				verstep);
+ 			kind = any_chip;
+ 		} else {
+-			dev_dbg(&new_client->dev, ": Autodetection "
++			dev_dbg(&client->dev, ": Autodetection "
+ 				"failed\n");
+ 			/* Not an ADM1026 ... */
+ 			if (kind = 0) { /* User used force=x,y */
+@@ -1704,7 +1697,6 @@ static int adm1026_detect(struct i2c_ada
+ 					"force_adm1026.\n",
+ 					i2c_adapter_id(adapter), address);
+ 			}
+-			err = 0;
+ 			goto exitfree;
+ 		}
+ 	}
+@@ -1723,28 +1715,26 @@ static int adm1026_detect(struct i2c_ada
+ 		err = -EFAULT;
+ 		goto exitfree;
+ 	}
+-	strlcpy(new_client->name, type_name, I2C_NAME_SIZE);
++	strlcpy(client->name, type_name, I2C_NAME_SIZE);
+ 
+ 	/* Fill in the remaining client fields */
+-	data->type = kind;
+-	data->valid = 0;
+ 	mutex_init(&data->update_lock);
+ 
+ 	/* Tell the I2C layer a new client has arrived */
+-	if ((err = i2c_attach_client(new_client)))
++	if ((err = i2c_attach_client(client)))
+ 		goto exitfree;
+ 
+ 	/* Set the VRM version */
+ 	data->vrm = vid_which_vrm();
+ 
+ 	/* Initialize the ADM1026 chip */
+-	adm1026_init_client(new_client);
++	adm1026_init_client(client);
+ 
+ 	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&new_client->dev.kobj, &adm1026_group)))
++	if ((err = sysfs_create_group(&client->dev.kobj, &adm1026_group)))
+ 		goto exitdetach;
+ 
+-	data->hwmon_dev = hwmon_device_register(&new_client->dev);
++	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		err = PTR_ERR(data->hwmon_dev);
+ 		goto exitremove;
+@@ -1754,9 +1744,9 @@ static int adm1026_detect(struct i2c_ada
+ 
+ 	/* Error out and cleanup code */
+ exitremove:
+-	sysfs_remove_group(&new_client->dev.kobj, &adm1026_group);
++	sysfs_remove_group(&client->dev.kobj, &adm1026_group);
+ exitdetach:
+-	i2c_detach_client(new_client);
++	i2c_detach_client(client);
+ exitfree:
+ 	kfree(data);
+ exit:
 
 -- 
 Jean Delvare
