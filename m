@@ -1,139 +1,56 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 01 Dec 2007 10:25:33 +0000
-Subject: [lm-sensors] [PATCH] hwmon: VRM is not written to registers
-Message-Id: <20071201112533.7c2f991a@hyperion.delvare>
+Date: Sun, 02 Dec 2007 22:32:42 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon: (adm1031) Fix register overwrite in
+Message-Id: <20071202233242.4341923f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-What was true of reading the VRM value is also true of writing it: not
-being a register value, it doesn't need hardware access, so we don't
-need a reference to the i2c client. This allows for a minor code
-cleanup. As gcc appears to be smart enough to simplify the generated
-code by itself, this cleanup only affects the source code, the
-generated binaries are unchanged.
+Don't rely on the register cache when setting a new fan clock divider.
+For one thing, the cache might not have been initialized at all if the
+driver has just been loaded. For another, the cached values may be old
+and you never know what can happen in the driver's back.
+
+Also invalidate the cache instead of trying to adjust the measured fan
+speed: the whole point of changing the clock divider is to get a better
+reading.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/hwmon/adm1025.c    |    3 +--
- drivers/hwmon/asb100.c     |    6 ++----
- drivers/hwmon/lm85.c       |    8 ++------
- drivers/hwmon/lm87.c       |    3 +--
- drivers/hwmon/smsc47m192.c |    3 +--
- drivers/hwmon/w83791d.c    |    6 ++----
- drivers/hwmon/w83793.c     |    8 ++------
- 7 files changed, 11 insertions(+), 26 deletions(-)
+ drivers/hwmon/adm1031.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- linux-2.6.24-rc3.orig/drivers/hwmon/adm1025.c	2007-12-01 11:11:13.000000000 +0100
-+++ linux-2.6.24-rc3/drivers/hwmon/adm1025.c	2007-12-01 11:12:21.000000000 +0100
-@@ -335,8 +335,7 @@ show_vrm(struct device *dev, struct devi
- static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
- 		       const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct adm1025_data *data = i2c_get_clientdata(client);
-+	struct adm1025_data *data = dev_get_drvdata(dev);
- 	data->vrm = simple_strtoul(buf, NULL, 10);
- 	return count;
- }
---- linux-2.6.24-rc3.orig/drivers/hwmon/asb100.c	2007-12-01 11:11:13.000000000 +0100
-+++ linux-2.6.24-rc3/drivers/hwmon/asb100.c	2007-12-01 11:12:21.000000000 +0100
-@@ -520,10 +520,8 @@ static ssize_t show_vrm(struct device *d
+--- linux-2.6.24-rc3.orig/drivers/hwmon/adm1031.c	2007-12-01 10:18:09.000000000 +0100
++++ linux-2.6.24-rc3/drivers/hwmon/adm1031.c	2007-12-02 22:22:18.000000000 +0100
+@@ -542,18 +542,26 @@ set_fan_div(struct device *dev, const ch
+ 		return -EINVAL;
+ 	
+ 	mutex_lock(&data->update_lock);
++	/* Get fresh readings */
++	data->fan_div[nr] = adm1031_read_value(client,
++					       ADM1031_REG_FAN_DIV(nr));
++	data->fan_min[nr] = adm1031_read_value(client,
++					       ADM1031_REG_FAN_MIN(nr));
++
++	/* Write the new clock divider and fan min */
+ 	old_div = FAN_DIV_FROM_REG(data->fan_div[nr]);
+ 	data->fan_div[nr] = (tmp & 0xC0) | (0x3f & data->fan_div[nr]);
+ 	new_min = data->fan_min[nr] * old_div / 
+ 		FAN_DIV_FROM_REG(data->fan_div[nr]);
+ 	data->fan_min[nr] = new_min > 0xff ? 0xff : new_min;
+-	data->fan[nr] = data->fan[nr] * old_div / 
+-		FAN_DIV_FROM_REG(data->fan_div[nr]);
  
- static ssize_t set_vrm(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct asb100_data *data = i2c_get_clientdata(client);
--	unsigned long val = simple_strtoul(buf, NULL, 10);
--	data->vrm = val;
-+	struct asb100_data *data = dev_get_drvdata(dev);
-+	data->vrm = simple_strtoul(buf, NULL, 10);
- 	return count;
- }
- 
---- linux-2.6.24-rc3.orig/drivers/hwmon/lm85.c	2007-12-01 11:11:13.000000000 +0100
-+++ linux-2.6.24-rc3/drivers/hwmon/lm85.c	2007-12-01 11:12:21.000000000 +0100
-@@ -444,12 +444,8 @@ static ssize_t show_vrm_reg(struct devic
- 
- static ssize_t store_vrm_reg(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm85_data *data = i2c_get_clientdata(client);
--	u32 val;
--
--	val = simple_strtoul(buf, NULL, 10);
--	data->vrm = val;
-+	struct lm85_data *data = dev_get_drvdata(dev);
-+	data->vrm = simple_strtoul(buf, NULL, 10);
- 	return count;
- }
- 
---- linux-2.6.24-rc3.orig/drivers/hwmon/lm87.c	2007-12-01 11:11:13.000000000 +0100
-+++ linux-2.6.24-rc3/drivers/hwmon/lm87.c	2007-12-01 11:12:21.000000000 +0100
-@@ -511,8 +511,7 @@ static ssize_t show_vrm(struct device *d
- }
- static ssize_t set_vrm(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm87_data *data = i2c_get_clientdata(client);
-+	struct lm87_data *data = dev_get_drvdata(dev);
- 	data->vrm = simple_strtoul(buf, NULL, 10);
- 	return count;
- }
---- linux-2.6.24-rc3.orig/drivers/hwmon/smsc47m192.c	2007-12-01 11:11:13.000000000 +0100
-+++ linux-2.6.24-rc3/drivers/hwmon/smsc47m192.c	2007-12-01 11:12:21.000000000 +0100
-@@ -341,8 +341,7 @@ static ssize_t show_vrm(struct device *d
- static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
- 		const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct smsc47m192_data *data = i2c_get_clientdata(client);
-+	struct smsc47m192_data *data = dev_get_drvdata(dev);
- 	data->vrm = simple_strtoul(buf, NULL, 10);
- 	return count;
- }
---- linux-2.6.24-rc3.orig/drivers/hwmon/w83791d.c	2007-12-01 11:11:13.000000000 +0100
-+++ linux-2.6.24-rc3/drivers/hwmon/w83791d.c	2007-12-01 11:12:21.000000000 +0100
-@@ -840,14 +840,12 @@ static ssize_t store_vrm_reg(struct devi
- 				struct device_attribute *attr,
- 				const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct w83791d_data *data = i2c_get_clientdata(client);
--	unsigned long val = simple_strtoul(buf, NULL, 10);
-+	struct w83791d_data *data = dev_get_drvdata(dev);
- 
- 	/* No lock needed as vrm is internal to the driver
- 	   (not read from a chip register) and so is not
- 	   updated in w83791d_update_device() */
--	data->vrm = val;
-+	data->vrm = simple_strtoul(buf, NULL, 10);
- 
- 	return count;
- }
---- linux-2.6.24-rc3.orig/drivers/hwmon/w83793.c	2007-12-01 11:11:13.000000000 +0100
-+++ linux-2.6.24-rc3/drivers/hwmon/w83793.c	2007-12-01 11:12:21.000000000 +0100
-@@ -243,9 +243,7 @@ static struct i2c_driver w83793_driver  static ssize_t
- show_vrm(struct device *dev, struct device_attribute *attr, char *buf)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct w83793_data *data = i2c_get_clientdata(client);
--
-+	struct w83793_data *data = dev_get_drvdata(dev);
- 	return sprintf(buf, "%d\n", data->vrm);
- }
- 
-@@ -264,9 +262,7 @@ static ssize_t
- store_vrm(struct device *dev, struct device_attribute *attr,
- 	  const char *buf, size_t count)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct w83793_data *data = i2c_get_clientdata(client);
--
-+	struct w83793_data *data = dev_get_drvdata(dev);
- 	data->vrm = simple_strtoul(buf, NULL, 10);
+ 	adm1031_write_value(client, ADM1031_REG_FAN_DIV(nr), 
+ 			    data->fan_div[nr]);
+ 	adm1031_write_value(client, ADM1031_REG_FAN_MIN(nr), 
+ 			    data->fan_min[nr]);
++
++	/* Invalidate the cache: fan speed is no longer valid */
++	data->valid = 0;
+ 	mutex_unlock(&data->update_lock);
  	return count;
  }
 
