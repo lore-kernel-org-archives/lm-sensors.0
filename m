@@ -1,26 +1,26 @@
-From: "Jean Delvare" <khali@linux-fr.org>
-Date: Fri, 21 Dec 2007 10:49:10 +0000
-Subject: Re: [lm-sensors] PATCH: hwmon-fschmd-use-dmi-tables.patch
-Message-Id: <llt2mBYD.1198234150.1522520.khali@gcu-squad.org>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 02 Dec 2007 22:27:27 +0000
+Subject: [lm-sensors] [PATCH 0/4] adm1031 updates
+Message-Id: <20071202232727.5a1d554b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <47669C8B.2080507@hhs.nl>
-In-Reply-To: <47669C8B.2080507@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
-Hi Hans,
+Here comes a 4-piece patchset updating the adm1031 driver:
+* Fix register overwrite in set_fan_div()
+* Various cleanups
+* Get rid of macro-generated wrappers
+* Add individual alarm and fault files
 
-Le 20/12/2007, "Hans de Goede" <j.w.r.degoede@hhs.nl> a =E9crit:
->All fixed, new version attached.
+Alexandre, I would appreciate if you could test these patches. My
+ADM1031 evaluation board behaves weirdly so I can't really use it to
+test the changes I made to the driver.
 
-Looks alright.
-
-Acked-by: Jean Delvare <khali@linux-fr.org>
-
---
+-- 
 Jean Delvare
 
 _______________________________________________
