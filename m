@@ -1,47 +1,55 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 16 Dec 2007 19:33:41 +0000
-Subject: Re: [lm-sensors] ASM58 Mozart-2 Driver
-Message-Id: <20071216193341.GC30454@jupiter.solarsys.private>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 02 Dec 2007 19:39:27 +0000
+Subject: Re: [lm-sensors] [PATCH] libsensors: No longer depend on libsysfs
+Message-Id: <475309EF.9060500@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000301c83dfc$bdb0e980$3912bc80$@net>
-In-Reply-To: <000301c83dfc$bdb0e980$3912bc80$@net>
+References: <20071129120153.26879145@hyperion.delvare>
+In-Reply-To: <20071129120153.26879145@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Eric:
+Jean Delvare wrote:
+> Hi Hans,
+> 
+> On Thu, 29 Nov 2007 19:16:39 +0100, Hans de Goede wrote:
+>> Jean Delvare wrote:
+>>> Hi all,
+>>>
+>>> Here is a proposed patch to make libsensors no longer depend on
+>>> libsysfs. Instead, it accesses sysfs directly, using 3 embedded helper
+>>> functions. My motivations for doing this are:
+>>> * As far as I know, libsysfs is no longer maintained.
+>>> * libsysfs does much more than we need. For example, when asking for a
+>>>   device attribute list, libsysfs will read the contents and permissions
+>>>   of all attributes. Not only does this waste CPU cycles per se, but in
+>>>   the case of hwmon driver it also triggers register reads, which can be
+>>>   slow for SMBus chips.
+>>> * libsysfs enforces the difference between devices and class devices,
+>>>   while future changes will be easier if we can handle both types alike.
+>>>
+>> Good work!
+>>
+>> I'm afraid I don't have the time to review this atm though, any other takers?
+> 
+> If you have the possibility to test the patch, that would be
+> appreciated as well, and less time-consuming than a review. Different
+> kernel versions and configurations can make the sysfs tree look a bit
+> different. Also, i2c and non-i2c chips have different code paths. I've
+> tested as much as I could on my systems, but more testing can't hurt.
+> 
 
-* Eric <resdrywall@bellsouth.net> [2007-12-13 21:55:09 -0500]:
->    I found a driver below but I cannot find docs on how to add it or if it is
->    compatible
-> 
-> 
-> 
->    [2]http://lists.lm-sensors.org/pipermail/lm-sensors/2006-March/015735.html
-> 
-> 
-> 
->    lm sensors version: sensors version 2.8.7 with libsensors version 2.8.7
-> 
-> 
-> 
->    I looked at the later versions readme and did not see reference to this
->    being supported. Please let me know if this is possible because I have a
->    lot of interest in the applications that use it.
+I've just given it a test run on my abituguru machine, works fine. Tomorrow 
+I'll give it a test run on a FSC machine.
 
-For whatever reason, it looks like the work-in-progress on this driver
-was abandoned.  Any volunteers to fix it up and resubmit it?  It looks
-mostly finished.  I'll fix it up myself if nobody gets to it.
-
-Eric: would you be able to test a new driver when it's ready?
+If you're reasonably sure this patch is ok, I could put it in the Fedora 
+Rawhide / devel package for some greater exposure, then we can be pretty sure 
+there will be plenty of testing before we release 3.0.1 .
 
 Regards,
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Hans
 
 _______________________________________________
 lm-sensors mailing list
