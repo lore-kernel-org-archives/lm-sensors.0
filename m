@@ -1,44 +1,64 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 19 Dec 2007 11:13:27 +0000
-Subject: Re: [lm-sensors] w83627hf: invalid limits?
-Message-Id: <20071219121327.05f78c0b@hyperion.delvare>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 02 Dec 2007 18:22:40 +0000
+Subject: Re: [lm-sensors] [PATCH 3/5] hwmon: (gl518sm) Refactor fan	functions
+Message-Id: <20071202182240.GA13717@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071216231848.GA11241@intrepid.com>
-In-Reply-To: <20071216231848.GA11241@intrepid.com>
+References: <20071022174642.3c3ce8f0@hyperion.delvare>
+In-Reply-To: <20071022174642.3c3ce8f0@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 18 Dec 2007 11:31:46 -0800, Gary Funck wrote:
-> On 12/16/07 16:47:35, Gary Funck wrote:
+Hi:
+
+* Jean Delvare <khali@linux-fr.org> [2007-11-26 10:28:00 +0100]:
+> Hi Herbert,
+> 
+> On Sun, 25 Nov 2007 15:29:43 +0100, Herbert Valerio Riedel wrote:
+> > On Sun, 2007-11-25 at 14:08 +0100, Jean Delvare wrote:
+> > > +static ssize_t show_fan_input(struct device *dev,
+> > > +			      struct device_attribute *attr, char *buf)
+> > > +{
+> > > +	int nr = to_sensor_dev_attr(attr)->index;
+> > > +	struct gl518_data *data = gl518_update_device(dev);
+> > > +	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_in[nr],
+> > > +					DIV_FROM_REG(data->fan_div[nr])));
+> > > +}
+> > > +
+> > > +static ssize_t show_fan_min(struct device *dev,
+> > > +			    struct device_attribute *attr, char *buf)
+> > > +{
+> > > +	int nr = to_sensor_dev_attr(attr)->index;
+> > > +	struct gl518_data *data = gl518_update_device(dev);
+> > > +	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[nr],
+> > > +					DIV_FROM_REG(data->fan_div[nr])));
+> > > +}
 > > 
-> > What's the recommended method for monitoring the various
-> > sensors and/or sending an e-mail when a limit alarm has
-> > been hit?
+> > one thing just sprang to my mind... is it safe to assume that the
+> > expressions data->fan_min[nr] and data->fan_div[nr] are evaluated
+> > atomically? or to put it differently, why don't we need a rw-lock here
+> > to protect against interleaved updates?
 > 
-> Is the FC8 "lm_sensors-sensord" package one possible
-> answer to my query above?
-> 
->   Description:
->   Daemon that periodically logs sensor readings to syslog or a round-robin
->   database, and warns of sensor alarms.
+> This is a very good question. We always assumed that reading from the
+> register cache did not require to hold the lock. However for this to be
+> true on all architectures, I guess that we should be declaring all the
+> register values with type atomic_t. So you're probably right, our code
+> is probably not safe on some architectures.
 
-This obviously depends on your needs. sensord is great for logging and
-graphing [1] but it doesn't send mails. There's a small script under
-prog/daemon in the lm-sensors source tree that send mails when alarms
-trigger, but it isn't installed by default.
+No, atomic_t wouldn't fix anything here.  The problem is that show_fan_min
+produces output based on *two* values (fan_min and fan_div) which must
+be read atomically.
 
-Please also see:
-  http://www.lm-sensors.org/wiki/UsefulLinks#Hardwaremonitoringapplicationsusingthelm_sensorspackage
-for a list of applications using lm-sensors. And of course Freshmeat is
-your friend too:
-  http://freshmeat.net/projects/lm-monitor/
+Herbert: would you be interested in writing patches to fix these up,
+since you noticed them?
 
-[1] Demo at http://jdelvare.pck.nerim.net/sensord/
+Thanks & regards,
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
