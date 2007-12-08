@@ -1,59 +1,68 @@
-From: Casper Gripenberg <casper.gripenberg@kotiportti.fi>
-Date: Sat, 29 Dec 2007 21:07:51 +0000
-Subject: Re: [lm-sensors] w83627dhg chip - stopping fan rotation?
-Message-Id: <4776B727.8020708@kotiportti.fi>
+From: Ulf Jordan <jordan@chalmers.se>
+Date: Sat, 08 Dec 2007 10:00:19 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Fix typo for NSC
+Message-Id: <Pine.LNX.4.63.0712081041290.32213@elfpc10.elmagn.chalmers.se>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="276943995-607444277-1197107654=:32213"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4776AD53.5030600@assembler.cz>
-In-Reply-To: <4776AD53.5030600@assembler.cz>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Rudolf Marek wrote:
-> Perhaps you have still some kind of automatic mode maybe. What does
-> cat pwm?_enable print?
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-If I enable Asus Q-Fan (automatic fan control) from the
-BIOS then pwm?_enable prints 2. If I disable it then it
-prints 1.
+--276943995-607444277-1197107654=:32213
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-ID: <Pine.LNX.4.63.0712081054281.32213@elfpc10.elmagn.chalmers.se>
 
-> echo 1 > pwm1_enable will switch it to manual mode.
+Hello!
 
-Ok. I tried this both with automatic control enabled in
-the BIOS and disabled. And then I tried again to echo
-0 into pwm[1-4] with either mode. Nothing :(
+In the Super IO detection section of sensors-detect, devid = 0xd0 is 
+identifed as PC87371 and 0xdf as PC97371. According to National's 
+datasheets these SIDs correspond to PC87317 and PC97317, respectively. 
+PC87371 and PC97371 do not seem to exist.
 
-> You need to set there manual mode first. Imho you can try first with=20
-> pwmconfig script which is doing that for you. Addtitionally you may=20
-> check documentation for the chip in kernel Documentation/hwmon/w83627ehf
->=20
-> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dbl=
-ob;f=3DDocumentation/hwmon/w83627ehf;h=CCc2bcb610686aaf44a0d38c5f67db44e898=
-5e82;hb=3DHEAD=20
+Some further discussion is available on the LinuxBIOS mailing list in 
+the thread starting at 
+http://www.linuxbios.org/pipermail/linuxbios/2007-December/027954.html
 
-Thanks for the link. Seems the one that comes with my distro
-(Ubuntu 7.10) was a bit outdated.
-
-I also have files called pwm?_mode, which are not explained
-in the docs. I'm guessing these set either DC or pulse control
-of the fan output. I tried modifying the values here too (either
-0 or 1 was accepted). Didn't help either :-/
-
-Anything else I could try?
-
-Thanks.
-
-Casper
-
-Btw. with ASUS Q-Fan enabled the fans do spin down, so at
-least the Q-Fan thing is working. But manual control not..
+Attached is a patch that fixes the typo.
 
 
+/ulf
+--276943995-607444277-1197107654=:32213
+Content-Type: TEXT/PLAIN; charset=us-ascii;
+	name=sensors-detect-PC87317-PC97317-typo.patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.63.0712081054140.32213@elfpc10.elmagn.chalmers.se>
+Content-Description: 
+Content-Disposition: attachment;
+	filename=sensors-detect-PC87317-PC97317-typo.patch
 
+Rml4IHR5cG8uIEFjY29yZGluZyB0byBOYXRpb25hbCdzIGRhdGFzaGVldCBQ
+Qzg3MzE3IGhhcyBTSUQgPSAweGQwIGFuZA0KUEM5NzMxNyBoYXMgU0lEID0g
+MHhkZi4gUEM4NzM3MS9QQzk3MzcxIGRvIG5vdCBzZWVtIHRvIGV4aXN0Lg0K
+DQpTaWduZWQtb2ZmLWJ5OiBVbGYgSm9yZGFuIDxqb3JkYW5AY2hhbG1lcnMu
+c2U+DQoNCkluZGV4OiBzZW5zb3JzLWRldGVjdA0KPT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PQ0KLS0tIHNlbnNvcnMtZGV0ZWN0CShyZXZpc2lvbiA1MDY0KQ0K
+KysrIHNlbnNvcnMtZGV0ZWN0CSh3b3JraW5nIGNvcHkpDQpAQCAtMTY5Miwx
+MiArMTY5MiwxMiBAQA0KIAlsb2dkZXYgPT4gMHgwZiwNCiAgICAgICB9LA0K
+ICAgICAgIHsNCi0JbmFtZSA9PiAiTmF0LiBTZW1pLiBQQzg3MzcxIFN1cGVy
+IElPIiwNCisJbmFtZSA9PiAiTmF0LiBTZW1pLiBQQzg3MzE3IFN1cGVyIElP
+IiwNCiAJZHJpdmVyID0+ICJub3QtYS1zZW5zb3IiLA0KIAlkZXZpZCA9PiAw
+eGQwLA0KICAgICAgIH0sDQogICAgICAgew0KLQluYW1lID0+ICJOYXQuIFNl
+bWkuIFBDOTczNzEgU3VwZXIgSU8iLA0KKwluYW1lID0+ICJOYXQuIFNlbWku
+IFBDOTczMTcgU3VwZXIgSU8iLA0KIAlkcml2ZXIgPT4gIm5vdC1hLXNlbnNv
+ciIsDQogCWRldmlkID0+IDB4ZGYsDQogICAgICAgfSwNCg==
 
+--276943995-607444277-1197107654=:32213
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--276943995-607444277-1197107654=:32213--
