@@ -1,57 +1,78 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 09 Dec 2007 22:42:15 +0000
+From: Mike Houston <mike@mikeserv.com>
+Date: Sun, 09 Dec 2007 23:15:15 +0000
 Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
-Message-Id: <20071209234215.748ed407@hyperion.delvare>
+Message-Id: <20071209181515.a62878c0.mike@mikeserv.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20071204215154.7f26285e.mikeserv@bmts.com>
 	<20071209000554.GF20441@stusta.de>
 	<20071208212234.e00b74cd.mikeserv@bmts.com>
 	<20071209105028.06ed52a6@hyperion.delvare>
 	<E1J1TRp-0000ZF-6J@asgard.prans.org>
-In-Reply-To: <E1J1TRp-0000ZF-6J@asgard.prans.org>
+	<20071209234215.748ed407@hyperion.delvare>
+In-Reply-To: <20071209234215.748ed407@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Elvis Pranskevichus <el@prans.net>
-Cc: Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <ambx1@neo.rr.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Elvis Pranskevichus <el@prans.net>, Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <ambx1@neo.rr.com>
 
-Hi Elvis,
+On Sun, 9 Dec 2007 23:42:15 +0100
+Jean Delvare <khali@linux-fr.org> wrote:
+> In the meantime, I guess that booting with pnpacpi=off should fix
+> your problem. But it might break something else; I'm not sure what
+> the PNP ACPI driver is good for in the first place.
 
-On Sun, 09 Dec 2007 16:12:25 -0500, Elvis Pranskevichus wrote:
-> I have exactly the same problem here on a Gigabyte GA-965G-DS3 motherboard
-> based box:
+Ahh, thanks guys. Yes, that did indeed work around the problem. My
+sensors work again, and I don't appear to have any ill effects. At
+least my devices are all working, and resource assignments (irq, io)
+look ok.
 
-Same motherboard as Mike has.
+I'll put an append in my lilo.conf for pnpacpi=off for now.
 
-> it87: Found IT8718F chip at 0x290, revision 1
-> it87: in3 is VCC (+5V)
-> it87 it87.656: Failed to request region 0x290-0x297
-> it87: probe of it87.656 failed with error -16
-> 
-> git bisecting revealed the offending commit:
-> 
-> a7839e960675b54: PNP: increase the maximum number of resources
-> 
-> Happened between rc3 and rc4.
-> 
-> > Either way, the overlapping areas smell like a BIOS bug, meaning that
-> > you should look for an updated BIOS for your system first.
-> > 
-> >> http://www.mikeserv.com/temp/config-2.6.24-rc4.txt
-> > 
-> 
-> This indeed looks like a broken ACPI BIOS since the aforementioned commit
-> touches only the PNP ACPI driver. I'm not sure how to work around this,
-> though. Ideas?
+/proc/ioports with pnpacpi=off:
+0000-001f : dma1
+0020-0021 : pic1
+0040-0043 : timer0
+0050-0053 : timer1
+0060-006f : keyboard
+0070-0077 : rtc
+0080-008f : dma page reg
+00a0-00a1 : pic2
+00c0-00df : dma2
+00f0-00ff : fpu
+0290-0297 : it87
+  0290-0297 : it87
+03c0-03df : vga+
+0400-047f : 0000:00:1f.0
+  0400-0403 : ACPI PM1a_EVT_BLK
+  0404-0405 : ACPI PM1a_CNT_BLK
+  0408-040b : ACPI PM_TMR
+  0410-0415 : ACPI CPU throttle
+  0428-042f : ACPI GPE0_BLK
+0480-04bf : 0000:00:1f.0
+0500-051f : 0000:00:1f.3
+  0500-051f : i801_smbus
+0cf8-0cff : PCI conf1
+7000-7fff : PCI Bus #02
+8000-8fff : PCI Bus #04
+9000-9fff : PCI Bus #03
+a000-afff : PCI Bus #01
+  a000-a07f : 0000:01:00.0
+b000-bfff : PCI Bus #05
+  b000-b0ff : 0000:05:02.0
+    b000-b0ff : 8139too
+c000-c01f : 0000:00:1a.1
+c400-c41f : 0000:00:1d.0
+c800-c81f : 0000:00:1d.1
+cc00-cc1f : 0000:00:1d.2
+d000-d01f : 0000:00:1a.0
+d400-d407 : 0000:00:1f.2
+d800-d803 : 0000:00:1f.2
+dc00-dc07 : 0000:00:1f.2
+e000-e003 : 0000:00:1f.2
+e400-e41f : 0000:00:1f.2
 
-Complaining to Gigabyte seems to be the best approach.
-
-In the meantime, I guess that booting with pnpacpi=off should fix your
-problem. But it might break something else; I'm not sure what the PNP
-ACPI driver is good for in the first place.
-
--- 
-Jean Delvare
+Mike Houston
 
 _______________________________________________
 lm-sensors mailing list
