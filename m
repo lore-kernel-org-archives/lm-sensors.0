@@ -1,157 +1,68 @@
-From: "Rutul Dave" <rutuldave@gmail.com>
-Date: Sat, 29 Dec 2007 21:03:55 +0000
-Subject: Re: [lm-sensors] error loading coretemp module for 2.6.21.5 kernel
-Message-Id: <975b59c50712291303u17f3a4bh388f53809d6fd94f@mail.gmail.com>
+From: Peter Ganzhorn <peter.ganzhorn@googlemail.com>
+Date: Sun, 09 Dec 2007 12:06:29 +0000
+Subject: [lm-sensors] Intel Core voltage monitoring
+Message-Id: <475BDA45.70400@googlemail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <975b59c50712271552u8e4b846r9545f817f8d779e1@mail.gmail.com>
-In-Reply-To: <975b59c50712271552u8e4b846r9545f817f8d779e1@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thanks Rudolf, your suggestion did work. I was able to load
-coretemp.ko with the fix. The CPU model for the new processors is 0x17
+Hi,
 
-[73247.627311] coretemp coretemp.0: This driver uses undocumented
-features of Core CPU (Intel will not disclose the information to
-individuals). Temperature might be wrong!
-[73247.627413] coretemp coretemp.1: This driver uses undocumented
-features of Core CPU (Intel will not disclose the information to
-individuals). Temperature might be wrong!
-[73247.627517] coretemp coretemp.2: This driver uses undocumented
-features of Core CPU (Intel will not disclose the information to
-individuals). Temperature might be wrong!
-[73247.627634] coretemp coretemp.3: This driver uses undocumented
-features of Core CPU (Intel will not disclose the information to
-individuals). Temperature might be wrong!
-[73247.627719] coretemp coretemp.4: This driver uses undocumented
-features of Core CPU (Intel will not disclose the information to
-individuals). Temperature might be wrong!
-[73247.627824] coretemp coretemp.5: This driver uses undocumented
-features of Core CPU (Intel will not disclose the information to
-individuals). Temperature might be wrong!
-[73247.627967] coretemp coretemp.6: This driver uses undocumented
-features of Core CPU (Intel will not disclose the information to
-individuals). Temperature might be wrong!
-[73247.628107] coretemp coretemp.7: This driver uses undocumented
-features of Core CPU (Intel will not disclose the information to
-individuals). Temperature might be wrong!
+I'm wondering if there is an easy way to monitor the voltage of an Intel 
+Core CPU with Linux.
+Windows tools like cpu-z report CPU information such as speed and 
+multiplicator, but voltage and even temperature as well.
+I don't think those Windows tools have a complete set of hardware 
+monitoring drivers built-in, and there is already the coretemp driver to 
+monitor the temperature of an Intel Core CPU.
+Do you know any way to monitor the voltage of my CPU?
 
+BTW: I have a Toshiba Tecra A9 notebook on which lm_sensors can't 
+identify the hardware monitoring chips:
 
-[root@localhost hwmon]# sensors
-w83793-i2c-0-2f
-Adapter: SMBus I801 adapter at 1100
-VCoreA:    +1.20 V  (min =  +0.92 V, max =  +1.49 V)
-VCoreB:    +1.20 V  (min =  +0.92 V, max =  +1.49 V)
-Vtt:       +1.16 V  (min =  +1.08 V, max =  +1.33 V)
-in3:       +0.51 V  (min =  +0.38 V, max =  +0.69 V)
-in4:       +2.99 V  (min =  +1.34 V, max =  +1.65 V)   ALARM
-+3.3V:     +3.28 V  (min =  +2.96 V, max =  +3.63 V)
-+12V:     +11.62 V  (min = +10.75 V, max = +13.25 V)
-+5V:       +5.05 V  (min =  +4.64 V, max =  +5.65 V)
-5VSB:      +5.09 V  (min =  +4.64 V, max =  +5.65 V)
-VBAT:      +3.26 V  (min =  +2.99 V, max =  +3.66 V)
-fan1:        0 RPM  (min =  712 RPM)                   ALARM
-fan2:        0 RPM  (min =  712 RPM)                   ALARM
-fan3:        0 RPM  (min =  712 RPM)                   ALARM
-fan4:        0 RPM  (min =  712 RPM)                   ALARM
-fan5:        0 RPM  (min =  712 RPM)                   ALARM
-fan6:        0 RPM  (min =  712 RPM)                   ALARM
-fan7:        0 RPM  (min =  712 RPM)                   ALARM
-fan8:        0 RPM  (min =  712 RPM)                   ALARM
-fan9:        0 RPM  (min =  712 RPM)                   ALARM
-fan10:       0 RPM  (min =  712 RPM)                   ALARM
-CPU1 Temp: +12.0°C  (high = +75.0°C, hyst = +70.0°C)
-CPU2 Temp: +17.0°C  (high = +75.0°C, hyst = +70.0°C)
-temp3:     +35.8°C  (high = +75.0°C, hyst = +70.0°C)
-temp4:     +35.0°C  (high = +75.0°C, hyst = +70.0°C)
-temp5:       +29°C  (high =   +50°C, hyst =   +45°C)
+Some chips are also accessible through the ISA I/O ports. We have to
+write to arbitrary I/O ports to probe them. This is usually safe though.
+Yes, you do have ISA I/O ports even if you do not have any ISA slots!
+Do you want to scan the ISA I/O ports? (YES/no):
+Probing for `National Semiconductor LM78' at 0x290...       No
+Probing for `National Semiconductor LM78-J' at 0x290...     No
+Probing for `National Semiconductor LM79' at 0x290...       No
+Probing for `Winbond W83781D' at 0x290...                   No
+Probing for `Winbond W83782D' at 0x290...                   No
+Probing for `Silicon Integrated Systems SIS5595'...         No
+Probing for `VIA VT82C686 Integrated Sensors'...            No
+Probing for `VIA VT8231 Integrated Sensors'...              No
+Probing for `IPMI BMC KCS' at 0xca0...                      No
+Probing for `IPMI BMC SMIC' at 0xca8...                     No
 
-w83627hf-isa-0290
-Adapter: ISA adapter
-VCore 1:   +4.08 V  (min =  +0.00 V, max =  +4.08 V)
-VCore 2:   +4.08 V  (min =  +0.00 V, max =  +4.08 V)
-+3.3V:     +4.08 V  (min =  +2.82 V, max =  +3.79 V)       ALARM
-+5V:       +5.11 V  (min =  +5.89 V, max =  +3.28 V)       ALARM
-+12V:     +11.61 V  (min =  +6.63 V, max = +15.50 V)
--12V:      +0.88 V  (min = -10.22 V, max = -13.10 V)       ALARM
--5V:       +1.99 V  (min =  +4.20 V, max =  +1.13 V)       ALARM
-V5SB:      +5.70 V  (min =  +4.38 V, max =  +3.23 V)       ALARM
-VBat:      +0.24 V  (min =  +1.18 V, max =  +1.82 V)       ALARM
-fan1:        0 RPM  (min =    0 RPM, div = 2)
-fan2:        0 RPM  (min = 3835 RPM, div = 2)              ALARM
-fan3:        0 RPM  (min = 2689 RPM, div = 2)              ALARM
-temp1:       -48°C  (high =   +60°C, hyst =   +55°C)   sensor = thermistor
-temp2:     -48.0°C  (high =   +80°C, hyst =   +75°C)   sensor = thermistor
-temp3:     -48.0°C  (high =   +80°C, hyst =   +75°C)   sensor = thermistor
-vid:      +0.000 V  (VRM Version 8.2)
-alarms:   Chassis intrusion detection                      ALARM
-beep_enable:
-          Sound alarm enabled
+Some Super I/O chips may also contain sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no):
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     Yes
+Found unknown non-standard chip with ID 0x7a
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     Yes
+Found unknown chip with ID 0x0b00
 
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:      +20°C  (high =  +100°C)
-
-coretemp-isa-0001
-Adapter: ISA adapter
-Core 1:      +13°C  (high =  +100°C)
-
-coretemp-isa-0002
-Adapter: ISA adapter
-Core 2:      +26°C  (high =  +100°C)
-
-coretemp-isa-0003
-Adapter: ISA adapter
-Core 3:      +23°C  (high =  +100°C)
-
-coretemp-isa-0004
-Adapter: ISA adapter
-Core 4:      +25°C  (high =  +100°C)
-
-coretemp-isa-0005
-Adapter: ISA adapter
-Core 5:      +24°C  (high =  +100°C)
-
-coretemp-isa-0006
-Adapter: ISA adapter
-Core 6:      +32°C  (high =  +100°C)
-
-coretemp-isa-0007
-Adapter: ISA adapter
-Core 7:      +31°C  (high =  +100°C)
+Some CPUs or memory controllers may also contain embedded sensors.
+Do you want to scan for them? (YES/no):
+AMD K8 thermal sensors...                                   No
+Intel Core family thermal sensor...                         Success!
+    (driver `coretemp')
+Intel AMB FB-DIMM thermal sensor...                         No
 
 
+coretemp works just fine, but I have no way of monitoring anything else 
+which is quite unsatisfying to me...
+Maybe you guys can help me monitoring at least vcore!
 
-On Dec 28, 2007 12:13 PM, Rudolf Marek <r.marek@assembler.cz> wrote:
-> Hi,
->
-> Your CPU is to new, I guess Penryn based.
->
-> The driver will work if you just fix:
->
->
->
->                  /* check if family 6, models e, f */
->
->                  if ((c->cpuid_level < 0) || (c->x86 != 0x6) ||
->
->                      !((c->x86_model = 0xe) || (c->x86_model = 0xf))) {
->
-> to:
->
->
->                  /* check if family 6, models e, f */
->
->                  if ((c->cpuid_level < 0) || (c->x86 != 0x6) ||
->
->                      !((c->x86_model = 0xe) || (c->x86_model = 0x17))) {
->
-> Thanks,
->
-> Rudolf
->
+best regards,
+Peter
 
 _______________________________________________
 lm-sensors mailing list
