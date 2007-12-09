@@ -1,59 +1,68 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 01 Dec 2007 18:21:02 +0000
-Subject: Re: [lm-sensors] no sensors were detected with Intel Corporation
-Message-Id: <20071201192102.565009b6@hyperion.delvare>
+From: Adrian Bunk <bunk@stusta.de>
+Date: Sun, 09 Dec 2007 00:05:54 +0000
+Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
+Message-Id: <20071209000554.GF20441@stusta.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <c8faca170711081606t6acc5928hfdcd9200ba1d421f@mail.gmail.com>
-In-Reply-To: <c8faca170711081606t6acc5928hfdcd9200ba1d421f@mail.gmail.com>
+References: <20071204215154.7f26285e.mikeserv@bmts.com>
+In-Reply-To: <20071204215154.7f26285e.mikeserv@bmts.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Mike Houston <mikeserv@bmts.com>
+Cc: linux-kernel@vger.kernel.org, mhoffman@lightlink.com, lm-sensors@lm-sensors.org
 
-On Sat, 1 Dec 2007 15:16:07 -0200, Kessia Pinheiro wrote:
-> isadump 0x910 0x911
-> WARNING! Running this program can cause system crashes, data loss and worse!
-> I will probe address register 0x910 and data register 0x911.
-> Continue? [Y/n]
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 80: 23 00 00 00 ff 1f 80 4c 00 00 00 07 37 39 37 39
-> 90: 02 00 00 00 80 00 00 08 00 00 00 00 00 00 00 43
-> a0: 00 01 01 4f ec f5 07 2d a8 0f 20 0c 06 01 37 00
-> b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+On Tue, Dec 04, 2007 at 09:51:54PM -0500, Mike Houston wrote:
+> I finally got around to testing Linux 2.6.24 (2.6.24-rc4) and found
+> that the it87 driver fails to probe and consequently, my sensors no
+> longer work. This was fine with Linux 2.6.23.8 (the last kernel I was
+> using)
+> 
+> The necessary modules load, but:
+> 
+> it87: Found IT8718F chip at 0x290, revision 2
+> it87: in3 is VCC (+5V)
+> it87 it87.656: Failed to request region 0x290-0x297
+> it87: probe of it87.656 failed with error -16
+> 
+> Coretemp still works.
+> 
+> It appears it has something to do with the ioport range being
+> reserved for some reason:
+> 
+> system 00:01: ioport range 0x290-0x29f has been reserved
+> 
+> At least I don't see that happening on previous kernels.
+> 
+> In any case, the changes to it87.c itself don't appear to have caused
+> this. (CC'd hwmon maintainer anyways, my apologies if that was
+> inappropriate)
+> 
+> dmesg:
+> http://www.mikeserv.com/temp/dmesg-2.6.24-rc4.txt
+> 
+> config:
+> http://www.mikeserv.com/temp/config-2.6.24-rc4.txt
 
-OK, so it was indeed an index/data pair. Now, if some of these register
-values correspond to sensors, their values should change a little over
-time. Try running the same isadump command a few seconds apart and see
-if some values change. Do that while the fan is spinning, otherwise you
-might miss it. Also try with and without CPU load to increase the
-chances to spot a change.
+Thanks for your report.
 
-Note that the register map above looks like what the LPC47N252
-datasheet describes. The bad news is that the chip does only fan speed
-monitoring and control. On top of that, the fan speeds cannot be read
-directly from the I/O space, so I don't even know how we would write a
-driver. Someone would need to take a deeper look at the datasheet, I
-don't have the time myself.
+Please also provide:
+- dmesg from 2.6.23.8
+- The output of "cat /proc/ioports" for both kernels
 
-I also think that it would be worth taking a look at the ACPI
-implementation of your laptop to see what they are doing with
-temperatures and fans. We don't want to interfere with that. Can you
-read the temperature using acpi?
+> Thanks for any help or suggestions,
+> 
+> Mike Houston
+
+cu
+Adrian
 
 -- 
-Jean Delvare
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
 
 _______________________________________________
 lm-sensors mailing list
