@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 10 Dec 2007 14:44:12 +0000
+Date: Mon, 10 Dec 2007 14:50:26 +0000
 Subject: Re: [lm-sensors] Intel Core voltage monitoring
-Message-Id: <20071210154412.7cc4e04f@hyperion.delvare>
+Message-Id: <20071210155026.1aced26d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <475BDA45.70400@googlemail.com>
 In-Reply-To: <475BDA45.70400@googlemail.com>
@@ -10,27 +10,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
+Hi Peter,
 
-On Mon, 10 Dec 2007 14:43:13 +0100, Rudolf Marek wrote:
-> Hi Peter,
+On Sun, 09 Dec 2007 13:06:29 +0100, Peter Ganzhorn wrote:
+> BTW: I have a Toshiba Tecra A9 notebook on which lm_sensors can't 
+> identify the hardware monitoring chips:
 > 
-> IMHO the CPU-Z reads the VID code from CPU, so the voltage is not the real 
-> voltage, but the voltage that the CPU wants (not what it is actually getting).
+> Some chips are also accessible through the ISA I/O ports. We have to
+> write to arbitrary I/O ports to probe them. This is usually safe though.
+> Yes, you do have ISA I/O ports even if you do not have any ISA slots!
+> Do you want to scan the ISA I/O ports? (YES/no):
+> Probing for `National Semiconductor LM78' at 0x290...       No
+> Probing for `National Semiconductor LM78-J' at 0x290...     No
+> Probing for `National Semiconductor LM79' at 0x290...       No
+> Probing for `Winbond W83781D' at 0x290...                   No
+> Probing for `Winbond W83782D' at 0x290...                   No
+> Probing for `Silicon Integrated Systems SIS5595'...         No
+> Probing for `VIA VT82C686 Integrated Sensors'...            No
+> Probing for `VIA VT8231 Integrated Sensors'...              No
+> Probing for `IPMI BMC KCS' at 0xca0...                      No
+> Probing for `IPMI BMC SMIC' at 0xca8...                     No
 > 
-> The driver could be extended to show the voltage, but that would not be a real 
-> voltage, but just voltage it wants... Don't know if it is benefit for user?
+> Some Super I/O chips may also contain sensors. We have to write to
+> standard I/O ports to probe them. This is usually safe.
+> Do you want to scan for Super I/O sensors? (YES/no):
+> Probing for Super-I/O at 0x2e/0x2f
+> Trying family `National Semiconductor'...                   No
+> Trying family `SMSC'...                                     Yes
+> Found unknown non-standard chip with ID 0x7a
+> Probing for Super-I/O at 0x4e/0x4f
+> Trying family `National Semiconductor'...                   No
+> Trying family `SMSC'...                                     Yes
+> Found unknown chip with ID 0x0b00
 > 
-> What others think?
+> Some CPUs or memory controllers may also contain embedded sensors.
+> Do you want to scan for them? (YES/no):
+> AMD K8 thermal sensors...                                   No
+> Intel Core family thermal sensor...                         Success!
+>     (driver `coretemp')
+> Intel AMB FB-DIMM thermal sensor...                         No
+> 
+> 
+> coretemp works just fine, but I have no way of monitoring anything else 
+> which is quite unsatisfying to me...
+> Maybe you guys can help me monitoring at least vcore!
 
-Well, that's what other hardware monitoring drivers export as cpu0_vid.
-If you can read the value from the CPU directly, that would be
-interesting, as this means that we can get the value even if the VID
-lines aren't (properly) wired to the hardware monitoring chip. So, yes,
-I'd say it's worth exporting from the coretemp driver if that can be
-done easily and reliably.
+Your sensors-detect output doesn't include the SMBus scan, I guess that
+the SMBus is hidden. I've seen this before on Toshiba laptops, and
+after investigation we found that the SMBus was being accessed by SMM
+code, so it's not safe to let Linux access it. That's a design decision
+by the manufacturer, there's nothing we can do. You might be able to
+get the fan reading using the toshiba_acpi driver, but that's about it.
 
-Thanks,
 -- 
 Jean Delvare
 
