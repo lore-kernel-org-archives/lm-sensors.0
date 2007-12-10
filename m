@@ -1,25 +1,31 @@
-From: Stephen Cormier <s.cormier@gmx.net>
-Date: Mon, 10 Dec 2007 01:10:58 +0000
+From: Ed Sweetman <safemode2@comcast.net>
+Date: Mon, 10 Dec 2007 01:32:41 +0000
 Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
-Message-Id: <200712092110.58471.s.cormier@gmx.net>
+Message-Id: <475C9739.4030306@comcast.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071209000554.GF20441@stusta.de>
-In-Reply-To: <20071209000554.GF20441@stusta.de>
+References: <20071204215154.7f26285e.mikeserv@bmts.com>	<20071209000554.GF20441@stusta.de>	<20071208212234.e00b74cd.mikeserv@bmts.com>	<20071209105028.06ed52a6@hyperion.delvare>	<E1J1TRp-0000ZF-6J@asgard.prans.org>	<20071209234215.748ed407@hyperion.delvare> <20071209191959.eba5a41f.mikeserv@bmts.com>
+In-Reply-To: <20071209191959.eba5a41f.mikeserv@bmts.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Mike Houston <mikeserv@bmts.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Elvis Pranskevichus <el@prans.net>, Adrian Bunk <bunk@stusta.de>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <ambx1@neo.rr.com>
 
-On December 9, 2007 08:19:59 pm Mike Houston wrote:
+Mike Houston wrote:
 > On Sun, 9 Dec 2007 23:42:15 +0100
->
 > Jean Delvare <khali@linux-fr.org> wrote:
-> > On Sun, 09 Dec 2007 16:12:25 -0500, Elvis Pranskevichus wrote:
-> > > This indeed looks like a broken ACPI BIOS since the
-> > > aforementioned commit touches only the PNP ACPI driver. I'm not
-> > > sure how to work around this, though. Ideas?
-> >
-> > Complaining to Gigabyte seems to be the best approach.
+>
+>   
+>> On Sun, 09 Dec 2007 16:12:25 -0500, Elvis Pranskevichus wrote:
+>>     
+>
+>   
+>>> This indeed looks like a broken ACPI BIOS since the
+>>> aforementioned commit touches only the PNP ACPI driver. I'm not
+>>> sure how to work around this, though. Ideas?
+>>>       
+>> Complaining to Gigabyte seems to be the best approach.
+>>     
 >
 > I just happen to have a Windows Vista installation on this box as
 > well, and I just thought to check. Sorry, I wish I'd have thought of
@@ -37,20 +43,14 @@ On December 9, 2007 08:19:59 pm Mike Houston wrote:
 >
 > Mike Houston
 >
+>   
 
-You could always give speedfan a try it says it works on Vista and that is 
-what I used on XP when I was testing the overclock on my ga-965p-ds3 ver 3.3 
-and it showed whatever meaningful voltages that you can get from that chip, 
-the only ones that make sense for my board are the vdimm, vcore, +3.3v and 
-+5v in both OSs I never checked the i/o ranges when I was running it the 
-latest F12 BIOS was installed.
+I'm seeing this exact problem on an Asus Nforce4 based board. Prior to 
+moving to 2.6.24-rc4 it worked just fine.  No additional acpi options 
+were selected in kernel config.  
 
-http://www.almico.com/sfdownload.php
+So add Asus A8N-E to the list of broken pnpacpi
 
-Stephen
-
--- 
-GPG Public Key: http://users.eastlink.ca/~stephencormier/publickey.asc
 
 _______________________________________________
 lm-sensors mailing list
