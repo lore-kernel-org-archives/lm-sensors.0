@@ -1,33 +1,58 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Sat, 29 Dec 2007 20:12:38 +0000
-Subject: Re: [lm-sensors] Intel D201GLY2, Winbond W83627DHG-B
-Message-Id: <4776AA36.2060104@assembler.cz>
+From: "jounin F" <jounin.f@gmail.com>
+Date: Mon, 10 Dec 2007 08:08:08 +0000
+Subject: [lm-sensors] sensors help
+Message-Id: <a0870dac0712100008s55fbd834x3ca1b8816ff4ccf2@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5082249905123453355=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4776808D.80202@freenet.de>
-In-Reply-To: <4776808D.80202@freenet.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-SGksCgpZb3UgaGF2ZSBkb3VibGUgdGltZXMgYmFkIGx1Y2shIEZvciB0aGUgY29yZXRlbXAgZHJp
-dmVyIHlvdSBuZWVkIGZvbGxvd2luZyBwYXRjaDoKaHR0cDovL2dpdC5rZXJuZWwub3JnLz9wPWxp
-bnV4L2tlcm5lbC9naXQvdG9ydmFsZHMvbGludXgtMi42LmdpdDthPWNvbW1pdGRpZmZfcGxhaW47
-aMk0MDMzNmI0NDAzNTQwYzQ5OGZjZWIxMDJjNzE0Mjc5OTI1MjEyOQoKKG9yIG5ld2VyIGtlcm5l
-bCkKCkFuZCBmb3IgdzgzNjI3ZWhnOgoKTG9hZGluZyB0aGUgbW9kdWxlICd3ODM2MjdlaGYnIHdy
-aXRlcyAia2VybmVsOiB3ODM2MjdlaGY6IHVuc3VwcG9ydGVkCmNoaXAgSUQ6IDB4ZmZmZiIgdG8g
-L3Zhci9sb2cvc3lzbG9nLgoKVGhpcyBpcyBpbiBmYWN0IGhhcm1mdWwsIHlvdXIgY2hpcCBpcyBv
-biBzZWNvbmRhcnkgYWRkcmVzcyAoMHg0ZSkgc28gdGhlIGRyaXZlciAKaXMgcmVhbGx5IGxvYWRl
-ZCh0aGlzIGlzIGZpeGVkIGFscmVhZHkpLiBXaGF0IGlzIGEgcHJvYmxlbSBpcyB0b28gb2xkIAps
-aWJzZW5zb3JzMyBsaWJyYXJ5LgoKU2VlOgoKICAgICMgc2Vuc29ycwogICAgdzgzNjI3ZGhnLWky
-Yy05MTkxLTI5MAogICAgIEVSUk9SOiBDYW4ndCBnZXQgYWRhcHRlciBvciBhbGdvcml0aG0/IT8K
-ClRoaXMgbWVhbnMgaWYgeW91IGdvIHRvIC9zeXMvY2xhc3MvaHdtb24vaHdtb24wLyBkaXIgeW91
-IHdpbGwgc2VlIHRoZSBmaWxlcyAKdGhlcmUuIFNvIHlvdSBjYW4gY2hlY2sgdGhlIHRlbXA/X2lu
-cHV0IGRpcmVjdGx5IHRoZXJlLiBJIHdvdWxkIHN1Z2dlc3QgCnVwZ3JhZGluZyB0aGUgbG0tc2Vu
-c29ycyBwYWNrYWdlIHRvIHNvbWV0aGluZyBuZXdlci4gUGxlYXNlIGNoZWNrIHRoZSBDSEFOR0VT
-IAptYXliZSBpdCB3aWxsIGJlIGRvY3VtZW50ZWQgd2hhdCB2ZXJzaW9uIHlvdSBuZWVkLgoKSSdt
-IGxlYXZpbmcgZm9yIGEgaG9saWRheSB0b21vcnJvdywgc28gSSBob3BlIG90aGVycyBoZXJlIHdp
-bGwgYW5zd2VyIDopCgpSdWRvbGYKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29y
-cy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vu
-c29ycw==
+--===============5082249905123453355==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_17554_9803614.1197274088270"
+
+------=_Part_17554_9803614.1197274088270
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi guys,
+Anybody out there know how I can output only the motherboard and cpu
+temperature when I issue the command 'sensors'?
+I need to log the temperature reading outputted by sensors, but I only want
+the temperature for my mobo and my cpu. That way, the log file won't be too
+large even if I collect temperature readings for days.
+
+Thanks!
+
+-- 
+Francis
+Counted as Linux user no. #454073
+
+------=_Part_17554_9803614.1197274088270
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi guys,<br>
+Anybody out there know how I can output only the motherboard and cpu temperature when I issue the command &#39;sensors&#39;?<br>
+I need to log the temperature reading outputted by sensors, but I only
+want the temperature for my mobo and my cpu. That way, the log file
+won&#39;t be too large even if I collect temperature readings for days.<br>
+<br>
+Thanks!<br clear="all"><br>-- <br>Francis<br>Counted as Linux user no. #454073
+
+------=_Part_17554_9803614.1197274088270--
+
+
+--===============5082249905123453355==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5082249905123453355==--
