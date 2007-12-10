@@ -1,53 +1,41 @@
-From: Mike Houston <mikeserv@bmts.com>
-Date: Mon, 10 Dec 2007 04:02:11 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 10 Dec 2007 14:55:50 +0000
 Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
-Message-Id: <20071209230211.1c2077cf.mikeserv@bmts.com>
+Message-Id: <20071210155550.1844b561@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20071204215154.7f26285e.mikeserv@bmts.com>
 	<20071209000554.GF20441@stusta.de>
 	<20071208212234.e00b74cd.mikeserv@bmts.com>
 	<20071209105028.06ed52a6@hyperion.delvare>
 	<E1J1TRp-0000ZF-6J@asgard.prans.org>
-	<20071209220430.GK20441@stusta.de>
-	<1197253887.27516.2.camel@sli10-desk.sh.intel.com>
-In-Reply-To: <1197253887.27516.2.camel@sli10-desk.sh.intel.com>
+	<20071209234215.748ed407@hyperion.delvare>
+	<20071209191959.eba5a41f.mikeserv@bmts.com>
+	<475C9739.4030306@comcast.net>
+In-Reply-To: <475C9739.4030306@comcast.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, Jean Delvare <khali@linux-fr.org>, Mike Houston <mikeserv@bmts.com>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Ed Sweetman <safemode2@comcast.net>
+Cc: Mike Houston <mikeserv@bmts.com>, Elvis Pranskevichus <el@prans.net>, Adrian Bunk <bunk@stusta.de>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <ambx1@neo.rr.com>
 
-On Mon, 10 Dec 2007 10:31:27 +0800
-Shaohua Li <shaohua.li@intel.com> wrote:
-> This should exist in previous kernel (before we remove acpi
-> motherboard driver) too. Basically it's a broken BIOS. Could below
-> patch work around it?
+Hi Ed,
+
+On Sun, 09 Dec 2007 20:32:41 -0500, Ed Sweetman wrote:
+> I'm seeing this exact problem on an Asus Nforce4 based board. Prior to 
+> moving to 2.6.24-rc4 it worked just fine.  No additional acpi options 
+> were selected in kernel config.  
 > 
-> Thanks,
-> Shaohua
-> 
-> Index: linux/drivers/pnp/system.c
-> =================================> --- linux.orig/drivers/pnp/system.c	2007-12-10
-> 10:17:46.000000000 +0800 +++ linux/drivers/pnp/system.c
+> So add Asus A8N-E to the list of broken pnpacpi
 
-Thanks Shaohua, I tested this as well and it appears to have worked
-around the issue for me.
+For the records, can you please paste the offending lines (from the
+boot logs or /proc/ioports)?
 
-Now, in dmesg, I get:
+Then please give a try to Shaohua's patch and report:
+http://lkml.org/lkml/diff/2007/12/9/186/1
 
-system 00:01: ioport range 0x290-0x29f has been reserved
-(...)
-system 00:01: ioport range 0x290-0x294 could not be reserved
-
-In /proc/ioports I see:
-
-0290-029f : pnp 00:01
-  0290-0297 : it87
-    0290-0297 : it87
-
-The it87 sensor now works without disabling acpipnp
-
-Mike Houston
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
