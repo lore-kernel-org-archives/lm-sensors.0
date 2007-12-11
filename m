@@ -1,38 +1,28 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 16 Dec 2007 19:41:50 +0000
-Subject: Re: [lm-sensors] [PATCH] libsensors: No longer depend on libsysfs
-Message-Id: <20071216194150.GD30454@jupiter.solarsys.private>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 11 Dec 2007 13:57:06 +0000
+Subject: [lm-sensors] sensord bug in lm-sensors 3.0.0
+Message-Id: <20071211145706.31e52982@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071129120153.26879145@hyperion.delvare>
-In-Reply-To: <20071129120153.26879145@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+Hi all,
 
-> On Sun, 16 Dec 2007 13:59:02 -0500, Mark M. Hoffman wrote:
-> > I've finally finished reviewing this.  I only have one minor change to
-> > suggest, which IMHO makes the code a little more readable at very little
-> > expense in cycles and no expense in size.
+Unfortunately I introduced a bug in sensord shortly before releasing
+lm-sensors 3.0.0. It was reported yesterday:
+http://www.lm-sensors.org/ticket/2276
 
-* Jean Delvare <khali@linux-fr.org> [2007-12-16 20:25:26 +0100]:
-> I'm totally fine with this patch, I agree that it's somewhat cleaner
-> and the additional cost is negligible. Feel free to apply it to SVN.
-> 
-> Thanks for the review,
+I've fixed it in SVN today:
+http://www.lm-sensors.org/changeset/5069
 
-You're welcome; committed.
-
-And BTW thanks for doing the work to get rid of libsysfs.
-
-Regards,
+People responsible for packaging lm-sensors for a distribution will
+probably want to backport this fix. Without it, the rrd feature of
+sensord is essentially unusable.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
