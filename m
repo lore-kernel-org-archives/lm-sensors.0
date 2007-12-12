@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 12 Dec 2007 12:22:35 +0000
+Date: Wed, 12 Dec 2007 12:39:40 +0000
 Subject: Re: [lm-sensors] Intel Core voltage monitoring
-Message-Id: <20071212132235.169a2d42@hyperion.delvare>
+Message-Id: <20071212133940.402f47c0@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <475BDA45.70400@googlemail.com>
 In-Reply-To: <475BDA45.70400@googlemail.com>
@@ -10,30 +10,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 12 Dec 2007 13:05:08 +0100, Peter Ganzhorn wrote:
-> This sounds quite interesting to me - do you think it should be possible 
-> to find out what's the matter about the removal of the driver and would 
-> I have been able to access my smbus and the hwmon chip in my laptop with it?
-> It would be great to have a driver for this stuff, but it should work 
-> flawlessly of course...and if it was removed I suppose there was a 
-> problem with it :(
+On 12 Dec 2007 07:07:40 -0500, linux@horizon.com wrote:
+> > There has been a driver doing that in kernel 2.6.18 to 2.6.22, named
+> > i2c_ec:
+> > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=history;f=drivers/acpi/i2c_ec.c
+> > But then the driver we deleted by Len Brown. As the log message is
+> > empty, I can't tell you why the driver was deleted.
+> > 
+> > Note that this driver was looking for an ACPI device named "ACPI0001",
+> > not SMB<id> as you described above. So maybe it's something different,
+> > I don't know.
+> 
+> It looks like that was just a helper for a "Smart Battery" driver,
+> and it was rendered unnecessary.  There are a few clues at
+> http://marc.info/?t7409889900001
 
-Please ask Len Brown directly (and let me know his answer, I'm
-curious.) I know that the i2c_ec driver was added at the same time as
-the sbs driver, and the sbs driver was originally making use of the
-i2c_ec driver, but then the sbs driver was rewritten to no longer
-depend on i2c_ec. I don't know the details, but maybe this was enough
-for Len to decide that the i2c_ec driver was no longer needed at all.
-Either way, he should really have put a comment in that removal commit.
+This is my guess as well. And I can't really argue against that, as I
+never saw any machine implementing this myself, I have no idea whether
+there was anything other than the smart battery stuff on the bus.
 
-Whether or not the driver would have helped you depends on the presence
-of the ACPI0001 device in your DSDT. If your DSDT doesn't define this
-device than the driver in question wouldn't have worked for you anyway.
+> > Yes, acpidump should tell you. Or just run "iasl -d" on your DSDT
+> > table, I guess that this is where the device in question would be
+> > declared. But I don't remember ever seeing the above implemented in any
+> > ACPI DSDT I've disassembled.
+> 
+> Unfortunately, my knowledge of ACPI rivals my knowledge of Xhosa, so
+> acpidump doesn't tell me any more than "xxd /dev/urandom", and "iasl -d"
+> on my latest machine just produces:
+> 
+> # iasl -d
+> Intel ACPI Component Architecture
+> AML Disassembler version 20061109 [May 15 2007]
+> Copyright (C) 2000 - 2006 Intel Corporation
+> Supports ACPI Specification Revision 3.0a
+> 
+> Could not obtain DSDT
+> Could not get ACPI tables, AE_NO_ACPI_TABLES
 
-> But thanks for the info, please keep me up2date if you're going to 
-> investigate a bit more!
-
-Unlikely, I don't really have the time at the moment.
+You need to pass it your DSDT file as a parameter. It used to be
+at /proc/acpi/dsdt but on recent kernels it moved
+to /sys/firmware/acpi/tables/DSDT. You might need to copy the file to a
+temporary directory before iasl -d will be able to disassemble it. Then
+you can grep the disassembled form for "SMB", "ACPI0001" or whatever
+you want.
 
 -- 
 Jean Delvare
