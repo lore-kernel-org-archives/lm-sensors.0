@@ -1,54 +1,52 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 25 Nov 2007 12:02:40 +0000
-Subject: Re: [lm-sensors] libsysfs 2.x bug affects libsensors
-Message-Id: <20071125130240.7dba206d@hyperion.delvare>
+From: Udo van den Heuvel <udovdh@xs4all.nl>
+Date: Wed, 12 Dec 2007 15:32:51 +0000
+Subject: [lm-sensors] k8temp weirdness, it8716 questions
+Message-Id: <475FFF23.2070800@xs4all.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 28 Sep 2006 16:15:54 +0200, Jean Delvare wrote:
-> I just noticed that libsysfs 2.x has a bug (or at least a serious
-> mis-feature) which affects libsensors.
->=20
-> Since lm_sensors 2.10.0, libsensors relies on sysfs_get_mnt_path() to
-> find out whether sysfs is available or not, and fallbacks to procfs to
-> get the sensors data if it isn't. With libsysfs 1.x it worked fine, as
-> sysfs_get_mnt_path() would fail is sysfs wasn't mounted. However, since
-> libsysfs 2.0.0, sysfs_get_mnt_path() appears to succeed even if sysfs
-> isn't mounted. As a consequence, a sysfs-enabled libsensors will not
-> work on a 2.4 kernel. So there is currently no way to build libsensors
-> so that it'll work on both 2.4 and 2.6 kernels, unless you go back to
-> libsysfs 1.3.0.
->=20
-> I opened a bug on sourceforge:
-> http://sourceforge.net/tracker/index.php?func=DEtail&aid=1567053&group_id=
-D427&atidC9544
+I am running Fedora 8 on a Gigabyte m56s-s3 board with an AMD X2 BE-2350.
+Running sensors gives me:
 
-No news since then... Looks like the sysfsutils project is essentially
-dead.
+# sensors
+k8temp-pci-00c3
+Adapter: PCI adapter
+temp1:        -9°C
+temp2:       -20°C
+temp3:       -18°C
+temp4:       -14°C
 
-> There are several quick fixes possible... Testing the string returned
-> by "uname -r", looking for sysfs in /proc/mounts, testing if /sys/bus
-> exists, or the other way around, testing if /proc/sys/dev/sensors
-> exists.
+it8716-isa-0290
+Adapter: ISA adapter
+VCore:     +0.99 V  (min =  +0.00 V, max =  +4.08 V)
+VDDR:      +1.89 V  (min =  +0.00 V, max =  +4.08 V)
++3.3V:     +3.30 V  (min =  +0.00 V, max =  +4.08 V)
++5V:       +4.84 V  (min =  +0.00 V, max =  +6.85 V)
++12V:     +11.97 V  (min =  +0.00 V, max = +16.32 V)
+in5:       +3.18 V  (min =  +0.00 V, max =  +4.08 V)
+in6:       +0.10 V  (min =  +0.00 V, max =  +4.08 V)
+5VSB:      +4.92 V  (min =  +0.00 V, max =  +6.85 V)
+VBat:      +3.07 V
+fan1:      805 RPM  (min =    0 RPM)
+fan2:        0 RPM  (min =    0 RPM)
+temp1:       +38°C  (low  =  +127°C, high =  +127°C)   sensor thermistor
+temp2:       +35°C  (low  =  +127°C, high =  +127°C)   sensor thermistor
+temp3:       +25°C  (low  =  +127°C, high =  +127°C)   sensor = diode
+vid:      +1.000 V (yes, throttled down)
 
-I implemented yet anther workaround: libsensors checks that the
-returned mount point exists and has a link count which is more than 2.
-The workaround is in the 3.x branch for quite some times already, and I
-added it to the 2.x branch yesterday:
-http://www.lm-sensors.org/changeset/5036
+As you can see the k8temp info is slightly off-target.
+Is this a known issue? How could it be corrected?
 
-> Or we could stop using libsysfs altogether...
+What are in5 and in6 on this board?
+What are temp2 and temp3?
 
-This is my plan for 3.0.1. libsysfs is seen as deprecated by many
-distributions for being unmaintained and not really useful. And I
-suspect that it has an important performance cost on the library
-initialization. We will be much better without using it.
+Thanks for your help.
 
---=20
-Jean Delvare
+Kind regards,
+Udo
 
 _______________________________________________
 lm-sensors mailing list
