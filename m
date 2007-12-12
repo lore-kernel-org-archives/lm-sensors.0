@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 10 Dec 2007 18:22:27 +0000
+From: linux@horizon.com
+Date: Wed, 12 Dec 2007 06:39:30 +0000
 Subject: Re: [lm-sensors] Intel Core voltage monitoring
-Message-Id: <20071210192227.32ca5351@hyperion.delvare>
+Message-Id: <20071212063930.1755.qmail@science.horizon.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <475BDA45.70400@googlemail.com>
 In-Reply-To: <475BDA45.70400@googlemail.com>
@@ -10,55 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Peter,
+> You're not missing any driver. What you're missing is the SMBus master
+> device itself, because it was hidden from you by the BIOS, but given
+> what the BIOS does with it, that's the only safe approach.
 
-On Mon, 10 Dec 2007 19:12:36 +0100, Peter Ganzhorn wrote:
-> Thanks for your reply - is it possible that I am missing a driver to 
-> access my smbus? I enabled the i2C driver for the ICH8 chips 
-> (CONFIG_I2C_I801) and that's about it.
+I don't see a Linux driver for it, but there is a spec for SMBus
+access via ACPI, which could synchronize with SMM properly.
 
-You're not missing any driver. What you're missing is the SMBus master
-device itself, because it was hidden from you by the BIOS, but given
-what the BIOS does with it, that's the only safe approach.
+The spec's at http://www.smbus.org/specs/
+specifically
+SMBus Control Method Interface Specification, version 1.0
+http://www.smbus.org/specs/smbus_cmi10.pdf
 
-> I investigated the cpu-z output as well and it seems it is using the 
-> current VID setting to display the voltage - there seem to be no 
-> fluctuations in voltage which is kinda strange for real hardware...
+Supposedly there should be something like
 
-OK, this confirms Rudolf's theory then.
+Device(SMB<id>){
+   Name(_HID, "SMBUS01")   // Hardware ID (PnP ID)
+   Name(_UID, <uid>)       // Unique Identification
+   Method(_SBI, 0) {...}   // SMBus Information
+   Method(_SBR, 3) {...}   // SMBus Data Read
+   Method(_SBW, 6) {...}   // SMBus Data Write
+   Method(_SBT, 6) {...}   // SMBus Data Transfer
+   Method(_SBA, 0) {...}   // SMBus Alert Information
+}
 
-> And BTW, I ommitted some obvious useless output of sensors-detect which 
-> I consider to be smbus-related; but it looks like smbus is a complete no-go:
-> 
-> # sensors-detect revision 4609 (2007-07-14 09:28:39 -0700)
-> 
-> This program will help you determine which kernel modules you need
-> to load to use lm_sensors most effectively. It is generally safe
-> and recommended to accept the default answers to all questions,
-> unless you know what you're doing.
-> 
-> We can start with probing for (PCI) I2C or SMBus adapters.
-> Do you want to probe now? (YES/no):
-> Probing for PCI bus adapters...
-> Sorry, no known PCI bus adapters found.
+Does anyone know the right incanation (probably using "acpidump")
+to see if this is supported on the problematic machines?  If so,
+writing a driver becomes an interesting question.
 
-This confirms my guess that the SMBus is hidden on your system.
-
-> (...)
-> If you can think of any other way to see what *real* vcore my cpu runs 
-> with let me know, but I am afraid it won't be possible considering what 
-> you've told me.
-
-Indeed I do not think that you'll be able to do that on your laptop.
-That's pretty common for laptops, BTW. Laptops where voltages can be
-monitored are the exception, not the rule.
-
-> Thanks anyways for the great job you are doing with sensors,
-
-Thanks :)
-
--- 
-Jean Delvare
+(This seems rather obvious, so I hope this idea hasn't been
+discarded already for some reason I have overlooked.)
 
 _______________________________________________
 lm-sensors mailing list
