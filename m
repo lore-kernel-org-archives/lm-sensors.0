@@ -1,29 +1,28 @@
-From: Kevin Lo <kevlo@kevlo.org>
-Date: Sat, 01 Dec 2007 09:01:46 +0000
-Subject: Re: [lm-sensors] Winbond W83L786G support
-Message-Id: <1196499706.6417.23.camel@monet>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 17 Dec 2007 22:11:09 +0000
+Subject: [lm-sensors] sensors.conf.eg bug in lm-sensors 3.0.0
+Message-Id: <20071217231109.3d6d26f3@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071128160454.24906.qmail@webmail35.rediffmail.com>
-In-Reply-To: <20071128160454.24906.qmail@webmail35.rediffmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 2007-11-30 at 18:02 +0000, Sagar Borikar wrote:
->   
-> Hi Jean,
-> 
-> We tested it with 3.0.0 and it worked fine. Thanks
+Hi all,
 
-Hi Sagar,
+Aurelien Jarno just reported to me that lm-sensors 3.0.0 prints error
+messages for some chips (specifically: gl520sm, lm80 and pc87366). This
+is due to missing symbol name conversions in compute statements in the
+default configuration file.
 
-I'm glade to hear that :-) Thanks for testing.
+I've just fixed it in SVN:
+http://www.lm-sensors.org/changeset/5076
 
-> - Sagar
+People responsible for packaging lm-sensors for a distribution will
+probably want to backport this fix.
 
-	Kevin
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
