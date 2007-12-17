@@ -1,113 +1,185 @@
-From: "Jean Delvare" <khali@linux-fr.org>
-Date: Tue, 25 Dec 2007 21:31:26 +0000
-Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
-Message-Id: <Va0NwseF.1198618285.6089960.khali@gcu-squad.org>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Mon, 17 Dec 2007 15:58:03 +0000
+Subject: [lm-sensors] PATCH: hwmon-fschmd-use-dmi-tables.patch
+Message-Id: <47669C8B.2080507@hhs.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------080106020304040104080902"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200712231614.58724.bjorn.helgaas@hp.com>
-In-Reply-To: <200712231614.58724.bjorn.helgaas@hp.com>
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------080106020304040104080902
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Hi All,
+
+This patch adds support to the fschmd driver for reading the voltage scaling
+factors from BIOS DMI tables, as specified in the Siemens datasheet.
+
+Notice that this patch depends on the patch to the in kernel DMI parser titled:
+"dmi: Let drivers walk the DMI table" by Jean Delvare:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-November/021864.html
+
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+Regards,
+
+Hans
+
+--------------080106020304040104080902
+Content-Type: text/x-patch;
+ name="hwmon-fschmd-use-dmi-tables.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="hwmon-fschmd-use-dmi-tables.patch"
+
+This patch adds support to the fschmd driver for reading the voltage scaling
+factors from BIOS DMI tables, as specified in the Siemens datasheet.
+
+Notice that this patch depends on the patch to the in kernel DMI parser titled:
+"dmi: Let drivers walk the DMI table" by Jean Delvare:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-November/021864.html
+
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+diff -up vanilla-2.6.24-rc5-git3/drivers/hwmon/fschmd.c.orig vanilla-2.6.24-rc5-git3/drivers/hwmon/fschmd.c
+--- vanilla-2.6.24-rc5-git3/drivers/hwmon/fschmd.c.orig	2007-12-17 16:44:05.000000000 +0100
++++ vanilla-2.6.24-rc5-git3/drivers/hwmon/fschmd.c	2007-12-17 16:47:49.000000000 +0100
+@@ -41,6 +41,7 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/dmi.h>
+ 
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x73, I2C_CLIENT_END };
+@@ -210,6 +211,13 @@ struct fschmd_data {
+ 	u8 fan_ripple[6];	/* divider for rps */
+ };
+ 
++/* Global variables to hold information read from special DMI tables, which are
++   available on FSC machines with an fscher or later chip. */
++static int dmi_mult[3] = { 49, 20, 10 };
++static int dmi_offset[3] = { 0, 0, 0 };
++static int dmi_vref = -1;
++
++
+ /*
+  * Sysfs attr show / store functions
+  */
+@@ -221,8 +229,13 @@ static ssize_t show_in_value(struct devi
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct fschmd_data *data = fschmd_update_device(dev);
+ 
+-	return sprintf(buf, "%d\n", (data->volt[index] *
+-		max_reading[index] + 128) / 255);
++	/* fscher / fschrc - 1 as data->kind is an array index, not a chips */
++	if (data->kind == (fscher - 1) || data->kind >= (fschrc - 1))
++		return sprintf(buf, "%d\n", (data->volt[index] * dmi_vref *
++			dmi_mult[index] * 10) / 255 + dmi_offset[index] * 10);
++	else
++		return sprintf(buf, "%d\n", (data->volt[index] *
++			max_reading[index] + 128) / 255);
+ }
+ 
+ 
+@@ -524,6 +537,68 @@ static struct sensor_device_attribute fs
+ /*
+  * Real code
+  */
++ 
++/* DMI decode routine to read voltage scaling factors from special DMI tables,
++   which are available on FSC machines with an fscher or later chip. */
++static void fschmd_dmi_decode(const struct dmi_header *header)
++{
++	int i, mult[3] = { 0 }, offset[3] = { 0 }, vref = 0, found = 0;
++
++	/* dmi code ugliness, we get passed the address of the contents of
++	   a complete DMI handle, but in the form of a dmi_header pointer, in
++	   reality this address holds header->length bytes of which the header
++	   are the first 4 bytes */
++	u8 *dmi_data = (u8 *)header;
++
++	/* We are looking for OEM-specific type 185 */
++	if (header->type != 185)
++		return;
++
++	/* we are looking for what Siemens calls "subtype" 19, the subtype
++	   is stored in byte 5 of the dmi block */
++	if (header->length < 5 || dmi_data[4] != 19)
++		return;
++
++	/* After the subtype comes 1 unknown byte and then blocks of 5 bytes,
++	   consisting of what Siemens calls an "Entity" number, followed by
++	   2 16 bit words in LSB first order */
++	for (i = 6; (i + 4) < header->length; i += 5) {
++		/* entity 1 - 3 voltage multiplier and offset */
++		if (dmi_data[i] >= 1 && dmi_data[i] <= 3) {
++			/* Our in sensors order and the DMI order differ */
++			const int shuffle[3] = { 1, 0, 2 };
++			int in = shuffle[dmi_data[i] - 1];
++
++			/* Check for twice the same entity */
++			if (found & (1 << in))
++				return;
++
++			mult[in] = dmi_data[i + 1] | (dmi_data[i + 2] << 8);
++			offset[in] = dmi_data[i + 3] | (dmi_data[i + 4] << 8);
++
++			found |= 1 << in;
++		}
++
++		/* entity 7 reference voltage */
++		if (dmi_data[i] == 7) {
++			/* Check for twice the same entity */
++			if (found & 0x08)
++				return;
++
++			vref = dmi_data[i + 1] | (dmi_data[i + 2] << 8);
++
++			found |= 0x08;
++		}
++	}
++
++	if (found == 0x0F) {
++		for (i = 0; i < 3; i++) {
++			dmi_mult[i] = mult[i];
++			dmi_offset[i] = offset[i];
++		}
++		dmi_vref = vref;
++	}
++}
+ 
+ static int fschmd_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+@@ -585,6 +660,17 @@ static int fschmd_detect(struct i2c_adap
+ 		data->temp_max[1] = 50 + 128;
+ 		data->temp_max[2] = 50 + 128;
+ 	}
++	
++	/* Read the special DMI table for fscher and newer chips */
++	if (kind == fscher || kind >= fschrc) {
++		dmi_walk(fschmd_dmi_decode);
++		if (dmi_vref == -1) {
++			printk(KERN_WARNING FSCHMD_NAME
++				": couldn't get voltage scaling factors from "
++				"BIOS DMI table using builtin defaults\n");
++			dmi_vref = 33;
++		}
++	}
+ 
+ 	/* i2c kind goes from 1-5, we want from 0-4 to address arrays */
+ 	data->kind = kind - 1;
+
+--------------080106020304040104080902
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: bjorn.helgaas@hp.com
-Cc: Shaohua Li <shaohua.li@intel.com>, Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, "Mark M. Hoffman" <mhoffman@lightlink.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
-
-
-Hi Bjorn,
-
-Le 23/12/2007, "Bjorn Helgaas" <bjorn.helgaas@hp.com> a =E9crit:
->On Sunday 23 December 2007 2:28:05 am Jean Delvare wrote:
->> The problem is that the it87 driver is used on a variety of motherboards,
->> some where the hardware monitoring device I/O ports are reserved by the
->> BIOS, some where they aren't. How am I supposed to deal with this?
->
->I assume you mean some boards describe those ports in ACPI, and some
->don't?
-
-Yes, that's what I meant.
-
->(...) I think the ideal solution would be to figure out how the
->BIOS writers intended the device to be used, and do that.  But the
->documentation may be lacking, and it degenerates into an OEM-specific
->mess.  Second-best seems like a PNP quirk that pokes enough to determine
->that a Super I/O device is present, and then reserves resources for
->it.  Then we avoid the collision even if it87 isn't present.
-
-I'm not sure what you mean here exactly. We have two different cases:
-either the ACPI code did declare the PNP device, or it did not. How do
-you unify both? And what "collision" are you talking about?
-
->> PCI is an entirely different beast. With PCI you know the PCI device ID
->> that is associated with the resources, and for a given device, the
->> resources are always declared (if standard BARs are used) or never
->> declared; there's no "may be". So it's much easier to handle the
->> resources properly.
->
->That's the way PNP is supposed to work, too (more about this below).
-
-Not really. PNP devices may or may not be declared. PCI devices are
-always declared. This is a fundamental difference. I'm also not sure
-about the PNP IDs, see below.
-
->> That's not really safe, no. They may overlap with other device resources
->> and prevent those drivers from loading.
->
->True.  If that happens, I think we definitely need some kind of DMI-
->based quirk to fix the resources.  My points are (a) the quirk needs
->to be at the PNP level; it can't be in a driver, and (b) I'm lazy and
->would wait until a problem happens before implementing it, because I
->know so little about PNP and the specific board, and by waiting, there's
->a chance I'll learn enough to avoid a mistake :-)
-
-But we _do_ have a problem to solve! That's what started this thread.
-And we need to solve it before 2.6.24 is released. I'd rather (try to)
-do the right thing now rather than going in one direction today and
-doing something different next month.
-
-I do agree that the quirks should be done at the PNP level and not in the
-it87 driver.
-
->> Another problem is how do I connect this specific I/O port range of the
->> PNP0C02 device with the it87 driver? I am by far no PNP expert but it
->> looks to me like this PNP device covers more than one actual device, and
->> I/O port ranges do not have labels nor identifiers that would let me
->> find the one that corresponds to the IT87xxF device (if it exists at
->> all.)
->
->The general rule is that you have a PNP device with an identifier
->like PNP0500 that means "16550 UART" and some resources underneath
->it.  The PNP ID ("PNP0500") tells the OS which driver to bind to the
->device, and the resources tell the driver where the device is.  The
->serial driver in drivers/serial/8250_pnp.c is a good example of the
->"normal" way PNP drivers work.
->
->it87 doesn't fit the model very well because usually the BIOS
->doesn't describe the device explicitly.  I think the expectation
->is that the OS will get sensor readings some other way, such as
->by evaluating ACPI "_TMP" methods, or by using some OEM-specific
->ACPI device.
-
-If the IT87xxF device is declared, will it always the same PNP ID on
-every system? I fear that the answer is no, in which case I see no
-simple way to implement the it87 driver as a PNP driver.
-
->It's very irritating when ACPI is used to take some device that
->would otherwise be nicely generic and machine-independent, and
->wrap it up into some abstract device that requires an OEM-specific
->driver, but I think that's what's happening here.  I suspect it
->has to do with the fact that the BIOS wants to retain some
->control over the device so it can deal with things like thermal
->emergencies, even if the OS driver is missing or broken.
-
-Yes, very irritating. Especially when the ACPI way is not only
-system-specific, but also very poor in terms of features compared to
-what a native driver can do. This is the main reason why we still write
-native drivers for hardware monitoring drivers despite the conflicts
-with ACPI that arise on some systems.
-
---
-Jean Delvare
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------080106020304040104080902--
+
