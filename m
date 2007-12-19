@@ -1,97 +1,62 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 18 Dec 2007 17:59:18 +0000
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date: Wed, 19 Dec 2007 23:53:33 +0000
 Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
-Message-Id: <20071218185918.5d2d4c7d@hyperion.delvare>
+Message-Id: <200712191653.35223.bjorn.helgaas@hp.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071204215154.7f26285e.mikeserv@bmts.com>
-	<20071209230211.1c2077cf.mikeserv@bmts.com>
-	<1197856779.7782.2.camel@sli10-desk.sh.intel.com>
-	<200712171014.44360.bjorn.helgaas@hp.com>
-In-Reply-To: <200712171014.44360.bjorn.helgaas@hp.com>
+References: <20071204215154.7f26285e.mikeserv@bmts.com> <1197253887.27516.2.camel@sli10-desk.sh.intel.com> <20071209230211.1c2077cf.mikeserv@bmts.com>
+In-Reply-To: <20071209230211.1c2077cf.mikeserv@bmts.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Shaohua Li <shaohua.li@intel.com>, Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Mike Houston <mikeserv@bmts.com>
+Cc: Shaohua Li <shaohua.li@intel.com>, Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, Jean Delvare <khali@linux-fr.org>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Hi Bjorn,
-
-On Mon, 17 Dec 2007 10:14:43 -0700, Bjorn Helgaas wrote:
-> On Sunday 16 December 2007 06:59:39 pm Shaohua Li wrote:
-> > On Sun, 2007-12-09 at 23:02 -0500, Mike Houston wrote:
-> > > On Mon, 10 Dec 2007 10:31:27 +0800
-> > > Shaohua Li <shaohua.li@intel.com> wrote:
-> > > > This should exist in previous kernel (before we remove acpi
-> > > > motherboard driver) too. Basically it's a broken BIOS. Could below
-> > > > patch work around it?
-> > > > 
-> > > > Thanks,
-> > > > Shaohua
-> > > > 
-> > > > Index: linux/drivers/pnp/system.c
-> > > > =================================> > > > --- linux.orig/drivers/pnp/system.c	2007-12-10
-> > > > 10:17:46.000000000 +0800 +++ linux/drivers/pnp/system.c
-> > > 
-> > > Thanks Shaohua, I tested this as well and it appears to have worked
-> > > around the issue for me.
-> > > 
-> > > Now, in dmesg, I get:
-> > > 
-> > > system 00:01: ioport range 0x290-0x29f has been reserved
-> > > (...)
-> > > system 00:01: ioport range 0x290-0x294 could not be reserved
-> > > 
-> > > In /proc/ioports I see:
-> > > 
-> > > 0290-029f : pnp 00:01
-> > >   0290-0297 : it87
-> > >     0290-0297 : it87
-> >
-> > Unfortunately this can't solve all such issues.
-
-I don't see any issue here, but anyway it doesn't really matter as the
-proposed patch is not sufficient for all affected motherboards.
-
+On Sunday 09 December 2007 09:02:11 pm Mike Houston wrote:
+> On Mon, 10 Dec 2007 10:31:27 +0800
+> Shaohua Li <shaohua.li@intel.com> wrote:
+> > This should exist in previous kernel (before we remove acpi
+> > motherboard driver) too. Basically it's a broken BIOS. Could below
+> > patch work around it?
 > > 
-> > Adam & Bjorn,
-> > Could we just reserve IO ports >= 0x1000 in pnp system driver? The
-> > purpose of the driver is to avoid resource conflict with PCI device, and
-> > PCI device can't user io port < 0x1000.
+> > Thanks,
+> > Shaohua
+> > 
+> > Index: linux/drivers/pnp/system.c
+> > =================================> > --- linux.orig/drivers/pnp/system.c	2007-12-10
+> > 10:17:46.000000000 +0800 +++ linux/drivers/pnp/system.c
 > 
-> The purpose of the PNP system driver is to avoid conflicts with
-> *all* devices.  And if the PNP core were a little smarter, we
-> wouldn't need the system driver at all.  We don't have one for
-> PCI -- the PCI core manages resources for all PCI devices, even
-> ones that have no driver.
+> Thanks Shaohua, I tested this as well and it appears to have worked
+> around the issue for me.
 > 
-> Why is 0x1000 a magic number?  drivers/acpi/motherboard.c used to
-> ignore IO port ranges that ended below PCIBIOS_MIN_IO (= 0x1000 for
-> most architectures).  I don't think Linux will assign IO ports below
-> PCIBIOS_MIN_IO to a PCI device, but the BIOS could, and I've seen
-> CardBus devices below PCIBIOS_MIN_IO.
+> Now, in dmesg, I get:
 > 
-> I think having drivers/pnp/system.c ignore resources below
-> PCIBIOS_MIN_IO would be a hack that happens to cover up problems
-> like this without understanding the real cause.
+> system 00:01: ioport range 0x290-0x29f has been reserved
+> (...)
+> system 00:01: ioport range 0x290-0x294 could not be reserved
+> 
+> In /proc/ioports I see:
+> 
+> 0290-029f : pnp 00:01
+>   0290-0297 : it87
+>     0290-0297 : it87
+> 
+> The it87 sensor now works without disabling acpipnp
 
-The real cause is pretty clear here: broken BIOS. In an ideal world we
-would ask the manufacturer for a fixed BIOS and they would give that to
-us, unfortunately my experience is that it won't happen. So, unless we
-accept that idea that some users won't be able to use some of their
-devices because of broken resource enumeration in their BIOS, we will
-have to find a workaround, whatever it is.
+This whole thing is too ugly for words.
 
-My initial idea was to identify the faulty motherboard using DMI and to
-force pnpacpi=off on the faulty motherboards. If this is considered too
-aggressive, maybe we can just reject resource declarations that
-intersect (but don't match) 0x290-0x297 for these motherboards. Either
-way, we have to do something, and we have to do it quickly. 2.6.24
-final isn't too far away, and more importantly, the patch that revealed
-the problem has been backported to 2.6.23.10 so people are experiencing
-regressions already.
+First of all, it87 only accesses two I/O ports: IT87_ADDR_REG_OFFSET
+and IT87_DATA_REG_OFFSET, which are at offsets 5 and 6 from the base.
+So if it87 reserved only those ports, e.g., 0x295-0x296, I think things
+would work fine (or at least, as well as they used to).
 
--- 
-Jean Delvare
+Secondly, it87 ignores any information from the BIOS and grubs around
+for a superio chip at a magic address and tries to figure out what's
+behind it.  I know this is because we don't know the "real" way to
+read those sensors, but it still sucks, and it still means we're likely
+to have conflicts with ACPI usage of the device.  And no, I don't have
+anything useful like an ACPI driver to offer :-)
+
+Bjorn
 
 _______________________________________________
 lm-sensors mailing list
