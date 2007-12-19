@@ -1,1829 +1,593 @@
-From: "Rutul Dave" <RDave@Omneon.com>
-Date: Fri, 28 Dec 2007 00:33:31 +0000
-Subject: [lm-sensors] Unable to load coretemp, error: Unkown CPU
-Message-Id: <F0E8D0B1F8999D479196DA72521D954A035E860E@snv-exh1.omneon.local>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Wed, 19 Dec 2007 14:13:54 +0000
+Subject: [lm-sensors] preliminary TI TMP401 driver
+Message-Id: <47692722.1090705@hhs.nl>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C848E9.4590863C"
+Content-Type: multipart/mixed; boundary="------------080809020600060604060701"
 List-Id: <lm-sensors.vger.kernel.org>
 To: lm-sensors@vger.kernel.org
 
 This is a multi-part message in MIME format.
-
---===============1427124512736715355==
-Content-class: urn:content-classes:message
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C848E9.4590863C"
-
-This is a multi-part message in MIME format.
-
-------_=_NextPart_001_01C848E9.4590863C
-Content-Type: text/plain;
-	charset="us-ascii"
+--------------080809020600060604060701
+Content-Type: text/plain; charset="windows-1252"; format="flowed"
 Content-Transfer-Encoding: quoted-printable
 
-
-I am unable to load coretemp module for 2.6.21.5 kernel Intel Xeon E5420
-CPU.
-
-
-[root@localhost ~]# dmesg | grep coretemp
-
-[   76.687618] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-
-[   76.687802] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-
-[   76.687889] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-
-[   76.687986] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-
-[   76.688071] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-
-[   76.688156] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-
-[   76.688241] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-
-[   76.688326] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-
-[root@localhost ~]#
-
-=20
-
-=20
-
-=20
-
-[root@localhost ~]# sensors-detect
-
-# sensors-detect revision 4966 (2007-10-20 01:41:53 -0700)
-
-=20
-
-This program will help you determine which kernel modules you need
-
-to load to use lm_sensors most effectively. It is generally safe
-
-and recommended to accept the default answers to all questions,
-
-unless you know what you're doing.
-
-=20
-
-We can start with probing for (PCI) I2C or SMBus adapters.
-
-Do you want to probe now? (YES/no): yes
-
-Probing for PCI bus adapters...
-
-Use driver `i2c-i801' for device 0000:00:1f.3: Intel Enterprise
-Southbridge - ESB2
-
-=20
-
-We will now try to load each adapter module in turn.
-
-Module `i2c-i801' already loaded.
-
-If you have undetectable or unsupported adapters, you can have them
-
-scanned by manually loading the modules before running this script.
-
-=20
-
-We are now going to do the I2C/SMBus adapter probings. Some chips may
-
-be double detected; we choose the one with the highest confidence
-
-value in that case.
-
-If you found that the adapter hung after probing a certain address,
-
-you can specify that address to remain unprobed.
-
-=20
-
-Next adapter: SMBus I801 adapter at 1100 (i2c-0)
-
-Do you want to scan it? (YES/no/selectively): YES
-
-Client found at address 0x1f
-
-Probing for `Maxim MAX6650/MAX6651'...                      No
-
-Client found at address 0x2f
-
-Probing for `National Semiconductor LM78'...                No
-
-Probing for `National Semiconductor LM78-J'...              No
-
-Probing for `National Semiconductor LM79'...                No
-
-Probing for `National Semiconductor LM80'...                No
-
-Probing for `Analog Devices ADT7470'...                     No
-
-Probing for `Winbond W83781D'...                            No
-
-Probing for `Winbond W83782D'...                            No
-
-Probing for `Winbond W83792D'...                            No
-
-Probing for `Winbond W83793R/G'...                          Success!
-
-    (confidence 8, driver `w83793')
-
-Probing for `Winbond W83791SD'...                           No
-
-Probing for `Winbond W83627HF'...                           No
-
-Probing for `Winbond W83627EHF'...                          No
-
-Probing for `Winbond W83627DHG'...                          No
-
-Probing for `Asus AS99127F (rev.1)'...                      No
-
-Probing for `Asus AS99127F (rev.2)'...                      No
-
-Probing for `Asus ASB100 Bach'...                           No
-
-Probing for `Winbond W83L786NR/NG/R/G'...                   No
-
-Probing for `Analog Devices ADM9240'...                     No
-
-Probing for `Dallas Semiconductor DS1780'...                No
-
-Probing for `National Semiconductor LM81'...                No
-
-Probing for `Analog Devices ADM1029'...                     No
-
-Probing for `ITE IT8712F'...                                No
-
-Probing for `Fintek custom power control IC'...             No
-
-Probing for `Winbond W83791D'...                            No
-
-=20
-
-Some chips are also accessible through the ISA I/O ports. We have to
-
-write to arbitrary I/O ports to probe them. This is usually safe though.
-
-Yes, you do have ISA I/O ports even if you do not have any ISA slots!
-
-Do you want to scan the ISA I/O ports? (YES/no): YES
-
-Probing for `National Semiconductor LM78' at 0x290...       No
-
-Probing for `National Semiconductor LM78-J' at 0x290...     No
-
-Probing for `National Semiconductor LM79' at 0x290...       No
-
-Probing for `Winbond W83781D' at 0x290...                   No
-
-Probing for `Winbond W83782D' at 0x290...                   No
-
-Probing for `Silicon Integrated Systems SIS5595'...         No
-
-Probing for `VIA VT82C686 Integrated Sensors'...            No
-
-Probing for `VIA VT8231 Integrated Sensors'...              No
-
-Probing for `IPMI BMC KCS' at 0xca0...                      No
-
-Probing for `IPMI BMC SMIC' at 0xca8...                     No
-
-=20
-
-Some Super I/O chips may also contain sensors. We have to write to
-
-standard I/O ports to probe them. This is usually safe.
-
-Do you want to scan for Super I/O sensors? (YES/no): YES
-
-Probing for Super-I/O at 0x2e/0x2f
-
-Trying family `National Semiconductor'...                   No
-
-Trying family `SMSC'...                                     No
-
-Trying family `VIA/Winbond/Fintek'...                       Yes
-
-Found `Winbond W83627HF/F/HG/G Super IO Sensors'            Success!
-
-    (address 0x295, driver `w83627hf')
-
-Probing for Super-I/O at 0x4e/0x4f
-
-Trying family `National Semiconductor'...                   No
-
-Trying family `SMSC'...                                     No
-
-Trying family `VIA/Winbond/Fintek'...                       No
-
-Trying family `ITE'...                                      No
-
-=20
-
-Some CPUs or memory controllers may also contain embedded sensors.
-
-Do you want to scan for them? (YES/no): YES
-
-AMD K8 thermal sensors...                                   No
-
-AMD K10 thermal sensors...                                  No
-
-Intel Core family thermal sensor...                         No
-
-Intel AMB FB-DIMM thermal sensor...                         Success!
-
-    (driver `to-be-written')
-
-=20
-
-Now follows a summary of the probes I have just done.
-
-Just press ENTER to continue:
-
-=20
-
-Driver `w83793' (should be inserted):
-
-  Detects correctly:
-
-  * Bus `SMBus I801 adapter at 1100'
-
-    Busdriver `i2c-i801', I2C address 0x2f
-
-    Chip `Winbond W83793R/G' (confidence: 8)
-
-=20
-
-Driver `w83627hf' (should be inserted):
-
-  Detects correctly:
-
-  * ISA bus, address 0x295
-
-    Chip `Winbond W83627HF/F/HG/G Super IO Sensors' (confidence: 9)
-
-=20
-
-Driver `to-be-written' (should be inserted):
-
-  Detects correctly:
-
-  * Chip `Intel AMB FB-DIMM thermal sensor' (confidence: 9)
-
-=20
-
-I will now generate the commands needed to load the required modules.
-
-Just press ENTER to continue:
-
-=20
-
-To load everything that is needed, add this to some /etc/rc* file:
-
-=20
-
-#----cut here----
-
-# I2C adapter drivers
-
-modprobe i2c-i801
-
-# Chip drivers
-
-# Warning: the required module w83793 is not currently installed
-
-# on your system. For status of 2.6 kernel ports check
-
-# http://www.lm-sensors.org/wiki/Devices. If driver is built
-
-# into the kernel, or unavailable, comment out the following line.
-
-modprobe w83793
-
-modprobe w83627hf
-
-# no driver for Intel AMB FB-DIMM thermal sensor yet
-
-# sleep 2 # optional
-
-/usr/bin/sensors -s # recommended
-
-#----cut here----
-
-=20
-
-If you have some drivers built into your kernel, the list above will
-
-contain too many modules. Skip the appropriate ones! You really
-
-should try these commands right now to make sure everything is
-
-working properly. Monitoring programs won't work until the needed
-
-modules are loaded.
-
-=20
-
-Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no): YES
-
-[root@localhost ~]#
-
-=20
-
-=20
-
-=20
-
-[root@localhost ~]# lsmod
-
-Module                  Size  Used by
-
-w83627hf               25680  0
-
-hwmon_vid               3520  1 w83627hf
-
-i2c_isa                 6272  1 w83627hf
-
-nfsd                  219632  17
-
-exportfs                6464  1 nfsd
-
-lockd                  65736  2 nfsd
-
-autofs4                22916  2
-
-sunrpc                170972  11 nfsd,lockd
-
-af_packet              23048  2
-
-ipv6                  259616  42
-
-binfmt_misc            12552  1
-
-dm_multipath           20296  0
-
-video                  17032  0
-
-thermal                14728  0
-
-sbs                    15320  0
-
-processor              31816  1 thermal
-
-i2c_ec                  5696  1 sbs
-
-fan                     5444  0
-
-dock                   10592  0
-
-container               5120  0
-
-button                  8592  0
-
-battery                10628  0
-
-asus_acpi              16988  0
-
-ac                      5828  0
-
-floppy                 62372  0
-
-nvram                   9096  0
-
-loop                   17928  0
-
-e1000                 124288  0
-
-generic                 5508  0 [permanent]
-
-i2c_i801                9936  0
-
-piix                   11076  0 [permanent]
-
-evdev                  10560  3
-
-evbug                   3392  0
-
-sg                     36572  0
-
-dm_snapshot            17560  0
-
-dm_zero                 2560  0
-
-dm_mirror              22548  0
-
-dm_mod                 59596  9
-dm_multipath,dm_snapshot,dm_zero,dm_mirror
-
-ide_disk               16576  0
-
-aacraid                61824  0
-
-atp870u                32128  0
-
-3w_9xxx                34564  0
-
-usb_storage            71744  2
-
-ata_piix               15492  0
-
-libata                119572  1 ata_piix
-
-sd_mod                 21184  3
-
-scsi_mod              145260  7
-sg,aacraid,atp870u,3w_9xxx,usb_storage,libata,sd_mod
-
-libusual               18000  1 usb_storage
-
-ext3                  132616  2
-
-jbd                    59112  1 ext3
-
-mbcache                 9156  1 ext3
-
-ehci_hcd               34444  0
-
-ohci_hcd               22084  0
-
-uhci_hcd               25612  0
-
-usbcore               136840  6
-usb_storage,libusual,ehci_hcd,ohci_hcd,uhci_hcd
-
-=20
-
-[root@localhost ~]# sensors -v
-
-sensors version 2.10.5 with libsensors version 2.10.5
-
-=20
-
-Kernel version: 2.6.21.5
-
-The kernel is patched (with the add-coretemp-driver.patch and
-coretemp-add-documentation.patch) from the following locations:
-http://www.hobbes.ch/statisch/linuxfiles/patches/add-coretemp-driver.pat
-ch
-<http://www.hobbes.ch/statisch/linuxfiles/patches/add-coretemp-driver.pa
-tch>=20
-http://www.hobbes.ch/statisch/linuxfiles/patches/coretemp-add-documentat
-ion.patch
-<http://www.hobbes.ch/statisch/linuxfiles/patches/coretemp-add-documenta
-tion.patch>=20
-
-
-------_=_NextPart_001_01C848E9.4590863C
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<html xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
-xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns:st1=3D"urn:schemas-microsoft-com:office:smarttags" =
-xmlns=3D"http://www.w3.org/TR/REC-html40">
-
-<head>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3Dus-ascii">
-<meta name=3DGenerator content=3D"Microsoft Word 11 (filtered medium)">
-<o:SmartTagType =
-namespaceuri=3D"urn:schemas-microsoft-com:office:smarttags"
- name=3D"City"/>
-<o:SmartTagType =
-namespaceuri=3D"urn:schemas-microsoft-com:office:smarttags"
- name=3D"place"/>
-<!--[if !mso]>
-<style>
-st1\:*{behavior:url(#default#ieooui) }
-</style>
-<![endif]-->
-<style>
-<!--
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0in;
-	margin-bottom:.0001pt;
-	font-size:12.0pt;
-	font-family:"Times New Roman";}
-h1
-	{mso-margin-top-alt:auto;
-	margin-right:0in;
-	mso-margin-bottom-alt:auto;
-	margin-left:0in;
-	font-size:24.0pt;
-	font-family:"Times New Roman";}
-a:link, span.MsoHyperlink
-	{color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{color:purple;
-	text-decoration:underline;}
-span.EmailStyle17
-	{mso-style-type:personal-compose;
-	font-family:Arial;
-	color:windowtext;}
-@page Section1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.25in 1.0in 1.25in;}
-div.Section1
-	{page:Section1;}
--->
-</style>
-
-</head>
-
-<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
-
-<div class=3DSection1>
-
-<h1><b><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;font-family:Arial;
-font-weight:normal'>I am unable to <span class=3Dvrhwid>load coretemp =
-module for
-2.6.21.5 kernel Intel Xeon E5420 =
-CPU</span>.</span><o:p></o:p></span></font></b></h1>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[root@localhost ~]# dmesg | grep =
-coretemp<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[&nbsp;&nbsp; 76.687618] coretemp: Unknown CPU, =
-please report to the
-lm-sensors@lm-sensors.org<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[&nbsp;&nbsp; 76.687802] coretemp: Unknown CPU, =
-please report to the
-lm-sensors@lm-sensors.org<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[&nbsp;&nbsp; 76.687889] coretemp: Unknown CPU, =
-please report to the
-lm-sensors@lm-sensors.org<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[&nbsp;&nbsp; 76.687986] coretemp: Unknown CPU, =
-please report to the
-lm-sensors@lm-sensors.org<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[&nbsp;&nbsp; 76.688071] coretemp: Unknown CPU, =
-please report to the
-lm-sensors@lm-sensors.org<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[&nbsp;&nbsp; 76.688156] coretemp: Unknown CPU, =
-please report to the
-lm-sensors@lm-sensors.org<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[&nbsp;&nbsp; 76.688241] coretemp: Unknown CPU, =
-please report to the
-lm-sensors@lm-sensors.org<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[ &nbsp;&nbsp;76.688326] coretemp: Unknown CPU, =
-please report to the
-lm-sensors@lm-sensors.org<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[root@localhost ~]#<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[root@localhost ~]# =
-sensors-detect<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'># sensors-detect revision 4966 (2007-10-20 01:41:53 =
--0700)<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>This program will help you determine which kernel =
-modules
-you need<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>to load to use lm_sensors most effectively. It is =
-generally
-safe<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>and recommended to accept the default answers to all
-questions,<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>unless you know what you're =
-doing.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>We can start with probing for (PCI) I2C or SMBus =
-adapters.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Do you want to probe now? (YES/no): =
-yes<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for PCI bus =
-adapters...<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Use driver `i2c-i801' for device 0000:00:1f.3: Intel
-Enterprise Southbridge - ESB2<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>We will now try to load each adapter module in =
-turn.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Module `i2c-i801' already =
-loaded.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>If you have undetectable or unsupported adapters, you =
-can
-have them<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>scanned by manually loading the modules before =
-running this
-script.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>We are now going to do the I2C/SMBus adapter =
-probings. Some
-chips may<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>be double detected; we choose the one with the =
-highest
-confidence<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>value in that case.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>If you found that the adapter hung after probing a =
-certain
-address,<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>you can specify that address to remain =
-unprobed.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Next adapter: SMBus I801 adapter at 1100 =
-(i2c-0)<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Do you want to scan it? (YES/no/selectively): =
-YES<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Client found at address =
-0x1f<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Maxim =
-MAX6650/MAX6651'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Client found at address =
-0x2f<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `National Semiconductor =
-LM78'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `National Semiconductor =
-LM78-J'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `National Semiconductor =
-LM79'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `National Semiconductor =
-LM80'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Analog Devices =
-ADT7470'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Winbond =
-W83781D'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Winbond =
-W83782D'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Winbond =
-W83792D'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Winbond =
-W83793R/G'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;
-Success!<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp;&nbsp;&nbsp; (confidence 8, driver =
-`w83793')<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Winbond =
-W83791SD'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Winbond =
-W83627HF'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Winbond =
-W83627EHF'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Winbond =
-W83627DHG'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Asus AS99127F =
-(rev.1)'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Asus AS99127F =
-(rev.2)'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Asus ASB100 Bach'...&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No<o:p><=
-/o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Winbond =
-W83L786NR/NG/R/G'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Analog Devices =
-ADM9240'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `<st1:City w:st=3D"on"><st1:place =
-w:st=3D"on">Dallas</st1:place></st1:City>
-Semiconductor =
-DS1780'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp; No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `National Semiconductor =
-LM81'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Analog Devices =
-ADM1029'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `ITE =
-IT8712F'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Fintek custom power control =
-IC'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Winbond =
-W83791D'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Some chips are also accessible through the ISA I/O =
-ports. We
-have to<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>write to arbitrary I/O ports to probe them. This is =
-usually
-safe though.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Yes, you do have ISA I/O ports even if you do not =
-have any
-ISA slots!<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Do you want to scan the ISA I/O ports? (YES/no): =
-YES<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `National Semiconductor LM78' at =
-0x290...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `National Semiconductor LM78-J' at =
-0x290...&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `National Semiconductor LM79' at =
-0x290...&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Winbond W83781D' at =
-0x290...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Winbond W83782D' at =
-0x290...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `Silicon Integrated Systems =
-SIS5595'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `VIA VT82C686 Integrated =
-Sensors'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `VIA VT8231 Integrated =
-Sensors'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `IPMI BMC KCS' at =
-0xca0...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for `IPMI BMC SMIC' at =
-0xca8...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Some Super I/O chips may also contain sensors. We =
-have to
-write to<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>standard I/O ports to probe them. This is usually =
-safe.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Do you want to scan for Super I/O sensors? (YES/no): =
-YES<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for Super-I/O at =
-0x2e/0x2f<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Trying family `National =
-Semiconductor'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Trying family =
-`SMSC'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Trying family =
-`VIA/Winbond/Fintek'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;
-Yes<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Found `Winbond W83627HF/F/HG/G Super IO =
-Sensors'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;
-Success!<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp;&nbsp;&nbsp; (address 0x295, driver =
-`w83627hf')<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Probing for Super-I/O at =
-0x4e/0x4f<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Trying family `National =
-Semiconductor'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Trying family =
-`SMSC'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Trying family =
-`VIA/Winbond/Fintek'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Trying family =
-`ITE'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Some CPUs or memory controllers may also contain =
-embedded
-sensors.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Do you want to scan for them? (YES/no): =
-YES<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>AMD K8 thermal =
-sensors...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>AMD K10 thermal =
-sensors...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Intel Core family thermal =
-sensor...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;
-No<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Intel AMB FB-DIMM thermal =
-sensor...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;
-Success!<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp;&nbsp;&nbsp; (driver =
-`to-be-written')<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Now follows a summary of the probes I have just =
-done.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Just press ENTER to =
-continue:<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Driver `w83793' (should be =
-inserted):<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp; Detects =
-correctly:<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp; * Bus `SMBus I801 adapter at =
-1100'<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp;&nbsp;&nbsp; Busdriver `i2c-i801', I2C address =
-0x2f<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp;&nbsp;&nbsp; Chip `Winbond W83793R/G' =
-(confidence: 8)<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Driver `w83627hf' (should be =
-inserted):<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp; Detects =
-correctly:<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp; * ISA bus, address =
-0x295<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp;&nbsp;&nbsp; Chip `Winbond W83627HF/F/HG/G =
-Super IO Sensors'
-(confidence: 9)<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Driver `to-be-written' (should be =
-inserted):<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp; Detects =
-correctly:<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp; * Chip `Intel AMB FB-DIMM thermal sensor' =
-(confidence: 9)<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>I will now generate the commands needed to load the =
-required
-modules.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Just press ENTER to =
-continue:<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>To load everything that is needed, add this to some =
-/etc/rc*
-file:<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>#----cut here----<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'># I2C adapter drivers<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>modprobe i2c-i801<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'># Chip drivers<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'># Warning: the required module w83793 is not =
-currently
-installed<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'># on your system. For status of 2.6 kernel ports =
-check<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'># http://www.lm-sensors.org/wiki/Devices. If driver =
-is built<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'># into the kernel, or unavailable, comment out the =
-following
-line.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>modprobe w83793<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>modprobe w83627hf<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'># no driver for Intel AMB FB-DIMM thermal sensor =
-yet<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'># sleep 2 # optional<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>/usr/bin/sensors -s # =
-recommended<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>#----cut here----<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>If you have some drivers built into your kernel, the =
-list
-above will<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>contain too many modules. Skip the appropriate ones! =
-You
-really<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>should try these commands right now to make sure =
-everything
-is<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>working properly. Monitoring programs won't work =
-until the
-needed<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>modules are loaded.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Do you want to overwrite /etc/sysconfig/lm_sensors?
-(YES/no): YES<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[root@localhost ~]#<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[root@localhost ~]# =
-lsmod<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Module&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Size&nbsp; Used =
-by<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>w83627hf&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 25680&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>hwmon_vid&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3520&nbsp; 1 =
-w83627hf<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>i2c_isa&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6272&nbsp; 1 =
-w83627hf<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>nfsd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 219632&nbsp; =
-17<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>exportfs&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6464&nbsp; 1 =
-nfsd<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>lockd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 65736&nbsp; 2 =
-nfsd<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>autofs4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 22916&nbsp; =
-2<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>sunrpc&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 170972&nbsp; 11 =
-nfsd,lockd<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>af_packet&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 23048&nbsp; =
-2<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>ipv6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 259616&nbsp; =
-42<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>binfmt_misc&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp; 12552&nbsp; 1<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>dm_multipath&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp; 20296&nbsp; 0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>video&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;17032&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>thermal&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 14728&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>sbs&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-15320&nbsp; 0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>processor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 31816&nbsp; 1 =
-thermal<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>i2c_ec&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5696&nbsp; 1 =
-sbs<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>fan&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-5444&nbsp; 0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>dock&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 10592&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>container&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5120&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>button&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 8592&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>battery&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 10628&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>asus_acpi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 16988&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>ac&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-; 5828&nbsp; 0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>floppy&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 62372&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>nvram&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 9096&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>loop&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 17928&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>e1000&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 124288&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>generic&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5508&nbsp; 0 =
-[permanent]<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>i2c_i801&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 9936&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>piix&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 11076&nbsp; 0 =
-[permanent]<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>evdev&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 10560&nbsp; =
-3<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>evbug&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3392&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>sg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-36572&nbsp; 0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>dm_snapshot&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp; 17560&nbsp; 0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>dm_zero =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;2560&nbsp; 0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>dm_mirror&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 22548&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>dm_mod&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 59596&nbsp; 9
-dm_multipath,dm_snapshot,dm_zero,dm_mirror<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>ide_disk&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 16576&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>aacraid&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 61824&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>atp870u&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 32128&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>3w_9xxx&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 34564 =
-&nbsp;0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>usb_storage&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp; 71744&nbsp; 2<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DES =
-style=3D'font-size:10.0pt;
-font-family:Arial'>ata_piix&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 15492&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DES =
-style=3D'font-size:10.0pt;
-font-family:Arial'>libata&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 119572&nbsp; 1 =
-ata_piix<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DES =
-style=3D'font-size:10.0pt;
-font-family:Arial'>sd_mod&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 21184&nbsp; =
-3<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>scsi_mod&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 145260&nbsp; 7
-sg,aacraid,atp870u,3w_9xxx,usb_storage,libata,sd_mod<o:p></o:p></span></f=
-ont></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>libusual&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 18000&nbsp; 1 =
-usb_storage<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>ext3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 132616&nbsp; =
-2<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>jbd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-59112&nbsp; 1 ext3<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>mbcache&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 9156&nbsp; 1 =
-ext3<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>ehci_hcd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 34444&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>ohci_hcd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 22084&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>uhci_hcd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 25612&nbsp; =
-0<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>usbcore&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 136840&nbsp; 6
-usb_storage,libusual,ehci_hcd,ohci_hcd,uhci_hcd<o:p></o:p></span></font><=
-/p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>[root@localhost ~]# sensors =
--v<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>sensors version 2.10.5 with libsensors version =
-2.10.5<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Kernel version: 2.6.21.5<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>The kernel is patched (with the =
-add-coretemp-driver.patch
-and<br>
-coretemp-add-documentation<wbr>.patch) from the following locations:<br>
-<a
-href=3D"http://www.hobbes.ch/statisch/linuxfiles/patches/add-coretemp-dri=
-ver.patch"
-target=3D"_blank">http://www.hobbes.ch/statisch<wbr>/linuxfiles/patches/a=
-dd<wbr>-coretemp-driver.patch</a><br>
-<a
-href=3D"http://www.hobbes.ch/statisch/linuxfiles/patches/coretemp-add-doc=
-umentation.patch"
-target=3D"_blank">http://www.hobbes.ch/statisch<wbr>/linuxfiles/patches/c=
-oretemp<wbr>-add-documentation.patch</a><o:p></o:p></span></font></p>
-
-</div>
-
-</body>
-
-</html>
-
-------_=_NextPart_001_01C848E9.4590863C--
-
-
---===============1427124512736715355==
+Hi All,
+
+I thought I already send this to the lm_sensors list too, but appearantly n=
+ot.
+Here is a preliminary, but untested (no access to hardware) driver.
+
+---
+
+Notice that when compiling against anything older then 2.6.24-rc1, you will=
+ get
+the following 2 (harmless) warnings:
+    CC [M]  /home/hans/projects/ti-tmp401/tmp401.o
+/home/hans/projects/ti-tmp401/tmp401.c: In function =91tmp401_detect=92:
+/home/hans/projects/ti-tmp401/tmp401.c:417: warning: assignment from
+incompatible pointer type
+/home/hans/projects/ti-tmp401/tmp401.c: In function =91tmp401_detach_client=
+=92:
+/home/hans/projects/ti-tmp401/tmp401.c:473: warning: passing argument 1 of
+=91hwmon_device_unregister=92 from incompatible pointer type
+
+Regards,
+
+Hans
+
+
+--------------080809020600060604060701
+Content-Type: text/x-csrc;
+ name="tmp401.c"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="tmp401.c"
+
+/* tmp401.c
+ *
+ * Copyright (C) 2007 Hans de Goede <j.w.r.degoede@hhs.nl>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+/*
+ * Driver for the Texas Instruments TMP401 SMBUS temperature sensor IC.
+ *
+ * Note this IC is in some aspect similar to the lm90, but it has quite a
+ * few differences too, for example the local temp has a higher resolution
+ * and thus has 16 bits registers for its value and limit instead of 8 bits.
+ */
+
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/slab.h>
+#include <linux/jiffies.h>
+#include <linux/i2c.h>
+#include <linux/hwmon.h>
+#include <linux/hwmon-sysfs.h>
+#include <linux/err.h>
+#include <linux/mutex.h>
+#include <linux/sysfs.h>
+
+/* Addresses to scan */
+static unsigned short normal_i2c[] = { 0x4c, I2C_CLIENT_END };
+
+/* Insmod parameters */
+I2C_CLIENT_INSMOD_1(tmp401);
+
+
+/*
+ * The TMP401 registers, note some registers have different addresses for
+ * reading and writing
+ */
+#define TMP401_STATUS				0x02
+#define TMP401_CONFIG_READ			0x03
+#define TMP401_CONFIG_WRITE			0x09
+#define TMP401_CONVERSION_RATE_READ		0x04
+#define TMP401_CONVERSION_RATE_WRITE		0x0A
+#define TMP401_ONE_SHOT_START_WRITE		0x0F
+#define TMP401_RESOLUTION			0x1A
+#define TMP401_TEMP_CRIT_HYST			0x21
+#define TMP401_CONSECUTIVE_ALERT		0x22
+#define TMP401_MANUFACTURER_ID_REG		0xFE
+#define TMP401_DEVICE_ID_REG			0xFF
+
+static const u8 TMP401_TEMP_MSB[2]			= { 0x00, 0x01 };
+static const u8 TMP401_TEMP_LSB[2]			= { 0x15, 0x10 };
+static const u8 TMP401_TEMP_LOW_LIMIT_MSB_READ[2]	= { 0x06, 0x08 };
+static const u8 TMP401_TEMP_LOW_LIMIT_MSB_WRITE[2]	= { 0x0C, 0x0E };
+static const u8 TMP401_TEMP_LOW_LIMIT_LSB[2]		= { 0x17, 0x14 };
+static const u8 TMP401_TEMP_HIGH_LIMIT_MSB_READ[2]	= { 0x05, 0x07 };
+static const u8 TMP401_TEMP_HIGH_LIMIT_MSB_WRITE[2]	= { 0x0B, 0x0D };
+static const u8 TMP401_TEMP_HIGH_LIMIT_LSB[2]		= { 0x16, 0x13 };
+/* These are called the THERM limit / hysteresis / mask in the datasheets */
+static const u8 TMP401_TEMP_CRIT_LIMIT[2]		= { 0x20, 0x19 };
+
+/* Bit masks */
+#define TMP401_CONFIG_RANGE_MASK		0x04
+#define TMP401_CONFIG_SHUTDOWN_MASK		0x40
+#define TMP401_STATUS_LOCAL_CRIT_MASK		0x01
+#define TMP401_STATUS_REMOTE_CRIT_MASK		0x02
+#define TMP401_STATUS_REMOTE_OPEN_MASK		0x04
+#define TMP401_STATUS_REMOTE_LOW_MASK		0x08
+#define TMP401_STATUS_REMOTE_HIGH_MASK		0x10
+#define TMP401_STATUS_LOCAL_LOW_MASK		0x20
+#define TMP401_STATUS_LOCAL_HIGH_MASK		0x40
+
+/* Manufacturer / Device ID's */
+#define TMP401_MANUFACTURER_ID			0x55
+#define TMP401_DEVICE_ID			0x11
+
+/* our driver name */
+#define TMP401_NAME "tmp401"
+
+/*
+ * Functions declarations
+ */
+
+static void tmp401_init_client(struct i2c_client *client);
+static int tmp401_attach_adapter(struct i2c_adapter *adapter);
+static int tmp401_detach_client(struct i2c_client *client);
+static struct tmp401_data *tmp401_update_device(struct device *dev);
+
+/*
+ * Driver data (common to all clients)
+ */
+
+static struct i2c_driver tmp401_driver = {
+	.driver = {
+		.name	= TMP401_NAME,
+	},
+	.attach_adapter	= tmp401_attach_adapter,
+	.detach_client	= tmp401_detach_client,
+};
+
+/*
+ * Client data (each client gets its own)
+ */
+
+struct tmp401_data {
+	struct i2c_client client;
+	struct device *hwmon_dev;
+	struct mutex update_lock;
+	char valid; /* zero until following fields are valid */
+	unsigned long last_updated; /* in jiffies */
+
+	/* register values */
+	u8 status;
+	u8 config;
+	u16 temp[2];
+	u16 temp_low[2];
+	u16 temp_high[2];
+	u8 temp_crit[2];
+	u8 temp_crit_hyst;
+};
+
+/*
+ * Sysfs attr show / store functions
+ */
+ 
+static int tmp401_register_to_temp(u16 reg, u8 config)
+{
+	int temp = reg;
+	
+	return (temp * 625) / 160;
+}
+
+static u16 tmp401_temp_to_register(long temp, u8 config)
+{
+	if (config & TMP401_CONFIG_RANGE_MASK) {
+		temp = SENSORS_LIMIT(temp, -64000, 191000);
+		temp += 64000;
+	} else
+		temp = SENSORS_LIMIT(temp, 0, 127000);
+
+	return (temp * 160) / 625;
+}
+
+static int tmp401_crit_register_to_temp(u8 reg, u8 config)
+{
+	int temp = reg;
+	
+	if (config & TMP401_CONFIG_RANGE_MASK)
+		temp -= 64;
+	
+	return temp;
+}
+
+static u8 tmp401_temp_crit_to_register(long temp, u8 config)
+{
+	if (config & TMP401_CONFIG_RANGE_MASK) {
+		temp = SENSORS_LIMIT(temp, -64000, 191000);
+		temp += 64000;
+	} else
+		temp = SENSORS_LIMIT(temp, 0, 127000);
+
+	return temp / 1000;
+}
+
+static ssize_t show_temp_value(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	int index = to_sensor_dev_attr(devattr)->index;
+	struct tmp401_data *data = tmp401_update_device(dev);
+	
+	return sprintf(buf, "%d\n",
+		tmp401_register_to_temp(data->temp[index], data->config));
+}
+
+static ssize_t show_temp_min(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	int index = to_sensor_dev_attr(devattr)->index;
+	struct tmp401_data *data = tmp401_update_device(dev);
+
+	return sprintf(buf, "%d\n",
+		tmp401_register_to_temp(data->temp_low[index], data->config));
+}
+
+static ssize_t show_temp_max(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	int index = to_sensor_dev_attr(devattr)->index;
+	struct tmp401_data *data = tmp401_update_device(dev);
+
+	return sprintf(buf, "%d\n",
+		tmp401_register_to_temp(data->temp_high[index], data->config));
+}
+
+static ssize_t show_temp_crit(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	int index = to_sensor_dev_attr(devattr)->index;
+	struct tmp401_data *data = tmp401_update_device(dev);
+
+	return sprintf(buf, "%d\n",
+			tmp401_crit_register_to_temp(data->temp_crit[index],
+							data->config));
+}
+
+static ssize_t show_temp_crit_hyst(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	int temp, index = to_sensor_dev_attr(devattr)->index;
+	struct tmp401_data *data = tmp401_update_device(dev);
+	
+	temp = tmp401_crit_register_to_temp(data->temp_crit[index],
+						data->config);
+	temp -= data->temp_crit_hyst;
+
+	return sprintf(buf, "%d\n", temp);
+}
+
+static ssize_t show_status(struct device *dev,
+	struct device_attribute *devattr, char *buf)
+{
+	int mask = to_sensor_dev_attr(devattr)->index;
+	struct tmp401_data *data = tmp401_update_device(dev);
+	
+	if (data->status & mask)
+		return sprintf(buf, "1\n");
+	else
+		return sprintf(buf, "0\n");
+}
+
+static ssize_t store_temp_min(struct device *dev, struct device_attribute
+	*devattr, const char *buf, size_t count)
+{
+	int index = to_sensor_dev_attr(devattr)->index;
+	struct tmp401_data *data = tmp401_update_device(dev);
+	long v = simple_strtol(buf, NULL, 10);
+	u16 reg = tmp401_temp_to_register(v, data->config);
+
+	mutex_lock(&data->update_lock);
+
+	i2c_smbus_write_byte_data(&data->client,
+		TMP401_TEMP_LOW_LIMIT_MSB_WRITE[index], reg >> 8);
+	i2c_smbus_write_byte_data(&data->client,
+		TMP401_TEMP_LOW_LIMIT_LSB[index], reg & 0xFF);
+
+	data->temp_low[index] = reg;
+
+	mutex_unlock(&data->update_lock);
+
+	return count;
+}
+
+static ssize_t store_temp_max(struct device *dev, struct device_attribute
+	*devattr, const char *buf, size_t count)
+{
+	int index = to_sensor_dev_attr(devattr)->index;
+	struct tmp401_data *data = tmp401_update_device(dev);
+	long v = simple_strtol(buf, NULL, 10);
+	u16 reg = tmp401_temp_to_register(v, data->config);
+
+	mutex_lock(&data->update_lock);
+
+	i2c_smbus_write_byte_data(&data->client,
+		TMP401_TEMP_HIGH_LIMIT_MSB_WRITE[index], reg >> 8);
+	i2c_smbus_write_byte_data(&data->client,
+		TMP401_TEMP_HIGH_LIMIT_LSB[index], reg & 0xFF);
+
+	data->temp_high[index] = reg;
+
+	mutex_unlock(&data->update_lock);
+
+	return count;
+}
+
+static ssize_t store_temp_crit(struct device *dev, struct device_attribute
+	*devattr, const char *buf, size_t count)
+{
+	int index = to_sensor_dev_attr(devattr)->index;
+	struct tmp401_data *data = tmp401_update_device(dev);
+	long v = simple_strtol(buf, NULL, 10);
+	u8 reg = tmp401_temp_crit_to_register(v, data->config);
+
+	mutex_lock(&data->update_lock);
+
+	i2c_smbus_write_byte_data(&data->client,
+		TMP401_TEMP_CRIT_LIMIT[index], reg);
+
+	data->temp_crit[index] = reg;
+
+	mutex_unlock(&data->update_lock);
+
+	return count;
+}
+
+static ssize_t store_temp_crit_hyst(struct device *dev, struct device_attribute
+	*devattr, const char *buf, size_t count)
+{
+	int temp, index = to_sensor_dev_attr(devattr)->index;
+	struct tmp401_data *data = tmp401_update_device(dev);
+	long v = simple_strtol(buf, NULL, 10);
+	u8 reg;
+
+	if (data->config & TMP401_CONFIG_RANGE_MASK)
+		v = SENSORS_LIMIT(v, -64000, 191000);
+	else
+		v = SENSORS_LIMIT(v, 0, 127000);
+
+	mutex_lock(&data->update_lock);
+	temp = tmp401_crit_register_to_temp(data->temp_crit[index],
+						data->config);
+	reg = tmp401_temp_crit_to_register(temp - v, data->config);
+
+	i2c_smbus_write_byte_data(&data->client,
+		TMP401_TEMP_CRIT_HYST, reg);
+
+	data->temp_crit_hyst = reg;
+
+	mutex_unlock(&data->update_lock);
+
+	return count;
+}
+
+static struct sensor_device_attribute tmp401_attr[] = {
+	SENSOR_ATTR(temp1_input, 0444, show_temp_value, NULL, 0),
+	SENSOR_ATTR(temp1_min, 0644, show_temp_min, store_temp_min, 0),
+	SENSOR_ATTR(temp1_max, 0644, show_temp_max, store_temp_max, 0),
+	SENSOR_ATTR(temp1_crit, 0644, show_temp_crit, store_temp_crit, 0),
+	SENSOR_ATTR(temp1_crit_hyst, 0644, show_temp_crit_hyst,
+			store_temp_crit_hyst, 0),
+	SENSOR_ATTR(temp1_min_alarm, 0444, show_status, NULL,
+			TMP401_STATUS_LOCAL_LOW_MASK),
+	SENSOR_ATTR(temp1_max_alarm, 0444, show_status, NULL,
+			TMP401_STATUS_LOCAL_HIGH_MASK),
+	SENSOR_ATTR(temp1_crit_alarm, 0444, show_status, NULL,
+			TMP401_STATUS_LOCAL_CRIT_MASK),
+	SENSOR_ATTR(temp2_input, 0444, show_temp_value, NULL, 1),
+	SENSOR_ATTR(temp2_min, 0644, show_temp_min, store_temp_min, 1),
+	SENSOR_ATTR(temp2_max, 0644, show_temp_max, store_temp_max, 1),
+	SENSOR_ATTR(temp2_crit, 0644, show_temp_crit, store_temp_crit, 1),
+	SENSOR_ATTR(temp2_crit_hyst, 0444, show_temp_crit_hyst, NULL, 1),
+	SENSOR_ATTR(temp2_fault, 0444, show_status, NULL,
+			TMP401_STATUS_REMOTE_OPEN_MASK),
+	SENSOR_ATTR(temp2_min_alarm, 0444, show_status, NULL,
+			TMP401_STATUS_REMOTE_LOW_MASK),
+	SENSOR_ATTR(temp2_max_alarm, 0444, show_status, NULL,
+			TMP401_STATUS_REMOTE_HIGH_MASK),
+	SENSOR_ATTR(temp2_crit_alarm, 0444, show_status, NULL,
+			TMP401_STATUS_REMOTE_CRIT_MASK),
+};
+
+/*
+ * Real code
+ */
+
+static int tmp401_detect(struct i2c_adapter *adapter, int address, int kind)
+{
+	int i, err = 0;
+	struct i2c_client *client;
+	struct tmp401_data *data;
+
+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+		return 0;
+
+	/* OK. For now, we presume we have a valid client. We now create the
+	 * client structure, even though we cannot fill it completely yet.
+	 * But it allows us to access i2c_smbus_read_byte_data. */
+	if (!(data = kzalloc(sizeof(struct tmp401_data), GFP_KERNEL)))
+		return -ENOMEM;
+
+	client = &data->client;
+	i2c_set_clientdata(client, data);
+	client->addr = address;
+	client->adapter = adapter;
+	client->driver = &tmp401_driver;
+	mutex_init(&data->update_lock);
+
+	/* Detect & Identify the chip */
+	if (kind <= 0) {
+		u8 manufacturer_id;
+		u8 device_id;
+		
+		manufacturer_id = i2c_smbus_read_byte_data(client,
+						TMP401_MANUFACTURER_ID_REG);
+		device_id = i2c_smbus_read_byte_data(client,
+						TMP401_DEVICE_ID_REG);
+		if (manufacturer_id != TMP401_MANUFACTURER_ID ||
+				device_id != TMP401_DEVICE_ID_REG)
+			goto exit_free;
+	}
+
+	/* Tell the I2C layer a new client has arrived */
+	if ((err = i2c_attach_client(client)))
+		goto exit_free;
+		
+	/* Initialize the TMP401 chip */
+	tmp401_init_client(client);
+		
+	/* Register sysfs hooks */
+	for (i = 0; i < ARRAY_SIZE(tmp401_attr); i++) {
+		err = device_create_file(&client->dev,
+					&tmp401_attr[i].dev_attr);
+		if (err)
+			goto exit_detach;
+	}
+
+	data->hwmon_dev = hwmon_device_register(&client->dev);
+	if (IS_ERR(data->hwmon_dev)) {
+		err = PTR_ERR(data->hwmon_dev);
+		data->hwmon_dev = NULL; 
+		goto exit_detach;
+	}
+
+	printk(KERN_INFO TMP401_NAME ": Detected TI TMP401 chip\n");
+
+	return 0;
+
+exit_detach:
+	tmp401_detach_client(client); /* will also free data for us */
+	return err;
+	
+exit_free:
+	kfree(data);
+	return err;
+}
+
+static void tmp401_init_client(struct i2c_client *client)
+{
+	int config, config_orig;
+
+	/* Set the conversion rate to 2 Hz */
+	i2c_smbus_write_byte_data(client, TMP401_CONVERSION_RATE_WRITE, 5);
+
+	/* Start conversions (disable shutdown if necessary) */
+	config = i2c_smbus_read_byte_data(client, TMP401_CONFIG_READ);
+	if (config < 0) {
+		dev_warn(&client->dev, "Initialization failed!\n");
+		return;
+	}
+
+	config_orig = config;
+	config &= ~TMP401_CONFIG_SHUTDOWN_MASK;
+
+	if (config != config_orig)
+		i2c_smbus_write_byte_data(client, TMP401_CONFIG_WRITE, config);
+}
+
+static int tmp401_attach_adapter(struct i2c_adapter *adapter)
+{
+	if (!(adapter->class & I2C_CLASS_HWMON))
+		return 0;
+	return i2c_probe(adapter, &addr_data, tmp401_detect);
+}
+
+static int tmp401_detach_client(struct i2c_client *client)
+{
+	struct tmp401_data *data = i2c_get_clientdata(client);
+	int i, err;
+
+	/* Check if registered in case we're called from tmp401_detect
+	   to cleanup after an error */
+	if (data->hwmon_dev)
+		hwmon_device_unregister(data->hwmon_dev);
+
+	for (i = 0; i < ARRAY_SIZE(tmp401_attr); i++)
+		device_remove_file(&client->dev, &tmp401_attr[i].dev_attr);
+
+	if ((err = i2c_detach_client(client)))
+		return err;
+
+	kfree(data);
+	return 0;
+}
+
+static struct tmp401_data *tmp401_update_device(struct device *dev)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct tmp401_data *data = i2c_get_clientdata(client);
+	int i;
+
+	mutex_lock(&data->update_lock);
+
+	if (time_after(jiffies, data->last_updated + 2 * HZ) || !data->valid) {
+		data->status = i2c_smbus_read_byte_data(client, TMP401_STATUS);
+		data->config = i2c_smbus_read_byte_data(client,
+						TMP401_CONFIG_READ);
+		for (i = 0; i < 2; i++) {
+			data->temp[i] = i2c_smbus_read_byte_data(client,
+						TMP401_TEMP_MSB[i]) << 8;
+			data->temp[i] |= i2c_smbus_read_byte_data(client,
+						TMP401_TEMP_LSB[i]);
+			data->temp_low[i] = i2c_smbus_read_byte_data(client,
+				TMP401_TEMP_LOW_LIMIT_MSB_READ[i]) << 8;
+			data->temp_low[i] |= i2c_smbus_read_byte_data(client,
+						TMP401_TEMP_LOW_LIMIT_LSB[i]);
+			data->temp_high[i] = i2c_smbus_read_byte_data(client,
+				TMP401_TEMP_HIGH_LIMIT_MSB_READ[i]) << 8;
+			data->temp_high[i] |= i2c_smbus_read_byte_data(client,
+						TMP401_TEMP_HIGH_LIMIT_LSB[i]);
+			data->temp_crit[i] = i2c_smbus_read_byte_data(client,
+						TMP401_TEMP_CRIT_LIMIT[i]);
+		}
+
+		data->temp_crit_hyst = i2c_smbus_read_byte_data(client,  
+						TMP401_TEMP_CRIT_HYST);
+
+		data->last_updated = jiffies;
+		data->valid = 1;
+	}
+
+	mutex_unlock(&data->update_lock);
+
+	return data;
+}
+
+static int __init tmp401_init(void)
+{
+	return i2c_add_driver(&tmp401_driver);
+}
+
+static void __exit tmp401_exit(void)
+{
+	i2c_del_driver(&tmp401_driver);
+}
+
+MODULE_AUTHOR("Hans de Goede <j.w.r.degoede@hhs.nl>");
+MODULE_DESCRIPTION("Texas Instruments TMP401 temperature sensor driver");
+MODULE_LICENSE("GPL");
+
+module_init(tmp401_init);
+module_exit(tmp401_exit);
+
+
+--------------080809020600060604060701
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -1833,4 +597,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1427124512736715355==--
+--------------080809020600060604060701--
