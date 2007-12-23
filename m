@@ -1,104 +1,100 @@
-From: "Jean Delvare" <khali@linux-fr.org>
-Date: Sat, 22 Dec 2007 11:21:41 +0000
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date: Sun, 23 Dec 2007 03:40:30 +0000
 Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
-Message-Id: <w9NvZsoO.1198322501.4301280.khali@gcu-squad.org>
+Message-Id: <200712222040.32079.bjorn.helgaas@hp.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200712211200.30947.bjorn.helgaas@hp.com>
-In-Reply-To: <200712211200.30947.bjorn.helgaas@hp.com>
+References: <w9NvZsoO.1198322501.4301280.khali@gcu-squad.org>
+In-Reply-To: <w9NvZsoO.1198322501.4301280.khali@gcu-squad.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: bjorn.helgaas@hp.com
-Cc: Elvis Pranskevichus <el@prans.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adrian Bunk <bunk@stusta.de>, Zhao Yakui <yakui.zhao@intel.com>, mhoffman@lightlink.com, Mike Houston <mikeserv@bmts.com>, Shaohua Li <shaohua.li@intel.com>, Adam Belay <ambx1@neo.rr.com>, lm-sensors@lm-sensors.org, Thomas Renninger <trenn@suse.de>, lenb@kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Shaohua Li <shaohua.li@intel.com>, Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
+On Saturday 22 December 2007 4:21:41 am Jean Delvare wrote:
+> >This patch makes the it87 driver request only the two ports used for the
+> >Environment Controller device.
+>
+> The problem is that the IT87xxF chips do decode 4 ports (recent chips,
+> 0x294-0x297) or 8 ports (older chips, 0x290-0x297), not 2 as the
+> datasheets say. The ITE Super-I/O chips differ from the Winbond
+> Super-I/O chips in this respect. The it87 driver only needs to access
+> ports 0x295 and 0x296, true, but the device itself decodes more
+> addresses than that. So, with this proposed patch, ports which are busy
+> will be shown as being free. This pretty much voids the point of
+> resource declarations, doesn't it? This might not cause too much
+> trouble in practice, but to me this still looks like the wrong way to go.
 
-Hi Bjorn,
+Yes, all the ports decoded by the chip should certainly be reserved,
+but I think the entire range should be reserved at a higher level,
+like the PNP core, and the driver should reserve only the ports it
+uses.  Then the entire range is reserved even if there is no driver
+or the driver is not loaded.  That's the approach we use for PCI,
+e.g.,
 
-Le 21/12/2007, "Bjorn Helgaas" <bjorn.helgaas@hp.com> a =E9crit:
+  e8100000-e81fffff : 0000:00:08.0          <-- reserved by PCI core
+    e8100000-e8102fff : CS46xx_BA1_data0    <-- reserved by driver
+    e8110000-e81137ff : CS46xx_BA1_data1
+    e8120000-e8126fff : CS46xx_BA1_pmem
+    e8130000-e81300ff : CS46xx_BA1_reg
 
->On Tuesday 18 December 2007 10:59:18 am Jean Delvare wrote:
->> My initial idea was to identify the faulty motherboard using DMI and to
->> force pnpacpi=3Doff on the faulty motherboards. If this is considered too
->> aggressive, maybe we can just reject resource declarations that
->> intersect (but don't match) 0x290-0x297 for these motherboards. Either
->> way, we have to do something, and we have to do it quickly. 2.6.24
->> final isn't too far away, and more importantly, the patch that revealed
->> the problem has been backported to 2.6.23.10 so people are experiencing
->> regressions already.
->
->What do you think of something like the following patch?  If we do
->this, I don't think we'd need to force pnpacpi=3Doff or change the
->way PNP reserves resources.
->
->I'll be on vacation until about January 2, so I won't be able to
->do much with this until then.
->
->
->
->[patch] it87: request only Environment Controller ports
->
->The IT8705F and related parts are Super I/O controllers that contain
->many separate devices.
->
->Some BIOSes describe IT8705F I/O port usage under a motherboard device
->(PNP0C02) with overlapping regions, e.g., 0x290-0x29f and 0x290-0x294.
->
->The it87 driver supports only the Environment Controller, which requires
->only two ISA ports, but it used to request an eight-port range.  If that
->range exceeds a range reported by the BIOS, as 0x290-0x297 would, the
->request fails, and the it87 driver cannot claim the device.
->
->This patch makes the it87 driver request only the two ports used for the
->Environment Controller device.
+> The resource declarations made by these motherboard BIOSes are totally
+> bogus. 0x290-0x29f is much larger than what the chip decodes.
+> 0x290-0x294 is a subset that doesn't make any sense. The GA-K8N Ultra 9
+> is even funnier with 0x295-0x314, which again doesn't correspond to
+> anything real.
 
-The problem is that the IT87xxF chips do decode 4 ports (recent chips,
-0x294-0x297) or 8 ports (older chips, 0x290-0x297), not 2 as the
-datasheets say. The ITE Super-I/O chips differ from the Winbond
-Super-I/O chips in this respect. The it87 driver only needs to access
-ports 0x295 and 0x296, true, but the device itself decodes more
-addresses than that. So, with this proposed patch, ports which are busy
-will be shown as being free. This pretty much voids the point of
-resource declarations, doesn't it? This might not cause too much
-trouble in practice, but to me this still looks like the wrong way to go.
+I agree those declarations are probably wrong.  But at least they're
+larger than required, so they should be safe.
 
-The resource declarations made by these motherboard BIOSes are totally
-bogus. 0x290-0x29f is much larger than what the chip decodes.
-0x290-0x294 is a subset that doesn't make any sense. The GA-K8N Ultra 9
-is even funnier with 0x295-0x314, which again doesn't correspond to
-anything real. All these happen to not intersect with 0x295-0x296 but I
-wouldn't count on it. If Gigabyte (and possibly others) care that
-little about these declarations, pretty much anything could be seen. So
-while your proposed workaround happens to fix the problem at hand, it is
-not really correct technically, and could break again soon.
-
-I'd rather fix the problem at its source, or, as fixing it as the source
-isn't very realistic in this case, as near of the source as possible.
-That would mean DMI-based quirks for the affected motherboards, that
-would discard or adjust the bogus resource declarations. I have not yet
-looked at what the code would look like, as I am not familiar with the
-pnp system driver, I don't know what it would take to implement my
-proposal.
-
-I also don't fully understand what pnpacpi is useful for. I have heard
-about PCI drivers that might request resources that the motherboard
-doesn't want them to touch, but I don't know the details, I also
-don't know if it is a theoretical issue or if it really happens on some
-systems, and I don't know if there are other uses for pnpacpi. I'm
-asking because I want to know if forcing pnpacpi=3Doff on the faulty
-motherboards would be good enough or if we really need finer-grained
-quirks (assuming that we go the DMI-based quirks route at all.) The
-former would obviously be easier.
-
+> All these happen to not intersect with 0x295-0x296 but I 
+> wouldn't count on it. If Gigabyte (and possibly others) care that
+> little about these declarations, pretty much anything could be seen. So
+> while your proposed workaround happens to fix the problem at hand, it is
+> not really correct technically, and could break again soon.
 >
->Systems where this problem has been reported:
->    Gigabyte GA-K8N Ultra 9
->    Gigabyte M56S-S3
->    Gigabyte GA-965G-DS3
-> (...)
+> I'd rather fix the problem at its source, or, as fixing it as the source
+> isn't very realistic in this case, as near of the source as possible.
+> That would mean DMI-based quirks for the affected motherboards, that
+> would discard or adjust the bogus resource declarations.
 
-Thanks,
---
-Jean Delvare
+Well, I think the driver change *is* correct, assuming that the
+entire range can be reserved at a higher level.  In this case,
+it is, via a PNP0C02 device.
+
+I think a DMI-based quirk to fix the PNP0C02 resources would be
+a good approach, but we shouldn't do that until those resources
+cause some other problem.
+
+> I also don't fully understand what pnpacpi is useful for. I have heard
+> about PCI drivers that might request resources that the motherboard
+> doesn't want them to touch, but I don't know the details, I also
+> don't know if it is a theoretical issue or if it really happens on some
+> systems, and I don't know if there are other uses for pnpacpi.
+
+It is a real issue.  It's probably not very common because many ACPI
+devices use "legacy" resources like ports below 0x1000, and the kernel
+has heuristics to avoid placing other devices there.  But I have seen
+the kernel place a CardBus device on top of an ACPI device, so it does
+happen.
+
+Apart from preventing resource conflicts, PNP has framework for
+driver/device binding, suspend/resume, etc.  Without PNPACPI,
+we'll fall back to PNPBIOS, but my guess is that nowadays, the
+ACPI namespace is better-tested than PNPBIOS.  And I wouldn't
+be surprised if PNPBIOS disappears from new boxes.
+
+> I'm 
+> asking because I want to know if forcing pnpacpi=off on the faulty
+> motherboards would be good enough or if we really need finer-grained
+> quirks (assuming that we go the DMI-based quirks route at all.) The
+> former would obviously be easier.
+
+I'm sure these boxes still have PNPBIOS, so pnpacpi=off would
+probably work fine.  But it feels like a bigger hammer than
+necessary for this problem.
+
+Bjorn
 
 _______________________________________________
 lm-sensors mailing list
