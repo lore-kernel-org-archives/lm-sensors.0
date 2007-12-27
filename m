@@ -1,145 +1,154 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 02 Dec 2007 10:41:14 +0000
-Subject: Re: [lm-sensors] how to choose the right sensor with an asus
-Message-Id: <20071202114114.7cf42951@hyperion.delvare>
+From: "Rutul Dave" <rutuldave@gmail.com>
+Date: Thu, 27 Dec 2007 23:52:20 +0000
+Subject: [lm-sensors] error loading coretemp module for 2.6.21.5 kernel
+Message-Id: <975b59c50712271552u8e4b846r9545f817f8d779e1@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_18048_27090558.1198799540964"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <47447DA9.3090701@free.fr>
-In-Reply-To: <47447DA9.3090701@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Wed, 21 Nov 2007 19:49:13 +0100, Moebius wrote:
-> Bonjour,
-> I've recently bought this config : athlon64 x2 4400+ and the asus=20
-> M2NPV-VM board.
-> There is 4 fan plugs on the board, but only two are connected, the cpu's =
+------=_Part_18048_27090558.1198799540964
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> one and the power one (with just 2 wires)
->=20
-> Sensors-detect give me this output :
->=20
-> Driver `smartbatt' (should be inserted):
->    Detects correctly:
->    * Bus `NVIDIA i2c adapter '
->      Busdriver `UNKNOWN', I2C address 0x0b
->      Chip `Smart Battery' (confidence: 5)
->=20
-> Driver `it87' (should be inserted):
->    Detects correctly:
->    * ISA bus, address 0x290
->      Chip `ITE IT8716F Super IO Sensors' (confidence: 9)
->=20
-> Driver `k8temp' (should be inserted):
->    Detects correctly:
->    * Chip `AMD K8 thermal sensors' (confidence: 9)
->=20
-> So I insert the two modules needed (it87 and k8temp)
->=20
-> I'm following an ubuntu tuto here (in french... ) :
-> http://doc.ubuntu-fr.org/materiel/sensors
->=20
-> Well, then I try pwmconfig and it become very difficult :
->=20
-> First, jit's not too bad :
->=20
-> Found the following devices:
->     hwmon0/device is k8temp
->     hwmon1/device is it8716
->=20
-> Found the following PWM controls:
->     hwmon1/device/pwm1
->     hwmon1/device/pwm2
->     hwmon1/device/pwm3
->=20
-> Found the following fan sensors:
->     hwmon1/device/fan1_input     current speed: 3082 RPM
->     hwmon1/device/fan2_input     current speed: 0 ... skipping!
->     hwmon1/device/fan3_input     current speed: 1646 RPM
->=20
-> But when I try the command sensors to see which are the cpu sensor, the=20
-> mb sensor ... I get something a bit confusing :
+Hello,
 
-You're doing things the wrong way around: you should first check the
-values returned by "sensors", and only when you have made sense out of
-them, try to play with pwmconfig. You just can't configure fan speed
-control properly it you don't know what temperature values can be
-trusted and what they correspond to.
+I am trying to use lm-sensors (version 2.10.5) with libsensors version 2.10.5.
+The kernel is patched (with the add-coretemp-driver.patch and
+coretemp-add-documentation.patch) from the following locations:
+http://www.hobbes.ch/statisch/linuxfiles/patches/add-coretemp-driver.patch
+http://www.hobbes.ch/statisch/linuxfiles/patches/coretemp-add-documentation.patch
 
->=20
-> k8temp-pci-00c3
-> Adapter: PCI adapter
-> Core0 Temp:
->                -6=B0C
-> Core0 Temp:
->               -11=B0C
-> Core1 Temp:
->                +5=B0C
-> Core1 Temp:
->               -13=B0C
+Attached is the /proc/cpuinfo.
 
-Recent K8 CPUs have been reported to have broken thermal diodes. This
-seems to be the case for you, so there's no point in using the k8temp
-driver. Blacklist it to prevent it from auto-loading.
+When trying to load the modules, I get the following errors:
 
-Rudolf, is it possible to detect these CPU models by their CPUID and
-exclude them from the k8temp driver? This would save a lot of user
-confusion.
+[root@localhost ~]# dmesg | grep coretemp
+[   76.687618] coretemp: Unknown CPU, please report to the
+lm-sensors@lm-sensors.org
+[   76.687802] coretemp: Unknown CPU, please report to the
+lm-sensors@lm-sensors.org
+[   76.687889] coretemp: Unknown CPU, please report to the
+lm-sensors@lm-sensors.org
+[   76.687986] coretemp: Unknown CPU, please report to the
+lm-sensors@lm-sensors.org
+[   76.688071] coretemp: Unknown CPU, please report to the
+lm-sensors@lm-sensors.org
+[   76.688156] coretemp: Unknown CPU, please report to the
+lm-sensors@lm-sensors.org
+[   76.688241] coretemp: Unknown CPU, please report to the
+lm-sensors@lm-sensors.org
+[   76.688326] coretemp: Unknown CPU, please report to the
+lm-sensors@lm-sensors.org
+[root@localhost ~]#
 
->=20
-> it8716-isa-0290
-> Adapter: ISA adapter
-> VCore:     +1.02 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> VDDR:      +3.31 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> +3.3V:     +0.00 V  (min =3D  +0.00 V, max =3D  +4.08 V)   ALARM
-> +5V:       +4.84 V  (min =3D  +0.00 V, max =3D  +6.85 V)
-> +12V:     +11.46 V  (min =3D  +0.00 V, max =3D +16.32 V)
-> in5:       +0.00 V  (min =3D  +0.00 V, max =3D  +4.08 V)   ALARM
-> in6:       +0.00 V  (min =3D  +0.00 V, max =3D  +4.08 V)   ALARM
-> 5VSB:      +4.73 V  (min =3D  +0.00 V, max =3D  +6.85 V)
-> VBat:      +2.90 V
-> fan1:     3096 RPM  (min =3D 3245 RPM)                   ALARM
-> fan2:        0 RPM  (min =3D 3245 RPM)                   ALARM
-> fan3:     1646 RPM  (min =3D    0 RPM)
-> temp1:       +16=B0C  (low  =3D    -1=B0C, high =3D  +127=B0C)   sensor =
-=3D diode
-> temp2:       +31=B0C  (low  =3D    -1=B0C, high =3D  +127=B0C)   sensor =
-=3D thermistor
-> temp3:       +25=B0C  (low  =3D    -1=B0C, high =3D  +127=B0C)   sensor =
-=3D thermistor
-> vid:      +0.000 V
->=20
-> So I can't determine the sensor to assign the cpu fan, cause I can't see =
+I am able to run this successful on a dual-core CPU (Intel Xeon 5130).
 
-> which is the good cpu temperature.
+Can anybody suggest how to get this to work on the E5420 CPU?
 
-Which temperature sensor corresponds to what is motherboard-dependent.
-Same for fans. The easiest way to find out which is which is to take a
-look in the BIOS setup screen at boot time. The numbers should somewhat
-match what you see in "sensors" and the order of the values might be a
-valuable hint as well.
+thank you,
 
-For voltages, it appears that in2, in5 and in6 are not wired, and +3.3V
-is connected to in1, so you should tweak the it8716-* section of
-sensors.conf in the following way:
+Rutul
 
-   label in1 "+3.3V"
-   ignore in2
-   ignore in5
-   ignore in6
+------=_Part_18048_27090558.1198799540964
+Content-Type: application/octet-stream; name=cpuinfo.e5420
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fapy9fli0
+Content-Disposition: attachment; filename=cpuinfo.e5420
 
-The rest looks OK, except that +5V and +12V are a bit low - maybe the
-scaling factors on your board diverge a bit compared to the standard
-values. Or maybe your PSU is not sufficient for your setup. Again, a
-comparison with what the BIOS displays can help.
-
-Only once the output of "sensors" looks correct, you can try pwmconfig.
-
---=20
-Jean Delvare
+cHJvY2Vzc29yCTogMAp2ZW5kb3JfaWQJOiBHZW51aW5lSW50ZWwKY3B1IGZhbWlseQk6IDYKbW9k
+ZWwJCTogMjMKbW9kZWwgbmFtZQk6IEludGVsKFIpIFhlb24oUikgQ1BVICAgICAgICAgICBFNTQy
+MCAgQCAyLjUwR0h6CnN0ZXBwaW5nCTogNgpjcHUgTUh6CQk6IDI1MDAuMjk4CmNhY2hlIHNpemUJ
+OiA2MTQ0IEtCCnBoeXNpY2FsIGlkCTogMApzaWJsaW5ncwk6IDQKY29yZSBpZAkJOiAwCmNwdSBj
+b3Jlcwk6IDQKZmRpdl9idWcJOiBubwpobHRfYnVnCQk6IG5vCmYwMGZfYnVnCTogbm8KY29tYV9i
+dWcJOiBubwpmcHUJCTogeWVzCmZwdV9leGNlcHRpb24JOiB5ZXMKY3B1aWQgbGV2ZWwJOiAxMAp3
+cAkJOiB5ZXMKZmxhZ3MJCTogZnB1IHZtZSBkZSBwc2UgdHNjIG1zciBwYWUgbWNlIGN4OCBhcGlj
+IHNlcCBtdHJyIHBnZSBtY2EgY21vdiBwYXQgcHNlMzYgY2xmbHVzaCBkdHMgYWNwaSBtbXggZnhz
+ciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgbnggbG0gY29uc3RhbnRfdHNjIHBuaSBtb25pdG9yIGRz
+X2NwbCB2bXggZXN0IHRtMiBzc3NlMyBjeDE2IHh0cHIgZGNhIGxhaGZfbG0KYm9nb21pcHMJOiA1
+MDAyLjE5CmNsZmx1c2ggc2l6ZQk6IDY0Cgpwcm9jZXNzb3IJOiAxCnZlbmRvcl9pZAk6IEdlbnVp
+bmVJbnRlbApjcHUgZmFtaWx5CTogNgptb2RlbAkJOiAyMwptb2RlbCBuYW1lCTogSW50ZWwoUikg
+WGVvbihSKSBDUFUgICAgICAgICAgIEU1NDIwICBAIDIuNTBHSHoKc3RlcHBpbmcJOiA2CmNwdSBN
+SHoJCTogMjUwMC4yOTgKY2FjaGUgc2l6ZQk6IDYxNDQgS0IKcGh5c2ljYWwgaWQJOiAwCnNpYmxp
+bmdzCTogNApjb3JlIGlkCQk6IDEKY3B1IGNvcmVzCTogNApmZGl2X2J1Zwk6IG5vCmhsdF9idWcJ
+CTogbm8KZjAwZl9idWcJOiBubwpjb21hX2J1Zwk6IG5vCmZwdQkJOiB5ZXMKZnB1X2V4Y2VwdGlv
+bgk6IHllcwpjcHVpZCBsZXZlbAk6IDEwCndwCQk6IHllcwpmbGFncwkJOiBmcHUgdm1lIGRlIHBz
+ZSB0c2MgbXNyIHBhZSBtY2UgY3g4IGFwaWMgc2VwIG10cnIgcGdlIG1jYSBjbW92IHBhdCBwc2Uz
+NiBjbGZsdXNoIGR0cyBhY3BpIG1teCBmeHNyIHNzZSBzc2UyIHNzIGh0IHRtIHBiZSBueCBsbSBj
+b25zdGFudF90c2MgcG5pIG1vbml0b3IgZHNfY3BsIHZteCBlc3QgdG0yIHNzc2UzIGN4MTYgeHRw
+ciBkY2EgbGFoZl9sbQpib2dvbWlwcwk6IDQ5OTkuNDYKY2xmbHVzaCBzaXplCTogNjQKCnByb2Nl
+c3Nvcgk6IDIKdmVuZG9yX2lkCTogR2VudWluZUludGVsCmNwdSBmYW1pbHkJOiA2Cm1vZGVsCQk6
+IDIzCm1vZGVsIG5hbWUJOiBJbnRlbChSKSBYZW9uKFIpIENQVSAgICAgICAgICAgRTU0MjAgIEAg
+Mi41MEdIegpzdGVwcGluZwk6IDYKY3B1IE1IegkJOiAyNTAwLjI5OApjYWNoZSBzaXplCTogNjE0
+NCBLQgpwaHlzaWNhbCBpZAk6IDAKc2libGluZ3MJOiA0CmNvcmUgaWQJCTogMgpjcHUgY29yZXMJ
+OiA0CmZkaXZfYnVnCTogbm8KaGx0X2J1ZwkJOiBubwpmMDBmX2J1Zwk6IG5vCmNvbWFfYnVnCTog
+bm8KZnB1CQk6IHllcwpmcHVfZXhjZXB0aW9uCTogeWVzCmNwdWlkIGxldmVsCTogMTAKd3AJCTog
+eWVzCmZsYWdzCQk6IGZwdSB2bWUgZGUgcHNlIHRzYyBtc3IgcGFlIG1jZSBjeDggYXBpYyBzZXAg
+bXRyciBwZ2UgbWNhIGNtb3YgcGF0IHBzZTM2IGNsZmx1c2ggZHRzIGFjcGkgbW14IGZ4c3Igc3Nl
+IHNzZTIgc3MgaHQgdG0gcGJlIG54IGxtIGNvbnN0YW50X3RzYyBwbmkgbW9uaXRvciBkc19jcGwg
+dm14IGVzdCB0bTIgc3NzZTMgY3gxNiB4dHByIGRjYSBsYWhmX2xtCmJvZ29taXBzCTogNDk5OS40
+NwpjbGZsdXNoIHNpemUJOiA2NAoKcHJvY2Vzc29yCTogMwp2ZW5kb3JfaWQJOiBHZW51aW5lSW50
+ZWwKY3B1IGZhbWlseQk6IDYKbW9kZWwJCTogMjMKbW9kZWwgbmFtZQk6IEludGVsKFIpIFhlb24o
+UikgQ1BVICAgICAgICAgICBFNTQyMCAgQCAyLjUwR0h6CnN0ZXBwaW5nCTogNgpjcHUgTUh6CQk6
+IDI1MDAuMjk4CmNhY2hlIHNpemUJOiA2MTQ0IEtCCnBoeXNpY2FsIGlkCTogMApzaWJsaW5ncwk6
+IDQKY29yZSBpZAkJOiAzCmNwdSBjb3Jlcwk6IDQKZmRpdl9idWcJOiBubwpobHRfYnVnCQk6IG5v
+CmYwMGZfYnVnCTogbm8KY29tYV9idWcJOiBubwpmcHUJCTogeWVzCmZwdV9leGNlcHRpb24JOiB5
+ZXMKY3B1aWQgbGV2ZWwJOiAxMAp3cAkJOiB5ZXMKZmxhZ3MJCTogZnB1IHZtZSBkZSBwc2UgdHNj
+IG1zciBwYWUgbWNlIGN4OCBhcGljIHNlcCBtdHJyIHBnZSBtY2EgY21vdiBwYXQgcHNlMzYgY2xm
+bHVzaCBkdHMgYWNwaSBtbXggZnhzciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgbnggbG0gY29uc3Rh
+bnRfdHNjIHBuaSBtb25pdG9yIGRzX2NwbCB2bXggZXN0IHRtMiBzc3NlMyBjeDE2IHh0cHIgZGNh
+IGxhaGZfbG0KYm9nb21pcHMJOiA0OTk5LjQ3CmNsZmx1c2ggc2l6ZQk6IDY0Cgpwcm9jZXNzb3IJ
+OiA0CnZlbmRvcl9pZAk6IEdlbnVpbmVJbnRlbApjcHUgZmFtaWx5CTogNgptb2RlbAkJOiAyMwpt
+b2RlbCBuYW1lCTogSW50ZWwoUikgWGVvbihSKSBDUFUgICAgICAgICAgIEU1NDIwICBAIDIuNTBH
+SHoKc3RlcHBpbmcJOiA2CmNwdSBNSHoJCTogMjUwMC4yOTgKY2FjaGUgc2l6ZQk6IDYxNDQgS0IK
+cGh5c2ljYWwgaWQJOiAxCnNpYmxpbmdzCTogNApjb3JlIGlkCQk6IDAKY3B1IGNvcmVzCTogNApm
+ZGl2X2J1Zwk6IG5vCmhsdF9idWcJCTogbm8KZjAwZl9idWcJOiBubwpjb21hX2J1Zwk6IG5vCmZw
+dQkJOiB5ZXMKZnB1X2V4Y2VwdGlvbgk6IHllcwpjcHVpZCBsZXZlbAk6IDEwCndwCQk6IHllcwpm
+bGFncwkJOiBmcHUgdm1lIGRlIHBzZSB0c2MgbXNyIHBhZSBtY2UgY3g4IGFwaWMgc2VwIG10cnIg
+cGdlIG1jYSBjbW92IHBhdCBwc2UzNiBjbGZsdXNoIGR0cyBhY3BpIG1teCBmeHNyIHNzZSBzc2Uy
+IHNzIGh0IHRtIHBiZSBueCBsbSBjb25zdGFudF90c2MgcG5pIG1vbml0b3IgZHNfY3BsIHZteCBl
+c3QgdG0yIHNzc2UzIGN4MTYgeHRwciBkY2EgbGFoZl9sbQpib2dvbWlwcwk6IDEzMDk4LjU2CmNs
+Zmx1c2ggc2l6ZQk6IDY0Cgpwcm9jZXNzb3IJOiA1CnZlbmRvcl9pZAk6IEdlbnVpbmVJbnRlbApj
+cHUgZmFtaWx5CTogNgptb2RlbAkJOiAyMwptb2RlbCBuYW1lCTogSW50ZWwoUikgWGVvbihSKSBD
+UFUgICAgICAgICAgIEU1NDIwICBAIDIuNTBHSHoKc3RlcHBpbmcJOiA2CmNwdSBNSHoJCTogMjUw
+MC4yOTgKY2FjaGUgc2l6ZQk6IDYxNDQgS0IKcGh5c2ljYWwgaWQJOiAxCnNpYmxpbmdzCTogNApj
+b3JlIGlkCQk6IDEKY3B1IGNvcmVzCTogNApmZGl2X2J1Zwk6IG5vCmhsdF9idWcJCTogbm8KZjAw
+Zl9idWcJOiBubwpjb21hX2J1Zwk6IG5vCmZwdQkJOiB5ZXMKZnB1X2V4Y2VwdGlvbgk6IHllcwpj
+cHVpZCBsZXZlbAk6IDEwCndwCQk6IHllcwpmbGFncwkJOiBmcHUgdm1lIGRlIHBzZSB0c2MgbXNy
+IHBhZSBtY2UgY3g4IGFwaWMgc2VwIG10cnIgcGdlIG1jYSBjbW92IHBhdCBwc2UzNiBjbGZsdXNo
+IGR0cyBhY3BpIG1teCBmeHNyIHNzZSBzc2UyIHNzIGh0IHRtIHBiZSBueCBsbSBjb25zdGFudF90
+c2MgcG5pIG1vbml0b3IgZHNfY3BsIHZteCBlc3QgdG0yIHNzc2UzIGN4MTYgeHRwciBkY2EgbGFo
+Zl9sbQpib2dvbWlwcwk6IDQ5OTkuNDkKY2xmbHVzaCBzaXplCTogNjQKCnByb2Nlc3Nvcgk6IDYK
+dmVuZG9yX2lkCTogR2VudWluZUludGVsCmNwdSBmYW1pbHkJOiA2Cm1vZGVsCQk6IDIzCm1vZGVs
+IG5hbWUJOiBJbnRlbChSKSBYZW9uKFIpIENQVSAgICAgICAgICAgRTU0MjAgIEAgMi41MEdIegpz
+dGVwcGluZwk6IDYKY3B1IE1IegkJOiAyNTAwLjI5OApjYWNoZSBzaXplCTogNjE0NCBLQgpwaHlz
+aWNhbCBpZAk6IDEKc2libGluZ3MJOiA0CmNvcmUgaWQJCTogMgpjcHUgY29yZXMJOiA0CmZkaXZf
+YnVnCTogbm8KaGx0X2J1ZwkJOiBubwpmMDBmX2J1Zwk6IG5vCmNvbWFfYnVnCTogbm8KZnB1CQk6
+IHllcwpmcHVfZXhjZXB0aW9uCTogeWVzCmNwdWlkIGxldmVsCTogMTAKd3AJCTogeWVzCmZsYWdz
+CQk6IGZwdSB2bWUgZGUgcHNlIHRzYyBtc3IgcGFlIG1jZSBjeDggYXBpYyBzZXAgbXRyciBwZ2Ug
+bWNhIGNtb3YgcGF0IHBzZTM2IGNsZmx1c2ggZHRzIGFjcGkgbW14IGZ4c3Igc3NlIHNzZTIgc3Mg
+aHQgdG0gcGJlIG54IGxtIGNvbnN0YW50X3RzYyBwbmkgbW9uaXRvciBkc19jcGwgdm14IGVzdCB0
+bTIgc3NzZTMgY3gxNiB4dHByIGRjYSBsYWhmX2xtCmJvZ29taXBzCTogNDk5OS41MQpjbGZsdXNo
+IHNpemUJOiA2NAoKcHJvY2Vzc29yCTogNwp2ZW5kb3JfaWQJOiBHZW51aW5lSW50ZWwKY3B1IGZh
+bWlseQk6IDYKbW9kZWwJCTogMjMKbW9kZWwgbmFtZQk6IEludGVsKFIpIFhlb24oUikgQ1BVICAg
+ICAgICAgICBFNTQyMCAgQCAyLjUwR0h6CnN0ZXBwaW5nCTogNgpjcHUgTUh6CQk6IDI1MDAuMjk4
+CmNhY2hlIHNpemUJOiA2MTQ0IEtCCnBoeXNpY2FsIGlkCTogMQpzaWJsaW5ncwk6IDQKY29yZSBp
+ZAkJOiAzCmNwdSBjb3Jlcwk6IDQKZmRpdl9idWcJOiBubwpobHRfYnVnCQk6IG5vCmYwMGZfYnVn
+CTogbm8KY29tYV9idWcJOiBubwpmcHUJCTogeWVzCmZwdV9leGNlcHRpb24JOiB5ZXMKY3B1aWQg
+bGV2ZWwJOiAxMAp3cAkJOiB5ZXMKZmxhZ3MJCTogZnB1IHZtZSBkZSBwc2UgdHNjIG1zciBwYWUg
+bWNlIGN4OCBhcGljIHNlcCBtdHJyIHBnZSBtY2EgY21vdiBwYXQgcHNlMzYgY2xmbHVzaCBkdHMg
+YWNwaSBtbXggZnhzciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgbnggbG0gY29uc3RhbnRfdHNjIHBu
+aSBtb25pdG9yIGRzX2NwbCB2bXggZXN0IHRtMiBzc3NlMyBjeDE2IHh0cHIgZGNhIGxhaGZfbG0K
+Ym9nb21pcHMJOiA0OTk5LjUxCmNsZmx1c2ggc2l6ZQk6IDY0Cgo=
+------=_Part_18048_27090558.1198799540964
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_18048_27090558.1198799540964--
