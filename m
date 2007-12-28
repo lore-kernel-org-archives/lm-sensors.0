@@ -1,154 +1,43 @@
-From: "Rutul Dave" <rutuldave@gmail.com>
-Date: Thu, 27 Dec 2007 23:52:20 +0000
-Subject: [lm-sensors] error loading coretemp module for 2.6.21.5 kernel
-Message-Id: <975b59c50712271552u8e4b846r9545f817f8d779e1@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_18048_27090558.1198799540964"
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Fri, 28 Dec 2007 20:13:10 +0000
+Subject: Re: [lm-sensors] error loading coretemp module for 2.6.21.5 kernel
+Message-Id: <477558D6.90802@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <975b59c50712271552u8e4b846r9545f817f8d779e1@mail.gmail.com>
+In-Reply-To: <975b59c50712271552u8e4b846r9545f817f8d779e1@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_18048_27090558.1198799540964
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi,
 
-Hello,
+Your CPU is to new, I guess Penryn based.
 
-I am trying to use lm-sensors (version 2.10.5) with libsensors version 2.10.5.
-The kernel is patched (with the add-coretemp-driver.patch and
-coretemp-add-documentation.patch) from the following locations:
-http://www.hobbes.ch/statisch/linuxfiles/patches/add-coretemp-driver.patch
-http://www.hobbes.ch/statisch/linuxfiles/patches/coretemp-add-documentation.patch
+The driver will work if you just fix:
 
-Attached is the /proc/cpuinfo.
+ 
 
-When trying to load the modules, I get the following errors:
+                 /* check if family 6, models e, f */ 
 
-[root@localhost ~]# dmesg | grep coretemp
-[   76.687618] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-[   76.687802] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-[   76.687889] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-[   76.687986] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-[   76.688071] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-[   76.688156] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-[   76.688241] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-[   76.688326] coretemp: Unknown CPU, please report to the
-lm-sensors@lm-sensors.org
-[root@localhost ~]#
+                 if ((c->cpuid_level < 0) || (c->x86 != 0x6) || 
 
-I am able to run this successful on a dual-core CPU (Intel Xeon 5130).
+                     !((c->x86_model = 0xe) || (c->x86_model = 0xf))) {
 
-Can anybody suggest how to get this to work on the E5420 CPU?
+to:
+ 
 
-thank you,
+                 /* check if family 6, models e, f */ 
 
-Rutul
+                 if ((c->cpuid_level < 0) || (c->x86 != 0x6) || 
 
-------=_Part_18048_27090558.1198799540964
-Content-Type: application/octet-stream; name=cpuinfo.e5420
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fapy9fli0
-Content-Disposition: attachment; filename=cpuinfo.e5420
+                     !((c->x86_model = 0xe) || (c->x86_model = 0x17))) {
 
-cHJvY2Vzc29yCTogMAp2ZW5kb3JfaWQJOiBHZW51aW5lSW50ZWwKY3B1IGZhbWlseQk6IDYKbW9k
-ZWwJCTogMjMKbW9kZWwgbmFtZQk6IEludGVsKFIpIFhlb24oUikgQ1BVICAgICAgICAgICBFNTQy
-MCAgQCAyLjUwR0h6CnN0ZXBwaW5nCTogNgpjcHUgTUh6CQk6IDI1MDAuMjk4CmNhY2hlIHNpemUJ
-OiA2MTQ0IEtCCnBoeXNpY2FsIGlkCTogMApzaWJsaW5ncwk6IDQKY29yZSBpZAkJOiAwCmNwdSBj
-b3Jlcwk6IDQKZmRpdl9idWcJOiBubwpobHRfYnVnCQk6IG5vCmYwMGZfYnVnCTogbm8KY29tYV9i
-dWcJOiBubwpmcHUJCTogeWVzCmZwdV9leGNlcHRpb24JOiB5ZXMKY3B1aWQgbGV2ZWwJOiAxMAp3
-cAkJOiB5ZXMKZmxhZ3MJCTogZnB1IHZtZSBkZSBwc2UgdHNjIG1zciBwYWUgbWNlIGN4OCBhcGlj
-IHNlcCBtdHJyIHBnZSBtY2EgY21vdiBwYXQgcHNlMzYgY2xmbHVzaCBkdHMgYWNwaSBtbXggZnhz
-ciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgbnggbG0gY29uc3RhbnRfdHNjIHBuaSBtb25pdG9yIGRz
-X2NwbCB2bXggZXN0IHRtMiBzc3NlMyBjeDE2IHh0cHIgZGNhIGxhaGZfbG0KYm9nb21pcHMJOiA1
-MDAyLjE5CmNsZmx1c2ggc2l6ZQk6IDY0Cgpwcm9jZXNzb3IJOiAxCnZlbmRvcl9pZAk6IEdlbnVp
-bmVJbnRlbApjcHUgZmFtaWx5CTogNgptb2RlbAkJOiAyMwptb2RlbCBuYW1lCTogSW50ZWwoUikg
-WGVvbihSKSBDUFUgICAgICAgICAgIEU1NDIwICBAIDIuNTBHSHoKc3RlcHBpbmcJOiA2CmNwdSBN
-SHoJCTogMjUwMC4yOTgKY2FjaGUgc2l6ZQk6IDYxNDQgS0IKcGh5c2ljYWwgaWQJOiAwCnNpYmxp
-bmdzCTogNApjb3JlIGlkCQk6IDEKY3B1IGNvcmVzCTogNApmZGl2X2J1Zwk6IG5vCmhsdF9idWcJ
-CTogbm8KZjAwZl9idWcJOiBubwpjb21hX2J1Zwk6IG5vCmZwdQkJOiB5ZXMKZnB1X2V4Y2VwdGlv
-bgk6IHllcwpjcHVpZCBsZXZlbAk6IDEwCndwCQk6IHllcwpmbGFncwkJOiBmcHUgdm1lIGRlIHBz
-ZSB0c2MgbXNyIHBhZSBtY2UgY3g4IGFwaWMgc2VwIG10cnIgcGdlIG1jYSBjbW92IHBhdCBwc2Uz
-NiBjbGZsdXNoIGR0cyBhY3BpIG1teCBmeHNyIHNzZSBzc2UyIHNzIGh0IHRtIHBiZSBueCBsbSBj
-b25zdGFudF90c2MgcG5pIG1vbml0b3IgZHNfY3BsIHZteCBlc3QgdG0yIHNzc2UzIGN4MTYgeHRw
-ciBkY2EgbGFoZl9sbQpib2dvbWlwcwk6IDQ5OTkuNDYKY2xmbHVzaCBzaXplCTogNjQKCnByb2Nl
-c3Nvcgk6IDIKdmVuZG9yX2lkCTogR2VudWluZUludGVsCmNwdSBmYW1pbHkJOiA2Cm1vZGVsCQk6
-IDIzCm1vZGVsIG5hbWUJOiBJbnRlbChSKSBYZW9uKFIpIENQVSAgICAgICAgICAgRTU0MjAgIEAg
-Mi41MEdIegpzdGVwcGluZwk6IDYKY3B1IE1IegkJOiAyNTAwLjI5OApjYWNoZSBzaXplCTogNjE0
-NCBLQgpwaHlzaWNhbCBpZAk6IDAKc2libGluZ3MJOiA0CmNvcmUgaWQJCTogMgpjcHUgY29yZXMJ
-OiA0CmZkaXZfYnVnCTogbm8KaGx0X2J1ZwkJOiBubwpmMDBmX2J1Zwk6IG5vCmNvbWFfYnVnCTog
-bm8KZnB1CQk6IHllcwpmcHVfZXhjZXB0aW9uCTogeWVzCmNwdWlkIGxldmVsCTogMTAKd3AJCTog
-eWVzCmZsYWdzCQk6IGZwdSB2bWUgZGUgcHNlIHRzYyBtc3IgcGFlIG1jZSBjeDggYXBpYyBzZXAg
-bXRyciBwZ2UgbWNhIGNtb3YgcGF0IHBzZTM2IGNsZmx1c2ggZHRzIGFjcGkgbW14IGZ4c3Igc3Nl
-IHNzZTIgc3MgaHQgdG0gcGJlIG54IGxtIGNvbnN0YW50X3RzYyBwbmkgbW9uaXRvciBkc19jcGwg
-dm14IGVzdCB0bTIgc3NzZTMgY3gxNiB4dHByIGRjYSBsYWhmX2xtCmJvZ29taXBzCTogNDk5OS40
-NwpjbGZsdXNoIHNpemUJOiA2NAoKcHJvY2Vzc29yCTogMwp2ZW5kb3JfaWQJOiBHZW51aW5lSW50
-ZWwKY3B1IGZhbWlseQk6IDYKbW9kZWwJCTogMjMKbW9kZWwgbmFtZQk6IEludGVsKFIpIFhlb24o
-UikgQ1BVICAgICAgICAgICBFNTQyMCAgQCAyLjUwR0h6CnN0ZXBwaW5nCTogNgpjcHUgTUh6CQk6
-IDI1MDAuMjk4CmNhY2hlIHNpemUJOiA2MTQ0IEtCCnBoeXNpY2FsIGlkCTogMApzaWJsaW5ncwk6
-IDQKY29yZSBpZAkJOiAzCmNwdSBjb3Jlcwk6IDQKZmRpdl9idWcJOiBubwpobHRfYnVnCQk6IG5v
-CmYwMGZfYnVnCTogbm8KY29tYV9idWcJOiBubwpmcHUJCTogeWVzCmZwdV9leGNlcHRpb24JOiB5
-ZXMKY3B1aWQgbGV2ZWwJOiAxMAp3cAkJOiB5ZXMKZmxhZ3MJCTogZnB1IHZtZSBkZSBwc2UgdHNj
-IG1zciBwYWUgbWNlIGN4OCBhcGljIHNlcCBtdHJyIHBnZSBtY2EgY21vdiBwYXQgcHNlMzYgY2xm
-bHVzaCBkdHMgYWNwaSBtbXggZnhzciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgbnggbG0gY29uc3Rh
-bnRfdHNjIHBuaSBtb25pdG9yIGRzX2NwbCB2bXggZXN0IHRtMiBzc3NlMyBjeDE2IHh0cHIgZGNh
-IGxhaGZfbG0KYm9nb21pcHMJOiA0OTk5LjQ3CmNsZmx1c2ggc2l6ZQk6IDY0Cgpwcm9jZXNzb3IJ
-OiA0CnZlbmRvcl9pZAk6IEdlbnVpbmVJbnRlbApjcHUgZmFtaWx5CTogNgptb2RlbAkJOiAyMwpt
-b2RlbCBuYW1lCTogSW50ZWwoUikgWGVvbihSKSBDUFUgICAgICAgICAgIEU1NDIwICBAIDIuNTBH
-SHoKc3RlcHBpbmcJOiA2CmNwdSBNSHoJCTogMjUwMC4yOTgKY2FjaGUgc2l6ZQk6IDYxNDQgS0IK
-cGh5c2ljYWwgaWQJOiAxCnNpYmxpbmdzCTogNApjb3JlIGlkCQk6IDAKY3B1IGNvcmVzCTogNApm
-ZGl2X2J1Zwk6IG5vCmhsdF9idWcJCTogbm8KZjAwZl9idWcJOiBubwpjb21hX2J1Zwk6IG5vCmZw
-dQkJOiB5ZXMKZnB1X2V4Y2VwdGlvbgk6IHllcwpjcHVpZCBsZXZlbAk6IDEwCndwCQk6IHllcwpm
-bGFncwkJOiBmcHUgdm1lIGRlIHBzZSB0c2MgbXNyIHBhZSBtY2UgY3g4IGFwaWMgc2VwIG10cnIg
-cGdlIG1jYSBjbW92IHBhdCBwc2UzNiBjbGZsdXNoIGR0cyBhY3BpIG1teCBmeHNyIHNzZSBzc2Uy
-IHNzIGh0IHRtIHBiZSBueCBsbSBjb25zdGFudF90c2MgcG5pIG1vbml0b3IgZHNfY3BsIHZteCBl
-c3QgdG0yIHNzc2UzIGN4MTYgeHRwciBkY2EgbGFoZl9sbQpib2dvbWlwcwk6IDEzMDk4LjU2CmNs
-Zmx1c2ggc2l6ZQk6IDY0Cgpwcm9jZXNzb3IJOiA1CnZlbmRvcl9pZAk6IEdlbnVpbmVJbnRlbApj
-cHUgZmFtaWx5CTogNgptb2RlbAkJOiAyMwptb2RlbCBuYW1lCTogSW50ZWwoUikgWGVvbihSKSBD
-UFUgICAgICAgICAgIEU1NDIwICBAIDIuNTBHSHoKc3RlcHBpbmcJOiA2CmNwdSBNSHoJCTogMjUw
-MC4yOTgKY2FjaGUgc2l6ZQk6IDYxNDQgS0IKcGh5c2ljYWwgaWQJOiAxCnNpYmxpbmdzCTogNApj
-b3JlIGlkCQk6IDEKY3B1IGNvcmVzCTogNApmZGl2X2J1Zwk6IG5vCmhsdF9idWcJCTogbm8KZjAw
-Zl9idWcJOiBubwpjb21hX2J1Zwk6IG5vCmZwdQkJOiB5ZXMKZnB1X2V4Y2VwdGlvbgk6IHllcwpj
-cHVpZCBsZXZlbAk6IDEwCndwCQk6IHllcwpmbGFncwkJOiBmcHUgdm1lIGRlIHBzZSB0c2MgbXNy
-IHBhZSBtY2UgY3g4IGFwaWMgc2VwIG10cnIgcGdlIG1jYSBjbW92IHBhdCBwc2UzNiBjbGZsdXNo
-IGR0cyBhY3BpIG1teCBmeHNyIHNzZSBzc2UyIHNzIGh0IHRtIHBiZSBueCBsbSBjb25zdGFudF90
-c2MgcG5pIG1vbml0b3IgZHNfY3BsIHZteCBlc3QgdG0yIHNzc2UzIGN4MTYgeHRwciBkY2EgbGFo
-Zl9sbQpib2dvbWlwcwk6IDQ5OTkuNDkKY2xmbHVzaCBzaXplCTogNjQKCnByb2Nlc3Nvcgk6IDYK
-dmVuZG9yX2lkCTogR2VudWluZUludGVsCmNwdSBmYW1pbHkJOiA2Cm1vZGVsCQk6IDIzCm1vZGVs
-IG5hbWUJOiBJbnRlbChSKSBYZW9uKFIpIENQVSAgICAgICAgICAgRTU0MjAgIEAgMi41MEdIegpz
-dGVwcGluZwk6IDYKY3B1IE1IegkJOiAyNTAwLjI5OApjYWNoZSBzaXplCTogNjE0NCBLQgpwaHlz
-aWNhbCBpZAk6IDEKc2libGluZ3MJOiA0CmNvcmUgaWQJCTogMgpjcHUgY29yZXMJOiA0CmZkaXZf
-YnVnCTogbm8KaGx0X2J1ZwkJOiBubwpmMDBmX2J1Zwk6IG5vCmNvbWFfYnVnCTogbm8KZnB1CQk6
-IHllcwpmcHVfZXhjZXB0aW9uCTogeWVzCmNwdWlkIGxldmVsCTogMTAKd3AJCTogeWVzCmZsYWdz
-CQk6IGZwdSB2bWUgZGUgcHNlIHRzYyBtc3IgcGFlIG1jZSBjeDggYXBpYyBzZXAgbXRyciBwZ2Ug
-bWNhIGNtb3YgcGF0IHBzZTM2IGNsZmx1c2ggZHRzIGFjcGkgbW14IGZ4c3Igc3NlIHNzZTIgc3Mg
-aHQgdG0gcGJlIG54IGxtIGNvbnN0YW50X3RzYyBwbmkgbW9uaXRvciBkc19jcGwgdm14IGVzdCB0
-bTIgc3NzZTMgY3gxNiB4dHByIGRjYSBsYWhmX2xtCmJvZ29taXBzCTogNDk5OS41MQpjbGZsdXNo
-IHNpemUJOiA2NAoKcHJvY2Vzc29yCTogNwp2ZW5kb3JfaWQJOiBHZW51aW5lSW50ZWwKY3B1IGZh
-bWlseQk6IDYKbW9kZWwJCTogMjMKbW9kZWwgbmFtZQk6IEludGVsKFIpIFhlb24oUikgQ1BVICAg
-ICAgICAgICBFNTQyMCAgQCAyLjUwR0h6CnN0ZXBwaW5nCTogNgpjcHUgTUh6CQk6IDI1MDAuMjk4
-CmNhY2hlIHNpemUJOiA2MTQ0IEtCCnBoeXNpY2FsIGlkCTogMQpzaWJsaW5ncwk6IDQKY29yZSBp
-ZAkJOiAzCmNwdSBjb3Jlcwk6IDQKZmRpdl9idWcJOiBubwpobHRfYnVnCQk6IG5vCmYwMGZfYnVn
-CTogbm8KY29tYV9idWcJOiBubwpmcHUJCTogeWVzCmZwdV9leGNlcHRpb24JOiB5ZXMKY3B1aWQg
-bGV2ZWwJOiAxMAp3cAkJOiB5ZXMKZmxhZ3MJCTogZnB1IHZtZSBkZSBwc2UgdHNjIG1zciBwYWUg
-bWNlIGN4OCBhcGljIHNlcCBtdHJyIHBnZSBtY2EgY21vdiBwYXQgcHNlMzYgY2xmbHVzaCBkdHMg
-YWNwaSBtbXggZnhzciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgbnggbG0gY29uc3RhbnRfdHNjIHBu
-aSBtb25pdG9yIGRzX2NwbCB2bXggZXN0IHRtMiBzc3NlMyBjeDE2IHh0cHIgZGNhIGxhaGZfbG0K
-Ym9nb21pcHMJOiA0OTk5LjUxCmNsZmx1c2ggc2l6ZQk6IDY0Cgo=
-------=_Part_18048_27090558.1198799540964
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks,
+
+Rudolf
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_18048_27090558.1198799540964--
