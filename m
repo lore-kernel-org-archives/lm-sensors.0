@@ -1,7 +1,7 @@
-From: David Bender <codehero@gmail.com>
-Date: Sat, 29 Dec 2007 19:48:13 +0000
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Sat, 29 Dec 2007 20:46:54 +0000
 Subject: Re: [lm-sensors] abituguru3 does not work with Abit IX38
-Message-Id: <loom.20071229T193556-146@post.gmane.org>
+Message-Id: <4776B23E.3040403@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <loom.20071229T015954-296@post.gmane.org>
 In-Reply-To: <loom.20071229T015954-296@post.gmane.org>
@@ -10,23 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hans de Goede <j.w.r.degoede <at> hhs.nl> writes:
+Hi
 
-> I'm afraid that the abituguru3 driver only supports reading sensors and 
-> sensors settings, the pwm part is completely unsupported, not even 
-> reading the settings is supported.
+The datasheet is here http://www.datasheetarchive.com/preview/3656055.html
 
-I am willing to spend a few hours staring at assembly before I break down and
-buy their guru control panel.
+if it is still this chip.
 
-Is there anyway to read the microcode on the uguru uC?
+It is 51 compatible core, so perhaps interactive disassembler should work.
 
-Perhaps looking at the BIOS code may help? I am sure there must be some routine
-for communicating with their uC in that code.
+> Is there anyway to read the microcode on the uguru uC?
 
-I noticed a W83320G PWM control chip on my mobo. Could this possibly control
- the fans?
+Perhaps it comes somewhere in the BIOS image. It should be 40K firmware.
+> I noticed a W83320G PWM control chip on my mobo. Could this possibly control
+>  the fans?
 
+Yes maybe.
+
+R.
 
 _______________________________________________
 lm-sensors mailing list
