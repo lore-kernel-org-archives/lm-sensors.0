@@ -1,88 +1,57 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Sat, 29 Dec 2007 20:25:55 +0000
+From: Casper Gripenberg <casper.gripenberg@kotiportti.fi>
+Date: Sat, 29 Dec 2007 21:07:51 +0000
 Subject: Re: [lm-sensors] w83627dhg chip - stopping fan rotation?
-Message-Id: <4776AD53.5030600@assembler.cz>
+Message-Id: <4776B727.8020708@kotiportti.fi>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4776AD53.5030600@assembler.cz>
+In-Reply-To: <4776AD53.5030600@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Casper,
+Rudolf Marek wrote:
+> Perhaps you have still some kind of automatic mode maybe. What does
+> cat pwm?_enable print?
 
-Please CC the list too.
+If I enable Asus Q-Fan (automatic fan control) from the
+BIOS then pwm?_enable prints 2. If I disable it then it
+prints 1.
 
-Casper Gripenberg napsal(a):
->=20
-> Hi,
->=20
-> I'm kind of stuck with this fan problem, and I was wondering
-> if anyone of you might know what the problem is, or where or
-> how I could troubleshoot it further:
->=20
-> I have an ASUS P5B-V mb with a W83627DHG chip. My lsmod
-> says:
->=20
-> w83627ehf              19984  0
-> i2c_isa                 5248  1 w83627ehf
-> i2c_core               26112  2 w83627ehf,i2c_isa
->=20
-> I'm trying to stop the chassis fan, or actually any
-> fan connected to the motheboard without much success.
-> I tried to read the docs you wrote which say to write
-> 0 into pwm[1-4] to get the fans to stop.
->=20
-> So I do this:
->=20
->  > cd /sys/class/hwmon/hwmon0/device
->  > ls fan* pwm*
-> fan1_alarm  fan3_input       pwm1_stop_time   pwm3
-> fan1_div    fan3_min         pwm1_target      pwm3_enable
-> fan1_input  fan5_alarm       pwm1_tolerance   pwm3_min_output
-> fan1_min    fan5_div         pwm2             pwm3_mode
-> fan2_alarm  fan5_input       pwm2_enable      pwm3_stop_time
-> fan2_div    fan5_min         pwm2_min_output  pwm3_target
-> fan2_input  pwm1             pwm2_mode        pwm3_tolerance
-> fan2_min    pwm1_enable      pwm2_stop_time
-> fan3_alarm  pwm1_min_output  pwm2_target
-> fan3_div    pwm1_mode        pwm2_tolerance
->  > cat fan2_input
-> 1132
->=20
-> The speed looks correct. I have a large slow fan. Next:
->=20
->  > echo 0 > pwm1
->  > echo 0 > pwm2
->  > echo 0 > pwm3
->  > cat pwm1 pwm2 pwm3
-> 0
-> 0
-> 0
->=20
-> But the fans just keep on spinning. Why? Did I do something
-> wrong or any ideas why I can't stop the fans? Can I somehow
-> troubleshoot this further?
+> echo 1 > pwm1_enable will switch it to manual mode.
 
-Perhaps you have still some kind of automatic mode maybe. What does
-cat pwm?_enable print?
+Ok. I tried this both with automatic control enabled in
+the BIOS and disabled. And then I tried again to echo
+0 into pwm[1-4] with either mode. Nothing :(
 
-echo 1 > pwm1_enable will switch it to manual mode.
+> You need to set there manual mode first. Imho you can try first with=20
+> pwmconfig script which is doing that for you. Addtitionally you may=20
+> check documentation for the chip in kernel Documentation/hwmon/w83627ehf
+>=20
+> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dbl=
+ob;f=3DDocumentation/hwmon/w83627ehf;h=CCc2bcb610686aaf44a0d38c5f67db44e898=
+5e82;hb=3DHEAD=20
 
-You need to set there manual mode first. Imho you can try first with pwmcon=
-fig=20
-script which is doing that for you. Addtitionally you may check documentati=
-on=20
-for the chip in kernel Documentation/hwmon/w83627ehf
+Thanks for the link. Seems the one that comes with my distro
+(Ubuntu 7.10) was a bit outdated.
 
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dblob=
-;f=3DDocumentation/hwmon/w83627ehf;h=CCc2bcb610686aaf44a0d38c5f67db44e8985e=
-82;hb=3DHEAD
+I also have files called pwm?_mode, which are not explained
+in the docs. I'm guessing these set either DC or pulse control
+of the fan output. I tried modifying the values here too (either
+0 or 1 was accepted). Didn't help either :-/
 
-Going for a holiday now, hope others will answer. Oh yeah I have written it=
- for=20
-third time now ;)
+Anything else I could try?
 
-Rudolf
+Thanks.
+
+Casper
+
+Btw. with ASUS Q-Fan enabled the fans do spin down, so at
+least the Q-Fan thing is working. But manual control not..
+
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
