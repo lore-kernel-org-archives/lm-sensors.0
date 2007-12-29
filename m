@@ -1,48 +1,29 @@
-From: Pelle Svensson <pelle2004@hotmail.com>
-Date: Sat, 29 Dec 2007 17:50:16 +0000
-Subject: [lm-sensors] PWM control on Asus P4C800-E Delux dosen't work for
-Message-Id: <BAY143-W26588A0C37D226CBFA5FECB9560@phx.gbl>
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Sat, 29 Dec 2007 20:16:39 +0000
+Subject: Re: [lm-sensors] PWM control on Asus P4C800-E Delux dosen't work
+Message-Id: <4776AB27.3030907@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <BAY143-W26588A0C37D226CBFA5FECB9560@phx.gbl>
+In-Reply-To: <BAY143-W26588A0C37D226CBFA5FECB9560@phx.gbl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
-
 
 Hi,
 
-Installed fan control on Ubuntu 7.1 according to http://ubuntuguide.org/wik=
-i/Ubuntu:Feisty#How_to_detect_CPU_temperature.2C_fan_speeds_and_voltages_.2=
-8lm-sensors.29
+If there is no correlation found, you may try chaning the base PWM frequency. I 
+dont recall if the driver supports it (imho w83627th F ?)
 
-CPU fan works nicely but chassi fan runs at full speed.=20
-pwmconfig detects following:
+But if it is not "deluxe" board, Asus will ommit the PWM transitor and few other 
+components. Yes they did it to me too - suckers. I have build my own regulator 
+with some linear voltage regulator.
 
-hwmon0/device is w83627th
+I'm leaving for a holiday so perhaps someone else will answer ;)
 
-hwmon0/device/pwm1
-hwmon0/device/pwm2
-hwmon0/device/pwm3
-
-hwmon0/device/fan1_input  current speed: 1205 RPM
-hwmon0/device/fan2_input  current speed: 2700 RPM
-hwmon0/device/fan3_input  current speed: 0 ... skipping
-
-Testing pwm control hwmon0/device/pwm1  ---> no correlation
-Testing pwm control hwmon0/device/pwm2  ---> hwmon0/device/fan2_input=20
-Testing pwm control hwmon0/device/pwm3  ---> no correlation
-
-Can I control the speed of the chassi fan with pwm1 or pwm3 on this ASUS P4=
-C800 board.
-
-/Pelle
+Rudolf
 
 
-
-
-_________________________________________________________________
-Ladda ner hela Windows Live gratis och uppt=E4ck f=F6rdelarna!
-http://get.live.com/=20
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
