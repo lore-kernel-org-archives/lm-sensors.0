@@ -1,76 +1,38 @@
-From: "Jean Delvare" <khali@linux-fr.org>
-Date: Wed, 02 Jan 2008 14:06:12 +0000
+From: Casper Gripenberg <casper.gripenberg@kotiportti.fi>
+Date: Wed, 02 Jan 2008 14:17:34 +0000
 Subject: Re: [lm-sensors] w83627dhg chip - stopping fan rotation?
-Message-Id: <rGSdshlX.1199282771.8026010.khali@gcu-squad.org>
+Message-Id: <477B9CFE.309@kotiportti.fi>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4776AD53.5030600@assembler.cz>
 In-Reply-To: <4776AD53.5030600@assembler.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Jean Delvare wrote:
+ > [...]
+> If the automatic mode (Q-Fan as Asus names it) works, it means that the
+> chip is properly setup and the hardware is OK (both the board and the
+> fans.) I have to admit that I have no idea why manual mode doesn't work
+> then. But OTOH it seems that you are using a relatively old version of
+> the driver, maybe that's an old bug causing the problem. If you have
+> the opportunity to test with a recent live distribution (i.e. kernel >> 2.6.23), please give it a try.
 
-Hi Casper,
+Thanks. I'm going settle for Q-Fan for now. It works reasonably
+well for my purpose. I guess it could also be that when you
+disable Q-Fan Asus forces the fans to max speed no matter what.
+Although it does seem a little strange. With Q-Fan enabled I can
+see the pwm values fluctuate, so the driver is peeking at the
+values in the right place. But if / when I get the kernel updated
+I will give it another go and report my findings. Thanks for
+the help.
 
-Le 29/12/2007, Casper Gripenberg a =E9crit:
+Casper
 
->Rudolf Marek wrote:
->> Perhaps you have still some kind of automatic mode maybe. What does
->> cat pwm?_enable print?
->
->If I enable Asus Q-Fan (automatic fan control) from the
->BIOS then pwm?_enable prints 2. If I disable it then it
->prints 1.
+> --
+> Jean Delvare
 
-As expected...
-
->> echo 1 > pwm1_enable will switch it to manual mode.
->
->Ok. I tried this both with automatic control enabled in
->the BIOS and disabled. And then I tried again to echo
->0 into pwm[1-4] with either mode. Nothing :(
-
-That's strange.
-
->> You need to set there manual mode first. Imho you can try first with
->> pwmconfig script which is doing that for you. Addtitionally you may
->> check documentation for the chip in kernel
->> Documentation/hwmon/w83627ehf
->>
->> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Db=
-lob;f=3DDocumentation/hwmon/w83627ehf;h=CCc2bcb610686aaf44a0d38c5f67db44e89=
-85e82;hb=3DHEAD
->
->Thanks for the link. Seems the one that comes with my distro
->(Ubuntu 7.10) was a bit outdated.
->
->I also have files called pwm?_mode, which are not explained
->in the docs. I'm guessing these set either DC or pulse control
->of the fan output. I tried modifying the values here too (either
->0 or 1 was accepted). Didn't help either :-/
-
-These are standard sysfs files, they are described in
-Documentation/hwmon/sysfs-interface. The external circuitry needed by
-each mode is different, so you shouldn't change the mode. The only
-reason why these files are writable is in case the BIOS did not properly
-setup the control mode, but that's not the case for you.
-
->Anything else I could try?
->(...)
->Btw. with ASUS Q-Fan enabled the fans do spin down, so at
->least the Q-Fan thing is working. But manual control not..
-
-If the automatic mode (Q-Fan as Asus names it) works, it means that the
-chip is properly setup and the hardware is OK (both the board and the
-fans.) I have to admit that I have no idea why manual mode doesn't work
-then. But OTOH it seems that you are using a relatively old version of
-the driver, maybe that's an old bug causing the problem. If you have
-the opportunity to test with a recent live distribution (i.e. kernel >2.6.2=
-3), please give it a try.
-
---
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
