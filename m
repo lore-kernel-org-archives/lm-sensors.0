@@ -1,34 +1,34 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Thu, 31 Jan 2008 13:09:40 +0000
-Subject: Re: [lm-sensors] hwmon: (adm9240) Add individual alarm files
-Message-Id: <20080131130940.GC8290@jupiter.solarsys.private>
+From: "Jean Delvare" <khali@linux-fr.org>
+Date: Wed, 02 Jan 2008 14:30:41 +0000
+Subject: Re: [lm-sensors] PWM control on Asus P4C800-E Delux dosen't work
+Message-Id: <lbe9t7Xd.1199284241.2788760.khali@gcu-squad.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080106154919.1290ac85@hyperion.delvare>
-In-Reply-To: <20080106154919.1290ac85@hyperion.delvare>
+References: <BAY143-W26588A0C37D226CBFA5FECB9560@phx.gbl>
+In-Reply-To: <BAY143-W26588A0C37D226CBFA5FECB9560@phx.gbl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
 
-* Jean Delvare <khali@linux-fr.org> [2008-01-06 15:49:19 +0100]:
-> The new libsensors needs these individual alarm files.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Grant Coady <gcoady.lk@gmail.com>
-> ---
-> Grant, could you please test and/or review this patch?
-> 
->  drivers/hwmon/adm9240.c |   26 ++++++++++++++++++++++++++
->  1 file changed, 26 insertions(+)
+Hi Rudolf,
 
-Applied to hwmon-2.6.git/testing, thanks.
+Le 29/12/2007, "Rudolf Marek" <r.marek@assembler.cz> a =E9crit:
+>If there is no correlation found, you may try changing the base PWM
+>frequency. I don't recall if the driver supports it (imho w83627th F ?)
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+The W83627THF does DC fan control, not PWM, so there's no base frequency
+to change. Not that it would have helped anyway, if the board is wired
+for control then PWM=3D0 will stop the fan no matter the frequency.
+Changing the frequency only changes the response curve.
 
+What Pelle could try is to connect a fan to the 3rd fan header then run
+pwmconfig again. But as you said, if is very frequent that only the CPU
+fan can be controlled and not the case fans, so I wouldn't hold my
+breath.
+
+--
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
