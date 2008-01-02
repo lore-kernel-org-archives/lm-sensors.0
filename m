@@ -1,98 +1,113 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 13 Jan 2008 13:35:29 +0000
-Subject: Re: [lm-sensors] no sensors were detected with Intel Corporation
-Message-Id: <20080113143529.267a7e44@hyperion.delvare>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date: Wed, 02 Jan 2008 18:30:55 +0000
+Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
+Message-Id: <200801021130.56395.bjorn.helgaas@hp.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <c8faca170711081606t6acc5928hfdcd9200ba1d421f@mail.gmail.com>
-In-Reply-To: <c8faca170711081606t6acc5928hfdcd9200ba1d421f@mail.gmail.com>
+References: <Va0NwseF.1198618285.6089960.khali@gcu-squad.org>
+In-Reply-To: <Va0NwseF.1198618285.6089960.khali@gcu-squad.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Shaohua Li <shaohua.li@intel.com>, Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, "Mark M. Hoffman" <mhoffman@lightlink.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Hi Kessia,
+On Tuesday 25 December 2007 02:31:26 pm Jean Delvare wrote:
+> Le 23/12/2007, "Bjorn Helgaas" <bjorn.helgaas@hp.com> a =E9crit:
+> >On Sunday 23 December 2007 2:28:05 am Jean Delvare wrote:
+> >> The problem is that the it87 driver is used on a variety of motherboar=
+ds,
+> >> some where the hardware monitoring device I/O ports are reserved by the
+> >> BIOS, some where they aren't. How am I supposed to deal with this?
+> >
+> >I assume you mean some boards describe those ports in ACPI, and some
+> >don't?
+>=20
+> Yes, that's what I meant.
+>=20
+> >(...) I think the ideal solution would be to figure out how the
+> >BIOS writers intended the device to be used, and do that.  But the
+> >documentation may be lacking, and it degenerates into an OEM-specific
+> >mess.  Second-best seems like a PNP quirk that pokes enough to determine
+> >that a Super I/O device is present, and then reserves resources for
+> >it.  Then we avoid the collision even if it87 isn't present.
+>=20
+> I'm not sure what you mean here exactly. We have two different cases:
+> either the ACPI code did declare the PNP device, or it did not. How do
+> you unify both?
 
-On Thu, 3 Jan 2008 12:50:04 -0200, Kessia Pinheiro wrote:
-> > OK, so it was indeed an index/data pair. Now, if some of these register
-> > values correspond to sensors, their values should change a little over
-> > time. Try running the same isadump command a few seconds apart and see
-> > if some values change. Do that while the fan is spinning, otherwise you
-> > might miss it. Also try with and without CPU load to increase the
-> > chances to spot a change.
-> 
-> I execute some times "isadump 0x910 0x911" and got differents values, like:
-> 
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 80: 59 ff 00 00 01 27 80 4c 00 00 00 07 37 39 37 39
-> 90: 02 00 00 00 00 00 00 08 00 00 00 00 00 00 00 1e
-> a0: 00 01 00 62 00 00 a9 30 50 14 b8 0b 0a 47 00 00
-> b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 
-> 
-> and
-> 
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 80: 23 00 00 00 01 27 80 4c 00 00 00 07 37 39 37 39
-> 90: 02 00 00 00 80 00 00 08 00 00 00 00 00 00 00 43
-> a0: 00 01 00 62 00 00 a9 30 50 14 b8 0b 0a 47 32 00
-> b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Even if the BIOS does not declare an IT87xxF as an independent device,
+there may be AML that uses the chip internally.  For example, the
+BIOS could declare a thermal zone with a _TMP method, and the _TMP
+method could use the IT87xxF to read the temperature.  In that case,
+the BIOS would still need to declare the IT87xxF resources so the OS
+doesn't place another device on top of it.  An easy way to do this
+is with a PNP0C02 "motherboard" device, which just says "these
+resources are in use, but the OS needn't attach a driver to this
+device."
 
-I see the following changes:
-Register 0x80 from 0x59 to 0x23
-Register 0x81 from 0xff to 0x00
-Register 0x94 from 0x00 to 0x80
-Register 0x9f from 0x1e to 0x43
-Register 0xae from 0x00 to 0x32
+> And what "collision" are you talking about?=20
 
-Unfortunately these changes don't really look like sensor value changes.
-Sensor values typically change to values nearby, that's not the case
-here. Without documentation, it looks like a dead end, sorry.
+I meant the problem where we place two devices at the same address,
+causing one to stop working.  I wrote "even if it87 isn't present,"
+which is ambiguous -- I meant that we need something that works even
+when the it87 _driver_ isn't present.
 
-> > I also think that it would be worth taking a look at the ACPI
-> > implementation of your laptop to see what they are doing with
-> > temperatures and fans. We don't want to interfere with that. Can you
-> > read the temperature using acpi?
-> 
-> Can i read:
-> (...)
-> # cat thermal_zone/THM/*
-> <setting not supported>
-> <polling disabled>
-> state:                   ok
-> temperature:             40 C
-> critical (S5):           99 C
+> >> PCI is an entirely different beast. With PCI you know the PCI device ID
+> >> that is associated with the resources, and for a given device, the
+> >> resources are always declared (if standard BARs are used) or never
+> >> declared; there's no "may be". So it's much easier to handle the
+> >> resources properly.
+> >
+> >That's the way PNP is supposed to work, too (more about this below).
+>=20
+> Not really. PNP devices may or may not be declared. PCI devices are
+> always declared. This is a fundamental difference. I'm also not sure
+> about the PNP IDs, see below.
 
-OK, so at least you can get your system temperature and it looks valid.
-That's probably all you will get from your laptop, at least for the
-time being. If you have the "acpi" client installed you can get the
-temperature value with "acpi -t".
+Well, it's true that PNP does not need to describe ALL devices in the
+system.  However, it should describe all devices to which the OS should
+bind a driver.  The BIOS writer has the discretion to hide devices from
+the OS by omitting them from the ACPI namespace.  If he does that, his
+assumption is that the OS will ignore the device (but of course, he's
+thinking about a Plug-and-Play-compliant OS like Windows).
 
--- 
-Jean Delvare
+> >> That's not really safe, no. They may overlap with other device resourc=
+es
+> >> and prevent those drivers from loading.
+> >
+> >True.  If that happens, I think we definitely need some kind of DMI-
+> >based quirk to fix the resources.  My points are (a) the quirk needs
+> >to be at the PNP level; it can't be in a driver, and (b) I'm lazy and
+> >would wait until a problem happens before implementing it, because I
+> >know so little about PNP and the specific board, and by waiting, there's
+> >a chance I'll learn enough to avoid a mistake :-)
+>=20
+> But we _do_ have a problem to solve! That's what started this thread.
+> And we need to solve it before 2.6.24 is released. I'd rather (try to)
+> do the right thing now rather than going in one direction today and
+> doing something different next month.
+
+I think my patch to request only the ports actually used by the it87
+driver is sufficient to solve the current problem.  If we find that
+a BIOS neglects to reserve some of the ports decoded by the IT87xxF,
+we can add a PNP quirk to handle that.  But I'm not aware of any
+problems like that yet.
+
+> >it87 doesn't fit the model very well because usually the BIOS
+> >doesn't describe the device explicitly.  I think the expectation
+> >is that the OS will get sensor readings some other way, such as
+> >by evaluating ACPI "_TMP" methods, or by using some OEM-specific
+> >ACPI device.
+>=20
+> If the IT87xxF device is declared, will it always the same PNP ID on
+> every system? I fear that the answer is no, in which case I see no
+> simple way to implement the it87 driver as a PNP driver.
+
+PNP drivers can claim multiple PNP IDs, e.g., drivers/serial/8250_pnp.c
+recognizes many IDs for 16550-compatible UARTs.  But I doubt that
+any BIOS actually describes an IT87xxF explicitly.
+
+Bjorn
 
 _______________________________________________
 lm-sensors mailing list
