@@ -1,169 +1,97 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Thu, 17 Jan 2008 23:47:36 +0000
-Subject: [lm-sensors] [PATCH] coretemp: Add TjMax detection for mobile CPUs
-Message-Id: <478FE918.9030804@assembler.cz>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------070904080604070807050409"
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Thu, 03 Jan 2008 13:05:42 +0000
+Subject: [lm-sensors] [GIT PATCH] hwmon update against v2.6.24-rc6
+Message-Id: <20080103130542.GB1389@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070904080604070807050409
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
+Hi Linus:
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Please pull from:
+	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git release
 
-Hello,
+You'll get one patch (attached) which fixes a bug in w83627ehf.
+http://bugzilla.kernel.org/show_bug.cgi?id=9634
 
-Following patch will finally solve the detection of Intel Mobile CPUs which
-share same CPUID with Desktop/Server CPUs. We need this information to test
-some bit so we know if TjMax is 100C or 85C. Intel claims this works for mobiles
-only, respect that and set for desktops the TjMax to 100C. Intel provided some
-table on their wiki based on my chat with them at:
-http://softwarecommunity.intel.com/isn/Community/en-US/forums/30247249/ShowThread.aspx#30247249
+Thanks & regards,
 
-The patch is totally untested, please check the patch, test and report ;)
+commit 58e6e78119da2bdade9f6f588155f0320072b76b
+Author: Jean Delvare <khali@linux-fr.org>
+Date:   Thu Jan 3 07:33:31 2008 -0500
 
-Signed-off-by: Rudolf Marek <r.marek@assembler.cz>
+    hwmon: (w83627ehf) Be more careful when changing VID input level
+   =20
+    The VID input level change has been reported to cause trouble. Be more
+    careful in this respect:
+    * Only change the level on the W83627EHF/EHG. The W83627DHG is more
+      complex in this respect.
+    * Don't change the level if the VID pins are in output mode.
+    * Only set the level to TTL if VRM 9.x is used.
+   =20
+    Signed-off-by: Jean Delvare <khali@linux-fr.org>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 
-Thanks,
-Rudolf
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFHj+kY3J9wPJqZRNURAuh0AKCrT48ujm2J9kYomYRpUedNX4XmAgCfchGX
-GHQPF83yNL8r4BcPcRPhv1s=
-=p+1S
------END PGP SIGNATURE-----
-
---------------070904080604070807050409
-Content-Type: text/x-patch;
- name="fix_mobile_core2_detection.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="fix_mobile_core2_detection.patch"
-
-Index: linux-2.6.24-rc7/drivers/hwmon/coretemp.c
-===================================================================
---- linux-2.6.24-rc7.orig/drivers/hwmon/coretemp.c	2008-01-18 00:19:34.899436907 +0100
-+++ linux-2.6.24-rc7/drivers/hwmon/coretemp.c	2008-01-18 00:32:26.147387823 +0100
-@@ -152,6 +152,57 @@
- 	return data;
- }
- 
-+static int __devinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev) {
-+
-+	/* The 100C is default for both mobile and non mobile CPUs */
-+
-+	int tjmax = 100000;
-+	int ismobile = 1;
-+	int err;
-+	u32 eax, edx;
-+
-+	/* Early chips have no MSR for TjMax */
-+
-+	if (((c->x86_model == 0xf) && (c->x86_mask < 4)) ||
-+	      (c->x86_model < 0xe)) {
-+		ismobile = 0;
-+	}
-+
-+	if ((c->x86_model > 0xe) && (ismobile)) {
-+
-+		/* Now we can detect the mobile CPU using Intel provided table
-+		   http://softwarecommunity.intel.com/Wiki/Mobility/720.htm
-+		   For Core2 cores, check MSR 0x17, bit 28 1 = Mobile CPU
-+		*/
-+
-+		err = rdmsr_safe_on_cpu(id, 0x17, &eax, &edx);
-+		if (err) {
-+			dev_warn(dev,
-+				 "Unable to access MSR 0x17, assuming desktop"
-+				 " CPU\n");
-+			ismobile = 0;
-+		} else if (!(eax & 0x10000000)) {
-+				ismobile = 0;
-+		}
-+	}
-+
-+	if (ismobile) {
-+
-+		err = rdmsr_safe_on_cpu(id, 0xee, &eax, &edx);
-+		if (err) {
-+			dev_warn(dev,
-+				 "Unable to access MSR 0xEE, for Tjmax, left"
-+				 " at default");
-+		} else if (eax & 0x40000000) {
-+			tjmax = 85000;
-+		}
-+	} else  {
-+		dev_warn(dev, "Using relative temperature scale!\n");
-+	}
-+
-+	return tjmax;
-+}
-+
- static int __devinit coretemp_probe(struct platform_device *pdev)
- {
- 	struct coretemp_data *data;
-@@ -168,8 +219,6 @@
- 	data->id = pdev->id;
- 	data->name = "coretemp";
- 	mutex_init(&data->update_lock);
--	/* Tjmax default is 100 degrees C */
--	data->tjmax = 100000;
- 
- 	/* test if we can access the THERM_STATUS MSR */
- 	err = rdmsr_safe_on_cpu(data->id, MSR_IA32_THERM_STATUS, &eax, &edx);
-@@ -196,36 +245,7 @@
- 		}
- 	}
- 
--	/* Some processors have Tjmax 85 following magic should detect it
--	   Intel won't disclose the information without signed NDA, but
--	   individuals cannot sign it. Catch(ed) 22.
--	*/
--
--	if (((c->x86_model == 0xf) && (c->x86_mask > 3)) ||
--		(c->x86_model == 0xe))  {
--		err = rdmsr_safe_on_cpu(data->id, 0xee, &eax, &edx);
--		if (err) {
--			dev_warn(&pdev->dev,
--				 "Unable to access MSR 0xEE, Tjmax left at %d "
--				 "degrees C\n", data->tjmax/1000);
--		} else if (eax & 0x40000000) {
--			data->tjmax = 85000;
--		}
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index b15c6a9..d5aa25c 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -1276,23 +1276,31 @@ static int __devinit w83627ehf_probe(struct platfor=
+m_device *pdev)
+=20
+ 	data->vrm =3D vid_which_vrm();
+ 	superio_enter(sio_data->sioreg);
+-	/* Set VID input sensibility if needed. In theory the BIOS should
+-	   have set it, but in practice it's not always the case. */
+-	en_vrm10 =3D superio_inb(sio_data->sioreg, SIO_REG_EN_VRM10);
+-	if ((en_vrm10 & 0x08) && data->vrm !=3D 100) {
+-		dev_warn(dev, "Setting VID input voltage to TTL\n");
+-		superio_outb(sio_data->sioreg, SIO_REG_EN_VRM10,
+-			     en_vrm10 & ~0x08);
+-	} else if (!(en_vrm10 & 0x08) && data->vrm =3D 100) {
+-		dev_warn(dev, "Setting VID input voltage to VRM10\n");
+-		superio_outb(sio_data->sioreg, SIO_REG_EN_VRM10,
+-			     en_vrm10 | 0x08);
 -	}
--
--	/* Intel says that above should not work for desktop Core2 processors,
--	   but it seems to work. There is no other way how get the absolute
--	   readings. Warn the user about this. First check if are desktop,
--	   bit 50 of MSR_IA32_PLATFORM_ID should be 0.
--	*/
--
--	rdmsr_safe_on_cpu(data->id, MSR_IA32_PLATFORM_ID, &eax, &edx);
--
--	if ((c->x86_model == 0xf) && (!(edx & 0x00040000))) {
--		dev_warn(&pdev->dev, "Using undocumented features, absolute "
--			 "temperature might be wrong!\n");
--	}
--
-+	data->tjmax = adjust_tjmax(c, data->id, &pdev->dev);
- 	platform_set_drvdata(pdev, data);
- 
- 	/* read the still undocumented IA32_TEMPERATURE_TARGET it exists
+ 	/* Read VID value */
+ 	superio_select(sio_data->sioreg, W83627EHF_LD_HWM);
+-	if (superio_inb(sio_data->sioreg, SIO_REG_VID_CTRL) & 0x80)
++	if (superio_inb(sio_data->sioreg, SIO_REG_VID_CTRL) & 0x80) {
++		/* Set VID input sensibility if needed. In theory the BIOS
++		   should have set it, but in practice it's not always the
++		   case. We only do it for the W83627EHF/EHG because the
++		   W83627DHG is more complex in this respect. */
++		if (sio_data->kind =3D w83627ehf) {
++			en_vrm10 =3D superio_inb(sio_data->sioreg,
++					       SIO_REG_EN_VRM10);
++			if ((en_vrm10 & 0x08) && data->vrm =3D 90) {
++				dev_warn(dev, "Setting VID input voltage to "
++					 "TTL\n");
++				superio_outb(sio_data->sioreg, SIO_REG_EN_VRM10,
++					     en_vrm10 & ~0x08);
++			} else if (!(en_vrm10 & 0x08) && data->vrm =3D 100) {
++				dev_warn(dev, "Setting VID input voltage to "
++					 "VRM10\n");
++				superio_outb(sio_data->sioreg, SIO_REG_EN_VRM10,
++					     en_vrm10 | 0x08);
++			}
++		}
++
+ 		data->vid =3D superio_inb(sio_data->sioreg, SIO_REG_VID_DATA) & 0x3f;
+-	else {
++	} else {
+ 		dev_info(dev, "VID pins in output mode, CPU VID not "
+ 			 "available\n");
+ 		data->vid =3D 0x3f;
 
---------------070904080604070807050409
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+--=20
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------070904080604070807050409--
