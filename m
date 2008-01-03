@@ -1,47 +1,46 @@
-From: "=?ISO-8859-7?B?xN7s5/Tx4SDN6erv69zv9Q==?=" <demetra1986@gmail.com>
-Date: Fri, 11 Jan 2008 17:14:44 +0000
-Subject: [lm-sensors] read lm-sensors
-Message-Id: <a0b491410801110914q6fc9aa8fy3abf9c6a560ed3f1@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6813079423715732923=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 03 Jan 2008 21:54:13 +0000
+Subject: [lm-sensors] [PATCH 1/3] hwmon: (w83627hf) Enable VBAT monitoring
+Message-Id: <20080103225413.4e9d0729@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============6813079423715732923==
-Content-Type: multipart/alternative; 
-	boundary="----=_Part_3774_25913303.1200071684804"
+If VBAT monitoring is disabled, enable it. Bug reported on the
+lm-sensors trac system:
+http://lm-sensors.org/ticket/2282
+This is the exact same patch that was applied to the w83627ehf driver
+6 months ago.
 
-------=_Part_3774_25913303.1200071684804
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Carlos, could you please test and/or review this patch?
 
-Hello,
-I'm trying to write a program for an assignment I have, for reading the
-temperatures of my laptop sensors. My  laptop is  a Toshiba A200-19L model
-(core2 Duo).
-I have read a lot of articles and I have search a lot for this assignment.
-Can you please help me about that?
+ drivers/hwmon/w83627hf.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-------=_Part_3774_25913303.1200071684804
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+--- linux-2.6.24-rc6.orig/drivers/hwmon/w83627hf.c	2007-12-26 14:39:06.000000000 +0100
++++ linux-2.6.24-rc6/drivers/hwmon/w83627hf.c	2007-12-26 18:53:51.000000000 +0100
+@@ -1515,6 +1515,11 @@ static void __devinit w83627hf_init_devi
+ 			    (w83627hf_read_value(data,
+ 						W83781D_REG_CONFIG) & 0xf7)
+ 			    | 0x01);
++
++	/* Enable VBAT monitoring if needed */
++	tmp = w83627hf_read_value(data, W83781D_REG_VBAT);
++	if (!(tmp & 0x01))
++		w83627hf_write_value(data, W83781D_REG_VBAT, tmp | 0x01);
+ }
+ 
+ static void w83627hf_update_fan_div(struct w83627hf_data *data)
 
-Hello,<br>I&#39;m trying to write a program for an assignment I have, for reading the<br>temperatures of my laptop sensors. My &nbsp;laptop is &nbsp;a Toshiba A200-19L model (core2 Duo).<br>I have read a lot of articles and I have search a lot for this assignment.
-<br>Can you please help me about that?<br>
 
-------=_Part_3774_25913303.1200071684804--
-
-
---===============6813079423715732923==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6813079423715732923==--
