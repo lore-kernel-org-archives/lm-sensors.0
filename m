@@ -1,38 +1,86 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Sat, 05 Jan 2008 17:13:45 +0000
-Subject: Re: [lm-sensors] error loading coretemp module for 2.6.21.5 kernel
-Message-Id: <477FBAC9.6080601@assembler.cz>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 03 Jan 2008 22:35:33 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm77) Add individual alarm files
+Message-Id: <20080103233533.08ff4c07@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <975b59c50712271552u8e4b846r9545f817f8d779e1@mail.gmail.com>
-In-Reply-To: <975b59c50712271552u8e4b846r9545f817f8d779e1@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+The new libsensors needs this. As the old library never had support for
+the lm77 driver, I even dropped the legacy "alarms" file.
 
-Jean Delvare wrote:
-> On Sat, 29 Dec 2007 13:03:55 -0800, Rutul Dave wrote:
->> Thanks Rudolf, your suggestion did work. I was able to load
->> coretemp.ko with the fix. The CPU model for the new processors is 0x17
-> 
-> Rudolf, care to submit a proper patch for upstream inclusion?
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Michael, could you please test and/or review this patch? Either test
+the sysfs files directly or use lm-sensors 3.0.0 and the alarms should
+be displayed as needed. Thanks.
 
-I'm trying to get answer from Intel how to detect the mobile/non mobile CPUs
-properly. They are silent. I think what we have now works, so I will prepare a
-patch perhaps.
+ drivers/hwmon/lm77.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-Rudolf
+--- linux-2.6.24-rc6.orig/drivers/hwmon/lm77.c	2007-12-31 15:09:18.000000000 +0100
++++ linux-2.6.24-rc6/drivers/hwmon/lm77.c	2007-12-31 15:13:43.000000000 +0100
+@@ -31,6 +31,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/i2c.h>
+ #include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ 
+@@ -113,7 +114,6 @@ show(temp_input);
+ show(temp_crit);
+ show(temp_min);
+ show(temp_max);
+-show(alarms);
+ 
+ /* read routines for hysteresis values */
+ static ssize_t show_temp_crit_hyst(struct device *dev, struct device_attribute *attr, char *buf)
+@@ -186,6 +186,14 @@ static ssize_t set_temp_crit(struct devi
+ 	return count;
+ }
+ 
++static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
++			  char *buf)
++{
++	int bitnr = to_sensor_dev_attr(attr)->index;
++	struct lm77_data *data = lm77_update_device(dev);
++	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
++}
++
+ static DEVICE_ATTR(temp1_input, S_IRUGO,
+ 		   show_temp_input, NULL);
+ static DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO,
+@@ -202,8 +210,9 @@ static DEVICE_ATTR(temp1_min_hyst, S_IRU
+ static DEVICE_ATTR(temp1_max_hyst, S_IRUGO,
+ 		   show_temp_max_hyst, NULL);
+ 
+-static DEVICE_ATTR(alarms, S_IRUGO,
+-		   show_alarms, NULL);
++static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 1);
+ 
+ static int lm77_attach_adapter(struct i2c_adapter *adapter)
+ {
+@@ -220,8 +229,9 @@ static struct attribute *lm77_attributes
+ 	&dev_attr_temp1_crit_hyst.attr,
+ 	&dev_attr_temp1_min_hyst.attr,
+ 	&dev_attr_temp1_max_hyst.attr,
+-	&dev_attr_alarms.attr,
+-
++	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
+ 	NULL
+ };
+ 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iD8DBQFHf7rJ3J9wPJqZRNURAnIOAJ4p54Xy7PSAEAd/g3E8KjMKFhDHPACfb45N
-giY1wzPhXi8E8z1jb4OgKZw=MLRZ
------END PGP SIGNATURE-----
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
