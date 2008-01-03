@@ -1,50 +1,75 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Thu, 31 Jan 2008 13:21:09 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (abituguru3) Add AUX4 fan input	for
-Message-Id: <20080131132109.GE8290@jupiter.solarsys.private>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 03 Jan 2008 22:24:24 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon: (asb100) Add individual alarm files
+Message-Id: <20080103232424.103f2346@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1200423464-19294-1-git-send-email-vsu@altlinux.ru>
-In-Reply-To: <1200423464-19294-1-git-send-email-vsu@altlinux.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Sergey, Hans:
+The new libsensors needs these individual alarm files.
 
-* Hans de Goede <j.w.r.degoede@hhs.nl> [2008-01-16 15:51:26 +0100]:
-> Sergey Vlasov wrote:
-> > Abit IP35 Pro has 6 fan connectors (CPU, SYS and AUX1-4), but the
-> > entry for AUX4 was missing from the table.
-> > 
-> > Signed-off-by: Sergey Vlasov <vsu@altlinux.ru>
-> > ---
-> >  drivers/hwmon/abituguru3.c |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/abituguru3.c b/drivers/hwmon/abituguru3.c
-> > index e72a21b..0e6b142 100644
-> > --- a/drivers/hwmon/abituguru3.c
-> > +++ b/drivers/hwmon/abituguru3.c
-> > @@ -528,6 +528,7 @@ static const struct abituguru3_motherboard_info abituguru3_motherboards[] = {
-> >  		{ "AUX1 Fan",		33, 2, 60, 1, 0 },
-> >  		{ "AUX2 Fan",		35, 2, 60, 1, 0 },
-> >  		{ "AUX3 Fan",		36, 2, 60, 1, 0 },
-> > +		{ "AUX4 Fan",		37, 2, 60, 1, 0 },
-> >  		{ NULL, 0, 0, 0, 0, 0 } }
-> >  	},
-> >  	{ 0x001B, "unknown", {
-> 
-> Looks good to me:
-> 
-> Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+I did not create alarm files for in5 and in6 as these alarms are documented
+as not working.
 
-Applied to hwmon-2.6.git/testing, thanks.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+---
+ drivers/hwmon/asb100.c |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+--- linux-2.6.24-rc6.orig/drivers/hwmon/asb100.c	2007-12-31 14:20:32.000000000 +0100
++++ linux-2.6.24-rc6/drivers/hwmon/asb100.c	2007-12-31 14:42:29.000000000 +0100
+@@ -480,6 +480,25 @@ static ssize_t show_alarms(struct device
+ 
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
++static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	int bitnr = to_sensor_dev_attr(attr)->index;
++	struct asb100_data *data = asb100_update_device(dev);
++	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
++}
++static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
++static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
++static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3);
++static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 8);
++static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 6);
++static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 7);
++static SENSOR_DEVICE_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 11);
++static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4);
++static SENSOR_DEVICE_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 5);
++static SENSOR_DEVICE_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 13);
++
+ /* 1 PWM */
+ static ssize_t show_pwm1(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -575,6 +594,18 @@ static struct attribute *asb100_attribut
+ 	&sensor_dev_attr_temp4_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_max_hyst.dev_attr.attr,
+ 
++	&sensor_dev_attr_in0_alarm.dev_attr.attr,
++	&sensor_dev_attr_in1_alarm.dev_attr.attr,
++	&sensor_dev_attr_in2_alarm.dev_attr.attr,
++	&sensor_dev_attr_in3_alarm.dev_attr.attr,
++	&sensor_dev_attr_in4_alarm.dev_attr.attr,
++	&sensor_dev_attr_fan1_alarm.dev_attr.attr,
++	&sensor_dev_attr_fan2_alarm.dev_attr.attr,
++	&sensor_dev_attr_fan3_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
++
+ 	&dev_attr_cpu0_vid.attr,
+ 	&dev_attr_vrm.attr,
+ 	&dev_attr_alarms.attr,
+
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
