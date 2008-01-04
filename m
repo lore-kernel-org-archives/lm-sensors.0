@@ -1,84 +1,63 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 06 Jan 2008 14:42:04 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (via686a) Add individual alarm files
-Message-Id: <20080106154204.6abccc25@hyperion.delvare>
+From: Antonio RAGO <antonio.rago@gmail.com>
+Date: Fri, 04 Jan 2008 12:48:42 +0000
+Subject: [lm-sensors] Needed support for SMSC LPC47M292
+Message-Id: <477E2B2A.5010707@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-The new libsensors needs these individual alarm files.
+Hi all
+I'm writing you about an LPC47M292 chip.
+I have and ibm thinkcenter with kernel 2.6.22-3-686 (debian)
+and I'm trying to recognize the sensors.
+sensors-detect claim that there is the chip=20
+    `SMSC LPC47M292 Super IO Fan Sensors'
+and I've loaded the corresponding module
+but even if the module is loaded and according to the messages log it's=20
+the right one
+when I try to run sensors, the program claims that no chipset has been=20
+found.
+(In the following i'm reporting also i2c stuff even if it seems to me=20
+that they are useless)
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
-Ian, would you have the opportunity to test this patch?
+raven:~# sensors
+No sensors found!
+Make sure you loaded all the kernel drivers you need.
+Try sensors-detect to find out which these are.
+raven:~# ls -l /dev/i2c*
+crw-rw---- 1 root root 89, 0 2008-01-04 10:58 /dev/i2c-0
+raven:~# lsmod | head -6
+Module                  Size  Used by
+smsc47m1                9508  0
+i2c_isa                 4192  0
+i2c_dev                 7140  0
+i2c_i801                8656  0
+i2c_core               23552  3 i2c_isa,i2c_dev,i2c_i801
+raven:~# dmesg  | tail -1
+smsc47m1: Found SMSC LPC47M292
+raven:~# dpkg -l lm-sensor
+No packages found matching lm-sensor.
+raven:~# dpkg -l lm-sensors
+Desired=3DUnknown/Install/Remove/Purge/Hold
+| Status=3DNot/Installed/Config-files/Unpacked/Failed-config/Half-installed
+|/ Err?=3D(none)/Hold/Reinst-required/X=3Dboth-problems (Status,Err:=20
+uppercase=BAd)
+||/ Name                          Version                       Description
++++-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D-=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+ii  lm-sensors                    1:3.0.0-4                    =20
+utilities to read temperature/voltage/fan sensors
 
- drivers/hwmon/via686a.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
-
---- linux-2.6.24-rc6.orig/drivers/hwmon/via686a.c	2008-01-01 14:16:22.000000000 +0100
-+++ linux-2.6.24-rc6/drivers/hwmon/via686a.c	2008-01-01 14:18:42.000000000 +0100
-@@ -533,6 +533,24 @@ static ssize_t show_alarms(struct device
- }
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
-+static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
-+			  char *buf)
-+{
-+	int bitnr = to_sensor_dev_attr(attr)->index;
-+	struct via686a_data *data = via686a_update_device(dev);
-+	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
-+}
-+static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
-+static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2);
-+static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3);
-+static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 8);
-+static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4);
-+static SENSOR_DEVICE_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 11);
-+static SENSOR_DEVICE_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 15);
-+static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 6);
-+static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 7);
-+
- static ssize_t show_name(struct device *dev, struct device_attribute
- 			 *devattr, char *buf)
- {
-@@ -557,6 +575,11 @@ static struct attribute *via686a_attribu
- 	&sensor_dev_attr_in2_max.dev_attr.attr,
- 	&sensor_dev_attr_in3_max.dev_attr.attr,
- 	&sensor_dev_attr_in4_max.dev_attr.attr,
-+	&sensor_dev_attr_in0_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in1_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in2_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in3_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in4_alarm.dev_attr.attr,
- 
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp2_input.dev_attr.attr,
-@@ -567,6 +590,9 @@ static struct attribute *via686a_attribu
- 	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
- 	&sensor_dev_attr_temp2_max_hyst.dev_attr.attr,
- 	&sensor_dev_attr_temp3_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
- 
- 	&sensor_dev_attr_fan1_input.dev_attr.attr,
- 	&sensor_dev_attr_fan2_input.dev_attr.attr,
-@@ -574,6 +600,8 @@ static struct attribute *via686a_attribu
- 	&sensor_dev_attr_fan2_min.dev_attr.attr,
- 	&sensor_dev_attr_fan1_div.dev_attr.attr,
- 	&sensor_dev_attr_fan2_div.dev_attr.attr,
-+	&sensor_dev_attr_fan1_alarm.dev_attr.attr,
-+	&sensor_dev_attr_fan2_alarm.dev_attr.attr,
- 
- 	&dev_attr_alarms.attr,
- 	&dev_attr_name.attr,
+Maybe I'm missing something, but it seems to me that it's not working.
+I can easily do any test on this computer if it's needed.
+Thank you in advance
+Antonio
 
 
--- 
-Jean Delvare
+
 
 _______________________________________________
 lm-sensors mailing list
