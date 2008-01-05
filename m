@@ -1,31 +1,23 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 27 Jan 2008 15:12:06 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (it87) Discard a dead
-Message-Id: <20080127151206.GD29892@jupiter.solarsys.private>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 05 Jan 2008 16:58:09 +0000
+Subject: Re: [lm-sensors] [PATCH] Add detection of SMSC SCH5514
+Message-Id: <20080105175809.62954164@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+Hi Juerg,
 
-* Jean Delvare <khali@linux-fr.org> [2007-11-25 16:14:44 +0100]:
-> Sigend-off-by: Jean Delvare <khali@linux-fr.org>
-  ^^^^^^
-> ---
->  Documentation/hwmon/it87 |    2 +-
->  drivers/hwmon/it87.c     |    4 ++--
->  2 files changed, 3 insertions(+), 3 deletions(-)
+On Wed, 19 Dec 2007 14:52:13 -0800, Juerg Haefliger wrote:
+> This patch adds detection of the SMSC SCH5514 Super-IO to
+> sensors-detect. The chip doesn't contain HW monitoring features.
 
-Is that like sigkill? ;)
-
-Applied to hwmon-2.6.git/testing, thanks.
+Patch applied, thanks.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
