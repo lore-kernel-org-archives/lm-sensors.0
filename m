@@ -1,48 +1,23 @@
-From: kiran@serc.iisc.ernet.in
-Date: Sat, 26 Jan 2008 14:32:46 +0000
-Subject: [lm-sensors] CPU temperature
-Message-Id: <1897.10.16.10.158.1201357246.squirrel@mail.serc.iisc.ernet.in>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 05 Jan 2008 16:49:31 +0000
+Subject: Re: [lm-sensors] error loading coretemp module for 2.6.21.5 kernel
+Message-Id: <20080105174931.017d8747@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1896.10.16.10.158.1201357238.squirrel@mail.serc.iisc.ernet.in>
-In-Reply-To: <1896.10.16.10.158.1201357238.squirrel@mail.serc.iisc.ernet.in>
+References: <975b59c50712271552u8e4b846r9545f817f8d779e1@mail.gmail.com>
+In-Reply-To: <975b59c50712271552u8e4b846r9545f817f8d779e1@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+On Sat, 29 Dec 2007 13:03:55 -0800, Rutul Dave wrote:
+> Thanks Rudolf, your suggestion did work. I was able to load
+> coretemp.ko with the fix. The CPU model for the new processors is 0x17
 
-  We have IBM Intellistation, I am using lm_sensors-2.10.1-1.fc6. It is
-working fine. But when i run sensors it shows three temperatures as
-temp1 temp2 and temp3. Kindly indicate in this three which is CPU
-temperature.
+Rudolf, care to submit a proper patch for upstream inclusion?
 
-temp1:       +58=B0C  (high =3D   +71=B0C, hyst =3D   +66=B0C)
-temp2:    +127.0=B0C  (high =3D  -128=B0C, hyst =3D  +126=B0C)   ALARM
-temp3:     +35.5=B0C  (high =3D   +41=B0C, hyst =3D   +39=B0C)
-
-
-I am using following modules as detected by sensors-detec. My Os fedora
-core 6
-
-modprobe i2c-i801
-modprobe i2c-isa
-modprobe w83781d
-modprobe eeprom
-modprobe smbus-arp
-modprobe smsc47m1
-
-
-Thanking you,
-regards,
-kiran
-
-
---=20
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
