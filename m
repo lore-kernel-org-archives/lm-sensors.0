@@ -1,509 +1,341 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 10 Jan 2008 15:45:48 +0000
-Subject: Re: [lm-sensors] [RFC,
-Message-Id: <20080110164548.0f0f22b5@hyperion.delvare>
+Date: Sat, 05 Jan 2008 14:37:05 +0000
+Subject: [lm-sensors] [PATCH 2/3] hwmon: (lm80) De-macro the sysfs callbacks
+Message-Id: <20080105153705.515f89b4@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Herbert,
+Use standard dynamic sysfs callbacks instead of macro-generated
+functions. This makes the code more readable, and the binary smaller
+(by about 34%).
 
-Sorry for the late answer, I was very busy in late December, and then I
-took two weeks of vacation.
+As a side note, another benefit of this type of cleanup is that they
+shrink the build time. For example, this cleanup saves about 29% of
+the lm80 driver build time.
 
-On Mon, 17 Dec 2007 10:36:44 +0100, Herbert Valerio Riedel wrote:
-> On Sun, 2007-11-25 at 18:47 +0100, Jean Delvare wrote:
-> > fan1_div is only indirectly related to the number of pulse per
-> > revolutions emitted by the fan. Please read:
-> > http://www.lm-sensors.org/browser/lm-sensors/trunk/doc/fan-divisors
-> 
-> I found the description to be a bit misleading btw:
-> 
-> 
->         So changing the fan divisor will NOT change the nominal RPM
->         reading, it will only affect the minimum and maximum readings
->         and the accuracy of the readings.
->         ...
->         The actual formula is RPM = (60 * 22500) / (count * divisor)
->         
-> 
-> ...to me it seems, that changing 'divisor' does change the 'RPM' value
-> (if 'count' stays the same)... :-)
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Tested using i2c-stub.
 
-The idea is precisely that count does _not_ stay the same. When you
-change the divisor register value, the chip changes the way it measures
-the fan speed and as a result the count register value will change.
+ drivers/hwmon/lm80.c |  245 ++++++++++++++++++++++----------------------------
+ 1 file changed, 111 insertions(+), 134 deletions(-)
 
-> however, I've tried to incorporate your comments (the way I understood
-> them :-), see below
+--- linux-2.6.24-rc6.orig/drivers/hwmon/lm80.c	2008-01-05 15:16:33.000000000 +0100
++++ linux-2.6.24-rc6/drivers/hwmon/lm80.c	2008-01-05 15:22:49.000000000 +0100
+@@ -27,6 +27,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/i2c.h>
+ #include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ 
+@@ -158,105 +159,74 @@ static struct i2c_driver lm80_driver = {
+ #define show_in(suffix, value) \
+ static ssize_t show_in_##suffix(struct device *dev, struct device_attribute *attr, char *buf) \
+ { \
++	int nr = to_sensor_dev_attr(attr)->index; \
+ 	struct lm80_data *data = lm80_update_device(dev); \
+-	return sprintf(buf, "%d\n", IN_FROM_REG(data->value)); \
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->value[nr])); \
+ }
+-show_in(min0, in_min[0]);
+-show_in(min1, in_min[1]);
+-show_in(min2, in_min[2]);
+-show_in(min3, in_min[3]);
+-show_in(min4, in_min[4]);
+-show_in(min5, in_min[5]);
+-show_in(min6, in_min[6]);
+-show_in(max0, in_max[0]);
+-show_in(max1, in_max[1]);
+-show_in(max2, in_max[2]);
+-show_in(max3, in_max[3]);
+-show_in(max4, in_max[4]);
+-show_in(max5, in_max[5]);
+-show_in(max6, in_max[6]);
+-show_in(input0, in[0]);
+-show_in(input1, in[1]);
+-show_in(input2, in[2]);
+-show_in(input3, in[3]);
+-show_in(input4, in[4]);
+-show_in(input5, in[5]);
+-show_in(input6, in[6]);
++show_in(min, in_min)
++show_in(max, in_max)
++show_in(input, in)
+ 
+ #define set_in(suffix, value, reg) \
+ static ssize_t set_in_##suffix(struct device *dev, struct device_attribute *attr, const char *buf, \
+ 	size_t count) \
+ { \
++	int nr = to_sensor_dev_attr(attr)->index; \
+ 	struct i2c_client *client = to_i2c_client(dev); \
+ 	struct lm80_data *data = i2c_get_clientdata(client); \
+ 	long val = simple_strtol(buf, NULL, 10); \
+  \
+ 	mutex_lock(&data->update_lock);\
+-	data->value = IN_TO_REG(val); \
+-	lm80_write_value(client, reg, data->value); \
++	data->value[nr] = IN_TO_REG(val); \
++	lm80_write_value(client, reg(nr), data->value[nr]); \
+ 	mutex_unlock(&data->update_lock);\
+ 	return count; \
+ }
+-set_in(min0, in_min[0], LM80_REG_IN_MIN(0));
+-set_in(min1, in_min[1], LM80_REG_IN_MIN(1));
+-set_in(min2, in_min[2], LM80_REG_IN_MIN(2));
+-set_in(min3, in_min[3], LM80_REG_IN_MIN(3));
+-set_in(min4, in_min[4], LM80_REG_IN_MIN(4));
+-set_in(min5, in_min[5], LM80_REG_IN_MIN(5));
+-set_in(min6, in_min[6], LM80_REG_IN_MIN(6));
+-set_in(max0, in_max[0], LM80_REG_IN_MAX(0));
+-set_in(max1, in_max[1], LM80_REG_IN_MAX(1));
+-set_in(max2, in_max[2], LM80_REG_IN_MAX(2));
+-set_in(max3, in_max[3], LM80_REG_IN_MAX(3));
+-set_in(max4, in_max[4], LM80_REG_IN_MAX(4));
+-set_in(max5, in_max[5], LM80_REG_IN_MAX(5));
+-set_in(max6, in_max[6], LM80_REG_IN_MAX(6));
++set_in(min, in_min, LM80_REG_IN_MIN)
++set_in(max, in_max, LM80_REG_IN_MAX)
+ 
+-#define show_fan(suffix, value, div) \
++#define show_fan(suffix, value) \
+ static ssize_t show_fan_##suffix(struct device *dev, struct device_attribute *attr, char *buf) \
+ { \
++	int nr = to_sensor_dev_attr(attr)->index; \
+ 	struct lm80_data *data = lm80_update_device(dev); \
+-	return sprintf(buf, "%d\n", FAN_FROM_REG(data->value, \
+-		       DIV_FROM_REG(data->div))); \
++	return sprintf(buf, "%d\n", FAN_FROM_REG(data->value[nr], \
++		       DIV_FROM_REG(data->fan_div[nr]))); \
+ }
+-show_fan(min1, fan_min[0], fan_div[0]);
+-show_fan(min2, fan_min[1], fan_div[1]);
+-show_fan(input1, fan[0], fan_div[0]);
+-show_fan(input2, fan[1], fan_div[1]);
++show_fan(min, fan_min)
++show_fan(input, fan)
+ 
+-#define show_fan_div(suffix, value) \
+-static ssize_t show_fan_div##suffix(struct device *dev, struct device_attribute *attr, char *buf) \
+-{ \
+-	struct lm80_data *data = lm80_update_device(dev); \
+-	return sprintf(buf, "%d\n", DIV_FROM_REG(data->value)); \
++static ssize_t show_fan_div(struct device *dev, struct device_attribute *attr,
++	char *buf)
++{
++	int nr = to_sensor_dev_attr(attr)->index;
++	struct lm80_data *data = lm80_update_device(dev);
++	return sprintf(buf, "%d\n", DIV_FROM_REG(data->fan_div[nr]));
+ }
+-show_fan_div(1, fan_div[0]);
+-show_fan_div(2, fan_div[1]);
+ 
+-#define set_fan(suffix, value, reg, div) \
+-static ssize_t set_fan_##suffix(struct device *dev, struct device_attribute *attr, const char *buf, \
+-	size_t count) \
+-{ \
+-	struct i2c_client *client = to_i2c_client(dev); \
+-	struct lm80_data *data = i2c_get_clientdata(client); \
+-	long val = simple_strtoul(buf, NULL, 10); \
+- \
+-	mutex_lock(&data->update_lock);\
+-	data->value = FAN_TO_REG(val, DIV_FROM_REG(data->div)); \
+-	lm80_write_value(client, reg, data->value); \
+-	mutex_unlock(&data->update_lock);\
+-	return count; \
++static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count)
++{
++	int nr = to_sensor_dev_attr(attr)->index;
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lm80_data *data = i2c_get_clientdata(client);
++	long val = simple_strtoul(buf, NULL, 10);
++
++	mutex_lock(&data->update_lock);
++	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
++	lm80_write_value(client, LM80_REG_FAN_MIN(nr + 1), data->fan_min[nr]);
++	mutex_unlock(&data->update_lock);
++	return count;
+ }
+-set_fan(min1, fan_min[0], LM80_REG_FAN_MIN(1), fan_div[0]);
+-set_fan(min2, fan_min[1], LM80_REG_FAN_MIN(2), fan_div[1]);
+ 
+ /* Note: we save and restore the fan minimum here, because its value is
+    determined in part by the fan divisor.  This follows the principle of
+    least surprise; the user doesn't expect the fan minimum to change just
+    because the divisor changed. */
+-static ssize_t set_fan_div(struct device *dev, const char *buf,
+-	size_t count, int nr)
++static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count)
+ {
++	int nr = to_sensor_dev_attr(attr)->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm80_data *data = i2c_get_clientdata(client);
+ 	unsigned long min, val = simple_strtoul(buf, NULL, 10);
+@@ -291,15 +261,6 @@ static ssize_t set_fan_div(struct device
+ 	return count;
+ }
+ 
+-#define set_fan_div(number) \
+-static ssize_t set_fan_div##number(struct device *dev, struct device_attribute *attr, const char *buf, \
+-	size_t count) \
+-{ \
+-	return set_fan_div(dev, buf, count, number - 1); \
+-}
+-set_fan_div(1);
+-set_fan_div(2);
+-
+ static ssize_t show_temp_input1(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct lm80_data *data = lm80_update_device(dev);
+@@ -343,35 +304,51 @@ static ssize_t show_alarms(struct device
+ 	return sprintf(buf, "%u\n", data->alarms);
+ }
+ 
+-static DEVICE_ATTR(in0_min, S_IWUSR | S_IRUGO, show_in_min0, set_in_min0);
+-static DEVICE_ATTR(in1_min, S_IWUSR | S_IRUGO, show_in_min1, set_in_min1);
+-static DEVICE_ATTR(in2_min, S_IWUSR | S_IRUGO, show_in_min2, set_in_min2);
+-static DEVICE_ATTR(in3_min, S_IWUSR | S_IRUGO, show_in_min3, set_in_min3);
+-static DEVICE_ATTR(in4_min, S_IWUSR | S_IRUGO, show_in_min4, set_in_min4);
+-static DEVICE_ATTR(in5_min, S_IWUSR | S_IRUGO, show_in_min5, set_in_min5);
+-static DEVICE_ATTR(in6_min, S_IWUSR | S_IRUGO, show_in_min6, set_in_min6);
+-static DEVICE_ATTR(in0_max, S_IWUSR | S_IRUGO, show_in_max0, set_in_max0);
+-static DEVICE_ATTR(in1_max, S_IWUSR | S_IRUGO, show_in_max1, set_in_max1);
+-static DEVICE_ATTR(in2_max, S_IWUSR | S_IRUGO, show_in_max2, set_in_max2);
+-static DEVICE_ATTR(in3_max, S_IWUSR | S_IRUGO, show_in_max3, set_in_max3);
+-static DEVICE_ATTR(in4_max, S_IWUSR | S_IRUGO, show_in_max4, set_in_max4);
+-static DEVICE_ATTR(in5_max, S_IWUSR | S_IRUGO, show_in_max5, set_in_max5);
+-static DEVICE_ATTR(in6_max, S_IWUSR | S_IRUGO, show_in_max6, set_in_max6);
+-static DEVICE_ATTR(in0_input, S_IRUGO, show_in_input0, NULL);
+-static DEVICE_ATTR(in1_input, S_IRUGO, show_in_input1, NULL);
+-static DEVICE_ATTR(in2_input, S_IRUGO, show_in_input2, NULL);
+-static DEVICE_ATTR(in3_input, S_IRUGO, show_in_input3, NULL);
+-static DEVICE_ATTR(in4_input, S_IRUGO, show_in_input4, NULL);
+-static DEVICE_ATTR(in5_input, S_IRUGO, show_in_input5, NULL);
+-static DEVICE_ATTR(in6_input, S_IRUGO, show_in_input6, NULL);
+-static DEVICE_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan_min1,
+-    set_fan_min1);
+-static DEVICE_ATTR(fan2_min, S_IWUSR | S_IRUGO, show_fan_min2,
+-    set_fan_min2);
+-static DEVICE_ATTR(fan1_input, S_IRUGO, show_fan_input1, NULL);
+-static DEVICE_ATTR(fan2_input, S_IRUGO, show_fan_input2, NULL);
+-static DEVICE_ATTR(fan1_div, S_IWUSR | S_IRUGO, show_fan_div1, set_fan_div1);
+-static DEVICE_ATTR(fan2_div, S_IWUSR | S_IRUGO, show_fan_div2, set_fan_div2);
++static SENSOR_DEVICE_ATTR(in0_min, S_IWUSR | S_IRUGO,
++		show_in_min, set_in_min, 0);
++static SENSOR_DEVICE_ATTR(in1_min, S_IWUSR | S_IRUGO,
++		show_in_min, set_in_min, 1);
++static SENSOR_DEVICE_ATTR(in2_min, S_IWUSR | S_IRUGO,
++		show_in_min, set_in_min, 2);
++static SENSOR_DEVICE_ATTR(in3_min, S_IWUSR | S_IRUGO,
++		show_in_min, set_in_min, 3);
++static SENSOR_DEVICE_ATTR(in4_min, S_IWUSR | S_IRUGO,
++		show_in_min, set_in_min, 4);
++static SENSOR_DEVICE_ATTR(in5_min, S_IWUSR | S_IRUGO,
++		show_in_min, set_in_min, 5);
++static SENSOR_DEVICE_ATTR(in6_min, S_IWUSR | S_IRUGO,
++		show_in_min, set_in_min, 6);
++static SENSOR_DEVICE_ATTR(in0_max, S_IWUSR | S_IRUGO,
++		show_in_max, set_in_max, 0);
++static SENSOR_DEVICE_ATTR(in1_max, S_IWUSR | S_IRUGO,
++		show_in_max, set_in_max, 1);
++static SENSOR_DEVICE_ATTR(in2_max, S_IWUSR | S_IRUGO,
++		show_in_max, set_in_max, 2);
++static SENSOR_DEVICE_ATTR(in3_max, S_IWUSR | S_IRUGO,
++		show_in_max, set_in_max, 3);
++static SENSOR_DEVICE_ATTR(in4_max, S_IWUSR | S_IRUGO,
++		show_in_max, set_in_max, 4);
++static SENSOR_DEVICE_ATTR(in5_max, S_IWUSR | S_IRUGO,
++		show_in_max, set_in_max, 5);
++static SENSOR_DEVICE_ATTR(in6_max, S_IWUSR | S_IRUGO,
++		show_in_max, set_in_max, 6);
++static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, show_in_input, NULL, 0);
++static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_in_input, NULL, 1);
++static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_in_input, NULL, 2);
++static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_in_input, NULL, 3);
++static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, show_in_input, NULL, 4);
++static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, show_in_input, NULL, 5);
++static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, show_in_input, NULL, 6);
++static SENSOR_DEVICE_ATTR(fan1_min, S_IWUSR | S_IRUGO,
++		show_fan_min, set_fan_min, 0);
++static SENSOR_DEVICE_ATTR(fan2_min, S_IWUSR | S_IRUGO,
++		show_fan_min, set_fan_min, 1);
++static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, show_fan_input, NULL, 0);
++static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, show_fan_input, NULL, 1);
++static SENSOR_DEVICE_ATTR(fan1_div, S_IWUSR | S_IRUGO,
++		show_fan_div, set_fan_div, 0);
++static SENSOR_DEVICE_ATTR(fan2_div, S_IWUSR | S_IRUGO,
++		show_fan_div, set_fan_div, 1);
+ static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
+ static DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_hot_max,
+     set_temp_hot_max);
+@@ -395,33 +372,33 @@ static int lm80_attach_adapter(struct i2
+ }
+ 
+ static struct attribute *lm80_attributes[] = {
+-	&dev_attr_in0_min.attr,
+-	&dev_attr_in1_min.attr,
+-	&dev_attr_in2_min.attr,
+-	&dev_attr_in3_min.attr,
+-	&dev_attr_in4_min.attr,
+-	&dev_attr_in5_min.attr,
+-	&dev_attr_in6_min.attr,
+-	&dev_attr_in0_max.attr,
+-	&dev_attr_in1_max.attr,
+-	&dev_attr_in2_max.attr,
+-	&dev_attr_in3_max.attr,
+-	&dev_attr_in4_max.attr,
+-	&dev_attr_in5_max.attr,
+-	&dev_attr_in6_max.attr,
+-	&dev_attr_in0_input.attr,
+-	&dev_attr_in1_input.attr,
+-	&dev_attr_in2_input.attr,
+-	&dev_attr_in3_input.attr,
+-	&dev_attr_in4_input.attr,
+-	&dev_attr_in5_input.attr,
+-	&dev_attr_in6_input.attr,
+-	&dev_attr_fan1_min.attr,
+-	&dev_attr_fan2_min.attr,
+-	&dev_attr_fan1_input.attr,
+-	&dev_attr_fan2_input.attr,
+-	&dev_attr_fan1_div.attr,
+-	&dev_attr_fan2_div.attr,
++	&sensor_dev_attr_in0_min.dev_attr.attr,
++	&sensor_dev_attr_in1_min.dev_attr.attr,
++	&sensor_dev_attr_in2_min.dev_attr.attr,
++	&sensor_dev_attr_in3_min.dev_attr.attr,
++	&sensor_dev_attr_in4_min.dev_attr.attr,
++	&sensor_dev_attr_in5_min.dev_attr.attr,
++	&sensor_dev_attr_in6_min.dev_attr.attr,
++	&sensor_dev_attr_in0_max.dev_attr.attr,
++	&sensor_dev_attr_in1_max.dev_attr.attr,
++	&sensor_dev_attr_in2_max.dev_attr.attr,
++	&sensor_dev_attr_in3_max.dev_attr.attr,
++	&sensor_dev_attr_in4_max.dev_attr.attr,
++	&sensor_dev_attr_in5_max.dev_attr.attr,
++	&sensor_dev_attr_in6_max.dev_attr.attr,
++	&sensor_dev_attr_in0_input.dev_attr.attr,
++	&sensor_dev_attr_in1_input.dev_attr.attr,
++	&sensor_dev_attr_in2_input.dev_attr.attr,
++	&sensor_dev_attr_in3_input.dev_attr.attr,
++	&sensor_dev_attr_in4_input.dev_attr.attr,
++	&sensor_dev_attr_in5_input.dev_attr.attr,
++	&sensor_dev_attr_in6_input.dev_attr.attr,
++	&sensor_dev_attr_fan1_min.dev_attr.attr,
++	&sensor_dev_attr_fan2_min.dev_attr.attr,
++	&sensor_dev_attr_fan1_input.dev_attr.attr,
++	&sensor_dev_attr_fan2_input.dev_attr.attr,
++	&sensor_dev_attr_fan1_div.dev_attr.attr,
++	&sensor_dev_attr_fan2_div.dev_attr.attr,
+ 	&dev_attr_temp1_input.attr,
+ 	&dev_attr_temp1_max.attr,
+ 	&dev_attr_temp1_max_hyst.attr,
 
-Here's my review:
-
-> This controller can be found on the D-Link DNS-323 for instance,
-> where it is to be configured via static i2c_board_info in the
-> board-specific mach-orion/dns323-setup.c; this driver supports only
-> the new-style driver model.
-> 
-> Signed-off-by: Herbert Valerio Riedel <hvr@gnu.org>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> ---
->  Documentation/hwmon/g760a |   39 ++++++
->  drivers/hwmon/Kconfig     |   10 ++
->  drivers/hwmon/Makefile    |    1 +
->  drivers/hwmon/g760a.c     |  296 +++++++++++++++++++++++++++++++++++++++++++++
->  4 files changed, 346 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/hwmon/g760a
->  create mode 100644 drivers/hwmon/g760a.c
-> 
-> diff --git a/Documentation/hwmon/g760a b/Documentation/hwmon/g760a
-> new file mode 100644
-> index 0000000..3aa700a
-> --- /dev/null
-> +++ b/Documentation/hwmon/g760a
-> @@ -0,0 +1,39 @@
-> +Kernel driver g760a
-> +=========> +
-> +Supported chips:
-> +  * Global Mixed-mode Technology Inc. G760A
-> +    Prefix: 'g760a'
-> +    Datasheet: Publicly available at the GMT website
-> +      http://www.gmt.com.tw/datasheet/g760a.pdf
-> +
-> +Author: Herbert Valerio Riedel <hvr@gnu.org>
-> +
-> +Description
-> +-----------
-> +
-> +The GMT G760A Fan Speed PWM Controller is connected directly to a fan
-> +and performs closed-loop control of the fan speed.
-> +
-> +The fan speed is programmed by setting the desired target speed via
-> +`fan1_target` in rpm which is rounded up to the next supported rpm value;
-
-Please avoid mixing regular single quotes and backquotes in the same
-document.
-
-RPM
-
-> +a rpm value of -1 requests the maximum speed (i.e. pwm duty cycle of 100%).
-
-I don't think that you want to do that. It's not very intuitive and not
-part of our standard interface either. If the user wants the max speed,
-he/she can write an arbitrarily high RPM value (e.g. 10000) and the
-driver will pick the higher possible value.
-
-> +For convenience it's also possible to programm the controller via `pwm1`
-> +(setting pwm1 to 0 stops the fan; 255 sets fan to maximum speed), which still 
-> +performs closed-loop control.
-
-That's indeed convenient, although it could also be a bit confusing.
-But as long as the pwmconfig and fancontrol scripts cannot deal with
-closed-loop control mode, I admit that having the pwm1 file will be
-very handy. That's one more reason to not implement -1 as a special
-value for fan1_target: the same effect can be achieved in a standard
-manner by writing 255 to pwm1.
-
-> +
-> +The measured fan rotation speed returned via 'fan1_input' is derived
-> +from the measured speed pulse period by assuming again a 32kHz clock
-> +source and a N=2 pulse-per-revolution fan via the the formula
-> +rpm = (clk * 30)/(clk_counts * N). `fan1_min` contains the lowest possible
-> +rpm value that can be reported by the controller.
-
-It might be worth documenting that fan1_min is read-only. Other chips
-implement the fan minimum as a changeable value, the user might be
-surprised.
-
-> +
-> +The 'fan1_alarm' file provides access to the alarm bit provided by
-> +the G760A chip's status register: Its value is 1 when the actual fan
-
-its
-
-> +speed differs more than 20% with respect to the programmed fan speed; 
-> +otherwise 0.
-
-That's not correct as it doesn't match the standard sysfs interface.
-fan1_alarm should be raised when fan1_input is less than fan1_min, that
-is, it corresponds to G760A_REG_FAN_STA_RPM_LOW, not
-G760A_REG_FAN_STA_RPM_OFF.
-
-For G760A_REG_FAN_STA_RPM_OFF, we do not yet have a standard sysfs file
-name, but "fan1_target_alarm" would probably do. Feel tree to implement
-this and document it in sysfs-interface.
-
-> + 
-> +The g760a driver will not update its reported values more frequently
-> +than every second; reading them more often will do no harm, but will return
-> +'old' values.
-> +
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index a0445be..6ce8c12 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -291,6 +291,16 @@ config SENSORS_FSCHMD
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called fschmd.
->  
-> +config SENSORS_G760A
-> +	tristate "GMT G760A"
-> +	depends on I2C
-> +	help
-> +	  If you say yes here you get support for Global Mixed-mode
-> +	  Technology Inc G760A fan speed pwm controller chips.
-
-PWM
-
-> +
-> +	  This driver can also be built as a module.  If so, the module
-> +	  will be called g760a.
-> +
->  config SENSORS_GL518SM
->  	tristate "Genesys Logic GL518SM"
->  	depends on I2C
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index 55595f6..93d78a8 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -35,6 +35,7 @@ obj-$(CONFIG_SENSORS_F75375S)	+= f75375s.o
->  obj-$(CONFIG_SENSORS_FSCHER)	+= fscher.o
->  obj-$(CONFIG_SENSORS_FSCHMD)	+= fschmd.o
->  obj-$(CONFIG_SENSORS_FSCPOS)	+= fscpos.o
-> +obj-$(CONFIG_SENSORS_G760A)	+= g760a.o
->  obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
->  obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
->  obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
-> diff --git a/drivers/hwmon/g760a.c b/drivers/hwmon/g760a.c
-> new file mode 100644
-> index 0000000..4bc5a7e
-> --- /dev/null
-> +++ b/drivers/hwmon/g760a.c
-> @@ -0,0 +1,296 @@
-> +/*
-> +    g760a - Driver for the Global Mixed-mode Technology Inc. G760A
-> +	    fan speed PWM controller chip
-> +
-> +    Copyright (C) 2007  Herbert Valerio Riedel <hvr@gnu.org>
-> +
-> +    Complete datasheet is available at GMT's website:
-> +      http://www.gmt.com.tw/datasheet/g760a.pdf
-> +
-> +    This program is free software; you can redistribute it and/or modify
-> +    it under the terms of the GNU General Public License as published by
-> +    the Free Software Foundation; either version 2 of the License, or
-> +    (at your option) any later version.
-> +*/
-> +
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/slab.h>
-> +#include <linux/jiffies.h>
-> +#include <linux/i2c.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +#include <linux/err.h>
-> +#include <linux/mutex.h>
-> +#include <linux/sysfs.h>
-> +
-> +enum g760a_regs {
-> +	G760A_REG_SET_CNT = 0x00,
-> +	G760A_REG_ACT_CNT = 0x01,
-> +	G760A_REG_FAN_STA = 0x02
-> +};
-> +
-> +#define G760A_REG_FAN_STA_RPM_OFF 0x1 /* >+-20% off */
-
-"> +/-20% off" would be more readable.
-
-> +#define G760A_REG_FAN_STA_RPM_LOW 0x2 /* below fan1_min */
-> +
-> +/* register data is read (and cached) at most once per second */
-> +#define G760A_UPDATE_INTERVAL (HZ)
-> +
-> +struct g760a_data {
-> +	struct i2c_client *client;
-> +	struct device *hwmon_dev;
-> +	struct mutex update_lock;
-> +
-> +	/* g760a register cache */
-> +	int valid:1;
-> +	unsigned long last_updated; /* In jiffies */
-> +
-> +	u8 set_cnt; /* closed loop count number; 0xff stops fan	*/
-> +	u8 act_cnt; /*   formula: cnt = (CLK * 30)/(rpm * P) */
-> +	u8 fan_sta; /* bit 0: set when actual fan speed more than %20
-
-20%
-
-> +		     *   outside requested fan speed
-> +		     * bit 1: set when fan speed causes counter overflow
-> +		     */
-> +};
-> +
-> +#define G760A_DEFAULT_CLK 32768
-> +#define G760A_DEFAULT_FAN_DIV 1
-
-That's pretty confusing, even if the computation is right in the end.
-The default fan div is 2 not 1!
-
-> +#define G760A_DEFAULT_FAN_MIN g760a_rpm_from_reg(0xff)
-> +
-> +static inline int g760a_rpm_from_reg(unsigned regval)
-> +{
-> +	if (!regval)
-> +		return -1;
-> +	return (G760A_DEFAULT_CLK*15)/(regval*G760A_DEFAULT_FAN_DIV);
-> +}
-> +
-> +static inline u8 g760a_rpm_to_reg(unsigned rpm)
-
-unsigned long
-
-> +{
-> +	unsigned regval;
-> +
-> +	if (!rpm)
-> +		return 0xff; /* turn off */
-> +	regval = (G760A_DEFAULT_CLK*15)/(rpm*G760A_DEFAULT_FAN_DIV);
-> +	return SENSORS_LIMIT(regval, 0x00, 0xfe);
-
-0x00 does not correspond to a valid speed, so that would rather be:
-	return SENSORS_LIMIT(regval, 0x01, 0xfe);
-
-> +}
-> +
-> +#define PWM_FROM_CNT(cnt)	(0xff-(cnt))
-> +#define PWM_TO_CNT(pwm)		(0xff-(pwm))
-> +
-> +/****************************************************************************
-> + * sysfs attributes
-> + */
-> +
-> +static struct g760a_data *g760a_update_client(struct device *dev)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g760a_data *data = i2c_get_clientdata(client);
-> +
-> +	mutex_lock(&data->update_lock);
-> +
-> +	if (time_after(jiffies, data->last_updated + G760A_UPDATE_INTERVAL)
-> +	    || !data->valid) {
-> +		dev_dbg(&client->dev, "Starting g760a update\n");
-> +
-> +		data->set_cnt = i2c_smbus_read_byte_data(client,
-> +							 G760A_REG_SET_CNT);
-> +		data->act_cnt = i2c_smbus_read_byte_data(client,
-> +							 G760A_REG_ACT_CNT);
-> +		data->fan_sta = i2c_smbus_read_byte_data(client,
-> +							 G760A_REG_FAN_STA);
-> +
-> +		data->last_updated = jiffies;
-> +		data->valid = 1;
-> +	}
-> +
-> +	mutex_unlock(&data->update_lock);
-> +
-> +	return data;
-> +}
-> +
-> +static ssize_t show_fan_input(struct device *dev, struct device_attribute *da,
-> +			      char *buf)
-> +{
-> +	struct g760a_data *data = g760a_update_client(dev);
-> +	int rpm = 0;
-> +
-> +	mutex_lock(&data->update_lock);
-> +	if (!(data->fan_sta & G760A_REG_FAN_STA_RPM_LOW))
-> +		rpm = g760a_rpm_from_reg(data->act_cnt);
-> +	mutex_unlock(&data->update_lock);
-> +
-> +	return sprintf(buf, "%d\n", rpm);
-> +}
-> +
-> +static ssize_t show_fan_target(struct device *dev, struct device_attribute *da,
-> +			       char *buf)
-> +{
-> +	struct g760a_data *data = g760a_update_client(dev);
-> +	int rpm = 0;
-
-Useless initialization.
-
-> +
-> +	mutex_lock(&data->update_lock);
-> +	rpm = (0xff = data->set_cnt) ? 0 : g760a_rpm_from_reg(data->set_cnt);
-> +	mutex_unlock(&data->update_lock);
-> +
-> +	return sprintf(buf, "%d\n", rpm);
-> +}
-> +
-> +static ssize_t set_fan_target(struct device *dev, struct device_attribute *da,
-> +			      const char *buf, size_t count)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g760a_data *data = i2c_get_clientdata(client);
-> +
-> +	const long val = simple_strtol(buf, NULL, 10);
-
-unsigned long and simple_strtoul().
-
-> +
-> +	mutex_lock(&data->update_lock);
-> +	data->set_cnt = g760a_rpm_to_reg(val);
-> +	i2c_smbus_write_byte_data(client, G760A_REG_SET_CNT, data->set_cnt);
-> +	mutex_unlock(&data->update_lock);
-> +
-> +	return count;
-> +}
-> +
-> +static ssize_t show_fan_alarm(struct device *dev, struct device_attribute *da,
-> +			      char *buf)
-> +{
-> +	struct g760a_data *data = g760a_update_client(dev);
-> +
-> +	int fan_alarm = (data->fan_sta & G760A_REG_FAN_STA_RPM_OFF) ? 1 : 0;
-> +
-> +	return sprintf(buf, "%d\n", fan_alarm);
-> +}
-> +
-> +static ssize_t show_fan_min(struct device *dev, struct device_attribute *da,
-> +			    char *buf)
-> +{
-> +	return sprintf(buf, "%d\n", G760A_DEFAULT_FAN_MIN);
-> +}
-> +
-> +
-> +static ssize_t show_pwm(struct device *dev, struct device_attribute *da,
-> +			char *buf)
-> +{
-> +	struct g760a_data *data = g760a_update_client(dev);
-> +
-> +	return sprintf(buf, "%d\n", PWM_FROM_CNT(data->set_cnt));
-> +}
-> +
-> +static ssize_t set_pwm(struct device *dev, struct device_attribute *da,
-> +		       const char *buf, size_t count)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct g760a_data *data = i2c_get_clientdata(client);
-> +
-> +	const long val = simple_strtol(buf, NULL, 10);
-> +
-> +	mutex_lock(&data->update_lock);
-> +	data->set_cnt = PWM_TO_CNT(SENSORS_LIMIT(val, 0, 255));
-> +	i2c_smbus_write_byte_data(client, G760A_REG_SET_CNT, data->set_cnt);
-> +	mutex_unlock(&data->update_lock);
-> +
-> +	return count;
-> +}
-> +
-> +static DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, show_pwm, set_pwm);
-> +static DEVICE_ATTR(fan1_target, S_IWUSR | S_IRUGO, show_fan_target,
-> +		   set_fan_target);
-> +static DEVICE_ATTR(fan1_input, S_IRUGO, show_fan_input, NULL);
-> +static DEVICE_ATTR(fan1_min, S_IRUGO, show_fan_min, NULL);
-> +static DEVICE_ATTR(fan1_alarm, S_IRUGO, show_fan_alarm, NULL);
-> +
-> +static struct attribute *g760a_attributes[] = {
-> +	&dev_attr_pwm1.attr,
-> +	&dev_attr_fan1_target.attr,
-> +	&dev_attr_fan1_input.attr,
-> +	&dev_attr_fan1_min.attr,
-> +	&dev_attr_fan1_alarm.attr,
-> +	NULL
-> +};
-> +
-> +static const struct attribute_group g760a_group = {
-> +	.attrs = g760a_attributes,
-> +};
-> +
-> +/****************************************************************************
-> + * new-style driver model code
-> + */
-> +
-> +static int g760a_probe(struct i2c_client *client)
-> +{
-> +	struct g760a_data *data;
-> +	int err;
-> +
-> +	if (!i2c_check_functionality(client->adapter,
-> +				     I2C_FUNC_SMBUS_BYTE_DATA))
-> +		return -EIO;
-> +
-> +	data = kzalloc(sizeof(struct g760a_data), GFP_KERNEL);
-> +	if (!data)
-> +		return -ENOMEM;
-> +
-> +	i2c_set_clientdata(client, data);
-> +
-> +	data->client = client;
-> +	mutex_init(&data->update_lock);
-> +
-> +	/* Register sysfs hooks */
-> +	err = sysfs_create_group(&client->dev.kobj, &g760a_group);
-> +	if (err)
-> +		goto error_sysfs_create_group;
-> +
-> +	data->hwmon_dev = hwmon_device_register(&client->dev);
-> +	if (IS_ERR(data->hwmon_dev)) {
-> +		err = PTR_ERR(data->hwmon_dev);
-> +		goto error_hwmon_device_register;
-> +	}
-> +
-> +	return 0;
-> +
-> +error_hwmon_device_register:
-> +	sysfs_remove_group(&client->dev.kobj, &g760a_group);
-> +error_sysfs_create_group:
-> +	kfree(data);
-> +	i2c_set_clientdata(client, NULL);
-> +
-> +	return err;
-> +}
-> +
-> +static int g760a_remove(struct i2c_client *client)
-> +{
-> +	struct g760a_data *data = i2c_get_clientdata(client);
-> +
-> +	hwmon_device_unregister(data->hwmon_dev);
-> +	sysfs_remove_group(&client->dev.kobj, &g760a_group);
-> +	kfree(data);
-> +	i2c_set_clientdata(client, NULL);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct i2c_driver g760a_driver = {
-> +	.driver = {
-> +		.name	= "g760a",
-> +	},
-> +	.probe	= g760a_probe,
-> +	.remove	= g760a_remove,
-> +};
-> +
-> +/* module management */
-> +
-> +static int __init g760a_init(void)
-> +{
-> +	return i2c_add_driver(&g760a_driver);
-> +}
-> +
-> +static void __exit g760a_exit(void)
-> +{
-> +	i2c_del_driver(&g760a_driver);
-> +}
-> +
-> +MODULE_AUTHOR("Herbert Valerio Riedel <hvr@gnu.org>");
-> +MODULE_DESCRIPTION("GMT G760A driver");
-> +MODULE_LICENSE("GPL");
-> +
-> +module_init(g760a_init);
-> +module_exit(g760a_exit);
-
-All the rest looks fine to me now. Please send an updated version and
-I'll ack it. I invite you to test your driver with lm-sensors 3.0, if
-your sysfs interface is correct it should work well.
 
 -- 
 Jean Delvare
