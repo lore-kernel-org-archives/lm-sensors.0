@@ -1,38 +1,77 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 28 Jan 2008 09:02:25 +0000
-Subject: Re: [lm-sensors] PATCH: hwmon-fschmd-use-dmi-tables.patch
-Message-Id: <20080128100225.525b2fcd@hyperion.delvare>
+Date: Sat, 05 Jan 2008 14:40:38 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon: (lm80) Add individual alarm files
+Message-Id: <20080105154038.0efa7781@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <47669C8B.2080507@hhs.nl>
-In-Reply-To: <47669C8B.2080507@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 27 Jan 2008 09:27:18 -0500, Mark M. Hoffman wrote:
-> Hi Jean, Hans:
->=20
-> * Jean Delvare <khali@linux-fr.org> [2007-12-21 11:49:10 +0100]:
-> >=20
-> > Hi Hans,
-> >=20
-> > Le 20/12/2007, "Hans de Goede" <j.w.r.degoede@hhs.nl> a =E9crit:
-> > >All fixed, new version attached.
-> >=20
-> > Looks alright.
-> >=20
-> > Acked-by: Jean Delvare <khali@linux-fr.org>
->=20
-> I've applied both patches (dmi-walk and fschmd) to hwmon-2.6.git/testing,
-> thanks.  FYI: the dmi-walk patch took some trivial merge conflict fixes.
+The new libsensors needs these individual alarm files.
 
-I had updated the patch already and posted it to LKML [1], but forgot
-to Cc you, sorry about that.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/lm80.c |   31 ++++++++++++++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
 
-[1] http://marc.info/?l=3Dlinux-kernel&m=120129379115786&w=3D2
+--- linux-2.6.24-rc6.orig/drivers/hwmon/lm80.c	2008-01-05 15:22:49.000000000 +0100
++++ linux-2.6.24-rc6/drivers/hwmon/lm80.c	2008-01-05 15:32:39.000000000 +0100
+@@ -304,6 +304,14 @@ static ssize_t show_alarms(struct device
+ 	return sprintf(buf, "%u\n", data->alarms);
+ }
+ 
++static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
++			  char *buf)
++{
++	int bitnr = to_sensor_dev_attr(attr)->index;
++	struct lm80_data *data = lm80_update_device(dev);
++	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
++}
++
+ static SENSOR_DEVICE_ATTR(in0_min, S_IWUSR | S_IRUGO,
+ 		show_in_min, set_in_min, 0);
+ static SENSOR_DEVICE_ATTR(in1_min, S_IWUSR | S_IRUGO,
+@@ -359,6 +367,17 @@ static DEVICE_ATTR(temp1_crit, S_IWUSR |
+ static DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO, show_temp_os_hyst,
+     set_temp_os_hyst);
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
++static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
++static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
++static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3);
++static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 4);
++static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 5);
++static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL, 6);
++static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 10);
++static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 11);
++static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 8);
++static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 13);
+ 
+ /*
+  * Real code
+@@ -405,7 +424,17 @@ static struct attribute *lm80_attributes
+ 	&dev_attr_temp1_crit.attr,
+ 	&dev_attr_temp1_crit_hyst.attr,
+ 	&dev_attr_alarms.attr,
+-
++	&sensor_dev_attr_in0_alarm.dev_attr.attr,
++	&sensor_dev_attr_in1_alarm.dev_attr.attr,
++	&sensor_dev_attr_in2_alarm.dev_attr.attr,
++	&sensor_dev_attr_in3_alarm.dev_attr.attr,
++	&sensor_dev_attr_in4_alarm.dev_attr.attr,
++	&sensor_dev_attr_in5_alarm.dev_attr.attr,
++	&sensor_dev_attr_in6_alarm.dev_attr.attr,
++	&sensor_dev_attr_fan1_alarm.dev_attr.attr,
++	&sensor_dev_attr_fan2_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
+ 	NULL
+ };
+ 
 
---=20
+
+-- 
 Jean Delvare
 
 _______________________________________________
