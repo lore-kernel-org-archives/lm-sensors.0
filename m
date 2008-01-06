@@ -1,117 +1,95 @@
-From: "Peter Eser" <Peter.Eser@heuft.com>
-Date: Thu, 31 Jan 2008 15:32:10 +0000
-Subject: [lm-sensors] failed to load it87 module on IT8712F
-Message-Id: <002001c8641e$71d8f6e0$180411ac@EDVW14>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3475932318848385398=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 06 Jan 2008 14:49:19 +0000
+Subject: [lm-sensors] hwmon: (adm9240) Add individual alarm files
+Message-Id: <20080106154919.1290ac85@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
+The new libsensors needs these individual alarm files.
 
---===============3475932318848385398==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_001D_01C86426.D3943720"
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Grant Coady <gcoady.lk@gmail.com>
+---
+Grant, could you please test and/or review this patch?
 
-This is a multi-part message in MIME format.
+ drivers/hwmon/adm9240.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-------=_NextPart_000_001D_01C86426.D3943720
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-Hello,
-
-I have a Aeeon PCM8120 board with VIA CX700M.
-On the VIA homepage its equipped with VT1211.
-But on board I find a (additional?) IT8712F and=20
-sensors detect finds only this one and says: (but not activated).
-modprobe vt1211 and it87 both say no such device.
-
-Bus module i2c-viapro has no problem.
-All is standard kernel 2.6.24.
-
-The sad thing is I have the it87 module running under=20
-kernel 2.2 (because the board is a replacement for an older
-one running on this old kernel, by the way this kernel is=20
-running fine on the new board). Can modprobe it87 with i2c-isa=20
-on the old kernel and get fan,temperatures,voltages.
-
-Any help would be great,
-
-Thanks,    Peter
-
-
-------=_NextPart_000_001D_01C86426.D3943720
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2800.1589" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>Hello,</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>I have a Aeeon PCM8120 board with VIA=20
-CX700M.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>On the VIA homepage its equipped with=20
-VT1211.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>But&nbsp;on board </FONT><FONT =
-face=3DArial size=3D2>I=20
-find a </FONT><FONT face=3DArial size=3D2>(additional?) IT8712F and =
-</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>sensors detect </FONT><FONT =
-face=3DArial size=3D2>finds=20
-only this one and says: (but not activated).</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>modprobe vt1211 and it87 both say no =
-such=20
-device.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Bus module i2c-viapro has no =
-problem.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>All is standard kernel =
-2.6.24.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>The sad thing is I have the it87 module =
-running=20
-under </FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>kernel 2.2 (because the board is a =
-replacement for=20
-an older</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>one running on this old kernel, by the =
-way this=20
-kernel is&nbsp;</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>running fine on the new board). Can =
-modprobe it87=20
-with i2c-isa </FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>on the old kernel and get=20
-fan,temperatures,voltages.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Any help would be great,</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Thanks,&nbsp;&nbsp;&nbsp; =
-Peter</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
-
-------=_NextPart_000_001D_01C86426.D3943720--
+--- linux-2.6.24-rc6.orig/drivers/hwmon/adm9240.c	2007-12-26 14:39:06.000000000 +0100
++++ linux-2.6.24-rc6/drivers/hwmon/adm9240.c	2008-01-02 10:46:33.000000000 +0100
+@@ -414,6 +414,23 @@ static ssize_t show_alarms(struct device
+ }
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
++static ssize_t show_alarm(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	int bitnr = to_sensor_dev_attr(attr)->index;
++	struct adm9240_data *data = adm9240_update_device(dev);
++	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
++}
++static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
++static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
++static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL, 3);
++static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL, 8);
++static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL, 9);
++static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL, 4);
++static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL, 6);
++static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 7);
++
+ /* vid */
+ static ssize_t show_vid(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+@@ -468,30 +485,39 @@ static struct attribute *adm9240_attribu
+ 	&sensor_dev_attr_in0_input.dev_attr.attr,
+ 	&sensor_dev_attr_in0_min.dev_attr.attr,
+ 	&sensor_dev_attr_in0_max.dev_attr.attr,
++	&sensor_dev_attr_in0_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in1_input.dev_attr.attr,
+ 	&sensor_dev_attr_in1_min.dev_attr.attr,
+ 	&sensor_dev_attr_in1_max.dev_attr.attr,
++	&sensor_dev_attr_in1_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in2_input.dev_attr.attr,
+ 	&sensor_dev_attr_in2_min.dev_attr.attr,
+ 	&sensor_dev_attr_in2_max.dev_attr.attr,
++	&sensor_dev_attr_in2_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in3_input.dev_attr.attr,
+ 	&sensor_dev_attr_in3_min.dev_attr.attr,
+ 	&sensor_dev_attr_in3_max.dev_attr.attr,
++	&sensor_dev_attr_in3_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in4_input.dev_attr.attr,
+ 	&sensor_dev_attr_in4_min.dev_attr.attr,
+ 	&sensor_dev_attr_in4_max.dev_attr.attr,
++	&sensor_dev_attr_in4_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_in5_input.dev_attr.attr,
+ 	&sensor_dev_attr_in5_min.dev_attr.attr,
+ 	&sensor_dev_attr_in5_max.dev_attr.attr,
++	&sensor_dev_attr_in5_alarm.dev_attr.attr,
+ 	&dev_attr_temp1_input.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
++	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_div.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_min.dev_attr.attr,
++	&sensor_dev_attr_fan1_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_fan2_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan2_div.dev_attr.attr,
+ 	&sensor_dev_attr_fan2_min.dev_attr.attr,
++	&sensor_dev_attr_fan2_alarm.dev_attr.attr,
+ 	&dev_attr_alarms.attr,
+ 	&dev_attr_aout_output.attr,
+ 	&dev_attr_chassis_clear.attr,
 
 
-
---===============3475932318848385398==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3475932318848385398==--
-
