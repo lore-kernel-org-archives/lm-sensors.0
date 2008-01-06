@@ -1,89 +1,75 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Thu, 17 Jan 2008 23:50:04 +0000
-Subject: [lm-sensors] [PATCH] coretemp: Add Penryn CPU to coretemp
-Message-Id: <478FE9AC.30804@assembler.cz>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------030407000000040800030906"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 06 Jan 2008 14:27:59 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (max1619) Add individual alarm and
+Message-Id: <20080106152759.64209d42@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030407000000040800030906
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
+The new libsensors needs these individual alarm and fault files.
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Alexey, would you have the opportunity to test this patch?
 
-Hello,
+ drivers/hwmon/max1619.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-This patch adds support for family 0x17, which has Penryn Core. It should also
-cover the 8 cores Xeons.
-
-Can someone test please? I think it should work.
-
-Signed-off-by: Rudolf Marek <r.marek@assembler.cz>
-
-Thanks,
-Rudolf
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFHj+ms3J9wPJqZRNURAqKoAJwLGJSgU2k1ke0Gn3550qMaWfIyGQCgimyV
-Fl8HRd1y4ecNQ7SqSMx3RL0=
-=8BPU
------END PGP SIGNATURE-----
-
---------------030407000000040800030906
-Content-Type: text/x-patch;
- name="add-penryn.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="add-penryn.patch"
-
-Index: linux-2.6.24-rc7/drivers/hwmon/coretemp.c
-===================================================================
---- linux-2.6.24-rc7.orig/drivers/hwmon/coretemp.c	2008-01-18 00:32:26.147387823 +0100
-+++ linux-2.6.24-rc7/drivers/hwmon/coretemp.c	2008-01-18 00:33:49.220121868 +0100
-@@ -414,10 +414,10 @@
- 	for_each_online_cpu(i) {
- 		struct cpuinfo_x86 *c = &cpu_data(i);
+--- linux-2.6.24-rc6.orig/drivers/hwmon/max1619.c	2007-12-20 12:37:39.000000000 +0100
++++ linux-2.6.24-rc6/drivers/hwmon/max1619.c	2008-01-01 10:36:17.000000000 +0100
+@@ -32,6 +32,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/i2c.h>
+ #include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
+@@ -161,6 +162,14 @@ static ssize_t show_alarms(struct device
+ 	return sprintf(buf, "%d\n", data->alarms);
+ }
  
--		/* check if family 6, models e, f, 16 */
-+		/* check if family 6, models 0xe, 0xf, 0x16, 0x17 */
- 		if ((c->cpuid_level < 0) || (c->x86 != 0x6) ||
- 		    !((c->x86_model == 0xe) || (c->x86_model == 0xf) ||
--			(c->x86_model == 0x16))) {
-+			(c->x86_model == 0x16) || (c->x86_model == 0x17))) {
++static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
++			  char *buf)
++{
++	int bitnr = to_sensor_dev_attr(attr)->index;
++	struct max1619_data *data = max1619_update_device(dev);
++	return sprintf(buf, "%d\n", (data->alarms >> bitnr) & 1);
++}
++
+ static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
+ static DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_input2, NULL);
+ static DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_temp_low2,
+@@ -172,6 +181,10 @@ static DEVICE_ATTR(temp2_crit, S_IWUSR |
+ static DEVICE_ATTR(temp2_crit_hyst, S_IWUSR | S_IRUGO, show_temp_hyst2,
+ 	set_temp_hyst2);
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
++static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_alarm, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO, show_alarm, NULL, 3);
++static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_alarm, NULL, 4);
  
- 			/* supported CPU not found, but report the unknown
- 			   family 6 CPU */
-Index: linux-2.6.24-rc7/Documentation/hwmon/coretemp
-===================================================================
---- linux-2.6.24-rc7.orig/Documentation/hwmon/coretemp	2008-01-18 00:34:00.776780445 +0100
-+++ linux-2.6.24-rc7/Documentation/hwmon/coretemp	2008-01-18 00:35:39.646414704 +0100
-@@ -4,9 +4,10 @@
- Supported chips:
-   * All Intel Core family
-     Prefix: 'coretemp'
--    CPUID: family 0x6, models 0xe, 0xf, 0x16
-+    CPUID: family 0x6, models 0xe, 0xf, 0x16, 0x17
-     Datasheet: Intel 64 and IA-32 Architectures Software Developer's Manual
-                Volume 3A: System Programming Guide
-+               http://softwarecommunity.intel.com/Wiki/Mobility/720.htm
+ static struct attribute *max1619_attributes[] = {
+ 	&dev_attr_temp1_input.attr,
+@@ -182,6 +195,10 @@ static struct attribute *max1619_attribu
+ 	&dev_attr_temp2_crit_hyst.attr,
  
- Author: Rudolf Marek
+ 	&dev_attr_alarms.attr,
++	&sensor_dev_attr_temp2_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_fault.dev_attr.attr,
++	&sensor_dev_attr_temp2_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp2_max_alarm.dev_attr.attr,
+ 	NULL
+ };
  
 
---------------030407000000040800030906
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------030407000000040800030906--
