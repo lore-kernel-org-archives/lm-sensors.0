@@ -1,37 +1,85 @@
-From: Mike Houston <mikeserv@bmts.com>
-Date: Thu, 17 Jan 2008 22:00:03 +0000
-Subject: Re: [lm-sensors] [Bug 9514] it87 probe failure in 2.6.24-rc -- what
-Message-Id: <20080117170003.7297ce39.mikeserv@bmts.com>
+From: Ulf =?iso-8859-1?q?Bartholom=E4us?= <ulfbart@gmx.de>
+Date: Mon, 07 Jan 2008 08:23:14 +0000
+Subject: [lm-sensors] k8temp, BE-2300 CPU
+Message-Id: <200801070923.18133.ulfbart@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200801171339.00887.bjorn.helgaas@hp.com>
-In-Reply-To: <200801171339.00887.bjorn.helgaas@hp.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jean Delvare <khali@linux-fr.org>, bugme-daemon@bugzilla.kernel.org, Shaohua Li <shaohua.li@intel.com>, Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, Robert Hancock <hancockr@shaw.ca>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Thu, 17 Jan 2008 13:38:57 -0700
-Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+I've seen the email thread "k8temp, BE-2350 CPU" from begin of Sep. 2007. I=
+n=20
+this was discussed that the output of sensors (with k8temp module) is wrong=
+:=20
+<http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021128.htm=
+l>
 
-> Where are we with this problem?
-> (http://bugzilla.kernel.org/show_bug.cgi?id=9514)
+On my PC is the same wrong output with a BE-2300 CPU. Is this known or only=
+=20
+the bug in the named BE-2350?
 
-> The second option I see is to use my patch
-> (http://bugzilla.kernel.org/attachment.cgi?id=14267&action=3Dview)
-> to make it87 request only the ports it uses.
+The ticket #2278 - "k8temp shows wrong temperature" - details:
+<http://www.lm-sensors.org/ticket/2278>
 
-> Whatever we do, it'd be nice to have a fix in 2.6.24, and I think my
-> patch is the least evil for now.
+I use a MSI K9AG Neo2 Digital Mainboard with Firmware Version 1.5 - details:
+<http://global.msi.com.tw/index.php?func=3Dproddesc&prod_no=1241&maincat_no=
+=3D1&cat2_no=171>
 
-From my perspective it sure seems to be the least evil, because it
-only touches what needs to be touched for my situation. I of course
-can't say how it would affect others.
+I use the package "sensors" Version 2.10.4-23 (x86_64) with build date: Sa =
+22=20
+Sep 2007 02:50:23 CEST - from the OpenSUSE 10.3 repository:
+<http://download.opensuse.org/repositories/openSUSE:10.3/standard/>
 
-I'm still using your patch (on 2.6.24-rc8 now) but I'll test whatever
-other solutions you folks may come up with.
+# sensors
+k8temp-pci-00c3
+Adapter: PCI adapter
+Core0 Temp:
+              +4=B0C
+Core0 Temp:
+              -1=B0C
+Core1 Temp:
+              -2=B0C
+Core1 Temp:
+             -20=B0C
 
-Mike Houston
+
+# cat /proc/cpuinfo
+processor       : 0
+vendor_id       : AuthenticAMD
+cpu family      : 15
+model           : 107
+model name      : AMD Athlon(tm) X2 Dual Core Processor BE-2300
+stepping        : 2
+cpu MHz         : 1000.000
+cache size      : 512 KB
+physical id     : 0
+siblings        : 2
+core id         : 0
+cpu cores       : 2
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 1
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca =
+
+cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt rdts=
+cp=20
+lm 3dnowext 3dnow pni cx16 lahf_lm cmp_legacy svm extapic cr8_legacy=20
+misalignsse
+bogomips        : 2067.29
+TLB size        : 1024 4K pages
+clflush size    : 64
+cache_alignment : 64
+address sizes   : 40 bits physical, 48 bits virtual
+power management: ts fid vid ttp tm stc 100mhzsteps
+
+processor       : 1
+[... the same - but "core id : 1" ...]
+
+
+--=20
+Ciao Ulf
 
 _______________________________________________
 lm-sensors mailing list
