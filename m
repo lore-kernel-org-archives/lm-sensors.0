@@ -1,41 +1,42 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Thu, 31 Jan 2008 14:17:35 +0000
-Subject: [lm-sensors] New hwmon git branch available
-Message-Id: <20080131141735.GF20687@jupiter.solarsys.private>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Wed, 09 Jan 2008 13:41:41 +0000
+Subject: Re: [lm-sensors] [lm-sensors-notify] #2263: Support for SMSC
+Message-Id: <191fb4ca0801090541ufd6ee96yae325c4dfeacb35e@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all:
+The B367 is a HP/Compaq specific part based on the B357. The B357
+doesn't contain any HW monitoring capabilites, so the B367 most likely
+doesn't either.
 
-The "testing" branch of my hwmon git tree is based off of v2.6.24:
+...juerg
 
-http://lm-sensors.org/kernel?p=kernel/mhoffman/hwmon-2.6.git;a=shortlog;h=testing
 
-A new branch "testing-merge" is available; it contains the contents of
-testing pulled into Linus' latest:
-
-http://lm-sensors.org/kernel?p=kernel/mhoffman/hwmon-2.6.git;a=shortlog;h=testing-merge
-
-This branch is not guaranteed to have a stable history (neither does
-testing).  I will try to update it daily as I'm merging new patches.
-
-For now, I can't even promise it will compile... but if you want to have
-a go at it and report back here, that would be great.  After I've chewed
-through the backlog of patches, I will give this branch more attention
-(testing, etc) as well.
-
-Also, if anyone wants rolled-up patches outside of git for testing,
-please just let me know.
-
-Thanks & regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+On Jan 9, 2008 1:03 PM, lm-sensors <lm-sensors-notify@lm-sensors.org> wrote:
+> #2263: Support for SMSC LPC47B367 SuperI/O chip.
+> -----------------------------------+----------------------------------------
+>   Reporter:  mod.god@vkw.demon.nl  |       Owner:  khali
+>       Type:  enhancement           |      Status:  assigned
+>   Priority:  minor                 |   Milestone:
+>  Component:  hardware              |     Version:  2.10.4
+> Resolution:                        |    Keywords:  SMSC LPC47B367
+> -----------------------------------+----------------------------------------
+> Comment (by khali):
+>
+>  Any news on this? If not I'll close this ticket.
+>
+> --
+> Ticket URL: <http://www.lm-sensors.org/ticket/2263#comment:17>
+> lm-sensors <http://lm-sensors.org/>
+> Linux hardware monitoring
+> _______________________________________________
+> lm-sensors-notify mailing list
+> lm-sensors-notify@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors-notify
+>
 
 _______________________________________________
 lm-sensors mailing list
