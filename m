@@ -1,88 +1,47 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 12 Jan 2008 09:49:21 +0000
+Date: Sat, 12 Jan 2008 09:56:58 +0000
 Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
-Message-Id: <20080112104921.4736d3be@hyperion.delvare>
+Message-Id: <20080112105658.6fb3995f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Va0NwseF.1198618285.6089960.khali@gcu-squad.org>
-	<200801021130.56395.bjorn.helgaas@hp.com>
-In-Reply-To: <200801021130.56395.bjorn.helgaas@hp.com>
+References: <fa.QPUBl9Xd2PDsImgWn6hbR+ShV1U@ifi.uio.no>
+	<fa.ri5Klmu4+MwjYC8x5nSms+xKXfI@ifi.uio.no>
+	<fa.B/J+j9kGGZ1+gW9FrfHky+cj0Eo@ifi.uio.no>
+	<fa.Xv3BmMxnCGLOeEijySte5mKDO5k@ifi.uio.no>
+	<4769C0E2.4000500@shaw.ca>
+In-Reply-To: <4769C0E2.4000500@shaw.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Shaohua Li <shaohua.li@intel.com>, Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, "Mark M. Hoffman" <mhoffman@lightlink.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Robert Hancock <hancockr@shaw.ca>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Shaohua Li <shaohua.li@intel.com>, Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Hi Bjorn,
+Hi Robert,
 
-Sorry for the late answer.
+On Wed, 19 Dec 2007 19:09:54 -0600, Robert Hancock wrote:
+> It's quite possible that the BIOS accesses the device either from ACPI 
+> AML or possibly even from SMI. In that case it would be quite reasonable 
+> for the BIOS to reserve that region to prevent another driver from 
+> loading and trying to take conflicting control of the device. One has to 
+> be careful before assuming that any such reservation is bogus.
 
-On Wed, 2 Jan 2008 11:30:55 -0700, Bjorn Helgaas wrote:
-> Even if the BIOS does not declare an IT87xxF as an independent device,
-> there may be AML that uses the chip internally.  For example, the
-> BIOS could declare a thermal zone with a _TMP method, and the _TMP
-> method could use the IT87xxF to read the temperature.  In that case,
-> the BIOS would still need to declare the IT87xxF resources so the OS
-> doesn't place another device on top of it.
+Again I am all for honoring such BIOS requests so as to prevent
+conflicts between ACPI or SMI and native drivers. The problem is that
+no two BIOS out there do the same in this respect. I couldn't see any
+correlation between machines declaring their hwmon device in PNP and
+machines where ACPI or SMI access the device in question. Many boards
+declare their device and seemingly never touch it so it's fine for
+Linux to drive them. Some boards no not declare the devices but still
+access them in our back.
 
-Thomas Renninger's patch set should handle this case. It's in -mm at the
-moment and I guess we'll merge most of it in 2.6.25.
+Thomas' patches should deal with the ACPI AML case in most cases, but
+not with SMI.
 
-> (...) An easy way to do this
-> is with a PNP0C02 "motherboard" device, which just says "these
-> resources are in use, but the OS needn't attach a driver to this
-> device."
-
-How do I see if a given motherboard does this or not? For example I
-have a motherboard here that says:
-
-0290-029f : pnp 00:04
-
-How do I know if this is a "PNP0C02 motherboard device" I am supposed
-not to touch, or a device that I can attach a native hwmon driver to?
-And more importantly, how does the it87 driver (or any other hwmon
-driver) know about it? I'm all for updating the hwmon drivers to
-cooperate better with PNP in order to prevent clashes between the BIOS
-and the OS, but I just don't know how I am supposed to do that.
-
-> > And what "collision" are you talking about? 
-> 
-> I meant the problem where we place two devices at the same address,
-> causing one to stop working.  I wrote "even if it87 isn't present,"
-> which is ambiguous -- I meant that we need something that works even
-> when the it87 _driver_ isn't present.
-
-I agree then. I don't think this has much to do with PNP though. What
-this is calling for is a Super-I/O subsystem that detects the Super-I/O
-and instantiate devices out of it. That way the drivers for these
-devices (in particular hardware monitoring drivers, watchdog drivers,
-some parport drivers...) would no longer need to instantiate their
-devices themselves, thus matching the device driver model much better.
-I've seen patches float around but so far I could never find the time
-to look into them (and I fear it's unlikely to change anytime soon.)
-
-> (...)
-> Well, it's true that PNP does not need to describe ALL devices in the
-> system.  However, it should describe all devices to which the OS should
-> bind a driver.  The BIOS writer has the discretion to hide devices from
-> the OS by omitting them from the ACPI namespace.  If he does that, his
-> assumption is that the OS will ignore the device (but of course, he's
-> thinking about a Plug-and-Play-compliant OS like Windows).
-
-Even under Windows, I pretty much doubt that any monitoring application
-cares about what the BIOS says. Motherboard vendor applications have
-enough information about each board model to know what they can do or
-not without asking the BIOS. Third-party applications probably just
-poke at known I/O locations (pretty much like the Linux hwmon drivers
-do) and hope for the best.
-
-> (...)
-> I think my patch to request only the ports actually used by the it87
-> driver is sufficient to solve the current problem.  If we find that
-> a BIOS neglects to reserve some of the ports decoded by the IT87xxF,
-> we can add a PNP quirk to handle that.  But I'm not aware of any
-> problems like that yet.
-
-I'm not aware of such a problem either.
+So either the PNP code in Linux isn't exporting enough details to
+differentiate, or even the PNP code has no way to tell these cases
+apart. In the latter case there's not much we can do. In the former
+case, let's have the PNP code export the information so that hwmon
+drivers can decide whether they should bind to the devices or not by
+default.
 
 -- 
 Jean Delvare
