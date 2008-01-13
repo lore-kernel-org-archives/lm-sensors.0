@@ -1,67 +1,48 @@
-From: Pelle Svensson <pelle2004@hotmail.com>
-Date: Fri, 04 Jan 2008 12:15:44 +0000
-Subject: Re: [lm-sensors] PWM control on Asus P4C800-E Delux dosen't
-Message-Id: <BAY143-W34249C33332920046A92C5B94C0@phx.gbl>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 13 Jan 2008 18:48:30 +0000
+Subject: Re: [lm-sensors] ASM58 Mozart-2 Driver
+Message-Id: <20080113194830.0ddbac4f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BAY143-W26588A0C37D226CBFA5FECB9560@phx.gbl>
-In-Reply-To: <BAY143-W26588A0C37D226CBFA5FECB9560@phx.gbl>
+References: <000301c83dfc$bdb0e980$3912bc80$@net>
+In-Reply-To: <000301c83dfc$bdb0e980$3912bc80$@net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Mark,
 
-Thanks guys,
+On Sun, 16 Dec 2007 14:33:41 -0500, Mark M. Hoffman wrote:
+> Hi Eric:
+> 
+> * Eric <resdrywall@bellsouth.net> [2007-12-13 21:55:09 -0500]:
+> >    I found a driver below but I cannot find docs on how to add it or if it is
+> >    compatible
+> > 
+> > 
+> > 
+> >    [2]http://lists.lm-sensors.org/pipermail/lm-sensors/2006-March/015735.html
+> > 
+> > 
+> > 
+> >    lm sensors version: sensors version 2.8.7 with libsensors version 2.8.7
+> > 
+> > 
+> > 
+> >    I looked at the later versions readme and did not see reference to this
+> >    being supported. Please let me know if this is possible because I have a
+> >    lot of interest in the applications that use it.
+> 
+> For whatever reason, it looks like the work-in-progress on this driver
+> was abandoned.  Any volunteers to fix it up and resubmit it?  It looks
+> mostly finished.  I'll fix it up myself if nobody gets to it.
 
-I use a DC regulator insted for the chassie and it's nice and quiet now.
-It's maybe not perfect but as what to do if the board dossn't have
-PWM controll.
+I'd rather do it myself so that you can spend your time on something
+else, like... reviewing my own patches ;)
 
-/Thanks=20
+-- 
+Jean Delvare
 
-----------------------------------------
-> Date: Thu, 3 Jan 2008 07:11:47 -0500
-> From: mhoffman@lightlink.com
-> To: khali@linux-fr.org
-> CC: r.marek@assembler.cz; pelle2004@hotmail.com; lm-sensors@lm-sensors.org
-> Subject: Re: [lm-sensors] PWM control on Asus P4C800-E Delux dosen't work=
-	for chassie fan
->=20
-> Hi all:
->=20
-> I've been AFK for quite a while...
->=20
-> * Jean Delvare  [2008-01-02 15:30:41 +0100]:
->>=20
->> Hi Rudolf,
->>=20
->> Le 29/12/2007, "Rudolf Marek"  a =E9crit:
->>>If there is no correlation found, you may try changing the base PWM
->>>frequency. I don't recall if the driver supports it (imho w83627th F ?)
->>=20
->> The W83627THF does DC fan control, not PWM, so there's no base frequency
->> to change. Not that it would have helped anyway, if the board is wired
->> for control then PWM=3D0 will stop the fan no matter the frequency.
->> Changing the frequency only changes the response curve.
->>=20
->> What Pelle could try is to connect a fan to the 3rd fan header then run
->> pwmconfig again. But as you said, if is very frequent that only the CPU
->> fan can be controlled and not the case fans, so I wouldn't hold my
->> breath.
->=20
-> I have this exact board (P4C800E-Deluxe), and I can confirm that only
-> the CPU fan header allows fan control.  Sorry.
->=20
-> Regards,
->=20
-> --=20
-> Mark M. Hoffman
-> mhoffman@lightlink.com
->=20
-
-_________________________________________________________________
-Spara, redigera och organisera dina foton enkelt med Photo Gallery!
-http://get.live.com/photogallery/overview
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
