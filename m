@@ -1,7 +1,7 @@
-From: Carren Stuart <kiwionabike@xnet.co.nz>
-Date: Sun, 13 Jan 2008 18:32:21 +0000
+From: "David Hubbard" <david.c.hubbard@gmail.com>
+Date: Sun, 13 Jan 2008 22:43:42 +0000
 Subject: Re: [lm-sensors] lmsensors and gkrellm
-Message-Id: <200801140732.21439.kiwionabike@xnet.co.nz>
+Message-Id: <4dfa50520801131443h1bfc6569p8eb8314f58c91f88@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200801131658.26068.kiwionabike@xnet.co.nz>
 In-Reply-To: <200801131658.26068.kiwionabike@xnet.co.nz>
@@ -10,33 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon January 14 2008 2:12:54 am you wrote:
-> Hi David, hi Carren,
+Hi Carren,
 
-    Hi Jean :-)
-
-> Note: lm-sensors doesn't have anything to do with hard-disk drive
-> temperature. HDD temperature is retrieved through SMART and we don't
-> have any support for that.
-
-I didn't realise that but it's really interesting, because, until I got 
-lmsensors working correctly, I couldn't get my hdd temp to show up in 
-Gkrellm. Once I got the sensors sorted the hdd temp automatically showed up - 
-prior to that it wasn't reading correctly and was always showing 0C. 
-
-> On Sat, 12 Jan 2008 22:37:32 -0700, David Hubbard wrote:
-> > The coretemp readings come from a digital temperature sensor inside
-> > the processor. The processor provides PCI device entries which access
-> > these internal sensors.
+> > Note: while this is true of AMD CPUs (k8temp is a PCI driver) this
+> > isn't how Intel CPUs work. The coretemp driver reads the temperature
+> > values from MSRs (model-specific registers) i.e. from the CPU directly.
 >
-> Note: while this is true of AMD CPUs (k8temp is a PCI driver) this
-> isn't how Intel CPUs work. The coretemp driver reads the temperature
-> values from MSRs (model-specific registers) i.e. from the CPU directly.
+> So does that make the coretemp values more accurate/reliable than the
+> thermal_zone temps?
 
-So does that make the coretemp values more accurate/reliable than the 
-thermal_zone temps?
+I stand corrected. Yes, I misunderstood how Intel CPUs report the
+digital temp sensor. But Carren, whether the CPU reports the data
+through PCI or through MSRs, it is just a digital temp sensor. (So,
+what does that mean for temp control? It just means another input.)
 
-~Carren
+In response to your other question -- why would your digital temp
+sensors be lower? I can't claim any knowledge about how the chip is
+actually engineered. But my SWAG (Scientifically Wildly in-Accurate
+Guess) would be that the digital sensors are measuring the temperature
+much closer to the execution core, while the analog thermal_zone
+sensors are measuring the whole-chip average temperature. Intel Core
+Duo chips had the very first releases of the Merom design, and
+probably are more prone to overheat in the "misc" circuitry. That is,
+the execution unit just got a huge overhaul and is incredibly
+efficient. So if the digital temp sensor is close to it, it gives
+Intel some nice benchmarks, but isn't the main suspect of overheating
+on this particular design.
+
+Or I could be completely wrong.
+
+David
 
 _______________________________________________
 lm-sensors mailing list
