@@ -1,7 +1,7 @@
-From: "David Hubbard" <david.c.hubbard@gmail.com>
-Date: Sun, 13 Jan 2008 05:37:32 +0000
+From: Carren Stuart <kiwionabike@xnet.co.nz>
+Date: Sun, 13 Jan 2008 07:52:13 +0000
 Subject: Re: [lm-sensors] lmsensors and gkrellm
-Message-Id: <4dfa50520801122137p34b5c302pbd6e8b87147ce7a7@mail.gmail.com>
+Message-Id: <200801132052.13787.kiwionabike@xnet.co.nz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200801131658.26068.kiwionabike@xnet.co.nz>
 In-Reply-To: <200801131658.26068.kiwionabike@xnet.co.nz>
@@ -10,105 +10,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Carren,
+On Sun January 13 2008 6:37:32 pm you wrote:
 
-On Jan 12, 2008 8:58 PM, Carren Stuart <kiwionabike@xnet.co.nz> wrote:
-> Hi :-)
+> The coretemp readings come from a digital temperature sensor inside
+> the processor. The processor provides PCI device entries which access
+> these internal sensors.
 >
-> I'm hoping somebody here can enlighten me.
->
-> I'm running OpenSUSE 10.3 on an Acer Travelmate laptop with an Intel Core Duo
-> 1.6GHz processor.
->
-> I finally figured out how to get lmsensors running and configured so that I
-> could get my hdd temps showing up in gkrellm.
->
-> I'm confused about something though ....
->
-> Prior to getting this working GKrellM showed under CPU temp:
->
-> thermal_zone/TZ00
-> thermal_zone/TZ01
->
-> with corresponding temps (dual core processor)
->
-> Since fixing lmsensors however it now shows two extra entries:
->
-> coretemp-hwmon0/temp1
-> coretemp-hwmon1/temp1
->
-> Also with corresponding temp readings.
->
-> BUT the readings are not the same. The coretemp readings are several degrees
-> lower than the thermal_zone readings, and the two cores are often showing
-> different temps, whereas in the thermal_zone readings, the cores are nearly
-> always showing the same temp.
->
-> I'm assuming the coretemps are what is being detected by lmsensors, so what is
-> reading the thermal_zone temps?
->
-> Which readings are likely to be the most accurate ones i.e. the ones I should
-> take notice of?
->
-> EDIT: Just as an example ...
->
-> right now the thermal_zone reading is showing temps of 51 and 51. The coretemp
-> reading is showing 45 and 41. That's a significant difference when it comes
-> to knowing when to be concerned about a particular temp.
->
-> If anyone can explain to me what the difference is between the thermal_zone
-> readings and the coretemp readings, and which of the two is considered more
-> accurate/reliable, I'd appreciate it.
->
-> Thanks in advance,
->
-> ~ Carren
+> The thermal_zone readings come from ACPI, so they might come from any
+> source, but 99% of the time, they are analog temperature sensors on
+> the processor, read by converting from analog to digital on the
+> motherboard. The processor does have a temperature sensor pin for each
+> core, which is this analog sensor.
 
-The coretemp readings come from a digital temperature sensor inside
-the processor. The processor provides PCI device entries which access
-these internal sensors.
+One would think therefore that the coretemp values would generally read higher 
+than the ACPI values, given that the coretemp sensors are embedded in the 
+core? This isn't the case with mine however - the thermal_zone values are 
+always significantly higher.
 
-The thermal_zone readings come from ACPI, so they might come from any
-source, but 99% of the time, they are analog temperature sensors on
-the processor, read by converting from analog to digital on the
-motherboard. The processor does have a temperature sensor pin for each
-core, which is this analog sensor.
+<SNIP>
 
-Surprisingly, you really have 4 temperature sensors. Each core has a
-digital and an analog sensor. The analog sensor is likely located on
-the top of the chip, inside its ceramic housing and close to the
-heatsink. On chips where this is the case, the analog sensor moves
-more slowly than the digital sensor, since the heat has to travel a
-short distance to reach the sensor. The digital sensor is likely
-located right next to the gates that are generating the heat.
+> What does this mean for you? Well, you don't want any of the sensors
+> to go too high, since they are all measuring real temperatures.
 
-Also keep in mind that the analog and digital sensors might be in
-different regions of the chip, and so one might heat up as its section
-of the chip is very active compared to the other.
+Which is another area of confusion to me. I have tried to find out what the 
+recommended temp range is for my processor, but when I emailed Intel they 
+told me they couldn't help me as my processor was an OEM product not a retail 
+product. They suggested I contact Acer, which I did, but never got a 
+response, so I'm still flying blind as far as knowing what temps would be 
+considered "high" or " cause for concern" for my processor.
 
-What does this mean for you? Well, you don't want any of the sensors
-to go too high, since they are all measuring real temperatures.
+> Also, you might be able to cool things down faster by watching the
+> coretemp sensors, since they respond more quickly to changes in the
+> load on the chip. But your CPU fan is probably watching the analog
+> sensors, so it will be slow to react to a sudden change in CPU
+> temperature.
 
-Also, you might be able to cool things down faster by watching the
-coretemp sensors, since they respond more quickly to changes in the
-load on the chip. But your CPU fan is probably watching the analog
-sensors, so it will be slow to react to a sudden change in CPU
-temperature.
+This is interesting. What puzzles me is that the thermal_zone values are 
+nearly always exactly the same for both cores, whereas the coretemp values 
+are almost always slightly different (which makes more sense to me)
 
-But don't feel like high temperatures mean instant death. Intel and
-Acer have probably taken good care to be sure the chip can't be
-permanently damaged -- in fact, if the chip actually gets close to
-damaging itself, the laptop will probably turn off, instantly, without
-warning.
+> But don't feel like high temperatures mean instant death. Intel and
+> Acer have probably taken good care to be sure the chip can't be
+> permanently damaged -- in fact, if the chip actually gets close to
+> damaging itself, the laptop will probably turn off, instantly, without
+> warning.
 
-At high temperatures, the chip may not be damaged but may not function
-right. If you get random segfaults and crashes that aren't
-software-related, and you are wondering what part of your hardware is
-the problem, having a few extra temperature sensors might help you
-diagnose your CPU's health.
+Well that's good to know.
 
-Hope that helps,
-David
+Many thanks for the excellent explanation David. Much appreciated :-)
+
+~ Carren
+
 
 _______________________________________________
 lm-sensors mailing list
