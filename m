@@ -1,47 +1,89 @@
-From: "David Hubbard" <david.c.hubbard@gmail.com>
-Date: Sun, 13 Jan 2008 22:43:42 +0000
-Subject: Re: [lm-sensors] lmsensors and gkrellm
-Message-Id: <4dfa50520801131443h1bfc6569p8eb8314f58c91f88@mail.gmail.com>
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Thu, 17 Jan 2008 23:50:04 +0000
+Subject: [lm-sensors] [PATCH] coretemp: Add Penryn CPU to coretemp
+Message-Id: <478FE9AC.30804@assembler.cz>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------030407000000040800030906"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200801131658.26068.kiwionabike@xnet.co.nz>
-In-Reply-To: <200801131658.26068.kiwionabike@xnet.co.nz>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Carren,
+This is a multi-part message in MIME format.
+--------------030407000000040800030906
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
 
-> > Note: while this is true of AMD CPUs (k8temp is a PCI driver) this
-> > isn't how Intel CPUs work. The coretemp driver reads the temperature
-> > values from MSRs (model-specific registers) i.e. from the CPU directly.
->
-> So does that make the coretemp values more accurate/reliable than the
-> thermal_zone temps?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I stand corrected. Yes, I misunderstood how Intel CPUs report the
-digital temp sensor. But Carren, whether the CPU reports the data
-through PCI or through MSRs, it is just a digital temp sensor. (So,
-what does that mean for temp control? It just means another input.)
+Hello,
 
-In response to your other question -- why would your digital temp
-sensors be lower? I can't claim any knowledge about how the chip is
-actually engineered. But my SWAG (Scientifically Wildly in-Accurate
-Guess) would be that the digital sensors are measuring the temperature
-much closer to the execution core, while the analog thermal_zone
-sensors are measuring the whole-chip average temperature. Intel Core
-Duo chips had the very first releases of the Merom design, and
-probably are more prone to overheat in the "misc" circuitry. That is,
-the execution unit just got a huge overhaul and is incredibly
-efficient. So if the digital temp sensor is close to it, it gives
-Intel some nice benchmarks, but isn't the main suspect of overheating
-on this particular design.
+This patch adds support for family 0x17, which has Penryn Core. It should also
+cover the 8 cores Xeons.
 
-Or I could be completely wrong.
+Can someone test please? I think it should work.
 
-David
+Signed-off-by: Rudolf Marek <r.marek@assembler.cz>
+
+Thanks,
+Rudolf
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFHj+ms3J9wPJqZRNURAqKoAJwLGJSgU2k1ke0Gn3550qMaWfIyGQCgimyV
+Fl8HRd1y4ecNQ7SqSMx3RL0=
+=8BPU
+-----END PGP SIGNATURE-----
+
+--------------030407000000040800030906
+Content-Type: text/x-patch;
+ name="add-penryn.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="add-penryn.patch"
+
+Index: linux-2.6.24-rc7/drivers/hwmon/coretemp.c
+===================================================================
+--- linux-2.6.24-rc7.orig/drivers/hwmon/coretemp.c	2008-01-18 00:32:26.147387823 +0100
++++ linux-2.6.24-rc7/drivers/hwmon/coretemp.c	2008-01-18 00:33:49.220121868 +0100
+@@ -414,10 +414,10 @@
+ 	for_each_online_cpu(i) {
+ 		struct cpuinfo_x86 *c = &cpu_data(i);
+ 
+-		/* check if family 6, models e, f, 16 */
++		/* check if family 6, models 0xe, 0xf, 0x16, 0x17 */
+ 		if ((c->cpuid_level < 0) || (c->x86 != 0x6) ||
+ 		    !((c->x86_model == 0xe) || (c->x86_model == 0xf) ||
+-			(c->x86_model == 0x16))) {
++			(c->x86_model == 0x16) || (c->x86_model == 0x17))) {
+ 
+ 			/* supported CPU not found, but report the unknown
+ 			   family 6 CPU */
+Index: linux-2.6.24-rc7/Documentation/hwmon/coretemp
+===================================================================
+--- linux-2.6.24-rc7.orig/Documentation/hwmon/coretemp	2008-01-18 00:34:00.776780445 +0100
++++ linux-2.6.24-rc7/Documentation/hwmon/coretemp	2008-01-18 00:35:39.646414704 +0100
+@@ -4,9 +4,10 @@
+ Supported chips:
+   * All Intel Core family
+     Prefix: 'coretemp'
+-    CPUID: family 0x6, models 0xe, 0xf, 0x16
++    CPUID: family 0x6, models 0xe, 0xf, 0x16, 0x17
+     Datasheet: Intel 64 and IA-32 Architectures Software Developer's Manual
+                Volume 3A: System Programming Guide
++               http://softwarecommunity.intel.com/Wiki/Mobility/720.htm
+ 
+ Author: Rudolf Marek
+ 
+
+--------------030407000000040800030906
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------030407000000040800030906--
