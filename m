@@ -1,7 +1,7 @@
-From: "Roger Lucas" <roger@planbit.co.uk>
-Date: Sun, 06 Jan 2008 17:22:03 +0000
+From: "Roger Lucas" <roger@hiddenengine.co.uk>
+Date: Thu, 17 Jan 2008 00:05:28 +0000
 Subject: Re: [lm-sensors] hwmon: (vt8231) Add individual alarm files
-Message-Id: <008401c85088$a7792d50$8001a8c0@wolverine>
+Message-Id: <006a01c8589c$ab0604e0$8001a8c0@wolverine>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080106154602.3f81ae40@hyperion.delvare>
 In-Reply-To: <20080106154602.3f81ae40@hyperion.delvare>
@@ -12,9 +12,46 @@ To: lm-sensors@vger.kernel.org
 
 Hi Jean,
 
-I'll check it on the hardware this week - I will probably not get a chance until Wed/Thu though...
+Sorry for the slow reply - I have finally had a chance to test your changes on the most recent 2.6.24-rc8 kernel.
 
-- Roger
+I have checked all the voltage, fan and temperature alarms and they work as expected.  I only have one temperature
+sensor on my motherboard so I was not able to test the alarms for temperatures 2 through 6, but the code looks correct
+so I would be very surprised if they did not work properly.
+
+My mail address is changing soon so I have a patch below to correct my e-mail addresses in the source code.  I have a
+special address for the vt8231 kernel development so that I can filter the spam on it more aggressively - it does seem
+to get heavily harvested...
+
+Thanks for your work preparing this patch - 100% right first time :-)
+
+Best regards,
+
+Roger Lucas
+
+
+Signed-off-by: Roger Lucas <vt8231@hiddenengine.co.uk>
+
+--- linux-2.6.24-rc8-orig/drivers/hwmon/vt8231.c        2008-01-16 22:59:25.000000000 +0000
++++ linux-2.6.24-rc8/drivers/hwmon/vt8231.c     2008-01-16 23:57:27.000000000 +0000
+@@ -2,7 +2,7 @@
+        vt8231.c - Part of lm_sensors, Linux kernel modules
+                                for hardware monitoring
+
+-       Copyright (c) 2005 Roger Lucas <roger@planbit.co.uk>
++       Copyright (c) 2005 Roger Lucas <vt8231@hiddenengine.co.uk>
+        Copyright (c) 2002 Mark D. Studebaker <mdsxyz123@yahoo.com>
+                           Aaron M. Marsh <amarsh@sdf.lonestar.org>
+
+@@ -999,7 +999,7 @@
+        }
+ }
+
+-MODULE_AUTHOR("Roger Lucas <roger@planbit.co.uk>");
++MODULE_AUTHOR("Roger Lucas <vt8231@hiddenengine.co.uk>");
+ MODULE_DESCRIPTION("VT8231 sensors");
+ MODULE_LICENSE("GPL");
+
+
 
 > -----Original Message-----
 > From: Jean Delvare [mailto:khali@linux-fr.org]
