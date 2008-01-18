@@ -1,36 +1,46 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Thu, 31 Jan 2008 13:04:20 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (lm77) Add individual alarm files
-Message-Id: <20080131130420.GB8290@jupiter.solarsys.private>
+From: Uwe Hermann <uwe@hermann-uwe.de>
+Date: Fri, 18 Jan 2008 21:54:49 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Small W83627EHF comment fix
+Message-Id: <20080118215449.GA26080@greenwood>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080103233533.08ff4c07@hyperion.delvare>
-In-Reply-To: <20080103233533.08ff4c07@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+Hi,
 
-* Jean Delvare <khali@linux-fr.org> [2008-01-03 23:35:33 +0100]:
-> The new libsensors needs this. As the old library never had support for
-> the lm77 driver, I even dropped the legacy "alarms" file.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
-> Michael, could you please test and/or review this patch? Either test
-> the sysfs files directly or use lm-sensors 3.0.0 and the alarms should
-> be displayed as needed. Thanks.
-> 
->  drivers/hwmon/lm77.c |   20 +++++++++++++++-----
->  1 file changed, 15 insertions(+), 5 deletions(-)
+here's a tiny patch to update a comment in sensors-detect. I can confirm
+there are boards with Winbond W83627EHF with the ID 0x8854, in my case
+the ASUS A8V-E Deluxe.
 
-Applied to hwmon-2.6.git/testing, thanks.
+See also
+http://www.coreboot.org/pipermail/coreboot/2008-January/029416.html
 
+Pretty trivial, not sure if this is worth committing, just wanted to
+let you know.
+
+
+Signed-off-by: Uwe Hermann <uwe@hermann-uwe.de>
+
+Index: prog/detect/sensors-detect
+=================================--- prog/detect/sensors-detect	(Revision 5106)
++++ prog/detect/sensors-detect	(Arbeitskopie)
+@@ -2010,7 +2010,7 @@
+       {
+ 	name => "Winbond W83627EHF/EF/EHG/EG Super IO Sensors",
+ 	driver => "w83627ehf",
+-	# W83627EHF datasheet says 0x886x but 0x8853 was seen, thus the
++	# W83627EHF datasheet says 0x886x but 0x885[34] was seen, thus the
+ 	# broader mask. W83627EHG was seen with ID 0x8863.
+ 	devid => 0x8840,
+ 	devid_mask => 0xFFC0,
+
+
+Cheers, Uwe.
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+http://www.hermann-uwe.de  | http://www.holsham-traders.de
+http://www.crazy-hacks.org | http://www.unmaintained-free-software.org
 
 _______________________________________________
 lm-sensors mailing list
