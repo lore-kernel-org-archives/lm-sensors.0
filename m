@@ -1,75 +1,1180 @@
-From: Matt Roberds <mattroberds@cox.net>
-Date: Mon, 21 Jan 2008 20:52:55 +0000
-Subject: [lm-sensors] adt7475 support (Asus M2N-SLI Deluxe)
-Message-Id: <Pine.LNX.4.64.0801211406570.32720@birdbird.example.com>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Tue, 22 Jan 2008 21:10:32 +0000
+Subject: Re: [lm-sensors] adt7475 support (Asus M2N-SLI Deluxe)
+Message-Id: <47965BC8.7040404@hhs.nl>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="655872-352042579-1200948775=:32720"
+Content-Type: multipart/mixed; boundary="------------010400050208010902040302"
 List-Id: <lm-sensors.vger.kernel.org>
+References: <Pine.LNX.4.64.0801211406570.32720@birdbird.example.com>
+In-Reply-To: <Pine.LNX.4.64.0801211406570.32720@birdbird.example.com>
 To: lm-sensors@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This is a multi-part message in MIME format.
+--------------010400050208010902040302
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
---655872-352042579-1200948775=:32720
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Matt Roberds wrote:
+> Hello all!
+> 
+> I recently built a system using an Asus M2N-SLI Deluxe motherboard,
+> which has an Analog Devices ADT7475 thermal monitor and fan control
+> chip.  sensors-detect knows about it but says there is no driver.  I've
+> been looking through the mailing list archives and found a post from
+> Hans de Goede in December with a partial driver (see
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-December/022169.html 
+> ).
+> 
+> I downloaded that driver and it built as a module under kernel 2.6.18,
+> after commenting out a few lines of code.  sensors (from lm-sensors
+> 3.0.0) says:
+> 
 
-Hello all!
+Hi,
 
-I recently built a system using an Asus M2N-SLI Deluxe motherboard,
-which has an Analog Devices ADT7475 thermal monitor and fan control
-chip.  sensors-detect knows about it but says there is no driver.  I've
-been looking through the mailing list archives and found a post from
-Hans de Goede in December with a partial driver (see
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-December/022169.html =
-).
+Yes that Hans de Goede would be me. Unfortunately I'm still waiting for my Asus 
+M2N-SLI Deluxe to return from the Asus repair center as it broke down.
 
-I downloaded that driver and it built as a module under kernel 2.6.18,
-after commenting out a few lines of code.  sensors (from lm-sensors
-3.0.0) says:
+Notice that beside my driver WIP, there also is one written by Jordan Crouse
+I just noticed when looking it up in my archive that he hasn't send it to the 
+list yet, so I've attached it here. Both drivers need quite some work before 
+being acceptable for mainline inclusion. The one done by my students is 
+incomplete, and the one done by Jordan Crouse (attached) needs to have atleast 
+the following issues fixed:
 
+* remote vcc and vcpp are not valid input names, please see 
+Documentation/hwmon/sysfs-interface for valid sysfs attr names.
+
+* You're handling of the alarms is wrong, now a days we have one alarm file per 
+inpuit, again see: Documentation/hwmon/sysfs-interface
+
+* Don't call a driver adt74xx even if it will support multiple chips, it may 
+very well never support all chips matching the xx mask, so instead just call it 
+after the first support chips, other documentation like the wiki-page and 
+sensors-detect will show to use this driver for releated chips.
+
+
+
+> This motherboard has two sensor chips: an ITE IT8716F and the ADT7475.
+> I suspect that the IT8716 is used as a monitor (read only) for fan
+> speeds, temperatures, and voltages, while the ADT7475 is actually
+> controlling the fan speeds.  Interestingly, the motherboard has four
+> chassis fan connectors, and the ADT7475 seems to have four fan control
+> channels.  I don't yet have any fans plugged into the chassis fan
+> connectors on the motherboard, so it could be that those channels
+> are working correctly and reporting the truth: there are no fans
+> plugged in.  (I do have a couple of spare fans I could plug in for
+> testing.)
+> 
+
+That sounds unlikely, I haven't tested but atleast some of the fans were 
+monitored by the ITE, so most likely they were also controlled by the ITE.
+
+> I'd like to get this driver fully working.  I can hack on it myself,
+> or test code that other people have hacked on.  What is the best way
+> to proceed?
+> 
+
+You can work on it yourself, or you can wait for me or Jurgen (who also has a 
+driver for this on his hitlist) to do it, I'm waiting for the motherboard to 
+return before I resume working on it.
+
+Regards,
+
+Hans
+
+--------------010400050208010902040302
+Content-Type: text/plain;
+ name="adt7475.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="adt7475.patch"
+
+[PATCH] hwmon:  Add a driver for the ADT7475 thermal sensor
+
+From: Jordan Crouse <jordan.crouse@amd.com>
+
+HWMON driver for the ADT7475 thermal sensor.
+
+Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
 ---
-adt7475-i2c-5-2e
-Adapter: SMBus nForce2 adapter at 1c40
-in0:         +0.03 V  (min =3D  +0.00 V, max =3D  +7.47 V)
-in1:        +32.42 V  (min =3D  +0.00 V, max =3D +10.71 V)
-fan1:          0 RPM  (min =3D    0 RPM)
-fan2:          0 RPM  (min =3D    0 RPM)
-fan3:          0 RPM  (min =3D    0 RPM)
-fan4:          0 RPM  (min =3D    0 RPM)
-temp1:       -64.0=B0C  (low  =3D  +1.0=B0C, high =3D +127.0=B0C)
-temp2:       +39.5=B0C  (low  =3D  +1.0=B0C, high =3D +127.0=B0C)
-temp3:       -64.0=B0C  (low  =3D  +1.0=B0C, high =3D +127.0=B0C)
----
 
-so at least the temp2 value seems to be working.
+ Documentation/hwmon/adt74xx |  124 ++++++
+ drivers/hwmon/Kconfig       |   10 
+ drivers/hwmon/Makefile      |    1 
+ drivers/hwmon/adt74xx.c     |  885 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/i2c-id.h      |    2 
+ 5 files changed, 1021 insertions(+), 1 deletions(-)
 
-This motherboard has two sensor chips: an ITE IT8716F and the ADT7475.
-I suspect that the IT8716 is used as a monitor (read only) for fan
-speeds, temperatures, and voltages, while the ADT7475 is actually
-controlling the fan speeds.  Interestingly, the motherboard has four
-chassis fan connectors, and the ADT7475 seems to have four fan control
-channels.  I don't yet have any fans plugged into the chassis fan
-connectors on the motherboard, so it could be that those channels
-are working correctly and reporting the truth: there are no fans
-plugged in.  (I do have a couple of spare fans I could plug in for
-testing.)
+diff --git a/Documentation/hwmon/adt74xx b/Documentation/hwmon/adt74xx
+new file mode 100644
+index 0000000..1a1fa3c
+--- /dev/null
++++ b/Documentation/hwmon/adt74xx
+@@ -0,0 +1,124 @@
++These are the device files that I have for the ADT7475 under Linux.
++
++(there are 4 fans, numbered fan1 to fan4):
++
++fanX_input              Read the current speed of the fan (in RPMs)
++fanX_min                Read/write the minimum speed of the fan.  Dropping
++	   		below this sets an alarm.
++
++(there are three PWMs, numbered pwm1 to pwm3):
++
++pwmX                    Read/write the current duty cycle of the PWM.  Writes
++     			only have effect when auto mode is turned off (see
++			below).
++
++pwmX_auto               Read/write the PWM configuration based on the following
++                        table:
++
++		        0 - Remote1 temp controls PWMx (auto mode)
++		        1 - local temp controls PWMx (auto mode)
++	 	        2 - remote2 temp controls PWMx (auto mode)
++                        3 - PWMx runs at full speed
++                        4 - PWMx is disabled
++                        5 - Use fastest speed calculated by local and remote2
++                        6 - Use fastest speed calculated by all three channels
++                        7 - Manual mode
++
++pwmX_freq               Read/write the PWM frequency.  The value returned is
++	  	        an index into the following table:
++
++		        0x0 - 11.0 Hz
++		        0x1 - 14.7 Hz
++		        0x2 - 22.1 Hz
++		        0x3 - 29.4 Hz
++		        0x4 - 35.3 Hz
++		        0x5 - 44.1 Hz
++		        0x6 - 58.8 Hz
++		        0x7 - 88.2 Hz
++
++pwmX_max                Read/write the maximum PWM duty cycle.  The PWM
++                        duty cycle will never exceed this.
++
++pwmX_min                Read/write the minimum PWM duty cycle in automatic mode
++
++(there are three temperature settings for remote1, local, and remote2);
++
++remote1_input           Read the current temperature.  The value is in milli
++			degrees of Celsius.
++
++remote1_max             Read/write the upper temperature limit - exceeding this
++	                will cause an alarm.
++
++remote1_min             Read/write the lower temperature limit - exceeding this
++                        will cause an alarm.
++
++remote1_offset          Read/write the temperature adjustment offset
++
++remote1_auto_max        Read/write the THERM limit for remote1.  Exceeding this
++                        causes the chip to force the processor off.
++
++remote1_auto_min   	Read/write the minimum temperature where the fans will
++                        turn on in automatic mode.
++
++remote1_auto_rage  	Read/write the range over which the automatic fan
++			control will be executed.  The value returned is a
++			index into the following table:
++
++			0x0 - 2 C
++			0x1 - 2.5 C
++			0x2 - 3.33 C
++			0x3 - 4 C
++			0x4 - 5 C
++			0x5 - 6.67 C
++			0x6 - 8 C
++			0x7 - 10 C
++			0x8 - 13.33 C
++			0x9 - 16 C
++			0xA - 20 C
++			0xB - 26.67 C
++			0xC - 32 C
++			0xD - 40 C
++			0xE - 53.33 C
++			0xF - 80 C
++
++remote1_auto_hystersis	set the temperature range below auto_max where the
++                        fans will stay on - this helps drive the temperature
++                        low enough so it doesn't stay near the edge and
++                        cause THERM to keep tripping.
++
++vcc_input               Read the current voltage on VCC.  Value is in
++			millivolts.
++
++vcc_min                 read/write the minimum voltage limit.
++			Dropping below this causes an alarm.
++
++vcc_max   		read/write the maximum voltage limit.
++			Exceeding this causes an alarm.
++
++vccp_input		Read the current voltage on VCCP.  Value is in
++			millivolts.
++
++vccp_min		read/write the minimum voltage limit
++			Dropping below this causes an alarm.
++
++vccp_max		read/write the maximum voltage limit.
++			Exceeding this causes an alarm.
++
++alarm			Bitmask showing the current alarms:
++
++			bit 0  - unused
++			bit 1  - VCCP high/low limit has been exceeded
++			bit 2  - VCC high/low limit has been exceeded
++			bit 3  - unused
++			bit 4  - Remote1 high/low limit has been exceeded
++			bit 5  - local high/low limit has been exceeded
++			bit 6  - remote2 high/low limit has been exceeded
++			bit 7  - unused
++			bit 8  - unused
++			bit 9  - one of the THERM limit has been exceeded
++			bit 10  - fan1 is below low limit or has stalled
++			bit 11 - fan2 is below low limit or has stalled
++			bit 12 - fan3 is below low limit or has stalled
++			bit 13 - fan4 is below low limit or has stalled
++			bit 14 - open or short on thermal diode 1
++			bit 15 - open or short on thermal diode 2
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index a0445be..50df787 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -143,6 +143,16 @@ config SENSORS_ADT7470
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called adt7470.
+ 
++config SENSORS_ADT74XX
++	tristate "Analog Devices ADT74xx and compatibles"
++	depends on I2C && EXPERIMENTAL
++	help
++	  If you say yes here you get support for the Analog Devices
++	  ADT74xx family of sensor chips.
++
++	  This driver can also be build as a module.  If so, the module
++	  will be called adt74xx.
++
+ config SENSORS_K8TEMP
+ 	tristate "AMD Athlon64/FX or Opteron temperature sensor"
+ 	depends on X86 && PCI && EXPERIMENTAL
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 55595f6..93dae94 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -23,6 +23,7 @@ obj-$(CONFIG_SENSORS_ADM1029)	+= adm1029.o
+ obj-$(CONFIG_SENSORS_ADM1031)	+= adm1031.o
+ obj-$(CONFIG_SENSORS_ADM9240)	+= adm9240.o
+ obj-$(CONFIG_SENSORS_ADT7470)	+= adt7470.o
++obj-$(CONFIG_SENSORS_ADT74XX)   += adt74xx.o
+ obj-$(CONFIG_SENSORS_APPLESMC)	+= applesmc.o
+ obj-$(CONFIG_SENSORS_AMS)	+= ams/
+ obj-$(CONFIG_SENSORS_ATXP1)	+= atxp1.o
+diff --git a/drivers/hwmon/adt74xx.c b/drivers/hwmon/adt74xx.c
+new file mode 100644
+index 0000000..52f65c3
+--- /dev/null
++++ b/drivers/hwmon/adt74xx.c
+@@ -0,0 +1,885 @@
++/*
++ * adt74xx - Thermal sensor driver for the ADT74xx family
++ * Copyright (C) 2007, Advanced Micro Devices, Inc.
++ *
++ * Derived from the lm83 driver by Jean Delvare
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/* 7475 Notes:
++ * Addeded by: Jordan Crouse <jordan.crouse@amd.com>
++ * Datasheet:  http://www.analog.com/UploadedFiles/Data_Sheets/ADT7475.pdf
++ * TODO:  enhanced acoustics
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++
++/* Indexes for the sysfs hooks */
++
++#define INPUT     0
++#define MIN       1
++#define MAX       2
++#define CONTROL   3
++#define OFFSET    3
++#define AUTOMIN   4
++#define FREQ      4
++#define THERM     5
++#define HYSTERSIS 6
++#define RANGE     7
++
++/* 74xx Common Registers */
++
++#define REG_VOLTAGE_BASE        0x21
++#define REG_TEMP_BASE           0x25
++#define REG_TACH_BASE		0x28
++#define REG_PWM_BASE            0x30
++#define REG_PWM_MAX_BASE        0x38
++
++#define REG_DEVID               0x3D
++#define REG_VENDID              0x3E
++
++#define REG_CONFIG1             0x40
++#define REG_STATUS1             0x41
++#define REG_STATUS2             0x42
++
++/* Not all the alarm bits are enabled - mask the ones we don't use */
++#define ALARM_MASK              0xFE76
++
++#define REG_VOLTAGE_MIN_BASE    0x46
++#define REG_VOLTAGE_MAX_BASE    0x47
++
++#define REG_TEMP_MIN_BASE       0x4E
++#define REG_TEMP_MAX_BASE	0x4F
++
++#define REG_TACH_MIN_BASE	0x54
++
++#define REG_PWM_CONFIG_BASE     0x5C
++
++#define REG_TEMP_TRANGE_BASE    0x5F
++
++#define REG_ACOUSTICS1          0x62
++#define REG_ACOUSTICS2          0x63
++
++#define REG_PWM_MIN_BASE        0x64
++
++#define REG_TEMP_TMIN_BASE      0x67
++#define REG_TEMP_THERM_BASE     0x6A
++
++#define REG_REMOTE1_HYSTERSIS   0x6D
++#define REG_REMOTE2_HYSTERSIS   0x6E
++
++#define REG_TEMP_OFFSET_BASE    0x70
++
++#define REG_CONFIG2             0x73
++#define REG_INTERRUPT_MASK1     0x74
++#define REG_INTERRUPT_MASK2     0x75
++#define REG_EXTEND1             0x76
++#define REG_EXTEND2             0x77
++#define REG_CONFIG3             0x78
++#define REG_THERM_TIMER_STATUS  0x79
++#define REG_THERM_TIMER_LIMIT   0x7A
++#define REG_TACH_PULSES         0x7B
++#define REG_CONFIG5             0x7C
++
++#define CONFIG5_TWOSCOMP        0x01
++#define CONFIG5_TEMPOFFSET      0x02
++
++#define REG_CONFIG4             0x7D
++
++/* ADT7475 Settings */
++
++#define ADT7475_VOLTAGE_COUNT   2
++#define ADT7475_TEMP_COUNT      3
++#define ADT7475_TACH_COUNT	4
++#define ADT7475_PWM_COUNT       3
++
++/* 7475 specific registers */
++
++#define REG_CONFIG6             0x10
++#define REG_CONFIG7             0x11
++
++
++/* Macro to read the registers */
++
++#define adt74xx_read(reg) i2c_smbus_read_byte_data(client, (reg))
++
++/* Macros to easily index the registers */
++
++#define TACH_REG(idx) (REG_TACH_BASE + ((idx) * 2))
++#define TACH_MIN_REG(idx) (REG_TACH_MIN_BASE + ((idx) * 2))
++
++#define PWM_REG(idx) (REG_PWM_BASE + (idx))
++#define PWM_MAX_REG(idx) (REG_PWM_MAX_BASE + (idx))
++#define PWM_MIN_REG(idx) (REG_PWM_MIN_BASE + (idx))
++#define PWM_CONFIG_REG(idx) (REG_PWM_CONFIG_BASE + (idx))
++
++#define VOLTAGE_REG(idx) (REG_VOLTAGE_BASE + (idx))
++#define VOLTAGE_MIN_REG(idx) (REG_VOLTAGE_MIN_BASE + ((idx) * 2))
++#define VOLTAGE_MAX_REG(idx) (REG_VOLTAGE_MAX_BASE + ((idx) * 2))
++
++#define TEMP_REG(idx) (REG_TEMP_BASE + (idx))
++#define TEMP_MIN_REG(idx) (REG_TEMP_MIN_BASE + ((idx) * 2))
++#define TEMP_MAX_REG(idx) (REG_TEMP_MAX_BASE + ((idx) * 2))
++#define TEMP_TMIN_REG(idx) (REG_TEMP_TMIN_BASE + (idx))
++#define TEMP_THERM_REG(idx) (REG_TEMP_THERM_BASE + (idx))
++#define TEMP_OFFSET_REG(idx) (REG_TEMP_OFFSET_BASE + (idx))
++#define TEMP_TRANGE_REG(idx) (REG_TEMP_TRANGE_BASE + (idx))
++
++/* Convert the tach reading into RPMs */
++
++#define TACH2RPM(val) ((90000 * 60) / (val))
++#define RPM2TACH(val) ((90000 * 60) / (val))
++
++/* Convert the voltage registers into mW */
++
++#define REG2VCC(val) ((42 * (int)(val)) / 10)
++#define REG2VCCP(val) ((293 * (int)(val)) / 100)
++
++#define VCC2REG(val)  (((val) * 10) / 42)
++#define VCCP2REG(val) (((val) * 100) / 293)
++
++/* 2's complement temp conversion - this is used when CONFIG5 bit 0 is set */
++
++#define REG2TEMP(val) ((((val) >> 2) * 1000) + (((val) & 3) * 250))
++
++#define TEMP2REG(val) ((val) <= -128000 ? -128 : \
++		       (val) >= 127000 ? 127 : \
++                       (val) < 0 ? ((val) - 500) / 1000 : \
++                       ((val) + 500) / 1000)
++
++
++/* Offset 64 temp conversion - this is used when CONFIG5 bit 0 is clear */
++
++#define OFF64_REG2TEMP(val) (((((val) >> 2) - 64) * 1000) + (((val) & 3) * 250))
++#define OFF64_TEMP2REG(val) ((((val) + 64500) / 1000) << 2)
++
++static unsigned short normal_i2c[] = { 0x2e, I2C_CLIENT_END };
++
++I2C_CLIENT_INSMOD_1(adt74xx);
++
++struct adt74xx_data {
++	struct i2c_client client;
++	struct class_device *class_dev;
++	struct mutex lock;
++
++	int type;
++	char temptype;
++
++	char valid;
++	unsigned long updated;
++
++	u16 alarms;
++	u16 voltage[3][3];
++	s16 temp[6][3];
++	u16 tach[2][4];
++	u8  pwm[4][3];
++	u8  range[3];
++};
++
++static struct i2c_driver adt74xx_driver;
++static struct adt74xx_data *adt74xx_update_device(struct device *dev);
++
++static u16 adt74xx_read_word(struct i2c_client *client, int reg)
++{
++	u16 val;
++
++	val = i2c_smbus_read_byte_data(client, reg);
++	val |= (i2c_smbus_read_byte_data(client, reg + 1) << 8);
++
++	return val;
++}
++
++static void adt74xx_write_word(struct i2c_client *client, int reg, u16 val)
++{
++	i2c_smbus_write_byte_data(client, reg + 1, val >> 8);
++	i2c_smbus_write_byte_data(client, reg, val & 0xFF);
++}
++
++static ssize_t show_voltage(struct device *dev, struct device_attribute *attr,
++			    char *buf)
++{
++	struct adt74xx_data *data = adt74xx_update_device(dev);
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	unsigned short val = data->voltage[sattr->nr][sattr->index];
++
++	return sprintf(buf, "%d\n", sattr->index == 0 ? REG2VCCP(val) : REG2VCC(val));
++}
++
++static ssize_t set_voltage(struct device *dev, struct device_attribute *attr,
++			   const char *buf, size_t count) {
++
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adt74xx_data *data = i2c_get_clientdata(client);
++	long val = simple_strtol(buf, NULL, 10);
++	unsigned char reg;
++
++	mutex_lock(&data->lock);
++
++	data->voltage[sattr->nr][sattr->index] =
++		sattr->index ? VCC2REG(val) : VCCP2REG(val);
++
++	if (sattr->nr == MIN)
++		reg = VOLTAGE_MIN_REG(sattr->index);
++	else
++		reg = VOLTAGE_MAX_REG(sattr->index);
++
++	i2c_smbus_write_byte_data(client, reg, (u8) (data->voltage[sattr->nr][sattr->index] >> 2));
++	mutex_unlock(&data->lock);
++
++	return count;
++}
++
++static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
++			 char *buf)
++{
++	struct adt74xx_data *data = adt74xx_update_device(dev);
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	unsigned short val = data->temp[sattr->nr][sattr->index];
++	int ret;
++	u8 out;
++
++	switch(sattr->nr) {
++	case HYSTERSIS:
++		if (sattr->index != 1)
++			out = (val >> 4) & 0xF;
++		else
++			out = (val & 0xF);
++
++		ret = sprintf(buf, "%d\n", out);
++		break;
++
++	case OFFSET:
++		/* Offset is always 2's complement, regardless of the setting in CONFIG5 */
++
++		if (data->temptype & CONFIG5_TEMPOFFSET)
++			ret = sprintf(buf, "%d\n", (s8) val);
++		else
++			ret = sprintf(buf, "%d\n", ((s8)val) >> 1);
++		break;
++
++	default:
++		/* All other temp values are in the configured format */
++
++		ret = sprintf(buf, "%d\n",
++			      (data->temptype & CONFIG5_TWOSCOMP) ? REG2TEMP(val) : OFF64_REG2TEMP(val));
++	}
++
++	return ret;
++}
++
++static ssize_t set_temp(struct device *dev, struct device_attribute *attr,
++		       const char *buf, size_t count)
++{
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adt74xx_data *data = i2c_get_clientdata(client);
++	long val = simple_strtol(buf, NULL, 10);
++	unsigned char reg = 0;
++	u8 out;
++	int l;
++
++	mutex_lock(&data->lock);
++
++	switch(sattr->nr) {
++	case OFFSET:
++		l = val;
++
++		if (data->temptype & CONFIG5_TEMPOFFSET) {
++			if (l > 127)
++				l = 127;
++			else if (l < -127)
++				l = -126;
++		}
++		else {
++			if (l > 64)
++				l = 64;
++			else if (l < -63)
++				l = -63;
++
++			l <<= 1;
++		}
++
++		out = data->temp[OFFSET][sattr->index] = (u8) l;
++		break;
++
++	case HYSTERSIS:
++		if (sattr->index != 1) {
++			data->temp[HYSTERSIS][sattr->index] &= 0xF0;
++			data->temp[HYSTERSIS][sattr->index] |= (val & 0xF) << 4;
++		}
++		else {
++			data->temp[HYSTERSIS][sattr->index] &= 0x0F;
++			data->temp[HYSTERSIS][sattr->index] |= (val & 0xF);
++		}
++
++		out = data->temp[HYSTERSIS][sattr->index];
++		break;
++
++	default:
++		data->temp[sattr->nr][sattr->index] =
++			(data->temptype & CONFIG5_TWOSCOMP) ? TEMP2REG(val) : OFF64_TEMP2REG(val);
++
++		/* We maintain an extra 2 digits of precision for simplicity - shift those back off
++		   before writing the value
++		*/
++
++		out = (u8) (data->temp[sattr->nr][sattr->index] >> 2);
++	}
++
++	switch(sattr->nr) {
++	case MIN:
++		reg = TEMP_MIN_REG(sattr->index);
++		break;
++	case MAX:
++		reg = TEMP_MAX_REG(sattr->index);
++		break;
++	case OFFSET:
++		reg = TEMP_OFFSET_REG(sattr->index);
++		break;
++	case AUTOMIN:
++		reg = TEMP_TMIN_REG(sattr->index);
++		break;
++	case THERM:
++		reg = TEMP_THERM_REG(sattr->index);
++		break;
++	case HYSTERSIS:
++		if (sattr->index != 2)
++			reg = REG_REMOTE1_HYSTERSIS;
++		else
++			reg = REG_REMOTE2_HYSTERSIS;
++
++		break;
++	}
++
++	i2c_smbus_write_byte_data(client, reg, out);
++
++	mutex_unlock(&data->lock);
++	return count;
++}
++
++static ssize_t show_range(struct device *dev, struct device_attribute *attr,
++			 char *buf)
++{
++	struct adt74xx_data *data = adt74xx_update_device(dev);
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++
++	unsigned short val = data->range[sattr->index];
++	return sprintf(buf, "%d\n", (val >> 4) & 0xF);
++}
++
++static ssize_t set_range(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count)
++{
++	struct adt74xx_data *data = adt74xx_update_device(dev);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	long val = simple_strtol(buf, NULL, 10);
++
++	mutex_lock(&data->lock);
++
++	data->range[sattr->index] &= ~0xF0;
++	data->range[sattr->index] |= (val & 0xF) << 4;
++
++	i2c_smbus_write_byte_data(client, TEMP_TRANGE_REG(sattr->index),
++				  data->range[sattr->index]);
++
++	mutex_unlock(&data->lock);
++	return count;
++}
++
++static ssize_t show_tach(struct device *dev, struct device_attribute *attr,
++			 char *buf)
++{
++	struct adt74xx_data *data = adt74xx_update_device(dev);
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++
++
++	/* 0xFFFF means the period was invalid */
++
++	if (data->tach[sattr->nr][sattr->index] == 0xFFFF)
++		return sprintf(buf, "0\n");
++	else
++		return sprintf(buf, "%d\n",
++			       TACH2RPM(data->tach[sattr->nr][sattr->index]));
++}
++
++
++
++
++static ssize_t set_tach(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count)
++{
++
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adt74xx_data *data = i2c_get_clientdata(client);
++
++	long val = simple_strtol(buf, NULL, 10);
++
++	mutex_lock(&data->lock);
++
++	data->tach[MIN][sattr->index] = (u16) RPM2TACH(val);
++
++	adt74xx_write_word(client, TACH_MIN_REG(sattr->index),
++			   data->tach[MIN][sattr->index]);
++
++	mutex_unlock(&data->lock);
++	return count;
++}
++
++static ssize_t show_pwm(struct device *dev, struct device_attribute *attr,
++			 char *buf)
++{
++	struct adt74xx_data *data = adt74xx_update_device(dev);
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++
++	return sprintf(buf, "%d\n", data->pwm[sattr->nr][sattr->index]);
++}
++
++static ssize_t show_pwmctrl(struct device *dev, struct device_attribute *attr,
++			    char *buf)
++{
++	struct adt74xx_data *data = adt74xx_update_device(dev);
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++
++	return sprintf(buf, "%d\n", (data->pwm[CONTROL][sattr->index] >> 5) & 7);
++}
++
++static ssize_t show_pwmfreq(struct device *dev, struct device_attribute *attr,
++			    char *buf)
++{
++	struct adt74xx_data *data = adt74xx_update_device(dev);
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++
++	return sprintf(buf, "%d\n", data->range[sattr->index] & 3);
++}
++
++static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count)
++{
++
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adt74xx_data *data = i2c_get_clientdata(client);
++
++	long val = simple_strtol(buf, NULL, 10);
++	unsigned char reg = 0;
++
++	mutex_lock(&data->lock);
++
++	data->pwm[sattr->nr][sattr->index] = (u8) val;
++
++	switch(sattr->nr) {
++	case INPUT:
++		/* If we are not in manual mode, then we shouldn't allow the user to set
++		   the pwm speed */
++
++		if (((data->pwm[CONTROL][sattr->index] >> 5) & 7) != 7)
++			return 0;
++
++		reg = PWM_REG(sattr->index);
++		break;
++
++	case MIN:
++		reg = PWM_MIN_REG(sattr->index);
++		break;
++
++	case MAX:
++		reg = PWM_MAX_REG(sattr->index);
++		break;
++	}
++
++	i2c_smbus_write_byte_data(client, reg, data->pwm[sattr->nr][sattr->index]);
++	mutex_unlock(&data->lock);
++
++	return count;
++}
++
++static ssize_t set_pwmctrl(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count)
++{
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adt74xx_data *data = i2c_get_clientdata(client);
++
++	long val = simple_strtol(buf, NULL, 10);
++
++	mutex_lock(&data->lock);
++
++	data->pwm[CONTROL][sattr->index] &= ~0xE0;
++	data->pwm[CONTROL][sattr->index] |= (val & 7) << 5;
++
++	i2c_smbus_write_byte_data(client, PWM_CONFIG_REG(sattr->index),
++				  data->pwm[CONTROL][sattr->index]);
++
++	mutex_unlock(&data->lock);
++	return count;
++}
++
++static ssize_t set_pwmfreq(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count)
++{
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adt74xx_data *data = i2c_get_clientdata(client);
++
++	long val = simple_strtol(buf, NULL, 10);
++
++	mutex_lock(&data->lock);
++
++	data->range[sattr->index] &= ~3;
++	data->range[sattr->index] |= val & 0x03;
++
++	i2c_smbus_write_byte_data(client, TEMP_TRANGE_REG(sattr->index),
++				  data->range[sattr->index]);
++
++	mutex_unlock(&data->lock);
++	return count;
++}
++
++static ssize_t show_alarms(struct device *dev, struct device_attribute *attr,
++			 char *buf)
++{
++	struct adt74xx_data *data = adt74xx_update_device(dev);
++
++	return sprintf(buf, "%d\n",data->alarms & ALARM_MASK);
++}
++
++static SENSOR_DEVICE_ATTR_2(alarms, S_IRUGO, show_alarms, NULL, 0, 0);
++static SENSOR_DEVICE_ATTR_2(vccp_input, S_IRUGO, show_voltage, NULL, INPUT, 0);
++static SENSOR_DEVICE_ATTR_2(vccp_max, S_IRUGO | S_IWUSR, show_voltage, set_voltage, MAX, 0);
++static SENSOR_DEVICE_ATTR_2(vccp_min, S_IRUGO | S_IWUSR, show_voltage, set_voltage, MIN, 0);
++static SENSOR_DEVICE_ATTR_2(vcc_input, S_IRUGO, show_voltage, NULL, INPUT, 1);
++static SENSOR_DEVICE_ATTR_2(vcc_max, S_IRUGO | S_IWUSR, show_voltage, set_voltage, MAX, 1);
++static SENSOR_DEVICE_ATTR_2(vcc_min, S_IRUGO | S_IWUSR, show_voltage, set_voltage, MIN, 1);
++static SENSOR_DEVICE_ATTR_2(remote1_input, S_IRUGO, show_temp, NULL, INPUT, 0);
++static SENSOR_DEVICE_ATTR_2(remote1_max, S_IRUGO | S_IWUSR, show_temp, set_temp, MAX, 0);
++static SENSOR_DEVICE_ATTR_2(remote1_min, S_IRUGO | S_IWUSR, show_temp, set_temp, MIN, 0);
++static SENSOR_DEVICE_ATTR_2(remote1_offset, S_IRUGO | S_IWUSR, show_temp, set_temp, OFFSET, 0);
++static SENSOR_DEVICE_ATTR_2(remote1_auto_min, S_IRUGO | S_IWUSR, show_temp, set_temp, AUTOMIN, 0);
++static SENSOR_DEVICE_ATTR_2(remote1_auto_range, S_IRUGO | S_IWUSR, show_range, set_range, 0, 0);
++static SENSOR_DEVICE_ATTR_2(remote1_auto_max, S_IRUGO | S_IWUSR, show_temp, set_temp, THERM, 0);
++static SENSOR_DEVICE_ATTR_2(remote1_auto_hystersis, S_IRUGO | S_IWUSR, show_temp, set_temp, HYSTERSIS, 0);
++static SENSOR_DEVICE_ATTR_2(local_input, S_IRUGO, show_temp, NULL, INPUT, 1);
++static SENSOR_DEVICE_ATTR_2(local_max, S_IRUGO | S_IWUSR, show_temp, set_temp, MAX, 1);
++static SENSOR_DEVICE_ATTR_2(local_min, S_IRUGO | S_IWUSR, show_temp, set_temp, MIN, 1);
++static SENSOR_DEVICE_ATTR_2(local_offset, S_IRUGO | S_IWUSR, show_temp, set_temp, OFFSET, 1);
++static SENSOR_DEVICE_ATTR_2(local_auto_min, S_IRUGO | S_IWUSR, show_temp, set_temp, AUTOMIN, 1);
++static SENSOR_DEVICE_ATTR_2(local_auto_range, S_IRUGO | S_IWUSR, show_range, set_range, 0, 1);
++static SENSOR_DEVICE_ATTR_2(local_auto_max, S_IRUGO | S_IWUSR, show_temp, set_temp, THERM, 1);
++static SENSOR_DEVICE_ATTR_2(local_auto_hystersis, S_IRUGO | S_IWUSR, show_temp, set_temp, HYSTERSIS, 1);
++static SENSOR_DEVICE_ATTR_2(remote2_input, S_IRUGO, show_temp, NULL, INPUT, 2);
++static SENSOR_DEVICE_ATTR_2(remote2_max, S_IRUGO | S_IWUSR, show_temp, set_temp, MAX, 2);
++static SENSOR_DEVICE_ATTR_2(remote2_min, S_IRUGO | S_IWUSR, show_temp, set_temp, MIN, 2);
++static SENSOR_DEVICE_ATTR_2(remote2_offset, S_IRUGO | S_IWUSR, show_temp, set_temp, OFFSET, 2);
++static SENSOR_DEVICE_ATTR_2(remote2_auto_min, S_IRUGO | S_IWUSR, show_temp, set_temp, AUTOMIN, 2);
++static SENSOR_DEVICE_ATTR_2(remote2_auto_range, S_IRUGO | S_IWUSR, show_range, set_range, 0, 2);
++static SENSOR_DEVICE_ATTR_2(remote2_auto_max, S_IRUGO | S_IWUSR, show_temp, set_temp, THERM, 2);
++static SENSOR_DEVICE_ATTR_2(remote2_auto_hystersis, S_IRUGO | S_IWUSR, show_temp, set_temp, HYSTERSIS, 2);
++static SENSOR_DEVICE_ATTR_2(fan1_input, S_IRUGO, show_tach, NULL, INPUT, 0);
++static SENSOR_DEVICE_ATTR_2(fan1_min, S_IRUGO | S_IWUSR, show_tach, set_tach, MIN, 0);
++static SENSOR_DEVICE_ATTR_2(fan2_input, S_IRUGO, show_tach, NULL, INPUT, 1);
++static SENSOR_DEVICE_ATTR_2(fan2_min, S_IRUGO | S_IWUSR, show_tach, set_tach, MIN, 1);
++static SENSOR_DEVICE_ATTR_2(fan3_input, S_IRUGO, show_tach, NULL, INPUT, 2);
++static SENSOR_DEVICE_ATTR_2(fan3_min, S_IRUGO | S_IWUSR, show_tach, set_tach, MIN, 2);
++static SENSOR_DEVICE_ATTR_2(fan4_input, S_IRUGO, show_tach, NULL, INPUT, 2);
++static SENSOR_DEVICE_ATTR_2(fan4_min, S_IRUGO | S_IWUSR, show_tach, set_tach, MIN, 2);
++static SENSOR_DEVICE_ATTR_2(pwm1, S_IRUGO | S_IWUSR, show_pwm, set_pwm, INPUT, 0);
++static SENSOR_DEVICE_ATTR_2(pwm1_freq, S_IRUGO | S_IWUSR, show_pwmfreq, set_pwmfreq, INPUT, 0);
++static SENSOR_DEVICE_ATTR_2(pwm1_auto, S_IRUGO | S_IWUSR, show_pwmctrl, set_pwmctrl, INPUT, 0);
++static SENSOR_DEVICE_ATTR_2(pwm1_max, S_IRUGO | S_IWUSR, show_pwm, set_pwm, MAX, 0);
++static SENSOR_DEVICE_ATTR_2(pwm1_min, S_IRUGO | S_IWUSR, show_pwm, set_pwm, MIN, 0);
++static SENSOR_DEVICE_ATTR_2(pwm2, S_IRUGO | S_IWUSR, show_pwm, set_pwm, INPUT, 1);
++static SENSOR_DEVICE_ATTR_2(pwm2_freq, S_IRUGO | S_IWUSR, show_pwmfreq, set_pwmfreq, INPUT, 1);
++static SENSOR_DEVICE_ATTR_2(pwm2_auto, S_IRUGO | S_IWUSR, show_pwmctrl, set_pwmctrl, INPUT, 1);
++static SENSOR_DEVICE_ATTR_2(pwm2_max, S_IRUGO | S_IWUSR, show_pwm, set_pwm, MAX, 1);
++static SENSOR_DEVICE_ATTR_2(pwm2_min, S_IRUGO | S_IWUSR, show_pwm, set_pwm, MIN, 1);
++static SENSOR_DEVICE_ATTR_2(pwm3, S_IRUGO | S_IWUSR, show_pwm, set_pwm, INPUT, 2);
++static SENSOR_DEVICE_ATTR_2(pwm3_freq, S_IRUGO | S_IWUSR, show_pwmfreq, set_pwmfreq, INPUT, 2);
++static SENSOR_DEVICE_ATTR_2(pwm3_auto, S_IRUGO | S_IWUSR, show_pwmctrl, set_pwmctrl, INPUT, 2);
++static SENSOR_DEVICE_ATTR_2(pwm3_max, S_IRUGO | S_IWUSR, show_pwm, set_pwm, MAX, 2);
++static SENSOR_DEVICE_ATTR_2(pwm3_min, S_IRUGO | S_IWUSR, show_pwm, set_pwm, MIN, 2);
++
++static struct attribute *adt74xx_attrs[] = {
++	&sensor_dev_attr_vccp_input.dev_attr.attr,
++	&sensor_dev_attr_vccp_max.dev_attr.attr,
++	&sensor_dev_attr_vccp_min.dev_attr.attr,
++	&sensor_dev_attr_vcc_input.dev_attr.attr,
++	&sensor_dev_attr_vcc_max.dev_attr.attr,
++	&sensor_dev_attr_vcc_min.dev_attr.attr,
++	&sensor_dev_attr_remote1_input.dev_attr.attr,
++	&sensor_dev_attr_remote1_max.dev_attr.attr,
++	&sensor_dev_attr_remote1_min.dev_attr.attr,
++	&sensor_dev_attr_remote1_offset.dev_attr.attr,
++	&sensor_dev_attr_remote1_auto_min.dev_attr.attr,
++	&sensor_dev_attr_remote1_auto_range.dev_attr.attr,
++	&sensor_dev_attr_remote1_auto_max.dev_attr.attr,
++	&sensor_dev_attr_remote1_auto_hystersis.dev_attr.attr,
++	&sensor_dev_attr_local_input.dev_attr.attr,
++	&sensor_dev_attr_local_max.dev_attr.attr,
++	&sensor_dev_attr_local_min.dev_attr.attr,
++	&sensor_dev_attr_local_offset.dev_attr.attr,
++	&sensor_dev_attr_local_auto_min.dev_attr.attr,
++	&sensor_dev_attr_local_auto_range.dev_attr.attr,
++	&sensor_dev_attr_local_auto_max.dev_attr.attr,
++	&sensor_dev_attr_local_auto_hystersis.dev_attr.attr,
++	&sensor_dev_attr_remote2_input.dev_attr.attr,
++	&sensor_dev_attr_remote2_max.dev_attr.attr,
++	&sensor_dev_attr_remote2_min.dev_attr.attr,
++	&sensor_dev_attr_remote2_offset.dev_attr.attr,
++	&sensor_dev_attr_remote2_auto_min.dev_attr.attr,
++	&sensor_dev_attr_remote2_auto_range.dev_attr.attr,
++	&sensor_dev_attr_remote2_auto_max.dev_attr.attr,
++	&sensor_dev_attr_remote2_auto_hystersis.dev_attr.attr,
++	&sensor_dev_attr_fan1_input.dev_attr.attr,
++	&sensor_dev_attr_fan1_min.dev_attr.attr,
++	&sensor_dev_attr_fan2_input.dev_attr.attr,
++	&sensor_dev_attr_fan2_min.dev_attr.attr,
++	&sensor_dev_attr_fan3_input.dev_attr.attr,
++	&sensor_dev_attr_fan3_min.dev_attr.attr,
++	&sensor_dev_attr_fan4_input.dev_attr.attr,
++	&sensor_dev_attr_fan4_min.dev_attr.attr,
++	&sensor_dev_attr_pwm1.dev_attr.attr,
++	&sensor_dev_attr_pwm1_freq.dev_attr.attr,
++	&sensor_dev_attr_pwm1_auto.dev_attr.attr,
++	&sensor_dev_attr_pwm1_max.dev_attr.attr,
++	&sensor_dev_attr_pwm1_min.dev_attr.attr,
++	&sensor_dev_attr_pwm2.dev_attr.attr,
++	&sensor_dev_attr_pwm2_freq.dev_attr.attr,
++	&sensor_dev_attr_pwm2_auto.dev_attr.attr,
++	&sensor_dev_attr_pwm2_max.dev_attr.attr,
++	&sensor_dev_attr_pwm2_min.dev_attr.attr,
++	&sensor_dev_attr_pwm3.dev_attr.attr,
++	&sensor_dev_attr_pwm3_freq.dev_attr.attr,
++	&sensor_dev_attr_pwm3_auto.dev_attr.attr,
++	&sensor_dev_attr_pwm3_max.dev_attr.attr,
++	&sensor_dev_attr_pwm3_min.dev_attr.attr,
++	&sensor_dev_attr_alarms.dev_attr.attr,
++	NULL,
++};
++
++/* The list of chips we support - these index into the following structure */
++
++#define ADT7475 0
++#define ADT74XX_MAX_ID 1
++
++static struct adt74xx_chip {
++	const char *name;
++	struct attribute_group group;
++} adt74xx_chips[ADT74XX_MAX_ID] = {
++	{ .name = "ADT7475",
++	  .group = {
++		  .attrs = adt74xx_attrs,
++	  }
++	},
++};
++
++static int adt74xx_detect(struct i2c_adapter *adapter, int address, int kind)
++{
++	struct i2c_client *client;
++	struct adt74xx_data *data;
++	unsigned char val;
++	int ret = 0;
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++		return 0;
++
++	/* Figure out what type of sensor is attached */
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++
++	if (data == NULL)
++		return -ENOMEM;
++
++	client = &data->client;
++	i2c_set_clientdata(client, data);
++	client->addr = address;
++	client->adapter = adapter;
++	client->driver = &adt74xx_driver;
++	client->flags = 0;
++
++	/* Check the company version first */
++
++	if (i2c_smbus_read_byte_data(client, REG_VENDID) != 0x41)
++		goto efree;
++
++	/* Then check the part number */
++	val = i2c_smbus_read_byte_data(client, REG_DEVID);
++
++	if (val == 0x75)
++		data->type = ADT7475;
++	else {
++		dev_dbg(&adapter->dev,
++		"Couldn't detect a ADT74XX part at 0x%02x\n", address);
++
++		goto efree;
++	}
++
++	/* Record how the temp registers are presented, either 2's complement
++	   or offset 64
++	*/
++
++	data->temptype = i2c_smbus_read_byte_data(client, REG_CONFIG5) & 3;
++
++	/* FIXME: Get teh reading type */
++	/* FIXME:  Get the scale of the temprature readings */
++
++	strlcpy(client->name, adt74xx_chips[data->type].name, I2C_NAME_SIZE);
++
++	data->valid = 0;
++        mutex_init(&data->lock);
++
++	ret = i2c_attach_client(client);
++	if (ret)
++		goto efree;
++
++	ret = sysfs_create_group(&client->dev.kobj, &adt74xx_chips[data->type].group);
++	if (ret)
++		goto edetach;
++
++	data->class_dev = hwmon_device_register(&client->dev);
++
++	if (!IS_ERR(data->class_dev))
++		return 0;
++
++	ret = PTR_ERR(data->class_dev);
++
++	sysfs_remove_group(&client->dev.kobj, &adt74xx_chips[data->type].group);
++ edetach:
++	i2c_detach_client(client);
++ efree:
++	kfree(data);
++	return ret;
++}
++
++static int adt74xx_attach_adapter(struct i2c_adapter *adapter)
++{
++	if (!(adapter->class & I2C_CLASS_HWMON))
++		return 0;
++
++	return i2c_probe(adapter, &addr_data, adt74xx_detect);
++}
++
++static int adt74xx_detach_client(struct i2c_client *client)
++{
++	struct adt74xx_data *data = i2c_get_clientdata(client);
++	int ret = 0;
++
++	hwmon_device_unregister(data->class_dev);
++	sysfs_remove_group(&client->dev.kobj, &adt74xx_chips[data->type].group);
++
++	ret = i2c_detach_client(client);
++	if (!ret)
++		kfree(data);
++	return ret;
++}
++
++static struct i2c_driver adt74xx_driver = {
++	.driver = {
++		.name   = "adt74xx",
++	},
++	.id             = I2C_DRIVERID_ADT74XX,
++	.attach_adapter = adt74xx_attach_adapter,
++	.detach_client  = adt74xx_detach_client,
++};
++
++static struct adt74xx_data *adt74xx_update_device(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adt74xx_data *data = i2c_get_clientdata(client);
++	u8 ext;
++	int i;
++
++	mutex_lock(&data->lock);
++
++	if (!time_after(jiffies, data->updated + HZ * 2) && data->valid) {
++		mutex_unlock(&data->lock);
++		return data;
++	}
++
++	data->alarms = adt74xx_read(REG_STATUS2) << 8;
++	data->alarms |= adt74xx_read(REG_STATUS1);
++
++	ext = adt74xx_read(REG_EXTEND1);
++
++	/* Get the voltage readings */
++
++	for(i = 0; i < ADT7475_VOLTAGE_COUNT; i++) {
++		data->voltage[INPUT][i] = (adt74xx_read(VOLTAGE_REG(i)) << 2) |
++			((ext >> ((i + 1) * 2)) & 3);
++
++		/* Adjust these values so they match the input precision */
++
++		data->voltage[MIN][i] = adt74xx_read(VOLTAGE_MIN_REG(i)) << 2;
++		data->voltage[MAX][i] = adt74xx_read(VOLTAGE_MAX_REG(i)) << 2;
++	}
++
++	ext = adt74xx_read(REG_EXTEND2);
++
++	for(i = 0; i < ADT7475_TEMP_COUNT; i++) {
++		data->temp[INPUT][i] = (adt74xx_read(TEMP_REG(i)) << 2) |
++			((ext >> ((i + 1) * 2)) & 3);
++
++		/* Adjust these values so they match the input precision */
++
++		data->temp[MIN][i] = adt74xx_read(TEMP_MIN_REG(i)) << 2;
++		data->temp[MAX][i] = adt74xx_read(TEMP_MAX_REG(i)) << 2;
++		data->temp[AUTOMIN][i] = adt74xx_read(TEMP_TMIN_REG(i)) << 2;
++		data->temp[THERM][i] = adt74xx_read(TEMP_THERM_REG(i)) << 2;
++
++		data->temp[OFFSET][i] = adt74xx_read(TEMP_OFFSET_REG(i));
++	}
++
++	data->temp[HYSTERSIS][0] = (u16) adt74xx_read(REG_REMOTE1_HYSTERSIS);
++	data->temp[HYSTERSIS][1] = (u16) adt74xx_read(REG_REMOTE1_HYSTERSIS);
++	data->temp[HYSTERSIS][2] = (u16) adt74xx_read(REG_REMOTE2_HYSTERSIS);
++
++	for(i = 0; i < ADT7475_TACH_COUNT; i++) {
++		data->tach[INPUT][i] = adt74xx_read_word(client, TACH_REG(i));
++		data->tach[MIN][i] = adt74xx_read_word(client, TACH_MIN_REG(i));
++	}
++
++	for(i = 0; i < ADT7475_PWM_COUNT; i++) {
++		data->pwm[INPUT][i] = adt74xx_read(PWM_REG(i));
++		data->pwm[MAX][i] = adt74xx_read(PWM_MAX_REG(i));
++		data->pwm[MIN][i] = adt74xx_read(PWM_MIN_REG(i));
++		data->pwm[CONTROL][i] = adt74xx_read(PWM_CONFIG_REG(i));
++	}
++
++	data->range[0] =  adt74xx_read(TEMP_TRANGE_REG(0));
++	data->range[1] =  adt74xx_read(TEMP_TRANGE_REG(1));
++	data->range[2] =  adt74xx_read(TEMP_TRANGE_REG(2));
++
++	data->updated = jiffies;
++	data->valid = 1;
++
++	mutex_unlock(&data->lock);
++
++	return data;
++}
++
++static int __init sensors_adt74xx_init(void)
++{
++	return i2c_add_driver(&adt74xx_driver);
++}
++
++static void __exit sensors_adt74xx_exit(void)
++{
++	i2c_del_driver(&adt74xx_driver);
++}
++
++MODULE_AUTHOR("Advanced Micro Devices, Inc");
++MODULE_DESCRIPTION("adt74xx driver");
++MODULE_LICENSE("GPL");
++
++module_init(sensors_adt74xx_init);
++module_exit(sensors_adt74xx_exit);
+diff --git a/include/linux/i2c-id.h b/include/linux/i2c-id.h
+index 88c8140..6e3f8e0 100644
+--- a/include/linux/i2c-id.h
++++ b/include/linux/i2c-id.h
+@@ -163,7 +163,7 @@
+ #define I2C_DRIVERID_FSCHER 1046
+ #define I2C_DRIVERID_W83L785TS 1047
+ #define I2C_DRIVERID_OV7670 1048	/* Omnivision 7670 camera */
+-
++#define I2C_DRIVERID_ADT74XX 1049
+ /*
+  * ---- Adapter types ----------------------------------------------------
+  */
 
-One complication is that Analog Devices seems to have sold this line of
-chips to ON Semiconductor, and ON doesn't yet have the data sheet for
-the ADT7475 online.  I was able to get it from one of those data sheet
-archives, and have posted it at
-http://members.cox.net/~mroberds/adt7475-datasheet.pdf .
-
-I'd like to get this driver fully working.  I can hack on it myself,
-or test code that other people have hacked on.  What is the best way
-to proceed?
-
-Thanks!
-
-Matt Roberds
-
---655872-352042579-1200948775=:32720
+--------------010400050208010902040302
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -79,4 +1184,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---655872-352042579-1200948775=:32720--
+--------------010400050208010902040302--
