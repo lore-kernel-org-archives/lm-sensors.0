@@ -1,34 +1,46 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 29 Jan 2008 12:38:48 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (it87) Delete pwmN_freq files on
-Message-Id: <20080129123848.GI29892@jupiter.solarsys.private>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Thu, 24 Jan 2008 17:11:25 +0000
+Subject: [lm-sensors] [PATCH] hwmon/dme1737: fix divide-by-0
+Message-Id: <191fb4ca0801240911m79bdc87p72b734df3427ee4b@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_16488_23871854.1201194685192"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20071214144153.222cd653@hyperion.delvare>
-In-Reply-To: <20071214144153.222cd653@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+------=_Part_16488_23871854.1201194685192
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-* Jean Delvare <khali@linux-fr.org> [2007-12-14 14:41:53 +0100]:
-> In commit f8d0c19a93cea3a26a90f2462295e1e01a4cd250 I forgot to delete
-> the pwmN_freq files on driver removal, here's the fix.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
->  drivers/hwmon/it87.c |    3 +++
->  1 file changed, 3 insertions(+)
+This patch fixes a possible divide-by-0.
 
-Applied to hwmon-2.6.git/testing, thanks.
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+------=_Part_16488_23871854.1201194685192
+Content-Type: text/x-patch; name=dme1737-fix-divide-by-zero.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fbtk9c830
+Content-Disposition: attachment; filename=dme1737-fix-divide-by-zero.patch
 
+SW5kZXg6IGxpbnV4LTIuNi4yNC1yYzgvZHJpdmVycy9od21vbi9kbWUxNzM3LmMKPT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PQotLS0gbGludXgtMi42LjI0LXJjOC5vcmlnL2RyaXZlcnMvaHdtb24vZG1lMTczNy5jCTIwMDgt
+MDEtMjQgMDk6MDQ6MjQuMDAwMDAwMDAwIC0wODAwCisrKyBsaW51eC0yLjYuMjQtcmM4L2RyaXZl
+cnMvaHdtb24vZG1lMTczNy5jCTIwMDgtMDEtMjQgMDk6MDU6MDUuMDAwMDAwMDAwIC0wODAwCkBA
+IC0yODUsOCArMjg1LDggQEAKIAogc3RhdGljIGlubGluZSBpbnQgRkFOX1RPX1JFRyhpbnQgdmFs
+LCBpbnQgdHBjKQogewotCXJldHVybiBTRU5TT1JTX0xJTUlUKCh0cGMgPT0gMCkgPyA5MDAwMCAq
+IDYwIC8gdmFsIDogdmFsIC8gdHBjLAotCQkJICAgICAwLCAweGZmZmYpOworCXJldHVybiAodmFs
+IDw9IDApID8gMHhmZmZmIDogU0VOU09SU19MSU1JVCgodHBjID09IDApID8KKwkJOTAwMDAgKiA2
+MCAvIHZhbCA6IHZhbCAvIHRwYywgMCwgMHhmZmZlKTsKIH0KIAogLyogRmFuIFRQQyAodGFjaCBw
+dWxzZSBjb3VudCkK
+------=_Part_16488_23871854.1201194685192
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_16488_23871854.1201194685192--
