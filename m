@@ -1,8 +1,10 @@
 From: kiran@serc.iisc.ernet.in
-Date: Sat, 26 Jan 2008 14:32:38 +0000
+Date: Sat, 26 Jan 2008 14:32:46 +0000
 Subject: [lm-sensors] CPU temperature
-Message-Id: <1896.10.16.10.158.1201357238.squirrel@mail.serc.iisc.ernet.in>
+Message-Id: <1897.10.16.10.158.1201357246.squirrel@mail.serc.iisc.ernet.in>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1896.10.16.10.158.1201357238.squirrel@mail.serc.iisc.ernet.in>
+In-Reply-To: <1896.10.16.10.158.1201357238.squirrel@mail.serc.iisc.ernet.in>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
