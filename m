@@ -1,61 +1,46 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 17 Jan 2008 11:35:19 +0000
-Subject: Re: [lm-sensors] hwmon: (vt8231) Add individual alarm files
-Message-Id: <20080117123519.2c815fba@hyperion.delvare>
+From: kiran@serc.iisc.ernet.in
+Date: Sat, 26 Jan 2008 14:32:38 +0000
+Subject: [lm-sensors] CPU temperature
+Message-Id: <1896.10.16.10.158.1201357238.squirrel@mail.serc.iisc.ernet.in>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080106154602.3f81ae40@hyperion.delvare>
-In-Reply-To: <20080106154602.3f81ae40@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Roger,
+Hi,
 
-On Thu, 17 Jan 2008 00:05:28 -0000, Roger Lucas wrote:
-> Sorry for the slow reply - I have finally had a chance to test your
-> changes on the most recent 2.6.24-rc8 kernel.
-> 
-> I have checked all the voltage, fan and temperature alarms and
-> they work as expected.  I only have one temperature sensor on my
-> motherboard so I was not able to test the alarms for temperatures 2
-> through 6, but the code looks correct so I would be very surprised
-> if they did not work properly.
+  We have IBM Intellistation, I am using lm_sensors-2.10.1-1.fc6. It is
+working fine. But when i run sensors it shows three temperatures as
+temp1 temp2 and temp3. Kindly indicate in this three which is CPU
+temperature.
 
-OK, thanks for testing. Mark, can you please apply my patch to your
-testing tree?
+temp1:       +58=B0C  (high =3D   +71=B0C, hyst =3D   +66=B0C)
+temp2:    +127.0=B0C  (high =3D  -128=B0C, hyst =3D  +126=B0C)   ALARM
+temp3:     +35.5=B0C  (high =3D   +41=B0C, hyst =3D   +39=B0C)
 
-> My mail address is changing soon so I have a patch below to correct
-> my e-mail addresses in the source code.  I have a special address for
-> the vt8231 kernel development so that I can filter the spam on it more
-> aggressively - it does seem to get heavily harvested...
-> (...)
-> Signed-off-by: Roger Lucas <vt8231@hiddenengine.co.uk>
-> 
-> --- linux-2.6.24-rc8-orig/drivers/hwmon/vt8231.c        2008-01-16 22:59:25.000000000 +0000
-> +++ linux-2.6.24-rc8/drivers/hwmon/vt8231.c     2008-01-16 23:57:27.000000000 +0000
-> @@ -2,7 +2,7 @@
->         vt8231.c - Part of lm_sensors, Linux kernel modules
->                                 for hardware monitoring
-> 
-> -       Copyright (c) 2005 Roger Lucas <roger@planbit.co.uk>
-> +       Copyright (c) 2005 Roger Lucas <vt8231@hiddenengine.co.uk>
->         Copyright (c) 2002 Mark D. Studebaker <mdsxyz123@yahoo.com>
->                            Aaron M. Marsh <amarsh@sdf.lonestar.org>
-> 
-> @@ -999,7 +999,7 @@
->         }
->  }
-> 
-> -MODULE_AUTHOR("Roger Lucas <roger@planbit.co.uk>");
-> +MODULE_AUTHOR("Roger Lucas <vt8231@hiddenengine.co.uk>");
->  MODULE_DESCRIPTION("VT8231 sensors");
->  MODULE_LICENSE("GPL");
 
-You probably want to update your address in MAINTAINERS as well.
+I am using following modules as detected by sensors-detec. My Os fedora
+core 6
 
--- 
-Jean Delvare
+modprobe i2c-i801
+modprobe i2c-isa
+modprobe w83781d
+modprobe eeprom
+modprobe smbus-arp
+modprobe smsc47m1
+
+
+Thanking you,
+regards,
+kiran
+
+
+--=20
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
+
 
 _______________________________________________
 lm-sensors mailing list
