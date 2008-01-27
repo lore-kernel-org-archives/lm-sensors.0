@@ -1,27 +1,34 @@
 From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 27 Jan 2008 15:44:39 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (w83781d) Drop W83627HF support
-Message-Id: <20080127154439.GG29892@jupiter.solarsys.private>
+Date: Sun, 27 Jan 2008 14:39:03 +0000
+Subject: Re: [lm-sensors] [PATCH] adt7470: Support per-sensor alarm files
+Message-Id: <20080127143903.GC29892@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20071219040123.GN6870@tree.beaverton.ibm.com> <20071219154012.18302de5@hyperion.delvare> <20071219221124.GP6870@tree.beaverton.ibm.com>
+In-Reply-To: <20071219221124.GP6870@tree.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Jean Delvare <khali@linux-fr.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Hi Jean:
+Hi Darrick:
 
-* Jean Delvare <khali@linux-fr.org> [2007-11-30 23:51:24 +0100]:
-> The W83627HF hardware monitoring features are supported by the
-> w83627hf driver for several years now. Support by the w83781d has
-> been advertised as deprecated 6 months ago, it's about time to see
-> it go.
+* Darrick J. Wong <djwong@us.ibm.com> [2007-12-19 14:11:25 -0800]:
+> On Wed, Dec 19, 2007 at 03:40:12PM +0100, Jean Delvare wrote:
+> > In general we keep the all-in-one alarms file for compatibility, but
+> > given that this driver is fairly new and libsensors never had specific
+> > support for it anyway, it's probably OK to drop it this time.
 > 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Thanks for the code review.  I've made the changes you asked for and
+> here's a new patch to supersede yesterday's.
 > ---
->  Documentation/hwmon/w83781d |   18 ++++++------------
->  drivers/hwmon/Kconfig       |    6 +++---
->  drivers/hwmon/w83781d.c     |   29 +++++------------------------
->  3 files changed, 14 insertions(+), 39 deletions(-)
+> Remove the old alarms hack and replace it with per-sensor alarm files.
+> 
+> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+> ---
+> 
+>  drivers/hwmon/adt7470.c |   96 +++++++++++++++++++++++++++++++++++++++++------
+>  1 files changed, 84 insertions(+), 12 deletions(-)
 
 Applied to hwmon-2.6.git/testing, thanks.
 
