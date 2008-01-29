@@ -1,39 +1,35 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 06 Jan 2008 09:48:59 +0000
-Subject: [lm-sensors] Call for lm-sensors 3.1.0
-Message-Id: <20080106104859.7ab4ffc0@hyperion.delvare>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Tue, 29 Jan 2008 13:18:22 +0000
+Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (lm85) Make the
+Message-Id: <20080129131822.GL29892@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Hi Jean:
 
-I would like to release a new version out of the lm-sensors-3.0.0
-branch soon. We have fixed a few annoying bugs since 3.0.0 (rrd support
-in sensord, voltage value references in sensors.conf.eg), but more
-importantly, I've made two major changes in libsensors. Firstly, it no
-longer depends on libsysfs. Secondly, it supports hwmon attributes in
-the hwmon class devices. I think that these changes are important
-enough that the library minor version should be increased (i.e. we go
-from libsensors.so.4.0.0 to libsensors.so.4.1.0). In particular I seem
-to remember that the minor version should be increased when the
-dependencies change, but I can't remember where I read this. If anyone
-has a reference documenting good practice in this area, I'm interested.
+* Jean Delvare <khali@linux-fr.org> [2007-12-03 23:28:42 +0100]:
+> Make the pwmN_enable files writable. This makes it possible to use
+> standard fan speed control tools (pwmconfig, fancontrol) with the lm85
+> driver.
+> 
+> I left the non-standard pwmN_auto_channels files in place, as they
+> give additional control for the automatic mode, and some users might
+> be used to them by now.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> ---
+>  drivers/hwmon/lm85.c |   40 ++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 38 insertions(+), 2 deletions(-)
 
-As a consequence, we would number this release 3.1.0 rather than 3.0.1.
-If you disagree, please let me know.
-
-The release schedule could look like:
-* January 20th: SVN freeze.
-* January 21st to 27th: testing.
-* January 28th: release.
-
-If anyone has objections please speak up.
+Applied to hwmon-2.6.git/testing, thanks.
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
