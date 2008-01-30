@@ -1,79 +1,39 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Tue, 29 Jan 2008 23:57:52 +0000
+From: "Jean Delvare" <khali@linux-fr.org>
+Date: Wed, 30 Jan 2008 08:05:53 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon/dme1737: fix divide-by-0
-Message-Id: <191fb4ca0801291557of39b61m1c8a421c6025f389@mail.gmail.com>
+Message-Id: <1D3tkPcN.1201680352.7460770.khali@gcu-squad.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0801240911m79bdc87p72b734df3427ee4b@mail.gmail.com>
 In-Reply-To: <191fb4ca0801240911m79bdc87p72b734df3427ee4b@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
 
+Hi Juerg,
 
-On Jan 28, 2008 1:21 AM, Jean Delvare <khali@linux-fr.org> wrote:
-> Hi Juerg,
+Le 29/1/2008, "Juerg Haefliger" <juergh@gmail.com> a =E9crit:
+>On Jan 28, 2008 1:21 AM, Jean Delvare <khali@linux-fr.org> wrote:
+>> PS: Would you have some time to review one of my pending patches? For
+>> example:
+>> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-December/022143.ht=
+ml
 >
+>Riku just beat me to it:
+>http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022362.html
 >
-> On Sun, 27 Jan 2008 16:39:46 -0800, Juerg Haefliger wrote:
-> > This patch fixes a possible divide-by-0 and a minor bug in the
-> > FAN_FROM_REG macro (in TPC mode).
-> >
-> > Signed-off-by: Juerg Haefliger <juergh at gmail.com>
-> >
-> > Index: linux/drivers/hwmon/dme1737.c
-> > =================================> > --- linux.orig/drivers/hwmon/dme1737.c        2008-01-24 09:04:24.000000000 -0800
-> > +++ linux/drivers/hwmon/dme1737.c     2008-01-27 16:33:47.000000000 -0800
-> > @@ -279,14 +279,21 @@
-> >  /* Fan input RPM */
-> >  static inline int FAN_FROM_REG(int reg, int tpc)
-> >  {
-> > -     return (reg = 0 || reg = 0xffff) ? 0 :
-> > -             (tpc = 0) ? 90000 * 60 / reg : tpc * reg;
-> > +     if (tpc) {
-> > +             return tpc * reg;
-> > +     } else {
-> > +             return (reg = 0 || reg = 0xffff) ? 0 : 90000 * 60 / reg;
-> > +     }
-> >  }
-> >
-> >  static inline int FAN_TO_REG(int val, int tpc)
-> >  {
-> > -     return SENSORS_LIMIT((tpc = 0) ? 90000 * 60 / val : val / tpc,
-> > -                          0, 0xffff);
-> > +     if (tpc) {
-> > +             return SENSORS_LIMIT(val / tpc, 0, 0xffff);
-> > +     } else {
-> > +             return (val <= 0) ? 0xffff :
-> > +                     SENSORS_LIMIT(90000 * 60 / val, 0, 0xfffe);
-> > +     }
-> >  }
-> >
-> >  /* Fan TPC (tach pulse count)
->
-> Looks good to me this time.
->
-> Acked-by: Jean Delvare <khali@linux-fr.org>
+>Anything else you need reviewed?
 
-Thanks for the review.
+http://lists.lm-sensors.org/pipermail/lm-sensors/2007-December/022067.html
 
+or
 
-> PS: Would you have some time to review one of my pending patches? For
-> example:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-December/022143.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022252.html
 
-Riku just beat me to it:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022362.html
-
-Anything else you need reviewed?
-
-...juerg
-
-> --
-> Jean Delvare
->
+Thanks,
+--
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
