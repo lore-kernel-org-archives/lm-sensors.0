@@ -1,7 +1,7 @@
 From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Thu, 31 Jan 2008 13:48:57 +0000
+Date: Thu, 31 Jan 2008 13:56:34 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (asb100) Various cleanups
-Message-Id: <20080131134857.GI8290@jupiter.solarsys.private>
+Message-Id: <20080131135634.GJ8290@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080103231549.3cb00f27@hyperion.delvare>
 In-Reply-To: <20080103231549.3cb00f27@hyperion.delvare>
@@ -12,17 +12,22 @@ To: lm-sensors@vger.kernel.org
 
 Hi Jean:
 
-* Mark M. Hoffman <mhoffman@lightlink.com> [2008-01-31 07:51:03 -0500]:
-> >  	struct asb100_data *data = dev_get_drvdata(dev);
+* Jean Delvare <khali@linux-fr.org> [2008-01-03 23:15:49 +0100]:
+> * Drop history, it's incomplete and doesn't belong there
+> * Drop unused version number
+> * Drop trailing spaces
+> * Coding style fixes
+> * Fold long lines
+> * Rename new_client to client
+> * Drop redundant initializations to 0
 > 
-> The above line is not present in the original, nor in any patch I've
-> seen.  I think you probably meant it to be changed by this patch.
-> Please respin this one and I'll get it and the rest of the series
-> applied.
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+> ---
+>  drivers/hwmon/asb100.c |  124 +++++++++++++++++++++++-------------------------
+>  1 file changed, 60 insertions(+), 64 deletions(-)
 
-No, my bad: I found the second vrm patch... sorry.
-
-Regards,
+Applied to hwmon-2.6.git/testing, thanks.
 
 -- 
 Mark M. Hoffman
