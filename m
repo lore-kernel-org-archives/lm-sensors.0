@@ -1,42 +1,24 @@
 From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 17 Feb 2008 16:23:05 +0000
-Subject: Re: [lm-sensors] [PATCH] coretemp: Add maximum cooling
-Message-Id: <20080217162305.GA2916@jupiter.solarsys.private>
+Date: Fri, 01 Feb 2008 03:07:51 +0000
+Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (lm80) Add individual
+Message-Id: <20080201030751.GS8290@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
+Hi Jean:
 
-* Jean Delvare <khali@linux-fr.org> [2008-02-13 21:35:33 +0100]:
-> Hi Rudolf,
+* Jean Delvare <khali@linux-fr.org> [2008-01-05 15:40:38 +0100]:
+> The new libsensors needs these individual alarm files.
 > 
-> On Fri, 18 Jan 2008 00:42:54 +0100, Rudolf Marek wrote:
-> > This patch updates my previous patch with Jeans valuable comments - yeah thanks!
-> > Compile tested this time.
-> > 
-> > Following patch will add reporting of maximum temperature, at which all fans
-> > should spin full speed. It may be non-physical temperature on Desktop/Server CPUs.
-> > 
-> > Signed-off-by: Rudolf Marek <r.marek@assembler.cz>
-> 
-> Tested on my Core T2600, it doesn't have the feature but at least I
-> confirm that there is no regression.
-> 
-> I reviewed the code, it looks OK to me this time.
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-> 
-> Just one comment:
-> 
-> > +			err = device_create_file(&pdev->dev,
-> > +						 &sensor_dev_attr_temp1_max.dev_attr);
-> 
-> It should be possible to make this line fit in the 80-column limit.
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> ---
+>  drivers/hwmon/lm80.c |   31 ++++++++++++++++++++++++++++++-
+>  1 file changed, 30 insertions(+), 1 deletion(-)
 
-I fixed that up & applied to hwmon-2.6.git/testing, thanks.
+Applied to hwmon-2.6.git/testing, thanks.
 
 -- 
 Mark M. Hoffman
