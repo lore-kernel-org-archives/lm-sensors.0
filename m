@@ -1,35 +1,843 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 26 Feb 2008 13:06:18 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (w83l785ts) Don't ask the user
-Message-Id: <20080226130618.GA2947@jupiter.solarsys.private>
+From: Heinz Schuster <Hschuster1@gmx.de>
+Date: Fri, 01 Feb 2008 02:00:19 +0000
+Subject: [lm-sensors] pwmconfig with k8temp
+Message-Id: <47A27D33.2080805@gmx.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------060203050505020808090706"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080212111726.23db114f@hyperion.delvare>
-In-Reply-To: <20080212111726.23db114f@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+This is a multi-part message in MIME format.
+--------------060203050505020808090706
+Content-Type: text/plain; charset="iso-8859-15"; format="flowed"
+Content-Transfer-Encoding: quoted-printable
 
-* Jean Delvare <khali@linux-fr.org> [2008-02-12 11:17:26 +0100]:
-> There's nothing we can do about read errors on the W83L785TS-S, so
-> don't ask the user to report them.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
->  Documentation/hwmon/w83l785ts |    3 ++-
->  drivers/hwmon/w83l785ts.c     |    4 ++--
->  2 files changed, 4 insertions(+), 3 deletions(-)
+Hello!
 
-Applied to hwmon-2.6.git/testing, thanks.
+Congratulation for this nice program!
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+But had problems with the pwmconfig configuration.
 
+In my system, the pwm's could not should down.
+
+Then i had changed the line 191 in the pwmconfig file.
+
+from "if [ $? -ne 0 ]"  to "if [ $? -ne 1 ]".
+
+Now, its wunderfull!
+
+I used the Ubuntu 7.10 AMD_64 Version.
+
+My System ist a Asrock AM2NF3-VSTA=20
+<http://www.asrock.com/mb/overview.asp?Model=3DAM2NF3-VSTA&s=3D>
+
+with a AMD Athlon(tm) 64 X2 Dual Core Processor 3600+.
+
+
+
+SENSORS:
+
+
+k8temp-pci-00c3
+Adapter: PCI adapter
+Core0 Temp:
+             +32=B0C
+Core1 Temp:
+             +35=B0C
+
+w83627ehf-isa-0290
+Adapter: ISA adapter
+VCore:     +1.10 V  (min =3D  +0.00 V, max =3D  +1.74 V)
+in1:       +7.39 V  (min =3D +13.41 V, max =3D +13.46 V) ALARM
+AVCC:      +3.38 V  (min =3D  +4.05 V, max =3D  +1.78 V) ALARM
+3VCC:      +3.38 V  (min =3D  +4.02 V, max =3D  +1.97 V) ALARM
+in4:       +1.71 V  (min =3D  +1.98 V, max =3D  +0.89 V) ALARM
+in5:       +1.74 V  (min =3D  +1.98 V, max =3D  +1.74 V) ALARM
+in6:       +5.96 V  (min =3D  +4.74 V, max =3D  +4.02 V) ALARM
+VSB:       +3.38 V  (min =3D  +3.55 V, max =3D  +3.95 V) ALARM
+VBAT:      +3.23 V  (min =3D  +4.08 V, max =3D  +3.57 V) ALARM
+in9:       +1.58 V  (min =3D  +2.02 V, max =3D  +1.53 V) ALARM
+Case Fan: 1704 RPM  (min =3D  672 RPM, div =3D 8)
+CPU Fan:  1278 RPM  (min =3D  664 RPM, div =3D 8)
+Aux Fan:     0 RPM  (min =3D    0 RPM, div =3D 128)
+fan5:        0 RPM  (min =3D    0 RPM, div =3D 128)
+Sys Temp:    +33=B0C  (high =3D    -5=B0C, hyst =3D  +123=B0C)=20
+CPU Temp:  +39.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)=20
+AUX Temp:  +38.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)
+
+
+Greetings
+Heinz
+
+
+--------------060203050505020808090706
+Content-Type: text/plain;
+ name="pwmconfig"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="pwmconfig"
+
+#!/bin/bash
+#
+# pwmconfig v0.8
+# Tests the pwm outputs of sensors and configures fancontrol
+#
+#    Warning!!! This program will stop your fans, one at a time,
+#    for approximately 5 seconds each!!!
+#    This may cause your processor temperature to rise!!!
+#    Verify that all fans are running at normal speed after this
+#    program has exited!!!
+#
+#    Copyright 2003-2005 The lm_sensors project
+#    Copyright (C) 2007 Jean Delvare <khali@linux-fr.org>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+#
+echo 'This program will search your sensors for pulse width modulation (pwm)'
+echo 'controls, and test each one to see if it controls a fan on'
+echo 'your motherboard. Note that many motherboards do not have pwm'
+echo 'circuitry installed, even if your sensor chip supports pwm.'
+echo
+echo 'We will attempt to briefly stop each fan using the pwm controls.'  
+echo 'The program will attempt to restore each fan to full speed'
+echo 'after testing. However, it is ** very important ** that you'
+echo 'physically verify that the fans have been to full speed'
+echo 'after the program has completed.'
+echo
+
+DELAY=5 # 3 seconds delay is too short for large fans, thus I increased it to 5
+MAX=250
+
+DIR=/proc/sys/dev/sensors
+if [ ! -d $DIR ]
+then
+	if [ -d "/sys/class/hwmon" ]
+	then
+		SYSFS=2
+		DIR="/sys/class/hwmon"
+	elif [ -d "/sys/bus/i2c/devices" ]
+	then
+		SYSFS=1
+		DIR="/sys/bus/i2c/devices"
+	else
+		echo $0: 'No sensors found! (modprobe sensor modules?)'
+		exit 1
+	fi	
+fi
+
+cd $DIR
+if [ "$SYSFS" = "2" ]
+then
+	PREFIX='hwmon*/device'
+else
+	PREFIX='*-*'
+fi
+DEVICES=`echo $PREFIX`
+if [ "$PREFIX" = "$DEVICES" ]
+then
+	echo $0: 'No sensors found! (modprobe sensor modules?)'
+	exit 1
+fi
+
+MATCH=$PREFIX/'pwm[1-9]'
+PWM=`echo $MATCH`
+if [ "$SYSFS" = "1" -a "$MATCH" = "$PWM" ]
+then
+	# Deprecated naming scheme (used in kernels 2.6.5 to 2.6.9)
+	MATCH=$PREFIX/'fan[1-9]_pwm'
+	PWM=`echo $MATCH`
+fi
+if [ "$MATCH" = "$PWM" ]
+then
+	echo $0: 'There are no pwm-capable sensor modules installed'
+	exit 1
+fi
+
+if [ -n "$SYSFS" ]
+then
+	MATCH=$PREFIX/'fan[1-9]_input'
+else
+	MATCH=$PREFIX/'fan[1-9]'
+fi
+FAN=`echo $MATCH`
+if [ "$MATCH" = "$FAN" ]
+then
+	echo $0: 'There are no fan-capable sensor modules installed'
+	exit 1
+fi
+
+# $1 = padding
+# Only works with Linux 2.6
+function print_devices()
+{
+	for device in $DEVICES
+	do
+		echo "$1$device is `cat $device/name`"
+	done
+}
+
+# $1 = pwm file name
+function pwmdisable()
+{
+	if [ -n "$SYSFS" ]
+	then
+		ENABLE=${1}_enable
+		# No enable file? Just set to max
+		if [ ! -f $ENABLE ]
+		then
+			echo $MAX > $1
+			return 0
+		fi
+
+		# Try pwmN_enable=0
+		echo 0 > $ENABLE 2> /dev/null
+		if [ "`cat $ENABLE`" -eq 0 ]
+		then
+			# Success
+			return 0
+		fi
+
+		# It didn't work, try pwmN_enable=1 pwmN=255
+		echo 1 > $ENABLE 2> /dev/null
+		echo $MAX > $1
+		if [ "`cat $ENABLE`" -eq 1 -a "`cat $1`" -ge 190 ]
+		then
+			# Success
+			return 0
+		fi
+
+		# Nothing worked
+		echo "$ENABLE stuck to `cat $ENABLE`" >&2
+		return 1
+	else
+		echo $MAX 0 > $1
+	fi
+}
+
+# $1 = pwm file name
+function pwmenable()
+{
+	if [ -n "$SYSFS" ]
+	then
+		ENABLE=${1}_enable
+		if [ -w $ENABLE ]
+		then
+			echo 1 > $ENABLE 2> /dev/null
+			if [ $? -ne 0 ]
+			then
+				return 1
+			fi
+		fi
+		echo $MAX > $1
+	else
+		echo $MAX 1 > $1
+	fi
+}
+
+# $1 = pwm file name; $2 = pwm value 0-250
+function pwmset()
+{
+	echo $2 > $1
+}
+
+if [ -n "$SYSFS" ]
+then
+	echo 'Found the following devices:'
+	print_devices "   "
+	echo
+fi
+
+echo 'Found the following PWM controls:'
+for i in $PWM
+do
+	echo "   $i"
+	if [ -w $i ]
+	then
+		pwmdisable $i
+		if [ $? -ne 1 ]
+		then
+			echo "Failed to set pwm$i to full speed" >&2
+			echo "Something's wrong, check your fans!" >&2
+			exit 1
+		fi
+	else
+		NOTROOT=1
+	fi
+done
+
+echo
+echo 'Found the following fan sensors:'
+for i in $FAN
+do
+	# this will return the first field if there's only one (sysfs)
+	S=`cat $i | cut -d' ' -f2`
+	if [ "$S" = "0" -o "$S" = "-1" ]
+	then
+		echo "   $i     current speed: 0 ... skipping!"
+	else
+		echo "   $i     current speed: $S RPM"
+		if [ "$GOODFAN" = "" ]
+		then
+			GOODFAN=$i
+			SPEEDS=$S
+		else
+			GOODFAN="$GOODFAN $i"
+			SPEEDS="$SPEEDS $S"
+		fi
+	fi
+done
+echo
+
+if [ "$GOODFAN" = "" ]
+then
+	echo 'There are no working fan sensors, all readings are 0.'
+	echo 'Make sure you have a 3-wire fan connected.'
+	echo 'You may also need to increase the fan divisors.'
+	echo 'See doc/fan-divisors for more information.'
+	exit 1
+fi
+
+if [ "$NOTROOT" = "1" ]
+then
+	echo 'As you are not root, we cannot write the PWM settings.'
+	echo 'Please run as root to continue.'
+	exit 1
+fi
+
+echo 'Warning!!! This program will stop your fans, one at a time,'
+echo "for approximately $DELAY seconds each!!!"
+echo 'This may cause your processor temperature to rise!!!'
+echo 'If you do not want to do this hit control-C now!!!'
+echo -n 'Hit return to continue: '
+read X
+echo
+
+PLOTTER=gnuplot
+STEP=5
+PDELAY=2
+# Use a smaller step for low PWM values as this is typically where the
+# more important fan speed changes are happening.
+STEP2=2
+STEP2_BELOW=31
+
+function pwmdetail()
+{
+	P=$1
+	F=$2
+	PLOT=
+
+	type $PLOTTER > /dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		echo -n "Would you like to generate a graphical plot using $PLOTTER (y)? "
+		read X
+		if [ "$X" = "y" -o "$X" = "Y" -o "$X" = "" ]
+		then
+			PLOT=y  	
+		fi
+	fi
+
+	if [ "$PLOT" = "y" ]
+	then
+		TMP1=`mktemp -t pwmtest1.XXXXXXXXXX` || { echo "$0: Cannot create temporary file" >&2; exit 1; }
+		TMP2=`mktemp -t pwmtest2.XXXXXXXXXX` || { rm -f $TMP1 ; echo "$0: Cannot create temporary file" >&2; exit 1; }
+		echo "set xlabel \"PWM: $P\"" > $TMP1
+		echo "set ylabel \"FAN: $F (RPM)\"" >> $TMP1
+		echo 'set nokey' >> $TMP1
+		echo 'set xrange [0:255]' >> $TMP1
+		echo "plot \"$TMP2\" with lines" >> $TMP1
+		echo 'pause -1 "    Hit return to continue..."' >> $TMP1
+		> $TMP2
+	fi
+
+	let pwm=$MAX
+	pwmenable $P
+	while [ $pwm -ge 0 ]
+	do
+		pwmset $P $pwm  
+		sleep $PDELAY
+		if [ $? -ne 0 ]
+		then
+			pwmdisable $P	
+			echo '^C received, aborting...'
+			rm -f $TMP1 $TMP2
+			exit 1
+		fi		
+		# this will return the first field if there's only one (sysfs)
+		S=`cat $F | cut -d' ' -f2`
+		echo "    PWM $pwm FAN $S"
+		if [ "$PLOT" = "y" ]
+		then
+			echo "$pwm $S" >> $TMP2
+		fi
+		if [ "$S" = "0" -o "$S" = "-1" ]
+		then
+			pwmdisable $P	
+			echo "    Fan Stopped at PWM = $pwm"
+			if [ $pwm -eq $MAX ]
+			then
+				echo "    This fan appears to stop when the PWM is enabled;"
+				echo "    perhaps the fan input shares a pin with the PWM output"
+				echo "    on the sensor chip."
+				echo "    You cannot control this fan with this PWM output."
+				rm -f $TMP1 $TMP2
+				echo
+				return 0
+			fi
+			break
+		fi
+		if [ $pwm -lt $STEP2_BELOW ]
+		then
+			let pwm=$pwm-$STEP2
+		else
+			let pwm=$pwm-$STEP
+		fi
+	done
+	pwmdisable $P	
+	if [ "$PLOT" = "y" ]
+	then
+		$PLOTTER  $TMP1
+		rm -f $TMP1 $TMP2
+	fi
+	echo
+}
+
+for i in $PWM
+do
+	echo Testing pwm control $i ...
+	pwmenable $i
+	if [ $? -ne 0 ]
+	then
+		echo "Manual control mode not supported, skipping."
+		continue
+	fi
+	pwmset $i 0
+	sleep $DELAY
+	if [ $? -ne 0 ]
+	then
+		pwmdisable $i
+		echo '^C received, restoring PWM and aborting...'
+		exit 1
+	fi		
+	let pwmactivecount=0
+	let count=1
+	for j in $GOODFAN
+	do
+		OS=`echo $SPEEDS | cut -d' ' -f$count`
+		# this will return the first field if there's only one (sysfs)
+		S=`cat $j | cut -d' ' -f2`
+		echo "  $j ... speed was $OS now $S"
+		pwmdisable $i
+		let threshold=2*$OS/3
+		if [ $S -lt $threshold ]
+		then
+			echo "    It appears that fan $j"
+			echo "    is controlled by pwm $i"
+#
+# a PWM can control more than one fan....
+#
+			if [ $pwmactivecount -eq 0 ]
+			then
+				let pwmactivecount=1
+				pwmactive="$i ${pwmactive}"
+				fanactive="$j ${fanactive}"
+			else
+				fanactive="$j+${fanactive}" #not supported yet by fancontrol
+			fi
+			sleep $DELAY
+			if [ $? -ne 0 ]
+			then
+				echo '^C received, aborting...'
+				exit 1
+			fi		
+			# this will return the first field if there's only one (sysfs)
+			S=`cat $j | cut -d' ' -f2`
+			if [ $S -lt $threshold ]
+			then
+				echo "    Fan $j has not returned to speed, please investigate!"
+			else
+				echo -n "Would you like to generate a detailed correlation (y)? "
+				read X
+				if [ "$X" = "y" -o "$X" = "Y" -o "$X" = "" ]
+				then
+					pwmdetail $i $j
+				fi
+			fi
+		else
+			echo "    no correlation"
+		fi
+		let count=count+1
+	done
+	echo
+	if [ "$pwmactivecount" = "0" ]
+	then
+		echo "No correlations were detected."
+		echo "There is either no fan connected to the output of $i,"
+		echo "or the connected fan has no rpm-signal connected to one of"
+		echo "the tested fan sensors. (Note: not all motherboards have"
+		echo "the pwm outputs connected to the fan connectors,"
+		echo "check out the hardware database on http://www.almico.com/forumindex.php)"
+		echo
+		echo -n "Did you see/hear a fan stopping during the above test (n)? "
+		read X
+		if [ "$X" = "y" -o "$X" = "Y" ]
+		then
+			pwmactive="$i ${pwmactive}"
+		fi
+		echo
+	fi
+done
+
+
+echo 'Testing is complete.'
+echo 'Please verify that all fans have returned to their normal speed.'
+echo
+echo 'The fancontrol script can automatically respond to temperature changes'
+echo 'of your system by changing fanspeeds.'
+echo -n 'Do you want to set up its configuration file now (y)? '
+
+read X
+if [ "$X" = "n" -o "$X" = "N" ]
+then
+	exit
+fi
+
+if [ -n "$SYSFS" ]
+then
+	MATCH=$PREFIX/'temp[1-9]_input'
+else
+	MATCH=$PREFIX/'temp[1-9]'
+fi
+TEMPS=`echo $MATCH`
+if [ "$MATCH" = "$TEMPS" ]
+then
+	echo $0: 'There are no temperature-capable sensor modules installed'
+	exit 1
+fi
+
+function AskPath {
+	echo -n 'What should be the path to your fancontrol config file (/etc/fancontrol)? '
+
+	read X
+	if [ "$X" = "y" -o "$X" = "Y" -o "$X" = "" ]
+	then
+		X=/etc/fancontrol
+	fi
+	if [ -f $X ]
+	then
+		FCCONFIG=$X
+	else
+		echo -n "$X does not exist, shall I create it now (y)? "
+		read Y
+		if [ "$Y" = "y" -o "$Y" = "Y" -o "$Y" = "" ]
+		then
+			touch $X
+			chmod 0660 $X
+			chown root.root $X
+			FCCONFIG=$X
+		else
+			AskPath
+		fi
+	fi
+}
+
+AskPath
+
+function LoadConfig {
+	echo "Loading configuration from $1 ..."
+	INTERVAL=`egrep '^INTERVAL=.*$' $1 | sed -e 's/INTERVAL= *//g'`
+	FCTEMPS=`egrep '^FCTEMPS=.*$' $1 | sed -e 's/FCTEMPS= *//g'`
+	FCFANS=`egrep '^FCFANS=.*$' $1 | sed -e 's/FCFANS= *//g'`
+	MINTEMP=`egrep '^MINTEMP=.*$' $1 | sed -e 's/MINTEMP= *//g'`
+	MAXTEMP=`egrep '^MAXTEMP=.*$' $1 | sed -e 's/MAXTEMP= *//g'`
+	MINSTART=`egrep '^MINSTART=.*$' $1 | sed -e 's/MINSTART= *//g'`
+	MINSTOP=`egrep '^MINSTOP=.*$' $1 | sed -e 's/MINSTOP= *//g'`
+	MINPWM=`egrep '^MINPWM=.*$' $1 | sed -e 's/MINPWM= *//g'`
+	MAXPWM=`egrep '^MAXPWM=.*$' $1 | sed -e 's/MAXPWM= *//g'`
+
+	# Check for configuration change
+	local item
+	for item in $FCFANS
+	do
+		if [ ! -f "`echo $item | sed -e 's/=.*$//'`" ]
+		then
+			echo "Configuration appears to be outdated, discarded"
+			FCTEMPS=""
+			FCFANS=""
+			MINTEMP=""
+			MAXTEMP=""
+			MINSTART=""
+			MINSTOP=""
+			MINPWM=""
+			MAXPWM=""
+		fi
+	done
+}
+
+LoadConfig $FCCONFIG
+
+function TestMinStart {
+	echo
+	echo 'Now we increase the PWM value in 10-unit-steps.'
+	echo 'Let the fan stop completely, then press return until the'
+	echo "fan starts spinning. Then enter 'y'."
+	echo 'We will use this value +20 as the starting speed.'
+	let fanok=0
+	let fanval=0
+	until [ "$fanok" = "1" ]
+	do
+		let fanval=fanval+10
+		if [ $fanval -gt 240 ] ; then let fanval=$MAX ; let fanok=1 ; fi
+		echo -n "Setting $pwms to $fanval..."
+		echo $fanval > $pwms
+		read FANTEST
+		if [ "$FANTEST" != "" ] ; then let fanok=1 ; fi
+	done
+	let fanval=fanval+20
+	if [ $fanval -gt 240 ] ; then let fanval=$MAX ; fi
+	echo "OK, using $fanval"
+	echo $MAX > $pwms
+}
+
+function TestMinStop {
+        echo
+        echo 'Now we decrease the PWM value in 10-unit-steps.'
+	echo 'Let the fan reach full speed, then press return until the'
+	echo "fan stops spinning. Then enter 'y'."
+	echo 'We will use this value +20 as the minimum speed.'
+        let fanok=0
+        let fanval=$MAX
+        until [ "$fanok" = "1" ]
+        do
+                let fanval=fanval-10
+		if [ $fanval -lt 0 ] ; then let fanval=0 ; let fanok=1 ; fi
+                echo -n "Setting $pwms to $fanval..."
+                echo $fanval > $pwms
+                read FANTEST
+		if [ "$FANTEST" != "" ] ; then let fanok=1 ; fi
+        done
+        let fanval=fanval+20
+        if [ $fanval -gt $MAX ] ; then let fanval=$MAX ; fi
+        echo "OK, using $fanval"
+	echo $MAX > $pwms
+}
+
+function SaveConfig {
+	echo
+	echo "Saving configuration to $FCCONFIG..."
+	tmpfile=`mktemp -t pwmcfg.XXXXXXXXXX` || { echo "$0: Cannot create temporary file" >&2; exit 1;  }
+	trap " [ -f \"$tmpfile\" ] && /bin/rm -f -- \"$tmpfile\"" 0 1 2 3 13 15
+	egrep -v '(INTERVAL|FCTEMPS|FCFANS|MAXTEMP|MINTEMP|MINSTART|MINSTOP|MINPWM|MAXPWM)' $FCCONFIG >$tmpfile
+	echo -e "INTERVAL=$INTERVAL\nFCTEMPS=$FCTEMPS\nFCFANS=$FCFANS\nMINTEMP=$MINTEMP\nMAXTEMP=$MAXTEMP\nMINSTART=$MINSTART\nMINSTOP=$MINSTOP" >>$tmpfile
+	[ -n "$MINPWM" ] && echo "MINPWM=$MINPWM" >>$tmpfile
+	[ -n "$MAXPWM" ] && echo "MAXPWM=$MAXPWM" >>$tmpfile
+	mv $tmpfile $FCCONFIG
+	#check if file was written correctly
+	echo 'Configuration saved'
+}
+
+INTERVAL=10
+PS3='select (1-n): '
+DEFMINTEMP=0
+DEFMAXTEMP=60
+DEFMINSTART=150
+DEFMINSTOP=100
+
+#the section below has a high potential for usability improvements
+echo
+echo 'Select fan output to configure, or other action:'
+select pwms in $pwmactive "Change INTERVAL" "Just quit" "Save and quit" "Show configuration"; do
+	case $pwms in
+	"Change INTERVAL")
+		echo
+		echo "Current interval is $INTERVAL seconds."
+		echo -n "Enter the interval at which fancontrol should update PWM values (in s):"
+		read INTERVAL ;; #check user input here
+	"Just quit")
+		exit ;;
+	"Save and quit")
+		SaveConfig
+		exit ;;
+	"Show configuration")
+		echo
+		echo "Common Settings:"
+		echo "INTERVAL=$INTERVAL"
+		for pwmo in $pwmactive
+		do
+			echo
+			echo "Settings of ${pwmo}:"
+			echo "  Depends on `echo $FCTEMPS |sed -e 's/ /\n/g' |egrep \"${pwmo}\" |sed -e 's/.*=//g'`"
+			echo "  Controls `echo $FCFANS |sed -e 's/ /\n/g' |egrep \"${pwmo}\" |sed -e 's/.*=//g'`"
+			echo "  MINTEMP=`echo $MINTEMP |sed -e \"s/ /\n/g\" |egrep \"${pwmo}\" |sed -e \"s/.*=//g\"`"
+			echo "  MAXTEMP=`echo $MAXTEMP |sed -e \"s/ /\n/g\" |egrep \"${pwmo}\" |sed -e \"s/.*=//g\"`"
+			echo "  MINSTART=`echo $MINSTART |sed -e \"s/ /\n/g\" |egrep \"${pwmo}\" |sed -e \"s/.*=//g\"`"
+			echo "  MINSTOP=`echo $MINSTOP |sed -e \"s/ /\n/g\" |egrep \"${pwmo}\" |sed -e \"s/.*=//g\"`"
+			echo "  MINPWM=`echo $MINPWM |sed -e \"s/ /\n/g\" |egrep \"${pwmo}\" |sed -e \"s/.*=//g\"`"
+			echo "  MAXPWM=`echo $MAXPWM |sed -e \"s/ /\n/g\" |egrep \"${pwmo}\" |sed -e \"s/.*=//g\"`"
+		done
+		echo ;;
+
+	"`echo ${pwmactive} |sed -e 's/ /\n/g' | egrep \"${pwms}\"`" )
+		pwmsed=`echo ${pwms} | sed -e 's/\//\\\\\//g'` #escape / for sed
+		echo
+		if [ -n "$SYSFS" ]
+		then
+			echo 'Devices:'
+			print_devices ""
+			echo
+		fi
+		echo 'Current temperature readings are as follows:'
+		for j in $TEMPS
+		do
+			# this will return the first field if there's only one (sysfs)
+			S=`cat $j | cut -d' ' -f3`
+			if [ -n "$SYSFS" ]
+			then
+				let S="$S / 1000"
+			fi
+			echo "$j	$S"
+		done
+		FAN=`echo $fanactive|cut -d' ' -f$REPLY`
+	       	FCFANS="`echo $FCFANS | sed -e "s/${pwmsed}[^ ]* *//g\"` ${pwms}=$FAN"
+		echo
+		echo "Select a temperature sensor as source for ${pwms}:"
+		select tempss in $TEMPS "None (Do not affect this PWM output)"; do
+			if [ "$tempss" = "None (Do not affect this PWM output)" ]
+			then
+			
+				break;
+			else
+				if [ "$FCTEMPS" = "" ]
+				then
+					FCTEMPS="${pwms}=${tempss}"
+				else
+					FCTEMPS="`echo $FCTEMPS | sed -e "s/${pwmsed}[^ ]* *//g\"` ${pwms}=${tempss}"
+				fi
+			fi
+			echo
+			echo 'Enter the low temperature (degree C)'
+			echo -n "below which the fan should spin at minimum speed ($DEFMINTEMP): "
+			read XMT
+			if [ "$XMT" = "" ]
+			then
+				XMT=$DEFMINTEMP
+			fi
+			if [ "$MINTEMP" = "" ]
+			then
+				MINTEMP="${pwms}=${XMT}"
+			else
+				MINTEMP="`echo $MINTEMP | sed -e \"s/${pwmsed}[^ ]* *//g\"` ${pwms}=${XMT}"
+			fi
+			echo
+			echo 'Enter the high temperature (degree C)'
+			echo -n "over which the fan should spin at maximum speed ($DEFMAXTEMP): "
+			read XMT
+			if [ "$XMT" = "" ]
+			then
+				XMT=$DEFMAXTEMP
+			fi
+			if [ "$MAXTEMP" = "" ]
+			then
+				MAXTEMP="${pwms}=${XMT}"
+                        else
+				MAXTEMP="`echo $MAXTEMP | sed -e \"s/${pwmsed}[^ ]* *//g\"` ${pwms}=${XMT}"
+			fi
+			echo
+			echo "Enter the minimum PWM value (0-$MAX)"
+			echo -n "at which the fan STARTS spinning (press t to test) ($DEFMINSTART): "
+			read XMV
+			if [ "$XMV" = "" ]
+			then
+				XMV=$DEFMINSTART
+			fi
+			if [ "$XMV" = "t" -o "$XMV" = "T" ]
+			then
+				TestMinStart
+				XMV=$fanval
+			fi
+			if [ "$MINSTART" = "" ]
+			then
+				MINSTART="${pwms}=${XMV}"
+			else
+				MINSTART="`echo $MINSTART | sed -e \"s/${pwmsed}[^ ]* *//g\"` ${pwms}=${XMV}"
+			fi
+			echo
+			echo "Enter the minimum PWM value (0-$MAX)"
+			echo -n "at which the fan STOPS spinning (press t to test) ($DEFMINSTOP): "
+			read XMV
+			if [ "$XMV" = "" ]
+			then
+				XMV=$DEFMINSTOP
+			fi
+			if [ "$XMV" = "t" -o "$XMV" = "T" ]
+			then
+				TestMinStop
+				XMV=$fanval
+			fi
+			if [ "$MINSTOP" = "" ]
+			then
+				MINSTOP="${pwms}=${XMV}"
+			else
+				MINSTOP="`echo $MINSTOP | sed -e \"s/${pwmsed}[^ ]* *//g\"` ${pwms}=${XMV}"
+			fi
+			echo
+			echo "Enter the PWM value (0-$XMV) to use when the temperature"
+			echo -n "is below the low temperature limit (0): "
+			read XMINP
+			if [ -n "$XMINP" ]
+			then
+				if [ "$MINPWM" = "" ]
+				then
+					MINPWM="${pwms}=${XMINP}"
+				else
+					MINPWM="`echo $MINPWM | sed -e \"s/${pwmsed}[^ ]* *//g\"` ${pwms}=${XMINP}"
+				fi
+			fi
+			echo
+			echo "Enter the PWM value ($XMV-$MAX) to use when the temperature"
+			echo -n "is over the high temperature limit ($MAX): "
+			read XMAXP
+			if [ -n "$XMAXP" ]
+			then
+				if [ "$MAXPWM" = "" ]
+				then
+					MAXPWM="${pwms}=${XMAXP}"
+				else
+					MAXPWM="`echo $MAXPWM | sed -e \"s/${pwmsed}[^ ]* *//g\"` ${pwms}=${XMAXP}"
+				fi
+			fi
+			echo
+			break;
+		done ;;
+	
+	*)
+		grep $pwm
+
+		echo "No such option. Enter a number." ;;
+	esac
+done
+
+--------------060203050505020808090706
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------060203050505020808090706--
