@@ -1,31 +1,25 @@
 From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Wed, 13 Feb 2008 12:56:49 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (smsc47m1) Add individual
-Message-Id: <20080213125649.GC1154@jupiter.solarsys.private>
+Date: Fri, 01 Feb 2008 02:36:15 +0000
+Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (w83627hf) Refactor beep	enable
+Message-Id: <20080201023615.GP8290@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
+Hi Jean:
 
-* Juerg Haefliger <juergh@gmail.com> [2008-02-09 22:51:01 -0800]:
-> Looks good - assuming the bit positions are correct, which I can't
-> fully verify without a datasheet - and compiles cleanly.
+* Jean Delvare <khali@linux-fr.org> [2008-01-03 23:04:55 +0100]:
+> We can handle the beep enable bit as any other beep mask bit for
+> slightly smaller code.
 > 
-> Acked-by: Juerg Haefliger <juergh at gmail.com>
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> ---
+> Carlos, Jim, could any of you please test and/or review this patch?
 > 
-> 
-> > The new libsensors needs these individual alarm files.
-> >
-> > Signed-off-by: Jean Delvare <khali at linux-fr.org>
-> > ---
-> > Anyone with an SMSC LPC47M1xx-compatible chip that could test this
-> > patch? Hartmut maybe?
-> >
-> >   drivers/hwmon/smsc47m1.c |   25 ++++++++++++++++++++++---
-> >   1 file changed, 22 insertions(+), 3 deletions(-)
+>  drivers/hwmon/w83627hf.c |   78 +++++++++++++++-------------------------------
+>  1 file changed, 26 insertions(+), 52 deletions(-)
 
 Applied to hwmon-2.6.git/testing, thanks.
 
