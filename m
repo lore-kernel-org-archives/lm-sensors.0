@@ -1,7 +1,7 @@
 From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Fri, 01 Feb 2008 02:36:15 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (w83627hf) Refactor beep	enable
-Message-Id: <20080201023615.GP8290@jupiter.solarsys.private>
+Date: Fri, 01 Feb 2008 03:07:08 +0000
+Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (lm80) Various cleanups
+Message-Id: <20080201030708.GQ8290@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,16 +10,20 @@ To: lm-sensors@vger.kernel.org
 
 Hi Jean:
 
-* Jean Delvare <khali@linux-fr.org> [2008-01-03 23:04:55 +0100]:
-> We can handle the beep enable bit as any other beep mask bit for
-> slightly smaller code.
+* Jean Delvare <khali@linux-fr.org> [2008-01-05 15:35:09 +0100]:
+> * Drop trailing whitespace
+> * Fold a long line
+> * Rename new_client to client
+> * Drop redundant initializations to 0
+> * Drop bogus comment
 > 
 > Signed-off-by: Jean Delvare <khali@linux-fr.org>
 > ---
-> Carlos, Jim, could any of you please test and/or review this patch?
+> Tested using i2c-stub.
 > 
->  drivers/hwmon/w83627hf.c |   78 +++++++++++++++-------------------------------
->  1 file changed, 26 insertions(+), 52 deletions(-)
+>  drivers/hwmon/lm80.c |   49 ++++++++++++++++++++++++-------------------------
+>  1 file changed, 24 insertions(+), 25 deletions(-)
+> 
 
 Applied to hwmon-2.6.git/testing, thanks.
 
