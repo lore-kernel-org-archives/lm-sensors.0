@@ -1,37 +1,46 @@
-From: Juerg Haefliger <juergh@gmail.com>
-Date: Tue, 12 Feb 2008 06:33:21 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (smsc47m1) Add individual alarm
-Message-Id: <47B13DB1.1020901@gmail.com>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Fri, 01 Feb 2008 02:52:47 +0000
+Subject: Re: [lm-sensors] failed to load it87 module on IT8712F
+Message-Id: <20080201025247.GG20687@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080106153613.1ebf3e1a@hyperion.delvare>
-In-Reply-To: <20080106153613.1ebf3e1a@hyperion.delvare>
+References: <002001c8641e$71d8f6e0$180411ac@EDVW14>
+In-Reply-To: <002001c8641e$71d8f6e0$180411ac@EDVW14>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean
+Hi Peter:
 
-
-> Hi Juerg,
+* Peter Eser <Peter.Eser@heuft.com> [2008-01-31 16:32:10 +0100]:
+>    Hello,
 > 
-> On Sat, 9 Feb 2008 22:51:01 -0800, Juerg Haefliger wrote:
->> Looks good - assuming the bit positions are correct, which I can't
->> fully verify without a datasheet - and compiles cleanly.
+>    I have a Aeeon PCM8120 board with VIA CX700M.
+>    On the VIA homepage its equipped with VT1211.
+>    But on board I find a (additional?) IT8712F and
+>    sensors detect finds only this one and says: (but not activated).
+>    modprobe vt1211 and it87 both say no such device.
 > 
-> Thanks for all the review, very much appreciated.
+>    Bus module i2c-viapro has no problem.
+>    All is standard kernel 2.6.24.
 > 
-> You can download the smsc47m1 datasheets from:
-> http://www.smsc.com/main/catalog/desktop.html
+>    The sad thing is I have the it87 module running under
+>    kernel 2.2 (because the board is a replacement for an older
+>    one running on this old kernel, by the way this kernel is
+>    running fine on the new board). Can modprobe it87 with i2c-isa
+>    on the old kernel and get fan,temperatures,voltages.
 > 
-> LPC47M10x, LPC47M112, LPC47B272, LPC47M142 and LPC47M192 are all
-> supported by this driver.
+>    Any help would be great,
 
-Ah yes, I didn't realize this datasheet is public.
+Are there any interesting messages in the kernel log when running
+2.6.24?  If so, please send them.  Also, please send a copy of your
+kernel config.
 
-Thanks
-...juerg
+Thanks & regards,
 
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
 
 _______________________________________________
