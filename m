@@ -1,7 +1,7 @@
 From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 26 Feb 2008 13:11:50 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (w83793) VID and VRM
-Message-Id: <20080226131150.GB2947@jupiter.solarsys.private>
+Date: Fri, 01 Feb 2008 02:35:32 +0000
+Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (w83627hf) Enable VBAT
+Message-Id: <20080201023532.GN8290@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,23 +10,19 @@ To: lm-sensors@vger.kernel.org
 
 Hi Jean:
 
-* Jean Delvare <khali@linux-fr.org> [2008-02-12 11:25:07 +0100]:
-> * Rework the device initialization function so as to read the
-> "Multi-Function Pin Control" register (0x58) once instead of twice.
-> I2C transactions aren't cheap so this speeds up the driver loading.
-> 
-> * Only create the "vrm" attribute if at least one VID value is
-> available.
+* Jean Delvare <khali@linux-fr.org> [2008-01-03 22:54:13 +0100]:
+> If VBAT monitoring is disabled, enable it. Bug reported on the
+> lm-sensors trac system:
+> http://lm-sensors.org/ticket/2282
+> This is the exact same patch that was applied to the w83627ehf driver
+> 6 months ago.
 > 
 > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Gong Jun <jgong@winbond.com>
-> Cc: Rudolf Marek <r.marek@assembler.cz>
 > ---
-> Gong Jun and/or Rudolf, can you please review and/or test this patch?
+> Carlos, could you please test and/or review this patch?
 > 
->  drivers/hwmon/w83793.c |   26 ++++++++++++++------------
->  1 file changed, 14 insertions(+), 12 deletions(-)
-> 
+>  drivers/hwmon/w83627hf.c |    5 +++++
+>  1 file changed, 5 insertions(+)
 
 Applied to hwmon-2.6.git/testing, thanks.
 
