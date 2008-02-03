@@ -1,40 +1,49 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Wed, 13 Feb 2008 12:57:08 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (via686a) Add individual alarm	files
-Message-Id: <20080213125708.GD1154@jupiter.solarsys.private>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date: Sun, 03 Feb 2008 02:26:22 +0000
+Subject: [lm-sensors] The new thermal management sysfs class, and hwmon
+Message-Id: <20080203022622.GA995@khazad-dum.debian.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080106154204.6abccc25@hyperion.delvare>
-In-Reply-To: <20080106154204.6abccc25@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: Zhang Rui <rui.zhang@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Jean Delvare <khali@linux-fr.org>, Len Brown <lenb@kernel.org>
 
-Hi:
+The new thermal managemeny sysfs class that was just merged into acpi-test,
+especially when dealing with temperature measurement and fan control, has a
+lot of common ground with the hwmon interface.
 
-* Juerg Haefliger <juergh@gmail.com> [2008-02-09 22:56:35 -0800]:
-> Looks good - assuming the bit positions are correct, which I can't
-> verify without a datasheet - and compiles cleanly.
-> 
-> Acked-by: Juerg Haefliger <juergh at gmail.com>
-> 
-> 
-> > The new libsensors needs these individual alarm files.
-> >
-> > Signed-off-by: Jean Delvare <khali at linux-fr.org>
-> > ---
-> > Ian, would you have the opportunity to test this patch?
-> >
-> >   drivers/hwmon/via686a.c |   28 ++++++++++++++++++++++++++++
-> >   1 file changed, 28 insertions(+)
-> >
+However, the ACPI model for thermal cooling devices (fans, etc) and thermal
+zones (temp sensors) as currently implemented in the sysfs class appears at
+first glance to be a lot more simplified than what is available through the
+hwmon sysfs ABI (for a lack of a better term to describe the sysfs attribute
+specifications).
 
-Applied to hwmon-2.6.git/testing, thanks.
+And the two sysfs ABIs are incompatible.  The ACPI one uses low-precision
+units, (temperature in 10^0 degrees Celcius), while the hwmon ABI uses
+medium precision units (10^-3 degrees Celcius), for example.  There is also
+no tachometer feedback for fans, etc.
+
+Missing functionality in the new thermal class are apparently mainly related
+to the idea of hardware-based temperature limits and alarms, plus any
+non-trivial fan control schemes (many chips, and in case of thinkpad-acpi,
+EC firmware, have auto-cruise modes, some have more than one automatic fan
+control scheme, etc).   If I am wrong about this, please correct me.
+
+IMHO, we can probably do better than two incompatible sysfs ABIs for what
+ammounts to the same functionality for many userspace applications (i.e.
+thermal monitor apps, and fan control and monitoring apps).  And it would be
+really neat if the new thermal management stuff could just plug into the
+already available temperature sensors and fan controllers that follow the
+hwmon sysfs ABI.
+
+Any thoughs on this?
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
 _______________________________________________
 lm-sensors mailing list
