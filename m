@@ -1,103 +1,42 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 13 Feb 2008 13:53:51 +0000
-Subject: Re: [lm-sensors] hwmon: (vt8231) Add individual alarm files
-Message-Id: <20080213145351.0fec6f41@hyperion.delvare>
+Date: Tue, 05 Feb 2008 21:33:46 +0000
+Subject: Re: [lm-sensors] CPU temperature
+Message-Id: <20080205223346.04549341@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080106154602.3f81ae40@hyperion.delvare>
-In-Reply-To: <20080106154602.3f81ae40@hyperion.delvare>
+References: <1896.10.16.10.158.1201357238.squirrel@mail.serc.iisc.ernet.in>
+In-Reply-To: <1896.10.16.10.158.1201357238.squirrel@mail.serc.iisc.ernet.in>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Wed, 13 Feb 2008 08:06:33 -0500, Mark M. Hoffman wrote:
-> Hi:
-> 
-> > On Thu, 17 Jan 2008 00:05:28 -0000, Roger Lucas wrote:
-> > > My mail address is changing soon so I have a patch below to correct
-> > > my e-mail addresses in the source code.  I have a special address for
-> > > the vt8231 kernel development so that I can filter the spam on it more
-> > > aggressively - it does seem to get heavily harvested...
-> > > (...)
-> > > Signed-off-by: Roger Lucas <vt8231@hiddenengine.co.uk>
-> > > 
-> > > --- linux-2.6.24-rc8-orig/drivers/hwmon/vt8231.c        2008-01-16 22:59:25.000000000 +0000
-> > > +++ linux-2.6.24-rc8/drivers/hwmon/vt8231.c     2008-01-16 23:57:27.000000000 +0000
-> > > @@ -2,7 +2,7 @@
-> > >         vt8231.c - Part of lm_sensors, Linux kernel modules
-> > >                                 for hardware monitoring
-> > > 
-> > > -       Copyright (c) 2005 Roger Lucas <roger@planbit.co.uk>
-> > > +       Copyright (c) 2005 Roger Lucas <vt8231@hiddenengine.co.uk>
-> > >         Copyright (c) 2002 Mark D. Studebaker <mdsxyz123@yahoo.com>
-> > >                            Aaron M. Marsh <amarsh@sdf.lonestar.org>
-> > > 
-> > > @@ -999,7 +999,7 @@
-> > >         }
-> > >  }
-> > > 
-> > > -MODULE_AUTHOR("Roger Lucas <roger@planbit.co.uk>");
-> > > +MODULE_AUTHOR("Roger Lucas <vt8231@hiddenengine.co.uk>");
-> > >  MODULE_DESCRIPTION("VT8231 sensors");
-> > >  MODULE_LICENSE("GPL");
-> 
-> * Jean Delvare <khali@linux-fr.org> [2008-01-17 12:35:19 +0100]:
-> > You probably want to update your address in MAINTAINERS as well.
-> 
-> Here's what I applied... no need to ACK, but let me know if I somehow
-> screwed it up.
-> 
-> commit 8ce37033ec889deda806384a39787deb516cf501
-> Author: Roger Lucas <vt8231@hiddenengine.co.uk>
-> Date:   Wed Feb 13 07:52:06 2008 -0500
-> 
->     hwmon: (vt8231) Update maintainer email address
->     
->     Signed-off-by: Roger Lucas <vt8231@hiddenengine.co.uk>
->     
->     (modified MAINTAINERS entry also - MMH)
->     
->     Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index c40f0ae..d3f36f4 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -4259,7 +4259,7 @@ S:	Maintained
->  
->  VT8231 HARDWARE MONITOR DRIVER
->  P:	Roger Lucas
-> -M:	roger@planbit.co.uk
-> +M:	vt8231@hiddenengine.co.uk
->  L:	lm-sensors@lm-sensors.org
->  S:	Maintained
->  
-> diff --git a/drivers/hwmon/vt8231.c b/drivers/hwmon/vt8231.c
-> index ed4b898..5bc5727 100644
-> --- a/drivers/hwmon/vt8231.c
-> +++ b/drivers/hwmon/vt8231.c
-> @@ -2,7 +2,7 @@
->  	vt8231.c - Part of lm_sensors, Linux kernel modules
->  				for hardware monitoring
->  
-> -	Copyright (c) 2005 Roger Lucas <roger@planbit.co.uk>
-> +	Copyright (c) 2005 Roger Lucas <vt8231@hiddenengine.co.uk>
->  	Copyright (c) 2002 Mark D. Studebaker <mdsxyz123@yahoo.com>
->  			   Aaron M. Marsh <amarsh@sdf.lonestar.org>
->  
-> @@ -999,7 +999,7 @@ static void __exit sm_vt8231_exit(void)
->  	}
->  }
->  
-> -MODULE_AUTHOR("Roger Lucas <roger@planbit.co.uk>");
-> +MODULE_AUTHOR("Roger Lucas <vt8231@hiddenengine.co.uk>");
->  MODULE_DESCRIPTION("VT8231 sensors");
->  MODULE_LICENSE("GPL");
->  
+Hi Kiran,
 
-Looks OK to me.
+On Sat, 26 Jan 2008 19:50:38 +0530 (IST), kiran@serc.iisc.ernet.in wrote:
+>   We have IBM Intellistation, I am using lm_sensors-2.10.1-1.fc6. It is
+> working fine. But when i run sensors it shows three temperatures as
+> temp1 temp2 and temp3. Kindly indicate in this three which is CPU
+> temperature.
+>=20
+> temp1:       +58=B0C  (high =3D   +71=B0C, hyst =3D   +66=B0C)
+> temp2:    +127.0=B0C  (high =3D  -128=B0C, hyst =3D  +126=B0C)   ALARM
+> temp3:     +35.5=B0C  (high =3D   +41=B0C, hyst =3D   +39=B0C)
 
--- 
+Which temperature channel corresponds to what is board-dependent, so we
+don't know. Here are hints to help you figure out though:
+
+* 127 degrees C doesn't look real, it's way too high and it's the max
+  value the chip can report. So most probably temp2 isn't connected
+  to an actual thermal sensor. You can ignore it by adding an
+  "ignore temp2" line in the right section of /etc/sensors.conf.
+
+* temp1 is much higher than temp3, this suggests that temp1 is
+  the CPU temperature while temp3 would be the board temperature.
+  You can confirm this by running a CPU-intensive task (e.g. "md5sum
+  /dev/zero"). Whichever temperature value rises faster has to be
+  the CPU temperature.
+
+--=20
 Jean Delvare
 
 _______________________________________________
