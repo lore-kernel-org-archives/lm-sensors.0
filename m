@@ -1,86 +1,149 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 03 Feb 2008 17:04:55 +0000
+Date: Tue, 05 Feb 2008 21:24:14 +0000
 Subject: Re: [lm-sensors] pwmconfig with k8temp
-Message-Id: <20080203180455.1b012961@hyperion.delvare>
+Message-Id: <20080205222414.5a822154@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <47A27D33.2080805@gmx.de>
 In-Reply-To: <47A27D33.2080805@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hallo Heinz,
+Hi Heinz,
 
-On Fri, 01 Feb 2008 03:00:19 +0100, Heinz Schuster wrote:
-> Hello!
->=20
-> Congratulation for this nice program!
->=20
-> But had problems with the pwmconfig configuration.
->=20
-> In my system, the pwm's could not should down.
+Please keep the lm-sensors list in Cc.
 
-Err, what do you mean please?
+On Tue, 05 Feb 2008 02:58:49 +0100, Heinz Schuster wrote:
+> I have tested your pwmconfig-version (lm-sensors 3.0.1) and its the same 
+> proplem.
+> 
+> http://www.lm-sensors.org/browser/lm-sensors/tags/V3-0-1/prog/pwm/pwmconfig?format=raw
+> 
+> In this Version i have changed the line 228:  
+> 
+> *original:
+> *
+>         pwmdisable $i
+>         if [ $? -ne 0 ]
+>         then
+>             echo "Manual control mode not supported, skipping $i."
+>         elif [ "$GOODPWM" = "" ]
+>         then
+>             GOODPWM=$i
+>         else
+>             GOODPWM="$GOODPWM $i"
+>         fi
+>     else
+>         NOTROOT=1
+>     fi
+> done
+> 
+> 
+> *my change:
+> *
+> 
+>         pwmdisable $i
+>         if [ $? -ne 1 ]
+>         then
+>             echo "Manual control mode not supported, skipping $i."
+>         elif [ "$GOODPWM" = "" ]
+>         then
+>             GOODPWM=$i
+>         else
+>             GOODPWM="$GOODPWM $i"
+>         fi
+>     else
+>         NOTROOT=1
+>     fi
+> done
+> 
+> /*The outputs:
+> 
+> */*original:
+> 
+> *This program will search your sensors for pulse width modulation (pwm)
+> controls, and test each one to see if it controls a fan on
+> your motherboard. Note that many motherboards do not have pwm
+> circuitry installed, even if your sensor chip supports pwm.
+> 
+> We will attempt to briefly stop each fan using the pwm controls.
+> The program will attempt to restore each fan to full speed
+> after testing. However, it is ** very important ** that you
+> physically verify that the fans have been to full speed
+> after the program has completed.
+> 
+> Found the following devices:
+>    hwmon0/device is k8temp
+>    hwmon1/device is w83627ehf
+> 
+> Found the following PWM controls:
+>    hwmon1/device/pwm1
+> hwmon1/device/pwm1 stuck to 0
+> Manual control mode not supported, skipping hwmon1/device/pwm1.
+>    hwmon1/device/pwm2
+> hwmon1/device/pwm2 stuck to 0
+> Manual control mode not supported, skipping hwmon1/device/pwm2.
+>    hwmon1/device/pwm3
+> hwmon1/device/pwm3 stuck to 0
+> Manual control mode not supported, skipping hwmon1/device/pwm3.
+> There are no usable PWM outputs.
+> 
+> 
+> *after my change:
+> *
+> This program will search your sensors for pulse width modulation (pwm)
+> controls, and test each one to see if it controls a fan on
+> your motherboard. Note that many motherboards do not have pwm
+> circuitry installed, even if your sensor chip supports pwm.
+> 
+> We will attempt to briefly stop each fan using the pwm controls.
+> The program will attempt to restore each fan to full speed
+> after testing. However, it is ** very important ** that you
+> physically verify that the fans have been to full speed
+> after the program has completed.
+> 
+> Found the following devices:
+>    hwmon0/device is k8temp
+>    hwmon1/device is w83627ehf
+> 
+> Found the following PWM controls:
+>    hwmon1/device/pwm1
+> hwmon1/device/pwm1 stuck to 0
+>    hwmon1/device/pwm2
+> hwmon1/device/pwm2 stuck to 0
+>    hwmon1/device/pwm3
+> hwmon1/device/pwm3 stuck to 0
+> 
+> Giving the fans some time to reach full speed...
+> Found the following fan sensors:
+>    hwmon1/device/fan1_input     current speed: 1622 RPM
+>    hwmon1/device/fan2_input     current speed: 1288 RPM
+>    hwmon1/device/fan3_input     current speed: 0 ... skipping!
+>    hwmon1/device/fan5_input     current speed: 0 ... skipping!
+> 
+> Warning!!! This program will stop your fans, one at a time,
+> for approximately 5 seconds each!!!
+> This may cause your processor temperature to rise!!!
+> If you do not want to do this hit control-C now!!!
+> Hit return to continue:
+> 
+> Now its runs normally.
 
->=20
-> Then i had changed the line 191 in the pwmconfig file.
->=20
-> from "if [ $? -ne 0 ]"  to "if [ $? -ne 1 ]".
->=20
-> Now, its wunderfull!
+What do you mean by "runs normally"? According to the error messages
+above, the pwm controls are stuck to 0, so they won't actually control
+anything. Thus I suspect that pwmconfig then doesn't find any
+correlation. You changed the script to ignore the error, but I fail to
+see what good it is doing, as the root problem is still there.
 
-Which version of lm-sensors are you running? the pwmconfig script has
-seen a lot of improvements and fixes lately, so this might as well be
-already fixed. Please try again with the pwmconfig script from
-lm-sensors 3.0.1:
+I am curious why the w83627ehf driver fails to set the pwm values. I
+have such a chip here and I've been testing pwmconfig on it and it
+works just fine. What kernel version is this? Can you please provide
+the output of:
 
-http://www.lm-sensors.org/browser/lm-sensors/tags/V3-0-1/prog/pwm/pwmconfig=
-?format=3Draw
+(cd /sys/class/hwmon/hwmon1/device && grep . pwm*)
 
-If the problem still exists there, I'll investigate.
-
->=20
-> I used the Ubuntu 7.10 AMD_64 Version.
->=20
-> My System ist a Asrock AM2NF3-VSTA=20
-> <http://www.asrock.com/mb/overview.asp?Model=3DAM2NF3-VSTA&s=3D>
->=20
-> with a AMD Athlon(tm) 64 X2 Dual Core Processor 3600+.
->=20
->=20
->=20
-> SENSORS:
->=20
->=20
-> k8temp-pci-00c3
-> Adapter: PCI adapter
-> Core0 Temp:
->              +32=B0C
-> Core1 Temp:
->              +35=B0C
->=20
-> w83627ehf-isa-0290
-> Adapter: ISA adapter
-> VCore:     +1.10 V  (min =3D  +0.00 V, max =3D  +1.74 V)
-> in1:       +7.39 V  (min =3D +13.41 V, max =3D +13.46 V) ALARM
-> AVCC:      +3.38 V  (min =3D  +4.05 V, max =3D  +1.78 V) ALARM
-> 3VCC:      +3.38 V  (min =3D  +4.02 V, max =3D  +1.97 V) ALARM
-> in4:       +1.71 V  (min =3D  +1.98 V, max =3D  +0.89 V) ALARM
-> in5:       +1.74 V  (min =3D  +1.98 V, max =3D  +1.74 V) ALARM
-> in6:       +5.96 V  (min =3D  +4.74 V, max =3D  +4.02 V) ALARM
-> VSB:       +3.38 V  (min =3D  +3.55 V, max =3D  +3.95 V) ALARM
-> VBAT:      +3.23 V  (min =3D  +4.08 V, max =3D  +3.57 V) ALARM
-> in9:       +1.58 V  (min =3D  +2.02 V, max =3D  +1.53 V) ALARM
-> Case Fan: 1704 RPM  (min =3D  672 RPM, div =3D 8)
-> CPU Fan:  1278 RPM  (min =3D  664 RPM, div =3D 8)
-> Aux Fan:     0 RPM  (min =3D    0 RPM, div =3D 128)
-> fan5:        0 RPM  (min =3D    0 RPM, div =3D 128)
-> Sys Temp:    +33=B0C  (high =3D    -5=B0C, hyst =3D  +123=B0C)=20
-> CPU Temp:  +39.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)=20
-> AUX Temp:  +38.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)
-
---=20
+-- 
 Jean Delvare
 
 _______________________________________________
