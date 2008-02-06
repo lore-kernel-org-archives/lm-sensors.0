@@ -1,45 +1,128 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Wed, 06 Feb 2008 12:41:39 +0000
+From: =?UTF-8?B?TWljaGFsIE1lZHZlY2vDvQ==?= <michal@medvecky.net>
+Date: Wed, 06 Feb 2008 13:30:33 +0000
 Subject: Re: [lm-sensors] [PATCH] lm-sensors: add sch5027 support
-Message-Id: <47A9AB03.1050801@assembler.cz>
+Message-Id: <47A9B679.5080600@medvecky.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------020806050701000004020109"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0801312242k123f20ffl2ccb85ff1416ee6b@mail.gmail.com>
 In-Reply-To: <191fb4ca0801312242k123f20ffl2ccb85ff1416ee6b@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+This is a multi-part message in MIME format.
+--------------020806050701000004020109
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-My friend Michal has this chip. It detects the chip, but it still tells to load 
-the lm85 driver.
+Ehlo,
 
-Michal, please can you post the full output of sensors-detect script as 
-attachment (txt/plain)? Thanks.
-
-Here is the snip, he used latest SVN version already.
-
-[13:31] *misko* jo to je ta deska
-[13:31] *misko* Trying family `SMSC'...                                     Yes
-[13:31] *misko* Found `SMSC SCH5027D-NW Super IO'
-[13:31] *misko*     (hardware monitoring capabilities accessible via SMBus only)
-...
-[13:32] *misko* Driver `lm85' (should be inserted):
-[13:32] *misko*   Detects correctly:
-[13:32] *misko*   * Bus `SMBus I801 adapter at 3000'
-[13:32] *misko*     Busdriver `i2c-i801', I2C address 0x2e
-[13:32] *misko*     Chip `lm85' (confidence: 6)
-[13:32] *misko* Driver `coretemp' (should be inserted):
-[13:32] *misko*   Detects correctly:
-[13:32] *misko*   * Chip `Intel Core family thermal sensor' (confidence: 9)
+here it comes
 
 
+--------------020806050701000004020109
+Content-Type: text/plain;
+ name="bla.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="bla.txt"
 
-Thank you,
-Rudolf
+IyBzZW5zb3JzLWRldGVjdCByZXZpc2lvbiAkUmV2aXNpb24kCgpUaGlzIHByb2dyYW0gd2ls
+bCBoZWxwIHlvdSBkZXRlcm1pbmUgd2hpY2gga2VybmVsIG1vZHVsZXMgeW91IG5lZWQKdG8g
+bG9hZCB0byB1c2UgbG1fc2Vuc29ycyBtb3N0IGVmZmVjdGl2ZWx5LiBJdCBpcyBnZW5lcmFs
+bHkgc2FmZQphbmQgcmVjb21tZW5kZWQgdG8gYWNjZXB0IHRoZSBkZWZhdWx0IGFuc3dlcnMg
+dG8gYWxsIHF1ZXN0aW9ucywKdW5sZXNzIHlvdSBrbm93IHdoYXQgeW91J3JlIGRvaW5nLgoK
+V2UgY2FuIHN0YXJ0IHdpdGggcHJvYmluZyBmb3IgKFBDSSkgSTJDIG9yIFNNQnVzIGFkYXB0
+ZXJzLgpEbyB5b3Ugd2FudCB0byBwcm9iZSBub3c/IChZRVMvbm8pOiBQcm9iaW5nIGZvciBQ
+Q0kgYnVzIGFkYXB0ZXJzLi4uClVzZSBkcml2ZXIgYGkyYy1pODAxJyBmb3IgZGV2aWNlIDAw
+MDA6MDA6MWYuMzogSW50ZWwgODI4MDFHIElDSDcKCldlIHdpbGwgbm93IHRyeSB0byBsb2Fk
+IGVhY2ggYWRhcHRlciBtb2R1bGUgaW4gdHVybi4KTW9kdWxlIGBpMmMtaTgwMScgYWxyZWFk
+eSBsb2FkZWQuCklmIHlvdSBoYXZlIHVuZGV0ZWN0YWJsZSBvciB1bnN1cHBvcnRlZCBhZGFw
+dGVycywgeW91IGNhbiBoYXZlIHRoZW0Kc2Nhbm5lZCBieSBtYW51YWxseSBsb2FkaW5nIHRo
+ZSBtb2R1bGVzIGJlZm9yZSBydW5uaW5nIHRoaXMgc2NyaXB0LgoKV2UgYXJlIG5vdyBnb2lu
+ZyB0byBkbyB0aGUgSTJDL1NNQnVzIGFkYXB0ZXIgcHJvYmluZ3MuIFNvbWUgY2hpcHMgbWF5
+CmJlIGRvdWJsZSBkZXRlY3RlZDsgd2UgY2hvb3NlIHRoZSBvbmUgd2l0aCB0aGUgaGlnaGVz
+dCBjb25maWRlbmNlCnZhbHVlIGluIHRoYXQgY2FzZS4KSWYgeW91IGZvdW5kIHRoYXQgdGhl
+IGFkYXB0ZXIgaHVuZyBhZnRlciBwcm9iaW5nIGEgY2VydGFpbiBhZGRyZXNzLAp5b3UgY2Fu
+IHNwZWNpZnkgdGhhdCBhZGRyZXNzIHRvIHJlbWFpbiB1bnByb2JlZC4KCk5leHQgYWRhcHRl
+cjogU01CdXMgSTgwMSBhZGFwdGVyIGF0IDMwMDAgKGkyYy0wKQpEbyB5b3Ugd2FudCB0byBz
+Y2FuIGl0PyAoWUVTL25vL3NlbGVjdGl2ZWx5KTogQ2xpZW50IGZvdW5kIGF0IGFkZHJlc3Mg
+MHgyZQpIYW5kbGVkIGJ5IGRyaXZlciBgbG04NScgKGFscmVhZHkgbG9hZGVkKSwgY2hpcCB0
+eXBlIGBsbTg1JwpDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAweDQ0ClByb2JpbmcgZm9yIGBN
+YXhpbSBNQVg2NjMzL01BWDY2MzQvTUFYNjYzNScuLi4gICAgICAgICAgICAgIE5vCkNsaWVu
+dCBmb3VuZCBhdCBhZGRyZXNzIDB4NTAKSGFuZGxlZCBieSBkcml2ZXIgYGVlcHJvbScgKGFs
+cmVhZHkgbG9hZGVkKSwgY2hpcCB0eXBlIGBlZXByb20nCiAgICAobm90ZTogdGhpcyBpcyBw
+cm9iYWJseSBOT1QgYSBzZW5zb3IgY2hpcCEpCkNsaWVudCBmb3VuZCBhdCBhZGRyZXNzIDB4
+NTIKSGFuZGxlZCBieSBkcml2ZXIgYGVlcHJvbScgKGFscmVhZHkgbG9hZGVkKSwgY2hpcCB0
+eXBlIGBlZXByb20nCiAgICAobm90ZTogdGhpcyBpcyBwcm9iYWJseSBOT1QgYSBzZW5zb3Ig
+Y2hpcCEpCgpTb21lIGNoaXBzIGFyZSBhbHNvIGFjY2Vzc2libGUgdGhyb3VnaCB0aGUgSVNB
+IEkvTyBwb3J0cy4gV2UgaGF2ZSB0bwp3cml0ZSB0byBhcmJpdHJhcnkgSS9PIHBvcnRzIHRv
+IHByb2JlIHRoZW0uIFRoaXMgaXMgdXN1YWxseSBzYWZlIHRob3VnaC4KWWVzLCB5b3UgZG8g
+aGF2ZSBJU0EgSS9PIHBvcnRzIGV2ZW4gaWYgeW91IGRvIG5vdCBoYXZlIGFueSBJU0Egc2xv
+dHMhCkRvIHlvdSB3YW50IHRvIHNjYW4gdGhlIElTQSBJL08gcG9ydHM/IChZRVMvbm8pOiBQ
+cm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc4JyBhdCAweDI5MC4uLiAg
+ICAgICBObwpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc4LUonIGF0
+IDB4MjkwLi4uICAgICBObwpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBM
+TTc5JyBhdCAweDI5MC4uLiAgICAgICBObwpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3ODFE
+JyBhdCAweDI5MC4uLiAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgV2luYm9u
+ZCBXODM3ODJEJyBhdCAweDI5MC4uLiAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZv
+ciBgU2lsaWNvbiBJbnRlZ3JhdGVkIFN5c3RlbXMgU0lTNTU5NScuLi4gICAgICAgICBObwpQ
+cm9iaW5nIGZvciBgVklBIFZUODJDNjg2IEludGVncmF0ZWQgU2Vuc29ycycuLi4gICAgICAg
+ICAgICBObwpQcm9iaW5nIGZvciBgVklBIFZUODIzMSBJbnRlZ3JhdGVkIFNlbnNvcnMnLi4u
+ICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgSVBNSSBCTUMgS0NTJyBhdCAweGNhMC4u
+LiAgICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgSVBNSSBCTUMgU01JQycg
+YXQgMHhjYTguLi4gICAgICAgICAgICAgICAgICAgICBObwoKU29tZSBTdXBlciBJL08gY2hp
+cHMgbWF5IGFsc28gY29udGFpbiBzZW5zb3JzLiBXZSBoYXZlIHRvIHdyaXRlIHRvCnN0YW5k
+YXJkIEkvTyBwb3J0cyB0byBwcm9iZSB0aGVtLiBUaGlzIGlzIHVzdWFsbHkgc2FmZS4KRG8g
+eW91IHdhbnQgdG8gc2NhbiBmb3IgU3VwZXIgSS9PIHNlbnNvcnM/IChZRVMvbm8pOiBQcm9i
+aW5nIGZvciBTdXBlci1JL08gYXQgMHgyZS8weDJmClRyeWluZyBmYW1pbHkgYE5hdGlvbmFs
+IFNlbWljb25kdWN0b3InLi4uICAgICAgICAgICAgICAgICAgIE5vClRyeWluZyBmYW1pbHkg
+YFNNU0MnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFllcwpGb3Vu
+ZCBgU01TQyBTQ0g1MDI3RC1OVyBTdXBlciBJTycgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAKICAgIChoYXJkd2FyZSBtb25pdG9yaW5nIGNhcGFiaWxpdGllcyBhY2Nlc3NpYmxlIHZp
+YSBTTUJ1cyBvbmx5KQpQcm9iaW5nIGZvciBTdXBlci1JL08gYXQgMHg0ZS8weDRmClRyeWlu
+ZyBmYW1pbHkgYE5hdGlvbmFsIFNlbWljb25kdWN0b3InLi4uICAgICAgICAgICAgICAgICAg
+IE5vClRyeWluZyBmYW1pbHkgYFNNU0MnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIE5vClRyeWluZyBmYW1pbHkgYFZJQS9XaW5ib25kL0ZpbnRlaycuLi4gICAg
+ICAgICAgICAgICAgICAgICAgIE5vClRyeWluZyBmYW1pbHkgYElURScuLi4gICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vCgpTb21lIENQVXMgb3IgbWVtb3J5IGNv
+bnRyb2xsZXJzIG1heSBhbHNvIGNvbnRhaW4gZW1iZWRkZWQgc2Vuc29ycy4KRG8geW91IHdh
+bnQgdG8gc2NhbiBmb3IgdGhlbT8gKFlFUy9ubyk6IEFNRCBLOCB0aGVybWFsIHNlbnNvcnMu
+Li4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vCkFNRCBLMTAgdGhlcm1h
+bCBzZW5zb3JzLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vCkludGVs
+IENvcmUgZmFtaWx5IHRoZXJtYWwgc2Vuc29yLi4uICAgICAgICAgICAgICAgICAgICAgICAg
+IFN1Y2Nlc3MhCiAgICAoZHJpdmVyIGBjb3JldGVtcCcpCkludGVsIEFNQiBGQi1ESU1NIHRo
+ZXJtYWwgc2Vuc29yLi4uICAgICAgICAgICAgICAgICAgICAgICAgIE5vCgpOb3cgZm9sbG93
+cyBhIHN1bW1hcnkgb2YgdGhlIHByb2JlcyBJIGhhdmUganVzdCBkb25lLgpKdXN0IHByZXNz
+IEVOVEVSIHRvIGNvbnRpbnVlOiAKRHJpdmVyIGBsbTg1JyAoc2hvdWxkIGJlIGluc2VydGVk
+KToKICBEZXRlY3RzIGNvcnJlY3RseToKICAqIEJ1cyBgU01CdXMgSTgwMSBhZGFwdGVyIGF0
+IDMwMDAnCiAgICBCdXNkcml2ZXIgYGkyYy1pODAxJywgSTJDIGFkZHJlc3MgMHgyZQogICAg
+Q2hpcCBgbG04NScgKGNvbmZpZGVuY2U6IDYpCgpEcml2ZXIgYGNvcmV0ZW1wJyAoc2hvdWxk
+IGJlIGluc2VydGVkKToKICBEZXRlY3RzIGNvcnJlY3RseToKICAqIENoaXAgYEludGVsIENv
+cmUgZmFtaWx5IHRoZXJtYWwgc2Vuc29yJyAoY29uZmlkZW5jZTogOSkKCkRvIHlvdSB3YW50
+IHRvIGdlbmVyYXRlIC9ldGMvc3lzY29uZmlnL2xtX3NlbnNvcnM/ICh5ZXMvTk8pOiBUbyBs
+b2FkIGV2ZXJ5dGhpbmcgdGhhdCBpcyBuZWVkZWQsIGFkZCB0aGlzIHRvIG9uZSBvZiB0aGUg
+c3lzdGVtCmluaXRpYWxpemF0aW9uIHNjcmlwdHMgKGUuZy4gL2V0Yy9yYy5kL3JjLmxvY2Fs
+KToKCiMtLS0tY3V0IGhlcmUtLS0tCiMgSTJDIGFkYXB0ZXIgZHJpdmVycwptb2Rwcm9iZSBp
+MmMtaTgwMQojIENoaXAgZHJpdmVycwptb2Rwcm9iZSBsbTg1CiMgV2FybmluZzogdGhlIHJl
+cXVpcmVkIG1vZHVsZSBjb3JldGVtcCBpcyBub3QgY3VycmVudGx5IGluc3RhbGxlZAojIG9u
+IHlvdXIgc3lzdGVtLiBGb3Igc3RhdHVzIG9mIDIuNiBrZXJuZWwgcG9ydHMgY2hlY2sKIyBo
+dHRwOi8vd3d3LmxtLXNlbnNvcnMub3JnL3dpa2kvRGV2aWNlcy4gSWYgZHJpdmVyIGlzIGJ1
+aWx0CiMgaW50byB0aGUga2VybmVsLCBvciB1bmF2YWlsYWJsZSwgY29tbWVudCBvdXQgdGhl
+IGZvbGxvd2luZyBsaW5lLgptb2Rwcm9iZSBjb3JldGVtcAovdXNyL2Jpbi9zZW5zb3JzIC1z
+CiMtLS0tY3V0IGhlcmUtLS0tCgpJZiB5b3UgaGF2ZSBzb21lIGRyaXZlcnMgYnVpbHQgaW50
+byB5b3VyIGtlcm5lbCwgdGhlIGxpc3QgYWJvdmUgd2lsbApjb250YWluIHRvbyBtYW55IG1v
+ZHVsZXMuIFNraXAgdGhlIGFwcHJvcHJpYXRlIG9uZXMhIFlvdSByZWFsbHkKc2hvdWxkIHRy
+eSB0aGVzZSBjb21tYW5kcyByaWdodCBub3cgdG8gbWFrZSBzdXJlIGV2ZXJ5dGhpbmcgaXMK
+d29ya2luZyBwcm9wZXJseS4gTW9uaXRvcmluZyBwcm9ncmFtcyB3b24ndCB3b3JrIHVudGls
+IHRoZSBuZWVkZWQKbW9kdWxlcyBhcmUgbG9hZGVkLgoK
+--------------020806050701000004020109
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------020806050701000004020109--
