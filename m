@@ -1,138 +1,191 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Wed, 06 Feb 2008 13:33:13 +0000
+From: =?UTF-8?B?TWljaGFsIE1lZHZlY2vDvQ==?= <michal@medvecky.net>
+Date: Wed, 06 Feb 2008 13:43:21 +0000
 Subject: Re: [lm-sensors] [PATCH] lm-sensors: add sch5027 support
-Message-Id: <191fb4ca0802060533r7d2e10b5o6a89cfa58ec2356b@mail.gmail.com>
+Message-Id: <47A9B979.6030201@medvecky.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------040603080500040302000706"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <191fb4ca0801312242k123f20ffl2ccb85ff1416ee6b@mail.gmail.com>
 In-Reply-To: <191fb4ca0801312242k123f20ffl2ccb85ff1416ee6b@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Michal,
+This is a multi-part message in MIME format.
+--------------040603080500040302000706
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Can you unload the lm85 driver before running sensors-detect?
+Juerg Haefliger napsal(a):
+> Can you unload the lm85 driver before running sensors-detect?
+>   
+here it comes
 
-...juerg
+--------------040603080500040302000706
+Content-Type: text/plain;
+ name="bla2.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="bla2.txt"
 
-
-On Feb 6, 2008 5:30 AM, Michal Medveck=FD <michal@medvecky.net> wrote:
-> Ehlo,
->
-> here it comes
->
->
-> # sensors-detect revision $Revision$
->
-> This program will help you determine which kernel modules you need
-> to load to use lm_sensors most effectively. It is generally safe
-> and recommended to accept the default answers to all questions,
-> unless you know what you're doing.
->
-> We can start with probing for (PCI) I2C or SMBus adapters.
-> Do you want to probe now? (YES/no): Probing for PCI bus adapters...
-> Use driver `i2c-i801' for device 0000:00:1f.3: Intel 82801G ICH7
->
-> We will now try to load each adapter module in turn.
-> Module `i2c-i801' already loaded.
-> If you have undetectable or unsupported adapters, you can have them
-> scanned by manually loading the modules before running this script.
->
-> We are now going to do the I2C/SMBus adapter probings. Some chips may
-> be double detected; we choose the one with the highest confidence
-> value in that case.
-> If you found that the adapter hung after probing a certain address,
-> you can specify that address to remain unprobed.
->
-> Next adapter: SMBus I801 adapter at 3000 (i2c-0)
-> Do you want to scan it? (YES/no/selectively): Client found at address 0x2e
-> Handled by driver `lm85' (already loaded), chip type `lm85'
-> Client found at address 0x44
-> Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
-> Client found at address 0x50
-> Handled by driver `eeprom' (already loaded), chip type `eeprom'
->     (note: this is probably NOT a sensor chip!)
-> Client found at address 0x52
-> Handled by driver `eeprom' (already loaded), chip type `eeprom'
->     (note: this is probably NOT a sensor chip!)
->
-> Some chips are also accessible through the ISA I/O ports. We have to
-> write to arbitrary I/O ports to probe them. This is usually safe though.
-> Yes, you do have ISA I/O ports even if you do not have any ISA slots!
-> Do you want to scan the ISA I/O ports? (YES/no): Probing for `National Se=
-miconductor LM78' at 0x290...       No
-> Probing for `National Semiconductor LM78-J' at 0x290...     No
-> Probing for `National Semiconductor LM79' at 0x290...       No
-> Probing for `Winbond W83781D' at 0x290...                   No
-> Probing for `Winbond W83782D' at 0x290...                   No
-> Probing for `Silicon Integrated Systems SIS5595'...         No
-> Probing for `VIA VT82C686 Integrated Sensors'...            No
-> Probing for `VIA VT8231 Integrated Sensors'...              No
-> Probing for `IPMI BMC KCS' at 0xca0...                      No
-> Probing for `IPMI BMC SMIC' at 0xca8...                     No
->
-> Some Super I/O chips may also contain sensors. We have to write to
-> standard I/O ports to probe them. This is usually safe.
-> Do you want to scan for Super I/O sensors? (YES/no): Probing for Super-I/=
-O at 0x2e/0x2f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     Yes
-> Found `SMSC SCH5027D-NW Super IO'
->     (hardware monitoring capabilities accessible via SMBus only)
-> Probing for Super-I/O at 0x4e/0x4f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Fintek'...                       No
-> Trying family `ITE'...                                      No
->
-> Some CPUs or memory controllers may also contain embedded sensors.
-> Do you want to scan for them? (YES/no): AMD K8 thermal sensors...        =
-                           No
-> AMD K10 thermal sensors...                                  No
-> Intel Core family thermal sensor...                         Success!
->     (driver `coretemp')
-> Intel AMB FB-DIMM thermal sensor...                         No
->
-> Now follows a summary of the probes I have just done.
-> Just press ENTER to continue:
-> Driver `lm85' (should be inserted):
->   Detects correctly:
->   * Bus `SMBus I801 adapter at 3000'
->     Busdriver `i2c-i801', I2C address 0x2e
->     Chip `lm85' (confidence: 6)
->
-> Driver `coretemp' (should be inserted):
->   Detects correctly:
->   * Chip `Intel Core family thermal sensor' (confidence: 9)
->
-> Do you want to generate /etc/sysconfig/lm_sensors? (yes/NO): To load ever=
-ything that is needed, add this to one of the system
-> initialization scripts (e.g. /etc/rc.d/rc.local):
->
-> #----cut here----
-> # I2C adapter drivers
-> modprobe i2c-i801
-> # Chip drivers
-> modprobe lm85
-> # Warning: the required module coretemp is not currently installed
-> # on your system. For status of 2.6 kernel ports check
-> # http://www.lm-sensors.org/wiki/Devices. If driver is built
-> # into the kernel, or unavailable, comment out the following line.
-> modprobe coretemp
-> /usr/bin/sensors -s
-> #----cut here----
->
-> If you have some drivers built into your kernel, the list above will
-> contain too many modules. Skip the appropriate ones! You really
-> should try these commands right now to make sure everything is
-> working properly. Monitoring programs won't work until the needed
-> modules are loaded.
->
->
->
+IyBzZW5zb3JzLWRldGVjdCByZXZpc2lvbiAkUmV2aXNpb24kCgpUaGlzIHByb2dyYW0gd2ls
+bCBoZWxwIHlvdSBkZXRlcm1pbmUgd2hpY2gga2VybmVsIG1vZHVsZXMgeW91IG5lZWQKdG8g
+bG9hZCB0byB1c2UgbG1fc2Vuc29ycyBtb3N0IGVmZmVjdGl2ZWx5LiBJdCBpcyBnZW5lcmFs
+bHkgc2FmZQphbmQgcmVjb21tZW5kZWQgdG8gYWNjZXB0IHRoZSBkZWZhdWx0IGFuc3dlcnMg
+dG8gYWxsIHF1ZXN0aW9ucywKdW5sZXNzIHlvdSBrbm93IHdoYXQgeW91J3JlIGRvaW5nLgoK
+V2UgY2FuIHN0YXJ0IHdpdGggcHJvYmluZyBmb3IgKFBDSSkgSTJDIG9yIFNNQnVzIGFkYXB0
+ZXJzLgpEbyB5b3Ugd2FudCB0byBwcm9iZSBub3c/IChZRVMvbm8pOiBQcm9iaW5nIGZvciBQ
+Q0kgYnVzIGFkYXB0ZXJzLi4uClVzZSBkcml2ZXIgYGkyYy1pODAxJyBmb3IgZGV2aWNlIDAw
+MDA6MDA6MWYuMzogSW50ZWwgODI4MDFHIElDSDcKCldlIHdpbGwgbm93IHRyeSB0byBsb2Fk
+IGVhY2ggYWRhcHRlciBtb2R1bGUgaW4gdHVybi4KTW9kdWxlIGBpMmMtaTgwMScgYWxyZWFk
+eSBsb2FkZWQuCklmIHlvdSBoYXZlIHVuZGV0ZWN0YWJsZSBvciB1bnN1cHBvcnRlZCBhZGFw
+dGVycywgeW91IGNhbiBoYXZlIHRoZW0Kc2Nhbm5lZCBieSBtYW51YWxseSBsb2FkaW5nIHRo
+ZSBtb2R1bGVzIGJlZm9yZSBydW5uaW5nIHRoaXMgc2NyaXB0LgoKV2UgYXJlIG5vdyBnb2lu
+ZyB0byBkbyB0aGUgSTJDL1NNQnVzIGFkYXB0ZXIgcHJvYmluZ3MuIFNvbWUgY2hpcHMgbWF5
+CmJlIGRvdWJsZSBkZXRlY3RlZDsgd2UgY2hvb3NlIHRoZSBvbmUgd2l0aCB0aGUgaGlnaGVz
+dCBjb25maWRlbmNlCnZhbHVlIGluIHRoYXQgY2FzZS4KSWYgeW91IGZvdW5kIHRoYXQgdGhl
+IGFkYXB0ZXIgaHVuZyBhZnRlciBwcm9iaW5nIGEgY2VydGFpbiBhZGRyZXNzLAp5b3UgY2Fu
+IHNwZWNpZnkgdGhhdCBhZGRyZXNzIHRvIHJlbWFpbiB1bnByb2JlZC4KCk5leHQgYWRhcHRl
+cjogU01CdXMgSTgwMSBhZGFwdGVyIGF0IDMwMDAgKGkyYy0wKQpEbyB5b3Ugd2FudCB0byBz
+Y2FuIGl0PyAoWUVTL25vL3NlbGVjdGl2ZWx5KTogQ2xpZW50IGZvdW5kIGF0IGFkZHJlc3Mg
+MHgyZQpQcm9iaW5nIGZvciBgTXlzb24gTVRQMDA4Jy4uLiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc4
+Jy4uLiAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1
+Y3RvciBMTTc4LUonLi4uICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgTmF0aW9uYWwg
+U2VtaWNvbmR1Y3RvciBMTTc5Jy4uLiAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBg
+TmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTgwJy4uLiAgICAgICAgICAgICAgICBObwpQcm9i
+aW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTg1IG9yIExNOTYwMDAnLi4uICAg
+ICBObwpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyNywgQURUNzQ2MCBvciBB
+RFQ3NDYzJy4uLiBObwpQcm9iaW5nIGZvciBgU01TQyBFTUM2RDEwMCwgRU1DNkQxMDEgb3Ig
+RU1DNkQxMDInLi4uICAgICAgICBObwpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURU
+NzQ2MicuLi4gICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgQW5hbG9nIERl
+dmljZXMgQURUNzQ2NyBvciBBRFQ3NDY4Jy4uLiAgICAgICAgICBObwpQcm9iaW5nIGZvciBg
+QW5hbG9nIERldmljZXMgQURUNzQ3MCcuLi4gICAgICAgICAgICAgICAgICAgICBObwpQcm9i
+aW5nIGZvciBgQW5hbG9nIERldmljZXMgQURUNzQ3MycuLi4gICAgICAgICAgICAgICAgICAg
+ICBObwpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURUNzQ3NScuLi4gICAgICAgICAg
+ICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURUNzQ3NicuLi4g
+ICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgQW5kaWdpbG9nIGFTQzc2MTEn
+Li4uICAgICAgICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgQW5kaWdpbG9n
+IGFTQzc2MjEnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBg
+TmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTg3Jy4uLiAgICAgICAgICAgICAgICBObwpQcm9i
+aW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTkzJy4uLiAgICAgICAgICAgICAg
+ICBObwpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3ODFEJy4uLiAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3ODJEJy4uLiAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3OTJEJy4u
+LiAgICAgICAgICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgV2luYm9uZCBX
+ODM3OTNSL0cnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBg
+V2luYm9uZCBXODM3OTFTRCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICBObwpQcm9i
+aW5nIGZvciBgV2luYm9uZCBXODM2MjdIRicuLi4gICAgICAgICAgICAgICAgICAgICAgICAg
+ICBObwpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM2MjdFSEYnLi4uICAgICAgICAgICAgICAg
+ICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM2MjdESEcnLi4uICAgICAg
+ICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgQXN1cyBBUzk5MTI3RiAocmV2
+LjEpJy4uLiAgICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgQXN1cyBBUzk5
+MTI3RiAocmV2LjIpJy4uLiAgICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBg
+QXN1cyBBU0IxMDAgQmFjaCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICBObwpQcm9i
+aW5nIGZvciBgV2luYm9uZCBXODNMNzg2TlIvTkcvUi9HJy4uLiAgICAgICAgICAgICAgICAg
+ICBObwpQcm9iaW5nIGZvciBgV2luYm9uZCBXODNMNzg1VFMtUycuLi4gICAgICAgICAgICAg
+ICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNOTI0MCcuLi4g
+ICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgRGFsbGFzIFNlbWljb25kdWN0
+b3IgRFMxNzgwJy4uLiAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgTmF0aW9uYWwg
+U2VtaWNvbmR1Y3RvciBMTTgxJy4uLiAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBg
+QW5hbG9nIERldmljZXMgQURNMTAyNicuLi4gICAgICAgICAgICAgICAgICAgICBObwpQcm9i
+aW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyNScuLi4gICAgICAgICAgICAgICAgICAg
+ICBObwpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyOScuLi4gICAgICAgICAg
+ICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAzMCcuLi4g
+ICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURN
+MTAzMScuLi4gICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgQW5hbG9nIERl
+dmljZXMgQURNMTAyMicuLi4gICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBg
+VGV4YXMgSW5zdHJ1bWVudHMgVEhNQzUwJy4uLiAgICAgICAgICAgICAgICAgICBObwpQcm9i
+aW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyOCcuLi4gICAgICAgICAgICAgICAgICAg
+ICBObwpQcm9iaW5nIGZvciBgSVRFIElUODcxMkYnLi4uICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgU01TQyBETUUxNzM3Jy4uLiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgU01TQyBTQ0g1MDI3RC1OVycu
+Li4gICAgICAgICAgICAgICAgICAgICAgICAgICBTdWNjZXNzIQogICAgKGNvbmZpZGVuY2Ug
+NiwgZHJpdmVyIGBkbWUxNzM3JykKUHJvYmluZyBmb3IgYEZpbnRlayBGNzUzNzNTL1NHJy4u
+LiAgICAgICAgICAgICAgICAgICAgICAgICAgTm8KUHJvYmluZyBmb3IgYEZpbnRlayBGNzUz
+NzVTL1NQJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgTm8KUHJvYmluZyBmb3IgYEZp
+bnRlayBGNzUzODdTRy9SRycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgTm8KUHJvYmlu
+ZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFETTEwMjQnLi4uICAgICAgICAgICAgICAgICAgICAg
+Tm8KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzkxRCcuLi4gICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgTm8KQ2xpZW50IGZvdW5kIGF0IGFkZHJlc3MgMHg0NApQcm9iaW5nIGZvciBg
+TWF4aW0gTUFYNjYzMy9NQVg2NjM0L01BWDY2MzUnLi4uICAgICAgICAgICAgICBObwpDbGll
+bnQgZm91bmQgYXQgYWRkcmVzcyAweDUwCkhhbmRsZWQgYnkgZHJpdmVyIGBlZXByb20nIChh
+bHJlYWR5IGxvYWRlZCksIGNoaXAgdHlwZSBgZWVwcm9tJwogICAgKG5vdGU6IHRoaXMgaXMg
+cHJvYmFibHkgTk9UIGEgc2Vuc29yIGNoaXAhKQpDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAw
+eDUyCkhhbmRsZWQgYnkgZHJpdmVyIGBlZXByb20nIChhbHJlYWR5IGxvYWRlZCksIGNoaXAg
+dHlwZSBgZWVwcm9tJwogICAgKG5vdGU6IHRoaXMgaXMgcHJvYmFibHkgTk9UIGEgc2Vuc29y
+IGNoaXAhKQoKU29tZSBjaGlwcyBhcmUgYWxzbyBhY2Nlc3NpYmxlIHRocm91Z2ggdGhlIElT
+QSBJL08gcG9ydHMuIFdlIGhhdmUgdG8Kd3JpdGUgdG8gYXJiaXRyYXJ5IEkvTyBwb3J0cyB0
+byBwcm9iZSB0aGVtLiBUaGlzIGlzIHVzdWFsbHkgc2FmZSB0aG91Z2guClllcywgeW91IGRv
+IGhhdmUgSVNBIEkvTyBwb3J0cyBldmVuIGlmIHlvdSBkbyBub3QgaGF2ZSBhbnkgSVNBIHNs
+b3RzIQpEbyB5b3Ugd2FudCB0byBzY2FuIHRoZSBJU0EgSS9PIHBvcnRzPyAoWUVTL25vKTog
+UHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03OCcgYXQgMHgyOTAuLi4g
+ICAgICAgTm8KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03OC1KJyBh
+dCAweDI5MC4uLiAgICAgTm8KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3Ig
+TE03OScgYXQgMHgyOTAuLi4gICAgICAgTm8KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzgx
+RCcgYXQgMHgyOTAuLi4gICAgICAgICAgICAgICAgICAgTm8KUHJvYmluZyBmb3IgYFdpbmJv
+bmQgVzgzNzgyRCcgYXQgMHgyOTAuLi4gICAgICAgICAgICAgICAgICAgTm8KUHJvYmluZyBm
+b3IgYFNpbGljb24gSW50ZWdyYXRlZCBTeXN0ZW1zIFNJUzU1OTUnLi4uICAgICAgICAgTm8K
+UHJvYmluZyBmb3IgYFZJQSBWVDgyQzY4NiBJbnRlZ3JhdGVkIFNlbnNvcnMnLi4uICAgICAg
+ICAgICAgTm8KUHJvYmluZyBmb3IgYFZJQSBWVDgyMzEgSW50ZWdyYXRlZCBTZW5zb3JzJy4u
+LiAgICAgICAgICAgICAgTm8KUHJvYmluZyBmb3IgYElQTUkgQk1DIEtDUycgYXQgMHhjYTAu
+Li4gICAgICAgICAgICAgICAgICAgICAgTm8KUHJvYmluZyBmb3IgYElQTUkgQk1DIFNNSUMn
+IGF0IDB4Y2E4Li4uICAgICAgICAgICAgICAgICAgICAgTm8KClNvbWUgU3VwZXIgSS9PIGNo
+aXBzIG1heSBhbHNvIGNvbnRhaW4gc2Vuc29ycy4gV2UgaGF2ZSB0byB3cml0ZSB0bwpzdGFu
+ZGFyZCBJL08gcG9ydHMgdG8gcHJvYmUgdGhlbS4gVGhpcyBpcyB1c3VhbGx5IHNhZmUuCkRv
+IHlvdSB3YW50IHRvIHNjYW4gZm9yIFN1cGVyIEkvTyBzZW5zb3JzPyAoWUVTL25vKTogUHJv
+YmluZyBmb3IgU3VwZXItSS9PIGF0IDB4MmUvMHgyZgpUcnlpbmcgZmFtaWx5IGBOYXRpb25h
+bCBTZW1pY29uZHVjdG9yJy4uLiAgICAgICAgICAgICAgICAgICBObwpUcnlpbmcgZmFtaWx5
+IGBTTVNDJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBZZXMKRm91
+bmQgYFNNU0MgU0NINTAyN0QtTlcgU3VwZXIgSU8nICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgCiAgICAoaGFyZHdhcmUgbW9uaXRvcmluZyBjYXBhYmlsaXRpZXMgYWNjZXNzaWJsZSB2
+aWEgU01CdXMgb25seSkKUHJvYmluZyBmb3IgU3VwZXItSS9PIGF0IDB4NGUvMHg0ZgpUcnlp
+bmcgZmFtaWx5IGBOYXRpb25hbCBTZW1pY29uZHVjdG9yJy4uLiAgICAgICAgICAgICAgICAg
+ICBObwpUcnlpbmcgZmFtaWx5IGBTTVNDJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICBObwpUcnlpbmcgZmFtaWx5IGBWSUEvV2luYm9uZC9GaW50ZWsnLi4uICAg
+ICAgICAgICAgICAgICAgICAgICBObwpUcnlpbmcgZmFtaWx5IGBJVEUnLi4uICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObwoKU29tZSBDUFVzIG9yIG1lbW9yeSBj
+b250cm9sbGVycyBtYXkgYWxzbyBjb250YWluIGVtYmVkZGVkIHNlbnNvcnMuCkRvIHlvdSB3
+YW50IHRvIHNjYW4gZm9yIHRoZW0/IChZRVMvbm8pOiBBTUQgSzggdGhlcm1hbCBzZW5zb3Jz
+Li4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObwpBTUQgSzEwIHRoZXJt
+YWwgc2Vuc29ycy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObwpJbnRl
+bCBDb3JlIGZhbWlseSB0aGVybWFsIHNlbnNvci4uLiAgICAgICAgICAgICAgICAgICAgICAg
+ICBTdWNjZXNzIQogICAgKGRyaXZlciBgY29yZXRlbXAnKQpJbnRlbCBBTUIgRkItRElNTSB0
+aGVybWFsIHNlbnNvci4uLiAgICAgICAgICAgICAgICAgICAgICAgICBObwoKTm93IGZvbGxv
+d3MgYSBzdW1tYXJ5IG9mIHRoZSBwcm9iZXMgSSBoYXZlIGp1c3QgZG9uZS4KSnVzdCBwcmVz
+cyBFTlRFUiB0byBjb250aW51ZTogCkRyaXZlciBgZG1lMTczNycgKHNob3VsZCBiZSBpbnNl
+cnRlZCk6CiAgRGV0ZWN0cyBjb3JyZWN0bHk6CiAgKiBCdXMgYFNNQnVzIEk4MDEgYWRhcHRl
+ciBhdCAzMDAwJwogICAgQnVzZHJpdmVyIGBpMmMtaTgwMScsIEkyQyBhZGRyZXNzIDB4MmUK
+ICAgIENoaXAgYFNNU0MgU0NINTAyN0QtTlcnIChjb25maWRlbmNlOiA2KQoKRHJpdmVyIGBj
+b3JldGVtcCcgKHNob3VsZCBiZSBpbnNlcnRlZCk6CiAgRGV0ZWN0cyBjb3JyZWN0bHk6CiAg
+KiBDaGlwIGBJbnRlbCBDb3JlIGZhbWlseSB0aGVybWFsIHNlbnNvcicgKGNvbmZpZGVuY2U6
+IDkpCgpEbyB5b3Ugd2FudCB0byBnZW5lcmF0ZSAvZXRjL3N5c2NvbmZpZy9sbV9zZW5zb3Jz
+PyAoeWVzL05PKTogVG8gbG9hZCBldmVyeXRoaW5nIHRoYXQgaXMgbmVlZGVkLCBhZGQgdGhp
+cyB0byBvbmUgb2YgdGhlIHN5c3RlbQppbml0aWFsaXphdGlvbiBzY3JpcHRzIChlLmcuIC9l
+dGMvcmMuZC9yYy5sb2NhbCk6CgojLS0tLWN1dCBoZXJlLS0tLQojIEkyQyBhZGFwdGVyIGRy
+aXZlcnMKbW9kcHJvYmUgaTJjLWk4MDEKIyBDaGlwIGRyaXZlcnMKIyBXYXJuaW5nOiB0aGUg
+cmVxdWlyZWQgbW9kdWxlIGRtZTE3MzcgaXMgbm90IGN1cnJlbnRseSBpbnN0YWxsZWQKIyBv
+biB5b3VyIHN5c3RlbS4gRm9yIHN0YXR1cyBvZiAyLjYga2VybmVsIHBvcnRzIGNoZWNrCiMg
+aHR0cDovL3d3dy5sbS1zZW5zb3JzLm9yZy93aWtpL0RldmljZXMuIElmIGRyaXZlciBpcyBi
+dWlsdAojIGludG8gdGhlIGtlcm5lbCwgb3IgdW5hdmFpbGFibGUsIGNvbW1lbnQgb3V0IHRo
+ZSBmb2xsb3dpbmcgbGluZS4KbW9kcHJvYmUgZG1lMTczNwojIFdhcm5pbmc6IHRoZSByZXF1
+aXJlZCBtb2R1bGUgY29yZXRlbXAgaXMgbm90IGN1cnJlbnRseSBpbnN0YWxsZWQKIyBvbiB5
+b3VyIHN5c3RlbS4gRm9yIHN0YXR1cyBvZiAyLjYga2VybmVsIHBvcnRzIGNoZWNrCiMgaHR0
+cDovL3d3dy5sbS1zZW5zb3JzLm9yZy93aWtpL0RldmljZXMuIElmIGRyaXZlciBpcyBidWls
+dAojIGludG8gdGhlIGtlcm5lbCwgb3IgdW5hdmFpbGFibGUsIGNvbW1lbnQgb3V0IHRoZSBm
+b2xsb3dpbmcgbGluZS4KbW9kcHJvYmUgY29yZXRlbXAKL3Vzci9iaW4vc2Vuc29ycyAtcwoj
+LS0tLWN1dCBoZXJlLS0tLQoKSWYgeW91IGhhdmUgc29tZSBkcml2ZXJzIGJ1aWx0IGludG8g
+eW91ciBrZXJuZWwsIHRoZSBsaXN0IGFib3ZlIHdpbGwKY29udGFpbiB0b28gbWFueSBtb2R1
+bGVzLiBTa2lwIHRoZSBhcHByb3ByaWF0ZSBvbmVzISBZb3UgcmVhbGx5CnNob3VsZCB0cnkg
+dGhlc2UgY29tbWFuZHMgcmlnaHQgbm93IHRvIG1ha2Ugc3VyZSBldmVyeXRoaW5nIGlzCndv
+cmtpbmcgcHJvcGVybHkuIE1vbml0b3JpbmcgcHJvZ3JhbXMgd29uJ3Qgd29yayB1bnRpbCB0
+aGUgbmVlZGVkCm1vZHVsZXMgYXJlIGxvYWRlZC4KCg==
+--------------040603080500040302000706
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------040603080500040302000706--
