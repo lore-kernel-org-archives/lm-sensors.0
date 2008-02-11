@@ -1,40 +1,76 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Wed, 13 Feb 2008 12:56:23 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (max1619) Add individual alarm
-Message-Id: <20080213125623.GB1154@jupiter.solarsys.private>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Mon, 11 Feb 2008 12:04:10 +0000
+Subject: [lm-sensors] PATCH: make lm_sensors init script return values LSB
+Message-Id: <47B039BA.8020707@hhs.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------030408040402080402030500"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080106152759.64209d42@hyperion.delvare>
-In-Reply-To: <20080106152759.64209d42@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
+This is a multi-part message in MIME format.
+--------------030408040402080402030500
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-* Juerg Haefliger <juergh@gmail.com> [2008-02-09 22:31:11 -0800]:
-> Looks good and compiles cleanly.
-> 
-> Acked-by: Juerg Haefliger <juergh at gmail.com>
-> 
-> 
-> > The new libsensors needs these individual alarm and fault files.
-> >
-> > Signed-off-by: Jean Delvare <khali at linux-fr.org>
-> > ---
-> > Alexey, would you have the opportunity to test this patch?
-> >
-> >   drivers/hwmon/max1619.c |   17 +++++++++++++++++
-> >   1 file changed, 17 insertions(+)
+Hi All,
 
-Applied to hwmon-2.6.git/testing, thanks.
+I've received the attached patch through Fedora's bugzilla. It fixes the return 
+values of the various error exit cases to match the LSB spec:
+http://refspecs.linux-foundation.org/LSB_3.2.0/LSB-Core-generic/LSB-Core-generic/iniscrptact.html
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+It looks sane to me, if there are no objections I'll commit it to svn.
 
+Thanks & Regards,
+
+Hans
+
+
+--------------030408040402080402030500
+Content-Type: text/x-patch;
+ name="lm_sensors-lsb-retcode.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="lm_sensors-lsb-retcode.diff"
+
+--- lm_sensors.orig	2008-02-07 11:37:22.000000000 -0500
++++ lm_sensors	2008-02-07 11:41:04.000000000 -0500
+@@ -40,15 +40,15 @@
+ 
+ 	# Don't bother if /proc/sensors still doesn't exist, kernel doesn't have
+ 	# support for sensors.
+-	[ -e /proc/sys/dev/sensors ] || exit 0
++	[ -e /proc/sys/dev/sensors ] || exit 6
+ 
+ 	# If sensors was not already running, unload the module...
+ 	[ -e /var/lock/subsys/lm_sensors ] || /sbin/modprobe -r i2c-proc >/dev/null 2>&1
+ fi
+ 
+ CONFIG=/etc/sysconfig/lm_sensors
+-[ -r "$CONFIG" ] || exit 0
+-grep '^MODULE_' $CONFIG >/dev/null 2>&1 || exit 0
++[ -r "$CONFIG" ] || exit 6
++grep '^MODULE_' $CONFIG >/dev/null 2>&1 || exit 6
+ 
+ # Load config file
+ . "$CONFIG"
+@@ -147,7 +147,7 @@
+ 	;;
+   *)
+ 	echo "Usage: $0 {start|stop|status|restart|reload|condrestart}"
+-	exit 1
++	exit 3
+ esac
+ 
+ exit $RETVAL
+
+--------------030408040402080402030500
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------030408040402080402030500--
