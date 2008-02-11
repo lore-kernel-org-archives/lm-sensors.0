@@ -1,7 +1,7 @@
 From: "Yinghai Lu" <yhlu.kernel@gmail.com>
-Date: Sun, 10 Feb 2008 20:31:51 +0000
+Date: Mon, 11 Feb 2008 23:39:39 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (adm1026) Properly terminate sysfs
-Message-Id: <86802c440802101231n723d7f79vcf565027561b17b8@mail.gmail.com>
+Message-Id: <86802c440802111539w7eeb84dcu97103733364f7a7b@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <86802c440802092355l7393fe07gfbd021e9cef66181@mail.gmail.com>
 	 <20080210171004.GB25353@kroah.com>
@@ -97,6 +97,9 @@ On Feb 10, 2008 10:01 AM, Jean Delvare <khali@linux-fr.org> wrote:
 >  static const struct attribute_group adm1026_group_in8_9 = {
 >
 > * * * * *
+
+it works. Thanks
+
 >
 > Yinghai, the bug crept in because I do not have an ADM1026 chip to test
 > my changes. Could you please send a dump of your chip to me, so that I
@@ -109,12 +112,25 @@ On Feb 10, 2008 10:01 AM, Jean Delvare <khali@linux-fr.org> wrote:
 >
 > rmmod adm1026
 > i2cdump 1 0x2d b
->
-> (Replace 0x2d with the actual address.)
 
-good, I will try it Monday.
-
-YH
+LBSuse:/x/kernel.org # ./i2cdetect 1
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-1.
+I will probe address range 0x03-0x77.
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- 08 -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- 18 19 -- -- 1c 1d -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- UU UU -- --
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: 40 41 -- -- -- -- -- -- 48 49 4a -- -- -- -- --
+50: UU UU UU UU UU UU -- -- -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --
+LBSuse:/x/kernel.org # ./i2cdump 1 0x2c b
+Error: Could not set address to 0x2c: Device or resource busy
+LBSuse:/x/kernel.org # ./i2cdump 1 0x2d b
+Error: Could not set address to 0x2d: Device or resource busy
 
 _______________________________________________
 lm-sensors mailing list
