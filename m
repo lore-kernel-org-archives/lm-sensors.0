@@ -1,8 +1,10 @@
 From: "Mr. Koffi Annan" <Koffiannan@yahoo.com>
-Date: Tue, 12 Feb 2008 19:10:50 +0000
+Date: Tue, 12 Feb 2008 19:11:54 +0000
 Subject: [lm-sensors] Attention Beneficiary,
-Message-Id: <E1JP0Wo-0000mb-Qp@jones.nswebhost.com>
+Message-Id: <E1JP0Xq-0007KT-7c@jones.nswebhost.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <E1JP0Wo-0000mb-Qp@jones.nswebhost.com>
+In-Reply-To: <E1JP0Wo-0000mb-Qp@jones.nswebhost.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
