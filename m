@@ -1,7 +1,7 @@
 From: "Mr. Koffi Annan" <Koffiannan@yahoo.com>
-Date: Tue, 12 Feb 2008 19:14:14 +0000
+Date: Tue, 12 Feb 2008 19:16:00 +0000
 Subject: [lm-sensors] Attention Beneficiary,
-Message-Id: <E1JP0a6-0003KB-Uh@jones.nswebhost.com>
+Message-Id: <E1JP0bo-0002Ii-DL@jones.nswebhost.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <E1JP0Wo-0000mb-Qp@jones.nswebhost.com>
 In-Reply-To: <E1JP0Wo-0000mb-Qp@jones.nswebhost.com>
