@@ -1,78 +1,118 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Wed, 13 Feb 2008 14:00:52 +0000
-Subject: Re: [lm-sensors] Funky temperature readings
-Message-Id: <20080213140052.GC17512@jupiter.solarsys.private>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 12 Feb 2008 10:25:07 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (w83793) VID and VRM handling cleanups
+Message-Id: <20080212112507.5c67cd0f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <fostpj$q3h$2@saturn.local.net>
-In-Reply-To: <fostpj$q3h$2@saturn.local.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello:
+* Rework the device initialization function so as to read the
+"Multi-Function Pin Control" register (0x58) once instead of twice.
+I2C transactions aren't cheap so this speeds up the driver loading.
 
-* Per Jessen <per@computer.org> [2008-02-12 20:58:43 +0100]:
-> I've got a new Gigabyte board with the AMD 790FX chipset and an AMD Pheno=
-m quad-core CPU. =20
->=20
-> After having loaded it87, I get three temperature readings - but the  BIO=
-S itself=20
-> is only showing two.  Is this "normal" ?  The third temp reading is quite=
-=20
-> high - usually 84-86C.=20
->=20
-> sensors
-> it8718-isa-0228
-> Adapter: ISA adapter
-> in0:         +1.07 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> in1:         +1.90 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> in2:         +3.33 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> in3:         +3.01 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> in4:         +3.07 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> in5:         +3.22 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> in6:         +4.08 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> in7:         +0.00 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> in8:         +3.10 V
-> fan1:       2566 RPM  (min =3D    0 RPM)
-> fan2:          0 RPM  (min =3D    0 RPM)
-> fan3:       1896 RPM  (min =3D    0 RPM)
-> fan5:          0 RPM  (min =3D    0 RPM)
-> temp1:       +44.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  senso=
-r =3D transistor
-> temp2:       +39.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  senso=
-r =3D thermal diode
-> temp3:       +84.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  senso=
-r =3D transistor
-> cpu0_vid:   +0.000 V
->=20
-> sensors-detect reports:
->=20
-> Driver `it87' (should be inserted):
->   Detects correctly:
->   * ISA bus, address 0x228
->     Chip `ITE IT8718F Super IO Sensors' (confidence: 9)
->=20
-> Driver `to-be-written' (should be inserted):
->   Detects correctly:
->   * Chip `AMD K10 thermal sensors' (confidence: 9)
->=20
+* Only create the "vrm" attribute if at least one VID value is
+available.
 
-Your questions are answered here:
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Gong Jun <jgong@winbond.com>
+Cc: Rudolf Marek <r.marek@assembler.cz>
+---
+Gong Jun and/or Rudolf, can you please review and/or test this patch?
 
-http://lm-sensors.org/wiki/FAQ/Chapter2#DoIneedtheconfigurationfileetcsenso=
-rs.conf
+ drivers/hwmon/w83793.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-You will need to modify /etc/sensors.conf to suit your board.  There are
-copious instructions at the top of that file.  If you get stuck, feel
-free to reply again w/ specific questions.  HTH.
+--- linux-2.6.24-rc7.orig/drivers/hwmon/w83793.c	2008-01-12 22:28:09.000000000 +0100
++++ linux-2.6.24-rc7/drivers/hwmon/w83793.c	2008-01-13 13:51:56.000000000 +0100
+@@ -1023,10 +1023,9 @@ static struct sensor_device_attribute_2 
+ 	SENSOR_ATTR_2(cpu0_vid, S_IRUGO, show_vid, NULL, NOT_USED, 0),
+ 	SENSOR_ATTR_2(cpu1_vid, S_IRUGO, show_vid, NULL, NOT_USED, 1),
+ };
++static DEVICE_ATTR(vrm, S_IWUSR | S_IRUGO, show_vrm, store_vrm);
+ 
+ static struct sensor_device_attribute_2 sda_single_files[] = {
+-	SENSOR_ATTR_2(vrm, S_IWUSR | S_IRUGO, show_vrm, store_vrm,
+-		      NOT_USED, NOT_USED),
+ 	SENSOR_ATTR_2(chassis, S_IWUSR | S_IRUGO, show_alarm_beep,
+ 		      store_chassis_clear, ALARM_STATUS, 30),
+ 	SENSOR_ATTR_2(beep_enable, S_IWUSR | S_IRUGO, show_beep_enable,
+@@ -1079,6 +1078,7 @@ static int w83793_detach_client(struct i
+ 
+ 		for (i = 0; i < ARRAY_SIZE(w83793_vid); i++)
+ 			device_remove_file(dev, &w83793_vid[i].dev_attr);
++		device_remove_file(dev, &dev_attr_vrm);
+ 
+ 		for (i = 0; i < ARRAY_SIZE(w83793_left_fan); i++)
+ 			device_remove_file(dev, &w83793_left_fan[i].dev_attr);
+@@ -1281,7 +1281,6 @@ static int w83793_detect(struct i2c_adap
+ 	/* Initialize the chip */
+ 	w83793_init_client(client);
+ 
+-	data->vrm = vid_which_vrm();
+ 	/*
+ 	   Only fan 1-5 has their own input pins,
+ 	   Pwm 1-3 has their own pins
+@@ -1292,7 +1291,9 @@ static int w83793_detect(struct i2c_adap
+ 	val = w83793_read_value(client, W83793_REG_FANIN_CTRL);
+ 
+ 	/* check the function of pins 49-56 */
+-	if (!(tmp & 0x80)) {
++	if (tmp & 0x80) {
++		data->has_vid |= 0x2;	/* has VIDB */
++	} else {
+ 		data->has_pwm |= 0x18;	/* pwm 4,5 */
+ 		if (val & 0x01) {	/* fan 6 */
+ 			data->has_fan |= 0x20;
+@@ -1308,13 +1309,15 @@ static int w83793_detect(struct i2c_adap
+ 		}
+ 	}
+ 
++	/* check the function of pins 37-40 */
++	if (!(tmp & 0x29))
++		data->has_vid |= 0x1;	/* has VIDA */
+ 	if (0x08 = (tmp & 0x0c)) {
+ 		if (val & 0x08)	/* fan 9 */
+ 			data->has_fan |= 0x100;
+ 		if (val & 0x10)	/* fan 10 */
+ 			data->has_fan |= 0x200;
+ 	}
+-
+ 	if (0x20 = (tmp & 0x30)) {
+ 		if (val & 0x20)	/* fan 11 */
+ 			data->has_fan |= 0x400;
+@@ -1358,13 +1361,6 @@ static int w83793_detect(struct i2c_adap
+ 	if (tmp & 0x02)
+ 		data->has_temp |= 0x20;
+ 
+-	/* Detect the VID usage and ignore unused input */
+-	tmp = w83793_read_value(client, W83793_REG_MFC);
+-	if (!(tmp & 0x29))
+-		data->has_vid |= 0x1;	/* has VIDA */
+-	if (tmp & 0x80)
+-		data->has_vid |= 0x2;	/* has VIDB */
+-
+ 	/* Register sysfs hooks */
+ 	for (i = 0; i < ARRAY_SIZE(w83793_sensor_attr_2); i++) {
+ 		err = device_create_file(dev,
+@@ -1380,6 +1376,12 @@ static int w83793_detect(struct i2c_adap
+ 		if (err)
+ 			goto exit_remove;
+ 	}
++	if (data->has_vid) {
++		data->vrm = vid_which_vrm();
++		err = device_create_file(dev, &dev_attr_vrm);
++		if (err)
++			goto exit_remove;
++	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sda_single_files); i++) {
+ 		err = device_create_file(dev, &sda_single_files[i].dev_attr);
 
-Regards,
 
---=20
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
