@@ -1,41 +1,52 @@
-From: MillTek <mill.tek@verizon.net>
-Date: Tue, 12 Feb 2008 16:13:52 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Wed, 13 Feb 2008 13:17:55 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (adm1026) Properly terminate sysfs
-Message-Id: <47B1C5C0.4010902@verizon.net>
+Message-Id: <20080213131755.GG1154@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <86802c440802092355l7393fe07gfbd021e9cef66181@mail.gmail.com>
- <20080210171004.GB25353@kroah.com>	<20080210190115.2ebd4124@hyperion.delvare>
- <86802c440802111539w7eeb84dcu97103733364f7a7b@mail.gmail.com>
- <20080212092722.32c30eac@hyperion.delvare>	<20080212152715.GB19441@kroah.com>
- <20080212163733.461a8684@hyperion.delvare>
-In-Reply-To: <20080212163733.461a8684@hyperion.delvare>
+References: <86802c440802092355l7393fe07gfbd021e9cef66181@mail.gmail.com> <20080210171004.GB25353@kroah.com> <20080210190115.2ebd4124@hyperion.delvare>
+In-Reply-To: <20080210190115.2ebd4124@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Greg KH <greg@kroah.com>, Yinghai Lu <yhlu.kernel@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-Hi,
-Kernel 2.6.24 for my distro (Arch Linux) came out in the last few days. 
-My board has a Fintek F1882g chip. It means that I can finally get 
-voltage and fan speeds for the board, so thanks for that.  I am 
-wondering how I correctly calculate the correct offset and factors for 
-the voltage numbers? This is what GKrellm says;
+Hi Jean et. al.:
 
-Vcor1  1.66  factor 1 offset 0
-Vcor2  1.24  factor 1 offset 0
-+3.3v   2.83  factor 3  offset 0
-+5v      4.82  factor 4.98 offset 0
-+12v    3.84 factor 4.0  offset 0
--12v    -4.35  factor -4.0 offset 0
--5v      -1.51  factor -1.667 offset 0
-in7      1.66    factor 1  offset 0
-in8       1.54   factor 1 offset 0
+* Jean Delvare <khali@linux-fr.org> [2008-02-10 19:01:15 +0100]:
+> The missing NULL at the end of two sysfs file groups causes a kernel
+> crash when calling sysfs_create_group().
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> ---
+>  drivers/hwmon/adm1026.c |    2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> --- linux-2.6.25-rc0.orig/drivers/hwmon/adm1026.c	2008-02-10 11:21:54.000000000 +0100
+> +++ linux-2.6.25-rc0/drivers/hwmon/adm1026.c	2008-02-10 18:51:00.000000000 +0100
+> @@ -1624,6 +1624,7 @@ static struct attribute *adm1026_attribu
+>  	&dev_attr_temp3_crit_enable.attr,
+>  	&dev_attr_temp3_auto_point1_pwm.attr,
+>  	&dev_attr_temp3_auto_point2_pwm.attr,
+> +	NULL
+>  };
+>  
+>  static const struct attribute_group adm1026_group_temp3 = {
+> @@ -1639,6 +1640,7 @@ static struct attribute *adm1026_attribu
+>  	&sensor_dev_attr_in9_max.dev_attr.attr,
+>  	&sensor_dev_attr_in9_min.dev_attr.attr,
+>  	&sensor_dev_attr_in9_alarm.dev_attr.attr,
+> +	NULL
+>  };
+>  
+>  static const struct attribute_group adm1026_group_in8_9 = {
 
-If there's a website that I should visit can anyone supply a link??
+Applied to hwmon-2.6.git/testing, thanks.
 
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
-Jim
 
 _______________________________________________
 lm-sensors mailing list
