@@ -1,61 +1,66 @@
-From: "Andrew Voznytsa" <andrew.voznytsa@gmail.com>
-Date: Wed, 06 Feb 2008 14:20:55 +0000
-Subject: Re: [lm-sensors] SMSC Super I/O: unknown chip with ID 0x8902 (was:
-Message-Id: <000d01c868cb$7e380730$0204a8c0@IT>
+From: Artur Szymiec <artur.szymiec@gmail.com>
+Date: Wed, 13 Feb 2008 16:53:15 +0000
+Subject: Re: [lm-sensors] adt7475 support (Asus M2N-SLI Deluxe)
+Message-Id: <47B3207B.3090709@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <004e01c856bc$6f975c10$0204a8c0@IT>
-In-Reply-To: <004e01c856bc$6f975c10$0204a8c0@IT>
+References: <Pine.LNX.4.64.0801211406570.32720@birdbird.example.com>
+In-Reply-To: <Pine.LNX.4.64.0801211406570.32720@birdbird.example.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+Hello,
 
-> 
-> Hi Andrew,
-> 
-> 
-> On Feb 5, 2008 4:20 AM, Andrew Voznytsa <andrew.voznytsa@gmail.com> wrote:
-> > Hi Juerg,
-> >
-> > In short - it works!
-> 
-> Very good, thanks for testing.
-> 
-> 
-> > Relevant outputs are below. Just a few questions -
-> > would you recommend to use this code in production system (as for me
-> looked
-> > like simplified version of previous driver, looks like clean and nice,
-> but
-> > is it stable enough)?
-> 
-> The dme1737 driver is fairly new so it probably hasn't gone through a
-> lot of user testing. It's likely that there are bugs. However, if you
-> don't do any fancy things like setting temp limits or programming the
-> fan controller, the driver will *not* write to the chip but only read
-> registers and export their values. If the HW is not broken (i.e., it's
-> always safe to read registers) and there is no interference with other
-> SW accessing the same chip (like ACPI) that could cause problems, it
-> should be safe to use it.
-> 
-> 
-> > Perhaps stupid question but is there any kind of
-> > 'WHQL' for linux kernel development?
-> 
-> Err, no. You just did all the QA required :-) I'll submit a patch in
-> the next couple of days which needs to be reviewed by a fellow driver
-> author/maintainer and then it's ready for inclusion in the mainline
-> kernel. That's all it takes.
-> Feel free to put the driver through some stress testing and report any
-> issue you find.
+I have a M2N-SLI Deluxe motherboard and
+i'm testing the Jordan Crouse patch
+(http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022338.html).
+Results from running sensors:
 
-So ok - I'll setup some monitoring and see how driver works. Many thanks for
-this feature!
+1st result:
+ADT7475-i2c-1-2e
+Adapter: SMBus nForce2 adapter at 1c40
+vccp:        +0.00 V  (min =3D  +0.00 V, max =3D  +2.99 V)   ALARM
+vcc:         +3.27 V  (min =3D  +0.00 V, max =3D  +4.28 V)
+Chasis 2:   2304 RPM  (min =3D  900 RPM)
+fan2:          0 RPM  (min =3D    0 RPM)
+fan3:          0 RPM  (min =3D    0 RPM)
+fan4:          0 RPM  (min =3D    0 RPM)
+remote1:       FAULT  (low  =3D -63.0=B0C, high =3D +191.0=B0C)  ALARM
+local:       +42.5=B0C  (low  =3D +10.0=B0C, high =3D +45.0=B0C)
+remote2:       FAULT  (low  =3D -63.0=B0C, high =3D +191.0=B0C)  ALARM
 
-Best regards,
-Andrew Voznytsa
+2nd result:
+ADT7475-i2c-1-2e
+Adapter: SMBus nForce2 adapter at 1c40
+vccp:        +0.00 V  (min =3D  +0.00 V, max =3D  +2.99 V)   ALARM
+vcc:         +3.27 V  (min =3D  +0.00 V, max =3D  +4.28 V)
+Chasis 2:   105882 RPM  (min =3D  900 RPM)
+fan2:          0 RPM  (min =3D    0 RPM)
+fan3:          0 RPM  (min =3D    0 RPM)
+fan4:          0 RPM  (min =3D    0 RPM)
+remote1:       FAULT  (low  =3D -63.0=B0C, high =3D +191.0=B0C)  ALARM
+local:       +42.5=B0C  (low  =3D +10.0=B0C, high =3D +45.0=B0C)
+remote2:       FAULT  (low  =3D -63.0=B0C, high =3D +191.0=B0C)  ALARM
+
+Comment:
+The results 1 and 2 are from running the sensors command one by one
+with 3 sec delay between them.
+So obviously reading from fan1 (label Chassis 2) are not correct.
+Tested with kernel 2.6.24.
+
+Hope this will help to improve the driver.
+
+Best regards
+Artur Szymiec
+
+--=20
+--------------------------------------------------------------------------
+Registered User No 397465
+Linux Debian 2.6.24-x2 AMD Athlon(tm) 64 X2 Dual Core 5000+=20
+Conquer your Desktop! http://www.spreadkde.org/try_kde
+Reclaim Your Inbox!   http://www.mozilla.org/products/thunderbird/
+--------------------------------------------------------------------------
 
 
 _______________________________________________
