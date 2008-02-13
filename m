@@ -1,44 +1,112 @@
-From: Tobias Klauser <tklauser@distanz.ch>
-Date: Sun, 17 Feb 2008 14:39:24 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Storage class should be before const
-Message-Id: <20080217143924.GA9350@distanz.ch>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 13 Feb 2008 17:50:00 +0000
+Subject: Re: [lm-sensors] hwmon/kernel TODO
+Message-Id: <20080213185000.18185698@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The C99 specification states in section 6.11.5:
+Hi Mark,
 
-The placement of a storage-class specifier other than at the
-beginning of the declaration specifiers in a declaration is an
-obsolescent feature.
+On Fri, 1 Feb 2008 08:08:12 -0500, Mark M. Hoffman wrote:
+> Here's a list of kernel patches (oldest first) which are not in my queue[1] and
+> their status.  If your patch is not in my queue *and* it is missing from this
+> list, please resend it to me + CC the list.
+> 
+> Some of these patches need a primary reviewer - if nobody else steps up, I will
+> chew through them in (roughly) FIFO order.
+> 
+> Let me know what I missed, status updates, etc.  Thanks!
+> 
+> [1] http://lm-sensors.org/kernel?p=kernel/mhoffman/hwmon-2.6.git;a=shortlog;h=testing
+> 
+> [ patch 0/4 RFC for 2.6.23-rc0 ] superio-locks
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-June/020003.html
+> status: wants more discussion
+> 
+> [ patch .24-rc0 0/5 ] SuperIO locks coordinator
+> status: wants reviewer
+> 
+> [patch 2.6.23-rc8 1/3] lm75: cleanups (no functional changes)
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021269.html
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021303.html
+> status: reviewed by Jean, updated, needs Ack
+> 
+> [patch 2.6.23-rc8 2/3] lm75: new style driver binding
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021270.html
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021305.html
+> status: reviewed by Jean, updated, needs more work?
+> 
+> [patch 2.6.23-rc8 3/3] lm75: use 12 bit samples
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021271.html
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-September/021308.html
+> status: reviewed by Jean, updated, needs more work?
+> 
+> [PATCH] hwmon: add support for GMT G760A fan speed PWM controller
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-November/021919.html
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-November/021986.html
+> status: reviewed by Jean, needs updated
+> 
+> [PATCH] coretemp: Add TEMP_TARGET support
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-December/022071.html
+> status: reviewed by Jean, needs updated
 
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
----
- drivers/hwmon/thmc50.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+Note that this patch is the same as...
 
-diff --git a/drivers/hwmon/thmc50.c b/drivers/hwmon/thmc50.c
-index 04dd769..a42a03c 100644
---- a/drivers/hwmon/thmc50.c
-+++ b/drivers/hwmon/thmc50.c
-@@ -52,9 +52,9 @@ I2C_CLIENT_MODULE_PARM(adm1022_temp3, "List of adapter,address pairs "
-  */
- #define THMC50_REG_INTR				0x41
- 
--const static u8 THMC50_REG_TEMP[] = { 0x27, 0x26, 0x20 };
--const static u8 THMC50_REG_TEMP_MIN[] = { 0x3A, 0x38, 0x2C };
--const static u8 THMC50_REG_TEMP_MAX[] = { 0x39, 0x37, 0x2B };
-+static const u8 THMC50_REG_TEMP[] = { 0x27, 0x26, 0x20 };
-+static const u8 THMC50_REG_TEMP_MIN[] = { 0x3A, 0x38, 0x2C };
-+static const u8 THMC50_REG_TEMP_MAX[] = { 0x39, 0x37, 0x2B };
- 
- #define THMC50_REG_CONF_nFANOFF			0x20
- 
+> 
+> asm58 for 2.10.0, linux 2.6.15
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2006-March/015735.html
+> status: needs updated
+> 
+> adt7473: New driver for Analog Devices ADT7473 sensor chip
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-December/022202.html
+> status: wants reviewer
+> 
+> hwmon: (lm92) Add individual alarm files
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022275.html
+> status: wants reviewer
+> 
+> hwmon: (max1619) Add individual alarm and fault files
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022276.html
+> status: wants reviewer
+> 
+> hwmon: (smsc47m1) Add individual alarm files
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022277.html
+> status: wants reviewer
+> 
+> hwmon: (via686a) Add individual alarm files
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022278.html
+> status: wants reviewer
+> 
+> hwmon: (vt8231) Add individual alarm files
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022279.html
+> status: tested, wants quick review before merge
+> 
+> ad7414 driver
+> (CC'ed to linuxppc-dev@ozlabs.org)
+> status: wants reviewer
+> 
+> coretemp: Add maximum cooling temperature readout
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022321.html
+
+... this one.
+
+> coretemp: Add TjMax detection for mobile CPUs
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022322.html
+> coretemp: Add Penryn CPU to coretemp
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022323.html
+> status: wants reviewer
+> 
+> [PATCH 1/2] hwmon: Define sysfs interface for energy consumption register
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022367.html
+> [PATCH 2/2] ibmpex: Add energy consumption meters
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022365.html
+> status: wants review/discussion
+
 -- 
-1.5.4.1
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
