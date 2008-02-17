@@ -1,45 +1,62 @@
 From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Wed, 13 Feb 2008 13:17:55 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (adm1026) Properly terminate sysfs
-Message-Id: <20080213131755.GG1154@jupiter.solarsys.private>
+Date: Sun, 17 Feb 2008 17:07:08 +0000
+Subject: Re: [lm-sensors] [PATCH 14/27] hwmon: fix section mismatch in
+Message-Id: <20080217170708.GB2916@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <86802c440802092355l7393fe07gfbd021e9cef66181@mail.gmail.com> <20080210171004.GB25353@kroah.com> <20080210190115.2ebd4124@hyperion.delvare>
-In-Reply-To: <20080210190115.2ebd4124@hyperion.delvare>
+References: <20080217121255.GA10519@uranus.ravnborg.org> <1203250984-11285-14-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1203250984-11285-14-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Greg KH <greg@kroah.com>, Yinghai Lu <yhlu.kernel@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Hi Jean et. al.:
+Hi Sam:
 
-* Jean Delvare <khali@linux-fr.org> [2008-02-10 19:01:15 +0100]:
-> The missing NULL at the end of two sysfs file groups causes a kernel
-> crash when calling sysfs_create_group().
+* Sam Ravnborg <sam@ravnborg.org> [2008-02-17 13:22:51 +0100]:
+> Fix following warning:
+> WARNING: vmlinux.o(.text+0xebfd04): Section mismatch in reference from the function coretemp_cpu_callback() to the function .cpuinit.text:coretemp_device_add()
 > 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> coretemp_cpu_callback() are only used inside a
+> HOTPLUG_CPU block so annotate it __cpuinit.
+> The notifier referencing the function are annotated
+> __refdata to silence warning from the exit function.
+> The unregister function do not use the embedded pointer
+> but clears the variable so the annotation is OK.
+> 
+> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+> Cc: Mark M. Hoffman <mhoffman@lightlink.com>
 > ---
->  drivers/hwmon/adm1026.c |    2 ++
->  1 file changed, 2 insertions(+)
+>  drivers/hwmon/coretemp.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> --- linux-2.6.25-rc0.orig/drivers/hwmon/adm1026.c	2008-02-10 11:21:54.000000000 +0100
-> +++ linux-2.6.25-rc0/drivers/hwmon/adm1026.c	2008-02-10 18:51:00.000000000 +0100
-> @@ -1624,6 +1624,7 @@ static struct attribute *adm1026_attribu
->  	&dev_attr_temp3_crit_enable.attr,
->  	&dev_attr_temp3_auto_point1_pwm.attr,
->  	&dev_attr_temp3_auto_point2_pwm.attr,
-> +	NULL
->  };
+> diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+> index 3ee60d2..1439432 100644
+> --- a/drivers/hwmon/coretemp.c
+> +++ b/drivers/hwmon/coretemp.c
+> @@ -330,7 +330,7 @@ static void coretemp_device_remove(unsigned int cpu)
+>  	mutex_unlock(&pdev_list_mutex);
+>  }
 >  
->  static const struct attribute_group adm1026_group_temp3 = {
-> @@ -1639,6 +1640,7 @@ static struct attribute *adm1026_attribu
->  	&sensor_dev_attr_in9_max.dev_attr.attr,
->  	&sensor_dev_attr_in9_min.dev_attr.attr,
->  	&sensor_dev_attr_in9_alarm.dev_attr.attr,
-> +	NULL
->  };
+> -static int coretemp_cpu_callback(struct notifier_block *nfb,
+> +static int __cpuinit coretemp_cpu_callback(struct notifier_block *nfb,
+>  				 unsigned long action, void *hcpu)
+>  {
+>  	unsigned int cpu = (unsigned long) hcpu;
+> @@ -347,7 +347,7 @@ static int coretemp_cpu_callback(struct notifier_block *nfb,
+>  	return NOTIFY_OK;
+>  }
 >  
->  static const struct attribute_group adm1026_group_in8_9 = {
+> -static struct notifier_block coretemp_cpu_notifier = {
+> +static struct notifier_block coretemp_cpu_notifier __refdata = {
+>  	.notifier_call = coretemp_cpu_callback,
+>  };
+>  #endif				/* !CONFIG_HOTPLUG_CPU */
+> -- 
+> 1.5.4.rc3.14.g44397
+
+This rings a bell... hmmm, commit 59a35bafb223bbb0553ba1a3bb9280bda668a8d8.
+AFAICT the warning is a false positive, but whatever.
 
 Applied to hwmon-2.6.git/testing, thanks.
 
