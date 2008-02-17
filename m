@@ -1,28 +1,44 @@
 From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Fri, 01 Feb 2008 02:35:32 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (w83627hf) Enable VBAT
-Message-Id: <20080201023532.GN8290@jupiter.solarsys.private>
+Date: Sun, 17 Feb 2008 18:05:11 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: Storage class should be
+Message-Id: <20080217180511.GC2916@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+Hi Tobias:
 
-* Jean Delvare <khali@linux-fr.org> [2008-01-03 22:54:13 +0100]:
-> If VBAT monitoring is disabled, enable it. Bug reported on the
-> lm-sensors trac system:
-> http://lm-sensors.org/ticket/2282
-> This is the exact same patch that was applied to the w83627ehf driver
-> 6 months ago.
+* Tobias Klauser <tklauser@distanz.ch> [2008-02-17 15:39:24 +0100]:
+> The C99 specification states in section 6.11.5:
 > 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> The placement of a storage-class specifier other than at the
+> beginning of the declaration specifiers in a declaration is an
+> obsolescent feature.
+> 
+> Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
 > ---
-> Carlos, could you please test and/or review this patch?
+>  drivers/hwmon/thmc50.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
 > 
->  drivers/hwmon/w83627hf.c |    5 +++++
->  1 file changed, 5 insertions(+)
+> diff --git a/drivers/hwmon/thmc50.c b/drivers/hwmon/thmc50.c
+> index 04dd769..a42a03c 100644
+> --- a/drivers/hwmon/thmc50.c
+> +++ b/drivers/hwmon/thmc50.c
+> @@ -52,9 +52,9 @@ I2C_CLIENT_MODULE_PARM(adm1022_temp3, "List of adapter,address pairs "
+>   */
+>  #define THMC50_REG_INTR				0x41
+>  
+> -const static u8 THMC50_REG_TEMP[] = { 0x27, 0x26, 0x20 };
+> -const static u8 THMC50_REG_TEMP_MIN[] = { 0x3A, 0x38, 0x2C };
+> -const static u8 THMC50_REG_TEMP_MAX[] = { 0x39, 0x37, 0x2B };
+> +static const u8 THMC50_REG_TEMP[] = { 0x27, 0x26, 0x20 };
+> +static const u8 THMC50_REG_TEMP_MIN[] = { 0x3A, 0x38, 0x2C };
+> +static const u8 THMC50_REG_TEMP_MAX[] = { 0x39, 0x37, 0x2B };
+>  
+>  #define THMC50_REG_CONF_nFANOFF			0x20
+>  
 
 Applied to hwmon-2.6.git/testing, thanks.
 
