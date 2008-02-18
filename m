@@ -1,27 +1,25 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 13 Feb 2008 17:46:23 +0000
-Subject: [lm-sensors] adt7475 support status update?
-Message-Id: <47B32CEF.40405@hhs.nl>
+From: Matt Roberds <mattroberds@cox.net>
+Date: Mon, 18 Feb 2008 14:31:27 +0000
+Subject: Re: [lm-sensors] adt7475 support status update?
+Message-Id: <Pine.LNX.4.64.0802180830450.21045@birdbird.example.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <47B32CEF.40405@hhs.nl>
+In-Reply-To: <47B32CEF.40405@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+On Wed, 13 Feb 2008, Hans de Goede wrote:
+> Is there any progress after Jordan Crouse latest patch:
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022338.html
 
-Yesterday the store called me that my defective Asus M2N-SLI Deluxe has been 
-replaced by a new one. So I should be able to start working on the adt7475 
-driver again soon.
+I've been running that driver for about a month now and it seems to work
+fine.  I have not yet tried hooking up any fans to test the fan speed
+reporting.
 
-Is there any progress after Jordan Crouse latest patch:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022338.html
+Matt Roberds
 
-?
-
-Thanks & Regards,
-
-Hans
 
 _______________________________________________
 lm-sensors mailing list
