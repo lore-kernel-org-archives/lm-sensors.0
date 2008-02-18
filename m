@@ -1,80 +1,122 @@
-From: Sean MacLennan <seanm@seanm.ca>
-Date: Tue, 19 Feb 2008 02:21:02 +0000
-Subject: Re: [lm-sensors] [PATCH] Add driver for AD7414 i2c temperature
-Message-Id: <47BA3D0E.5060800@seanm.ca>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 18 Feb 2008 21:33:17 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Skip "random" I/O port probing
+Message-Id: <20080218223317.2142dc16@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <A42C17A8FF150C4DB98BFD6497D1D00007F45D79@ussvlexmbpf1.spansion.com>
-In-Reply-To: <A42C17A8FF150C4DB98BFD6497D1D00007F45D79@ussvlexmbpf1.spansion.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Great, thanks for testing. Would you also feel like reviewing the code?
->
->   
-I grabbed the original message from the web interface. Some of the 
-longer lines were wrapped,  I am not sure if that is a problem with the 
-original patch, or the web interface. An example is:
+Hi all,
 
-+ * Copyright 2006 Stefan Roese <sr at denx.de>, DENX Software
-Engineering
+As a follow-up of this discussion on LKML:
+  http://lkml.org/lkml/2008/2/13/390
+I would like to propose the following patch to sensors-detect:
 
+Index: prog/detect/sensors-detect
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D--- prog/detect/sensors-detect	(r=E9vision 5123)
++++ prog/detect/sensors-detect	(copie de travail)
+@@ -3,7 +3,7 @@
+ #
+ #    sensors-detect - Detect PCI bus and chips
+ #    Copyright (C) 1998 - 2002  Frodo Looijaard <frodol@dds.nl>
+-#    Copyright (C) 2004 - 2007  Jean Delvare <khali@linux-fr.org>
++#    Copyright (C) 2004 - 2008  Jean Delvare <khali@linux-fr.org>
+ #
+ #    This program is free software; you can redistribute it and/or modify
+ #    it under the terms of the GNU General Public License as published by
+@@ -2366,12 +2366,13 @@
+ # [2] -> SUBLEVEL
+ # [3] -> EXTRAVERSION
+ #
+-use vars qw(@kernel_version);
++use vars qw(@kernel_version $kernel_arch);
+=20
+ sub initialize_kernel_version
+ {
+   `uname -r` =3D~ /(\d+)\.(\d+)\.(\d+)(.*)/;
+   @kernel_version =3D ($1, $2, $3, $4);
++  $kernel_arch =3D `uname -m`;
+ }
+=20
+ sub kernel_version_at_least
+@@ -5810,27 +5811,32 @@
+   }
+   print "\n";
+=20
+-  print "Some chips are also accessible through the ISA I/O ports. We have=
+ to\n".
+-        "write to arbitrary I/O ports to probe them. This is usually safe =
+though.\n".
+-        "Yes, you do have ISA I/O ports even if you do not have any ISA sl=
+ots!\n";
+-  print "Do you want to scan the ISA I/O ports? (YES/no): ";
+-  unless (<STDIN> =3D~ /^\s*n/i) {
+-    initialize_ioports();
+-    scan_isa_bus();
+-    close_ioports();
+-  }
+-  print "\n";
++  # Skip "random" I/O port probing on PPC
++  if ($kernel_arch ne 'ppc'
++   && $kernel_arch ne 'ppc64'
++   && $kernel_arch ne 'powerpc') {
++    print "Some chips are also accessible through the ISA I/O ports. We ha=
+ve to\n".
++          "write to arbitrary I/O ports to probe them. This is usually saf=
+e though.\n".
++          "Yes, you do have ISA I/O ports even if you do not have any ISA =
+slots!\n";
++    print "Do you want to scan the ISA I/O ports? (YES/no): ";
++    unless (<STDIN> =3D~ /^\s*n/i) {
++      initialize_ioports();
++      scan_isa_bus();
++      close_ioports();
++    }
++    print "\n";
+=20
+-  print "Some Super I/O chips may also contain sensors. We have to write t=
+o\n".
+-        "standard I/O ports to probe them. This is usually safe.\n";
+-  print "Do you want to scan for Super I/O sensors? (YES/no): ";
+-  unless (<STDIN> =3D~ /^\s*n/i) {
+-    initialize_ioports();
+-    scan_superio(0x2e, 0x2f);
+-    scan_superio(0x4e, 0x4f);
+-    close_ioports();
++    print "Some Super I/O chips may also contain sensors. We have to write=
+ to\n".
++          "standard I/O ports to probe them. This is usually safe.\n";
++    print "Do you want to scan for Super I/O sensors? (YES/no): ";
++    unless (<STDIN> =3D~ /^\s*n/i) {
++      initialize_ioports();
++      scan_superio(0x2e, 0x2f);
++      scan_superio(0x4e, 0x4f);
++      close_ioports();
++    }
++    print "\n";
+   }
+-  print "\n";
+=20
+   print "Some CPUs or memory controllers may also contain embedded sensors=
+.\n";
+   print "Do you want to scan for them? (YES/no): ";
 
-Some comments:
+The idea is to skip "random" I/O port probing on PPC, as it won't find
+anything anyway and can cause the kernel to oops.
 
-+struct ad7414_data {
-+	struct i2c_client	client;
-+	struct class_device	*dev;
+Christian, can you please test this patch and confirm that it solves
+your problem?
 
-I this this should be struct device, not class_device.
+Ben, can you please comment on this patch? I'm not familiar with the
+PPC architecture at all so I'm not sure if I am looking for the right
+strings.
 
-+	struct mutex	lock;	/* atomic read data updates */
-
-Line up?
-
-+	char			valid;	/* !=0 if following fields are
-valid */
-+	unsigned long	last_updated;	/* In jiffies */
-
-Line up?
-
-+	u16			temp_input;	/* Register values */
-+	u8			temp_max;
-+	u8			temp_min;
-+	u8			temp_alert;
-+	u8			temp_max_flag;
-+	u8			temp_min_flag;
-+};
-
-
-
-Much codes goes by ;)
-
-+static int ad7414_remove(struct i2c_client *client)
-+{
-+	struct ad7414_data *data = i2c_get_clientdata(client);
-+
-+	hwmon_device_unregister(data->dev);
-+	sysfs_remove_group(&client->dev.kobj, &ad7414_group);
-+	kfree(data);
-+	return 0;
-+}
-+
-+static struct i2c_driver ad7414_driver = {
-+	.driver = {
-+		.name	= "ad7414",
-+	},
-+	.probe	= ad7414_probe,
-+	.remove	= __devexit_p(ad7414_remove),
-+};
-
-I believe the ad7414_remove function needs a _devexit to match the 
-__devexit_p. Other than that, the code looks clean.
-
-Cheers,
-   Sean
+Thanks,
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
