@@ -1,37 +1,46 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 19 Feb 2008 10:19:08 +0000
-Subject: Re: [lm-sensors] Preparing patches for pca9552, ad5259, and bq27350
-Message-Id: <20080219111908.4085dfdd@hyperion.delvare>
+Date: Tue, 19 Feb 2008 11:42:58 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm75) Fix an incorrect comment
+Message-Id: <20080219124258.2917de6e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <FD2217BC-9A9C-4CFE-843F-15F1600B4CCE@codetastic.com>
-In-Reply-To: <FD2217BC-9A9C-4CFE-843F-15F1600B4CCE@codetastic.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 18 Feb 2008 23:51:59 -0800, Philip Pokorny wrote:
-> There are several monitoring chips that monitor the CMOS battery
-> voltage.  That's similar...
+High-byte first is not opposite to the usual practice - that's what
+almost all hardware monitoring drivers do. It is opposite to the SMBus
+standard though.
 
-While I agree that battery monitoring drivers and hardware monitoring
-drivers have some features in common (in particular measuring an input
-voltage) I still believe that having separate subsystems for these,
-with different sysfs interfaces, makes sense. The user needs are
-different. The CMOS battery monitoring is only there to tell you when
-you should change the battery. A "real" battery monitor OTOH will tell
-you a lot more information on the battery, how much energy there is
-left inside, how much time you have before the power runs out, how old
-the battery is, how hot it is, etc. Using the hwmon standard sysfs
-interface for this would probably put restrictions on what can be done.
-This doesn't mean though that battery drivers can't additionally export
-their sensor values as standard, read-only hwmon sysfs values (maybe
-even using common code for all battery drivers) but I don't think that
-this should be their primary interface.
+Also delete a duplicate comment.
 
-Anyway, I didn't look deep enough into the power subsystem to make
-myself a definitive opinion, so the above is really only a first
-thought. I might be wrong.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/lm75.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+--- linux-2.6.25-rc2.orig/drivers/hwmon/lm75.c	2008-02-19 11:34:35.000000000 +0100
++++ linux-2.6.25-rc2/drivers/hwmon/lm75.c	2008-02-19 12:37:10.000000000 +0100
+@@ -248,7 +248,7 @@ static int lm75_detach_client(struct i2c
+ 
+ /* All registers are word-sized, except for the configuration register.
+    LM75 uses a high-byte first convention, which is exactly opposite to
+-   the usual practice. */
++   the SMBus standard. */
+ static int lm75_read_value(struct i2c_client *client, u8 reg)
+ {
+ 	if (reg = LM75_REG_CONF)
+@@ -257,9 +257,6 @@ static int lm75_read_value(struct i2c_cl
+ 		return swab16(i2c_smbus_read_word_data(client, reg));
+ }
+ 
+-/* All registers are word-sized, except for the configuration register.
+-   LM75 uses a high-byte first convention, which is exactly opposite to
+-   the usual practice. */
+ static int lm75_write_value(struct i2c_client *client, u8 reg, u16 value)
+ {
+ 	if (reg = LM75_REG_CONF)
+
 
 -- 
 Jean Delvare
