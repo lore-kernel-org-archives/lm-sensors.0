@@ -1,53 +1,41 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 19 Feb 2008 18:56:08 +0000
+From: Matt Roberds <mattroberds@cox.net>
+Date: Wed, 20 Feb 2008 04:24:02 +0000
 Subject: Re: [lm-sensors] adt7475 support status update?
-Message-Id: <20080219195608.701cd2fb@hyperion.delvare>
+Message-Id: <Pine.LNX.4.64.0802192212540.2276@birdbird.example.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <47B32CEF.40405@hhs.nl>
 In-Reply-To: <47B32CEF.40405@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Jordan,
+On Tue, 19 Feb 2008, Jordan Crouse wrote:
+> Updated patch against HEAD is attached.
+> [...]
+>+/* 7475 Notes:
+>+ * Addeded by: Jordan Crouse <jordan.crouse@amd.com>
+>+ * Datasheet:  http://www.analog.com/UploadedFiles/Data_Sheets/ADT7475.pdf
+>+ * TODO:  enhanced acoustics
+>+ */
 
-On Tue, 19 Feb 2008 11:49:15 -0700, Jordan Crouse wrote:
-> On 18/02/08 20:54 +0100, Jean Delvare wrote:
-> > Hi Hans,
-> > 
-> > On Wed, 13 Feb 2008 18:46:23 +0100, Hans de Goede wrote:
-> > > Hi all,
-> > > 
-> > > Yesterday the store called me that my defective Asus M2N-SLI Deluxe has been 
-> > > replaced by a new one. So I should be able to start working on the adt7475 
-> > > driver again soon.
-> > > 
-> > > Is there any progress after Jordan Crouse latest patch:
-> > > http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022338.html
-> > > 
-> > > ?
-> > 
-> > Not that I know of. You might want to update the wiki/Devices page to
-> > record the current state so that you (and others) can look it up at a
-> > later time.
-> 
-> There was one little buglet that needed to be fixed
-> (I2C_DRIVERID_ADT74XX should be I2C_DRIVERID_ADT7475)
+This doesn't affect the code at all, but this line of chips was
+apparently sold to On Semiconductor, effective 1 Jan 2008.  When I was
+looking for data on this chip in mid-January, Analog Devices no longer
+had the data sheet and On hadn't posted it yet, but now it is available
+from On.  Product page is
+http://www.onsemi.com/PowerSolutions/product.do?id=ADT7475 and datasheet
+is http://www.onsemi.com/pub/Collateral/ADT7475-D.PDF .  This seems to
+have affected several of the ADT74xx series chips.
 
-Best would be to get rid of it altogether. As you might have noticed,
-all the hwmon driver IDs have be deleted by now:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h{501b1f53605bec17454dd8bbdbbf3f57a7cf32
+It might be out of scope for lm-sensors, but I wonder if it would be a
+good idea to collect the datasheets on the various hardware monitoring
+chips and possibly make them available on the lm-sensors site.  I know
+the Devices page has links to the manufacturer pages, but these can and
+do change or go away.
 
-> but by all reports, things were looking good.  I was actually getting ready
-> to send the updated patch to Mark to start the trip upstream, but I'll
-> hold off if you want to test some more.
-> 
-> I'll reply with an up-to-date version against HEAD.
+Matt Roberds
 
-Thanks,
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
