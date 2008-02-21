@@ -1,81 +1,134 @@
-From: Matt Roberds <mattroberds@cox.net>
-Date: Thu, 21 Feb 2008 00:30:58 +0000
-Subject: [lm-sensors] First shot at Asus M2N-SLI Deluxe config file
-Message-Id: <Pine.LNX.4.64.0802201829130.30160@birdbird.example.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="655872-1778427640-1203553858=:30160"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 21 Feb 2008 07:27:44 +0000
+Subject: Re: [lm-sensors] First shot at Asus M2N-SLI Deluxe config file
+Message-Id: <20080221082744.10bf67a1@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <Pine.LNX.4.64.0802201829130.30160@birdbird.example.com>
+In-Reply-To: <Pine.LNX.4.64.0802201829130.30160@birdbird.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Matt,
 
---655872-1778427640-1203553858=:30160
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+On Wed, 20 Feb 2008 18:30:58 -0600 (CST), Matt Roberds wrote:
+> Here's a first shot at a config file for an Asus M2N-SLI Deluxe
+> motherboard.  It may also work for other versions of the M2N-SLI; I
+> don't know.
 
-All,
+Note, I have a configuration file for the Asus M2N32-SLI; it might have
+common points with your board:
+http://khali.linux-fr.org/devel/lm-sensors/sensors-Asus-M2N32-SLI.conf
 
-Here's a first shot at a config file for an Asus M2N-SLI Deluxe
-motherboard.  It may also work for other versions of the M2N-SLI; I
-don't know.
+Once you have a good configuration file for your board, you could add
+it to the wiki:
+http://www.lm-sensors.org/wiki/Configurations/Asus
 
-Matt Roberds
+Comments on your configuration file:
 
---655872-1778427640-1203553858=:30160
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=sensors.m2n-sli.conf
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0802201830580.30160@birdbird.example.com>
-Content-Description: Asus M2N-SLI Deluxe config
-Content-Disposition: attachment; filename=sensors.m2n-sli.conf
+> # First cut at a minimal sensors3.conf for Asus M2N-SLI Deluxe motherboard
+> # Matt Roberds, 20 Feb 2008
+> 
+> 
+> chip "it8716-*"
+> 
+> # Voltages
+> 
+>     label  in0  "VCore"
+>     label  in1  "VDDR"
+>     ignore in2             # 3.3 V?
 
-IyBGaXJzdCBjdXQgYXQgYSBtaW5pbWFsIHNlbnNvcnMzLmNvbmYgZm9yIEFz
-dXMgTTJOLVNMSSBEZWx1eGUgbW90aGVyYm9hcmQNCiMgTWF0dCBSb2JlcmRz
-LCAyMCBGZWIgMjAwOA0KDQoNCmNoaXAgIml0ODcxNi0qIg0KDQojIFZvbHRh
-Z2VzDQoNCiAgICBsYWJlbCAgaW4wICAiVkNvcmUiDQogICAgbGFiZWwgIGlu
-MSAgIlZERFIiDQogICAgaWdub3JlIGluMiAgICAgICAgICAgICAjIDMuMyBW
-Pw0KICAgIGxhYmVsICBpbjMgICIrNVYiICAgICAgIyBWQ0MNCiAgICBsYWJl
-bCAgaW40ICAiKzEyViINCiAgICBsYWJlbCAgaW41ICAiLTEyViINCiAgICBs
-YWJlbCAgaW42ICAiLTVWIg0KICAgIGxhYmVsICBpbjcgICI1VlNCIiAgICAg
-IyBWQ0NIDQogICAgbGFiZWwgIGluOCAgIlZCYXQiDQoNCiAgICBjb21wdXRl
-IGluMyAgKCg2LjgvMTApKzEpKkAgLCBALygoNi44LzEwKSsxKQ0KICAgIGNv
-bXB1dGUgaW40ICAoKDMwLzEwKSsxKSpAICAsIEAvKCgzMC8xMCkrMSkNCiAg
-ICBjb21wdXRlIGluNyAgKCg2LjgvMTApKzEpKkAgLCBALygoNi44LzEwKSsx
-KQ0KDQojIGluNSBhbmQgaW42IGFwcGVhciB0byBiZSB3cm9uZyAoSSBnZXQg
-YXJvdW5kIC0xNyBWIGFuZCAtOSBWIHdpdGggdGhlc2UNCiMgJ2NvbXB1dGUn
-IGxpbmVzKSwgYnV0IEknbSBub3Qgc3VyZSBob3cgdG8gYWRqdXN0IHRoZSAn
-Y29tcHV0ZScgbGluZXMuDQoNCiAgICBjb21wdXRlIGluNSAgKDErMjMyLzU2
-KSpAIC0gNC4wOTYqMjMyLzU2ICwgKEAgKyA0LjA5NioyMzIvNTYpLygxKzIz
-Mi81NikNCiAgICBjb21wdXRlIGluNiAgKDErMTIwLzU2KSpAIC0gNC4wOTYq
-MTIwLzU2ICwgKEAgKyA0LjA5NioxMjAvNTYpLygxKzEyMC81NikNCg0KIyBU
-ZW1wZXJhdHVyZXMNCg0KIyBOb3Qgc3VyZS4gIHRlbXAxIGFsd2F5cyByZWFk
-cyBjbG9zZSB0byB3aGF0IGs4dGVtcCByZXBvcnRzIGZvciBDb3JlMC4NCiMg
-dGVtcDMgYWx3YXlzIHJlYWRzIGFwcHJveGltYXRlIGFtYmllbnQgdGVtcGVy
-YXR1cmUuICB0ZW1wMiBpcyBiZXR3ZWVuDQojIHRlbXAxIGFuZCB0ZW1wMy4N
-Cg0KIyBGYW5zDQoNCiAgICBsYWJlbCAgZmFuMSAiQ1BVIEZhbiINCiAgICBs
-YWJlbCAgZmFuMiAiQ2hhc3NpcyBGYW4gMSINCiAgICBsYWJlbCAgZmFuMyAi
-UG93ZXIgU3VwcGx5IEZhbiINCg0KDQpjaGlwICJBRFQ3NDc1LSoiDQoNCiMg
-Rm9yIHNvbWUgcmVhc29uLCBpZ25vcmluZyB2Y2NwLCByZW1vdGUxLCBhbmQg
-cmVtb3RlMiBkb2Vzbid0IHdvcmsuICBJcw0KIyBpdCBiZWNhdXNlIHRoZXkg
-aGF2ZSBBTEFSTSBzZXQ/DQoNCiMgVm9sdGFnZXMNCg0KICAgIGlnbm9yZSB2
-Y2NwDQogICAgbGFiZWwgIHZjYyAgIiszLjNWIg0KDQojIFRlbXBlcmF0dXJl
-cw0KDQojIE5vdCAxMDAlIHN1cmUuICByZW1vdGUxIGFuZCAyIGRvbid0IGFw
-cGVhciB0byBiZSBob29rZWQgdXA7IGxvY2FsIGlzDQojIG9uIGJvYXJkIHRo
-ZSBhZHQ3NDc1IGNoaXAgaXRzZWxmLg0KDQogICAgaWdub3JlIHJlbW90ZTEN
-CiAgICBpZ25vcmUgcmVtb3RlMg0KDQojIEZhbnMNCg0KICAgIGxhYmVsICBm
-YW4xICJDaGFzc2lzIEZhbiA0Ig0KICAgIGxhYmVsICBmYW4yICJDaGFzc2lz
-IEZhbiAyIg0KICAgIGxhYmVsICBmYW4zICJDaGFzc2lzIEZhbiAzIg0KICAg
-IGlnbm9yZSBmYW40DQoNCg0KY2hpcCAiazh0ZW1wLSoiDQoNCiAgIGxhYmVs
-IHRlbXAxICJDb3JlMCBUZW1wIg0KICAgbGFiZWwgdGVtcDMgIkNvcmUxIFRl
-bXAiDQoNCg==
+I would be very surprised if +3.3V wasn't monitored. Doesn't it show in
+the BIOS?
 
---655872-1778427640-1203553858=:30160
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>     label  in3  "+5V"      # VCC
+>     label  in4  "+12V"
+>     label  in5  "-12V"
+>     label  in6  "-5V"
+>     label  in7  "5VSB"     # VCCH
+>     label  in8  "VBat"
+> 
+>     compute in3  ((6.8/10)+1)*@ , @/((6.8/10)+1)
+>     compute in4  ((30/10)+1)*@  , @/((30/10)+1)
+>     compute in7  ((6.8/10)+1)*@ , @/((6.8/10)+1)
+> 
+> # in5 and in6 appear to be wrong (I get around -17 V and -9 V with these
+> # 'compute' lines), but I'm not sure how to adjust the 'compute' lines.
+> 
+>     compute in5  (1+232/56)*@ - 4.096*232/56 , (@ + 4.096*232/56)/(1+232/56)
+>     compute in6  (1+120/56)*@ - 4.096*120/56 , (@ + 4.096*120/56)/(1+120/56)
+
+Most modern motherboards do not monitor -5V, and in general they don't
+monitor -12V either. Look in your BIOS, it probably doesn't display
+these either. So either these voltage inputs are unused, or they are
+used for something else. Try commenting out the compute statements and
+see if the raw voltage value rings a bell. Comparing with what the BIOS
+displays might help as well.
+
+> 
+> # Temperatures
+> 
+> # Not sure.  temp1 always reads close to what k8temp reports for Core0.
+> # temp3 always reads approximate ambient temperature.  temp2 is between
+> # temp1 and temp3.
+
+What does the BIOS display?
+
+> 
+> # Fans
+> 
+>     label  fan1 "CPU Fan"
+>     label  fan2 "Chassis Fan 1"
+>     label  fan3 "Power Supply Fan"
+> 
+> 
+> chip "ADT7475-*"
+> 
+> # For some reason, ignoring vccp, remote1, and remote2 doesn't work.  Is
+> # it because they have ALARM set?
+
+"vccp", "remote1" and "remote2" are not standard sysfs names, so I am
+not surprised that libsensors doesn't recognize them. Should be in<N>
+and temp<N>.
+
+> 
+> # Voltages
+> 
+>     ignore vccp
+>     label  vcc  "+3.3V"
+
+"vcc" isn't a standard name either, I guess that this label statement
+has no effect?
+
+> 
+> # Temperatures
+> 
+> # Not 100% sure.  remote1 and 2 don't appear to be hooked up; local is
+> # on board the adt7475 chip itself.
+> 
+>     ignore remote1
+>     ignore remote2
+> 
+> # Fans
+> 
+>     label  fan1 "Chassis Fan 4"
+>     label  fan2 "Chassis Fan 2"
+>     label  fan3 "Chassis Fan 3"
+>     ignore fan4
+> 
+> 
+> chip "k8temp-*"
+> 
+>    label temp1 "Core0 Temp"
+>    label temp3 "Core1 Temp"
+> 
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---655872-1778427640-1203553858=:30160--
