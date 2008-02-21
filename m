@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 11 Feb 2008 08:27:12 +0000
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Thu, 21 Feb 2008 13:00:28 +0000
 Subject: Re: [lm-sensors] ASM58 Mozart-2 Driver
-Message-Id: <20080211092712.77c1d673@hyperion.delvare>
+Message-Id: <20080221130028.GG27110@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <000301c83dfc$bdb0e980$3912bc80$@net>
 In-Reply-To: <000301c83dfc$bdb0e980$3912bc80$@net>
@@ -10,7 +10,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 13 Jan 2008 19:48:30 +0100, Jean Delvare wrote:
+Hi Jean, Eric:
+
+* Jean Delvare <khali@linux-fr.org> [2008-01-13 19:48:30 +0100]:
 > Hi Mark,
 > 
 > On Sun, 16 Dec 2007 14:33:41 -0500, Mark M. Hoffman wrote:
@@ -41,11 +43,39 @@ On Sun, 13 Jan 2008 19:48:30 +0100, Jean Delvare wrote:
 > I'd rather do it myself so that you can spend your time on something
 > else, like... reviewing my own patches ;)
 
-Looks like I spoke a bit too fast... In practice I can't seem to be
-able to find the time and motivation to do it, sorry.
+Well, I just started to do this 10 minutes ago but I didn't get very
+far...
+
+> --- /dev/null
+> +++ b/Documentation/hwmon/asm58
+> @@ -0,0 +1,42 @@
+> +Kernel driver asm58
+> +=========> +
+> +Supported Chips:
+> +* Asus ASM58 Mozart-2
+> +* Asus AS2K129R Mozart-2
+> +* Asus ??? Mozart-2
+> +  All three seem to be the same save for exterior markings
+> +  Prefix: 'asm58'
+> +  Addresses scanned: I2C 0x77
+> +  Datasheet: not available
+> +
+> +
+> +Description
+> +-----------
+> +
+> +This chip is discontinued and unsupported by the manufacturer. The driver was
+> +developed with xmbmon205 source as a reference.  It is found on
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+That, plus no Signed-off-by from the author = I'm not touching this.
+
+Sorry.
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
