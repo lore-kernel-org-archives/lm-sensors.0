@@ -1,67 +1,117 @@
-From: Greg KH <greg@kroah.com>
-Date: Sun, 10 Feb 2008 17:10:04 +0000
-Subject: Re: [lm-sensors] panic about sysfs with adm1026
-Message-Id: <20080210171004.GB25353@kroah.com>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Thu, 21 Feb 2008 12:28:47 +0000
+Subject: [lm-sensors] [GIT PATCH] hwmon updates vs. 2.6.25-rc2
+Message-Id: <20080221122847.GF27110@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <86802c440802092355l7393fe07gfbd021e9cef66181@mail.gmail.com>
-In-Reply-To: <86802c440802092355l7393fe07gfbd021e9cef66181@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Yinghai Lu <yhlu.kernel@gmail.com>, khali@linux-fr.org
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-On Sat, Feb 09, 2008 at 11:55:43PM -0800, Yinghai Lu wrote:
-> Calling initcall 0xffffffff80c4b575: sm_adm1026_init+0x0/0xe()
-> i2c-adapter i2c-1: : Unrecognized stepping 0x45. Defaulting to ADM1026.
-> general protection fault: 0000 [1] SMP
-> CPU 0
-> Modules linked in:
-> Pid: 1, comm: swapper Not tainted 2.6.24-smp-09379-g0cf975e-dirty #34
-> RIP: 0010:[<ffffffff802d79ad>]  [<ffffffff802d79ad>] sysfs_add_file+0x16/0x81
-> RSP: 0000:ffff81040503dd50  EFLAGS: 00010286
-> RAX: 0000000000000000 RBX: fffe002e002d002c RCX: 00000000000048d9
-> RDX: 0000000000000002 RSI: fffe002e002d002c RDI: ffff810202c4fb90
-> RBP: 0000000000000000 R08: ffff810202c4fb90 R09: 0000000000000000
-> R10: 0000000000000002 R11: 0000000000000002 R12: 00000000fffffff4
-> R13: ffff810202c4fb90 R14: 000000000000000c R15: ffff810202c4fb90
-> FS:  0000000000000000(0000) GS:ffffffff80bde000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
-> CR2: 00007fff94de3470 CR3: 0000000000201000 CR4: 00000000000006e0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> Process swapper (pid: 1, threadinfo ffff81040503c000, task ffff810205040000)
-> Stack:  ffff810202c4fb90 0000000000000000 0000000000000000 0000000000000001
->  ffff810202c4e000 ffffffff80b87850 0000000000000000 ffff810202c4e118
->  ffffffff808e0cc0 ffffffff802d933c ffff81040503dd55 ffff810202c17878
-> Call Trace:
->  [<ffffffff802d933c>] sysfs_create_group+0xa2/0x106
->  [<ffffffff8069fbc2>] adm1026_detect+0x4b3/0x522
->  [<ffffffff8069f70f>] adm1026_detect+0x0/0x522
->  [<ffffffff80698bff>] i2c_probe_address+0xb9/0xfc
->  [<ffffffff806997db>] i2c_probe+0x162/0x175
->  [<ffffffff8069f70f>] adm1026_detect+0x0/0x522
->  [<ffffffff8069910f>] i2c_register_driver+0x9a/0xea
->  [<ffffffff80c276d2>] kernel_init+0x15d/0x2c9
->  [<ffffffff8021fc68>] child_rip+0xa/0x12
->  [<ffffffff80c27575>] kernel_init+0x0/0x2c9
->  [<ffffffff8021fc5e>] child_rip+0x0/0x12
-> 
-> 
-> Code: c0 84 c0 74 0c 41 58 48 89 df 5b 5d e9 2a 07 00 00 5e 5b 5d c3
-> 41 55 49 89 fd 41 54 41 bc f4 ff ff ff 55 53 48 89 f3 48 83 ec 28 <8b>
-> 76 10 48 8b 3b 66 81 e6 ff 0f 66 81 ce 00 80 0f b7 f6 e8 fd
-> RIP  [<ffffffff802d79ad>] sysfs_add_file+0x16/0x81
->  RSP <ffff81040503dd50>
-> ---[ end trace b23a825db37d3043 ]---
+Hi Linus:
 
-Perhaps the adm1026 driver is not calling sysfs_create_group properly?
+Please pull from:
+	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git release
 
-Jean, any ideas?
+You'll get one new driver, one bugfix (adm1026), a few cleanups and
+enhancements.  This branch also includes the last of the patches which
+add individual alarm sysfs files to all drivers (thank you Jean!).
 
-thanks,
+Hopefully this is the last you'll hear from me before 2.6.25 final.
 
-greg k-h
+Thanks & regards,
+
+ Documentation/hwmon/adt7473  |   79 +++
+ Documentation/hwmon/coretemp |    6 +-
+ MAINTAINERS                  |    2 +-
+ drivers/hwmon/Kconfig        |   10 +
+ drivers/hwmon/Makefile       |    1 +
+ drivers/hwmon/ad7418.c       |    2 +-
+ drivers/hwmon/adm1021.c      |    6 +-
+ drivers/hwmon/adm1025.c      |    2 +-
+ drivers/hwmon/adm1026.c      |    4 +-
+ drivers/hwmon/adm1029.c      |    6 +-
+ drivers/hwmon/adm1031.c      |    2 +-
+ drivers/hwmon/adm9240.c      |    2 +-
+ drivers/hwmon/ads7828.c      |    2 +-
+ drivers/hwmon/adt7470.c      |    2 +-
+ drivers/hwmon/adt7473.c      | 1157 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/hwmon/applesmc.c     |   29 +-
+ drivers/hwmon/asb100.c       |    2 +-
+ drivers/hwmon/atxp1.c        |    2 +-
+ drivers/hwmon/coretemp.c     |  119 +++--
+ drivers/hwmon/dme1737.c      |    2 +-
+ drivers/hwmon/ds1621.c       |    2 +-
+ drivers/hwmon/f75375s.c      |    2 +-
+ drivers/hwmon/fscher.c       |    2 +-
+ drivers/hwmon/fschmd.c       |    2 +-
+ drivers/hwmon/fscpos.c       |    2 +-
+ drivers/hwmon/gl518sm.c      |    2 +-
+ drivers/hwmon/gl520sm.c      |    2 +-
+ drivers/hwmon/lm63.c         |    2 +-
+ drivers/hwmon/lm75.c         |    2 +-
+ drivers/hwmon/lm77.c         |    3 +-
+ drivers/hwmon/lm78.c         |    4 +-
+ drivers/hwmon/lm80.c         |    4 +-
+ drivers/hwmon/lm83.c         |    6 +-
+ drivers/hwmon/lm85.c         |    2 +-
+ drivers/hwmon/lm87.c         |    2 +-
+ drivers/hwmon/lm90.c         |    6 +-
+ drivers/hwmon/lm92.c         |   20 +-
+ drivers/hwmon/lm93.c         |    2 +-
+ drivers/hwmon/max1619.c      |   23 +-
+ drivers/hwmon/max6650.c      |    3 +-
+ drivers/hwmon/smsc47m1.c     |   25 +-
+ drivers/hwmon/smsc47m192.c   |    2 +-
+ drivers/hwmon/thmc50.c       |    8 +-
+ drivers/hwmon/via686a.c      |   28 +
+ drivers/hwmon/vt8231.c       |   44 ++-
+ drivers/hwmon/w83781d.c      |    4 +-
+ drivers/hwmon/w83791d.c      |    3 +-
+ drivers/hwmon/w83792d.c      |    3 +-
+ drivers/hwmon/w83793.c       |    3 +-
+ drivers/hwmon/w83l785ts.c    |    2 +-
+ drivers/hwmon/w83l786ng.c    |    2 +-
+ 51 files changed, 1534 insertions(+), 120 deletions(-)
+ create mode 100644 Documentation/hwmon/adt7473
+ create mode 100644 drivers/hwmon/adt7473.c
+
+Darrick J. Wong (1):
+      hwmon: New driver for Analog Devices ADT7473 sensor chip
+
+Jean Delvare (6):
+      hwmon: (lm92) Add individual alarm files
+      hwmon: (max1619) Add individual alarm and fault files
+      hwmon: (smsc47m1) Add individual alarm files
+      hwmon: (via686a) Add individual alarm files
+      hwmon: (vt8231) Add individual alarm files
+      hwmon: (adm1026) Properly terminate sysfs groups
+
+Mark M. Hoffman (1):
+      hwmon: normal_i2c arrays should be const
+
+Riki Oktarianto (1):
+      hwmon: (applesmc) sensors set for MacBook2
+
+Roger Lucas (1):
+      hwmon: (vt8231) Update maintainer email address
+
+Rudolf Marek (3):
+      hwmon: (coretemp) Add maximum cooling temperature readout
+      hwmon: (coretemp) Add TjMax detection for mobile CPUs
+      hwmon: (coretemp) Add Penryn CPU to coretemp
+
+Sam Ravnborg (1):
+      hwmon: (coretemp) fix section mismatch warning
+
+Tobias Klauser (1):
+      hwmon: (thmc50) Storage class should be before const qualifier
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
