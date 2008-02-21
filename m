@@ -1,38 +1,81 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 06 Feb 2008 18:26:02 +0000
-Subject: Re: [lm-sensors] failed to load it87 module on IT8712F
-Message-Id: <20080206192602.72adaf64@hyperion.delvare>
+From: Matt Roberds <mattroberds@cox.net>
+Date: Thu, 21 Feb 2008 00:30:58 +0000
+Subject: [lm-sensors] First shot at Asus M2N-SLI Deluxe config file
+Message-Id: <Pine.LNX.4.64.0802201829130.30160@birdbird.example.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="655872-1778427640-1203553858=:30160"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <002001c8641e$71d8f6e0$180411ac@EDVW14>
-In-Reply-To: <002001c8641e$71d8f6e0$180411ac@EDVW14>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 6 Feb 2008 09:42:44 +0100, Peter Eser wrote:
-> Hi Jean,
-> 
-> yes the values of the it8712 make sense.
-> Most likely its a BIOS issue, I try now to connect Aaeon (They celebrate new
-> year at the moment...).
-> The VT1211: I have a VIA CX700M on board and on
-> http://www.via.com.tw/en/products/chipsets/c-series/cx700m/
-> it looks like it's included.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-If you refer to the block diagram on that page, then I think you're
-wrong: the VT1211 is there only as an illustration of how the various
-chips fit in the big picture. It's a separate chip, it's not included
-in the CX700M at all. VIA puts a VT1211 as an example but motherboard
-manufacturers are free to use functionally equivalent parts... such as
-the IT8712F.
+--655872-1778427640-1203553858=:30160
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 
-> Many Thanks, I let you know how the story moves on...
+All,
 
--- 
-Jean Delvare
+Here's a first shot at a config file for an Asus M2N-SLI Deluxe
+motherboard.  It may also work for other versions of the M2N-SLI; I
+don't know.
+
+Matt Roberds
+
+--655872-1778427640-1203553858=:30160
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=sensors.m2n-sli.conf
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.64.0802201830580.30160@birdbird.example.com>
+Content-Description: Asus M2N-SLI Deluxe config
+Content-Disposition: attachment; filename=sensors.m2n-sli.conf
+
+IyBGaXJzdCBjdXQgYXQgYSBtaW5pbWFsIHNlbnNvcnMzLmNvbmYgZm9yIEFz
+dXMgTTJOLVNMSSBEZWx1eGUgbW90aGVyYm9hcmQNCiMgTWF0dCBSb2JlcmRz
+LCAyMCBGZWIgMjAwOA0KDQoNCmNoaXAgIml0ODcxNi0qIg0KDQojIFZvbHRh
+Z2VzDQoNCiAgICBsYWJlbCAgaW4wICAiVkNvcmUiDQogICAgbGFiZWwgIGlu
+MSAgIlZERFIiDQogICAgaWdub3JlIGluMiAgICAgICAgICAgICAjIDMuMyBW
+Pw0KICAgIGxhYmVsICBpbjMgICIrNVYiICAgICAgIyBWQ0MNCiAgICBsYWJl
+bCAgaW40ICAiKzEyViINCiAgICBsYWJlbCAgaW41ICAiLTEyViINCiAgICBs
+YWJlbCAgaW42ICAiLTVWIg0KICAgIGxhYmVsICBpbjcgICI1VlNCIiAgICAg
+IyBWQ0NIDQogICAgbGFiZWwgIGluOCAgIlZCYXQiDQoNCiAgICBjb21wdXRl
+IGluMyAgKCg2LjgvMTApKzEpKkAgLCBALygoNi44LzEwKSsxKQ0KICAgIGNv
+bXB1dGUgaW40ICAoKDMwLzEwKSsxKSpAICAsIEAvKCgzMC8xMCkrMSkNCiAg
+ICBjb21wdXRlIGluNyAgKCg2LjgvMTApKzEpKkAgLCBALygoNi44LzEwKSsx
+KQ0KDQojIGluNSBhbmQgaW42IGFwcGVhciB0byBiZSB3cm9uZyAoSSBnZXQg
+YXJvdW5kIC0xNyBWIGFuZCAtOSBWIHdpdGggdGhlc2UNCiMgJ2NvbXB1dGUn
+IGxpbmVzKSwgYnV0IEknbSBub3Qgc3VyZSBob3cgdG8gYWRqdXN0IHRoZSAn
+Y29tcHV0ZScgbGluZXMuDQoNCiAgICBjb21wdXRlIGluNSAgKDErMjMyLzU2
+KSpAIC0gNC4wOTYqMjMyLzU2ICwgKEAgKyA0LjA5NioyMzIvNTYpLygxKzIz
+Mi81NikNCiAgICBjb21wdXRlIGluNiAgKDErMTIwLzU2KSpAIC0gNC4wOTYq
+MTIwLzU2ICwgKEAgKyA0LjA5NioxMjAvNTYpLygxKzEyMC81NikNCg0KIyBU
+ZW1wZXJhdHVyZXMNCg0KIyBOb3Qgc3VyZS4gIHRlbXAxIGFsd2F5cyByZWFk
+cyBjbG9zZSB0byB3aGF0IGs4dGVtcCByZXBvcnRzIGZvciBDb3JlMC4NCiMg
+dGVtcDMgYWx3YXlzIHJlYWRzIGFwcHJveGltYXRlIGFtYmllbnQgdGVtcGVy
+YXR1cmUuICB0ZW1wMiBpcyBiZXR3ZWVuDQojIHRlbXAxIGFuZCB0ZW1wMy4N
+Cg0KIyBGYW5zDQoNCiAgICBsYWJlbCAgZmFuMSAiQ1BVIEZhbiINCiAgICBs
+YWJlbCAgZmFuMiAiQ2hhc3NpcyBGYW4gMSINCiAgICBsYWJlbCAgZmFuMyAi
+UG93ZXIgU3VwcGx5IEZhbiINCg0KDQpjaGlwICJBRFQ3NDc1LSoiDQoNCiMg
+Rm9yIHNvbWUgcmVhc29uLCBpZ25vcmluZyB2Y2NwLCByZW1vdGUxLCBhbmQg
+cmVtb3RlMiBkb2Vzbid0IHdvcmsuICBJcw0KIyBpdCBiZWNhdXNlIHRoZXkg
+aGF2ZSBBTEFSTSBzZXQ/DQoNCiMgVm9sdGFnZXMNCg0KICAgIGlnbm9yZSB2
+Y2NwDQogICAgbGFiZWwgIHZjYyAgIiszLjNWIg0KDQojIFRlbXBlcmF0dXJl
+cw0KDQojIE5vdCAxMDAlIHN1cmUuICByZW1vdGUxIGFuZCAyIGRvbid0IGFw
+cGVhciB0byBiZSBob29rZWQgdXA7IGxvY2FsIGlzDQojIG9uIGJvYXJkIHRo
+ZSBhZHQ3NDc1IGNoaXAgaXRzZWxmLg0KDQogICAgaWdub3JlIHJlbW90ZTEN
+CiAgICBpZ25vcmUgcmVtb3RlMg0KDQojIEZhbnMNCg0KICAgIGxhYmVsICBm
+YW4xICJDaGFzc2lzIEZhbiA0Ig0KICAgIGxhYmVsICBmYW4yICJDaGFzc2lz
+IEZhbiAyIg0KICAgIGxhYmVsICBmYW4zICJDaGFzc2lzIEZhbiAzIg0KICAg
+IGlnbm9yZSBmYW40DQoNCg0KY2hpcCAiazh0ZW1wLSoiDQoNCiAgIGxhYmVs
+IHRlbXAxICJDb3JlMCBUZW1wIg0KICAgbGFiZWwgdGVtcDMgIkNvcmUxIFRl
+bXAiDQoNCg==
+
+--655872-1778427640-1203553858=:30160
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--655872-1778427640-1203553858=:30160--
