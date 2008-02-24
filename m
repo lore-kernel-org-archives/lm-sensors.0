@@ -1,34 +1,26 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Fri, 01 Feb 2008 02:35:56 +0000
-Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: (w83627hf) Add individual	alarm
-Message-Id: <20080201023556.GO8290@jupiter.solarsys.private>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 24 Feb 2008 13:42:38 +0000
+Subject: [lm-sensors] Call for 2.10.6
+Message-Id: <20080224144238.4ba7ff02@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+Hi all,
 
-* Jean Delvare <khali@linux-fr.org> [2008-01-03 23:00:30 +0100]:
-> The new libsensors needs these individual alarm and beep files. The
-> code was copied from the w83781d driver. I've tested the alarm files
-> on a W83627THF. I couldn't test the beep files as the system in
-> question doesn't have a speaker.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
-> Carlos, Jim, could any of you please test and/or review this patch?
-> 
->  drivers/hwmon/w83627hf.c |  142 +++++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 139 insertions(+), 3 deletions(-)
+According to trac we were supposed to release lm-sensors 2.10.6 last
+week. While the 2.x branch is in maintenance mode and nothing very
+interesting is happening there, we are still supposed to release a
+maintenance update from time to time. I propose the following schedule:
 
-Applied to hwmon-2.6.git/testing, thanks.
+* February 25th: SVN freeze
+* February 26th to March 1st: Testing
+* March 2nd: Release
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
