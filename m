@@ -1,43 +1,73 @@
-From: "Mr. Koffi Annan" <Koffiannan@yahoo.com>
-Date: Tue, 12 Feb 2008 19:16:00 +0000
-Subject: [lm-sensors] Attention Beneficiary,
-Message-Id: <E1JP0bo-0002Ii-DL@jones.nswebhost.com>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Tue, 26 Feb 2008 18:34:48 +0000
+Subject: [lm-sensors] PATCH: hwmon-abituguru3-aw8d.patch
+Message-Id: <47C45BC8.1030504@hhs.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------050209070300060401010707"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E1JP0Wo-0000mb-Qp@jones.nswebhost.com>
-In-Reply-To: <E1JP0Wo-0000mb-Qp@jones.nswebhost.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Attention: Beneficiary,
+This is a multi-part message in MIME format.
+--------------050209070300060401010707
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-How are you today? Hope all is well with you and family?,You may not understand why this mail came to you. We have been having a meeting for the passed 7 months which ended 2 days ago with the secretary to the UNITED NATIONS. This email is to all the people that have been scammed and defrauded in any part of the world, the UNITED NATIONS have agreed to compensate them with the sum of 2.8 M.USD for each. This also includes all the foreign contractors that have not received their contract sum, and people that have had an unfinished transaction or international business(s) that failed due to Government problems etc.
+Hi All,
 
-So we found your name in our list and that is why we are contacting you, this have been agreed upon and have been signed. So you are advised to contact Mr. Thomas Oliver of (ADB) AFRICAN DEVELOPMENT BAN PLC, as he is our representative in West Africa, contact him immediately for immediate transfer of 2.8 M.USD. This compensation funds are already deposited in the AFRICAN DEVELOPMENT BANK OF WEST AFRICA PLC. So it will be transferred to you and you can clear it in any bank of your choice which you will have to give to him. Therefore, you should send him your,
+This patch identifies the Abit AW8D board as such, and adds support for its
+aux5 fan connector
 
-FULL NAME:
-FULL CONTACT ADDRESS:
-PHONE NUMBER:
-OCCUPATION:
-MARITAL STATUS AND AGE:
-BANK ACCOUNT INFORMATION:
-A COPY OF INTERNATIONAL PASSPORT OR DRIVER'S LICENSE. 
-
-Person to Contact: Mr. Thomas Oliver
-Email: thomas.oliver97@yahoo.fr 
-Phone: +229-97818-337
-
-Thanks and God bless you and your family as we hope to hear from you as soon as you receive your funds right in bank account.
+signed-of-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 
 Regards,
-Mr. Koffi Annan
-Former Secretary (UNITED NATIONS).
 
+Hans
 
+p.s.
 
+It would be nice if this could make 2.6.25, its really a bugfix.
+
+--------------050209070300060401010707
+Content-Type: text/plain;
+ name="hwmon-abituguru3-aw8d.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="hwmon-abituguru3-aw8d.patch"
+
+This patch identifies the Abit AW8D board as such, and adds support for its
+aux5 fan connector
+
+signed-of-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+diff -up vanilla-2.6.25-rc2-git7/drivers/hwmon/abituguru3.c.orig vanilla-2.6.25-rc2-git7/drivers/hwmon/abituguru3.c
+--- vanilla-2.6.25-rc2-git7/drivers/hwmon/abituguru3.c.orig	2008-02-26 16:32:27.000000000 +0100
++++ vanilla-2.6.25-rc2-git7/drivers/hwmon/abituguru3.c	2008-02-26 19:26:53.000000000 +0100
+@@ -323,7 +323,7 @@ static const struct abituguru3_motherboa
+ 		{ "AUX1 Fan",		36, 2, 60, 1, 0 },
+ 		{ NULL, 0, 0, 0, 0, 0 } }
+ 	},
+-	{ 0x0013, "unknown", {
++	{ 0x0013, "Abit AW8D", {
+ 		{ "CPU Core",		 0, 0, 10, 1, 0 },
+ 		{ "DDR",		 1, 0, 10, 1, 0 },
+ 		{ "DDR VTT",		 2, 0, 10, 1, 0 },
+@@ -349,6 +349,7 @@ static const struct abituguru3_motherboa
+ 		{ "AUX2 Fan",		36, 2, 60, 1, 0 },
+ 		{ "AUX3 Fan",		37, 2, 60, 1, 0 },
+ 		{ "AUX4 Fan",		38, 2, 60, 1, 0 },
++		{ "AUX5 Fan",		39, 2, 60, 1, 0 },
+ 		{ NULL, 0, 0, 0, 0, 0 } }
+ 	},
+ 	{ 0x0014, "Abit AB9 Pro", {
+
+--------------050209070300060401010707
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------050209070300060401010707--
