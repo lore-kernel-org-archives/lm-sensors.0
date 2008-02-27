@@ -1,67 +1,16 @@
 From: "Zhang, Rui" <rui.zhang@intel.com>
-Date: Tue, 26 Feb 2008 21:40:23 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] thermal: add hwmon sys I/F for thermal
-Message-Id: <1204062023.10256.100.camel@acpi-hp-zz.sh.intel.com>
+Date: Wed, 27 Feb 2008 00:37:50 +0000
+Subject: [lm-sensors] [PATCH 1/2] thermal: add hwmon sys I/F for thermal
+Message-Id: <1204072670.10256.111.camel@acpi-hp-zz.sh.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1203975102.10256.82.camel@acpi-hp-zz.sh.intel.com>
-	 <47C3D04E.6090609@hhs.nl>
-In-Reply-To: <47C3D04E.6090609@hhs.nl>
+In-Reply-To: <1203975102.10256.82.camel@acpi-hp-zz.sh.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, Richard Hughes <hughsient@gmail.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Hans de Goede <j.w.r.degoede@hhs.nl>
 
-
-On Tue, 2008-02-26 at 16:39 +0800, Hans de Goede wrote:
-> Zhang, Rui wrote:
-> > Add hwmon sys I/F for the generic thermal device.
-> >
-> 
-> Great!
-> 
-> But I have several remarks:
-> 1) Looking at the new code, you only add temp1_input, so I'm guessing
-> that you
-> are registering a seperate hwmon class entry per zone? Please don't do
-> that,
-> please register one hwmon class entry, and add multiple temp#_input
-> attr to it
-> (and the same for crit).
-> 
-> 2) I see that temp_crit may not be always available:
->  > +static ssize_t
->  > +crit_trip_temp_show(struct device *dev, struct device_attribute
-> *attr,
->  > +                    char *buf)
->  > +{
->  > +    struct device *device = dev->parent;
->  > +    struct thermal_zone_device *tz = to_thermal_zone(device);
->  > +    int result;
->  > +
->  > +    if (!tz->ops->get_trip_temp )
->  > +            return -EPERM;
->  > +
->  > +    /* assume trip 0 to be the critical trip point by default */
->  > +    if (tz->ops->get_trip_type) {
->  > +            result = tz->ops->get_trip_type(tz, 0, buf);
->  > +            if (result < 0)
->  > +                    return result;
->  > +            if (strcmp(buf, "critical\n"))
->  > +                    return -ENODEV;
->  > +    }
->  > +
->  > +    return tz->ops->get_trip_temp(tz, 0, buf);
->  > +}
-> 
-> But you do always register a temp#_crit sysfs attr, it would be much
-> much
-> better to only add this if reading it actually has a chance of
-> returning a
-> value, so if tz->ops->get_trip_temp != NULL and
-> tz->ops->get_trip_type(tz, 0,
-> buf) returns "critical" in buf.
-then how about this one? :)
 
 Add hwmon sys I/F for the generic thermal device.
 
@@ -70,8 +19,8 @@ Cc: Hans de Geode <j.w.r.degoede@hhs.nl>
 ---
  Documentation/thermal/sysfs-api.txt |   22 ++--
  drivers/thermal/Kconfig             |    1 
- drivers/thermal/thermal.c           |  161 ++++++++++++++++++++++++++++++------
- 3 files changed, 147 insertions(+), 37 deletions(-)
+ drivers/thermal/thermal.c           |  169 ++++++++++++++++++++++++++++++------
+ 3 files changed, 155 insertions(+), 37 deletions(-)
 
 Index: linux-2.6/Documentation/thermal/sysfs-api.txt
 =================================--- linux-2.6.orig/Documentation/thermal/sysfs-api.txt
@@ -157,16 +106,17 @@ Index: linux-2.6/drivers/thermal/thermal.c
  MODULE_DESCRIPTION("Generic thermal management sysfs support");
  MODULE_LICENSE("GPL");
  
-@@ -56,6 +58,8 @@ static LIST_HEAD(thermal_tz_list);
+@@ -56,6 +58,9 @@ static LIST_HEAD(thermal_tz_list);
  static LIST_HEAD(thermal_cdev_list);
  static DEFINE_MUTEX(thermal_list_lock);
  
 +static struct device *thermal_hwmon;
++#define MAX_THERMAL_ZONES	10
 +
  static int get_idr(struct idr *idr, struct mutex *lock, int *id)
  {
  	int err;
-@@ -87,7 +91,67 @@ static void release_idr(struct idr *idr,
+@@ -87,7 +92,67 @@ static void release_idr(struct idr *idr,
  		mutex_unlock(lock);
  }
  
@@ -235,7 +185,7 @@ Index: linux-2.6/drivers/thermal/thermal.c
  
  #define to_thermal_zone(_dev) \
  	container_of(_dev, struct thermal_zone_device, device)
-@@ -214,7 +278,7 @@ do {	\
+@@ -214,7 +279,7 @@ do {	\
  	device_remove_file(_dev, &trip_point_attrs[_index * 2 + 1]);	\
  } while (0)
  
@@ -244,7 +194,7 @@ Index: linux-2.6/drivers/thermal/thermal.c
  #define to_cooling_device(_dev)	\
  	container_of(_dev, struct thermal_cooling_device, device)
  
-@@ -447,6 +511,9 @@ struct thermal_cooling_device *thermal_c
+@@ -447,6 +512,9 @@ struct thermal_cooling_device *thermal_c
  	struct thermal_zone_device *pos;
  	int result;
  
@@ -254,7 +204,7 @@ Index: linux-2.6/drivers/thermal/thermal.c
  	if (strlen(type) >= THERMAL_NAME_LENGTH)
  		return ERR_PTR(-EINVAL);
  
-@@ -477,11 +544,9 @@ struct thermal_cooling_device *thermal_c
+@@ -477,11 +545,9 @@ struct thermal_cooling_device *thermal_c
  	}
  
  	/* sys I/F */
@@ -269,7 +219,7 @@ Index: linux-2.6/drivers/thermal/thermal.c
  
  	result = device_create_file(&cdev->device, &dev_attr_max_state);
  	if (result)
-@@ -547,8 +612,8 @@ void thermal_cooling_device_unregister(s
+@@ -547,8 +613,8 @@ void thermal_cooling_device_unregister(s
  		tz->ops->unbind(tz, cdev);
  	}
  	mutex_unlock(&thermal_list_lock);
@@ -280,7 +230,7 @@ Index: linux-2.6/drivers/thermal/thermal.c
  	device_remove_file(&cdev->device, &dev_attr_max_state);
  	device_remove_file(&cdev->device, &dev_attr_cur_state);
  
-@@ -580,6 +645,9 @@ struct thermal_zone_device *thermal_zone
+@@ -580,6 +646,9 @@ struct thermal_zone_device *thermal_zone
  	int result;
  	int count;
  
@@ -290,7 +240,21 @@ Index: linux-2.6/drivers/thermal/thermal.c
  	if (strlen(type) >= THERMAL_NAME_LENGTH)
  		return ERR_PTR(-EINVAL);
  
-@@ -615,13 +683,28 @@ struct thermal_zone_device *thermal_zone
+@@ -601,6 +670,13 @@ struct thermal_zone_device *thermal_zone
+ 		kfree(tz);
+ 		return ERR_PTR(result);
+ 	}
++	if (tz->id >= MAX_THERMAL_ZONES) {
++		printk(KERN_ERR PREFIX
++			"Too many thermal zones\n");
++		release_idr(&thermal_tz_idr, &thermal_idr_lock, tz->id);
++		kfree(tz);
++		return ERR_PTR(-EINVAL);
++	}
+ 
+ 	strcpy(tz->type, type);
+ 	tz->ops = ops;
+@@ -615,13 +691,28 @@ struct thermal_zone_device *thermal_zone
  		return ERR_PTR(result);
  	}
  
@@ -324,7 +288,7 @@ Index: linux-2.6/drivers/thermal/thermal.c
  	result = device_create_file(&tz->device, &dev_attr_temp);
  	if (result)
  		goto unregister;
-@@ -687,8 +770,17 @@ void thermal_zone_device_unregister(stru
+@@ -687,8 +778,17 @@ void thermal_zone_device_unregister(stru
  		    tz->ops->unbind(tz, cdev);
  	mutex_unlock(&thermal_list_lock);
  
@@ -344,7 +308,7 @@ Index: linux-2.6/drivers/thermal/thermal.c
  	device_remove_file(&tz->device, &dev_attr_temp);
  	if (tz->ops->get_mode)
  		device_remove_file(&tz->device, &dev_attr_mode);
-@@ -705,6 +797,19 @@ void thermal_zone_device_unregister(stru
+@@ -705,6 +805,19 @@ void thermal_zone_device_unregister(stru
  
  EXPORT_SYMBOL(thermal_zone_device_unregister);
  
@@ -364,7 +328,7 @@ Index: linux-2.6/drivers/thermal/thermal.c
  static int __init thermal_init(void)
  {
  	int result = 0;
-@@ -716,16 +821,20 @@ static int __init thermal_init(void)
+@@ -716,16 +829,20 @@ static int __init thermal_init(void)
  		mutex_destroy(&thermal_idr_lock);
  		mutex_destroy(&thermal_list_lock);
  	}
