@@ -1,8 +1,10 @@
 From: Martin Wegener <killer-Bob@web.de>
-Date: Tue, 26 Feb 2008 19:43:28 +0000
+Date: Thu, 28 Feb 2008 19:48:28 +0000
 Subject: [lm-sensors] Need Help, Ubutnu 7.1, Asus K8V-MX, AMD 3000+,
-Message-Id: <404946588@web.de>
+Message-Id: <408367766@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <404946588@web.de>
+In-Reply-To: <404946588@web.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -15,7 +17,6 @@ ainboard(AMD64 3000+) and a Zalman CNPS7000A cooler.
 First I just installed lm-sensors with 'sudo apt-get install lm-sensors'
 worked without a problem. Then I did 'sudo sensors-detect' and answered all=
  questions with yes.
-
 But 'sudo pwmconfig' told me to check my fans:
 ------------------------------------------------
 Found the following devices:
@@ -305,9 +306,9 @@ cellaneous Control
 ] (rev a1)
 ---------------------------------------------------------------------------=
 --------
-_________________________________________________________________________
-In 5 Schritten zur eigenen Homepage. Jetzt Domain sichern und gestalten!=20
-Nur 3,99 EUR/Monat! http://www.maildomain.web.de/?mc=021114
+_______________________________________________________________________
+Jetzt neu! Sch=FCtzen Sie Ihren PC mit McAfee und WEB.DE. 30 Tage
+kostenlos testen. http://www.pc-sicherheit.web.de/startseite/?mc=022220
 
 
 _______________________________________________
