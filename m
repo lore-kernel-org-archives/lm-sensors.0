@@ -1,31 +1,59 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 28 Feb 2008 21:07:18 +0000
-Subject: Re: [lm-sensors] PATCH: hwmon-abituguru3-aw8d.patch
-Message-Id: <20080228220718.1d165306@hyperion.delvare>
+From: "Craig Kelley" <namonai@gmail.com>
+Date: Fri, 29 Feb 2008 17:24:44 +0000
+Subject: [lm-sensors] [patch 1/1] hwmon: add 0x8c id for smsc47b397 driver
+Message-Id: <847993120802290924m6b12567p964a17e080030889@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <47C45BC8.1030504@hhs.nl>
-In-Reply-To: <47C45BC8.1030504@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: mhoffman@lightlink.com
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Tue, 26 Feb 2008 19:34:48 +0100, Hans de Goede wrote:
-> Hi All,
-> 
-> This patch identifies the Abit AW8D board as such, and adds support for its
-> aux5 fan connector
-> 
-> signed-of-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+From: Craig Kelley <namonai@gmail.com>
 
-Missing one "f" ;)
+Added a new ID (0x8c) for the smsc47b397 hardware monitor driver.
+This ID is used by HP in, at least, their dc7700 line.
 
-Looks OK to me:
+Signed-off-by: Craig Kelley <namonai@gmail.com>
+---
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+--- drivers/hwmon/smsc47b397.c-orig     2008-02-29 07:54:18.000000000 -0800
++++ drivers/hwmon/smsc47b397.c  2008-02-29 07:53:00.000000000 -0800
+@@ -331,11 +331,23 @@ exit:
+ static int __init smsc47b397_find(unsigned short *addr)
+ {
+        u8 id, rev;
++       char *name;
 
--- 
-Jean Delvare
+        superio_enter();
+        id = superio_inb(SUPERIO_REG_DEVID);
+
+-       if ((id != 0x6f) && (id != 0x81) && (id != 0x85)) {
++       switch(id) {
++       case 0x81:
++               name = "SCH5307-NS";
++               break;
++       case 0x6f:
++               name = "LPC47B397-NC";
++               break;
++       case 0x85:
++       case 0x8c:
++               name = "SCH5317";
++               break;
++       default:
+                superio_exit();
+                return -ENODEV;
+        }
+@@ -348,8 +360,7 @@ static int __init smsc47b397_find(unsign
+
+        printk(KERN_INFO DRVNAME ": found SMSC %s "
+                "(base address 0x%04x, revision %u)\n",
+-               id = 0x81 ? "SCH5307-NS" : id = 0x85 ? "SCH5317" :
+-              "LPC47B397-NC", *addr, rev);
++               name, *addr, rev);
+
+        superio_exit();
+        return 0;
 
 _______________________________________________
 lm-sensors mailing list
