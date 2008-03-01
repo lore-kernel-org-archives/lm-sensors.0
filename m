@@ -1,28 +1,28 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 11 Mar 2008 12:34:07 +0000
-Subject: Re: [lm-sensors] Kernel driver w83793
-Message-Id: <20080311133407.50d86385@hyperion.delvare>
+From: Matt Roberds <mattroberds@cox.net>
+Date: Sat, 01 Mar 2008 00:17:11 +0000
+Subject: Re: [lm-sensors] Need Help, Ubutnu 7.1, Asus K8V-MX, AMD 3000+,
+Message-Id: <Pine.LNX.4.64.0802291815140.21237@birdbird.example.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <47D5AF8E.5040300@assembler.cz>
-In-Reply-To: <47D5AF8E.5040300@assembler.cz>
+References: <404946588@web.de>
+In-Reply-To: <404946588@web.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 10 Mar 2008 23:00:46 +0100, Rudolf Marek wrote:
-> It would be nice if you could run following commands and save output for me.
-> Please do that when the driver is unloaded (if in kernel, just make sure that
-> there is no access to /sys interface)
-> 
-> You will also need a i2c-dev (module)
-> 
-> i2cdump -l
+On Thu, 28 Feb 2008, Martin Wegener wrote:
+> Speedstepping works without I probelm (when Cool and Quiet support
+> is activated in the bios)  I've installed the newest bios, but it
+> didn't help me.  And my bios it self does not give the the
+> possibility to control my CPU-fan speed (There is nothing like Q-fan).
 
-Actually: i2cdetect -l
+Have you tried disabling or at least changing the speed and fan related
+settings (like Cool and Quiet) in the BIOS to see if that affects
+anything?  I am not sure how common this is, but maybe the BIOS and
+lmsensors are fighting for control of the hardware.
 
--- 
-Jean Delvare
+Matt Roberds
+
 
 _______________________________________________
 lm-sensors mailing list
