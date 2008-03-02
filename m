@@ -1,58 +1,64 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 09 Mar 2008 13:22:20 +0000
-Subject: Re: [lm-sensors] Smart Fan etc
-Message-Id: <20080309142220.747b70df@hyperion.delvare>
+From: Aurelien Jarno <aurelien@aurel32.net>
+Date: Sun, 02 Mar 2008 21:35:59 +0000
+Subject: [lm-sensors] [PATCH] sensord: Define min value for loadavg in rrd
+Message-Id: <20080302213559.GA18471@volta.aurel32.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1204878393.5849.3.camel@montecristo>
-In-Reply-To: <1204878393.5849.3.camel@montecristo>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hello Joakim,
+The patch below changes sensord so that it sets the minimum value of
+the loadavg field to 0 in the rrd file, as this value can't be=20
+negative.
 
-On Fri, 07 Mar 2008 09:26:33 +0100, Joakim Larsson wrote:
-> I try understand how lm-sensors works and have a few questions:
-> 
-> - Should I turn off the Smart Fan feature in BIOS?
+Index: prog/sensord/sensord.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D--- prog/sensord/sensord.h	(r=E9vision 5132)
++++ prog/sensord/sensord.h	(copie de travail)
+@@ -79,6 +79,7 @@
+   DataType_voltage =3D 0,
+   DataType_rpm,
+   DataType_temperature,
++  DataType_loadavg,
+   DataType_other =3D -1
+ } DataType;
+=20
+Index: prog/sensord/rrd.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D--- prog/sensord/rrd.c	(r=E9vision 5132)
++++ prog/sensord/rrd.c	(copie de travail)
+@@ -202,6 +202,10 @@
+         min =3D "0";
+         max =3D "250";
+         break;
++      case DataType_loadavg:
++        min =3D "0";
++        max =3D "U";
++        break;
+       default:
+         min =3D max =3D "U";
+         break;
+@@ -217,8 +221,11 @@
+   int ret =3D 0;
+   struct ds data =3D { 0, argv};
+   ret =3D applyToFeatures (rrdGetSensors_DS, &data);
+-  if (!ret && doLoad)
+-    ret =3D rrdGetSensors_DS (&data, LOADAVG, LOAD_AVERAGE, NULL);
++  if (!ret && doLoad) {
++    FeatureDescriptor feature;
++    feature.type =3D DataType_loadavg;
++    ret =3D rrdGetSensors_DS (&data, LOADAVG, LOAD_AVERAGE, &feature);
++  }
+   return ret ? -1 : data.num;
+ }
+=20
 
-See my reply to your previous post.
-
-> - Is lm-sensor superiour to aht Smart Fan does?
-
-The BIOS "Smart Fan" feature can be implemented in different ways
-depending on the board. Sometimes it is implemented by the hardware
-monitoring chip itself and the BIOS is merely writing a few
-configuration bits to the chip. In this case it is usually compatible
-with lm-sensors, although not all drivers might expose the advanced
-features configuration interface. In your case, the w83627ehf driver
-exposes a lot of features so that shouldn't be a problem.
-
-But sometimes it is implemented in software as ACPI or even SMM code.
-In this case it will possibly conflict with lm-sensors, and you really
-want to disable the feature in the BIOS if you are going to use
-lm-sensors.
-
-So I can't tell whether lm-sensors is better than what the BIOS does on
-your particular board. Maybe both do exactly the same, maybe not.
-
-You can tell in which case you are by checking the
-files /sys/class/hwmon/hwmon0/device/pwm*_enable. The files read 1 for
-manual mode and 2 for automatic fan speed mode. If changing the BIOS
-option changes this value for at least one PWM channel, then you are
-certainly in case #1 above, i.e. the BIOS merely changes the chip
-configuration and the regulation is done all in hardware. If the files
-read 1 all the time, then you are most likely in case #2.
-
-> - Is having multiple brands of harddisks in a system a problem, do they
-> have built in sensors?
-
-lm-sensors doesn't support hard-disk drive temperature sensors at all
-at the moment.
-
--- 
-Jean Delvare
+--=20
+  .''`.  Aurelien Jarno	            | GPG: 1024D/F1BCDB73
+ : :' :  Debian developer           | Electrical Engineer
+ `. `'   aurel32@debian.org         | aurelien@aurel32.net
+   `-    people.debian.org/~aurel32 | www.aurel32.net
 
 _______________________________________________
 lm-sensors mailing list
