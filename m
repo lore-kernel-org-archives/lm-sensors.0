@@ -1,19 +1,16 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 02 Mar 2008 19:45:17 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 02 Mar 2008 22:08:11 +0000
 Subject: Re: [lm-sensors] [patch 1/1] hwmon: add 0x8c id for smsc47b397
-Message-Id: <20080302194517.GA5324@jupiter.solarsys.private>
+Message-Id: <20080302230811.00d821f8@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <847993120802290924m6b12567p964a17e080030889@mail.gmail.com>
 In-Reply-To: <847993120802290924m6b12567p964a17e080030889@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Craig Kelley <namonai@gmail.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Hi Craig:
-
-* Craig Kelley <namonai@gmail.com> [2008-02-29 10:24:44 -0700]:
+On Fri, 29 Feb 2008 10:24:44 -0700, Craig Kelley wrote:
 > From: Craig Kelley <namonai@gmail.com>
 > 
 > Added a new ID (0x8c) for the smsc47b397 hardware monitor driver.
@@ -29,6 +26,9 @@ Hi Craig:
 >  {
 >         u8 id, rev;
 > +       char *name;
+
+Should be const.
+
 > 
 >         superio_enter();
 >         id = superio_inb(SUPERIO_REG_DEVID);
@@ -59,34 +59,13 @@ Hi Craig:
 > 
 >         superio_exit();
 >         return 0;
+> 
 
-Some problems with this patch...
-
-1) The whitespace is all busted (spaces where tabs should be).
-Did you copy-paste this patch into your mailer?
-
-2) This patch requires 'patch -p0' to apply, whereas standard practice
-for Linux kernel patches is to use 'patch -p1'.
-
-3) It's not obvious: to which revision does this patch apply?
-
-Despite these problems, I fixed it up and applied it to my testing
-branch... so the change will get to Linus after 2.6.25 is final.
-
-You can find the result here:
-
-http://lm-sensors.org/kernel?p=kernel/mhoffman/hwmon-2.6.git;a=shortlog;h=testing
-
-I try to cut some slack for first-time patch submitters (not to mention
-former customers, heh).  But next time, please try to check those things
-above before you send a patch.  
-
-Thanks & regards,
+I've added ID 0x8c to sensors-detect:
+http://www.lm-sensors.org/changeset/5133
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
