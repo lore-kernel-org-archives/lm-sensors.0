@@ -1,42 +1,94 @@
-From: David Kovalsky <dkovalsk@redhat.com>
-Date: Wed, 12 Mar 2008 15:46:11 +0000
-Subject: Re: [lm-sensors] General parse error after update to
-Message-Id: <20080312164611.2168128c@kovinek>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 02 Mar 2008 19:45:17 +0000
+Subject: Re: [lm-sensors] [patch 1/1] hwmon: add 0x8c id for smsc47b397
+Message-Id: <20080302194517.GA5324@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080312154121.3e0834ef@kovinek>
-In-Reply-To: <20080312154121.3e0834ef@kovinek>
+References: <847993120802290924m6b12567p964a17e080030889@mail.gmail.com>
+In-Reply-To: <847993120802290924m6b12567p964a17e080030889@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="euc-kr"
-Content-Transfer-Encoding: base64
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Craig Kelley <namonai@gmail.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Li4uCj4gPiBsbS1zZW5zb3JzIDIuMTAuNiwgd2hpY2ggd2FzIHJlbGVhc2VkIGEgY291cGxlIGRh
-eXMgYWdvLCBoYXMgYSBmaXgKPiA+IGZvcjogaHR0cDovL3d3dy5sbS1zZW5zb3JzLm9yZy90aWNr
-ZXQvMjA4Nwo+ID4gVGhpcyBtaWdodCBiZSB3aGF0IHlvdSBuZWVkLgoKPiBJJ2xsIGdpdmUgdGhl
-IDIuMTAuNiB2ZXJzaW9uIGEgdHJ5IGluIGEgbW9tZW50LgoKU28gYWZ0ZXIgaW5zdGFsbGluZyB0
-aGUgbmV3IFJQTVMgZnJvbSBBVHJwbXMgdGhlIGdlbmVyYWwgcGFyc2UgZXJyb3IgaXMKZ29uZS4g
-R3JlYXQgOi0pCgpXaGF0J3MgYSBiaXQgY29uZnVzaW5nIHRvIG1lIGFyZSB0aGUgdGhlcm1hbCB6
-b25lczoKCltyb290QGtvdmluZWsgeXVtLnJlcG9zLmRdIyBzZW5zb3JzOyBlY2hvICItLS0tLS0i
-OwpjYXQgL3Byb2MvYWNwaS9pYm0vdGhlcm1hbCA7IGVjaG8gIi0tLS0tLSIgOyBjYXQgL3Byb2Mv
-YWNwaS90aGVybWFsX3pvbmUvVEhNezAsMX0vdGVtcGVyYXR1cmUKY29yZXRlbXAtaXNhLTAwMDAK
-QWRhcHRlcjogSVNBIGFkYXB0ZXIKQ29yZSAwOiAgICAgICs1NsKwQyAgKGhpZ2ggPSAgKzEwMMKw
-QykKCmNvcmV0ZW1wLWlzYS0wMDAxCkFkYXB0ZXI6IElTQSBhZGFwdGVyCkNvcmUgMTogICAgICAr
-NTfCsEMgIChoaWdoID0gICsxMDDCsEMpCgotLS0tLS0KdGVtcGVyYXR1cmVzOiAgIDQ3IDM4IDM2
-IDQ5IDUwIC0xMjggMzMgLTEyOCA0MiA1MCA1MiAtMTI4IC0xMjggLTEyOAotMTI4IC0xMjgKLS0t
-LS0tCnRlbXBlcmF0dXJlOiAgICAgICAgICAgICA0NyBDCnRlbXBlcmF0dXJlOiAgICAgICAgICAg
-ICA1OCBDCgoKU28gaWYgSSB1bmRlcnN0YW5kIGl0IGNvcnJlY3RseSBUSE0wIG9uIG15IG5vdGVi
-b29rIGlzIGNoYXNzaXMgKD8pCnRlbXBlcmF0dXJlIHdoaWxlIFRITTEgaXMgc29tZSBDUFUgdGVt
-cCAoPykuCkxvb2tpbmcgb24gaGFuZHkgUjYxaSB3aXRoIENvcmUgMiBEdW8gNTI1MCAobXkgVDYw
-IGlzIENvcmUgMiBEdW8gNzIwMCkKaXQgc2VlbXMgdGhlIHRoZXJtYWwgem9uZSB7MCwxfSByZXBy
-ZXNlbnQgY29yZSB0ZW1wZXJhdHVyZXMuIEJ1dCB0aGF0J3MKcHJvYmFibHkgbm90IGFuIGxtLXNl
-bnNvcnMgcHJvYmxlbSA7LSkKCgpBbnl3YXksIHRoYW5rcyBmb3IgdGhlIGhlbHAhCi9EYXZpZAoK
-Ci0tIAo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0gIERhdmlkIEtvdmFsc2t5ICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBka292YWxza0ByZWRoYXQuY29tCiAgUXVhbGl0
-eSBFbmdpbmVlciAmIEVVUyAoei1zdHJlYW0pIFFFIHBvaW50IHBlcnNvbgogIFJlZCBIYXQgQ3pl
-Y2ggcy5yLm8uICAgICAgICAgICAgICAgICAgICAgICAgIEJybm8sIEN6ZWNoIFJlcHVibGljCiAg
-dGVsOiArNDIwIDUzMiAyOTQgMjIzCiAgbW9iaWxlOiArNDIwIDc3NyA3MDcgMzY5CiAgICAgICAg
-ICAgICAgICAgSVJDOiAjMGRheSwgI2Jybm8sICNlcnJhdGEsICNxYSwgI3JobHAsICN0cHMsICN1
-cnQKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNl
-bnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
-bGlzdGluZm8vbG0tc2Vuc29ycwo=
+Hi Craig:
+
+* Craig Kelley <namonai@gmail.com> [2008-02-29 10:24:44 -0700]:
+> From: Craig Kelley <namonai@gmail.com>
+> 
+> Added a new ID (0x8c) for the smsc47b397 hardware monitor driver.
+> This ID is used by HP in, at least, their dc7700 line.
+> 
+> Signed-off-by: Craig Kelley <namonai@gmail.com>
+> ---
+> 
+> --- drivers/hwmon/smsc47b397.c-orig     2008-02-29 07:54:18.000000000 -0800
+> +++ drivers/hwmon/smsc47b397.c  2008-02-29 07:53:00.000000000 -0800
+> @@ -331,11 +331,23 @@ exit:
+>  static int __init smsc47b397_find(unsigned short *addr)
+>  {
+>         u8 id, rev;
+> +       char *name;
+> 
+>         superio_enter();
+>         id = superio_inb(SUPERIO_REG_DEVID);
+> 
+> -       if ((id != 0x6f) && (id != 0x81) && (id != 0x85)) {
+> +       switch(id) {
+> +       case 0x81:
+> +               name = "SCH5307-NS";
+> +               break;
+> +       case 0x6f:
+> +               name = "LPC47B397-NC";
+> +               break;
+> +       case 0x85:
+> +       case 0x8c:
+> +               name = "SCH5317";
+> +               break;
+> +       default:
+>                 superio_exit();
+>                 return -ENODEV;
+>         }
+> @@ -348,8 +360,7 @@ static int __init smsc47b397_find(unsign
+> 
+>         printk(KERN_INFO DRVNAME ": found SMSC %s "
+>                 "(base address 0x%04x, revision %u)\n",
+> -               id = 0x81 ? "SCH5307-NS" : id = 0x85 ? "SCH5317" :
+> -              "LPC47B397-NC", *addr, rev);
+> +               name, *addr, rev);
+> 
+>         superio_exit();
+>         return 0;
+
+Some problems with this patch...
+
+1) The whitespace is all busted (spaces where tabs should be).
+Did you copy-paste this patch into your mailer?
+
+2) This patch requires 'patch -p0' to apply, whereas standard practice
+for Linux kernel patches is to use 'patch -p1'.
+
+3) It's not obvious: to which revision does this patch apply?
+
+Despite these problems, I fixed it up and applied it to my testing
+branch... so the change will get to Linus after 2.6.25 is final.
+
+You can find the result here:
+
+http://lm-sensors.org/kernel?p=kernel/mhoffman/hwmon-2.6.git;a=shortlog;h=testing
+
+I try to cut some slack for first-time patch submitters (not to mention
+former customers, heh).  But next time, please try to check those things
+above before you send a patch.  
+
+Thanks & regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
