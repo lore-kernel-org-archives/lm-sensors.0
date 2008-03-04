@@ -1,148 +1,56 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Mon, 31 Mar 2008 23:54:41 +0000
-Subject: [lm-sensors] [PATCH 4/4]: sensors: Automatically scale energy/power
-Message-Id: <20080331235441.GH7191@tree.beaverton.ibm.com>
+From: Joakim Larsson <joakim@bildrulle.nu>
+Date: Tue, 04 Mar 2008 17:53:21 +0000
+Subject: [lm-sensors] lm78 detected as W83627DHG on MSI board
+Message-Id: <1204653201.6143.18.camel@montecristo>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Automatically scale energy and power values when printing them in cooked
-mode.
+Hi,
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+I just upgraded from Ubuntu Edgy to Ubuntu Feisty on my MSI 975X
+Platinum PowerUp Edition motherboard based system equipped with a
+Pentium D. I never used lm-sensors since the Smart Fan utility seemed to
+work pretty good before.
 
-Index: lm-sensors-3.0.0/lib/sysfs.c
-=================================--- lm-sensors-3.0.0.orig/lib/sysfs.c	2008-03-31 16:35:30.000000000 -0700
-+++ lm-sensors-3.0.0/lib/sysfs.c	2008-03-31 16:35:46.000000000 -0700
-@@ -155,10 +155,6 @@
- 		return 1000;
- 	case SENSORS_SUBFEATURE_FAN_INPUT:
- 		return 1;
--	case SENSORS_SUBFEATURE_POWER_AVERAGE:
--		return 1000000;
--	case SENSORS_SUBFEATURE_ENERGY_INPUT:
--		return 1000000;
- 	case SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL:
- 		return 1000;
- 	}
-Index: lm-sensors-3.0.0/prog/sensors/chips.c
-=================================--- lm-sensors-3.0.0.orig/prog/sensors/chips.c	2008-03-31 16:35:38.000000000 -0700
-+++ lm-sensors-3.0.0/prog/sensors/chips.c	2008-03-31 16:35:46.000000000 -0700
-@@ -401,10 +401,40 @@
- 	printf("\n");
- }
- 
-+struct scale_table {
-+	float upper_bound;
-+	const char *units;
-+};
-+
-+static void scale_value(struct scale_table *scales, float *value,
-+			const char **unitstr)
-+{
-+	float divisor = 1;
-+
-+	while (scales->upper_bound != 0 && *value > scales->upper_bound) {
-+		divisor = scales->upper_bound;
-+		scales++;
-+	}
-+
-+	*value /= divisor;
-+
-+	*unitstr = scales->units;
-+}
-+
-+struct scale_table power_scales[] = {
-+	{1e3,  "uW"},
-+	{1e6,  "mW"},
-+	{1e9,   "W"},
-+	{1e12, "KW"},
-+	{1e15, "MW"},
-+	{0,    "GW"},
-+};
-+
- static void print_chip_power(const sensors_chip_name *name,
- 			     const sensors_feature *feature,
- 			     int label_size)
- {
-+	float val;
- 	int need_space = 0;
- 	const sensors_subfeature *sf, *sfmin, *sfmax, *sfint;
- 	char *label;
-@@ -419,9 +449,11 @@
- 
- 	sf = sensors_get_subfeature(name, feature,
- 				    SENSORS_SUBFEATURE_POWER_AVERAGE);
--	if (sf)
--		printf("%6.2f W", get_value(name, sf));
--	else
-+	if (sf) {
-+		val = get_value(name, sf);
-+		scale_value(power_scales, &val, &label);
-+		printf("%6.2f %s", val, label);
-+	} else
- 		printf("     N/A");
- 
- 	sfmin = sensors_get_subfeature(name, feature,
-@@ -434,13 +466,17 @@
- 		printf("  (");
- 
- 		if (sfmin) {
--			printf("min = %6.2f W", get_value(name, sfmin));
-+			val = get_value(name, sfmin);
-+			scale_value(power_scales, &val, &label);
-+			printf("min = %6.2f %s", val, label);
- 			need_space = 1;
- 		}
- 
- 		if (sfmax) {
--			printf("%smax = %6.2f W", (need_space ? ", " : ""),
--			       get_value(name, sfmax));
-+			val = get_value(name, sfmax);
-+			scale_value(power_scales, &val, &label);
-+			printf("%smax = %6.2f %s", (need_space ? ", " : ""),
-+			       val, label);
- 			need_space = 1;
- 		}
- 
-@@ -455,10 +491,20 @@
- 	printf("\n");
- }
- 
-+struct scale_table energy_scales[] = {
-+	{1e3,  "uJ"},
-+	{1e6,  "mJ"},
-+	{1e9,   "J"},
-+	{1e12, "KJ"},
-+	{1e15, "MJ"},
-+	{0,    "GJ"},
-+};
-+
- static void print_chip_energy(const sensors_chip_name *name,
- 			      const sensors_feature *feature,
- 			      int label_size)
- {
-+	float val;
- 	const sensors_subfeature *sf;
- 	char *label;
- 
-@@ -472,9 +518,11 @@
- 
- 	sf = sensors_get_subfeature(name, feature,
- 				    SENSORS_SUBFEATURE_ENERGY_INPUT);
--	if (sf)
--		printf("%6.2f J", get_value(name, sf));
--	else
-+	if (sf) {
-+		val = get_value(name, sf);
-+		scale_value(energy_scales, &val, &label);
-+		printf("%6.2f %s", val, label);
-+	} else
- 		printf("     N/A");
- 
- 	printf("\n");
+I got two other similar computers set up for my kids running Ubuntu
+Dapper and they still have an active Smart Fan control that works.
+Somewhere between Ubuntu Dapper to latest Edgy the Smart Fan control
+stopped to work and the fan is almost always running noisily at full
+speed. Thats why I upgraded my system to Feisty and are trying to set up
+lm-sensors to work.
+
+Running the sensors-detect in the Ubuntu Edgy distribution I got the
+lm78 driver identified but in the Ubuntu Feisty and using the latest
+sensors-detect from the lm-sensors.org home page it detects a Winbond
+W83627DHG Super IO Sensors:
+
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Fintek'...                       Yes
+Found `Winbond W83627DHG Super IO Sensors'                  Success!
+    (address 0x290, driver `w83627ehf')
+  
+However, I am only able to load the lm78 driver:
+
+joakim@montecristo:~/Desktop$ sudo modprobe w83627ehf
+FATAL: Error inserting w83627ehf
+(/lib/modules/2.6.20-16-generic/kernel/drivers/hwmon/w83627ehf.ko): No
+such device
+joakim@montecristo:~/Desktop$ sudo modprobe lm78
+joakim@montecristo:~/Desktop$ 
+
+So I suspect that the latest sensors-detect script is doing something
+wrong. 
+
+Does anyone have any experience with this MSI board? Should I turn off
+the Smart Fan feature in BIOS? 
+
+BR Joakim 
+
 
 _______________________________________________
 lm-sensors mailing list
