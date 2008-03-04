@@ -1,28 +1,36 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Fri, 28 Mar 2008 22:18:16 +0000
-Subject: Re: [lm-sensors] QX9650 Core Temperatures
-Message-Id: <47ED6EA8.6000505@assembler.cz>
+From: Stefan Sassenberg <stefan.sassenberg@gmx.de>
+Date: Tue, 04 Mar 2008 14:24:09 +0000
+Subject: [lm-sensors] No sensors found >2.6.21, w83627hf, ICH6
+Message-Id: <47CD5B89.1070302@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <47EBD5C0.10100@stny.rr.com>
-In-Reply-To: <47EBD5C0.10100@stny.rr.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hello,
 
-Please send here output of cat /proc/cpuinfo
-or provide output from "cpuid" utility.
+I have a problem making lm-sensors work on my system. It's a slightly 
+old debian where I updated some packages and now use sensors and 
+libsensors of version 2.9.1. I used to run a 2.6.21 kernel where sensors 
+finds some chip and also shows fan speed and temperature values.
 
-I think it is model 10h. So in fact you need following patch:
+Then I upgraded the kernel to a 2.6.23 and always get the error message 
+"No sensors found". The board is an MSI board and it has an 82801 ICH6 
+chipset.
 
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dcomm=
-it;h=AE770152c801f10a91e5e86597a39b5f9ccf2d0d
+sensors-detect advises me to modprobe w83627hf, which I do, but the 
+result is the above.
 
-Or 2.6.25rcxx kernel
+I installed a gentoo on the same machine, where it worked, and made an 
+lsmod, which showed w83627hf, hwmod and hwmon_vid. I took the kernel 
+config file and applied it to the kernel from kernel.org to build the 
+same kernel for my debian. I modprobed the very same modules but failed. 
+What can I do to find the solution?
 
-Rudolf
+Thank you.
+
+Stefan
 
 _______________________________________________
 lm-sensors mailing list
