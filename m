@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 04 Mar 2008 15:03:51 +0000
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Tue, 04 Mar 2008 17:13:41 +0000
 Subject: Re: [lm-sensors] [RFC/PATCH] hwmon: fix common race conditions,
-Message-Id: <20080304160351.0e261f27@hyperion.delvare>
+Message-Id: <20080304171341.GF9446@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080304145440.GE2892@jupiter.solarsys.private>
 In-Reply-To: <20080304145440.GE2892@jupiter.solarsys.private>
@@ -10,51 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+On Tue, Mar 04, 2008 at 09:54:40AM -0500, Mark M. Hoffman wrote:
 
-On Tue, 4 Mar 2008 09:54:40 -0500, Mark M. Hoffman wrote:
-> Hi all:
-> 
-> Here is the first in a batch of patches which aim to fix a common class
-> of race conditions in most hwmon drivers.  Credit goes to Herbert
-> Valerio Riedel for pointing this out, here:
-> 
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-November/022014.html
-> 
-> To actually trip on any of these race conditions in practice would be
-> *exceedingly* rare.  In fact, I don't think we've ever seen a report for
-> such a case.  OTOH, one can see by looking at this patch that the fixes
-> are not always completely trivial.
-> 
-> I will concentrate on cranking out the remaining patches as I have time.
-> But of course I would like thorough reviews, especially from the driver
-> author/maintainer if possible.  To all potential reviewers: look not
-> just at the patch itself; please also scan the entire driver to see if
-> there are any races that I missed.  Testing is also much appreciated.
-> 
-> Thanks & regards,
-> 
-> commit 2475ee13652b392d9720b39f274205c815979557
-> Author: Mark M. Hoffman <mhoffman@lightlink.com>
-> Date:   Mon Mar 3 23:35:52 2008 -0500
-> 
->     hwmon: fix common race conditions, batch 1
->     
->     Most hwmon drivers have one or more race conditions that could cause the driver
->     to display incorrect data; in the absolute worst case, these races could allow
->     divide-by-zero/OOPS.  The most common of these involves a race between setting
->     a fan divider and displaying the fan data (RPMs).  This patch fixes these race
->     conditions by taking the update lock (or equivalent) as necessary.
->     
->     Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+<snip>
+> diff --git a/drivers/hwmon/adt7473.c b/drivers/hwmon/adt7473.c
+> index 9587869..3807062 100644
+> --- a/drivers/hwmon/adt7473.c
+> +++ b/drivers/hwmon/adt7473.c
+> @@ -422,11 +422,9 @@ static ssize_t show_volt(struct device *dev, struct device_attribute *devattr,
+>   * number in the range -128 to 127, or as an unsigned number that must
+>   * be offset by 64.
+>   */
+> -static int decode_temp(struct adt7473_data *data, u8 raw)
+> +static int decode_temp(u8 twos_complement, u8 raw)
+>  {
+> -	if (data->temp_twos_complement)
+> -		return (s8)raw;
+> -	return raw - 64;
+> +	return twos_complement ? (s8)raw : raw - 64;
 
-I would appreciate if your hwmon patches included a diffstat output.
-This would make it much easier for me to figure out what drivers are
-affected and whether I can help with testing and/or review.
+Since this patch is to fix a bunch of race conditions, I think this chunk
+would be better off as a separate cleanup patch.  That said, you're the
+maintainer, so it's your call.... :)
 
-Thanks,
--- 
-Jean Delvare
+I also suspect that ibmpex/i5k-amb will need similar cleanups.  I can
+generate patches if you want, though if you're intent upon fixing all of
+the drivers as one big push, let me know.
+
+For the adt7470/adt7473 bits,
+Acked-by: Darrick J. Wong <djwong@us.ibm.com>
+
+--D
 
 _______________________________________________
 lm-sensors mailing list
