@@ -1,33 +1,40 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 30 Mar 2008 19:02:53 +0000
-Subject: Re: [lm-sensors] First shot at Asus M2N-SLI Deluxe config file
-Message-Id: <20080330210253.2c0a80e2@hyperion.delvare>
+From: Jim Cromie <jim.cromie@gmail.com>
+Date: Wed, 05 Mar 2008 22:25:27 +0000
+Subject: Re: [lm-sensors] pc87360 and individual alarm files
+Message-Id: <47CF1DD7.4030402@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.64.0802201829130.30160@birdbird.example.com>
-In-Reply-To: <Pine.LNX.4.64.0802201829130.30160@birdbird.example.com>
+References: <20080213143140.49a511cc@hyperion.delvare>
+In-Reply-To: <20080213143140.49a511cc@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Matt,
+Jean Delvare wrote:
+> Hi Jim,
+>
+> According to my records, all the hardware monitoring drivers have now
+> been updated to implement individual alarm files, except pc87360. I
+> know that you had been working on this several months ago. Do you have
+> an updated patch that I could review?
+>
+> Thanks,
+>   
+Hi Jean,
 
-On Thu, 21 Feb 2008 08:19:20 -0600 (CST), Matt Roberds wrote:
-> On Wed, 20 Feb 2008 18:30:58 -0600 (CST), Matt Roberds wrote:
->> Here's a first shot at a config file for an Asus M2N-SLI Deluxe
->> motherboard.
-> 
-> My second shot is attached.  I have changed the name to inlclude the
-> "deluxe" designation.  This second shot also requires a small patch to
-> Jordan Crouse's latest adt7475.c driver to work; a diff is attached as
-> well.
+Sorry for late reply, Im not reading this list regularly.
 
-I've saved this as:
-http://www.lm-sensors.org/wiki/Configurations/Asus/M2N-SLI%20Deluxe
-so that it doesn't get lost.
+now for the excuses :-/
 
--- 
-Jean Delvare
+Im away from that hardware, and from my hwmon working directories,
+for at least a month.  The last time I plugged the soekris box in,
+I had issues with NFS preventing a root mount, and thus any testing.
+
+I have a vague recollection of doing individual alarm stuff,
+but I think it was for another driver (w83627hf)
+
+Given enough time, I can do (and presuming I can eventually fix the NFS
+issue, test) the pc87360 conversion, are you ok with my constraints ?
 
 _______________________________________________
 lm-sensors mailing list
