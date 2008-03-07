@@ -1,41 +1,27 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 02 Mar 2008 19:48:03 +0000
-Subject: Re: [lm-sensors] [patch 1/1] hwmon: add 0x8c id for
-Message-Id: <20080302194803.GB5324@jupiter.solarsys.private>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Fri, 07 Mar 2008 00:54:28 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (adt7473) minor cleanup /
+Message-Id: <20080307005428.GX7500@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Matt:
-
-* Matt Roberds <mattroberds@cox.net> [2008-02-29 17:58:26 -0600]:
-> On Fri, 29 Feb 2008, Craig Kelley wrote:
-> > +       case 0x85:
-> > +       case 0x8c:
-> > +               name = "SCH5317";
-> > +               break;
+On Thu, Mar 06, 2008 at 09:10:41AM -0500, Mark M. Hoffman wrote:
+>  adt7473.c |   45 +++++++++++++++++++++++----------------------
+>  1 file changed, 23 insertions(+), 22 deletions(-)
 > 
-> Minor style thing: would
+> commit ca6edcdc9be92ca3869d5e13f85dbea2b7f794fe
+> Author: Mark M. Hoffman <mhoffman@lightlink.com>
+> Date:   Thu Mar 6 08:41:09 2008 -0500
 > 
->         case 0x85:
->                 /* fall through */
->         case 0x8c:
->                 name = "SCH5317";
->                 break;
-> 
-> be clearer?
+>     hwmon: (adt7473) minor cleanup / refactoring
 
-Yes, but only if there were some code between the two cases.  As
-written, I think it's clear enough; it's a pretty standard usage.
+Seems ok to me,
+Acked-by: Darrick J. Wong <djwong@us.ibm.com>
 
-Thanks & regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+--D
 
 _______________________________________________
 lm-sensors mailing list
