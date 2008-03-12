@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 12 Mar 2008 11:13:24 +0000
+From: Helmut Grohne <helmut@subdivi.de>
+Date: Wed, 12 Mar 2008 12:24:21 +0000
 Subject: Re: [lm-sensors] serious w83627ehf problem stopping cpu fan
-Message-Id: <20080312121324.401f643d@hyperion.delvare>
+Message-Id: <20080312122421.GA1519@alf.mars>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080312011430.GA20751@alf.mars>
 In-Reply-To: <20080312011430.GA20751@alf.mars>
@@ -10,16 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hallo Helmut,
+Hi,
 
-On Wed, 12 Mar 2008 11:52:18 +0100, Helmut Grohne wrote:
-> Unfortunately there is no /proc/acpi/dsdt on my system. Can you tell me
-> what is missing? A kernel option?
+> cd /tmp
+> cat /proc/acpi/dsdt  >dsdt.bin
+> iasl -d dsdt.bin
 
-Recent kernel export it as /sys/firmware/acpi/tables/DSDT instead.
+Thanks to Jean Delvare for pointing me to
+/sys/firmware/acpi/tables/DSDT. This now worked.
 
--- 
-Jean Delvare
+
+> (output will be named dsdt.dsl)
+
+The file can be found at http://subdivi.de/~helmut/dsdt.dsl.
+
+Helmut
 
 _______________________________________________
 lm-sensors mailing list
