@@ -1,39 +1,42 @@
 From: David Kovalsky <dkovalsk@redhat.com>
-Date: Wed, 12 Mar 2008 15:02:01 +0000
+Date: Wed, 12 Mar 2008 15:46:11 +0000
 Subject: Re: [lm-sensors] General parse error after update to
-Message-Id: <20080312160201.714663a4@kovinek>
+Message-Id: <20080312164611.2168128c@kovinek>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080312154121.3e0834ef@kovinek>
 In-Reply-To: <20080312154121.3e0834ef@kovinek>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="euc-kr"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
-
-> Can we please see the output of "strace sensors"?
-> 
-> lm-sensors 2.10.6, which was released a couple days ago, has a fix
-> for: http://www.lm-sensors.org/ticket/2087
-> This might be what you need.
-
-here's the strace log:
-https://bugzilla.redhat.com/attachment.cgi?id)7776
-
-I'll give the 2.10.6 version a try in a moment.
-
-
-Thanks for the quick reply!
-
-/David
-
--- 
-=================================  David Kovalsky                                dkovalsk@redhat.com
-  Quality Engineer
-  Red Hat Czech s.r.o.                         Brno, Czech Republic
-=================================
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Li4uCj4gPiBsbS1zZW5zb3JzIDIuMTAuNiwgd2hpY2ggd2FzIHJlbGVhc2VkIGEgY291cGxlIGRh
+eXMgYWdvLCBoYXMgYSBmaXgKPiA+IGZvcjogaHR0cDovL3d3dy5sbS1zZW5zb3JzLm9yZy90aWNr
+ZXQvMjA4Nwo+ID4gVGhpcyBtaWdodCBiZSB3aGF0IHlvdSBuZWVkLgoKPiBJJ2xsIGdpdmUgdGhl
+IDIuMTAuNiB2ZXJzaW9uIGEgdHJ5IGluIGEgbW9tZW50LgoKU28gYWZ0ZXIgaW5zdGFsbGluZyB0
+aGUgbmV3IFJQTVMgZnJvbSBBVHJwbXMgdGhlIGdlbmVyYWwgcGFyc2UgZXJyb3IgaXMKZ29uZS4g
+R3JlYXQgOi0pCgpXaGF0J3MgYSBiaXQgY29uZnVzaW5nIHRvIG1lIGFyZSB0aGUgdGhlcm1hbCB6
+b25lczoKCltyb290QGtvdmluZWsgeXVtLnJlcG9zLmRdIyBzZW5zb3JzOyBlY2hvICItLS0tLS0i
+OwpjYXQgL3Byb2MvYWNwaS9pYm0vdGhlcm1hbCA7IGVjaG8gIi0tLS0tLSIgOyBjYXQgL3Byb2Mv
+YWNwaS90aGVybWFsX3pvbmUvVEhNezAsMX0vdGVtcGVyYXR1cmUKY29yZXRlbXAtaXNhLTAwMDAK
+QWRhcHRlcjogSVNBIGFkYXB0ZXIKQ29yZSAwOiAgICAgICs1NsKwQyAgKGhpZ2ggPSAgKzEwMMKw
+QykKCmNvcmV0ZW1wLWlzYS0wMDAxCkFkYXB0ZXI6IElTQSBhZGFwdGVyCkNvcmUgMTogICAgICAr
+NTfCsEMgIChoaWdoID0gICsxMDDCsEMpCgotLS0tLS0KdGVtcGVyYXR1cmVzOiAgIDQ3IDM4IDM2
+IDQ5IDUwIC0xMjggMzMgLTEyOCA0MiA1MCA1MiAtMTI4IC0xMjggLTEyOAotMTI4IC0xMjgKLS0t
+LS0tCnRlbXBlcmF0dXJlOiAgICAgICAgICAgICA0NyBDCnRlbXBlcmF0dXJlOiAgICAgICAgICAg
+ICA1OCBDCgoKU28gaWYgSSB1bmRlcnN0YW5kIGl0IGNvcnJlY3RseSBUSE0wIG9uIG15IG5vdGVi
+b29rIGlzIGNoYXNzaXMgKD8pCnRlbXBlcmF0dXJlIHdoaWxlIFRITTEgaXMgc29tZSBDUFUgdGVt
+cCAoPykuCkxvb2tpbmcgb24gaGFuZHkgUjYxaSB3aXRoIENvcmUgMiBEdW8gNTI1MCAobXkgVDYw
+IGlzIENvcmUgMiBEdW8gNzIwMCkKaXQgc2VlbXMgdGhlIHRoZXJtYWwgem9uZSB7MCwxfSByZXBy
+ZXNlbnQgY29yZSB0ZW1wZXJhdHVyZXMuIEJ1dCB0aGF0J3MKcHJvYmFibHkgbm90IGFuIGxtLXNl
+bnNvcnMgcHJvYmxlbSA7LSkKCgpBbnl3YXksIHRoYW5rcyBmb3IgdGhlIGhlbHAhCi9EYXZpZAoK
+Ci0tIAo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0gIERhdmlkIEtvdmFsc2t5ICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBka292YWxza0ByZWRoYXQuY29tCiAgUXVhbGl0
+eSBFbmdpbmVlciAmIEVVUyAoei1zdHJlYW0pIFFFIHBvaW50IHBlcnNvbgogIFJlZCBIYXQgQ3pl
+Y2ggcy5yLm8uICAgICAgICAgICAgICAgICAgICAgICAgIEJybm8sIEN6ZWNoIFJlcHVibGljCiAg
+dGVsOiArNDIwIDUzMiAyOTQgMjIzCiAgbW9iaWxlOiArNDIwIDc3NyA3MDcgMzY5CiAgICAgICAg
+ICAgICAgICAgSVJDOiAjMGRheSwgI2Jybm8sICNlcnJhdGEsICNxYSwgI3JobHAsICN0cHMsICN1
+cnQKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNl
+bnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
+bGlzdGluZm8vbG0tc2Vuc29ycwo=
