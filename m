@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 12 Mar 2008 13:00:31 +0000
+From: Helmut Grohne <helmut@subdivi.de>
+Date: Wed, 12 Mar 2008 13:17:01 +0000
 Subject: Re: [lm-sensors] serious w83627ehf problem stopping cpu fan
-Message-Id: <20080312140031.715b00d1@hyperion.delvare>
+Message-Id: <20080312131701.GA6772@alf.mars>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080312011430.GA20751@alf.mars>
 In-Reply-To: <20080312011430.GA20751@alf.mars>
@@ -10,100 +10,149 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 12 Mar 2008 02:14:32 +0100, Helmut Grohne wrote:
-> Hi,
-> 
-> (I'm posting from outside, so please CC me on a reply.)
-> 
-> Some time ago I updated my kernel to 2.6.23.14 (vanilla) from something
-> pre-20. My system has a w83627ehf chip (the chip is labeled like that)
-> and the support for this chip seemed to have improved.
-> 
-> However my cpu fan "occasionally" stops spinning. This happened three
-> times at the time of this writing. It seems to happen when the system is
-> completely idle. As a result the cpu heats up and maybe destroying or
-> damaging itself over time. This is BAD!
-> 
-> I therefore tried to play with the /sys/devices/platform/w83627ehf.*/
-> interface. Changing the files pwm2* "sometimes" has an barely
-> predictable effect on the cpu fan. I was for instance able to start the
-> fan again by writing 2 to pwm2_enable the last time it stopped. However
-> I cannot disable the fan now by writing 0 to pwm2 which sometimes worked
-> before. Most of my writing data to these files seems to get ignored.
-> 
-> The only thing I really need now is a stable cpu fan. Can I somehow lock
-> it to maximum speed or something similar? Can I somehow run w83627ehf
+Hi,
 
-If you disable Q-Fan in the BIOS, that's what should happen.
+> > The only thing I really need now is a stable cpu fan. Can I somehow lock
+> > it to maximum speed or something similar? Can I somehow run w83627ehf
+> If you disable Q-Fan in the BIOS, that's what should happen.
 
-> with reduced functionality (like no longer modifying the fan at all)?
+Ok.
 
-No. The w83627ehf driver doesn't change the chip settings by itself, so
-there's nothing to reduce.
+> Did you try without the w83627ehf driver loaded? What makes you believe
+> that the w83627ehf driver is responsible for your problem? This might
+> as well be an ACPI issue.
 
-> 
-> Please help me debug this. Do you want any other information not found
-> below?
+I did not try unloading the driver permanently, because this would
+effectively prevent me from monitoring temperature and fan speed and
+would therefore not notice a temperature increase.
 
-Did you try without the w83627ehf driver loaded? What makes you believe
-that the w83627ehf driver is responsible for your problem? This might
-as well be an ACPI issue.
+There are two things that made me believe w83627ehf is responsible:
+1) It is possible to change the fan behaviour using this driver.
+2) This is very unreliable. (see below)
 
-> 
-> Helmut Grohne
-> 
-> (...)
-> root@# cat sensor_fix.sh 
-> #!/bin/bash
-> # this script is now invoked every 5 minutes from cron to try and fix
-> # the fan automatically.
-> 
-> cd /sys/devices/platform/w83627ehf.* || exit 1
-> 
-> test $(<fan2_input) -le 2000 || exit 0
-> 
-> echo fan not spinning
-> 
-> while :; do
->         echo "trying pwm2_enable 2"
->         echo 2 > pwm2_enable
->         sleep 1
->         test $(<fan2_input) -le 2000 || exit 0
-> 
->         echo "trying pwm2 255"
->         echo 255 > pwm2
->         sleep 1
->         test $(<fan2_input) -le 2000 || exit 0
+I did not think about this having to do with ACPI, but it sounds
+reasonable. Compiling dsdt.dsl again results in tons of errors (below).
 
-Note that the value written to pwm2 has no effect when pwm2_enable = 2,
-so there's nothing you can hope from this step.
+> >         echo 255 > pwm2
+> Note that the value written to pwm2 has no effect when pwm2_enable = 2,
+> so there's nothing you can hope from this step.
 
-> 
->         echo "trying pwm2_enable 1"
->         echo 1 > pwm2_enable
->         sleep 1
->         test $(<fan2_input) -le 2000 || exit 0
-> 
->         echo "trying pwm2 255"
->         echo 255 > pwm2
->         sleep 1
->         test $(<fan2_input) -le 2000 || exit 0
-> 
->         echo "trying pwm2_target 1000"
->         echo 1000 > pwm2_target
->         sleep 1
->         test $(<fan2_input) -le 2000 || exit 0
+Even with pwm2_enable = 1 the setting often does not change
+(nondeterministically). That's the reason for doing these echos in a
+loop: Hoping that a value will eventually change.
 
-This is setting the target temperature to 1 degree C. That doesn't make
-any sense to me, as there is the way the chip can achieve this. On top
-of that, this setting is only valid fir pwm2_enable = 2, which isn't
-the case at this point.
+> >         echo 1000 > pwm2_target
+> This is setting the target temperature to 1 degree C. That doesn't make
+> any sense to me, as there is the way the chip can achieve this. On top
+> of that, this setting is only valid fir pwm2_enable = 2, which isn't
+> the case at this point.
 
-> done
-> root@# exit
+What makes even less sense is taht pwm2_target only accepts two values:
+1000 and 127000. Other values I tried simply do not change the contents
+of the file.
 
--- 
-Jean Delvare
+Theoretically the fan should stop after the following.
+echo 1 > pwm2_enable
+echo 0 > pwm2
+
+This works only in very rare occasions. Values written to pwm2 seem to
+only sometimes change the value.
+
+Helmut
+
+root@# iasl -tc dsdt.dsl
+Intel ACPI Component Architecture
+ASL Optimizing Compiler version 20061109 [May 15 2007]
+Copyright (C) 2000 - 2006 Intel Corporation
+Supports ACPI Specification Revision 3.0a
+
+dsdt.dsl   410:     Method (\_WAK, 1, NotSerialized)
+Warning  1079 -                 ^ Reserved method must return a value (_WAK)
+
+dsdt.dsl   452:             Store (Local0, Local0)
+Error    4049 -                         ^ Method local variable is not initialized (Local0)
+
+dsdt.dsl   460:             Store (Local0, Local0)
+Error    4049 -                         ^ Method local variable is not initialized (Local0)
+
+dsdt.dsl   786:                 Method (GHTF, 0, NotSerialized)
+Warning  1086 -                            ^ Not all control paths return a value (GHTF)
+
+dsdt.dsl  1697:                         Store (Local0, Local0)
+Error    4049 -                                     ^ Method local variable is not initialized (Local0)
+
+dsdt.dsl  1702:                         Store (Local0, Local0)
+Error    4049 -                                     ^ Method local variable is not initialized (Local0)
+
+dsdt.dsl  1707:                         Store (Local0, Local0)
+Error    4049 -                                     ^ Method local variable is not initialized (Local0)
+
+dsdt.dsl  2198:                 Method (STM, 0, Serialized)
+Warning  1086 -                           ^ Not all control paths return a value (STM_)
+
+dsdt.dsl  2757:                 Method (STM, 0, Serialized)
+Warning  1086 -                           ^ Not all control paths return a value (STM_)
+
+dsdt.dsl  3864:                 Method (RVLT, 1, NotSerialized)
+Warning  1086 -                            ^ Not all control paths return a value (RVLT)
+
+dsdt.dsl  3934:                 Method (RTMP, 1, NotSerialized)
+Warning  1086 -                            ^ Not all control paths return a value (RTMP)
+
+dsdt.dsl  4111:                     Store (GHTF (), Local1)
+Warning  1091 -                               ^ Called method may not always return a value
+
+dsdt.dsl  4156:                 Method (OCOP, 1, NotSerialized)
+Warning  1086 -                            ^ Not all control paths return a value (OCOP)
+
+dsdt.dsl  4182:                             Store (GHTF (), Local1)
+Warning  1091 -                                       ^ Called method may not always return a value
+
+dsdt.dsl  5963:                 Method (_STA, 0, NotSerialized)
+Warning  1086 -                            ^ Not all control paths return a value (_STA)
+
+dsdt.dsl  5963:                 Method (_STA, 0, NotSerialized)
+Warning  1079 -                            ^ Reserved method must return a value (_STA)
+
+dsdt.dsl  6035:                 Method (_PRS, 0, NotSerialized)
+Warning  1086 -                            ^ Not all control paths return a value (_PRS)
+
+dsdt.dsl  6035:                 Method (_PRS, 0, NotSerialized)
+Warning  1079 -                            ^ Reserved method must return a value (_PRS)
+
+dsdt.dsl  6111:                 Method (_STA, 0, NotSerialized)
+Warning  1086 -                            ^ Not all control paths return a value (_STA)
+
+dsdt.dsl  6111:                 Method (_STA, 0, NotSerialized)
+Warning  1079 -                            ^ Reserved method must return a value (_STA)
+
+dsdt.dsl  6166:                 Method (_PRS, 0, NotSerialized)
+Warning  1086 -                            ^ Not all control paths return a value (_PRS)
+
+dsdt.dsl  6166:                 Method (_PRS, 0, NotSerialized)
+Warning  1079 -                            ^ Reserved method must return a value (_PRS)
+
+dsdt.dsl  6293:                 Method (_PRS, 0, NotSerialized)
+Warning  1086 -                            ^ Not all control paths return a value (_PRS)
+
+dsdt.dsl  6293:                 Method (_PRS, 0, NotSerialized)
+Warning  1079 -                            ^ Reserved method must return a value (_PRS)
+
+dsdt.dsl  6429:                 Method (_PRS, 0, NotSerialized)
+Warning  1086 -                            ^ Not all control paths return a value (_PRS)
+
+dsdt.dsl  6429:                 Method (_PRS, 0, NotSerialized)
+Warning  1079 -                            ^ Reserved method must return a value (_PRS)
+
+dsdt.dsl  6475:                 Method (_CRS, 0, NotSerialized)
+Warning  1086 -                            ^ Not all control paths return a value (_CRS)
+
+dsdt.dsl  6475:                 Method (_CRS, 0, NotSerialized)
+Warning  1079 -                            ^ Reserved method must return a value (_CRS)
+
+ASL Input:  dsdt.dsl - 8614 lines, 278641 bytes, 3542 keywords
+Compilation complete. 5 Errors, 23 Warnings, 0 Remarks, 1099 Optimizations
+root@#
 
 _______________________________________________
 lm-sensors mailing list
