@@ -1,43 +1,36 @@
-From: Matt Roberds <mattroberds@cox.net>
-Date: Fri, 28 Mar 2008 01:48:40 +0000
-Subject: Re: [lm-sensors] Strange temperature values
-Message-Id: <Pine.LNX.4.64.0803272042550.2934@birdbird.example.com>
+From: David Kovalsky <dkovalsk@redhat.com>
+Date: Wed, 12 Mar 2008 14:41:21 +0000
+Subject: [lm-sensors] General parse error after update to
+Message-Id: <20080312154121.3e0834ef@kovinek>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <47DFA4D2.1060009@givemefish.com>
-In-Reply-To: <47DFA4D2.1060009@givemefish.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 26 Mar 2008, lists@givemefish.com wrote:
-> Would the 100x difference be scaled in the /etc/sensors.conf file?
+Hi, 
 
-You could scale it there.  If you update to a newer version of
-lmsensors, the driver may do the scaling for you before the sensors.conf
-gets processed, so you may have to take it out of sensors.conf then.
+after upgrading to kernel-2.6.24.3-12.fc8 running `sensors' throws
+general parse error. Everything worked fine with
+kernel-2.6.23.15-137.fc8. I'm running Fedora 8 (i386) will the latest
+and greatest updates on Lenovo T60 (with Core 2 Duo).
 
-Per the comments in /etc/sensors.conf, the following "compute" lines
-might do what you want:
+My lm-sensors version is lm_sensors-2.10.5-1.fc8.
 
-compute temp4 @/100,@*100
-compute temp5 @/100,@*100
-compute temp6 @/100,@*100
-compute temp8 @/100,@*100
+I've opened a bug in Red Hat bugzilla, which containts all of the
+details about my configuration. 
+https://bugzilla.redhat.com/show_bug.cgi?idC6767
 
-> Also, why would some of the cores not be connected or registering a
-> temperature (the temps 1-3 above)?  Is there a way to "turn on" these
-> readings?
+Can anyone point me in the right direction? 
 
-There are different reasons, but a common one is that the motherboard
-manufacturer simply didn't wire them up.  In that case, you can turn
-them on with a really fine soldering iron.  :)  Sometimes some of the
-temperature monitoring channels can be disabled in the BIOS; if you
-can get to the system console at boot time you might check the BIOS
-settings.
+Thanks!
+/David
 
-Matt Roberds
-
+-- 
+=================================  David Kovalsky                                dkovalsk@redhat.com
+  Quality Engineer 
+  Red Hat Czech s.r.o.                         Brno, Czech Republic
+==================================
 
 _______________________________________________
 lm-sensors mailing list
