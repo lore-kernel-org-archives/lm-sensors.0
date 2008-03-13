@@ -1,35 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 26 Mar 2008 11:28:19 +0000
-Subject: Re: [lm-sensors] lm_sensors v2 asc7621 support
-Message-Id: <20080326122819.26604f0d@hyperion.delvare>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Thu, 13 Mar 2008 22:12:46 +0000
+Subject: [lm-sensors] [PATCH] ibmpex: Report temperatures in mC, not C.
+Message-Id: <20080313221245.GI5529@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <47C9A8B9.20501@kenm.demon.co.uk>
-In-Reply-To: <47C9A8B9.20501@kenm.demon.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel <linux-kernel@vger.kernel.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 
-Hi Ken,
+ibmpex's temperature sensors report incorrect units.  Apply
+a conversion factor so that tempertures report correctly.
+Until now, no systems seemed to report temperatures this
+way, but evidently QS2x blades do.
 
-On Sat, 01 Mar 2008 19:04:25 +0000, Ken Milmore wrote:
-> I've had a go at implementing support for George Joseph's experimental 
-> Adigilog asc7621 driver in lm_sensors 2.10.5.  Find patch attached.
-> 
-> I've been running this for a while with the asc76xx driver on an Intel 
-> D975XBX2 board.  It works just fine for reading the sensors, although 
-> writing the alarm limits and such doesn't seem to work quite right.
-> 
-> Hopefully this might be a starting point for someone else to add 
-> official support for these chips to lm_sensors.
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
 
-For new drivers, we don't really want to add support to lm-sensors
-2.10.x. Just use lm-sensors 3.0.x, which supports all hwmon drivers by
-design.
+ drivers/hwmon/ibmpex.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Thanks,
--- 
-Jean Delvare
+diff --git a/drivers/hwmon/ibmpex.c b/drivers/hwmon/ibmpex.c
+index db551d8..4e9b19c 100644
+--- a/drivers/hwmon/ibmpex.c
++++ b/drivers/hwmon/ibmpex.c
+@@ -410,7 +410,7 @@ static int ibmpex_find_sensors(struct ibmpex_bmc_data *data)
+ 			sensor_type = TEMP_SENSOR;
+ 			num_temp++;
+ 			sensor_counter = num_temp;
+-			data->sensors[i].multiplier = 1;
++			data->sensors[i].multiplier = 1000;
+ 		} else
+ 			continue;
+ 
 
 _______________________________________________
 lm-sensors mailing list
