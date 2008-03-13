@@ -1,36 +1,37 @@
 From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Fri, 28 Mar 2008 21:06:04 +0000
-Subject: [lm-sensors] [PATCH] adt7473: Minor documentation update
-Message-Id: <20080328210604.GA7183@tree.beaverton.ibm.com>
+Date: Thu, 13 Mar 2008 01:18:16 +0000
+Subject: [lm-sensors] [PATCH] ibmpex: Update Kconfig to list more supported
+Message-Id: <20080313011816.GB5731@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel <linux-kernel@vger.kernel.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>
 
-Add a sentence about when fan speed increases to maximum.
+Enhanced the list of supported machines.
 
 Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 ---
 
- Documentation/hwmon/adt7473 |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/hwmon/Kconfig |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/hwmon/adt7473 b/Documentation/hwmon/adt7473
-index 22d8b19..2126de3 100644
---- a/Documentation/hwmon/adt7473
-+++ b/Documentation/hwmon/adt7473
-@@ -69,7 +69,8 @@ point2: Set the pwm speed at a higher temperature bound.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 368879f..4dc76bc 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -337,8 +337,9 @@ config SENSORS_IBMPEX
+ 	help
+ 	  If you say yes here you get support for the temperature and
+ 	  power sensors in various IBM System X servers that support
+-	  PowerExecutive.  So far this includes the x3550, x3650, x3655,
+-	  x3755, and certain HS20 blades.
++	  PowerExecutive.  So far this includes the x3350, x3550, x3650,
++	  x3655, and x3755; the x3800, x3850, and x3950 models that have
++	  PCI Express; and some of the HS2x, LS2x, and QS2x blades.
  
- The ADT7473 will scale the pwm between the lower and higher pwm speed when
- the temperature is between the two temperature boundaries.  PWM values range
--from 0 (off) to 255 (full speed).
-+from 0 (off) to 255 (full speed).  Fan speed will be set to maximum when the
-+temperature sensor associated with the PWM control exceeds temp#_max.
- 
- Notes
- -----
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ibmpex.
 
 _______________________________________________
 lm-sensors mailing list
