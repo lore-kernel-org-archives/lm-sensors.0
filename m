@@ -1,109 +1,46 @@
-From: "Alek Uritsky" <auritsky@enqii.com>
-Date: Fri, 14 Mar 2008 20:24:59 +0000
-Subject: [lm-sensors] problems compiling 2.10.5
-Message-Id: <001001c88611$79fa1e20$b701010a@ALEK4E31DD5E>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2023892883813571516=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 14 Mar 2008 20:41:16 +0000
+Subject: Re: [lm-sensors] problems compiling 2.10.5
+Message-Id: <20080314214116.52bc5557@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <001001c88611$79fa1e20$b701010a@ALEK4E31DD5E>
+In-Reply-To: <001001c88611$79fa1e20$b701010a@ALEK4E31DD5E>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============2023892883813571516==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_000D_01C885EF.F2A5A8C0"
+Hi Alek,
 
-------=_NextPart_000_000D_01C885EF.F2A5A8C0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Fri, 14 Mar 2008 16:24:59 -0400, Alek Uritsky wrote:
+> I am trying to compile lm_sensors 2.10.5 on Fedora 6 box with kernel 2.6.22
+> 
+> (for some reasons, 2.10.1-1 that comes with the distro does not want to detect sensors)
 
-Hi all,
+Probably because it's too old for your hardware... or because your
+machine doesn't have supported sensors.
 
-=20
+> I have a huge number of compilation errors  (starting with lib/data.c )
+> which seems to be a result of the difference in .h files
 
-I am trying to compile lm_sensors 2.10.5 on Fedora 6 box with kernel 2.6.=
-22
+Difference between what and what?
 
-(for some reasons, 2.10.1-1 that comes with the distro does not want to d=
-etect sensors)
+> (should I post the errors?).
 
-I have a huge number of compilation errors  (starting with lib/data.c ) w=
-hich seems to be a result of the difference in .h files (should I post th=
-e errors?).
+Yes please. The first few ones should be enough.
 
-Is this a known problem? What would be the way to proceed?
+> Is this a known problem? What would be the way to proceed?
 
-=20
+Not a known problem, but I can't tell more without seeing the actual
+errors.
 
-Thank in advance
+Note that lm-sensors 2.10.6 is out by now, so you should try to build
+that instead of 2.10.5 anyway.
 
- alek
-
-------=_NextPart_000_000D_01C885EF.F2A5A8C0
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Diso-8859-=
-1">
-<META content=3D"MSHTML 6.00.6000.16525" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>
-<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><FONT face=3D"Times Ne=
-w Roman"=20
-size=3D3>Hi all,</FONT></P>
-<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><?xml:namespace prefix=
- =3D o ns =3D=20
-"urn:schemas-microsoft-com:office:office" /><o:p><FONT face=3D"Times New R=
-oman"=20
-size=3D3>&nbsp;</FONT></o:p></P>
-<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><FONT face=3D"Times Ne=
-w Roman"=20
-size=3D3>I am trying to compile lm_sensors 2.10.5 on Fedora 6 box with ke=
-rnel=20
-2.6.22</FONT></P>
-<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><FONT face=3D"Times Ne=
-w Roman"=20
-size=3D3>(for some reasons, 2.10.1-1 that comes with the distro does not w=
-ant to=20
-detect sensors)</FONT></P>
-<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><FONT face=3D"Times Ne=
-w Roman"=20
-size=3D3>I have a huge number of compilation errors&nbsp; (starting with=20
-lib/data.c ) which seems to be a result of the difference in .h files (sh=
-ould I=20
-post the errors?).</FONT></P>
-<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><FONT face=3D"Times Ne=
-w Roman"=20
-size=3D3>Is this a known problem? What would be the way to proceed?</FONT=
-></P>
-<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><o:p><FONT face=3D"Tim=
-es New Roman"=20
-size=3D3>&nbsp;</FONT></o:p></P>
-<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><FONT face=3D"Times Ne=
-w Roman"=20
-size=3D3>Thank in advance</FONT></P>
-<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><o:p><FONT face=3D"Tim=
-es New Roman"=20
-size=3D3>&nbsp;<FONT face=3DArial=20
-size=3D2>alek</FONT></FONT></o:p></P></FONT></DIV></BODY></HTML>
-
-------=_NextPart_000_000D_01C885EF.F2A5A8C0--
-
-
---===============2023892883813571516==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2023892883813571516==--
