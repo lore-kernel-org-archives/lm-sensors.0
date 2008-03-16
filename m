@@ -1,81 +1,92 @@
-From: Joakim Larsson <joakim@bildrulle.nu>
-Date: Thu, 13 Mar 2008 18:44:08 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 16 Mar 2008 09:53:38 +0000
 Subject: Re: [lm-sensors] W83627DHG driver on MSI 975x board
-Message-Id: <1205433848.5989.5.camel@montecristo>
+Message-Id: <20080316105338.1ce578c4@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1205271362.6571.9.camel@montecristo>
 In-Reply-To: <1205271362.6571.9.camel@montecristo>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Jean,
+Hi Joakim,
 
-thanks for the hint, Ubuntu Feisty uses lm-sensors 2.10.1 So I compiled
-and installed the latest version (3.0.1) and starts to get some results
-from sensor, see below. I will go through the configuration now and
-figure out why the fan still sounds like my vacuum cleaner.
+On Thu, 13 Mar 2008 19:44:08 +0100, Joakim Larsson wrote:
+> thanks for the hint, Ubuntu Feisty uses lm-sensors 2.10.1 So I compiled
+> and installed the latest version (3.0.1) and starts to get some results
+> from sensor, see below. I will go through the configuration now and
+> figure out why the fan still sounds like my vacuum cleaner.
+>=20
+> BR
+>=20
+> Joakim
+>=20
+>=20
+> joakim@montecristo:~$ sensors -v
+> sensors version 3.0.1 with libsensors version 3.0.1
+> joakim@montecristo:~$ sensors
+> w83627dhg-isa-0290
+> Adapter: ISA adapter
+> VCore:       +1.35 V  (min =3D  +0.00 V, max =3D  +1.74 V)  =20
+> in1:        +12.46 V  (min =3D  +6.39 V, max =3D  +0.90 V)   ALARM
 
-BR
+Probably +12V
 
-Joakim
+> AVCC:        +3.28 V  (min =3D  +0.54 V, max =3D  +2.05 V)   ALARM
+> 3VCC:        +3.28 V  (min =3D  +0.66 V, max =3D  +0.00 V)   ALARM
+> in4:         +1.86 V  (min =3D  +1.07 V, max =3D  +0.39 V)   ALARM
+> in5:         +1.46 V  (min =3D  +1.02 V, max =3D  +0.06 V)   ALARM
+> in6:         +5.04 V  (min =3D  +2.59 V, max =3D  +4.12 V)   ALARM
 
+and +5V. If your system uses DDR2 SDRAM, in4 could be Vdimm. in5 could
+be Vagp. If I'm right, you can add the following lines to the
+w83627dhg-* section in /etc/sensors3.conf:
 
-joakim@montecristo:~$ sensors -v
-sensors version 3.0.1 with libsensors version 3.0.1
-joakim@montecristo:~$ sensors
-w83627dhg-isa-0290
-Adapter: ISA adapter
-VCore:       +1.35 V  (min =  +0.00 V, max =  +1.74 V)   
-in1:        +12.46 V  (min =  +6.39 V, max =  +0.90 V)   ALARM
-AVCC:        +3.28 V  (min =  +0.54 V, max =  +2.05 V)   ALARM
-3VCC:        +3.28 V  (min =  +0.66 V, max =  +0.00 V)   ALARM
-in4:         +1.86 V  (min =  +1.07 V, max =  +0.39 V)   ALARM
-in5:         +1.46 V  (min =  +1.02 V, max =  +0.06 V)   ALARM
-in6:         +5.04 V  (min =  +2.59 V, max =  +4.12 V)   ALARM
-VSB:         +3.28 V  (min =  +0.02 V, max =  +1.60 V)   ALARM
-VBAT:        +3.09 V  (min =  +1.58 V, max =  +0.32 V)   ALARM
-Case Fan:      0 RPM  (min =  376 RPM, div = 64)  ALARM
-CPU Fan:    2481 RPM  (min = 2109 RPM, div = 16)
-Aux Fan:    1298 RPM  (min =  439 RPM, div = 16)
-fan4:          0 RPM  (min = 8881 RPM, div = 4)  ALARM
-fan5:          0 RPM  (min = 10227 RPM, div = 4)  ALARM
-Sys Temp:    +37.0°C  (high =  +0.0°C, hyst = +16.0°C)  ALARM  sensor thermistor
-CPU Temp:    +18.0°C  (high = +110.0°C, hyst = +125.0°C)  sensor = diode
-AUX Temp:    +64.0°C  (high = +120.0°C, hyst = +115.0°C)  sensor thermistor
+   label  in1  "+12V"
+   label  in4  "Vdimm"
+   label  in5  "Vagp"
+   label  in6  "+5V"
 
+> VSB:         +3.28 V  (min =3D  +0.02 V, max =3D  +1.60 V)   ALARM
+> VBAT:        +3.09 V  (min =3D  +1.58 V, max =3D  +0.32 V)   ALARM
 
-On Wed, 2008-03-12 at 12:08 +0100, Jean Delvare wrote:
-> Hi Joakim,
-> 
-> On Tue, 11 Mar 2008 22:36:02 +0100, Joakim Larsson wrote:
-> > On Sun, 2008-03-09 at 20:08 +0100, Joakim Larsson wrote:
-> > 
-> > ok, so I downloaded the Ubuntu Feisty 2.6.20 kernel source and compiled
-> > the modules and then just copied the driver from the 2.6.24 kernel
-> > source and recompiled it. Then I did make modules_install. The modules
-> > now loads successfully:
-> > 
-> > $ sudo modprobe hwmon-vid 
-> > $ sudo modprobe w83627ehf 
-> > $ dmesg
-> > <snip>
-> > [  127.521735] w83627ehf: Found W83627DHG chip at 0x290
-> > <snip>
-> > 
-> > However when I run sensors I got the following output: 
-> > 
-> > $ sudo sensors
-> > w83627dhg-isa-0290
-> > Adapter: ISA adapter
-> > 
-> > And no other output. I'll try to debug but any hint's appreciated! :-)
-> 
-> What version of lm-sensors are you using again? w83627dhg support was
-> added in 2.10.2.
-> 
+To get rid of the alarms, uncomment the "set in*" statements, adjust
+the limits as needed (typically -10% and +10% of the nominal value),
+and run "sensors -s".
 
+> Case Fan:      0 RPM  (min =3D  376 RPM, div =3D 64)  ALARM
+> CPU Fan:    2481 RPM  (min =3D 2109 RPM, div =3D 16)
+> Aux Fan:    1298 RPM  (min =3D  439 RPM, div =3D 16)
+> fan4:          0 RPM  (min =3D 8881 RPM, div =3D 4)  ALARM
+> fan5:          0 RPM  (min =3D 10227 RPM, div =3D 4)  ALARM
+
+I guess that you have only 2 fans in this system, so you can add:
+
+   ignore fan1
+   ignore fan4
+   ignore fan5
+
+And change fan3's label:
+
+   label  fan3  "Case Fan"
+
+These are very reasonable fan speeds and I have to admit that I am
+surprised the one the fans "sounds like your vacuum cleaner".
+
+> Sys Temp:    +37.0=B0C  (high =3D  +0.0=B0C, hyst =3D +16.0=B0C)  ALARM  =
+sensor =3D thermistor
+> CPU Temp:    +18.0=B0C  (high =3D +110.0=B0C, hyst =3D +125.0=B0C)  senso=
+r =3D diode
+> AUX Temp:    +64.0=B0C  (high =3D +120.0=B0C, hyst =3D +115.0=B0C)  senso=
+r =3D thermistor
+
+While temp1 and temp3 look reasonable, temp2 is way too low to be
+correct. What does the BIOS display? Maybe you need to add some
+arbitrary offset.
+
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
