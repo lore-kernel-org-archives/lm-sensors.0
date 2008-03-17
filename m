@@ -1,34 +1,64 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date: Sat, 15 Mar 2008 04:25:06 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] thermal: add hwmon sys I/F for	thermal
-Message-Id: <20080315042506.GC4922@khazad-dum.debian.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 17 Mar 2008 12:37:32 +0000
+Subject: Re: [lm-sensors] [PATCH 1/2] thermal: add hwmon sys I/F for thermal
+Message-Id: <20080317133732.05b79f4d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1204072670.10256.111.camel@acpi-hp-zz.sh.intel.com> <200803120029.09505.lenb@kernel.org> <200803130109.45531.lenb@kernel.org> <1205405941.29877.341.camel@queen.suse.de> <20080313230919.GG30864@khazad-dum.debian.net> <1205485397.21619.35.camel@queen.suse.de>
-In-Reply-To: <1205485397.21619.35.camel@queen.suse.de>
+References: <1203975102.10256.82.camel@acpi-hp-zz.sh.intel.com>
+	<47C3D04E.6090609@hhs.nl>
+In-Reply-To: <47C3D04E.6090609@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, lm-sensors <lm-sensors@lm-sensors.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, Len Brown <lenb@kernel.org>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, Richard Hughes <hughsient@gmail.com>
 
-On Fri, 14 Mar 2008, Thomas Renninger wrote:
-> Ahh, I just checked that the module_init function calls the module_exit
-> function...
-> But the module_exit function probably because of this is not declared
-> __exit.
+Hi Hans,
+
+On Tue, 26 Feb 2008 09:39:42 +0100, Hans de Goede wrote:
+> Zhang, Rui wrote:
+> > Add hwmon sys I/F for the generic thermal device.
+> > 
 > 
-> This looks a bit uncommon. I don't know whether it should be avoided,
-> but I cannot see why it should hurt.
+> Great!
+> 
+> But I have several remarks:
+> 1) Looking at the new code, you only add temp1_input, so I'm guessing that you
+> are registering a seperate hwmon class entry per zone? Please don't do that, 
+> please register one hwmon class entry, and add multiple temp#_input attr to it 
+> (and the same for crit).
 
-Well, I didn't see a reason to duplicate code just to save a few hundred
-bytes (if that much!) of text for those who don't use a modular
-thinkpad-acpi...
+I am sorry that I did not notice when you suggested this. I disagree,
+but now Rui's code is upstream so I guess it's too late to complain.
+Still here are my reasons:
+
+One of the great things about libsensors is that it gives unique names
+to hardware monitoring devices, and for each device, each feature has a
+unique name as well. This makes it possible to ignore or label a
+specific feature in /etc/sensors.conf in a way that is stable over
+reboot and addition of new hardware.
+
+By going with a single virtual device for all thermal zones, you break
+this model. Depending on which thermal zone drivers are loaded and in
+which order they are loaded, there will be more or less temp* files in
+the hwmon directory and you also can't predict their order. The
+labelling issue could be solved by adding temp*_label files, but this
+still prevents the user from overriding a label. And there's no way to
+reliably ignore a specific thermal zone or to ask for information about
+a specific thermal zone with the current model.
+
+For this reason, I think it would be much better to have one hwmon
+class device for each _type_ of thermal zone. For example, all ACPI
+thermal zones would be listed as one hwmon class device. If we later
+add support for another type of thermal zones, all thermal zones of
+this type would be listed as one (different) hwmon class device. This
+makes each specific thermal zone driver responsible for the stability
+of the numbering of the various thermal zones of a given type. This
+would also let us give names to the different thermal zone types (e.g.
+"acpitz" for ACPI thermal zones) so that the users and supporters have
+an idea who is providing these temperature values and limits.
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
