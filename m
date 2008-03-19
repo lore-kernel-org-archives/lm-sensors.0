@@ -1,42 +1,32 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 19 Mar 2008 09:32:29 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Wed, 19 Mar 2008 09:40:00 +0000
 Subject: Re: [lm-sensors] possible bug in 2.6.25-rc6: message going "Setting
-Message-Id: <47E0DDAD.2090900@hhs.nl>
+Message-Id: <20080319024000.44658f87.akpm@linux-foundation.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <47E0DDAD.2090900@hhs.nl>
+In-Reply-To: <47E0DDAD.2090900@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Andrew Morton wrote:
-> On Wed, 19 Mar 2008 10:12:26 +0100 Uwe Bugla <uwe.bugla@gmx.de> wrote:
+On Wed, 19 Mar 2008 10:12:26 +0100 Uwe Bugla <uwe.bugla@gmx.de> wrote:
+
+> Hello Andrew,
 > 
->> Hello Andrew,
->>
->> if I boot my machine with kernel 2.6.25-rc6 the following message appears:
->> "Setting sensors limits failed!" ("failed" appears red coloured).
->>
->> This message does not appear as failure message in all precedent kernels (<= 
->> 2.6.25-rc5).
->>
->> As I do not know from which module the error derives from I would appreciate 
->> you to route that mail to the appropriate maintainer.
->>
+> if I boot my machine with kernel 2.6.25-rc6 the following message appears:
+> "Setting sensors limits failed!" ("failed" appears red coloured).
 > 
-> lm-sensors, I guess.
+> This message does not appear as failure message in all precedent kernels (<= 
+> 2.6.25-rc5).
 > 
-> I assume that 2.6.24 kernel don't do this?
+> As I do not know from which module the error derives from I would appreciate 
+> you to route that mail to the appropriate maintainer.
 > 
 
-This is a known problem caused by the new thermal zone code, see:
-https://bugzilla.redhat.com/show_bug.cgi?idC7637
+lm-sensors, I guess.
 
-For all the details.
-
-Regards,
-
-Hans
-
+I assume that 2.6.24 kernel don't do this?
 
 _______________________________________________
 lm-sensors mailing list
