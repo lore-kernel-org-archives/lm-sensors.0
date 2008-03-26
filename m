@@ -1,31 +1,46 @@
-From: "Frank Phillips" <frankalso@gmail.com>
-Date: Wed, 19 Mar 2008 16:45:10 +0000
+From: "lists@givemefish.com" <lists@givemefish.com>
+Date: Wed, 26 Mar 2008 13:40:05 +0000
 Subject: Re: [lm-sensors] Strange temperature values
-Message-Id: <78171f0a0803190945j2bbb3e2era1d87c8d027b1b94@mail.gmail.com>
+Message-Id: <47EA5235.7070005@givemefish.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <47DFA4D2.1060009@givemefish.com>
 In-Reply-To: <47DFA4D2.1060009@givemefish.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Tue, Mar 18, 2008 at 8:06 PM, Matt Roberds <mattroberds@cox.net> wrote:
->  > # sensors-detect revision 4171 (2006-09-24 03:37:01 -0700)
->
->  The latest version of sensors-detect is "5108 (2008-01-22 13:22:47
->  +0100)"; you may get better results from a newer version of the
->  complete lm-sensors package if possible.
+Matt Roberds wrote:
 
-Do you have the coretemp module loaded (kernels >= 2.6.22)? It
-accesses the temp sensor on Core/Core 2 processors. You will need a
-newer lm-sensors to take advantage of coretemp.
+> On Tue, 18 Mar 2008, xxx@givemefish.com wrote:
+>> However, the sensor values that we see are very strange.  They are
+>> all positive values, but they range from 0 to 2500 C.
+>=20
+> There was some recent discussion about updating some of the drivers to
+> deal with hardware that reports values with 0.001 deg C resolution
+> rather than the more common 0.1 deg C resolution.  I am not sure but I
+> think some Intel boards were affected by this.  In other words, dividing
+> your reported temperatures by 100 may give you the actual values.
+>=20
+>> temp1:     +71.0=B0C  (high =3D   +50=B0C, hyst =3D    +0=B0C)
+> 0.71 C (probably not connected)
+>=20
+>> temp2:      +0.0=B0C  (high =3D   +50=B0C, hyst =3D    +0=B0C)
+>> temp3:      +0.0=B0C  (high =3D    +0=B0C, hyst =3D    +2=B0C)
+> 0 C (probably not connected)
 
-You can also get useful information from the IPMI BMC with ipmitool,
-for example. In my experience, it will only give you the cpu "thermal
-margin," though.
+Matt,
 
-Frank
+thanks for the idea.  Our server is in an air-conditioned room, so those
+values do seem realistic.
+
+Would the 100x difference be scaled in the /etc/sensors.conf file?
+
+Also, why would some of the cores not be connected or registering a
+temperature (the temps 1-3 above)?  Is there a way to "turn on" these
+readings?
+
+Matthew.
 
 _______________________________________________
 lm-sensors mailing list
