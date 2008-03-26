@@ -1,61 +1,32 @@
-From: "Alek Uritsky" <auritsky@enqii.com>
-Date: Fri, 14 Mar 2008 21:08:01 +0000
-Subject: Re: [lm-sensors] problems compiling 2.10.5
-Message-Id: <003301c88617$7d338f80$b701010a@ALEK4E31DD5E>
+From: "www.givemefish.com" <lists@givemefish.com>
+Date: Wed, 26 Mar 2008 16:32:51 +0000
+Subject: [lm-sensors] sensors.conf question
+Message-Id: <47EA7AB3.4000701@givemefish.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <001001c88611$79fa1e20$b701010a@ALEK4E31DD5E>
-In-Reply-To: <001001c88611$79fa1e20$b701010a@ALEK4E31DD5E>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-2.10.6 works.
-Thanks a lot
+All,
 
-alek
+I am having some trouble trying to interpret my sensors output against
+my sensors.conf file.
 
+The output from the sensors command lists 8 temperatures (temp1 -
+temp8).  Having searched the sensors.conf file, I find nowhere where
+temp8 is listed.  I don't see anywhere that appears to correspond to the
+temp1 - temp 8 label lines.
 
------ Original Message ----- 
-From: "Jean Delvare" <khali@linux-fr.org>
-To: "Alek Uritsky" <auritsky@enqii.com>
-Cc: <lm-sensors@lm-sensors.org>
-Sent: Friday, March 14, 2008 4:41 PM
-Subject: Re: [lm-sensors] problems compiling 2.10.5
+I'm not sure what these temperatures correspond to.
 
+The top of the sensors output lists:
 
-> Hi Alek,
->
-> On Fri, 14 Mar 2008 16:24:59 -0400, Alek Uritsky wrote:
->> I am trying to compile lm_sensors 2.10.5 on Fedora 6 box with kernel 
->> 2.6.22
->>
->> (for some reasons, 2.10.1-1 that comes with the distro does not want to 
->> detect sensors)
->
-> Probably because it's too old for your hardware... or because your
-> machine doesn't have supported sensors.
->
->> I have a huge number of compilation errors  (starting with lib/data.c )
->> which seems to be a result of the difference in .h files
->
-> Difference between what and what?
->
->> (should I post the errors?).
->
-> Yes please. The first few ones should be enough.
->
->> Is this a known problem? What would be the way to proceed?
->
-> Not a known problem, but I can't tell more without seeing the actual
-> errors.
->
-> Note that lm-sensors 2.10.6 is out by now, so you should try to build
-> that instead of 2.10.5 anyway.
->
-> -- 
-> Jean Delvare 
+bmc-isa-0020
+Adapter: ISA adapter
 
+Thanks,
+Matt.
 
 _______________________________________________
 lm-sensors mailing list
