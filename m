@@ -1,104 +1,134 @@
-From: Len Brown <lenb@kernel.org>
-Date: Wed, 12 Mar 2008 04:28:50 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] ACPI: show temperature in millidegree
-Message-Id: <200803120028.50457.lenb@kernel.org>
+From: Juerg Haefliger <juergh@gmail.com>
+Date: Wed, 26 Mar 2008 04:49:15 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon (dme1737): fix voltage scaling
+Message-Id: <47E9D5CB.2090205@gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------020306000104070207000004"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1204072678.10256.112.camel@acpi-hp-zz.sh.intel.com> <47C537E1.5090103@gmail.com> <1204156290.10256.132.camel@acpi-hp-zz.sh.intel.com>
-In-Reply-To: <1204156290.10256.132.camel@acpi-hp-zz.sh.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------020306000104070207000004
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Applied.
+This patch fixes a voltage scaling issue for the sch311x device.
 
-thanks,
--Len
+Signed-Off-By: Juerg Haefliger <juergh at gmail.com>
 
-On Wednesday 27 February 2008, Zhang, Rui wrote:
-> 
-> On Wed, 2008-02-27 at 18:13 +0800, Alexey Starikovskiy wrote:
-> > Rui,
-> > 
-> > As I remember, ACPI returns temperature in 10ths of degree. If you are
-> > going to report it in 1000ths of degree,
-> > there is no reason to round them to degree.
-> > 
-> 
-> Show the temperature in Millidegree Celsius.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/thermal.c |   12 +++++++-----
->  1 file changed, 7 insertions(+), 5 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/thermal.c
-> =================================> --- linux-2.6.orig/drivers/acpi/thermal.c
-> +++ linux-2.6/drivers/acpi/thermal.c
-> @@ -879,6 +879,8 @@ static void acpi_thermal_check(void *dat
->  }
->  
->  /* sys I/F for generic thermal sysfs support */
-> +#define KELVIN_TO_MILLICELSIUS(t) (t * 100 - 273200)
-> +
->  static int thermal_get_temp(struct thermal_zone_device *thermal, char *buf)
->  {
->  	struct acpi_thermal *tz = thermal->devdata;
-> @@ -886,7 +888,7 @@ static int thermal_get_temp(struct therm
->  	if (!tz)
->  		return -EINVAL;
->  
-> -	return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(tz->temperature));
-> +	return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(tz->temperature));
->  }
->  
->  static const char enabled[] = "kernel";
-> @@ -980,21 +982,21 @@ static int thermal_get_trip_temp(struct 
->  
->  	if (tz->trips.critical.flags.valid) {
->  		if (!trip)
-> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
-> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
->  				tz->trips.critical.temperature));
->  		trip--;
->  	}
->  
->  	if (tz->trips.hot.flags.valid) {
->  		if (!trip)
-> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
-> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
->  					tz->trips.hot.temperature));
->  		trip--;
->  	}
->  
->  	if (tz->trips.passive.flags.valid) {
->  		if (!trip)
-> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
-> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
->  					tz->trips.passive.temperature));
->  		trip--;
->  	}
-> @@ -1002,7 +1004,7 @@ static int thermal_get_trip_temp(struct 
->  	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
->  		tz->trips.active[i].flags.valid; i++) {
->  		if (!trip)
-> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
-> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
->  					tz->trips.active[i].temperature));
->  		trip--;
->  	}
-> 
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+--------------020306000104070207000004
+Content-Type: text/plain;
+ name="dme1737-fix-voltage-scaling.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dme1737-fix-voltage-scaling.patch"
 
+This patch fixes a voltage scaling issue for the sch311x device.
 
+Signed-Off-By: Juerg Haefliger <juergh at gmail.com>
+Index: linux/drivers/hwmon/dme1737.c
+===================================================================
+--- linux.orig/drivers/hwmon/dme1737.c	2008-03-15 22:25:06.000000000 -0700
++++ linux/drivers/hwmon/dme1737.c	2008-03-15 23:01:21.000000000 -0700
+@@ -181,6 +181,7 @@
+ 	int valid;			/* !=0 if following fields are valid */
+ 	unsigned long last_update;	/* in jiffies */
+ 	unsigned long last_vbat;	/* in jiffies */
++	enum chips type;
+ 
+ 	u8 vid;
+ 	u8 pwm_rr_en;
+@@ -215,20 +216,27 @@
+ };
+ 
+ /* Nominal voltage values */
+-static const int IN_NOMINAL[] = {5000, 2250, 3300, 5000, 12000, 3300, 3300};
++static const int IN_NOMINAL_DME1737[] = {5000, 2250, 3300, 5000, 12000, 3300,
++					 3300};
++static const int IN_NOMINAL_SCH311x[] = {2500, 1500, 3300, 5000, 12000, 3300,
++					 3300};
++#define IN_NOMINAL(ix, type)	(((type) == dme1737) ? \
++				IN_NOMINAL_DME1737[(ix)] : \
++				IN_NOMINAL_SCH311x[(ix)])
+ 
+ /* Voltage input
+  * Voltage inputs have 16 bits resolution, limit values have 8 bits
+  * resolution. */
+-static inline int IN_FROM_REG(int reg, int ix, int res)
++static inline int IN_FROM_REG(int reg, int ix, int res, int type)
+ {
+-	return (reg * IN_NOMINAL[ix] + (3 << (res - 3))) / (3 << (res - 2));
++	return (reg * IN_NOMINAL(ix, type) + (3 << (res - 3))) /
++		(3 << (res - 2));
+ }
+ 
+-static inline int IN_TO_REG(int val, int ix)
++static inline int IN_TO_REG(int val, int ix, int type)
+ {
+-	return SENSORS_LIMIT((val * 192 + IN_NOMINAL[ix] / 2) /
+-			     IN_NOMINAL[ix], 0, 255);
++	return SENSORS_LIMIT((val * 192 + IN_NOMINAL(ix, type) / 2) /
++			     IN_NOMINAL(ix, type), 0, 255);
+ }
+ 
+ /* Temperature input
+@@ -727,13 +735,13 @@
+ 
+ 	switch (fn) {
+ 	case SYS_IN_INPUT:
+-		res = IN_FROM_REG(data->in[ix], ix, 16);
++		res = IN_FROM_REG(data->in[ix], ix, 16, data->type);
+ 		break;
+ 	case SYS_IN_MIN:
+-		res = IN_FROM_REG(data->in_min[ix], ix, 8);
++		res = IN_FROM_REG(data->in_min[ix], ix, 8, data->type);
+ 		break;
+ 	case SYS_IN_MAX:
+-		res = IN_FROM_REG(data->in_max[ix], ix, 8);
++		res = IN_FROM_REG(data->in_max[ix], ix, 8, data->type);
+ 		break;
+ 	case SYS_IN_ALARM:
+ 		res = (data->alarms >> DME1737_BIT_ALARM_IN[ix]) & 0x01;
+@@ -760,12 +768,12 @@
+ 	mutex_lock(&data->update_lock);
+ 	switch (fn) {
+ 	case SYS_IN_MIN:
+-		data->in_min[ix] = IN_TO_REG(val, ix);
++		data->in_min[ix] = IN_TO_REG(val, ix, data->type);
+ 		dme1737_write(client, DME1737_REG_IN_MIN(ix),
+ 			      data->in_min[ix]);
+ 		break;
+ 	case SYS_IN_MAX:
+-		data->in_max[ix] = IN_TO_REG(val, ix);
++		data->in_max[ix] = IN_TO_REG(val, ix, data->type);
+ 		dme1737_write(client, DME1737_REG_IN_MAX(ix),
+ 			      data->in_max[ix]);
+ 		break;
+@@ -2167,6 +2175,7 @@
+ 
+ 	kind = dme1737;
+ 	name = "dme1737";
++	data->type = kind;
+ 
+ 	/* Fill in the remaining client fields and put it into the global
+ 	 * list */
+@@ -2359,6 +2368,7 @@
+ 		err = -ENODEV;
+ 		goto exit_kfree;
+ 	}
++	data->type = -1;
+ 
+ 	/* Fill in the remaining client fields and initialize the mutex */
+ 	strlcpy(client->name, "sch311x", I2C_NAME_SIZE);
+
+--------------020306000104070207000004
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------020306000104070207000004--
