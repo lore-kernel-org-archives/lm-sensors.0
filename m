@@ -1,26 +1,43 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sat, 01 Mar 2008 17:28:43 +0000
-Subject: Re: [lm-sensors] F71882FG PWM
-Message-Id: <47C9924B.1040400@hhs.nl>
+From: Dave Hall <davehall@stny.rr.com>
+Date: Thu, 27 Mar 2008 17:13:36 +0000
+Subject: [lm-sensors] QX9650 Core Temperatures
+Message-Id: <47EBD5C0.10100@stny.rr.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <47C9835C.8090401@cosy.sbg.ac.at>
-In-Reply-To: <47C9835C.8090401@cosy.sbg.ac.at>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Karl Raab wrote:
-> Hello!
-> 
-> Is there any progress for the PWM for the Fintek F71882FG?
->
+Hello,
 
-Long story short: no, I still hope to find time for this soon though.
+I'm having some trouble accessing the CPU core temperatures on an Intel 
+QX9650.  I have found vague references to a recent change in the Linux  
+Kernel coretemp.ko module to add support for the QX9650, but I have been 
+unable to find 'the meat' of this change.  Can you provide any hints?  
+Under Fedora 8 sensors-detect does not see a need to configure the 
+coretemp module.
 
-Regards,
+BTW, the motherboard is an ASUS Maximus Formula (X38) with the latest BIOS.
 
-Hans
+I have another system with the same motherboard but with a Q6600 
+processor and Fedora 8.  With this config it is no problem to get the 
+core temps.
+
+If this is not quite the right place to ask, please pardon.
+
+Thanks.
+
+-Dave
+
+-- 
+
+Dave Hall
+24 Crary Avenue
+Binghamton, NY  13905
+
+email:  davehall@stny.rr.com
+phone:  607-729-1609
+
 
 
 _______________________________________________
