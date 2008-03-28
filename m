@@ -1,46 +1,43 @@
-From: "lists@givemefish.com" <lists@givemefish.com>
-Date: Wed, 26 Mar 2008 13:40:05 +0000
+From: Matt Roberds <mattroberds@cox.net>
+Date: Fri, 28 Mar 2008 01:48:40 +0000
 Subject: Re: [lm-sensors] Strange temperature values
-Message-Id: <47EA5235.7070005@givemefish.com>
+Message-Id: <Pine.LNX.4.64.0803272042550.2934@birdbird.example.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <47DFA4D2.1060009@givemefish.com>
 In-Reply-To: <47DFA4D2.1060009@givemefish.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Matt Roberds wrote:
+On Wed, 26 Mar 2008, lists@givemefish.com wrote:
+> Would the 100x difference be scaled in the /etc/sensors.conf file?
 
-> On Tue, 18 Mar 2008, xxx@givemefish.com wrote:
->> However, the sensor values that we see are very strange.  They are
->> all positive values, but they range from 0 to 2500 C.
->=20
-> There was some recent discussion about updating some of the drivers to
-> deal with hardware that reports values with 0.001 deg C resolution
-> rather than the more common 0.1 deg C resolution.  I am not sure but I
-> think some Intel boards were affected by this.  In other words, dividing
-> your reported temperatures by 100 may give you the actual values.
->=20
->> temp1:     +71.0=B0C  (high =3D   +50=B0C, hyst =3D    +0=B0C)
-> 0.71 C (probably not connected)
->=20
->> temp2:      +0.0=B0C  (high =3D   +50=B0C, hyst =3D    +0=B0C)
->> temp3:      +0.0=B0C  (high =3D    +0=B0C, hyst =3D    +2=B0C)
-> 0 C (probably not connected)
+You could scale it there.  If you update to a newer version of
+lmsensors, the driver may do the scaling for you before the sensors.conf
+gets processed, so you may have to take it out of sensors.conf then.
 
-Matt,
+Per the comments in /etc/sensors.conf, the following "compute" lines
+might do what you want:
 
-thanks for the idea.  Our server is in an air-conditioned room, so those
-values do seem realistic.
+compute temp4 @/100,@*100
+compute temp5 @/100,@*100
+compute temp6 @/100,@*100
+compute temp8 @/100,@*100
 
-Would the 100x difference be scaled in the /etc/sensors.conf file?
+> Also, why would some of the cores not be connected or registering a
+> temperature (the temps 1-3 above)?  Is there a way to "turn on" these
+> readings?
 
-Also, why would some of the cores not be connected or registering a
-temperature (the temps 1-3 above)?  Is there a way to "turn on" these
-readings?
+There are different reasons, but a common one is that the motherboard
+manufacturer simply didn't wire them up.  In that case, you can turn
+them on with a really fine soldering iron.  :)  Sometimes some of the
+temperature monitoring channels can be disabled in the BIOS; if you
+can get to the system console at boot time you might check the BIOS
+settings.
 
-Matthew.
+Matt Roberds
+
 
 _______________________________________________
 lm-sensors mailing list
