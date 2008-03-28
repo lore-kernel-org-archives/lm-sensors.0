@@ -1,12 +1,17 @@
 From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Thu, 13 Mar 2008 01:37:24 +0000
+Date: Fri, 28 Mar 2008 21:01:08 +0000
 Subject: [lm-sensors] [PATCH] Rough draft of power/energy sensor support for
-Message-Id: <20080313013724.GH5529@tree.beaverton.ibm.com>
+Message-Id: <20080328210108.GB7191@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20080313013724.GH5529@tree.beaverton.ibm.com>
+In-Reply-To: <20080313013724.GH5529@tree.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+[Resend due to IBM mail server problems; apparently it can take a week
+to deliver the "can't send for past week" message???]
 
 Hi all,
 
