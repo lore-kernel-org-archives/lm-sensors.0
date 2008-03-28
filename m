@@ -1,31 +1,53 @@
-From: Helmut Grohne <helmut@subdivi.de>
-Date: Wed, 12 Mar 2008 16:09:17 +0000
-Subject: Re: [lm-sensors] serious w83627ehf problem stopping cpu fan
-Message-Id: <20080312160838.GA2128@alf.mars>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Fri, 28 Mar 2008 21:36:46 +0000
+Subject: [lm-sensors] [PATCH 1/2] Define sysfs interfaces for ibmaem driver
+Message-Id: <20080328213646.GC7191@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080312011430.GA20751@alf.mars>
-In-Reply-To: <20080312011430.GA20751@alf.mars>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Hi,
+Update sysfs interface documentation to include energy meters and power
+meter averaging intervals.
 
-This is a summary of the irc discussion on #linux-sensors with Jean
-Delvare and Rudolf Ruik Marek.
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
 
-First and most important: Unloading the thermal module makes the /sys
-interface of w83627ehf behave normally, so the problem boils down to
-the module interfering with each other.
+ Documentation/hwmon/sysfs-interface |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-Secondly my dsdt is buggy. I do not know whether the bugs are visible.
-Errors like this one look like they may have an effect:
-
-dsdt.dsl   786:                 Method (GHTF, 0, NotSerialized)
-Warning  1086 -                            ^ Not all control paths return a value (GHTF)
-
-Helmut
+diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+index f4a8ebc..85e6654 100644
+--- a/Documentation/hwmon/sysfs-interface
++++ b/Documentation/hwmon/sysfs-interface
+@@ -328,6 +328,14 @@ curr[1-*]_input	Current input value
+ 		Unit: milliampere
+ 		RO
+ 
++**********
++* Energy *
++**********
++
++energy[1-*]_input		Instantaneous energy use
++				Unit: microJoule
++				RO
++
+ *********
+ * Power *
+ *********
+@@ -336,6 +344,10 @@ power[1-*]_average		Average power use
+ 				Unit: microWatt
+ 				RO
+ 
++power[1-*]_interval		Power use averaging interval
++				Unit: milliseconds
++				RW
++
+ power[1-*]_average_highest	Historical average maximum power use
+ 				Unit: microWatt
+ 				RO
 
 _______________________________________________
 lm-sensors mailing list
