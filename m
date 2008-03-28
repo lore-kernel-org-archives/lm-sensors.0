@@ -1,44 +1,28 @@
-From: Dave Hall <davehall@stny.rr.com>
-Date: Thu, 27 Mar 2008 17:13:36 +0000
-Subject: [lm-sensors] QX9650 Core Temperatures
-Message-Id: <47EBD5C0.10100@stny.rr.com>
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Fri, 28 Mar 2008 22:18:16 +0000
+Subject: Re: [lm-sensors] QX9650 Core Temperatures
+Message-Id: <47ED6EA8.6000505@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <47EBD5C0.10100@stny.rr.com>
+In-Reply-To: <47EBD5C0.10100@stny.rr.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hi,
 
-I'm having some trouble accessing the CPU core temperatures on an Intel 
-QX9650.  I have found vague references to a recent change in the Linux  
-Kernel coretemp.ko module to add support for the QX9650, but I have been 
-unable to find 'the meat' of this change.  Can you provide any hints?  
-Under Fedora 8 sensors-detect does not see a need to configure the 
-coretemp module.
+Please send here output of cat /proc/cpuinfo
+or provide output from "cpuid" utility.
 
-BTW, the motherboard is an ASUS Maximus Formula (X38) with the latest BIOS.
+I think it is model 10h. So in fact you need following patch:
 
-I have another system with the same motherboard but with a Q6600 
-processor and Fedora 8.  With this config it is no problem to get the 
-core temps.
+http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dcomm=
+it;h=AE770152c801f10a91e5e86597a39b5f9ccf2d0d
 
-If this is not quite the right place to ask, please pardon.
+Or 2.6.25rcxx kernel
 
-Thanks.
-
--Dave
-
--- 
-
-Dave Hall
-24 Crary Avenue
-Binghamton, NY  13905
-
-email:  davehall@stny.rr.com
-phone:  607-729-1609
-
-
+Rudolf
 
 _______________________________________________
 lm-sensors mailing list
