@@ -1,88 +1,148 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Thu, 27 Mar 2008 03:47:57 +0000
-Subject: Re: [lm-sensors] [PATCH 2/3] hwmon (dme1737): probe all addresses
-Message-Id: <191fb4ca0803262047l5b3ba043k4705a165c5acfea7@mail.gmail.com>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Mon, 31 Mar 2008 23:54:41 +0000
+Subject: [lm-sensors] [PATCH 4/4]: sensors: Automatically scale energy/power
+Message-Id: <20080331235441.GH7191@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <47E9D5C7.8050507@gmail.com>
-In-Reply-To: <47E9D5C7.8050507@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Automatically scale energy and power values when printing them in cooked
+mode.
 
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 
-On Wed, Mar 26, 2008 at 3:23 AM, Jean Delvare <khali@linux-fr.org> wrote:
-> Hi Juerg,
->
->
->
->  On Tue, 25 Mar 2008 21:49:11 -0700, Juerg Haefliger wrote:
->  > This patch adds a module load parameter to enable probing of non-standard LPC
->  > addresses 0x162e and 0x164e when scanning for supported ISA chips.
->  >
->  > Signed-Off-By: Juerg Haefliger <juergh at gmail.com>
->  >
->  > Index: linux/Documentation/hwmon/dme1737
->  > =================================>  > --- linux.orig/Documentation/hwmon/dme1737    2008-01-24 14:58:37.000000000 -0800
->  > +++ linux/Documentation/hwmon/dme1737 2008-03-15 22:19:11.000000000 -0700
->  > @@ -22,6 +22,8 @@
->  >                       and PWM output control functions. Using this parameter
->  >                       shouldn't be required since the BIOS usually takes care
->  >                       of this.
->  > +* probe_all_addr: bool       Include non-standard LPC addresses 0x162e and 0x164e
->  > +                     when probing for ISA devices.
->  >
->  >  Note that there is no need to use this parameter if the driver loads without
->  >  complaining. The driver will say so if it is necessary.
->
->  Maybe you could document on which board this parameter is known to be
->  needed? (EPIA SN18000 if I recall properly.)
-
-OK, will do.
-
-
->  > Index: linux/drivers/hwmon/dme1737.c
->  > =================================>  > --- linux.orig/drivers/hwmon/dme1737.c        2008-03-15 22:12:39.000000000 -0700
->  > +++ linux/drivers/hwmon/dme1737.c     2008-03-15 22:17:04.000000000 -0700
->  > @@ -48,6 +48,11 @@
->  >  module_param(force_id, ushort, 0);
->  >  MODULE_PARM_DESC(force_id, "Override the detected device ID");
->  >
->  > +static int probe_all_addr;
->  > +module_param(probe_all_addr, bool, 0);
->  > +MODULE_PARM_DESC(probe_all_addr, "Include probing of non-standard LPC "
->  > +              "addresses");
->  > +
->  >  /* Addresses to scan */
->  >  static const unsigned short normal_i2c[] = {0x2c, 0x2d, 0x2e, I2C_CLIENT_END};
->  >
->  > @@ -2430,7 +2435,10 @@
->  >       }
->  >
->  >       if (dme1737_isa_detect(0x2e, &addr) &&
->  > -         dme1737_isa_detect(0x4e, &addr)) {
->  > +         dme1737_isa_detect(0x4e, &addr) &&
->  > +         (!probe_all_addr || (probe_all_addr &&
->
->  It works, but note that the "probe_all_addr" check is redundant.
-
-True, will fix.
-
-Thanks for the review of the patch set.
-...juerg
-
-
->  > +          dme1737_isa_detect(0x162e, &addr) &&
->  > +          dme1737_isa_detect(0x164e, &addr)))) {
->  >               /* Return 0 if we didn't find an ISA device */
->  >               return 0;
->  >       }
->
->  --
->  Jean Delvare
->
+Index: lm-sensors-3.0.0/lib/sysfs.c
+=================================--- lm-sensors-3.0.0.orig/lib/sysfs.c	2008-03-31 16:35:30.000000000 -0700
++++ lm-sensors-3.0.0/lib/sysfs.c	2008-03-31 16:35:46.000000000 -0700
+@@ -155,10 +155,6 @@
+ 		return 1000;
+ 	case SENSORS_SUBFEATURE_FAN_INPUT:
+ 		return 1;
+-	case SENSORS_SUBFEATURE_POWER_AVERAGE:
+-		return 1000000;
+-	case SENSORS_SUBFEATURE_ENERGY_INPUT:
+-		return 1000000;
+ 	case SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL:
+ 		return 1000;
+ 	}
+Index: lm-sensors-3.0.0/prog/sensors/chips.c
+=================================--- lm-sensors-3.0.0.orig/prog/sensors/chips.c	2008-03-31 16:35:38.000000000 -0700
++++ lm-sensors-3.0.0/prog/sensors/chips.c	2008-03-31 16:35:46.000000000 -0700
+@@ -401,10 +401,40 @@
+ 	printf("\n");
+ }
+ 
++struct scale_table {
++	float upper_bound;
++	const char *units;
++};
++
++static void scale_value(struct scale_table *scales, float *value,
++			const char **unitstr)
++{
++	float divisor = 1;
++
++	while (scales->upper_bound != 0 && *value > scales->upper_bound) {
++		divisor = scales->upper_bound;
++		scales++;
++	}
++
++	*value /= divisor;
++
++	*unitstr = scales->units;
++}
++
++struct scale_table power_scales[] = {
++	{1e3,  "uW"},
++	{1e6,  "mW"},
++	{1e9,   "W"},
++	{1e12, "KW"},
++	{1e15, "MW"},
++	{0,    "GW"},
++};
++
+ static void print_chip_power(const sensors_chip_name *name,
+ 			     const sensors_feature *feature,
+ 			     int label_size)
+ {
++	float val;
+ 	int need_space = 0;
+ 	const sensors_subfeature *sf, *sfmin, *sfmax, *sfint;
+ 	char *label;
+@@ -419,9 +449,11 @@
+ 
+ 	sf = sensors_get_subfeature(name, feature,
+ 				    SENSORS_SUBFEATURE_POWER_AVERAGE);
+-	if (sf)
+-		printf("%6.2f W", get_value(name, sf));
+-	else
++	if (sf) {
++		val = get_value(name, sf);
++		scale_value(power_scales, &val, &label);
++		printf("%6.2f %s", val, label);
++	} else
+ 		printf("     N/A");
+ 
+ 	sfmin = sensors_get_subfeature(name, feature,
+@@ -434,13 +466,17 @@
+ 		printf("  (");
+ 
+ 		if (sfmin) {
+-			printf("min = %6.2f W", get_value(name, sfmin));
++			val = get_value(name, sfmin);
++			scale_value(power_scales, &val, &label);
++			printf("min = %6.2f %s", val, label);
+ 			need_space = 1;
+ 		}
+ 
+ 		if (sfmax) {
+-			printf("%smax = %6.2f W", (need_space ? ", " : ""),
+-			       get_value(name, sfmax));
++			val = get_value(name, sfmax);
++			scale_value(power_scales, &val, &label);
++			printf("%smax = %6.2f %s", (need_space ? ", " : ""),
++			       val, label);
+ 			need_space = 1;
+ 		}
+ 
+@@ -455,10 +491,20 @@
+ 	printf("\n");
+ }
+ 
++struct scale_table energy_scales[] = {
++	{1e3,  "uJ"},
++	{1e6,  "mJ"},
++	{1e9,   "J"},
++	{1e12, "KJ"},
++	{1e15, "MJ"},
++	{0,    "GJ"},
++};
++
+ static void print_chip_energy(const sensors_chip_name *name,
+ 			      const sensors_feature *feature,
+ 			      int label_size)
+ {
++	float val;
+ 	const sensors_subfeature *sf;
+ 	char *label;
+ 
+@@ -472,9 +518,11 @@
+ 
+ 	sf = sensors_get_subfeature(name, feature,
+ 				    SENSORS_SUBFEATURE_ENERGY_INPUT);
+-	if (sf)
+-		printf("%6.2f J", get_value(name, sf));
+-	else
++	if (sf) {
++		val = get_value(name, sf);
++		scale_value(energy_scales, &val, &label);
++		printf("%6.2f %s", val, label);
++	} else
+ 		printf("     N/A");
+ 
+ 	printf("\n");
 
 _______________________________________________
 lm-sensors mailing list
