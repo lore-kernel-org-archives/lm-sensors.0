@@ -1,84 +1,119 @@
-From: Len Brown <lenb@kernel.org>
-Date: Tue, 18 Mar 2008 05:31:30 +0000
-Subject: [lm-sensors] [PATCH] Re: Dependency chain of new thermal driver
-Message-Id: <200803180131.30662.lenb@kernel.org>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Mon, 31 Mar 2008 23:53:02 +0000
+Subject: [lm-sensors] [PATCH 3/4 v2] sensors: Print energy and power meters
+Message-Id: <20080331235302.GG7191@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080316155659.7ab2446d@hyperion.delvare>
-In-Reply-To: <20080316155659.7ab2446d@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, LM Sensors <lm-sensors@lm-sensors.org>, linux-acpi@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Sunday 16 March 2008, Jean Delvare wrote:
-> Hi Rui,
-> 
-> I am testing your new thermal driver and I am not very happy with the
-> dependencies introduced by this driver. The ACPI thermal driver selects
-> the generic thermal driver, which in turn selects the hwmon base
-> module. As the generic thermal driver's configuration option is a
-> boolean, this means that as soon as one selects the ACPI thermal driver
-> (built-in or modular), the hwmon thermal driver has to be built into
-> the kernel. This is a problem especially when both the ACPI_THERMAL and
-> THERMAL options default to y.
-> 
-> I fail to see why we are using select at all. The ACPI thermal driver
-> clearly works without the generic thermal driver (even though the
-> generic interface is preferred now.) Likewise, the generic thermal
-> interface driver doesn't need the hwmon base module to work; the hwmon
-> interface is only an extension, so it should be possible to build the
-> generic thermal driver without hwmon support. On top of that, I really
-> would like to be able to build the generic thermal driver as a module.
-> 
-> One of the reasons why I would like this to change is this bug:
-> https://bugzilla.redhat.com/show_bug.cgi?idC7637
-> http://bugzilla.kernel.org/show_bug.cgi?id259
-> (At the moment I think both reports are the exact same bug.)
-> 
-> We will have to fix this bug of course (not sure how...) but the fact
-> that the users can't temporarily remove the generic thermal driver is a
-> problem both for bug investigation and for working around the bug until
-> it's fixed. I really would like to be able to tell the user "rmmod this
-> module until we come up with a fix", but right now I can't.
-> 
-> A more modular setup would give us much more flexibility both at build
-> time and when bugs are reported. Please think about it.
-> 
+Display power and energy meters in sensors.
 
-You are absolutely right -- this is gone from 2.6.25,
-lets get it right in 2.6.26.
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 
-BTW. speaking of 2.6.26....
-the patch below might become helpful.  For it would
-be nice if at build-time we could just have hwmon_device_register()
-fail, rather than put a bunch of #ifdef HWMON in our code.
-
-thanks,
--Len
-
-Signed-off-by: Len Brown <len.brown@intel.com>
-
-diff --git a/include/linux/hwmon.h b/include/linux/hwmon.h
-index 6b6ee70..68968cc 100644
---- a/include/linux/hwmon.h
-+++ b/include/linux/hwmon.h
-@@ -16,9 +16,13 @@
+Index: lm-sensors-3.0.0/prog/sensors/chips.c
+=================================--- lm-sensors-3.0.0.orig/prog/sensors/chips.c	2008-03-31 16:05:53.000000000 -0700
++++ lm-sensors-3.0.0/prog/sensors/chips.c	2008-03-31 16:06:09.000000000 -0700
+@@ -401,6 +401,85 @@
+ 	printf("\n");
+ }
  
- #include <linux/device.h>
- 
-+#ifdef CONFIG_HWMON
- struct device *hwmon_device_register(struct device *dev);
--
- void hwmon_device_unregister(struct device *dev);
-+#else
-+static struct device *hwmon_device_register(struct device *dev) { return ERR_PTR(-ENODEV); };
-+static void hwmon_device_unregister(struct device *dev) { return; };
-+#endif
- 
- /* Scale user input to sensible values */
- static inline int SENSORS_LIMIT(long value, long low, long high)
-
++static void print_chip_power(const sensors_chip_name *name,
++			     const sensors_feature *feature,
++			     int label_size)
++{
++	int need_space = 0;
++	const sensors_subfeature *sf, *sfmin, *sfmax, *sfint;
++	char *label;
++
++	if (!(label = sensors_get_label(name, feature))) {
++		fprintf(stderr, "ERROR: Can't get label of feature %s!\n",
++			feature->name);
++		return;
++	}
++	print_label(label, label_size);
++	free(label);
++
++	sf = sensors_get_subfeature(name, feature,
++				    SENSORS_SUBFEATURE_POWER_AVERAGE);
++	if (sf)
++		printf("%6.2f W", get_value(name, sf));
++	else
++		printf("     N/A");
++
++	sfmin = sensors_get_subfeature(name, feature,
++				      SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST);
++	sfmax = sensors_get_subfeature(name, feature,
++				       SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST);
++	sfint = sensors_get_subfeature(name, feature,
++				     SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL);
++	if (sfmin || sfmax || sfint) {
++		printf("  (");
++
++		if (sfmin) {
++			printf("min = %6.2f W", get_value(name, sfmin));
++			need_space = 1;
++		}
++
++		if (sfmax) {
++			printf("%smax = %6.2f W", (need_space ? ", " : ""),
++			       get_value(name, sfmax));
++			need_space = 1;
++		}
++
++		if (sfint) {
++			printf("%sinterval = %6.2f s", (need_space ? ", " : ""),
++			       get_value(name, sfint));
++			need_space = 1;
++		}
++		printf(")");
++	}
++
++	printf("\n");
++}
++
++static void print_chip_energy(const sensors_chip_name *name,
++			      const sensors_feature *feature,
++			      int label_size)
++{
++	const sensors_subfeature *sf;
++	char *label;
++
++	if (!(label = sensors_get_label(name, feature))) {
++		fprintf(stderr, "ERROR: Can't get label of feature %s!\n",
++			feature->name);
++		return;
++	}
++	print_label(label, label_size);
++	free(label);
++
++	sf = sensors_get_subfeature(name, feature,
++				    SENSORS_SUBFEATURE_ENERGY_INPUT);
++	if (sf)
++		printf("%6.2f J", get_value(name, sf));
++	else
++		printf("     N/A");
++
++	printf("\n");
++}
++
+ static void print_chip_vid(const sensors_chip_name *name,
+ 			   const sensors_feature *feature,
+ 			   int label_size)
+@@ -468,6 +547,12 @@
+ 		case SENSORS_FEATURE_BEEP_ENABLE:
+ 			print_chip_beep_enable(name, feature, label_size);
+ 			break;
++		case SENSORS_FEATURE_POWER:
++			print_chip_power(name, feature, label_size);
++			break;
++		case SENSORS_FEATURE_ENERGY:
++			print_chip_energy(name, feature, label_size);
++			break;
+ 		default:
+ 			continue;
+ 		}
 
 _______________________________________________
 lm-sensors mailing list
