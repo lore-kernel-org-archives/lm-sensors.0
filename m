@@ -1,209 +1,107 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 12 Apr 2008 18:04:26 +0000
-Subject: [lm-sensors] [PATCH 08/10] hwmon: (lm85) Implement the standard PWM
-Message-Id: <20080412200426.6c56eb5c@hyperion.delvare>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Tue, 01 Apr 2008 03:25:46 +0000
+Subject: [lm-sensors] [GIT PATCH] hwmon update against v2.6.25-rc7
+Message-Id: <20080401032546.GF27659@mars.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Implement the standard PWM frequency interface: pwm[1-*]_freq in
-units of 1 Hz, instead of the non-standard pwm[1-*]_auto_pwm_freq
-in units of 0.1 Hz. The old naming was not only non-standard, it was
-also confusing, because it suggested that the frequency value only
-applied in automatic fan speed mode, which isn't true.
+Hi Linus:
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
-Note: this patch looks much bigger than it really is, because it moves
-around and renames a lot of code to make the result more consistent.
+Please pull from:
+	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git release
 
- Documentation/hwmon/lm85 |   10 -----
- drivers/hwmon/lm85.c     |   78 +++++++++++++++++++++++-----------------------
- 2 files changed, 39 insertions(+), 49 deletions(-)
+You'll get one patch (attached) which fixes a regression in w83781d
+http://bugzilla.kernel.org/show_bug.cgi?id357
 
---- linux-2.6.25-rc8.orig/drivers/hwmon/lm85.c	2008-04-04 15:50:53.000000000 +0200
-+++ linux-2.6.25-rc8/drivers/hwmon/lm85.c	2008-04-04 15:50:54.000000000 +0200
-@@ -192,8 +192,8 @@ static int RANGE_TO_REG(int range)
- #define RANGE_FROM_REG(val)	lm85_range_map[(val) & 0x0f]
+Thanks & regards,
+
+commit 2961cb22ef02850d90e7a12c28a14d74e327df8d
+Author: Jean Delvare <khali@linux-fr.org>
+Date:   Sun Mar 9 13:34:28 2008 +0100
+
+    hwmon: (w83781d) Fix I/O resource conflict with PNP
+    
+    Only request I/O ports 0x295-0x296 instead of the full I/O address
+    range. This solves a conflict with PNP resources on a few motherboards.
+    
+    Also request the I/O ports in two parts (4 low ports, 4 high ports)
+    during device detection, otherwise the PNP resource makes the request
+    (and thus the detection) fail.
+    
+    This fixes lm-sensors ticket #2306:
+    http://www.lm-sensors.org/ticket/2306
+    
+    Signed-off-by: Jean Delvare <khali@linux-fr.org>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+
+diff --git a/drivers/hwmon/w83781d.c b/drivers/hwmon/w83781d.c
+index 5c85670..f942ecd 100644
+--- a/drivers/hwmon/w83781d.c
++++ b/drivers/hwmon/w83781d.c
+@@ -1367,7 +1367,8 @@ w83781d_isa_probe(struct platform_device *pdev)
  
- /* These are the PWM frequency encodings */
--static const int lm85_freq_map[] = { /* .1 Hz */
--	100, 150, 230, 300, 380, 470, 620, 940
-+static const int lm85_freq_map[8] = { /* 1 Hz */
-+	10, 15, 23, 30, 38, 47, 62, 94
- };
+ 	/* Reserve the ISA region */
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	if (!request_region(res->start, W83781D_EXTENT, "w83781d")) {
++	if (!request_region(res->start + W83781D_ADDR_REG_OFFSET, 2,
++			    "w83781d")) {
+ 		err = -EBUSY;
+ 		goto exit;
+ 	}
+@@ -1415,7 +1416,7 @@ w83781d_isa_probe(struct platform_device *pdev)
+ 	device_remove_file(&pdev->dev, &dev_attr_name);
+ 	kfree(data);
+  exit_release_region:
+-	release_region(res->start, W83781D_EXTENT);
++	release_region(res->start + W83781D_ADDR_REG_OFFSET, 2);
+  exit:
+ 	return err;
+ }
+@@ -1429,7 +1430,7 @@ w83781d_isa_remove(struct platform_device *pdev)
+ 	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group);
+ 	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group_opt);
+ 	device_remove_file(&pdev->dev, &dev_attr_name);
+-	release_region(data->client.addr, W83781D_EXTENT);
++	release_region(data->client.addr + W83781D_ADDR_REG_OFFSET, 2);
+ 	kfree(data);
  
- static int FREQ_TO_REG(int freq)
-@@ -276,7 +276,6 @@ struct lm85_zone {
+ 	return 0;
+@@ -1797,8 +1798,17 @@ w83781d_isa_found(unsigned short address)
+ {
+ 	int val, save, found = 0;
  
- struct lm85_autofan {
- 	u8 config;	/* Register value */
--	u8 freq;	/* PWM frequency, encoded */
- 	u8 min_pwm;	/* Minimum PWM value, encoded */
- 	u8 min_off;	/* Min PWM or OFF below "limit", flag */
- };
-@@ -302,6 +301,7 @@ struct lm85_data {
- 	u16 fan[4];		/* Register value */
- 	u16 fan_min[4];		/* Register value */
- 	u8 pwm[3];		/* Register value */
-+	u8 pwm_freq[3];		/* Register encoding */
- 	u8 temp_ext[3];		/* Decoded values */
- 	u8 in_ext[8];		/* Decoded values */
- 	u8 vid;			/* Register value */
-@@ -529,11 +529,39 @@ static ssize_t set_pwm_enable(struct dev
- 	return count;
+-	if (!request_region(address, W83781D_EXTENT, "w83781d"))
++	/* We have to request the region in two parts because some
++	   boards declare base+4 to base+7 as a PNP device */
++	if (!request_region(address, 4, "w83781d")) {
++		pr_debug("w83781d: Failed to request low part of region\n");
+ 		return 0;
++	}
++	if (!request_region(address + 4, 4, "w83781d")) {
++		pr_debug("w83781d: Failed to request high part of region\n");
++		release_region(address, 4);
++		return 0;
++	}
+ 
+ #define REALLY_SLOW_IO
+ 	/* We need the timeouts for at least some W83781D-like
+@@ -1871,7 +1881,8 @@ w83781d_isa_found(unsigned short address)
+ 			val = 0x30 ? "W83782D" : "W83781D", (int)address);
+ 
+  release:
+-	release_region(address, W83781D_EXTENT);
++	release_region(address + 4, 4);
++	release_region(address, 4);
+ 	return found;
  }
  
-+static ssize_t show_pwm_freq(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct lm85_data *data = lm85_update_device(dev);
-+	return sprintf(buf, "%d\n", FREQ_FROM_REG(data->pwm_freq[nr]));
-+}
-+
-+static ssize_t set_pwm_freq(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct lm85_data *data = i2c_get_clientdata(client);
-+	long val = simple_strtol(buf, NULL, 10);
-+
-+	mutex_lock(&data->update_lock);
-+	data->pwm_freq[nr] = FREQ_TO_REG(val);
-+	lm85_write_value(client, LM85_REG_AFAN_RANGE(nr),
-+		(data->zone[nr].range << 4)
-+		| data->pwm_freq[nr]);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
-+
- #define show_pwm_reg(offset)						\
- static SENSOR_DEVICE_ATTR(pwm##offset, S_IRUGO | S_IWUSR,		\
- 		show_pwm, set_pwm, offset - 1);				\
- static SENSOR_DEVICE_ATTR(pwm##offset##_enable, S_IRUGO | S_IWUSR,	\
--		show_pwm_enable, set_pwm_enable, offset - 1)
-+		show_pwm_enable, set_pwm_enable, offset - 1);		\
-+static SENSOR_DEVICE_ATTR(pwm##offset##_freq, S_IRUGO | S_IWUSR,	\
-+		show_pwm_freq, set_pwm_freq, offset - 1)
-+
- 
- show_pwm_reg(1);
- show_pwm_reg(2);
-@@ -762,31 +790,6 @@ static ssize_t set_pwm_auto_pwm_minctl(s
- 	return count;
- }
- 
--static ssize_t show_pwm_auto_pwm_freq(struct device *dev,
--		struct device_attribute *attr, char *buf)
--{
--	int nr = to_sensor_dev_attr(attr)->index;
--	struct lm85_data *data = lm85_update_device(dev);
--	return sprintf(buf, "%d\n", FREQ_FROM_REG(data->autofan[nr].freq));
--}
--
--static ssize_t set_pwm_auto_pwm_freq(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t count)
--{
--	int nr = to_sensor_dev_attr(attr)->index;
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm85_data *data = i2c_get_clientdata(client);
--	long val = simple_strtol(buf, NULL, 10);
--
--	mutex_lock(&data->update_lock);
--	data->autofan[nr].freq = FREQ_TO_REG(val);
--	lm85_write_value(client, LM85_REG_AFAN_RANGE(nr),
--		(data->zone[nr].range << 4)
--		| data->autofan[nr].freq);
--	mutex_unlock(&data->update_lock);
--	return count;
--}
--
- #define pwm_auto(offset)						\
- static SENSOR_DEVICE_ATTR(pwm##offset##_auto_channels,			\
- 		S_IRUGO | S_IWUSR, show_pwm_auto_channels,		\
-@@ -796,10 +799,7 @@ static SENSOR_DEVICE_ATTR(pwm##offset##_
- 		set_pwm_auto_pwm_min, offset - 1);			\
- static SENSOR_DEVICE_ATTR(pwm##offset##_auto_pwm_minctl,		\
- 		S_IRUGO | S_IWUSR, show_pwm_auto_pwm_minctl,		\
--		set_pwm_auto_pwm_minctl, offset - 1);			\
--static SENSOR_DEVICE_ATTR(pwm##offset##_auto_pwm_freq,			\
--		S_IRUGO | S_IWUSR, show_pwm_auto_pwm_freq,		\
--		set_pwm_auto_pwm_freq, offset - 1);
-+		set_pwm_auto_pwm_minctl, offset - 1)
- 
- pwm_auto(1);
- pwm_auto(2);
-@@ -868,7 +868,7 @@ static ssize_t set_temp_auto_temp_min(st
- 		TEMP_FROM_REG(data->zone[nr].limit));
- 	lm85_write_value(client, LM85_REG_AFAN_RANGE(nr),
- 		((data->zone[nr].range & 0x0f) << 4)
--		| (data->autofan[nr].freq & 0x07));
-+		| (data->pwm_freq[nr] & 0x07));
- 
- /* Update temp_auto_hyst and temp_auto_off */
- 	data->zone[nr].hyst = HYST_TO_REG(TEMP_FROM_REG(
-@@ -911,7 +911,7 @@ static ssize_t set_temp_auto_temp_max(st
- 		val - min);
- 	lm85_write_value(client, LM85_REG_AFAN_RANGE(nr),
- 		((data->zone[nr].range & 0x0f) << 4)
--		| (data->autofan[nr].freq & 0x07));
-+		| (data->pwm_freq[nr] & 0x07));
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
-@@ -985,6 +985,9 @@ static struct attribute *lm85_attributes
- 	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
- 	&sensor_dev_attr_pwm2_enable.dev_attr.attr,
- 	&sensor_dev_attr_pwm3_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm1_freq.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_freq.dev_attr.attr,
-+	&sensor_dev_attr_pwm3_freq.dev_attr.attr,
- 
- 	&sensor_dev_attr_in0_input.dev_attr.attr,
- 	&sensor_dev_attr_in1_input.dev_attr.attr,
-@@ -1027,9 +1030,6 @@ static struct attribute *lm85_attributes
- 	&sensor_dev_attr_pwm1_auto_pwm_minctl.dev_attr.attr,
- 	&sensor_dev_attr_pwm2_auto_pwm_minctl.dev_attr.attr,
- 	&sensor_dev_attr_pwm3_auto_pwm_minctl.dev_attr.attr,
--	&sensor_dev_attr_pwm1_auto_pwm_freq.dev_attr.attr,
--	&sensor_dev_attr_pwm2_auto_pwm_freq.dev_attr.attr,
--	&sensor_dev_attr_pwm3_auto_pwm_freq.dev_attr.attr,
- 
- 	&sensor_dev_attr_temp1_auto_temp_off.dev_attr.attr,
- 	&sensor_dev_attr_temp2_auto_temp_off.dev_attr.attr,
-@@ -1460,7 +1460,7 @@ static struct lm85_data *lm85_update_dev
- 			data->autofan[i].config  			    lm85_read_value(client, LM85_REG_AFAN_CONFIG(i));
- 			val = lm85_read_value(client, LM85_REG_AFAN_RANGE(i));
--			data->autofan[i].freq = val & 0x07;
-+			data->pwm_freq[i] = val & 0x07;
- 			data->zone[i].range = val >> 4;
- 			data->autofan[i].min_pwm  			    lm85_read_value(client, LM85_REG_AFAN_MINPWM(i));
---- linux-2.6.25-rc8.orig/Documentation/hwmon/lm85	2008-04-04 15:46:40.000000000 +0200
-+++ linux-2.6.25-rc8/Documentation/hwmon/lm85	2008-04-04 15:50:54.000000000 +0200
-@@ -163,16 +163,6 @@ configured individually according to the
- * pwm#_auto_pwm_min - this specifies the PWM value for temp#_auto_temp_off
-                       temperature. (PWM value from 0 to 255)
- 
--* pwm#_auto_pwm_freq - select base frequency of PWM output. You can select
--                       in range of 10.0 to 94.0 Hz in .1 Hz units.
--		       (Values 100 to 940).
--
--The pwm#_auto_pwm_freq can be set to one of the following 8 values. Setting the
--frequency to a value not on this list, will result in the next higher frequency
--being selected. The actual device frequency may vary slightly from this
--specification as designed by the manufacturer. Consult the datasheet for more
--details. (PWM Frequency values:  100, 150, 230, 300, 380, 470, 620, 940)
--
- * pwm#_auto_pwm_minctl - this flags selects for temp#_auto_temp_off temperature
-                          the bahaviour of fans. Write 1 to let fans spinning at
- 			 pwm#_auto_pwm_min or write 0 to let them off.
-
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
