@@ -1,168 +1,194 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 12 Apr 2008 18:03:40 +0000
-Subject: [lm-sensors] [PATCH 07/10] hwmon: (lm85) Rework the device detection
-Message-Id: <20080412200340.54b47ea6@hyperion.delvare>
+Date: Wed, 02 Apr 2008 12:27:09 +0000
+Subject: Re: [lm-sensors] [PATCH 2/4 v2] libsensors: Support energy and
+Message-Id: <20080402142709.49a0f304@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rework the device detection to make it clearer and faster in the
-general case (when a known device is found.)
+Hi Darrick,
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/lm85.c |  120 ++++++++++++++++++++------------------------------
- 1 file changed, 50 insertions(+), 70 deletions(-)
+On Mon, 31 Mar 2008 16:51:57 -0700, Darrick J. Wong wrote:
+> Add power and sensor meters to libsensors.
+> 
+> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+> 
 
---- linux-2.6.25-rc8.orig/drivers/hwmon/lm85.c	2008-04-03 16:06:27.000000000 +0200
-+++ linux-2.6.25-rc8/drivers/hwmon/lm85.c	2008-04-03 16:29:06.000000000 +0200
-@@ -1107,7 +1107,6 @@ static void lm85_init_client(struct i2c_
- static int lm85_detect(struct i2c_adapter *adapter, int address,
- 		int kind)
- {
--	int company, verstep;
- 	struct i2c_client *client;
- 	struct lm85_data *data;
- 	int err = 0;
-@@ -1118,10 +1117,6 @@ static int lm85_detect(struct i2c_adapte
- 		goto ERROR0;
- 	}
- 
--	/* OK. For now, we presume we have a valid client. We now create the
--	   client structure, even though we cannot fill it completely yet.
--	   But it allows us to access lm85_{read,write}_value. */
--
- 	if (!(data = kzalloc(sizeof(struct lm85_data), GFP_KERNEL))) {
- 		err = -ENOMEM;
- 		goto ERROR0;
-@@ -1133,75 +1128,60 @@ static int lm85_detect(struct i2c_adapte
- 	client->adapter = adapter;
- 	client->driver = &lm85_driver;
- 
--	/* Now, we do the remaining detection. */
--
--	company = lm85_read_value(client, LM85_REG_COMPANY);
--	verstep = lm85_read_value(client, LM85_REG_VERSTEP);
-+	/* If auto-detecting, determine the chip type */
-+	if (kind <= 0) {
-+		int company = lm85_read_value(client, LM85_REG_COMPANY);
-+		int verstep = lm85_read_value(client, LM85_REG_VERSTEP);
- 
--	dev_dbg(&adapter->dev, "Detecting device at %d,0x%02x with"
--		" COMPANY: 0x%02x and VERSTEP: 0x%02x\n",
--		i2c_adapter_id(client->adapter), client->addr,
--		company, verstep);
-+		dev_dbg(&adapter->dev, "Detecting device at 0x%02x with "
-+			"COMPANY: 0x%02x and VERSTEP: 0x%02x\n",
-+			address, company, verstep);
-+
-+		if (company = LM85_COMPANY_NATIONAL) {
-+			switch (verstep) {
-+			case LM85_VERSTEP_LM85C:
-+				kind = lm85c;
-+				break;
-+			case LM85_VERSTEP_LM85B:
-+				kind = lm85b;
-+				break;
-+			}
-+		} else if (company = LM85_COMPANY_ANALOG_DEV) {
-+			switch (verstep) {
-+			case LM85_VERSTEP_ADM1027:
-+				kind = adm1027;
-+				break;
-+			case LM85_VERSTEP_ADT7463:
-+			case LM85_VERSTEP_ADT7463C:
-+				kind = adt7463;
-+				break;
-+			}
-+		} else if (company = LM85_COMPANY_SMSC) {
-+			switch (verstep) {
-+			case LM85_VERSTEP_EMC6D100_A0:
-+			case LM85_VERSTEP_EMC6D100_A1:
-+				/* Note: we can't tell a '100 from a '101 */
-+				kind = emc6d100;
-+				break;
-+			case LM85_VERSTEP_EMC6D102:
-+				kind = emc6d102;
-+				break;
-+			}
-+		}
- 
--	/* If auto-detecting, Determine the chip type. */
--	if (kind <= 0) {
--		dev_dbg(&adapter->dev, "Autodetecting device at %d,0x%02x ...\n",
--			i2c_adapter_id(adapter), address);
--		if (company = LM85_COMPANY_NATIONAL
--		    && verstep = LM85_VERSTEP_LM85C) {
--			kind = lm85c;
--		} else if (company = LM85_COMPANY_NATIONAL
--		    && verstep = LM85_VERSTEP_LM85B) {
--			kind = lm85b;
--		} else if (company = LM85_COMPANY_NATIONAL
--		    && (verstep & LM85_VERSTEP_VMASK) = LM85_VERSTEP_GENERIC) {
--			dev_err(&adapter->dev, "Unrecognized version/stepping 0x%02x"
--				" Defaulting to LM85.\n", verstep);
--			kind = any_chip;
--		} else if (company = LM85_COMPANY_ANALOG_DEV
--		    && verstep = LM85_VERSTEP_ADM1027) {
--			kind = adm1027;
--		} else if (company = LM85_COMPANY_ANALOG_DEV
--		    && (verstep = LM85_VERSTEP_ADT7463
--			 || verstep = LM85_VERSTEP_ADT7463C)) {
--			kind = adt7463;
--		} else if (company = LM85_COMPANY_ANALOG_DEV
--		    && (verstep & LM85_VERSTEP_VMASK) = LM85_VERSTEP_GENERIC) {
--			dev_err(&adapter->dev, "Unrecognized version/stepping 0x%02x"
--				" Defaulting to Generic LM85.\n", verstep);
--			kind = any_chip;
--		} else if (company = LM85_COMPANY_SMSC
--		    && (verstep = LM85_VERSTEP_EMC6D100_A0
--			 || verstep = LM85_VERSTEP_EMC6D100_A1)) {
--			/* Unfortunately, we can't tell a '100 from a '101
--			 * from the registers.  Since a '101 is a '100
--			 * in a package with fewer pins and therefore no
--			 * 3.3V, 1.5V or 1.8V inputs, perhaps if those
--			 * inputs read 0, then it's a '101.
--			 */
--			kind = emc6d100;
--		} else if (company = LM85_COMPANY_SMSC
--		    && verstep = LM85_VERSTEP_EMC6D102) {
--			kind = emc6d102;
--		} else if (company = LM85_COMPANY_SMSC
--		    && (verstep & LM85_VERSTEP_VMASK) = LM85_VERSTEP_GENERIC) {
--			dev_err(&adapter->dev, "lm85: Detected SMSC chip\n");
--			dev_err(&adapter->dev, "lm85: Unrecognized version/stepping 0x%02x"
--			    " Defaulting to Generic LM85.\n", verstep);
-+		/* Not a known device, but maybe compatible */
-+		if (kind <= 0
-+		 && (company = LM85_COMPANY_NATIONAL
-+		  || company = LM85_COMPANY_ANALOG_DEV
-+		  || company = LM85_COMPANY_SMSC)
-+		 && (verstep & LM85_VERSTEP_VMASK) = LM85_VERSTEP_GENERIC) {
-+			dev_info(&adapter->dev, "LM85-compatible device "
-+				 "detected at 0x%02x\n", address);
- 			kind = any_chip;
--		} else if (kind = any_chip
--		    && (verstep & LM85_VERSTEP_VMASK) = LM85_VERSTEP_GENERIC) {
--			dev_err(&adapter->dev, "Generic LM85 Version 6 detected\n");
--			/* Leave kind as "any_chip" */
--		} else {
-+		}
-+
-+		if (kind < 0) {
- 			dev_dbg(&adapter->dev, "Autodetection failed\n");
--			/* Not an LM85... */
--			if (kind = any_chip) {  /* User used force=x,y */
--				dev_err(&adapter->dev, "Generic LM85 Version 6 not"
--					" found at %d,0x%02x. Try force_lm85c.\n",
--					i2c_adapter_id(adapter), address);
--			}
--			err = 0;
- 			goto ERROR1;
- 		}
- 	}
+Better but not yet perfect:
+
+> Index: lm-sensors-3.0.0/lib/sensors.h
+> =================================> --- lm-sensors-3.0.0.orig/lib/sensors.h	2008-03-31 16:07:49.000000000 -0700
+> +++ lm-sensors-3.0.0/lib/sensors.h	2008-03-31 16:08:52.000000000 -0700
+> @@ -131,6 +131,8 @@
+>  	SENSORS_FEATURE_IN		= 0x00,
+>  	SENSORS_FEATURE_FAN		= 0x01,
+>  	SENSORS_FEATURE_TEMP		= 0x02,
+> +	SENSORS_FEATURE_POWER		= 0x03,
+> +	SENSORS_FEATURE_ENERGY		= 0x04,
+>  	SENSORS_FEATURE_VID		= 0x10,
+>  	SENSORS_FEATURE_BEEP_ENABLE	= 0x18,
+>  	SENSORS_FEATURE_UNKNOWN		= INT_MAX,
+> @@ -169,6 +171,14 @@
+>  	SENSORS_SUBFEATURE_TEMP_OFFSET,
+>  	SENSORS_SUBFEATURE_TEMP_BEEP,
+>  
+> +	SENSORS_SUBFEATURE_POWER_AVERAGE = SENSORS_FEATURE_POWER << 8,
+> +	SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST,
+> +	SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST,
+> +
+> +	SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL = (SENSORS_FEATURE_POWER << 8) | 0x80,
+> +
+> +	SENSORS_SUBFEATURE_ENERGY_INPUT = SENSORS_FEATURE_ENERGY << 8,
+> +
+>  	SENSORS_SUBFEATURE_VID = SENSORS_FEATURE_VID << 8,
+>  
+>  	SENSORS_SUBFEATURE_BEEP_ENABLE = SENSORS_FEATURE_BEEP_ENABLE << 8,
+> Index: lm-sensors-3.0.0/lib/sysfs.c
+> =================================> --- lm-sensors-3.0.0.orig/lib/sysfs.c	2008-03-31 16:08:14.000000000 -0700
+> +++ lm-sensors-3.0.0/lib/sysfs.c	2008-03-31 16:08:52.000000000 -0700
+> @@ -138,11 +138,13 @@
+>  
+>  #define MAX_SENSORS_PER_TYPE	20
+>  #define MAX_SUBFEATURES		8
+> -/* Room for all 3 types (in, fan, temp) with all their subfeatures + VID
+> -   + misc features */
+> +#define MAX_SENSOR_TYPES	5
+> +/* Room for all 5 types (in, fan, temp, power, energy) with all their
+> +   subfeatures + VID misc features */
+
+Missing "+" between "VID" and "misc features".
+
+>  #define ALL_POSSIBLE_SUBFEATURES \
+> -				(MAX_SENSORS_PER_TYPE * MAX_SUBFEATURES * 6 \
+> -				 + MAX_SENSORS_PER_TYPE + 1)
+> +				(MAX_SENSORS_PER_TYPE * MAX_SUBFEATURES * \
+> +				 MAX_SENSOR_TYPES * 2 + \
+> +				 MAX_SENSORS_PER_TYPE + 1)
+>  
+>  static
+>  int get_type_scaling(sensors_subfeature_type type)
+> @@ -153,6 +155,12 @@
+>  		return 1000;
+>  	case SENSORS_SUBFEATURE_FAN_INPUT:
+>  		return 1;
+> +	case SENSORS_SUBFEATURE_POWER_AVERAGE:
+> +		return 1000000;
+> +	case SENSORS_SUBFEATURE_ENERGY_INPUT:
+> +		return 1000000;
+
+Note that you could use a fall-through construct for these, as they
+need the same scaling factor.
+
+> +	case SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL:
+> +		return 1000;
+
+This happens to work because SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL
+is the only second-class subfeature of SENSORS_FEATURE_POWER. This
+would break in the future if we add a second second-class subfeature
+which needs a different scaling factor.
+
+The right way to do it is to handle
+SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL in the second switch block,
+right below. Again I have to admit that this isn't properly documented.
+
+>  	}
+>  
+>  	switch (type) {
+> @@ -173,6 +181,8 @@
+>  	case SENSORS_FEATURE_IN:
+>  	case SENSORS_FEATURE_FAN:
+>  	case SENSORS_FEATURE_TEMP:
+> +	case SENSORS_FEATURE_POWER:
+> +	case SENSORS_FEATURE_ENERGY:
+>  		underscore = strchr(sfname, '_');
+>  		name = strndup(sfname, underscore - sfname);
+>  		break;
+> @@ -232,6 +242,19 @@
+>  	{ NULL, 0 }
+>  };
+>  
+> +static const struct subfeature_type_match power_matches[] = {
+> +	{ "average", SENSORS_SUBFEATURE_POWER_AVERAGE },
+> +	{ "average_highest", SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST },
+> +	{ "average_lowest", SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST },
+> +	{ "average_interval", SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL },
+> +	{ NULL, 0 }
+> +};
+> +
+> +static const struct subfeature_type_match energy_matches[] = {
+> +	{ "input", SENSORS_SUBFEATURE_ENERGY_INPUT },
+> +	{ NULL, 0 }
+> +};
+> +
+>  static const struct subfeature_type_match cpu_matches[] = {
+>  	{ "vid", SENSORS_SUBFEATURE_VID },
+>  	{ NULL, 0 }
+> @@ -242,6 +265,8 @@
+>  	{ "in%d%c", in_matches },
+>  	{ "fan%d%c", fan_matches },
+>  	{ "cpu%d%c", cpu_matches },
+> +	{ "power%d%c", power_matches },
+> +	{ "energy%d%c", energy_matches },
+>  };
+>  
+>  /* Return the subfeature type and channel number based on the subfeature
+> @@ -327,10 +352,12 @@
+>  
+>  		/* Adjust the channel number */
+>  		switch (sftype & 0xFF00) {
+> -			case SENSORS_SUBFEATURE_FAN_INPUT:
+> -			case SENSORS_SUBFEATURE_TEMP_INPUT:
+> -				nr--;
+> -				break;
+> +		case SENSORS_SUBFEATURE_FAN_INPUT:
+> +		case SENSORS_SUBFEATURE_TEMP_INPUT:
+> +		case SENSORS_SUBFEATURE_POWER_AVERAGE:
+> +		case SENSORS_SUBFEATURE_ENERGY_INPUT:
+> +			nr--;
+> +			break;
+>  		}
+>  
+>  		if (nr < 0 || nr >= MAX_SENSORS_PER_TYPE) {
+> @@ -347,11 +374,12 @@
+>  		   sorted table */
+>  		switch (sftype) {
+>  		case SENSORS_SUBFEATURE_VID:
+> -			i = nr + MAX_SENSORS_PER_TYPE * MAX_SUBFEATURES * 6;
+> +			i = nr + MAX_SENSORS_PER_TYPE * MAX_SUBFEATURES *
+> +			    MAX_SENSOR_TYPES * 2;
+>  			break;
+>  		case SENSORS_SUBFEATURE_BEEP_ENABLE:
+> -			i = MAX_SENSORS_PER_TYPE * MAX_SUBFEATURES * 6 +
+> -			    MAX_SENSORS_PER_TYPE;
+> +			i = MAX_SENSORS_PER_TYPE * MAX_SUBFEATURES *
+> +			    MAX_SENSOR_TYPES * 2 + MAX_SENSORS_PER_TYPE;
+>  			break;
+>  		default:
+>  			i = (sftype >> 8) * MAX_SENSORS_PER_TYPE *
+> @@ -389,7 +417,8 @@
+>  		if (!all_subfeatures[i].name)
+>  			continue;
+>  
+> -		if (i >= MAX_SENSORS_PER_TYPE * MAX_SUBFEATURES * 6 ||
+> +		if (i >= MAX_SENSORS_PER_TYPE * MAX_SUBFEATURES *
+> +		    MAX_SENSOR_TYPES * 2 ||
+>  		    i / (MAX_SUBFEATURES * 2) != prev_slot) {
+>  			fnum++;
+>  			prev_slot = i / (MAX_SUBFEATURES * 2);
+> @@ -410,7 +439,8 @@
+>  			continue;
+>  
+>  		/* New main feature? */
+> -		if (i >= MAX_SENSORS_PER_TYPE * MAX_SUBFEATURES * 6 ||
+> +		if (i >= MAX_SENSORS_PER_TYPE * MAX_SUBFEATURES *
+> +		    MAX_SENSOR_TYPES * 2 ||
+>  		    i / (MAX_SUBFEATURES * 2) != prev_slot) {
+>  			ftype = all_subfeatures[i].type >> 8;
+>  			fnum++;
+
+The rest looks OK, thanks.
 
 -- 
 Jean Delvare
