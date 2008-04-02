@@ -1,297 +1,254 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 29 Apr 2008 11:53:07 +0000
-Subject: Re: [lm-sensors] [PATCH 02/10] hwmon: (lm85) Coding-style cleanups
-Message-Id: <20080429135307.1e8e2b7c@hyperion.delvare>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Date: Wed, 02 Apr 2008 08:08:13 +0000
+Subject: [lm-sensors] [PATCH 2/3] thermal: add hwmon sys I/F
+Message-Id: <1207123693.27304.6.camel@acpi-hp-zz.sh.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080412195507.4933f6ca@hyperion.delvare>
-In-Reply-To: <20080412195507.4933f6ca@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>, Hans de Goede <j.w.r.degoede@hhs.nl>
 
-Hi Juerg,
 
-Thanks for the review.
+Add hwmon sys I/F for generic thermal driver.
 
-On Mon, 28 Apr 2008 22:03:40 -0700, Juerg Haefliger wrote:
-> >  /* These are the zone temperature range encodings in .001 degree C */
-> > -static int lm85_range_map[] = {   
-> > -		2000,  2500,  3300,  4000,  5000,  6600,
-> > -		8000, 10000, 13300, 16000, 20000, 26600,
-> > -		32000, 40000, 53300, 80000
-> > -	};
-> > -static int RANGE_TO_REG( int range )
-> > +static int lm85_range_map[] = {
-> > +	2000,  2500,  3300,  4000,  5000,  6600,
-> > +	8000, 10000, 13300, 16000, 20000, 26600,
-> > +	32000, 40000, 53300, 80000
-> 
-> Inconsistent alignment. Either use a single space between values on the 
-> 1st line or align to the 3rd line, i.e, move the first two lines to the 
-> right by one space.
+Note: we have one hwmon class device for _EACH_ type of the thermal zone device.
 
-Good catch, I'll go for the first option, and while I'm here, the
-values fit on 2 lines so I'll do that.
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/thermal/thermal.c |  155 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/thermal.h   |   25 +++++++
+ 2 files changed, 180 insertions(+)
 
-> > (...)
-> >  static ssize_t show_in_min(struct device *dev,  struct device_attribute *attr,
-> 
-> Double spaces before struct.
+Index: linux-2.6/drivers/thermal/thermal.c
+=================================--- linux-2.6.orig/drivers/thermal/thermal.c
++++ linux-2.6/drivers/thermal/thermal.c
+@@ -30,6 +30,7 @@
+ #include <linux/idr.h>
+ #include <linux/thermal.h>
+ #include <linux/spinlock.h>
++#include <linux/hwmon.h>
+ 
+ MODULE_AUTHOR("Zhang Rui");
+ MODULE_DESCRIPTION("Generic thermal management sysfs support");
+@@ -291,6 +292,155 @@ thermal_cooling_device_trip_point_show(s
+ 
+ /* Device management */
+ 
++#if defined(CONFIG_HWMON) ||	\
++	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
++/* hwmon sys I/F */
++static LIST_HEAD(thermal_hwmon_list);
++
++static ssize_t
++name_show(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct hwmon_device_instance *hwmon +			container_of(attr, struct hwmon_device_instance, name);
++	return sprintf(buf, "%s\n", hwmon->type);
++}
++
++static ssize_t
++temp_input_show(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct thermal_hwmon_attr *hwmon_attr
++			= container_of(attr, struct thermal_hwmon_attr, attr);
++	struct thermal_zone_device *tz
++			= container_of(hwmon_attr, struct thermal_zone_device,
++				       temp_input);
++
++	return tz->ops->get_temp(tz, buf);
++}
++
++static ssize_t
++temp_crit_show(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	struct thermal_hwmon_attr *hwmon_attr
++			= container_of(attr, struct thermal_hwmon_attr, attr);
++	struct thermal_zone_device *tz
++			= container_of(hwmon_attr, struct thermal_zone_device,
++				       temp_crit);
++
++	return tz->ops->get_trip_temp(tz, 0, buf);
++}
++
++
++static int
++thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
++{
++	struct hwmon_device_instance *hwmon;
++	int result;
++
++	mutex_lock(&thermal_list_lock);
++	list_for_each_entry(hwmon, &thermal_hwmon_list, node)
++		if (!strcmp(hwmon->type, tz->type)) {
++			list_add_tail(&tz->hwmon_node,
++				      &hwmon->tz_list);
++			mutex_unlock(&thermal_list_lock);
++			tz->hwmon = hwmon;
++			goto register_sys_interface;
++		}
++	mutex_unlock(&thermal_list_lock);
++
++	hwmon = kzalloc(sizeof(struct hwmon_device_instance), GFP_KERNEL);
++	if (!hwmon)
++		return -ENOMEM;
++
++	INIT_LIST_HEAD(&hwmon->tz_list);
++	strcpy(hwmon->type, tz->type);
++	hwmon->device = hwmon_device_register(NULL);
++	hwmon->name.attr.name = "name";
++	hwmon->name.attr.mode = 0444;
++	hwmon->name.show = name_show;
++	result = device_create_file(hwmon->device, &hwmon->name);
++	if (result)
++		return result;
++
++
++	mutex_lock(&thermal_list_lock);
++	list_add_tail(&hwmon->node, &thermal_hwmon_list);
++	list_add_tail(&tz->hwmon_node, &hwmon->tz_list);
++	mutex_unlock(&thermal_list_lock);
++
++	tz->hwmon = hwmon;
++
++  register_sys_interface:
++	hwmon->count++;
++
++	sprintf(tz->temp_input.name, "temp%d_input", hwmon->count);
++	tz->temp_input.attr.attr.name = tz->temp_input.name;
++	tz->temp_input.attr.attr.mode = 0444;
++	tz->temp_input.attr.show = temp_input_show;
++	result = device_create_file(hwmon->device, &tz->temp_input.attr);
++	if (result)
++		return result;
++
++	if (tz->trips > 0) {
++		char buf[40];
++		result = tz->ops->get_trip_type(tz, 0, buf);
++		if (result > 0 && !strcmp(buf, "critical\n")) {
++			sprintf(tz->temp_crit.name,
++				"temp%d_crit", hwmon->count);
++			tz->temp_crit.attr.attr.name = tz->temp_crit.name;
++			tz->temp_crit.attr.attr.mode = 0444;
++			tz->temp_crit.attr.show = temp_crit_show;
++			result = device_create_file(hwmon->device,
++						    &tz->temp_crit.attr);
++			if (result)
++				return result;
++		}
++	}
++
++	return 0;
++}
++
++static int
++thermal_remove_hwmon_sysfs(struct thermal_zone_device *tz)
++{
++	struct hwmon_device_instance *hwmon;
++
++	mutex_lock(&thermal_list_lock);
++	list_for_each_entry(hwmon, &thermal_hwmon_list, node) {
++		if (strcmp(hwmon->type, tz->type))
++			continue;
++
++		device_remove_file(hwmon->device, &tz->temp_input.attr);
++		if (!tz->temp_crit.attr.attr.name)
++			device_remove_file(hwmon->device, &tz->temp_crit.attr);
++		list_del(&tz->hwmon_node);
++		if (list_empty(&tz->hwmon->tz_list)) {
++			device_remove_file(tz->hwmon->device, &tz->hwmon->name);
++			hwmon_device_unregister(tz->hwmon->device);
++			list_del(&tz->hwmon->node);
++			mutex_unlock(&thermal_list_lock);
++			return 0;
++		}
++	}
++	mutex_unlock(&thermal_list_lock);
++
++	return -EINVAL;
++}
++#else
++static int
++thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
++{
++	return 0;
++}
++
++static int
++thermal_remove_hwmon_sysfs(struct thermal_zone_device *tz)
++{
++	return 0;
++}
++#endif
++
++
+ /**
+  * thermal_zone_bind_cooling_device - bind a cooling device to a thermal zone
+  * @tz:		thermal zone device
+@@ -638,6 +788,10 @@ struct thermal_zone_device *thermal_zone
+ 			goto unregister;
+ 	}
+ 
++	result = thermal_add_hwmon_sysfs(tz);
++	if (result)
++		goto unregister;
++
+ 	mutex_lock(&thermal_list_lock);
+ 	list_add_tail(&tz->node, &thermal_tz_list);
+ 	if (ops->bind)
+@@ -696,6 +850,7 @@ void thermal_zone_device_unregister(stru
+ 	for (count = 0; count < tz->trips; count++)
+ 		TRIP_POINT_ATTR_REMOVE(&tz->device, count);
+ 
++	thermal_remove_hwmon_sysfs(tz);
+ 	release_idr(&thermal_tz_idr, &thermal_idr_lock, tz->id);
+ 	idr_destroy(&tz->idr);
+ 	mutex_destroy(&tz->lock);
+Index: linux-2.6/include/linux/thermal.h
+=================================--- linux-2.6.orig/include/linux/thermal.h
++++ linux-2.6/include/linux/thermal.h
+@@ -65,6 +65,24 @@ struct thermal_cooling_device {
+ 				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
+ #define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
+ 
++#if defined(CONFIG_HWMON) ||	\
++	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
++/* thermal zone devices with the same type share one hwmon device */
++struct hwmon_device_instance {
++	char type[THERMAL_NAME_LENGTH];
++	struct device *device;
++	struct device_attribute name;
++	int count;
++	struct list_head tz_list;
++	struct list_head node;
++};
++
++struct thermal_hwmon_attr {
++	struct device_attribute attr;
++	char name[16];
++};
++#endif
++
+ struct thermal_zone_device {
+ 	int id;
+ 	char type[THERMAL_NAME_LENGTH];
+@@ -76,6 +94,13 @@ struct thermal_zone_device {
+ 	struct idr idr;
+ 	struct mutex lock;	/* protect cooling devices list */
+ 	struct list_head node;
++#if defined(CONFIG_HWMON) ||	\
++	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
++	struct list_head hwmon_node;	/* node in thermal_hwmon_list */
++	struct hwmon_device_instance *hwmon;
++	struct thermal_hwmon_attr temp_input;	/* hwmon sys attr */
++	struct thermal_hwmon_attr temp_crit;	/* hwmon sys attr */
++#endif
+ };
+ 
+ struct thermal_zone_device *thermal_zone_device_register(char *, int, void *,
 
-Fixed.
 
-> > (...)
-> > @@ -1171,82 +1172,81 @@ static int lm85_detect(struct i2c_adapte
-> >  	/* If auto-detecting, Determine the chip type. */
-> >  	if (kind <= 0) {
-> >  		dev_dbg(&adapter->dev, "Autodetecting device at %d,0x%02x ...\n",
-> > -			i2c_adapter_id(adapter), address );
-> > -		if( company = LM85_COMPANY_NATIONAL
-> > -		    && verstep = LM85_VERSTEP_LM85C ) {
-> > -			kind = lm85c ;
-> > -		} else if( company = LM85_COMPANY_NATIONAL
-> > -		    && verstep = LM85_VERSTEP_LM85B ) {
-> > -			kind = lm85b ;
-> > -		} else if( company = LM85_COMPANY_NATIONAL
-> > -		    && (verstep & LM85_VERSTEP_VMASK) = LM85_VERSTEP_GENERIC ) {
-> > +			i2c_adapter_id(adapter), address);
-> > +		if (company = LM85_COMPANY_NATIONAL
-> > +		    && verstep = LM85_VERSTEP_LM85C) {
-> > +			kind = lm85c;
-> > +		} else if (company = LM85_COMPANY_NATIONAL
-> > +		    && verstep = LM85_VERSTEP_LM85B) {
-> > +			kind = lm85b;
-> > +		} else if (company = LM85_COMPANY_NATIONAL
-> > +		    && (verstep & LM85_VERSTEP_VMASK) = LM85_VERSTEP_GENERIC) {
-> >  			dev_err(&adapter->dev, "Unrecognized version/stepping 0x%02x"
-> >  				" Defaulting to LM85.\n", verstep);
-> > -			kind = any_chip ;
-> > -		} else if( company = LM85_COMPANY_ANALOG_DEV
-> > -		    && verstep = LM85_VERSTEP_ADM1027 ) {
-> > -			kind = adm1027 ;
-> > -		} else if( company = LM85_COMPANY_ANALOG_DEV
-> > +			kind = any_chip;
-> > +		} else if (company = LM85_COMPANY_ANALOG_DEV
-> > +		    && verstep = LM85_VERSTEP_ADM1027) {
-> > +			kind = adm1027;
-> > +		} else if (company = LM85_COMPANY_ANALOG_DEV
-> >  		    && (verstep = LM85_VERSTEP_ADT7463
-> > -			 || verstep = LM85_VERSTEP_ADT7463C) ) {
-> > -			kind = adt7463 ;
-> > -		} else if( company = LM85_COMPANY_ANALOG_DEV
-> > -		    && (verstep & LM85_VERSTEP_VMASK) = LM85_VERSTEP_GENERIC ) {
-> > +			 || verstep = LM85_VERSTEP_ADT7463C)) {
-> > +			kind = adt7463;
-> > +		} else if (company = LM85_COMPANY_ANALOG_DEV
-> > +		    && (verstep & LM85_VERSTEP_VMASK) = LM85_VERSTEP_GENERIC) {
-> >  			dev_err(&adapter->dev, "Unrecognized version/stepping 0x%02x"
-> > -				" Defaulting to Generic LM85.\n", verstep );
-> > -			kind = any_chip ;
-> > -		} else if( company = LM85_COMPANY_SMSC
-> > +				" Defaulting to Generic LM85.\n", verstep);
-> 
-> Leading space should go to the end of the previous line. This is also 
-> true for other strings throughout the code.
->
->
-> > +			kind = any_chip;
-> > +		} else if (company = LM85_COMPANY_SMSC
-> >  		    && (verstep = LM85_VERSTEP_EMC6D100_A0
-> > -			 || verstep = LM85_VERSTEP_EMC6D100_A1) ) {
-> > +			 || verstep = LM85_VERSTEP_EMC6D100_A1)) {
-> >  			/* Unfortunately, we can't tell a '100 from a '101
-> >  			 * from the registers.  Since a '101 is a '100
-> >  			 * in a package with fewer pins and therefore no
-> >  			 * 3.3V, 1.5V or 1.8V inputs, perhaps if those
-> >  			 * inputs read 0, then it's a '101.
-> >  			 */
-> > -			kind = emc6d100 ;
-> > -		} else if( company = LM85_COMPANY_SMSC
-> > +			kind = emc6d100;
-> > +		} else if (company = LM85_COMPANY_SMSC
-> >  		    && verstep = LM85_VERSTEP_EMC6D102) {
-> > -			kind = emc6d102 ;
-> > -		} else if( company = LM85_COMPANY_SMSC
-> > +			kind = emc6d102;
-> > +		} else if (company = LM85_COMPANY_SMSC
-> >  		    && (verstep & LM85_VERSTEP_VMASK) = LM85_VERSTEP_GENERIC) {
-> >  			dev_err(&adapter->dev, "lm85: Detected SMSC chip\n");
-> >  			dev_err(&adapter->dev, "lm85: Unrecognized version/stepping 0x%02x"
-> > -			    " Defaulting to Generic LM85.\n", verstep );
-> > -			kind = any_chip ;
-> > -		} else if( kind = any_chip
-> > +			    " Defaulting to Generic LM85.\n", verstep);
-> 
-> Same here.
-
-Patch 7/10 (Rework the device detection) replaces this whole section of
-code by something totally different, that's why I didn't bother
-cleaning up the split strings.
-
-> > (...)
-> > -			for(i = 0; i <= 4; i++)
-> > -				data->in_ext[i] = ((val>>(i * 2))&0x03) << 2;
-> > +			for (i = 0; i <= 4; i++)
-> > +				data->in_ext[i] = ((val>>(i * 2)) & 0x03) << 2;
-> 
-> Missing spaces around >>.
-> 
-> 
-> >  
-> > -			for(i = 0; i <= 2; i++)
-> > -				data->temp_ext[i] = (val>>((i + 4) * 2))&0x0c;
-> > +			for (i = 0; i <= 2; i++)
-> > +				data->temp_ext[i] = (val>>((i + 4) * 2)) & 0x0c;
-> 
-> Same here.
-
-Fixed.
-
-> 
-> 
-> >  		}
-> >  
-> >  		data->vid = lm85_read_value(client, LM85_REG_VID);
-> > @@ -1480,21 +1482,21 @@ static struct lm85_data *lm85_update_dev
-> >  
-> >  		data->alarms = lm85_read_value(client, LM85_REG_ALARM1);
-> >  
-> > -		if ( data->type = adt7463 ) {
-> > -			if( data->therm_total < ULONG_MAX - 256 ) {
-> > +		if (data->type = adt7463) {
-> > +			if (data->therm_total < ULONG_MAX - 256) {
-> >  			    data->therm_total +> > -				lm85_read_value(client, ADT7463_REG_THERM );
-> > +				lm85_read_value(client, ADT7463_REG_THERM);
-> >  			}
-> > -		} else if ( data->type = emc6d100 ) {
-> > +		} else if (data->type = emc6d100) {
-> >  			/* Three more voltage sensors */
-> >  			for (i = 5; i <= 7; ++i) {
-> > -				data->in[i] > > -					lm85_read_value(client, EMC6D100_REG_IN(i));
-> > +				data->in[i] = lm85_read_value(client,
-> > +							EMC6D100_REG_IN(i));
-> >  			}
-> >  			/* More alarm bits */
-> > -			data->alarms |> > -				lm85_read_value(client, EMC6D100_REG_ALARM3) << 16;
-> > -		} else if (data->type = emc6d102 ) {
-> > +			data->alarms |= lm85_read_value(client,
-> > +						EMC6D100_REG_ALARM3) << 16;
-> > +		} else if (data->type = emc6d102) {
-> >  			/* Have to read LSB bits after the MSB ones because
-> >  			   the reading of the MSB bits has frozen the
-> >  			   LSBs (backward from the ADM1027).
-> > @@ -1518,11 +1520,11 @@ static struct lm85_data *lm85_update_dev
-> >  			data->temp_ext[2] = (ext1 >> 4) & 0x0f;
-> >  		}
-> >  
-> > -		data->last_reading = jiffies ;
-> > -	};  /* last_reading */
-> > +		data->last_reading = jiffies;
-> > +	}  /* last_reading */
-> >  
-> > -	if ( !data->valid ||
-> > -	     time_after(jiffies, data->last_config + LM85_CONFIG_INTERVAL) ) {
-> > +	if (!data->valid ||
-> > +	     time_after(jiffies, data->last_config + LM85_CONFIG_INTERVAL)) {
-> >  		/* Things that don't change often */
-> >  		dev_dbg(&client->dev, "Reading config values\n");
-> >  
-> > @@ -1540,12 +1542,12 @@ static struct lm85_data *lm85_update_dev
-> >  					  LM85_REG_IN_MAX(4));
-> >  		}
-> >  
-> > -		if ( data->type = emc6d100 ) {
-> > +		if (data->type = emc6d100) {
-> >  			for (i = 5; i <= 7; ++i) {
-> > -				data->in_min[i] > > -					lm85_read_value(client, EMC6D100_REG_IN_MIN(i));
-> > -				data->in_max[i] > > -					lm85_read_value(client, EMC6D100_REG_IN_MAX(i));
-> > +				data->in_min[i] = lm85_read_value(client,
-> > +						EMC6D100_REG_IN_MIN(i));
-> > +				data->in_max[i] = lm85_read_value(client,
-> > +						EMC6D100_REG_IN_MAX(i));
-> >  			}
-> >  		}
-> >  
-> > @@ -1562,12 +1564,12 @@ static struct lm85_data *lm85_update_dev
-> >  		}
-> >  
-> >  		for (i = 0; i <= 2; ++i) {
-> > -			int val ;
-> > +			int val;
-> >  			data->autofan[i].config > >  			    lm85_read_value(client, LM85_REG_AFAN_CONFIG(i));
-> >  			val = lm85_read_value(client, LM85_REG_AFAN_RANGE(i));
-> > -			data->autofan[i].freq = val & 0x07 ;
-> > -			data->zone[i].range = (val >> 4) & 0x0f ;
-> > +			data->autofan[i].freq = val & 0x07;
-> > +			data->zone[i].range = (val >> 4) & 0x0f;
-> >  			data->autofan[i].min_pwm > >  			    lm85_read_value(client, LM85_REG_AFAN_MINPWM(i));
-> >  			data->zone[i].limit > > @@ -1577,50 +1579,50 @@ static struct lm85_data *lm85_update_dev
-> >  		}
-> >  
-> >  		i = lm85_read_value(client, LM85_REG_AFAN_SPIKE1);
-> > -		data->smooth[0] = i & 0x0f ;
-> > -		data->syncpwm3 = i & 0x10 ;  /* Save PWM3 config */
-> > -		data->autofan[0].min_off = (i & 0x20) != 0 ;
-> > -		data->autofan[1].min_off = (i & 0x40) != 0 ;
-> > -		data->autofan[2].min_off = (i & 0x80) != 0 ;
-> > +		data->smooth[0] = i & 0x0f;
-> > +		data->syncpwm3 = i & 0x10;  /* Save PWM3 config */
-> > +		data->autofan[0].min_off = (i & 0x20) != 0;
-> > +		data->autofan[1].min_off = (i & 0x40) != 0;
-> > +		data->autofan[2].min_off = (i & 0x80) != 0;
-> >  		i = lm85_read_value(client, LM85_REG_AFAN_SPIKE2);
-> > -		data->smooth[1] = (i>>4) & 0x0f ;
-> > -		data->smooth[2] = i & 0x0f ;
-> > +		data->smooth[1] = (i>>4) & 0x0f;
-> 
-> Missing spaces around >>.
-> 
-> 
-> > +		data->smooth[2] = i & 0x0f;
-> >  
-> >  		i = lm85_read_value(client, LM85_REG_AFAN_HYST1);
-> > -		data->zone[0].hyst = (i>>4) & 0x0f ;
-> > -		data->zone[1].hyst = i & 0x0f ;
-> > +		data->zone[0].hyst = (i>>4) & 0x0f;
-> 
-> Same here.
-> 
-> 
-> > +		data->zone[1].hyst = i & 0x0f;
-> >  
-> >  		i = lm85_read_value(client, LM85_REG_AFAN_HYST2);
-> > -		data->zone[2].hyst = (i>>4) & 0x0f ;
-> > +		data->zone[2].hyst = (i>>4) & 0x0f;
-> 
-> And here.
-
-All fixed.
-
-> There are also 2 spaces on line 1613 (static void  __exit 
-> sm_lm85_exit(void)).
-
-Fixed.
-
-> And a couple of comments with double spaces after 
-> periods. That's frowned upon nowadays AFAIK.
-
-I'm not aware of any such rule, and checkpatch doesn't complain, so
-I'll leave them as is.
-
-> Some of the comments also 
-> have multiple leading spaces where there shouldn't be any IMHO (like 
-> line 1606).
-
-checkpatch doesn't complain about this either, so I won't change it
-(although I wouldn't do that in my own code, obviously.)
-
-I'll submit an updated patch quickly. I guess that some of the next
-patches in the series will need a refresh, too.
-
-Thanks,
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
