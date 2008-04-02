@@ -1,64 +1,117 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Wed, 30 Apr 2008 22:16:45 +0000
-Subject: Re: [lm-sensors] VIA VT1211
-Message-Id: <191fb4ca0804301516s296bda14tc6d2ec2e2a14085e@mail.gmail.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Date: Wed, 02 Apr 2008 08:09:12 +0000
+Subject: [lm-sensors] [PATCH 3/3] thermal: update documentation
+Message-Id: <1207123752.27304.9.camel@acpi-hp-zz.sh.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <eeb7df810804250151n93dcd2ds5112e8cf9c5e199e@mail.gmail.com>
-In-Reply-To: <eeb7df810804250151n93dcd2ds5112e8cf9c5e199e@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-Hi Alessandro,
-
-
-> 2008/4/30 Juerg Haefliger <juergh@gmail.com>:
->  > Hi Alessandro,
->  Hi Juerg,
->
->
->  >  What driver do you mean? Where is it?
->  It's a VIA initiative:
->  http://www.via.com.tw/en/resources/pressroom/pressrelease.jsp?press_release_no 88
-
-Hmm... Not very useful at the moment. I'm curious to see if anything
-good ever comes out of it. VIA is notoriously tight lipped about their
-stuff...
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>, Hans de Goede <j.w.r.degoede@hhs.nl>
 
 
->
->  >  Have you tried the latest kernel and the e_powersaver module? It
->  >  claims it supports C7-D.
->  Yes, I did. mobprobe tells me "No such device".
->
->  It seems like there are three models of C7-D CPU's: C7-D Model A
->  (1.5/2 GHz) and model D (1.5 Ghz) don't support PowerSaver, C7-D Model
->  D (1.8/2 GHz) support PowerSaver (P-States P0-P1). I own a "Model A"
->  C7-D.
+Update the documentation for the thermal driver hwmon sys I/F.
 
-OK, not good I guess.
+Change the ACPI thermal zone type to be consistent with hwmon.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ Documentation/thermal/sysfs-api.txt |   31 +++++++++++++++++++++++++------
+ drivers/acpi/thermal.c              |    2 +-
+ 2 files changed, 26 insertions(+), 7 deletions(-)
+
+Index: linux-2.6/Documentation/thermal/sysfs-api.txt
+=================================--- linux-2.6.orig/Documentation/thermal/sysfs-api.txt
++++ linux-2.6/Documentation/thermal/sysfs-api.txt
+@@ -108,10 +108,11 @@ and throttle appropriate devices.
+ RO	read only value
+ RW	read/write value
+ 
+-All thermal sysfs attributes will be represented under /sys/class/thermal
++Thermal sysfs attributes will be represented under /sys/class/thermal and
++/sys/class/hwmon.
+ 
+ Thermal zone device sys I/F, created once it's registered:
+-|thermal_zone[0-*]:
++/sys/class/thermal/thermal_zone[0-*]:
+ 	|-----type:			Type of the thermal zone
+ 	|-----temp:			Current temperature
+ 	|-----mode:			Working mode of the thermal zone
+@@ -119,7 +120,7 @@ Thermal zone device sys I/F, created onc
+ 	|-----trip_point_[0-*]_type:	Trip point type
+ 
+ Thermal cooling device sys I/F, created once it's registered:
+-|cooling_device[0-*]:
++/sys/class/thermal/cooling_device[0-*]:
+ 	|-----type :			Type of the cooling device(processor/fan/...)
+ 	|-----max_state:		Maximum cooling state of the cooling device
+ 	|-----cur_state:		Current cooling state of the cooling device
+@@ -130,10 +131,18 @@ They represent the relationship between 
+ They are created/removed for each
+ thermal_zone_bind_cooling_device/thermal_zone_unbind_cooling_device successful execution.
+ 
+-|thermal_zone[0-*]
++/sys/class/thermal/thermal_zone[0-*]
+ 	|-----cdev[0-*]:		The [0-*]th cooling device in the current thermal zone
+ 	|-----cdev[0-*]_trip_point:	Trip point that cdev[0-*] is associated with
+ 
++Besides the thermal zone device sys I/F and cooling device sys I/F,
++the generic thermal driver also creates a hwmon sys I/F for each _type_ of
++thermal zone device. E.g. one hwmon class device and the associated hwmon sys I/F
++for all the registered ACPI thermal zones.
++/sys/class/hwmon/hwmon[0-*]:
++	|-----name:			The type of the thermal zone devices.
++	|-----temp[1-*]_input:		The current temperature of thermal zone [1-*].
++	|-----temp[1-*]_critical:	The critical trip point of thermal zone [1-*].
+ 
+ ***************************
+ * Thermal zone attributes *
+@@ -141,7 +150,10 @@ thermal_zone_bind_cooling_device/thermal
+ 
+ type				Strings which represent the thermal zone type.
+ 				This is given by thermal zone driver as part of registration.
+-				Eg: "ACPI thermal zone" indicates it's a ACPI thermal device
++				Eg: "acpitz" indicates it's an ACPI thermal device.
++				In order to keep it consistent with hwmon sys attribute,
++				this should be a short, lowercase string,
++				not containing spaces nor dashes.
+ 				RO
+ 				Required
+ 
+@@ -218,7 +230,7 @@ the sys I/F structure will be built like
+ /sys/class/thermal:
+ 
+ |thermal_zone1:
+-	|-----type:			ACPI thermal zone
++	|-----type:			acpitz
+ 	|-----temp:			37000
+ 	|-----mode:			kernel
+ 	|-----trip_point_0_temp:	100000
+@@ -243,3 +255,10 @@ the sys I/F structure will be built like
+ 	|-----type:			Fan
+ 	|-----max_state:		2
+ 	|-----cur_state:		0
++
++/sys/class/hwmon:
++
++|hwmon0:
++	|-----name:			acpitz
++	|-----temp1_input:		37000
++	|-----temp1_crit:		100000
+Index: linux-2.6/drivers/acpi/thermal.c
+=================================--- linux-2.6.orig/drivers/acpi/thermal.c
++++ linux-2.6/drivers/acpi/thermal.c
+@@ -1123,7 +1123,7 @@ static int acpi_thermal_register_thermal
+ 
+ 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
+ 			tz->trips.active[i].flags.valid; i++, trips++);
+-	tz->thermal_zone = thermal_zone_device_register("ACPI thermal zone",
++	tz->thermal_zone = thermal_zone_device_register("acpitz",
+ 					trips, tz, &acpi_thermal_zone_ops);
+ 	if (!tz->thermal_zone)
+ 		return -ENODEV;
 
 
->
->  >  Can you change the freq in the BIOS?
->  My motherboard provides a mechanism to change VID voltage when the CPU
->  reaches high temperatures but I can't do it manually.
-
-It also seems to be able to throttle the CPU when it gets hot. Maybe
-you can play around with those parameters and set the temp threshold
-low so that it always throttles. Page 54 of the manual also shows some
-BIOS settings for CPU clock and ratio. Have you played with those?
-
-...juerg
-
-
-
-
->
->  >  ...juerg
->  Bye, Alessandro.
->
 
 _______________________________________________
 lm-sensors mailing list
