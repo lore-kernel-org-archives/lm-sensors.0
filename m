@@ -1,134 +1,68 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 03 Apr 2008 12:34:30 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (w83781d) Refactor beep enable handling
-Message-Id: <20080403143430.0f9beeca@hyperion.delvare>
+Date: Thu, 03 Apr 2008 08:40:39 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm85) Fix function RANGE_TO_REG()
+Message-Id: <20080403104039.6e4cb76a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-We can handle the beep enable bit as any other beep mask bit for
-slightly smaller code.
+Function RANGE_TO_REG() is broken. For a requested range of 2000 (2
+degrees C), it will return an index value of 15, i.e. 80.0 degrees C,
+instead of the expected index value of 0. All other values are handled
+properly, just 2000 isn't.
+
+The bug was introduced back in November 2004 by this patch:
+http://git.kernel.org/?p=linux/kernel/git/tglx/history.git;a=commit;h28d80f1992240373099d863e4996cdd5d646d0
+
+While this can be fixed easily with the current code, I'd rather
+rewrite the whole function in a way which is more obviously correct.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Justin Thiessen <jthiessen@penguincomputing.com>
 ---
-This is the same change as was done on the w83627hf driver 3 months
-ago.
+ drivers/hwmon/lm85.c |   25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
- drivers/hwmon/w83781d.c |   46 +++++++++-------------------------------------
- 1 file changed, 9 insertions(+), 37 deletions(-)
-
---- linux-2.6.25-rc4.orig/drivers/hwmon/w83781d.c	2008-03-09 11:19:57.000000000 +0100
-+++ linux-2.6.25-rc4/drivers/hwmon/w83781d.c	2008-03-09 11:19:58.000000000 +0100
-@@ -178,9 +178,9 @@ FAN_FROM_REG(u8 val, int div)
- #define TEMP_FROM_REG(val)		((val) * 1000)
+--- linux-2.6.25-rc8.orig/drivers/hwmon/lm85.c	2008-04-02 22:20:01.000000000 +0200
++++ linux-2.6.25-rc8/drivers/hwmon/lm85.c	2008-04-02 23:10:16.000000000 +0200
+@@ -192,23 +192,20 @@ static int RANGE_TO_REG( int range )
+ {
+ 	int i;
  
- #define BEEP_MASK_FROM_REG(val,type)	((type) = as99127f ? \
--					 (val) ^ 0x7fff : (val))
-+					 (~(val)) & 0x7fff : (val) & 0xff7fff)
- #define BEEP_MASK_TO_REG(val,type)	((type) = as99127f ? \
--					 (~(val)) & 0x7fff : (val) & 0xffffff)
-+					 (~(val)) & 0x7fff : (val) & 0xff7fff)
- 
- #define DIV_FROM_REG(val)		(1 << (val))
- 
-@@ -240,7 +240,6 @@ struct w83781d_data {
- 	u8 vid;			/* Register encoding, combined */
- 	u32 alarms;		/* Register encoding, combined */
- 	u32 beep_mask;		/* Register encoding, combined */
--	u8 beep_enable;		/* Boolean */
- 	u8 pwm[4];		/* Register value */
- 	u8 pwm2_enable;		/* Boolean */
- 	u16 sens[3];		/* 782D/783S only.
-@@ -513,11 +512,6 @@ static ssize_t show_beep_mask (struct de
- 	return sprintf(buf, "%ld\n",
- 		       (long)BEEP_MASK_FROM_REG(data->beep_mask, data->type));
- }
--static ssize_t show_beep_enable (struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct w83781d_data *data = w83781d_update_device(dev);
--	return sprintf(buf, "%ld\n", (long)data->beep_enable);
--}
- 
- static ssize_t
- store_beep_mask(struct device *dev, struct device_attribute *attr,
-@@ -529,12 +523,12 @@ store_beep_mask(struct device *dev, stru
- 	val = simple_strtoul(buf, NULL, 10);
- 
- 	mutex_lock(&data->update_lock);
--	data->beep_mask = BEEP_MASK_TO_REG(val, data->type);
-+	data->beep_mask &= 0x8000; /* preserve beep enable */
-+	data->beep_mask |= BEEP_MASK_TO_REG(val, data->type);
- 	w83781d_write_value(data, W83781D_REG_BEEP_INTS1,
- 			    data->beep_mask & 0xff);
- 	w83781d_write_value(data, W83781D_REG_BEEP_INTS2,
--			    ((data->beep_mask >> 8) & 0x7f)
--			    | data->beep_enable << 7);
-+			    (data->beep_mask >> 8) & 0xff);
- 	if (data->type != w83781d && data->type != as99127f) {
- 		w83781d_write_value(data, W83781D_REG_BEEP_INTS3,
- 				    ((data->beep_mask) >> 16) & 0xff);
-@@ -544,31 +538,8 @@ store_beep_mask(struct device *dev, stru
- 	return count;
- }
- 
--static ssize_t
--store_beep_enable(struct device *dev, struct device_attribute *attr,
--		const char *buf, size_t count)
--{
--	struct w83781d_data *data = dev_get_drvdata(dev);
--	u32 val;
--
--	val = simple_strtoul(buf, NULL, 10);
--	if (val != 0 && val != 1)
--		return -EINVAL;
--
--	mutex_lock(&data->update_lock);
--	data->beep_enable = val;
--	val = w83781d_read_value(data, W83781D_REG_BEEP_INTS2) & 0x7f;
--	val |= data->beep_enable << 7;
--	w83781d_write_value(data, W83781D_REG_BEEP_INTS2, val);
--	mutex_unlock(&data->update_lock);
--
--	return count;
--}
--
- static DEVICE_ATTR(beep_mask, S_IRUGO | S_IWUSR,
- 		show_beep_mask, store_beep_mask);
--static DEVICE_ATTR(beep_enable, S_IRUGO | S_IWUSR,
--		show_beep_enable, store_beep_enable);
- 
- static ssize_t show_beep(struct device *dev, struct device_attribute *attr,
- 		char *buf)
-@@ -663,6 +634,8 @@ static SENSOR_DEVICE_ATTR(temp2_beep, S_
- 			show_beep, store_beep, 5);
- static SENSOR_DEVICE_ATTR(temp3_beep, S_IRUGO,
- 			show_temp3_beep, store_beep, 13);
-+static SENSOR_DEVICE_ATTR(beep_enable, S_IRUGO | S_IWUSR,
-+			show_beep, store_beep, 15);
- 
- static ssize_t
- show_fan_div(struct device *dev, struct device_attribute *da, char *buf)
-@@ -1029,7 +1002,7 @@ static struct attribute* w83781d_attribu
- 	&dev_attr_vrm.attr,
- 	&dev_attr_alarms.attr,
- 	&dev_attr_beep_mask.attr,
--	&dev_attr_beep_enable.attr,
-+	&sensor_dev_attr_beep_enable.dev_attr.attr,
- 	NULL
- };
- static const struct attribute_group w83781d_group = {
-@@ -1775,8 +1748,7 @@ static struct w83781d_data *w83781d_upda
- 						W83781D_REG_ALARM2) << 8);
+-	if ( range < lm85_range_map[0] ) { 
+-		return 0 ;
+-	} else if ( range > lm85_range_map[15] ) {
++	if (range >= lm85_range_map[15])
+ 		return 15 ;
+-	} else {  /* find closest match */
+-		for ( i = 14 ; i >= 0 ; --i ) {
+-			if ( range > lm85_range_map[i] ) { /* range bracketed */
+-				if ((lm85_range_map[i+1] - range) < 
+-					(range - lm85_range_map[i])) {
+-					i++;
+-					break;
+-				}
+-				break;
+-			}
++
++	/* Find the closest match */
++	for (i = 14; i >= 0; --i) {
++		if (range >= lm85_range_map[i]) {
++			if ((lm85_range_map[i + 1] - range) <
++					(range - lm85_range_map[i]))
++				return i + 1;
++			return i;
  		}
- 		i = w83781d_read_value(data, W83781D_REG_BEEP_INTS2);
--		data->beep_enable = i >> 7;
--		data->beep_mask = ((i & 0x7f) << 8) +
-+		data->beep_mask = (i << 8) +
- 		    w83781d_read_value(data, W83781D_REG_BEEP_INTS1);
- 		if ((data->type != w83781d) && (data->type != as99127f)) {
- 			data->beep_mask |
+ 	}
+-	return( i & 0x0f );
++
++	return 0;
+ }
+ #define RANGE_FROM_REG(val) (lm85_range_map[(val)&0x0f])
+ 
+
 
 -- 
 Jean Delvare
