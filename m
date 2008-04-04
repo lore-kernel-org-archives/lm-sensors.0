@@ -1,68 +1,87 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Mon, 14 Apr 2008 14:29:56 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: fix common race conditions,
-Message-Id: <48036A64.4080406@hhs.nl>
+From: Juerg Haefliger <juergh@gmail.com>
+Date: Fri, 04 Apr 2008 04:34:19 +0000
+Subject: [lm-sensors] [PATCH 2/3 RESEND] hwmon (dme1737): probe all addresses
+Message-Id: <47F5AFCB.8010203@gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------000105040606090101050904"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080406180721.GN27659@mars.solarsys.private>
-In-Reply-To: <20080406180721.GN27659@mars.solarsys.private>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> On Fri, 11 Apr 2008 09:18:24 +0200, Hans de Goede wrote:
->> Jean Delvare wrote:
->>> I don't like the current approach either. In fact it seems that every
->>> new developer finds it odd at first, and in the end we only keep doing
->>> it because it has been so from the beginning of the lm-sensors project.
->>> The fact is that our drivers would perform much better if we did not
->>> repeatedly read from registers which aren't supposed to change. Some
->>> drivers mitigate the performance penalty by reading from these
->>> registers less frequently, but then it somewhat misses the original
->>> point of always reflecting the current register state.
->>>
->>> But on the other hand, anything that helps spot conflicts with ACPI or
->>> SMM is welcome, as these issues can be very hard to investigate - in
->>> particular for SMBus-based chips or chips with index/data pair I/O port
->>> access, where simultaneous access can result in data corruption. Thomas
->>> Renninger and myself proposed something that should help for ACPI in
->>> some cases but Linus rejected our approach. Removing the extra reads
->>> from our drivers would be one less way to spot that kind of problem. Of
->>> course we can look at the registers directly using i2cdump or isadump
->>> in most cases, but users are less likely to do that, while they usually
->>> do notice when limits change mysteriously.
->>>
->>> So all in all I have to admit that I don't really know what to do.
->>> Maybe the extra reads should be made a compilation-time or (probably
->>> better) a run-time option, so we leave the decision to the user?
->> I think given the slowness of reading these registers (esp in the i2c / smbus 
->> case) making it an option is a good idea, I think we should combine this with 
->> when this option is activated (it should be default off) actually checking if 
->> things were changed and if so complain.
->>
->> Then when we suspect faulplay by acpi/smm we can ask the user to turn on the 
->> option.
->>
->> Does that sound like a plan?
-> 
-> Fine with me, as long as this is a run-time option and not a build-time
-> option. Rebuilding a kernel module is not an option for many users.
-> 
+This is a multi-part message in MIME format.
+--------------000105040606090101050904
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Yes it should definitely be a runtime option, even one which can changed 
-through sysfs.
+This patch adds a module load parameter to enable probing of 
+non-standard LPC addresses 0x162e and 0x164e when scanning for supported 
+ISA chips.
 
-So now I guess its time for everyone to start writing patches for the drivers 
-they maintain to implement this. I'll start working on patches for my hwmon 
-drivers as time permits (iow it may take a while, as I'm awefully busy lately).
+Signed-Off-By: Juerg Haefliger <juergh at gmail.com>
 
-Regards,
+--------------000105040606090101050904
+Content-Type: text/x-patch;
+ name="dme1737-probe-all-addresses.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dme1737-probe-all-addresses.patch"
 
-Hans
+This patch adds a module load parameter to enable probing of non-standard LPC
+addresses 0x162e and 0x164e when scanning for supported ISA chips.
 
+Signed-Off-By: Juerg Haefliger <juergh at gmail.com>
+
+Index: linux/Documentation/hwmon/dme1737
+===================================================================
+--- linux.orig/Documentation/hwmon/dme1737	2008-01-24 14:58:37.000000000 -0800
++++ linux/Documentation/hwmon/dme1737	2008-04-03 21:38:25.000000000 -0700
+@@ -22,6 +22,10 @@
+ 			and PWM output control functions. Using this parameter
+ 			shouldn't be required since the BIOS usually takes care
+ 			of this.
++* probe_all_addr: bool	Include non-standard LPC addresses 0x162e and 0x164e
++			when probing for ISA devices. This is required for the
++			following boards:
++			- VIA EPIA SN18000
+ 
+ Note that there is no need to use this parameter if the driver loads without
+ complaining. The driver will say so if it is necessary.
+Index: linux/drivers/hwmon/dme1737.c
+===================================================================
+--- linux.orig/drivers/hwmon/dme1737.c	2008-03-15 22:12:39.000000000 -0700
++++ linux/drivers/hwmon/dme1737.c	2008-04-03 21:16:13.000000000 -0700
+@@ -48,6 +48,11 @@
+ module_param(force_id, ushort, 0);
+ MODULE_PARM_DESC(force_id, "Override the detected device ID");
+ 
++static int probe_all_addr;
++module_param(probe_all_addr, bool, 0);
++MODULE_PARM_DESC(probe_all_addr, "Include probing of non-standard LPC "
++		 "addresses");
++
+ /* Addresses to scan */
+ static const unsigned short normal_i2c[] = {0x2c, 0x2d, 0x2e, I2C_CLIENT_END};
+ 
+@@ -2430,7 +2435,10 @@
+ 	}
+ 
+ 	if (dme1737_isa_detect(0x2e, &addr) &&
+-	    dme1737_isa_detect(0x4e, &addr)) {
++	    dme1737_isa_detect(0x4e, &addr) &&
++	    (!probe_all_addr ||
++	     (dme1737_isa_detect(0x162e, &addr) &&
++	      dme1737_isa_detect(0x164e, &addr)))) {
+ 		/* Return 0 if we didn't find an ISA device */
+ 		return 0;
+ 	}
+
+--------------000105040606090101050904
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------000105040606090101050904--
