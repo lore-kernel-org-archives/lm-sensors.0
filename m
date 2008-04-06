@@ -1,148 +1,85 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 15 Apr 2008 12:03:36 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3 v3]: sensors: Automatically scale
-Message-Id: <20080415140336.6fa7771a@hyperion.delvare>
+From: Aurelien Jarno <aurelien@aurel32.net>
+Date: Sun, 06 Apr 2008 20:58:39 +0000
+Subject: [lm-sensors] [PATCH] Parse the configuration file in C locale
+Message-Id: <20080406205839.GA31929@volta.aurel32.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080414215316.GF7191@tree.beaverton.ibm.com>
-In-Reply-To: <20080414215316.GF7191@tree.beaverton.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Darrick,
+The configuration file is currently parsed in the locale set by the main
+program using the library. This means that if the decimal separator
+(defined in LC_NUMERIC) is not '.' the values in the compute lines are
+truncated. This happens for example with sensors-applet and a French
+locale.
 
-On Mon, 14 Apr 2008 14:53:16 -0700, Darrick J. Wong wrote:
-> Automatically scale energy and power values when printing them in cooked
-> mode.  Fixed all the warnings and warts that were brought up by Jean in
-> the previous thread.
-> 
-> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-> 
-> Index: lm-sensors-3.0.0/prog/sensors/chips.c
-> =================================> --- lm-sensors-3.0.0.orig/prog/sensors/chips.c	2008-04-14 14:43:07.000000000 -0700
-> +++ lm-sensors-3.0.0/prog/sensors/chips.c	2008-04-14 14:43:49.000000000 -0700
-> @@ -23,6 +23,7 @@
->  #include <stdio.h>
->  #include <stdlib.h>
->  #include <string.h>
-> +#include <math.h>
->  
->  #include "main.h"
->  #include "chips.h"
-> @@ -401,13 +402,44 @@
->  	printf("\n");
->  }
->  
-> +struct scale_table {
-> +	double upper_bound;
-> +	const char *unit;
-> +};
-> +
-> +static void scale_value(double *value, const char **prefixstr)
-> +{
-> +	double abs_value = fabs(*value);
-> +	double divisor = 1e-9;
-> +	static struct scale_table prefix_scales[] = {
-> +		{1e-6, "n"},
-> +		{1e-3, "u"},
-> +		{1,    "m"},
-> +		{1e3,   ""},
-> +		{1e6,  "k"},
-> +		{1e9,  "M"},
-> +		{0,    "G"}, /* no upper bound */
-> +	};
-> +	struct scale_table *scale = prefix_scales;
-> +
-> +	while (scale->upper_bound && abs_value > scale->upper_bound) {
-> +		divisor = scale->upper_bound;
-> +		scale++;
-> +	}
-> +
-> +	*value /= divisor;
-> +	*prefixstr = scale->unit;
-> +}
-> +
->  static void print_chip_power(const sensors_chip_name *name,
->  			     const sensors_feature *feature,
->  			     int label_size)
->  {
-> +	double val;
->  	int need_space = 0;
->  	const sensors_subfeature *sf, *sfmin, *sfmax, *sfint;
->  	char *label;
-> +	const char *unit;
->  
->  	if (!(label = sensors_get_label(name, feature))) {
->  		fprintf(stderr, "ERROR: Can't get label of feature %s!\n",
-> @@ -419,9 +451,11 @@
->  
->  	sf = sensors_get_subfeature(name, feature,
->  				    SENSORS_SUBFEATURE_POWER_AVERAGE);
-> -	if (sf)
-> -		printf("%6.2f W", get_value(name, sf));
-> -	else
-> +	if (sf) {
-> +		val = get_value(name, sf);
-> +		scale_value(&val, &unit);
-> +		printf("%6.2f %sW", val, unit);
-> +	} else
->  		printf("     N/A");
->  
->  	sfmin = sensors_get_subfeature(name, feature,
-> @@ -434,13 +468,17 @@
->  		printf("  (");
->  
->  		if (sfmin) {
-> -			printf("min = %6.2f W", get_value(name, sfmin));
-> +			val = get_value(name, sfmin);
-> +			scale_value(&val, &unit);
-> +			printf("min = %6.2f %sW", val, unit);
->  			need_space = 1;
->  		}
->  
->  		if (sfmax) {
-> -			printf("%smax = %6.2f W", (need_space ? ", " : ""),
-> -			       get_value(name, sfmax));
-> +			val = get_value(name, sfmax);
-> +			scale_value(&val, &unit);
-> +			printf("%smax = %6.2f %sW", (need_space ? ", " : ""),
-> +			       val, unit);
->  			need_space = 1;
->  		}
->  
-> @@ -459,8 +497,10 @@
->  			      const sensors_feature *feature,
->  			      int label_size)
->  {
-> +	double val;
->  	const sensors_subfeature *sf;
->  	char *label;
-> +	const char *unit;
->  
->  	if (!(label = sensors_get_label(name, feature))) {
->  		fprintf(stderr, "ERROR: Can't get label of feature %s!\n",
-> @@ -472,9 +512,11 @@
->  
->  	sf = sensors_get_subfeature(name, feature,
->  				    SENSORS_SUBFEATURE_ENERGY_INPUT);
-> -	if (sf)
-> -		printf("%6.2f J", get_value(name, sf));
-> -	else
-> +	if (sf) {
-> +		val = get_value(name, sf);
-> +		scale_value(&val, &unit);
-> +		printf("%6.2f %sJ", val, unit);
-> +	} else
->  		printf("     N/A");
->  
->  	printf("\n");
+The patch below is an attempt to fix that. There may be more clever ways
+to do that, but currently I fail to find them.
 
-Looks OK to me, feel free to commit to SVN.
 
-Thanks,
--- 
-Jean Delvare
+Index: lib/init.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D--- lib/init.c	(r=E9vision 5168)
++++ lib/init.c	(copie de travail)
+@@ -19,6 +19,7 @@
+     MA 02110-1301 USA.
+ */
+=20
++#include <locale.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <errno.h>
+@@ -37,6 +38,7 @@
+ int sensors_init(FILE *input)
+ {
+ 	int res;
++	char *locale =3D NULL;
+=20
+ 	if (!sensors_init_sysfs())
+ 		return -SENSORS_ERR_KERNEL;
+@@ -44,6 +46,13 @@
+ 	    (res =3D sensors_read_sysfs_chips()))
+ 		goto exit_cleanup;
+=20
++	/* Read the current locale */
++	locale =3D setlocale(LC_NUMERIC, NULL);
++	if (locale)
++		locale =3D strdup(locale);
++	/* Set the locale to C */
++	setlocale(LC_NUMERIC, "C");
++
+ 	res =3D -SENSORS_ERR_PARSE;
+ 	if (input) {
+ 		if (sensors_scanner_init(input) ||
+@@ -64,11 +73,21 @@
+ 		}
+ 	}
+=20
++	/* Restore the old locale */
++	if (locale) {
++		setlocale(LC_NUMERIC, locale);
++		free(locale);
++	}
+ 	if ((res =3D sensors_substitute_busses()))
+ 		goto exit_cleanup;
+ 	return 0;
+=20
+ exit_cleanup:
++	/* Restore the old locale */
++	if (locale) {
++		setlocale(LC_NUMERIC, locale);
++		free(locale);
++	}
+ 	sensors_cleanup();
+ 	return res;
+ }
+
+--=20
+  .''`.  Aurelien Jarno	            | GPG: 1024D/F1BCDB73
+ : :' :  Debian developer           | Electrical Engineer
+ `. `'   aurel32@debian.org         | aurelien@aurel32.net
+   `-    people.debian.org/~aurel32 | www.aurel32.net
 
 _______________________________________________
 lm-sensors mailing list
