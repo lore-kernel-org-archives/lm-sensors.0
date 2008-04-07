@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 07 Apr 2008 13:35:58 +0000
+Date: Mon, 07 Apr 2008 15:13:58 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: fix common race conditions, batch 2
-Message-Id: <20080407153558.23802617@hyperion.delvare>
+Message-Id: <20080407171358.59582c90@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080406180721.GN27659@mars.solarsys.private>
 In-Reply-To: <20080406180721.GN27659@mars.solarsys.private>
@@ -10,123 +10,95 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+Hi Hans,
 
-On Sun, 6 Apr 2008 14:07:21 -0400, Mark M. Hoffman wrote:
-> Hi:
+On Mon, 07 Apr 2008 07:49:06 +0200, Hans de Goede wrote:
+> Mark M. Hoffman wrote:
+> > Hi:
+> > 
+> >  atxp1.c    |    2 ++
+> >  coretemp.c |    2 ++
+> >  dme1737.c  |    6 ++++++
+> >  f71882fg.c |   14 ++++++++++----
+> >  gl518sm.c  |   18 ++++++++++++++----
+> >  gl520sm.c  |   16 ++++++++++++----
+> >  it87.c     |   26 ++++++++++++++++----------
+> >  7 files changed, 62 insertions(+), 22 deletions(-)
+> > 
 > 
->  atxp1.c    |    2 ++
->  coretemp.c |    2 ++
->  dme1737.c  |    6 ++++++
->  f71882fg.c |   14 ++++++++++----
->  gl518sm.c  |   18 ++++++++++++++----
->  gl520sm.c  |   16 ++++++++++++----
->  it87.c     |   26 ++++++++++++++++----------
->  7 files changed, 62 insertions(+), 22 deletions(-)
+> <snip>
 > 
-> NB: reviewers are also encouraged to have a look at these files, in which I
-> found no race condtions of this class:
+> > diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+> > index cbeb498..a97ebde 100644
+> > --- a/drivers/hwmon/f71882fg.c
+> > +++ b/drivers/hwmon/f71882fg.c
+> > @@ -593,9 +593,12 @@ static ssize_t show_temp_max_hyst(struct device *dev, struct device_attribute
+> >  {
+> >  	struct f71882fg_data *data = f71882fg_update_device(dev);
+> >  	int nr = to_sensor_dev_attr(devattr)->index;
+> > +	int res;
+> >  
+> > -	return sprintf(buf, "%d\n",
+> > -		(data->temp_high[nr] - data->temp_hyst[nr]) * 1000);
+> > +	mutex_lock(&data->update_lock);
+> > +	res = (data->temp_high[nr] - data->temp_hyst[nr]) * 1000;
+> > +	mutex_unlock(&data->update_lock);
+> > +	return sprintf(buf, "%d\n", res);
+> >  }
+> >  
+> >  static ssize_t store_temp_max_hyst(struct device *dev, struct device_attribute
+> > @@ -670,9 +673,12 @@ static ssize_t show_temp_crit_hyst(struct device *dev, struct device_attribute
+> >  {
+> >  	struct f71882fg_data *data = f71882fg_update_device(dev);
+> >  	int nr = to_sensor_dev_attr(devattr)->index;
+> > +	int res;
+> >  
+> > -	return sprintf(buf, "%d\n",
+> > -		(data->temp_ovt[nr] - data->temp_hyst[nr]) * 1000);
+> > +	mutex_lock(&data->update_lock);
+> > +	res = (data->temp_ovt[nr] - data->temp_hyst[nr]) * 1000;
+> > +	mutex_unlock(&data->update_lock);
+> > +	return sprintf(buf, "%d\n", res);
+> >  }
+> >  
+> >  static ssize_t show_temp_type(struct device *dev, struct device_attribute
 > 
-> ds1621.c
-> f71805f.c
-> f75375s.c
-> fscher.c
-> fschmd.c
-> fscpos.c
-> i5k_amb.c
-> ibmpex.c
+> I don't believe this is necessary, as data->temp_ovt / data->temp_high can be 
+> changed independend of data->temp_hyst. SO if a reader and a writer are racing 
+> with the locks the reader will either get the value from before or after the 
+> read, and without the lock, the same.
+> 
+> There are no parts of the code which change both data->temp_ovt/data->temp_high 
+> and data->temp_hyst at _the same time_. With the one exception being the code 
+> reading the values back from the IC in update_device(), so unless something is 
+> mucking with the hardware underneath us, in which case we have much bigger 
+> problems! , there us no race here.
 
-I checked ds1621.c and f71805f.c and I didn't find any race condition
-either.
+update_device() is exactly what Mark's patch attempts to protect the
+sysfs callbacks from.
 
 > 
-> commit e62da7be499f5553ce682aa6830a4e51ab293619
-> Author: Mark M. Hoffman <mhoffman@lightlink.com>
-> Date:   Sun Apr 6 13:45:00 2008 -0400
+> The non locking in these functions was done by design.
 > 
->     hwmon: fix common race conditions, batch 2
->     
->     Most hwmon drivers have one or more race conditions that could cause the driver
->     to display incorrect data; in the absolute worst case, these races could allow
->     divide-by-zero/OOPS.  The most common of these involves a race between setting
->     a fan divider and displaying the fan data (RPMs).  This patch fixes these race
->     conditions by taking the update lock (or equivalent) as necessary.
->     
->     Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+> With that said, I have no objections against this patch if it gives people a 
+> nice safe warm fuzzy feeling to have this patch present.
 > 
+> ---
+> 
+> Talking about something else touching the hardware, maybe we should change the 
+> code which reads non changing registers periodically to actually check for 
+> unexpected changes, and yell if these are found, because AFAIK thats the only 
+> reason why we read these registers periodically even though they should 
+> theoretically never change.
 
-Looks good, suggestions for improvement inline below. I also tested the
-it87 part, no problem.
-
-> diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-> index 70239ac..1fbaeff 100644
-> --- a/drivers/hwmon/coretemp.c
-> +++ b/drivers/hwmon/coretemp.c
-> @@ -93,12 +93,14 @@ static ssize_t show_temp(struct device *dev,
->  	struct coretemp_data *data = coretemp_update_device(dev);
->  	int err;
->  
-> +	mutex_lock(&data->update_lock);
->  	if (attr->index = SHOW_TEMP)
->  		err = data->valid ? sprintf(buf, "%d\n", data->temp) : -EAGAIN;
->  	else if (attr->index = SHOW_TJMAX)
->  		err = sprintf(buf, "%d\n", data->tjmax);
->  	else
->  		err = sprintf(buf, "%d\n", data->ttarget);
-> +	mutex_unlock(&data->update_lock);
-
-You really only need to grab the mutex for the first case (attr->index
-= SHOW_TEMP).
-
->  	return err;
->  }
->  
-
-<snip>
-
-> diff --git a/drivers/hwmon/gl520sm.c b/drivers/hwmon/gl520sm.c
-> index 8984ef1..804018d 100644
-> --- a/drivers/hwmon/gl520sm.c
-> +++ b/drivers/hwmon/gl520sm.c
-> @@ -273,9 +273,13 @@ static ssize_t get_fan_input(struct device *dev, struct device_attribute *attr,
->  {
->  	int n = to_sensor_dev_attr(attr)->index;
->  	struct gl520_data *data = gl520_update_device(dev);
-> +	int result;
->  
-> -	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_input[n],
-> -						 data->fan_div[n]));
-> +	mutex_lock(&data->update_lock);
-> +	result = FAN_FROM_REG(data->fan_input[n],
-> +				data->fan_div[n]);
-
-Would fit on a single line.
-
-> +	mutex_unlock(&data->update_lock);
-> +	return sprintf(buf, "%d\n", result);
->  }
->  
->  static ssize_t get_fan_min(struct device *dev, struct device_attribute *attr,
-> @@ -283,9 +287,13 @@ static ssize_t get_fan_min(struct device *dev, struct device_attribute *attr,
->  {
->  	int n = to_sensor_dev_attr(attr)->index;
->  	struct gl520_data *data = gl520_update_device(dev);
-> +	int result;
->  
-> -	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[n],
-> -						 data->fan_div[n]));
-> +	mutex_lock(&data->update_lock);
-> +	result = FAN_FROM_REG(data->fan_min[n],
-> +				 data->fan_div[n]);
-
-Here too.
-
-> +	mutex_unlock(&data->update_lock);
-> +	return sprintf(buf, "%d\n", result);
->  }
->  
->  static ssize_t get_fan_div(struct device *dev, struct device_attribute *attr,
-
+You can't read on a regular basis from registers which you don't expect
+to change, and at the same time not handle the case properly if it were
+to happen. We have to be consistent in our choices. The general
+decision for Linux hardware monitoring drivers was to read the
+registers that aren't supposed to change. While this decision could be
+discussed (as you seem to be willing to do), as long as we don't change
+it, I agree with Mark that we should have a locking model consistent
+with this choice.
 
 -- 
 Jean Delvare
