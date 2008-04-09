@@ -1,23 +1,38 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 25 Apr 2008 17:26:14 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] hwmon (dme1737): cleanups
-Message-Id: <20080425192614.4bfdce68@hyperion.delvare>
+Date: Wed, 09 Apr 2008 19:40:07 +0000
+Subject: [lm-sensors] Temperature in generic thermal zone not updated
+Message-Id: <20080409214007.4d81e43f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <480EC814.3090107@gmail.com>
-In-Reply-To: <480EC814.3090107@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 22 Apr 2008 22:24:36 -0700, Juerg Haefliger wrote:
-> Fix names of attribute structs to make them more consistent with the 
-> rest of the code. Minor comment changes.
-> 
-> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+Hi Rui,
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+I am testing your generic thermal zone driver on my old Sony laptop
+(Vaio PCG-GR214EP) and I have noticed that the temperature reported by
+the generic thermal zone interface
+(/sys/class/thermal/thermal_zone0/temp) isn't updated. The reported
+value is always the same, until I read
+from /proc/acpi/thermal_zone/ATF0/temperature. After that the value
+in /sys/class/thermal/thermal_zone0/temp matches the one reported
+in /proc/acpi/thermal_zone/ATF0/temperature, but doesn't change again
+until the next access to /proc/acpi/thermal_zone/ATF0/temperature.
 
+This is with polling disabled on the ACPI thermal zone (the default on
+my system). If I set polling to 2 seconds, then reading
+from /sys/class/thermal/thermal_zone0/temp shows changing values as
+expected.
+
+So it seems to me that reading
+from /proc/acpi/thermal_zone/ATF0/temperature updates the temperature
+value when polling is disabled, while reading
+from /sys/class/thermal/thermal_zone0/temp only returns a cached value.
+Is it correct? I think that the generic thermal driver should be fixed
+to update the temperature values properly.
+
+Thanks,
 -- 
 Jean Delvare
 
