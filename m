@@ -1,117 +1,90 @@
-From: Christian Krafft <krafft@de.ibm.com>
-Date: Sat, 12 Apr 2008 16:42:10 +0000
-Subject: Re: [lm-sensors] [Patch] lm-sensors crash on non x86 hardware
-Message-Id: <20080412184210.57cbd233@de.ibm.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0838822982482933422=="
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Wed, 09 Apr 2008 17:16:50 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: Update the sysfs interface
+Message-Id: <191fb4ca0804091016k2724587cr6023bf2134c1da3f@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080410171111.3f275bcb@de.ibm.com>
-In-Reply-To: <20080410171111.3f275bcb@de.ibm.com>
+References: <20070820164444.48e68a63@hyperion.delvare>
+In-Reply-To: <20070820164444.48e68a63@hyperion.delvare>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============0838822982482933422==
-Content-Type: multipart/signed; boundary="Sig_/yqAApdIE.jEMHk1kQcoS5fN";
-	protocol="application/pgp-signature"; micalg=PGP-SHA1
+Looks good.
 
---Sig_/yqAApdIE.jEMHk1kQcoS5fN
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-Hi Jean,
-
-On Thu, 10 Apr 2008 18:14:46 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
-
-> Hi Christian,
->=20
-> On Thu, 10 Apr 2008 17:11:11 +0200, Christian Krafft wrote:
-> > Hi,
-> >=20
-> > Please consider this tiny patch for inclusion.
-> > It provides the user with more precise info.
-> >=20
-> > Index: lm_sensors-2.10.0/prog/detect/sensors-detect
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- lm_sensors-2.10.0.orig/prog/detect/sensors-detect
-> > +++ lm_sensors-2.10.0/prog/detect/sensors-detect
->=20
-> 2.10.0 is old...
-
-Ups, Next time I'll check before posting ;-)
-
->=20
-> > @@ -5153,7 +5153,7 @@ sub main
-> > =20
-> >    print "\nSome chips are also accessible through the ISA bus. ISA pro=
-bes
-> > are\n". "typically a bit more dangerous, as we have to write to I/O por=
-ts
-> > to do\n".
-> > -        "this. This is usually safe though.\n\n";
-> > +        "this. This is usually safe on x86 acrhitecture.\n\n";
-> >    if ($> !=3D 0) {
-> >      print "As you are not root, we shall skip this step.\n";
-> >    } else {
-> > @@ -5167,7 +5167,7 @@ sub main
-> > =20
-> >    print "\nSome Super I/O chips may also contain sensors. Super I/O pr=
-obes
-> > are\n". "typically a bit more dangerous, as we have to write to I/O por=
-ts
-> > to do\n".
-> > -        "this. This is usually safe though.\n\n";
-> > +        "this. This is usually safe on x86 acrhitecture.\n\n";
-> >    if ($> !=3D 0) {
-> >      print "As you are not root, we shall skip this step.\n";
-> >    } else {
->=20
-> We already skip these probes on PPC:
-> http://www.lm-sensors.org/changeset/5125
-> Isn't it sufficient?
->=20
-
-Thats perfect, more than I expected. Thanks!
-
---=20
-Mit freundlichen Gruessen,
-kind regards,
-
-Christian Krafft
-IBM Systems & Technology Group,
-Linux Kernel Development
-IT Specialist
+Acked-by: Juerg Haefliger <juergh at gmail.com>
 
 
-Vorsitzender des Aufsichtsrats:	Martin Jetter
-Geschaeftsfuehrung:		Herbert Kircher
-Sitz der Gesellschaft:		Boeblingen
-Registriergericht:		Amtsgericht Stuttgart, HRB 243294
-
---Sig_/yqAApdIE.jEMHk1kQcoS5fN
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.7 (GNU/Linux)
-
-iD8DBQFIAOcg6rqK4qDx+dcRAhj1AKCdyA3Bebv5F697sKGO2wJ04LqcfwCgjCPW
-ACBp5+wpVGgNJH1R90ZxHso=
-=rTzO
------END PGP SIGNATURE-----
-
---Sig_/yqAApdIE.jEMHk1kQcoS5fN--
-
-
---===============0838822982482933422==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> * Document the characteristics of libsensors 3.0.0 and 3.0.1.
+>  * The sysfs interface is no longer subject to changes.
+>
+>  Signed-off-by: Jean Delvare <khali at linux-fr.org>
+>  ---
+>   Documentation/hwmon/sysfs-interface |   33 +++++++++++++--------------------
+>   1 file changed, 13 insertions(+), 20 deletions(-)
+>
+>  --- linux-2.6.25-rc2.orig/Documentation/hwmon/sysfs-interface   2008-01-25
+>  10:26:47.000000000 +0100
+>  +++ linux-2.6.25-rc2/Documentation/hwmon/sysfs-interface        2008-02-23
+>  10:47:34.000000000 +0100
+>  @@ -2,17 +2,12 @@ Naming and data format standards for sys
+>   ------------------------------------------------
+>
+>   The libsensors library offers an interface to the raw sensors data
+>  -through the sysfs interface. See libsensors documentation and source for
+>  -further information. As of writing this document, libsensors
+>  -(from lm_sensors 2.8.3) is heavily chip-dependent. Adding or updating
+>  -support for any given chip requires modifying the library's code.
+>  -This is because libsensors was written for the procfs interface
+>  -older kernel modules were using, which wasn't standardized enough.
+>  -Recent versions of libsensors (from lm_sensors 2.8.2 and later) have
+>  -support for the sysfs interface, though.
+>  -
+>  -The new sysfs interface was designed to be as chip-independent as
+>  -possible.
+>  +through the sysfs interface. Since lm-sensors 3.0.0, libsensors is
+>  +completely chip-independent. It assumes that all the kernel drivers
+>  +implement the standard sysfs interface described in this document.
+>  +This makes adding or updating support for any given chip very easy, as
+>  +libsensors, and applications using it, do not need to be modified.
+>  +This is a major improvement compared to lm-sensors 2.
+>
+>   Note that motherboards vary widely in the connections to sensor chips.
+>   There is no standard that ensures, for example, that the second
+>  @@ -35,19 +30,17 @@ access this data in a simple and consist
+>   will have to implement conversion, labeling and hiding of inputs. For
+>   this reason, it is still not recommended to bypass the library.
+>
+>  -If you are developing a userspace application please send us feedback on
+>  -this standard.
+>  -
+>  -Note that this standard isn't completely established yet, so it is subject
+>  -to changes. If you are writing a new hardware monitoring driver those
+>  -features can't seem to fit in this interface, please contact us with your
+>  -extension proposal. Keep in mind that backward compatibility must be
+>  -preserved.
+>  -
+>   Each chip gets its own directory in the sysfs /sys/devices tree.  To
+>   find all sensor chips, it is easier to follow the device symlinks from
+>   /sys/class/hwmon/hwmon*.
+>
+>  +Up to lm-sensors 3.0.0, libsensors looks for hardware monitoring attributes
+>  +in the "physical" device directory. Since lm-sensors 3.0.1, attributes found
+>  +in the hwmon "class" device directory are also supported. Complex drivers
+>  +(e.g. drivers for multifunction chips) may want to use this possibility to
+>  +avoid namespace pollution. The only drawback will be that older versions of
+>  +libsensors won't support the driver in question.
+>  +
+>   All sysfs values are fixed point numbers.
+>
+>   There is only one value per file, unlike the older /proc specification.
+>
+>
+>  --
+>  Jean Delvare
+>
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0838822982482933422==--
