@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Mon, 07 Apr 2008 20:04:24 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: fix common race conditions, batch 2
-Message-Id: <47FA7E48.7060306@hhs.nl>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 09 Apr 2008 09:42:11 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: fix common race conditions, batch  2
+Message-Id: <20080409114211.11f114fc@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080406180721.GN27659@mars.solarsys.private>
 In-Reply-To: <20080406180721.GN27659@mars.solarsys.private>
@@ -10,68 +10,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
+Hi Hans,
+
+On Mon, 07 Apr 2008 22:04:24 +0200, Hans de Goede wrote:
+> Jean Delvare wrote:
+> > We have to be consistent in our choices. The general
+> > decision for Linux hardware monitoring drivers was to read the
+> > registers that aren't supposed to change. While this decision could be
+> > discussed (as you seem to be willing to do),
 > 
-> On Mon, 07 Apr 2008 07:49:06 +0200, Hans de Goede wrote:
->> I don't believe this is necessary, as data->temp_ovt / data->temp_high can be 
->> changed independend of data->temp_hyst. SO if a reader and a writer are racing 
->> with the locks the reader will either get the value from before or after the 
->> read, and without the lock, the same.
->>
->> There are no parts of the code which change both data->temp_ovt/data->temp_high 
->> and data->temp_hyst at _the same time_. With the one exception being the code 
->> reading the values back from the IC in update_device(), so unless something is 
->> mucking with the hardware underneath us, in which case we have much bigger 
->> problems! , there us no race here.
-> 
-> update_device() is exactly what Mark's patch attempts to protect the
-> sysfs callbacks from.
-> 
+> Yes, I wonder why we read registers which are not supposed to change?
+> The only reason I can come up with is that we suspect something maybe meddling 
+> with the hardware underneath us (most likely ACPI). If this is the reason, then 
 
-As already said I have no objections to adding the locking, I just thought it 
-was worthwhile to notice that it isn't entirely needed.
+ACPI or SMM, yes. Could also be user-space but then it's really the
+user's responsibility.
 
->> Talking about something else touching the hardware, maybe we should change the 
->> code which reads non changing registers periodically to actually check for 
->> unexpected changes, and yell if these are found, because AFAIK thats the only 
->> reason why we read these registers periodically even though they should 
->> theoretically never change.
-> 
-> You can't read on a regular basis from registers which you don't expect
-> to change, and at the same time not handle the case properly if it were
-> to happen.
+> we should check if that has _actually happened_ and if it does report it 
+> (through printk/dmesg). Thinking about this I wonder of the use of reading 
+> these registers regulary at all, even if ACPI is communicating with the hwmon 
+> device, I think its highly unlikely it will be changing any settings (like for 
+> example limits) after boot.
 
-I agree.
+I've seen it at least once. The chip had an output pin going low when
+either the low or the high temperature limit was crossed. The BIOS was
+changing the limits when the pin went low, so it was sort of emulating
+multiple levels of thermal alert while the chip only supported one in
+hardware.
 
-> We have to be consistent in our choices. The general
-> decision for Linux hardware monitoring drivers was to read the
-> registers that aren't supposed to change. While this decision could be
-> discussed (as you seem to be willing to do),
+> So my vote goes out to rather then adding this locking, remove the periodically 
+> reading of registers which never change. With that said, I still have no 
+> objections to this patch going in in the mean time, until we decide upon how to 
+> handle this in the future and then start preparing the necessary patches.
 
-Yes, I wonder why we read registers which are not supposed to change?
-The only reason I can come up with is that we suspect something maybe meddling 
-with the hardware underneath us (most likely ACPI). If this is the reason, then 
-we should check if that has _actually happened_ and if it does report it 
-(through printk/dmesg). Thinking about this I wonder of the use of reading 
-these registers regulary at all, even if ACPI is communicating with the hwmon 
-device, I think its highly unlikely it will be changing any settings (like for 
-example limits) after boot.
+I don't like the current approach either. In fact it seems that every
+new developer finds it odd at first, and in the end we only keep doing
+it because it has been so from the beginning of the lm-sensors project.
+The fact is that our drivers would perform much better if we did not
+repeatedly read from registers which aren't supposed to change. Some
+drivers mitigate the performance penalty by reading from these
+registers less frequently, but then it somewhat misses the original
+point of always reflecting the current register state.
 
-So my vote goes out to rather then adding this locking, remove the periodically 
-reading of registers which never change. With that said, I still have no 
-objections to this patch going in in the mean time, until we decide upon how to 
-handle this in the future and then start preparing the necessary patches.
+But on the other hand, anything that helps spot conflicts with ACPI or
+SMM is welcome, as these issues can be very hard to investigate - in
+particular for SMBus-based chips or chips with index/data pair I/O port
+access, where simultaneous access can result in data corruption. Thomas
+Renninger and myself proposed something that should help for ACPI in
+some cases but Linus rejected our approach. Removing the extra reads
+from our drivers would be one less way to spot that kind of problem. Of
+course we can look at the registers directly using i2cdump or isadump
+in most cases, but users are less likely to do that, while they usually
+do notice when limits change mysteriously.
 
-> as long as we don't change
-> it, I agree with Mark that we should have a locking model consistent
-> with this choice.
+So all in all I have to admit that I don't really know what to do.
+Maybe the extra reads should be made a compilation-time or (probably
+better) a run-time option, so we leave the decision to the user?
 
-Ok.
-
-Regards,
-
-Hans
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
