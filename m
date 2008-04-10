@@ -1,43 +1,49 @@
-From: perwool@seznam.cz
-Date: Thu, 10 Apr 2008 15:39:30 +0000
-Subject: [lm-sensors] AMD K10
-Message-Id: <36.1363-16343-911986936-1207841970@seznam.cz>
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Thu, 10 Apr 2008 19:17:48 +0000
+Subject: Re: [lm-sensors] AMD K10
+Message-Id: <47FE67DC.1040007@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <36.1363-16343-911986936-1207841970@seznam.cz>
+In-Reply-To: <36.1363-16343-911986936-1207841970@seznam.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dear lm-sensors@lm-sensors.org,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-you have written at the device list:
+Hi,
 
-AMD 	 K10 	 yes 	 - 	 - 	 - 	 (2007-10-07) To be written. 
-Please contact us if you have such CPU and willing to write or test the driver.
+Unfortunately all three B revisions (BA B2 and B3) of AMD k10 suffer from
+following errata:
 
-That is what I am doing :-)
+Description
+The internal thermal sensor used for CurTmp (F3xA4[31:21]), hardware thermal
+control (HTC), software thermal control (STC), and the sideband temperature
+sensor interface (SB-TSI) may report inconsistent values.
 
-I am not too familiar with C (C++) to write a complete program in C. I am of the generation which started with FORTRAN, BASIC, Algol, Pascal ... Today I write some code in PHP/MySQL/HTML/JavaScript. 
+It is same case as some K8 CPUs but I dont know if it is wise to confuse users
+with incorrect values ;)
 
-May be I can modify some piece of code with a great "help of my friend" 
+What is your CPUID please?
 
-I just put together a linux box:
-AMD Phenom 9600 BE
-GIGABYTE MA78GM-S2H
-2x2GB RAM
-HD/DVD 
-Debian Linux Lenny
+cat /proc/cpuinfo
 
-If I can help the lm-sensors project group I will.
+or run cpuid utillity.
 
-- I can try to modify some code to upgrade from K8 -> K10 if hinted how 
-- I can lend the linux box for a while (I am living in Prague/CR)
-- may be I can manage to put the linux box on the public IP for some week and send you the ssh login
+Thanks,
 
-Thanks 
+Rudolf
 
-Jan
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFH/mfc3J9wPJqZRNURAgowAKCIZnHg20tCRQqOUgGiaHTprs1RpACg3ank
+2OHcSNbqNjuA34s1bCVjAuc=O6WB
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 lm-sensors mailing list
