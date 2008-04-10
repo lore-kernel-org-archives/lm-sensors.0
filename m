@@ -1,41 +1,43 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 07 Apr 2008 10:22:42 +0000
-Subject: Re: [lm-sensors] [PATCH 2/3] thermal: add hwmon sys I/F
-Message-Id: <20080407122242.36aa4ddb@hyperion.delvare>
+From: perwool@seznam.cz
+Date: Thu, 10 Apr 2008 15:39:30 +0000
+Subject: [lm-sensors] AMD K10
+Message-Id: <36.1363-16343-911986936-1207841970@seznam.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1207123693.27304.6.camel@acpi-hp-zz.sh.intel.com>
-	<20080407114648.46cec5c6@hyperion.delvare>
-In-Reply-To: <20080407114648.46cec5c6@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Hans de Goede <j.w.r.degoede@hhs.nl>, Len Brown <lenb@kernel.org>
+To: lm-sensors@vger.kernel.org
 
-Quoting myself...
+Dear lm-sensors@lm-sensors.org,
 
-On Mon, 7 Apr 2008 11:46:48 +0200, Jean Delvare wrote:
-> One thing that worries me is the hwmon device name. It comes directly
-> from the thermal zone's type ("ACPI thermal zone" in the ACPI case".)
-> We have no control over that name, while libsensors makes some
-> assumptions on it. For example it assumes that there is no dash in a
-> hwmon device name. So far, all hwmon device names also didn't have
-> spaces, nor uppercase letters, and were much shorter (ACPI thermal zone
-> would be something like "acpi_tz".) I hope that applications didn't
-> make too many assumptions on length or content...
-> 
-> I'm not sure yet if and how we want to address this problem. Maybe we
-> could have a "short name" field in struct thermal_zone_device. Or
-> alternatively I could add a conversion function to libsensors, that
-> would convert "ACPI thermal zone" to "acpi_thermal_zone". The latter
-> approach doesn't help with the length, but at least it normalizes the
-> character set.
+you have written at the device list:
 
-Oh, I now see that you addressed the problem in patch 3/3, so you can
-forget about what I wrote above. Thank you :)
+AMD 	 K10 	 yes 	 - 	 - 	 - 	 (2007-10-07) To be written. 
+Please contact us if you have such CPU and willing to write or test the driver.
 
--- 
-Jean Delvare
+That is what I am doing :-)
+
+I am not too familiar with C (C++) to write a complete program in C. I am of the generation which started with FORTRAN, BASIC, Algol, Pascal ... Today I write some code in PHP/MySQL/HTML/JavaScript. 
+
+May be I can modify some piece of code with a great "help of my friend" 
+
+I just put together a linux box:
+AMD Phenom 9600 BE
+GIGABYTE MA78GM-S2H
+2x2GB RAM
+HD/DVD 
+Debian Linux Lenny
+
+If I can help the lm-sensors project group I will.
+
+- I can try to modify some code to upgrade from K8 -> K10 if hinted how 
+- I can lend the linux box for a while (I am living in Prague/CR)
+- may be I can manage to put the linux box on the public IP for some week and send you the ssh login
+
+Thanks 
+
+Jan
+
 
 _______________________________________________
 lm-sensors mailing list
