@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Fri, 11 Apr 2008 07:18:24 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: fix common race conditions, batch  2
-Message-Id: <47FF10C0.7090401@hhs.nl>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 11 Apr 2008 09:29:40 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: fix common race conditions,
+Message-Id: <20080411112940.5d85e2ec@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080406180721.GN27659@mars.solarsys.private>
 In-Reply-To: <20080406180721.GN27659@mars.solarsys.private>
@@ -10,56 +10,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
-
-Jean Delvare wrote:
-> Hi Hans,
+On Fri, 11 Apr 2008 09:18:24 +0200, Hans de Goede wrote:
+> Jean Delvare wrote:
+> > I don't like the current approach either. In fact it seems that every
+> > new developer finds it odd at first, and in the end we only keep doing
+> > it because it has been so from the beginning of the lm-sensors project.
+> > The fact is that our drivers would perform much better if we did not
+> > repeatedly read from registers which aren't supposed to change. Some
+> > drivers mitigate the performance penalty by reading from these
+> > registers less frequently, but then it somewhat misses the original
+> > point of always reflecting the current register state.
+> > 
+> > But on the other hand, anything that helps spot conflicts with ACPI or
+> > SMM is welcome, as these issues can be very hard to investigate - in
+> > particular for SMBus-based chips or chips with index/data pair I/O port
+> > access, where simultaneous access can result in data corruption. Thomas
+> > Renninger and myself proposed something that should help for ACPI in
+> > some cases but Linus rejected our approach. Removing the extra reads
+> > from our drivers would be one less way to spot that kind of problem. Of
+> > course we can look at the registers directly using i2cdump or isadump
+> > in most cases, but users are less likely to do that, while they usually
+> > do notice when limits change mysteriously.
+> > 
+> > So all in all I have to admit that I don't really know what to do.
+> > Maybe the extra reads should be made a compilation-time or (probably
+> > better) a run-time option, so we leave the decision to the user?
 > 
-> On Mon, 07 Apr 2008 22:04:24 +0200, Hans de Goede wrote:
->> So my vote goes out to rather then adding this locking, remove the periodically 
->> reading of registers which never change. With that said, I still have no 
->> objections to this patch going in in the mean time, until we decide upon how to 
->> handle this in the future and then start preparing the necessary patches.
+> I think given the slowness of reading these registers (esp in the i2c / smbus 
+> case) making it an option is a good idea, I think we should combine this with 
+> when this option is activated (it should be default off) actually checking if 
+> things were changed and if so complain.
 > 
-> I don't like the current approach either. In fact it seems that every
-> new developer finds it odd at first, and in the end we only keep doing
-> it because it has been so from the beginning of the lm-sensors project.
-> The fact is that our drivers would perform much better if we did not
-> repeatedly read from registers which aren't supposed to change. Some
-> drivers mitigate the performance penalty by reading from these
-> registers less frequently, but then it somewhat misses the original
-> point of always reflecting the current register state.
+> Then when we suspect faulplay by acpi/smm we can ask the user to turn on the 
+> option.
 > 
-> But on the other hand, anything that helps spot conflicts with ACPI or
-> SMM is welcome, as these issues can be very hard to investigate - in
-> particular for SMBus-based chips or chips with index/data pair I/O port
-> access, where simultaneous access can result in data corruption. Thomas
-> Renninger and myself proposed something that should help for ACPI in
-> some cases but Linus rejected our approach. Removing the extra reads
-> from our drivers would be one less way to spot that kind of problem. Of
-> course we can look at the registers directly using i2cdump or isadump
-> in most cases, but users are less likely to do that, while they usually
-> do notice when limits change mysteriously.
-> 
-> So all in all I have to admit that I don't really know what to do.
-> Maybe the extra reads should be made a compilation-time or (probably
-> better) a run-time option, so we leave the decision to the user?
-> 
+> Does that sound like a plan?
 
-I think given the slowness of reading these registers (esp in the i2c / smbus 
-case) making it an option is a good idea, I think we should combine this with 
-when this option is activated (it should be default off) actually checking if 
-things were changed and if so complain.
+Fine with me, as long as this is a run-time option and not a build-time
+option. Rebuilding a kernel module is not an option for many users.
 
-Then when we suspect faulplay by acpi/smm we can ask the user to turn on the 
-option.
-
-Does that sound like a plan?
-
-Regards,
-
-Hans
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
