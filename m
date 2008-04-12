@@ -1,87 +1,116 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Fri, 18 Apr 2008 20:50:36 +0000
-Subject: Re: [lm-sensors] Linux 2.6.25
-Message-Id: <4809099C.9010308@assembler.cz>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 12 Apr 2008 18:00:18 +0000
+Subject: [lm-sensors] [PATCH 06/10] hwmon: (lm85) Simplify device
+Message-Id: <20080412200018.79bd315e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com> <e2e108260804181218u70f096dfr864cdd13d1d4d2f3@mail.gmail.com> <48090395.6080202@gmail.com>
-In-Reply-To: <48090395.6080202@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: Bart Van Assche <bart.vanassche@gmail.com>, Matthew <jackdachef@gmail.com>, torvalds@linux-foundation.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Gene Heskett <gene.heskett@gmail.com>, LM Sensors <lm-sensors@lm-sensors.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-Hi all,
+Clean up and simplify the device initialization function:
+* Degrade error messages to warnings - what they really are.
+* Stop warning about VxI mode, we don't really care.
+* Drop comment about lack of limit initialization - that's the standard
+  way, all hardware monitoring drivers do that.
+* Only read the configuration register once.
+* Only write back to the configuration register if needed.
+* Don't attempt to clear the lock bit, it locks itself to 1.
+* Move the function to before it's called, so that we no longer need to
+  forware declare it.
 
-I will keep the rest of the mail intact for the lm-sensors list. The temper=
-ature=20
-is stored in hardware relative to maximum temperature. Mobile processors ha=
-ve=20
-some undocumented bits that calibrate the temperature to 85 or 100C. Intel =
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/lm85.c |   61 ++++++++++++++------------------------------------
+ 1 file changed, 18 insertions(+), 43 deletions(-)
 
-claims that this does not work for desktops, so I changed the driver [1] an=
-d=20
-scale for desktop CPUs is from 0 to 100.
+--- linux-2.6.25-rc8.orig/drivers/hwmon/lm85.c	2008-04-03 15:27:45.000000000 +0200
++++ linux-2.6.25-rc8/drivers/hwmon/lm85.c	2008-04-03 15:28:10.000000000 +0200
+@@ -319,7 +319,6 @@ static int lm85_detach_client(struct i2c
+ static int lm85_read_value(struct i2c_client *client, u8 reg);
+ static void lm85_write_value(struct i2c_client *client, u8 reg, int value);
+ static struct lm85_data *lm85_update_device(struct device *dev);
+-static void lm85_init_client(struct i2c_client *client);
+ 
+ 
+ static struct i2c_driver lm85_driver = {
+@@ -1087,6 +1086,24 @@ static const struct attribute_group lm85
+ 	.attrs = lm85_attributes_in567,
+ };
+ 
++static void lm85_init_client(struct i2c_client *client)
++{
++	int value;
++
++	/* Start monitoring if needed */
++	value = lm85_read_value(client, LM85_REG_CONFIG);
++	if (!(value & 0x01)) {
++		dev_info(&client->dev, "Starting monitoring\n");
++		lm85_write_value(client, LM85_REG_CONFIG, value | 0x01);
++	}
++
++	/* Warn about unusual configuration bits */
++	if (value & 0x02)
++		dev_warn(&client->dev, "Device configuration is locked\n");
++	if (!(value & 0x04))
++		dev_warn(&client->dev, "Device is not ready\n");
++}
++
+ static int lm85_detect(struct i2c_adapter *adapter, int address,
+ 		int kind)
+ {
+@@ -1331,48 +1348,6 @@ static void lm85_write_value(struct i2c_
+ 	}
+ }
+ 
+-static void lm85_init_client(struct i2c_client *client)
+-{
+-	int value;
+-	struct lm85_data *data = i2c_get_clientdata(client);
+-
+-	dev_dbg(&client->dev, "Initializing device\n");
+-
+-	/* Warn if part was not "READY" */
+-	value = lm85_read_value(client, LM85_REG_CONFIG);
+-	dev_dbg(&client->dev, "LM85_REG_CONFIG is: 0x%02x\n", value);
+-	if (value & 0x02) {
+-		dev_err(&client->dev, "Client (%d,0x%02x) config is locked.\n",
+-			i2c_adapter_id(client->adapter), client->addr);
+-	}
+-	if (!(value & 0x04)) {
+-		dev_err(&client->dev, "Client (%d,0x%02x) is not ready.\n",
+-			i2c_adapter_id(client->adapter), client->addr);
+-	}
+-	if (value & 0x10
+-	    && (data->type = adm1027
+-		|| data->type = adt7463)) {
+-		dev_err(&client->dev, "Client (%d,0x%02x) VxI mode is set.  "
+-			"Please report this to the lm85 maintainer.\n",
+-			i2c_adapter_id(client->adapter), client->addr);
+-	}
+-
+-	/* WE INTENTIONALLY make no changes to the limits,
+-	 *   offsets, pwms, fans and zones.  If they were
+-	 *   configured, we don't want to mess with them.
+-	 *   If they weren't, the default is 100% PWM, no
+-	 *   control and will suffice until 'sensors -s'
+-	 *   can be run by the user.
+-	 */
+-
+-	/* Start monitoring */
+-	value = lm85_read_value(client, LM85_REG_CONFIG);
+-	/* Try to clear LOCK, Set START, save everything else */
+-	value = (value & ~0x02) | 0x01;
+-	dev_dbg(&client->dev, "Setting CONFIG to: 0x%02x\n", value);
+-	lm85_write_value(client, LM85_REG_CONFIG, value);
+-}
+-
+ static struct lm85_data *lm85_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
 
-In your case, the MAX temperature is changed from 85 to 100 for desktops Bu=
-t the=20
-relative change is same, in your case -40C below the max [2]. You should no=
-w see=20
-instead of 40 around 60. Because it was 85 - 40 and now it is 100 - 40. Sec=
-ond=20
-problem is that the scale is not linear so it works more fine close to the =
-MAX.
-
-I think it is what happened. If you change the driver, so it will take 85C =
-
-instead of 100C everything should go back to "normal". I'm sorry I did not =
-
-invent relative only temp measurements, therefore I would recommend to watc=
-h how=20
-much is left to max temperature.
-
-Hope it explains it,
-
-Thanks,
-Rudolf
-
-[1]=20
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dcomm=
-it;h=118a88718886a6cb7fb2cf7fb77ef2eea30c73a1
-[2]
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dblob=
-;f=3DDocumentation/hwmon/coretemp;hb=3DHEAD
-
-
-Jiri Slaby napsal(a):
-> On 04/18/2008 09:18 PM, Bart Van Assche wrote:
->> On Fri, Apr 18, 2008 at 5:37 PM, Matthew <jackdachef@gmail.com> wrote:
->>>  I've another "regression" to report for 2.6.25:
->>>
->>>  it's concerning much higher temperatures being read out by the
->>>  "coretemp" kernel-module in comparison to 2.6.24* series
->>>
->>>  e.g. where temperatures were around 40-47=B0C they are now constantly
->>>  jumping around 55-70=B0C (even in idle !)
->>
->> The coretemp kernel module reports 25=B0C on my PC when idle, and 34=B0C
->> after having performed some computations (lmbench2). This looks
->> normal. This test has been performed with a vanilla 2.6.25 kernel and
->> a Core 2 Duo E6750 CPU (Asus motherboard). The 2.6.22 and 2.6.24
->> kernels report an incorrect temperature on the same system however
->> (10=B0C). So there is either an issue with the patches that have been
->> applied to your kernel or the behavior of the coretemp module for the
->> 6600 and E6750 CPU's is different. Can you repeat the test with a
->> vanilla 2.6.25 kernel ?
->>
->> (Added Rudolf Marek in CC, the coretemp author.)
->=20
-> I see a change on my rrd graphs on Mar 5th 11:30 AM (from 25 to 40=20
-> average centigrades). This is when I booted 2.6.25-rc3-mm1 instead of=20
-> 2.6.25-rc2-mm1, according to logs. [I have no idea whether the values=20
-> were correct before or are correct now.]
->=20
-> I might bisect it, if needed.
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
