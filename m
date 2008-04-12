@@ -1,126 +1,38 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 02 Apr 2008 12:40:50 +0000
-Subject: Re: [lm-sensors] [PATCH 3/4 v2] sensors: Print energy and power
-Message-Id: <20080402144050.4414417a@hyperion.delvare>
+Date: Sat, 12 Apr 2008 17:41:50 +0000
+Subject: [lm-sensors] [PATCH 00/10] Improvements to the lm85 driver
+Message-Id: <20080412194150.56a35654@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Darrick,
+Hi all,
 
-On Mon, 31 Mar 2008 16:53:02 -0700, Darrick J. Wong wrote:
-> Display power and energy meters in sensors.
-> 
-> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-> 
-> Index: lm-sensors-3.0.0/prog/sensors/chips.c
-> =================================> --- lm-sensors-3.0.0.orig/prog/sensors/chips.c	2008-03-31 16:05:53.000000000 -0700
-> +++ lm-sensors-3.0.0/prog/sensors/chips.c	2008-03-31 16:06:09.000000000 -0700
-> @@ -401,6 +401,85 @@
->  	printf("\n");
->  }
->  
-> +static void print_chip_power(const sensors_chip_name *name,
-> +			     const sensors_feature *feature,
-> +			     int label_size)
-> +{
-> +	int need_space = 0;
-> +	const sensors_subfeature *sf, *sfmin, *sfmax, *sfint;
-> +	char *label;
-> +
-> +	if (!(label = sensors_get_label(name, feature))) {
-> +		fprintf(stderr, "ERROR: Can't get label of feature %s!\n",
-> +			feature->name);
-> +		return;
-> +	}
-> +	print_label(label, label_size);
-> +	free(label);
-> +
-> +	sf = sensors_get_subfeature(name, feature,
-> +				    SENSORS_SUBFEATURE_POWER_AVERAGE);
-> +	if (sf)
-> +		printf("%6.2f W", get_value(name, sf));
-> +	else
-> +		printf("     N/A");
-> +
-> +	sfmin = sensors_get_subfeature(name, feature,
-> +				      SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST);
-> +	sfmax = sensors_get_subfeature(name, feature,
-> +				       SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST);
-> +	sfint = sensors_get_subfeature(name, feature,
-> +				     SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL);
-> +	if (sfmin || sfmax || sfint) {
-> +		printf("  (");
-> +
-> +		if (sfmin) {
-> +			printf("min = %6.2f W", get_value(name, sfmin));
-> +			need_space = 1;
-> +		}
-> +
-> +		if (sfmax) {
-> +			printf("%smax = %6.2f W", (need_space ? ", " : ""),
-> +			       get_value(name, sfmax));
-> +			need_space = 1;
-> +		}
-> +
-> +		if (sfint) {
-> +			printf("%sinterval = %6.2f s", (need_space ? ", " : ""),
-> +			       get_value(name, sfint));
-> +			need_space = 1;
-> +		}
-> +		printf(")");
-> +	}
-> +
-> +	printf("\n");
-> +}
-> +
-> +static void print_chip_energy(const sensors_chip_name *name,
-> +			      const sensors_feature *feature,
-> +			      int label_size)
-> +{
-> +	const sensors_subfeature *sf;
-> +	char *label;
-> +
-> +	if (!(label = sensors_get_label(name, feature))) {
-> +		fprintf(stderr, "ERROR: Can't get label of feature %s!\n",
-> +			feature->name);
-> +		return;
-> +	}
-> +	print_label(label, label_size);
-> +	free(label);
-> +
-> +	sf = sensors_get_subfeature(name, feature,
-> +				    SENSORS_SUBFEATURE_ENERGY_INPUT);
-> +	if (sf)
-> +		printf("%6.2f J", get_value(name, sf));
-> +	else
-> +		printf("     N/A");
-> +
-> +	printf("\n");
-> +}
-> +
->  static void print_chip_vid(const sensors_chip_name *name,
->  			   const sensors_feature *feature,
->  			   int label_size)
-> @@ -468,6 +547,12 @@
->  		case SENSORS_FEATURE_BEEP_ENABLE:
->  			print_chip_beep_enable(name, feature, label_size);
->  			break;
-> +		case SENSORS_FEATURE_POWER:
-> +			print_chip_power(name, feature, label_size);
-> +			break;
-> +		case SENSORS_FEATURE_ENERGY:
-> +			print_chip_energy(name, feature, label_size);
-> +			break;
->  		default:
->  			continue;
->  		}
+Here's a set of 10 incremental patches fixing, cleaning up and
+improving the lm85 hardware monitoring driver. My home server has an
+SMSC EMC6D102 chip so I needed the patches for myself, and I tested
+them on this machine.
 
-Looks alright to me. The exact line layout may need some tweaking but
-better wait to see enough real-world example before we do that.
+The patches are:
+bug fix: [PATCH 01/10] hwmon: (lm85) Fix function RANGE_TO_REG()
+cleanup: [PATCH 02/10] hwmon: (lm85) Coding-style cleanups
+cleanup: [PATCH 03/10] hwmon: (lm85) Drop dead code
+bug fix: [PATCH 04/10] hwmon: (lm85) Don't write back cached values
+cleanup: [PATCH 05/10] hwmon: (lm85) Misc cleanups
+cleanup: [PATCH 06/10] hwmon: (lm85) Simplify device initialization function
+cleanup: [PATCH 07/10] hwmon: (lm85) Rework the device detection
+feature: [PATCH 08/10] hwmon: (lm85) Implement the standard PWM frequency interface
+feature: [PATCH 09/10] hwmon: (lm85) Select the closest PWM frequency
+feature: [PATCH 10/10] hwmon: (lm85) Support different PWM frequency tables
 
+It is worth noting that this shrinks the binary size of the lm85 driver
+by 5.5%, and the source code size by 11%.
+
+Comments, reviews and testing are of course welcome.
+
+Thanks,
 -- 
 Jean Delvare
 
