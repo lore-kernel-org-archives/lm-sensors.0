@@ -1,92 +1,46 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 29 Apr 2008 06:03:01 +0000
-Subject: Re: [lm-sensors] [PATCH 01/10] hwmon: (lm85) Fix function
-Message-Id: <20080429080301.2d45dc6d@hyperion.delvare>
+From: "George Joseph \(dev\)" <gtj.devel@peakin.com>
+Date: Tue, 15 Apr 2008 00:10:48 +0000
+Subject: [lm-sensors] Coretemp on Q9300
+Message-Id: <22E26940476D1E48AA6F292B5316C9C305EAE9@bes1.peakin.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <48169F4D.8090508@gmail.com>
-In-Reply-To: <48169F4D.8090508@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+Rudolf,
 
-On Mon, 28 Apr 2008 21:08:45 -0700, Juerg Haefliger wrote:
-> > Function RANGE_TO_REG() is broken. For a requested range of 2000 (2
-> > degrees C), it will return an index value of 15, i.e. 80.0 degrees C,
-> > instead of the expected index value of 0. All other values are handled
-> > properly, just 2000 isn't.
-> > 
-> > The bug was introduced back in November 2004 by this patch:
-> > http://git.kernel.org/?p=linux/kernel/git/tglx/history.git;a=commit;h28d80f1992240373099d863e4996cdd5d646d0
-> > 
-> > While this can be fixed easily with the current code, I'd rather
-> > rewrite the whole function in a way which is more obviously correct.
-> > 
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > Cc: Justin Thiessen <jthiessen@penguincomputing.com>
-> > ---
-> > Note: this is the same patch as I already sent on April 3rd.
-> > 
-> >  drivers/hwmon/lm85.c |   25 +++++++++++--------------
-> >  1 file changed, 11 insertions(+), 14 deletions(-)
-> > 
-> > --- linux-2.6.25-rc8.orig/drivers/hwmon/lm85.c	2008-04-02 22:20:01.000000000 +0200
-> > +++ linux-2.6.25-rc8/drivers/hwmon/lm85.c	2008-04-02 23:10:16.000000000 +0200
-> > @@ -192,23 +192,20 @@ static int RANGE_TO_REG( int range )
-> >  {
-> >  	int i;
-> >  
-> > -	if ( range < lm85_range_map[0] ) { 
-> > -		return 0 ;
-> > -	} else if ( range > lm85_range_map[15] ) {
-> > +	if (range >= lm85_range_map[15])
-> >  		return 15 ;
-> > -	} else {  /* find closest match */
-> > -		for ( i = 14 ; i >= 0 ; --i ) {
-> > -			if ( range > lm85_range_map[i] ) { /* range bracketed */
-> > -				if ((lm85_range_map[i+1] - range) < 
-> > -					(range - lm85_range_map[i])) {
-> > -					i++;
-> > -					break;
-> > -				}
-> > -				break;
-> > -			}
-> > +
-> > +	/* Find the closest match */
-> > +	for (i = 14; i >= 0; --i) {
-> > +		if (range >= lm85_range_map[i]) {
-> > +			if ((lm85_range_map[i + 1] - range) <
-> > +					(range - lm85_range_map[i]))
-> > +				return i + 1;
-> > +			return i;
-> >  		}
-> >  	}
-> > -	return( i & 0x0f );
-> > +
-> > +	return 0;
-> >  }
-> >  #define RANGE_FROM_REG(val) (lm85_range_map[(val)&0x0f])
-> >  
-> 
-> This works but is less efficient compared to the original code for range 
-> values < 2000.
+Here's the cpuinfo from a Q9300 to add to coretemp...
+...george
 
-But it is slightly more efficient for all values between 2000 and
-80000. The average efficiency is exactly the same as those of the
-original code.
 
-> Is there a reason not to check for < 2000 before looping?
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 23
+model name      : Intel(R) Core(TM)2 Quad  CPU   Q9300  @ 2.50GHz
+stepping        : 7
+cpu MHz         : 1998.000
+cache size      : 3072 KB
+physical id     : 0
+siblings        : 4
+core id         : 0
+cpu cores       : 4
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 10
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe
+syscall nx lm constant_tsc arch_perfmon pebs bts rep_good pni monitor
+ds_cpl vmx smx est tm2 ssse3 cx16 xtpr lahf_lm
+bogomips        : 5002.05
+clflush size    : 64
+cache_alignment : 64
+address sizes   : 36 bits physical, 48 bits virtual
+power management:
 
-Code size. The < 2000 case is handled just fine by the for loop, so I
-don't see the point of making the code bigger.
 
-Note that performance is hardly an issue here anyway, users aren't
-going to change this parameter very often.
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
