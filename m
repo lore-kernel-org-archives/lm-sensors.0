@@ -1,225 +1,363 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 12 Apr 2008 17:55:52 +0000
-Subject: [lm-sensors] [PATCH 03/10] hwmon: (lm85) Drop dead code
-Message-Id: <20080412195552.421b4a28@hyperion.delvare>
+From: David Brownell <david-b@pacbell.net>
+Date: Wed, 16 Apr 2008 17:30:12 +0000
+Subject: [lm-sensors] [patch 2.6.25-rc9 2/5] lm75: add new-style driver
+Message-Id: <200804161030.12898.david-b@pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Drop a lot of useless register defines, conversion macros, data structure
-members and update code. All these register values were read from the
-device but nothing is done out of them, so this is all dead code in
-practice.
+Teach the LM75 driver how to use new-style driver binding:
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+ - Create a second driver struct, using new-style driver binding methods
+   cribbed from the legacy code.
+
+ - Make the legacy probe logic delegate all its work to this new code.
+
+ - The old driver struct was renamed as "lm75_legacy".
+
+ - Sensor limits are chip-specific; record them, and use them in new
+   routines to interconvert temperature and register values.
+
+ - More careful initialization.  Chips are put into 9-bit mode so
+   the current interconversion routines will never fail.
+
+ - Save the original chip configuration, and restore it on exit.
+
+A later patch updates those interconversion routines to support
+higher resolution measurements on chips which support them.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 ---
- Documentation/hwmon/lm85 |   11 ++----
- drivers/hwmon/lm85.c     |   82 +---------------------------------------------
- 2 files changed, 6 insertions(+), 87 deletions(-)
+ drivers/hwmon/Kconfig |    9 +-
+ drivers/hwmon/lm75.c  |  191 +++++++++++++++++++++++++++++++++++++-------------
+ 2 files changed, 149 insertions(+), 51 deletions(-)
 
---- linux-2.6.25-rc8.orig/drivers/hwmon/lm85.c	2008-04-04 10:45:10.000000000 +0200
-+++ linux-2.6.25-rc8/drivers/hwmon/lm85.c	2008-04-04 15:41:53.000000000 +0200
-@@ -56,16 +56,9 @@ I2C_CLIENT_INSMOD_6(lm85b, lm85c, adm102
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -390,9 +390,12 @@ config SENSORS_LM75
+ 		- TelCom (now Microchip) TCN75
+ 		- Texas Instruments TMP100, TMP101, TMP75, TMP175, TMP275
  
- #define	LM85_REG_PWM(nr)		(0x30 + (nr))
+-	  The DS75 and DS1775 in 10- to 12-bit precision modes will require
+-	  a force module parameter. The driver will not handle the extra
+-	  precision anyhow.
++	  This driver supports driver model based binding through board
++	  specific I2C device tables.
++
++	  It also supports the "legacy" style of driver binding.  To use
++	  that with some chips which don't replicate LM75 quirks exactly,
++	  you may need the "force" module parameter.
  
--#define	ADT7463_REG_OPPOINT(nr)		(0x33 + (nr))
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm75.
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -54,18 +54,19 @@ static const u8 LM75_REG_TEMP[3] = {
+ 
+ /* Each client has this additional data */
+ struct lm75_data {
+-	struct i2c_client	client;
++	struct i2c_client	*client;
+ 	struct device		*hwmon_dev;
+ 	struct mutex		update_lock;
++	long			min, max;
++	u8			orig_conf;
+ 	char			valid;		/* !=0 if registers are valid */
+ 	unsigned long		last_updated;	/* In jiffies */
+-	u16			temp[3];	/* Register values,
++	s16			temp[3];	/* Register values,
+ 						   0 = input
+ 						   1 = max
+ 						   2 = hyst */
+ };
+ 
+-static void lm75_init_client(struct i2c_client *client);
+ static int lm75_read_value(struct i2c_client *client, u8 reg);
+ static int lm75_write_value(struct i2c_client *client, u8 reg, u16 value);
+ static struct lm75_data *lm75_update_device(struct device *dev);
+@@ -75,13 +76,28 @@ static struct lm75_data *lm75_update_dev
+ 
+ /* sysfs attributes for hwmon */
+ 
++static inline s16 temp_to_reg(struct lm75_data *lm75, long temp)
++{
++	if (temp < lm75->min)
++		temp = lm75->min;
++	else if (temp > lm75->max)
++		temp = lm75->max;
++
++	return LM75_TEMP_TO_REG(temp);
++}
++
++static inline int reg_to_temp(s16 reg)
++{
++	return LM75_TEMP_FROM_REG(reg);
++}
++
+ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
+ 			 char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	struct lm75_data *data = lm75_update_device(dev);
+-	return sprintf(buf, "%d\n",
+-		       LM75_TEMP_FROM_REG(data->temp[attr->index]));
++
++	return sprintf(buf, "%d\n", reg_to_temp(data->temp[attr->index]));
+ }
+ 
+ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
+@@ -94,7 +110,7 @@ static ssize_t set_temp(struct device *d
+ 	long temp = simple_strtol(buf, NULL, 10);
+ 
+ 	mutex_lock(&data->update_lock);
+-	data->temp[nr] = LM75_TEMP_TO_REG(temp);
++	data->temp[nr] = temp_to_reg(data, temp);
+ 	lm75_write_value(client, LM75_REG_TEMP[nr], data->temp[nr]);
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+@@ -120,16 +136,112 @@ static const struct attribute_group lm75
+ 
+ /*-----------------------------------------------------------------------*/
+ 
++/* "New style" I2C driver binding -- following the driver model */
++
++static int lm75_probe(struct i2c_client *client)
++{
++	struct lm75_data *data;
++	int status;
++	u8 set_mask, clr_mask;
++	int new;
++
++	if (!i2c_check_functionality(client->adapter,
++			I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA))
++		return -EIO;
++
++	if (!(data = kzalloc(sizeof(struct lm75_data), GFP_KERNEL)))
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, data);
++
++	data->client = client;
++	mutex_init(&data->update_lock);
++
++	/* Set to LM75 resolution (9 bits, 1/2 degree C) and range.
++	 * Then tweak to be more precise when appropriate.
++	 */
++	set_mask = 0;
++	clr_mask = (1 << 0)			/* continuous conversions */
++		| (1 << 6) | (1 << 5);		/* 9-bit mode */
++
++	data->min = -55 * 1000;
++	data->max = 125 * 1000;
++
++	/* for tmp175 or tmp275, use name "tmp75" */
++	if (strcmp(client->name, "tmp75") = 0)
++		data->min = -40 * 1000;
++
++	/* NOTE:  also need to ensure that the chip is in interrupt mode
++	 * in various cases, and maybe handle SMBALERT#.
++	 */
++
++	/* configure as specified */
++	status = lm75_read_value(client, LM75_REG_CONF);
++	if (status < 0) {
++		dev_dbg(&client->dev, "Can't read config? %d\n", status);
++		goto exit_free;
++	}
++	data->orig_conf = status;
++	new = status & ~clr_mask;
++	new |= set_mask;
++	if (status != new)
++		lm75_write_value(client, LM75_REG_CONF, new);
++	dev_dbg(&client->dev, "Config %02x\n", new);
++
++	/* Register sysfs hooks */
++	if ((status = sysfs_create_group(&client->dev.kobj, &lm75_group)))
++		goto exit_free;
++
++	data->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		status = PTR_ERR(data->hwmon_dev);
++		goto exit_remove;
++	}
++
++	dev_info(&client->dev, "%s: sensor '%s'\n",
++		data->hwmon_dev->bus_id, client->name);
++
++	return 0;
++
++exit_remove:
++	sysfs_remove_group(&client->dev.kobj, &lm75_group);
++exit_free:
++	i2c_set_clientdata(client, NULL);
++	kfree(data);
++	return status;
++}
++
++static int lm75_remove(struct i2c_client *client)
++{
++	struct lm75_data *data = i2c_get_clientdata(client);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &lm75_group);
++	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
++	i2c_set_clientdata(client, NULL);
++	kfree(data);
++	return 0;
++}
++
++static struct i2c_driver lm75_driver = {
++	.driver = {
++		.name	= "lm75",
++	},
++	.probe		= lm75_probe,
++	.remove		= lm75_remove,
++};
++
++/*-----------------------------------------------------------------------*/
++
+ /* "Legacy" I2C driver binding */
+ 
+-static struct i2c_driver lm75_driver;
++static struct i2c_driver lm75_legacy_driver;
+ 
+ /* This function is called by i2c_probe */
+ static int lm75_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	int i;
+ 	struct i2c_client *new_client;
+-	struct lm75_data *data;
+ 	int err = 0;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+@@ -139,16 +251,14 @@ static int lm75_detect(struct i2c_adapte
+ 	/* OK. For now, we presume we have a valid address. We create the
+ 	   client structure, even though there may be no sensor present.
+ 	   But it allows us to access i2c_smbus_read_*_data() calls. */
+-	if (!(data = kzalloc(sizeof(struct lm75_data), GFP_KERNEL))) {
++	if (!(new_client = kzalloc(sizeof *new_client, GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+ 
+-	new_client = &data->client;
+-	i2c_set_clientdata(new_client, data);
+ 	new_client->addr = address;
+ 	new_client->adapter = adapter;
+-	new_client->driver = &lm75_driver;
++	new_client->driver = &lm75_legacy_driver;
+ 	new_client->flags = 0;
+ 
+ 	/* Now, we do the remaining detection. There is no identification-
+@@ -189,38 +299,24 @@ static int lm75_detect(struct i2c_adapte
+ 				goto exit_free;
+ 	}
+ 
+-	/* NOTE: we treat "force=..." and "force_lm75=..." the same. */
++	/* NOTE: we treat "force=..." and "force_lm75=..." the same.
++	 * Only new-style driver binding distinguishes chip types.
++	 */
+ 	strlcpy(new_client->name, "lm75", I2C_NAME_SIZE);
+ 
+-	/* Fill in the remaining client fields and put it into the global list */
+-	data->valid = 0;
+-	mutex_init(&data->update_lock);
 -
--#define	ADT7463_REG_TMIN_CTL1		0x36
--#define	ADT7463_REG_TMIN_CTL2		0x37
+ 	/* Tell the I2C layer a new client has arrived */
+ 	if ((err = i2c_attach_client(new_client)))
+ 		goto exit_free;
+ 
+-	/* Initialize the LM75 chip */
+-	lm75_init_client(new_client);
 -
--#define	LM85_REG_DEVICE			0x3d
- #define	LM85_REG_COMPANY		0x3e
- #define	LM85_REG_VERSTEP		0x3f
- /* These are the recognized values for the above regs */
--#define	LM85_DEVICE_ADX			0x27
- #define	LM85_COMPANY_NATIONAL		0x01
- #define	LM85_COMPANY_ANALOG_DEV		0x41
- #define	LM85_COMPANY_SMSC		0x5c
-@@ -91,27 +84,14 @@ I2C_CLIENT_INSMOD_6(lm85b, lm85c, adm102
- #define	LM85_REG_AFAN_CONFIG(nr)	(0x5c + (nr))
- #define	LM85_REG_AFAN_RANGE(nr)		(0x5f + (nr))
- #define	LM85_REG_AFAN_SPIKE1		0x62
--#define	LM85_REG_AFAN_SPIKE2		0x63
- #define	LM85_REG_AFAN_MINPWM(nr)	(0x64 + (nr))
- #define	LM85_REG_AFAN_LIMIT(nr)		(0x67 + (nr))
- #define	LM85_REG_AFAN_CRITICAL(nr)	(0x6a + (nr))
- #define	LM85_REG_AFAN_HYST1		0x6d
- #define	LM85_REG_AFAN_HYST2		0x6e
+-	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm75_group)))
++	if ((err = lm75_probe(new_client)) < 0)
+ 		goto exit_detach;
  
--#define	LM85_REG_TACH_MODE		0x74
--#define	LM85_REG_SPINUP_CTL		0x75
+-	data->hwmon_dev = hwmon_device_register(&new_client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove;
+-	}
 -
--#define	ADM1027_REG_TEMP_OFFSET(nr)	(0x70 + (nr))
--#define	ADM1027_REG_CONFIG2		0x73
--#define	ADM1027_REG_INTMASK1		0x74
--#define	ADM1027_REG_INTMASK2		0x75
- #define	ADM1027_REG_EXTEND_ADC1		0x76
- #define	ADM1027_REG_EXTEND_ADC2		0x77
--#define	ADM1027_REG_CONFIG3		0x78
--#define	ADM1027_REG_FAN_PPR		0x7b
+ 	return 0;
+ 
+-exit_remove:
+-	sysfs_remove_group(&new_client->dev.kobj, &lm75_group);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+-	kfree(data);
++	kfree(new_client);
+ exit:
+ 	return err;
+ }
+@@ -234,17 +330,15 @@ static int lm75_attach_adapter(struct i2
+ 
+ static int lm75_detach_client(struct i2c_client *client)
+ {
+-	struct lm75_data *data = i2c_get_clientdata(client);
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &lm75_group);
++	lm75_remove(client);
+ 	i2c_detach_client(client);
+-	kfree(data);
++	kfree(client);
+ 	return 0;
+ }
+ 
+-static struct i2c_driver lm75_driver = {
++static struct i2c_driver lm75_legacy_driver = {
+ 	.driver = {
+-		.name	= "lm75",
++		.name	= "lm75_legacy",
+ 	},
+ 	.attach_adapter	= lm75_attach_adapter,
+ 	.detach_client	= lm75_detach_client,
+@@ -273,16 +367,6 @@ static int lm75_write_value(struct i2c_c
+ 		return i2c_smbus_write_word_data(client, reg, swab16(value));
+ }
+ 
+-static void lm75_init_client(struct i2c_client *client)
+-{
+-	int reg;
 -
--#define	ADT7463_REG_THERM		0x79
--#define	ADT7463_REG_THERM_LIMIT		0x7A
- 
- #define EMC6D100_REG_ALARM3             0x7d
- /* IN5, IN6 and IN7 */
-@@ -264,13 +244,6 @@ static int ZONE_TO_REG(int zone)
- #define HYST_TO_REG(val)	SENSORS_LIMIT(((val) + 500) / 1000, 0, 15)
- #define HYST_FROM_REG(val)	((val) * 1000)
- 
--#define OFFSET_TO_REG(val)	SENSORS_LIMIT((val) / 25, -127, 127)
--#define OFFSET_FROM_REG(val)	((val) * 25)
+-	/* Enable if in shutdown mode */
+-	reg = lm75_read_value(client, LM75_REG_CONF);
+-	if (reg >= 0 && (reg & 0x01))
+-		lm75_write_value(client, LM75_REG_CONF, reg & 0xfe);
+-}
 -
--#define PPR_MASK(fan)		(0x03 << ((fan) * 2))
--#define PPR_TO_REG(val, fan)	(SENSORS_LIMIT((val) - 1, 0, 3) << ((fan) * 2))
--#define PPR_FROM_REG(val, fan)	((((val) >> ((fan) * 2)) & 0x03) + 1)
--
- /* Chip sampling rates
-  *
-  * Some sensors are not updated more frequently than once per second
-@@ -331,23 +304,15 @@ struct lm85_data {
- 	s8 temp[3];		/* Register value */
- 	s8 temp_min[3];		/* Register value */
- 	s8 temp_max[3];		/* Register value */
--	s8 temp_offset[3];	/* Register value */
- 	u16 fan[4];		/* Register value */
- 	u16 fan_min[4];		/* Register value */
- 	u8 pwm[3];		/* Register value */
--	u8 spinup_ctl;		/* Register encoding, combined */
--	u8 tach_mode;		/* Register encoding, combined */
- 	u8 temp_ext[3];		/* Decoded values */
- 	u8 in_ext[8];		/* Decoded values */
--	u8 fan_ppr;		/* Register value */
--	u8 smooth[3];		/* Register encoding */
-+	u8 smooth[1];		/* Register encoding */
- 	u8 vid;			/* Register value */
- 	u8 vrm;			/* VRM version */
- 	u8 syncpwm3;		/* Saved PWM3 for TACH 2,3,4 config */
--	u8 oppoint[3];		/* Register value */
--	u16 tmin_ctl;		/* Register value */
--	unsigned long therm_total; /* Cummulative therm count */
--	u8 therm_limit;		/* Register value */
- 	u32 alarms;		/* Register encoding, combined */
- 	struct lm85_autofan autofan[3];
- 	struct lm85_zone zone[3];
-@@ -1336,10 +1301,6 @@ static int lm85_read_value(struct i2c_cl
- 		res = i2c_smbus_read_byte_data(client, reg) & 0xff;
- 		res |= i2c_smbus_read_byte_data(client, reg + 1) << 8;
- 		break;
--	case ADT7463_REG_TMIN_CTL1:  /* Read WORD MSB, LSB */
--		res = i2c_smbus_read_byte_data(client, reg) << 8;
--		res |= i2c_smbus_read_byte_data(client, reg + 1) & 0xff;
--		break;
- 	default:	/* Read BYTE data */
- 		res = i2c_smbus_read_byte_data(client, reg);
- 		break;
-@@ -1366,11 +1327,6 @@ static int lm85_write_value(struct i2c_c
- 		res |= i2c_smbus_write_byte_data(client, reg + 1,
- 						 (value >> 8) & 0xff);
- 		break;
--	case ADT7463_REG_TMIN_CTL1:  /* Write WORD MSB, LSB */
--		res = i2c_smbus_write_byte_data(client, reg,
--						(value >> 8) & 0xff);
--		res |= i2c_smbus_write_byte_data(client, reg + 1, value & 0xff);
--		break;
- 	default:	/* Write BYTE data */
- 		res = i2c_smbus_write_byte_data(client, reg, value);
- 		break;
-@@ -1482,12 +1438,7 @@ static struct lm85_data *lm85_update_dev
+ static struct lm75_data *lm75_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -313,11 +397,22 @@ static struct lm75_data *lm75_update_dev
  
- 		data->alarms = lm85_read_value(client, LM85_REG_ALARM1);
+ static int __init sensors_lm75_init(void)
+ {
+-	return i2c_add_driver(&lm75_driver);
++	int status;
++
++	status = i2c_add_driver(&lm75_driver);
++	if (status < 0)
++		return status;
++
++	status = i2c_add_driver(&lm75_legacy_driver);
++	if (status < 0)
++		i2c_del_driver(&lm75_driver);
++
++	return status;
+ }
  
--		if (data->type = adt7463) {
--			if (data->therm_total < ULONG_MAX - 256) {
--			    data->therm_total +-				lm85_read_value(client, ADT7463_REG_THERM);
--			}
--		} else if (data->type = emc6d100) {
-+		if (data->type = emc6d100) {
- 			/* Three more voltage sensors */
- 			for (i = 5; i <= 7; ++i) {
- 				data->in[i] = lm85_read_value(client,
-@@ -1584,9 +1535,6 @@ static struct lm85_data *lm85_update_dev
- 		data->autofan[0].min_off = (i & 0x20) != 0;
- 		data->autofan[1].min_off = (i & 0x40) != 0;
- 		data->autofan[2].min_off = (i & 0x80) != 0;
--		i = lm85_read_value(client, LM85_REG_AFAN_SPIKE2);
--		data->smooth[1] = (i>>4) & 0x0f;
--		data->smooth[2] = i & 0x0f;
+ static void __exit sensors_lm75_exit(void)
+ {
++	i2c_del_driver(&lm75_legacy_driver);
+ 	i2c_del_driver(&lm75_driver);
+ }
  
- 		i = lm85_read_value(client, LM85_REG_AFAN_HYST1);
- 		data->zone[0].hyst = (i>>4) & 0x0f;
-@@ -1595,32 +1543,6 @@ static struct lm85_data *lm85_update_dev
- 		i = lm85_read_value(client, LM85_REG_AFAN_HYST2);
- 		data->zone[2].hyst = (i>>4) & 0x0f;
- 
--		if (data->type = lm85b || data->type = lm85c) {
--			data->tach_mode = lm85_read_value(client,
--				LM85_REG_TACH_MODE);
--			data->spinup_ctl = lm85_read_value(client,
--				LM85_REG_SPINUP_CTL);
--		} else if (data->type = adt7463 || data->type = adm1027) {
--			if (data->type = adt7463) {
--				for (i = 0; i <= 2; ++i) {
--				    data->oppoint[i] = lm85_read_value(client,
--					ADT7463_REG_OPPOINT(i));
--				}
--				data->tmin_ctl = lm85_read_value(client,
--					ADT7463_REG_TMIN_CTL1);
--				data->therm_limit = lm85_read_value(client,
--					ADT7463_REG_THERM_LIMIT);
--			}
--			for (i = 0; i <= 2; ++i) {
--				data->temp_offset[i] = lm85_read_value(client,
--						ADM1027_REG_TEMP_OFFSET(i));
--			}
--			data->tach_mode = lm85_read_value(client,
--				ADM1027_REG_CONFIG3);
--			data->fan_ppr = lm85_read_value(client,
--				ADM1027_REG_FAN_PPR);
--		}
--
- 		data->last_config = jiffies;
- 	}  /* last_config */
- 
---- linux-2.6.25-rc8.orig/Documentation/hwmon/lm85	2008-04-04 15:41:52.000000000 +0200
-+++ linux-2.6.25-rc8/Documentation/hwmon/lm85	2008-04-04 15:46:40.000000000 +0200
-@@ -96,11 +96,6 @@ initial testing of the ADM1027 it was 1.
- confirmed this "bug". The ADT7463 is reported to work as described in the
- documentation. The current lm85 driver does not show the offset register.
- 
--The ADT7463 has a THERM asserted counter. This counter has a 22.76ms
--resolution and a range of 5.8 seconds. The driver implements a 32-bit
--accumulator of the counter value to extend the range to over a year. The
--counter will stay at it's max value until read.
--
- See the vendor datasheets for more information. There is application note
- from National (AN-1260) with some additional information about the LM85.
- The Analog Devices datasheet is very detailed and describes a procedure for
-@@ -206,13 +201,15 @@ Configuration choices:
- 
- The National LM85's have two vendor specific configuration
- features. Tach. mode and Spinup Control. For more details on these,
--see the LM85 datasheet or Application Note AN-1260.
-+see the LM85 datasheet or Application Note AN-1260. These features
-+are not currently supported by the lm85 driver.
- 
- The Analog Devices ADM1027 has several vendor specific enhancements.
- The number of pulses-per-rev of the fans can be set, Tach monitoring
- can be optimized for PWM operation, and an offset can be applied to
- the temperatures to compensate for systemic errors in the
--measurements.
-+measurements. These features are not currently supported by the lm85
-+driver.
- 
- In addition to the ADM1027 features, the ADT7463 also has Tmin control
- and THERM asserted counts. Automatic Tmin control acts to adjust the
-
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
