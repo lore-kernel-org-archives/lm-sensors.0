@@ -1,55 +1,158 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Tue, 01 Apr 2008 08:47:47 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] Define sysfs interfaces for ibmaem
-Message-Id: <20080401084747.GE7183@tree.beaverton.ibm.com>
+From: David Brownell <david-b@pacbell.net>
+Date: Wed, 16 Apr 2008 17:30:56 +0000
+Subject: [lm-sensors] [patch 2.6.25-rc9 3/5] lm75: support 12-bit resolution
+Message-Id: <200804161030.56626.david-b@pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080328213646.GC7191@tree.beaverton.ibm.com> <20080329145603.7e47418f@hyperion.delvare> <20080331210135.GC7183@tree.beaverton.ibm.com> <20080401102228.712acbb5@hyperion.delvare>
-In-Reply-To: <20080401102228.712acbb5@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-[Got in a car accident tonight; replies will be scarce for the next week
-or two.... :(]
+Make the lm75 driver so that use the best resolution available on
+each chip it finds ... usually this is 12 bits (0.0625 degrees C).
 
-On Tue, Apr 01, 2008 at 10:22:28AM +0200, Jean Delvare wrote:
+Note that this preserves the quirky "round away from zero" behavior
+for converting temperatures to sensor values.  (I'd think no rounding
+at all would be better.)
 
-> OK. Another question that comes to my mind now is the unit... Do the
-> chips express the value in Joules internally? I would have expected
-> Watt-hours. Of course we can convert as needed, but if all known chips
-> use the same unit then I think we should that unit too, to minimize the
-> required conversions.
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+ drivers/hwmon/Kconfig |    4 +++-
+ drivers/hwmon/lm75.c  |   44 ++++++++++++++++++++++++++++++++++++--------
+ 2 files changed, 39 insertions(+), 9 deletions(-)
 
-The IBM chips report some form of Joules, not Wh.
-
-> It really depends on what the chips report. Typically the drivers
-> should report the values from the chip without too much tinkering
-> (other than conversion to standard units). If some chips can report
-> both "instantaneous" and "average" power uses, it makes sense to have
-> both sets of filenames in the standard interface. If not then I am fine
-> getting rid of one set.
-
-Hmm, I'll think about what I want to do with this.  Probably just leave
-them.
-
-> I don't think there is any precedent yet. I suggested this for
-> unambiguity rather than consistency.
-
-Ok.
-
-> Oh well, I guess that anything shorter than 1 ms can be considered
-> "instantaneous power use", so we can go with millisecond.
-
-Ok.
-
-> Out of curiosity, what are the values supported by the ibmaem chip?
-
-I don't know what the lower limits are; it depends on how often the BMC
-decides to update the counters, and that seems to vary by machine.
-
---D
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -391,7 +391,9 @@ config SENSORS_LM75
+ 		- Texas Instruments TMP100, TMP101, TMP75, TMP175, TMP275
+ 
+ 	  This driver supports driver model based binding through board
+-	  specific I2C device tables.
++	  specific I2C device tables.  When those tables report a chip
++	  type that's recognized as supporting it, this driver uses 12-bit
++	  sample resolution (to 1/16 degree C).
+ 
+ 	  It also supports the "legacy" style of driver binding.  To use
+ 	  that with some chips which don't replicate LM75 quirks exactly,
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -27,7 +27,6 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+-#include "lm75.h"
+ 
+ 
+ /*
+@@ -65,6 +64,8 @@ struct lm75_data {
+ 						   0 = input
+ 						   1 = max
+ 						   2 = hyst */
++	u16			round;		/* f(resolution) */
++	u16			mask;
+ };
+ 
+ static int lm75_read_value(struct i2c_client *client, u8 reg);
+@@ -74,7 +75,7 @@ static struct lm75_data *lm75_update_dev
+ 
+ /*-----------------------------------------------------------------------*/
+ 
+-/* sysfs attributes for hwmon */
++/* sysfs attributes for hwmon, handling any sample resolution */
+ 
+ static inline s16 temp_to_reg(struct lm75_data *lm75, long temp)
+ {
+@@ -83,12 +84,19 @@ static inline s16 temp_to_reg(struct lm7
+ 	else if (temp > lm75->max)
+ 		temp = lm75->max;
+ 
+-	return LM75_TEMP_TO_REG(temp);
++	/* "Round away from zero" -- unusual but backwards-compatible.
++	 * Rounding should really be done *after* conversion.
++	 */
++	temp += (temp < 0) ? -lm75->round : lm75->round;
++	return ((temp * 256) / 1000) & lm75->mask;
+ }
+ 
+ static inline int reg_to_temp(s16 reg)
+ {
+-	return LM75_TEMP_FROM_REG(reg);
++	/* Use integer division instead of logical right shift to
++	 * preserve sign (compiler uses arithmetic right shift).
++	 */
++	return (reg * 1000) / 256;
+ }
+ 
+ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
+@@ -97,7 +105,8 @@ static ssize_t show_temp(struct device *
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	struct lm75_data *data = lm75_update_device(dev);
+ 
+-	return sprintf(buf, "%d\n", reg_to_temp(data->temp[attr->index]));
++	return sprintf(buf, "%d\n",
++		reg_to_temp(data->temp[attr->index]) & data->mask);
+ }
+ 
+ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
+@@ -144,6 +153,7 @@ static int lm75_probe(struct i2c_client 
+ 	int status;
+ 	u8 set_mask, clr_mask;
+ 	int new;
++	int resolution;
+ 
+ 	if (!i2c_check_functionality(client->adapter,
+ 			I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA))
+@@ -163,13 +173,27 @@ static int lm75_probe(struct i2c_client 
+ 	set_mask = 0;
+ 	clr_mask = (1 << 0)			/* continuous conversions */
+ 		| (1 << 6) | (1 << 5);		/* 9-bit mode */
++	resolution = 9;
+ 
+ 	data->min = -55 * 1000;
+ 	data->max = 125 * 1000;
+ 
+ 	/* for tmp175 or tmp275, use name "tmp75" */
+-	if (strcmp(client->name, "tmp75") = 0)
++	if (strcmp(client->name, "tmp75") = 0) {
+ 		data->min = -40 * 1000;
++		set_mask |= (1 << 6) | (1 << 5);
++		resolution = 12;
++
++	/* for ds1775, use name "ds75" */
++	} else if (strcmp(client->name, "ds75") = 0
++			|| strcmp(client->name, "mcp980x") = 0
++			|| strcmp(client->name, "tmp100") = 0
++			|| strcmp(client->name, "tmp101") = 0) {
++		set_mask |= (1 << 6) | (1 << 5);
++		resolution = 12;
++
++	} else if (strcmp(client->name, "max6626") = 0)
++		resolution = 12;
+ 
+ 	/* NOTE:  also need to ensure that the chip is in interrupt mode
+ 	 * in various cases, and maybe handle SMBALERT#.
+@@ -188,6 +212,9 @@ static int lm75_probe(struct i2c_client 
+ 		lm75_write_value(client, LM75_REG_CONF, new);
+ 	dev_dbg(&client->dev, "Config %02x\n", new);
+ 
++	data->round = 500 / (1 << (resolution - 8));
++	data->mask = ~((1 << (16 - resolution)) - 1);
++
+ 	/* Register sysfs hooks */
+ 	if ((status = sysfs_create_group(&client->dev.kobj, &lm75_group)))
+ 		goto exit_free;
+@@ -198,8 +225,9 @@ static int lm75_probe(struct i2c_client 
+ 		goto exit_remove;
+ 	}
+ 
+-	dev_info(&client->dev, "%s: sensor '%s'\n",
+-		data->hwmon_dev->bus_id, client->name);
++	dev_info(&client->dev,
++		"%s: sensor '%s', resolution %d millidegrees C\n",
++		data->hwmon_dev->bus_id, client->name, data->round * 2);
+ 
+ 	return 0;
+ 
 
 _______________________________________________
 lm-sensors mailing list
