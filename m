@@ -1,107 +1,87 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Tue, 01 Apr 2008 03:25:46 +0000
-Subject: [lm-sensors] [GIT PATCH] hwmon update against v2.6.25-rc7
-Message-Id: <20080401032546.GF27659@mars.solarsys.private>
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Fri, 18 Apr 2008 20:50:36 +0000
+Subject: Re: [lm-sensors] Linux 2.6.25
+Message-Id: <4809099C.9010308@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <e85b9d30804180837y39c52e26i588e4b67c87a5e9d@mail.gmail.com> <e2e108260804181218u70f096dfr864cdd13d1d4d2f3@mail.gmail.com> <48090395.6080202@gmail.com>
+In-Reply-To: <48090395.6080202@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Bart Van Assche <bart.vanassche@gmail.com>, Matthew <jackdachef@gmail.com>, torvalds@linux-foundation.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Gene Heskett <gene.heskett@gmail.com>, LM Sensors <lm-sensors@lm-sensors.org>
 
-Hi Linus:
+Hi all,
 
-Please pull from:
-	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git release
+I will keep the rest of the mail intact for the lm-sensors list. The temper=
+ature=20
+is stored in hardware relative to maximum temperature. Mobile processors ha=
+ve=20
+some undocumented bits that calibrate the temperature to 85 or 100C. Intel =
 
-You'll get one patch (attached) which fixes a regression in w83781d
-http://bugzilla.kernel.org/show_bug.cgi?id357
+claims that this does not work for desktops, so I changed the driver [1] an=
+d=20
+scale for desktop CPUs is from 0 to 100.
 
-Thanks & regards,
+In your case, the MAX temperature is changed from 85 to 100 for desktops Bu=
+t the=20
+relative change is same, in your case -40C below the max [2]. You should no=
+w see=20
+instead of 40 around 60. Because it was 85 - 40 and now it is 100 - 40. Sec=
+ond=20
+problem is that the scale is not linear so it works more fine close to the =
+MAX.
 
-commit 2961cb22ef02850d90e7a12c28a14d74e327df8d
-Author: Jean Delvare <khali@linux-fr.org>
-Date:   Sun Mar 9 13:34:28 2008 +0100
+I think it is what happened. If you change the driver, so it will take 85C =
 
-    hwmon: (w83781d) Fix I/O resource conflict with PNP
-    
-    Only request I/O ports 0x295-0x296 instead of the full I/O address
-    range. This solves a conflict with PNP resources on a few motherboards.
-    
-    Also request the I/O ports in two parts (4 low ports, 4 high ports)
-    during device detection, otherwise the PNP resource makes the request
-    (and thus the detection) fail.
-    
-    This fixes lm-sensors ticket #2306:
-    http://www.lm-sensors.org/ticket/2306
-    
-    Signed-off-by: Jean Delvare <khali@linux-fr.org>
-    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+instead of 100C everything should go back to "normal". I'm sorry I did not =
 
-diff --git a/drivers/hwmon/w83781d.c b/drivers/hwmon/w83781d.c
-index 5c85670..f942ecd 100644
---- a/drivers/hwmon/w83781d.c
-+++ b/drivers/hwmon/w83781d.c
-@@ -1367,7 +1367,8 @@ w83781d_isa_probe(struct platform_device *pdev)
- 
- 	/* Reserve the ISA region */
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--	if (!request_region(res->start, W83781D_EXTENT, "w83781d")) {
-+	if (!request_region(res->start + W83781D_ADDR_REG_OFFSET, 2,
-+			    "w83781d")) {
- 		err = -EBUSY;
- 		goto exit;
- 	}
-@@ -1415,7 +1416,7 @@ w83781d_isa_probe(struct platform_device *pdev)
- 	device_remove_file(&pdev->dev, &dev_attr_name);
- 	kfree(data);
-  exit_release_region:
--	release_region(res->start, W83781D_EXTENT);
-+	release_region(res->start + W83781D_ADDR_REG_OFFSET, 2);
-  exit:
- 	return err;
- }
-@@ -1429,7 +1430,7 @@ w83781d_isa_remove(struct platform_device *pdev)
- 	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group);
- 	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group_opt);
- 	device_remove_file(&pdev->dev, &dev_attr_name);
--	release_region(data->client.addr, W83781D_EXTENT);
-+	release_region(data->client.addr + W83781D_ADDR_REG_OFFSET, 2);
- 	kfree(data);
- 
- 	return 0;
-@@ -1797,8 +1798,17 @@ w83781d_isa_found(unsigned short address)
- {
- 	int val, save, found = 0;
- 
--	if (!request_region(address, W83781D_EXTENT, "w83781d"))
-+	/* We have to request the region in two parts because some
-+	   boards declare base+4 to base+7 as a PNP device */
-+	if (!request_region(address, 4, "w83781d")) {
-+		pr_debug("w83781d: Failed to request low part of region\n");
- 		return 0;
-+	}
-+	if (!request_region(address + 4, 4, "w83781d")) {
-+		pr_debug("w83781d: Failed to request high part of region\n");
-+		release_region(address, 4);
-+		return 0;
-+	}
- 
- #define REALLY_SLOW_IO
- 	/* We need the timeouts for at least some W83781D-like
-@@ -1871,7 +1881,8 @@ w83781d_isa_found(unsigned short address)
- 			val = 0x30 ? "W83782D" : "W83781D", (int)address);
- 
-  release:
--	release_region(address, W83781D_EXTENT);
-+	release_region(address + 4, 4);
-+	release_region(address, 4);
- 	return found;
- }
- 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+invent relative only temp measurements, therefore I would recommend to watc=
+h how=20
+much is left to max temperature.
 
+Hope it explains it,
+
+Thanks,
+Rudolf
+
+[1]=20
+http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dcomm=
+it;h=118a88718886a6cb7fb2cf7fb77ef2eea30c73a1
+[2]
+http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dblob=
+;f=3DDocumentation/hwmon/coretemp;hb=3DHEAD
+
+
+Jiri Slaby napsal(a):
+> On 04/18/2008 09:18 PM, Bart Van Assche wrote:
+>> On Fri, Apr 18, 2008 at 5:37 PM, Matthew <jackdachef@gmail.com> wrote:
+>>>  I've another "regression" to report for 2.6.25:
+>>>
+>>>  it's concerning much higher temperatures being read out by the
+>>>  "coretemp" kernel-module in comparison to 2.6.24* series
+>>>
+>>>  e.g. where temperatures were around 40-47=B0C they are now constantly
+>>>  jumping around 55-70=B0C (even in idle !)
+>>
+>> The coretemp kernel module reports 25=B0C on my PC when idle, and 34=B0C
+>> after having performed some computations (lmbench2). This looks
+>> normal. This test has been performed with a vanilla 2.6.25 kernel and
+>> a Core 2 Duo E6750 CPU (Asus motherboard). The 2.6.22 and 2.6.24
+>> kernels report an incorrect temperature on the same system however
+>> (10=B0C). So there is either an issue with the patches that have been
+>> applied to your kernel or the behavior of the coretemp module for the
+>> 6600 and E6750 CPU's is different. Can you repeat the test with a
+>> vanilla 2.6.25 kernel ?
+>>
+>> (Added Rudolf Marek in CC, the coretemp author.)
+>=20
+> I see a change on my rrd graphs on Mar 5th 11:30 AM (from 25 to 40=20
+> average centigrades). This is when I booted 2.6.25-rc3-mm1 instead of=20
+> 2.6.25-rc2-mm1, according to logs. [I have no idea whether the values=20
+> were correct before or are correct now.]
+>=20
+> I might bisect it, if needed.
 
 _______________________________________________
 lm-sensors mailing list
