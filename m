@@ -1,7 +1,7 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Mon, 21 Apr 2008 07:53:37 +0000
+From: Gabriel C <crazy@frugalware.org>
+Date: Wed, 23 Apr 2008 09:03:14 +0000
 Subject: Re: [lm-sensors] ASUS P5E-VM DO and unknown chip with ID 0x0b00
-Message-Id: <480C4801.8000106@assembler.cz>
+Message-Id: <480EFB52.9040203@frugalware.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <48077504.4000905@frugalware.org>
 In-Reply-To: <48077504.4000905@frugalware.org>
@@ -10,18 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Gabriel,
+Rudolf Marek wrote:
+> Hi Gabriel,
+> 
+> Please send us a dsdt table. You can use following commands:
+> 
+> cat /proc/acpi/dsdt > /tmp/dsdt.bin
+> cd /tmp
+> iasl -d dsdt.bin
+> 
+> To obtain a text based table (dsdt.asl/dsl)
 
-Please send us a dsdt table. You can use following commands:
+Sorry for the lag.
 
-cat /proc/acpi/dsdt > /tmp/dsdt.bin
-cd /tmp
-iasl -d dsdt.bin
+There the dsl file :
 
-To obtain a text based table (dsdt.asl/dsl)
+http://frugalware.org/~crazy/ASUS_P5E-VM_DO/dsdt.dsl
 
-Thanks,
-Rudolf
+> 
+> Thanks,
+> Rudolf
+
+
+Gabriel
 
 _______________________________________________
 lm-sensors mailing list
