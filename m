@@ -1,66 +1,68 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Mon, 14 Apr 2008 18:37:58 +0000
-Subject: Re: [lm-sensors] [PATCH 4/4]: sensors: Automatically scale
-Message-Id: <20080414183758.GB7191@tree.beaverton.ibm.com>
+From: Romain Dolbeau <romain@dolbeau.org>
+Date: Fri, 25 Apr 2008 08:26:22 +0000
+Subject: [lm-sensors] sensors.conf for the Supermicro X7DBE
+Message-Id: <481195AE.3070104@dolbeau.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------090504090401030802070501"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080331235441.GH7191@tree.beaverton.ibm.com>
-In-Reply-To: <20080331235441.GH7191@tree.beaverton.ibm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Apr 02, 2008 at 04:20:54PM +0200, Jean Delvare wrote:
-> > Index: lm-sensors-3.0.0/lib/sysfs.c
-> > =================================> > --- lm-sensors-3.0.0.orig/lib/sysfs.c	2008-03-31 16:35:30.000000000 -0700
-> > +++ lm-sensors-3.0.0/lib/sysfs.c	2008-03-31 16:35:46.000000000 -0700
-> > @@ -155,10 +155,6 @@
-> >  		return 1000;
-> >  	case SENSORS_SUBFEATURE_FAN_INPUT:
-> >  		return 1;
-> > -	case SENSORS_SUBFEATURE_POWER_AVERAGE:
-> > -		return 1000000;
-> > -	case SENSORS_SUBFEATURE_ENERGY_INPUT:
-> > -		return 1000000;
-> >  	case SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL:
-> >  		return 1000;
-> >  	}
-> 
-> This revert was certainly not meant to be.
+This is a multi-part message in MIME format.
+--------------090504090401030802070501
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Actually, it was--my intent for the autoscale functionality was that
-this static translation goes away and programs are left to scale the raw
-value as they see fit.
+I forgot to post that one, it seems, as it doesn't appear in the website.
 
-That said, I can see that it would be better for libsensors to export
-values in a prefix-less unit and _then_ programs can autoscale as they
-desire.  I'll make it do that.
+Maybe it can be of help to someone.
 
-> I'm a bit surprised, I expected 1e-6 for uW, 1e-3 for mW, 0 for W, etc?
-> Does your code actually output correct values? Or course you would then
-> have to adjust your algorithm as you would no longer be able to use 0
-> as a terminator - but that's easy to work around.
+-- 
+Romain Dolbeau
+<romain@dolbeau.org>
 
-The numeric figure is the upper bound for using that unit--if the number
-you're trying to autoscale is less than the upper bound, you can use the
-unit; otherwise, keep going.  Hence 1e-3 for uW, 1 for mW, and 1e3 for W
-once libsensors starts exporting raw values again.
 
-Also, zero works as a terminator as long as all entries in the
-table represent numeric powers.
+--------------090504090401030802070501
+Content-Type: text/plain;
+ name="X7DBE.conf"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="X7DBE.conf"
 
-> This table is really the same as power_scales with just W becoming J. I
-> think it would be better to have a single table for all units, and to
-> add the unit symbol on the fly. That way we won't need to add another
-> table if we ever want to automatically scale values expressed in
-> another unit.
-
-I'll move the table into the scale function, then.  That will enable me
-to ensure that zero works as a terminator.
-
---D
+IyBzZXR0aW5ncyBmb3IgdGhlIHN1cGVybWljcm8gWDdEQkUKIwojIE5vdGVzOgojIDEpIGFz
+IG9mIGxpbnV4IDIuNC4yMSwgdGVtcDYgaXMgcmVhZCBieSBsbS1zZW5zb3JzIGJ1dCBkb2Vz
+bid0IGFjdHVhbGx5CiMgICAgc2VlbSB0byBleGlzdCBpbiB0aGUgY2hpcCAoPyksIHNvIGFu
+IGVycm9yIGlzIGRpc3BsYXllZC4uLgojCiMgT3JpZ2luYWxseSB3cml0dGVuIGJ5IFJvbWFp
+biBEb2xiZWF1IDxyb21haW5AZG9sYmVhdS5vcmc+CiMgVXNlcyBhdCB5b3VyIG93biByaXNr
+ICEKY2hpcCAidzgzNzkzLWkyYy0qLTJmIgoKIyAweDEwLCBDUFUgQ29yZSAxCiAgICBsYWJl
+bCBpbjAgIkNQVSBDb3JlIDEiCiMgMHgxMSwgQ1BVIENvcmUgMgogICAgbGFiZWwgaW4xICJD
+UFUgQ29yZSAyIgojIDB4MTIgVlRUPTEuMlYgaW4gQklPUyA/CiAgICBsYWJlbCBpbjIgIlZU
+VCIKICAgIHNldCBpbjJfbWluIDEuMiowLjk1CiAgICBzZXQgaW4yX21heCAxLjIqMS4wNQoj
+IDB4MTQsIC0xMlYKICAgIGxhYmVsIGluMyAiLTEyViIKICAgIGNvbXB1dGUgaW4zICgoKEAv
+OCkqMTg1MDApLzI1NiktMTYsICgoKEArMTYpKjI1NikvMTg1MDApKjgKICAgIHNldCBpbjNf
+bWluIC0xMioxLjA1CiAgICBzZXQgaW4zX21heCAtMTIqMC45NQojIDB4MTUsIERJTU0KICAg
+IGxhYmVsIGluNCAiUDFWNSIKIyAweDE2LCArMy4zVgogICAgbGFiZWwgaW41ICIrMy4zViIK
+ICAgIHNldCBpbjVfbWluIDMuMyowLjk1CiAgICBzZXQgaW41X21heCAzLjMqMS4wNQojIDB4
+MTcsICsxMlYKICAgIGxhYmVsIGluNiAiKzEyViIKICAgIGNvbXB1dGUgaW42IEAqMTIsQC8x
+MgogICAgc2V0IGluNl9taW4gMTIqMC45NQogICAgc2V0IGluNl9tYXggMTIqMS4wNQojIE94
+MTgsICs1VgogICAgbGFiZWwgaW43ICIrNVYiCiAgICBzZXQgaW43X21pbiA1KjAuOTUKICAg
+IHNldCBpbjdfbWF4IDUqMS4wNQojIDB4MTksIDVWU0IKICAgIGxhYmVsIGluOCAiNVZTQiIK
+ICAgIHNldCBpbjhfbWluIDUqMC45NQogICAgc2V0IGluOF9tYXggNSoxLjA1CiMgMHgxYSwg
+QmF0dGVyeSBWb2x0YWdlCiAgICBsYWJlbCBpbjkgIlZCQVQiCgogICAgbGFiZWwgdGVtcDEg
+IkNQVTEgVGVtcCIKICAgIGxhYmVsIHRlbXAyICJDUFUyIFRlbXAiCiAgICBpZ25vcmUgdGVt
+cDMKICAgIGlnbm9yZSB0ZW1wNAogICAgbGFiZWwgdGVtcDUgIlN5c3RlbSBUZW1wIgogICAg
+aWdub3JlIHRlbXA2CgogICAgbGFiZWwgZmFuMSAiZmFuMSIKICAgIGxhYmVsIGZhbjIgImZh
+bjIiCiAgICBsYWJlbCBmYW4zICJmYW4zIgogICAgbGFiZWwgZmFuNCAiZmFuNCIKICAgIGln
+bm9yZSBmYW41CiAgICBpZ25vcmUgZmFuNgogICAgbGFiZWwgZmFuNyAiQ1BVMSBmYW4iCiAg
+ICBsYWJlbCBmYW44ICJDUFUyIGZhbiIKICAgIGlnbm9yZSBmYW45CiAgICBpZ25vcmUgZmFu
+MTAKICAgIGlnbm9yZSBmYW4xMgogICAgaWdub3JlIGZhbjEyCgo=
+--------------090504090401030802070501
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------090504090401030802070501--
