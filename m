@@ -1,24 +1,39 @@
-From: Len Brown <lenb@kernel.org>
-Date: Tue, 29 Apr 2008 07:17:23 +0000
-Subject: Re: [lm-sensors] [PATCH 3/6] thermal: add hwmon sysfs I/F
-Message-Id: <200804290317.24334.lenb@kernel.org>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 26 Apr 2008 14:34:26 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (adt7473) Initialize
+Message-Id: <20080426163426.7684ce5d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1207815360.27304.39.camel@acpi-hp-zz.sh.intel.com> <1208765272.3550.7.camel@rzhang-1.sh.intel.com> <20080421112554.3768a4da@hyperion.delvare>
-In-Reply-To: <20080421112554.3768a4da@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, waldi@debian.org
+To: lm-sensors@vger.kernel.org
 
-On Monday 21 April 2008, Jean Delvare wrote:
-> Acked-by: Jean Delvare <khali@linux-fr.org>
+data->max_duty_at_overheat is not updated in adt7473_update_device,
+so it might be used before it is initialized (if the user reads from
+sysfs file max_duty_at_crit before writing to it.)
 
-applied
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Darrick J. Wong <djwong@us.ibm.com>
+---
+ drivers/hwmon/adt7473.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-thanks
--len
+--- linux-2.6.26-rc0.orig/drivers/hwmon/adt7473.c	2008-04-26 15:36:41.000000000 +0200
++++ linux-2.6.26-rc0/drivers/hwmon/adt7473.c	2008-04-26 16:15:05.000000000 +0200
+@@ -298,6 +298,9 @@ no_sensor_update:
+ 						ADT7473_REG_PWM_BHVR(i));
+ 	}
+ 
++	i = i2c_smbus_read_byte_data(client, ADT7473_REG_CFG4);
++	data->max_duty_at_overheat = !!(i & ADT7473_CFG4_MAX_DUTY_AT_OVT);
++
+ 	data->limits_last_updated = local_jiffies;
+ 	data->limits_valid = 1;
+ 
 
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
