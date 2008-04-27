@@ -1,7 +1,7 @@
 From: Gabriel C <crazy@frugalware.org>
-Date: Sun, 27 Apr 2008 16:25:46 +0000
+Date: Sun, 27 Apr 2008 16:26:50 +0000
 Subject: Re: [lm-sensors] ASUS P5E-VM DO and unknown chip with ID 0x0b00
-Message-Id: <4814A90A.6010502@frugalware.org>
+Message-Id: <4814A94A.1030302@frugalware.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <48077504.4000905@frugalware.org>
 In-Reply-To: <48077504.4000905@frugalware.org>
@@ -12,39 +12,38 @@ To: lm-sensors@vger.kernel.org
 
 Rudolf Marek wrote:
 > Hi,
-> 
-> I'm CCing Trousers people maybe they can help.
-> 
-> Well it seems you have trusted platform module at 0x4e/0x4f. The manufacturer 
-> seems to be Infineon. Infineon 9635 TT. The sensors-detect script misdetect that 
-> as SMSC superio.
 
-Right , I have TPM chip.
+Hi
 
 > 
-> Probing for Super-I/O at 0x4e/0x4f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     Yes
-> Found unknown chip with ID 0x0b00
+> Please can you provide output of following:
 > 
-> http://www.tranzistoare.ro/datasheets/480/339084_DS.pdf
+> isadump -k 0x55 0x4e 0x4f
 > 
-> Question is what now? Quick search did not bring any docs. If someone here has 
-> more time to investigate if 0x4e/0x4f port is common for TPM modules...
-> 
-> Please can anyone point me to relevant docs where are the registers of TPM 
-> described? So we can fix this mis-detection.
 
-Also I've enabled TPM in BIOS and the kernel modules , here the output ( maybe it helps ) :
+Here the output :
+
+    0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 0b 00 00 00 00 00 4e 00 00 00 00 00 00 00 00 00
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 ff ff ff ff ff ff
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 d1 15 0b 00 10 00 00 00 00 00 00 00 00 00 00
 
 
-[    9.587609] tpm_inf_pnp 00:0e: TPM found: config base 0x4e, data base 0x4700, chip version 0x000b, vendor id 0x15d1 (Infineon), product id 0x000b (SLB 9635 TT 1.2)
-
-
-> 
 > Thanks,
 > Rudolf
-> 
 
 Gabriel
 
