@@ -1,7 +1,7 @@
-From: Gabriel C <crazy@frugalware.org>
-Date: Fri, 25 Apr 2008 12:21:11 +0000
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Sun, 27 Apr 2008 12:35:34 +0000
 Subject: Re: [lm-sensors] ASUS P5E-VM DO and unknown chip with ID 0x0b00
-Message-Id: <4811CCB7.4030906@frugalware.org>
+Message-Id: <48147316.4040209@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <48077504.4000905@frugalware.org>
 In-Reply-To: <48077504.4000905@frugalware.org>
@@ -10,25 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rudolf Marek wrote:
-> Hi Gabriel,
+Hi,
 
-Hi Rudolf ,
+I'm CCing Trousers people maybe they can help.
 
-> 
-> Please could you send/post online a log output from sensors-detect.
+Well it seems you have trusted platform module at 0x4e/0x4f. The manufacturer 
+seems to be Infineon. Infineon 9635 TT. The sensors-detect script misdetect that 
+as SMSC superio.
 
-I did so already in my first email http://lists.lm-sensors.org/pipermail/lm-sensors/2008-April/022899.html .
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     Yes
+Found unknown chip with ID 0x0b00
 
-If you want me to post something different just let me know.
+http://www.tranzistoare.ro/datasheets/480/339084_DS.pdf
+
+Question is what now? Quick search did not bring any docs. If someone here has 
+more time to investigate if 0x4e/0x4f port is common for TPM modules...
+
+Please can anyone point me to relevant docs where are the registers of TPM 
+described? So we can fix this mis-detection.
+
+Thanks,
+Rudolf
 
 
-> 
-> Thanks,
-> Rudolf
 
-
-Gabriel
 
 _______________________________________________
 lm-sensors mailing list
