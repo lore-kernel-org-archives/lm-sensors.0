@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 28 Apr 2008 11:17:58 +0000
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Mon, 28 Apr 2008 17:33:36 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (adt7473) Initialize
-Message-Id: <20080428131758.75d0e578@hyperion.delvare>
+Message-Id: <20080428173336.GE16078@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080426163426.7684ce5d@hyperion.delvare>
 In-Reply-To: <20080426163426.7684ce5d@hyperion.delvare>
@@ -10,40 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Paulius,
-
-Thanks for the review.
-
-On Mon, 28 Apr 2008 11:31:22 +0300, Paulius Zaleckas wrote:
-> Jean Delvare wrote:
-> > --- linux-2.6.26-rc0.orig/drivers/hwmon/adt7473.c	2008-04-26 15:36:41.000000000 +0200
-> > +++ linux-2.6.26-rc0/drivers/hwmon/adt7473.c	2008-04-26 16:15:05.000000000 +0200
-> > @@ -298,6 +298,9 @@ no_sensor_update:
-> >  						ADT7473_REG_PWM_BHVR(i));
-> >  	}
-> >  
-> > +	i = i2c_smbus_read_byte_data(client, ADT7473_REG_CFG4);
-> > +	data->max_duty_at_overheat = !!(i & ADT7473_CFG4_MAX_DUTY_AT_OVT);
+On Sat, Apr 26, 2008 at 04:34:26PM +0200, Jean Delvare wrote:
+> data->max_duty_at_overheat is not updated in adt7473_update_device,
+> so it might be used before it is initialized (if the user reads from
+> sysfs file max_duty_at_crit before writing to it.)
 > 
-> Maybe it would be more understandable to use:
-> data->max_duty_at_overheat = (i & ADT7473_CFG4_MAX_DUTY_AT_OVT) ? 1 : 0;
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Darrick J. Wong <djwong@us.ibm.com>
 
-The !! construct seems to be widely used in the kernel, I found 800
-occurrences, so I guess it's OK to use it here. But if Darrick (as the
-driver author) or Mark (as the subsystem maintainer) prefer your
-variant, I can update the patch.
+Thanks for catching this.  Looks/compiles/seems to run ok, so:
+Acked-by: Darrick J. Wong <djwong@us.ibm.com>
 
-> Although I don't know if gcc optimizes both to the same instructions.
+As for !! vs (?:), I don't have any particular preference.
 
-It seems so, yes (gcc 4.1.2).
-
-> 
-> > +
-> >  	data->limits_last_updated = local_jiffies;
-> >  	data->limits_valid = 1;
-
--- 
-Jean Delvare
+--D
 
 _______________________________________________
 lm-sensors mailing list
