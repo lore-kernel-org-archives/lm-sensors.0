@@ -1,7 +1,7 @@
-From: Gabriel C <crazy@frugalware.org>
-Date: Sun, 27 Apr 2008 16:26:50 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 28 Apr 2008 14:09:05 +0000
 Subject: Re: [lm-sensors] ASUS P5E-VM DO and unknown chip with ID 0x0b00
-Message-Id: <4814A94A.1030302@frugalware.org>
+Message-Id: <20080428160905.218fe905@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <48077504.4000905@frugalware.org>
 In-Reply-To: <48077504.4000905@frugalware.org>
@@ -10,42 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rudolf Marek wrote:
-> Hi,
+Hi Rudolf,
 
-Hi
-
+On Wed, 23 Apr 2008 23:27:52 +0200, Rudolf Marek wrote:
+> >> [   19.961068] ACPI: I/O resource w83627ehf [0x295-0x296] conflicts with ACPI
+> >> region HWRE [0x290-0x299]
+> >>
+> >> The ATK driver has no extra funcs then the classic driver so I think you can use
+> >>  what you have right now.
+> > 
+> > You mean that without the ATK0110 driver _nothing_ will access the I/O
+> > range? How can you be so sure?
 > 
-> Please can you provide output of following:
-> 
-> isadump -k 0x55 0x4e 0x4f
-> 
+> Yes I can be sure beacuse I checked the DSDT. There is no thermal zone, only the
+> proprietary ATK methods to read the chip. Nothing calls them. Gabriel could do
+> modprobe thermal ; acpi -V and it should not print any temperature info.
 
-Here the output :
+Can you explain to me how you reached this conclusion? When I look at a
+DSDT I can usually recognize if it deals with temperatures and fans,
+but how do I know if there's a thermal zone or not?
 
-    0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-20: 0b 00 00 00 00 00 4e 00 00 00 00 00 00 00 00 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 ff ff ff ff ff ff
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 d1 15 0b 00 10 00 00 00 00 00 00 00 00 00 00
+Also, does the absence of thermal zone imply that ACPI isn't running
+the methods in question on its own?
 
-
-> Thanks,
-> Rudolf
-
-Gabriel
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
