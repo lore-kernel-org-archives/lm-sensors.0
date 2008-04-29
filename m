@@ -1,30 +1,48 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Mon, 21 Apr 2008 23:37:43 +0000
-Subject: Re: [lm-sensors] How to get lm-sensors to see eight
-Message-Id: <20080421233743.GH15705@tree.beaverton.ibm.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 29 Apr 2008 11:25:55 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (f71882fg) Delete needless forward
+Message-Id: <20080429132555.5f6b0291@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Apr 21, 2008 at 05:37:44PM -0400, Michael Darling wrote:
-> I have a HP XW8400 workstation.  It came with a single Intel Xeon E5335, and
-> I correctly got lm_sensors installed so I could see the four processor
-> temperatures.  (The E5335 is a quad xeon chip.)
-> 
-> I just installed a second Xeon E5335.  /proc/cpuinfo correctly sees 8
-> logical CPUs, however lm_sensors is still reporting temperatures for only 4
-> of those logical CPUs.  When I initially installed the machine on a single
-> Xeon, I got lm_sensors working correctly, but can't figure out now how to
-> expand it from reporting on 4 CPUs to 8.  My experience with lm_sensors is
-> extremely limited, so any advice would be much appreciated!
+These functions aren't used before being defined, so there's no point
+in forward-declaring them.
 
-Hmm... if you're running a recent kernel (2.6.23+, I think?) try the
-coretemp driver to read the temperature sensors that are on the CPU
-die.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>
+---
+ drivers/hwmon/f71882fg.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---D
+--- linux-2.6.26-rc0.orig/drivers/hwmon/f71882fg.c	2008-04-29 13:08:05.000000000 +0200
++++ linux-2.6.26-rc0/drivers/hwmon/f71882fg.c	2008-04-29 13:20:35.000000000 +0200
+@@ -88,8 +88,6 @@ static inline void superio_enter(int bas
+ static inline void superio_select(int base, int ld);
+ static inline void superio_exit(int base);
+ 
+-static inline u16 fan_from_reg ( u16 reg );
+-
+ struct f71882fg_data {
+ 	unsigned short addr;
+ 	struct device *hwmon_dev;
+@@ -117,10 +115,6 @@ struct f71882fg_data {
+ 	u8	temp_diode_open;
+ };
+ 
+-static u8 f71882fg_read8(struct f71882fg_data *data, u8 reg);
+-static u16 f71882fg_read16(struct f71882fg_data *data, u8 reg);
+-static void f71882fg_write8(struct f71882fg_data *data, u8 reg, u8 val);
+-
+ /* Sysfs in*/
+ static ssize_t show_in(struct device *dev, struct device_attribute *devattr,
+ 	char *buf);
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
