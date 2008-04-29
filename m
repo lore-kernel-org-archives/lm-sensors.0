@@ -1,30 +1,77 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Thu, 24 Apr 2008 22:16:46 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] ibmaem: New driver for power/energy
-Message-Id: <20080424221645.GA16404@tree.beaverton.ibm.com>
+From: Juerg Haefliger <juergh@gmail.com>
+Date: Tue, 29 Apr 2008 04:08:45 +0000
+Subject: Re: [lm-sensors] [PATCH 01/10] hwmon: (lm85) Fix function
+Message-Id: <48169F4D.8090508@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080328213805.GB7183@tree.beaverton.ibm.com> <47F1A675.3050204@codemonkey.ws>
-In-Reply-To: <47F1A675.3050204@codemonkey.ws>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Anthony Liguori <anthony@codemonkey.ws>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Mon, Mar 31, 2008 at 10:05:25PM -0500, Anthony Liguori wrote:
+Hi Jean,
 
-> It really shouldn't be necessary to have all of these macro functions.  
-> In this above macro, you would just have to pass the ro and rw  
-> structures along with a remove function pointer.  Since all of your  
-> types have common members, you could just have a common substructure and  
-> pass that around.
 
-Hmm... it isn't too difficult to refactor the registration function to
-make it easier to look at, though I'd rather keep the AEM1 and AEM2 guts
-separate rather than aggressively eliminating macros by making the AEM1
-structs a subset of the AEM2 structs.
+> Function RANGE_TO_REG() is broken. For a requested range of 2000 (2
+> degrees C), it will return an index value of 15, i.e. 80.0 degrees C,
+> instead of the expected index value of 0. All other values are handled
+> properly, just 2000 isn't.
+> 
+> The bug was introduced back in November 2004 by this patch:
+> http://git.kernel.org/?p=linux/kernel/git/tglx/history.git;a=commit;h28d80f1992240373099d863e4996cdd5d646d0
+> 
+> While this can be fixed easily with the current code, I'd rather
+> rewrite the whole function in a way which is more obviously correct.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Justin Thiessen <jthiessen@penguincomputing.com>
+> ---
+> Note: this is the same patch as I already sent on April 3rd.
+> 
+>  drivers/hwmon/lm85.c |   25 +++++++++++--------------
+>  1 file changed, 11 insertions(+), 14 deletions(-)
+> 
+> --- linux-2.6.25-rc8.orig/drivers/hwmon/lm85.c	2008-04-02 22:20:01.000000000 +0200
+> +++ linux-2.6.25-rc8/drivers/hwmon/lm85.c	2008-04-02 23:10:16.000000000 +0200
+> @@ -192,23 +192,20 @@ static int RANGE_TO_REG( int range )
+>  {
+>  	int i;
+>  
+> -	if ( range < lm85_range_map[0] ) { 
+> -		return 0 ;
+> -	} else if ( range > lm85_range_map[15] ) {
+> +	if (range >= lm85_range_map[15])
+>  		return 15 ;
+> -	} else {  /* find closest match */
+> -		for ( i = 14 ; i >= 0 ; --i ) {
+> -			if ( range > lm85_range_map[i] ) { /* range bracketed */
+> -				if ((lm85_range_map[i+1] - range) < 
+> -					(range - lm85_range_map[i])) {
+> -					i++;
+> -					break;
+> -				}
+> -				break;
+> -			}
+> +
+> +	/* Find the closest match */
+> +	for (i = 14; i >= 0; --i) {
+> +		if (range >= lm85_range_map[i]) {
+> +			if ((lm85_range_map[i + 1] - range) <
+> +					(range - lm85_range_map[i]))
+> +				return i + 1;
+> +			return i;
+>  		}
+>  	}
+> -	return( i & 0x0f );
+> +
+> +	return 0;
+>  }
+>  #define RANGE_FROM_REG(val) (lm85_range_map[(val)&0x0f])
+>  
 
---D
+This works but is less efficient compared to the original code for range 
+values < 2000. Is there a reason not to check for < 2000 before looping?
+
+...juerg
 
 _______________________________________________
 lm-sensors mailing list
