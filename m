@@ -1,73 +1,309 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 12 Apr 2008 17:53:58 +0000
-Subject: [lm-sensors] [PATCH 01/10] hwmon: (lm85) Fix function RANGE_TO_REG()
-Message-Id: <20080412195358.63f15be8@hyperion.delvare>
+From: Sean MacLennan <seanm@seanm.ca>
+Date: Wed, 30 Apr 2008 04:41:01 +0000
+Subject: [lm-sensors] [PATCH] Add driver for AD7414 i2c temperature sensor
+Message-Id: <20080430004101.515f8d2f@lappy.seanm.ca>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Function RANGE_TO_REG() is broken. For a requested range of 2000 (2
-degrees C), it will return an index value of 15, i.e. 80.0 degrees C,
-instead of the expected index value of 0. All other values are handled
-properly, just 2000 isn't.
+Here is a rework based on Jean Delvare's suggestions.
 
-The bug was introduced back in November 2004 by this patch:
-http://git.kernel.org/?p=linux/kernel/git/tglx/history.git;a=commit;h28d80f1992240373099d863e4996cdd5d646d0
+One change that may not be apparent is that the alert bit is active
+low. I feel that it reads wrong to have "cat temp_alert" return 1
+when the alert is off. So I invert this bit. Let me know how you feel
+about this.
 
-While this can be fixed easily with the current code, I'd rather
-rewrite the whole function in a way which is more obviously correct.
+Cheers,
+   Sean
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Justin Thiessen <jthiessen@penguincomputing.com>
----
-Note: this is the same patch as I already sent on April 3rd.
+Signed-off-by: Sean MacLennan <smaclennan@pikatech.com>
 
- drivers/hwmon/lm85.c |   25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
-
---- linux-2.6.25-rc8.orig/drivers/hwmon/lm85.c	2008-04-02 22:20:01.000000000 +0200
-+++ linux-2.6.25-rc8/drivers/hwmon/lm85.c	2008-04-02 23:10:16.000000000 +0200
-@@ -192,23 +192,20 @@ static int RANGE_TO_REG( int range )
- {
- 	int i;
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 4dc76bc..eec2d37 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -57,6 +57,16 @@ config SENSORS_ABITUGURU3
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called abituguru3.
  
--	if ( range < lm85_range_map[0] ) { 
--		return 0 ;
--	} else if ( range > lm85_range_map[15] ) {
-+	if (range >= lm85_range_map[15])
- 		return 15 ;
--	} else {  /* find closest match */
--		for ( i = 14 ; i >= 0 ; --i ) {
--			if ( range > lm85_range_map[i] ) { /* range bracketed */
--				if ((lm85_range_map[i+1] - range) < 
--					(range - lm85_range_map[i])) {
--					i++;
--					break;
--				}
--				break;
--			}
++config SENSORS_AD7414
++	tristate "Analog Devices AD7414"
++	depends on I2C && EXPERIMENTAL
++	help
++	  If you say yes here you get support for the Analog Devices
++	  AD7414 temperature monitoring chip.
 +
-+	/* Find the closest match */
-+	for (i = 14; i >= 0; --i) {
-+		if (range >= lm85_range_map[i]) {
-+			if ((lm85_range_map[i + 1] - range) <
-+					(range - lm85_range_map[i]))
-+				return i + 1;
-+			return i;
- 		}
- 	}
--	return( i & 0x0f );
++	  This driver can also be built as a module. If so, the module
++	  will be called ad7414.
++
+ config SENSORS_AD7418
+ 	tristate "Analog Devices AD7416, AD7417 and AD7418"
+ 	depends on I2C && EXPERIMENTAL
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 3bdb05a..c8b1c11 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -15,6 +15,7 @@ obj-$(CONFIG_SENSORS_W83791D)	+= w83791d.o
+ 
+ obj-$(CONFIG_SENSORS_ABITUGURU)	+= abituguru.o
+ obj-$(CONFIG_SENSORS_ABITUGURU3)+= abituguru3.o
++obj-$(CONFIG_SENSORS_AD7414)	+= ad7414.o
+ obj-$(CONFIG_SENSORS_AD7418)	+= ad7418.o
+ obj-$(CONFIG_SENSORS_ADM1021)	+= adm1021.o
+ obj-$(CONFIG_SENSORS_ADM1025)	+= adm1025.o
+diff --git a/drivers/hwmon/ad7414.c b/drivers/hwmon/ad7414.c
+new file mode 100644
+index 0000000..4c8078d
+--- /dev/null
++++ b/drivers/hwmon/ad7414.c
+@@ -0,0 +1,245 @@
++/*
++ * An hwmon driver for the Analog Devices AD7414
++ *
++ * Copyright 2006 Stefan Roese <sr at denx.de>, DENX Software Engineering
++ *
++ * Copyright (c) 2008 PIKA Technologies
++ *   Sean MacLennan <smaclennan@pikatech.com>
++ *
++ * Copyright (c) 2008 Spansion Inc.
++ *   Frank Edelhaeuser <frank.edelhaeuser at spansion.com>
++ *   (converted to "new style" I2C driver model, removed checkpatch.pl warnings)
++ *
++ * Based on ad7418.c
++ * Copyright 2006 Tower Technologies, Alessandro Zummo <a.zummo at towertech.it>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/module.h>
++#include <linux/jiffies.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++
++
++#define DRV_VERSION "0.3"
++
++/* AD7414 registers */
++#define AD7414_REG_TEMP		0x00
++#define AD7414_REG_CONF		0x01
++#define AD7414_REG_T_HIGH	0x02
++#define AD7414_REG_T_LOW	0x03
++
++
++struct ad7414_data {
++	struct device		*hwmon_dev;
++	struct mutex		lock;	/* atomic read data updates */
++	char			valid;	/* !=0 if following fields are valid */
++	unsigned long		next_update;	/* In jiffies */
++	s16			temp_input;	/* Register values */
++	s8			temp_max;
++	s8			temp_min;
++};
++
++/* REG: (0.25C/bit, two's complement) << 6 */
++static inline int AD7414_TEMP_FROM_REG(u16 reg)
++{
++	/* use integer division instead of equivalent right shift to
++	 * guarantee arithmetic shift and preserve the sign
++	 */
++	return ((s64)reg / 64) * 250;
++}
++
++static inline int ad7414_read(struct i2c_client *client, u8 reg)
++{
++	if (reg = AD7414_REG_TEMP)
++		return swab16(i2c_smbus_read_word_data(client, reg));
++	else
++		return i2c_smbus_read_byte_data(client, reg);
++}
++
++static inline int ad7414_write(struct i2c_client *client, u8 reg, u16 value)
++{
++	return i2c_smbus_write_byte_data(client, reg, value);
++}
++
++struct ad7414_data *ad7414_update_device(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ad7414_data *data = i2c_get_clientdata(client);
++
++	mutex_lock(&data->lock);
++
++	if (time_after(jiffies, data->next_update) || !data->valid) {
++		dev_dbg(&client->dev, "starting ad7414 update\n");
++
++		data->temp_input = ad7414_read(client, AD7414_REG_TEMP);
++		data->temp_max = ad7414_read(client, AD7414_REG_T_HIGH);
++		data->temp_min = ad7414_read(client, AD7414_REG_T_LOW);
++
++		data->next_update = jiffies + HZ + HZ / 2;
++		data->valid = 1;
++	}
++
++	mutex_unlock(&data->lock);
++
++	return data;
++}
++
++static ssize_t show_temp_input(struct device *dev,
++			       struct device_attribute *attr, char *buf)
++{
++	struct ad7414_data *data = ad7414_update_device(dev);
++	return sprintf(buf, "%d\n", AD7414_TEMP_FROM_REG(data->temp_input));
++}
++
++#define show_8(value)	\
++static ssize_t show_##value(struct device *dev, \
++	struct device_attribute *attr, char *buf)		\
++{								\
++	struct ad7414_data *data = ad7414_update_device(dev);	\
++	return sprintf(buf, "%d\n", data->value);		\
++}
++show_8(temp_max);
++show_8(temp_min);
++
++#define set(value, reg)	\
++static ssize_t set_##value(struct device *dev, \
++	struct device_attribute *attr, \
++	const char *buf, size_t count)	\
++{								\
++	struct i2c_client *client = to_i2c_client(dev);		\
++	struct ad7414_data *data = i2c_get_clientdata(client);	\
++	long temp = simple_strtol(buf, NULL, 10);		\
++								\
++	mutex_lock(&data->lock);				\
++	data->value = temp;					\
++	ad7414_write(client, reg, data->value);			\
++	mutex_unlock(&data->lock);				\
++	return count;						\
++}
++set(temp_max, AD7414_REG_T_HIGH);
++set(temp_min, AD7414_REG_T_LOW);
++
++static DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max, set_temp_max);
++static DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp_min, set_temp_min);
++static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input, NULL);
++
++static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
++			  char *buf)
++{
++	int bitnr = to_sensor_dev_attr(attr)->index;
++	struct ad7414_data *data = ad7414_update_device(dev);
++	int value = (data->temp_input >> bitnr) & 1;
++
++	/* alert is active low */
++	if (bitnr = 5)
++		value ^= 1;
++
++
++	return sprintf(buf, "%d\n", value);
++}
++
++static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL, 3);
++static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 4);
++static SENSOR_DEVICE_ATTR(temp1_alert, S_IRUGO, show_alarm, NULL, 5);
++
++
++static struct attribute *ad7414_attributes[] = {
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp1_max.attr,
++	&dev_attr_temp1_min.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_alert.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group ad7414_group = {
++	.attrs = ad7414_attributes,
++};
++
++static int ad7414_probe(struct i2c_client *client)
++{
++	struct ad7414_data *data;
++	int err = 0;
++
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA |
++				     I2C_FUNC_SMBUS_READ_WORD_DATA))
++		goto exit;
++
++	data = kzalloc(sizeof(struct ad7414_data), GFP_KERNEL);
++	if (!data) {
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	i2c_set_clientdata(client, data);
++	mutex_init(&data->lock);
++
++	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
++
++	/* Register sysfs hooks */
++	err = sysfs_create_group(&client->dev.kobj, &ad7414_group);
++	if (err)
++		goto exit_free;
++
++	data->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto exit_remove;
++	}
 +
 +	return 0;
- }
- #define RANGE_FROM_REG(val) (lm85_range_map[(val)&0x0f])
- 
-
-
--- 
-Jean Delvare
++
++exit_remove:
++	sysfs_remove_group(&client->dev.kobj, &ad7414_group);
++exit_free:
++	kfree(data);
++exit:
++	return err;
++}
++
++static int __devexit ad7414_remove(struct i2c_client *client)
++{
++	struct ad7414_data *data = i2c_get_clientdata(client);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &ad7414_group);
++	kfree(data);
++	return 0;
++}
++
++static struct i2c_driver ad7414_driver = {
++	.driver = {
++		.name	= "ad7414",
++	},
++	.probe	= ad7414_probe,
++	.remove	= __devexit_p(ad7414_remove),
++};
++
++static int __init ad7414_init(void)
++{
++	return i2c_add_driver(&ad7414_driver);
++}
++
++static void __exit ad7414_exit(void)
++{
++	i2c_del_driver(&ad7414_driver);
++}
++
++MODULE_AUTHOR("Stefan Roese <sr at denx.de>, "
++	      "Frank Edelhaeuser <frank.edelhaeuser at spansion.com>");
++
++MODULE_DESCRIPTION("AD7414 driver");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(DRV_VERSION);
++
++module_init(ad7414_init);
++module_exit(ad7414_exit);
 
 _______________________________________________
 lm-sensors mailing list
