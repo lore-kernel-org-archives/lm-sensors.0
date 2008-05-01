@@ -1,131 +1,104 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 17 May 2008 07:31:18 +0000
-Subject: Re: [lm-sensors] [PATCH] Use fan divisor bits from vbat register of
-Message-Id: <20080517093118.1d9be342@hyperion.delvare>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Thu, 01 May 2008 04:08:41 +0000
+Subject: Re: [lm-sensors] [PATCH 01/10] hwmon: (lm85) Fix function
+Message-Id: <191fb4ca0804302108s5fb65438t34279e71f6b7e8a9@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200805150052.13785.m.hulsman@tudelft.nl>
-In-Reply-To: <200805150052.13785.m.hulsman@tudelft.nl>
+References: <48169F4D.8090508@gmail.com>
+In-Reply-To: <48169F4D.8090508@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 16 May 2008 23:07:42 +0200, Marc Hulsman wrote:
-> A new version with your comments applied:
-> ---
-> 
-> Update w83791d with fan bits in vbat mon register (7.48 of the
-> datasheet). This change allows all fans to have a divisor of 128, 
-> and fixes a problem with incorrectly reported fan speeds. 
-> 
-> Signed-off-by: Marc Hulsman <m.hulsman@tudelft.nl>
-> 
-> ---
-> 
->  Documentation/hwmon/w83791d |    6 +++---
->  drivers/hwmon/w83791d.c     |   24 ++++++++++++++++++++----
->  2 files changed, 23 insertions(+), 7 deletions(-) 
-> ---
-> diff -uprN linux-2.6.26-rc1-git6/drivers/hwmon/w83791d.c 
-> linux-2.6.26-rc1-git6-modified2/drivers/hwmon/w83791d.c
-> --- linux-2.6.26-rc1-git6/drivers/hwmon/w83791d.c	2008-05-03 
-> 20:59:44.000000000 +0200
-> +++ linux-2.6.26-rc1-git6-modified2/drivers/hwmon/w83791d.c	2008-05-16 
-> 22:13:15.000000000 +0200
-> @@ -233,11 +233,9 @@ static u8 fan_to_reg(long rpm, int div)
->  static u8 div_to_reg(int nr, long val)
->  {
->  	int i;
-> -	int max;
->  
-> -	/* first three fan's divisor max out at 8, rest max out at 128 */
-> -	max = (nr < 3) ? 8 : 128;
-> -	val = SENSORS_LIMIT(val, 1, max) >> 1;
-> +	/* fan divisors max out at 128 */
-> +	val = SENSORS_LIMIT(val, 1, 128) >> 1;
->  	for (i = 0; i < 7; i++) {
->  		if (val = 0)
->  			break;
-> @@ -519,6 +517,7 @@ static ssize_t store_fan_div(struct devi
->  	unsigned long min;
->  	u8 tmp_fan_div;
->  	u8 fan_div_reg;
-> +	u8 vbat_reg;
->  	int indx = 0;
->  	u8 keep_mask = 0;
->  	u8 new_shift = 0;
-> @@ -570,6 +569,16 @@ static ssize_t store_fan_div(struct devi
->  	w83791d_write(client, W83791D_REG_FAN_DIV[indx],
->  				fan_div_reg | tmp_fan_div);
->  
-> +	/* Bit 2 of fans 0-2 is stored in the vbat register (bits 5-7) */
-> +	if (nr < 3) {
-> +		keep_mask = ~(1 << (nr + 5));
-> +		vbat_reg = w83791d_read(client, W83791D_REG_VBAT)
-> +				& keep_mask;
-> +		tmp_fan_div = (data->fan_div[nr] << (3 + nr)) & ~keep_mask;
-> +		w83791d_write(client, W83791D_REG_VBAT,
-> +				vbat_reg | tmp_fan_div);
-> +	}
-> +
->  	/* Restore fan_min */
->  	data->fan_min[nr] = fan_to_reg(min, DIV_FROM_REG(data->fan_div[nr]));
->  	w83791d_write(client, W83791D_REG_FAN_MIN[nr], data->fan_min[nr]);
-> @@ -1245,6 +1254,7 @@ static struct w83791d_data *w83791d_upda
->  	struct w83791d_data *data = i2c_get_clientdata(client);
->  	int i, j;
->  	u8 reg_array_tmp[3];
-> +	u8 vbat_reg;
->  
->  	mutex_lock(&data->update_lock);
->  
-> @@ -1282,6 +1292,12 @@ static struct w83791d_data *w83791d_upda
->  		data->fan_div[3] = reg_array_tmp[2] & 0x07;
->  		data->fan_div[4] = (reg_array_tmp[2] >> 4) & 0x07;
->  
-> +		/* The fan divisor for fans 0-2 get bit 2 from
-> +		   bits 5-7 respectively of vbat register */
-> +		vbat_reg = w83791d_read(client, W83791D_REG_VBAT);
-> +		for (i = 0; i < 3; i++)
-> +			data->fan_div[i] |= (vbat_reg >> (3 + i)) & 0x04;
-> +
->  		/* Update the first temperature sensor */
->  		for (i = 0; i < 3; i++) {
->  			data->temp1[i] = w83791d_read(client,
-> diff -uprN linux-2.6.26-rc1-git6/Documentation/hwmon/w83791d 
-> linux-2.6.26-rc1-git6-modified2/Documentation/hwmon/w83791d
-> --- linux-2.6.26-rc1-git6/Documentation/hwmon/w83791d	2008-05-03 
-> 20:59:44.000000000 +0200
-> +++ linux-2.6.26-rc1-git6-modified2/Documentation/hwmon/w83791d	2008-05-16 
-> 22:10:16.000000000 +0200
-> @@ -22,6 +22,7 @@ Credits:
->  
->  Additional contributors:
->      Sven Anders <anders@anduras.de>
-> +    Marc Hulsman <m.hulsman@tudelft.nl>
->  
->  Module Parameters
->  -----------------
-> @@ -67,9 +68,8 @@ on until the temperature falls below the
->  
->  Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
->  triggered if the rotation speed has dropped below a programmable limit. Fan
-> -readings can be divided by a programmable divider (1, 2, 4, 8 for fan 1/2/3
-> -and 1, 2, 4, 8, 16, 32, 64 or 128 for fan 4/5) to give the readings more
-> -range or accuracy.
-> +readings can be divided by a programmable divider (1, 2, 4, 8, 16,
-> +32, 64 or 128 for all fans) to give the readings more range or accuracy.
->  
->  Voltage sensors (also known as IN sensors) report their values in millivolts.
->  An alarm is triggered if the voltage has crossed a programmable minimum
-> 
+Hi Jean,
 
-Patch looks alright to me this time.
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+> Hi Juerg,
+>
+>
+>
+>  On Mon, 28 Apr 2008 21:08:45 -0700, Juerg Haefliger wrote:
+>  > > Function RANGE_TO_REG() is broken. For a requested range of 2000 (2
+>  > > degrees C), it will return an index value of 15, i.e. 80.0 degrees C,
+>  > > instead of the expected index value of 0. All other values are handled
+>  > > properly, just 2000 isn't.
+>  > >
+>  > > The bug was introduced back in November 2004 by this patch:
+>  > > http://git.kernel.org/?p=linux/kernel/git/tglx/history.git;a=commit;h28d80f1992240373099d863e4996cdd5d646d0
+>  > >
+>  > > While this can be fixed easily with the current code, I'd rather
+>  > > rewrite the whole function in a way which is more obviously correct.
+>  > >
+>  > > Signed-off-by: Jean Delvare <khali@linux-fr.org>
+>  > > Cc: Justin Thiessen <jthiessen@penguincomputing.com>
+>  > > ---
+>  > > Note: this is the same patch as I already sent on April 3rd.
+>  > >
+>  > >  drivers/hwmon/lm85.c |   25 +++++++++++--------------
+>  > >  1 file changed, 11 insertions(+), 14 deletions(-)
+>  > >
+>  > > --- linux-2.6.25-rc8.orig/drivers/hwmon/lm85.c      2008-04-02 22:20:01.000000000 +0200
+>  > > +++ linux-2.6.25-rc8/drivers/hwmon/lm85.c   2008-04-02 23:10:16.000000000 +0200
+>  > > @@ -192,23 +192,20 @@ static int RANGE_TO_REG( int range )
+>  > >  {
+>  > >     int i;
+>  > >
+>  > > -   if ( range < lm85_range_map[0] ) {
+>  > > -           return 0 ;
+>  > > -   } else if ( range > lm85_range_map[15] ) {
+>  > > +   if (range >= lm85_range_map[15])
+>  > >             return 15 ;
+>  > > -   } else {  /* find closest match */
+>  > > -           for ( i = 14 ; i >= 0 ; --i ) {
+>  > > -                   if ( range > lm85_range_map[i] ) { /* range bracketed */
+>  > > -                           if ((lm85_range_map[i+1] - range) <
+>  > > -                                   (range - lm85_range_map[i])) {
+>  > > -                                   i++;
+>  > > -                                   break;
+>  > > -                           }
+>  > > -                           break;
+>  > > -                   }
+>  > > +
+>  > > +   /* Find the closest match */
+>  > > +   for (i = 14; i >= 0; --i) {
+>  > > +           if (range >= lm85_range_map[i]) {
+>  > > +                   if ((lm85_range_map[i + 1] - range) <
+>  > > +                                   (range - lm85_range_map[i]))
+>  > > +                           return i + 1;
+>  > > +                   return i;
+>  > >             }
+>  > >     }
+>  > > -   return( i & 0x0f );
+>  > > +
+>  > > +   return 0;
+>  > >  }
+>  > >  #define RANGE_FROM_REG(val) (lm85_range_map[(val)&0x0f])
+>  > >
+>  >
+>  > This works but is less efficient compared to the original code for range
+>  > values < 2000.
+>
+>  But it is slightly more efficient for all values between 2000 and
+>  80000. The average efficiency is exactly the same as those of the
+>  original code.
+>
+>
+>  > Is there a reason not to check for < 2000 before looping?
+>
+>  Code size. The < 2000 case is handled just fine by the for loop, so I
+>  don't see the point of making the code bigger.
+>
+>  Note that performance is hardly an issue here anyway, users aren't
+>  going to change this parameter very often.
 
--- 
-Jean Delvare
+True.
+
+Acked-by: Juerg Haefliger <juergh at gmail.com>
+
+
+>  --
+>  Jean Delvare
+>
 
 _______________________________________________
 lm-sensors mailing list
