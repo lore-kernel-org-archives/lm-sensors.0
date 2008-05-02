@@ -1,7 +1,7 @@
-From: Daniel Lucio <lucio@eecs.utk.edu>
-Date: Fri, 02 May 2008 13:57:17 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 02 May 2008 14:29:21 +0000
 Subject: Re: [lm-sensors] sensors.conf for the Supermicro X7DBE
-Message-Id: <5C8F6CAF-6BBB-4305-A1B4-208CBC6D9D1E@eecs.utk.edu>
+Message-Id: <20080502162921.2566a1c2@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <481195AE.3070104@dolbeau.org>
 In-Reply-To: <481195AE.3070104@dolbeau.org>
@@ -10,37 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+On Fri, 2 May 2008 09:57:17 -0400, Daniel Lucio wrote:
+> Hi,
+> 
+> the last line in this config file is repeated twice.
+> 
+> ignore fan12
 
-the last line in this config file is repeated twice.
+Good catch. Romain, I guess the first one is supposed to be "ignore
+fan11"?
 
-ignore fan12
+Also, there's this note:
+# 1) as of linux 2.4.21, temp6 is read by lm-sensors but doesn't actually
+#    seem to exist in the chip (?), so an error is displayed...
 
-Best regards!
+Given that the w83793 driver doesn't exist for Linux 2.4, I guess you
+really mean "as of linux 2.6.21"? That's a bit surprising though, as
+this driver didn't change in kernel 2.6.21 as far as I can see.
 
--D-
+My experience with the W83793 chip on SuperMicro motherboards, is that
+a BIOS update can make temp6 appear (or disappear, I guess.) The w83793
+driver does only create sysfs files for enable temperature channels, so
+when temp6 is disabled, the temp6* sysfs files are missing. Old
+versions of "sensors" didn't expect this, it was fixed in lm-sensors
+2.10.2.
 
-On May 1, 2008, at 3:01 PM, Jean Delvare wrote:
-
-> Hi Romain,
->
-> On Fri, 25 Apr 2008 10:26:22 +0200, Romain Dolbeau wrote:
->> I forgot to post that one, it seems, as it doesn't appear in the  
->> website.
->>
->> Maybe it can be of help to someone.
->
-> Thanks for your contribution. I've added it to the wiki:
-> http://www.lm-sensors.org/wiki/Configurations/SuperMicro/X7DBE
->
-> -- 
-> Jean Delvare
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
