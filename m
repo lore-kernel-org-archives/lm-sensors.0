@@ -1,159 +1,385 @@
-From: Mikael Jansson <mail@mikael.jansson.be>
-Date: Thu, 08 May 2008 13:44:49 +0000
-Subject: Re: [lm-sensors] HP2133 support?
-Message-Id: <loom.20080508T134311-707@post.gmane.org>
+From: David Brownell <david-b@pacbell.net>
+Date: Fri, 02 May 2008 16:40:03 +0000
+Subject: [lm-sensors] [patch 2.6.25-git] lm75: add new-style driver binding
+Message-Id: <200805020940.04227.david-b@pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <loom.20080508T105547-918@post.gmane.org>
-In-Reply-To: <loom.20080508T105547-918@post.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mikael Jansson <mail <at> mikael.jansson.be> writes:
+On Sunday 20 April 2008, Jean Delvare wrote:
+> Alternatively, you could just move the addition of the min and max
+> settings the next patch in the series, as I can't really see how they
+> are related to converting the driver to new-style i2c
 
-> 
-> Hi,
-> 
-> What are the plans for the HP2133/Mini-Note?  It's a P4M900 SB, and here's 
-the 
-> [trimmed] output of sensors-detect. 
-> 
-I've gathered more info, also available at http://rafb.net/p/wPNMMZ76.txt
+Done.  This goes on top of
 
-===============# the following patch applied to my 2.6.24 kernel
-# http://lists.lm-sensors.org/pipermail/i2c/2008-January/002711.html
+   http://marc.info/?l=lm-sensors&m0880547009929&w=2
 
-$ sudo i2cdetect -l
-i2c-0	smbus     	SMBus Via Pro adapter at 0400   	SMBus adapter
-(798) /usr/src/linux-2.6.24-16/drivers/i2c/busses> sudo i2cdetect 0
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-0.
-I will probe address range 0x03-0x77.
-Continue? [Y/n] 
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
-10: -- -- -- -- -- -- -- -- -- -- -- -- -- 1d -- -- 
-20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-30: 30 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-50: 50 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-60: -- -- -- -- -- -- -- -- -- 69 -- -- -- -- 6e -- 
-70: -- -- -- -- -- -- -- --                         
-(799) /usr/src/linux-2.6.24-16/drivers/i2c/busses> sudo i2cdump 0 0x1d
-No size specified (using byte-data access)
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-0, address 0x1d, mode byte
-Continue? [Y/n] 
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 3b    ...............;
-10: 89 07 87 12 12 00 12 91 00 d1 0e 41 00 00 00 00    ?????.??.??A....
-20: 47 0a 01 00 00 00 00 ff 00 f7 00 00 00 34 00 00    G??......?...4..
-30: 95 25 14 02 2a 15 12 02 00 00 00 00 00 00 00 00    ?%??*???........
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 3b    ...............;
-90: 89 07 87 12 12 00 12 91 00 d1 0e 41 00 00 00 00    ?????.??.??A....
-a0: 47 0a 01 00 00 00 00 ff 00 f7 00 ff 00 34 00 00    G??......?...4..
-b0: 95 25 14 02 2a 15 12 02 00 00 00 00 00 00 00 00    ?%??*???........
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-(800) /usr/src/linux-2.6.24-16/drivers/i2c/busses> sudo i2cdump 0 0x30
-No size specified (using byte-data access)
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-0, address 0x30, mode byte
-Continue? [Y/n] 
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-(801) /usr/src/linux-2.6.24-16/drivers/i2c/busses> sudo i2cdump 0 0x50
-No size specified (using byte-data access)
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-0, address 0x50, mode byte
-Continue? [Y/n] 
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 80 08 08 0e 0a 61 40 00 05 30 45 00 82 08 00 00    ?????a@.?0E.??..
-10: 0c 08 38 01 04 00 07 3d 50 50 60 3c 1e 3c 2d 01    ??8??.?=PP`<?<-?
-20: 20 27 10 17 3c 1e 1e 00 06 3c 7f 80 18 22 00 00     '??<??.?<???"..
-30: 00 03 00 00 00 00 00 00 00 00 00 00 00 00 12 1c    .?............??
-40: ce 00 00 00 00 00 00 00 02 4d 34 20 37 30 54 35    ?.......?M4 70T5
-50: 36 36 33 51 5a 33 2d 43 45 36 20 33 51 08 13 76    663QZ3-CE6 3Q??v
-60: 38 d3 07 00 53 45 53 30 4e 30 30 00 00 00 00 00    8??.SES0N00.....
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-80: 00 62 43 63 13 20 35 55 fe e0 00 00 01 19 0a 00    .bCc? 5U??..???.
-90: 00 62 43 63 13 20 35 55 80 00 5a 4d 00 49 0c 00    .bCc? 5U?.ZM.I?.
-a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-e0: 52 2f 4d ff ff ff ff ff ff ff ff ff ff ff ff ff    R/M.............
-f0: 01 ff ff ff ff ff ff ff ff ff ff ff ff ff ff 04    ?..............?
-(802) /usr/src/linux-2.6.24-16/drivers/i2c/busses> sudo i2cdump 0 0x69
-No size specified (using byte-data access)
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-0, address 0x69, mode byte
-Continue? [Y/n] 
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
-10: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
-20: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
-30: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
-40: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
-50: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
-60: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
-70: 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f    ????????????????
-80: 07 18 19 03 1b 01 06 01 0f 07 00 0d 1c 0b 0f 09    ??????????.?????
-90: 0c 0d 1c 0b 0f 00 XX 13 13 13 13 13 13 13 13 13    ?????.X?????????
-a0: 07 18 19 03 1b 01 06 01 0f 07 00 0d 1c 0b 0f 09    ??????????.?????
-b0: 0c 0d 1c 0b 0f 00 XX 13 13 13 13 13 13 13 13 13    ?????.X?????????
-c0: 07 18 19 03 1b 01 06 01 0f 07 00 0d 1c 0b 0f 09    ??????????.?????
-d0: 0c 0d 1c 0b 0f 00 XX 13 13 13 13 13 13 13 13 13    ?????.X?????????
-e0: 07 18 19 03 1b 01 06 01 0f 07 00 0d 1c 0b 0f 09    ??????????.?????
-f0: 0c 0d 1c 0b 0f 00 XX 13 13 13 13 13 13 13 13 13    ?????.X?????????
-(803) /usr/src/linux-2.6.24-16/drivers/i2c/busses> sudo i2cdump 0 0x6e
-No size specified (using byte-data access)
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-0, address 0x6e, mode byte
-Continue? [Y/n] 
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e    ????????????????
-10: 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e    ????????????????
-20: 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e    ????????????????
-30: 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e    ????????????????
-40: 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e    ????????????????
-50: 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e    ????????????????
-60: 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e    ????????????????
-70: 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e 0e    ????????????????
-80: ff ff ff ff ff ff ff c9 0e ff ff ff ff ff ff ff    .......??.......
-90: ff ff ff 00 00 00 ff ff ff ff ff ff ff XX ff ff    .............X..
-a0: ff ff ff ff ff ff ff c9 0e ff ff ff ff ff ff ff    .......??.......
-b0: ff ff ff 00 00 00 ff ff ff ff ff ff ff XX ff ff    .............X..
-c0: ff ff ff ff ff ff ff c9 0e ff ff ff ff ff ff ff    .......??.......
-d0: ff ff ff 00 00 00 ff ff ff ff ff ff ff XX ff ff    .............X..
-e0: ff ff ff ff ff ff ff c9 0e ff ff ff ff ff ff ff    .......??.......
-f0: ff ff ff 00 00 00 ff ff ff ff ff ff ff XX ff ff    .............X..
-(804) /usr/src/linux-2.6.24-16/drivers/i2c/busses>
-===============
-So, given this, what can I do now?
+and *CURRENT* git (with updates to driver modle style binding).
 
+IMO these two patches should go into the hwmon queue ASAP
+(first one seems overdue for merge mainstream, FWIW).
+
+==== CUT HERE
+More LM75 updates:
+
+ - Teach the LM75 driver to use new-style driver binding:
+
+     * Create a second driver struct, using new-style driver binding
+       methods cribbed from the legacy code.
+
+     * Add a MODULE_DEVICE_TABLE (for "newER-style binding")
+
+     * The legacy probe logic delegates its work to this new code.
+
+     * The legacy driver uses the name "lm75_legacy".
+
+ - Sensor range bugfix:  values are signed, not unsigned.
+
+ - More careful initialization.  Chips are put into 9-bit mode so
+   the current interconversion routines will never fail.
+
+ - Save the original chip configuration, and restore it on exit.
+
+So the new-style code should catch all chips that boards declare,
+while the legacy code catches others.  This particular coexistence
+strategy may need some work yet ... legacy modes might best be set
+up explicitly by some tool not unlike "sensors-detect".  (Or else
+completely eradicated...)
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+UPDATED:  applies against update first patch.  Support for 12-bit
+conversions moves into a later patch.
+
+ drivers/hwmon/Kconfig |    7 +
+ drivers/hwmon/lm75.c  |  204 ++++++++++++++++++++++++++++++++++++++------------
+ 2 files changed, 164 insertions(+), 47 deletions(-)
+
+--- g26.orig/drivers/hwmon/Kconfig	2008-05-01 23:39:13.000000000 -0700
++++ g26/drivers/hwmon/Kconfig	2008-05-01 23:39:13.000000000 -0700
+@@ -392,7 +392,12 @@ config SENSORS_LM75
+ 		- TelCom (now Microchip) TCN75
+ 		- Texas Instruments TMP100, TMP101, TMP75, TMP175, TMP275
+ 
+-	  Most of these chips will require a "force" module parameter.
++	  This driver supports driver model based binding through board
++	  specific I2C device tables.
++
++	  It also supports the "legacy" style of driver binding.  To use
++	  that with some chips which don't replicate LM75 quirks exactly,
++	  you may need the "force" module parameter.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm75.
+--- g26.orig/drivers/hwmon/lm75.c	2008-05-01 23:39:13.000000000 -0700
++++ g26/drivers/hwmon/lm75.c	2008-05-01 23:41:53.000000000 -0700
+@@ -36,6 +36,23 @@
+  * TMP100, TMP101, TMP75, TMP175, and TMP275.
+  */
+ 
++enum lm75_type {		/* keep sorted in alphabetical order */
++	ds1775,
++	ds75,
++	LM75,			/* UPPERCASE prevents INSMOD_1 conflict(!) */
++	lm75a,
++	max6625,
++	max6626,
++	mcp980x,
++	stds75,
++	tcn75,
++	tmp100,
++	tmp101,
++	tmp175,
++	tmp275,
++	tmp75,
++};
++
+ /* Addresses scanned by legacy style driver binding */
+ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b, 0x4c,
+ 					0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
+@@ -54,18 +71,19 @@ static const u8 LM75_REG_TEMP[3] = {
+ 
+ /* Each client has this additional data */
+ struct lm75_data {
+-	struct i2c_client	client;
++	struct i2c_client	*client;
++	enum lm75_type		type;
+ 	struct device		*hwmon_dev;
+ 	struct mutex		update_lock;
++	u8			orig_conf;
+ 	char			valid;		/* !=0 if registers are valid */
+ 	unsigned long		last_updated;	/* In jiffies */
+-	u16			temp[3];	/* Register values,
++	s16			temp[3];	/* Register values,
+ 						   0 = input
+ 						   1 = max
+ 						   2 = hyst */
+ };
+ 
+-static void lm75_init_client(struct i2c_client *client);
+ static int lm75_read_value(struct i2c_client *client, u8 reg);
+ static int lm75_write_value(struct i2c_client *client, u8 reg, u16 value);
+ static struct lm75_data *lm75_update_device(struct device *dev);
+@@ -120,16 +138,124 @@ static const struct attribute_group lm75
+ 
+ /*-----------------------------------------------------------------------*/
+ 
++/* "New style" I2C driver binding -- following the driver model */
++
++static int
++lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++	struct lm75_data *data;
++	int status;
++	u8 set_mask, clr_mask;
++	int new;
++
++	if (!i2c_check_functionality(client->adapter,
++			I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA))
++		return -EIO;
++
++	data = kzalloc(sizeof(struct lm75_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, data);
++
++	data->client = client;
++	mutex_init(&data->update_lock);
++
++	/* Set to LM75 resolution (9 bits, 1/2 degree C) and range.
++	 * Then tweak to be more precise when appropriate.
++	 */
++	set_mask = 0;
++	clr_mask = (1 << 0)			/* continuous conversions */
++		| (1 << 6) | (1 << 5);		/* 9-bit mode */
++
++	/* configure as specified */
++	status = lm75_read_value(client, LM75_REG_CONF);
++	if (status < 0) {
++		dev_dbg(&client->dev, "Can't read config? %d\n", status);
++		goto exit_free;
++	}
++	data->orig_conf = status;
++	new = status & ~clr_mask;
++	new |= set_mask;
++	if (status != new)
++		lm75_write_value(client, LM75_REG_CONF, new);
++	dev_dbg(&client->dev, "Config %02x\n", new);
++
++	/* Register sysfs hooks */
++	status = sysfs_create_group(&client->dev.kobj, &lm75_group);
++	if (status)
++		goto exit_free;
++
++	data->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		status = PTR_ERR(data->hwmon_dev);
++		goto exit_remove;
++	}
++
++	dev_info(&client->dev, "%s: sensor '%s'\n",
++		data->hwmon_dev->bus_id, client->name);
++
++	return 0;
++
++exit_remove:
++	sysfs_remove_group(&client->dev.kobj, &lm75_group);
++exit_free:
++	i2c_set_clientdata(client, NULL);
++	kfree(data);
++	return status;
++}
++
++static int lm75_remove(struct i2c_client *client)
++{
++	struct lm75_data *data = i2c_get_clientdata(client);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &lm75_group);
++	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
++	i2c_set_clientdata(client, NULL);
++	kfree(data);
++	return 0;
++}
++
++static const struct i2c_device_id lm75_ids[] = {
++	{ "ds1775", ds1775, },
++	{ "ds75", ds75, },
++	{ "lm75", LM75, },
++	{ "lm75a", lm75a, },
++	{ "max6625", max6625, },
++	{ "max6626", max6626, },
++	{ "mcp980x", mcp980x, },
++	{ "stds75", stds75, },
++	{ "tcn75", tcn75, },
++	{ "tmp100", tmp100, },
++	{ "tmp101", tmp101, },
++	{ "tmp175", tmp175, },
++	{ "tmp275", tmp275, },
++	{ "tmp75", tmp75, },
++	{ /* LIST END */ },
++};
++MODULE_DEVICE_TABLE(i2c, lm75_ids);
++
++static struct i2c_driver lm75_driver = {
++	.driver = {
++		.name	= "lm75",
++	},
++	.probe		= lm75_probe,
++	.remove		= lm75_remove,
++	.id_table	= lm75_ids,
++};
++
++/*-----------------------------------------------------------------------*/
++
+ /* "Legacy" I2C driver binding */
+ 
+-static struct i2c_driver lm75_driver;
++static struct i2c_driver lm75_legacy_driver;
+ 
+ /* This function is called by i2c_probe */
+ static int lm75_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	int i;
+ 	struct i2c_client *new_client;
+-	struct lm75_data *data;
+ 	int err = 0;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+@@ -139,16 +265,15 @@ static int lm75_detect(struct i2c_adapte
+ 	/* OK. For now, we presume we have a valid address. We create the
+ 	   client structure, even though there may be no sensor present.
+ 	   But it allows us to use i2c_smbus_read_*_data() calls. */
+-	if (!(data = kzalloc(sizeof(struct lm75_data), GFP_KERNEL))) {
++	new_client = kzalloc(sizeof *new_client, GFP_KERNEL);
++	if (!new_client) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+ 
+-	new_client = &data->client;
+-	i2c_set_clientdata(new_client, data);
+ 	new_client->addr = address;
+ 	new_client->adapter = adapter;
+-	new_client->driver = &lm75_driver;
++	new_client->driver = &lm75_legacy_driver;
+ 	new_client->flags = 0;
+ 
+ 	/* Now, we do the remaining detection. There is no identification-
+@@ -189,38 +314,26 @@ static int lm75_detect(struct i2c_adapte
+ 				goto exit_free;
+ 	}
+ 
+-	/* NOTE: we treat "force=..." and "force_lm75=..." the same. */
++	/* NOTE: we treat "force=..." and "force_lm75=..." the same.
++	 * Only new-style driver binding distinguishes chip types.
++	 */
+ 	strlcpy(new_client->name, "lm75", I2C_NAME_SIZE);
+ 
+-	/* Fill in the remaining client fields and put it into the global list */
+-	data->valid = 0;
+-	mutex_init(&data->update_lock);
+-
+ 	/* Tell the I2C layer a new client has arrived */
+-	if ((err = i2c_attach_client(new_client)))
++	err = i2c_attach_client(new_client);
++	if (err)
+ 		goto exit_free;
+ 
+-	/* Initialize the LM75 chip */
+-	lm75_init_client(new_client);
+-
+-	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm75_group)))
++	err = lm75_probe(new_client, NULL);
++	if (err < 0)
+ 		goto exit_detach;
+ 
+-	data->hwmon_dev = hwmon_device_register(&new_client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove;
+-	}
+-
+ 	return 0;
+ 
+-exit_remove:
+-	sysfs_remove_group(&new_client->dev.kobj, &lm75_group);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+-	kfree(data);
++	kfree(new_client);
+ exit:
+ 	return err;
+ }
+@@ -234,17 +347,15 @@ static int lm75_attach_adapter(struct i2
+ 
+ static int lm75_detach_client(struct i2c_client *client)
+ {
+-	struct lm75_data *data = i2c_get_clientdata(client);
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &lm75_group);
++	lm75_remove(client);
+ 	i2c_detach_client(client);
+-	kfree(data);
++	kfree(client);
+ 	return 0;
+ }
+ 
+-static struct i2c_driver lm75_driver = {
++static struct i2c_driver lm75_legacy_driver = {
+ 	.driver = {
+-		.name	= "lm75",
++		.name	= "lm75_legacy",
+ 	},
+ 	.attach_adapter	= lm75_attach_adapter,
+ 	.detach_client	= lm75_detach_client,
+@@ -273,16 +384,6 @@ static int lm75_write_value(struct i2c_c
+ 		return i2c_smbus_write_word_data(client, reg, swab16(value));
+ }
+ 
+-static void lm75_init_client(struct i2c_client *client)
+-{
+-	int reg;
+-
+-	/* Enable if in shutdown mode */
+-	reg = lm75_read_value(client, LM75_REG_CONF);
+-	if (reg >= 0 && (reg & 0x01))
+-		lm75_write_value(client, LM75_REG_CONF, reg & 0xfe);
+-}
+-
+ static struct lm75_data *lm75_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -313,11 +414,22 @@ static struct lm75_data *lm75_update_dev
+ 
+ static int __init sensors_lm75_init(void)
+ {
+-	return i2c_add_driver(&lm75_driver);
++	int status;
++
++	status = i2c_add_driver(&lm75_driver);
++	if (status < 0)
++		return status;
++
++	status = i2c_add_driver(&lm75_legacy_driver);
++	if (status < 0)
++		i2c_del_driver(&lm75_driver);
++
++	return status;
+ }
+ 
+ static void __exit sensors_lm75_exit(void)
+ {
++	i2c_del_driver(&lm75_legacy_driver);
+ 	i2c_del_driver(&lm75_driver);
+ }
+ 
 
 _______________________________________________
 lm-sensors mailing list
