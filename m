@@ -1,34 +1,35 @@
-From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Date: Mon, 05 May 2008 20:01:02 +0000
-Subject: Re: [lm-sensors] [Patch] max1236-9 ADC support
-Message-Id: <481F677E.9040303@teltonika.lt>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Mon, 05 May 2008 23:04:40 +0000
+Subject: [lm-sensors] ibmaem driver status?
+Message-Id: <20080505230440.GE16404@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <481F3FD6.6090605@cam.ac.uk>
-In-Reply-To: <481F3FD6.6090605@cam.ac.uk>
+References: <20080503045558.GJ16078@tree.beaverton.ibm.com> <20080505135621.66809b0e.akpm@linux-foundation.org>
+In-Reply-To: <20080505135621.66809b0e.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, mhoffman@lightlink.com
 
-Jonathan Cameron wrote:
-> +/* The max123x registers */
-> +#define MAX123X_SETUP_BYTE(a)     0x80 | a
-> +#define MAX123X_CONF_BYTE(a)      0x00 | a
+On Mon, May 05, 2008 at 01:56:21PM -0700, Andrew Morton wrote:
+> On Fri, 2 May 2008 21:55:59 -0700
+> "Darrick J. Wong" <djwong@us.ibm.com> wrote:
+> 
+> > Minor rework to support the Intel 5400 chipset.
+> 
+> Thanks, I added this to the for-git-hwmon part of the -mm queue.
+> 
+> I haven't heard from Mark for quite some time so soon I might declare him
+> absent and I'll go through my hwmon patches with a view to merging them into
+> 2.6.26 directly.
 
-Avoid defining macros like this. Should be:
-#define MAX123X_SETUP_BYTE(a)     (0x80 | (a))
-#define MAX123X_CONF_BYTE(a)      (0x00 | (a)) /* what is the point to OR it with 0x00??? */
+Jean/Mark:
 
-For example MAX123X_SETUP_BYTE(0x02 & 0x03) & 0x01 in your case will be expanded as:
-0x80 | 0x02 & 0x03 & 0x01 = 0x80
-in my case:
-(0x80 | (0x02 & 0x03)) & 0x01 = 0x00
+Any thoughts on merging the ibmaem driver?  I haven't heard anything in
+a good week and a half; if it's in Mark's backlog that's not a problem.
+(Or at least not as big of one as "silently bitrotting" :))
 
-As you can see the result will be totally different!
-
-Regards,
-Paulius Zaleckas
-
+--D
 
 _______________________________________________
 lm-sensors mailing list
