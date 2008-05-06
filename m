@@ -1,178 +1,45 @@
 From: Romain Dolbeau <romain.dolbeau@caps-entreprise.com>
-Date: Mon, 05 May 2008 08:08:13 +0000
+Date: Tue, 06 May 2008 13:06:10 +0000
 Subject: Re: [lm-sensors] sensors.conf for the Supermicro X7DBE
-Message-Id: <481EC06D.6020204@caps-entreprise.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------020601040705080804090101"
+Message-Id: <482057C2.7070309@caps-entreprise.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <481195AE.3070104@dolbeau.org>
 In-Reply-To: <481195AE.3070104@dolbeau.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020601040705080804090101
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Jean Delvare wrote:
 
-Hans de Goede wrote:
+> Given that the w83793 driver doesn't exist for Linux 2.4, I guess you
+> really mean "as of linux 2.6.21"?
 
-> Yes thanks, can you perhaps also send us the output of the dmidecode
-> command, we plan to automatically match motherboards and config files in
-> the future based on their dmi identification strings.
+Yes, sorry for the typo. I've done those files a while ago and didn't
+check them again before posting, sorry.
 
-In attachment, the dmidecode result for the Supermicro boards I
-currently have access to.
+> That's a bit surprising though, as
+> this driver didn't change in kernel 2.6.21 as far as I can see.
+
+Bad wording ; my meaning was it had the problem in the kernel I was
+using at the time, 2.6.21, had the problem. But the next quote solve the
+real problem.
+
+> Old
+> versions of "sensors" didn't expect this, it was fixed in lm-sensors
+> 2.10.2.
+
+... and guess what? Debian-stable includes 2.10.1 ... So I guess that is
+the problem, my config file should be updated to mention the fact in the
+wiki (which is still uneditable, not even the sandbox... anyway to get
+access to the motherboard/supermicro stuff so I can update them myself ?)
 
 -- 
 Romain Dolbeau
 <romain.dolbeau@caps-entreprise.com>
 
 
---------------020601040705080804090101
-Content-Type: application/x-gtar;
- name="dmidecode.tgz"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="dmidecode.tgz"
-
-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
---------------020601040705080804090101
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------020601040705080804090101--
