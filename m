@@ -1,79 +1,58 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 04 May 2008 12:27:58 +0000
-Subject: Re: [lm-sensors] [patch 2.6.26-rc1] lm75: sensor reading bugfix
-Message-Id: <20080504142758.0112cd7c@hyperion.delvare>
+From: Daniel Lucio <lucio@eecs.utk.edu>
+Date: Tue, 06 May 2008 19:55:42 +0000
+Subject: [lm-sensors] mapping AllSuperD.ini with sensors.conf events.
+Message-Id: <FB8FDD92-F925-450B-A8A3-39B4045B9A89@eecs.utk.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200805031919.17110.david-b@pacbell.net>
-In-Reply-To: <200805031919.17110.david-b@pacbell.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Sat, 3 May 2008 19:19:16 -0700, David Brownell wrote:
-> LM75 sensor reading bugfix: never save error status as valid
-> sensor output.  This could be improved, but at least this
-> prevents certain rude failure modes.
+Hi,
 
-I agree this needs fixing, especially with the error value cleanup
-patches you've sent for the i2c stack lately. While -1 swabs to itself,
-other error values may look like real temperatures once swabbed.
+does anybody knows how can I map the following entries in my =20
+AllSuperD.ini for SuperDoctorII with entries in sensors.conf?
 
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
-> Goes on top of the previously submitted lm75 cleanup patch:
-> 
-> 	http://marc.info/?l=lm-sensors&m0880547009929&w=2
-> 
->  drivers/hwmon/lm75.c |   20 +++++++++++++++-----
->  1 file changed, 15 insertions(+), 5 deletions(-)
-> 
-> --- g26.orig/drivers/hwmon/lm75.c	2008-05-03 18:44:59.000000000 -0700
-> +++ g26/drivers/hwmon/lm75.c	2008-05-03 19:03:08.000000000 -0700
-> @@ -259,10 +259,13 @@ static struct i2c_driver lm75_driver = {
->     the SMBus standard. */
->  static int lm75_read_value(struct i2c_client *client, u8 reg)
->  {
-> +	int value;
-> +
->  	if (reg = LM75_REG_CONF)
->  		return i2c_smbus_read_byte_data(client, reg);
-> -	else
-> -		return swab16(i2c_smbus_read_word_data(client, reg));
-> +
-> +	value = i2c_smbus_read_word_data(client, reg);
-> +	return (value < 0) ? value : swab16(value);
->  }
->  
->  static int lm75_write_value(struct i2c_client *client, u8 reg, u16 value)
-> @@ -295,9 +298,16 @@ static struct lm75_data *lm75_update_dev
->  		int i;
->  		dev_dbg(&client->dev, "Starting lm75 update\n");
->  
-> -		for (i = 0; i < ARRAY_SIZE(data->temp); i++)
-> -			data->temp[i] = lm75_read_value(client,
-> -							LM75_REG_TEMP[i]);
-> +		for (i = 0; i < ARRAY_SIZE(data->temp); i++) {
-> +			int status;
-> +
-> +			status = lm75_read_value(client, LM75_REG_TEMP[i]);
-> +			if (status < 0)
-> +				dev_dbg(&client->dev, "reg %d, err %d\n",
-> +						LM75_REG_TEMP[i], status);
-> +			else
-> +				data->temp[i] = status;
-> +		}
->  		data->last_updated = jiffies;
->  		data->valid = 1;
->  	}
+[Item]
+BusType=3D8
+Item_Name=3DChassis Intrusion
+Comp_Name=3DIntrusion
+Item_ID=3DItem_SWITCH1
+Item_Cat=3DSWITCH
+ChipCode=11
+Slave.
+OffsetD
+Activate=01
+ResetI
+ParaIndex1=3DSWITCH1A
+ParaIndex2=3DSWITCH1C
+Monitor=3DTRUE
+Source=3D0
 
-Looks good, tested OK (i.e. no regression in the working case.)
+[Item]
+BusType=3D4
+Item_Name=3DPower Supply Failure
+Comp_Name=3DPower
+Item_ID=3DItem_SWITCH2
+Item_Cat=3DSWITCH
+ChipCode=3D4
+Slave=07
+Offset=F1
+Activate=00
+Reset=00
+ParaIndex1=3DSWITCH2A
+ParaIndex2=3DSWITCH2C
+Monitor=3DTRUE
+Source=3D0
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+I am not sure if lm-sensors is reading these values at all. This  is =20
+for a SuperMicro X7DA8 using:
+Chip: w83793-i2c-0-2e
+Adapter: SMBus I801 adapter at 1100.
 
--- 
-Jean Delvare
+Thank you!
+
+Daniel.
 
 _______________________________________________
 lm-sensors mailing list
