@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 06 May 2008 15:49:03 +0000
+Date: Tue, 06 May 2008 16:00:33 +0000
 Subject: Re: [lm-sensors] sensors.conf for the Supermicro PDSMi+
-Message-Id: <20080506174903.6bc4fe4e@hyperion.delvare>
+Message-Id: <20080506180033.54f9679c@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <482051E8.605@caps-entreprise.com>
 In-Reply-To: <482051E8.605@caps-entreprise.com>
@@ -10,22 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 06 May 2008 17:41:16 +0200, Romain Dolbeau wrote:
-> Jean Delvare wrote:
+On Tue, 6 May 2008 17:49:03 +0200, Jean Delvare wrote:
+> OK... there's this in the changelog:
 > 
-> > This is with file V.131 (10/06/06) - if you have a newer one, can you
-> > please send it to me in private? Thanks.
+> ;; 10/21/06: Change PDSMI+ Fan6 setting because Hardware Change
 > 
-> <ftp://ftp.supermicro.com/utility/Supero_Doctor_II/Linux/Beta/SD2_2.38.193_080425.tar.gz>
-> 
-> includes a version V.193 (04/23/08), which I used to check my values (I
-> post this to the ML so that it can be useful to other hackers).
+> That explains the difference.
 
-OK... there's this in the changelog:
+Also of interest is:
 
-;; 10/21/06: Change PDSMI+ Fan6 setting because Hardware Change
+;; 01/08/07: Change System Temperature to Offset! for PDSMU, PDSM4+, PDSMA+, PDSML+, PDSMI+, PDSMI-LN4+
 
-That explains the difference.
+Which changes the System temperature from temp5 to temp6. This matches
+the fact that a BIOS update enabled temp6 on that board.
 
 -- 
 Jean Delvare
