@@ -1,69 +1,109 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Mon, 05 May 2008 21:39:18 +0000
-Subject: Re: [lm-sensors] [PATCH] i5k_amb: Support Intel 5400 chipset
-Message-Id: <20080505143918.dcd93b52.akpm@linux-foundation.org>
+From: achim <achim@ag-web.biz>
+Date: Wed, 07 May 2008 19:47:43 +0000
+Subject: Re: [lm-sensors] Test on chip at SMBus address 0x2e
+Message-Id: <1210189663.3333.16.camel@debian-9850.ag-home.muc>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080503045558.GJ16078@tree.beaverton.ibm.com>
-	<20080505135621.66809b0e.akpm@linux-foundation.org>
-	<20080505232245.6003ac8a@hyperion.delvare>
-In-Reply-To: <20080505232245.6003ac8a@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: djwong@us.ibm.com, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Roel Kluin <12o3l@tiscali.nl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: lm-sensors@vger.kernel.org
 
-On Mon, 5 May 2008 23:22:45 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
+>Will try 0x32 as a value after i submitted this mail. :)
 
-> Hi Andrew,
-> 
-> On Mon, 5 May 2008 13:56:21 -0700, Andrew Morton wrote:
-> > On Fri, 2 May 2008 21:55:59 -0700
-> > "Darrick J. Wong" <djwong@us.ibm.com> wrote:
-> > 
-> > > Minor rework to support the Intel 5400 chipset.
-> > 
-> > Thanks, I added this to the for-git-hwmon part of the -mm queue.
-> > 
-> > I haven't heard from Mark for quite some time so soon I might declare him
-> > absent and I'll go through my hwmon patches with a view to merging them into
-> > 2.6.26 directly.
-> 
-> For Mark's status see:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-May/023006.html
-> 
-> I guess he'll be happy if you merge a couple patches for him.
+You know what happend, the system froze and did not boot (stuck at C1).
+It did boot after i removed one dimm. And on the board that dimm did no longer work.
+I'm running this board with an other two dimm kit now, using the same slots as with the first kit.
+I tried the defect dimm in the GBT780G board and it did not work. I tried the other dimm of 
+that kit and it worked. Then i tried both and they work. 
 
-hm, OK.
+So I went adventurous again. ;)
 
-> > 
-> > That queue currently consists of:
-> > 
-> > hdaps-invert-the-axes-for-hdaps-on-lenovo-r61i-thinkpads.patch
-> > adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
-> 
-> The adt7473:set_max_duty_at_crit() code was originally confusing but
-> correct. After this patch the code is clear but broken. Is it
-> considered an improvement?
+I know where to measure vdimm on the board.
 
-I'll drop it.
+>i2cget 0 0x2e 0x35 => 1,942V 
+﻿>i2cget 0 0x2e 0x36 => 1,916V
+﻿>i2cget 0 0x2e 0x37 => 1,892V
 
-> (I would have told you before if that patch had been submitted to the
-> lm-sensors list as it should have, given that it modifies a hardware
-> monitoring driver... Not to mention that the patch file name doesn't
-> match the driver file name, just to add to the confusion.)
+That is nice to know but seem to be no good for detection, every change changes the vdimm atleast at about 0.024V.
 
-Well, y'know, stuff happens.  Stuff like you forgetting to cc that
-patch's author on this email.
+Also the sensor chip shows the difference, 
 
-> > adt7473-minor-documentation-update.patch
-> 
-> I reviewed and acked that one, it's ready to go.
+vddr = NB-HT ﻿voltage
+in5 = SB voltage
+in6 = vdimm
+cpu0_vid seems to be the max cpu_vid.
 
-OK, thanks.
+---------------------------------------------------------------------------------------------
+debian-9850:~/i2c-tools-r5242-20080506/tools# ./i2cget 0 0x2e 0x37
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will read from device file /dev/i2c-0, chip address 0x2e, data address
+0x37, using read byte data.
+Continue? [Y/n] 
+0x37
+debian-9850:~/i2c-tools-r5242-20080506/tools# sensors
+k8temp-pci-00c3
+Adapter: PCI adapter
+Core0 Temp:   +9,0°C                                    
+Core0 Temp:   +4,0°C                                    
+Core1 Temp:   +4,0°C                                    
+Core1 Temp:  -10,0°C                                    
 
-> > i5k_amb-support-intel-5400-chipset.patch
+it8716-isa-0228
+Adapter: ISA adapter
+VCore:       +1,10 V  (min =  +2,11 V, max =  +0,00 V)
+VDDR:        +1,28 V  (min =  +0,06 V, max =  +0,51 V)
++3.3V:       +3,28 V  (min =  +0,00 V, max =  +2,66 V)
++5V:         +4,92 V  (min =  +0,43 V, max =  +0,11 V)
++12V:       +11,90 V  (min =  +0,00 V, max =  +8,19 V)
+in5:         +1,20 V  (min =  +0,00 V, max =  +0,00 V)
+in6:         +1,87 V  (min =  +1,02 V, max =  +0,00 V)
+5VSB:        +4,84 V  (min =  +0,35 V, max =  +0,00 V)
+VBat:        +3,34 V
+fan1:       1323 RPM  (min = 3245 RPM)
+fan2:       3534 RPM  (min = 3245 RPM)
+fan3:          0 RPM  (min = 3245 RPM)
+temp1:       +21,0°C  (low  = +127,0°C, high = +84,0°C)  sensor = thermal diode
+temp2:       +34,0°C  (low  = +127,0°C, high = +84,0°C)  sensor = transistor
+temp3:       +40,0°C  (low  = +127,0°C, high = +84,0°C)  sensor = transistor
+cpu0_vid:   +1,550 V
+
+debian-9850:~/i2c-tools-r5242-20080506/tools# ./i2cget 0 0x2e 0x35
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will read from device file /dev/i2c-0, chip address 0x2e, data address
+0x35, using read byte data.
+Continue? [Y/n] 
+0x35
+debian-9850:~/i2c-tools-r5242-20080506/tools# sensors
+k8temp-pci-00c3
+Adapter: PCI adapter
+Core0 Temp:   +9,0°C                                    
+Core0 Temp:   +3,0°C                                    
+Core1 Temp:   +4,0°C                                    
+Core1 Temp:  -10,0°C                                    
+
+it8716-isa-0228
+Adapter: ISA adapter
+VCore:       +1,10 V  (min =  +2,11 V, max =  +0,00 V)
+VDDR:        +1,28 V  (min =  +0,06 V, max =  +0,51 V)
++3.3V:       +3,28 V  (min =  +0,00 V, max =  +2,66 V)
++5V:         +4,92 V  (min =  +0,43 V, max =  +0,11 V)
++12V:       +11,90 V  (min =  +0,00 V, max =  +8,19 V)
+in5:         +1,20 V  (min =  +0,00 V, max =  +0,00 V)
+in6:         +1,92 V  (min =  +1,02 V, max =  +0,00 V)
+5VSB:        +4,84 V  (min =  +0,35 V, max =  +0,00 V)
+VBat:        +3,34 V
+fan1:       1326 RPM  (min = 3245 RPM)
+fan2:       3534 RPM  (min = 3245 RPM)
+fan3:          0 RPM  (min = 3245 RPM)
+temp1:       +22,0°C  (low  = +127,0°C, high = +84,0°C)  sensor = thermal diode
+temp2:       +34,0°C  (low  = +127,0°C, high = +84,0°C)  sensor = transistor
+temp3:       +40,0°C  (low  = +127,0°C, high = +84,0°C)  sensor = transistor
+cpu0_vid:   +1,550 V
+
+
+
+
+
 
 
 _______________________________________________
