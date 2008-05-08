@@ -1,836 +1,1184 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Wed, 28 May 2008 01:02:18 +0000
-Subject: Re: [lm-sensors] [PATCH 05/10] hwmon: (lm85) Misc cleanups
-Message-Id: <191fb4ca0805271802v59e9b9e3x46d39373a1e86945@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0935745751670722366=="
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Thu, 08 May 2008 18:08:59 +0000
+Subject: [lm-sensors] [PATCH v3] ibmaem: New driver for power/energy/temp
+Message-Id: <20080508180858.GM16078@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
---===============0935745751670722366==
-Content-Type: multipart/alternative; 
-	boundary="----=_Part_2874_10885277.1211936538496"
-
-------=_Part_2874_10885277.1211936538496
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Looks good.
-
-Acked-by: Juerg Haefliger <juergh at gmail.com>
-
-
-On Sat, Apr 12, 2008 at 10:57 AM, Jean Delvare <khali@linux-fr.org> wrote:
-
-> Misc cleanups to the lm85 hardware monitoring driver:
-> * Mark constant arrays as const.
-> * Remove useless masks.
-> * Have lm85_write_value return void - nobody is checking the returned
->  value anyway and in some cases it was plain wrong.
-> * Remove useless initializations.
-> * Rename new_client to client in lm85_detect.
-> * Replace cascaded if/else with a switch/case in lm85_detect.
-> * Group similar loops in lm85_update_device.
-> * Remove legacy comments.
->
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
->  drivers/hwmon/lm85.c |  151
-> ++++++++++++++++++++++----------------------------
->  1 file changed, 67 insertions(+), 84 deletions(-)
->
-> --- linux-2.6.25-rc8.orig/drivers/hwmon/lm85.c  2008-04-03
-> 14:18:50.000000000 +0200
-> +++ linux-2.6.25-rc8/drivers/hwmon/lm85.c       2008-04-03
-> 15:27:45.000000000 +0200
-> @@ -110,7 +110,7 @@ I2C_CLIENT_INSMOD_6(lm85b, lm85c, adm102
->  */
->
->  /* IN are scaled acording to built-in resistors */
-> -static int lm85_scaling[] = {  /* .001 Volts */
-> +static const int lm85_scaling[] = {  /* .001 Volts */
->        2500, 2250, 3300, 5000, 12000,
->        3300, 1500, 1800 /*EMC6D100*/
->  };
-> @@ -164,7 +164,7 @@ static inline u16 FAN_TO_REG(unsigned lo
->  */
->
->  /* These are the zone temperature range encodings in .001 degree C */
-> -static int lm85_range_map[] = {
-> +static const int lm85_range_map[] = {
->        2000,  2500,  3300,  4000,  5000,  6600,
->        8000, 10000, 13300, 16000, 20000, 26600,
->        32000, 40000, 53300, 80000
-> @@ -191,13 +191,8 @@ static int RANGE_TO_REG(int range)
->  }
->  #define RANGE_FROM_REG(val)    lm85_range_map[(val) & 0x0f]
->
-> -/* These are the Acoustic Enhancement, or Temperature smoothing encodings
-> - * NOTE: The enable/disable bit is INCLUDED in these encodings as the
-> - *       MSB (bit 3, value 8).  If the enable bit is 0, the encoded value
-> - *       is ignored, or set to 0.
-> - */
->  /* These are the PWM frequency encodings */
-> -static int lm85_freq_map[] = { /* .1 Hz */
-> +static const int lm85_freq_map[] = { /* .1 Hz */
->        100, 150, 230, 300, 380, 470, 620, 940
->  };
->
-> @@ -210,7 +205,7 @@ static int FREQ_TO_REG(int freq)
->        for (i = 0; i < 7; ++i)
->                if (freq <= lm85_freq_map[i])
->                        break;
-> -       return i & 0x07;
-> +       return i;
->  }
->  #define FREQ_FROM_REG(val)     lm85_freq_map[(val) & 0x07]
->
-> @@ -226,8 +221,8 @@ static int FREQ_TO_REG(int freq)
->  *     -2 -- PWM responds to manual control
->  */
->
-> -static int lm85_zone_map[] = { 1, 2, 3, -1, 0, 23, 123, -2 };
-> -#define ZONE_FROM_REG(val)     lm85_zone_map[((val) >> 5) & 0x07]
-> +static const int lm85_zone_map[] = { 1, 2, 3, -1, 0, 23, 123, -2 };
-> +#define ZONE_FROM_REG(val)     lm85_zone_map[(val) >> 5]
->
->  static int ZONE_TO_REG(int zone)
->  {
-> @@ -238,7 +233,7 @@ static int ZONE_TO_REG(int zone)
->                        break;
->        if (i > 7)   /* Not found. */
->                i = 3;  /* Always 100% */
-> -       return (i & 0x07) << 5;
-> +       return i << 5;
->  }
->
->  #define HYST_TO_REG(val)       SENSORS_LIMIT(((val) + 500) / 1000, 0, 15)
-> @@ -322,7 +317,7 @@ static int lm85_detect(struct i2c_adapte
->  static int lm85_detach_client(struct i2c_client *client);
->
->  static int lm85_read_value(struct i2c_client *client, u8 reg);
-> -static int lm85_write_value(struct i2c_client *client, u8 reg, int value);
-> +static void lm85_write_value(struct i2c_client *client, u8 reg, int
-> value);
->  static struct lm85_data *lm85_update_device(struct device *dev);
->  static void lm85_init_client(struct i2c_client *client);
->
-> @@ -1096,13 +1091,12 @@ static int lm85_detect(struct i2c_adapte
->                int kind)
->  {
->        int company, verstep;
-> -       struct i2c_client *new_client = NULL;
-> +       struct i2c_client *client;
->        struct lm85_data *data;
->        int err = 0;
-> -       const char *type_name = "";
-> +       const char *type_name;
->
-> -       if (!i2c_check_functionality(adapter,
-> -                                       I2C_FUNC_SMBUS_BYTE_DATA)) {
-> +       if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
->                /* We need to be able to do byte I/O */
->                goto ERROR0;
->        }
-> @@ -1116,21 +1110,20 @@ static int lm85_detect(struct i2c_adapte
->                goto ERROR0;
->        }
->
-> -       new_client = &data->client;
-> -       i2c_set_clientdata(new_client, data);
-> -       new_client->addr = address;
-> -       new_client->adapter = adapter;
-> -       new_client->driver = &lm85_driver;
-> -       new_client->flags = 0;
-> +       client = &data->client;
-> +       i2c_set_clientdata(client, data);
-> +       client->addr = address;
-> +       client->adapter = adapter;
-> +       client->driver = &lm85_driver;
->
->        /* Now, we do the remaining detection. */
->
-> -       company = lm85_read_value(new_client, LM85_REG_COMPANY);
-> -       verstep = lm85_read_value(new_client, LM85_REG_VERSTEP);
-> +       company = lm85_read_value(client, LM85_REG_COMPANY);
-> +       verstep = lm85_read_value(client, LM85_REG_VERSTEP);
->
->        dev_dbg(&adapter->dev, "Detecting device at %d,0x%02x with"
->                " COMPANY: 0x%02x and VERSTEP: 0x%02x\n",
-> -               i2c_adapter_id(new_client->adapter), new_client->addr,
-> +               i2c_adapter_id(client->adapter), client->addr,
->                company, verstep);
->
->        /* If auto-detecting, Determine the chip type. */
-> @@ -1197,56 +1190,65 @@ static int lm85_detect(struct i2c_adapte
->        }
->
->        /* Fill in the chip specific driver values */
-> -       if (kind == any_chip)
-> -               type_name = "lm85";
-> -       else if (kind == lm85b)
-> +       switch (kind) {
-> +       case lm85b:
->                type_name = "lm85b";
-> -       else if (kind == lm85c)
-> +               break;
-> +       case lm85c:
->                type_name = "lm85c";
-> -       else if (kind == adm1027)
-> +               break;
-> +       case adm1027:
->                type_name = "adm1027";
-> -       else if (kind == adt7463)
-> +               break;
-> +       case adt7463:
->                type_name = "adt7463";
-> -       else if (kind == emc6d100)
-> +               break;
-> +       case emc6d100:
->                type_name = "emc6d100";
-> -       else if (kind == emc6d102)
-> +               break;
-> +       case emc6d102:
->                type_name = "emc6d102";
-> -       strlcpy(new_client->name, type_name, I2C_NAME_SIZE);
-> +               break;
-> +       default:
-> +               type_name = "lm85";
-> +       }
-> +       strlcpy(client->name, type_name, I2C_NAME_SIZE);
->
->        /* Fill in the remaining client fields */
->        data->type = kind;
-> -       data->valid = 0;
->        mutex_init(&data->update_lock);
->
->        /* Tell the I2C layer a new client has arrived */
-> -       if ((err = i2c_attach_client(new_client)))
-> +       err = i2c_attach_client(client);
-> +       if (err)
->                goto ERROR1;
->
->        /* Set the VRM version */
->        data->vrm = vid_which_vrm();
->
->        /* Initialize the LM85 chip */
-> -       lm85_init_client(new_client);
-> +       lm85_init_client(client);
->
->        /* Register sysfs hooks */
-> -       if ((err = sysfs_create_group(&new_client->dev.kobj, &lm85_group)))
-> +       err = sysfs_create_group(&client->dev.kobj, &lm85_group);
-> +       if (err)
->                goto ERROR2;
->
->        /* The ADT7463 has an optional VRM 10 mode where pin 21 is used
->           as a sixth digital VID input rather than an analog input. */
-> -       data->vid = lm85_read_value(new_client, LM85_REG_VID);
-> +       data->vid = lm85_read_value(client, LM85_REG_VID);
->        if (!(kind == adt7463 && (data->vid & 0x80)))
-> -               if ((err = sysfs_create_group(&new_client->dev.kobj,
-> +               if ((err = sysfs_create_group(&client->dev.kobj,
->                                        &lm85_group_in4)))
->                        goto ERROR3;
->
->        /* The EMC6D100 has 3 additional voltage inputs */
->        if (kind == emc6d100)
-> -               if ((err = sysfs_create_group(&new_client->dev.kobj,
-> +               if ((err = sysfs_create_group(&client->dev.kobj,
->                                        &lm85_group_in567)))
->                        goto ERROR3;
->
-> -       data->hwmon_dev = hwmon_device_register(&new_client->dev);
-> +       data->hwmon_dev = hwmon_device_register(&client->dev);
->        if (IS_ERR(data->hwmon_dev)) {
->                err = PTR_ERR(data->hwmon_dev);
->                goto ERROR3;
-> @@ -1256,12 +1258,12 @@ static int lm85_detect(struct i2c_adapte
->
->        /* Error out and cleanup code */
->  ERROR3:
-> -       sysfs_remove_group(&new_client->dev.kobj, &lm85_group);
-> -       sysfs_remove_group(&new_client->dev.kobj, &lm85_group_in4);
-> +       sysfs_remove_group(&client->dev.kobj, &lm85_group);
-> +       sysfs_remove_group(&client->dev.kobj, &lm85_group_in4);
->        if (kind == emc6d100)
-> -               sysfs_remove_group(&new_client->dev.kobj,
-> &lm85_group_in567);
-> +               sysfs_remove_group(&client->dev.kobj, &lm85_group_in567);
->  ERROR2:
-> -       i2c_detach_client(new_client);
-> +       i2c_detach_client(client);
->  ERROR1:
->        kfree(data);
->  ERROR0:
-> @@ -1308,10 +1310,8 @@ static int lm85_read_value(struct i2c_cl
->        return res;
->  }
->
-> -static int lm85_write_value(struct i2c_client *client, u8 reg, int value)
-> +static void lm85_write_value(struct i2c_client *client, u8 reg, int value)
->  {
-> -       int res;
-> -
->        switch (reg) {
->        case LM85_REG_FAN(0):  /* Write WORD data */
->        case LM85_REG_FAN(1):
-> @@ -1322,16 +1322,13 @@ static int lm85_write_value(struct i2c_c
->        case LM85_REG_FAN_MIN(2):
->        case LM85_REG_FAN_MIN(3):
->        /* NOTE: ALARM is read only, so not included here */
-> -               res = i2c_smbus_write_byte_data(client, reg, value & 0xff);
-> -               res |= i2c_smbus_write_byte_data(client, reg + 1,
-> -                                                (value >> 8) & 0xff);
-> +               i2c_smbus_write_byte_data(client, reg, value & 0xff);
-> +               i2c_smbus_write_byte_data(client, reg + 1, value >> 8);
->                break;
->        default:        /* Write BYTE data */
-> -               res = i2c_smbus_write_byte_data(client, reg, value);
-> +               i2c_smbus_write_byte_data(client, reg, value);
->                break;
->        }
-> -
-> -       return res;
->  }
->
->  static void lm85_init_client(struct i2c_client *client)
-> @@ -1413,6 +1410,8 @@ static struct lm85_data *lm85_update_dev
->                for (i = 0; i <= 3; ++i) {
->                        data->in[i] =
->                            lm85_read_value(client, LM85_REG_IN(i));
-> +                       data->fan[i] =
-> +                           lm85_read_value(client, LM85_REG_FAN(i));
->                }
->
->                if (!(data->type == adt7463 && (data->vid & 0x80))) {
-> @@ -1420,17 +1419,9 @@ static struct lm85_data *lm85_update_dev
->                                      LM85_REG_IN(4));
->                }
->
-> -               for (i = 0; i <= 3; ++i) {
-> -                       data->fan[i] =
-> -                           lm85_read_value(client, LM85_REG_FAN(i));
-> -               }
-> -
->                for (i = 0; i <= 2; ++i) {
->                        data->temp[i] =
->                            lm85_read_value(client, LM85_REG_TEMP(i));
-> -               }
-> -
-> -               for (i = 0; i <= 2; ++i) {
->                        data->pwm[i] =
->                            lm85_read_value(client, LM85_REG_PWM(i));
->                }
-> @@ -1461,13 +1452,13 @@ static struct lm85_data *lm85_update_dev
->
-> EMC6D102_REG_EXTEND_ADC4);
->                        data->in_ext[0] = ext3 & 0x0f;
->                        data->in_ext[1] = ext4 & 0x0f;
-> -                       data->in_ext[2] = (ext4 >> 4) & 0x0f;
-> -                       data->in_ext[3] = (ext3 >> 4) & 0x0f;
-> -                       data->in_ext[4] = (ext2 >> 4) & 0x0f;
-> +                       data->in_ext[2] = ext4 >> 4;
-> +                       data->in_ext[3] = ext3 >> 4;
-> +                       data->in_ext[4] = ext2 >> 4;
->
->                        data->temp_ext[0] = ext1 & 0x0f;
->                        data->temp_ext[1] = ext2 & 0x0f;
-> -                       data->temp_ext[2] = (ext1 >> 4) & 0x0f;
-> +                       data->temp_ext[2] = ext1 >> 4;
->                }
->
->                data->last_reading = jiffies;
-> @@ -1483,6 +1474,8 @@ static struct lm85_data *lm85_update_dev
->                            lm85_read_value(client, LM85_REG_IN_MIN(i));
->                        data->in_max[i] =
->                            lm85_read_value(client, LM85_REG_IN_MAX(i));
-> +                       data->fan_min[i] =
-> +                           lm85_read_value(client, LM85_REG_FAN_MIN(i));
->                }
->
->                if (!(data->type == adt7463 && (data->vid & 0x80))) {
-> @@ -1501,25 +1494,19 @@ static struct lm85_data *lm85_update_dev
->                        }
->                }
->
-> -               for (i = 0; i <= 3; ++i) {
-> -                       data->fan_min[i] =
-> -                           lm85_read_value(client, LM85_REG_FAN_MIN(i));
-> -               }
-> -
->                for (i = 0; i <= 2; ++i) {
-> +                       int val;
-> +
->                        data->temp_min[i] =
->                            lm85_read_value(client, LM85_REG_TEMP_MIN(i));
->                        data->temp_max[i] =
->                            lm85_read_value(client, LM85_REG_TEMP_MAX(i));
-> -               }
->
-> -               for (i = 0; i <= 2; ++i) {
-> -                       int val;
->                        data->autofan[i].config =
->                            lm85_read_value(client,
-> LM85_REG_AFAN_CONFIG(i));
->                        val = lm85_read_value(client,
-> LM85_REG_AFAN_RANGE(i));
->                        data->autofan[i].freq = val & 0x07;
-> -                       data->zone[i].range = (val >> 4) & 0x0f;
-> +                       data->zone[i].range = val >> 4;
->                        data->autofan[i].min_pwm =
->                            lm85_read_value(client,
-> LM85_REG_AFAN_MINPWM(i));
->                        data->zone[i].limit =
-> @@ -1534,11 +1521,11 @@ static struct lm85_data *lm85_update_dev
->                data->autofan[2].min_off = (i & 0x80) != 0;
->
->                i = lm85_read_value(client, LM85_REG_AFAN_HYST1);
-> -               data->zone[0].hyst = (i>>4) & 0x0f;
-> +               data->zone[0].hyst = i >> 4;
->                data->zone[1].hyst = i & 0x0f;
->
->                i = lm85_read_value(client, LM85_REG_AFAN_HYST2);
-> -               data->zone[2].hyst = (i>>4) & 0x0f;
-> +               data->zone[2].hyst = i >> 4;
->
->                data->last_config = jiffies;
->        }  /* last_config */
-> @@ -1561,14 +1548,10 @@ static void  __exit sm_lm85_exit(void)
->        i2c_del_driver(&lm85_driver);
->  }
->
-> -/* Thanks to Richard Barrington for adding the LM85 to sensors-detect.
-> - * Thanks to Margit Schubert-While <margitsw@t-online.de> for help with
-> - *     post 2.7.0 CVS changes.
-> - */
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Philip Pokorny <ppokorny@penguincomputing.com>, "
->        "Margit Schubert-While <margitsw@t-online.de>, "
-> -       "Justin Thiessen <jthiessen@penguincomputing.com");
-> +       "Justin Thiessen <jthiessen@penguincomputing.com>");
->  MODULE_DESCRIPTION("LM85-B, LM85-C driver");
->
->  module_init(sm_lm85_init);
->
-> --
-> Jean Delvare
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
-
-------=_Part_2874_10885277.1211936538496
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Looks good.<br><br>Acked-by: Juerg Haefliger &lt;juergh at <a href="http://gmail.com">gmail.com</a>&gt;<br><br><br><div class="gmail_quote">On Sat, Apr 12, 2008 at 10:57 AM, Jean Delvare &lt;<a href="mailto:khali@linux-fr.org">khali@linux-fr.org</a>&gt; wrote:<br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">Misc cleanups to the lm85 hardware monitoring driver:<br>
-* Mark constant arrays as const.<br>
-* Remove useless masks.<br>
-* Have lm85_write_value return void - nobody is checking the returned<br>
- &nbsp;value anyway and in some cases it was plain wrong.<br>
-* Remove useless initializations.<br>
-* Rename new_client to client in lm85_detect.<br>
-* Replace cascaded if/else with a switch/case in lm85_detect.<br>
-* Group similar loops in lm85_update_device.<br>
-* Remove legacy comments.<br>
-<br>
-Signed-off-by: Jean Delvare &lt;<a href="mailto:khali@linux-fr.org">khali@linux-fr.org</a>&gt;<br>
----<br>
-&nbsp;drivers/hwmon/lm85.c | &nbsp;151 ++++++++++++++++++++++----------------------------<br>
-&nbsp;1 file changed, 67 insertions(+), 84 deletions(-)<br>
-<br>
---- linux-2.6.25-rc8.orig/drivers/hwmon/lm85.c &nbsp;2008-04-03 14:18:50.000000000 +0200<br>
-+++ linux-2.6.25-rc8/drivers/hwmon/lm85.c &nbsp; &nbsp; &nbsp; 2008-04-03 15:27:45.000000000 +0200<br>
-@@ -110,7 +110,7 @@ I2C_CLIENT_INSMOD_6(lm85b, lm85c, adm102<br>
- &nbsp;*/<br>
-<br>
-&nbsp;/* IN are scaled acording to built-in resistors */<br>
--static int lm85_scaling[] = { &nbsp;/* .001 Volts */<br>
-+static const int lm85_scaling[] = { &nbsp;/* .001 Volts */<br>
- &nbsp; &nbsp; &nbsp; &nbsp;2500, 2250, 3300, 5000, 12000,<br>
- &nbsp; &nbsp; &nbsp; &nbsp;3300, 1500, 1800 /*EMC6D100*/<br>
-&nbsp;};<br>
-@@ -164,7 +164,7 @@ static inline u16 FAN_TO_REG(unsigned lo<br>
- &nbsp;*/<br>
-<br>
-&nbsp;/* These are the zone temperature range encodings in .001 degree C */<br>
--static int lm85_range_map[] = {<br>
-+static const int lm85_range_map[] = {<br>
- &nbsp; &nbsp; &nbsp; &nbsp;2000, &nbsp;2500, &nbsp;3300, &nbsp;4000, &nbsp;5000, &nbsp;6600,<br>
- &nbsp; &nbsp; &nbsp; &nbsp;8000, 10000, 13300, 16000, 20000, 26600,<br>
- &nbsp; &nbsp; &nbsp; &nbsp;32000, 40000, 53300, 80000<br>
-@@ -191,13 +191,8 @@ static int RANGE_TO_REG(int range)<br>
-&nbsp;}<br>
-&nbsp;#define RANGE_FROM_REG(val) &nbsp; &nbsp;lm85_range_map[(val) &amp; 0x0f]<br>
-<br>
--/* These are the Acoustic Enhancement, or Temperature smoothing encodings<br>
-- * NOTE: The enable/disable bit is INCLUDED in these encodings as the<br>
-- * &nbsp; &nbsp; &nbsp; MSB (bit 3, value 8). &nbsp;If the enable bit is 0, the encoded value<br>
-- * &nbsp; &nbsp; &nbsp; is ignored, or set to 0.<br>
-- */<br>
-&nbsp;/* These are the PWM frequency encodings */<br>
--static int lm85_freq_map[] = { /* .1 Hz */<br>
-+static const int lm85_freq_map[] = { /* .1 Hz */<br>
- &nbsp; &nbsp; &nbsp; &nbsp;100, 150, 230, 300, 380, 470, 620, 940<br>
-&nbsp;};<br>
-<br>
-@@ -210,7 +205,7 @@ static int FREQ_TO_REG(int freq)<br>
- &nbsp; &nbsp; &nbsp; &nbsp;for (i = 0; i &lt; 7; ++i)<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;if (freq &lt;= lm85_freq_map[i])<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;break;<br>
-- &nbsp; &nbsp; &nbsp; return i &amp; 0x07;<br>
-+ &nbsp; &nbsp; &nbsp; return i;<br>
-&nbsp;}<br>
-&nbsp;#define FREQ_FROM_REG(val) &nbsp; &nbsp; lm85_freq_map[(val) &amp; 0x07]<br>
-<br>
-@@ -226,8 +221,8 @@ static int FREQ_TO_REG(int freq)<br>
- &nbsp;* &nbsp; &nbsp; -2 -- PWM responds to manual control<br>
- &nbsp;*/<br>
-<br>
--static int lm85_zone_map[] = { 1, 2, 3, -1, 0, 23, 123, -2 };<br>
--#define ZONE_FROM_REG(val) &nbsp; &nbsp; lm85_zone_map[((val) &gt;&gt; 5) &amp; 0x07]<br>
-+static const int lm85_zone_map[] = { 1, 2, 3, -1, 0, 23, 123, -2 };<br>
-+#define ZONE_FROM_REG(val) &nbsp; &nbsp; lm85_zone_map[(val) &gt;&gt; 5]<br>
-<br>
-&nbsp;static int ZONE_TO_REG(int zone)<br>
-&nbsp;{<br>
-@@ -238,7 +233,7 @@ static int ZONE_TO_REG(int zone)<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;break;<br>
- &nbsp; &nbsp; &nbsp; &nbsp;if (i &gt; 7) &nbsp; /* Not found. */<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;i = 3; &nbsp;/* Always 100% */<br>
-- &nbsp; &nbsp; &nbsp; return (i &amp; 0x07) &lt;&lt; 5;<br>
-+ &nbsp; &nbsp; &nbsp; return i &lt;&lt; 5;<br>
-&nbsp;}<br>
-<br>
-&nbsp;#define HYST_TO_REG(val) &nbsp; &nbsp; &nbsp; SENSORS_LIMIT(((val) + 500) / 1000, 0, 15)<br>
-@@ -322,7 +317,7 @@ static int lm85_detect(struct i2c_adapte<br>
-&nbsp;static int lm85_detach_client(struct i2c_client *client);<br>
-<br>
-&nbsp;static int lm85_read_value(struct i2c_client *client, u8 reg);<br>
--static int lm85_write_value(struct i2c_client *client, u8 reg, int value);<br>
-+static void lm85_write_value(struct i2c_client *client, u8 reg, int value);<br>
-&nbsp;static struct lm85_data *lm85_update_device(struct device *dev);<br>
-&nbsp;static void lm85_init_client(struct i2c_client *client);<br>
-<br>
-@@ -1096,13 +1091,12 @@ static int lm85_detect(struct i2c_adapte<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;int kind)<br>
-&nbsp;{<br>
- &nbsp; &nbsp; &nbsp; &nbsp;int company, verstep;<br>
-- &nbsp; &nbsp; &nbsp; struct i2c_client *new_client = NULL;<br>
-+ &nbsp; &nbsp; &nbsp; struct i2c_client *client;<br>
- &nbsp; &nbsp; &nbsp; &nbsp;struct lm85_data *data;<br>
- &nbsp; &nbsp; &nbsp; &nbsp;int err = 0;<br>
-- &nbsp; &nbsp; &nbsp; const char *type_name = &quot;&quot;;<br>
-+ &nbsp; &nbsp; &nbsp; const char *type_name;<br>
-<br>
-- &nbsp; &nbsp; &nbsp; if (!i2c_check_functionality(adapter,<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; I2C_FUNC_SMBUS_BYTE_DATA)) {<br>
-+ &nbsp; &nbsp; &nbsp; if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;/* We need to be able to do byte I/O */<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;goto ERROR0;<br>
- &nbsp; &nbsp; &nbsp; &nbsp;}<br>
-@@ -1116,21 +1110,20 @@ static int lm85_detect(struct i2c_adapte<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;goto ERROR0;<br>
- &nbsp; &nbsp; &nbsp; &nbsp;}<br>
-<br>
-- &nbsp; &nbsp; &nbsp; new_client = &amp;data-&gt;client;<br>
-- &nbsp; &nbsp; &nbsp; i2c_set_clientdata(new_client, data);<br>
-- &nbsp; &nbsp; &nbsp; new_client-&gt;addr = address;<br>
-- &nbsp; &nbsp; &nbsp; new_client-&gt;adapter = adapter;<br>
-- &nbsp; &nbsp; &nbsp; new_client-&gt;driver = &amp;lm85_driver;<br>
-- &nbsp; &nbsp; &nbsp; new_client-&gt;flags = 0;<br>
-+ &nbsp; &nbsp; &nbsp; client = &amp;data-&gt;client;<br>
-+ &nbsp; &nbsp; &nbsp; i2c_set_clientdata(client, data);<br>
-+ &nbsp; &nbsp; &nbsp; client-&gt;addr = address;<br>
-+ &nbsp; &nbsp; &nbsp; client-&gt;adapter = adapter;<br>
-+ &nbsp; &nbsp; &nbsp; client-&gt;driver = &amp;lm85_driver;<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;/* Now, we do the remaining detection. */<br>
-<br>
-- &nbsp; &nbsp; &nbsp; company = lm85_read_value(new_client, LM85_REG_COMPANY);<br>
-- &nbsp; &nbsp; &nbsp; verstep = lm85_read_value(new_client, LM85_REG_VERSTEP);<br>
-+ &nbsp; &nbsp; &nbsp; company = lm85_read_value(client, LM85_REG_COMPANY);<br>
-+ &nbsp; &nbsp; &nbsp; verstep = lm85_read_value(client, LM85_REG_VERSTEP);<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;dev_dbg(&amp;adapter-&gt;dev, &quot;Detecting device at %d,0x%02x with&quot;<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&quot; COMPANY: 0x%02x and VERSTEP: 0x%02x\n&quot;,<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; i2c_adapter_id(new_client-&gt;adapter), new_client-&gt;addr,<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; i2c_adapter_id(client-&gt;adapter), client-&gt;addr,<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;company, verstep);<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;/* If auto-detecting, Determine the chip type. */<br>
-@@ -1197,56 +1190,65 @@ static int lm85_detect(struct i2c_adapte<br>
- &nbsp; &nbsp; &nbsp; &nbsp;}<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;/* Fill in the chip specific driver values */<br>
-- &nbsp; &nbsp; &nbsp; if (kind == any_chip)<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; type_name = &quot;lm85&quot;;<br>
-- &nbsp; &nbsp; &nbsp; else if (kind == lm85b)<br>
-+ &nbsp; &nbsp; &nbsp; switch (kind) {<br>
-+ &nbsp; &nbsp; &nbsp; case lm85b:<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;type_name = &quot;lm85b&quot;;<br>
-- &nbsp; &nbsp; &nbsp; else if (kind == lm85c)<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;<br>
-+ &nbsp; &nbsp; &nbsp; case lm85c:<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;type_name = &quot;lm85c&quot;;<br>
-- &nbsp; &nbsp; &nbsp; else if (kind == adm1027)<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;<br>
-+ &nbsp; &nbsp; &nbsp; case adm1027:<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;type_name = &quot;adm1027&quot;;<br>
-- &nbsp; &nbsp; &nbsp; else if (kind == adt7463)<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;<br>
-+ &nbsp; &nbsp; &nbsp; case adt7463:<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;type_name = &quot;adt7463&quot;;<br>
-- &nbsp; &nbsp; &nbsp; else if (kind == emc6d100)<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;<br>
-+ &nbsp; &nbsp; &nbsp; case emc6d100:<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;type_name = &quot;emc6d100&quot;;<br>
-- &nbsp; &nbsp; &nbsp; else if (kind == emc6d102)<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;<br>
-+ &nbsp; &nbsp; &nbsp; case emc6d102:<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;type_name = &quot;emc6d102&quot;;<br>
-- &nbsp; &nbsp; &nbsp; strlcpy(new_client-&gt;name, type_name, I2C_NAME_SIZE);<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;<br>
-+ &nbsp; &nbsp; &nbsp; default:<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; type_name = &quot;lm85&quot;;<br>
-+ &nbsp; &nbsp; &nbsp; }<br>
-+ &nbsp; &nbsp; &nbsp; strlcpy(client-&gt;name, type_name, I2C_NAME_SIZE);<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;/* Fill in the remaining client fields */<br>
- &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;type = kind;<br>
-- &nbsp; &nbsp; &nbsp; data-&gt;valid = 0;<br>
- &nbsp; &nbsp; &nbsp; &nbsp;mutex_init(&amp;data-&gt;update_lock);<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;/* Tell the I2C layer a new client has arrived */<br>
-- &nbsp; &nbsp; &nbsp; if ((err = i2c_attach_client(new_client)))<br>
-+ &nbsp; &nbsp; &nbsp; err = i2c_attach_client(client);<br>
-+ &nbsp; &nbsp; &nbsp; if (err)<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;goto ERROR1;<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;/* Set the VRM version */<br>
- &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;vrm = vid_which_vrm();<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;/* Initialize the LM85 chip */<br>
-- &nbsp; &nbsp; &nbsp; lm85_init_client(new_client);<br>
-+ &nbsp; &nbsp; &nbsp; lm85_init_client(client);<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;/* Register sysfs hooks */<br>
-- &nbsp; &nbsp; &nbsp; if ((err = sysfs_create_group(&amp;new_client-&gt;dev.kobj, &amp;lm85_group)))<br>
-+ &nbsp; &nbsp; &nbsp; err = sysfs_create_group(&amp;client-&gt;dev.kobj, &amp;lm85_group);<br>
-+ &nbsp; &nbsp; &nbsp; if (err)<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;goto ERROR2;<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;/* The ADT7463 has an optional VRM 10 mode where pin 21 is used<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; as a sixth digital VID input rather than an analog input. */<br>
-- &nbsp; &nbsp; &nbsp; data-&gt;vid = lm85_read_value(new_client, LM85_REG_VID);<br>
-+ &nbsp; &nbsp; &nbsp; data-&gt;vid = lm85_read_value(client, LM85_REG_VID);<br>
- &nbsp; &nbsp; &nbsp; &nbsp;if (!(kind == adt7463 &amp;&amp; (data-&gt;vid &amp; 0x80)))<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if ((err = sysfs_create_group(&amp;new_client-&gt;dev.kobj,<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if ((err = sysfs_create_group(&amp;client-&gt;dev.kobj,<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&amp;lm85_group_in4)))<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;goto ERROR3;<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;/* The EMC6D100 has 3 additional voltage inputs */<br>
- &nbsp; &nbsp; &nbsp; &nbsp;if (kind == emc6d100)<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if ((err = sysfs_create_group(&amp;new_client-&gt;dev.kobj,<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if ((err = sysfs_create_group(&amp;client-&gt;dev.kobj,<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&amp;lm85_group_in567)))<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;goto ERROR3;<br>
-<br>
-- &nbsp; &nbsp; &nbsp; data-&gt;hwmon_dev = hwmon_device_register(&amp;new_client-&gt;dev);<br>
-+ &nbsp; &nbsp; &nbsp; data-&gt;hwmon_dev = hwmon_device_register(&amp;client-&gt;dev);<br>
- &nbsp; &nbsp; &nbsp; &nbsp;if (IS_ERR(data-&gt;hwmon_dev)) {<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;err = PTR_ERR(data-&gt;hwmon_dev);<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;goto ERROR3;<br>
-@@ -1256,12 +1258,12 @@ static int lm85_detect(struct i2c_adapte<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;/* Error out and cleanup code */<br>
- &nbsp;ERROR3:<br>
-- &nbsp; &nbsp; &nbsp; sysfs_remove_group(&amp;new_client-&gt;dev.kobj, &amp;lm85_group);<br>
-- &nbsp; &nbsp; &nbsp; sysfs_remove_group(&amp;new_client-&gt;dev.kobj, &amp;lm85_group_in4);<br>
-+ &nbsp; &nbsp; &nbsp; sysfs_remove_group(&amp;client-&gt;dev.kobj, &amp;lm85_group);<br>
-+ &nbsp; &nbsp; &nbsp; sysfs_remove_group(&amp;client-&gt;dev.kobj, &amp;lm85_group_in4);<br>
- &nbsp; &nbsp; &nbsp; &nbsp;if (kind == emc6d100)<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; sysfs_remove_group(&amp;new_client-&gt;dev.kobj, &amp;lm85_group_in567);<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; sysfs_remove_group(&amp;client-&gt;dev.kobj, &amp;lm85_group_in567);<br>
- &nbsp;ERROR2:<br>
-- &nbsp; &nbsp; &nbsp; i2c_detach_client(new_client);<br>
-+ &nbsp; &nbsp; &nbsp; i2c_detach_client(client);<br>
- &nbsp;ERROR1:<br>
- &nbsp; &nbsp; &nbsp; &nbsp;kfree(data);<br>
- &nbsp;ERROR0:<br>
-@@ -1308,10 +1310,8 @@ static int lm85_read_value(struct i2c_cl<br>
- &nbsp; &nbsp; &nbsp; &nbsp;return res;<br>
-&nbsp;}<br>
-<br>
--static int lm85_write_value(struct i2c_client *client, u8 reg, int value)<br>
-+static void lm85_write_value(struct i2c_client *client, u8 reg, int value)<br>
-&nbsp;{<br>
-- &nbsp; &nbsp; &nbsp; int res;<br>
--<br>
- &nbsp; &nbsp; &nbsp; &nbsp;switch (reg) {<br>
- &nbsp; &nbsp; &nbsp; &nbsp;case LM85_REG_FAN(0): &nbsp;/* Write WORD data */<br>
- &nbsp; &nbsp; &nbsp; &nbsp;case LM85_REG_FAN(1):<br>
-@@ -1322,16 +1322,13 @@ static int lm85_write_value(struct i2c_c<br>
- &nbsp; &nbsp; &nbsp; &nbsp;case LM85_REG_FAN_MIN(2):<br>
- &nbsp; &nbsp; &nbsp; &nbsp;case LM85_REG_FAN_MIN(3):<br>
- &nbsp; &nbsp; &nbsp; &nbsp;/* NOTE: ALARM is read only, so not included here */<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; res = i2c_smbus_write_byte_data(client, reg, value &amp; 0xff);<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; res |= i2c_smbus_write_byte_data(client, reg + 1,<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(value &gt;&gt; 8) &amp; 0xff);<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; i2c_smbus_write_byte_data(client, reg, value &amp; 0xff);<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; i2c_smbus_write_byte_data(client, reg + 1, value &gt;&gt; 8);<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;break;<br>
- &nbsp; &nbsp; &nbsp; &nbsp;default: &nbsp; &nbsp; &nbsp; &nbsp;/* Write BYTE data */<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; res = i2c_smbus_write_byte_data(client, reg, value);<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; i2c_smbus_write_byte_data(client, reg, value);<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;break;<br>
- &nbsp; &nbsp; &nbsp; &nbsp;}<br>
--<br>
-- &nbsp; &nbsp; &nbsp; return res;<br>
-&nbsp;}<br>
-<br>
-&nbsp;static void lm85_init_client(struct i2c_client *client)<br>
-@@ -1413,6 +1410,8 @@ static struct lm85_data *lm85_update_dev<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;for (i = 0; i &lt;= 3; ++i) {<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;in[i] =<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;lm85_read_value(client, LM85_REG_IN(i));<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;fan[i] =<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; lm85_read_value(client, LM85_REG_FAN(i));<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;}<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;if (!(data-&gt;type == adt7463 &amp;&amp; (data-&gt;vid &amp; 0x80))) {<br>
-@@ -1420,17 +1419,9 @@ static struct lm85_data *lm85_update_dev<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;LM85_REG_IN(4));<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;}<br>
-<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; for (i = 0; i &lt;= 3; ++i) {<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;fan[i] =<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; lm85_read_value(client, LM85_REG_FAN(i));<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }<br>
--<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;for (i = 0; i &lt;= 2; ++i) {<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;temp[i] =<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;lm85_read_value(client, LM85_REG_TEMP(i));<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }<br>
--<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; for (i = 0; i &lt;= 2; ++i) {<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;pwm[i] =<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;lm85_read_value(client, LM85_REG_PWM(i));<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;}<br>
-@@ -1461,13 +1452,13 @@ static struct lm85_data *lm85_update_dev<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; EMC6D102_REG_EXTEND_ADC4);<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;in_ext[0] = ext3 &amp; 0x0f;<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;in_ext[1] = ext4 &amp; 0x0f;<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;in_ext[2] = (ext4 &gt;&gt; 4) &amp; 0x0f;<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;in_ext[3] = (ext3 &gt;&gt; 4) &amp; 0x0f;<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;in_ext[4] = (ext2 &gt;&gt; 4) &amp; 0x0f;<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;in_ext[2] = ext4 &gt;&gt; 4;<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;in_ext[3] = ext3 &gt;&gt; 4;<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;in_ext[4] = ext2 &gt;&gt; 4;<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;temp_ext[0] = ext1 &amp; 0x0f;<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;temp_ext[1] = ext2 &amp; 0x0f;<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;temp_ext[2] = (ext1 &gt;&gt; 4) &amp; 0x0f;<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;temp_ext[2] = ext1 &gt;&gt; 4;<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;}<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;last_reading = jiffies;<br>
-@@ -1483,6 +1474,8 @@ static struct lm85_data *lm85_update_dev<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;lm85_read_value(client, LM85_REG_IN_MIN(i));<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;in_max[i] =<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;lm85_read_value(client, LM85_REG_IN_MAX(i));<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;fan_min[i] =<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; lm85_read_value(client, LM85_REG_FAN_MIN(i));<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;}<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;if (!(data-&gt;type == adt7463 &amp;&amp; (data-&gt;vid &amp; 0x80))) {<br>
-@@ -1501,25 +1494,19 @@ static struct lm85_data *lm85_update_dev<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;}<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;}<br>
-<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; for (i = 0; i &lt;= 3; ++i) {<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;fan_min[i] =<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; lm85_read_value(client, LM85_REG_FAN_MIN(i));<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }<br>
--<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;for (i = 0; i &lt;= 2; ++i) {<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; int val;<br>
-+<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;temp_min[i] =<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;lm85_read_value(client, LM85_REG_TEMP_MIN(i));<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;temp_max[i] =<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;lm85_read_value(client, LM85_REG_TEMP_MAX(i));<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }<br>
-<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; for (i = 0; i &lt;= 2; ++i) {<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; int val;<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;autofan[i].config =<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;lm85_read_value(client, LM85_REG_AFAN_CONFIG(i));<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;val = lm85_read_value(client, LM85_REG_AFAN_RANGE(i));<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;autofan[i].freq = val &amp; 0x07;<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;zone[i].range = (val &gt;&gt; 4) &amp; 0x0f;<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;zone[i].range = val &gt;&gt; 4;<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;autofan[i].min_pwm =<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;lm85_read_value(client, LM85_REG_AFAN_MINPWM(i));<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;zone[i].limit =<br>
-@@ -1534,11 +1521,11 @@ static struct lm85_data *lm85_update_dev<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;autofan[2].min_off = (i &amp; 0x80) != 0;<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;i = lm85_read_value(client, LM85_REG_AFAN_HYST1);<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;zone[0].hyst = (i&gt;&gt;4) &amp; 0x0f;<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;zone[0].hyst = i &gt;&gt; 4;<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;zone[1].hyst = i &amp; 0x0f;<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;i = lm85_read_value(client, LM85_REG_AFAN_HYST2);<br>
-- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;zone[2].hyst = (i&gt;&gt;4) &amp; 0x0f;<br>
-+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; data-&gt;zone[2].hyst = i &gt;&gt; 4;<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;data-&gt;last_config = jiffies;<br>
- &nbsp; &nbsp; &nbsp; &nbsp;} &nbsp;/* last_config */<br>
-@@ -1561,14 +1548,10 @@ static void &nbsp;__exit sm_lm85_exit(void)<br>
- &nbsp; &nbsp; &nbsp; &nbsp;i2c_del_driver(&amp;lm85_driver);<br>
-&nbsp;}<br>
-<br>
--/* Thanks to Richard Barrington for adding the LM85 to sensors-detect.<br>
-- * Thanks to Margit Schubert-While &lt;<a href="mailto:margitsw@t-online.de">margitsw@t-online.de</a>&gt; for help with<br>
-- * &nbsp; &nbsp; post 2.7.0 CVS changes.<br>
-- */<br>
-&nbsp;MODULE_LICENSE(&quot;GPL&quot;);<br>
-&nbsp;MODULE_AUTHOR(&quot;Philip Pokorny &lt;<a href="mailto:ppokorny@penguincomputing.com">ppokorny@penguincomputing.com</a>&gt;, &quot;<br>
- &nbsp; &nbsp; &nbsp; &nbsp;&quot;Margit Schubert-While &lt;<a href="mailto:margitsw@t-online.de">margitsw@t-online.de</a>&gt;, &quot;<br>
-- &nbsp; &nbsp; &nbsp; &quot;Justin Thiessen &lt;<a href="mailto:jthiessen@penguincomputing.com">jthiessen@penguincomputing.com</a>&quot;);<br>
-+ &nbsp; &nbsp; &nbsp; &quot;Justin Thiessen &lt;<a href="mailto:jthiessen@penguincomputing.com">jthiessen@penguincomputing.com</a>&gt;&quot;);<br>
-&nbsp;MODULE_DESCRIPTION(&quot;LM85-B, LM85-C driver&quot;);<br>
-<br>
-&nbsp;module_init(sm_lm85_init);<br>
-<font color="#888888"><br>
---<br>
-Jean Delvare<br>
-<br>
-_______________________________________________<br>
-lm-sensors mailing list<br>
-<a href="mailto:lm-sensors@lm-sensors.org">lm-sensors@lm-sensors.org</a><br>
-<a href="http://lists.lm-sensors.org/mailman/listinfo/lm-sensors" target="_blank">http://lists.lm-sensors.org/mailman/listinfo/lm-sensors</a><br>
-</font></blockquote></div><br>
-
-------=_Part_2874_10885277.1211936538496--
-
-
---===============0935745751670722366==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+
+Hi all,
+
+Here's v3 of the driver, with all the macros removed and aem1 expressed
+as a subset of aem2 functionality.  Also some minor cleanups that people
+have asked for.  I've given this a spin on a few x3650/qs22 (cell)
+systems and all seems to be working ok.  Thanks to all who've sent me
+feedback. :)
+---
+This driver reads IBM Active Energy Manager energy/temperature/power
+sensors on IBM System X hardware.
+
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
+
+ drivers/hwmon/Kconfig  |   14 +
+ drivers/hwmon/Makefile |    1 
+ drivers/hwmon/ibmaem.c | 1106 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 1121 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 4dc76bc..00ff533 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -330,6 +330,20 @@ config SENSORS_CORETEMP
+ 	  sensor inside your CPU. Supported all are all known variants
+ 	  of Intel Core family.
+ 
++config SENSORS_IBMAEM
++	tristate "IBM Active Energy Manager temperature/power sensors and control"
++	select IPMI_SI
++	depends on IPMI_HANDLER
++	help
++	  If you say yes here you get support for the temperature and
++	  power sensors and capping hardware in various IBM System X
++	  servers that support Active Energy Manager.  This includes
++	  the x3350, x3550, x3650, x3655, x3755, x3850 M2, x3950 M2,
++	  and certain HS2x/LS2x/QS2x blades.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called ibmaem.
++
+ config SENSORS_IBMPEX
+ 	tristate "IBM PowerExecutive temperature/power sensors"
+ 	select IPMI_SI
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 3bdb05a..d098677 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -41,6 +41,7 @@ obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
+ obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
+ obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
+ obj-$(CONFIG_SENSORS_I5K_AMB)	+= i5k_amb.o
++obj-$(CONFIG_SENSORS_IBMAEM)	+= ibmaem.o
+ obj-$(CONFIG_SENSORS_IBMPEX)	+= ibmpex.o
+ obj-$(CONFIG_SENSORS_IT87)	+= it87.o
+ obj-$(CONFIG_SENSORS_K8TEMP)	+= k8temp.o
+diff --git a/drivers/hwmon/ibmaem.c b/drivers/hwmon/ibmaem.c
+new file mode 100644
+index 0000000..22fa7d6
+--- /dev/null
++++ b/drivers/hwmon/ibmaem.c
+@@ -0,0 +1,1106 @@
++/*
++ * A hwmon driver for the IBM Active Energy Manager temperature/power sensors
++ * and capping functionality.
++ * Copyright (C) 2008 IBM
++ *
++ * Author: Darrick J. Wong <djwong@us.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include <linux/ipmi.h>
++#include <linux/module.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/jiffies.h>
++#include <linux/mutex.h>
++#include <linux/kdev_t.h>
++#include <linux/spinlock.h>
++#include <linux/idr.h>
++#include <linux/sched.h>
++#include <linux/platform_device.h>
++
++#define REFRESH_INTERVAL	(HZ)
++#define IPMI_TIMEOUT		(30 * HZ)
++#define DRVNAME			"aem"
++
++#define AEM_NETFN		0x2E
++
++#define AEM_FIND_FW_CMD		0x80
++#define AEM_ELEMENT_CMD		0x81
++#define AEM_FW_INSTANCE_CMD	0x82
++
++#define AEM_READ_ELEMENT_CFG	0x80
++#define AEM_READ_BUFFER		0x81
++#define AEM_READ_REGISTER	0x82
++#define AEM_WRITE_REGISTER	0x83
++#define AEM_SET_REG_MASK	0x84
++#define AEM_CLEAR_REG_MASK	0x85
++#define AEM_READ_ELEMENT_CFG2	0x86
++
++#define AEM_CONTROL_ELEMENT	0
++#define AEM_ENERGY_ELEMENT	1
++#define AEM_CLOCK_ELEMENT	4
++#define AEM_POWER_CAP_ELEMENT	7
++#define AEM_EXHAUST_ELEMENT	9
++#define AEM_POWER_ELEMENT	10
++
++#define AEM_MODULE_TYPE_ID	0x0001
++
++#define AEM2_NUM_ENERGY_REGS	2
++#define AEM2_NUM_PCAP_REGS	6
++#define AEM2_NUM_TEMP_REGS	2
++#define AEM2_NUM_SENSORS	14
++
++#define AEM1_NUM_ENERGY_REGS	1
++#define AEM1_NUM_SENSORS	3
++
++/* AEM 2.x has more energy registers */
++#define AEM_NUM_ENERGY_REGS	AEM2_NUM_ENERGY_REGS
++/* AEM 2.x needs more sensor files */
++#define AEM_NUM_SENSORS		AEM2_NUM_SENSORS
++
++#define POWER_CAP		0
++#define POWER_CAP_MAX_HOTPLUG	1
++#define POWER_CAP_MAX		2
++#define	POWER_CAP_MIN_WARNING	3
++#define POWER_CAP_MIN		4
++#define	POWER_AUX		5
++
++#define AEM_DEFAULT_POWER_INTERVAL 1000
++#define AEM_MIN_POWER_INTERVAL	200
++
++static DEFINE_IDR(aem_idr);
++static DEFINE_SPINLOCK(aem_idr_lock);
++
++static struct device_driver aem_driver = {
++	.name = DRVNAME,
++	.bus = &platform_bus_type,
++};
++
++struct aem_ipmi_data {
++	struct completion	read_complete;
++	struct ipmi_addr	address;
++	ipmi_user_t		user;
++	int			interface;
++
++	struct kernel_ipmi_msg	tx_message;
++	long			tx_msgid;
++
++	void			*rx_msg_data;
++	unsigned short		rx_msg_len;
++	unsigned char		rx_result;
++	int			rx_recv_type;
++
++	struct device		*bmc_device;
++};
++
++struct aem_ro_sensor_template {
++	char *label;
++	ssize_t (*show)(struct device *dev,
++			struct device_attribute *devattr,
++			char *buf);
++	int index;
++};
++
++struct aem_rw_sensor_template {
++	char *label;
++	ssize_t (*show)(struct device *dev,
++			struct device_attribute *devattr,
++			char *buf);
++	ssize_t (*set)(struct device *dev,
++		       struct device_attribute *devattr,
++		       const char *buf, size_t count);
++	int index;
++};
++
++struct aem_data {
++	struct list_head	list;
++
++	struct device		*hwmon_dev;
++	struct platform_device	*pdev;
++	struct mutex		lock;
++	char			valid;
++	unsigned long		last_updated;	/* In jiffies */
++	u8			ver_major;
++	u8			ver_minor;
++	u8			module_handle;
++	int			id;
++	struct aem_ipmi_data	ipmi;
++
++	/* Function to update sensors */
++	void (*update)(struct aem_data *data);
++
++	/*
++	 * AEM 1.x sensors:
++	 * Available sensors:
++	 * Energy meter
++	 * Power meter
++	 *
++	 * AEM 2.x sensors:
++	 * Two energy meters
++	 * Two power meters
++	 * Two temperature sensors
++	 * Six power cap registers
++	 */
++
++	/* sysfs attrs */
++	struct sensor_device_attribute	sensors[AEM_NUM_SENSORS];
++
++	/* energy use in mJ */
++	u64			energy[AEM_NUM_ENERGY_REGS];
++
++	/* power sampling interval in ms */
++	unsigned long		power_period[AEM_NUM_ENERGY_REGS];
++
++	/* Everything past here is for AEM2 only */
++
++	/* power caps in dW */
++	u16			pcap[AEM2_NUM_PCAP_REGS];
++
++	/* exhaust temperature in C */
++	u8			temp[AEM2_NUM_TEMP_REGS];
++};
++
++/* Data structures returned by the AEM firmware */
++struct aem_iana_id {
++	u8			bytes[3];
++};
++static struct aem_iana_id system_x_id = {
++	.bytes = {0x4D, 0x4F, 0x00}
++};
++
++/* These are used to find AEM1 instances */
++struct aem_find_firmware_req {
++	struct aem_iana_id	id;
++	u8			rsvd;
++	u16			index;
++	u16			module_type_id;
++} __packed;
++
++struct aem_find_firmware_resp {
++	struct aem_iana_id	id;
++	u8			num_instances;
++} __packed;
++
++/* These are used to find AEM2 instances */
++struct aem_find_instance_req {
++	struct aem_iana_id	id;
++	u8			instance_number;
++	u16			module_type_id;
++} __packed;
++
++struct aem_find_instance_resp {
++	struct aem_iana_id	id;
++	u8			num_instances;
++	u8			major;
++	u8			minor;
++	u8			module_handle;
++	u16			record_id;
++} __packed;
++
++/* These are used to query sensors */
++struct aem_read_sensor_req {
++	struct aem_iana_id	id;
++	u8			module_handle;
++	u8			element;
++	u8			subcommand;
++	u8			reg;
++	u8			rx_buf_size;
++} __packed;
++
++struct aem_read_sensor_resp {
++	struct aem_iana_id	id;
++	u8			bytes[0];
++} __packed;
++
++/* Data structures to talk to the IPMI layer */
++struct aem_driver_data {
++	struct list_head	aem_devices;
++	struct ipmi_smi_watcher	bmc_events;
++	struct ipmi_user_hndl	ipmi_hndlrs;
++};
++
++static void aem_register_bmc(int iface, struct device *dev);
++static void aem_bmc_gone(int iface);
++static void aem_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data);
++
++static void aem_remove_sensors(struct aem_data *data);
++static int aem_init_aem1(struct aem_ipmi_data *probe);
++static int aem_init_aem2(struct aem_ipmi_data *probe);
++static int aem1_find_sensors(struct aem_data *data);
++static int aem2_find_sensors(struct aem_data *data);
++static void update_aem1_sensors(struct aem_data *data);
++static void update_aem2_sensors(struct aem_data *data);
++
++static struct aem_driver_data driver_data = {
++	.aem_devices = LIST_HEAD_INIT(driver_data.aem_devices),
++	.bmc_events = {
++		.owner = THIS_MODULE,
++		.new_smi = aem_register_bmc,
++		.smi_gone = aem_bmc_gone,
++	},
++	.ipmi_hndlrs = {
++		.ipmi_recv_hndl = aem_msg_handler,
++	},
++};
++
++/* Functions to talk to the IPMI layer */
++
++/* Initialize IPMI address, message buffers and user data */
++static int aem_init_ipmi_data(struct aem_ipmi_data *data, int iface,
++			      struct device *bmc)
++{
++	int err;
++
++	init_completion(&data->read_complete);
++	data->bmc_device = bmc;
++
++	/* Initialize IPMI address */
++	data->address.addr_type = IPMI_SYSTEM_INTERFACE_ADDR_TYPE;
++	data->address.channel = IPMI_BMC_CHANNEL;
++	data->address.data[0] = 0;
++	data->interface = iface;
++
++	/* Initialize message buffers */
++	data->tx_msgid = 0;
++	data->tx_message.netfn = AEM_NETFN;
++
++	/* Create IPMI messaging interface user */
++	err = ipmi_create_user(data->interface, &driver_data.ipmi_hndlrs,
++			       data, &data->user);
++	if (err < 0) {
++		dev_err(bmc, "Unable to register user with IPMI "
++			"interface %d\n", data->interface);
++		return -EACCES;
++	}
++
++	return 0;
++}
++
++/* Send an IPMI command */
++static int aem_send_message(struct aem_ipmi_data *data)
++{
++	int err;
++
++	err = ipmi_validate_addr(&data->address, sizeof(data->address));
++	if (err)
++		goto out;
++
++	data->tx_msgid++;
++	err = ipmi_request_settime(data->user, &data->address, data->tx_msgid,
++				   &data->tx_message, data, 0, 0, 0);
++	if (err)
++		goto out1;
++
++	return 0;
++out1:
++	dev_err(data->bmc_device, "request_settime=%x\n", err);
++	return err;
++out:
++	dev_err(data->bmc_device, "validate_addr=%x\n", err);
++	return err;
++}
++
++/* Dispatch IPMI messages to callers */
++static void aem_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
++{
++	unsigned short rx_len;
++	struct aem_ipmi_data *data = user_msg_data;
++
++	if (msg->msgid != data->tx_msgid) {
++		dev_err(data->bmc_device, "Mismatch between received msgid "
++			"(%02x) and transmitted msgid (%02x)!\n",
++			(int)msg->msgid,
++			(int)data->tx_msgid);
++		ipmi_free_recv_msg(msg);
++		return;
++	}
++
++	data->rx_recv_type = msg->recv_type;
++	if (msg->msg.data_len > 0)
++		data->rx_result = msg->msg.data[0];
++	else
++		data->rx_result = IPMI_UNKNOWN_ERR_COMPLETION_CODE;
++
++	if (msg->msg.data_len > 1) {
++		rx_len = msg->msg.data_len - 1;
++		if (data->rx_msg_len < rx_len)
++			rx_len = data->rx_msg_len;
++		data->rx_msg_len = rx_len;
++		memcpy(data->rx_msg_data, msg->msg.data + 1, data->rx_msg_len);
++	} else
++		data->rx_msg_len = 0;
++
++	ipmi_free_recv_msg(msg);
++	complete(&data->read_complete);
++}
++
++/* ID functions */
++
++/* Obtain an id */
++static int aem_idr_get(int *id)
++{
++	int i, err;
++
++again:
++	if (unlikely(!idr_pre_get(&aem_idr, GFP_KERNEL)))
++		return -ENOMEM;
++
++	spin_lock(&aem_idr_lock);
++	err = idr_get_new(&aem_idr, NULL, &i);
++	spin_unlock(&aem_idr_lock);
++
++	if (unlikely(err = -EAGAIN))
++		goto again;
++	else if (unlikely(err))
++		return err;
++
++	*id = i & MAX_ID_MASK;
++	return 0;
++}
++
++/* Release an object ID */
++static void aem_idr_put(int id)
++{
++	spin_lock(&aem_idr_lock);
++	idr_remove(&aem_idr, id);
++	spin_unlock(&aem_idr_lock);
++}
++
++/* Sensor support functions */
++
++/* Read a sensor value */
++static int aem_read_sensor(struct aem_data *data, u8 elt, u8 reg,
++			   void *buf, size_t size)
++{
++	int rs_size, res;
++	struct aem_read_sensor_req rs_req;
++	struct aem_read_sensor_resp *rs_resp;
++	struct aem_ipmi_data *ipmi = &data->ipmi;
++
++	/* AEM registers are 1, 2, 4 or 8 bytes */
++	switch (size) {
++	case 1:
++	case 2:
++	case 4:
++	case 8:
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	rs_req.id = system_x_id;
++	rs_req.module_handle = data->module_handle;
++	rs_req.element = elt;
++	rs_req.subcommand = AEM_READ_REGISTER;
++	rs_req.reg = reg;
++	rs_req.rx_buf_size = size;
++
++	ipmi->tx_message.cmd = AEM_ELEMENT_CMD;
++	ipmi->tx_message.data = (char *)&rs_req;
++	ipmi->tx_message.data_len = sizeof(rs_req);
++
++	rs_size = sizeof(*rs_resp) + size;
++	rs_resp = kzalloc(rs_size, GFP_KERNEL);
++	if (!rs_resp)
++		return -ENOMEM;
++
++	ipmi->rx_msg_data = rs_resp;
++	ipmi->rx_msg_len = rs_size;
++
++	aem_send_message(ipmi);
++
++	res = wait_for_completion_timeout(&ipmi->read_complete, IPMI_TIMEOUT);
++	if (!res)
++		return -ETIMEDOUT;
++
++	if (ipmi->rx_result || ipmi->rx_msg_len != rs_size ||
++	    memcmp(&rs_resp->id, &system_x_id, sizeof(system_x_id))) {
++		kfree(rs_resp);
++		return -ENOENT;
++	}
++
++	switch (size) {
++	case 1: {
++		u8 *x = buf;
++		*x = rs_resp->bytes[0];
++		break;
++	}
++	case 2: {
++		u16 *x = buf;
++		*x = be16_to_cpup((u16 *)rs_resp->bytes);
++		break;
++	}
++	case 4: {
++		u32 *x = buf;
++		*x = be32_to_cpup((u32 *)rs_resp->bytes);
++		break;
++	}
++	case 8: {
++		u64 *x = buf;
++		*x = be64_to_cpup((u64 *)rs_resp->bytes);
++		break;
++	}
++	}
++
++	return 0;
++}
++
++/* Update AEM energy registers */
++static void update_aem_energy(struct aem_data *data)
++{
++	aem_read_sensor(data, AEM_ENERGY_ELEMENT, 0, &data->energy[0], 8);
++	if (data->ver_major < 2)
++		return;
++	aem_read_sensor(data, AEM_ENERGY_ELEMENT, 1, &data->energy[1], 8);
++}
++
++/* Update all AEM1 sensors */
++static void update_aem1_sensors(struct aem_data *data)
++{
++	mutex_lock(&data->lock);
++	if (time_before(jiffies, data->last_updated + REFRESH_INTERVAL) &&
++	    data->valid)
++		goto out;
++
++	update_aem_energy(data);
++out:
++	mutex_unlock(&data->lock);
++}
++
++/* Update all AEM2 sensors */
++static void update_aem2_sensors(struct aem_data *data)
++{
++	int i;
++
++	mutex_lock(&data->lock);
++	if (time_before(jiffies, data->last_updated + REFRESH_INTERVAL) &&
++	    data->valid)
++		goto out;
++
++	update_aem_energy(data);
++	aem_read_sensor(data, AEM_EXHAUST_ELEMENT, 0, &data->temp[0], 1);
++	aem_read_sensor(data, AEM_EXHAUST_ELEMENT, 1, &data->temp[1], 1);
++
++	for (i = POWER_CAP; i <= POWER_AUX; i++)
++		aem_read_sensor(data, AEM_POWER_CAP_ELEMENT, i,
++				&data->pcap[i], 2);
++out:
++	mutex_unlock(&data->lock);
++}
++
++/* Delete an AEM instance */
++static void aem_delete(struct aem_data *data)
++{
++	list_del(&data->list);
++	aem_remove_sensors(data);
++	hwmon_device_unregister(data->hwmon_dev);
++	ipmi_destroy_user(data->ipmi.user);
++	dev_set_drvdata(&data->pdev->dev, NULL);
++	platform_device_unregister(data->pdev);
++	aem_idr_put(data->id);
++	kfree(data);
++}
++
++/* Probe functions for AEM1 devices */
++
++/* Retrieve version and module handle for an AEM1 instance */
++static int aem_find_aem1_count(struct aem_ipmi_data *data)
++{
++	int res;
++	struct aem_find_firmware_req	ff_req;
++	struct aem_find_firmware_resp	ff_resp;
++
++	ff_req.id = system_x_id;
++	ff_req.index = 0;
++	ff_req.module_type_id = cpu_to_be16(AEM_MODULE_TYPE_ID);
++
++	data->tx_message.cmd = AEM_FIND_FW_CMD;
++	data->tx_message.data = (char *)&ff_req;
++	data->tx_message.data_len = sizeof(ff_req);
++
++	data->rx_msg_data = &ff_resp;
++	data->rx_msg_len = sizeof(ff_resp);
++
++	aem_send_message(data);
++
++	res = wait_for_completion_timeout(&data->read_complete, IPMI_TIMEOUT);
++	if (!res)
++		return -ETIMEDOUT;
++
++	if (data->rx_result || data->rx_msg_len != sizeof(ff_resp) ||
++	    memcmp(&ff_resp.id, &system_x_id, sizeof(system_x_id)))
++		return -ENOENT;
++
++	return ff_resp.num_instances;
++}
++
++/* Find and initialize one AEM1 instance */
++static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
++{
++	struct aem_data *data;
++	int i;
++	int res = -ENOMEM;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return res;
++	mutex_init(&data->lock);
++
++	/* Copy instance data */
++	data->ver_major = 1;
++	data->ver_minor = 0;
++	data->module_handle = module_handle;
++	for (i = 0; i < AEM1_NUM_ENERGY_REGS; i++)
++		data->power_period[i] = AEM_DEFAULT_POWER_INTERVAL;
++
++	/* Create sub-device for this fw instance */
++	if (aem_idr_get(&data->id))
++		goto id_err;
++
++	data->pdev = platform_device_alloc(DRVNAME, data->id);
++	if (!data->pdev)
++		goto dev_err;
++	data->pdev->dev.driver = &aem_driver;
++
++	res = platform_device_add(data->pdev);
++	if (res)
++		goto ipmi_err;
++
++	dev_set_drvdata(&data->pdev->dev, data);
++
++	/* Set up IPMI interface */
++	if (aem_init_ipmi_data(&data->ipmi, probe->interface,
++			       probe->bmc_device))
++		goto ipmi_err;
++
++	/* Register with hwmon */
++	data->hwmon_dev = hwmon_device_register(&data->pdev->dev);
++
++	if (IS_ERR(data->hwmon_dev)) {
++		dev_err(&data->pdev->dev, "Unable to register hwmon "
++			"device for IPMI interface %d\n",
++			probe->interface);
++		goto hwmon_reg_err;
++	}
++
++	data->update = update_aem1_sensors;
++
++	/* Find sensors */
++	if (aem1_find_sensors(data))
++		goto sensor_err;
++
++	/* Add to our list of AEM devices */
++	list_add_tail(&data->list, &driver_data.aem_devices);
++
++	dev_info(data->ipmi.bmc_device, "Found AEM v%d.%d at 0x%X\n",
++		 data->ver_major, data->ver_minor,
++		 data->module_handle);
++	return 0;
++
++sensor_err:
++	hwmon_device_unregister(data->hwmon_dev);
++hwmon_reg_err:
++	ipmi_destroy_user(data->ipmi.user);
++ipmi_err:
++	dev_set_drvdata(&data->pdev->dev, NULL);
++	platform_device_unregister(data->pdev);
++dev_err:
++	aem_idr_put(data->id);
++id_err:
++	kfree(data);
++
++	return res;
++}
++
++/* Find and initialize all AEM1 instances */
++static int aem_init_aem1(struct aem_ipmi_data *probe)
++{
++	int num, i, err;
++
++	num = aem_find_aem1_count(probe);
++	for (i = 0; i < num; i++) {
++		err = aem_init_aem1_inst(probe, i);
++		if (err) {
++			dev_err(probe->bmc_device,
++				"Error %d initializing AEM1 0x%X\n",
++				err, i);
++			return err;
++		}
++	}
++
++	return 0;
++}
++
++/* Probe functions for AEM2 devices */
++
++/* Retrieve version and module handle for an AEM2 instance */
++static int aem_find_aem2(struct aem_ipmi_data *data,
++			    struct aem_find_instance_resp *fi_resp,
++			    int instance_num)
++{
++	int res;
++	struct aem_find_instance_req fi_req;
++
++	fi_req.id = system_x_id;
++	fi_req.instance_number = instance_num;
++	fi_req.module_type_id = cpu_to_be16(AEM_MODULE_TYPE_ID);
++
++	data->tx_message.cmd = AEM_FW_INSTANCE_CMD;
++	data->tx_message.data = (char *)&fi_req;
++	data->tx_message.data_len = sizeof(fi_req);
++
++	data->rx_msg_data = fi_resp;
++	data->rx_msg_len = sizeof(*fi_resp);
++
++	aem_send_message(data);
++
++	res = wait_for_completion_timeout(&data->read_complete, IPMI_TIMEOUT);
++	if (!res)
++		return -ETIMEDOUT;
++
++	if (data->rx_result || data->rx_msg_len != sizeof(*fi_resp) ||
++	    memcmp(&fi_resp->id, &system_x_id, sizeof(system_x_id)))
++		return -ENOENT;
++
++	return 0;
++}
++
++/* Find and initialize one AEM2 instance */
++static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
++			      struct aem_find_instance_resp *fi_resp)
++{
++	struct aem_data *data;
++	int i;
++	int res = -ENOMEM;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return res;
++	mutex_init(&data->lock);
++
++	/* Copy instance data */
++	data->ver_major = fi_resp->major;
++	data->ver_minor = fi_resp->minor;
++	data->module_handle = fi_resp->module_handle;
++	for (i = 0; i < AEM2_NUM_ENERGY_REGS; i++)
++		data->power_period[i] = AEM_DEFAULT_POWER_INTERVAL;
++
++	/* Create sub-device for this fw instance */
++	if (aem_idr_get(&data->id))
++		goto id_err;
++
++	data->pdev = platform_device_alloc(DRVNAME, data->id);
++	if (!data->pdev)
++		goto dev_err;
++	data->pdev->dev.driver = &aem_driver;
++
++	res = platform_device_add(data->pdev);
++	if (res)
++		goto ipmi_err;
++
++	dev_set_drvdata(&data->pdev->dev, data);
++
++	/* Set up IPMI interface */
++	if (aem_init_ipmi_data(&data->ipmi, probe->interface,
++			       probe->bmc_device))
++		goto ipmi_err;
++
++	/* Register with hwmon */
++	data->hwmon_dev = hwmon_device_register(&data->pdev->dev);
++
++	if (IS_ERR(data->hwmon_dev)) {
++		dev_err(&data->pdev->dev, "Unable to register hwmon "
++			"device for IPMI interface %d\n",
++			probe->interface);
++		goto hwmon_reg_err;
++	}
++
++	data->update = update_aem2_sensors;
++
++	/* Find sensors */
++	if (aem2_find_sensors(data))
++		goto sensor_err;
++
++	/* Add to our list of AEM devices */
++	list_add_tail(&data->list, &driver_data.aem_devices);
++
++	dev_info(data->ipmi.bmc_device, "Found AEM v%d.%d at 0x%X\n",
++		 data->ver_major, data->ver_minor,
++		 data->module_handle);
++	return 0;
++
++sensor_err:
++	hwmon_device_unregister(data->hwmon_dev);
++hwmon_reg_err:
++	ipmi_destroy_user(data->ipmi.user);
++ipmi_err:
++	dev_set_drvdata(&data->pdev->dev, NULL);
++	platform_device_unregister(data->pdev);
++dev_err:
++	aem_idr_put(data->id);
++id_err:
++	kfree(data);
++
++	return res;
++}
++
++/* Find and initialize all AEM2 instances */
++static int aem_init_aem2(struct aem_ipmi_data *probe)
++{
++	struct aem_find_instance_resp fi_resp;
++	int err;
++	int i = 0;
++
++	while (!aem_find_aem2(probe, &fi_resp, i)) {
++		if (fi_resp.major != 2) {
++			dev_err(probe->bmc_device, "Unknown AEM v%d; please "
++				"report this to the maintainer.\n",
++				fi_resp.major);
++			i++;
++			continue;
++		}
++		err = aem_init_aem2_inst(probe, &fi_resp);
++		if (err) {
++			dev_err(probe->bmc_device,
++				"Error %d initializing AEM2 0x%X\n",
++				err, fi_resp.module_handle);
++			return err;
++		}
++		i++;
++	}
++
++	return 0;
++}
++
++/* Probe a BMC for AEM firmware instances */
++static void aem_register_bmc(int iface, struct device *dev)
++{
++	struct aem_ipmi_data probe;
++
++	if (aem_init_ipmi_data(&probe, iface, dev))
++		return;
++
++	/* Ignore probe errors; they won't cause problems */
++	aem_init_aem1(&probe);
++	aem_init_aem2(&probe);
++
++	ipmi_destroy_user(probe.user);
++}
++
++/* Handle BMC deletion */
++static void aem_bmc_gone(int iface)
++{
++	struct aem_data *p1, *next1;
++
++	list_for_each_entry_safe(p1, next1, &driver_data.aem_devices, list)
++		if (p1->ipmi.interface = iface)
++			aem_delete(p1);
++}
++
++/* sysfs support functions */
++
++/* AEM device name */
++static ssize_t show_name(struct device *dev, struct device_attribute *devattr,
++			 char *buf)
++{
++	struct aem_data *data = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%s%d\n", DRVNAME, data->ver_major);
++}
++static SENSOR_DEVICE_ATTR(name, S_IRUGO, show_name, NULL, 0);
++
++/* AEM device version */
++static ssize_t show_version(struct device *dev,
++			    struct device_attribute *devattr,
++			    char *buf)
++{
++	struct aem_data *data = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%d.%d\n", data->ver_major, data->ver_minor);
++}
++static SENSOR_DEVICE_ATTR(version, S_IRUGO, show_version, NULL, 0);
++
++/* Display power use */
++static ssize_t aem_show_power(struct device *dev,
++			      struct device_attribute *devattr,
++			      char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct aem_data *data = dev_get_drvdata(dev);
++	u64 before, after, time;
++	signed long leftover;
++	struct timespec b, a;
++
++	mutex_lock(&data->lock);
++	update_aem_energy(data);
++	getnstimeofday(&b);
++	before = data->energy[attr->index];
++
++	leftover = schedule_timeout_interruptible(
++			msecs_to_jiffies(data->power_period[attr->index])
++		   );
++	if (leftover) {
++		mutex_unlock(&data->lock);
++		return 0;
++	}
++
++	update_aem_energy(data);
++	getnstimeofday(&a);
++	after = data->energy[attr->index];
++	mutex_unlock(&data->lock);
++
++	time = timespec_to_ns(&a) - timespec_to_ns(&b);
++	time /= 1000;
++
++	return sprintf(buf, "%llu\n", (after - before) * 1000000000 / time);
++}
++
++/* Display energy use */
++static ssize_t aem_show_energy(struct device *dev,
++			       struct device_attribute *devattr,
++			       char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct aem_data *a = dev_get_drvdata(dev);
++	a->update(a);
++
++	return sprintf(buf, "%llu\n", a->energy[attr->index] * 1000);
++}
++
++/* Display power interval registers */
++static ssize_t aem_show_power_period(struct device *dev,
++				     struct device_attribute *devattr,
++				     char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct aem_data *a = dev_get_drvdata(dev);
++	a->update(a);
++
++	return sprintf(buf, "%lu\n", a->power_period[attr->index]);
++}
++
++/* Set power interval registers */
++static ssize_t aem_set_power_period(struct device *dev,
++				    struct device_attribute *devattr,
++				    const char *buf, size_t count)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct aem_data *a = dev_get_drvdata(dev);
++	unsigned long temp;
++	int res;
++
++	res = strict_strtoul(buf, 10, &temp);
++	if (res)
++		return res;
++
++	if (temp < AEM_MIN_POWER_INTERVAL)
++		return -EINVAL;
++
++	mutex_lock(&a->lock);
++	a->power_period[attr->index] = temp;
++	mutex_unlock(&a->lock);
++
++	return count;
++}
++
++/* Discover sensors on an AEM device */
++static int aem_register_sensors(struct aem_data *data,
++				struct aem_ro_sensor_template *ro,
++				struct aem_rw_sensor_template *rw)
++{
++	struct device *dev = &data->pdev->dev;
++	struct sensor_device_attribute *sensors = data->sensors;
++	int err;
++
++	/* Set up read-only sensors */
++	while (ro->label) {
++		sensors->dev_attr.attr.name = ro->label;
++		sensors->dev_attr.attr.mode = S_IRUGO;
++		sensors->dev_attr.show = ro->show;
++		sensors->index = ro->index;
++
++		err = device_create_file(dev, &sensors->dev_attr);
++		if (err) {
++			sensors->dev_attr.attr.name = NULL;
++			goto error;
++		}
++		sensors++;
++		ro++;
++	}
++
++	/* Set up read-write sensors */
++	while (rw->label) {
++		sensors->dev_attr.attr.name = rw->label;
++		sensors->dev_attr.attr.mode = S_IRUGO | S_IWUSR;
++		sensors->dev_attr.show = rw->show;
++		sensors->dev_attr.store = rw->set;
++		sensors->index = rw->index;
++
++		err = device_create_file(dev, &sensors->dev_attr);
++		if (err) {
++			sensors->dev_attr.attr.name = NULL;
++			goto error;
++		}
++		sensors++;
++		rw++;
++	}
++
++	err = device_create_file(dev, &sensor_dev_attr_name.dev_attr);
++	if (err)
++		goto error;
++	err = device_create_file(dev, &sensor_dev_attr_version.dev_attr);
++	return err;
++
++error:
++	aem_remove_sensors(data);
++	return err;
++}
++
++/* sysfs support functions for AEM2 sensors */
++
++/* Display temperature use */
++static ssize_t aem2_show_temp(struct device *dev,
++			      struct device_attribute *devattr,
++			      char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct aem_data *a = dev_get_drvdata(dev);
++	a->update(a);
++
++	return sprintf(buf, "%u\n", a->temp[attr->index] * 1000);
++}
++
++/* Display power-capping registers */
++static ssize_t aem2_show_pcap_value(struct device *dev,
++				    struct device_attribute *devattr,
++				    char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct aem_data *a = dev_get_drvdata(dev);
++	a->update(a);
++
++	return sprintf(buf, "%u\n", a->pcap[attr->index] * 100000);
++}
++
++/* Remove sensors attached to an AEM device */
++static void aem_remove_sensors(struct aem_data *data)
++{
++	int i;
++
++	for (i = 0; i < AEM_NUM_SENSORS; i++) {
++		if (!data->sensors[i].dev_attr.attr.name)
++			continue;
++		device_remove_file(&data->pdev->dev,
++				   &data->sensors[i].dev_attr);
++	}
++
++	device_remove_file(&data->pdev->dev,
++			   &sensor_dev_attr_name.dev_attr);
++	device_remove_file(&data->pdev->dev,
++			   &sensor_dev_attr_version.dev_attr);
++}
++
++/* Sensor probe functions */
++
++/* Description of AEM1 sensors */
++static struct aem_ro_sensor_template aem1_ro_sensors[] = {
++{"energy1_input",  aem_show_energy, 0},
++{"power1_average", aem_show_power,  0},
++{NULL,		   NULL,	    0},
++};
++
++static struct aem_rw_sensor_template aem1_rw_sensors[] = {
++{"power1_average_interval", aem_show_power_period, aem_set_power_period, 0},
++{NULL,			    NULL,                  NULL,                 0},
++};
++
++/* Description of AEM2 sensors */
++static struct aem_ro_sensor_template aem2_ro_sensors[] = {
++{"energy1_input",	  aem_show_energy,	0},
++{"energy2_input",	  aem_show_energy,	1},
++{"power1_average",	  aem_show_power,	0},
++{"power2_average",	  aem_show_power,	1},
++{"temp1_input",		  aem2_show_temp,	0},
++{"temp2_input",		  aem2_show_temp,	1},
++
++{"power4_average",	  aem2_show_pcap_value,	POWER_CAP_MAX_HOTPLUG},
++{"power5_average",	  aem2_show_pcap_value,	POWER_CAP_MAX},
++{"power6_average",	  aem2_show_pcap_value,	POWER_CAP_MIN_WARNING},
++{"power7_average",	  aem2_show_pcap_value,	POWER_CAP_MIN},
++
++{"power3_average", 	  aem2_show_pcap_value,	POWER_AUX},
++{"power_cap",		  aem2_show_pcap_value,	POWER_CAP},
++{NULL,                    NULL,                 0},
++};
++
++static struct aem_rw_sensor_template aem2_rw_sensors[] = {
++{"power1_average_interval", aem_show_power_period, aem_set_power_period, 0},
++{"power2_average_interval", aem_show_power_period, aem_set_power_period, 1},
++{NULL,			    NULL,                  NULL,                 0},
++};
++
++/* Set up AEM1 sensor attrs */
++static int aem1_find_sensors(struct aem_data *data)
++{
++	return aem_register_sensors(data, aem1_ro_sensors, aem1_rw_sensors);
++}
++
++/* Set up AEM2 sensor attrs */
++static int aem2_find_sensors(struct aem_data *data)
++{
++	return aem_register_sensors(data, aem2_ro_sensors, aem2_rw_sensors);
++}
++
++/* Module init/exit routines */
++
++static int __init aem_init(void)
++{
++	int res;
++
++	res = driver_register(&aem_driver);
++	if (res) {
++		printk(KERN_ERR "Can't register aem driver\n");
++		return res;
++	}
++
++	res = ipmi_smi_watcher_register(&driver_data.bmc_events);
++	if (res)
++		goto ipmi_reg_err;
++	return 0;
++
++ipmi_reg_err:
++	driver_unregister(&aem_driver);
++	return res;
++
++}
++
++static void __exit aem_exit(void)
++{
++	struct aem_data *p1, *next1;
++
++	ipmi_smi_watcher_unregister(&driver_data.bmc_events);
++	driver_unregister(&aem_driver);
++	list_for_each_entry_safe(p1, next1, &driver_data.aem_devices, list)
++		aem_delete(p1);
++}
++
++MODULE_AUTHOR("Darrick J. Wong <djwong@us.ibm.com>");
++MODULE_DESCRIPTION("IBM Active Energy Manager power/temp sensor driver");
++MODULE_LICENSE("GPL");
++
++module_init(aem_init);
++module_exit(aem_exit);
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0935745751670722366==--
