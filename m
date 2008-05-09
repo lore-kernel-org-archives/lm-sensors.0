@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 09 May 2008 21:02:15 +0000
+From: "=?ISO-8859-1?Q?Ludovic_Leb=E8gue?=" <ludovic@lebegue.org>
+Date: Fri, 09 May 2008 21:16:32 +0000
 Subject: Re: [lm-sensors] [PATCH] sensors-detect: Check for 1-register-only
-Message-Id: <20080509230215.5b33125d@hyperion.delvare>
+Message-Id: <689a35800805091416l3dbae15eq14c61e15453facb1@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080508224145.41cfa3ef@hyperion.delvare>
 In-Reply-To: <20080508224145.41cfa3ef@hyperion.delvare>
@@ -10,63 +10,156 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Hi all
 
-On Fri, 09 May 2008 07:06:23 +0200, Hans de Goede wrote:
-> Hans de Goede wrote:
-> > About the potential for doing an i2c read of 1 byte from a device which expects 
-> > a write reg address to read, then read 1 byte style transactions, causing 
-> > problems, I don't think this will cause issues, normally these kind of devices 
-> > are implemented using a read ptr, which tells the device where to start reading 
-> > in its internal memory map when an i2c read transaction is done. With the write 
-> > addr, then read cycle, the write sets that read ptr, so reading without the 
-> > write would give one the contents of a random register address and should not 
-> > be a problem otherwise.
+On Fri, May 9, 2008 at 12:00 PM,  <lm-sensors-request@lm-sensors.org> wrote:
 
-This is what I hope and expect, yes.
+I successfully tested this new sensor-detect, here is the result :
 
-> > Some devices may have additional checks build in though, and only accept a read 
-> > if there was a write before it within the same transaction (so in i2c terms:
-> > { start, write register address, repeated-start, read register contents, stop }
-> > 
-> > I've seen devices which wouldn't work if the repeated-start above was a { stop, 
-> > start } (dallas ds1621 temp sensor) Note: 1 this is not an smbus device, 2 I 
-> > don't remember how it failed.
 
-I happen to have a DS1621 at hand so I did the test. SMBus receive byte
-returns value 0x09 all the time, but it doesn't hang the device nor the
-bus. I have no idea what this value is supposed to mean, it doesn't
-correspond to any register value as far as I can see.
 
-I have also tested my modified sensors-detect script on it and it is
-still detected successfully. Good news.
 
-I agree that it is possible that some devices don't like being read
-from before being written to. I simply hope that they will just ignore
-the request and won't hang themselves nor the bus. The only way to know
-if I am right, is by testing on more systems.
 
-> > But given that some smbus devices may be like the ds1621 and demand an address 
-> > write before a read in one transaction (so seperated by a repeated start), it 
-> > could be that the initial read in this proposed patch fails in that case with 
-> > an error because the sensor at 0x2e refuses the read and thus does not ack when 
-> > it gets addressed for the read transfer.
-> 
-> And the point I was trying to make here but didn't is that I thus believe that 
-> the first 1 byte read in the new detection code should have error handling 
-> added, because it might fail (due to no ack) in which case we clearly do not 
-> have a 1 reg device.
+# sensors-detect revision 5243 (2008-05-09 19:59:51 +0200)
 
-It could still be a 1-register-only device, but write-only. But your
-point is valid anyway, my heuristic won't work for such chips, so I'd
-rather handle the error cleanly.
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
 
-I've just uploaded an updated script at:
-http://jdelvare.pck.nerim.net/sensors/sensors-detect
+We can start with probing for (PCI) I2C or SMBus adapters.
+Do you want to probe now? (YES/no):
+Probing for PCI bus adapters...
+Use driver `i2c-i801' for device 0000:00:1f.3: Intel ICH9
 
-Thank you,
--- 
-Jean Delvare
+We will now try to load each adapter module in turn.
+Load `i2c-i801' (say NO if built into your kernel)? (YES/no):
+Module loaded successfully.
+If you have undetectable or unsupported I2C/SMBus adapters, you can have
+them scanned by manually loading the modules before running this script.
+
+To continue, we need module `i2c-dev' to be loaded.
+Do you want to load `i2c-dev' now? (YES/no):
+Module loaded successfully.
+
+We are now going to do the I2C/SMBus adapter probings. Some chips may
+be double detected; we choose the one with the highest confidence
+value in that case.
+If you found that the adapter hung after probing a certain address,
+you can specify that address to remain unprobed.
+
+Next adapter: NVIDIA i2c adapter  (i2c-0)
+Do you want to scan it? (YES/no/selectively):
+Client found at address 0x50
+Probing for `Analog Devices ADM1033'...                     No
+Probing for `Analog Devices ADM1034'...                     No
+Probing for `SPD EEPROM'...                                 No
+Probing for `EDID EEPROM'...                                Yes
+    (confidence 8, not a hardware monitoring chip)
+
+Next adapter: NVIDIA i2c adapter  (i2c-1)
+Do you want to scan it? (YES/no/selectively):
+
+Next adapter: NVIDIA i2c adapter  (i2c-2)
+Do you want to scan it? (YES/no/selectively):
+
+Next adapter: SMBus I801 adapter at 0400 (i2c-3)
+Do you want to scan it? (YES/no/selectively):
+Client found at address 0x50
+Probing for `Analog Devices ADM1033'...                     No
+Probing for `Analog Devices ADM1034'...                     No
+Probing for `SPD EEPROM'...                                 Yes
+    (confidence 8, not a hardware monitoring chip)
+Probing for `EDID EEPROM'...                                No
+Client found at address 0x51
+Probing for `Analog Devices ADM1033'...                     No
+Probing for `Analog Devices ADM1034'...                     No
+Probing for `SPD EEPROM'...                                 Yes
+    (confidence 8, not a hardware monitoring chip)
+Probing for `EDID EEPROM'...                                No
+Client found at address 0x52
+Probing for `Analog Devices ADM1033'...                     No
+Probing for `Analog Devices ADM1034'...                     No
+Probing for `SPD EEPROM'...                                 Yes
+    (confidence 8, not a hardware monitoring chip)
+Probing for `EDID EEPROM'...                                No
+Client found at address 0x53
+Probing for `Analog Devices ADM1033'...                     No
+Probing for `Analog Devices ADM1034'...                     No
+Probing for `SPD EEPROM'...                                 Yes
+    (confidence 8, not a hardware monitoring chip)
+Probing for `EDID EEPROM'...                                No
+
+Some chips are also accessible through the ISA I/O ports. We have to
+write to arbitrary I/O ports to probe them. This is usually safe though.
+Yes, you do have ISA I/O ports even if you do not have any ISA slots!
+Do you want to scan the ISA I/O ports? (YES/no):
+Probing for `National Semiconductor LM78' at 0x290...       No
+Probing for `National Semiconductor LM78-J' at 0x290...     No
+Probing for `National Semiconductor LM79' at 0x290...       No
+Probing for `Winbond W83781D' at 0x290...                   No
+Probing for `Winbond W83782D' at 0x290...                   No
+Probing for `IPMI BMC KCS' at 0xca0...                      No
+Probing for `IPMI BMC SMIC' at 0xca8...                     No
+
+Some Super I/O chips may also contain sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no):
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Fintek'...                       Yes
+Found `Asus F8000 Super IO'                                 Success!
+    (address 0xa00, driver `f8000')
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Fintek'...                       No
+Trying family `ITE'...                                      No
+
+Some south bridges, CPUs or memory controllers may also contain
+embedded sensors. Do you want to scan for them? (YES/no):
+Silicon Integrated Systems SIS5595...                       No
+VIA VT82C686 Integrated Sensors...                          No
+VIA VT8231 Integrated Sensors...                            No
+AMD K8 thermal sensors...                                   No
+AMD K10 thermal sensors...                                  No
+Intel Core family thermal sensor...                         Success!
+    (driver `coretemp')
+Intel AMB FB-DIMM thermal sensor...                         No
+
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
+
+Driver `f8000' (should be inserted):
+  Detects correctly:
+  * ISA bus, address 0xa00
+    Chip `Asus F8000 Super IO' (confidence: 9)
+
+Driver `coretemp' (should be inserted):
+  Detects correctly:
+  * Chip `Intel Core family thermal sensor' (confidence: 9)
+
+Do you want to generate /etc/sysconfig/lm_sensors? (yes/NO):
+To load everything that is needed, add this to one of the system
+initialization scripts (e.g. /etc/rc.d/rc.local):
+
+#----cut here----
+# Chip drivers
+# Warning: the required module f8000 is not currently installed
+# on your system. For status of 2.6 kernel ports check
+# http://www.lm-sensors.org/wiki/Devices. If driver is built
+# into the kernel, or unavailable, comment out the following line.
+modprobe f8000
+modprobe coretemp
+/usr/bin/sensors -s
+#----cut here----
+
+If you have some drivers built into your kernel, the list above will
+contain too many modules. Skip the appropriate ones! You really
+should try these commands right now to make sure everything is
+working properly. Monitoring programs won't work until the needed
+modules are loaded.
 
 _______________________________________________
 lm-sensors mailing list
