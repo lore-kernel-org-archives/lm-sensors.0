@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 09 May 2008 17:05:41 +0000
+From: achim <achim@ag-web.biz>
+Date: Fri, 09 May 2008 17:31:44 +0000
 Subject: Re: [lm-sensors] [PATCH] sensors-detect: Check for 1-register-only
-Message-Id: <20080509190541.408024c2@hyperion.delvare>
+Message-Id: <1210354304.3498.15.camel@debian-9850.ag-home.muc>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080508224145.41cfa3ef@hyperion.delvare>
 In-Reply-To: <20080508224145.41cfa3ef@hyperion.delvare>
@@ -10,42 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 09 May 2008 18:56:30 +0200, achim wrote:
-> Am Freitag, den 09.05.2008, 17:24 +0200 schrieb Jean Delvare:
-> > Hi Achim,
+Am Freitag, den 09.05.2008, 19:05 +0200 schrieb Jean Delvare:
 > 
-> > I see this, and I think I understand why. The address exclusion logic
-> > assumes that the original list contains _all_ addresses. This is no
-> > longer the case. When I restricted sensors-detect to only probe
-> > addresses where are least one hardware monitoring chip is known, I
-> > forgot about this optimization which turned into a bug. Thanks for
-> > reporting. This patch should fix it:
-> > 
-> > Can you please test it?
-> > 
-> > Thanks,
+> > Afterward i tried it with only 0x4c excluded and the smbus chip still
+> > works. With no exclusions lm75 detection hangs at 0x4c and afterwards i
+> > only get XX's from dumps.
 > 
-> Yeah, the patch works. I tested sensors-detect with all known adresses
-> of the board excluded and it did not messup the smbus chip.
+> By "hangs" you mean it takes several seconds, or does it really stop?
+> Are you certain that it's the LM75 detection causing problem? We check
+> for no less than 33 different devices at address 0x4c...
+> 
+-------------------------------------------------
+Client found at address 0x4c
+Probing for `National Semiconductor LM75'...         
+-------------------------------------------------
+This is where it stops for a few seconds.
+i2cdump 0 0x4c w hangs in a way that i must cancle it with Ctrl-C and
+afterwards i need a reboot to get correct dumps.
 
-OK, good. I'll commit this patch later today then.
+> Anyway, most certainly the problem is with word transactions on this
+> device you have at 0x4c. That won't be easy to work around, but I'll
+> take a look anyway, maybe I'll have an idea. If I do, I'll ask you -
+> again - to help with testing. 
 
-> Afterward i tried it with only 0x4c excluded and the smbus chip still
-> works. With no exclusions lm75 detection hangs at 0x4c and afterwards i
-> only get XX's from dumps.
+As i noted in an other mail the interface can be accessed via the pci
+registers F3x1E80 (address) and F3x1EC0 (data).
+Bit 3 of pci register F3x1E40 indicates that this way of access is
+possible if unset (0b). But those addresses can not be accessed
+via /proc/bus/pci atm. 
 
-By "hangs" you mean it takes several seconds, or does it really stop?
-Are you certain that it's the LM75 detection causing problem? We check
-for no less than 33 different devices at address 0x4c...
+> Thanks *a lot* for all the help you are
+> providing in this respect.
+> 
+Glad I can help. I was curious for a long time how this i2c/smbus stuff
+works in detail, so that is a good situation to find out more about.
 
-Anyway, most certainly the problem is with word transactions on this
-device you have at 0x4c. That won't be easy to work around, but I'll
-take a look anyway, maybe I'll have an idea. If I do, I'll ask you -
-again - to help with testing. Thanks *a lot* for all the help you are
-providing in this respect.
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
