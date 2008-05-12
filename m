@@ -1,7 +1,7 @@
-From: Achim Gottinger <achim@ag-web.biz>
-Date: Mon, 12 May 2008 13:32:26 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 12 May 2008 14:19:03 +0000
 Subject: Re: [lm-sensors] [PATCH] i2c-piix4: Blacklist two mainboards
-Message-Id: <482846EA.3020809@ag-web.biz>
+Message-Id: <20080512161903.0ac214a9@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080504183048.177fc0b4@hyperion.delvare>
 In-Reply-To: <20080504183048.177fc0b4@hyperion.delvare>
@@ -10,108 +10,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare schrieb:
-> On Sun, 4 May 2008 18:30:48 +0200, Jean Delvare wrote:
->   
->> We had a report that running sensors-detect on a Sapphire AM2RD790
->> motherbord killed the CPU. While the exact cause is still unknown,
->> I'd rather play it safe and prevent any access to the SMBus on that
->> machine by not letting the i2c-piix4 driver attach to the SMBus host
->> device on that machine. Also blacklist a similar board made by DFI.
->>
->> Signed-off-by: Jean Delvare <khali@linux-fr.org>
->> ---
->> Previous version was broken, sorry.
->>
->>  drivers/i2c/busses/i2c-piix4.c |   32 ++++++++++++++++++++++++++++++--
->>  1 file changed, 30 insertions(+), 2 deletions(-)
->>
->> --- linux-2.6.25.orig/drivers/i2c/busses/i2c-piix4.c	2008-04-19 11:11:56.000000000 +0200
->> +++ linux-2.6.25/drivers/i2c/busses/i2c-piix4.c	2008-05-04 09:56:00.000000000 +0200
->> @@ -108,7 +108,27 @@ static unsigned short piix4_smba;
->>  static struct pci_driver piix4_driver;
->>  static struct i2c_adapter piix4_adapter;
->>  
->> -static struct dmi_system_id __devinitdata piix4_dmi_table[] = {
->> +static struct dmi_system_id __devinitdata piix4_dmi_blacklist[] = {
->> +	{
->> +		.ident = "Sapphire AM2RD790",
->> +		.matches = {
->> +			DMI_MATCH(DMI_BOARD_VENDOR, "SAPPHIRE Inc."),
->> +			DMI_MATCH(DMI_BOARD_NAME, "PC-AM2RD790"),
->> +		},
->> +	},
->> +	{
->> +		.ident = "DFI Lanparty UT 790FX",
->> +		.matches = {
->> +			DMI_MATCH(DMI_BOARD_VENDOR, "DFI Inc."),
->> +			DMI_MATCH(DMI_BOARD_NAME, "LP UT 790FX"),
->> +		},
->> +	},
->> +	{ }
->> +};
->> +
->> +/* The IBM entry is in a separate table because we only check it
->> +   on Intel-based systems */
->> +static struct dmi_system_id __devinitdata piix4_dmi_ibm[] = {
->>  	{
->>  		.ident = "IBM",
->>  		.matches = { DMI_MATCH(DMI_SYS_VENDOR, "IBM"), },
->> @@ -123,8 +143,16 @@ static int __devinit piix4_setup(struct 
->>  
->>  	dev_info(&PIIX4_dev->dev, "Found %s device\n", pci_name(PIIX4_dev));
->>  
->> +	/* On some motherboards, it was reported that accessing the SMBus
->> +	   caused severe hardware problems */
->> +	if (dmi_check_system(piix4_dmi_blacklist)) {
->> +		dev_err(&PIIX4_dev->dev,
->> +			"Accessing the SMBus on this system is unsafe!\n");
->> +		return -EPERM;
->> +	}
->> +
->>  	/* Don't access SMBus on IBM systems which get corrupted eeproms */
->> -	if (dmi_check_system(piix4_dmi_table) &&
->> +	if (dmi_check_system(piix4_dmi_ibm) &&
->>  			PIIX4_dev->vendor = PCI_VENDOR_ID_INTEL) {
->>  		dev_err(&PIIX4_dev->dev, "IBM system detected; this module "
->>  			"may corrupt your serial eeprom! Refusing to load "
->>
->>     
+On Mon, 12 May 2008 15:32:26 +0200, Achim Gottinger wrote:
+> Jean Delvare schrieb:
+> > Achim, did you have a chance to give a try to this patch? I understand
+> > that you don't want to apply it permanently while you're still having
+> > fun with the I2C devices on the SMBus, but if you could still test it
+> > and report whether it works as intended, that would be great. This
+> > patch is in kernel 2.6.26-rc2 now, I would like to backport it to
+> > 2.6.25.y, but before I do I'd like to have at least one positive test
+> > result.
 >
-> Achim, did you have a chance to give a try to this patch? I understand
-> that you don't want to apply it permanently while you're still having
-> fun with the I2C devices on the SMBus, but if you could still test it
-> and report whether it works as intended, that would be great. This
-> patch is in kernel 2.6.26-rc2 now, I would like to backport it to
-> 2.6.25.y, but before I do I'd like to have at least one positive test
-> result.
->
-> Thanks,
->   
-Test positive:
+> Test positive:
+> 
+> piix4_smbus 0000:00:14.0: Found 0000:00:14.0 device
+> piix4_smbus 0000:00:14.0: Accessing the SMBus on this system is unsafe!
+> piix4_smbus: probe of 0000:00:14.0 failed with error -1
 
-piix4_smbus 0000:00:14.0: Found 0000:00:14.0 device
-piix4_smbus 0000:00:14.0: Accessing the SMBus on this system is unsafe!
-piix4_smbus: probe of 0000:00:14.0 failed with error -1
+OK, thank you. I'll push the patch to 2.6.25.y now.
 
-But the i2c-piix4 module never made a problem it was only sensors-detect.
+The error message might frighten people though, maybe we'll have to
+change the error code so that no message shows in the future.
 
-About that overclocking module i'm working on. I moved all my kernel 
-stuff into a new dir called hwmod and made a modified hwmod.c from 
-hwmon.c.  Made all the required modifications
-on Kconfig and Makefile and stuff works fine. Devices use their own 
-class /sysfs/class/hwmod.
-I also added a new adapter class I2C_CLASS_HWMOD = (1<<7). To use the 
-i2c-piix4 module i had to add that class id to the i2c_adapter struct in 
-there.
-I see no requirement to write separate modules for the smbus 
-controllers. I guess there is way to use I2C_CLASS_HWMON adapters for 
-devices ending up in /sysfs/class/hwmod, till  i figured out how i'll 
-simply patch i2c-piix4.
+> But the i2c-piix4 module never made a problem it was only sensors-detect.
 
+This is how you hit the problem, but there are many other ways people
+could hit it, such as using i2cdump, i2cget or i2cset, or even just
+loading a hardware monitoring driver which happens to probe I2C address
+0x2e. While we fixed sensors-detect by now, not everyone will upgrade
+to the new version of the script immediately, and all the other ways to
+screw it up are still available. So, the only safe thing to do at the
+moment is to disable the SMBus on your motherboard completely.
 
+In the future, we could refine this and allow access again with
+restrictions, such as no probing allowed from kernel drivers, and no
+access from user-space (there's some more work needed before we can do
+that.) Or we could limit the blacklisting to specific addresses (that's
+easier to implement).
 
+> About that overclocking module i'm working on. I moved all my kernel 
+> stuff into a new dir called hwmod and made a modified hwmod.c from 
+> hwmon.c.  Made all the required modifications
+> on Kconfig and Makefile and stuff works fine. Devices use their own 
+> class /sysfs/class/hwmod.
+> I also added a new adapter class I2C_CLASS_HWMOD = (1<<7). To use the 
+> i2c-piix4 module i had to add that class id to the i2c_adapter struct in 
+> there.
 
+I am worried that "hwmod" is too similar to "hwmon" and this will lead
+to confusion. What about "overclock" or a similarly explicit term?
+
+> I see no requirement to write separate modules for the smbus 
+> controllers. I guess there is way to use I2C_CLASS_HWMON adapters for 
+> devices ending up in /sysfs/class/hwmod, till  i figured out how i'll 
+> simply patch i2c-piix4.
+
+There is indeed no reason for separate modules for the SMBus
+controllers, I'm not even sure how you came to think we could do that.
+Adding a new class flag to i2c-piix4 was the right thing to do.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
