@@ -1,57 +1,70 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Fri, 09 May 2008 04:55:27 +0000
-Subject: [lm-sensors] [PATCH] ibmaem: Fix 64-bit division on 32-bit platforms
-Message-Id: <20080509045527.GI16404@tree.beaverton.ibm.com>
+From: Adrian Bunk <bunk@kernel.org>
+Date: Wed, 14 May 2008 22:27:04 +0000
+Subject: Re: [lm-sensors] [PATCH] ibmaem: Fix 64-bit division on 32-bit
+Message-Id: <20080514222704.GA11439@cs181133002.pp.htv.fi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080508180858.GM16078@tree.beaverton.ibm.com> <20080508163443.a1e9ffe7.akpm@linux-foundation.org>
-In-Reply-To: <20080508163443.a1e9ffe7.akpm@linux-foundation.org>
+References: <20080508180858.GM16078@tree.beaverton.ibm.com> <20080508163443.a1e9ffe7.akpm@linux-foundation.org> <20080509045527.GI16404@tree.beaverton.ibm.com>
+In-Reply-To: <20080509045527.GI16404@tree.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Thu, May 08, 2008 at 04:34:43PM -0700, Andrew Morton wrote:
+On Thu, May 08, 2008 at 09:55:27PM -0700, Darrick J. Wong wrote:
+> On Thu, May 08, 2008 at 04:34:43PM -0700, Andrew Morton wrote:
+> 
+> > This driver is littered with 64-bit divides and doesn't link on i386.
+> > I'll make it depend on CONFIG_64BIT for now.
+> 
+> Oops, sorry, I didn't remember that one can't do 64-bit division on
+> i386.  The patch below fixes that.
+> ---
+> ibmaem: Fix 64-bit division on 32-bit platforms
+> 
+> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+> ---
+> 
+>  drivers/hwmon/ibmaem.c |    6 ++++--
+>  1 files changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/hwmon/ibmaem.c b/drivers/hwmon/ibmaem.c
+> index 22fa7d6..f808ca3 100644
+> --- a/drivers/hwmon/ibmaem.c
+> +++ b/drivers/hwmon/ibmaem.c
+>...
+> @@ -864,9 +865,10 @@ static ssize_t aem_show_power(struct device *dev,
+>...
+>  	time = timespec_to_ns(&a) - timespec_to_ns(&b);
+> -	time /= 1000;
+> +	time = div_u64(time, 1000);
+>  
+> -	return sprintf(buf, "%llu\n", (after - before) * 1000000000 / time);
+> +	return sprintf(buf, "%llu\n",
+> +		       div64_u64((after - before) * 1000000000, time));
+>  }
+>...
 
-> This driver is littered with 64-bit divides and doesn't link on i386.
-> I'll make it depend on CONFIG_64BIT for now.
+What are you actually trying to do here?
 
-Oops, sorry, I didn't remember that one can't do 64-bit division on
-i386.  The patch below fixes that.
----
-ibmaem: Fix 64-bit division on 32-bit platforms
+Converting mJ/ns to uJ/s?
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
----
+Or do you want to convert mJ/ns to Watt in which case you should
+multiply "time" with 1000 instead of dividing it through 1000?
 
- drivers/hwmon/ibmaem.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+In any case you should only need one expensive 64bit division
+and you can fold the operation with 1000 into the second division.
 
-diff --git a/drivers/hwmon/ibmaem.c b/drivers/hwmon/ibmaem.c
-index 22fa7d6..f808ca3 100644
---- a/drivers/hwmon/ibmaem.c
-+++ b/drivers/hwmon/ibmaem.c
-@@ -31,6 +31,7 @@
- #include <linux/idr.h>
- #include <linux/sched.h>
- #include <linux/platform_device.h>
-+#include <linux/math64.h>
- 
- #define REFRESH_INTERVAL	(HZ)
- #define IPMI_TIMEOUT		(30 * HZ)
-@@ -864,9 +865,10 @@ static ssize_t aem_show_power(struct device *dev,
- 	mutex_unlock(&data->lock);
- 
- 	time = timespec_to_ns(&a) - timespec_to_ns(&b);
--	time /= 1000;
-+	time = div_u64(time, 1000);
- 
--	return sprintf(buf, "%llu\n", (after - before) * 1000000000 / time);
-+	return sprintf(buf, "%llu\n",
-+		       div64_u64((after - before) * 1000000000, time));
- }
- 
- /* Display energy use */
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
 
 _______________________________________________
 lm-sensors mailing list
