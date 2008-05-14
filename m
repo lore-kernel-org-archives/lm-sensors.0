@@ -1,91 +1,62 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 26 May 2008 10:06:10 +0000
-Subject: Re: [lm-sensors] Future plans for sensors-detect
-Message-Id: <20080526120610.1062c97e@hyperion.delvare>
+From: "Charles Spirakis" <bezaur@gmail.com>
+Date: Wed, 14 May 2008 19:36:23 +0000
+Subject: [lm-sensors] [PATCH] Transition w83791d maintenance to Marc Hulsman
+Message-Id: <5bfe43f80805141236h4d32e3d1g914300019e9e8f63@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_661_31394337.1210793783759"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080521114013.074cde02@hyperion.delvare>
-In-Reply-To: <20080521114013.074cde02@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+------=_Part_661_31394337.1210793783759
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Sun, 25 May 2008 23:20:40 +0200, Hans de Goede wrote:
-> Jean Delvare wrote:
-> > Note: when sensors-detect goes non-interactive, you are more likely to
-> > notice how slow SMBus probing is. For now, most time is wasted waiting
-> > for the user to answer questions, so you don't really notice, unless
-> > you're using HZ0.
-> 
-> Are you really planning on doing non interactive i2c probing from the 
-> initscript? To me that feels wrong:
+All --
 
-Not from init script, that would be too costly to do the detection
-again at each boot. I was thinking of adding it as part of the
-distribution installation (actually post-install of the sensors
-package.) This won't cover the case where the user changes motherboards
-without reinstalling his/her system. Maybe we can have a detection of
-this case at boot (based on DMI data for example) and we restart the
-detection conditionally then.
+I no longer have access to w83791d hardware. Fortunately, Marc Hulsman
+has graciously offered to take over driver maintenance for the
+w83791d. Enclosed is a patch to change the maintainer information.
 
-> 1) Only 101% safe probing should be done non interactive
+Thanks Marc!
 
-Same is true of an interactive script. If the default answers aren't
-101% safe, we're doing something wrong. That was the case of
-sensors-detect up to version 3.0.1, and honestly it might still be the
-case in 3.0.2. That's the reason why I proposed to revert the order of
-the probes, and to skip probing the SMBus if we have already found a
-Super-I/O with sensors or an ISA hardware monitoring chip. Other
-possibilities to explore would be to change the probe order of the I2C
-addresses (probing 0x2c-0x2f first, 0x48-0x4f second, and only then try
-the other addresses, would make a lot of sense IMHO) or doing some
-probes conditional (for example, no point in searching for FSC chips on
-non-FSC machines).
+-- charles
 
-Don't get me wrong, I'm not going to make sensors-detect
-non-interactive and add it to some init script unconditionally
-tomorrow. This is part of a much longer process, first making
-sensors-detect safer than it is (lot of work here), adding DMI-based
-detection to skip probing entirely on known machines (again, lot of
-work here), and only then implementing a non-interactive mode. The
-non-interactive mode might not do all the possible probings, i.e. we
-exclude any probe that we think is dangerous. This might as well mean
-not doing any SMBus detection at all, although I hope that we can do
-some.
+---
+Transition the maintenance of the w83791d driver to Marc Hulsman.
 
-> 2) Even if we can safely determine which hwmon drivers should be loaded,
->     we still should not load them without also having a valid
->     matching motherboard sensors.conf
-> 
-> The reason for 2 is that its better to show no readings to an uneducated users 
-> then to show wrong readings which make him/her think his/her machine is about 
-> to blow up.
+Signed-off-by: Charles Spirakis <bezaur@gmail.com>
 
-Again this is unrelated to making sensors-detect non-interactive. We
-already ship a default sensors.conf file which includes arbitrary
-labels for many chips, which may or may not match the user's
-motherboard. This is IMHO plain wrong, I agree with you that
-unconfigured sensors are better than misconfigured sensors. I believe
-that we should strip down sensors.conf.eg to only include labels which
-we know are always correct (e.g. internal voltage labels.) This would
-also make libsensors initialization much faster - for now we waste
-users' time reading long configuration sections for chips they don't
-even have.
+---
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> > After removing the word register cache (recent changes to the script
-> > make it hardly worth caching word reads) and the instrumentation code,
-> > the patch only adds 8 lines of code. The diffstat reads:
-> 
-> I guess its worth it then :)
+------=_Part_661_31394337.1210793783759
+Content-Type: text/x-patch; name=w83791d_maintainer.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fg8anavz0
+Content-Disposition: attachment; filename=w83791d_maintainer.patch
 
-I'll commit it later today.
-
--- 
-Jean Delvare
+VHJhbnNpdGlvbiB0aGUgbWFpbnRlbmFuY2Ugb2YgdGhlIHc4Mzc5MWQgZHJpdmVyIHRvIE1hcmMg
+SHVsc21hbi4KClNpZ25lZC1vZmYtYnk6IENoYXJsZXMgU3BpcmFraXMgPGJlemF1ckBnbWFpbC5j
+b20+CgotLS0KIE1BSU5UQUlORVJTIHwgICAgNCArKy0tCiAxIGZpbGUgY2hhbmdlZCwgMiBpbnNl
+cnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtdXJwTiBsaW51eC0yLjYuMjYtcmMxLWdp
+dDMvTUFJTlRBSU5FUlMgbGludXgtMi42LjI2LXJjMS1naXQzX3c4Mzc5MWQvTUFJTlRBSU5FUlMK
+LS0tIGxpbnV4LTIuNi4yNi1yYzEtZ2l0My9NQUlOVEFJTkVSUwkyMDA4LTA1LTAzIDExOjU5OjQ0
+LjAwMDAwMDAwMCAtMDcwMAorKysgbGludXgtMi42LjI2LXJjMS1naXQzX3c4Mzc5MWQvTUFJTlRB
+SU5FUlMJMjAwOC0wNS0xMyAyMzowOTowMS4wMDAwMDAwMDAgLTA3MDAKQEAgLTQzODcsOCArNDM4
+Nyw4IEBAIE06CWpvaG5wb2xAMmthLm1pcHQucnUKIFM6CU1haW50YWluZWQKIAogVzgzNzkxRCBI
+QVJEV0FSRSBNT05JVE9SSU5HIERSSVZFUgotUDoJQ2hhcmxlcyBTcGlyYWtpcwotTToJYmV6YXVy
+QGdtYWlsLmNvbQorUDoJTWFyYyBIdWxzbWFuCitNOgltLmh1bHNtYW5AdHVkZWxmdC5ubAogTDoJ
+bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwogUzoJT2RkIEZpeGVzCiAK
+------=_Part_661_31394337.1210793783759
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_661_31394337.1210793783759--
