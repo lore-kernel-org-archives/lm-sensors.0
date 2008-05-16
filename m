@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 16 May 2008 19:14:16 +0000
+From: Marc Hulsman <m.hulsman@tudelft.nl>
+Date: Fri, 16 May 2008 20:53:34 +0000
 Subject: Re: [lm-sensors] [PATCH] Transition w83791d maintenance to Marc
-Message-Id: <20080516211416.1557f514@hyperion.delvare>
+Message-Id: <200805162253.34211.m.hulsman@tudelft.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5bfe43f80805141236h4d32e3d1g914300019e9e8f63@mail.gmail.com>
 In-Reply-To: <5bfe43f80805141236h4d32e3d1g914300019e9e8f63@mail.gmail.com>
@@ -10,49 +10,73 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Charles, hi Marc,
+Hi Jean,
 
-On Wed, 14 May 2008 12:36:23 -0700, Charles Spirakis wrote:
-> I no longer have access to w83791d hardware. Fortunately, Marc Hulsman
-> has graciously offered to take over driver maintenance for the
-> w83791d. Enclosed is a patch to change the maintainer information.
-> 
-> Thanks Marc!
+On Friday 16 May 2008 21:14:16 Jean Delvare wrote:
 
-Great, thanks Marc for taking over, and thanks Charles for maintaining
-the w83791d driver so far :)
+[snip]
+> > diff -urpN linux-2.6.26-rc1-git3/MAINTAINERS
+> > linux-2.6.26-rc1-git3_w83791d/MAINTAINERS ---
+> > linux-2.6.26-rc1-git3/MAINTAINERS	2008-05-03 11:59:44.000000000 -0700 +++
+> > linux-2.6.26-rc1-git3_w83791d/MAINTAINERS	2008-05-13 23:09:01.000000000
+> > -0700 @@ -4387,8 +4387,8 @@ M:	johnpol@2ka.mipt.ru
+> >  S:	Maintained
+> >
+> >  W83791D HARDWARE MONITORING DRIVER
+> > -P:	Charles Spirakis
+> > -M:	bezaur@gmail.com
+> > +P:	Marc Hulsman
+> > +M:	m.hulsman@tudelft.nl
+> >  L:	lm-sensors@lm-sensors.org
+> >  S:	Odd Fixes
+>
+> Will Marc only take care of the "odd fixes" or will he be fully
+> maintaining the driver? In the latter case this line should be updated
+> accordingly.
 
-Just one question:
+I'm planning to do full maintenance.  Somewhere in the next few weeks I will 
+add support for PWM regulation (duty cycle registers already work fine on my 
+machine, I will implement the rest when I have a bit more time)
 
-> Transition the maintenance of the w83791d driver to Marc Hulsman.
-> 
-> Signed-off-by: Charles Spirakis <bezaur@gmail.com>
-> 
-> ---
->  MAINTAINERS |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff -urpN linux-2.6.26-rc1-git3/MAINTAINERS linux-2.6.26-rc1-git3_w83791d/MAINTAINERS
-> --- linux-2.6.26-rc1-git3/MAINTAINERS	2008-05-03 11:59:44.000000000 -0700
-> +++ linux-2.6.26-rc1-git3_w83791d/MAINTAINERS	2008-05-13 23:09:01.000000000 -0700
-> @@ -4387,8 +4387,8 @@ M:	johnpol@2ka.mipt.ru
->  S:	Maintained
->  
->  W83791D HARDWARE MONITORING DRIVER
-> -P:	Charles Spirakis
-> -M:	bezaur@gmail.com
-> +P:	Marc Hulsman
-> +M:	m.hulsman@tudelft.nl
->  L:	lm-sensors@lm-sensors.org
->  S:	Odd Fixes
+Marc
 
-Will Marc only take care of the "odd fixes" or will he be fully
-maintaining the driver? In the latter case this line should be updated
-accordingly.
 
-Thanks,
--- 
-Jean Delvare
+Slightly modified maintainers patch (I assume Charles will still be ok with 
+it):
+
+Transition the maintenance of the w83791d driver to Marc Hulsman.
+
+Signed-off-by: Charles Spirakis <bezaur@gmail.com>
+
+---
+ MAINTAINERS |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff -urpN linux-2.6.26-rc1-git6/MAINTAINERS 
+linux-2.6.26-rc1-git6-modified/MAINTAINERS
+--- linux-2.6.26-rc1-git6/MAINTAINERS	2008-05-08 18:49:34.000000000 +0200
++++ linux-2.6.26-rc1-git6-modified2/MAINTAINERS	2008-05-16 21:26:10.000000000 
++0200
+@@ -4385,10 +4385,10 @@ M:	johnpol@2ka.mipt.ru
+ S:	Maintained
+ 
+ W83791D HARDWARE MONITORING DRIVER
+-P:	Charles Spirakis
+-M:	bezaur@gmail.com
++P:	Marc Hulsman
++M:	m.hulsman@tudelft.nl
+ L:	lm-sensors@lm-sensors.org
+-S:	Odd Fixes
++S:	Maintained
+ 
+ W83793 HARDWARE MONITORING DRIVER
+ P:	Rudolf Marek
+
+
+>
+> Thanks,
+
+
 
 _______________________________________________
 lm-sensors mailing list
