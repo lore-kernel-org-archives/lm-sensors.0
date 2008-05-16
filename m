@@ -1,7 +1,7 @@
-From: Alistair John Strachan <alistair@devzero.co.uk>
-Date: Fri, 16 May 2008 22:18:18 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Fri, 16 May 2008 22:20:36 +0000
 Subject: Re: [lm-sensors] abituguru probe failure
-Message-Id: <200805162318.18097.alistair@devzero.co.uk>
+Message-Id: <482E08B4.2090706@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200805162307.28224.alistair@devzero.co.uk>
 In-Reply-To: <200805162307.28224.alistair@devzero.co.uk>
@@ -10,25 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Friday 16 May 2008 23:07:28 Alistair John Strachan wrote:
+Alistair John Strachan wrote:
 > Hi,
->
+> 
 > I have an IP35 Pro mainboard with the uGuru feature. Until recently I was
 > using the abituguru hwmon driver without issue. Recently (possibly since
 > upgrading the BIOS to 16) the driver no longer loads, citing:
->
+> 
 > abituguru3: no Abit uGuru3 found, data = 0x00, cmd = 0x55
+> 
+> After looking at the code in the driver, I found the force module parameter
+> and tried it. Sure enough, the module loaded fine:
+> 
 
-^^^^
-Obviously the report should have been wrt the abituguru_3_ driver.
+<snip>
 
-Sorry about that, I didn't even notice the other driver.
+> A fix that works here is to add 0x55 as an additional cmd_val check in
+> abituguru3_detect(), but I think we all know this function is starting to
+> look a bit suspicious. I've attached a patch which does this (tested as
+> working), but I won't be surprised if you guys don't want to apply it.
+> 
 
--- 
-Cheers,
-Alistair.
+Well I'm afraid that even though that makes the detection rather weak it is 
+still the best thing todo, having to use force with a newer BIOS is no good.
 
-137/1 Warrender Park Road, Edinburgh, UK.
+I guess that to limit any potential issues we can best first do a DMI based 
+check to see if this is an Abit motherboard at all before doing any IO based 
+probing, just like we are already doing for the abituguru (note no 3) driver.
+
+Alistair, can you send me the output of the dmidecode command on your 
+motherboard, I need that to make sure Abit hasn't changed their DMi 
+manufacturer string on newer motherboards.
+
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
