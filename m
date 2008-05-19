@@ -1,51 +1,45 @@
 From: Grant Coady <grant_lkml@dodo.com.au>
-Date: Mon, 19 May 2008 06:31:07 +0000
+Date: Mon, 19 May 2008 14:35:10 +0000
 Subject: [lm-sensors] [PATCH] hwmon/adm9240 - remove EXPERIMENTAL dependency
-Message-Id: <ve7234pijlo02s2eeisrbv774hdqo43mvg@4ax.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="--=_bl7234h970mel79a8qsqhaqn1q7rh348i7.MFSBCHJLHS"
+Message-Id: <vr333490j64v62540s211edj8et93fful0@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
-
-----=_bl7234h970mel79a8qsqhaqn1q7rh348i7.MFSBCHJLHS
-Content-Type: text/plain; charset=us-ascii
+References: <ve7234pijlo02s2eeisrbv774hdqo43mvg@4ax.com>
+In-Reply-To: <ve7234pijlo02s2eeisrbv774hdqo43mvg@4ax.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
 Hi Mark,
 
 I think it's time ;)  (Hopefully I've remembered how to send a patch properly)
 
+Oops, try again with inline text attachment:
 
+From: Grant Coady <gcoady.lk@gmail.com>
 
-----=_bl7234h970mel79a8qsqhaqn1q7rh348i7.MFSBCHJLHS
-Content-Type: application/octet-stream;
-	name=patch-hwmon-adm9240-remove-experimental.diff
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename=patch-hwmon-adm9240-remove-experimental.diff
+The adm9240 driver is in the kernel for three years now, time to remove 
+the EXPERIMENTAL dependency.
 
-RnJvbTogR3JhbnQgQ29hZHkgPGdjb2FkeS5sa0BnbWFpbC5jb20+CgpUaGUgYWRtOTI0MCBkcml2
-ZXIgaXMgaW4gdGhlIGtlcm5lbCBmb3IgdGhyZWUgeWVhcnMgbm93LCB0aW1lIHRvIHJlbW92ZSAK
-dGhlIEVYUEVSSU1FTlRBTCBkZXBlbmRlbmN5LgoKU2lnbmVkLW9mZi1ieTogR3JhbnQgQ29hZHkg
-PGdjb2FkeS5sa0BnbWFpbC5jb20+CgotLS0KIEtjb25maWcgfCAgICAyICstCiAxIGZpbGVzIGNo
-YW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pCgotLS0gbGludXgtMi42LjI2LXJj
-M2EvZHJpdmVycy9od21vbi9LY29uZmlnCTIwMDgtMDQtMTggMTQ6Mjc6MzkuMDAwMDAwMDAwICsx
-MDAwCisrKyBsaW51eC0yLjYuMjYtcmMzYi9kcml2ZXJzL2h3bW9uL0tjb25maWcJMjAwOC0wNS0x
-OSAxNjoxMjowMS4wMDAwMDAwMDAgKzEwMDAKQEAgLTEyNCw3ICsxMjQsNyBAQAogCiBjb25maWcg
-U0VOU09SU19BRE05MjQwCiAJdHJpc3RhdGUgIkFuYWxvZyBEZXZpY2VzIEFETTkyNDAgYW5kIGNv
-bXBhdGlibGVzIgotCWRlcGVuZHMgb24gSTJDICYmIEVYUEVSSU1FTlRBTAorCWRlcGVuZHMgb24g
-STJDCiAJc2VsZWN0IEhXTU9OX1ZJRAogCWhlbHAKIAkgIElmIHlvdSBzYXkgeWVzIGhlcmUgeW91
-IGdldCBzdXBwb3J0IGZvciBBbmFsb2cgRGV2aWNlcyBBRE05MjQwLAo=
+Signed-off-by: Grant Coady <gcoady.lk@gmail.com>
 
-----=_bl7234h970mel79a8qsqhaqn1q7rh348i7.MFSBCHJLHS
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+---
+ Kconfig |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-2.6.26-rc3a/drivers/hwmon/Kconfig	2008-04-18 14:27:39.000000000 +1000
++++ linux-2.6.26-rc3b/drivers/hwmon/Kconfig	2008-05-19 16:12:01.000000000 +1000
+@@ -124,7 +124,7 @@
+ 
+ config SENSORS_ADM9240
+ 	tristate "Analog Devices ADM9240 and compatibles"
+-	depends on I2C && EXPERIMENTAL
++	depends on I2C
+ 	select HWMON_VID
+ 	help
+ 	  If you say yes here you get support for Analog Devices ADM9240,
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-----=_bl7234h970mel79a8qsqhaqn1q7rh348i7.MFSBCHJLHS--
