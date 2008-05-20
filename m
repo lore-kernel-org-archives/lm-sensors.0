@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 20 May 2008 11:28:17 +0000
+From: mark gross <mgross@linux.intel.com>
+Date: Tue, 20 May 2008 17:50:41 +0000
 Subject: Re: [lm-sensors] Accelerometer,
-Message-Id: <20080520132817.03fb74ea@hyperion.delvare>
+Message-Id: <20080520175041.GA30909@linux.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4832A211.4040206@gmail.com>
 In-Reply-To: <4832A211.4040206@gmail.com>
@@ -9,82 +9,113 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jonathan Cameron <Jonathan.Cameron@gmail.com>
-Cc: linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, LM Sensors <lm-sensors@lm-sensors.org>, Dmitry Torokhov <dtor@mail.ru>
+Cc: linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>, spi-devel-general@lists.sourceforge.net
 
-Hi Jonathan,
-
-On Tue, 20 May 2008 11:04:01 +0100, Jonathan Cameron wrote:
-> This email is basically a request for opinions on how and where such sensors
+On Tue, May 20, 2008 at 11:04:01AM +0100, Jonathan Cameron wrote:
+> This email is basically a request for opinions on how and where such 
+> sensors
 > should be integrated into the kernel.
-> 
+>
 > To set the scene...
-> 
+>
 > Increasing numbers of embedded devices are being supplied attached MEMS
 > devices (www.xbow.com imote2 etc). Along with more traditional sensors such
-> as ADC's not being used for hardware monitoring, these do not really 
-> seem to
-> fit with in an particular subsystem of the kernel.  A previous 
-> discussion on
+> as ADC's not being used for hardware monitoring, these do not really seem 
+> to
+> fit with in an particular subsystem of the kernel.  A previous discussion 
+> on
 > lkml in 2006 considered the accelerometers to be found within some laptop
 > hard drives, but I haven't been able to track down any more general 
 > discussions
 > of such non hardware monitoring sensors.
-> 
+>
 > The obvious possibilities are:
-> 
+>
 > * To place the various drivers within the spi / i2c etc subsystems as 
 > relevant.
-
-Bad idea. Grouping drivers by connectivity is almost always the wrong
-thing to do, as it means that different persons will maintain them and
-they have all chances to diverge. You really want to group drivers by
-functionality. On top of that, I am busy enough maintaining the i2c
-core and bus drivers without having more i2c device drivers added to my
-plate. These days I am trying to _empty_ drivers/i2c/chips, if anything.
-
+>
 > * To place within the hwmon subsystem as this is probably closest.
 > (there is already at least one straight ADC driver in hwmon)
-
-Probably not the wisest choice, if nothing else, because the hwmon
-maintainer is already overloaded. And I don't think that these devices
-have much in common with the traditional hardware monitoring components
-anyway.
-
-I'm not sure what "straight ADC driver" you are referring to, but
-anything which measures a voltage and exports the reading to user-space
-is, well, a voltage sensor, and thus fix within hwmon. If the same chip
-is used for a higher-level, dedicated function then we would probably
-have a separate driver for it, outside of hwmon.
-
+>
 > * To create a new subsystem, or perhaps merely sysfs class to contain these
->   elements.
-
-Would be OK. Or:
-
-* Place these within the input subsystem. You might want to discuss
-this with the input subsystem maintainer Dmitry Torokhov (Cc'd). The
-Wii remote is essentially a joystick, and joysticks belong to the input
-subsystem.
-
+>  elements.
+>
 > Typical requirements within an application include simply polling for 
 > current
-> readings, and using device triggered interrupts to grab data 
-> continuously to a
-> ring buffer, for collection by suitable userspace code.  Obviously it 
-> would be
-> desirable to standardize sysfs controls for various calibration 
-> parameters as
+> readings, and using device triggered interrupts to grab data continuously 
+> to a
+> ring buffer, for collection by suitable userspace code.  Obviously it would 
+> be
+> desirable to standardize sysfs controls for various calibration parameters 
+> as
 > much as possible across the various devices.
-> 
+>
 > Any other suggestions welcome!
+>
+> To illustrate the sort of devices here are a few I have drivers written for 
+> or will
+> shortly be writing  (some submitted to hwmon and spi mailing lists, some 
+> not
+> finished as of yet)
+>
+> ST Micro LIS3L02DQ 3D accelerometer.  SPI device, no buffering, interrupt 
+> pin
+> raised high on new data being available. Currently the driver assumes, if
+> interrupts are enabled, that this is connected to a specified gpio.
+> (http://www.st.com/stonline/books/pdf/docs/10175.pdf)
 
-This all sounds quite different from our hwmon drivers. Our hwmon
-drivers read all the sensor values at once and cache the readings for a
-couple seconds, so you can't get an instant reading at any time, and
-they also don't support interrupts in general.
+FWIW: I have this device talking to a PIC-18 and pushing the results
+over the serial port.
 
--- 
-Jean Delvare
+WRT linux support, I can't think of a generalized way to create a driver
+that would be able to be used with this device in Linux.  You need to
+know witch IRQ line the DR line is connected too, and if you are
+bit-banging the SPI data off the thing, then you need to know which
+GPIO's of the host CPU you'll be using.  If you have SPI hardware then
+you need to know where to pull the data from.  The problem doesn't seem to
+generalize well.
+
+Also, If you are playing with accelerometer data, you likely need some
+real time support or at lest a reliable time stamping of the data to do
+anything interesting.
+
+Another problem area is around SPI itself.  There are variations of
+device implementations around chip select polarity, clock biasing
+(rising,falling, or midpoint) sampling from one SPI part to the next.
+
+> VTI SCA3000 E05 3D accelerometer equiped with substantial ring buffer. SPI
+> device.  Can operate either in buffered or direct mode.  In buffered mode, 
+> interrupts
+> can be used to indicate when the ring buffer is 3/4 full triggering a 
+> download to
+> a larger ring buffer in the kernel if necessary.
+> (http://www.vti.fi/en/products-solutions/products/accelerometers/sca3000-accelerometers/)
+>
+
+ring buffered data can make RT applications harder...
+
+> Analog Devices ADIS16350 combined 3D accelerometer and gyro unit.  SPI 
+> device.
+> (http://www.analog.com/en/prod/0,,764_801_ADIS16350%2C00.html)
+>
+> Maxim MAX1363, MAX1238 ADC's.  I2C devices. Some SPI ADC's (www.analog.com 
+> for
+> examples)
+>
+> Would be nice if practical to allow the framework to include RS232 devices 
+> such
+> as those from www.xsens.com, www.isense.com and others.
+
+
+I'm not sure what you are asking for, you started off with SPI driver
+for interfacing a handful of accelerometer devices.  Now your talking
+about the serial port.
+
+Besides the consumer of accelerometer data is user space applications
+(mine attempt to be somewhat RT applications) 
+
+--mgross
+
 
 _______________________________________________
 lm-sensors mailing list
