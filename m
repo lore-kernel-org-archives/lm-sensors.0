@@ -1,60 +1,90 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Wed, 07 May 2008 06:11:14 +0000
-Subject: Re: [lm-sensors] [resend] [PATCH v2] ibmaem: New driver for
-Message-Id: <20080506231114.d5a0b6e7.akpm@linux-foundation.org>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 20 May 2008 11:28:17 +0000
+Subject: Re: [lm-sensors] Accelerometer,
+Message-Id: <20080520132817.03fb74ea@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080503045558.GJ16078@tree.beaverton.ibm.com>
-	<20080505135621.66809b0e.akpm@linux-foundation.org>
-	<20080505230440.GE16404@tree.beaverton.ibm.com>
-	<20080506140433.0fa6e68e.akpm@linux-foundation.org>
-	<20080506223812.GF16404@tree.beaverton.ibm.com>
-	<20080506173607.71eb7257.akpm@linux-foundation.org>
-	<20080507080105.5484c58a@hyperion.delvare>
-In-Reply-To: <20080507080105.5484c58a@hyperion.delvare>
+References: <4832A211.4040206@gmail.com>
+In-Reply-To: <4832A211.4040206@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: djwong@us.ibm.com, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Jonathan Cameron <Jonathan.Cameron@gmail.com>
+Cc: linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, LM Sensors <lm-sensors@lm-sensors.org>, Dmitry Torokhov <dtor@mail.ru>
 
+Hi Jonathan,
 
-On Wed, 7 May 2008 08:01:05 +0200 Jean Delvare <khali@linux-fr.org> wrote:
-
-> On Tue, 6 May 2008 17:36:07 -0700, Andrew Morton wrote:
-> > A checkpatch version which you might not have says
-> > 
-> > WARNING: consider using strict_strtol in preference to simple_strtol
-> > #1015: FILE: drivers/hwmon/ibmaem.c:918:
-> > +       int temp = simple_strtol(buf, NULL, 10); \
-> > 
-> > total: 0 errors, 1 warnings, 1221 lines checked
-> > 
-> > because the code as you have it will accept input of the form "12foo". 
-> > strict_strtol() will error on that.
+On Tue, 20 May 2008 11:04:01 +0100, Jonathan Cameron wrote:
+> This email is basically a request for opinions on how and where such sensors
+> should be integrated into the kernel.
 > 
-> As a side note, I really wonder why this new function wasn't named just
-> strtol(), especially if the general idea is to get rid of the "simple"
-> variant after some time.
+> To set the scene...
+> 
+> Increasing numbers of embedded devices are being supplied attached MEMS
+> devices (www.xbow.com imote2 etc). Along with more traditional sensors such
+> as ADC's not being used for hardware monitoring, these do not really 
+> seem to
+> fit with in an particular subsystem of the kernel.  A previous 
+> discussion on
+> lkml in 2006 considered the accelerometers to be found within some laptop
+> hard drives, but I haven't been able to track down any more general 
+> discussions
+> of such non hardware monitoring sensors.
+> 
+> The obvious possibilities are:
+> 
+> * To place the various drivers within the spi / i2c etc subsystems as 
+> relevant.
 
-didn't think of doing that.
+Bad idea. Grouping drivers by connectivity is almost always the wrong
+thing to do, as it means that different persons will maintain them and
+they have all chances to diverge. You really want to group drivers by
+functionality. On top of that, I am busy enough maintaining the i2c
+core and bus drivers without having more i2c device drivers added to my
+plate. These days I am trying to _empty_ drivers/i2c/chips, if anything.
 
-But:
+> * To place within the hwmon subsystem as this is probably closest.
+> (there is already at least one straight ADC driver in hwmon)
 
-y:/home/akpm> cat t.c
-#include <stdlib.h>
-#include <stdio.h>
+Probably not the wisest choice, if nothing else, because the hwmon
+maintainer is already overloaded. And I don't think that these devices
+have much in common with the traditional hardware monitoring components
+anyway.
 
-main()
-{
-        unsigned long u = strtoul("12foo", 0, 10);
-        printf("%lu\n", u);
-}
-y:/home/akpm> gcc t.c
-y:/home/akpm> ./a.out
-12
+I'm not sure what "straight ADC driver" you are referring to, but
+anything which measures a voltage and exports the reading to user-space
+is, well, a voltage sensor, and thus fix within hwmon. If the same chip
+is used for a higher-level, dedicated function then we would probably
+have a separate driver for it, outside of hwmon.
 
+> * To create a new subsystem, or perhaps merely sysfs class to contain these
+>   elements.
 
-strtoul() has different behaviour.
+Would be OK. Or:
+
+* Place these within the input subsystem. You might want to discuss
+this with the input subsystem maintainer Dmitry Torokhov (Cc'd). The
+Wii remote is essentially a joystick, and joysticks belong to the input
+subsystem.
+
+> Typical requirements within an application include simply polling for 
+> current
+> readings, and using device triggered interrupts to grab data 
+> continuously to a
+> ring buffer, for collection by suitable userspace code.  Obviously it 
+> would be
+> desirable to standardize sysfs controls for various calibration 
+> parameters as
+> much as possible across the various devices.
+> 
+> Any other suggestions welcome!
+
+This all sounds quite different from our hwmon drivers. Our hwmon
+drivers read all the sensor values at once and cache the readings for a
+couple seconds, so you can't get an instant reading at any time, and
+they also don't support interrupts in general.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
