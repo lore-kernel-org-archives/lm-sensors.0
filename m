@@ -1,38 +1,32 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 06 May 2008 16:06:42 +0000
+From: Romain Dolbeau <romain@dolbeau.org>
+Date: Wed, 21 May 2008 07:05:00 +0000
 Subject: Re: [lm-sensors] Supermicro C2SBE
-Message-Id: <20080506180642.31670f6b@hyperion.delvare>
+Message-Id: <4833C99C.8010007@dolbeau.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <482054DE.1070005@dolbeau.org>
 In-Reply-To: <482054DE.1070005@dolbeau.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 06 May 2008 17:59:18 +0200, Romain Dolbeau wrote:
-> Jean Delvare wrote:
->=20
-> > Can you include what this "nothing" looks like exactly? If that's all
-> > zeroes, the chip is there but unused. If that's nothing at all, it
-> > suggests that your version of libsensors is too old. Support for the
-> > W83627DHG was added in lm-sensors 2.10.2.
->=20
-> D*amn. Bitten by Debian again. Stable is (still) at 2.10.1 ...
->=20
-> And the nothing is just nothing.
->=20
-> > you need a recent version of sensors-detect:
->=20
-> I think what I really need is some nice developer adding 2.10.6 to
-> etch-backports :-) Unfortunately I don't have the time to do it
-> myself... :-( (it's already difficult to justify with my boss spending
-> time tweaking sensors.conf :-)
+I dbuild'ed lm-sensors 3.0.1 on a non-critical machine, and it worked
+Just Fine(tm).
 
-If anyone can do this I guess it would be Aur=E9lien (Cc'd.)
+I then got the details from the Supermicro support (fast and helpful,
+thanks guys & gals, that's why I keep buying Supermicro stuff!), and
+I've added the first version of the file to the wiki. Should also be
+fine for the C2SBA (the C2SBE reports itself as a C2SBA in dmidecode...
+only the C2SBE doesn't have the on-board video).
 
---=20
-Jean Delvare
+I'll try doing the C2SBX when I finally get the board (hold by my
+supplier because, of all reasons, he can't get proper memory for it...),
+as I also got the details from Supermicro.
+
+-- 
+Romain Dolbeau
+<romain@dolbeau.org>
+
 
 _______________________________________________
 lm-sensors mailing list
