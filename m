@@ -1,138 +1,35 @@
-From: Jonathan Cameron <Jonathan.Cameron@gmail.com>
-Date: Wed, 21 May 2008 10:04:38 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 21 May 2008 13:20:09 +0000
 Subject: Re: [lm-sensors] Accelerometer,
-Message-Id: <4833F3B6.6020806@gmail.com>
+Message-Id: <20080521152009.0a227c3e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4832A211.4040206@gmail.com> <20080520132817.03fb74ea@hyperion.delvare> <20080520214005.GH3220@local>
-In-Reply-To: <20080520214005.GH3220@local>
+References: <4832A211.4040206@gmail.com>
+	<20080520132817.03fb74ea@hyperion.delvare>
+	<20080520214005.GH3220@local>
+	<4833F3B6.6020806@gmail.com>
+In-Reply-To: <4833F3B6.6020806@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Hans J. Koch" <hjk@linutronix.de>
-Cc: Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, LM Sensors <lm-sensors@lm-sensors.org>, Dmitry Torokhov <dtor@mail.ru>
+To: Jonathan Cameron <Jonathan.Cameron@gmail.com>
+Cc: "Hans J. Koch" <hjk@linutronix.de>, linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, LM Sensors <lm-sensors@lm-sensors.org>, Dmitry Torokhov <dtor@mail.ru>
 
-Hi Hans and Jean, 
+On Wed, 21 May 2008 11:04:38 +0100, Jonathan Cameron wrote:
+> Definitely agreed that it makes sense to put DACs and ADCs in the same 
+> general place and obviously there are plenty of devices out there that do
+> both.
 
-Thanks for your responses.
-> On Tue, May 20, 2008 at 01:28:17PM +0200, Jean Delvare wrote:
->   
->> Hi Jonathan,
->>
->> On Tue, 20 May 2008 11:04:01 +0100, Jonathan Cameron wrote:
->>     
->>> This email is basically a request for opinions on how and where such sensors
->>> should be integrated into the kernel.
->>>
->>> To set the scene...
->>>
->>> Increasing numbers of embedded devices are being supplied attached MEMS
->>> devices (www.xbow.com imote2 etc). Along with more traditional sensors such
->>> as ADC's not being used for hardware monitoring, these do not really 
->>> seem to
->>> fit with in an particular subsystem of the kernel.  A previous 
->>> discussion on
->>> lkml in 2006 considered the accelerometers to be found within some laptop
->>> hard drives, but I haven't been able to track down any more general 
->>> discussions
->>> of such non hardware monitoring sensors.
->>>
->>> The obvious possibilities are:
->>>
->>> * To place the various drivers within the spi / i2c etc subsystems as 
->>> relevant.
->>>       
->> Bad idea. Grouping drivers by connectivity is almost always the wrong
->> thing to do, as it means that different persons will maintain them and
->> they have all chances to diverge. You really want to group drivers by
->> functionality. On top of that, I am busy enough maintaining the i2c
->> core and bus drivers without having more i2c device drivers added to my
->> plate. These days I am trying to _empty_ drivers/i2c/chips, if anything.
->>     
-I can certainly see your point there. 
->
-> 100% ACK. And the functionality here is something like "industrial
-> control" or "automation I/O".
-Hmm.. Going to be interesting coming up with a name!   Guess that can 
-come at a
-later stage anyway.
->  If this sort of hardware appears as device
-> with mappable memory, we can handle it with UIO, but for SPI, I2C, USB,
-> serial, we should have a new subsystem. It should handle not only input,
-> but also similar output devices. It doesn't make sense to have ADCs in
-> one subsystem, and DACs in a different one.
->   
-Definitely agreed that it makes sense to put DACs and ADCs in the same 
-general place
-and obviously there are plenty of devices out there that do both.
->>> * To place within the hwmon subsystem as this is probably closest.
->>> (there is already at least one straight ADC driver in hwmon)
->>>       
->> Probably not the wisest choice, if nothing else, because the hwmon
->> maintainer is already overloaded. And I don't think that these devices
->> have much in common with the traditional hardware monitoring components
->> anyway.
->>     
->
-> Agreed, hwmon devices are not really tuned for maximum performance, for
-> example. Performance is often critical in automation control
-> applications.
->   
-It would indeed by stretching the point to make drivers in that 
-subsystem have more performance
-critical drivers!  We seem to have a consensus that neither hwmon or 
-i2c/chips is good idea.
->> I'm not sure what "straight ADC driver" you are referring to, but
->> anything which measures a voltage and exports the reading to user-space
->> is, well, a voltage sensor, and thus fix within hwmon. If the same chip
->> is used for a higher-level, dedicated function then we would probably
->> have a separate driver for it, outside of hwmon.
->>
->>     
->>> * To create a new subsystem, or perhaps merely sysfs class to contain these
->>>   elements.
->>>       
->> Would be OK.
->>     
-> Definitely.
->
->   
->> Or:
->>
->> * Place these within the input subsystem. You might want to discuss
->> this with the input subsystem maintainer Dmitry Torokhov (Cc'd). The
->> Wii remote is essentially a joystick, and joysticks belong to the input
->> subsystem.
->>     
->
-> This might apply to some devices, but not all. And the requirements are
-> quite different, I think.
->   
-Although I don't know much about the input subsystem it doesn't seem 
-likely that all the devices
-we are considering would share all that much functionality with the 
-devices in there, particularly if
-as you have suggested, we include DACs.  
->> This all sounds quite different from our hwmon drivers. Our hwmon
->> drivers read all the sensor values at once and cache the readings for a
->> couple seconds, so you can't get an instant reading at any time, and
->> they also don't support interrupts in general.
->>     
->
-> Exactly.
->   
-Ok, so the consensus so far is we are looking at a new subsystem.  Will 
-give this a few more days
-on the lists, then if the consensus is still heading that way, I'll have 
-a think about exact functionality
-this would need.  I guess it would be something that would probably 
-evolve for some time, centered
-around an initial half dozen or so drivers.
+Note that hardware monitoring chips can include ADCs and DACs: the
+former to monitor system voltages, and the later to control fans (most
+chips use PWM for that but a few use DACs.) ADCs and DACs are, much
+like GPIOs, usable for a variety of different purposes. I doubt that
+there would be any benefit in abstracting DACs and ADCs the way we did
+for GPIOs, but the important point here is that we really want to group
+the drivers according to their functionality and not technical
+implementation details.
 
-Thanks for all your comments,
-
---
-Jonathan Cameron
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
