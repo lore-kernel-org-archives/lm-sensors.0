@@ -1,32 +1,35 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 13 May 2008 15:42:40 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3 RESEND 2] hwmon (dme1737): add support
-Message-Id: <20080513174240.7919a00e@hyperion.delvare>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Mon, 26 May 2008 15:55:37 +0000
+Subject: Re: [lm-sensors] [PATCH 2/3 RESEND] hwmon (dme1737): probe all
+Message-Id: <20080526155537.GG16874@mars.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0805130807s5f45bf3eq73d2b17be48cb52e@mail.gmail.com>
-In-Reply-To: <191fb4ca0805130807s5f45bf3eq73d2b17be48cb52e@mail.gmail.com>
+References: <47F5AFCB.8010203@gmail.com>
+In-Reply-To: <47F5AFCB.8010203@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 13 May 2008 08:07:43 -0700, Juerg Haefliger wrote:
-> Add support for the SCH5027. The differences to the DME1737 are:
-> - No support for programmable temp offsets
-> - In auto mode, PWM outputs stay on min value if temp goes below low threshold
->   and can't be programmed to fully turn off
-> - Different voltage scaling
-> - No VID input
-> 
-> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
-> 
-> ---
-> Incorporated suggestions from Jean Delvare's 2nd review.
+Hi:
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+* Jean Delvare <khali@linux-fr.org> [2008-04-04 09:32:55 +0200]:
+> On Thu, 03 Apr 2008 21:34:19 -0700, Juerg Haefliger wrote:
+> > This patch adds a module load parameter to enable probing of 
+> > non-standard LPC addresses 0x162e and 0x164e when scanning for supported 
+> > ISA chips.
+> > 
+> > Signed-Off-By: Juerg Haefliger <juergh at gmail.com>
+> 
+> Looks good this time.
+> 
+> Acked-by: Jean Delvare <khali@linux-fr.org>
+
+Applied to hwmon-2.6.git/testing, thanks.
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
