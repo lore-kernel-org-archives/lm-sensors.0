@@ -1,30 +1,31 @@
 From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Thu, 15 May 2008 12:32:32 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (adt7473) Initialize
-Message-Id: <20080515123232.GA16823@mars.solarsys.private>
+Date: Mon, 26 May 2008 15:54:29 +0000
+Subject: Re: [lm-sensors] PATCH: hwmon-abituguru3-aw8d.patch
+Message-Id: <20080526155429.GC16874@mars.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080426163426.7684ce5d@hyperion.delvare>
-In-Reply-To: <20080426163426.7684ce5d@hyperion.delvare>
+References: <47C45BC8.1030504@hhs.nl>
+In-Reply-To: <47C45BC8.1030504@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all:
+Hi:
 
-* Darrick J. Wong <djwong@us.ibm.com> [2008-04-28 10:33:36 -0700]:
-> On Sat, Apr 26, 2008 at 04:34:26PM +0200, Jean Delvare wrote:
-> > data->max_duty_at_overheat is not updated in adt7473_update_device,
-> > so it might be used before it is initialized (if the user reads from
-> > sysfs file max_duty_at_crit before writing to it.)
+* Jean Delvare <khali@linux-fr.org> [2008-02-28 22:07:18 +0100]:
+> On Tue, 26 Feb 2008 19:34:48 +0100, Hans de Goede wrote:
+> > Hi All,
 > > 
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > Cc: Darrick J. Wong <djwong@us.ibm.com>
+> > This patch identifies the Abit AW8D board as such, and adds support for its
+> > aux5 fan connector
+> > 
+> > signed-of-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 > 
-> Thanks for catching this.  Looks/compiles/seems to run ok, so:
-> Acked-by: Darrick J. Wong <djwong@us.ibm.com>
+> Missing one "f" ;)
 > 
-> As for !! vs (?:), I don't have any particular preference.
+> Looks OK to me:
+> 
+> Acked-by: Jean Delvare <khali@linux-fr.org>
 
 Applied to hwmon-2.6.git/testing, thanks.
 
