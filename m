@@ -1,64 +1,76 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 17 May 2008 18:08:24 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Update broken Winbond and NatSemi
-Message-Id: <20080517200824.77abcaa8@hyperion.delvare>
+From: "komang adi" <untukta@gmail.com>
+Date: Mon, 26 May 2008 09:37:33 +0000
+Subject: [lm-sensors] asking about monitoring soekris net4801
+Message-Id: <d3a276f0805260237j33d47ac4rbf3dde908a75e70a@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============4097007770314318351=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- Documentation/hwmon/pc87360 |    7 +------
- Documentation/hwmon/pc87427 |    2 +-
- Documentation/hwmon/w83792d |    2 +-
- 3 files changed, 3 insertions(+), 8 deletions(-)
+--===============4097007770314318351==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_16440_5002092.1211794653916"
 
---- linux-2.6.26-rc2.orig/Documentation/hwmon/pc87427	2008-04-17 04:49:44.000000000 +0200
-+++ linux-2.6.26-rc2/Documentation/hwmon/pc87427	2008-05-17 19:45:50.000000000 +0200
-@@ -5,7 +5,7 @@ Supported chips:
-   * National Semiconductor PC87427
-     Prefix: 'pc87427'
-     Addresses scanned: none, address read from Super I/O config space
--    Datasheet: http://www.winbond.com.tw/E-WINBONDHTM/partner/apc_007.html
-+    Devcice information: http://www.winbond.com/hq/enu/ProductAndSales/ProductLines/ComputerLogicIC/ServerIO/AdvancedSuperIOforServers/87427.htm
- 
- Author: Jean Delvare <khali@linux-fr.org>
- 
---- linux-2.6.26-rc2.orig/Documentation/hwmon/w83792d	2008-04-17 04:49:44.000000000 +0200
-+++ linux-2.6.26-rc2/Documentation/hwmon/w83792d	2008-05-17 19:48:17.000000000 +0200
-@@ -5,7 +5,7 @@ Supported chips:
-   * Winbond W83792D
-     Prefix: 'w83792d'
-     Addresses scanned: I2C 0x2c - 0x2f
--    Datasheet: http://www.winbond.com.tw/E-WINBONDHTM/partner/PDFresult.asp?Pname35
-+    Datasheet: http://www.winbond.com.tw/hq/enu/ProductAndSales/ProductLines/ComputerLogicIC/HardwareMonitor/HWMonitorforDesktopAndServer/W83792G.htm
- 
- Author: Chunhao Huang
- Contact: DZShen <DZShen@Winbond.com.tw>
---- linux-2.6.26-rc2.orig/Documentation/hwmon/pc87360	2008-04-17 04:49:44.000000000 +0200
-+++ linux-2.6.26-rc2/Documentation/hwmon/pc87360	2008-05-17 20:00:55.000000000 +0200
-@@ -5,12 +5,7 @@ Supported chips:
-   * National Semiconductor PC87360, PC87363, PC87364, PC87365 and PC87366
-     Prefixes: 'pc87360', 'pc87363', 'pc87364', 'pc87365', 'pc87366'
-     Addresses scanned: none, address read from Super I/O config space
--    Datasheets:
--        http://www.national.com/pf/PC/PC87360.html
--        http://www.national.com/pf/PC/PC87363.html
--        http://www.national.com/pf/PC/PC87364.html
--        http://www.national.com/pf/PC/PC87365.html
--        http://www.national.com/pf/PC/PC87366.html
-+    Datasheets: No longer available
- 
- Authors: Jean Delvare <khali@linux-fr.org>
- 
+------=_Part_16440_5002092.1211794653916
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi. I am Komang, university student.
+I want to monitor the voltage and temperatur monitoring lm-sensor. I have
+installed and configure sensor3.conf, and when i check the result by using
+#sensors, the output like this :
+root@relay:/home/relay# sensors
+pc87366-isa-6620
+Adapter: ISA adapter
+VCORE:       +0.00 V  (min =  +1.90 V, max =  +2.10 V)
+VCC:         +0.00 V  (min =  +0.00 V, max =  +0.00 V)
+VPWR:        +0.00 V  (min =  +5.93 V, max = +28.02 V)
++12V:        +0.00 V  (min = +11.02 V, max = +13.01 V)
+-12V:       -29.70 V  (min = -13.04 V, max = -11.03 V)
+GND:         +0.00 V  (min =  +0.00 V, max =  +0.00 V)
+Vsb:         +3.31 V  (min =  +3.00 V, max =  +3.31 V)
+Vdd:         +6.03 V  (min =  +3.00 V, max =  +3.59 V)
+Vbat:        +0.00 V  (min =  +2.40 V, max =  +3.01 V)
+AVdd:        +6.03 V  (min =  +3.00 V, max =  +3.59 V)
+Temp:       -128.0 C  (low  =  +0.0 C, high = +70.0 C)
+                      (crit = +85.0 C)
+cpu0_vid:   +0.000 V
+There, we see that only partial data can be get from soekris 4801, even the
+data that have been succesful gather is not correctly. Anyone can help?
+I want to get all of the data by using lm-sensors.
+Thanks.
+
+-komang
+
+------=_Part_16440_5002092.1211794653916
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div>Hi. I am Komang, university student.</div>
+<div>I want to monitor the voltage and temperatur monitoring lm-sensor. I have installed and configure sensor3.conf, and when i check the result by using #sensors, the output like this :</div>
+<div><a href="mailto:root@relay:/home/relay">root@relay:/home/relay</a># sensors<br>pc87366-isa-6620<br>Adapter: ISA adapter<br>VCORE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +0.00 V&nbsp; (min =&nbsp; +1.90 V, max =&nbsp; +2.10 V)<br>VCC:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +0.00 V&nbsp; (min =&nbsp; +0.00 V, max =&nbsp; +0.00 V)<br>
+VPWR:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +0.00 V&nbsp; (min =&nbsp; +5.93 V, max = +28.02 V)<br>+12V:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +0.00 V&nbsp; (min = +11.02 V, max = +13.01 V)<br>-12V:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -29.70 V&nbsp; (min = -13.04 V, max = -11.03 V)<br>GND:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +0.00 V&nbsp; (min =&nbsp; +0.00 V, max =&nbsp; +0.00 V)<br>
+Vsb:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +3.31 V&nbsp; (min =&nbsp; +3.00 V, max =&nbsp; +3.31 V)<br>Vdd:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +6.03 V&nbsp; (min =&nbsp; +3.00 V, max =&nbsp; +3.59 V)<br>Vbat:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +0.00 V&nbsp; (min =&nbsp; +2.40 V, max =&nbsp; +3.01 V)<br>AVdd:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +6.03 V&nbsp; (min =&nbsp; +3.00 V, max =&nbsp; +3.59 V)<br>
+Temp:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -128.0 C&nbsp; (low&nbsp; =&nbsp; +0.0 C, high = +70.0 C)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (crit = +85.0 C)<br>cpu0_vid:&nbsp;&nbsp; +0.000 V<br></div>
+<div>There, we see that only partial data can be get from soekris 4801, even the data that have been succesful gather is not correctly. Anyone can help?</div>
+<div>I want to get all of the data by using lm-sensors.</div>
+<div>Thanks.</div>
+<div>&nbsp;</div>
+<div>-komang</div>
+
+------=_Part_16440_5002092.1211794653916--
 
 
--- 
-Jean Delvare
+--===============4097007770314318351==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============4097007770314318351==--
