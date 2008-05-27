@@ -1,60 +1,36 @@
-From: Ben Dooks <ben@fluff.org>
-Date: Tue, 27 May 2008 15:53:08 +0000
-Subject: [lm-sensors] LM75 re-work,
-Message-Id: <20080527155308.GZ22585@trinity.fluff.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5330169148251672952=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 27 May 2008 18:00:00 +0000
+Subject: Re: [lm-sensors] LM75 re-work,
+Message-Id: <20080527200000.246e41d6@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20080527155308.GZ22585@trinity.fluff.org>
+In-Reply-To: <20080527155308.GZ22585@trinity.fluff.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Ben,
 
---===============5330169148251672952==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LwW0XdcUbUexiWVK"
-Content-Disposition: inline
+On Tue, 27 May 2008 16:53:08 +0100, Ben Dooks wrote:
+> Is there a patch, or set of patches for the lm75 driver to
+> use the new i2c framework available in one bundle? I've had a
+> look over the list and was wondering if someone had gathered
+> together all the submissions?
 
+There are 3 patches which are ready to go upstream at this point:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2008-April/022931.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2008-May/023040.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2008-May/023041.html
 
---LwW0XdcUbUexiWVK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Apply them in this order. In case the list archive corrupted the patches
+somehow, you can fetch them temporarily from my home server at:
+http://jdelvare.pck.nerim.net/sensors/lm75/
 
-Is there a patch, or set of patches for the lm75 driver to
-use the new i2c framework available in one bundle? I've had a
-look over the list and was wondering if someone had gathered
-together all the submissions?
-
---=20
-Ben
-
-Q:      What's a light-year?
-A:      One-third less calories than a regular year.
-
-
---LwW0XdcUbUexiWVK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFIPC5iJZCApG2L7OYRAvE4AKChiNsluoigQ5wCqY3dNphzvwE70wCfW5FV
-cHu7vud0Z4Oq7bzmlmDxnYY=
-=cMwl
------END PGP SIGNATURE-----
-
---LwW0XdcUbUexiWVK--
-
-
---===============5330169148251672952==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5330169148251672952==--
