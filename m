@@ -1,289 +1,249 @@
-From: =?us-ascii?Q?Jaroslav=20Vacha?= <vacha@email.cz>
-Date: Tue, 27 May 2008 07:09:14 +0000
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Tue, 27 May 2008 16:45:11 +0000
 Subject: Re: [lm-sensors] dme1737 under CentOS 2.6.18 kernel
-Message-Id: <9557.11471-7860-227731522-1211872154@email.cz>
+Message-Id: <191fb4ca0805270945r32604d17s3c41b3270006ce2b@mail.gmail.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============9054164066708532238=="
+Content-Type: multipart/mixed; boundary="===============5515785307685436984=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <9557.11526-6111-934845850-1211828908@email.cz>
 In-Reply-To: <9557.11526-6111-934845850-1211828908@email.cz>
 To: lm-sensors@vger.kernel.org
 
+--===============5515785307685436984==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_1391_10863090.1211906711196"
 
---===============9054164066708532238==
-Content-Type: multipart/alternative;
-	boundary="MessagePart:108928047.0-7590-443905041-1211871808"
+------=_Part_1391_10863090.1211906711196
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
+SGkgSmFyb3NsYXYsCgoKT24gVHVlLCBNYXkgMjcsIDIwMDggYXQgMTI6MDkgQU0sIEphcm9zbGF2
+IFZhY2hhIDx2YWNoYUBlbWFpbC5jej4gd3JvdGU6Cgo+IEhpIEp1ZXJnLAo+ICB0aGFua3MgZm9y
+IHlvdXIgaGludHMhIEFmdGVyICdkZXBtb2QgLWEnIGFuZCBwYXRjaCBkcml2ZXIgaXMgbG9hZGVk
+Cj4gbm93IGFuZCBsbV9zZW5zb3JzIGFyZSB3b3JraW5nOgo+Cj4gIyBzZW5zb3JzCj4gc2NoMzEx
+eC1pc2EtMGE3MAo+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4gaW4wOiAgICAgICAgKzAuMDAgViAo
+bWluID0gKzAuMDAgViwgbWF4ID0gKzYuNjQgVikgIEFMQVJNCj4gaW4xOiAgICAgICAgKzEuNzYg
+ViAobWluID0gKzAuMDAgViwgbWF4ID0gKzIuOTkgVikKPiBpbjI6ICAgICAgICArMy4yNSBWICht
+aW4gPSArMC4wMCBWLCBtYXggPSArNC4zOCBWKQo+IGluMzogICAgICAgICs0Ljk5IFYgKG1pbiA9
+ICswLjAwIFYsIG1heCA9ICs2LjY0IFYpCj4gaW40OiAgICAgICArMTIuMzEgViAobWluID0gKzAu
+MDAgViwgbWF4ID0gKzE1Ljk0IFYpCj4gaW41OiAgICAgICAgKzMuMjcgViAobWluID0gKzAuMDAg
+ViwgbWF4ID0gKzQuMzggVikKPiBpbjY6ICAgICAgICArMy4xNyBWIChtaW4gPSArMC4wMCBWLCBt
+YXggPSArNC4zOCBWKQo+IGZhbjE6ICAgICAgICAgMCBSUE0gKG1pbiA9ICAgMCBSUE0pCj4gZmFu
+MjogICAgICAxNzQ3IFJQTSAobWluID0gICAwIFJQTSkKPiBmYW4zOiAgICAgICAgIDAgUlBNICht
+aW4gPSAgIDAgUlBNKQo+IHRlbXAxOiAgICAgICs0Ny42sEMgKGxvdyA9IC0xMjcuMLBDLCBoaWdo
+ID0gKzEyNy4wsEMpCj4gdGVtcDI6ICAgICAgKzQyLjiwQyAobG93ID0gLTEyNy4wsEMsIGhpZ2gg
+PSArMTI3LjCwQykKPiB0ZW1wMzogICAgICArNDEuMbBDIChsb3cgPSAtMTI3LjCwQywgaGlnaCA9
+ICsxMjcuMLBDKQo+IGNwdTBfdmlkOiAgKzAuMDAwIFYKPgo+IEkgaGF2ZSBvbmx5IHNtYWxsIGVy
+cm9yIGluIG1lc3NhZ2VzIGxvZyByZWdhcmRpbmcgaHdtb24tdmlkIG1vZHVsZSwKPiBidXQgSSBj
+YW4gbGl2ZSB3aXRoIGl0Li46Cj4KPiBNYXkgMjcgMTA6MzM6MzQgb2JlbGl4IGtlcm5lbDogZG1l
+MTczNyBkbWUxNzM3LjI2NzI6IEZvdW5kIGEgU0NIMzExeAo+IGNoaXAgYXQgMHgwYTcwCj4gTWF5
+IDI3IDEwOjMzOjM0IG9iZWxpeCBrZXJuZWw6IGRtZTE3MzcgZG1lMTczNy4yNjcyOiBPcHRpb25h
+bAo+IGZlYXR1cmVzOiBwd20zPXllcywgcHdtNT1ubywgcHdtNj1ubywgZmFuMz15ZXMsIGZhbjQ9
+bm8sIGZhbjU9bm8sCj4gZmFuNj1uby4KPiBNYXkgMjcgMTA6MzM6MzQgb2JlbGl4IGtlcm5lbDog
+aHdtb24tdmlkOiBVbmtub3duIFZSTSB2ZXJzaW9uIG9mCj4geW91ciB4ODYgQ1BVCj4KClRoYXQn
+cyBiZWNhdXNlIHRoZSBzY2gzMTF4IGRvZXNuJ3QgaGF2ZSBWSUQgaW5wdXRzLiBJIG5lZWQgdG8g
+Zml4IHRoYXQgd2hlbgp0aW1lIHBlcm1pdHMuCgouLi5qdWVyZwoKCgo+Cj4gVGhhbmtzIGFnYWlu
+IGZvciB5b3VyIGtpbmQgaGVscCEKPiBKYXJvc2xhdgo+Cj4KPgo+Cj4gLS0tLS0tLS0tLS0tIFD5
+dm9kbu0genBy4XZhIC0tLS0tLS0tLS0tLQo+IE9kOiBKdWVyZyBIYWVmbGlnZXIgPGp1ZXJnaEBn
+bWFpbC5jb20+Cj4gUPhlZG3sdDogUmU6IFtsbS1zZW5zb3JzXSBkbWUxNzM3IHVuZGVyIENlbnRP
+UyAyLjYuMTgga2VybmVsCj4gRGF0dW06IDI3LjUuMjAwOCAwMTozNzowNQo+IC0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+IEhpIEphcm9zbGF2LAo+Cj4KPgo+
+IE9uIE1vbiwgTWF5IDI2LCAyMDA4IGF0IDEyOjA4IFBNLCBKYXJvc2xhdiBWYWNoYSA8dmFjaGFA
+ZW1haWwuY3oKPiAobWFpbHRvOnZhY2hhQGVtYWlsLmN6KT4gd3JvdGU6Cj4gIiBIaSwKPiAgSSdt
+IHRyeWluZyB0byBjb21waWxlIGRtZTE3MzcgZHJpdmVyIHVuZGVyIENlbnRPUyA1LjEgd2l0aCAy
+LjYuMTgtCj4gNTMuMS4yMS5lbDUga2VybmVsIHRvIHN1cHBvcnQgVklBIEVQSUEtU04gMTgwMDBH
+IG1vdGhlcmJvYXJkCj4gc2Vuc29ycy4KPiAgRm9sbG93ZWQgSnVlcmcncyBpbnN0cnVjdGlvbiBm
+cm9tIHBvc3QgaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnLwo+IHBpcGVybWFpbC9sbS1zZW5z
+b3JzLzIwMDctRGVjZW1iZXIvMDIyMTY2Lmh0bWw8aHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3Jn
+L3BpcGVybWFpbC9sbS1zZW5zb3JzLzIwMDctRGVjZW1iZXIvMDIyMTY2Lmh0bWw+Cj4gKAo+IGh0
+dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9waXBlcm1haWwvbG0tc2Vuc29ycy8yMDA3LURlY2Vt
+YmVyLzAyMjE2Ni5odG1sCj4gKQo+Cj4gIENvZGUgY29tcGlsZWQgd2l0aCB3YXJuaW5nczoKPgo+
+ICNtYWtlIGFsbAo+IG1ha2UgLUMgL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAvYnVpbGQgTT0vaW5z
+dGFsbC9sbV9zZW5zb3JzL2RyaXZlcgo+IG1vZHVsZXMKPiBtYWtlWzFdOiBFbnRlcmluZyBkaXJl
+Y3RvcnkgYC91c3Ivc3JjL2tlcm5lbHMvMi42LjE4LTUzLjEuMjEuZWw1LWkKPiA2ODYnCj4gIEND
+IFtNXSAvaW5zdGFsbC9sbV9zZW5zb3JzL2RyaXZlci9kbWUxNzM3Lm8KPiAvaW5zdGFsbC9sbV9z
+ZW5zb3JzL2RyaXZlci9kbWUxNzM3LmM6NTU6IHdhcm5pbmc6IGluaXRpYWxpemF0aW9uCj4gZGlz
+Y2FyZHMgcXVhbGlmaWVycyBmcm9tIHBvaW50ZXIgdGFyZ2V0IHR5cGUKPiAvaW5zdGFsbC9sbV9z
+ZW5zb3JzL2RyaXZlci9kbWUxNzM3LmM6IEluIGZ1bmN0aW9uICdkbWUxNzM3X2kyY18KPiBkZXRl
+Y3QnOgo+IC9pbnN0YWxsL2xtX3NlbnNvcnMvZHJpdmVyL2RtZTE3MzcuYzoyMTM5OiB3YXJuaW5n
+OiBhc3NpZ25tZW50IGZyb20KPiBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBlCj4gL2luc3RhbGwv
+bG1fc2Vuc29ycy9kcml2ZXIvZG1lMTczNy5jOiBJbiBmdW5jdGlvbiAnZG1lMTczN19pMmNfCj4g
+ZGV0YWNoX2NsaWVudCc6Cj4gL2luc3RhbGwvbG1fc2Vuc29ycy9kcml2ZXIvZG1lMTczNy5jOjIx
+NzI6IHdhcm5pbmc6IHBhc3NpbmcgYXJndW1lbnQKPiAxIG9mICdod21vbl9kZXZpY2VfdW5yZWdp
+c3RlcicgZnJvbSBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBlCj4gL2luc3RhbGwvbG1fc2Vuc29y
+cy9kcml2ZXIvZG1lMTczNy5jOiBJbiBmdW5jdGlvbiAnZG1lMTczN19pc2FfCj4gcHJvYmUnOgo+
+IC9pbnN0YWxsL2xtX3NlbnNvcnMvZHJpdmVyL2RtZTE3MzcuYzoyMzI0OiB3YXJuaW5nOiBhc3Np
+Z25tZW50IGZyb20KPiBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBlCj4gL2luc3RhbGwvbG1fc2Vu
+c29ycy9kcml2ZXIvZG1lMTczNy5jOiBJbiBmdW5jdGlvbiAnZG1lMTczN19pc2FfCj4gcmVtb3Zl
+JzoKPiAvaW5zdGFsbC9sbV9zZW5zb3JzL2RyaXZlci9kbWUxNzM3LmM6MjM0ODogd2FybmluZzog
+cGFzc2luZyBhcmd1bWVudAo+IDEgb2YgJ2h3bW9uX2RldmljZV91bnJlZ2lzdGVyJyBmcm9tIGlu
+Y29tcGF0aWJsZSBwb2ludGVyIHR5cGUKPiAgQnVpbGRpbmcgbW9kdWxlcywgc3RhZ2UgMi4KPiAg
+TU9EUE9TVAo+ICBDQyAgICAgL2luc3RhbGwvbG1fc2Vuc29ycy9kcml2ZXIvZG1lMTczNy5tb2Qu
+bwo+ICBMRCBbTV0gL2luc3RhbGwvbG1fc2Vuc29ycy9kcml2ZXIvZG1lMTczNy5rbwo+IG1ha2Vb
+MV06IExlYXZpbmcgZGlyZWN0b3J5IGAvdXNyL3NyYy9rZXJuZWxzLzIuNi4xOC01My4xLjIxLmVs
+NS1pCj4gNjg2Jwo+IFtyb290QHNlcnZlciBkcml2ZXJdIwo+Cj4gIGRtZTE3Mzcua28gbW9kdWxl
+IGlzIGNyZWF0ZWQgYW5kIGNvcGllZCBpbiAvbGliL21vZHVsZXMvMi42LjE4LQo+IDUzLjEuMjEu
+ZWw1L2tlcm5lbC9kcml2ZXJzL2h3bW9uIHBhdGguIEJ1dCB3aGVuIEkgdHJpZWQgdG8gaW5zZXJ0
+Cj4gdGhpcyBtb2R1bGUgaW50byBrZXJuZWwsIG1vZHVsZSBpcyBub3QgbG9hZGVkIHdpdGggZm9s
+bG93aW5nIGVycm9yCj4gbWVzc2FnZToKPgo+ICNpbnNtb2QgZG1lMTczNy5rbwo+IGluc21vZDog
+ZXJyb3IgaW5zZXJ0aW5nICdkbWUxNzM3LmtvJzogLTEgVW5rbm93biBzeW1ib2wgaW4gbW9kdWxl
+Cj4KPiBEbyB5b3UgaGF2ZSBhbnkgaWRlYSB3aGVyZSBpcyBhIG1pc3Rha2U/IFRoYW5rcyBmb3Ig
+eW91ciByZXBseQo+ICIKPgo+IFRoZSBkbWUxNzM3IGRyaXZlciBkZXBlbmRzIG9uIGkyYy1jb3Jl
+IGFuZCBod21vbi12aWQuIE15IGd1ZXNzIGlzCj4gb25lIG9yIGJvdGggb2YgdGhvc2UgYXJlbid0
+IGxvYWRlZC4gRG8gJ2RlcG1vZCAtYScgYW5kIHRoZW4KPiAnbW9kcHJvYmUgZG1lMTczNyBwcm9i
+ZV9hbGxfYWRkcj0xJyB0byBsb2FkIHRoZSBkcml2ZXIgYW4gYWxsIHRoZQo+IG1vZHVsZXMgaXQg
+ZGVwZW5kcyB1cG9uLgo+IE5vdGUgdGhhdCBmb3IgdGhlIGRyaXZlciB0byBjb3JyZWN0bHkgd29y
+ayBvbiBhIFNOMTgwMDAgYm9hcmQsIHlvdQo+IG5lZWQgdG8gaGF2ZSB0aGUgZm9sbG93aW5nIHBh
+dGNoIGFwcGxpZWQgKGhlbmNlIHRoZSBwcm9iZV9hbGxfYWRkcgo+IG9wdGlvbik6Cj4gaHR0cDov
+L2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVybWFpbC9sbS1zZW5zb3JzLzIwMDgtQXByaWwvMDIy
+ODAyLgo+IGh0bWw8aHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVybWFpbC9sbS1zZW5z
+b3JzLzIwMDgtQXByaWwvMDIyODAyLmh0bWw+Cj4gKGh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9y
+Zy9waXBlcm1haWwvbG0tc2Vuc29ycy8yMDA4LUFwcmlsLzAyMjgwMi5odG1sKQo+Cj4gLi4uanVl
+cmcKPgo+Cj4gIiBKYXJvc2xhdgo+Cj4KPgo+Cj4gX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KPiBsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAo+IGxtLXNlbnNv
+cnNAbG0tc2Vuc29ycy5vcmcobWFpbHRvOmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcpCj4gaHR0
+cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycwo+ICho
+dHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3JzKQo+
+ICIKPgo+Cj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+PiBsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAo+IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKPiBo
+dHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3JzCj4K
+------=_Part_1391_10863090.1211906711196
+Content-Type: text/html; charset=ISO-8859-2
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
---MessagePart:108928047.0-7590-443905041-1211871808
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/html;
-	charset="iso-8859-2"
-
-Hi Juerg,<br>&nbsp; thanks for your hints! After 'depmod -a' and patch =
-driver is&nbsp; loaded now and lm_sensors are working:<br><br># sensors=
-<br>sch311x-isa-0a70<br>Adapter: ISA adapter<br>in0:&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +0.00 V&nbsp; (min =3D&nbsp; +0.00 V, max=
- =3D&nbsp; +6.64 V)&nbsp;&nbsp; ALARM<br>in1:&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp; +1.76 V&nbsp; (min =3D&nbsp; +0.00 V, max =3D&nb=
-sp; +2.99 V)<br>in2:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +3=
-.25 V&nbsp; (min =3D&nbsp; +0.00 V, max =3D&nbsp; +4.38 V)<br>in3:&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +4.99 V&nbsp; (min =3D&nbsp=
-; +0.00 V, max =3D&nbsp; +6.64 V)<br>in4:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp; +12.31 V&nbsp; (min =3D&nbsp; +0.00 V, max =3D +15.94 V)<b=
-r>in5:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +3.27 V&nbsp; (m=
-in =3D&nbsp; +0.00 V, max =3D&nbsp; +4.38 V)<br>in6:&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +3.17 V&nbsp; (min =3D&nbsp; +0.00 V, max=
- =3D&nbsp; +4.38 V)<br>fan1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp; 0 RPM&nbsp; (min =3D&nbsp;&nbsp;&nbsp; 0 RPM)<br>fan2:&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1747 RPM&nbsp; (min =3D&nbsp;&nbsp;&nbs=
-p; 0 RPM)<br>fan3:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-; 0 RPM&nbsp; (min =3D&nbsp;&nbsp;&nbsp; 0 RPM)<br>temp1:&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp; +47.6=B0C&nbsp; (low&nbsp; =3D -127.0=B0C, high =
-=3D +127.0=B0C)<br>temp2:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +42.8=B0C=
-&nbsp; (low&nbsp; =3D -127.0=B0C, high =3D +127.0=B0C)<br>temp3:&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +41.1=B0C&nbsp; (low&nbsp; =3D -127.0=B0C=
-, high =3D +127.0=B0C)<br>cpu0_vid:&nbsp;&nbsp; +0.000 V<br><br>I have =
-only small error in messages log regarding hwmon-vid module, but I can =
-live with it..:<br><br>May 27 10:33:34 obelix kernel: dme1737 dme1737.2=
-672: Found a SCH311x chip at 0x0a70<br>May 27 10:33:34 obelix kernel: d=
-me1737 dme1737.2672: Optional features: pwm3=3Dyes, pwm5=3Dno, pwm6=3Dn=
-o, fan3=3Dyes, fan4=3Dno, fan5=3Dno, fan6=3Dno.<br>May 27 10:33:34 obel=
-ix kernel: hwmon-vid: Unknown VRM version of your x86 CPU<br><br>Thanks=
- again for your kind help!<br>Jaroslav<br><br><br><br>
-<br>
------------- P=F9vodn=ED zpr=E1va ------------<br>
-<b>Od:</b> Juerg Haefliger &lt;juergh@gmail.com&gt;<br>
-<b>P=F8edm=ECt:</b> Re: [lm-sensors] dme1737 under CentOS 2.6.18 kernel=
-<br>
-<b>Datum:</b> 27.5.2008 01:37:05<br>
----------------------------------------------<br>
-Hi Jaroslav,<br><br><br><div class=3D"gmail_quote">On Mon, May 26, 2008=
- at 12:08 PM, Jaroslav Vacha &lt;<a href=3D"mailto:vacha@email.cz">vach=
-a@email.cz</a>&gt; wrote:<br><blockquote class=3D"gmail_quote" style=3D=
-"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; =
-padding-left: 1ex;">
-Hi, <br>
-&nbsp; I'm trying to compile dme1737 driver under&nbsp; CentOS 5.1 with=
-
-2.6.18-53.1.21.el5 kernel to support VIA EPIA-SN 18000G motherboard
-sensors.<br>
-&nbsp; Followed Juerg's instruction from post <a href=3D"http://lists.l=
-m-sensors.org/pipermail/lm-sensors/2007-December/022166.html" target=3D=
-"_blank">http://lists.lm-sensors.org/pipermail/lm-sensors/2007-December=
-/022166.html</a><br>
-
-<br>
-&nbsp; Code compiled with warnings:<br>
-<br>
-#make all<br>
-make -C /lib/modules/`uname -r`/build M=3D/install/lm_sensors/driver mo=
-dules<br>
-make[1]: Entering directory `/usr/src/kernels/2.6.18-53.1.21.el5-i686'<=
-br>
-&nbsp; CC [M]&nbsp; /install/lm_sensors/driver/dme1737.o<br>
-/install/lm_sensors/driver/dme1737.c:55: warning: initialization discar=
-ds qualifiers from pointer target type<br>
-/install/lm_sensors/driver/dme1737.c: In function 'dme1737_i2c_detect':=
-<br>
-/install/lm_sensors/driver/dme1737.c:2139: warning: assignment from inc=
-ompatible pointer type<br>
-/install/lm_sensors/driver/dme1737.c: In function 'dme1737_i2c_detach_c=
-lient':<br>
-/install/lm_sensors/driver/dme1737.c:2172: warning: passing argument 1
-of 'hwmon_device_unregister' from incompatible pointer type<br>
-/install/lm_sensors/driver/dme1737.c: In function 'dme1737_isa_probe':<=
-br>
-/install/lm_sensors/driver/dme1737.c:2324: warning: assignment from inc=
-ompatible pointer type<br>
-/install/lm_sensors/driver/dme1737.c: In function 'dme1737_isa_remove':=
-<br>
-/install/lm_sensors/driver/dme1737.c:2348: warning: passing argument 1
-of 'hwmon_device_unregister' from incompatible pointer type<br>
-&nbsp; Building modules, stage 2.<br>
-&nbsp; MODPOST<br>
-&nbsp; CC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /install/lm_sensors/driver/dme1=
-737.mod.o<br>
-&nbsp; LD [M]&nbsp; /install/lm_sensors/driver/dme1737.ko<br>
-make[1]: Leaving directory `/usr/src/kernels/2.6.18-53.1.21.el5-i686'<b=
-r>
-[root@server driver]#<br>
-<br>
-&nbsp; dme1737.ko module is created and copied in
-/lib/modules/2.6.18-53.1.21.el5/kernel/drivers/hwmon path. But when I
-tried to insert this module into kernel, module is not loaded with
-following error message:<br>
-<br>
-#insmod dme1737.ko<br>
-insmod: error inserting 'dme1737.ko': -1 Unknown symbol in module<br>
-<br>
-Do you have any idea where is a mistake? Thanks for your reply<br><font=
- color=3D"#888888"></font></blockquote><div><br>The dme1737 driver depe=
-nds on i2c-core and hwmon-vid. My guess is one or both of those aren't =
-loaded. Do 'depmod -a' and then 'modprobe dme1737 probe_all_addr=3D1' t=
-o load the driver an all the modules it depends upon.<br>
-Note that for the driver to correctly work on a SN18000 board, you need=
- to have the following patch applied (hence the probe_all_addr option):=
-<br><a href=3D"http://lists.lm-sensors.org/pipermail/lm-sensors/2008-Ap=
-ril/022802.html">http://lists.lm-sensors.org/pipermail/lm-sensors/2008-=
-April/022802.html</a><br>
-<br>...juerg<br><br>&nbsp;</div><blockquote class=3D"gmail_quote" style=
-=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8e=
-x; padding-left: 1ex;"><font color=3D"#888888">
-Jaroslav<br>
-<br>
-<p>&nbsp;</p></font><br>_______________________________________________=
-<br>
-lm-sensors mailing list<br>
-<a href=3D"mailto:lm-sensors@lm-sensors.org">lm-sensors@lm-sensors.org<=
-/a><br>
-<a href=3D"http://lists.lm-sensors.org/mailman/listinfo/lm-sensors" tar=
-get=3D"_blank">http://lists.lm-sensors.org/mailman/listinfo/lm-sensors<=
-/a><br></blockquote></div><br>
-
-
---MessagePart:108928047.0-7590-443905041-1211871808
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset="iso-8859-2"
-
-Hi Juerg,
- thanks for your hints! After 'depmod -a' and patch driver is loaded
-now and lm_sensors are working:
-
-# sensors
-sch311x-isa-0a70
-Adapter: ISA adapter
-in0:        +0.00 V (min =3D +0.00 V, max =3D +6.64 V)  ALARM
-in1:        +1.76 V (min =3D +0.00 V, max =3D +2.99 V)
-in2:        +3.25 V (min =3D +0.00 V, max =3D +4.38 V)
-in3:        +4.99 V (min =3D +0.00 V, max =3D +6.64 V)
-in4:       +12.31 V (min =3D +0.00 V, max =3D +15.94 V)
-in5:        +3.27 V (min =3D +0.00 V, max =3D +4.38 V)
-in6:        +3.17 V (min =3D +0.00 V, max =3D +4.38 V)
-fan1:         0 RPM (min =3D   0 RPM)
-fan2:      1747 RPM (min =3D   0 RPM)
-fan3:         0 RPM (min =3D   0 RPM)
-temp1:      +47.6=B0C (low =3D -127.0=B0C, high =3D +127.0=B0C)
-temp2:      +42.8=B0C (low =3D -127.0=B0C, high =3D +127.0=B0C)
-temp3:      +41.1=B0C (low =3D -127.0=B0C, high =3D +127.0=B0C)
-cpu0_vid:  +0.000 V
-
-I have only small error in messages log regarding hwmon-vid module, 
-but I can live with it..:
-
-May 27 10:33:34 obelix kernel: dme1737 dme1737.2672: Found a SCH311x
-chip at 0x0a70
-May 27 10:33:34 obelix kernel: dme1737 dme1737.2672: Optional 
-features: pwm3=3Dyes, pwm5=3Dno, pwm6=3Dno, fan3=3Dyes, fan4=3Dno, fan5=
-=3Dno, 
-fan6=3Dno.
-May 27 10:33:34 obelix kernel: hwmon-vid: Unknown VRM version of 
-your x86 CPU
-
-Thanks again for your kind help!
-Jaroslav
-
-
-
-
------------- P=F9vodn=ED zpr=E1va ------------
-Od: Juerg Haefliger <juergh@gmail.com>
-P=F8edm=ECt: Re: [lm-sensors] dme1737 under CentOS 2.6.18 kernel
-Datum: 27.5.2008 01:37:05
----------------------------------------------
-Hi Jaroslav,
-
-
-
-On Mon, May 26, 2008 at 12:08 PM, Jaroslav Vacha <vacha@email.cz
-(mailto:vacha@email.cz)> wrote:
-" Hi, 
- I'm trying to compile dme1737 driver under CentOS 5.1 with 2.6.18-
-53.1.21.el5 kernel to support VIA EPIA-SN 18000G motherboard 
-sensors.
- Followed Juerg's instruction from post http://lists.lm-sensors.org/
-pipermail/lm-sensors/2007-December/022166.html
-(http://lists.lm-sensors.org/pipermail/lm-sensors/2007-December/022166.=
-html)
-
- Code compiled with warnings:
-
-#make all
-make -C /lib/modules/`uname -r`/build M=3D/install/lm_sensors/driver 
-modules
-make[1]: Entering directory `/usr/src/kernels/2.6.18-53.1.21.el5-i
-686'
- CC [M] /install/lm_sensors/driver/dme1737.o
-/install/lm_sensors/driver/dme1737.c:55: warning: initialization 
-discards qualifiers from pointer target type
-/install/lm_sensors/driver/dme1737.c: In function 'dme1737_i2c_
-detect':
-/install/lm_sensors/driver/dme1737.c:2139: warning: assignment from 
-incompatible pointer type
-/install/lm_sensors/driver/dme1737.c: In function 'dme1737_i2c_
-detach_client':
-/install/lm_sensors/driver/dme1737.c:2172: warning: passing argument
-1 of 'hwmon_device_unregister' from incompatible pointer type
-/install/lm_sensors/driver/dme1737.c: In function 'dme1737_isa_
-probe':
-/install/lm_sensors/driver/dme1737.c:2324: warning: assignment from 
-incompatible pointer type
-/install/lm_sensors/driver/dme1737.c: In function 'dme1737_isa_
-remove':
-/install/lm_sensors/driver/dme1737.c:2348: warning: passing argument
-1 of 'hwmon_device_unregister' from incompatible pointer type
- Building modules, stage 2.
- MODPOST
- CC     /install/lm_sensors/driver/dme1737.mod.o
- LD [M] /install/lm_sensors/driver/dme1737.ko
-make[1]: Leaving directory `/usr/src/kernels/2.6.18-53.1.21.el5-i
-686'
-[root@server driver]#
-
- dme1737.ko module is created and copied in /lib/modules/2.6.18-
-53.1.21.el5/kernel/drivers/hwmon path. But when I tried to insert 
-this module into kernel, module is not loaded with following error 
-message:
-
-#insmod dme1737.ko
-insmod: error inserting 'dme1737.ko': -1 Unknown symbol in module
-
-Do you have any idea where is a mistake? Thanks for your reply
-"
-
-The dme1737 driver depends on i2c-core and hwmon-vid. My guess is 
-one or both of those aren't loaded. Do 'depmod -a' and then 
-'modprobe dme1737 probe_all_addr=3D1' to load the driver an all the 
-modules it depends upon.
-Note that for the driver to correctly work on a SN18000 board, you 
-need to have the following patch applied (hence the probe_all_addr 
-option):
-http://lists.lm-sensors.org/pipermail/lm-sensors/2008-April/022802.
-html
-(http://lists.lm-sensors.org/pipermail/lm-sensors/2008-April/022802.htm=
-l)
-
-...juerg
-
- 
-" Jaroslav
+SGkgSmFyb3NsYXYsPGJyPjxicj48YnI+PGRpdiBjbGFzcz0iZ21haWxfcXVvdGUiPk9uIFR1ZSwg
+TWF5IDI3LCAyMDA4IGF0IDEyOjA5IEFNLCBKYXJvc2xhdiBWYWNoYSAmbHQ7PGEgaHJlZj0ibWFp
+bHRvOnZhY2hhQGVtYWlsLmN6Ij52YWNoYUBlbWFpbC5jejwvYT4mZ3Q7IHdyb3RlOjxicj48Ymxv
+Y2txdW90ZSBjbGFzcz0iZ21haWxfcXVvdGUiIHN0eWxlPSJib3JkZXItbGVmdDogMXB4IHNvbGlk
+IHJnYigyMDQsIDIwNCwgMjA0KTsgbWFyZ2luOiAwcHQgMHB0IDBwdCAwLjhleDsgcGFkZGluZy1s
+ZWZ0OiAxZXg7Ij4KSGkgSnVlcmcsPGJyPgombmJzcDt0aGFua3MgZm9yIHlvdXIgaGludHMhIEFm
+dGVyICYjMzk7ZGVwbW9kIC1hJiMzOTsgYW5kIHBhdGNoIGRyaXZlciBpcyBsb2FkZWQ8YnI+Cm5v
+dyBhbmQgbG1fc2Vuc29ycyBhcmUgd29ya2luZzo8YnI+Cjxicj4KIyBzZW5zb3JzPGJyPgpzY2gz
+MTF4LWlzYS0wYTcwPGJyPgpBZGFwdGVyOiBJU0EgYWRhcHRlcjxicj4KaW4wOiAmbmJzcDsgJm5i
+c3A7ICZuYnNwOyAmbmJzcDsrMC4wMCBWIChtaW4gPSArMC4wMCBWLCBtYXggPSArNi42NCBWKSAm
+bmJzcDtBTEFSTTxicj4KaW4xOiAmbmJzcDsgJm5ic3A7ICZuYnNwOyAmbmJzcDsrMS43NiBWICht
+aW4gPSArMC4wMCBWLCBtYXggPSArMi45OSBWKTxicj4KaW4yOiAmbmJzcDsgJm5ic3A7ICZuYnNw
+OyAmbmJzcDsrMy4yNSBWIChtaW4gPSArMC4wMCBWLCBtYXggPSArNC4zOCBWKTxicj4KaW4zOiAm
+bmJzcDsgJm5ic3A7ICZuYnNwOyAmbmJzcDsrNC45OSBWIChtaW4gPSArMC4wMCBWLCBtYXggPSAr
+Ni42NCBWKTxicj4KaW40OiAmbmJzcDsgJm5ic3A7ICZuYnNwOyArMTIuMzEgViAobWluID0gKzAu
+MDAgViwgbWF4ID0gKzE1Ljk0IFYpPGJyPgppbjU6ICZuYnNwOyAmbmJzcDsgJm5ic3A7ICZuYnNw
+OyszLjI3IFYgKG1pbiA9ICswLjAwIFYsIG1heCA9ICs0LjM4IFYpPGJyPgppbjY6ICZuYnNwOyAm
+bmJzcDsgJm5ic3A7ICZuYnNwOyszLjE3IFYgKG1pbiA9ICswLjAwIFYsIG1heCA9ICs0LjM4IFYp
+PGJyPgpmYW4xOiAmbmJzcDsgJm5ic3A7ICZuYnNwOyAmbmJzcDsgMCBSUE0gKG1pbiA9ICZuYnNw
+OyAwIFJQTSk8YnI+CmZhbjI6ICZuYnNwOyAmbmJzcDsgJm5ic3A7MTc0NyBSUE0gKG1pbiA9ICZu
+YnNwOyAwIFJQTSk8YnI+CmZhbjM6ICZuYnNwOyAmbmJzcDsgJm5ic3A7ICZuYnNwOyAwIFJQTSAo
+bWluID0gJm5ic3A7IDAgUlBNKTxicj4KdGVtcDE6ICZuYnNwOyAmbmJzcDsgJm5ic3A7KzQ3Ljaw
+QyAobG93ID0gLTEyNy4wsEMsIGhpZ2ggPSArMTI3LjCwQyk8YnI+CnRlbXAyOiAmbmJzcDsgJm5i
+c3A7ICZuYnNwOys0Mi44sEMgKGxvdyA9IC0xMjcuMLBDLCBoaWdoID0gKzEyNy4wsEMpPGJyPgp0
+ZW1wMzogJm5ic3A7ICZuYnNwOyAmbmJzcDsrNDEuMbBDIChsb3cgPSAtMTI3LjCwQywgaGlnaCA9
+ICsxMjcuMLBDKTxicj4KY3B1MF92aWQ6ICZuYnNwOyswLjAwMCBWPGJyPgo8YnI+CkkgaGF2ZSBv
+bmx5IHNtYWxsIGVycm9yIGluIG1lc3NhZ2VzIGxvZyByZWdhcmRpbmcgaHdtb24tdmlkIG1vZHVs
+ZSw8YnI+CmJ1dCBJIGNhbiBsaXZlIHdpdGggaXQuLjo8YnI+Cjxicj4KTWF5IDI3IDEwOjMzOjM0
+IG9iZWxpeCBrZXJuZWw6IGRtZTE3MzcgZG1lMTczNy4yNjcyOiBGb3VuZCBhIFNDSDMxMXg8YnI+
+CmNoaXAgYXQgMHgwYTcwPGJyPgpNYXkgMjcgMTA6MzM6MzQgb2JlbGl4IGtlcm5lbDogZG1lMTcz
+NyBkbWUxNzM3LjI2NzI6IE9wdGlvbmFsPGJyPgpmZWF0dXJlczogcHdtMz15ZXMsIHB3bTU9bm8s
+IHB3bTY9bm8sIGZhbjM9eWVzLCBmYW40PW5vLCBmYW41PW5vLDxicj4KZmFuNj1uby48YnI+Ck1h
+eSAyNyAxMDozMzozNCBvYmVsaXgga2VybmVsOiBod21vbi12aWQ6IFVua25vd24gVlJNIHZlcnNp
+b24gb2Y8YnI+CnlvdXIgeDg2IENQVTxicj4KPC9ibG9ja3F1b3RlPjxkaXY+PGJyPlRoYXQmIzM5
+O3MgYmVjYXVzZSB0aGUgc2NoMzExeCBkb2VzbiYjMzk7dCBoYXZlIFZJRCBpbnB1dHMuIEkgbmVl
+ZCB0byBmaXggdGhhdCB3aGVuIHRpbWUgcGVybWl0cy48YnI+PGJyPi4uLmp1ZXJnPGJyPjxicj4m
+bmJzcDs8L2Rpdj48YmxvY2txdW90ZSBjbGFzcz0iZ21haWxfcXVvdGUiIHN0eWxlPSJib3JkZXIt
+bGVmdDogMXB4IHNvbGlkIHJnYigyMDQsIDIwNCwgMjA0KTsgbWFyZ2luOiAwcHQgMHB0IDBwdCAw
+LjhleDsgcGFkZGluZy1sZWZ0OiAxZXg7Ij4KPGJyPgpUaGFua3MgYWdhaW4gZm9yIHlvdXIga2lu
+ZCBoZWxwITxicj4KSmFyb3NsYXY8YnI+Cjxicj4KPGJyPgo8YnI+Cjxicj4KLS0tLS0tLS0tLS0t
+IFD5dm9kbu0genBy4XZhIC0tLS0tLS0tLS0tLTxicj4KT2Q6IEp1ZXJnIEhhZWZsaWdlciAmbHQ7
+PGEgaHJlZj0ibWFpbHRvOmp1ZXJnaEBnbWFpbC5jb20iPmp1ZXJnaEBnbWFpbC5jb208L2E+Jmd0
+Ozxicj4KUPhlZG3sdDogUmU6IFtsbS1zZW5zb3JzXSBkbWUxNzM3IHVuZGVyIENlbnRPUyAyLjYu
+MTgga2VybmVsPGJyPgpEYXR1bTogMjcuNS4yMDA4IDAxOjM3OjA1PGJyPgotLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS08YnI+CjxkaXYgY2xhc3M9IkloMkUzZCI+
+SGkgSmFyb3NsYXYsPGJyPgo8YnI+Cjxicj4KPGJyPgpPbiBNb24sIE1heSAyNiwgMjAwOCBhdCAx
+MjowOCBQTSwgSmFyb3NsYXYgVmFjaGEgJmx0OzxhIGhyZWY9Im1haWx0bzp2YWNoYUBlbWFpbC5j
+eiI+dmFjaGFAZW1haWwuY3o8L2E+PGJyPgo8L2Rpdj48ZGl2IGNsYXNzPSJJaDJFM2QiPihtYWls
+dG86PGEgaHJlZj0ibWFpbHRvOnZhY2hhQGVtYWlsLmN6Ij52YWNoYUBlbWFpbC5jejwvYT4pJmd0
+OyB3cm90ZTo8YnI+CiZxdW90OyBIaSw8YnI+CiZuYnNwO0kmIzM5O20gdHJ5aW5nIHRvIGNvbXBp
+bGUgZG1lMTczNyBkcml2ZXIgdW5kZXIgQ2VudE9TIDUuMSB3aXRoIDIuNi4xOC08YnI+CjUzLjEu
+MjEuZWw1IGtlcm5lbCB0byBzdXBwb3J0IFZJQSBFUElBLVNOIDE4MDAwRyBtb3RoZXJib2FyZDxi
+cj4Kc2Vuc29ycy48YnI+CiZuYnNwO0ZvbGxvd2VkIEp1ZXJnJiMzOTtzIGluc3RydWN0aW9uIGZy
+b20gcG9zdCA8YSBocmVmPSJodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvcGlwZXJtYWlsL2xt
+LXNlbnNvcnMvMjAwNy1EZWNlbWJlci8wMjIxNjYuaHRtbCIgdGFyZ2V0PSJfYmxhbmsiPmh0dHA6
+Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy88YnI+CnBpcGVybWFpbC9sbS1zZW5zb3JzLzIwMDctRGVj
+ZW1iZXIvMDIyMTY2Lmh0bWw8L2E+PGJyPgo8L2Rpdj4oPGEgaHJlZj0iaHR0cDovL2xpc3RzLmxt
+LXNlbnNvcnMub3JnL3BpcGVybWFpbC9sbS1zZW5zb3JzLzIwMDctRGVjZW1iZXIvMDIyMTY2Lmh0
+bWwiIHRhcmdldD0iX2JsYW5rIj5odHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvcGlwZXJtYWls
+L2xtLXNlbnNvcnMvMjAwNy1EZWNlbWJlci8wMjIxNjYuaHRtbDwvYT4pPGJyPgo8ZGl2PjxkaXY+
+PC9kaXY+PGRpdiBjbGFzcz0iV2ozQzdjIj48YnI+CiZuYnNwO0NvZGUgY29tcGlsZWQgd2l0aCB3
+YXJuaW5nczo8YnI+Cjxicj4KI21ha2UgYWxsPGJyPgptYWtlIC1DIC9saWIvbW9kdWxlcy9gdW5h
+bWUgLXJgL2J1aWxkIE09L2luc3RhbGwvbG1fc2Vuc29ycy9kcml2ZXI8YnI+Cm1vZHVsZXM8YnI+
+Cm1ha2VbMV06IEVudGVyaW5nIGRpcmVjdG9yeSBgL3Vzci9zcmMva2VybmVscy8yLjYuMTgtNTMu
+MS4yMS5lbDUtaTxicj4KNjg2JiMzOTs8YnI+CiZuYnNwO0NDIFtNXSAvaW5zdGFsbC9sbV9zZW5z
+b3JzL2RyaXZlci9kbWUxNzM3Lm88YnI+Ci9pbnN0YWxsL2xtX3NlbnNvcnMvZHJpdmVyL2RtZTE3
+MzcuYzo1NTogd2FybmluZzogaW5pdGlhbGl6YXRpb248YnI+CmRpc2NhcmRzIHF1YWxpZmllcnMg
+ZnJvbSBwb2ludGVyIHRhcmdldCB0eXBlPGJyPgovaW5zdGFsbC9sbV9zZW5zb3JzL2RyaXZlci9k
+bWUxNzM3LmM6IEluIGZ1bmN0aW9uICYjMzk7ZG1lMTczN19pMmNfPGJyPgpkZXRlY3QmIzM5Ozo8
+YnI+Ci9pbnN0YWxsL2xtX3NlbnNvcnMvZHJpdmVyL2RtZTE3MzcuYzoyMTM5OiB3YXJuaW5nOiBh
+c3NpZ25tZW50IGZyb208YnI+CmluY29tcGF0aWJsZSBwb2ludGVyIHR5cGU8YnI+Ci9pbnN0YWxs
+L2xtX3NlbnNvcnMvZHJpdmVyL2RtZTE3MzcuYzogSW4gZnVuY3Rpb24gJiMzOTtkbWUxNzM3X2ky
+Y188YnI+CmRldGFjaF9jbGllbnQmIzM5Ozo8YnI+Ci9pbnN0YWxsL2xtX3NlbnNvcnMvZHJpdmVy
+L2RtZTE3MzcuYzoyMTcyOiB3YXJuaW5nOiBwYXNzaW5nIGFyZ3VtZW50PGJyPgoxIG9mICYjMzk7
+aHdtb25fZGV2aWNlX3VucmVnaXN0ZXImIzM5OyBmcm9tIGluY29tcGF0aWJsZSBwb2ludGVyIHR5
+cGU8YnI+Ci9pbnN0YWxsL2xtX3NlbnNvcnMvZHJpdmVyL2RtZTE3MzcuYzogSW4gZnVuY3Rpb24g
+JiMzOTtkbWUxNzM3X2lzYV88YnI+CnByb2JlJiMzOTs6PGJyPgovaW5zdGFsbC9sbV9zZW5zb3Jz
+L2RyaXZlci9kbWUxNzM3LmM6MjMyNDogd2FybmluZzogYXNzaWdubWVudCBmcm9tPGJyPgppbmNv
+bXBhdGlibGUgcG9pbnRlciB0eXBlPGJyPgovaW5zdGFsbC9sbV9zZW5zb3JzL2RyaXZlci9kbWUx
+NzM3LmM6IEluIGZ1bmN0aW9uICYjMzk7ZG1lMTczN19pc2FfPGJyPgpyZW1vdmUmIzM5Ozo8YnI+
+Ci9pbnN0YWxsL2xtX3NlbnNvcnMvZHJpdmVyL2RtZTE3MzcuYzoyMzQ4OiB3YXJuaW5nOiBwYXNz
+aW5nIGFyZ3VtZW50PGJyPgoxIG9mICYjMzk7aHdtb25fZGV2aWNlX3VucmVnaXN0ZXImIzM5OyBm
+cm9tIGluY29tcGF0aWJsZSBwb2ludGVyIHR5cGU8YnI+CiZuYnNwO0J1aWxkaW5nIG1vZHVsZXMs
+IHN0YWdlIDIuPGJyPgombmJzcDtNT0RQT1NUPGJyPgombmJzcDtDQyAmbmJzcDsgJm5ic3A7IC9p
+bnN0YWxsL2xtX3NlbnNvcnMvZHJpdmVyL2RtZTE3MzcubW9kLm88YnI+CiZuYnNwO0xEIFtNXSAv
+aW5zdGFsbC9sbV9zZW5zb3JzL2RyaXZlci9kbWUxNzM3LmtvPGJyPgptYWtlWzFdOiBMZWF2aW5n
+IGRpcmVjdG9yeSBgL3Vzci9zcmMva2VybmVscy8yLjYuMTgtNTMuMS4yMS5lbDUtaTxicj4KNjg2
+JiMzOTs8YnI+Cltyb290QHNlcnZlciBkcml2ZXJdIzxicj4KPGJyPgombmJzcDtkbWUxNzM3Lmtv
+IG1vZHVsZSBpcyBjcmVhdGVkIGFuZCBjb3BpZWQgaW4gL2xpYi9tb2R1bGVzLzIuNi4xOC08YnI+
+CjUzLjEuMjEuZWw1L2tlcm5lbC9kcml2ZXJzL2h3bW9uIHBhdGguIEJ1dCB3aGVuIEkgdHJpZWQg
+dG8gaW5zZXJ0PGJyPgp0aGlzIG1vZHVsZSBpbnRvIGtlcm5lbCwgbW9kdWxlIGlzIG5vdCBsb2Fk
+ZWQgd2l0aCBmb2xsb3dpbmcgZXJyb3I8YnI+Cm1lc3NhZ2U6PGJyPgo8YnI+CiNpbnNtb2QgZG1l
+MTczNy5rbzxicj4KaW5zbW9kOiBlcnJvciBpbnNlcnRpbmcgJiMzOTtkbWUxNzM3LmtvJiMzOTs6
+IC0xIFVua25vd24gc3ltYm9sIGluIG1vZHVsZTxicj4KPGJyPgpEbyB5b3UgaGF2ZSBhbnkgaWRl
+YSB3aGVyZSBpcyBhIG1pc3Rha2U/IFRoYW5rcyBmb3IgeW91ciByZXBseTxicj4KJnF1b3Q7PGJy
+Pgo8YnI+ClRoZSBkbWUxNzM3IGRyaXZlciBkZXBlbmRzIG9uIGkyYy1jb3JlIGFuZCBod21vbi12
+aWQuIE15IGd1ZXNzIGlzPGJyPgpvbmUgb3IgYm90aCBvZiB0aG9zZSBhcmVuJiMzOTt0IGxvYWRl
+ZC4gRG8gJiMzOTtkZXBtb2QgLWEmIzM5OyBhbmQgdGhlbjxicj4KJiMzOTttb2Rwcm9iZSBkbWUx
+NzM3IHByb2JlX2FsbF9hZGRyPTEmIzM5OyB0byBsb2FkIHRoZSBkcml2ZXIgYW4gYWxsIHRoZTxi
+cj4KbW9kdWxlcyBpdCBkZXBlbmRzIHVwb24uPGJyPgpOb3RlIHRoYXQgZm9yIHRoZSBkcml2ZXIg
+dG8gY29ycmVjdGx5IHdvcmsgb24gYSBTTjE4MDAwIGJvYXJkLCB5b3U8YnI+Cm5lZWQgdG8gaGF2
+ZSB0aGUgZm9sbG93aW5nIHBhdGNoIGFwcGxpZWQgKGhlbmNlIHRoZSBwcm9iZV9hbGxfYWRkcjxi
+cj4Kb3B0aW9uKTo8YnI+CjxhIGhyZWY9Imh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9waXBl
+cm1haWwvbG0tc2Vuc29ycy8yMDA4LUFwcmlsLzAyMjgwMi5odG1sIiB0YXJnZXQ9Il9ibGFuayI+
+aHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVybWFpbC9sbS1zZW5zb3JzLzIwMDgtQXBy
+aWwvMDIyODAyLjxicj4KaHRtbDwvYT48YnI+CjwvZGl2PjwvZGl2Pig8YSBocmVmPSJodHRwOi8v
+bGlzdHMubG0tc2Vuc29ycy5vcmcvcGlwZXJtYWlsL2xtLXNlbnNvcnMvMjAwOC1BcHJpbC8wMjI4
+MDIuaHRtbCIgdGFyZ2V0PSJfYmxhbmsiPmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9waXBl
+cm1haWwvbG0tc2Vuc29ycy8yMDA4LUFwcmlsLzAyMjgwMi5odG1sPC9hPik8YnI+CjxkaXYgY2xh
+c3M9IkloMkUzZCI+PGJyPgouLi5qdWVyZzxicj4KPGJyPgo8YnI+CiZxdW90OyBKYXJvc2xhdjxi
+cj4KPGJyPgo8YnI+Cjxicj4KPGJyPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXzxicj4KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3Q8YnI+CjwvZGl2PjxhIGhy
+ZWY9Im1haWx0bzpsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnIj5sbS1zZW5zb3JzQGxtLXNlbnNv
+cnMub3JnPC9hPihtYWlsdG86PGEgaHJlZj0ibWFpbHRvOmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
+cmciPmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmc8L2E+KTxicj4KPGRpdiBjbGFzcz0iSWgyRTNk
+Ij48YSBocmVmPSJodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+bS1zZW5zb3JzIiB0YXJnZXQ9Il9ibGFuayI+aHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21h
+aWxtYW4vbGlzdGluZm8vbG0tc2Vuc29yczwvYT48YnI+CjwvZGl2Pig8YSBocmVmPSJodHRwOi8v
+bGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3JzIiB0YXJnZXQ9
+Il9ibGFuayI+aHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0t
+c2Vuc29yczwvYT4pPGJyPgomcXVvdDs8YnI+Cjxicj4KPGJyPl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fPGJyPgpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdDxi
+cj4KPGEgaHJlZj0ibWFpbHRvOmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmciPmxtLXNlbnNvcnNA
+bG0tc2Vuc29ycy5vcmc8L2E+PGJyPgo8YSBocmVmPSJodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5v
+cmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3JzIiB0YXJnZXQ9Il9ibGFuayI+aHR0cDovL2xp
+c3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29yczwvYT48YnI+PC9i
+bG9ja3F1b3RlPjwvZGl2Pjxicj4K
+------=_Part_1391_10863090.1211906711196--
 
 
- 
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org(mailto:lm-sensors@lm-sensors.org)
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-(http://lists.lm-sensors.org/mailman/listinfo/lm-sensors)
-"
-
-
---MessagePart:108928047.0-7590-443905041-1211871808--
-
-
---===============9054164066708532238==
+--===============5515785307685436984==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -293,4 +253,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============9054164066708532238==--
+--===============5515785307685436984==--
