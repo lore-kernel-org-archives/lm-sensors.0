@@ -1,175 +1,140 @@
-From: Jonathan Cameron <Jonathan.Cameron@gmail.com>
-Date: Mon, 26 May 2008 16:23:40 +0000
+From: mark gross <mgross@linux.intel.com>
+Date: Tue, 27 May 2008 15:43:31 +0000
 Subject: Re: [lm-sensors] [spi-devel-general] Accelerometer,
-Message-Id: <483AE40C.60204@gmail.com>
+Message-Id: <20080527154331.GA29868@linux.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4832A211.4040206@gmail.com>	<20080520132817.03fb74ea@hyperion.delvare> <200805211752.15670.david-b@pacbell.net> <48353E45.2080903@cam.ac.uk>
-In-Reply-To: <48353E45.2080903@cam.ac.uk>
+References: <4832A211.4040206@gmail.com> <20080520175041.GA30909@linux.intel.com> <4833EE22.80502@cam.ac.uk>
+In-Reply-To: <4833EE22.80502@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: David Brownell <david-b@pacbell.net>, Jean Delvare <khali@linux-fr.org>, spi-devel-general@lists.sourceforge.net, LM Sensors <lm-sensors@lm-sensors.org>, linux-kernel@vger.kernel.org, Dmitry Torokhov <dtor@mail.ru>
+Cc: Jonathan Cameron <Jonathan.Cameron@gmail.com>, spi-devel-general@lists.sourceforge.net, linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
 
-Dear All,
+On Wed, May 21, 2008 at 10:40:50AM +0100, Jonathan Cameron wrote:
 
-This email is intended to summarize the results of the discussions over
-the last week or so and to open up to further comments on the way foward.
+First I'm sorry for not checking my email for a week and the late reply.
 
-The original question was related to garnering opinions on how and where to
-support devices such as accelerometers, gyros, general purpose ADCs (and
-possibly DACs).  Typical interfaces are SPI and I2C, rates varying from 10Hz
-to many kHz.  Real time and buffered access needed depending on application.
+> Hi Mark,
+>
+>>> ST Micro LIS3L02DQ 3D accelerometer.  SPI device, no buffering, interrupt 
+>>> pin
+>>> raised high on new data being available. Currently the driver assumes, if
+>>> interrupts are enabled, that this is connected to a specified gpio.
+>>> (http://www.st.com/stonline/books/pdf/docs/10175.pdf)
+>> FWIW: I have this device talking to a PIC-18 and pushing the results
+>> over the serial port.
+>
+> That's certainly interesting and I guess one of the easiest ways of getting 
+> data from spi to a desktop machine. I'll admit my interest is more with 
+> embedded machines.
+>
+>> WRT linux support, I can't think of a generalized way to create a driver
+>> that would be able to be used with this device in Linux.  You need to
+>> know witch IRQ line the DR line is connected too, and if you are
+>> bit-banging the SPI data off the thing, then you need to know which
+>> GPIO's of the host CPU you'll be using. 
+> Yes, and that means we would use the delights of platform data and the 
+> generic gpio subsystem.  Although I believe generic gpio isn't available on 
+> every platform as yet, it is getting there and is certainly in place for 
+> ARM (and cleans up an awful lot of hardware interfaces!)
+>> If you have SPI hardware then
+>> you need to know where to pull the data from.  The problem doesn't seem to
+>> generalize well.
+> Yes, the intention would not be to generalize the hardware comms, but 
+> rather the
+> interface on the user side.  This is similar to a number of other 
+> subsystems such as hwmon, where you share functionality as much as 
+> possible, but allow very different approaches to things like actual 
+> hardware register reads as and when they are necessary.
 
-Conclusions:
+Ok, say the HW SPI is pushed down to some lower level driver.  These
+things send streaming data, and sometimes signals (free-fall detect) out
+of band WRT the SPI comms.
 
- 1.  The hwmon subsystem is unsuitable as it is intended to provide
-relatively low frequency cached updates of sensor readings.
+I would like to see how a higher level API could encapsulate the
+generalization of a class of such devices.
 
-2. Definitely a bad idea to simply put such drivers in the relevant bus
-subsystems due to unmaintainability and probable long term interface
-divergence due to differing maintainers.
+Also, I'm not sure how one could generalize SPI communications at a high
+level given its bi-directional nature.
 
-3. Whilst input subsystem is probably the only place that these sorts
-of device could be currently included this would come at the cost of
-input_dev being too fat and undesirable anonymization of the devices
+I guess I need to see some header files showing what you are thinking
+about.
 
-4. Some stuff to be learned from comedi project (www.comedi.org).
-Based on a quick browse of their documentation it looks like there
-may be  stuff to learn on what sort of userspace interfaces are interesting
-but the drivers themselves are (as Matt originally stated) io-port based.
-
-5. General consensus seems to be on a new subsytem (we'll bash out a
-suitable name later - for now I don't want a name effectively guiding
-the functionality!)
-
-What's next
-
-Obviously the exact functionality of this subsystem is going to be somewhat
-up in the air until we have a wide range of devices supported.
-
-The minimum needed seems to be a control interface to configure the devices
-and some level of event interface (similar to input subsystem) to 
-indicate to
-userspace programs that something of interest to them has occured.
-As configuration of the devices is a relatively infrequent event
-(at least in the applications I work with), it seems to me that a 
-suitable sys
-interface, under a new class would provide this.
-
-Types of parameter:
-
-Chip related:
-read/write -- Offsets, gains, sensor biases.
-read only -- Factory set versions of the above, version numbers etc.
-
-Mode related:
-Some chips will operative in buffered and unbuffered modes.
-Things like single ended vs differential modes on ADCs.
-
-Interface related:
-Like the input subsystem, things like parameters of an associated character
-device, and the type of events this may return.  This would allow different
-complexities of event depending on what is going on.  Down the line this 
-may
-allow the turning off and on of individual events as appropriate. For 
-example,
-if no-one is interested in an interrupt event such as freefall detection 
-of an
-accelerometer then depending on hardware support we may be a) able to turn
-it off and free the relevant interrupt, or b) simply free the relevant 
-interrupt
-and ignore the event.
-
-Simple read of current value:
-As the devices will not always be generating interrupts, it probably 
-also makes
-sense to have interfaces here to get the current values of readings.   
-Either this
-will be from a cached value in an interrupt providing device, or 
-actually initialise
-a read from the device if appropriate.
-
-The other interface element would be a stripped down /dev/ device 
-similar to those
-used by the input subsystem.  However, it may make sense to have an 
-independent one
-of these for each and every chip present?  Does it make sense to ever 
-aggregate these,
-or should this effectively be left to select calls in the userspace 
-code?  There is also an
-issue here of whether we want to group similar devices.  I.e. should we 
-group all
-accelerometers? My personal view is, not at the moment as it would 
-complicate the
-handling of devices combining several types of sensor.
-
-The fun bit of this subsystem will be in how buffering of incoming data 
-is accomplished.
-As an example, lets say we want a 100Hz set of readings from the device. 
-Several
-possibilities exist:
-
-a) The device itself has a ring buffer (the VTI accelerometers are an 
-example of this). 
-If this is the case, how would people suggest we go about reading from 
-the ring buffer in
-the event of an interrupt (typically 3/4 full).  We could have a the 
-kernel module interpret
-this interrupt and effectively fill a ring buffer in the kernel from the 
-hardware one.  This
-is efficient on interrupts and the kernel based ring buffer could have a 
-size controllable
-through the sys interface. 
-
-b) The device triggers an interrupt on each 'data ready' after sampling 
-some analog
-measurement.  Do we generate an event on each of these? (seems like 
-overkill to me)
-or again use a ring buffer in the kernel to store the results and 
-perhaps send an event
-out after a (sysfs interface controlled) number of readings.  If a near 
-real-time app is
-wanting the data, then this would be set to zero to indicate need to 
-send an event on each
-reading. The ST LIS3L02DQ accelerometer falls into this category.  
-Complexities here
-are concerned with the need to look directly at the relevant gpio value 
-in order to establish
-whether another even has occured before the bottom half of the interrupt 
-has run. See
-the LIS3L02DQ driver I posted to the spi-devel mailing list for an example.
-
-c) The device samples only on a request over the bus.  Either these 
-could only be read
-from via the sysfs interface or an event sent through the dev character 
-device. 
-Also feasible would be a board specific element of the platform_data, 
-perhaps specifying
-functions to initialize a hardware periodic clock interrupt or similar
-(I've done this before, but it was clunky - at high rates you frequently 
-miss interrupts.)
-The MAX123x and MAX1363 ADCs fall into this category.
-
-Obviously the challenge in all this is to keep the number of interrupts 
-and indeed events (in
-the input subsystem sense of sending to userspace via a char device) to 
-a minimum.
-
-For other issues such as time stamping, whilst vital, to a certain 
-extent may need to be
-handled within largely within the individual drivers (due to the 
-different types of read above).
-Clearly the subsystem should provide helper functions for this wherever 
-possible.
-
-All comments welcome and thanks to everyone who contributed to the 
-original discussion.
+Keep in mind that one abstraction of these devices is they are simply
+streaming A2D 16 bit data values over SPI (or I2C).  The size of the
+data set is a function of the sensor axes.
 
 
---
+>
+>> Also, If you are playing with accelerometer data, you likely need some
+>> real time support or at lest a reliable time stamping of the data to do
+>> anything interesting.
+> Definitely. Obviously the accuracy of this time stamp is going to be 
+> limited by
+> the variable nature of when an interrupt handler picks it up, but knowledge 
+> of the device specs can allow filtering of this timing data.  This is 
+> certainly something we would want to consider at a later date although it 
+> may well be more sensible to leave this to userspace applications.
+>
+>> Another problem area is around SPI itself.  There are variations of
+>> device implementations around chip select polarity, clock biasing
+>> (rising,falling, or midpoint) sampling from one SPI part to the next.
+> Indeed.  This is well handled by the SPI subsystem. I've spent far too much 
+> time with a scope recently fiddling with these parameters for badly 
+> documented chips!
+>
+>>> VTI SCA3000 E05 3D accelerometer equiped with substantial ring buffer. 
+>>> SPI
+>>> device.  Can operate either in buffered or direct mode.  In buffered 
+>>> mode, interrupts
+>>> can be used to indicate when the ring buffer is 3/4 full triggering a 
+>>> download to
+>>> a larger ring buffer in the kernel if necessary.
+>>> (http://www.vti.fi/en/products-solutions/products/accelerometers/sca3000-accelerometers/)
+>>>
+>> ring buffered data can make RT applications harder...
+> Agreed.  With this sort of device two modes would be needed (and are 
+> supported by the hardware).  The first gives direct data access and the 
+> second uses the ring buffer.  Which you use would obviously be dependent on 
+> the application. Some applications want the most recent data on all 
+> occasions, whilst some will be more interested in ensuring that all data is 
+> captured.
+>
+>>>
+>>> Would be nice if practical to allow the framework to include RS232 
+>>> devices such
+>>> as those from www.xsens.com, www.isense.com and others.
+>> I'm not sure what you are asking for, you started off with SPI driver
+>> for interfacing a handful of accelerometer devices.  Now your talking
+>> about the serial port.
+>
+> The question here is concerned with standardising mainly the userspace 
+> interfaces (and hardware interfaces only when appropriate). Some of these 
+> devices (the ST accel above for example) support multiple hardware 
+> interfaces specs (I2C and SPI for that one).  So in a similar way to it 
+> making sense to group all TV adapters irrespective of how they are 
+> interfaced to the computer, in order to ensure a consistent interface to 
+> user space, it makes sense to share these interfaces amongst drivers 
+> talking to these devices irrespective of what their hardware interface is.
 
-Jonathan Cameron
+I guess I need to see some header files to see where you are going with
+this idea.  To be useful you'll also need to handle rotation sensors and
+communicate the temperature bias's up the stack too.
+
+
+good luck keep me posted on where your going with this, it is
+interesting to me.
+
+--mgross
+
+>> Besides the consumer of accelerometer data is user space applications
+>> (mine attempt to be somewhat RT applications) 
+>
+> Thanks,
+>
+> --
+> Jonathan Cameron
 
 _______________________________________________
 lm-sensors mailing list
