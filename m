@@ -1,112 +1,109 @@
-From: Ben Dooks <ben@fluff.org>
-Date: Tue, 27 May 2008 17:16:56 +0000
+From: Jonathan Cameron <Jonathan.Cameron@gmail.com>
+Date: Tue, 27 May 2008 17:59:36 +0000
 Subject: Re: [lm-sensors] [spi-devel-general] Accelerometer,
-Message-Id: <20080527171656.GA870@trinity.fluff.org>
+Message-Id: <483C4C08.5080402@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4832A211.4040206@gmail.com> <20080520132817.03fb74ea@hyperion.delvare> <20080521093520.ZZRA012@mailhub.coreip.homeip.net>
-In-Reply-To: <20080521093520.ZZRA012@mailhub.coreip.homeip.net>
+References: <4832A211.4040206@gmail.com> <20080527164415.GA27584@polina.dev.rtsoft.ru>
+In-Reply-To: <20080527164415.GA27584@polina.dev.rtsoft.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>, spi-devel-general@lists.sourceforge.net, Jonathan Cameron <Jonathan.Cameron@gmail.com>, linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
+To: avorontsov@ru.mvista.com
+Cc: linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, LM Sensors <lm-sensors@lm-sensors.org>
 
-On Wed, May 21, 2008 at 09:49:42AM -0400, Dmitry Torokhov wrote:
-> On Tue, May 20, 2008 at 01:28:17PM +0200, Jean Delvare wrote:
-> > Hi Jonathan,
-> > 
-> > On Tue, 20 May 2008 11:04:01 +0100, Jonathan Cameron wrote:
-> > > This email is basically a request for opinions on how and where such sensors
-> > > should be integrated into the kernel.
-> > > 
-> > > To set the scene...
-> > > 
-> > > Increasing numbers of embedded devices are being supplied attached MEMS
-> > > devices (www.xbow.com imote2 etc). Along with more traditional sensors such
-> > > as ADC's not being used for hardware monitoring, these do not really 
-> > > seem to
-> > > fit with in an particular subsystem of the kernel.  A previous 
-> > > discussion on
-> > > lkml in 2006 considered the accelerometers to be found within some laptop
-> > > hard drives, but I haven't been able to track down any more general 
-> > > discussions
-> > > of such non hardware monitoring sensors.
-> > > 
-> > > The obvious possibilities are:
-> > > 
-> > > * To place the various drivers within the spi / i2c etc subsystems as 
-> > > relevant.
-> > 
-> > Bad idea. Grouping drivers by connectivity is almost always the wrong
-> > thing to do, as it means that different persons will maintain them and
-> > they have all chances to diverge. You really want to group drivers by
-> > functionality. On top of that, I am busy enough maintaining the i2c
-> > core and bus drivers without having more i2c device drivers added to my
-> > plate. These days I am trying to _empty_ drivers/i2c/chips, if anything.
+Hi Anton
+>> Typical requirements within an application include simply polling for 
+>> current
+>> readings, and using device triggered interrupts to grab data 
+>> continuously to a
+>> ring buffer, for collection by suitable userspace code.  Obviously it 
+>> would be
+>> desirable to standardize sysfs controls for various calibration 
+>> parameters as
+>> much as possible across the various devices.
+>>     
+>
+> Also, I'd mention that most ADC devices could report in "bunched" mode,
+> i.e.
+>
+> 1. Request ADC readings from pins X, Y, Z1, Z2.
+> 2. Wait for single IRQ
+> 3. Read all the results
+>   
+Good point. I guess it's going to be a while before we work out an 
+anywhere near
+exhaustive list of such events that we might want to be able to control.
+> At handhelds.org, we've wrote quite good (I think) ADC subsystem,
+> that keeps in mind ADC capabilities. It implements two interfaces:
+> in-kernel (e.g. for touchscreen drivers), and userspace interface via
+> sysfs. I was planning to implement drivers/input/ interface too.
+> I always don't find time to clean it up and submit, though.
+>   
+I know that feeling!
+> Here is ADC subsystem itself:
+> http://handhelds.org/cgi-bin/cvsweb.cgi/~checkout~/linux/kernel26/drivers/misc/adc/adc.c
+> http://handhelds.org/cgi-bin/cvsweb.cgi/~checkout~/linux/kernel26/include/linux/adc.h
+> ^ It is in drivers/misc/, but I think better placement would be
+>   drivers/adc.
+>   
+Looking at the code (briefly admittedly, I'll have a closer look 
+tomorrow) it looks like a nice simple and
+effective interface. 
 
-I concur for these sorts of devices, where the connectivity to the
-device is quite an easy part of the driver, thus you end up with tiny
-little bus drivers all over the place, and a main core driver. The kernel
-build system should allow easy selection of interface depending on what
-is available without huge #ifdef hacks. An example could be:
+The question here, is what functionality of the system under discussion 
+does it fulfill.  Again we are in the
+territory of possibly having multiple drivers for a device depending on 
+how it is being used in the kernel.
+Not ideal, but may in fact be more maintainable in the long run.
 
-Makefile:
-mysensor-y		:= mysensor-core.o
-mysensor-$(CONFIG_SPI)	+= mysensor-spi.o
-mysensor-$(CONFIG_I2C)	+= mysensor-i2c.o
-obj-$(CONFIG_MYSENSOR)	+= mysensor.o
+The sysfs interface looks similar to that I was intending to implement, 
+but obviously for your application you
+don't need any of the buffering support etc and it makes sense to keep 
+everything as simple as possible.
 
-> > > * To place within the hwmon subsystem as this is probably closest.
-> > > (there is already at least one straight ADC driver in hwmon)
-> > 
-> > Probably not the wisest choice, if nothing else, because the hwmon
-> > maintainer is already overloaded. And I don't think that these devices
-> > have much in common with the traditional hardware monitoring components
-> > anyway.
-> > 
-> > I'm not sure what "straight ADC driver" you are referring to, but
-> > anything which measures a voltage and exports the reading to user-space
-> > is, well, a voltage sensor, and thus fix within hwmon. If the same chip
-> > is used for a higher-level, dedicated function then we would probably
-> > have a separate driver for it, outside of hwmon.
-> > 
-> > > * To create a new subsystem, or perhaps merely sysfs class to contain these
-> > >   elements.
-> > 
-> > Would be OK. Or:
-> > 
-> > * Place these within the input subsystem. You might want to discuss
-> > this with the input subsystem maintainer Dmitry Torokhov (Cc'd). The
-> > Wii remote is essentially a joystick, and joysticks belong to the input
-> > subsystem.
-> > 
-> 
-> I don't think that input subsystem woudl be the best choice. While we
-> do support the event-driven mechanism for delivering information to
-> userspace input is mostly oriented for human interface devices, not
-> general data acquisition. If anything input_dev is too fat. Another
-> thing is that input layer anonymizes input devices, makes them
-> capability-oriented. I.e. we dont really care what model of joystick
-> we have, we want something that reports ABS_X, ABS_Y, BTN_FIRE and
-> userpsace can use it whether it a simple analog joystick or something
-> fancy and USB connected. For your purposes you probably do want to know
-> what the device is and what exactly being sampled/measured.
+Perhaps if we aim to keep in mind the possibility of combining your ADC 
+system with a more general
+input device system, it may make sense to do so at a later stage. 
 
-Can you explain to me how the input system anonymizes things? I thought
-it was quite easy to read the name of the device? You could easily add
-a symlink from the driver's device binding in sysfs to the relevant
-input device as well.
+Anything I write is certainly going to share a considerable amount of 
+functionality and approach with your code.
+> Some drivers for this subsystem:
+> http://handhelds.org/cgi-bin/cvsweb.cgi/~checkout~/linux/kernel26/drivers/misc/adc/ads7846_adc_ssp.c
+> ^ ADC driver for ADS7846 chips (HP iPaq hx4700 and some HTC phones, the
+>   driver is using SSP subsystem, switching it to the SPI is still in my enless
+>   TODO list).
+>   
+I'll keep these part in mind, as a the moment adding any component for 
+testing involves me getting my soldering iron out
+and I hate soldering!
 
-Also, why would you not want all your accelerometers grouped into a set
-of accelerometers? If your application software just searches all input
-devices for anything reporting itself as an accelerometer, then it would
-get the right result... 
+> http://handhelds.org/cgi-bin/cvsweb.cgi/~checkout~/linux/kernel26/drivers/misc/adc/samcop_adc.c
+> ^ SAMCOP (HP iPaq H5xxx) ADC driver.
+>
+> http://handhelds.org/cgi-bin/cvsweb.cgi/~checkout~/linux/kernel26/drivers/misc/adc/tsc2200_adc_ssp.c
+> ^ TSC2200 ADC driver (used AFAIK in some HTC phones, or ASUS handhelds).
+>
+> http://handhelds.org/cgi-bin/cvsweb.cgi/~checkout~/linux/kernel26/drivers/misc/adc/ad7877.c
+> ^ AD7877 ADC driver (HTC phones too, IIRC).
+>
+> Now, The Generic ADC Touchscreen Driver (tested to work quite good with all
+> above ADC drivers on appropriate hardware):
+> http://handhelds.org/cgi-bin/cvsweb.cgi/~checkout~/linux/kernel26/drivers/input/touchscreen/ts-adc.c
+>
+> And finally, ADC Battery driver ("backup" batteries in the iPaq devices
+> usually report their voltage via ADC chip, the same used by the
+> touchscreen).
+> http://handhelds.org/cgi-bin/cvsweb.cgi/~checkout~/linux/kernel26/drivers/power/adc_battery.c
+>
+> p.s.
+> I have more recent (for current Linus' tree) code for ADC subsystem, but
+> it still needs some love to be submittable.
+>   
+Thanks.  I'll have a look at the stuff above and pester you if I need a 
+more recent version.
 
--- 
-Ben
+Jonathan
 
-Q:      What's a light-year?
-A:      One-third less calories than a regular year.
 
 
 _______________________________________________
