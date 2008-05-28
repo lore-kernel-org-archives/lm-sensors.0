@@ -1,60 +1,74 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 06 May 2008 16:12:37 +0000
-Subject: Re: [lm-sensors] sensors.conf for the Supermicro PDSMi+
-Message-Id: <20080506181237.6d9c681c@hyperion.delvare>
+From: Santi Saez <santi@hostalia.com>
+Date: Wed, 28 May 2008 11:40:12 +0000
+Subject: [lm-sensors] CPU temperature in an PowerEdge 860, LM85 chip
+Message-Id: <29C744C5-31A1-4AF4-9532-FFA1DDBBF3DE@hostalia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <482051E8.605@caps-entreprise.com>
-In-Reply-To: <482051E8.605@caps-entreprise.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Tue, 06 May 2008 16:55:05 +0200, Romain Dolbeau wrote:
-> Jean Delvare wrote:
-> 
-> > * -12V compute formula. Where did you get yours? Mine gives a better
-> >   value on my system (which doesn't mean it's correct, of course.)
-> 
-> From a snippet of code sent by supermicro support, but it may have been
-> a generic one or maybe even calid only for the X7DBE.
-> 
-> I haven't tried your version, but mine seems a little low (in absolute
-> value).
-
-OTOH -12V isn't terribly useful these days as far as I know, so it
-probably doesn't really matter.
-
-> 
-> > * +5V and 5VSB compute formula. You cancel the 150 mV offset which the
-> >   driver is adding on purpose. Why? Both values were OK on my system
-> >   with the offset.
-> 
-> Mmm, this one is even more mysterious (I did that in last august !),
-> because I have two PDSMi+ running linux, and those 2 lines are in only
-> one of the file ... I suspect a PIBKAC on my part, sorry.
-> 
-> > * The connector for the 6th fan. I thought it was fan6 but you seem to
-> >   believe it's fan7. My system only had 2 fans so I will trust you.
-> 
-> Mine have 3 in a 1U, I suspect this is a leftover from the X7DBE.
-> 
-> I'll check some more on my systems and update in the wiki.
-> 
-> Also, maybe you should add a link to your files / the directory from the
-> wiki...
-
-It's a wiki and you have an account now ;) Feel free to add links to my
-files or directory or even copy the contents to the wiki. I've not done
-this due to a lack of time and also because I don't think that a wiki
-is terribly convenient to download configuration files from, but if
-someone thinks it's useful and wants to do the work, I have no
-objection.
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+CkRlYXIgU3JzLAoKSSdtIHRyeWluZyB0byBtb25pdG9yIENQVSB0ZW1wZXJhdHVyZXMgaW4gYSBQ
+b3dlckVkZ2UgODYwIHNlcnZlciwgIApydW5uaW5nIENlbnRPUyA1LjEgd2l0aCAyLjYuMTgtNTMu
+MS42LmVsNSBrZXJuZWwsIHVzaW5nIGxtLXNlbnNvcnMgIAp2Mi4xMC4wLgoKUnVubmluZyAic2Vu
+c29ycy1kZXRlY3QiIEkgZ2V0OgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0K
+KC4uKQpXZSBjYW4gc3RhcnQgd2l0aCBwcm9iaW5nIGZvciAoUENJKSBJMkMgb3IgU01CdXMgYWRh
+cHRlcnMuCllvdSBkbyBub3QgbmVlZCBhbnkgc3BlY2lhbCBwcml2aWxlZ2VzIGZvciB0aGlzLgpE
+byB5b3Ugd2FudCB0byBwcm9iZSBub3c/IChZRVMvbm8pOgpQcm9iaW5nIGZvciBQQ0kgYnVzIGFk
+YXB0ZXJzLi4uClVzZSBkcml2ZXIgYGkyYy1pODAxJyBmb3IgZGV2aWNlIDAwOjFmLjM6IEludGVs
+IElDSDcKUHJvYmUgc3VjY2VzZnVsbHkgY29uY2x1ZGVkLgoKV2Ugd2lsbCBub3cgdHJ5IHRvIGxv
+YWQgZWFjaCBhZGFwdGVyIG1vZHVsZSBpbiB0dXJuLgpMb2FkIGBpMmMtaTgwMScgKHNheSBOTyBp
+ZiBidWlsdCBpbnRvIHlvdXIga2VybmVsKT8gKFlFUy9ubyk6Ck1vZHVsZSBsb2FkZWQgc3VjY2Vz
+ZnVsbHkuCiguLikKCgooLi4pCk5leHQgYWRhcHRlcjogU01CdXMgSTgwMSBhZGFwdGVyIGF0IDA4
+YzAKRG8geW91IHdhbnQgdG8gc2NhbiBpdD8gKFlFUy9uby9zZWxlY3RpdmVseSk6CkNsaWVudCBm
+b3VuZCBhdCBhZGRyZXNzIDB4MDgKQ2xpZW50IGZvdW5kIGF0IGFkZHJlc3MgMHgyZQooLi4pCgoK
+KC4uKQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTg1IG9yIExNOTYwMDAn
+Li4uIFN1Y2Nlc3MhCiAgICAoY29uZmlkZW5jZSA3LCBkcml2ZXIgYGxtODUnKQooLi4pCgoKKC4u
+KQpDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAweDUwClByb2JpbmcgZm9yIGBTUEQgRUVQUk9NJy4u
+LiBTdWNjZXNzIQogICAgKGNvbmZpZGVuY2UgOCwgZHJpdmVyIGBlZXByb20nKQpQcm9iaW5nIGZv
+ciBgRERDIG1vbml0b3InLi4uIEZhaWxlZCEKUHJvYmluZyBmb3IgYE1heGltIE1BWDY5MDAnLi4u
+IEZhaWxlZCEKQ2xpZW50IGZvdW5kIGF0IGFkZHJlc3MgMHg1MgpQcm9iaW5nIGZvciBgU1BEIEVF
+UFJPTScuLi4gU3VjY2VzcyEKICAgIChjb25maWRlbmNlIDgsIGRyaXZlciBgZWVwcm9tJykKQ2xp
+ZW50IGZvdW5kIGF0IGFkZHJlc3MgMHg2MApDbGllbnQgZm91bmQgYXQgYWRkcmVzcyAweDY5Cigu
+LikKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KClRoaXMgaXMgdGhlIHJlc3Vs
+dCBvZiBydW5uaW5nICJsbS1zZW5zb3JzIjoKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09CkRyaXZlciBgbG04NScgKHNob3VsZCBiZSBpbnNlcnRlZCk6CiAgRGV0ZWN0cyBjb3Jy
+ZWN0bHk6CiAgKiBCdXMgYFNNQnVzIEk4MDEgYWRhcHRlciBhdCAwOGMwJwogICAgQnVzZHJpdmVy
+IGBpMmMtaTgwMScsIEkyQyBhZGRyZXNzIDB4MmUKICAgIENoaXAgYE5hdGlvbmFsIFNlbWljb25k
+dWN0b3IgTE04NSBvciBMTTk2MDAwJyAoY29uZmlkZW5jZTogNykKCkRyaXZlciBgZWVwcm9tJyAo
+c2hvdWxkIGJlIGluc2VydGVkKToKICBEZXRlY3RzIGNvcnJlY3RseToKICAqIEJ1cyBgU01CdXMg
+STgwMSBhZGFwdGVyIGF0IDA4YzAnCiAgICBCdXNkcml2ZXIgYGkyYy1pODAxJywgSTJDIGFkZHJl
+c3MgMHg1MAogICAgQ2hpcCBgU1BEIEVFUFJPTScgKGNvbmZpZGVuY2U6IDgpCiAgKiBCdXMgYFNN
+QnVzIEk4MDEgYWRhcHRlciBhdCAwOGMwJwogICAgQnVzZHJpdmVyIGBpMmMtaTgwMScsIEkyQyBh
+ZGRyZXNzIDB4NTIKICAgIENoaXAgYFNQRCBFRVBST00nIChjb25maWRlbmNlOiA4KQo9PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKU28sIGxtODUgY2hpcCBpcyBjb3JyZWN0bHkg
+ZGV0ZWN0ZWQuIFJ1bm5pbmcgInNlbnNvcnMiIEkgZ2V0IHRoaXMgIApvdXRwdXQ6Cgo9PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PQojIHNlbnNvcnMKbG04NS1pMmMtMC0yZQpBZGFw
+dGVyOiBTTUJ1cyBJODAxIGFkYXB0ZXIgYXQgMDhjMAoKVjEuNTogICAgICAgKzAuMDAgViAgKG1p
+biA9ICArMS40MiBWLCBtYXggPSAgKzEuNTggVikKVkNvcmU6ICAgICAgKzAuMDAgViAgKG1pbiA9
+ICArMS4wMyBWLCBtYXggPSAgKzEuMTQgVikKVjMuMzogICAgICAgKzAuMDAgViAgKG1pbiA9ICAr
+My4xMyBWLCBtYXggPSAgKzMuNDcgVikKVjU6ICAgICAgICArMC4wMCBWICAobWluID0gICs0Ljc0
+IFYsIG1heCA9ICArNS4yNiBWKQpWMTI6ICAgICAgICswLjAwIFYgIChtaW4gPSArMTEuMzggViwg
+bWF4ID0gKzEyLjYyIFYpCkNQVV9GYW46ICAgICAgMCBSUE0gIChtaW4gPSA0MDAwIFJQTSkgICAg
+ICAgICAgICAgICAgICAgICBBTEFSTQpmYW4yOiAgICAgICAgIDAgUlBNICAobWluID0gICAgMCBS
+UE0pICAgICAgICAgICAgICAgICAgICAgQUxBUk0KZmFuMzogICAgICAgICAwIFJQTSAgKG1pbiA9
+ICAgIDAgUlBNKSAgICAgICAgICAgICAgICAgICAgIEFMQVJNCmZhbjQ6ICAgICAgICAgMCBSUE0g
+IChtaW4gPSAgICAwIFJQTSkgICAgICAgICAgICAgICAgICAgICBBTEFSTQpDUFU6ICAgICAgICAg
+ICswwrBDICAobG93ICA9ICAgKzEwwrBDLCBoaWdoID0gICArNTDCsEMpCkJvYXJkOiAgICAgICAg
+KzDCsEMgIChsb3cgID0gICArMTDCsEMsIGhpZ2ggPSAgICszNcKwQykKUmVtb3RlOiAgICAgICAr
+MMKwQyAgKGxvdyAgPSAgICsxMMKwQywgaGlnaCA9ICAgKzM1wrBDKQpDUFVfUFdNOiAgIDI1NQpG
+YW4yX1BXTTogIDI1NQpGYW4zX1BXTTogIDI1NQp2aWQ6ICAgICAgKzEuMDg4IFYgIChWUk0gVmVy
+c2lvbiAxMC4wKQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKRXh0cmFuZW91
+cyBvdXRwdXQsIGFsbCB0ZW1wZXJhdHVyZSB2YWx1ZXMgcmV0dXJuZWQgYXJlICswukMsIGl0J3Mg
+IApwb3NzaWJsZSB0byBtb25pdG9yIHRoaXMgbW90aGVyYm9hcmQgc2Vuc29ycyB1c2luZyBsbS1z
+ZW5zb3JzPwoKQWxzbyBJIGhhdmUgdHJpZWQgdG8gbW9uaXRvciBQb3dlckVkZ2UgODYwIHVzaW5n
+IE9wZW5JUE1JLCBidXQgSSBnZXQgIApleHRyYW5lb3VzIG91dHB1dCB0b28sIHNvbWUgcGFyYW1z
+IGFwcGVhcnMgdG8gYmUgZGlzYWJsZWQ6Cgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PQojIGlwbWl0b29sIHNkciBlbGlzdCB8IGdyZXAgLWkgdGVtcApUZW1wICAgICAgICAgICAg
+IHwgMDFoIHwgbnMgIHwgIDMuMSB8IERpc2FibGVkClBsYW5hciBUZW1wICAgICAgfCAwNGggfCBv
+ayAgfCAgNy4xIHwgMjggZGVncmVlcyBDClRlbXAgSW50ZXJmYWNlICAgfCA1M2ggfCBucyAgfCAg
+Ny4xIHwgRGlzYWJsZWQKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KClJlZ2Fy
+ZHMsCgotLQpTYW50aSBTYWV6CgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29y
+cy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vu
+c29ycwo=
