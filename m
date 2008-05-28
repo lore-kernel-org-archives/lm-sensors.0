@@ -1,65 +1,133 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Fri, 09 May 2008 17:36:47 +0000
-Subject: [lm-sensors] [PATCH] ibmaem: Overview of the driver
-Message-Id: <20080509173647.GK16404@tree.beaverton.ibm.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 28 May 2008 15:03:00 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon: (lm90) Move 16-bit value read to a
+Message-Id: <20080528170300.27c4f9af@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-A brief overview of what this driver does
+Move the code which aggregates two 8-bit register values into a 16-bit
+value to a separate function. We'll need to do it a second time soon and
+I don't want to duplicate the code.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
+ drivers/hwmon/lm90.c |   70 ++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 42 insertions(+), 28 deletions(-)
 
- Documentation/hwmon/ibmaem |   37 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 37 insertions(+), 0 deletions(-)
+--- linux-2.6.26-rc4.orig/drivers/hwmon/lm90.c	2008-05-27 14:14:56.000000000 +0200
++++ linux-2.6.26-rc4/drivers/hwmon/lm90.c	2008-05-27 21:50:38.000000000 +0200
+@@ -1,7 +1,7 @@
+ /*
+  * lm90.c - Part of lm_sensors, Linux kernel modules for hardware
+  *          monitoring
+- * Copyright (C) 2003-2006  Jean Delvare <khali@linux-fr.org>
++ * Copyright (C) 2003-2008  Jean Delvare <khali@linux-fr.org>
+  *
+  * Based on the lm83 driver. The LM90 is a sensor chip made by National
+  * Semiconductor. It reports up to two temperatures (its own plus up to
+@@ -729,6 +729,38 @@ static int lm90_detach_client(struct i2c
+ 	return 0;
+ }
+ 
++static int lm90_read16(struct i2c_client *client, u8 regh, u8 regl, u16 *value)
++{
++	int err;
++	u8 oldh, newh, l;
++
++	/*
++	 * There is a trick here. We have to read two registers to have the
++	 * sensor temperature, but we have to beware a conversion could occur
++	 * inbetween the readings. The datasheet says we should either use
++	 * the one-shot conversion register, which we don't want to do
++	 * (disables hardware monitoring) or monitor the busy bit, which is
++	 * impossible (we can't read the values and monitor that bit at the
++	 * exact same time). So the solution used here is to read the high
++	 * byte once, then the low byte, then the high byte again. If the new
++	 * high byte matches the old one, then we have a valid reading. Else
++	 * we have to read the low byte again, and now we believe we have a
++	 * correct reading.
++	 */
++	if ((err = lm90_read_reg(client, regh, &oldh))
++	 || (err = lm90_read_reg(client, regl, &l))
++	 || (err = lm90_read_reg(client, regh, &newh)))
++		return err;
++	if (oldh != newh) {
++		err = lm90_read_reg(client, regl, &l);
++		if (err)
++			return err;
++	}
++	*value = (newh << 8) | l;
++
++	return 0;
++}
++
+ static struct lm90_data *lm90_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -737,7 +769,7 @@ static struct lm90_data *lm90_update_dev
+ 	mutex_lock(&data->update_lock);
+ 
+ 	if (time_after(jiffies, data->last_updated + HZ * 2) || !data->valid) {
+-		u8 oldh, newh, l;
++		u8 h, l;
+ 
+ 		dev_dbg(&client->dev, "Updating lm90 data.\n");
+ 		lm90_read_reg(client, LM90_REG_R_LOCAL_TEMP, &data->temp8[0]);
+@@ -747,39 +779,21 @@ static struct lm90_data *lm90_update_dev
+ 		lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT, &data->temp8[4]);
+ 		lm90_read_reg(client, LM90_REG_R_TCRIT_HYST, &data->temp_hyst);
+ 
+-		/*
+-		 * There is a trick here. We have to read two registers to
+-		 * have the remote sensor temperature, but we have to beware
+-		 * a conversion could occur inbetween the readings. The
+-		 * datasheet says we should either use the one-shot
+-		 * conversion register, which we don't want to do (disables
+-		 * hardware monitoring) or monitor the busy bit, which is
+-		 * impossible (we can't read the values and monitor that bit
+-		 * at the exact same time). So the solution used here is to
+-		 * read the high byte once, then the low byte, then the high
+-		 * byte again. If the new high byte matches the old one,
+-		 * then we have a valid reading. Else we have to read the low
+-		 * byte again, and now we believe we have a correct reading.
+-		 */
+-		if (lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPH, &oldh) = 0
+-		 && lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPL, &l) = 0
+-		 && lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPH, &newh) = 0
+-		 && (newh = oldh
+-		  || lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPL, &l) = 0))
+-			data->temp11[0] = (newh << 8) | l;
++		lm90_read16(client, LM90_REG_R_REMOTE_TEMPH,
++			    LM90_REG_R_REMOTE_TEMPL, &data->temp11[0]);
+ 
+-		if (lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &newh) = 0
++		if (lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &h) = 0
+ 		 && lm90_read_reg(client, LM90_REG_R_REMOTE_LOWL, &l) = 0)
+-			data->temp11[1] = (newh << 8) | l;
+-		if (lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &newh) = 0
++			data->temp11[1] = (h << 8) | l;
++		if (lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &h) = 0
+ 		 && lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHL, &l) = 0)
+-			data->temp11[2] = (newh << 8) | l;
++			data->temp11[2] = (h << 8) | l;
+ 		if (data->kind != max6657) {
+ 			if (lm90_read_reg(client, LM90_REG_R_REMOTE_OFFSH,
+-					  &newh) = 0
++					  &h) = 0
+ 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_OFFSL,
+ 					  &l) = 0)
+-				data->temp11[3] = (newh << 8) | l;
++				data->temp11[3] = (h << 8) | l;
+ 		}
+ 		lm90_read_reg(client, LM90_REG_R_STATUS, &data->alarms);
+ 
 
-diff --git a/Documentation/hwmon/ibmaem b/Documentation/hwmon/ibmaem
-new file mode 100644
-index 0000000..2fefaf5
---- /dev/null
-+++ b/Documentation/hwmon/ibmaem
-@@ -0,0 +1,37 @@
-+Kernel driver ibmaem
-+===========
-+
-+Supported systems:
-+  * Any recent IBM System X server with Active Energy Manager support.
-+    This includes the x3350, x3550, x3650, x3655, x3755, x3850 M2,
-+    x3950 M2, and certain HS2x/LS2x/QS2x blades.  The IPMI host interface
-+    driver ("ipmi-si") needs to be loaded for this driver to do anything.
-+    Prefix: 'ibmaem'
-+    Datasheet: Not available
-+
-+Author: Darrick J. Wong
-+
-+Description
-+-----------
-+
-+This driver implements sensor reading support for the energy and power
-+meters available on various IBM System X hardware through the BMC.  All
-+sensor banks will be exported as platform devices; this driver can talk
-+to both v1 and v2 interfaces.  This driver is completely separate from the
-+older ibmpex driver.
-+
-+The v1 AEM interface has a simple set of features to monitor energy use.
-+There is a register that displays an estimate of raw energy consumption
-+since the last BMC reset, and a power sensor that returns average power
-+use over a configurable interval.
-+
-+The v2 AEM interface is a bit more sophisticated, being able to present
-+a wider range of energy and power use registers, the power cap as
-+set by the AEM software, and temperature sensors.
-+
-+Special Features
-+----------------
-+
-+The "power_cap" value displays the current system power cap, as set by
-+the Active Energy Manager software.  Setting the power cap from the host
-+is not currently supported.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
