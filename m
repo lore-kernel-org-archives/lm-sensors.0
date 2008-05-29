@@ -1,47 +1,121 @@
-From: David Brownell <david-b@pacbell.net>
-Date: Tue, 27 May 2008 23:42:42 +0000
-Subject: Re: [lm-sensors] Accelerometer,
-Message-Id: <200805271642.42291.david-b@pacbell.net>
+From: Jonathan Cameron <Jonathan.Cameron@gmail.com>
+Date: Thu, 29 May 2008 11:57:19 +0000
+Subject: Re: [lm-sensors] [spi-devel-general] Accelerometer,
+Message-Id: <483E9A1F.4070902@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4832A211.4040206@gmail.com> <200805211753.39133.david-b@pacbell.net> <20080527155641.GB29868@linux.intel.com>
-In-Reply-To: <20080527155641.GB29868@linux.intel.com>
+References: <4832A211.4040206@gmail.com> <20080520175041.GA30909@linux.intel.com> <4833EE22.80502@cam.ac.uk> <20080527154331.GA29868@linux.intel.com>
+In-Reply-To: <20080527154331.GA29868@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: mgross@linux.intel.com
-Cc: spi-devel-general@lists.sourceforge.net, Jonathan Cameron <Jonathan.Cameron@gmail.com>, linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>, spi-devel-general@lists.sourceforge.net, linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
 
-On Tuesday 27 May 2008, mark gross wrote:
->=20
-> > > Another problem area is around SPI itself. =A0There are variations of
-> > > device implementations around chip select polarity, clock biasing
-> > > (rising,falling, or midpoint) sampling from one SPI part to the next.
-> >=20
-> > Midpoint? =A0That's not one I've come across before. =A0All four
-> > standard SPI clock/sample/shift modes are already supported
-> > in the SPI framework though. =A0Ditto active-high chipselects
-> > (vs normal active-low) etc.
->=20
-> Yeah, its one of the sampling modes for the PIC18F4455 its one of the
-> master mode sampling options =A0(see page 194 of
-> http://ww1.microchip.com/downloads/en/DeviceDoc/39632D.pdf )
 
-Actually figure 19-3 (p. 198) may be a bit more clear.
+> 
+> Ok, say the HW SPI is pushed down to some lower level driver.  These
+> things send streaming data, and sometimes signals (free-fall detect) out
+> of band WRT the SPI comms.
+Indeed.  This would have to handled using interrupts based on the
+generic gpio interface. (see the LIS3L02DQ driver on the SPI-devel
+mailing list for an example of how this might work.)
+ 
+> I would like to see how a higher level API could encapsulate the
+> generalization of a class of such devices.
+> 
+> Also, I'm not sure how one could generalize SPI communications at a high
+> level given its bi-directional nature.
+> 
+> I guess I need to see some header files showing what you are thinking
+> about.
+Sure.  I'll get something put together and sent out asap. The general
+form of this is going to look like a combination of the hwmon
+interface via sysfs and something similar to the input subsystems
+approach of using events sent over character devices.  The interesting
+bit is going to be working out how to provide fairly generic interface
+to ring buffers, whether these reside in the kernel or on the device
+itself.
 
-Curious.  That PIC18F controller has *three* bits ... equivalents
-of CPOL and CPHA, plus a bit saying whether to wait a whole or
-half clock after the leading clock edge before sampling it.
+> 
+> Keep in mind that one abstraction of these devices is they are simply
+> streaming A2D 16 bit data values over SPI (or I2C).  The size of the
+> data set is a function of the sensor axes.
+This is of course true, but there still seem to be some advantages in
+providing some common interfaces for these devices.  Almost all
+digital interfaced accelerometers share a number of common elements
+not typically found in ADC's.  These include bias and gain as well as
+commonly found alarm signals.  
 
-A quick survey of some other SPI chips suggests that the most
-conventional interpretation is to sample on the trailing edge
-of the clock, and not presume long hold times.
+Actually, on this point, it may well make sense to provide an
+accelerometer driver that is designed to run on top of any generic ADC
+driver, thus providing (based on a suitable board specific
+configuration) userspace access to analog accelerometers connected in
+this fashion.  This is definitely one for some way down the line!
 
-I would surely hope the SPI interface spec doesn't have to get
-into the mess of timing variations which typify anyone trying to
-make memory controllers do the Right thing ... *shudder* ...
+> 
+>>> Also, If you are playing with accelerometer data, you likely need some
+>>> real time support or at lest a reliable time stamping of the data to do
+>>> anything interesting.
+>> Definitely. Obviously the accuracy of this time stamp is going to be 
+>> limited by
+>> the variable nature of when an interrupt handler picks it up, but knowledge 
+>> of the device specs can allow filtering of this timing data.  This is 
+>> certainly something we would want to consider at a later date although it 
+>> may well be more sensible to leave this to userspace applications.
+>>
+>>> Another problem area is around SPI itself.  There are variations of
+>>> device implementations around chip select polarity, clock biasing
+>>> (rising,falling, or midpoint) sampling from one SPI part to the next.
+>> Indeed.  This is well handled by the SPI subsystem. I've spent far too much 
+>> time with a scope recently fiddling with these parameters for badly 
+>> documented chips!
+>>
+>>>> VTI SCA3000 E05 3D accelerometer equiped with substantial ring buffer. 
+>>>> SPI
+>>>> device.  Can operate either in buffered or direct mode.  In buffered 
+>>>> mode, interrupts
+>>>> can be used to indicate when the ring buffer is 3/4 full triggering a 
+>>>> download to
+>>>> a larger ring buffer in the kernel if necessary.
+>>>> (http://www.vti.fi/en/products-solutions/products/accelerometers/sca3000-accelerometers/)
+>>>>
+>>> ring buffered data can make RT applications harder...
+>> Agreed.  With this sort of device two modes would be needed (and are 
+>> supported by the hardware).  The first gives direct data access and the 
+>> second uses the ring buffer.  Which you use would obviously be dependent on 
+>> the application. Some applications want the most recent data on all 
+>> occasions, whilst some will be more interested in ensuring that all data is 
+>> captured.
+>>
+>>>> Would be nice if practical to allow the framework to include RS232 
+>>>> devices such
+>>>> as those from www.xsens.com, www.isense.com and others.
+>>> I'm not sure what you are asking for, you started off with SPI driver
+>>> for interfacing a handful of accelerometer devices.  Now your talking
+>>> about the serial port.
+>> The question here is concerned with standardising mainly the userspace 
+>> interfaces (and hardware interfaces only when appropriate). Some of these 
+>> devices (the ST accel above for example) support multiple hardware 
+>> interfaces specs (I2C and SPI for that one).  So in a similar way to it 
+>> making sense to group all TV adapters irrespective of how they are 
+>> interfaced to the computer, in order to ensure a consistent interface to 
+>> user space, it makes sense to share these interfaces amongst drivers 
+>> talking to these devices irrespective of what their hardware interface is.
+> 
+> I guess I need to see some header files to see where you are going with
+> this idea.  To be useful you'll also need to handle rotation sensors and
+> communicate the temperature bias's up the stack too.
 
-- Dave
+Definitely, although to get a reasonable number of devices integrated
+quickly they may not all support access to everything we would like
+initially. 
 
+> 
+> good luck keep me posted on where your going with this, it is
+> interesting to me.
+Will do,
+--
+Jonathan Cameron
 
 
 _______________________________________________
