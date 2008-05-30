@@ -1,7 +1,7 @@
-From: Alistair John Strachan <alistair@devzero.co.uk>
-Date: Mon, 26 May 2008 17:05:52 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 30 May 2008 11:51:35 +0000
 Subject: Re: [lm-sensors] PATCH: abituguru3-fix-detect.patch
-Message-Id: <200805261805.52266.alistair@devzero.co.uk>
+Message-Id: <20080530135135.3779ed35@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4836D061.9080501@hhs.nl>
 In-Reply-To: <4836D061.9080501@hhs.nl>
@@ -10,20 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Friday 23 May 2008 15:10:41 Hans de Goede wrote:
-[snip]
-> Alistair can you test the abituguru3 driver compiled with this patch on
-> your motherboard and confirm that it fixes the issue (and still works).
+Hi Hans,
 
-Confirmed. Thanks a lot for doing this.
+On Fri, 23 May 2008 16:10:41 +0200, Hans de Goede wrote:
+> It has been reported that the abituguru3 driver fails to load after a BIOS
+> update. This patch fixes this by loosening the detection routine so that it
+> will work after the BIOS update too. To compensate for the now very loose
+> detection an additional check is added on the DMI Base Board vendor string to
+> make sure we only load on Abit motherboards, this is the same as the check in
+> the abituguru (1 / 2) driver.
+> 
+> Signed-of-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 
-Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
+I'm trading the review of this patch for the review of one of mine, for
+example:
+  http://lists.lm-sensors.org/pipermail/lm-sensors/2008-April/022998.html
+Or any other you'd like. Deal?
 
+Thanks,
 -- 
-Cheers,
-Alistair.
-
-137/1 Warrender Park Road, Edinburgh, UK.
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
