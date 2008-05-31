@@ -1,39 +1,29 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 21 May 2008 09:12:14 +0000
-Subject: [lm-sensors] lm-sensors snapshots
-Message-Id: <20080521111214.0e4bf685@hyperion.delvare>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sat, 31 May 2008 06:25:52 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (f71882fg) Delete needless
+Message-Id: <4840EF70.1020803@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Axel,
+Jean Delvare wrote:
+ > These functions aren't used before being defined, so there's no point
+ > in forward-declaring them.
+ >
+ > Signed-off-by: Jean Delvare <khali at linux-fr.org>
+ > Cc: Hans de Goede <j.w.r.degoede at hhs.nl>
+ >---
+ >  drivers/hwmon/f71882fg.c |    6 ------
+ >  1 file changed, 6 deletions(-)
 
-I would like to change the locations where the lm-sensors nightly
-snapshots are stored. Right now we have:
-http://dl.lm-sensors.org/lm-sensors/snapshots/ for lm-sensors 2.10.x snapshots
-http://dl.lm-sensors.org/lm-sensors-3/snapshots/ for lm-sensors 3.0.x snapshots
-http://dl.lm-sensors.org/lm-sensors/releases/ for all releases
+Looks good to me:
+Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 
-I think it's a bit confusing to have the lm-sensors 3.0.x releases in
-one place and the snapshots in another. As lm-sensors 3 has become our
-stable branch and version 2 is a legacy branch, I'd rather put the
-3.0.x snapshots in the "standard" snapshots directory and put the
-2.10.x ones in a subdirectory. Could look like:
+Regards,
 
-http://dl.lm-sensors.org/lm-sensors/snapshots/ for lm-sensors 3.0.x snapshots
-http://dl.lm-sensors.org/lm-sensors/snapshots/legacy/ for lm-sensors 2.10.x snapshots
-http://dl.lm-sensors.org/lm-sensors/releases/ for all releases
-
-Objections anyone?
-
-I could move the files myself but I don't know where are the scripts
-which generate the snapshots, so your help is required.
-
-Thanks,
--- 
-Jean Delvare
+Hans
 
 _______________________________________________
 lm-sensors mailing list
