@@ -1,54 +1,34 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Thu, 26 Jun 2008 00:57:56 +0000
-Subject: Re: [lm-sensors] [PATCH 2.6.26-rc] ACPI Thermal Zone driver breaks
-Message-Id: <1214441876.3001.175.camel@rzhang-dt.sh.intel.com>
+From: Dominik Geyer <dominik.geyer@gmx.de>
+Date: Sun, 01 Jun 2008 10:15:33 +0000
+Subject: Re: [lm-sensors]
+Message-Id: <loom.20080601T100607-694@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <fa.4PGqX9CuLbgiTimfCcon+PlAMxk@ifi.uio.no>
-	 <fa.PWu620xEt5OlYdOezvRtQriuNjM@ifi.uio.no> <48605935.5070407@shaw.ca>
-	 <alpine.LFD.1.10.0806232004480.2926@woody.linux-foundation.org>
-	 <1214279258.3001.76.camel@rzhang-dt.sh.intel.com>
-	 <alpine.LFD.1.10.0806251913090.3279@localhost.localdomain>
-	 <4862D704.80607@keyaccess.nl>
-In-Reply-To: <4862D704.80607@keyaccess.nl>
+References: <87ekb9s3tn.wl%info@wore.ma.cx>
+In-Reply-To: <87ekb9s3tn.wl%info@wore.ma.cx>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Robert Hancock <hancockr@shaw.ca>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Hans de Goede <j.w.r.degoede@hhs.nl>, Jean Delvare <khali@linux-fr.org>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Linux Kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
+To: lm-sensors@vger.kernel.org
 
-
-On Thu, 2008-06-26 at 07:38 +0800, Rene Herman wrote:
-> On 26-06-08 01:16, Len Brown wrote:
-> >
-> >> +config THERMAL_HWMON
-> >> +    bool "Hardware monitoring support"
-> >> +    depends on HWMON=y || HWMON=THERMAL
-> >
-> >
-> > for
-> > CONFIG_HWMON=m
-> > CONFIG_THERMAL=y
-> > CONFIG_THERMAL_HWMON=n, always.
-> >
-> > This is not a change to the logic of the existing ifdefs,
-> > but was wondering if this was your intent, Rui.
-> 
-> My intentioon in this case. Yes, this should be. THERMAL_HWMON is a
-> bool
-> (as in, not a tristate) that just changes THERMAL.
-> 
-> If THERMAL=y, we need HWMON=y or we'd get a link failure. If
-> THERMAL=m,
-> we're okay with either HWMON=y and HWMON=m and if THERMAL=n, we don't
-> care one hoot about THERMAL_HWMON...
-Agree.
-
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+QnJ1bm8gUHLDqW1vbnQgPGJvbmJvbnMgPGF0PiBsaW51eC12c2VydmVyLm9yZz4gd3JpdGVzOgoK
+PiAKPiBPbiBhIENvbW1lbGwgTEUtMzY1IEkgZ2V0IHJlYWRpbmdzIGZvciBmYW4gc3BlZWQgdGhh
+dCBhcmUgYnJva2VuIGFib3V0Cj4gMTAlIG9mIHRoZSB0aW1lLgo+IFRoZSBib2FyZCBoYXMgYSBX
+aW5ib25kIFc4MzY5NyBjaGlwIChJIGNhbid0IGNoZWNrIHRoZSBleGFjdCBjaGlwIG5hbWUKPiBv
+biB0aGUgYm9hcmQgYXMgaXQncyBoaWRkZW4gYnkgYSBoZWF0c2luaywgdGhlIHBob3RvIGZyb20g
+Q29tbWVsbCwgYXMKPiBhcyB3ZWxsIGFzIHRoZSBtYW51YWwgaW5kaWNhdGUgYSBIRywgdGhlIGtl
+bnJlbCByZXBvcnRzOgo+ICAgWyAgICAzLjU3MjgzMV0gdzgzNjI3aGY6IEZvdW5kIFc4MzY5N0hG
+IGNoaXAgYXQgMHgyOTAKPiAgIFsgICAgMy41NzI4MzFdIFdEVCBkcml2ZXIgZm9yIHRoZSBXaW5i
+b25kKFRNKSBXODM2MjdIRi9USEYvSEcgU3VwZXIgSS9PIApjaGlwIGluaXRpYWxpc2luZy4KPiAg
+IFsgICAgMy41NzI4MzFdIHc4MzYyN2hmL3RoZi9oZyBXRFQ6IFdhdGNoZG9nIGFscmVhZHkgcnVu
+bmluZy4gUmVzZXR0aW5nIAp0aW1lb3V0IHRvIDYwIHNlYwo+ICAgWyAgICAzLjU3MjgzMV0gdzgz
+NjI3aGYvdGhmL2hnIFdEVDogaW5pdGlhbGl6ZWQuIHRpbWVvdXRgIHNlYyAKKG5vd2F5b3V0PTAp
+Cj4gKQoKSG0sIHRoYXRzIHN0cmFuZ2UuIEkndmUgZ290IGEgVklBLUVQSUEtRUs4MDAwRUcgd2l0
+aCBhIFc4MzY5N0hHIGFzIHdlbGwgYW5kIApkaWRuJ3QgaGF2ZSBhbnkgd3JvbmcgcmVhZGluZ3Mg
+d2l0aCBmYW5faW5wdXQgKDIuNi4yNS4zIGtlcm5lbCkuCgpCeSB0aGUgd2F5OiBJIG5vdGljZWQg
+dGhhdCB5b3UgYXJlIHVzaW5nIHRoZSB3ODM2MjdoZl93ZHQgaW4geW91ciAKa2VybmVsLWNvbmZp
+Zy4gRGlkIHlvdSBhbHJlYWR5IHRlc3QgdGhlIHdhdGNoZG9nPyBPbiBteSBib2FyZCB0aGUgdzgz
+NjI3aGZfd2R0IApsb2FkcyBjb3JyZWN0bHkgYnV0IGRvZXMgbm90IHdvcmsuIEknbSB1c2luZyB0
+aGUgdzgzNjk3X3dkdCBpbnN0ZWFkLiAKCi0tCkRvbWluaWsgR2V5ZXIKCgpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlz
+dApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnMK
