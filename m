@@ -1,42 +1,65 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 24 Jun 2008 08:02:46 +0000
-Subject: Re: [lm-sensors] [PATCH v2 2/2] hwmon: (lm90) Support ADT7461 in
-Message-Id: <20080624100246.7bf872aa@hyperion.delvare>
+From: Warrick Lacey <wlacey@salientsystems.com>
+Date: Mon, 02 Jun 2008 18:54:45 +0000
+Subject: [lm-sensors] adm1021 in 2.6.9 question..
+Message-Id: <484441F5.6000203@salientsystems.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------050002090106080509020402"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1213989596-8716-3-git-send-email-ncase@xes-inc.com>
-In-Reply-To: <1213989596-8716-3-git-send-email-ncase@xes-inc.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Nate,
+This is a multi-part message in MIME format.
+--------------050002090106080509020402
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Fri, 20 Jun 2008 14:19:56 -0500, Nate Case wrote:
-> Support ADT7461 in extended temperature range mode, which will change
-> the range of readings from 0..127 to -64..191 degC.  Adjust the
-> register conversion functions accordingly.
-> 
-> Signed-off-by: Nate Case <ncase@xes-inc.com>
-> ---
->  drivers/hwmon/lm90.c |  119 ++++++++++++++++++++++++++++++++++++++------------
->  1 files changed, 91 insertions(+), 28 deletions(-)
+Hello,
 
-This one looks OK to me. Tested OK on my ADM1032.
+We have recently transitioned for a 2.4.x based kernel to the 2.6.9 
+kernel and I'm trying to get the onboard temperature sensor working 
+under the 2.6.9 kernel. Under the 2.4.x kernel, we needed i2c-core, 
+i2c-dev, i2c-proc, dmi-scan, i2c-piix4 and adm1021.
 
-Note to Mark: Nate's patches to the lm90 driver conflict with the ones
-I sent on May 28th:
-  http://lists.lm-sensors.org/pipermail/lm-sensors/2008-May/023250.html
-Please disregard both patch sets for the moment. As soon as I get final
-patches from Nate, I'll take care of resolving the conflicts, and then
-I'll resend a single patch set with all lm90 patches for you to review
-and merge.
+We have not changed hardware (basically a 6U VR7 board), will/should the 
+adm1021 device be an ISA device or an I2C device?.
 
-Thanks,
--- 
-Jean Delvare
+I see that the adm1021 driver is now part of the kernel in 2.6.x but 
+what steps to I have to take to get the kernel to recognize and access 
+this device under 2.6.9.
+
+Thanks for any help.
+Warrick Lacey
+
+
+--------------050002090106080509020402
+Content-Type: text/x-vcard; charset=utf-8;
+ name="wlacey.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="wlacey.vcf"
+
+begin:vcard
+fn:Warrick Lacey
+n:Lacey;Warrick
+org:Salient Systems;Engineering
+adr:Tuller Road;;4394 Suite K ;Dublin;Ohio;43017;U.S.A.
+email;internet:wlacey@salientsystems.com
+title:Software Developer
+tel;work:(614) 792-5800
+tel;cell:(614) 203-1323
+x-mozilla-html:FALSE
+url:http://www.salientsystems.com
+version:2.1
+end:vcard
+
+
+--------------050002090106080509020402
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------050002090106080509020402--
