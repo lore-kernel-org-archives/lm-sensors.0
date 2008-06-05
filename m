@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 05 Jun 2008 14:56:13 +0000
+From: Riku Voipio <riku.voipio@movial.fi>
+Date: Thu, 05 Jun 2008 14:57:22 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] lm87: Convert into a new-style driver
-Message-Id: <20080605165613.5bd2c7f9@hyperion.delvare>
+Message-Id: <4847FED2.9020904@movial.fi>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080604184401.GG11300@solarflare.com>
 In-Reply-To: <20080604184401.GG11300@solarflare.com>
@@ -10,26 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 5 Jun 2008 15:23:19 +0100, Ben Hutchings wrote:
-> Jean Delvare wrote:
-> > What bad will happen if the limits are only initialized a few seconds
-> > or minutes after the driver is loaded?
-> 
-> My point is that I don't see that they are ever likely to be initialised.
-> They can be set through sysfs, but unless this is automated in some standard
-> way then almost no-one will actually go to the trouble of doing it.
+Jean Delvare wrote:
+> On Thu, 5 Jun 2008 13:14:01 +0100, Ben Hutchings wrote:
+>   
+>> The point is to allow platform_data to provide all the settings and to
+>> allow polling of the values, without exposing any of the implementation
+>> variables.
+>>     
+>
+> The question is: why do you want to provide the "settings" (I think you
+> mean the high and low limits of each sensor?) and allow polling of the
+> values inside the kernel, when we have a standard user-space interface
+> and library that takes care of this, with a dozen applications that can
+> be used on top of it? It makes sense to pass _some_ settings as
+> platform data (e.g. fan polarity) but passing all the limits doesn't
+> make any sense to me.
+>   
+I don't see why this is a problem to you - on PC's sensible defaults
+are set at BIOS. If there is no BIOS to set it up, someone needs to
+set it up. If the settings are platform-specific, the most natural
+place is the platform_data. The limits depend on what is being
+monitored (CPU? mainboard? ambient temperature? Network card?),
+and it's not easy to figure what's being monitored by the userland.
 
-Same is true of every hardware monitoring in every system. If the user
-doesn't care about the limits, why should you care for him/her?
+Actually, at a second look, the current lm87_init_client already sets
+limits to hardcoded values... :) So if Ben's patch only makes it more
+flexible.
+>   
+>> I did consider splitting this into two patches, but there is no point
+>> in creating those two structures except to support the rest of the
+>> changes.  Howver, I can repost as two if you like.
+>>     
+I believe it's quite common to post patches in style of
 
-The standard way of proceeding would be to provide libsensors
-configuration files for your network adapters, and users who care about
-proper sensor labelling and limits, will download and install them on
-their systems. We plan to automatize the process a bit in the future
-but this isn't done yet.
+[PATCH 1/2] reorganize code in preparation of foo
+[PATCH 2/2] implement foo
 
--- 
-Jean Delvare
+I'd also like to see the change of moving setting the platform_data
+changes to a separate function from .probe, is it was before.
+
+
 
 _______________________________________________
 lm-sensors mailing list
