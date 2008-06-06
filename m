@@ -1,235 +1,37 @@
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Sun, 29 Jun 2008 18:22:36 +0000
-Subject: [lm-sensors] [patch 6/6 v2] hwmon/pc87360 individual alarm files -
-Message-Id: <4867D2EC.8020603@gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------000207080108050100000809"
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Date: Fri, 06 Jun 2008 14:24:53 +0000
+Subject: Re: [lm-sensors] [PATCH 2.6.25.4] hwmon: HP Mobile Data
+Message-Id: <20080606102237.ZZRA012@mailhub.coreip.homeip.net>
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------000207080108050100000809
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-pasted and attached
-
-[jimc@harpo linux-2.6]$ cat 
-0006-hwmon-pc87360-separate-alarm-files-add-therm-min-m.patch
- From 27024d0ffbc23a40efdb1f38263cc6103529fe31 Mon Sep 17 00:00:00 2001
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Sat, 28 Jun 2008 13:19:07 -0600
-Subject: [PATCH] hwmon/pc87360 separate alarm files - add 
-therm-min/max/crit-alarms
-
-Adds therm-min/max/crit-alarm callbacks, sensor-device-attribute
-declarations, and refs to those new decls in the macro used to
-initialize the therm_group (of sysfs files)
-
-The thermistors use voltage channels to measure; so they don't
-have a fault-alarm, but unlike the other voltages, they do have an
-overtemp, which we call crit (by convention).
-
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
----
- drivers/hwmon/pc87360.c |   58 
-++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 57 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index cf265d2..bf1b81d 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -714,12 +714,68 @@ static struct sensor_device_attribute therm_crit[] = {
-             show_therm_crit, set_therm_crit, 2+11),
- };
- 
-+/* show_therm_min/max_alarm() reads data from the per-channel voltage
-+   status register (sec 11.5.12) */
-+
-+static ssize_t show_therm_min_alarm(struct device *dev, struct 
-device_attribute
-+                   *devattr, char *buf)
-+{
-+    struct pc87360_data *data = pc87360_update_device(dev);
-+    unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+    return sprintf(buf, "%u\n", !!(data->in_status[nr] & CHAN_ALM_MIN));
-+}
-+static ssize_t show_therm_max_alarm(struct device *dev, struct 
-device_attribute
-+                   *devattr, char *buf)
-+{
-+    struct pc87360_data *data = pc87360_update_device(dev);
-+    unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+    return sprintf(buf, "%u\n", !!(data->in_status[nr] & CHAN_ALM_MAX));
-+}
-+static ssize_t show_therm_crit_alarm(struct device *dev, struct 
-device_attribute
-+                   *devattr, char *buf)
-+{
-+    struct pc87360_data *data = pc87360_update_device(dev);
-+    unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+    return sprintf(buf, "%u\n", !!(data->in_status[nr] & TEMP_ALM_CRIT));
-+}
-+
-+static struct sensor_device_attribute therm_min_alarm[] = {
-+    SENSOR_ATTR(temp4_min_alarm, S_IRUGO,
-+            show_therm_min_alarm, NULL, 0+11),
-+    SENSOR_ATTR(temp5_min_alarm, S_IRUGO,
-+            show_therm_min_alarm, NULL, 1+11),
-+    SENSOR_ATTR(temp6_min_alarm, S_IRUGO,
-+            show_therm_min_alarm, NULL, 2+11),
-+};
-+static struct sensor_device_attribute therm_max_alarm[] = {
-+    SENSOR_ATTR(temp4_max_alarm, S_IRUGO,
-+            show_therm_max_alarm, NULL, 0+11),
-+    SENSOR_ATTR(temp5_max_alarm, S_IRUGO,
-+            show_therm_max_alarm, NULL, 1+11),
-+    SENSOR_ATTR(temp6_max_alarm, S_IRUGO,
-+            show_therm_max_alarm, NULL, 2+11),
-+};
-+static struct sensor_device_attribute therm_crit_alarm[] = {
-+    SENSOR_ATTR(temp4_crit_alarm, S_IRUGO,
-+            show_therm_crit_alarm, NULL, 0+11),
-+    SENSOR_ATTR(temp5_crit_alarm, S_IRUGO,
-+            show_therm_crit_alarm, NULL, 1+11),
-+    SENSOR_ATTR(temp6_crit_alarm, S_IRUGO,
-+            show_therm_crit_alarm, NULL, 2+11),
-+};
-+
- #define THERM_UNIT_ATTRS(X) \
-     &therm_input[X].dev_attr.attr,    \
-     &therm_status[X].dev_attr.attr,    \
-     &therm_min[X].dev_attr.attr,    \
-     &therm_max[X].dev_attr.attr,    \
--    &therm_crit[X].dev_attr.attr
-+    &therm_crit[X].dev_attr.attr,    \
-+    &therm_min_alarm[X].dev_attr.attr, \
-+    &therm_max_alarm[X].dev_attr.attr, \
-+    &therm_crit_alarm[X].dev_attr.attr
- 
- static struct attribute * pc8736x_therm_attr_array[] = {
-     THERM_UNIT_ATTRS(0),
--- 
-1.5.5.1
-
-
-
---------------000207080108050100000809
-Content-Type: text/x-patch;
-	name="0006-hwmon-pc87360-separate-alarm-files-add-therm-min-m.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename*0="0006-hwmon-pc87360-separate-alarm-files-add-therm-min-m.patc";
-	filename*1="h"
-
-From 27024d0ffbc23a40efdb1f38263cc6103529fe31 Mon Sep 17 00:00:00 2001
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Sat, 28 Jun 2008 13:19:07 -0600
-Subject: [PATCH] hwmon/pc87360 separate alarm files - add therm-min/max/crit-alarms
-
-Adds therm-min/max/crit-alarm callbacks, sensor-device-attribute
-declarations, and refs to those new decls in the macro used to
-initialize the therm_group (of sysfs files)
-
-The thermistors use voltage channels to measure; so they don't
-have a fault-alarm, but unlike the other voltages, they do have an
-overtemp, which we call crit (by convention).
-
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
----
- drivers/hwmon/pc87360.c |   58 ++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 57 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index cf265d2..bf1b81d 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -714,12 +714,68 @@ static struct sensor_device_attribute therm_crit[] = {
- 		    show_therm_crit, set_therm_crit, 2+11),
- };
- 
-+/* show_therm_min/max_alarm() reads data from the per-channel voltage
-+   status register (sec 11.5.12) */
-+
-+static ssize_t show_therm_min_alarm(struct device *dev, struct device_attribute
-+				   *devattr, char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+	return sprintf(buf, "%u\n", !!(data->in_status[nr] & CHAN_ALM_MIN));
-+}
-+static ssize_t show_therm_max_alarm(struct device *dev, struct device_attribute
-+				   *devattr, char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+	return sprintf(buf, "%u\n", !!(data->in_status[nr] & CHAN_ALM_MAX));
-+}
-+static ssize_t show_therm_crit_alarm(struct device *dev, struct device_attribute
-+				   *devattr, char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+	return sprintf(buf, "%u\n", !!(data->in_status[nr] & TEMP_ALM_CRIT));
-+}
-+
-+static struct sensor_device_attribute therm_min_alarm[] = {
-+	SENSOR_ATTR(temp4_min_alarm, S_IRUGO,
-+		    show_therm_min_alarm, NULL, 0+11),
-+	SENSOR_ATTR(temp5_min_alarm, S_IRUGO,
-+		    show_therm_min_alarm, NULL, 1+11),
-+	SENSOR_ATTR(temp6_min_alarm, S_IRUGO,
-+		    show_therm_min_alarm, NULL, 2+11),
-+};
-+static struct sensor_device_attribute therm_max_alarm[] = {
-+	SENSOR_ATTR(temp4_max_alarm, S_IRUGO,
-+		    show_therm_max_alarm, NULL, 0+11),
-+	SENSOR_ATTR(temp5_max_alarm, S_IRUGO,
-+		    show_therm_max_alarm, NULL, 1+11),
-+	SENSOR_ATTR(temp6_max_alarm, S_IRUGO,
-+		    show_therm_max_alarm, NULL, 2+11),
-+};
-+static struct sensor_device_attribute therm_crit_alarm[] = {
-+	SENSOR_ATTR(temp4_crit_alarm, S_IRUGO,
-+		    show_therm_crit_alarm, NULL, 0+11),
-+	SENSOR_ATTR(temp5_crit_alarm, S_IRUGO,
-+		    show_therm_crit_alarm, NULL, 1+11),
-+	SENSOR_ATTR(temp6_crit_alarm, S_IRUGO,
-+		    show_therm_crit_alarm, NULL, 2+11),
-+};
-+
- #define THERM_UNIT_ATTRS(X) \
- 	&therm_input[X].dev_attr.attr,	\
- 	&therm_status[X].dev_attr.attr,	\
- 	&therm_min[X].dev_attr.attr,	\
- 	&therm_max[X].dev_attr.attr,	\
--	&therm_crit[X].dev_attr.attr
-+	&therm_crit[X].dev_attr.attr,	\
-+	&therm_min_alarm[X].dev_attr.attr, \
-+	&therm_max_alarm[X].dev_attr.attr, \
-+	&therm_crit_alarm[X].dev_attr.attr
- 
- static struct attribute * pc8736x_therm_attr_array[] = {
- 	THERM_UNIT_ATTRS(0),
--- 
-1.5.5.1
-
-
---------------000207080108050100000809
-Content-Type: text/plain; charset="us-ascii"
+References: <1212235533.3815.5.camel@localhost> <4846EBF5.2030406@tremplin-utc.net> <20080604225830.1dff64fc@hyperion.delvare> <20080604230510.GB30475@elf.ucw.cz> <484728B2.1000209@tremplin-utc.net> <20080605082950.6957f1a2@hyperion.delvare> <4847B415.2080708@cam.ac.uk> <48484DD6.3050706@tremplin-utc.net> <4848683E.4070709@eslack.org>
+In-Reply-To: <4848683E.4070709@eslack.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Pau Oliva Fora <pau@eslack.org>
+Cc: ?ric Piel <Eric.Piel@tremplin-utc.net>, Jonathan Cameron <jic23@cam.ac.uk>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@osdl.org>, Burman <burman.yan@gmail.com>, LKML <linux-kernel@vger.kernel.org>, HWMON <lm-sensors@lm-sensors.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Pavel Machek <pavel@suse.cz>, Yan@ATrpms.net, Dmitry@ATrpms.net, Arjan van de Ven <arjan@infradead.org>
+
+Hi,
+
+On Fri, Jun 06, 2008 at 12:27:10AM +0200, Pau Oliva Fora wrote:
+> From: Pau Oliva Fora <pau@eslack.org>
+>
+> Add support for HTC Shift UMPC G-Sensor LIS3LV02DL accelerometer.
+>
+> Signed-off-by: Pau Oliva Fora <pau@eslack.org>
+>
+
+The input piece looks good, however it seens that the input is the
+only functionality that this driver exports so I don't see any reason
+to make input device registration optional. Or are you planning on
+adding more functions to it?
+
+Thanks.
+
+-- 
+Dmitry
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------000207080108050100000809--
