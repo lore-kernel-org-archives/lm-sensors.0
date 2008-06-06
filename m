@@ -1,33 +1,38 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Date: Fri, 06 Jun 2008 15:11:08 +0000
+From: Pau Oliva Fora <pau@eslack.org>
+Date: Fri, 06 Jun 2008 15:29:44 +0000
 Subject: Re: [lm-sensors] [PATCH 2.6.25.4] hwmon: HP Mobile Data Protection
-Message-Id: <20080606111051.ZZRA012@mailhub.coreip.homeip.net>
+Message-Id: <484957E8.4020404@eslack.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1212235533.3815.5.camel@localhost> <4846EBF5.2030406@tremplin-utc.net> <20080606102636.ZZRA012@mailhub.coreip.homeip.net> <484950D2.9070809@tremplin-utc.net>
-In-Reply-To: <484950D2.9070809@tremplin-utc.net>
+References: <1212235533.3815.5.camel@localhost> <4846EBF5.2030406@tremplin-utc.net> <20080604225830.1dff64fc@hyperion.delvare> <20080604230510.GB30475@elf.ucw.cz> <484728B2.1000209@tremplin-utc.net> <20080605082950.6957f1a2@hyperion.delvare> <4847B415.2080708@cam.ac.uk> <48484DD6.3050706@tremplin-utc.net> <4848683E.4070709@eslack.org> <20080606102237.ZZRA012@mailhub.coreip.homeip.net>
+In-Reply-To: <20080606102237.ZZRA012@mailhub.coreip.homeip.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Andrew Morton <akpm@osdl.org>, pavel@ucw.cz, Arjan van de Ven <arjan@infradead.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Yan Burman <burman.yan@gmail.com>, LKML <linux-kernel@vger.kernel.org>, HWMON <lm-sensors@lm-sensors.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: ?ric Piel <Eric.Piel@tremplin-utc.net>, Jonathan Cameron <jic23@cam.ac.uk>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@osdl.org>, Burman <burman.yan@gmail.com>, LKML <linux-kernel@vger.kernel.org>, HWMON <lm-sensors@lm-sensors.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Pavel Machek <pavel@suse.cz>, Yan@ATrpms.net, Dmitry@ATrpms.net, Arjan van de Ven <arjan@infradead.org>
 
-On Fri, Jun 06, 2008 at 04:59:30PM +0200, Eric Piel wrote:
-> Dmitry Torokhov wrote:
->> Hi,
-> Hello,
+Dmitry Torokhov wrote:
+> Hi,
+>=20
+> On Fri, Jun 06, 2008 at 12:27:10AM +0200, Pau Oliva Fora wrote:
+>> From: Pau Oliva Fora <pau@eslack.org>
 >>
+>> Add support for HTC Shift UMPC G-Sensor LIS3LV02DL accelerometer.
 >>
->> I would recommend converting the input piece to input_polled_device
->> instead of managing the polling thread by yourselves.
-> Yes, you are right, I had forgotten about this one! That said, for now I'm 
-> working on removing the polling and relying only the interrupts. So if it 
-> works that shouldn't be needed :-)
->
+>> Signed-off-by: Pau Oliva Fora <pau@eslack.org>
+>>
+>=20
+> The input piece looks good, however it seens that the input is the
+> only functionality that this driver exports so I don't see any reason
+> to make input device registration optional. Or are you planning on
+> adding more functions to it?
+>=20
 
-Oh, great, this is even better.
+I wasn't planning on adding more functions, I posted it so that =C9ric
+can have a look at the i2c part and integrate it in his driver.
 
--- 
-Dmitry
+	Pau Oliva
+
 
 _______________________________________________
 lm-sensors mailing list
