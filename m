@@ -1,31 +1,37 @@
 From: Pau Oliva Fora <pau@eslack.org>
-Date: Fri, 06 Jun 2008 15:30:57 +0000
+Date: Fri, 06 Jun 2008 15:37:33 +0000
 Subject: Re: [lm-sensors] [PATCH 2.6.25.4] hwmon: HP Mobile Data Protection
-Message-Id: <48495831.3050404@eslack.org>
+Message-Id: <484959BD.6050407@eslack.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1212235533.3815.5.camel@localhost>	<4846EBF5.2030406@tremplin-utc.net>	<20080604225830.1dff64fc@hyperion.delvare>	<20080604230510.GB30475@elf.ucw.cz>	<484728B2.1000209@tremplin-utc.net> <20080605082950.6957f1a2@hyperion.delvare> <4847B415.2080708@cam.ac.uk> <48484DD6.3050706@tremplin-utc.net> <4848683E.4070709@eslack.org> <48495017.8040003@tudelft.nl>
-In-Reply-To: <48495017.8040003@tudelft.nl>
+References: <1212235533.3815.5.camel@localhost> <4846EBF5.2030406@tremplin-utc.net> <20080606102636.ZZRA012@mailhub.coreip.homeip.net> <484950D2.9070809@tremplin-utc.net>
+In-Reply-To: <484950D2.9070809@tremplin-utc.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eric Piel <E.A.B.Piel@tudelft.nl>
-Cc: =?ISO-8859-1?Q?=C9ric_Piel?= <Eric.Piel@tremplin-utc.net>, Jonathan Cameron <jic23@cam.ac.uk>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@osdl.org>, Torokhov <dmitry.torokhov@gmail.com>, Burman <burman.yan@gmail.com>, LKML <linux-kernel@vger.kernel.org>, HWMON <lm-sensors@lm-sensors.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Pavel Machek <pavel@suse.cz>, Yan@ATrpms.net, Dmitry@ATrpms.net, Arjan van de Ven <arjan@infradead.org>
+To: Eric Piel <eric.piel@tremplin-utc.net>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Andrew Morton <akpm@osdl.org>, pavel@ucw.cz, Arjan van de Ven <arjan@infradead.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Yan Burman <burman.yan@gmail.com>, LKML <linux-kernel@vger.kernel.org>, HWMON <lm-sensors@lm-sensors.org>
 
 Eric Piel wrote:
-> Pau Oliva Fora wrote:
->> Here's an i2c version of the driver for the LIS3LV02DL accelerometer,
->> please try to combine it too, so we'll end up having ACPI, SPI and I2C.
-> Whaoo, you went fast!
-> As there is a dmi_match, that shouldn't be too hard to incorporate it 
-> nicely :-)
-> 
-> BTW, do you really need the invert_x and invert_y and swap_xy 
-> parameters? Don't all the HTC shift laptops have the sensors soldered 
-> the same way? We've worked hard to remove those parameters in mdps ;-)
+>> I would recommend converting the input piece to input_polled_device
+>> instead of managing the polling thread by yourselves.
+> Yes, you are right, I had forgotten about this one! That said, for now 
+> I'm working on removing the polling and relying only the interrupts. So 
+> if it works that shouldn't be needed :-)
 > 
 
-Yes, you can remove the module params, and use the same approach you 
-have based in DMI table.
+I think going to interrupt-only approach will cause a problem in the HTC 
+Shift:
+
+In CTRL_REG2 (21h) if you set to 1 the Interrupt ENable (IEN) field the 
+device shuts down.
+
+I guess HTC took the "polling" approach in the windows driver, and they 
+enable the interrupt when the sensor reports a "free fall" event, to 
+have the disk parked and protect the hardware from being damaged.
+
+Maybe you can keep the input_polled_device together with interrupts and 
+select one or the other depending on DMI information (same as for 
+swaping the axis, etc.)
 
 Cheers,
 
