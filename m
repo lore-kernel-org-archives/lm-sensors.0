@@ -1,167 +1,50 @@
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Thu, 26 Jun 2008 04:04:44 +0000
-Subject: Re: [lm-sensors] [patch 1/5 v1] hwmon/pc87360 individual alarm
-Message-Id: <4863155C.8060000@gmail.com>
+From: "RuslanK" <RuslanK@amicon.ru>
+Date: Sat, 07 Jun 2008 13:20:11 +0000
+Subject: [lm-sensors] HECI driver health monitoring
+Message-Id: <000a01c8c8a1$393343d0$3a00a8c0@amicon.lan>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------010703020604020001000902"
+Content-Type: multipart/mixed; boundary="===============6121977541101471297=="
 List-Id: <lm-sensors.vger.kernel.org>
 To: lm-sensors@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010703020604020001000902
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+
+--===============6121977541101471297==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0007_01C8C8C2.BE2E86F0"
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0007_01C8C8C2.BE2E86F0
+Content-Type: text/plain;
+	charset="koi8-r"
+Content-Transfer-Encoding: quoted-printable
+
+There is Visual C++ source code example about how to obtain health =
+monitoring info from HECI driver: http://hecisys.narod.ru
+------=_NextPart_000_0007_01C8C8C2.BE2E86F0
+Content-Type: text/html;
+	charset="koi8-r"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dkoi8-r">
+<META content=3D"MSHTML 6.00.2900.2853" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2>There is Visual C++ source code example =
+about how=20
+to obtain health monitoring info from HECI driver: <A=20
+href=3D"http://hecisys.narod.ru">http://hecisys.narod.ru</A></FONT></DIV>=
+</BODY></HTML>
+
+------=_NextPart_000_0007_01C8C8C2.BE2E86F0--
 
 
 
---------------010703020604020001000902
-Content-Type: text/x-patch;
-	name="0001-Add-CHAN_-constants-to-support-ALM_-MIN-MAX-CRIT-s.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename*0="0001-Add-CHAN_-constants-to-support-ALM_-MIN-MAX-CRIT-s.patc";
-	filename*1="h"
-
-From 4cd2431ac1e669450fa6d711a1ff1fab5566758e Mon Sep 17 00:00:00 2001
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Tue, 17 Jun 2008 21:59:09 -0600
-Subject: [PATCH] Add CHAN_* constants to support ALM_(MIN|MAX|CRIT) sys-files
-
-2 different kinds of constants added:
-- CHAN_ALM_* constants for (later) vin, temp alarm callbacks.
-- CHAN_* conversion constants, used in _init_device, partly for RW1C bits
-
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
----
- drivers/hwmon/pc87360.c |   33 ++++++++++++++++++++++-----------
- 1 files changed, 22 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index 9b462bb..8f13bed 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -489,6 +489,11 @@ static struct sensor_device_attribute in_max[] = {
- 	SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
- };
- 
-+/* (temp & vin) channel status register alarm bits (pdf sec.11.5.12) */
-+#define CHAN_ALM_MIN	0x02	/* min limit crossed */
-+#define CHAN_ALM_MAX	0x04	/* max limit exceeded */
-+#define TEMP_ALM_CRIT	0x08	/* temp crit exceeded (temp only, reserved in vin) */
-+
- #define VIN_UNIT_ATTRS(X) \
- 	&in_input[X].dev_attr.attr,	\
- 	&in_status[X].dev_attr.attr,	\
-@@ -1131,6 +1136,12 @@ static void pc87360_write_value(struct pc87360_data *data, u8 ldi, u8 bank,
- 	mutex_unlock(&(data->lock));
- }
- 
-+/* (temp & vin) channel conversion status register flags (pdf sec.11.5.12) */
-+#define CHAN_CNVRTD	0x80	/* new data ready */
-+#define CHAN_ENA	0x01	/* enabled channel (temp or vin) */
-+#define CHAN_ALM_ENA	0x10	/* propagate to alarms-reg ?? (chk val!) */
-+#define CHAN_READY	(CHAN_ENA|CHAN_CNVRTD) /* sample ready mask */
-+
- static void pc87360_init_device(struct platform_device *pdev,
- 				int use_thermistors)
- {
-@@ -1156,7 +1167,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 			/* Forcibly enable voltage channel */
- 			reg = pc87360_read_value(data, LD_IN, i,
- 						 PC87365_REG_IN_STATUS);
--			if (!(reg & 0x01)) {
-+			if (!(reg & CHAN_ENA)) {
- 				dev_dbg(&pdev->dev, "Forcibly "
- 					"enabling in%d\n", i);
- 				pc87360_write_value(data, LD_IN, i,
-@@ -1171,7 +1182,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 	for (i = 11; i < data->innr; i++) {
- 		reg = pc87360_read_value(data, LD_IN, i,
- 					 PC87365_REG_TEMP_STATUS);
--		use_thermistors = use_thermistors || (reg & 0x01);
-+		use_thermistors = use_thermistors || (reg & CHAN_ENA);
- 	}
- 
- 	i = use_thermistors ? 2 : 0;
-@@ -1180,7 +1191,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 			/* Forcibly enable temperature channel */
- 			reg = pc87360_read_value(data, LD_TEMP, i,
- 						 PC87365_REG_TEMP_STATUS);
--			if (!(reg & 0x01)) {
-+			if (!(reg & CHAN_ENA)) {
- 				dev_dbg(&pdev->dev, "Forcibly "
- 					"enabling temp%d\n", i+1);
- 				pc87360_write_value(data, LD_TEMP, i,
-@@ -1197,7 +1208,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 				   diodes */
- 				reg = pc87360_read_value(data, LD_TEMP,
- 				      (i-11)/2, PC87365_REG_TEMP_STATUS);
--				if (reg & 0x01) {
-+				if (reg & CHAN_ENA) {
- 					dev_dbg(&pdev->dev, "Skipping "
- 						"temp%d, pin already in use "
- 						"by temp%d\n", i-7, (i-11)/2);
-@@ -1207,7 +1218,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 				/* Forcibly enable thermistor channel */
- 				reg = pc87360_read_value(data, LD_IN, i,
- 							 PC87365_REG_IN_STATUS);
--				if (!(reg & 0x01)) {
-+				if (!(reg & CHAN_ENA)) {
- 					dev_dbg(&pdev->dev, "Forcibly "
- 						"enabling temp%d\n", i-7);
- 					pc87360_write_value(data, LD_IN, i,
-@@ -1221,7 +1232,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 	if (data->innr) {
- 		reg = pc87360_read_value(data, LD_IN, NO_BANK,
- 					 PC87365_REG_IN_CONFIG);
--		if (reg & 0x01) {
-+		if (reg & CHAN_ENA) {
- 			dev_dbg(&pdev->dev, "Forcibly "
- 				"enabling monitoring (VLM)\n");
- 			pc87360_write_value(data, LD_IN, NO_BANK,
-@@ -1233,7 +1244,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 	if (data->tempnr) {
- 		reg = pc87360_read_value(data, LD_TEMP, NO_BANK,
- 					 PC87365_REG_TEMP_CONFIG);
--		if (reg & 0x01) {
-+		if (reg & CHAN_ENA) {
- 			dev_dbg(&pdev->dev, "Forcibly enabling "
- 				"monitoring (TMS)\n");
- 			pc87360_write_value(data, LD_TEMP, NO_BANK,
-@@ -1336,11 +1347,11 @@ static struct pc87360_data *pc87360_update_device(struct device *dev)
- 			pc87360_write_value(data, LD_IN, i,
- 					    PC87365_REG_IN_STATUS,
- 					    data->in_status[i]);
--			if ((data->in_status[i] & 0x81) == 0x81) {
-+			if ((data->in_status[i] & CHAN_READY) == CHAN_READY) {
- 				data->in[i] = pc87360_read_value(data, LD_IN,
- 					      i, PC87365_REG_IN);
- 			}
--			if (data->in_status[i] & 0x01) {
-+			if (data->in_status[i] & CHAN_ENA) {
- 				data->in_min[i] = pc87360_read_value(data,
- 						  LD_IN, i,
- 						  PC87365_REG_IN_MIN);
-@@ -1373,12 +1384,12 @@ static struct pc87360_data *pc87360_update_device(struct device *dev)
- 			pc87360_write_value(data, LD_TEMP, i,
- 					    PC87365_REG_TEMP_STATUS,
- 					    data->temp_status[i]);
--			if ((data->temp_status[i] & 0x81) == 0x81) {
-+			if ((data->temp_status[i] & CHAN_READY) == CHAN_READY) {
- 				data->temp[i] = pc87360_read_value(data,
- 						LD_TEMP, i,
- 						PC87365_REG_TEMP);
- 			}
--			if (data->temp_status[i] & 0x01) {
-+			if (data->temp_status[i] & CHAN_ENA) {
- 				data->temp_min[i] = pc87360_read_value(data,
- 						    LD_TEMP, i,
- 						    PC87365_REG_TEMP_MIN);
--- 
-1.5.5.1
-
-
---------------010703020604020001000902
+--===============6121977541101471297==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -171,4 +54,5 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------010703020604020001000902--
+--===============6121977541101471297==--
+
