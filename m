@@ -1,53 +1,53 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Thu, 12 Jun 2008 14:52:17 +0000
-Subject: Re: [lm-sensors] lmsensors on Tyan S2932 with 2x Quadcore-Opteron
-Message-Id: <191fb4ca0806120752s7125a765qa24be254ccb0a10f@mail.gmail.com>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 08 Jun 2008 15:04:02 +0000
+Subject: Re: [lm-sensors] [PATCH] Transition w83791d maintenance to Marc
+Message-Id: <20080608150402.GC6807@mars.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4850E9C8.70205@marco.de>
-In-Reply-To: <4850E9C8.70205@marco.de>
+References: <5bfe43f80805141236h4d32e3d1g914300019e9e8f63@mail.gmail.com>
+In-Reply-To: <5bfe43f80805141236h4d32e3d1g914300019e9e8f63@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Daniel,
+Hi Marc:
 
+* Marc Hulsman <m.hulsman@tudelft.nl> [2008-05-16 22:53:34 +0200]:
+(...)
+> Transition the maintenance of the w83791d driver to Marc Hulsman.
+> 
+> Signed-off-by: Charles Spirakis <bezaur@gmail.com>
+> 
+> ---
+>  MAINTAINERS |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff -urpN linux-2.6.26-rc1-git6/MAINTAINERS 
+> linux-2.6.26-rc1-git6-modified/MAINTAINERS
+> --- linux-2.6.26-rc1-git6/MAINTAINERS	2008-05-08 18:49:34.000000000 +0200
+> +++ linux-2.6.26-rc1-git6-modified2/MAINTAINERS	2008-05-16 21:26:10.000000000 
+> +0200
+> @@ -4385,10 +4385,10 @@ M:	johnpol@2ka.mipt.ru
+>  S:	Maintained
+>  
+>  W83791D HARDWARE MONITORING DRIVER
+> -P:	Charles Spirakis
+> -M:	bezaur@gmail.com
+> +P:	Marc Hulsman
+> +M:	m.hulsman@tudelft.nl
+>  L:	lm-sensors@lm-sensors.org
+> -S:	Odd Fixes
+> +S:	Maintained
+>  
+>  W83793 HARDWARE MONITORING DRIVER
+>  P:	Rudolf Marek
 
-> Hello,
->
-> I've installed SuSE 10.2 on a Tyan S2932 with 2 Quadcore-Opterons on it.
-> Shipped with SuSE was Kernel 2.6.18 and  sensors 2.10.1.
->
-> sensors-detect was running, but when I run "sensors" there is the Message:
->
-> No sensors found!
-> Make sure you loaded all the kernel drivers you need.
-> Try sensors-detect to find out which these are.
->
-> According to /etc/sysconfig/lm_sensors the following Modules are loaded:
-> MODULE_0=3Di2c-nforce2
-> MODULE_1=3Dlm85
-> MODULE_2=EEprom
->
->
-> Can anybody help me to get sensors working?
+Applied to hwmon-2.6.git/testing, thanks.
 
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
-Upgrade to the latest lm-sensors-3.x, rerun sensors-detect and post
-the full output.
-
-...juerg
-
-> Regards
->
-> Daniel
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
 
 _______________________________________________
 lm-sensors mailing list
