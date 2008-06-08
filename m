@@ -1,92 +1,65 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 15 Jun 2008 19:17:07 +0000
-Subject: Re: [lm-sensors] PATCH: hwmon-new-driver-ti-tmp401.patch
-Message-Id: <20080615211707.41790348@hyperion.delvare>
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Date: Sun, 08 Jun 2008 11:47:02 +0000
+Subject: [lm-sensors] [PATCH] Unhide the SMBus on the Compaq Deskpro EN
+Message-Id: <20080608134702.401b9fb5.krzysztof.h1@wp.pl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4853E081.1020109@hhs.nl>
-In-Reply-To: <4853E081.1020109@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: khali@linux-fr.org, rh1985@wp.pl
 
-Hi Ben,
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-On Sun, 15 Jun 2008 19:23:11 +0100, Ben Dooks wrote:
-> On Sat, Jun 14, 2008 at 05:15:13PM +0200, Hans de Goede wrote:
-> > Hi All,
-> > 
-> > This is a new hwmon driver for TI's TMP401 temperature sensor IC. This 
-> > driver
-> > was written on behalf of an embedded systems vendor under the
-> > linuxdriverproject.
-> > 
-> > It has been tested using a TI TMP401 sample attached to a i2c-tiny-usb 
-> > adapter.
-> > Which was provided by Till Harbaum, many thanks to him for this!
-> > 
-> > Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-> > 
-> > Regards,
-> > 
-> > Hans
-> 
-> > This is a new hwmon driver for TI's TMP401 temperature sensor IC. This driver
-> > was written on behalf of an embedded systems vendor under the
-> > linuxdriverproject.
-> > 
-> > It has been tested using a TI TMP401 sample attached to a i2c-tiny-usb adapter.
-> > Which was provided by Till Harbaum, many thanks to him for this! 
-> > 
-> > Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-> > (...)
-> > +static struct i2c_driver tmp401_driver = {
-> > +	.driver = {
-> > +		.name	= TMP401_NAME,
-> 
-> the .owner field is missing, ie:
-> 		.owner	= THIS_MODULE,
+This patch unhides the SMBus on Compaq Deskpro EN
+SFF P667 with the Intel 815E chipset. Unhiding it reveals=20
+a THMC51 hardware monitoring chip.
 
-It's optional (i2c_add_driver adds it anyway). I don't like it and I
-might revert this behavior someday, but for now that's how things are,
-so Hans' code is correct.
+Jean Delvare has checked that this machine has no ACPI
+magic touching the SMBus nor the hardware monitoring chip,
+so this should be safe.
 
-> > +	},
-> > +	.attach_adapter	= tmp401_attach_adapter,
-> > +	.detach_client	= tmp401_detach_client,
-> > +};
-> 
-> you should be using the new method of attaching the clients, as the
-> old driver methods are being removed as soon as possible. 
+The patch was tested on Fedora Core 9 with 2.6.25.4 kernel.
 
-If and only if the only users of this driver are embedded platforms. If
-this chip is found on PCs or other systems where you can't instantiate
-the I2C device, then the legacy methods must still be used. If both
-types of users exist then you need two i2c_driver instances (for now;
-I'm working on something better for 2.6.27.)
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Tested-by: Rafa=B3 Ha=B3aduda <rh1985@wp.pl>
+CC: Jean Delvare <khali@linux-fr.org>
 
-> > +
-> > +	if (data->status & mask)
-> > +		return sprintf(buf, "1\n");
-> > +	else
-> > +		return sprintf(buf, "0\n");
-> > +}
-> 
-> you should be using snprintf() or some other bounded printf method
-> against PAGE_SIZE, the return should be the length of the buffer.
+---
+If someone owns the Compaq Deskpro EN machine, please
+test the patch as well.
 
-I doubt it. snprintf returns the number of bytes written (just like
-sprintf), not the size of the buffer, and I fail to see why you would
-want to return the buffer size. That would cause sysfs to pass
-uninitialized data to user-space.
+diff -urp linux-2.6.25/drivers/pci/quirks.c linux-new/drivers/pci/quirks.c
+--- linux-2.6.25/drivers/pci/quirks.c	2008-05-27 21:58:34.380144607 +0200
++++ linux-new/drivers/pci/quirks.c	2008-05-30 23:12:57.510219450 +0200
+@@ -1054,6 +1054,14 @@ static void __init asus_hides_smbus_host
+ 				 * its on-board VGA controller */
+ 				asus_hides_smbus =3D 1;
+ 			}
++		else if (dev->device =3D PCI_DEVICE_ID_INTEL_82815_CGC)
++			switch (dev->subsystem_device) {
++			case 0x001A: /* Compaq Deskpro EN SSF P667 815E */
++				/* Motherboard doesn't have host bridge
++				 * subvendor/subdevice IDs, therefore checking
++				 * its on-board VGA controller */
++				asus_hides_smbus =3D 1;
++			}
+ 	}
+ }
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82845_HB=
+,	asus_hides_smbus_hostbridge);
+@@ -1068,6 +1076,7 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_I
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82915GM_=
+HB, asus_hides_smbus_hostbridge);
+=20
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82810_IG=
+3,	asus_hides_smbus_hostbridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82815_CG=
+C,	asus_hides_smbus_hostbridge);
+=20
+ static void asus_hides_smbus_lpc(struct pci_dev *dev)
+ {
 
-I agree that in theory we should be using snprintf in these functions,
-but the fact is that no hwmon driver does this, and frankly this sounds
-overkill. There's just no way PAGE_SIZE can be smaller than room it
-takes to print an integer.
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
