@@ -1,31 +1,39 @@
 From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Sun, 08 Jun 2008 15:16:33 +0000
-Subject: Re: [lm-sensors] PATCH: abituguru3-fix-detect.patch
-Message-Id: <20080608151633.GD6807@mars.solarsys.private>
+Date: Sun, 08 Jun 2008 15:36:26 +0000
+Subject: Re: [lm-sensors] [patch 2.6.26-rc1] lm75: sensor reading bugfix
+Message-Id: <20080608153626.GA7246@mars.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4836D061.9080501@hhs.nl>
-In-Reply-To: <4836D061.9080501@hhs.nl>
+References: <200805031919.17110.david-b@pacbell.net>
+In-Reply-To: <200805031919.17110.david-b@pacbell.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans:
+Hi David:
 
-* Hans de Goede <j.w.r.degoede@hhs.nl> [2008-05-23 16:10:41 +0200]:
-(...)
-> It has been reported that the abituguru3 driver fails to load after a BIOS
-> update. This patch fixes this by loosening the detection routine so that it
-> will work after the BIOS update too. To compensate for the now very loose
-> detection an additional check is added on the DMI Base Board vendor string to
-> make sure we only load on Abit motherboards, this is the same as the check in
-> the abituguru (1 / 2) driver.
+* David Brownell <david-b@pacbell.net> [2008-05-03 19:19:16 -0700]:
+> LM75 sensor reading bugfix: never save error status as valid
+> sensor output.  This could be improved, but at least this
+> prevents certain rude failure modes.
 > 
-> Signed-of-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> ---
+> Goes on top of the previously submitted lm75 cleanup patch:
+> 
+> 	http://marc.info/?l=lm-sensors&m0880547009929&w=2
+> 
+>  drivers/hwmon/lm75.c |   20 +++++++++++++++-----
+>  1 file changed, 15 insertions(+), 5 deletions(-)
+
 
 Applied to hwmon-2.6.git/testing, thanks.
 
-(will include in final batch to Linus for 2.6.26 also)
+Hrm, I missed this one on the first pass through my queue when I picked
+up your other lm75 patches.  Looks like it's severe enough to warrant
+sending to Linus before 2.6.26 (along with the prerequisite cleanup patch).
+
+Any objections?
 
 -- 
 Mark M. Hoffman
