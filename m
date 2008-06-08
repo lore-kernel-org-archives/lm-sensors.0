@@ -1,34 +1,54 @@
-From: Dominik Geyer <dominik.geyer@gmx.de>
-Date: Sun, 01 Jun 2008 10:15:33 +0000
-Subject: Re: [lm-sensors]
-Message-Id: <loom.20080601T100607-694@post.gmane.org>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Sun, 08 Jun 2008 14:44:44 +0000
+Subject: Re: [lm-sensors] [patch 2.6.25] lm75: cleanup/reorg
+Message-Id: <20080608144443.GA6807@mars.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <87ekb9s3tn.wl%info@wore.ma.cx>
-In-Reply-To: <87ekb9s3tn.wl%info@wore.ma.cx>
+References: <200804211210.53652.david-b@pacbell.net>
+In-Reply-To: <200804211210.53652.david-b@pacbell.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-QnJ1bm8gUHLDqW1vbnQgPGJvbmJvbnMgPGF0PiBsaW51eC12c2VydmVyLm9yZz4gd3JpdGVzOgoK
-PiAKPiBPbiBhIENvbW1lbGwgTEUtMzY1IEkgZ2V0IHJlYWRpbmdzIGZvciBmYW4gc3BlZWQgdGhh
-dCBhcmUgYnJva2VuIGFib3V0Cj4gMTAlIG9mIHRoZSB0aW1lLgo+IFRoZSBib2FyZCBoYXMgYSBX
-aW5ib25kIFc4MzY5NyBjaGlwIChJIGNhbid0IGNoZWNrIHRoZSBleGFjdCBjaGlwIG5hbWUKPiBv
-biB0aGUgYm9hcmQgYXMgaXQncyBoaWRkZW4gYnkgYSBoZWF0c2luaywgdGhlIHBob3RvIGZyb20g
-Q29tbWVsbCwgYXMKPiBhcyB3ZWxsIGFzIHRoZSBtYW51YWwgaW5kaWNhdGUgYSBIRywgdGhlIGtl
-bnJlbCByZXBvcnRzOgo+ICAgWyAgICAzLjU3MjgzMV0gdzgzNjI3aGY6IEZvdW5kIFc4MzY5N0hG
-IGNoaXAgYXQgMHgyOTAKPiAgIFsgICAgMy41NzI4MzFdIFdEVCBkcml2ZXIgZm9yIHRoZSBXaW5i
-b25kKFRNKSBXODM2MjdIRi9USEYvSEcgU3VwZXIgSS9PIApjaGlwIGluaXRpYWxpc2luZy4KPiAg
-IFsgICAgMy41NzI4MzFdIHc4MzYyN2hmL3RoZi9oZyBXRFQ6IFdhdGNoZG9nIGFscmVhZHkgcnVu
-bmluZy4gUmVzZXR0aW5nIAp0aW1lb3V0IHRvIDYwIHNlYwo+ICAgWyAgICAzLjU3MjgzMV0gdzgz
-NjI3aGYvdGhmL2hnIFdEVDogaW5pdGlhbGl6ZWQuIHRpbWVvdXRgIHNlYyAKKG5vd2F5b3V0PTAp
-Cj4gKQoKSG0sIHRoYXRzIHN0cmFuZ2UuIEkndmUgZ290IGEgVklBLUVQSUEtRUs4MDAwRUcgd2l0
-aCBhIFc4MzY5N0hHIGFzIHdlbGwgYW5kIApkaWRuJ3QgaGF2ZSBhbnkgd3JvbmcgcmVhZGluZ3Mg
-d2l0aCBmYW5faW5wdXQgKDIuNi4yNS4zIGtlcm5lbCkuCgpCeSB0aGUgd2F5OiBJIG5vdGljZWQg
-dGhhdCB5b3UgYXJlIHVzaW5nIHRoZSB3ODM2MjdoZl93ZHQgaW4geW91ciAKa2VybmVsLWNvbmZp
-Zy4gRGlkIHlvdSBhbHJlYWR5IHRlc3QgdGhlIHdhdGNoZG9nPyBPbiBteSBib2FyZCB0aGUgdzgz
-NjI3aGZfd2R0IApsb2FkcyBjb3JyZWN0bHkgYnV0IGRvZXMgbm90IHdvcmsuIEknbSB1c2luZyB0
-aGUgdzgzNjk3X3dkdCBpbnN0ZWFkLiAKCi0tCkRvbWluaWsgR2V5ZXIKCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlz
-dApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnMK
+Hi David:
+
+* David Brownell <david-b@pacbell.net> [2008-04-21 12:10:53 -0700]:
+> Minor cleanup and reorg of the lm75 code.
+> 
+>  - Kconfig provides a larger list of lm75-compatible chips
+> 
+>  - A top comment now says what the driver does (!) ... as in, just
+>    what sort of sensor is this??
+> 
+>  - Section comments now delineate the various sections of the driver:
+>    hwmon attributes, driver binding, register access, module glue.
+>    One driver binding function moved out of the attribute section,
+>    as did the driver struct itself.
+> 
+>  - Minor tweaks to legacy probe logic:  correct a comment, and
+>    remove a pointless variable.
+> 
+>  - Whitespace, linelength, and comment fixes.  
+> 
+> This patch should include no functional changes.  It's preparation
+> for adding new-style (driver model) I2C driver binding.
+> 
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> Acked-by: Jean Delvare <khali@linux-fr.org>
+> Acked-by: Laurent Pinchart <laurentp@cse-semaphore.com>
+> ---
+>  drivers/hwmon/Kconfig |   20 +++++++----
+>  drivers/hwmon/lm75.c  |   90 ++++++++++++++++++++++++++++----------------------
+>  2 files changed, 64 insertions(+), 46 deletions(-)
+
+Applied to hwmon-2.6.git/testing, thanks.
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
