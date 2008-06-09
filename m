@@ -1,165 +1,222 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 10 Jun 2008 12:05:28 +0000
-Subject: [lm-sensors] [PATCH 1/2] hwmon: (lm78) Detect alias chips
-Message-Id: <20080610140528.039a5f78@hyperion.delvare>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Date: Mon, 09 Jun 2008 11:08:18 +0000
+Subject: [lm-sensors] [PATCH 3/3] lm87: Expose sensor values to kernel users
+Message-Id: <20080609110817.GA11300@solarflare.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The LM78 and LM79 can be accessed either on the I2C bus or the ISA
-bus. We must not access the same chip through both interfaces. So far
-we were relying on the user passing the correct ignore parameter to
-skip the registration of the I2C interface as suggested by
-sensors-detect, but this is fragile: the user may load the lm78
-driver without running sensors-detect, and the i2c bus numbers are
-not stable across reboots and hardware changes.
+Move all sensor values into struct lm87_values, added to <linux/lm87.h>.
+Export the function lm87_update_values() which polls and returns the
+sensor values.
 
-So, better detect alias chips in the driver directly, and skip any
-I2C chip which is obviously an alias of the ISA chip. This is done
-by comparing the value of 26 selected registers.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
 ---
- drivers/hwmon/lm78.c |   78 +++++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 65 insertions(+), 13 deletions(-)
+ drivers/hwmon/lm87.c |   44 ++++++++++++++++++++++----------------------
+ include/linux/lm87.h |   25 +++++++++++++++++++++++++
+ 2 files changed, 47 insertions(+), 22 deletions(-)
 
---- linux-2.6.26-rc5.orig/drivers/hwmon/lm78.c	2008-04-17 04:49:44.000000000 +0200
-+++ linux-2.6.26-rc5/drivers/hwmon/lm78.c	2008-06-10 13:40:29.000000000 +0200
-@@ -120,10 +120,7 @@ static inline int TEMP_FROM_REG(s8 val)
-    LM78 chips available (well, actually, that is probably never done; but
-    it is a clean illustration of how to handle a case like that). Finally,
-    a specific chip may be attached to *both* ISA and SMBus, and we would
--   not like to detect it double. Fortunately, in the case of the LM78 at
--   least, a register tells us what SMBus address we are on, so that helps
--   a bit - except if there could be more than one SMBus. Groan. No solution
--   for this yet. */
-+   not like to detect it double. */
+diff --git a/drivers/hwmon/lm87.c b/drivers/hwmon/lm87.c
+index 794deec..0703359 100644
+--- a/drivers/hwmon/lm87.c
++++ b/drivers/hwmon/lm87.c
+@@ -199,18 +199,13 @@ struct lm87_data {
+ 	unsigned long last_updated; /* In jiffies */
  
- /* For ISA chips, we abuse the i2c_client addr and name fields. We also use
-    the driver field to differentiate between I2C and ISA chips. */
-@@ -457,12 +454,24 @@ static SENSOR_DEVICE_ATTR(temp1_alarm, S
- /* This function is called when:
-      * lm78_driver is inserted (when this module is loaded), for each
-        available adapter
--     * when a new adapter is inserted (and lm78_driver is still present) */
-+     * when a new adapter is inserted (and lm78_driver is still present)
-+   We block updates of the ISA device to minimize the risk of concurrent
-+   access to the same LM78 chip through different interfaces. */
- static int lm78_attach_adapter(struct i2c_adapter *adapter)
- {
-+	struct lm78_data *data;
-+	int err;
-+
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_probe(adapter, &addr_data, lm78_detect);
-+
-+	data = pdev ? platform_get_drvdata(pdev) : NULL;
-+	if (data)
-+		mutex_lock(&data->update_lock);
-+	err = i2c_probe(adapter, &addr_data, lm78_detect);
-+	if (data)
-+		mutex_unlock(&data->update_lock);
-+	return err;
- }
+ 	struct lm87_settings set;
++	struct lm87_values val;
  
- static struct attribute *lm78_attributes[] = {
-@@ -531,6 +540,40 @@ static ssize_t show_name(struct device *
- }
- static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
+-	u8 in[8];		/* register value */
+ 	u16 in_scale[8];
  
-+/* Returns 1 if the I2C chip appears to be an alias of the ISA chip */
-+static int lm78_alias_detect(struct i2c_client *client, u8 chipid)
-+{
-+	struct lm78_data *i2c, *isa;
-+	int i;
-+
-+	if (!pdev)	/* No ISA chip */
-+		return 0;
-+
-+	i2c = i2c_get_clientdata(client);
-+	isa = platform_get_drvdata(pdev);
-+
-+	if (lm78_read_value(isa, LM78_REG_I2C_ADDR) != client->addr)
-+		return 0;	/* Address doesn't match */
-+	if ((lm78_read_value(isa, LM78_REG_CHIPID) & 0xfe) != (chipid & 0xfe))
-+		return 0;	/* Chip type doesn't match */
-+
-+	/* We compare all the limit registers, the config register and the
-+	 * interrupt mask registers */
-+	for (i = 0x2b; i <= 0x3d; i++) {
-+		if (lm78_read_value(isa, i) != lm78_read_value(i2c, i))
-+			return 0;
-+	}
-+	if (lm78_read_value(isa, LM78_REG_CONFIG) !+	    lm78_read_value(i2c, LM78_REG_CONFIG))
-+		return 0;
-+	for (i = 0x43; i <= 0x46; i++) {
-+		if (lm78_read_value(isa, i) != lm78_read_value(i2c, i))
-+			return 0;
-+	}
-+
-+	return 1;
-+}
-+
- /* This function is called by i2c_probe */
- static int lm78_detect(struct i2c_adapter *adapter, int address, int kind)
- {
-@@ -589,6 +632,13 @@ static int lm78_detect(struct i2c_adapte
- 			err = -ENODEV;
- 			goto ERROR2;
- 		}
-+
-+		if (lm78_alias_detect(new_client, i)) {
-+			dev_dbg(&adapter->dev, "Device at 0x%02x appears to "
-+				"be the same as ISA device\n", address);
-+			err = -ENODEV;
-+			goto ERROR2;
-+		}
- 	}
+-	s8 temp[3];		/* register value */
+ 	s8 temp_crit_int;	/* min of two register values */
+ 	s8 temp_crit_ext;	/* min of two register values */
  
- 	if (kind = lm78) {
-@@ -949,14 +999,12 @@ static int __init sm_lm78_init(void)
- {
- 	int res;
- 
--	res = i2c_add_driver(&lm78_driver);
--	if (res)
--		goto exit;
+-	u8 fan[2];		/* register value */
 -
-+	/* We register the ISA device first, so that we can skip the
-+	 * registration of an I2C interface to the same device. */
- 	if (lm78_isa_found(isa_address)) {
- 		res = platform_driver_register(&lm78_isa_driver);
- 		if (res)
--			goto exit_unreg_i2c_driver;
-+			goto exit;
+-	u16 alarms;		/* register values, combined */
+-	u8 vid;			/* register values, combined */
+ 	u8 vrm;
+ };
  
- 		/* Sets global pdev as a side effect */
- 		res = lm78_isa_device_add(isa_address);
-@@ -964,12 +1012,16 @@ static int __init sm_lm78_init(void)
- 			goto exit_unreg_isa_driver;
- 	}
- 
-+	res = i2c_add_driver(&lm78_driver);
-+	if (res)
-+		goto exit_unreg_isa_device;
-+
- 	return 0;
- 
-+ exit_unreg_isa_device:
-+	platform_device_unregister(pdev);
-  exit_unreg_isa_driver:
- 	platform_driver_unregister(&lm78_isa_driver);
-- exit_unreg_i2c_driver:
--	i2c_del_driver(&lm78_driver);
-  exit:
- 	return res;
+@@ -232,7 +227,7 @@ static inline int lm87_write_value(struct i2c_client *client, u8 reg, u8 value)
+ static ssize_t show_in##offset##_input(struct device *dev, struct device_attribute *attr, char *buf) \
+ { \
+ 	struct lm87_data *data = lm87_update_device(dev); \
+-	return sprintf(buf, "%u\n", IN_FROM_REG(data->in[offset], \
++	return sprintf(buf, "%u\n", IN_FROM_REG(data->val.in[offset], \
+ 		       data->in_scale[offset])); \
+ } \
+ static ssize_t show_in##offset##_min(struct device *dev, struct device_attribute *attr, char *buf) \
+@@ -314,7 +309,7 @@ set_in(7);
+ static ssize_t show_temp##offset##_input(struct device *dev, struct device_attribute *attr, char *buf) \
+ { \
+ 	struct lm87_data *data = lm87_update_device(dev); \
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[offset-1])); \
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->val.temp[offset-1])); \
+ } \
+ static ssize_t show_temp##offset##_low(struct device *dev, struct device_attribute *attr, char *buf) \
+ { \
+@@ -397,7 +392,7 @@ static DEVICE_ATTR(temp3_crit, S_IRUGO, show_temp_crit_ext, NULL);
+ static ssize_t show_fan##offset##_input(struct device *dev, struct device_attribute *attr, char *buf) \
+ { \
+ 	struct lm87_data *data = lm87_update_device(dev); \
+-	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[offset-1], \
++	return sprintf(buf, "%d\n", FAN_FROM_REG(data->val.fan[offset-1], \
+ 		       FAN_DIV_FROM_REG(data->set.fan_div[offset-1]))); \
+ } \
+ static ssize_t show_fan##offset##_min(struct device *dev, struct device_attribute *attr, char *buf) \
+@@ -497,14 +492,14 @@ set_fan(2);
+ static ssize_t show_alarms(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct lm87_data *data = lm87_update_device(dev);
+-	return sprintf(buf, "%d\n", data->alarms);
++	return sprintf(buf, "%d\n", data->val.alarms);
  }
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
+ static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct lm87_data *data = lm87_update_device(dev);
+-	return sprintf(buf, "%d\n", vid_from_reg(data->vid, data->vrm));
++	return sprintf(buf, "%d\n", vid_from_reg(data->val.vid, data->vrm));
+ }
+ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
+ 
+@@ -545,7 +540,7 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
+ {
+ 	struct lm87_data *data = lm87_update_device(dev);
+ 	int bitnr = to_sensor_dev_attr(attr)->index;
+-	return sprintf(buf, "%u\n", (data->alarms >> bitnr) & 1);
++	return sprintf(buf, "%u\n", (data->val.alarms >> bitnr) & 1);
+ }
+ static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
+ static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
+@@ -987,7 +982,7 @@ static struct lm87_data *lm87_update_device(struct device *dev)
+ 		i = (data->set.channel & LM87_CHAN_TEMP3) ? 1 : 0;
+ 		j = (data->set.channel & LM87_CHAN_TEMP3) ? 5 : 6;
+ 		for (; i < j; i++) {
+-			data->in[i] = lm87_read_value(client,
++			data->val.in[i] = lm87_read_value(client,
+ 				      LM87_REG_IN(i));
+ 			data->set.in_min[i] = lm87_read_value(client,
+ 					  LM87_REG_IN_MIN(i));
+@@ -997,7 +992,7 @@ static struct lm87_data *lm87_update_device(struct device *dev)
+ 
+ 		for (i = 0; i < 2; i++) {
+ 			if (data->set.channel & LM87_CHAN_NO_FAN(i)) {
+-				data->in[6+i] = lm87_read_value(client,
++				data->val.in[6+i] = lm87_read_value(client,
+ 						LM87_REG_AIN(i));
+ 				data->set.in_max[6+i] = lm87_read_value(client,
+ 						    LM87_REG_AIN_MAX(i));
+@@ -1005,7 +1000,7 @@ static struct lm87_data *lm87_update_device(struct device *dev)
+ 						    LM87_REG_AIN_MIN(i));
+ 
+ 			} else {
+-				data->fan[i] = lm87_read_value(client,
++				data->val.fan[i] = lm87_read_value(client,
+ 					       LM87_REG_FAN(i));
+ 				data->set.fan_min[i] = lm87_read_value(client,
+ 						   LM87_REG_FAN_MIN(i));
+@@ -1014,7 +1009,7 @@ static struct lm87_data *lm87_update_device(struct device *dev)
+ 
+ 		j = (data->set.channel & LM87_CHAN_TEMP3) ? 3 : 2;
+ 		for (i = 0 ; i < j; i++) {
+-			data->temp[i] = lm87_read_value(client,
++			data->val.temp[i] = lm87_read_value(client,
+ 					LM87_REG_TEMP[i]);
+ 			data->set.temp_high[i] = lm87_read_value(client,
+ 					     LM87_REG_TEMP_HIGH[i]);
+@@ -1033,13 +1028,11 @@ static struct lm87_data *lm87_update_device(struct device *dev)
+ 		i = lm87_read_value(client, LM87_REG_VID_FAN_DIV);
+ 		data->set.fan_div[0] = (i >> 4) & 0x03;
+ 		data->set.fan_div[1] = (i >> 6) & 0x03;
+-		data->vid = (i & 0x0F)
+-			  | (lm87_read_value(client, LM87_REG_VID4) & 0x01)
+-			     << 4;
++		data->val.vid = (i & 0x0F)
++			| (lm87_read_value(client, LM87_REG_VID4) & 0x01) << 4;
+ 
+-		data->alarms = lm87_read_value(client, LM87_REG_ALARMS1)
+-			     | (lm87_read_value(client, LM87_REG_ALARMS2)
+-				<< 8);
++		data->val.alarms = lm87_read_value(client, LM87_REG_ALARMS1)
++			| (lm87_read_value(client, LM87_REG_ALARMS2) << 8);
+ 		data->set.aout = lm87_read_value(client, LM87_REG_AOUT);
+ 
+ 		data->last_updated = jiffies;
+@@ -1051,6 +1044,13 @@ static struct lm87_data *lm87_update_device(struct device *dev)
+ 	return data;
+ }
+ 
++struct lm87_values *lm87_update_values(struct i2c_client *client)
++{
++	struct lm87_data *data = lm87_update_device(&client->dev);
++	return &data->val;
++}
++EXPORT_SYMBOL(lm87_update_values);
++
+ static int __init sensors_lm87_init(void)
+ {
+ 	int err;
+diff --git a/include/linux/lm87.h b/include/linux/lm87.h
+index cf0472d..da4c0fe 100644
+--- a/include/linux/lm87.h
++++ b/include/linux/lm87.h
+@@ -13,6 +13,7 @@
+ #ifdef __KERNEL__
+ 
+ #include <linux/types.h>
++#include <linux/i2c.h>
+ 
+ /* Channel mode register */
+ #define LM87_CHAN_NO_FAN(nr)	(1 << (nr))	/* nr in 0..1 */
+@@ -86,6 +87,24 @@ struct lm87_settings {
+ };
+ 
+ /**
++ * struct lm87_values - values from LM87 hardware monitor
++ * @in: Voltages, indexed by %LM87_IN_*
++ * @temp: Temperatures, indexed by %LM87_TEMP_*
++ * @fan: Fan speeds, indexed by %LM87_FAN_*
++ * @alarms: Interrupt flags, combined with register 2 shifted 8 bits left
++ * @vid: Voltage id, combined from the two bitfields
++ *
++ * All sensor values are raw register values.
++ */
++struct lm87_values {
++	u8 in[8];
++	s8 temp[3];
++	u8 fan[2];
++	u16 alarms;
++	u8 vid;
++};
++
++/**
+  * struct lm87_platform_data - platform data for LM87 hardware monitor
+  * @reset: Flag for whether to reset and set channel mode register
+  * @set_limits: Flag for whether to set limit registers
+@@ -102,6 +121,12 @@ struct lm87_platform_data {
+ 	struct lm87_settings set;
+ };
+ 
++/**
++ * lm87_update_values() - update and return current values
++ * @client: I2C client to which the LM87 driver is bound
++ */
++struct lm87_values *lm87_update_values(struct i2c_client *client);
++
+ #endif
+ 
+ #endif
 
 -- 
-Jean Delvare
+Ben Hutchings, Senior Software Engineer, Solarflare Communications
+Not speaking for my employer; that's the marketing department's job.
 
 _______________________________________________
 lm-sensors mailing list
