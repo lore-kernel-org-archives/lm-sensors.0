@@ -1,38 +1,33 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 15 Jun 2008 08:01:23 +0000
-Subject: Re: [lm-sensors] [PATCH] Add driver for AD7414 i2c temperature
-Message-Id: <20080615100123.5f8c092f@hyperion.delvare>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Date: Mon, 09 Jun 2008 11:13:31 +0000
+Subject: [lm-sensors] [PATCH] max664x driver [2nd try]
+Message-Id: <20080609111329.GB11300@solarflare.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Sean,
+Since the first version, I have renamed the device attributes to match
+the patterns that libsensors expects and changed some structure members
+into arrays to match these.  Tested with lm_sensors 3.0.2.
 
-Sorry for the late reply, your reply got lost in my mailbox.
+Ben.
 
-On Wed, 30 Apr 2008 00:41:01 -0400, Sean MacLennan wrote:
-> Here is a rework based on Jean Delvare's suggestions.
-> 
-> One change that may not be apparent is that the alert bit is active
-> low. I feel that it reads wrong to have "cat temp_alert" return 1
-> when the alert is off. So I invert this bit. Let me know how you feel
-> about this.
+Ben Hutchings (1):
+  max664x: New driver for Maxim MAX6646/6647/6649 sensor chips
 
-I agree with you that 1 should mean "on" in sysfs, regardless of the
-physical polarity. However, it seems to me that the ALERT polarity can
-be changed (bit 4 of configuration register) so you shouldn't always
-invert the bit in sysfs, only when the polarity is actually inverted.
-
-That being said... After reading the datasheet, I am under the
-impression that temp1_alert and temp1_max_alarm will trigger on the
-same condition (temp1 > temp1_max). So having both files doesn't look
-terribly useful to me. Especially when "temp1_alert" is not a standard
-feature name, so libsensors will no pick it.
+ drivers/hwmon/Kconfig   |   10 ++
+ drivers/hwmon/Makefile  |    1 +
+ drivers/hwmon/max664x.c |  355 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/max664x.h |   92 ++++++++++++
+ 4 files changed, 458 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/hwmon/max664x.c
+ create mode 100644 include/linux/max664x.h
 
 -- 
-Jean Delvare
+Ben Hutchings, Senior Software Engineer, Solarflare Communications
+Not speaking for my employer; that's the marketing department's job.
 
 _______________________________________________
 lm-sensors mailing list
