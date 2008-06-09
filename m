@@ -1,48 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 08 Jun 2008 16:17:39 +0000
+From: David Brownell <david-b@pacbell.net>
+Date: Mon, 09 Jun 2008 05:07:32 +0000
 Subject: Re: [lm-sensors] [patch 2.6.26-rc1] lm75: sensor reading bugfix
-Message-Id: <20080608181739.189c8cb6@hyperion.delvare>
+Message-Id: <200806082207.32631.david-b@pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200805031919.17110.david-b@pacbell.net>
 In-Reply-To: <200805031919.17110.david-b@pacbell.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
-
-On Sun, 8 Jun 2008 11:36:26 -0400, Mark M. Hoffman wrote:
-> Hi David:
-> 
-> * David Brownell <david-b@pacbell.net> [2008-05-03 19:19:16 -0700]:
-> > LM75 sensor reading bugfix: never save error status as valid
-> > sensor output.  This could be improved, but at least this
-> > prevents certain rude failure modes.
-> > 
-> > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> > ---
-> > Goes on top of the previously submitted lm75 cleanup patch:
-> > 
-> > 	http://marc.info/?l=lm-sensors&m0880547009929&w=2
-> > 
-> >  drivers/hwmon/lm75.c |   20 +++++++++++++++-----
-> >  1 file changed, 15 insertions(+), 5 deletions(-)
-> 
-> 
+On Sunday 08 June 2008, Mark M. Hoffman wrote:
 > Applied to hwmon-2.6.git/testing, thanks.
-> 
+>=20
 > Hrm, I missed this one on the first pass through my queue when I picked
-> up your other lm75 patches.  Looks like it's severe enough to warrant
-> sending to Linus before 2.6.26 (along with the prerequisite cleanup patch).
-> 
+> up your other lm75 patches. =A0Looks like it's severe enough to warrant
+> sending to Linus before 2.6.26 (along with the prerequisite cleanup patch=
+).
+>=20
 > Any objections?
 
-Sending the reading bug fix to Linus now sounds fine, but the cleanup
-patch doesn't appear to actually be a prerequisite.
+I'd not object if any of them were sent upstream. :)
 
--- 
-Jean Delvare
+FYI my comment about "goes on top of cleanup" was mostly
+to reflect the fact that I didn't test any other sequence.
+
+If it applies in another order for you, fine.  Though as
+a general policy, I'd be glad to see that cleanup patch
+upstream before its one year anniversary [0] passes!
+
+- Dave
+
+[0] http://marc.info/?l=3Dlm-sensors&m=119069752322212&w=3D2
+
 
 _______________________________________________
 lm-sensors mailing list
