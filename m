@@ -1,317 +1,115 @@
-From: Mark van Doesburg <mark.vandoesburg@hetnet.nl>
-Date: Wed, 11 Jun 2008 05:20:13 +0000
-Subject: [lm-sensors] [PATCH 2.6.25.4] f71882.c driver,
-Message-Id: <200806110520.m5B5KDgO018954@localhost>
+From: "Goede, J.W.R. de" <j.w.r.degoede@hhs.nl>
+Date: Wed, 11 Jun 2008 08:18:48 +0000
+Subject: Re: [lm-sensors] [PATCH 2.6.25.4] f71882.c driver,
+Message-Id: <web-88346509@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200806110520.m5B5KDgO018954@localhost>
+In-Reply-To: <200806110520.m5B5KDgO018954@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Mark,
 
-I've added fan/pwm control to the f71882fg driver in
-linux-2.6.25.4. There's no hardware speed control yet, I intend
-to add that later. Since this chip is able to work in RPM and
-PWM controlled mode I needed to extend the possible input for
-/sys/class/hwmon/hwmon*/pwm*_enable, where the extra value control PWM
-vs. RPM mode.
+Thanks for looking into this, I'm the author of the current
 
-This also raises a question. RPM control seems to be the most appropriate
-version of fan control, but I need to add a maximum expected RPM value
-to the driver. I was thinking about /sys/class/hwmon/hwmon./fan*_max,
-but I would like like some feedback on that.
+f71882fg driver and I have adding pwm support on my todo
+list for quite a while now, but unfortunately sofar I
+haven't found the time for it.
 
-Please CC me when reacting to this post, since I'm not on the list.
+I have however already a clear idea how I would like to see
+the pwm implement (but I'm open for discussion).
 
-Kind regards,
+You've currently added both pwmX and fanX_target
+attributes, but those both show (and store!!) the same
+register in a different "notation", and at any given time
+only one of the 2 notations is valid, depending on the
+pwmX_enable attribute.
 
-Mark van Doesburg.
+Allowing writes to pwmX when the fintek is pwm set in rpm
+modes not pwm modes or the other way round is IMHO
+unacceptable, as this will lead to bogues settings.
+I have been thinking about this for some time now and I see
+4 solutions for this:
 
+1) Only support pwm modes as this is what all other hwmon
+   IC's have, but this would require reprogramming the 
+   auto_points when in rpm auto mode so that we get sane
+   settings when reprogramming the f71882fg in auto pwm 
+   mode. I don't like this as it causes the chip to be 
+   reprogrammed from its bios defaults without the user
+   asking for it.
 
---- /tmp/linux-2.6.25.4/drivers/hwmon/f71882fg.c	2008-05-15 17:00:12.000000=
-000 +0200
-+++ drivers/hwmon/f71882fg.c	2008-06-11 06:59:42.000000000 +0200
-@@ -57,6 +57,7 @@
- #define F71882FG_REG_IN1_HIGH		0x32
-=20
- #define F71882FG_REG_FAN(nr)		(0xA0 + (16 * (nr)))
-+#define F71882FG_REG_FAN_TARGET(nr)	(0xA2 + (16 * (nr)))
- #define F71882FG_REG_FAN_STATUS		0x92
- #define F71882FG_REG_FAN_BEEP		0x93
-=20
-@@ -70,6 +71,11 @@
- #define F71882FG_REG_TEMP_TYPE		0x6B
- #define F71882FG_REG_TEMP_DIODE_OPEN	0x6F
-=20
-+
-+#define F71882FG_REG_PWM(nr)            (0xA3 + (16 * (nr)))
-+#define F71882FG_REG_PWM_TYPE		0x94
-+#define F71882FG_REG_PWM_ENABLE         0x96
-+
- #define	F71882FG_REG_START		0x01
-=20
- #define FAN_MIN_DETECT			366 /* Lowest detectable fanspeed */
-@@ -88,6 +94,7 @@
- static inline void superio_exit(int base);
-=20
- static inline u16 fan_from_reg ( u16 reg );
-+static inline u16 fan_to_reg ( u16 reg );
-=20
- struct f71882fg_data {
- 	unsigned short addr;
-@@ -104,6 +111,7 @@
- 	u8	in_status;
- 	u8	in_beep;
- 	u16	fan[4];
-+	u16	fan_target[4];
- 	u8	fan_status;
- 	u8	fan_beep;
- 	u8	temp[3];
-@@ -114,11 +122,15 @@
- 	u8	temp_status;
- 	u8	temp_beep;
- 	u8	temp_diode_open;
-+	u8	pwm[4];
-+	u8	pwm_enable;
-+	u8	pwm_type;
- };
-=20
- static u8 f71882fg_read8(struct f71882fg_data *data, u8 reg);
- static u16 f71882fg_read16(struct f71882fg_data *data, u8 reg);
- static void f71882fg_write8(struct f71882fg_data *data, u8 reg, u8 val);
-+static void f71882fg_write16(struct f71882fg_data *data, u8 reg, u16 val);
-=20
- /* Sysfs in*/
- static ssize_t show_in(struct device *dev, struct device_attribute *devatt=
-r,
-@@ -136,6 +148,10 @@
- /* Sysfs Fan */
- static ssize_t show_fan(struct device *dev, struct device_attribute *devat=
-tr,
- 	char *buf);
-+static ssize_t show_fan_target(struct device *dev, struct device_attribute
-+	*devattr, char *buf);
-+static ssize_t store_fan_target(struct device *dev, struct device_attribute
-+	*devattr, const char *buf, size_t count);
- static ssize_t show_fan_beep(struct device *dev, struct device_attribute
- 	*devattr, char *buf);
- static ssize_t store_fan_beep(struct device *dev, struct device_attribute
-@@ -173,6 +189,15 @@
- static ssize_t show_name(struct device *dev, struct device_attribute *deva=
-ttr,
- 	char *buf);
-=20
-+static ssize_t show_pwm(struct device *dev, struct device_attribute *devat=
-tr,
-+	char *buf);
-+static ssize_t store_pwm(struct device *dev, struct device_attribute
-+	*devattr, const char *buf, size_t count);
-+static ssize_t show_pwm_enable(struct device *dev,=20
-+	struct device_attribute *devattr, char *buf);
-+static ssize_t store_pwm_enable(struct device *dev, struct device_attribute
-+	*devattr, const char *buf, size_t count);
-+
- static int __devinit f71882fg_probe(struct platform_device * pdev);
- static int __devexit f71882fg_remove(struct platform_device *pdev);
- static int __init f71882fg_init(void);
-@@ -252,21 +277,41 @@
- static struct sensor_device_attribute f71882fg_fan_attr[]  {
- 	SENSOR_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0),
-+	SENSOR_ATTR(fan1_target, S_IRUGO|S_IWUSR, show_fan_target,
-+		store_fan_target, 0),
- 	SENSOR_ATTR(fan1_beep, S_IRUGO|S_IWUSR, show_fan_beep,
- 		store_fan_beep, 0),
- 	SENSOR_ATTR(fan1_alarm, S_IRUGO, show_fan_alarm, NULL, 0),
- 	SENSOR_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1),
-+	SENSOR_ATTR(fan2_target, S_IRUGO|S_IWUSR, show_fan_target,
-+		store_fan_target, 1),
- 	SENSOR_ATTR(fan2_beep, S_IRUGO|S_IWUSR, show_fan_beep,
- 		store_fan_beep, 1),
- 	SENSOR_ATTR(fan2_alarm, S_IRUGO, show_fan_alarm, NULL, 1),
- 	SENSOR_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2),
-+	SENSOR_ATTR(fan3_target, S_IRUGO|S_IWUSR, show_fan_target,
-+		store_fan_target, 2),
- 	SENSOR_ATTR(fan3_beep, S_IRUGO|S_IWUSR, show_fan_beep,
- 		store_fan_beep, 2),
- 	SENSOR_ATTR(fan3_alarm, S_IRUGO, show_fan_alarm, NULL, 2),
- 	SENSOR_ATTR(fan4_input, S_IRUGO, show_fan, NULL, 3),
-+	SENSOR_ATTR(fan4_target, S_IRUGO|S_IWUSR, show_fan_target,
-+		store_fan_target, 3),
- 	SENSOR_ATTR(fan4_beep, S_IRUGO|S_IWUSR, show_fan_beep,
- 		store_fan_beep, 3),
--	SENSOR_ATTR(fan4_alarm, S_IRUGO, show_fan_alarm, NULL, 3)
-+	SENSOR_ATTR(fan4_alarm, S_IRUGO, show_fan_alarm, NULL, 3),
-+	SENSOR_ATTR(pwm1, S_IRUGO|S_IWUSR, show_pwm, store_pwm, 0),
-+	SENSOR_ATTR(pwm2, S_IRUGO|S_IWUSR, show_pwm, store_pwm, 1),
-+	SENSOR_ATTR(pwm3, S_IRUGO|S_IWUSR, show_pwm, store_pwm, 2),
-+	SENSOR_ATTR(pwm4, S_IRUGO|S_IWUSR, show_pwm, store_pwm, 3),
-+	SENSOR_ATTR(pwm1_enable, S_IRUGO|S_IWUSR, show_pwm_enable,=20
-+		store_pwm_enable, 0),
-+	SENSOR_ATTR(pwm2_enable, S_IRUGO|S_IWUSR, show_pwm_enable,=20
-+		store_pwm_enable, 1),=20
-+	SENSOR_ATTR(pwm3_enable, S_IRUGO|S_IWUSR, show_pwm_enable,=20
-+		store_pwm_enable, 2),
-+	SENSOR_ATTR(pwm4_enable, S_IRUGO|S_IWUSR, show_pwm_enable,=20
-+		store_pwm_enable, 3)
- };
-=20
-=20
-@@ -310,6 +355,11 @@
- 	return reg ? (1500000 / reg) : 0;
- }
-=20
-+static inline u16 fan_to_reg(u16 fan)
-+{
-+	return fan ? (1500000/fan) : 0;
-+}
-+
- static u8 f71882fg_read8(struct f71882fg_data *data, u8 reg)
- {
- 	u8 val;
-@@ -338,6 +388,15 @@
- 	outb(val, data->addr + DATA_REG_OFFSET);
- }
-=20
-+static void f71882fg_write16(struct f71882fg_data *data, u8 reg, u16 val)
-+{
-+	outb(reg++, data->addr + ADDR_REG_OFFSET);
-+	outb(val>>8, data->addr + DATA_REG_OFFSET);
-+	outb(reg, data->addr + ADDR_REG_OFFSET);
-+	outb(val&255, data->addr + DATA_REG_OFFSET);
-+}
-+
-+
- static struct f71882fg_data *f71882fg_update_device(struct device * dev)
- {
- 	struct f71882fg_data *data =3D dev_get_drvdata(dev);
-@@ -399,9 +458,18 @@
-=20
- 		data->fan_status =3D f71882fg_read8(data,
- 						F71882FG_REG_FAN_STATUS);
--		for (nr =3D 0; nr < 4; nr++)
-+		data->pwm_type =3D f71882fg_read8(data,
-+						F71882FG_REG_PWM_TYPE);
-+		data->pwm_enable =3D f71882fg_read8(data,
-+						F71882FG_REG_PWM_ENABLE);
-+		for (nr =3D 0; nr < 4; nr++) {
- 			data->fan[nr] =3D f71882fg_read16(data,
- 						F71882FG_REG_FAN(nr));
-+			data->fan_target[nr] =3D f71882fg_read16(data,
-+						F71882FG_REG_FAN_TARGET(nr));
-+			data->pwm[nr] =3D f71882fg_read8(data,
-+						F71882FG_REG_PWM(nr));
-+                }
-=20
- 		data->in_status =3D f71882fg_read8(data,
- 						F71882FG_REG_IN_STATUS);
-@@ -432,6 +500,30 @@
- 	return sprintf(buf, "%d\n", speed);
- }
-=20
-+static ssize_t show_fan_target(struct device *dev,=20
-+	struct device_attribute *devattr, char *buf)
-+{
-+	struct f71882fg_data *data =3D f71882fg_update_device(dev);
-+	int nr =3D to_sensor_dev_attr(devattr)->index;
-+	int speed =3D fan_from_reg(data->fan_target[nr]);
-+	return sprintf(buf, "%d\n", speed);
-+}
-+
-+static ssize_t store_fan_target(struct device *dev, struct device_attribute
-+	*devattr, const char *buf, size_t count)
-+{
-+	struct f71882fg_data *data =3D dev_get_drvdata(dev);
-+	int nr =3D to_sensor_dev_attr(devattr)->index;
-+	int val =3D simple_strtoul(buf, NULL, 10);
-+	val=FAn_to_reg(val);
-+
-+	mutex_lock(&data->update_lock);
-+	f71882fg_write16(data, F71882FG_REG_FAN_TARGET(nr), val);
-+	mutex_unlock(&data->update_lock);
-+
-+	return count;
-+}
-+
- static ssize_t show_fan_beep(struct device *dev, struct device_attribute
- 	*devattr, char *buf)
- {
-@@ -739,6 +831,73 @@
- 		return sprintf(buf, "0\n");
- }
-=20
-+static ssize_t show_pwm(struct device *dev, struct device_attribute *devat=
-tr,
-+	char *buf)
-+{
-+	struct f71882fg_data *data =3D f71882fg_update_device(dev);
-+	int nr =3D to_sensor_dev_attr(devattr)->index;
-+	return sprintf(buf, "%d\n", data->pwm[nr]);
-+}
-+
-+static ssize_t store_pwm(struct device *dev, struct device_attribute
-+	*devattr, const char *buf, size_t count)
-+{
-+	struct f71882fg_data *data =3D dev_get_drvdata(dev);
-+	int nr =3D to_sensor_dev_attr(devattr)->index;
-+	int val =3D simple_strtoul(buf, NULL, 10);
-+
-+	mutex_lock(&data->update_lock);
-+	f71882fg_write8(data, F71882FG_REG_PWM(nr), val);
-+	mutex_unlock(&data->update_lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_pwm_enable(struct device *dev,=20
-+struct device_attribute *devattr,
-+	char *buf)
-+{
-+	int result;
-+	struct f71882fg_data *data =3D f71882fg_update_device(dev);
-+	int nr =3D to_sensor_dev_attr(devattr)->index;
-+
-+	switch(3&(data->pwm_enable>>(2*nr))) {
-+	case 0: result=3D2; break; // Temperature controlled (RPM mode)
-+	case 1: result=3D3; break; // Temperature controlled (DUTY CYCLE mode)
-+	case 2: result=3D4; break; // Manual mode (RPM control)
-+	default: result=3D1; break; // Manual mode (DUTY CYCLE)
-+	}
-+
-+	return sprintf(buf, "%d\n", result);
-+}
-+
-+static ssize_t store_pwm_enable(struct device *dev, struct device_attribute
-+	*devattr, const char *buf, size_t count)
-+{
-+	struct f71882fg_data *data =3D dev_get_drvdata(dev);
-+	int reg;
-+	int nr =3D to_sensor_dev_attr(devattr)->index;
-+	int val =3D simple_strtoul(buf, NULL, 10);
-+
-+	switch(val) {
-+	case 1: reg=3D3; break; // Manual mode (DUTY CYCLE)
-+	case 2: reg=3D0; break; // Temperature controlled (RPM mode)
-+	case 3: reg=3D1; break; // Temperature controlled (DUTY CYCLE mode)
-+	case 4: reg=3D2; break; // Manual mode (RPM control)
-+	default: val=3D0; reg=3D3; break; // Manual mode 100% duty cycle
-+	}
-+
-+	mutex_lock(&data->update_lock);
-+	data->pwm_enable&=3D~(3<<(2*nr));
-+	data->pwm_enable|=3Dreg<<(2*nr);
-+	f71882fg_write8(data, F71882FG_REG_PWM_ENABLE, data->pwm_enable);
-+	if(!val)
-+		f71882fg_write8(data, F71882FG_REG_PWM(nr), 255);
-+	mutex_unlock(&data->update_lock);
-+
-+	return count;
-+}
-+
- static ssize_t show_name(struct device *dev, struct device_attribute *deva=
-ttr,
- 	char *buf)
- {
+2) make pwmX / fanX_target come and go depending on 
+   pwmX_enable, so yes that would mean removing and adding
+   sysfs atributes on the fly as pwmX_enable changes.
+   Don't like it either, ugly, and racy what happens if an
+   app keeps an attribute open?
+
+3) mark the pwmX / fanX_target readonly, that is chmod
+   the attribute on the fly as pwmX_enable changes, and 
+   check in show/store_pwm if we are in pwm mode, if not
+   return EPERM for store (fixes attr kept open race) and
+   return -1 as value when showing. Still quite complex
+
+4) See rpm mode as just a different pwm mode, pwm is
+   0-100% dutycylce mapped to 0-255, see rpm mode as
+   0-100% of the fan full speed count register, note this
+   is how the target speed per section is set in the
+   registers when in rpm auto mode, and such for auto mode
+   has very much an 1-1 mapping for all the auto regs,
+   which can fully reuse our existing defined sysfs attr
+   for auto pwm control (pwmX_auto_point_*****)
+
+   The only place where this mapping isn't 1 on 1 is for
+   manual rpm mode, where the fintek allows you to
+   specify hard go X rpm, but mapping this to a % of
+   full speed should be easy.
+
+I greatly prefer solution 4 for its simplicity and matching
+our currently defined sysfs attr standard for pwm and auto
+pwm I want to combine this with simply using either pwm or
+rpm mode (depending on what the BIOS gives us) and not
+allow changing this on the fly with pwm_enable, so reduce
+pwm_enable to simply choosing between auto and manual mode.
+
+I don't want to allow on the fly changing, because then the
+meaning of a lot of registers change and they would all
+need to be reinitialized to something sane in their new
+meaning. We could add a module option to force either mode
+at module load time (overriding bios settings for both the
+mode and the zone settings).
+
+Last is what todo with the full speed reg, I wonder have
+you tested if this gets set to anything sane by the BIOS or
+the chip itself? I know some hwmon IC's how have a register
+like this start by running the fan at full speed for 2
+seconds and then measure that speed and store that in full
+speed, I wonder if that happens here. Anyways we should
+create an atrribute for it and it shoud _not_ be called
+fanX_max, max is already used in other cases and it means
+give an alarm if the reading goes above this value. Instead
+I would like to suggest to use what the datasheet uses and
+call it fanX_full_speed
+
+So what do you think of my proposal 4) for sysfs interface
+for the pwm part of the f71882fg ? And would you be willing
+to implement this?
+
+Thanks & Regards,
+
+Hans
+
+p.s.
+
+1) If you want we can continue this discussion in private
+in Dutch, but I would greatly prefer to keep this on the
+list in English
+
+2) Being bold and assusming you're Dutch, where in the
+Netherlands do you live? I'm always interested in meeting
+fellow Dutch Linux hackers :)
 
 
 _______________________________________________
