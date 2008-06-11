@@ -1,29 +1,40 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Tue, 17 Jun 2008 23:10:34 +0000
-Subject: Re: [lm-sensors] Intel D101GGC - No sensors found
-Message-Id: <191fb4ca0806171610s21a17e4exb721c470162a9e2e@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 11 Jun 2008 15:29:04 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (thmc50) Safer device detection
+Message-Id: <20080611172904.418df3a1@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2c91a67a0806171239i45dd2322k975256a6ca22461e@mail.gmail.com>
-In-Reply-To: <2c91a67a0806171239i45dd2322k975256a6ca22461e@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-0x78 is a DME1737. Upgrade lm-sensors to 3.x and your kernel to at
-least 2.6.23 to get support for the chip.
+Accepting all values >= 0xc0 as the ADM1022/THMC50 device ID is too
+permissive. Only allow the ID range we know these devices may use.
 
-...juerg
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+---
+Krzysztof, can you please review and ack this patch? Thanks.
+
+ drivers/hwmon/thmc50.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- linux-2.6.26-rc5.orig/drivers/hwmon/thmc50.c	2008-04-17 04:49:44.000000000 +0200
++++ linux-2.6.26-rc5/drivers/hwmon/thmc50.c	2008-06-11 17:19:44.000000000 +0200
+@@ -295,7 +295,8 @@ static int thmc50_detect(struct i2c_adap
+ 		kind = thmc50;
+ 	else if (kind < 0) {
+ 		err = -ENODEV;
+-		if (revision >= 0xc0 && ((config & 0x10) = 0)) {
++		if (revision >= 0xc0 && revision <= 0xdf &&
++		    (config & 0x10) = 0) {
+ 			if (company = 0x49) {
+ 				kind = thmc50;
+ 				err = 0;
 
 
-On Tue, Jun 17, 2008 at 3:06 PM, Rudolf Marek <r.marek@assembler.cz> wrote:
-> Hi,
->
-> SMSC SCH5017 I/O  is your chip. Juerg?
->
-> Thanks,
-> Rudolf
->
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
