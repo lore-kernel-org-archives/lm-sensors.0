@@ -1,123 +1,57 @@
-From: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Date: Fri, 13 Jun 2008 22:23:28 +0000
-Subject: [lm-sensors] [PATCH] thmc50: add support for critical temperature
-Message-Id: <20080614002328.cad677bc.krzysztof.h1@poczta.fm>
+From: "Paul Smith" <phhs80@gmail.com>
+Date: Thu, 12 Jun 2008 13:13:50 +0000
+Subject: [lm-sensors] Wrong CPU Temp
+Message-Id: <6ade6f6c0806120613le2bdc27qa11a78448c8cf194@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080611212059.90f95f30.krzysztof.h1@poczta.fm>
-In-Reply-To: <20080611212059.90f95f30.krzysztof.h1@poczta.fm>
+References: <001201c33f14$0ee832a0$f265a8c0@gf01>
+In-Reply-To: <001201c33f14$0ee832a0$f265a8c0@gf01>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Dear All,
 
-This patch add critical temperature limits to
-the driver. These limits are read only.
+In the output below, the value
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
----
+CPU Temp:     -2.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor =
+=3D transistor
 
-This feature has been requested by Jean Delvare.
+seems unlikely:
 
-Fixed names: tempN_critical to tempN_crit.
+$ sensors
+it8712-isa-0290
+Adapter: ISA adapter
+VCore 1:     +1.28 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+VCore 2:     +1.82 V  (min =3D  +0.00 V, max =3D  +4.08 V)
++3.3V:       +3.38 V  (min =3D  +0.00 V, max =3D  +4.08 V)
++5V:         +6.85 V  (min =3D  +0.00 V, max =3D  +6.85 V)   ALARM
++12V:       +11.84 V  (min =3D  +0.00 V, max =3D +16.32 V)
+-12V:       -13.86 V  (min =3D -27.36 V, max =3D  +3.93 V)
+-5V:         -7.34 V  (min =3D -13.64 V, max =3D  +4.03 V)
+Stdby:       +6.85 V  (min =3D  +0.00 V, max =3D  +6.85 V)   ALARM
+VBat:        +4.08 V
+fan1:       1704 RPM  (min =3D    0 RPM, div =3D 8)
+fan2:          0 RPM  (min =3D    0 RPM, div =3D 8)
+fan3:          0 RPM  (min =3D    0 RPM, div =3D 8)
+M/B Temp:    -55.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor =
+=3D transistor
+CPU Temp:     -2.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor =
+=3D transistor
+Temp3:       +47.0=B0C  (low  =3D +127.0=B0C, high =3D +90.0=B0C)  sensor =
+=3D thermal diode
+cpu0_vid:   +1.350 V
 
-diff -urp linux-old/drivers/hwmon/thmc50.c linux-new/drivers/hwmon/thmc50.c
---- linux-old/drivers/hwmon/thmc50.c	2008-06-14 00:17:58.137911824 +0200
-+++ linux-new/drivers/hwmon/thmc50.c	2008-06-14 00:19:14.988923382 +0200
-@@ -55,8 +55,11 @@ I2C_CLIENT_MODULE_PARM(adm1022_temp3, "L
- static const u8 THMC50_REG_TEMP[] = { 0x27, 0x26, 0x20 };
- static const u8 THMC50_REG_TEMP_MIN[] = { 0x3A, 0x38, 0x2C };
- static const u8 THMC50_REG_TEMP_MAX[] = { 0x39, 0x37, 0x2B };
-+static const u8 THMC50_REG_TEMP_CRITICAL[] = { 0x13, 0x14, 0x14 };
-+static const u8 THMC50_REG_TEMP_DEFAULT[] = { 0x17, 0x18, 0x18 };
- 
- #define THMC50_REG_CONF_nFANOFF			0x20
-+#define THMC50_REG_CONF_PROGRAMMED		0x08
- 
- /* Each client has this additional data */
- struct thmc50_data {
-@@ -73,6 +76,7 @@ struct thmc50_data {
- 	s8 temp_input[3];
- 	s8 temp_max[3];
- 	s8 temp_min[3];
-+	s8 temp_critical[3];
- 	u8 analog_out;
- 	u8 alarms;
- };
-@@ -186,6 +190,15 @@ static ssize_t set_temp_max(struct devic
- 	return count;
- }
- 
-+static ssize_t show_temp_critical(struct device *dev,
-+				  struct device_attribute *attr,
-+				  char *buf)
-+{
-+	int nr = to_sensor_dev_attr(attr)->index;
-+	struct thmc50_data *data = thmc50_update_device(dev);
-+	return sprintf(buf, "%d\n", data->temp_critical[nr] * 1000);
-+}
-+
- static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
- 			  char *buf)
- {
-@@ -201,7 +214,9 @@ static SENSOR_DEVICE_ATTR(temp##offset##
- static SENSOR_DEVICE_ATTR(temp##offset##_min, S_IRUGO | S_IWUSR,	\
- 			show_temp_min, set_temp_min, offset - 1);	\
- static SENSOR_DEVICE_ATTR(temp##offset##_max, S_IRUGO | S_IWUSR,	\
--			show_temp_max, set_temp_max, offset - 1);
-+			show_temp_max, set_temp_max, offset - 1);	\
-+static SENSOR_DEVICE_ATTR(temp##offset##_crit, S_IRUGO,			\
-+			show_temp_critical, NULL, offset - 1);
- 
- temp_reg(1);
- temp_reg(2);
-@@ -221,10 +236,12 @@ static struct attribute *thmc50_attribut
- 	&sensor_dev_attr_temp1_max.dev_attr.attr,
- 	&sensor_dev_attr_temp1_min.dev_attr.attr,
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp1_crit.dev_attr.attr,
- 	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp2_max.dev_attr.attr,
- 	&sensor_dev_attr_temp2_min.dev_attr.attr,
- 	&sensor_dev_attr_temp2_input.dev_attr.attr,
-+	&sensor_dev_attr_temp2_crit.dev_attr.attr,
- 	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp2_fault.dev_attr.attr,
- 	&sensor_dev_attr_pwm1.dev_attr.attr,
-@@ -241,6 +258,7 @@ static struct attribute *temp3_attribute
- 	&sensor_dev_attr_temp3_max.dev_attr.attr,
- 	&sensor_dev_attr_temp3_min.dev_attr.attr,
- 	&sensor_dev_attr_temp3_input.dev_attr.attr,
-+	&sensor_dev_attr_temp3_crit.dev_attr.attr,
- 	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp3_fault.dev_attr.attr,
- 	NULL
-@@ -430,6 +448,10 @@ static struct thmc50_data *thmc50_update
- 
- 		int temps = data->has_temp3 ? 3 : 2;
- 		int i;
-+		int prog = i2c_smbus_read_byte_data(client, THMC50_REG_CONF);
-+
-+		prog &= THMC50_REG_CONF_PROGRAMMED;
-+
- 		for (i = 0; i < temps; i++) {
- 			data->temp_input[i] = i2c_smbus_read_byte_data(client,
- 						THMC50_REG_TEMP[i]);
-@@ -437,6 +459,10 @@ static struct thmc50_data *thmc50_update
- 						THMC50_REG_TEMP_MAX[i]);
- 			data->temp_min[i] = i2c_smbus_read_byte_data(client,
- 						THMC50_REG_TEMP_MIN[i]);
-+			data->temp_critical[i] +				i2c_smbus_read_byte_data(client,
-+					prog ? THMC50_REG_TEMP_CRITICAL[i]
-+					     : THMC50_REG_TEMP_DEFAULT[i]);
- 		}
- 		data->analog_out  		    i2c_smbus_read_byte_data(client, THMC50_REG_ANALOG_OUT);
+$
 
-----------------------------------------------------------------------
-Gdzie warto jechac na urlop? Sprawdz!
-kliknij >>> http://link.interia.pl/f1e32
+My motherboard is a GigaBite GA-81945PL-G, the processor is an Intel
+Dual Core, and the operating system is Fedora 9.
 
+Any ideas?
+
+Thanks in advance,
+
+Paul
 
 _______________________________________________
 lm-sensors mailing list
