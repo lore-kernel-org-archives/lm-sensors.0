@@ -1,7 +1,7 @@
-From: Bruno =?UTF-8?B?UHLDqW1vbnQ=?= <bonbons@linux-vserver.org>
-Date: Wed, 11 Jun 2008 21:09:49 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 12 Jun 2008 08:22:26 +0000
 Subject: Re: [lm-sensors] [Bug?] W83697: Broken readings for fan speed 10%
-Message-Id: <20080611230949.4c8bb1d3@neptune.home>
+Message-Id: <20080612102226.7532f580@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080531220339.05dc83fd@neptune.home>
 In-Reply-To: <20080531220339.05dc83fd@neptune.home>
@@ -10,147 +10,113 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hi Bruno,
 
-On Wed, 11 June 2008 Jean Delvare <khali@linux-fr.org> wrote:
-> Hi Bruno,
+On Wed, 11 Jun 2008 23:09:49 +0200, Bruno Pr=E9mont wrote:
+> On Wed, 11 June 2008 Jean Delvare <khali@linux-fr.org> wrote:
+> > 55 Hz would be 1650 RPM. If the IT8712F reports 4600 RPM then it's
+> > indeed certainly wrong. Can you check what speed is reported in the
+> > BIOS? Please also test with another fan if you can. I'd like to know
+> > if that's a problem with this specific fan (in which case there's
+> > probably not much we can do) or not. I suspect not (see below.)
 >=20
-> On Sun, 8 Jun 2008 22:30:51 +0200, Bruno Pr=C3=A9mont wrote:
-> > Now I'm running 2.6.25.5 with both patches (the one changing
-> > excessively large values to 0 and automatic fan control)
-> >=20
-> > ------ FAN connected to W83697HG ------
-> > Looking at power and speed signals with an oscilloscope I get:
-> > - slightly above 12V for FAN power
-> > - speed square signal is about 11V at 62.5Hz
-> >=20
-> > Both fan power and fan speed signal show a noise of about 0.1V in
-> > saw shape ( |\|\|\|\ ) at 4kHz.
-> >=20
-> > Changing value for pwm1_enable, pwm1_freq and pwm1 does not
-> > influence the fan at all (no voltage variation, no variation in
-> > noise). So this mainboard does not support FAN control :(
-> >=20
-> > The W83697HG reports a speed of 1750 RPM though I think it's a
-> > slightly high (Sticker on FAN says 1000RPM ... 2500RPM)
+> I've not checked the BIOS yet but increasing divider helps - see also
+> below
+
+Your chip doesn't actually have these dividers. Changing them appears
+to work because the driver _thinks_ the dividers exist and it somehow
+compensates with the missing support for 16-bit counter registers. But
+the value you get is still wrong!
+
+> I have a second FAN of the same brand, same model which produces
+> equivalent values. I didn't check a quicker fixed-speed fan yet on that
+> connector.
+> The CPU fan is fixed-speed and regulated by IT8712F (speed
+> reported as 3200 with pwm=3D2 RPM, about 4400 RPM with pwm=3D4 - same val=
+ues
+> for divider =3D 2..8)
+>
+> By the way, how does this behave with S3 (suspend to RAM), are all
+> values reprogrammed by the kernel or is it userspace's job (can't test
+> because of the graphics chips... no resume support yet in kernel for
+> ATI/AMD graphics)
+> I know that on older nforce-based PC did forget pwm settings on resume
+> (never cared about the divider so would have to verify for that one)
+
+I've never thought about S3 support, so I'd say it is unsupported and
+you are lucky if it works at all.
+
+> > Please remember that the divisor value does _not_ divide the speed
+> > value. It only affects the range of measurable values. For a fan that
+> > could run as slow as 1000 RPM, you want to set the divider to 8.
 >=20
-> Most fans emit two pulses per revolution, so 62.5 Hz means 1875 RPM.
-> 1750 RPM isn't too far away, so I'd say it's correct.
+> Changing the divider to 8 makes the IT8712F report a likely speed around
+> 1500 RPM, so the divider was the cause of the bad value.
 
-Ok, good to know that there are two pulses per revolution.
-Need to verify the FAN's datasheet for temperature-speed mappings...
+No, it wasn't (not directly at least). That's two errors roughly
+compensating themselves, so the end result looks acceptable, but it's
+still wrong. I can explain it to you when you provide a dump of your
+chip.
 
-> > Connecting the FAN to the board's (LE-365) power-out connector
-> > produces exactly the same results, thus the noise is generalized
-> > for the board's "12V rail"
-> > ------ END ------
-> >=20
-> > Note: after connecting a second (non-controlled) fan to the
-> > mainboard (on second fan connector) the W83697HG stopped reporting
-> > the bad values and did not start reporting them even after
-> > disconnecting the second fan (no system shutdown/reboot during the
-> > whole testing)
-> >=20
-> > The second FAN shows the same voltages, just with different
-> > frequency for the speed signal.
-> >=20
-> >=20
-> > ------ FAN connected to IT8712F ------
-> > (only speed sensor, power taken directly from system's power supply)
-> >=20
-> > Looking at power and speed signals with an oscilloscope I get:
-> > - slightly above 12V for FAN power
-> > - speed square signal is about 5V at 55Hz
-> >=20
-> > The IT8712F reports a speed of 4600 RPM though visually FAN does
-> > not spin more quickly. 4600 RPM is definitely too much...
+> (wondering why it defaults to such a small divider as is 2)
+
+That's a problem on recent systems, indeed. I think the reason is
+historical. When the first hardware monitoring chips made it into PCs,
+in the late 90's, CPU fans had fixed speeds, in the 3000 to 4500 RPM
+range. For this speed range, div=3D2 was the correct value. On recent
+systems, we have fan spinning at variable speeds, and large case fans
+that spin at low speeds too, so the default would rather be div=3D8 but
+the chips were not updated for this. Some BIOSes switch the dividers to
+8, though.
+
+Note that chip manufacturers are switching to 12-bit or 16-bit fan
+speed registers. That's the best way to address the problem of fans
+with variable speed. Using a fixed, high divider value with an 8-bit
+register would result in bad measurement resolution at higher speeds.
+
+> > Can you tell us what revision of the IT8712F you have? The it87 driver
+> > will write it to the kernel log when you load it. I would also like a
+> > dump of the chip (using isadump).
 >=20
-> I don't think you can judge the speed of a fan by just looking at it
-> (if you are a human being.) Your hears will tell you more than your
-> eyes about a fan's speed.
+> According to dmesg it's revision 8:
+> [   26.954326] i2c /dev entries driver
+> [   26.954524] it87: Found IT8712F chip at 0xe80, revision 8
+> [   26.954572] it87: in3 is VCC (+5V)
+> [   26.954611] it87: in7 is VCCH (+5V Stand-By)
 
-There is a sticker in the middle of the rotor of the fan, the
-sticker not being properly centered one can compare quick and slow
-based on how smoothed the sticker looks like, but sure ears cqn better
-make distinction and eventually also determine the frequency if good
-enough at music (+ knowing what frequency corresponds to what note)
+OK, revision 8 chips only support 16-bit fan speed registers, and the
+driver doesn't support that. This is exactly what I suspected.
 
-> 55 Hz would be 1650 RPM. If the IT8712F reports 4600 RPM then it's
-> indeed certainly wrong. Can you check what speed is reported in the
-> BIOS? Please also test with another fan if you can. I'd like to know
-> if that's a problem with this specific fan (in which case there's
-> probably not much we can do) or not. I suspect not (see below.)
+> Not sure how to call isadump to get the right data, its man-page
+> is reasonably vague regarding the addrreg and datareg args...
+> sould it be the following?:
+>   isadump 0xe85 0xe86
 
-I've not checked the BIOS yet but increasing divider helps - see also
-below
+Yes, that's exactly the right command to run in your case. See, the man
+page wasn't that bad ;)
 
-I have a second FAN of the same brand, same model which produces
-equivalent values. I didn't check a quicker fixed-speed fan yet on that
-connector.
-The CPU fan is fixed-speed and regulated by IT8712F (speed
-reported as 3200 with pwm=3D2 RPM, about 4400 RPM with pwm=3D4 - same values
-for divider =3D 2..8)
+Please also tell me which of fan1, fan2 and fan3 is the case fan and
+which is the CPU fan. Seeing the output of "sensors" on this machine
+would help.
 
-By the way, how does this behave with S3 (suspend to RAM), are all
-values reprogrammed by the kernel or is it userspace's job (can't test
-because of the graphics chips... no resume support yet in kernel for
-ATI/AMD graphics)
-I know that on older nforce-based PC did forget pwm settings on resume
-(never cared about the divider so would have to verify for that one)
-
-
-> >=20
-> > PS: This mainboard (IEI Kino690S) is capable to regulating FAN
-> > speed all its fan connectors
-> > ------ END ------
-> >=20
-> >=20
-> > I will look if I can find a way do determine the real fan speed in
-> > order to compare with the values both chips report.
-> > Looks like IT8712F (divisor =3D 2) reports a speed 3 times higher than
-> > W83697HG (divisor =3D 4)
+> > Recent IT8712F chips have 16-bit tachometer registers, but the it87
+> > driver doesn't support this mode for that chip yet. We received a
+> > patch adding support for that 4 months ago:
+> >   http://lists.lm-sensors.org/pipermail/lm-sensors/2008-February/022460=
+.html
+> > I reviewed it, it needed some more work, but the author never followed
+> > up. If you need this, I guess we'll have to revive it.
 >=20
-> Please remember that the divisor value does _not_ divide the speed
-> value. It only affects the range of measurable values. For a fan that
-> could run as slow as 1000 RPM, you want to set the divider to 8.
+> I could help testing that patch though test-responsiveness may not be
+> optimal knowing that this host is actively used and freeing a timeslot
+> for testing is not that easy (usually only possible at night during
+> weekend)
 
-Changing the divider to 8 makes the IT8712F report a likely speed around
-1500 RPM, so the divider was the cause of the bad value.
-(wondering why it defaults to such a small divider as is 2)
+I've asked the original author for an update, let's see if he sends
+something.
 
-
-> > I guess the different voltages seen for both on speed line is due to
-> > different resistors on the chips or the circuit in front of them.
->=20
-> Can you tell us what revision of the IT8712F you have? The it87 driver
-> will write it to the kernel log when you load it. I would also like a
-> dump of the chip (using isadump).
-
-According to dmesg it's revision 8:
-[   26.954326] i2c /dev entries driver
-[   26.954524] it87: Found IT8712F chip at 0xe80, revision 8
-[   26.954572] it87: in3 is VCC (+5V)
-[   26.954611] it87: in7 is VCCH (+5V Stand-By)
-
-Not sure how to call isadump to get the right data, its man-page
-is reasonably vague regarding the addrreg and datareg args...
-sould it be the following?:
-  isadump 0xe85 0xe86
-
-> Recent IT8712F chips have 16-bit tachometer registers, but the it87
-> driver doesn't support this mode for that chip yet. We received a
-> patch adding support for that 4 months ago:
->   http://lists.lm-sensors.org/pipermail/lm-sensors/2008-February/022460.h=
-tml
-> I reviewed it, it needed some more work, but the author never followed
-> up. If you need this, I guess we'll have to revive it.
-
-I could help testing that patch though test-responsiveness may not be
-optimal knowing that this host is actively used and freeing a timeslot
-for testing is not that easy (usually only possible at night during
-weekend)
-
-Bruno
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
