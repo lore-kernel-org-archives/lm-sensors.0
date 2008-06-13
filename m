@@ -1,8 +1,10 @@
 From: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Date: Wed, 11 Jun 2008 19:20:59 +0000
+Date: Fri, 13 Jun 2008 22:23:28 +0000
 Subject: [lm-sensors] [PATCH] thmc50: add support for critical temperature
-Message-Id: <20080611212059.90f95f30.krzysztof.h1@poczta.fm>
+Message-Id: <20080614002328.cad677bc.krzysztof.h1@poczta.fm>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20080611212059.90f95f30.krzysztof.h1@poczta.fm>
+In-Reply-To: <20080611212059.90f95f30.krzysztof.h1@poczta.fm>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,9 +20,11 @@ Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 
 This feature has been requested by Jean Delvare.
 
+Fixed names: tempN_critical to tempN_crit.
+
 diff -urp linux-old/drivers/hwmon/thmc50.c linux-new/drivers/hwmon/thmc50.c
---- linux-old/drivers/hwmon/thmc50.c	2008-04-17 04:49:44.000000000 +0200
-+++ linux-new/drivers/hwmon/thmc50.c	2008-06-11 21:08:28.353747656 +0200
+--- linux-old/drivers/hwmon/thmc50.c	2008-06-14 00:17:58.137911824 +0200
++++ linux-new/drivers/hwmon/thmc50.c	2008-06-14 00:19:14.988923382 +0200
 @@ -55,8 +55,11 @@ I2C_CLIENT_MODULE_PARM(adm1022_temp3, "L
  static const u8 THMC50_REG_TEMP[] = { 0x27, 0x26, 0x20 };
  static const u8 THMC50_REG_TEMP_MIN[] = { 0x3A, 0x38, 0x2C };
@@ -63,7 +67,7 @@ diff -urp linux-old/drivers/hwmon/thmc50.c linux-new/drivers/hwmon/thmc50.c
  static SENSOR_DEVICE_ATTR(temp##offset##_max, S_IRUGO | S_IWUSR,	\
 -			show_temp_max, set_temp_max, offset - 1);
 +			show_temp_max, set_temp_max, offset - 1);	\
-+static SENSOR_DEVICE_ATTR(temp##offset##_critical, S_IRUGO,		\
++static SENSOR_DEVICE_ATTR(temp##offset##_crit, S_IRUGO,			\
 +			show_temp_critical, NULL, offset - 1);
  
  temp_reg(1);
@@ -72,12 +76,12 @@ diff -urp linux-old/drivers/hwmon/thmc50.c linux-new/drivers/hwmon/thmc50.c
  	&sensor_dev_attr_temp1_max.dev_attr.attr,
  	&sensor_dev_attr_temp1_min.dev_attr.attr,
  	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp1_critical.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit.dev_attr.attr,
  	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
  	&sensor_dev_attr_temp2_max.dev_attr.attr,
  	&sensor_dev_attr_temp2_min.dev_attr.attr,
  	&sensor_dev_attr_temp2_input.dev_attr.attr,
-+	&sensor_dev_attr_temp2_critical.dev_attr.attr,
++	&sensor_dev_attr_temp2_crit.dev_attr.attr,
  	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
  	&sensor_dev_attr_temp2_fault.dev_attr.attr,
  	&sensor_dev_attr_pwm1.dev_attr.attr,
@@ -85,7 +89,7 @@ diff -urp linux-old/drivers/hwmon/thmc50.c linux-new/drivers/hwmon/thmc50.c
  	&sensor_dev_attr_temp3_max.dev_attr.attr,
  	&sensor_dev_attr_temp3_min.dev_attr.attr,
  	&sensor_dev_attr_temp3_input.dev_attr.attr,
-+	&sensor_dev_attr_temp3_critical.dev_attr.attr,
++	&sensor_dev_attr_temp3_crit.dev_attr.attr,
  	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
  	&sensor_dev_attr_temp3_fault.dev_attr.attr,
  	NULL
@@ -111,8 +115,8 @@ diff -urp linux-old/drivers/hwmon/thmc50.c linux-new/drivers/hwmon/thmc50.c
  		data->analog_out  		    i2c_smbus_read_byte_data(client, THMC50_REG_ANALOG_OUT);
 
 ----------------------------------------------------------------------
-Tania telefonia internetowa!
-Sprawdz >>>  http://link.interia.pl/f1e2e
+Gdzie warto jechac na urlop? Sprawdz!
+kliknij >>> http://link.interia.pl/f1e32
 
 
 _______________________________________________
