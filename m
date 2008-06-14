@@ -1,46 +1,37 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 14 Jun 2008 20:57:48 +0000
+From: Bruno =?UTF-8?B?UHLDqW1vbnQ=?= <bonbons@linux-vserver.org>
+Date: Sat, 14 Jun 2008 21:24:53 +0000
 Subject: Re: [lm-sensors] [Bug?] W83697: Broken readings for fan speed 10%
-Message-Id: <20080614225748.69f3e421@hyperion.delvare>
+Message-Id: <20080614232453.4f27708f@neptune.home>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080531220339.05dc83fd@neptune.home>
 In-Reply-To: <20080531220339.05dc83fd@neptune.home>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 13 Jun 2008 23:31:54 +0200, Bruno Pr=E9mont wrote:
-> sidenote: I would appreciate if libsensors also knew about PWM :))
+On Mon, 02 June 2008 Jean Delvare <khali@linux-fr.org> wrote:
+> One patch you may want to apply it this one:
+>   http://lists.lm-sensors.org/pipermail/lm-sensors/2008-May/023189.html
+> It will let you switch the W83697HG chip from automatic fan speed
+> control to manual control and back - might be useful to investigate
+> the issue you have.
 
-This was discussed when designing libsensors 3.0.0 and we voted against
-it, for the reason that PWM outputs are not sensors. The interface
-needed to control fans is significantly different from what is needed
-for sensors. Sensor limits are initialized once, while PWM values are
-likely to evolve (based on temperature for example). Sensor values
-often need scaling (in particular voltage) and giving them a proper
-label is important. PWM values need no scaling factor and labelling
-them doesn't sound too useful either. So the needs are clearly
-different.
+For automatic fan speed control (not limited to this chip), how much
+can automatic control be configured?
 
-Also, it's easy to get things wrong (including permanent hardware
-damage) when playing with PWM, while playing with sensors is normally
-safe. So while it makes sense to have a sensors library for GUI apps to
-interface with, I don't see a need for this for PWM. As a matter of
-fact, our software fan control daemon is a simple bash script, it
-doesn't need any library.
+Some configuration options I do think about:
+- temperature thresholds
+  (e.g. to choose balance between cool and silent)
+- link between temperature input and controlled fan
 
-> Are there other changes between the driver's hardware knowledge and
-> revision 8?
+Are such features provided by the chips (chips of direct interest to me
+are IT8712F, nforce420, [W83697HG])
 
-2 additional fans inputs, like the IT8716F and IT8718F have. Basically
-the latest incarnations of the IT8712F have a lot in common with the
-IT8716F. I don't get the point of ITE doing this, but they did, so
-we'll have to support it. We add the missing features when users ask
-for them... as you did.
+Depending on what chips are capable of, how much of it does lm_sensors
+implement and how is it expected to be used?
 
---=20
-Jean Delvare
+Bruno
 
 _______________________________________________
 lm-sensors mailing list
