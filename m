@@ -1,58 +1,40 @@
-From: "RuslanK" <RuslanK@amicon.ru>
-Date: Sat, 07 Jun 2008 13:20:11 +0000
-Subject: [lm-sensors] HECI driver health monitoring
-Message-Id: <000a01c8c8a1$393343d0$3a00a8c0@amicon.lan>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6121977541101471297=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 15 Jun 2008 08:01:23 +0000
+Subject: Re: [lm-sensors] [PATCH] Add driver for AD7414 i2c temperature
+Message-Id: <20080615100123.5f8c092f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi Sean,
 
---===============6121977541101471297==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0007_01C8C8C2.BE2E86F0"
+Sorry for the late reply, your reply got lost in my mailbox.
 
-This is a multi-part message in MIME format.
+On Wed, 30 Apr 2008 00:41:01 -0400, Sean MacLennan wrote:
+> Here is a rework based on Jean Delvare's suggestions.
+> 
+> One change that may not be apparent is that the alert bit is active
+> low. I feel that it reads wrong to have "cat temp_alert" return 1
+> when the alert is off. So I invert this bit. Let me know how you feel
+> about this.
 
-------=_NextPart_000_0007_01C8C8C2.BE2E86F0
-Content-Type: text/plain;
-	charset="koi8-r"
-Content-Transfer-Encoding: quoted-printable
+I agree with you that 1 should mean "on" in sysfs, regardless of the
+physical polarity. However, it seems to me that the ALERT polarity can
+be changed (bit 4 of configuration register) so you shouldn't always
+invert the bit in sysfs, only when the polarity is actually inverted.
 
-There is Visual C++ source code example about how to obtain health =
-monitoring info from HECI driver: http://hecisys.narod.ru
-------=_NextPart_000_0007_01C8C8C2.BE2E86F0
-Content-Type: text/html;
-	charset="koi8-r"
-Content-Transfer-Encoding: quoted-printable
+That being said... After reading the datasheet, I am under the
+impression that temp1_alert and temp1_max_alarm will trigger on the
+same condition (temp1 > temp1_max). So having both files doesn't look
+terribly useful to me. Especially when "temp1_alert" is not a standard
+feature name, so libsensors will no pick it.
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dkoi8-r">
-<META content=3D"MSHTML 6.00.2900.2853" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>There is Visual C++ source code example =
-about how=20
-to obtain health monitoring info from HECI driver: <A=20
-href=3D"http://hecisys.narod.ru">http://hecisys.narod.ru</A></FONT></DIV>=
-</BODY></HTML>
-
-------=_NextPart_000_0007_01C8C8C2.BE2E86F0--
-
-
-
---===============6121977541101471297==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6121977541101471297==--
-
