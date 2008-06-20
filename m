@@ -1,25 +1,30 @@
-From: Matt Roberds <mattroberds@cox.net>
-Date: Fri, 13 Jun 2008 07:10:01 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Add a driver for the ADT7475
-Message-Id: <Pine.LNX.4.64.0806130208460.23322@birdbird.example.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Fri, 20 Jun 2008 19:32:27 +0000
+Subject: Re: [lm-sensors] [GIT PATCH] hwmon updates vs. v2.6.26-rc6
+Message-Id: <alpine.LFD.1.10.0806201231590.3167@woody.linux-foundation.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080610194818.GA21150@cosmic.amd.com>
-In-Reply-To: <20080610194818.GA21150@cosmic.amd.com>
+References: <20080619123304.GF7306@mars.solarsys.private>
+In-Reply-To: <20080619123304.GF7306@mars.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-On Tue, 10 Jun 2008, Jordan Crouse wrote:
-> Attached is a patch for the ADT7475 that has been bouncing around on
-> the list for some time now.  It is suitable for the testing
-> GIT tree, and I think it is a good candidate for the 2.6.26 push.
 
-FWIW, I've been running this patch on my desktop for a few months (Asus
-M2N-SLI Deluxe motherboard) and it seems to work fine.  Thanks!
 
-Matt Roberds
+On Thu, 19 Jun 2008, Mark M. Hoffman wrote:
+> 
+> Please pull from:
+> 	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git release
 
+I'm just getting:
+
+	fatal: Unable to look up lm-sensors.org (port 9418) (Temporary failure in name resolution)
+
+do you have DNS problems?
+
+		Linus
 
 _______________________________________________
 lm-sensors mailing list
