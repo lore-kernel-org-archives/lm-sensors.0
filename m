@@ -1,7 +1,7 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 22 Jun 2008 07:28:53 +0000
+Date: Sun, 22 Jun 2008 07:30:09 +0000
 Subject: Re: [lm-sensors] LMSENSORS: 2.6.26-rc,
-Message-Id: <485DFF35.6080008@hhs.nl>
+Message-Id: <485DFF81.9080707@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <485DA11C.7050906@keyaccess.nl>
 In-Reply-To: <485DA11C.7050906@keyaccess.nl>
@@ -39,13 +39,20 @@ Rene Herman wrote:
 > http://members.home.nl/rene.herman/sensors.conf
 > 
 
-I'm pretty sure this caused by your lm_sensors using space being to old to 
-support the new thermalzone stuff. You need atleast 3.0.2 to support the 
+I'm pretty sure this caused by your lm_sensors using space being too old to
+support the new thermalzone stuff.
+
+<Correction that should ofcourse read "userspace" not "using space", so the 
+correct reply I was trying to send is>:
+
+I'm pretty sure this caused by your lm_sensors using space being too old to
+support the new thermalzone stuff. You need atleast 3.0.2 to support the
 thermalzone driver.
 
 Regards,
 
 Hans
+
 
 _______________________________________________
 lm-sensors mailing list
