@@ -1,74 +1,57 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Date: Sun, 22 Jun 2008 13:23:04 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 22 Jun 2008 14:29:50 +0000
 Subject: Re: [lm-sensors] [REGRESSION, ABI] Re:  LMSENSORS: 2.6.26-rc,
-Message-Id: <485E5238.6040801@keyaccess.nl>
+Message-Id: <485E61DE.6020202@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <485DA11C.7050906@keyaccess.nl> <485DFF35.6080008@hhs.nl> <485E505F.8010306@keyaccess.nl>
 In-Reply-To: <485E505F.8010306@keyaccess.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, Linux Kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, "Mark M. Hoffman" <mhoffman@lightlink.com>, Zhang Rui <rui.zhang@intel.com>
 
-On 22-06-08 15:15, Rene Herman wrote:
-
-> On 22-06-08 09:28, Hans de Goede wrote:
-> 
+Rene Herman wrote:
 > This is an ABI breakage issue and an unfortunate one at that:
 > 
->> Rene Herman wrote:
-> 
->>> On 2.6.26-rc and perhaps earlier, when I enable the ACPI Thermal Zone 
->>> support (CONFIG_ACPI_THERMAL) I see in dmesg:
-> 
-> Note, 2.6.25-rc7 works fine with it enabled.
 
-Sorry -- 2.6.25.7 I mean.
+No it is not, in 2.6.26rcX, the acpi thermalzones have grown a hwmon interface, 
+that is they register a hwmon device so that "sensors" and other lm_sensors ABI 
+compliant using applications can read the zone temperatures using an existing 
+ABI instead of adding yet another ABI.
 
->>> ACPI: LNXTHERM:01 is registered as thermal_zone0
->>> ACPI: Thermal Zone [THRM] (56 C)
->>>
->>> My /sys/class/hwmon/hwmon0 (a W83782D chip) becomes hwmon1, there's a 
->>> new /sys/class/hwmon/hwmon0 and "sensors -s" craps out with:
->>>
->>> # sensors -s
->>> Can't access procfs/sysfs file
->>> Kernel interface access error
->>> For 2.6 kernels, make sure you have mounted sysfs and libsensors
->>> was compiled with sysfs support!
->>>
->>> # sensors --version
->>> sensors version 2.10.6 with libsensors version 2.10.6
->>>
->>> This is the slackware 12.1 (recent) standard version. What's wrong?
->>>
->>> In case it's useful, my /etc/sensors.conf is at:
->>>
->>> http://members.home.nl/rene.herman/sensors.conf
->>
->> I'm pretty sure this caused by your lm_sensors using space being to 
->> old to support the new thermalzone stuff. You need atleast 3.0.2 to 
->> support the thermalzone driver.
+The problem is that the hwmon entries for the thermalzone device lack a 
+"device" symlink under /sys/class/hwmon/hwmonX, as they are not tied to a 
+specific device. lm_sensors-2.10.x barfs on this, which would not be a problem 
+if it would simply skip with the new hwmon which it does not understand 
+(because of the missing device link, which is not a part of the documented 
+ABI), but instead of skipping it, if I understand you correctly it aborts and 
+never gets to hwmon1 (which is 100% unchanged and should still work fine).
+
+I wonder what just plain "sensors" (without the -s) does.
+
+Still this is an issue that needs fixing, but not on the kernel side, but 
+rather on the lm_sensors-2.10.x side, I guess its time for a new 2.10.x release.
+
+>> I'm pretty sure this caused by your lm_sensors using space being to old 
+>> to support the new thermalzone stuff. You need atleast 3.0.2 to support 
+>> the thermalzone driver.
 > 
 > I see. I was about to mark this up as Volkerding doing his usual "if it 
 > has a lower version number it must be better" thing but in this case it 
 > seems it's hwmon or ACPI which is to blame.
 > 
-> Firstly -- with CONFIG_ACPI_THERMAL selected my sensors work fine on 
-> 2.6.25-rc7 with the above 2.10.6 lm_sensors userspace. Now, with 
-> 2.6.26-rc (*) they do not as per above.
-> 
+
+Actually its lm_sensors userspace which is to blame, as instead of skipping the 
+new hwmon device which it doesn't understand it aborts (atleast that is what I 
+understand from what you're telling us).
+
 > This is ABI breakage. I wouldn't care if my older lm_sensors userspace 
 > couldn't handle the ACPI Thermal Zone, but I do care that even having it 
-> breaks my other sensors; especially given the CONFIG_ACPI_THERMAL help 
-> text which can not be read as recommending to disable it:
-> 
->   This driver adds support for ACPI thermal zones.  Most mobile and
->   some desktop systems support ACPI thermal zones.  It is HIGHLY
->   recommended that this option be enabled, as your processor(s)
->   may be damaged without it.
-> 
+> breaks my other sensors;
+
+Yes, and that is exactly the part which is an lm_sensors userspace bug.
+
 > Now, I'm actually usally a big fan of not dragging around old gunk 
 > forever, ABI be damned, but in this case this really won't do. 2.6.10 is 
 > a recent maintenance release and I see for the new 3.0 branch:
@@ -86,29 +69,39 @@ Sorry -- 2.6.25.7 I mean.
 > patches from Fedora, including lm_sensors-3.x support).
 > => 
 > So it seems we have here a change to the kernel requiring a userspace 
-> basically noone is ready for and which at least the (again, recent) 
-> slackware 12.1 doesn't ship as a result. This is ABI breakage of the 
-> really bad kind.
-> 
-> If there's not just something I'm missing, could someone please get 
-> Linus a patch ASAP making whatever breaks lm_sensors 2 optional, 
-> disabled by default and with a help text that warns that enabling it 
-> requires a new lm_sensors userspace?
-> 
-> I haven't seen other complaints about this and would've expected them so 
-> it might ofcourse be possible that I'm just missing something and have a 
-> very specific problem; if in that case someone could advice what it 
-> might be -- please do.
-> 
+> basically noone is ready for
+
+Erm if you look at that same page you will notice there are links to patches 
+for almost every userspace package which uses lm_sensors, I know as I wrote 
+most of them, quite a few of them have been integrated by their resp. upstreams.
+
+Also "noone is ready for"? lm_sensors-3.0.x is the default in both Fedora 9 and 
+OpenSuse 11.
+
 > But if not, .26 is around the corner and requiring libsensors-3.0 must 
 > really not be.
 > 
-> (*) 2.6.26-rc7 at least. I actually noticed this early in the -rc stage 
-> but had too many other breakage at that point to worry about this one. I 
-> just disabled the ACPI Thermal Zone support and forgot about it upto 
-> this point.
 
-Rene.
+I agree that requiring libsensors-3.0.2 for this is not a good solution, but I 
+don't want to be crippling the kernel for what I believe is a bug in 2.10.x either.
+
+So we need todo 2 or 3 things:
+1) Find out if this really is as big an issue as you make it, maybe
+    "sensors -s" is rightfully complaining about hwmon0 and then still happily
+    doing its job for hwmon1?
+
+    Again, what does plain "sensors" say? Does it still show the hwmon1
+    readings, and are the limits what they should be after sensors -s?
+
+2) Fix this in the 2.10.x series (which are still supported) and do a new
+    2.10.x release.
+
+3) If this really completely messes 2.10.x and in that case I'm afraid we will
+    have to make kernel side changes.
+
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
