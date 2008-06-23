@@ -1,27 +1,31 @@
-From: Nate Case <ncase@xes-inc.com>
-Date: Tue, 24 Jun 2008 20:42:54 +0000
-Subject: Re: [lm-sensors] [PATCH v2 1/2] hwmon: (lm90) Convert some macros
-Message-Id: <1214340175.7559.468.camel@localhost.localdomain>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 23 Jun 2008 11:20:19 +0000
+Subject: [lm-sensors] Call for 2.10.7
+Message-Id: <20080623132019.549ae84e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1213989596-8716-2-git-send-email-ncase@xes-inc.com>
-In-Reply-To: <1213989596-8716-2-git-send-email-ncase@xes-inc.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 2008-06-23 at 19:06 +0200, Jean Delvare wrote:
-> This is because you changed temp1_from_reg and temp2_from_reg to
-> return
-> longs instead of ints. We don't need longs, so the easiest fix is to
-> revert that change. If you insist on returning longs then you must
-> change %d to %ld in the sprintf calls.
+Hi all,
 
-I'll use ints for those and re-submit patch v3.  Thanks.
+Due to a compatibility issue between lm-sensors 2.10.6 and the upcoming
+kernel 2.6.26 when option THERMAL is enabled, we have to release
+lm-sensors 2.10.7 soon.
+
+There aren't that many changes as this is a legacy branch, nothing
+worth mentioning here I think. See CHANGES in SVN trunk for the details.
+
+Proposed schedule:
+* June 29th: SVN freeze
+* June 30th - July 6th: testing
+* July 7th: release
+
+Let me know if there is any problem with this.
 
 -- 
-Nate Case <ncase@xes-inc.com>
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
