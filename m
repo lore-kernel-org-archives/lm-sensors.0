@@ -1,52 +1,202 @@
-From: Len Brown <lenb@kernel.org>
-Date: Mon, 23 Jun 2008 17:54:56 +0000
+From: Rene Herman <rene.herman@keyaccess.nl>
+Date: Mon, 23 Jun 2008 20:07:42 +0000
 Subject: Re: [lm-sensors] [REGRESSION, ABI] Re:  LMSENSORS: 2.6.26-rc,
-Message-Id: <alpine.LFD.1.10.0806231333030.2984@localhost.localdomain>
+Message-Id: <4860028E.5000304@keyaccess.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------010306050100030108010105"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <485DA11C.7050906@keyaccess.nl> <485DFF35.6080008@hhs.nl>
- <485E505F.8010306@keyaccess.nl> <485E61DE.6020202@hhs.nl>
- <485E6F12.4010307@keyaccess.nl>
-In-Reply-To: <485E6F12.4010307@keyaccess.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+References: <485DA11C.7050906@keyaccess.nl> <485DFF35.6080008@hhs.nl> <485E505F.8010306@keyaccess.nl> <485E61DE.6020202@hhs.nl> <485E6F12.4010307@keyaccess.nl> <alpine.LFD.1.10.0806231333030.2984@localhost.localdomain>
+In-Reply-To: <alpine.LFD.1.10.0806231333030.2984@localhost.localdomain>
+To: Len Brown <lenb@kernel.org>
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, "Mark M. Hoffman" <mhoffman@lightlink.com>, Zhang Rui <rui.zhang@intel.com>, Jean Delvare <khali@linux-fr.org>
+
+This is a multi-part message in MIME format.
+--------------010306050100030108010105
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, "Mark M. Hoffman" <mhoffman@lightlink.com>, Zhang Rui <rui.zhang@intel.com>
 
-Rene,
-Thank you for reporting this.
+On 23-06-08 19:54, Len Brown wrote:
 
-I agree that this failure is an unwelcome surprise to those users
-who upgrade to 2.6.26 but are still using libsensors <= 2.10.6.
+> Rene,
+> Thank you for reporting this.
+> 
+> I agree that this failure is an unwelcome surprise to those users
+> who upgrade to 2.6.26 but are still using libsensors <= 2.10.6.
+> 
+> Jean, Mark, Hans,
+> 
+> I'm actually fine with adding a temporary kernel config option
+> along the lines Rene suggested to ease the  migration
+> to linux-2.6.26 for those users.
+> 
+> But the config option would need to be scheduled for removal
+> after a certain period (say 6 months) so we don't have to maintain
+> it forever.
+> 
+> More importantly, I think it would also have to be disabled by default
+> so that it would not have a negative impact on what we think are the
+> majority of properly configured systems.  After all, we fixed this
+> bug in user-space about out 4 months ago and as you point out, the
+> distro upgrade path is actually quite well looked after.
+> 
+> So I'm not sure how useful it would be to the target users.
+> After they run into the problem, they'd probably google it
+> and find that they can either tweak a kernel config option
+> or upgrade libsensors.  And we'd prefer that they do the
+> later rather than the former, yes?
+> 
+> just let me know.
 
-Jean, Mark, Hans,
+Thank you for the reason. Yes, people upgrading libsensors would be 
+preferred and this issue should show up in google now.
 
-I'm actually fine with adding a temporary kernel config option
-along the lines Rene suggested to ease the  migration
-to linux-2.6.26 for those users.
+Frankly, if I had gone to the lm-sensors homepage and had seen a fixed 
+2.x version available I'd no doubt have shrugged it off then and there 
+so I might as well do so now that Delvare announced that it's _going_ to 
+be there real soon. 2.10.7 should be painless enough as an upgrade, it's 
+needing lm-sensors 3.0(.2) and all its listed accompanying patches to 
+programs depending on libsensors which triggered this thread.
 
-But the config option would need to be scheduled for removal
-after a certain period (say 6 months) so we don't have to maintain
-it forever.
+So, <shrug>. I know how to fix my own systems, others will be able to 
+find out and once lm-sensors 2.10.7 is available, it's not a big deal 
+anymore.
 
-More importantly, I think it would also have to be disabled by default
-so that it would not have a negative impact on what we think are the
-majority of properly configured systems.  After all, we fixed this
-bug in user-space about out 4 months ago and as you point out, the
-distro upgrade path is actually quite well looked after.
+That said, here's the "make it optional" patch tweaked according to your 
+comments. Feel free to drop it on the floor...
 
-So I'm not sure how useful it would be to the target users.
-After they run into the problem, they'd probably google it
-and find that they can either tweak a kernel config option
-or upgrade libsensors.  And we'd prefer that they do the
-later rather than the former, yes?
+Rene.
 
-just let me know.
+--------------010306050100030108010105
+Content-Type: text/plain;
+	name="0001-acpi-thermal-allow-disabling-of-thermal-zone-hwmon.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename*0="0001-acpi-thermal-allow-disabling-of-thermal-zone-hwmon.patc";
+	filename*1="h"
 
-thanks,
--Len
+From 8023fee88cdbbc755a9ae692803e6292a619d56c Mon Sep 17 00:00:00 2001
+From: Rene Herman <rene.herman@gmail.com>
+Date: Mon, 23 Jun 2008 21:50:25 +0200
+Subject: [PATCH] acpi/thermal: allow disabling of thermal zone hwmon support
+
+2.6.26-rc gained a hwmon interface to the Thermal Zone driver
+which unfortunately breaks lm-sensors 2 userspace and renders
+all other (subsequent) hwmon sensors inoperable also.
+
+Many systems, current slackware and derivative systems among
+them, are using lm-sensors 2 and would be affected. A new
+lm-sensors 2.10.7 release is needed to fix this from the user
+side.
+
+This makes the hwmon support optional (enabled by default) and
+comments that it needs a new enough lm-sensors userspace. This
+also immediately schedules the option for removal again as this
+is only intended to not break systems over the 2.6.26 upgrade
+when new enough lm-sensors is not yet available or widely
+deployed.
+
+Signed-off-by: Rene Herman <rene.herman@gmail.com>
+CC: Len Brown <lenb@kernel.org>
+CC: Hans de Goede <j.w.r.degoede@hhs.nl>
+CC: Zhang Rui <rui.zhang@intel.com>
+CC: Mark M. Hoffman <mhoffman@lightlink.com>
+CC: Jean Delvare <khali@linux-fr.org>
+CC: linux-acpi@vger.kernel.org
+CC: lm-sensors@lm-sensors.org
+CC: linux-kernel@vger.kernel.org
+---
+ Documentation/feature-removal-schedule.txt |    9 +++++++++
+ drivers/thermal/Kconfig                    |   10 ++++++++++
+ drivers/thermal/thermal_sys.c              |    4 ++--
+ include/linux/thermal.h                    |    6 ++----
+ 4 files changed, 23 insertions(+), 6 deletions(-)
+
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index 5b3f31f..9e5f86c 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -312,3 +312,12 @@ When:	2.6.26
+ Why:	Implementation became generic; users should now include
+ 	linux/semaphore.h instead.
+ Who:	Matthew Wilcox <willy@linux.intel.com>
++
++---------------------------
++
++What:	CONFIG_THERMAL_HWMON
++When:	Januaru 2009
++Why:	This option was introduced just to allow older lm-sensors userspace
++	to keep working over the upgrade to 2.6.26. At the scheduled time of
++	removal fixed lm-sensors (2.0 or 3.0) should be readily available.
++Who:	Rene Herman <rene.herman@gmail.com>
+diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+index 4b62852..0b359ab 100644
+--- a/drivers/thermal/Kconfig
++++ b/drivers/thermal/Kconfig
+@@ -12,3 +12,13 @@ menuconfig THERMAL
+ 	  cooling devices.
+ 	  All platforms with ACPI thermal support can use this driver.
+ 	  If you want this support, you should say Y or M here.
++
++config THERMAL_HWMON
++	bool "Hardware monitoring support"
++	depends on HWMON=y || HWMON=THERMAL
++	default y
++	help
++	  The generic thermal sysfs driver's hardware monitoring support
++	  requires a 2.10.7/3.0.2 or later lm-sensors userspace.
++
++	  Say Y unless you need support for older lm-sensors.
+diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+index 6098787..fe07462 100644
+--- a/drivers/thermal/thermal_sys.c
++++ b/drivers/thermal/thermal_sys.c
+@@ -295,8 +295,8 @@ thermal_cooling_device_trip_point_show(struct device *dev,
+ 
+ /* Device management */
+ 
+-#if defined(CONFIG_HWMON) ||	\
+-	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
++#if defined(CONFIG_THERMAL_HWMON)
++
+ /* hwmon sys I/F */
+ #include <linux/hwmon.h>
+ static LIST_HEAD(thermal_hwmon_list);
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index 06d3e6e..917707e 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -66,8 +66,7 @@ struct thermal_cooling_device {
+ 				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
+ #define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
+ 
+-#if defined(CONFIG_HWMON) ||	\
+-	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
++#if defined(CONFIG_THERMAL_HWMON)
+ /* thermal zone devices with the same type share one hwmon device */
+ struct thermal_hwmon_device {
+ 	char type[THERMAL_NAME_LENGTH];
+@@ -94,8 +93,7 @@ struct thermal_zone_device {
+ 	struct idr idr;
+ 	struct mutex lock;	/* protect cooling devices list */
+ 	struct list_head node;
+-#if defined(CONFIG_HWMON) ||	\
+-	(defined(CONFIG_HWMON_MODULE) && defined(CONFIG_THERMAL_MODULE))
++#if defined(CONFIG_THERMAL_HWMON)
+ 	struct list_head hwmon_node;
+ 	struct thermal_hwmon_device *hwmon;
+ 	struct thermal_hwmon_attr temp_input;	/* hwmon sys attr */
+-- 
+1.5.5
+
+
+--------------010306050100030108010105
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------010306050100030108010105--
