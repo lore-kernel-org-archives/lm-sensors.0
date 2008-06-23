@@ -1,17 +1,18 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Mon, 23 Jun 2008 05:21:04 +0000
+From: Rene Herman <rene.herman@keyaccess.nl>
+Date: Mon, 23 Jun 2008 10:40:48 +0000
 Subject: Re: [lm-sensors] [REGRESSION, ABI] Re:  LMSENSORS: 2.6.26-rc,
-Message-Id: <485F32C0.9060401@hhs.nl>
+Message-Id: <485F7DB0.2030302@keyaccess.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <485DA11C.7050906@keyaccess.nl> <485DFF35.6080008@hhs.nl>	<485E505F.8010306@keyaccess.nl> <485E61DE.6020202@hhs.nl>	<485E6F12.4010307@keyaccess.nl> <485E94ED.10602@hhs.nl>	<485E992B.8010101@keyaccess.nl>  <485ECB23.4010305@keyaccess.nl> <1214185482.3001.45.camel@rzhang-dt.sh.intel.com>
+References: <485DA11C.7050906@keyaccess.nl> <485DFF35.6080008@hhs.nl>	 <485E505F.8010306@keyaccess.nl> <485E61DE.6020202@hhs.nl>	 <485E6F12.4010307@keyaccess.nl> <485E94ED.10602@hhs.nl>	 <485E992B.8010101@keyaccess.nl>  <485ECB23.4010305@keyaccess.nl> <1214185482.3001.45.camel@rzhang-dt.sh.intel.com>
 In-Reply-To: <1214185482.3001.45.camel@rzhang-dt.sh.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Zhang Rui <rui.zhang@intel.com>
-Cc: Rene Herman <rene.herman@keyaccess.nl>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Linux Kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi@vger.kernel.org, "Mark M. Hoffman" <mhoffman@lightlink.com>, Linux Kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>
 
-Zhang Rui wrote:
+On 23-06-08 03:44, Zhang Rui wrote:
+
 > On Mon, 2008-06-23 at 05:58 +0800, Rene Herman wrote:
 >> On 22-06-08 20:25, Rene Herman wrote:
 >>
@@ -28,13 +29,66 @@ Zhang Rui wrote:
 > response, I did not check my email during the whole weekend.
 > 
 > About the hwmon ABI, after the device symbol link is created, are there
-> any other ABIs required in the device node? 
+> any other ABIs required in the device node?
 
-Not that I know of, Jean ?
+Doesn't seem to. libsensors-2.10.6 is happy with this at least.
 
-Regards,
+> If no, this patch seems to work, although it might break if the first
+> registered ACPI thermal zone device is unregistered, which ONLY happens
+> theoretically.
 
-Hans
+Mmm. Because more thermal zones may share one hwmon interface I gather?
+Do you feel this is an okay minimal fix for 2.6.26 or is there something 
+else trivial enough available? We're late in the -rc stage...
+
+>> From: Rene Herman <rene.herman@gmail.com>
+>> Date: Sun, 22 Jun 2008 23:45:04 +0200
+>> Subject: [PATCH] thermal: link the virtual/thermal/thermal_zoneN device for hwmon
+>>
+>> 2.6.26-rc gained a hwmon interface to the ACPI Thermal Zone
+>> driver which unfortunately breaks lm-sensors 2 userspace and
+>> renders all other (subsequent) hwmon sensors inoperable also.
+>>
+>> Many systems, current slackware systems among them, are still
+>> using lm-sensors 2 and would be affected.
+>>
+>> The problem is userspace tripping over an absent "device"
+>> link in the ACPI Thermal Zone sysfs /sys/class/hwmon/hwmonN
+>> directory. This just adds the virtual "thermal/thermal_zoneN"
+>> device as a device backlink which satisfies lm-sensors again.
+>>
+>> Tested and looks fairly obvious, but this wants comment from
+>> a thermal_zone person, to confirm/deny that this is a proper
+>> device pointer to use here for one.
+>>
+>> Signed-off-by: Rene Herman <rene.herman@gmail.com>
+>> CC: Hans de Goede <j.w.r.degoede@hhs.nl>
+>> CC: Zhang Rui <rui.zhang@intel.com>
+>> CC: Mark M. Hoffman <mhoffman@lightlink.com>
+>> CC: Jean Delvare <khali@linux-fr.org>
+>> CC: linux-acpi@vger.kernel.org
+>> CC: lm-sensors@lm-sensors.org
+>> CC; linux-kernel@vger.kernal.org
+>> ---
+>>  drivers/thermal/thermal_sys.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+>> index 6098787..c21e03c 100644
+>> --- a/drivers/thermal/thermal_sys.c
+>> +++ b/drivers/thermal/thermal_sys.c
+>> @@ -357,7 +357,7 @@ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
+>>  
+>>  	INIT_LIST_HEAD(&hwmon->tz_list);
+>>  	strlcpy(hwmon->type, tz->type, THERMAL_NAME_LENGTH);
+>> -	hwmon->device = hwmon_device_register(NULL);
+>> +	hwmon->device = hwmon_device_register(&tz->device);
+>>  	if (IS_ERR(hwmon->device)) {
+>>  		result = PTR_ERR(hwmon->device);
+>>  		goto free_mem;
+> 
+> 
+
 
 _______________________________________________
 lm-sensors mailing list
