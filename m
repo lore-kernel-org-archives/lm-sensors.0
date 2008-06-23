@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 23 Jun 2008 10:56:39 +0000
+Date: Mon, 23 Jun 2008 11:06:01 +0000
 Subject: Re: [lm-sensors] LMSENSORS: 2.6.26-rc,
-Message-Id: <20080623125639.5c8c4416@hyperion.delvare>
+Message-Id: <20080623130601.7715773e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <485DA11C.7050906@keyaccess.nl>
 	<485DFF35.6080008@hhs.nl>
@@ -10,47 +10,52 @@ References: <485DA11C.7050906@keyaccess.nl>
 	<485E6F12.4010307@keyaccess.nl>
 	<485E94ED.10602@hhs.nl>
 	<485E992B.8010101@keyaccess.nl>
-In-Reply-To: <485E992B.8010101@keyaccess.nl>
+	<485ECB23.4010305@keyaccess.nl>
+	<1214185482.3001.45.camel@rzhang-dt.sh.intel.com>
+In-Reply-To: <1214185482.3001.45.camel@rzhang-dt.sh.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, lm-sensors@lm-sensors.org, Linux Kernel <linux-kernel@vger.kernel.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Rene Herman <rene.herman@keyaccess.nl>, Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi@vger.kernel.org, "Mark M. Hoffman" <mhoffman@lightlink.com>, Linux Kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-Hi Rene,
+Hi Rui,
 
-On Sun, 22 Jun 2008 20:25:47 +0200, Rene Herman wrote:
-> On 22-06-08 20:07, Hans de Goede wrote:
-> > Know something else? I've just stopped caring about this issue, I'm not 
-> > the author of the changes causing said breakage. I'm merely an 
-> > lm_sensors (both userspace and kernel space) developer who was heavily 
-> > involved in getting this fixed for lm_sensors-3.0.2, and I believe that 
-> > adding yet another kconfig option which we then carry for years and 
-> > years is _not_ a good solution. Some userspace utlities like udev sit 
-> > very close to the kernel and sometimes an kernel update mandates a new 
-> > udev. To me this is much the same.
+On Mon, 23 Jun 2008 09:44:42 +0800, Zhang Rui wrote:
+> On Mon, 2008-06-23 at 05:58 +0800, Rene Herman wrote:
+> > On 22-06-08 20:25, Rene Herman wrote:
 > > 
-> > But at the end of the day, I do not feel responsible for this as I'm not 
-> > the author of the code causing the breakage. I'm just someone who knows 
-> > the ins and outs and tried to help, but given the treatment and thanks 
-> > I've been getting for my help I'm stopping with helping now.
+> > > Another way to solve it _could_ be to just make up a device link if
+> > > something generic is available so that sensors doesn't trip over it
+> > > in the first place but I don't know if that's a good option. You
+> > > might.
+> > 
+> > This also works for me and, if correct, is ofcourse better than the
+> > CONFIG option. Wants a comment from the thermal_zone side (for which
+> > Zhang Rui seems the correct CC?) though.
+> Hi, Rene and Hans,
 > 
-> What on earth are you talking about? Could you please re-read? I didn't 
->   "treat badly" you, hwmon, acpi or whatever.
+> Thank you for your efforts on this issue and sorry for the late
+> response, I did not check my email during the whole weekend.
+> 
+> About the hwmon ABI, after the device symbol link is created, are there
+> any other ABIs required in the device node?
 
-You certainly did. I felt the same as Hans when reading the discussion
-thread.
+Not that I know of. The code currently in the kernel works just fine
+with both lm-sensors SVN trunk (which will become 2.10.7 soon) and
+3.0.2 as far as I can see.
 
-Now, you are lucky that I already know you and I know that you are
-usually helpful and cooperative, so I know that you probably didn't
-mean the aggressive tone you used. But presumably Hans doesn't know
-you, so his reaction was understandable.
+> If no, this patch seems to work, although it might break if the first
+> registered ACPI thermal zone device is unregistered, which ONLY happens
+> theoretically.
 
-Hans is one of the main contributors to the hwmon subsystem and the
-lm-sensors project in general. I would be grateful if the users he
-tries to help could treat him with the respect he reserves. If he was
-to leave the project, this would be a significant loss, and this is
-something I really want to avoid.
+If I remember correctly, there are more than one device in a given
+thermal zone, so having a link pointing to one of them would create an
+asymmetry. This basically means that nobody can use the device link in
+question, so there's no point in creating it from a functional point of
+view. If the goal is simply to solve the breakage that was reported by
+Rene, the bug is in libsensors, so that' where it must be fixed (and
+actually it already is.)
 
 Thanks,
 -- 
