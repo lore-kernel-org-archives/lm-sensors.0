@@ -1,7 +1,7 @@
-From: Gabriel C <crazy@frugalware.org>
-Date: Sun, 22 Jun 2008 16:15:51 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 23 Jun 2008 09:06:01 +0000
 Subject: Re: [lm-sensors] Asus atk0110 driver
-Message-Id: <485E7AB7.5070003@frugalware.org>
+Message-Id: <20080623110601.26028a50@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080618212629.GA7917@dreamland.darkstar.lan>
 In-Reply-To: <20080618212629.GA7917@dreamland.darkstar.lan>
@@ -10,40 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
+Hi Gabriel,
 
-Hi Jean , Luca ,
-
-> On Wed, 18 Jun 2008 23:26:29 +0200, Luca Tettamanti wrote:
->> Il Mon, Jun 16, 2008 at 09:32:27AM +0200, Jean Delvare ha scritto: 
->>> Apparently your post was not archived on acpi4asus-user. Can you please
->>> post your driver again, on the lm-sensors list this time? I'd like it
->>> to be archived publicly so that we can point users to it and it doesn't
->>> get lost.
->> Sure. This is the patch for in-kernel ACPI (diff against vanilla
->> 952f4a0a, somewhere after 2.6.26-rc6):
->> (...)
->> The source of the driver is attached (text/plain).
+On Sun, 22 Jun 2008 18:15:51 +0200, Gabriel C wrote:
+> I've tested the driver with linux-next on my P5E-VM DO motherboard.
 > 
-> Thanks Luca. I've added a link to your post on wiki/Devices so that
-> interested users and developers can find it easily.
+> The driver seems to work , the values / data in  /sys/class/hwmon/hwmon0/device/*
+> seems to be the same like what the BIOS reports.
 > 
+> However how do I get sensors to display the data from atk driver ?
+> I guess I have to patch lm-sensors ?
 
+For lm-sensors 2.10.x, yes, you'd need to patch libsensors and sensors
+and virtually every monitoring application out there.
 
-I've tested the driver with linux-next on my P5E-VM DO motherboard.
+But the preferred solution is to just upgrade to lm-sensors 3.0.x,
+which automatically detects the device features, so every new driver is
+supported right away.
 
-The driver seems to work , the values / data in  /sys/class/hwmon/hwmon0/device/*
-seems to be the same like what the BIOS reports.
+> Luca what do you think about creating  a proper patch for the driver too and send it over to 
+> Greg to be included in his linux-staging tree ? I think that way it will get more testing.
 
-However how do I get sensors to display the data from atk driver ?
-I guess I have to patch lm-sensors ?
+Don't know which Greg you're thinking of? This is an ACPI-based
+hardware monitoring driver, so it would go to either the ACPI folks or
+(IMHO better) to the hwmon folks (i.e. the lm-sensors list). I agree
+that having a proper patch would be nice (but I also want to say that I
+will not have the time to review the driver myself.)
 
-Luca what do you think about creating  a proper patch for the driver too and send it over to 
-Greg to be included in his linux-staging tree ? I think that way it will get more testing.
-
-Best Regards ,
-
-Gabriel
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
