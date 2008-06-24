@@ -1,46 +1,54 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Wed, 25 Jun 2008 13:20:03 +0000
-Subject: Re: [lm-sensors] [PATCH 03/10] hwmon: (lm85) Drop dead code
-Message-Id: <20080625132003.GB23797@mars.solarsys.private>
+From: Frank Myhr <fmyhr@fhmtech.com>
+Date: Tue, 24 Jun 2008 03:06:29 +0000
+Subject: [lm-sensors] sysfs-interface: pwm [0-100] rather than [0-255] ?
+Message-Id: <486064B5.5070704@fhmtech.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080412195552.421b4a28@hyperion.delvare>
-In-Reply-To: <20080412195552.421b4a28@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+Hi,
 
-* Jean Delvare <khali@linux-fr.org> [2008-05-01 08:47:33 +0200]:
-> Hi Juerg,
-> 
-> On Wed, 30 Apr 2008 21:52:45 -0700, Juerg Haefliger wrote:
-> > Wow, sure a lot of unused junk. The patch looks good but doesn't apply 
-> > cleanly over the revised patch 02/10. Could you please refresh and 
-> > resend it?
-> 
-> Sure, here you go:
-> 
-> Drop a lot of useless register defines, conversion macros, data structure
-> members and update code. All these register values were read from the
-> device but nothing is done out of them, so this is all dead code in
-> practice.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
-> Refreshed to apply cleanly on top of the updated patch 2/10.
-> 
->  Documentation/hwmon/lm85 |   11 ++----
->  drivers/hwmon/lm85.c     |   82 +---------------------------------------------
->  2 files changed, 6 insertions(+), 87 deletions(-)
+I've added automatic pwm control to the it87.c driver and it's working
+on my Gigabyte GA-MA770-DS3 motherboard with it8718f chip. I plan to
+contribute the modified driver, but need to do significant cleanup and
+logical patch-splitting before it's in a fit state to submit.
+In my naivete I didn't read sysfs-interface until I'd already rolled
+my own non-conforming interface for it87. My bad, my pain as I fix that.
+I do have a comment, though:
 
-Applied to hwmon-2.6.git/testing, thanks.
+For pwm[1-*], it seems to me to make better sense to use a range
+[0, 100] ("% duty cycle"), rather than the current 8-bit range [0, 255].
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Points in favor of using range [0, 100] "% duty cycle" for pwm[1-*]:
 
+1) Consistency: other hwmon sysfs attributes that correspond to
+physical quantities (temp[1-*], fan[1-*], etc.) are in physical units.
+
+2) Freedom from chip implementation: 0-100% duty cycle remains
+the same regardless of whether specific chip uses 6,7,8 or whatever
+bits to represent it.
+
+3) Meaningful value: natural for user to think in terms of 0-100% duty
+cycle, rather than "255 means 100%... 60% would be... (pulls out calculator)"
+
+Of course I remain naive, and so have some questions:
+
+a) Is there any possibility of changing pwm[1-*] to use range [0, 100] ?*
+
+b) If backward compatibility with [0, 255] range must be preserved,
+would it be acceptable to make available an additional redundant
+attribute, named something like pwm[1-*]_duty that would have range [0, 100] ?*
+
+c) Is your [dog / cat / fish / fill in the blank] less naive than I am? :-)
+
+*Note that the following attributes would also be affected:
+pwm[1-*]_auto_point[1-*]_pwm
+temp[1-*]_auto_point[1-*]_pwm
+
+Thanks,
+Frank
 
 _______________________________________________
 lm-sensors mailing list
