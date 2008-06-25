@@ -1,101 +1,132 @@
-From: "James Dietrich" <jdietrch@gmail.com>
-Date: Sun, 01 Jun 2008 23:45:38 +0000
-Subject: [lm-sensors] sensors3.conf for Intel DG35EC motherboard
-Message-Id: <9dd1c6ea0806011645o354a7fddj61184498b5d47ad7@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 25 Jun 2008 11:43:22 +0000
+Subject: [lm-sensors] [PATCH 1/6] hwmon: (lm90) Move 16-bit value read to a
+Message-Id: <20080625134322.6d097d28@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I recently purchased an Intel DG35EC motherboard, and am trying to
-figure out the hardware monitoring capability included on that
-motherboard. It seems that the hardware is being detected ok; I just
-need help setting up sensors3.conf properly.
+Move the code which aggregates two 8-bit register values into a 16-bit
+value to a separate function. We'll need to do it a second time soon and
+I don't want to duplicate the code.
 
-Here is the output from near the end of sensors-detect:
-Now follows a summary of the probes I have just done.
-Just press ENTER to continue:
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/lm90.c |   70 ++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 42 insertions(+), 28 deletions(-)
 
-Driver `w83627ehf' (should be inserted):
-  Detects correctly:
-  * ISA bus, address 0x6e0
-    Chip `Winbond W83627DHG Super IO Sensors' (confidence: 9)
+--- linux-2.6.26-rc8.orig/drivers/hwmon/lm90.c	2008-06-25 10:13:42.000000000 +0200
++++ linux-2.6.26-rc8/drivers/hwmon/lm90.c	2008-06-25 10:13:49.000000000 +0200
+@@ -1,7 +1,7 @@
+ /*
+  * lm90.c - Part of lm_sensors, Linux kernel modules for hardware
+  *          monitoring
+- * Copyright (C) 2003-2006  Jean Delvare <khali@linux-fr.org>
++ * Copyright (C) 2003-2008  Jean Delvare <khali@linux-fr.org>
+  *
+  * Based on the lm83 driver. The LM90 is a sensor chip made by National
+  * Semiconductor. It reports up to two temperatures (its own plus up to
+@@ -729,6 +729,38 @@ static int lm90_detach_client(struct i2c
+ 	return 0;
+ }
+ 
++static int lm90_read16(struct i2c_client *client, u8 regh, u8 regl, u16 *value)
++{
++	int err;
++	u8 oldh, newh, l;
++
++	/*
++	 * There is a trick here. We have to read two registers to have the
++	 * sensor temperature, but we have to beware a conversion could occur
++	 * inbetween the readings. The datasheet says we should either use
++	 * the one-shot conversion register, which we don't want to do
++	 * (disables hardware monitoring) or monitor the busy bit, which is
++	 * impossible (we can't read the values and monitor that bit at the
++	 * exact same time). So the solution used here is to read the high
++	 * byte once, then the low byte, then the high byte again. If the new
++	 * high byte matches the old one, then we have a valid reading. Else
++	 * we have to read the low byte again, and now we believe we have a
++	 * correct reading.
++	 */
++	if ((err = lm90_read_reg(client, regh, &oldh))
++	 || (err = lm90_read_reg(client, regl, &l))
++	 || (err = lm90_read_reg(client, regh, &newh)))
++		return err;
++	if (oldh != newh) {
++		err = lm90_read_reg(client, regl, &l);
++		if (err)
++			return err;
++	}
++	*value = (newh << 8) | l;
++
++	return 0;
++}
++
+ static struct lm90_data *lm90_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -737,7 +769,7 @@ static struct lm90_data *lm90_update_dev
+ 	mutex_lock(&data->update_lock);
+ 
+ 	if (time_after(jiffies, data->last_updated + HZ * 2) || !data->valid) {
+-		u8 oldh, newh, l;
++		u8 h, l;
+ 
+ 		dev_dbg(&client->dev, "Updating lm90 data.\n");
+ 		lm90_read_reg(client, LM90_REG_R_LOCAL_TEMP, &data->temp8[0]);
+@@ -747,39 +779,21 @@ static struct lm90_data *lm90_update_dev
+ 		lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT, &data->temp8[4]);
+ 		lm90_read_reg(client, LM90_REG_R_TCRIT_HYST, &data->temp_hyst);
+ 
+-		/*
+-		 * There is a trick here. We have to read two registers to
+-		 * have the remote sensor temperature, but we have to beware
+-		 * a conversion could occur inbetween the readings. The
+-		 * datasheet says we should either use the one-shot
+-		 * conversion register, which we don't want to do (disables
+-		 * hardware monitoring) or monitor the busy bit, which is
+-		 * impossible (we can't read the values and monitor that bit
+-		 * at the exact same time). So the solution used here is to
+-		 * read the high byte once, then the low byte, then the high
+-		 * byte again. If the new high byte matches the old one,
+-		 * then we have a valid reading. Else we have to read the low
+-		 * byte again, and now we believe we have a correct reading.
+-		 */
+-		if (lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPH, &oldh) = 0
+-		 && lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPL, &l) = 0
+-		 && lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPH, &newh) = 0
+-		 && (newh = oldh
+-		  || lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPL, &l) = 0))
+-			data->temp11[0] = (newh << 8) | l;
++		lm90_read16(client, LM90_REG_R_REMOTE_TEMPH,
++			    LM90_REG_R_REMOTE_TEMPL, &data->temp11[0]);
+ 
+-		if (lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &newh) = 0
++		if (lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &h) = 0
+ 		 && lm90_read_reg(client, LM90_REG_R_REMOTE_LOWL, &l) = 0)
+-			data->temp11[1] = (newh << 8) | l;
+-		if (lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &newh) = 0
++			data->temp11[1] = (h << 8) | l;
++		if (lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &h) = 0
+ 		 && lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHL, &l) = 0)
+-			data->temp11[2] = (newh << 8) | l;
++			data->temp11[2] = (h << 8) | l;
+ 		if (data->kind != max6657) {
+ 			if (lm90_read_reg(client, LM90_REG_R_REMOTE_OFFSH,
+-					  &newh) = 0
++					  &h) = 0
+ 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_OFFSL,
+ 					  &l) = 0)
+-				data->temp11[3] = (newh << 8) | l;
++				data->temp11[3] = (h << 8) | l;
+ 		}
+ 		lm90_read_reg(client, LM90_REG_R_STATUS, &data->alarms);
+ 
 
-Driver `coretemp' (should be inserted):
-  Detects correctly:
-  * Chip `Intel Core family thermal sensor' (confidence: 9)
-
-So I compiled those drivers into my kernel, and dmesg reports this:
-coretemp coretemp.0: Using relative temperature scale!
-coretemp coretemp.1: Using relative temperature scale!
-w83627ehf: Found W83627DHG chip at 0x6e0
-
-I have checked on the motherboard, and there is a Winbond 83627DHG-A
-chip on there.
-
-I have successfully adjusted the Fans section, but I'm having trouble
-with the Voltage and Temperature readings. Running 'sensors' gives
-values, but they don't seem to be right.
-
-Here is the output of sensors with all lines commented out except for
-fan-related ones:
-arcturus:/etc# uname -a
-Linux arcturus 2.6.25.4 #8 SMP Fri May 30 20:08:21 EDT 2008 i686 GNU/Linux
-arcturus:/etc# sensors -v
-sensors version 3.0.1 with libsensors version 3.0.1
-arcturus:/etc# sensors -s
-arcturus:/etc# sensors
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:      +45.0=B0C  (high =3D +78.0=B0C, crit =3D +100.0=B0C)
-
-coretemp-isa-0001
-Adapter: ISA adapter
-Core 1:      +45.0=B0C  (high =3D +78.0=B0C, crit =3D +100.0=B0C)
-
-w83627dhg-isa-06e0
-Adapter: ISA adapter
-in0:         +0.87 V  (min =3D  +0.00 V, max =3D  +1.74 V)
-in1:         +1.54 V  (min =3D  +1.42 V, max =3D  +1.74 V)
-in2:         +2.96 V  (min =3D  +3.58 V, max =3D  +2.94 V)   ALARM
-in3:         +2.94 V  (min =3D  +0.96 V, max =3D  +1.86 V)   ALARM
-in4:         +0.94 V  (min =3D  +0.26 V, max =3D  +1.58 V)
-in5:         +1.29 V  (min =3D  +0.90 V, max =3D  +0.51 V)   ALARM
-in6:         +0.37 V  (min =3D  +2.04 V, max =3D  +2.04 V)   ALARM
-in7:         +2.96 V  (min =3D  +1.23 V, max =3D  +3.34 V)
-in8:         +2.96 V  (min =3D  +0.70 V, max =3D  +1.54 V)   ALARM
-Rear Fan:    827 RPM  (min =3D  502 RPM, div =3D 16)
-CPU Fan:     888 RPM  (min =3D  502 RPM, div =3D 16)
-Front Fan:  1125 RPM  (min =3D  502 RPM, div =3D 16)
-temp1:       +79.0=B0C  (high =3D +47.0=B0C, hyst =3D +127.0=B0C)  sensor =
-=3D thermistor
-temp2:       +59.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
-=3D diode
-temp3:      -128.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
-=3D diode
-cpu0_vid:   +2.050 V
-
-arcturus:/etc#
-
-Probably I should ignore temp3, but temp1 and temp2 seem too high. The
-BIOS gives values in the neighborhood of 43C for processor and 30C for
-internal.
-
-Then about the voltages, I don't know how to tell which ones to
-ignore, nor how to compute the proper value of the rest. The BIOS
-gives four values like these:
-V12.0 -> 11.86
-V5.0 -> 5.885
-V1.25 -> 1.251
-Vccp -> 1.109
-
-Is there anyone who could help me figure out the proper label,
-compute, and ignore lines for this motherboard? Please let me know if
-I can supply any additional information.
-
-Thank you very much for your help,
-James Dietrich
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
