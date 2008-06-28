@@ -1,273 +1,84 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Thu, 26 Jun 2008 00:35:09 +0000
-Subject: [lm-sensors] Fwd:  Only coretemp is found by sensors-detect
-Message-Id: <191fb4ca0806251735t1f7e0f78ve5ba9bdc097c4330@mail.gmail.com>
+From: "=?UTF-8?Q?Alessandro_Calor=C3=AC?=" <axelgenus@gmail.com>
+Date: Sat, 28 Jun 2008 10:57:08 +0000
+Subject: [lm-sensors] Unknown sensors on HP Compaq nx7400
+Message-Id: <eeb7df810806280357n4f9f1752sef0779f16b87c98a@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="euc-kr"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Adding the list...
-
-
-
-
-Hi Chris,
-
-
-> Hi Juerg,
->
-> This is a Dell Precision 690 Workstation.  The chipset is Intel 5000x,
-> I believe.
-
-According to google, the SIO is a SMSC EMC2700P. I don't have a
-datasheet for this chip and doubt that SMSC will provide one given
-that this is a Dell machine. Without a datasheet, there's nothing we
-can do.
-
-
-> Thanks,
-> Chris
->
-> On Wed, Jun 25, 2008 at 2:25 PM, Juerg Haefliger <juergh@gmail.com> wrote:
->> Hi Chris,
->>
->>
->>> Hello,
->>>
->>> I'm only seeing coretemp information when I run sensors detect, but
->>> shouldn't there be more information?  I will attach the relevant
->>> sensors and sensors-detect below.  I would like to be able to see
->>> voltage and fan information, as well.
->>>
->>> Thanks.
->>>
->>> $ sensors
->>> coretemp-isa-0000
->>> Adapter: ISA adapter
->>> Core 0:      +38.0=B0C  (crit =3D +100.0=B0C)
->>>
->>> coretemp-isa-0001
->>> Adapter: ISA adapter
->>> Core 1:      +37.0=B0C  (crit =3D +100.0=B0C)
->>>
->>> coretemp-isa-0002
->>> Adapter: ISA adapter
->>> Core 2:      +36.0=B0C  (crit =3D +100.0=B0C)
->>>
->>> coretemp-isa-0003
->>> Adapter: ISA adapter
->>> Core 3:      +37.0=B0C  (crit =3D +100.0=B0C)
->>>
->>> coretemp-isa-0004
->>> Adapter: ISA adapter
->>> Core 4:      +37.0=B0C  (crit =3D +100.0=B0C)
->>>
->>> coretemp-isa-0005
->>> Adapter: ISA adapter
->>> Core 5:      +36.0=B0C  (crit =3D +100.0=B0C)
->>>
->>> coretemp-isa-0006
->>> Adapter: ISA adapter
->>> Core 6:      +37.0=B0C  (crit =3D +100.0=B0C)
->>>
->>> coretemp-isa-0007
->>> Adapter: ISA adapter
->>> Core 7:      +36.0=B0C  (crit =3D +100.0=B0C)
->>>
->>> $sensors-detect
->>> # sensors-detect revision 5016 (2007-11-11 22:20:16 +0100)
->>>
->>> This program will help you determine which kernel modules you need
->>> to load to use lm_sensors most effectively. It is generally safe
->>> and recommended to accept the default answers to all questions,
->>> unless you know what you're doing.
->>>
->>> We can start with probing for (PCI) I2C or SMBus adapters.
->>> Do you want to probe now? (YES/no):
->>> Probing for PCI bus adapters...
->>> Use driver `i2c-i801' for device 0000:00:1f.3: Intel Enterprise
->>> Southbridge - ESB2
->>>
->>> We will now try to load each adapter module in turn.
->>> Module `i2c-i801' already loaded.
->>> If you have undetectable or unsupported adapters, you can have them
->>> scanned by manually loading the modules before running this script.
->>>
->>> We are now going to do the I2C/SMBus adapter probings. Some chips may
->>> be double detected; we choose the one with the highest confidence
->>> value in that case.
->>> If you found that the adapter hung after probing a certain address,
->>> you can specify that address to remain unprobed.
->>>
->>> Next adapter: SMBus I801 adapter at ece0 (i2c-0)
->>> Do you want to scan it? (YES/no/selectively):
->>> Client found at address 0x2e
->>> Probing for `Myson MTP008'...                               No
->>> Probing for `National Semiconductor LM78'...                No
->>> Probing for `National Semiconductor LM78-J'...              No
->>> Probing for `National Semiconductor LM79'...                No
->>> Probing for `National Semiconductor LM80'...                No
->>> Probing for `National Semiconductor LM85 or LM96000'...     No
->>> Probing for `Analog Devices ADM1027, ADT7460 or ADT7463'... No
->>> Probing for `SMSC EMC6D100, EMC6D101 or EMC6D102'...        No
->>> Probing for `Analog Devices ADT7462'...                     No
->>> Probing for `Analog Devices ADT7467 or ADT7468'...          No
->>> Probing for `Analog Devices ADT7470'...                     No
->>> Probing for `Analog Devices ADT7473'...                     No
->>> Probing for `Analog Devices ADT7475'...                     No
->>> Probing for `Analog Devices ADT7476'...                     No
->>> Probing for `Andigilog aSC7611'...                          No
->>> Probing for `Andigilog aSC7621'...                          No
->>> Probing for `National Semiconductor LM87'...                No
->>> Probing for `National Semiconductor LM93'...                No
->>> Probing for `Winbond W83781D'...                            No
->>> Probing for `Winbond W83782D'...                            No
->>> Probing for `Winbond W83792D'...                            No
->>> Probing for `Winbond W83793R/G'...                          No
->>> Probing for `Winbond W83791SD'...                           No
->>> Probing for `Winbond W83627HF'...                           No
->>> Probing for `Winbond W83627EHF'...                          No
->>> Probing for `Winbond W83627DHG'...                          No
->>> Probing for `Asus AS99127F (rev.1)'...                      No
->>> Probing for `Asus AS99127F (rev.2)'...                      No
->>> Probing for `Asus ASB100 Bach'...                           No
->>> Probing for `Winbond W83L786NR/NG/R/G'...                   No
->>> Probing for `Winbond W83L785TS-S'...                        No
->>> Probing for `Analog Devices ADM9240'...                     No
->>> Probing for `Dallas Semiconductor DS1780'...                No
->>> Probing for `National Semiconductor LM81'...                No
->>> Probing for `Analog Devices ADM1026'...                     No
->>> Probing for `Analog Devices ADM1025'...                     No
->>> Probing for `Analog Devices ADM1029'...                     No
->>> Probing for `Analog Devices ADM1030'...                     No
->>> Probing for `Analog Devices ADM1031'...                     No
->>> Probing for `Analog Devices ADM1022'...                     No
->>> Probing for `Texas Instruments THMC50'...                   No
->>> Probing for `Analog Devices ADM1028'...                     No
->>> Probing for `ITE IT8712F'...                                No
->>> Probing for `SMSC DME1737'...                               No
->>> Probing for `Fintek F75373S/SG'...                          No
->>> Probing for `Fintek F75375S/SP'...                          No
->>> Probing for `Fintek F75387SG/RG'...                         No
->>> Probing for `Analog Devices ADM1024'...                     No
->>> Probing for `Winbond W83791D'...                            No
-
-Uh-huh, missed that one :-) You have a chip @ 0x2e. Run 'i2cdump 0
-0x2e' and send the output to the list. Maybe it looks familiar to
-somebody. Per google, it's an LPC47M534. Don't know that chip. You can
-try force-loading the LM85 driver and check if you get anything
-useful.
-
-...juerg
-
-
-
->>> Some chips are also accessible through the ISA I/O ports. We have to
->>> write to arbitrary I/O ports to probe them. This is usually safe though.
->>> Yes, you do have ISA I/O ports even if you do not have any ISA slots!
->>> Do you want to scan the ISA I/O ports? (YES/no):
->>> Probing for `National Semiconductor LM78' at 0x290...       No
->>> Probing for `National Semiconductor LM78-J' at 0x290...     No
->>> Probing for `National Semiconductor LM79' at 0x290...       No
->>> Probing for `Winbond W83781D' at 0x290...                   No
->>> Probing for `Winbond W83782D' at 0x290...                   No
->>> Probing for `Silicon Integrated Systems SIS5595'...         No
->>> Probing for `VIA VT82C686 Integrated Sensors'...            No
->>> Probing for `VIA VT8231 Integrated Sensors'...              No
->>> Probing for `IPMI BMC KCS' at 0xca0...                      No
->>> Probing for `IPMI BMC SMIC' at 0xca8...                     No
->>>
->>> Some Super I/O chips may also contain sensors. We have to write to
->>> standard I/O ports to probe them. This is usually safe.
->>> Do you want to scan for Super I/O sensors? (YES/no):
->>> Probing for Super-I/O at 0x2e/0x2f
->>> Trying family `National Semiconductor'...                   No
->>> Trying family `SMSC'...                                     Yes
->>> Found unknown chip with ID 0x6701
->>> Probing for Super-I/O at 0x4e/0x4f
->>> Trying family `National Semiconductor'...                   No
->>> Trying family `SMSC'...                                     No
->>> Trying family `VIA/Winbond/Fintek'...                       No
->>> Trying family `ITE'...                                      No
->>
->> You have an unknown SMSC chip. What machine/motherboard is this?
->>
->> ...juerg
->>
->>
->>
->>> Some CPUs or memory controllers may also contain embedded sensors.
->>> Do you want to scan for them? (YES/no):
->>> AMD K8 thermal sensors...                                   No
->>> AMD K10 thermal sensors...                                  No
->>> Intel Core family thermal sensor...                         Success!
->>>    (driver `coretemp')
->>> Intel AMB FB-DIMM thermal sensor...                         Success!
->>>    (driver `to-be-written')
->>>
->>> Now follows a summary of the probes I have just done.
->>> Just press ENTER to continue:
->>>
->>> Driver `coretemp' (should be inserted):
->>>  Detects correctly:
->>>  * Chip `Intel Core family thermal sensor' (confidence: 9)
->>>
->>> Driver `to-be-written' (should be inserted):
->>>  Detects correctly:
->>>  * Chip `Intel AMB FB-DIMM thermal sensor' (confidence: 9)
->>>
->>> I will now generate the commands needed to load the required modules.
->>> Just press ENTER to continue:
->>>
->>> To load everything that is needed, add this to /etc/modules:
->>>
->>> #----cut here----
->>> # Chip drivers
->>> coretemp
->>> # no driver for Intel AMB FB-DIMM thermal sensor yet
->>> #----cut here----
->>>
->>> Do you want to add these lines automatically? (yes/NO)
->>>
->>> $ cat /proc/cpuinfo
->>> processor       : 0
->>> vendor_id       : GenuineIntel
->>> cpu family      : 6
->>> model           : 15
->>> model name      : Intel(R) Xeon(R) CPU           X5355  @ 2.66GHz
->>> stepping        : 7
->>> cpu MHz         : 2659.999
->>> cache size      : 4096 KB
->>> physical id     : 0
->>> siblings        : 4
->>> core id         : 0
->>> cpu cores       : 4
->>> fpu             : yes
->>> fpu_exception   : yes
->>> cpuid level     : 10
->>> wp              : yes
->>> flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
->>> mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe
->>> syscall nx lm constant_tsc arch_perfmon pebs bts rep_good pni monitor
->>> ds_cpl vmx est tm2 ssse3 cx16 xtpr dca lahf_lm
->>> bogomips        : 5322.97
->>> clflush size    : 64
->>> cache_alignment : 64
->>> address sizes   : 36 bits physical, 48 bits virtual
->>> power management:
->>> ...
->>>
->>> _______________________________________________
->>> lm-sensors mailing list
->>> lm-sensors@lm-sensors.org
->>> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->>>
->>
->
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgZ3V5cywKCkknbSB1c2luZyBMaW51eCBBcmNoIG9uIG15IGJ1c2luZXNzIGxhcHRvcC4gSSBj
+YW4gcmVhZCB0ZW1wZXJhdHVyZXMKdGhyb3VnaCBBQ1BJIGFuZCB0aGUgY29yZXRlbXAgZHJpdmVy
+IHNlZW1zIHRvIHdvcmsgZ29vZCBidXQKc2Vuc29yLWRldGVjdCBzaG93cyB0d28gYWRkaXRpb25h
+bCB1bmtub3duIHNlbnNvcnMuIEhlcmUgaXMgdGhlCnNlbnNvcnMtZGV0ZWN0IG91dHB1dDoKClth
+bGVzc2FuZHJvQGJsYWNrbW9vbiBEZXNrdG9wXSQgc3VkbyBzZW5zb3JzLWRldGVjdAojIHNlbnNv
+cnMtZGV0ZWN0IHJldmlzaW9uIDUyNDkgKDIwMDgtMDUtMTEgMjI6NTY6MjUgKzAyMDApCgpUaGlz
+IHByb2dyYW0gd2lsbCBoZWxwIHlvdSBkZXRlcm1pbmUgd2hpY2gga2VybmVsIG1vZHVsZXMgeW91
+IG5lZWQKdG8gbG9hZCB0byB1c2UgbG1fc2Vuc29ycyBtb3N0IGVmZmVjdGl2ZWx5LiBJdCBpcyBn
+ZW5lcmFsbHkgc2FmZQphbmQgcmVjb21tZW5kZWQgdG8gYWNjZXB0IHRoZSBkZWZhdWx0IGFuc3dl
+cnMgdG8gYWxsIHF1ZXN0aW9ucywKdW5sZXNzIHlvdSBrbm93IHdoYXQgeW91J3JlIGRvaW5nLgoK
+V2UgY2FuIHN0YXJ0IHdpdGggcHJvYmluZyBmb3IgKFBDSSkgSTJDIG9yIFNNQnVzIGFkYXB0ZXJz
+LgpEbyB5b3Ugd2FudCB0byBwcm9iZSBub3c/IChZRVMvbm8pOgpQcm9iaW5nIGZvciBQQ0kgYnVz
+IGFkYXB0ZXJzLi4uClNvcnJ5LCBubyBzdXBwb3J0ZWQgUENJIGJ1cyBhZGFwdGVycyBmb3VuZC4K
+CklmIHlvdSBoYXZlIHVuZGV0ZWN0YWJsZSBvciB1bnN1cHBvcnRlZCBJMkMvU01CdXMgYWRhcHRl
+cnMsIHlvdSBjYW4gaGF2ZQp0aGVtIHNjYW5uZWQgYnkgbWFudWFsbHkgbG9hZGluZyB0aGUgbW9k
+dWxlcyBiZWZvcmUgcnVubmluZyB0aGlzIHNjcmlwdC4KClRvIGNvbnRpbnVlLCB3ZSBuZWVkIG1v
+ZHVsZSBgaTJjLWRldicgdG8gYmUgbG9hZGVkLgpEbyB5b3Ugd2FudCB0byBsb2FkIGBpMmMtZGV2
+JyBub3c/IChZRVMvbm8pOgpNb2R1bGUgbG9hZGVkIHN1Y2Nlc3NmdWxseS4KCldlIGFyZSBub3cg
+Z29pbmcgdG8gZG8gdGhlIEkyQy9TTUJ1cyBhZGFwdGVyIHByb2JpbmdzLiBTb21lIGNoaXBzIG1h
+eQpiZSBkb3VibGUgZGV0ZWN0ZWQ7IHdlIGNob29zZSB0aGUgb25lIHdpdGggdGhlIGhpZ2hlc3Qg
+Y29uZmlkZW5jZQp2YWx1ZSBpbiB0aGF0IGNhc2UuCklmIHlvdSBmb3VuZCB0aGF0IHRoZSBhZGFw
+dGVyIGh1bmcgYWZ0ZXIgcHJvYmluZyBhIGNlcnRhaW4gYWRkcmVzcywKeW91IGNhbiBzcGVjaWZ5
+IHRoYXQgYWRkcmVzcyB0byByZW1haW4gdW5wcm9iZWQuCgpTb21lIGNoaXBzIGFyZSBhbHNvIGFj
+Y2Vzc2libGUgdGhyb3VnaCB0aGUgSVNBIEkvTyBwb3J0cy4gV2UgaGF2ZSB0bwp3cml0ZSB0byBh
+cmJpdHJhcnkgSS9PIHBvcnRzIHRvIHByb2JlIHRoZW0uIFRoaXMgaXMgdXN1YWxseSBzYWZlIHRo
+b3VnaC4KWWVzLCB5b3UgZG8gaGF2ZSBJU0EgSS9PIHBvcnRzIGV2ZW4gaWYgeW91IGRvIG5vdCBo
+YXZlIGFueSBJU0Egc2xvdHMhCkRvIHlvdSB3YW50IHRvIHNjYW4gdGhlIElTQSBJL08gcG9ydHM/
+IChZRVMvbm8pOgpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc4JyBhdCAw
+eDI5MC4uLiAgICAgICBObwpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc4
+LUonIGF0IDB4MjkwLi4uICAgICBObwpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3Rv
+ciBMTTc5JyBhdCAweDI5MC4uLiAgICAgICBObwpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3ODFE
+JyBhdCAweDI5MC4uLiAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgV2luYm9uZCBX
+ODM3ODJEJyBhdCAweDI5MC4uLiAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZvciBgSVBN
+SSBCTUMgS0NTJyBhdCAweGNhMC4uLiAgICAgICAgICAgICAgICAgICAgICBObwpQcm9iaW5nIGZv
+ciBgSVBNSSBCTUMgU01JQycgYXQgMHhjYTguLi4gICAgICAgICAgICAgICAgICAgICBObwoKU29t
+ZSBTdXBlciBJL08gY2hpcHMgbWF5IGFsc28gY29udGFpbiBzZW5zb3JzLiBXZSBoYXZlIHRvIHdy
+aXRlIHRvCnN0YW5kYXJkIEkvTyBwb3J0cyB0byBwcm9iZSB0aGVtLiBUaGlzIGlzIHVzdWFsbHkg
+c2FmZS4KRG8geW91IHdhbnQgdG8gc2NhbiBmb3IgU3VwZXIgSS9PIHNlbnNvcnM/IChZRVMvbm8p
+OgpQcm9iaW5nIGZvciBTdXBlci1JL08gYXQgMHgyZS8weDJmClRyeWluZyBmYW1pbHkgYE5hdGlv
+bmFsIFNlbWljb25kdWN0b3InLi4uICAgICAgICAgICAgICAgICAgIE5vClRyeWluZyBmYW1pbHkg
+YFNNU0MnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFllcwpGb3VuZCB1
+bmtub3duIGNoaXAgd2l0aCBJRCAweDI2MDAKUHJvYmluZyBmb3IgU3VwZXItSS9PIGF0IDB4NGUv
+MHg0ZgpUcnlpbmcgZmFtaWx5IGBOYXRpb25hbCBTZW1pY29uZHVjdG9yJy4uLiAgICAgICAgICAg
+ICAgICAgICBObwpUcnlpbmcgZmFtaWx5IGBTTVNDJy4uLiAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICBZZXMKRm91bmQgdW5rbm93biBub24tc3RhbmRhcmQgY2hpcCB3aXRoIElE
+IDB4N2EKClNvbWUgc291dGggYnJpZGdlcywgQ1BVcyBvciBtZW1vcnkgY29udHJvbGxlcnMgbWF5
+IGFsc28gY29udGFpbgplbWJlZGRlZCBzZW5zb3JzLiBEbyB5b3Ugd2FudCB0byBzY2FuIGZvciB0
+aGVtPyAoWUVTL25vKToKU2lsaWNvbiBJbnRlZ3JhdGVkIFN5c3RlbXMgU0lTNTU5NS4uLiAgICAg
+ICAgICAgICAgICAgICAgICAgTm8KVklBIFZUODJDNjg2IEludGVncmF0ZWQgU2Vuc29ycy4uLiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgTm8KVklBIFZUODIzMSBJbnRlZ3JhdGVkIFNlbnNvcnMu
+Li4gICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8KQU1EIEs4IHRoZXJtYWwgc2Vuc29ycy4u
+LiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8KQU1EIEsxMCB0aGVybWFsIHNl
+bnNvcnMuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8KSW50ZWwgQ29yZSBm
+YW1pbHkgdGhlcm1hbCBzZW5zb3IuLi4gICAgICAgICAgICAgICAgICAgICAgICAgU3VjY2VzcyEK
+ICAgIChkcml2ZXIgYGNvcmV0ZW1wJykKSW50ZWwgQU1CIEZCLURJTU0gdGhlcm1hbCBzZW5zb3Iu
+Li4gICAgICAgICAgICAgICAgICAgICAgICAgTm8KCk5vdyBmb2xsb3dzIGEgc3VtbWFyeSBvZiB0
+aGUgcHJvYmVzIEkgaGF2ZSBqdXN0IGRvbmUuCkp1c3QgcHJlc3MgRU5URVIgdG8gY29udGludWU6
+CgpEcml2ZXIgYGNvcmV0ZW1wJyAoc2hvdWxkIGJlIGluc2VydGVkKToKICBEZXRlY3RzIGNvcnJl
+Y3RseToKICAqIENoaXAgYEludGVsIENvcmUgZmFtaWx5IHRoZXJtYWwgc2Vuc29yJyAoY29uZmlk
+ZW5jZTogOSkKCkRvIHlvdSB3YW50IHRvIGdlbmVyYXRlIC9ldGMvc3lzY29uZmlnL2xtX3NlbnNv
+cnM/ICh5ZXMvTk8pOiB5ZXMKQ29weSBwcm9nL2luaXQvbG1fc2Vuc29ycy5pbml0IHRvIC9ldGMv
+aW5pdC5kL2xtX3NlbnNvcnMKZm9yIGluaXRpYWxpemF0aW9uIGF0IGJvb3QgdGltZS4KWW91IHNo
+b3VsZCBub3cgc3RhcnQgdGhlIGxtX3NlbnNvcnMgc2VydmljZSB0byBsb2FkIHRoZSByZXF1aXJl
+ZAprZXJuZWwgbW9kdWxlcy4KClthbGVzc2FuZHJvQGJsYWNrbW9vbiBEZXNrdG9wXSQgc3VkbyBt
+b2Rwcm9iZSBjb3JldGVtcApbYWxlc3NhbmRyb0BibGFja21vb24gRGVza3RvcF0kIHNlbnNvcnMK
+Y29yZXRlbXAtaXNhLTAwMDAKQWRhcHRlcjogSVNBIGFkYXB0ZXIKQ29yZSAwOiAgICAgICs1NC4w
+wrBDICAoY3JpdCA9ICsxMDAuMMKwQykKCmNvcmV0ZW1wLWlzYS0wMDAxCkFkYXB0ZXI6IElTQSBh
+ZGFwdGVyCkNvcmUgMTogICAgICArNTUuMMKwQyAgKGNyaXQgPSArMTAwLjDCsEMpCgpBcyBzYWlk
+IGJlZm9yZSwgSSBjYW4gcmVhZCBtb3N0IG9mIHRoZSB0aGVybWFsIGluZm9ybWF0aW9uIHRocm91
+Z2gKL3Byb2MvYWNwaS90aGVybWFsX3pvbmUgYnV0IGl0IHdvdWxkIGJlIHZlcnkgY29tZm9ydGFi
+bGUgdG8gcmVhZCB0aGVtCmRpcmVjdGx5IHdpdGggbG0tc2Vuc29ycy4KClRoYW5rIHlvdSwgQWxl
+c3NhbmRyby4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8v
+bGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3JzCg==
