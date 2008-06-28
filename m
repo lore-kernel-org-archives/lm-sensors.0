@@ -1,33 +1,33 @@
-From: Ben Hutchings <bhutchings@solarflare.com>
-Date: Mon, 09 Jun 2008 11:13:31 +0000
-Subject: [lm-sensors] [PATCH] max664x driver [2nd try]
-Message-Id: <20080609111329.GB11300@solarflare.com>
+From: Randall <lists_rlr@roadrunner.com>
+Date: Sat, 28 Jun 2008 23:50:00 +0000
+Subject: [lm-sensors] quick note on it87 kernal module and ECS AMD64 mobos
+Message-Id: <200806281650.00095.lists_rlr@roadrunner.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Since the first version, I have renamed the device attributes to match
-the patterns that libsensors expects and changed some structure members
-into arrays to match these.  Tested with lm_sensors 3.0.2.
+A quick note for the "sensors" to work on the Elite Computer Systems (ECS) =
 
-Ben.
+group Athlon64 3200+ motherboard, which hosts the nVIDIA=AE GeForce 6100 & =
 
-Ben Hutchings (1):
-  max664x: New driver for Maxim MAX6646/6647/6649 sensor chips
+nForce 405 chipset, model #C51G-M754 (V1.0),  a "modprobe it87" command has=
+=20
+to be issued for both the k8temp and it8716F sensors to work properly. =20
+sensors saw the k8temp okay, but couldn't find the it87 chip until the kern=
+el=20
+module was loaded.  I am NOT sure why Suse 11.0 doesn't autoload this durin=
+g=20
+init, but I'll force it anyways ;-)
 
- drivers/hwmon/Kconfig   |   10 ++
- drivers/hwmon/Makefile  |    1 +
- drivers/hwmon/max664x.c |  355 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/max664x.h |   92 ++++++++++++
- 4 files changed, 458 insertions(+), 0 deletions(-)
- create mode 100644 drivers/hwmon/max664x.c
- create mode 100644 include/linux/max664x.h
+The it8716 shows the information we really need, so it is necessary to get =
 
--- 
-Ben Hutchings, Senior Software Engineer, Solarflare Communications
-Not speaking for my employer; that's the marketing department's job.
+this working if you really want to see what is going on.
+
+- Randall
+
+
 
 _______________________________________________
 lm-sensors mailing list
