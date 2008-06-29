@@ -1,36 +1,211 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 25 Jun 2008 11:41:51 +0000
-Subject: [lm-sensors] [PATCH 0/6] hwmon: (lm90) Driver enhancements
-Message-Id: <20080625134151.64ac44a1@hyperion.delvare>
+From: Jim Cromie <jim.cromie@gmail.com>
+Date: Sun, 29 Jun 2008 18:05:15 +0000
+Subject: [lm-sensors] [patch 2/6 v2] hwmon/pc87360 individual alarm files -
+Message-Id: <4867CEDB.9020709@gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------030508010508000305090706"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+This is a multi-part message in MIME format.
+--------------030508010508000305090706
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This set of 6 patches to the lm90 driver is the union of the 4 patches
-I sent on May 28th [1] and the 2 patches Nate Case sent on June 24th
-[2]. I decided to consolidate them into a single patch set because
-Nate's patches had merge conflicts with mine.
+attached, and pasted
 
-[1] http://lists.lm-sensors.org/pipermail/lm-sensors/2008-May/023250.html
-[2] http://lists.lm-sensors.org/pipermail/lm-sensors/2008-June/023536.html
+[jimc@harpo linux-2.6]$ more 
+0002-hwmon-pc87360-separate-alarm-files-add-in-min-max.patch
+ From d408b62398d83182b6134069b840b880423e211c Mon Sep 17 00:00:00 2001
+From: Jim Cromie <jim.cromie@gmail.com>
+Date: Sat, 28 Jun 2008 12:25:52 -0600
+Subject: [PATCH] hwmon/pc87360 separate alarm files - add in-min/max-alarms
 
-My patches essentially improve the MAX6657 support while Nate's
-patches essentially improve the ADT7461 support. This patch set applies
-cleanly on top of kernel 2.6.26-rc8.
+Adds vin-min/max-alarm callbacks, sensor-device-attribute
+declarations, and refs to those new decls in the macro used to
+initialize the vin_group (of sysfs files)
 
-The patches can temporarily be downloaded from the following location
-too:
-  http://jdelvare.pck.nerim.net/sensors/lm90/
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+---
+ drivers/hwmon/pc87360.c |   52 
+++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 51 insertions(+), 1 deletions(-)
 
-Thanks,
+diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
+index 1043b11..3b6ea7b 100644
+--- a/drivers/hwmon/pc87360.c
++++ b/drivers/hwmon/pc87360.c
+@@ -494,11 +494,61 @@ static struct sensor_device_attribute in_max[] = {
+ #define CHAN_ALM_MAX    0x04    /* max limit exceeded */
+ #define TEMP_ALM_CRIT    0x08    /* temp crit exceeded (temp only) */
+ 
++/* show_in_min/max_alarm() reads data from the per-channel status
++   register (sec 11.5.12), not the vin event status registers (sec
++   11.5.2) that (legacy) show_in_alarm() resds (via data->in_alarms) */
++
++static ssize_t show_in_min_alarm(struct device *dev, struct 
+device_attribute
++                 *devattr, char *buf)
++{
++    struct pc87360_data *data = pc87360_update_device(dev);
++    unsigned nr = to_sensor_dev_attr(devattr)->index;
++
++    return sprintf(buf, "%u\n", !!(data->in_status[nr] & CHAN_ALM_MIN));
++}
++static ssize_t show_in_max_alarm(struct device *dev, struct 
+device_attribute
++                 *devattr, char *buf)
++{
++    struct pc87360_data *data = pc87360_update_device(dev);
++    unsigned nr = to_sensor_dev_attr(devattr)->index;
++
++    return sprintf(buf, "%u\n", !!(data->in_status[nr] & CHAN_ALM_MAX));
++}
++
++static struct sensor_device_attribute in_min_alarm[] = {
++    SENSOR_ATTR(in0_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 0),
++    SENSOR_ATTR(in1_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 1),
++    SENSOR_ATTR(in2_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 2),
++    SENSOR_ATTR(in3_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 3),
++    SENSOR_ATTR(in4_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 4),
++    SENSOR_ATTR(in5_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 5),
++    SENSOR_ATTR(in6_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 6),
++    SENSOR_ATTR(in7_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 7),
++    SENSOR_ATTR(in8_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 8),
++    SENSOR_ATTR(in9_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 9),
++    SENSOR_ATTR(in10_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 10),
++};
++static struct sensor_device_attribute in_max_alarm[] = {
++    SENSOR_ATTR(in0_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 0),
++    SENSOR_ATTR(in1_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 1),
++    SENSOR_ATTR(in2_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 2),
++    SENSOR_ATTR(in3_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 3),
++    SENSOR_ATTR(in4_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 4),
++    SENSOR_ATTR(in5_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 5),
++    SENSOR_ATTR(in6_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 6),
++    SENSOR_ATTR(in7_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 7),
++    SENSOR_ATTR(in8_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 8),
++    SENSOR_ATTR(in9_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 9),
++    SENSOR_ATTR(in10_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 10),
++};
++
+ #define VIN_UNIT_ATTRS(X) \
+     &in_input[X].dev_attr.attr,    \
+     &in_status[X].dev_attr.attr,    \
+     &in_min[X].dev_attr.attr,    \
+-    &in_max[X].dev_attr.attr
++    &in_max[X].dev_attr.attr,    \
++    &in_min_alarm[X].dev_attr.attr,    \
++    &in_max_alarm[X].dev_attr.attr
+ 
+ static ssize_t show_vid(struct device *dev, struct device_attribute 
+*attr, char *buf)
+ {
 -- 
-Jean Delvare
+1.5.5.1
+
+
+
+--------------030508010508000305090706
+Content-Type: text/x-patch;
+	name="0002-hwmon-pc87360-separate-alarm-files-add-in-min-max.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename*0="0002-hwmon-pc87360-separate-alarm-files-add-in-min-max.patch"
+
+From d408b62398d83182b6134069b840b880423e211c Mon Sep 17 00:00:00 2001
+From: Jim Cromie <jim.cromie@gmail.com>
+Date: Sat, 28 Jun 2008 12:25:52 -0600
+Subject: [PATCH] hwmon/pc87360 separate alarm files - add in-min/max-alarms
+
+Adds vin-min/max-alarm callbacks, sensor-device-attribute
+declarations, and refs to those new decls in the macro used to
+initialize the vin_group (of sysfs files)
+
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+---
+ drivers/hwmon/pc87360.c |   52 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 51 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
+index 1043b11..3b6ea7b 100644
+--- a/drivers/hwmon/pc87360.c
++++ b/drivers/hwmon/pc87360.c
+@@ -494,11 +494,61 @@ static struct sensor_device_attribute in_max[] = {
+ #define CHAN_ALM_MAX	0x04	/* max limit exceeded */
+ #define TEMP_ALM_CRIT	0x08	/* temp crit exceeded (temp only) */
+ 
++/* show_in_min/max_alarm() reads data from the per-channel status
++   register (sec 11.5.12), not the vin event status registers (sec
++   11.5.2) that (legacy) show_in_alarm() resds (via data->in_alarms) */
++
++static ssize_t show_in_min_alarm(struct device *dev, struct device_attribute
++			     *devattr, char *buf)
++{
++	struct pc87360_data *data = pc87360_update_device(dev);
++	unsigned nr = to_sensor_dev_attr(devattr)->index;
++
++	return sprintf(buf, "%u\n", !!(data->in_status[nr] & CHAN_ALM_MIN));
++}
++static ssize_t show_in_max_alarm(struct device *dev, struct device_attribute
++			     *devattr, char *buf)
++{
++	struct pc87360_data *data = pc87360_update_device(dev);
++	unsigned nr = to_sensor_dev_attr(devattr)->index;
++
++	return sprintf(buf, "%u\n", !!(data->in_status[nr] & CHAN_ALM_MAX));
++}
++
++static struct sensor_device_attribute in_min_alarm[] = {
++	SENSOR_ATTR(in0_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 0),
++	SENSOR_ATTR(in1_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 1),
++	SENSOR_ATTR(in2_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 2),
++	SENSOR_ATTR(in3_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 3),
++	SENSOR_ATTR(in4_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 4),
++	SENSOR_ATTR(in5_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 5),
++	SENSOR_ATTR(in6_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 6),
++	SENSOR_ATTR(in7_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 7),
++	SENSOR_ATTR(in8_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 8),
++	SENSOR_ATTR(in9_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 9),
++	SENSOR_ATTR(in10_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 10),
++};
++static struct sensor_device_attribute in_max_alarm[] = {
++	SENSOR_ATTR(in0_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 0),
++	SENSOR_ATTR(in1_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 1),
++	SENSOR_ATTR(in2_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 2),
++	SENSOR_ATTR(in3_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 3),
++	SENSOR_ATTR(in4_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 4),
++	SENSOR_ATTR(in5_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 5),
++	SENSOR_ATTR(in6_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 6),
++	SENSOR_ATTR(in7_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 7),
++	SENSOR_ATTR(in8_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 8),
++	SENSOR_ATTR(in9_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 9),
++	SENSOR_ATTR(in10_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 10),
++};
++
+ #define VIN_UNIT_ATTRS(X) \
+ 	&in_input[X].dev_attr.attr,	\
+ 	&in_status[X].dev_attr.attr,	\
+ 	&in_min[X].dev_attr.attr,	\
+-	&in_max[X].dev_attr.attr
++	&in_max[X].dev_attr.attr,	\
++	&in_min_alarm[X].dev_attr.attr,	\
++	&in_max_alarm[X].dev_attr.attr
+ 
+ static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+-- 
+1.5.5.1
+
+
+--------------030508010508000305090706
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------030508010508000305090706--
