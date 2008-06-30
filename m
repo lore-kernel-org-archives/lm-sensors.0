@@ -1,75 +1,50 @@
-From: Ben Hutchings <bhutchings@solarflare.com>
-Date: Sun, 08 Jun 2008 16:13:09 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] lm87: Convert into a new-style driver
-Message-Id: <20080608161307.GV11300@solarflare.com>
+From: Justin Piszcz <jpiszcz@lucidpixels.com>
+Date: Mon, 30 Jun 2008 14:09:09 +0000
+Subject: [lm-sensors] Intel DG965WH / Case 745-44-22 (slow bios/upgrade)
+Message-Id: <alpine.DEB.1.10.0806300958070.13171@p34.internal.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080604184401.GG11300@solarflare.com>
-In-Reply-To: <20080604184401.GG11300@solarflare.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: crmotherboard@mailbox.cps.intel.com, Jesse Barnes <jesse.barnes@intel.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Jean Delvare wrote:
-> Hi Ben,
-> 
-> On Thu, 5 Jun 2008 18:05:56 +0100, Ben Hutchings wrote:
-> > Jean Delvare wrote:
-> > > It really depends on the board. A few boards initialize the limits
-> > > properly, but in general the user really wants to set them, or he/she
-> > > gets either spurious alarms or no alarms at all.
-> > 
-> > I have a hard time believing this because in my experience PCs normally
-> > shut down in case of an over-temperature alarm.
-> 
-> Have you experienced this often?
+Hello,
 
-I have when using inadequate cooling on PCs I assembled myself.
+I have two revisions of the 965WH motherboard, one that supports dual-core 
+only and another quad-core.
 
-[...]
-> > The way this is supposed to work is that in case of a fault the hardware
-> > is shut down to prevent (further) damage.  For a PC motherboard the BIOS
-> > (possibly cooperating with the OS through ACPI) will do that.  In the case
-> > of our reference boards, we depend on either hard-wiring (SFE4001) or the
-> > driver (all others) to do this.
-> 
-> Can you describe the "hard wiring" in question? Does it mean that the
-> network adapter has the power to abruptly shut down the machine if any
-> limit is crossed? Meaning that the user could shut down the machine
-> just by playing with the limits?
+I have an E6300 in the old one and a Q6600 in the new one with 4GiB and 
+8GiB of RAM respectively.
 
-The SFE4001 has one of the hardware monitor's interrupt lines wired into
-the IO-expander that controls power to the PHY.
+I would like to report a success and also a bug with BIOS 1738.
 
-> Please also describe the software alternative. How do you plan to
-> implement this?
+The success is this case can be resolved, the Linux/memory/mapping is 
+correct now and I no longer have to use mem="8832M" in my LILO 
+configuration to avoid the bios setting memory that is not cachable.
 
-If the hardware monitor raises an interrupt, turn off or reduce power to
-the PHY and disable the port.  This is already implemented for the
-SFE4002 in our out-of-tree driver.
+However, on my new revision 965WH (I did not check with my old motherboard), 
+that supports the quad-core CPU, I went into the BIOS and went to the 
+[Hard Disks] option and when I selected it, the part of the screen that should 
+update showing me the hard disks in the system was blank, I could not escape 
+out of the bios or go to another menu, I had to reboot to get back into the 
+bios.  This is not normal behavior, can someone at Intel attach 1-6 (I use 6) 
+WD Veliciraptor 300GiB drives to this motherboard to replicate the problem if
+it is not obvious in the code/bios how to fix it?  I cannot view the hard disks in that menu, I believe its the 2nd or 3rd menu over when you initially enter 
+the BIOS.  I do not recall if this problem existed prior to 1738.
 
-[...]
-> As a side note, I have to admit that I am very surprised to see that
-> level of hardware monitoring on network adapters. This seems redundant
-> with what the motherboard already offers, in particular for voltages
-> (you get them from the motherboard so they might as well be monitored
-> there.)
+Also, people have e-mailed me in relation to my posts and I am curious as well
+to follow up, when will the HECI/fan/voltage sensor support (that is a project
+at Intel) be merged into the kernel tree so that lm sensors will eventually be
+able to read these values?
 
-PCI Express only supplies 12V and 3.3V.  Everything else has to be
-converted from those.
+This is from 2007:
+http://softwareblogs.intel.com/2007/04/13/intel-me-interface-heci-now-available/
 
-> I would understand a simple temperature sensor as some graphics
-> adapters do, but a full-featured hardware monitoring chip sounds
-> overkill.
+Their updated project page:
+http://www.openamt.org/
 
-Well, it's there on the SFE4002 and you already wrote most of the
-necessary code to support it, so...
-
-Ben.
-
--- 
-Ben Hutchings, Senior Software Engineer, Solarflare Communications
-Not speaking for my employer; that's the marketing department's job.
+Justin.
 
 _______________________________________________
 lm-sensors mailing list
