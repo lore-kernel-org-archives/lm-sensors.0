@@ -1,7 +1,7 @@
 From: Mark van Doesburg <mark.vandoesburg@hetnet.nl>
-Date: Mon, 30 Jun 2008 19:23:00 +0000
+Date: Mon, 30 Jun 2008 21:02:05 +0000
 Subject: Re: [lm-sensors] [PATCH 2.6.25.4] f71882.c driver,
-Message-Id: <200806301923.m5UJN0XB029743@localhost>
+Message-Id: <200806302102.m5UL25Bd020777@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200806110520.m5B5KDgO018954@localhost>
 In-Reply-To: <200806110520.m5B5KDgO018954@localhost>
@@ -12,7 +12,8 @@ To: lm-sensors@vger.kernel.org
 
 Hello Hans,
 
-I've finisched the two patches, so here they are.
+I'm sorry for the previous mail, I got the parameters for ATTR_2 reversed.
+So here are the patches again, and now it works.
 
 Regards,
 
@@ -21,7 +22,7 @@ Mark.
 
 --- /tmp/linux-2.6.25.4/drivers/hwmon/f71882fg.c	2008-05-15 17:00:12.000000=
 000 +0200
-+++ drivers/hwmon/f71882fg.c	2008-06-30 21:02:45.000000000 +0200
++++ attr2	2008-06-30 22:57:54.000000000 +0200
 @@ -194,79 +194,79 @@
  	__ATTR( name, S_IRUGO, show_name, NULL ),
  };
@@ -80,18 +81,18 @@ ct sensor_device_attribute_2 f71882fg_in_temp_attr[]  {
 -	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_temp_alarm, NULL, 2),
 -	SENSOR_ATTR(temp3_fault, S_IRUGO, show_temp_fault, NULL, 2)
 +	SENSOR_ATTR_2(in0_input, S_IRUGO, show_in, NULL, 0, 0),
-+	SENSOR_ATTR_2(in1_input, S_IRUGO, show_in, NULL, 1, 0),
-+	SENSOR_ATTR_2(in1_max, S_IRUGO|S_IWUSR, show_in_max, store_in_max, 1, 0),
-+	SENSOR_ATTR_2(in1_beep, S_IRUGO|S_IWUSR, show_in_beep, store_in_beep, 1, =
-0),
-+	SENSOR_ATTR_2(in1_alarm, S_IRUGO, show_in_alarm, NULL, 1, 0),
-+	SENSOR_ATTR_2(in2_input, S_IRUGO, show_in, NULL, 2, 0),
-+	SENSOR_ATTR_2(in3_input, S_IRUGO, show_in, NULL, 3, 0),
-+	SENSOR_ATTR_2(in4_input, S_IRUGO, show_in, NULL, 4, 0),
-+	SENSOR_ATTR_2(in5_input, S_IRUGO, show_in, NULL, 5, 0),
-+	SENSOR_ATTR_2(in6_input, S_IRUGO, show_in, NULL, 6, 0),
-+	SENSOR_ATTR_2(in7_input, S_IRUGO, show_in, NULL, 7, 0),
-+	SENSOR_ATTR_2(in8_input, S_IRUGO, show_in, NULL, 8, 0),
++	SENSOR_ATTR_2(in1_input, S_IRUGO, show_in, NULL, 0, 1),
++	SENSOR_ATTR_2(in1_max, S_IRUGO|S_IWUSR, show_in_max, store_in_max, 0, 1),
++	SENSOR_ATTR_2(in1_beep, S_IRUGO|S_IWUSR, show_in_beep, store_in_beep, 0, =
+1),
++	SENSOR_ATTR_2(in1_alarm, S_IRUGO, show_in_alarm, NULL, 0, 1),
++	SENSOR_ATTR_2(in2_input, S_IRUGO, show_in, NULL, 0, 2),
++	SENSOR_ATTR_2(in3_input, S_IRUGO, show_in, NULL, 0, 3),
++	SENSOR_ATTR_2(in4_input, S_IRUGO, show_in, NULL, 0, 4),
++	SENSOR_ATTR_2(in5_input, S_IRUGO, show_in, NULL, 0, 5),
++	SENSOR_ATTR_2(in6_input, S_IRUGO, show_in, NULL, 0, 6),
++	SENSOR_ATTR_2(in7_input, S_IRUGO, show_in, NULL, 0, 7),
++	SENSOR_ATTR_2(in8_input, S_IRUGO, show_in, NULL, 0, 8),
 +	SENSOR_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0, 0),
 +	SENSOR_ATTR_2(temp1_max, S_IRUGO|S_IWUSR, show_temp_max,
 +		store_temp_max, 0, 0),
@@ -105,32 +106,32 @@ ct sensor_device_attribute_2 f71882fg_in_temp_attr[]  {
 +		store_temp_beep, 0, 0),
 +	SENSOR_ATTR_2(temp1_alarm, S_IRUGO, show_temp_alarm, NULL, 0, 0),
 +	SENSOR_ATTR_2(temp1_fault, S_IRUGO, show_temp_fault, NULL, 0, 0),
-+	SENSOR_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, 1, 0),
++	SENSOR_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, 0, 1),
 +	SENSOR_ATTR_2(temp2_max, S_IRUGO|S_IWUSR, show_temp_max,
-+		store_temp_max, 1, 0),
++		store_temp_max, 0, 1),
 +	SENSOR_ATTR_2(temp2_max_hyst, S_IRUGO|S_IWUSR, show_temp_max_hyst,
-+		store_temp_max_hyst, 1, 0),
++		store_temp_max_hyst, 0, 1),
 +	SENSOR_ATTR_2(temp2_crit, S_IRUGO|S_IWUSR, show_temp_crit,
-+		store_temp_crit, 1, 0),
-+	SENSOR_ATTR_2(temp2_crit_hyst, S_IRUGO, show_temp_crit_hyst, NULL, 1, 0),
-+	SENSOR_ATTR_2(temp2_type, S_IRUGO, show_temp_type, NULL, 1, 0),
++		store_temp_crit, 0, 1),
++	SENSOR_ATTR_2(temp2_crit_hyst, S_IRUGO, show_temp_crit_hyst, NULL, 0, 1),
++	SENSOR_ATTR_2(temp2_type, S_IRUGO, show_temp_type, NULL, 0, 1),
 +	SENSOR_ATTR_2(temp2_beep, S_IRUGO|S_IWUSR, show_temp_beep,
-+		store_temp_beep, 1, 0),
-+	SENSOR_ATTR_2(temp2_alarm, S_IRUGO, show_temp_alarm, NULL, 1, 0),
-+	SENSOR_ATTR_2(temp2_fault, S_IRUGO, show_temp_fault, NULL, 1, 0),
-+	SENSOR_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 2, 0),
++		store_temp_beep, 0, 1),
++	SENSOR_ATTR_2(temp2_alarm, S_IRUGO, show_temp_alarm, NULL, 0, 1),
++	SENSOR_ATTR_2(temp2_fault, S_IRUGO, show_temp_fault, NULL, 0, 1),
++	SENSOR_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 0, 2),
 +	SENSOR_ATTR_2(temp3_max, S_IRUGO|S_IWUSR, show_temp_max,
-+		store_temp_max, 2, 0),
++		store_temp_max, 0, 2),
 +	SENSOR_ATTR_2(temp3_max_hyst, S_IRUGO|S_IWUSR, show_temp_max_hyst,
-+		store_temp_max_hyst, 2, 0),
++		store_temp_max_hyst, 0, 2),
 +	SENSOR_ATTR_2(temp3_crit, S_IRUGO|S_IWUSR, show_temp_crit,
-+		store_temp_crit, 2, 0),
-+	SENSOR_ATTR_2(temp3_crit_hyst, S_IRUGO, show_temp_crit_hyst, NULL, 2, 0),
-+	SENSOR_ATTR_2(temp3_type, S_IRUGO, show_temp_type, NULL, 2, 0),
++		store_temp_crit, 0, 2),
++	SENSOR_ATTR_2(temp3_crit_hyst, S_IRUGO, show_temp_crit_hyst, NULL, 0, 2),
++	SENSOR_ATTR_2(temp3_type, S_IRUGO, show_temp_type, NULL, 0, 2),
 +	SENSOR_ATTR_2(temp3_beep, S_IRUGO|S_IWUSR, show_temp_beep,
-+		store_temp_beep, 2, 0),
-+	SENSOR_ATTR_2(temp3_alarm, S_IRUGO, show_temp_alarm, NULL, 2, 0),
-+	SENSOR_ATTR_2(temp3_fault, S_IRUGO, show_temp_fault, NULL, 2, 0)
++		store_temp_beep, 0, 2),
++	SENSOR_ATTR_2(temp3_alarm, S_IRUGO, show_temp_alarm, NULL, 0, 2),
++	SENSOR_ATTR_2(temp3_fault, S_IRUGO, show_temp_fault, NULL, 0, 2)
  };
 =20
 -static struct sensor_device_attribute f71882fg_fan_attr[] +static struct s=
@@ -155,18 +156,18 @@ ensor_device_attribute_2 f71882fg_fan_attr[]  {
 +	SENSOR_ATTR_2(fan1_beep, S_IRUGO|S_IWUSR, show_fan_beep,
 +		store_fan_beep, 0, 0),
 +	SENSOR_ATTR_2(fan1_alarm, S_IRUGO, show_fan_alarm, NULL, 0, 0),
-+	SENSOR_ATTR_2(fan2_input, S_IRUGO, show_fan, NULL, 1, 0),
++	SENSOR_ATTR_2(fan2_input, S_IRUGO, show_fan, NULL, 0, 1),
 +	SENSOR_ATTR_2(fan2_beep, S_IRUGO|S_IWUSR, show_fan_beep,
-+		store_fan_beep, 1, 0),
-+	SENSOR_ATTR_2(fan2_alarm, S_IRUGO, show_fan_alarm, NULL, 1, 0),
-+	SENSOR_ATTR_2(fan3_input, S_IRUGO, show_fan, NULL, 2, 0),
++		store_fan_beep, 0, 1),
++	SENSOR_ATTR_2(fan2_alarm, S_IRUGO, show_fan_alarm, NULL, 0, 1),
++	SENSOR_ATTR_2(fan3_input, S_IRUGO, show_fan, NULL, 0, 2),
 +	SENSOR_ATTR_2(fan3_beep, S_IRUGO|S_IWUSR, show_fan_beep,
-+		store_fan_beep, 2, 0),
-+	SENSOR_ATTR_2(fan3_alarm, S_IRUGO, show_fan_alarm, NULL, 2, 0),
-+	SENSOR_ATTR_2(fan4_input, S_IRUGO, show_fan, NULL, 3, 0),
++		store_fan_beep, 0, 2),
++	SENSOR_ATTR_2(fan3_alarm, S_IRUGO, show_fan_alarm, NULL, 0, 2),
++	SENSOR_ATTR_2(fan4_input, S_IRUGO, show_fan, NULL, 0, 3),
 +	SENSOR_ATTR_2(fan4_beep, S_IRUGO|S_IWUSR, show_fan_beep,
-+		store_fan_beep, 3, 0),
-+	SENSOR_ATTR_2(fan4_alarm, S_IRUGO, show_fan_alarm, NULL, 3, 0)
++		store_fan_beep, 0, 3),
++	SENSOR_ATTR_2(fan4_alarm, S_IRUGO, show_fan_alarm, NULL, 0, 3)
  };
 =20
 =20
@@ -361,8 +362,9 @@ ensor_device_attribute_2 f71882fg_fan_attr[]  {
  		return sprintf(buf, "1\n");
 
 
---- attr2	2008-06-30 21:02:45.000000000 +0200
-+++ f71882fg.c	2008-06-30 21:12:57.000000000 +0200
+
+--- attr2	2008-06-30 22:57:54.000000000 +0200
++++ f71882fg.c	2008-06-30 22:54:22.000000000 +0200
 @@ -57,6 +57,8 @@
  #define F71882FG_REG_IN1_HIGH		0x32
 =20
@@ -501,25 +503,25 @@ tr,
  	SENSOR_ATTR_2(fan1_beep, S_IRUGO|S_IWUSR, show_fan_beep,
  		store_fan_beep, 0, 0),
  	SENSOR_ATTR_2(fan1_alarm, S_IRUGO, show_fan_alarm, NULL, 0, 0),
- 	SENSOR_ATTR_2(fan2_input, S_IRUGO, show_fan, NULL, 1, 0),
+ 	SENSOR_ATTR_2(fan2_input, S_IRUGO, show_fan, NULL, 0, 1),
 +	SENSOR_ATTR_2(fan2_full_speed, S_IRUGO|S_IWUSR, show_fan_full_speed,=20
-+		store_fan_full_speed, 1, 0),
++		store_fan_full_speed, 0, 1),
  	SENSOR_ATTR_2(fan2_beep, S_IRUGO|S_IWUSR, show_fan_beep,
- 		store_fan_beep, 1, 0),
- 	SENSOR_ATTR_2(fan2_alarm, S_IRUGO, show_fan_alarm, NULL, 1, 0),
- 	SENSOR_ATTR_2(fan3_input, S_IRUGO, show_fan, NULL, 2, 0),
+ 		store_fan_beep, 0, 1),
+ 	SENSOR_ATTR_2(fan2_alarm, S_IRUGO, show_fan_alarm, NULL, 0, 1),
+ 	SENSOR_ATTR_2(fan3_input, S_IRUGO, show_fan, NULL, 0, 2),
 +	SENSOR_ATTR_2(fan3_full_speed, S_IRUGO|S_IWUSR, show_fan_full_speed,=20
-+		store_fan_full_speed, 2, 0),
++		store_fan_full_speed, 0, 2),
  	SENSOR_ATTR_2(fan3_beep, S_IRUGO|S_IWUSR, show_fan_beep,
- 		store_fan_beep, 2, 0),
- 	SENSOR_ATTR_2(fan3_alarm, S_IRUGO, show_fan_alarm, NULL, 2, 0),
- 	SENSOR_ATTR_2(fan4_input, S_IRUGO, show_fan, NULL, 3, 0),
+ 		store_fan_beep, 0, 2),
+ 	SENSOR_ATTR_2(fan3_alarm, S_IRUGO, show_fan_alarm, NULL, 0, 2),
+ 	SENSOR_ATTR_2(fan4_input, S_IRUGO, show_fan, NULL, 0, 3),
 +	SENSOR_ATTR_2(fan4_full_speed, S_IRUGO|S_IWUSR, show_fan_full_speed,=20
-+		store_fan_full_speed, 3, 0),
++		store_fan_full_speed, 0, 3),
  	SENSOR_ATTR_2(fan4_beep, S_IRUGO|S_IWUSR, show_fan_beep,
- 		store_fan_beep, 3, 0),
--	SENSOR_ATTR_2(fan4_alarm, S_IRUGO, show_fan_alarm, NULL, 3, 0)
-+	SENSOR_ATTR_2(fan4_alarm, S_IRUGO, show_fan_alarm, NULL, 3, 0),
+ 		store_fan_beep, 0, 3),
+-	SENSOR_ATTR_2(fan4_alarm, S_IRUGO, show_fan_alarm, NULL, 0, 3)
++	SENSOR_ATTR_2(fan4_alarm, S_IRUGO, show_fan_alarm, NULL, 0, 3),
 +
 +	SENSOR_ATTR_2(pwm1, S_IRUGO|S_IWUSR, show_pwm, store_pwm, 0, 0),
 +	SENSOR_ATTR_2(pwm1_enable, S_IRUGO|S_IWUSR, show_pwm_enable,=20
@@ -536,139 +538,139 @@ tr,
 +		0, 0),
 +	SENSOR_ATTR_2(pwm1_auto_point2_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		0, 1),
++		1, 0),
 +	SENSOR_ATTR_2(pwm1_auto_point3_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		0, 2),
++		2, 0),
 +	SENSOR_ATTR_2(pwm1_auto_point4_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		0, 3),
++		3, 0),
 +	SENSOR_ATTR_2(pwm1_auto_point5_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		0, 4),
++		4, 0),
 +	SENSOR_ATTR_2(pwm1_auto_point1_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
 +		0, 0),
 +	SENSOR_ATTR_2(pwm1_auto_point2_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
-+		0, 1),
++		1, 0),
 +	SENSOR_ATTR_2(pwm1_auto_point3_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
-+		0, 2),
++		2, 0),
 +	SENSOR_ATTR_2(pwm1_auto_point4_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
-+		0, 3),
++		3, 0),
 +
-+	SENSOR_ATTR_2(pwm2, S_IRUGO|S_IWUSR, show_pwm, store_pwm, 1, 0),
++	SENSOR_ATTR_2(pwm2, S_IRUGO|S_IWUSR, show_pwm, store_pwm, 0, 1),
 +	SENSOR_ATTR_2(pwm2_enable, S_IRUGO|S_IWUSR, show_pwm_enable,=20
-+		store_pwm_enable, 1, 0),
++		store_pwm_enable, 0, 1),
 +	SENSOR_ATTR_2(pwm2_interpolate, S_IRUGO|S_IWUSR,=20
-+		show_pwm_interpolate, store_pwm_interpolate, 1, 0),
++		show_pwm_interpolate, store_pwm_interpolate, 0, 1),
 +	SENSOR_ATTR_2(pwm2_auto_point1_temp_hyst, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp_hyst, store_pwm_auto_point_temp_hyst,=20
-+		1, 0),
++		0, 1),
 +	SENSOR_ATTR_2(pwm2_auto_channels_temp, S_IRUGO|S_IWUSR,=20
-+		show_pwm_auto_point_channel, store_pwm_auto_point_channel, 1, 0),
++		show_pwm_auto_point_channel, store_pwm_auto_point_channel, 0, 1),
 +	SENSOR_ATTR_2(pwm2_auto_point1_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		1, 0),
++		0, 1),
 +	SENSOR_ATTR_2(pwm2_auto_point2_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
 +		1, 1),
 +	SENSOR_ATTR_2(pwm2_auto_point3_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		1, 2),
++		2, 1),
 +	SENSOR_ATTR_2(pwm2_auto_point4_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		1, 3),
++		3, 1),
 +	SENSOR_ATTR_2(pwm2_auto_point5_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		1, 4),
++		4, 1),
 +	SENSOR_ATTR_2(pwm2_auto_point1_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
-+		1, 0),
++		0, 1),
 +	SENSOR_ATTR_2(pwm2_auto_point2_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
 +		1, 1),
 +	SENSOR_ATTR_2(pwm2_auto_point3_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
-+		1, 2),
++		2, 1),
 +	SENSOR_ATTR_2(pwm2_auto_point4_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
-+		1, 3),
++		3, 1),
 +
-+	SENSOR_ATTR_2(pwm3, S_IRUGO|S_IWUSR, show_pwm, store_pwm, 2, 0),
++	SENSOR_ATTR_2(pwm3, S_IRUGO|S_IWUSR, show_pwm, store_pwm, 0, 2),
 +	SENSOR_ATTR_2(pwm3_enable, S_IRUGO|S_IWUSR, show_pwm_enable,=20
-+		store_pwm_enable, 2, 0),
++		store_pwm_enable, 0, 2),
 +	SENSOR_ATTR_2(pwm3_interpolate, S_IRUGO|S_IWUSR,=20
-+		show_pwm_interpolate, store_pwm_interpolate, 2, 0),
++		show_pwm_interpolate, store_pwm_interpolate, 0, 2),
 +	SENSOR_ATTR_2(pwm3_auto_point1_temp_hyst, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp_hyst, store_pwm_auto_point_temp_hyst,=20
-+		2, 0),
++		0, 2),
 +	SENSOR_ATTR_2(pwm3_auto_channels_temp, S_IRUGO|S_IWUSR,=20
-+		show_pwm_auto_point_channel, store_pwm_auto_point_channel, 2, 0),
++		show_pwm_auto_point_channel, store_pwm_auto_point_channel, 0, 2),
 +	SENSOR_ATTR_2(pwm3_auto_point1_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		2, 0),
++		0, 2),
 +	SENSOR_ATTR_2(pwm3_auto_point2_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		2, 1),
++		1, 2),
 +	SENSOR_ATTR_2(pwm3_auto_point3_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
 +		2, 2),
 +	SENSOR_ATTR_2(pwm3_auto_point4_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		2, 3),
++		3, 2),
 +	SENSOR_ATTR_2(pwm3_auto_point5_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		2, 4),
++		4, 2),
 +	SENSOR_ATTR_2(pwm3_auto_point1_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
-+		2, 0),
++		0, 2),
 +	SENSOR_ATTR_2(pwm3_auto_point2_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
-+		2, 1),
++		1, 2),
 +	SENSOR_ATTR_2(pwm3_auto_point3_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
 +		2, 2),
 +	SENSOR_ATTR_2(pwm3_auto_point4_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
-+		2, 3),
++		3, 2),
 +
-+	SENSOR_ATTR_2(pwm4, S_IRUGO|S_IWUSR, show_pwm, store_pwm, 3, 0),
++	SENSOR_ATTR_2(pwm4, S_IRUGO|S_IWUSR, show_pwm, store_pwm, 0, 3),
 +	SENSOR_ATTR_2(pwm4_enable, S_IRUGO|S_IWUSR, show_pwm_enable,=20
-+		store_pwm_enable, 3, 0),
++		store_pwm_enable, 0, 3),
 +	SENSOR_ATTR_2(pwm4_interpolate, S_IRUGO|S_IWUSR,=20
-+		show_pwm_interpolate, store_pwm_interpolate, 3, 0),
++		show_pwm_interpolate, store_pwm_interpolate, 0, 3),
 +	SENSOR_ATTR_2(pwm4_auto_point1_temp_hyst, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp_hyst, store_pwm_auto_point_temp_hyst,=20
-+		3, 0),
++		0, 3),
 +	SENSOR_ATTR_2(pwm4_auto_channels_temp, S_IRUGO|S_IWUSR,=20
-+		show_pwm_auto_point_channel, store_pwm_auto_point_channel, 3, 0),
++		show_pwm_auto_point_channel, store_pwm_auto_point_channel, 0, 3),
 +	SENSOR_ATTR_2(pwm4_auto_point1_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		3, 0),
++		0, 3),
 +	SENSOR_ATTR_2(pwm4_auto_point2_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		3, 1),
++		1, 3),
 +	SENSOR_ATTR_2(pwm4_auto_point3_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		3, 2),
++		2, 3),
 +	SENSOR_ATTR_2(pwm4_auto_point4_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
 +		3, 3),
 +	SENSOR_ATTR_2(pwm4_auto_point5_pwm, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,=20
-+		3, 4),
++		4, 3),
 +	SENSOR_ATTR_2(pwm4_auto_point1_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
-+		3, 0),
++		0, 3),
 +	SENSOR_ATTR_2(pwm4_auto_point2_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
-+		3, 1),
++		1, 3),
 +	SENSOR_ATTR_2(pwm4_auto_point3_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
-+		3, 2),
++		2, 3),
 +	SENSOR_ATTR_2(pwm4_auto_point4_temp, S_IRUGO|S_IWUSR,=20
 +		show_pwm_auto_point_temp, store_pwm_auto_point_temp,=20
 +		3, 3)
