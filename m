@@ -1,7 +1,7 @@
 From: Philip Edelbrock <phil_edelbrock@edgedesign.us>
-Date: Tue, 01 Jul 2008 17:05:28 +0000
+Date: Tue, 01 Jul 2008 19:11:37 +0000
 Subject: Re: [lm-sensors] Call for 2.10.7
-Message-Id: <2093A6BE-061B-47CE-AA12-C4E3EB1465EF@edgedesign.us>
+Message-Id: <1AA76BA8-1B7E-4691-BF30-E1D625807699@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080623132019.549ae84e@hyperion.delvare>
 In-Reply-To: <20080623132019.549ae84e@hyperion.delvare>
@@ -44,7 +44,14 @@ On Jul 1, 2008, at 9:47 AM, Jean Delvare wrote:
 >
 > Phil, please release as your schedule permits.
 
-Sure.
+
+
+OK, the release is done.
+
+I updated the download and home pages on the wiki, btw.  Please review  
+and adjust as needed.
+
+Thanks all!
 
 
 Phil
