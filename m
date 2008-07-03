@@ -1,109 +1,151 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Mon, 14 Jul 2008 17:30:20 +0000
-Subject: Re: [lm-sensors] [RFC] (almost) booting allyesconfig --
-Message-Id: <487B8D2C.1090208@hhs.nl>
+From: Wilken Gottwalt <wgottwalt@suse.de>
+Date: Thu, 03 Jul 2008 05:40:25 +0000
+Subject: [lm-sensors] cpuid output for C7
+Message-Id: <200807030740.25579.wgottwalt@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <for-27-patch1-0@bga.com> <48768018.2070704@hhs.nl>	<acca8e14e769b2feadee19f1f7448438@bga.com>	<20080711085246.1ead773b@hyperion.delvare>	<48770B5E.7000308@hhs.nl>	<20080711093650.4b98e3b7@hyperion.delvare>	<4879A144.8060203@hhs.nl>	<4dfa50520807131411ied883cgcb20eb6bd94f761@mail.gmail.com>	<487A7211.7030309@hhs.nl>	<4dfa50520807131426t4013142cp1fcd49e078a79c1f@mail.gmail.com>	<20080714095914.0644ac5d@hyperion.delvare> <88f5162604470179b3c6ebfe729a46f5@bga.com>
-In-Reply-To: <88f5162604470179b3c6ebfe729a46f5@bga.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Milton Miller <miltonm@bga.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Samuel Ortiz <samuel@sortiz.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linuxppc-dev@ozlabs.org
+To: lm-sensors@vger.kernel.org
 
-Milton Miller wrote:
-> On Jul 14, 2008, at 2:59 AM, Jean Delvare wrote:
->> On Sun, 13 Jul 2008 15:26:56 -0600, David Hubbard wrote:
->>> Hi Hans,
->>>
->>>>> I propose writing a subsystem driver. (Is that properly called "The
->>>>> SuperIO Bus Driver"?) If no one thinks it's a really bad idea I will
->>>>> put together some code and submit it for review, and maintain it.
->>>>>
->>>>> Some hwmon chips have odd / unique probe sequences. IMHO this is 
->>>>> where
->>>>> the design needs to be inspected. One of those is the w83627ehf, 
->>>>> which
->>>>> Jean and Hans are familiar enough with to check my work.
->>>>>
->>>>> Thoughts?
->>>> I'm afraid that making this a "bus" will be a bit overkill. Jim's 
->>>> patches
->>>> are quite simple and seem todo the job.
->>>>
->>>> Also keep in mind that most users will be platform devices which 
->>>> just want
->>>> to use the superio registers to find out the baseaddress of their 
->>>> logical
->>>> device, a whole bus seems overkill for this, would the hwmon driver 
->>>> then
->>>> need to be a superio_driver (as well as an platform_driver) or can 
->>>> the bus
->>>> be queried / used
->>>> without having to be a bustype-driver?
->>> I think that's a valid point. I am willing to keep it small, but I
->>> would prefer to follow the pattern set in other subsystems. It may be
->>> my lack of experience in designing a subsystem showing here! What are
->>> some alternative ways to implement it?
->>>
->>> In other words, Jim's patches are a good start, but maybe I am
->>> misunderstanding them. I see it as the superio-locks module, a driver
->>> that other drivers would depend on / auto-load. Is that something
->>> other subsystems also do?
->> Well, there are two approaches to the problem. The first approach
->> (which I think Jim took in his patches? I don't really remember) is to
->> simply solve the problem of concurrent I/O access to the Super-I/O
->> configuration ports (typically 0x2e/0x2f or 0x4e/0x4f). That would be a
->> simple driver requesting the ports in question and exporting an API for
->> other drivers to access them in a safe way.
->>
->> The second approach is to make it a whole subsystem, as David is
->> suggesting. The Super-I/O driver would then not only request the I/O
->> ports, it would also identify which Super-I/O is there, and it would
->> create devices (in the Linux device driver model sense of the term) for
->> every logical device we are interested in (amongst which the hwmon
->> ones.) The hwmon drivers would have to be converted from platform
->> drivers to superio drivers.
->>
->> Each approach has its advantages. The first one is rather simple and
->> also very generic in nature. It could be reused for other purposes. The
->> second one offers automatic loading of hwmon drivers, which would be
->> nice to have.
->>
->> There's probably a middle way which would keep the simplicity of the
->> first approach while still allowing for driver auto-loading, without
->> changing the bus type of all drivers. It would probably take some
->> research though.
-> 
-> I haven't done the research, but it might be keep superio as
-> a platform driver, and keep the clients as platform drivers.  Only
-> have the superio driver probe and discover the subcomponent
-> addresses and then create the platform devices as children
-> instead of having each driver create its own platform device.
-> (This all assumes they are all platform devices in sysfs, I have
-> not looked).
-> 
-> This is all because in the platform bus the bus driver does not
-> discover the addresses but relies on drivers or platform setup code.
-> 
-
-This sounds like a good plan, rather then add a new bus type add a superio 
-platform driver which does superio probing and registering of platform devices 
-for discovered logical devices.
-
-This superio platform driver then needs to also export some functions of those 
-few logical devices which need access to the superio registers for more then 
-just finding out their own base address.
-
-I guess that it then would be best to load this superio driver by default on 
-most systems.
-
-How does this all mix and match with isapnp, it feels to me we're doing 
-somewhat the same as isapnp here.
-
-Regards,
-
-Hans
+CPU:
+   vendor_id = "CentaurHauls"
+   version information (1/eax):
+      processor type  = primary processor (0)
+      family          = Intel Pentium Pro/II/III/Celeron, AMD Athlon/Duron, 
+Cyrix M2, VIA C3 (6)
+      model           = 0xa (10)
+      stepping id     = 0x9 (9)
+      extended family = 0x0 (0)
+      extended model  = 0x0 (0)
+      (simple synth)  = VIA C7 / C7-M (Esther WinChip C5J core)
+   miscellaneous (1/ebx):
+      process local APIC physical ID = 0x0 (0)
+      cpu count                      = 0x1 (1)
+      CLFLUSH line size              = 0x8 (8)
+      brand index                    = 0x0 (0)
+   brand id = 0x00 (0): unknown
+   feature information (1/edx):
+      x87 FPU on chip                        = true
+      virtual-8086 mode enhancement          = true
+      debugging extensions                   = true
+      page size extensions                   = true
+      time stamp counter                     = true
+      RDMSR and WRMSR support                = true
+      physical address extensions            = true
+      machine check exception                = true
+      CMPXCHG8B inst.                        = true
+      APIC on chip                           = true
+      SYSENTER and SYSEXIT                   = true
+      memory type range registers            = true
+      PTE global bit                         = true
+      machine check architecture             = false
+      conditional move/compare instruction   = true
+      page attribute table                   = true
+      page size extension                    = false
+      processor serial number                = false
+      CLFLUSH instruction                    = true
+      debug store                            = false
+      thermal monitor and clock ctrl         = true
+      MMX Technology                         = true
+      FXSAVE/FXRSTOR                         = true
+      SSE extensions                         = true
+      SSE2 extensions                        = true
+      self snoop                             = false
+      hyper-threading / multi-core supported = false
+      therm. monitor                         = false
+      IA64                                   = false
+      pending break event                    = true
+   feature information (1/ecx):
+      PNI/SSE3: Prescott New Instructions    = true
+      MONITOR/MWAIT                          = false
+      CPL-qualified debug store              = false
+      VMX: virtual machine extensions        = false
+      Enhanced Intel SpeedStep Technology    = true
+      thermal monitor 2                      = false
+      context ID: adaptive or shared L1 data = false
+      cmpxchg16b available                   = false
+      xTPR disable                           = false
+   extended processor signature (0x80000001/eax):
+      generation     = 0x0 (0)
+      model          = 0x0 (0)
+      stepping       = 0x0 (0)
+      (simple synth) = unknown
+   extended feature flags (0x80000001/edx):
+      x87 FPU on chip                       = false
+      virtual-8086 mode enhancement         = false
+      debugging extensions                  = false
+      page size extensions                  = false
+      time stamp counter                    = false
+      RDMSR and WRMSR support               = false
+      physical address extensions           = false
+      machine check exception               = false
+      CMPXCHG8B inst.                       = false
+      APIC on chip                          = false
+      SYSCALL and SYSRET instructions       = false
+      memory type range registers           = false
+      global paging extension               = false
+      machine check architecture            = false
+      conditional move/compare instruction  = false
+      page attribute table                  = false
+      page size extension                   = false
+      multiprocessing capable               = false
+      AMD multimedia instruction extensions = false
+      MMX Technology                        = false
+      extended MMX                          = false
+      SSE extensions                        = false
+      AA-64                                 = false
+      3DNow! instruction extensions         = false
+      3DNow! instructions                   = false
+   brand = "                   VIA Esther processor 1000MHz"
+   L1 TLB/cache information: 2M/4M pages & L1 TLB (0x80000005/eax):
+      instruction # entries     = 0x0 (0)
+      instruction associativity = 0x0 (0)
+      data # entries            = 0x0 (0)
+      data associativity        = 0x0 (0)
+   L1 TLB/cache information: 4K pages & L1 TLB (0x80000005/ebx):
+      instruction # entries     = 0x80 (128)
+      instruction associativity = 0x8 (8)
+      data # entries            = 0x80 (128)
+      data associativity        = 0x8 (8)
+   L1 data cache information (0x80000005/ecx):
+      line size (bytes) = 0x40 (64)
+      lines per tag     = 0x1 (1)
+      associativity     = 0x4 (4)
+      size (Kb)         = 0x40 (64)
+   L1 instruction cache information (0x80000005/ecx):
+      line size (bytes) = 0x40 (64)
+      lines per tag     = 0x1 (1)
+      associativity     = 0x4 (4)
+      size (Kb)         = 0x40 (64)
+   L2 TLB/cache information: 2M/4M pages & L2 TLB (0x80000006/eax):
+      instruction # entries     = 0x0 (0)
+      instruction associativity = L2 off (0)
+      data # entries            = 0x0 (0)
+      data associativity        = L2 off (0)
+   L2 TLB/cache information: 4K pages & L2 TLB (0x80000006/ebx):
+      instruction # entries     = 0x0 (0)
+      instruction associativity = L2 off (0)
+      data # entries            = 0x0 (0)
+      data associativity        = L2 off (0)
+   L2 unified cache information (0x80000006/ecx):
+      line size (bytes) = 0x40 (64)
+      lines per tag     = 0x1 (1)
+      associativity     = 0xa (10)
+      size (Kb)         = 0x80 (128)
+   0xc0000001: eax=0x00000000
+   extended feature flags (0xc0000001/edx):
+      alternate instruction set                 = false
+      alternate instruction set enabled         = false
+      random number generator                   = true
+      random number generator enabled           = true
+      LongHaul MSR 0000_110Ah                   = false
+      FEMMS                                     = false
+      advanced cryptography engine (ACE)        = true
+      advanced cryptography engine (ACE)enabled = true
+   0xc0000002: eax=0x00000000 ebx=0x08000810 ecx=0x08100a13 edx=0x42000000
+   (multi-processing synth): none
+   (synth) = VIA C7 / C7-M (Esther WinChip C5J core)
 
 _______________________________________________
 lm-sensors mailing list
