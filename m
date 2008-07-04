@@ -1,151 +1,237 @@
-From: Wilken Gottwalt <wgottwalt@suse.de>
-Date: Thu, 03 Jul 2008 05:40:25 +0000
-Subject: [lm-sensors] cpuid output for C7
-Message-Id: <200807030740.25579.wgottwalt@suse.de>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 04 Jul 2008 10:05:22 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ad7418) Convert to a new-style i2c
+Message-Id: <20080704120522.052e2d9a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-CPU:
-   vendor_id = "CentaurHauls"
-   version information (1/eax):
-      processor type  = primary processor (0)
-      family          = Intel Pentium Pro/II/III/Celeron, AMD Athlon/Duron, 
-Cyrix M2, VIA C3 (6)
-      model           = 0xa (10)
-      stepping id     = 0x9 (9)
-      extended family = 0x0 (0)
-      extended model  = 0x0 (0)
-      (simple synth)  = VIA C7 / C7-M (Esther WinChip C5J core)
-   miscellaneous (1/ebx):
-      process local APIC physical ID = 0x0 (0)
-      cpu count                      = 0x1 (1)
-      CLFLUSH line size              = 0x8 (8)
-      brand index                    = 0x0 (0)
-   brand id = 0x00 (0): unknown
-   feature information (1/edx):
-      x87 FPU on chip                        = true
-      virtual-8086 mode enhancement          = true
-      debugging extensions                   = true
-      page size extensions                   = true
-      time stamp counter                     = true
-      RDMSR and WRMSR support                = true
-      physical address extensions            = true
-      machine check exception                = true
-      CMPXCHG8B inst.                        = true
-      APIC on chip                           = true
-      SYSENTER and SYSEXIT                   = true
-      memory type range registers            = true
-      PTE global bit                         = true
-      machine check architecture             = false
-      conditional move/compare instruction   = true
-      page attribute table                   = true
-      page size extension                    = false
-      processor serial number                = false
-      CLFLUSH instruction                    = true
-      debug store                            = false
-      thermal monitor and clock ctrl         = true
-      MMX Technology                         = true
-      FXSAVE/FXRSTOR                         = true
-      SSE extensions                         = true
-      SSE2 extensions                        = true
-      self snoop                             = false
-      hyper-threading / multi-core supported = false
-      therm. monitor                         = false
-      IA64                                   = false
-      pending break event                    = true
-   feature information (1/ecx):
-      PNI/SSE3: Prescott New Instructions    = true
-      MONITOR/MWAIT                          = false
-      CPL-qualified debug store              = false
-      VMX: virtual machine extensions        = false
-      Enhanced Intel SpeedStep Technology    = true
-      thermal monitor 2                      = false
-      context ID: adaptive or shared L1 data = false
-      cmpxchg16b available                   = false
-      xTPR disable                           = false
-   extended processor signature (0x80000001/eax):
-      generation     = 0x0 (0)
-      model          = 0x0 (0)
-      stepping       = 0x0 (0)
-      (simple synth) = unknown
-   extended feature flags (0x80000001/edx):
-      x87 FPU on chip                       = false
-      virtual-8086 mode enhancement         = false
-      debugging extensions                  = false
-      page size extensions                  = false
-      time stamp counter                    = false
-      RDMSR and WRMSR support               = false
-      physical address extensions           = false
-      machine check exception               = false
-      CMPXCHG8B inst.                       = false
-      APIC on chip                          = false
-      SYSCALL and SYSRET instructions       = false
-      memory type range registers           = false
-      global paging extension               = false
-      machine check architecture            = false
-      conditional move/compare instruction  = false
-      page attribute table                  = false
-      page size extension                   = false
-      multiprocessing capable               = false
-      AMD multimedia instruction extensions = false
-      MMX Technology                        = false
-      extended MMX                          = false
-      SSE extensions                        = false
-      AA-64                                 = false
-      3DNow! instruction extensions         = false
-      3DNow! instructions                   = false
-   brand = "                   VIA Esther processor 1000MHz"
-   L1 TLB/cache information: 2M/4M pages & L1 TLB (0x80000005/eax):
-      instruction # entries     = 0x0 (0)
-      instruction associativity = 0x0 (0)
-      data # entries            = 0x0 (0)
-      data associativity        = 0x0 (0)
-   L1 TLB/cache information: 4K pages & L1 TLB (0x80000005/ebx):
-      instruction # entries     = 0x80 (128)
-      instruction associativity = 0x8 (8)
-      data # entries            = 0x80 (128)
-      data associativity        = 0x8 (8)
-   L1 data cache information (0x80000005/ecx):
-      line size (bytes) = 0x40 (64)
-      lines per tag     = 0x1 (1)
-      associativity     = 0x4 (4)
-      size (Kb)         = 0x40 (64)
-   L1 instruction cache information (0x80000005/ecx):
-      line size (bytes) = 0x40 (64)
-      lines per tag     = 0x1 (1)
-      associativity     = 0x4 (4)
-      size (Kb)         = 0x40 (64)
-   L2 TLB/cache information: 2M/4M pages & L2 TLB (0x80000006/eax):
-      instruction # entries     = 0x0 (0)
-      instruction associativity = L2 off (0)
-      data # entries            = 0x0 (0)
-      data associativity        = L2 off (0)
-   L2 TLB/cache information: 4K pages & L2 TLB (0x80000006/ebx):
-      instruction # entries     = 0x0 (0)
-      instruction associativity = L2 off (0)
-      data # entries            = 0x0 (0)
-      data associativity        = L2 off (0)
-   L2 unified cache information (0x80000006/ecx):
-      line size (bytes) = 0x40 (64)
-      lines per tag     = 0x1 (1)
-      associativity     = 0xa (10)
-      size (Kb)         = 0x80 (128)
-   0xc0000001: eax=0x00000000
-   extended feature flags (0xc0000001/edx):
-      alternate instruction set                 = false
-      alternate instruction set enabled         = false
-      random number generator                   = true
-      random number generator enabled           = true
-      LongHaul MSR 0000_110Ah                   = false
-      FEMMS                                     = false
-      advanced cryptography engine (ACE)        = true
-      advanced cryptography engine (ACE)enabled = true
-   0xc0000002: eax=0x00000000 ebx=0x08000810 ecx=0x08100a13 edx=0x42000000
-   (multi-processing synth): none
-   (synth) = VIA C7 / C7-M (Esther WinChip C5J core)
+The ad7418 driver is only used on embedded platforms where i2c
+devices can easily be declared in platform code. Thus a new-style
+i2c driver makes perfect sense. This lets us get rid of quirky
+detection code (these chips have no identification registers) and
+shrinks the binary driver size by 38%.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+---
+ drivers/hwmon/ad7418.c |  109 +++++++++++-------------------------------------
+ 1 file changed, 26 insertions(+), 83 deletions(-)
+
+--- linux-2.6.26-rc8.orig/drivers/hwmon/ad7418.c	2008-07-04 11:30:12.000000000 +0200
++++ linux-2.6.26-rc8/drivers/hwmon/ad7418.c	2008-07-04 11:51:39.000000000 +0200
+@@ -23,12 +23,9 @@
+ 
+ #include "lm75.h"
+ 
+-#define DRV_VERSION "0.3"
++#define DRV_VERSION "0.4"
+ 
+-/* Addresses to scan */
+-static const unsigned short normal_i2c[] = { 0x28, I2C_CLIENT_END };
+-/* Insmod parameters */
+-I2C_CLIENT_INSMOD_3(ad7416, ad7417, ad7418);
++enum chips { ad7416, ad7417, ad7418 };
+ 
+ /* AD7418 registers */
+ #define AD7418_REG_TEMP_IN	0x00
+@@ -46,7 +43,6 @@ static const u8 AD7418_REG_TEMP[] = { AD
+ 					AD7418_REG_TEMP_OS };
+ 
+ struct ad7418_data {
+-	struct i2c_client	client;
+ 	struct device		*hwmon_dev;
+ 	struct attribute_group	attrs;
+ 	enum chips		type;
+@@ -58,16 +54,25 @@ struct ad7418_data {
+ 	u16			in[4];
+ };
+ 
+-static int ad7418_attach_adapter(struct i2c_adapter *adapter);
+-static int ad7418_detect(struct i2c_adapter *adapter, int address, int kind);
+-static int ad7418_detach_client(struct i2c_client *client);
++static int ad7418_probe(struct i2c_client *client,
++			const struct i2c_device_id *id);
++static int ad7418_remove(struct i2c_client *client);
++
++static struct i2c_device_id ad7418_id[] = {
++	{ "ad7416", ad7416 },
++	{ "ad7417", ad7417 },
++	{ "ad7418", ad7418 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, ad7418_id);
+ 
+ static struct i2c_driver ad7418_driver = {
+ 	.driver = {
+ 		.name	= "ad7418",
+ 	},
+-	.attach_adapter	= ad7418_attach_adapter,
+-	.detach_client	= ad7418_detach_client,
++	.probe		= ad7418_probe,
++	.remove		= ad7418_remove,
++	.id_table	= ad7418_id,
+ };
+ 
+ /* All registers are word-sized, except for the configuration registers.
+@@ -192,13 +197,6 @@ static SENSOR_DEVICE_ATTR(in2_input, S_I
+ static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_adc, NULL, 2);
+ static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, show_adc, NULL, 3);
+ 
+-static int ad7418_attach_adapter(struct i2c_adapter *adapter)
+-{
+-	if (!(adapter->class & I2C_CLASS_HWMON))
+-		return 0;
+-	return i2c_probe(adapter, &addr_data, ad7418_detect);
+-}
+-
+ static struct attribute *ad7416_attributes[] = {
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
+@@ -225,98 +223,46 @@ static struct attribute *ad7418_attribut
+ 	NULL
+ };
+ 
+-static int ad7418_detect(struct i2c_adapter *adapter, int address, int kind)
++static int ad7418_probe(struct i2c_client *client,
++			 const struct i2c_device_id *id)
+ {
+-	struct i2c_client *client;
++	struct i2c_adapter *adapter = client->adapter;
+ 	struct ad7418_data *data;
+-	int err = 0;
++	int err;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+-					I2C_FUNC_SMBUS_WORD_DATA))
++					I2C_FUNC_SMBUS_WORD_DATA)) {
++		err = -EOPNOTSUPP;
+ 		goto exit;
++	}
+ 
+ 	if (!(data = kzalloc(sizeof(struct ad7418_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+ 
+-	client = &data->client;
+-	client->addr = address;
+-	client->adapter = adapter;
+-	client->driver = &ad7418_driver;
+-
+ 	i2c_set_clientdata(client, data);
+ 
+ 	mutex_init(&data->lock);
+-
+-	/* AD7418 has a curious behaviour on registers 6 and 7. They
+-	 * both always read 0xC071 and are not documented on the datasheet.
+-	 * We use them to detect the chip.
+-	 */
+-	if (kind <= 0) {
+-		int reg, reg6, reg7;
+-
+-		/* the AD7416 lies within this address range, but I have
+-		 * no means to check.
+-		 */
+-		if (address >= 0x48 && address <= 0x4f) {
+-			/* XXX add tests for AD7416 here */
+-			/* data->type = ad7416; */
+-		}
+-		/* here we might have AD7417 or AD7418 */
+-		else if (address >= 0x28 && address <= 0x2f) {
+-			reg6 = i2c_smbus_read_word_data(client, 0x06);
+-			reg7 = i2c_smbus_read_word_data(client, 0x07);
+-
+-			if (address = 0x28 && reg6 = 0xC071 && reg7 = 0xC071)
+-				data->type = ad7418;
+-
+-			/* XXX add tests for AD7417 here */
+-
+-
+-			/* both AD7417 and AD7418 have bits 0-5 of
+-			 * the CONF2 register at 0
+-			 */
+-			reg = i2c_smbus_read_byte_data(client,
+-							AD7418_REG_CONF2);
+-			if (reg & 0x3F)
+-				data->type = any_chip; /* detection failed */
+-		}
+-	} else {
+-		dev_dbg(&adapter->dev, "detection forced\n");
+-	}
+-
+-	if (kind > 0)
+-		data->type = kind;
+-	else if (kind < 0 && data->type = any_chip) {
+-		err = -ENODEV;
+-		goto exit_free;
+-	}
++	data->type = id->driver_data;
+ 
+ 	switch (data->type) {
+-	case any_chip:
+ 	case ad7416:
+ 		data->adc_max = 0;
+ 		data->attrs.attrs = ad7416_attributes;
+-		strlcpy(client->name, "ad7416", I2C_NAME_SIZE);
+ 		break;
+ 
+ 	case ad7417:
+ 		data->adc_max = 4;
+ 		data->attrs.attrs = ad7417_attributes;
+-		strlcpy(client->name, "ad7417", I2C_NAME_SIZE);
+ 		break;
+ 
+ 	case ad7418:
+ 		data->adc_max = 1;
+ 		data->attrs.attrs = ad7418_attributes;
+-		strlcpy(client->name, "ad7418", I2C_NAME_SIZE);
+ 		break;
+ 	}
+ 
+-	if ((err = i2c_attach_client(client)))
+-		goto exit_free;
+-
+ 	dev_info(&client->dev, "%s chip found\n", client->name);
+ 
+ 	/* Initialize the AD7418 chip */
+@@ -324,7 +270,7 @@ static int ad7418_detect(struct i2c_adap
+ 
+ 	/* Register sysfs hooks */
+ 	if ((err = sysfs_create_group(&client->dev.kobj, &data->attrs)))
+-		goto exit_detach;
++		goto exit_free;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -336,20 +282,17 @@ static int ad7418_detect(struct i2c_adap
+ 
+ exit_remove:
+ 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
+-exit_detach:
+-	i2c_detach_client(client);
+ exit_free:
+ 	kfree(data);
+ exit:
+ 	return err;
+ }
+ 
+-static int ad7418_detach_client(struct i2c_client *client)
++static int ad7418_remove(struct i2c_client *client)
+ {
+ 	struct ad7418_data *data = i2c_get_clientdata(client);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
+-	i2c_detach_client(client);
+ 	kfree(data);
+ 	return 0;
+ }
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
