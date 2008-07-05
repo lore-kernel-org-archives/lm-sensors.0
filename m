@@ -1,266 +1,54 @@
-From: Agile Aspect <agile.aspect@gmail.com>
-Date: Fri, 25 Jul 2008 19:51:40 +0000
-Subject: Re: [lm-sensors] temperature monitor
-Message-Id: <488A2ECC.5060202@GMail.COM>
+From: Bruno =?UTF-8?B?UHLDqW1vbnQ=?= <bonbons@linux-vserver.org>
+Date: Sat, 05 Jul 2008 12:40:03 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: it87 support for 16-bit fan reading
+Message-Id: <20080705144003.3bfa8421@neptune.home>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <487CCD71.8000909@GMail.COM>
-In-Reply-To: <487CCD71.8000909@GMail.COM>
+References: <76366b180802102232o60442894gfca038eb4b6f181d@mail.gmail.com>
+In-Reply-To: <76366b180802102232o60442894gfca038eb4b6f181d@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Hi Frank - enclosed is the /proc/cpuinfo file.
-
-Typically where 'coretemp' is displayed the output
-of 'sensor-detect' displayed  'to-be-written'.
-
--- Ken
-
-
-Frank Phillips wrote:
->> Here's the summary of the sensors that 'sensor-detect' detected:
->>
->>   Detects correctly:
->>  * Chip `Intel AMB FB-DIMM thermal sensor' (confidence: 9)
->>
->> However,  it indicated
->>
->>   Intel AMB FB-DIMM thermal sensor...                         Success!
->>   (driver `to-be-written')
->>
->> Does this imply I'm out of luck?
->>
->> -- Ken
->>     
->
-> The driver i5k_amb was added to kernel 2.6.24. Looks like no one has
-> sent a patch for lm_sensors to use it.
->
-> Did it not detect coretemp? Rudolf, is this processor not covered by
-> your Penryn patch? Ken, please send your /proc/cpuinfo output.
->
+On Tue, 24 June 2008 "Andrew Paprocki" <andrew@ishiboo.com> wrote:
+> I've reworked the code to just add a revision field as you noted and
+> to only contain the 16-bit tach change. Please review and let me know
+> what you think re: force enabling the fans via a module parameter
+> bitmask or something similar.
+> 
 > Thanks,
-> Frank
->
->   
-processor       : 0
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 7
-model name      : Intel(R) Xeon(R) CPU           X5460  @ 3.16GHz
-stepping        : 6
-cpu MHz         : 3158.792
-cache size      : 6144 KB
-physical id     : 0
-siblings        : 4
-core id         : 0
-cpu cores       : 4
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 10
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
-mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm syscall 
-nx lm pni monitor ds_cpl est tm2 cx16 xtpr
-bogomips        : 6321.75
-clflush size    : 64
-cache_alignment : 64
-address sizes   : 38 bits physical, 48 bits virtual
-power management:
+> -Andrew  
 
-processor       : 1
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 7
-model name      : Intel(R) Xeon(R) CPU           X5460  @ 3.16GHz
-stepping        : 6
-cpu MHz         : 3158.792
-cache size      : 6144 KB
-physical id     : 1
-siblings        : 4
-core id         : 4
-cpu cores       : 4
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 10
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
-mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm syscall 
-nx lm pni monitor ds_cpl est tm2 cx16 xtpr
-bogomips        : 6317.59
-clflush size    : 64
-cache_alignment : 64
-address sizes   : 38 bits physical, 48 bits virtual
-power management:
+I've run if for about 20 minutes on my system (Kino 690S1, IT8712F-S)
+and FAN speed readings look fine (around 3200 RPM (with PWM control) for
+CPU fan and 1500 for Artic Cooling self-regulated FAN)
+The divisor files don't show up in sysfs anymore (as expected).
 
-processor       : 2
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 7
-model name      : Intel(R) Xeon(R) CPU           X5460  @ 3.16GHz
-stepping        : 6
-cpu MHz         : 3158.792
-cache size      : 6144 KB
-physical id     : 0
-siblings        : 4
-core id         : 2
-cpu cores       : 4
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 10
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
-mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm syscall 
-nx lm pni monitor ds_cpl est tm2 cx16 xtpr
-bogomips        : 6317.56
-clflush size    : 64
-cache_alignment : 64
-address sizes   : 38 bits physical, 48 bits virtual
-power management:
+Andrew, do you have the links to docs for pre-8 revisions at
+hand? The link on ITE homepage for datasheet revision 0.8.2 returns a
+404 error...
+I would like to check if there is any change regarding voltage
+inputs as for change to FAN tacho register width. The voltage readings
+reported by the driver look pretty improbable!
 
-processor       : 3
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 7
-model name      : Intel(R) Xeon(R) CPU           X5460  @ 3.16GHz
-stepping        : 6
-cpu MHz         : 3158.792
-cache size      : 6144 KB
-physical id     : 1
-siblings        : 4
-core id         : 6
-cpu cores       : 4
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 10
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
-mca cmov
-pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm syscall nx lm pni 
-monitor
-ds_cpl est tm2 cx16 xtpr
-bogomips        : 6317.60
-clflush size    : 64
-cache_alignment : 64
-address sizes   : 38 bits physical, 48 bits virtual
-power management:
+it8712-isa-0e80
+Adapter: ISA adapter
+VCore 1:     +1.17 V  (min =  +0.00 V, max =  +4.08 V)
+VCore 2:     +0.82 V  (min =  +0.00 V, max =  +4.08 V)
++3.3V:       +3.01 V  (min =  +0.00 V, max =  +4.08 V)
++5V:         +4.92 V  (min =  +0.00 V, max =  +6.85 V)
++12V:        +4.99 V  (min =  +0.00 V, max = +16.32 V)
+-12V:       -13.86 V  (min = -27.36 V, max =  +3.93 V)
+-5V:         -3.11 V  (min = -13.64 V, max =  +4.03 V)
+Stdby:       +4.95 V  (min =  +0.00 V, max =  +6.85 V)
+VBat:        +3.26 V
+fan1:       3183 RPM  (min =    0 RPM, div = 8)
+fan2:       1520 RPM  (min =    0 RPM, div = 8)
+CPU Temp:    +20.0°C  (low  =  -1.0°C, high = +127.0°C)  sensor = thermal diode
+M/B Temp:    +48.0°C  (low  =  -1.0°C, high = +127.0°C)  sensor = thermal diode
+cpu0_vid:   +1.550 V
 
-processor       : 4
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 7
-model name      : Intel(R) Xeon(R) CPU           X5460  @ 3.16GHz
-stepping        : 6
-cpu MHz         : 3158.792
-cache size      : 6144 KB
-physical id     : 0
-siblings        : 4
-core id         : 1
-cpu cores       : 4
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 10
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
-mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm syscall 
-nx lm pni monitor ds_cpl est tm2 cx16 xtpr
-bogomips        : 6317.52
-clflush size    : 64
-cache_alignment : 64
-address sizes   : 38 bits physical, 48 bits virtual
-power management:
-
-processor       : 5
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 7
-model name      : Intel(R) Xeon(R) CPU           X5460  @ 3.16GHz
-stepping        : 6
-cpu MHz         : 3158.792
-cache size      : 6144 KB
-physical id     : 1
-siblings        : 4
-core id         : 5
-cpu cores       : 4
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 10
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
-mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm syscall 
-nx lm pni monitor ds_cpl est tm2 cx16 xtpr
-bogomips        : 6317.60
-clflush size    : 64
-cache_alignment : 64
-address sizes   : 38 bits physical, 48 bits virtual
-power management:
-
-processor       : 6
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 7
-model name      : Intel(R) Xeon(R) CPU           X5460  @ 3.16GHz
-stepping        : 6
-cpu MHz         : 3158.792
-cache size      : 6144 KB
-physical id     : 0
-siblings        : 4
-core id         : 3
-cpu cores       : 4
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 10
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
-mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm syscall 
-nx lm pni monitor ds_cpl est tm2 cx16 xtpr
-bogomips        : 6317.57
-clflush size    : 64
-cache_alignment : 64
-address sizes   : 38 bits physical, 48 bits virtual
-power management:
-
-processor       : 7
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 7
-model name      : Intel(R) Xeon(R) CPU           X5460  @ 3.16GHz
-stepping        : 6
-cpu MHz         : 3158.792
-cache size      : 6144 KB
-physical id     : 1
-siblings        : 4
-core id         : 7
-cpu cores       : 4
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 10
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
-mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm syscall 
-nx lm pni monitor ds_cpl est tm2 cx16 xtpr
-bogomips        : 6317.60
-clflush size    : 64
-cache_alignment : 64
-address sizes   : 38 bits physical, 48 bits virtual
-power management:
-
-
-
-
-
--- 
-Article. VI. Clause 3 of the constitution of the United States states: 
-
-"The Senators and Representatives before mentioned, and the Members of 
-the several State Legislatures, and all executive and judicial Officers, 
-both of the United States and of the several States, shall be bound by 
-Oath or Affirmation, to support this Constitution; but no religious Test 
-shall ever be required as a Qualification to any Office or public Trust 
-under the United States." 
-
-
+Bruno
 
 _______________________________________________
 lm-sensors mailing list
