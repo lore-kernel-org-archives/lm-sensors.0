@@ -1,164 +1,89 @@
-From: "Andrew Paprocki" <andrew@ishiboo.com>
-Date: Mon, 07 Jul 2008 00:57:12 +0000
-Subject: [lm-sensors] [PATCH] hwmon: it87 support for 16-bit fan reading in
-Message-Id: <76366b180807061757j3df57295if6bc9f031b80f3a1@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_24303_27996302.1215392232455"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 07 Jul 2008 07:14:04 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: it87 support for 16-bit fan reading
+Message-Id: <20080707091404.2d5309d2@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <76366b180802102232o60442894gfca038eb4b6f181d@mail.gmail.com>
 In-Reply-To: <76366b180802102232o60442894gfca038eb4b6f181d@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_24303_27996302.1215392232455
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Andrew,
 
-The it8712 chip supports 16-bit fan tachometers in revisions >= 0x07.
-Revisions >= 0x08 dropped support for 8-bit fan divisor registers. The
-patch enables 16-bit fan readings on all revisions >= 0x07 just like
-the it8716 and it8718 chips.
+On Sun, 6 Jul 2008 20:52:40 -0400, Andrew Paprocki wrote:
+> On Sun, Jul 6, 2008 at 7:16 AM, Jean Delvare <khali@linux-fr.org> wrote:
+> 
+> > can't test. Someone with such a chip (you?) could attempt to reset it
+> > (write 1 to bit 7 of register 00h) and check what the default value
+> > of register 0Bh actually is.
+> 
+> I tested this, and the value is in fact 09h. I did this as the first
+> thing in it87_init_device():
+> 
+> it87_write_value(data, 0x00, 1<<7);
+> tmp = it87_read_value(data, IT87_REG_FAN_DIV);
+> 
+> As you said, it doesn't really matter, because the chips that support
+> 16-bit will use it now.
+> 
+> > So maybe we should simply always enable all of fan1, fan2 and fan3,
+> > regardless of what the BIOS did. That's a one-line change as far as I
+> > can see, fairly simple.
+> 
+> I'm in favor of that. It can't do any harm, really, as everyone
+> controls what inputs/temps/fans are ignored via sensors.conf anyway.
 
-Signed-off-by: Andrew Paprocki <andrew@ishiboo.com>
----
- Documentation/hwmon/it87 |    9 +++++----
- drivers/hwmon/it87.c     |   32 ++++++++++++++++++++++----------
- 2 files changed, 27 insertions(+), 14 deletions(-)
+My hope was to make the configuration a bit easier by not presenting to
+the users fan inputs which were not used on their systems. But this
+only works if the BIOS plays the game, and experience has shown that it
+does not always do.
 
-------=_Part_24303_27996302.1215392232455
-Content-Type: text/plain;
-	name=0001-hwmon-it87-support-for-16-bit-fan-reading-in-it8712-rev-0x07.txt
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ficd2a7n0
-Content-Disposition: attachment;
-	filename=0001-hwmon-it87-support-for-16-bit-fan-reading-in-it8712-rev-0x07.txt
+> Should I submit a separate patch for that?
 
-RnJvbSA5OGNlOGRhMDQxNGRhYmFiN2ZlNzY1N2NjMTg5MGJmMTJkYjgwYzI0IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbmRyZXcgUGFwcm9ja2kgPGFuZHJld0Bpc2hpYm9vLmNvbT4K
-RGF0ZTogU3VuLCA2IEp1bCAyMDA4IDE5OjQxOjE3IC0wNDAwClN1YmplY3Q6IFtQQVRDSF0gaHdt
-b246IGl0ODcgc3VwcG9ydCBmb3IgMTYtYml0IGZhbiByZWFkaW5nIGluIGl0ODcxMiA+PSByZXYg
-MHgwNwoKVGhlIGl0ODcxMiBjaGlwIHN1cHBvcnRzIDE2LWJpdCBmYW4gdGFjaG9tZXRlcnMgaW4g
-cmV2aXNpb25zID49IDB4MDcuClJldmlzaW9ucyA+PSAweDA4IGRyb3BwZWQgc3VwcG9ydCBmb3Ig
-OC1iaXQgZmFuIGRpdmlzb3IgcmVnaXN0ZXJzLiBUaGUKcGF0Y2ggZW5hYmxlcyAxNi1iaXQgZmFu
-IHJlYWRpbmdzIG9uIGFsbCByZXZpc2lvbnMgPj0gMHgwNyBqdXN0IGxpa2UKdGhlIGl0ODcxNiBh
-bmQgaXQ4NzE4IGNoaXBzLgoKU2lnbmVkLW9mZi1ieTogQW5kcmV3IFBhcHJvY2tpIDxhbmRyZXdA
-aXNoaWJvby5jb20+Ci0tLQogRG9jdW1lbnRhdGlvbi9od21vbi9pdDg3IHwgICAgOSArKysrKy0t
-LS0KIGRyaXZlcnMvaHdtb24vaXQ4Ny5jICAgICB8ICAgMzIgKysrKysrKysrKysrKysrKysrKysr
-Ky0tLS0tLS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgMjcgaW5zZXJ0aW9ucygrKSwgMTQgZGVsZXRp
-b25zKC0pCgpkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9od21vbi9pdDg3IGIvRG9jdW1lbnRh
-dGlvbi9od21vbi9pdDg3CmluZGV4IGY0Y2UxZmQuLmQ5MzE1MjUgMTAwNjQ0Ci0tLSBhL0RvY3Vt
-ZW50YXRpb24vaHdtb24vaXQ4NworKysgYi9Eb2N1bWVudGF0aW9uL2h3bW9uL2l0ODcKQEAgLTEx
-LDcgKzExLDkgQEAgU3VwcG9ydGVkIGNoaXBzOgogICAgIFByZWZpeDogJ2l0ODcxMicKICAgICBB
-ZGRyZXNzZXMgc2Nhbm5lZDogZnJvbSBTdXBlciBJL08gY29uZmlnIHNwYWNlICg4IEkvTyBwb3J0
-cykKICAgICBEYXRhc2hlZXQ6IFB1YmxpY2x5IGF2YWlsYWJsZSBhdCB0aGUgSVRFIHdlYnNpdGUK
-LSAgICAgICAgICAgICAgIGh0dHA6Ly93d3cuaXRlLmNvbS50dy8KKyAgICAgICAgICAgICAgIGh0
-dHA6Ly93d3cuaXRlLmNvbS50dy9wcm9kdWN0X2luZm8vZmlsZS9wYy9JVDg3MTJGX1YwLjkuMS5w
-ZGYKKyAgICAgICAgICAgICAgIGh0dHA6Ly93d3cuaXRlLmNvbS50dy9wcm9kdWN0X2luZm8vZmls
-ZS9wYy9FcnJhdGElMjBWMC4xJTIwZm9yJTIwSVQ4NzEyRiUyMFYwLjkuMS5wZGYKKyAgICAgICAg
-ICAgICAgIGh0dHA6Ly93d3cuaXRlLmNvbS50dy9wcm9kdWN0X2luZm8vZmlsZS9wYy9JVDg3MTJG
-X1YwLjkuMy5wZGYKICAgKiBJVDg3MTZGL0lUODcyNkYKICAgICBQcmVmaXg6ICdpdDg3MTYnCiAg
-ICAgQWRkcmVzc2VzIHNjYW5uZWQ6IGZyb20gU3VwZXIgSS9PIGNvbmZpZyBzcGFjZSAoOCBJL08g
-cG9ydHMpCkBAIC05MCwxNCArOTIsMTMgQEAgdXBwZXIgVklEIGJpdHMgc2hhcmUgdGhlaXIgcGlu
-cyB3aXRoIHZvbHRhZ2UgaW5wdXRzIChpbjUgYW5kIGluNikgc28geW91CiBjYW4ndCBoYXZlIGJv
-dGggb24gYSBnaXZlbiBib2FyZC4KIAogVGhlIElUODcxNkYsIElUODcxOEYgYW5kIGxhdGVyIElU
-ODcxMkYgcmV2aXNpb25zIGhhdmUgc3VwcG9ydCBmb3IKLTIgYWRkaXRpb25hbCBmYW5zLiBUaGV5
-IGFyZSBzdXBwb3J0ZWQgYnkgdGhlIGRyaXZlciBmb3IgdGhlIElUODcxNkYgYW5kCi1JVDg3MThG
-IGJ1dCBub3QgZm9yIHRoZSBJVDg3MTJGCisyIGFkZGl0aW9uYWwgZmFucy4gVGhlIGFkZGl0aW9u
-YWwgZmFucyBhcmUgc3VwcG9ydGVkIGJ5IHRoZSBkcml2ZXIuCiAKIFRoZSBJVDg3MTZGIGFuZCBJ
-VDg3MThGLCBhbmQgbGF0ZSBJVDg3MTJGIGFuZCBJVDg3MDVGIGFsc28gaGF2ZSBvcHRpb25hbAog
-MTYtYml0IHRhY2hvbWV0ZXIgY291bnRlcnMgZm9yIGZhbnMgMSB0byAzLiBUaGlzIGlzIGJldHRl
-ciAobm8gbW9yZSBmYW4KIGNsb2NrIGRpdmlkZXIgbWVzcykgYnV0IG5vdCBjb21wYXRpYmxlIHdp
-dGggdGhlIG9sZGVyIGNoaXBzIGFuZAogcmV2aXNpb25zLiBGb3Igbm93LCB0aGUgZHJpdmVyIG9u
-bHkgdXNlcyB0aGUgMTYtYml0IG1vZGUgb24gdGhlCi1JVDg3MTZGIGFuZCBJVDg3MThGLgorbGF0
-ZSBJVDg3MTJGLCBJVDg3MTZGIGFuZCBJVDg3MThGLgogCiBUaGUgSVQ4NzI2RiBpcyBqdXN0IGJp
-dCBlbmhhbmNlZCBJVDg3MTZGIHdpdGggYWRkaXRpb25hbCBoYXJkd2FyZQogZm9yIEFNRCBwb3dl
-ciBzZXF1ZW5jaW5nLiBUaGVyZWZvcmUgdGhlIGNoaXAgd2lsbCBhcHBlYXIgYXMgSVQ4NzE2Rgpk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9od21vbi9pdDg3LmMgYi9kcml2ZXJzL2h3bW9uL2l0ODcuYwpp
-bmRleCBlMTJjMTMyLi4yYTM2NTY4IDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL2l0ODcuYwor
-KysgYi9kcml2ZXJzL2h3bW9uL2l0ODcuYwpAQCAtMTUxLDkgKzE1MSw5IEBAIHN0YXRpYyBpbnQg
-Zml4X3B3bV9wb2xhcml0eTsKIC8qIFRoZSBJVDg3MThGIGhhcyB0aGUgVklEIHZhbHVlIGluIGEg
-ZGlmZmVyZW50IHJlZ2lzdGVyLCBpbiBTdXBlci1JL08KICAgIGNvbmZpZ3VyYXRpb24gc3BhY2Uu
-ICovCiAjZGVmaW5lIElUODdfUkVHX1ZJRCAgICAgICAgICAgMHgwYQotLyogV2FybmluZzogcmVn
-aXN0ZXIgMHgwYiBpcyB1c2VkIGZvciBzb21ldGhpbmcgY29tcGxldGVseSBkaWZmZXJlbnQgaW4K
-LSAgIG5ldyBjaGlwcy9yZXZpc2lvbnMuIEkgc3VzcGVjdCBvbmx5IDE2LWJpdCB0YWNob21ldGVy
-IG1vZGUgd2lsbCB3b3JrCi0gICBmb3IgdGhlc2UuICovCisvKiBUaGUgSVQ4NzA1RiBhbmQgSVQ4
-NzEyRiBlYXJsaWVyIHRoYW4gcmV2aXNpb24gMHgwOCB1c2UgcmVnaXN0ZXIgMHgwYgorICAgZm9y
-IGZhbiBkaXZpc29ycy4gTGF0ZXIgSVQ4NzEyRiByZXZpc2lvbnMgbXVzdCB1c2UgMTYtYml0IHRh
-Y2hvbWV0ZXIKKyAgIG1vZGUuICovCiAjZGVmaW5lIElUODdfUkVHX0ZBTl9ESVYgICAgICAgMHgw
-YgogI2RlZmluZSBJVDg3X1JFR19GQU5fMTZCSVQgICAgIDB4MGMKIApAQCAtMjM0LDYgKzIzNCw3
-IEBAIHN0YXRpYyBjb25zdCB1bnNpZ25lZCBpbnQgcHdtX2ZyZXFbOF0gPSB7CiBzdHJ1Y3QgaXQ4
-N19zaW9fZGF0YSB7CiAJZW51bSBjaGlwcyB0eXBlOwogCS8qIFZhbHVlcyByZWFkIGZyb20gU3Vw
-ZXItSS9PIGNvbmZpZyBzcGFjZSAqLworCXU4IHJldmlzaW9uOwogCXU4IHZpZF92YWx1ZTsKIH07
-CiAKQEAgLTI0Miw2ICsyNDMsNyBAQCBzdHJ1Y3QgaXQ4N19zaW9fZGF0YSB7CiBzdHJ1Y3QgaXQ4
-N19kYXRhIHsKIAlzdHJ1Y3QgZGV2aWNlICpod21vbl9kZXY7CiAJZW51bSBjaGlwcyB0eXBlOwor
-CXU4IHJldmlzaW9uOwogCiAJdW5zaWduZWQgc2hvcnQgYWRkcjsKIAljb25zdCBjaGFyICpuYW1l
-OwpAQCAtMjY4LDYgKzI3MCwxNCBAQCBzdHJ1Y3QgaXQ4N19kYXRhIHsKIAl1OCBtYW51YWxfcHdt
-X2N0bFszXTsgICAvKiBtYW51YWwgUFdNIHZhbHVlIHNldCBieSB1c2VyICovCiB9OwogCitzdGF0
-aWMgaW5saW5lIGludCBoYXNfMTZiaXRfZmFucyhjb25zdCBzdHJ1Y3QgaXQ4N19kYXRhICpkYXRh
-KQoreworCS8qIElUODcxMkYgRGF0YXNoZWV0IDAuOS4xLCBzZWN0aW9uIDguMy41IGluZGljYXRl
-cyA3aCA9PSBWZXJzaW9uIEkuCisJICAgVGhpcyBpcyB0aGUgZmlyc3QgcmV2aXNpb24gd2l0aCAx
-NmJpdCB0YWNob21ldGVyIHN1cHBvcnQuICovCisJcmV0dXJuIChkYXRhLT50eXBlID09IGl0ODcx
-MiAmJiBkYXRhLT5yZXZpc2lvbiA+PSAweDA3KQorCSAgICB8fCBkYXRhLT50eXBlID09IGl0ODcx
-NgorCSAgICB8fCBkYXRhLT50eXBlID09IGl0ODcxODsKK30KIAogc3RhdGljIGludCBpdDg3X3By
-b2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpOwogc3RhdGljIGludCBfX2RldmV4aXQg
-aXQ4N19yZW1vdmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldik7CkBAIC05OTEsOCArMTAw
-MSw5IEBAIHN0YXRpYyBpbnQgX19pbml0IGl0ODdfZmluZCh1bnNpZ25lZCBzaG9ydCAqYWRkcmVz
-cywKIAl9CiAKIAllcnIgPSAwOworCXNpb19kYXRhLT5yZXZpc2lvbiA9IHN1cGVyaW9faW5iKERF
-VlJFVikgJiAweDBmOwogCXByX2luZm8oIml0ODc6IEZvdW5kIElUJTA0eEYgY2hpcCBhdCAweCV4
-LCByZXZpc2lvbiAlZFxuIiwKLQkJY2hpcF90eXBlLCAqYWRkcmVzcywgc3VwZXJpb19pbmIoREVW
-UkVWKSAmIDB4MGYpOworCQljaGlwX3R5cGUsICphZGRyZXNzLCBzaW9fZGF0YS0+cmV2aXNpb24p
-OwogCiAJLyogUmVhZCBHUElPIGNvbmZpZyBhbmQgVklEIHZhbHVlIGZyb20gTEROIDcgKEdQSU8p
-ICovCiAJaWYgKGNoaXBfdHlwZSAhPSBJVDg3MDVGX0RFVklEKSB7CkBAIC0xMDQ1LDYgKzEwNTYs
-NyBAQCBzdGF0aWMgaW50IF9fZGV2aW5pdCBpdDg3X3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZp
-Y2UgKnBkZXYpCiAKIAlkYXRhLT5hZGRyID0gcmVzLT5zdGFydDsKIAlkYXRhLT50eXBlID0gc2lv
-X2RhdGEtPnR5cGU7CisJZGF0YS0+cmV2aXNpb24gPSBzaW9fZGF0YS0+cmV2aXNpb247CiAJZGF0
-YS0+bmFtZSA9IG5hbWVzW3Npb19kYXRhLT50eXBlXTsKIAogCS8qIE5vdywgd2UgZG8gdGhlIHJl
-bWFpbmluZyBkZXRlY3Rpb24uICovCkBAIC0xMDY5LDcgKzEwODEsNyBAQCBzdGF0aWMgaW50IF9f
-ZGV2aW5pdCBpdDg3X3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJCWdvdG8g
-RVJST1IyOwogCiAJLyogRG8gbm90IGNyZWF0ZSBmYW4gZmlsZXMgZm9yIGRpc2FibGVkIGZhbnMg
-Ki8KLQlpZiAoZGF0YS0+dHlwZSA9PSBpdDg3MTYgfHwgZGF0YS0+dHlwZSA9PSBpdDg3MTgpIHsK
-KwlpZiAoaGFzXzE2Yml0X2ZhbnMoZGF0YSkpIHsKIAkJLyogMTYtYml0IHRhY2hvbWV0ZXJzICov
-CiAJCWlmIChkYXRhLT5oYXNfZmFuICYgKDEgPDwgMCkpIHsKIAkJCWlmICgoZXJyID0gZGV2aWNl
-X2NyZWF0ZV9maWxlKGRldiwKQEAgLTEzNTAsNyArMTM2Miw3IEBAIHN0YXRpYyB2b2lkIF9fZGV2
-aW5pdCBpdDg3X2luaXRfZGV2aWNlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJZGF0
-YS0+aGFzX2ZhbiA9IChkYXRhLT5mYW5fbWFpbl9jdHJsID4+IDQpICYgMHgwNzsKIAogCS8qIFNl
-dCB0YWNob21ldGVycyB0byAxNi1iaXQgbW9kZSBpZiBuZWVkZWQgKi8KLQlpZiAoZGF0YS0+dHlw
-ZSA9PSBpdDg3MTYgfHwgZGF0YS0+dHlwZSA9PSBpdDg3MTgpIHsKKwlpZiAoaGFzXzE2Yml0X2Zh
-bnMoZGF0YSkpIHsKIAkJdG1wID0gaXQ4N19yZWFkX3ZhbHVlKGRhdGEsIElUODdfUkVHX0ZBTl8x
-NkJJVCk7CiAJCWlmICh+dG1wICYgMHgwNyAmIGRhdGEtPmhhc19mYW4pIHsKIAkJCWRldl9kYmco
-JnBkZXYtPmRldiwKQEAgLTE0MjYsNyArMTQzOCw3IEBAIHN0YXRpYyBzdHJ1Y3QgaXQ4N19kYXRh
-ICppdDg3X3VwZGF0ZV9kZXZpY2Uoc3RydWN0IGRldmljZSAqZGV2KQogCQkJZGF0YS0+ZmFuW2ld
-ID0gaXQ4N19yZWFkX3ZhbHVlKGRhdGEsCiAJCQkJICAgICAgIElUODdfUkVHX0ZBTltpXSk7CiAJ
-CQkvKiBBZGQgaGlnaCBieXRlIGlmIGluIDE2LWJpdCBtb2RlICovCi0JCQlpZiAoZGF0YS0+dHlw
-ZSA9PSBpdDg3MTYgfHwgZGF0YS0+dHlwZSA9PSBpdDg3MTgpIHsKKwkJCWlmIChoYXNfMTZiaXRf
-ZmFucyhkYXRhKSkgewogCQkJCWRhdGEtPmZhbltpXSB8PSBpdDg3X3JlYWRfdmFsdWUoZGF0YSwK
-IAkJCQkJCUlUODdfUkVHX0ZBTlhbaV0pIDw8IDg7CiAJCQkJZGF0YS0+ZmFuX21pbltpXSB8PSBp
-dDg3X3JlYWRfdmFsdWUoZGF0YSwKQEAgLTE0NDMsOCArMTQ1NSw3IEBAIHN0YXRpYyBzdHJ1Y3Qg
-aXQ4N19kYXRhICppdDg3X3VwZGF0ZV9kZXZpY2Uoc3RydWN0IGRldmljZSAqZGV2KQogCQl9CiAK
-IAkJLyogTmV3ZXIgY2hpcHMgZG9uJ3QgaGF2ZSBjbG9jayBkaXZpZGVycyAqLwotCQlpZiAoKGRh
-dGEtPmhhc19mYW4gJiAweDA3KSAmJiBkYXRhLT50eXBlICE9IGl0ODcxNgotCQkgJiYgZGF0YS0+
-dHlwZSAhPSBpdDg3MTgpIHsKKwkJaWYgKChkYXRhLT5oYXNfZmFuICYgMHgwNykgJiYgIWhhc18x
-NmJpdF9mYW5zKGRhdGEpKSB7CiAJCQlpID0gaXQ4N19yZWFkX3ZhbHVlKGRhdGEsIElUODdfUkVH
-X0ZBTl9ESVYpOwogCQkJZGF0YS0+ZmFuX2RpdlswXSA9IGkgJiAweDA3OwogCQkJZGF0YS0+ZmFu
-X2RpdlsxXSA9IChpID4+IDMpICYgMHgwNzsKQEAgLTE0NjAsNyArMTQ3MSw4IEBAIHN0YXRpYyBz
-dHJ1Y3QgaXQ4N19kYXRhICppdDg3X3VwZGF0ZV9kZXZpY2Uoc3RydWN0IGRldmljZSAqZGV2KQog
-CQlkYXRhLT5mYW5fY3RsID0gaXQ4N19yZWFkX3ZhbHVlKGRhdGEsIElUODdfUkVHX0ZBTl9DVEwp
-OwogCiAJCWRhdGEtPnNlbnNvciA9IGl0ODdfcmVhZF92YWx1ZShkYXRhLCBJVDg3X1JFR19URU1Q
-X0VOQUJMRSk7Ci0JCS8qIFRoZSA4NzA1IGRvZXMgbm90IGhhdmUgVklEIGNhcGFiaWxpdHkgKi8K
-KwkJLyogVGhlIDg3MDUgZG9lcyBub3QgaGF2ZSBWSUQgY2FwYWJpbGl0eS4KKwkJICAgVGhlIDg3
-MTggZG9lcyBub3QgdXNlIElUODdfUkVHX1ZJRCBmb3IgdGhlIHNhbWUgcHVycG9zZS4gKi8KIAkJ
-aWYgKGRhdGEtPnR5cGUgPT0gaXQ4NzEyIHx8IGRhdGEtPnR5cGUgPT0gaXQ4NzE2KSB7CiAJCQlk
-YXRhLT52aWQgPSBpdDg3X3JlYWRfdmFsdWUoZGF0YSwgSVQ4N19SRUdfVklEKTsKIAkJCS8qIFRo
-ZSBvbGRlciBJVDg3MTJGIHJldmlzaW9ucyBoYWQgb25seSA1IFZJRCBwaW5zLAotLSAKMS40LjQu
-NAoK
-------=_Part_24303_27996302.1215392232455
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Yes please.
+
+> > revisions >= J as far as I can see. This makes me wonder why your patch
+> > doesn't also cover revision I, as it already had 16-bit fan speed
+> > registers and the 2 extra fans as well.
+> 
+> I updated the documentation in the patch I'll post next. I went back
+> and looked at the I datasheet, and you are correct. It (rev 07h)
+> supports both 8-bit and 16-bit modes, and the fan divisors were simply
+> dropped in rev 08h. I modified the patch to check for rev >= 07h.
+
+Good.
+
+> I also noticed the documentation mentioned that later IT8705F
+> revisions also support 16-bit fans. I looked at the only datasheet
+> currently online (Version G) and it does indeed support the same
+> registers. I will submit a patch to enable 16-bit on this chip as
+> well. Do you happen to have any older datasheets for this chip? I'll
+> enable 16-bit for >= rev 05h (G), but if you have data showing it
+> exists in an earlier revision than that, please let me know. Also, is
+> Version G actually rev 05h? The G datasheet says the default value for
+> the 22h register is 03h and does not enumerate the version values like
+> the IT8712F datasheet. What revision does your chip report?
+
+My IT8705F chip reports:
+it87: Found IT8705F chip at 0x290, revision 2
+
+That would correspond to "rev. F" in the datasheets. My personal notes
+on the IT8705F revisions are:
+
+IT8705F rev. F: 0x02
+IT8705F rev. G: 0x03 (datasheet v0.4.1)
+
+My rev. F chip has no register 0Ch, so it definitely doesn't support
+16-bit mode. So you would test for revision code >= 0x03 for the
+IT8705F. Should be fairly easy after the patch you've just written.
+
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_24303_27996302.1215392232455--
