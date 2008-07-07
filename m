@@ -1,139 +1,70 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Wed, 09 Jul 2008 17:05:22 +0000
-Subject: Re: [lm-sensors] Unknown sensors on HP Compaq nx7400
-Message-Id: <191fb4ca0807091005i6c433caeh6c3374da7b174675@mail.gmail.com>
+From: Andrew Paprocki <andrew@ishiboo.com>
+Date: Mon, 07 Jul 2008 10:40:11 +0000
+Subject: [lm-sensors] [PATCH 4/4] hwmon: it87 force enable fans1-3 to
+Message-Id: <1215427211-6001-4-git-send-email-andrew@ishiboo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Alessandro,
+This patch always forces fans1-3 to be enabled and logs a debug
+message indicating the action. Certain BIOSes incorrectly report
+connected fans as disabled. There is already a mechanism via
+sensors.conf to ignore invalid inputs, so it is desired over
+making the driver more complex with an optional module parameter.
 
-Sorry for the late reply.
+Signed-off-by: Andrew Paprocki <andrew@ishiboo.com>
+---
+ Documentation/hwmon/it87 |    6 ++++++
+ drivers/hwmon/it87.c     |   11 ++++++++---
+ 2 files changed, 14 insertions(+), 3 deletions(-)
 
+diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
+index 77196bf..f73f95f 100644
+--- a/Documentation/hwmon/it87
++++ b/Documentation/hwmon/it87
+@@ -91,8 +91,14 @@ the driver won't notice and report changes in the VID value. The two
+ upper VID bits share their pins with voltage inputs (in5 and in6) so you
+ can't have both on a given board.
+ 
++System BIOSes do not always properly enable fans1-3 which are actually
++connected. For this reason, fans1-3 will be forcefully enabled by the
++driver and any disconnected fans should be ignored in sensors.conf.
++
+ The IT8716F, IT8718F and later IT8712F revisions have support for
+ 2 additional fans. The additional fans are supported by the driver.
++These fans are not forced on by the driver because there is no known
++cases of chips incorrectly reporting their status.
+ 
+ The IT8716F and IT8718F, and late IT8712F and IT8705F also have optional
+ 16-bit tachometer counters for fans 1 to 3. This is better (no more fan
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index b7b9b58..14143bf 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -1417,10 +1417,15 @@ static void __devinit it87_init_device(struct platform_device *pdev)
+ 
+ 	/* Check if tachometers are reset manually or by some reason */
+ 	data->fan_main_ctrl = it87_read_value(data, IT87_REG_FAN_MAIN_CTRL);
+-	if ((data->fan_main_ctrl & 0x70) = 0) {
+-		/* Enable all fan tachometers */
++	if ((data->fan_main_ctrl & 0x70) = 0
++	 || (data->fan_main_ctrl & 0x70) != 0x70) {
++		/* Enable all fan tachometers if not all were enabled.
++		   BIOS configuration is sometimes wrong, unused fans
++		   should be disabled in sensors.conf. */
++		dev_dbg(&pdev->dev, "Forcing fan1-3 enabled\n");
+ 		data->fan_main_ctrl |= 0x70;
+-		it87_write_value(data, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
++		it87_write_value(data, IT87_REG_FAN_MAIN_CTRL,
++				 data->fan_main_ctrl);
+ 	}
+ 	data->has_fan = (data->fan_main_ctrl >> 4) & 0x07;
+ 
+-- 
+1.5.6
 
-> Hi guys,
->
-> I'm using Linux Arch on my business laptop.
-
-What model?
-
-
->  I can read temperatures
-> through ACPI and the coretemp driver seems to work good but
-> sensor-detect shows two additional unknown sensors. Here is the
-> sensors-detect output:
->
-> [alessandro@blackmoon Desktop]$ sudo sensors-detect
-> # sensors-detect revision 5249 (2008-05-11 22:56:25 +0200)
->
-> This program will help you determine which kernel modules you need
-> to load to use lm_sensors most effectively. It is generally safe
-> and recommended to accept the default answers to all questions,
-> unless you know what you're doing.
->
-> We can start with probing for (PCI) I2C or SMBus adapters.
-> Do you want to probe now? (YES/no):
-> Probing for PCI bus adapters...
-> Sorry, no supported PCI bus adapters found.
->
-> If you have undetectable or unsupported I2C/SMBus adapters, you can have
-> them scanned by manually loading the modules before running this script.
->
-> To continue, we need module `i2c-dev' to be loaded.
-> Do you want to load `i2c-dev' now? (YES/no):
-> Module loaded successfully.
->
-> We are now going to do the I2C/SMBus adapter probings. Some chips may
-> be double detected; we choose the one with the highest confidence
-> value in that case.
-> If you found that the adapter hung after probing a certain address,
-> you can specify that address to remain unprobed.
->
-> Some chips are also accessible through the ISA I/O ports. We have to
-> write to arbitrary I/O ports to probe them. This is usually safe though.
-> Yes, you do have ISA I/O ports even if you do not have any ISA slots!
-> Do you want to scan the ISA I/O ports? (YES/no):
-> Probing for `National Semiconductor LM78' at 0x290...       No
-> Probing for `National Semiconductor LM78-J' at 0x290...     No
-> Probing for `National Semiconductor LM79' at 0x290...       No
-> Probing for `Winbond W83781D' at 0x290...                   No
-> Probing for `Winbond W83782D' at 0x290...                   No
-> Probing for `IPMI BMC KCS' at 0xca0...                      No
-> Probing for `IPMI BMC SMIC' at 0xca8...                     No
->
-> Some Super I/O chips may also contain sensors. We have to write to
-> standard I/O ports to probe them. This is usually safe.
-> Do you want to scan for Super I/O sensors? (YES/no):
-> Probing for Super-I/O at 0x2e/0x2f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     Yes
-> Found unknown chip with ID 0x2600
-
-Yes, we don't know this chip.
-
-
-> Probing for Super-I/O at 0x4e/0x4f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     Yes
-> Found unknown non-standard chip with ID 0x7a
-
-That's probably just a misdetection of the previous chip.
-
-Please run the following commands and send the output
-isadump -k 0x55 0x2e 0x2f 0x8
-isadump -k 0x55 0x2e 0x2f 0x9
-isadump -k 0x55 0x2e 0x2f 0xa
-
-...juerg
-
-
-
-
-> Some south bridges, CPUs or memory controllers may also contain
-> embedded sensors. Do you want to scan for them? (YES/no):
-> Silicon Integrated Systems SIS5595...                       No
-> VIA VT82C686 Integrated Sensors...                          No
-> VIA VT8231 Integrated Sensors...                            No
-> AMD K8 thermal sensors...                                   No
-> AMD K10 thermal sensors...                                  No
-> Intel Core family thermal sensor...                         Success!
->    (driver `coretemp')
-> Intel AMB FB-DIMM thermal sensor...                         No
->
-> Now follows a summary of the probes I have just done.
-> Just press ENTER to continue:
->
-> Driver `coretemp' (should be inserted):
->  Detects correctly:
->  * Chip `Intel Core family thermal sensor' (confidence: 9)
->
-> Do you want to generate /etc/sysconfig/lm_sensors? (yes/NO): yes
-> Copy prog/init/lm_sensors.init to /etc/init.d/lm_sensors
-> for initialization at boot time.
-> You should now start the lm_sensors service to load the required
-> kernel modules.
->
-> [alessandro@blackmoon Desktop]$ sudo modprobe coretemp
-> [alessandro@blackmoon Desktop]$ sensors
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Core 0:      +54.0=B0C  (crit =3D +100.0=B0C)
->
-> coretemp-isa-0001
-> Adapter: ISA adapter
-> Core 1:      +55.0=B0C  (crit =3D +100.0=B0C)
->
-> As said before, I can read most of the thermal information through
-> /proc/acpi/thermal_zone but it would be very comfortable to read them
-> directly with lm-sensors.
->
-> Thank you, Alessandro.
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
 _______________________________________________
 lm-sensors mailing list
