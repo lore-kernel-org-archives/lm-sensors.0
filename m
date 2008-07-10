@@ -1,35 +1,73 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 02 Jul 2008 19:18:50 +0000
-Subject: Re: [lm-sensors] vt1211 fan control script
-Message-Id: <20080702211850.1dfcb2a2@hyperion.delvare>
+From: Milton Miller <miltonm@bga.com>
+Date: Thu, 10 Jul 2008 21:12:11 +0000
+Subject: [lm-sensors] [RFC] (almost) booting allyesconfig -- please don't
+Message-Id: <for-27-patch1-0@bga.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0807021127n6ed962efy3a0a31b2a6dc2b21@mail.gmail.com>
-In-Reply-To: <191fb4ca0807021127n6ed962efy3a0a31b2a6dc2b21@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: linuxppc-dev@ozlabs.org, Samuel Ortiz <samuel@sortiz.org>
 
-Hi Juerg,
+After the following patch to mark the isa region busy and applying a few
+patches[1], I was able to kexec boot into an all-yes-config kernel from 
+linux-next, with the following KCONFIG_ALLCONFIG file:
 
-On Wed, 2 Jul 2008 11:27:21 -0700, Juerg Haefliger wrote:
-> I wrote a little script for manual fan control of the VT1211. It's
-> special as it puts the VT1211 PMW controller in automatic mode and
-> sets the temp thresholds to extreme levels to simulate manual control.
-> This is necessary since the manual mode of the VT1211 is not working.
-> 
-> Would it be OK to include the script with lm-sensors or should I just
-> put it somewhere on the lm-sensors website?
+# CONFIG_KALLSYMS_EXTRA_PASS is not set
+# CONFIG_CRASH_DUMP is not set
+CONFIG_PPC_EARLY_DEBUG_RTAS_CONSOLE=y
+# CONFIG_NSC_FIR is not set
+# CONFIG_SMC_IRCC_FIR is not set
+# CONFIG_ALI_FIR is not set
+# CONFIG_TCG_NSC is not set
+# CONFIG_TCG_ATMEL is not set
+# CONFIG_SENSORS_F71805F is not set
+# CONFIG_SENSORS_F71882FG is not set
+# CONFIG_SENSORS_F75375S is not set
+# CONFIG_SENSORS_IT87 is not set
+# CONFIG_SENSORS_PC87360 is not set
+# CONFIG_SENSORS_PC87427 is not set
+# CONFIG_SENSORS_DME1737 is not set
+# CONFIG_SENSORS_SMSC47M1 is not set
+# CONFIG_SENSORS_SMSC47B397 is not set
+# CONFIG_SENSORS_VT1211 is not set
+# CONFIG_SENSORS_W83627HF is not set
+# CONFIG_SENSORS_W83627EHF is not set
 
-I'm fine either way. It could go in prog/pwm in the lm-sensors package.
-Not sure how it would fit in the wiki, it's not exceptionally good at
-storing files. Alternatively we could create
-http://dl.lm-sensors.org/lm-sensors/scripts/ and put it there. But I
-think it will get better visibility in the lm-sensors package, and
-source control has its advantages as well.
+While the first two might not be required, and the third is just
+selecting the right platform, it would be nice to get the drivers
+to play as well as the rest of the kernel.
 
--- 
-Jean Delvare
+The drivers all are for super-io chips, either irda/FIR drivers or hwmon,
+and poke at isa ports without checking request_region.
+
+It would be great if these 17 super-io drivers would check for resource
+availability before poking at io ports.
+
+[not that I expect this to merge as it, but maybe insert-resource or something]
+
+
+
+[1] 3 section layout patches and the MTD DISKONCHIP patch,
+see linuxppc-dev for full list
+
+
+diff --git a/arch/powerpc/platforms/pseries/pci.c b/arch/powerpc/platforms/pseries/pci.c
+index 2c6ded2..db54620 100644
+--- a/arch/powerpc/platforms/pseries/pci.c
++++ b/arch/powerpc/platforms/pseries/pci.c
+@@ -58,8 +58,10 @@ DECLARE_PCI_FIXUP_HEADER(PCI_ANY_ID, PCI_ANY_ID, pcibios_name_device);
+ 
+ static void __init pSeries_request_regions(void)
+ {
+-	if (!isa_io_base)
++	if (!isa_io_base) {
++		request_region(0x0,0x400,"isa");
+ 		return;
++		}
+ 
+ 	request_region(0x20,0x20,"pic1");
+ 	request_region(0xa0,0x20,"pic2");
 
 _______________________________________________
 lm-sensors mailing list
