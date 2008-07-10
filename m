@@ -1,73 +1,77 @@
-From: Milton Miller <miltonm@bga.com>
-Date: Thu, 10 Jul 2008 21:12:11 +0000
-Subject: [lm-sensors] [RFC] (almost) booting allyesconfig -- please don't
-Message-Id: <for-27-patch1-0@bga.com>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Thu, 10 Jul 2008 21:33:12 +0000
+Subject: Re: [lm-sensors] [RFC] (almost) booting allyesconfig -- please
+Message-Id: <48768018.2070704@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <for-27-patch1-0@bga.com>
+In-Reply-To: <for-27-patch1-0@bga.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-Cc: linuxppc-dev@ozlabs.org, Samuel Ortiz <samuel@sortiz.org>
+To: Milton Miller <miltonm@bga.com>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linuxppc-dev@ozlabs.org, Samuel Ortiz <samuel@sortiz.org>
 
-After the following patch to mark the isa region busy and applying a few
-patches[1], I was able to kexec boot into an all-yes-config kernel from 
-linux-next, with the following KCONFIG_ALLCONFIG file:
+Milton Miller wrote:
+> After the following patch to mark the isa region busy and applying a few
+> patches[1], I was able to kexec boot into an all-yes-config kernel from 
+> linux-next, with the following KCONFIG_ALLCONFIG file:
+> 
+> # CONFIG_KALLSYMS_EXTRA_PASS is not set
+> # CONFIG_CRASH_DUMP is not set
+> CONFIG_PPC_EARLY_DEBUG_RTAS_CONSOLE=y
+> # CONFIG_NSC_FIR is not set
+> # CONFIG_SMC_IRCC_FIR is not set
+> # CONFIG_ALI_FIR is not set
+> # CONFIG_TCG_NSC is not set
+> # CONFIG_TCG_ATMEL is not set
+> # CONFIG_SENSORS_F71805F is not set
+> # CONFIG_SENSORS_F71882FG is not set
+> # CONFIG_SENSORS_F75375S is not set
+> # CONFIG_SENSORS_IT87 is not set
+> # CONFIG_SENSORS_PC87360 is not set
+> # CONFIG_SENSORS_PC87427 is not set
+> # CONFIG_SENSORS_DME1737 is not set
+> # CONFIG_SENSORS_SMSC47M1 is not set
+> # CONFIG_SENSORS_SMSC47B397 is not set
+> # CONFIG_SENSORS_VT1211 is not set
+> # CONFIG_SENSORS_W83627HF is not set
+> # CONFIG_SENSORS_W83627EHF is not set
+> 
+> While the first two might not be required, and the third is just
+> selecting the right platform, it would be nice to get the drivers
+> to play as well as the rest of the kernel.
+> 
+> The drivers all are for super-io chips, either irda/FIR drivers or hwmon,
+> and poke at isa ports without checking request_region.
+> 
 
-# CONFIG_KALLSYMS_EXTRA_PASS is not set
-# CONFIG_CRASH_DUMP is not set
-CONFIG_PPC_EARLY_DEBUG_RTAS_CONSOLE=y
-# CONFIG_NSC_FIR is not set
-# CONFIG_SMC_IRCC_FIR is not set
-# CONFIG_ALI_FIR is not set
-# CONFIG_TCG_NSC is not set
-# CONFIG_TCG_ATMEL is not set
-# CONFIG_SENSORS_F71805F is not set
-# CONFIG_SENSORS_F71882FG is not set
-# CONFIG_SENSORS_F75375S is not set
-# CONFIG_SENSORS_IT87 is not set
-# CONFIG_SENSORS_PC87360 is not set
-# CONFIG_SENSORS_PC87427 is not set
-# CONFIG_SENSORS_DME1737 is not set
-# CONFIG_SENSORS_SMSC47M1 is not set
-# CONFIG_SENSORS_SMSC47B397 is not set
-# CONFIG_SENSORS_VT1211 is not set
-# CONFIG_SENSORS_W83627HF is not set
-# CONFIG_SENSORS_W83627EHF is not set
+Erm,
 
-While the first two might not be required, and the third is just
-selecting the right platform, it would be nice to get the drivers
-to play as well as the rest of the kernel.
+The superio sensor drivers only poke the superio chip registers without request 
+region during the probe phase, iow they try to detect the chip, using a widely 
+document and standardized (part of isa pnp AFAIK) procedure on standardized ports.
 
-The drivers all are for super-io chips, either irda/FIR drivers or hwmon,
-and poke at isa ports without checking request_region.
+Let me try to explain a bit about superio chips, they have 2 superio control 
+registers (an index and data register) with which things like a manufacturer 
+and device id can be read, besides these id registers they also have a set of 
+registers with config for different logical devices. Once the id is matched, 
+the driver knows which logical device config to read, reads a (different) isa 
+base address + range from the logical device config, and then does a 
+request_region on the region actually used by the logical device.
 
-It would be great if these 17 super-io drivers would check for resource
-availability before poking at io ports.
+The superio control registers are thus a sort of pci configuration space if you 
+want, doing a request_region on these is not such a good idea, as multiple 
+drivers (for different logical devices within the superio device) may use 
+these, so trying to gain exclusive access will lead to troubles.
 
-[not that I expect this to merge as it, but maybe insert-resource or something]
+I hope with this info about the problem space, that you maybe have a suggestion 
+on howto fix this?
 
+Regards,
 
+Hans
+> 
 
-[1] 3 section layout patches and the MTD DISKONCHIP patch,
-see linuxppc-dev for full list
-
-
-diff --git a/arch/powerpc/platforms/pseries/pci.c b/arch/powerpc/platforms/pseries/pci.c
-index 2c6ded2..db54620 100644
---- a/arch/powerpc/platforms/pseries/pci.c
-+++ b/arch/powerpc/platforms/pseries/pci.c
-@@ -58,8 +58,10 @@ DECLARE_PCI_FIXUP_HEADER(PCI_ANY_ID, PCI_ANY_ID, pcibios_name_device);
- 
- static void __init pSeries_request_regions(void)
- {
--	if (!isa_io_base)
-+	if (!isa_io_base) {
-+		request_region(0x0,0x400,"isa");
- 		return;
-+		}
- 
- 	request_region(0x20,0x20,"pic1");
- 	request_region(0xa0,0x20,"pic2");
 
 _______________________________________________
 lm-sensors mailing list
