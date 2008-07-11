@@ -1,7 +1,7 @@
 From: Wolfgang Grandegger <wg@grandegger.com>
-Date: Tue, 08 Jul 2008 13:38:14 +0000
+Date: Fri, 11 Jul 2008 12:40:58 +0000
 Subject: Re: [lm-sensors] [PATCH] Support for DS75 thermal sensor
-Message-Id: <48736DC6.1050000@grandegger.com>
+Message-Id: <487754DA.1060207@grandegger.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <487331DC.2020601@grandegger.com>
 In-Reply-To: <487331DC.2020601@grandegger.com>
@@ -40,10 +40,15 @@ it;h=EA6db11742de63324f29d1383122657cabe90940
 > instantiate your "ds75" i2c device from you board's platform code, and
 > it should work.
 
+I have some general question on I2C device probing. Our board does have=20
+two I2C buses. On the first on, there is an RTC at addr 0x32 and a DS75=20
+at 0x4c. Both are defined in the Flattened Device Tree and therefore=20
+i2c_register_board_info() will be called for them. On the second bus,=20
+there are other I2C devices. Nevertheless, probing for RTC and DS75 at=20
+addr 0x32 and 0x4c will be performed also on that bus. Is this the=20
+normal/intended behavior? Can such probing be suppressed?
 
-OK, I see. For my board I need to add a FDT node to the DTS file and add=20
-some binding code like for the RTC. For the lm75, it still works without=20
-that.
+Thanks.
 
 Wolfgang.
 
