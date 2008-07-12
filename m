@@ -1,82 +1,111 @@
-From: Ben Hutchings <bhutchings@solarflare.com>
-Date: Thu, 10 Jul 2008 19:09:42 +0000
-Subject: Re: [lm-sensors] [PATCH 0/3] lm90: Changes to support sfc hardware
-Message-Id: <20080710190940.GF19302@solarflare.com>
+From: Gijs Haarlem <g.c.vanhaarlem@googlemail.com>
+Date: Sat, 12 Jul 2008 17:25:12 +0000
+Subject: [lm-sensors] cpu too hot
+Message-Id: <4878e8fc.2234440a.0460.3d0b@mx.google.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1215701481.git.bhutchings@solarflare.com>
-In-Reply-To: <cover.1215701481.git.bhutchings@solarflare.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Ben,
-> 
-> On Thu, 10 Jul 2008 15:58:26 +0100, Ben Hutchings wrote:
-> > These patches apply on top of the testing branch of hwmon-2.6.git plus
-> > Jean Delvare's patch series <http://jdelvare.pck.nerim.net/sensors/lm90/>.
-> > 
-> > Jean, I expect you may want to do the 3rd patch differently.
-> 
-> In fact I already have a patch ready:
-> http://khali.linux-fr.org/devel/linux-2.6/jdelvare-i2c/hwmon-lm90-convert-to-new-style.patch
-> 
-> But it depends on i2c-core changes which will go in kernel 2.6.27:
-> http://khali.linux-fr.org/devel/linux-2.6/jdelvare-i2c/i2c-core-add-detection-capability-to-new-style-drivers.patch
-> 
-> If you look in http://khali.linux-fr.org/devel/linux-2.6/jdelvare-i2c/
-> you'll see that I have a lot of conversion patches ready for hwmon
-> drivers (including the lm87 driver.) These will go to Linus through my
-> i2c tree, because I don't want to burden Mark with them and technically
-> they only affect the i2c interface of the drivers. But OTOH I have to
-> make sure that they don't collide with patches Mark will send to Linus
-> at about the same moment.
-[...]
+l.s.
 
-I applied those to a git branch, followed by your lm90 series.  I found a
-conflict between these two:
+my sony vaio laptop running fluxbuntu is getting way too hot and I am
+trying to get an idea of the temperature with lm-sensors.
+But I cannot make any sense of all the gibberish on this site or of the
+lengthy stories coming out of the installation script below.
+Although I am an IT professional, it seems one has to be a rocket
+scientist to simply measure the temperature of a device.
 
-hwmon-lm90-convert-to-new-style.patch
-hwmon-lm90-06-support-adt7461-in-extended-mode.patch
+Anaybody can make any sense of this?
 
-Since the private data structure is no longer allocated in lm90_detect(),
-the initialisation of data->flags needs to move to lm90_init_client().
+Gijs
+========================================gijs@gijs:/tmp$ sudo perl "sensors-detect?format=txt"
+# sensors-detect revision $Revision$
 
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index b1858e2..c502587 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -657,9 +657,6 @@ static int lm90_detect(struct i2c_client *new_client, int kind,
- 			 && (reg_config1 & 0x1B) = 0x00
- 			 && reg_convrate <= 0x0A) {
- 				kind = adt7461;
--				/* Check Temperature Range Select */
--				if (reg_config1 & 0x04)
--					data->flags |= LM90_FLAG_ADT7461_EXT;
- 			}
- 		} else
- 		if (man_id = 0x4D) { /* Maxim */
-@@ -796,6 +793,10 @@ static void lm90_init_client(struct i2c_client *client)
- 	}
- 	config_orig = config;
- 
-+	/* Check Temperature Range Select */
-+	if (config & 0x04)
-+		data->flags |= LM90_FLAG_ADT7461_EXT;
-+
- 	/*
- 	 * Put MAX6680/MAX8881 into extended resolution (bit 0x10,
- 	 * 0.125 degree resolution) and range (0x08, extend range
---- END ---
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
 
-It's probably best if you combine this with the latter patch.
+We can start with probing for (PCI) I2C or SMBus adapters.
+Do you want to probe now? (YES/no): 
+Probing for PCI bus adapters...
+Use driver `i2c-ali15x3' for device 0000:00:06.0: Acer Labs 1533/1543
+Use driver `i2c-ali1535' for device 0000:00:06.0: Acer Labs 1535
 
-Ben.
+We will now try to load each adapter module in turn.
+Module `i2c-ali15x3' already loaded.
+Module `i2c-ali1535' already loaded.
+If you have undetectable or unsupported I2C/SMBus adapters, you can have
+them scanned by manually loading the modules before running this script.
 
--- 
-Ben Hutchings, Senior Software Engineer, Solarflare Communications
-Not speaking for my employer; that's the marketing department's job.
+We are now going to do the I2C/SMBus adapter probings. Some chips may
+be double detected; we choose the one with the highest confidence
+value in that case.
+If you found that the adapter hung after probing a certain address,
+you can specify that address to remain unprobed.
+
+Next adapter: SMBus ALI1535 adapter at 8040 (i2c-0)
+Do you want to scan it? (YES/no/selectively): 
+Client found at address 0x50
+Probing for `Analog Devices ADM1033'...                     No
+Probing for `Analog Devices ADM1034'...                     No
+Probing for `SPD EEPROM'...                                 Yes
+    (confidence 8, not a hardware monitoring chip)
+Probing for `EDID EEPROM'...                                No
+Client found at address 0x51
+Probing for `Analog Devices ADM1033'...                     No
+Probing for `Analog Devices ADM1034'...                     No
+Probing for `SPD EEPROM'...                                 YesSome
+chips are also accessible through the ISA I/O ports. We have to write
+to arbitrary I/O ports to probe them. This is usually safe though. Yes,
+you do have ISA I/O ports even if you do not have any ISA slots! Do you
+want to scan the ISA I/O ports? (YES/no): Probing for `National
+Semiconductor LM78' at 0x290...       No Probing for `National
+Semiconductor LM78-J' at 0x290...     No Probing for `National
+Semiconductor LM79' at 0x290...       No Probing for `Winbond W83781D'
+at 0x290...                   No Probing for `Winbond W83782D' at
+0x290...                   No Probing for `IPMI BMC KCS' at
+0xca0...                      No Probing for `IPMI BMC SMIC' at
+0xca8...                     No
+
+Some Super I/O chips may also contain sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no): 
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Fintek'...                       No
+Trying family `ITE'...                                      No
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Fintek'...                       No
+Trying family `ITE'...                                      No
+
+Some south bridges, CPUs or memory controllers may also contain
+embedded sensors. Do you want to scan for them? (YES/no): 
+Silicon Integrated Systems SIS5595...                       No
+VIA VT82C686 Integrated Sensors...                          No
+VIA VT8231 Integrated Sensors...                            No
+AMD K8 thermal sensors...                                   No
+AMD K10 thermal sensors...                                  No
+Intel Core family thermal sensor...                         No
+Intel AMB FB-DIMM thermal sensor...                         No
+VIA C7 thermal and voltage sensors...                       No
+
+Sorry, no sensors were detected.
+Either your sensors are not supported, or they are connected to an
+I2C or SMBus adapter that is not supported. See doc/FAQ,
+doc/lm_sensors-FAQ.html or http://www.lm-sensors.org/wiki/FAQ
+(FAQ #4.24.3) for further information.
+If you find out what chips are on your board, check
+http://www.lm-sensors.org/wiki/Devices for driver status.
+
+    (confidence 8, not a hardware monitoring chip)
+Probing for `EDID EEPROM'...                                No
+
 
 _______________________________________________
 lm-sensors mailing list
