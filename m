@@ -1,82 +1,109 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Wed, 30 Jul 2008 22:14:24 +0000
-Subject: [lm-sensors] [PATCH] i5k_amb: Provide labels for temperature sensors
-Message-Id: <20080730221424.GE28331@tree.beaverton.ibm.com>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Mon, 14 Jul 2008 17:30:20 +0000
+Subject: Re: [lm-sensors] [RFC] (almost) booting allyesconfig --
+Message-Id: <487B8D2C.1090208@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <for-27-patch1-0@bga.com> <48768018.2070704@hhs.nl>	<acca8e14e769b2feadee19f1f7448438@bga.com>	<20080711085246.1ead773b@hyperion.delvare>	<48770B5E.7000308@hhs.nl>	<20080711093650.4b98e3b7@hyperion.delvare>	<4879A144.8060203@hhs.nl>	<4dfa50520807131411ied883cgcb20eb6bd94f761@mail.gmail.com>	<487A7211.7030309@hhs.nl>	<4dfa50520807131426t4013142cp1fcd49e078a79c1f@mail.gmail.com>	<20080714095914.0644ac5d@hyperion.delvare> <88f5162604470179b3c6ebfe729a46f5@bga.com>
+In-Reply-To: <88f5162604470179b3c6ebfe729a46f5@bga.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors <lm-sensors@lm-sensors.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>
+To: Milton Miller <miltonm@bga.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Samuel Ortiz <samuel@sortiz.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linuxppc-dev@ozlabs.org
 
-Export the sensor -> channel/dimm mapping in tempX_label.
+Milton Miller wrote:
+> On Jul 14, 2008, at 2:59 AM, Jean Delvare wrote:
+>> On Sun, 13 Jul 2008 15:26:56 -0600, David Hubbard wrote:
+>>> Hi Hans,
+>>>
+>>>>> I propose writing a subsystem driver. (Is that properly called "The
+>>>>> SuperIO Bus Driver"?) If no one thinks it's a really bad idea I will
+>>>>> put together some code and submit it for review, and maintain it.
+>>>>>
+>>>>> Some hwmon chips have odd / unique probe sequences. IMHO this is 
+>>>>> where
+>>>>> the design needs to be inspected. One of those is the w83627ehf, 
+>>>>> which
+>>>>> Jean and Hans are familiar enough with to check my work.
+>>>>>
+>>>>> Thoughts?
+>>>> I'm afraid that making this a "bus" will be a bit overkill. Jim's 
+>>>> patches
+>>>> are quite simple and seem todo the job.
+>>>>
+>>>> Also keep in mind that most users will be platform devices which 
+>>>> just want
+>>>> to use the superio registers to find out the baseaddress of their 
+>>>> logical
+>>>> device, a whole bus seems overkill for this, would the hwmon driver 
+>>>> then
+>>>> need to be a superio_driver (as well as an platform_driver) or can 
+>>>> the bus
+>>>> be queried / used
+>>>> without having to be a bustype-driver?
+>>> I think that's a valid point. I am willing to keep it small, but I
+>>> would prefer to follow the pattern set in other subsystems. It may be
+>>> my lack of experience in designing a subsystem showing here! What are
+>>> some alternative ways to implement it?
+>>>
+>>> In other words, Jim's patches are a good start, but maybe I am
+>>> misunderstanding them. I see it as the superio-locks module, a driver
+>>> that other drivers would depend on / auto-load. Is that something
+>>> other subsystems also do?
+>> Well, there are two approaches to the problem. The first approach
+>> (which I think Jim took in his patches? I don't really remember) is to
+>> simply solve the problem of concurrent I/O access to the Super-I/O
+>> configuration ports (typically 0x2e/0x2f or 0x4e/0x4f). That would be a
+>> simple driver requesting the ports in question and exporting an API for
+>> other drivers to access them in a safe way.
+>>
+>> The second approach is to make it a whole subsystem, as David is
+>> suggesting. The Super-I/O driver would then not only request the I/O
+>> ports, it would also identify which Super-I/O is there, and it would
+>> create devices (in the Linux device driver model sense of the term) for
+>> every logical device we are interested in (amongst which the hwmon
+>> ones.) The hwmon drivers would have to be converted from platform
+>> drivers to superio drivers.
+>>
+>> Each approach has its advantages. The first one is rather simple and
+>> also very generic in nature. It could be reused for other purposes. The
+>> second one offers automatic loading of hwmon drivers, which would be
+>> nice to have.
+>>
+>> There's probably a middle way which would keep the simplicity of the
+>> first approach while still allowing for driver auto-loading, without
+>> changing the bus type of all drivers. It would probably take some
+>> research though.
+> 
+> I haven't done the research, but it might be keep superio as
+> a platform driver, and keep the clients as platform drivers.  Only
+> have the superio driver probe and discover the subcomponent
+> addresses and then create the platform devices as children
+> instead of having each driver create its own platform device.
+> (This all assumes they are all platform devices in sysfs, I have
+> not looked).
+> 
+> This is all because in the platform bus the bus driver does not
+> discover the addresses but relies on drivers or platform setup code.
+> 
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
----
+This sounds like a good plan, rather then add a new bus type add a superio 
+platform driver which does superio probing and registering of platform devices 
+for discovered logical devices.
 
- drivers/hwmon/i5k_amb.c |   28 +++++++++++++++++++++++++++-
- 1 files changed, 27 insertions(+), 1 deletions(-)
+This superio platform driver then needs to also export some functions of those 
+few logical devices which need access to the superio registers for more then 
+just finding out their own base address.
 
-diff --git a/drivers/hwmon/i5k_amb.c b/drivers/hwmon/i5k_amb.c
-index f9e2ed6..2ede938 100644
---- a/drivers/hwmon/i5k_amb.c
-+++ b/drivers/hwmon/i5k_amb.c
-@@ -81,6 +81,8 @@ static unsigned long amb_reg_temp(unsigned int amb)
- #define MAX_AMBS_PER_CHANNEL		16
- #define MAX_AMBS			(MAX_MEM_CHANNELS * \
- 					 MAX_AMBS_PER_CHANNEL)
-+#define CHANNEL_SHIFT			4
-+#define DIMM_MASK			0xF
- /*
-  * Ugly hack: For some reason the highest bit is set if there
-  * are _any_ DIMMs in the channel.  Attempting to read from
-@@ -89,7 +91,7 @@ static unsigned long amb_reg_temp(unsigned int amb)
-  * might prevent us from seeing the 16th DIMM in the channel.
-  */
- #define REAL_MAX_AMBS_PER_CHANNEL	15
--#define KNOBS_PER_AMB			5
-+#define KNOBS_PER_AMB			6
- 
- static unsigned long amb_num_from_reg(unsigned int byte_num, unsigned int bit)
- {
-@@ -238,6 +240,16 @@ static ssize_t show_amb_temp(struct device *dev,
- 		500 * amb_read_byte(data, amb_reg_temp(attr->index)));
- }
- 
-+static ssize_t show_label(struct device *dev,
-+			  struct device_attribute *devattr,
-+			  char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+
-+	return sprintf(buf, "Ch. %d DIMM %d\n", attr->index >> CHANNEL_SHIFT,
-+		       attr->index & DIMM_MASK);
-+}
-+
- static int __devinit i5k_amb_hwmon_init(struct platform_device *pdev)
- {
- 	int i, j, k, d = 0;
-@@ -268,6 +280,20 @@ static int __devinit i5k_amb_hwmon_init(struct platform_device *pdev)
- 				continue;
- 			d++;
- 
-+			/* sysfs label */
-+			iattr = data->attrs + data->num_attrs;
-+			snprintf(iattr->name, AMB_SYSFS_NAME_LEN,
-+				 "temp%d_label", d);
-+			iattr->s_attr.dev_attr.attr.name = iattr->name;
-+			iattr->s_attr.dev_attr.attr.mode = S_IRUGO;
-+			iattr->s_attr.dev_attr.show = show_label;
-+			iattr->s_attr.index = k;
-+			res = device_create_file(&pdev->dev,
-+						 &iattr->s_attr.dev_attr);
-+			if (res)
-+				goto exit_remove;
-+			data->num_attrs++;
-+
- 			/* Temperature sysfs knob */
- 			iattr = data->attrs + data->num_attrs;
- 			snprintf(iattr->name, AMB_SYSFS_NAME_LEN,
+I guess that it then would be best to load this superio driver by default on 
+most systems.
+
+How does this all mix and match with isapnp, it feels to me we're doing 
+somewhat the same as isapnp here.
+
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
