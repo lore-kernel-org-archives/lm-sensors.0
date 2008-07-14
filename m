@@ -1,227 +1,129 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 16 Jul 2008 20:51:48 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (max1619) Convert to a new-style
-Message-Id: <487E5F64.9010007@hhs.nl>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Mon, 14 Jul 2008 15:21:39 +0000
+Subject: [lm-sensors] [PATCH RESEND] lm-sensors: Add more chip detection
+Message-Id: <191fb4ca0807140821o178d234ya4ac09e65666efd4@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_42120_6831916.1216048899977"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080716173030.43988f36@hyperion.delvare>
-In-Reply-To: <20080716173030.43988f36@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+------=_Part_42120_6831916.1216048899977
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Alexey Fisher <fishor@mail.ru>, Linux I2C <i2c@lm-sensors.org>, LM Sensors <lm-sensors@lm-sensors.org>
+Content-Disposition: inline
 
-Jean Delvare wrote:
-> The new-style max1619 driver implements the optional detect() callback
-> to cover the use cases of the legacy driver.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Alexey Fisher <fishor@mail.ru>
+Add detection of VIA VT1212 and SMSC EMC2700LPC Super IOs.
 
-Looks good,
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-Regards,
-
-Hans
+---
+Fixed to include both possible device IDs of the VT1212.
 
 
 
-> ---
->  drivers/hwmon/max1619.c |  101 ++++++++++++++++++++---------------------------
->  1 file changed, 44 insertions(+), 57 deletions(-)
-> 
-> --- linux-2.6.26-rc9.orig/drivers/hwmon/max1619.c	2008-07-12 09:20:29.000000000 +0200
-> +++ linux-2.6.26-rc9/drivers/hwmon/max1619.c	2008-07-12 10:27:14.000000000 +0200
-> @@ -79,23 +79,34 @@ I2C_CLIENT_INSMOD_1(max1619);
->   * Functions declaration
->   */
->  
-> -static int max1619_attach_adapter(struct i2c_adapter *adapter);
-> -static int max1619_detect(struct i2c_adapter *adapter, int address,
-> -	int kind);
-> +static int max1619_probe(struct i2c_client *client,
-> +			 const struct i2c_device_id *id);
-> +static int max1619_detect(struct i2c_client *client, int kind,
-> +			  struct i2c_board_info *info);
->  static void max1619_init_client(struct i2c_client *client);
-> -static int max1619_detach_client(struct i2c_client *client);
-> +static int max1619_remove(struct i2c_client *client);
->  static struct max1619_data *max1619_update_device(struct device *dev);
->  
->  /*
->   * Driver data (common to all clients)
->   */
->  
-> +static const struct i2c_device_id max1619_id[] = {
-> +	{ "max1619", max1619 },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(i2c, max1619_id);
-> +
->  static struct i2c_driver max1619_driver = {
-> +	.class		= I2C_CLASS_HWMON,
->  	.driver = {
->  		.name	= "max1619",
->  	},
-> -	.attach_adapter	= max1619_attach_adapter,
-> -	.detach_client	= max1619_detach_client,
-> +	.probe		= max1619_probe,
-> +	.remove		= max1619_remove,
-> +	.id_table	= max1619_id,
-> +	.detect		= max1619_detect,
-> +	.address_data	= &addr_data,
->  };
->  
->  /*
-> @@ -103,7 +114,6 @@ static struct i2c_driver max1619_driver 
->   */
->  
->  struct max1619_data {
-> -	struct i2c_client client;
->  	struct device *hwmon_dev;
->  	struct mutex update_lock;
->  	char valid; /* zero until following fields are valid */
-> @@ -208,41 +218,15 @@ static const struct attribute_group max1
->   * Real code
->   */
->  
-> -static int max1619_attach_adapter(struct i2c_adapter *adapter)
-> -{
-> -	if (!(adapter->class & I2C_CLASS_HWMON))
-> -		return 0;
-> -	return i2c_probe(adapter, &addr_data, max1619_detect);
-> -}
-> -
-> -/*
-> - * The following function does more than just detection. If detection
-> - * succeeds, it also registers the new chip.
-> - */
-> -static int max1619_detect(struct i2c_adapter *adapter, int address, int kind)
-> +/* Return 0 if detection is successful, -ENODEV otherwise */
-> +static int max1619_detect(struct i2c_client *new_client, int kind,
-> +			  struct i2c_board_info *info)
->  {
-> -	struct i2c_client *new_client;
-> -	struct max1619_data *data;
-> -	int err = 0;
-> -	const char *name = "";	
-> +	struct i2c_adapter *adapter = new_client->adapter;
->  	u8 reg_config=0, reg_convrate=0, reg_status=0;
->  
->  	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-> -		goto exit;
-> -
-> -	if (!(data = kzalloc(sizeof(struct max1619_data), GFP_KERNEL))) {
-> -		err = -ENOMEM;
-> -		goto exit;
-> -	}
-> -
-> -	/* The common I2C client data is placed right before the
-> -	   MAX1619-specific data. */
-> -	new_client = &data->client;
-> -	i2c_set_clientdata(new_client, data);
-> -	new_client->addr = address;
-> -	new_client->adapter = adapter;
-> -	new_client->driver = &max1619_driver;
-> -	new_client->flags = 0;
-> +		return -ENODEV;
->  
->  	/*
->  	 * Now we do the remaining detection. A negative kind means that
-> @@ -265,8 +249,8 @@ static int max1619_detect(struct i2c_ada
->  		 || reg_convrate > 0x07 || (reg_status & 0x61 ) !=0x00) {
->  			dev_dbg(&adapter->dev,
->  				"MAX1619 detection failed at 0x%02x.\n",
-> -				address);
-> -			goto exit_free;
-> +				new_client->addr);
-> +			return -ENODEV;
->  		}
->  	}
->  
-> @@ -285,28 +269,37 @@ static int max1619_detect(struct i2c_ada
->  			dev_info(&adapter->dev,
->  			    "Unsupported chip (man_id=0x%02X, "
->  			    "chip_id=0x%02X).\n", man_id, chip_id);
-> -			goto exit_free;
-> +			return -ENODEV;
->  		}
->  	}
->  
-> -	if (kind = max1619)
-> -		name = "max1619";
-> +	strlcpy(info->type, "max1619", I2C_NAME_SIZE);
-> +
-> +	return 0;
-> +}
-> +
-> +static int max1619_probe(struct i2c_client *new_client,
-> +			 const struct i2c_device_id *id)
-> +{
-> +	struct max1619_data *data;
-> +	int err;
-> +
-> +	data = kzalloc(sizeof(struct max1619_data), GFP_KERNEL);
-> +	if (!data) {
-> +		err = -ENOMEM;
-> +		goto exit;
-> +	}
->  
-> -	/* We can fill in the remaining client fields */
-> -	strlcpy(new_client->name, name, I2C_NAME_SIZE);
-> +	i2c_set_clientdata(new_client, data);
->  	data->valid = 0;
->  	mutex_init(&data->update_lock);
->  
-> -	/* Tell the I2C layer a new client has arrived */
-> -	if ((err = i2c_attach_client(new_client)))
-> -		goto exit_free;
-> -
->  	/* Initialize the MAX1619 chip */
->  	max1619_init_client(new_client);
->  
->  	/* Register sysfs hooks */
->  	if ((err = sysfs_create_group(&new_client->dev.kobj, &max1619_group)))
-> -		goto exit_detach;
-> +		goto exit_free;
->  
->  	data->hwmon_dev = hwmon_device_register(&new_client->dev);
->  	if (IS_ERR(data->hwmon_dev)) {
-> @@ -318,8 +311,6 @@ static int max1619_detect(struct i2c_ada
->  
->  exit_remove_files:
->  	sysfs_remove_group(&new_client->dev.kobj, &max1619_group);
-> -exit_detach:
-> -	i2c_detach_client(new_client);
->  exit_free:
->  	kfree(data);
->  exit:
-> @@ -341,17 +332,13 @@ static void max1619_init_client(struct i
->  					  config & 0xBF); /* run */
->  }
->  
-> -static int max1619_detach_client(struct i2c_client *client)
-> +static int max1619_remove(struct i2c_client *client)
->  {
->  	struct max1619_data *data = i2c_get_clientdata(client);
-> -	int err;
->  
->  	hwmon_device_unregister(data->hwmon_dev);
->  	sysfs_remove_group(&client->dev.kobj, &max1619_group);
->  
-> -	if ((err = i2c_detach_client(client)))
-> -		return err;
-> -
->  	kfree(data);
->  	return 0;
->  }
-> 
-> 
+On Fri, Jul 11, 2008 at 8:45 AM, Jean Delvare <khali@linux-fr.org> wrote:
+> On Fri, 11 Jul 2008 07:50:02 -0700, Juerg Haefliger wrote:
+>> > Hi Jean,
+>> >
+>> >
+>> >> Hi Juerg,
+>> >>
+>> >> Please set the attachment type to text/plain next time.
+>> >
+>> > Hmm... Gmail doesn't give me control over this (I think) and I haven't
+>> > change anything. Weird.
+>
+> You may try adding .txt at the end of the file name to hint gmail at
+> giving it type text/plain. Or complain to the gmail admins until they
+> map .patch to type text/plain.
+>
+>> >> On Thu, 10 Jul 2008 12:37:26 -0700, Juerg Haefliger wrote:
+>> >>> Add detection of VIA VT1212 and SMSC EMC2700LPC Super IOs.
+>> >>>
+>> >>> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+>> >>
+>> >>> Index: lm-sensors-3.0.0/prog/detect/sensors-detect
+>> >>> ===================================================================
+>> >>> --- lm-sensors-3.0.0.orig/prog/detect/sensors-detect  2008-07-10 12:16:17.709353000 -0700
+>> >>> +++ lm-sensors-3.0.0/prog/detect/sensors-detect       2008-07-10 12:28:41.895364000 -0700
+>> >>> @@ -1666,6 +1666,11 @@
+>> >>>       devid => 0x77,
+>> >>>        },
+>> >>>        {
+>> >>> +     name => "SMSC EMC2700LPC Super IO",
+>> >>> +     # no datasheet
+>> >>> +     devid => 0x67,
+>> >>> +      },
+>> >>> +      {
+>> >>>       name => "SMSC FDC37B72x Super IO",
+>> >>>       driver => "not-a-sensor",
+>> >>>       devid => 0x4c,
+>> >>> @@ -1908,6 +1913,11 @@
+>> >>>       alias_detect => sub { vt1211_alias_detect(@_); },
+>> >>>        },
+>> >>>        {
+>> >>> +     name => "VIA VT1212 Super IO Lite",
+>> >>> +     driver => "not-a-sensor",
+>> >>> +     devid => 0x3f,
+>> >>
+>> >> Are you sure? On Wilken's system, which according to the documentation
+>> >> has a VT1212 chip, sensors-detect says:
+>> >>
+>> >> Found unknown chip with ID 0xfc01
+>> >>
+>> >> Which would mean a devid value of 0xfc rather then 0x3f.
+>> >
+>> > From the datasheet (sorry for the formatting):
+>> > 7   Configuration Index   RW   00
+>> > 20   Device ID   RO   3F
+>> > 21   Device Revision   RO   01
+>> > 22   Power Down Control   RW   00
+>> > 23   LPC Wait State Select   RW   09
+>> > 24   GPIO Port 1 Pin Select   RW   00
+>> > 25   GPIO Port 2 Pin Select   RW   00
+>>
+>> I just realized that there's two different device IDs for the two
+>> packaging options, 3F/3E. I'll respin the patch.
+>
+> None of which matches what Wilken's system has... Very strange.
+>
+> --
+> Jean Delvare
+>
 
+------=_Part_42120_6831916.1216048899977
+Content-Type: application/octet-stream;
+	name=sensors-add-more-chip-detection.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fin7y0gy0
+Content-Disposition: attachment; filename=sensors-add-more-chip-detection.patch
+
+SW5kZXg6IGxtLXNlbnNvcnMtMy4wLjAvcHJvZy9kZXRlY3Qvc2Vuc29ycy1kZXRlY3QKPT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PQotLS0gbG0tc2Vuc29ycy0zLjAuMC5vcmlnL3Byb2cvZGV0ZWN0L3NlbnNvcnMtZGV0ZWN0
+CTIwMDgtMDctMTAgMTI6MTY6MTcuNzA5MzUzMDAwIC0wNzAwCisrKyBsbS1zZW5zb3JzLTMuMC4w
+L3Byb2cvZGV0ZWN0L3NlbnNvcnMtZGV0ZWN0CTIwMDgtMDctMTQgMDg6MTY6MDUuNDUyNzMwMDAw
+IC0wNzAwCkBAIC0xNjY2LDYgKzE2NjYsMTEgQEAKIAlkZXZpZCA9PiAweDc3LAogICAgICAgfSwK
+ICAgICAgIHsKKwluYW1lID0+ICJTTVNDIEVNQzI3MDBMUEMgU3VwZXIgSU8iLAorCSMgbm8gZGF0
+YXNoZWV0CisJZGV2aWQgPT4gMHg2NywKKyAgICAgIH0sCisgICAgICB7CiAJbmFtZSA9PiAiU01T
+QyBGREMzN0I3MnggU3VwZXIgSU8iLAogCWRyaXZlciA9PiAibm90LWEtc2Vuc29yIiwKIAlkZXZp
+ZCA9PiAweDRjLApAQCAtMTkwOCw2ICsxOTEzLDE2IEBACiAJYWxpYXNfZGV0ZWN0ID0+IHN1YiB7
+IHZ0MTIxMV9hbGlhc19kZXRlY3QoQF8pOyB9LAogICAgICAgfSwKICAgICAgIHsKKwluYW1lID0+
+ICJWSUEgVlQxMjEyIFN1cGVyIElPIExpdGUiLCAgICMgaW4gMTAwIHBpbiBUUUZQIHBhY2thZ2UK
+Kwlkcml2ZXIgPT4gIm5vdC1hLXNlbnNvciIsCisJZGV2aWQgPT4gMHgzZSwKKyAgICAgIH0sCisg
+ICAgICB7CisJbmFtZSA9PiAiVklBIFZUMTIxMiBTdXBlciBJTyBMaXRlIiwgICAjIGluIDQ4IHBp
+biBMUUZQIHBhY2thZ2UKKwlkcml2ZXIgPT4gIm5vdC1hLXNlbnNvciIsCisJZGV2aWQgPT4gMHgz
+ZiwKKyAgICAgIH0sCisgICAgICB7CiAJbmFtZSA9PiAiV2luYm9uZCBXODM2MjdIRi9GL0hHL0cg
+U3VwZXIgSU8gU2Vuc29ycyIsCiAJZHJpdmVyID0+ICJ3ODM2MjdoZiIsCiAJZGV2aWQgPT4gMHg1
+MiwK
+------=_Part_42120_6831916.1216048899977
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_42120_6831916.1216048899977--
