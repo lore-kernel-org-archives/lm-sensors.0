@@ -1,73 +1,114 @@
-From: Jonathan Cameron <Jonathan.Cameron@gmail.com>
-Date: Wed, 23 Jul 2008 17:44:21 +0000
-Subject: Re: [lm-sensors] [Patch 3/4] ST LIS3L02DQ accelerometer
-Message-Id: <48876DF5.5060302@gmail.com>
+From: Agile Aspect <agile.aspect@gmail.com>
+Date: Tue, 15 Jul 2008 16:16:49 +0000
+Subject: [lm-sensors] temperature monitor
+Message-Id: <487CCD71.8000909@GMail.COM>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <488763AD.4050400@gmail.com>	<488766F4.20603@gmail.com> <20080723180726.6fc0ef6e@lxorguk.ukuu.org.uk>
-In-Reply-To: <20080723180726.6fc0ef6e@lxorguk.ukuu.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: LKML <linux-kernel@vger.kernel.org>, spi-devel-general@lists.sourceforge.net, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Dear Alan,
->> +
->> + xfer.rx_buf = kmalloc(4, GFP_KERNEL);
->> + if (xfer.rx_buf = NULL) {
->> + ret = -ENOMEM;
->> + goto error_free_tx;
->> + }
->
-> Do these really need to be two kmallocs
-Sorry about that, legacy of a much older version. I definitely didn't clean
-this driver up properly (iio core is still a fair way off going anywhere so
-I'll admit I didn't didn't check the drivers using it as thoroughly as I
-should
-have)
->
->> + if (ret) {
->> + dev_err(&st->us->dev, "problem with get x offset");
->> + goto error_free_rx;
->> + }
->> + *val = ((unsigned char *)(xfer.rx_buf))[0];
->> + kfree(xfer.rx_buf);
->> + kfree(xfer.tx_buf);
->> + return ret;
->> +error_free_rx:
->> + kfree(xfer.rx_buf);
->> +error_free_tx:
->> + kfree(xfer.tx_buf);
->> +error_ret:
->> + return ret;
->
-> That lot makes no sense. You could just drop through..
-Oops.
->> +{
->> + uint8_t val;
->> + int8_t ret;
->
-> Kernel types (u8, s8 etc)
-To used to userspace programming! I'll fix them.
->
->> + local_rx_buf = kmalloc(4, GFP_KERNEL);
->> + local_tx_buf = kmalloc(4, GFP_KERNEL);
->> +
->> + local_tx_buf[1] = LIS3L02DQ_READ_REG(reg_address);
->
-> OOPS on out of memory case
-Good point.
->
+Hi - I'm new to lm_sensors and I'm trying to monitor the temperature on
+a 8 CPU (Intel Xeon CPU X5460  @ 3.16GHz) running CentOS 4.4
+(2.6.9-42.ELsmp.)
 
->
-> You seem to have a lot of almost identical routines here. It looks like
-> with a few helpers this driver could be vastly shorter.
-Again a good point. I'll clean it up and repost.
+The command
 
-Thanks for the hints,
+   i2cdetect -l
 
---
-Jonathan Cameron
+returns
+
+   i2c-0   dummy           ISA main adapter                        ISA 
+bus algorithm
+
+and the command
+
+   sensor
+
+returns
+
+   No sensors found!
+
+Enclosed is the output of lspci.
+
+Any ideas on how I get a temperature monitor working?
+
+Any help would be greatly appreciated!
+
+;------------------------------------
+00:00.0 Host bridge: Intel Corporation 5000X Chipset Memory Controller 
+Hub (rev 12)
+00:02.0 PCI bridge: Intel Corporation 5000 Series Chipset PCI Express x4 
+Port 2 (rev 12)
+00:03.0 PCI bridge: Intel Corporation 5000 Series Chipset PCI Express x4 
+Port 3 (rev 12)
+00:04.0 PCI bridge: Intel Corporation 5000 Series Chipset PCI Express x4 
+Port 4 (rev 12)
+00:05.0 PCI bridge: Intel Corporation 5000 Series Chipset PCI Express x4 
+Port 5 (rev 12)
+00:06.0 PCI bridge: Intel Corporation 5000 Series Chipset PCI Express x8 
+Port 6-7 (rev 12)
+00:07.0 PCI bridge: Intel Corporation 5000 Series Chipset PCI Express x4 
+Port 7 (rev 12)
+00:10.0 Host bridge: Intel Corporation 5000 Series Chipset Error 
+Reporting Registers (rev 12)
+00:10.1 Host bridge: Intel Corporation 5000 Series Chipset Error 
+Reporting Registers (rev 12)
+00:10.2 Host bridge: Intel Corporation 5000 Series Chipset Error 
+Reporting Registers (rev 12)
+00:11.0 Host bridge: Intel Corporation 5000 Series Chipset Reserved 
+Registers (rev 12)
+00:13.0 Host bridge: Intel Corporation 5000 Series Chipset Reserved 
+Registers (rev 12)
+00:15.0 Host bridge: Intel Corporation 5000 Series Chipset FBD Registers 
+(rev 12)
+00:16.0 Host bridge: Intel Corporation 5000 Series Chipset FBD Registers 
+(rev 12)
+00:1c.0 PCI bridge: Intel Corporation 631xESB/632xESB/3100 Chipset PCI 
+Express Root Port 1 (rev 09)
+00:1d.0 USB Controller: Intel Corporation 631xESB/632xESB/3100 Chipset 
+UHCI USB Controller #1 (rev 09)
+00:1d.1 USB Controller: Intel Corporation 631xESB/632xESB/3100 Chipset 
+UHCI USB Controller #2 (rev 09)
+00:1d.2 USB Controller: Intel Corporation 631xESB/632xESB/3100 Chipset 
+UHCI USB Controller #3 (rev 09)
+00:1d.3 USB Controller: Intel Corporation 631xESB/632xESB/3100 Chipset 
+UHCI USB Controller #4 (rev 09)
+00:1d.7 USB Controller: Intel Corporation 631xESB/632xESB/3100 Chipset 
+EHCI USB2 Controller (rev 09)
+00:1e.0 PCI bridge: Intel Corporation 82801 PCI Bridge (rev d9)
+00:1f.0 ISA bridge: Intel Corporation 631xESB/632xESB/3100 Chipset LPC 
+Interface Controller (rev 09)
+00:1f.2 IDE interface: Intel Corporation 631xESB/632xESB/3100 Chipset 
+SATA Storage Controller IDE (rev 09)
+01:00.0 SCSI storage controller: LSI Logic / Symbios Logic SAS1068E 
+PCI-Express Fusion-MPT SAS (rev 08)
+02:00.0 PCI bridge: Broadcom: Unknown device 0103 (rev c3)
+03:00.0 Ethernet controller: Broadcom Corporation NetXtreme II BCM5708 
+Gigabit Ethernet (rev 12)
+04:00.0 PCI bridge: Intel Corporation 6311ESB/6321ESB PCI Express 
+Upstream Port (rev 01)
+04:00.3 PCI bridge: Intel Corporation 6311ESB/6321ESB PCI Express to 
+PCI-X Bridge (rev 01)
+05:00.0 PCI bridge: Intel Corporation 6311ESB/6321ESB PCI Express 
+Downstream Port E1 (rev 01)
+05:01.0 PCI bridge: Intel Corporation 6311ESB/6321ESB PCI Express 
+Downstream Port E2 (rev 01)
+06:00.0 PCI bridge: Broadcom: Unknown device 0103 (rev c3)
+07:00.0 Ethernet controller: Broadcom Corporation NetXtreme II BCM5708 
+Gigabit Ethernet (rev 12)
+0e:0d.0 VGA compatible controller: ATI Technologies Inc ES1000 (rev 02)
+;------------------------------------
+
+-- 
+Article. VI. Clause 3 of the constitution of the United States states: 
+
+"The Senators and Representatives before mentioned, and the Members of 
+the several State Legislatures, and all executive and judicial Officers, 
+both of the United States and of the several States, shall be bound by 
+Oath or Affirmation, to support this Constitution; but no religious Test 
+shall ever be required as a Qualification to any Office or public Trust 
+under the United States." 
 
 
 
