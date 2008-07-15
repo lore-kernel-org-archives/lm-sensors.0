@@ -1,79 +1,47 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 15 Jul 2008 08:36:13 +0000
+From: "David Hubbard" <david.c.hubbard@gmail.com>
+Date: Tue, 15 Jul 2008 15:31:29 +0000
 Subject: Re: [lm-sensors] [RFC] (almost) booting allyesconfig -- please
-Message-Id: <20080715103613.4fbbf01f@hyperion.delvare>
+Message-Id: <4dfa50520807150831i519a3a43n635ab7e58d35ba5e@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <for-27-patch1-0@bga.com>
-	<48770B5E.7000308@hhs.nl>
-	<20080711093650.4b98e3b7@hyperion.delvare>
-	<4879A144.8060203@hhs.nl>
-	<4dfa50520807131411ied883cgcb20eb6bd94f761@mail.gmail.com>
-	<487A7211.7030309@hhs.nl>
-	<4dfa50520807131426t4013142cp1fcd49e078a79c1f@mail.gmail.com>
-	<20080714095914.0644ac5d@hyperion.delvare>
-	<88f5162604470179b3c6ebfe729a46f5@bga.com>
-	<487B8D2C.1090208@hhs.nl>
-	<4dfa50520807141055l532caaaai700255936600e5ae@mail.gmail.com>
-In-Reply-To: <4dfa50520807141055l532caaaai700255936600e5ae@mail.gmail.com>
+References: <for-27-patch1-0@bga.com> <4879A144.8060203@hhs.nl>
+	 <4dfa50520807131411ied883cgcb20eb6bd94f761@mail.gmail.com>
+	 <487A7211.7030309@hhs.nl>
+	 <4dfa50520807131426t4013142cp1fcd49e078a79c1f@mail.gmail.com>
+	 <20080714095914.0644ac5d@hyperion.delvare>
+	 <88f5162604470179b3c6ebfe729a46f5@bga.com> <487B8D2C.1090208@hhs.nl>
+	 <4dfa50520807141055l532caaaai700255936600e5ae@mail.gmail.com>
+	 <20080715103613.4fbbf01f@hyperion.delvare>
+In-Reply-To: <20080715103613.4fbbf01f@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Hubbard <david.c.hubbard@gmail.com>
+To: Jean Delvare <khali@linux-fr.org>
 Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, linuxppc-dev@ozlabs.org, Samuel Ortiz <samuel@sortiz.org>, linux-kernel@vger.kernel.org, Milton Miller <miltonm@bga.com>, lm-sensors@lm-sensors.org
 
-On Mon, 14 Jul 2008 11:55:01 -0600, David Hubbard wrote:
-> Hi Hans,
-> 
-> On Mon, Jul 14, 2008 at 11:30 AM, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
-> > Milton Miller wrote:
-> >> I haven't done the research, but it might be keep superio as
-> >> a platform driver, and keep the clients as platform drivers.  Only
-> >> have the superio driver probe and discover the subcomponent
-> >> addresses and then create the platform devices as children
-> >> instead of having each driver create its own platform device.
-> >> (This all assumes they are all platform devices in sysfs, I have
-> >> not looked).
-> >>
-> >> This is all because in the platform bus the bus driver does not
-> >> discover the addresses but relies on drivers or platform setup code.
-> >
-> > This sounds like a good plan, rather then add a new bus type add a superio
-> > platform driver which does superio probing and registering of platform devices
-> > for discovered logical devices.
-> >
-> > This superio platform driver then needs to also export some functions of those
-> > few logical devices which need access to the superio registers for more then
-> > just finding out their own base address.
-> >
-> > I guess that it then would be best to load this superio driver by default on
-> > most systems.
-> >
-> > How does this all mix and match with isapnp, it feels to me we're doing
-> > somewhat the same as isapnp here.
-> 
-> Is there any way to use lspci and start at the LPC bridge, then find
-> the SuperIO chip's IO address? What about ACPI tables? Perhaps probing
-> logic could look for an LPC bridge before probing certain IO addresses
-> even if the addresses are not in the LPC bridge config.
+Hi Jean,
 
-I always assumed that there was no way to know in advance if a
-Super-I/O (LPC) chip was present or not, let alone the exact model of
-the chip. The I/O addresses are decoded by the Super-I/O chip itself,
-and in general it has no relation to PCI. And I've never seen ports
-0x2e/0x2f nor 0x4e/0x4f listed in /proc/ioports.
+On Tue, Jul 15, 2008 at 2:36 AM, Jean Delvare <khali@linux-fr.org> wrote:
+>> Is there any way to use lspci and start at the LPC bridge, then find
+>> the SuperIO chip's IO address? What about ACPI tables? Perhaps probing
+>> logic could look for an LPC bridge before probing certain IO addresses
+>> even if the addresses are not in the LPC bridge config.
+>
+> I always assumed that there was no way to know in advance if a
+> Super-I/O (LPC) chip was present or not, let alone the exact model of
+> the chip. The I/O addresses are decoded by the Super-I/O chip itself,
+> and in general it has no relation to PCI. And I've never seen ports
+> 0x2e/0x2f nor 0x4e/0x4f listed in /proc/ioports.
+>
+> But of course if there is a way to know, we should use it. Avoiding
+> random access to I/O ports, even if they are relatively standard in
+> this case, is always good.
 
-But of course if there is a way to know, we should use it. Avoiding
-random access to I/O ports, even if they are relatively standard in
-this case, is always good.
+I looked at my lspci output and did a little researching, and I think
+the only thing we can deduce is that there is an LPC bridge, so
+looking for a SuperIO is a good idea. If there is no LPC bridge
+listed, I can't say whether probing the ports is a good idea or not.
 
-> A superio platform driver is a good way to go -- it fits with the way
-> the platform bus does things. Also, Jim's patches are almost there
-> already.
-
-Good.
-
--- 
-Jean Delvare
+David
 
 _______________________________________________
 lm-sensors mailing list
