@@ -1,212 +1,137 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 16 Jul 2008 18:11:48 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (adm1029) Convert to a new-style
-Message-Id: <487E39E4.7020206@hhs.nl>
+From: Jim Cromie <jim.cromie@gmail.com>
+Date: Tue, 15 Jul 2008 07:56:00 +0000
+Subject: Re: [lm-sensors] superio lock coordinator
+Message-Id: <487C5810.3030205@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080716145034.49a730b6@hyperion.delvare>
-In-Reply-To: <20080716145034.49a730b6-ig7AzVSIIG7kN2dkZ6Wm7A@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Cc: Linux I2C <i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> The new-style adm1029 driver implements the optional detect() callback
-> to cover the use cases of the legacy driver.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Corentin Labbe <corentin.labbe@geomatys.fr>
+hi Hans,
 
-Looks good,
+thanks for the personal invite to this thread. 
+I messed up a laptop update last nov, and lost my mail folders
+(several gig had piled up so the purge was needed anyway)
 
-Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+hi everyone else too,
+apologies for being out of it for so long, and for things left half done.
 
-Regards,
+> David Hubbard wrote:
+>> Hi Hans,
+>>
+>> I can pick it up again and push it forward. IIRC we wanted to know
+>> what was the best way to encode the enter and exit sequences for a
+>> SuperIO because the w83627ehf is different than pretty much any other.
+>> That was the tricky part.
+>>
+>
+> If you look at the latest version posted by Jim:
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2007-October/021562.html
+>
+> You will see that it already has configurable enter / exit sequences. 
+> AFAIK the winbond chips are not unique in having differen enter / exit 
+> sequences as other superio's have, so having to specify the enter / 
+> exit sequence in the driver using the super io coordinator seems correct.
+>
 
-Hans
+I have recently been revisiting the patches, but havent been entirely 
+happy with them,
+and didnt really like them enough to propose again.
+
+This thread certainly ups it from a background muse.
+Happily, I got my soekris back, and have a box that can actually
+use 2 superio-client-drivers (ghod this needs a shorter name)
 
 
-> ---
->  drivers/hwmon/adm1029.c |   97 +++++++++++++++++++++--------------------------
->  1 file changed, 44 insertions(+), 53 deletions(-)
-> 
-> --- linux-2.6.26-rc9.orig/drivers/hwmon/adm1029.c	2008-07-12 09:20:31.000000000 +0200
-> +++ linux-2.6.26-rc9/drivers/hwmon/adm1029.c	2008-07-12 10:27:32.000000000 +0200
-> @@ -115,9 +115,11 @@ static const u8 ADM1029_REG_FAN_DIV[] = 
->   * Functions declaration
->   */
->  
-> -static int adm1029_attach_adapter(struct i2c_adapter *adapter);
-> -static int adm1029_detect(struct i2c_adapter *adapter, int address, int kind);
-> -static int adm1029_detach_client(struct i2c_client *client);
-> +static int adm1029_probe(struct i2c_client *client,
-> +			 const struct i2c_device_id *id);
-> +static int adm1029_detect(struct i2c_client *client, int kind,
-> +			  struct i2c_board_info *info);
-> +static int adm1029_remove(struct i2c_client *client);
->  static struct adm1029_data *adm1029_update_device(struct device *dev);
->  static int adm1029_init_client(struct i2c_client *client);
->  
-> @@ -125,12 +127,22 @@ static int adm1029_init_client(struct i2
->   * Driver data (common to all clients)
->   */
->  
-> +static const struct i2c_device_id adm1029_id[] = {
-> +	{ "adm1029", adm1029 },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(i2c, adm1029_id);
-> +
->  static struct i2c_driver adm1029_driver = {
-> +	.class		= I2C_CLASS_HWMON,
->  	.driver = {
->  		.name = "adm1029",
->  	},
-> -	.attach_adapter = adm1029_attach_adapter,
-> -	.detach_client = adm1029_detach_client,
-> +	.probe		= adm1029_probe,
-> +	.remove		= adm1029_remove,
-> +	.id_table	= adm1029_id,
-> +	.detect		= adm1029_detect,
-> +	.address_data	= &addr_data,
->  };
->  
->  /*
-> @@ -138,7 +150,6 @@ static struct i2c_driver adm1029_driver 
->   */
->  
->  struct adm1029_data {
-> -	struct i2c_client client;
->  	struct device *hwmon_dev;
->  	struct mutex update_lock;
->  	char valid;		/* zero until following fields are valid */
-> @@ -284,37 +295,14 @@ static const struct attribute_group adm1
->   * Real code
->   */
->  
-> -static int adm1029_attach_adapter(struct i2c_adapter *adapter)
-> +/* Return 0 if detection is successful, -ENODEV otherwise */
-> +static int adm1029_detect(struct i2c_client *client, int kind,
-> +			  struct i2c_board_info *info)
->  {
-> -	if (!(adapter->class & I2C_CLASS_HWMON))
-> -		return 0;
-> -	return i2c_probe(adapter, &addr_data, adm1029_detect);
-> -}
-> +	struct i2c_adapter *adapter = client->adapter;
->  
-> -/*
-> - * The following function does more than just detection. If detection
-> - * succeeds, it also registers the new chip.
-> - */
-> -
-> -static int adm1029_detect(struct i2c_adapter *adapter, int address, int kind)
-> -{
-> -	struct i2c_client *client;
-> -	struct adm1029_data *data;
-> -	int err = 0;
-> -	const char *name = "";
->  	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-> -		goto exit;
-> -
-> -	if (!(data = kzalloc(sizeof(struct adm1029_data), GFP_KERNEL))) {
-> -		err = -ENOMEM;
-> -		goto exit;
-> -	}
-> -
-> -	client = &data->client;
-> -	i2c_set_clientdata(client, data);
-> -	client->addr = address;
-> -	client->adapter = adapter;
-> -	client->driver = &adm1029_driver;
-> +		return -ENODEV;
->  
->  	/* Now we do the detection and identification. A negative kind
->  	 * means that the driver was loaded with no force parameter
-> @@ -362,32 +350,41 @@ static int adm1029_detect(struct i2c_ada
->  		if (kind <= 0) {	/* identification failed */
->  			pr_debug("adm1029: Unsupported chip (man_id=0x%02X, "
->  				 "chip_id=0x%02X)\n", man_id, chip_id);
-> -			goto exit_free;
-> +			return -ENODEV;
->  		}
->  	}
-> +	strlcpy(info->type, "adm1029", I2C_NAME_SIZE);
->  
-> -	if (kind = adm1029) {
-> -		name = "adm1029";
-> +	return 0;
-> +}
-> +
-> +static int adm1029_probe(struct i2c_client *client,
-> +			 const struct i2c_device_id *id)
-> +{
-> +	struct adm1029_data *data;
-> +	int err;
-> +
-> +	data = kzalloc(sizeof(struct adm1029_data), GFP_KERNEL);
-> +	if (!data) {
-> +		err = -ENOMEM;
-> +		goto exit;
->  	}
->  
-> -	/* We can fill in the remaining client fields */
-> -	strlcpy(client->name, name, I2C_NAME_SIZE);
-> +	i2c_set_clientdata(client, data);
->  	mutex_init(&data->update_lock);
->  
-> -	/* Tell the I2C layer a new client has arrived */
-> -	if ((err = i2c_attach_client(client)))
-> -		goto exit_free;
-> -
->  	/*
->  	 * Initialize the ADM1029 chip
->  	 * Check config register
->  	 */
-> -	if (adm1029_init_client(client) = 0)
-> -		goto exit_detach;
-> +	if (adm1029_init_client(client) = 0) {
-> +		err = -ENODEV;
-> +		goto exit_free;
-> +	}
->  
->  	/* Register sysfs hooks */
->  	if ((err = sysfs_create_group(&client->dev.kobj, &adm1029_group)))
-> -		goto exit_detach;
-> +		goto exit_free;
->  
->  	data->hwmon_dev = hwmon_device_register(&client->dev);
->  	if (IS_ERR(data->hwmon_dev)) {
-> @@ -399,8 +396,6 @@ static int adm1029_detect(struct i2c_ada
->  
->   exit_remove_files:
->  	sysfs_remove_group(&client->dev.kobj, &adm1029_group);
-> - exit_detach:
-> -	i2c_detach_client(client);
->   exit_free:
->  	kfree(data);
->   exit:
-> @@ -424,17 +419,13 @@ static int adm1029_init_client(struct i2
->  	return 1;
->  }
->  
-> -static int adm1029_detach_client(struct i2c_client *client)
-> +static int adm1029_remove(struct i2c_client *client)
->  {
->  	struct adm1029_data *data = i2c_get_clientdata(client);
-> -	int err;
->  
->  	hwmon_device_unregister(data->hwmon_dev);
->  	sysfs_remove_group(&client->dev.kobj, &adm1029_group);
->  
-> -	if ((err = i2c_detach_client(client)))
-> -		return err;
-> -
->  	kfree(data);
->  	return 0;
->  }
-> 
+these are on my current todo / partly done
+
+- struct superio_common - stuff thats copied from struct superio-search 
+to struct superio when reservation is taken
+
+- add a u8 flags to struct superio
+-- carries bit for tracking enter/exit state -
+    should support warnings on situations like enter-on-entered, 
+exit-on-exited
+ - could carry a toggle bit for a union superio_exit { fnptr; 
+exit_seq[X] } or somesuch.
+
+-- following another thread - we'd
+--- reserve region when reservation taken, after devid is validated,
+    might help keep other semi-rogue drivers out.
+
+= sort out enter / exit
+
+As David noted in this thread, the ehf driver has an odd exit sequence,
+
+The combined combined superio_exit() function I have coded currently is 
+really quite hideous,
+and has me thinking towards  David's function-pointer idea.
+
+- the other alternative is that David's driver should include its own 
+custom exit-fn, which
+he would use instead of the regular superio_exit().  It could use the 
+superio_enter routine as-is iirc.
+
+my stall points - (fishing for answers;)
+
+- enter / exit should be tracked by superio-locks, in flags bit.   
+(recent idea, seems sound)
+- enter / exit should be vaguely discouraged in kernel-doc - due to 
+expectations of isadump etc.
+
+
+I guess I gotta stop overcomplicating things, and get busy on the patch-set.
+
+
+> More interesting questions IMHO are:
+> 1) is hwmon the correct subsystem to put the .c file in (somewhat 
+> superfical
+>   really, but we need a place to put the lock coordinator (and enable 
+> / disable
+>   its building).
+
+I put it here for proximity to the center-of-mass of the drivers I found.
+
+> 2) non hwmon drivers need to be edited for superio register use too, 
+> and then
+>   modified to use the lock coordinator if they touch the superio 
+> registers.
+>   This will also be a good exercise to see if our API is generic enough.
+>
+I guess there are drivers I missed ?
+
+
+> Regards,
+>
+> Hans
+>
+
+thanks again Hans for pulling me back into this, I'll commit to staying 
+with it now.
+Should I infer from your comments that the code at the link incorporates 
+your feedback ?
+They seem to have aquired some momentum recently 8-)
+
+Jean, you raised the idea of a sysfs interface.
+Does the October patchset look to fit with what youre thinking ?
+- the most simple I can think of :
+--expose the kzalloced array of superio-fields as readonly attributes.
+--values go non-zero when superio-port is registered by some user-driver
+--it would be nice to see client-drivers list on each slot, but that 
+involves more code and mem
+
+David,
+do you have a preference wrt fn-ptr ? and if so, a single fn with 1 arg 
+:  0,1,2 for enter/exit/query ?
+do you have any use for a flag bit ?  is there generality in it ?
+
+does anyone think s/superio/sio/g is appropriate ?
+anything else ?
+
+
+thanks
+Jim
 
 
 _______________________________________________
