@@ -1,143 +1,251 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Tue, 29 Jul 2008 04:35:48 +0000
-Subject: Re: [lm-sensors] [RFC,PATCH v1] hwmon: ADC124S501 generic driver
-Message-Id: <20080728213548.156af744.akpm@linux-foundation.org>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 16 Jul 2008 14:36:29 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (fschmd) Convert to a new-style i2c
+Message-Id: <20080716163629.58e7c98f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200807231307.54837.marc.pignat@hevs.ch>
-In-Reply-To: <200807231307.54837.marc.pignat@hevs.ch>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marc Pignat <marc.pignat@hevs.ch>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, David Brownell <david-b@pacbell.net>, "Mark M. Hoffman" <mhoffman@lightlink.com>
+To: Linux I2C <i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
+Cc: Hans de Goede <j.w.r.degoede-fbo2DhPpy/Q@public.gmane.org>
 
-On Wed, 23 Jul 2008 13:07:54 +0200 Marc Pignat <marc.pignat@hevs.ch> wrote:
+The new-style fschmd driver implements the optional detect() callback
+to cover the use cases of the legacy driver.
 
-> SPI driver for analog to digital converters national semiconductor ADC081S101,
-> ADC124S501, ...
-> 
-> Signed-off-by: Marc Pignat <marc.pignat@hevs.ch>
-> 
-> Hi all!
-> 
-> patch against 2.6.26, tested on a custom arm board and only compil-tested on
-> x86.
-> 
-> This driver add support for National Semiconductor ADC<bb><c>S<sss> chip family,
-> where:
->  * bb  is the resolution in number of bits (8, 10, 12)
->  * c   is the number of channels (1, 2, 4)
->  * sss is the maximum conversion speed (021 for 200 kSPS, 051 for 500
->    kSPS and 101 for 1 MSPS)
-> 
-> Some remarks:
->  * The chip type (-> the number of inputs) are determined by the module alias,
->    is it a good idea? it could be implemented using platform data.
-> 
->  * The Makefile seems ordered alphabetically, what order should be used for
->    the Konfig file?
-> 
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>
+---
+ drivers/hwmon/fschmd.c |  112 ++++++++++++++++++++++++------------------------
+ 1 file changed, 57 insertions(+), 55 deletions(-)
 
-That changelog is a bit of a mess.  I cleaned up up as:
+--- linux-2.6.26-rc9.orig/drivers/hwmon/fschmd.c	2008-07-12 09:20:30.000000000 +0200
++++ linux-2.6.26-rc9/drivers/hwmon/fschmd.c	2008-07-12 10:27:23.000000000 +0200
+@@ -171,20 +171,37 @@ static const int FSCHMD_NO_TEMP_SENSORS[
+  * Functions declarations
+  */
+ 
+-static int fschmd_attach_adapter(struct i2c_adapter *adapter);
+-static int fschmd_detach_client(struct i2c_client *client);
++static int fschmd_probe(struct i2c_client *client,
++			const struct i2c_device_id *id);
++static int fschmd_detect(struct i2c_client *client, int kind,
++			 struct i2c_board_info *info);
++static int fschmd_remove(struct i2c_client *client);
+ static struct fschmd_data *fschmd_update_device(struct device *dev);
+ 
+ /*
+  * Driver data (common to all clients)
+  */
+ 
++static const struct i2c_device_id fschmd_id[] = {
++	{ "fscpos", fscpos },
++	{ "fscher", fscher },
++	{ "fscscy", fscscy },
++	{ "fschrc", fschrc },
++	{ "fschmd", fschmd },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, fschmd_id);
++
+ static struct i2c_driver fschmd_driver = {
++	.class		= I2C_CLASS_HWMON,
+ 	.driver = {
+ 		.name	= FSCHMD_NAME,
+ 	},
+-	.attach_adapter	= fschmd_attach_adapter,
+-	.detach_client	= fschmd_detach_client,
++	.probe		= fschmd_probe,
++	.remove		= fschmd_remove,
++	.id_table	= fschmd_id,
++	.detect		= fschmd_detect,
++	.address_data	= &addr_data,
+ };
+ 
+ /*
+@@ -192,7 +209,6 @@ static struct i2c_driver fschmd_driver   */
+ 
+ struct fschmd_data {
+-	struct i2c_client client;
+ 	struct device *hwmon_dev;
+ 	struct mutex update_lock;
+ 	int kind;
+@@ -269,7 +285,7 @@ static ssize_t store_temp_max(struct dev
+ 	v = SENSORS_LIMIT(v, -128, 127) + 128;
+ 
+ 	mutex_lock(&data->update_lock);
+-	i2c_smbus_write_byte_data(&data->client,
++	i2c_smbus_write_byte_data(to_i2c_client(dev),
+ 		FSCHMD_REG_TEMP_LIMIT[data->kind][index], v);
+ 	data->temp_max[index] = v;
+ 	mutex_unlock(&data->update_lock);
+@@ -346,14 +362,14 @@ static ssize_t store_fan_div(struct devi
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	reg = i2c_smbus_read_byte_data(&data->client,
++	reg = i2c_smbus_read_byte_data(to_i2c_client(dev),
+ 		FSCHMD_REG_FAN_RIPPLE[data->kind][index]);
+ 
+ 	/* bits 2..7 reserved => mask with 0x03 */
+ 	reg &= ~0x03;
+ 	reg |= v;
+ 
+-	i2c_smbus_write_byte_data(&data->client,
++	i2c_smbus_write_byte_data(to_i2c_client(dev),
+ 		FSCHMD_REG_FAN_RIPPLE[data->kind][index], reg);
+ 
+ 	data->fan_ripple[index] = reg;
+@@ -416,7 +432,7 @@ static ssize_t store_pwm_auto_point1_pwm
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	i2c_smbus_write_byte_data(&data->client,
++	i2c_smbus_write_byte_data(to_i2c_client(dev),
+ 		FSCHMD_REG_FAN_MIN[data->kind][index], v);
+ 	data->fan_min[index] = v;
+ 
+@@ -448,14 +464,14 @@ static ssize_t store_alert_led(struct de
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	reg = i2c_smbus_read_byte_data(&data->client, FSCHMD_REG_CONTROL);
++	reg = i2c_smbus_read_byte_data(to_i2c_client(dev), FSCHMD_REG_CONTROL);
+ 
+ 	if (v)
+ 		reg |= FSCHMD_CONTROL_ALERT_LED_MASK;
+ 	else
+ 		reg &= ~FSCHMD_CONTROL_ALERT_LED_MASK;
+ 
+-	i2c_smbus_write_byte_data(&data->client, FSCHMD_REG_CONTROL, reg);
++	i2c_smbus_write_byte_data(to_i2c_client(dev), FSCHMD_REG_CONTROL, reg);
+ 
+ 	data->global_control = reg;
+ 
+@@ -600,32 +616,15 @@ static void fschmd_dmi_decode(const stru
+ 	}
+ }
+ 
+-static int fschmd_detect(struct i2c_adapter *adapter, int address, int kind)
++static int fschmd_detect(struct i2c_client *client, int kind,
++			 struct i2c_board_info *info)
+ {
+-	struct i2c_client *client;
+-	struct fschmd_data *data;
+-	u8 revision;
+-	const char * const names[5] = { "Poseidon", "Hermes", "Scylla",
+-					"Heracles", "Heimdall" };
++	struct i2c_adapter *adapter = client->adapter;
+ 	const char * const client_names[5] = { "fscpos", "fscher", "fscscy",
+ 						"fschrc", "fschmd" };
+-	int i, err = 0;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+-		return 0;
+-
+-	/* OK. For now, we presume we have a valid client. We now create the
+-	 * client structure, even though we cannot fill it completely yet.
+-	 * But it allows us to access i2c_smbus_read_byte_data. */
+-	if (!(data = kzalloc(sizeof(struct fschmd_data), GFP_KERNEL)))
+-		return -ENOMEM;
+-
+-	client = &data->client;
+-	i2c_set_clientdata(client, data);
+-	client->addr = address;
+-	client->adapter = adapter;
+-	client->driver = &fschmd_driver;
+-	mutex_init(&data->update_lock);
++		return -ENODEV;
+ 
+ 	/* Detect & Identify the chip */
+ 	if (kind <= 0) {
+@@ -650,9 +649,31 @@ static int fschmd_detect(struct i2c_adap
+ 		else if (!strcmp(id, "HMD"))
+ 			kind = fschmd;
+ 		else
+-			goto exit_free;
++			return -ENODEV;
+ 	}
+ 
++	strlcpy(info->type, client_names[kind - 1], I2C_NAME_SIZE);
++
++	return 0;
++}
++
++static int fschmd_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct fschmd_data *data;
++	u8 revision;
++	const char * const names[5] = { "Poseidon", "Hermes", "Scylla",
++					"Heracles", "Heimdall" };
++	int i, err;
++	enum chips kind = id->driver_data;
++
++	data = kzalloc(sizeof(struct fschmd_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, data);
++	mutex_init(&data->update_lock);
++
+ 	if (kind = fscpos) {
+ 		/* The Poseidon has hardwired temp limits, fill these
+ 		   in for the alarm resetting code */
+@@ -674,11 +695,6 @@ static int fschmd_detect(struct i2c_adap
+ 
+ 	/* i2c kind goes from 1-5, we want from 0-4 to address arrays */
+ 	data->kind = kind - 1;
+-	strlcpy(client->name, client_names[data->kind], I2C_NAME_SIZE);
+-
+-	/* Tell the I2C layer a new client has arrived */
+-	if ((err = i2c_attach_client(client)))
+-		goto exit_free;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(fschmd_attr); i++) {
+ 		err = device_create_file(&client->dev,
+@@ -726,25 +742,14 @@ static int fschmd_detect(struct i2c_adap
+ 	return 0;
+ 
+ exit_detach:
+-	fschmd_detach_client(client); /* will also free data for us */
+-	return err;
+-
+-exit_free:
+-	kfree(data);
++	fschmd_remove(client); /* will also free data for us */
+ 	return err;
+ }
+ 
+-static int fschmd_attach_adapter(struct i2c_adapter *adapter)
+-{
+-	if (!(adapter->class & I2C_CLASS_HWMON))
+-		return 0;
+-	return i2c_probe(adapter, &addr_data, fschmd_detect);
+-}
+-
+-static int fschmd_detach_client(struct i2c_client *client)
++static int fschmd_remove(struct i2c_client *client)
+ {
+ 	struct fschmd_data *data = i2c_get_clientdata(client);
+-	int i, err;
++	int i;
+ 
+ 	/* Check if registered in case we're called from fschmd_detect
+ 	   to cleanup after an error */
+@@ -760,9 +765,6 @@ static int fschmd_detach_client(struct i
+ 		device_remove_file(&client->dev,
+ 					&fschmd_fan_attr[i].dev_attr);
+ 
+-	if ((err = i2c_detach_client(client)))
+-		return err;
+-
+ 	kfree(data);
+ 	return 0;
+ }
 
-SPI driver for analog to digital converters national semiconductor
-ADC081S101, ADC124S501, ...
 
-This driver adds support for National Semiconductor ADC<bb><c>S<sss> chip
-family, where:
-
- * bb  is the resolution in number of bits (8, 10, 12)
- * c   is the number of channels (1, 2, 4)
- * sss is the maximum conversion speed (021 for 200 kSPS, 051 for 500
-   kSPS and 101 for 1 MSPS)
-
-Some remarks:
-
-* The chip type (-> the number of inputs) are determined by the module
-  alias, is it a good idea?  it could be implemented using platform data.
-
-Signed-off-by: Marc Pignat <marc.pignat@hevs.ch>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: David Brownell <david-b@pacbell.net>
-
-but then didn't apply the patch.
-
->
-> ...
->
-> +/* sysfs hook function */
-> +static ssize_t adcxx_read(struct device *dev,
-> +		struct device_attribute *devattr, char *buf)
-> +{
-> +	struct spi_device *spi = to_spi_device(dev);
-> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> +	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-> +
-> +	u8 tx_buf[2] = { attr->index << 3 }; /* other bits are don't care */
-> +	u8 rx_buf[2];
-> +	int status;
-> +	int value;
-
-The driver has rather a lot of inexplicable blank lines in the middle
-of the automatic variable definitions.  The preferred style is no blank
-lines within the definitions and a single blank line after them all,
-thanks.
-
->
-> ...
->
-> +static int __devinit adcxx_probe(struct spi_device *spi, int channels)
-> +{
-> +	struct adcxx *adc;
-> +	int status;
-> +	int i;
-> +
-> +	adc = kzalloc(sizeof *adc, GFP_KERNEL);
-> +	if (!adc)
-> +		return -ENOMEM;
-> +
-> +	/* set a default value for the reference */
-> +	adc->reference = 3300;
-> +
-> +	adc->channels = channels;
-> +
-> +	mutex_init(&adc->lock);
-> +
-> +	dev_set_drvdata(&spi->dev, adc);
-> +
-> +	for (i = 0; i < 3 + adc->channels; i++) {
-> +		status = device_create_file(&spi->dev, &ad_input[i].dev_attr);
-> +		if (status)
-> +			goto out_dev_create_file_failed;
-> +	}
-> +
-> +	adc->hwmon_dev = hwmon_device_register(&spi->dev);
-> +	if (IS_ERR(adc->hwmon_dev)) {
-> +		dev_dbg(&spi->dev, "hwmon_device_register failed.\n");
-> +		status = PTR_ERR(adc->hwmon_dev);
-> +		goto out_dev_reg_failed;
-> +	}
-> +
-> +	return 0;
-> +
-> +out_dev_create_file_failed:
-> +	hwmon_device_unregister(adc->hwmon_dev);
-> +	for (i = 0; i < 3 + adc->channels; i++)
-> +		device_remove_file(&spi->dev, &ad_input[i].dev_attr);
-> +out_dev_reg_failed:
-> +	dev_set_drvdata(&spi->dev, NULL);
-> +	kfree(adc);
-> +	return status;
-> +}
-
-The error recovery here is messed up.  The targets of the `goto's are
-reversed.  But even if that is fixed, we can end up doing
-device_remove_file() of objects which weren't successfully created. 
-That might work, or it might generate runtime warnings or it might
-crash.  I don't know.  It'd be best to just avoid doing it?
-
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
