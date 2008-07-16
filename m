@@ -1,143 +1,200 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Sat, 12 Jul 2008 20:52:00 +0000
-Subject: Re: [lm-sensors] cpu too hot
-Message-Id: <191fb4ca0807121352v6c015422nb0a2a18a482b4747@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 16 Jul 2008 14:32:57 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (adm9240) Convert to a new-style i2c
+Message-Id: <20080716163257.107e9340@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4878e8fc.2234440a.0460.3d0b@mx.google.com>
-In-Reply-To: <4878e8fc.2234440a.0460.3d0b@mx.google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Linux I2C <i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
+Cc: Grant Coady <gcoady.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Hi Gijs,
+The new-style adm9240 driver implements the optional detect() callback
+to cover the use cases of the legacy driver.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Grant Coady <gcoady.lk@gmail.com>
+---
+ drivers/hwmon/adm9240.c |   93 +++++++++++++++++++++++------------------------
+ 1 file changed, 46 insertions(+), 47 deletions(-)
+
+--- linux-2.6.26-rc9.orig/drivers/hwmon/adm9240.c	2008-07-12 09:20:31.000000000 +0200
++++ linux-2.6.26-rc9/drivers/hwmon/adm9240.c	2008-07-12 10:27:31.000000000 +0200
+@@ -130,25 +130,37 @@ static inline unsigned int AOUT_FROM_REG
+ 	return SCALE(reg, 1250, 255);
+ }
+ 
+-static int adm9240_attach_adapter(struct i2c_adapter *adapter);
+-static int adm9240_detect(struct i2c_adapter *adapter, int address, int kind);
++static int adm9240_probe(struct i2c_client *client,
++			 const struct i2c_device_id *id);
++static int adm9240_detect(struct i2c_client *client, int kind,
++			  struct i2c_board_info *info);
+ static void adm9240_init_client(struct i2c_client *client);
+-static int adm9240_detach_client(struct i2c_client *client);
++static int adm9240_remove(struct i2c_client *client);
+ static struct adm9240_data *adm9240_update_device(struct device *dev);
+ 
+ /* driver data */
++static const struct i2c_device_id adm9240_id[] = {
++	{ "adm9240", adm9240 },
++	{ "ds1780", ds1780 },
++	{ "lm81", lm81 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, adm9240_id);
++
+ static struct i2c_driver adm9240_driver = {
++	.class		= I2C_CLASS_HWMON,
+ 	.driver = {
+ 		.name	= "adm9240",
+ 	},
+-	.attach_adapter	= adm9240_attach_adapter,
+-	.detach_client	= adm9240_detach_client,
++	.probe		= adm9240_probe,
++	.remove		= adm9240_remove,
++	.id_table	= adm9240_id,
++	.detect		= adm9240_detect,
++	.address_data	= &addr_data,
+ };
+ 
+ /* per client data */
+ struct adm9240_data {
+-	enum chips type;
+-	struct i2c_client client;
+ 	struct device *hwmon_dev;
+ 	struct mutex update_lock;
+ 	char valid;
+@@ -532,28 +544,17 @@ static const struct attribute_group adm9
+ 
+ /*** sensor chip detect and driver install ***/
+ 
+-static int adm9240_detect(struct i2c_adapter *adapter, int address, int kind)
++/* Return 0 if detection is successful, -ENODEV otherwise */
++static int adm9240_detect(struct i2c_client *new_client, int kind,
++			  struct i2c_board_info *info)
+ {
+-	struct i2c_client *new_client;
+-	struct adm9240_data *data;
+-	int err = 0;
++	struct i2c_adapter *adapter = new_client->adapter;
+ 	const char *name = "";
++	int address = new_client->addr;
+ 	u8 man_id, die_rev;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+-		goto exit;
+-
+-	if (!(data = kzalloc(sizeof(*data), GFP_KERNEL))) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
+-
+-	new_client = &data->client;
+-	i2c_set_clientdata(new_client, data);
+-	new_client->addr = address;
+-	new_client->adapter = adapter;
+-	new_client->driver = &adm9240_driver;
+-	new_client->flags = 0;
++		return -ENODEV;
+ 
+ 	if (kind = 0) {
+ 		kind = adm9240;
+@@ -566,7 +567,7 @@ static int adm9240_detect(struct i2c_ada
+ 				!= address) {
+ 			dev_err(&adapter->dev, "detect fail: address match, "
+ 					"0x%02x\n", address);
+-			goto exit_free;
++			return -ENODEV;
+ 		}
+ 
+ 		/* check known chip manufacturer */
+@@ -581,7 +582,7 @@ static int adm9240_detect(struct i2c_ada
+ 		} else {
+ 			dev_err(&adapter->dev, "detect fail: unknown manuf, "
+ 					"0x%02x\n", man_id);
+-			goto exit_free;
++			return -ENODEV;
+ 		}
+ 
+ 		/* successful detect, print chip info */
+@@ -600,20 +601,31 @@ static int adm9240_detect(struct i2c_ada
+ 	} else if (kind = lm81) {
+ 		name = "lm81";
+ 	}
++	strlcpy(info->type, name, I2C_NAME_SIZE);
+ 
+-	/* fill in the remaining client fields and attach */
+-	strlcpy(new_client->name, name, I2C_NAME_SIZE);
+-	data->type = kind;
+-	mutex_init(&data->update_lock);
++	return 0;
++}
+ 
+-	if ((err = i2c_attach_client(new_client)))
+-		goto exit_free;
++static int adm9240_probe(struct i2c_client *new_client,
++			 const struct i2c_device_id *id)
++{
++	struct adm9240_data *data;
++	int err;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data) {
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	i2c_set_clientdata(new_client, data);
++	mutex_init(&data->update_lock);
+ 
+ 	adm9240_init_client(new_client);
+ 
+ 	/* populate sysfs filesystem */
+ 	if ((err = sysfs_create_group(&new_client->dev.kobj, &adm9240_group)))
+-		goto exit_detach;
++		goto exit_free;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -625,32 +637,19 @@ static int adm9240_detect(struct i2c_ada
+ 
+ exit_remove:
+ 	sysfs_remove_group(&new_client->dev.kobj, &adm9240_group);
+-exit_detach:
+-	i2c_detach_client(new_client);
+ exit_free:
+ 	kfree(data);
+ exit:
+ 	return err;
+ }
+ 
+-static int adm9240_attach_adapter(struct i2c_adapter *adapter)
+-{
+-	if (!(adapter->class & I2C_CLASS_HWMON))
+-		return 0;
+-	return i2c_probe(adapter, &addr_data, adm9240_detect);
+-}
+-
+-static int adm9240_detach_client(struct i2c_client *client)
++static int adm9240_remove(struct i2c_client *client)
+ {
+ 	struct adm9240_data *data = i2c_get_clientdata(client);
+-	int err;
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &adm9240_group);
+ 
+-	if ((err = i2c_detach_client(client)))
+-		return err;
+-
+ 	kfree(data);
+ 	return 0;
+ }
 
 
-> l.s.
->
-> my sony vaio laptop running fluxbuntu is getting way too hot and I am
-> trying to get an idea of the temperature with lm-sensors.
-> But I cannot make any sense of all the gibberish on this site or of the
-> lengthy stories coming out of the installation script below.
-> Although I am an IT professional, it seems one has to be a rocket
-> scientist to simply measure the temperature of a device.
-
-Well that would make my 5 year old daughter a rocket scientist then,
-since she has no problem understanding the meaning of the sentence
-"Sorry, no sensors were detected.".
-
-You seem to miss the fact that we're just a bunch of Linux-loving
-people who devote quite a bit of our personal time to the lm-sensors
-project. It's not our job and we don't get paid for it, we do it
-because we like it. It's hard enough already with all our other other
-personal and professional commitments and the lack of support from the
-chip vendors. The last thing we need is abuse from people like you. If
-you don't like our SW, don't use it and stay out of our hair. Or even
-better, how about some constructive contribution to the project? You
-could add support for your laptop and make a couple of other Sony
-users happy. Shouldn't be to hard for you given you're an IT
-professional.
-
-Don't expect any kind of support if you keep up this tone.
-
-...juerg
-
-
-> Anaybody can make any sense of this?
->
-> Gijs
-> ========================================> gijs@gijs:/tmp$ sudo perl "sensors-detect?format=txt"
-> # sensors-detect revision $Revision$
->
-> This program will help you determine which kernel modules you need
-> to load to use lm_sensors most effectively. It is generally safe
-> and recommended to accept the default answers to all questions,
-> unless you know what you're doing.
->
-> We can start with probing for (PCI) I2C or SMBus adapters.
-> Do you want to probe now? (YES/no):
-> Probing for PCI bus adapters...
-> Use driver `i2c-ali15x3' for device 0000:00:06.0: Acer Labs 1533/1543
-> Use driver `i2c-ali1535' for device 0000:00:06.0: Acer Labs 1535
->
-> We will now try to load each adapter module in turn.
-> Module `i2c-ali15x3' already loaded.
-> Module `i2c-ali1535' already loaded.
-> If you have undetectable or unsupported I2C/SMBus adapters, you can have
-> them scanned by manually loading the modules before running this script.
->
-> We are now going to do the I2C/SMBus adapter probings. Some chips may
-> be double detected; we choose the one with the highest confidence
-> value in that case.
-> If you found that the adapter hung after probing a certain address,
-> you can specify that address to remain unprobed.
->
-> Next adapter: SMBus ALI1535 adapter at 8040 (i2c-0)
-> Do you want to scan it? (YES/no/selectively):
-> Client found at address 0x50
-> Probing for `Analog Devices ADM1033'...                     No
-> Probing for `Analog Devices ADM1034'...                     No
-> Probing for `SPD EEPROM'...                                 Yes
->    (confidence 8, not a hardware monitoring chip)
-> Probing for `EDID EEPROM'...                                No
-> Client found at address 0x51
-> Probing for `Analog Devices ADM1033'...                     No
-> Probing for `Analog Devices ADM1034'...                     No
-> Probing for `SPD EEPROM'...                                 YesSome
-> chips are also accessible through the ISA I/O ports. We have to write
-> to arbitrary I/O ports to probe them. This is usually safe though. Yes,
-> you do have ISA I/O ports even if you do not have any ISA slots! Do you
-> want to scan the ISA I/O ports? (YES/no): Probing for `National
-> Semiconductor LM78' at 0x290...       No Probing for `National
-> Semiconductor LM78-J' at 0x290...     No Probing for `National
-> Semiconductor LM79' at 0x290...       No Probing for `Winbond W83781D'
-> at 0x290...                   No Probing for `Winbond W83782D' at
-> 0x290...                   No Probing for `IPMI BMC KCS' at
-> 0xca0...                      No Probing for `IPMI BMC SMIC' at
-> 0xca8...                     No
->
-> Some Super I/O chips may also contain sensors. We have to write to
-> standard I/O ports to probe them. This is usually safe.
-> Do you want to scan for Super I/O sensors? (YES/no):
-> Probing for Super-I/O at 0x2e/0x2f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Fintek'...                       No
-> Trying family `ITE'...                                      No
-> Probing for Super-I/O at 0x4e/0x4f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Fintek'...                       No
-> Trying family `ITE'...                                      No
->
-> Some south bridges, CPUs or memory controllers may also contain
-> embedded sensors. Do you want to scan for them? (YES/no):
-> Silicon Integrated Systems SIS5595...                       No
-> VIA VT82C686 Integrated Sensors...                          No
-> VIA VT8231 Integrated Sensors...                            No
-> AMD K8 thermal sensors...                                   No
-> AMD K10 thermal sensors...                                  No
-> Intel Core family thermal sensor...                         No
-> Intel AMB FB-DIMM thermal sensor...                         No
-> VIA C7 thermal and voltage sensors...                       No
->
-> Sorry, no sensors were detected.
-> Either your sensors are not supported, or they are connected to an
-> I2C or SMBus adapter that is not supported. See doc/FAQ,
-> doc/lm_sensors-FAQ.html or http://www.lm-sensors.org/wiki/FAQ
-> (FAQ #4.24.3) for further information.
-> If you find out what chips are on your board, check
-> http://www.lm-sensors.org/wiki/Devices for driver status.
->
->    (confidence 8, not a hardware monitoring chip)
-> Probing for `EDID EEPROM'...                                No
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
