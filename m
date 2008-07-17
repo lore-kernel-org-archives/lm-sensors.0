@@ -1,7 +1,7 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Thu, 17 Jul 2008 07:33:12 +0000
+From: Wolfgang Grandegger <wg@grandegger.com>
+Date: Thu, 17 Jul 2008 10:39:19 +0000
 Subject: Re: [lm-sensors] [PATCH] Support for DS75 thermal sensor
-Message-Id: <20080717073312.GB30474@secretlab.ca>
+Message-Id: <487F2157.90604@grandegger.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <487754DA.1060207@grandegger.com>
 	<20080711145613.14380360@hyperion.delvare>
@@ -13,33 +13,35 @@ References: <487754DA.1060207@grandegger.com>
 	<9e4733910807160718y580292abi5f44a05f466fd358@mail.gmail.com>
 	<20080716162942.6fcb526d@hyperion.delvare>
 	<487EF54C.5020007@grandegger.com>
-In-Reply-To: <487EF54C.5020007@grandegger.com>
+	<20080717073312.GB30474@secretlab.ca>
+In-Reply-To: <20080717073312.GB30474@secretlab.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wolfgang Grandegger <wg@grandegger.com>
+To: Grant Likely <grant.likely@secretlab.ca>
 Cc: Jean Delvare <khali@linux-fr.org>, Linuxppc-dev@ozlabs.org, Alan Clucas <alanc@pipstechnology.co.uk>, Detlev Zundel <dzu@denx.de>, lm-sensors@lm-sensors.org
 
-On Thu, Jul 17, 2008 at 09:31:24AM +0200, Wolfgang Grandegger wrote:
-> Jean Delvare wrote:
->> On Wed, 16 Jul 2008 10:18:26 -0400, Jon Smirl wrote:
->>> I've found this thread now. Why can't we totally remove probing from
->>> i2c-mpc? These are embedded systems, not open boxes like a PC. If a
->>> i2c client hasn't been converted to the new model yet, convert it
->>> before deploying with the new i2c-mpc driver.  It's not very hard to
->>> convert the client drivers.
->>
->> I tend to agree. And the number of unconverted drivers is getting very
->> low these days. Only 2 RTC drivers are left, and by the end of the day,
->> almost all hwmon drivers will be converted as well.
->
-> Thinking more about it I also prefer removing the I2C_CLASS_HWMON flag  
-> completely. It just affects HWMON devices anyhow and if there is still  
-> an old style driver around, it should be converted.
+Grant Likely wrote:
+> On Thu, Jul 17, 2008 at 09:31:24AM +0200, Wolfgang Grandegger wrote:
+>> Jean Delvare wrote:
+>>> On Wed, 16 Jul 2008 10:18:26 -0400, Jon Smirl wrote:
+>>>> I've found this thread now. Why can't we totally remove probing from
+>>>> i2c-mpc? These are embedded systems, not open boxes like a PC. If a
+>>>> i2c client hasn't been converted to the new model yet, convert it
+>>>> before deploying with the new i2c-mpc driver.  It's not very hard to
+>>>> convert the client drivers.
+>>> I tend to agree. And the number of unconverted drivers is getting very
+>>> low these days. Only 2 RTC drivers are left, and by the end of the day,
+>>> almost all hwmon drivers will be converted as well.
+>> Thinking more about it I also prefer removing the I2C_CLASS_HWMON flag  
+>> completely. It just affects HWMON devices anyhow and if there is still  
+>> an old style driver around, it should be converted.
+> 
+> I'm cool with that.
 
-I'm cool with that.
+Good, just sent a new patch.
 
-g.
+Wolfgang.
 
 _______________________________________________
 lm-sensors mailing list
