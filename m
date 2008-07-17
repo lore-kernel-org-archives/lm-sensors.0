@@ -1,15 +1,15 @@
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 16 Jul 2008 18:25:22 +0000
+Date: Thu, 17 Jul 2008 12:40:50 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (fschmd) Convert to a new-style i2c
-Message-Id: <487E3D12.4040906@hhs.nl>
+Message-Id: <487F3DD2.50602@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20080716163629.58e7c98f@hyperion.delvare>
-In-Reply-To: <20080716163629.58e7c98f@hyperion.delvare>
+In-Reply-To: <20080716163629.58e7c98f-ig7AzVSIIG7kN2dkZ6Wm7A@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Linux I2C <i2c@lm-sensors.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Cc: Linux I2C <i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
 
 Jean Delvare wrote:
 > The new-style fschmd driver implements the optional detect() callback
@@ -18,18 +18,15 @@ Jean Delvare wrote:
 > Signed-off-by: Jean Delvare <khali@linux-fr.org>
 > Cc: Hans de Goede <j.w.r.degoede@hhs.nl>
 
-Looks good,
+Tested as promised, still works fine.
 
-Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 
 Regards,
 
 Hans
 
 
-p.s.
-
-Not tested yet (no access to an FSC machine right now). I'll test it tomorrow.
 
 > ---
 >  drivers/hwmon/fschmd.c |  112 ++++++++++++++++++++++++------------------------
@@ -261,6 +258,7 @@ Not tested yet (no access to an FSC machine right now). I'll test it tomorrow.
 >  }
 > 
 > 
+
 
 
 _______________________________________________
