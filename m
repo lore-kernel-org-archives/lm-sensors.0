@@ -1,45 +1,39 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date: Wed, 23 Jul 2008 17:48:01 +0000
+From: David Brownell <david-b@pacbell.net>
+Date: Wed, 23 Jul 2008 18:36:25 +0000
 Subject: Re: [lm-sensors] [Patch 0/4] IndustrialIO subsystem (ADCs,
-Message-Id: <20080723174801.GC11009@khazad-dum.debian.net>
+Message-Id: <200807231136.26115.david-b@pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <488763AD.4050400@gmail.com>
 In-Reply-To: <488763AD.4050400@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: Jonathan Cameron <Jonathan.Cameron@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, spi-devel-general@lists.sourceforge.net, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>, Dmitry Torokhov <dtor@mail.ru>, "Hans J. Koch" <hjk@linutronix.de>, David Brownell <david-b@pacbell.net>, mgross@linux.intel.com, Ben Nizette <bn@niasdigital.com>, Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, spi-devel-general@lists.sourceforge.net, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>, Dmitry Torokhov <dtor@mail.ru>, "Hans J. Koch" <hjk@linutronix.de>, hmh@hmh.eng.br, mgross@linux.intel.com, Ben Nizette <bn@niasdigital.com>, Anton Vorontsov <avorontsov@ru.mvista.com>
 
-On Wed, 23 Jul 2008, Jonathan Cameron wrote:
-> The subsystem is now in a functional state with a small set of drivers:
-> 
-> Max1363 (supports numerous Maxim i2c ADC's) (tested with max1363 and max1238 chips)
->    - Uses a periodic timer to provide ring buffer mode.
->    - All reads form these devices are scan modes so direct single element access
->      is not provided.
->    - Monitor mode on max1363 is not yet supported (need to do a bit debugging of
->      the board I have so as to be able to test this).
-> 
-> ST LIS3L02DQ - SPI accelerometer.
->    - Uses a datardy interrupt to driver a software ring buffer.
->    - Most functionality of this device is supported.
-> 
-> VTI SCA3000 (tested with an e05)
->    - Hardware ring buffer.
+On Wednesday 23 July 2008, Jonathan Cameron wrote:
+> * Software ring buffer support to allow semi regular capture of data form=
+ the
+> =A0 device. =A0Typically this will be driven from either datardy events, =
+or from
+> =A0 a periodic timer interrupt (to this end a very simple wrapper for per=
+iodic
+> =A0 RTC's is included. This will move to more generic timer interfaces as=
+ and when
+> =A0 they become available. =A0For now available rtc's must be registered =
+with the
+> =A0 subsystem via the industrialio_register_ptimer function form within a=
+ board
+> =A0 init.
 
-I'd like to see something done to have the common parts of interfaces of the
-same class (e.g. accelerometers) be standard.  Like hwmon does with
-temp#_input, etc.
+Could you elaborate a bit on why you'd want hardware supported
+periodic timers, rather than either an hrtimer or a timer?
+Maybe provide some real-world scenarios where those software
+abstractions are inappropriate.
 
-Otherwise you made it easier to write drivers, but did nothing to help
-userspace to USE the drivers :-)
+I can imagine numerous reasons, but those might not be yours...
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+- Dave
 
 _______________________________________________
 lm-sensors mailing list
