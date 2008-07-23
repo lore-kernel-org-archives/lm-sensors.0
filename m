@@ -1,35 +1,80 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Date: Fri, 06 Jun 2008 14:24:53 +0000
-Subject: Re: [lm-sensors] [PATCH 2.6.25.4] hwmon: HP Mobile Data
-Message-Id: <20080606102237.ZZRA012@mailhub.coreip.homeip.net>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Date: Wed, 23 Jul 2008 17:07:26 +0000
+Subject: Re: [lm-sensors] [Patch 3/4] ST LIS3L02DQ accelerometer
+Message-Id: <20080723180726.6fc0ef6e@lxorguk.ukuu.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1212235533.3815.5.camel@localhost> <4846EBF5.2030406@tremplin-utc.net> <20080604225830.1dff64fc@hyperion.delvare> <20080604230510.GB30475@elf.ucw.cz> <484728B2.1000209@tremplin-utc.net> <20080605082950.6957f1a2@hyperion.delvare> <4847B415.2080708@cam.ac.uk> <48484DD6.3050706@tremplin-utc.net> <4848683E.4070709@eslack.org>
-In-Reply-To: <4848683E.4070709@eslack.org>
+References: <488763AD.4050400@gmail.com>
+	<488766F4.20603@gmail.com>
+In-Reply-To: <488766F4.20603@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pau Oliva Fora <pau@eslack.org>
-Cc: ?ric Piel <Eric.Piel@tremplin-utc.net>, Jonathan Cameron <jic23@cam.ac.uk>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@osdl.org>, Burman <burman.yan@gmail.com>, LKML <linux-kernel@vger.kernel.org>, HWMON <lm-sensors@lm-sensors.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Pavel Machek <pavel@suse.cz>, Yan@ATrpms.net, Dmitry@ATrpms.net, Arjan van de Ven <arjan@infradead.org>
+To: Jonathan Cameron <Jonathan.Cameron@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, spi-devel-general@lists.sourceforge.net, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>, Dmitry Torokhov <dtor@mail.ru>, "Hans J. Koch" <hjk@linutronix.de>, hmh@hmh.eng.br, David Brownell <david-b@pacbell.net>, mgross@linux.intel.com, Ben Nizette <bn@niasdigital.com>, Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Hi,
+> +	xfer.tx_buf = kmalloc(4, GFP_KERNEL);
+> +	if (xfer.tx_buf = NULL) {
+> +		ret = -ENOMEM;
+> +		goto error_ret;
+> +	}
+> +
+> +	xfer.rx_buf = kmalloc(4, GFP_KERNEL);
+> +	if (xfer.rx_buf = NULL) {
+> +		ret = -ENOMEM;
+> +		goto error_free_tx;
+> +	}
 
-On Fri, Jun 06, 2008 at 12:27:10AM +0200, Pau Oliva Fora wrote:
-> From: Pau Oliva Fora <pau@eslack.org>
+Do these really need to be two kmallocs
+
+> +	if (ret) {
+> +		dev_err(&st->us->dev, "problem with get x offset");
+> +		goto error_free_rx;
+> +	}
+> +	*val = ((unsigned char *)(xfer.rx_buf))[0];
+> +	kfree(xfer.rx_buf);
+> +	kfree(xfer.tx_buf);
+> +	return ret;
+> +error_free_rx:
+> +	kfree(xfer.rx_buf);
+> +error_free_tx:
+> +	kfree(xfer.tx_buf);
+> +error_ret:
+> +	return ret;
+
+That lot makes no sense. You could just drop through..
+
+> +{
+> +	uint8_t val;
+> +	int8_t ret;
+
+Kernel types (u8, s8 etc)
+
 >
-> Add support for HTC Shift UMPC G-Sensor LIS3LV02DL accelerometer.
->
-> Signed-off-by: Pau Oliva Fora <pau@eslack.org>
->
+> +	local_rx_buf = kmalloc(4, GFP_KERNEL);
+> +	local_tx_buf = kmalloc(4, GFP_KERNEL);
+> +
+> +	local_tx_buf[1] = LIS3L02DQ_READ_REG(reg_address);
 
-The input piece looks good, however it seens that the input is the
-only functionality that this driver exports so I don't see any reason
-to make input device registration optional. Or are you planning on
-adding more functions to it?
+OOPS on out of memory case
 
-Thanks.
 
--- 
-Dmitry
+> +	struct spi_transfer xfer = {
+> +		.tx_buf = NULL,
+> +		.rx_buf = NULL,
+> +		.bits_per_word = 16,
+> +		.len = 2,
+> +	};
+> +	int ret;
+> +
+> +	local_tx_buf = kmalloc(4, GFP_KERNEL);
+> +	if (local_tx_buf = NULL) {
+> +		ret = -ENOMEM;
+> +		goto error_ret;
+> +	}
+> +	xfer.tx_buf = local_tx_buf;
+
+You seem to have a lot of almost identical routines here. It looks like
+with a few helpers this driver could be vastly shorter.
 
 _______________________________________________
 lm-sensors mailing list
