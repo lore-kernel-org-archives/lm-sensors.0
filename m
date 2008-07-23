@@ -1,416 +1,182 @@
-From: "Hans J. Koch" <hjk@linutronix.de>
-Date: Wed, 30 Jul 2008 10:44:07 +0000
-Subject: Re: [lm-sensors] [RFC,PATCH v2] hwmon: ADC124S501 generic driver
-Message-Id: <20080730124407.4a96494e@bluebox.local>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Wed, 23 Jul 2008 17:20:59 +0000
+Subject: [lm-sensors] [PATCH] lm-sensors: Add script for manual control of
+Message-Id: <191fb4ca0807231020pe333553t4e94e4c77530b10d@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_2244_8157085.1216833660039"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200807301216.01125.marc.pignat@hevs.ch>
-In-Reply-To: <200807301216.01125.marc.pignat@hevs.ch>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+------=_Part_2244_8157085.1216833660039
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-To: Marc Pignat <marc.pignat@hevs.ch>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, David Brownell <david-b@pacbell.net>, Andrew Morton <akpm@linux-foundation.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Tobias Himmer <tobias@himmer-online.de>
+Content-Disposition: inline
 
-Am Wed, 30 Jul 2008 12:16:00 +0200
-schrieb Marc Pignat <marc.pignat@hevs.ch>:
+Add a script that provides manual control of the vt1211 PWM outputs.
+This script puts the vt1211 in automatic PWM mode and fools the chip
+into believing that there is a temp change to force the PWM outputs to
+specified values. This is necessary since the standard manual mode of
+the vt1211 doesn't seem to work.
 
-> SPI driver for analog to digital converters national semiconductor
-> ADC081S101, ADC124S501, ...
-> 
-> Code for 8 channels by : Tobias Himmer <tobias@himmer-online.de>
-> 
-> Signed-off-by: Marc Pignat <marc.pignat@hevs.ch>
-> ---
-> 
-> Hi all!
-> 
-> patch against 2.6.27-rc1, tested on a custom arm board and only
-> compile-tested on x86.
-> 
-> This driver add support for National Semiconductor ADC<bb><c>S<sss>
-> chip family, where:
->  * bb  is the resolution in number of bits (8, 10, 12)
->  * c   is the number of channels (1, 2, 4, 8)
->  * sss is the maximum conversion speed (021 for 200 kSPS, 051 for 500
->    kSPS and 101 for 1 MSPS)
-> 
-> Changes from v1:
->  * error recovery fixed
->  * support for 8 channels, thanks to Tobias
+Signed-off-by: Juerg Haefliger <juergh at gmail.com>
 
-Hm, but you didn't merge Tobias' patch. Was that intentional?
-Do you plan to integrate his patch, or do we have two separate patches?
+------=_Part_2244_8157085.1216833660039
+Content-Type: application/octet-stream;
+	name=sensors-add-vt1211-pwm-script.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fj07azqq0
+Content-Disposition: attachment; filename=sensors-add-vt1211-pwm-script.patch
 
-Thanks,
-Hans
-
->  * better CodingStyle
-> 
-> Thanks for your comments and testing ;)
-> 
-> Best regards
-> 
-> Marc
-> 
-> 
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 00ff533..9c4a579 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -390,6 +390,22 @@ config SENSORS_LM70
->  	  This driver can also be built as a module.  If so, the
-> module will be called lm70.
->  
-> +config SENSORS_ADCXX
-> +	tristate "National Semiconductor ADCxxxSxxx"
-> +	depends on SPI_MASTER && EXPERIMENTAL
-> +	help
-> +	  If you say yes here you get support for the National
-> Semiconductor
-> +	  ADC<bb><c>S<sss> chip family, where
-> +	  * bb  is the resolution in number of bits (8, 10, 12)
-> +	  * c   is the number of channels (1, 2, 4)
-> +	  * sss is the maximum conversion speed (021 for 200 kSPS,
-> 051 for 500
-> +	    kSPS and 101 for 1 MSPS)
-> +
-> +	  Examples : ADC081S101, ADC124S501, ...
-> +
-> +	  This driver can also be built as a module.  If so, the
-> module
-> +	  will be called adcxx.
-> +
->  config SENSORS_LM75
->  	tristate "National Semiconductor LM75 and compatibles"
->  	depends on I2C
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index d098677..026ba1e 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -16,6 +16,7 @@ obj-$(CONFIG_SENSORS_W83791D)	+= w83791d.o
->  obj-$(CONFIG_SENSORS_ABITUGURU)	+= abituguru.o
->  obj-$(CONFIG_SENSORS_ABITUGURU3)+= abituguru3.o
->  obj-$(CONFIG_SENSORS_AD7418)	+= ad7418.o
-> +obj-$(CONFIG_SENSORS_ADCXX)	+= adcxx.o
->  obj-$(CONFIG_SENSORS_ADM1021)	+= adm1021.o
->  obj-$(CONFIG_SENSORS_ADM1025)	+= adm1025.o
->  obj-$(CONFIG_SENSORS_ADM1026)	+= adm1026.o
-> diff --git a/drivers/hwmon/adcxx.c b/drivers/hwmon/adcxx.c
-> new file mode 100644
-> index 0000000..d920fe5
-> --- /dev/null
-> +++ b/drivers/hwmon/adcxx.c
-> @@ -0,0 +1,292 @@
-> +/*
-> + * adcxx.c
-> + *
-> + * The adcxx4s is an AD converter family from National Semiconductor
-> (NS).
-> + *
-> + * Copyright (c) 2008 Marc Pignat <marc.pignat@hevs.ch>
-> + *
-> + * The adcxx4s communicates with a host processor via an
-> SPI/Microwire Bus
-> + * interface. This driver supports the whole family of devices with
-> name
-> + * ADC<bb><c>S<sss>, where
-> + * * bb is the resolution in number of bits (8, 10, 12)
-> + * * c is the number of channels (1, 2, 4)
-> + * * sss is the maximum conversion speed (021 for 200 kSPS, 051 for
-> 500 kSPS
-> + *   and 101 for 1 MSPS)
-> + *
-> + * Complete datasheets are available at National's website here:
-> + * http://www.national.com/ds/DC/ADC<bb><c>S<sss>.pdf
-> + *
-> + * Handling of 8, 10 and 12 bits converters are the same, the
-> + * unavailable bits are 0 :)
-> + *
-> + * This program is free software; you can redistribute it and/or
-> modify
-> + * it under the terms of the GNU General Public License as published
-> by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +
-> +#include <linux/init.h>
-> +#include <linux/module.h>
-> +#include <linux/kernel.h>
-> +#include <linux/device.h>
-> +#include <linux/err.h>
-> +#include <linux/sysfs.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +#include <linux/mutex.h>
-> +#include <linux/spi/spi.h>
-> +
-> +#define DRVNAME		"adcxx"
-> +
-> +struct adcxx {
-> +	struct device *hwmon_dev;
-> +	struct mutex lock;
-> +	u32 channels;
-> +	u32 reference; /* in millivolts */
-> +};
-> +
-> +/* sysfs hook function */
-> +static ssize_t adcxx_read(struct device *dev,
-> +		struct device_attribute *devattr, char *buf)
-> +{
-> +	struct spi_device *spi = to_spi_device(dev);
-> +	struct sensor_device_attribute *attr > to_sensor_dev_attr(devattr);
-> +	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-> +
-> +	u8 tx_buf[2] = { attr->index << 3 }; /* other bits are don't
-> care */
-> +	u8 rx_buf[2];
-> +	int status;
-> +	int value;
-> +
-> +	if (mutex_lock_interruptible(&adc->lock))
-> +		return -ERESTARTSYS;
-> +
-> +	status = spi_write_then_read(spi, tx_buf, sizeof(tx_buf),
-> +					rx_buf, sizeof(rx_buf));
-> +	if (status < 0) {
-> +		dev_warn(dev, "spi_write_then_read failed with
-> status %d\n",
-> +				status);
-> +		goto out;
-> +	}
-> +
-> +	value = (rx_buf[0] << 8) + rx_buf[1];
-> +	dev_dbg(dev, "raw value = 0x%x\n", value);
-> +
-> +	value = value * adc->reference >> 12;
-> +	status = sprintf(buf, "%d\n", value);
-> +out:
-> +	mutex_unlock(&adc->lock);
-> +	return status;
-> +}
-> +
-> +static ssize_t adcxx_show_min(struct device *dev,
-> +		struct device_attribute *devattr, char *buf)
-> +{
-> +	/* The minimum reference is 0 for this chip family */
-> +	return sprintf(buf, "0\n");
-> +}
-> +
-> +static ssize_t adcxx_show_max(struct device *dev,
-> +		struct device_attribute *devattr, char *buf)
-> +{
-> +	struct spi_device *spi = to_spi_device(dev);
-> +	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-> +
-> +	u32 reference;
-> +
-> +	if (mutex_lock_interruptible(&adc->lock))
-> +		return -ERESTARTSYS;
-> +
-> +	reference = adc->reference;
-> +
-> +	mutex_unlock(&adc->lock);
-> +
-> +	return sprintf(buf, "%d\n", reference);
-> +}
-> +
-> +static ssize_t adcxx_set_max(struct device *dev,
-> +	struct device_attribute *devattr, const char *buf, size_t
-> count) +{
-> +	struct spi_device *spi = to_spi_device(dev);
-> +	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-> +
-> +	unsigned long value;
-> +
-> +	if (strict_strtoul(buf, 10, &value))
-> +		return -EINVAL;
-> +
-> +	if (mutex_lock_interruptible(&adc->lock))
-> +		return -ERESTARTSYS;
-> +
-> +	adc->reference = value;
-> +
-> +	mutex_unlock(&adc->lock);
-> +
-> +	return count;
-> +}
-> +
-> +static ssize_t adcxx_show_name(struct device *dev, struct
-> device_attribute
-> +			      *devattr, char *buf)
-> +{
-> +	struct spi_device *spi = to_spi_device(dev);
-> +	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-> +
-> +	return sprintf(buf, "adcxx%ds\n", adc->channels);
-> +}
-> +
-> +static struct sensor_device_attribute ad_input[] = {
-> +	SENSOR_ATTR(name, S_IRUGO, adcxx_show_name, NULL, 0),
-> +
-> +	/* The reference is the same for all channels */
-> +	SENSOR_ATTR(in_min, S_IRUGO, adcxx_show_min, NULL, 0),
-> +	SENSOR_ATTR(in_max, S_IWUSR | S_IRUGO, adcxx_show_max,
-> +					adcxx_set_max, 0),
-> +
-> +	SENSOR_ATTR(in0_input, S_IRUGO, adcxx_read, NULL, 0),
-> +	SENSOR_ATTR(in1_input, S_IRUGO, adcxx_read, NULL, 1),
-> +	SENSOR_ATTR(in2_input, S_IRUGO, adcxx_read, NULL, 2),
-> +	SENSOR_ATTR(in3_input, S_IRUGO, adcxx_read, NULL, 3),
-> +};
-> +
-> +/*----------------------------------------------------------------------*/
-> +
-> +static int __devinit adcxx_probe(struct spi_device *spi, int
-> channels) +{
-> +	struct adcxx *adc;
-> +	int status;
-> +	int i;
-> +
-> +	adc = kzalloc(sizeof *adc, GFP_KERNEL);
-> +	if (!adc)
-> +		return -ENOMEM;
-> +
-> +	/* set a default value for the reference */
-> +	adc->reference = 3300;
-> +
-> +	adc->channels = channels;
-> +
-> +	mutex_init(&adc->lock);
-> +
-> +	dev_set_drvdata(&spi->dev, adc);
-> +
-> +	for (i = 0; i < 3 + adc->channels; i++) {
-> +		status = device_create_file(&spi->dev,
-> &ad_input[i].dev_attr);
-> +		if (status)
-> +			goto out_dev_create_file_failed;
-> +	}
-> +
-> +	adc->hwmon_dev = hwmon_device_register(&spi->dev);
-> +	if (IS_ERR(adc->hwmon_dev)) {
-> +		dev_dbg(&spi->dev, "hwmon_device_register
-> failed.\n");
-> +		status = PTR_ERR(adc->hwmon_dev);
-> +		goto out_dev_reg_failed;
-> +	}
-> +
-> +	return 0;
-> +
-> +out_dev_create_file_failed:
-> +	hwmon_device_unregister(adc->hwmon_dev);
-> +	for (i = 0; i < 3 + adc->channels; i++)
-> +		device_remove_file(&spi->dev, &ad_input[i].dev_attr);
-> +out_dev_reg_failed:
-> +	dev_set_drvdata(&spi->dev, NULL);
-> +	kfree(adc);
-> +	return status;
-> +}
-> +
-> +static int __devinit adcxx1s_probe(struct spi_device *spi)
-> +{
-> +	return adcxx_probe(spi, 1);
-> +}
-> +
-> +static int __devinit adcxx2s_probe(struct spi_device *spi)
-> +{
-> +	return adcxx_probe(spi, 2);
-> +}
-> +
-> +static int __devinit adcxx4s_probe(struct spi_device *spi)
-> +{
-> +	return adcxx_probe(spi, 4);
-> +}
-> +
-> +static int __devexit adcxx_remove(struct spi_device *spi)
-> +{
-> +	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-> +	int i;
-> +
-> +	hwmon_device_unregister(adc->hwmon_dev);
-> +	for (i = 0; i < 3 + adc->channels; i++)
-> +		device_remove_file(&spi->dev, &ad_input[i].dev_attr);
-> +	dev_set_drvdata(&spi->dev, NULL);
-> +	kfree(adc);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct spi_driver adcxx1s_driver = {
-> +	.driver = {
-> +		.name	= "adcxx1s",
-> +		.owner	= THIS_MODULE,
-> +	},
-> +	.probe	= adcxx1s_probe,
-> +	.remove	= __devexit_p(adcxx_remove),
-> +};
-> +
-> +static struct spi_driver adcxx2s_driver = {
-> +	.driver = {
-> +		.name	= "adcxx2s",
-> +		.owner	= THIS_MODULE,
-> +	},
-> +	.probe	= adcxx2s_probe,
-> +	.remove	= __devexit_p(adcxx_remove),
-> +};
-> +
-> +static struct spi_driver adcxx4s_driver = {
-> +	.driver = {
-> +		.name	= "adcxx4s",
-> +		.owner	= THIS_MODULE,
-> +	},
-> +	.probe	= adcxx4s_probe,
-> +	.remove	= __devexit_p(adcxx_remove),
-> +};
-> +
-> +static int __init init_adcxx(void)
-> +{
-> +	int status;
-> +	status = spi_register_driver(&adcxx1s_driver);
-> +	if (status)
-> +		return status;
-> +
-> +	status = spi_register_driver(&adcxx2s_driver);
-> +	if (status)
-> +		return status;
-> +
-> +	return spi_register_driver(&adcxx4s_driver);
-> +}
-> +
-> +static void __exit exit_adcxx(void)
-> +{
-> +	spi_unregister_driver(&adcxx1s_driver);
-> +	spi_unregister_driver(&adcxx2s_driver);
-> +	spi_unregister_driver(&adcxx4s_driver);
-> +}
-> +
-> +module_init(init_adcxx);
-> +module_exit(exit_adcxx);
-> +
-> +MODULE_AUTHOR("Marc Pignat");
-> +MODULE_DESCRIPTION("National Semiconductor adcxx4sxxx Linux driver");
-> +MODULE_LICENSE("GPL");
-> +
-> +MODULE_ALIAS("adcxx1s");
-> +MODULE_ALIAS("adcxx2s");
-> +MODULE_ALIAS("adcxx4s");
-> --
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-kernel" in the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+SW5kZXg6IGxtLXNlbnNvcnMtMy4wLjAvcHJvZy9wd20vTW9kdWxlLm1rCj09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0t
+IGxtLXNlbnNvcnMtMy4wLjAub3JpZy9wcm9nL3B3bS9Nb2R1bGUubWsJMjAwOC0wNy0xNCAwOTox
+MzoyMi4xOTUwNDEwMDAgLTA3MDAKKysrIGxtLXNlbnNvcnMtMy4wLjAvcHJvZy9wd20vTW9kdWxl
+Lm1rCTIwMDgtMDctMTQgMDk6MTM6NDguMTUxNTM3MDAwIC0wNzAwCkBAIC0yMCwxMCArMjAsMTIg
+QEAKIFBST0dQV01ESVIgOj0gJChNT0RVTEVfRElSKQogCiBQUk9HUFdNTUFOOERJUiA6PSAkKE1B
+TkRJUikvbWFuOAotUFJPR1BXTU1BTjhGSUxFUyA6PSAkKE1PRFVMRV9ESVIpL2ZhbmNvbnRyb2wu
+OCAkKE1PRFVMRV9ESVIpL3B3bWNvbmZpZy44CitQUk9HUFdNTUFOOEZJTEVTIDo9ICQoTU9EVUxF
+X0RJUikvZmFuY29udHJvbC44ICQoTU9EVUxFX0RJUikvcHdtY29uZmlnLjggXAorICAgICAgICAg
+ICAgICAgICAgICAkKE1PRFVMRV9ESVIpL3Z0MTIxMV9wd20uOAogCiBQUk9HUFdNVEFSR0VUUyA6
+PSAkKE1PRFVMRV9ESVIpL2ZhbmNvbnRyb2wgXAotICAgICAgICAgICAgICAgICAgJChNT0RVTEVf
+RElSKS9wd21jb25maWcKKyAgICAgICAgICAgICAgICAgICQoTU9EVUxFX0RJUikvcHdtY29uZmln
+IFwKKyAgICAgICAgICAgICAgICAgICQoTU9EVUxFX0RJUikvdnQxMjExX3B3bQogCiBSRU1PVkVQ
+V01CSU4gOj0gJChwYXRzdWJzdCAkKE1PRFVMRV9ESVIpLyUsJChERVNURElSKSQoU0JJTkRJUikv
+JSwkKFBST0dQV01UQVJHRVRTKSkKIFJFTU9WRVBXTU1BTiA6PSAkKHBhdHN1YnN0ICQoTU9EVUxF
+X0RJUikvJSwkKERFU1RESVIpJChQUk9HUFdNTUFOOERJUikvJSwkKFBST0dQV01NQU44RklMRVMp
+KQpJbmRleDogbG0tc2Vuc29ycy0zLjAuMC9wcm9nL3B3bS92dDEyMTFfcHdtCj09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0K
+LS0tIC9kZXYvbnVsbAkxOTcwLTAxLTAxIDAwOjAwOjAwLjAwMDAwMDAwMCArMDAwMAorKysgbG0t
+c2Vuc29ycy0zLjAuMC9wcm9nL3B3bS92dDEyMTFfcHdtCTIwMDgtMDctMjMgMTA6MDA6MjQuMTc0
+MzkzMDAwIC0wNzAwCkBAIC0wLDAgKzEsMTc5IEBACisjIS9iaW4vc2gKKyMKKyMgdnQxMjExX3B3
+bSAtIE1hbnVhbGx5IGNvbnRyb2wgdGhlIFBXTSBvdXRwdXRzIG9mIHRoZSBWSUEgdnQxMjExIFN1
+cGVyLUkvTworIworIyBDb3B5cmlnaHQgKEMpIDIwMDggSnVlcmcgSGFlZmxpZ2VyIChqdWVyZ2gg
+YXQgZ21haWwuY29tPgorIworIyBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNh
+biByZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeQorIyBpdCB1bmRlciB0aGUgdGVybXMgb2Yg
+dGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFzIHB1Ymxpc2hlZCBieQorIyB0aGUgRnJl
+ZSBTb2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRoZXIgdmVyc2lvbiAyIG9mIHRoZSBMaWNlbnNlLCBv
+cgorIyAoYXQgeW91ciBvcHRpb24pIGFueSBsYXRlciB2ZXJzaW9uLgorIworIyBUaGlzIHByb2dy
+YW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhhdCBpdCB3aWxsIGJlIHVzZWZ1bCwKKyMg
+YnV0IFdJVEhPVVQgQU5ZIFdBUlJBTlRZOyB3aXRob3V0IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFu
+dHkgb2YKKyMgTUVSQ0hBTlRBQklMSVRZIG9yIEZJVE5FU1MgRk9SIEEgUEFSVElDVUxBUiBQVVJQ
+T1NFLiAgU2VlIHRoZQorIyBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBkZXRh
+aWxzLgorIworIyBZb3Ugc2hvdWxkIGhhdmUgcmVjZWl2ZWQgYSBjb3B5IG9mIHRoZSBHTlUgR2Vu
+ZXJhbCBQdWJsaWMgTGljZW5zZQorIyBhbG9uZyB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYgbm90LCB3
+cml0ZSB0byB0aGUgRnJlZSBTb2Z0d2FyZQorIyBGb3VuZGF0aW9uLCBJbmMuLCA2NzUgTWFzcyBB
+dmUsIENhbWJyaWRnZSwgTUEgMDIxMzksIFVTQS4KKyMKKworZnVuY3Rpb24gdXNhZ2UKK3sKKyAg
+ICBlY2hvICJVc2FnZTogdnQxMjExX3B3bSAtaSA8cHdtPiB8IC1yIDxwd20+IHwgLXMgPHB3bT4s
+PHZhbD4iCisgICAgZWNobworICAgIGVjaG8gIkRFU0NSSVBUSU9OIgorICAgIGVjaG8gIiAgIFRo
+aXMgdG9vbCBwcm92aWRlcyBtYW51YWwgY29udHJvbCBvZiB0aGUgUFdNIG91dHB1dHMgb2YgdGhl
+IFZJQSAiCisgICAgZWNobyAiICAgdnQxMjExIFN1cGVyLUkvTy4iCisgICAgZWNobworICAgIGVj
+aG8gIk9QVElPTlMiCisgICAgZWNobyAiICAgLWQgICAgICAgICAgICAgICBEaXNwbGF5IHRoZSBj
+dXJyZW50IFBXTSBzZXR0aW5ncyBvZiB0aGUgdnQxMjExLiIKKyAgICBlY2hvICIgICAtaSA8cHdt
+PiAgICAgICAgIEluaXRpYWxpemUgdGhlIFBXTSBvdXRwdXQgZm9yIG1hbnVhbCBjb250cm9sLiIK
+KyAgICBlY2hvICIgICAtciA8cHdtPiAgICAgICAgIFJlc3RvcmUgdGhlIFBXTSBvdXRwdXQgdG8g
+dGhlIG9yaWdpbmFsIHNldHRpbmdzLiIKKyAgICBlY2hvICIgICAtcyA8cHdtPiw8dmFsPiAgIFNl
+dCB0aGUgUFdNIG91dHB1dCBkdXR5LWN5Y2xlLiAiCisgICAgZWNobworICAgIGVjaG8gIldJVEgi
+CisgICAgZWNobyAiICAgPHB3bT4gICBQV00gb3V0cHV0ICgxLTIpLiIKKyAgICBlY2hvICIgICA8
+dmFsPiAgIFBXTSBkdXR5LWN5Y2xlICgwLTI1NSkuIgorICAgIGVjaG8KKyAgICBleGl0IDIKK30K
+KworZnVuY3Rpb24gc2V0X2F0dHIKK3sKKyAgICBsb2NhbCB0bXAKKyAgICByZWFkIHRtcCA8ICQx
+CisgICAgZWNobyAiZWNobyAkdG1wID4gJDEiCisgICAgZWNobyAkMiA+ICQxCit9CisKKyMgY2hl
+Y2sgaWYgd2UgaGF2ZSB0aGUgcmlnaHQgcGVybWlzc2lvbnMgdG8gcnVuCitpZiBbIGB3aG9hbWlg
+ICE9ICJyb290IiBdIDsgdGhlbgorICAgIGVjaG8gIllvdSBtdXN0IGJlIHJvb3QgdG8gcnVuIHRo
+aXMgc2NyaXB0LiIKKyAgICBleGl0IDEKK2ZpCisKKyMgcGFyc2UgdGhlIGNvbW1hbmQgbGluZSBv
+cHRpb25zCithY3Rpb249Citucj0xCit2YWw9MAord2hpbGUgZ2V0b3B0cyBkaTpyOnM6IG9wdCA7
+IGRvCisgICAgWyAteiAiJGFjdGlvbiIgXSB8fCB1c2FnZQorICAgIGNhc2UgJG9wdCBpbgorCWQp
+ICBhY3Rpb249ImRpc3BsYXkiCisJICAgIDs7CisJaSkgIGFjdGlvbj0iaW5pdCIKKwkgICAgbnI9
+JE9QVEFSRworCSAgICA7OworCXIpICBhY3Rpb249InJlc3RvcmUiCisJICAgIG5yPSRPUFRBUkcK
+KwkgICAgOzsKKwlzKSAgYWN0aW9uPSJzZXQiCisJICAgIG5yPSR7T1BUQVJHJSwqfQorCSAgICB2
+YWw9JHtPUFRBUkcjKix9CisJICAgIDs7CisJPykgIHVzYWdlCisJICAgIDs7CisgICAgZXNhYwor
+ZG9uZQorCitbIC16ICIkYWN0aW9uIiBdICYmIHVzYWdlCitbICRuciAtbHQgMSAtbyAkbnIgLWd0
+IDIgXSAmJiB1c2FnZQorWyAkdmFsIC1sdCAwIC1vICR2YWwgLWd0IDI1NSBdICYmIHVzYWdlCisK
+KyMgY2hlY2sgaHdtb24gZGV2aWNlCitkZXY9YGxzIC1kIC9zeXMvZGV2aWNlcy9wbGF0Zm9ybS92
+dDEyMTEuKmAKK2lmIFsgLXogIiRkZXYiIF0gOyB0aGVuCisgICAgZWNobyAiUGxhdGZvcm0gZGV2
+aWNlIHZ0MTIxMSBub3QgZm91bmQuIERpZCB5b3UgbG9hZCB0aGUgdnQxMjExIG1vZHVsZT8iCisg
+ICAgZXhpdCAxCitmaQorCisjIGluaXQgZmlsZQoraW5pdGZpbGU9Ii9yb290Ly52dDEyMTFfcHdt
+JHtucn0iCisKKyMgQUNUSU9OOiBkaXNwbGF5CitpZiBbICRhY3Rpb24gPSAiZGlzcGxheSIgXSA7
+IHRoZW4KKyAgICBmb3IgbnIgaW4gMSAyIDsgZG8KKwlyZWFkIG1vZGUgPCAke2Rldn0vcHdtJHtu
+cn1fZW5hYmxlCisJaWYgWyAkbW9kZSAtZXEgMCBdIDsgdGhlbgorCSAgICBtb2RlX3R4dD0iKGRp
+c2FibGVkKSIKKwllbGlmIFsgJG1vZGUgLWVxIDIgXSA7IHRoZW4KKwkgICAgbW9kZV90eHQ9Iihh
+dXRvKSAgICAiCisJZWxzZQorCSAgICBtb2RlX3R4dD0iKHVua25vd24pICIKKwlmaQorCXJlYWQg
+dmFsIDwgJHtkZXZ9L3B3bSR7bnJ9CisJZGM9JCgodmFsICogMTAwIC8gMjU1KSkKKwllY2hvICJw
+d20ke25yfTogbW9kZSA9ICR7bW9kZX0gJHttb2RlX3R4dH0sIHZhbCA9ICR7dmFsfSAoJHtkY30l
+KSIKKyAgICBkb25lCitmaQorCisjIEFDVElPTjogaW5pdAoraWYgWyAkYWN0aW9uID0gImluaXQi
+IF0gOyB0aGVuCisgICAgIyBjaGVjayBmb3IgYW4gaW5pdCBmaWxlCisgICAgaWYgWyAtZSAgJGlu
+aXRmaWxlIF0gOyB0aGVuCisJZWNobyAiICRpbml0ZmlsZSBleGlzdHMuIERpZCB5b3UgYWxyZWFk
+eSBpbml0aWFsaXplIHRoaXMgUFdNPyIKKwlleGl0IDEKKyAgICBmaQorCisgICAgKAorICAgICAg
+ICAjIHNldCB0aGUgcHdtLXRvLXRlbXAgbWFwcGluZworICAgICAgICAjIHVzZSB0aGUgaW50ZXJu
+YWwgdGVtcCBhcyBhIHJlZmVyZW5jZQorCXNldF9hdHRyICR7ZGV2fS9wd20ke25yfV9hdXRvX2No
+YW5uZWxzX3RlbXAgMgorCisgICAgICAgICMgZW5hYmxlIHRoZSBwd20gYXV0byBjb250cm9sbGVy
+CisJc2V0X2F0dHIgJHtkZXZ9L3B3bSR7bnJ9X2VuYWJsZSAyCisKKyAgICAgICAgIyBzZXQgdGhl
+IFBXTSBkdXR5LWN5Y2xlCisJc2V0X2F0dHIgJHtkZXZ9L3B3bSR7bnJ9X2F1dG9fcG9pbnQyX3B3
+bSAwCisJc2V0X2F0dHIgJHtkZXZ9L3B3bSR7bnJ9X2F1dG9fcG9pbnQzX3B3bSAyNTUKKworICAg
+ICAgICAjIHNldCB0aGUgdGVtcCBib3VuZGFyaWVzIHRvIGV4dHJlbSB2YWx1ZXMKKwlzZXRfYXR0
+ciAke2Rldn0vcHdtMV9hdXRvX3BvaW50MV90ZW1wIDAKKwlzZXRfYXR0ciAke2Rldn0vcHdtMV9h
+dXRvX3BvaW50Ml90ZW1wIDAKKwlzZXRfYXR0ciAke2Rldn0vcHdtMV9hdXRvX3BvaW50M190ZW1w
+IDEwMDAwMDAKKwlzZXRfYXR0ciAke2Rldn0vcHdtMV9hdXRvX3BvaW50NF90ZW1wIDEwMDAwMDAK
+KworICAgICkgPiAkaW5pdGZpbGUKKworICAgIGV4aXQgMAorZmkKKworIyBBQ1RJT046IHJlc3Rv
+cmUKK2lmIFsgJGFjdGlvbiA9ICJyZXN0b3JlIiBdIDsgdGhlbgorICAgICMgY2hlY2sgZm9yIGFu
+IGluaXQgZmlsZQorICAgIGlmIFsgISAtZSAgJGluaXRmaWxlIF0gOyB0aGVuCisJZWNobyAiICRp
+bml0ZmlsZSBub3QgZm91bmQuIE5vdGhpbmcgdG8gcmVzdG9yZS4iCisJZXhpdCAxCisgICAgZmkK
+KworICAgIHNoICRpbml0ZmlsZQorICAgIHJtICRpbml0ZmlsZQorCisgICAgZXhpdCAwCitmaQor
+CisjIEFDVElPTjogc2V0CitpZiBbICRhY3Rpb24gPSAic2V0IiBdIDsgdGhlbgorICAgICMgY2hl
+Y2sgZm9yIGFuIGluaXQgZmlsZQorICAgIGlmIFsgISAtZSAkaW5pdGZpbGUgXSA7IHRoZW4KKwll
+Y2hvICIkaW5pdGZpbGUgbm90IGZvdW5kLiBEaWQgeW91IGluaXRpYWxpemUgdGhpcyBQV00/Igor
+CWV4aXQgMQorICAgIGZpCisKKyAgICAjIHNldCB0aGUgUFdNIGR1dHktY3ljbGUKKyAgICBlY2hv
+ICR2YWwgPiAke2Rldn0vcHdtJHtucn1fYXV0b19wb2ludDNfcHdtCisKKyAgICAjIGZvb2wgdGhl
+IHZ0MTIxMSBpbnRvIGJlbGlldmluZyB0aGVyZSBpcyBhIHRlbXAgY2hhbmdlCisgICAgIyBvdGhl
+cndpc2UgdGhlIG5ldyBQV00gZHV0eS1jeWNsZSBkb2Vzbid0IHRha2UgZWZmZWN0CisgICAgZWNo
+byAwID4gJHtkZXZ9L3B3bTFfYXV0b19wb2ludDNfdGVtcAorICAgIGVjaG8gMTAwMDAwMCA+ICR7
+ZGV2fS9wd20xX2F1dG9fcG9pbnQzX3RlbXAKKworICAgICMgcmVhZCB0aGUgbmV3IFBXTSBkdXR5
+LWN5Y2xlIGJhY2sgYW5kIHByaW50IGl0CisgICAgcmVhZCB2YWwgPCAke2Rldn0vcHdtJHtucn0K
+KyAgICBkYz0kKCh2YWwgKiAxMDAgLyAyNTUpKQorICAgIGVjaG8gInB3bSR7bnJ9IGlzIG5vdyBh
+dCAke3ZhbH0gKCR7ZGN9JSkuIgorCisgICAgZXhpdCAwCitmaQpJbmRleDogbG0tc2Vuc29ycy0z
+LjAuMC9wcm9nL3B3bS92dDEyMTFfcHdtLjgKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gL2Rldi9udWxsCTE5NzAt
+MDEtMDEgMDA6MDA6MDAuMDAwMDAwMDAwICswMDAwCisrKyBsbS1zZW5zb3JzLTMuMC4wL3Byb2cv
+cHdtL3Z0MTIxMV9wd20uOAkyMDA4LTA3LTIzIDEwOjE1OjQ0LjIxNjg3MDAwMCAtMDcwMApAQCAt
+MCwwICsxLDUyIEBACisuVEggVlQxMjExX1BXTSA4ICJKdWx5IDIwMDgiICJsbS1zZW5zb3JzIDMi
+CisuU0ggTkFNRQordnQxMjExX3B3bSBcLSBtYW51YWwgY29udHJvbCBvZiBWSUEgdnQxMjExIFBX
+TSBvdXRwdXRzCisKKy5TSCBTWU5PUFNJUworLkIgdnQxMjExX3B3bQorLkIgLWQgfCAtaSA8cHdt
+PiB8IC1yIDxwd20+IHwgLXMgPHB3bT4sPHZhbD4KKworLlNIIERFU0NSSVBUSU9OCitcZkJ2dDEy
+MTFfcHdtXGZQIGlzIGEgc2hlbGwgc2NyaXB0IHRoYXQgcHJvdmlkZXMgbWFudWFsIGNvbnRyb2wg
+b2YgdGhlIHR3byBQV00KK291dHB1dHMgb2YgdGhlIFZJQSB2dDEyMTEgU3VwZXItSS9PIGRldmlj
+ZS4KKworLlNIIE9QVElPTlMKKy5UUAorLkIgLWQKK0Rpc3BsYXkgdGhlIGN1cnJlbnQgc2V0dGlu
+Z3Mgb2YgdGhlIHR3byBQV00gb3V0cHV0cy4KKy5UUAorLkIgLWkgPHB3bT4KK0luaXRpYWxpemUg
+UFdNIFxmQjxwd20+XGZQIGZvciBtYW51YWwgY29udHJvbC4gVmFsaWQgbnVtYmVycyBmb3IgXGZC
+PHB3bT5cZlAKK2FyZSAxIG9yIDIuIFRoaXMgb3B0aW9uIGFsc28gd3JpdGVzIHRoZSBvcmlnaW5h
+bCB2dDEyMTEgcmVnaXN0ZXIgdmFsdWVzIHRvCit+Ly52dDEyMTFfcHdtXGZCPHB3bT5cZlAgd2hp
+Y2ggaXMgdXNlZCBmb3IgcmVzdG9yaW5nIHRoZSBvcmlnaW5hbCBzZXR0aW5ncy4KKy5UUAorLkIg
+LXIgPHB3bT4KK1Jlc3RvcmUgUFdNIFxmQjxwd20+XGZQIHRvIHRoZSBvcmlnbmFsIHNldHRpbmdz
+LiBWYWxpZCBudW1iZXJzIGZvciBcZkI8cHdtPlxmUAorYXJlIDEgb3IgMi4gVGhpcyBvcHRpb25z
+IHJlYWRzIHRoZSBvcmlnaW5hbCBzZXR0aW5ncyBmcm9tCit+Ly52dDEyMTFfcHdtXGZCPHB3bT5c
+ZlAgYW5kIHdyaXRlcyB0aGVtIHRvIHRoZSB2dDEyMTEuCisuVFAKKy5CIC1zIDxwd20+LDx2YWw+
+CitTZXQgUE1XIFxmQjxwd20+XGZQIG91dHB1dCB0byBcZkI8dmFsPlxmUC4gVmFsaWQgbnVtYmVy
+cyBmb3IgXGZCPHB3bT5cZlAgYXJlIDEKK29yIDIgYW5kIHZhbGlkIG51bWJlcnMgZm9yIFxmQjx2
+YWw+XGZQIGFyZSAwIHRvIDI1NS4gVGhlIFxmQjx2YWw+XGZQIHJhbmdlIG9mCiswLTI1NSBtYXBz
+IHRvIGFuIG91dHB1dCBkdXR5LWN5Y2xlIG9mIDAlLTEwMCUsIGkuZS4sIG91dHB1dCBkdXR5LWN5
+Y2xlID0KK1xmQjx2YWw+XGZQICogMTAwIC8gMjU1LgorCisuU0ggUkVRVUlSRU1FTlRTCitZb3Ug
+bmVlZCByb290IHByaXZpbGVnZXMgdG8gZXhlY3V0ZSB0aGUgdnQxMjExX3B3bSBzY3JpcHQgYW5k
+IHRoZSB2dDEyMTEga2VybmVsCittb2R1bGUgbmVlZHMgdG8gYmUgbG9hZGVkIGFuZCB5b3Ugb2J2
+aW91c2x5IG5lZWQgdG8gaGF2ZSBmYW5zIGNvbm5lY3RlZCB0byB0aGUKK1BXTSBvdXRwdXRzIG9m
+IHRoZSB2dDEyMTEgOi0pCisKKy5TSCBXQVJOSU5HCitUaGlzIHNjcmlwdCBwdXRzIHRoZSBQV00g
+Y29udHJvbGxlciBvZiB0aGUgdnQxMjExIGludG8gYXV0b21hdGljIG1vZGUgYW5kCit0b2dnbGVz
+IHRoZSB0aGVybWFsIHRocmVzaG9sZHMgYmV0d2VlbiBleHRyZW0gdmFsdWVzIHRvIGZvb2wgdGhl
+IGNoaXAgaW50bworYmVsaWV2aW5nIHRoYXQgdGhlcmUgaXMgYSB0ZW1wZXJhdHVyZSBjaGFuZ2Ug
+YW5kIHRodXMgZm9yY2luZyB0aGUgUFdNIG91dHB1dHMKK3RvIGNoYW5nZSB0byB0aGUgc3BlY2lm
+aWVkIHZhbHVlcy4gU2luY2UgdGhlcmUgaXMgb25seSBhIHNpbmdsZSBQV00gY29udHJvbGxlcgor
+dGhhdCBjb250cm9scyBib3RoIFBXTSBvdXRwdXRzLCBzZXR0aW5nIHRoZSBkdXR5LWN5Y2xlIG9m
+IG9uZSBQV00gb3V0cHV0IGNvdWxkCithZmZlY3QgdGhlIGR1dHktY3ljbGUgb2YgdGhlIG90aGVy
+IFBXTSBvdXRwdXQuIFVzZSBhdCB5b3Ugb3duIHJpc2shCisKKy5TSCBTRUUgQUxTTworc2Vuc29y
+cygxKQorCisuU0ggQVVUSE9SCisuUFAKK0p1ZXJnIEhhZWZsaWdlciA8anVlcmdoIGF0IGdtYWls
+LmNvbT4K
+------=_Part_2244_8157085.1216833660039
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_2244_8157085.1216833660039--
