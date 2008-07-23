@@ -1,36 +1,76 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 04 Jul 2008 07:06:38 +0000
-Subject: Re: [lm-sensors] Support for f75375s (Fintek) sensor
-Message-Id: <20080704090638.0e5b1210@hyperion.delvare>
+From: Jonathan Cameron <Jonathan.Cameron@gmail.com>
+Date: Wed, 23 Jul 2008 17:00:29 +0000
+Subject: [lm-sensors] [Patch 0/4] IndustrialIO subsystem (ADCs,
+Message-Id: <488763AD.4050400@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <590975.4376.qm@web32401.mail.mud.yahoo.com>
-In-Reply-To: <590975.4376.qm@web32401.mail.mud.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>, spi-devel-general@lists.sourceforge.net, LM Sensors <lm-sensors@lm-sensors.org>
+Cc: Jean Delvare <khali@linux-fr.org>, Dmitry Torokhov <dtor@mail.ru>, "Hans J. Koch" <hjk@linutronix.de>, hmh@hmh.eng.br, David Brownell <david-b@pacbell.net>, mgross@linux.intel.com, Ben Nizette <bn@niasdigital.com>, Anton Vorontsov <avorontsov@ru.mvista.com>
 
-On Thu, 03 Jul 2008 22:24:42 +0200, Hans de Goede wrote:
-> Sundar Narayanaswamy wrote:
-> > Hi,
-> > I saw an earlier discussion about adding support for F75375S
-> > sensor in lm_sensors. Is there a patch available for that sensor ?
-> > I tried 2.10.7 lm_sensors, but I don't believe the changes
-> > are in that version. Any additional information would be appreciated.
-> > 
-> 
-> According to:
-> http://lm-sensors.org/wiki/Devices
-> 
-> That chip is supported in kernel 2.6.24 and later, I dunno if it is supported 
-> in lm_sensors-2.10.x, but it should work fine with lm_sensors-3.0.x
+Dear All,
 
-I confirm it's not supported in 2.10.7. If anyone want support for that
-driver in the legacy branch, send a patch. But better just upgrade to
-3.0.
+The need for an industrialio subsystem was discussed in
+http://lkml.org/lkml/2008/5/20/135
 
--- 
-Jean Delvare
+Firstly thanks to all the people who have contributed to the discussion
+of this in the past.
+
+In brief the intention is provide a kernel subsystem directed towards the
+handling on sensors (and later related output devices) such as ADC's,
+accelerometers and many others.
+
+Key features of the subsystem include:
+
+* Provision of sysfs access for direct reading from devices (similar to hwmon
+  but without the buffering / update rate restrictions)
+
+* Provision of chrdevs through which events may be passed to userspace in a
+  similar fashion to the input subsystem.  These events may be anything from
+  hardware thresholds set on the sensor itself to sw / hw ring buffer event
+  notifications (50% full etc).
+
+* Provision of access via chrdevs to hardware ring buffers on devices that
+  provide them.
+
+* Software ring buffer support to allow semi regular capture of data form the
+  device.  Typically this will be driven from either datardy events, or from
+  a periodic timer interrupt (to this end a very simple wrapper for periodic
+  RTC's is included. This will move to more generic timer interfaces as and when
+  they become available.  For now available rtc's must be registered with the
+  subsystem via the industrialio_register_ptimer function form within a board
+  init.
+
+* A set of sample drivers illustrating the main 'classes' of device. By classes
+  I really mean devices that are interfaced with in a similar way.
+
+The subsystem is now in a functional state with a small set of drivers:
+
+Max1363 (supports numerous Maxim i2c ADC's) (tested with max1363 and max1238 chips)
+   - Uses a periodic timer to provide ring buffer mode.
+   - All reads form these devices are scan modes so direct single element access
+     is not provided.
+   - Monitor mode on max1363 is not yet supported (need to do a bit debugging of
+     the board I have so as to be able to test this).
+
+ST LIS3L02DQ - SPI accelerometer.
+   - Uses a datardy interrupt to driver a software ring buffer.
+   - Most functionality of this device is supported.
+
+VTI SCA3000 (tested with an e05)
+   - Hardware ring buffer.
+
+More drivers in preparation.
+
+Next focus will be on cleaning up / implementing a more generic timer framework
+and allowing the system to partly run if not all dependencies are met 
+(particularly availability of timers).
+
+An initial set of patches will be attached to this thread shortly.
+
+--
+Jonathan Cameron
 
 _______________________________________________
 lm-sensors mailing list
