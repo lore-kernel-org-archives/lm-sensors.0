@@ -1,52 +1,50 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Thu, 24 Jul 2008 12:32:36 +0000
+From: Eric Piel <eric.piel@tremplin-utc.net>
+Date: Thu, 24 Jul 2008 12:37:23 +0000
 Subject: Re: [lm-sensors] [spi-devel-general] [Patch 0/4] IndustrialIO
-Message-Id: <48887664.70209@cam.ac.uk>
+Message-Id: <48887783.5000002@tremplin-utc.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <488763AD.4050400@gmail.com> <20080723191918.GC26938@trinity.fluff.org>
-In-Reply-To: <20080723191918.GC26938@trinity.fluff.org>
+References: <488763AD.4050400@gmail.com>	<20080723174801.GC11009@khazad-dum.debian.net> <48884F04.4070403@tremplin-utc.net> <48887201.8090300@cam.ac.uk>
+In-Reply-To: <48887201.8090300@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ben Dooks <ben-linux@fluff.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@gmail.com>, mgross@linux.intel.com, Dmitry Torokhov <dtor@mail.ru>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, David Brownell <david-b@pacbell.net>, hmh@hmh.eng.br, Jean Delvare <khali@linux-fr.org>, spi-devel-general@lists.sourceforge.net, Ben Nizette <bn@niasdigital.com>
+To: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: Jonathan Cameron <Jonathan.Cameron@gmail.com>, mgross@linux.intel.com, Dmitry Torokhov <dtor@mail.ru>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, David Brownell <david-b@pacbell.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Jean Delvare <khali@linux-fr.org>, spi-devel-general@lists.sourceforge.net, Ben Nizette <bn@niasdigital.com>
 
-Ben Dooks wrote:
-> On Wed, Jul 23, 2008 at 06:00:29PM +0100, Jonathan Cameron wrote:
->> Dear All,
->>
->> The need for an industrialio subsystem was discussed in
->> http://lkml.org/lkml/2008/5/20/135
+Jonathan Cameron schreef:
+:
+>> * If the accelerometer is soldered on the computer, define once for all 
+>> to which _physical_ movement corresponds which axis (eg: a laptop on its 
+>> normal position going up has axis Z increasing).
+> Agreed, though this is more documentation (and strict enforcement on drivers)
+Indeed, it's more about defining conventions. A one page document saying 
+to userspace developers how they can expect any accelerometer driver 
+will behave is desperately needed. The more conventions, the more all 
+the drivers will behave similarly, and the easier it will be for 
+userspace programs to be written :-)
+
+>> * Free fall event. Either it's hardware detected, or the accelerometer 
+>> infrastructure will detect it in software.
+> Hadn't thought of doing that in software - should be relatively straight
+> forward, though would involve a fairly large overhead if the intention
+> is to detect it fast enough to park hardware etc. (similar to that for
+> the ring buffer I guess).  I'll look into getting that done for the next
+> version (maybe driver specific for now).
+Yes, on a second though, this is a low priority point. If userspace is 
+able to know if the hardware has or not freefall detection, it should be 
+possible to just implement the software detection in the userspace 
+daemon. People might come up with lots of "clever" algorithms for that, 
+so it might be better to not do too much in the kernel ;-)
+
+
 > 
-> The name is really bad, this sounds like something for doing large
-> scale industrial process control.
-To a certain extent I agree, it's a pretty hideous name and I'm happy to change
-it if someone can come up with a better one whilst maintaining the flexibility
-to handle devices that do a range of different sensing and output tasks.
- 
->> Firstly thanks to all the people who have contributed to the discussion
->> of this in the past.
->>
->> In brief the intention is provide a kernel subsystem directed towards the
->> handling on sensors (and later related output devices) such as ADC's,
->> accelerometers and many others.
-> 
-> We've already got an perfectly good hwmon framework, do we really need
-> to do this again?
-On this, see the original discussion (where using that was one of the options)
-discussed.  Basically it comes down to a different set of requirements with
-the ability to handle events from the device, ring buffering and higher (non
-cached) update rates.  Whilst we could have bludgeoned the functionality into
-that framework, it was decided that it was better to start afresh. 
+> At the moment the big missing element of the subsystem is an easy way of
+> querying what is there. (proc interface similar to that for the input subsystem)
+You mean /sys/class/input/, right? Indeed, something inspired by the 
+input subsystem should work well.
 
-Thanks,
-
---
-Jonathan Cameron
- 
-
-
-
+See you,
+Eric
 
 _______________________________________________
 lm-sensors mailing list
