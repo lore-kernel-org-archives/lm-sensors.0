@@ -1,39 +1,54 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Thu, 24 Jul 2008 13:39:07 +0000
+From: "Hans J. Koch" <hjk@linutronix.de>
+Date: Thu, 24 Jul 2008 15:38:17 +0000
 Subject: Re: [lm-sensors] [spi-devel-general] [Patch 0/4] IndustrialIO
-Message-Id: <488885FB.5070500@cam.ac.uk>
+Message-Id: <20080724153816.GE2254@local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <488763AD.4050400@gmail.com> <20080723174801.GC11009@khazad-dum.debian.net> <48884F04.4070403@tremplin-utc.net> <48887201.8090300@cam.ac.uk> <48887783.5000002@tremplin-utc.net> <4888796B.9070003@cam.ac.uk> <20080724092445.ZZRA012@mailhub.coreip.homeip.net>
-In-Reply-To: <20080724092445.ZZRA012@mailhub.coreip.homeip.net>
+References: <488763AD.4050400@gmail.com> <20080723191918.GC26938@trinity.fluff.org> <20080724074124.GB2254@local> <20080724100144.GA8301@fluff.org.uk>
+In-Reply-To: <20080724100144.GA8301@fluff.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>, Jonathan Cameron <Jonathan.Cameron@gmail.com>, mgross@linux.intel.com, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, David Brownell <david-b@pacbell.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Jean Delvare <khali@linux-fr.org>, spi-devel-general@lists.sourceforge.net, Ben Nizette <bn@niasdigital.com>
+To: Ben Dooks <ben-linux@fluff.org>
+Cc: "Hans J. Koch" <hjk@linutronix.de>, Jonathan Cameron <Jonathan.Cameron@gmail.com>, mgross@linux.intel.com, Dmitry Torokhov <dtor@mail.ru>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, David Brownell <david-b@pacbell.net>, hmh@hmh.eng.br, Jean Delvare <khali@linux-fr.org>, spi-devel-general@lists.sourceforge.net, Ben Nizette <bn@niasdigital.com>
 
-Dmitry Torokhov wrote:
-> On Thu, Jul 24, 2008 at 01:45:31PM +0100, Jonathan Cameron wrote:
->>>> At the moment the big missing element of the subsystem is an easy way of
->>>> querying what is there. (proc interface similar to that for the input
->>>> subsystem)
->>> You mean /sys/class/input/, right? Indeed, something inspired by the
->>> input subsystem should work well.
->> No, I meant /proc/bus/input/devices which gives machine readable description
->> of all devices registered with the input subsystem and their capabilities.
->>
+On Thu, Jul 24, 2008 at 11:01:44AM +0100, Ben Dooks wrote:
+> On Thu, Jul 24, 2008 at 09:41:25AM +0200, Hans J. Koch wrote:
+> > On Wed, Jul 23, 2008 at 08:19:18PM +0100, Ben Dooks wrote:
+> > > On Wed, Jul 23, 2008 at 06:00:29PM +0100, Jonathan Cameron wrote:
+> > > > Dear All,
+> > > > 
+> > > > The need for an industrialio subsystem was discussed in
+> > > > http://lkml.org/lkml/2008/5/20/135
+> > > 
+> > > The name is really bad, this sounds like something for doing large
+> > > scale industrial process control.
+> > 
+> > Well, it says "Industrial I/O". To me, this means it handles I/O devices
+> > typically found in industrial applications.
 > 
-> /proc/bus/input is a legacy interface (pre-sysfs). Newer subsystems
-> should try to stay in /sys/.
-Ah, I'd assumed it was there to provide a centralized way of discovering
-what was there.  I guess it's just a matter of scanning your way through
-the contents of /sys/class/input (and equivalent iio) then to find out
-what is present and what is supported by each device.
+> Yes, industrial is generally process control of manufacturing
+> processes which in my view is making this sound like it is limiting
+> the field of operations.
 
-Messier in a sense but guess it will work.
+OK, I agree.
 
-Ah well,
+> 
+> All the applications we would currently need are things like
+> handheld PDA type devices which are hardly 'industrial' or small
+> consumer measurement systems.
 
-Jonathan
+Well, though the _use_ of such devices might not be "industrial",
+_technically_ they are very similar to embedded systems found in
+automation or other industrial equipment.
+
+Many of these devices (all that have mmappable memory) can be handled
+with a UIO driver, but for the rest (mostly stuff connected to serial
+busses), it's important to have a subsystem in the kernel. I really
+don't care too much about its name. BTW, before UIO was first published,
+its internal name was "Industrial I/O" ;-)
+
+Thanks,
+Hans
 
 
 _______________________________________________
