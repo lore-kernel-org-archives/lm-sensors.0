@@ -1,136 +1,140 @@
 From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Thu, 24 Jul 2008 10:12:20 +0000
+Date: Thu, 24 Jul 2008 10:33:15 +0000
 Subject: Re: [lm-sensors] [spi-devel-general] [Patch 1/4] Industrialio Core
-Message-Id: <48885584.9070709@cam.ac.uk>
+Message-Id: <48885A6B.6080905@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <488763AD.4050400@gmail.com> <488765A5.3040703@gmail.com> <20080723183113.GA22142@polina.dev.rtsoft.ru>
-In-Reply-To: <20080723183113.GA22142@polina.dev.rtsoft.ru>
+References: <488763AD.4050400@gmail.com> <488765A5.3040703@gmail.com> <20080723194230.GE26938@trinity.fluff.org>
+In-Reply-To: <20080723194230.GE26938@trinity.fluff.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: avorontsov@ru.mvista.com
+To: Ben Dooks <ben-linux@fluff.org>
 Cc: Jonathan Cameron <Jonathan.Cameron@gmail.com>, mgross@linux.intel.com, Dmitry Torokhov <dtor@mail.ru>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, David Brownell <david-b@pacbell.net>, hmh@hmh.eng.br, Jean Delvare <khali@linux-fr.org>, spi-devel-general@lists.sourceforge.net, Ben Nizette <bn@niasdigital.com>
 
-Anton Vorontsov wrote:
-Hi Anton,
-> 
-> Sorry, I didn't comment on the first version. So my comments for
-> this version is below. Note, I only briefly looked in the code,
-> thus the comments are really superficial.
-> 
-> So... this subsystem is _huge_. And so it needs documentation. Yes,
-> the code is well commented, much thanks for this. But the
-> documentation is needed, for example, to answer these simple
-> questions:
-> 
-> - What userspace interface the subsystem provides (i.e. for use with
->   userspace tools).
-> - What kernel interface the subsystem provides (i.e. for use with
->   in-kernel drivers, for example touchscreens).
-> - What is iio_ring (as I see it, is one of basic concepts of this
->   subsystem), I'd like to see description of its basic usage.
-> - What is struct iio_event_data, what is event's "id"? How it is used
->   across subsystem?
-> 
-> There is a lot of questions more. Of course, half the questions I'll
-> answer myself through reading the code... But you really need to
-> describe basic ideas of 2431-LOC-subsystem.
-> 
-> Something like Documentation/gpio.txt would work.
+Hi Ben,
 
-Agreed, sorry about that - docs are about half written and should probably have
-finished them off before I posted the patch.  I'll try and get a first version
-cleaned up and posted today. Main issue at the moment is getting example code
-into a state where it isn't too dependent on the exact board setup I'm testing
-on.
+Firstly thanks for taking a look at this.
 
-> On the subsystem itself. I would recommend you to split the 
-> industrialio_{core,rtc,ring,ptimer_board_info} into separate modules
-> (if possible) and into separate patches (for better reviewing).
+Ben Dooks wrote:
+>> +/* The actual event being pushed ot userspace */
+>> +struct iio_event_data {
+>> +	int id;
+>> +	s64 timestamp;
+>> +};
 > 
-> Few more comments below.
+> So is this an header for an event? Where is the data in this, this
+> is confusing... Also, should we have a framework to produce an
+> key/pair data, so that an single event can export multiple values
+> from one event...
 > 
-> [...]
+> ie:
+> 
+> struct event_header {
+> 	unsigned int 	id;
+> 	unsigned int	nr_data;	/* number of event_data after */
+> 	s64		timestamp;
+> 
+> struct event {
+> 	struct event_header	header;
+> 	struct event_data	data[0];
+> };
+ 
+At the current time at least the purpose of events in this subsystem is rather
+different from those in say the input system.  So far they have all
+corresponded to things that don't actually have any data associated with them.
+
+The list so far is:
+Ring bufer 50% full, Ring buffer 75% full (due to the support for escalating
+events, only the highest of these will ever be in the queue).
+
+Motion detected, device dependent on whether this is for specific axis.
+
+Thresholds breached.
+
+Tap detection (common on accelerometers)
+
+Anyhow I did originally start our with a similar layout to you have suggested
+(based in input subsystem) but removed it for now as it is currently unecessary.
+
+ 
+> the naming of these structures is rather long.
+> 
+>> +/* Requires high resolution timers */
+>> +/*  TODO - provide alternative if not available? */
+>> +static inline s64 iio_get_time_ns(void)
+>> +{
+>> +	struct timespec ts;
+>> +	ktime_get_ts(&ts);
+>> +	return timespec_to_ns(&ts);
+>> +}
+> 
+> do we really need something that accurate? we should at-least have
+> the option to remove the timestamp or choose something of lower
+> accuracy?
+
+Not necessarily, hence the TODO.  I've been wondering about using an approach
+similar to the 'scan' modes seen in the max1363 driver in which the time stamp
+will simply be another 'input' recorded to the ring buffer as necessary.  Within
+the event structure, this is certainly something that needs to be configurable.
+
 >> +
->> +#define INIT_IIO_RING_BUFFER(ring_buf, _bytes_per_datum, _length) {	\
->> +		(ring_buf)->size = _bytes_per_datum;			\
->> +		(ring_buf)->length = _length;				\
->> +		(ring_buf)->loopcount = 0;				\
->> +		(ring_buf)->shared_ev_pointer.ev_p = 0;			\
->> +		(ring_buf)->shared_ev_pointer.lock =			\
->> +			__SPIN_LOCK_UNLOCKED((ring_buf)			\
->> +					     ->shared_ev_pointer->loc);	\
+>> +#define INIT_IIO_SW_RING_BUFFER(ring, _bytes_per_datum, _length) {	\
+>> +		INIT_IIO_RING_BUFFER(&(ring)->buf,			\
+>> +				     _bytes_per_datum,			\
+>> +				     _length);				\
+>> +		(ring)->read_p = 0;					\
+>> +		(ring)->write_p = 0;					\
+>> +		(ring)->last_written_p = 0;				\
+>> +		(ring)->data = kmalloc(_length*(ring)->buf.size,	\
+>> +				       GFP_KERNEL);			\
+>> +		(ring)->use_count = 0;					\
+>> +		(ring)->use_lock = __SPIN_LOCK_UNLOCKED((ring)->use_lock); \
 >> +	}
 > 
-> Is it possible to convert this into function?
-Good point. No idea why I did it like that!
-
-> [...]
-
->> +	/* Event control attributes */
->> +	struct attribute_group *event_attrs;
->> +	/* The character device related elements */
->> +	struct iio_event_interface *event_interfaces;
+> these should be inlined functions.
+Oops, I'll clean them up. Thanks for pointing that out.
 >> +
->> +/* Software Ring Buffer
->> +   - for now assuming only makes sense to have a single ring */
-> 
-> These comments are really hard to parse. Try to turn off syntax
-> highlighting (if you use), and see the result. It is really
-> unreadable.
-> 
-> So, I'd suggest to use kernel doc syntax to describe the fields.
-> 
-> For example, I very like how include/linux/mtd/nand.h is commented.
-> It is in kernel doc, plus explains what fields are
-> internal/driver-specific/e.t.c.
-Thanks for the pointer, I'll do that.
-> [...]
->> +	IIO_DEVICE_ATTR(z_gain, _mode, _show, _store, _addr)
+>> +int iio_request_sw_ring_buffer(int bytes_per_datum,
+>> +			       int length,
+>> +			       struct iio_sw_ring_buffer **ring,
+>> +			       int id,
+>> +			       struct module *owner,
+>> +			       struct device *dev);
 >> +
 > 
-> Why such a generic subsystem should be aware of X/Y/Z? ADC can measure
-> strength of wind, for example. But in fact it measures voltage and/or
-> current. Yes, it is convenient to tell user what exactly chip is
-> supposed to measure, but it is chip (and thus driver) specific,
-> subsystem should only provides means to expose that information, but
-> it should not be aware of what exactly we're measuring. At least that is
-> how I imagine the ADC subsystem.
-I'd argue this is actually connected to improving the usability of the system.
+> how about tying this to a driver, where you already know the owner
+> and the dev?
+Good point.
 
-I would envision that the set of definitions (probably broken out into specific
-headers for different classes of device) and will grow considerably. If a
-particular parameter is available in say 2 drivers, or looks like it will be,
-then it will get moved to the main headers rather than being driver specific.
+>> +
+>> +struct iio_work_cont {
+>> +	struct work_struct ws;
+>> +	struct work_struct ws_nocheck;
+>> +	int address;
+>> +	int mask;
+>> +	void *st;
+>> +};
+>> +#define INIT_IIO_WORK_CONT(cont, _checkfunc, _nocheckfunc, _add, _mask, _st)\
+>> +	do {								\
+>> +	INIT_WORK(&(cont)->ws, _checkfunc);				\
+>> +	INIT_WORK(&(cont)->ws_nocheck, _nocheckfunc);			\
+>> +	(cont)->address = _add;						\
+>> +	(cont)->mask = _mask;						\
+>> +	(cont)->st = _st;						\
+>> +	} while (0)
+> 
+> more nasty macros.
+Yes, definitely need to get rid of most of them.
+[ring buffer code]
+> Nice idea, I just don't get what is actually going on in
+> here. This needs more planning.
 
-The basic advantages of doing it this way are concerned with user readability.
-If we know the device is an accelerometer rather than a general ADC is would be
-silly to have the user guessing which of the inputs are accelerations rather
-than say temperature readings. Clearly there are issues with definitions of axes
-on these devices but that will be something to clear up by clear documentation
-(pick a standard and stick to it!).
+I definitely should have put together some more explanatory documents explaining
+the aims and approach taken for the ring buffer handling. I'll get some initial
+stuff writen and posted here shortly.
 
-Clearly there are cases, for example where an accelerometer is attached via a
-generic ADC in which we don't have the inherent ability to identify the inputs
-from the generic adc driver.  Given this is a common setup, there may well be
-some scope for custom drivers for any common sensor circuits or indeed providing
-a way specifying this in a board config.
+Thanks for taking a look and your suggestions,
 
-It will be interesting to see how this pans out.
-
-What I also forgot to mention alongside the patches is that each driver should
-be accompanied by a userspace header file providing conversion function
-to real world units as appropriate. This is clearly required to interpret the
-data coming out of the ring buffers (which will always be as raw as possible).
-
-There is also the question of whether the outputs in sysfs of say acceleration
-should be converted to SI units or left as raw readings. For now I'm inclined
-to leave them raw as the calibration of such sensors within systems is fairly
-complex and often done as an offline process.  However I'm definitely open
-to other opinions on this.
-
-
-Thanks for taking a look and providing feedback.
 --
 Jonathan Cameron
 
