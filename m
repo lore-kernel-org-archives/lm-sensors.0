@@ -1,12 +1,17 @@
 From: David Brownell <david-b@pacbell.net>
-Date: Fri, 25 Jul 2008 20:21:16 +0000
+Date: Fri, 25 Jul 2008 22:23:28 +0000
 Subject: [lm-sensors] [RESEND x9+ patch 2.6.26-git 1/2] lm75: cleanup and
-Message-Id: <200807251321.17101.david-b@pacbell.net>
+Message-Id: <200807251523.28242.david-b@pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200807251321.17101.david-b@pacbell.net>
+In-Reply-To: <200807251321.17101.david-b@pacbell.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>, lm-sensors@lm-sensors.org
+Cc: lkml <linux-kernel@vger.kernel.org>
+
+[ added LKML to cc list ]
 
 From: David Brownell <dbrownell@users.sourceforge.net>
 
