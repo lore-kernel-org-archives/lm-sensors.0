@@ -1,163 +1,273 @@
-From: "Chris Friedline" <chris@friedline.net>
-Date: Tue, 01 Jul 2008 23:34:26 +0000
-Subject: Re: [lm-sensors] Only coretemp is found by sensors-detect
-Message-Id: <8bdcba610807011634y490dc887yb18971f85c953cc7@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Date: Fri, 25 Jul 2008 20:21:16 +0000
+Subject: [lm-sensors] [RESEND x9+ patch 2.6.26-git 1/2] lm75: cleanup and
+Message-Id: <200807251321.17101.david-b@pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <8bdcba610806250808x6dae4815h7272666180d133b7@mail.gmail.com>
-In-Reply-To: <8bdcba610806250808x6dae4815h7272666180d133b7@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-OK.  Hopefully this will give some information.
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-$ cat load.txt
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80    ...............?
-10: 00 00 00 00 00 00 00 00 0f 07 07 07 07 0f 0f 0f    ........????????
-20: 00 a4 bf 96 00 94 67 6e 5c 5b 58 5c 85 12 2c 0b    .???.?gn\[X\??,?
-30: 97 11 6d 0a ff ff 32 60 26 01 00 1a a1 00 5c a0    ??m?..2`&?.??.\?
-40: 01 00 00 00 00 00 00 b8 1e 00 00 00 5a da b3 cd    ?......??...Z???
-50: 8d a7 00 00 5a da 00 a4 00 a4 00 a4 00 a4 00 ff    ??..Z?.?.?.?.?..
-60: 00 ff 50 46 50 46 50 46 50 46 50 46 00 05 00 00    ..PFPFPFPFPF.?..
-70: 00 00 00 00 00 00 00 00 00 00 b9 3e 00 00 00 00    ..........?>....
-80: 00 00 00 bb bb dd dd c8 08 88 51 60 54 00 00 00    ...???????Q`T...
-90: 83 83 83 83 59 6a a9 a9 a9 a9 00 00 00 00 00 00    ????Yj????......
-a0: ea ea 2a 00 04 04 04 04 00 00 00 00 0a 2a 88 88    ??*.????....?*??
-b0: 88 88 6d 76 00 00 ff de 00 00 10 5e 00 00 00 00    ??mv...?..?^....
-c0: 00 00 00 00 ff ff ff ff ff ff 00 02 00 00 00 00    ...........?....
-d0: 00 e5 00 00 00 00 ff 00 00 00 00 ff 00 00 00 00    .?..............
-e0: 00 6c 08 e0 80 3c e0 00 08 00 d5 d5 d5 d5 00 32    .l???<?.?.????.2
-f0: 30 b0 31 b1 9a 00 40 00 40 00 00 00 00 00 00 00    0?1??.@.@.......
+Minor cleanup and reorg of the lm75 code.
 
-$ cat idle.txt
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80    ...............?
-10: 00 00 00 00 00 00 00 00 0f 07 07 07 07 0f 0f 0f    ........????????
-20: 00 94 bf 96 00 94 5d 5c 5c 5b 58 5c 7c 12 41 0b    .???.?]\\[X\|?A?
-30: 98 11 6c 0a ff ff 32 60 26 01 00 1a a1 00 5c a0    ??l?..2`&?.??.\?
-40: 01 00 00 00 00 00 00 b8 1e 00 00 00 5a da b3 cd    ?......??...Z???
-50: 8d a7 00 00 5a da 00 a4 00 a4 00 a4 00 a4 00 ff    ??..Z?.?.?.?.?..
-60: 00 ff 50 46 50 46 50 46 50 46 50 46 00 05 00 00    ..PFPFPFPFPF.?..
-70: 00 00 00 00 00 00 00 00 00 00 b9 3e 00 00 00 00    ..........?>....
-80: 00 00 00 bb bb dd dd c8 08 88 51 60 54 00 00 00    ...???????Q`T...
-90: 83 83 83 83 59 6a a9 a9 a9 a9 00 00 00 00 00 00    ????Yj????......
-a0: ea ea 2a 00 04 04 04 04 00 00 00 00 0a 2a 88 88    ??*.????....?*??
-b0: 88 88 6d 76 00 00 ff de 40 00 10 5e 00 00 00 00    ??mv...?@.?^....
-c0: 00 00 00 00 ff ff ff ff ff ff 00 02 00 00 00 00    ...........?....
-d0: 00 e5 00 00 00 00 ff 00 00 00 00 ff 00 00 00 00    .?..............
-e0: 00 01 06 e0 6e 00 e1 00 08 00 d5 d5 d5 d5 00 32    .???n.?.?.????.2
-f0: 30 b0 31 b1 9a 00 40 00 40 00 00 00 00 00 00 00    0?1??.@.@.......
+ - Kconfig provides a larger list of lm75-compatible chips
 
+ - A top comment now says what the driver does (!) ... as in, just
+   what sort of sensor is this??
 
-On Tue, Jul 1, 2008 at 4:06 PM, Juerg Haefliger <juergh@gmail.com> wrote:
->> Juerg,
->>
->> Thanks. I could make this happen.  What specific information do you
->> need from i2cdump?
->
->
-> Just 'i2cdump 0 0x2e' as before.
->
-> ...juerg
->
->
->
->> Chris
->>
->> On Mon, Jun 30, 2008 at 6:00 PM, Juerg Haefliger <juergh@gmail.com> wrote:
->>> Chris,
->>>
->>> I contacted SMSC but they won't give out the datasheets since those
->>> are DELL specific components and I'm an HP person :-)
->>>
->>> The only other thing I can suggest is to take register dumps (i2cdump)
->>> when the machine is idle and when the CPU is busy and the fans
->>> spinning (faster). Then we can take a look at what register values
->>> changed and compare it with currently supported chips to find a
->>> possible compatible match.
->>>
->>> ...juerg
->>>
->>>
->>>
->>> On Mon, Jun 30, 2008 at 2:43 PM, Chris Friedline <chris@friedline.net> wrote:
->>>> Juerg,
->>>>
->>>> Unfortunately, I can't do Windows on this box at this time.  Looks
->>>> like speedfan is not supported under Wine, either.  Any other ideas?
->>>>
->>>> Chris
->>>>
->>>> On Mon, Jun 30, 2008 at 4:45 PM, Juerg Haefliger <juergh@gmail.com> wrote:
->>>>> Chris,
->>>>>
->>>>> If you can run Windows on this machine, you could give speedfan
->>>>> (http://www.almico.com/sfdownload.php) a try. It claims to support the
->>>>> LPC47M534. Then we would at least know for sure what it is and add
->>>>> detection to sensors-detect. Not that we can support it without a
->>>>> datasheet though...
->>>>>
->>>>> ...juerg
->>>>>
->>>>>
->>>>>
->>>>> On Wed, Jun 25, 2008 at 6:40 PM, Chris Friedline <chris@friedline.net> wrote:
->>>>>> All,
->>>>>>
->>>>>> According to google, the SIO is a SMSC EMC2700P. I don't have a
->>>>>> datasheet for this chip and doubt that SMSC will provide one given
->>>>>> that this is a Dell machine. Without a datasheet, there's nothing we
->>>>>> can do.
->>>>>>
->>>>>>
->>>>>> Uh-huh, missed that one :-) You have a chip @ 0x2e. Run 'i2cdump 0
->>>>>> 0x2e' and send the output to the list. Maybe it looks familiar to
->>>>>> somebody. Per google, it's an LPC47M534. Don't know that chip. You can
->>>>>> try force-loading the LM85 driver and check if you get anything
->>>>>> useful.
->>>>>>
->>>>>> ---
->>>>>> Here is the output from i2cdump.  Does anyone see anything?
->>>>>>
->>>>>> Here is the output from i2cdump 0 0x2e:
->>>>>>
->>>>>> No size specified (using byte-data access)
->>>>>> WARNING! This program can confuse your I2C bus, cause data loss and worse!
->>>>>> I will probe file /dev/i2c-0, address 0x2e, mode byte
->>>>>> Continue? [Y/n] y
->>>>>>    0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
->>>>>> 00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80    ...............?
->>>>>> 10: 00 00 00 00 00 00 00 00 0f 07 07 07 07 0f 0f 0f    ........????????
->>>>>> 20: 00 95 bf 96 00 95 5e 5c 5d 5c 57 5c 2c 14 fe 0b    .???.?^\]\W\,???
->>>>>> 30: f4 11 83 0a ff ff 2a 57 25 01 00 1a a1 00 5c a0    ????..*W%?.??.\?
->>>>>> 40: 01 00 00 00 00 00 00 b8 1e 00 00 00 5a da b3 cd    ?......??...Z???
->>>>>> 50: 8d a7 00 00 5a da 00 a4 00 a4 00 a4 00 a4 00 ff    ??..Z?.?.?.?.?..
->>>>>> 60: 00 ff 50 46 50 46 50 46 50 46 50 46 00 05 00 00    ..PFPFPFPFPF.?..
->>>>>> 70: 00 00 00 00 00 00 00 00 00 00 b9 3e 00 00 00 00    ..........?>....
->>>>>> 80: 00 00 00 bb bb dd dd c8 08 88 51 60 54 00 00 00    ...???????Q`T...
->>>>>> 90: 83 83 83 83 59 6a a9 a9 a9 a9 00 00 00 00 00 00    ????Yj????......
->>>>>> a0: ea ea 2a 00 04 04 04 04 00 00 00 00 0a 2a 88 88    ??*.????....?*??
->>>>>> b0: 88 88 6d 76 00 00 ff de 40 00 10 5e 00 00 00 00    ??mv...?@.?^....
->>>>>> c0: 00 00 00 00 ff ff ff ff ff ff 00 02 00 00 00 00    ...........?....
->>>>>> d0: 00 e5 00 00 00 00 ff 00 00 00 00 ff 00 00 00 00    .?..............
->>>>>> e0: 00 00 08 e0 60 00 4f 00 08 00 d5 d5 d5 d5 0f 32    ..??`.O.?.?????2
->>>>>> f0: 30 b0 31 b1 9a 00 40 00 40 00 00 00 00 00 00 00    0?1??.@.@.......
->>>>>>
->>>>>> Thanks,
->>>>>> Chris
->>>>>>
->>>>>> _______________________________________________
->>>>>> lm-sensors mailing list
->>>>>> lm-sensors@lm-sensors.org
->>>>>> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->>>>>>
->>>>>
->>>>
->>>
->>
->
+ - Section comments now delineate the various sections of the driver:
+   hwmon attributes, driver binding, register access, module glue.
+   One driver binding function moved out of the attribute section,
+   as did the driver struct itself.
+
+ - Minor tweaks to legacy probe logic:  correct a comment, and
+   remove a pointless variable.
+
+ - Whitespace, linelength, and comment fixes.
+
+This patch should include no functional changes.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Laurent Pinchart <laurentp@cse-semaphore.com>
+---
+ drivers/hwmon/Kconfig |   18 ++++++----
+ drivers/hwmon/lm75.c  |   90 ++++++++++++++++++++++++++++----------------------
+ 2 files changed, 63 insertions(+), 45 deletions(-)
+
+--- a/drivers/hwmon/Kconfig	2008-06-30 21:20:50.000000000 -0700
++++ b/drivers/hwmon/Kconfig	2008-06-30 21:21:39.000000000 -0700
+@@ -394,13 +394,19 @@ config SENSORS_LM75
+ 	tristate "National Semiconductor LM75 and compatibles"
+ 	depends on I2C
+ 	help
+-	  If you say yes here you get support for National Semiconductor LM75
+-	  sensor chips and clones: Dallas Semiconductor DS75 and DS1775 (in
+-	  9-bit precision mode), and TelCom (now Microchip) TCN75.
++	  If you say yes here you get support for one common type of
++	  temperature sensor chip, with models including:
+ 
+-	  The DS75 and DS1775 in 10- to 12-bit precision modes will require
+-	  a force module parameter. The driver will not handle the extra
+-	  precision anyhow.
++		- Dallas Semiconductor DS75 and DS1775
++		- Maxim MAX6625 and MAX6626
++		- Microchip MCP980x
++		- National Semiconductor LM75
++		- NXP's LM75A
++		- ST Microelectronics STDS75
++		- TelCom (now Microchip) TCN75
++		- Texas Instruments TMP100, TMP101, TMP75, TMP175, TMP275
++
++	  Most of these chips will require a "force" module parameter.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm75.
+--- a/drivers/hwmon/lm75.c	2008-06-30 21:20:50.000000000 -0700
++++ b/drivers/hwmon/lm75.c	2008-06-30 21:21:39.000000000 -0700
+@@ -30,14 +30,19 @@
+ #include "lm75.h"
+ 
+ 
+-/* Addresses to scan */
++/*
++ * This driver handles the LM75 and compatible digital temperature sensors.
++ * Compatibles include at least the DS75, DS1775, MCP980x, STDS75, TCN75,
++ * TMP100, TMP101, TMP75, TMP175, and TMP275.
++ */
++
++/* Addresses scanned by legacy style driver binding */
+ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b, 0x4c,
+ 					0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
+ 
+-/* Insmod parameters */
++/* Insmod parameters (only for legacy style driver binding) */
+ I2C_CLIENT_INSMOD_1(lm75);
+ 
+-/* Many LM75 constants specified below */
+ 
+ /* The LM75 registers */
+ #define LM75_REG_CONF		0x01
+@@ -50,9 +55,9 @@ static const u8 LM75_REG_TEMP[3] = {
+ /* Each client has this additional data */
+ struct lm75_data {
+ 	struct i2c_client	client;
+-	struct device *hwmon_dev;
++	struct device		*hwmon_dev;
+ 	struct mutex		update_lock;
+-	char			valid;		/* !=0 if following fields are valid */
++	char			valid;		/* !=0 if registers are valid */
+ 	unsigned long		last_updated;	/* In jiffies */
+ 	u16			temp[3];	/* Register values,
+ 						   0 = input
+@@ -60,23 +65,15 @@ struct lm75_data {
+ 						   2 = hyst */
+ };
+ 
+-static int lm75_attach_adapter(struct i2c_adapter *adapter);
+-static int lm75_detect(struct i2c_adapter *adapter, int address, int kind);
+ static void lm75_init_client(struct i2c_client *client);
+-static int lm75_detach_client(struct i2c_client *client);
+ static int lm75_read_value(struct i2c_client *client, u8 reg);
+ static int lm75_write_value(struct i2c_client *client, u8 reg, u16 value);
+ static struct lm75_data *lm75_update_device(struct device *dev);
+ 
+ 
+-/* This is the driver that will be inserted */
+-static struct i2c_driver lm75_driver = {
+-	.driver = {
+-		.name	= "lm75",
+-	},
+-	.attach_adapter	= lm75_attach_adapter,
+-	.detach_client	= lm75_detach_client,
+-};
++/*-----------------------------------------------------------------------*/
++
++/* sysfs attributes for hwmon */
+ 
+ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
+ 			 char *buf)
+@@ -109,13 +106,6 @@ static SENSOR_DEVICE_ATTR(temp1_max_hyst
+ 			show_temp, set_temp, 2);
+ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
+ 
+-static int lm75_attach_adapter(struct i2c_adapter *adapter)
+-{
+-	if (!(adapter->class & I2C_CLASS_HWMON))
+-		return 0;
+-	return i2c_probe(adapter, &addr_data, lm75_detect);
+-}
+-
+ static struct attribute *lm75_attributes[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+@@ -128,6 +118,12 @@ static const struct attribute_group lm75
+ 	.attrs = lm75_attributes,
+ };
+ 
++/*-----------------------------------------------------------------------*/
++
++/* "Legacy" I2C driver binding */
++
++static struct i2c_driver lm75_driver;
++
+ /* This function is called by i2c_probe */
+ static int lm75_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+@@ -135,15 +131,14 @@ static int lm75_detect(struct i2c_adapte
+ 	struct i2c_client *new_client;
+ 	struct lm75_data *data;
+ 	int err = 0;
+-	const char *name = "";
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+ 				     I2C_FUNC_SMBUS_WORD_DATA))
+ 		goto exit;
+ 
+-	/* OK. For now, we presume we have a valid client. We now create the
+-	   client structure, even though we cannot fill it completely yet.
+-	   But it allows us to access lm75_{read,write}_value. */
++	/* OK. For now, we presume we have a valid address. We create the
++	   client structure, even though there may be no sensor present.
++	   But it allows us to use i2c_smbus_read_*_data() calls. */
+ 	if (!(data = kzalloc(sizeof(struct lm75_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+@@ -174,17 +169,17 @@ static int lm75_detect(struct i2c_adapte
+ 		 || i2c_smbus_read_word_data(new_client, 5) != hyst
+ 		 || i2c_smbus_read_word_data(new_client, 6) != hyst
+ 		 || i2c_smbus_read_word_data(new_client, 7) != hyst)
+-		 	goto exit_free;
++			goto exit_free;
+ 		os = i2c_smbus_read_word_data(new_client, 3);
+ 		if (i2c_smbus_read_word_data(new_client, 4) != os
+ 		 || i2c_smbus_read_word_data(new_client, 5) != os
+ 		 || i2c_smbus_read_word_data(new_client, 6) != os
+ 		 || i2c_smbus_read_word_data(new_client, 7) != os)
+-		 	goto exit_free;
++			goto exit_free;
+ 
+ 		/* Unused bits */
+ 		if (conf & 0xe0)
+-		 	goto exit_free;
++			goto exit_free;
+ 
+ 		/* Addresses cycling */
+ 		for (i = 8; i < 0xff; i += 8)
+@@ -194,16 +189,10 @@ static int lm75_detect(struct i2c_adapte
+ 				goto exit_free;
+ 	}
+ 
+-	/* Determine the chip type - only one kind supported! */
+-	if (kind <= 0)
+-		kind = lm75;
+-
+-	if (kind = lm75) {
+-		name = "lm75";
+-	}
++	/* NOTE: we treat "force=..." and "force_lm75=..." the same. */
++	strlcpy(new_client->name, "lm75", I2C_NAME_SIZE);
+ 
+ 	/* Fill in the remaining client fields and put it into the global list */
+-	strlcpy(new_client->name, name, I2C_NAME_SIZE);
+ 	data->valid = 0;
+ 	mutex_init(&data->update_lock);
+ 
+@@ -213,7 +202,7 @@ static int lm75_detect(struct i2c_adapte
+ 
+ 	/* Initialize the LM75 chip */
+ 	lm75_init_client(new_client);
+-	
++
+ 	/* Register sysfs hooks */
+ 	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm75_group)))
+ 		goto exit_detach;
+@@ -236,6 +225,13 @@ exit:
+ 	return err;
+ }
+ 
++static int lm75_attach_adapter(struct i2c_adapter *adapter)
++{
++	if (!(adapter->class & I2C_CLASS_HWMON))
++		return 0;
++	return i2c_probe(adapter, &addr_data, lm75_detect);
++}
++
+ static int lm75_detach_client(struct i2c_client *client)
+ {
+ 	struct lm75_data *data = i2c_get_clientdata(client);
+@@ -246,6 +242,18 @@ static int lm75_detach_client(struct i2c
+ 	return 0;
+ }
+ 
++static struct i2c_driver lm75_driver = {
++	.driver = {
++		.name	= "lm75",
++	},
++	.attach_adapter	= lm75_attach_adapter,
++	.detach_client	= lm75_detach_client,
++};
++
++/*-----------------------------------------------------------------------*/
++
++/* register access */
++
+ /* All registers are word-sized, except for the configuration register.
+    LM75 uses a high-byte first convention, which is exactly opposite to
+    the SMBus standard. */
+@@ -309,6 +317,10 @@ static struct lm75_data *lm75_update_dev
+ 	return data;
+ }
+ 
++/*-----------------------------------------------------------------------*/
++
++/* module glue */
++
+ static int __init sensors_lm75_init(void)
+ {
+ 	return i2c_add_driver(&lm75_driver);
 
 _______________________________________________
 lm-sensors mailing list
