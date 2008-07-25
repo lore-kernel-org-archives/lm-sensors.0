@@ -1,115 +1,379 @@
-From: Marcos Dione <mdione@grulic.org.ar>
-Date: Wed, 09 Jul 2008 17:52:41 +0000
-Subject: Re: [lm-sensors] sensors on dell inspiron 1420
-Message-Id: <20080709175241.GD2482@mustang.grulicueva.net>
+From: David Brownell <david-b@pacbell.net>
+Date: Fri, 25 Jul 2008 20:23:23 +0000
+Subject: [lm-sensors] [RESEND x9+ patch 2.6.26-git 2/2] lm75: new style
+Message-Id: <200807251323.23692.david-b@pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080607135219.GD18192@grulicueva.homelinux.net>
-In-Reply-To: <20080607135219.GD18192@grulicueva.homelinux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jul 09, 2008 at 10:00:47AM -0700, Juerg Haefliger wrote:
-> Hi Marcos,
-> 
-> Sorry for the late reply.
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-    no problem. I completely forgot about it :)
+More LM75 updates:
 
-> Can you run 'isadump 0x910 0x911' when the system is idle and also
-> when it's loaded (with cpuburn for example)?
+ - Teach the LM75 driver to use new-style driver binding:
 
-    here are 4 runs, the fisrt almost idle, the secon with little load
-(svn update in a big and oudated working copy) and the last two with two
-burnP6 running (core 2 duo cpu here):
+     * Create a second driver struct, using new-style driver binding
+       methods cribbed from the legacy code.
 
-mdione@mustang:~$ sudo isadump 0x910 0x911
-WARNING! Running this program can cause system crashes, data loss and worse!
-I will probe address register 0x910 and data register 0x911.
-Continue? [Y/n]
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 1f 00 00 f1 01 01 00 04 00 01 00 01 32 37 38 34
-90: 02 00 00 00 80 00 00 08 00 00 00 00 00 00 00 43
-a0: 00 01 00 63 00 00 14 31 ec 13 e4 0b 0a 47 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-mdione@mustang:~$ sudo isadump 0x910 0x911
-WARNING! Running this program can cause system crashes, data loss and worse!
-I will probe address register 0x910 and data register 0x911.
-Continue? [Y/n]
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 1f 00 00 f1 01 01 00 04 00 01 00 01 32 37 38 34
-90: 02 00 00 00 80 00 00 08 00 00 00 00 00 00 00 43
-a0: 00 01 00 63 00 00 14 31 ec 13 e4 0b 0a 47 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-mdione@mustang:~$ sudo isadump 0x910 0x911
-WARNING! Running this program can cause system crashes, data loss and worse!
-I will probe address register 0x910 and data register 0x911.
-Continue? [Y/n]
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 63 e0 00 f1 01 01 00 04 00 01 00 01 32 37 38 34
-90: 02 00 00 00 00 00 00 08 00 00 00 00 00 00 00 46
-a0: 00 01 00 63 00 00 14 31 ec 13 e6 0b 0a 47 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-mdione@mustang:~$ sudo isadump 0x910 0x911
-WARNING! Running this program can cause system crashes, data loss and worse!
-I will probe address register 0x910 and data register 0x911.
-Continue? [Y/n]
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 57 30 00 f1 01 01 00 04 00 01 00 01 32 37 38 34
-90: 02 00 00 00 00 00 00 08 00 00 00 00 00 00 00 15
-a0: 00 01 00 63 00 00 14 31 ec 13 e6 0b 0a 47 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+     * Add a MODULE_DEVICE_TABLE ("newER-style binding")
 
-    I see differences in the 0x80-0x81 addresses. hope it helps.
+     * The legacy probe logic delegates its work to this new code.
+
+     * The legacy driver uses the name "lm75_legacy".
+
+ - More careful initialization.  Chips are put into 9-bit mode so
+   the current interconversion routines will never fail.
+
+ - Save the original chip configuration, and restore it on exit.
+   (Among other things, this normally turns off the mode where
+   the chip is constantly sampling, and thus saves power.)
+
+So the new-style code should catch all chips that boards declare,
+while the legacy code catches others.  This particular coexistence
+strategy may need some work yet ... legacy modes might best be set
+up explicitly by some tool not unlike "sensors-detect".  (Or else
+completely eradicated...)
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+---
+Yeah, I know there is now *YET ANOTHER* way to handle the legacy
+probe logic.  Someone else can switch to use that; I'm tired of
+seeing these patches not get merged.
+
+
+ drivers/hwmon/Kconfig |    7 +
+ drivers/hwmon/lm75.c  |  206 ++++++++++++++++++++++++++++++++++++++------------
+ 2 files changed, 165 insertions(+), 48 deletions(-)
+
+--- a/drivers/hwmon/Kconfig	2008-06-30 21:21:39.000000000 -0700
++++ b/drivers/hwmon/Kconfig	2008-06-30 21:21:40.000000000 -0700
+@@ -406,7 +406,12 @@ config SENSORS_LM75
+ 		- TelCom (now Microchip) TCN75
+ 		- Texas Instruments TMP100, TMP101, TMP75, TMP175, TMP275
+ 
+-	  Most of these chips will require a "force" module parameter.
++	  This driver supports driver model based binding through board
++	  specific I2C device tables.
++
++	  It also supports the "legacy" style of driver binding.  To use
++	  that with some chips which don't replicate LM75 quirks exactly,
++	  you may need the "force" module parameter.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm75.
+--- a/drivers/hwmon/lm75.c	2008-06-30 21:21:39.000000000 -0700
++++ b/drivers/hwmon/lm75.c	2008-06-30 21:21:40.000000000 -0700
+@@ -32,10 +32,28 @@
+ 
+ /*
+  * This driver handles the LM75 and compatible digital temperature sensors.
+- * Compatibles include at least the DS75, DS1775, MCP980x, STDS75, TCN75,
+- * TMP100, TMP101, TMP75, TMP175, and TMP275.
++ * Only types which are _not_ listed in I2C_CLIENT_INSMOD_*() need to be
++ * listed here.  We start at 9 since I2C_CLIENT_INSMOD_*() currently allow
++ * definition of up to 8 chip types (plus zero).
+  */
+ 
++enum lm75_type {		/* keep sorted in alphabetical order */
++	ds1775 = 9,
++	ds75,
++	/* lm75 -- in I2C_CLIENT_INSMOD_1() */
++	lm75a,
++	max6625,
++	max6626,
++	mcp980x,
++	stds75,
++	tcn75,
++	tmp100,
++	tmp101,
++	tmp175,
++	tmp275,
++	tmp75,
++};
++
+ /* Addresses scanned by legacy style driver binding */
+ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b, 0x4c,
+ 					0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
+@@ -54,9 +72,10 @@ static const u8 LM75_REG_TEMP[3] = {
+ 
+ /* Each client has this additional data */
+ struct lm75_data {
+-	struct i2c_client	client;
++	struct i2c_client	*client;
+ 	struct device		*hwmon_dev;
+ 	struct mutex		update_lock;
++	u8			orig_conf;
+ 	char			valid;		/* !=0 if registers are valid */
+ 	unsigned long		last_updated;	/* In jiffies */
+ 	u16			temp[3];	/* Register values,
+@@ -65,7 +84,6 @@ struct lm75_data {
+ 						   2 = hyst */
+ };
+ 
+-static void lm75_init_client(struct i2c_client *client);
+ static int lm75_read_value(struct i2c_client *client, u8 reg);
+ static int lm75_write_value(struct i2c_client *client, u8 reg, u16 value);
+ static struct lm75_data *lm75_update_device(struct device *dev);
+@@ -120,16 +138,124 @@ static const struct attribute_group lm75
+ 
+ /*-----------------------------------------------------------------------*/
+ 
++/* "New style" I2C driver binding -- following the driver model */
++
++static int
++lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++	struct lm75_data *data;
++	int status;
++	u8 set_mask, clr_mask;
++	int new;
++
++	if (!i2c_check_functionality(client->adapter,
++			I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA))
++		return -EIO;
++
++	data = kzalloc(sizeof(struct lm75_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, data);
++
++	data->client = client;
++	mutex_init(&data->update_lock);
++
++	/* Set to LM75 resolution (9 bits, 1/2 degree C) and range.
++	 * Then tweak to be more precise when appropriate.
++	 */
++	set_mask = 0;
++	clr_mask = (1 << 0)			/* continuous conversions */
++		| (1 << 6) | (1 << 5);		/* 9-bit mode */
++
++	/* configure as specified */
++	status = lm75_read_value(client, LM75_REG_CONF);
++	if (status < 0) {
++		dev_dbg(&client->dev, "Can't read config? %d\n", status);
++		goto exit_free;
++	}
++	data->orig_conf = status;
++	new = status & ~clr_mask;
++	new |= set_mask;
++	if (status != new)
++		lm75_write_value(client, LM75_REG_CONF, new);
++	dev_dbg(&client->dev, "Config %02x\n", new);
++
++	/* Register sysfs hooks */
++	status = sysfs_create_group(&client->dev.kobj, &lm75_group);
++	if (status)
++		goto exit_free;
++
++	data->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		status = PTR_ERR(data->hwmon_dev);
++		goto exit_remove;
++	}
++
++	dev_info(&client->dev, "%s: sensor '%s'\n",
++		data->hwmon_dev->bus_id, client->name);
++
++	return 0;
++
++exit_remove:
++	sysfs_remove_group(&client->dev.kobj, &lm75_group);
++exit_free:
++	i2c_set_clientdata(client, NULL);
++	kfree(data);
++	return status;
++}
++
++static int lm75_remove(struct i2c_client *client)
++{
++	struct lm75_data *data = i2c_get_clientdata(client);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &lm75_group);
++	lm75_write_value(client, LM75_REG_CONF, data->orig_conf);
++	i2c_set_clientdata(client, NULL);
++	kfree(data);
++	return 0;
++}
++
++static const struct i2c_device_id lm75_ids[] = {
++	{ "ds1775", ds1775, },
++	{ "ds75", ds75, },
++	{ "lm75", lm75, },
++	{ "lm75a", lm75a, },
++	{ "max6625", max6625, },
++	{ "max6626", max6626, },
++	{ "mcp980x", mcp980x, },
++	{ "stds75", stds75, },
++	{ "tcn75", tcn75, },
++	{ "tmp100", tmp100, },
++	{ "tmp101", tmp101, },
++	{ "tmp175", tmp175, },
++	{ "tmp275", tmp275, },
++	{ "tmp75", tmp75, },
++	{ /* LIST END */ }
++};
++MODULE_DEVICE_TABLE(i2c, lm75_ids);
++
++static struct i2c_driver lm75_driver = {
++	.driver = {
++		.name	= "lm75",
++	},
++	.probe		= lm75_probe,
++	.remove		= lm75_remove,
++	.id_table	= lm75_ids,
++};
++
++/*-----------------------------------------------------------------------*/
++
+ /* "Legacy" I2C driver binding */
+ 
+-static struct i2c_driver lm75_driver;
++static struct i2c_driver lm75_legacy_driver;
+ 
+ /* This function is called by i2c_probe */
+ static int lm75_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	int i;
+ 	struct i2c_client *new_client;
+-	struct lm75_data *data;
+ 	int err = 0;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+@@ -139,16 +265,15 @@ static int lm75_detect(struct i2c_adapte
+ 	/* OK. For now, we presume we have a valid address. We create the
+ 	   client structure, even though there may be no sensor present.
+ 	   But it allows us to use i2c_smbus_read_*_data() calls. */
+-	if (!(data = kzalloc(sizeof(struct lm75_data), GFP_KERNEL))) {
++	new_client = kzalloc(sizeof *new_client, GFP_KERNEL);
++	if (!new_client) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+ 
+-	new_client = &data->client;
+-	i2c_set_clientdata(new_client, data);
+ 	new_client->addr = address;
+ 	new_client->adapter = adapter;
+-	new_client->driver = &lm75_driver;
++	new_client->driver = &lm75_legacy_driver;
+ 	new_client->flags = 0;
+ 
+ 	/* Now, we do the remaining detection. There is no identification-
+@@ -189,38 +314,26 @@ static int lm75_detect(struct i2c_adapte
+ 				goto exit_free;
+ 	}
+ 
+-	/* NOTE: we treat "force=..." and "force_lm75=..." the same. */
++	/* NOTE: we treat "force=..." and "force_lm75=..." the same.
++	 * Only new-style driver binding distinguishes chip types.
++	 */
+ 	strlcpy(new_client->name, "lm75", I2C_NAME_SIZE);
+ 
+-	/* Fill in the remaining client fields and put it into the global list */
+-	data->valid = 0;
+-	mutex_init(&data->update_lock);
+-
+ 	/* Tell the I2C layer a new client has arrived */
+-	if ((err = i2c_attach_client(new_client)))
++	err = i2c_attach_client(new_client);
++	if (err)
+ 		goto exit_free;
+ 
+-	/* Initialize the LM75 chip */
+-	lm75_init_client(new_client);
+-
+-	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm75_group)))
++	err = lm75_probe(new_client, NULL);
++	if (err < 0)
+ 		goto exit_detach;
+ 
+-	data->hwmon_dev = hwmon_device_register(&new_client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove;
+-	}
+-
+ 	return 0;
+ 
+-exit_remove:
+-	sysfs_remove_group(&new_client->dev.kobj, &lm75_group);
+ exit_detach:
+ 	i2c_detach_client(new_client);
+ exit_free:
+-	kfree(data);
++	kfree(new_client);
+ exit:
+ 	return err;
+ }
+@@ -234,17 +347,15 @@ static int lm75_attach_adapter(struct i2
+ 
+ static int lm75_detach_client(struct i2c_client *client)
+ {
+-	struct lm75_data *data = i2c_get_clientdata(client);
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &lm75_group);
++	lm75_remove(client);
+ 	i2c_detach_client(client);
+-	kfree(data);
++	kfree(client);
+ 	return 0;
+ }
+ 
+-static struct i2c_driver lm75_driver = {
++static struct i2c_driver lm75_legacy_driver = {
+ 	.driver = {
+-		.name	= "lm75",
++		.name	= "lm75_legacy",
+ 	},
+ 	.attach_adapter	= lm75_attach_adapter,
+ 	.detach_client	= lm75_detach_client,
+@@ -276,16 +387,6 @@ static int lm75_write_value(struct i2c_c
+ 		return i2c_smbus_write_word_data(client, reg, swab16(value));
+ }
+ 
+-static void lm75_init_client(struct i2c_client *client)
+-{
+-	int reg;
+-
+-	/* Enable if in shutdown mode */
+-	reg = lm75_read_value(client, LM75_REG_CONF);
+-	if (reg >= 0 && (reg & 0x01))
+-		lm75_write_value(client, LM75_REG_CONF, reg & 0xfe);
+-}
+-
+ static struct lm75_data *lm75_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -323,11 +424,22 @@ static struct lm75_data *lm75_update_dev
+ 
+ static int __init sensors_lm75_init(void)
+ {
+-	return i2c_add_driver(&lm75_driver);
++	int status;
++
++	status = i2c_add_driver(&lm75_driver);
++	if (status < 0)
++		return status;
++
++	status = i2c_add_driver(&lm75_legacy_driver);
++	if (status < 0)
++		i2c_del_driver(&lm75_driver);
++
++	return status;
+ }
+ 
+ static void __exit sensors_lm75_exit(void)
+ {
++	i2c_del_driver(&lm75_legacy_driver);
+ 	i2c_del_driver(&lm75_driver);
+ }
+ 
 
 _______________________________________________
 lm-sensors mailing list
