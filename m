@@ -1,47 +1,89 @@
-From: Jonathan Cameron <Jonathan.Cameron@gmail.com>
-Date: Thu, 24 Jul 2008 16:11:31 +0000
-Subject: Re: [lm-sensors] [spi-devel-general] [Patch 0/4] IndustrialIO
-Message-Id: <4888A9B3.8070004@gmail.com>
+From: Nicolas Boichat <nicolas@boichat.ch>
+Date: Tue, 29 Jul 2008 15:02:15 +0000
+Subject: [lm-sensors] [PATCH 1/2] Support for Intel iMac in applesmc
+Message-Id: <488F30F7.4030804@boichat.ch>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <488763AD.4050400@gmail.com> <20080723191918.GC26938@trinity.fluff.org> <20080724074124.GB2254@local> <20080724100144.GA8301@fluff.org.uk> <20080724153816.GE2254@local>
-In-Reply-To: <20080724153816.GE2254@local>
+References: <1216814135.5834.9.camel@sirius>
+In-Reply-To: <1216814135.5834.9.camel@sirius>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Hans J. Koch" <hjk@linutronix.de>
-Cc: Ben Dooks <ben-linux@fluff.org>, mgross@linux.intel.com, Dmitry Torokhov <dtor@mail.ru>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, David Brownell <david-b@pacbell.net>, hmh@hmh.eng.br, Jean Delvare <khali@linux-fr.org>, spi-devel-general@lists.sourceforge.net, Ben Nizette <bn@niasdigital.com>
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: roberto@unbit.it, mactel-linux-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, LM Sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>
+
+Hi all,
+
+Roberto De Ioris wrote:
+> Hi all, this patch (2.6.26 vanilla) add supports for fans and
+> temperature sensors on intel iMac.
+>
+> Tested on iMac 24" 2.8ghz (iMac8,1), it supports the following sensors:
+>   
+Here is a slightly modified version (Andrew realigned the sensors list).
+
+Mark: If the MAINTAINERS file is correct, it should go in your git tree, 
+right?
+
+Thanks.
+
+This patch (2.6.26 vanilla) adds support for fans and temperature sensors
+on Intel iMac.
+
+Tested on iMac 24" 2.8ghz (iMac8,1), it supports the following sensors:
+
+cpu A
+ambient
+gpu
+gpu diode
+gpu heatsink
+hd bay 1
+memory controller
+optical drive
+power
+
+Signed-off-by: Roberto De Ioris <roberto@unbit.it>
+Signed-off-by: Nicolas Boichat <nicolas@boichat.ch>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+ drivers/hwmon/applesmc.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index aacc0c4..52d842b 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -98,6 +98,9 @@ static const char* temperature_sensors_sets[][36] = {
+ 	  "TH1P", "TH2P", "TH3P", "TMAP", "TMAS", "TMBS", "TM0P", "TM0S",
+ 	  "TM1P", "TM1S", "TM2P", "TM2S", "TM3S", "TM8P", "TM8S", "TM9P",
+ 	  "TM9S", "TN0H", "TS0C", NULL },
++/* Set 5: iMac */
++	{ "TC0D", "TA0P", "TG0P", "TG0D", "TG0H", "TH0P", "Tm0P", "TO0P",
++	  "Tp0C", NULL },
+ };
+ 
+ /* List of keys used to read/write fan speeds */
+@@ -1223,6 +1226,8 @@ static __initdata struct dmi_match_data applesmc_dmi_data[] = {
+ 	{ .accelerometer = 0, .light = 0, .temperature_set = 3 },
+ /* MacPro: temperature set 4 */
+ 	{ .accelerometer = 0, .light = 0, .temperature_set = 4 },
++/* iMac: temperature set 5 */
++	{ .accelerometer = 0, .light = 0, .temperature_set = 5 },
+ };
+ 
+ /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
+@@ -1248,6 +1253,10 @@ static __initdata struct dmi_system_id applesmc_whitelist[] = {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacPro2") },
+ 		(void*)&applesmc_dmi_data[4]},
++	{ applesmc_dmi_match, "Apple iMac", {
++	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
++	  DMI_MATCH(DMI_PRODUCT_NAME,"iMac") },
++		(void*)&applesmc_dmi_data[5]},
+ 	{ .ident = NULL }
+ };
+ 
 
 
->>> Well, it says "Industrial I/O". To me, this means it handles I/O devices
->>> typically found in industrial applications.
->>>       
->> Yes, industrial is generally process control of manufacturing
->> processes which in my view is making this sound like it is limiting
->> the field of operations.
->>     
-> OK, I agree.
->   
-Agreed, though don't yet have a better idea.
-In fact my use cases are all really embedded systems anyway.
->> All the applications we would currently need are things like
->> handheld PDA type devices which are hardly 'industrial' or small
->> consumer measurement systems.
->>     
->
-> Well, though the _use_ of such devices might not be "industrial",
-> _technically_ they are very similar to embedded systems found in
-> automation or other industrial equipment.
->
-> Many of these devices (all that have mmappable memory) can be handled
-> with a UIO driver, but for the rest (mostly stuff connected to serial
-> busses), it's important to have a subsystem in the kernel. I really
-> don't care too much about its name. BTW, before UIO was first published,
-> its internal name was "Industrial I/O" ;-)
->   
-lol. We could try and make it the standard working name for all new
-subsystems ;)
---
-Jonathan Cameron
 
 _______________________________________________
 lm-sensors mailing list
