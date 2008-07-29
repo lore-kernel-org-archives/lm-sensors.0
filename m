@@ -1,151 +1,143 @@
-From: "Hans J. Koch" <hjk@linutronix.de>
-Date: Thu, 24 Jul 2008 15:25:56 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Tue, 29 Jul 2008 04:35:48 +0000
 Subject: Re: [lm-sensors] [RFC,PATCH v1] hwmon: ADC124S501 generic driver
-Message-Id: <20080724152556.GD2254@local>
+Message-Id: <20080728213548.156af744.akpm@linux-foundation.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200807241151.50915.tobias@himmer-online.de>
-In-Reply-To: <200807241151.50915.tobias@himmer-online.de>
+References: <200807231307.54837.marc.pignat@hevs.ch>
+In-Reply-To: <200807231307.54837.marc.pignat@hevs.ch>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Tobias Himmer <tobias@himmer-online.de>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, marc.pignat@hevs.ch
+To: Marc Pignat <marc.pignat@hevs.ch>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, David Brownell <david-b@pacbell.net>, "Mark M. Hoffman" <mhoffman@lightlink.com>
 
-On Thu, Jul 24, 2008 at 11:51:50AM +0200, Tobias Himmer wrote:
-> Hi Marc,
+On Wed, 23 Jul 2008 13:07:54 +0200 Marc Pignat <marc.pignat@hevs.ch> wrote:
+
+> SPI driver for analog to digital converters national semiconductor ADC081S101,
+> ADC124S501, ...
 > 
-> I just wrote a similar driver for the ADC088S052.
-
-Bad luck ;-)
-
-> Yesterday I noticed your patch and successfully tested a slightly
-> modified version of it that supports 8 channels.
-> The patch below goes on top of yours.
-
-Nice, both patches combined in mainline would be nice. Works for me.
-
-Thanks,
-Hans
-
+> Signed-off-by: Marc Pignat <marc.pignat@hevs.ch>
 > 
-> Bye
+> Hi all!
 > 
-> Tobias
+> patch against 2.6.26, tested on a custom arm board and only compil-tested on
+> x86.
 > 
-> Signed-off-by: Tobias Himmer <tobias@himmer-online.de>
+> This driver add support for National Semiconductor ADC<bb><c>S<sss> chip family,
+> where:
+>  * bb  is the resolution in number of bits (8, 10, 12)
+>  * c   is the number of channels (1, 2, 4)
+>  * sss is the maximum conversion speed (021 for 200 kSPS, 051 for 500
+>    kSPS and 101 for 1 MSPS)
+> 
+> Some remarks:
+>  * The chip type (-> the number of inputs) are determined by the module alias,
+>    is it a good idea? it could be implemented using platform data.
+> 
+>  * The Makefile seems ordered alphabetically, what order should be used for
+>    the Konfig file?
+> 
 
-Acked-by: Hans J. Koch <hjk@linutronix.de>
+That changelog is a bit of a mess.  I cleaned up up as:
 
-> ---
-> 
-> Index: linux-2.6.26-rc/drivers/hwmon/adcxx.c
-> =================================> --- linux-2.6.26-rc.orig/drivers/hwmon/adcxx.c
-> +++ linux-2.6.26-rc/drivers/hwmon/adcxx.c
-> @@ -5,13 +5,15 @@
->   *
->   * Copyright (c) 2008 Marc Pignat <marc.pignat@hevs.ch>
->   *
-> + * 8 channel support added by Tobias Himmer <tobias@himmer-online.de>
-> + *
->   * The adcxx4s communicates with a host processor via an SPI/Microwire Bus
->   * interface. This driver supports the whole family of devices with name
->   * ADC<bb><c>S<sss>, where
->   * * bb is the resolution in number of bits (8, 10, 12)
-> - * * c is the number of channels (1, 2, 4)
-> - * * sss is the maximum conversion speed (021 for 200 kSPS, 051 for 500 kSPS
-> - *   and 101 for 1 MSPS)
-> + * * c is the number of channels (1, 2, 4, 8)
-> + * * sss is the maximum conversion speed (021 for 200 kSPS, 051 / 052 for
-> + *   500 kSPS and 101 for 1 MSPS)
->   *
->   * Complete datasheets are available at National's website here:
->   * http://www.national.com/ds/DC/ADC<bb><c>S<sss>.pdf
-> @@ -155,6 +157,10 @@ static struct sensor_device_attribute ad
->  	SENSOR_ATTR(in1_input, S_IRUGO, adcxx_read, NULL, 1),
->  	SENSOR_ATTR(in2_input, S_IRUGO, adcxx_read, NULL, 2),
->  	SENSOR_ATTR(in3_input, S_IRUGO, adcxx_read, NULL, 3),
-> +	SENSOR_ATTR(in4_input, S_IRUGO, adcxx_read, NULL, 4),
-> +	SENSOR_ATTR(in5_input, S_IRUGO, adcxx_read, NULL, 5),
-> +	SENSOR_ATTR(in6_input, S_IRUGO, adcxx_read, NULL, 6),
-> +	SENSOR_ATTR(in7_input, S_IRUGO, adcxx_read, NULL, 7),
-> };
->  
->  /*----------------------------------------------------------------------*/
-> @@ -218,6 +224,11 @@ static int __devinit adcxx4s_probe(struc
->  	return adcxx_probe(spi, 4);
-> }
->  
-> +static int __devinit adcxx8s_probe(struct spi_device *spi)
+SPI driver for analog to digital converters national semiconductor
+ADC081S101, ADC124S501, ...
+
+This driver adds support for National Semiconductor ADC<bb><c>S<sss> chip
+family, where:
+
+ * bb  is the resolution in number of bits (8, 10, 12)
+ * c   is the number of channels (1, 2, 4)
+ * sss is the maximum conversion speed (021 for 200 kSPS, 051 for 500
+   kSPS and 101 for 1 MSPS)
+
+Some remarks:
+
+* The chip type (-> the number of inputs) are determined by the module
+  alias, is it a good idea?  it could be implemented using platform data.
+
+Signed-off-by: Marc Pignat <marc.pignat@hevs.ch>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: David Brownell <david-b@pacbell.net>
+
+but then didn't apply the patch.
+
+>
+> ...
+>
+> +/* sysfs hook function */
+> +static ssize_t adcxx_read(struct device *dev,
+> +		struct device_attribute *devattr, char *buf)
 > +{
-> +	return adcxx_probe(spi, 8);
+> +	struct spi_device *spi = to_spi_device(dev);
+> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> +	struct adcxx *adc = dev_get_drvdata(&spi->dev);
+> +
+> +	u8 tx_buf[2] = { attr->index << 3 }; /* other bits are don't care */
+> +	u8 rx_buf[2];
+> +	int status;
+> +	int value;
+
+The driver has rather a lot of inexplicable blank lines in the middle
+of the automatic variable definitions.  The preferred style is no blank
+lines within the definitions and a single blank line after them all,
+thanks.
+
+>
+> ...
+>
+> +static int __devinit adcxx_probe(struct spi_device *spi, int channels)
+> +{
+> +	struct adcxx *adc;
+> +	int status;
+> +	int i;
+> +
+> +	adc = kzalloc(sizeof *adc, GFP_KERNEL);
+> +	if (!adc)
+> +		return -ENOMEM;
+> +
+> +	/* set a default value for the reference */
+> +	adc->reference = 3300;
+> +
+> +	adc->channels = channels;
+> +
+> +	mutex_init(&adc->lock);
+> +
+> +	dev_set_drvdata(&spi->dev, adc);
+> +
+> +	for (i = 0; i < 3 + adc->channels; i++) {
+> +		status = device_create_file(&spi->dev, &ad_input[i].dev_attr);
+> +		if (status)
+> +			goto out_dev_create_file_failed;
+> +	}
+> +
+> +	adc->hwmon_dev = hwmon_device_register(&spi->dev);
+> +	if (IS_ERR(adc->hwmon_dev)) {
+> +		dev_dbg(&spi->dev, "hwmon_device_register failed.\n");
+> +		status = PTR_ERR(adc->hwmon_dev);
+> +		goto out_dev_reg_failed;
+> +	}
+> +
+> +	return 0;
+> +
+> +out_dev_create_file_failed:
+> +	hwmon_device_unregister(adc->hwmon_dev);
+> +	for (i = 0; i < 3 + adc->channels; i++)
+> +		device_remove_file(&spi->dev, &ad_input[i].dev_attr);
+> +out_dev_reg_failed:
+> +	dev_set_drvdata(&spi->dev, NULL);
+> +	kfree(adc);
+> +	return status;
 > +}
-> +
->  static int __devexit adcxx_remove(struct spi_device *spi)
-> {
->  	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-> @@ -259,6 +270,15 @@ static struct spi_driver adcxx4s_driver 
->  	.remove	= __devexit_p(adcxx_remove),
-> };
->  
-> +static struct spi_driver adcxx8s_driver = {
-> +	.driver = {
-> +		.name	= "adcxx8s",
-> +		.owner	= THIS_MODULE,
-> +	},
-> +	.probe	= adcxx8s_probe,
-> +	.remove	= __devexit_p(adcxx_remove),
-> +};
-> +
->  static int __init init_adcxx(void)
-> {
->  	int status;
-> @@ -270,7 +290,11 @@ static int __init init_adcxx(void)
->  	if (status)
->  		return status;
->  
-> -	return spi_register_driver(&adcxx4s_driver);
-> +	status = spi_register_driver(&adcxx4s_driver);
-> +	if (status)
-> +		return status;
-> +
-> +	return spi_register_driver(&adcxx8s_driver);
-> }
->  
->  static void __exit exit_adcxx(void)
-> @@ -278,6 +302,7 @@ static void __exit exit_adcxx(void)
->  	spi_unregister_driver(&adcxx1s_driver);
->  	spi_unregister_driver(&adcxx2s_driver);
->  	spi_unregister_driver(&adcxx4s_driver);
-> +	spi_unregister_driver(&adcxx8s_driver);
-> }
->  
->  module_init(init_adcxx);
-> @@ -290,3 +315,4 @@ MODULE_LICENSE("GPL");
->  MODULE_ALIAS("adcxx1s");
->  MODULE_ALIAS("adcxx2s");
->  MODULE_ALIAS("adcxx4s");
-> +MODULE_ALIAS("adcxx8s");
-> Index: linux-2.6.26-rc/drivers/hwmon/Kconfig
-> =================================> --- linux-2.6.26-rc.orig/drivers/hwmon/Kconfig
-> +++ linux-2.6.26-rc/drivers/hwmon/Kconfig
-> @@ -397,9 +397,9 @@ config SENSORS_ADCXX
->  	  If you say yes here you get support for the National Semiconductor
->  	  ADC<bb><c>S<sss> chip family, where
->  	  * bb  is the resolution in number of bits (8, 10, 12)
-> -	  * c   is the number of channels (1, 2, 4)
-> -	  * sss is the maximum conversion speed (021 for 200 kSPS, 051 for 500
-> -	    kSPS and 101 for 1 MSPS)
-> +	  * c   is the number of channels (1, 2, 4, 8)
-> +	  * sss is the maximum conversion speed (021 for 200 kSPS, 051 / 052 for
-> +	    500 kSPS and 101 for 1 MSPS)
->  
->  	  Examples : ADC081S101, ADC124S501, ...
->  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+
+The error recovery here is messed up.  The targets of the `goto's are
+reversed.  But even if that is fixed, we can end up doing
+device_remove_file() of objects which weren't successfully created. 
+That might work, or it might generate runtime warnings or it might
+crash.  I don't know.  It'd be best to just avoid doing it?
+
+
 
 _______________________________________________
 lm-sensors mailing list
