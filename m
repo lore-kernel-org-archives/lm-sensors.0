@@ -1,278 +1,254 @@
-From: David Brownell <david-b@pacbell.net>
-Date: Fri, 25 Jul 2008 22:23:28 +0000
-Subject: [lm-sensors] [RESEND x9+ patch 2.6.26-git 1/2] lm75: cleanup and
-Message-Id: <200807251523.28242.david-b@pacbell.net>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Wed, 30 Jul 2008 06:32:31 +0000
+Subject: Re: [lm-sensors] [RESEND x9+ patch 2.6.26-git 1/2] lm75: cleanup
+Message-Id: <20080729233231.0ced6d9b.akpm@linux-foundation.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200807251321.17101.david-b@pacbell.net>
-In-Reply-To: <200807251321.17101.david-b@pacbell.net>
+References: <200807251523.28242.david-b@pacbell.net>
+In-Reply-To: <200807251523.28242.david-b@pacbell.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Mark M. Hoffman" <mhoffman@lightlink.com>, lm-sensors@lm-sensors.org
-Cc: lkml <linux-kernel@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, lm-sensors@lm-sensors.org, lkml <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, Juerg Haefliger <juergh@gmail.com>
 
-[ added LKML to cc list ]
+On Fri, 25 Jul 2008 15:23:28 -0700 David Brownell <david-b@pacbell.net> wrote:
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+> Minor cleanup and reorg of the lm75 code.
 
-Minor cleanup and reorg of the lm75 code.
+This patch (and the other) have been in Mark's tree for a month or so. 
+(linux-next <- useful!)
 
- - Kconfig provides a larger list of lm75-compatible chips
+Mark has been pretty, umm, low-key lately.  I've attached the full
+git-hwmon changelog below and the authors of all those changes are
+cc'ed.
 
- - A top comment now says what the driver does (!) ... as in, just
-   what sort of sensor is this??
+Could people please confirm that what is in linux-next is still the
+latest and greatest version of their changes?  If so, I shall plan on
+fishing those changes out of there and getting them into -rc2.
 
- - Section comments now delineate the various sections of the driver:
-   hwmon attributes, driver binding, register access, module glue.
-   One driver binding function moved out of the attribute section,
-   as did the driver struct itself.
+Thanks.
 
- - Minor tweaks to legacy probe logic:  correct a comment, and
-   remove a pointless variable.
 
- - Whitespace, linelength, and comment fixes.
+commit 530598a47e8562f680d155eb280dddd6af1b3d9e
+Author: Jean Delvare <khali@linux-fr.org>
+Date:   Wed Jun 25 09:10:30 2008 -0400
 
-This patch should include no functional changes.
+    hwmon: (lm85) Simplify device initialization function
+    
+    Clean up and simplify the device initialization function:
+    * Degrade error messages to warnings - what they really are.
+    * Stop warning about VxI mode, we don't really care.
+    * Drop comment about lack of limit initialization - that's the standard
+      way, all hardware monitoring drivers do that.
+    * Only read the configuration register once.
+    * Only write back to the configuration register if needed.
+    * Don't attempt to clear the lock bit, it locks itself to 1.
+    * Move the function to before it's called, so that we no longer need to
+      forware declare it.
+    
+    Signed-off-by: Jean Delvare <khali@linux-fr.org>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Jean Delvare <khali@linux-fr.org>
-Acked-by: Laurent Pinchart <laurentp@cse-semaphore.com>
----
- drivers/hwmon/Kconfig |   18 ++++++----
- drivers/hwmon/lm75.c  |   90 ++++++++++++++++++++++++++++----------------------
- 2 files changed, 63 insertions(+), 45 deletions(-)
+commit 231858233b28b8d1b3bd2b5b2c8485b45a000ec2
+Author: Jean Delvare <khali@linux-fr.org>
+Date:   Wed Jun 25 08:47:35 2008 -0400
 
---- a/drivers/hwmon/Kconfig	2008-06-30 21:20:50.000000000 -0700
-+++ b/drivers/hwmon/Kconfig	2008-06-30 21:21:39.000000000 -0700
-@@ -394,13 +394,19 @@ config SENSORS_LM75
- 	tristate "National Semiconductor LM75 and compatibles"
- 	depends on I2C
- 	help
--	  If you say yes here you get support for National Semiconductor LM75
--	  sensor chips and clones: Dallas Semiconductor DS75 and DS1775 (in
--	  9-bit precision mode), and TelCom (now Microchip) TCN75.
-+	  If you say yes here you get support for one common type of
-+	  temperature sensor chip, with models including:
- 
--	  The DS75 and DS1775 in 10- to 12-bit precision modes will require
--	  a force module parameter. The driver will not handle the extra
--	  precision anyhow.
-+		- Dallas Semiconductor DS75 and DS1775
-+		- Maxim MAX6625 and MAX6626
-+		- Microchip MCP980x
-+		- National Semiconductor LM75
-+		- NXP's LM75A
-+		- ST Microelectronics STDS75
-+		- TelCom (now Microchip) TCN75
-+		- Texas Instruments TMP100, TMP101, TMP75, TMP175, TMP275
-+
-+	  Most of these chips will require a "force" module parameter.
- 
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called lm75.
---- a/drivers/hwmon/lm75.c	2008-06-30 21:20:50.000000000 -0700
-+++ b/drivers/hwmon/lm75.c	2008-06-30 21:21:39.000000000 -0700
-@@ -30,14 +30,19 @@
- #include "lm75.h"
- 
- 
--/* Addresses to scan */
-+/*
-+ * This driver handles the LM75 and compatible digital temperature sensors.
-+ * Compatibles include at least the DS75, DS1775, MCP980x, STDS75, TCN75,
-+ * TMP100, TMP101, TMP75, TMP175, and TMP275.
-+ */
-+
-+/* Addresses scanned by legacy style driver binding */
- static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b, 0x4c,
- 					0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
- 
--/* Insmod parameters */
-+/* Insmod parameters (only for legacy style driver binding) */
- I2C_CLIENT_INSMOD_1(lm75);
- 
--/* Many LM75 constants specified below */
- 
- /* The LM75 registers */
- #define LM75_REG_CONF		0x01
-@@ -50,9 +55,9 @@ static const u8 LM75_REG_TEMP[3] = {
- /* Each client has this additional data */
- struct lm75_data {
- 	struct i2c_client	client;
--	struct device *hwmon_dev;
-+	struct device		*hwmon_dev;
- 	struct mutex		update_lock;
--	char			valid;		/* !=0 if following fields are valid */
-+	char			valid;		/* !=0 if registers are valid */
- 	unsigned long		last_updated;	/* In jiffies */
- 	u16			temp[3];	/* Register values,
- 						   0 = input
-@@ -60,23 +65,15 @@ struct lm75_data {
- 						   2 = hyst */
- };
- 
--static int lm75_attach_adapter(struct i2c_adapter *adapter);
--static int lm75_detect(struct i2c_adapter *adapter, int address, int kind);
- static void lm75_init_client(struct i2c_client *client);
--static int lm75_detach_client(struct i2c_client *client);
- static int lm75_read_value(struct i2c_client *client, u8 reg);
- static int lm75_write_value(struct i2c_client *client, u8 reg, u16 value);
- static struct lm75_data *lm75_update_device(struct device *dev);
- 
- 
--/* This is the driver that will be inserted */
--static struct i2c_driver lm75_driver = {
--	.driver = {
--		.name	= "lm75",
--	},
--	.attach_adapter	= lm75_attach_adapter,
--	.detach_client	= lm75_detach_client,
--};
-+/*-----------------------------------------------------------------------*/
-+
-+/* sysfs attributes for hwmon */
- 
- static ssize_t show_temp(struct device *dev, struct device_attribute *da,
- 			 char *buf)
-@@ -109,13 +106,6 @@ static SENSOR_DEVICE_ATTR(temp1_max_hyst
- 			show_temp, set_temp, 2);
- static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
- 
--static int lm75_attach_adapter(struct i2c_adapter *adapter)
--{
--	if (!(adapter->class & I2C_CLASS_HWMON))
--		return 0;
--	return i2c_probe(adapter, &addr_data, lm75_detect);
--}
--
- static struct attribute *lm75_attributes[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp1_max.dev_attr.attr,
-@@ -128,6 +118,12 @@ static const struct attribute_group lm75
- 	.attrs = lm75_attributes,
- };
- 
-+/*-----------------------------------------------------------------------*/
-+
-+/* "Legacy" I2C driver binding */
-+
-+static struct i2c_driver lm75_driver;
-+
- /* This function is called by i2c_probe */
- static int lm75_detect(struct i2c_adapter *adapter, int address, int kind)
- {
-@@ -135,15 +131,14 @@ static int lm75_detect(struct i2c_adapte
- 	struct i2c_client *new_client;
- 	struct lm75_data *data;
- 	int err = 0;
--	const char *name = "";
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
- 				     I2C_FUNC_SMBUS_WORD_DATA))
- 		goto exit;
- 
--	/* OK. For now, we presume we have a valid client. We now create the
--	   client structure, even though we cannot fill it completely yet.
--	   But it allows us to access lm75_{read,write}_value. */
-+	/* OK. For now, we presume we have a valid address. We create the
-+	   client structure, even though there may be no sensor present.
-+	   But it allows us to use i2c_smbus_read_*_data() calls. */
- 	if (!(data = kzalloc(sizeof(struct lm75_data), GFP_KERNEL))) {
- 		err = -ENOMEM;
- 		goto exit;
-@@ -174,17 +169,17 @@ static int lm75_detect(struct i2c_adapte
- 		 || i2c_smbus_read_word_data(new_client, 5) != hyst
- 		 || i2c_smbus_read_word_data(new_client, 6) != hyst
- 		 || i2c_smbus_read_word_data(new_client, 7) != hyst)
--		 	goto exit_free;
-+			goto exit_free;
- 		os = i2c_smbus_read_word_data(new_client, 3);
- 		if (i2c_smbus_read_word_data(new_client, 4) != os
- 		 || i2c_smbus_read_word_data(new_client, 5) != os
- 		 || i2c_smbus_read_word_data(new_client, 6) != os
- 		 || i2c_smbus_read_word_data(new_client, 7) != os)
--		 	goto exit_free;
-+			goto exit_free;
- 
- 		/* Unused bits */
- 		if (conf & 0xe0)
--		 	goto exit_free;
-+			goto exit_free;
- 
- 		/* Addresses cycling */
- 		for (i = 8; i < 0xff; i += 8)
-@@ -194,16 +189,10 @@ static int lm75_detect(struct i2c_adapte
- 				goto exit_free;
- 	}
- 
--	/* Determine the chip type - only one kind supported! */
--	if (kind <= 0)
--		kind = lm75;
--
--	if (kind = lm75) {
--		name = "lm75";
--	}
-+	/* NOTE: we treat "force=..." and "force_lm75=..." the same. */
-+	strlcpy(new_client->name, "lm75", I2C_NAME_SIZE);
- 
- 	/* Fill in the remaining client fields and put it into the global list */
--	strlcpy(new_client->name, name, I2C_NAME_SIZE);
- 	data->valid = 0;
- 	mutex_init(&data->update_lock);
- 
-@@ -213,7 +202,7 @@ static int lm75_detect(struct i2c_adapte
- 
- 	/* Initialize the LM75 chip */
- 	lm75_init_client(new_client);
--	
-+
- 	/* Register sysfs hooks */
- 	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm75_group)))
- 		goto exit_detach;
-@@ -236,6 +225,13 @@ exit:
- 	return err;
- }
- 
-+static int lm75_attach_adapter(struct i2c_adapter *adapter)
-+{
-+	if (!(adapter->class & I2C_CLASS_HWMON))
-+		return 0;
-+	return i2c_probe(adapter, &addr_data, lm75_detect);
-+}
-+
- static int lm75_detach_client(struct i2c_client *client)
- {
- 	struct lm75_data *data = i2c_get_clientdata(client);
-@@ -246,6 +242,18 @@ static int lm75_detach_client(struct i2c
- 	return 0;
- }
- 
-+static struct i2c_driver lm75_driver = {
-+	.driver = {
-+		.name	= "lm75",
-+	},
-+	.attach_adapter	= lm75_attach_adapter,
-+	.detach_client	= lm75_detach_client,
-+};
-+
-+/*-----------------------------------------------------------------------*/
-+
-+/* register access */
-+
- /* All registers are word-sized, except for the configuration register.
-    LM75 uses a high-byte first convention, which is exactly opposite to
-    the SMBus standard. */
-@@ -309,6 +317,10 @@ static struct lm75_data *lm75_update_dev
- 	return data;
- }
- 
-+/*-----------------------------------------------------------------------*/
-+
-+/* module glue */
-+
- static int __init sensors_lm75_init(void)
- {
- 	return i2c_add_driver(&lm75_driver);
+    hwmon: (lm85) Misc cleanups
+    
+    Misc cleanups to the lm85 hardware monitoring driver:
+    * Mark constant arrays as const.
+    * Remove useless masks.
+    * Have lm85_write_value return void - nobody is checking the returned
+      value anyway and in some cases it was plain wrong.
+    * Remove useless initializations.
+    * Rename new_client to client in lm85_detect.
+    * Replace cascaded if/else with a switch/case in lm85_detect.
+    * Group similar loops in lm85_update_device.
+    * Remove legacy comments.
+    
+    Signed-off-by: Jean Delvare <khali@linux-fr.org>
+    Acked-by: Juerg Haefliger <juergh at gmail.com>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+
+commit b84465f713e0d8a041db0447534b048d74972341
+Author: Jean Delvare <khali@linux-fr.org>
+Date:   Sat Apr 12 19:56:35 2008 +0200
+
+    hwmon: (lm85) Don't write back cached values
+    
+    In set_pwm_auto_pwm_minctl, we write cached register bits back to the
+    chip. This is a bad idea as we have no guarantee that the cache is
+    up-to-date. Better read a fresh register value from the chip, it's
+    safer and in fact it is also more simple.
+    
+    Signed-off-by: Jean Delvare <khali@linux-fr.org>
+    Acked-by: Juerg Haefliger <juergh at gmail.com>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+
+commit 0d78cd2a2a3b870b409769852189f58d954da386
+Author: Jean Delvare <khali@linux-fr.org>
+Date:   Thu May 1 08:47:33 2008 +0200
+
+    hwmon: (lm85) Drop dead code
+    
+    Drop a lot of useless register defines, conversion macros, data structure
+    members and update code. All these register values were read from the
+    device but nothing is done out of them, so this is all dead code in
+    practice.
+    
+    Signed-off-by: Jean Delvare <khali@linux-fr.org>
+    Acked-by: Juerg Haefliger <juergh at gmail.com>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+
+commit 54edd6a00cd77019b3e29ca145414f69e9f9d14b
+Author: Jean Delvare <khali@linux-fr.org>
+Date:   Tue Apr 29 14:03:37 2008 +0200
+
+    hwmon: (lm85) Coding-style cleanups
+    
+    Fix most style issues reported by checkpatch, including:
+    * Trailing, missing and extra whitespace
+    * Extra parentheses, curly braces and semi-colons
+    * Broken indentation
+    * Lines too long
+    
+    I verified that the generated code is the same before and after
+    these changes.
+    
+    Signed-off-by: Jean Delvare <khali@linux-fr.org>
+    Acked-by: Juerg Haefliger <juergh at gmail.com>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+
+commit ea6db11742de63324f29d1383122657cabe90940
+Author: David Brownell <david-b@pacbell.net>
+Date:   Sat May 3 19:33:15 2008 -0700
+
+    hwmon: (lm75) add new-style driver binding
+    
+    More LM75 updates:
+    
+     - Teach the LM75 driver to use new-style driver binding:
+    
+         * Create a second driver struct, using new-style driver binding
+           methods cribbed from the legacy code.
+    
+         * Add a MODULE_DEVICE_TABLE (for "newER-style binding")
+    
+         * The legacy probe logic delegates its work to this new code.
+    
+         * The legacy driver now uses the name "lm75_legacy".
+    
+     - More careful initialization.  Chips are put into 9-bit mode so
+       the current interconversion routines will never fail.
+    
+     - Save the original chip configuration, and restore it on exit.
+       (Among other things, this normally turns off the mode where
+       the chip is constantly sampling ... and thus saves power.)
+    
+    So the new-style code should catch all chips that boards declare,
+    while the legacy code catches others.  This particular coexistence
+    strategy may need some work yet ... legacy modes might best be set
+    up explicitly by some tool not unlike "sensors-detect".  (Or else
+    completely eradicated...)
+    
+    Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+    Acked-by: Jean Delvare <khali@linux-fr.org>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+
+commit 6916fbc0e5c8d59d663331034ce44ef85bfb50b1
+Author: David Brownell <david-b@pacbell.net>
+Date:   Mon Apr 21 12:10:53 2008 -0700
+
+    hwmon: (lm75) cleanup/reorg
+    
+    Minor cleanup and reorg of the lm75 code.
+    
+     - Kconfig provides a larger list of lm75-compatible chips
+    
+     - A top comment now says what the driver does (!) ... as in, just
+       what sort of sensor is this??
+    
+     - Section comments now delineate the various sections of the driver:
+       hwmon attributes, driver binding, register access, module glue.
+       One driver binding function moved out of the attribute section,
+       as did the driver struct itself.
+    
+     - Minor tweaks to legacy probe logic:  correct a comment, and
+       remove a pointless variable.
+    
+     - Whitespace, linelength, and comment fixes.
+    
+    This patch should include no functional changes.  It's preparation
+    for adding new-style (driver model) I2C driver binding.
+    
+    Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+    Acked-by: Jean Delvare <khali@linux-fr.org>
+    Acked-by: Laurent Pinchart <laurentp@cse-semaphore.com>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+
+commit d8db8e40b05bdaa4f5888f2a762533079ebee458
+Author: Mark M. Hoffman <mhoffman@lightlink.com>
+Date:   Mon May 26 15:09:36 2008 -0400
+
+    hwmon: (adt7473) clarify an awkward bit of code
+    
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+    Acked-by: Jean Delvare <khali@linux-fr.org>
+
+commit 36e847483a14121f1c51b290b9ddeb91f1e58996
+Author: Jean Delvare <khali@linux-fr.org>
+Date:   Sat Apr 26 16:28:27 2008 +0200
+
+    hwmon: (adt7473) Remove unused defines
+    
+    All the *_MAX_ADDR defines are never used, so remove them. The number
+    of registers of each type is already expressed by the *_COUNT defines.
+    
+    Signed-off-by: Jean Delvare <khali@linux-fr.org>
+    Acked-by: Darrick J. Wong <djwong@us.ibm.com>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+
+commit 55e019e7f2b7737348fc71995823e824165fb0b5
+Author: Juerg Haefliger <juergh@gmail.com>
+Date:   Tue Mar 25 21:49:15 2008 -0700
+
+    hwmon: (dme1737) fix voltage scaling
+    
+    This patch fixes a voltage scaling issue for the sch311x device.
+    
+    Signed-Off-By: Juerg Haefliger <juergh at gmail.com>
+    Acked-by: Jean Delvare <khali@linux-fr.org>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+
+commit 535e772fc505b311bbed42dcc308ea96a0890cbf
+Author: Juerg Haefliger <juergh@gmail.com>
+Date:   Thu Apr 3 21:34:19 2008 -0700
+
+    hwmon: (dme1737) probe all addresses
+    
+    This patch adds a module load parameter to enable probing of
+    non-standard LPC addresses 0x162e and 0x164e when scanning for supported
+    ISA chips.
+    
+    Signed-Off-By: Juerg Haefliger <juergh at gmail.com>
+    Acked-by: Jean Delvare <khali@linux-fr.org>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+
+commit 554045a0ba16fffb6bb832919b72a4f692d9add4
+Author: Juerg Haefliger <juergh@gmail.com>
+Date:   Tue Mar 25 21:49:02 2008 -0700
+
+    hwmon: (dme1737) demacrofy for readability
+    
+    This patch gets rid of a couple of macros previously used for sysfs attribute
+    generation and manipulation. This makes the source a little bigger but a lot
+    more readable and maintainable. It also fixes an issue with pwm5 & pwm6
+    attributes not being created read-only initially.
+    
+    Signed-Off-By: Juerg Haefliger <juergh at gmail.com>
+    Acked-by: Jean Delvare <khali@linux-fr.org>
+    Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+
 
 _______________________________________________
 lm-sensors mailing list
