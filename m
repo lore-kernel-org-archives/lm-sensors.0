@@ -1,72 +1,69 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 04 Jul 2008 13:07:32 +0000
-Subject: Re: [lm-sensors] PATCH: abituguru3-fix-detect.patch
-Message-Id: <20080704150732.7165eadf@hyperion.delvare>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Thu, 31 Jul 2008 10:30:05 +0000
+Subject: [lm-sensors] PATCH: abituguru3-fix-detect.patch
+Message-Id: <4891942D.4080304@hhs.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------070901090508010709040401"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4836D061.9080501@hhs.nl>
 In-Reply-To: <4836D061.9080501@hhs.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 04 Jul 2008 14:02:26 +0200, Hans de Goede wrote:
-> Jean Delvare wrote:
-> > Hi Hans,
-> > 
-> > On Thu, 03 Jul 2008 22:18:51 +0200, Hans de Goede wrote:
-> >> Alistair John Strachan wrote:
-> >>> After updating my BIOS (from 16 to 17) the driver has stopped loading
-> >>> again. This is with 2.6.26-rc8. The reason is that the command byte has
-> >>> changed value to 0xFF (this is reproducible across cold and warm starts).
-> >>>
-> >>> The following diff fixes it, but the "probe" is now looking even more creaky..
-> >>>
-> >> Ah what fun, well luckily I've added the DMI based check so the detection 
-> >> routine is less important now.
-> >>
-> >> Mark, please apply.
-> > 
-> > I have to object. 0xff is the value you would get without a chip at
-> > this address. So the change is roughly equivalent to not testing the
-> > port at all... Plus, if the possible values change with every BIOS
-> > update, we have to admit that the detection method isn't reliable. What
-> > about switching to a DMI-based check? Not only checking the board
-> > manufacturer but also the board product name. The abituguru3 driver
-> > requires board-specific data anyway, so that's not a big change. And
-> > there's always the "force" parameter to bypass the check for new boards.
-> > 
-> 
-> I understand where you're coming from, but I have to object to switching to DMI 
-> based detection. I would be happy to make that switch if and when I've got DMI 
-> strings for all currently supporting motherboards. I can start working on 
-> collecting those, but without those, switching to DMI based detection would 
-> cause regressions which IMHO is unacceptable.
-> 
-> I agree that the 0xff check is not pretty, but please keep in mind that:
-> 1) This driver normally is never autoloaded, so it either has to be compiled in
->     or explicitly loaded by the user (this is something where dmi based
->     detection would be a win as dmi based autoloading is possible).
-> 
-> 2) If someone has either compiled the driver in and/or loads it deliberately it
->     will still only load (without the force parameter) on Abit motherboards.
-> 
-> 3) After this simple read check, the driver does some reads from the chip
->     (which involve isa writes) and if these fail the driver doesn't load. Note
->     that these reads will most likely fail if there is no uguru3, as the uguru3
->     has a quite complex handshaking scheme.
-> 
-> So move to DMI based detection in the future, sure. But for now I would like to 
-> see this patch applied.
+This is a multi-part message in MIME format.
+--------------070901090508010709040401
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hmm, OK. I thought that you had these DMI strings handy already. If
-not, please start collecting them now, so that the driver can be
-switched to DMI-based detection in the future.
+Hi Andrew,
 
--- 
-Jean Delvare
+As discussed I'm sending this patch directly to you for 2.6.27 inclusion as 
+Mark seems to be out of the loop at the moment.
+
+Alistair John Strachan wrote:
+
+"After updating my BIOS (from 16 to 17) the driver has stopped loading
+again. This is with 2.6.26-rc8. The reason is that the command byte has
+changed value to 0xFF (this is reproducible across cold and warm starts).
+
+The following diff fixes it."
+
+Regards,
+
+Hans
+
+--------------070901090508010709040401
+Content-Type: text/x-patch;
+ name="abituguru3-fix-detect.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="abituguru3-fix-detect.patch"
+
+Fix loading of abituguru3 on Abit IP35 Pro with BIOS 17. The magic bytes have
+changed value (again).
+
+Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+--- a/drivers/hwmon/abituguru3.c
++++ b/drivers/hwmon/abituguru3.c
+@@ -1118,7 +1118,7 @@ static int __init abituguru3_detect(void)
+ 	u8 cmd_val = inb_p(ABIT_UGURU3_BASE + ABIT_UGURU3_CMD);
+ 	if (((data_val == 0x00) || (data_val == 0x08)) &&
+ 			((cmd_val == 0xAC) || (cmd_val == 0x05) ||
+-			 (cmd_val == 0x55)))
++			 (cmd_val == 0x55) || (cmd_val == 0xFF)))
+ 		return ABIT_UGURU3_BASE;
+ 
+ 	ABIT_UGURU3_DEBUG("no Abit uGuru3 found, data = 0x%02X, cmd = "
+
+--------------070901090508010709040401
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------070901090508010709040401--
