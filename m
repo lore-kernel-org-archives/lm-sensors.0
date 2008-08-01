@@ -1,36 +1,52 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 19 Aug 2008 14:03:27 +0000
-Subject: Re: [lm-sensors] [PATCH] lm90: Support MAX6646, MAX6647 and MAX6649
-Message-Id: <20080819160327.64f89763@hyperion.delvare>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Fri, 01 Aug 2008 04:32:21 +0000
+Subject: Re: [lm-sensors] [GIT PATCH] hwmon updates against v2.6.26
+Message-Id: <20080731213221.bb3830d6.akpm@linux-foundation.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080818192318.GF7908@solarflare.com>
-In-Reply-To: <20080818192318.GF7908@solarflare.com>
+References: <20080801041026.GI3375@mars.solarsys.private>
+In-Reply-To: <20080801041026.GI3375@mars.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Hi Ben,
+On Fri, 1 Aug 2008 00:10:27 -0400 "Mark M. Hoffman" <mhoffman@lightlink.com> wrote:
 
-On Mon, 18 Aug 2008 20:23:20 +0100, Ben Hutchings wrote:
-> These Maxim chips are similar to MAX6657 but use unsigned temperature
-> values to allow for readings up to 145 degrees.
+> Hi Linus:
 > 
-> Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
-> ---
->  Documentation/hwmon/lm90 |   15 +++++++++
->  drivers/hwmon/Kconfig    |    3 +-
->  drivers/hwmon/lm90.c     |   77 ++++++++++++++++++++++++++++++++++++++-------
->  3 files changed, 82 insertions(+), 13 deletions(-)
+> Please pull from:
+> 	git://lm-sensors.org/kernel/mhoffman/hwmon-2.6.git release
 
-Looks good, I've added this patch to my queue of hwmon patches for
-kernel 2.6.28:
-http://khali.linux-fr.org/devel/linux-2.6/jdelvare-hwmon/
+ack.
 
-I've updated the wiki as well.
+> You'll get what few patches I've managed to look at in the last few months,
+> including a patch to MAINTAINERS which makes it official.  I'm sorry I was
+> not able to keep up - I should have admitted defeat much sooner.
 
--- 
-Jean Delvare
+Thanks for all the work.  There are many subsystems for which the
+maintainer is, err, me.
+
+> To all lm-sensors/hwmon developers: please resend/CC patches to Andrew.
+
+Yup.  I'll subscribe to those lists and shall do the occasional
+troll-for-missed-stuff there.
+
+You'll also find that I'll still cc yourself on everything (including
+patches) so please do keep an eye out for goofups.
+
+>  MAINTAINERS                 |    6 
+
+ HARDWARE MONITORING
+-P:     Mark M. Hoffman
+-M:     mhoffman@lightlink.com
+ L:     lm-sensors@lm-sensors.org
+ W:     http://www.lm-sensors.org/
+-T:     git lm-sensors.org:/kernel/mhoffman/hwmon-2.6.git testing
+-T:     git lm-sensors.org:/kernel/mhoffman/hwmon-2.6.git release
+-S:     Maintained
++S:     Orphaned
+
 
 _______________________________________________
 lm-sensors mailing list
