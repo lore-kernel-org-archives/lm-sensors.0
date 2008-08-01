@@ -1,28 +1,26 @@
-From: Matthias Heinz <mheinz@cs.uni-frankfurt.de>
-Date: Tue, 12 Aug 2008 21:01:02 +0000
-Subject: [lm-sensors] ADT7574
-Message-Id: <200808122301.03148.mheinz@cs.uni-frankfurt.de>
+From: Alistair John Strachan <alistair@devzero.co.uk>
+Date: Fri, 01 Aug 2008 18:16:57 +0000
+Subject: [lm-sensors] [PATCH 0/2] abituguru3: update MAINTAINERS and fix
+Message-Id: <1217614619-29688-1-git-send-email-alistair@devzero.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hans passed along maintainership of the abituguru3 driver to me. This
+series updates the MAINTAINERS file with this information and closes
+bugzilla 11212.
 
-I'm new to this list and dont want to disrespectful, but I'm getting lazy 
-patching my kernel all the time.
+Please apply.
 
-I just wanna ask when the driver for the ADT7475 chipset gets integrated into 
-lm-sensors ( 
-http://lists.lm-sensors.org/pipermail/lm-sensors/2008-February/022631.html )
+ MAINTAINERS                |    8 ++-
+ drivers/hwmon/abituguru3.c |  134 +++++++++++++++++++++++++++++++-------------
+ 2 files changed, 101 insertions(+), 41 deletions(-)
 
-It's there for a long time now and the Asus M2N mainboards is not quite 
-uncommon.
-
-
-Yours sincerely,
-Matthias
+--
+Cheers,
+Alistair.
 
 _______________________________________________
 lm-sensors mailing list
