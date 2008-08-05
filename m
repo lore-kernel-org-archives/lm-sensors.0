@@ -1,17 +1,19 @@
 From: Dave Mendoza <invitations@sdetninja.ning.com>
-Date: Tue, 05 Aug 2008 00:25:54 +0000
+Date: Tue, 05 Aug 2008 00:25:56 +0000
 Subject: [lm-sensors] Come join me on SDET Ninja...
-Message-Id: <29062703.1217895954776.JavaMail.xncore@omxp>
+Message-Id: <12655966.1217895956097.JavaMail.xncore@omxp>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============4727461191628961332=="
+Content-Type: multipart/mixed; boundary="===============3279190151978011492=="
 List-Id: <lm-sensors.vger.kernel.org>
+References: <29062703.1217895954776.JavaMail.xncore@omxp>
+In-Reply-To: <29062703.1217895954776.JavaMail.xncore@omxp>
 To: lm-sensors@vger.kernel.org
 
---===============4727461191628961332==
+--===============3279190151978011492==
 Content-Type: multipart/alternative;
-	boundary="=_690459a39bab7f4ff18e62c69a18e44f"
+	boundary="=_6a2b5b8e420b76118c0f871b092a02c8"
 
---=_690459a39bab7f4ff18e62c69a18e44f
+--=_6a2b5b8e420b76118c0f871b092a02c8
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 
@@ -32,21 +34,21 @@ please copy and paste it into your web browser
 --------------------
 
 Members already on SDET Ninja
-Lakshmi Tayyebi, Scott Harrison, Jason Zhu, Alphonzo J. Spendoiky, MattTelles
+Scott Harrison, Jason Zhu, Alphonzo J. Spendoiky, MattTelles, kankan roy
 
 --------------------
 
 About SDET Ninja...
 Software Design/Development and Test Coding Enthusiasts to to enhance knowledge and above all, to build community
 
-10 members
+9 members
 8 photos
 
 --------------------
 
 To control which emails you receive on the corner, or to opt-out, go to:
 http://sdetninja.ning.com/profiles/profile/emailSettings
---=_690459a39bab7f4ff18e62c69a18e44f
+--=_6a2b5b8e420b76118c0f871b092a02c8
 Content-Type: text/html; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
@@ -93,7 +95,7 @@ Iqw7Lsyhzj7h5d/90397830.png?width=3D96&amp;height=3D96&amp;crop=3D1%3A1&amp=
 "http://sdetninja.ning.com/xn/detail/u_davemendoza" style=3D"text-decoratio=
 n:none"><a href=3D"http://sdetninja.ning.com/xn/detail/u_davemendoza" style=
 =3D"text-decoration:none">Dave Mendoza</a> has:</a></div>
-=09=09=09=09=09=09=09=09=09=09<span style=3D"font-size:11px">5 friends<br /=
+=09=09=09=09=09=09=09=09=09=09<span style=3D"font-size:11px">4 friends<br /=
 >1 event<br />2 videos<br />1 discussion</span>
 =09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09</td>
 =09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td width=3D"*" valign=3D"t=
@@ -129,18 +131,6 @@ r:#000">Members already on SDET Ninja</td>
 =09=09=09=09=09=09=09=09<td>
 =09=09=09=09=09=09=09=09=09<table>
 =09=09=09=09=09=09=09=09=09=09<tr>
-=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td st=
-yle=3D"text-align:center; padding-right:10px;" valign=3D"top">
-=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
-/xn/detail/u_Ltayyebi"><img height=3D"64" width=3D"64" border=3D"0" alt=3D"=
-Lakshmi Tay..." src=3D"http://api.ning.com/files/wEN2stQzGOg39gICOwQ2MvU7xC=
-dyn0SZ1GMr3FCUNf*tBBLaIsRcWlv3-nQgOUVhw8o5qRrzbH2VXIRGHPt0JqdGfk9wJ32S/9051=
-0832.png?width=3D64&amp;height=3D64&amp;crop=3D1%3A1&amp;xn_auth=3Dno"></a>=
-<br />
-=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
-/xn/detail/u_Ltayyebi" style=3D"font-size:11px; text-decoration:none">Laksh=
-mi Tayyebi</a>
-=09=09=09=09=09=09=09=09=09=09=09=09</td>
 =09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td st=
 yle=3D"text-align:center; padding-right:10px;" valign=3D"top">
 =09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
@@ -189,6 +179,18 @@ Tb2-CqpNGz6T6CYs0nj3N4iCECtg0sKbPIkhLGJXQwmFdOeorRriMAHYGziqWDmCqkUyAXF/904=
 /xn/detail/u_3li77kqz1zo76" style=3D"font-size:11px; text-decoration:none">=
 MattTelles</a>
 =09=09=09=09=09=09=09=09=09=09=09=09</td>
+=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td st=
+yle=3D"text-align:center; padding-right:10px;" valign=3D"top">
+=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
+/xn/detail/u_1q99hvof1ki9f"><img height=3D"64" width=3D"64" border=3D"0" al=
+t=3D"kankan roy" src=3D"http://api.ning.com/files/J5RhaTjjhUpzI2kkNFEDbgEEk=
+B2NGindrMzINDkko1rs21E3POixLX00z8VJflf6ak8oRO2DNH1wPBRBybg5DXx9zAOGhk44/my.=
+jpg?width=3D64&amp;height=3D64&amp;crop=3D1%3A1&amp;xn_auth=3Dno"></a><br /=
+>
+=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
+/xn/detail/u_1q99hvof1ki9f" style=3D"font-size:11px; text-decoration:none">=
+kankan roy</a>
+=09=09=09=09=09=09=09=09=09=09=09=09</td>
 =09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09</tr>
 =09=09=09=09=09=09=09=09=09</table>
 =09=09=09=09=09=09=09=09</td>
@@ -217,9 +219,9 @@ d community</div>
 =09=09=09=09=09=09=09=09=09=09=09=09<table width=3D"100%" cellpadding=3D"0"=
  cellspacing=3D"0" border=3D"0">
 =09=09=09=09=09=09<tr>
-=09=09=09=09=09=09<td width=3D"35%" style=3D"font-size:12px">10 members</td=
-><td width=3D"*" style=3D"font-size:12px">8 photos</td>=09=09=09=09=09=09</=
-tr>
+=09=09=09=09=09=09<td width=3D"35%" style=3D"font-size:12px">9 members</td>=
+<td width=3D"*" style=3D"font-size:12px">8 photos</td>=09=09=09=09=09=09</t=
+r>
 =09=09=09=09=09</table>
 =09=09=09=09=09=09</td>
 =09</tr>
@@ -242,11 +244,11 @@ ing.com/profiles/profile/emailSettings</a>
 .gif" width=3D"1" height=3D"1" alt=3D"">
 </body>
 </html>
---=_690459a39bab7f4ff18e62c69a18e44f--
+--=_6a2b5b8e420b76118c0f871b092a02c8--
 
 
 
---===============4727461191628961332==
+--===============3279190151978011492==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -256,5 +258,5 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============4727461191628961332==--
+--===============3279190151978011492==--
 
