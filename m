@@ -1,19 +1,19 @@
 From: Dave Mendoza <invitations@sdetninja.ning.com>
-Date: Tue, 05 Aug 2008 00:25:56 +0000
+Date: Tue, 05 Aug 2008 17:38:47 +0000
 Subject: [lm-sensors] Come join me on SDET Ninja...
-Message-Id: <12655966.1217895956097.JavaMail.xncore@omxp>
+Message-Id: <32410248.1217957927549.JavaMail.xncore@omxp>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3279190151978011492=="
+Content-Type: multipart/mixed; boundary="===============8597607763855778364=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <29062703.1217895954776.JavaMail.xncore@omxp>
 In-Reply-To: <29062703.1217895954776.JavaMail.xncore@omxp>
 To: lm-sensors@vger.kernel.org
 
---===============3279190151978011492==
+--===============8597607763855778364==
 Content-Type: multipart/alternative;
-	boundary="=_6a2b5b8e420b76118c0f871b092a02c8"
+	boundary="=_6a423d42dd88b24fe08f7cbb2c84107b"
 
---=_6a2b5b8e420b76118c0f871b092a02c8
+--=_6a423d42dd88b24fe08f7cbb2c84107b
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 
@@ -23,7 +23,7 @@ Dave Mendoza has invited you to join SDET Ninja
 
 --------------------
 
-Become a founding member at SDET GURU! Network with experts in C++, Assembly, Kernel, Mobility, DevTools, Test, WinClient, DirectX & Scripts, Distributed Systems, Building Automated Diagnostics, etc
+Become a founding member of SDET GURU!  Linkedin Networking,  C, C++,  Kernel, Mobility, DevTools, Test WinClient, DirectX and Scripts, Search, Distributed Systems, Building Automated Diagnostics
 
 Check out SDET Ninja:
 http://sdetninja.ning.com/?xgi=iZzY0d
@@ -34,21 +34,21 @@ please copy and paste it into your web browser
 --------------------
 
 Members already on SDET Ninja
-Scott Harrison, Jason Zhu, Alphonzo J. Spendoiky, MattTelles, kankan roy
+Basel, Daria Mehra, Lily, Lakshmi Tayyebi, Scott Harrison
 
 --------------------
 
 About SDET Ninja...
 Software Design/Development and Test Coding Enthusiasts to to enhance knowledge and above all, to build community
 
-9 members
+15 members
 8 photos
 
 --------------------
 
 To control which emails you receive on the corner, or to opt-out, go to:
 http://sdetninja.ning.com/profiles/profile/emailSettings
---=_6a2b5b8e420b76118c0f871b092a02c8
+--=_6a423d42dd88b24fe08f7cbb2c84107b
 Content-Type: text/html; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
@@ -95,8 +95,8 @@ Iqw7Lsyhzj7h5d/90397830.png?width=3D96&amp;height=3D96&amp;crop=3D1%3A1&amp=
 "http://sdetninja.ning.com/xn/detail/u_davemendoza" style=3D"text-decoratio=
 n:none"><a href=3D"http://sdetninja.ning.com/xn/detail/u_davemendoza" style=
 =3D"text-decoration:none">Dave Mendoza</a> has:</a></div>
-=09=09=09=09=09=09=09=09=09=09<span style=3D"font-size:11px">4 friends<br /=
->1 event<br />2 videos<br />1 discussion</span>
+=09=09=09=09=09=09=09=09=09=09<span style=3D"font-size:11px">10 friends<br =
+/>1 event<br />2 videos<br />1 discussion</span>
 =09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09</td>
 =09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td width=3D"*" valign=3D"t=
 op" style=3D"font-size:12px">
@@ -108,10 +108,10 @@ velopment and Test Coding Enthusiasts to to enhance knowledge and above all=
 =09=09=09=09=09=09=09=09=09<div style=3D"border-bottom:1px solid #aaa; heig=
 ht:8px;">&nbsp;</div>
 <div style=3D"height:8px">&nbsp;</div>
-=09=09=09=09=09=09=09=09=09Become a founding member at SDET GURU! Network w=
-ith experts in C++, Assembly, Kernel, Mobility, DevTools, Test, WinClient, =
-DirectX &amp; Scripts, Distributed Systems, Building Automated Diagnostics,=
- etc=09=09=09=09=09=09=09=09=09<br /><br />
+=09=09=09=09=09=09=09=09=09Become a founding member of SDET GURU!  Linkedin=
+ Networking,  C, C++,  Kernel, Mobility, DevTools, Test WinClient, DirectX =
+and Scripts, Search, Distributed Systems, Building Automated Diagnostics=09=
+=09=09=09=09=09=09=09=09<br /><br />
 =09=09=09=09=09=09=09=09=09<div style=3D"font-weight:bold;font-size:12px">C=
 heck out SDET Ninja:</div>
 =09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com/?xgi=3DiZzY=
@@ -134,6 +134,54 @@ r:#000">Members already on SDET Ninja</td>
 =09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td st=
 yle=3D"text-align:center; padding-right:10px;" valign=3D"top">
 =09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
+/xn/detail/u_1ntn2huekjq9z"><img height=3D"64" width=3D"64" border=3D"0" al=
+t=3D"Basel" src=3D"http://api.ning.com/files/wXJ6kP1vcFIRa0frMWuMF**XIcVoFQ=
+-epj4kpAAyeRfd9vmyu8BlMTpMm6WZXdCfF0Bnya6DeIyjXzuuFhCdV9DjOQWErWGN/90836131=
+.png?width=3D64&amp;height=3D64&amp;crop=3D1%3A1&amp;xn_auth=3Dno"></a><br =
+/>
+=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
+/xn/detail/u_1ntn2huekjq9z" style=3D"font-size:11px; text-decoration:none">=
+Basel</a>
+=09=09=09=09=09=09=09=09=09=09=09=09</td>
+=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td st=
+yle=3D"text-align:center; padding-right:10px;" valign=3D"top">
+=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
+/xn/detail/u_69f7bfw38pi8"><img height=3D"64" width=3D"64" border=3D"0" alt=
+=3D"Daria Mehra" src=3D"http://api.ning.com/files/32s7xhHayIO7lRpXVPtX9m-T6=
+dgmoF8s0K5BQdhFDRAb9XBYpjx9sOafB2GKkEG9N7T2zbL5m1ozMxK4JF*pa4Okd3sdLpGE/906=
+74111.png?width=3D64&amp;height=3D64&amp;crop=3D1%3A1&amp;xn_auth=3Dno"></a=
+><br />
+=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
+/xn/detail/u_69f7bfw38pi8" style=3D"font-size:11px; text-decoration:none">D=
+aria Mehra</a>
+=09=09=09=09=09=09=09=09=09=09=09=09</td>
+=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td st=
+yle=3D"text-align:center; padding-right:10px;" valign=3D"top">
+=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
+/xn/detail/u_164tj79knb1ty"><img height=3D"64" width=3D"64" border=3D"0" al=
+t=3D"Lily" src=3D"http://api.ning.com/files/ZwPuyJh3StJmxGOVp*-Yz6WoV0t5heR=
+OqnIQSh3W8dsGU9BxwXmzNDPe*7di5gn5lrSmYa1nqYbJLX6Y4p8ifiCyetbTwTzx/90620871.=
+png?width=3D64&amp;height=3D64&amp;crop=3D1%3A1&amp;xn_auth=3Dno"></a><br /=
+>
+=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
+/xn/detail/u_164tj79knb1ty" style=3D"font-size:11px; text-decoration:none">=
+Lily</a>
+=09=09=09=09=09=09=09=09=09=09=09=09</td>
+=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td st=
+yle=3D"text-align:center; padding-right:10px;" valign=3D"top">
+=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
+/xn/detail/u_Ltayyebi"><img height=3D"64" width=3D"64" border=3D"0" alt=3D"=
+Lakshmi Tay..." src=3D"http://api.ning.com/files/wEN2stQzGOg39gICOwQ2MvU7xC=
+dyn0SZ1GMr3FCUNf*tBBLaIsRcWlv3-nQgOUVhw8o5qRrzbH2VXIRGHPt0JqdGfk9wJ32S/9051=
+0832.png?width=3D64&amp;height=3D64&amp;crop=3D1%3A1&amp;xn_auth=3Dno"></a>=
+<br />
+=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
+/xn/detail/u_Ltayyebi" style=3D"font-size:11px; text-decoration:none">Laksh=
+mi Tayyebi</a>
+=09=09=09=09=09=09=09=09=09=09=09=09</td>
+=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td st=
+yle=3D"text-align:center; padding-right:10px;" valign=3D"top">
+=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
 /xn/detail/u_1x4x9zfe70l1d"><img height=3D"64" width=3D"64" border=3D"0" al=
 t=3D"Scott Harrison" src=3D"http://api.ning.com/files/1uiUWtzNIuqwezpI3gf3P=
 bZWQvZiWZ35vpDae2AK0agZQWBJlGrFlO4Z9lJyhjrmzE2lKcZcQ1rrVX6U4LSU7aIEbxwYd-Ek=
@@ -142,54 +190,6 @@ th=3Dno"></a><br />
 =09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
 /xn/detail/u_1x4x9zfe70l1d" style=3D"font-size:11px; text-decoration:none">=
 Scott Harrison</a>
-=09=09=09=09=09=09=09=09=09=09=09=09</td>
-=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td st=
-yle=3D"text-align:center; padding-right:10px;" valign=3D"top">
-=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
-/xn/detail/u_1hhlzu9aukmtc"><img height=3D"64" width=3D"64" border=3D"0" al=
-t=3D"Jason Zhu" src=3D"http://api.ning.com/files/uHntTedAUQ5IXvoScBVFS6NOmb=
-jEUJ1UQa0L2nfq9Vtig-RKTZVrNmIEaHMGZarryajwSzzknqJraw*Ca6muWuAaUD2ToQ6N/9045=
-2194.jpeg?width=3D64&amp;height=3D64&amp;crop=3D1%3A1&amp;xn_auth=3Dno"></a=
-><br />
-=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
-/xn/detail/u_1hhlzu9aukmtc" style=3D"font-size:11px; text-decoration:none">=
-Jason Zhu</a>
-=09=09=09=09=09=09=09=09=09=09=09=09</td>
-=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td st=
-yle=3D"text-align:center; padding-right:10px;" valign=3D"top">
-=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
-/xn/detail/u_3d5os53hzaxwu"><img height=3D"64" width=3D"64" border=3D"0" al=
-t=3D"Alphonzo J...." src=3D"http://api.ning.com/files/JQdqPUcasyZGLEoLeYdA6=
-TbqBeV9ptWdnspKQuOM*-Z-sMX7OwKiMkQ78jSJGkq1fenANnBVXydgyIivRGsP6YsDC8MCsFzU=
-/Waterlilies.jpg?width=3D64&amp;height=3D64&amp;crop=3D1%3A1&amp;xn_auth=3D=
-no"></a><br />
-=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
-/xn/detail/u_3d5os53hzaxwu" style=3D"font-size:11px; text-decoration:none">=
-Alphonzo J. Spendoiky</a>
-=09=09=09=09=09=09=09=09=09=09=09=09</td>
-=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td st=
-yle=3D"text-align:center; padding-right:10px;" valign=3D"top">
-=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
-/xn/detail/u_3li77kqz1zo76"><img height=3D"64" width=3D"64" border=3D"0" al=
-t=3D"MattTelles" src=3D"http://api.ning.com/files/mxDuhs-sQzUVc2--SvINj2m-0=
-Tb2-CqpNGz6T6CYs0nj3N4iCECtg0sKbPIkhLGJXQwmFdOeorRriMAHYGziqWDmCqkUyAXF/904=
-39358.png?width=3D64&amp;height=3D64&amp;crop=3D1%3A1&amp;xn_auth=3Dno"></a=
-><br />
-=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
-/xn/detail/u_3li77kqz1zo76" style=3D"font-size:11px; text-decoration:none">=
-MattTelles</a>
-=09=09=09=09=09=09=09=09=09=09=09=09</td>
-=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09<td st=
-yle=3D"text-align:center; padding-right:10px;" valign=3D"top">
-=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
-/xn/detail/u_1q99hvof1ki9f"><img height=3D"64" width=3D"64" border=3D"0" al=
-t=3D"kankan roy" src=3D"http://api.ning.com/files/J5RhaTjjhUpzI2kkNFEDbgEEk=
-B2NGindrMzINDkko1rs21E3POixLX00z8VJflf6ak8oRO2DNH1wPBRBybg5DXx9zAOGhk44/my.=
-jpg?width=3D64&amp;height=3D64&amp;crop=3D1%3A1&amp;xn_auth=3Dno"></a><br /=
->
-=09=09=09=09=09=09=09=09=09=09=09=09=09<a href=3D"http://sdetninja.ning.com=
-/xn/detail/u_1q99hvof1ki9f" style=3D"font-size:11px; text-decoration:none">=
-kankan roy</a>
 =09=09=09=09=09=09=09=09=09=09=09=09</td>
 =09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09</tr>
 =09=09=09=09=09=09=09=09=09</table>
@@ -219,9 +219,9 @@ d community</div>
 =09=09=09=09=09=09=09=09=09=09=09=09<table width=3D"100%" cellpadding=3D"0"=
  cellspacing=3D"0" border=3D"0">
 =09=09=09=09=09=09<tr>
-=09=09=09=09=09=09<td width=3D"35%" style=3D"font-size:12px">9 members</td>=
-<td width=3D"*" style=3D"font-size:12px">8 photos</td>=09=09=09=09=09=09</t=
-r>
+=09=09=09=09=09=09<td width=3D"35%" style=3D"font-size:12px">15 members</td=
+><td width=3D"*" style=3D"font-size:12px">8 photos</td>=09=09=09=09=09=09</=
+tr>
 =09=09=09=09=09</table>
 =09=09=09=09=09=09</td>
 =09</tr>
@@ -244,11 +244,11 @@ ing.com/profiles/profile/emailSettings</a>
 .gif" width=3D"1" height=3D"1" alt=3D"">
 </body>
 </html>
---=_6a2b5b8e420b76118c0f871b092a02c8--
+--=_6a423d42dd88b24fe08f7cbb2c84107b--
 
 
 
---===============3279190151978011492==
+--===============8597607763855778364==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -258,5 +258,5 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3279190151978011492==--
+--===============8597607763855778364==--
 
