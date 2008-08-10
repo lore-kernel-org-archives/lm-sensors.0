@@ -1,49 +1,33 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 19 Aug 2008 18:24:42 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] lm87: Fix masking of config register
-Message-Id: <20080819202442.778dfa57@hyperion.delvare>
+From: Adrian Bunk <bunk@kernel.org>
+Date: Sun, 10 Aug 2008 21:08:36 +0000
+Subject: [lm-sensors] [2.6 patch] make ad7414_update_device() static
+Message-Id: <20080810210836.GA5480@cs181140183.pp.htv.fi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080819150156.GH7908@solarflare.com>
-In-Reply-To: <20080819150156.GH7908@solarflare.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 19 Aug 2008 19:12:39 +0100, Ben Hutchings wrote:
-> Jean Delvare wrote:
-> [...]
-> > I agree that the current code is incorrect, but I disagree with your
-> > analysis (I don't think the 0xF7 is a typo) and the proposed fix.
-> > 
-> > First of all, checking for bit 7 (Initialization) doesn't make sense.
-> > This bit self-clears, so we're never going to see it set.
-> 
-> Right.
-> 
-> > Secondly, clearing bit 3 (INT#_Clear) is a good idea. According to the
-> > datasheet, monitoring is stopped while this bit is set, and it is set
-> > by default. So we really want to clear it as part of the
-> > initialization. Meaning that we also want to check if it is set.
-> > 
-> > So I would change the code as follows:
-> > 
-> > 	if ((config & 0x09) != 0x01) {
-> > 		/* Start monitoring */
-> > 		lm87_write_value(client, LM87_REG_CONFIG,
-> > 				 (config & 0x77) | 0x01);
-> > 	}
-> > 
-> > What do you think?
-> 
-> That makes sense.  Perhaps the comment should also say that we're
-> clearing INT#_Clear.
+This patch makes the needlessly global ad7414_update_device() static.
 
-Alright. If you update your patch to do that, I'll review it and queue
-it for 2.6.27.
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 
--- 
-Jean Delvare
+---
+aa3c1d5758663dffa995ae2a0a21fa7b172c371c 
+diff --git a/drivers/hwmon/ad7414.c b/drivers/hwmon/ad7414.c
+index ce8d94f..bfda8c8 100644
+--- a/drivers/hwmon/ad7414.c
++++ b/drivers/hwmon/ad7414.c
+@@ -69,7 +69,7 @@ static inline int ad7414_write(struct i2c_client *client, u8 reg, u8 value)
+ 	return i2c_smbus_write_byte_data(client, reg, value);
+ }
+ 
+-struct ad7414_data *ad7414_update_device(struct device *dev)
++static struct ad7414_data *ad7414_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct ad7414_data *data = i2c_get_clientdata(client);
+
 
 _______________________________________________
 lm-sensors mailing list
