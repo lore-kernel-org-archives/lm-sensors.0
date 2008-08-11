@@ -1,58 +1,80 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 14 Aug 2008 10:11:22 +0000
-Subject: [lm-sensors] [PATCH 2/2] hwmon: (adm1026) Prevent log spamming
-Message-Id: <20080814121122.0c52ab09@hyperion.delvare>
+From: Takashi Iwai <tiwai@suse.de>
+Date: Mon, 11 Aug 2008 07:29:01 +0000
+Subject: Re: [lm-sensors] [alsa-devel] [PATCH] powerpc/drivers: use
+Message-Id: <s5hfxpcm2ma.wl%tiwai@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20080811170432.f747ab5e.sfr@canb.auug.org.au>
+In-Reply-To: <20080811170432.f747ab5e.sfr@canb.auug.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: alsa-devel@alsa-project.org, Jean@alsa-project.org, linuxppc-dev@ozlabs.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michael@alsa-project.org, Hanselmann <linux-kernel@hansmi.ch>, lm-sensors@lm-sensors.org, Stelian Pop <stelian@popies.net>, Paul Mackerras <paulus@samba.org>, Delvare <khali@linux-fr.org>, Johannes Berg <johannes@sipsolutions.net>
 
-When debugging is enabled, the adm1026 driver currently logs the
-message "Setting VID from GPIO11-15" 108 times each time you run
-"sensors". Once should be enough.
+At Mon, 11 Aug 2008 17:04:32 +1000,
+Stephen Rothwell wrote:
+> 
+> 
+> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> ---
+>  drivers/hwmon/ams/ams.h       |    2 +-
+>  sound/aoa/soundbus/soundbus.h |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> These are the last two users of asm/of_device.h.  If everyone is happy,
+> we can put this through the powerpc tree.  I have build tested for
+> ppc64_defconfig and ppc6xx_defconfig (which uses the relevant drivers).
+> 
+> After this we can remove the include of linux/of_device.h from
+> asm/of_device.h
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Philip Pokorny <ppokorny@penguincomputing.com>
----
- drivers/hwmon/adm1026.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Looks good to me.
 
---- linux-2.6.26-rc9.orig/drivers/hwmon/adm1026.c	2008-07-08 14:48:51.000000000 +0200
-+++ linux-2.6.26-rc9/drivers/hwmon/adm1026.c	2008-07-08 15:05:07.000000000 +0200
-@@ -279,7 +279,6 @@ struct adm1026_data {
- 	u8 fan_min[8];		/* Register value */
- 	u8 fan_div[8];		/* Decoded value */
- 	struct pwm_data pwm1;	/* Pwm control values */
--	int vid;		/* Decoded value */
- 	u8 vrm;			/* VRM version */
- 	u8 analog_out;		/* Register value (DAC) */
- 	long alarms;		/* Register encoding, combined */
-@@ -697,8 +696,6 @@ static struct adm1026_data *adm1026_upda
- 		data->last_config = jiffies;
- 	}; /* last_config */
- 
--	dev_dbg(&client->dev, "Setting VID from GPIO11-15.\n");
--	data->vid = (data->gpio >> 11) & 0x1f;
- 	data->valid = 1;
- 	mutex_unlock(&data->update_lock);
- 	return data;
-@@ -1215,7 +1212,10 @@ static DEVICE_ATTR(analog_out, S_IRUGO |
- static ssize_t show_vid_reg(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct adm1026_data *data = adm1026_update_device(dev);
--	return sprintf(buf, "%d\n", vid_from_reg(data->vid & 0x3f, data->vrm));
-+	int vid = (data->gpio >> 11) & 0x1f;
-+
-+	dev_dbg(dev, "Setting VID from GPIO11-15.\n");
-+	return sprintf(buf, "%d\n", vid_from_reg(vid, data->vrm));
- }
- static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid_reg, NULL);
- 
+Acked-by: Takashi Iwai <tiwai@suse.de>
 
 
--- 
-Jean Delvare
+thanks,
+
+Takashi
+
+> diff --git a/drivers/hwmon/ams/ams.h b/drivers/hwmon/ams/ams.h
+> index a6221e5..221ef69 100644
+> --- a/drivers/hwmon/ams/ams.h
+> +++ b/drivers/hwmon/ams/ams.h
+> @@ -4,7 +4,7 @@
+>  #include <linux/mutex.h>
+>  #include <linux/spinlock.h>
+>  #include <linux/types.h>
+> -#include <asm/of_device.h>
+> +#include <linux/of_device.h>
+>  
+>  enum ams_irq {
+>  	AMS_IRQ_FREEFALL = 0x01,
+> diff --git a/sound/aoa/soundbus/soundbus.h b/sound/aoa/soundbus/soundbus.h
+> index 622cd37..a0f223c 100644
+> --- a/sound/aoa/soundbus/soundbus.h
+> +++ b/sound/aoa/soundbus/soundbus.h
+> @@ -8,7 +8,7 @@
+>  #ifndef __SOUNDBUS_H
+>  #define __SOUNDBUS_H
+>  
+> -#include <asm/of_device.h>
+> +#include <linux/of_device.h>
+>  #include <sound/pcm.h>
+>  #include <linux/list.h>
+>  
+> -- 
+> 1.5.6.3
+> 
+> -- 
+> Cheers,
+> Stephen Rothwell                    sfr@canb.auug.org.au
+> http://www.canb.auug.org.au/~sfr/
+> _______________________________________________
+> Alsa-devel mailing list
+> Alsa-devel@alsa-project.org
+> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
+> 
 
 _______________________________________________
 lm-sensors mailing list
