@@ -1,57 +1,68 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 13 Aug 2008 14:13:31 +0000
-Subject: Re: [lm-sensors] New style driver for w83781d?
-Message-Id: <20080813161331.2780a2c2@hyperion.delvare>
+Date: Wed, 13 Aug 2008 19:12:52 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (atxp1) Fix device detection logic
+Message-Id: <20080813211252.4819ef51@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4899A4F7.70201@grandegger.com>
-In-Reply-To: <4899A4F7.70201@grandegger.com>
+References: <20080629123111.26ffc368@hyperion.delvare>
+In-Reply-To: <20080629123111.26ffc368@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 13 Aug 2008 15:48:14 +0200, Wolfgang Grandegger wrote:
-> Jean Delvare wrote:
-> > Your patch breaks the build with CONFIG_ISA=y:
-> > 
-> >   CC [M]  drivers/hwmon/w83781d.o
-> > drivers/hwmon/w83781d.c: In function `w83781d_read_value_i2c_isa':
-> > drivers/hwmon/w83781d.c:1668: error: `client' undeclared (first use in this function)
-> > drivers/hwmon/w83781d.c:1668: error: (Each undeclared identifier is reported only once
-> > drivers/hwmon/w83781d.c:1668: error: for each function it appears in.)
-> > drivers/hwmon/w83781d.c:1660: warning: unused variable `bank'
-> > drivers/hwmon/w83781d.c: In function `w83781d_write_value_i2c_isa':
-> > drivers/hwmon/w83781d.c:1694: warning: unused variable `bank'
-> > drivers/hwmon/w83781d.c:1695: warning: unused variable `cl'
-> > drivers/hwmon/w83781d.c: In function `w83781d_isa_add_driver':
-> > drivers/hwmon/w83781d.c:1967: error: `w83781d_read_value_isa' undeclared (first use in this function)
-> > drivers/hwmon/w83781d.c:1968: error: `w83781d_write_value_isa' undeclared (first use in this function)
-> > drivers/hwmon/w83781d.c: At top level:
-> > drivers/hwmon/w83781d.c:1659: warning: 'w83781d_read_value_i2c_isa' defined but not used
-> > drivers/hwmon/w83781d.c:1692: warning: 'w83781d_write_value_i2c_isa' defined but not used
-> > make[2]: *** [drivers/hwmon/w83781d.o] Error 1
-> > make[1]: *** [drivers/hwmon] Error 2
-> > make: *** [drivers] Error 2
-> 
-> > Apparently you didn't test that case - you really have to.
-> 
-> I thought I did but... Anyway, I cannot really test the ISA interface 
-> because I just have an embedded PowerPC board with a w83782.
+Subject: hwmon: (atxp1) Fix device detection logic
 
-I can do the testing, no problem with that. Please just make sure that
-it builds OK.
+The atxp1 device detection code has a major logic flaw, fix it. Not
+sure how we managed to miss this when the driver was merged...
 
-> > (...)
-> > I don't think that going to this level of optimization is needed. Or,
-> > if you insist on doing it, that would be a separate patch. The first
-> > patch should really only move things around to group them inside the
-> > #ifdef/#endif, and skip the detection of the ISA device and
-> > registration of the platform driver. You shouldn't have to modify the
-> > actual driver code.
-> 
-> I did not do any optimization saving code.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Sebastian Witt <se.witt@gmx.net>
+---
+Patch refreshed to apply on top of 2.6.27-rc3.
 
-I was referring to the split of the register access functions.
+I didn't hear of Sebastian in 6 weeks. Can anyone please review this?
+
+ drivers/hwmon/atxp1.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
+--- linux-2.6.27-rc3.orig/drivers/hwmon/atxp1.c	2008-08-05 18:17:05.000000000 +0200
++++ linux-2.6.27-rc3/drivers/hwmon/atxp1.c	2008-08-13 19:37:43.000000000 +0200
+@@ -31,7 +31,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("System voltages control via Attansic ATXP1");
+-MODULE_VERSION("0.6.2");
++MODULE_VERSION("0.6.3");
+ MODULE_AUTHOR("Sebastian Witt <se.witt@gmx.net>");
+ 
+ #define ATXP1_VID	0x00
+@@ -289,16 +289,16 @@ static int atxp1_detect(struct i2c_clien
+ 	if (!((i2c_smbus_read_byte_data(new_client, 0x3e) = 0) &&
+ 	     (i2c_smbus_read_byte_data(new_client, 0x3f) = 0) &&
+ 	     (i2c_smbus_read_byte_data(new_client, 0xfe) = 0) &&
+-	     (i2c_smbus_read_byte_data(new_client, 0xff) = 0) )) {
++	     (i2c_smbus_read_byte_data(new_client, 0xff) = 0)))
++		return -ENODEV;
+ 
+-		/* No vendor ID, now checking if registers 0x10,0x11 (non-existent)
+-		 * showing the same as register 0x00 */
+-		temp = i2c_smbus_read_byte_data(new_client, 0x00);
+-
+-		if (!((i2c_smbus_read_byte_data(new_client, 0x10) = temp) &&
+-			 (i2c_smbus_read_byte_data(new_client, 0x11) = temp) ))
+-			return -ENODEV;
+-	}
++	/* No vendor ID, now checking if registers 0x10,0x11 (non-existent)
++	 * showing the same as register 0x00 */
++	temp = i2c_smbus_read_byte_data(new_client, 0x00);
++
++	if (!((i2c_smbus_read_byte_data(new_client, 0x10) = temp) &&
++	      (i2c_smbus_read_byte_data(new_client, 0x11) = temp)))
++		return -ENODEV;
+ 
+ 	/* Get VRM */
+ 	temp = vid_which_vrm();
+
 
 -- 
 Jean Delvare
