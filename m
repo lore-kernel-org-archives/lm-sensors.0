@@ -1,80 +1,58 @@
-From: Takashi Iwai <tiwai@suse.de>
-Date: Mon, 11 Aug 2008 07:29:01 +0000
-Subject: Re: [lm-sensors] [alsa-devel] [PATCH] powerpc/drivers: use
-Message-Id: <s5hfxpcm2ma.wl%tiwai@suse.de>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 14 Aug 2008 10:10:39 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (adm1026) Fix debug messages
+Message-Id: <20080814121039.28966738@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080811170432.f747ab5e.sfr@canb.auug.org.au>
-In-Reply-To: <20080811170432.f747ab5e.sfr@canb.auug.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: alsa-devel@alsa-project.org, Jean@alsa-project.org, linuxppc-dev@ozlabs.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michael@alsa-project.org, Hanselmann <linux-kernel@hansmi.ch>, lm-sensors@lm-sensors.org, Stelian Pop <stelian@popies.net>, Paul Mackerras <paulus@samba.org>, Delvare <khali@linux-fr.org>, Johannes Berg <johannes@sipsolutions.net>
+To: lm-sensors@vger.kernel.org
 
-At Mon, 11 Aug 2008 17:04:32 +1000,
-Stephen Rothwell wrote:
-> 
-> 
-> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> ---
->  drivers/hwmon/ams/ams.h       |    2 +-
->  sound/aoa/soundbus/soundbus.h |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> These are the last two users of asm/of_device.h.  If everyone is happy,
-> we can put this through the powerpc tree.  I have build tested for
-> ppc64_defconfig and ppc6xx_defconfig (which uses the relevant drivers).
-> 
-> After this we can remove the include of linux/of_device.h from
-> asm/of_device.h
+* Add missing new-line to one debug message.
+* Remove leading colon from 3 debug messages.
 
-Looks good to me.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Philip Pokorny <ppokorny@penguincomputing.com>
+---
+ drivers/hwmon/adm1026.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-Acked-by: Takashi Iwai <tiwai@suse.de>
+--- linux-2.6.26-rc9.orig/drivers/hwmon/adm1026.c	2008-07-08 14:05:02.000000000 +0200
++++ linux-2.6.26-rc9/drivers/hwmon/adm1026.c	2008-07-08 14:48:51.000000000 +0200
+@@ -455,7 +455,7 @@ static void adm1026_print_gpio(struct i2
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+ 	int i;
+ 
+-	dev_dbg(&client->dev, "GPIO config is:");
++	dev_dbg(&client->dev, "GPIO config is:\n");
+ 	for (i = 0;i <= 7;++i) {
+ 		if (data->config2 & (1 << i)) {
+ 			dev_dbg(&client->dev, "\t%sGP%s%d\n",
+@@ -1681,17 +1681,16 @@ static int adm1026_detect(struct i2c_cli
+ 			kind = adm1026;
+ 		} else if (company = ADM1026_COMPANY_ANALOG_DEV
+ 			&& (verstep & 0xf0) = ADM1026_VERSTEP_GENERIC) {
+-			dev_err(&adapter->dev, ": Unrecognized stepping "
++			dev_err(&adapter->dev, "Unrecognized stepping "
+ 				"0x%02x. Defaulting to ADM1026.\n", verstep);
+ 			kind = adm1026;
+ 		} else if ((verstep & 0xf0) = ADM1026_VERSTEP_GENERIC) {
+-			dev_err(&adapter->dev, ": Found version/stepping "
++			dev_err(&adapter->dev, "Found version/stepping "
+ 				"0x%02x. Assuming generic ADM1026.\n",
+ 				verstep);
+ 			kind = any_chip;
+ 		} else {
+-			dev_dbg(&adapter->dev, ": Autodetection "
+-				"failed\n");
++			dev_dbg(&adapter->dev, "Autodetection failed\n");
+ 			/* Not an ADM1026 ... */
+ 			if (kind = 0) { /* User used force=x,y */
+ 				dev_err(&adapter->dev, "Generic ADM1026 not "
 
 
-thanks,
-
-Takashi
-
-> diff --git a/drivers/hwmon/ams/ams.h b/drivers/hwmon/ams/ams.h
-> index a6221e5..221ef69 100644
-> --- a/drivers/hwmon/ams/ams.h
-> +++ b/drivers/hwmon/ams/ams.h
-> @@ -4,7 +4,7 @@
->  #include <linux/mutex.h>
->  #include <linux/spinlock.h>
->  #include <linux/types.h>
-> -#include <asm/of_device.h>
-> +#include <linux/of_device.h>
->  
->  enum ams_irq {
->  	AMS_IRQ_FREEFALL = 0x01,
-> diff --git a/sound/aoa/soundbus/soundbus.h b/sound/aoa/soundbus/soundbus.h
-> index 622cd37..a0f223c 100644
-> --- a/sound/aoa/soundbus/soundbus.h
-> +++ b/sound/aoa/soundbus/soundbus.h
-> @@ -8,7 +8,7 @@
->  #ifndef __SOUNDBUS_H
->  #define __SOUNDBUS_H
->  
-> -#include <asm/of_device.h>
-> +#include <linux/of_device.h>
->  #include <sound/pcm.h>
->  #include <linux/list.h>
->  
-> -- 
-> 1.5.6.3
-> 
-> -- 
-> Cheers,
-> Stephen Rothwell                    sfr@canb.auug.org.au
-> http://www.canb.auug.org.au/~sfr/
-> _______________________________________________
-> Alsa-devel mailing list
-> Alsa-devel@alsa-project.org
-> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
-> 
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
