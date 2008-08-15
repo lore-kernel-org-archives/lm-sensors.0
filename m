@@ -1,123 +1,100 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 27 Aug 2008 12:03:05 +0000
-Subject: Re: [lm-sensors] install functioning lm-sensors on CentOS 5 -
-Message-Id: <20080827140305.149d4241@hyperion.delvare>
+Date: Fri, 15 Aug 2008 08:58:05 +0000
+Subject: [lm-sensors] [PATCH v3] hwmon-vid: Fix AMD K8 VID decoding
+Message-Id: <20080815105805.5d8231ce@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <48B49DD5.3020309@attitia.com>
-In-Reply-To: <48B49DD5.3020309@attitia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Kyle,
+Not all AMD K8 have 6 VID pins, contrary to what was assumed in
+commit 116d0486bdefc11f71e567cadf0c47f788b4dd06. This commit broke
+support of older CPU models which have only 5 VID pins:
+http://bugzilla.kernel.org/show_bug.cgi?id329
 
-On Wed, 27 Aug 2008 10:20:37 +1000, Kyle wrote:
-> Hi folks,
-> 
-> I'm hoping someone can hep me out pls. I've installed lm-sensors in the 
-> past in 2.4 kernels and it all just worked.
-> 
-> But I cannot for the life of me understand what is happening with or 
-> figure out what I need for my CentOS 5 / 2.6 kernel install.
-> 
-> I have read snippets which "SEEM" to indicate all of the modules I need 
-> are already compiled into or modularised with the base 2.6 Kernel 
-> (CentOS is of course a downline from RedHat EL), but don't really make 
-> it clear. When looking in 'make menuconfig', the modules listed as 
-> required for lm-sensors don't seem to match up with what I read.
-> 
-> I've read on the lm-sensors site that I "MAY" need a different driver 
-> with the XEON CPU, but I can't figure out how to tell and don't want to 
-> mess up a new install.
+We need two entries in the hwmon-vid table, one for 5-bit VID models
+(K8 revision <= E) and one for 6-bit VID models (K8 revision >= F).
+This fixes bug #11329.
 
-No, according to the SMBus probing below, the xeontemp driver won't
-help you.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Frank Myhr <fmyhr@fhmtech.com>
+Tested-by: Jean-Luc Coulon <jean.luc.coulon@gmail.com>
+---
+ drivers/hwmon/hwmon-vid.c |   36 ++++++++++++++++++++++++++++--------
+ 1 file changed, 28 insertions(+), 8 deletions(-)
 
-> 
-> When running sensors-detect, it appears to fail to find just about 
-> everything. Basically, the abridged output of sensors-detect is as follows;
-> 
-> ====================> Probing for PCI bus adapters...
-> Sorry, no PCI bus adapters found.
-> 
-> i2c-dev is not loaded. Do you want to load it now? (YES/no):
-> Module loaded succesfully.
-> 
-> Next adapter: SMBus I801 adapter at 2000
-> Do you want to scan it? (YES/no/selectively):
-> Client found at address 0x08
-> Client found at address 0x10
-> Client found at address 0x30
-> Client found at address 0x32
-> Client found at address 0x44
-> Probing for `Maxim MAX6633/MAX6634/MAX6635'... Failed!
-> Client found at address 0x50
-> Probing for `SPD EEPROM'... Success!
->    (confidence 8, driver `eeprom')
-> Probing for `DDC monitor'... Failed!
-> Probing for `Maxim MAX6900'... Failed!
-> Client found at address 0x52
-> Probing for `SPD EEPROM'... Success!
->    (confidence 8, driver `eeprom')
-> Client found at address 0x69
-> 
-> Do you want to scan the ISA bus? (YES/no):
-> Probing for `IPMI BMC KCS'
->  Trying address 0x0ca0... Success!
->    (confidence 4, driver `bmcsensors')        [KL] ALL OTHERS FAILED.
-> 
-> Do you want to scan for Super I/O sensors? (YES/no):
-> [KL] ALL FAILED.
-> 
-> Do you want to scan for secondary Super I/O sensors? (YES/no):
-> [KL] ALL FAILED
-> 
-> 
-> Driver `eeprom' (should be inserted):
->  Detects correctly:
->  * Bus `SMBus I801 adapter at 2000'
->    Busdriver `i2c-i801', I2C address 0x50
->    Chip `SPD EEPROM' (confidence: 8)
->  * Bus `SMBus I801 adapter at 2000'
->    Busdriver `i2c-i801', I2C address 0x52
->    Chip `SPD EEPROM' (confidence: 8)
-> 
-> Driver `bmcsensors' (should be inserted):
->  Detects correctly:
->  * ISA bus address 0x0ca0 (Busdriver `i2c-isa')
->    Chip `IPMI BMC KCS' (confidence: 4)
-> 
-> [KL] It then offers up the changes to rc.local and modprobe.conf. But 
-> within that, there's
-> 
-> # Warning: the required module bmcsensors is not currently installed on 
-> your system.
-> # For status of 2.6 kernel ports see 
-> http://secure.netroedge.com/~lm78/supported.html
-> # If driver is built-in to the kernel, or unavailable, comment out the 
-> following line.
-> modprobe bmcsensors
-> 
-> [KL] How can it detect a driver if it's apparently NOT installed on the 
-> system. Where do I get hold of the correct bmcsensors module?
-> =====================> 
-> Can I ask any one of you to help out pls and ask me the right questions 
-> so I know/can figure out just what the hell I should be looking for?
-
-Apparently your system uses IMPI for hardware monitoring. The driver
-that was doing this for 2.4 kernels was ported to Linux 2.6 but was
-never finalized and merged into the upstream kernel. Patches for older
-2.6 kernels can be found here:
-http://bmcsensors-26.sourceforge.net/
-But as you can see the project didn't see any recent activity.
-
-So at this point I think you have two options, either try to
-port the above patches to your kernel yourself, or give up on
-lm-sensors for that machine and use ipmitool instead, which I seem to
-recall has a command line parameter to query the temperature
-information (but which unfortunately won't interface nicely with 3rd
-party applications as lm-sensors does.)
+--- linux-2.6.27-rc3.orig/drivers/hwmon/hwmon-vid.c	2008-08-13 09:50:50.000000000 +0200
++++ linux-2.6.27-rc3/drivers/hwmon/hwmon-vid.c	2008-08-15 09:48:17.000000000 +0200
+@@ -37,13 +37,21 @@
+  * For VRD 10.0 and up, "VRD x.y Design Guide",
+  * available at http://developer.intel.com/.
+  *
+- * AMD NPT 0Fh (Athlon64 & Opteron), AMD Publication 32559,
++ * AMD Athlon 64 and AMD Opteron Processors, AMD Publication 26094,
++ * http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/26094.PDF
++ * Table 74. VID Code Voltages
++ * This corresponds to an arbitrary VRM code of 24 in the functions below.
++ * These CPU models (K8 revision <= E) have 5 VID pins. See also:
++ * Revision Guide for AMD Athlon 64 and AMD Opteron Processors, AMD Publication 25759,
++ * http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/25759.pdf
++ *
++ * AMD NPT Family 0Fh Processors, AMD Publication 32559,
+  * http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
+  * Table 71. VID Code Voltages
+- * AMD Opteron processors don't follow the Intel specifications.
+- * I'm going to "make up" 2.4 as the spec number for the Opterons.
+- * No good reason just a mnemonic for the 24x Opteron processor
+- * series.
++ * This corresponds to an arbitrary VRM code of 25 in the functions below.
++ * These CPU models (K8 revision >= F) have 6 VID pins. See also:
++ * Revision Guide for AMD NPT Family 0Fh Processors, AMD Publication 33610,
++ * http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/33610.pdf
+  *
+  * The 17 specification is in fact Intel Mobile Voltage Positioning -
+  * (IMVP-II). You can find more information in the datasheet of Max1718
+@@ -95,7 +103,12 @@ int vid_from_reg(int val, u8 vrm)
+ 			return 0;
+ 		return((1600000 - (val - 2) * 6250 + 500) / 1000);
+ 
+-	case 24:		/* AMD NPT 0Fh (Athlon64 & Opteron) */
++	case 24:		/* Athlon64 & Opteron */
++		val &= 0x1f;
++		if (val = 0x1f)
++			return 0;
++				/* fall through */
++	case 25:		/* AMD NPT 0Fh */
+ 		val &= 0x3f;
+ 		return (val < 32) ? 1550 - 25 * val
+ 			: 775 - (25 * (val - 31)) / 2;
+@@ -157,11 +170,16 @@ struct vrm_model {
+ 
+ #ifdef CONFIG_X86
+ 
+-/* the stepping parameter is highest acceptable stepping for current line */
++/*
++ * The stepping parameter is highest acceptable stepping for current line.
++ * The model match must be exact for 4-bit values. For model values 0x10
++ * and above (extended model), all models below the parameter will match.
++ */
+ 
+ static struct vrm_model vrm_models[] = {
+ 	{X86_VENDOR_AMD, 0x6, ANY, ANY, 90},		/* Athlon Duron etc */
+-	{X86_VENDOR_AMD, 0xF, ANY, ANY, 24},		/* Athlon 64, Opteron and above VRM 24 */
++	{X86_VENDOR_AMD, 0xF, 0x3F, ANY, 24},		/* Athlon 64, Opteron */
++	{X86_VENDOR_AMD, 0xF, ANY, ANY, 25},		/* NPT family 0Fh */
+ 	{X86_VENDOR_INTEL, 0x6, 0x9, ANY, 13},		/* Pentium M (130 nm) */
+ 	{X86_VENDOR_INTEL, 0x6, 0xB, ANY, 85},		/* Tualatin */
+ 	{X86_VENDOR_INTEL, 0x6, 0xD, ANY, 13},		/* Pentium M (90 nm) */
+@@ -189,6 +207,8 @@ static u8 find_vrm(u8 eff_family, u8 eff
+ 		if (vrm_models[i].vendor=vendor)
+ 			if ((vrm_models[i].eff_family=eff_family)
+ 			 && ((vrm_models[i].eff_model=eff_model) ||
++			     (vrm_models[i].eff_model >= 0x10 &&
++			      eff_model <= vrm_models[i].eff_model) ||
+ 			     (vrm_models[i].eff_model=ANY)) &&
+ 			     (eff_stepping <= vrm_models[i].eff_stepping))
+ 				return vrm_models[i].vrm_type;
 
 -- 
 Jean Delvare
