@@ -1,208 +1,52 @@
-From: <sensored@CubicC.com>
-Date: Fri, 15 Aug 2008 18:38:09 +0000
-Subject: [lm-sensors] Single Sensor Check
-Message-Id: <06d401c8ff06$1103d690$330b83b0$@com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1056881945642736168=="
+From: Matt Roberds <mattroberds@cox.net>
+Date: Sat, 16 Aug 2008 00:17:08 +0000
+Subject: Re: [lm-sensors] Single Sensor Check
+Message-Id: <Pine.LNX.4.64.0808151859110.28092@birdbird.example.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <06d401c8ff06$1103d690$330b83b0$@com>
+In-Reply-To: <06d401c8ff06$1103d690$330b83b0$@com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multipart message in MIME format.
+On Fri, 15 Aug 2008, sensored@CubicC.com wrote:
+> Hello, all!  I need to add a check for an alarm to a single sensor in
+> my C program, and I'd like to do so without the overhead of calling
+> out to an external program and parsing its output (plus all the
+> error-checking, etc.).
 
---===============1056881945642736168==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_06D5_01C8FEE4.89F23690"
-Content-Language: en-us
+Assuming a Unix-ish environment: write a script (in shell, Perl, etc)
+that calls sensors for you, parses the output, and creates a short file
+with the information you need.  Put the script in cron, and/or have it
+run continuously.  In your C program, read in the short file (whose
+format you control) and act on it appropriately.  Add checking to avoid
+race conditions, etc, but also remember that most sensors and alarms
+don't update all that fast; if it really does matter if you catch the
+alarm now or 2 seconds from now, you need a different approach.
 
-This is a multipart message in MIME format.
+> I have been having some issues compiling lm-sensors (so that I can
+> step through with a debugger), so perhaps you can help me short-circuit
+> this process a little:
 
-------=_NextPart_000_06D5_01C8FEE4.89F23690
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+You should be able to run the sensors-detect script in the lm-sensors
+package without compiling the entire package; this should at least tell
+you if the sensor chip you have is supported.
 
-Hello, all!  I need to add a check for an alarm to a single sensor in my C
-program, and I'd like to do so without the overhead of calling out to an
-external program and parsing its output (plus all the error-checking, etc.).
-I have been having some issues compiling lm-sensors (so that I can step
-through with a debugger), so perhaps you can help me short-circuit this
-process a little: 
+> Is there a way to read the value of a sensor (all it throws is ALARM or
+> nothing) from somewhere (e.g. in a protected area of memory)?
 
-Is there a way to read the value of a sensor (all it throws is ALARM or
-nothing) from somewhere (e.g. in a protected area of memory)? For example,
-dmidecode finds an SMBIOS table at a particular memory location, copies it,
-and just navigates the table to find the values for the DMI info... Are
-sensors accessible in a similar manner?
+Yes.  This is 100% dependent on the hardware you are using and will even
+change between different revisions of a particular motherboard.  If you
+have control over what hardware is used, then get the data sheet for the
+sensor/monitoring chip being used and read it; it should describe how to
+access the chip.  If there is an lm-sensors driver for that chip, look
+at it as well to see what you need to do.
 
-Thanks!
+Matt Roberds
 
--Ken
-
- 
-
-
-------=_NextPart_000_06D5_01C8FEE4.89F23690
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
-xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
-xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns:x=3D"urn:schemas-microsoft-com:office:excel" =
-xmlns:p=3D"urn:schemas-microsoft-com:office:powerpoint" =
-xmlns:a=3D"urn:schemas-microsoft-com:office:access" =
-xmlns:dt=3D"uuid:C2F41010-65B3-11d1-A29F-00AA00C14882" =
-xmlns:s=3D"uuid:BDC6E3F0-6DA3-11d1-A2A3-00AA00C14882" =
-xmlns:rs=3D"urn:schemas-microsoft-com:rowset" xmlns:z=3D"#RowsetSchema" =
-xmlns:b=3D"urn:schemas-microsoft-com:office:publisher" =
-xmlns:ss=3D"urn:schemas-microsoft-com:office:spreadsheet" =
-xmlns:c=3D"urn:schemas-microsoft-com:office:component:spreadsheet" =
-xmlns:oa=3D"urn:schemas-microsoft-com:office:activation" =
-xmlns:html=3D"http://www.w3.org/TR/REC-html40" =
-xmlns:q=3D"http://schemas.xmlsoap.org/soap/envelope/" xmlns:D=3D"DAV:" =
-xmlns:x2=3D"http://schemas.microsoft.com/office/excel/2003/xml" =
-xmlns:ois=3D"http://schemas.microsoft.com/sharepoint/soap/ois/" =
-xmlns:dir=3D"http://schemas.microsoft.com/sharepoint/soap/directory/" =
-xmlns:ds=3D"http://www.w3.org/2000/09/xmldsig#" =
-xmlns:dsp=3D"http://schemas.microsoft.com/sharepoint/dsp" =
-xmlns:udc=3D"http://schemas.microsoft.com/data/udc" =
-xmlns:xsd=3D"http://www.w3.org/2001/XMLSchema" =
-xmlns:sub=3D"http://schemas.microsoft.com/sharepoint/soap/2002/1/alerts/"=
- xmlns:ec=3D"http://www.w3.org/2001/04/xmlenc#" =
-xmlns:sp=3D"http://schemas.microsoft.com/sharepoint/" =
-xmlns:sps=3D"http://schemas.microsoft.com/sharepoint/soap/" =
-xmlns:xsi=3D"http://www.w3.org/2001/XMLSchema-instance" =
-xmlns:udcxf=3D"http://schemas.microsoft.com/data/udc/xmlfile" =
-xmlns:wf=3D"http://schemas.microsoft.com/sharepoint/soap/workflow/" =
-xmlns:mver=3D"http://schemas.openxmlformats.org/markup-compatibility/2006=
-" xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
-xmlns:mrels=3D"http://schemas.openxmlformats.org/package/2006/relationshi=
-ps" =
-xmlns:ex12t=3D"http://schemas.microsoft.com/exchange/services/2006/types"=
- =
-xmlns:ex12m=3D"http://schemas.microsoft.com/exchange/services/2006/messag=
-es" xmlns:Z=3D"urn:schemas-microsoft-com:" xmlns:st=3D"&#1;" =
-xmlns=3D"http://www.w3.org/TR/REC-html40">
-
-<head>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3Dus-ascii">
-<meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medium)">
-<style>
-<!--
- /* Font Definitions */
- @font-face
-	{font-family:"Cambria Math";
-	panose-1:2 4 5 3 5 4 6 3 2 4;}
-@font-face
-	{font-family:Calibri;
-	panose-1:2 15 5 2 2 2 4 3 2 4;}
-@font-face
-	{font-family:Verdana;
-	panose-1:2 11 6 4 3 5 4 4 2 4;}
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0in;
-	margin-bottom:.0001pt;
-	font-size:11.0pt;
-	font-family:"Calibri","sans-serif";}
-a:link, span.MsoHyperlink
-	{mso-style-priority:99;
-	color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{mso-style-priority:99;
-	color:purple;
-	text-decoration:underline;}
-p
-	{mso-style-priority:99;
-	mso-margin-top-alt:auto;
-	margin-right:0in;
-	mso-margin-bottom-alt:auto;
-	margin-left:0in;
-	font-size:12.0pt;
-	font-family:"Times New Roman","serif";}
-span.EmailStyle17
-	{mso-style-type:personal-compose;
-	font-family:"Calibri","sans-serif";
-	color:windowtext;}
-.MsoChpDefault
-	{mso-style-type:export-only;}
-@page Section1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.0in 1.0in 1.0in;}
-div.Section1
-	{page:Section1;}
--->
-</style>
-<!--[if gte mso 9]><xml>
- <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
-</xml><![endif]--><!--[if gte mso 9]><xml>
- <o:shapelayout v:ext=3D"edit">
-  <o:idmap v:ext=3D"edit" data=3D"1" />
- </o:shapelayout></xml><![endif]-->
-</head>
-
-<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
-
-<div class=3DSection1>
-
-<p style=3D'background:#FFFFDD'><span lang=3DEN =
-style=3D'font-size:10.0pt;font-family:
-"Verdana","sans-serif";color:black'>Hello, all!&nbsp; I need to add a =
-check for an
-alarm to a single sensor in my C program, and I'd like to do so without =
-the
-overhead of calling out to an external program and parsing its output =
-(plus all
-the error-checking, etc.). I have been having some issues compiling =
-lm-sensors
-(so that I can step through with a debugger), so perhaps you can help me
-short-circuit this process a little: <o:p></o:p></span></p>
-
-<p style=3D'background:#FFFFDD'><span lang=3DEN =
-style=3D'font-size:10.0pt;font-family:
-"Verdana","sans-serif";color:black'>Is there a way to read the value of =
-a
-sensor (all it throws is ALARM or nothing) from somewhere (e.g. in a =
-protected
-area of memory)? For example, dmidecode finds an SMBIOS table at a =
-particular
-memory location, copies it, and just navigates the table to find the =
-values for
-the DMI info... Are sensors accessible in a similar =
-manner?<o:p></o:p></span></p>
-
-<p style=3D'background:#FFFFDD'><span lang=3DEN =
-style=3D'font-size:10.0pt;font-family:
-"Verdana","sans-serif";color:black'>Thanks!<o:p></o:p></span></p>
-
-<p style=3D'background:#FFFFDD'><span lang=3DEN =
-style=3D'font-size:10.0pt;font-family:
-"Verdana","sans-serif";color:black'>-Ken<o:p></o:p></span></p>
-
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
-
-</div>
-
-</body>
-
-</html>
-
-------=_NextPart_000_06D5_01C8FEE4.89F23690--
-
-
-
---===============1056881945642736168==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1056881945642736168==--
-
