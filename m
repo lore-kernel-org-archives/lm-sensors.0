@@ -1,312 +1,715 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 06 Aug 2008 08:32:43 +0000
-Subject: Re: [lm-sensors] [PATCH 4/4] hwmon: (w83791d) add support for
-Message-Id: <489961AB.5060408@hhs.nl>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 18 Aug 2008 14:32:45 +0000
+Subject: Re: [lm-sensors] Patch: fschmd-watchdog-v2.patch
+Message-Id: <20080818163245.03ede415@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200808060029.47083.m.hulsman@tudelft.nl>
-In-Reply-To: <200808060029.47083.m.hulsman@tudelft.nl>
+References: <487F4DDE.7040909@hhs.nl>
+In-Reply-To: <487F4DDE.7040909@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Marc Hulsman wrote:
-> On Wednesday 06 August 2008 10:08:54 Hans de Goede wrote:
->> Marc Hulsman wrote:
->>> Last patch in the series. Adds support for automatic PWM control using
->>> smart fan 1 thermal cruise mode. Fan speed cruise mode shares registers
->>> with thermal cruise mode which makes implementing it a bit more
->>> complicated. As it does not add much over manual PWM control I did not
->>> implement it (for now?).
->>>
->>> Marc
->>> PS: I will be away from my mail during the next two weeks.
->>> PS2: When is it possible to remove the 'EXPERIMENTAL' status of the
->>> driver?
->>>
->>> ---
->>> Adds support to set target temperature and tolerance for thermal cruise
->>> mode.
->>>
->>> Signed-off-by: Marc Hulsman <m.hulsman@tudelft.nl>
->> Looks good:
->> Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
->>
->> (This ofcourse cannot be send upstream until patch 3/4 is fixed)
->>
-> Refreshed patch which applies clean to fixed patch 3/4. 
+Hi Hans,
+
+On Thu, 17 Jul 2008 15:49:18 +0200, Hans de Goede wrote:
+> Hi all,
 > 
-
-Still looks good:
-Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
- > Thanks for the fast review btw.
-
-Your welcome, I'm just trying to keep the patches flowing now that Mark Hoffman 
-is out of the loop. Can you send patches 1-4 directly to Andrew now please?
-
-Regards,
-
-Hans
-
-> Marc
+> This patch adds support for the watchdog part found in _all_ supported FSC
+> sensor chips.
 > 
-> ---
-> Adds support to set target temperature and tolerance for thermal cruise mode.
+> This is version 2 of this patch and this version is meant to be applied on
+> top of the fschmd new-style i2c-driver conversion patch by Jean.
 > 
-> Signed-off-by: Marc Hulsman <m.hulsman@tudelft.nl>
+> Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 > 
-> ---
->  Documentation/hwmon/w83791d |   19 ++++-
->  drivers/hwmon/w83791d.c     |  150 
-> ++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 164 insertions(+), 5 deletions(-)
+> Jean, can you review this please?
+> Mark, can you add this to your queue for 2.6.27 please
+>   (after Jean's conversion patch and once Jean has reviewed it)
+
+First of all: your patch triggers many errors and warnings in
+checkpatch.pl. Please fix them.
+
+> This patch adds support for the watchdog part found in _all_ supported FSC
+> sensor chips.
 > 
-> ---
-> Index: linux-2.6.27-rc1/drivers/hwmon/w83791d.c
-> =================================> --- linux-2.6.27-rc1.orig/drivers/hwmon/w83791d.c
-> +++ linux-2.6.27-rc1/drivers/hwmon/w83791d.c
-> @@ -125,6 +125,17 @@ static const u8 W83791D_REG_PWM[NUMBER_O
->  	0xA1,			/* PWM 5 duty cycle register in DataSheet */
+> This is version 2 of this patch and this version is meant to be applied on
+> top of the fschmd new-style i2c-driver conversion patch by Jean.
+> 
+> signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+> 
+> diff -up vanilla-2.6.26-rc8/drivers/hwmon/Kconfig.orig vanilla-2.6.26-rc8/drivers/hwmon/Kconfig
+> --- vanilla-2.6.26-rc8/drivers/hwmon/Kconfig.orig	2008-06-30 16:37:17.000000000 +0200
+> +++ vanilla-2.6.26-rc8/drivers/hwmon/Kconfig	2008-06-30 16:38:34.000000000 +0200
+> @@ -292,10 +292,11 @@ config SENSORS_FSCHMD
+>  	depends on X86 && I2C && EXPERIMENTAL
+>  	help
+>  	  If you say yes here you get support for various Fujitsu Siemens
+> -	  Computers sensor chips.
+> +	  Computers sensor chips, including support for the integrated
+> +	  watchdog.
+>  
+>  	  This is a new merged driver for FSC sensor chips which is intended
+> -	  as a replacment for the fscpos, fscscy and fscher drivers and adds
+> +	  as a replacement for the fscpos, fscscy and fscher drivers and adds
+>  	  support for several other FCS sensor chips.
+>  
+>  	  This driver can also be built as a module.  If so, the module
+> diff -up vanilla-2.6.26-rc8/drivers/hwmon/fschmd.c.orig vanilla-2.6.26-rc8/drivers/hwmon/fschmd.c
+> --- vanilla-2.6.26-rc8/drivers/hwmon/fschmd.c.orig	2008-06-30 16:36:32.000000000 +0200
+> +++ vanilla-2.6.26-rc8/drivers/hwmon/fschmd.c	2008-06-30 16:51:34.000000000 +0200
+> @@ -1,6 +1,6 @@
+>  /* fschmd.c
+>   *
+> - * Copyright (C) 2007 Hans de Goede <j.w.r.degoede@hhs.nl>
+> + * Copyright (C) 2007,2008 Hans de Goede <j.w.r.degoede@hhs.nl>
+>   *
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of the GNU General Public License as published by
+> @@ -42,13 +42,21 @@
+>  #include <linux/mutex.h>
+>  #include <linux/sysfs.h>
+>  #include <linux/dmi.h>
+> +#include <linux/fs.h>
+> +#include <linux/watchdog.h>
+> +#include <linux/miscdevice.h>
+> +#include <asm/uaccess.h>
+>  
+>  /* Addresses to scan */
+>  static const unsigned short normal_i2c[] = { 0x73, I2C_CLIENT_END };
+>  
+>  /* Insmod parameters */
+> +static int nowayout = WATCHDOG_NOWAYOUT;
+> +module_param(nowayout, int, 0);
+> +MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+>  I2C_CLIENT_INSMOD_5(fscpos, fscher, fscscy, fschrc, fschmd);
+>  
+> +
+>  /*
+>   * The FSCHMD registers and other defines
+>   */
+> @@ -65,11 +73,19 @@
+>  
+>  #define FSCHMD_CONTROL_ALERT_LED_MASK	0x01
+>  
+> -/* watchdog (support to be implemented) */
+> +/* watchdog */
+>  #define FSCHMD_REG_WDOG_PRESET		0x28
+>  #define FSCHMD_REG_WDOG_STATE		0x23
+>  #define FSCHMD_REG_WDOG_CONTROL		0x21
+>  
+> +#define FSCHMD_WDOG_CONTROL_TRIGGER_MASK	0x10
+> +#define FSCHMD_WDOG_CONTROL_STARTED_MASK	0x10 /* the same as trigger */
+> +#define FSCHMD_WDOG_CONTROL_STOP_MASK		0x20
+> +#define FSCHMD_WDOG_CONTROL_RESOLUTION_MASK	0x40
+> +
+> +#define FSCHMD_WDOG_STATE_CARDRESET_MASK	0x02
+
+The "_MASK" at the end of these defines is a bit confusing. Normally we
+use it only for defines which cover a bit range, not a single bit. What
+you have here are flags rather than masks. For clarity and brevity, I'd
+suggest dropping the "_MASK" suffix.
+
+> +
+> +
+>  /* voltages, weird order is to keep the same order as the old drivers */
+>  static const u8 FSCHMD_REG_VOLT[3] = { 0x45, 0x42, 0x48 };
+>  
+> @@ -167,6 +183,22 @@
+>  /* our driver name */
+>  #define FSCHMD_NAME "fschmd"
+>  
+> +/* Watchdog filp->private_data pointer use utility macros. We store our minor
+> +   (to find our device data) in the private_data pointer, since the
+> +   private_data pointer can hold atleast an int, we use the "major" space 
+> +   of that int to store an per open expect_close flag. */
+> +#define WATCHDOG_INIT_FILP(filp, minor) \
+> +	(filp)->private_data = (void *)(long)(minor)
+> +#define WATCHDOG_GET_MINOR(filp) \
+> +	MINOR((long)(filp)->private_data)
+> +#define WATCHDOG_CLEAR_EXPECT_CLOSE(filp) \
+> +	(filp)->private_data = (void *)(long)WATCHDOG_GET_MINOR(filp)
+> +#define WATCHDOG_SET_EXPECT_CLOSE(filp) \
+> +	(filp)->private_data = (void *)(long)MKDEV(1, WATCHDOG_GET_MINOR(filp))
+> +#define WATCHDOG_GET_EXPECT_CLOSE(filp) \
+> +	MAJOR((long)(filp)->private_data)
+
+I don't much like this pointer abuse. What about defining a structure
+containing the things you need, and including this structure in struct
+fschmd_data? You would get much cleaner code that way, and the few
+extra bytes of memory are certainly not worth discussing.
+
+> +
+> +
+>  /*
+>   * Functions declarations
+>   */
+> @@ -209,14 +241,23 @@
+>   */
+>  
+>  struct fschmd_data {
+> +	struct i2c_client *client;
+>  	struct device *hwmon_dev;
+>  	struct mutex update_lock;
+> +	struct list_head list;
+
+Please add a comment saying which list the structure is a member of.
+
+> +	struct miscdevice watchdog_miscdev;
+>  	int kind;
+> +	int watchdog_open_count;
+> +	char watchdog_name[10]; /* must be unique to avoid sysfs conflict */
+>  	char valid; /* zero until following fields are valid */
+>  	unsigned long last_updated; /* in jiffies */
+>  
+>  	/* register values */
+> +	u8 revision;            /* chip revision */
+>  	u8 global_control;	/* global control register */
+> +	u8 watchdog_control;    /* watchdog control register */
+> +	u8 watchdog_status;     /* watchdog status register */
+> +	u8 watchdog_preset;     /* watchdog counter preset on trigger val */
+
+Not sure what sense it makes to store these values in the data
+structure. You'll always do read-modify-write operations on these
+register values, and doing that on possibly old copies is a bad idea in
+general.
+
+>  	u8 volt[3];		/* 12, 5, battery voltage */
+>  	u8 temp_act[5];		/* temperature */
+>  	u8 temp_status[5];	/* status of sensor */
+> @@ -228,11 +269,20 @@
 >  };
 >  
-> +static const u8 W83791D_REG_PWM_TARGET[3] = {
-> +	0x85,			/* PWM 1 target temperature for temp 1 */
-> +	0x86,			/* PWM 2 target temperature for temp 2*/
-> +	0x96,			/* PWM 3 target temperature for temp 3*/
-> +};
-> +
-> +static const u8 W83791D_REG_PWM_TOL[2] = {
-> +	0x87,			/* PWM 1/2 temperature tolerance */
-> +	0x97,			/* PWM 3 temperature tolerance */
-> +};
-> +
->  static const u8 W83791D_REG_FAN_CFG[2] = {
->  	0x84,			/* FAN 1/2 configuration */
->  	0x95,			/* FAN 3 configuration */
-> @@ -234,6 +245,17 @@ static u8 fan_to_reg(long rpm, int div)
->  				 (val) < 0 ? ((val) - 250) / 500 * 128 : \
->  				 ((val) + 250) / 500 * 128)
+>  /* Global variables to hold information read from special DMI tables, which are
+> -   available on FSC machines with an fscher or later chip. */
+> +   available on FSC machines with an fscher or later chip. There is no need to
+> +   protect these with a lock as they are only modified from our attach function
+> +   which always gets called with the i2c-core lock held and never accessed
+> +   before the attach function is done with them. */
+>  static int dmi_mult[3] = { 490, 200, 100 };
+>  static int dmi_offset[3] = { 0, 0, 0 };
+>  static int dmi_vref = -1;
 >  
-> +/* for thermal cruise target temp, 7-bits, LSB = 1 degree Celsius */
-> +#define TARGET_TEMP_FROM_REG(val)	((val) * 1000)
-> +#define TARGET_TEMP_TO_REG(val)		((val) < 0 ? 0 : \
-> +					(val) >= 127000 ? 127 : \
-> +					((val) + 500) / 1000)
+> +/* Somewhat ugly :( global data pointer list with all fschmd devices, so that
+> +   we can find our device data as when using misc_register there is no other
+> +   method to get to ones device data from the open fop. */
+> +static LIST_HEAD(watchdog_data_list);
+> +static DEFINE_MUTEX(watchdog_data_mutex);
+
+I suspect this list is duplicating something the driver core already
+offers. If you look in /sys/bus/i2c/drivers/fschmd, you'll see your
+devices listed there. This means that the driver core has a list of all
+devices bound to your driver. You should be able to find the correct
+device using driver_find_device().
+
+But actually... Do you really need to do this? As far as I can see,
+struct miscdevice has a parent member which you can set to point to
+your fschmd device. From there you can get your i2c_client by using
+to_i2c_client(), or your fschmd_data structure by using
+device_get_drvdata(). This would be way more efficient and elegant than
+walking a list each time, don't you think?
+
 > +
-> +/* for thermal cruise temp tolerance, 4-bits, LSB = 1 degree Celsius */
-> +#define TOL_TEMP_FROM_REG(val)		((val) * 1000)
-> +#define TOL_TEMP_TO_REG(val)		((val) < 0 ? 0 : \
-> +					(val) >= 15000 ? 15 : \
-> +					((val) + 500) / 1000)
 >  
->  #define BEEP_MASK_TO_REG(val)		((val) & 0xffffff)
->  #define BEEP_MASK_FROM_REG(val)		((val) & 0xffffff)
-> @@ -290,6 +312,9 @@ struct w83791d_data {
->  	u8 pwm_enable[3];	/* pwm enable status for fan 1-3
->  					(fan 4-5 only support manual mode) */
+>  /*
+>   * Sysfs attr show / store functions
+> @@ -551,7 +601,286 @@
 >  
-> +	u8 pwm_target[3];	/* pwm 1-3 target temperature  */
-> +	u8 pwm_tolerance[3];	/* pwm 1-3 temperature tolerance */
-> +
->  	/* Misc */
->  	u32 alarms;		/* realtime status register encoding,combined */
->  	u8 beep_enable;		/* Global beep enable */
-> @@ -774,6 +799,110 @@ static struct sensor_device_attribute sd
->  			show_pwmenable, store_pwmenable, 2),
->  };
 >  
-> +/* For Smart Fan I / Thermal Cruise */
-> +static ssize_t show_pwm_target(struct device *dev,
-> +			struct device_attribute *attr, char *buf)
+>  /*
+> - * Real code
+> + * Watchdog routines
+> + */
+> +static struct fschmd_data *watchdog_get_data_unlocked(int minor)
 > +{
-> +	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-> +	struct w83791d_data *data = w83791d_update_device(dev);
-> +	int nr = sensor_attr->index;
-> +	return sprintf(buf, "%d\n", TARGET_TEMP_FROM_REG(data->pwm_target[nr]));
-> +}
+> +	struct fschmd_data *data = NULL, *pos;
 > +
-> +static ssize_t store_pwm_target(struct device *dev,
-> +		struct device_attribute *attr, const char *buf, size_t count)
-> +{
-> +	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct w83791d_data *data = i2c_get_clientdata(client);
-> +	int nr = sensor_attr->index;
-> +	unsigned long val;
-> +	u8 target_mask;
-> +
-> +	if (strict_strtoul(buf, 10, &val))
-> +		return -EINVAL;
-> +
-> +	mutex_lock(&data->update_lock);
-> +	data->pwm_target[nr] = TARGET_TEMP_TO_REG(val);
-> +	target_mask = w83791d_read(client,
-> +				W83791D_REG_PWM_TARGET[nr]) & 0x80;
-> +	w83791d_write(client, W83791D_REG_PWM_TARGET[nr],
-> +				data->pwm_target[nr] | target_mask);
-> +	mutex_unlock(&data->update_lock);
-> +	return count;
-> +}
-> +
-> +static struct sensor_device_attribute sda_pwm_target[] = {
-> +	SENSOR_ATTR(pwm1_target, S_IWUSR | S_IRUGO,
-> +			show_pwm_target, store_pwm_target, 0),
-> +	SENSOR_ATTR(pwm2_target, S_IWUSR | S_IRUGO,
-> +			show_pwm_target, store_pwm_target, 1),
-> +	SENSOR_ATTR(pwm3_target, S_IWUSR | S_IRUGO,
-> +			show_pwm_target, store_pwm_target, 2),
-> +};
-> +
-> +static ssize_t show_pwm_tolerance(struct device *dev,
-> +			struct device_attribute *attr, char *buf)
-> +{
-> +	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-> +	struct w83791d_data *data = w83791d_update_device(dev);
-> +	int nr = sensor_attr->index;
-> +	return sprintf(buf, "%d\n", TOL_TEMP_FROM_REG(data->pwm_tolerance[nr]));
-> +}
-> +
-> +static ssize_t store_pwm_tolerance(struct device *dev,
-> +		struct device_attribute *attr, const char *buf, size_t count)
-> +{
-> +	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct w83791d_data *data = i2c_get_clientdata(client);
-> +	int nr = sensor_attr->index;
-> +	unsigned long val;
-> +	u8 target_mask;
-> +	u8 reg_idx = 0;
-> +	u8 val_shift = 0;
-> +	u8 keep_mask = 0;
-> +
-> +	if (strict_strtoul(buf, 10, &val))
-> +		return -EINVAL;
-> +
-> +	switch (nr) {
-> +	case 0:
-> +		reg_idx = 0;
-> +		val_shift = 0;
-> +		keep_mask = 0xf0;
-> +		break;
-> +	case 1:
-> +		reg_idx = 0;
-> +		val_shift = 4;
-> +		keep_mask = 0x0f;
-> +		break;
-> +	case 2:
-> +		reg_idx = 1;
-> +		val_shift = 0;
-> +		keep_mask = 0xf0;
-> +		break;
+> +	list_for_each_entry(pos, &watchdog_data_list, list) {
+> +		if (pos->watchdog_miscdev.minor = minor) {
+> +			data = pos;
+> +			break;
+> +		}
 > +	}
 > +
-> +	mutex_lock(&data->update_lock);
-> +	data->pwm_tolerance[nr] = TOL_TEMP_TO_REG(val);
-> +	target_mask = w83791d_read(client,
-> +			W83791D_REG_PWM_TOL[reg_idx]) & keep_mask;
-> +	w83791d_write(client, W83791D_REG_PWM_TOL[reg_idx],
-> +			(data->pwm_tolerance[nr] << val_shift) | target_mask);
-> +	mutex_unlock(&data->update_lock);
-> +	return count;
+> +	return data;
 > +}
 > +
-> +static struct sensor_device_attribute sda_pwm_tolerance[] = {
-> +	SENSOR_ATTR(pwm1_tolerance, S_IWUSR | S_IRUGO,
-> +			show_pwm_tolerance, store_pwm_tolerance, 0),
-> +	SENSOR_ATTR(pwm2_tolerance, S_IWUSR | S_IRUGO,
-> +			show_pwm_tolerance, store_pwm_tolerance, 1),
-> +	SENSOR_ATTR(pwm3_tolerance, S_IWUSR | S_IRUGO,
-> +			show_pwm_tolerance, store_pwm_tolerance, 2),
+> +static int watchdog_set_timeout_unlocked(struct fschmd_data *data, int timeout)
+
+Rather than naming these routines foo_unlocked, I'd rather see you
+document which locks must be held when calling these functions. There
+are two locks involved so it matters to clarify the expectations.
+
+As a side note, I wonder if it would make sense to have a separate lock
+for the watchdog struct members. fschmd_update_device() can hold
+data->update_lock for a significant amount of time, and you probably
+don(t want to delay watchdog_timer() too much.
+
+> +{
+> +	int resolution;
+> +	int kind = data->kind + 1; /* 0-x array index -> 1-x module param */
+> +
+> +	/* 2 second or 60 second resolution? */
+> +	if (timeout <= 510 || kind = fscpos || kind = fscscy) {
+> +		data->watchdog_control &= ~FSCHMD_WDOG_CONTROL_RESOLUTION_MASK;
+> +		resolution = 2;
+> +	} else {
+> +		data->watchdog_control |= FSCHMD_WDOG_CONTROL_RESOLUTION_MASK;
+> +		resolution = 60;
+> +	}
+
+Don't you want to reject a timeout value of 0? The drivers I've looked
+at, do that.
+
+> +
+> +	if (timeout > (resolution * 255))
+> +		data->watchdog_preset = 255;
+> +	else		
+> +		data->watchdog_preset = (timeout + (resolution - 1)) /
+> +					resolution;
+
+You might want to use DIV_ROUND_UP().
+
+> +
+> +	/* Write new timeout value */
+> +	i2c_smbus_write_byte_data(data->client, FSCHMD_REG_WDOG_PRESET,
+> +		data->watchdog_preset);
+> +	/* Write new control register, do not trigger! */
+> +	i2c_smbus_write_byte_data(data->client, FSCHMD_REG_WDOG_CONTROL,
+> +		data->watchdog_control & ~FSCHMD_WDOG_CONTROL_TRIGGER_MASK);
+> +
+> +	return data->watchdog_preset * resolution;
+> +}
+> +
+> +static int watchdog_get_timeout(struct fschmd_data *data)
+> +{
+> +	int timeout;
+> +
+> +	mutex_lock(&data->update_lock);
+> +	if (data->watchdog_control & FSCHMD_WDOG_CONTROL_RESOLUTION_MASK)
+> +		timeout = data->watchdog_preset * 60;
+> +	else
+> +		timeout = data->watchdog_preset * 2;
+> +	mutex_unlock(&data->update_lock);	
+> +
+> +	return timeout;	
+> +}
+> +
+> +static void watchdog_trigger(struct fschmd_data *data)
+> +{
+> +	mutex_lock(&data->update_lock);
+> +	data->watchdog_control |= FSCHMD_WDOG_CONTROL_TRIGGER_MASK;
+> +	i2c_smbus_write_byte_data(data->client, FSCHMD_REG_WDOG_CONTROL,
+> +					data->watchdog_control);
+> +	mutex_unlock(&data->update_lock);	
+> +}
+> +
+> +static void watchdog_stop(struct fschmd_data *data)
+> +{
+> +	mutex_lock(&data->update_lock);
+> +	data->watchdog_control &= ~FSCHMD_WDOG_CONTROL_STARTED_MASK;
+> +	/* Don't store the stop flag in our watchdog control register copy, as
+> +	   its a write only bit (read always returns 0) */
+> +	i2c_smbus_write_byte_data(data->client, FSCHMD_REG_WDOG_CONTROL,
+> +		data->watchdog_control | FSCHMD_WDOG_CONTROL_STOP_MASK);
+> +	mutex_unlock(&data->update_lock);
+> +}
+> +
+> +
+
+Extra blank line.
+
+> +static int watchdog_open(struct inode *inode, struct file *filp)
+> +{
+> +	int ret;
+> +	struct fschmd_data *data;
+> +
+> +	mutex_lock(&watchdog_data_mutex);
+> +	data = watchdog_get_data_unlocked(iminor(inode));
+> +	/* Check our i2c client didn't get removed from underneath us */
+> +	if (!data) {
+> +		ret = -ENODEV;
+> +		goto unlock_mutex;
+> +	}
+> +
+> +	/* Set a default timeout if necessary */
+> +	mutex_lock(&data->update_lock);
+> +	if (data->watchdog_preset = 0)
+> +		watchdog_set_timeout_unlocked(data, 60);
+> +	mutex_unlock(&data->update_lock);
+
+I think you could do that at driver load time. Also I wouldn't make it
+conditional. Always having the same default value would be preferable,
+and that's what other drivers do as far as I can see.
+
+> +
+> +	/* Start the watchdog */
+> +	watchdog_trigger(data);
+> +
+> +	data->watchdog_open_count++;
+
+Most (all?) other watchdog drivers only allow the device to be opened
+once, and return -EBUSY on subsequent tries. This makes a lot of sense
+IMHO.
+
+> +	WATCHDOG_INIT_FILP(filp, data->watchdog_miscdev.minor);
+> +
+> +	ret = nonseekable_open(inode, filp);
+> +
+> +unlock_mutex:
+> +	mutex_unlock(&watchdog_data_mutex);
+> +
+> +	return ret;
+> +}
+> +
+> +static int watchdog_release(struct inode *inode, struct file *filp)
+> +{
+> +	struct fschmd_data *data;
+> +
+> +	mutex_lock(&watchdog_data_mutex);
+> +	data = watchdog_get_data_unlocked(WATCHDOG_GET_MINOR(filp));
+> +	/* Check our i2c client didn't get removed from underneath us */
+> +	if (!data)
+> +		goto unlock_mutex;
+> +
+> +	data->watchdog_open_count--;
+> +
+> +	if (WATCHDOG_GET_EXPECT_CLOSE(filp)) {
+> +		if (data->watchdog_open_count)
+> +			printk(KERN_WARNING FSCHMD_NAME
+> +				": watchdog still opened %d time(s), "
+> +				"not stopping\n", data->watchdog_open_count);
+> +		else
+> +			watchdog_stop(data);
+> +	} else {
+> +		watchdog_trigger(data);
+> +		printk(KERN_CRIT FSCHMD_NAME
+> +			": unexpected close, not stopping watchdog!\n");
+> +	}
+> +
+> +unlock_mutex:
+> +	mutex_unlock(&watchdog_data_mutex);
+> +
+> +	return 0;
+> +}
+> +
+> +static ssize_t watchdog_write(struct file *filp, const char __user *buf,
+> +	size_t count, loff_t *offset)
+> +{
+> +	ssize_t ret = count;
+> +	struct fschmd_data *data;
+> +
+> +	mutex_lock(&watchdog_data_mutex);
+> +	data = watchdog_get_data_unlocked(WATCHDOG_GET_MINOR(filp));
+> +	/* Check our i2c client didn't get removed from underneath us */
+> +	if (!data) {
+> +		ret = -ENODEV;
+> +		goto unlock_mutex;
+> +	}
+> +
+> +	if (count) {
+> +		if (!nowayout) {
+> +			size_t i;
+> +
+> +			/* Clear it in case it was set with a previous write */
+> +			WATCHDOG_CLEAR_EXPECT_CLOSE(filp);
+> +
+> +			for (i = 0; i != count; i++) {
+> +				char c;
+> +				if (get_user(c, buf + i)) {
+> +					ret = -EFAULT;
+> +					goto unlock_mutex;
+> +				}
+> +				if (c = 'V')
+> +					WATCHDOG_SET_EXPECT_CLOSE(filp);
+> +			}
+> +		}
+> +		watchdog_trigger(data);
+> +	}
+> +
+> +unlock_mutex:
+> +	mutex_unlock(&watchdog_data_mutex);
+> +
+> +	return ret;
+> +}
+> +
+> +static int watchdog_ioctl(struct inode *inode, struct file *filp,
+> +	unsigned int cmd, unsigned long arg)
+> +{
+> +	static struct watchdog_info ident = {
+> +		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT |
+> +				WDIOF_CARDRESET,
+> +		.identity = "FSC watchdog"
+> +	};
+> +	int i, ret = 0;
+> +	struct fschmd_data *data;
+> +
+> +	mutex_lock(&watchdog_data_mutex);
+> +	data = watchdog_get_data_unlocked(WATCHDOG_GET_MINOR(filp));
+> +	/* Check our i2c client didn't get removed from underneath us */
+> +	if (!data) {
+> +		ret = -ENODEV;
+> +		goto unlock_mutex;
+> +	}
+> +
+> +	switch (cmd) {
+> +	case WDIOC_GETSUPPORT:
+> +		ident.firmware_version = data->revision;
+> +		if (!nowayout)
+> +			ident.options |= WDIOF_MAGICCLOSE;
+> +		if (copy_to_user((void __user *)arg, &ident, sizeof(ident)))
+> +			ret = -EFAULT;
+> +		break;
+> +
+> +	case WDIOC_GETSTATUS:
+> +		ret = put_user(0, (int *)arg);
+> +		break;
+> +
+> +	case WDIOC_GETBOOTSTATUS:
+> +		if (data->watchdog_status & FSCHMD_WDOG_STATE_CARDRESET_MASK)
+> +			ret = put_user(WDIOF_CARDRESET, (int *)arg);
+> +		else
+> +			ret = put_user(0, (int *)arg);
+> +		break;
+> +
+> +	case WDIOC_KEEPALIVE:
+> +		watchdog_trigger(data);
+> +		break;
+> +
+> +	case WDIOC_GETTIMEOUT:
+> +		i = watchdog_get_timeout(data);
+> +		ret = put_user(i, (int *)arg);
+> +		break;
+> +
+> +	case WDIOC_SETTIMEOUT:
+> +		if (get_user(i, (int *)arg)) {
+> +			ret = -EFAULT;
+> +			break;
+> +		}
+> +		mutex_lock(&data->update_lock);
+> +		i = watchdog_set_timeout_unlocked(data, i);
+> +		mutex_unlock(&data->update_lock);
+> +		ret = put_user(i, (int *)arg);
+> +		break;
+> +
+> +	case WDIOC_SETOPTIONS:
+> +		if (get_user(i, (int *)arg)) {
+
+Shouldn't all these (int *)arg be (int __user *)arg?
+
+> +			ret = -EFAULT;
+> +			break;
+> +		}
+> +
+> +		if (i & WDIOS_DISABLECARD)
+> +			watchdog_stop(data);
+> +		else if (i & WDIOS_ENABLECARD)
+> +			watchdog_trigger(data);
+> +		else
+> +			ret = -EINVAL;
+> +
+> +		break;
+> +	default:
+> +		ret = -ENOTTY;
+> +	}
+> +
+> +unlock_mutex:
+> +	mutex_unlock(&watchdog_data_mutex);
+> +
+> +	return ret;
+> +}
+> +
+> +static struct file_operations watchdog_fops = {
+> +	.owner = THIS_MODULE,
+> +	.llseek = no_llseek,
+> +	.open = watchdog_open,
+> +	.release = watchdog_release,
+> +	.write = watchdog_write,
+> +	.ioctl = watchdog_ioctl,
 > +};
 > +
->  /* read/write the temperature1, includes measured value and limits */
->  static ssize_t show_temp1(struct device *dev, struct device_attribute 
-> *devattr,
->  				char *buf)
-> @@ -1044,6 +1173,12 @@ static struct attribute *w83791d_attribu
->  	&sda_pwmenable[0].dev_attr.attr,
->  	&sda_pwmenable[1].dev_attr.attr,
->  	&sda_pwmenable[2].dev_attr.attr,
-> +	&sda_pwm_target[0].dev_attr.attr,
-> +	&sda_pwm_target[1].dev_attr.attr,
-> +	&sda_pwm_target[2].dev_attr.attr,
-> +	&sda_pwm_tolerance[0].dev_attr.attr,
-> +	&sda_pwm_tolerance[1].dev_attr.attr,
-> +	&sda_pwm_tolerance[2].dev_attr.attr,
->  	NULL
->  };
->  
-> @@ -1403,6 +1538,21 @@ static struct w83791d_data *w83791d_upda
->  		data->pwm_enable[1] = ((reg_array_tmp[0] >> 4) & 0x03);
->  		data->pwm_enable[2] = ((reg_array_tmp[1] >> 2) & 0x03);
->  
-> +		/* Update PWM target temperature */
-> +		for (i = 0; i < 2; i++) {
-> +			data->pwm_target[i] = w83791d_read(client,
-> +				W83791D_REG_PWM_TARGET[i]) & 0x7f;
-> +		}
 > +
-> +		/* Update PWM temperature tolerance */
-> +		for (i = 0; i < 1; i++) {
-> +			reg_array_tmp[i] = w83791d_read(client,
-> +					W83791D_REG_PWM_TOL[i]);
-> +		}
-> +		data->pwm_tolerance[0] = reg_array_tmp[0] & 0x0f;
-> +		data->pwm_tolerance[1] = (reg_array_tmp[0] >> 4) & 0x0f;
-> +		data->pwm_tolerance[2] = reg_array_tmp[1] & 0x0f;
-> +
->  		/* Update the first temperature sensor */
->  		for (i = 0; i < 3; i++) {
->  			data->temp1[i] = w83791d_read(client,
-> Index: linux-2.6.27-rc1/Documentation/hwmon/w83791d
-> =================================> --- linux-2.6.27-rc1.orig/Documentation/hwmon/w83791d
-> +++ linux-2.6.27-rc1/Documentation/hwmon/w83791d
-> @@ -77,6 +77,9 @@ readings can be divided by a programmabl
+> +/*
+> + * Detect, register, unregister and update device functions
+>   */
 >  
->  Each fan controlled is controlled by PWM. The PWM duty cycle can be read and
->  set for each fan separately. Valid values range from 0 (stop) to 255 (full).
-> +PWM 1-3 support Thermal Cruise mode, in which the PWMs are automatically
-> +regulated to keep respectively temp 1-3 at a certain target temperature.
-> +See below for the description of the sysfs-interface.
->  
->  The w83791d has a global bit used to enable beeping from the speaker when an
->  alarm is triggered as well as a bitmask to enable or disable the beep for
-> @@ -116,9 +119,19 @@ chip-specific options are documented her
->  pwm[1-3]_enable - 	this file controls mode of fan/temperature control for
->  		  	fan 1-3. Fan/PWM 4-5 only support manual mode.
->  		            * 1 Manual mode
-> -		            * 2 Thermal Cruise mode   (no further support)
-> +		            * 2 Thermal Cruise mode
->  		            * 3 Fan Speed Cruise mode (no further support)
->  
-> +pwm[1-3]_target - 	defines the target temperature for Thermal Cruise mode.
-> +			Unit: millidegree Celsius
-> +			RW
-> +
-> +pwm[1-3]_tolerance - 	temperature tolerance for Thermal Cruise mode.
-> +			Specifies an interval around the target temperature
-> +			in which the fan speed is not changed.
-> +			Unit: millidegree Celsius
-> +			RW
-> +
->  Alarms bitmap vs. beep_mask bitmask
->  ------------------------------------
->  For legacy code using the alarms and beep_mask files:
-> @@ -146,7 +159,3 @@ tart2        :  alarms: 0x020000 beep_ma
->  tart3        :  alarms: 0x040000 beep_mask: 0x100000 <= mismatch
->  case_open    :  alarms: 0x001000 beep_mask: 0x001000
->  global_enable:  alarms: -------- beep_mask: 0x800000 (modified via 
-> beep_enable)
-> -
-> -W83791D TODO:
-> ----------------
-> -Provide a patch for Thermal Cruise registers.
-> 
-> 
-> 
-> 
+>  /* DMI decode routine to read voltage scaling factors from special DMI tables,
+> @@ -661,9 +990,9 @@
+>  			const struct i2c_device_id *id)
+>  {
+>  	struct fschmd_data *data;
+> -	u8 revision;
+>  	const char * const names[5] = { "Poseidon", "Hermes", "Scylla",
+>  					"Heracles", "Heimdall" };
+> +	const int watchdog_minors[] = { 130, 212, 213, 214, 215 };
 
+Do you really need this? I couldn't find any other watchdog driver
+paying attention to the "extra" watchdog minors. At any rate, this
+shouldn't have to be handled by individual drivers. And you don't
+expect more than one FSC monitoring chip on a given system, do you?
+
+At least, I believe that you should use MINOR_WATCHDOG instead of
+hardcoding 130. That's what the other watchdog drivers do. But I think
+I would only support minor 130 as all other drivers do - that would
+make your code somewhat simpler.
+
+>  	int i, err;
+>  	enum chips kind = id->driver_data;
+>  
+> @@ -673,6 +1002,11 @@
+>  
+>  	i2c_set_clientdata(client, data);
+>  	mutex_init(&data->update_lock);
+> +	INIT_LIST_HEAD(&data->list);
+> +	/* Store client pointer in our data struct for watchdog usage
+> +	   (where the client is found through a data ptr instead of the
+> +	   otherway around) */
+> +	data->client = client;
+>  
+>  	if (kind = fscpos) {
+>  		/* The Poseidon has hardwired temp limits, fill these
+> @@ -683,7 +1017,7 @@
+>  	}
+>  
+>  	/* Read the special DMI table for fscher and newer chips */
+> -	if (kind = fscher || kind >= fschrc) {
+> +	if ((kind = fscher || kind >= fschrc) && dmi_vref = -1){
+>  		dmi_walk(fschmd_dmi_decode);
+>  		if (dmi_vref = -1) {
+>  			printk(KERN_WARNING FSCHMD_NAME
+> @@ -693,6 +1027,17 @@
+>  		}
+>  	}
+>  
+> +	/* Read in some never changing registers */
+> +	data->revision = i2c_smbus_read_byte_data(client, FSCHMD_REG_REVISION);
+> +	data->global_control = i2c_smbus_read_byte_data(client,
+> +					FSCHMD_REG_CONTROL);
+> +	data->watchdog_control = i2c_smbus_read_byte_data(client,
+> +					FSCHMD_REG_WDOG_CONTROL);
+> +	data->watchdog_status = i2c_smbus_read_byte_data(client,
+> +					FSCHMD_REG_WDOG_STATE);
+
+For consistency, you should choose once and for all if this is "status"
+or "state", and stick to it.
+
+> +	data->watchdog_preset = i2c_smbus_read_byte_data(client,
+> +					FSCHMD_REG_WDOG_PRESET);
+> +
+>  	/* i2c kind goes from 1-5, we want from 0-4 to address arrays */
+>  	data->kind = kind - 1;
+>  
+> @@ -735,9 +1080,38 @@
+>  		goto exit_detach;
+>  	}
+>  
+> -	revision = i2c_smbus_read_byte_data(client, FSCHMD_REG_REVISION);
+> +	/* Register our watchdog part */
+> +	for (i = 0; i < ARRAY_SIZE(watchdog_minors); i++) {
+> +		snprintf(data->watchdog_name, sizeof(data->watchdog_name),
+> +			"watchdog%c", (i = 0) ? '\0' : ('0' + i));
+> +		data->watchdog_miscdev.name = data->watchdog_name;
+> +		data->watchdog_miscdev.fops = &watchdog_fops;
+> +		data->watchdog_miscdev.minor = watchdog_minors[i];
+> +		err = misc_register(&data->watchdog_miscdev);
+> +		if (err = -EBUSY)
+> +			continue;
+> +		if (err) {
+> +			data->watchdog_miscdev.minor = 0;
+> +			goto exit_detach;
+> +		}
+> +
+> +		mutex_lock(&watchdog_data_mutex);
+> +		list_add(&data->list, &watchdog_data_list);
+> +		mutex_unlock(&watchdog_data_mutex);
+> +		printk(KERN_INFO FSCHMD_NAME
+> +			": Registered watchdog chardev major 10, minor: %d\n",
+> +			watchdog_minors[i]);
+
+As much as possible you should use dev_info(), dev_warn() etc. instead
+of printk(). You could also print the value of parameter nowayout, it
+seems that most other drivers print it.
+
+> +		break;
+> +	}
+> +	if (i = ARRAY_SIZE(watchdog_minors)) {
+> +		data->watchdog_miscdev.minor = 0;
+> +		printk(KERN_WARNING FSCHMD_NAME
+> +			": Couldn't register watchdog chardev "
+> +			"(due to no free minor)\n");
+> +	}
+> +
+>  	printk(KERN_INFO FSCHMD_NAME ": Detected FSC %s chip, revision: %d\n",
+> -		names[data->kind], (int) revision);
+> +		names[data->kind], (int) data->revision);
+>  
+>  	return 0;
+>  
+> @@ -751,6 +1125,20 @@
+>  	struct fschmd_data *data = i2c_get_clientdata(client);
+>  	int i;
+>  
+> +	/* Unregister the watchdog (if registered) */
+> +	if (data->watchdog_miscdev.minor) {
+> +		mutex_lock(&watchdog_data_mutex);
+> +		if (data->watchdog_open_count) {
+> +			printk(KERN_WARNING FSCHMD_NAME
+> +				": i2c client detached with watchdog open! "
+> +				"Stopping watchdog.\n");
+> +			watchdog_stop(data);
+> +		}
+> +		misc_deregister(&data->watchdog_miscdev);
+> +		list_del(&data->list);
+> +		mutex_unlock(&watchdog_data_mutex);
+> +	}
+> +
+>  	/* Check if registered in case we're called from fschmd_detect
+>  	   to cleanup after an error */
+>  	if (data->hwmon_dev)
+> @@ -827,17 +1215,6 @@
+>  			data->volt[i] = i2c_smbus_read_byte_data(client,
+>  						FSCHMD_REG_VOLT[i]);
+>  
+> -		data->global_control = i2c_smbus_read_byte_data(client,
+> -						FSCHMD_REG_CONTROL);
+> -
+> -		/* To be implemented in the future
+> -		data->watchdog[0] = i2c_smbus_read_byte_data(client,
+> -						FSCHMD_REG_WDOG_PRESET);
+> -		data->watchdog[1] = i2c_smbus_read_byte_data(client,
+> -						FSCHMD_REG_WDOG_STATE);
+> -		data->watchdog[2] = i2c_smbus_read_byte_data(client,
+> -						FSCHMD_REG_WDOG_CONTROL); */
+> -
+>  		data->last_updated = jiffies;
+>  		data->valid = 1;
+>  	}
+> @@ -861,6 +1238,7 @@
+>  MODULE_DESCRIPTION("FSC Poseidon, Hermes, Scylla, Heracles and "
+>  			"Heimdall driver");
+>  MODULE_LICENSE("GPL");
+> +MODULE_ALIAS_MISCDEV(WATCHDOG_GET_MINOR);
+
+This looks bogus to me... WATCHDOG_GET_MINOR is a macro that takes one
+parameter. I guess you really mean:
+
+MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
+
+As a side note, I see that all other watchdog drivers do this, but
+honestly I don't much get the point. With so many drivers declaring to
+be an alias for char-major-10-130, what happens when the alias is
+requested? Over 50 drivers are loaded at once?
+
+>  
+>  module_init(fschmd_init);
+>  module_exit(fschmd_exit);
+
+The rest looks OK to me, but remember I am no watchdog specialist. You
+might want to show the next iteration of your patch to Wim Van
+Sebroeck, the maintainer of the watchdog subsystem.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
