@@ -1,42 +1,31 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Thu, 14 Aug 2008 01:36:35 +0000
-Subject: [lm-sensors] [PATCH v2] coretemp: Recognize Nehalem CPUs
-Message-Id: <20080814013635.GF28450@tree.beaverton.ibm.com>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Date: Tue, 19 Aug 2008 15:01:29 +0000
+Subject: [lm-sensors] [PATCH 0/2] lm87 changes to support sfc driver (3rd
+Message-Id: <cover.1219157913.git.bhutchings@solarflare.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080813225147.GE28450@tree.beaverton.ibm.com> <20080814011100.GB14828@wliu-linux.bj.intel.com>
-In-Reply-To: <20080814011100.GB14828@wliu-linux.bj.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Kent Liu <kent.liu@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Add in the CPUID for Nehalem chips.
+First, a necessary bug fix in lm87_init_client().
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
----
+Second, support for platform_data.  This time it's a minimal change, with
+platform_data just pointing to the value to write in the channel register.
 
- drivers/hwmon/coretemp.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+Ben.
 
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index 70239ac..93c1722 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -413,10 +413,11 @@ static int __init coretemp_init(void)
- 	for_each_online_cpu(i) {
- 		struct cpuinfo_x86 *c = &cpu_data(i);
- 
--		/* check if family 6, models 0xe, 0xf, 0x16, 0x17 */
-+		/* check if family 6, models 0xe, 0xf, 0x16, 0x17, 0x1A */
- 		if ((c->cpuid_level < 0) || (c->x86 != 0x6) ||
- 		    !((c->x86_model = 0xe) || (c->x86_model = 0xf) ||
--			(c->x86_model = 0x16) || (c->x86_model = 0x17))) {
-+			(c->x86_model = 0x16) || (c->x86_model = 0x17) ||
-+			(c->x86_model = 0x1A))) {
- 
- 			/* supported CPU not found, but report the unknown
- 			   family 6 CPU */
+Ben Hutchings (2):
+  lm87: Fix masking of config register in lm87_init_client()
+  lm87: Add support for configuration through platform_data
+
+ drivers/hwmon/lm87.c |   35 +++++++++++++++++++++++++----------
+ 1 files changed, 25 insertions(+), 10 deletions(-)
+
+-- 
+Ben Hutchings, Senior Software Engineer, Solarflare Communications
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
 
 _______________________________________________
 lm-sensors mailing list
