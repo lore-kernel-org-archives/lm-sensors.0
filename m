@@ -1,40 +1,50 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Wed, 06 Aug 2008 08:30:52 +0000
-Subject: Re: [lm-sensors] [PATCH 3/4] hwmon: (w83791d) add pwm_enable support
-Message-Id: <4899613C.70405@hhs.nl>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Date: Wed, 20 Aug 2008 20:15:04 +0000
+Subject: [lm-sensors] [PATCH 1/3] lm87: Fix masking of config register in
+Message-Id: <171f5b16f9df789450dd058265aabd548337c9ea.1219263169.git.bhutchings@solarflare.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200808060029.41402.m.hulsman@tudelft.nl>
-In-Reply-To: <200808060029.41402.m.hulsman@tudelft.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Marc Hulsman wrote:
->> And here you store the register val + 1 again, making show_pwmenable
->> actually show the less value, unless pwm#_enable is read very quickly after
->> a write, in which case w83791d_update won't do anything and the shown
->> pwm_enable value will be one to small.
->>
->> I think it would be best to consistently store the val as seen by userspace
->> - 1 (iow the actual reg val) in pwm_enable (as you do in store_pwmenable)
->> and then add the + 1 when showing it.
-> 
-> Thanks for spotting that one, I should have seen it. Hereby a new version of 
-> the patch:
-> 
-> ---
-> Add support for pwm_enable.
-> 
-> Signed-off-by: Marc Hulsman <m.hulsman@tudelft.nl> 
-> 
+lm87_init_client() conditionally sets the Start bit and clears the
+INT#_Clear bit in the Config 1 register.  The condition should be that
+either of these bits needs changing, but currently it checks the
+(self-clearing) Initialization bit instead of INT#_Clear.
 
-Looks good now:
-Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+Fix the condition and also ensure we never set the Initialization bit.
 
-Regards,
+Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
+---
+ drivers/hwmon/lm87.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-Hans
+diff --git a/drivers/hwmon/lm87.c b/drivers/hwmon/lm87.c
+index 21970f0..0fecbfd 100644
+--- a/drivers/hwmon/lm87.c
++++ b/drivers/hwmon/lm87.c
+@@ -867,11 +867,11 @@ static void lm87_init_client(struct i2c_client *client)
+ 			lm87_write_value(client, LM87_REG_IN_MAX(0), 0xFF);
+ 		}
+ 	}
+-	if ((config & 0x81) != 0x01) {
+-		/* Start monitoring */
++
++	/* Make sure Start is set and INT#_Clear is clear */
++	if ((config & 0x09) != 0x01)
+ 		lm87_write_value(client, LM87_REG_CONFIG,
+-				 (config & 0xF7) | 0x01);
+-	}
++				 (config & 0x77) | 0x01);
+ }
+ 
+ static int lm87_remove(struct i2c_client *client)
+
+-- 
+Ben Hutchings, Senior Software Engineer, Solarflare Communications
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
 
 _______________________________________________
 lm-sensors mailing list
