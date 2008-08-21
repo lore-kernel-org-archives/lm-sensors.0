@@ -1,36 +1,35 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 20 Aug 2008 19:45:09 +0000
+Date: Thu, 21 Aug 2008 15:55:42 +0000
 Subject: Re: [lm-sensors] acpitz-virtual
-Message-Id: <20080820214509.67061382@hyperion.delvare>
+Message-Id: <20080821175542.7c68c46e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200808201620.23166.michel@milk-it.net>
 In-Reply-To: <200808201620.23166.michel@milk-it.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 20 Aug 2008 16:20:23 -0300, Michel Filipe wrote:
-> Hi! I want know about my acpitz-virtual sensors. See what it shows:
->=20
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:       +55.0=B0C  (crit =3D +85.0=B0C)
-> temp2:       +26.8=B0C  (crit =3D +105.0=B0C)
->=20
-> I don't know what are the devices. In my dsdt.dsl file I don't search the=
- _TZD=20
-> method. My dsdt.dsl file is at http://files.milk-it.net/michel/dsdt.dsl. =
+Hi Felipe,
 
+Please keep the mailing list Cc'd.
 
-The acpi to hwmon bridge driver exposes the exact same temperatures
-that you can already see under /proc/acpi/thermal_zone.
+On Wed, 20 Aug 2008 17:18:55 -0300, Michel Filipe wrote:
+> Jean Delvare wrote:
+> > We could probably update the code so that the labels default to the
+> > ACPI thermal zone names. Sometimes these names are useful... but
+> > sometimes not.
 
-We could probably update the code so that the labels default to the
-ACPI thermal zone names. Sometimes these names are useful... but
-sometimes not.
+After discussion with the ACPI people, it's not worth the effort, as
+ACPI thermal zone names are usually meaningless.
 
---=20
+> Hum... How do I do to get the ACPI thermal zone names?
+
+Look in /sys/class/thermal/thermal_zone*/device/path. The last item of
+the path is the device name. But as said above, these are 4-digit names
+for ACPI internal use, usually not meaningful enough for humans.
+
+-- 
 Jean Delvare
 
 _______________________________________________
