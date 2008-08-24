@@ -1,98 +1,45 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 22 Aug 2008 15:20:34 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3] lm87: Add support for configuration
-Message-Id: <20080822172034.4c2a2b81@hyperion.delvare>
+From: =?iso-8859-1?Q?Hector_Lahoz_Gra=F1ena?= <hectorlahoz@yahoo.es>
+Date: Sun, 24 Aug 2008 00:02:41 +0000
+Subject: [lm-sensors] it8705: nonsense temperature readings
+Message-Id: <942859.11386.qm@web26403.mail.ukl.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080820202113.GO7908@solarflare.com>
-In-Reply-To: <20080820202113.GO7908@solarflare.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Ben,
+Hello
+I've been interested for some time in power management and ACPI.
+Well, I've come to the conclusion that the first step to achieve power mana=
+gement
+and (most important) a silent computer is good temperature readings. So I h=
+ad a look
+and I found that the reading was completely meaningless. The CPU temperatur=
+e showed
+20 degrees Celsius 1 min. after power-on, when the room temperature was 25.
+I got the datasheet of the it8705 (not a real specification, but is all I h=
+ave) and
+found 3 registers called "thermal diode zero degree adjustment". I also fou=
+nd that
+the driver (version 2.6.24.2) does not use them. I've been playing around w=
+ith theese
+registers but I don't know which is the correct value to store there. I sup=
+pose it
+depends on the diode used. The motherboard is a Biostar P4VTB.
+I wonder iwhether the chip could be connected to tne internal diode of the
+Pentium 4 or is it an external one on the motherboard. Really, the manufact=
+urers
+don't give much information. I wouldn't need it if they did things the righ=
+t way.
 
-On Wed, 20 Aug 2008 21:21:14 +0100, Ben Hutchings wrote:
-> The lm87 driver normally assumes that firmware configured the chip
-> correctly.  Since this is not always the case, alllow platform code to
-> set the channel register value via platform_data.  All other
-> configuration registers can be changed after driver initialisation.
-> 
-> Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
-> ---
->  Documentation/hwmon/lm87 |    9 ++++-----
->  drivers/hwmon/lm87.c     |   20 +++++++++++++-------
->  2 files changed, 17 insertions(+), 12 deletions(-)
-> 
-> diff --git a/Documentation/hwmon/lm87 b/Documentation/hwmon/lm87
-> index ec27aa1..6b47b67 100644
-> --- a/Documentation/hwmon/lm87
-> +++ b/Documentation/hwmon/lm87
-> @@ -65,11 +65,10 @@ The LM87 has four pins which can serve one of two possible functions,
->  depending on the hardware configuration.
->  
->  Some functions share pins, so not all functions are available at the same
-> -time. Which are depends on the hardware setup. This driver assumes that
-> -the BIOS configured the chip correctly. In that respect, it differs from
-> -the original driver (from lm_sensors for Linux 2.4), which would force the
-> -LM87 to an arbitrary, compile-time chosen mode, regardless of the actual
-> -chipset wiring.
-> +time. Which are depends on the hardware setup. This driver normally
-> +assumes that firmware configured the chip correctly. Where this is not
-> +the case, platform code must set the I2C client's platform_data to point
-> +to a u8 value to be written to the channel register.
->  
->  For reference, here is the list of exclusive functions:
->   - in0+in5 (default) or temp3
-> diff --git a/drivers/hwmon/lm87.c b/drivers/hwmon/lm87.c
-> index 695f5f2..197a842 100644
-> --- a/drivers/hwmon/lm87.c
-> +++ b/drivers/hwmon/lm87.c
-> @@ -21,11 +21,10 @@
->   *   http://www.national.com/pf/LM/LM87.html
->   *
->   * Some functions share pins, so not all functions are available at the same
-> - * time. Which are depends on the hardware setup. This driver assumes that
-> - * the BIOS configured the chip correctly. In that respect, it  differs from
-> - * the original driver (from lm_sensors for Linux 2.4), which would force the
-> - * LM87 to an arbitrary, compile-time chosen mode, regardless of the actual
-> - * chipset wiring.
-> + * time. Which are depends on the hardware setup. This driver normally
-> + * assumes that firmware configured the chip correctly. Where this is not
-> + * the case, platform code must set the I2C client's platform_data to point
-> + * to a u8 value to be written to the channel register.
->   * For reference, here is the list of exclusive functions:
->   *  - in0+in5 (default) or temp3
->   *  - fan1 (default) or in6
-> @@ -843,8 +842,15 @@ static void lm87_init_client(struct i2c_client *client)
->  {
->  	struct lm87_data *data = i2c_get_clientdata(client);
->  
-> -	data->channel = lm87_read_value(client, LM87_REG_CHANNEL_MODE);
-> -	data->config = lm87_read_value(client, LM87_REG_CONFIG);
-> +	if (client->dev.platform_data) {
-> +		data->channel = *(u8 *)client->dev.platform_data;
-> +		lm87_write_value(client,
-> +				 LM87_REG_CHANNEL_MODE, data->channel);
-> +		data->config = 0x08; /* reset value */
+i don't mean to achieve a lab accurate reading, but currently it is useless.
+If you could help me in some extent I would really appreciate it.
 
-I don't get the point of hard-coding this value. Why don't you read it
-from the chip as you do in the no-platform-data case? This would be
-more flexible and safer.
 
-> +	} else {
-> +		data->channel = lm87_read_value(client, LM87_REG_CHANNEL_MODE);
-> +		data->config = lm87_read_value(client, LM87_REG_CONFIG);
-> +	}
->  
->  	if (!(data->config & 0x01)) {
->  		int i;
-> 
-
-Other than that, this patch looks OK to me.
-
--- 
-Jean Delvare
+__________________________________________________
+Correo Yahoo!
+Espacio para todos tus mensajes, antivirus y antispam =A1gratis!=20
+Reg=EDstrate ya - http://correo.yahoo.es=20
 
 _______________________________________________
 lm-sensors mailing list
