@@ -1,56 +1,59 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 14 Aug 2008 16:52:10 +0000
-Subject: [lm-sensors] [PATCH] hwmon-vid: Fix AMD K8 VID decoding
-Message-Id: <20080814185210.24002986@hyperion.delvare>
+From: Thomas Renninger <trenn@suse.de>
+Date: Mon, 25 Aug 2008 10:48:30 +0000
+Subject: Re: [lm-sensors] [PATCH 2/2] Give ACPI hwmon thermal devices a name
+Message-Id: <200808251248.31786.trenn@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20080821174852.0689681d@hyperion.delvare> <200808250020.41626.trenn@suse.de> <1219630502.24775.35.camel@rzhang-dt>
+In-Reply-To: <1219630502.24775.35.camel@rzhang-dt>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: khali@linux-fr.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, robert.moore@intel.com, lm-sensors@lm-sensors.org
 
-Not all AMD K8 / family 0Fh have 6 VID pins. Older models have only 5
-VID pins, so we need two entries in the hwmon-vid table.
+On Monday 25 August 2008 04:15:02 Zhang Rui wrote:
+> On Mon, 2008-08-25 at 06:20 +0800, Thomas Renninger wrote:
+> > On Monday 25 August 2008 12:11:37 am Thomas Renninger wrote:
+> > > On a HP tx2500z laptop one thermal device provides this function:
+> > >             Name (REGN, "Processor Thermal Zone")
+> >
+> > I wonder what we can do to get this added to the ACPI spec or to make
+> > vendors use the same function for this.
+> >
+> > What about trying for above "REGN" as it already exists on HPs.
+> > Also try for _NAM (or similar), document that we do this and tell
+> > vendors that it's a good thing to provide a sane string/name for
+> > thermal_zones on Linux.
+> >
+> > On ACPI everything that does not start with "_" means unspecified
+> > and the function should only be used internally and not by the OS...
+>
+> Sounds good. But I guess it's not easy to push this the vendors, is it?
+At least this is a really easy thing for them to add.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Frank Myhr <fmyhr@fhmtech.com>
-Cc: Jean-Luc Coulon <jean.luc.coulon@gmail.com>
----
-Frank, this is my suggested fix for kernel bug #11329:
-http://bugzilla.kernel.org/show_bug.cgi?id329
+I wonder how localization should work here. One does not want to add
+the description of the thermal zone in all possibly supported languages
+into BIOS ROM.
 
-Can you please review and test it? Thanks.
+Pre-defining 10 different areas:
+  0 Processor
+  1 Memory
+  2 Disk
+  3 Graphics card
+  4 ...
+ 10 Others
 
- drivers/hwmon/hwmon-vid.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+and then returning an integer value sounds more sane.
+If Len or Bob say it makes sense to come up with or add something which
+we can tell the vendors to use and which may find its way to a later Spec
+version...
 
---- linux-2.6.27-rc3.orig/drivers/hwmon/hwmon-vid.c	2008-08-13 09:50:50.000000000 +0200
-+++ linux-2.6.27-rc3/drivers/hwmon/hwmon-vid.c	2008-08-14 18:39:50.000000000 +0200
-@@ -95,7 +95,10 @@ int vid_from_reg(int val, u8 vrm)
- 			return 0;
- 		return((1600000 - (val - 2) * 6250 + 500) / 1000);
- 
--	case 24:		/* AMD NPT 0Fh (Athlon64 & Opteron) */
-+	case 24:		/* Athlon64 & Opteron */
-+		val &= 0x1f;
-+				/* fall through */
-+	case 25:		/* AMD NPT 0Fh */
- 		val &= 0x3f;
- 		return (val < 32) ? 1550 - 25 * val
- 			: 775 - (25 * (val - 31)) / 2;
-@@ -161,7 +164,8 @@ struct vrm_model {
- 
- static struct vrm_model vrm_models[] = {
- 	{X86_VENDOR_AMD, 0x6, ANY, ANY, 90},		/* Athlon Duron etc */
--	{X86_VENDOR_AMD, 0xF, ANY, ANY, 24},		/* Athlon 64, Opteron and above VRM 24 */
-+	{X86_VENDOR_AMD, 0xF, 0x2F, ANY, 24},		/* Athlon 64, Opteron */
-+	{X86_VENDOR_AMD, 0xF, ANY, ANY, 25},		/* NPT family 0Fh */
- 	{X86_VENDOR_INTEL, 0x6, 0x9, ANY, 13},		/* Pentium M (130 nm) */
- 	{X86_VENDOR_INTEL, 0x6, 0xB, ANY, 85},		/* Tualatin */
- 	{X86_VENDOR_INTEL, 0x6, 0xD, ANY, 13},		/* Pentium M (90 nm) */
+After first being excited that HP provided a sane description of a thermal
+zone, I think it's not worth adding this right now (or is it?).
 
+      Thomas
 
--- 
-Jean Delvare
+PS: Forgot to add lm-sensors list, adding them now.
 
 _______________________________________________
 lm-sensors mailing list
