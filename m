@@ -1,8 +1,10 @@
 From: Ben Hutchings <bhutchings@solarflare.com>
-Date: Tue, 26 Aug 2008 13:10:31 +0000
+Date: Tue, 26 Aug 2008 13:13:40 +0000
 Subject: [lm-sensors] [PATCH] lm87: Add support for configuration through
-Message-Id: <20080826131030.GZ7908@solarflare.com>
+Message-Id: <20080826131339.GA7908@solarflare.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20080826131030.GZ7908@solarflare.com>
+In-Reply-To: <20080826131030.GZ7908@solarflare.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -12,12 +14,15 @@ The lm87 driver normally assumes that firmware configured the chip
 correctly.  Since this is not always the case, alllow platform code to
 set the channel register value via platform_data.  All other
 configuration registers can be changed after driver initialisation.
+
+Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
 ---
  Documentation/hwmon/lm87 |    9 ++++-----
  drivers/hwmon/lm87.c     |   17 +++++++++++------
  2 files changed, 15 insertions(+), 11 deletions(-)
 
 This removes the line to override config in case platform_data is set.
+(This time with a Signed-off-by!)
 
 Ben.
 
