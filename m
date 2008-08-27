@@ -1,72 +1,67 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 27 Aug 2008 09:21:21 +0000
-Subject: Re: [lm-sensors] Modify proposal to manage LM75A chips
-Message-Id: <20080827112121.2cd301c9@hyperion.delvare>
+From: Harvey Harrison <harvey.harrison@gmail.com>
+Date: Wed, 27 Aug 2008 15:59:21 +0000
+Subject: [lm-sensors] [PATCH] hwmon: ibmpex.c remove inline wrapper of
+Message-Id: <1219852761.6069.43.camel@brick>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Davide,
+Sparse noticed the helper was missing a cast:
+drivers/hwmon/ibmpex.c:43:23: warning: incorrect type in argument 1 (different base types)
+drivers/hwmon/ibmpex.c:43:23:    expected restricted __be16 const [usertype] *p
+drivers/hwmon/ibmpex.c:43:23:    got unsigned short [usertype] *<noident>
 
-On Wed, 27 Aug 2008 09:46:56 +0200, Davide Rizzo wrote:
-> I suggest this modify to make LM75 driver support also LM75A chips, that
-> otherwise fail a bug-based identification test.
+Just open-code the helper as it didn't add anything.
 
-Moving to the lm-sensors list, where this discussion belongs. Also,
-please avoid application/octet-stream attachments.
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+---
+ drivers/hwmon/ibmpex.c |   13 ++++---------
+ 1 files changed, 4 insertions(+), 9 deletions(-)
 
-> This check is not working on LM75A.
-> If you remove it, the driver will work also with LM75A chips.
-
-If you remove it, the driver will also attach to basically any I2C chip
-in address range 0x48-0x4f. This is of course not acceptable, which is
-why the change you propose, and which was already proposed many times
-in the past [1] [2], has always been rejected.
-
-[1] http://lists.lm-sensors.org/pipermail/lm-sensors/2008-April/022879.html
-[2] http://lists.lm-sensors.org/pipermail/lm-sensors/2008-June/023445.html
-
-The fact is that the LM75A can't be detected.
-
-> 
-> Signed-off-by: Davide Rizzo <davide@elpa.it>
-> ========================================
-> diff -urNp linux-2.6.26/drivers/hwmon/lm75.c linux-2.6.26.elpa/drivers/hwmon/lm75.c
-> --- linux-2.6.26/drivers/hwmon/lm75.c	2008-07-13 23:51:29.000000000 +0200
-> +++ linux-2.6.26.elpa/drivers/hwmon/lm75.c	2008-08-25 16:58:04.000000000 +0200
-> @@ -170,17 +170,19 @@ static int lm75_detect(struct i2c_adapte
->  		cur = i2c_smbus_read_word_data(new_client, 0);
->  		conf = i2c_smbus_read_byte_data(new_client, 1);
->  		hyst = i2c_smbus_read_word_data(new_client, 2);
-> +/*	This was eliminated because LM75A is not recognized
->  		if (i2c_smbus_read_word_data(new_client, 4) != hyst
->  		 || i2c_smbus_read_word_data(new_client, 5) != hyst
->  		 || i2c_smbus_read_word_data(new_client, 6) != hyst
->  		 || i2c_smbus_read_word_data(new_client, 7) != hyst)
-> -		 	goto exit_free;
-> +			goto exit_free;*/
->  		os = i2c_smbus_read_word_data(new_client, 3);
-> +/*	This was eliminated because LM75A is not recognized
->  		if (i2c_smbus_read_word_data(new_client, 4) != os
->  		 || i2c_smbus_read_word_data(new_client, 5) != os
->  		 || i2c_smbus_read_word_data(new_client, 6) != os
->  		 || i2c_smbus_read_word_data(new_client, 7) != os)
-> -		 	goto exit_free;
-> +			goto exit_free;*/
->  
->  		/* Unused bits */
->  		if (conf & 0xe0)
-
-Which system do you have this LM75A on? If this is an embedded system
-with platform code, simply declare the device with
-i2c_register_board_info(). The lm75 driver supports the "lm75a" type
-since kernel 2.6.27-rc2. Otherwise, simply pass a "force" parameter to
-the lm75 driver when you load it, to bypass the detection.
-
+diff --git a/drivers/hwmon/ibmpex.c b/drivers/hwmon/ibmpex.c
+index 4e9b19c..abc8fb0 100644
+--- a/drivers/hwmon/ibmpex.c
++++ b/drivers/hwmon/ibmpex.c
+@@ -38,11 +38,6 @@
+ #define PEX_NET_FUNCTION	0x3A
+ #define PEX_COMMAND		0x3C
+ 
+-static inline u16 extract_value(const char *data, int offset)
+-{
+-	return be16_to_cpup((u16 *)&data[offset]);
+-}
+-
+ #define TEMP_SENSOR		1
+ #define POWER_SENSOR		2
+ 
+@@ -165,7 +160,7 @@ static int ibmpex_ver_check(struct ibmpex_bmc_data *data)
+ 		 "v%d.%d %d-%02d-%02d on interface %d\n",
+ 		 data->sensor_major,
+ 		 data->sensor_minor,
+-		 extract_value(data->rx_msg_data, 2),
++		 be16_to_cpup((__be16 *)&data->rx_msg_data[2]),
+ 		 data->rx_msg_data[4],
+ 		 data->rx_msg_data[5],
+ 		 data->interface);
+@@ -247,11 +242,11 @@ static void ibmpex_update_device(struct ibmpex_bmc_data *data)
+ 		if (err)
+ 			continue;
+ 		data->sensors[i].values[0] -			extract_value(data->rx_msg_data, 16);
++			be16_to_cpup((__be16 *)&data->rx_msg_data[16]);
+ 		data->sensors[i].values[1] -			extract_value(data->rx_msg_data, 18);
++			be16_to_cpup((__be16 *)&data->rx_msg_data[18]);
+ 		data->sensors[i].values[2] -			extract_value(data->rx_msg_data, 20);
++			be16_to_cpup((__be16 *)&data->rx_msg_data[20]);
+ 	}
+ 
+ 	data->last_updated = jiffies;
 -- 
-Jean Delvare
+1.6.0.340.g84854
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
