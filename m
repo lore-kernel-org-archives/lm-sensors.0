@@ -1,45 +1,38 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Fri, 22 Aug 2008 18:19:09 +0000
-Subject: Re: [lm-sensors] PATCH: hwmon-new-driver-ti-tmp401.patch
-Message-Id: <48AF031D.6010205@hhs.nl>
+From: Kyle <kl@attitia.com>
+Date: Thu, 28 Aug 2008 02:16:13 +0000
+Subject: [lm-sensors] Why would lm_sensors destroy my KDE environment?
+Message-Id: <48B60A6D.3010503@attitia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4853E081.1020109@hhs.nl>
-In-Reply-To: <4853E081.1020109@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
-> On Sat, 14 Jun 2008 17:15:13 +0200, Hans de Goede wrote:
->> Hi All,
->>
->> This is a new hwmon driver for TI's TMP401 temperature sensor IC. This driver
->> was written on behalf of an embedded systems vendor under the
->> linuxdriverproject.
->>
->> It has been tested using a TI TMP401 sample attached to a i2c-tiny-usb adapter.
->> Which was provided by Till Harbaum, many thanks to him for this!
->>
->> Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-> 
-> One more thing that was brought to my attention by a friend of mine who
-> tested your code:
-> 
+Hello again,
 
-Cool, someone is actually using it :) (I wrote it for a linuxdriverproject.org 
-request, but it the company who wanted it never followed through).
+after some assistance from Jean on this list, I determined I apparently 
+don't need lm_sensors. So I decided to remove it from the system. Using 
+the Package Manager, I uninstalled lm_sensors; but it also apparently 
+removed half of my KDE environment (yum confirms the same from the CLI) 
+removing things like 'kdeaddons' and 'kdeartwork' amongst others.
 
-ANd many thanks for this review and for the fschmd watchdog patch review!!
+I don't know what its dependancy is exactly, but it appears to have some 
+hook somewhere into KDE. And that dependancy then removes the rest of 
+the KDE "stuff" (Tech. Term)
 
-Unfortunately currently I'm rather swamped. But I will do new version in the 
-next couple of weeks.
+Consequently, I've lost half a day trying to figure out why I could no 
+longer 'startx' successfully. This is confirmed by now groupinstall -ing 
+KDE  and lm_sensors comes along with it.
 
-Regards,
+WHY would a program designed to monitor low level MB, CPU and fan 
+sensors have any dependency on a graphical desktop environment?
 
-Hans
+-- 
+------------------------------------------------------------------------
+Kind Regards
+
+Kyle
+
 
 _______________________________________________
 lm-sensors mailing list
