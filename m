@@ -1,53 +1,70 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 15 Sep 2008 21:50:51 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: TI TMP121 SPI temperature sensor
-Message-Id: <200809152350.51919.khali@linux-fr.org>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Fri, 05 Sep 2008 20:29:49 +0000
+Subject: Re: [lm-sensors] Fwd: Re: c7temp module for lm-sensors
+Message-Id: <191fb4ca0809051329n7c27c310o624a8d467c3e5fd7@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080915200636.GA11608@roarinelk.homelinux.net>
-In-Reply-To: <20080915200636.GA11608@roarinelk.homelinux.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Manuel,
+Justin,
 
-Le lundi 15 septembre 2008, Manuel Lauss a =E9crit=A0:
-> Driver for the Texas Instruments TMP121/TMP123 SPI temperature sensors.
-> The code is 99% identical to the LM70 driver;  only the formula to
-> calculate the temperature (in 1/1000 deg celsius) has been adjusted.
->=20
-> Signed-off-by: Manuel Lauss <mano@roarinelk.homelinux.net>
-> ---
->  drivers/hwmon/Kconfig  |   10 +++
->  drivers/hwmon/Makefile |    1 +
->  drivers/hwmon/tmp121.c |  168 ++++++++++++++++++++++++++++++++++++++++++=
-++++++
->  3 files changed, 179 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/hwmon/tmp121.c
+Can you compile and run cpuid from http://www.etallen.com/cpuid.html?
+Please run it with and without the '-r' option and send the output to the list.
 
-Wouldn't it make more sense to just add support for the TMP121/TMP123
-chips to the lm70 driver? Duplicating code is better avoided when
-possible. Thankfully these drivers are relatively small, but still...
+Thanks
+...juerg
 
-> --- /dev/null
-> +++ b/drivers/hwmon/tmp121.c
-> (...)
-> +	/*
-> +	 * The "raw" temperature read into rxbuf[] is a 16-bit signed 2's
-> +	 * complement value. Only the MSB 13 bits (1 sign + 12 temperature
-> +	 * bits) are meaningful; the LSB 3 bits are to be discarded.
-> +	 * Each bit represents 0.0625 degrees Celsius.
-> +	 */
-> +	val =3D (raw * 625) / 80;
 
-This does not actually discard the 3 LSB. In order to do that, you
-would need to write the following:
-
-	val =3D (raw / 8) * 625 / 10;
-
---=20
-Jean Delvare
+On Sat, Aug 30, 2008 at 5:03 PM, Justin Chudgar <justin@justinzane.com> wrote:
+>
+> --
+>
+> ________________________________
+>
+> Justin Chudgar
+>
+> IT Consultant
+>
+> 5040 Saddlehorn Rd, Weed, CA 96094
+>
+> ________________________________
+>
+> ---------- Forwarded message ----------
+> From: Hans de Goede <j.w.r.degoede@hhs.nl>
+> To: Justin Chudgar <justin@justinzane.com>
+> Date: Sat, 30 Aug 2008 08:11:47 +0200
+> Subject: Re: c7temp module for lm-sensors
+> Justin Chudgar wrote:
+>>
+>> Dear Hans:
+>>
+>> I am using this module on an HP Mini-note 2133 running Kubuntu 8.04.1 w/
+>> 2.6.24.19. I get a voltage reading but no temperature. I would like to help
+>> determine what is not working; but, I am unable to do so without assistance.
+>>
+>> Could you kindly direct me to the right resources. Thanks.
+>>
+>> Justin Chudgar
+>>
+>>
+>
+> Dear Justin,
+>
+> I'm not the maintainer of the c7temp driver, please send a mail to the
+> lm_sensors list.
+>
+> Regards,
+>
+> Hans
+>
+>
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>
 
 _______________________________________________
 lm-sensors mailing list
