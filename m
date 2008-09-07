@@ -1,92 +1,175 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sat, 27 Sep 2008 11:03:47 +0000
-Subject: Re: [lm-sensors] hwmon: (it87) Fix thermal sensor type values
-Message-Id: <48DE1313.7070209@hhs.nl>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Sun, 07 Sep 2008 05:10:33 +0000
+Subject: Re: [lm-sensors] Fwd: Re: Fwd: Re: c7temp module for lm-sensors
+Message-Id: <191fb4ca0809062210i10fa6f47nb8fa43f2a6cda2e0@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080927125506.307163c7@hyperion.delvare>
-In-Reply-To: <20080927125506.307163c7@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> The it87 driver doesn't follow the standard sensor type values as
-> documented in Documentation/hwmon/sysfs-interface. It uses value 2 for
-> thermistors instead of value 4. This causes "sensors" to tell the user
-> that the chip is setup for a transistor while it is actually setup for
-> a thermistor.
-> 
-> Using value 4 for thermistors solves the problem. For compatibility
-> reasons, we still accept value 2 but emit a warning message so that
-> users update their configuration files.
-> 
+Justin,
 
-Looks good,
+Please use the cpuid from the link that I provided. Your output must
+be from an old version and doesn't show all the interesting
+information.
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
-
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
-> For users of lm-sensors <= 2.10.7, this change will cause the
-> thermistors to be reported as "invalid". I've just fixed that in SVN.
-> For this reason, I do not want to push the it87 driver fix into the
-> kernel immediately. Let's wait for lm-sensors 2.10.8 to be released
-> first. In practice, this means that the it87 driver will be fixed in
-> kernel 2.6.28.
-> 
->  Documentation/hwmon/it87 |    4 ++--
->  drivers/hwmon/it87.c     |   11 ++++++++---
->  2 files changed, 10 insertions(+), 5 deletions(-)
-> 
-> --- linux-2.6.27-rc7.orig/Documentation/hwmon/it87	2008-08-13 09:50:46.000000000 +0200
-> +++ linux-2.6.27-rc7/Documentation/hwmon/it87	2008-09-26 17:43:34.000000000 +0200
-> @@ -136,10 +136,10 @@ once-only alarms.
->  The IT87xx only updates its values each 1.5 seconds; reading it more often
->  will do no harm, but will return 'old' values.
->  
-> -To change sensor N to a thermistor, 'echo 2 > tempN_type' where N is 1, 2,
-> +To change sensor N to a thermistor, 'echo 4 > tempN_type' where N is 1, 2,
->  or 3. To change sensor N to a thermal diode, 'echo 3 > tempN_type'.
->  Give 0 for unused sensor. Any other value is invalid. To configure this at
-> -startup, consult lm_sensors's /etc/sensors.conf. (2 = thermistor;
-> +startup, consult lm_sensors's /etc/sensors.conf. (4 = thermistor;
->  3 = thermal diode)
->  
->  
-> --- linux-2.6.27-rc7.orig/drivers/hwmon/it87.c	2008-09-26 09:50:16.000000000 +0200
-> +++ linux-2.6.27-rc7/drivers/hwmon/it87.c	2008-09-27 10:01:44.000000000 +0200
-> @@ -477,7 +477,7 @@ static ssize_t show_sensor(struct device
->  	if (reg & (1 << nr))
->  		return sprintf(buf, "3\n");  /* thermal diode */
->  	if (reg & (8 << nr))
-> -		return sprintf(buf, "2\n");  /* thermistor */
-> +		return sprintf(buf, "4\n");  /* thermistor */
->  	return sprintf(buf, "0\n");      /* disabled */
->  }
->  static ssize_t set_sensor(struct device *dev, struct device_attribute *attr,
-> @@ -493,10 +493,15 @@ static ssize_t set_sensor(struct device
->  
->  	data->sensor &= ~(1 << nr);
->  	data->sensor &= ~(8 << nr);
-> -	/* 3 = thermal diode; 2 = thermistor; 0 = disabled */
-> +	if (val = 2) {	/* backwards compatibility */
-> +		dev_warn(dev, "Sensor type 2 is deprecated, please use 4 "
-> +			 "instead\n");
-> +		val = 4;
-> +	}
-> +	/* 3 = thermal diode; 4 = thermistor; 0 = disabled */
->  	if (val = 3)
->  	    data->sensor |= 1 << nr;
-> -	else if (val = 2)
-> +	else if (val = 4)
->  	    data->sensor |= 8 << nr;
->  	else if (val != 0) {
->  		mutex_unlock(&data->update_lock);
-> 
-> 
+...juerg
 
 
+On Sat, Sep 6, 2008 at 9:14 PM, Justin Chudgar <justin@justinzane.com> wrot=
+e:
+> Here is the output from "cpuid -r":
+>
+> eax in eax ebx ecx edx
+>
+> 00000000 00000001 746e6543 736c7561 48727561
+>
+> 00000001 000006d0 00000800 00004181 a7c9bbff
+>
+> 80000000 80000006 00000000 00000000 00000000
+>
+> 80000001 00000000 00000000 00000000 00100000
+>
+> 80000002 20202020 20202020 20202020 20202020
+>
+> 80000003 20202020 41495620 2d374320 7250204d
+>
+> 80000004 7365636f 20726f73 30303231 007a484d
+>
+> 80000005 00000000 08800880 40040140 40040140
+>
+> 80000006 00000000 00000000 0080a140 00000000
+>
+> Vendor ID: "CentaurHauls"; CPUID level 1
+>
+> Unknown vendor
+>
+> and here is from "cpuid":
+>
+> eax in eax ebx ecx edx
+>
+> 00000000 00000001 746e6543 736c7561 48727561
+>
+> 00000001 000006d0 00000800 00004181 a7c9bbff
+>
+> 80000000 80000006 00000000 00000000 00000000
+>
+> 80000001 00000000 00000000 00000000 00100000
+>
+> 80000002 20202020 20202020 20202020 20202020
+>
+> 80000003 20202020 41495620 2d374320 7250204d
+>
+> 80000004 7365636f 20726f73 30303231 007a484d
+>
+> 80000005 00000000 08800880 40040140 40040140
+>
+> 80000006 00000000 00000000 0080a140 00000000
+>
+> Vendor ID: "CentaurHauls"; CPUID level 1
+>
+> Unknown vendor
+>
+> This is from an HP Mini-note 2133 running Kubuntu Hardy with 2.6.24; and,
+> following is the output from "sensors":
+>
+> c7temp-isa-0000
+>
+> Adapter: ISA adapter
+>
+> in0: +0.84 V
+>
+> temp1: +0.0=C2=B0C
+>
+> I've loaded the c7temp module; but, no temperature is shown. I can get a
+> temp from ACPI, however. Please let me know how I can help you get this
+> working. Thanks!
+>
+> ________________________________
+>
+> Justin Chudgar
+>
+> IT Consultant
+>
+> 5040 Saddlehorn Rd, Weed, CA 96094
+>
+> ________________________________
+>
+>
+> ---------- Forwarded message ----------
+> From: "Juerg Haefliger" <juergh@gmail.com>
+> To: "Justin Chudgar" <justin@justinzane.com>
+> Date: Fri, 5 Sep 2008 13:29:49 -0700
+> Subject: Re: [lm-sensors] Fwd: Re: c7temp module for lm-sensors
+> Justin,
+>
+> Can you compile and run cpuid from http://www.etallen.com/cpuid.html?
+> Please run it with and without the '-r' option and send the output to the
+> list.
+>
+> Thanks
+> ...juerg
+>
+>
+> On Sat, Aug 30, 2008 at 5:03 PM, Justin Chudgar <justin@justinzane.com>
+> wrote:
+>>
+>> --
+>>
+>> ________________________________
+>>
+>> Justin Chudgar
+>>
+>> IT Consultant
+>>
+>> 5040 Saddlehorn Rd, Weed, CA 96094
+>>
+>> ________________________________
+>>
+>> ---------- Forwarded message ----------
+>> From: Hans de Goede <j.w.r.degoede@hhs.nl>
+>> To: Justin Chudgar <justin@justinzane.com>
+>> Date: Sat, 30 Aug 2008 08:11:47 +0200
+>> Subject: Re: c7temp module for lm-sensors
+>> Justin Chudgar wrote:
+>>>
+>>> Dear Hans:
+>>>
+>>> I am using this module on an HP Mini-note 2133 running Kubuntu 8.04.1 w/
+>>> 2.6.24.19. I get a voltage reading but no temperature. I would like to
+>>> help
+>>> determine what is not working; but, I am unable to do so without
+>>> assistance.
+>>>
+>>> Could you kindly direct me to the right resources. Thanks.
+>>>
+>>> Justin Chudgar
+>>>
+>>>
+>>
+>> Dear Justin,
+>>
+>> I'm not the maintainer of the c7temp driver, please send a mail to the
+>> lm_sensors list.
+>>
+>> Regards,
+>>
+>> Hans
+>>
+>>
+>> _______________________________________________
+>> lm-sensors mailing list
+>> lm-sensors@lm-sensors.org
+>> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>>
+>
+>
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
