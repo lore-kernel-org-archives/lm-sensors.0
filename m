@@ -1,23 +1,34 @@
-From: <barcaroller@sympatico.ca>
-Date: Thu, 11 Sep 2008 21:52:47 +0000
-Subject: [lm-sensors] lm-sensors and IPMI
-Message-Id: <BLU0-SMTP26CDFBB4F2E1453FDFDB4EC8560@phx.gbl>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 09 Sep 2008 16:21:50 +0000
+Subject: [lm-sensors] pwmconfig improvements
+Message-Id: <20080909182150.7ae38086@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
-I'm having some difficulty getting lm-sensors to work on my 2.6.23 kernel 
-but before I dig deeper, I have a question:
+I have done a number of usability improvements to pwmconfig. I would
+welcome testers. The latest version of pwmconfig can be downloaded
+there:
+http://www.lm-sensors.org/browser/lm-sensors/branches/lm-sensors-3.0.0/prog/pwm/pwmconfig?format=raw
 
-Do I need IPMI (OpenIPMI) to run lm-sensors on my host?  I am confused by 
-the following statement on the ipmisensors homepage: "The ipmisensors 
-(formerly bmcsensors) driver is part of the lm-sensors project".  But then 
-they explain how to install/configure ipmisensors separately from 
-lm-sensors.
+Changes are as follows:
+  pwmconfig: Tell the user about gnuplot if isn't installed
+             Fix MINSTOP and MINSTART test functions
+             Test MINSTOP before MINSTART
+             Use better step values for MINSTOP test
+             Print the revision and date at start-up
+             Detect and report obviously incorrect fan speeds
+             Determine MINSTOP automatically
+             Skip MINSTOP and MINSTART tests if fan can't stop
+             Change default for MINTEMP from 0 to 20 degrees C
 
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
