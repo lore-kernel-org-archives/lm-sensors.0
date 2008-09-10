@@ -1,45 +1,38 @@
-From: Trent Piepho <tpiepho@freescale.com>
-Date: Fri, 26 Sep 2008 01:42:03 +0000
-Subject: Re: [lm-sensors] Sensor chip interrupt
-Message-Id: <Pine.LNX.4.64.0809251809080.7680@t2.domain.actdsltmp>
+From: "Jim Cromie" <jim.cromie@gmail.com>
+Date: Wed, 10 Sep 2008 09:27:31 +0000
+Subject: [lm-sensors] [patch 2.6.27-rc6] hwmon/pc87360 separate sysfs _alarm
+Message-Id: <cfe85dfa0809100227y74316c11h90438e744151268a@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.64.0809171500190.3610@t2.domain.actdsltmp>
-In-Reply-To: <Pine.LNX.4.64.0809171500190.3610@t2.domain.actdsltmp>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 23 Sep 2008, David Brownell wrote:
-> Being unable to use the existing framework for quicker feedback
-> loops (milliseconds not seconds), even when the hardware support for
-> them is available, seems like such a gap to me.  I've just resent
-> my SMBALERT# support patch, which helps address part of that little
+From a480ee948637091b98d73f77da6aad3ed17ba165 Mon Sep 17 00:00:00 2001
+From: Jim Cromie <jim.cromie@gmail.com>
+Date: Wed, 10 Sep 2008 03:17:49 -0600
+Subject: [PATCH] hwmon/pc87360 separate sysfs alarm files
 
-Another problem with polling, besides milliseconds vs seconds, is that it's
-done from userspace.  Now certainly policy belongs in usespace and all that,
-but... userspace is a lot easier to break.
+Bring hwmon/pc87360 into agreement with Documentation/hwmon/sysfs-interface
 
-If the heatsink fell off one of my CPUs (and multi-pound heat sinks attached
-via little plastic tabs really do fall off sometimes), it would stand a very
-good chance of knocking the flimsy non-latching SATA cable below it out of its
-socket.  With the system block device off-line, any userspace hardware monitor
-is virtually certain to hang before it's able to power the system off.
+Patchset adds separate limit alarms for voltages and temps, it also adds
+temp[123]_fault files.  On my Soekris, temps 1,2 are unused/unconnected,
+so temp[123]_fault = 1,1,0 respectively.  This agrees with /usr/bin/sensors,
+which has always shown them as OPEN.  Temps 4,5,6 are thermistor based,
+and dont have a fault bit in their status register.
 
-Probably why most PCs now days have hardware based thermal safeguards.  On the
-new version of our device, we'll use LM96163s which have an additional CRIT#
-signal that we will use for a hardware based shutdown.  Without that, I
-wouldn't consider something based in userspace as safe enough to protect the
-hardware.
 
-If anyone hasn't seen it, the famous Tom's Hardware video of removing
-heatsinks from running computers, before hardware thermal shutdown became
-standard: http://www.youtube.com/watch?v=NxNUK3U73SI
+Jim Cromie (6):
+  hwmon/pc87360 separate alarm files - define some constants
+  hwmon/pc87360 separate alarm files - add in-min/max-alarms
+  hwmon/pc87360 separate alarm files - add
+    temp-min/max/crit/fault-alarms
+  hwmon/pc87360 separate alarm files - define LDNI_MAX const
+  hwmon/pc87360 separate alarm files - add dev_dbg help
+  hwmon/pc87360 separate alarm files - add therm-min/max/crit-alarms
 
-The AMD cpus take about 3 seconds to crash.  So one extra second of latency
-for polling is a very significant amount of the time available to prevent
-hardware damage.  Something that polled every five seconds would be completely
-useless.
+ drivers/hwmon/pc87360.c |  244 +++++++++++++++++++++++++++++++++++++++++++----
+ 1 files changed, 223 insertions(+), 21 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
