@@ -1,16 +1,20 @@
 From: Jim Cromie <jim.cromie@gmail.com>
-Date: Thu, 11 Sep 2008 04:30:16 +0000
-Subject: [lm-sensors] [ patch 2.6.27-rc6 1/6 v2] separate alarm sysfs files
-Message-Id: <48C89ED8.8080503@gmail.com>
+Date: Wed, 10 Sep 2008 09:32:05 +0000
+Subject: [lm-sensors] [patch 2.6.27-rc6 1/6 ] hwmon/pc87360 separate sysfs
+Message-Id: <48C79415.7060905@gmail.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------090605000001050401080502"
+Content-Type: multipart/mixed; boundary="------------050107040901010508000005"
 List-Id: <lm-sensors.vger.kernel.org>
 To: lm-sensors@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090605000001050401080502
+--------------050107040901010508000005
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
+
+
+inlining for review
+attaching for whitespace
 
  From 0e1c287f862cd4a7fa695f0ea7dda4a06f65a7ef Mon Sep 17 00:00:00 2001
 From: Jim Cromie <jim.cromie@gmail.com>
@@ -43,8 +47,7 @@ index 9b462bb..1043b11 100644
      &in_input[X].dev_attr.attr,    \
      &in_status[X].dev_attr.attr,    \
 @@ -1131,6 +1136,12 @@ static void pc87360_write_value(struct 
-pc87360_data *data, u8 ldi
-, u8 bank,
+pc87360_data *data, u8 ldi, u8 bank,
      mutex_unlock(&(data->lock));
  }
  
@@ -129,8 +132,7 @@ platform_device *pdev,
                  "monitoring (TMS)\n");
              pc87360_write_value(data, LD_TEMP, NO_BANK,
 @@ -1336,11 +1347,11 @@ static struct pc87360_data 
-*pc87360_update_device(struct device
-*dev)
+*pc87360_update_device(struct device *dev)
              pc87360_write_value(data, LD_IN, i,
                          PC87365_REG_IN_STATUS,
                          data->in_status[i]);
@@ -145,8 +147,7 @@ platform_device *pdev,
                            LD_IN, i,
                            PC87365_REG_IN_MIN);
 @@ -1373,12 +1384,12 @@ static struct pc87360_data 
-*pc87360_update_device(struct device
-*dev)
+*pc87360_update_device(struct device *dev)
              pc87360_write_value(data, LD_TEMP, i,
                          PC87365_REG_TEMP_STATUS,
                          data->temp_status[i]);
@@ -165,7 +166,7 @@ platform_device *pdev,
 1.5.5.1
 
 
---------------090605000001050401080502
+--------------050107040901010508000005
 Content-Type: text/x-patch;
 	name="0001-hwmon-pc87360-separate-alarm-files-define-some-con.patch"
 Content-Transfer-Encoding: 7bit
@@ -312,7 +313,7 @@ index 9b462bb..1043b11 100644
 1.5.5.1
 
 
---------------090605000001050401080502
+--------------050107040901010508000005
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -322,4 +323,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------090605000001050401080502--
+--------------050107040901010508000005--
