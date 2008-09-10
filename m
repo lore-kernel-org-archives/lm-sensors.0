@@ -1,88 +1,155 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 08 Sep 2008 21:19:07 +0000
-Subject: Re: [lm-sensors] EVGA nForce 750i motherboard
-Message-Id: <20080908231907.26cc69a3@hyperion.delvare>
+From: Raj Mathur <raju@linux-delhi.org>
+Date: Wed, 10 Sep 2008 09:35:36 +0000
+Subject: [lm-sensors] High temperatures on Intel DG31PR
+Message-Id: <200809101453.36339.raju@linux-delhi.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <48C49CDE.7090800@gmail.com>
-In-Reply-To: <48C49CDE.7090800@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Dean,
+Hi,
 
-On Mon, 08 Sep 2008 06:58:02 -0700, Dean Loros wrote:
-> Updated info below----
-> 
-> Jean Delvare wrote:
-> > i2cdump is no longer part of lm-sensors and is now part of a separate
-> > package named i2c-tools. Please install that package first and then you
-> > should have i2cdump. When you have it, please run the isadump command
-> > as well, it's better to have both dumps done at the same time for
-> > comparison purposes.
-> 
-> dean@linux:~/Desktop$ sudo i2cdump 1 0x2d b
-> [sudo] password for dean:
-> Error: Could not open file `/dev/i2c-1' or `/dev/i2c/1': No such file or
-> directory
-> dean@linux:~/Desktop$ sudo isadump
-> Syntax for I2C-like access:
->   isadump [-y] [-k V1,V2...] ADDRREG DATAREG [BANK [BANKREG]]
-> Syntax for flat address space:
->   isadump [-y] -f ADDRESS [RANGE [BANK [BANKREG]]]
-> 
-> Still problems there---please tell me the range you need
+I have a new Intel DG31PR motherboard with an Intel 7200 Core 2 Duo=20
+processor reporting what look like very high temperatures.  Running=20
+Debian GNU/Linux Testing.
 
-Sorry, I forgot to mention that you need to load the i2c-dev kernel
-module before running i2cdump. So, the correct sequence now that you
-have all the tools installed would be:
+Software:
 
-rmmod lm78
-rmmod w83627ehf
-modprobe i2c-dev
-isadump 0x295 0x296
-i2cdump 1 0x2d b
+Kernel:		Linux XXX 2.6.26-1-686 #1 SMP Thu Aug 28 12:00:54 UTC 2008 i686=20
+GNU/Linux
+libsensors3                           1:2.10.7-1                           =
 
-> > (...)
-> > Could be that temp1 isn't wired at all. Does it change in a consistent
-> > way depending in the system load?
-> 
-> Not really--only seems to vary about 10c
+libsensors4                           1:3.0.2-1+b2                         =
 
-Well, 10 degrees C is a reasonable temperature change, especially if
-the direction of the change correlates with the system load. Maybe an
-offset needs to be applied to get the correct temperature. That would
-be unusual for a thermistor on a W83627DHG, but we can't rule it out
-completely.
+lm-sensors                            1:3.0.2-1+b2                         =
 
-> > (...)
-> > Is the BIOS displaying it? How many wires does this fan have?
-> 
-> Yes--it is a three-wire connector
-> > 
-> > Remember that the default labels in sensors3.conf may not match your
-> > motherboard.
-> Understood
-> > 
-> > Also, the w83627ehf driver is adjusting the fan clock divisors
-> > automatically, so it may take a couple runs of "sensors" before fan
-> > speeds show.
-> 
-> Understood--as you can see, there are two speeds not showing--I would
-> guess that it "should" be one of those, but they do not have speed
-> outputs still. The Northbridge speed is around 2000 in the BIOS.
 
-In your original post, fan3 was displayed at 1240 with a clock divider
-of 8.
+sensors-detect seems to find the sensors fine (transcript at bottom). =20
+However now I find that some of the temperatures seem to be=20
+unreasonably high.  Please see Sys Temp (76.0C) and Aux Temp (127.0C)=20
+in the sensors output under.
 
-How many fan speeds does the BIOS show, and can you match some of the
-values with what "sensors" displays? The W83627DHG has 5 fan inputs,
-which should be enough for most motherboards, so it would be really
-surprising if your northbridge fan is connected to another chip.
+Is this normal/expected?  If not, any solution for this issue?  I'd be=20
+glad to provide any other information required.
 
--- 
-Jean Delvare
+Regards,
+
+-- Raju
+
+*** sensors output
+-------------------------------
+w83627dhg-isa-0290
+Adapter: ISA adapter
+VCore:       +1.05 V  (min =3D  +0.00 V, max =3D  +1.74 V)
+in1:        +10.61 V  (min =3D  +2.53 V, max =3D  +4.75 V)   ALARM
+AVCC:        +3.33 V  (min =3D  +3.66 V, max =3D  +2.99 V)   ALARM
+3VCC:        +3.31 V  (min =3D  +2.26 V, max =3D  +3.17 V)   ALARM
+in4:         +1.82 V  (min =3D  +0.78 V, max =3D  +1.58 V)   ALARM
+in5:         +1.26 V  (min =3D  +1.11 V, max =3D  +1.17 V)   ALARM
+in6:         +0.31 V  (min =3D  +1.48 V, max =3D  +1.23 V)   ALARM
+VSB:         +3.30 V  (min =3D  +1.28 V, max =3D  +2.34 V)   ALARM
+VBAT:        +3.18 V  (min =3D  +3.58 V, max =3D  +3.10 V)   ALARM
+Case Fan:    803 RPM  (min =3D 1163 RPM, div =3D 8)  ALARM
+CPU Fan:     917 RPM  (min =3D 2280 RPM, div =3D 8)  ALARM
+Aux Fan:       0 RPM  (min =3D    0 RPM, div =3D 128)  ALARM
+fan4:          0 RPM  (min =3D    0 RPM, div =3D 128)  ALARM
+fan5:          0 RPM  (min =3D 10546 RPM, div =3D 128)  ALARM
+Sys Temp:    +76.0=B0C  (high =3D  +1.0=B0C, hyst =3D +43.0=B0C)  ALARM  se=
+nsor =3D=20
+diode
+CPU Temp:    +35.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
+=3D diode
+AUX Temp:   +127.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  ALARM  se=
+nsor =3D=20
+thermistor
+cpu0_vid:   +2.050 V
+
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +53.0=B0C  (high =3D +78.0=B0C, crit =3D +100.0=B0C)
+
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +51.0=B0C  (high =3D +78.0=B0C, crit =3D +100.0=B0C)
+-------------------------------
+
+*** sensors-detect output (verbiage edited)
+
+-------------------------------
+# sensors-detect revision 5249 (2008-05-11 22:56:25 +0200)
+
+We can start with probing for (PCI) I2C or SMBus adapters.
+Do you want to probe now? (YES/no):
+Probing for PCI bus adapters...
+Use driver `i2c-i801' for device 0000:00:1f.3: Intel 82801G ICH7
+
+We will now try to load each adapter module in turn.
+Module `i2c-i801' already loaded.
+Do you want to load `i2c-dev' now? (YES/no):
+
+Next adapter: SMBus I801 adapter at f000 (i2c-0)
+Do you want to scan it? (YES/no/selectively):
+Client found at address 0x50
+Handled by driver `eeprom' (already loaded), chip type `eeprom'
+    (note: this is probably NOT a sensor chip!)
+Client found at address 0x52
+Handled by driver `eeprom' (already loaded), chip type `eeprom'
+    (note: this is probably NOT a sensor chip!)
+
+Do you want to scan the ISA I/O ports? (YES/no):
+Probing for `National Semiconductor LM78' at 0x290...       No
+Probing for `National Semiconductor LM78-J' at 0x290...     No
+Probing for `National Semiconductor LM79' at 0x290...       No
+Probing for `Winbond W83781D' at 0x290...                   No
+Probing for `Winbond W83782D' at 0x290...                   No
+Probing for `IPMI BMC KCS' at 0xca0...                      No
+Probing for `IPMI BMC SMIC' at 0xca8...                     No
+
+Do you want to scan for Super I/O sensors? (YES/no):
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Fintek'...                       Yes
+Found `Winbond W83627DHG Super IO Sensors'                  Success!
+    (address 0x290, driver `w83627ehf')
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Fintek'...                       No
+Trying family `ITE'...                                      No
+
+Some south bridges, CPUs or memory controllers may also contain
+embedded sensors. Do you want to scan for them? (YES/no):
+Silicon Integrated Systems SIS5595...                       No
+VIA VT82C686 Integrated Sensors...                          No
+VIA VT8231 Integrated Sensors...                            No
+AMD K8 thermal sensors...                                   No
+AMD K10 thermal sensors...                                  No
+Intel Core family thermal sensor...                         Success!
+    (driver `coretemp')
+Intel AMB FB-DIMM thermal sensor...                         No
+
+Driver `w83627ehf' (should be inserted):
+  Detects correctly:
+  * ISA bus, address 0x290
+    Chip `Winbond W83627DHG Super IO Sensors' (confidence: 9)
+
+Driver `coretemp' (should be inserted):
+  Detects correctly:
+  * Chip `Intel Core family thermal sensor' (confidence: 9)
+
+#----cut here----
+# Chip drivers
+w83627ehf
+coretemp
+#----cut here----
+-------------------------------
+
+--=20
+Raj Mathur                raju@kandalaya.org      http://kandalaya.org/
+       GPG: 78D4 FC67 367F 40E2 0DD5  0FEF C968 D0EF CC68 D17F
+PsyTrance & Chill: http://schizoid.in/   ||   It is the mind that moves
 
 _______________________________________________
 lm-sensors mailing list
