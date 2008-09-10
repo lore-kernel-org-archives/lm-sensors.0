@@ -1,77 +1,105 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Mon, 29 Sep 2008 14:58:37 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon (c7temp): new driver for VIA C7 CPU
-Message-Id: <191fb4ca0809290758n36944e9cmed092807e1dd6eba@mail.gmail.com>
+From: Jim Cromie <jim.cromie@gmail.com>
+Date: Wed, 10 Sep 2008 09:33:59 +0000
+Subject: [lm-sensors] [patch 2.6.27-rc6 2/6] hwmon/pc87360 separate sysfs
+Message-Id: <48C79487.1010105@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0806191620g1f001306r5d26cb67ed12d44b@mail.gmail.com>
-In-Reply-To: <191fb4ca0806191620g1f001306r5d26cb67ed12d44b@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Forest,
 
-Well the bottom line is that the value returned in the EAX register
-(0xC000002) is zero for all of these cases where people report 0 C CPU
-temp. I haven't had the time yet to figure out what is different about
-these CPUs and why they don't seem to adhere to the spec that I have.
-One possibility is that my spec is old and things changed in the
-meantime and another one is that the BIOS disables the thermal diodes
-in the CPU. I have some sample BIOS code from VIA which does that but
-I haven't had the time yet to figure out if that applies in this case.
+inlined & attached
 
-...juerg
+ From 92e4abc519b51ed3c80ec69854bdb6fc35c41e4b Mon Sep 17 00:00:00 2001
+From: Jim Cromie <jim.cromie@gmail.com>
+Date: Sat, 28 Jun 2008 12:25:52 -0600
+Subject: [PATCH] hwmon/pc87360 separate alarm files - add in-min/max-alarms
+
+Adds vin-min/max-alarm callbacks, sensor-device-attribute
+declarations, and refs to those new decls in the macro used to
+initialize the vin_group (of sysfs files)
+
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+---
+ drivers/hwmon/pc87360.c |   52 
+++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 51 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
+index 1043b11..3b6ea7b 100644
+--- a/drivers/hwmon/pc87360.c
++++ b/drivers/hwmon/pc87360.c
+@@ -494,11 +494,61 @@ static struct sensor_device_attribute in_max[] = {
+ #define CHAN_ALM_MAX    0x04    /* max limit exceeded */
+ #define TEMP_ALM_CRIT    0x08    /* temp crit exceeded (temp only) */
+ 
++/* show_in_min/max_alarm() reads data from the per-channel status
++   register (sec 11.5.12), not the vin event status registers (sec
++   11.5.2) that (legacy) show_in_alarm() resds (via data->in_alarms) */
++
++static ssize_t show_in_min_alarm(struct device *dev, struct 
+device_attribute
++                 *devattr, char *buf)
++{
++    struct pc87360_data *data = pc87360_update_device(dev);
++    unsigned nr = to_sensor_dev_attr(devattr)->index;
++
++    return sprintf(buf, "%u\n", !!(data->in_status[nr] & CHAN_ALM_MIN));
++}
++static ssize_t show_in_max_alarm(struct device *dev, struct 
+device_attribute
++                 *devattr, char *buf)
++{
++    struct pc87360_data *data = pc87360_update_device(dev);
++    unsigned nr = to_sensor_dev_attr(devattr)->index;
++
++    return sprintf(buf, "%u\n", !!(data->in_status[nr] & CHAN_ALM_MAX));
++}
++
++static struct sensor_device_attribute in_min_alarm[] = {
++    SENSOR_ATTR(in0_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 0),
++    SENSOR_ATTR(in1_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 1),
++    SENSOR_ATTR(in2_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 2),
++    SENSOR_ATTR(in3_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 3),
++    SENSOR_ATTR(in4_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 4),
++    SENSOR_ATTR(in5_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 5),
++    SENSOR_ATTR(in6_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 6),
++    SENSOR_ATTR(in7_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 7),
++    SENSOR_ATTR(in8_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 8),
++    SENSOR_ATTR(in9_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 9),
++    SENSOR_ATTR(in10_min_alarm, S_IRUGO, show_in_min_alarm, NULL, 10),
++};
++static struct sensor_device_attribute in_max_alarm[] = {
++    SENSOR_ATTR(in0_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 0),
++    SENSOR_ATTR(in1_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 1),
++    SENSOR_ATTR(in2_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 2),
++    SENSOR_ATTR(in3_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 3),
++    SENSOR_ATTR(in4_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 4),
++    SENSOR_ATTR(in5_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 5),
++    SENSOR_ATTR(in6_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 6),
++    SENSOR_ATTR(in7_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 7),
++    SENSOR_ATTR(in8_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 8),
++    SENSOR_ATTR(in9_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 9),
++    SENSOR_ATTR(in10_max_alarm, S_IRUGO, show_in_max_alarm, NULL, 10),
++};
++
+ #define VIN_UNIT_ATTRS(X) \
+     &in_input[X].dev_attr.attr,    \
+     &in_status[X].dev_attr.attr,    \
+     &in_min[X].dev_attr.attr,    \
+-    &in_max[X].dev_attr.attr
++    &in_max[X].dev_attr.attr,    \
++    &in_min_alarm[X].dev_attr.attr,    \
++    &in_max_alarm[X].dev_attr.attr
+ 
+ static ssize_t show_vid(struct device *dev, struct device_attribute 
+*attr, char *buf)
+ {
+-- 
+1.5.5.1
 
 
-On Sat, Sep 27, 2008 at 1:57 PM, Forest Bond <forest@alittletooquiet.net> wrote:
-> Hi Juerg,
->
-> On Sun, Sep 07, 2008 at 11:32:17AM -0700, Juerg Haefliger wrote:
->> On Fri, Sep 5, 2008 at 11:45 AM, Forest Bond <forest@alittletooquiet.net> wrote:
->>> On Thu, Jul 10, 2008 at 08:08:16AM +0200, Wilken Gottwalt wrote:
->>>> Am Montag 07 Juli 2008 19:29:00 schrieb Juerg Haefliger:
->>>>>> Am Montag 07 Juli 2008 08:11:02 schrieb Juerg Haefliger:
->>>>>>>> It's the Artigo-Box from Via with a PX10000 board
->>>>>>>> (http://www.via.com.tw/en/products/embedded/artigo/).
->>>>>>>> No, there are no bios settings dealing with thermal or power
->>>>>>>> management. There is nothing I can play with. The bios is very
->>>>>>>> rudimentary.
->
-> [...]
->
->>>>> I'll try to get some answers from VIA but I'm out of ideas. Looks like
->>>>> your CPU doesn't have those thermal sensors.
->>>>
->>>> This is weird, it's a plain C7.
->>>
->>> Anybody get anywhere with this?  I'm trying to get some useful data out of the
->>> Pico-ITX boards as well.
->>
->> Yes I did receive some information from VIA but I haven't had a chance
->> yet to fully digest it. From the quick glance that I took, it looks
->> like there are different C7 models and the thermal sensors are
->> disabled depending on the model. VIA provided some sample BIOS code
->> but I need to take a closer look to fully understand it. More later.
->
-> Just following up.  Anything new to report here?  Can I do anything to help get
-> this moving?
->
-> Thanks,
-> Forest
-> --
-> Forest Bond
-> http://www.alittletooquiet.net
-> http://www.pytagsfs.org
->
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.4.6 (GNU/Linux)
->
-> iD8DBQFI3p5ARO4fQQdv5AwRAqquAJ4/oa5K/MORHW/7UJCXjMHVlIg78ACgnzjr
-> GLguLdY0Yb80I+ZFGL/BeRI> =o0oK
-> -----END PGP SIGNATURE-----
->
->
 
 _______________________________________________
 lm-sensors mailing list
