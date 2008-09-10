@@ -1,59 +1,195 @@
-From: Henrik Rydberg <rydberg@euromail.se>
-Date: Wed, 17 Sep 2008 22:24:35 +0000
-Subject: [lm-sensors] [PATCH 5/5] hwmon: applesmc: Add support for Macbook
-Message-Id: <48D183A3.9080900@euromail.se>
+From: Jim Cromie <jim.cromie@gmail.com>
+Date: Wed, 10 Sep 2008 09:41:06 +0000
+Subject: [lm-sensors] [patch 2.6.27-rc6 5/6 ] hwmon/pc87360 separate sysfs
+Message-Id: <48C79632.8020605@gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------070904010807060005030306"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------070904010807060005030306
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Nicolas Boichat <nicolas@boichat.ch>, lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
 
-This patch adds accelerometer, backlight and temperature sensor support
-for the Macbook Air.
+inlined and attached
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+ From a65aa33f5fac6543cf390c9acbcbd2011f3ffe3d Mon Sep 17 00:00:00 2001
+From: Jim Cromie <jim.cromie@gmail.com>
+Date: Sat, 28 Jun 2008 20:42:24 -0600
+Subject: [PATCH] hwmon/pc87360 separate alarm files - add dev_dbg help
+
+temp and vin status register values may be set by chip specifications,
+set again by bios, or by this previously loaded driver.
+Debug output nicely displays modprobe init=\d actions.
+
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
 ---
- drivers/hwmon/applesmc.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ drivers/hwmon/pc87360.c |   16 ++++++++++++----
+ 1 files changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index de696b6..b57bd82 100644
---- a/drivers/hwmon/applesmc.c
-+++ b/drivers/hwmon/applesmc.c
-@@ -104,6 +104,9 @@ static const char* temperature_sensors_sets[][36] = {
- /* Set 6: Macbook3 set */
- 	{ "TB0T", "TC0D", "TC0P", "TM0P", "TN0P", "TTF0", "TW0P", "Th0H",
- 	  "Th0S", "Th1H", NULL },
-+/* Set 7: Macbook Air */
-+	{ "TB0T", "TB1S", "TB1T", "TB2S", "TB2T", "TC0D", "TC0P", "TCFP",
-+	  "TTF0", "TW0P", "Th0H", "Tp0P", "TpFP", "Ts0P", "Ts0S", NULL },
- };
-
- /* List of keys used to read/write fan speeds */
-@@ -1259,11 +1262,17 @@ static __initdata struct dmi_match_data applesmc_dmi_data[] = {
- 	{ .accelerometer = 0, .light = 0, .temperature_set = 5 },
- /* MacBook3: accelerometer and temperature set 6 */
- 	{ .accelerometer = 1, .light = 0, .temperature_set = 6 },
-+/* MacBook Air: accelerometer, backlight and temperature set 7 */
-+	{ .accelerometer = 1, .light = 1, .temperature_set = 7 },
- };
-
- /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
-  * So we need to put "Apple MacBook Pro" before "Apple MacBook". */
- static __initdata struct dmi_system_id applesmc_whitelist[] = {
-+	{ applesmc_dmi_match, "Apple MacBook Air", {
-+	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir") },
-+		(void*)&applesmc_dmi_data[7]},
- 	{ applesmc_dmi_match, "Apple MacBook Pro", {
- 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBookPro") },
+diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
+index ebb235b..cf265d2 100644
+--- a/drivers/hwmon/pc87360.c
++++ b/drivers/hwmon/pc87360.c
+@@ -1290,10 +1290,11 @@ static void pc87360_init_device(struct 
+platform_device *pdev,
+ 
+     nr = data->innr < 11 ? data->innr : 11;
+     for (i = 0; i < nr; i++) {
++        reg = pc87360_read_value(data, LD_IN, i,
++                     PC87365_REG_IN_STATUS);
++        dev_dbg(&pdev->dev, "bios in%d status:0x%02x\n", i, reg);
+         if (init >= init_in[i]) {
+             /* Forcibly enable voltage channel */
+-            reg = pc87360_read_value(data, LD_IN, i,
+-                         PC87365_REG_IN_STATUS);
+             if (!(reg & CHAN_ENA)) {
+                 dev_dbg(&pdev->dev, "Forcibly "
+                     "enabling in%d\n", i);
+@@ -1306,18 +1307,23 @@ static void pc87360_init_device(struct 
+platform_device *pdev,
+ 
+     /* We can't blindly trust the Super-I/O space configuration bit,
+        most BIOS won't set it properly */
++    dev_dbg(&pdev->dev, "bios thermistors:%d\n", use_thermistors);
+     for (i = 11; i < data->innr; i++) {
+         reg = pc87360_read_value(data, LD_IN, i,
+                      PC87365_REG_TEMP_STATUS);
+         use_thermistors = use_thermistors || (reg & CHAN_ENA);
++        /* thermistors are temp[4-6], measured on vin[11-14] */
++        dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i-7, reg);
+     }
++    dev_dbg(&pdev->dev, "using thermistors:%d\n", use_thermistors);
+ 
+     i = use_thermistors ? 2 : 0;
+     for (; i < data->tempnr; i++) {
++        reg = pc87360_read_value(data, LD_TEMP, i,
++                     PC87365_REG_TEMP_STATUS);
++        dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i+1, reg);
+         if (init >= init_temp[i]) {
+             /* Forcibly enable temperature channel */
+-            reg = pc87360_read_value(data, LD_TEMP, i,
+-                         PC87365_REG_TEMP_STATUS);
+             if (!(reg & CHAN_ENA)) {
+                 dev_dbg(&pdev->dev, "Forcibly "
+                     "enabling temp%d\n", i+1);
+@@ -1359,6 +1365,7 @@ static void pc87360_init_device(struct 
+platform_device *pdev,
+     if (data->innr) {
+         reg = pc87360_read_value(data, LD_IN, NO_BANK,
+                      PC87365_REG_IN_CONFIG);
++        dev_dbg(&pdev->dev, "bios vin-cfg:0x%02x\n", reg);
+         if (reg & CHAN_ENA) {
+             dev_dbg(&pdev->dev, "Forcibly "
+                 "enabling monitoring (VLM)\n");
+@@ -1371,6 +1378,7 @@ static void pc87360_init_device(struct 
+platform_device *pdev,
+     if (data->tempnr) {
+         reg = pc87360_read_value(data, LD_TEMP, NO_BANK,
+                      PC87365_REG_TEMP_CONFIG);
++        dev_dbg(&pdev->dev, "bios temp-cfg:0x%02x\n", reg);
+         if (reg & CHAN_ENA) {
+             dev_dbg(&pdev->dev, "Forcibly enabling "
+                 "monitoring (TMS)\n");
 -- 
-1.5.4.3
+1.5.5.1
 
+
+--------------070904010807060005030306
+Content-Type: text/x-patch;
+	name="0005-hwmon-pc87360-separate-alarm-files-add-dev_dbg-hel.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename*0="0005-hwmon-pc87360-separate-alarm-files-add-dev_dbg-hel.patc";
+	filename*1="h"
+
+From a65aa33f5fac6543cf390c9acbcbd2011f3ffe3d Mon Sep 17 00:00:00 2001
+From: Jim Cromie <jim.cromie@gmail.com>
+Date: Sat, 28 Jun 2008 20:42:24 -0600
+Subject: [PATCH] hwmon/pc87360 separate alarm files - add dev_dbg help
+
+temp and vin status register values may be set by chip specifications,
+set again by bios, or by this previously loaded driver.
+Debug output nicely displays modprobe init=\d actions.
+
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+---
+ drivers/hwmon/pc87360.c |   16 ++++++++++++----
+ 1 files changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
+index ebb235b..cf265d2 100644
+--- a/drivers/hwmon/pc87360.c
++++ b/drivers/hwmon/pc87360.c
+@@ -1290,10 +1290,11 @@ static void pc87360_init_device(struct platform_device *pdev,
+ 
+ 	nr = data->innr < 11 ? data->innr : 11;
+ 	for (i = 0; i < nr; i++) {
++		reg = pc87360_read_value(data, LD_IN, i,
++					 PC87365_REG_IN_STATUS);
++		dev_dbg(&pdev->dev, "bios in%d status:0x%02x\n", i, reg);
+ 		if (init >= init_in[i]) {
+ 			/* Forcibly enable voltage channel */
+-			reg = pc87360_read_value(data, LD_IN, i,
+-						 PC87365_REG_IN_STATUS);
+ 			if (!(reg & CHAN_ENA)) {
+ 				dev_dbg(&pdev->dev, "Forcibly "
+ 					"enabling in%d\n", i);
+@@ -1306,18 +1307,23 @@ static void pc87360_init_device(struct platform_device *pdev,
+ 
+ 	/* We can't blindly trust the Super-I/O space configuration bit,
+ 	   most BIOS won't set it properly */
++	dev_dbg(&pdev->dev, "bios thermistors:%d\n", use_thermistors);
+ 	for (i = 11; i < data->innr; i++) {
+ 		reg = pc87360_read_value(data, LD_IN, i,
+ 					 PC87365_REG_TEMP_STATUS);
+ 		use_thermistors = use_thermistors || (reg & CHAN_ENA);
++		/* thermistors are temp[4-6], measured on vin[11-14] */
++		dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i-7, reg);
+ 	}
++	dev_dbg(&pdev->dev, "using thermistors:%d\n", use_thermistors);
+ 
+ 	i = use_thermistors ? 2 : 0;
+ 	for (; i < data->tempnr; i++) {
++		reg = pc87360_read_value(data, LD_TEMP, i,
++					 PC87365_REG_TEMP_STATUS);
++		dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i+1, reg);
+ 		if (init >= init_temp[i]) {
+ 			/* Forcibly enable temperature channel */
+-			reg = pc87360_read_value(data, LD_TEMP, i,
+-						 PC87365_REG_TEMP_STATUS);
+ 			if (!(reg & CHAN_ENA)) {
+ 				dev_dbg(&pdev->dev, "Forcibly "
+ 					"enabling temp%d\n", i+1);
+@@ -1359,6 +1365,7 @@ static void pc87360_init_device(struct platform_device *pdev,
+ 	if (data->innr) {
+ 		reg = pc87360_read_value(data, LD_IN, NO_BANK,
+ 					 PC87365_REG_IN_CONFIG);
++		dev_dbg(&pdev->dev, "bios vin-cfg:0x%02x\n", reg);
+ 		if (reg & CHAN_ENA) {
+ 			dev_dbg(&pdev->dev, "Forcibly "
+ 				"enabling monitoring (VLM)\n");
+@@ -1371,6 +1378,7 @@ static void pc87360_init_device(struct platform_device *pdev,
+ 	if (data->tempnr) {
+ 		reg = pc87360_read_value(data, LD_TEMP, NO_BANK,
+ 					 PC87365_REG_TEMP_CONFIG);
++		dev_dbg(&pdev->dev, "bios temp-cfg:0x%02x\n", reg);
+ 		if (reg & CHAN_ENA) {
+ 			dev_dbg(&pdev->dev, "Forcibly enabling "
+ 				"monitoring (TMS)\n");
+-- 
+1.5.5.1
+
+
+--------------070904010807060005030306
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------070904010807060005030306--
