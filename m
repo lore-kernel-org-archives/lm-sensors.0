@@ -1,326 +1,167 @@
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Wed, 10 Sep 2008 09:32:05 +0000
-Subject: [lm-sensors] [patch 2.6.27-rc6 1/6 ] hwmon/pc87360 separate sysfs
-Message-Id: <48C79415.7060905@gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------050107040901010508000005"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 11 Sep 2008 10:11:28 +0000
+Subject: [lm-sensors] [PATCH 2/5] hwmon: (lm78) Detect alias chips
+Message-Id: <20080911121128.2d952a06@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050107040901010508000005
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+The LM78 and LM79 can be accessed either on the I2C bus or the ISA
+bus. We must not access the same chip through both interfaces. So far
+we were relying on the user passing the correct ignore parameter to
+skip the registration of the I2C interface as suggested by
+sensors-detect, but this is fragile: the user may load the lm78
+driver without running sensors-detect, and the i2c bus numbers are
+not stable across reboots and hardware changes.
 
+So, better detect alias chips in the driver directly, and skip any
+I2C chip which is obviously an alias of the ISA chip. This is done
+by comparing the value of 26 selected registers.
 
-inlining for review
-attaching for whitespace
-
- From 0e1c287f862cd4a7fa695f0ea7dda4a06f65a7ef Mon Sep 17 00:00:00 2001
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Sat, 28 Jun 2008 11:59:19 -0600
-Subject: [PATCH] hwmon/pc87360 separate alarm files - define some constants
-
-2 different kinds of constants added:
-- CHAN_ALM_* constants for (later) vin, temp alarm callbacks.
-- CHAN_* conversion constants, used in _init_device, partly for RW1C bits
-
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/hwmon/pc87360.c |   33 ++++++++++++++++++++++-----------
- 1 files changed, 22 insertions(+), 11 deletions(-)
+ drivers/hwmon/lm78.c |   78 +++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 65 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index 9b462bb..1043b11 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -489,6 +489,11 @@ static struct sensor_device_attribute in_max[] = {
-     SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
- };
+--- linux-2.6.26-rc7.orig/drivers/hwmon/lm78.c	2008-06-24 10:04:04.000000000 +0200
++++ linux-2.6.26-rc7/drivers/hwmon/lm78.c	2008-06-24 10:04:05.000000000 +0200
+@@ -120,10 +120,7 @@ static inline int TEMP_FROM_REG(s8 val)
+    LM78 chips available (well, actually, that is probably never done; but
+    it is a clean illustration of how to handle a case like that). Finally,
+    a specific chip may be attached to *both* ISA and SMBus, and we would
+-   not like to detect it double. Fortunately, in the case of the LM78 at
+-   least, a register tells us what SMBus address we are on, so that helps
+-   a bit - except if there could be more than one SMBus. Groan. No solution
+-   for this yet. */
++   not like to detect it double. */
  
-+/* (temp & vin) channel status register alarm bits (pdf sec.11.5.12) */
-+#define CHAN_ALM_MIN    0x02    /* min limit crossed */
-+#define CHAN_ALM_MAX    0x04    /* max limit exceeded */
-+#define TEMP_ALM_CRIT    0x08    /* temp crit exceeded (temp only) */
+ /* For ISA chips, we abuse the i2c_client addr and name fields. We also use
+    the driver field to differentiate between I2C and ISA chips. */
+@@ -457,12 +454,24 @@ static SENSOR_DEVICE_ATTR(temp1_alarm, S
+ /* This function is called when:
+      * lm78_driver is inserted (when this module is loaded), for each
+        available adapter
+-     * when a new adapter is inserted (and lm78_driver is still present) */
++     * when a new adapter is inserted (and lm78_driver is still present)
++   We block updates of the ISA device to minimize the risk of concurrent
++   access to the same LM78 chip through different interfaces. */
+ static int lm78_attach_adapter(struct i2c_adapter *adapter)
+ {
++	struct lm78_data *data;
++	int err;
 +
- #define VIN_UNIT_ATTRS(X) \
-     &in_input[X].dev_attr.attr,    \
-     &in_status[X].dev_attr.attr,    \
-@@ -1131,6 +1136,12 @@ static void pc87360_write_value(struct 
-pc87360_data *data, u8 ldi, u8 bank,
-     mutex_unlock(&(data->lock));
+ 	if (!(adapter->class & I2C_CLASS_HWMON))
+ 		return 0;
+-	return i2c_probe(adapter, &addr_data, lm78_detect);
++
++	data = pdev ? platform_get_drvdata(pdev) : NULL;
++	if (data)
++		mutex_lock(&data->update_lock);
++	err = i2c_probe(adapter, &addr_data, lm78_detect);
++	if (data)
++		mutex_unlock(&data->update_lock);
++	return err;
  }
  
-+/* (temp & vin) channel conversion status register flags (pdf 
-sec.11.5.12) */
-+#define CHAN_CNVRTD    0x80    /* new data ready */
-+#define CHAN_ENA    0x01    /* enabled channel (temp or vin) */
-+#define CHAN_ALM_ENA    0x10    /* propagate to alarms-reg ?? (chk val!) */
-+#define CHAN_READY    (CHAN_ENA|CHAN_CNVRTD) /* sample ready mask */
-+
- static void pc87360_init_device(struct platform_device *pdev,
-                 int use_thermistors)
- {
-@@ -1156,7 +1167,7 @@ static void pc87360_init_device(struct 
-platform_device *pdev,
-             /* Forcibly enable voltage channel */
-             reg = pc87360_read_value(data, LD_IN, i,
-                          PC87365_REG_IN_STATUS);
--            if (!(reg & 0x01)) {
-+            if (!(reg & CHAN_ENA)) {
-                 dev_dbg(&pdev->dev, "Forcibly "
-                     "enabling in%d\n", i);
-                 pc87360_write_value(data, LD_IN, i,
-@@ -1171,7 +1182,7 @@ static void pc87360_init_device(struct 
-platform_device *pdev,
-     for (i = 11; i < data->innr; i++) {
-         reg = pc87360_read_value(data, LD_IN, i,
-                      PC87365_REG_TEMP_STATUS);
--        use_thermistors = use_thermistors || (reg & 0x01);
-+        use_thermistors = use_thermistors || (reg & CHAN_ENA);
-     }
- 
-     i = use_thermistors ? 2 : 0;
-@@ -1180,7 +1191,7 @@ static void pc87360_init_device(struct 
-platform_device *pdev,
-             /* Forcibly enable temperature channel */
-             reg = pc87360_read_value(data, LD_TEMP, i,
-                          PC87365_REG_TEMP_STATUS);
--            if (!(reg & 0x01)) {
-+            if (!(reg & CHAN_ENA)) {
-                 dev_dbg(&pdev->dev, "Forcibly "
-                     "enabling temp%d\n", i+1);
-                 pc87360_write_value(data, LD_TEMP, i,
-@@ -1197,7 +1208,7 @@ static void pc87360_init_device(struct 
-platform_device *pdev,
-                    diodes */
-                 reg = pc87360_read_value(data, LD_TEMP,
-                       (i-11)/2, PC87365_REG_TEMP_STATUS);
--                if (reg & 0x01) {
-+                if (reg & CHAN_ENA) {
-                     dev_dbg(&pdev->dev, "Skipping "
-                         "temp%d, pin already in use "
-                         "by temp%d\n", i-7, (i-11)/2);
-@@ -1207,7 +1218,7 @@ static void pc87360_init_device(struct 
-platform_device *pdev,
-                 /* Forcibly enable thermistor channel */
-                 reg = pc87360_read_value(data, LD_IN, i,
-                              PC87365_REG_IN_STATUS);
--                if (!(reg & 0x01)) {
-+                if (!(reg & CHAN_ENA)) {
-                     dev_dbg(&pdev->dev, "Forcibly "
-                         "enabling temp%d\n", i-7);
-                     pc87360_write_value(data, LD_IN, i,
-@@ -1221,7 +1232,7 @@ static void pc87360_init_device(struct 
-platform_device *pdev,
-     if (data->innr) {
-         reg = pc87360_read_value(data, LD_IN, NO_BANK,
-                      PC87365_REG_IN_CONFIG);
--        if (reg & 0x01) {
-+        if (reg & CHAN_ENA) {
-             dev_dbg(&pdev->dev, "Forcibly "
-                 "enabling monitoring (VLM)\n");
-             pc87360_write_value(data, LD_IN, NO_BANK,
-@@ -1233,7 +1244,7 @@ static void pc87360_init_device(struct 
-platform_device *pdev,
-     if (data->tempnr) {
-         reg = pc87360_read_value(data, LD_TEMP, NO_BANK,
-                      PC87365_REG_TEMP_CONFIG);
--        if (reg & 0x01) {
-+        if (reg & CHAN_ENA) {
-             dev_dbg(&pdev->dev, "Forcibly enabling "
-                 "monitoring (TMS)\n");
-             pc87360_write_value(data, LD_TEMP, NO_BANK,
-@@ -1336,11 +1347,11 @@ static struct pc87360_data 
-*pc87360_update_device(struct device *dev)
-             pc87360_write_value(data, LD_IN, i,
-                         PC87365_REG_IN_STATUS,
-                         data->in_status[i]);
--            if ((data->in_status[i] & 0x81) == 0x81) {
-+            if ((data->in_status[i] & CHAN_READY) == CHAN_READY) {
-                 data->in[i] = pc87360_read_value(data, LD_IN,
-                           i, PC87365_REG_IN);
-             }
--            if (data->in_status[i] & 0x01) {
-+            if (data->in_status[i] & CHAN_ENA) {
-                 data->in_min[i] = pc87360_read_value(data,
-                           LD_IN, i,
-                           PC87365_REG_IN_MIN);
-@@ -1373,12 +1384,12 @@ static struct pc87360_data 
-*pc87360_update_device(struct device *dev)
-             pc87360_write_value(data, LD_TEMP, i,
-                         PC87365_REG_TEMP_STATUS,
-                         data->temp_status[i]);
--            if ((data->temp_status[i] & 0x81) == 0x81) {
-+            if ((data->temp_status[i] & CHAN_READY) == CHAN_READY) {
-                 data->temp[i] = pc87360_read_value(data,
-                         LD_TEMP, i,
-                         PC87365_REG_TEMP);
-             }
--            if (data->temp_status[i] & 0x01) {
-+            if (data->temp_status[i] & CHAN_ENA) {
-                 data->temp_min[i] = pc87360_read_value(data,
-                             LD_TEMP, i,
-                             PC87365_REG_TEMP_MIN);
--- 
-1.5.5.1
-
-
---------------050107040901010508000005
-Content-Type: text/x-patch;
-	name="0001-hwmon-pc87360-separate-alarm-files-define-some-con.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename*0="0001-hwmon-pc87360-separate-alarm-files-define-some-con.patc";
-	filename*1="h"
-
-From 0e1c287f862cd4a7fa695f0ea7dda4a06f65a7ef Mon Sep 17 00:00:00 2001
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Sat, 28 Jun 2008 11:59:19 -0600
-Subject: [PATCH] hwmon/pc87360 separate alarm files - define some constants
-
-2 different kinds of constants added:
-- CHAN_ALM_* constants for (later) vin, temp alarm callbacks.
-- CHAN_* conversion constants, used in _init_device, partly for RW1C bits
-
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
----
- drivers/hwmon/pc87360.c |   33 ++++++++++++++++++++++-----------
- 1 files changed, 22 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index 9b462bb..1043b11 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -489,6 +489,11 @@ static struct sensor_device_attribute in_max[] = {
- 	SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
- };
- 
-+/* (temp & vin) channel status register alarm bits (pdf sec.11.5.12) */
-+#define CHAN_ALM_MIN	0x02	/* min limit crossed */
-+#define CHAN_ALM_MAX	0x04	/* max limit exceeded */
-+#define TEMP_ALM_CRIT	0x08	/* temp crit exceeded (temp only) */
-+
- #define VIN_UNIT_ATTRS(X) \
- 	&in_input[X].dev_attr.attr,	\
- 	&in_status[X].dev_attr.attr,	\
-@@ -1131,6 +1136,12 @@ static void pc87360_write_value(struct pc87360_data *data, u8 ldi, u8 bank,
- 	mutex_unlock(&(data->lock));
+ static struct attribute *lm78_attributes[] = {
+@@ -531,6 +540,40 @@ static ssize_t show_name(struct device *
  }
+ static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
  
-+/* (temp & vin) channel conversion status register flags (pdf sec.11.5.12) */
-+#define CHAN_CNVRTD	0x80	/* new data ready */
-+#define CHAN_ENA	0x01	/* enabled channel (temp or vin) */
-+#define CHAN_ALM_ENA	0x10	/* propagate to alarms-reg ?? (chk val!) */
-+#define CHAN_READY	(CHAN_ENA|CHAN_CNVRTD) /* sample ready mask */
++/* Returns 1 if the I2C chip appears to be an alias of the ISA chip */
++static int lm78_alias_detect(struct i2c_client *client, u8 chipid)
++{
++	struct lm78_data *i2c, *isa;
++	int i;
 +
- static void pc87360_init_device(struct platform_device *pdev,
- 				int use_thermistors)
++	if (!pdev)	/* No ISA chip */
++		return 0;
++
++	i2c = i2c_get_clientdata(client);
++	isa = platform_get_drvdata(pdev);
++
++	if (lm78_read_value(isa, LM78_REG_I2C_ADDR) != client->addr)
++		return 0;	/* Address doesn't match */
++	if ((lm78_read_value(isa, LM78_REG_CHIPID) & 0xfe) != (chipid & 0xfe))
++		return 0;	/* Chip type doesn't match */
++
++	/* We compare all the limit registers, the config register and the
++	 * interrupt mask registers */
++	for (i = 0x2b; i <= 0x3d; i++) {
++		if (lm78_read_value(isa, i) != lm78_read_value(i2c, i))
++			return 0;
++	}
++	if (lm78_read_value(isa, LM78_REG_CONFIG) !+	    lm78_read_value(i2c, LM78_REG_CONFIG))
++		return 0;
++	for (i = 0x43; i <= 0x46; i++) {
++		if (lm78_read_value(isa, i) != lm78_read_value(i2c, i))
++			return 0;
++	}
++
++	return 1;
++}
++
+ /* This function is called by i2c_probe */
+ static int lm78_detect(struct i2c_adapter *adapter, int address, int kind)
  {
-@@ -1156,7 +1167,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 			/* Forcibly enable voltage channel */
- 			reg = pc87360_read_value(data, LD_IN, i,
- 						 PC87365_REG_IN_STATUS);
--			if (!(reg & 0x01)) {
-+			if (!(reg & CHAN_ENA)) {
- 				dev_dbg(&pdev->dev, "Forcibly "
- 					"enabling in%d\n", i);
- 				pc87360_write_value(data, LD_IN, i,
-@@ -1171,7 +1182,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 	for (i = 11; i < data->innr; i++) {
- 		reg = pc87360_read_value(data, LD_IN, i,
- 					 PC87365_REG_TEMP_STATUS);
--		use_thermistors = use_thermistors || (reg & 0x01);
-+		use_thermistors = use_thermistors || (reg & CHAN_ENA);
+@@ -589,6 +632,13 @@ static int lm78_detect(struct i2c_adapte
+ 			err = -ENODEV;
+ 			goto ERROR2;
+ 		}
++
++		if (lm78_alias_detect(new_client, i)) {
++			dev_dbg(&adapter->dev, "Device at 0x%02x appears to "
++				"be the same as ISA device\n", address);
++			err = -ENODEV;
++			goto ERROR2;
++		}
  	}
  
- 	i = use_thermistors ? 2 : 0;
-@@ -1180,7 +1191,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 			/* Forcibly enable temperature channel */
- 			reg = pc87360_read_value(data, LD_TEMP, i,
- 						 PC87365_REG_TEMP_STATUS);
--			if (!(reg & 0x01)) {
-+			if (!(reg & CHAN_ENA)) {
- 				dev_dbg(&pdev->dev, "Forcibly "
- 					"enabling temp%d\n", i+1);
- 				pc87360_write_value(data, LD_TEMP, i,
-@@ -1197,7 +1208,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 				   diodes */
- 				reg = pc87360_read_value(data, LD_TEMP,
- 				      (i-11)/2, PC87365_REG_TEMP_STATUS);
--				if (reg & 0x01) {
-+				if (reg & CHAN_ENA) {
- 					dev_dbg(&pdev->dev, "Skipping "
- 						"temp%d, pin already in use "
- 						"by temp%d\n", i-7, (i-11)/2);
-@@ -1207,7 +1218,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 				/* Forcibly enable thermistor channel */
- 				reg = pc87360_read_value(data, LD_IN, i,
- 							 PC87365_REG_IN_STATUS);
--				if (!(reg & 0x01)) {
-+				if (!(reg & CHAN_ENA)) {
- 					dev_dbg(&pdev->dev, "Forcibly "
- 						"enabling temp%d\n", i-7);
- 					pc87360_write_value(data, LD_IN, i,
-@@ -1221,7 +1232,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 	if (data->innr) {
- 		reg = pc87360_read_value(data, LD_IN, NO_BANK,
- 					 PC87365_REG_IN_CONFIG);
--		if (reg & 0x01) {
-+		if (reg & CHAN_ENA) {
- 			dev_dbg(&pdev->dev, "Forcibly "
- 				"enabling monitoring (VLM)\n");
- 			pc87360_write_value(data, LD_IN, NO_BANK,
-@@ -1233,7 +1244,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 	if (data->tempnr) {
- 		reg = pc87360_read_value(data, LD_TEMP, NO_BANK,
- 					 PC87365_REG_TEMP_CONFIG);
--		if (reg & 0x01) {
-+		if (reg & CHAN_ENA) {
- 			dev_dbg(&pdev->dev, "Forcibly enabling "
- 				"monitoring (TMS)\n");
- 			pc87360_write_value(data, LD_TEMP, NO_BANK,
-@@ -1336,11 +1347,11 @@ static struct pc87360_data *pc87360_update_device(struct device *dev)
- 			pc87360_write_value(data, LD_IN, i,
- 					    PC87365_REG_IN_STATUS,
- 					    data->in_status[i]);
--			if ((data->in_status[i] & 0x81) == 0x81) {
-+			if ((data->in_status[i] & CHAN_READY) == CHAN_READY) {
- 				data->in[i] = pc87360_read_value(data, LD_IN,
- 					      i, PC87365_REG_IN);
- 			}
--			if (data->in_status[i] & 0x01) {
-+			if (data->in_status[i] & CHAN_ENA) {
- 				data->in_min[i] = pc87360_read_value(data,
- 						  LD_IN, i,
- 						  PC87365_REG_IN_MIN);
-@@ -1373,12 +1384,12 @@ static struct pc87360_data *pc87360_update_device(struct device *dev)
- 			pc87360_write_value(data, LD_TEMP, i,
- 					    PC87365_REG_TEMP_STATUS,
- 					    data->temp_status[i]);
--			if ((data->temp_status[i] & 0x81) == 0x81) {
-+			if ((data->temp_status[i] & CHAN_READY) == CHAN_READY) {
- 				data->temp[i] = pc87360_read_value(data,
- 						LD_TEMP, i,
- 						PC87365_REG_TEMP);
- 			}
--			if (data->temp_status[i] & 0x01) {
-+			if (data->temp_status[i] & CHAN_ENA) {
- 				data->temp_min[i] = pc87360_read_value(data,
- 						    LD_TEMP, i,
- 						    PC87365_REG_TEMP_MIN);
+ 	if (kind = lm78) {
+@@ -959,14 +1009,12 @@ static int __init sm_lm78_init(void)
+ {
+ 	int res;
+ 
+-	res = i2c_add_driver(&lm78_driver);
+-	if (res)
+-		goto exit;
+-
++	/* We register the ISA device first, so that we can skip the
++	 * registration of an I2C interface to the same device. */
+ 	if (lm78_isa_found(isa_address)) {
+ 		res = platform_driver_register(&lm78_isa_driver);
+ 		if (res)
+-			goto exit_unreg_i2c_driver;
++			goto exit;
+ 
+ 		/* Sets global pdev as a side effect */
+ 		res = lm78_isa_device_add(isa_address);
+@@ -974,12 +1022,16 @@ static int __init sm_lm78_init(void)
+ 			goto exit_unreg_isa_driver;
+ 	}
+ 
++	res = i2c_add_driver(&lm78_driver);
++	if (res)
++		goto exit_unreg_isa_device;
++
+ 	return 0;
+ 
++ exit_unreg_isa_device:
++	platform_device_unregister(pdev);
+  exit_unreg_isa_driver:
+ 	platform_driver_unregister(&lm78_isa_driver);
+- exit_unreg_i2c_driver:
+-	i2c_del_driver(&lm78_driver);
+  exit:
+ 	return res;
+ }
+
 -- 
-1.5.5.1
-
-
---------------050107040901010508000005
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------050107040901010508000005--
