@@ -1,188 +1,318 @@
 From: Jim Cromie <jim.cromie@gmail.com>
-Date: Wed, 10 Sep 2008 09:41:06 +0000
-Subject: [lm-sensors] [patch 2.6.27-rc6 5/6 ] hwmon/pc87360 separate sysfs
-Message-Id: <48C79632.8020605@gmail.com>
+Date: Thu, 11 Sep 2008 04:30:16 +0000
+Subject: [lm-sensors] [ patch 2.6.27-rc6 1/6 v2] separate alarm sysfs files
+Message-Id: <48C89ED8.8080503@gmail.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------070904010807060005030306"
+Content-Type: multipart/mixed; boundary="------------090605000001050401080502"
 List-Id: <lm-sensors.vger.kernel.org>
 To: lm-sensors@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070904010807060005030306
+--------------090605000001050401080502
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-inlined and attached
-
- From a65aa33f5fac6543cf390c9acbcbd2011f3ffe3d Mon Sep 17 00:00:00 2001
+ From 0e1c287f862cd4a7fa695f0ea7dda4a06f65a7ef Mon Sep 17 00:00:00 2001
 From: Jim Cromie <jim.cromie@gmail.com>
-Date: Sat, 28 Jun 2008 20:42:24 -0600
-Subject: [PATCH] hwmon/pc87360 separate alarm files - add dev_dbg help
+Date: Sat, 28 Jun 2008 11:59:19 -0600
+Subject: [PATCH] hwmon/pc87360 separate alarm files - define some constants
 
-temp and vin status register values may be set by chip specifications,
-set again by bios, or by this previously loaded driver.
-Debug output nicely displays modprobe init=\d actions.
+2 different kinds of constants added:
+- CHAN_ALM_* constants for (later) vin, temp alarm callbacks.
+- CHAN_* conversion constants, used in _init_device, partly for RW1C bits
 
 Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
 ---
- drivers/hwmon/pc87360.c |   16 ++++++++++++----
- 1 files changed, 12 insertions(+), 4 deletions(-)
+ drivers/hwmon/pc87360.c |   33 ++++++++++++++++++++++-----------
+ 1 files changed, 22 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index ebb235b..cf265d2 100644
+index 9b462bb..1043b11 100644
 --- a/drivers/hwmon/pc87360.c
 +++ b/drivers/hwmon/pc87360.c
-@@ -1290,10 +1290,11 @@ static void pc87360_init_device(struct 
-platform_device *pdev,
+@@ -489,6 +489,11 @@ static struct sensor_device_attribute in_max[] = {
+     SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
+ };
  
-     nr = data->innr < 11 ? data->innr : 11;
-     for (i = 0; i < nr; i++) {
-+        reg = pc87360_read_value(data, LD_IN, i,
-+                     PC87365_REG_IN_STATUS);
-+        dev_dbg(&pdev->dev, "bios in%d status:0x%02x\n", i, reg);
-         if (init >= init_in[i]) {
++/* (temp & vin) channel status register alarm bits (pdf sec.11.5.12) */
++#define CHAN_ALM_MIN    0x02    /* min limit crossed */
++#define CHAN_ALM_MAX    0x04    /* max limit exceeded */
++#define TEMP_ALM_CRIT    0x08    /* temp crit exceeded (temp only) */
++
+ #define VIN_UNIT_ATTRS(X) \
+     &in_input[X].dev_attr.attr,    \
+     &in_status[X].dev_attr.attr,    \
+@@ -1131,6 +1136,12 @@ static void pc87360_write_value(struct 
+pc87360_data *data, u8 ldi
+, u8 bank,
+     mutex_unlock(&(data->lock));
+ }
+ 
++/* (temp & vin) channel conversion status register flags (pdf 
+sec.11.5.12) */
++#define CHAN_CNVRTD    0x80    /* new data ready */
++#define CHAN_ENA    0x01    /* enabled channel (temp or vin) */
++#define CHAN_ALM_ENA    0x10    /* propagate to alarms-reg ?? (chk val!) */
++#define CHAN_READY    (CHAN_ENA|CHAN_CNVRTD) /* sample ready mask */
++
+ static void pc87360_init_device(struct platform_device *pdev,
+                 int use_thermistors)
+ {
+@@ -1156,7 +1167,7 @@ static void pc87360_init_device(struct 
+platform_device *pdev,
              /* Forcibly enable voltage channel */
--            reg = pc87360_read_value(data, LD_IN, i,
--                         PC87365_REG_IN_STATUS);
-             if (!(reg & CHAN_ENA)) {
+             reg = pc87360_read_value(data, LD_IN, i,
+                          PC87365_REG_IN_STATUS);
+-            if (!(reg & 0x01)) {
++            if (!(reg & CHAN_ENA)) {
                  dev_dbg(&pdev->dev, "Forcibly "
                      "enabling in%d\n", i);
-@@ -1306,18 +1307,23 @@ static void pc87360_init_device(struct 
+                 pc87360_write_value(data, LD_IN, i,
+@@ -1171,7 +1182,7 @@ static void pc87360_init_device(struct 
 platform_device *pdev,
- 
-     /* We can't blindly trust the Super-I/O space configuration bit,
-        most BIOS won't set it properly */
-+    dev_dbg(&pdev->dev, "bios thermistors:%d\n", use_thermistors);
      for (i = 11; i < data->innr; i++) {
          reg = pc87360_read_value(data, LD_IN, i,
                       PC87365_REG_TEMP_STATUS);
-         use_thermistors = use_thermistors || (reg & CHAN_ENA);
-+        /* thermistors are temp[4-6], measured on vin[11-14] */
-+        dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i-7, reg);
+-        use_thermistors = use_thermistors || (reg & 0x01);
++        use_thermistors = use_thermistors || (reg & CHAN_ENA);
      }
-+    dev_dbg(&pdev->dev, "using thermistors:%d\n", use_thermistors);
  
      i = use_thermistors ? 2 : 0;
-     for (; i < data->tempnr; i++) {
-+        reg = pc87360_read_value(data, LD_TEMP, i,
-+                     PC87365_REG_TEMP_STATUS);
-+        dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i+1, reg);
-         if (init >= init_temp[i]) {
+@@ -1180,7 +1191,7 @@ static void pc87360_init_device(struct 
+platform_device *pdev,
              /* Forcibly enable temperature channel */
--            reg = pc87360_read_value(data, LD_TEMP, i,
--                         PC87365_REG_TEMP_STATUS);
-             if (!(reg & CHAN_ENA)) {
+             reg = pc87360_read_value(data, LD_TEMP, i,
+                          PC87365_REG_TEMP_STATUS);
+-            if (!(reg & 0x01)) {
++            if (!(reg & CHAN_ENA)) {
                  dev_dbg(&pdev->dev, "Forcibly "
                      "enabling temp%d\n", i+1);
-@@ -1359,6 +1365,7 @@ static void pc87360_init_device(struct 
+                 pc87360_write_value(data, LD_TEMP, i,
+@@ -1197,7 +1208,7 @@ static void pc87360_init_device(struct 
+platform_device *pdev,
+                    diodes */
+                 reg = pc87360_read_value(data, LD_TEMP,
+                       (i-11)/2, PC87365_REG_TEMP_STATUS);
+-                if (reg & 0x01) {
++                if (reg & CHAN_ENA) {
+                     dev_dbg(&pdev->dev, "Skipping "
+                         "temp%d, pin already in use "
+                         "by temp%d\n", i-7, (i-11)/2);
+@@ -1207,7 +1218,7 @@ static void pc87360_init_device(struct 
+platform_device *pdev,
+                 /* Forcibly enable thermistor channel */
+                 reg = pc87360_read_value(data, LD_IN, i,
+                              PC87365_REG_IN_STATUS);
+-                if (!(reg & 0x01)) {
++                if (!(reg & CHAN_ENA)) {
+                     dev_dbg(&pdev->dev, "Forcibly "
+                         "enabling temp%d\n", i-7);
+                     pc87360_write_value(data, LD_IN, i,
+@@ -1221,7 +1232,7 @@ static void pc87360_init_device(struct 
 platform_device *pdev,
      if (data->innr) {
          reg = pc87360_read_value(data, LD_IN, NO_BANK,
                       PC87365_REG_IN_CONFIG);
-+        dev_dbg(&pdev->dev, "bios vin-cfg:0x%02x\n", reg);
-         if (reg & CHAN_ENA) {
+-        if (reg & 0x01) {
++        if (reg & CHAN_ENA) {
              dev_dbg(&pdev->dev, "Forcibly "
                  "enabling monitoring (VLM)\n");
-@@ -1371,6 +1378,7 @@ static void pc87360_init_device(struct 
+             pc87360_write_value(data, LD_IN, NO_BANK,
+@@ -1233,7 +1244,7 @@ static void pc87360_init_device(struct 
 platform_device *pdev,
      if (data->tempnr) {
          reg = pc87360_read_value(data, LD_TEMP, NO_BANK,
                       PC87365_REG_TEMP_CONFIG);
-+        dev_dbg(&pdev->dev, "bios temp-cfg:0x%02x\n", reg);
-         if (reg & CHAN_ENA) {
+-        if (reg & 0x01) {
++        if (reg & CHAN_ENA) {
              dev_dbg(&pdev->dev, "Forcibly enabling "
                  "monitoring (TMS)\n");
+             pc87360_write_value(data, LD_TEMP, NO_BANK,
+@@ -1336,11 +1347,11 @@ static struct pc87360_data 
+*pc87360_update_device(struct device
+*dev)
+             pc87360_write_value(data, LD_IN, i,
+                         PC87365_REG_IN_STATUS,
+                         data->in_status[i]);
+-            if ((data->in_status[i] & 0x81) == 0x81) {
++            if ((data->in_status[i] & CHAN_READY) == CHAN_READY) {
+                 data->in[i] = pc87360_read_value(data, LD_IN,
+                           i, PC87365_REG_IN);
+             }
+-            if (data->in_status[i] & 0x01) {
++            if (data->in_status[i] & CHAN_ENA) {
+                 data->in_min[i] = pc87360_read_value(data,
+                           LD_IN, i,
+                           PC87365_REG_IN_MIN);
+@@ -1373,12 +1384,12 @@ static struct pc87360_data 
+*pc87360_update_device(struct device
+*dev)
+             pc87360_write_value(data, LD_TEMP, i,
+                         PC87365_REG_TEMP_STATUS,
+                         data->temp_status[i]);
+-            if ((data->temp_status[i] & 0x81) == 0x81) {
++            if ((data->temp_status[i] & CHAN_READY) == CHAN_READY) {
+                 data->temp[i] = pc87360_read_value(data,
+                         LD_TEMP, i,
+                         PC87365_REG_TEMP);
+             }
+-            if (data->temp_status[i] & 0x01) {
++            if (data->temp_status[i] & CHAN_ENA) {
+                 data->temp_min[i] = pc87360_read_value(data,
+                             LD_TEMP, i,
+                             PC87365_REG_TEMP_MIN);
 -- 
 1.5.5.1
 
 
---------------070904010807060005030306
+--------------090605000001050401080502
 Content-Type: text/x-patch;
-	name="0005-hwmon-pc87360-separate-alarm-files-add-dev_dbg-hel.patch"
+	name="0001-hwmon-pc87360-separate-alarm-files-define-some-con.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename*0="0005-hwmon-pc87360-separate-alarm-files-add-dev_dbg-hel.patc";
+	filename*0="0001-hwmon-pc87360-separate-alarm-files-define-some-con.patc";
 	filename*1="h"
 
-From a65aa33f5fac6543cf390c9acbcbd2011f3ffe3d Mon Sep 17 00:00:00 2001
+From 0e1c287f862cd4a7fa695f0ea7dda4a06f65a7ef Mon Sep 17 00:00:00 2001
 From: Jim Cromie <jim.cromie@gmail.com>
-Date: Sat, 28 Jun 2008 20:42:24 -0600
-Subject: [PATCH] hwmon/pc87360 separate alarm files - add dev_dbg help
+Date: Sat, 28 Jun 2008 11:59:19 -0600
+Subject: [PATCH] hwmon/pc87360 separate alarm files - define some constants
 
-temp and vin status register values may be set by chip specifications,
-set again by bios, or by this previously loaded driver.
-Debug output nicely displays modprobe init=\d actions.
+2 different kinds of constants added:
+- CHAN_ALM_* constants for (later) vin, temp alarm callbacks.
+- CHAN_* conversion constants, used in _init_device, partly for RW1C bits
 
 Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
 ---
- drivers/hwmon/pc87360.c |   16 ++++++++++++----
- 1 files changed, 12 insertions(+), 4 deletions(-)
+ drivers/hwmon/pc87360.c |   33 ++++++++++++++++++++++-----------
+ 1 files changed, 22 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index ebb235b..cf265d2 100644
+index 9b462bb..1043b11 100644
 --- a/drivers/hwmon/pc87360.c
 +++ b/drivers/hwmon/pc87360.c
-@@ -1290,10 +1290,11 @@ static void pc87360_init_device(struct platform_device *pdev,
+@@ -489,6 +489,11 @@ static struct sensor_device_attribute in_max[] = {
+ 	SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
+ };
  
- 	nr = data->innr < 11 ? data->innr : 11;
- 	for (i = 0; i < nr; i++) {
-+		reg = pc87360_read_value(data, LD_IN, i,
-+					 PC87365_REG_IN_STATUS);
-+		dev_dbg(&pdev->dev, "bios in%d status:0x%02x\n", i, reg);
- 		if (init >= init_in[i]) {
++/* (temp & vin) channel status register alarm bits (pdf sec.11.5.12) */
++#define CHAN_ALM_MIN	0x02	/* min limit crossed */
++#define CHAN_ALM_MAX	0x04	/* max limit exceeded */
++#define TEMP_ALM_CRIT	0x08	/* temp crit exceeded (temp only) */
++
+ #define VIN_UNIT_ATTRS(X) \
+ 	&in_input[X].dev_attr.attr,	\
+ 	&in_status[X].dev_attr.attr,	\
+@@ -1131,6 +1136,12 @@ static void pc87360_write_value(struct pc87360_data *data, u8 ldi, u8 bank,
+ 	mutex_unlock(&(data->lock));
+ }
+ 
++/* (temp & vin) channel conversion status register flags (pdf sec.11.5.12) */
++#define CHAN_CNVRTD	0x80	/* new data ready */
++#define CHAN_ENA	0x01	/* enabled channel (temp or vin) */
++#define CHAN_ALM_ENA	0x10	/* propagate to alarms-reg ?? (chk val!) */
++#define CHAN_READY	(CHAN_ENA|CHAN_CNVRTD) /* sample ready mask */
++
+ static void pc87360_init_device(struct platform_device *pdev,
+ 				int use_thermistors)
+ {
+@@ -1156,7 +1167,7 @@ static void pc87360_init_device(struct platform_device *pdev,
  			/* Forcibly enable voltage channel */
--			reg = pc87360_read_value(data, LD_IN, i,
--						 PC87365_REG_IN_STATUS);
- 			if (!(reg & CHAN_ENA)) {
+ 			reg = pc87360_read_value(data, LD_IN, i,
+ 						 PC87365_REG_IN_STATUS);
+-			if (!(reg & 0x01)) {
++			if (!(reg & CHAN_ENA)) {
  				dev_dbg(&pdev->dev, "Forcibly "
  					"enabling in%d\n", i);
-@@ -1306,18 +1307,23 @@ static void pc87360_init_device(struct platform_device *pdev,
- 
- 	/* We can't blindly trust the Super-I/O space configuration bit,
- 	   most BIOS won't set it properly */
-+	dev_dbg(&pdev->dev, "bios thermistors:%d\n", use_thermistors);
+ 				pc87360_write_value(data, LD_IN, i,
+@@ -1171,7 +1182,7 @@ static void pc87360_init_device(struct platform_device *pdev,
  	for (i = 11; i < data->innr; i++) {
  		reg = pc87360_read_value(data, LD_IN, i,
  					 PC87365_REG_TEMP_STATUS);
- 		use_thermistors = use_thermistors || (reg & CHAN_ENA);
-+		/* thermistors are temp[4-6], measured on vin[11-14] */
-+		dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i-7, reg);
+-		use_thermistors = use_thermistors || (reg & 0x01);
++		use_thermistors = use_thermistors || (reg & CHAN_ENA);
  	}
-+	dev_dbg(&pdev->dev, "using thermistors:%d\n", use_thermistors);
  
  	i = use_thermistors ? 2 : 0;
- 	for (; i < data->tempnr; i++) {
-+		reg = pc87360_read_value(data, LD_TEMP, i,
-+					 PC87365_REG_TEMP_STATUS);
-+		dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i+1, reg);
- 		if (init >= init_temp[i]) {
+@@ -1180,7 +1191,7 @@ static void pc87360_init_device(struct platform_device *pdev,
  			/* Forcibly enable temperature channel */
--			reg = pc87360_read_value(data, LD_TEMP, i,
--						 PC87365_REG_TEMP_STATUS);
- 			if (!(reg & CHAN_ENA)) {
+ 			reg = pc87360_read_value(data, LD_TEMP, i,
+ 						 PC87365_REG_TEMP_STATUS);
+-			if (!(reg & 0x01)) {
++			if (!(reg & CHAN_ENA)) {
  				dev_dbg(&pdev->dev, "Forcibly "
  					"enabling temp%d\n", i+1);
-@@ -1359,6 +1365,7 @@ static void pc87360_init_device(struct platform_device *pdev,
+ 				pc87360_write_value(data, LD_TEMP, i,
+@@ -1197,7 +1208,7 @@ static void pc87360_init_device(struct platform_device *pdev,
+ 				   diodes */
+ 				reg = pc87360_read_value(data, LD_TEMP,
+ 				      (i-11)/2, PC87365_REG_TEMP_STATUS);
+-				if (reg & 0x01) {
++				if (reg & CHAN_ENA) {
+ 					dev_dbg(&pdev->dev, "Skipping "
+ 						"temp%d, pin already in use "
+ 						"by temp%d\n", i-7, (i-11)/2);
+@@ -1207,7 +1218,7 @@ static void pc87360_init_device(struct platform_device *pdev,
+ 				/* Forcibly enable thermistor channel */
+ 				reg = pc87360_read_value(data, LD_IN, i,
+ 							 PC87365_REG_IN_STATUS);
+-				if (!(reg & 0x01)) {
++				if (!(reg & CHAN_ENA)) {
+ 					dev_dbg(&pdev->dev, "Forcibly "
+ 						"enabling temp%d\n", i-7);
+ 					pc87360_write_value(data, LD_IN, i,
+@@ -1221,7 +1232,7 @@ static void pc87360_init_device(struct platform_device *pdev,
  	if (data->innr) {
  		reg = pc87360_read_value(data, LD_IN, NO_BANK,
  					 PC87365_REG_IN_CONFIG);
-+		dev_dbg(&pdev->dev, "bios vin-cfg:0x%02x\n", reg);
- 		if (reg & CHAN_ENA) {
+-		if (reg & 0x01) {
++		if (reg & CHAN_ENA) {
  			dev_dbg(&pdev->dev, "Forcibly "
  				"enabling monitoring (VLM)\n");
-@@ -1371,6 +1378,7 @@ static void pc87360_init_device(struct platform_device *pdev,
+ 			pc87360_write_value(data, LD_IN, NO_BANK,
+@@ -1233,7 +1244,7 @@ static void pc87360_init_device(struct platform_device *pdev,
  	if (data->tempnr) {
  		reg = pc87360_read_value(data, LD_TEMP, NO_BANK,
  					 PC87365_REG_TEMP_CONFIG);
-+		dev_dbg(&pdev->dev, "bios temp-cfg:0x%02x\n", reg);
- 		if (reg & CHAN_ENA) {
+-		if (reg & 0x01) {
++		if (reg & CHAN_ENA) {
  			dev_dbg(&pdev->dev, "Forcibly enabling "
  				"monitoring (TMS)\n");
+ 			pc87360_write_value(data, LD_TEMP, NO_BANK,
+@@ -1336,11 +1347,11 @@ static struct pc87360_data *pc87360_update_device(struct device *dev)
+ 			pc87360_write_value(data, LD_IN, i,
+ 					    PC87365_REG_IN_STATUS,
+ 					    data->in_status[i]);
+-			if ((data->in_status[i] & 0x81) == 0x81) {
++			if ((data->in_status[i] & CHAN_READY) == CHAN_READY) {
+ 				data->in[i] = pc87360_read_value(data, LD_IN,
+ 					      i, PC87365_REG_IN);
+ 			}
+-			if (data->in_status[i] & 0x01) {
++			if (data->in_status[i] & CHAN_ENA) {
+ 				data->in_min[i] = pc87360_read_value(data,
+ 						  LD_IN, i,
+ 						  PC87365_REG_IN_MIN);
+@@ -1373,12 +1384,12 @@ static struct pc87360_data *pc87360_update_device(struct device *dev)
+ 			pc87360_write_value(data, LD_TEMP, i,
+ 					    PC87365_REG_TEMP_STATUS,
+ 					    data->temp_status[i]);
+-			if ((data->temp_status[i] & 0x81) == 0x81) {
++			if ((data->temp_status[i] & CHAN_READY) == CHAN_READY) {
+ 				data->temp[i] = pc87360_read_value(data,
+ 						LD_TEMP, i,
+ 						PC87365_REG_TEMP);
+ 			}
+-			if (data->temp_status[i] & 0x01) {
++			if (data->temp_status[i] & CHAN_ENA) {
+ 				data->temp_min[i] = pc87360_read_value(data,
+ 						    LD_TEMP, i,
+ 						    PC87365_REG_TEMP_MIN);
 -- 
 1.5.5.1
 
 
---------------070904010807060005030306
+--------------090605000001050401080502
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -192,4 +322,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------070904010807060005030306--
+--------------090605000001050401080502--
