@@ -1,529 +1,856 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Mon, 29 Sep 2008 14:50:02 +0000
-Subject: Re: [lm-sensors] Fwd: Re: Fwd: Re: c7temp module for lm-sensors
-Message-Id: <191fb4ca0809290750u1016d21bv267d1a1dea4a5e9@mail.gmail.com>
+From: Wolfgang Grandegger <wg@grandegger.com>
+Date: Sat, 13 Sep 2008 08:55:22 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: w83781d: use new style driver
+Message-Id: <48CB7FFA.10202@grandegger.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0809062210i10fa6f47nb8fa43f2a6cda2e0@mail.gmail.com>
-In-Reply-To: <191fb4ca0809062210i10fa6f47nb8fa43f2a6cda2e0@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Justin,
+This patch modifies the w83781d driver to use new style driver binding.
+Substantial code modifications are required to deal with the new
+interface, especially legacy device detection.
 
-Sorry for the late reply.
+Signed-off-by: Wolfgang Grandegger <wg@grandegger.com>
+---
+ drivers/hwmon/w83781d.c |  615 +++++++++++++++++++++---------------------------
+ 1 file changed, 278 insertions(+), 337 deletions(-)
 
-The temp value is returned in the EAX register (0xC000002) but in your
-case it's all zero. I don't know why that is. I also noticed, that
-your CPU has a 0xC000003 perf register whereas my datasheet only
-defines perf registers up to 0xC0000002. I'll try to get a newer
-datasheet from VIA, maybe something changed.
+Index: linux-2.6-denx/drivers/hwmon/w83781d.c
+=================================--- linux-2.6-denx.orig/drivers/hwmon/w83781d.c
++++ linux-2.6-denx/drivers/hwmon/w83781d.c
+@@ -205,7 +205,7 @@ DIV_TO_REG(long val, enum chips type)
+ /* For ISA chips, we abuse the i2c_client addr and name fields. We also use
+    the driver field to differentiate between I2C and ISA chips. */
+ struct w83781d_data {
+-	struct i2c_client client;
++	struct i2c_client *client;
+ 	struct device *hwmon_dev;
+ 	struct mutex lock;
+ 	enum chips type;
+@@ -240,25 +240,11 @@ struct w83781d_data {
+ 	u8 vrm;
+ };
+ 
+-static struct w83781d_data *w83781d_data_if_isa(void);
+-static int w83781d_alias_detect(struct i2c_client *client, u8 chipid);
+-
+-static int w83781d_attach_adapter(struct i2c_adapter *adapter);
+-static int w83781d_detect(struct i2c_adapter *adapter, int address, int kind);
+-static int w83781d_detach_client(struct i2c_client *client);
++static int w83781d_alias_detect(struct i2c_client *client);
+ 
+ static int w83781d_read_value(struct w83781d_data *data, u16 reg);
+ static int w83781d_write_value(struct w83781d_data *data, u16 reg, u16 value);
+ static struct w83781d_data *w83781d_update_device(struct device *dev);
+-static void w83781d_init_device(struct device *dev);
+-
+-static struct i2c_driver w83781d_driver = {
+-	.driver = {
+-		.name = "w83781d",
+-	},
+-	.attach_adapter = w83781d_attach_adapter,
+-	.detach_client = w83781d_detach_client,
+-};
+ 
+ /* following are the sysfs callback functions */
+ #define show_in_reg(reg) \
+@@ -821,46 +807,16 @@ static SENSOR_DEVICE_ATTR(temp2_type, S_
+ static SENSOR_DEVICE_ATTR(temp3_type, S_IRUGO | S_IWUSR,
+ 	show_sensor, store_sensor, 2);
+ 
+-/* This function is called when:
+-     * w83781d_driver is inserted (when this module is loaded), for each
+-       available adapter
+-     * when a new adapter is inserted (and w83781d_driver is still present)
+-   We block updates of the ISA device to minimize the risk of concurrent
+-   access to the same W83781D chip through different interfaces. */
+-static int
+-w83781d_attach_adapter(struct i2c_adapter *adapter)
+-{
+-	struct w83781d_data *data = w83781d_data_if_isa();
+-	int err;
+-
+-	if (!(adapter->class & I2C_CLASS_HWMON))
+-		return 0;
+-
+-	if (data)
+-		mutex_lock(&data->update_lock);
+-	err = i2c_probe(adapter, &addr_data, w83781d_detect);
+-	if (data)
+-		mutex_unlock(&data->update_lock);
+-	return err;
+-}
+-
+ /* Assumes that adapter is of I2C, not ISA variety.
+  * OTHERWISE DON'T CALL THIS
+  */
+ static int
+-w83781d_detect_subclients(struct i2c_adapter *adapter, int address, int kind,
+-		struct i2c_client *new_client)
++w83781d_detect_subclients(struct i2c_client *new_client)
+ {
+-	int i, val1 = 0, id;
+-	int err;
+-	const char *client_name = "";
+ 	struct w83781d_data *data = i2c_get_clientdata(new_client);
+-
+-	data->lm75[0] = kzalloc(sizeof(struct i2c_client), GFP_KERNEL);
+-	if (!(data->lm75[0])) {
+-		err = -ENOMEM;
+-		goto ERROR_SC_0;
+-	}
++	struct i2c_adapter *adapter = new_client->adapter;
++	int i, val1 = 0, id, err;
++	int address = new_client->addr;
+ 
+ 	id = i2c_adapter_id(adapter);
+ 
+@@ -872,31 +828,39 @@ w83781d_detect_subclients(struct i2c_ada
+ 					"address %d; must be 0x48-0x4f\n",
+ 					force_subclients[i]);
+ 				err = -EINVAL;
+-				goto ERROR_SC_1;
++				goto ERROR_SC_0;
+ 			}
+ 		}
+ 		w83781d_write_value(data, W83781D_REG_I2C_SUBADDR,
+ 				(force_subclients[2] & 0x07) |
+ 				((force_subclients[3] & 0x07) << 4));
+-		data->lm75[0]->addr = force_subclients[2];
++		data->lm75[0] = i2c_new_dummy(adapter, force_subclients[2]);
+ 	} else {
+ 		val1 = w83781d_read_value(data, W83781D_REG_I2C_SUBADDR);
+-		data->lm75[0]->addr = 0x48 + (val1 & 0x07);
++		data->lm75[0] = i2c_new_dummy(adapter, 0x48 + (val1 & 0x07));
++	}
++	if (!data->lm75[0]) {
++		dev_err(&new_client->dev,
++			"subclient 0 registration failed\n");
++		err = -ENOMEM;
++		goto ERROR_SC_0;
+ 	}
+ 
+-	if (kind != w83783s) {
+-		data->lm75[1] = kzalloc(sizeof(struct i2c_client), GFP_KERNEL);
+-		if (!(data->lm75[1])) {
++	if (data->type != w83783s) {
++		if (force_subclients[0] = id &&
++		    force_subclients[1] = address)
++			data->lm75[1] +				i2c_new_dummy(adapter, force_subclients[3]);
++		else
++			data->lm75[1] +				i2c_new_dummy(adapter,
++					      0x48 + ((val1 >> 4) & 0x07));
++		if (!data->lm75[1]) {
++			dev_err(&new_client->dev,
++				"subclient 1 registration failed\n");
+ 			err = -ENOMEM;
+ 			goto ERROR_SC_1;
+ 		}
+-
+-		if (force_subclients[0] = id &&
+-		    force_subclients[1] = address) {
+-			data->lm75[1]->addr = force_subclients[3];
+-		} else {
+-			data->lm75[1]->addr = 0x48 + ((val1 >> 4) & 0x07);
+-		}
+ 		if (data->lm75[0]->addr = data->lm75[1]->addr) {
+ 			dev_err(&new_client->dev,
+ 			       "Duplicate addresses 0x%x for subclients.\n",
+@@ -905,45 +869,13 @@ w83781d_detect_subclients(struct i2c_ada
+ 			goto ERROR_SC_2;
+ 		}
+ 	}
+-
+-	if (kind = w83781d)
+-		client_name = "w83781d subclient";
+-	else if (kind = w83782d)
+-		client_name = "w83782d subclient";
+-	else if (kind = w83783s)
+-		client_name = "w83783s subclient";
+-	else if (kind = as99127f)
+-		client_name = "as99127f subclient";
+-
+-	for (i = 0; i <= 1; i++) {
+-		/* store all data in w83781d */
+-		i2c_set_clientdata(data->lm75[i], NULL);
+-		data->lm75[i]->adapter = adapter;
+-		data->lm75[i]->driver = &w83781d_driver;
+-		data->lm75[i]->flags = 0;
+-		strlcpy(data->lm75[i]->name, client_name,
+-			I2C_NAME_SIZE);
+-		if ((err = i2c_attach_client(data->lm75[i]))) {
+-			dev_err(&new_client->dev, "Subclient %d "
+-				"registration at address 0x%x "
+-				"failed.\n", i, data->lm75[i]->addr);
+-			if (i = 1)
+-				goto ERROR_SC_3;
+-			goto ERROR_SC_2;
+-		}
+-		if (kind = w83783s)
+-			break;
+-	}
+-
+ 	return 0;
+ 
+-/* Undo inits in case of errors */
+-ERROR_SC_3:
+-	i2c_detach_client(data->lm75[0]);
++	/* Undo inits in case of errors */
+ ERROR_SC_2:
+-	kfree(data->lm75[1]);
++	i2c_unregister_device(data->lm75[1]);
+ ERROR_SC_1:
+-	kfree(data->lm75[0]);
++	i2c_unregister_device(data->lm75[0]);
+ ERROR_SC_0:
+ 	return err;
+ }
+@@ -1111,216 +1043,11 @@ w83781d_create_files(struct device *dev,
+ }
+ 
+ static int
+-w83781d_detect(struct i2c_adapter *adapter, int address, int kind)
+-{
+-	int val1 = 0, val2;
+-	struct i2c_client *client;
+-	struct device *dev;
+-	struct w83781d_data *data;
+-	int err;
+-	const char *client_name = "";
+-	enum vendor { winbond, asus } vendid;
+-
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+-		err = -EINVAL;
+-		goto ERROR1;
+-	}
+-
+-	/* OK. For now, we presume we have a valid client. We now create the
+-	   client structure, even though we cannot fill it completely yet.
+-	   But it allows us to access w83781d_{read,write}_value. */
+-
+-	if (!(data = kzalloc(sizeof(struct w83781d_data), GFP_KERNEL))) {
+-		err = -ENOMEM;
+-		goto ERROR1;
+-	}
+-
+-	client = &data->client;
+-	i2c_set_clientdata(client, data);
+-	client->addr = address;
+-	mutex_init(&data->lock);
+-	client->adapter = adapter;
+-	client->driver = &w83781d_driver;
+-	dev = &client->dev;
+-
+-	/* Now, we do the remaining detection. */
+-
+-	/* The w8378?d may be stuck in some other bank than bank 0. This may
+-	   make reading other information impossible. Specify a force=... or
+-	   force_*=... parameter, and the Winbond will be reset to the right
+-	   bank. */
+-	if (kind < 0) {
+-		if (w83781d_read_value(data, W83781D_REG_CONFIG) & 0x80) {
+-			dev_dbg(&adapter->dev, "Detection of w83781d chip "
+-				"failed at step 3\n");
+-			err = -ENODEV;
+-			goto ERROR2;
+-		}
+-		val1 = w83781d_read_value(data, W83781D_REG_BANK);
+-		val2 = w83781d_read_value(data, W83781D_REG_CHIPMAN);
+-		/* Check for Winbond or Asus ID if in bank 0 */
+-		if ((!(val1 & 0x07)) &&
+-		    (((!(val1 & 0x80)) && (val2 != 0xa3) && (val2 != 0xc3))
+-		     || ((val1 & 0x80) && (val2 != 0x5c) && (val2 != 0x12)))) {
+-			dev_dbg(&adapter->dev, "Detection of w83781d chip "
+-				"failed at step 4\n");
+-			err = -ENODEV;
+-			goto ERROR2;
+-		}
+-		/* If Winbond SMBus, check address at 0x48.
+-		   Asus doesn't support, except for as99127f rev.2 */
+-		if ((!(val1 & 0x80) && (val2 = 0xa3)) ||
+-		    ((val1 & 0x80) && (val2 = 0x5c))) {
+-			if (w83781d_read_value
+-			    (data, W83781D_REG_I2C_ADDR) != address) {
+-				dev_dbg(&adapter->dev, "Detection of w83781d "
+-					"chip failed at step 5\n");
+-				err = -ENODEV;
+-				goto ERROR2;
+-			}
+-		}
+-	}
+-
+-	/* We have either had a force parameter, or we have already detected the
+-	   Winbond. Put it now into bank 0 and Vendor ID High Byte */
+-	w83781d_write_value(data, W83781D_REG_BANK,
+-			    (w83781d_read_value(data, W83781D_REG_BANK)
+-			     & 0x78) | 0x80);
+-
+-	/* Determine the chip type. */
+-	if (kind <= 0) {
+-		/* get vendor ID */
+-		val2 = w83781d_read_value(data, W83781D_REG_CHIPMAN);
+-		if (val2 = 0x5c)
+-			vendid = winbond;
+-		else if (val2 = 0x12)
+-			vendid = asus;
+-		else {
+-			dev_dbg(&adapter->dev, "w83781d chip vendor is "
+-				"neither Winbond nor Asus\n");
+-			err = -ENODEV;
+-			goto ERROR2;
+-		}
+-
+-		val1 = w83781d_read_value(data, W83781D_REG_WCHIPID);
+-		if ((val1 = 0x10 || val1 = 0x11) && vendid = winbond)
+-			kind = w83781d;
+-		else if (val1 = 0x30 && vendid = winbond)
+-			kind = w83782d;
+-		else if (val1 = 0x40 && vendid = winbond && address = 0x2d)
+-			kind = w83783s;
+-		else if (val1 = 0x31)
+-			kind = as99127f;
+-		else {
+-			if (kind = 0)
+-				dev_warn(&adapter->dev, "Ignoring 'force' "
+-					 "parameter for unknown chip at "
+-					 "address 0x%02x\n", address);
+-			err = -EINVAL;
+-			goto ERROR2;
+-		}
+-
+-		if ((kind = w83781d || kind = w83782d)
+-		 && w83781d_alias_detect(client, val1)) {
+-			dev_dbg(&adapter->dev, "Device at 0x%02x appears to "
+-				"be the same as ISA device\n", address);
+-			err = -ENODEV;
+-			goto ERROR2;
+-		}
+-	}
+-
+-	if (kind = w83781d) {
+-		client_name = "w83781d";
+-	} else if (kind = w83782d) {
+-		client_name = "w83782d";
+-	} else if (kind = w83783s) {
+-		client_name = "w83783s";
+-	} else if (kind = as99127f) {
+-		client_name = "as99127f";
+-	}
+-
+-	/* Fill in the remaining client fields and put into the global list */
+-	strlcpy(client->name, client_name, I2C_NAME_SIZE);
+-	data->type = kind;
+-
+-	/* Tell the I2C layer a new client has arrived */
+-	if ((err = i2c_attach_client(client)))
+-		goto ERROR2;
+-
+-	/* attach secondary i2c lm75-like clients */
+-	if ((err = w83781d_detect_subclients(adapter, address,
+-			kind, client)))
+-		goto ERROR3;
+-
+-	/* Initialize the chip */
+-	w83781d_init_device(dev);
+-
+-	/* Register sysfs hooks */
+-	err = w83781d_create_files(dev, kind, 0);
+-	if (err)
+-		goto ERROR4;
+-
+-	data->hwmon_dev = hwmon_device_register(dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto ERROR4;
+-	}
+-
+-	return 0;
+-
+-ERROR4:
+-	sysfs_remove_group(&dev->kobj, &w83781d_group);
+-	sysfs_remove_group(&dev->kobj, &w83781d_group_opt);
+-
+-	if (data->lm75[1]) {
+-		i2c_detach_client(data->lm75[1]);
+-		kfree(data->lm75[1]);
+-	}
+-	if (data->lm75[0]) {
+-		i2c_detach_client(data->lm75[0]);
+-		kfree(data->lm75[0]);
+-	}
+-ERROR3:
+-	i2c_detach_client(client);
+-ERROR2:
+-	kfree(data);
+-ERROR1:
+-	return err;
+-}
+-
+-static int
+-w83781d_detach_client(struct i2c_client *client)
++w83781d_read_value_i2c(struct i2c_client *client, u16 reg)
+ {
+ 	struct w83781d_data *data = i2c_get_clientdata(client);
+-	int err;
+-
+-	/* main client */
+-	if (data) {
+-		hwmon_device_unregister(data->hwmon_dev);
+-		sysfs_remove_group(&client->dev.kobj, &w83781d_group);
+-		sysfs_remove_group(&client->dev.kobj, &w83781d_group_opt);
+-	}
+-
+-	if ((err = i2c_detach_client(client)))
+-		return err;
+-
+-	/* main client */
+-	if (data)
+-		kfree(data);
+-
+-	/* subclient */
+-	else
+-		kfree(client);
+-
+-	return 0;
+-}
+-
+-static int
+-w83781d_read_value_i2c(struct w83781d_data *data, u16 reg)
+-{
+-	struct i2c_client *client = &data->client;
+-	int res, bank;
+ 	struct i2c_client *cl;
++	int res = 0, bank;
+ 
+ 	bank = (reg >> 8) & 0x0f;
+ 	if (bank > 2)
+@@ -1329,7 +1056,7 @@ w83781d_read_value_i2c(struct w83781d_da
+ 					  bank);
+ 	if (bank = 0 || bank > 2) {
+ 		res = i2c_smbus_read_byte_data(client, reg & 0xff);
+-	} else {
++	} else if (data) {
+ 		/* switch to subclient */
+ 		cl = data->lm75[bank - 1];
+ 		/* convert from ISA to LM75 I2C addresses */
+@@ -1356,9 +1083,9 @@ w83781d_read_value_i2c(struct w83781d_da
+ }
+ 
+ static int
+-w83781d_write_value_i2c(struct w83781d_data *data, u16 reg, u16 value)
++w83781d_write_value_i2c(struct i2c_client *client, u16 reg, u16 value)
+ {
+-	struct i2c_client *client = &data->client;
++	struct w83781d_data *data = i2c_get_clientdata(client);
+ 	struct i2c_client *cl;
+ 	int bank;
+ 
+@@ -1370,7 +1097,7 @@ w83781d_write_value_i2c(struct w83781d_d
+ 	if (bank = 0 || bank > 2) {
+ 		i2c_smbus_write_byte_data(client, reg & 0xff,
+ 					  value & 0xff);
+-	} else {
++	} else if (data) {
+ 		/* switch to subclient */
+ 		cl = data->lm75[bank - 1];
+ 		/* convert from ISA to LM75 I2C addresses */
+@@ -1495,7 +1222,7 @@ w83781d_init_device(struct device *dev)
+ static struct w83781d_data *w83781d_update_device(struct device *dev)
+ {
+ 	struct w83781d_data *data = dev_get_drvdata(dev);
+-	struct i2c_client *client = &data->client;
++	struct i2c_client *client = data->client;
+ 	int i;
+ 
+ 	mutex_lock(&data->update_lock);
+@@ -1608,6 +1335,225 @@ static struct w83781d_data *w83781d_upda
+ 	return data;
+ }
+ 
++static int
++w83781d_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++	struct i2c_adapter *adapter = client->adapter;
++	struct device *dev = &client->dev;
++	struct w83781d_data *data;
++	int err;
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
++		err = -EINVAL;
++		goto ERROR1;
++	}
++
++	data = kzalloc(sizeof(struct w83781d_data), GFP_KERNEL);
++	if (!data) {
++		err = -ENOMEM;
++		goto ERROR1;
++	}
++
++	i2c_set_clientdata(client, data);
++	mutex_init(&data->lock);
++	mutex_init(&data->update_lock);
++
++	data->type = id->driver_data;
++	data->client = client;
++
++	if ((data->type = w83781d || data->type = w83782d) &&
++	    w83781d_alias_detect(client)) {
++		dev_dbg(&adapter->dev, "Device at 0x%02x appears to "
++			"be the same as ISA device\n", client->addr);
++		err = -ENODEV;
++		goto ERROR1;
++	}
++
++	/* attach secondary i2c lm75-like clients */
++	err = w83781d_detect_subclients(client);
++	if (err)
++		goto ERROR2;
++
++	/* Initialize the chip */
++	w83781d_init_device(dev);
++
++	/* Register sysfs hooks */
++	err = w83781d_create_files(dev, data->type, 0);
++	if (err)
++		goto ERROR3;
++
++	data->hwmon_dev = hwmon_device_register(dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto ERROR3;
++	}
++
++	dev_info(&client->dev, "%s: sensor '%s'\n",
++		 data->hwmon_dev->bus_id, client->name);
++
++	return 0;
++
++ERROR3:
++	sysfs_remove_group(&dev->kobj, &w83781d_group);
++	sysfs_remove_group(&dev->kobj, &w83781d_group_opt);
++
++	if (data->lm75[1])
++		i2c_unregister_device(data->lm75[0]);
++	if (data->lm75[1])
++		i2c_unregister_device(data->lm75[1]);
++ERROR2:
++	i2c_set_clientdata(client, NULL);
++	kfree(data);
++ERROR1:
++	return err;
++}
++
++static int w83781d_remove(struct i2c_client *client)
++{
++	struct w83781d_data *data = i2c_get_clientdata(client);
++	struct device *dev = &client->dev;
++
++	hwmon_device_unregister(data->hwmon_dev);
++
++	sysfs_remove_group(&dev->kobj, &w83781d_group);
++	sysfs_remove_group(&dev->kobj, &w83781d_group_opt);
++
++	if (data->lm75[1])
++		i2c_unregister_device(data->lm75[0]);
++	if (data->lm75[1])
++		i2c_unregister_device(data->lm75[1]);
++
++	i2c_set_clientdata(client, NULL);
++	kfree(data);
++
++	return 0;
++}
++
++/* Return 0 if detection is successful, -ENODEV otherwise */
++static int  w83781d_detect(struct i2c_client *client, int kind,
++			   struct i2c_board_info *info)
++{
++	int val1 = 0, val2;
++	struct i2c_adapter *adapter = client->adapter;
++	int address = client->addr;
++	const char *client_name = "";
++	enum vendor { winbond, asus } vendid;
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++		return -ENODEV;
++
++	/* The w8378?d may be stuck in some other bank than bank 0. This may
++	   make reading other information impossible. Specify a force=... or
++	   force_*=... parameter, and the Winbond will be reset to the right
++	   bank. */
++	if (kind < 0) {
++		if (w83781d_read_value_i2c(client, W83781D_REG_CONFIG) & 0x80) {
++			dev_dbg(&adapter->dev, "Detection of w83781d chip "
++				"failed at step 3\n");
++			return -ENODEV;
++		}
++		val1 = w83781d_read_value_i2c(client, W83781D_REG_BANK);
++		val2 = w83781d_read_value_i2c(client, W83781D_REG_CHIPMAN);
++		/* Check for Winbond or Asus ID if in bank 0 */
++		if ((!(val1 & 0x07)) &&
++		    (((!(val1 & 0x80)) && (val2 != 0xa3) && (val2 != 0xc3))
++		     || ((val1 & 0x80) && (val2 != 0x5c) && (val2 != 0x12)))) {
++			dev_dbg(&adapter->dev, "Detection of w83781d chip "
++				"failed at step 4\n");
++			return -ENODEV;
++		}
++		/* If Winbond SMBus, check address at 0x48.
++		   Asus doesn't support, except for as99127f rev.2 */
++		if ((!(val1 & 0x80) && (val2 = 0xa3)) ||
++		    ((val1 & 0x80) && (val2 = 0x5c))) {
++			if (w83781d_read_value_i2c
++			    (client, W83781D_REG_I2C_ADDR) != address) {
++				dev_dbg(&adapter->dev, "Detection of w83781d "
++					"chip failed at step 5\n");
++				return -ENODEV;
++			}
++		}
++	}
++
++	/* We have either had a force parameter, or we have already detected the
++	   Winbond. Put it now into bank 0 and Vendor ID High Byte */
++	w83781d_write_value_i2c(client, W83781D_REG_BANK,
++		(w83781d_read_value_i2c(client, W83781D_REG_BANK)
++		 & 0x78) | 0x80);
++
++	/* Determine the chip type. */
++	if (kind <= 0) {
++		/* get vendor ID */
++		val2 = w83781d_read_value_i2c(client, W83781D_REG_CHIPMAN);
++		if (val2 = 0x5c)
++			vendid = winbond;
++		else if (val2 = 0x12)
++			vendid = asus;
++		else {
++			dev_dbg(&adapter->dev, "w83781d chip vendor is "
++				"neither Winbond nor Asus\n");
++			return -ENODEV;
++		}
++
++		val1 = w83781d_read_value_i2c(client, W83781D_REG_WCHIPID);
++		if ((val1 = 0x10 || val1 = 0x11) && vendid = winbond)
++			kind = w83781d;
++		else if (val1 = 0x30 && vendid = winbond)
++			kind = w83782d;
++		else if (val1 = 0x40 && vendid = winbond && address = 0x2d)
++			kind = w83783s;
++		else if (val1 = 0x31)
++			kind = as99127f;
++		else {
++			if (kind = 0)
++				dev_warn(&adapter->dev, "Ignoring 'force' "
++					 "parameter for unknown chip at "
++					 "address 0x%02x\n", address);
++			return -ENODEV;
++		}
++	}
++
++	if (kind = w83781d)
++		client_name = "w83781d";
++	else if (kind = w83782d)
++		client_name = "w83782d";
++	else if (kind = w83783s)
++		client_name = "w83783s";
++	else if (kind = as99127f)
++		client_name = "as99127f";
++	else
++		return -ENODEV;
++
++	/* Fill in the remaining client fields and put into the global list */
++	strlcpy(info->type, client_name, I2C_NAME_SIZE);
++
++	return 0;
++}
++
++static const struct i2c_device_id w83781d_ids[] = {
++	{ "w83781d", w83781d, },
++	{ "w83782d", w83782d, },
++	{ "w83783s", w83783s, },
++	{ "as99127f", as99127f },
++	{ /* LIST END */ }
++};
++MODULE_DEVICE_TABLE(i2c, w83781d_ids);
++
++static struct i2c_driver w83781d_driver = {
++	.class		= I2C_CLASS_HWMON,
++	.driver = {
++		.name = "w83781d",
++	},
++	.probe		= w83781d_probe,
++	.remove		= w83781d_remove,
++	.id_table	= w83781d_ids,
++	.detect		= w83781d_detect,
++	.address_data	= &addr_data,
++};
++
++/*
++ * ISA related code
++ */
+ #ifdef CONFIG_ISA
+ 
+ /* ISA device, if found */
+@@ -1621,19 +1567,15 @@ static ssize_t
+ show_name(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct w83781d_data *data = dev_get_drvdata(dev);
+-	return sprintf(buf, "%s\n", data->client.name);
++	return sprintf(buf, "%s\n", data->client->name);
+ }
+ static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
+ 
+-static struct w83781d_data *w83781d_data_if_isa(void)
+-{
+-	return pdev ? platform_get_drvdata(pdev) : NULL;
+-}
+-
+ /* Returns 1 if the I2C chip appears to be an alias of the ISA chip */
+-static int w83781d_alias_detect(struct i2c_client *client, u8 chipid)
++static int w83781d_alias_detect(struct i2c_client *client)
+ {
+ 	struct w83781d_data *i2c, *isa;
++	u8 chipid;
+ 	int i;
+ 
+ 	if (!pdev)	/* No ISA chip */
+@@ -1644,6 +1586,7 @@ static int w83781d_alias_detect(struct i
+ 
+ 	if (w83781d_read_value(isa, W83781D_REG_I2C_ADDR) != client->addr)
+ 		return 0;	/* Address doesn't match */
++	chipid = w83781d_read_value(i2c, W83781D_REG_WCHIPID);
+ 	if (w83781d_read_value(isa, W83781D_REG_WCHIPID) != chipid)
+ 		return 0;	/* Chip type doesn't match */
+ 
+@@ -1667,7 +1610,7 @@ static int w83781d_alias_detect(struct i
+ static int
+ w83781d_read_value_isa(struct w83781d_data *data, u16 reg)
+ {
+-	struct i2c_client *client = &data->client;
++	struct i2c_client *client = data->client;
+ 	int word_sized, res;
+ 
+ 	word_sized = (((reg & 0xff00) = 0x100)
+@@ -1701,7 +1644,7 @@ w83781d_read_value_isa(struct w83781d_da
+ static void
+ w83781d_write_value_isa(struct w83781d_data *data, u16 reg, u16 value)
+ {
+-	struct i2c_client *client = &data->client;
++	struct i2c_client *client = data->client;
+ 	int word_sized;
+ 
+ 	word_sized = (((reg & 0xff00) = 0x100)
+@@ -1738,12 +1681,12 @@ w83781d_write_value_isa(struct w83781d_d
+ static int
+ w83781d_read_value(struct w83781d_data *data, u16 reg)
+ {
+-	struct i2c_client *client = &data->client;
++	struct i2c_client *client = data->client;
+ 	int res;
+ 
+ 	mutex_lock(&data->lock);
+ 	if (client->driver)
+-		res = w83781d_read_value_i2c(data, reg);
++		res = w83781d_read_value_i2c(client, reg);
+ 	else
+ 		res = w83781d_read_value_isa(data, reg);
+ 	mutex_unlock(&data->lock);
+@@ -1753,11 +1696,11 @@ w83781d_read_value(struct w83781d_data *
+ static int
+ w83781d_write_value(struct w83781d_data *data, u16 reg, u16 value)
+ {
+-	struct i2c_client *client = &data->client;
++	struct i2c_client *client = data->client;
+ 
+ 	mutex_lock(&data->lock);
+ 	if (client->driver)
+-		w83781d_write_value_i2c(data, reg, value);
++		w83781d_write_value_i2c(client, reg, value);
+ 	else
+ 		w83781d_write_value_isa(data, reg, value);
+ 	mutex_unlock(&data->lock);
+@@ -1786,8 +1729,8 @@ w83781d_isa_probe(struct platform_device
+ 		goto exit_release_region;
+ 	}
+ 	mutex_init(&data->lock);
+-	data->client.addr = res->start;
+-	i2c_set_clientdata(&data->client, data);
++	data->client->addr = res->start;
++	i2c_set_clientdata(data->client, data);
+ 	platform_set_drvdata(pdev, data);
+ 
+ 	reg = w83781d_read_value(data, W83781D_REG_WCHIPID);
+@@ -1800,7 +1743,7 @@ w83781d_isa_probe(struct platform_device
+ 		data->type = w83781d;
+ 		name = "w83781d";
+ 	}
+-	strlcpy(data->client.name, name, I2C_NAME_SIZE);
++	strlcpy(data->client->name, name, I2C_NAME_SIZE);
+ 
+ 	/* Initialize the W83781D chip */
+ 	w83781d_init_device(&pdev->dev);
+@@ -1842,7 +1785,7 @@ w83781d_isa_remove(struct platform_devic
+ 	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group);
+ 	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group_opt);
+ 	device_remove_file(&pdev->dev, &dev_attr_name);
+-	release_region(data->client.addr + W83781D_ADDR_REG_OFFSET, 2);
++	release_region(data->client->addr + W83781D_ADDR_REG_OFFSET, 2);
+ 	kfree(data);
+ 
+ 	return 0;
+@@ -2027,13 +1970,8 @@ w83781d_isa_unregister(void)
+ }
+ #else /* !CONFIG_ISA */
+ 
+-static struct w83781d_data *w83781d_data_if_isa(void)
+-{
+-	return NULL;
+-}
+-
+ static int
+-w83781d_alias_detect(struct i2c_client *client, u8 chipid)
++w83781d_alias_detect(struct i2c_client *client)
+ {
+ 	return 0;
+ }
+@@ -2041,10 +1979,11 @@ w83781d_alias_detect(struct i2c_client *
+ static int
+ w83781d_read_value(struct w83781d_data *data, u16 reg)
+ {
++	struct i2c_client *client = data->client;
+ 	int res;
+ 
+ 	mutex_lock(&data->lock);
+-	res = w83781d_read_value_i2c(data, reg);
++	res = w83781d_read_value_i2c(client, reg);
+ 	mutex_unlock(&data->lock);
+ 
+ 	return res;
+@@ -2053,8 +1992,10 @@ w83781d_read_value(struct w83781d_data *
+ static int
+ w83781d_write_value(struct w83781d_data *data, u16 reg, u16 value)
+ {
++	struct i2c_client *client = data->client;
++
+ 	mutex_lock(&data->lock);
+-	w83781d_write_value_i2c(data, reg, value);
++	w83781d_write_value_i2c(client, reg, value);
+ 	mutex_unlock(&data->lock);
+ 
+ 	return 0;
+@@ -2089,9 +2030,9 @@ sensors_w83781d_init(void)
+ 
+ 	return 0;
+ 
+- exit_unreg_isa:
++exit_unreg_isa:
+ 	w83781d_isa_unregister();
+- exit:
++exit:
+ 	return res;
+ }
+ 
 
-There's nothing more I can do at the moment, sorry.
-
-...juerg
-
-
-On Wed, Sep 10, 2008 at 10:29 AM, Justin Chudgar <justin@justinzane.com> wr=
-ote:
-> Summary: sensors with the c7temp module loaded on an HP MiniNote 2133 wit=
-h a
-> VIA C7 running Kubuntu Hardy 2.6.24-19-generic show the CPU voltage but
-> always shows "0" for the temperature.
->
-> Here is the output from uname, sensors, cpuid, cpuid -r, lspci:
->
-> Linux justin-mininote 2.6.24-19-generic #1 SMP Wed Aug 20 22:56:21 UTC 20=
-08
-> i686 GNU/Linux
->
-> -------------
->
-> c7temp-isa-0000
->
-> Adapter: ISA adapter
->
-> in0: +0.80 V
->
-> temp1: +0.0=C2=B0C
->
-> -------------
->
-> CPU:
->
-> vendor_id =3D "CentaurHauls"
->
-> version information (1/eax):
->
-> processor type =3D primary processor (0)
->
-> family =3D Intel Pentium Pro/II/III/Celeron, AMD Athlon/Duron, Cyrix M2, =
-VIA
-> C3 (6)
->
-> model =3D 0xd (13)
->
-> stepping id =3D 0x0 (0)
->
-> extended family =3D 0x0 (0)
->
-> extended model =3D 0x0 (0)
->
-> (simple synth) =3D VIA C3 / C3-M / C7 / C7-M / Eden ESP 7000/8000/10000
-> (unknown model)
->
-> miscellaneous (1/ebx):
->
-> process local APIC physical ID =3D 0x0 (0)
->
-> cpu count =3D 0x0 (0)
->
-> CLFLUSH line size =3D 0x8 (8)
->
-> brand index =3D 0x0 (0)
->
-> brand id =3D 0x00 (0): unknown
->
-> feature information (1/edx):
->
-> x87 FPU on chip =3D true
->
-> virtual-8086 mode enhancement =3D true
->
-> debugging extensions =3D true
->
-> page size extensions =3D true
->
-> time stamp counter =3D true
->
-> RDMSR and WRMSR support =3D true
->
-> physical address extensions =3D true
->
-> machine check exception =3D true
->
-> CMPXCHG8B inst. =3D true
->
-> APIC on chip =3D true
->
-> SYSENTER and SYSEXIT =3D true
->
-> memory type range registers =3D true
->
-> PTE global bit =3D true
->
-> machine check architecture =3D false
->
-> conditional move/compare instruction =3D true
->
-> page attribute table =3D true
->
-> page size extension =3D false
->
-> processor serial number =3D false
->
-> CLFLUSH instruction =3D true
->
-> debug store =3D false
->
-> thermal monitor and clock ctrl =3D true
->
-> MMX Technology =3D true
->
-> FXSAVE/FXRSTOR =3D true
->
-> SSE extensions =3D true
->
-> SSE2 extensions =3D true
->
-> self snoop =3D false
->
-> hyper-threading / multi-core supported =3D false
->
-> therm. monitor =3D true
->
-> IA64 =3D false
->
-> pending break event =3D true
->
-> feature information (1/ecx):
->
-> PNI/SSE3: Prescott New Instructions =3D true
->
-> MONITOR/MWAIT =3D false
->
-> CPL-qualified debug store =3D false
->
-> VMX: virtual machine extensions =3D false
->
-> Enhanced Intel SpeedStep Technology =3D true
->
-> thermal monitor 2 =3D true
->
-> context ID: adaptive or shared L1 data =3D false
->
-> cmpxchg16b available =3D false
->
-> xTPR disable =3D true
->
-> extended processor signature (0x80000001/eax):
->
-> generation =3D 0x0 (0)
->
-> model =3D 0x0 (0)
->
-> stepping =3D 0x0 (0)
->
-> (simple synth) =3D unknown
->
-> extended feature flags (0x80000001/edx):
->
-> x87 FPU on chip =3D false
->
-> virtual-8086 mode enhancement =3D false
->
-> debugging extensions =3D false
->
-> page size extensions =3D false
->
-> time stamp counter =3D false
->
-> RDMSR and WRMSR support =3D false
->
-> physical address extensions =3D false
->
-> machine check exception =3D false
->
-> CMPXCHG8B inst. =3D false
->
-> APIC on chip =3D false
->
-> SYSCALL and SYSRET instructions =3D false
->
-> memory type range registers =3D false
->
-> global paging extension =3D false
->
-> machine check architecture =3D false
->
-> conditional move/compare instruction =3D false
->
-> page attribute table =3D false
->
-> page size extension =3D false
->
-> multiprocessing capable =3D false
->
-> AMD multimedia instruction extensions =3D false
->
-> MMX Technology =3D false
->
-> extended MMX =3D false
->
-> SSE extensions =3D false
->
-> AA-64 =3D false
->
-> 3DNow! instruction extensions =3D false
->
-> 3DNow! instructions =3D false
->
-> brand =3D " VIA C7-M Processor 1200MHz"
->
-> L1 TLB/cache information: 2M/4M pages & L1 TLB (0x80000005/eax):
->
-> instruction # entries =3D 0x0 (0)
->
-> instruction associativity =3D 0x0 (0)
->
-> data # entries =3D 0x0 (0)
->
-> data associativity =3D 0x0 (0)
->
-> L1 TLB/cache information: 4K pages & L1 TLB (0x80000005/ebx):
->
-> instruction # entries =3D 0x80 (128)
->
-> instruction associativity =3D 0x8 (8)
->
-> data # entries =3D 0x80 (128)
->
-> data associativity =3D 0x8 (8)
->
-> L1 data cache information (0x80000005/ecx):
->
-> line size (bytes) =3D 0x40 (64)
->
-> lines per tag =3D 0x1 (1)
->
-> associativity =3D 0x4 (4)
->
-> size (Kb) =3D 0x40 (64)
->
-> L1 instruction cache information (0x80000005/ecx):
->
-> line size (bytes) =3D 0x40 (64)
->
-> lines per tag =3D 0x1 (1)
->
-> associativity =3D 0x4 (4)
->
-> size (Kb) =3D 0x40 (64)
->
-> L2 TLB/cache information: 2M/4M pages & L2 TLB (0x80000006/eax):
->
-> instruction # entries =3D 0x0 (0)
->
-> instruction associativity =3D L2 off (0)
->
-> data # entries =3D 0x0 (0)
->
-> data associativity =3D L2 off (0)
->
-> L2 TLB/cache information: 4K pages & L2 TLB (0x80000006/ebx):
->
-> instruction # entries =3D 0x0 (0)
->
-> instruction associativity =3D L2 off (0)
->
-> data # entries =3D 0x0 (0)
->
-> data associativity =3D L2 off (0)
->
-> L2 unified cache information (0x80000006/ecx):
->
-> line size (bytes) =3D 0x40 (64)
->
-> lines per tag =3D 0x1 (1)
->
-> associativity =3D 0xa (10)
->
-> size (Kb) =3D 0x80 (128)
->
-> 0xc0000001: eax=3D0x00000000
->
-> extended feature flags (0xc0000001/edx):
->
-> alternate instruction set =3D false
->
-> alternate instruction set enabled =3D false
->
-> random number generator =3D true
->
-> random number generator enabled =3D true
->
-> LongHaul MSR 0000_110Ah =3D false
->
-> FEMMS =3D false
->
-> advanced cryptography engine (ACE) =3D true
->
-> advanced cryptography engine (ACE)enabled =3D true
->
-> 0xc0000002: eax=3D0x00000000 ebx=3D0x04000406 ecx=3D0x04060609 edx=3D0x41=
-080000
->
-> 0xc0000003: eax=3D0xfc1deab2 ebx=3D0xc220bebf ecx=3D0xd40711db edx=3D0xe9=
-cfcd6a
->
-> (multi-processing synth): none
->
-> (synth) =3D VIA C3 / C3-M / C7 / C7-M / Eden ESP 7000/8000/10000 (unknown
-> model)
->
-> -------------
->
-> CPU:
->
-> 0x00000000: eax=3D0x00000001 ebx=3D0x746e6543 ecx=3D0x736c7561 edx=3D0x48=
-727561
->
-> 0x00000001: eax=3D0x000006d0 ebx=3D0x00000800 ecx=3D0x00004181 edx=3D0xa7=
-c9bbff
->
-> 0x80000000: eax=3D0x80000006 ebx=3D0x00000000 ecx=3D0x00000000 edx=3D0x00=
-000000
->
-> 0x80000001: eax=3D0x00000000 ebx=3D0x00000000 ecx=3D0x00000000 edx=3D0x00=
-100000
->
-> 0x80000002: eax=3D0x20202020 ebx=3D0x20202020 ecx=3D0x20202020 edx=3D0x20=
-202020
->
-> 0x80000003: eax=3D0x20202020 ebx=3D0x41495620 ecx=3D0x2d374320 edx=3D0x72=
-50204d
->
-> 0x80000004: eax=3D0x7365636f ebx=3D0x20726f73 ecx=3D0x30303231 edx=3D0x00=
-7a484d
->
-> 0x80000005: eax=3D0x00000000 ebx=3D0x08800880 ecx=3D0x40040140 edx=3D0x40=
-040140
->
-> 0x80000006: eax=3D0x00000000 ebx=3D0x00000000 ecx=3D0x0080a140 edx=3D0x00=
-000000
->
-> 0x80860000: eax=3D0x00000000 ebx=3D0x00000000 ecx=3D0x00000000 edx=3D0x00=
-000000
->
-> 0xc0000000: eax=3D0xc0000003 ebx=3D0x00000000 ecx=3D0x00000000 edx=3D0x00=
-000000
->
-> 0xc0000001: eax=3D0x00000000 ebx=3D0x00000001 ecx=3D0x00000000 edx=3D0x00=
-00ffcc
->
-> 0xc0000002: eax=3D0x00000000 ebx=3D0x04000406 ecx=3D0x04060609 edx=3D0x41=
-080000
->
-> 0xc0000003: eax=3D0xfc1deab2 ebx=3D0xc220bebf ecx=3D0xd40711db edx=3D0xe9=
-cfcd6a
->
-> -------------
->
-> 00:00.0 Host bridge: VIA Technologies, Inc. P4M900 Host Bridge
->
-> 00:00.1 Host bridge: VIA Technologies, Inc. P4M900 Host Bridge
->
-> 00:00.2 Host bridge: VIA Technologies, Inc. P4M900 Host Bridge
->
-> 00:00.3 Host bridge: VIA Technologies, Inc. P4M900 Host Bridge
->
-> 00:00.4 Host bridge: VIA Technologies, Inc. P4M900 Host Bridge
->
-> 00:00.5 PIC: VIA Technologies, Inc. P4M900 I/O APIC Interrupt Controller
->
-> 00:00.6 Host bridge: VIA Technologies, Inc. P4M900 Security Device
->
-> 00:00.7 Host bridge: VIA Technologies, Inc. P4M900 Host Bridge
->
-> 00:01.0 PCI bridge: VIA Technologies, Inc. VT8237 PCI Bridge
->
-> 00:02.0 PCI bridge: VIA Technologies, Inc. P4M900 PCI to PCI Bridge
-> Controller (rev 80)
->
-> 00:03.0 PCI bridge: VIA Technologies, Inc. P4M900 PCI to PCI Bridge
-> Controller (rev 80)
->
-> 00:0f.0 IDE interface: VIA Technologies, Inc. Unknown device 5372
->
-> 00:10.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
-> Controller (rev b0)
->
-> 00:10.2 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
-> Controller (rev b0)
->
-> 00:10.3 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
-> Controller (rev b0)
->
-> 00:10.4 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 90)
->
-> 00:11.0 ISA bridge: VIA Technologies, Inc. VT8237S PCI to ISA Bridge
->
-> 00:11.7 Host bridge: VIA Technologies, Inc. VT8251 Ultra VLINK Controller
->
-> 00:13.0 Host bridge: VIA Technologies, Inc. VT8237A Host Bridge
->
-> 00:13.1 PCI bridge: VIA Technologies, Inc. VT8237A PCI to PCI Bridge
->
-> 01:00.0 VGA compatible controller: VIA Technologies, Inc. Chrome9 HC IGP
-> (rev 01)
->
-> 02:00.0 Network controller: Broadcom Corporation BCM4312 802.11a/b/g (rev
-> 02)
->
-> 07:03.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5788 Gigab=
-it
-> Ethernet (rev 03)
->
-> 80:01.0 Audio device: VIA Technologies, Inc. VIA High Definition Audio
-> Controller (rev 10)
->
-> --
->
-> ________________________________
->
-> Justin Chudgar
->
-> IT Consultant
->
-> 5040 Saddlehorn Rd, Weed, CA 96094
->
-> ________________________________
->
->
-> ---------- Forwarded message ----------
-> From: "Juerg Haefliger" <juergh@gmail.com>
-> To: "Justin Chudgar" <justin@justinzane.com>
-> Date: Fri, 5 Sep 2008 13:29:49 -0700
-> Subject: Re: [lm-sensors] Fwd: Re: c7temp module for lm-sensors
-> Justin,
->
-> Can you compile and run cpuid from http://www.etallen.com/cpuid.html?
-> Please run it with and without the '-r' option and send the output to the
-> list.
->
-> Thanks
-> ...juerg
->
->
-> On Sat, Aug 30, 2008 at 5:03 PM, Justin Chudgar <justin@justinzane.com>
-> wrote:
->>
->> --
->>
->> ________________________________
->>
->> Justin Chudgar
->>
->> IT Consultant
->>
->> 5040 Saddlehorn Rd, Weed, CA 96094
->>
->> ________________________________
->>
->> ---------- Forwarded message ----------
->> From: Hans de Goede <j.w.r.degoede@hhs.nl>
->> To: Justin Chudgar <justin@justinzane.com>
->> Date: Sat, 30 Aug 2008 08:11:47 +0200
->> Subject: Re: c7temp module for lm-sensors
->> Justin Chudgar wrote:
->>>
->>> Dear Hans:
->>>
->>> I am using this module on an HP Mini-note 2133 running Kubuntu 8.04.1 w/
->>> 2.6.24.19. I get a voltage reading but no temperature. I would like to
->>> help
->>> determine what is not working; but, I am unable to do so without
->>> assistance.
->>>
->>> Could you kindly direct me to the right resources. Thanks.
->>>
->>> Justin Chudgar
->>>
->>>
->>
->> Dear Justin,
->>
->> I'm not the maintainer of the c7temp driver, please send a mail to the
->> lm_sensors list.
->>
->> Regards,
->>
->> Hans
->>
->>
->> _______________________________________________
->> lm-sensors mailing list
->> lm-sensors@lm-sensors.org
->> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->>
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
