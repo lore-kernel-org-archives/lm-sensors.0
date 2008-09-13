@@ -1,47 +1,25 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 30 Sep 2008 13:59:55 +0000
-Subject: Re: [lm-sensors] [PATCH 1/4] hwmon: (w83791d) fan 4/5 pins can also
-Message-Id: <20080930155955.1bb56a93@hyperion.delvare>
+From: Wolfgang Grandegger <wg@grandegger.com>
+Date: Sat, 13 Sep 2008 08:46:00 +0000
+Subject: [lm-sensors] [PATCH 0/2] hwmon: w83781d: converting to new-style
+Message-Id: <48CB7DC8.3060503@grandegger.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200808060029.31190.m.hulsman@tudelft.nl>
-In-Reply-To: <200808060029.31190.m.hulsman@tudelft.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Marc, Hans,
+Hello,
 
-On Wed, 06 Aug 2008 09:46:05 +0200, Hans de Goede wrote:
-> Marc Hulsman wrote:
-> > Fan 4/5 and PWM 4/5 pins can be used for GPIO. If the bios initializes these 
-> > pins as in use for GPIO we keep it that way and do not construct the 
-> > sysfs-interface for them.  I left the code for reading the corresponding 
-> > registers during update_device unchanged as adding conditional terms would 
-> > only complicate the code. 
-> 
-> Looks good:
-> Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+I made another effort to convert the w83781d to new-style binding. The
+series consists of the following two patches:
 
-Patch applied, thanks.
+  [PATCH 1/2] hwmon: w83781d: make ISA interface depend on CONFIG_ISA
+  [PATCH 2/2] hwmon: w83781d: use new style driver binding
 
-> One note though (for a future patch) you say you keep reading the unused regs 
-> to keep the code clean. I understand this, but please keep in mind that i2c is 
-> pretty slow, so you might want todo another patch changing this.
+I have tested it one a PowerPC MPC8544 board. I did not have any
+occasion to verify the ISA related part.
 
-I second that. Every I2C register access we can avoid (without loss of
-functionality, of course) is welcome.
-
-> Or even better write a patch where you stop re-reading never changing registers 
-> completely, iow read config / min / max registers only once on probe and then 
-> only read registers which actually measure things (and thus can change without 
-> a write) in update_device (Yes there is the potential problem of acpi code 
-> writing to the device underneath us but we aren't checking for that now anyways).
-
-This could be done too.
-
--- 
-Jean Delvare
+Wolfgang.
 
 _______________________________________________
 lm-sensors mailing list
