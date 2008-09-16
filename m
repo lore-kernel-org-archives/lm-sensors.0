@@ -1,34 +1,31 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sat, 06 Sep 2008 10:00:17 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Add a driver for the ADT7475
-Message-Id: <48C254B1.9060009@hhs.nl>
+From: "Juerg Haefliger" <juergh@gmail.com>
+Date: Tue, 16 Sep 2008 22:30:15 +0000
+Subject: Re: [lm-sensors] [PATCH] lm-sensors: Add script for manual control
+Message-Id: <191fb4ca0809161530i352528a6xa207f09e5becdc75@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080610194818.GA21150@cosmic.amd.com>
-In-Reply-To: <20080610194818.GA21150@cosmic.amd.com>
+References: <191fb4ca0807231020pe333553t4e94e4c77530b10d@mail.gmail.com>
+In-Reply-To: <191fb4ca0807231020pe333553t4e94e4c77530b10d@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jordan Crouse wrote:
-> Resend of the ADT7475 driver.  Jean said he would like to
-> see a review on this version, even though it had been discussed before.
-> Therefore I'm CCing Hans for his opinion.. :) I would really like to
-> see this go into 2.6.28 and get out of my patch stack.
+I was wondering what happened to this patch? I don't think it made it
+in. Is there a problem with it?
+
+Thanks
+...juerg
+
+
+On Wed, Jul 23, 2008 at 10:20 AM, Juerg Haefliger <juergh@gmail.com> wrote:
+> Add a script that provides manual control of the vt1211 PWM outputs.
+> This script puts the vt1211 in automatic PWM mode and fools the chip
+> into believing that there is a temp change to force the PWM outputs to
+> specified values. This is necessary since the standard manual mode of
+> the vt1211 doesn't seem to work.
 >
-
-Jordan,
-
-I did do a review although very late (but didn't get very far, as there
-are some sysfs API issues that need addressing first).
-
-See:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2008-August/023948.html
-
-Regards,
-
-Hans
-
+> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+>
 
 _______________________________________________
 lm-sensors mailing list
