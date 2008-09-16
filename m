@@ -1,60 +1,36 @@
-From: "Juerg Haefliger" <juergh@gmail.com>
-Date: Mon, 22 Sep 2008 15:11:51 +0000
-Subject: Re: [lm-sensors] [PATCH] lm-sensors: Add script for manual control
-Message-Id: <191fb4ca0809220811t159e2fedg970670e97fac2599@mail.gmail.com>
+From: "Rahul Nabar" <rpnabar@gmail.com>
+Date: Tue, 16 Sep 2008 19:29:58 +0000
+Subject: [lm-sensors] lm_sensors trouble on AMD Opteron.
+Message-Id: <c4d69730809161229o317b804ahf47b3ffc274be2ab@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0807231020pe333553t4e94e4c77530b10d@mail.gmail.com>
-In-Reply-To: <191fb4ca0807231020pe333553t4e94e4c77530b10d@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+I've a AMD Opteron Processor on a machine (Quad-Core AMD Opteron
+Processor 2354) and wanted to monitor its temperature. I was
+reccomended to use lm_sensors but after I tried sensor-detect it keeps
+failing (error message below)
 
+Any clues what I am doing wrong?
 
-> Hi Juerg,
->
-> That was posted while I was on vacation and I overlooked it, sorry.
-> This is checked in now, with a small change: vt1211_pwm will not be
-> installed by default, on the assumption that this chip isn't very
-> popular, and most users will either not try to control their fans, or
-> will be happy with the automatic mode. So you have to use "make install
-> VT1211_PWM=1" to get the script installed. I hope that's OK with you.
+****************************************************************************
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
 
-Sound good, thanks.
+Driver `to-be-written' (should be inserted):
+  Detects correctly:
+  * Chip `AMD K10 thermal sensors' (confidence: 9)
 
+Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no):
+Starting lm_sensors: not configured, run sensors-detect[WARNING]
+[root@uranus Downloads]# /etc/init.d/lm_sensors start
+Starting lm_sensors: not configured, run sensors-detect[WARNING]
+***********************************************************************************
 
-> BTW, are you certain you don't want write access to the SVN repository?
-> This would avoid such delays. I will not always be available to commit
-> other people's patches...
-
-OK then. Makes sense, thanks.
-
-...juerg
-
-
-
-> On Tue, 16 Sep 2008 15:30:15 -0700, Juerg Haefliger wrote:
->> I was wondering what happened to this patch? I don't think it made it
->> in. Is there a problem with it?
->>
->> Thanks
->> ...juerg
->>
->>
->> On Wed, Jul 23, 2008 at 10:20 AM, Juerg Haefliger <juergh@gmail.com> wrote:
->> > Add a script that provides manual control of the vt1211 PWM outputs.
->> > This script puts the vt1211 in automatic PWM mode and fools the chip
->> > into believing that there is a temp change to force the PWM outputs to
->> > specified values. This is necessary since the standard manual mode of
->> > the vt1211 doesn't seem to work.
->> >
->> > Signed-off-by: Juerg Haefliger <juergh at gmail.com>
->
-> --
-> Jean Delvare
->
+-- 
+Rahul
 
 _______________________________________________
 lm-sensors mailing list
