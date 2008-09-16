@@ -1,91 +1,59 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 11 Sep 2008 10:10:42 +0000
-Subject: [lm-sensors] [PATCH 1/5] hwmon: (lm78) Fix I/O resource conflict
-Message-Id: <20080911121042.315386db@hyperion.delvare>
+From: Manuel Lauss <mano@roarinelk.homelinux.net>
+Date: Tue, 16 Sep 2008 05:01:19 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: TI TMP121 SPI temperature
+Message-Id: <20080916050119.GA14613@roarinelk.homelinux.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Only request I/O ports 0x295-0x296 instead of the full I/O address
-range. This solves a conflict with PNP resources on a few motherboards.
+Good Morning Jean,
 
-Also request the I/O ports in two parts (4 low ports, 4 high ports)
-during device detection, otherwise the PNP resource make the request
-(and thus the detection) fail.
+On Mon, Sep 15, 2008 at 11:50:51PM +0200, Jean Delvare wrote:
+> Hi Manuel,
+> 
+> Le lundi 15 septembre 2008, Manuel Lauss a ?crit?:
+> > Driver for the Texas Instruments TMP121/TMP123 SPI temperature sensors.
+> > The code is 99% identical to the LM70 driver;  only the formula to
+> > calculate the temperature (in 1/1000 deg celsius) has been adjusted.
+> > 
+> > Signed-off-by: Manuel Lauss <mano@roarinelk.homelinux.net>
+> > ---
+> >  drivers/hwmon/Kconfig  |   10 +++
+> >  drivers/hwmon/Makefile |    1 +
+> >  drivers/hwmon/tmp121.c |  168 ++++++++++++++++++++++++++++++++++++++++++++++++
+> >  3 files changed, 179 insertions(+), 0 deletions(-)
+> >  create mode 100644 drivers/hwmon/tmp121.c
+> 
+> Wouldn't it make more sense to just add support for the TMP121/TMP123
+> chips to the lm70 driver? Duplicating code is better avoided when
+> possible. Thankfully these drivers are relatively small, but still...
 
-This is the exact same fix that was applied to driver w83781d in
-March 2008 to address the same problem:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h)61cb22ef02850d90e7a12c28a14d74e327df8d
+I can do that, sure.  New patch in the works.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/lm78.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ 
+> > --- /dev/null
+> > +++ b/drivers/hwmon/tmp121.c
+> > (...)
+> > +	/*
+> > +	 * The "raw" temperature read into rxbuf[] is a 16-bit signed 2's
+> > +	 * complement value. Only the MSB 13 bits (1 sign + 12 temperature
+> > +	 * bits) are meaningful; the LSB 3 bits are to be discarded.
+> > +	 * Each bit represents 0.0625 degrees Celsius.
+> > +	 */
+> > +	val = (raw * 625) / 80;
+> 
+> This does not actually discard the 3 LSB. In order to do that, you
+> would need to write the following:
+> 
+> 	val = (raw / 8) * 625 / 10;
 
---- linux-2.6.26-rc7.orig/drivers/hwmon/lm78.c	2008-06-23 22:09:16.000000000 +0200
-+++ linux-2.6.26-rc7/drivers/hwmon/lm78.c	2008-06-23 22:11:10.000000000 +0200
-@@ -655,7 +655,7 @@ static int __devinit lm78_isa_probe(stru
- 
- 	/* Reserve the ISA region */
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--	if (!request_region(res->start, LM78_EXTENT, "lm78")) {
-+	if (!request_region(res->start + LM78_ADDR_REG_OFFSET, 2, "lm78")) {
- 		err = -EBUSY;
- 		goto exit;
- 	}
-@@ -699,7 +699,7 @@ static int __devinit lm78_isa_probe(stru
- 	device_remove_file(&pdev->dev, &dev_attr_name);
- 	kfree(data);
-  exit_release_region:
--	release_region(res->start, LM78_EXTENT);
-+	release_region(res->start + LM78_ADDR_REG_OFFSET, 2);
-  exit:
- 	return err;
- }
-@@ -711,7 +711,7 @@ static int __devexit lm78_isa_remove(str
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&pdev->dev.kobj, &lm78_group);
- 	device_remove_file(&pdev->dev, &dev_attr_name);
--	release_region(data->client.addr, LM78_EXTENT);
-+	release_region(data->client.addr + LM78_ADDR_REG_OFFSET, 2);
- 	kfree(data);
- 
- 	return 0;
-@@ -837,8 +837,17 @@ static int __init lm78_isa_found(unsigne
- {
- 	int val, save, found = 0;
- 
--	if (!request_region(address, LM78_EXTENT, "lm78"))
-+	/* We have to request the region in two parts because some
-+	   boards declare base+4 to base+7 as a PNP device */
-+	if (!request_region(address, 4, "lm78")) {
-+		pr_debug("lm78: Failed to request low part of region\n");
- 		return 0;
-+	}
-+	if (!request_region(address + 4, 4, "lm78")) {
-+		pr_debug("lm78: Failed to request high part of region\n");
-+		release_region(address, 4);
-+		return 0;
-+	}
- 
- #define REALLY_SLOW_IO
- 	/* We need the timeouts for at least some LM78-like
-@@ -901,7 +910,8 @@ static int __init lm78_isa_found(unsigne
- 			val & 0x80 ? "LM79" : "LM78", (int)address);
- 
-  release:
--	release_region(address, LM78_EXTENT);
-+	release_region(address + 4, 4);
-+	release_region(address, 4);
- 	return found;
- }
- 
+Don't drink and code... (the lower 3 bits read back as zero, so I used the
+cheap equation).
 
-
--- 
-Jean Delvare
+Thank you!
+	Manuel Lauss
 
 _______________________________________________
 lm-sensors mailing list
