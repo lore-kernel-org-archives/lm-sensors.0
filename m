@@ -1,7 +1,7 @@
 From: Henrik Rydberg <rydberg@euromail.se>
-Date: Wed, 17 Sep 2008 22:24:08 +0000
-Subject: [lm-sensors] [PATCH 4/5] hwmon: applesmc: Allow for variable ALV0
-Message-Id: <48D18388.601@euromail.se>
+Date: Wed, 17 Sep 2008 22:23:41 +0000
+Subject: [lm-sensors] [PATCH 3/5] hwmon: applesmc: Prolong status wait
+Message-Id: <48D1836D.9060106@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,61 +9,41 @@ Content-Transfer-Encoding: 7bit
 To: Nicolas Boichat <nicolas@boichat.ch>, lm-sensors@lm-sensors.org
 Cc: linux-kernel@vger.kernel.org
 
-On some recent Macbooks, the package length for the light sensors ALV0
-and ALV1 has changed from 6 to 10. This patch allows for a variable
-package length encompassing both variants.
+The time to wait for a status change while reading or writing to the
+SMC ports is a balance between read reliability and system
+performance. The current setting yields rougly three errors in a
+thousand when simultaneously reading three different temperature
+values on a Macbook Air. This patch increases the setting to a value
+yielding roughly one error in ten thousand, with no noticable system
+performance degradation.
 
 Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 ---
- drivers/hwmon/applesmc.c |   20 +++++++++++++++-----
- 1 files changed, 15 insertions(+), 5 deletions(-)
+ drivers/hwmon/applesmc.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index 9a43c4b..de696b6 100644
+index b06b8e0..091338c 100644
 --- a/drivers/hwmon/applesmc.c
 +++ b/drivers/hwmon/applesmc.c
-@@ -57,8 +57,8 @@
+@@ -163,7 +163,7 @@ static unsigned int key_at_index;
+ static struct workqueue_struct *applesmc_led_wq;
 
- #define KEY_COUNT_KEY		"#KEY" /* r-o ui32 */
+ /*
+- * __wait_status - Wait up to 2ms for the status port to get a certain value
++ * __wait_status - Wait up to 10ms for the status port to get a certain value
+  * (masked with 0x0f), returning zero if the value is obtained.  Callers must
+  * hold applesmc_lock.
+  */
+@@ -173,7 +173,7 @@ static int __wait_status(u8 val)
 
--#define LIGHT_SENSOR_LEFT_KEY	"ALV0" /* r-o {alv (6 bytes) */
--#define LIGHT_SENSOR_RIGHT_KEY	"ALV1" /* r-o {alv (6 bytes) */
-+#define LIGHT_SENSOR_LEFT_KEY	"ALV0" /* r-o {alv (6-10 bytes) */
-+#define LIGHT_SENSOR_RIGHT_KEY	"ALV1" /* r-o {alv (6-10 bytes) */
- #define BACKLIGHT_KEY		"LKSB" /* w-o {lkb (2 bytes) */
+ 	val = val & APPLESMC_STATUS_MASK;
 
- #define CLAMSHELL_KEY		"MSLD" /* r-o ui8 (unused) */
-@@ -543,17 +543,27 @@ out:
- static ssize_t applesmc_light_show(struct device *dev,
- 				struct device_attribute *attr, char *sysfsbuf)
- {
-+	static int data_length;
- 	int ret;
- 	u8 left = 0, right = 0;
--	u8 buffer[6];
-+	u8 buffer[10], query[6];
-
- 	mutex_lock(&applesmc_lock);
-
--	ret = applesmc_read_key(LIGHT_SENSOR_LEFT_KEY, buffer, 6);
-+	if (!data_length) {
-+		ret = applesmc_get_key_type(LIGHT_SENSOR_LEFT_KEY, query);
-+		if (ret)
-+			goto out;
-+		data_length = clamp_val(query[0], 0, 10);
-+		printk(KERN_INFO "applesmc: light sensor data length set to "
-+			"%d\n", data_length);
-+	}
-+
-+	ret = applesmc_read_key(LIGHT_SENSOR_LEFT_KEY, buffer, data_length);
- 	left = buffer[2];
- 	if (ret)
- 		goto out;
--	ret = applesmc_read_key(LIGHT_SENSOR_RIGHT_KEY, buffer, 6);
-+	ret = applesmc_read_key(LIGHT_SENSOR_RIGHT_KEY, buffer, data_length);
- 	right = buffer[2];
-
- out:
+-	for (i = 0; i < 200; i++) {
++	for (i = 0; i < 1000; i++) {
+ 		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) = val) {
+ 			if (debug)
+ 				printk(KERN_DEBUG
 -- 
 1.5.4.3
 
