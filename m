@@ -1,41 +1,72 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 11 Sep 2008 10:12:31 +0000
-Subject: [lm-sensors] [PATCH 3/5] hwmon: (lm78) Prevent misdetection of
-Message-Id: <20080911121231.660d93bb@hyperion.delvare>
+From: Henrik Rydberg <rydberg@euromail.se>
+Date: Wed, 17 Sep 2008 22:24:08 +0000
+Subject: [lm-sensors] [PATCH 4/5] hwmon: applesmc: Allow for variable ALV0
+Message-Id: <48D18388.601@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Nicolas Boichat <nicolas@boichat.ch>, lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
 
-The LM78 detection is relatively weak, and sometimes recent Winbond
-chips can be misdetected as an LM78. We have had repeated reports of
-this happening. We have an explicit check against this for the ISA
-access, do the same for I2C access now.
+On some recent Macbooks, the package length for the light sensors ALV0
+and ALV1 has changed from 6 to 10. This patch allows for a variable
+package length encompassing both variants.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 ---
- drivers/hwmon/lm78.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/hwmon/applesmc.c |   20 +++++++++++++++-----
+ 1 files changed, 15 insertions(+), 5 deletions(-)
 
---- linux-2.6.27-rc5.orig/drivers/hwmon/lm78.c	2008-09-09 18:30:51.000000000 +0200
-+++ linux-2.6.27-rc5/drivers/hwmon/lm78.c	2008-09-09 18:33:57.000000000 +0200
-@@ -613,6 +613,12 @@ static int lm78_detect(struct i2c_adapte
- 			err = -ENODEV;
- 			goto ERROR2;
- 		}
-+		/* Explicitly prevent the misdetection of Winbond chips */
-+		i = lm78_read_value(data, 0x4f);
-+		if (i = 0xa3 || i = 0x5c) {
-+			err = -ENODEV;
-+			goto ERROR2;
-+		}
- 	}
- 
- 	/* Determine the chip type. */
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 9a43c4b..de696b6 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -57,8 +57,8 @@
 
+ #define KEY_COUNT_KEY		"#KEY" /* r-o ui32 */
+
+-#define LIGHT_SENSOR_LEFT_KEY	"ALV0" /* r-o {alv (6 bytes) */
+-#define LIGHT_SENSOR_RIGHT_KEY	"ALV1" /* r-o {alv (6 bytes) */
++#define LIGHT_SENSOR_LEFT_KEY	"ALV0" /* r-o {alv (6-10 bytes) */
++#define LIGHT_SENSOR_RIGHT_KEY	"ALV1" /* r-o {alv (6-10 bytes) */
+ #define BACKLIGHT_KEY		"LKSB" /* w-o {lkb (2 bytes) */
+
+ #define CLAMSHELL_KEY		"MSLD" /* r-o ui8 (unused) */
+@@ -543,17 +543,27 @@ out:
+ static ssize_t applesmc_light_show(struct device *dev,
+ 				struct device_attribute *attr, char *sysfsbuf)
+ {
++	static int data_length;
+ 	int ret;
+ 	u8 left = 0, right = 0;
+-	u8 buffer[6];
++	u8 buffer[10], query[6];
+
+ 	mutex_lock(&applesmc_lock);
+
+-	ret = applesmc_read_key(LIGHT_SENSOR_LEFT_KEY, buffer, 6);
++	if (!data_length) {
++		ret = applesmc_get_key_type(LIGHT_SENSOR_LEFT_KEY, query);
++		if (ret)
++			goto out;
++		data_length = clamp_val(query[0], 0, 10);
++		printk(KERN_INFO "applesmc: light sensor data length set to "
++			"%d\n", data_length);
++	}
++
++	ret = applesmc_read_key(LIGHT_SENSOR_LEFT_KEY, buffer, data_length);
+ 	left = buffer[2];
+ 	if (ret)
+ 		goto out;
+-	ret = applesmc_read_key(LIGHT_SENSOR_RIGHT_KEY, buffer, 6);
++	ret = applesmc_read_key(LIGHT_SENSOR_RIGHT_KEY, buffer, data_length);
+ 	right = buffer[2];
+
+ out:
 -- 
-Jean Delvare
+1.5.4.3
+
 
 _______________________________________________
 lm-sensors mailing list
