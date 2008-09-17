@@ -1,165 +1,111 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 11 Sep 2008 10:11:28 +0000
-Subject: [lm-sensors] [PATCH 2/5] hwmon: (lm78) Detect alias chips
-Message-Id: <20080911121128.2d952a06@hyperion.delvare>
+From: Henrik Rydberg <rydberg@euromail.se>
+Date: Wed, 17 Sep 2008 22:23:09 +0000
+Subject: [lm-sensors] [PATCH 2/5] hwmon: applesmc: Fix the 'wait status
+Message-Id: <48D1834D.5090406@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Nicolas Boichat <nicolas@boichat.ch>, lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
 
-The LM78 and LM79 can be accessed either on the I2C bus or the ISA
-bus. We must not access the same chip through both interfaces. So far
-we were relying on the user passing the correct ignore parameter to
-skip the registration of the I2C interface as suggested by
-sensors-detect, but this is fragile: the user may load the lm78
-driver without running sensors-detect, and the i2c bus numbers are
-not stable across reboots and hardware changes.
+On many Macbooks since mid 2007, the Pro, C2D and Air models, applesmc
+fails to read some or all SMC ports. This problem has various effects,
+such as flooded logfiles, malfunctioning temperature sensors,
+accelerometers failing to initialize, and difficulties getting
+backlight functionality to work properly.
 
-So, better detect alias chips in the driver directly, and skip any
-I2C chip which is obviously an alias of the ISA chip. This is done
-by comparing the value of 26 selected registers.
+The root of the problem seems to be the command protocol. The current
+code sends out a command byte, then repeatedly polls for an ack before
+continuing to send or recieve data. From experiments leading to this
+patch, it seems the command protocol never quite worked or changed so
+that one now sends a command byte, waits a little bit, polls for an
+ack, and if it fails, repeats the whole thing by sending the command
+byte again.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+This patch implements a send_command function according to the new
+interpretation of the protocol, and should work also for earlier
+models.
+
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 ---
- drivers/hwmon/lm78.c |   78 +++++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 65 insertions(+), 13 deletions(-)
+ drivers/hwmon/applesmc.c |   36 ++++++++++++++++++++++++++----------
+ 1 files changed, 26 insertions(+), 10 deletions(-)
 
---- linux-2.6.26-rc7.orig/drivers/hwmon/lm78.c	2008-06-24 10:04:04.000000000 +0200
-+++ linux-2.6.26-rc7/drivers/hwmon/lm78.c	2008-06-24 10:04:05.000000000 +0200
-@@ -120,10 +120,7 @@ static inline int TEMP_FROM_REG(s8 val)
-    LM78 chips available (well, actually, that is probably never done; but
-    it is a clean illustration of how to handle a case like that). Finally,
-    a specific chip may be attached to *both* ISA and SMBus, and we would
--   not like to detect it double. Fortunately, in the case of the LM78 at
--   least, a register tells us what SMBus address we are on, so that helps
--   a bit - except if there could be more than one SMBus. Groan. No solution
--   for this yet. */
-+   not like to detect it double. */
- 
- /* For ISA chips, we abuse the i2c_client addr and name fields. We also use
-    the driver field to differentiate between I2C and ISA chips. */
-@@ -457,12 +454,24 @@ static SENSOR_DEVICE_ATTR(temp1_alarm, S
- /* This function is called when:
-      * lm78_driver is inserted (when this module is loaded), for each
-        available adapter
--     * when a new adapter is inserted (and lm78_driver is still present) */
-+     * when a new adapter is inserted (and lm78_driver is still present)
-+   We block updates of the ISA device to minimize the risk of concurrent
-+   access to the same LM78 chip through different interfaces. */
- static int lm78_attach_adapter(struct i2c_adapter *adapter)
- {
-+	struct lm78_data *data;
-+	int err;
-+
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_probe(adapter, &addr_data, lm78_detect);
-+
-+	data = pdev ? platform_get_drvdata(pdev) : NULL;
-+	if (data)
-+		mutex_lock(&data->update_lock);
-+	err = i2c_probe(adapter, &addr_data, lm78_detect);
-+	if (data)
-+		mutex_unlock(&data->update_lock);
-+	return err;
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index b401975..9a43c4b 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -191,6 +191,26 @@ static int __wait_status(u8 val)
  }
- 
- static struct attribute *lm78_attributes[] = {
-@@ -531,6 +540,40 @@ static ssize_t show_name(struct device *
- }
- static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
- 
-+/* Returns 1 if the I2C chip appears to be an alias of the ISA chip */
-+static int lm78_alias_detect(struct i2c_client *client, u8 chipid)
+
+ /*
++ * special treatment of command port - on newer macbooks, it seems necessary
++ * to resend the command byte before polling the status again. Callers must
++ * hold applesmc_lock.
++ */
++static int send_command(u8 cmd)
 +{
-+	struct lm78_data *i2c, *isa;
 +	int i;
-+
-+	if (!pdev)	/* No ISA chip */
-+		return 0;
-+
-+	i2c = i2c_get_clientdata(client);
-+	isa = platform_get_drvdata(pdev);
-+
-+	if (lm78_read_value(isa, LM78_REG_I2C_ADDR) != client->addr)
-+		return 0;	/* Address doesn't match */
-+	if ((lm78_read_value(isa, LM78_REG_CHIPID) & 0xfe) != (chipid & 0xfe))
-+		return 0;	/* Chip type doesn't match */
-+
-+	/* We compare all the limit registers, the config register and the
-+	 * interrupt mask registers */
-+	for (i = 0x2b; i <= 0x3d; i++) {
-+		if (lm78_read_value(isa, i) != lm78_read_value(i2c, i))
++	for (i = 0; i < 1000; i++) {
++		outb(cmd, APPLESMC_CMD_PORT);
++		udelay(5);
++		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) = 0x0c)
 +			return 0;
++		udelay(5);
 +	}
-+	if (lm78_read_value(isa, LM78_REG_CONFIG) !+	    lm78_read_value(i2c, LM78_REG_CONFIG))
-+		return 0;
-+	for (i = 0x43; i <= 0x46; i++) {
-+		if (lm78_read_value(isa, i) != lm78_read_value(i2c, i))
-+			return 0;
-+	}
-+
-+	return 1;
++	printk(KERN_WARNING "applesmc: command failed: %x -> %x\n",
++		cmd, inb(APPLESMC_CMD_PORT));
++	return -EIO;
 +}
 +
- /* This function is called by i2c_probe */
- static int lm78_detect(struct i2c_adapter *adapter, int address, int kind)
- {
-@@ -589,6 +632,13 @@ static int lm78_detect(struct i2c_adapte
- 			err = -ENODEV;
- 			goto ERROR2;
- 		}
-+
-+		if (lm78_alias_detect(new_client, i)) {
-+			dev_dbg(&adapter->dev, "Device at 0x%02x appears to "
-+				"be the same as ISA device\n", address);
-+			err = -ENODEV;
-+			goto ERROR2;
-+		}
++/*
+  * applesmc_read_key - reads len bytes from a given key, and put them in buffer.
+  * Returns zero on success or a negative error on failure. Callers must
+  * hold applesmc_lock.
+@@ -205,8 +225,7 @@ static int applesmc_read_key(const char* key, u8* buffer, u8 len)
+ 		return -EINVAL;
  	}
- 
- 	if (kind = lm78) {
-@@ -959,14 +1009,12 @@ static int __init sm_lm78_init(void)
- {
- 	int res;
- 
--	res = i2c_add_driver(&lm78_driver);
--	if (res)
--		goto exit;
--
-+	/* We register the ISA device first, so that we can skip the
-+	 * registration of an I2C interface to the same device. */
- 	if (lm78_isa_found(isa_address)) {
- 		res = platform_driver_register(&lm78_isa_driver);
- 		if (res)
--			goto exit_unreg_i2c_driver;
-+			goto exit;
- 
- 		/* Sets global pdev as a side effect */
- 		res = lm78_isa_device_add(isa_address);
-@@ -974,12 +1022,16 @@ static int __init sm_lm78_init(void)
- 			goto exit_unreg_isa_driver;
- 	}
- 
-+	res = i2c_add_driver(&lm78_driver);
-+	if (res)
-+		goto exit_unreg_isa_device;
-+
- 	return 0;
- 
-+ exit_unreg_isa_device:
-+	platform_device_unregister(pdev);
-  exit_unreg_isa_driver:
- 	platform_driver_unregister(&lm78_isa_driver);
-- exit_unreg_i2c_driver:
--	i2c_del_driver(&lm78_driver);
-  exit:
- 	return res;
- }
 
+-	outb(APPLESMC_READ_CMD, APPLESMC_CMD_PORT);
+-	if (__wait_status(0x0c))
++	if (send_command(APPLESMC_READ_CMD))
+ 		return -EIO;
+
+ 	for (i = 0; i < 4; i++) {
+@@ -249,8 +268,7 @@ static int applesmc_write_key(const char* key, u8* buffer, u8 len)
+ 		return -EINVAL;
+ 	}
+
+-	outb(APPLESMC_WRITE_CMD, APPLESMC_CMD_PORT);
+-	if (__wait_status(0x0c))
++	if (send_command(APPLESMC_WRITE_CMD))
+ 		return -EIO;
+
+ 	for (i = 0; i < 4; i++) {
+@@ -284,8 +302,7 @@ static int applesmc_get_key_at_index(int index, char* key)
+ 	readkey[2] = index >> 8;
+ 	readkey[3] = index;
+
+-	outb(APPLESMC_GET_KEY_BY_INDEX_CMD, APPLESMC_CMD_PORT);
+-	if (__wait_status(0x0c))
++	if (send_command(APPLESMC_GET_KEY_BY_INDEX_CMD))
+ 		return -EIO;
+
+ 	for (i = 0; i < 4; i++) {
+@@ -315,8 +332,7 @@ static int applesmc_get_key_type(char* key, char* type)
+ {
+ 	int i;
+
+-	outb(APPLESMC_GET_KEY_TYPE_CMD, APPLESMC_CMD_PORT);
+-	if (__wait_status(0x0c))
++	if (send_command(APPLESMC_GET_KEY_TYPE_CMD))
+ 		return -EIO;
+
+ 	for (i = 0; i < 4; i++) {
 -- 
-Jean Delvare
+1.5.4.3
+
 
 _______________________________________________
 lm-sensors mailing list
