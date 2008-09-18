@@ -1,8 +1,10 @@
 From: Sebastian Siewior <bigeasy@linutronix.de>
-Date: Thu, 18 Sep 2008 08:12:16 +0000
+Date: Thu, 18 Sep 2008 08:15:43 +0000
 Subject: Re: [lm-sensors] +
-Message-Id: <48D20D60.4030001@linutronix.de>
+Message-Id: <48D20E2F.4080703@linutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <48D20D60.4030001@linutronix.de>
+In-Reply-To: <48D20D60.4030001@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
