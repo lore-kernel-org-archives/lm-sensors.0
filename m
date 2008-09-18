@@ -1,54 +1,90 @@
-From: Rodolfo Giometti <giometti@enneenne.com>
-Date: Mon, 22 Sep 2008 13:42:30 +0000
-Subject: [lm-sensors] [i2c] support for MAX8821 led charge pump with mono
-Message-Id: <1222090951-20567-1-git-send-email-giometti@enneenne.com>
+From: Marc Hulsman <m.hulsman@tudelft.nl>
+Date: Thu, 18 Sep 2008 10:18:38 +0000
+Subject: [lm-sensors] Err...
+Message-Id: <200809181218.38393.m.hulsman@tudelft.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-This patch adds support for MAXIM MAX8821.
+Aii, that one did go out a bit too fast. Sorry for the wrong threading,=20
+subject, and To: address......
 
-This chip integrates a charge pump for white LEDs, an audio loudspeaker
-amplifier, and two low noise LDOs controlled by an I2C control interface.
-
-The driver uses the linux leds interface to manage the attached leds
-while other devices are managed by simple sysfs entries.
-
-The user may also define an initial chips status by simply defining a
-struct max8821_platform_data as follow:
-
-static struct max8821_platform_data wr1100_max8821_machinfo = {
-        .led = {
-                [MAX8821_LED1] = {
-                        .name = "Keyboard",
-                        .trigger = "backlight",
-                },
-                [MAX8821_LED2] = {
-                        .name = "LCD",
-                        .trigger = "backlight",
-                },
-                [MAX8821_LED5] = {
-                        .name = "red",
-                },
-        },
-        .ldo = {
-                [MAX8821_LDO2] = {
-                        .power = 1,
-                        .voltage = 3000,
-                },
-        },
-        .audio = {
-                .power = 1,
-                .clock = 1250,
-                .gain = 6,
-        },
-};
-
-Undefined devices will not be enabled.
-
-Rodolfo
+On Thursday 18 September 2008 11:24:25 Marc Hulsman wrote:
+> Hi Jean,
+>
+> >From the earlier communication on list I got the impression you were
+> > planning
+>
+> to include the w83791d patches I send last month (which were acked by Han=
+s)
+> in your tree for submission.
+> Are you still planning to do this (as you later made it clear you dont wa=
+nt
+> to be _the_ maintainer)? No pressure, I can also send them directly to
+> Andrew if you like. I just want to try to get them in for 2.6.28.
+>
+> Regards,
+> Marc
+>
+> On Wednesday 17 September 2008 00:35:41 Jean Delvare wrote:
+> > Hi Rudolf, Marco,
+> >
+> > Le mardi 16 septembre 2008, Rudolf Marek a =E9crit=A0:
+> > > Hello,
+> > >
+> > > Here is mine research:
+> > >
+> > > DHG chip is wired as follows:
+> > >
+> > > in0 is Vcore
+> > > in1 is 12V
+> > > in2 not used
+> > > in3 is 3.3V
+> > > in4 is 5V
+> > >
+> > > temp1 is MB temp
+> > > fans are
+> > > fan2 is cpu,
+> > > fan5 is not, fan4 is not
+> > >
+> > > There is some unknown i2c chip at 0x38 which measures voltages, and
+> > > fans
+> > >
+> > > It measures:
+> > > Cpu voltage, DDR voltage, SB 1.1V voltage SB 1.5V, CPU PLL voltage, NB
+> > > 1.1V Dram VTT volrage, VTT CPU voltage,
+> > >
+> > > And also fans:
+> > > Chasis fan1
+> > > Chasis fan2
+> > > Power Fan
+> > > And some Opt fans, I know what registers are there (mostly up 0xa0 for
+> > > fans)
+> > >
+> > > So we need to find out what chip it is, because it measures a lot too.
+> > >
+> > > The NB temperature etc etc is measured by some chip at 0x40 it seems =
+it
+> > > also controls some fan temperature???
+> > >
+> > > Definitely what is the output of
+> > >
+> > > i2cdetect 0
+> > > i2cdump 0 0x40
+> > > i2cdump 0 0x38
+> >
+> > Excellent work, thanks Rudolf. We don't currently know of any
+> > hardware monitoring chip at either 0x40 or 0x38, which is why
+> > sensors-detect didn't reveal anything. The output of i2cdetect would
+> > definitely be a good thing to have, sorry for not thinking of this
+> > earlier.
+>
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
 
 
