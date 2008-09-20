@@ -1,196 +1,120 @@
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Thu, 11 Sep 2008 04:44:41 +0000
-Subject: [lm-sensors] [ patch 2.6.27-rc6 5/6 v2] separate alarm sysfs files
-Message-Id: <48C8A239.8060209@gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------030804010203080505060605"
+From: Craig Prescott <prescott@hpc.ufl.edu>
+Date: Sat, 20 Sep 2008 00:51:58 +0000
+Subject: [lm-sensors] SuperMicro X7DCU/Winbond 83627HF
+Message-Id: <48D4492E.2050605@hpc.ufl.edu>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030804010203080505060605
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
-[jimc@harpo ts-t4d]$ more 
-0005-hwmon-pc87360-separate-alarm-files-add-dev_dbg-hel.patch
- From d8f9a3ff6f972b32197c98d71cf8eaadf133f763 Mon Sep 17 00:00:00 2001
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Sat, 28 Jun 2008 20:42:24 -0600
-Subject: [PATCH] hwmon/pc87360 separate alarm files - add dev_dbg help
+Hi;
 
-temp and vin status register values may be set by chip specifications,
-set again by bios, or by this previously loaded driver.
-Debug output nicely displays modprobe init=\d actions.
+I've run CentOS 5.1's sensors-detect on a SuperMicro X7DCU
+motherboard equipped with a Winbond 83627HF Super-IO chip.
+At least that's what the docs say.  But my sensors output
+on this machine looks screwy (see appended).  In particular,
+the temperatures are all -48 degC for w83627hf-i2c-0-2d, and
+either -1 or 0 degC for w83627hf-isa-0290.
 
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
----
- drivers/hwmon/pc87360.c |   16 ++++++++++++----
- 1 files changed, 12 insertions(+), 4 deletions(-)
+I am most interested in the cpu and ambient temperatures on this=20
+machine.  I hope someone can help steer me in the right direction
+to achieve this.  Does anyone have a sensors.conf snippet for
+SuperMicro X7DCU?
 
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index ac9dcca..acff04f 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -1294,10 +1294,11 @@ static void pc87360_init_device(struct 
-platform_device *pdev,
- 
-     nr = data->innr < 11 ? data->innr : 11;
-     for (i = 0; i < nr; i++) {
-+        reg = pc87360_read_value(data, LD_IN, i,
-+                     PC87365_REG_IN_STATUS);
-+        dev_dbg(&pdev->dev, "bios in%d status:0x%02x\n", i, reg);
-         if (init >= init_in[i]) {
-             /* Forcibly enable voltage channel */
--            reg = pc87360_read_value(data, LD_IN, i,
--                         PC87365_REG_IN_STATUS);
-             if (!(reg & CHAN_ENA)) {
-                 dev_dbg(&pdev->dev, "Forcibly "
-                     "enabling in%d\n", i);
-@@ -1310,18 +1311,23 @@ static void pc87360_init_device(struct 
-platform_device *pdev,
- 
-     /* We can't blindly trust the Super-I/O space configuration bit,
-        most BIOS won't set it properly */
-+    dev_dbg(&pdev->dev, "bios thermistors:%d\n", use_thermistors);
-     for (i = 11; i < data->innr; i++) {
-         reg = pc87360_read_value(data, LD_IN, i,
-                      PC87365_REG_TEMP_STATUS);
-         use_thermistors = use_thermistors || (reg & CHAN_ENA);
-+        /* thermistors are temp[4-6], measured on vin[11-14] */
-+        dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i-7, reg);
-     }
-+    dev_dbg(&pdev->dev, "using thermistors:%d\n", use_thermistors);
- 
-     i = use_thermistors ? 2 : 0;
-     for (; i < data->tempnr; i++) {
-+        reg = pc87360_read_value(data, LD_TEMP, i,
-+                     PC87365_REG_TEMP_STATUS);
-+        dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i+1, reg);
-         if (init >= init_temp[i]) {
-             /* Forcibly enable temperature channel */
--            reg = pc87360_read_value(data, LD_TEMP, i,
--                         PC87365_REG_TEMP_STATUS);
-             if (!(reg & CHAN_ENA)) {
-                 dev_dbg(&pdev->dev, "Forcibly "
-                     "enabling temp%d\n", i+1);
-@@ -1363,6 +1369,7 @@ static void pc87360_init_device(struct 
-platform_device *pdev,
-     if (data->innr) {
-         reg = pc87360_read_value(data, LD_IN, NO_BANK,
-                      PC87365_REG_IN_CONFIG);
-+        dev_dbg(&pdev->dev, "bios vin-cfg:0x%02x\n", reg);
-         if (reg & CHAN_ENA) {
-             dev_dbg(&pdev->dev, "Forcibly "
-                 "enabling monitoring (VLM)\n");
-@@ -1375,6 +1382,7 @@ static void pc87360_init_device(struct 
-platform_device *pdev,
-     if (data->tempnr) {
-         reg = pc87360_read_value(data, LD_TEMP, NO_BANK,
-                      PC87365_REG_TEMP_CONFIG);
-+        dev_dbg(&pdev->dev, "bios temp-cfg:0x%02x\n", reg);
-         if (reg & CHAN_ENA) {
-             dev_dbg(&pdev->dev, "Forcibly enabling "
-                 "monitoring (TMS)\n");
--- 
-1.5.5.1
+sensors-detect produced an /etc/sysconfig/lm_sensors that
+contained:
+
+MODULE_0=3Di2c-i801
+MODULE_1=3Di2c-isa
+MODULE_2=3Dw83781d
+MODULE_3=3Dsmbus-arp
+MODULE_4=3Dw83627hf
+
+I see that all the modules are loaded.  The dmesg output
+produced by loading the modules looks like so:
+
+i2c /dev entries driver
+w83627hf 9191-0290: Enabling temp2, readings might not make sense
+w83627hf 9191-0290: Enabling temp3, readings might not make sense
+
+The machine is running kernel 2.6.18-53.1.14.el5.  The lm_sensors
+I am running at this point is the one that came with CentOS:
+
+[root@torx ~]# rpm -q lm_sensors
+lm_sensors-2.10.0-3.1.x86_64
+
+Any suggestions appreciated.
+
+Thanks,
+Craig Prescott
 
 
+[root@torx ~]# sensors
+w83627hf-i2c-0-2d
+Adapter: SMBus I801 adapter at 1100
 
---------------030804010203080505060605
-Content-Type: text/x-patch;
-	name="0005-hwmon-pc87360-separate-alarm-files-add-dev_dbg-hel.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename*0="0005-hwmon-pc87360-separate-alarm-files-add-dev_dbg-hel.patc";
-	filename*1="h"
+VCore 1:   +4.08 V  (min =3D  +0.00 V, max =3D  +0.00 V)       ALARM
+VCore 2:   +4.08 V  (min =3D  +0.00 V, max =3D  +0.00 V)       ALARM
++3.3V:     +4.08 V  (min =3D  +3.14 V, max =3D  +3.46 V)       ALARM
++5V:       +5.19 V  (min =3D  +4.73 V, max =3D  +5.24 V)
++12V:     +11.80 V  (min =3D +10.82 V, max =3D +13.19 V)
+-12V:      +1.13 V  (min =3D -13.18 V, max =3D -10.88 V)       ALARM
+-5V:       +2.14 V  (min =3D  -5.25 V, max =3D  -4.75 V)       ALARM
+V5SB:      +5.51 V  (min =3D  +4.73 V, max =3D  +5.24 V)       ALARM
+VBat:      +0.08 V  (min =3D  +2.40 V, max =3D  +3.60 V)       ALARM
+fan1:        0 RPM  (min =3D 2667 RPM, div =3D 2)              ALARM
+fan2:        0 RPM  (min =3D    0 RPM, div =3D 2)
+fan3:        0 RPM  (min =3D    0 RPM, div =3D 2)
+temp1:       -48=B0C  (high =3D    -1=B0C, hyst =3D    -1=B0C)   sensor =3D=
+=20
+thermistor
+temp2:     -48.0=B0C  (high =3D   +80=B0C, hyst =3D   +75=B0C)   sensor =3D=
+=20
+thermistor
+temp3:     -48.0=B0C  (high =3D   +80=B0C, hyst =3D   +75=B0C)   sensor =3D=
+=20
+thermistor
+vid:      +0.000 V  (VRM Version 8.2)
+alarms:
+beep_enable:
+           Sound alarm enabled
 
-From d8f9a3ff6f972b32197c98d71cf8eaadf133f763 Mon Sep 17 00:00:00 2001
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Sat, 28 Jun 2008 20:42:24 -0600
-Subject: [PATCH] hwmon/pc87360 separate alarm files - add dev_dbg help
-
-temp and vin status register values may be set by chip specifications,
-set again by bios, or by this previously loaded driver.
-Debug output nicely displays modprobe init=\d actions.
-
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
----
- drivers/hwmon/pc87360.c |   16 ++++++++++++----
- 1 files changed, 12 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index ac9dcca..acff04f 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -1294,10 +1294,11 @@ static void pc87360_init_device(struct platform_device *pdev,
- 
- 	nr = data->innr < 11 ? data->innr : 11;
- 	for (i = 0; i < nr; i++) {
-+		reg = pc87360_read_value(data, LD_IN, i,
-+					 PC87365_REG_IN_STATUS);
-+		dev_dbg(&pdev->dev, "bios in%d status:0x%02x\n", i, reg);
- 		if (init >= init_in[i]) {
- 			/* Forcibly enable voltage channel */
--			reg = pc87360_read_value(data, LD_IN, i,
--						 PC87365_REG_IN_STATUS);
- 			if (!(reg & CHAN_ENA)) {
- 				dev_dbg(&pdev->dev, "Forcibly "
- 					"enabling in%d\n", i);
-@@ -1310,18 +1311,23 @@ static void pc87360_init_device(struct platform_device *pdev,
- 
- 	/* We can't blindly trust the Super-I/O space configuration bit,
- 	   most BIOS won't set it properly */
-+	dev_dbg(&pdev->dev, "bios thermistors:%d\n", use_thermistors);
- 	for (i = 11; i < data->innr; i++) {
- 		reg = pc87360_read_value(data, LD_IN, i,
- 					 PC87365_REG_TEMP_STATUS);
- 		use_thermistors = use_thermistors || (reg & CHAN_ENA);
-+		/* thermistors are temp[4-6], measured on vin[11-14] */
-+		dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i-7, reg);
- 	}
-+	dev_dbg(&pdev->dev, "using thermistors:%d\n", use_thermistors);
- 
- 	i = use_thermistors ? 2 : 0;
- 	for (; i < data->tempnr; i++) {
-+		reg = pc87360_read_value(data, LD_TEMP, i,
-+					 PC87365_REG_TEMP_STATUS);
-+		dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i+1, reg);
- 		if (init >= init_temp[i]) {
- 			/* Forcibly enable temperature channel */
--			reg = pc87360_read_value(data, LD_TEMP, i,
--						 PC87365_REG_TEMP_STATUS);
- 			if (!(reg & CHAN_ENA)) {
- 				dev_dbg(&pdev->dev, "Forcibly "
- 					"enabling temp%d\n", i+1);
-@@ -1363,6 +1369,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 	if (data->innr) {
- 		reg = pc87360_read_value(data, LD_IN, NO_BANK,
- 					 PC87365_REG_IN_CONFIG);
-+		dev_dbg(&pdev->dev, "bios vin-cfg:0x%02x\n", reg);
- 		if (reg & CHAN_ENA) {
- 			dev_dbg(&pdev->dev, "Forcibly "
- 				"enabling monitoring (VLM)\n");
-@@ -1375,6 +1382,7 @@ static void pc87360_init_device(struct platform_device *pdev,
- 	if (data->tempnr) {
- 		reg = pc87360_read_value(data, LD_TEMP, NO_BANK,
- 					 PC87365_REG_TEMP_CONFIG);
-+		dev_dbg(&pdev->dev, "bios temp-cfg:0x%02x\n", reg);
- 		if (reg & CHAN_ENA) {
- 			dev_dbg(&pdev->dev, "Forcibly enabling "
- 				"monitoring (TMS)\n");
--- 
-1.5.5.1
+w83627hf-isa-0290
+Adapter: ISA adapter
+VCore 1:   +4.08 V  (min =3D  +4.08 V, max =3D  +4.08 V)       ALARM  (beep)
+VCore 2:   +4.08 V  (min =3D  +4.08 V, max =3D  +4.08 V)       ALARM  (beep)
++3.3V:     +4.08 V  (min =3D  +4.08 V, max =3D  +4.08 V)       ALARM  (beep)
++5V:       +6.85 V  (min =3D  +6.85 V, max =3D  +6.85 V)       ALARM  (beep)
++12V:     +15.50 V  (min =3D +15.50 V, max =3D +15.50 V)       ALARM  (beep)
+-12V:      +6.06 V  (min =3D  +6.06 V, max =3D  +6.06 V)       ALARM  (beep)
+-5V:       +5.10 V  (min =3D  +5.10 V, max =3D  +5.10 V)       ALARM  (beep)
+V5SB:      +6.85 V  (min =3D  +6.85 V, max =3D  +6.85 V)       ALARM  (beep)
+VBat:      +4.08 V  (min =3D  +4.08 V, max =3D  +4.08 V)       ALARM  (beep)
+fan1:        0 RPM  (min =3D    0 RPM, div =3D 128)              ALARM  (be=
+ep)
+fan2:        0 RPM  (min =3D    0 RPM, div =3D 128)              ALARM  (be=
+ep)
+fan3:        0 RPM  (min =3D    0 RPM, div =3D 128)              ALARM  (be=
+ep)
+temp1:        -1=B0C  (high =3D    -1=B0C, hyst =3D    -1=B0C)   sensor =3D=
+ diode=20
+ALARM   (beep)
+temp2:      +0.0=B0C  (high =3D    +0=B0C, hyst =3D    +0=B0C)   sensor =3D=
+ diode=20
+ALARM   (beep)
+temp3:      +0.0=B0C  (high =3D    +0=B0C, hyst =3D    +0=B0C)   sensor =3D=
+ diode=20
+ALARM   (beep)
+vid:      +0.000 V  (VRM Version 8.2)
+alarms:   Chassis intrusion detection                      ALARM
+beep_enable:
+           Sound alarm enabled
 
 
---------------030804010203080505060605
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------030804010203080505060605--
