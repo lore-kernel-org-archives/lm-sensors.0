@@ -1,40 +1,31 @@
-From: Henrik Rydberg <rydberg@euromail.se>
-Date: Wed, 17 Sep 2008 22:21:31 +0000
-Subject: [lm-sensors] [PATCH 1/5] hwmon: applesmc: Specified number of bytes
-Message-Id: <48D182EB.60407@euromail.se>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 21 Sep 2008 15:08:42 +0000
+Subject: Re: [lm-sensors] Probable memory leak issue
+Message-Id: <20080921170842.1e5e180c@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Nicolas Boichat <nicolas@boichat.ch>, lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-At one single place in the code, the specified number of bytes to read
-and the actual number of bytes read differ by one. This one-liner
-patch fixes that inconsistency.
+On Thu, 31 Jul 2008 12:48:49 +0200, Souley Madougou wrote:
+> Dear developers,
+> 
+> I suspect that there is a memory leak issue in your code. In
+> sensors_parse_chip_name() you are allocating memory in the following line:
+>   res->prefix = strndup(name, dash - name);
+> 
+> In some circonstances, this memory is not freed in the sensors_cleanup()
+> function.
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
----
- drivers/hwmon/applesmc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Can you please send a patch fixing this problem you're seeing? If not,
+please at least tell which version of lm-sensors you're looking at, and
+what circumstances it takes to trigger the leak, so that I get a chance
+to reproduce and fix it.
 
-diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index b06b8e0..b401975 100644
---- a/drivers/hwmon/applesmc.c
-+++ b/drivers/hwmon/applesmc.c
-@@ -325,7 +325,7 @@ static int applesmc_get_key_type(char* key, char* type)
- 			return -EIO;
- 	}
-
--	outb(5, APPLESMC_DATA_PORT);
-+	outb(6, APPLESMC_DATA_PORT);
-
- 	for (i = 0; i < 6; i++) {
- 		if (__wait_status(0x05))
+Thanks,
 -- 
-1.5.4.3
-
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
