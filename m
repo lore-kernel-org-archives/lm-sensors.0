@@ -1,114 +1,58 @@
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Thu, 11 Sep 2008 04:41:04 +0000
-Subject: [lm-sensors] [ patch 2.6.27-rc6 4/6 v2] separate alarm sysfs files
-Message-Id: <48C8A160.40503@gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------070209010005010304090504"
+From: Rodolfo Giometti <giometti@enneenne.com>
+Date: Mon, 22 Sep 2008 13:42:30 +0000
+Subject: [lm-sensors] [i2c] support for MAX8821 led charge pump with mono
+Message-Id: <1222090951-20567-1-git-send-email-giometti@enneenne.com>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070209010005010304090504
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+This patch adds support for MAXIM MAX8821.
 
- From a036bdecb94b279fd699ceb9e31732f1b527568d Mon Sep 17 00:00:00 2001
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Sat, 28 Jun 2008 13:40:50 -0600
-Subject: [PATCH] hwmon/pc87360 separate alarm files - use ARRAY_SIZE, not 3
+This chip integrates a charge pump for white LEDs, an audio loudspeaker
+amplifier, and two low noise LDOs controlled by an I2C control interface.
 
-Driver handles 3 logical devices in fixed length array. Replace 3 with 
-ARRAY_SIZE.
+The driver uses the linux leds interface to manage the attached leds
+while other devices are managed by simple sysfs entries.
 
-This is a drive-by patch.
+The user may also define an initial chips status by simply defining a
+struct max8821_platform_data as follow:
 
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
----
- drivers/hwmon/pc87360.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+static struct max8821_platform_data wr1100_max8821_machinfo = {
+        .led = {
+                [MAX8821_LED1] = {
+                        .name = "Keyboard",
+                        .trigger = "backlight",
+                },
+                [MAX8821_LED2] = {
+                        .name = "LCD",
+                        .trigger = "backlight",
+                },
+                [MAX8821_LED5] = {
+                        .name = "red",
+                },
+        },
+        .ldo = {
+                [MAX8821_LDO2] = {
+                        .power = 1,
+                        .voltage = 3000,
+                },
+        },
+        .audio = {
+                .power = 1,
+                .clock = 1250,
+                .gain = 6,
+        },
+};
 
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index 17688b7..ac9dcca 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -75,7 +75,7 @@ MODULE_PARM_DESC(force_id, "Override the detected 
-device ID");
- #define FSCM    0x09    /* Logical device: fans */
- #define VLM    0x0d    /* Logical device: voltages */
- #define TMS    0x0e    /* Logical device: temperatures */
--static const u8 logdev[3] = { FSCM, VLM, TMS };
-+static const u8 logdev[] = { FSCM, VLM, TMS };
- 
- #define LD_FAN        0
- #define LD_IN        1
-@@ -1079,7 +1079,7 @@ static int __devinit pc87360_probe(struct 
-platform_device *pdev)
-     mutex_init(&data->update_lock);
-     platform_set_drvdata(pdev, data);
- 
--    for (i = 0; i < 3; i++) {
-+    for (i = 0; i < ARRAY_SIZE(logdev); i++) {
-         if (((data->address[i] = extra_isa[i]))
-          && !request_region(extra_isa[i], PC87360_EXTENT,
-                      pc87360_driver.driver.name)) {
--- 
-1.5.5.1
+Undefined devices will not be enabled.
+
+Rodolfo
 
 
---------------070209010005010304090504
-Content-Type: text/x-patch;
-	name="0004-hwmon-pc87360-separate-alarm-files-use-ARRAY_SIZE.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename*0="0004-hwmon-pc87360-separate-alarm-files-use-ARRAY_SIZE.patch"
-
-From a036bdecb94b279fd699ceb9e31732f1b527568d Mon Sep 17 00:00:00 2001
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Sat, 28 Jun 2008 13:40:50 -0600
-Subject: [PATCH] hwmon/pc87360 separate alarm files - use ARRAY_SIZE, not 3
-
-Driver handles 3 logical devices in fixed length array.
-Replace 3 with ARRAY_SIZE
-
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
----
- drivers/hwmon/pc87360.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index 17688b7..ac9dcca 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -75,7 +75,7 @@ MODULE_PARM_DESC(force_id, "Override the detected device ID");
- #define FSCM	0x09	/* Logical device: fans */
- #define VLM	0x0d	/* Logical device: voltages */
- #define TMS	0x0e	/* Logical device: temperatures */
--static const u8 logdev[3] = { FSCM, VLM, TMS };
-+static const u8 logdev[] = { FSCM, VLM, TMS };
- 
- #define LD_FAN		0
- #define LD_IN		1
-@@ -1079,7 +1079,7 @@ static int __devinit pc87360_probe(struct platform_device *pdev)
- 	mutex_init(&data->update_lock);
- 	platform_set_drvdata(pdev, data);
- 
--	for (i = 0; i < 3; i++) {
-+	for (i = 0; i < ARRAY_SIZE(logdev); i++) {
- 		if (((data->address[i] = extra_isa[i]))
- 		 && !request_region(extra_isa[i], PC87360_EXTENT,
- 		 		    pc87360_driver.driver.name)) {
--- 
-1.5.5.1
-
-
---------------070209010005010304090504
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------070209010005010304090504--
