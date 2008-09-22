@@ -1,40 +1,76 @@
-From: "Jim Cromie" <jim.cromie@gmail.com>
-Date: Thu, 11 Sep 2008 04:24:20 +0000
-Subject: [lm-sensors] [ patch 2.6.27-rc6 0/6 v2] separate alarm sysfs files
-Message-Id: <cfe85dfa0809102124vcb08986le95ef914ba2d41b2@mail.gmail.com>
+From: Rodolfo Giometti <giometti@enneenne.com>
+Date: Mon, 22 Sep 2008 14:52:53 +0000
+Subject: Re: [lm-sensors] [i2c] support for MAX8821 led charge pump
+Message-Id: <20080922145253.GB3948@tekkaman>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7601739565631071345=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From 7b4b599eef53f06825dbd2337714f028a0516069 Mon Sep 17 00:00:00 2001
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Wed, 10 Sep 2008 21:49:53 -0600
-Subject: [PATCH] hwmon/pc87360 separate sysfs alarm files
 
-Bring hwmon/pc87360 into agreement with Documentation/hwmon/sysfs-interface
+--===============7601739565631071345==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="QTprm0S8XgL7H0Dt"
+Content-Disposition: inline
 
-Patchset adds separate limit alarms for voltages and temps, it also adds
-temp*_fault files.  On my Soekris, temps 1,2 are unused/unconnected,
-so temp[123]_fault = 1,1,0 respectively.  This agrees with /usr/bin/sensors,
-which has always shown them as OPEN.
 
-This respin fixes style nits noted on lm-sensors ML
+--QTprm0S8XgL7H0Dt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Jim Cromie (6):
-  hwmon/pc87360 separate alarm files - define some constants
-  hwmon/pc87360 separate alarm files - add in-min/max-alarms
-  hwmon/pc87360 separate alarm files - add
-    temp-min/max/crit/fault-alarms
-  hwmon/pc87360 separate alarm files - use ARRAY_SIZE, not 3
-  hwmon/pc87360 separate alarm files - add dev_dbg help
-  hwmon/pc87360 separate alarm files - add therm-min/max/crit-alarms
+On Mon, Sep 22, 2008 at 04:24:08PM +0200, Jean Delvare wrote:
+> Hi Rodolfo,
+>=20
+> On Mon, 22 Sep 2008 15:42:30 +0200, Rodolfo Giometti wrote:
+> > This patch adds support for MAXIM MAX8821.
+> >=20
+> > This chip integrates a charge pump for white LEDs, an audio loudspeaker
+> > amplifier, and two low noise LDOs controlled by an I2C control interfac=
+e.
+> > (...)
+>=20
+> Wrong mailing list. This clearly has nothing to do with hardware
+> monitoring.
 
- drivers/hwmon/pc87360.c |  251 +++++++++++++++++++++++++++++++++++++++++++----
- 1 files changed, 230 insertions(+), 21 deletions(-)
+Sorry, the device is I2C but it not fixes wery well into any Linux
+subsystem so I supposed the main I2C mail list was correct. :)
+
+Ciao,
+
+Rodolfo
+
+--=20
+
+GNU/Linux Solutions                  e-mail: giometti@enneenne.com
+Linux Device Driver                          giometti@linux.it
+Embedded Systems                     phone:  +39 349 2432127
+UNIX programming                     skype:  rodolfo.giometti
+
+--QTprm0S8XgL7H0Dt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFI17FFQaTCYNJaVjMRAqycAJ922Ulqu6t7CjtDUGBSSjCllzf1RACfe6Gc
+Q9B+e/9GFGWiVQp0n8ZZJXo=
+=KZza
+-----END PGP SIGNATURE-----
+
+--QTprm0S8XgL7H0Dt--
+
+
+--===============7601739565631071345==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7601739565631071345==--
