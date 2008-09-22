@@ -1,7 +1,7 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Date: Thu, 18 Sep 2008 22:01:42 +0000
+From: Trent Piepho <tpiepho@freescale.com>
+Date: Mon, 22 Sep 2008 20:50:34 +0000
 Subject: Re: [lm-sensors] Sensor chip interrupt
-Message-Id: <20080918220142.GJ12753@mars.solarsys.private>
+Message-Id: <Pine.LNX.4.64.0809191049430.3476@t2.domain.actdsltmp>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.64.0809171500190.3610@t2.domain.actdsltmp>
 In-Reply-To: <Pine.LNX.4.64.0809171500190.3610@t2.domain.actdsltmp>
@@ -10,91 +10,95 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
+On Thu, 18 Sep 2008, Mark M. Hoffman wrote:
+>>> Suppose all that is worked out, how does the interrupt actually _do_ anything?
+>>> The kernel could print a message, power off the system, change the processor
+>>> speed or some other stuff.
+>
+>
+> No, the kernel should not directly make such decisions about what to do in
+> response to the interrupt.  Policy vs. mechanism, and all that.
 
-* Hector Lahoz <hectorlahoz@gmail.com> [2008-09-18 22:25:04 +0200]:
-> On Thu, Sep 18, 2008 at 1:02 AM, Trent Piepho <tpiepho@freescale.com> wrote:
-> > I'd like to add alert IRQ support to the lm63 driver.  The new LM63 version,
-> > LM96163, no longer shares the same pin for both the tach input and the alert
-> > output, so it's quite a bit more useful.
-> >
-> > I've determined that with my prototype board that has an LM63, I can get
-> > either an alert IRQ or a tach input, without hardware modification.  In order
-> > to get the IRQ all I need to do is not connect a 3-pin fan (or not connect the
-> > tach pin), as the tach signal effectively causes IRQs.  My patch to let the
-> > lm63 fan be enabled/disabled via "fan1_enable" in sysfs has turned out to be
-> > quite useful, contrary to some claims that no one would ever use this feature.
-> > It's entirely possible to switch back and forth between tach and alert mode
-> > without rebooting.
-> >
-> > It looks like there aren't any hwmon drivers that support interrupts, despite
-> > it being a feature of virtually every hwmon chip.  Is this correct, that
-> > there is no established way for dealing with the IRQs?
+It could be a latency issue.  The extra delays of going through userspace
+might be too much.  For things like laptop freefall and shock sensors for
+example, which can change a lot faster than temperature.
 
-Yes, that is correct.
+I've written some initial support for the alert interrupt and did some
+measurements with a scope.  Here's a picture of an alert event,
+http://www.speakeasy.org/~xyzzy/pictures/lm63alarm.png
 
-> > Where should the code go?  In platform code or in the lm63 driver?  Which IRQ
-> > to request is platform specific, but actually doing so shouldn't be platform
-> > specific.  The IRQ handler needs to somehow talk to the lm63, which if the
-> > handler is in platform code will be rather hard to do.
-> >
-> > The IRQ handler will need to read the lm63 alert (alarm in hwmon) status
-> > register to find out why the alert was generated (or _if_ an alert was
-> > generated, since there could be other chips in the same IRQ, for example I'll
-> > have two lm96163 chips with a common alert line).  Reading the alert status
-> > register clears it if the alert condition no longer exists.  This means there
-> > needs to be some communication between the IRQ handler and the lm63 driver so
-> > one doesn't prevent the other from seeing an alert bit.
-> >
-> > Suppose all that is worked out, how does the interrupt actually _do_ anything?
-> > The kernel could print a message, power off the system, change the processor
-> > speed or some other stuff.
+The bottom signal is the ALERT# line that generates an IRQ, the upper signal
+is a CPU GPIO line connected to an LED that is being changed in response to
+it.  Changing the GPIO only takes about 60 ns.
 
+The events start when alert# drops because the temperature got too high (I put
+my finger on the fan).  This triggers an IRQ.
 
-No, the kernel should not directly make such decisions about what to do in
-response to the interrupt.  Policy vs. mechanism, and all that.
+The first thing I have the alert IRQ handler do is to raise the GPIO, that's
+the upper signal going high.  It looks immediate, do to the scale in that
+picture, but it takes on the order of 2 us.
 
-> > It would be nice to notify userspace somehow, but how?  Cause a program to
-> > get run, like /sbin/hotplug (how about /sbin/toohotplug)?  Send a signal to
-> > or wake a process blocked on one of the sysfs alarm files?  I'm not sure
-> > how hard that is to do, but it does seem nice to be able to select() on
-> > temp2_max_alarm and then get woken when it changes.  Or is there some other
-> > mechanism for this?
-> >
-> 
-> I've also wondered many times why are hwmon drivers not using interrupts. I
-> have always learnt that using interrupts is more efficient than polling
-> except in some exceptional cases. I guess polling the sensor chip every 5
-> seconds is not a meaningful overload. But anyway I'd loike to get an answer
-> from the lm-sensors gurus.  The it87 is also able to send an interrupt when
-> any value exceeds a limit but the driver does not make use of it.  For
-> example, sensord wouldn't have to sleep and poll taking advance of this
-> feature.
+Since I2C can sleep, I can't do anything else with the LM63 in the IRQ
+handler, so it schedules a workqueue.
 
-Two part answer...
+The first thing that work queue does it lower the gpio, which is when the top
+signal goes low again after 1.008 ms.  Seems a wq adds a surprising amount of
+latency.  Be interesting to try a tasklet and see how that compares.
 
-1) It may be more efficient, but for this class of hardware the difference is
-not meaningful.  By "this class" I mean processor and main board temp and
-voltage sensors, where the measurements are not expected to fluctuate wildly.
-Modern processors will throttle down in response to over- temp situations all
-by themselves, so the hwmon drivers do not need to react any faster than 1
-second even.  The hwmon drivers are not intended for real-time or safety
-critical usage, nor do they need to be.
+Next the work function reads the alarm register from the LM63, which resets
+the alert# signal.  That's the bottom signal going high after 1.496 ms.  Which
+shows how long it takes the ack the interrupt.
 
-2) On most mainboards, the interrupt line from a discrete hwmon chip is not
-connected.  In the case of chips using the SMBus, the SMBalert line may not
-be connected either.  And even if it was, the Linux I2C subsystem does not
-yet support it anyway.
+Then the work function uses sysfs_notify() to wake a process that has blocked
+on one of the sysfs alarm files with select().  That process raises the gpio
+again via sysfs, which is when the top signal goes high again after 2.814 ms.
 
-In summary... lots of work to do if you want interrupts from hwmon drivers;
-but very little real value (for the majority of users) in doing it.
+So, if this gpio were to so something like turn the power off, the latency
+depending on where it's done:
+From the interrupt:                  2 us
+From a kernel work queue,
+   if you don't check what alarm was: 1.0 ms
+   if you do check/ack the alarm:     1.5 ms
+From userspace:                      3.8 ms
 
-I hope that helps; regards,
+So, about 2000x more latency for userspace vs IRQ, and about 3x the latency
+for userspace vs the kernel in process context.
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Of course if the userspace process is swapped out, it could take much much
+longer.  I can see that being a big argument in favor of putting alert
+handling in the kernel.  If the IDE bus hangs (my DVD-RW does this all time)
+over temperature shutdown stops working?  That could be really bad.
 
+> 1) It may be more efficient, but for this class of hardware the difference
+> is not meaningful.  By "this class" I mean processor and main board temp and
+> voltage sensors, where the measurements are not expected to fluctuate
+> wildly.  Modern processors will throttle down in response to over- temp
+> situations all by themselves, so the hwmon drivers do not need to react any
+> faster than 1 second even.  The hwmon drivers are not intended for real-time
+> or safety critical usage, nor do they need to be.
+
+I don't have a typical desktop use case.  The processor doesn't have any
+thermal throttling.  There is also a second hwmon chip that is monitoring the
+internal thermal diode of a very expensive and high power FPGA chip.
+
+If the FPGA starts to overheat, using the interrupt will certainly give it
+attention much faster than polling once per second.
+
+Another argument for support of interrupts is the I2C overhead of polling.
+The way the hwmon drivers work, polling the alarm doesn't read just one
+register, it reads them all.  Some i2c adapters don't use interrupts are very
+expensive, and even the ones that do usually only transfer one byte at a time.
+Those that send bits manually are even worse.  Since the cost is based on the
+real time constraints of the I2C protocol, as CPUs get faster the relative cost
+of I2C polling goes _up_.
+
+Polling requires the CPU (and i2c controller) to wake out of any sleep states.
+That will hurt power consumption, especially when you're talking about waking
+out of the deep sleeps.
+
+The CPU won't overheat in sleep?  There are all kinds of other alarms, like
+the power supply fan, or in my case, the temperature of the FPGA chip which
+could easily overheat while the CPU is sleeping.
 
 _______________________________________________
 lm-sensors mailing list
