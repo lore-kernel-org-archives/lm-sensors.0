@@ -1,59 +1,53 @@
-From: Manuel Lauss <mano@roarinelk.homelinux.net>
-Date: Tue, 16 Sep 2008 05:01:19 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: TI TMP121 SPI temperature
-Message-Id: <20080916050119.GA14613@roarinelk.homelinux.net>
+From: Rodolfo Giometti <giometti@enneenne.com>
+Date: Mon, 22 Sep 2008 14:06:21 +0000
+Subject: [lm-sensors] leds: support for Philips PCA9531 8-bit led dimmer.
+Message-Id: <1222092382-22148-1-git-send-email-giometti@enneenne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Good Morning Jean,
+This patch adds support for PHILIPS PCA9531.
 
-On Mon, Sep 15, 2008 at 11:50:51PM +0200, Jean Delvare wrote:
-> Hi Manuel,
-> 
-> Le lundi 15 septembre 2008, Manuel Lauss a ?crit?:
-> > Driver for the Texas Instruments TMP121/TMP123 SPI temperature sensors.
-> > The code is 99% identical to the LM70 driver;  only the formula to
-> > calculate the temperature (in 1/1000 deg celsius) has been adjusted.
-> > 
-> > Signed-off-by: Manuel Lauss <mano@roarinelk.homelinux.net>
-> > ---
-> >  drivers/hwmon/Kconfig  |   10 +++
-> >  drivers/hwmon/Makefile |    1 +
-> >  drivers/hwmon/tmp121.c |  168 ++++++++++++++++++++++++++++++++++++++++++++++++
-> >  3 files changed, 179 insertions(+), 0 deletions(-)
-> >  create mode 100644 drivers/hwmon/tmp121.c
-> 
-> Wouldn't it make more sense to just add support for the TMP121/TMP123
-> chips to the lm70 driver? Duplicating code is better avoided when
-> possible. Thankfully these drivers are relatively small, but still...
+This chip is an 8-bit I2C & SMBus I/O expander optimizer for dimming LEDs in
+256 discrete steps.
 
-I can do that, sure.  New patch in the works.
+The driver uses the linux leds interface to manage the attached leds.
 
- 
-> > --- /dev/null
-> > +++ b/drivers/hwmon/tmp121.c
-> > (...)
-> > +	/*
-> > +	 * The "raw" temperature read into rxbuf[] is a 16-bit signed 2's
-> > +	 * complement value. Only the MSB 13 bits (1 sign + 12 temperature
-> > +	 * bits) are meaningful; the LSB 3 bits are to be discarded.
-> > +	 * Each bit represents 0.0625 degrees Celsius.
-> > +	 */
-> > +	val = (raw * 625) / 80;
-> 
-> This does not actually discard the 3 LSB. In order to do that, you
-> would need to write the following:
-> 
-> 	val = (raw / 8) * 625 / 10;
+The user may also define an initial chips status by simply defining a
+struct pca9531_platform_data as follow:
 
-Don't drink and code... (the lower 3 bits read back as zero, so I used the
-cheap equation).
+tatic struct pca9531_platform_data wr1100_pca9531_0_machinfo[] = {
+        [PCA9531_LED0] = {
+                .name = "power_on_led",
+                .trigger = "backlight",
+        },
+        [PCA9531_LED3] = {
+                .name = "lcd",
+                .brightness = 255,
+                .inverted = 1,
+                .trigger = "backlight",
+                .pwm = PCA9531_PWM0,
+        },
+        [PCA9531_LED5] = {
+                .name = "power_on",
+                .trigger = "backlight",
+        },
+        [PCA9531_LED6] = {
+                .name = "action",
+                .trigger = "backlight",
+        },
+        [PCA9531_LED7] = {
+                .name = NULL,
+        },
+};
 
-Thank you!
-	Manuel Lauss
+Undefined devices will not be enabled.
+
+Rodolfo
+
+
 
 _______________________________________________
 lm-sensors mailing list
