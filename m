@@ -1,310 +1,69 @@
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Thu, 11 Sep 2008 04:36:39 +0000
-Subject: [lm-sensors] [ patch 2.6.27-rc6 3/6 v2] separate alarm sysfs files
-Message-Id: <48C8A057.3020203@gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------060509090708010606060104"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 22 Sep 2008 08:59:33 +0000
+Subject: [lm-sensors] [PATCH] hwmon-vid: Be quiet if CPU has no VID pins
+Message-Id: <20080922105933.225364ac@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060509090708010606060104
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+There's no point in warning the user about the "unknown VRM version"
+of his/her CPU is we know that said CPU has no VID pins. Better just
+keep quiet in this case.
 
-[jimc@harpo ts-t4d]$
-[jimc@harpo ts-t4d]$
-[jimc@harpo ts-t4d]$
-[jimc@harpo ts-t4d]$ more 
-0003-hwmon-pc87360-separate-alarm-files-add-temp-min-ma.patch
- From 838b7d240dd75bdec280b8f8a3b14643a29f1ee0 Mon Sep 17 00:00:00 2001
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Sat, 28 Jun 2008 13:19:07 -0600
-Subject: [PATCH] hwmon/pc87360 separate alarm files - add 
-temp-min/max/crit/fault-alarms
-
-Adds temp-min/max/crit/fault-alarm callbacks, sensor-device-attribute
-declarations, and refs to those new decls in the macro used to
-initialize the temp_group (of sysfs files)
-
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Rudolf Marek <r.marek@assembler.cz>
 ---
- drivers/hwmon/pc87360.c |   83 
-+++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 81 insertions(+), 2 deletions(-)
+Rudolf, what do you think?
+David, I guess that you don't have the opportunity to test this patch?
 
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index 538f784..17688b7 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -847,12 +847,79 @@ static ssize_t show_temp_alarms(struct device 
-*dev, struct device_
-attribute *att
+ drivers/hwmon/hwmon-vid.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+--- linux-2.6.27-rc7.orig/drivers/hwmon/hwmon-vid.c	2008-08-21 09:10:45.000000000 +0200
++++ linux-2.6.27-rc7/drivers/hwmon/hwmon-vid.c	2008-09-22 10:52:08.000000000 +0200
+@@ -1,7 +1,8 @@
+ /*
+  * hwmon-vid.c - VID/VRM/VRD voltage conversions
+  *
+- * Copyright (c) 2004 Rudolf Marek <r.marek@assembler.cz>
++ * Copyright (c) 2004-2007 Rudolf Marek <r.marek@assembler.cz>
++ * Copyright (c) 2007-2008 Jean Delvare <khali@linux-fr.org>
+  *
+  * Partly imported from i2c-vid.h of the lm_sensors project
+  * Copyright (c) 2002 Mark D. Studebaker <mdsxyz123@yahoo.com>
+@@ -167,6 +168,7 @@ struct vrm_model {
+ };
+ 
+ #define ANY 0xFF
++#define NO_VID 1
+ 
+ #ifdef CONFIG_X86
+ 
+@@ -196,6 +198,7 @@ static struct vrm_model vrm_models[] = {
+ 	{X86_VENDOR_CENTAUR, 0x6, 0x9, ANY, 17},	/* C3-M, Eden-N */
+ 	{X86_VENDOR_CENTAUR, 0x6, 0xA, 0x7, 0},		/* No information */
+ 	{X86_VENDOR_CENTAUR, 0x6, 0xA, ANY, 13},	/* C7, Esther */
++	{X86_VENDOR_NSC, 0x5, 0x9, ANY, NO_VID},	/* Geode */
+ 	{X86_VENDOR_UNKNOWN, ANY, ANY, ANY, 0}		/* stop here */
+ };
+ 
+@@ -239,6 +242,8 @@ u8 vid_which_vrm(void)
+ 	if (vrm_ret = 0)
+ 		printk(KERN_INFO "hwmon-vid: Unknown VRM version of your "
+ 		       "x86 CPU\n");
++	else if (vrm_ret = NO_VID)	/* No warning if no VID pins */
++		vrm_ret = 0;
+ 	return vrm_ret;
  }
- static DEVICE_ATTR(alarms_temp, S_IRUGO, show_temp_alarms, NULL);
  
-+/* show_temp_min/max_alarm() reads data from the per-channel status
-+   register (sec 12.3.7), not the temp event status registers (sec
-+   12.3.2) that show_temp_alarm() reads (via data->temp_alarms) */
-+
-+static ssize_t
-+show_temp_min_alarm(struct device *dev, struct device_attribute *devattr,
-+            char *buf)
-+{
-+    struct pc87360_data *data = pc87360_update_device(dev);
-+    unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+    return sprintf(buf, "%u\n", !!(data->temp_status[nr] & CHAN_ALM_MIN));
-+}
-+static ssize_t
-+show_temp_max_alarm(struct device *dev, struct device_attribute *devattr,
-+            char *buf)
-+{
-+    struct pc87360_data *data = pc87360_update_device(dev);
-+    unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+    return sprintf(buf, "%u\n", !!(data->temp_status[nr] & CHAN_ALM_MAX));
-+}
-+static ssize_t
-+show_temp_crit_alarm(struct device *dev, struct device_attribute *devattr,
-+             char *buf)
-+{
-+    struct pc87360_data *data = pc87360_update_device(dev);
-+    unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+    return sprintf(buf, "%u\n", !!(data->temp_status[nr] & TEMP_ALM_CRIT));
-+}
-+
-+static struct sensor_device_attribute temp_min_alarm[] = {
-+    SENSOR_ATTR(temp1_min_alarm, S_IRUGO, show_temp_min_alarm, NULL, 0),
-+    SENSOR_ATTR(temp2_min_alarm, S_IRUGO, show_temp_min_alarm, NULL, 1),
-+    SENSOR_ATTR(temp3_min_alarm, S_IRUGO, show_temp_min_alarm, NULL, 2),
-+};
-+static struct sensor_device_attribute temp_max_alarm[] = {
-+    SENSOR_ATTR(temp1_max_alarm, S_IRUGO, show_temp_max_alarm, NULL, 0),
-+    SENSOR_ATTR(temp2_max_alarm, S_IRUGO, show_temp_max_alarm, NULL, 1),
-+    SENSOR_ATTR(temp3_max_alarm, S_IRUGO, show_temp_max_alarm, NULL, 2),
-+};
-+static struct sensor_device_attribute temp_crit_alarm[] = {
-+    SENSOR_ATTR(temp1_crit_alarm, S_IRUGO, show_temp_crit_alarm, NULL, 0),
-+    SENSOR_ATTR(temp2_crit_alarm, S_IRUGO, show_temp_crit_alarm, NULL, 1),
-+    SENSOR_ATTR(temp3_crit_alarm, S_IRUGO, show_temp_crit_alarm, NULL, 2),
-+};
-+
-+#define TEMP_FAULT    0x40    /* open diode */
-+static ssize_t show_temp_fault(struct device *dev, struct device_attribute
-+                   *devattr, char *buf)
-+{
-+    struct pc87360_data *data = pc87360_update_device(dev);
-+    unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+    return sprintf(buf, "%u\n", !!(data->temp_status[nr] & TEMP_FAULT));
-+}
-+static struct sensor_device_attribute temp_fault[] = {
-+    SENSOR_ATTR(temp1_fault, S_IRUGO, show_temp_fault, NULL, 0),
-+    SENSOR_ATTR(temp2_fault, S_IRUGO, show_temp_fault, NULL, 1),
-+    SENSOR_ATTR(temp3_fault, S_IRUGO, show_temp_fault, NULL, 2),
-+};
-+
- #define TEMP_UNIT_ATTRS(X) \
-     &temp_input[X].dev_attr.attr,    \
-     &temp_status[X].dev_attr.attr,    \
-     &temp_min[X].dev_attr.attr,    \
-     &temp_max[X].dev_attr.attr,    \
--    &temp_crit[X].dev_attr.attr
-+    &temp_crit[X].dev_attr.attr,    \
-+    &temp_min_alarm[X].dev_attr.attr, \
-+    &temp_max_alarm[X].dev_attr.attr, \
-+    &temp_crit_alarm[X].dev_attr.attr, \
-+    &temp_fault[X].dev_attr.attr
- 
- static struct attribute * pc8736x_temp_attr_array[] = {
-     TEMP_UNIT_ATTRS(0),
-@@ -1088,7 +1155,15 @@ static int __devinit pc87360_probe(struct 
-platform_device *pdev)
-                 || (err = device_create_file(dev,
-                     &temp_crit[i].dev_attr))
-                 || (err = device_create_file(dev,
--                    &temp_status[i].dev_attr)))
-+                    &temp_status[i].dev_attr))
-+                || (err = device_create_file(dev,
-+                    &temp_min_alarm[i].dev_attr))
-+                || (err = device_create_file(dev,
-+                    &temp_max_alarm[i].dev_attr))
-+                || (err = device_create_file(dev,
-+                    &temp_crit_alarm[i].dev_attr))
-+                || (err = device_create_file(dev,
-+                    &temp_fault[i].dev_attr)))
-                 goto ERROR3;
-         }
-         if ((err = device_create_file(dev, &dev_attr_alarms_temp)))
-@@ -1194,6 +1269,10 @@ static void pc87360_write_value(struct 
-pc87360_data *data, u8 ldi
-, u8 bank,
- #define CHAN_ALM_ENA    0x10    /* propagate to alarms-reg ?? (chk val!) */
- #define CHAN_READY    (CHAN_ENA|CHAN_CNVRTD) /* sample ready mask */
- 
-+#define TEMP_OTS_OE    0x20    /* OTS Output Enable */
-+#define VIN_RW1C_MASK    (CHAN_READY|CHAN_ALM_MAX|CHAN_ALM_MIN)   /* 
-0x87 */
-+#define TEMP_RW1C_MASK    (VIN_RW1C_MASK|TEMP_ALM_CRIT|TEMP_FAULT) /* 
-0xCF */
-+
- static void pc87360_init_device(struct platform_device *pdev,
-                 int use_thermistors)
- {
+
+
 -- 
-1.5.5.1
-
-
-
---------------060509090708010606060104
-Content-Type: text/x-patch;
-	name="0003-hwmon-pc87360-separate-alarm-files-add-temp-min-ma.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename*0="0003-hwmon-pc87360-separate-alarm-files-add-temp-min-ma.patc";
-	filename*1="h"
-
-From 838b7d240dd75bdec280b8f8a3b14643a29f1ee0 Mon Sep 17 00:00:00 2001
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Sat, 28 Jun 2008 13:19:07 -0600
-Subject: [PATCH] hwmon/pc87360 separate alarm files - add temp-min/max/crit/fault-alarms
-
-Adds temp-min/max/crit/fault-alarm callbacks, sensor-device-attribute
-declarations, and refs to those new decls in the macro used to
-initialize the temp_group (of sysfs files)
-
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
----
- drivers/hwmon/pc87360.c |   83 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 81 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index 538f784..17688b7 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -847,12 +847,79 @@ static ssize_t show_temp_alarms(struct device *dev, struct device_attribute *att
- }
- static DEVICE_ATTR(alarms_temp, S_IRUGO, show_temp_alarms, NULL);
- 
-+/* show_temp_min/max_alarm() reads data from the per-channel status
-+   register (sec 12.3.7), not the temp event status registers (sec
-+   12.3.2) that show_temp_alarm() reads (via data->temp_alarms) */
-+
-+static ssize_t
-+show_temp_min_alarm(struct device *dev, struct device_attribute *devattr,
-+		    char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+	return sprintf(buf, "%u\n", !!(data->temp_status[nr] & CHAN_ALM_MIN));
-+}
-+static ssize_t
-+show_temp_max_alarm(struct device *dev, struct device_attribute *devattr,
-+		    char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+	return sprintf(buf, "%u\n", !!(data->temp_status[nr] & CHAN_ALM_MAX));
-+}
-+static ssize_t
-+show_temp_crit_alarm(struct device *dev, struct device_attribute *devattr,
-+		     char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+	return sprintf(buf, "%u\n", !!(data->temp_status[nr] & TEMP_ALM_CRIT));
-+}
-+
-+static struct sensor_device_attribute temp_min_alarm[] = {
-+	SENSOR_ATTR(temp1_min_alarm, S_IRUGO, show_temp_min_alarm, NULL, 0),
-+	SENSOR_ATTR(temp2_min_alarm, S_IRUGO, show_temp_min_alarm, NULL, 1),
-+	SENSOR_ATTR(temp3_min_alarm, S_IRUGO, show_temp_min_alarm, NULL, 2),
-+};
-+static struct sensor_device_attribute temp_max_alarm[] = {
-+	SENSOR_ATTR(temp1_max_alarm, S_IRUGO, show_temp_max_alarm, NULL, 0),
-+	SENSOR_ATTR(temp2_max_alarm, S_IRUGO, show_temp_max_alarm, NULL, 1),
-+	SENSOR_ATTR(temp3_max_alarm, S_IRUGO, show_temp_max_alarm, NULL, 2),
-+};
-+static struct sensor_device_attribute temp_crit_alarm[] = {
-+	SENSOR_ATTR(temp1_crit_alarm, S_IRUGO, show_temp_crit_alarm, NULL, 0),
-+	SENSOR_ATTR(temp2_crit_alarm, S_IRUGO, show_temp_crit_alarm, NULL, 1),
-+	SENSOR_ATTR(temp3_crit_alarm, S_IRUGO, show_temp_crit_alarm, NULL, 2),
-+};
-+
-+#define TEMP_FAULT	0x40	/* open diode */
-+static ssize_t show_temp_fault(struct device *dev, struct device_attribute
-+			       *devattr, char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+	return sprintf(buf, "%u\n", !!(data->temp_status[nr] & TEMP_FAULT));
-+}
-+static struct sensor_device_attribute temp_fault[] = {
-+	SENSOR_ATTR(temp1_fault, S_IRUGO, show_temp_fault, NULL, 0),
-+	SENSOR_ATTR(temp2_fault, S_IRUGO, show_temp_fault, NULL, 1),
-+	SENSOR_ATTR(temp3_fault, S_IRUGO, show_temp_fault, NULL, 2),
-+};
-+
- #define TEMP_UNIT_ATTRS(X) \
- 	&temp_input[X].dev_attr.attr,	\
- 	&temp_status[X].dev_attr.attr,	\
- 	&temp_min[X].dev_attr.attr,	\
- 	&temp_max[X].dev_attr.attr,	\
--	&temp_crit[X].dev_attr.attr
-+	&temp_crit[X].dev_attr.attr,	\
-+	&temp_min_alarm[X].dev_attr.attr, \
-+	&temp_max_alarm[X].dev_attr.attr, \
-+	&temp_crit_alarm[X].dev_attr.attr, \
-+	&temp_fault[X].dev_attr.attr
- 
- static struct attribute * pc8736x_temp_attr_array[] = {
- 	TEMP_UNIT_ATTRS(0),
-@@ -1088,7 +1155,15 @@ static int __devinit pc87360_probe(struct platform_device *pdev)
- 			    || (err = device_create_file(dev,
- 					&temp_crit[i].dev_attr))
- 			    || (err = device_create_file(dev,
--					&temp_status[i].dev_attr)))
-+					&temp_status[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_min_alarm[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_max_alarm[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_crit_alarm[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_fault[i].dev_attr)))
- 				goto ERROR3;
- 		}
- 		if ((err = device_create_file(dev, &dev_attr_alarms_temp)))
-@@ -1194,6 +1269,10 @@ static void pc87360_write_value(struct pc87360_data *data, u8 ldi, u8 bank,
- #define CHAN_ALM_ENA	0x10	/* propagate to alarms-reg ?? (chk val!) */
- #define CHAN_READY	(CHAN_ENA|CHAN_CNVRTD) /* sample ready mask */
- 
-+#define TEMP_OTS_OE	0x20	/* OTS Output Enable */
-+#define VIN_RW1C_MASK	(CHAN_READY|CHAN_ALM_MAX|CHAN_ALM_MIN)   /* 0x87 */
-+#define TEMP_RW1C_MASK	(VIN_RW1C_MASK|TEMP_ALM_CRIT|TEMP_FAULT) /* 0xCF */
-+
- static void pc87360_init_device(struct platform_device *pdev,
- 				int use_thermistors)
- {
--- 
-1.5.5.1
-
-
---------------060509090708010606060104
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------060509090708010606060104--
