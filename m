@@ -1,41 +1,33 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 22 Sep 2008 16:35:56 +0000
-Subject: Re: [lm-sensors] [i2c] support for MAX8821 led charge pump with
-Message-Id: <20080922183556.6d5da3e2@hyperion.delvare>
+From: Howard Chu <hyc@symas.com>
+Date: Tue, 23 Sep 2008 20:39:36 +0000
+Subject: [lm-sensors] AMD Family 11h thermal sensor
+Message-Id: <48D95408.2010804@symas.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080922162408.0dc00025@hyperion.delvare>
-In-Reply-To: <20080922162408.0dc00025@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 22 Sep 2008 16:52:53 +0200, Rodolfo Giometti wrote:
-> On Mon, Sep 22, 2008 at 04:24:08PM +0200, Jean Delvare wrote:
-> > Hi Rodolfo,
-> > 
-> > On Mon, 22 Sep 2008 15:42:30 +0200, Rodolfo Giometti wrote:
-> > > This patch adds support for MAXIM MAX8821.
-> > > 
-> > > This chip integrates a charge pump for white LEDs, an audio loudspeaker
-> > > amplifier, and two low noise LDOs controlled by an I2C control interface.
-> > > (...)
-> > 
-> > Wrong mailing list. This clearly has nothing to do with hardware
-> > monitoring.
-> 
-> Sorry, the device is I2C but it not fixes wery well into any Linux
-> subsystem so I supposed the main I2C mail list was correct. :)
+The newer AMD X2 Turion (and other) processors appear to have the same thermal 
+monitoring capability as K10, but the PCI device IDs for the Northbridge have 
+changed. (1022:1303)
 
-No, no, no.
+I added the new ID to the K10 code posted here
+http://lists.lm-sensors.org/pipermail/lm-sensors/2008-April/022909.html
+and it seems to be working.
 
-THE LM-SENSORS LIST IS NOT, I REPEAT, NOT, THE MAIN I2C MAILING LIST.
+See document 41256 here
+http://www.amd.com/us-en/Processors/TechnicalResources/0,,30_182_739_13906,00.html
 
-Please, pretty please, just check MAINTAINERS. I'm not sure how I must
-write it so that everyone finally gets it.
+and compare section 2.10 Thermal Functions to the same text in the K10 doc 
+31116 here
+http://www.amd.com/us-en/Processors/TechnicalResources/0,,30_182_739_15343,00.html
 
 -- 
-Jean Delvare
+   -- Howard Chu
+   CTO, Symas Corp.           http://www.symas.com
+   Director, Highland Sun     http://highlandsun.com/hyc/
+   Chief Architect, OpenLDAP  http://www.openldap.org/project/
 
 _______________________________________________
 lm-sensors mailing list
