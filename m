@@ -1,29 +1,51 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 21 Sep 2008 15:08:42 +0000
-Subject: Re: [lm-sensors] Probable memory leak issue
-Message-Id: <20080921170842.1e5e180c@hyperion.delvare>
+Date: Wed, 24 Sep 2008 09:41:30 +0000
+Subject: [lm-sensors] [PATCH] eeepc-laptop: add missing name attribute
+Message-Id: <20080924114130.18441e70@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 31 Jul 2008 12:48:49 +0200, Souley Madougou wrote:
-> Dear developers,
-> 
-> I suspect that there is a memory leak issue in your code. In
-> sensors_parse_chip_name() you are allocating memory in the following line:
->   res->prefix = strndup(name, dash - name);
-> 
-> In some circonstances, this memory is not freed in the sensors_cleanup()
-> function.
+Creates a name file in the sysfs directory, that
+is needed for the libsensors library to work.
 
-Can you please send a patch fixing this problem you're seeing? If not,
-please at least tell which version of lm-sensors you're looking at, and
-what circumstances it takes to trigger the leak, so that I get a chance
-to reproduce and fix it.
+This fixes bug #11520:
+http://bugzilla.kernel.org/show_bug.cgi?id520
 
-Thanks,
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+I am adding this patch to my personal hwmon tree and will be sending it
+to Linus soon. Testers welcome.
+
+ drivers/misc/eeepc-laptop.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+--- linux-2.6.27-rc7.orig/drivers/misc/eeepc-laptop.c	2008-09-23 17:18:33.000000000 +0200
++++ linux-2.6.27-rc7/drivers/misc/eeepc-laptop.c	2008-09-24 10:26:35.000000000 +0200
+@@ -525,10 +525,18 @@ EEEPC_CREATE_SENSOR_ATTR(fan1_pwm, S_IRU
+ EEEPC_CREATE_SENSOR_ATTR(pwm1_enable, S_IRUGO | S_IWUSR,
+ 			 eeepc_get_fan_ctrl, eeepc_set_fan_ctrl);
+ 
++static ssize_t
++show_name(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "eeepc\n");
++}
++static SENSOR_DEVICE_ATTR(name, S_IRUGO, show_name, NULL, 0);
++
+ static struct attribute *hwmon_attributes[] = {
+ 	&sensor_dev_attr_fan1_pwm.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
++	&sensor_dev_attr_name.dev_attr.attr,
+ 	NULL
+ };
+ 
+
+
 -- 
 Jean Delvare
 
