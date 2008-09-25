@@ -1,23 +1,32 @@
 From: Wolfgang Grandegger <wg@grandegger.com>
-Date: Sat, 13 Sep 2008 08:46:00 +0000
-Subject: [lm-sensors] [PATCH 0/2] hwmon: w83781d: converting to new-style
-Message-Id: <48CB7DC8.3060503@grandegger.com>
+Date: Thu, 25 Sep 2008 09:38:12 +0000
+Subject: Re: [lm-sensors] [PATCH 0/2] hwmon: w83781d: converting to
+Message-Id: <48DB5C04.8080305@grandegger.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <48CB7DC8.3060503@grandegger.com>
+In-Reply-To: <48CB7DC8.3060503@grandegger.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hi Jean,
 
-I made another effort to convert the w83781d to new-style binding. The
-series consists of the following two patches:
+Wolfgang Grandegger wrote:
+> Hello,
+> 
+> I made another effort to convert the w83781d to new-style binding. The
+> series consists of the following two patches:
+> 
+>   [PATCH 1/2] hwmon: w83781d: make ISA interface depend on CONFIG_ISA
+>   [PATCH 2/2] hwmon: w83781d: use new style driver binding
+> 
+> I have tested it one a PowerPC MPC8544 board. I did not have any
+> occasion to verify the ISA related part.
 
-  [PATCH 1/2] hwmon: w83781d: make ISA interface depend on CONFIG_ISA
-  [PATCH 2/2] hwmon: w83781d: use new style driver binding
+did you have found some time to look at these patches for the w83781?
 
-I have tested it one a PowerPC MPC8544 board. I did not have any
-occasion to verify the ISA related part.
+Thanks,
 
 Wolfgang.
 
