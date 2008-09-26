@@ -1,25 +1,42 @@
-From: "Till Harbaum / Lists" <lists@harbaum.org>
-Date: Thu, 25 Sep 2008 12:37:28 +0000
+From: Riku Voipio <riku.voipio@movial.fi>
+Date: Fri, 26 Sep 2008 08:16:46 +0000
 Subject: Re: [lm-sensors] Legal questions regarding LM-sensors....
-Message-Id: <200809251437.29135.lists@harbaum.org>
+Message-Id: <48DC9A6E.1090200@movial.fi>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <30B6C5E7EF81EC429436AECD02583340382CBC97@Corpappl054.corp.saab.se>
-In-Reply-To: <30B6C5E7EF81EC429436AECD02583340382CBC97-r3tnyfRG5obNd77LlVloHn4X7bZ/NCid@public.gmane.org>
+In-Reply-To: <30B6C5E7EF81EC429436AECD02583340382CBC97@Corpappl054.corp.saab.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
-Cc: "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "Hammargren Lukas (Consultant)" <lukas.hammargren-zlDGZTLOEuz3oGB3hsPCZA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-Hi,
+Hammargren Lukas (Consultant) wrote:
+> Hello,
+>  
+> I have a couple of questions regarding your software (LM-sensors) for 
+> hardware monitoring which I hope that you please could give me answers 
+> to?
+>  
+> The questions below:
+>  
+> * Does LM-Sensors have a assigned ECCN (Export Control Classification 
+> Number)?
+Debian used to send export notices for all software under ECCN 5D002
+(using the TSU exception), including lm-sensors. There might be some more
+matching ECCN lm-sensors specifically, but in Debian's case it was merely
+easier to notify about everything than to check which software may contain
+cryptography or use other cryptographic libraries.
 
-Am Donnerstag 25 September 2008 schrieb Hammargren Lukas (Consultant):
+http://lists.debian.org/debian-legal/2007/08/msg00074.html
+http://azure.humbug.org.au/~aj/blog/2008/03/07#2008-03-07-10years2
+
+> * Does it contain any chrypto's?
+No.
+
 > * Is the country of origin: NL (Netherlands)?
-Well, that's a funny question for a project written by a group of people spread
-all over the world ...
+You might want to update your views on how software is developed these days.
 
-Till
-
+I am not a lawyer and nothing I say me be considered legal advice.
 
 _______________________________________________
 lm-sensors mailing list
