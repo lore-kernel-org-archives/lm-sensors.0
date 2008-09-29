@@ -1,52 +1,161 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 05 Sep 2008 08:44:30 +0000
-Subject: Re: [lm-sensors] Single Sensor Check
-Message-Id: <20080905104430.259c32f3@hyperion.delvare>
+From: "Pierre Bauduin" <pierre@baudu.in>
+Date: Mon, 29 Sep 2008 08:42:43 +0000
+Subject: [lm-sensors] on a "via686a-*" sensors reports always the same
+Message-Id: <7cd7a3e80809290142w32aea211l3b35834000a1cbef@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8528778293086057966=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <06d401c8ff06$1103d690$330b83b0$@com>
-In-Reply-To: <06d401c8ff06$1103d690$330b83b0$@com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ken,
+--===============8528778293086057966==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_12871_4400105.1222677763621"
 
-On Tue, 2 Sep 2008 17:31:53 -0400, sensored@CubicC.com wrote:
-> Thanks, Matt -- I appreciate the time you took to respond.  I *do* have
-> control over the motherboard, so I went looking for documentation on the
-> chipset & sensors, but there was nothing offered other than basic "How to
-> configure the BIOS" information.  Do you have any suggestions of what,
-> specifically, I could ask the manufacturer for (if they'll even oblige me).
-> 
-> I dug deeper into the lm-sensors code, and determined that lm-sensors is
-> parsing a file in /sys/devices/platform/i2c-9191/9191-0290/ (and responding
-> accordingly).  Can you help me understand how this file got created there,
-> and how it is updated (I assume the data needs to be updated in close to
-> real-time)?
+------=_Part_12871_4400105.1222677763621
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-You must be using a relatively old kernel to have such a device name...
+Hi there,
 
-Anyway, the files in question are created by whatever hardware
-monitoring driver your system is using. To find out which it is, look
-at the "driver" link in this directory.
+I'm having problems with sensors on a machine based on a Fujitsu-Siemens MS=
+I
+MS-6340 motherboard.
 
-The data in these files are updated only when you read from them, and
-are cached for a short period of time (1 to 2 seconds, depends on the
-driver) to prevent a given user from causing too much I/O traffic to
-the monitoring chip.
+The sensors chipset is chip "via686a-*"
 
-To answer your question more generically: you can ask libsensors for a
-specific input value, however the sensors command-line tool doesn't
-offer any interface for this so you would have to either add it or
-write your own little program interfacing with libsensors. The
-alternative is to read from /sys directly, as you already found out,
-but then you lose the labelling and scaling facilities of libsensors.
+The munin plugins always report the same temperatures:
+[pbn@akagi] /home/pbn/Documents/other>munin-run sensors_temp
+temp1.value 23.2
+temp2.value 23.2
+temp3.value 146.2
 
--- 
-Jean Delvare
+Obviously the temp3.value is bogus, so I added "ignore temp3" in
+/etc/sensors3.conf. Then I get:
+[pbn@akagi] /home/pbn/Documents/other>munin-run sensors_temp
+temp1.value 23.2
+temp2.value 23.2
+
+Not surprisingly, the sensors_temp munin plugins calls the sensors command.
+Here is the output of the sensors command:
+[pbn@akagi] /home/pbn/Documents/other>sensors
+via686a-isa-6000
+Adapter: ISA adapter
+CPU core:    +3.10 V  (min =3D  +3.00 V, max =3D  +1.57 V)
++2.5V:       +3.00 V  (min =3D  +3.10 V, max =3D  +3.10 V)
+I/O:         +4.13 V  (min =3D  +4.13 V, max =3D  +4.12 V)
++5V:         +6.44 V  (min =3D  +6.44 V, max =3D  +6.44 V)
++12V:       +15.60 V  (min =3D +15.60 V, max =3D +15.12 V)
+CPU Fan:       0 RPM  (min =3D    0 RPM, div =3D 2)
+P/S Fan:    5672 RPM  (min =3D    0 RPM, div =3D 2)
+SYS Temp:    +23.2 =B0C  (high =3D +146.2 =B0C, hyst =3D +146.2 =B0C)
+CPU Temp:    +23.2 =B0C  (high =3D +125.2 =B0C, hyst =3D +146.2 =B0C)
+SBr Temp:   +146.2 =B0C  (high =3D +146.2 =B0C, hyst =3D +146.2 =B0C)
+[pbn@akagi] /home/pbn/Documents/other>
+
+So ... everything in sensors' output always has the same value... ouch !
+
+... perhaps did I do something wrong ?
+... perhaps did I forget somethin ?
+
+Thank you,
+--=20
+Pierre Bauduin
+
+------=_Part_12871_4400105.1222677763621
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+<div dir=3D"ltr">Hi there,<br><br>I&#39;m having problems with sensors on a=
+ machine based on a Fujitsu-Siemens MSI MS-6340 motherboard.<br><br>The sen=
+sors chipset is chip &quot;via686a-*&quot;<br><br>The munin plugins always =
+report the same temperatures:<br>
+
+<span style=3D"font-family: courier new,monospace;">[pbn@akagi] /home/pbn/D=
+ocuments/other&gt;munin-run sensors_temp</span><br style=3D"font-family: co=
+urier new,monospace;"><span style=3D"font-family: courier new,monospace;">t=
+emp1.value 23.2</span><br style=3D"font-family: courier new,monospace;">
+
+<span style=3D"font-family: courier new,monospace;">temp2.value 23.2</span>=
+<br style=3D"font-family: courier new,monospace;"><span style=3D"font-famil=
+y: courier new,monospace;">temp3.value 146.2</span><br><br>Obviously the te=
+mp3.value is bogus, so I added &quot;ignore temp3&quot; in /etc/sensors3.co=
+nf. Then I get:<br>
+
+<span style=3D"font-family: courier new,monospace;">[pbn@akagi] /home/pbn/D=
+ocuments/other&gt;munin-run sensors_temp</span><br style=3D"font-family: co=
+urier new,monospace;">
+
+<span style=3D"font-family: courier new,monospace;">temp1.value 23.2</span>=
+<br style=3D"font-family: courier new,monospace;">
+
+<span style=3D"font-family: courier new,monospace;">temp2.value 23.2</span>=
+<br><br>Not surprisingly, the sensors_temp munin plugins calls the sensors =
+command. Here is the output of the sensors command:<br><span style=3D"font-=
+family: courier new,monospace;">[pbn@akagi] /home/pbn/Documents/other&gt;se=
+nsors</span><br style=3D"font-family: courier new,monospace;">
+
+<span style=3D"font-family: courier new,monospace;">via686a-isa-6000</span>=
+<br style=3D"font-family: courier new,monospace;"><span style=3D"font-famil=
+y: courier new,monospace;">Adapter: ISA adapter</span><br style=3D"font-fam=
+ily: courier new,monospace;">
+
+<span style=3D"font-family: courier new,monospace;">CPU core:&nbsp;&nbsp;&n=
+bsp; +3.10 V&nbsp; (min =3D&nbsp; +3.00 V, max =3D&nbsp; +1.57 V)</span><br=
+ style=3D"font-family: courier new,monospace;"><span style=3D"font-family: =
+courier new,monospace;">+2.5V:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +3.00 V&=
+nbsp; (min =3D&nbsp; +3.10 V, max =3D&nbsp; +3.10 V)</span><br style=3D"fon=
+t-family: courier new,monospace;">
+
+<span style=3D"font-family: courier new,monospace;">I/O:&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +4.13 V&nbsp; (min =3D&nbsp; +4.13 V, max =3D=
+&nbsp; +4.12 V)</span><br style=3D"font-family: courier new,monospace;"><sp=
+an style=3D"font-family: courier new,monospace;">+5V:&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp; +6.44 V&nbsp; (min =3D&nbsp; +6.44 V, max =3D&nb=
+sp; +6.44 V)</span><br style=3D"font-family: courier new,monospace;">
+
+<span style=3D"font-family: courier new,monospace;">+12V:&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp; +15.60 V&nbsp; (min =3D +15.60 V, max =3D +15.12 V)</spa=
+n><br style=3D"font-family: courier new,monospace;"><span style=3D"font-fam=
+ily: courier new,monospace;">CPU Fan:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0=
+ RPM&nbsp; (min =3D&nbsp;&nbsp;&nbsp; 0 RPM, div =3D 2)</span><br style=3D"=
+font-family: courier new,monospace;">
+
+<span style=3D"font-family: courier new,monospace;">P/S Fan:&nbsp;&nbsp;&nb=
+sp; 5672 RPM&nbsp; (min =3D&nbsp;&nbsp;&nbsp; 0 RPM, div =3D 2)</span><br s=
+tyle=3D"font-family: courier new,monospace;"><span style=3D"font-family: co=
+urier new,monospace;">SYS Temp:&nbsp;&nbsp;&nbsp; +23.2 =B0C&nbsp; (high =
+=3D +146.2 =B0C, hyst =3D +146.2 =B0C)</span><br style=3D"font-family: cour=
+ier new,monospace;">
+
+<span style=3D"font-family: courier new,monospace;">CPU Temp:&nbsp;&nbsp;&n=
+bsp; +23.2 =B0C&nbsp; (high =3D +125.2 =B0C, hyst =3D +146.2 =B0C)</span><b=
+r style=3D"font-family: courier new,monospace;"><span style=3D"font-family:=
+ courier new,monospace;">SBr Temp:&nbsp;&nbsp; +146.2 =B0C&nbsp; (high =3D =
++146.2 =B0C, hyst =3D +146.2 =B0C)</span><br style=3D"font-family: courier =
+new,monospace;">
+
+<span style=3D"font-family: courier new,monospace;">[pbn@akagi] /home/pbn/D=
+ocuments/other&gt;</span><br><br>So ... everything in sensors&#39; output a=
+lways has the same value... ouch !<br><span style=3D"font-family: courier n=
+ew,monospace;"></span><br>
+
+... perhaps did I do something wrong ?<br>... perhaps did I forget somethin=
+ ?<br><br>Thank you,<br>-- <br>Pierre Bauduin<br><br>
+</div>
+
+------=_Part_12871_4400105.1222677763621--
+
+
+--===============8528778293086057966==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8528778293086057966==--
