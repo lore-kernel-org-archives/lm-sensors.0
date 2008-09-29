@@ -1,40 +1,49 @@
-From: "Andrew Lyon" <andrew.lyon@gmail.com>
-Date: Wed, 24 Sep 2008 14:34:27 +0000
-Subject: [lm-sensors] w83793 on X7DWA-N
-Message-Id: <f4527be0809240734s43f495f6m7c105854e5d32eb0@mail.gmail.com>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Mon, 29 Sep 2008 20:38:08 +0000
+Subject: Re: [lm-sensors] Add a driver for the ADT7475 thermal
+Message-Id: <48E13CB0.4070704@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Jordan Crouse wrote:
+> On 27/09/08 16:04 +0200, Hans de Goede wrote:
+>> Hi Jordan,
+>>
+>> This time I've done a more thorough review, here is a quite long list of 
+>> remarks I would like you to take care of in one last revision, then this can go 
+>> upstream (through Jean or Andrew, Jean ?).
+> 
+> Thanks for your time.
+> 
 
-I have lm_sensors 3.0.2 on a supermicro X7DWA-N with kernel 2.6.25.15,
-I am trying to work out how the lm_sensors voltage readings map to the
-sensors shown in the bios and described in the motherboard manual, the
-manual states:
+Your welcome, thanks for being persistent we (the lm_sensors community) really 
+need to do a better job of timely reviewing driver submissions.
 
-Onboard Voltage Monitors for the CPU Cores, Chipset Voltage, Memory
-Voltage, +1.8V, +3.3V, +5V, +12V, -12V, +3.3V Standby, +5V Standby and
-Vbat
+>> 11) set_pwm_ctrl set_pwm_chan need better error checking. They should check the
+>>      value they get passed is not negative, and set_pwm_chan should check for
+>>      unsupported combos. I guess the best would be to do no checking and just
+>>      pass the old chan and the new ctrl or vica versa to hw_set_pwm()
+>>      and then return -EINVAL from hw_set_pwm on not valid combo's (and do
+>>      storing of the values in the data struct also in hw_set_pwm when
+>>      things are ok).
+> 
+> I did the bounds checking in the individual functions - it just makes
+> things easier then trying to make hw_set_pwm do bounds checking as well
+> as calculating the value.
 
-sensors output:
+But bounds only checking is not enough, as not all combo's of make these temp 
+channels influence this pwm are supported, and since not all combo's are 
+supported, you will need a switch case to check which are valid, and that 
+switch case is already present in hw_set_pwm, really moving the error checking 
+to hw_set_pwm is easy, just mke it return a status code and add default cases 
+to catch invalid values.
 
-VCoreA:      +1.20 V  (min =  +0.92 V, max =  +1.49 V)   = CPU Cores
-VCoreB:      +1.20 V  (min =  +0.92 V, max =  +1.49 V)   = CPU Cores
-Vtt:         +1.08 V  (min =  +0.99 V, max =  +1.33 V)   = ?
-in3:         +0.51 V  (min =  +0.38 V, max =  +0.69 V)   = ?
-in4:         +1.46 V  (min =  +1.34 V, max =  +1.65 V)   = ?
-+3.3V:       +3.28 V  (min =  +2.96 V, max =  +3.63 V)   +3.3V?
-+12V:       +11.81 V  (min = +10.75 V, max = +13.25 V)   +12
-+5V:         +5.02 V  (min =  +4.64 V, max =  +5.65 V)   +5
-5VSB:        +5.05 V  (min =  +4.64 V, max =  +5.65 V)   +5V Standby
-VBAT:        +3.18 V  (min =  +2.99 V, max =  +3.66 V)   Vbat
+Regards,
 
-Can anybody explain the differences?
-
-Andy
+Hans
 
 _______________________________________________
 lm-sensors mailing list
