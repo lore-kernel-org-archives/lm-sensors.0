@@ -1,38 +1,34 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 20 Sep 2008 08:31:11 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.27
-Message-Id: <20080920103111.2f0f512b@hyperion.delvare>
+Date: Tue, 30 Sep 2008 13:48:34 +0000
+Subject: Re: [lm-sensors] [PATCH 0/4] hwmon: (w83791d) refresh fandiv patch
+Message-Id: <20080930154834.3b960c38@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200808060029.22653.m.hulsman@tudelft.nl>
+In-Reply-To: <200808060029.22653.m.hulsman@tudelft.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-Hi Linus,
+Hi Hans, Marc,
 
-Please pull hwmon subsystem fixes for Linux 2.6.27 from:
+On Wed, 06 Aug 2008 08:51:06 +0200, Hans de Goede wrote:
+> Marc Hulsman wrote:
+> > The following series of patches apply to the new-style version of the w83791d 
+> > driver, with the earlier submitted fandiv patch applied. Hereby for 
+> > convenience a refreshed version of that patch which applies cleanly to the 
+> > current driver. 
+> 
+> Unfortunately Mark Hofmann has stepped down as hwmon maintainer due to lack of 
+> time, I see that these patches have been Acked-by Jean. Can you please send 
+> them directly to Andrew Morton (with a CC to the lm-sensors list) for 2.6.27 
+> inclusion? Sending patches to Andrew now is the path for hwmon-patches to get 
+> them included in Linus tree.
 
-git://jdelvare.pck.nerim.net/jdelvare-2.6 hwmon-for-linus
+I'm looking at these patches now, and will add them to my hwmon tree if
+I see no problem with them. This will then go in kernel 2.6.28 - it's
+too late for 2.6.27, sorry.
 
-
- drivers/hwmon/ad7414.c |    2 +-
- drivers/hwmon/atxp1.c  |   18 +++++++++---------
- drivers/hwmon/it87.c   |    4 ++--
- 3 files changed, 12 insertions(+), 12 deletions(-)
-
----------------
-
-Adrian Bunk (1):
-      hwmon: (ad7414) Make ad7414_update_device() static
-
-Andrew Paprocki (1):
-      hwmon: (it87) Fix fan tachometer reading in IT8712F rev 0x7 (I)
-
-Jean Delvare (1):
-      hwmon: (atxp1) Fix device detection logic
-
-Thanks,
 -- 
 Jean Delvare
 
