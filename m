@@ -1,37 +1,27 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 29 Sep 2008 20:25:37 +0000
-Subject: Re: [lm-sensors] on a "via686a-*" sensors reports always the same
-Message-Id: <20080929222537.0437125c@hyperion.delvare>
+Date: Tue, 30 Sep 2008 14:29:20 +0000
+Subject: Re: [lm-sensors] [PATCH 2/4] hwmon: (w83791d) add manual PWM support
+Message-Id: <20080930162920.2592f45d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <7cd7a3e80809290142w32aea211l3b35834000a1cbef@mail.gmail.com>
-In-Reply-To: <7cd7a3e80809290142w32aea211l3b35834000a1cbef@mail.gmail.com>
+References: <200808060029.37112.m.hulsman@tudelft.nl>
+In-Reply-To: <200808060029.37112.m.hulsman@tudelft.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 29 Sep 2008 21:00:10 +0200, Pierre Bauduin wrote:
-> Hi there,
+On Wed, 06 Aug 2008 09:49:10 +0200, Hans de Goede wrote:
+> Marc Hulsman wrote:
+> > Add PWM manual control.
+> > 
+> > Signed-off-by: Marc Hulsman <m.hulsman@tudelft.nl>
+> > 
 > 
-> More information regarding the previous message:
-> 
-> I forgot to tell you I had this error message when booting:
-> via686a 0000:00:07.4: base address not set - upgrade BIOS or use
-> force_addr=0xaddr
-> so I had to add the following line:
-> options via686a force_addr=0x6000
-> in the file /etc/modprobe.d/options
-> 
-> ... I guess that's where I am wrong.
-> 
-> Perhaps isn't 0x6000 the right value ? I googled for "via686a base address
-> not set" and in most cases the value was 0x6000
+> Looks good:
+> Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 
-Forcing the address to anything that is free is OK (check
-in /proc/ioports). However, if the manufacturer didn't set the address,
-it most certainly means that they didn't make use of the hardware
-monitoring features of the VIA south bridge. This explains why you
-can't get any reading out of it.
+Applied, thanks.
+
 
 -- 
 Jean Delvare
