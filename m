@@ -1,79 +1,49 @@
-From: Trent Piepho <tpiepho@freescale.com>
-Date: Tue, 23 Sep 2008 09:52:41 +0000
-Subject: Re: [lm-sensors] [PATCH 6/8] hwmon: add max1111/max1110 Low-power
-Message-Id: <Pine.LNX.4.64.0809230240190.7680@t2.domain.actdsltmp>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="-1463811584-224022065-1222163561=:7680"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 30 Sep 2008 13:59:55 +0000
+Subject: Re: [lm-sensors] [PATCH 1/4] hwmon: (w83791d) fan 4/5 pins can also
+Message-Id: <20080930155955.1bb56a93@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <f17812d70809022312y6fd288ffu2607761414152f77@mail.gmail.com>
-In-Reply-To: <f17812d70809022312y6fd288ffu2607761414152f77@mail.gmail.com>
+References: <200808060029.31190.m.hulsman@tudelft.nl>
+In-Reply-To: <200808060029.31190.m.hulsman@tudelft.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Marc, Hans,
 
----1463811584-224022065-1222163561=:7680
-Content-Type: TEXT/PLAIN; charset=X-UNKNOWN; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On Wed, 06 Aug 2008 09:46:05 +0200, Hans de Goede wrote:
+> Marc Hulsman wrote:
+> > Fan 4/5 and PWM 4/5 pins can be used for GPIO. If the bios initializes these 
+> > pins as in use for GPIO we keep it that way and do not construct the 
+> > sysfs-interface for them.  I left the code for reading the corresponding 
+> > registers during update_device unchanged as adding conditional terms would 
+> > only complicate the code. 
+> 
+> Looks good:
+> Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 
-On Mon, 22 Sep 2008, David Brownell wrote:
-> On Monday 22 September 2008, Eric Miao wrote:
->>>> + =A0 =A0 data->rx_buf =3D kmalloc(MAX1111_RX_BUF_SIZE, GFP_KERNEL);
->>>> + =A0 =A0 if (!data->rx_buf) {
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 kfree(data->tx_buf);
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
->>>> + =A0 =A0 }
->>>
->>> Allocating such small buffers using kmalloc seems pretty inefficient.
->>> At the very least, I would allocate both buffers at once. But quite
->>> frankly I don't get why you don't just make these buffers part of
->>> struct max1111_data. This would even make the structure smaller!
->>>
->>
->> I originally place the buffer within "struct max1111_data" but received
->> a mail from David Brownell suggesting using a kmalloc() buffer, so that
->> DMA mode will work better with the cache alignment and trailing bytes,
->> though PIO can just work happily. I don't know the specific reason for
->> this, honestly.
->
-> The phrase is "cache line sharing".  If you make sure the buffer doesn't
-> share its cache line with something the CPU may modify while the DMA is
-> happening, you're OK ... and using a dedicated kmalloc buffer guarantees
-> that.  (So will sticking buffers at the end of a struct, like max1111_dat=
-a,
-> annotated as "____cacheline_aligned", in many cases.)
+Patch applied, thanks.
 
-Another alternative:
+> One note though (for a future patch) you say you keep reading the unused regs 
+> to keep the code clean. I understand this, but please keep in mind that i2c is 
+> pretty slow, so you might want todo another patch changing this.
 
-typedef ____cacheline_aligned char cacheline_barrier_t[0];
+I second that. Every I2C register access we can avoid (without loss of
+functionality, of course) is welcome.
 
-struct max1111_data {
- =09u8 buffer[BUF_SIZE];
- =09cacheline_barrier_t barrier;
+> Or even better write a patch where you stop re-reading never changing registers 
+> completely, iow read config / min / max registers only once on probe and then 
+> only read registers which actually measure things (and thus can change without 
+> a write) in update_device (Yes there is the potential problem of acpi code 
+> writing to the device underneath us but we aren't checking for that now anyways).
 
- =09int whatever;
- =09...
- =09long something_else;
+This could be done too.
 
- =09cacheline_barrier_t barrier2;
- =09u8 also_gets_its_own_cacheline[BUF_SIZE];
-};
-
-One could also have ARM define:
-typedef ____cacheline_aligned char dma_padding_t[0];
-
-And x86, etc. would define:
-typedef char dma_padding_t[0];
-
-Then other arches don't get wasted space.
----1463811584-224022065-1222163561=:7680
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
----1463811584-224022065-1222163561=:7680--
