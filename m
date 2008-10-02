@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 02 Oct 2008 16:41:59 +0000
+From: Frank Myhr <fmyhr@fhmtech.com>
+Date: Thu, 02 Oct 2008 18:48:41 +0000
 Subject: Re: [lm-sensors] Looking for IT8720 datasheet.
-Message-Id: <20081002184159.231d2ada@hyperion.delvare>
+Message-Id: <48E51789.8060107@fhmtech.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <79c9d4530810020825r79de9817g6933f6cab1d414c1@mail.gmail.com>
 In-Reply-To: <79c9d4530810020825r79de9817g6933f6cab1d414c1@mail.gmail.com>
@@ -10,48 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 2 Oct 2008 12:28:40 -0400, Jean-Marc Spaggiari wrote:
-> Did you get a chance to work on IT8720? I have modify the
-> sensors-detect script to return it87, and also modify it87.c to handle
-> the IT8720 as any other IT87 chipset, and it seems to work pretty
-> fine. It's fine for the FANs and the temp, but I'm not 100% sur for
-> the voltage.
-> 
-> in0:         +0.00 V  (min =  +0.00 V, max =  +4.08 V)   ALARM
-> in1:         +3.02 V  (min =  +0.00 V, max =  +4.08 V)
-> in2:         +3.42 V  (min =  +0.00 V, max =  +4.08 V)
-> in3:         +3.01 V  (min =  +0.00 V, max =  +4.08 V)
-> in4:         +1.22 V  (min =  +0.00 V, max =  +4.08 V)
-> in5:         +2.62 V  (min =  +0.00 V, max =  +4.08 V)
-> in6:         +2.59 V  (min =  +0.00 V, max =  +4.08 V)
-> in7:         +3.01 V  (min =  +0.00 V, max =  +4.08 V)
-> in8:         +3.38 V
-> 
-> 
-> I didn't get the +12 or -5 or others. I was able to get it one time,
-> and no more. Any idea?
+Hi Jean-Marc,
 
-This is expected. The IT87xxF use a 4V DAC, so you can only measure
-voltage values up to 4V directly. For +5V, +12V and negative voltages,
-there are scaling resistors on the motherboard. So you need proper
-sensors.conf statements. You can try with the default settings for the
-IT87xxF chips (see the default sensors.conf file) but your motherboard
-may or may not follow these. So it can take some work to get things
-right. Best is to compare with what the BIOS displays.
+That's great that you've modified it87.c to handle your IT8720. Why
+don't you go ahead and post your patch to the list, I'll be happy to
+have a look at it. My first priority is adding automatic mode support
+for the 8718. I'm adding auto mode support for the 8720 and other chips
+at the same time. But I'm still not ready to post that work yet. Anyway,
+as far as on/off and software pwm modes go, the 8720 is almost exactly
+the same as the 8718*, so you can do a simple search through the code
+for conditionals on the 8718 and add the 8720 to them. (Sounds like
+you've already done that.)
 
-The typical way is to scale voltages so that their nominal value at the
-chip's pin is 3V. So, looking at the above, it is likely that in1, in3,
-and in7 are monitoring voltages above 4V. in7 is usually 5VSB. in2 is
-probably +3.3V and in8 is most certainly Vbat.
+I have nothing to add to Jean's excellent answer regarding the voltage
+inputs on it87. And I don't know what's going on with in0 on your board
+either.
 
-As for negative voltage, check your BIOS, but you probably do not have
-any. Most recent motherboards no longer bother monitoring them because
-they are almost unused.
+-Frank
 
-Strange thing is that in0 is 0V... on most boards, in0 is Vcore.
+* The one slight difference I'm aware of is that the 8720 uses ec
+register 0x0b bits to control pwm4 and pwm5 in software pwm mode (since
+it has 5 fans but only 3 pwm channels):
 
--- 
-Jean Delvare
+bits	RW  def notes
+3-2	RW  11b	pwm5 same as:
+		00b	pwm1
+		01b	pwm2
+		10b	pwm3
+		11b	none
+1-0	RW  11b	pwm4 same as pwm[1|2|3], codes as above
+
+The 8718 also has 5 fans and only 3 pwm channels, but does not allow
+choosing pwm4 and pwm5 control as above.
 
 _______________________________________________
 lm-sensors mailing list
