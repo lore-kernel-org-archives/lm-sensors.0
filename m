@@ -1,95 +1,26 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 08 Oct 2008 09:08:17 +0000
-Subject: Re: [lm-sensors] [PATCH 03/12] adt7473: Fix some bogosity in
-Message-Id: <20081008110817.163bee97@hyperion.delvare>
+From: "Jean-Marc Spaggiari" <jean-marc@spaggiari.org>
+Date: Thu, 02 Oct 2008 15:25:27 +0000
+Subject: [lm-sensors] Looking for IT8720 datasheet.
+Message-Id: <79c9d4530810020825r79de9817g6933f6cab1d414c1@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081007011824.12701.39532.stgit@elm3a70.beaverton.ibm.com>
-	<20081007011839.12701.16915.stgit@elm3a70.beaverton.ibm.com>
-In-Reply-To: <20081007011839.12701.16915.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Darrick J. Wong" <djwong@us.ibm.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-scsi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Hi Darrick,
+Hi,
 
-On Mon, 06 Oct 2008 18:18:39 -0700, Darrick J. Wong wrote:
-> 
-> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-> ---
-> 
->  Documentation/hwmon/adt7473 |   30 +++++++++++-------------------
->  1 files changed, 11 insertions(+), 19 deletions(-)
-> 
-> diff --git a/Documentation/hwmon/adt7473 b/Documentation/hwmon/adt7473
-> index 2126de3..8bffc41 100644
-> --- a/Documentation/hwmon/adt7473
-> +++ b/Documentation/hwmon/adt7473
-> @@ -14,18 +14,18 @@ Description
->  
->  This driver implements support for the Analog Devices ADT7473 chip family.
->  
-> -The LM85 uses the 2-wire interface compatible with the SMBUS 2.0
-> +The ADT7473 uses the 2-wire interface compatible with the SMBUS 2.0
->  specification. Using an analog to digital converter it measures three (3)
-> -temperatures and two (2) voltages. It has three (3) 16-bit counters for
-> -measuring fan speed. There are three (3) PWM outputs that can be used
-> -to control fan speed.
-> +temperatures and two (2) voltages. It has four (4) 16-bit counters for
-> +measuring fan speed. There are three (3) PWM outputs that can be used to
-> +control fan speed.
->  
-> -A sophisticated control system for the PWM outputs is designed into the
-> -LM85 that allows fan speed to be adjusted automatically based on any of the
-> -three temperature sensors. Each PWM output is individually adjustable and
-> +A sophisticated control system for the PWM outputs is designed into the ADT7473
-> +that allows fan speed to be adjusted automatically based on any of the three
-> +temperature sensors. Each PWM output is individually adjustable and
->  programmable. Once configured, the ADT7473 will adjust the PWM outputs in
-> -response to the measured temperatures without further host intervention.
-> -This feature can also be disabled for manual control of the PWM's.
-> +response to the measured temperatures without further host intervention.  This
-> +feature can also be disabled for manual control of the PWM's.
+Does any one have the IT8720 datasheet? In ticket #2343,
+http://www.lm-sensors.org/ticket/2343 sound like the datasheet is now
+available ("We have a datasheet now.").
 
-The (unneeded) reformatting of the paragraphs makes the changes look
-much bigger than they really are. This doesn't help reviewing. I've
-reverted these changes.
+Is there a way to get this datasheet? I'm building a patch for it87.c.
+It's working pretty fine with my motherboard, but I would like to
+double check with the datasheet before submiting the patch to LKML.
 
->  
->  Each of the measured inputs (voltage, temperature, fan speed) has
->  corresponding high/low limit values. The ADT7473 will signal an ALARM if
-> @@ -46,14 +46,6 @@ from the raw value to get the temperature value.
->  The Analog Devices datasheet is very detailed and describes a procedure for
->  determining an optimal configuration for the automatic PWM control.
->  
-> -Hardware Configurations
-> ------------------------
-> -
-> -The ADT7473 chips have an optional SMBALERT output that can be used to
-> -signal the chipset in case a limit is exceeded or the temperature sensors
-> -fail. Individual sensor interrupts can be masked so they won't trigger
-> -SMBALERT. The SMBALERT output if configured replaces the PWM2 function.
-> -
->  Configuration Notes
->  -------------------
->  
-> @@ -61,8 +53,8 @@ Besides standard interfaces driver adds the following:
->  
->  * PWM Control
->  
-> -* pwm#_auto_point1_pwm and pwm#_auto_point1_temp and
-> -* pwm#_auto_point2_pwm and pwm#_auto_point2_temp -
-> +* pwm#_auto_point1_pwm and temp#_auto_point1_temp and
-> +* pwm#_auto_point2_pwm and temp#_auto_point2_temp -
->  
->  point1: Set the pwm speed at a lower temperature bound.
->  point2: Set the pwm speed at a higher temperature bound.
+Thanks,
 
-Patch applied, thanks.
-
--- 
-Jean Delvare
+Jean-Marc
 
 _______________________________________________
 lm-sensors mailing list
