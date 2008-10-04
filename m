@@ -1,229 +1,86 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Tue, 07 Oct 2008 01:19:25 +0000
-Subject: [lm-sensors] [PATCH 12/12] adt7473: Check inputs from sysfs writes
-Message-Id: <20081007011925.12701.88807.stgit@elm3a70.beaverton.ibm.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 04 Oct 2008 11:40:13 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (w83781d) Additional information about
+Message-Id: <20081004134013.63e62b92@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081007011824.12701.39532.stgit@elm3a70.beaverton.ibm.com>
-In-Reply-To: <20081007011824.12701.39532.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Darrick J. Wong" <djwong@us.ibm.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel <linux-scsi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
+This information was provided in lm-sensors ticket #2350:
+http://www.lm-sensors.org/ticket/2350
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+This is IMHO still not enough to be able to safely implement fan
+control support for the AS99127F, but this is valuable information so
+I am adding it to the documentation.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
+ Documentation/hwmon/w83781d |   37 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 35 insertions(+), 2 deletions(-)
 
- drivers/hwmon/adt7473.c |   96 ++++++++++++++++++++++++++++++++++++++++-------
- 1 files changed, 82 insertions(+), 14 deletions(-)
+--- linux-2.6.27-rc8.orig/Documentation/hwmon/w83781d	2008-04-17 04:49:44.000000000 +0200
++++ linux-2.6.27-rc8/Documentation/hwmon/w83781d	2008-10-04 13:36:02.000000000 +0200
+@@ -353,7 +353,7 @@ in6%5
+ 
+ # PWM
+ 
+-Additional info about PWM on the AS99127F (may apply to other Asus
++* Additional info about PWM on the AS99127F (may apply to other Asus
+ chips as well) by Jean Delvare as of 2004-04-09:
+ 
+ AS99127F revision 2 seems to have two PWM registers at 0x59 and 0x5A,
+@@ -396,7 +396,7 @@ Please contact us if you can figure out
+ long as we don't know more, the w83781d driver doesn't handle PWM on
+ AS99127F chips at all.
+ 
+-Additional info about PWM on the AS99127F rev.1 by Hector Martin:
++* Additional info about PWM on the AS99127F rev.1 by Hector Martin:
+ 
+ I've been fiddling around with the (in)famous 0x59 register and
+ found out the following values do work as a form of coarse pwm:
+@@ -418,3 +418,36 @@ change.
+ My mobo is an ASUS A7V266-E. This behavior is similar to what I got
+ with speedfan under Windows, where 0-15% would be off, 15-2x% (can't
+ remember the exact value) would be 70% and higher would be full on.
++
++* Additional info about PWM on the AS99127F rev.1 from lm-sensors
++  ticket #2350:
++
++I conducted some experiment on Asus P3B-F motherboard with AS99127F
++(Ver. 1).
++
++I confirm that 0x59 register control the CPU_Fan Header on this
++motherboard, and 0x5a register control PWR_Fan.
++
++In order to reduce the dependency of specific fan, the measurement is
++conducted with a digital scope without fan connected. I found out that
++P3B-F actually output variable DC voltage on fan header center pin,
++looks like PWM is filtered on this motherboard.
++
++Here are some of measurements:
++
++0x80     20 mV
++0x81     20 mV
++0x82    232 mV
++0x83   1.2  V
++0x84   2.31 V
++0x85   3.44 V
++0x86   4.62 V
++0x87   5.81 V
++0x88   7.01 V
++9x89   8.22 V
++0x8a   9.42 V
++0x8b  10.6  V
++0x8c  11.9  V
++0x8d  12.4  V
++0x8e  12.4  V
++0x8f  12.4  V
 
-diff --git a/drivers/hwmon/adt7473.c b/drivers/hwmon/adt7473.c
-index 3a0b631..b4bcb63 100644
---- a/drivers/hwmon/adt7473.c
-+++ b/drivers/hwmon/adt7473.c
-@@ -360,6 +360,11 @@ static ssize_t show_volt_min(struct device *dev,
- 		       decode_volt(attr->index, data->volt_min[attr->index]));
- }
- 
-+static int range_check(const long val, const long min, const long max)
-+{
-+	return val >= min && val <= max;
-+}
-+
- static ssize_t set_volt_min(struct device *dev,
- 			    struct device_attribute *devattr,
- 			    const char *buf,
-@@ -368,7 +373,14 @@ static ssize_t set_volt_min(struct device *dev,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int volt = encode_volt(attr->index, simple_strtol(buf, NULL, 10));
-+	long volt;
-+
-+	if (strict_strtol(buf, 10, &volt))
-+		return -EINVAL;
-+
-+	volt = encode_volt(attr->index, volt);
-+	if (!range_check(volt, 0, 255))
-+		return -EINVAL;
- 
- 	mutex_lock(&data->lock);
- 	data->volt_min[attr->index] = volt;
-@@ -397,7 +409,14 @@ static ssize_t set_volt_max(struct device *dev,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int volt = encode_volt(attr->index, simple_strtol(buf, NULL, 10));
-+	long volt;
-+
-+	if (strict_strtol(buf, 10, &volt))
-+		return -EINVAL;
-+
-+	volt = encode_volt(attr->index, volt);
-+	if (!range_check(volt, 0, 255))
-+		return -EINVAL;
- 
- 	mutex_lock(&data->lock);
- 	data->volt_max[attr->index] = volt;
-@@ -452,8 +471,15 @@ static ssize_t set_temp_min(struct device *dev,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10) / 1000;
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp /= 1000;
- 	temp = encode_temp(data->temp_twos_complement, temp);
-+	if (!range_check(temp, 0, 255))
-+		return -EINVAL;
- 
- 	mutex_lock(&data->lock);
- 	data->temp_min[attr->index] = temp;
-@@ -483,8 +509,15 @@ static ssize_t set_temp_max(struct device *dev,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10) / 1000;
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp /= 1000;
- 	temp = encode_temp(data->temp_twos_complement, temp);
-+	if (!range_check(temp, 0, 255))
-+		return -EINVAL;
- 
- 	mutex_lock(&data->lock);
- 	data->temp_max[attr->index] = temp;
-@@ -526,11 +559,14 @@ static ssize_t set_fan_min(struct device *dev,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
- 
--	if (!temp)
-+	if (strict_strtol(buf, 10, &temp) || !temp)
- 		return -EINVAL;
-+
- 	temp = FAN_RPM_TO_PERIOD(temp);
-+	if (!range_check(temp, 0, 65535))
-+		return -EINVAL;
- 
- 	mutex_lock(&data->lock);
- 	data->fan_min[attr->index] = temp;
-@@ -569,7 +605,10 @@ static ssize_t set_max_duty_at_crit(struct device *dev,
- 	u8 reg;
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
- 
- 	mutex_lock(&data->lock);
- 	data->max_duty_at_overheat = !!temp;
-@@ -598,7 +637,10 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *devattr,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp) || !range_check(temp, 0, 255))
-+		return -EINVAL;
- 
- 	mutex_lock(&data->lock);
- 	data->pwm[attr->index] = temp;
-@@ -625,7 +667,10 @@ static ssize_t set_pwm_max(struct device *dev,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp) || !range_check(temp, 0, 255))
-+		return -EINVAL;
- 
- 	mutex_lock(&data->lock);
- 	data->pwm_max[attr->index] = temp;
-@@ -653,7 +698,10 @@ static ssize_t set_pwm_min(struct device *dev,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp) || !range_check(temp, 0, 255))
-+		return -EINVAL;
- 
- 	mutex_lock(&data->lock);
- 	data->pwm_min[attr->index] = temp;
-@@ -683,8 +731,15 @@ static ssize_t set_temp_tmax(struct device *dev,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10) / 1000;
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp /= 1000;
- 	temp = encode_temp(data->temp_twos_complement, temp);
-+	if (!range_check(temp, 0, 255))
-+		return -EINVAL;
- 
- 	mutex_lock(&data->lock);
- 	data->temp_tmax[attr->index] = temp;
-@@ -714,8 +769,15 @@ static ssize_t set_temp_tmin(struct device *dev,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10) / 1000;
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp /= 1000;
- 	temp = encode_temp(data->temp_twos_complement, temp);
-+	if (!range_check(temp, 0, 255))
-+		return -EINVAL;
- 
- 	mutex_lock(&data->lock);
- 	data->temp_tmin[attr->index] = temp;
-@@ -752,7 +814,10 @@ static ssize_t set_pwm_enable(struct device *dev,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
- 
- 	switch (temp) {
- 	case 0:
-@@ -816,7 +881,10 @@ static ssize_t set_pwm_auto_temp(struct device *dev,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
- 
- 	switch (temp) {
- 	case 1:
 
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
