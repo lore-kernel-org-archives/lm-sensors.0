@@ -1,64 +1,62 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 23 Oct 2008 08:34:13 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Add LTC4245 driver
-Message-Id: <20081023103413.7fe8e39a@hyperion.delvare>
+From: Alexander Graf <agraf@suse.de>
+Date: Mon, 06 Oct 2008 18:41:17 +0000
+Subject: [lm-sensors] [PATCH] applesmc: Expose Operating System Key in
+Message-Id: <1223318477-25365-1-git-send-email-agraf@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081020160308.GA22915@ovro.caltech.edu>
-In-Reply-To: <20081020160308.GA22915@ovro.caltech.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Wed, 22 Oct 2008 16:21:29 -0700, Ira Snyder wrote:
-> Add Linux support for the Linear Technology LTC4245 Multiple Supply Hot
-> Swap controller I2C monitoring interface.
-> 
-> Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
-> ---
-> 
-> Yet another revision of the ltc4245 driver. :)
-> 
-> Changes v5 -> v6:
->   * handle errors consistently
-> 
-> Changes v4 -> v5:
->   * rename the variable "current" to "curr" to workaround brokenness
->     in asm/current.h on x86, powerpc64, etc.
->   * check for errors when reading from i2c
->   * disable probing, add example usage of force param to documentation
->   * add missing #include <linux/kernel.h>
->   * use i2c_smbus_read_byte_data() rather than ltc4245_read_reg()
->   * const-ify some variables
-> 
-> Changes v3 -> v4:
->   * simplify ltc4245_get_voltage(), removing special casing for -12v
->   * power should always be a positive value
-> 
-> Changes v2 -> v3:
->   * fix units (power?_input in uW, curr?_input in mA)
->   * combine all alarm functions
->   * rename power[1-4]_alarm to in[5-8]_min_alarm, per suggestions
-> 
-> Changes v1 -> v2:
->   * fixed checkpatch warnings
->   * removed raw register access, per suggestions
->   * changed sysfs interface, per suggestions (current, power, alarms)
-> 
->  Documentation/hwmon/ltc4245 |   81 ++++++
->  drivers/hwmon/Kconfig       |   11 +
->  drivers/hwmon/Makefile      |    1 +
->  drivers/hwmon/ltc4245.c     |  567 +++++++++++++++++++++++++++++++++++++++++++
->  4 files changed, 660 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/hwmon/ltc4245
->  create mode 100644 drivers/hwmon/ltc4245.c
-
-Applied, thanks :)
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhlIEFwcGxlU01DIGlzIHVzZWQgZm9yIHZhcmlvdXMgdGFza3MuIEl0IGFsbG93cyBjb250cm9s
+IG92ZXIgZmFucywKdGhlIGJhY2tsaWdodCwgaW52b2tlcyB0aGUgYWNjZWxlcmF0aW9uIGludGVy
+cnVwdCBhbmQgc3RvcmVzIGEga2V5LAp0aGF0IGlzIHVzZWQgdG8gZGVjcnlwdCBiaW5hcmllcyBv
+biBNYWMgT1MgWC4KClRoaXMga2V5IGlzIG5lY2Vzc2FyeSB0byByZWNlaXZlIHdoZW4gdmlydHVh
+bGl6aW5nIE1hYyBPUyBYLCBidXQKbWF5IG5vdCBiZSBkaXN0cmlidXRlZCBkdWUgdG8gY29weXJp
+Z2h0IHJlc3RyaWN0aW9ucy4KClRoaXMgcGF0Y2ggbWFrZXMgcmVhZGluZyB0aGlzIGtleSBlYXN5
+IGJ5IGV4cG9ydGluZyBpdCB2aWEgc3lzZnMuCgpTaWduZWQtb2ZmLWJ5OiBBbGV4YW5kZXIgR3Jh
+ZiA8YWdyYWZAc3VzZS5kZT4KQ2M6IE5pY29sYXMgQm9pY2hhdCA8bmljb2xhc0Bib2ljaGF0LmNo
+PgpDYzogSmVhbiBEZWx2YXJlIDxraGFsaUBsaW51eC1mci5vcmc+CkNjOiBSZW7DqSBSZWJlIDxy
+ZW5lQGV4YWN0Y29kZS5kZT4KLS0tCiBkcml2ZXJzL2h3bW9uL2FwcGxlc21jLmMgfCAgIDM0ICsr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIDEgZmlsZXMgY2hhbmdlZCwgMzQgaW5z
+ZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL2Fw
+cGxlc21jLmMgYi9kcml2ZXJzL2h3bW9uL2FwcGxlc21jLmMKaW5kZXggYjA2YjhlMC4uNjU1ZTIx
+NyAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9hcHBsZXNtYy5jCisrKyBiL2RyaXZlcnMvaHdt
+b24vYXBwbGVzbWMuYwpAQCAtNjEsNiArNjEsOSBAQAogI2RlZmluZSBMSUdIVF9TRU5TT1JfUklH
+SFRfS0VZCSJBTFYxIiAvKiByLW8ge2FsdiAoNiBieXRlcykgKi8KICNkZWZpbmUgQkFDS0xJR0hU
+X0tFWQkJIkxLU0IiIC8qIHctbyB7bGtiICgyIGJ5dGVzKSAqLwogCisjZGVmaW5lIE9TSzBfS0VZ
+CQkiT1NLMCIgLyogci1vIGFzY2lpICgzMiBieXRlcykgKi8KKyNkZWZpbmUgT1NLMV9LRVkJCSJP
+U0sxIiAvKiByLW8gYXNjaWkgKDMyIGJ5dGVzKSAqLworCiAjZGVmaW5lIENMQU1TSEVMTF9LRVkJ
+CSJNU0xEIiAvKiByLW8gdWk4ICh1bnVzZWQpICovCiAKICNkZWZpbmUgTU9USU9OX1NFTlNPUl9Y
+X0tFWQkiTU9fWCIgLyogci1vIHNwNzggKDIgYnl0ZXMpICovCkBAIC01NDgsNiArNTUxLDMxIEBA
+IG91dDoKIAkJcmV0dXJuIHNucHJpbnRmKHN5c2ZzYnVmLCBQQUdFX1NJWkUsICIoJWQsJWQpXG4i
+LCBsZWZ0LCByaWdodCk7CiB9CiAKK3N0YXRpYyBzc2l6ZV90IGFwcGxlc21jX29za19zaG93KHN0
+cnVjdCBkZXZpY2UgKmRldiwKKwkJCQlzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwgY2hh
+ciAqc3lzZnNidWYpCit7CisJaW50IHJldDsKKwl1OCBvc2swWzMzXTsKKwl1OCBvc2sxWzMzXTsK
+KworCW9zazBbMzJdID0gJ1wwJzsKKwlvc2sxWzMyXSA9ICdcMCc7CisKKwltdXRleF9sb2NrKCZh
+cHBsZXNtY19sb2NrKTsKKworCXJldCA9IGFwcGxlc21jX3JlYWRfa2V5KE9TSzBfS0VZLCBvc2sw
+LCAzMik7CisJaWYgKHJldCkKKwkJZ290byBvdXQ7CisJcmV0ID0gYXBwbGVzbWNfcmVhZF9rZXko
+T1NLMV9LRVksIG9zazEsIDMyKTsKKworb3V0OgorCW11dGV4X3VubG9jaygmYXBwbGVzbWNfbG9j
+ayk7CisJaWYgKHJldCkKKwkJcmV0dXJuIHJldDsKKwllbHNlCisJCXJldHVybiBzbnByaW50Zihz
+eXNmc2J1ZiwgUEFHRV9TSVpFLCAiJXMlc1xuIiwgb3NrMCwgb3NrMSk7Cit9CisKIC8qIERpc3Bs
+YXlzIGRlZ3JlZSBDZWxzaXVzICogMTAwMCAqLwogc3RhdGljIHNzaXplX3QgYXBwbGVzbWNfc2hv
+d190ZW1wZXJhdHVyZShzdHJ1Y3QgZGV2aWNlICpkZXYsCiAJCQlzdHJ1Y3QgZGV2aWNlX2F0dHJp
+YnV0ZSAqZGV2YXR0ciwgY2hhciAqc3lzZnNidWYpCkBAIC05MzUsNiArOTYzLDcgQEAgc3RhdGlj
+IGNvbnN0IHN0cnVjdCBhdHRyaWJ1dGVfZ3JvdXAgYWNjZWxlcm9tZXRlcl9hdHRyaWJ1dGVzX2dy
+b3VwICAJeyAuYXR0cnMgPSBhY2NlbGVyb21ldGVyX2F0dHJpYnV0ZXMgfTsKIAogc3RhdGljIERF
+VklDRV9BVFRSKGxpZ2h0LCAwNDQ0LCBhcHBsZXNtY19saWdodF9zaG93LCBOVUxMKTsKK3N0YXRp
+YyBERVZJQ0VfQVRUUihvc2ssIDA0NDQsIGFwcGxlc21jX29za19zaG93LCBOVUxMKTsKIAogc3Rh
+dGljIERFVklDRV9BVFRSKGtleV9jb3VudCwgMDQ0NCwgYXBwbGVzbWNfa2V5X2NvdW50X3Nob3cs
+IE5VTEwpOwogc3RhdGljIERFVklDRV9BVFRSKGtleV9hdF9pbmRleCwgMDY0NCwKQEAgLTEzODYs
+NiArMTQxNSwxMCBAQCBzdGF0aWMgaW50IF9faW5pdCBhcHBsZXNtY19pbml0KHZvaWQpCiAJCQln
+b3RvIG91dF9saWdodF93cTsKIAl9CiAKKwlyZXQgPSBzeXNmc19jcmVhdGVfZmlsZSgmcGRldi0+
+ZGV2LmtvYmosICZkZXZfYXR0cl9vc2suYXR0cik7CisJaWYgKHJldCkKKwkJZ290byBvdXRfb3Nr
+OworCiAJaHdtb25fZGV2ID0gaHdtb25fZGV2aWNlX3JlZ2lzdGVyKCZwZGV2LT5kZXYpOwogCWlm
+IChJU19FUlIoaHdtb25fZGV2KSkgewogCQlyZXQgPSBQVFJfRVJSKGh3bW9uX2Rldik7CkBAIC0x
+Mzk3LDYgKzE0MzAsNyBAQCBzdGF0aWMgaW50IF9faW5pdCBhcHBsZXNtY19pbml0KHZvaWQpCiAJ
+cmV0dXJuIDA7CiAKIG91dF9saWdodF9sZWRjbGFzczoKK291dF9vc2s6CiAJaWYgKGFwcGxlc21j
+X2xpZ2h0KQogCQlsZWRfY2xhc3NkZXZfdW5yZWdpc3RlcigmYXBwbGVzbWNfYmFja2xpZ2h0KTsK
+IG91dF9saWdodF93cToKLS0gCjEuNS42CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1z
+ZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+bS1zZW5zb3JzCg==
