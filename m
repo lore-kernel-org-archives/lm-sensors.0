@@ -1,57 +1,228 @@
-From: Henrik Rydberg <rydberg@euromail.se>
-Date: Wed, 22 Oct 2008 16:16:07 +0000
-Subject: [lm-sensors] [PATCH 1/2] hwmon: applesmc: Add support for iMac 5
-Message-Id: <48FF51C7.7020103@euromail.se>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Tue, 07 Oct 2008 01:19:25 +0000
+Subject: [lm-sensors] [PATCH 12/12] adt7473: Check inputs from sysfs writes
+Message-Id: <20081007011925.12701.88807.stgit@elm3a70.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20081007011824.12701.39532.stgit@elm3a70.beaverton.ibm.com>
+In-Reply-To: <20081007011824.12701.39532.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@osdl.org, Nicolas Boichat <nicolas@boichat.ch>, lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
+To: "Darrick J. Wong" <djwong@us.ibm.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel <linux-scsi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-This patch adds temperature sensor support for iMac 5.
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
-Tested-by: Ricky Campbell <johnrcampbell@gmail.com>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 ---
- drivers/hwmon/applesmc.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index bc011da..80d545d 100644
---- a/drivers/hwmon/applesmc.c
-+++ b/drivers/hwmon/applesmc.c
-@@ -116,6 +116,8 @@ static const char* temperature_sensors_sets[][36] = {
- /* Set 9: Macbook Pro 3,1 (Santa Rosa) */
- 	{ "TALP", "TB0T", "TC0D", "TC0P", "TG0D", "TG0H", "TTF0", "TW0P",
- 	  "Th0H", "Th1H", "Th2H", "Tm0P", "Ts0P", NULL },
-+/* Set 10: iMac 5,1 */
-+	{ "TA0P", "TC0D", "TC0P", "TG0D", "TH0P", "TO0P", "Tm0P", NULL },
- };
+ drivers/hwmon/adt7473.c |   96 ++++++++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 82 insertions(+), 14 deletions(-)
 
- /* List of keys used to read/write fan speeds */
-@@ -1276,6 +1278,8 @@ static __initdata struct dmi_match_data applesmc_dmi_data[] = {
- 	{ .accelerometer = 1, .light = 1, .temperature_set = 8 },
- /* MacBook Pro 3: accelerometer, backlight and temperature set 9 */
- 	{ .accelerometer = 1, .light = 1, .temperature_set = 9 },
-+/* iMac 5: light sensor only, temperature set 10 */
-+	{ .accelerometer = 0, .light = 0, .temperature_set = 10 },
- };
-
- /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
-@@ -1317,6 +1321,10 @@ static __initdata struct dmi_system_id applesmc_whitelist[] = {
- 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacPro2") },
- 		&applesmc_dmi_data[4]},
-+	{ applesmc_dmi_match, "Apple iMac 5", {
-+	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME, "iMac5") },
-+		&applesmc_dmi_data[10]},
- 	{ applesmc_dmi_match, "Apple iMac", {
- 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME,"iMac") },
--- 
-1.5.6.3
+diff --git a/drivers/hwmon/adt7473.c b/drivers/hwmon/adt7473.c
+index 3a0b631..b4bcb63 100644
+--- a/drivers/hwmon/adt7473.c
++++ b/drivers/hwmon/adt7473.c
+@@ -360,6 +360,11 @@ static ssize_t show_volt_min(struct device *dev,
+ 		       decode_volt(attr->index, data->volt_min[attr->index]));
+ }
+ 
++static int range_check(const long val, const long min, const long max)
++{
++	return val >= min && val <= max;
++}
++
+ static ssize_t set_volt_min(struct device *dev,
+ 			    struct device_attribute *devattr,
+ 			    const char *buf,
+@@ -368,7 +373,14 @@ static ssize_t set_volt_min(struct device *dev,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7473_data *data = i2c_get_clientdata(client);
+-	int volt = encode_volt(attr->index, simple_strtol(buf, NULL, 10));
++	long volt;
++
++	if (strict_strtol(buf, 10, &volt))
++		return -EINVAL;
++
++	volt = encode_volt(attr->index, volt);
++	if (!range_check(volt, 0, 255))
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->lock);
+ 	data->volt_min[attr->index] = volt;
+@@ -397,7 +409,14 @@ static ssize_t set_volt_max(struct device *dev,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7473_data *data = i2c_get_clientdata(client);
+-	int volt = encode_volt(attr->index, simple_strtol(buf, NULL, 10));
++	long volt;
++
++	if (strict_strtol(buf, 10, &volt))
++		return -EINVAL;
++
++	volt = encode_volt(attr->index, volt);
++	if (!range_check(volt, 0, 255))
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->lock);
+ 	data->volt_max[attr->index] = volt;
+@@ -452,8 +471,15 @@ static ssize_t set_temp_min(struct device *dev,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7473_data *data = i2c_get_clientdata(client);
+-	int temp = simple_strtol(buf, NULL, 10) / 1000;
++	long temp;
++
++	if (strict_strtol(buf, 10, &temp))
++		return -EINVAL;
++
++	temp /= 1000;
+ 	temp = encode_temp(data->temp_twos_complement, temp);
++	if (!range_check(temp, 0, 255))
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->lock);
+ 	data->temp_min[attr->index] = temp;
+@@ -483,8 +509,15 @@ static ssize_t set_temp_max(struct device *dev,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7473_data *data = i2c_get_clientdata(client);
+-	int temp = simple_strtol(buf, NULL, 10) / 1000;
++	long temp;
++
++	if (strict_strtol(buf, 10, &temp))
++		return -EINVAL;
++
++	temp /= 1000;
+ 	temp = encode_temp(data->temp_twos_complement, temp);
++	if (!range_check(temp, 0, 255))
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->lock);
+ 	data->temp_max[attr->index] = temp;
+@@ -526,11 +559,14 @@ static ssize_t set_fan_min(struct device *dev,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7473_data *data = i2c_get_clientdata(client);
+-	int temp = simple_strtol(buf, NULL, 10);
++	long temp;
+ 
+-	if (!temp)
++	if (strict_strtol(buf, 10, &temp) || !temp)
+ 		return -EINVAL;
++
+ 	temp = FAN_RPM_TO_PERIOD(temp);
++	if (!range_check(temp, 0, 65535))
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->lock);
+ 	data->fan_min[attr->index] = temp;
+@@ -569,7 +605,10 @@ static ssize_t set_max_duty_at_crit(struct device *dev,
+ 	u8 reg;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7473_data *data = i2c_get_clientdata(client);
+-	int temp = simple_strtol(buf, NULL, 10);
++	long temp;
++
++	if (strict_strtol(buf, 10, &temp))
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->lock);
+ 	data->max_duty_at_overheat = !!temp;
+@@ -598,7 +637,10 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *devattr,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7473_data *data = i2c_get_clientdata(client);
+-	int temp = simple_strtol(buf, NULL, 10);
++	long temp;
++
++	if (strict_strtol(buf, 10, &temp) || !range_check(temp, 0, 255))
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->lock);
+ 	data->pwm[attr->index] = temp;
+@@ -625,7 +667,10 @@ static ssize_t set_pwm_max(struct device *dev,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7473_data *data = i2c_get_clientdata(client);
+-	int temp = simple_strtol(buf, NULL, 10);
++	long temp;
++
++	if (strict_strtol(buf, 10, &temp) || !range_check(temp, 0, 255))
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->lock);
+ 	data->pwm_max[attr->index] = temp;
+@@ -653,7 +698,10 @@ static ssize_t set_pwm_min(struct device *dev,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7473_data *data = i2c_get_clientdata(client);
+-	int temp = simple_strtol(buf, NULL, 10);
++	long temp;
++
++	if (strict_strtol(buf, 10, &temp) || !range_check(temp, 0, 255))
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->lock);
+ 	data->pwm_min[attr->index] = temp;
+@@ -683,8 +731,15 @@ static ssize_t set_temp_tmax(struct device *dev,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7473_data *data = i2c_get_clientdata(client);
+-	int temp = simple_strtol(buf, NULL, 10) / 1000;
++	long temp;
++
++	if (strict_strtol(buf, 10, &temp))
++		return -EINVAL;
++
++	temp /= 1000;
+ 	temp = encode_temp(data->temp_twos_complement, temp);
++	if (!range_check(temp, 0, 255))
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->lock);
+ 	data->temp_tmax[attr->index] = temp;
+@@ -714,8 +769,15 @@ static ssize_t set_temp_tmin(struct device *dev,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7473_data *data = i2c_get_clientdata(client);
+-	int temp = simple_strtol(buf, NULL, 10) / 1000;
++	long temp;
++
++	if (strict_strtol(buf, 10, &temp))
++		return -EINVAL;
++
++	temp /= 1000;
+ 	temp = encode_temp(data->temp_twos_complement, temp);
++	if (!range_check(temp, 0, 255))
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->lock);
+ 	data->temp_tmin[attr->index] = temp;
+@@ -752,7 +814,10 @@ static ssize_t set_pwm_enable(struct device *dev,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7473_data *data = i2c_get_clientdata(client);
+-	int temp = simple_strtol(buf, NULL, 10);
++	long temp;
++
++	if (strict_strtol(buf, 10, &temp))
++		return -EINVAL;
+ 
+ 	switch (temp) {
+ 	case 0:
+@@ -816,7 +881,10 @@ static ssize_t set_pwm_auto_temp(struct device *dev,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7473_data *data = i2c_get_clientdata(client);
+-	int temp = simple_strtol(buf, NULL, 10);
++	long temp;
++
++	if (strict_strtol(buf, 10, &temp))
++		return -EINVAL;
+ 
+ 	switch (temp) {
+ 	case 1:
 
 
 _______________________________________________
