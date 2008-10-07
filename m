@@ -1,295 +1,834 @@
-From: "bo wang" <wangbo351@gmail.com>
-Date: Mon, 20 Oct 2008 02:30:24 +0000
-Subject: [lm-sensors] ASUS Epc 1000H 945GSE BUG
-Message-Id: <2a2f4db00810191930r1a486c31r4a930d062de1960b@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1407745203057826036=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 07 Oct 2008 18:30:44 +0000
+Subject: [lm-sensors] [PATCH 4/6] hwmon: (w83781d) Make ISA interface depend
+Message-Id: <20081007203044.4281128d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============1407745203057826036==
-Content-Type: multipart/alternative; 
-	boundary="----=_Part_109442_2694566.1224469824117"
+Probing the ISA bus on systems without ISA bus may hang the system.
+This patch makes the ISA bus related code depend on the kernel
+configuration parameter CONFIG_ISA. It moves ISA bus related code
+into one #ifdef CONFIG_ISA ... #endif block and adds some helper
+function.
 
-------=_Part_109442_2694566.1224469824117
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Signed-off-by: Wolfgang Grandegger <wg@grandegger.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/w83781d.c |  673 +++++++++++++++++++++++++++--------------------
+ 1 file changed, 393 insertions(+), 280 deletions(-)
 
-RGVhbCBBbGwgLAoKICBpICB1c2UgIGFzdXMgZXBjIDEwMDBoIHRoZSBNQiBpcyA5NDUgR1NFIC4K
-ICBPUyB1YnVudHUgOC4wNC4xIC4KCm5vIHN1cHBvcnQgdGhlIDk0NUdTRSBjaGlwLCBjYW4geW91
-IGhlbHAgbWUgPwppIHdhbnQgZ2V0IGFsbCB0aGUgaW5mb3JtYXRpb24gLCB0aGFua3MKCtX91Nq2
-wcihyO28/rD8wdCx7S4uLgrV/dTat9bO9sjtvP6w/LXE0sDAtbnYz7XK9y4uLgq2wcih17TMrNDF
-z6IuLi4Kvau74bCy17DPwsHQtu7N4rXEyO28/rD8o7oKICBsaWJzZW5zb3JzNAq9qNLpsLLXsLXE
-yO28/rD8o7oKICBpMmMgcmVhZC1lZGlkIHNlbnNvcmQKz8LB0KG+0MKhv8jtvP6w/L2rsbuwstew
-o7oKICBsaWJzZW5zb3JzNCBsbS1zZW5zb3JzCrmyyf28tsHLIDAguPbI7bz+sPyjrNDCsLLXsMHL
-IDIguPbI7bz+sPyjrNKq0LbU2CAwILj2yO28/rD8o6zT0CAxNDIguPbI7bz+zrSxu8n9vLahowrQ
-6NKqz8LU2CAyNTBrQiC1xMjtvP6w/KGjCrLZ1/fN6rPJuvOjrLvhz/u6xLX0IDkxOGtCILXEtu7N
-4rTFxcy/1bzkoaMKxPrPo837vMzQ+Na00NDC8KO/W1kvbl278ciho7oxIGh0dHA6Ly9taXJyb3Iu
-bHVwYXdvcmxkLmNvbSBoYXJkeS9tYWluIGxpYnNlbnNvcnM0CjE6My4wLjAtNHVidW50dTEgWzM5
-LjdrQl0Ku/HIoaO6MiBodHRwOi8vbWlycm9yLmx1cGF3b3JsZC5jb20gaGFyZHkvbWFpbiBsbS1z
-ZW5zb3JzIDE6My4wLjAtNHVidW50dTEKWzIxMWtCXQrPwtTYIDI1MGtCo6y6xMqxIDBzICgzOTVr
-Qi9zKQrRodbQwcvU+LG7yKHP+9Gh1PG1xMjtvP6w/CBsaWJzZW5zb3JzNKGjCijV/dTatsHIocr9
-vt2/4iAuLi4gz7XNs7Wxx7DX3LmysLLXsNPQIDk4MjU5ILj2zsS8/rrNxL/CvKGjKQrV/dTaveLR
-ucv1IGxpYnNlbnNvcnM0ICi00yAuLi4vbGlic2Vuc29yczRfMSUzYTMuMC4wLTR1YnVudHUxX2kz
-ODYuZGViKSAuLi4K0aHW0MHL1Pixu8ihz/vRodTxtcTI7bz+sPwgbG0tc2Vuc29yc6GjCtX91Nq9
-4tG5y/UgbG0tc2Vuc29ycyAotNMgLi4uL2xtLXNlbnNvcnNfMSUzYTMuMC4wLTR1YnVudHUxX2kz
-ODYuZGViKSAuLi4K1f3U2sno1sMgbGlic2Vuc29yczQgKDE6My4wLjAtNHVidW50dTEpIC4uLgp1
-ZGV2IGFjdGl2ZSwgZGV2aWNlcyB3aWxsIGJlIGNyZWF0ZWQgaW4gL2Rldi8uc3RhdGljL2Rldi8K
-CtX91NrJ6NbDIGxtLXNlbnNvcnMgKDE6My4wLjAtNHVidW50dTEpIC4uLgoKQ3JlYXRpbmcgY29u
-ZmlnIGZpbGUgL2V0Yy9zZW5zb3JzMy5jb25mIHdpdGggbmV3IHZlcnNpb24KClByb2Nlc3Npbmcg
-dHJpZ2dlcnMgZm9yIGxpYmM2IC4uLgpsZGNvbmZpZyBkZWZlcnJlZCBwcm9jZXNzaW5nIG5vdyB0
-YWtpbmcgcGxhY2UKCgoKCgoKCnJvb3RAZWVlcGMtbGFwdG9wOn4jIHNlbnNvcnMtZGV0ZWN0CiMg
-c2Vuc29ycy1kZXRlY3QgcmV2aXNpb24gNTAxNiAoMjAwNy0xMS0xMSAyMjoyMDoxNiArMDEwMCkK
-ClRoaXMgcHJvZ3JhbSB3aWxsIGhlbHAgeW91IGRldGVybWluZSB3aGljaCBrZXJuZWwgbW9kdWxl
-cyB5b3UgbmVlZAp0byBsb2FkIHRvIHVzZSBsbV9zZW5zb3JzIG1vc3QgZWZmZWN0aXZlbHkuIEl0
-IGlzIGdlbmVyYWxseSBzYWZlCmFuZCByZWNvbW1lbmRlZCB0byBhY2NlcHQgdGhlIGRlZmF1bHQg
-YW5zd2VycyB0byBhbGwgcXVlc3Rpb25zLAp1bmxlc3MgeW91IGtub3cgd2hhdCB5b3UncmUgZG9p
-bmcuCgpXZSBjYW4gc3RhcnQgd2l0aCBwcm9iaW5nIGZvciAoUENJKSBJMkMgb3IgU01CdXMgYWRh
-cHRlcnMuCkRvIHlvdSB3YW50IHRvIHByb2JlIG5vdz8gKFlFUy9ubyk6IFlFUwpQcm9iaW5nIGZv
-ciBQQ0kgYnVzIGFkYXB0ZXJzLi4uClNvcnJ5LCBubyBrbm93biBQQ0kgYnVzIGFkYXB0ZXJzIGZv
-dW5kLgoKV2Ugd2lsbCBub3cgdHJ5IHRvIGxvYWQgZWFjaCBhZGFwdGVyIG1vZHVsZSBpbiB0dXJu
-LgpJZiB5b3UgaGF2ZSB1bmRldGVjdGFibGUgb3IgdW5zdXBwb3J0ZWQgYWRhcHRlcnMsIHlvdSBj
-YW4gaGF2ZSB0aGVtCnNjYW5uZWQgYnkgbWFudWFsbHkgbG9hZGluZyB0aGUgbW9kdWxlcyBiZWZv
-cmUgcnVubmluZyB0aGlzIHNjcmlwdC4KCldlIGFyZSBub3cgZ29pbmcgdG8gZG8gdGhlIEkyQy9T
-TUJ1cyBhZGFwdGVyIHByb2JpbmdzLiBTb21lIGNoaXBzIG1heQpiZSBkb3VibGUgZGV0ZWN0ZWQ7
-IHdlIGNob29zZSB0aGUgb25lIHdpdGggdGhlIGhpZ2hlc3QgY29uZmlkZW5jZQp2YWx1ZSBpbiB0
-aGF0IGNhc2UuCklmIHlvdSBmb3VuZCB0aGF0IHRoZSBhZGFwdGVyIGh1bmcgYWZ0ZXIgcHJvYmlu
-ZyBhIGNlcnRhaW4gYWRkcmVzcywKeW91IGNhbiBzcGVjaWZ5IHRoYXQgYWRkcmVzcyB0byByZW1h
-aW4gdW5wcm9iZWQuCgpTb21lIGNoaXBzIGFyZSBhbHNvIGFjY2Vzc2libGUgdGhyb3VnaCB0aGUg
-SVNBIEkvTyBwb3J0cy4gV2UgaGF2ZSB0bwp3cml0ZSB0byBhcmJpdHJhcnkgSS9PIHBvcnRzIHRv
-IHByb2JlIHRoZW0uIFRoaXMgaXMgdXN1YWxseSBzYWZlIHRob3VnaC4KWWVzLCB5b3UgZG8gaGF2
-ZSBJU0EgSS9PIHBvcnRzIGV2ZW4gaWYgeW91IGRvIG5vdCBoYXZlIGFueSBJU0Egc2xvdHMhCkRv
-IHlvdSB3YW50IHRvIHNjYW4gdGhlIElTQSBJL08gcG9ydHM/IChZRVMvbm8pOiBZRVMKUHJvYmlu
-ZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03OCcgYXQgMHgyOTAuLi4gICAgICAgTm8K
-UHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03OC1KJyBhdCAweDI5MC4uLiAg
-ICAgTm8KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03OScgYXQgMHgyOTAu
-Li4gICAgICAgTm8KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzgxRCcgYXQgMHgyOTAuLi4gICAg
-ICAgICAgICAgICAgICAgTm8KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzgyRCcgYXQgMHgyOTAu
-Li4gICAgICAgICAgICAgICAgICAgTm8KUHJvYmluZyBmb3IgYFNpbGljb24gSW50ZWdyYXRlZCBT
-eXN0ZW1zIFNJUzU1OTUnLi4uICAgICAgICAgTm8KUHJvYmluZyBmb3IgYFZJQSBWVDgyQzY4NiBJ
-bnRlZ3JhdGVkIFNlbnNvcnMnLi4uICAgICAgICAgICAgTm8KUHJvYmluZyBmb3IgYFZJQSBWVDgy
-MzEgSW50ZWdyYXRlZCBTZW5zb3JzJy4uLiAgICAgICAgICAgICAgTm8KUHJvYmluZyBmb3IgYElQ
-TUkgQk1DIEtDUycgYXQgMHhjYTAuLi4gICAgICAgICAgICAgICAgICAgICAgTm8KUHJvYmluZyBm
-b3IgYElQTUkgQk1DIFNNSUMnIGF0IDB4Y2E4Li4uICAgICAgICAgICAgICAgICAgICAgTm8KClNv
-bWUgU3VwZXIgSS9PIGNoaXBzIG1heSBhbHNvIGNvbnRhaW4gc2Vuc29ycy4gV2UgaGF2ZSB0byB3
-cml0ZSB0bwpzdGFuZGFyZCBJL08gcG9ydHMgdG8gcHJvYmUgdGhlbS4gVGhpcyBpcyB1c3VhbGx5
-IHNhZmUuCkRvIHlvdSB3YW50IHRvIHNjYW4gZm9yIFN1cGVyIEkvTyBzZW5zb3JzPyAoWUVTL25v
-KTogWUVTClByb2JpbmcgZm9yIFN1cGVyLUkvTyBhdCAweDJlLzB4MmYKVHJ5aW5nIGZhbWlseSBg
-TmF0aW9uYWwgU2VtaWNvbmR1Y3RvcicuLi4gICAgICAgICAgICAgICAgICAgTm8KVHJ5aW5nIGZh
-bWlseSBgU01TQycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8KVHJ5
-aW5nIGZhbWlseSBgVklBL1dpbmJvbmQvRmludGVrJy4uLiAgICAgICAgICAgICAgICAgICAgICAg
-Tm8KVHJ5aW5nIGZhbWlseSBgSVRFJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgTm8KUHJvYmluZyBmb3IgU3VwZXItSS9PIGF0IDB4NGUvMHg0ZgpUcnlpbmcgZmFtaWx5
-IGBOYXRpb25hbCBTZW1pY29uZHVjdG9yJy4uLiAgICAgICAgICAgICAgICAgICBObwpUcnlpbmcg
-ZmFtaWx5IGBTTVNDJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObwpU
-cnlpbmcgZmFtaWx5IGBWSUEvV2luYm9uZC9GaW50ZWsnLi4uICAgICAgICAgICAgICAgICAgICAg
-ICBObwpUcnlpbmcgZmFtaWx5IGBJVEUnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBObwoKU29tZSBDUFVzIG9yIG1lbW9yeSBjb250cm9sbGVycyBtYXkgYWxzbyBjb250
-YWluIGVtYmVkZGVkIHNlbnNvcnMuCkRvIHlvdSB3YW50IHRvIHNjYW4gZm9yIHRoZW0/IChZRVMv
-bm8pOiBZRVMKQU1EIEs4IHRoZXJtYWwgc2Vuc29ycy4uLiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgTm8KQU1EIEsxMCB0aGVybWFsIHNlbnNvcnMuLi4gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgTm8KSW50ZWwgQ29yZSBmYW1pbHkgdGhlcm1hbCBzZW5zb3IuLi4g
-ICAgICAgICAgICAgICAgICAgICAgICAgTm8KSW50ZWwgQU1CIEZCLURJTU0gdGhlcm1hbCBzZW5z
-b3IuLi4gICAgICAgICAgICAgICAgICAgICAgICAgTm8KClNvcnJ5LCBubyBzZW5zb3JzIHdlcmUg
-ZGV0ZWN0ZWQuCkVpdGhlciB5b3VyIHNlbnNvcnMgYXJlIG5vdCBzdXBwb3J0ZWQsIG9yIHRoZXkg
-YXJlIGNvbm5lY3RlZCB0byBhbgpJMkMgb3IgU01CdXMgYWRhcHRlciB0aGF0IGlzIG5vdCBzdXBw
-b3J0ZWQuIFNlZSBkb2MvRkFRLApkb2MvbG1fc2Vuc29ycy1GQVEuaHRtbCBvciBodHRwOi8vd3d3
-LmxtLXNlbnNvcnMub3JnL3dpa2kvRkFRCihGQVEgIzQuMjQuMykgZm9yIGZ1cnRoZXIgaW5mb3Jt
-YXRpb24uCklmIHlvdSBmaW5kIG91dCB3aGF0IGNoaXBzIGFyZSBvbiB5b3VyIGJvYXJkLCBjaGVj
-awpodHRwOi8vd3d3LmxtLXNlbnNvcnMub3JnL3dpa2kvRGV2aWNlcyBmb3IgZHJpdmVyIHN0YXR1
-cy4KCgoKCnJvb3RAZWVlcGMtbGFwdG9wOn4jIGxzbW9kIHxncmVwIGkyYwppMmNfaTgxMCAgICAg
-ICAgICAgICAgICA1NjM2ICAwCmkyY19hbGdvX2JpdCAgICAgICAgICAgIDczMDAgIDEgaTJjX2k4
-MTAKaTJjX2RldiAgICAgICAgICAgICAgICAgODgzNiAgMAppMmNfdmlhcHJvICAgICAgICAgICAg
-ICA5ODc2ICAwCmkyY19jb3JlICAgICAgICAgICAgICAgMjQ4MzIgIDUKZWVwcm9tLGkyY19pODEw
-LGkyY19hbGdvX2JpdCxpMmNfZGV2LGkyY192aWFwcm8KCgpyb290QGVlZXBjLWxhcHRvcDp+IyBs
-c21vZCB8Z3JlcCBlZXByb20KZWVwcm9tICAgICAgICAgICAgICAgICAgODIwOCAgMAppMmNfY29y
-ZSAgICAgICAgICAgICAgIDI0ODMyICA1CmVlcHJvbSxpMmNfaTgxMCxpMmNfYWxnb19iaXQsaTJj
-X2RldixpMmNfdmlhcHJvCgoKcm9vdEBlZWVwYy1sYXB0b3A6fiMgc2Vuc29ycwpObyBzZW5zb3Jz
-IGZvdW5kIQpNYWtlIHN1cmUgeW91IGxvYWRlZCBhbGwgdGhlIGtlcm5lbCBkcml2ZXJzIHlvdSBu
-ZWVkLgpUcnkgc2Vuc29ycy1kZXRlY3QgdG8gZmluZCBvdXQgd2hpY2ggdGhlc2UgYXJlLgoKCnJv
-b3RAZWVlcGMtbGFwdG9wOi9wcm9jL2FjcGkvdGhlcm1hbF96b25lL1RaMDAjIGxzCmNvb2xpbmdf
-bW9kZSAgcG9sbGluZ19mcmVxdWVuY3kgIHN0YXRlICB0ZW1wZXJhdHVyZSAgdHJpcF9wb2ludHMK
-cm9vdEBlZWVwYy1sYXB0b3A6L3Byb2MvYWNwaS90aGVybWFsX3pvbmUvVFowMCMgY2F0IHRlbXBl
-cmF0dXJlCnRlbXBlcmF0dXJlOiAgICAgICAgICAgICA1MSBDCg==
-------=_Part_109442_2694566.1224469824117
-Content-Type: text/html; charset=GB2312
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+--- linux-2.6.27-rc8.orig/drivers/hwmon/w83781d.c	2008-10-06 14:25:17.000000000 +0200
++++ linux-2.6.27-rc8/drivers/hwmon/w83781d.c	2008-10-06 16:22:19.000000000 +0200
+@@ -38,25 +38,24 @@
+ #include <linux/slab.h>
+ #include <linux/jiffies.h>
+ #include <linux/i2c.h>
+-#include <linux/platform_device.h>
+-#include <linux/ioport.h>
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-vid.h>
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++
++#ifdef CONFIG_ISA
++#include <linux/platform_device.h>
++#include <linux/ioport.h>
+ #include <asm/io.h>
+-#include "lm75.h"
++#endif
+ 
+-/* ISA device, if found */
+-static struct platform_device *pdev;
++#include "lm75.h"
+ 
+ /* Addresses to scan */
+ static const unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
+ 						0x2e, 0x2f, I2C_CLIENT_END };
+-static unsigned short isa_address = 0x290;
+-
+ /* Insmod parameters */
+ I2C_CLIENT_INSMOD_4(w83781d, w83782d, w83783s, as99127f);
+ I2C_CLIENT_MODULE_PARM(force_subclients, "List of subclient addresses: "
+@@ -245,13 +244,13 @@ struct w83781d_data {
+ 	u8 vrm;
+ };
+ 
++static struct w83781d_data *w83781d_data_if_isa(void);
++static int w83781d_alias_detect(struct i2c_client *client, u8 chipid);
++
+ static int w83781d_attach_adapter(struct i2c_adapter *adapter);
+ static int w83781d_detect(struct i2c_adapter *adapter, int address, int kind);
+ static int w83781d_detach_client(struct i2c_client *client);
+ 
+-static int __devinit w83781d_isa_probe(struct platform_device *pdev);
+-static int __devexit w83781d_isa_remove(struct platform_device *pdev);
+-
+ static int w83781d_read_value(struct w83781d_data *data, u16 reg);
+ static int w83781d_write_value(struct w83781d_data *data, u16 reg, u16 value);
+ static struct w83781d_data *w83781d_update_device(struct device *dev);
+@@ -265,16 +264,6 @@ static struct i2c_driver w83781d_driver
+ 	.detach_client = w83781d_detach_client,
+ };
+ 
+-static struct platform_driver w83781d_isa_driver = {
+-	.driver = {
+-		.owner = THIS_MODULE,
+-		.name = "w83781d",
+-	},
+-	.probe = w83781d_isa_probe,
+-	.remove = w83781d_isa_remove,
+-};
+-
+-
+ /* following are the sysfs callback functions */
+ #define show_in_reg(reg) \
+ static ssize_t show_##reg (struct device *dev, struct device_attribute *da, \
+@@ -836,16 +825,6 @@ static SENSOR_DEVICE_ATTR(temp2_type, S_
+ static SENSOR_DEVICE_ATTR(temp3_type, S_IRUGO | S_IWUSR,
+ 	show_sensor, store_sensor, 2);
+ 
+-/* I2C devices get this name attribute automatically, but for ISA devices
+-   we must create it by ourselves. */
+-static ssize_t
+-show_name(struct device *dev, struct device_attribute *devattr, char *buf)
+-{
+-	struct w83781d_data *data = dev_get_drvdata(dev);
+-	return sprintf(buf, "%s\n", data->client.name);
+-}
+-static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
+-
+ /* This function is called when:
+      * w83781d_driver is inserted (when this module is loaded), for each
+        available adapter
+@@ -855,13 +834,12 @@ static DEVICE_ATTR(name, S_IRUGO, show_n
+ static int
+ w83781d_attach_adapter(struct i2c_adapter *adapter)
+ {
+-	struct w83781d_data *data;
++	struct w83781d_data *data = w83781d_data_if_isa();
+ 	int err;
+ 
+ 	if (!(adapter->class & I2C_CLASS_HWMON))
+ 		return 0;
+ 
+-	data = pdev ? platform_get_drvdata(pdev) : NULL;
+ 	if (data)
+ 		mutex_lock(&data->update_lock);
+ 	err = i2c_probe(adapter, &addr_data, w83781d_detect);
+@@ -1037,40 +1015,6 @@ static const struct attribute_group w837
+ 	.attrs = w83781d_attributes_opt,
+ };
+ 
+-/* Returns 1 if the I2C chip appears to be an alias of the ISA chip */
+-static int w83781d_alias_detect(struct i2c_client *client, u8 chipid)
+-{
+-	struct w83781d_data *i2c, *isa;
+-	int i;
+-
+-	if (!pdev)	/* No ISA chip */
+-		return 0;
+-
+-	i2c = i2c_get_clientdata(client);
+-	isa = platform_get_drvdata(pdev);
+-
+-	if (w83781d_read_value(isa, W83781D_REG_I2C_ADDR) != client->addr)
+-		return 0;	/* Address doesn't match */
+-	if (w83781d_read_value(isa, W83781D_REG_WCHIPID) != chipid)
+-		return 0;	/* Chip type doesn't match */
+-
+-	/* We compare all the limit registers, the config register and the
+-	 * interrupt mask registers */
+-	for (i = 0x2b; i <= 0x3d; i++) {
+-		if (w83781d_read_value(isa, i) != w83781d_read_value(i2c, i))
+-			return 0;
+-	}
+-	if (w83781d_read_value(isa, W83781D_REG_CONFIG) !-	    w83781d_read_value(i2c, W83781D_REG_CONFIG))
+-		return 0;
+-	for (i = 0x43; i <= 0x46; i++) {
+-		if (w83781d_read_value(isa, i) != w83781d_read_value(i2c, i))
+-			return 0;
+-	}
+-
+-	return 1;
+-}
+-
+ /* No clean up is done on error, it's up to the caller */
+ static int
+ w83781d_create_files(struct device *dev, int kind, int is_isa)
+@@ -1167,12 +1111,6 @@ w83781d_create_files(struct device *dev,
+ 		}
+ 	}
+ 
+-	if (is_isa) {
+-		err = device_create_file(&pdev->dev, &dev_attr_name);
+-		if (err)
+-			return err;
+-	}
+-
+ 	return 0;
+ }
+ 
+@@ -1381,221 +1319,80 @@ w83781d_detach_client(struct i2c_client
+ 	return 0;
+ }
+ 
+-static int __devinit
+-w83781d_isa_probe(struct platform_device *pdev)
+-{
+-	int err, reg;
+-	struct w83781d_data *data;
+-	struct resource *res;
+-	const char *name;
+-
+-	/* Reserve the ISA region */
+-	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	if (!request_region(res->start + W83781D_ADDR_REG_OFFSET, 2,
+-			    "w83781d")) {
+-		err = -EBUSY;
+-		goto exit;
+-	}
+-
+-	if (!(data = kzalloc(sizeof(struct w83781d_data), GFP_KERNEL))) {
+-		err = -ENOMEM;
+-		goto exit_release_region;
+-	}
+-	mutex_init(&data->lock);
+-	data->client.addr = res->start;
+-	i2c_set_clientdata(&data->client, data);
+-	platform_set_drvdata(pdev, data);
+-
+-	reg = w83781d_read_value(data, W83781D_REG_WCHIPID);
+-	switch (reg) {
+-	case 0x30:
+-		data->type = w83782d;
+-		name = "w83782d";
+-		break;
+-	default:
+-		data->type = w83781d;
+-		name = "w83781d";
+-	}
+-	strlcpy(data->client.name, name, I2C_NAME_SIZE);
+-
+-	/* Initialize the W83781D chip */
+-	w83781d_init_device(&pdev->dev);
+-
+-	/* Register sysfs hooks */
+-	err = w83781d_create_files(&pdev->dev, data->type, 1);
+-	if (err)
+-		goto exit_remove_files;
+-
+-	data->hwmon_dev = hwmon_device_register(&pdev->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove_files;
+-	}
+-
+-	return 0;
+-
+- exit_remove_files:
+-	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group);
+-	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group_opt);
+-	device_remove_file(&pdev->dev, &dev_attr_name);
+-	kfree(data);
+- exit_release_region:
+-	release_region(res->start + W83781D_ADDR_REG_OFFSET, 2);
+- exit:
+-	return err;
+-}
+-
+-static int __devexit
+-w83781d_isa_remove(struct platform_device *pdev)
+-{
+-	struct w83781d_data *data = platform_get_drvdata(pdev);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group);
+-	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group_opt);
+-	device_remove_file(&pdev->dev, &dev_attr_name);
+-	release_region(data->client.addr + W83781D_ADDR_REG_OFFSET, 2);
+-	kfree(data);
+-
+-	return 0;
+-}
+-
+-/* The SMBus locks itself, usually, but nothing may access the Winbond between
+-   bank switches. ISA access must always be locked explicitly!
+-   We ignore the W83781D BUSY flag at this moment - it could lead to deadlocks,
+-   would slow down the W83781D access and should not be necessary.
+-   There are some ugly typecasts here, but the good news is - they should
+-   nowhere else be necessary! */
+ static int
+-w83781d_read_value(struct w83781d_data *data, u16 reg)
++w83781d_read_value_i2c(struct w83781d_data *data, u16 reg)
+ {
+ 	struct i2c_client *client = &data->client;
+-	int res, word_sized, bank;
++	int res, bank;
+ 	struct i2c_client *cl;
+ 
+-	mutex_lock(&data->lock);
+-	if (!client->driver) { /* ISA device */
+-		word_sized = (((reg & 0xff00) = 0x100)
+-			      || ((reg & 0xff00) = 0x200))
+-		    && (((reg & 0x00ff) = 0x50)
+-			|| ((reg & 0x00ff) = 0x53)
+-			|| ((reg & 0x00ff) = 0x55));
+-		if (reg & 0xff00) {
+-			outb_p(W83781D_REG_BANK,
+-			       client->addr + W83781D_ADDR_REG_OFFSET);
+-			outb_p(reg >> 8,
+-			       client->addr + W83781D_DATA_REG_OFFSET);
+-		}
+-		outb_p(reg & 0xff, client->addr + W83781D_ADDR_REG_OFFSET);
+-		res = inb_p(client->addr + W83781D_DATA_REG_OFFSET);
+-		if (word_sized) {
+-			outb_p((reg & 0xff) + 1,
+-			       client->addr + W83781D_ADDR_REG_OFFSET);
+-			res -			    (res << 8) + inb_p(client->addr +
+-					       W83781D_DATA_REG_OFFSET);
+-		}
+-		if (reg & 0xff00) {
+-			outb_p(W83781D_REG_BANK,
+-			       client->addr + W83781D_ADDR_REG_OFFSET);
+-			outb_p(0, client->addr + W83781D_DATA_REG_OFFSET);
+-		}
++	bank = (reg >> 8) & 0x0f;
++	if (bank > 2)
++		/* switch banks */
++		i2c_smbus_write_byte_data(client, W83781D_REG_BANK,
++					  bank);
++	if (bank = 0 || bank > 2) {
++		res = i2c_smbus_read_byte_data(client, reg & 0xff);
+ 	} else {
+-		bank = (reg >> 8) & 0x0f;
+-		if (bank > 2)
+-			/* switch banks */
+-			i2c_smbus_write_byte_data(client, W83781D_REG_BANK,
+-						  bank);
+-		if (bank = 0 || bank > 2) {
+-			res = i2c_smbus_read_byte_data(client, reg & 0xff);
+-		} else {
+-			/* switch to subclient */
+-			cl = data->lm75[bank - 1];
+-			/* convert from ISA to LM75 I2C addresses */
+-			switch (reg & 0xff) {
+-			case 0x50:	/* TEMP */
+-				res = swab16(i2c_smbus_read_word_data(cl, 0));
+-				break;
+-			case 0x52:	/* CONFIG */
+-				res = i2c_smbus_read_byte_data(cl, 1);
+-				break;
+-			case 0x53:	/* HYST */
+-				res = swab16(i2c_smbus_read_word_data(cl, 2));
+-				break;
+-			case 0x55:	/* OVER */
+-			default:
+-				res = swab16(i2c_smbus_read_word_data(cl, 3));
+-				break;
+-			}
++		/* switch to subclient */
++		cl = data->lm75[bank - 1];
++		/* convert from ISA to LM75 I2C addresses */
++		switch (reg & 0xff) {
++		case 0x50:	/* TEMP */
++			res = swab16(i2c_smbus_read_word_data(cl, 0));
++			break;
++		case 0x52:	/* CONFIG */
++			res = i2c_smbus_read_byte_data(cl, 1);
++			break;
++		case 0x53:	/* HYST */
++			res = swab16(i2c_smbus_read_word_data(cl, 2));
++			break;
++		case 0x55:	/* OVER */
++		default:
++			res = swab16(i2c_smbus_read_word_data(cl, 3));
++			break;
+ 		}
+-		if (bank > 2)
+-			i2c_smbus_write_byte_data(client, W83781D_REG_BANK, 0);
+ 	}
+-	mutex_unlock(&data->lock);
++	if (bank > 2)
++		i2c_smbus_write_byte_data(client, W83781D_REG_BANK, 0);
++
+ 	return res;
+ }
+ 
+ static int
+-w83781d_write_value(struct w83781d_data *data, u16 reg, u16 value)
++w83781d_write_value_i2c(struct w83781d_data *data, u16 reg, u16 value)
+ {
+ 	struct i2c_client *client = &data->client;
+-	int word_sized, bank;
++	int bank;
+ 	struct i2c_client *cl;
+ 
+-	mutex_lock(&data->lock);
+-	if (!client->driver) { /* ISA device */
+-		word_sized = (((reg & 0xff00) = 0x100)
+-			      || ((reg & 0xff00) = 0x200))
+-		    && (((reg & 0x00ff) = 0x53)
+-			|| ((reg & 0x00ff) = 0x55));
+-		if (reg & 0xff00) {
+-			outb_p(W83781D_REG_BANK,
+-			       client->addr + W83781D_ADDR_REG_OFFSET);
+-			outb_p(reg >> 8,
+-			       client->addr + W83781D_DATA_REG_OFFSET);
+-		}
+-		outb_p(reg & 0xff, client->addr + W83781D_ADDR_REG_OFFSET);
+-		if (word_sized) {
+-			outb_p(value >> 8,
+-			       client->addr + W83781D_DATA_REG_OFFSET);
+-			outb_p((reg & 0xff) + 1,
+-			       client->addr + W83781D_ADDR_REG_OFFSET);
+-		}
+-		outb_p(value & 0xff, client->addr + W83781D_DATA_REG_OFFSET);
+-		if (reg & 0xff00) {
+-			outb_p(W83781D_REG_BANK,
+-			       client->addr + W83781D_ADDR_REG_OFFSET);
+-			outb_p(0, client->addr + W83781D_DATA_REG_OFFSET);
+-		}
++	bank = (reg >> 8) & 0x0f;
++	if (bank > 2)
++		/* switch banks */
++		i2c_smbus_write_byte_data(client, W83781D_REG_BANK,
++					  bank);
++	if (bank = 0 || bank > 2) {
++		i2c_smbus_write_byte_data(client, reg & 0xff,
++					  value & 0xff);
+ 	} else {
+-		bank = (reg >> 8) & 0x0f;
+-		if (bank > 2)
+-			/* switch banks */
+-			i2c_smbus_write_byte_data(client, W83781D_REG_BANK,
+-						  bank);
+-		if (bank = 0 || bank > 2) {
+-			i2c_smbus_write_byte_data(client, reg & 0xff,
+-						  value & 0xff);
+-		} else {
+-			/* switch to subclient */
+-			cl = data->lm75[bank - 1];
+-			/* convert from ISA to LM75 I2C addresses */
+-			switch (reg & 0xff) {
+-			case 0x52:	/* CONFIG */
+-				i2c_smbus_write_byte_data(cl, 1, value & 0xff);
+-				break;
+-			case 0x53:	/* HYST */
+-				i2c_smbus_write_word_data(cl, 2, swab16(value));
+-				break;
+-			case 0x55:	/* OVER */
+-				i2c_smbus_write_word_data(cl, 3, swab16(value));
+-				break;
+-			}
++		/* switch to subclient */
++		cl = data->lm75[bank - 1];
++		/* convert from ISA to LM75 I2C addresses */
++		switch (reg & 0xff) {
++		case 0x52:	/* CONFIG */
++			i2c_smbus_write_byte_data(cl, 1, value & 0xff);
++			break;
++		case 0x53:	/* HYST */
++			i2c_smbus_write_word_data(cl, 2, swab16(value));
++			break;
++		case 0x55:	/* OVER */
++			i2c_smbus_write_word_data(cl, 3, swab16(value));
++			break;
+ 		}
+-		if (bank > 2)
+-			i2c_smbus_write_byte_data(client, W83781D_REG_BANK, 0);
+ 	}
+-	mutex_unlock(&data->lock);
++	if (bank > 2)
++		i2c_smbus_write_byte_data(client, W83781D_REG_BANK, 0);
++
+ 	return 0;
+ }
+ 
+@@ -1815,6 +1612,255 @@ static struct w83781d_data *w83781d_upda
+ 	return data;
+ }
+ 
++#ifdef CONFIG_ISA
++
++/* ISA device, if found */
++static struct platform_device *pdev;
++
++static unsigned short isa_address = 0x290;
++
++/* I2C devices get this name attribute automatically, but for ISA devices
++   we must create it by ourselves. */
++static ssize_t
++show_name(struct device *dev, struct device_attribute *devattr, char *buf)
++{
++	struct w83781d_data *data = dev_get_drvdata(dev);
++	return sprintf(buf, "%s\n", data->client.name);
++}
++static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
++
++static struct w83781d_data *w83781d_data_if_isa(void)
++{
++	return pdev ? platform_get_drvdata(pdev) : NULL;
++}
++
++/* Returns 1 if the I2C chip appears to be an alias of the ISA chip */
++static int w83781d_alias_detect(struct i2c_client *client, u8 chipid)
++{
++	struct w83781d_data *i2c, *isa;
++	int i;
++
++	if (!pdev)	/* No ISA chip */
++		return 0;
++
++	i2c = i2c_get_clientdata(client);
++	isa = platform_get_drvdata(pdev);
++
++	if (w83781d_read_value(isa, W83781D_REG_I2C_ADDR) != client->addr)
++		return 0;	/* Address doesn't match */
++	if (w83781d_read_value(isa, W83781D_REG_WCHIPID) != chipid)
++		return 0;	/* Chip type doesn't match */
++
++	/* We compare all the limit registers, the config register and the
++	 * interrupt mask registers */
++	for (i = 0x2b; i <= 0x3d; i++) {
++		if (w83781d_read_value(isa, i) != w83781d_read_value(i2c, i))
++			return 0;
++	}
++	if (w83781d_read_value(isa, W83781D_REG_CONFIG) !+	    w83781d_read_value(i2c, W83781D_REG_CONFIG))
++		return 0;
++	for (i = 0x43; i <= 0x46; i++) {
++		if (w83781d_read_value(isa, i) != w83781d_read_value(i2c, i))
++			return 0;
++	}
++
++	return 1;
++}
++
++static int
++w83781d_read_value_isa(struct w83781d_data *data, u16 reg)
++{
++	struct i2c_client *client = &data->client;
++	int word_sized, res;
++
++	word_sized = (((reg & 0xff00) = 0x100)
++		      || ((reg & 0xff00) = 0x200))
++	    && (((reg & 0x00ff) = 0x50)
++		|| ((reg & 0x00ff) = 0x53)
++		|| ((reg & 0x00ff) = 0x55));
++	if (reg & 0xff00) {
++		outb_p(W83781D_REG_BANK,
++		       client->addr + W83781D_ADDR_REG_OFFSET);
++		outb_p(reg >> 8,
++		       client->addr + W83781D_DATA_REG_OFFSET);
++	}
++	outb_p(reg & 0xff, client->addr + W83781D_ADDR_REG_OFFSET);
++	res = inb_p(client->addr + W83781D_DATA_REG_OFFSET);
++	if (word_sized) {
++		outb_p((reg & 0xff) + 1,
++		       client->addr + W83781D_ADDR_REG_OFFSET);
++		res +		    (res << 8) + inb_p(client->addr +
++				       W83781D_DATA_REG_OFFSET);
++	}
++	if (reg & 0xff00) {
++		outb_p(W83781D_REG_BANK,
++		       client->addr + W83781D_ADDR_REG_OFFSET);
++		outb_p(0, client->addr + W83781D_DATA_REG_OFFSET);
++	}
++	return res;
++}
++
++static void
++w83781d_write_value_isa(struct w83781d_data *data, u16 reg, u16 value)
++{
++	struct i2c_client *client = &data->client;
++	int word_sized;
++
++	word_sized = (((reg & 0xff00) = 0x100)
++		      || ((reg & 0xff00) = 0x200))
++	    && (((reg & 0x00ff) = 0x53)
++		|| ((reg & 0x00ff) = 0x55));
++	if (reg & 0xff00) {
++		outb_p(W83781D_REG_BANK,
++		       client->addr + W83781D_ADDR_REG_OFFSET);
++		outb_p(reg >> 8,
++		       client->addr + W83781D_DATA_REG_OFFSET);
++	}
++	outb_p(reg & 0xff, client->addr + W83781D_ADDR_REG_OFFSET);
++	if (word_sized) {
++		outb_p(value >> 8,
++		       client->addr + W83781D_DATA_REG_OFFSET);
++		outb_p((reg & 0xff) + 1,
++		       client->addr + W83781D_ADDR_REG_OFFSET);
++	}
++	outb_p(value & 0xff, client->addr + W83781D_DATA_REG_OFFSET);
++	if (reg & 0xff00) {
++		outb_p(W83781D_REG_BANK,
++		       client->addr + W83781D_ADDR_REG_OFFSET);
++		outb_p(0, client->addr + W83781D_DATA_REG_OFFSET);
++	}
++}
++
++/* The SMBus locks itself, usually, but nothing may access the Winbond between
++   bank switches. ISA access must always be locked explicitly!
++   We ignore the W83781D BUSY flag at this moment - it could lead to deadlocks,
++   would slow down the W83781D access and should not be necessary.
++   There are some ugly typecasts here, but the good news is - they should
++   nowhere else be necessary! */
++static int
++w83781d_read_value(struct w83781d_data *data, u16 reg)
++{
++	struct i2c_client *client = &data->client;
++	int res;
++
++	mutex_lock(&data->lock);
++	if (client->driver)
++		res = w83781d_read_value_i2c(data, reg);
++	else
++		res = w83781d_read_value_isa(data, reg);
++	mutex_unlock(&data->lock);
++	return res;
++}
++
++static int
++w83781d_write_value(struct w83781d_data *data, u16 reg, u16 value)
++{
++	struct i2c_client *client = &data->client;
++
++	mutex_lock(&data->lock);
++	if (client->driver)
++		w83781d_write_value_i2c(data, reg, value);
++	else
++		w83781d_write_value_isa(data, reg, value);
++	mutex_unlock(&data->lock);
++	return 0;
++}
++
++static int __devinit
++w83781d_isa_probe(struct platform_device *pdev)
++{
++	int err, reg;
++	struct w83781d_data *data;
++	struct resource *res;
++	const char *name;
++
++	/* Reserve the ISA region */
++	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
++	if (!request_region(res->start + W83781D_ADDR_REG_OFFSET, 2,
++			    "w83781d")) {
++		err = -EBUSY;
++		goto exit;
++	}
++
++	data = kzalloc(sizeof(struct w83781d_data), GFP_KERNEL);
++	if (!data) {
++		err = -ENOMEM;
++		goto exit_release_region;
++	}
++	mutex_init(&data->lock);
++	data->client.addr = res->start;
++	i2c_set_clientdata(&data->client, data);
++	platform_set_drvdata(pdev, data);
++
++	reg = w83781d_read_value(data, W83781D_REG_WCHIPID);
++	switch (reg) {
++	case 0x30:
++		data->type = w83782d;
++		name = "w83782d";
++		break;
++	default:
++		data->type = w83781d;
++		name = "w83781d";
++	}
++	strlcpy(data->client.name, name, I2C_NAME_SIZE);
++
++	/* Initialize the W83781D chip */
++	w83781d_init_device(&pdev->dev);
++
++	/* Register sysfs hooks */
++	err = w83781d_create_files(&pdev->dev, data->type, 1);
++	if (err)
++		goto exit_remove_files;
++
++	err = device_create_file(&pdev->dev, &dev_attr_name);
++	if (err)
++		goto exit_remove_files;
++
++	data->hwmon_dev = hwmon_device_register(&pdev->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto exit_remove_files;
++	}
++
++	return 0;
++
++ exit_remove_files:
++	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group);
++	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group_opt);
++	device_remove_file(&pdev->dev, &dev_attr_name);
++	kfree(data);
++ exit_release_region:
++	release_region(res->start + W83781D_ADDR_REG_OFFSET, 2);
++ exit:
++	return err;
++}
++
++static int __devexit
++w83781d_isa_remove(struct platform_device *pdev)
++{
++	struct w83781d_data *data = platform_get_drvdata(pdev);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group);
++	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group_opt);
++	device_remove_file(&pdev->dev, &dev_attr_name);
++	release_region(data->client.addr + W83781D_ADDR_REG_OFFSET, 2);
++	kfree(data);
++
++	return 0;
++}
++
++static struct platform_driver w83781d_isa_driver = {
++	.driver = {
++		.owner = THIS_MODULE,
++		.name = "w83781d",
++	},
++	.probe = w83781d_isa_probe,
++	.remove = __devexit_p(w83781d_isa_remove),
++};
++
+ /* return 1 if a supported chip is found, 0 otherwise */
+ static int __init
+ w83781d_isa_found(unsigned short address)
+@@ -1951,12 +1997,10 @@ w83781d_isa_device_add(unsigned short ad
+ }
+ 
+ static int __init
+-sensors_w83781d_init(void)
++w83781d_isa_register(void)
+ {
+ 	int res;
+ 
+-	/* We register the ISA device first, so that we can skip the
+-	 * registration of an I2C interface to the same device. */
+ 	if (w83781d_isa_found(isa_address)) {
+ 		res = platform_driver_register(&w83781d_isa_driver);
+ 		if (res)
+@@ -1968,27 +2012,96 @@ sensors_w83781d_init(void)
+ 			goto exit_unreg_isa_driver;
+ 	}
+ 
+-	res = i2c_add_driver(&w83781d_driver);
+-	if (res)
+-		goto exit_unreg_isa_device;
+-
+ 	return 0;
+ 
+- exit_unreg_isa_device:
+-	platform_device_unregister(pdev);
+- exit_unreg_isa_driver:
++exit_unreg_isa_driver:
+ 	platform_driver_unregister(&w83781d_isa_driver);
+- exit:
++exit:
+ 	return res;
+ }
+ 
+ static void __exit
+-sensors_w83781d_exit(void)
++w83781d_isa_unregister(void)
+ {
+ 	if (pdev) {
+ 		platform_device_unregister(pdev);
+ 		platform_driver_unregister(&w83781d_isa_driver);
+ 	}
++}
++#else /* !CONFIG_ISA */
++
++static struct w83781d_data *w83781d_data_if_isa(void)
++{
++	return NULL;
++}
++
++static int
++w83781d_alias_detect(struct i2c_client *client, u8 chipid)
++{
++	return 0;
++}
++
++static int
++w83781d_read_value(struct w83781d_data *data, u16 reg)
++{
++	int res;
++
++	mutex_lock(&data->lock);
++	res = w83781d_read_value_i2c(data, reg);
++	mutex_unlock(&data->lock);
++
++	return res;
++}
++
++static int
++w83781d_write_value(struct w83781d_data *data, u16 reg, u16 value)
++{
++	mutex_lock(&data->lock);
++	w83781d_write_value_i2c(data, reg, value);
++	mutex_unlock(&data->lock);
++
++	return 0;
++}
++
++static int __init
++w83781d_isa_register(void)
++{
++	return 0;
++}
++
++static void __exit
++w83781d_isa_unregister(void)
++{
++}
++#endif /* CONFIG_ISA */
++
++static int __init
++sensors_w83781d_init(void)
++{
++	int res;
++
++	/* We register the ISA device first, so that we can skip the
++	 * registration of an I2C interface to the same device. */
++	res = w83781d_isa_register();
++	if (res)
++		goto exit;
++
++	res = i2c_add_driver(&w83781d_driver);
++	if (res)
++		goto exit_unreg_isa;
++
++	return 0;
++
++ exit_unreg_isa:
++	w83781d_isa_unregister();
++ exit:
++	return res;
++}
++
++static void __exit
++sensors_w83781d_exit(void)
++{
++	w83781d_isa_unregister();
+ 	i2c_del_driver(&w83781d_driver);
+ }
+ 
 
-PGRpdiBkaXI9Imx0ciI+RGVhbCBBbGwgLCA8YnI+PGJyPiZuYnNwOyBpJm5ic3A7IHVzZSZuYnNw
-OyBhc3VzIGVwYyAxMDAwaCB0aGUgTUIgaXMgOTQ1IEdTRSAuPGJyPiZuYnNwOyBPUyB1YnVudHUg
-OC4wNC4xIC48YnI+PGJyPm5vIHN1cHBvcnQgdGhlIDk0NUdTRSBjaGlwLCBjYW4geW91IGhlbHAg
-bWUgPzxicj4KaSB3YW50IGdldCBhbGwgdGhlIGluZm9ybWF0aW9uICwgdGhhbmtzIDxicj48YnI+
-1f3U2rbByKHI7bz+sPzB0LHtLi4uPGJyPtX91Nq31s72yO28/rD8tcTSwMC1udjPtcr3Li4uPGJy
-PrbByKHXtMys0MXPoi4uLjxicj69q7vhsLLXsM/CwdC27s3itcTI7bz+sPyjujxicj4mbmJzcDsg
-bGlic2Vuc29yczQ8YnI+vajS6bCy17C1xMjtvP6w/KO6PGJyPiZuYnNwOyBpMmMgcmVhZC1lZGlk
-IHNlbnNvcmQ8YnI+z8LB0KG+0MKhv8jtvP6w/L2rsbuwstewo7o8YnI+Jm5ic3A7IGxpYnNlbnNv
-cnM0IGxtLXNlbnNvcnM8YnI+ubLJ/by2wcsgMCC49sjtvP6w/KOs0MKwstewwcsgMiC49sjtvP6w
-/KOs0qrQttTYIDAguPbI7bz+sPyjrNPQIDE0MiC49sjtvP7OtLG7yf28tqGjPGJyPgrQ6NKqz8LU
-2CAyNTBrQiC1xMjtvP6w/KGjPGJyPrLZ1/fN6rPJuvOjrLvhz/u6xLX0IDkxOGtCILXEtu7N4rTF
-xcy/1bzkoaM8YnI+xPrPo837vMzQ+Na00NDC8KO/W1kvbl278ciho7oxIDxhIGhyZWY9Imh0dHA6
-Ly9taXJyb3IubHVwYXdvcmxkLmNvbSI+aHR0cDovL21pcnJvci5sdXBhd29ybGQuY29tPC9hPiBo
-YXJkeS9tYWluIGxpYnNlbnNvcnM0IDE6My4wLjAtNHVidW50dTEgWzM5LjdrQl08YnI+u/HIoaO6
-MiA8YSBocmVmPSJodHRwOi8vbWlycm9yLmx1cGF3b3JsZC5jb20iPmh0dHA6Ly9taXJyb3IubHVw
-YXdvcmxkLmNvbTwvYT4gaGFyZHkvbWFpbiBsbS1zZW5zb3JzIDE6My4wLjAtNHVidW50dTEgWzIx
-MWtCXTxicj4Kz8LU2CAyNTBrQqOsusTKsSAwcyAoMzk1a0Ivcyk8YnI+0aHW0MHL1Pixu8ihz/vR
-odTxtcTI7bz+sPwgbGlic2Vuc29yczShozxicj4o1f3U2rbByKHK/b7dv+IgLi4uIM+1zbO1scew
-19y5srCy17DT0CA5ODI1OSC49s7EvP66zcS/wryhoyk8YnI+1f3U2r3i0bnL9SBsaWJzZW5zb3Jz
-NCAotNMgLi4uL2xpYnNlbnNvcnM0XzElM2EzLjAuMC00dWJ1bnR1MV9pMzg2LmRlYikgLi4uPGJy
-PtGh1tDBy9T4sbvIoc/70aHU8bXEyO28/rD8IGxtLXNlbnNvcnOhozxicj7V/dTaveLRucv1IGxt
-LXNlbnNvcnMgKLTTIC4uLi9sbS1zZW5zb3JzXzElM2EzLjAuMC00dWJ1bnR1MV9pMzg2LmRlYikg
-Li4uPGJyPgrV/dTayejWwyBsaWJzZW5zb3JzNCAoMTozLjAuMC00dWJ1bnR1MSkgLi4uPGJyPnVk
-ZXYgYWN0aXZlLCBkZXZpY2VzIHdpbGwgYmUgY3JlYXRlZCBpbiAvZGV2Ly5zdGF0aWMvZGV2Lzxi
-cj48YnI+1f3U2sno1sMgbG0tc2Vuc29ycyAoMTozLjAuMC00dWJ1bnR1MSkgLi4uPGJyPjxicj5D
-cmVhdGluZyBjb25maWcgZmlsZSAvZXRjL3NlbnNvcnMzLmNvbmYgd2l0aCBuZXcgdmVyc2lvbjxi
-cj48YnI+UHJvY2Vzc2luZyB0cmlnZ2VycyBmb3IgbGliYzYgLi4uPGJyPgpsZGNvbmZpZyBkZWZl
-cnJlZCBwcm9jZXNzaW5nIG5vdyB0YWtpbmcgcGxhY2U8YnI+PGJyPjxicj48YnI+PGJyPjxicj48
-YnI+PGJyPnJvb3RAZWVlcGMtbGFwdG9wOn4jIHNlbnNvcnMtZGV0ZWN0IDxicj4jIHNlbnNvcnMt
-ZGV0ZWN0IHJldmlzaW9uIDUwMTYgKDIwMDctMTEtMTEgMjI6MjA6MTYgKzAxMDApPGJyPjxicj5U
-aGlzIHByb2dyYW0gd2lsbCBoZWxwIHlvdSBkZXRlcm1pbmUgd2hpY2gga2VybmVsIG1vZHVsZXMg
-eW91IG5lZWQ8YnI+CnRvIGxvYWQgdG8gdXNlIGxtX3NlbnNvcnMgbW9zdCBlZmZlY3RpdmVseS4g
-SXQgaXMgZ2VuZXJhbGx5IHNhZmU8YnI+YW5kIHJlY29tbWVuZGVkIHRvIGFjY2VwdCB0aGUgZGVm
-YXVsdCBhbnN3ZXJzIHRvIGFsbCBxdWVzdGlvbnMsPGJyPnVubGVzcyB5b3Uga25vdyB3aGF0IHlv
-dSYjMzk7cmUgZG9pbmcuPGJyPjxicj5XZSBjYW4gc3RhcnQgd2l0aCBwcm9iaW5nIGZvciAoUENJ
-KSBJMkMgb3IgU01CdXMgYWRhcHRlcnMuPGJyPgpEbyB5b3Ugd2FudCB0byBwcm9iZSBub3c/IChZ
-RVMvbm8pOiBZRVM8YnI+UHJvYmluZyBmb3IgUENJIGJ1cyBhZGFwdGVycy4uLjxicj5Tb3JyeSwg
-bm8ga25vd24gUENJIGJ1cyBhZGFwdGVycyBmb3VuZC48YnI+PGJyPldlIHdpbGwgbm93IHRyeSB0
-byBsb2FkIGVhY2ggYWRhcHRlciBtb2R1bGUgaW4gdHVybi48YnI+SWYgeW91IGhhdmUgdW5kZXRl
-Y3RhYmxlIG9yIHVuc3VwcG9ydGVkIGFkYXB0ZXJzLCB5b3UgY2FuIGhhdmUgdGhlbTxicj4Kc2Nh
-bm5lZCBieSBtYW51YWxseSBsb2FkaW5nIHRoZSBtb2R1bGVzIGJlZm9yZSBydW5uaW5nIHRoaXMg
-c2NyaXB0Ljxicj48YnI+V2UgYXJlIG5vdyBnb2luZyB0byBkbyB0aGUgSTJDL1NNQnVzIGFkYXB0
-ZXIgcHJvYmluZ3MuIFNvbWUgY2hpcHMgbWF5PGJyPmJlIGRvdWJsZSBkZXRlY3RlZDsgd2UgY2hv
-b3NlIHRoZSBvbmUgd2l0aCB0aGUgaGlnaGVzdCBjb25maWRlbmNlPGJyPnZhbHVlIGluIHRoYXQg
-Y2FzZS48YnI+CklmIHlvdSBmb3VuZCB0aGF0IHRoZSBhZGFwdGVyIGh1bmcgYWZ0ZXIgcHJvYmlu
-ZyBhIGNlcnRhaW4gYWRkcmVzcyw8YnI+eW91IGNhbiBzcGVjaWZ5IHRoYXQgYWRkcmVzcyB0byBy
-ZW1haW4gdW5wcm9iZWQuPGJyPjxicj5Tb21lIGNoaXBzIGFyZSBhbHNvIGFjY2Vzc2libGUgdGhy
-b3VnaCB0aGUgSVNBIEkvTyBwb3J0cy4gV2UgaGF2ZSB0bzxicj53cml0ZSB0byBhcmJpdHJhcnkg
-SS9PIHBvcnRzIHRvIHByb2JlIHRoZW0uIFRoaXMgaXMgdXN1YWxseSBzYWZlIHRob3VnaC48YnI+
-ClllcywgeW91IGRvIGhhdmUgSVNBIEkvTyBwb3J0cyBldmVuIGlmIHlvdSBkbyBub3QgaGF2ZSBh
-bnkgSVNBIHNsb3RzITxicj5EbyB5b3Ugd2FudCB0byBzY2FuIHRoZSBJU0EgSS9PIHBvcnRzPyAo
-WUVTL25vKTogWUVTPGJyPlByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzgm
-IzM5OyBhdCAweDI5MC4uLiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBObzxi
-cj5Qcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc4LUomIzM5OyBhdCAweDI5
-MC4uLiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBObzxicj4KUHJvYmluZyBmb3IgYE5hdGlvbmFs
-IFNlbWljb25kdWN0b3IgTE03OSYjMzk7IGF0IDB4MjkwLi4uJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
-c3A7Jm5ic3A7Jm5ic3A7IE5vPGJyPlByb2JpbmcgZm9yIGBXaW5ib25kIFc4Mzc4MUQmIzM5OyBh
-dCAweDI5MC4uLiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
-OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
-YnNwOyBObzxicj5Qcm9iaW5nIGZvciBgV2luYm9uZCBXODM3ODJEJiMzOTsgYXQgMHgyOTAuLi4m
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgTm88YnI+
-UHJvYmluZyBmb3IgYFNpbGljb24gSW50ZWdyYXRlZCBTeXN0ZW1zIFNJUzU1OTUmIzM5Oy4uLiZu
-YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBObzxicj4KUHJv
-YmluZyBmb3IgYFZJQSBWVDgyQzY4NiBJbnRlZ3JhdGVkIFNlbnNvcnMmIzM5Oy4uLiZuYnNwOyZu
-YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
-OyBObzxicj5Qcm9iaW5nIGZvciBgVklBIFZUODIzMSBJbnRlZ3JhdGVkIFNlbnNvcnMmIzM5Oy4u
-LiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
-YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBObzxicj5Qcm9iaW5nIGZvciBgSVBNSSBCTUMgS0NTJiMz
-OTsgYXQgMHhjYTAuLi4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgTm88YnI+UHJvYmluZyBmb3IgYElQTUkgQk1DIFNN
-SUMmIzM5OyBhdCAweGNhOC4uLiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
-YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
-OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBObzxicj4KPGJyPlNvbWUgU3VwZXIgSS9PIGNoaXBz
-IG1heSBhbHNvIGNvbnRhaW4gc2Vuc29ycy4gV2UgaGF2ZSB0byB3cml0ZSB0bzxicj5zdGFuZGFy
-ZCBJL08gcG9ydHMgdG8gcHJvYmUgdGhlbS4gVGhpcyBpcyB1c3VhbGx5IHNhZmUuPGJyPkRvIHlv
-dSB3YW50IHRvIHNjYW4gZm9yIFN1cGVyIEkvTyBzZW5zb3JzPyAoWUVTL25vKTogWUVTPGJyPlBy
-b2JpbmcgZm9yIFN1cGVyLUkvTyBhdCAweDJlLzB4MmY8YnI+ClRyeWluZyBmYW1pbHkgYE5hdGlv
-bmFsIFNlbWljb25kdWN0b3ImIzM5Oy4uLiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
-YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
-OyZuYnNwOyZuYnNwOyZuYnNwOyBObzxicj5UcnlpbmcgZmFtaWx5IGBTTVNDJiMzOTsuLi4mbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgTm88YnI+VHJ5aW5nIGZh
-bWlseSBgVklBL1dpbmJvbmQvRmludGVrJiMzOTsuLi4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgTm88YnI+
-VHJ5aW5nIGZhbWlseSBgSVRFJiMzOTsuLi4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsgTm88YnI+ClByb2JpbmcgZm9yIFN1cGVyLUkvTyBhdCAweDRl
-LzB4NGY8YnI+VHJ5aW5nIGZhbWlseSBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciYjMzk7Li4uJm5i
-c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
-Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IE5vPGJyPlRy
-eWluZyBmYW1pbHkgYFNNU0MmIzM5Oy4uLiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
-YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
-OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
-YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
-OyZuYnNwOyZuYnNwOyBObzxicj5UcnlpbmcgZmFtaWx5IGBWSUEvV2luYm9uZC9GaW50ZWsmIzM5
-Oy4uLiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
-OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
-YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBObzxicj4KVHJ5aW5nIGZhbWlseSBgSVRFJiMzOTsuLi4m
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgTm88YnI+
-PGJyPlNvbWUgQ1BVcyBvciBtZW1vcnkgY29udHJvbGxlcnMgbWF5IGFsc28gY29udGFpbiBlbWJl
-ZGRlZCBzZW5zb3JzLjxicj5EbyB5b3Ugd2FudCB0byBzY2FuIGZvciB0aGVtPyAoWUVTL25vKTog
-WUVTPGJyPkFNRCBLOCB0aGVybWFsIHNlbnNvcnMuLi4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsgTm88YnI+CkFNRCBLMTAgdGhlcm1hbCBzZW5zb3JzLi4uJm5ic3A7Jm5ic3A7Jm5i
-c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
-Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
-c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
-Jm5ic3A7Jm5ic3A7IE5vPGJyPkludGVsIENvcmUgZmFtaWx5IHRoZXJtYWwgc2Vuc29yLi4uJm5i
-c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
-Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
-c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IE5vPGJyPkludGVsIEFNQiBGQi1ESU1NIHRoZXJt
-YWwgc2Vuc29yLi4uJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
-c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
-Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IE5vPGJyPjxicj5Tb3Jy
-eSwgbm8gc2Vuc29ycyB3ZXJlIGRldGVjdGVkLjxicj4KRWl0aGVyIHlvdXIgc2Vuc29ycyBhcmUg
-bm90IHN1cHBvcnRlZCwgb3IgdGhleSBhcmUgY29ubmVjdGVkIHRvIGFuPGJyPkkyQyBvciBTTUJ1
-cyBhZGFwdGVyIHRoYXQgaXMgbm90IHN1cHBvcnRlZC4gU2VlIGRvYy9GQVEsPGJyPmRvYy9sbV9z
-ZW5zb3JzLUZBUS5odG1sIG9yIDxhIGhyZWY9Imh0dHA6Ly93d3cubG0tc2Vuc29ycy5vcmcvd2lr
-aS9GQVEiPmh0dHA6Ly93d3cubG0tc2Vuc29ycy5vcmcvd2lraS9GQVE8L2E+PGJyPgooRkFRICM0
-LjI0LjMpIGZvciBmdXJ0aGVyIGluZm9ybWF0aW9uLjxicj5JZiB5b3UgZmluZCBvdXQgd2hhdCBj
-aGlwcyBhcmUgb24geW91ciBib2FyZCwgY2hlY2s8YnI+PGEgaHJlZj0iaHR0cDovL3d3dy5sbS1z
-ZW5zb3JzLm9yZy93aWtpL0RldmljZXMiPmh0dHA6Ly93d3cubG0tc2Vuc29ycy5vcmcvd2lraS9E
-ZXZpY2VzPC9hPiBmb3IgZHJpdmVyIHN0YXR1cy48YnI+PGJyPjxicj48YnI+Cjxicj5yb290QGVl
-ZXBjLWxhcHRvcDp+IyBsc21vZCB8Z3JlcCBpMmMgPGJyPmkyY19pODEwJm5ic3A7Jm5ic3A7Jm5i
-c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
-Jm5ic3A7Jm5ic3A7Jm5ic3A7IDU2MzYmbmJzcDsgMCA8YnI+aTJjX2FsZ29fYml0Jm5ic3A7Jm5i
-c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
-IDczMDAmbmJzcDsgMSBpMmNfaTgxMDxicj5pMmNfZGV2Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
-Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
-c3A7Jm5ic3A7Jm5ic3A7IDg4MzYmbmJzcDsgMCA8YnI+aTJjX3ZpYXBybyZuYnNwOyZuYnNwOyZu
-YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
-OyZuYnNwOyA5ODc2Jm5ic3A7IDAgPGJyPmkyY19jb3JlJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
-Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
-c3A7IDI0ODMyJm5ic3A7IDUgZWVwcm9tLGkyY19pODEwLGkyY19hbGdvX2JpdCxpMmNfZGV2LGky
-Y192aWFwcm88YnI+Cjxicj48YnI+cm9vdEBlZWVwYy1sYXB0b3A6fiMgbHNtb2QgfGdyZXAgZWVw
-cm9tPGJyPmVlcHJvbSZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
-YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
-OyA4MjA4Jm5ic3A7IDAgPGJyPmkyY19jb3JlJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
-Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IDI0
-ODMyJm5ic3A7IDUgZWVwcm9tLGkyY19pODEwLGkyY19hbGdvX2JpdCxpMmNfZGV2LGkyY192aWFw
-cm88YnI+PGJyPjxicj5yb290QGVlZXBjLWxhcHRvcDp+IyBzZW5zb3JzPGJyPk5vIHNlbnNvcnMg
-Zm91bmQhPGJyPgpNYWtlIHN1cmUgeW91IGxvYWRlZCBhbGwgdGhlIGtlcm5lbCBkcml2ZXJzIHlv
-dSBuZWVkLjxicj5Ucnkgc2Vuc29ycy1kZXRlY3QgdG8gZmluZCBvdXQgd2hpY2ggdGhlc2UgYXJl
-Ljxicj48YnI+PGJyPnJvb3RAZWVlcGMtbGFwdG9wOi9wcm9jL2FjcGkvdGhlcm1hbF96b25lL1Ra
-MDAjIGxzPGJyPmNvb2xpbmdfbW9kZSZuYnNwOyBwb2xsaW5nX2ZyZXF1ZW5jeSZuYnNwOyBzdGF0
-ZSZuYnNwOyB0ZW1wZXJhdHVyZSZuYnNwOyB0cmlwX3BvaW50czxicj4Kcm9vdEBlZWVwYy1sYXB0
-b3A6L3Byb2MvYWNwaS90aGVybWFsX3pvbmUvVFowMCMgY2F0IHRlbXBlcmF0dXJlIDxicj50ZW1w
-ZXJhdHVyZTombmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgNTEgQzxicj48YnI+PGJyPjxicj48YnI+PGJyPjxicj48
-L2Rpdj4K
-------=_Part_109442_2694566.1224469824117--
 
-
---===============1407745203057826036==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1407745203057826036==--
