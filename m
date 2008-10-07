@@ -1,59 +1,51 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 07 Oct 2008 20:12:38 +0000
+Date: Tue, 07 Oct 2008 20:16:32 +0000
 Subject: Re: [lm-sensors] Looking for IT8720 datasheet.
-Message-Id: <20081007221238.69057bed@hyperion.delvare>
+Message-Id: <20081007221632.0e5a8679@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <79c9d4530810020825r79de9817g6933f6cab1d414c1@mail.gmail.com>
 In-Reply-To: <79c9d4530810020825r79de9817g6933f6cab1d414c1@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean-Marc,
+On Fri, 03 Oct 2008 13:14:31 -0400, Frank Myhr wrote:
+> Jean-Marc Spaggiari wrote:
+> > When I force has_fan to 5 fans, I get:
+> > 
+> > fan1:       3000 RPM  (min =    0 RPM)
+> > fan2:          0 RPM  (min =    0 RPM)
+> > fan3:       5973 RPM  (min =    0 RPM)
+> > fan4:         -1 RPM  (min =   -1 RPM)
+> > fan5:         -1 RPM  (min =   -1 RPM)
+> > 
+> > So can I just help him to read to pwm 4 and 5 correctly?
+> 
+> The -1 values you're reporting for fan4 and fan5 come from
+> #define FAN16_FROM_REG(val) ((val)=0?-1:(val)=0xffff?0:1350000/((val)*2))
+> 
+> In other words, the 8720 reports "0", the above macro converts that to
+> -1. (I'm not entirely clear why this is done.)
 
-Just a couple comments on top of what Frank already wrote and with
-which I do agree.
+That's a legacy from the good ol' times. Old drivers tend to report
+missing fans, fan failures or impossible register values with a speed
+of -1. It never made any sense to me and many drivers report this
+condition as RPM = 0, with an optional fanN_fault file getting value 1
+for detected fan failures.
 
-On Fri, 3 Oct 2008 09:23:08 -0400, Jean-Marc Spaggiari wrote:
-> Regarding pwm4 and pwm5, I'm not really sure how to do so, and I seen
-> that some fans info was missing. So I will try to figure how to use it
-> since I have 3 fans and only 2 are displayed.
->=20
-> fan1:       3013 RPM  (min =3D    0 RPM, div =3D 2)
-> fan2:          0 RPM  (min =3D    0 RPM, div =3D 2)
-> fan3:       5973 RPM  (min =3D    0 RPM, div =3D 2)
+We have no clear standard for this yet so in practice every driver is
+free to report -1 or 0 for uncommon fan conditions.
 
-If fan2 is slow, try increasing fan2_div to 4 or even 8. But I'm a bit
-surprised, if the IT8720F is similar to the IT8718F, then it should
-have 16-bit fan tachometers and thus no fan_div registers.
+> > Regarding the resistors. should I publish the values? Or it's useless?
+> 
+> I think it would help at least other users of your board. Perhaps add it
+>  to Documentation/hwmon/it87 ?
 
-> Last point, temperatures are slightly different from it8720 and k8temp.
->=20
-> temp1:       +41.0 =B0C  (low  =3D  -1.0 =B0C, high =3D +127.0 =B0C)  sen=
-sor =3D transistor
-> temp2:       +34.0 =B0C  (low  =3D  -1.0 =B0C, high =3D  -3.0 =B0C)  sens=
-or =3D transistor
-> temp3:       +22.0 =B0C  (low  =3D  -5.0 =B0C, high =3D +127.0 =B0C)  sen=
-sor =3D transistor
->=20
-> k8temp-pci-00c3
-> Adapter: PCI adapter
-> Core0 Temp:  +43.0 =B0C
-> Core1 Temp:  +37.0 =B0C
->=20
-> Has it87 only the motherboard temp?
+Best is to write a configuration file for the motherboard in question
+and publish it on lm-sensors.org/wiki.
 
-I guess so, yes.
-
-> In that case, why there is 3?
-
-Why not? A motherboard is something relatively large, there's nothing
-wrong with having several temperature sensors on it. For example you
-can monitor the CPU socket, the north bridge and the south bridge. Or
-virtually any point of the motherboard.
-
---=20
+-- 
 Jean Delvare
 
 _______________________________________________
