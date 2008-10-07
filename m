@@ -1,40 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 10 Oct 2008 08:25:54 +0000
-Subject: Re: [lm-sensors] [PATCH 05/12] adt7470: Add documentation
-Message-Id: <20081010102554.0548b24e@hyperion.delvare>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Tue, 07 Oct 2008 01:19:09 +0000
+Subject: [lm-sensors] [PATCH 09/12] ibmpex: Automatically load on IBM
+Message-Id: <20081007011909.12701.96969.stgit@elm3a70.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081007011849.12701.53492.stgit@elm3a70.beaverton.ibm.com>
-In-Reply-To: <20081007011849.12701.53492.stgit@elm3a70.beaverton.ibm.com>
+References: <20081007011824.12701.39532.stgit@elm3a70.beaverton.ibm.com>
+In-Reply-To: <20081007011824.12701.39532.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Darrick J. Wong" <djwong@us.ibm.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel <linux-scsi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Hi Darrick,
 
-On Thu, 9 Oct 2008 14:25:23 -0700, Darrick J. Wong wrote:
-> On Thu, Oct 09, 2008 at 12:31:17PM +0200, Jean Delvare wrote:
-> 
-> > Should we implement a kernel thread / tasklet / whatever it is called
-> > these days that would actively read the needed temperature values (and
-> > only these) every 5 seconds as soon as automatic fan speed control is
-> > enabled? The current implementation seems dangerous to me, as
-> > illustrated by the report you quoted above.
-> 
-> That would work, though it'll cause wakeups even if nobody's reading the
-> sensor.  However, since one would generally have to run sensors-detect
-> to know that it's there in the first place, I suppose anyone actually
-> loading the module is doing so with the intent to monitor anyway.
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
 
-My proposal is to have such a kernel thread running only when automatic
-fan speed is enabled. According to the datasheet, this isn't the
-default, so loading the adt7470 driver alone wouldn't start the thread.
-The thread would start running only once at least one fan has been
-switched to automatic mode, and would stop as soon as all fans are
-switched back to manual mode.
+ drivers/hwmon/ibmpex.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
--- 
-Jean Delvare
+diff --git a/drivers/hwmon/ibmpex.c b/drivers/hwmon/ibmpex.c
+index 4e9b19c..6e3a2c4 100644
+--- a/drivers/hwmon/ibmpex.c
++++ b/drivers/hwmon/ibmpex.c
+@@ -608,3 +608,9 @@ MODULE_LICENSE("GPL");
+ 
+ module_init(ibmpex_init);
+ module_exit(ibmpex_exit);
++
++MODULE_ALIAS("dmi:bvnIBM:*:pnIBMSystemx3650*");
++MODULE_ALIAS("dmi:bvnIBM:*:pnIBMSystemx3550*");
++MODULE_ALIAS("dmi:bvnIBM:*:pnIBMSystemx3655*");
++MODULE_ALIAS("dmi:bvnIBM:*:pnIBMSystemx3755*");
++MODULE_ALIAS("dmi:bvnIBM:*:pnIBMSystemx3350*");
+
 
 _______________________________________________
 lm-sensors mailing list
