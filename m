@@ -1,404 +1,148 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Mon, 20 Oct 2008 09:28:38 +0000
-Subject: [lm-sensors] PATCH: f71882fg-sensor_attr2.patch [1/2]
-Message-Id: <48FC4F46.6060808@redhat.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------020609010206070403050503"
+From: "Arturas K." <arturas@cerberis.soften.ktu.lt>
+Date: Tue, 07 Oct 2008 19:34:13 +0000
+Subject: [lm-sensors] a few questions about: k8temp, it8712f and atk0110
+Message-Id: <48EBB9B5.9040502@cerberis.soften.ktu.lt>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020609010206070403050503
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+hi,
 
-From: Mark van Doesburg <mark.vandoesburg@hetnet.nl>
+I got a few questions related to lm-sensors:
 
-Hi Jean (and all),
+1) as far as I understand k8temp inaccuracies are related to my cpu=20
+hardware flaws and there is no way to work around it?
 
-Convert f71882fg driver from SENSOR_ATTR to SENSOR_ATTR2 use, this is a
-preparation patch for adding pwm support, which is broken out to make what
-changes really in the pwm support patch clear.
+athlon x2 5400+ g2 stepping
+http://products.amd.com/en-us/QuickSearch.aspx?q=ADO5400DOBOX
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
-CC: Mark van Doesburg <mark.vandoesburg@hetnet.nl>
+2) cpu fan (pwm) reading overflows at low speeds, and shows insane=20
+values. the sensor chip "it8712f-s 0815-kxs me3c2c l". there are some=20
+posts about newer versions using 16bits or something like this - does=20
+this apply on my one? and is it possible to correct the result via=20
+adjusting sensors3.conf (I prefer not to upgrade/recompile my 2.6.24.x=20
+kernel)?
 
-Regards,
+3) that is the status for atk0110 ? I got asus m3a780-em motherboard,=20
+and hope ATK0110 readings will be prone to sensors3.conf errors, or am I=20
+wrong?
 
-Hans
+p.s. I am not subscribed to the list, so cc to me please
 
+---
+ArturasK.
 
---------------020609010206070403050503
-Content-Type: text/plain;
- name="f71882fg-sensor_attr2.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="f71882fg-sensor_attr2.patch"
-
-From: Mark van Doesburg <mark.vandoesburg@hetnet.nl>
-
-Convert f71882fg driver from SENSOR_ATTR to SENSOR_ATTR2 use, this is a
-preparation patch for adding pwm support, which is broken out to make what
-changes really in the pwm support patch clear.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
-CC: Mark van Doesburg <mark.vandoesburg@hetnet.nl>
---- f71882fg.c.orig	2008-10-19 13:10:10.000000000 +0200
-+++ f71882fg.c	2008-10-19 15:26:32.000000000 +0200
-@@ -188,79 +188,84 @@
- 	__ATTR( name, S_IRUGO, show_name, NULL ),
- };
- 
--static struct sensor_device_attribute f71882fg_in_temp_attr[] =
-+static struct sensor_device_attribute_2 f71882fg_in_temp_attr[] =
- {
--	SENSOR_ATTR(in0_input, S_IRUGO, show_in, NULL, 0),
--	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
--	SENSOR_ATTR(in1_max, S_IRUGO|S_IWUSR, show_in_max, store_in_max, 1),
--	SENSOR_ATTR(in1_beep, S_IRUGO|S_IWUSR, show_in_beep, store_in_beep, 1),
--	SENSOR_ATTR(in1_alarm, S_IRUGO, show_in_alarm, NULL, 1),
--	SENSOR_ATTR(in2_input, S_IRUGO, show_in, NULL, 2),
--	SENSOR_ATTR(in3_input, S_IRUGO, show_in, NULL, 3),
--	SENSOR_ATTR(in4_input, S_IRUGO, show_in, NULL, 4),
--	SENSOR_ATTR(in5_input, S_IRUGO, show_in, NULL, 5),
--	SENSOR_ATTR(in6_input, S_IRUGO, show_in, NULL, 6),
--	SENSOR_ATTR(in7_input, S_IRUGO, show_in, NULL, 7),
--	SENSOR_ATTR(in8_input, S_IRUGO, show_in, NULL, 8),
--	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0),
--	SENSOR_ATTR(temp1_max, S_IRUGO|S_IWUSR, show_temp_max,
--		store_temp_max, 0),
--	SENSOR_ATTR(temp1_max_hyst, S_IRUGO|S_IWUSR, show_temp_max_hyst,
--		store_temp_max_hyst, 0),
--	SENSOR_ATTR(temp1_crit, S_IRUGO|S_IWUSR, show_temp_crit,
--		store_temp_crit, 0),
--	SENSOR_ATTR(temp1_crit_hyst, S_IRUGO, show_temp_crit_hyst, NULL, 0),
--	SENSOR_ATTR(temp1_type, S_IRUGO, show_temp_type, NULL, 0),
--	SENSOR_ATTR(temp1_beep, S_IRUGO|S_IWUSR, show_temp_beep,
--		store_temp_beep, 0),
--	SENSOR_ATTR(temp1_alarm, S_IRUGO, show_temp_alarm, NULL, 0),
--	SENSOR_ATTR(temp1_fault, S_IRUGO, show_temp_fault, NULL, 0),
--	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1),
--	SENSOR_ATTR(temp2_max, S_IRUGO|S_IWUSR, show_temp_max,
--		store_temp_max, 1),
--	SENSOR_ATTR(temp2_max_hyst, S_IRUGO|S_IWUSR, show_temp_max_hyst,
--		store_temp_max_hyst, 1),
--	SENSOR_ATTR(temp2_crit, S_IRUGO|S_IWUSR, show_temp_crit,
--		store_temp_crit, 1),
--	SENSOR_ATTR(temp2_crit_hyst, S_IRUGO, show_temp_crit_hyst, NULL, 1),
--	SENSOR_ATTR(temp2_type, S_IRUGO, show_temp_type, NULL, 1),
--	SENSOR_ATTR(temp2_beep, S_IRUGO|S_IWUSR, show_temp_beep,
--		store_temp_beep, 1),
--	SENSOR_ATTR(temp2_alarm, S_IRUGO, show_temp_alarm, NULL, 1),
--	SENSOR_ATTR(temp2_fault, S_IRUGO, show_temp_fault, NULL, 1),
--	SENSOR_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2),
--	SENSOR_ATTR(temp3_max, S_IRUGO|S_IWUSR, show_temp_max,
--		store_temp_max, 2),
--	SENSOR_ATTR(temp3_max_hyst, S_IRUGO|S_IWUSR, show_temp_max_hyst,
--		store_temp_max_hyst, 2),
--	SENSOR_ATTR(temp3_crit, S_IRUGO|S_IWUSR, show_temp_crit,
--		store_temp_crit, 2),
--	SENSOR_ATTR(temp3_crit_hyst, S_IRUGO, show_temp_crit_hyst, NULL, 2),
--	SENSOR_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2),
--	SENSOR_ATTR(temp3_beep, S_IRUGO|S_IWUSR, show_temp_beep,
--		store_temp_beep, 2),
--	SENSOR_ATTR(temp3_alarm, S_IRUGO, show_temp_alarm, NULL, 2),
--	SENSOR_ATTR(temp3_fault, S_IRUGO, show_temp_fault, NULL, 2)
-+	SENSOR_ATTR_2(in0_input, S_IRUGO, show_in, NULL, 0, 0),
-+	SENSOR_ATTR_2(in1_input, S_IRUGO, show_in, NULL, 0, 1),
-+	SENSOR_ATTR_2(in1_max, S_IRUGO|S_IWUSR, show_in_max, store_in_max,
-+		0, 1),
-+	SENSOR_ATTR_2(in1_beep, S_IRUGO|S_IWUSR, show_in_beep, store_in_beep,
-+		0, 1),
-+	SENSOR_ATTR_2(in1_alarm, S_IRUGO, show_in_alarm, NULL, 0, 1),
-+	SENSOR_ATTR_2(in2_input, S_IRUGO, show_in, NULL, 0, 2),
-+	SENSOR_ATTR_2(in3_input, S_IRUGO, show_in, NULL, 0, 3),
-+	SENSOR_ATTR_2(in4_input, S_IRUGO, show_in, NULL, 0, 4),
-+	SENSOR_ATTR_2(in5_input, S_IRUGO, show_in, NULL, 0, 5),
-+	SENSOR_ATTR_2(in6_input, S_IRUGO, show_in, NULL, 0, 6),
-+	SENSOR_ATTR_2(in7_input, S_IRUGO, show_in, NULL, 0, 7),
-+	SENSOR_ATTR_2(in8_input, S_IRUGO, show_in, NULL, 0, 8),
-+	SENSOR_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0, 0),
-+	SENSOR_ATTR_2(temp1_max, S_IRUGO|S_IWUSR, show_temp_max,
-+		store_temp_max, 0, 0),
-+	SENSOR_ATTR_2(temp1_max_hyst, S_IRUGO|S_IWUSR, show_temp_max_hyst,
-+		store_temp_max_hyst, 0, 0),
-+	SENSOR_ATTR_2(temp1_crit, S_IRUGO|S_IWUSR, show_temp_crit,
-+		store_temp_crit, 0, 0),
-+	SENSOR_ATTR_2(temp1_crit_hyst, S_IRUGO, show_temp_crit_hyst, NULL,
-+		0, 0),
-+	SENSOR_ATTR_2(temp1_type, S_IRUGO, show_temp_type, NULL, 0, 0),
-+	SENSOR_ATTR_2(temp1_beep, S_IRUGO|S_IWUSR, show_temp_beep,
-+		store_temp_beep, 0, 0),
-+	SENSOR_ATTR_2(temp1_alarm, S_IRUGO, show_temp_alarm, NULL, 0, 0),
-+	SENSOR_ATTR_2(temp1_fault, S_IRUGO, show_temp_fault, NULL, 0, 0),
-+	SENSOR_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, 0, 1),
-+	SENSOR_ATTR_2(temp2_max, S_IRUGO|S_IWUSR, show_temp_max,
-+		store_temp_max, 0, 1),
-+	SENSOR_ATTR_2(temp2_max_hyst, S_IRUGO|S_IWUSR, show_temp_max_hyst,
-+		store_temp_max_hyst, 0, 1),
-+	SENSOR_ATTR_2(temp2_crit, S_IRUGO|S_IWUSR, show_temp_crit,
-+		store_temp_crit, 0, 1),
-+	SENSOR_ATTR_2(temp2_crit_hyst, S_IRUGO, show_temp_crit_hyst, NULL,
-+		0, 1),
-+	SENSOR_ATTR_2(temp2_type, S_IRUGO, show_temp_type, NULL, 0, 1),
-+	SENSOR_ATTR_2(temp2_beep, S_IRUGO|S_IWUSR, show_temp_beep,
-+		store_temp_beep, 0, 1),
-+	SENSOR_ATTR_2(temp2_alarm, S_IRUGO, show_temp_alarm, NULL, 0, 1),
-+	SENSOR_ATTR_2(temp2_fault, S_IRUGO, show_temp_fault, NULL, 0, 1),
-+	SENSOR_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 0, 2),
-+	SENSOR_ATTR_2(temp3_max, S_IRUGO|S_IWUSR, show_temp_max,
-+		store_temp_max, 0, 2),
-+	SENSOR_ATTR_2(temp3_max_hyst, S_IRUGO|S_IWUSR, show_temp_max_hyst,
-+		store_temp_max_hyst, 0, 2),
-+	SENSOR_ATTR_2(temp3_crit, S_IRUGO|S_IWUSR, show_temp_crit,
-+		store_temp_crit, 0, 2),
-+	SENSOR_ATTR_2(temp3_crit_hyst, S_IRUGO, show_temp_crit_hyst, NULL,
-+		0, 2),
-+	SENSOR_ATTR_2(temp3_type, S_IRUGO, show_temp_type, NULL, 0, 2),
-+	SENSOR_ATTR_2(temp3_beep, S_IRUGO|S_IWUSR, show_temp_beep,
-+		store_temp_beep, 0, 2),
-+	SENSOR_ATTR_2(temp3_alarm, S_IRUGO, show_temp_alarm, NULL, 0, 2),
-+	SENSOR_ATTR_2(temp3_fault, S_IRUGO, show_temp_fault, NULL, 0, 2)
- };
- 
--static struct sensor_device_attribute f71882fg_fan_attr[] =
-+static struct sensor_device_attribute_2 f71882fg_fan_attr[] =
- {
--	SENSOR_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0),
--	SENSOR_ATTR(fan1_beep, S_IRUGO|S_IWUSR, show_fan_beep,
--		store_fan_beep, 0),
--	SENSOR_ATTR(fan1_alarm, S_IRUGO, show_fan_alarm, NULL, 0),
--	SENSOR_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1),
--	SENSOR_ATTR(fan2_beep, S_IRUGO|S_IWUSR, show_fan_beep,
--		store_fan_beep, 1),
--	SENSOR_ATTR(fan2_alarm, S_IRUGO, show_fan_alarm, NULL, 1),
--	SENSOR_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2),
--	SENSOR_ATTR(fan3_beep, S_IRUGO|S_IWUSR, show_fan_beep,
--		store_fan_beep, 2),
--	SENSOR_ATTR(fan3_alarm, S_IRUGO, show_fan_alarm, NULL, 2),
--	SENSOR_ATTR(fan4_input, S_IRUGO, show_fan, NULL, 3),
--	SENSOR_ATTR(fan4_beep, S_IRUGO|S_IWUSR, show_fan_beep,
--		store_fan_beep, 3),
--	SENSOR_ATTR(fan4_alarm, S_IRUGO, show_fan_alarm, NULL, 3)
-+	SENSOR_ATTR_2(fan1_input, S_IRUGO, show_fan, NULL, 0, 0),
-+	SENSOR_ATTR_2(fan1_beep, S_IRUGO|S_IWUSR, show_fan_beep,
-+		store_fan_beep, 0, 0),
-+	SENSOR_ATTR_2(fan1_alarm, S_IRUGO, show_fan_alarm, NULL, 0, 0),
-+	SENSOR_ATTR_2(fan2_input, S_IRUGO, show_fan, NULL, 0, 1),
-+	SENSOR_ATTR_2(fan2_beep, S_IRUGO|S_IWUSR, show_fan_beep,
-+		store_fan_beep, 0, 1),
-+	SENSOR_ATTR_2(fan2_alarm, S_IRUGO, show_fan_alarm, NULL, 0, 1),
-+	SENSOR_ATTR_2(fan3_input, S_IRUGO, show_fan, NULL, 0, 2),
-+	SENSOR_ATTR_2(fan3_beep, S_IRUGO|S_IWUSR, show_fan_beep,
-+		store_fan_beep, 0, 2),
-+	SENSOR_ATTR_2(fan3_alarm, S_IRUGO, show_fan_alarm, NULL, 0, 2),
-+	SENSOR_ATTR_2(fan4_input, S_IRUGO, show_fan, NULL, 0, 3),
-+	SENSOR_ATTR_2(fan4_beep, S_IRUGO|S_IWUSR, show_fan_beep,
-+		store_fan_beep, 0, 3),
-+	SENSOR_ATTR_2(fan4_alarm, S_IRUGO, show_fan_alarm, NULL, 0, 3)
- };
- 
- 
-@@ -417,7 +422,7 @@
- 	char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 	int speed = fan_from_reg(data->fan[nr]);
- 
- 	if (speed == FAN_MIN_DETECT)
-@@ -430,7 +435,7 @@
- 	*devattr, char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	if (data->fan_beep & (1 << nr))
- 		return sprintf(buf, "1\n");
-@@ -442,7 +447,7 @@
- 	*devattr, const char *buf, size_t count)
- {
- 	struct f71882fg_data *data = dev_get_drvdata(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 	int val = simple_strtoul(buf, NULL, 10);
- 
- 	mutex_lock(&data->update_lock);
-@@ -461,7 +466,7 @@
- 	*devattr, char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	if (data->fan_status & (1 << nr))
- 		return sprintf(buf, "1\n");
-@@ -473,7 +478,7 @@
- 	char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	return sprintf(buf, "%d\n", data->in[nr] * 8);
- }
-@@ -507,7 +512,7 @@
- 	*devattr, char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	if (data->in_beep & (1 << nr))
- 		return sprintf(buf, "1\n");
-@@ -519,7 +524,7 @@
- 	*devattr, const char *buf, size_t count)
- {
- 	struct f71882fg_data *data = dev_get_drvdata(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 	int val = simple_strtoul(buf, NULL, 10);
- 
- 	mutex_lock(&data->update_lock);
-@@ -538,7 +543,7 @@
- 	*devattr, char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	if (data->in_status & (1 << nr))
- 		return sprintf(buf, "1\n");
-@@ -550,7 +555,7 @@
- 	char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	return sprintf(buf, "%d\n", data->temp[nr] * 1000);
- }
-@@ -559,7 +564,7 @@
- 	*devattr, char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	return sprintf(buf, "%d\n", data->temp_high[nr] * 1000);
- }
-@@ -568,7 +573,7 @@
- 	*devattr, const char *buf, size_t count)
- {
- 	struct f71882fg_data *data = dev_get_drvdata(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 	int val = simple_strtoul(buf, NULL, 10) / 1000;
- 
- 	if (val > 255)
-@@ -586,7 +591,7 @@
- 	*devattr, char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	return sprintf(buf, "%d\n",
- 		(data->temp_high[nr] - data->temp_hyst[nr]) * 1000);
-@@ -596,7 +601,7 @@
- 	*devattr, const char *buf, size_t count)
- {
- 	struct f71882fg_data *data = dev_get_drvdata(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 	int val = simple_strtoul(buf, NULL, 10) / 1000;
- 	ssize_t ret = count;
- 
-@@ -636,7 +641,7 @@
- 	*devattr, char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	return sprintf(buf, "%d\n", data->temp_ovt[nr] * 1000);
- }
-@@ -645,7 +650,7 @@
- 	*devattr, const char *buf, size_t count)
- {
- 	struct f71882fg_data *data = dev_get_drvdata(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 	int val = simple_strtoul(buf, NULL, 10) / 1000;
- 
- 	if (val > 255)
-@@ -663,7 +668,7 @@
- 	*devattr, char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	return sprintf(buf, "%d\n",
- 		(data->temp_ovt[nr] - data->temp_hyst[nr]) * 1000);
-@@ -673,7 +678,7 @@
- 	*devattr, char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	return sprintf(buf, "%d\n", data->temp_type[nr]);
- }
-@@ -682,7 +687,7 @@
- 	*devattr, char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	if (data->temp_beep & (1 << (nr + 1)))
- 		return sprintf(buf, "1\n");
-@@ -694,7 +699,7 @@
- 	*devattr, const char *buf, size_t count)
- {
- 	struct f71882fg_data *data = dev_get_drvdata(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 	int val = simple_strtoul(buf, NULL, 10);
- 
- 	mutex_lock(&data->update_lock);
-@@ -713,7 +718,7 @@
- 	*devattr, char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	if (data->temp_status & (1 << (nr + 1)))
- 		return sprintf(buf, "1\n");
-@@ -725,7 +730,7 @@
- 	*devattr, char *buf)
- {
- 	struct f71882fg_data *data = f71882fg_update_device(dev);
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->index;
- 
- 	if (data->temp_diode_open & (1 << (nr + 1)))
- 		return sprintf(buf, "1\n");
-
---------------020609010206070403050503
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> ~# sensors -v && sensors -u && sensors
+> sensors version 3.0.2 with libsensors version 3.0.2
+> k8temp-pci-00c3
+> Adapter: PCI adapter
+> Core0 Temp:
+>   temp1_input: 25.00
+> Core0 Temp:
+>   temp2_input: 8.00
+> Core1 Temp:
+>   temp3_input: 19.00
+> Core1 Temp:
+>   temp4_input: 19.00
+>=20
+> it8712-isa-0290
+> Adapter: ISA adapter
+> VCore 1:
+>   in0_input: 1.14
+>   in0_min: 0.00
+>   in0_max: 4.08
+> VCore 2:
+>   in1_input: 4.08
+>   in1_min: 0.00
+>   in1_max: 4.08
+> +3.3V:
+>   in2_input: 3.22
+>   in2_min: 0.00
+>   in2_max: 4.08
+> +5V:
+>   in3_input: 6.85
+>   in3_min: 5.13
+>   in3_max: 6.85
+> +12V:
+>   in4_input: 12.86
+>   in4_min: 16.26
+>   in4_max: 16.32
+> -12V:
+>   in5_input: -15.46
+>   in5_min: -27.36
+>   in5_max: 3.93
+> -5V:
+>   in6_input: 4.03
+>   in6_min: -13.64
+>   in6_max: 4.03
+> Stdby:
+>   in7_input: 6.85
+>   in7_min: 0.00
+>   in7_max: 6.85
+> VBat:
+>   in8_input: 3.25
+> fan1:
+>   fan1_input: 24107.00
+>   fan1_min: 0.00
+>   fan1_div: 2.00
+> fan2:
+>   fan2_input: 0.00
+>   fan2_min: 0.00
+>   fan2_div: 2.00
+> fan3:
+>   fan3_input: 0.00
+>   fan3_min: 0.00
+>   fan3_div: 2.00
+> M/B Temp:
+>   temp1_input: 28.00
+>   temp1_max: 127.00
+>   temp1_min: 127.00
+>   temp1_type: 2.00
+> CPU Temp:
+>   temp2_input: 34.00
+>   temp2_max: 127.00
+>   temp2_min: -69.00
+>   temp2_type: 2.00
+> Temp3:
+>   temp3_input: 128.00
+>   temp3_max: 127.00
+>   temp3_min: -1.00
+>   temp3_type: 0.00
+> cpu0_vid:
+>   cpu0_vid: 1.55
+>=20
+> k8temp-pci-00c3
+> Adapter: PCI adapter
+> Core0 Temp:  +25.0=C2=B0C                                   =20
+> Core0 Temp:   +8.0=C2=B0C                                   =20
+> Core1 Temp:  +19.0=C2=B0C                                   =20
+> Core1 Temp:  +19.0=C2=B0C                                   =20
+>=20
+> it8712-isa-0290
+> Adapter: ISA adapter
+> VCore 1:     +1.14 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+> VCore 2:     +4.08 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+> +3.3V:       +3.22 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+> +5V:         +6.85 V  (min =3D  +5.13 V, max =3D  +6.85 V)
+> +12V:       +12.86 V  (min =3D +16.26 V, max =3D +16.32 V)
+> -12V:       -15.46 V  (min =3D -27.36 V, max =3D  +3.93 V)
+> -5V:         +4.03 V  (min =3D -13.64 V, max =3D  +4.03 V)
+> Stdby:       +6.85 V  (min =3D  +0.00 V, max =3D  +6.85 V)
+> VBat:        +3.25 V
+> fan1:       24107 RPM  (min =3D    0 RPM, div =3D 2)
+> fan2:          0 RPM  (min =3D    0 RPM, div =3D 2)
+> fan3:          0 RPM  (min =3D    0 RPM, div =3D 2)
+> M/B Temp:    +28.0=C2=B0C  (low  =3D +127.0=C2=B0C, high =3D +127.0=C2=B0=
+C)  sensor =3D transistor
+> CPU Temp:    +34.0=C2=B0C  (low  =3D -69.0=C2=B0C, high =3D +127.0=C2=B0C=
+)  sensor =3D transistor
+> Temp3:      +128.0=C2=B0C  (low  =3D  -1.0=C2=B0C, high =3D +127.0=C2=B0C=
+)  sensor =3D disabled
+> cpu0_vid:   +1.550 V
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------020609010206070403050503--
