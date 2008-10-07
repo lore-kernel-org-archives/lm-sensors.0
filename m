@@ -1,44 +1,35 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 09 Oct 2008 14:02:47 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] abituguru3: enable DMI probing feature
-Message-Id: <20081009160247.049a1987@hyperion.delvare>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Tue, 07 Oct 2008 01:18:54 +0000
+Subject: [lm-sensors] [PATCH 06/12] adt7470: Load automatically on
+Message-Id: <20081007011854.12701.39465.stgit@elm3a70.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1223485560-3806-3-git-send-email-alistair@devzero.co.uk>
-In-Reply-To: <1223485560-3806-3-git-send-email-alistair@devzero.co.uk>
+References: <20081007011824.12701.39532.stgit@elm3a70.beaverton.ibm.com>
+In-Reply-To: <20081007011824.12701.39532.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Darrick J. Wong" <djwong@us.ibm.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel <linux-scsi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-On Thu, 9 Oct 2008 14:59:13 +0100, Alistair John Strachan wrote:
-> On Thursday 09 October 2008 14:43:44 Jean Delvare wrote:
-> > Hi Alistair,
-> >
-> > On Thu, 9 Oct 2008 14:37:58 +0100, Alistair John Strachan wrote:
-> > > Hi Jean,
-> > >
-> > > On Thursday 09 October 2008 14:16:58 Jean Delvare wrote:
-> > > > Queued up for 2.6.27, thanks.
-> > >
-> > > If you're taking hwmon patches, could you update MAINTAINERS in mainline
-> > > to reflect this? Otherwise I would have CC'ed you and not Andrew
-> > > directly.
-> >
-> > There's nothing to update. I am not the hwmon subsystem maintainer. I
-> > happen to pick fixes that have been properly reviewed and which I think
-> > should be pushed upstream, but this is in no way official, and I may
-> > stop doing it at any time depending on my workload and mood.
-> 
-> I see. Do you plan to sign off changes if you take them, or just pass them 
-> along?
 
-I sign off everything that I pass along. You can see the list of the
-patches I picked at:
-  http://khali.linux-fr.org/devel/linux-2.6/jdelvare-hwmon/
-(Updated every few days unless I'm too busy.)
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
 
--- 
-Jean Delvare
+ drivers/hwmon/adt7470.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
+index 656bf3d..ef26014 100644
+--- a/drivers/hwmon/adt7470.c
++++ b/drivers/hwmon/adt7470.c
+@@ -1114,3 +1114,6 @@ MODULE_LICENSE("GPL");
+ 
+ module_init(adt7470_init);
+ module_exit(adt7470_exit);
++
++MODULE_ALIAS("dmi:bvnIBM:*:rn9228:*");
++MODULE_ALIAS("dmi:bvnIBM:*:rn9232:*");
+
 
 _______________________________________________
 lm-sensors mailing list
