@@ -1,43 +1,41 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 01 Oct 2008 08:37:34 +0000
-Subject: Re: [lm-sensors] [PATCH] new hwmon driver adt7462
-Message-Id: <20081001103734.29608fc2@hyperion.delvare>
+From: Alistair John Strachan <alistair@devzero.co.uk>
+Date: Wed, 08 Oct 2008 17:06:00 +0000
+Subject: [lm-sensors] [PATCH 2/2] abituguru3: enable DMI probing feature on
+Message-Id: <1223485560-3806-3-git-send-email-alistair@devzero.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081001065413.GG10750@tree.beaverton.ibm.com>
-In-Reply-To: <20081001065413.GG10750@tree.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Darrick J. Wong" <djwong@us.ibm.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel <linux-kernel@vger.kernel.org>, Eric Olsen <eolsen@google.com>
+To: lm-sensors@vger.kernel.org
 
-Hi Darrick,
+Enable driver checking of the DMI product name (when enabled) on
+an Abit AT8 32X, instead of falling back to a manual probe. This
+eliminates false negatives and eventually will help avoid
+unnecessary bus probes on unsupported mainboards.
 
-On Tue, 30 Sep 2008 23:54:14 -0700, Darrick J. Wong wrote:
-> New driver to feed on.  As Jean mentioned a couple of years ago, this
-> chip is a beast with odd combinations of 8 fans, 4 temperatures, and
-> 13 voltage sensors.  This driver has been tested on an IntelliStation
-> Z30.
-> 
-> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-> ---
-> 
->  Documentation/hwmon/adt7462 |   67 +
->  drivers/hwmon/Kconfig       |   10 
->  drivers/hwmon/Makefile      |    1 
->  drivers/hwmon/adt7462.c     | 1991 +++++++++++++++++++++++++++++++++++++++++++
->  4 files changed, 2069 insertions(+), 0 deletions(-)
+Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
+Tested-by: Daniel Exner <dex@dragonslave.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: lm-sensors@lm-sensors.org
 
-Two years ago, Eric Olsen (Cc'd) asked for support for this device and
-even said he would write the driver himself. We didn't hear from him
-since then. Now that we have a driver, maybe Eric can help testing it
-and maybe even reviewing it?
+---
 
-I clearly do not have the time for this myself (not on my free time, at
-least.)
+ drivers/hwmon/abituguru3.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
--- 
-Jean Delvare
+diff --git a/drivers/hwmon/abituguru3.c b/drivers/hwmon/abituguru3.c
+index d568c65..8d43f3b 100644
+--- a/drivers/hwmon/abituguru3.c
++++ b/drivers/hwmon/abituguru3.c
+@@ -279,7 +279,7 @@ static const struct abituguru3_motherboard_info abituguru3_motherboards[] = {
+ 		{ "OTES1 Fan",		36, 2, 60, 1, 0 },
+ 		{ NULL, 0, 0, 0, 0, 0 } }
+ 	},
+-	{ 0x0011, NULL /* Abit AT8 32X, need DMI string */, {
++	{ 0x0011, "AT8 32X(ATI RD580-ULI M1575)", {
+ 		{ "CPU Core",		 0, 0, 10, 1, 0 },
+ 		{ "DDR",		 1, 0, 20, 1, 0 },
+ 		{ "DDR VTT",		 2, 0, 10, 1, 0 },
 
 _______________________________________________
 lm-sensors mailing list
