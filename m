@@ -1,90 +1,102 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 24 Oct 2008 08:46:49 +0000
-Subject: Re: [lm-sensors] PATCH: hwmon-new-driver-ti-tmp401.patch
-Message-Id: <20081024104649.09235e5c@hyperion.delvare>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Wed, 08 Oct 2008 19:00:48 +0000
+Subject: [lm-sensors] [PATCH v2] adt7470: Add documentation
+Message-Id: <20081008190047.GH7726@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4853E081.1020109@hhs.nl>
-In-Reply-To: <4853E081.1020109@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Add at least the bare minimum of documentation for this chip.
 
-On Thu, 23 Oct 2008 22:13:17 +0200, Hans de Goede wrote:
-> Jean Delvare wrote:
-> > Hi Hans,
-> > 
-> > On Sat, 14 Jun 2008 17:15:13 +0200, Hans de Goede wrote:
-> >> This is a new hwmon driver for TI's TMP401 temperature sensor IC. This driver
-> >> was written on behalf of an embedded systems vendor under the
-> >> linuxdriverproject.
-> >>
-> >> It has been tested using a TI TMP401 sample attached to a i2c-tiny-usb adapter.
-> >> Which was provided by Till Harbaum, many thanks to him for this!
-> >>
-> >> Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-> > 
-> > Review:
-> > 
-> 
-> Sorry for the slow response and thanks for the review, I now have a local 
-> version ready with all issues fixed except for one:
-> 
-> <snip>
-> 
-> >> +static struct sensor_device_attribute tmp401_attr[] = {
-> >> +	SENSOR_ATTR(temp1_input, 0444, show_temp_value, NULL, 0),
-> >> +	SENSOR_ATTR(temp1_min, 0644, show_temp_min, store_temp_min, 0),
-> >> +	SENSOR_ATTR(temp1_max, 0644, show_temp_max, store_temp_max, 0),
-> >> +	SENSOR_ATTR(temp1_crit, 0644, show_temp_crit, store_temp_crit, 0),
-> >> +	SENSOR_ATTR(temp1_crit_hyst, 0644, show_temp_crit_hyst,
-> >> +			store_temp_crit_hyst, 0),
-> >> +	SENSOR_ATTR(temp1_min_alarm, 0444, show_status, NULL,
-> >> +			TMP401_STATUS_LOCAL_LOW_MASK),
-> >> +	SENSOR_ATTR(temp1_max_alarm, 0444, show_status, NULL,
-> >> +			TMP401_STATUS_LOCAL_HIGH_MASK),
-> >> +	SENSOR_ATTR(temp1_crit_alarm, 0444, show_status, NULL,
-> >> +			TMP401_STATUS_LOCAL_CRIT_MASK),
-> >> +	SENSOR_ATTR(temp2_input, 0444, show_temp_value, NULL, 1),
-> >> +	SENSOR_ATTR(temp2_min, 0644, show_temp_min, store_temp_min, 1),
-> >> +	SENSOR_ATTR(temp2_max, 0644, show_temp_max, store_temp_max, 1),
-> >> +	SENSOR_ATTR(temp2_crit, 0644, show_temp_crit, store_temp_crit, 1),
-> >> +	SENSOR_ATTR(temp2_crit_hyst, 0444, show_temp_crit_hyst, NULL, 1),
-> >> +	SENSOR_ATTR(temp2_fault, 0444, show_status, NULL,
-> >> +			TMP401_STATUS_REMOTE_OPEN_MASK),
-> >> +	SENSOR_ATTR(temp2_min_alarm, 0444, show_status, NULL,
-> >> +			TMP401_STATUS_REMOTE_LOW_MASK),
-> >> +	SENSOR_ATTR(temp2_max_alarm, 0444, show_status, NULL,
-> >> +			TMP401_STATUS_REMOTE_HIGH_MASK),
-> >> +	SENSOR_ATTR(temp2_crit_alarm, 0444, show_status, NULL,
-> >> +			TMP401_STATUS_REMOTE_CRIT_MASK),
-> >> +};
-> > 
-> > At page 11, in section "STATUS REGISTER", the datasheet suggests that
-> > the hysteresis value also applies to the local and remote high limits.
-> > Did you test that? If this is true then you should add files
-> > temp1_max_hyst and temp2_max_hyst (read-only.)
-> > 
-> 
-> This only is true if the AL/TH bit in the config register is 1. I choose to 
-> ignore this non default mode for now. I think it indeed makes sense to 
-> conditionally add temp1_max_hyst and temp2_max_hyst (read-only) when this is 
-> the case, but I'm not sure if its worth the additional code, what do you think?
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
 
-I have no objection to omitting this for now. Said files can be added
-later if someone needs them.
+ Documentation/hwmon/adt7470 |   76 +++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 76 insertions(+), 0 deletions(-)
 
-> > As a side note, it seems to me that your driver also supports the TI
-> > TMP411 chip. Both chips seem to be essentially compatible.
-> 
-> They are I've ordered a few samples and adding support for this chip is on my 
-> to do list.
-
-Thanks,
--- 
-Jean Delvare
+diff --git a/Documentation/hwmon/adt7470 b/Documentation/hwmon/adt7470
+new file mode 100644
+index 0000000..109650a
+--- /dev/null
++++ b/Documentation/hwmon/adt7470
+@@ -0,0 +1,76 @@
++Kernel driver adt7470
++==========+
++Supported chips:
++  * Analog Devices ADT7470
++    Prefix: 'adt7470'
++    Addresses scanned: I2C 0x2C, 0x2E, 0x2F
++    Datasheet: Publicly available at the Analog Devices website
++
++Author: Darrick J. Wong
++
++Description
++-----------
++
++This driver implements support for the Analog Devices ADT7470 chip.  There may
++be other chips that implement this interface.
++
++The ADT7470 uses the 2-wire interface compatible with the SMBus 2.0
++specification. Using an analog to digital converter it measures ten (10)
++external temperatures. It has four (4) 16-bit counters for measuring fan speed.
++There are four (4) PWM outputs that can be used to control fan speed.
++
++A sophisticated control system for the PWM outputs is designed into the ADT7470
++that allows fan speed to be adjusted automatically based on any of the ten
++temperature sensors. Each PWM output is individually adjustable and
++programmable. Once configured, the ADT7470 will adjust the PWM outputs in
++response to the measured temperatures with further host intervention.  This
++feature can also be disabled for manual control of the PWM's.
++
++Each of the measured inputs (temperature, fan speed) has corresponding high/low
++limit values. The ADT7470 will signal an ALARM if any measured value exceeds
++either limit.
++
++The ADT7470 DOES NOT sample all inputs continuously.  A single pin on the
++ADT7470 is connected to a multitude of thermal diodes, but the chip must be
++instructed explicitly to read the multitude of diodes.  If you want to use
++automatic fan control mode, you must manually read any of the temperature
++sensors or the fan control algorithm will not run.  The chip WILL NOT DO THIS
++AUTOMATICALLY; this must be done from userspace.  This may be a bug in the chip
++design, given that many other AD chips take care of this.  The driver will not
++read the registers more often than once every 5 seconds.  Further,
++configuration data is only read once per minute.
++
++Special Features
++----------------
++
++The ADT7470 has a 8-bit ADC and is capable of measuring temperatures with 1
++degC resolution.
++
++The Analog Devices datasheet is very detailed and describes a procedure for
++determining an optimal configuration for the automatic PWM control.
++
++Configuration Notes
++-------------------
++
++Besides standard interfaces driver adds the following:
++
++* PWM Control
++
++* pwm#_auto_point1_pwm and pwm#_auto_point1_temp and
++* pwm#_auto_point2_pwm and pwm#_auto_point2_temp -
++
++point1: Set the pwm speed at a lower temperature bound.
++point2: Set the pwm speed at a higher temperature bound.
++
++The ADT7470 will scale the pwm between the lower and higher pwm speed when
++the temperature is between the two temperature boundaries.  PWM values range
++from 0 (off) to 255 (full speed).  Fan speed will be set to maximum when the
++temperature sensor associated with the PWM control exceeds
++pwm#_auto_point2_temp.
++
++Notes
++-----
++
++As stated above, the temperature inputs must be read periodically from
++userspace in order for the automatic pwm algorithm to run.
 
 _______________________________________________
 lm-sensors mailing list
