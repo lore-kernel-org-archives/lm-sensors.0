@@ -1,143 +1,77 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 08 Oct 2008 09:46:47 +0000
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Wed, 08 Oct 2008 18:50:08 +0000
 Subject: Re: [lm-sensors] [PATCH 05/12] adt7470: Add documentation
-Message-Id: <20081008114647.5508b4ba@hyperion.delvare>
+Message-Id: <20081008185008.GG7726@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081007011824.12701.39532.stgit@elm3a70.beaverton.ibm.com>
-	<20081007011849.12701.53492.stgit@elm3a70.beaverton.ibm.com>
+References: <20081007011849.12701.53492.stgit@elm3a70.beaverton.ibm.com>
 In-Reply-To: <20081007011849.12701.53492.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Darrick J. Wong" <djwong@us.ibm.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-scsi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Hi Darrick,
+On Wed, Oct 08, 2008 at 11:46:47AM +0200, Jean Delvare wrote:
 
-On Mon, 06 Oct 2008 18:18:49 -0700, Darrick J. Wong wrote:
+> > +This driver implements support for the Analog Devices ADT7470 chip family.
 > 
-> Add at least the bare minimum of documentation for this chip.
+> Family? The driver only supports one chip.
+
+I've not exhaustively researched their other chips, so I don't know if
+there are successor chips that adhere to the 7470's interface.  Given
+that they have a history of doing that, I'm assuming that at some point
+it will be a family.
+
+<snip; will pick up the fixes>
+
+> > +sensors or the fan control algorithm will not run.  The chip WILL NOT DO THIS
+> > +AUTOMATICALLY; this must be done from userspace.  This may be a bug in the chip
+> > +design, given that many other AD chips take care of this.  The driver will not
 > 
-> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-> ---
+> This is very weird. This pretty much voids the point of an automatic
+> fan control mode. If you have to read registers continuously for it to
+> work, you can as well control it completely in software.
+
+Yes.  Given the _long_ time it takes to read the external sensors and
+the chip being locked during those reads, I could see why they don't
+want to do automatic sensor reads.  However, I only discovered this
+weird quirk by accident.  Most likely you'd attach this thing to a BMC
+that would know to poke the chip to read its sensors periodically. 
+
+It does explain why the hw designers of the Z30 were complaining that
+the CPU fans wouldn't speed up even if they blew a hair dryer at the
+thermal sensor.  Apparently they got one of these things to overheat and
+explode the VRMs.
+
+All said, the algorithm that picks the pwm output based on the
+temperature input seems to work provided that somebody makes the chip
+read its temperature inputs.
+
+<snip; will pick up the fixes>
+
+> > +The ADT7470 have a 8-bit ADC and can therefore measure temperatures
+> > +with 1 degC resolution.
 > 
->  Documentation/hwmon/adt7470 |   74 +++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 74 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/hwmon/adt7470 b/Documentation/hwmon/adt7470
-> new file mode 100644
-> index 0000000..10f398b
-> --- /dev/null
-> +++ b/Documentation/hwmon/adt7470
-> @@ -0,0 +1,74 @@
-> +Kernel driver adt7470
-> +===========
-> +
-> +Supported chips:
-> +  * Analog Devices ADT7470
-> +    Prefix: 'adt7470'
-> +    Addresses scanned: I2C 0x2C, 0x2E, 0x2F
-> +    Datasheet: Publicly available at the Analog Devices website
-> +
-> +Author: Darrick J. Wong
-> +
-> +Description
-> +-----------
-> +
-> +This driver implements support for the Analog Devices ADT7470 chip family.
+> This "therefore" is incorrect. You can't deduce the physical resolution
+> from the ADC resolution, you need to additionally know the LSB weight
+> for that.
 
-Family? The driver only supports one chip.
+"might be capable of measuring" ?
 
-> +
-> +The ADT7470 uses the 2-wire interface compatible with the SMBUS 2.0
+> Please send an updated patch.
 
-SMBus
+Will do.
 
-> +specification. Using an analog to digital converter it measures ten (10)
-> +temperatures. It has four (4) 16-bit counters for measuring fan speed. There
+> Out of curiosity: isn't it possible to detect how many thermal sensors
+> are actually connected, and only create sysfs files for these? Creating
+> files for sensors which do not exist is rather confusing.
 
-up to ten external temperatures
+I'm not sure.  Sensors that aren't present return a temperature of 0,
+and I have no way of distinguishing a sensor reporting 0 vs. no sensor
+at all.  For the Z30 I know that only temp1 and temp3 are actually
+hooked up, so I suppose we could special case it and any other machines
+we come across.
 
-> +are four (4) PWM outputs that can be used to control fan speed.
-> +
-> +A sophisticated control system for the PWM outputs is designed into the ADT7470
-> +that allows fan speed to be adjusted automatically based on any of the three
-> +temperature sensors. Each PWM output is individually adjustable and
-
-ten temperature sensors
-
-> +programmable. Once configured, the ADT7470 will adjust the PWM outputs in
-> +response to the measured temperatures without further host intervention.  This
-> +feature can also be disabled for manual control of the PWM's.
-> +
-> +Each of the measured inputs (temperature, fan speed) has corresponding high/low
-> +limit values. The ADT7470 will signal an ALARM if any measured value exceeds
-> +either limit.
-> +
-> +The ADT7470 DOES NOT sample all inputs continuously.  A single pin on the
-> +ADT7470 is connected to a multitude of thermal diodes, but the chip must be
-> +instructed explicitly to read the multitude of diodes.  If you want to use
-> +automatic fan control mode, you must manually read any of the temperature
-> +sensors or the fan control algorithm will not run.  The chip WILL NOT DO THIS
-> +AUTOMATICALLY; this must be done from userspace.  This may be a bug in the chip
-> +design, given that many other AD chips take care of this.  The driver will not
-
-This is very weird. This pretty much voids the point of an automatic
-fan control mode. If you have to read registers continuously for it to
-work, you can as well control it completely in software.
-
-> +read the registers more often than once every other second.  Further,
-
-Actually every 5 seconds according to the driver code.
-
-> +configuration data is only read once per minute.
-> +
-> +Special Features
-> +----------------
-> +
-> +The ADT7470 have a 8-bit ADC and can therefore measure temperatures
-> +with 1 degC resolution.
-
-This "therefore" is incorrect. You can't deduce the physical resolution
-from the ADC resolution, you need to additionally know the LSB weight
-for that.
-
-> +
-> +The Analog Devices datasheet is very detailed and describes a procedure for
-> +determining an optimal configuration for the automatic PWM control.
-> +
-> +Configuration Notes
-> +-------------------
-> +
-> +Besides standard interfaces driver adds the following:
-> +
-> +* PWM Control
-> +
-> +* pwm#_auto_point1_pwm and temp#_auto_point1_temp and
-> +* pwm#_auto_point2_pwm and temp#_auto_point2_temp -
-> +
-> +point1: Set the pwm speed at a lower temperature bound.
-> +point2: Set the pwm speed at a higher temperature bound.
-> +
-> +The ADT7470 will scale the pwm between the lower and higher pwm speed when
-> +the temperature is between the two temperature boundaries.  PWM values range
-> +from 0 (off) to 255 (full speed).  Fan speed will be set to maximum when the
-> +temperature sensor associated with the PWM control exceeds temp#_max.
-> +
-> +Notes
-> +-----
-> +
-> +As stated above, the temperature inputs must be read periodically from
-> +userspace in order for the automatic pwm algorithm to run.
-
-Please send an updated patch.
-
-Out of curiosity: isn't it possible to detect how many thermal sensors
-are actually connected, and only create sysfs files for these? Creating
-files for sensors which do not exist is rather confusing.
-
--- 
-Jean Delvare
+--D
 
 _______________________________________________
 lm-sensors mailing list
