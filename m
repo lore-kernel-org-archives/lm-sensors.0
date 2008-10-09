@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 09 Oct 2008 13:16:58 +0000
+From: Alistair John Strachan <alistair@devzero.co.uk>
+Date: Thu, 09 Oct 2008 13:37:58 +0000
 Subject: Re: [lm-sensors] [PATCH 2/2] abituguru3: enable DMI probing feature
-Message-Id: <20081009151658.0586c450@hyperion.delvare>
+Message-Id: <200810091437.58184.alistair@devzero.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1223485560-3806-3-git-send-email-alistair@devzero.co.uk>
 In-Reply-To: <1223485560-3806-3-git-send-email-alistair@devzero.co.uk>
@@ -10,26 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 09 Oct 2008 09:47:10 +0200, Hans de Goede wrote:
-> 
-> 
-> Alistair John Strachan wrote:
-> > Enable driver checking of the DMI product name (when enabled) on
-> > an Abit AT8 32X, instead of falling back to a manual probe. This
-> > eliminates false negatives and eventually will help avoid
-> > unnecessary bus probes on unsupported mainboards.
-> > 
-> > Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
-> > Tested-by: Daniel Exner <dex@dragonslave.de>
-> 
-> Looks good,
-> 
-> Acked-by: Hans de Goede <hdegoede@redhat.com>
+Hi Jean,
 
-Queued up for 2.6.27, thanks.
+On Thursday 09 October 2008 14:16:58 Jean Delvare wrote:
+> Queued up for 2.6.27, thanks.
+
+If you're taking hwmon patches, could you update MAINTAINERS in mainline to 
+reflect this? Otherwise I would have CC'ed you and not Andrew directly.
 
 -- 
-Jean Delvare
+Cheers,
+Alistair.
 
 _______________________________________________
 lm-sensors mailing list
