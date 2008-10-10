@@ -1,7 +1,7 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Thu, 09 Oct 2008 21:25:23 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 10 Oct 2008 08:25:54 +0000
 Subject: Re: [lm-sensors] [PATCH 05/12] adt7470: Add documentation
-Message-Id: <20081009212522.GJ7726@tree.beaverton.ibm.com>
+Message-Id: <20081010102554.0548b24e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20081007011849.12701.53492.stgit@elm3a70.beaverton.ibm.com>
 In-Reply-To: <20081007011849.12701.53492.stgit@elm3a70.beaverton.ibm.com>
@@ -10,37 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Oct 09, 2008 at 12:31:17PM +0200, Jean Delvare wrote:
+Hi Darrick,
 
-> Should we implement a kernel thread / tasklet / whatever it is called
-> these days that would actively read the needed temperature values (and
-> only these) every 5 seconds as soon as automatic fan speed control is
-> enabled? The current implementation seems dangerous to me, as
-> illustrated by the report you quoted above.
-
-That would work, though it'll cause wakeups even if nobody's reading the
-sensor.  However, since one would generally have to run sensors-detect
-to know that it's there in the first place, I suppose anyone actually
-loading the module is doing so with the intent to monitor anyway.
+On Thu, 9 Oct 2008 14:25:23 -0700, Darrick J. Wong wrote:
+> On Thu, Oct 09, 2008 at 12:31:17PM +0200, Jean Delvare wrote:
 > 
-> Maybe this driver should be integrated with the generic thermal zone
-> framework that was added to the kernel a few months ago? I this this
-> framework already handles polling of the chips (to be confirmed.)
+> > Should we implement a kernel thread / tasklet / whatever it is called
+> > these days that would actively read the needed temperature values (and
+> > only these) every 5 seconds as soon as automatic fan speed control is
+> > enabled? The current implementation seems dangerous to me, as
+> > illustrated by the report you quoted above.
+> 
+> That would work, though it'll cause wakeups even if nobody's reading the
+> sensor.  However, since one would generally have to run sensors-detect
+> to know that it's there in the first place, I suppose anyone actually
+> loading the module is doing so with the intent to monitor anyway.
 
-Hmm, I'll look into this when I get some more free time.  (ha ha...)
+My proposal is to have such a kernel thread running only when automatic
+fan speed is enabled. According to the datasheet, this isn't the
+default, so loading the adt7470 driver alone wouldn't start the thread.
+The thread would start running only once at least one fan has been
+switched to automatic mode, and would stop as soon as all fans are
+switched back to manual mode.
 
-> 0 doesn't seem like a terribly realistic temperature. So, maybe we can
-> have a heuristic that disables all sensors that report 0 when the
-> driver is loaded? To be totally safe, we can then provide a way for the
-> user to forcibly enable temperature sensors (either a module parameter
-> or a sysfs file.)
-
-That sounds reasonable.
-
-> I know we usually don't do that, but OTOH this is the first hardware
-> monitoring chip which daisy-chains external thermal sensors like that.
-
---D
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
