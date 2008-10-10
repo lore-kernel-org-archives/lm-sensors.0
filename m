@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 09 Oct 2008 11:43:53 +0000
-Subject: Re: [lm-sensors] [PATCH 08/12] i5k_amb: Load automatically on all
-Message-Id: <20081009134353.310aa64f@hyperion.delvare>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Fri, 10 Oct 2008 17:54:15 +0000
+Subject: Re: [lm-sensors] [PATCH 08/12] i5k_amb: Load automatically on
+Message-Id: <20081010175414.GK7726@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20081007011904.12701.37660.stgit@elm3a70.beaverton.ibm.com>
 In-Reply-To: <20081007011904.12701.37660.stgit@elm3a70.beaverton.ibm.com>
@@ -10,36 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Darrick,
+On Thu, Oct 09, 2008 at 01:43:53PM +0200, Jean Delvare wrote:
 
-On Wed, 8 Oct 2008 11:19:42 -0700, Darrick J. Wong wrote:
-> On Wed, Oct 08, 2008 at 01:13:02PM +0200, Jean Delvare wrote:
-> 
-> > > +MODULE_ALIAS("pci:v00008086d000025F0sv*sd*bc*sc*i*");
-> > > +MODULE_ALIAS("pci:v00008086d00004030sv*sd*bc*sc*i*");
-> > 
-> > This looks wrong to me. If these PCI devices provide the feature this
-> > driver supports, then why is this a platform driver and not a PCI
-> > driver? You would get the right module aliases for free.
-> 
-> The AMB registers live at an arbitrary location in memory.  That
-> location is given in those PCI devices' config data, but the memory
-> address is not part of the device's memory.  The driver only attaches to
-> the PCI device long enough to read the location, and then it doesn't
-> need PCI or the device anymore.
+> sure why the AMB device would be any different. How comes that the PCI
+> devices know the AMB memory address if they aren't related? If the PCI
+> devices do not own this memory mapping, who does?
 
-Well, this is the case of several SMBus controller and hardware
-monitoring device drivers: i2c-viapro, i2c-sis5595, via686a, vt8231,
-sis5595... These drivers are PCI drivers, they read PCI registers to
-find out the base I/O address of the function they support, and then
-fail their probe. There are many other PCI SMBus controller drivers
-which succeed their probe but technically don't really need to. I'm not
-sure why the AMB device would be any different. How comes that the PCI
-devices know the AMB memory address if they aren't related? If the PCI
-devices do not own this memory mapping, who does?
+On _most_ of my systems it's listed in the ACPI DSDT as one of the
+"system board resources" (SBD1).  Unfortunately, this SBD1 object lists
+a bunch of memory regions and I/O ports, without any indication of what
+each of those regions is for, other than "not for general OS use".  It's
+a little confusing here--the PCI config register has ultimate control
+over where the region lives, but ACPI claims it as part of its own
+system board "do not use" map.
 
--- 
-Jean Delvare
+I suppose it wouldn't be hard to do this with a pci_device_id and
+MODULE_DEVICE_TABLE instead of a direct MODULE_ALIAS.  But since I only
+need the PCI device for a brief moment I'm trying to avoid bloating the
+driver with all the pci_driver support code.
+
+--D
 
 _______________________________________________
 lm-sensors mailing list
