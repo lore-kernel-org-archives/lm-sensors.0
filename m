@@ -1,112 +1,65 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 09 Oct 2008 10:07:40 +0000
-Subject: Re: [lm-sensors] [PATCH v2] adt7470: Add documentation
-Message-Id: <20081009120740.165f43b7@hyperion.delvare>
+From: "Tony McConnell" <amnw14545@googlemail.com>
+Date: Sun, 12 Oct 2008 20:47:08 +0000
+Subject: [lm-sensors] Fintek F71862FG
+Message-Id: <2e01cfe50810121347xeac7909kd144dd0f7f13769d@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8196207125608695035=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081008190047.GH7726@tree.beaverton.ibm.com>
-In-Reply-To: <20081008190047.GH7726@tree.beaverton.ibm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 8 Oct 2008 12:00:48 -0700, Darrick J. Wong wrote:
-> Add at least the bare minimum of documentation for this chip.
-> 
-> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-> ---
-> 
->  Documentation/hwmon/adt7470 |   76 +++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 76 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/hwmon/adt7470 b/Documentation/hwmon/adt7470
-> new file mode 100644
-> index 0000000..109650a
-> --- /dev/null
-> +++ b/Documentation/hwmon/adt7470
-> @@ -0,0 +1,76 @@
-> +Kernel driver adt7470
-> +==========> +
-> +Supported chips:
-> +  * Analog Devices ADT7470
-> +    Prefix: 'adt7470'
-> +    Addresses scanned: I2C 0x2C, 0x2E, 0x2F
-> +    Datasheet: Publicly available at the Analog Devices website
-> +
-> +Author: Darrick J. Wong
-> +
-> +Description
-> +-----------
-> +
-> +This driver implements support for the Analog Devices ADT7470 chip.  There may
-> +be other chips that implement this interface.
-> +
-> +The ADT7470 uses the 2-wire interface compatible with the SMBus 2.0
-> +specification. Using an analog to digital converter it measures ten (10)
-> +external temperatures. It has four (4) 16-bit counters for measuring fan speed.
-> +There are four (4) PWM outputs that can be used to control fan speed.
-> +
-> +A sophisticated control system for the PWM outputs is designed into the ADT7470
-> +that allows fan speed to be adjusted automatically based on any of the ten
-> +temperature sensors. Each PWM output is individually adjustable and
-> +programmable. Once configured, the ADT7470 will adjust the PWM outputs in
-> +response to the measured temperatures with further host intervention.  This
-> +feature can also be disabled for manual control of the PWM's.
-> +
-> +Each of the measured inputs (temperature, fan speed) has corresponding high/low
-> +limit values. The ADT7470 will signal an ALARM if any measured value exceeds
-> +either limit.
-> +
-> +The ADT7470 DOES NOT sample all inputs continuously.  A single pin on the
-> +ADT7470 is connected to a multitude of thermal diodes, but the chip must be
-> +instructed explicitly to read the multitude of diodes.  If you want to use
-> +automatic fan control mode, you must manually read any of the temperature
-> +sensors or the fan control algorithm will not run.  The chip WILL NOT DO THIS
-> +AUTOMATICALLY; this must be done from userspace.  This may be a bug in the chip
-> +design, given that many other AD chips take care of this.  The driver will not
-> +read the registers more often than once every 5 seconds.  Further,
-> +configuration data is only read once per minute.
-> +
-> +Special Features
-> +----------------
-> +
-> +The ADT7470 has a 8-bit ADC and is capable of measuring temperatures with 1
-> +degC resolution.
-> +
-> +The Analog Devices datasheet is very detailed and describes a procedure for
-> +determining an optimal configuration for the automatic PWM control.
-> +
-> +Configuration Notes
-> +-------------------
-> +
-> +Besides standard interfaces driver adds the following:
-> +
-> +* PWM Control
-> +
-> +* pwm#_auto_point1_pwm and pwm#_auto_point1_temp and
-> +* pwm#_auto_point2_pwm and pwm#_auto_point2_temp -
-> +
-> +point1: Set the pwm speed at a lower temperature bound.
-> +point2: Set the pwm speed at a higher temperature bound.
-> +
-> +The ADT7470 will scale the pwm between the lower and higher pwm speed when
-> +the temperature is between the two temperature boundaries.  PWM values range
-> +from 0 (off) to 255 (full speed).  Fan speed will be set to maximum when the
-> +temperature sensor associated with the PWM control exceeds
-> +pwm#_auto_point2_temp.
-> +
-> +Notes
-> +-----
-> +
-> +As stated above, the temperature inputs must be read periodically from
-> +userspace in order for the automatic pwm algorithm to run.
+--===============8196207125608695035==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_32375_23108634.1223844428215"
 
-Applied, thanks.
+------=_Part_32375_23108634.1223844428215
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
--- 
-Jean Delvare
+I've got a Jetway NC81-LF board with an AM2 4850e processor. The k8temp
+hwmon driver reports rubbish for the core temperatures... don't worry, I'm
+not going to ask why.
+
+The board also has a Fintek F71862FG Super IO sensor on board which is
+listed as recognised but not supported by the lm-sensors website.
+
+Messed around a bit (a tiny bit) with the f71882fg driver, adding the chip
+ID (0x0601), and it appears to work so far as reporting fan speeds and
+cpu/case temperatures.
+
+Values for temp1, temp3, and fan1, fan2, look reasonable (i.e. match the
+figures reported by the BIOS HW monitoring)
+
+temp2 reads 72 degC which hopefully isn't correct. But at least it's a
+constant 72.
+
+Not sure about any other functionality though; but it looks like basic
+support for the chip can be enabled simply by adding the Chip ID to the
+existing f71882fg driver.
+
+Apologies if this isn't useful to anyone else but me...
+
+------=_Part_32375_23108634.1223844428215
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr">I&#39;ve got a Jetway NC81-LF board with an AM2 4850e processor. The k8temp hwmon driver reports rubbish for the core temperatures... don&#39;t worry, I&#39;m not going to ask why.<br><br>The board also has a Fintek F71862FG Super IO sensor on board which is listed as recognised but not supported by the lm-sensors website.<br>
+<br>Messed around a bit (a tiny bit) with the f71882fg driver, adding the chip ID (0x0601), and it appears to work so far as reporting fan speeds and cpu/case temperatures.<br><br>Values for temp1, temp3, and fan1, fan2, look reasonable (i.e. match the figures reported by the BIOS HW monitoring)<br>
+<br>temp2 reads 72 degC which hopefully isn&#39;t correct. But at least it&#39;s a constant 72.<br><br>Not sure about any other functionality though; but it looks like basic support for the chip can be enabled simply by adding the Chip ID to the existing f71882fg driver.<br>
+<br>Apologies if this isn&#39;t useful to anyone else but me...<br><br><br></div>
+
+------=_Part_32375_23108634.1223844428215--
+
+
+--===============8196207125608695035==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8196207125608695035==--
