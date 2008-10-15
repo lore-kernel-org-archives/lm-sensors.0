@@ -1,45 +1,48 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 09 Oct 2008 11:37:37 +0000
-Subject: Re: [lm-sensors] [PATCH 07/12] ics932s401: New driver
-Message-Id: <20081009133737.7d692a3b@hyperion.delvare>
+From: Pavel Machek <pavel@suse.cz>
+Date: Wed, 15 Oct 2008 07:25:11 +0000
+Subject: Re: [lm-sensors] Accelerometer driver for HP laptops
+Message-Id: <20081015072511.GA20607@atrey.karlin.mff.cuni.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081007011859.12701.8929.stgit@elm3a70.beaverton.ibm.com>
-In-Reply-To: <20081007011859.12701.8929.stgit@elm3a70.beaverton.ibm.com>
+References: <48C984F5.5000804@tudelft.nl> <200809120736.06594.trenn@suse.de> <48CAD89F.1050806@tremplin-utc.net>
+In-Reply-To: <48CAD89F.1050806@tremplin-utc.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Eric Piel <eric.piel@tremplin-utc.net>, lm-sensors@lm-sensors.org, kernel list <linux-kernel@vger.kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>, Tejun Heo <tj@kernel.org>, Yan Burman <burman.yan@gmail.com>
 
-On Wed, 8 Oct 2008 11:26:37 -0700, Darrick J. Wong wrote:
-> On Wed, Oct 08, 2008 at 01:09:59PM +0200, Jean Delvare wrote:
-> > > +This chip has 4 clock outputs--a base clock for the CPU (which is likely
-> > > +multiplied to get the real CPU clock), a system clock, a PCI clock, a USB
-> > > +clock, and a reference clock.  The driver reports selected and actual
-> > > +frequency.  If spread spectrum mode is enabled, the driver also reports by what
-> > > +percent the clock signal is being spread, which should be between 0 and -0.5%.
-> > > +All frequencies are reported in KHz.
-> > > +
-> > > +The ICS932S401 monitors all inputs continuously. The driver will not read
-> > > +the registers more often than once every other second.
-> > 
-> > I fail to see how this has anything to do with hardware monitoring.
-> 
-> This driver enables users to monitor the clock generator chips on the
-> motherboard.  Not a traditional hwmon chip in the temp/volt/fan sense, I
-> agree, but it's been useful for me when I want to confirm that clock
-> rates are what they're supposed to be.  It's also helpful to know
-> whether or not spread spectrum is enabled if the CPU clock is a few
-> tenths of a % below what I think it should be.
-> 
-> (Yes you can over/underclock by writing to this chip, but someone else
-> can do that; I don't recommend it.)
+Hi!
 
-I'm not arguing the usefulness of the driver. I'm just saying that it
-doesn't belong to drivers/hwmon and shouldn't call
-hwmon_device_register().
+I took a look at the driver, and it seems to work for me... I'd like
+to get it to the mainline...
+
+> >>Attached is our work-in-progress version of the driver for a fourth take
+> >>on the LKML (it used to be mdps). It works really fine, with lots of
+> >>"goodies" (like automatically convert the axes to fit to a standard,
+> >>automatic power-off of the device when not in used) excepted the
+> >>interrupt support for free-fall detection.
+
+I wonder if mdps was really a better name? Driver is HP-specific
+(because of the ACPI usage), not really chip specific... and lis3lv02d
+looks like an alphabet soup to me...
+
+Ok, it is a bit chip-specific, too...
+
+What are the next plans... lm_sensors is listed as orphan in
+MAINTAINERS, so I guess I'll clean it up a tiny bit then submit to akpm?
+
+>  Documentation/hwmon/lis3lv02d      |   92 ++++
+>  drivers/hwmon/Kconfig              |   23 +
+>  drivers/hwmon/Makefile             |    1 +
+>  drivers/hwmon/lis3lv02d.c          |  865 ++++++++++++++++++++++++++++++++++++
+>  drivers/hwmon/lis3lv02d.h          |  149 ++++++
+>  5 files changed, 1145 insertions(+), 16 deletions(-)
+
+									Pavel
 
 -- 
-Jean Delvare
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 
 _______________________________________________
 lm-sensors mailing list
