@@ -1,46 +1,48 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 26 Oct 2008 16:07:53 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.28
-Message-Id: <20081026170753.6442a7fc@hyperion.delvare>
+From: eugene@abar.tigran-mets.am
+Date: Thu, 16 Oct 2008 15:42:46 +0000
+Subject: [lm-sensors] ipmisensors on 2.6.24.4
+Message-Id: <Pine.LNX.4.64.0810161956320.6632@abar.tigran-mets.am>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-Hi Linus,
+I have the following problems, trying to monitor my Broadcom CSB5 board:
 
-Please pull hwmon subsystem fixes for Linux 2.6.28 from:
+sensors-detect shows that I need ipmisensors driver for my board. I 
+patched kernel with stable drivers and got compile error (btw, patch 
+failed and I applied it by hands.)
 
-git://jdelvare.pck.nerim.net/jdelvare-2.6 hwmon-for-linus
+Then I freshed kernel source and applied last experimental driver:
+ipmisensors-20070630-1330.diff
 
- Documentation/hwmon/lm90   |    2 +-
- drivers/hwmon/abituguru3.c |   30 ++++++++++++------------
- drivers/hwmon/adt7473.c    |   29 +++++++-----------------
- drivers/hwmon/hwmon-vid.c  |    1 +
- drivers/hwmon/lm90.c       |   52 ++++++++++++++++++++++++++++++++++++++------
- drivers/hwmon/w83781d.c    |    4 +-
- 6 files changed, 73 insertions(+), 45 deletions(-)
+Result was the same - manual patch & compilation error:
 
----------------
+   CC [M]  drivers/hwmon/ipmisensors.o
+drivers/hwmon/ipmisensors.c: In function 'ipmisensors_register_bmc':
+drivers/hwmon/ipmisensors.c:1326: warning: assignment from incompatible 
+pointer type
+drivers/hwmon/ipmisensors.c:1341: warning: passing argument 1 of 
+'hwmon_device_unregister' from incompatible pointer type
+drivers/hwmon/ipmisensors.c: In function 'ipmisensors_unregister_bmc':
+drivers/hwmon/ipmisensors.c:1392: warning: passing argument 1 of 
+'hwmon_device_unregister' from incompatible pointer type
+drivers/hwmon/ipmisensors.c: In function 'ipmisensors_unregister_bmc_all':
+drivers/hwmon/ipmisensors.c:1429: warning: passing argument 1 of 
+'hwmon_device_unregister' from incompatible pointer type
+drivers/hwmon/ipmisensors.c: In function 'ipmisensors_init':
+drivers/hwmon/ipmisensors.c:1483: error: too many arguments to function 
+'kmem_cache_create'
+drivers/hwmon/ipmisensors.c:1487: error: too many arguments to function 
+'kmem_cache_create'
+make[2]: *** [drivers/hwmon/ipmisensors.o] Error 1
+make[1]: *** [drivers/hwmon] Error 2
+make[1]: *** Waiting for unfinished jobs....
 
-Alistair John Strachan (2):
-      hwmon: (abituguru3) Cosmetic whitespace fixes
-      hwmon: (abituguru3) enable DMI probing feature on AW9D-MAX
+So I need your advice how to monitor my sensors.
 
-Geert Uytterhoeven (1):
-      hwmon: (w83781d) Fix linking when built-in
-
-Jean Delvare (4):
-      hwmon-vid: Add support for AMD family 10h CPUs
-      hwmon: (lm90) Fix handling of hysteresis value
-      hwmon: (lm90) Add support for the LM99 16 degree offset
-      hwmon: (adt7473) Fix voltage conversion routines
-
-Thanks,
--- 
-Jean Delvare
+Best regards, Eugene.
 
 _______________________________________________
 lm-sensors mailing list
