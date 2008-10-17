@@ -1,28 +1,21 @@
-From: Gino <ginolovesyou@gmail.com>
-Date: Fri, 17 Oct 2008 10:23:37 +0000
-Subject: [lm-sensors] K10 Processor
-Message-Id: <200810170323.37736.ginolovesyou@gmail.com>
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Fri, 17 Oct 2008 10:54:29 +0000
+Subject: Re: [lm-sensors] K10 Processor
+Message-Id: <48F86EE5.3040808@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200810170323.37736.ginolovesyou@gmail.com>
+In-Reply-To: <200810170323.37736.ginolovesyou@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hi please apply these two patches:
 
-I have a Phenom X4 and Would love to donate my computer for testing your K10 
-thermal driver.. if you want to send me modules to build and try and run or 
-anything like that Let me know...
+http://article.gmane.org/gmane.linux.drivers.sensors/17875
+http://article.gmane.org/gmane.linux.drivers.sensors/17876
 
-Its a ASUS M3N-HT Deluxe (IT87...)
-And a Phenom X4 9850
-I'm running Slackware x64 (bluewhite)
-with kernel 2.6.27 and lm-sensors 3.0.3
-
-
-so far so good...
-
-Gino
+Rudolf
 
 _______________________________________________
 lm-sensors mailing list
