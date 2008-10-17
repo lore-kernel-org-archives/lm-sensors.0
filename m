@@ -1,24 +1,119 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 11 Oct 2008 17:45:05 +0000
-Subject: Re: [lm-sensors] ADT7476 support
-Message-Id: <20081011194505.1b8c14da@hyperion.delvare>
+From: naga vamsi krishna talupula <tnvkrishna@hotmail.com>
+Date: Fri, 17 Oct 2008 16:31:09 +0000
+Subject: [lm-sensors] configure lm-sensors on ubuntu 64bit
+Message-Id: <BAY135-W51DB5FEF0C7B978E02C484C7320@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200711071645.05120.billf@thinklogical.com>
-In-Reply-To: <200711071645.05120.billf@thinklogical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Mon, 6 Oct 2008 16:13:35 -0400, mcastelein@rocsoft.com wrote:
-> I would  like to add my name to the list of people requesting support for 
-> the ADT7476.  It's used in our Sun Microsystems Ultra 20M2's.
 
-Done.
+Hii ,
+This is the first time I am using this mailing list .
+Forgive me if I break any convention used.
 
--- 
-Jean Delvare
+My problem is that I am not able to configure lm-sensors on my laptop.
+Specs:
 
+{ Ubuntu 8.04 64bit
+Kernel : 2.6.24-21(generic)
+acer 5920g.
+Please ask if any extra info. is needed . }
+
+I followed the method to configure lm-sensors as given here :: http://ubunt=
+uforums.org/showthread.php?t'80 ::.
+
+The outputs to terminal are:=20
+
+krishna@talupula:~/Downloads$ sudo ./mkdev.sh=20
+[sudo] password for krishna:=20
+/dev/i2c-0
+/dev/i2c-1
+/dev/i2c-2
+/dev/i2c-3
+/dev/i2c-4
+/dev/i2c-5
+/dev/i2c-6
+/dev/i2c-7
+/dev/i2c-8
+/dev/i2c-9
+/dev/i2c-10
+/dev/i2c-11
+/dev/i2c-12
+/dev/i2c-13
+/dev/i2c-14
+/dev/i2c-15
+/dev/i2c-16
+/dev/i2c-17
+/dev/i2c-18
+/dev/i2c-19
+/dev/i2c-20
+/dev/i2c-21
+/dev/i2c-22
+/dev/i2c-23
+/dev/i2c-24
+/dev/i2c-25
+/dev/i2c-26
+/dev/i2c-27
+/dev/i2c-28
+/dev/i2c-29
+/dev/i2c-30
+/dev/i2c-31
+
+After sudo sensors-detect
+
+The last few lines are (I just pressed enter when ever it asks for (YES/no)=
+ or (yes/NO)):
+
+#----cut here----
+# Chip drivers
+coretemp
+#----cut here----
+
+Then
+
+krishna@talupula:~/Downloads$ sudo /etc/init.d/module-init-tools
+[sudo] password for krishna:=20
+ * Loading kernel modules...
+* Loading manual drivers...     [ok]
+
+Then added the below four lines to /etc/modprobe.d/local
+
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+#----cut here----
+
+Then added the following 4 lines to /etc/modules
+
+#----cut here----
+# Chip drivers
+coretemp
+#----cut here----
+
+Now typed sensors in terminal , the output was :
+
+krishna@talupula:~/Downloads$ sensors
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +46.0=B0C  (crit =3D +85.0=B0C)                 =20
+
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +46.0=B0C  (crit =3D +85.0=B0C) =20
+
+I THINK THAT THIS IS A WRONG OUTPUT ( I HAVE READ IT IN UBUNTU FORUMS )
+
+Could you please help to configure my lm-sensors ........=20
+My laptop is getting too hot and the fans would only start at 60degrees (i =
+saw the temperature in the applet in ubuntu panel)
+
+Sorry for my long mail ....
+Please ask me if you need amy extra information .
+_________________________________________________________________
+Searching for the best deals on travel? Visit MSN Travel.
+http://in.msn.com/coxandkings
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
