@@ -1,122 +1,58 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 22 Oct 2008 11:46:28 +0000
-Subject: [lm-sensors] [PATCH 1/2] libsensors: Add support for instantaneous
-Message-Id: <20081022134628.5224289d@hyperion.delvare>
+From: David Brownell <david-b@pacbell.net>
+Date: Fri, 17 Oct 2008 19:04:54 +0000
+Subject: Re: [lm-sensors] [patch 2.6.27-rc7] i2c: smbalert# support
+Message-Id: <200810171204.54448.david-b@pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200804161434.54335.laurentp@cse-semaphore.com>
+	<200809251902.00201.david-b@pacbell.net>
+	<Pine.LNX.4.64.0809261652040.7680@t2.domain.actdsltmp>
+In-Reply-To: <Pine.LNX.4.64.0809261652040.7680-3bmvVOk6DZ+DGx/iekXGtrjh7zpefjiS@public.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Trent Piepho <tpiepho-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Cc: i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
 
-Add support for instantaneous power sensors.
----
-I'd appreciate review and testing of this patch. Darrick, please test
-that this doesn't break support of your IBM chips.
+... just to recap this before I scrub old mail from my mbox:
 
- doc/libsensors-API.txt |    6 ++++++
- lib/sensors.h          |    6 ++++--
- lib/sysfs.c            |    3 +++
- prog/sensors/chips.c   |   28 +++++++++++++++++++++-------
- 4 files changed, 34 insertions(+), 9 deletions(-)
+On Friday 26 September 2008, Trent Piepho wrote:
+> > It's not a question of the I2C adapter supporting it. =A0It's a
+> > question of whether there's an SMBALERT# signal on your board,
+> > which can generate an interrupt. =A0If it can, this patch has an
+> > IRQ handler which implements the SMBus alert protocol. =A0Think
+> > of it as sideband signaling ... unknown to that adapter.
+>=20
+> If nothing is alerting, then the read from the ARA address won't get an a=
+ck.=20
 
---- lm-sensors-3.orig/lib/sensors.h	2008-10-22 11:50:39.000000000 +0200
-+++ lm-sensors-3/lib/sensors.h	2008-10-22 12:03:36.000000000 +0200
-@@ -31,7 +31,7 @@
-    when the API + ABI breaks), the third digit is incremented to track small
-    API additions like new flags / enum values. The second digit is for tracking
-    larger additions like new methods. */
--#define SENSORS_API_VERSION		0x401
-+#define SENSORS_API_VERSION		0x402
- 
- #define SENSORS_CHIP_NAME_PREFIX_ANY	NULL
- #define SENSORS_CHIP_NAME_ADDR_ANY	(-1)
-@@ -175,7 +175,9 @@ typedef enum sensors_subfeature_type {
- 	SENSORS_SUBFEATURE_POWER_AVERAGE = SENSORS_FEATURE_POWER << 8,
- 	SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST,
- 	SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST,
--
-+	SENSORS_SUBFEATURE_POWER_INPUT,
-+	SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST,
-+	SENSORS_SUBFEATURE_POWER_INPUT_LOWEST,
- 	SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL = (SENSORS_FEATURE_POWER << 8) | 0x80,
- 
- 	SENSORS_SUBFEATURE_ENERGY_INPUT = SENSORS_FEATURE_ENERGY << 8,
---- lm-sensors-3.orig/lib/sysfs.c	2008-10-22 11:50:39.000000000 +0200
-+++ lm-sensors-3/lib/sysfs.c	2008-10-22 12:03:36.000000000 +0200
-@@ -247,6 +247,9 @@ static const struct subfeature_type_matc
- 	{ "average", SENSORS_SUBFEATURE_POWER_AVERAGE },
- 	{ "average_highest", SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST },
- 	{ "average_lowest", SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST },
-+	{ "input", SENSORS_SUBFEATURE_POWER_INPUT },
-+	{ "input_highest", SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST },
-+	{ "input_lowest", SENSORS_SUBFEATURE_POWER_INPUT_LOWEST },
- 	{ "average_interval", SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL },
- 	{ NULL, 0 }
- };
---- lm-sensors-3.orig/prog/sensors/chips.c	2008-10-22 11:50:38.000000000 +0200
-+++ lm-sensors-3/prog/sensors/chips.c	2008-10-22 12:04:38.000000000 +0200
-@@ -449,8 +449,28 @@ static void print_chip_power(const senso
- 	print_label(label, label_size);
- 	free(label);
- 
-+	/* Power sensors come in 2 flavors: instantaneous and averaged.
-+	   To keep things simple, we assume that each sensor only implements
-+	   one flavor. */
- 	sf = sensors_get_subfeature(name, feature,
--				    SENSORS_SUBFEATURE_POWER_AVERAGE);
-+				    SENSORS_SUBFEATURE_POWER_INPUT);
-+	if (sf) {
-+		sfmin = sensors_get_subfeature(name, feature,
-+					       SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST);
-+		sfmax = sensors_get_subfeature(name, feature,
-+					       SENSORS_SUBFEATURE_POWER_INPUT_LOWEST);
-+		sfint = NULL;
-+	} else {
-+		sf = sensors_get_subfeature(name, feature,
-+					    SENSORS_SUBFEATURE_POWER_AVERAGE);
-+		sfmin = sensors_get_subfeature(name, feature,
-+					       SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST);
-+		sfmax = sensors_get_subfeature(name, feature,
-+					       SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST);
-+		sfint = sensors_get_subfeature(name, feature,
-+					       SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL);
-+	}
-+
- 	if (sf) {
- 		val = get_value(name, sf);
- 		scale_value(&val, &unit);
-@@ -458,12 +478,6 @@ static void print_chip_power(const senso
- 	} else
- 		printf("     N/A");
- 
--	sfmin = sensors_get_subfeature(name, feature,
--				      SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST);
--	sfmax = sensors_get_subfeature(name, feature,
--				       SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST);
--	sfint = sensors_get_subfeature(name, feature,
--				     SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL);
- 	if (sfmin || sfmax || sfint) {
- 		printf("  (");
- 
---- lm-sensors-3.orig/doc/libsensors-API.txt	2008-10-22 12:03:35.000000000 +0200
-+++ lm-sensors-3/doc/libsensors-API.txt	2008-10-22 12:06:42.000000000 +0200
-@@ -6,6 +6,12 @@ over time. This document summarizes thes
- authors can quickly figure out how to test for the availability of a
- given new feature.
- 
-+0x402	lm-sensors SVN
-+* Added support for instantaneous power sensors
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_INPUT
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_INPUT_LOWEST
-+
- 0x401	lm-sensors 3.0.2 to 3.0.3
- * Added bus type "virtual":
-   #define SENSORS_BUS_TYPE_VIRTUAL
+This is indeed how the SMBALERT# protocol handling code must
+detect that all pending alerts have been handled:  each read
+of ARA clears one pending alert, until none responds any more.
+(And the active-low open drain SMBALERT# signal went high.)
 
 
--- 
-Jean Delvare
+> Some i2c adapters don't handle this so well.
+
+If your system can't implement the SMBALERT# protocol, then
+there's no problem at all.  Just handle the IRQ using whatever
+non-standard hackery is necessary to cope with that hardware,
+and DO NOT tell Linux that it's really SMBALERT#.  Simple.
+
+
+The SMBALERT# protocol is very specific about how it acts and
+what it does.  It's also very specific to SMBus.  The $SUBJECT
+patch never claimed to be an attempt to work with arbitrary
+collections of I2C device interrupts that weren't designed to
+cooperate at all, much less to follow the SMBALERT# rules.
+
+Absolutely nothing you've said makes a real argument against
+providing support for SMBALERT#.
+
+At best, you've made an argument that some drivers may need
+to support less-efficient IRQ dispatching schemes as well as
+SMBALERT#, in order to handle board-specific design quirks.
+
+- Dave
 
 _______________________________________________
 lm-sensors mailing list
