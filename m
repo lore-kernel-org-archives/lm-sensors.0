@@ -1,7 +1,7 @@
-From: Ilyes Gouta <ilyes.gouta@gmail.com>
-Date: Sun, 19 Oct 2008 18:56:59 +0000
+From: Dave Airlie <airlied@redhat.com>
+Date: Sun, 19 Oct 2008 20:33:34 +0000
 Subject: Re: [lm-sensors] ATI graphics card temperature -> lm-sensors
-Message-Id: <48FB82FB.3000406@gmail.com>
+Message-Id: <1224448414.3656.0.camel@optimus>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1224420520.19051.5.camel@localhost>
 In-Reply-To: <1224420520.19051.5.camel@localhost>
@@ -10,30 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
-
-Is there any documentation about the i2c multimedia channel? I'm also 
-interested in adding such a feature to my system in order to monitor my 
-ATI radeon's (3650HD) temperature/fan.
-
-Regards,
-Ilyes.
-
-Hans de Goede wrote:
+On Sun, 2008-10-19 at 19:24 +0200, Hans de Goede wrote:
 > Thomas wrote:
->> Hallo,
->>
->> I wonder how difficult it would be to incorporate temperature and
->> fanspeed of ATI graphics cards into lm-sensors.
->>
->> There is the aticonfig tool which provides the data (and more, like
->> clockspeeds, ...):
->> aticonfig --adapter=0 --od-gettemperature
->> aticonfig --pplib-cmd "get fanspeed 0"
->>
->> What would be the best way to do that?
->> I guess I could do if I knew where to start :)
->>
+> > Hallo,
+> > 
+> > I wonder how difficult it would be to incorporate temperature and
+> > fanspeed of ATI graphics cards into lm-sensors.
+> > 
+> > There is the aticonfig tool which provides the data (and more, like
+> > clockspeeds, ...):
+> > aticonfig --adapter=0 --od-gettemperature
+> > aticonfig --pplib-cmd "get fanspeed 0"
+> > 
+> > What would be the best way to do that?
+> > I guess I could do if I knew where to start :)
+> > 
 > 
 > aticonfig is part of the proprietary driver, so lets forget about that path, 
 > besides that we really want to do this as standard in kernel hwmon drivers so 
@@ -71,15 +62,12 @@ Hans de Goede wrote:
 > multimedia i2c channel drm driver code would be the first step. I believe Dave 
 > Airlied is the person to talk to if you want to do that. I will gladly 
 > volunteer as a tester for this. (radeon 9800, radeon x1950 pro)
-> 
-> Regards,
-> 
-> Hans
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+
+Matthew Garrett has already started to look into doing this, hopefully
+this info helps him out.
+
+Dave.
+
 
 _______________________________________________
 lm-sensors mailing list
