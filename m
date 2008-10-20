@@ -1,7 +1,7 @@
-From: Dave Airlie <airlied@redhat.com>
-Date: Sun, 19 Oct 2008 20:33:34 +0000
+From: Matthew Garrett <mjg@redhat.com>
+Date: Mon, 20 Oct 2008 10:04:06 +0000
 Subject: Re: [lm-sensors] ATI graphics card temperature -> lm-sensors
-Message-Id: <1224448414.3656.0.camel@optimus>
+Message-Id: <20081020100406.GC5208@srcf.ucam.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1224420520.19051.5.camel@localhost>
 In-Reply-To: <1224420520.19051.5.camel@localhost>
@@ -10,64 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 2008-10-19 at 19:24 +0200, Hans de Goede wrote:
-> Thomas wrote:
-> > Hallo,
+On Mon, Oct 20, 2008 at 06:33:34AM +1000, Dave Airlie wrote:
+> On Sun, 2008-10-19 at 19:24 +0200, Hans de Goede wrote:
+> > I've discussed this with Dave Airlie during the Linux Plumbers Conference, and 
+> > he agreed that adding support for the multimedia i2c channel to the drm driver 
+> > is the way forward. I've added him to the CC in case he has anything to add.
 > > 
-> > I wonder how difficult it would be to incorporate temperature and
-> > fanspeed of ATI graphics cards into lm-sensors.
-> > 
-> > There is the aticonfig tool which provides the data (and more, like
-> > clockspeeds, ...):
-> > aticonfig --adapter=0 --od-gettemperature
-> > aticonfig --pplib-cmd "get fanspeed 0"
-> > 
-> > What would be the best way to do that?
-> > I guess I could do if I knew where to start :)
-> > 
+> > If you want to look into adding support for hwmon to ati cards, writing 
+> > multimedia i2c channel drm driver code would be the first step. I believe Dave 
+> > Airlied is the person to talk to if you want to do that. I will gladly 
+> > volunteer as a tester for this. (radeon 9800, radeon x1950 pro)
 > 
-> aticonfig is part of the proprietary driver, so lets forget about that path, 
-> besides that we really want to do this as standard in kernel hwmon drivers so 
-> that existing lm_sensors aware tools will just pick this info up as one 
-> additional sensor in the system.
-> 
-> I've actually been looking into this, and it should be quite doable. I've 
-> looked at how to do this for my radeon 9800pro, so your milage may very with 
-> other cards.
-> 
-> For my 9800 pro there is a standard (and already supported) fintek i2c hwmon IC 
-> (I don't remember the exact model) on the card. The big problem was that its on 
-> the radeon multimedia i2c channel, for which no in kernel i2c master ("adapter" 
-> in kernel / lm_sensor speak) driver exists, now this is fixable by just writing 
-> such a driver, but the problem is that the X server in some special cases (ATI 
-> all in wonder hardware) actually uses this i2c channel and thus pokes the 
-> register of the multimedia i2c controller off the radeon from userspace.
-> 
-> But in comes modesetting, and it comes to the rescue in this case, as 
-> modesetting completely removes the need and ability for userspace to directly 
-> poke radeon registers. This has broken all in wonder support, but I'm sure this 
-> will get fixed eventually and that is a price we will have to pay for progress.
-> 
-> In the hwmon case this is actually really good as now the way is free to add 
-> multimedia i2c support to the drm driver (and this is something which will be 
-> needed to fix the all in wonder cards) and once the i2c multimedia channel is 
-> supported as a normal kernel i2c adapter, lm_sensors should just work, atleast 
-> for my 9800.
-> 
-> I've discussed this with Dave Airlie during the Linux Plumbers Conference, and 
-> he agreed that adding support for the multimedia i2c channel to the drm driver 
-> is the way forward. I've added him to the CC in case he has anything to add.
-> 
-> If you want to look into adding support for hwmon to ati cards, writing 
-> multimedia i2c channel drm driver code would be the first step. I believe Dave 
-> Airlied is the person to talk to if you want to do that. I will gladly 
-> volunteer as a tester for this. (radeon 9800, radeon x1950 pro)
+> Matthew Garrett has already started to look into doing this, hopefully
+> this info helps him out.
 
-Matthew Garrett has already started to look into doing this, hopefully
-this info helps him out.
+I've been looking into this. I'm testing with an X1900, but 
+sensors-detect is currently not picking anything up on my multimedia 
+bus. To be fair, neither is X, so I suspect that the interface on the 
+r500s may not be identical to the one on the older cards. Or, 
+alternatively, my X1900 simply doesn't have any I2C monitoring hardware. 
+I should have time to poke this more this week.
 
-Dave.
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
 
 _______________________________________________
 lm-sensors mailing list
