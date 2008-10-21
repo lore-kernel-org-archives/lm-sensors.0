@@ -1,106 +1,134 @@
-From: "David C. Rankin" <drankinatty@suddenlinkmail.com>
-Date: Tue, 21 Oct 2008 18:45:21 +0000
-Subject: Re: [lm-sensors] f71882fg-* How do you set temp limits for max_hyst
-Message-Id: <48FE2341.8000504@suddenlinkmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Tue, 21 Oct 2008 14:24:43 +0000
+Subject: [lm-sensors] PATCH: f71882fg move some io access from the detect to
+Message-Id: <48FDE62B.7020607@redhat.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------040001050304070307080809"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <48FBFF2A.608@suddenlinkmail.com>
-In-Reply-To: <48FBFF2A.608@suddenlinkmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hans de Goede wrote:
-> David C. Rankin wrote:
-> 
-> <snip>
-> 
->>     Well that worked nicely! Now why wouldn't it accept the set
->> variables from the
->> sensors3.conf file? Let's try again. A quick vi of sensors3.conf leaving:
->>
->> # Set CPU and System temp limits
->>
->>     set temp1_max_hyst 50
->>     set temp1_max 55
->> #    set temp1_crit_hyst 56
->>     set temp1_crit 60
->>     set temp2_max_hyst 50
->>     set temp2_max 55
->> #    set temp2_crit_hyst 56
->>     set temp2_crit 60
->>
->>     WTF? It worked! Hmm..., something is fishy here. Let's do another
->> test:
->>
-> 
-> Yes, note you've now commented out the set temp#_crit_hyst lines which
-> were trying to set the readonly temp#_crit_hyst, which you did not
-> (comment them out) with your first try, most likely those where causing
-> the errors.
-> 
+This is a multi-part message in MIME format.
+--------------040001050304070307080809
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Not quite. Originally, I was receiving errors on all of the temp#_max_hyst and
-temp#_crit_hyst (readonly) lines. I can't explain why the temp#_max_hyst lines
-were generating the errors when attempting to set with sudo, but I'm quite sure
-they were. In vi, I had line numbers visible (:set nu) and was testing setting
-the hyst values from within vi (:!sudo sensors -s) and after exiting vi with a
-simple sudo sensors -s and on both occasions the temp#_max_hyst lines were not
-being set and were generating the errors.
+The f71882fg driver did some io to ioports it hadn't reserved yet in its
+find (detect) function, this patches moves this io to the probe function
+where these ports are reserved and this io belongs.
 
-I have done close to 2 gig of updates since that time so maybe one of the
-updates fixed the sudo behavior. All is well now on openSuSE 11.0 with sensors3
-and the f71882fg-* chipset.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-Although, I still haven't a clue as to what temp3 is for the K9N2 SLI Platinum
-board.
+--------------040001050304070307080809
+Content-Type: text/plain;
+ name="f71882fg-no-io-to-unreserverd-ports.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename="f71882fg-no-io-to-unreserverd-ports.patch"
 
->> 23:42 sq4~> sudo echo -n 50000 >
->> /sys/class/hwmon/hwmon0/device/temp1_max_hyst
->> -bash: /sys/class/hwmon/hwmon0/device/temp1_max_hyst: Permission denied
->>
->>     $%#@%^@$%$ing sudo! I see the problem, but I don't know why. When
->> the error
->> was generated, I was running sensors -s with sudo "sudo sensors -s"
->> which has
->> always worked before with all my other boxes. I wonder what the deal
->> is here.
->> Mystery solved, and another one to track down -- normal...
-> 
-> sudo sensors -s will work fine, it will probably work on this system too
-> now that you've fixed sensors.conf, the problem with this line:
-> 
-> 23:42 sq4~> sudo echo -n 50000 >
-> /sys/class/hwmon/hwmon0/device/temp1_max_hyst
-> 
-> Is that the echo runs as root, but the " > " runs as you, so
-> /sys/class/hwmon/hwmon0/device/temp1_max_hyst gets opened as you. The
-> correct way to do this using sudo is:
-> 
-> sudo bash -c "echo -n 50000 >
-> /sys/class/hwmon/hwmon0/device/temp1_max_hyst"
-> 
-> Regards,
-> 
-> Hans
-> 
+The f71882fg driver did some io to ioports it hadn't reserved yet in its
+find (detect) function, this patches moves this io to the probe function
+where these ports are reserved and this io belongs.
 
-Dang your good Hans! Not only have you solved the sensors3.conf conundrum, but
-you've taught this old dog a new BASH trick as well!
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+--- linux/drivers/hwmon/f71882fg.c.f71862fg	2008-10-21 15:34:41.000000000 +0200
++++ linux/drivers/hwmon/f71882fg.c	2008-10-21 15:50:34.000000000 +0200
+@@ -1495,7 +1495,7 @@
+ {
+ 	struct f71882fg_data *data;
+ 	struct f71882fg_sio_data *sio_data = pdev->dev.platform_data;
+-	int err;
++	int err = 0;
+ 	u8 start_reg;
+ 
+ 	data = kzalloc(sizeof(struct f71882fg_data), GFP_KERNEL);
+@@ -1507,12 +1507,31 @@
+ 	mutex_init(&data->update_lock);
+ 	platform_set_drvdata(pdev, data);
+ 
++	start_reg = f71882fg_read8(data, F71882FG_REG_START);
++	if (!(start_reg & 0x03)) {
++		printk(KERN_WARNING DRVNAME
++			": Hardware monitoring not activated\n");
++		goto exit_free;
++	}
++
++	/* If it is a 71862 and the fan / pwm part is enabled sanity check
++	   the pwm settings */
++	if (data->type == f71862fg && (start_reg & 0x02)) {
++		u8 reg = f71882fg_read8(data, F71882FG_REG_PWM_ENABLE);
++		if ((reg & 0x15) != 0x15) {
++			printk(KERN_ERR DRVNAME
++				": Invalid (reserved) pwm settings: 0x%02x\n",
++				(unsigned int)reg);
++			err = -EIO;
++			goto exit_free;
++		}
++	}
++
+ 	/* Register sysfs interface files */
+ 	err = device_create_file(&pdev->dev, &dev_attr_name);
+ 	if (err)
+ 		goto exit_unregister_sysfs;
+ 
+-	start_reg = f71882fg_read8(data, F71882FG_REG_START);
+ 	if (start_reg & 0x01) {
+ 		err = f71882fg_create_sysfs_files(pdev, f718x2fg_in_temp_attr,
+ 					ARRAY_SIZE(f718x2fg_in_temp_attr));
+@@ -1558,7 +1577,9 @@
+ 
+ exit_unregister_sysfs:
+ 	f71882fg_remove(pdev); /* Will unregister the sysfs files for us */
+-
++	return err; /* f71882fg_remove() also frees our data */
++exit_free:
++	kfree(data);
+ 	return err;
+ }
+ 
+@@ -1600,8 +1621,6 @@
+ {
+ 	int err = -ENODEV;
+ 	u16 devid;
+-	u8 reg;
+-	struct f71882fg_data data;
+ 
+ 	superio_enter(sioaddr);
+ 
+@@ -1638,25 +1657,6 @@
+ 	}
+ 	*address &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
+ 
+-	data.addr = *address;
+-	reg = f71882fg_read8(&data, F71882FG_REG_START);
+-	if (!(reg & 0x03)) {
+-		printk(KERN_WARNING DRVNAME
+-			": Hardware monitoring not activated\n");
+-		goto exit;
+-	}
+-
+-	/* If it is a 71862 and the fan / pwm part is enabled sanity check
+-	   the pwm settings */
+-	if (sio_data->type == f71862fg && (reg & 0x02)) {
+-		reg = f71882fg_read8(&data, F71882FG_REG_PWM_ENABLE);
+-		if ((reg & 0x15) != 0x15) {
+-			printk(KERN_ERR DRVNAME
+-				": Invalid (reserved) pwm settings: 0x%02x\n",
+-				(unsigned int)reg);
+-			goto exit;
+-		}
+-	}
+ 	err = 0;
+ 	printk(KERN_INFO DRVNAME ": Found %s chip at %#x, revision %d\n",
+ 		f71882fg_names[sio_data->type],	(unsigned int)*address,
 
-Seriously, thanks for helping me work through this issue and keep up the great
-work with sensors.
-
--- 
-David C. Rankin, J.D., P.E.
-Rankin Law Firm, PLLC
-510 Ochiltree Street
-Nacogdoches, Texas 75961
-Telephone: (936) 715-9333
-Facsimile: (936) 715-9339
-www.rankinlawfirm.com
+--------------040001050304070307080809
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------040001050304070307080809--
