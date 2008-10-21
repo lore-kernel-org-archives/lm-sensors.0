@@ -1,16 +1,18 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Tue, 21 Oct 2008 17:18:43 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 21 Oct 2008 19:23:05 +0000
 Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (abituguru3) Cosmetic
-Message-Id: <48FE0EF3.8040206@redhat.com>
+Message-Id: <20081021212305.65198f46@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <48FE0EF3.8040206@redhat.com>
+In-Reply-To: <48FE0EF3.8040206@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Alistair,
 
-
-Alistair John Strachan wrote:
+On Tue, 21 Oct 2008 17:59:31 +0100, Alistair John Strachan wrote:
 > As the probable result of zealous copy/pasting, many supported boards
 > contain sensor names with trailing whitespace. Though this is not a
 > huge problem, it is inconsistent with other sensor names, and with
@@ -26,15 +28,6 @@ Alistair John Strachan wrote:
 > Reported-by: Justin Piszcz <jpiszcz@lucidpixels.com>
 > Cc: Hans de Goede <hdegoede@redhat.com>
 > Cc: Jean Delvare <khali@linux-fr.org>
-
-Looks good,
-
-Acked-by: Hans de Goede <hdegoede@redhat.com>
-
-Regards,
-
-Hans
-
 > ---
 >  drivers/hwmon/abituguru3.c |   28 ++++++++++++++--------------
 >  1 file changed, 14 insertions(+), 14 deletions(-)
@@ -150,6 +143,9 @@ Hans
 > -		{ "PWM ",		26, 1, 1, 1, 0 },
 > +		{ "System",		25, 1, 1, 1, 0 },
 > +		{ "PWM",		26, 1, 1, 1, 0 },
+
+I'm curious if this one isn't supposed to be "PWM Phase1"?
+
 >  		{ "PWM Phase2",		27, 1, 1, 1, 0 },
 >  		{ "PWM Phase3",		28, 1, 1, 1, 0 },
 >  		{ "PWM Phase4",		29, 1, 1, 1, 0 },
@@ -162,6 +158,11 @@ Hans
 >  			"(see MAINTAINERS)\n");
 >  	}
 >  #endif
+
+Applied, thanks.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
