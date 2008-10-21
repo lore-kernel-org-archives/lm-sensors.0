@@ -1,262 +1,158 @@
-From: "Hu Mingkai-B21284" <B21284@freescale.com>
-Date: Fri, 24 Oct 2008 06:50:17 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] libsensors: Add support for current
-Message-Id: <CF6163088BDE8747873ADAA4AF922BF258D6D5@zmy16exm21.fsl.freescale.net>
+From: "Anthony Arobone" <aaroboneml@gmail.com>
+Date: Tue, 21 Oct 2008 19:06:43 +0000
+Subject: Re: [lm-sensors] Intel DG45FC
+Message-Id: <7bccedf10810211206v633831d6r9e2a87be1cca3e78@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============2112500177523652687=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081022135759.6ed045c0@hyperion.delvare>
-In-Reply-To: <20081022135759.6ed045c0@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <7bccedf10809181658o18aa47bbt46480ca2a67b1ac9@mail.gmail.com>
+In-Reply-To: <7bccedf10809181658o18aa47bbt46480ca2a67b1ac9@mail.gmail.com>
 To: lm-sensors@vger.kernel.org
 
-Hi  Jean,
+--===============2112500177523652687==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_12519_25945012.1224616003206"
 
-The patch works well. Thanks a lot.
+------=_Part_12519_25945012.1224616003206
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
--sh-2.05b# sensors
-mcp3021-i2c-0-4d
-Adapter: MPC adapter
-in0:         +0.19 V  (min =  +0.19 V, max =  +0.21 V)
-curr1:      +0.99 A  (min =  +0.93 A, max =  +1.05 A)
+On Sat, Sep 27, 2008 at 1:16 PM, Jean Delvare <khali@linux-fr.org> wrote:
 
-mcp3021-i2c-1-4d
-Adapter: MPC adapter
-in0:         +0.40 V  (min =  +0.40 V, max =  +0.41 V)
-curr1:      +2.01 A  (min =  +1.98 A, max =  +2.02 A)
-
-Best Regards,
-Vincent
-
------Original Message-----
-From: Jean Delvare [mailto:khali@linux-fr.org] 
-Sent: Wednesday, October 22, 2008 7:58 PM
-To: LM Sensors
-Cc: Hu Mingkai-B21284; Ira Snyder; Darrick J. Wong
-Subject: [PATCH 2/2] libsensors: Add support for current sensors
-
-Add support for current sensors.
----
-The code for function print_chip_curr() is duplicated directly from
-print_chip_in() with IN subfeature names replaced by their CURR
-counterparts and V changed to A.
-
-Applies on top of the previous patch. I'd appreciate review and testing
-of this patch. Vincent, this should show you the current values you were
-missing so far.
-
- doc/libsensors-API.txt |    9 ++++++
- lib/sensors.h          |    9 ++++++
- lib/sysfs.c            |   16 ++++++++++-
- prog/sensors/chips.c   |   69
-++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 102 insertions(+), 1 deletion(-)
-
---- lm-sensors-3.orig/lib/sensors.h	2008-10-22 12:03:36.000000000
-+0200
-+++ lm-sensors-3/lib/sensors.h	2008-10-22 12:06:50.000000000 +0200
-@@ -134,6 +134,7 @@ typedef enum sensors_feature_type {
- 	SENSORS_FEATURE_TEMP		= 0x02,
- 	SENSORS_FEATURE_POWER		= 0x03,
- 	SENSORS_FEATURE_ENERGY		= 0x04,
-+	SENSORS_FEATURE_CURR		= 0x05,
- 	SENSORS_FEATURE_VID		= 0x10,
- 	SENSORS_FEATURE_BEEP_ENABLE	= 0x18,
- 	SENSORS_FEATURE_UNKNOWN		= INT_MAX,
-@@ -182,6 +183,14 @@ typedef enum sensors_subfeature_type {
- 
- 	SENSORS_SUBFEATURE_ENERGY_INPUT = SENSORS_FEATURE_ENERGY << 8,
- 
-+	SENSORS_SUBFEATURE_CURR_INPUT = SENSORS_FEATURE_CURR << 8,
-+	SENSORS_SUBFEATURE_CURR_MIN,
-+	SENSORS_SUBFEATURE_CURR_MAX,
-+	SENSORS_SUBFEATURE_CURR_ALARM = (SENSORS_FEATURE_CURR << 8) |
-0x80,
-+	SENSORS_SUBFEATURE_CURR_MIN_ALARM,
-+	SENSORS_SUBFEATURE_CURR_MAX_ALARM,
-+	SENSORS_SUBFEATURE_CURR_BEEP,
-+
- 	SENSORS_SUBFEATURE_VID = SENSORS_FEATURE_VID << 8,
- 
- 	SENSORS_SUBFEATURE_BEEP_ENABLE = SENSORS_FEATURE_BEEP_ENABLE <<
-8,
---- lm-sensors-3.orig/lib/sysfs.c	2008-10-22 12:03:36.000000000
-+0200
-+++ lm-sensors-3/lib/sysfs.c	2008-10-22 12:06:50.000000000 +0200
-@@ -138,7 +138,7 @@ char sensors_sysfs_mount[NAME_MAX];
- 
- #define MAX_SENSORS_PER_TYPE	20
- #define MAX_SUBFEATURES		8
--#define MAX_SENSOR_TYPES	5
-+#define MAX_SENSOR_TYPES	6
- /* Room for all 5 types (in, fan, temp, power, energy) with all their
-    subfeatures + VID + misc features */  #define
-ALL_POSSIBLE_SUBFEATURES \ @@ -153,6 +153,7 @@ int
-get_type_scaling(sensors_subfeature_
- 	switch (type & 0xFF80) {
- 	case SENSORS_SUBFEATURE_IN_INPUT:
- 	case SENSORS_SUBFEATURE_TEMP_INPUT:
-+	case SENSORS_SUBFEATURE_CURR_INPUT:
- 		return 1000;
- 	case SENSORS_SUBFEATURE_FAN_INPUT:
- 		return 1;
-@@ -184,6 +185,7 @@ char *get_feature_name(sensors_feature_t
- 	case SENSORS_FEATURE_TEMP:
- 	case SENSORS_FEATURE_POWER:
- 	case SENSORS_FEATURE_ENERGY:
-+	case SENSORS_FEATURE_CURR:
- 		underscore = strchr(sfname, '_');
- 		name = strndup(sfname, underscore - sfname);
- 		break;
-@@ -259,6 +261,16 @@ static const struct subfeature_type_matc
- 	{ NULL, 0 }
- };
- 
-+static const struct subfeature_type_match curr_matches[] = {
-+	{ "input", SENSORS_SUBFEATURE_CURR_INPUT },
-+	{ "min", SENSORS_SUBFEATURE_CURR_MIN },
-+	{ "max", SENSORS_SUBFEATURE_CURR_MAX },
-+	{ "alarm", SENSORS_SUBFEATURE_CURR_ALARM },
-+	{ "min_alarm", SENSORS_SUBFEATURE_CURR_MIN_ALARM },
-+	{ "max_alarm", SENSORS_SUBFEATURE_CURR_MAX_ALARM },
-+	{ NULL, 0 }
-+};
-+
- static const struct subfeature_type_match cpu_matches[] = {
- 	{ "vid", SENSORS_SUBFEATURE_VID },
- 	{ NULL, 0 }
-@@ -270,6 +282,7 @@ static struct feature_type_match matches
- 	{ "fan%d%c", fan_matches },
- 	{ "cpu%d%c", cpu_matches },
- 	{ "power%d%c", power_matches },
-+	{ "curr%d%c", curr_matches },
- 	{ "energy%d%c", energy_matches },
- };
- 
-@@ -360,6 +373,7 @@ static int sensors_read_dynamic_chip(sen
- 		case SENSORS_SUBFEATURE_TEMP_INPUT:
- 		case SENSORS_SUBFEATURE_POWER_AVERAGE:
- 		case SENSORS_SUBFEATURE_ENERGY_INPUT:
-+		case SENSORS_SUBFEATURE_CURR_INPUT:
- 			nr--;
- 			break;
- 		}
---- lm-sensors-3.orig/prog/sensors/chips.c	2008-10-22
-12:04:38.000000000 +0200
-+++ lm-sensors-3/prog/sensors/chips.c	2008-10-22 12:06:50.000000000
-+0200
-@@ -578,6 +578,72 @@ static void print_chip_beep_enable(const
- 	free(label);
- }
- 
-+static void print_chip_curr(const sensors_chip_name *name,
-+			    const sensors_feature *feature,
-+			    int label_size)
-+{
-+	const sensors_subfeature *sf, *sfmin, *sfmax;
-+	double alarm_max, alarm_min;
-+	char *label;
-+
-+	if (!(label = sensors_get_label(name, feature))) {
-+		fprintf(stderr, "ERROR: Can't get label of feature
-%s!\n",
-+			feature->name);
-+		return;
-+	}
-+	print_label(label, label_size);
-+	free(label);
-+
-+	sf = sensors_get_subfeature(name, feature,
-+				    SENSORS_SUBFEATURE_CURR_INPUT);
-+	if (sf)
-+		printf("%+6.2f A", get_value(name, sf));
-+	else
-+		printf("     N/A");
-+
-+	sfmin = sensors_get_subfeature(name, feature,
-+				       SENSORS_SUBFEATURE_CURR_MIN);
-+	sfmax = sensors_get_subfeature(name, feature,
-+				       SENSORS_SUBFEATURE_CURR_MAX);
-+	if (sfmin && sfmax)
-+		printf("  (min = %+6.2f A, max = %+6.2f A)",
-+		       get_value(name, sfmin),
-+		       get_value(name, sfmax));
-+	else if (sfmin)
-+		printf("  (min = %+6.2f A)",
-+		       get_value(name, sfmin));
-+	else if (sfmax)
-+		printf("  (max = %+6.2f A)",
-+		       get_value(name, sfmax));
-+
-+	sf = sensors_get_subfeature(name, feature,
-+				    SENSORS_SUBFEATURE_CURR_ALARM);
-+	sfmin = sensors_get_subfeature(name, feature,
-+
-SENSORS_SUBFEATURE_CURR_MIN_ALARM);
-+	sfmax = sensors_get_subfeature(name, feature,
-+
-SENSORS_SUBFEATURE_CURR_MAX_ALARM);
-+	if (sfmin || sfmax) {
-+		alarm_max = sfmax ? get_value(name, sfmax) : 0;
-+		alarm_min = sfmin ? get_value(name, sfmin) : 0;
-+
-+		if (alarm_min || alarm_max) {
-+			printf(" ALARM (");
-+
-+			if (alarm_min)
-+				printf("MIN");
-+			if (alarm_max)
-+				printf("%sMAX", (alarm_min) ? ", " :
-"");
-+
-+			printf(")");
-+		}
-+	} else if (sf) {
-+		printf("   %s",
-+		       get_value(name, sf) ? "ALARM" : "");
-+	}
-+
-+	printf("\n");
-+}
-+
- void print_chip(const sensors_chip_name *name)  {
- 	const sensors_feature *feature;
-@@ -609,6 +675,9 @@ void print_chip(const sensors_chip_name
- 		case SENSORS_FEATURE_ENERGY:
- 			print_chip_energy(name, feature, label_size);
- 			break;
-+		case SENSORS_FEATURE_CURR:
-+			print_chip_curr(name, feature, label_size);
-+			break;
- 		default:
- 			continue;
- 		}
---- lm-sensors-3.orig/doc/libsensors-API.txt	2008-10-22
-12:06:42.000000000 +0200
-+++ lm-sensors-3/doc/libsensors-API.txt	2008-10-22 12:07:02.000000000
-+0200
-@@ -11,6 +11,15 @@ given new feature.
-   enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_INPUT
-   enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST
-   enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_INPUT_LOWEST
-+* Added support for current sensors
-+  enum sensors_feature_type SENSORS_FEATURE_CURR
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_INPUT
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_MIN
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_MAX
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_ALARM
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_MIN_ALARM
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_MAX_ALARM
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_BEEP
- 
- 0x401	lm-sensors 3.0.2 to 3.0.3
- * Added bus type "virtual":
+> On Sat, 27 Sep 2008 11:08:12 -0700, Anthony Arobone wrote:
+> > On Sat, Sep 27, 2008 at 4:47 AM, Jean Delvare <khali@linux-fr.org>
+> wrote:
+> > > OK. So either the LM96000 can be re-enabled, or there's another
+> > > monitoring chip on your motherboard.
+> > >
+> > > Can you please list the labels and values displayed by your BIOS? To
+> > > check whether this corresponds to the LM96000 inputs or not.
+> >
+> > Here is what my BIOS list, the "xxx" is just a replacement for that
+> actual 3
+> > decimal numbers that i didn't capture:
+> >
+> > CPU Die/Package Temp         Prochot-49C
+> > Motherboard Temp                 38C
+> > ICH Temp                              65C
+> > MCH Temp                            45C
+> >
+> > +12v                                     12.xxxv
+> > +5v                                       5.xxxv
+> > +3.3v Standby                       3.3xxv
+> > MCH Vcc                              1.1135v
+> > CPU 1 Vccp                          1.218v
+> >
+> > CPU Cooling FAN                  836 RPM
+> > Chassis Inlet FAN                  3061 RPM
+>
+> This seems to match the LM96000 features (assuming "CPU Die/Package
+> Temp" is from the Intel Core internal sensor.)
+>
+> > > (...)
+> > > OK, so this is basically the same case as in ticket 2182: first version
+> > > of the LM96000, and strange value in register 0x6f. So please do the
+> > > same test I suggested in this ticket:
+> > >
+> > > # rmmod lm85
+> > > # i2cset -y 0 0x2e 0x40 0x04
+> > > # i2cset -y 0 0x2e 0x6f 0x00
+> > > # i2cset -y 0 0x2e 0x40 0x05
+> > > # modprobe lm85
+> > >
+> > > And report if it helps or not.
+> >
+> > Didn't help.  Everything is still zero.  :(
+>
+> OK... No other idea for now.
+>
+>
+> --
+> Jean Delvare
+>
 
 
---
-Jean Delvare
+Would the tech docs on this sensor be helpful?  I found them on the Intel
+site.  It describes all the registers in detail.
+
+See Chapter 23.
+http://www.intel.com/Assets/PDF/datasheet/319973.pdf
+
+Let me know if I can do any debugging or coding to help out.  I'm proficient
+in C and C++.  Just don't understand how all this sensor stuff works ;)
+
+------=_Part_12519_25945012.1224616003206
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+On Sat, Sep 27, 2008 at 1:16 PM, Jean Delvare <span dir="ltr">&lt;<a href="mailto:khali@linux-fr.org">khali@linux-fr.org</a>&gt;</span> wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<div class="Ih2E3d">On Sat, 27 Sep 2008 11:08:12 -0700, Anthony Arobone wrote:<br>
+&gt; On Sat, Sep 27, 2008 at 4:47 AM, Jean Delvare &lt;<a href="mailto:khali@linux-fr.org">khali@linux-fr.org</a>&gt; wrote:<br>
+</div><div class="Ih2E3d">&gt; &gt; OK. So either the LM96000 can be re-enabled, or there&#39;s another<br>
+&gt; &gt; monitoring chip on your motherboard.<br>
+&gt; &gt;<br>
+&gt; &gt; Can you please list the labels and values displayed by your BIOS? To<br>
+&gt; &gt; check whether this corresponds to the LM96000 inputs or not.<br>
+&gt;<br>
+&gt; Here is what my BIOS list, the &quot;xxx&quot; is just a replacement for that actual 3<br>
+&gt; decimal numbers that i didn&#39;t capture:<br>
+&gt;<br>
+&gt; CPU Die/Package Temp &nbsp; &nbsp; &nbsp; &nbsp; Prochot-49C<br>
+&gt; Motherboard Temp &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 38C<br>
+&gt; ICH Temp &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;65C<br>
+&gt; MCH Temp &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;45C<br>
+&gt;<br>
+&gt; +12v &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 12.xxxv<br>
+&gt; +5v &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 5.xxxv<br>
+&gt; +3.3v Standby &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 3.3xxv<br>
+&gt; MCH Vcc &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;1.1135v<br>
+&gt; CPU 1 Vccp &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;1.218v<br>
+&gt;<br>
+&gt; CPU Cooling FAN &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;836 RPM<br>
+&gt; Chassis Inlet FAN &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;3061 RPM<br>
+<br>
+</div>This seems to match the LM96000 features (assuming &quot;CPU Die/Package<br>
+Temp&quot; is from the Intel Core internal sensor.)<br>
+<br>
+&gt; &gt; (...)<br>
+<div class="Ih2E3d">&gt; &gt; OK, so this is basically the same case as in ticket 2182: first version<br>
+&gt; &gt; of the LM96000, and strange value in register 0x6f. So please do the<br>
+&gt; &gt; same test I suggested in this ticket:<br>
+&gt; &gt;<br>
+&gt; &gt; # rmmod lm85<br>
+&gt; &gt; # i2cset -y 0 0x2e 0x40 0x04<br>
+&gt; &gt; # i2cset -y 0 0x2e 0x6f 0x00<br>
+&gt; &gt; # i2cset -y 0 0x2e 0x40 0x05<br>
+&gt; &gt; # modprobe lm85<br>
+&gt; &gt;<br>
+&gt; &gt; And report if it helps or not.<br>
+&gt;<br>
+&gt; Didn&#39;t help. &nbsp;Everything is still zero. &nbsp;:(<br>
+<br>
+</div>OK... No other idea for now.<br>
+<br>
+<br>
+--<br>
+<font color="#888888">Jean Delvare<br>
+</font></blockquote></div><br><br>Would the tech docs on this sensor be helpful?&nbsp; I found them on the Intel site.&nbsp; It describes all the registers in detail.<br>
+<br>
+See Chapter 23.<br>
+<a href="http://www.intel.com/Assets/PDF/datasheet/319973.pdf">http://www.intel.com/Assets/PDF/datasheet/319973.pdf</a><br>
+<br>Let me know if I can do any debugging or coding to help out.&nbsp; I&#39;m proficient in C and C++.&nbsp; Just don&#39;t understand how all this sensor stuff works ;)<br><br>
+
+------=_Part_12519_25945012.1224616003206--
+
+
+--===============2112500177523652687==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2112500177523652687==--
