@@ -1,148 +1,88 @@
-From: "Hu Mingkai-B21284" <B21284@freescale.com>
-Date: Mon, 27 Oct 2008 08:52:06 +0000
-Subject: [lm-sensors] How to pass board specific info to I2C driver module
-Message-Id: <CF6163088BDE8747873ADAA4AF922BF258D76E@zmy16exm21.fsl.freescale.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C93811.485A312A"
+From: Alistair John Strachan <alistair@devzero.co.uk>
+Date: Tue, 21 Oct 2008 16:59:33 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon: (abituguru3) match partial DMI
+Message-Id: <1224608373-27352-4-git-send-email-alistair@devzero.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Abit DMI product name strings are composed of the product branding
+and the north/south bridge chipset names, respectively.
 
---===============6205377234867511088==
-Content-class: urn:content-classes:message
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C93811.485A312A"
+Unfortunately, these components are inconsistently separated by a
+variable number of spaces. On some boards, there is no space, and on
+others, there are many spaces.
 
-This is a multi-part message in MIME format.
+Since we don't care about matching bridge chipset names, update the
+DMI probe routine to only match the first N characters of the DMI
+product name, and update the motherboard table to include only the
+product branding.
 
-------_=_NextPart_001_01C93811.485A312A
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+This change preemptively works around potential variances in the DMI
+product string between different BIOS revisions for the same board.
 
-Hi All,
-=20
-I'm working on an ADC chip (MCP3021) driver under Linux 2.6.27.
-We used these two chips to monitor the CPU core current and=20
-platform current individually, which is converted to voltage as=20
-the ADC chip's input.
-As you know, the driver shouldn't contain the board specific info,
-such as, the chip's work voltage, the ratio of voltage and current.
-So how to pass these info to the driver module?
-=20
-Here is the way I can think of:
-1. to use dts file to pass the info to the module.
-    This way make the driver is bound to OF implement.
-=20
-2. to use the module parameter.
-    For different chips, the work voltage and the ratio may be
-different,
-    but the chip uses the same driver.
-=20
-Any other idea? Please give me some advice. Thanks a lot.
-=20
-Best Regards,
-Vincent
-=20
+Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
+Tested-by: Justin Piszcz <jpiszcz@lucidpixels.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/abituguru3.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-------_=_NextPart_001_01C93811.485A312A
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2900.3429" name=3DGENERATOR></HEAD>
-<BODY>
-<DIV><FONT face=3DArial size=3D2><SPAN class=3D035015108-27102008>
-<DIV><FONT face=3DArial size=3D2><SPAN class=3D807221401-27102008>Hi=20
-All,</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN=20
-class=3D807221401-27102008></SPAN></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN class=3D807221401-27102008>I'm =
-working on an=20
-ADC chip (MCP3021) driver under Linux 2.6.27.</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN class=3D807221401-27102008>We =
-used these two=20
-chips to monitor the CPU core current and </SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN =
-class=3D807221401-27102008>platform current=20
-individually, which is converted to voltage as </SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN class=3D807221401-27102008>the =
-ADC=20
-</SPAN></FONT><FONT face=3DArial size=3D2><SPAN =
-class=3D807221401-27102008>chip's=20
-input.</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN class=3D807221401-27102008>As you =
-know, the=20
-driver shouldn't </SPAN></FONT><FONT face=3DArial size=3D2><SPAN=20
-class=3D807221401-27102008>contain the </SPAN></FONT><FONT face=3DArial =
-size=3D2><SPAN=20
-class=3D807221401-27102008>board specific info,</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN class=3D807221401-27102008>such =
-as, the chip's=20
-work voltage, </SPAN></FONT><FONT face=3DArial size=3D2><SPAN=20
-class=3D807221401-27102008>the</SPAN></FONT><FONT face=3DArial =
-size=3D2><SPAN=20
-class=3D807221401-27102008> ratio&nbsp;of </SPAN></FONT><FONT =
-face=3DArial=20
-size=3D2><SPAN class=3D807221401-27102008>voltage and =
-current.</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN class=3D807221401-27102008>So how =
-to pass these=20
-info to the driver module?</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN=20
-class=3D807221401-27102008></SPAN></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN class=3D807221401-27102008>Here =
-is the way I=20
-can think of:</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN class=3D807221401-27102008>1. to =
-use dts=20
-file&nbsp;to pass the info to the module.</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN =
-class=3D807221401-27102008>&nbsp;&nbsp;&nbsp;=20
-This way make the driver is bound to OF implement.</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN=20
-class=3D807221401-27102008></SPAN></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN class=3D807221401-27102008>2. to =
-use the module=20
-parameter.</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN =
-class=3D807221401-27102008>&nbsp;&nbsp;&nbsp;=20
-For different chips, the work voltage and the ratio may be=20
-different,</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN =
-class=3D807221401-27102008>&nbsp;&nbsp;&nbsp;=20
-but the chip uses the&nbsp;same driver.</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN=20
-class=3D807221401-27102008></SPAN></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN class=3D807221401-27102008>Any =
-other idea?=20
-Please give me some advice. Thanks a lot.</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN=20
-class=3D807221401-27102008></SPAN></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN class=3D807221401-27102008>Best=20
-Regards,</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN=20
-class=3D807221401-27102008>Vincent</SPAN></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2><SPAN=20
-class=3D807221401-27102008></SPAN></FONT>&nbsp;</DIV></SPAN></FONT></DIV>=
-</BODY></HTML>
-
-------_=_NextPart_001_01C93811.485A312A--
-
-
---===============6205377234867511088==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+diff --git a/drivers/hwmon/abituguru3.c b/drivers/hwmon/abituguru3.c
+index ff6aad8..59b3d02 100644
+--- a/drivers/hwmon/abituguru3.c
++++ b/drivers/hwmon/abituguru3.c
+@@ -279,7 +279,7 @@ static const struct abituguru3_motherboard_info abituguru3_motherboards[] = {
+ 		{ "OTES1 Fan",		36, 2, 60, 1, 0 },
+ 		{ NULL, 0, 0, 0, 0, 0 } }
+ 	},
+-	{ 0x0011, "AT8 32X(ATI RD580-ULI M1575)", {
++	{ 0x0011, "AT8 32X", {
+ 		{ "CPU Core",		 0, 0, 10, 1, 0 },
+ 		{ "DDR",		 1, 0, 20, 1, 0 },
+ 		{ "DDR VTT",		 2, 0, 10, 1, 0 },
+@@ -402,7 +402,7 @@ static const struct abituguru3_motherboard_info abituguru3_motherboards[] = {
+ 		{ "AUX3 Fan",		36, 2, 60, 1, 0 },
+ 		{ NULL, 0, 0, 0, 0, 0 } }
+ 	},
+-	{ 0x0016, "AW9D-MAX       (Intel i975-ICH7)", {
++	{ 0x0016, "AW9D-MAX", {
+ 		{ "CPU Core",		 0, 0, 10, 1, 0 },
+ 		{ "DDR2",		 1, 0, 20, 1, 0 },
+ 		{ "DDR2 VTT",		 2, 0, 10, 1, 0 },
+@@ -509,7 +509,7 @@ static const struct abituguru3_motherboard_info abituguru3_motherboards[] = {
+ 		{ "AUX3 FAN",		36, 2, 60, 1, 0 },
+ 		{ NULL, 0, 0, 0, 0, 0 } }
+ 	},
+-	{ 0x001A, "IP35 Pro(Intel P35-ICH9R)", {
++	{ 0x001A, "IP35 Pro", {
+ 		{ "CPU Core",		 0, 0, 10, 1, 0 },
+ 		{ "DDR2",		 1, 0, 20, 1, 0 },
+ 		{ "DDR2 VTT",		 2, 0, 10, 1, 0 },
+@@ -1139,7 +1139,17 @@ static int __init abituguru3_dmi_detect(void)
+ 
+ 	for (i = 0; abituguru3_motherboards[i].id; i++) {
+ 		const char *dmi_name = abituguru3_motherboards[i].dmi_name;
+-		if (dmi_name && !strcmp(dmi_name, board_name))
++
++		/*
++		 * Some of the vendor DMI strings are formatted inconsistently
++		 * e.g. "Board Name(Chipset)" vs "Board Name      (Chipset)"
++		 *
++		 * Work around this ambiguity by only matching partial DMI
++		 * board name strings, in an effort to avoid potential
++		 * variances between vendor BIOS revisions.
++		 */
++		if (dmi_name &&
++		    !strncmp(dmi_name, board_name, strlen(dmi_name)))
+ 			break;
+ 	}
+ 
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6205377234867511088==--
