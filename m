@@ -1,36 +1,37 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 09 Oct 2008 13:17:21 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] abituguru3: enable reading from AUX3
-Message-Id: <20081009151721.25f9d3c2@hyperion.delvare>
+From: Alistair John Strachan <alistair@devzero.co.uk>
+Date: Tue, 21 Oct 2008 16:59:32 +0000
+Subject: [lm-sensors] [PATCH 2/3] hwmon: (abituguru3) enable DMI probing
+Message-Id: <1224608373-27352-3-git-send-email-alistair@devzero.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1223485560-3806-2-git-send-email-alistair@devzero.co.uk>
-In-Reply-To: <1223485560-3806-2-git-send-email-alistair@devzero.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 09 Oct 2008 09:46:39 +0200, Hans de Goede wrote:
-> 
-> 
-> Alistair John Strachan wrote:
-> > The table for the Abit AT8 32X was incorrectly missing an entry
-> > for the sixth ("AUX3") fan. Add this entry, exporting the fan
-> > reading to userspace.
-> > 
-> > Closes lm-sensors.org ticket #2339.
-> > 
-> > Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
-> > Tested-by: Daniel Exner <dex@dragonslave.de>
-> 
-> Looks good,
-> 
-> Acked-by: Hans de Goede <hdegoede@redhat.com>
+Switch the AW9D-MAX over from port probing to the preferred DMI
+probe method.
 
-Queued up for 2.6.27, thanks.
+Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
+Tested-by: Justin Piszcz <jpiszcz@lucidpixels.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/abituguru3.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-Jean Delvare
+diff --git a/drivers/hwmon/abituguru3.c b/drivers/hwmon/abituguru3.c
+index d9e7a49..ff6aad8 100644
+--- a/drivers/hwmon/abituguru3.c
++++ b/drivers/hwmon/abituguru3.c
+@@ -402,7 +402,7 @@ static const struct abituguru3_motherboard_info abituguru3_motherboards[] = {
+ 		{ "AUX3 Fan",		36, 2, 60, 1, 0 },
+ 		{ NULL, 0, 0, 0, 0, 0 } }
+ 	},
+-	{ 0x0016, NULL /* AW9D-MAX, need DMI string */, {
++	{ 0x0016, "AW9D-MAX       (Intel i975-ICH7)", {
+ 		{ "CPU Core",		 0, 0, 10, 1, 0 },
+ 		{ "DDR2",		 1, 0, 20, 1, 0 },
+ 		{ "DDR2 VTT",		 2, 0, 10, 1, 0 },
 
 _______________________________________________
 lm-sensors mailing list
