@@ -1,46 +1,27 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 21 Oct 2008 12:27:52 +0000
+Date: Tue, 21 Oct 2008 12:50:37 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Add LTC4245 driver
-Message-Id: <20081021142752.35869755@hyperion.delvare>
+Message-Id: <20081021145037.39f19b1c@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20081020160308.GA22915@ovro.caltech.edu>
 In-Reply-To: <20081020160308.GA22915@ovro.caltech.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 20 Oct 2008 19:29:50 +0200, Hans de Goede wrote:
-> 
-> 
-> Ira Snyder wrote:
-> > Add Linux support for the Linear Technology LTC4245 Multiple Supply Hot
-> > Swap controller I2C monitoring interface.
-> > 
-> > Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
-> > ---
-> > 
-> > I'm pretty sure this should be the final revision of the driver. Please
-> > go ahead and forward it upstream. :)
-> > 
-> 
-> Looks good now :)
-> 
-> Jean, can you put this patch in your for Linus for 2.6.28 queue please?
-> 
-> This is:
-> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
-> or
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> 
-> Whatever you deem more appropriate.
+Oh, BTW... Your driver doesn't build:
 
-Actually that would be:
+drivers/hwmon/ltc4245.c: In function ‘ltc4245_get_current’:
+drivers/hwmon/ltc4245.c:168: warning: function declaration isn’t a prototype
+drivers/hwmon/ltc4245.c:168: error: conflicting types for ‘get_current’
+include/asm/current.h:24: error: previous definition of ‘get_current’ was here
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
+Apparently get_current is a global symbol already so you will need to
+come up with a different name. Prefixing your function names with the
+driver name is usually a good way to protect against this.
 
-Signed-off-by would technically require that you resend the patch to me.
-
+Thanks,
 -- 
 Jean Delvare
 
