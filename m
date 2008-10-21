@@ -1,7 +1,7 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Mon, 20 Oct 2008 17:29:50 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 21 Oct 2008 12:19:40 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Add LTC4245 driver
-Message-Id: <48FCC00E.5050109@redhat.com>
+Message-Id: <20081021141940.1bf38d7d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20081020160308.GA22915@ovro.caltech.edu>
 In-Reply-To: <20081020160308.GA22915@ovro.caltech.edu>
@@ -10,9 +10,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Ira, hi Hans,
 
-
-Ira Snyder wrote:
+On Mon, 20 Oct 2008 09:03:08 -0700, Ira Snyder wrote:
 > Add Linux support for the Linear Technology LTC4245 Multiple Supply Hot
 > Swap controller I2C monitoring interface.
 > 
@@ -22,22 +22,13 @@ Ira Snyder wrote:
 > I'm pretty sure this should be the final revision of the driver. Please
 > go ahead and forward it upstream. :)
 > 
-
-Looks good now :)
-
-Jean, can you put this patch in your for Linus for 2.6.28 queue please?
-
-This is:
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
-or
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-
-Whatever you deem more appropriate.
-
-Thanks & Regards,
-
-Hans
-
+> I apologize for the late response. I was having some troubles with my
+> email. They should all be sorted out now.
+> 
+> Thanks for all the help and review!
+> Ira
+> 
+> 
 > Changes v3 -> v4:
 >   * simplify ltc4245_get_voltage(), removing special casing for -12v
 >   * power should always be a positive value
@@ -51,6 +42,10 @@ Hans
 >   * fixed checkpatch warnings
 >   * removed raw register access, per suggestions
 >   * changed sysfs interface, per suggestions (current, power, alarms)
+
+Hans, thanks a lot for the reviews. Ira, thanks for going through all
+the iterations patiently. My turn now:
+
 > 
 > 
 >  Documentation/hwmon/ltc4245 |   69 +++++
@@ -126,6 +121,11 @@ Hans
 > +in6_min_alarm		5v  output undervoltage alarm
 > +in7_min_alarm		3v  output undervoltage alarm
 > +in8_min_alarm		Vee (-12v) output undervoltage alarm
+
+I find it a bit weird to have alarms for limits which do not have sysfs
+files themselves. If we know the limits, we could expose them as
+read-only attributes (in a future patch)?
+
 > +
 > +in9_input		GPIO #1 voltage data
 > +in10_input		GPIO #2 voltage data
@@ -200,11 +200,37 @@ Hans
 > +
 > +/* Addresses to probe */
 > +static unsigned short normal_i2c[] = {
+
+Should be const.
+
 > +	0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
 > +	0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
 > +	0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
 > +	0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f,
 > +	I2C_CLIENT_END};
+
+That's a lot of addresses. This has several drawbacks:
+* This can make driver loading very slow on systems with many I2C
+  buses, especially as you read from a lot of registers in your detect
+  function.
+* Some of these addresses (0x30-0x3f) are known to be
+  probing-unfriendly. With such a large range of probes, the risk that
+  you hit a chip which misbehaves on probe is high.
+* As the LTC4245 doesn't have dedicated identification registers, you
+  have to rely on heuristics, which may yield to false positives. I see
+  that you have gone to quite some extent to make detection as good as
+  possible, however the LTC4245 isn't the only chip out there which
+  ignores the high bits of the register address, and checking for bits
+  being 0 isn't terribly reliable (most I2C devices return 0x00 as the
+  value of unused registers.)
+
+So I'd rather limit the probing to addresses where the LTC4245 is
+commonly found. Or even drop probing entirely. I don't expect these
+chips to appear on mainstream hardware, probably it is only used in
+specialized equipment, and there you know at which address it lives so
+you don't need to probe for it? I would hope that you can simply
+instantiate the i2c client explicitly where needed.
+
 > +
 > +/* Insmod parameters */
 > +I2C_CLIENT_INSMOD_1(ltc4245);
@@ -256,6 +282,10 @@ Hans
 > +{
 > +	return i2c_smbus_read_byte_data(client, reg);
 > +}
+
+This function doesn't strike me as very useful. At the very least it
+should be declared inline, but it could as well be dropped.
+
 > +
 > +#if 0
 > +static s32 ltc4245_write_reg(struct i2c_client *client, u8 reg, u8 val)
@@ -263,6 +293,9 @@ Hans
 > +	return i2c_smbus_write_byte_data(client, reg, val);
 > +}
 > +#endif
+
+Don't include this at all if you don't need it.
+
 > +
 > +static struct ltc4245_data *ltc4245_update_device(struct device *dev)
 > +{
@@ -303,6 +336,9 @@ Hans
 > +
 > +	if (unlikely(val < 0))
 > +		return 0;
+
+It's not unlikely, it's impossible. data->vregs is an array of u8.
+
 > +
 > +	switch (reg) {
 > +	case LTC4245_12VIN:
@@ -331,6 +367,10 @@ Hans
 > +		WARN_ON_ONCE(1);
 > +		break;
 > +	}
+
+I am under the impression that a 11-element array of scaling factors
+would work much better - but it's up to you.
+
 > +
 > +	return voltage;
 > +}
@@ -346,6 +386,9 @@ Hans
 > +
 > +	if (unlikely(val) < 0)
 > +		return 0;
+
+Same as above, this simply can't happen.
+
 > +
 > +	/* The strange looking conversions that follow are fixed-point
 > +	 * math, since we cannot do floating point in the kernel.
@@ -396,6 +439,11 @@ Hans
 > +	const u32 voltage = ltc4245_get_voltage(dev, attr->index);
 > +
 > +	return snprintf(buf, PAGE_SIZE, "%d\n", voltage);
+
+Seems inconsistent to store the voltage in a u32 and print it with %d.
+As ltc4245_get_voltage() returns an int, why don't you declare voltage
+an int as well?
+
 > +}
 > +
 > +static ssize_t ltc4245_show_current(struct device *dev,
@@ -418,6 +466,9 @@ Hans
 > +
 > +	/* current in mA * voltage in mV = power in uW */
 > +	const unsigned int power = abs(output_voltage * current);
+
+abs() is defined in <linux/kernel.h>, which you didn't include.
+
 > +
 > +	return snprintf(buf, PAGE_SIZE, "%u\n", power);
 > +}
@@ -435,6 +486,12 @@ Hans
 > +		memset(buf, 0, PAGE_SIZE); /* user should not see old data */
 > +		return 0;
 > +	}
+
+Same as above, this simply can't happen.
+
+And as a side note, you don't bother zeroing the rest of the page on
+success, so I can't see why you insist on doing it on failure.
+
 > +
 > +	return snprintf(buf, PAGE_SIZE, "%u\n", (reg & mask) ? 1 : 0);
 > +}
@@ -556,6 +613,9 @@ Hans
 > +};
 > +
 > +static struct attribute_group ltc4245_group = {
+
+Should be const.
+
 > +	.attrs = ltc4245_attributes,
 > +};
 > +
@@ -568,6 +628,9 @@ Hans
 > +	data = kzalloc(sizeof(*data), GFP_KERNEL);
 > +
 > +	if (!data) {
+
+Coding style: no blank line between function call and error test.
+
 > +		ret = -ENOMEM;
 > +		goto out_kzalloc;
 > +	}
@@ -582,10 +645,16 @@ Hans
 > +	ret = sysfs_create_group(&client->dev.kobj, &ltc4245_group);
 > +
 > +	if (ret)
+
+Same here...
+
 > +		goto out_sysfs_create_group;
 > +
 > +	data->hwmon_dev = hwmon_device_register(&client->dev);
 > +
+
+... and here.
+
 > +	if (IS_ERR(data->hwmon_dev)) {
 > +		ret = PTR_ERR(data->hwmon_dev);
 > +		goto out_hwmon_device_register;
@@ -632,6 +701,11 @@ Hans
 > +	s32 v, voff1, voff2;
 > +
 > +	v = ltc4245_read_reg(client, reg) & bits;
+
+ltc4245_read_reg may return an error. Masking error values usually
+isn't what you want ;) Check for < 0 first and mask only after that.
+Same problem below.
+
 > +
 > +	if (v < 0)
 > +		return -ENODEV;
@@ -681,6 +755,10 @@ Hans
 > +
 > +		/* read register 0x02 reserved bit, expect 0 */
 > +		v = ltc4245_read_reg(client, LTC4245_CONTROL);
+
+Note: you should never call device-specific read functions in detect
+functions, as by definition you don't yet know which device you have.
+
 > +		if (v < 0 || (v & 0x04) != 0)
 > +			return -ENODEV;
 > +
@@ -710,6 +788,9 @@ Hans
 > +	pr_info("ltc4245: %s on i2c-%u address 0x%02x\n",
 > +			kind < 0 ? "probed" : "forced",
 > +			adapter->nr, client->addr);
+
+Please use dev_info(&adapter->dev, ...) instead.
+
 > +
 > +	return 0;
 > +}
@@ -749,6 +830,10 @@ Hans
 > +
 > +module_init(ltc4245_init);
 > +module_exit(ltc4245_exit);
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
