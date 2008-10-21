@@ -1,7 +1,7 @@
-From: Tony McConnell <amnw14545@googlemail.com>
-Date: Mon, 20 Oct 2008 18:42:01 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 21 Oct 2008 11:11:47 +0000
 Subject: Re: [lm-sensors] [RFC] PATCH: f71882fg add support for the f71862fg
-Message-Id: <1224528121.16324.3.camel@tony-laptop>
+Message-Id: <20081021131147.44d0bccb@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <48FC9ED8.5020206@redhat.com>
 In-Reply-To: <48FC9ED8.5020206@redhat.com>
@@ -10,18 +10,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Hans,
 
-I've tested the patch, and it works without problems with the F71862FG
-on my NC81-LF board.
-
-Regards
-
-Tony
-
-On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
-> Hi All,
-> 
+On Mon, 20 Oct 2008 17:08:08 +0200, Hans de Goede wrote:
 > This patch adds support for the Fintek f71862fg superio monitoring functions to
 > the f71882fg driver.
 > 
@@ -30,19 +21,17 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 > I'm waiting for feedback from Tony McConnell to actually test this as I don't 
 > have the hardware. I expect no troubles with testing and would appreciate a 
 > review now, so that this patch can get merged into 2.6.28 as soon as its tested.
-> 
+
+Here you go:
+
 > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> 
-> Regards,
-> 
-> Hans
-> plain text document attachment (f71882fg-add-f71862fg-support.patch)
-> This patch adds support for the Fintek f71862fg superio monitoring functions to
-> the f71882fg driver.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>
 > --- f71882fg.c.pre-f71862fg	2008-10-20 11:32:17.000000000 +0200
 > +++ f71882fg.c	2008-10-20 16:45:00.000000000 +0200
+
+Full path please, so that I can apply the patch without editing it
+first.
+
 > @@ -1,6 +1,6 @@
 >  /***************************************************************************
 >   *   Copyright (C) 2006 by Hans Edgington <hans@edgington.nl>              *
@@ -99,6 +88,11 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 >  	unsigned short addr;
 > +	enum chips type;
 > +	const char *name;
+
+Not sure why you store the name here, given that you could simply look
+it up as f71882fg_names[data->type] when you need it (which is only
+once as far as I can see.
+
 >  	struct device *hwmon_dev;
 >  
 >  	struct mutex update_lock;
@@ -111,6 +105,9 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 > -static int __init f71882fg_device_add(unsigned short address);
 > -static void __exit f71882fg_exit(void);
 >  
+
+That kind of cleanup would be nicer to have as a preliminary patch.
+
 >  static struct platform_driver f71882fg_driver = {
 >  	.driver = {
 > @@ -243,20 +253,15 @@
@@ -121,6 +118,18 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 > -	__ATTR( name, S_IRUGO, show_name, NULL ),
 > +	SENSOR_ATTR_2(name, S_IRUGO, show_name, NULL, 0, 0),
 >  };
+
+This change makes little sense to me. I understand that you want to
+have this array in the same format as the other attribute arrays so
+that you can call f71882fg_create_sysfs_files() on it... But isn't it a
+bit overkill to have an array of sensor_device_attribute_2 structures
+for just one attribute which doesn't even need these extra parameters?
+You could simply use DEVICE_ATTR() and call device_create_file()
+directly on it.
+
+Not to mention that the name of this attribute array isn't even
+consistent with the other names.
+
 >  
 > -static struct sensor_device_attribute_2 f71882fg_in_temp_attr[] > +static struct sensor_device_attribute_2 f718x2fg_in_temp_attr[] >  {
 >  	SENSOR_ATTR_2(in0_input, S_IRUGO, show_in, NULL, 0, 0),
@@ -275,6 +284,10 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 >  	struct f71882fg_data *data = dev_get_drvdata(dev);
 >  	int nr, reg, reg2;
 > +	int no_fans = (data->type = f71862fg) ? 3 : 4;
+
+I suggest renaming this to nr_fans or just n_fans. "no_fans" is
+ambiguous.
+
 >  
 >  	mutex_lock(&data->update_lock);
 >  
@@ -354,6 +367,9 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 > +		if (data->type = f71882fg)
 > +			data->in_status = f71882fg_read8(data,
 >  						F71882FG_REG_IN_STATUS);
+
+Moving this up with the other in-related reads would save you a test.
+
 >  		for (nr = 0; nr < 9; nr++)
 >  			data->in[nr] = f71882fg_read8(data,
 > @@ -1151,13 +1234,15 @@
@@ -400,9 +416,15 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 > +	}
 > +	return 0;
 > +}
+
+Would have been nice to have in a preliminary patch as well.
+
 >  
 > -static int __devinit f71882fg_probe(struct platform_device * pdev)
 > +static int __devinit f71882fg_probe(struct platform_device *pdev)
+
+Cleanup...
+
 >  {
 >  	struct f71882fg_data *data;
 > -	int err, i;
@@ -414,6 +436,9 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 > +	data = kzalloc(sizeof(struct f71882fg_data), GFP_KERNEL);
 > +	if (!data)
 >  		return -ENOMEM;
+
+Cleanup...
+
 >  
 >  	data->addr = platform_get_resource(pdev, IORESOURCE_IO, 0)->start;
 > +	data->type = sio_data->type;
@@ -497,6 +522,9 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 > -
 > -	kfree(data);
 > +	f71882fg_remove(pdev); /* Will unregister the sysfs files for us */
+
+If you do that then f71882fg_remove can no longer be marked __devexit.
+
 >  
 >  	return err;
 >  }
@@ -567,6 +595,11 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 > -	start_reg = f71882fg_read8(&data, F71882FG_REG_START);
 > -	if (!(start_reg & 0x03)) {
 > +	reg = f71882fg_read8(&data, F71882FG_REG_START);
+
+Unrelated to this patch, but as I just notice it... Here you access I/O
+ports which you did not yet request. This is bad. All these tests
+belong to f71882fg_probe() anyway.
+
 > +	if (!(reg & 0x03)) {
 >  		printk(KERN_WARNING DRVNAME
 >  			": Hardware monitoring not activated\n");
@@ -574,6 +607,9 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 >  	}
 >  
 > +	/* If its a 71862 and the fan / pwm part is enabled sanity check
+
+Spelling: "it is".
+
 > +	   the pwm settings */
 > +	if (sio_data->type = f71862fg && (reg & 0x02)) {
 > +		reg = f71882fg_read8(&data, F71882FG_REG_PWM_ENABLE);
@@ -620,6 +656,9 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 >  	int err = -ENODEV;
 >  	unsigned short address;
 > +	struct f71882fg_sio_data sio_data;
+
+Please memset() sio_data. I've been bitten by that recently.
+
 >  
 > -	if (f71882fg_find(0x2e, &address) && f71882fg_find(0x4e, &address))
 > +	if (f71882fg_find(0x2e, &address, &sio_data) &&
@@ -635,6 +674,9 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 > +	err = f71882fg_device_add(address, &sio_data);
 > +	if (err)
 >  		goto exit_driver;
+
+Cleanups...
+
 >  
 >  	return 0;
 > @@ -1598,7 +1748,7 @@
@@ -643,10 +685,22 @@ On Mon, 2008-10-20 at 17:08 +0200, Hans de Goede wrote:
 >  MODULE_DESCRIPTION("F71882FG Hardware Monitoring Driver");
 > -MODULE_AUTHOR("Hans Edgington (hans@edgington.nl)");
 > +MODULE_AUTHOR("Hans de Goede (hdegoede@redhat.com)");
+
+Adding yourself is fine. Removing the other Hans, on the other hand, is
+a bit harsh IMHO. Remove his e-mail address if you want, but please
+leave his name.
+
 >  MODULE_LICENSE("GPL");
 >  
 >  module_init(f71882fg_init);
 
+Let me know how you want to proceed from here. There are only 3 days
+left until the end of the merge window, and I don't want to delay my
+pull request to Linus until the very last moment. So if you want this
+patch in kernel 2.6.28, we have to be very quick.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
