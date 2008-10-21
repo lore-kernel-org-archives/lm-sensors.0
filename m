@@ -1,7 +1,7 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Tue, 21 Oct 2008 17:19:05 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 21 Oct 2008 19:30:35 +0000
 Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: (abituguru3) enable DMI probing
-Message-Id: <48FE0F09.6080803@redhat.com>
+Message-Id: <20081021213035.6ca1fe22@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1224608373-27352-3-git-send-email-alistair@devzero.co.uk>
 In-Reply-To: <1224608373-27352-3-git-send-email-alistair@devzero.co.uk>
@@ -10,9 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-
-Alistair John Strachan wrote:
+On Tue, 21 Oct 2008 17:59:32 +0100, Alistair John Strachan wrote:
 > Switch the AW9D-MAX over from port probing to the preferred DMI
 > probe method.
 > 
@@ -20,15 +18,6 @@ Alistair John Strachan wrote:
 > Tested-by: Justin Piszcz <jpiszcz@lucidpixels.com>
 > Cc: Hans de Goede <hdegoede@redhat.com>
 > Cc: Jean Delvare <khali@linux-fr.org>
-
-Looks good,
-
-Acked-by: Hans de Goede <hdegoede@redhat.com>
-
-Regards,
-
-Hans
-
 > ---
 >  drivers/hwmon/abituguru3.c |    2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
@@ -46,6 +35,11 @@ Hans
 >  		{ "CPU Core",		 0, 0, 10, 1, 0 },
 >  		{ "DDR2",		 1, 0, 20, 1, 0 },
 >  		{ "DDR2 VTT",		 2, 0, 10, 1, 0 },
+
+Applied, thanks.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
