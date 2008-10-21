@@ -1,32 +1,39 @@
-From: Bernhard Rieder <bernhard@ratte.dhs.org>
-Date: Tue, 21 Oct 2008 12:21:46 +0000
-Subject: [lm-sensors] Intend to implement ADT7467/ADT7468 driver
-Message-Id: <20081021122146.GA7049@ratte.dhs.org>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Tue, 21 Oct 2008 12:39:12 +0000
+Subject: Re: [lm-sensors] Intend to implement ADT7467/ADT7468 driver
+Message-Id: <48FDCD70.601@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20081021122146.GA7049@ratte.dhs.org>
+In-Reply-To: <20081021122146.GA7049@ratte.dhs.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgRXZlcnlib2R5LAoKSSBhbSBjdXJyZW50bHkgd29ya2luZyBvbiBhbiBBRFQ3NDZbNzhdIGRy
-aXZlciB3aGljaCB3aWxsIGJlIGZpbmlzaGVkIHNvb24uCgpIb3dldmVyLCBJIGFtIG5vdCBzdXJl
-IGhvdyB0byByZWFjdCB0byBlcnJvcnMuIFdoaWNoIHZhbHVlcyBkbyBJIHJldHVybiBpbiBjYXNl
-CnRoZSBjaGlwIHJlcG9ydHMgZXJyb3JzIChpLmUuIHRlbXA9LTY0IGlzIGFuIGVycm9yIHZhbHVl
-IGZvciB0aGUgdGVtcGVyYXR1cmUgcmVhZGluZywKLTYzIGlzIG9rKS4gQXJlIHRoZXJlIHNvbWV3
-aGVyZSBlcnJvciB2YWx1ZXMgZGVmaW5lZCB3aGljaCBjYW4gdXNlZCBmb3IgdGhpcz8gSSBkbwpu
-b3QgdGhpbmsgdXNpbmYgLTY0IGlzIGEgZ29vZCBjaG9pY2UsIGJlY2F1c2UgdGhlIGNoaXAgaGFz
-IHR3byBtb2RlcyBmb3IgdGVtcGVyYXR1cmUKYW5kIGFuIGVycm9yIHdvdWxkIGJlIHJlcG9ydGVk
-IGFzIC0xMjggaW4gdGhlIG90aGVyIG1vZGUuIEFkZGl0aW9uYWxseSwgLTY0IGNvdWxkIGJlCmlu
-dGVycHJldGVkIGFzIGEgcmVhbCB2YWx1ZSAoYXQgbGVhc3QgaW4gc2liaXJpYSB3aGVuIGl0IGlz
-IGEgY29sZCB3aW50ZXIgZGF5KS4KCkFyZSB0aGVyZSBzb21ld2hlcmUgY29uc3RhbnRzIGxpa2Ug
-U0VOU09SU19WT0xUQUdFX0lOVkFMSUQsIFNFTlNPUlNfVEVNUF9JTlZBTElELCAuLi4Kd2hpY2gg
-SSBtaXNzZWQ/IEkgdGhpbmsgY29tbW9uIGVycm9yIHZhbHVlcyB3b3VsZCBiZSByZWFsbHkgYmVu
-ZWZpY2lhbCAuLi4KCmJlc3QgcmVnYXJkcywKQmVybmhhcmQKCi0tIApEaXBsLi1JbmcuIEJlcm5o
-YXJkIFJpZWRlciAgICAgICAgICAgZW1haWw6IGJlcm5oYXJkQHZtYXJzLnR1d2llbi5hYy5hdApS
-ZWFsLVRpbWUgU3lzdGVtcyBHcm91cCAgICAgICAgICAgICAgd2ViOiBodHRwOi8vd3d3LnZtYXJz
-LnR1d2llbi5hYy5hdC8KVmllbm5hIFVuaXZlcnNpdHkgb2YgVGVjaG5vbG9neSAgICAgIHZvaWNl
-OiArNDMgKDEpIDU4ODAxLTE4MjI0CkEtMTA0MCBXaWVuLCBUcmVpdGxzdHJh32UgMy8xODItMSAg
-ICBmYXg6ICAgKzQzICgxKSA1ODY5MTQ5CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1z
-ZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9s
-bS1zZW5zb3JzCg==
+Bernhard Rieder wrote:
+> Hi Everybody,
+> 
+> I am currently working on an ADT746[78] driver which will be finished soon.
+> 
+> However, I am not sure how to react to errors. Which values do I return in case
+> the chip reports errors (i.e. temp=-64 is an error value for the temperature reading,
+> -63 is ok). Are there somewhere error values defined which can used for this? I do
+> not think usinf -64 is a good choice, because the chip has two modes for temperature
+> and an error would be reported as -128 in the other mode. Additionally, -64 could be
+> interpreted as a real value (at least in sibiria when it is a cold winter day).
+> 
+
+To report errors we have a separate sysfs attribute called temp#_fault, I think 
+you want to implement that and have it return 1 when read when the temp is 
+-64/-128 (normally it should read as 0). For temp#_input you can just return 
+the temp even if it is an error, apps should ignore the reading from 
+temp#_input when temp#_fault reads 1.
+
+Regards,
+
+Hans
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
