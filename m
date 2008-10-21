@@ -1,7 +1,7 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Tue, 21 Oct 2008 17:19:49 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 21 Oct 2008 19:53:00 +0000
 Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (abituguru3) match partial DMI
-Message-Id: <48FE0F35.2040904@redhat.com>
+Message-Id: <20081021215300.612c4909@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1224608373-27352-4-git-send-email-alistair@devzero.co.uk>
 In-Reply-To: <1224608373-27352-4-git-send-email-alistair@devzero.co.uk>
@@ -10,9 +10,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Alistair, Hans,
 
-
-Alistair John Strachan wrote:
+On Tue, 21 Oct 2008 17:59:33 +0100, Alistair John Strachan wrote:
 > Abit DMI product name strings are composed of the product branding
 > and the north/south bridge chipset names, respectively.
 > 
@@ -32,16 +32,6 @@ Alistair John Strachan wrote:
 > Tested-by: Justin Piszcz <jpiszcz@lucidpixels.com>
 > Cc: Hans de Goede <hdegoede@redhat.com>
 > Cc: Jean Delvare <khali@linux-fr.org>
-
-Looks good,
-
-Acked-by: Hans de Goede <hdegoede@redhat.com>
-
-Regards,
-
-Hans
-
-
 > ---
 >  drivers/hwmon/abituguru3.c |   18 ++++++++++++++----
 >  1 file changed, 14 insertions(+), 4 deletions(-)
@@ -96,6 +86,31 @@ Hans
 >  			break;
 >  	}
 >  
+
+I know that I'm the one who suggested this change, but... Are there no
+known Abit boards those name is another board's name with an added
+suffix? Looking at this list for example:
+http://www.abit.com.tw/page/en/motherboard/motherboard_type.php?fMTYPE=Socket+AM2
+I see "AN52V", "AN52 V2.0", "AN52" and "AN52S". An entry "AN52" in the
+abituguru3_motherboards table would match all 4 boards. And there are
+other examples such as "AW9D" and "AW9D-MAX" (which is even more
+relevant as the latter is in the abituguru3_motherboards table already.)
+
+So I don't think that the implementation above is safe, unless the
+entries in abituguru3_dmi_detect are sorted specifically to make the
+short string comparison always correct. But that's easy to screw this
+up later.
+
+An alternative would be to make a slightly more customized comparison
+function: instead of passing strlen(dmi_name) as the length parameter
+of strncmp(), you would compute the length by looking for the last
+non-space character before the opening parenthesis in board_name. This
+would require some more code, but would be more robust. Whether it's
+worth it, I'll leave up to you: either do that or leave the code as it
+is now.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
