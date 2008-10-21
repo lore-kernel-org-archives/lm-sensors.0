@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Tue, 21 Oct 2008 12:39:12 +0000
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Tue, 21 Oct 2008 22:43:23 +0000
 Subject: Re: [lm-sensors] Intend to implement ADT7467/ADT7468 driver
-Message-Id: <48FDCD70.601@hhs.nl>
+Message-Id: <20081021224322.GN7771@tree.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20081021122146.GA7049@ratte.dhs.org>
 In-Reply-To: <20081021122146.GA7049@ratte.dhs.org>
@@ -10,7 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Bernhard Rieder wrote:
+On Tue, Oct 21, 2008 at 02:21:46PM +0200, Bernhard Rieder wrote:
 > Hi Everybody,
 > 
 > I am currently working on an ADT746[78] driver which will be finished soon.
@@ -22,16 +22,19 @@ Bernhard Rieder wrote:
 > and an error would be reported as -128 in the other mode. Additionally, -64 could be
 > interpreted as a real value (at least in sibiria when it is a cold winter day).
 > 
+> Are there somewhere constants like SENSORS_VOLTAGE_INVALID, SENSORS_TEMP_INVALID, ...
+> which I missed? I think common error values would be really beneficial ...
 
-To report errors we have a separate sysfs attribute called temp#_fault, I think 
-you want to implement that and have it return 1 when read when the temp is 
--64/-128 (normally it should read as 0). For temp#_input you can just return 
-the temp even if it is an error, apps should ignore the reading from 
-temp#_input when temp#_fault reads 1.
+Hm... I think the lm85/adt7468 have similar registers.  Oddly, I was
+working on a patch to the lm85 driver to add 7468 support.  I suspect we
+should collaborate. :)
 
-Regards,
+Also, a driver for the adt7467 is (mostly?) implemented in
+drivers/macintosh/therm_adt746x.c, though it relies on finding the
+device via some sort of openfirmware calls, which isn't appropriate for
+PCs.
 
-Hans
+--D
 
 _______________________________________________
 lm-sensors mailing list
