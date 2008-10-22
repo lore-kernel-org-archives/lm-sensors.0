@@ -1,49 +1,119 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 07 Oct 2008 20:16:32 +0000
-Subject: Re: [lm-sensors] Looking for IT8720 datasheet.
-Message-Id: <20081007221632.0e5a8679@hyperion.delvare>
+Date: Wed, 22 Oct 2008 11:46:28 +0000
+Subject: [lm-sensors] [PATCH 1/2] libsensors: Add support for instantaneous
+Message-Id: <20081022134628.5224289d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <79c9d4530810020825r79de9817g6933f6cab1d414c1@mail.gmail.com>
-In-Reply-To: <79c9d4530810020825r79de9817g6933f6cab1d414c1@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 03 Oct 2008 13:14:31 -0400, Frank Myhr wrote:
-> Jean-Marc Spaggiari wrote:
-> > When I force has_fan to 5 fans, I get:
-> > 
-> > fan1:       3000 RPM  (min =    0 RPM)
-> > fan2:          0 RPM  (min =    0 RPM)
-> > fan3:       5973 RPM  (min =    0 RPM)
-> > fan4:         -1 RPM  (min =   -1 RPM)
-> > fan5:         -1 RPM  (min =   -1 RPM)
-> > 
-> > So can I just help him to read to pwm 4 and 5 correctly?
-> 
-> The -1 values you're reporting for fan4 and fan5 come from
-> #define FAN16_FROM_REG(val) ((val)=0?-1:(val)=0xffff?0:1350000/((val)*2))
-> 
-> In other words, the 8720 reports "0", the above macro converts that to
-> -1. (I'm not entirely clear why this is done.)
+Add support for instantaneous power sensors.
+---
+I'd appreciate review and testing of this patch. Darrick, please test
+that this doesn't break support of your IBM chips.
 
-That's a legacy from the good ol' times. Old drivers tend to report
-missing fans, fan failures or impossible register values with a speed
-of -1. It never made any sense to me and many drivers report this
-condition as RPM = 0, with an optional fanN_fault file getting value 1
-for detected fan failures.
+ doc/libsensors-API.txt |    6 ++++++
+ lib/sensors.h          |    6 ++++--
+ lib/sysfs.c            |    3 +++
+ prog/sensors/chips.c   |   28 +++++++++++++++++++++-------
+ 4 files changed, 34 insertions(+), 9 deletions(-)
 
-We have no clear standard for this yet so in practice every driver is
-free to report -1 or 0 for uncommon fan conditions.
+--- lm-sensors-3.orig/lib/sensors.h	2008-10-22 11:50:39.000000000 +0200
++++ lm-sensors-3/lib/sensors.h	2008-10-22 12:03:36.000000000 +0200
+@@ -31,7 +31,7 @@
+    when the API + ABI breaks), the third digit is incremented to track small
+    API additions like new flags / enum values. The second digit is for tracking
+    larger additions like new methods. */
+-#define SENSORS_API_VERSION		0x401
++#define SENSORS_API_VERSION		0x402
+ 
+ #define SENSORS_CHIP_NAME_PREFIX_ANY	NULL
+ #define SENSORS_CHIP_NAME_ADDR_ANY	(-1)
+@@ -175,7 +175,9 @@ typedef enum sensors_subfeature_type {
+ 	SENSORS_SUBFEATURE_POWER_AVERAGE = SENSORS_FEATURE_POWER << 8,
+ 	SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST,
+ 	SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST,
+-
++	SENSORS_SUBFEATURE_POWER_INPUT,
++	SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST,
++	SENSORS_SUBFEATURE_POWER_INPUT_LOWEST,
+ 	SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL = (SENSORS_FEATURE_POWER << 8) | 0x80,
+ 
+ 	SENSORS_SUBFEATURE_ENERGY_INPUT = SENSORS_FEATURE_ENERGY << 8,
+--- lm-sensors-3.orig/lib/sysfs.c	2008-10-22 11:50:39.000000000 +0200
++++ lm-sensors-3/lib/sysfs.c	2008-10-22 12:03:36.000000000 +0200
+@@ -247,6 +247,9 @@ static const struct subfeature_type_matc
+ 	{ "average", SENSORS_SUBFEATURE_POWER_AVERAGE },
+ 	{ "average_highest", SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST },
+ 	{ "average_lowest", SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST },
++	{ "input", SENSORS_SUBFEATURE_POWER_INPUT },
++	{ "input_highest", SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST },
++	{ "input_lowest", SENSORS_SUBFEATURE_POWER_INPUT_LOWEST },
+ 	{ "average_interval", SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL },
+ 	{ NULL, 0 }
+ };
+--- lm-sensors-3.orig/prog/sensors/chips.c	2008-10-22 11:50:38.000000000 +0200
++++ lm-sensors-3/prog/sensors/chips.c	2008-10-22 12:04:38.000000000 +0200
+@@ -449,8 +449,28 @@ static void print_chip_power(const senso
+ 	print_label(label, label_size);
+ 	free(label);
+ 
++	/* Power sensors come in 2 flavors: instantaneous and averaged.
++	   To keep things simple, we assume that each sensor only implements
++	   one flavor. */
+ 	sf = sensors_get_subfeature(name, feature,
+-				    SENSORS_SUBFEATURE_POWER_AVERAGE);
++				    SENSORS_SUBFEATURE_POWER_INPUT);
++	if (sf) {
++		sfmin = sensors_get_subfeature(name, feature,
++					       SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST);
++		sfmax = sensors_get_subfeature(name, feature,
++					       SENSORS_SUBFEATURE_POWER_INPUT_LOWEST);
++		sfint = NULL;
++	} else {
++		sf = sensors_get_subfeature(name, feature,
++					    SENSORS_SUBFEATURE_POWER_AVERAGE);
++		sfmin = sensors_get_subfeature(name, feature,
++					       SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST);
++		sfmax = sensors_get_subfeature(name, feature,
++					       SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST);
++		sfint = sensors_get_subfeature(name, feature,
++					       SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL);
++	}
++
+ 	if (sf) {
+ 		val = get_value(name, sf);
+ 		scale_value(&val, &unit);
+@@ -458,12 +478,6 @@ static void print_chip_power(const senso
+ 	} else
+ 		printf("     N/A");
+ 
+-	sfmin = sensors_get_subfeature(name, feature,
+-				      SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST);
+-	sfmax = sensors_get_subfeature(name, feature,
+-				       SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST);
+-	sfint = sensors_get_subfeature(name, feature,
+-				     SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL);
+ 	if (sfmin || sfmax || sfint) {
+ 		printf("  (");
+ 
+--- lm-sensors-3.orig/doc/libsensors-API.txt	2008-10-22 12:03:35.000000000 +0200
++++ lm-sensors-3/doc/libsensors-API.txt	2008-10-22 12:06:42.000000000 +0200
+@@ -6,6 +6,12 @@ over time. This document summarizes thes
+ authors can quickly figure out how to test for the availability of a
+ given new feature.
+ 
++0x402	lm-sensors SVN
++* Added support for instantaneous power sensors
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_INPUT
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_INPUT_LOWEST
++
+ 0x401	lm-sensors 3.0.2 to 3.0.3
+ * Added bus type "virtual":
+   #define SENSORS_BUS_TYPE_VIRTUAL
 
-> > Regarding the resistors. should I publish the values? Or it's useless?
-> 
-> I think it would help at least other users of your board. Perhaps add it
->  to Documentation/hwmon/it87 ?
-
-Best is to write a configuration file for the motherboard in question
-and publish it on lm-sensors.org/wiki.
 
 -- 
 Jean Delvare
