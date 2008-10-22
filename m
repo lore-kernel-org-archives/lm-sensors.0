@@ -1,83 +1,60 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 03 Oct 2008 15:32:16 +0000
-Subject: [lm-sensors] [PATCH] eeepc-laptop: Fix hwmon interface
-Message-Id: <20081003173216.66ce9e5d@hyperion.delvare>
+From: Henrik Rydberg <rydberg@euromail.se>
+Date: Wed, 22 Oct 2008 16:17:50 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: applesmc: Add support for Macbook 5
+Message-Id: <48FF522E.1070209@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: akpm@osdl.org, Nicolas Boichat <nicolas@boichat.ch>, lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
 
-From: Corentin Chary <corentincj@iksaif.net>
+This patch adds accelerometer, backlight and temperature sensor
+support for the new unibody Macbook 5.
 
-Creates a name file in the sysfs directory, that
-is needed for the libsensors library to work.
-Also rename fan1_pwm to pwm1 and scale its value as needed.
-
-This fixes bug #11520:
-http://bugzilla.kernel.org/show_bug.cgi?id520
-
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Tested-by: David M. Lary <dmlary@gmail.com>
 ---
-Updated patch from Corentin.
+ drivers/hwmon/applesmc.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
- drivers/misc/eeepc-laptop.c |   16 +++++++++++++---
- 1 files changed, 13 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/misc/eeepc-laptop.c b/drivers/misc/eeepc-laptop.c
-index facdb98..1ee8501 100644
---- a/drivers/misc/eeepc-laptop.c
-+++ b/drivers/misc/eeepc-laptop.c
-@@ -450,12 +450,14 @@ static int eeepc_get_fan_pwm(void)
- 	int value = 0;
- 
- 	read_acpi_int(NULL, EEEPC_EC_FAN_PWM, &value);
-+	value = value * 255 / 100;
- 	return (value);
- }
- 
- static void eeepc_set_fan_pwm(int value)
- {
--	value = SENSORS_LIMIT(value, 0, 100);
-+	value = SENSORS_LIMIT(value, 0, 255);
-+	value = value * 100 / 255;
- 	ec_write(EEEPC_EC_SC02, value);
- }
- 
-@@ -520,15 +522,23 @@ static ssize_t show_sys_hwmon(int (*get)(void), char *buf)
- 	static SENSOR_DEVICE_ATTR(_name, _mode, show_##_name, store_##_name, 0);
- 
- EEEPC_CREATE_SENSOR_ATTR(fan1_input, S_IRUGO, eeepc_get_fan_rpm, NULL);
--EEEPC_CREATE_SENSOR_ATTR(fan1_pwm, S_IRUGO | S_IWUSR,
-+EEEPC_CREATE_SENSOR_ATTR(pwm1, S_IRUGO | S_IWUSR,
- 			 eeepc_get_fan_pwm, eeepc_set_fan_pwm);
- EEEPC_CREATE_SENSOR_ATTR(pwm1_enable, S_IRUGO | S_IWUSR,
- 			 eeepc_get_fan_ctrl, eeepc_set_fan_ctrl);
- 
-+static ssize_t
-+show_name(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "eeepc\n");
-+}
-+static SENSOR_DEVICE_ATTR(name, S_IRUGO, show_name, NULL, 0);
-+
- static struct attribute *hwmon_attributes[] = {
--	&sensor_dev_attr_fan1_pwm.dev_attr.attr,
-+	&sensor_dev_attr_pwm1.dev_attr.attr,
- 	&sensor_dev_attr_fan1_input.dev_attr.attr,
- 	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
-+	&sensor_dev_attr_name.dev_attr.attr,
- 	NULL
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 80d545d..074f7f4 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -118,6 +118,9 @@ static const char* temperature_sensors_sets[][36] = {
+ 	  "Th0H", "Th1H", "Th2H", "Tm0P", "Ts0P", NULL },
+ /* Set 10: iMac 5,1 */
+ 	{ "TA0P", "TC0D", "TC0P", "TG0D", "TH0P", "TO0P", "Tm0P", NULL },
++/* Set 11: Macbook 5,1 */
++	{ "TB0T", "TB1T", "TB2T", "TB3T", "TC0D", "TC0P", "TN0D", "TN0P",
++	  "TTF0", "Th0H", "Th1H", "ThFH", "Ts0P", "Ts0S", NULL },
  };
- 
+
+ /* List of keys used to read/write fan speeds */
+@@ -1280,6 +1283,8 @@ static __initdata struct dmi_match_data applesmc_dmi_data[] = {
+ 	{ .accelerometer = 1, .light = 1, .temperature_set = 9 },
+ /* iMac 5: light sensor only, temperature set 10 */
+ 	{ .accelerometer = 0, .light = 0, .temperature_set = 10 },
++/* MacBook 5: accelerometer, backlight and temperature set 11 */
++	{ .accelerometer = 1, .light = 1, .temperature_set = 11 },
+ };
+
+ /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
+@@ -1309,6 +1314,10 @@ static __initdata struct dmi_system_id applesmc_whitelist[] = {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBook3") },
+ 		&applesmc_dmi_data[6]},
++	{ applesmc_dmi_match, "Apple MacBook 5", {
++	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
++	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBook5") },
++		&applesmc_dmi_data[11]},
+ 	{ applesmc_dmi_match, "Apple MacBook", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBook") },
 -- 
-1.5.4.3
+1.5.6.3
 
-
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
