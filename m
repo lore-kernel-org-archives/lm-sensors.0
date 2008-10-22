@@ -1,157 +1,129 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 04 Oct 2008 19:38:59 +0000
-Subject: Re: [lm-sensors] kernel 2.6.27-rc8-git6 system lockup possibly
-Message-Id: <20081004213859.4e576df5@hyperion.delvare>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Wed, 22 Oct 2008 12:47:28 +0000
+Subject: Re: [lm-sensors] [PATCH 1/2] libsensors: Add support for
+Message-Id: <48FF20E0.90301@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <f4527be0810041027r490a27e5u44575bcf6af92a7e@mail.gmail.com>
-In-Reply-To: <f4527be0810041027r490a27e5u44575bcf6af92a7e@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Andrew,
-
-On Sat, 4 Oct 2008 18:27:04 +0100, Andrew Lyon wrote:
-> Hi,
+Jean Delvare wrote:
+> Add support for instantaneous power sensors.
+> ---
+> I'd appreciate review and testing of this patch. Darrick, please test
+> that this doesn't break support of your IBM chips.
 > 
-> I am running kernel 2.6.27-rc8-git6 on a supermicro x7dwa-n system, I
-> have w83793, coretemp, and i5k_amb sensor modules loaded, occasionally
-> the system locks up hard requiring reset button to reboot it, this
-> usually happens after a few days of uptime and has never happened less
-> than 24 hours after bootup,  I have sensord running and noticed today
-> that the log output changes just before it locks up, which makes me
-> wonder if reading the sensors is the cause...
+>  doc/libsensors-API.txt |    6 ++++++
+>  lib/sensors.h          |    6 ++++--
+>  lib/sysfs.c            |    3 +++
+>  prog/sensors/chips.c   |   28 +++++++++++++++++++++-------
+>  4 files changed, 34 insertions(+), 9 deletions(-)
 > 
-> The board has 8 fan connections of which 5 are currently used, the
-> w83793 sensors show 10 fan outputs, I plan to add 2 more fans next
-> week as the hot swap drive bay has slots for 4 but only comes with 2,
-> I have not disabled any of the fan sensors in the config file so every
-> minute sensord logs alarms for the unused fans:
 
-For what it's worth, this would be easily avoided by adding
-"set fanX_min 0" statements to your configuration file for unused fans.
+I've reviewed this and it looks good.
 
+Regards,
+
+Hans
+
+> --- lm-sensors-3.orig/lib/sensors.h	2008-10-22 11:50:39.000000000 +0200
+> +++ lm-sensors-3/lib/sensors.h	2008-10-22 12:03:36.000000000 +0200
+> @@ -31,7 +31,7 @@
+>     when the API + ABI breaks), the third digit is incremented to track small
+>     API additions like new flags / enum values. The second digit is for tracking
+>     larger additions like new methods. */
+> -#define SENSORS_API_VERSION		0x401
+> +#define SENSORS_API_VERSION		0x402
+>  
+>  #define SENSORS_CHIP_NAME_PREFIX_ANY	NULL
+>  #define SENSORS_CHIP_NAME_ADDR_ANY	(-1)
+> @@ -175,7 +175,9 @@ typedef enum sensors_subfeature_type {
+>  	SENSORS_SUBFEATURE_POWER_AVERAGE = SENSORS_FEATURE_POWER << 8,
+>  	SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST,
+>  	SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST,
+> -
+> +	SENSORS_SUBFEATURE_POWER_INPUT,
+> +	SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST,
+> +	SENSORS_SUBFEATURE_POWER_INPUT_LOWEST,
+>  	SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL = (SENSORS_FEATURE_POWER << 8) | 0x80,
+>  
+>  	SENSORS_SUBFEATURE_ENERGY_INPUT = SENSORS_FEATURE_ENERGY << 8,
+> --- lm-sensors-3.orig/lib/sysfs.c	2008-10-22 11:50:39.000000000 +0200
+> +++ lm-sensors-3/lib/sysfs.c	2008-10-22 12:03:36.000000000 +0200
+> @@ -247,6 +247,9 @@ static const struct subfeature_type_matc
+>  	{ "average", SENSORS_SUBFEATURE_POWER_AVERAGE },
+>  	{ "average_highest", SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST },
+>  	{ "average_lowest", SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST },
+> +	{ "input", SENSORS_SUBFEATURE_POWER_INPUT },
+> +	{ "input_highest", SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST },
+> +	{ "input_lowest", SENSORS_SUBFEATURE_POWER_INPUT_LOWEST },
+>  	{ "average_interval", SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL },
+>  	{ NULL, 0 }
+>  };
+> --- lm-sensors-3.orig/prog/sensors/chips.c	2008-10-22 11:50:38.000000000 +0200
+> +++ lm-sensors-3/prog/sensors/chips.c	2008-10-22 12:04:38.000000000 +0200
+> @@ -449,8 +449,28 @@ static void print_chip_power(const senso
+>  	print_label(label, label_size);
+>  	free(label);
+>  
+> +	/* Power sensors come in 2 flavors: instantaneous and averaged.
+> +	   To keep things simple, we assume that each sensor only implements
+> +	   one flavor. */
+>  	sf = sensors_get_subfeature(name, feature,
+> -				    SENSORS_SUBFEATURE_POWER_AVERAGE);
+> +				    SENSORS_SUBFEATURE_POWER_INPUT);
+> +	if (sf) {
+> +		sfmin = sensors_get_subfeature(name, feature,
+> +					       SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST);
+> +		sfmax = sensors_get_subfeature(name, feature,
+> +					       SENSORS_SUBFEATURE_POWER_INPUT_LOWEST);
+> +		sfint = NULL;
+> +	} else {
+> +		sf = sensors_get_subfeature(name, feature,
+> +					    SENSORS_SUBFEATURE_POWER_AVERAGE);
+> +		sfmin = sensors_get_subfeature(name, feature,
+> +					       SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST);
+> +		sfmax = sensors_get_subfeature(name, feature,
+> +					       SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST);
+> +		sfint = sensors_get_subfeature(name, feature,
+> +					       SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL);
+> +	}
+> +
+>  	if (sf) {
+>  		val = get_value(name, sf);
+>  		scale_value(&val, &unit);
+> @@ -458,12 +478,6 @@ static void print_chip_power(const senso
+>  	} else
+>  		printf("     N/A");
+>  
+> -	sfmin = sensors_get_subfeature(name, feature,
+> -				      SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST);
+> -	sfmax = sensors_get_subfeature(name, feature,
+> -				       SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST);
+> -	sfint = sensors_get_subfeature(name, feature,
+> -				     SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL);
+>  	if (sfmin || sfmax || sfint) {
+>  		printf("  (");
+>  
+> --- lm-sensors-3.orig/doc/libsensors-API.txt	2008-10-22 12:03:35.000000000 +0200
+> +++ lm-sensors-3/doc/libsensors-API.txt	2008-10-22 12:06:42.000000000 +0200
+> @@ -6,6 +6,12 @@ over time. This document summarizes thes
+>  authors can quickly figure out how to test for the availability of a
+>  given new feature.
+>  
+> +0x402	lm-sensors SVN
+> +* Added support for instantaneous power sensors
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_INPUT
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_INPUT_LOWEST
+> +
+>  0x401	lm-sensors 3.0.2 to 3.0.3
+>  * Added bus type "virtual":
+>    #define SENSORS_BUS_TYPE_VIRTUAL
 > 
-> Oct  4 16:34:06 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan9: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:34:06 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan10: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:35:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan1: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:35:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan4: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:35:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan5: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:35:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan9: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:35:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan10: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:36:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan1: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:36:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan4: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:36:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan5: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:36:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan9: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:36:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan10: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:37:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan1: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:37:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan4: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:37:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan5: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:37:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan9: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:37:07 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan10: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:38:08 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan1: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:38:08 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan4: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:38:08 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan5: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:38:08 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan9: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:38:08 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan10: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:39:10 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan1: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:39:10 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan4: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:39:10 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan5: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:39:10 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan9: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:39:10 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan10: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:40:10 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan1: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:40:10 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan4: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:40:10 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan5: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:40:10 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan9: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:40:10 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan10: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:41:11 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan1: 0 RPM (min = 712 RPM) [ALARM]
-> Oct  4 16:41:11 supermicro sensord: Sensor alarm: Chip
-> w83793-i2c-0-2f: fan4: 0 RPM (min = 712 RPM) [ALARM]
 > 
-> right in the middle of a batch of alarm events the log output changes,
-> and these were the last events logged to the serial console before the
-> system locked up:
-> 
-> 
-> Oct  4 16:41:11 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan5: 0
-> Oct  4 16:41:11 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan9: 0
-> Oct  4 16:41:11 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan10: 0
-> Oct  4 16:42:11 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan1: 0
-> Oct  4 16:42:11 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan4: 0
-> Oct  4 16:42:11 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan5: 0
-> Oct  4 16:42:11 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan9: 0
-> Oct  4 16:42:11 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan10: 0
-> Oct  4 16:43:11 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan1: 0
-> Oct  4 16:43:11 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan4: 0
-> Oct  4 16:43:11 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan5: 0
-> Oct  4 16:43:11 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan9: 0
-> Oct  4 16:43:11 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan10: 0
-> Oct  4 16:44:13 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan1: 0
-> Oct  4 16:44:13 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan4: 0
-> Oct  4 16:44:13 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan5: 0
-> Oct  4 16:44:13 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan9: 0
-> Oct  4 16:44:13 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan10: 0
-> Oct  4 16:45:14 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan1: 0
-> Oct  4 16:45:14 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan4: 0
-> Oct  4 16:45:14 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan5: 0
-> Oct  4 16:45:14 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan9: 0
-> Oct  4 16:45:14 supermicro sensord: Sensor alarm: Chip w83793-i2c-0-2f: fan10: 0
->
-> as you can see part of the usual event is missing, the "RPM (min = 712
-> RPM) [ALARM]" that was visible on previous events has gone, very
-> strange.
 
-I can't help noticing that these lines are exactly 80 column wide, and
-there are 23 of them. That is, essentially the size of a standard
-terminal. So I can only suspect that this is an artifact caused by the
-terminal displaying the data. As a matter of fact, sensord can't output
-such truncated lines.
-
-> i will try running the system with these modules unloaded but I
-> wondered if this was a known issue that has already been fixed?
-
-It would help if you could figure out where it hangs. Does the SysRq
-trick work when the system hangs?
-
-Anyway, at this point I have no reason to believe that the lockup is
-caused by lm-sensors.
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
