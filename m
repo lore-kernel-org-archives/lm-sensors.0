@@ -1,7 +1,7 @@
 From: Kaiwan N Billimoria <kaiwan@designergraphix.com>
-Date: Fri, 24 Oct 2008 14:04:12 +0000
+Date: Tue, 28 Oct 2008 08:04:24 +0000
 Subject: Re: [lm-sensors] [PATCH RESEND] hwmon: lm70: TI TMP121 support.
-Message-Id: <1224856332.15167.21.camel@kaiwan-1>
+Message-Id: <1225180344.15167.48.camel@kaiwan-1>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20081022080423.GB11169@roarinelk.homelinux.net>
 In-Reply-To: <20081022080423.GB11169@roarinelk.homelinux.net>
@@ -10,11 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
+
+Got a chance to test this patch today..
+short answer: no it did not seem to work.
+
+I got readings with largish negative values (from /sys/.../temp1_input);
+have not really had the time to debug this..
+
+[Sorry have not pasted o/p here becoz i do the work on an office PC,
+where i built the 2.6.28-rc2 kernel & tried this; a bit misconfigured so
+graphics did not come up (hence no clipboard stuff)...
+Also, am writing this email off my notebook where i can't test the
+device as it has no parport.]
+
+Of course, in the first place, that's why the logic is the way it is.
+I can (re)confirm though that for the LM70 chip the temperature register
+is sent MSB first...
+
+Let me know,
+
+-kaiwan.
 
 On Fri, 2008-10-24 at 02:21 -0700, David Brownell wrote:
-> > And of course, if you already have a fix i'll test it on the lm70llp
-> > board.
-> 
+
 > I suspect the following should do the job ... it has
 > the parport based adapter leave the data in MSB-first
 > byte order, with the lm70 driver converting to CPU
@@ -83,13 +102,6 @@ On Fri, 2008-10-24 at 02:21 -0700, David Brownell wrote:
 >  }
 >  
 >  static void spi_lm70llp_attach(struct parport *p)
-
-Ok, will give it a hot...
-unfortunately i won't be able to actually tell you'll anything until
-Mon/Tue as i'll gain access only then to the PC and lm70.
-
-Later,
-kaiwan.
 
 
 
