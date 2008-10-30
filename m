@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 30 Oct 2008 08:28:07 +0000
+From: Trent Piepho <tpiepho@freescale.com>
+Date: Thu, 30 Oct 2008 09:39:03 +0000
 Subject: Re: [lm-sensors] Using hwmon in-kernel
-Message-Id: <20081030092807.3bcad1e8@hyperion.delvare>
+Message-Id: <Pine.LNX.4.64.0810300208420.3943@t2.domain.actdsltmp>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20081008003041.GA20169@srcf.ucam.org>
 In-Reply-To: <20081008003041.GA20169@srcf.ucam.org>
@@ -10,101 +10,67 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Trent, Matthew,
+On Thu, 30 Oct 2008, Jean Delvare wrote:
+>>> Because any interface that basically enforces integer->string->integer
+>>> conversion is an indication that you're already doing it wrong.
+>
+> I wholeheartedly second Matthew here. Making the string-based sysfs
+> interface available to the kernel would certainly be easy, but that
+> would be damn inefficient. If we have to do that then let's do it right.
 
-On Wed, 29 Oct 2008 18:45:36 -0700 (PDT), Trent Piepho wrote:
-> On Thu, 30 Oct 2008, Matthew Garrett wrote:
-> > On Wed, Oct 29, 2008 at 04:33:19PM -0700, Trent Piepho wrote:
-> >> On Wed, 22 Oct 2008, Matthew Garrett wrote:
-> >>> Mnf. I'm not convinced general kernel upstream would be enthusiastic.
-> >>
-> >> Any reason for that?
-> >
-> > Because any interface that basically enforces integer->string->integer
-> > conversion is an indication that you're already doing it wrong.
+Does it really make that much of a difference?  My guess would be that the
+most significant cost of using the sysfs interface from the kernel would be
+the attribute lookup and the locking sysfs does.  The int/string stuff
+shouldn't be much compared to that.
 
-I wholeheartedly second Matthew here. Making the string-based sysfs
-interface available to the kernel would certainly be easy, but that
-would be damn inefficient. If we have to do that then let's do it right.
+>> For what it used for, the sysfs int->string->int cost isn't very significant.
+>> It's less than the kernel to userspace cost of sysfs.
+>>
+>> If the overhead of the sysfs interface to userspace is not enough to be a
+>> problem, and a kernel interface to sysfs has less overhead than from
+>> userspace, then how can the kernel based overhead be too much?
+>
+> You wrote it yourself: as far as user-space is concerned, the
+> int->string->int cost is less than the kernel-to-userspace cost. That's
+> the very reason why the sysfs interface concept was deemed acceptable.
+> For kernel-space interfaces though, there is no huge kernel-to-kernel
+> cost which means that the overall cost _can_ be low. And if it can be
+> low, is should be, which means: no useless int->string->int conversion.
 
-> Many if not most users of the sysfs interface from userspace are doing
-> int->string->int.  Yeah, 'cat' and 'echo' aren't, but most apps more
-> sophisticated than that do.  So it's no more wrong than sysfs already is.
-> 
-> For what it used for, the sysfs int->string->int cost isn't very significant. 
-> It's less than the kernel to userspace cost of sysfs.
-> 
-> If the overhead of the sysfs interface to userspace is not enough to be a
-> problem, and a kernel interface to sysfs has less overhead than from
-> userspace, then how can the kernel based overhead be too much?
+The sysfs concept isn't acceptable for everything, only low volume interfaces
+where the overhead isn't significant.  You can make a faster kernel interface,
+but you can make a faster userspace interface too.  But some things don't need
+it.
 
-You wrote it yourself: as far as user-space is concerned, the
-int->string->int cost is less than the kernel-to-userspace cost. That's
-the very reason why the sysfs interface concept was deemed acceptable.
-For kernel-space interfaces though, there is no huge kernel-to-kernel
-cost which means that the overall cost _can_ be low. And if it can be
-low, is should be, which means: no useless int->string->int conversion.
+If userspace sysfs is fast enough for a hwmon chip, why would a faster kernel
+sysfs interface not be fast enough?  The rate at which temperatures change,
+hwmon chips update their registers, and the speed of I2C haven't changed.
 
-> Though maybe sysfs or hwmon could provide int<->string wrappers.  Virtually
-> every hwmon store does a sprintf and virtually every show does a strtol.  It
+> Note however that, as far as hwmon drivers are concerned, there's more
+> than just the access interface to consider. Almost all hwmon drivers
+> read all registers at once and cache the results for one or two
+> seconds, because this made sense for the user-space users. An in-kernel
+> user such as Matthew's driver would instead need to read only _one_
+> sensor value, and would probably like to avoid caching it, so that his
+> driver can react faster to temperature changes. So, drivers which are
+> needed for in-kernel access will need to be reworked a bit anyway, we
+> can't just point to the sysfs callback functions, not even if we manage
+> to get them to return an integer rather than its string form.
 
-Actually, the other way around.
+That's a good point.  I've never really liked the one second rate limiting. 
+It would be nice if the cache time could be adjusted at run time, or if the
+user the request was made under, root/kernel vs non-root, could be taken into
+account.
 
-> could quite possibly be more efficient to move all that code to common
-> set/show wrappers.
-> 
-> Then the hwmon driver would provide set/show methods use/produce ints instead
-> of strings.  The wrappers would take care of converting those to/from strings.
-> 
-> From this:
-> 
-> static SENSOR_DEVICE_ATTR(foo, S_IWUSR|S_IRUGO, show_foo, set_foo, 1);
-> 
-> static ssize_t show_foo(..., char *buf)
-> {	return sprintf(buf, "%d\n", value); }
-> 
-> static ssize_t set_foo(..., const char *buf, size_t count)
-> {	unsigned long val = simple_strtol(buf, NULL, 10); }
-> 
-> To this:
-> 
-> static SENSOR_DEVICE_ATTR_INT(foo, S_IWUSR | S_IRUGO, show_foo, set_foo, 1);
-> 
-> static ssize_t show_foo(..., signed long *output)
-> {	*output = value; return 0; }
-> 
-> static ssize_t set_foo(..., signed long val)
-> {	... }
-> 
-> The actual sysfs store and set would be a wrapper that calls the methods
-> registered with SENSOR_DEVICE_ATTR_INT and does the int<->string stuff.
-> 
-> hwmon could then provide this function, which would call show_foo() directly.
-> 
-> int hwmon_show_attribute_int(const struct device *dev, const char *attr, long *out)
+>> Instead of hwmon providing this stuff, sysfs could always do it.  There are a
+>> lot of non-hwmon attributes that could make use of it.
+>
+> If sysfs ever offers a facility for this then yes, the hwmon subsystem
+> should be converted to make use of it.
 
-This is indeed the way things should be implemented if we want to
-generalize kernel access to monitored values.
-
-Note however that, as far as hwmon drivers are concerned, there's more
-than just the access interface to consider. Almost all hwmon drivers
-read all registers at once and cache the results for one or two
-seconds, because this made sense for the user-space users. An in-kernel
-user such as Matthew's driver would instead need to read only _one_
-sensor value, and would probably like to avoid caching it, so that his
-driver can react faster to temperature changes. So, drivers which are
-needed for in-kernel access will need to be reworked a bit anyway, we
-can't just point to the sysfs callback functions, not even if we manage
-to get them to return an integer rather than its string form.
-
-> Instead of hwmon providing this stuff, sysfs could always do it.  There are a
-> lot of non-hwmon attributes that could make use of it.
-
-If sysfs ever offers a facility for this then yes, the hwmon subsystem
-should be converted to make use of it.
-
--- 
-Jean Delvare
+It already does offer something very much like this, see SYSDEV_ULONG_ATTR and
+SYSDEV_INT_ATTR in sysdev.h and the various sysdev functions like
+sysdev_show_ulong().
 
 _______________________________________________
 lm-sensors mailing list
