@@ -1,38 +1,45 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Oct 2008 14:41:11 +0000
-Subject: [lm-sensors] [PATCH] hwmon-vid: Add support for AMD family 10h CPUs
-Message-Id: <20081015164111.39112422@hyperion.delvare>
+From: "Phil Miller" <unmobile@gmail.com>
+Date: Thu, 30 Oct 2008 16:34:06 +0000
+Subject: [lm-sensors] Opteron and ASUS L1N64-SLI WS/B: Status of K10 module,
+Message-Id: <81f018ac0810300934u627ec401qeee23b7ee93f8517@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The AMD family 10h CPUs use the same VID decoding table as the family
-0Fh CPUs.
+I'm running a new system with a pair of Opteron 2356 quad-core CPUs on
+ASUS's L1N64-SLI WS/B motherboard. After running sensors-detect [0]
+and searching the mailing lists, it looks like the code necessary to
+fully support this board might be in need of testing or revision.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Rudolf Marek <r.marek@assembler.cz>
----
-Testers welcome, thanks.
+It looks like Jordan Crouse has offered a patch for the ADT7475 [1]
+that was in need of updates before incorporating it. I would
+appreciate a copy of or reference to the latest revision of that patch
+so I can build and test.
 
- drivers/hwmon/hwmon-vid.c |    1 +
- 1 file changed, 1 insertion(+)
+According to a post in April [2], the temperature sensors in some
+revisions of the K10 are inconsistent, and so shouldn't be relied
+upon. That post asks the original poster for output from cpuid, but
+doesn't mention how to identify the affected revisions from that. A
+brief search of the web indicates that mine might be an afflicted B3
+revision, but that output can be found at [4]
 
---- linux-2.6.28-rc0.orig/drivers/hwmon/hwmon-vid.c	2008-10-14 19:07:40.000000000 +0200
-+++ linux-2.6.28-rc0/drivers/hwmon/hwmon-vid.c	2008-10-14 19:09:54.000000000 +0200
-@@ -182,6 +182,7 @@ static struct vrm_model vrm_models[] = {
- 	{X86_VENDOR_AMD, 0x6, ANY, ANY, 90},		/* Athlon Duron etc */
- 	{X86_VENDOR_AMD, 0xF, 0x3F, ANY, 24},		/* Athlon 64, Opteron */
- 	{X86_VENDOR_AMD, 0xF, ANY, ANY, 25},		/* NPT family 0Fh */
-+	{X86_VENDOR_AMD, 0x10, ANY, ANY, 25},		/* NPT family 10h */
- 	{X86_VENDOR_INTEL, 0x6, 0x9, ANY, 13},		/* Pentium M (130 nm) */
- 	{X86_VENDOR_INTEL, 0x6, 0xB, ANY, 85},		/* Tualatin */
- 	{X86_VENDOR_INTEL, 0x6, 0xD, ANY, 13},		/* Pentium M (90 nm) */
+Finally, the board also has what is detected as an IT8716F chip
+supported by the it87 driver, but I'm seeing some really weird
+readings on the 5V lines and two of the three temperature lines.
+Specifically, I'm seeing 6.85 volts on both +5V and 5VSB, and +127C on
+a pair of sensors listed as a 'thermal diode' and 'transistor',
+respectively, while the first transistor reports a perfectly sane 27C.
 
+Phil
 
--- 
-Jean Delvare
+[0] http://charm.cs.uiuc.edu/~phil/sensors-detect
+[1] Thread starts at
+http://lists.lm-sensors.org/pipermail/lm-sensors/2008-September/024073.html
+[2] http://lists.lm-sensors.org/pipermail/lm-sensors/2008-April/022839.html
+[4] http://charm.cs.uiuc.edu/~phil/cpuid
+[5] http://charm.cs.uiuc.edu/~phil/sensors
 
 _______________________________________________
 lm-sensors mailing list
