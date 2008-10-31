@@ -1,45 +1,35 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 21 Oct 2008 19:30:35 +0000
-Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: (abituguru3) enable DMI probing
-Message-Id: <20081021213035.6ca1fe22@hyperion.delvare>
+From: "Markus Rechberger" <mrechberger@gmail.com>
+Date: Fri, 31 Oct 2008 22:15:13 +0000
+Subject: Re: [lm-sensors] [Em28xx] ACPI reads wrong temperature after
+Message-Id: <d9def9db0810311515n166f7ff2t6362d690a883de70@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1224608373-27352-3-git-send-email-alistair@devzero.co.uk>
-In-Reply-To: <1224608373-27352-3-git-send-email-alistair@devzero.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Tue, 21 Oct 2008 17:59:32 +0100, Alistair John Strachan wrote:
-> Switch the AW9D-MAX over from port probing to the preferred DMI
-> probe method.
-> 
-> Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
-> Tested-by: Justin Piszcz <jpiszcz@lucidpixels.com>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> ---
->  drivers/hwmon/abituguru3.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/hwmon/abituguru3.c b/drivers/hwmon/abituguru3.c
-> index d9e7a49..ff6aad8 100644
-> --- a/drivers/hwmon/abituguru3.c
-> +++ b/drivers/hwmon/abituguru3.c
-> @@ -402,7 +402,7 @@ static const struct abituguru3_motherboard_info abituguru3_motherboards[] = {
->  		{ "AUX3 Fan",		36, 2, 60, 1, 0 },
->  		{ NULL, 0, 0, 0, 0, 0 } }
->  	},
-> -	{ 0x0016, NULL /* AW9D-MAX, need DMI string */, {
-> +	{ 0x0016, "AW9D-MAX       (Intel i975-ICH7)", {
->  		{ "CPU Core",		 0, 0, 10, 1, 0 },
->  		{ "DDR2",		 1, 0, 20, 1, 0 },
->  		{ "DDR2 VTT",		 2, 0, 10, 1, 0 },
+Hi Peter,
 
-Applied, thanks.
+On Fri, Oct 31, 2008 at 11:08 PM, Peter Mahlknecht <mali100@gmx.net> wrote:
+> Hi,
+> I have here a strange problem:
+> after loading the em28xx_cx25843 module in
+> /proc/acpi/thermal_zone/THRM/temperature a wrong temperature (65535 C) wh=
+ich
+> forces a shutdown on my notebook ("Critical temperature reached (65535 C).
+> Shutting down."). Same thing happens if I load the lm90 module (hwmon dri=
+ver
+> for the temperaturesensor used by lm-sensors). Both modules depend on
+> i2c_core, so maybe its an I=B2C bug. Any suggestions?
+>
 
--- 
-Jean Delvare
+I think the lmsensors mailinglist might be better for this! Jean
+Delvare might now more about it.
+added the lm-sensors ML.
+
+also provide which kernel version you use.
+
+Markus
 
 _______________________________________________
 lm-sensors mailing list
