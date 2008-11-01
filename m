@@ -1,41 +1,32 @@
 From: "Peter Mahlknecht" <mali100@gmx.net>
-Date: Sat, 01 Nov 2008 18:47:48 +0000
+Date: Sat, 01 Nov 2008 22:16:56 +0000
 Subject: Re: [lm-sensors] ACPI reads wrong temperature after loading
-Message-Id: <20081101184748.257530@gmx.net>
+Message-Id: <20081101221656.43350@gmx.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20081101103904.7ea43d94@hyperion.delvare>
 In-Reply-To: <20081101103904.7ea43d94@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,=20
-> Please try the following workaround: blacklist the i2c-i801 driver (or
-> rmmod it before loading em28xx_cx25843.)
-tested this, and it works: as long as i2c-i801 isn't loaded i get the right=
- temperatures, also if I have loaded em28xx_cx25843 or lm90 (or both).=20
+Hi,
+> I don't think so. Let's wait for Peter to do the tests I suggested
+> first.
+> 
+I got the new kernel (2.6.27.4) running, here is what it outputs during boot:
+Nov  1 22:48:30 laptop-mali kernel: [    9.670886] i801_smbus 0000:00:1f.3: PCI INT B -> GSI 19 (level, low) -> IRQ 19
+Nov  1 22:48:30 laptop-mali kernel: [    9.670946] ACPI: I/O resource 0000:00:1f.3 [0x18e0-0x18ff] conflicts with ACPI region SMBI [0x18e0-0x18ef]
+Nov  1 22:48:30 laptop-mali kernel: [    9.671002] ACPI: Device needs an ACPI driver
 
-> It would also be great if you could give a try to kernel 2.6.27 and
-> report if you see the following message in the kernel logs:
->=20
-> ACPI: * resource * [0x*-0x*] conflicts with ACPI region * [0x*-0x*]
-> ACPI: Device needs an ACPI driver
+as just wrote before, as long as i2c-i801 isn't loaded i get the right temperatures, also if em28xx_cx25843 or lm90 (or both) are loaded. 
+dmesg output from my notebook can be found here: http://stud3.tuwien.ac.at/~e0526314/dmidecode_log
 
-I will try. Hope to get the new kernel working tonight
-
-> For reference, please also attach the output of dmidecode on this
-> laptop.
-I wasn't shure if attaching works, so i put it on http://stud3.tuwien.ac.at=
-/~e0526314/dmidecode_log
-
-Peter Mahlknecht
-
---=20
-GMX Download-Spiele: Preizsturz! Alle Puzzle-Spiele Deluxe =FCber 60% billi=
-ger.
-http://games.entertainment.gmx.net/de/entertainment/games/download/puzzle/i=
-ndex.html
+Thanks for the help
+Peter
+-- 
+"Feel free" - 10 GB Mailbox, 100 FreeSMS/Monat ...
+Jetzt GMX TopMail testen: http://www.gmx.net/de/go/topmail
 
 _______________________________________________
 lm-sensors mailing list
