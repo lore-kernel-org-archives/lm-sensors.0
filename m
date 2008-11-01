@@ -1,60 +1,65 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 18 Nov 2008 10:50:05 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] k8temp add support for family 10h and
-Message-Id: <20081118115005.74686b6c@hyperion.delvare>
+Date: Sat, 01 Nov 2008 09:39:04 +0000
+Subject: Re: [lm-sensors] ACPI reads wrong temperature after loading
+Message-Id: <20081101103904.7ea43d94@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <48E3F7B6.4000901@assembler.cz>
-In-Reply-To: <48E3F7B6.4000901@assembler.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Andreas,
+Hallo Peter, Markus,
 
-On Tue, 18 Nov 2008 10:34:13 +0100, Andreas Herrmann wrote:
-> On Mon, Nov 10, 2008 at 10:34:10AM +0100, Jean Delvare wrote:
-> > On Thu, 02 Oct 2008 00:20:38 +0200, Rudolf Marek wrote:
-> > > What do you think?
-> > 
-> > Looking at your patch, there doesn't seem to be much in common between
-> > the family 0Fh and the family 10h. The temperature conversion formula
-> > is different, the registers are different... And I seem to understand
-> > that the family 10h has a single sensor? In the end your patch is
-> > larger than the k8temp driver itself. So I am wondering, does it really
-> > make sense to support both families with the same driver?
-> 
-> IMHO this makes sense. The user just needs to switch on
-> CONFIG_SENSORS_K8TEMP on a system with newer AMD CPUs (regardless
-> whether the CPU is family 0xf, 0x10 or 0x11) and the driver is able to
-> handle the CPU temperature sensor.
+On Fri, 31 Oct 2008 23:20:58 +0100, Peter Mahlknecht wrote:
+> Markus Rechberger schrieb:
+> > On Fri, Oct 31, 2008 at 11:08 PM, Peter Mahlknecht <mali100@gmx.net> wr=
+ote:
+> >> I have here a strange problem:
+> >> after loading the em28xx_cx25843 module in
+> >> /proc/acpi/thermal_zone/THRM/temperature a wrong temperature (65535 C)=
+ which
+> >> forces a shutdown on my notebook ("Critical temperature reached (65535=
+ C).
+> >> Shutting down."). Same thing happens if I load the lm90 module (hwmon =
+driver
+> >> for the temperaturesensor used by lm-sensors). Both modules depend on
+> >> i2c_core, so maybe its an I=B2C bug. Any suggestions?
+> >
+> > I think the lmsensors mailinglist might be better for this! Jean
+> > Delvare might now more about it.
+> > added the lm-sensors ML.
+> >
+> > also provide which kernel version you use.
+>
+> Thanks for the fast reply,
+> I am using Debian Lenny (2.6.26-1-686) on my notebook (Samsung P40 with=20
+> the latest Bios 09HK), but had the same problem also with the=20
+> 2.6.18-6-686 (Lenny) and with Ubuntu Hardy Heron (think the kernel was=20
+> 2.6.24).
 
-The default user really doesn't care. He/she runs a distribution with
-all hwmon drivers compiled as modules, and the k8temp driver loads
-automatically as needed. A potential fam10temp driver would also be
-compiled as a module by default and would also load automatically, just
-as the k8temp driver does. The user really doesn't care whether there
-is one driver or two, he/she doesn't care how the drivers are named,
-he/she doesn't even need to know that there _are_ drivers.
+It would help if I could see the source code of module em28xx_cx25843,
+but unfortunately I have no idea where that driver lives. Markus?
 
-The advanced user doesn't care, either. He/she knows enough to enable
-the right driver in all cases.
+Peter, most probably you have an LM90-compatible sensor chip on the
+SMBus and ACPI uses it for thermal regulation and doesn't enjoy another
+driver (e.g. lm90) accessing the same chip. That the lm90 driver causes
+trouble in that case is more or less expected. That the em28xx_cx25843
+driver does is more surprising, but without reading the code I can't
+tell why.
 
-The rationale to add support to an existing driver vs. writing a new
-driver is how much do these devices have in common. In the case of the
-K8 vs. fam10h, the answer, as far as I can see, is: not much (see
-details in my original reply above.)
+Please try the following workaround: blacklist the i2c-i801 driver (or
+rmmod it before loading em28xx_cx25843.)
 
-> It's the same with powernow-k8. This cpufreq driver is used for all
-> newer AMD CPU families as well.
+It would also be great if you could give a try to kernel 2.6.27 and
+report if you see the following message in the kernel logs:
 
-Well, maybe the cpufreq interface to fam10h CPUs is the same as those
-to K8 temp CPUs? In which case it makes sense to have a single driver.
+ACPI: * resource * [0x*-0x*] conflicts with ACPI region * [0x*-0x*]
+ACPI: Device needs an ACPI driver
 
-Anyway, what the cpufreq people decided to do is not exactly relevant.
-We don't have to follow them if we don't want to.
+For reference, please also attach the output of dmidecode on this
+laptop.
 
--- 
+--=20
 Jean Delvare
 
 _______________________________________________
