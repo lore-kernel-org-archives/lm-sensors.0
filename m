@@ -1,32 +1,41 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 01 Nov 2008 17:33:19 +0000
+From: "Peter Mahlknecht" <mali100@gmx.net>
+Date: Sat, 01 Nov 2008 18:47:48 +0000
 Subject: Re: [lm-sensors] ACPI reads wrong temperature after loading
-Message-Id: <20081101183319.3330c73a@hyperion.delvare>
+Message-Id: <20081101184748.257530@gmx.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20081101103904.7ea43d94@hyperion.delvare>
 In-Reply-To: <20081101103904.7ea43d94@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Sat, 1 Nov 2008 18:11:26 +0100, Markus Rechberger wrote:
-> On Sat, Nov 1, 2008 at 5:14 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> > On Sat, 1 Nov 2008 16:28:40 +0100, Markus Rechberger wrote:
-> >> http://mcentral.de/hg/~mrec/em28xx-new/file/ca209b1d4076/cx25843/em28xx-cx25843.c
-> >
-> > This driver only attaches to (7-bit) address 0x44, while the lm90
-> > driver probes for devices at 0x4c and 0x4d. So I have to admit I am
-> > surprised that loading both drivers leads to the same result.
-> 
-> is there some debug that can be enabled in the i2c framework which
-> might help you forward?
+Hi,=20
+> Please try the following workaround: blacklist the i2c-i801 driver (or
+> rmmod it before loading em28xx_cx25843.)
+tested this, and it works: as long as i2c-i801 isn't loaded i get the right=
+ temperatures, also if I have loaded em28xx_cx25843 or lm90 (or both).=20
 
-I don't think so. Let's wait for Peter to do the tests I suggested
-first.
+> It would also be great if you could give a try to kernel 2.6.27 and
+> report if you see the following message in the kernel logs:
+>=20
+> ACPI: * resource * [0x*-0x*] conflicts with ACPI region * [0x*-0x*]
+> ACPI: Device needs an ACPI driver
 
--- 
-Jean Delvare
+I will try. Hope to get the new kernel working tonight
+
+> For reference, please also attach the output of dmidecode on this
+> laptop.
+I wasn't shure if attaching works, so i put it on http://stud3.tuwien.ac.at=
+/~e0526314/dmidecode_log
+
+Peter Mahlknecht
+
+--=20
+GMX Download-Spiele: Preizsturz! Alle Puzzle-Spiele Deluxe =FCber 60% billi=
+ger.
+http://games.entertainment.gmx.net/de/entertainment/games/download/puzzle/i=
+ndex.html
 
 _______________________________________________
 lm-sensors mailing list
