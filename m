@@ -1,26 +1,28 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 18 Nov 2008 18:16:22 +0000
-Subject: Re: [lm-sensors] Making the ticket system private
-Message-Id: <20081118191622.215c4843@hyperion.delvare>
+From: shaul Karl <shaulkarl@yahoo.com>
+Date: Sun, 02 Nov 2008 15:17:58 +0000
+Subject: [lm-sensors] tempx_max_hyst > tempx_max?
+Message-Id: <157004.2853.qm@web58501.mail.re3.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081118100005.5b20a857@hyperion.delvare>
-In-Reply-To: <20081118100005.5b20a857@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+etc/sensors3.conf of lm-sensors-3 (1:3.0.2-1+b2) in Debian states that
 
-On Tue, 18 Nov 2008 07:39:28 -0800, Juerg Haefliger wrote:
-> Makes sense to me. Once a bug has been identified it should be entered
-> into the ticketing system for tracking purposes though.
+    # Think of tempx_max as 'alarm set' and tempx_max_hyst as 'alarm clear'
+    # thresholds. In most cases the 'max' value should be higher than
+    # the 'max_hyst' value by several degrees.
 
-Of course. We developers have accounts on the system so we can create
-tickets for things that really need tracking.
+  In what cases would you set the 'max' value equal to the 'max_hyst'
+value? Is it pointless for the 'max_hyst' value to be higher than the
+'max' value? 
+  I would say that the last statement about tempx_max_hyst > tempx_max
+is confusing.
 
--- 
-Jean Delvare
+
+
+      
 
 _______________________________________________
 lm-sensors mailing list
