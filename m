@@ -1,53 +1,63 @@
-From: Wolfgang Pichl <wolfgang.pichl@univie.ac.at>
-Date: Sun, 02 Nov 2008 21:34:13 +0000
-Subject: [lm-sensors] Andigilog driver by George Joseph
-Message-Id: <Pine.LNX.4.64.0811022213310.5906@belenos.adsl.univie.ac.at>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Mon, 03 Nov 2008 08:36:01 +0000
+Subject: Re: [lm-sensors] Andigilog driver by George Joseph
+Message-Id: <490EB7F1.9040702@hhs.nl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------020901060203090208020800"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <Pine.LNX.4.64.0811022213310.5906@belenos.adsl.univie.ac.at>
+In-Reply-To: <Pine.LNX.4.64.0811022213310.5906@belenos.adsl.univie.ac.at>
 To: lm-sensors@vger.kernel.org
 
-Hi,
-I would be extremely interested in the driver for the asc7621 which is 
-under development, because I have the Intel 975XBX2 motherboard. I tried
-to install the driver, but the patch does not apply, neither to 2.6.25.4 
-nor to a newer kernel. The following error  message appears:
+This is a multi-part message in MIME format.
+--------------020901060203090208020800
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-patching file drivers/hwmon/Makefile
-Hunk #1 FAILED at 27.
-1 out of 1 hunk FAILED -- saving rejects to file 
-drivers/hwmon/Makefile.rej
+Wolfgang Pichl wrote:
+> Hi,
+> I would be extremely interested in the driver for the asc7621 which is 
+> under development, because I have the Intel 975XBX2 motherboard.
 
-and this is the content of Makefile.rej :
+Great, note that it is far easier to try this outside of an kernel tree. If you 
+have a pre build distro kernel + headers, then just drop asc7621.c (which 
+should be generated successfully by the patch) and the attached makefile in a dir.
 
-***************
-*** 27,32 ****
-   obj-$(CONFIG_SENSORS_ADT7473)  += adt7473.o
-   obj-$(CONFIG_SENSORS_APPLESMC) += applesmc.o
-   obj-$(CONFIG_SENSORS_AMS)      += ams/
-   obj-$(CONFIG_SENSORS_ATXP1)    += atxp1.o
-   obj-$(CONFIG_SENSORS_CORETEMP) += coretemp.o
-   obj-$(CONFIG_SENSORS_DME1737)  += dme1737.o
---- 27,33 ----
-   obj-$(CONFIG_SENSORS_ADT7473)  += adt7473.o
-   obj-$(CONFIG_SENSORS_APPLESMC) += applesmc.o
-   obj-$(CONFIG_SENSORS_AMS)      += ams/
-+ obj-$(CONFIG_SENSORS_ASC7621)  += asc7621.o
-   obj-$(CONFIG_SENSORS_ATXP1)    += atxp1.o
-   obj-$(CONFIG_SENSORS_CORETEMP) += coretemp.o
-   obj-$(CONFIG_SENSORS_DME1737)  += dme1737.o
+Then in that dir type "make" followed by "insmod asc7621.ko"
 
-Looks like a minor problem, but I could not yet find the reason.
+> N.B. Is there any userspace support for this driver, perhaps a patch to 
+> libsensors, already available?
 
-N.B. Is there any userspace support for this driver, perhaps a patch to 
-libsensors, already available?
+If you use lm_sensors-3.0.x it will automatically work with any new drivers, 
+per chip userspace support luckily is a thing of the past.
 
-best regards
-Wolfgang Pichl
+Regards,
 
+Hans
+
+--------------020901060203090208020800
+Content-Type: text/plain;
+ name="Makefile"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="Makefile"
+
+obj-m += asc7621.o
+
+all:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+
+clean:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+
+--------------020901060203090208020800
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------020901060203090208020800--
