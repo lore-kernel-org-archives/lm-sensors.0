@@ -1,139 +1,241 @@
-From: Trent Piepho <tpiepho@freescale.com>
-Date: Wed, 05 Nov 2008 23:14:57 +0000
+From: Matt Roberds <mattroberds@cox.net>
+Date: Thu, 06 Nov 2008 01:48:31 +0000
 Subject: Re: [lm-sensors] How to pass board specific info to I2C driver
-Message-Id: <Pine.LNX.4.64.0811051317560.3864@t2.domain.actdsltmp>
+Message-Id: <Pine.LNX.4.64.0811051841060.11053@birdbird.example.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="655872-113938112-1225936111=:11053"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CF6163088BDE8747873ADAA4AF922BF258D76E@zmy16exm21.fsl.freescale.net>
 In-Reply-To: <CF6163088BDE8747873ADAA4AF922BF258D76E@zmy16exm21.fsl.freescale.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--655872-113938112-1225936111=:11053
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+
 On Wed, 5 Nov 2008, Jean Delvare wrote:
-> On Mon, 27 Oct 2008 16:52:06 +0800, Hu Mingkai-B21284 wrote:
-> One thing that makes sense to pass to the driver is the chip's work
-> voltage, if measurements depend on it. This isn't something libsensors
-> handles (nor do I think it should).
+> Lastly, the conversion from current to voltage is not something we
+> handle really well, I have to admit. This is basically the same as ADC
+> being used for temperature measurements using a thermistor. It is
+> possible to convert the numerical value using libsensors, however it
+> will not change the unit which is displayed after the value, so it gets
+> very confusing. We have a ticket opened for this feature:
+> http://lm-sensors.org/ticket/2258
+> But this is really only a placeholder, nothing has been implemented yet
+> and I have no clear idea how we would do it.
 
-This chip basically returns voltage in units of Vdd/1024, where Vdd is the
-work voltage.  Can't libsensors scale voltages?  I still think platform data
-is the way to go, but it should be possible to do it with libsensors,
-shouldn't it?
+I looked at that ticket and the email it links to
+http://article.gmane.org/gmane.linux.drivers.sensors/14564/
+and came up with the following.  This isn't complete yet but it might be
+a start.
 
->> Here is the way I can think of:
->> 1. to use dts file to pass the info to the module.
->>     This way make the driver is bound to OF implement.
->
-> I don't think that would make your driver OF-dependent. Every device
-> can have platform data associated with it. So you could convert the OF
-> data to driver-specific platform data and the driver doesn't even have
-> to know that it has been instantiated through OF.
+What you do is put a line like
 
-This is a problem that's been brought up before.  What you need is small
-driver-specific block of code that turns an OF device node's properties into a
-filled in platform data structure.  It's not entirely clear where it should
-go, somewhere in drivers/of or somewhere in drivers/hwmon, like in
-drivers/hwmon/mcp3021.c?  But that's a small detail.
+type in0 2
 
-A bigger problem is that there are a lot of i2c clients, so while writing one
-OF binding function isn't a big deal, writing bindings for everything ends up
-being a rather large amount of code and a lot of bindings to define.
+in sensors.conf.  This says to treat in0 as a temperature (0=in, 1=fan,
+2=temp).  The code treats it like an ignore, remembering that something
+different has to happen to in0.  (Specfically, it treats the number that
+it is supposed to be changed to as an expression.)  When somebody calls
+sensors_get_features(), after the ignores are checked, the type changes
+are checked.  If there is a type change, the expression gets evaluated,
+and the change is made.
 
-The problem that doesn't have a clear solution is that i2c clients can have
-function pointers in their platform data, like pca953x for example.  You can't
-put functions in an OF property.  So what do you do here?
+Once this patch is applied, the "type" lines do have an effect: they
+make sensors print "N/A" for the features they apply to.  If you take
+the "type" lines out, those features work normally again.
 
-One thing I thought of would be a function that's like i2c_register_board_info(),
-but instead:
+Things that are wrong with this:
 
-of_i2c_register_platform_data(const char *node_path, void *platform_data);
+- Using a number instead of a real name (in, fan, temp) in sensors.conf.
+   This was just a quick hack to avoid writing a string -> number looker
+   upper.
 
-The other stuff in struct i2c_board_info (driver_name, type, flags, addr, irq)
-isn't needed because it already comes from the OF device tree.  It's only the
-platform_data that's a problem.  Instead of binding the data to a device
-using the adapter number and device address like i2c_register_board_info()
-does, the OF path of the device is used.
+- Using the name 'type' makes me think of ints, chars, and floats rather
+   than ins, fans, and temps.  Is a better name needed?
 
-Code like this:
+- Only changing it when somebody calls sensors_get_features().  Maybe
+   the change should happen sooner.
 
-static struct pca953x_platform_data pdata = { ... };
-static struct i2c_board_info __initdata gpiochips[] = {
- 	{ I2C_BOARD_INFO("pca953x", 0x18), .type = "pca9557", .platform_data = &pdata },
-};
-static int __init add_gpio_chips(void)
-{
- 	i2c_register_board_info(1, gpiochips, ARRAY_SIZE(gpiochips));
- 	/* How do we know the adapter number will be 1?  We don't!  Ugly hack */
-}
+- Maybe it should be handled more like a compute, rather than an ignore.
 
-Becomes this:
+- I think the reason that this generates 'N/A's in the sensors output is
+   that right now it only changes the feature number and not all the
+   related subfeature numbers.  In other words, if you have a voltage
+   input, there is the in feature, plus (say) in-min and in-max
+   subfeatures.  When the feature gets changed to a temp, the subfeatures
+   stay at in-min and in-max.  When sensors sees the temp feature, it
+   looks up (say) temp-max and can't find it, so it says N/A.
 
-static struct pca953x_platform_data pdata = { ... };
-static int __init add_gpio_chips(void)
-{
- 	of_i2c_register_platform_data("/soc8572@e0000000/i2c@3100/gpio", &pdata);
-}
+Comments welcome, up to and including "This is a bad way to go about this".
 
-The advantage here is that we can provide platform data for any i2c device,
-without needing to add device specific OF binding code for each and every
-device we might want.  The other advantage is that we can have function
-pointers in the platform data, which isn't possible otherwise.
+Matt Roberds
 
-The disadvantage is that the platform data is compiled into the kernel, rather
-than in the OF device tree.  But, this is the way platform data has always
-worked since it was created.  It's the way it works now.  It's the way non-OF
-arches will continue to work.  So maybe it's not ideal, but it's clearly not
-the end of the world.
+--655872-113938112-1225936111=:11053
+Content-Type: TEXT/x-diff; charset=US-ASCII; name=channel-type-change.diff
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.64.0811051948310.11053@birdbird.example.com>
+Content-Description: First cut at channel type changing
+Content-Disposition: attachment; filename=channel-type-change.diff
 
->> 2. to use the module parameter.
->>     For different chips, the work voltage and the ratio may be
->>     different, but the chip uses the same driver.
->
-> That's not really practical as you found out yourself. If the platform
-> code knows the work voltage and other parameters for the given system
-> then filling platform data inside the kernel and passing it to the
-> driver is the way to go.
+ZGlmZiAtciAtdSBsbV9zZW5zb3JzLTMuMC4zL2xpYi9hY2Nlc3MuYyBsbV9z
+ZW5zb3JzLTMuMC4zLW1jci9saWIvYWNjZXNzLmMNCi0tLSBsbV9zZW5zb3Jz
+LTMuMC4zL2xpYi9hY2Nlc3MuYwkyMDA4LTA0LTE0IDEwOjI3OjU5LjAwMDAw
+MDAwMCAtMDUwMA0KKysrIGxtX3NlbnNvcnMtMy4wLjMtbWNyL2xpYi9hY2Nl
+c3MuYwkyMDA4LTExLTA1IDE5OjEwOjU1LjAwMDAwMDAwMCAtMDYwMA0KQEAg
+LTIxOCw2ICsyMTgsMjcgQEANCiAJcmV0dXJuIDA7DQogfQ0KIA0KKy8qIExv
+b2tzIHVwIHdoZXRoZXIgYSBmZWF0dXJlIHNob3VsZCBiZSBnaXZlbiBzb21l
+IG90aGVyIHR5cGUuICBSZXR1cm5zDQorICAgMSBpZiB0aGUgdHlwZSBzaG91
+bGQgYmUgY2hhbmdlZCwgMCBpZiBub3QuICovDQorc3RhdGljIGludCBzZW5z
+b3JzX2dldF90eXBlcyhjb25zdCBzZW5zb3JzX2NoaXBfbmFtZSAqbmFtZSwN
+CisJCQkgICAgIGNvbnN0IHNlbnNvcnNfZmVhdHVyZSAqZmVhdHVyZSwNCisJ
+CQkgICAgIGludCAqbmV3X3R5cGUpDQorew0KKwljb25zdCBzZW5zb3JzX2No
+aXAgKmNoaXA7DQorCWludCBpOw0KKwlkb3VibGUgcmVzdWx0Ow0KKw0KKwlm
+b3IgKGNoaXAgPSBOVUxMOyAoY2hpcCA9IHNlbnNvcnNfZm9yX2FsbF9jb25m
+aWdfY2hpcHMobmFtZSwgY2hpcCkpOykNCisJCWZvciAoaSA9IDA7IGkgPCBj
+aGlwLT50eXBlc19jb3VudDsgaSsrKQ0KKwkJCWlmICghc3RyY21wKGZlYXR1
+cmUtPm5hbWUsIGNoaXAtPnR5cGVzW2ldLm5hbWUpKSB7DQorCQkJCXNlbnNv
+cnNfZXZhbF9leHByKHNlbnNvcnNfbG9va3VwX2NoaXAobmFtZSksDQorCQkg
+ICAgICAgICAgICAgICAgCWNoaXAtPnR5cGVzW2ldLm5ld3R5cGUsIDAuMCwg
+JnJlc3VsdCk7DQorCQkJCSpuZXdfdHlwZSA9IChpbnQpIHJlc3VsdDsNCisJ
+CQkJcmV0dXJuIDE7DQorCQkJfQ0KKwlyZXR1cm4gMDsNCit9DQorDQogLyog
+UmVhZCB0aGUgdmFsdWUgb2YgYSBzdWJmZWF0dXJlIG9mIGEgY2VydGFpbiBj
+aGlwLiBOb3RlIHRoYXQgY2hpcCBzaG91bGQgbm90DQogICAgY29udGFpbiB3
+aWxkY2FyZCB2YWx1ZXMhIFRoaXMgZnVuY3Rpb24gd2lsbCByZXR1cm4gMCBv
+biBzdWNjZXNzLCBhbmQgPDANCiAgICBvbiBmYWlsdXJlLiAqLw0KQEAgLTM2
+Myw2ICszODQsNyBAQA0KIHNlbnNvcnNfZ2V0X2ZlYXR1cmVzKGNvbnN0IHNl
+bnNvcnNfY2hpcF9uYW1lICpuYW1lLCBpbnQgKm5yKQ0KIHsNCiAJY29uc3Qg
+c2Vuc29yc19jaGlwX2ZlYXR1cmVzICpjaGlwOw0KKwlpbnQgbmV3dHlwZTsN
+CiANCiAJaWYgKCEoY2hpcCA9IHNlbnNvcnNfbG9va3VwX2NoaXAobmFtZSkp
+KQ0KIAkJcmV0dXJuIE5VTEw7CS8qIE5vIHN1Y2ggY2hpcCAqLw0KQEAgLTM3
+Miw2ICszOTQsMTMgQEANCiAJCSgqbnIpKys7DQogCWlmICgqbnIgPj0gY2hp
+cC0+ZmVhdHVyZV9jb3VudCkNCiAJCXJldHVybiBOVUxMOw0KKwlpZiAoc2Vu
+c29yc19nZXRfdHlwZXMobmFtZSwgJmNoaXAtPmZlYXR1cmVbKm5yXSwgJm5l
+d3R5cGUpKSB7DQorCQkvKiBGSVhNRTogY2hhbmdlIGZlYXR1cmUgaGVyZSAq
+Lw0KKwkJcHJpbnRmKCJjaGFuZ2luZyAlZCB0byAlZFxuIiwgY2hpcC0+ZmVh
+dHVyZVsqbnJdLnR5cGUsDQorCQkJbmV3dHlwZSk7DQorCSAJY2hpcC0+ZmVh
+dHVyZVsoKm5yKV0udHlwZSA9IG5ld3R5cGU7DQorCX0NCisNCiAJcmV0dXJu
+ICZjaGlwLT5mZWF0dXJlWygqbnIpKytdOw0KIH0NCiANCmRpZmYgLXIgLXUg
+bG1fc2Vuc29ycy0zLjAuMy9saWIvY29uZi1sZXgubCBsbV9zZW5zb3JzLTMu
+MC4zLW1jci9saWIvY29uZi1sZXgubA0KLS0tIGxtX3NlbnNvcnMtMy4wLjMv
+bGliL2NvbmYtbGV4LmwJMjAwOC0wNS0xMiAwNjo0NDozMy4wMDAwMDAwMDAg
+LTA1MDANCisrKyBsbV9zZW5zb3JzLTMuMC4zLW1jci9saWIvY29uZi1sZXgu
+bAkyMDA4LTExLTA1IDE4OjMxOjE4LjAwMDAwMDAwMCAtMDYwMA0KQEAgLTE0
+NSw2ICsxNDUsMTIgQEANCiAJCSAgcmV0dXJuIElHTk9SRTsNCiAJCX0NCiAN
+Cit0eXBle0JMQU5LfSoJew0KKwkJICBzZW5zb3JzX3l5bHZhbC5saW5lID0g
+c2Vuc29yc195eWxpbmVubzsNCisJCSAgQkVHSU4oTUlERExFKTsNCisJCSAg
+cmV0dXJuIFRZUEU7DQorCQl9DQorDQogIC8qIEFueXRoaW5nIGVsc2UgYXQg
+dGhlIGJlZ2lubmluZyBvZiBhIGxpbmUgaXMgYW4gZXJyb3IgKi8NCiANCiBb
+YS16XSsJCXwNCmRpZmYgLXIgLXUgbG1fc2Vuc29ycy0zLjAuMy9saWIvY29u
+Zi1wYXJzZS55IGxtX3NlbnNvcnMtMy4wLjMtbWNyL2xpYi9jb25mLXBhcnNl
+LnkNCi0tLSBsbV9zZW5zb3JzLTMuMC4zL2xpYi9jb25mLXBhcnNlLnkJMjAw
+OC0wNy0xNCAxMToyMTo0OC4wMDAwMDAwMDAgLTA1MDANCisrKyBsbV9zZW5z
+b3JzLTMuMC4zLW1jci9saWIvY29uZi1wYXJzZS55CTIwMDgtMTEtMDUgMTg6
+MzE6MzguMDAwMDAwMDAwIC0wNjAwDQpAQCAtNjIsNiArNjIsMTEgQEANCiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAmY3Vy
+cmVudF9jaGlwLT5pZ25vcmVzX2NvdW50LFwNCiAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAmY3VycmVudF9jaGlwLT5pZ25v
+cmVzX21heCxcDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgc2l6ZW9mKHNlbnNvcnNfaWdub3JlKSk7DQorI2RlZmluZSB0
+eXBlX2FkZF9lbChlbCkgc2Vuc29yc19hZGRfYXJyYXlfZWwoZWwsXA0KKyAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICZjdXJy
+ZW50X2NoaXAtPnR5cGVzLFwNCisgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAmY3VycmVudF9jaGlwLT50eXBlc19jb3VudCxc
+DQorICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+JmN1cnJlbnRfY2hpcC0+dHlwZXNfbWF4LFwNCisgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICBzaXplb2Yoc2Vuc29yc190eXBl
+KSk7DQogI2RlZmluZSBjaGlwX2FkZF9lbChlbCkgc2Vuc29yc19hZGRfYXJy
+YXlfZWwoZWwsXA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICZzZW5zb3JzX2NvbmZpZ19jaGlwcyxcDQogICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgJnNlbnNvcnNfY29uZmlnX2No
+aXBzX2NvdW50LFwNCkBAIC0xMDAsNiArMTA1LDcgQEANCiAldG9rZW4gPGxp
+bmU+IENISVANCiAldG9rZW4gPGxpbmU+IENPTVBVVEUNCiAldG9rZW4gPGxp
+bmU+IElHTk9SRQ0KKyV0b2tlbiA8bGluZT4gVFlQRQ0KICV0b2tlbiA8dmFs
+dWU+IEZMT0FUDQogJXRva2VuIDxuYW1lPiBOQU1FDQogJXRva2VuIDxub3Ro
+aW5nPiBFUlJPUg0KQEAgLTEyNiw2ICsxMzIsNyBAQA0KIAl8IGNoaXBfc3Rh
+dGVtZW50IEVPTA0KIAl8IGNvbXB1dGVfc3RhdGVtZW50IEVPTA0KIAl8IGln
+bm9yZV9zdGF0ZW1lbnQgRU9MDQorCXwgdHlwZV9zdGF0ZW1lbnQgRU9MDQog
+CXwgZXJyb3IJRU9MDQogOw0KIA0KQEAgLTE5OCw2ICsyMDUsMjEgQEANCiAJ
+CQl9DQogOw0KIA0KK3R5cGVfc3RhdGVtZW50OgkJVFlQRSBmdW5jdGlvbl9u
+YW1lIGV4cHJlc3Npb24NCisJCQl7IHNlbnNvcnNfdHlwZSBuZXdfZWw7DQor
+CQkJICBpZiAoIWN1cnJlbnRfY2hpcCkgew0KKwkJCSAgICBzZW5zb3JzX3l5
+ZXJyb3IoIlR5cGUgc3RhdGVtZW50IGJlZm9yZSBmaXJzdCBjaGlwIHN0YXRl
+bWVudCIpOw0KKwkJCSAgICBmcmVlKCQyKTsNCisJCQkgICAgc2Vuc29yc19m
+cmVlX2V4cHIoJDMpOw0KKwkJCSAgICBZWUVSUk9SOw0KKwkJCSAgfQ0KKwkJ
+CSAgbmV3X2VsLmxpbmVubyA9ICQxOw0KKwkJCSAgbmV3X2VsLm5hbWUgPSAk
+MjsNCisJCQkgIG5ld19lbC5uZXd0eXBlID0gJDM7DQorCQkJICB0eXBlX2Fk
+ZF9lbCgmbmV3X2VsKTsNCisJCQl9DQorOw0KKw0KIGNoaXBfc3RhdGVtZW50
+OgkgIENISVAgY2hpcF9uYW1lX2xpc3QNCiAJCSAgeyBzZW5zb3JzX2NoaXAg
+bmV3X2VsOw0KIAkJICAgIG5ld19lbC5saW5lbm8gPSAkMTsNCkBAIC0yMDUs
+MTAgKzIyNywxMiBAQA0KIAkJICAgIG5ld19lbC5zZXRzID0gTlVMTDsNCiAJ
+CSAgICBuZXdfZWwuY29tcHV0ZXMgPSBOVUxMOw0KIAkJICAgIG5ld19lbC5p
+Z25vcmVzID0gTlVMTDsNCisJCSAgICBuZXdfZWwudHlwZXMgPSBOVUxMOw0K
+IAkJICAgIG5ld19lbC5sYWJlbHNfY291bnQgPSBuZXdfZWwubGFiZWxzX21h
+eCA9IDA7DQogCQkgICAgbmV3X2VsLnNldHNfY291bnQgPSBuZXdfZWwuc2V0
+c19tYXggPSAwOw0KIAkJICAgIG5ld19lbC5jb21wdXRlc19jb3VudCA9IG5l
+d19lbC5jb21wdXRlc19tYXggPSAwOw0KIAkJICAgIG5ld19lbC5pZ25vcmVz
+X2NvdW50ID0gbmV3X2VsLmlnbm9yZXNfbWF4ID0gMDsNCisJCSAgICBuZXdf
+ZWwudHlwZXNfY291bnQgPSBuZXdfZWwudHlwZXNfbWF4ID0gMDsNCiAJCSAg
+ICBuZXdfZWwuY2hpcHMgPSAkMjsNCiAJCSAgICBjaGlwX2FkZF9lbCgmbmV3
+X2VsKTsNCiAJCSAgICBjdXJyZW50X2NoaXAgPSBzZW5zb3JzX2NvbmZpZ19j
+aGlwcyArIA0KZGlmZiAtciAtdSBsbV9zZW5zb3JzLTMuMC4zL2xpYi9kYXRh
+LmggbG1fc2Vuc29ycy0zLjAuMy1tY3IvbGliL2RhdGEuaA0KLS0tIGxtX3Nl
+bnNvcnMtMy4wLjMvbGliL2RhdGEuaAkyMDA4LTAzLTI2IDA4OjM3OjEyLjAw
+MDAwMDAwMCAtMDUwMA0KKysrIGxtX3NlbnNvcnMtMy4wLjMtbWNyL2xpYi9k
+YXRhLmgJMjAwOC0xMS0wNSAxNzoyNDowMC4wMDAwMDAwMDAgLTA2MDANCkBA
+IC05MCw2ICs5MCwxNCBAQA0KIAlpbnQgbGluZW5vOw0KIH0gc2Vuc29yc19p
+Z25vcmU7DQogDQorLyogQ29uZmlnIGZpbGUgdHlwZSBkZWNsYXJhdGlvbjog
+YSBmZWF0dXJlIG5hbWUsIGNvbWJpbmVkIHdpdGggYW4gZXhwcmVzc2lvbg0K
+KyAgIChleHByZXNzaW9uIHNob3VsZCBiZSB0aGUgbnVtYmVyIG9mIHRoZSBu
+ZXcgdHlwZSkgKi8NCit0eXBlZGVmIHN0cnVjdCBzZW5zb3JzX3R5cGUgew0K
+KwljaGFyICpuYW1lOw0KKwlpbnQgbGluZW5vOw0KKwlzZW5zb3JzX2V4cHIg
+Km5ld3R5cGU7DQorfSBzZW5zb3JzX3R5cGU7DQorDQogLyogQSBsaXN0IG9m
+IGNoaXAgbmFtZXMsIHVzZWQgdG8gcmVwcmVzZW50IGEgY29uZmlnIGZpbGUg
+Y2hpcHMgZGVjbGFyYXRpb24gKi8NCiB0eXBlZGVmIHN0cnVjdCBzZW5zb3Jz
+X2NoaXBfbmFtZV9saXN0IHsNCiAJc2Vuc29yc19jaGlwX25hbWUgKmZpdHM7
+DQpAQCAtMTEyLDYgKzEyMCw5IEBADQogCXNlbnNvcnNfaWdub3JlICppZ25v
+cmVzOw0KIAlpbnQgaWdub3Jlc19jb3VudDsNCiAJaW50IGlnbm9yZXNfbWF4
+Ow0KKwlzZW5zb3JzX3R5cGUgKnR5cGVzOw0KKwlpbnQgdHlwZXNfY291bnQ7
+DQorCWludCB0eXBlc19tYXg7DQogCWludCBsaW5lbm87DQogfSBzZW5zb3Jz
+X2NoaXA7DQogDQpkaWZmIC1yIC11IGxtX3NlbnNvcnMtMy4wLjMvbGliL2lu
+aXQuYyBsbV9zZW5zb3JzLTMuMC4zLW1jci9saWIvaW5pdC5jDQotLS0gbG1f
+c2Vuc29ycy0zLjAuMy9saWIvaW5pdC5jCTIwMDgtMDctMTQgMTE6MjE6NDgu
+MDAwMDAwMDAwIC0wNTAwDQorKysgbG1fc2Vuc29ycy0zLjAuMy1tY3IvbGli
+L2luaXQuYwkyMDA4LTExLTA1IDE3OjQ4OjA0LjAwMDAwMDAwMCAtMDYwMA0K
+QEAgLTE2MCw2ICsxNjAsMTIgQEANCiAJZnJlZShpZ25vcmUtPm5hbWUpOw0K
+IH0NCiANCitzdGF0aWMgdm9pZCBmcmVlX3R5cGUoc2Vuc29yc190eXBlICp0
+eXBlKQ0KK3sNCisJZnJlZSh0eXBlLT5uYW1lKTsNCisJc2Vuc29yc19mcmVl
+X2V4cHIodHlwZS0+bmV3dHlwZSk7DQorfQ0KKw0KIHN0YXRpYyB2b2lkIGZy
+ZWVfY2hpcChzZW5zb3JzX2NoaXAgKmNoaXApDQogew0KIAlpbnQgaTsNCkBA
+IC0xODgsNiArMTk0LDExIEBADQogCQlmcmVlX2lnbm9yZSgmY2hpcC0+aWdu
+b3Jlc1tpXSk7DQogCWZyZWUoY2hpcC0+aWdub3Jlcyk7DQogCWNoaXAtPmln
+bm9yZXNfY291bnQgPSBjaGlwLT5pZ25vcmVzX21heCA9IDA7DQorCQ0KKwlm
+b3IgKGkgPSAwOyBpIDwgY2hpcC0+dHlwZXNfY291bnQ7IGkrKykNCisJCWZy
+ZWVfdHlwZSgmY2hpcC0+dHlwZXNbaV0pOw0KKwlmcmVlKGNoaXAtPnR5cGVz
+KTsNCisJY2hpcC0+dHlwZXNfY291bnQgPSBjaGlwLT50eXBlc19tYXggPSAw
+Ow0KIH0NCiANCiB2b2lkIHNlbnNvcnNfY2xlYW51cCh2b2lkKQ0KZGlmZiAt
+ciAtdSBsbV9zZW5zb3JzLTMuMC4zL2xpYi90ZXN0L3Rlc3Qtc2Nhbm5lci5j
+IGxtX3NlbnNvcnMtMy4wLjMtbWNyL2xpYi90ZXN0L3Rlc3Qtc2Nhbm5lci5j
+DQotLS0gbG1fc2Vuc29ycy0zLjAuMy9saWIvdGVzdC90ZXN0LXNjYW5uZXIu
+YwkyMDA4LTAzLTI2IDA4OjM3OjEyLjAwMDAwMDAwMCAtMDUwMA0KKysrIGxt
+X3NlbnNvcnMtMy4wLjMtbWNyL2xpYi90ZXN0L3Rlc3Qtc2Nhbm5lci5jCTIw
+MDgtMTEtMDUgMTg6MzA6NDMuMDAwMDAwMDAwIC0wNjAwDQpAQCAtNzgsNiAr
+NzgsMTAgQEANCiAJCQkJcHJpbnRmKCJJR05PUkVcbiIpOw0KIAkJCQlicmVh
+azsNCiAJDQorCQkJY2FzZSBUWVBFOg0KKwkJCQlwcmludGYoIlRZUEVcbiIp
+Ow0KKwkJCQlicmVhazsNCisJDQogCQkJY2FzZSBGTE9BVDoNCiAJCQkJcHJp
+bnRmKCJGTE9BVDogJWZcbiIsIHNlbnNvcnNfeXlsdmFsLnZhbHVlKTsNCiAJ
+CQkJYnJlYWs7DQo=
 
-The Vdd parameter can be made an array, one element for each chip.  This is
-the standard to pass device data to a driver for something like a PCI card. 
-Just run "modinfo bttv" or a hundred other drivers that work this way. 
-Problems come up when you want to compile drivers into the kernel, figuring
-out which position in the array corresponds to which device, adding or
-removing a device changing said positions, and passing function pointers.
-
-Another solution, though I know you're not a fan of it Jean, but I think it's
-a great idea when possible, is to make the parameter a settable attribute in
-sysfs.  E.g, the mcp3021 driver would have a "vdd" attribute that one could
-set to "3300" via sysfs.
-
-That solves a lot of the problems.  Want it in the device tree?  Put it
-somewhere and then have a userspace script that grabs
-"/proc/device-tree/.../vdd" and puts it into
-"/sys/class/hwmon/.../device/vdd".  No kernel code needed.  The mcp3021 driver
-doesn't need to know or care about the OF device tree.  On non-OF arches, the
-value could come from DMI or anything.
-
-And sometimes it's not so simple as vdd = 3300.  Maybe vdd is specific to each
-board and gets measured during production and stored into an eeprom or on
-flash?  "cat /mnt/flash/vdd > /sys/.../vdd" is a lot easier to do from
-a userspace script than from the kernel!
-
-Or maybe you have a chip with absolute voltage, like an lm87, and a relative
-voltage chip like an mcp3021?  Suppose the Vdd to the mcp3021 is one of the
-voltages being measured by the lm87?  You could do this, no kernel code
-needed:
-
-cat /sys/class/hwmon/hwmon0/device/in0_input > /sys/class/hwmon/hwmon1/device/vdd
-
-And many of these settings don't have obviously correct values.  If you're the
-one who has to figure them out, being able to change them while the system is
-running is incredibly useful.  Do you remember what it was like to develop
-device drivers before Linux had loadable modules?  You had to reboot your
-computer for every single compile you wanted to test.  I remember, and I don't
-want to go back to that.
+--655872-113938112-1225936111=:11053
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--655872-113938112-1225936111=:11053--
