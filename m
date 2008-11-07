@@ -1,34 +1,38 @@
-From: Greg KH <greg@kroah.com>
-Date: Tue, 11 Nov 2008 06:26:55 +0000
-Subject: Re: [lm-sensors] [PATCH 2/5] i5k_amb: Load automatically on all
-Message-Id: <20081111062655.GI13156@kroah.com>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Date: Fri, 07 Nov 2008 21:58:54 +0000
+Subject: [lm-sensors] Dell Optiplex / SMSC SCH5514 - testers wanted
+Message-Id: <20081107215854.GK28501@mars.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081107185621.13022.61885.stgit@elm3a70.beaverton.ibm.com> <20081107185631.13022.59600.stgit@elm3a70.beaverton.ibm.com> <20081108120950.397a3165@hyperion.delvare>
-In-Reply-To: <20081108120950.397a3165@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "Darrick J. Wong" <djwong@us.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Kay Sievers <kay.sievers@vrfy.org>
+To: lm-sensors@vger.kernel.org
 
-On Sat, Nov 08, 2008 at 12:09:50PM +0100, Jean Delvare wrote:
-> Hi Darrick,
-> 
-> On Fri, 07 Nov 2008 10:56:31 -0800, Darrick J. Wong wrote:
-> > It turns out that we cannot create a pci_driver in this driver because PCI will
-> > not call this module's probe function if the i5000-edac driver is already
-> > loaded.
-> 
-> I seem to recall work in progress to let multiple drivers bind to the
-> same PCI device. Greg, Kay, what's the status?
+Hi all:
 
-Hannes provided me with a bunch of patches, some of which applied, some
-didn't.  I had to back some of them out as they were wrong, and I need
-to revisit them when I get a chance :(
+I have a partial data sheet for the SMSC SCH5514E, which I received with the
+help of Dell and my employer (NDAs all around).  I expect to be posting a basic
+driver for it very soon.
 
-thanks,
+Looking through the list archives, I see that there was interest in supporting
+the SCH5514D almost a year ago[1].  From those emails I can see that the "D" has
+the identical device ID as the "E" on which I'm working.  I have asked for some
+clarification about the various chip ids and/or compatibility, we'll see how
+that turns out.
 
-greg k-h
+In the mean time, does anyone have access to a Dell Optiplex 745 (or something
+close to that) that would be willing to volunteer for further testing?  Please
+let me know to which model of machine you have access, and if possible, the
+precise part number of the SMSC superio chip.
+
+Thanks & regards,
+
+[1] http://lists.lm-sensors.org/pipermail/lm-sensors/2007-December/022189.html
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
 
 _______________________________________________
 lm-sensors mailing list
