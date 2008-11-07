@@ -1,41 +1,49 @@
 From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Mon, 17 Nov 2008 22:33:24 +0000
-Subject: Re: [lm-sensors] ipmisensors to use or not to use?
-Message-Id: <20081117223324.GD8800@plum>
+Date: Fri, 07 Nov 2008 18:56:31 +0000
+Subject: [lm-sensors] [PATCH 2/5] i5k_amb: Load automatically on all
+Message-Id: <20081107185631.13022.59600.stgit@elm3a70.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4918C638.7010202@anduras.de>
-In-Reply-To: <4918C638.7010202@anduras.de>
+References: <20081107185621.13022.61885.stgit@elm3a70.beaverton.ibm.com>
+In-Reply-To: <20081107185621.13022.61885.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Darrick J. Wong" <djwong@us.ibm.com>, Jean Delvare <khali@linux-fr.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-On Mon, Nov 17, 2008 at 01:56:32PM -0800, Darrick J. Wong wrote:
-> On Mon, Nov 17, 2008 at 06:05:30PM +0100, Sven Anders wrote:
-> > 
-> > Hmm?!
-> > Does nobody know or is nobody willing to answer?
-> > 
-> > I'm thinking of updating the patch for newer kernel, but
-> > as my time is limited, I would only do this, if it's the
-> > right way and it has a chance to be integrated in the
-> > kernel.
-> 
-> As I recall, the driver needs to be ported to 2.6.28-rc.  Both it and
-> ibmpex try to call hwmon_device_register on the bmc device, which causes
-> problems if someone tries to load both.  I think there was a
-> general unease with putting it in without some more code review.  The
-> author doesn't seem to be pushing for its inclusion.  If nothing else, I
-> did a quick port to 2.6.28-rc5 and it miscategorizes a power meter as a
-> current sensor and the fan RPM sensors totally don't work.  I might be
-> able to clean it up a bit and then maybe we can push it into the
-> scary-upcoming-drivers tree?
 
-Blechk.  Also crashes on rmmod, and it seems that the only thing that
-works are the voltage sensors.  Lots of strange looking code to convert
-sensor readings too.
+It turns out that we cannot create a pci_driver in this driver because PCI will
+not call this module's probe function if the i5000-edac driver is already
+loaded.  That said, we only want one value (AMBASE) from the PCI config space.
+Neither driver alters this value, so it's safe to read it.  However, we still
+want the module aliases, so provide that.
 
---D
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
+
+ drivers/hwmon/i5k_amb.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/hwmon/i5k_amb.c b/drivers/hwmon/i5k_amb.c
+index 2ede938..a3fa639 100644
+--- a/drivers/hwmon/i5k_amb.c
++++ b/drivers/hwmon/i5k_amb.c
+@@ -490,6 +490,14 @@ static unsigned long chipset_ids[] = {
+ 	0
+ };
+ 
++static struct pci_device_id i5k_amb_ids[] __devinitdata = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_5000_ERR) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_5400_ERR) },
++	{ 0, },
++};
++
++MODULE_DEVICE_TABLE(pci, i5k_amb_ids);
++
+ static int __devinit i5k_amb_probe(struct platform_device *pdev)
+ {
+ 	struct i5k_amb_data *data;
+
 
 _______________________________________________
 lm-sensors mailing list
