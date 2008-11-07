@@ -1,181 +1,216 @@
 From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Fri, 07 Nov 2008 18:56:47 +0000
-Subject: [lm-sensors] [PATCH 5/5] lm85: Support adt7468 chips
-Message-Id: <20081107185647.13022.77669.stgit@elm3a70.beaverton.ibm.com>
+Date: Fri, 07 Nov 2008 19:16:36 +0000
+Subject: [lm-sensors] [PATCH] Fix platform drivers that crash on
+Message-Id: <20081107191636.13288.17003.stgit@elm3a70.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081107185621.13022.61885.stgit@elm3a70.beaverton.ibm.com>
-In-Reply-To: <20081107185621.13022.61885.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Darrick J. Wong" <djwong@us.ibm.com>, Jean Delvare <khali@linux-fr.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: "Darrick J. Wong" <djwong@us.ibm.com>, Corey Minyard <minyard@acm.org>, Jean Delvare <khali@linux-fr.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, openipmi-developer@lists.sourceforge.net, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>
 
 
-The adt7468 is a follow-on to the adt7463, so plumb in adt7468 support along
-the same code paths.
+It turns out that if one registers a struct platform_device, the platform
+device code expects that platform_device.device->driver points to a struct
+driver inside a struct platform_driver.  This is not the case with the ipmi-si,
+ipmi-msghandler and ibmaem drivers, which causes the suspend/resume hook
+functions to jump off into nowhere, causing a crash.  Make this assumption hold
+true for these three drivers.
 
 Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 ---
 
- drivers/hwmon/lm85.c |   52 ++++++++++++++++++++++++++++++++++++++++++++------
- 1 files changed, 46 insertions(+), 6 deletions(-)
+ drivers/char/ipmi/ipmi_msghandler.c |   20 +++++++++++---------
+ drivers/char/ipmi/ipmi_si_intf.c    |   16 +++++++++-------
+ drivers/hwmon/ibmaem.c              |   18 ++++++++++--------
+ 3 files changed, 30 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
-index 3ff0285..cfc1ee9 100644
---- a/drivers/hwmon/lm85.c
-+++ b/drivers/hwmon/lm85.c
-@@ -39,7 +39,8 @@
- static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
- 
- /* Insmod parameters */
--I2C_CLIENT_INSMOD_6(lm85b, lm85c, adm1027, adt7463, emc6d100, emc6d102);
-+I2C_CLIENT_INSMOD_7(lm85b, lm85c, adm1027, adt7463, adt7468, emc6d100,
-+		    emc6d102);
- 
- /* The LM85 registers */
- 
-@@ -59,6 +60,12 @@ I2C_CLIENT_INSMOD_6(lm85b, lm85c, adm1027, adt7463, emc6d100, emc6d102);
- 
- #define	LM85_REG_COMPANY		0x3e
- #define	LM85_REG_VERSTEP		0x3f
-+
-+#define	ADT7468_REG_CFG5		0x7c
-+#define		ADT7468_OFF64		0x01
-+#define	IS_ADT7468_OFF64(data)		\
-+	((data)->type = adt7468 && !((data)->cfg5 & ADT7468_OFF64))
-+
- /* These are the recognized values for the above regs */
- #define	LM85_COMPANY_NATIONAL		0x01
- #define	LM85_COMPANY_ANALOG_DEV		0x41
-@@ -70,6 +77,8 @@ I2C_CLIENT_INSMOD_6(lm85b, lm85c, adm1027, adt7463, emc6d100, emc6d102);
- #define	LM85_VERSTEP_ADM1027		0x60
- #define	LM85_VERSTEP_ADT7463		0x62
- #define	LM85_VERSTEP_ADT7463C		0x6A
-+#define	LM85_VERSTEP_ADT7468_1		0x71
-+#define	LM85_VERSTEP_ADT7468_2		0x72
- #define	LM85_VERSTEP_EMC6D100_A0        0x60
- #define	LM85_VERSTEP_EMC6D100_A1        0x61
- #define	LM85_VERSTEP_EMC6D102		0x65
-@@ -306,6 +315,7 @@ struct lm85_data {
- 	u8 vid;			/* Register value */
- 	u8 vrm;			/* VRM version */
- 	u32 alarms;		/* Register encoding, combined */
-+	u8 cfg5;		/* Config Register 5 on ADT7468 */
- 	struct lm85_autofan autofan[3];
- 	struct lm85_zone zone[3];
+diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
+index 8a59aaa..7a88dfd 100644
+--- a/drivers/char/ipmi/ipmi_msghandler.c
++++ b/drivers/char/ipmi/ipmi_msghandler.c
+@@ -422,9 +422,11 @@ struct ipmi_smi {
+ /**
+  * The driver model view of the IPMI messaging driver.
+  */
+-static struct device_driver ipmidriver = {
+-	.name = "ipmi",
+-	.bus = &platform_bus_type
++static struct platform_driver ipmidriver = {
++	.driver = {
++		.name = "ipmi",
++		.bus = &platform_bus_type
++	}
  };
-@@ -685,6 +695,9 @@ static ssize_t set_temp_min(struct device *dev, struct device_attribute *attr,
- 	struct lm85_data *data = i2c_get_clientdata(client);
- 	long val = simple_strtol(buf, NULL, 10);
+ static DEFINE_MUTEX(ipmidriver_mutex);
  
-+	if (IS_ADT7468_OFF64(data))
-+		val += 64;
-+
- 	mutex_lock(&data->update_lock);
- 	data->temp_min[nr] = TEMP_TO_REG(val);
- 	lm85_write_value(client, LM85_REG_TEMP_MIN(nr), data->temp_min[nr]);
-@@ -708,6 +721,9 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
- 	struct lm85_data *data = i2c_get_clientdata(client);
- 	long val = simple_strtol(buf, NULL, 10);
+@@ -2384,9 +2386,9 @@ static int ipmi_bmc_register(ipmi_smi_t intf, int ifnum,
+ 	 * representing the interfaced BMC already
+ 	 */
+ 	if (bmc->guid_set)
+-		old_bmc = ipmi_find_bmc_guid(&ipmidriver, bmc->guid);
++		old_bmc = ipmi_find_bmc_guid(&ipmidriver.driver, bmc->guid);
+ 	else
+-		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver,
++		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
+ 						    bmc->id.product_id,
+ 						    bmc->id.device_id);
  
-+	if (IS_ADT7468_OFF64(data))
-+		val += 64;
-+
- 	mutex_lock(&data->update_lock);
- 	data->temp_max[nr] = TEMP_TO_REG(val);
- 	lm85_write_value(client, LM85_REG_TEMP_MAX(nr), data->temp_max[nr]);
-@@ -1163,6 +1179,10 @@ static int lm85_detect(struct i2c_client *client, int kind,
- 			case LM85_VERSTEP_ADT7463C:
- 				kind = adt7463;
- 				break;
-+			case LM85_VERSTEP_ADT7468_1:
-+			case LM85_VERSTEP_ADT7468_2:
-+				kind = adt7468;
-+				break;
- 			}
- 		} else if (company = LM85_COMPANY_SMSC) {
- 			switch (verstep) {
-@@ -1195,6 +1215,9 @@ static int lm85_detect(struct i2c_client *client, int kind,
- 	case adt7463:
- 		type_name = "adt7463";
- 		break;
-+	case adt7468:
-+		type_name = "adt7468";
-+		break;
- 	case emc6d100:
- 		type_name = "emc6d100";
- 		break;
-@@ -1246,10 +1269,11 @@ static int lm85_probe(struct i2c_client *client,
- 	if (err)
- 		goto err_kfree;
+@@ -2416,7 +2418,7 @@ static int ipmi_bmc_register(ipmi_smi_t intf, int ifnum,
+ 		snprintf(name, sizeof(name),
+ 			 "ipmi_bmc.%4.4x", bmc->id.product_id);
  
--	/* The ADT7463 has an optional VRM 10 mode where pin 21 is used
-+	/* The ADT7463/68 have an optional VRM 10 mode where pin 21 is used
- 	   as a sixth digital VID input rather than an analog input. */
- 	data->vid = lm85_read_value(client, LM85_REG_VID);
--	if (!(data->type = adt7463 && (data->vid & 0x80)))
-+	if (!((data->type = adt7463 || data->type = adt7468) &&
-+	    (data->vid & 0x80)))
- 		if ((err = sysfs_create_group(&client->dev.kobj,
- 					&lm85_group_in4)))
- 			goto err_remove_files;
-@@ -1357,7 +1381,8 @@ static struct lm85_data *lm85_update_device(struct device *dev)
- 		 * There are 2 additional resolution bits per channel and we
- 		 * have room for 4, so we shift them to the left.
- 		 */
--		if (data->type = adm1027 || data->type = adt7463) {
-+		if (data->type = adm1027 || data->type = adt7463 ||
-+		    data->type = adt7468) {
- 			int ext1 = lm85_read_value(client,
- 						   ADM1027_REG_EXTEND_ADC1);
- 			int ext2 =  lm85_read_value(client,
-@@ -1382,16 +1407,23 @@ static struct lm85_data *lm85_update_device(struct device *dev)
- 			    lm85_read_value(client, LM85_REG_FAN(i));
+-		while (ipmi_find_bmc_prod_dev_id(&ipmidriver,
++		while (ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
+ 						 bmc->id.product_id,
+ 						 bmc->id.device_id)) {
+ 			if (!warn_printed) {
+@@ -2446,7 +2448,7 @@ static int ipmi_bmc_register(ipmi_smi_t intf, int ifnum,
+ 			       " Unable to allocate platform device\n");
+ 			return -ENOMEM;
  		}
+-		bmc->dev->dev.driver = &ipmidriver;
++		bmc->dev->dev.driver = &ipmidriver.driver;
+ 		dev_set_drvdata(&bmc->dev->dev, bmc);
+ 		kref_init(&bmc->refcount);
  
--		if (!(data->type = adt7463 && (data->vid & 0x80))) {
-+		if (!((data->type = adt7463 || data->type = adt7468) &&
-+		    (data->vid & 0x80))) {
- 			data->in[4] = lm85_read_value(client,
- 				      LM85_REG_IN(4));
+@@ -4247,7 +4249,7 @@ static int ipmi_init_msghandler(void)
+ 	if (initialized)
+ 		return 0;
+ 
+-	rv = driver_register(&ipmidriver);
++	rv = driver_register(&ipmidriver.driver);
+ 	if (rv) {
+ 		printk(KERN_ERR PFX "Could not register IPMI driver\n");
+ 		return rv;
+@@ -4308,7 +4310,7 @@ static __exit void cleanup_ipmi(void)
+ 	remove_proc_entry(proc_ipmi_root->name, NULL);
+ #endif /* CONFIG_PROC_FS */
+ 
+-	driver_unregister(&ipmidriver);
++	driver_unregister(&ipmidriver.driver);
+ 
+ 	initialized = 0;
+ 
+diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
+index 3123bf5..3000135 100644
+--- a/drivers/char/ipmi/ipmi_si_intf.c
++++ b/drivers/char/ipmi/ipmi_si_intf.c
+@@ -114,9 +114,11 @@ static char *si_to_str[] = { "kcs", "smic", "bt" };
+ 
+ #define DEVICE_NAME "ipmi_si"
+ 
+-static struct device_driver ipmi_driver = {
+-	.name = DEVICE_NAME,
+-	.bus = &platform_bus_type
++static struct platform_driver ipmi_driver = {
++	.driver = {
++		.name = DEVICE_NAME,
++		.bus = &platform_bus_type
++	}
+ };
+ 
+ 
+@@ -2868,7 +2870,7 @@ static int try_smi_init(struct smi_info *new_smi)
+ 			goto out_err;
  		}
+ 		new_smi->dev = &new_smi->pdev->dev;
+-		new_smi->dev->driver = &ipmi_driver;
++		new_smi->dev->driver = &ipmi_driver.driver;
  
-+		if (data->type = adt7468)
-+			data->cfg5 = lm85_read_value(client, ADT7468_REG_CFG5);
-+
- 		for (i = 0; i <= 2; ++i) {
- 			data->temp[i]  			    lm85_read_value(client, LM85_REG_TEMP(i));
- 			data->pwm[i]  			    lm85_read_value(client, LM85_REG_PWM(i));
-+
-+			if (IS_ADT7468_OFF64(data))
-+				data->temp[i] -= 64;
- 		}
+ 		rv = platform_device_add(new_smi->pdev);
+ 		if (rv) {
+@@ -2983,7 +2985,7 @@ static __devinit int init_ipmi_si(void)
+ 	initialized = 1;
  
- 		data->alarms = lm85_read_value(client, LM85_REG_ALARM1);
-@@ -1446,7 +1478,8 @@ static struct lm85_data *lm85_update_device(struct device *dev)
- 			    lm85_read_value(client, LM85_REG_FAN_MIN(i));
- 		}
+ 	/* Register the device drivers. */
+-	rv = driver_register(&ipmi_driver);
++	rv = driver_register(&ipmi_driver.driver);
+ 	if (rv) {
+ 		printk(KERN_ERR
+ 		       "init_ipmi_si: Unable to register driver: %d\n",
+@@ -3052,7 +3054,7 @@ static __devinit int init_ipmi_si(void)
+ #ifdef CONFIG_PPC_OF
+ 		of_unregister_platform_driver(&ipmi_of_platform_driver);
+ #endif
+-		driver_unregister(&ipmi_driver);
++		driver_unregister(&ipmi_driver.driver);
+ 		printk(KERN_WARNING
+ 		       "ipmi_si: Unable to find any System Interface(s)\n");
+ 		return -ENODEV;
+@@ -3151,7 +3153,7 @@ static __exit void cleanup_ipmi_si(void)
+ 		cleanup_one_si(e);
+ 	mutex_unlock(&smi_infos_lock);
  
--		if (!(data->type = adt7463 && (data->vid & 0x80))) {
-+		if (!((data->type = adt7463 || data->type = adt7468) &&
-+		    (data->vid & 0x80))) {
- 			data->in_min[4] = lm85_read_value(client,
- 					  LM85_REG_IN_MIN(4));
- 			data->in_max[4] = lm85_read_value(client,
-@@ -1481,6 +1514,13 @@ static struct lm85_data *lm85_update_device(struct device *dev)
- 			    lm85_read_value(client, LM85_REG_AFAN_LIMIT(i));
- 			data->zone[i].critical  			    lm85_read_value(client, LM85_REG_AFAN_CRITICAL(i));
-+
-+			if (IS_ADT7468_OFF64(data)) {
-+				data->temp_min[i] -= 64;
-+				data->temp_max[i] -= 64;
-+				data->zone[i].limit -= 64;
-+				data->zone[i].critical -= 64;
-+			}
- 		}
+-	driver_unregister(&ipmi_driver);
++	driver_unregister(&ipmi_driver.driver);
+ }
+ module_exit(cleanup_ipmi_si);
  
- 		i = lm85_read_value(client, LM85_REG_AFAN_SPIKE1);
+diff --git a/drivers/hwmon/ibmaem.c b/drivers/hwmon/ibmaem.c
+index 7b0ed5d..fe74609 100644
+--- a/drivers/hwmon/ibmaem.c
++++ b/drivers/hwmon/ibmaem.c
+@@ -88,9 +88,11 @@
+ static DEFINE_IDR(aem_idr);
+ static DEFINE_SPINLOCK(aem_idr_lock);
+ 
+-static struct device_driver aem_driver = {
+-	.name = DRVNAME,
+-	.bus = &platform_bus_type,
++static struct platform_driver aem_driver = {
++	.driver = {
++		.name = DRVNAME,
++		.bus = &platform_bus_type,
++	}
+ };
+ 
+ struct aem_ipmi_data {
+@@ -583,7 +585,7 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
+ 	data->pdev = platform_device_alloc(DRVNAME, data->id);
+ 	if (!data->pdev)
+ 		goto dev_err;
+-	data->pdev->dev.driver = &aem_driver;
++	data->pdev->dev.driver = &aem_driver.driver;
+ 
+ 	res = platform_device_add(data->pdev);
+ 	if (res)
+@@ -716,7 +718,7 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
+ 	data->pdev = platform_device_alloc(DRVNAME, data->id);
+ 	if (!data->pdev)
+ 		goto dev_err;
+-	data->pdev->dev.driver = &aem_driver;
++	data->pdev->dev.driver = &aem_driver.driver;
+ 
+ 	res = platform_device_add(data->pdev);
+ 	if (res)
+@@ -1085,7 +1087,7 @@ static int __init aem_init(void)
+ {
+ 	int res;
+ 
+-	res = driver_register(&aem_driver);
++	res = driver_register(&aem_driver.driver);
+ 	if (res) {
+ 		printk(KERN_ERR "Can't register aem driver\n");
+ 		return res;
+@@ -1097,7 +1099,7 @@ static int __init aem_init(void)
+ 	return 0;
+ 
+ ipmi_reg_err:
+-	driver_unregister(&aem_driver);
++	driver_unregister(&aem_driver.driver);
+ 	return res;
+ 
+ }
+@@ -1107,7 +1109,7 @@ static void __exit aem_exit(void)
+ 	struct aem_data *p1, *next1;
+ 
+ 	ipmi_smi_watcher_unregister(&driver_data.bmc_events);
+-	driver_unregister(&aem_driver);
++	driver_unregister(&aem_driver.driver);
+ 	list_for_each_entry_safe(p1, next1, &driver_data.aem_devices, list)
+ 		aem_delete(p1);
+ }
 
 
 _______________________________________________
