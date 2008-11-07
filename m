@@ -1,164 +1,184 @@
-From: Seann Clark <nombrandue@tsukinokage.net>
-Date: Mon, 10 Nov 2008 15:18:57 +0000
-Subject: [lm-sensors] Sensor configuration
-Message-Id: <491850E1.3050003@tsukinokage.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============4616361889607038945=="
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Fri, 07 Nov 2008 18:56:47 +0000
+Subject: [lm-sensors] [PATCH 5/5] lm85: Support adt7468 chips
+Message-Id: <20081107185647.13022.77669.stgit@elm3a70.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
-This is a cryptographically signed message in MIME format.
-
---===============4616361889607038945==
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature";
-	micalg=sha1; boundary="------------ms020707040705000909060508"
-
-This is a cryptographically signed message in MIME format.
-
---------------ms020707040705000909060508
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-All,
-
-    This is a rather simple issue I am having, which is more just one of 
-those "I know it can be done, but I am not sure how..." type of issues. 
-I have an Asus DSBF-D motherboard which works very well with lmsensors, 
-but I had seen information on a DDR2 temperature reading that was 
-possible from lmsensors (My Bios shows my RAM temp properly) and I am 
-wonder what I would need to do to get this to work in my configuration. 
-My versions are as follows: sensors version 3.0.2 with libsensors 
-version 3.0.2. The other thing I am looking at is adjusting the core 
-temp max that is listed, since I think 255 degrees is a bit hot for a 
-single core to max out at.
-
-
-Regards
-Seann
-
-
-
---------------ms020707040705000909060508
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIRXTCC
-BN0wggPFoAMCAQICEHGS++YZX6xNEoV0cTSiGKcwDQYJKoZIhvcNAQEFBQAwezELMAkGA1UE
-BhMCR0IxGzAZBgNVBAgMEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4GA1UEBwwHU2FsZm9yZDEa
-MBgGA1UECgwRQ29tb2RvIENBIExpbWl0ZWQxITAfBgNVBAMMGEFBQSBDZXJ0aWZpY2F0ZSBT
-ZXJ2aWNlczAeFw0wNDAxMDEwMDAwMDBaFw0yODEyMzEyMzU5NTlaMIGuMQswCQYDVQQGEwJV
-UzELMAkGA1UECBMCVVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUg
-VVNFUlRSVVNUIE5ldHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2
-MDQGA1UEAxMtVVROLVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWls
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjmFpPJ9q0E7YkY3rs3BYHW8OWX5
-ShpHornMSMxqmNVNNRm5pELlzkniii8efNIxB8dOtINknS4p1aJkxIW9hVE1eaROaJB7HHqk
-kqgX8pgV8pPMyaQylbsMTzC9mKALi+VuG6JG+ni8om+rWV6lL8/K2m2qL+usobNqqrcuZzWL
-eeEeaYji5kbNoKXqvgvOdjp6Dpvq/NonWz1zHyLmSGHGTPNpsaguG7bUMSAsvIKKjqQOpdeJ
-Q/wWWq8dcdcRWdq6hw2v+vPhwvCkxWeM1tZUOt4KpLoDd7NlyP0e03RiqhjKaJMeoYV+9Udl
-y/hNVyh00jT/MLbu9mIwFIws6wIDAQABo4IBJzCCASMwHwYDVR0jBBgwFoAUoBEKIz6W8Qfs
-4q8p74Klf9AwpLQwHQYDVR0OBBYEFImCZ33EnSZwAEu0UEh83j2uBG59MA4GA1UdDwEB/wQE
-AwIBBjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDBDAR
-BgNVHSAECjAIMAYGBFUdIAAwewYDVR0fBHQwcjA4oDagNIYyaHR0cDovL2NybC5jb21vZG9j
-YS5jb20vQUFBQ2VydGlmaWNhdGVTZXJ2aWNlcy5jcmwwNqA0oDKGMGh0dHA6Ly9jcmwuY29t
-b2RvLm5ldC9BQUFDZXJ0aWZpY2F0ZVNlcnZpY2VzLmNybDARBglghkgBhvhCAQEEBAMCAQYw
-DQYJKoZIhvcNAQEFBQADggEBAJ2Vyzy4fqUJxB6/C8LHdo45PJTGEKpPDMngq4RdiVTgZTvz
-bRx8NywlVF+WIfw3hJGdFdwUT4HPVB1rbEVgxy35l1FM+WbKPKCCjKbI8OLp1Er57D9Wyd12
-jMOCAU9sAPMeGmF0BEcDqcZAV5G8ZSLFJ2dPV9tkWtmNH7qGL/QGrpxp7en0zykX2OBKnxog
-L5dMUbtGB8SKN04g4wkxaMeexIud6H4RvDJoEJYRmETYKlFgTYjrdDrfQwYyyDlWjDoRUtNB
-pEMD9O3vMyfbOeAUTibJ2PU54om4k123KSZB6rObroP8d3XK6Mq1/uJlSmM+RMTQw16Hc6mY
-HK9/FX8wggY6MIIFIqADAgECAhEAtRtGsYs5otzaieXJkiVhrjANBgkqhkiG9w0BAQUFADCB
-rjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEe
-MBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVz
-ZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0
-aW9uIGFuZCBFbWFpbDAeFw0wODEwMTYwMDAwMDBaFw0wOTEwMTYyMzU5NTlaMIHhMTUwMwYD
-VQQLEyxDb21vZG8gVHJ1c3QgTmV0d29yayAtIFBFUlNPTkEgTk9UIFZBTElEQVRFRDFGMEQG
-A1UECxM9VGVybXMgYW5kIENvbmRpdGlvbnMgb2YgdXNlOiBodHRwOi8vd3d3LmNvbW9kby5u
-ZXQvcmVwb3NpdG9yeTEfMB0GA1UECxMWKGMpMjAwMyBDb21vZG8gTGltaXRlZDEUMBIGA1UE
-AxMLU2Vhbm4gQ2xhcmsxKTAnBgkqhkiG9w0BCQEWGm5vbWJyYW5kdWVAdHN1a2lub2thZ2Uu
-bmV0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA99/CEaL/hK7BELp+djKnwW7F
-bBSoDkwJfryV4KMpyJsxSh0PtTqPDX1m0yasOMT+UiWwVvzLnCofJ61CdPv073kjxNGi+KJt
-OXYQoGdOmwKGALHeQsqfE8iYoZ0lc1A6f3pVBMEb0CcrljUB/W9T9X/pwD2Mf7ejWi9qwuzn
-tqmKyI//0u1sktoYqor+iezlffFmb5mgY9QWqnErtADG1bV5z0KTZDWpZsFwGhHcV+wXPXxW
-wxOENlEtJV2Ubuo6kLg71Mhew6YeGV3FM6T/9pp+rDAKE8kWDwFgpLlrTDzC5jBcytWUtDox
-cUT7Q7EzRa5WOeJpP8eBvedNxXHX4QIDAQABo4ICHDCCAhgwHwYDVR0jBBgwFoAUiYJnfcSd
-JnAAS7RQSHzePa4Ebn0wHQYDVR0OBBYEFFaGImjc6bRuDRrfJTuNi+wxM1nyMA4GA1UdDwEB
-/wQEAwIFoDAMBgNVHRMBAf8EAjAAMCAGA1UdJQQZMBcGCCsGAQUFBwMEBgsrBgEEAbIxAQMF
-AjARBglghkgBhvhCAQEEBAMCBSAwRgYDVR0gBD8wPTA7BgwrBgEEAbIxAQIBAQEwKzApBggr
-BgEFBQcCARYdaHR0cHM6Ly9zZWN1cmUuY29tb2RvLm5ldC9DUFMwgaUGA1UdHwSBnTCBmjBM
-oEqgSIZGaHR0cDovL2NybC5jb21vZG9jYS5jb20vVVROLVVTRVJGaXJzdC1DbGllbnRBdXRo
-ZW50aWNhdGlvbmFuZEVtYWlsLmNybDBKoEigRoZEaHR0cDovL2NybC5jb21vZG8ubmV0L1VU
-Ti1VU0VSRmlyc3QtQ2xpZW50QXV0aGVudGljYXRpb25hbmRFbWFpbC5jcmwwbAYIKwYBBQUH
-AQEEYDBeMDYGCCsGAQUFBzAChipodHRwOi8vY3J0LmNvbW9kb2NhLmNvbS9VVE5BQUFDbGll
-bnRDQS5jcnQwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmNvbW9kb2NhLmNvbTAlBgNVHREE
-HjAcgRpub21icmFuZHVlQHRzdWtpbm9rYWdlLm5ldDANBgkqhkiG9w0BAQUFAAOCAQEApSfz
-ov5Y/18ftleg41xjycqrDF65Vt8c90hkWh3v8vaQoi9k4thQwXwKw0ZCfQPWAGHgAV7vSUXY
-1zMwf2Z66k4eL0quDxuqDxl7pUv8mqV8+HBnGg79WZ9Asi4G5h+hIrp/hDwq9oOvifSxDdRz
-dI6Uyj4tCKuQULn/LhkVjXM4u0jIW/W1QgcSJVZ/IAJ3+gAodPNJQwma7PGp0mDFlWe5kalR
-M/bVE8AzUaZNFr96v7oSHtOOSItyXlZlNDOajC5K3LUlniPPgJFi6HYPSODHYKBxhq8TxXLx
-H4p5RG5RboPB6GLJq4AHoy7JqRDJ0aurx5T1+nHvp7oNZEH4yDCCBjowggUioAMCAQICEQC1
-G0axizmi3NqJ5cmSJWGuMA0GCSqGSIb3DQEBBQUAMIGuMQswCQYDVQQGEwJVUzELMAkGA1UE
-CBMCVVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNU
-IE5ldHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMt
-VVROLVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsMB4XDTA4MTAx
-NjAwMDAwMFoXDTA5MTAxNjIzNTk1OVowgeExNTAzBgNVBAsTLENvbW9kbyBUcnVzdCBOZXR3
-b3JrIC0gUEVSU09OQSBOT1QgVkFMSURBVEVEMUYwRAYDVQQLEz1UZXJtcyBhbmQgQ29uZGl0
-aW9ucyBvZiB1c2U6IGh0dHA6Ly93d3cuY29tb2RvLm5ldC9yZXBvc2l0b3J5MR8wHQYDVQQL
-ExYoYykyMDAzIENvbW9kbyBMaW1pdGVkMRQwEgYDVQQDEwtTZWFubiBDbGFyazEpMCcGCSqG
-SIb3DQEJARYabm9tYnJhbmR1ZUB0c3VraW5va2FnZS5uZXQwggEiMA0GCSqGSIb3DQEBAQUA
-A4IBDwAwggEKAoIBAQD338IRov+ErsEQun52MqfBbsVsFKgOTAl+vJXgoynImzFKHQ+1Oo8N
-fWbTJqw4xP5SJbBW/MucKh8nrUJ0+/TveSPE0aL4om05dhCgZ06bAoYAsd5Cyp8TyJihnSVz
-UDp/elUEwRvQJyuWNQH9b1P1f+nAPYx/t6NaL2rC7Oe2qYrIj//S7WyS2hiqiv6J7OV98WZv
-maBj1BaqcSu0AMbVtXnPQpNkNalmwXAaEdxX7Bc9fFbDE4Q2US0lXZRu6jqQuDvUyF7Dph4Z
-XcUzpP/2mn6sMAoTyRYPAWCkuWtMPMLmMFzK1ZS0OjFxRPtDsTNFrlY54mk/x4G9503Fcdfh
-AgMBAAGjggIcMIICGDAfBgNVHSMEGDAWgBSJgmd9xJ0mcABLtFBIfN49rgRufTAdBgNVHQ4E
-FgQUVoYiaNzptG4NGt8lO42L7DEzWfIwDgYDVR0PAQH/BAQDAgWgMAwGA1UdEwEB/wQCMAAw
-IAYDVR0lBBkwFwYIKwYBBQUHAwQGCysGAQQBsjEBAwUCMBEGCWCGSAGG+EIBAQQEAwIFIDBG
-BgNVHSAEPzA9MDsGDCsGAQQBsjEBAgEBATArMCkGCCsGAQUFBwIBFh1odHRwczovL3NlY3Vy
-ZS5jb21vZG8ubmV0L0NQUzCBpQYDVR0fBIGdMIGaMEygSqBIhkZodHRwOi8vY3JsLmNvbW9k
-b2NhLmNvbS9VVE4tVVNFUkZpcnN0LUNsaWVudEF1dGhlbnRpY2F0aW9uYW5kRW1haWwuY3Js
-MEqgSKBGhkRodHRwOi8vY3JsLmNvbW9kby5uZXQvVVROLVVTRVJGaXJzdC1DbGllbnRBdXRo
-ZW50aWNhdGlvbmFuZEVtYWlsLmNybDBsBggrBgEFBQcBAQRgMF4wNgYIKwYBBQUHMAKGKmh0
-dHA6Ly9jcnQuY29tb2RvY2EuY29tL1VUTkFBQUNsaWVudENBLmNydDAkBggrBgEFBQcwAYYY
-aHR0cDovL29jc3AuY29tb2RvY2EuY29tMCUGA1UdEQQeMByBGm5vbWJyYW5kdWVAdHN1a2lu
-b2thZ2UubmV0MA0GCSqGSIb3DQEBBQUAA4IBAQClJ/Oi/lj/Xx+2V6DjXGPJyqsMXrlW3xz3
-SGRaHe/y9pCiL2Ti2FDBfArDRkJ9A9YAYeABXu9JRdjXMzB/ZnrqTh4vSq4PG6oPGXulS/ya
-pXz4cGcaDv1Zn0CyLgbmH6Eiun+EPCr2g6+J9LEN1HN0jpTKPi0Iq5BQuf8uGRWNczi7SMhb
-9bVCBxIlVn8gAnf6ACh080lDCZrs8anSYMWVZ7mRqVEz9tUTwDNRpk0Wv3q/uhIe045Ii3Je
-VmU0M5qMLkrctSWeI8+AkWLodg9I4MdgoHGGrxPFcvEfinlEblFug8HoYsmrgAejLsmpEMnR
-q6vHlPX6ce+nug1kQfjIMYIEUzCCBE8CAQEwgcQwga4xCzAJBgNVBAYTAlVTMQswCQYDVQQI
-EwJVVDEXMBUGA1UEBxMOU2FsdCBMYWtlIENpdHkxHjAcBgNVBAoTFVRoZSBVU0VSVFJVU1Qg
-TmV0d29yazEhMB8GA1UECxMYaHR0cDovL3d3dy51c2VydHJ1c3QuY29tMTYwNAYDVQQDEy1V
-VE4tVVNFUkZpcnN0LUNsaWVudCBBdXRoZW50aWNhdGlvbiBhbmQgRW1haWwCEQC1G0axizmi
-3NqJ5cmSJWGuMAkGBSsOAwIaBQCgggJjMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJ
-KoZIhvcNAQkFMQ8XDTA4MTExMDE1MTg1N1owIwYJKoZIhvcNAQkEMRYEFAklb2o5QITKHoP7
-oc2doj2FZnxOMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwICAgCA
-MA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIHVBgkrBgEEAYI3EAQx
-gccwgcQwga4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJVVDEXMBUGA1UEBxMOU2FsdCBMYWtl
-IENpdHkxHjAcBgNVBAoTFVRoZSBVU0VSVFJVU1QgTmV0d29yazEhMB8GA1UECxMYaHR0cDov
-L3d3dy51c2VydHJ1c3QuY29tMTYwNAYDVQQDEy1VVE4tVVNFUkZpcnN0LUNsaWVudCBBdXRo
-ZW50aWNhdGlvbiBhbmQgRW1haWwCEQC1G0axizmi3NqJ5cmSJWGuMIHXBgsqhkiG9w0BCRAC
-CzGBx6CBxDCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExh
-a2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRw
-Oi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1
-dGhlbnRpY2F0aW9uIGFuZCBFbWFpbAIRALUbRrGLOaLc2onlyZIlYa4wDQYJKoZIhvcNAQEB
-BQAEggEAQZ3wHuBPu6K0Gjtfq0WCoxed29xCIwxVlLO2/NOvFXYIfr+Ujkh4hRrMf/xZfcYw
-TbgCzqDlbZBGrAHHsPmoyUhn27cLO8UpU+DMQvy+U/6YYMyBOSvq2KbF5kR0ugKspriQREGM
-ztUJcDML7mhjnnxXNroxetilAnvSOKoMaQm0Zu2UFSFQoCWUsGml2IbdGSL4iniuDmNh0/hA
-IM6aqXMSy1MEGsHF3xu8iA8Q2feWM9FBRE2v6xHhTe7t8l3Pd5vEen8DD6CsvbHMMj7mdnf+
-eo8yOPhkRrEaDRnRHa7zgJ9xGNSj1xnNaDpL5zA+xXX+RLLxN7QzZrqJyWbW5wAAAAAAAA==
---------------ms020707040705000909060508--
-
-
---===============4616361889607038945==
-Content-Type: text/plain; charset="us-ascii"
+References: <20081107185621.13022.61885.stgit@elm3a70.beaverton.ibm.com>
+In-Reply-To: <20081107185621.13022.61885.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: "Darrick J. Wong" <djwong@us.ibm.com>, Jean Delvare <khali@linux-fr.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+
+
+The adt7468 is a follow-on to the adt7463, so plumb in adt7468 support along
+the same code paths.
+
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
+
+ drivers/hwmon/lm85.c |   52 ++++++++++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 46 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+index 3ff0285..cfc1ee9 100644
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -39,7 +39,8 @@
+ static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
+ 
+ /* Insmod parameters */
+-I2C_CLIENT_INSMOD_6(lm85b, lm85c, adm1027, adt7463, emc6d100, emc6d102);
++I2C_CLIENT_INSMOD_7(lm85b, lm85c, adm1027, adt7463, adt7468, emc6d100,
++		    emc6d102);
+ 
+ /* The LM85 registers */
+ 
+@@ -59,6 +60,12 @@ I2C_CLIENT_INSMOD_6(lm85b, lm85c, adm1027, adt7463, emc6d100, emc6d102);
+ 
+ #define	LM85_REG_COMPANY		0x3e
+ #define	LM85_REG_VERSTEP		0x3f
++
++#define	ADT7468_REG_CFG5		0x7c
++#define		ADT7468_OFF64		0x01
++#define	IS_ADT7468_OFF64(data)		\
++	((data)->type = adt7468 && !((data)->cfg5 & ADT7468_OFF64))
++
+ /* These are the recognized values for the above regs */
+ #define	LM85_COMPANY_NATIONAL		0x01
+ #define	LM85_COMPANY_ANALOG_DEV		0x41
+@@ -70,6 +77,8 @@ I2C_CLIENT_INSMOD_6(lm85b, lm85c, adm1027, adt7463, emc6d100, emc6d102);
+ #define	LM85_VERSTEP_ADM1027		0x60
+ #define	LM85_VERSTEP_ADT7463		0x62
+ #define	LM85_VERSTEP_ADT7463C		0x6A
++#define	LM85_VERSTEP_ADT7468_1		0x71
++#define	LM85_VERSTEP_ADT7468_2		0x72
+ #define	LM85_VERSTEP_EMC6D100_A0        0x60
+ #define	LM85_VERSTEP_EMC6D100_A1        0x61
+ #define	LM85_VERSTEP_EMC6D102		0x65
+@@ -306,6 +315,7 @@ struct lm85_data {
+ 	u8 vid;			/* Register value */
+ 	u8 vrm;			/* VRM version */
+ 	u32 alarms;		/* Register encoding, combined */
++	u8 cfg5;		/* Config Register 5 on ADT7468 */
+ 	struct lm85_autofan autofan[3];
+ 	struct lm85_zone zone[3];
+ };
+@@ -685,6 +695,9 @@ static ssize_t set_temp_min(struct device *dev, struct device_attribute *attr,
+ 	struct lm85_data *data = i2c_get_clientdata(client);
+ 	long val = simple_strtol(buf, NULL, 10);
+ 
++	if (IS_ADT7468_OFF64(data))
++		val += 64;
++
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_min[nr] = TEMP_TO_REG(val);
+ 	lm85_write_value(client, LM85_REG_TEMP_MIN(nr), data->temp_min[nr]);
+@@ -708,6 +721,9 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
+ 	struct lm85_data *data = i2c_get_clientdata(client);
+ 	long val = simple_strtol(buf, NULL, 10);
+ 
++	if (IS_ADT7468_OFF64(data))
++		val += 64;
++
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_max[nr] = TEMP_TO_REG(val);
+ 	lm85_write_value(client, LM85_REG_TEMP_MAX(nr), data->temp_max[nr]);
+@@ -1163,6 +1179,10 @@ static int lm85_detect(struct i2c_client *client, int kind,
+ 			case LM85_VERSTEP_ADT7463C:
+ 				kind = adt7463;
+ 				break;
++			case LM85_VERSTEP_ADT7468_1:
++			case LM85_VERSTEP_ADT7468_2:
++				kind = adt7468;
++				break;
+ 			}
+ 		} else if (company = LM85_COMPANY_SMSC) {
+ 			switch (verstep) {
+@@ -1195,6 +1215,9 @@ static int lm85_detect(struct i2c_client *client, int kind,
+ 	case adt7463:
+ 		type_name = "adt7463";
+ 		break;
++	case adt7468:
++		type_name = "adt7468";
++		break;
+ 	case emc6d100:
+ 		type_name = "emc6d100";
+ 		break;
+@@ -1246,10 +1269,11 @@ static int lm85_probe(struct i2c_client *client,
+ 	if (err)
+ 		goto err_kfree;
+ 
+-	/* The ADT7463 has an optional VRM 10 mode where pin 21 is used
++	/* The ADT7463/68 have an optional VRM 10 mode where pin 21 is used
+ 	   as a sixth digital VID input rather than an analog input. */
+ 	data->vid = lm85_read_value(client, LM85_REG_VID);
+-	if (!(data->type = adt7463 && (data->vid & 0x80)))
++	if (!((data->type = adt7463 || data->type = adt7468) &&
++	    (data->vid & 0x80)))
+ 		if ((err = sysfs_create_group(&client->dev.kobj,
+ 					&lm85_group_in4)))
+ 			goto err_remove_files;
+@@ -1357,7 +1381,8 @@ static struct lm85_data *lm85_update_device(struct device *dev)
+ 		 * There are 2 additional resolution bits per channel and we
+ 		 * have room for 4, so we shift them to the left.
+ 		 */
+-		if (data->type = adm1027 || data->type = adt7463) {
++		if (data->type = adm1027 || data->type = adt7463 ||
++		    data->type = adt7468) {
+ 			int ext1 = lm85_read_value(client,
+ 						   ADM1027_REG_EXTEND_ADC1);
+ 			int ext2 =  lm85_read_value(client,
+@@ -1382,16 +1407,23 @@ static struct lm85_data *lm85_update_device(struct device *dev)
+ 			    lm85_read_value(client, LM85_REG_FAN(i));
+ 		}
+ 
+-		if (!(data->type = adt7463 && (data->vid & 0x80))) {
++		if (!((data->type = adt7463 || data->type = adt7468) &&
++		    (data->vid & 0x80))) {
+ 			data->in[4] = lm85_read_value(client,
+ 				      LM85_REG_IN(4));
+ 		}
+ 
++		if (data->type = adt7468)
++			data->cfg5 = lm85_read_value(client, ADT7468_REG_CFG5);
++
+ 		for (i = 0; i <= 2; ++i) {
+ 			data->temp[i]  			    lm85_read_value(client, LM85_REG_TEMP(i));
+ 			data->pwm[i]  			    lm85_read_value(client, LM85_REG_PWM(i));
++
++			if (IS_ADT7468_OFF64(data))
++				data->temp[i] -= 64;
+ 		}
+ 
+ 		data->alarms = lm85_read_value(client, LM85_REG_ALARM1);
+@@ -1446,7 +1478,8 @@ static struct lm85_data *lm85_update_device(struct device *dev)
+ 			    lm85_read_value(client, LM85_REG_FAN_MIN(i));
+ 		}
+ 
+-		if (!(data->type = adt7463 && (data->vid & 0x80))) {
++		if (!((data->type = adt7463 || data->type = adt7468) &&
++		    (data->vid & 0x80))) {
+ 			data->in_min[4] = lm85_read_value(client,
+ 					  LM85_REG_IN_MIN(4));
+ 			data->in_max[4] = lm85_read_value(client,
+@@ -1481,6 +1514,13 @@ static struct lm85_data *lm85_update_device(struct device *dev)
+ 			    lm85_read_value(client, LM85_REG_AFAN_LIMIT(i));
+ 			data->zone[i].critical  			    lm85_read_value(client, LM85_REG_AFAN_CRITICAL(i));
++
++			if (IS_ADT7468_OFF64(data)) {
++				data->temp_min[i] -= 64;
++				data->temp_max[i] -= 64;
++				data->zone[i].limit -= 64;
++				data->zone[i].critical -= 64;
++			}
+ 		}
+ 
+ 		i = lm85_read_value(client, LM85_REG_AFAN_SPIKE1);
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============4616361889607038945==--
