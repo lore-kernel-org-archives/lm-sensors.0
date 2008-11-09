@@ -1,337 +1,238 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Tue, 25 Nov 2008 21:20:20 +0000
-Subject: [lm-sensors] [PATCH 3/3] adt7470: make automatic fan control really
-Message-Id: <20081125212020.22512.13501.stgit@elm3a70.beaverton.ibm.com>
+From: "lu zhihe" <tombowfly@gmail.com>
+Date: Sun, 09 Nov 2008 07:57:30 +0000
+Subject: [lm-sensors] [PATCH]GM965 IGP temperature detector
+Message-Id: <73511e6c0811082357j4a606e40v340b347268d257fe@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_44360_9262064.1226217450585"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081125212005.22512.14523.stgit@elm3a70.beaverton.ibm.com>
-In-Reply-To: <20081125212005.22512.14523.stgit@elm3a70.beaverton.ibm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+------=_Part_44360_9262064.1226217450585
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_44361_8103075.1226217450585"
+
+------=_Part_44361_8103075.1226217450585
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: "Darrick J. Wong" <djwong@us.ibm.com>, Jean Delvare <khali@linux-fr.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+Content-Disposition: inline
 
-It turns out that the adt7470's automatic fan control algorithm
-only works when the temperature sensors get updated.  This in turn
-happens only when someone tells the chip to read its temperature
-sensors.  Regrettably, this means that we have to drive the chip
-periodically.
+This patch supports GM965 IGP temperature report.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
----
- Documentation/hwmon/adt7470 |   19 ++---
- drivers/hwmon/adt7470.c     |  156 +++++++++++++++++++++++++++++++++++++------
- 2 files changed, 142 insertions(+), 33 deletions(-)
+Inspired from the hwmon/i5k_amb k8temp drivers.
 
-diff --git a/Documentation/hwmon/adt7470 b/Documentation/hwmon/adt7470
-index 75d13ca..8ce4aa0 100644
---- a/Documentation/hwmon/adt7470
-+++ b/Documentation/hwmon/adt7470
-@@ -31,15 +31,11 @@ Each of the measured inputs (temperature, fan speed) has corresponding high/low
- limit values. The ADT7470 will signal an ALARM if any measured value exceeds
- either limit.
- 
--The ADT7470 DOES NOT sample all inputs continuously.  A single pin on the
--ADT7470 is connected to a multitude of thermal diodes, but the chip must be
--instructed explicitly to read the multitude of diodes.  If you want to use
--automatic fan control mode, you must manually read any of the temperature
--sensors or the fan control algorithm will not run.  The chip WILL NOT DO THIS
--AUTOMATICALLY; this must be done from userspace.  This may be a bug in the chip
--design, given that many other AD chips take care of this.  The driver will not
--read the registers more often than once every 5 seconds.  Further,
--configuration data is only read once per minute.
-+The ADT7470 samples all inputs continuously.  A kernel thread is started up for
-+the purpose of periodically querying the temperature sensors, thus allowing the
-+automatic fan pwm control to set the fan speed.  The driver will not read the
-+registers more often than once every 5 seconds.  Further, configuration data is
-+only read once per minute.
- 
- Special Features
- ----------------
-@@ -72,5 +68,6 @@ pwm#_auto_point2_temp.
- Notes
- -----
- 
--As stated above, the temperature inputs must be read periodically from
--userspace in order for the automatic pwm algorithm to run.
-+The temperature inputs no longer need to be read periodically from userspace in
-+order for the automatic pwm algorithm to run.  This was the case for earlier
-+versions of the driver.
-diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
-index 1e73abf..86ed889 100644
---- a/drivers/hwmon/adt7470.c
-+++ b/drivers/hwmon/adt7470.c
-@@ -28,6 +28,7 @@
- #include <linux/mutex.h>
- #include <linux/delay.h>
- #include <linux/log2.h>
-+#include <linux/kthread.h>
- 
- /* Addresses to scan */
- static const unsigned short normal_i2c[] = { 0x2C, 0x2E, 0x2F, I2C_CLIENT_END };
-@@ -132,6 +133,9 @@ I2C_CLIENT_INSMOD_1(adt7470);
- /* Wait at least 200ms per sensor for 10 sensors */
- #define TEMP_COLLECTION_TIME	2200
- 
-+/* auto update thing won't fire more than every 2s */
-+#define AUTO_UPDATE_INTERVAL	2000
-+
- /* datasheet says to divide this number by the fan reading to get fan rpm */
- #define FAN_PERIOD_TO_RPM(x)	((90000 * 60) / (x))
- #define FAN_RPM_TO_PERIOD	FAN_PERIOD_TO_RPM
-@@ -148,6 +152,7 @@ struct adt7470_data {
- 	unsigned long		limits_last_updated;	/* In jiffies */
- 
- 	int			num_temp_sensors;	/* -1 = probe */
-+	int			temperatures_probed;
- 
- 	s8			temp[ADT7470_TEMP_COUNT];
- 	s8			temp_min[ADT7470_TEMP_COUNT];
-@@ -164,6 +169,10 @@ struct adt7470_data {
- 	u8			pwm_min[ADT7470_PWM_COUNT];
- 	s8			pwm_tmin[ADT7470_PWM_COUNT];
- 	u8			pwm_auto_temp[ADT7470_PWM_COUNT];
-+
-+	struct task_struct	*auto_update;
-+	struct completion	auto_update_stop;
-+	unsigned int		auto_update_interval;
- };
- 
- static int adt7470_probe(struct i2c_client *client,
-@@ -221,19 +230,13 @@ static void adt7470_init_client(struct i2c_client *client)
- 	}
- }
- 
--static struct adt7470_data *adt7470_update_device(struct device *dev)
-+/* Probe for temperature sensors.  Assumes lock is held */
-+static int adt7470_read_temperatures(struct i2c_client *client,
-+				     struct adt7470_data *data)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct adt7470_data *data = i2c_get_clientdata(client);
--	unsigned long local_jiffies = jiffies;
--	u8 cfg, pwm[4], pwm_cfg[2];
-+	unsigned long res;
- 	int i;
--
--	mutex_lock(&data->lock);
--	if (time_before(local_jiffies, data->sensors_last_updated +
--		SENSOR_REFRESH_INTERVAL)
--		&& data->sensors_valid)
--		goto no_sensor_update;
-+	u8 cfg, pwm[4], pwm_cfg[2];
- 
- 	/* save pwm[1-4] config register */
- 	pwm_cfg[0] = i2c_smbus_read_byte_data(client, ADT7470_REG_PWM_CFG(0));
-@@ -259,9 +262,9 @@ static struct adt7470_data *adt7470_update_device(struct device *dev)
- 	i2c_smbus_write_byte_data(client, ADT7470_REG_CFG, cfg);
- 
- 	/* Delay is 200ms * number of temp sensors. */
--	msleep((data->num_temp_sensors >= 0 ?
--		data->num_temp_sensors * 200 :
--		TEMP_COLLECTION_TIME));
-+	res = msleep_interruptible((data->num_temp_sensors >= 0 ?
-+				    data->num_temp_sensors * 200 :
-+				    TEMP_COLLECTION_TIME));
- 
- 	/* done reading temperature sensors */
- 	cfg = i2c_smbus_read_byte_data(client, ADT7470_REG_CFG);
-@@ -272,15 +275,81 @@ static struct adt7470_data *adt7470_update_device(struct device *dev)
- 	i2c_smbus_write_byte_data(client, ADT7470_REG_PWM_CFG(0), pwm_cfg[0]);
- 	i2c_smbus_write_byte_data(client, ADT7470_REG_PWM_CFG(2), pwm_cfg[1]);
- 
--	for (i = 0; i < ADT7470_TEMP_COUNT; i++)
-+	if (res) {
-+		printk(KERN_ERR "ha ha, interrupted");
-+		return -EAGAIN;
-+	}
-+
-+	/* Only count fans if we have to */
-+	if (data->num_temp_sensors >= 0)
-+		return 0;
-+
-+	for (i = 0; i < ADT7470_TEMP_COUNT; i++) {
- 		data->temp[i] = i2c_smbus_read_byte_data(client,
- 						ADT7470_TEMP_REG(i));
-+		if (data->temp[i])
-+			data->num_temp_sensors = i + 1;
-+	}
-+	data->temperatures_probed = 1;
-+	return 0;
-+}
- 
--	/* Figure out the number of temp sensors */
--	if (data->num_temp_sensors < 0)
-+static int adt7470_update_thread(void *p)
-+{
-+	struct i2c_client *client = p;
-+	struct adt7470_data *data = i2c_get_clientdata(client);
-+
-+	while (!kthread_should_stop()) {
-+		mutex_lock(&data->lock);
-+		adt7470_read_temperatures(client, data);
-+		mutex_unlock(&data->lock);
-+		if (kthread_should_stop())
-+			break;
-+		msleep_interruptible(data->auto_update_interval);
-+	}
-+
-+	complete_all(&data->auto_update_stop);
-+	return 0;
-+}
-+
-+static struct adt7470_data *adt7470_update_device(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7470_data *data = i2c_get_clientdata(client);
-+	unsigned long local_jiffies = jiffies;
-+	u8 cfg;
-+	int i;
-+	int need_sensors = 1;
-+	int need_limits = 1;
-+
-+	/*
-+	 * Figure out if we need to update the shadow registers.
-+	 * Lockless means that we may occasionally report out of
-+	 * date data.
-+	 */
-+	if (time_before(local_jiffies, data->sensors_last_updated +
-+			SENSOR_REFRESH_INTERVAL) &&
-+	    data->sensors_valid)
-+		need_sensors = 0;
-+
-+	if (time_before(local_jiffies, data->limits_last_updated +
-+			LIMIT_REFRESH_INTERVAL) &&
-+	    data->limits_valid)
-+		need_limits = 0;
-+
-+	if (!need_sensors && !need_limits)
-+		return data;
-+
-+	mutex_lock(&data->lock);
-+	if (!need_sensors)
-+		goto no_sensor_update;
-+
-+	if (!data->temperatures_probed)
-+		adt7470_read_temperatures(client, data);
-+	else
- 		for (i = 0; i < ADT7470_TEMP_COUNT; i++)
--			if (data->temp[i])
--				data->num_temp_sensors = i + 1;
-+			data->temp[i] = i2c_smbus_read_byte_data(client,
-+						ADT7470_TEMP_REG(i));
- 
- 	for (i = 0; i < ADT7470_FAN_COUNT; i++)
- 		data->fan[i] = adt7470_read_word_data(client,
-@@ -329,9 +398,7 @@ static struct adt7470_data *adt7470_update_device(struct device *dev)
- 	data->sensors_valid = 1;
- 
- no_sensor_update:
--	if (time_before(local_jiffies, data->limits_last_updated +
--		LIMIT_REFRESH_INTERVAL)
--		&& data->limits_valid)
-+	if (!need_limits)
- 		goto out;
- 
- 	for (i = 0; i < ADT7470_TEMP_COUNT; i++) {
-@@ -365,6 +432,35 @@ out:
- 	return data;
- }
- 
-+static ssize_t show_auto_update_interval(struct device *dev,
-+					 struct device_attribute *devattr,
-+					 char *buf)
-+{
-+	struct adt7470_data *data = adt7470_update_device(dev);
-+	return sprintf(buf, "%d\n", data->auto_update_interval);
-+}
-+
-+static ssize_t set_auto_update_interval(struct device *dev,
-+					struct device_attribute *devattr,
-+					const char *buf,
-+					size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7470_data *data = i2c_get_clientdata(client);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = SENSORS_LIMIT(temp, 0, 60000);
-+
-+	mutex_lock(&data->lock);
-+	data->auto_update_interval = temp;
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
- static ssize_t show_num_temp_sensors(struct device *dev,
- 				     struct device_attribute *devattr,
- 				     char *buf)
-@@ -389,6 +485,8 @@ static ssize_t set_num_temp_sensors(struct device *dev,
- 
- 	mutex_lock(&data->lock);
- 	data->num_temp_sensors = temp;
-+	if (temp < 0)
-+		data->temperatures_probed = 0;
- 	mutex_unlock(&data->lock);
- 
- 	return count;
-@@ -862,6 +960,8 @@ static ssize_t show_alarm(struct device *dev,
- static DEVICE_ATTR(alarm_mask, S_IRUGO, show_alarm_mask, NULL);
- static DEVICE_ATTR(num_temp_sensors, S_IWUSR | S_IRUGO, show_num_temp_sensors,
- 		   set_num_temp_sensors);
-+static DEVICE_ATTR(auto_update_interval, S_IWUSR | S_IRUGO,
-+		   show_auto_update_interval, set_auto_update_interval);
- 
- static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max,
- 		    set_temp_max, 0);
-@@ -1035,6 +1135,7 @@ static struct attribute *adt7470_attr[]  {
- 	&dev_attr_alarm_mask.attr,
- 	&dev_attr_num_temp_sensors.attr,
-+	&dev_attr_auto_update_interval.attr,
- 	&sensor_dev_attr_temp1_max.dev_attr.attr,
- 	&sensor_dev_attr_temp2_max.dev_attr.attr,
- 	&sensor_dev_attr_temp3_max.dev_attr.attr,
-@@ -1168,6 +1269,7 @@ static int adt7470_probe(struct i2c_client *client,
- 	}
- 
- 	data->num_temp_sensors = -1;
-+	data->auto_update_interval = AUTO_UPDATE_INTERVAL;
- 
- 	i2c_set_clientdata(client, data);
- 	mutex_init(&data->lock);
-@@ -1188,8 +1290,16 @@ static int adt7470_probe(struct i2c_client *client,
- 		goto exit_remove;
- 	}
- 
-+	init_completion(&data->auto_update_stop);
-+	data->auto_update = kthread_run(adt7470_update_thread, client,
-+					dev_name(data->hwmon_dev));
-+	if (IS_ERR(data->auto_update))
-+		goto exit_unregister;
-+
- 	return 0;
- 
-+exit_unregister:
-+	hwmon_device_unregister(data->hwmon_dev);
- exit_remove:
- 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
- exit_free:
-@@ -1202,6 +1312,8 @@ static int adt7470_remove(struct i2c_client *client)
- {
- 	struct adt7470_data *data = i2c_get_clientdata(client);
- 
-+	kthread_stop(data->auto_update);
-+	wait_for_completion(&data->auto_update_stop);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
- 	kfree(data);
+Signed-off-by: Lu Zhihe(tbfly) <tombowfly@gmail.com>
 
+
+Please see the attachment.
+
+
+
+-- 
+Thx
+
+Lu Zhihe
+
+------=_Part_44361_8103075.1226217450585
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+This patch supports GM965 IGP temperature report.<br><br>Inspired from the hwmon/i5k_amb k8temp drivers.<br><br>Signed-off-by: Lu Zhihe(tbfly) &lt;<a href="mailto:tombowfly@gmail.com">tombowfly@gmail.com</a>&gt;<br><br><br>
+Please see the attachment.<br><br><br clear="all"><br>-- <br>Thx<br><br>Lu Zhihe<br>
+
+------=_Part_44361_8103075.1226217450585--
+
+------=_Part_44360_9262064.1226217450585
+Content-Type: application/octet-stream; name=gm965_igp.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fnbvaa450
+Content-Disposition: attachment; filename=gm965_igp.patch
+
+ClRoaXMgcGF0Y2ggc3VwcG9ydHMgR005NjUgSUdQIHRlbXBlcmF0dXJlIHJlcG9ydC4gCgpJbnNw
+aXJlZCBmcm9tIHRoZSBod21vbi9pNWtfYW1iIGs4dGVtcCBkcml2ZXJzLgoKU2lnbmVkLW9mZi1i
+eTogTHUgWmhpaGUodGJmbHkpIDx0b21ib3dmbHlAZ21haWwuY29tPgoKZGlmZiAtLW5ldy1maWxl
+IC11IC1yIGh3bW9uLm9yaWcvS2NvbmZpZyBod21vbi9LY29uZmlnCi0tLSBod21vbi5vcmlnL0tj
+b25maWcJMjAwOC0xMS0wOSAxNTo0MTo0NS4wMDAwMDAwMDAgKzAwMDAKKysrIGh3bW9uL0tjb25m
+aWcJMjAwOC0xMS0wOCAyMjo0ODo0Ni4wMDAwMDAwMDAgKzAwMDAKQEAgLTM0OCw2ICszNDgsMTcg
+QEAKIAkgIFRoaXMgZHJpdmVyIGNhbiBhbHNvIGJlIGJ1aWx0IGFzIGEgbW9kdWxlLiAgSWYgc28s
+IHRoZSBtb2R1bGUKIAkgIHdpbGwgYmUgY2FsbGVkIGdsNTIwc20uCiAKK2NvbmZpZyBTRU5TT1JT
+X0dNOTY1CisgICAgICAgIHRyaXN0YXRlICJJbnRlbCBHTTk2NSB0ZW1wZXJhdHVyZSBzZW5zb3Ii
+CisgICAgICAgIGRlcGVuZHMgb24gUENJCisgICAgICAgIHNlbGVjdCBIV01PTl9WSUQKKyAgICAg
+ICAgaGVscAorICAgICAgICAgIElmIHlvdSBzYXkgeWVzIGhlcmUgeW91IGdldCBzdXBwb3J0IGZv
+ciBHTTk2NSBJR1AgdGVtcGVyYXR1ZSAgCisgICAgICAgICAgc2Vuc29yLgorCisgICAgICAgICAg
+VGhpcyBkcml2ZXIgY2FuIGFsc28gYmUgYnVpbHQgYXMgYSBtb2R1bGUuICBJZiBzbywgdGhlIG1v
+ZHVsZQorICAgICAgICAgIHdpbGwgYmUgY2FsbGVkIGdtOTY1X2lncC4KKwogY29uZmlnIFNFTlNP
+UlNfQ09SRVRFTVAKIAl0cmlzdGF0ZSAiSW50ZWwgQ29yZSAoMikgRHVvL1NvbG8gdGVtcGVyYXR1
+cmUgc2Vuc29yIgogCWRlcGVuZHMgb24gWDg2ICYmIEVYUEVSSU1FTlRBTApkaWZmIC0tbmV3LWZp
+bGUgLXUgLXIgaHdtb24ub3JpZy9NYWtlZmlsZSBod21vbi9NYWtlZmlsZQotLS0gaHdtb24ub3Jp
+Zy9NYWtlZmlsZQkyMDA4LTExLTA5IDE1OjQxOjI5LjAwMDAwMDAwMCArMDAwMAorKysgaHdtb24v
+TWFrZWZpbGUJMjAwOC0xMS0wOCAyMjo0ODoyOC4wMDAwMDAwMDAgKzAwMDAKQEAgLTQxLDYgKzQx
+LDggQEAKIG9iai0kKENPTkZJR19TRU5TT1JTX0ZTQ1BPUykJKz0gZnNjcG9zLm8KIG9iai0kKENP
+TkZJR19TRU5TT1JTX0dMNTE4U00pCSs9IGdsNTE4c20ubwogb2JqLSQoQ09ORklHX1NFTlNPUlNf
+R0w1MjBTTSkJKz0gZ2w1MjBzbS5vCitvYmotJChDT05GSUdfU0VOU09SU19HTTk2NSkJKz0gZ205
+NjVfaWdwLm8KKwogb2JqLSQoQ09ORklHX1NFTlNPUlNfVUxUUkE0NSkJKz0gdWx0cmE0NV9lbnYu
+bwogb2JqLSQoQ09ORklHX1NFTlNPUlNfSERBUFMpCSs9IGhkYXBzLm8KIG9iai0kKENPTkZJR19T
+RU5TT1JTX0k1S19BTUIpCSs9IGk1a19hbWIubwoKZGlmZiAtLW5ldy1maWxlIC11IC1yIGh3bW9u
+Lm9yaWcvZ205NjVfaWdwLmMgaHdtb24vZ205NjVfaWdwLmMKLS0tIGh3bW9uLm9yaWcvZ205NjVf
+aWdwLmMJMTk3MC0wMS0wMSAwMDowMDowMC4wMDAwMDAwMDAgKzAwMDAKKysrIGh3bW9uL2dtOTY1
+X2lncC5jCTIwMDgtMTEtMDkgMTU6MzU6NDMuMDAwMDAwMDAwICswMDAwCkBAIC0wLDAgKzEsMzUx
+IEBACisvKgorICogQSBod21vbiBkcml2ZXIgZm9yIHRoZSBJbnRlbCBHTTk2NSBjaGlwc2V0IElH
+UCAKKyAqIHRlbXBlcmF0dXJlIHNlbnNvcnMKKyAqCisgKiBBdXRob3I6IEx1IFpoaWhlKHRiZmx5
+KSA8dG9tYm93Zmx5IGF0IGdtYWlsLmNvbSA+IAorICoKKyAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVl
+IHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5CisgKiBpdCB1
+bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFzIHB1Ymxp
+c2hlZCBieQorICogdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbjsgZWl0aGVyIHZlcnNpb24g
+MiBvZiB0aGUgTGljZW5zZSwgb3IKKyAqIChhdCB5b3VyIG9wdGlvbikgYW55IGxhdGVyIHZlcnNp
+b24uCisgKgorICogVGhpcyBwcm9ncmFtIGlzIGRpc3RyaWJ1dGVkIGluIHRoZSBob3BlIHRoYXQg
+aXQgd2lsbCBiZSB1c2VmdWwsCisgKiBidXQgV0lUSE9VVCBBTlkgV0FSUkFOVFk7IHdpdGhvdXQg
+ZXZlbiB0aGUgaW1wbGllZCB3YXJyYW50eSBvZgorICogTUVSQ0hBTlRBQklMSVRZIG9yIEZJVE5F
+U1MgRk9SIEEgUEFSVElDVUxBUiBQVVJQT1NFLiAgU2VlIHRoZQorICogR05VIEdlbmVyYWwgUHVi
+bGljIExpY2Vuc2UgZm9yIG1vcmUgZGV0YWlscy4KKyAqCisgKiBZb3Ugc2hvdWxkIGhhdmUgcmVj
+ZWl2ZWQgYSBjb3B5IG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZQorICogYWxvbmcg
+d2l0aCB0aGlzIHByb2dyYW07IGlmIG5vdCwgd3JpdGUgdG8gdGhlIEZyZWUgU29mdHdhcmUKKyAq
+IEZvdW5kYXRpb24sIEluYy4sIDU5IFRlbXBsZSBQbGFjZSwgU3VpdGUgMzMwLCBCb3N0b24sIE1B
+ICAwMjExMS0xMzA3ICBVU0EKKyAqLworCisjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+CisjaW5j
+bHVkZSA8bGludXgvamlmZmllcy5oPgorI2luY2x1ZGUgPGxpbnV4L2h3bW9uLmg+CisjaW5jbHVk
+ZSA8bGludXgvaHdtb24tc3lzZnMuaD4KKyNpbmNsdWRlIDxsaW51eC9lcnIuaD4KKyNpbmNsdWRl
+IDxsaW51eC9tdXRleC5oPgorI2luY2x1ZGUgPGxpbnV4L2RlbGF5Lmg+CisjaW5jbHVkZSA8bGlu
+dXgvbG9nMi5oPgorI2luY2x1ZGUgPGxpbnV4L3BjaS5oPgorI2luY2x1ZGUgPGxpbnV4L3BsYXRm
+b3JtX2RldmljZS5oPgorCisjZGVmaW5lIERSVk5BTUUgImdtOTY1X2lncCIKKworI2RlZmluZSBQ
+Q0lfREVWSUNFX0lEX0lOVEVMXzgyOTY1R00gICAgICAgMHgyYTAwCisjZGVmaW5lIEdNOTY1X1NZ
+U0ZTX05BTUVfTEVOICAgICAgICAgICAgICAxNgorCitzdHJ1Y3QgZ205NjVfZGV2aWNlX2F0dHJp
+YnV0ZSB7CisJc3RydWN0IHNlbnNvcl9kZXZpY2VfYXR0cmlidXRlIHNfYXR0cjsKKwljaGFyIG5h
+bWVbR005NjVfU1lTRlNfTkFNRV9MRU5dOworfTsKKworc3RydWN0IGdtOTY1X2lncF9kYXRhIHsK
+KwlzdHJ1Y3QgZGV2aWNlICpod21vbl9kZXY7CisKKwl1bnNpZ25lZCBsb25nIGlncF9iYXNlOwor
+CXVuc2lnbmVkIGxvbmcgaWdwX2xlbjsKKworCXZvaWQgX19pb21lbSAqaWdwX21taW87CisJc3Ry
+dWN0IGdtOTY1X2RldmljZV9hdHRyaWJ1dGUgKmF0dHJzOworCXVuc2lnbmVkIGludCBudW1fYXR0
+cnM7CisJdW5zaWduZWQgbG9uZyBjaGlwc2V0X2lkOworfTsKKworc3RhdGljIHNzaXplX3Qgc2hv
+d19uYW1lKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmRldmF0
+dHIsCisJCQkgY2hhciAqYnVmKQoreworCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiVzXG4iLCBEUlZO
+QU1FKTsKK30KKworc3RhdGljIERFVklDRV9BVFRSKG5hbWUsIFNfSVJVR08sIHNob3dfbmFtZSwg
+TlVMTCk7CisKK3N0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICppZ3BfcGRldjsKKworc3Rh
+dGljIHU4IGlncF9yZWFkX2J5dGUoc3RydWN0IGdtOTY1X2lncF9kYXRhICpkYXRhLCB1bnNpZ25l
+ZCBsb25nIG9mZnNldCkKK3sKKwlyZXR1cm4gaW9yZWFkOChkYXRhLT5pZ3BfbW1pbyArIG9mZnNl
+dCk7Cit9CisKK3N0YXRpYyB1MTYgaWdwX3JlYWRfc2hvcnQoc3RydWN0IGdtOTY1X2lncF9kYXRh
+ICpkYXRhLCB1bnNpZ25lZCBsb25nIG9mZnNldCkKK3sKKwkgICAgICAgIHJldHVybiBpb3JlYWQx
+NihkYXRhLT5pZ3BfbW1pbyArIG9mZnNldCk7Cit9CisKK3N0YXRpYyB2b2lkIGlncF93cml0ZV9z
+aG9ydChzdHJ1Y3QgZ205NjVfaWdwX2RhdGEgKmRhdGEsIHVuc2lnbmVkIGxvbmcgb2Zmc2V0LAor
+CQkgICAgICAgICAgICAgICAgICAgICAgICAgICB1MTYgdmFsKQoreworCSAgICAgICAgaW93cml0
+ZTE2KHZhbCwgZGF0YS0+aWdwX21taW8gKyBvZmZzZXQpOworfQorCitzdGF0aWMgc3NpemVfdCBz
+aG93X2xhYmVsKHN0cnVjdCBkZXZpY2UgKmRldiwKKwkJc3RydWN0IGRldmljZV9hdHRyaWJ1dGUg
+KmRldmF0dHIsCisJCWNoYXIgKmJ1ZikKK3sKKwlyZXR1cm4gc3ByaW50ZihidWYsICJHTTk2NSBJ
+R1AgdGVtcGVyYXR1cmUgcmVwb3J0XG4iKTsKK30KKworI2RlZmluZSBUU0MxICAweDEwMDEgICAg
+CisjZGVmaW5lCVRTUzEgIDB4MTAwNAorI2RlZmluZSBUUjEgICAweDEwMDYKKworI2RlZmluZSBU
+U0UgICAgICAweDgwMDAgICAKKyNkZWZpbmUgVE1PViAgICAgKDB4MDEgPDwgMTApCisKK3N0YXRp
+YyBzc2l6ZV90IHNob3dfaWdwX3RlbXAoc3RydWN0IGRldmljZSAqZGV2LAorCQkJICAgICBzdHJ1
+Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqZGV2YXR0ciwKKwkJCSAgICAgY2hhciAqYnVmKQoreworCXN0
+cnVjdCBnbTk2NV9pZ3BfZGF0YSAqZGF0YSA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOworCXVuc2ln
+bmVkIHNob3J0IHRzYzFfdmFsID0gMDsKKwl1bnNpZ25lZCBjaGFyICB0cjFfdmFsID0gMDsKKwl1
+bnNpZ25lZCBzaG9ydCB0c3MxX3ZhbCA9IDA7CisJdW5zaWduZWQgbG9uZyAgdGVtcCA9IDA7CisK
+Kwl0c2MxX3ZhbCA9IGlncF9yZWFkX3Nob3J0KGRhdGEsIFRTQzEpOworCQorCWlmKCEodHNjMV92
+YWwgJiBUU0UpKQorCXsKKwkJaWdwX3dyaXRlX3Nob3J0KGRhdGEsIFRTQzEsIHRzYzFfdmFsfFRT
+RSk7CisJCXRzYzFfdmFsID0gaWdwX3JlYWRfc2hvcnQoZGF0YSwgVFNDMSk7CisJfQorCWVsc2UK
+Kwl7CisJCXRzczFfdmFsID0gaWdwX3JlYWRfc2hvcnQoZGF0YSwgVFNTMSk7CisJCWlmKHRzczFf
+dmFsICYgVE1PVikKKwkJeworCQkJdHIxX3ZhbCA9IGlncF9yZWFkX2J5dGUoZGF0YSwgVFIxKTsJ
+CQorCQl9CisKKwkJaWYodHIxX3ZhbCAhPSAweEZGICkJLypGSVhNRSovCisJCQl0ZW1wID0gKDE2
+KnRyMV92YWwqdHIxX3ZhbCAtIDExMDcxKnRyMV92YWwgKzE2MTA1MDApLzEwMDAwOworCX0KKwor
+CXJldHVybiBzcHJpbnRmKGJ1ZiwgIiVkIGRlZ0NcbiIsICh1bnNpZ25lZCBpbnQpdGVtcCk7IAor
+fQorCitzdGF0aWMgaW50IF9fZGV2aW5pdCBnbTk2NV9pZ3BfaHdtb25faW5pdChzdHJ1Y3QgcGxh
+dGZvcm1fZGV2aWNlICpwZGV2KQoreworCWludCBpLCBrID0gMCwgZCA9IDA7CisJaW50IHJlcyA9
+IDA7CisJaW50IG51bV9pZ3BzID0gMTsKKwlzdHJ1Y3QgZ205NjVfaWdwX2RhdGEgKmRhdGEgPSBw
+bGF0Zm9ybV9nZXRfZHJ2ZGF0YShwZGV2KTsKKwlzdHJ1Y3QgZ205NjVfZGV2aWNlX2F0dHJpYnV0
+ZSAqaWF0dHI7CisKKwkvKiBTZXQgdXAgc3lzZnMgc3R1ZmYgKi8KKwlkYXRhLT5hdHRycyA9IGt6
+YWxsb2Moc2l6ZW9mKCpkYXRhLT5hdHRycykgKiBudW1faWdwcyAqIDMsCS8qWFhYKi8KKwkJCUdG
+UF9LRVJORUwpOworCisJaWYgKCFkYXRhLT5hdHRycykKKwkJcmV0dXJuIC1FTk9NRU07CisJZGF0
+YS0+bnVtX2F0dHJzID0gMDsKKworCS8qIHN5c2ZzIGxhYmVsICovCisJaWF0dHIgPSBkYXRhLT5h
+dHRycyArIGRhdGEtPm51bV9hdHRyczsKKwlzbnByaW50ZihpYXR0ci0+bmFtZSwgR005NjVfU1lT
+RlNfTkFNRV9MRU4sCisJCQkidGVtcCVkX2xhYmVsIiwgZCk7CisJaWF0dHItPnNfYXR0ci5kZXZf
+YXR0ci5hdHRyLm5hbWUgPSBpYXR0ci0+bmFtZTsKKwlpYXR0ci0+c19hdHRyLmRldl9hdHRyLmF0
+dHIubW9kZSA9IFNfSVJVR087CisJaWF0dHItPnNfYXR0ci5kZXZfYXR0ci5zaG93ID0gc2hvd19s
+YWJlbDsKKwlpYXR0ci0+c19hdHRyLmluZGV4ID0gazsKKwlyZXMgPSBkZXZpY2VfY3JlYXRlX2Zp
+bGUoJnBkZXYtPmRldiwKKwkJCSZpYXR0ci0+c19hdHRyLmRldl9hdHRyKTsKKwlpZiAocmVzKQor
+CQlnb3RvIGV4aXRfcmVtb3ZlOworCWRhdGEtPm51bV9hdHRycysrOworCisJLyogVGVtcGVyYXR1
+cmUgc3lzZnMga25vYiAqLworCWlhdHRyID0gZGF0YS0+YXR0cnMgKyBkYXRhLT5udW1fYXR0cnM7
+CisJc25wcmludGYoaWF0dHItPm5hbWUsIEdNOTY1X1NZU0ZTX05BTUVfTEVOLAorCQkJInRlbXAl
+ZF9vdXRwdXQiLCBkKTsKKwlpYXR0ci0+c19hdHRyLmRldl9hdHRyLmF0dHIubmFtZSA9IGlhdHRy
+LT5uYW1lOworCWlhdHRyLT5zX2F0dHIuZGV2X2F0dHIuYXR0ci5tb2RlID0gU19JUlVHTzsKKwlp
+YXR0ci0+c19hdHRyLmRldl9hdHRyLnNob3cgPSBzaG93X2lncF90ZW1wOworCWlhdHRyLT5zX2F0
+dHIuaW5kZXggPSBrOworCXJlcyA9IGRldmljZV9jcmVhdGVfZmlsZSgmcGRldi0+ZGV2LAorCQkJ
+JmlhdHRyLT5zX2F0dHIuZGV2X2F0dHIpOworCWlmIChyZXMpCisJCWdvdG8gZXhpdF9yZW1vdmU7
+CisJZGF0YS0+bnVtX2F0dHJzKys7CisKKwlyZXMgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoJnBkZXYt
+PmRldiwgJmRldl9hdHRyX25hbWUpOworCWlmIChyZXMpCisJCWdvdG8gZXhpdF9yZW1vdmU7CisK
+KwlkYXRhLT5od21vbl9kZXYgPSBod21vbl9kZXZpY2VfcmVnaXN0ZXIoJnBkZXYtPmRldik7CisJ
+aWYgKElTX0VSUihkYXRhLT5od21vbl9kZXYpKSB7CisJCXJlcyA9IFBUUl9FUlIoZGF0YS0+aHdt
+b25fZGV2KTsKKwkJZ290byBleGl0X3JlbW92ZTsKKwl9CisKKwlyZXR1cm4gcmVzOworCitleGl0
+X3JlbW92ZToKKwlkZXZpY2VfcmVtb3ZlX2ZpbGUoJnBkZXYtPmRldiwgJmRldl9hdHRyX25hbWUp
+OworCWZvciAoaSA9IDA7IGkgPCBkYXRhLT5udW1fYXR0cnM7IGkrKykKKwkJZGV2aWNlX3JlbW92
+ZV9maWxlKCZwZGV2LT5kZXYsICZkYXRhLT5hdHRyc1tpXS5zX2F0dHIuZGV2X2F0dHIpOworCWtm
+cmVlKGRhdGEtPmF0dHJzKTsKKworCXJldHVybiByZXM7Cit9CisKK3N0YXRpYyBpbnQgX19kZXZp
+bml0IGdtOTY1X2lncF9hZGQodm9pZCkKK3sKKwlpbnQgcmVzID0gLUVOT0RFVjsKKworCS8qIG9u
+bHkgZXZlciBnb2luZyB0byBiZSBvbmUgb2YgdGhlc2UgKi8KKwlpZ3BfcGRldiA9IHBsYXRmb3Jt
+X2RldmljZV9hbGxvYyhEUlZOQU1FLCAwKTsKKwlpZiAoIWlncF9wZGV2KQorCQlyZXR1cm4gLUVO
+T01FTTsKKworCXJlcyA9IHBsYXRmb3JtX2RldmljZV9hZGQoaWdwX3BkZXYpOworCWlmIChyZXMp
+CisJCWdvdG8gZXJyOworCXJldHVybiAwOworCitlcnI6CisJcGxhdGZvcm1fZGV2aWNlX3B1dChp
+Z3BfcGRldik7CisJcmV0dXJuIHJlczsKK30KKworc3RhdGljIGludCBfX2RldmluaXQgZ205NjVf
+ZmluZF9pZ3BfcmVnaXN0ZXJzKHN0cnVjdCBnbTk2NV9pZ3BfZGF0YSAqZGF0YSwKKwkJCQkJICAg
+IHVuc2lnbmVkIGxvbmcgZGV2aWQpCit7CisJc3RydWN0IHBjaV9kZXYgKnBjaWRldjsKKwl1MzIg
+dmFsMzI7CisJaW50IHJlcyA9IC1FTk9ERVY7CisKKwlwY2lkZXYgPSBwY2lfZ2V0X2RldmljZShQ
+Q0lfVkVORE9SX0lEX0lOVEVMLAorCQkJCWRldmlkLAorCQkJCU5VTEwpOworCWlmICghcGNpZGV2
+KQorCXsKKwkJcHJpbnRrKCJwY2lfZ2V0X2RldmljZSBmYWlsZWRcbiIpOworCQlyZXR1cm4gLUVO
+T0RFVjsKKwl9CisKKwlpZiAocGNpX3JlYWRfY29uZmlnX2R3b3JkKHBjaWRldiwgMHg0OCwgJnZh
+bDMyKSkKKwkJZ290byBvdXQ7CisJZGF0YS0+aWdwX2Jhc2UgPSB2YWwzMiYgMHhmZmZmZmZmZTsK
+KwlwcmludGsoImlncF9iYXNlID0gMHgleFxuIiwgKHVuc2lnbmVkIGludCkoZGF0YS0+aWdwX2Jh
+c2UpKTsKKworCWRhdGEtPmlncF9sZW4gPSAxNioxMDI0OyAgLypYWFgqLworCisJZGF0YS0+Y2hp
+cHNldF9pZCA9IGRldmlkOworCisJcmVzID0gMDsKK291dDoKKwlwY2lfZGV2X3B1dChwY2lkZXYp
+OworCXJldHVybiByZXM7Cit9CisKK3N0YXRpYyB1bnNpZ25lZCBsb25nIGNoaXBzZXRfaWRzW10g
+PSB7CisJUENJX0RFVklDRV9JRF9JTlRFTF84Mjk2NUdNLAorCTAKK307CisKK3N0YXRpYyBpbnQg
+X19kZXZpbml0IGdtOTY1X2lncF9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQor
+eworCXN0cnVjdCBnbTk2NV9pZ3BfZGF0YSAqZGF0YTsKKwlzdHJ1Y3QgcmVzb3VyY2UgKnJlc287
+CisJaW50IGk7CisJaW50IHJlcyA9IC1FTk9ERVY7CisKKwlkYXRhID0ga3phbGxvYyhzaXplb2Yo
+KmRhdGEpLCBHRlBfS0VSTkVMKTsKKwlpZiAoIWRhdGEpCisJCXJldHVybiAtRU5PTUVNOworCisJ
+aSA9IDA7CisJZG8geworCQlyZXMgPSBnbTk2NV9maW5kX2lncF9yZWdpc3RlcnMoZGF0YSwgY2hp
+cHNldF9pZHNbaV0pOworCQlpKys7CisJfSB3aGlsZSAocmVzICYmIGNoaXBzZXRfaWRzW2ldKTsK
+KworCWlmIChyZXMpCisJCWdvdG8gZXJyOworCS8qIFNldCB1cCByZXNvdXJjZSByZWdpb25zICov
+CisJcmVzbyA9IHJlcXVlc3RfbWVtX3JlZ2lvbihkYXRhLT5pZ3BfYmFzZSwgZGF0YS0+aWdwX2xl
+biwgRFJWTkFNRSk7CisJaWYgKCFyZXNvKSB7CisJCXByaW50aygicmVxdWVzdF9tZW1fcmVnaW9u
+IGZhaWxlZFxuIik7CisJCXJlcyA9IC1FQlVTWTsKKwkJZ290byBlcnI7CisJfQorCisJZGF0YS0+
+aWdwX21taW8gPSBpb3JlbWFwX25vY2FjaGUoZGF0YS0+aWdwX2Jhc2UsIGRhdGEtPmlncF9sZW4p
+OworCWlmICghZGF0YS0+aWdwX21taW8pIHsKKwkJcHJpbnRrKCJpb3JlbWFwX25vY2FjaGUgZmFp
+bGVkXG4iKTsKKwkJcmVzID0gLUVCVVNZOworCQlnb3RvIGVycl9tYXBfZmFpbGVkOworCX0KKwor
+CXBsYXRmb3JtX3NldF9kcnZkYXRhKHBkZXYsIGRhdGEpOworCisJcmVzID0gZ205NjVfaWdwX2h3
+bW9uX2luaXQocGRldik7CisJaWYgKHJlcykKKwkJZ290byBlcnJfaW5pdF9mYWlsZWQ7CisKKwly
+ZXR1cm4gcmVzOworCitlcnJfaW5pdF9mYWlsZWQ6CisJaW91bm1hcChkYXRhLT5pZ3BfbW1pbyk7
+CisJcGxhdGZvcm1fc2V0X2RydmRhdGEocGRldiwgTlVMTCk7CitlcnJfbWFwX2ZhaWxlZDoKKwly
+ZWxlYXNlX21lbV9yZWdpb24oZGF0YS0+aWdwX2Jhc2UsIGRhdGEtPmlncF9sZW4pOworZXJyOgor
+CWtmcmVlKGRhdGEpOworCXJldHVybiByZXM7Cit9CisKK3N0YXRpYyBpbnQgX19kZXZleGl0IGdt
+OTY1X2lncF9yZW1vdmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKK3sKKwlpbnQgaTsK
+KwlzdHJ1Y3QgZ205NjVfaWdwX2RhdGEgKmRhdGEgPSBwbGF0Zm9ybV9nZXRfZHJ2ZGF0YShwZGV2
+KTsKKwlod21vbl9kZXZpY2VfdW5yZWdpc3RlcihkYXRhLT5od21vbl9kZXYpOworCWRldmljZV9y
+ZW1vdmVfZmlsZSgmcGRldi0+ZGV2LCAmZGV2X2F0dHJfbmFtZSk7CisJZm9yIChpID0gMDsgaSA8
+IGRhdGEtPm51bV9hdHRyczsgaSsrKQorCQlkZXZpY2VfcmVtb3ZlX2ZpbGUoJnBkZXYtPmRldiwg
+JmRhdGEtPmF0dHJzW2ldLnNfYXR0ci5kZXZfYXR0cik7CisJa2ZyZWUoZGF0YS0+YXR0cnMpOwor
+CisJaW91bm1hcChkYXRhLT5pZ3BfbW1pbyk7CisJcmVsZWFzZV9tZW1fcmVnaW9uKGRhdGEtPmln
+cF9iYXNlLCBkYXRhLT5pZ3BfbGVuKTsKKwlwbGF0Zm9ybV9zZXRfZHJ2ZGF0YShwZGV2LCBOVUxM
+KTsKKwlrZnJlZShkYXRhKTsKKwlyZXR1cm4gMDsKK30KKworc3RhdGljIHN0cnVjdCBwbGF0Zm9y
+bV9kcml2ZXIgZ205NjVfaWdwX2RyaXZlciA9IHsKKwkuZHJpdmVyID0geworCQkub3duZXIgPSBU
+SElTX01PRFVMRSwKKwkJLm5hbWUgPSBEUlZOQU1FLAorCX0sCisJLnByb2JlID0gZ205NjVfaWdw
+X3Byb2JlLAorCS5yZW1vdmUgPSBfX2RldmV4aXRfcChnbTk2NV9pZ3BfcmVtb3ZlKSwKK307CisK
+K3N0YXRpYyBpbnQgX19pbml0IGdtOTY1X2lncF9pbml0KHZvaWQpCit7CisJaW50IHJlczsKKwor
+CXJlcyA9IHBsYXRmb3JtX2RyaXZlcl9yZWdpc3RlcigmZ205NjVfaWdwX2RyaXZlcik7CisJaWYg
+KHJlcykKKwkJcmV0dXJuIHJlczsKKworCXJlcyA9IGdtOTY1X2lncF9hZGQoKTsKKwlpZiAocmVz
+KQorCQlwbGF0Zm9ybV9kcml2ZXJfdW5yZWdpc3RlcigmZ205NjVfaWdwX2RyaXZlcik7CisKKwly
+ZXR1cm4gcmVzOworfQorCitzdGF0aWMgdm9pZCBfX2V4aXQgZ205NjVfaWdwX2V4aXQodm9pZCkK
+K3sKKwlwbGF0Zm9ybV9kZXZpY2VfdW5yZWdpc3RlcihpZ3BfcGRldik7CisJcGxhdGZvcm1fZHJp
+dmVyX3VucmVnaXN0ZXIoJmdtOTY1X2lncF9kcml2ZXIpOworfQorCitNT0RVTEVfQVVUSE9SKCJM
+dSBaaGloZSIpOworTU9EVUxFX0RFU0NSSVBUSU9OKCJJbnRlbCBHTTk2NSBjaGlwc2V0IElHUCB0
+ZW1wZXJhdHVyZSBzZW5zb3IiKTsKK01PRFVMRV9MSUNFTlNFKCJHUEwiKTsKKworbW9kdWxlX2lu
+aXQoZ205NjVfaWdwX2luaXQpOworbW9kdWxlX2V4aXQoZ205NjVfaWdwX2V4aXQpOworCg==
+------=_Part_44360_9262064.1226217450585
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------=_Part_44360_9262064.1226217450585--
