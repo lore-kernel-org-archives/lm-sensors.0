@@ -1,7 +1,7 @@
-From: Matt Roberds <mattroberds@cox.net>
-Date: Mon, 10 Nov 2008 18:38:19 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 11 Nov 2008 09:31:55 +0000
 Subject: Re: [lm-sensors] a problem with lm-sensor 2.10.7.
-Message-Id: <Pine.LNX.4.64.0811101229510.13024@birdbird.example.com>
+Message-Id: <20081111103155.36b8a5bd@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BLU118-W44880F25FDEF937C07D991A21A0@phx.gbl>
 In-Reply-To: <BLU118-W44880F25FDEF937C07D991A21A0@phx.gbl>
@@ -10,27 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 10 Nov 2008, Sergio Gutierrez Verde wrote:
-> double w83781d(const sensors_chip_name *name)
-> {
->  double cur;
->
->  sensors_get_feature(*chip_name,SENSORS_W83781D_TEMP2,&cur)
->  return(cur);
-> }
+Hi Sergio,
 
-Since you used "*name" in the argument, probably
+On Mon, 10 Nov 2008 19:20:05 +0100, Sergio Gutierrez Verde wrote:
+> I have a problem using a function of lm-sensors 2.10.7.
+> 
+> In the next extract of code I try to get the CPU TEMP of a
+> certain chip. But when  'sensors_get_feature' is called,
+> there is a problem, a Segmentation fault.
+> I also try to use the most part of the code of lm-sensors
+> 2.10.7 (like main.c, chips.c and so on), but the problem persists.
+> The chip and the sensors are the right.
 
-sensors_get_feature(*name,SENSORS_W83781D_TEMP2,&cur)
+If I can allow myself a side comment, writing code for libsensors 2.x
+today is a bit odd. The libsensors 3.x API is perfectly stable by now
+and it is much better than 2.x so you should really use 3.x for new
+applications.
 
-would work better.  What you are doing now is probably equal to
+> Could anyone find the wrong in my code?
 
-sensors_get_feature(NULL,SENSORS_W83781D_TEMP2,&cur)
+Did you try building it with -Wall -W? In many cases it is sufficient
+to point you to the problematic code.
 
-which would likely cause the error.
-
-Matt Roberds
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
