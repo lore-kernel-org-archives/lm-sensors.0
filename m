@@ -1,25 +1,47 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Fri, 07 Nov 2008 19:38:31 +0000
-Subject: Re: [lm-sensors] [PATCH 1/5] adt7462: New hwmon driver
-Message-Id: <20081107193831.GB8800@plum>
+From: Kaiwan N Billimoria <kaiwan@designergraphix.com>
+Date: Tue, 11 Nov 2008 06:59:22 +0000
+Subject: Re: [lm-sensors] [PATCH RESEND] hwmon: lm70: TI TMP121 support.
+Message-Id: <1226386042.7044.11.camel@kaiwan-1>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081107185621.13022.61885.stgit@elm3a70.beaverton.ibm.com> <20081107185626.13022.59407.stgit@elm3a70.beaverton.ibm.com> <1226084691.11596.42.camel@brick>
-In-Reply-To: <1226084691.11596.42.camel@brick>
+References: <20081022080423.GB11169@roarinelk.homelinux.net>
+In-Reply-To: <20081022080423.GB11169@roarinelk.homelinux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Fri, Nov 07, 2008 at 11:04:51AM -0800, Harvey Harrison wrote:
-> > +#define ROUND_DIV(x, divisor)  (((x) + ((divisor) / 2)) / (divisor))
+Hey,
+
+It's working now as expected..
+will send in the patch soon,
+
+On Wed, 2008-10-29 at 23:49 -0700, David Brownell wrote:
+> On Wednesday 29 October 2008, Kaiwan N Billimoria wrote:
+> > On Tue, 2008-10-28 at 03:43 -0700, David Brownell wrote:
+> > > On Tuesday 28 October 2008, Kaiwan N Billimoria wrote:
+> > > > Hi,
+> > > > 
+> > > > Got a chance to test this patch today..
+> > > > short answer: no it did not seem to work.
+> > > 
+> > > Well, then can you see what the issue is then?
 > 
-> DIV_ROUND_UP ?
+> Maybe the lm70llp code shouldn't set spi->bits_per_word to 16;
+> that seems to be another problem.
 
-Actually, on closer inspection, DIV_ROUND_UP always rounds up, so I'll
-implement a ROUND_CLOSEST.
+Yes, that's one of the issues..in fact the main one.
+I keep it at zero now.
 
---D
+> Recall that the whole reason we noticed this bug is that the $SUBJECT
+> patch was -- correctly!! -- getting its MSBs from rxbuf[0], but Jean
+> noted the lm70 code was different.
+Yup neat catch!
+
+Thanks guys,
+Later,
+Kaiwan.
+
+
 
 _______________________________________________
 lm-sensors mailing list
