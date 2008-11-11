@@ -1,237 +1,184 @@
-From: Corey Minyard <minyard@acm.org>
-Date: Fri, 07 Nov 2008 21:52:44 +0000
-Subject: Re: [lm-sensors] [Openipmi-developer] [PATCH] Fix platform drivers
-Message-Id: <4914B8AC.7070202@acm.org>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Tue, 11 Nov 2008 01:01:37 +0000
+Subject: [lm-sensors] [PATCH 2/2] adt74{62, 70,
+Message-Id: <20081111010137.1730.24582.stgit@elm3a70.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081107191636.13288.17003.stgit@elm3a70.beaverton.ibm.com>
-In-Reply-To: <20081107191636.13288.17003.stgit@elm3a70.beaverton.ibm.com>
+References: <20081111010132.1730.76566.stgit@elm3a70.beaverton.ibm.com>
+In-Reply-To: <20081111010132.1730.76566.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Darrick J. Wong" <djwong@us.ibm.com>
-Cc: Jean Delvare <khali@linux-fr.org>, openipmi-developer@lists.sourceforge.net, linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: "Darrick J. Wong" <djwong@us.ibm.com>, Jean Delvare <khali@linux-fr.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-Ok, thanks for this.
 
-Might this be a candidate for the stable-kernel?
+Modify some hwmon drivers to use DIV_ROUND_CLOSEST instead of bloating
+source with (naughty) macros.
 
-Acked-by: Corey Minyard <cminyard@mvista.com>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
 
-Darrick J. Wong wrote:
-> It turns out that if one registers a struct platform_device, the platform
-> device code expects that platform_device.device->driver points to a struct
-> driver inside a struct platform_driver.  This is not the case with the ipmi-si,
-> ipmi-msghandler and ibmaem drivers, which causes the suspend/resume hook
-> functions to jump off into nowhere, causing a crash.  Make this assumption hold
-> true for these three drivers.
->
-> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-> ---
->
->  drivers/char/ipmi/ipmi_msghandler.c |   20 +++++++++++---------
->  drivers/char/ipmi/ipmi_si_intf.c    |   16 +++++++++-------
->  drivers/hwmon/ibmaem.c              |   18 ++++++++++--------
->  3 files changed, 30 insertions(+), 24 deletions(-)
->
-> diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
-> index 8a59aaa..7a88dfd 100644
-> --- a/drivers/char/ipmi/ipmi_msghandler.c
-> +++ b/drivers/char/ipmi/ipmi_msghandler.c
-> @@ -422,9 +422,11 @@ struct ipmi_smi {
->  /**
->   * The driver model view of the IPMI messaging driver.
->   */
-> -static struct device_driver ipmidriver = {
-> -	.name = "ipmi",
-> -	.bus = &platform_bus_type
-> +static struct platform_driver ipmidriver = {
-> +	.driver = {
-> +		.name = "ipmi",
-> +		.bus = &platform_bus_type
-> +	}
->  };
->  static DEFINE_MUTEX(ipmidriver_mutex);
->  
-> @@ -2384,9 +2386,9 @@ static int ipmi_bmc_register(ipmi_smi_t intf, int ifnum,
->  	 * representing the interfaced BMC already
->  	 */
->  	if (bmc->guid_set)
-> -		old_bmc = ipmi_find_bmc_guid(&ipmidriver, bmc->guid);
-> +		old_bmc = ipmi_find_bmc_guid(&ipmidriver.driver, bmc->guid);
->  	else
-> -		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver,
-> +		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
->  						    bmc->id.product_id,
->  						    bmc->id.device_id);
->  
-> @@ -2416,7 +2418,7 @@ static int ipmi_bmc_register(ipmi_smi_t intf, int ifnum,
->  		snprintf(name, sizeof(name),
->  			 "ipmi_bmc.%4.4x", bmc->id.product_id);
->  
-> -		while (ipmi_find_bmc_prod_dev_id(&ipmidriver,
-> +		while (ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
->  						 bmc->id.product_id,
->  						 bmc->id.device_id)) {
->  			if (!warn_printed) {
-> @@ -2446,7 +2448,7 @@ static int ipmi_bmc_register(ipmi_smi_t intf, int ifnum,
->  			       " Unable to allocate platform device\n");
->  			return -ENOMEM;
->  		}
-> -		bmc->dev->dev.driver = &ipmidriver;
-> +		bmc->dev->dev.driver = &ipmidriver.driver;
->  		dev_set_drvdata(&bmc->dev->dev, bmc);
->  		kref_init(&bmc->refcount);
->  
-> @@ -4247,7 +4249,7 @@ static int ipmi_init_msghandler(void)
->  	if (initialized)
->  		return 0;
->  
-> -	rv = driver_register(&ipmidriver);
-> +	rv = driver_register(&ipmidriver.driver);
->  	if (rv) {
->  		printk(KERN_ERR PFX "Could not register IPMI driver\n");
->  		return rv;
-> @@ -4308,7 +4310,7 @@ static __exit void cleanup_ipmi(void)
->  	remove_proc_entry(proc_ipmi_root->name, NULL);
->  #endif /* CONFIG_PROC_FS */
->  
-> -	driver_unregister(&ipmidriver);
-> +	driver_unregister(&ipmidriver.driver);
->  
->  	initialized = 0;
->  
-> diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
-> index 3123bf5..3000135 100644
-> --- a/drivers/char/ipmi/ipmi_si_intf.c
-> +++ b/drivers/char/ipmi/ipmi_si_intf.c
-> @@ -114,9 +114,11 @@ static char *si_to_str[] = { "kcs", "smic", "bt" };
->  
->  #define DEVICE_NAME "ipmi_si"
->  
-> -static struct device_driver ipmi_driver = {
-> -	.name = DEVICE_NAME,
-> -	.bus = &platform_bus_type
-> +static struct platform_driver ipmi_driver = {
-> +	.driver = {
-> +		.name = DEVICE_NAME,
-> +		.bus = &platform_bus_type
-> +	}
->  };
->  
->  
-> @@ -2868,7 +2870,7 @@ static int try_smi_init(struct smi_info *new_smi)
->  			goto out_err;
->  		}
->  		new_smi->dev = &new_smi->pdev->dev;
-> -		new_smi->dev->driver = &ipmi_driver;
-> +		new_smi->dev->driver = &ipmi_driver.driver;
->  
->  		rv = platform_device_add(new_smi->pdev);
->  		if (rv) {
-> @@ -2983,7 +2985,7 @@ static __devinit int init_ipmi_si(void)
->  	initialized = 1;
->  
->  	/* Register the device drivers. */
-> -	rv = driver_register(&ipmi_driver);
-> +	rv = driver_register(&ipmi_driver.driver);
->  	if (rv) {
->  		printk(KERN_ERR
->  		       "init_ipmi_si: Unable to register driver: %d\n",
-> @@ -3052,7 +3054,7 @@ static __devinit int init_ipmi_si(void)
->  #ifdef CONFIG_PPC_OF
->  		of_unregister_platform_driver(&ipmi_of_platform_driver);
->  #endif
-> -		driver_unregister(&ipmi_driver);
-> +		driver_unregister(&ipmi_driver.driver);
->  		printk(KERN_WARNING
->  		       "ipmi_si: Unable to find any System Interface(s)\n");
->  		return -ENODEV;
-> @@ -3151,7 +3153,7 @@ static __exit void cleanup_ipmi_si(void)
->  		cleanup_one_si(e);
->  	mutex_unlock(&smi_infos_lock);
->  
-> -	driver_unregister(&ipmi_driver);
-> +	driver_unregister(&ipmi_driver.driver);
->  }
->  module_exit(cleanup_ipmi_si);
->  
-> diff --git a/drivers/hwmon/ibmaem.c b/drivers/hwmon/ibmaem.c
-> index 7b0ed5d..fe74609 100644
-> --- a/drivers/hwmon/ibmaem.c
-> +++ b/drivers/hwmon/ibmaem.c
-> @@ -88,9 +88,11 @@
->  static DEFINE_IDR(aem_idr);
->  static DEFINE_SPINLOCK(aem_idr_lock);
->  
-> -static struct device_driver aem_driver = {
-> -	.name = DRVNAME,
-> -	.bus = &platform_bus_type,
-> +static struct platform_driver aem_driver = {
-> +	.driver = {
-> +		.name = DRVNAME,
-> +		.bus = &platform_bus_type,
-> +	}
->  };
->  
->  struct aem_ipmi_data {
-> @@ -583,7 +585,7 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
->  	data->pdev = platform_device_alloc(DRVNAME, data->id);
->  	if (!data->pdev)
->  		goto dev_err;
-> -	data->pdev->dev.driver = &aem_driver;
-> +	data->pdev->dev.driver = &aem_driver.driver;
->  
->  	res = platform_device_add(data->pdev);
->  	if (res)
-> @@ -716,7 +718,7 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
->  	data->pdev = platform_device_alloc(DRVNAME, data->id);
->  	if (!data->pdev)
->  		goto dev_err;
-> -	data->pdev->dev.driver = &aem_driver;
-> +	data->pdev->dev.driver = &aem_driver.driver;
->  
->  	res = platform_device_add(data->pdev);
->  	if (res)
-> @@ -1085,7 +1087,7 @@ static int __init aem_init(void)
->  {
->  	int res;
->  
-> -	res = driver_register(&aem_driver);
-> +	res = driver_register(&aem_driver.driver);
->  	if (res) {
->  		printk(KERN_ERR "Can't register aem driver\n");
->  		return res;
-> @@ -1097,7 +1099,7 @@ static int __init aem_init(void)
->  	return 0;
->  
->  ipmi_reg_err:
-> -	driver_unregister(&aem_driver);
-> +	driver_unregister(&aem_driver.driver);
->  	return res;
->  
->  }
-> @@ -1107,7 +1109,7 @@ static void __exit aem_exit(void)
->  	struct aem_data *p1, *next1;
->  
->  	ipmi_smi_watcher_unregister(&driver_data.bmc_events);
-> -	driver_unregister(&aem_driver);
-> +	driver_unregister(&aem_driver.driver);
->  	list_for_each_entry_safe(p1, next1, &driver_data.aem_devices, list)
->  		aem_delete(p1);
->  }
->
->
-> -------------------------------------------------------------------------
-> This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
-> Build the coolest Linux based applications with Moblin SDK & win great prizes
-> Grand prize is a trip for two to an Open Source event anywhere in the world
-> http://moblin-contest.org/redirect.php?banner_id0&url=/
-> _______________________________________________
-> Openipmi-developer mailing list
-> Openipmi-developer@lists.sourceforge.net
-> https://lists.sourceforge.net/lists/listinfo/openipmi-developer
->
->   
+ drivers/hwmon/adt7462.c |   14 ++++++--------
+ drivers/hwmon/adt7470.c |    8 +++-----
+ drivers/hwmon/adt7473.c |   10 ++++------
+ 3 files changed, 13 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/hwmon/adt7462.c b/drivers/hwmon/adt7462.c
+index 66107b4..1852f27 100644
+--- a/drivers/hwmon/adt7462.c
++++ b/drivers/hwmon/adt7462.c
+@@ -204,8 +204,6 @@ I2C_CLIENT_INSMOD_1(adt7462);
+ #define MASK_AND_SHIFT(value, prefix)	\
+ 	(((value) & prefix##_MASK) >> prefix##_SHIFT)
+ 
+-#define ROUND_DIV(x, divisor)  (((x) + ((divisor) / 2)) / (divisor))
+-
+ struct adt7462_data {
+ 	struct device		*hwmon_dev;
+ 	struct attribute_group	attrs;
+@@ -840,7 +838,7 @@ static ssize_t set_temp_min(struct device *dev,
+ 	if (strict_strtol(buf, 10, &temp) || !temp_enabled(data, attr->index))
+ 		return -EINVAL;
+ 
+-	temp = ROUND_DIV(temp, 1000) + 64;
++	temp = DIV_ROUND_CLOSEST(temp, 1000) + 64;
+ 	temp = SENSORS_LIMIT(temp, 0, 255);
+ 
+ 	mutex_lock(&data->lock);
+@@ -878,7 +876,7 @@ static ssize_t set_temp_max(struct device *dev,
+ 	if (strict_strtol(buf, 10, &temp) || !temp_enabled(data, attr->index))
+ 		return -EINVAL;
+ 
+-	temp = ROUND_DIV(temp, 1000) + 64;
++	temp = DIV_ROUND_CLOSEST(temp, 1000) + 64;
+ 	temp = SENSORS_LIMIT(temp, 0, 255);
+ 
+ 	mutex_lock(&data->lock);
+@@ -943,7 +941,7 @@ static ssize_t set_volt_max(struct device *dev,
+ 		return -EINVAL;
+ 
+ 	temp *= 1000; /* convert mV to uV */
+-	temp = ROUND_DIV(temp, x);
++	temp = DIV_ROUND_CLOSEST(temp, x);
+ 	temp = SENSORS_LIMIT(temp, 0, 255);
+ 
+ 	mutex_lock(&data->lock);
+@@ -985,7 +983,7 @@ static ssize_t set_volt_min(struct device *dev,
+ 		return -EINVAL;
+ 
+ 	temp *= 1000; /* convert mV to uV */
+-	temp = ROUND_DIV(temp, x);
++	temp = DIV_ROUND_CLOSEST(temp, x);
+ 	temp = SENSORS_LIMIT(temp, 0, 255);
+ 
+ 	mutex_lock(&data->lock);
+@@ -1250,7 +1248,7 @@ static ssize_t set_pwm_hyst(struct device *dev,
+ 	if (strict_strtol(buf, 10, &temp))
+ 		return -EINVAL;
+ 
+-	temp = ROUND_DIV(temp, 1000);
++	temp = DIV_ROUND_CLOSEST(temp, 1000);
+ 	temp = SENSORS_LIMIT(temp, 0, 15);
+ 
+ 	/* package things up */
+@@ -1337,7 +1335,7 @@ static ssize_t set_pwm_tmin(struct device *dev,
+ 	if (strict_strtol(buf, 10, &temp))
+ 		return -EINVAL;
+ 
+-	temp = ROUND_DIV(temp, 1000) + 64;
++	temp = DIV_ROUND_CLOSEST(temp, 1000) + 64;
+ 	temp = SENSORS_LIMIT(temp, 0, 255);
+ 
+ 	mutex_lock(&data->lock);
+diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
+index 1311a59..da6c930 100644
+--- a/drivers/hwmon/adt7470.c
++++ b/drivers/hwmon/adt7470.c
+@@ -137,8 +137,6 @@ I2C_CLIENT_INSMOD_1(adt7470);
+ #define FAN_PERIOD_INVALID	65535
+ #define FAN_DATA_VALID(x)	((x) && (x) != FAN_PERIOD_INVALID)
+ 
+-#define ROUND_DIV(x, divisor)	(((x) + ((divisor) / 2)) / (divisor))
+-
+ struct adt7470_data {
+ 	struct device		*hwmon_dev;
+ 	struct attribute_group	attrs;
+@@ -360,7 +358,7 @@ static ssize_t set_temp_min(struct device *dev,
+ 	if (strict_strtol(buf, 10, &temp))
+ 		return -EINVAL;
+ 
+-	temp = ROUND_DIV(temp, 1000);
++	temp = DIV_ROUND_CLOSEST(temp, 1000);
+ 	temp = SENSORS_LIMIT(temp, 0, 255);
+ 
+ 	mutex_lock(&data->lock);
+@@ -394,7 +392,7 @@ static ssize_t set_temp_max(struct device *dev,
+ 	if (strict_strtol(buf, 10, &temp))
+ 		return -EINVAL;
+ 
+-	temp = ROUND_DIV(temp, 1000);
++	temp = DIV_ROUND_CLOSEST(temp, 1000);
+ 	temp = SENSORS_LIMIT(temp, 0, 255);
+ 
+ 	mutex_lock(&data->lock);
+@@ -671,7 +669,7 @@ static ssize_t set_pwm_tmin(struct device *dev,
+ 	if (strict_strtol(buf, 10, &temp))
+ 		return -EINVAL;
+ 
+-	temp = ROUND_DIV(temp, 1000);
++	temp = DIV_ROUND_CLOSEST(temp, 1000);
+ 	temp = SENSORS_LIMIT(temp, 0, 255);
+ 
+ 	mutex_lock(&data->lock);
+diff --git a/drivers/hwmon/adt7473.c b/drivers/hwmon/adt7473.c
+index 18aa308..0a6ce23 100644
+--- a/drivers/hwmon/adt7473.c
++++ b/drivers/hwmon/adt7473.c
+@@ -129,8 +129,6 @@ I2C_CLIENT_INSMOD_1(adt7473);
+ #define FAN_PERIOD_INVALID	65535
+ #define FAN_DATA_VALID(x)	((x) && (x) != FAN_PERIOD_INVALID)
+ 
+-#define ROUND_DIV(x, divisor)	(((x) + ((divisor) / 2)) / (divisor))
+-
+ struct adt7473_data {
+ 	struct device		*hwmon_dev;
+ 	struct attribute_group	attrs;
+@@ -459,7 +457,7 @@ static ssize_t set_temp_min(struct device *dev,
+ 	if (strict_strtol(buf, 10, &temp))
+ 		return -EINVAL;
+ 
+-	temp = ROUND_DIV(temp, 1000);
++	temp = DIV_ROUND_CLOSEST(temp, 1000);
+ 	temp = encode_temp(data->temp_twos_complement, temp);
+ 
+ 	mutex_lock(&data->lock);
+@@ -495,7 +493,7 @@ static ssize_t set_temp_max(struct device *dev,
+ 	if (strict_strtol(buf, 10, &temp))
+ 		return -EINVAL;
+ 
+-	temp = ROUND_DIV(temp, 1000);
++	temp = DIV_ROUND_CLOSEST(temp, 1000);
+ 	temp = encode_temp(data->temp_twos_complement, temp);
+ 
+ 	mutex_lock(&data->lock);
+@@ -720,7 +718,7 @@ static ssize_t set_temp_tmax(struct device *dev,
+ 	if (strict_strtol(buf, 10, &temp))
+ 		return -EINVAL;
+ 
+-	temp = ROUND_DIV(temp, 1000);
++	temp = DIV_ROUND_CLOSEST(temp, 1000);
+ 	temp = encode_temp(data->temp_twos_complement, temp);
+ 
+ 	mutex_lock(&data->lock);
+@@ -756,7 +754,7 @@ static ssize_t set_temp_tmin(struct device *dev,
+ 	if (strict_strtol(buf, 10, &temp))
+ 		return -EINVAL;
+ 
+-	temp = ROUND_DIV(temp, 1000);
++	temp = DIV_ROUND_CLOSEST(temp, 1000);
+ 	temp = encode_temp(data->temp_twos_complement, temp);
+ 
+ 	mutex_lock(&data->lock);
 
 
 _______________________________________________
