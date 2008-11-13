@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 13 Nov 2008 09:55:30 +0000
+From: Kaiwan N Billimoria <kaiwan@designergraphix.com>
+Date: Thu, 13 Nov 2008 11:52:39 +0000
 Subject: Re: [lm-sensors] [PATCH] SPI lm70: Code streamlining and cleanup
-Message-Id: <20081113105530.7d6e9f2d@hyperion.delvare>
+Message-Id: <1226576439.6222.2.camel@kaiwan-1>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1226474799.18411.21.camel@kaiwan-1>
 In-Reply-To: <1226474799.18411.21.camel@kaiwan-1>
@@ -10,9 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David,
-
-On Thu, 13 Nov 2008 00:53:05 -0800, David Brownell wrote:
+On Thu, 2008-11-13 at 00:53 -0800, David Brownell wrote:
 > On Wednesday 12 November 2008, Jean Delvare wrote:
 > > David, can we get this patch reviewed and pushed upstream quickly? So
 > > that I can finally take Manuel's patch adding support for the TMP121.
@@ -24,14 +22,20 @@ On Thu, 13 Nov 2008 00:53:05 -0800, David Brownell wrote:
 >  - there is no "D9" bit in any byte; explain that change better
 >  - restore a comment of mine :)
 > 
+Yes, better, thanks David.
+Reg the D9 bit, "bit" is my mistake - I really was referring to the D9
+pin on the data register of the parport.
+
 > And different patch comments -- sorry, I lost the first set.
 > 
 > Jean, I think it's best if you merge this through your tree
 > along with Manuel's patch.
-
-Fine with me, I'll do that right now.
-
 > 
+Seen that Jean's merged it and sent to Manuel already; great!
+
+Thanks v much David & Jean,
+Kaiwan.
+
 > - Dave
 > 
 > 
@@ -208,9 +212,20 @@ Fine with me, I'll do that right now.
 >  
 >  	parport_release(pp->pd);
 >  	parport_unregister_device(pp->pd);
+--
+Kaiwan N Billimoria <kaiwan@designergraphix.com>
+Designer Graphix
+4923, 11th Floor, Highpoint IV, 45 Palace Road, Bangalore 560 001.
++91.98450.16788 (M) | TeleFax: +91.80.22389396 | Alt. Tel:
++91.80.64500257
 
--- 
-Jean Delvare
+Do visit our enhanced website: http://www.designergraphix.com 
+
+"Keep away from people who try to belittle your ambitions. Small people
+always do that, but the
+really great make you feel that you, too, can become great." --Mark
+Twain.
+
 
 _______________________________________________
 lm-sensors mailing list
