@@ -1,36 +1,38 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Tue, 25 Nov 2008 21:20:05 +0000
-Subject: [lm-sensors] [PATCH 0/3] adt7470 extra features
-Message-Id: <20081125212005.22512.14523.stgit@elm3a70.beaverton.ibm.com>
+From: Henrik Rydberg <rydberg@euromail.se>
+Date: Mon, 17 Nov 2008 09:34:33 +0000
+Subject: [lm-sensors] [PATCH] Add generic MacPro support
+Message-Id: <49213AA9.6070800@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Darrick J. Wong" <djwong@us.ibm.com>, Jean Delvare <khali@linux-fr.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: Andrew Morton <akpm@linux-foundation.org>, Nicolas Boichat <nicolas@boichat.ch>, lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
 
-Hi all,
+In order to analyze the SMC of the newer MacPros, applesmc needs to
+recognize the machine. This patch adds the missing generic dmi_match
+entry for MacPro models.
 
-As I've been promising for a while, here are (I hope) the features needed
-to make the adt7470 driver complete:
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+---
+ drivers/hwmon/applesmc.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-The first patch fixes a problem where the pwm outputs temporarily drop toward
-zero while temperature sensors are being read.  Since the sensor read operation
-can take upwards of a second, the most obvious symptoms of this problem are
-fairly annoying: fan spins up for a while, fan spins down, fan spins up, fan
-spins for a while... so the solution is to reprogram the chip for manual pwm
-control while reading the temperature sensors.
-
-The second patch automatically determines the number of temperature sensors
-attached to the adt7470 so that we can shorten the sensor update interval as
-much as possible.
-
-The third patch creates a kernel thread that continually updates the temp
-sensors so that the in-chip automatic control algorithm will run.  Per an
-earlier discussion, the adt7470 can determine the correct pwm output on its
-own, but it needs to be told to gather temperature data by hand.
-
---D
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 10977b3..f7dce8b 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -1354,6 +1354,10 @@ static __initdata struct dmi_system_id applesmc_whitelist[] = {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacPro2") },
+ 		&applesmc_dmi_data[4]},
++	{ applesmc_dmi_match, "Apple MacPro", {
++	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
++	  DMI_MATCH(DMI_PRODUCT_NAME, "MacPro") },
++		&applesmc_dmi_data[4]},
+ 	{ applesmc_dmi_match, "Apple iMac 8", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME, "iMac8") },
 
 _______________________________________________
 lm-sensors mailing list
