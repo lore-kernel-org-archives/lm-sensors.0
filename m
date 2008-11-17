@@ -1,217 +1,78 @@
 From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Fri, 07 Nov 2008 19:16:36 +0000
-Subject: [lm-sensors] [PATCH] Fix platform drivers that crash on
-Message-Id: <20081107191636.13288.17003.stgit@elm3a70.beaverton.ibm.com>
+Date: Mon, 17 Nov 2008 20:30:32 +0000
+Subject: Re: [lm-sensors] adt7470/adt7473: Check input values from sysfs
+Message-Id: <20081117203031.GK8668@plum>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <Pine.LNX.4.64.0811151612160.4660@pc-004.diku.dk>
+In-Reply-To: <Pine.LNX.4.64.0811151612160.4660@pc-004.diku.dk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Darrick J. Wong" <djwong@us.ibm.com>, Corey Minyard <minyard@acm.org>, Jean Delvare <khali@linux-fr.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, openipmi-developer@lists.sourceforge.net, lm-sensors <lm-sensors@lm-sensors.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Julia Lawall <julia@diku.dk>
+Cc: lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
+[Adding lkml,lm-sensors to cc]
 
-It turns out that if one registers a struct platform_device, the platform
-device code expects that platform_device.device->driver points to a struct
-driver inside a struct platform_driver.  This is not the case with the ipmi-si,
-ipmi-msghandler and ibmaem drivers, which causes the suspend/resume hook
-functions to jump off into nowhere, causing a crash.  Make this assumption hold
-true for these three drivers.
+On Sat, Nov 15, 2008 at 04:33:03PM +0100, Julia Lawall wrote:
+> Hello,
+> 
+> I saw your recent patch that converts calls to simple_strtol to 
+> strict_strtol and wondered if the same transformation would be useful 
+> elsewhere.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
----
+I think so.
 
- drivers/char/ipmi/ipmi_msghandler.c |   20 +++++++++++---------
- drivers/char/ipmi/ipmi_si_intf.c    |   16 +++++++++-------
- drivers/hwmon/ibmaem.c              |   18 ++++++++++--------
- 3 files changed, 30 insertions(+), 24 deletions(-)
+> diff -u -p a/drivers/hwmon/ad7414.c b/drivers/hwmon/ad7414.c
+> diff -u -p a/drivers/hwmon/ad7418.c b/drivers/hwmon/ad7418.c
+> diff -u -p a/drivers/hwmon/adm1029.c b/drivers/hwmon/adm1029.c
+> diff -u -p a/drivers/hwmon/f71805f.c b/drivers/hwmon/f71805f.c
+> diff -u -p a/drivers/hwmon/gl520sm.c b/drivers/hwmon/gl520sm.c
+> diff -u -p a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
+> diff -u -p a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+> diff -u -p a/drivers/hwmon/lm83.c b/drivers/hwmon/lm83.c
+> diff -u -p a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+> diff -u -p a/drivers/hwmon/lm93.c b/drivers/hwmon/lm93.c
 
-diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
-index 8a59aaa..7a88dfd 100644
---- a/drivers/char/ipmi/ipmi_msghandler.c
-+++ b/drivers/char/ipmi/ipmi_msghandler.c
-@@ -422,9 +422,11 @@ struct ipmi_smi {
- /**
-  * The driver model view of the IPMI messaging driver.
-  */
--static struct device_driver ipmidriver = {
--	.name = "ipmi",
--	.bus = &platform_bus_type
-+static struct platform_driver ipmidriver = {
-+	.driver = {
-+		.name = "ipmi",
-+		.bus = &platform_bus_type
-+	}
- };
- static DEFINE_MUTEX(ipmidriver_mutex);
- 
-@@ -2384,9 +2386,9 @@ static int ipmi_bmc_register(ipmi_smi_t intf, int ifnum,
- 	 * representing the interfaced BMC already
- 	 */
- 	if (bmc->guid_set)
--		old_bmc = ipmi_find_bmc_guid(&ipmidriver, bmc->guid);
-+		old_bmc = ipmi_find_bmc_guid(&ipmidriver.driver, bmc->guid);
- 	else
--		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver,
-+		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
- 						    bmc->id.product_id,
- 						    bmc->id.device_id);
- 
-@@ -2416,7 +2418,7 @@ static int ipmi_bmc_register(ipmi_smi_t intf, int ifnum,
- 		snprintf(name, sizeof(name),
- 			 "ipmi_bmc.%4.4x", bmc->id.product_id);
- 
--		while (ipmi_find_bmc_prod_dev_id(&ipmidriver,
-+		while (ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
- 						 bmc->id.product_id,
- 						 bmc->id.device_id)) {
- 			if (!warn_printed) {
-@@ -2446,7 +2448,7 @@ static int ipmi_bmc_register(ipmi_smi_t intf, int ifnum,
- 			       " Unable to allocate platform device\n");
- 			return -ENOMEM;
- 		}
--		bmc->dev->dev.driver = &ipmidriver;
-+		bmc->dev->dev.driver = &ipmidriver.driver;
- 		dev_set_drvdata(&bmc->dev->dev, bmc);
- 		kref_init(&bmc->refcount);
- 
-@@ -4247,7 +4249,7 @@ static int ipmi_init_msghandler(void)
- 	if (initialized)
- 		return 0;
- 
--	rv = driver_register(&ipmidriver);
-+	rv = driver_register(&ipmidriver.driver);
- 	if (rv) {
- 		printk(KERN_ERR PFX "Could not register IPMI driver\n");
- 		return rv;
-@@ -4308,7 +4310,7 @@ static __exit void cleanup_ipmi(void)
- 	remove_proc_entry(proc_ipmi_root->name, NULL);
- #endif /* CONFIG_PROC_FS */
- 
--	driver_unregister(&ipmidriver);
-+	driver_unregister(&ipmidriver.driver);
- 
- 	initialized = 0;
- 
-diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
-index 3123bf5..3000135 100644
---- a/drivers/char/ipmi/ipmi_si_intf.c
-+++ b/drivers/char/ipmi/ipmi_si_intf.c
-@@ -114,9 +114,11 @@ static char *si_to_str[] = { "kcs", "smic", "bt" };
- 
- #define DEVICE_NAME "ipmi_si"
- 
--static struct device_driver ipmi_driver = {
--	.name = DEVICE_NAME,
--	.bus = &platform_bus_type
-+static struct platform_driver ipmi_driver = {
-+	.driver = {
-+		.name = DEVICE_NAME,
-+		.bus = &platform_bus_type
-+	}
- };
- 
- 
-@@ -2868,7 +2870,7 @@ static int try_smi_init(struct smi_info *new_smi)
- 			goto out_err;
- 		}
- 		new_smi->dev = &new_smi->pdev->dev;
--		new_smi->dev->driver = &ipmi_driver;
-+		new_smi->dev->driver = &ipmi_driver.driver;
- 
- 		rv = platform_device_add(new_smi->pdev);
- 		if (rv) {
-@@ -2983,7 +2985,7 @@ static __devinit int init_ipmi_si(void)
- 	initialized = 1;
- 
- 	/* Register the device drivers. */
--	rv = driver_register(&ipmi_driver);
-+	rv = driver_register(&ipmi_driver.driver);
- 	if (rv) {
- 		printk(KERN_ERR
- 		       "init_ipmi_si: Unable to register driver: %d\n",
-@@ -3052,7 +3054,7 @@ static __devinit int init_ipmi_si(void)
- #ifdef CONFIG_PPC_OF
- 		of_unregister_platform_driver(&ipmi_of_platform_driver);
- #endif
--		driver_unregister(&ipmi_driver);
-+		driver_unregister(&ipmi_driver.driver);
- 		printk(KERN_WARNING
- 		       "ipmi_si: Unable to find any System Interface(s)\n");
- 		return -ENODEV;
-@@ -3151,7 +3153,7 @@ static __exit void cleanup_ipmi_si(void)
- 		cleanup_one_si(e);
- 	mutex_unlock(&smi_infos_lock);
- 
--	driver_unregister(&ipmi_driver);
-+	driver_unregister(&ipmi_driver.driver);
- }
- module_exit(cleanup_ipmi_si);
- 
-diff --git a/drivers/hwmon/ibmaem.c b/drivers/hwmon/ibmaem.c
-index 7b0ed5d..fe74609 100644
---- a/drivers/hwmon/ibmaem.c
-+++ b/drivers/hwmon/ibmaem.c
-@@ -88,9 +88,11 @@
- static DEFINE_IDR(aem_idr);
- static DEFINE_SPINLOCK(aem_idr_lock);
- 
--static struct device_driver aem_driver = {
--	.name = DRVNAME,
--	.bus = &platform_bus_type,
-+static struct platform_driver aem_driver = {
-+	.driver = {
-+		.name = DRVNAME,
-+		.bus = &platform_bus_type,
-+	}
- };
- 
- struct aem_ipmi_data {
-@@ -583,7 +585,7 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
- 	data->pdev = platform_device_alloc(DRVNAME, data->id);
- 	if (!data->pdev)
- 		goto dev_err;
--	data->pdev->dev.driver = &aem_driver;
-+	data->pdev->dev.driver = &aem_driver.driver;
- 
- 	res = platform_device_add(data->pdev);
- 	if (res)
-@@ -716,7 +718,7 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
- 	data->pdev = platform_device_alloc(DRVNAME, data->id);
- 	if (!data->pdev)
- 		goto dev_err;
--	data->pdev->dev.driver = &aem_driver;
-+	data->pdev->dev.driver = &aem_driver.driver;
- 
- 	res = platform_device_add(data->pdev);
- 	if (res)
-@@ -1085,7 +1087,7 @@ static int __init aem_init(void)
- {
- 	int res;
- 
--	res = driver_register(&aem_driver);
-+	res = driver_register(&aem_driver.driver);
- 	if (res) {
- 		printk(KERN_ERR "Can't register aem driver\n");
- 		return res;
-@@ -1097,7 +1099,7 @@ static int __init aem_init(void)
- 	return 0;
- 
- ipmi_reg_err:
--	driver_unregister(&aem_driver);
-+	driver_unregister(&aem_driver.driver);
- 	return res;
- 
- }
-@@ -1107,7 +1109,7 @@ static void __exit aem_exit(void)
- 	struct aem_data *p1, *next1;
- 
- 	ipmi_smi_watcher_unregister(&driver_data.bmc_events);
--	driver_unregister(&aem_driver);
-+	driver_unregister(&aem_driver.driver);
- 	list_for_each_entry_safe(p1, next1, &driver_data.aem_devices, list)
- 		aem_delete(p1);
- }
+Seems like a generally good idea.
 
+> There are a few other cases where the call to simple_strtol is part of a 
+> more complicated expression or where the result is stored in a variable of 
+> type int, rather than long.  I didn't check for cases where the buffer 
+> parameter is not declared as const.
+
+Since it's a sysfs write attribute, I think it's always const.
+
+int/long confusion might be a problem if sizeof(int) != sizeof(long).  I
+think those are called LP64 machines, but I don't know if Linux runs in
+those environments (it probably does).
+
+> I was wondering whether you think the transformation is of more general 
+> interest than the cases you have considered, and whether it is worthwhile 
+
+Yes!
+
+> to pursue this (and whether you have done it all already in some patch I 
+> didn't notice).
+
+I have only patched those two drivers (adt7470/73) that I wrote myself.
+I don't really have time to clean up the other drivers, so thank you for
+coming along with a cool-looking cleanup tool. :)
+
+> A concern is whether it is always reasonable to return -EINVAL.  I assume 
+
+As far as the hwmon drivers go, I think that it's fairly safe to return
+-EINVAL if the input is something totally unintelligible.
+
+> it is, because these functions are all stored in the same kind of 
+> structure, but there is perhaps something I am overlooking.  In 
+> particular, I didn't manage to find out where these functions are actually 
+> called.
+
+Something like:
+
+echo notanumber > /sys/class/hwmon/hwmon0/device/temp1_max
+
+--D
 
 _______________________________________________
 lm-sensors mailing list
