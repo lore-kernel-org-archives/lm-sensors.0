@@ -1,7 +1,7 @@
-From: Jordan Crouse <jordan@cosmicpenguin.net>
-Date: Tue, 18 Nov 2008 17:46:03 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 18 Nov 2008 18:15:22 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] k8temp warn about errata
-Message-Id: <4922FF5B.7050304@cosmicpenguin.net>
+Message-Id: <20081118191522.420e0837@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <48E3F505.40401@assembler.cz>
 In-Reply-To: <48E3F505.40401@assembler.cz>
@@ -10,68 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Andreas Herrmann wrote:
-> On Mon, Nov 10, 2008 at 10:38:06AM +0100, Jean Delvare wrote:
->> On Sun, 09 Nov 2008 18:27:53 -0700, Jordan Crouse wrote:
->>> Jean Delvare wrote:
->>>> For what it's worth, Jordan Crouse seems to think that blacklisting on
->>>> a per-revision basis may still work.
->>> I think it can.  A much larger sample would probably need to be taken to 
->>> be completely sure - but I hope that we'll find that the problem is 
->>> deterministic enough for a blacklist.  I think we would agree that a 
->>> blacklist would be the more user friendly solution.
->> OK, but then we should probably extend Rudolf's patch to ask users
->> potentially affected by the errata to report to us. The report should
->> include the CPUID information (e.g. contents of /proc/cpuinfo), the
->> output of sensors (or the raw temperature values from sysfs), and
->> whether or not the user thinks the temperature values are correct.
+On Tue, 18 Nov 2008 10:46:03 -0700, Jordan Crouse wrote:
+> Nothing scientific.  The AMD errata team might know more about it.  I 
+> can identify the obviously broken sensors - my athlon X2 system for 
+> example tells me the cores are 7C and 3C respectfully, but I don't know 
+> if you could tell the difference between a well working sensor and a 
+> marginally working sensor, especially with differing work conditions. 
+> The best you could do is to figure out how cold the core could possibly 
+> run, and then omit anything under that.
 > 
-> How do you find out whether your system is affected by this erratum?
-> The erratum is: due to inaccuracy of reported temperature (doesn't
-> meet a certain accuracy threshold) triggering of HTC/STC feature is
-> inaccurate.
-> 
-> I am just curious how you'd like to determine the accuracy of the
-> thermal sensor ... As an example, if the sensor reports 70 degC when
-> the true temperature is 65 degC -- is it worth to blacklist it?
-> 
-> Jordan, do you know more details about the deviation of the reported
-> temparature sensor values from the real ones?
+> You might do a better job if you could compare the core temperature 
+> against the system monitor - they should only differ by a few degrees (I 
+> think there is some math about how much the external and internal diodes 
+> should differ).  That said, thats not the sort of math you could do in 
+> the kernel driver, you would need the user land to find the other sensor 
+> and do the calculations.
 
-Nothing scientific.  The AMD errata team might know more about it.  I 
-can identify the obviously broken sensors - my athlon X2 system for 
-example tells me the cores are 7C and 3C respectfully, but I don't know 
-if you could tell the difference between a well working sensor and a 
-marginally working sensor, especially with differing work conditions. 
-The best you could do is to figure out how cold the core could possibly 
-run, and then omit anything under that.
+This is the problem: the k8temp driver doesn't have access to other
+sensors for comparison purposes. Even if it had, it wouldn't know which
+sensor corresponds to the CPU (this is motherboard-specific.) So while
+this can be used by the user to determine whether his CPU sensors are
+working or not, this cannot be used as a way to automatically discard
+CPUs with broken sensors.
 
-You might do a better job if you could compare the core temperature 
-against the system monitor - they should only differ by a few degrees (I 
-think there is some math about how much the external and internal diodes 
-should differ).  That said, thats not the sort of math you could do in 
-the kernel driver, you would need the user land to find the other sensor 
-and do the calculations.
-
-> I'd prefer not to blacklist but to keep the warning about potential
-> inaccurate temperature values as introduced by Rudolf. I use k8temp on
-> my private machines -- Athlon X2 and a Turion X2 (both are revF CPUs
-> and thus affected by erratum 141). I admit, this is more or less a
-> gimmick but I would miss it (if blacklisted).
-
-Well, it is a gimmick, and thats important to keep in mind.  No offense 
-at all to Rudolf, this is a very nice driver, but in the end the value 
-is not critical to system performance, especially since it cannot 
-trigger the HTC/STC.  Nearly every system I have ever seen relies on an 
-external sensor.  Thats why I was voting for the blacklist, since it 
-would omit the obviously flawed processors, and it would keep the users 
-from getting too worked up.  I would rather have them concentrate their 
-attention on the external sensors rather then exert a lot of effort to 
-read the K8 temps, which in the end are "just for fun".
-
-Jordan
-
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
