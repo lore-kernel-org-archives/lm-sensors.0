@@ -1,7 +1,7 @@
-From: Andreas Herrmann <andreas.herrmann3@amd.com>
-Date: Tue, 18 Nov 2008 08:55:29 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 18 Nov 2008 09:06:47 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] k8temp warn about errata
-Message-Id: <20081118085529.GF12095@alberich.amd.com>
+Message-Id: <20081118100647.00be2a4b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <48E3F505.40401@assembler.cz>
 In-Reply-To: <48E3F505.40401@assembler.cz>
@@ -10,38 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Nov 09, 2008 at 09:54:39PM +0100, Jean Delvare wrote:
-> Hi Rudolf,
+Hi Andreas,
+
+On Tue, 18 Nov 2008 09:55:29 +0100, Andreas Herrmann wrote:
+> your git tree is at git://jdelvare.pck.nerim.net/jdelvare-2.6, correct?
+> At least that's what you have used in your pull requests.
+
+No this is incorrect. This git tree is a temporary thing I use to let
+Linus pull my patches, but the actual work is done in a quilt tree at:
+
+http://khali.linux-fr.org/devel/linux-2.6/jdelvare-hwmon/
+
+That being said, please keep in mind that this is as unofficial as you
+can get, given that I am not the maintainer of the hwmon subsystem.
+
+> Did you apply Rudolf's patch to this git tree?
 > 
-> On Sun, 09 Nov 2008 20:56:54 +0100, Rudolf Marek wrote:
-> > Thanks for the review. I'm attaching fixed version.
-> >
-> > Following patch adds warning about wrong CPU temperature readouts on all fam f
-> > rev f revision of CPUs.
-> > 
-> > Used switch statement, more code changes follows.
-> > 
-> > Signed-off-by: Rudolf Marek <r.marek@assembler.cz>
-> 
-> I've applied it, thanks. Note that I added a "break" at the end of the
-> case 0xf, otherwise it's an invitation to get things wrong in the next
-> patch...
+> I just want to know against which tree I need to create patches when adapting
+> k8temp.
 
-Hi Jean,
+For now I applied:
+http://khali.linux-fr.org/devel/linux-2.6/jdelvare-hwmon/hwmon-k8temp-01-warn-about-errata.patch
 
-your git tree is at git://jdelvare.pck.nerim.net/jdelvare-2.6, correct?
-At least that's what you have used in your pull requests.
-Did you apply Rudolf's patch to this git tree?
+But everyone involved seems to agree that it isn't sufficient and we
+should prevent the driver from binding to broken devices if possible,
+using either a revision-based blacklist, or a temperature value-based
+heuristic. I didn't yet have the time to work on this though, nor did
+anyone else apparently.
 
-I just want to know against which tree I need to create patches when adapting
-k8temp.
-
-
-Thanks,
-
-Andreas
-
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
