@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 10 Nov 2008 09:38:06 +0000
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
+Date: Tue, 18 Nov 2008 08:41:35 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] k8temp warn about errata
-Message-Id: <20081110103806.1a36b6a6@hyperion.delvare>
+Message-Id: <20081118084135.GC12095@alberich.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <48E3F505.40401@assembler.cz>
 In-Reply-To: <48E3F505.40401@assembler.cz>
@@ -10,29 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jordan,
+On Thu, Oct 02, 2008 at 12:09:09AM +0200, Rudolf Marek wrote:
 
-On Sun, 09 Nov 2008 18:27:53 -0700, Jordan Crouse wrote:
-> Jean Delvare wrote:
-> > For what it's worth, Jordan Crouse seems to think that blacklisting on
-> > a per-revision basis may still work.
-> 
-> I think it can.  A much larger sample would probably need to be taken to 
-> be completely sure - but I hope that we'll find that the problem is 
-> deterministic enough for a blacklist.  I think we would agree that a 
-> blacklist would be the more user friendly solution.
+Hi Rudolf,
 
-OK, but then we should probably extend Rudolf's patch to ask users
-potentially affected by the errata to report to us. The report should
-include the CPUID information (e.g. contents of /proc/cpuinfo), the
-output of sensors (or the raw temperature values from sysfs), and
-whether or not the user thinks the temperature values are correct.
+Sorry for the late reply. But up to now, I didn't find time for review
+and test.  Now I've done that. I've two patches that I'd like to add
+on top of your patches.
 
-If we don't do that, I fear it will take forever before we can complete
-the blacklist.
+BTW, Tctl_max is inadvertently missing in the power and thermal data
+sheet for family 0x11. It should be published with one of the next versions
+of that document. For currently available family 0x11 CPUs it's 100degC.
 
--- 
-Jean Delvare
+I've tested your code with my patches on top of it on
+various family 0x10 models and family 0x11 revB1.
+
+
+Thanks.
+
+
+Andreas
+
+
 
 _______________________________________________
 lm-sensors mailing list
