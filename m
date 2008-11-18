@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 18 Nov 2008 12:33:37 +0000
+Date: Tue, 18 Nov 2008 12:57:46 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] k8temp warn about errata
-Message-Id: <20081118133337.109020ce@hyperion.delvare>
+Message-Id: <20081118135746.7ca8a874@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <48E3F505.40401@assembler.cz>
 In-Reply-To: <48E3F505.40401@assembler.cz>
@@ -10,36 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 18 Nov 2008 12:18:45 +0100, Andreas Herrmann wrote:
-> On Tue, Nov 18, 2008 at 11:40:52AM +0100, Jean Delvare wrote:
-> > The whole point of hardware monitoring is to report accurate values.
-> >
-> > Additional software can be used to take actions based on temperature
-> > values, for example fan speed regulation or CPU frequency changes. If
-> > you can't trust the temperature readings then these operations become
-> > dangerous.
+On Tue, 18 Nov 2008 12:26:12 +0100, Andreas Herrmann wrote:
+> Hi Rudolf,
 > 
-> Then we need to blacklist it. The suggested workaround for this erratum is
-> to use "temperature measurements from an analog thermal diode" for thermal
-> control ...
-> If the system should be designed not to rely on the thermal sensor
-> (due to accuracy issue) the OS shouldn't use it either.
-
-My point exactly.
-
-> > That being said, I guess that the example above is essentially
-> > theoretical? Most cases we've seen so far were not off by 5 degrees.
-> > They were plain wrong, with reported temperatures being in the -20 to
-> > +15 degrees C.
+> On Thu, Oct 02, 2008 at 12:09:09AM +0200, Rudolf Marek wrote:
+> > Index: linux-2.6.27-rc7/drivers/hwmon/k8temp.c
+> > =================================> > --- linux-2.6.27-rc7.orig/drivers/hwmon/k8temp.c	2008-09-28 11:01:45.855284456 +0200
+> > +++ linux-2.6.27-rc7/drivers/hwmon/k8temp.c	2008-09-28 11:13:42.396117790 +0200
+> > @@ -155,6 +158,18 @@
+> >  		goto exit;
+> >  	}
+> >  
+> > +	/* get real PCI based cpuid, prior revF of fam 0Fh, this reg is 0 */
+> > +	pci_read_config_dword(pdev, REG_CPUID, &cpuid);
 > 
-> Was this observed with k8temp or other sensor chips?
+> I am just curious whether you have tested this on  a CPU revision prior revF.
+> Because "BIOS and Kernel Developer's Guide for AMD Athlon 64 and AMD
+> Opteron Processors" suggests that this register exists for those older CPUs:
+> 
+> "CPUID Fn[8000_0001,0000_0001]_EAX Family, Model, Feature Identifiers
+> 
+>  This register provides identical information to Function 3, Offset FCh."
+> 
+> (I don't have access to such a CPU model at the moment and thus can't
+> double-check this now.)
 
-k8temp. See my list of obviously incorrect values at:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2008-October/024584.html
-
-After seeing these values, I admit I had a smile when seeing how AMD
-had formulated the errata (sensor doesn't meet a certain accuracy
-threshold...)
+For what it's worth, I have the following K8 CPU models here: 15/31/0
+and 15/28/0, and both of them have value 0x00 in Function 3, Offset FCh.
+That doesn't mean that all pre-rev.F CPUs do though... and it would
+probably be trivial to handle both cases in the code if we have any
+doubt.
 
 -- 
 Jean Delvare
