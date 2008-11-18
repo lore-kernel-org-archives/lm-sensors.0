@@ -1,7 +1,7 @@
 From: Andreas Herrmann <andreas.herrmann3@amd.com>
-Date: Tue, 18 Nov 2008 08:41:35 +0000
+Date: Tue, 18 Nov 2008 08:55:29 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] k8temp warn about errata
-Message-Id: <20081118084135.GC12095@alberich.amd.com>
+Message-Id: <20081118085529.GF12095@alberich.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <48E3F505.40401@assembler.cz>
 In-Reply-To: <48E3F505.40401@assembler.cz>
@@ -10,24 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Oct 02, 2008 at 12:09:09AM +0200, Rudolf Marek wrote:
+On Sun, Nov 09, 2008 at 09:54:39PM +0100, Jean Delvare wrote:
+> Hi Rudolf,
+> 
+> On Sun, 09 Nov 2008 20:56:54 +0100, Rudolf Marek wrote:
+> > Thanks for the review. I'm attaching fixed version.
+> >
+> > Following patch adds warning about wrong CPU temperature readouts on all fam f
+> > rev f revision of CPUs.
+> > 
+> > Used switch statement, more code changes follows.
+> > 
+> > Signed-off-by: Rudolf Marek <r.marek@assembler.cz>
+> 
+> I've applied it, thanks. Note that I added a "break" at the end of the
+> case 0xf, otherwise it's an invitation to get things wrong in the next
+> patch...
 
-Hi Rudolf,
+Hi Jean,
 
-Sorry for the late reply. But up to now, I didn't find time for review
-and test.  Now I've done that. I've two patches that I'd like to add
-on top of your patches.
+your git tree is at git://jdelvare.pck.nerim.net/jdelvare-2.6, correct?
+At least that's what you have used in your pull requests.
+Did you apply Rudolf's patch to this git tree?
 
-BTW, Tctl_max is inadvertently missing in the power and thermal data
-sheet for family 0x11. It should be published with one of the next versions
-of that document. For currently available family 0x11 CPUs it's 100degC.
-
-I've tested your code with my patches on top of it on
-various family 0x10 models and family 0x11 revB1.
+I just want to know against which tree I need to create patches when adapting
+k8temp.
 
 
-Thanks.
-
+Thanks,
 
 Andreas
 
