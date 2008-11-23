@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 23 Nov 2008 15:30:58 +0000
+From: "Thierry Bothorel" <thierry.bothorel@gmail.com>
+Date: Sun, 23 Nov 2008 19:25:36 +0000
 Subject: Re: [lm-sensors] New Asus board and multiple sensors chips
-Message-Id: <20081123163058.0f3fc004@hyperion.delvare>
+Message-Id: <c91b81610811231125k63e17615s4677b7b7c56802ff@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <48CA5C05.8040307@absence.it>
 In-Reply-To: <48CA5C05.8040307@absence.it>
@@ -10,18 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Marco,
+To be honest, no :-). Can I do that from a live-cd  or from a
+virtualized machine and just copy and install the final deb file on my
+real system and install it ?
 
-On Sun, 23 Nov 2008 16:23:52 +0100, Marco Chiappero wrote:
-> [1] By the way, I patched the lm-sensors package too, the compilation
-> runs fine but "sensors" is still unable to show the atk readings.
+2008/11/21 Luca Tettamanti <kronos.it@gmail.com>:
+> On Fri, Nov 21, 2008 at 12:39 AM, Thierry Bothorel
+> <thierry.bothorel@gmail.com> wrote:
+>> 2008/11/20 Luca Tettamanti <kronos.it@gmail.com>:
 
-If you use lm-sensors 3.0.2 or later and if the atk0110 driver
-implements the standard sysfs interface (it really should), then you
-shouldn't have to patch anything, it should work out of the box.
-
--- 
-Jean Delvare
+>
+> Ok, I see that you motherboard uses the old interface (and has
+> non-working stub of the new one - just like mine); the driver should
+> work fine, but testing will involve a recompilation of the kernel
+> (what version are you using?), are you comfortable with this?
+>
+> Luca
+>
 
 _______________________________________________
 lm-sensors mailing list
