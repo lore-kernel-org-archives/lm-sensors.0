@@ -1,7 +1,7 @@
 From: Felix Radensky <felix@embedded-sol.com>
-Date: Mon, 24 Nov 2008 08:44:42 +0000
+Date: Mon, 24 Nov 2008 08:54:37 +0000
 Subject: Re: [lm-sensors] DDR2 SODIMM temperature sensor driver
-Message-Id: <492A697A.5030808@embedded-sol.com>
+Message-Id: <492A6BCD.5060908@embedded-sol.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4918113B.7060409@embedded-sol.com>
 In-Reply-To: <4918113B.7060409@embedded-sol.com>
@@ -12,15 +12,9 @@ To: lm-sensors@vger.kernel.org
 
 Hi, Jean
 
-Thanks for replying.
+Here's a link to JDEC spec:
 
-The hardware is embedded PowerPC board equipped with
-DDR2 SORDIMM module from Micron. The module
-datasheet indicates it has temperature sensor. See
-http://www.micron.com/products/partdetail?part=MT9HTF6472RHY-667
-
-There's a JEDEC standard for temperature sensors in mobile DDR
-modules. I know that OpenBSD has driver that supports it.
+www.jedec.org/download/search/4_07R15.pdf
 
 Felix.
 
