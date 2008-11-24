@@ -1,205 +1,61 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Tue, 11 Nov 2008 14:47:51 +0000
-Subject: Re: [lm-sensors] PATCH: add watchdog support to the fschmd driver
-Message-Id: <49199B17.6020307@redhat.com>
+From: "Jon Hewer" <jonhewer@gmail.com>
+Date: Mon, 24 Nov 2008 09:27:08 +0000
+Subject: [lm-sensors] Gigabyte GA-MA69G-S3H it8716 temperatures?
+Message-Id: <d76c7b8f0811240127y1e8d1f5etdc5dd76fd0b5b29@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <49194CAD.6000408@redhat.com>
-In-Reply-To: <49194CAD.6000408@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
+Hello,
 
+The output of sensors for my Gigabyte GA-MA69G-S3H motherboard is as follow=
+s:
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
-> On Tue, 11 Nov 2008 10:15:30 +0100, Hans de Goede wrote:
->> This patch adds support for the watchdog part found in _all_ supported FSC
->> sensor chips.
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> 
-> Looks OK to me except for two remaining issues:
-> 
->> +static int watchdog_open(struct inode *inode, struct file *filp)
->> +{
->> +	int ret = 0;
->> +	struct fschmd_data *pos, *data = NULL;
->> +
->> +	/* We get called from drivers/char/misc.c with misc_mtx hold, and we
->> +	   call misc_register() from fschmd_probe() with watchdog_data_mutex
->> +	   hold, as misc_register() takes the misc_mtx lock, this is a possible
->> +	   deadlock, so we use mutex_trylock here. */
->> +	if (!mutex_trylock(&watchdog_data_mutex))
->> +		return -ERESTARTSYS;
->> +	list_for_each_entry(pos, &watchdog_data_list, list) {
->> +		if (pos->watchdog_miscdev.minor = iminor(inode)) {
->> +			data = pos;
->> +			break;
->> +		}
->> +	}
->> +	/* Note we can never not have found data, so we don't check for this */
->> +	kref_get(&data->kref);
->> +	mutex_unlock(&watchdog_data_mutex);
->> +
->> +	mutex_lock(&data->watchdog_lock);
->> +	if (data->watchdog_open_count)
->> +		ret = -EBUSY;
->> +	data->watchdog_open_count++;
->> +	mutex_unlock(&data->watchdog_lock);
->> +	if (ret)
->> +		return ret;
-> 
-> This looks wrong to me. Did you test concurrent open?
+k8temp-pci-00c3
+Adapter: PCI adapter
+Core0 Temp:   -6.0=B0C
+Core0 Temp:   +1.0=B0C
+Core1 Temp:   -8.0=B0C
+Core1 Temp:   -5.0=B0C
 
-No
+it8716-isa-0228
+Adapter: ISA adapter
+VCore:       +1.18 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+VDDR:        +1.94 V  (min =3D  +0.00 V, max =3D  +4.08 V)
++3.3V:       +3.25 V  (min =3D  +0.00 V, max =3D  +4.08 V)
++5V:         +4.92 V  (min =3D  +0.00 V, max =3D  +6.85 V)
++12V:       +12.10 V  (min =3D  +0.00 V, max =3D +16.32 V)
+in5:         +3.14 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+in6:         +0.10 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+5VSB:        +4.92 V  (min =3D  +0.00 V, max =3D  +6.85 V)
+VBat:        +3.10 V
+fan1:       1341 RPM  (min =3D    0 RPM)
+fan2:       1002 RPM  (min =3D    0 RPM)
+temp1:       +33.0=B0C  (low  =3D +127.0=B0C, high =3D +60.0=B0C)  sensor =
+=3D transistor
+temp2:       +25.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor =
+=3D transistor
+temp3:       +19.0=B0C  (low  =3D +127.0=B0C, high =3D +60.0=B0C)  sensor =
+=3D thermal diode
+cpu0_vid:   +1.200 V
 
-> If you return
-> -EBUSY then caller will see its attempt to open the device node fail,
-> so it will never get to close it. That means that you've incremented
-> data->watchdog_open_count but it will never get decremented so it will
-> be >= 1 forever and the watchdog device is no longer usable. I think
-> this should be:
-> 
-> 	if (data->watchdog_open_count)
-> 		ret = -EBUSY;
-> 	else
-> 		data->watchdog_open_count++;
-> 
+Firstly, I am trying to identify the three temperature readings
+returned by the it8716 module.  I have checked the sensors.conf and
+there is a note saying that it is motherboard specific.  I have
+contacted the manufacturer of my motherboard, but they haven't been
+able to help.
 
-Agreed, will fix.
+Has anybody else been able to identify which readings these are?  I'm
+guessing temp1=3Dnorthbridge, temp2=3Dcpu and temp3=3Dsystem...
 
-> Or am I missing something? You may want to use
-> test_and_set_bit()/clear_bit() as many other watchdog drivers are doing.
-> 
+Secondly, the core temps returned by the k8temp module look a bit odd.
+ Am I just misunderstanding these readings, or do I need to tweak my
+conf?
 
-Yes even better will do.
-
->> +
->> +	/* Start the watchdog */
->> +	watchdog_trigger(data);
->> +	filp->private_data = data;
->> +
->> +	return nonseekable_open(inode, filp);
->> +}
-> 
->> (...)
->> +static int watchdog_ioctl(struct inode *inode, struct file *filp,
->> +	unsigned int cmd, unsigned long arg)
->> +{
->> +	static struct watchdog_info ident = {
->> +		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT |
->> +				WDIOF_CARDRESET,
->> +		.identity = "FSC watchdog"
->> +	};
->> +	int i, ret = 0;
->> +	struct fschmd_data *data = filp->private_data;
->> +
->> +	switch (cmd) {
->> +	case WDIOC_GETSUPPORT:
->> +		ident.firmware_version = data->revision;
->> +		if (!nowayout)
->> +			ident.options |= WDIOF_MAGICCLOSE;
->> +		if (copy_to_user((void __user *)arg, &ident, sizeof(ident)))
->> +			ret = -EFAULT;
->> +		break;
->> +
->> +	case WDIOC_GETSTATUS:
->> +		ret = put_user(0, (int __user *)arg);
->> +		break;
->> +
->> +	case WDIOC_GETBOOTSTATUS:
->> +		if (data->watchdog_state & FSCHMD_WDOG_STATE_CARDRESET)
->> +			ret = put_user(WDIOF_CARDRESET, (int __user *)arg);
->> +		else
->> +			ret = put_user(0, (int __user *)arg);
->> +		break;
->> +
->> +	case WDIOC_KEEPALIVE:
->> +		ret = watchdog_trigger(data);
->> +		break;
->> +
->> +	case WDIOC_GETTIMEOUT:
->> +		i = watchdog_get_timeout(data);
->> +		ret = put_user(i, (int __user *)arg);
->> +		break;
->> +
->> +	case WDIOC_SETTIMEOUT:
->> +		if (get_user(i, (int __user *)arg)) {
->> +			ret = -EFAULT;
->> +			break;
->> +		}
->> +		ret = watchdog_set_timeout(data, i);
->> +		if (ret > 0)
->> +			ret = put_user(i, (int __user *)arg);
-> 
-> Shouldn't you push "ret" rather than "i" back to the caller? As I
-> understand it, "i" is what the user asked for, while "ret" is what the
-> watchdog will actually do.
-> 
-
-And another good catch!
-
->> +		break;
->> +
->> +	case WDIOC_SETOPTIONS:
->> +		if (get_user(i, (int __user *)arg)) {
->> +			ret = -EFAULT;
->> +			break;
->> +		}
->> +
->> +		if (i & WDIOS_DISABLECARD)
->> +			ret = watchdog_stop(data);
->> +		else if (i & WDIOS_ENABLECARD)
->> +			ret = watchdog_trigger(data);
->> +		else
->> +			ret = -EINVAL;
->> +
->> +		break;
->> +	default:
->> +		ret = -ENOTTY;
->> +	}
->> +
->> +	return ret;
->> +}
-> 
-> Other than that, it looks OK to me (but remember I am no watchdog
-> expert,
-
-Well you seem to be doing a good job!
-
-> and getting Wim Van Sebroeck to review your patch would make
-> sense.
-
-Ok I'll fix the 2 things you've found and then send an updated patch to Wim Van 
-Sebroeck for checking.
-
-> Can you please:
-> * Address the remaining issues.
-
-Will do asap and then send the patch to Wim Van Sebroeck
-
-> * Test again.
-
-That will take some day (I won't have access to the hw till next friday).
-
-> * Send an updated version of the patch.
-
-Will do once tested.
-
-> 
-> And finally:
-> 
-> * Send a 3rd patch deprecating the fscher and fscpos drivers, planing
->   them for removal in, say, 6 months?
-
-Ah yes, will do also (gladly even) :)
-
-Thans & Regards,
-
-Hans
+Cheers,
+Jon
 
 _______________________________________________
 lm-sensors mailing list
