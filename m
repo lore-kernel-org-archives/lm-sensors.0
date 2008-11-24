@@ -1,187 +1,79 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Tue, 11 Nov 2008 01:01:37 +0000
-Subject: [lm-sensors] [PATCH 2/2] adt74{62, 70,
-Message-Id: <20081111010137.1730.24582.stgit@elm3a70.beaverton.ibm.com>
+From: Noel David Torres =?iso-8859-1?q?Ta=F1o?= <envite@rolamasao.org>
+Date: Mon, 24 Nov 2008 19:27:12 +0000
+Subject: [lm-sensors] Help with configuration on k7s41
+Message-Id: <200811242027.19080.envite@rolamasao.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6241665728958018618=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081111010132.1730.76566.stgit@elm3a70.beaverton.ibm.com>
-In-Reply-To: <20081111010132.1730.76566.stgit@elm3a70.beaverton.ibm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+--===============6241665728958018618==
+Content-Type: multipart/signed; boundary="nextPart1802825.95eTUiVS49";
+	protocol="application/pgp-signature"; micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-To: "Darrick J. Wong" <djwong@us.ibm.com>, Jean Delvare <khali@linux-fr.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+
+--nextPart1802825.95eTUiVS49
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+Please CC me, I'm not suscribed.
+
+I'm using your program with almost no problem in one of my computers (many =
+thanks), but I have these results in the other one:
+
+w83697hf-isa-0290
+Adapter: ISA adapter
+VCore:       +1.57 V  (min =3D  +1.71 V, max =3D  +1.89 V)   ALARM
++3.3V:       +3.22 V  (min =3D  +3.14 V, max =3D  +3.47 V)
++5V:         +4.89 V  (min =3D  +4.76 V, max =3D  +5.24 V)
++12V:       +11.49 V  (min =3D +10.82 V, max =3D +13.19 V)
+=2D12V:        +0.72 V  (min =3D -13.18 V, max =3D -10.80 V)   ALARM
+=2D5V:         +1.94 V  (min =3D  -5.25 V, max =3D  -4.75 V)   ALARM
+V5SB:        +5.38 V  (min =3D  +4.76 V, max =3D  +5.24 V)   ALARM
+VBat:        +3.36 V  (min =3D  +2.40 V, max =3D  +3.60 V)
+fan1:          0 RPM  (min =3D 2163 RPM, div =3D 8)  ALARM
+fan2:       2812 RPM  (min =3D 1875 RPM, div =3D 8)
+temp1:       +35.0=B0C  (high =3D +70.0=B0C, hyst =3D +64.0=B0C)  sensor =
+=3D thermistor
+temp2:       +37.5=B0C  (high =3D +120.0=B0C, hyst =3D +120.0=B0C)  sensor =
+=3D thermistor
+beep_enable:enabled
+
+It is running, so I suppose all these ALARMs are false.
+
+Could you help me configuring the /etc/sensors3.conf ?
+
+The motherboard is an ASROCK K7S41
+
+Thanks
+
+Noel Torres "Envite"
+
+--nextPart1802825.95eTUiVS49
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkkrABQACgkQcLQA8+7Hw3Kn6ACghCSS/d96BqeZCeudo8C2X4/1
+h7UAn0Lira2iQHQxNhSfOai3LawbuvEx
+=Du9F
+-----END PGP SIGNATURE-----
+
+--nextPart1802825.95eTUiVS49--
 
 
-Modify some hwmon drivers to use DIV_ROUND_CLOSEST instead of bloating
-source with (naughty) macros.
-
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
----
-
- drivers/hwmon/adt7462.c |   14 ++++++--------
- drivers/hwmon/adt7470.c |    8 +++-----
- drivers/hwmon/adt7473.c |   10 ++++------
- 3 files changed, 13 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/hwmon/adt7462.c b/drivers/hwmon/adt7462.c
-index 66107b4..1852f27 100644
---- a/drivers/hwmon/adt7462.c
-+++ b/drivers/hwmon/adt7462.c
-@@ -204,8 +204,6 @@ I2C_CLIENT_INSMOD_1(adt7462);
- #define MASK_AND_SHIFT(value, prefix)	\
- 	(((value) & prefix##_MASK) >> prefix##_SHIFT)
- 
--#define ROUND_DIV(x, divisor)  (((x) + ((divisor) / 2)) / (divisor))
--
- struct adt7462_data {
- 	struct device		*hwmon_dev;
- 	struct attribute_group	attrs;
-@@ -840,7 +838,7 @@ static ssize_t set_temp_min(struct device *dev,
- 	if (strict_strtol(buf, 10, &temp) || !temp_enabled(data, attr->index))
- 		return -EINVAL;
- 
--	temp = ROUND_DIV(temp, 1000) + 64;
-+	temp = DIV_ROUND_CLOSEST(temp, 1000) + 64;
- 	temp = SENSORS_LIMIT(temp, 0, 255);
- 
- 	mutex_lock(&data->lock);
-@@ -878,7 +876,7 @@ static ssize_t set_temp_max(struct device *dev,
- 	if (strict_strtol(buf, 10, &temp) || !temp_enabled(data, attr->index))
- 		return -EINVAL;
- 
--	temp = ROUND_DIV(temp, 1000) + 64;
-+	temp = DIV_ROUND_CLOSEST(temp, 1000) + 64;
- 	temp = SENSORS_LIMIT(temp, 0, 255);
- 
- 	mutex_lock(&data->lock);
-@@ -943,7 +941,7 @@ static ssize_t set_volt_max(struct device *dev,
- 		return -EINVAL;
- 
- 	temp *= 1000; /* convert mV to uV */
--	temp = ROUND_DIV(temp, x);
-+	temp = DIV_ROUND_CLOSEST(temp, x);
- 	temp = SENSORS_LIMIT(temp, 0, 255);
- 
- 	mutex_lock(&data->lock);
-@@ -985,7 +983,7 @@ static ssize_t set_volt_min(struct device *dev,
- 		return -EINVAL;
- 
- 	temp *= 1000; /* convert mV to uV */
--	temp = ROUND_DIV(temp, x);
-+	temp = DIV_ROUND_CLOSEST(temp, x);
- 	temp = SENSORS_LIMIT(temp, 0, 255);
- 
- 	mutex_lock(&data->lock);
-@@ -1250,7 +1248,7 @@ static ssize_t set_pwm_hyst(struct device *dev,
- 	if (strict_strtol(buf, 10, &temp))
- 		return -EINVAL;
- 
--	temp = ROUND_DIV(temp, 1000);
-+	temp = DIV_ROUND_CLOSEST(temp, 1000);
- 	temp = SENSORS_LIMIT(temp, 0, 15);
- 
- 	/* package things up */
-@@ -1337,7 +1335,7 @@ static ssize_t set_pwm_tmin(struct device *dev,
- 	if (strict_strtol(buf, 10, &temp))
- 		return -EINVAL;
- 
--	temp = ROUND_DIV(temp, 1000) + 64;
-+	temp = DIV_ROUND_CLOSEST(temp, 1000) + 64;
- 	temp = SENSORS_LIMIT(temp, 0, 255);
- 
- 	mutex_lock(&data->lock);
-diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
-index 1311a59..da6c930 100644
---- a/drivers/hwmon/adt7470.c
-+++ b/drivers/hwmon/adt7470.c
-@@ -137,8 +137,6 @@ I2C_CLIENT_INSMOD_1(adt7470);
- #define FAN_PERIOD_INVALID	65535
- #define FAN_DATA_VALID(x)	((x) && (x) != FAN_PERIOD_INVALID)
- 
--#define ROUND_DIV(x, divisor)	(((x) + ((divisor) / 2)) / (divisor))
--
- struct adt7470_data {
- 	struct device		*hwmon_dev;
- 	struct attribute_group	attrs;
-@@ -360,7 +358,7 @@ static ssize_t set_temp_min(struct device *dev,
- 	if (strict_strtol(buf, 10, &temp))
- 		return -EINVAL;
- 
--	temp = ROUND_DIV(temp, 1000);
-+	temp = DIV_ROUND_CLOSEST(temp, 1000);
- 	temp = SENSORS_LIMIT(temp, 0, 255);
- 
- 	mutex_lock(&data->lock);
-@@ -394,7 +392,7 @@ static ssize_t set_temp_max(struct device *dev,
- 	if (strict_strtol(buf, 10, &temp))
- 		return -EINVAL;
- 
--	temp = ROUND_DIV(temp, 1000);
-+	temp = DIV_ROUND_CLOSEST(temp, 1000);
- 	temp = SENSORS_LIMIT(temp, 0, 255);
- 
- 	mutex_lock(&data->lock);
-@@ -671,7 +669,7 @@ static ssize_t set_pwm_tmin(struct device *dev,
- 	if (strict_strtol(buf, 10, &temp))
- 		return -EINVAL;
- 
--	temp = ROUND_DIV(temp, 1000);
-+	temp = DIV_ROUND_CLOSEST(temp, 1000);
- 	temp = SENSORS_LIMIT(temp, 0, 255);
- 
- 	mutex_lock(&data->lock);
-diff --git a/drivers/hwmon/adt7473.c b/drivers/hwmon/adt7473.c
-index 18aa308..0a6ce23 100644
---- a/drivers/hwmon/adt7473.c
-+++ b/drivers/hwmon/adt7473.c
-@@ -129,8 +129,6 @@ I2C_CLIENT_INSMOD_1(adt7473);
- #define FAN_PERIOD_INVALID	65535
- #define FAN_DATA_VALID(x)	((x) && (x) != FAN_PERIOD_INVALID)
- 
--#define ROUND_DIV(x, divisor)	(((x) + ((divisor) / 2)) / (divisor))
--
- struct adt7473_data {
- 	struct device		*hwmon_dev;
- 	struct attribute_group	attrs;
-@@ -459,7 +457,7 @@ static ssize_t set_temp_min(struct device *dev,
- 	if (strict_strtol(buf, 10, &temp))
- 		return -EINVAL;
- 
--	temp = ROUND_DIV(temp, 1000);
-+	temp = DIV_ROUND_CLOSEST(temp, 1000);
- 	temp = encode_temp(data->temp_twos_complement, temp);
- 
- 	mutex_lock(&data->lock);
-@@ -495,7 +493,7 @@ static ssize_t set_temp_max(struct device *dev,
- 	if (strict_strtol(buf, 10, &temp))
- 		return -EINVAL;
- 
--	temp = ROUND_DIV(temp, 1000);
-+	temp = DIV_ROUND_CLOSEST(temp, 1000);
- 	temp = encode_temp(data->temp_twos_complement, temp);
- 
- 	mutex_lock(&data->lock);
-@@ -720,7 +718,7 @@ static ssize_t set_temp_tmax(struct device *dev,
- 	if (strict_strtol(buf, 10, &temp))
- 		return -EINVAL;
- 
--	temp = ROUND_DIV(temp, 1000);
-+	temp = DIV_ROUND_CLOSEST(temp, 1000);
- 	temp = encode_temp(data->temp_twos_complement, temp);
- 
- 	mutex_lock(&data->lock);
-@@ -756,7 +754,7 @@ static ssize_t set_temp_tmin(struct device *dev,
- 	if (strict_strtol(buf, 10, &temp))
- 		return -EINVAL;
- 
--	temp = ROUND_DIV(temp, 1000);
-+	temp = DIV_ROUND_CLOSEST(temp, 1000);
- 	temp = encode_temp(data->temp_twos_complement, temp);
- 
- 	mutex_lock(&data->lock);
-
+--===============6241665728958018618==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6241665728958018618==--
