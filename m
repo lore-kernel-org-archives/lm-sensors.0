@@ -1,85 +1,145 @@
-From: Sergio Gutierrez Verde <demonio60@hotmail.com>
-Date: Tue, 11 Nov 2008 07:56:56 +0000
-Subject: Re: [lm-sensors] =?utf-8?q?a_problem_with_lm-sensor_2=2E10=2E7=2E?=
-Message-Id: <BLU118-W371EE6735DB978CDED6CDCA2150@phx.gbl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============9003498549008899243=="
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Tue, 25 Nov 2008 21:20:15 +0000
+Subject: [lm-sensors] [PATCH 2/3] adt7470: Observe the number of temperature
+Message-Id: <20081125212015.22512.86976.stgit@elm3a70.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
---===============9003498549008899243==
-Content-Type: multipart/alternative;
-	boundary="_58e89486-334a-486d-9ca8-86ff89f53559_"
-
---_58e89486-334a-486d-9ca8-86ff89f53559_
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-
-DQpJdCdzIGEgZmFpbCBpbiB0aGUgdHJhbnNjcmlwdGlvbiwgdGhlIHNlbnNvcnNfY2hpcF9uYW1l
-IGlzIHRoZSBzYW1lIGluIHRoZSB0d28gY2FsbHMsIHNvcnJ5Lg0KVGhlIHJpZ2h0IGNvZGUgaXMg
-dGhlIHllc3RlcmRheSdzIGNvZGUgY2hhbmdpbmcgdGhpcyBleHRyYWN0Og0KDQpkb3VibGUgdzgz
-NzgxZChjb25zdCBzZW5zb3JzX2NoaXBfbmFtZSAqY2hpcF9uYW1lKQ0KDQp7DQogIGRvdWJsZSBj
-dXI7DQogIHNlbnNvcnNfZ2V0X2ZlYXR1cmUoKmNoaXBfbmFtZSxTRU5TT1JTX1c4Mzc4MURfVEVN
-UDIsJmN1cik7DQogIHJldHVybihjdXIpOw0KfQ0KDQpNb3Jlb3Zlciwgd2l0aCB0aGlzIGVycm9y
-LCB0aGUgY29tcGlsZXIsIEkgdGhpbmssIHdvdWxkIHNob3cgYXQgbGVhc3QgYSB3YXJuaW5nIG1l
-c3NhZ2UsIGFuZCB0aGUgcHJvYmxlbSBpdCdzIGluIGV4ZWN1dGlvbiB0aW1lLCBub3QgaW4gY29t
-cGlsZXIgdGltZS4NClRoYW5rcyENCg0KPiBPbiBNb24sIDEwIE5vdiAyMDA4LCBTZXJnaW8gR3V0
-aWVycmV6IFZlcmRlIHdyb3RlOg0KPiA+IGRvdWJsZSB3ODM3ODFkKGNvbnN0IHNlbnNvcnNfY2hp
-cF9uYW1lICpuYW1lKQ0KPiA+IHs+ID4gZG91YmxlIGN1cjsNCj4gPj4gPiBzZW5zb3JzX2dldF9m
-ZWF0dXJlKCpjaGlwX25hbWUsU0VOU09SU19XODM3ODFEX1RFTVAyLCZjdXIpDQo+ID4gcmV0dXJu
-KGN1cik7DQo+ID4gfQ0KPj4gU2luY2UgeW91IHVzZWQgIipuYW1lIiBpbiB0aGUgYXJndW1lbnQs
-IHByb2JhYmx5DQo+PiBzZW5zb3JzX2dldF9mZWF0dXJlKCpuYW1lLFNFTlNPUlNfVzgzNzgxRF9U
-RU1QMiwmY3VyKQ0KPj4gd291bGQgd29yayBiZXR0ZXIuIFdoYXQgeW91IGFyZSBkb2luZyBub3cg
-aXMgcHJvYmFibHkgZXF1YWwgdG8+PiBzZW5zb3JzX2dldF9mZWF0dXJlKE5VTEwsU0VOU09SU19X
-ODM3ODFEX1RFTVAyLCZjdXIpDQo+PiB3aGljaCB3b3VsZCBsaWtlbHkgY2F1c2UgdGhlIGVycm9y
-Lg0KPj4gTWF0dCBSb2JlcmRzDQo+IA0KDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KIEFob3JhIGNvbiBJbnRlcm5ldCBF
-eHBsb3JlciA3LCBsbMOpdmF0ZSBncmF0aXMgdW4gZ3Vpw7FvIHBlcnNvbmFsaXphZG8NCmh0dHA6
-Ly93d3cudml2ZWxpdmUuY29tL2llYWs3Lw==
-
---_58e89486-334a-486d-9ca8-86ff89f53559_
-Content-Type: text/html; charset="utf-8"
-Content-Transfer-Encoding: base64
-
-PGh0bWw+DQo8aGVhZD4NCjxzdHlsZT4NCi5obW1lc3NhZ2UgUA0Kew0KbWFyZ2luOjBweDsNCnBh
-ZGRpbmc6MHB4DQp9DQpib2R5LmhtbWVzc2FnZQ0Kew0KZm9udC1zaXplOiAxMHB0Ow0KZm9udC1m
-YW1pbHk6VmVyZGFuYQ0KfQ0KPC9zdHlsZT4NCjwvaGVhZD4NCjxib2R5IGNsYXNzPSdobW1lc3Nh
-Z2UnPg0KSXQncyBhIGZhaWwgaW4gdGhlIHRyYW5zY3JpcHRpb24sIHRoZSBzZW5zb3JzX2NoaXBf
-bmFtZSBpcyB0aGUgc2FtZSBpbiB0aGUgdHdvIGNhbGxzLCBzb3JyeS48YnI+VGhlIHJpZ2h0IGNv
-ZGUgaXMgdGhlIHllc3RlcmRheSdzIGNvZGUgY2hhbmdpbmcgdGhpcyBleHRyYWN0Ojxicj48YnI+
-ZG91YmxlIHc4Mzc4MWQoY29uc3Qgc2Vuc29yc19jaGlwX25hbWUgKmNoaXBfbmFtZSk8YnI+PGJy
-Pns8YnI+Jm5ic3A7IGRvdWJsZSBjdXI7PGJyPiZuYnNwOyBzZW5zb3JzX2dldF9mZWF0dXJlKCpj
-aGlwX25hbWUsU0VOU09SU19XODM3ODFEX1RFTVAyLCZhbXA7Y3VyKTs8YnI+Jm5ic3A7IHJldHVy
-bihjdXIpOzxicj59PGJyPjxicj5Nb3Jlb3Zlciwgd2l0aCB0aGlzIGVycm9yLCB0aGUgY29tcGls
-ZXIsIEkgdGhpbmssIHdvdWxkIHNob3cgYXQgbGVhc3QgYSB3YXJuaW5nIG1lc3NhZ2UsIGFuZCB0
-aGUgcHJvYmxlbSBpdCdzIGluIGV4ZWN1dGlvbiB0aW1lLCBub3QgaW4gY29tcGlsZXIgdGltZS48
-YnI+VGhhbmtzITxicj48YnI+Jmd0OyBPbiBNb24sIDEwIE5vdiAyMDA4LCBTZXJnaW8gR3V0aWVy
-cmV6IFZlcmRlIHdyb3RlOjxicj4mZ3Q7ICZndDsgZG91YmxlIHc4Mzc4MWQoY29uc3Qgc2Vuc29y
-c19jaGlwX25hbWUgKm5hbWUpPGJyPiZndDsgJmd0OyB7Jmd0OyAmZ3Q7IGRvdWJsZSBjdXI7PGJy
-PiZndDsgJmd0OyZndDsgJmd0OyBzZW5zb3JzX2dldF9mZWF0dXJlKCpjaGlwX25hbWUsU0VOU09S
-U19XODM3ODFEX1RFTVAyLCZhbXA7Y3VyKTxicj4mZ3Q7ICZndDsgcmV0dXJuKGN1cik7PGJyPiZn
-dDsgJmd0OyB9PGJyPiZndDsmZ3Q7IFNpbmNlIHlvdSB1c2VkICIqbmFtZSIgaW4gdGhlIGFyZ3Vt
-ZW50LCBwcm9iYWJseTxicj4mZ3Q7Jmd0OyBzZW5zb3JzX2dldF9mZWF0dXJlKCpuYW1lLFNFTlNP
-UlNfVzgzNzgxRF9URU1QMiwmYW1wO2N1cik8YnI+Jmd0OyZndDsgd291bGQgd29yayBiZXR0ZXIu
-IFdoYXQgeW91IGFyZSBkb2luZyBub3cgaXMgcHJvYmFibHkgZXF1YWwgdG8mZ3Q7Jmd0OyBzZW5z
-b3JzX2dldF9mZWF0dXJlKE5VTEwsU0VOU09SU19XODM3ODFEX1RFTVAyLCZhbXA7Y3VyKTxicj4m
-Z3Q7Jmd0OyB3aGljaCB3b3VsZCBsaWtlbHkgY2F1c2UgdGhlIGVycm9yLjxicj4mZ3Q7Jmd0OyBN
-YXR0IFJvYmVyZHM8YnI+Jmd0OyA8YnI+PGJyIC8+PGhyIC8+RGVzY3VicmUgZHVyYW50ZSAzIG1l
-c2VzIGdyYXRpcyBsYSBwcm90ZWNjacOzbiB0b3RhbCBkZSA8YSBocmVmPSdodHRwOi8vd3d3LnZp
-dmVsaXZlLmNvbS9vbmVjYXJlLycgdGFyZ2V0PSdfbmV3Jz5PbmUgQ2FyZTwvYT48L2JvZHk+DQo8
-L2h0bWw+
-
---_58e89486-334a-486d-9ca8-86ff89f53559_--
-
-
---===============9003498549008899243==
-Content-Type: text/plain; charset="us-ascii"
+References: <20081125212005.22512.14523.stgit@elm3a70.beaverton.ibm.com>
+In-Reply-To: <20081125212005.22512.14523.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: "Darrick J. Wong" <djwong@us.ibm.com>, Jean Delvare <khali@linux-fr.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+
+The adt7470 driver currently assumes that 1s is the proper time to wait
+to read all temperature sensors.  However, the correct time is 200ms *
+number_of_sensors.  This patch sets the default time to provide for
+10 sensors and then lowers it based on the number of sensor inputs that
+have nozero values.
+
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
+ drivers/hwmon/adt7470.c |   56 ++++++++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 48 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
+index b7a442a..ab8d5eb 100644
+--- a/drivers/hwmon/adt7470.c
++++ b/drivers/hwmon/adt7470.c
+@@ -129,8 +129,8 @@ I2C_CLIENT_INSMOD_1(adt7470);
+ /* How often do we reread sensor limit values? (In jiffies) */
+ #define LIMIT_REFRESH_INTERVAL	(60 * HZ)
+ 
+-/* sleep 1s while gathering temperature data */
+-#define TEMP_COLLECTION_TIME	1000
++/* Wait at least 200ms per sensor for 10 sensors */
++#define TEMP_COLLECTION_TIME	2000
+ 
+ /* datasheet says to divide this number by the fan reading to get fan rpm */
+ #define FAN_PERIOD_TO_RPM(x)	((90000 * 60) / (x))
+@@ -147,6 +147,8 @@ struct adt7470_data {
+ 	unsigned long		sensors_last_updated;	/* In jiffies */
+ 	unsigned long		limits_last_updated;	/* In jiffies */
+ 
++	int			num_temp_sensors;	/* -1 = probe */
++
+ 	s8			temp[ADT7470_TEMP_COUNT];
+ 	s8			temp_min[ADT7470_TEMP_COUNT];
+ 	s8			temp_max[ADT7470_TEMP_COUNT];
+@@ -256,12 +258,10 @@ static struct adt7470_data *adt7470_update_device(struct device *dev)
+ 	cfg |= 0x80;
+ 	i2c_smbus_write_byte_data(client, ADT7470_REG_CFG, cfg);
+ 
+-	/*
+-	 * Delay is 200ms * number of tmp05 sensors.  Too bad
+-	 * there's no way to figure out how many are connected.
+-	 * For now, assume 1s will work.
+-	 */
+-	msleep(TEMP_COLLECTION_TIME);
++	/* Delay is 200ms * number of temp sensors. */
++	msleep((data->num_temp_sensors >= 0 ?
++		data->num_temp_sensors * 200 :
++		TEMP_COLLECTION_TIME));
+ 
+ 	/* done reading temperature sensors */
+ 	cfg = i2c_smbus_read_byte_data(client, ADT7470_REG_CFG);
+@@ -276,6 +276,12 @@ static struct adt7470_data *adt7470_update_device(struct device *dev)
+ 		data->temp[i] = i2c_smbus_read_byte_data(client,
+ 						ADT7470_TEMP_REG(i));
+ 
++	/* Figure out the number of temp sensors */
++	if (data->num_temp_sensors < 0)
++		for (i = 0; i < ADT7470_TEMP_COUNT; i++)
++			if (data->temp[i])
++				data->num_temp_sensors = i + 1;
++
+ 	for (i = 0; i < ADT7470_FAN_COUNT; i++)
+ 		data->fan[i] = adt7470_read_word_data(client,
+ 						ADT7470_REG_FAN(i));
+@@ -359,6 +365,35 @@ out:
+ 	return data;
+ }
+ 
++static ssize_t show_num_temp_sensors(struct device *dev,
++				     struct device_attribute *devattr,
++				     char *buf)
++{
++	struct adt7470_data *data = adt7470_update_device(dev);
++	return sprintf(buf, "%d\n", data->num_temp_sensors);
++}
++
++static ssize_t set_num_temp_sensors(struct device *dev,
++				    struct device_attribute *devattr,
++				    const char *buf,
++				    size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adt7470_data *data = i2c_get_clientdata(client);
++	long temp;
++
++	if (strict_strtol(buf, 10, &temp))
++		return -EINVAL;
++
++	temp = SENSORS_LIMIT(temp, -1, 10);
++
++	mutex_lock(&data->lock);
++	data->num_temp_sensors = temp;
++	mutex_unlock(&data->lock);
++
++	return count;
++}
++
+ static ssize_t show_temp_min(struct device *dev,
+ 			     struct device_attribute *devattr,
+ 			     char *buf)
+@@ -825,6 +860,8 @@ static ssize_t show_alarm(struct device *dev,
+ }
+ 
+ static DEVICE_ATTR(alarm_mask, S_IRUGO, show_alarm_mask, NULL);
++static DEVICE_ATTR(num_temp_sensors, S_IWUSR | S_IRUGO, show_num_temp_sensors,
++		   set_num_temp_sensors);
+ 
+ static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max,
+ 		    set_temp_max, 0);
+@@ -997,6 +1034,7 @@ static SENSOR_DEVICE_ATTR(pwm4_auto_channels_temp, S_IWUSR | S_IRUGO,
+ static struct attribute *adt7470_attr[]  {
+ 	&dev_attr_alarm_mask.attr,
++	&dev_attr_num_temp_sensors.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_max.dev_attr.attr,
+@@ -1129,6 +1167,8 @@ static int adt7470_probe(struct i2c_client *client,
+ 		goto exit;
+ 	}
+ 
++	data->num_temp_sensors = -1;
++
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->lock);
+ 
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============9003498549008899243==--
