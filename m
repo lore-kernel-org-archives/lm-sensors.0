@@ -1,76 +1,34 @@
 From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Mon, 17 Nov 2008 20:30:32 +0000
-Subject: Re: [lm-sensors] adt7470/adt7473: Check input values from sysfs
-Message-Id: <20081117203031.GK8668@plum>
+Date: Tue, 25 Nov 2008 21:20:05 +0000
+Subject: [lm-sensors] [PATCH 0/3] adt7470 extra features
+Message-Id: <20081125212005.22512.14523.stgit@elm3a70.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.64.0811151612160.4660@pc-004.diku.dk>
-In-Reply-To: <Pine.LNX.4.64.0811151612160.4660@pc-004.diku.dk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Julia Lawall <julia@diku.dk>
-Cc: lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: "Darrick J. Wong" <djwong@us.ibm.com>, Jean Delvare <khali@linux-fr.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-[Adding lkml,lm-sensors to cc]
+Hi all,
 
-On Sat, Nov 15, 2008 at 04:33:03PM +0100, Julia Lawall wrote:
-> Hello,
-> 
-> I saw your recent patch that converts calls to simple_strtol to 
-> strict_strtol and wondered if the same transformation would be useful 
-> elsewhere.
+As I've been promising for a while, here are (I hope) the features needed
+to make the adt7470 driver complete:
 
-I think so.
+The first patch fixes a problem where the pwm outputs temporarily drop toward
+zero while temperature sensors are being read.  Since the sensor read operation
+can take upwards of a second, the most obvious symptoms of this problem are
+fairly annoying: fan spins up for a while, fan spins down, fan spins up, fan
+spins for a while... so the solution is to reprogram the chip for manual pwm
+control while reading the temperature sensors.
 
-> diff -u -p a/drivers/hwmon/ad7414.c b/drivers/hwmon/ad7414.c
-> diff -u -p a/drivers/hwmon/ad7418.c b/drivers/hwmon/ad7418.c
-> diff -u -p a/drivers/hwmon/adm1029.c b/drivers/hwmon/adm1029.c
-> diff -u -p a/drivers/hwmon/f71805f.c b/drivers/hwmon/f71805f.c
-> diff -u -p a/drivers/hwmon/gl520sm.c b/drivers/hwmon/gl520sm.c
-> diff -u -p a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
-> diff -u -p a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
-> diff -u -p a/drivers/hwmon/lm83.c b/drivers/hwmon/lm83.c
-> diff -u -p a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-> diff -u -p a/drivers/hwmon/lm93.c b/drivers/hwmon/lm93.c
+The second patch automatically determines the number of temperature sensors
+attached to the adt7470 so that we can shorten the sensor update interval as
+much as possible.
 
-Seems like a generally good idea.
-
-> There are a few other cases where the call to simple_strtol is part of a 
-> more complicated expression or where the result is stored in a variable of 
-> type int, rather than long.  I didn't check for cases where the buffer 
-> parameter is not declared as const.
-
-Since it's a sysfs write attribute, I think it's always const.
-
-int/long confusion might be a problem if sizeof(int) != sizeof(long).  I
-think those are called LP64 machines, but I don't know if Linux runs in
-those environments (it probably does).
-
-> I was wondering whether you think the transformation is of more general 
-> interest than the cases you have considered, and whether it is worthwhile 
-
-Yes!
-
-> to pursue this (and whether you have done it all already in some patch I 
-> didn't notice).
-
-I have only patched those two drivers (adt7470/73) that I wrote myself.
-I don't really have time to clean up the other drivers, so thank you for
-coming along with a cool-looking cleanup tool. :)
-
-> A concern is whether it is always reasonable to return -EINVAL.  I assume 
-
-As far as the hwmon drivers go, I think that it's fairly safe to return
--EINVAL if the input is something totally unintelligible.
-
-> it is, because these functions are all stored in the same kind of 
-> structure, but there is perhaps something I am overlooking.  In 
-> particular, I didn't manage to find out where these functions are actually 
-> called.
-
-Something like:
-
-echo notanumber > /sys/class/hwmon/hwmon0/device/temp1_max
+The third patch creates a kernel thread that continually updates the temp
+sensors so that the in-chip automatic control algorithm will run.  Per an
+earlier discussion, the adt7470 can determine the correct pwm output on its
+own, but it needs to be told to gather temperature data by hand.
 
 --D
 
