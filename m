@@ -1,124 +1,86 @@
-From: Andreas Herrmann <andreas.herrmann3@amd.com>
-Date: Tue, 18 Nov 2008 08:43:44 +0000
-Subject: [lm-sensors] [PATCH 1/2] k8temp: adapt cpuid handling,
-Message-Id: <20081118084344.GD12095@alberich.amd.com>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Tue, 25 Nov 2008 21:20:10 +0000
+Subject: [lm-sensors] [PATCH 1/3] adt7470: Fix pwm at a certain level during
+Message-Id: <20081125212010.22512.14851.stgit@elm3a70.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20081125212005.22512.14523.stgit@elm3a70.beaverton.ibm.com>
+In-Reply-To: <20081125212005.22512.14523.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Darrick J. Wong" <djwong@us.ibm.com>, Jean Delvare <khali@linux-fr.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
+In the small window that it takes to read the temperature sensors,
+the pwm outputs momentarily drop to 0.  This causes a noticeable
+hiccup in fan speed, which is slightly annoying.  The solution is
+to manually program the pwm output with whatever the automatic value
+is and then shift the fans to manual control while reading temperatures.
+Once that is done, put the fans back to whatever mode of control was
+there before.
 
-Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 ---
- drivers/hwmon/k8temp.c |   54 ++++++++++++++++++++++++++---------------------
- 1 files changed, 30 insertions(+), 24 deletions(-)
+ drivers/hwmon/adt7470.c |   25 ++++++++++++++++++++++++-
+ 1 files changed, 24 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
-index 4885272..a949a86 100644
---- a/drivers/hwmon/k8temp.c
-+++ b/drivers/hwmon/k8temp.c
-@@ -31,6 +31,7 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <asm/processor.h>
+diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
+index da6c930..b7a442a 100644
+--- a/drivers/hwmon/adt7470.c
++++ b/drivers/hwmon/adt7470.c
+@@ -74,6 +74,7 @@ I2C_CLIENT_INSMOD_1(adt7470);
+ #define ADT7470_REG_PWM12_CFG			0x68
+ #define		ADT7470_PWM2_AUTO_MASK		0x40
+ #define		ADT7470_PWM1_AUTO_MASK		0x80
++#define		ADT7470_PWM_AUTO_MASK		0xC0
+ #define ADT7470_REG_PWM34_CFG			0x69
+ #define		ADT7470_PWM3_AUTO_MASK		0x40
+ #define		ADT7470_PWM4_AUTO_MASK		0x80
+@@ -223,7 +224,7 @@ static struct adt7470_data *adt7470_update_device(struct device *dev)
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7470_data *data = i2c_get_clientdata(client);
+ 	unsigned long local_jiffies = jiffies;
+-	u8 cfg;
++	u8 cfg, pwm[4], pwm_cfg[2];
+ 	int i;
  
- #define FAM_F_TEMP_FROM_REG(val)	(((((val) >> 16) & 0xff) - 49) * 1000)
- #define FAM_10_TEMP_FROM_REG(val)	(((val) >> 21) * 125)
-@@ -56,7 +57,8 @@ struct k8temp_data {
- 	int temp[2][2];		/* core, place */
- 	int tcontrol_max;
- 	u8 fam;
--	u32 cpuid;
-+	u8 model;
-+	u8 stepping;
- };
+ 	mutex_lock(&data->lock);
+@@ -232,6 +233,24 @@ static struct adt7470_data *adt7470_update_device(struct device *dev)
+ 		&& data->sensors_valid)
+ 		goto no_sensor_update;
  
- static void k8temp_update_device_fam_10(struct device *dev)
-@@ -253,12 +255,14 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
- 				  const struct pci_device_id *id)
- {
- 	int err = 0;
--
- 	struct k8temp_data *data;
--	u32 cpuid = cpuid_eax(1);
--
--	/* this feature should be available since SH-C0 core */
--	if ((cpuid = 0xf40) || (cpuid = 0xf50) || (cpuid = 0xf51)) {
-+	u32 cpuid;
-+	
-+	/* this feature is available since family 0xf Rev C0 */
-+	if ((boot_cpu_data.x86 = 0xf) &&
-+	    (boot_cpu_data.x86_model >= 0x48) &&
-+	    ((boot_cpu_data.x86_model != 0x50) ||
-+	     (boot_cpu_data.x86_model != 0x51))) {
- 		err = -ENODEV;
- 		goto exit;
- 	}
-@@ -268,38 +272,40 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
- 		goto exit;
- 	}
++	/* save pwm[1-4] config register */
++	pwm_cfg[0] = i2c_smbus_read_byte_data(client, ADT7470_REG_PWM_CFG(0));
++	pwm_cfg[1] = i2c_smbus_read_byte_data(client, ADT7470_REG_PWM_CFG(2));
++
++	/* set manual pwm to whatever it is set to now */
++	for (i = 0; i < ADT7470_FAN_COUNT; i++)
++		pwm[i] = i2c_smbus_read_byte_data(client, ADT7470_REG_PWM(i));
++
++	/* put pwm in manual mode */
++	i2c_smbus_write_byte_data(client, ADT7470_REG_PWM_CFG(0),
++		pwm_cfg[0] & ~(ADT7470_PWM_AUTO_MASK));
++	i2c_smbus_write_byte_data(client, ADT7470_REG_PWM_CFG(2),
++		pwm_cfg[1] & ~(ADT7470_PWM_AUTO_MASK));
++
++	/* write pwm control to whatever it was */
++	for (i = 0; i < ADT7470_FAN_COUNT; i++)
++		i2c_smbus_write_byte_data(client, ADT7470_REG_PWM(i), pwm[i]);
++
+ 	/* start reading temperature sensors */
+ 	cfg = i2c_smbus_read_byte_data(client, ADT7470_REG_CFG);
+ 	cfg |= 0x80;
+@@ -249,6 +268,10 @@ static struct adt7470_data *adt7470_update_device(struct device *dev)
+ 	cfg &= ~0x80;
+ 	i2c_smbus_write_byte_data(client, ADT7470_REG_CFG, cfg);
  
--	/* get real PCI based cpuid, prior revF of fam 0Fh, this reg is 0 */
--	pci_read_config_dword(pdev, REG_CPUID, &data->cpuid);
-+	/* PCI based cpuid, works at least for revF and above */
-+	pci_read_config_dword(pdev, REG_CPUID, &cpuid);
- 
--	data->fam = (data->cpuid & 0x00000f00) >> 8;
--	data->fam += (data->cpuid & 0x00f00000) >> 20;
-+	data->stepping = cpuid & 0xf;
-+	data->model = (cpuid >> 4) & 0xf;
-+	data->fam = (cpuid >> 8) & 0xf;
-+	data->model += (cpuid >> 12) & 0xf0;	/* extended model << 4 */
-+	data->fam += (cpuid >> 20) & 0xff;	/* extended family */
- 
- 	switch (data->fam) {
-+		case 0x0: /* mark revE fam 0fh as fam 0fh */
-+			data->fam = 0xf;
-+			/* fall through */
- 		case 0xf:
--			dev_warn(&pdev->dev, "Temperature readouts might be wrong"
--						" - check errata #141\n");
-+			if (data->model >= 0x40)
-+				/* AMD NPT family 0xf, revF and above */
-+				dev_warn(&pdev->dev, "Temperature readouts "
-+					"might be wrong. Check erratum #141\n");
- 			if ((err = setup_fam_f(pdev, data)))
- 				goto exit_free;
- 			break;
- 		case 0x10:
--			dev_warn(&pdev->dev, "Temperature readouts might be wrong"
--						" - check errata #319\n");
--			if ((err = setup_fam_10(pdev, data)))
--				goto exit_free;
--			break;
-+			if ((data->model <= 4) && (data->stepping < 2))
-+				/* AMD family 0x10 before Rev C2 */
-+				dev_warn(&pdev->dev, "Temperature readouts "
-+					"might be wrong. Check erratum #319\n");
-+			/* fall through */
- 		case 0x11:
- 			if ((err = setup_fam_10(pdev, data)))
- 				goto exit_free;
- 			break;
--		case 0x0:
--			/* mark revE fam 0fh as fam 0fh */
--			data->fam = 0xf;
--			if ((err = setup_fam_f(pdev, data)))
--				goto exit_free;
--			break;
- 		default:
- 			err = -ENODEV;
--			dev_err(&pdev->dev, "Unknown family with known PCI ID\n");
-+			dev_err(&pdev->dev, "unknown CPU family\n");
- 			goto exit_free;
- 	}
- 
--- 
-1.6.0.3
-
-
++	/* restore pwm[1-4] config registers */
++	i2c_smbus_write_byte_data(client, ADT7470_REG_PWM_CFG(0), pwm_cfg[0]);
++	i2c_smbus_write_byte_data(client, ADT7470_REG_PWM_CFG(2), pwm_cfg[1]);
++
+ 	for (i = 0; i < ADT7470_TEMP_COUNT; i++)
+ 		data->temp[i] = i2c_smbus_read_byte_data(client,
+ 						ADT7470_TEMP_REG(i));
 
 
 _______________________________________________
