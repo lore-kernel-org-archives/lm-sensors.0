@@ -1,344 +1,693 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 09 Dec 2008 15:32:31 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Check for ACPI resource conflicts
-Message-Id: <20081209163231.46fa6ade@hyperion.delvare>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Mon, 01 Dec 2008 14:36:27 +0000
+Subject: [lm-sensors] [Industrial I/O] [10/13] RFC: ST LIS3L02DQ 3d
+Message-Id: <4933F66B.7060203@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4933F291.4020001@cam.ac.uk>
+In-Reply-To: <4933F291.4020001@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: LKML <linux-kernel@vger.kernel.org>, Dmitry Torokhov <dtor@mail.ru>, David Brownell <david-b@pacbell.net>, Jean Delvare <khali@linux-fr.org>, Ben Nizette <bn@niasdigital.com>, LM Sensors <lm-sensors@lm-sensors.org>, spi-devel-general@lists.sourceforge.net
 
-Check for ACPI resource conflicts in hwmon drivers. I've included
-all Super-I/O and PCI drivers.
+ 
+From: Jonathan Cameron <jic23@cam.ac.uk>
 
-I've voluntarily left out:
-* Vendor-specific drivers: if they conflicted on any system, this would
-  pretty much mean that they conflict on all systems, and we would know
-  by now.
-* Legacy ISA drivers (lm78 and w83781d): they only support chips found
-  on old designs were ACPI either wasn't supported or didn't deal with
-  thermal management.
-* Drivers accessing the I/O resources indirectly (e.g. through SMBus):
-  the checks are already done where they belong, i.e. in the bus drivers.
+IIO: ST LIS3L02DQ 3d accelerometer driver via SPI (ring)
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
----
- drivers/hwmon/dme1737.c    |    5 +++++
- drivers/hwmon/f71805f.c    |    5 +++++
- drivers/hwmon/f71882fg.c   |    5 +++++
- drivers/hwmon/it87.c       |    5 +++++
- drivers/hwmon/pc87360.c    |    6 ++++++
- drivers/hwmon/pc87427.c    |    5 +++++
- drivers/hwmon/sis5595.c    |    5 +++++
- drivers/hwmon/smsc47b397.c |    5 +++++
- drivers/hwmon/smsc47m1.c   |    5 +++++
- drivers/hwmon/via686a.c    |    5 +++++
- drivers/hwmon/vt1211.c     |    5 +++++
- drivers/hwmon/vt8231.c     |    5 +++++
- drivers/hwmon/w83627ehf.c  |    6 ++++++
- drivers/hwmon/w83627hf.c   |    5 +++++
- 14 files changed, 72 insertions(+)
+Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+--
 
---- linux-2.6.28-rc7.orig/drivers/hwmon/dme1737.c	2008-10-24 09:27:56.000000000 +0200
-+++ linux-2.6.28-rc7/drivers/hwmon/dme1737.c	2008-12-04 16:49:29.000000000 +0100
-@@ -34,6 +34,7 @@
- #include <linux/hwmon-vid.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- /* ISA device, if found */
-@@ -2361,6 +2362,10 @@ static int __init dme1737_isa_device_add
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	if (!(pdev = platform_device_alloc("dme1737", addr))) {
- 		printk(KERN_ERR "dme1737: Failed to allocate device.\n");
- 		err = -ENOMEM;
---- linux-2.6.28-rc7.orig/drivers/hwmon/f71805f.c	2008-04-17 04:49:44.000000000 +0200
-+++ linux-2.6.28-rc7/drivers/hwmon/f71805f.c	2008-12-04 16:49:29.000000000 +0100
-@@ -39,6 +39,7 @@
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
- #include <linux/ioport.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- static unsigned short force_id;
-@@ -1455,6 +1456,10 @@ static int __init f71805f_device_add(uns
- 	}
- 
- 	res.name = pdev->name;
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit_device_put;
-+
- 	err = platform_device_add_resources(pdev, &res, 1);
- 	if (err) {
- 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
---- linux-2.6.28-rc7.orig/drivers/hwmon/it87.c	2008-12-02 10:16:05.000000000 +0100
-+++ linux-2.6.28-rc7/drivers/hwmon/it87.c	2008-12-04 16:49:44.000000000 +0100
-@@ -49,6 +49,7 @@
- #include <linux/sysfs.h>
- #include <linux/string.h>
- #include <linux/dmi.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- #define DRVNAME "it87"
-@@ -1552,6 +1553,10 @@ static int __init it87_device_add(unsign
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	pdev = platform_device_alloc(DRVNAME, address);
- 	if (!pdev) {
- 		err = -ENOMEM;
---- linux-2.6.28-rc7.orig/drivers/hwmon/pc87360.c	2008-10-24 09:27:57.000000000 +0200
-+++ linux-2.6.28-rc7/drivers/hwmon/pc87360.c	2008-12-04 16:49:29.000000000 +0100
-@@ -43,6 +43,7 @@
- #include <linux/hwmon-vid.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- static u8 devid;
-@@ -1627,6 +1628,11 @@ static int __init pc87360_device_add(uns
- 			continue;
- 		res.start = extra_isa[i];
- 		res.end = extra_isa[i] + PC87360_EXTENT - 1;
-+
-+		err = acpi_check_resource_conflict(&res);
-+		if (err)
-+			goto exit_device_put;
-+
- 		err = platform_device_add_resources(pdev, &res, 1);
- 		if (err) {
- 			printk(KERN_ERR "pc87360: Device resource[%d] "
---- linux-2.6.28-rc7.orig/drivers/hwmon/pc87427.c	2008-04-17 04:49:44.000000000 +0200
-+++ linux-2.6.28-rc7/drivers/hwmon/pc87427.c	2008-12-04 16:49:29.000000000 +0100
-@@ -32,6 +32,7 @@
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
- #include <linux/ioport.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- static unsigned short force_id;
-@@ -524,6 +525,10 @@ static int __init pc87427_device_add(uns
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	pdev = platform_device_alloc(DRVNAME, address);
- 	if (!pdev) {
- 		err = -ENOMEM;
---- linux-2.6.28-rc7.orig/drivers/hwmon/sis5595.c	2008-04-17 04:49:44.000000000 +0200
-+++ linux-2.6.28-rc7/drivers/hwmon/sis5595.c	2008-12-04 16:49:29.000000000 +0100
-@@ -62,6 +62,7 @@
- #include <linux/jiffies.h>
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- 
-@@ -727,6 +728,10 @@ static int __devinit sis5595_device_add(
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	pdev = platform_device_alloc("sis5595", address);
- 	if (!pdev) {
- 		err = -ENOMEM;
---- linux-2.6.28-rc7.orig/drivers/hwmon/smsc47b397.c	2008-10-10 09:21:53.000000000 +0200
-+++ linux-2.6.28-rc7/drivers/hwmon/smsc47b397.c	2008-12-04 16:49:29.000000000 +0100
-@@ -36,6 +36,7 @@
- #include <linux/err.h>
- #include <linux/init.h>
- #include <linux/mutex.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- static unsigned short force_id;
-@@ -303,6 +304,10 @@ static int __init smsc47b397_device_add(
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	pdev = platform_device_alloc(DRVNAME, address);
- 	if (!pdev) {
- 		err = -ENOMEM;
---- linux-2.6.28-rc7.orig/drivers/hwmon/smsc47m1.c	2008-12-03 16:23:34.000000000 +0100
-+++ linux-2.6.28-rc7/drivers/hwmon/smsc47m1.c	2008-12-04 16:49:29.000000000 +0100
-@@ -37,6 +37,7 @@
- #include <linux/init.h>
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- static unsigned short force_id;
-@@ -705,6 +706,10 @@ static int __init smsc47m1_device_add(un
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	pdev = platform_device_alloc(DRVNAME, address);
- 	if (!pdev) {
- 		err = -ENOMEM;
---- linux-2.6.28-rc7.orig/drivers/hwmon/via686a.c	2008-04-17 04:49:44.000000000 +0200
-+++ linux-2.6.28-rc7/drivers/hwmon/via686a.c	2008-12-04 16:49:29.000000000 +0100
-@@ -41,6 +41,7 @@
- #include <linux/init.h>
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- 
-@@ -783,6 +784,10 @@ static int __devinit via686a_device_add(
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	pdev = platform_device_alloc("via686a", address);
- 	if (!pdev) {
- 		err = -ENOMEM;
---- linux-2.6.28-rc7.orig/drivers/hwmon/vt1211.c	2008-04-17 04:49:44.000000000 +0200
-+++ linux-2.6.28-rc7/drivers/hwmon/vt1211.c	2008-12-04 16:49:29.000000000 +0100
-@@ -32,6 +32,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/ioport.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- static int uch_config = -1;
-@@ -1259,6 +1260,10 @@ static int __init vt1211_device_add(unsi
- 	}
- 
- 	res.name = pdev->name;
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto EXIT;
-+
- 	err = platform_device_add_resources(pdev, &res, 1);
- 	if (err) {
- 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
---- linux-2.6.28-rc7.orig/drivers/hwmon/vt8231.c	2008-04-17 04:49:44.000000000 +0200
-+++ linux-2.6.28-rc7/drivers/hwmon/vt8231.c	2008-12-04 16:49:29.000000000 +0100
-@@ -35,6 +35,7 @@
- #include <linux/hwmon-vid.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- static int force_addr;
-@@ -894,6 +895,10 @@ static int __devinit vt8231_device_add(u
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	pdev = platform_device_alloc("vt8231", address);
- 	if (!pdev) {
- 		err = -ENOMEM;
---- linux-2.6.28-rc7.orig/drivers/hwmon/w83627ehf.c	2008-04-17 04:49:44.000000000 +0200
-+++ linux-2.6.28-rc7/drivers/hwmon/w83627ehf.c	2008-12-04 16:49:29.000000000 +0100
-@@ -48,6 +48,7 @@
- #include <linux/hwmon-vid.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- #include "lm75.h"
- 
-@@ -1544,6 +1545,11 @@ static int __init sensors_w83627ehf_init
- 	res.start = address + IOREGION_OFFSET;
- 	res.end = address + IOREGION_OFFSET + IOREGION_LENGTH - 1;
- 	res.flags = IORESOURCE_IO;
-+
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	err = platform_device_add_resources(pdev, &res, 1);
- 	if (err) {
- 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
---- linux-2.6.28-rc7.orig/drivers/hwmon/w83627hf.c	2008-10-10 09:27:55.000000000 +0200
-+++ linux-2.6.28-rc7/drivers/hwmon/w83627hf.c	2008-12-04 16:49:29.000000000 +0100
-@@ -50,6 +50,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/ioport.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- #include "lm75.h"
- 
-@@ -1793,6 +1794,10 @@ static int __init w83627hf_device_add(un
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	pdev = platform_device_alloc(DRVNAME, address);
- 	if (!pdev) {
- 		err = -ENOMEM;
---- linux-2.6.28-rc7.orig/drivers/hwmon/f71882fg.c	2008-12-02 10:16:03.000000000 +0100
-+++ linux-2.6.28-rc7/drivers/hwmon/f71882fg.c	2008-12-04 16:50:05.000000000 +0100
-@@ -28,6 +28,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/io.h>
-+#include <linux/acpi.h>
- 
- #define DRVNAME "f71882fg"
- 
-@@ -1681,6 +1682,10 @@ static int __init f71882fg_device_add(un
- 		return -ENOMEM;
- 
- 	res.name = f71882fg_pdev->name;
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		return err;
-+
- 	err = platform_device_add_resources(f71882fg_pdev, &res, 1);
- 	if (err) {
- 		printk(KERN_ERR DRVNAME ": Device resource addition failed\n");
+This patch adds triggered software ring buffer support to the
+lis3l02dq driver. It also adds a new trigger from the data
+ready signal of the lis3l02dq.  The presence of a data ready
+signal is common for these sorts of devices and as one will
+often want to trigger other sensors at the same frequency
+within multimodal sensing systems, it is useful to have this
+as an IIO trigger.
 
+ drivers/industrialio/accelerometer/Makefile        |    4 +-
+ drivers/industrialio/accelerometer/lis3l02dq.h     |   20 +-
+ .../industrialio/accelerometer/lis3l02dq_ring.c    |  600 ++++++++++++++++++++
+ 3 files changed, 622 insertions(+), 2 deletions(-)
 
--- 
-Jean Delvare
+diff --git a/drivers/industrialio/accelerometer/Makefile b/drivers/industrialio/accelerometer/Makefile
+index 22f3d87..3079723 100644
+--- a/drivers/industrialio/accelerometer/Makefile
++++ b/drivers/industrialio/accelerometer/Makefile
+@@ -3,4 +3,6 @@
+ #
+ 
+ lis3l02dq-y := lis3l02dq_core.o
+-obj-$(CONFIG_LIS3L02DQ_SPI)	:= lis3l02dq.o
++#RFC separate config param per device?
++lis3l02dq-$(CONFIG_IIO_RING_BUFFER) += lis3l02dq_ring.o
++obj-$(CONFIG_LIS3L02DQ_SPI)	:= lis3l02dq.o
+\ No newline at end of file
+diff --git a/drivers/industrialio/accelerometer/lis3l02dq.h b/drivers/industrialio/accelerometer/lis3l02dq.h
+index f53b68b..5ff9bc3 100644
+--- a/drivers/industrialio/accelerometer/lis3l02dq.h
++++ b/drivers/industrialio/accelerometer/lis3l02dq.h
+@@ -183,6 +183,24 @@ int lis3l02dq_spi_write_reg_8(struct device *dev,
+ #define LIS3L02DQ_SCAN_ACC_Y 1
+ #define LIS3L02DQ_SCAN_ACC_Z 2
+ /* temporary disable */
++#ifdef CONFIG_IIO_RING_BUFFER
++/* At the moment triggers are only used for ring buffer
++ * filling. This may change!
++ */
++void lis3l02dq_remove_trigger(struct iio_dev *indio_dev);
++int lis3l02dq_probe_trigger(struct iio_dev *indio_dev);
++
++ssize_t lis3l02dq_read_accel_from_ring(struct device *dev,
++				       struct device_attribute *attr,
++				       char *buf);
++
++
++
++int lis3l02dq_register_ring_funcs(struct iio_dev *indio_dev);
++void lis3l02dq_unregister_ring_funcs(struct iio_dev *indio_dev);
++
++int lis3l02dq_set_ring_length(struct iio_dev *indio_dev, int length);
++#else
+ 
+ static inline void lis3l02dq_remove_trigger(struct iio_dev *indio_dev){};
+ static inline int lis3l02dq_probe_trigger(struct iio_dev *indio_dev)
+@@ -210,7 +228,7 @@ int lis3l02dq_set_ring_length(struct iio_dev *indio_dev, int length)
+ 	return 0;
+ };
+ 
+-
++#endif
+ #endif /* SPI_LIS3L02DQ_H_ */
+ 
+ 
+diff --git a/drivers/industrialio/accelerometer/lis3l02dq_ring.c b/drivers/industrialio/accelerometer/lis3l02dq_ring.c
+new file mode 100644
+index 0000000..f9b2b50
+--- /dev/null
++++ b/drivers/industrialio/accelerometer/lis3l02dq_ring.c
+@@ -0,0 +1,600 @@
++
++#include <linux/interrupt.h>
++#include <linux/irq.h>
++#include <linux/gpio.h>
++#include <linux/workqueue.h>
++#include <linux/mutex.h>
++#include <linux/device.h>
++#include <linux/kernel.h>
++#include <linux/spi/spi.h>
++#include <linux/sysfs.h>
++#include <linux/list.h>
++
++#include <linux/industrialio/iio.h>
++#include <linux/industrialio/sysfs.h>
++#include <linux/industrialio/ring_sw.h>
++#include <linux/industrialio/accel.h>
++#include <linux/industrialio/trigger.h>
++#include "lis3l02dq.h"
++
++/**
++ * count_to_right() counts number of set bits to right
++ * @full:	variable in which bits are counted
++ * @mask:	the bit mask (single bit set)
++ **/
++static inline u8 count_to_right(u16 full, u16 mask)
++{
++	u8 count = 0;
++	while (mask) {
++		mask >>= 1;
++		if (mask & full)
++			count++;
++	}
++	return count;
++}
++
++/**
++ * combine_8_to_16() utility function to munge to u8s into u16
++ **/
++static inline u16 combine_8_to_16(u8 lower, u8 upper)
++{
++	u16 _lower = lower;
++	u16 _upper = upper;
++	return _lower | (_upper << 8);
++}
++
++/**
++ * lis3l02dq_scan_el_set_state() set whether a scan contains a given channel
++ * @scan_el:	associtate iio scan element attribute
++ * @indio_dev:	the device structure
++ * @bool:	desired state
++ *
++ * mlock already held when this is called.
++ **/
++static int lis3l02dq_scan_el_set_state(struct iio_scan_el *scan_el,
++				       struct iio_dev *indio_dev,
++				       bool state)
++{
++	u8 t, mask;
++	int ret;
++
++	ret = lis3l02dq_spi_read_reg_8(indio_dev->dev,
++				       LIS3L02DQ_REG_CTRL_1_ADDR,
++				       &t);
++	if (ret)
++		goto error_ret;
++	switch (scan_el->label) {
++	case LIS3L02DQ_REG_OUT_X_L_ADDR:
++		mask = LIS3L02DQ_REG_CTRL_1_AXES_X_ENABLE;
++		break;
++	case LIS3L02DQ_REG_OUT_Y_L_ADDR:
++		mask = LIS3L02DQ_REG_CTRL_1_AXES_Y_ENABLE;
++		break;
++	case LIS3L02DQ_REG_OUT_Z_L_ADDR:
++		mask = LIS3L02DQ_REG_CTRL_1_AXES_Z_ENABLE;
++		break;
++	default:
++		ret = -EINVAL;
++		goto error_ret;
++	}
++
++	if (!(mask & t) = state) {
++		if (state)
++			t |= mask;
++		else
++			t &= ~mask;
++		ret = lis3l02dq_spi_write_reg_8(indio_dev->dev,
++						LIS3L02DQ_REG_CTRL_1_ADDR,
++						&t);
++	}
++error_ret:
++	return ret;
++
++}
++static IIO_SCAN_EL_C(accel_x, LIS3L02DQ_SCAN_ACC_X, IIO_SIGNED(16),
++		     LIS3L02DQ_REG_OUT_X_L_ADDR,
++		     &lis3l02dq_scan_el_set_state);
++static IIO_SCAN_EL_C(accel_y, LIS3L02DQ_SCAN_ACC_Y, IIO_SIGNED(16),
++		     LIS3L02DQ_REG_OUT_Y_L_ADDR,
++		     &lis3l02dq_scan_el_set_state);
++static IIO_SCAN_EL_C(accel_z, LIS3L02DQ_SCAN_ACC_Z, IIO_SIGNED(16),
++		     LIS3L02DQ_REG_OUT_Z_L_ADDR,
++		     &lis3l02dq_scan_el_set_state);
++static IIO_SCAN_EL_TIMESTAMP;
++
++static struct attribute *lis3l02dq_scan_el_attrs[] = {
++	&iio_scan_el_accel_x.dev_attr.attr,
++	&iio_scan_el_accel_y.dev_attr.attr,
++	&iio_scan_el_accel_z.dev_attr.attr,
++	&iio_scan_el_timestamp.dev_attr.attr,
++	NULL,
++};
++
++static struct attribute_group lis3l02dq_scan_el_group = {
++	.attrs = lis3l02dq_scan_el_attrs,
++	.name = "scan_elements",
++};
++
++/**
++ * lis3l02dq_poll_func_th() top half interrupt handler called by trigger
++ * @private_data:	iio_dev
++ **/
++static void lis3l02dq_poll_func_th(struct iio_dev *indio_dev)
++{
++	struct lis3l02dq_state *st = indio_dev->dev_data;
++	st->last_timestamp = indio_dev->trig->timestamp;
++	schedule_work(&st->work_trigger_to_ring);
++	/* Indicate that this interrupt is being handled */
++
++	/* Technically this is trigger related, but without this
++	 * handler running there is currently now way for the interrupt
++	 * to clear.
++	 */
++	st->inter = 1;
++}
++
++/**
++ * lis3l02dq_data_rdy_trig_poll() the event handler for the data rdy trig
++ **/
++static int lis3l02dq_data_rdy_trig_poll(struct iio_dev *dev_info,
++				       int index,
++				       s64 timestamp,
++				       int no_test)
++{
++	struct lis3l02dq_state *st = dev_info->dev_data;
++	struct iio_trigger *trig = st->trig;
++
++	trig->timestamp = timestamp;
++	iio_trigger_poll(trig);
++
++	return IRQ_HANDLED;
++}
++
++/* This is an event as it is a response to a physical interrupt */
++IIO_EVENT_SH(data_rdy_trig, &lis3l02dq_data_rdy_trig_poll);
++
++/**
++ * lis3l02dq_read_accel_from_ring() individual acceleration read from ring
++ **/
++ssize_t lis3l02dq_read_accel_from_ring(struct device *dev,
++				       struct device_attribute *attr,
++				       char *buf)
++{
++	struct iio_scan_el *el = NULL;
++	int ret, len = 0, i = 0;
++	struct iio_dev_attr *this_attr = to_iio_dev_attr(attr);
++	struct iio_dev *dev_info = dev_get_drvdata(dev);
++	s16 *data;
++
++	while (dev_info->scan_el_attrs->attrs[i]) {
++		el = to_iio_scan_el((struct device_attribute *)
++				    (dev_info->scan_el_attrs->attrs[i]));
++		/* label is in fact the address */
++		if (el->label = this_attr->address)
++			break;
++		i++;
++	}
++	if (!dev_info->scan_el_attrs->attrs[i]) {
++		ret = -EINVAL;
++		goto error_ret;
++	}
++	/* If this element is in the scan mask */
++	if (el->mask & dev_info->scan_mask) {
++		data = kmalloc(dev_info->ring_access.get_bpd(dev_info->ring),
++			       GFP_KERNEL);
++		if (data = NULL)
++			return -ENOMEM;
++		ret = dev_info->ring_access.read_last(dev_info->ring,
++						      (u8 *)data);
++		if (ret)
++			goto error_free_data;
++	} else {
++		ret = -EINVAL;
++		goto error_ret;
++	}
++
++	len = sprintf(buf, "ring %d\n", data[count_to_right(dev_info->scan_mask,
++							    el->mask)]);
++error_free_data:
++	kfree(data);
++error_ret:
++	return ret ? ret : len;
++
++}
++
++static const u8 read_all_tx_array[] +{
++	LIS3L02DQ_READ_REG(LIS3L02DQ_REG_OUT_X_L_ADDR), 0,
++	LIS3L02DQ_READ_REG(LIS3L02DQ_REG_OUT_X_H_ADDR), 0,
++	LIS3L02DQ_READ_REG(LIS3L02DQ_REG_OUT_Y_L_ADDR), 0,
++	LIS3L02DQ_READ_REG(LIS3L02DQ_REG_OUT_Y_H_ADDR), 0,
++	LIS3L02DQ_READ_REG(LIS3L02DQ_REG_OUT_Z_L_ADDR), 0,
++	LIS3L02DQ_READ_REG(LIS3L02DQ_REG_OUT_Z_H_ADDR), 0,
++};
++
++/**
++ * lis3l02dq_read_all() Reads all channels currently selected
++ * @st:		device specific state
++ * @rx_array:	(dma capable) recieve array, must be at least
++ * 		4*number of channels
++ **/
++int lis3l02dq_read_all(struct lis3l02dq_state *st, u8 *rx_array)
++{
++	struct spi_transfer *xfers;
++	struct spi_message msg;
++	int ret, i, j = 0;
++
++	xfers = kzalloc((st->indio_dev->scan_count) * 2
++			* sizeof(struct spi_transfer), GFP_KERNEL);
++	if (!xfers)
++		return -ENOMEM;
++
++	mutex_lock(&st->buf_lock);
++
++	for (i = 0; i < ARRAY_SIZE(read_all_tx_array)/4; i++) {
++		if (st->indio_dev->scan_mask & (1 << i)) {
++			/* lower byte */
++			xfers[j].tx_buf = st->tx + 2*j;
++			st->tx[2*j] = read_all_tx_array[i*4];
++			st->tx[2*j + 1] = 0;
++			if (rx_array)
++				xfers[j].rx_buf = rx_array + j*2;
++			xfers[j].bits_per_word = 8;
++			xfers[j].len = 2;
++			xfers[j].cs_change = 1;
++			j++;
++
++			/* upper byte */
++			xfers[j].tx_buf = st->tx + 2*j;
++			st->tx[2*j] = read_all_tx_array[i*4 + 2];
++			st->tx[2*j + 1] = 0;
++			if (rx_array)
++				xfers[j].rx_buf = rx_array + j*2;
++			xfers[j].bits_per_word = 8;
++			xfers[j].len = 2;
++			xfers[j].cs_change = 1;
++			j++;
++		}
++	}
++	/* After these are transmitted, the rx_buff should have
++	 * values in alternate bytes
++	 */
++	spi_message_init(&msg);
++	for (j = 0; j < st->indio_dev->scan_count * 2; j++)
++		spi_message_add_tail(&xfers[j], &msg);
++	ret = spi_sync(st->us, &msg);
++	mutex_unlock(&st->buf_lock);
++
++	kfree(xfers);
++
++	return ret;
++}
++
++
++/* Whilst this makes a lot of calls to iio_sw_ring functions - it is to device
++ * specific to be rolled into the core.
++ */
++static void lis3l02dq_trigger_bh_to_ring(struct work_struct *work_s)
++{
++	struct lis3l02dq_state *st
++		= container_of(work_s, struct lis3l02dq_state,
++			       work_trigger_to_ring);
++
++	u8 *rx_array;
++	int i = 0;
++	u16 *data;
++	size_t datasize = st->indio_dev
++		->ring_access.get_bpd(st->indio_dev->ring);
++
++	data = kmalloc(datasize , GFP_KERNEL);
++	if (data = NULL) {
++		dev_err(&st->us->dev, "memory alloc failed in ring bh");
++		return;
++	}
++	/* Due to interleaved nature of transmission this buffer must be
++	 * twice the number of bytes, or 4 times the number of channels
++	 */
++	rx_array = kmalloc(4 * (st->indio_dev->scan_count), GFP_KERNEL);
++	if (rx_array = NULL) {
++		dev_err(&st->us->dev, "memory alloc failed in ring bh");
++		return;
++	}
++
++	/* whilst trigger specific, if this read does nto occur the data
++	   ready interrupt will not be cleared.  Need to add a mechanism
++	   to provide a dummy read function if this is not triggering on
++	   the data ready function but something else is.
++	*/
++	st->inter = 0;
++
++	if (st->indio_dev->scan_count)
++		if (lis3l02dq_read_all(st, rx_array) >= 0)
++			for (; i < st->indio_dev->scan_count; i++)
++				data[i] = combine_8_to_16(rx_array[i*4+1],
++							  rx_array[i*4+3]);
++	/* Guaranteed to be aligned with 8 byte boundary */
++	if (st->indio_dev->scan_timestamp)
++		*((s64 *)(data + ((i + 3)/4)*4)) = st->last_timestamp;
++
++	st->indio_dev->ring_access.store_to(st->indio_dev->ring,
++					    (u8 *)data,
++					    st->last_timestamp);
++
++	iio_trigger_notify_done(st->indio_dev->trig);
++	kfree(rx_array);
++	kfree(data);
++
++	return;
++}
++/* in these circumstances is it better to go with unaligned packing and
++ * deal with the cost?*/
++static int lis3l02dq_data_rdy_ring_preenable(struct iio_dev *indio_dev)
++{
++	size_t size;
++	/* Check if there are any scan elements enabled, if not fail*/
++	if (!(indio_dev->scan_count || indio_dev->scan_timestamp))
++		return -EINVAL;
++
++	if (indio_dev->ring_access.set_bpd) {
++		if (indio_dev->scan_timestamp)
++			if (indio_dev->scan_count) /* Timestamp and data */
++				size = 2*sizeof(s64);
++			else /* Timestamp only  */
++				size = sizeof(s64);
++		else /* Data only */
++			size = indio_dev->scan_count*sizeof(s16);
++		indio_dev->ring_access.set_bpd(indio_dev->ring, size);
++	}
++
++	return 0;
++}
++
++static int lis3l02dq_data_rdy_ring_postenable(struct iio_dev *indio_dev)
++{
++	return indio_dev->trig
++		? iio_trigger_attach_poll_func(indio_dev->trig,
++					       indio_dev->pollfunc)
++		: 0;
++}
++
++static int lis3l02dq_data_rdy_ring_predisable(struct iio_dev *indio_dev)
++{
++	return indio_dev->trig
++		? iio_trigger_dettach_poll_func(indio_dev->trig,
++						indio_dev->pollfunc)
++		: 0;
++}
++
++
++/* Caller responsible for locking as necessary. */
++static int __lis3l02dq_write_data_ready_config(struct device *dev,
++					       struct
++					       iio_event_handler_list *list,
++					       bool state)
++{
++	int ret;
++	u8 valold;
++	bool currentlyset;
++	struct iio_dev *indio_dev = dev_get_drvdata(dev);
++
++/* Get the current event mask register */
++	ret = lis3l02dq_spi_read_reg_8(dev,
++				       LIS3L02DQ_REG_CTRL_2_ADDR,
++				       &valold);
++	if (ret)
++		goto error_ret;
++/* Find out if data ready is already on */
++	currentlyset
++		= valold & LIS3L02DQ_REG_CTRL_2_ENABLE_DATA_READY_GENERATION;
++
++/* Disable requested */
++	if (!state && currentlyset) {
++
++		valold &= ~LIS3L02DQ_REG_CTRL_2_ENABLE_DATA_READY_GENERATION;
++		/* The double write is to overcome a hardware bug?*/
++		ret = lis3l02dq_spi_write_reg_8(dev,
++						LIS3L02DQ_REG_CTRL_2_ADDR,
++						&valold);
++		if (ret)
++			goto error_ret;
++		ret = lis3l02dq_spi_write_reg_8(dev,
++						LIS3L02DQ_REG_CTRL_2_ADDR,
++						&valold);
++		if (ret)
++			goto error_ret;
++
++		ret = iio_remove_event_from_list(list,
++						 &indio_dev->interrupts[0]
++						 ->ev_list);
++		if (ret)
++			goto error_ret;
++
++/* Enable requested */
++	} else if (state && !currentlyset) {
++		/* if not set, enable requested */
++		valold |= LIS3L02DQ_REG_CTRL_2_ENABLE_DATA_READY_GENERATION;
++		ret = iio_add_event_to_list(list,
++					    &indio_dev->interrupts[0]->ev_list);
++		if (ret)
++			goto error_ret;
++		ret = lis3l02dq_spi_write_reg_8(dev,
++						LIS3L02DQ_REG_CTRL_2_ADDR,
++						&valold);
++		if (ret)
++			goto error_ret;
++	}
++
++	return 0;
++error_ret:
++	return ret;
++}
++
++/**
++ * lis3l02dq_data_rdy_trigger_set_state() set datardy interrupt state
++ *
++ * If disabling the interrupt also does a final read to ensure it is clear.
++ * This is only important in some cases where the scan enable elements are
++ * switched before the ring is reenabled.
++ **/
++static int lis3l02dq_data_rdy_trigger_set_state(struct iio_trigger *trig,
++						bool state)
++{
++	struct lis3l02dq_state *st = trig->private_data;
++	int ret = 0;
++	u8 t;
++
++	__lis3l02dq_write_data_ready_config(&st->us->dev,
++					    &iio_event_data_rdy_trig,
++					    state);
++	/* Clear any outstanding ready events */
++	if (state = false)
++		ret = lis3l02dq_read_all(st, NULL);
++
++	lis3l02dq_spi_read_reg_8(st->indio_dev->dev,
++				 LIS3L02DQ_REG_WAKE_UP_SRC_ADDR,
++				 &t);
++	return ret;
++}
++DEVICE_ATTR(name, S_IRUGO, iio_trigger_read_name, NULL);
++
++static struct attribute *lis3l02dq_trigger_attrs[] = {
++	&dev_attr_name.attr,
++	NULL,
++};
++
++static const struct attribute_group lis3l02dq_trigger_attr_group = {
++	.attrs = lis3l02dq_trigger_attrs,
++};
++
++/**
++ * lis3l02dq_trig_try_reen() try renabling irq for data rdy trigger
++ * @trig:	the datardy trigger
++ *
++ * As the trigger may occur on any data element being updated it is
++ * really rather likely to occur during the read from the previous
++ * trigger event.  The only way to discover if this has occured on
++ * boards not supporting level interrupts is to take a look at the line.
++ * If it is indicating another interrupt and we don't seem to have a
++ * handler looking at it, then we need to notify the core that we need
++ * to tell the triggering core to try reading all these again.
++ **/
++static int lis3l02dq_trig_try_reen(struct iio_trigger *trig)
++{
++	struct lis3l02dq_state *st = trig->private_data;
++	enable_irq(st->us->irq);
++	/* If gpio still high (or high again) */
++	if (gpio_get_value(irq_to_gpio(st->us->irq)))
++		if (st->inter = 0) {
++			/* already interrupt handler dealing with it */
++			disable_irq_nosync(st->us->irq);
++			if (st->inter = 1) {
++				/* interrupt handler snuck in between test
++				 * and disable */
++				enable_irq(st->us->irq);
++				return 0;
++			}
++			return -EAGAIN;
++		}
++	/* irq reenabled so success! */
++	return 0;
++}
++
++int lis3l02dq_probe_trigger(struct iio_dev *indio_dev)
++{
++	int ret;
++	struct lis3l02dq_state *state = indio_dev->dev_data;
++
++	state->trig = kzalloc(sizeof(*state->trig), GFP_KERNEL);
++	if (!state->trig) {
++		ret = -ENOMEM;
++		goto error_ret;
++	}
++	iio_trigger_init(state->trig);
++	state->trig->name = kmalloc(IIO_TRIGGER_NAME_LENGTH, GFP_KERNEL);
++	if (!state->trig->name) {
++		ret = -ENOMEM;
++		goto error_free_trig;
++	}
++	snprintf((char *)state->trig->name,
++		 IIO_TRIGGER_NAME_LENGTH,
++		 IIO_TRIGGER_ID_FORMAT, indio_dev->id);
++	state->trig->owner = THIS_MODULE;
++	state->trig->private_data = state;
++	state->trig->set_trigger_state = &lis3l02dq_data_rdy_trigger_set_state;
++	state->trig->try_reenable = &lis3l02dq_trig_try_reen;
++	state->trig->control_attrs = &lis3l02dq_trigger_attr_group;
++	ret = iio_trigger_register(state->trig, indio_dev->dev, 0);
++	if (ret)
++		goto error_free_trig_name;
++	/* Set the default trigger for the device to be it's own data ready */
++	indio_dev->trig = state->trig;
++
++	return 0;
++
++error_free_trig_name:
++	kfree(state->trig->name);
++error_free_trig:
++	kfree(state->trig);
++error_ret:
++	return ret;
++}
++
++void lis3l02dq_remove_trigger(struct iio_dev *indio_dev)
++{
++	struct lis3l02dq_state *state = indio_dev->dev_data;
++
++	iio_trigger_unregister(state->trig);
++	kfree(state->trig->name);
++	kfree(state->trig);
++}
++
++int lis3l02dq_register_ring_funcs(struct iio_dev *indio_dev)
++{
++	int ret = 0;
++	struct lis3l02dq_state *st = indio_dev->dev_data;
++
++	INIT_WORK(&st->work_trigger_to_ring, lis3l02dq_trigger_bh_to_ring);
++	/* Set default scan mode */
++	indio_dev->scan_mask = iio_scan_el_accel_x.mask
++		| iio_scan_el_accel_y.mask
++		| iio_scan_el_accel_z.mask;
++	indio_dev->scan_timestamp = true;
++	indio_dev->scan_count = 3;
++	indio_dev->scan_el_attrs = &lis3l02dq_scan_el_group;
++
++	/* Effectively select the ring buffer implementation */
++	iio_ring_sw_register_funcs(&indio_dev->ring_access);
++	indio_dev->ring_preenable = &lis3l02dq_data_rdy_ring_preenable;
++	indio_dev->ring_postenable = &lis3l02dq_data_rdy_ring_postenable;
++	indio_dev->ring_predisable = &lis3l02dq_data_rdy_ring_predisable;
++
++	/* must init this somewhere */
++	INIT_LIST_HEAD(&iio_event_data_rdy_trig.list);
++
++	indio_dev->pollfunc = kzalloc(sizeof(*indio_dev->pollfunc), GFP_KERNEL);
++	if (indio_dev->pollfunc = NULL) {
++		ret = -ENOMEM;
++		goto error_ret;
++	}
++	indio_dev->pollfunc->poll_func_main = &lis3l02dq_poll_func_th;
++	indio_dev->pollfunc->private_data = indio_dev;
++	indio_dev->modes |= INDIO_RING_TRIGGERED;
++error_ret:
++	return ret;
++
++}
++
++void lis3l02dq_unregister_ring_funcs(struct iio_dev *indio_dev)
++{
++	kfree(indio_dev->pollfunc);
++}
++
++int lis3l02dq_set_ring_length(struct iio_dev *indio_dev, int length)
++{
++	/* Set sensible defaults for the ring buffer */
++	if (indio_dev->ring_access.set_length)
++		return indio_dev->ring_access.set_length(indio_dev->ring, 500);
++	return 0;
++}
++
++
 
 _______________________________________________
 lm-sensors mailing list
