@@ -1,7 +1,7 @@
 From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Mon, 01 Dec 2008 14:39:14 +0000
-Subject: [lm-sensors] [Industrial I/O] [13/13] RFC: Example user space
-Message-Id: <4933F712.2000506@cam.ac.uk>
+Date: Mon, 01 Dec 2008 14:32:20 +0000
+Subject: [lm-sensors] [Industrial I/O] [6/13] RFC: Proof of concept GPIO
+Message-Id: <4933F574.70604@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4933F291.4020001@cam.ac.uk>
 In-Reply-To: <4933F291.4020001@cam.ac.uk>
@@ -13,29 +13,62 @@ Cc: LKML <linux-kernel@vger.kernel.org>, Dmitry Torokhov <dtor@mail.ru>, David B
 
 From: Jonathan Cameron <jic23@cam.ac.uk>
 
-IIO: Example user space application. Configures and then reads
-from a software ring buffer which is filled based on a the
-lis3l02dq data ready trigger and is a software ring buffer.
+IIO: Proof of concept GPIO based IIO trigger
 
 Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
-
 --
-Quite a lot of this program would be simplified if a couple
-of generic library routines were available.  It also illustrates
-the necessary separation between user space and kernel space
-elements of the IIO headers (cannot currently be used in here
-so a couple of things have to be redefined).
 
- Documentation/industrialio/TestRingLIS3L02DQ.c |  340 ++++++++++++++++++++++++
- 1 files changed, 340 insertions(+), 0 deletions(-)
+A very limited trigger driver using a GPIO to provide synchronization
+with external devices. Things like setting polarity and interrupt
+types will need to be added to make this more useful.
 
-diff --git a/Documentation/industrialio/TestRingLIS3L02DQ.c b/Documentation/industrialio/TestRingLIS3L02DQ.c
+ drivers/industrialio/triggers/Kconfig         |   12 ++
+ drivers/industrialio/triggers/Makefile        |    5 +-
+ drivers/industrialio/triggers/iio-trig-gpio.c |  193 +++++++++++++++++++++++++
+ include/linux/industrialio/gpio_trigger.h     |    6 +
+ 4 files changed, 215 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/industrialio/triggers/Kconfig b/drivers/industrialio/triggers/Kconfig
+index 20e6498..e100098 100644
+--- a/drivers/industrialio/triggers/Kconfig
++++ b/drivers/industrialio/triggers/Kconfig
+@@ -1,6 +1,18 @@
++config IIO_GPIO_TRIGGER
++       tristate "GPIO triggers"
++          depends on INDUSTRIALIO && IIO_TRIGGERS && GENERIC_GPIO
++	  help
++	    Driver provides support for using GPIOs as the IIO
++	    triggers.
++
+ config IIO_PERIODIC_RTC_TRIGGER
+        tristate "Periodic RTC triggers"
+           depends on INDUSTRIALIO && IIO_TRIGGERS && RTC_CLASS
+ 	  help
+ 	    Provides support for using periodic capable real time
+ 	    clocks as IIO triggers.
+
+diff --git a/drivers/industrialio/triggers/Makefile b/drivers/industrialio/triggers/Makefile
+index 4ae55b9..767d2cd 100644
+--- a/drivers/industrialio/triggers/Makefile
++++ b/drivers/industrialio/triggers/Makefile
+@@ -1,5 +1,8 @@
+ #
+ # Makefile for triggers not associated with iio-devices
+ #
+-obj-$(CONFIG_IIO_PERIODIC_RTC_TRIGGER) += iio-trig-periodic-rtc.o
+ 
++obj-$(CONFIG_IIO_GPIO_TRIGGER) += iio-trig-gpio.o
++
++obj-$(CONFIG_IIO_PERIODIC_RTC_TRIGGER) += iio-trig-periodic-rtc.o
++#obj-$(CONFIG_IIO_PTIMER_BOARDINFO) += iio-ptimer-boardinfo.o
+diff --git a/drivers/industrialio/triggers/iio-trig-gpio.c b/drivers/industrialio/triggers/iio-trig-gpio.c
 new file mode 100644
-index 0000000..e963d61
+index 0000000..9718779
 --- /dev/null
-+++ b/Documentation/industrialio/TestRingLIS3L02DQ.c
-@@ -0,0 +1,340 @@
-+/* Industrialio test ring buffer for lis3l02dq
++++ b/drivers/industrialio/triggers/iio-trig-gpio.c
+@@ -0,0 +1,193 @@
++/*
++ * Industrial I/O - gpio based trigger support
 + *
 + * Copyright (c) 2008 Jonathan Cameron
 + *
@@ -43,338 +76,202 @@ index 0000000..e963d61
 + * under the terms of the GNU General Public License version 2 as published by
 + * the Free Software Foundation.
 + *
-+ * There are numerous places where this code could be shortened but that
-+ * is work for another day.  The basic principles are what matter at
-+ * this stage.
++ * Currently this is more of a functioning proof of concept that a fully
++ * fledged trigger driver.
++ *
++ * TODO:
++ *
++ * Add board config elements to allow specification of startup settings.
++ * Add configuration settings (irq type etc)
 + */
-+#include <dirent.h>
-+#include <fcntl.h>
-+#include <stdio.h>
-+#include <errno.h>
-+#include <stdint.h>
-+#include <linux/types.h>
-+#include <sys/stat.h>
-+#include <sys/dir.h>
 +
-+/* FIXME: Get this from main headers - Separation into userspace
-+ * accessible parts and kernel only parts still needs to be done.
-+ */
-+struct iio_event_data {
-+	int id;
-+	__s64 timestamp;
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/gpio.h>
++
++#include <linux/industrialio/iio.h>
++#include <linux/industrialio/trigger.h>
++#include <linux/industrialio/gpio_trigger.h>
++
++LIST_HEAD(iio_gpio_trigger_list);
++DEFINE_MUTEX(iio_gpio_trigger_list_lock);
++
++struct iio_gpio_trigger_info {
++	struct mutex in_use;
++	int gpio;
 +};
++/* Need to reference count these triggers and only enable gpio interrupts as appropriate.*/
 +
-+#define IIO_EVENT_CODE_RING_50_FULL 200
-+#define IIO_EVENT_CODE_RING_75_FULL 201
-+#define IIO_EVENT_CODE_RING_100_FULL 202
-+/* Returns the base device directory of a named sensor.
-+ * This sort of useful function should go in a generic userspace
-+ * library */
-+char *find_device_by_name(const char *name)
++/* So what functionality do we want in here?... */
++/* set high / low as interrupt type? */
++
++static irqreturn_t iio_gpio_trigger_poll(int irq, void *private)
 +{
-+	const char *iio_dir = "/sys/class/industrialio";
-+	const struct dirent *ent;
-+	int cnt, pos, pos2;
-+	FILE *nameFile;
-+	DIR *dp;
-+	char thisname[100];
-+	char temp[100];
-+
-+	char *returnstring = NULL;
-+	struct stat Stat;
-+	pos = sprintf(temp, "%s", iio_dir);
-+	pos += sprintf(temp + pos, "/");
-+	dp = opendir(iio_dir);
-+	if (dp = NULL) {
-+		printf("No industrialio devices available");
-+		return NULL;
-+	}
-+	while (ent = readdir(dp), ent != NULL) {
-+		cnt++;
-+		/*reject . and .. */
-+		if (strcmp(ent->d_name, ".") != 0 &&
-+		    strcmp(ent->d_name, "..") != 0)  {
-+			/*make sure it isn't a trigger!*/
-+			if (strncmp(ent->d_name, "iio_trigger", 10) != 0) {
-+				/* build full path to new file */
-+				pos2 = pos + sprintf(temp+pos, "%s/",
-+						     ent->d_name);
-+				sprintf(temp+pos2, "name");
-+				printf("search location %s\n", temp);
-+				nameFile = fopen(temp, "r");
-+				if (!nameFile) {
-+					sprintf(temp + pos2, "modalias",
-+						ent->d_name);
-+					nameFile = fopen(temp, "r");
-+					if (!nameFile) {
-+						printf("Failed to find name\n");
-+						return NULL;
-+					}
-+				}
-+				fscanf(nameFile, "%s", thisname);
-+				if (strcmp(name, thisname) = 0) {
-+					returnstring = malloc(strlen(temp) + 1);
-+					sprintf(temp + pos2, "");
-+					strcpy(returnstring, temp);
-+					return returnstring;
-+				}
-+				fclose(nameFile);
-+
-+			}
-+		}
-+	}
++	//private at this stage is the iio_trig.
++	iio_trigger_poll(private);
++	return IRQ_HANDLED;
 +}
 +
-+int RingLength = 100;
-+int NumVals = 3;
++DEVICE_ATTR(name, S_IRUGO, iio_trigger_read_name, NULL);
 +
-+int main(int argc, char **argv)
++static struct attribute *iio_gpio_trigger_attrs[] = {
++	&dev_attr_name.attr,
++	NULL,
++};
++
++static const struct attribute_group iio_gpio_trigger_attr_group = {
++	.attrs = iio_gpio_trigger_attrs,
++};
++
++static int iio_gpio_trigger_probe(struct platform_device *dev)
 +{
-+	int toread, sample = 0;
-+	uint16_t tempx, tempy, tempz;
-+	FILE  *sysfsfp, *fp_ev, *ringcont;
-+	int fp;
-+	char *data;
-+	const char *device_name = "lis3l02dq";
-+	size_t read_size;
-+	int i, j, k, temps;
-+	int minor, minor_ev;
-+	char name_chrdevevt[100];
-+	char name_chrdevring[100];
-+	char command[100];
-+	int device_no;
-+	char temp[200];
-+	int pos;
-+	struct iio_event_data dat;
-+	int scanx = 1, scany = 1, scanz = 1;
-+	int scants = 1;
-+
-+	int datum_size = 0;
-+	char *BaseDirectoryName;
-+
-+	/* Parameters to disable particular channels */
-+	for (i = 1; i < argc; i++) {
-+		if (strcmp(argv[i], "-x") = 0)
-+			scanx = 0;
-+		if (strcmp(argv[i], "-y") = 0)
-+			scany = 0;
-+		if (strcmp(argv[i], "-z") = 0)
-+			scanz = 0;
-+		if (strcmp(argv[i], "-ts") = 0)
-+			scants = 0;
++	struct iio_gpio_trigger_pdata *pdata = dev->dev.platform_data;
++	struct iio_gpio_trigger_info *trig_info;
++	struct iio_trigger *trig, *trig2;
++	int i, irq, ret = 0;
++	if (!pdata) {
++		printk(KERN_ERR "No IIO gpio trigger platform data found\n");
++		return -EINVAL;
 +	}
-+	/* Getting the s64 aligned correctly - this will end up in
-+	 * the lis3l02dq userspace header
-+	 */
-+	if (scants && (scanx || scany || scanz))
-+		datum_size = 16;
-+	else if (scants)
-+		datum_size = 8;
-+	else {
-+		if (scanx)
-+			datum_size += sizeof(__s16);
-+		if (scany)
-+			datum_size += sizeof(__s16);
-+		if (scanz)
-+			datum_size += sizeof(__s16);
-+	}
-+	data = malloc(datum_size*RingLength);
-+	BaseDirectoryName = find_device_by_name(device_name);
++	for (i = 0; i < pdata->num_gpios; i++) {
 +
-+	if (BaseDirectoryName = NULL) {
-+		printf("Failed to find the %s \n", device_name);
-+		return -1;
-+	}
-+
-+	/* The next section sets up all the device parameters to
-+	 * appropriate values before intializing the ring.
-+	 */
-+	/* Set a sensible ring buffer length */
-+	sprintf(temp, "%sring_buffer/length", BaseDirectoryName);
-+	sysfsfp = fopen(temp, "w");
-+	if (sysfsfp = NULL) {
-+		printf("failed to open the rb length file at %s\n", temp);
-+		return -1;
-+	}
-+	fprintf(sysfsfp, "%d", RingLength);
-+	fclose(sysfsfp);
-+	/* Create relevant device Nodes */
-+	sprintf(temp, "%sring_buf0_acc_minor", BaseDirectoryName);
-+	sysfsfp = fopen(temp, "r");
-+	if (sysfsfp = NULL) {
-+		printf("failed to open minor stuff %s \n", temp);
-+		return -1;
-+	}
-+
-+	fscanf(sysfsfp, "%d\n", &minor);
-+	sprintf(name_chrdevring, "/dev/indring%d", minor);
-+
-+	fclose(sysfsfp);
-+	sprintf(temp, "%sring_buf0_ev_minor", BaseDirectoryName);
-+	sysfsfp = fopen(temp, "r");
-+	if (sysfsfp = NULL) {
-+		printf("failed to open minor stuff \n");
-+		return -1;
-+	}
-+
-+	fscanf(sysfsfp, "%d\n", &minor_ev);
-+	fclose(sysfsfp);
-+
-+	/* set scan of x accel */
-+	{
-+		sprintf(temp, "%s/scan_elements/scan_en_accel_x",
-+			BaseDirectoryName);
-+		sysfsfp = fopen(temp, "w");
-+		if (sysfsfp = NULL) {
-+			printf("failed to open scan_en_accel_x\n");
-+			return -1;
++		trig = kzalloc(sizeof(*trig), GFP_KERNEL);
++		if (!trig) {
++			ret = -ENOMEM;
++			goto error_free_trigs_1;
 +		}
-+		fprintf(sysfsfp, "%d", scanx);
-+		fclose(sysfsfp);
-+	}
++		iio_trigger_init(trig);
 +
-+
-+	/* set scan of y accel */
-+	{
-+		sprintf(temp, "%s/scan_elements/scan_en_accel_y",
-+			BaseDirectoryName);
-+		sysfsfp = fopen(temp, "w");
-+		if (sysfsfp = NULL) {
-+			printf("failed to open scan_en_accel_y\n");
-+			return -1;
++		trig_info = kzalloc(sizeof(*trig_info), GFP_KERNEL);
++		if (!trig_info) {
++			ret = -ENOMEM;
++			goto error_free_trigs_2;
 +		}
-+		fprintf(sysfsfp, "%d", scany);
-+		fclose(sysfsfp);
++		trig->control_attrs = &iio_gpio_trigger_attr_group;
++		trig->private_data = trig_info;
++		trig_info->gpio = pdata->gpios[i];
++		trig->owner = THIS_MODULE;
++		trig->name = kmalloc(IIO_TRIGGER_NAME_LENGTH, GFP_KERNEL);
++		snprintf((char *)trig->name, IIO_TRIGGER_NAME_LENGTH, "gpiotrig%d", pdata->gpios[i]);
++
++
++		ret = gpio_request(trig_info->gpio, trig->name);
++		if (ret)
++			goto error_free_trigs_3;
++
++		ret = gpio_direction_input(trig_info->gpio);
++		if (ret)
++			goto error_free_trigs_4;
++
++		irq = gpio_to_irq(trig_info->gpio);
++		if (irq < 0)
++			goto error_free_trigs_4;
++
++		ret = request_irq(irq, iio_gpio_trigger_poll,
++				  IRQF_TRIGGER_RISING,
++				  trig->name,
++				  trig);
++		if (ret)
++			goto error_free_trigs_4;
++		ret = iio_trigger_register(trig, &dev->dev, i);
++
++		if (ret)
++			goto error_free_trigs_5;
++
++		mutex_lock(&iio_gpio_trigger_list_lock);
++		list_add_tail(&trig->alloc_list, &iio_gpio_trigger_list);
++		mutex_unlock(&iio_gpio_trigger_list_lock);
 +	}
++	return 0;
 +
++/* First clean up the partly allocated trigger */
++error_free_trigs_5:
++	free_irq(irq, trig);
 +
-+	/* set scan of z accel */
-+	{
-+		sprintf(temp, "%s/scan_elements/scan_en_accel_z",
-+			BaseDirectoryName);
-+		sysfsfp = fopen(temp, "w");
-+		if (sysfsfp = NULL) {
-+			printf("failed to open scan_en_accel_z\n");
-+			return -1;
-+		}
-+		fprintf(sysfsfp, "%d", scanz);
-+		fclose(sysfsfp);
++error_free_trigs_4:
++	gpio_free(trig_info->gpio);
++error_free_trigs_3:
++	kfree(trig->name);
++error_free_trigs_2:
++	kfree(trig_info);
++error_free_trigs_1:
++/* The rest should have been added to the iio_gpio_trigger_list */
++	mutex_lock(&iio_gpio_trigger_list_lock);
++	list_for_each_entry_safe(trig,
++				 trig2,
++				 &iio_gpio_trigger_list,
++				 alloc_list) {
++		trig_info = trig->private_data;
++		iio_trigger_unregister(trig);
++		free_irq(gpio_to_irq(trig_info->gpio), trig);
++		gpio_free(trig_info->gpio);
++		kfree(trig->name);
++		kfree(trig_info);
++		kfree(trig);
 +	}
++	mutex_unlock(&iio_gpio_trigger_list_lock);
 +
++	return ret;
++}
 +
-+	/* set scan of ts */
-+	{
-+		sprintf(temp, "%s/scan_elements/scan_en_timestamp",
-+			BaseDirectoryName);
-+		sysfsfp = fopen(temp, "w");
-+		if (sysfsfp = NULL) {
-+			printf("failed to open scan_en_timestamp\n");
-+			return -1;
-+		}
-+		fprintf(sysfsfp, "%d", scants);
-+		fclose(sysfsfp);
++static int iio_gpio_trigger_remove(struct platform_device *dev)
++{
++	struct iio_trigger *trig, *trig2;
++	struct iio_gpio_trigger_info *trig_info;
++
++	mutex_lock(&iio_gpio_trigger_list_lock);
++	list_for_each_entry_safe(trig, trig2, &iio_gpio_trigger_list, alloc_list) {
++		trig_info = trig->private_data;
++		iio_trigger_unregister(trig);
++		free_irq(gpio_to_irq(trig_info->gpio), trig);
++		gpio_free(trig_info->gpio);
++		kfree(trig->name);
++		kfree(trig_info);
++		kfree(trig);
 +	}
-+
-+	sprintf(name_chrdevevt, "/dev/indringev%d", minor_ev);
-+	/* Enable the ring buffer */
-+	{
-+		sprintf(temp, "%sring_buffer/ring_enable", BaseDirectoryName);
-+		ringcont = fopen(temp, "w");
-+
-+		if (ringcont = NULL) {
-+			printf("Failed to open the rb control file \n");
-+			return -1;
-+		};
-+		fprintf(ringcont, "1");
-+		fclose(ringcont);
-+	}
-+	/* Attempt to open non blocking the access dev */
-+	fp = open(name_chrdevring, O_RDONLY | O_NONBLOCK);
-+	if (fp = -1) { /*If it isn't there make the node */
-+		sprintf(command, "mknod %s c 244 %d; mknod %s c 244 %d; ",
-+			name_chrdevring, minor, name_chrdevevt, minor_ev);
-+		system(command);
-+		sleep(5);
-+		fp = open(name_chrdevring, O_RDONLY | O_NONBLOCK);
-+		if (fp = -1) {
-+			printf("Unable to open %s\n", name_chrdevring);
-+			return -1;
-+		}
-+	}
-+	/* Attempt to open the event access dev (blocking this time) */
-+	fp_ev = fopen(name_chrdevevt, "rb");
-+	if (fp_ev = NULL) {
-+
-+		printf("bug opening %s\n", name_chrdevevt);
-+		return -1;
-+	}
-+
-+	/* Wait for events 10 times */
-+	for (j = 0; j < 10; j++) {
-+		read_size = fread(&dat, 1, sizeof(struct iio_event_data),
-+				  fp_ev);
-+		switch (dat.id) {
-+		case IIO_EVENT_CODE_RING_100_FULL:
-+			toread = RingLength;
-+			break;
-+		case IIO_EVENT_CODE_RING_75_FULL:
-+			toread = RingLength*3/4;
-+			break;
-+		case IIO_EVENT_CODE_RING_50_FULL:
-+			toread = RingLength/2;
-+			break;
-+		default:
-+			printf("Unexpecteded event code\n");
-+		}
-+		read_size = read(fp, (char *)(data), toread*(datum_size));
-+		if (read_size = -EAGAIN)
-+			printf("nothing available \n");
-+		/* Print out the first 10% of the values recieved from the rb*/
-+		for (i = 0; i < (read_size  / datum_size)*0.1; i++) {
-+			k = 0;
-+			printf("%d, ", sample++);
-+			if (scanx)
-+				printf("%d, ",
-+				       *((__s16 *)(data + i*(datum_size))
-+					 + k++));
-+			if (scany)
-+				printf("%d, ",
-+				       *((__s16 *)(data + i*(datum_size))
-+					 + k++));
-+			if (scanz)
-+				printf("%d, ",
-+				       *((__s16 *)(data + i*(datum_size))
-+					 + k++));
-+			if (scants)
-+				printf(" %lld ",
-+				       *((__s64 *)(data + i*(datum_size))
-+					 + ((k+3)/4)));
-+			printf("\n");
-+
-+		}
-+
-+	}
-+	close(fp);
-+	fclose(fp_ev);
-+	/* Stop the ring buffer */
-+	{
-+
-+		sprintf(temp, "%sring_buffer/ring_enable", BaseDirectoryName);
-+		ringcont = fopen(temp, "w");
-+		if (ringcont = NULL) {
-+			printf("Failed to open the rb control file \n");
-+			return -1;
-+		};
-+		fprintf(ringcont, "0");
-+
-+		fclose(ringcont);
-+	}
-+
-+	free(BaseDirectoryName);
-+	free(data);
++	mutex_unlock(&iio_gpio_trigger_list_lock);
 +
 +	return 0;
 +}
++
++static struct platform_driver iio_gpio_trigger_driver = {
++	.probe = iio_gpio_trigger_probe,
++	.remove = iio_gpio_trigger_remove,
++	.driver = {
++		.name = "iio_gpio_trigger",
++		.owner = THIS_MODULE,
++	},
++};
++
++static int __init iio_gpio_trig_init(void)
++{
++	return platform_driver_register(&iio_gpio_trigger_driver);
++}
++module_init(iio_gpio_trig_init);
++
++static void __exit iio_gpio_trig_exit(void)
++{
++	platform_driver_unregister(&iio_gpio_trigger_driver);
++}
++module_exit(iio_gpio_trig_exit);
++
++MODULE_AUTHOR("Jonathan Cameron <jic23@cam.ac.uk>");
++MODULE_DESCRIPTION("Example gpio trigger for the iio subsystem");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/linux/industrialio/gpio_trigger.h b/include/linux/industrialio/gpio_trigger.h
+new file mode 100644
+index 0000000..25be3da
+--- /dev/null
++++ b/include/linux/industrialio/gpio_trigger.h
+@@ -0,0 +1,6 @@
++
++
++struct iio_gpio_trigger_pdata {
++	int num_gpios;
++	int *gpios;
++};
 
 _______________________________________________
 lm-sensors mailing list
