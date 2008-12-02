@@ -1,62 +1,62 @@
-From: "David Hubbard" <david.c.hubbard@gmail.com>
-Date: Fri, 26 Dec 2008 14:58:19 +0000
-Subject: Re: [lm-sensors] Problems with fan speed control - chip w83627ehf
-Message-Id: <4dfa50520812260658u7739b66dp8a42afeb7aeebaca@mail.gmail.com>
+From: "Luca Tettamanti" <kronos.it@gmail.com>
+Date: Tue, 02 Dec 2008 10:21:29 +0000
+Subject: Re: [lm-sensors] New Asus board and multiple sensors chips
+Message-Id: <68676e00812020221j1b2c5f42jd0fa58d255b19d03@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <9f8c28980812240937w6a12c0d6s90cba0242c0e2db9@mail.gmail.com>
-In-Reply-To: <9f8c28980812240937w6a12c0d6s90cba0242c0e2db9@mail.gmail.com>
+References: <48CA5C05.8040307@absence.it>
+In-Reply-To: <48CA5C05.8040307@absence.it>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Alex,
+On Thu, Nov 27, 2008 at 3:41 PM, Marco Chiappero <marco@absence.it> wrote:
+>> Hum, anything in dmesg?
+>> Anyway I'm attacching the new version (plus patch for ACPI - diffed
+>> against git-current, but it's easily adapted to older kernels).
+[...]
+> I compiled and loaded the new atk driver and compiled again lm-sensors with
+> the old patch (that was laying around in my /usr/src) and this time I
+> managed to see the atk driver readings from the "sensors" output (don't know
+> why it didn't work the first time, sorry). However I noticed that the code
+> you posted recently it's a little bit different, isn't? Should I try that
+> one too?
 
-It appears you can't control them with the w83627ehf. Good motherboard
-documentation will sometimes say this (Asus motherboards admit it when
-the fan can't be controlled). It sounds like your motherboard
-documentation isn't going to be helpful.
+The patch for lm-sensors? I've just rebased to SVN-current.
 
-You have done everything right to control the output of the w83627ehf.
-All I can do is suggest that you start with the BIOS settings and try
-to determine if the BIOS thinks it can control the fan speed.
-Sometimes the southbridge has PWM output.
+> About the atk, it seems to work fine, but I haven't got the time to verify
+> the presence of strange issues, regarding for example suspend and/or
+> hibernate, stuff like that (does it matter?).
 
-Good luck, and happy holidays,
-David
+The driver is stateless, so it shouldn't matter (testing won't harm though :P)
 
-On Wed, Dec 24, 2008 at 10:37 AM, Alex van der Molen
-<alexvdmolen@gmail.com> wrote:
-> Hello all,
->
-> I have  a kino-lx mini-itx motherboard. Connected to it are two 3-pin fans.
-> The chip for sensors and pwm control is w83627ehf, according to
-> sensors-detect.
-> The module reads all sensor values just fine, but when I try to alter the
-> fan speed, nothing happens. After the lm-sensors applications didn't seem to
-> do anything I dived into the kernel documentation and tried to do it
-> manually. But no matter what I write to the pwm device files, the fans keep
-> running on full speed, and when I put it in thermal cruise mode I can
-> actually see that it alters pwm value, but again nothing happens.
->
-> The motherboard documentation mentions that it should have this feature, but
-> it looks like that documentation just copied all specifications of the
-> hardware monitor chip (for example, it mentions being able to measure the
-> speed of 5 fans, while only 2 can be connected to the board).
-> Is it possible that this functionality just isn't available? Is it even
-> possible to do fan speed control with a 3-pin fan (unfortunately our only
-> option since we can't connect a 4-pin fan)?
-> And if it's possible, what could I be doing wrong?
->
-> Thanks in advance for any help and happy holidays!
->
-> Alex
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+> The only thing to say is that in the new code now shows all the readings in
+> the /sys/class/hwmon/hwmonX/ dir instead of the
+> /sys/class/hwmon/hwmonX/device/ I used to see with many other sensors chips.
+
+Both are supported, I'm not sure which one is "better" - I used the
+class directory since the ATK device also controls stuff other than
+hwmon.
+
+> I know that no fan control is possible with this driver, however I was
+> asking to myself whether it is possible to select on the fly one of the
+> three "silent, normal, turbo" profiles available in the BIOS settings. Even
+> if it is not a fine fan tuning, such regulation should be enough for me.
+
+It's doable using the Q-FAN interface. You use the interface calling
+GITM/SITM with class 0x4 (see the documentation embedded in my
+driver). There are at least 3 different types of control in this
+class, you'll have to reverse engineer the exact calling interface
+(start with the getters).
+
+> One, last thing: I use to collect and plot system data with collectd and
+> rrdtool, but collectd seems to ignore the atk driver. I know, I should read
+> the code, however any idea for addressing this issue?
+
+I suppose that collectd is using the unpatched libsensor which ignores
+the ATK device (it's attached to the unknown ACPI bus).
+
+Luca
 
 _______________________________________________
 lm-sensors mailing list
