@@ -1,30 +1,32 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Mon, 15 Dec 2008 19:46:58 +0000
-Subject: Re: [lm-sensors] [PATCH 4/4] hwmon: (k8temp) fix temperature
-Message-Id: <4946B432.1070706@assembler.cz>
+From: "DanO" <dan@madspace.com>
+Date: Wed, 03 Dec 2008 00:02:30 +0000
+Subject: [lm-sensors] MSI Wind Pc 100
+Message-Id: <20081202170230.70d8150377b688c74c15e7947e7d8d3a.340dbf3a9c.wbe@email.secureserver.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============4060156355229459600=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081205175626.GE5581@alberich.amd.com>
-In-Reply-To: <20081205175626.GE5581@alberich.amd.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Andreas Herrmann napsal(a):
-> On Tue, Dec 09, 2008 at 11:38:14PM +0100, Rudolf Marek wrote:
->> Huh interesting stuff. Any pointers to documentation please?
-> 
-> No pointer, sorry.
-> 
-> The AMD family 0Fh BKDG is incorrect wrt K8 RevG desktop CPUs.
-> I'll try to address this but I am not sure whether the documentation
-> will be updated.
+--===============4060156355229459600==
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="utf-8"
 
-OK thank you very much.
+<html><body><span style=3D"font-family:Verdana; color:#000000; font-size:10=
+pt;">Hello,<br><br>I wanted to know if anyone has had success getting lm_se=
+nsors to work with the MSI Wind Pc 100 desktop.<br><br>It detects the Intel=
+ ICH7 and seems to go fine within the sensor-detect but always finishes wit=
+h a "No Sensors Detected" error.<br><br>Any ideas?<br><br>Thanks!<br></span=
+></body></html>
 
-Rudolf
+
+--===============4060156355229459600==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============4060156355229459600==--
