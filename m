@@ -1,69 +1,54 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Wed, 03 Dec 2008 16:04:06 +0000
-Subject: Re: [lm-sensors] PATCH: hwmon-fschmd-watchdog-v4.patch
-Message-Id: <4936ADF6.7020007@redhat.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 03 Dec 2008 17:22:16 +0000
+Subject: [lm-sensors] sensors-detect: testers wanted!
+Message-Id: <20081203182216.5be504cf@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <493007E2.4070101@redhat.com>
-In-Reply-To: <493007E2.4070101@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
+Over the past few days, I have been working a lot on sensors-detect. I
+implemented ideas I had exposed months ago but did not have the time to
+implement back then:
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
-> On Wed, 03 Dec 2008 13:19:36 +0100, Hans de Goede wrote:
->> Jean Delvare wrote:
->>> Hi Hans,
->>>
->>> On Fri, 28 Nov 2008 16:01:54 +0100, Hans de Goede wrote:
->>>> Hi Jean,
->>>>
->>>> Today I had access to my FSC test machine for the first time in a while. So 
->>>> here is the latest version of my watchdog support for Siemens hwmon IC's patch. 
->>>> This fixes the last 2 issues you spotted during review. Can you please queue 
->>>> this for 2.6.29 ? If Wim comes up with anything during his review I'll fix that 
->>>> with a follow up patch,
->>> Applied, thanks. Now I'm waiting for the patch which deprecates fscher
->>> and fscpos :)
->>>
->> Attached (to be applied on top of the previous 2 fschmd patches).
-> 
-> Looks good, with minor issues (which I fixed myself):
-> 
->> Now that the new merged fschmd driver has gained support for the watchdog
->> integrated into these IC's, there is no more reason to keep the old fscher and
->> fscpos drivers around, so mark them as depcrated.
-> 
-> Typo: deprecated.
-> 
->> -	  This is a new merged driver for FSC sensor chips which is intended
->> -	  as a replacement for the fscpos, fscscy and fscher drivers and adds
->> -	  support for several other FCS sensor chips.
->> +	  This is a merged driver for FSC sensor chips replacing the fscpos,
->> +	  fscscy and fscher drivers and adding support for several other FCS
->> +	  sensor chips.
-> 
-> You certainly mean FSC not FCS.
+id	summary
+2322	The probe order in sensors-detect doesn't make sense
+2325	sensors-detect: Drop support for Linux 2.4
+2327	sensors-detect: Fix the bus numbering prediction magic
+2328	sensors-detect: Get the bus driver names from the kernel
+2329	sensors-detect: Unload drivers which we loaded ourselves
 
-Err, yes that type was actually carried over from the old text, but this is a 
-good moment to fix it :)
+I also made a huge amount of cleanups (including a complete
+reindentation of the source code), reducing the size of the
+sensors-detect script from 185 kB to roughly 145 kB.
 
-> 
-> Additionally, I think it would be a good idea to have an entry for this
-> in Documentation/feature-removal-schedule.txt, so that it doesn't get
-> overlooked. I suggest to schedule the removal in 6 months from now, so
-> June 2009. OK?
-> 
+With so many changes, both in functionality and implementation, I
+expect some fallouts. I tested my work on several machines already, but
+there are so many possible combinations of devices that it is rather
+unlikely that I managed to get everything right.
 
-OK
+So, I would like users to give a try to the latest version of
+sensors-detect and report if it works fine for them or not. You can get
+the latest version of sensors-detect using the following svn command:
 
-Regards,
+svn export http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0/prog/detect/sensors-detect
 
-Hans
+Alternatively, you can get a copy from trac:
+http://www.lm-sensors.org/browser/lm-sensors/branches/lm-sensors-3.0.0/prog/detect/sensors-detect?format=txt
+
+The behavior should be essentially the same as before, with the
+difference that probes are done in reverse order (CPU, Super I/O, ISA,
+SMBus), and ISA and SMBus probes default to no if a working Super I/O
+was found (as was discussed on the list before [1].)
+
+[1] http://lists.lm-sensors.org/pipermail/lm-sensors/2008-May/023056.html
+
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
