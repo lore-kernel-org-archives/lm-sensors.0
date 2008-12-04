@@ -1,33 +1,27 @@
-From: Matt Roberds <mattroberds@cox.net>
-Date: Tue, 23 Dec 2008 18:38:20 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Add a driver for the ADT7475
-Message-Id: <Pine.LNX.4.64.0812231232540.20885@birdbird.example.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 04 Dec 2008 16:43:17 +0000
+Subject: Re: [lm-sensors] ITE 8710 support
+Message-Id: <20081204174317.4575b02e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20080610194818.GA21150@cosmic.amd.com>
-In-Reply-To: <20080610194818.GA21150@cosmic.amd.com>
+References: <D83626FF0FE88B791C6B5AFB45AB301212279676858217E605BD3FF90E9E@webmail.aster.pl>
+In-Reply-To: <D83626FF0FE88B791C6B5AFB45AB301212279676858217E605BD3FF90E9E@webmail.aster.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 23 Dec 2008, Daimonos Tereutes wrote:
-> I'm using the patch for ADT7475 since the begining on an ASUS M2N32 WS
-> Professional without problem.
+On Sat, 29 Nov 2008 15:08:10 +0100 (CET), daniel.perzynski wrote:
+> Hi,
+> 
+> Please add support for ITE 8710F chipset. I can provide data sheet and
+> programming guide. If you are interested in those documents please let
+> me know where to send them.
 
-It looks like you might be using a modified version of this
-sensors3.conf :
-http://www.lm-sensors.org/wiki/Configurations/Asus/M2N-SLI%20Deluxe
+I've read the datasheet quickly, and this chip doesn't include hardware
+monitoring features, so there's simply nothing we can do.
 
-On your board, it seems like it8716 in2 (+3.3 V) works, and it8716 temp3
-is chassis temp.  Also, the assignment of fans (CPU/chassis/power
-supply) to chip inputs is a little different.  If you have verified that
-the labels are correct, can you post your sensors3.conf here on the
-list?  This will help it get to the wiki as a reference for others.
-
-Thanks!
-
-Matt Roberds
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
