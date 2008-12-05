@@ -1,38 +1,35 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 13 Dec 2008 22:57:49 +0000
-Subject: Re: [lm-sensors] Winbond W83667HG Super IO Sensors
-Message-Id: <20081213235749.69f25956@hyperion.delvare>
+From: Andy Poling <poling@econnectix.com>
+Date: Fri, 05 Dec 2008 18:34:47 +0000
+Subject: [lm-sensors] sensord exits on any error
+Message-Id: <alpine.DEB.2.00.0812051215080.9967@andydesk.realbig.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4943F25E.3080806@gmx.de>
-In-Reply-To: <4943F25E.3080806@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 13 Dec 2008 23:39:50 +0100, Reinhard Nissl wrote:
-> > BTW, is this system still in use? We moved support for all FSC chips to
-> > a unified driver (fschmd). If your system still works, you might want
-> > to give it a try and report how it's doing for you.
-> 
-> Oh yes, it is still in use. Is the unified driver already part of
-> kernel 2.6.27.7? If it is, I'll come across is it when I update
+We are using lm-sensors in an embedded system, and have noticed that when
+errors occur, sensord exits.
 
-Yes, all kernels since 2.6.24 have the new fschmd driver with support
-for all FSC hardware monitoring chips. The only feature which is
-missing is the watchdog support, which will only be added in kernel
-2.6.29.
+We occasionally encounter SMBus collisions which cause transient errors on
+SMBus reads by the sensor chip driver.
 
-> the "old" machine to openSUSE 11.1. But this will be quite some
-> time after the "new" machine is working properly with openSUSE
-> 11.1. So far it took me two weeks to get the harddrive working.
+We modified the most recent w83793 driver (which is much improved in dealing
+with SMBus issues) to return cached data for up to 30 seconds in the case of
+SMBus errors, and then to return EAGAIN on the sysfs file read if the SMBus
+errors persist.
 
-If you don't use the watchdog feature, the kernel in openSUSE 11.1 will
-do just fine. If you do, you'll have to wait some more.
+However sensord exits when it gets EAGAIN.  We have patched sensord not to
+exit on errors, but instead to log them and continue.  This seems to us to be
+the robust behavior for an important system monitoring daemon - if the error
+is transient it rides it out, and if it is permanent it complains to get
+attention.  It's about a 2-line change in the main loop of sensord.
 
-Thanks,
--- 
-Jean Delvare
+I'd like to push these patches upstream, but wanted to first see if it is
+acceptable to change the behavior of the w83793 driver and sensord in this
+way.
+
+-Andy
 
 _______________________________________________
 lm-sensors mailing list
