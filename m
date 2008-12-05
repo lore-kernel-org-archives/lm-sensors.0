@@ -1,43 +1,91 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Wed, 03 Dec 2008 19:55:57 +0000
-Subject: Re: [lm-sensors] Intel S5000 Server board, Ubuntu 8.10
-Message-Id: <20081203195557.GO6539@plum>
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
+Date: Fri, 05 Dec 2008 17:56:26 +0000
+Subject: [lm-sensors] [PATCH 4/4] hwmon: (k8temp) fix temperature reporting
+Message-Id: <20081205175626.GE5581@alberich.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <484CA69D4507624FACB312684B9211F90135189DF3@MAILBOXSERVER.mgsops.net>
-In-Reply-To: <484CA69D4507624FACB312684B9211F90135189DF3@MAILBOXSERVER.mgsops.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Dec 03, 2008 at 04:00:10PM +0200, Rolf Bartels wrote:
-> Hi,
-> 
-> I hope someone can help me.
-> 
-> I am running a Intel Server board S5000 and Ubuntu 8.10.
-> When I do my detect and at the end I get this.
-> 
-> I have install OpenIPMI and ipmitools, but I am still only getting CPU temp and not any fan speed or MB temp.
-> 
-> #----cut here----
-> # You must also install and load the IPMI modules
-> ipmi-si
-> # Chip drivers
-> # Warning: the required module ipmisensors is not currently installed
-> # on your system. For status of 2.6 kernel ports check
-> # http://www.lm-sensors.org/wiki/Devices. If driver is built
-> # into the kernel, or unavailable, comment out the following line.
-> ipmisensors
+Current Temperature for K8 RevG desktop CPUs is a "normalized value"
+which can be below ambient temperature.
 
-The ipmisensors driver is an out-of-tree patch that's slowly bitrotting.
-Your best bet, alas, is to load ipmi-si and ipmi-devintf and use
-ipmitool to access the BMC sensors.
+As a consequence lots of RevG systems report temperatures like:
 
-(If you're really really keen on coding something, the old patch still
-lives here: http://bmcsensors-26.sourceforge.net/ )
+ sensors
+ k8temp-pci-00c3
+ Adapter: PCI adapter
+ Core0 Temp:
+              +17C
+ Core0 Temp:
+               +3C
+ Core1 Temp:
+              +21C
+ Core1 Temp:
+               +5C
 
---D
+being quite below ambient temperature.
+There are even reports of negative temperature values.
+
+This patch corrects the temperature reporting of k8temp for
+RevG desktop CPUs.
+
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+---
+ drivers/hwmon/k8temp.c |   15 +++++++++++++--
+ 1 files changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
+index 102f3ad..e37eeb5 100644
+--- a/drivers/hwmon/k8temp.c
++++ b/drivers/hwmon/k8temp.c
+@@ -50,6 +50,7 @@ struct k8temp_data {
+ 	u8 sensorsp;		/* sensor presence bits - SEL_CORE & SEL_PLACE */
+ 	u32 temp[2][2];		/* core, place */
+ 	u8 swap_core_select;    /* meaning of SEL_CORE is inverted */
++	u32 temp_offset;
+ };
+ 
+ static struct k8temp_data *k8temp_update_device(struct device *dev)
+@@ -117,13 +118,14 @@ static ssize_t show_temp(struct device *dev,
+ 	    to_sensor_dev_attr_2(devattr);
+ 	int core = attr->nr;
+ 	int place = attr->index;
++	u32 temp;
+ 	struct k8temp_data *data = k8temp_update_device(dev);
+ 
+ 	if (data->swap_core_select)
+ 		core = core ? 0 : 1;
+ 
+-	return sprintf(buf, "%d\n",
+-		       TEMP_FROM_REG(data->temp[core][place]));
++	temp = TEMP_FROM_REG(data->temp[core][place]) + data->temp_offset;
++	return sprintf(buf, "%d\n", temp);
+ }
+ 
+ /* core, place */
+@@ -175,6 +177,15 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
+ 				 "wrong - check erratum #141\n");
+ 		}
+ 
++		if (((model >= 0x68) && (model != 0xc1)) &&
++		    !(model = 0x68) && !(model = 0x6c) &&
++		    !(model = 0x7c))
++			/*
++			 * RevG desktop CPUs (i.e. no socket S1G1 parts)
++			 * need additional offset, otherwise reported
++			 * temperature is below ambient temperature
++			 */
++			data->temp_offset = 21000;
+ 
+ 		break;
+ 	}
+-- 
+1.6.0.4
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
