@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 07 Dec 2008 08:57:28 +0000
+Date: Tue, 09 Dec 2008 07:41:09 +0000
 Subject: Re: [lm-sensors] MSI Wind Pc 100
-Message-Id: <20081207095728.20558181@hyperion.delvare>
+Message-Id: <20081209084109.7915f702@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20081202170230.70d8150377b688c74c15e7947e7d8d3a.340dbf3a9c.wbe@email.secureserver.net>
 In-Reply-To: <20081202170230.70d8150377b688c74c15e7947e7d8d3a.340dbf3a9c.wbe@email.secureserver.net>
@@ -12,23 +12,26 @@ To: lm-sensors@vger.kernel.org
 
 Hi Dan,
 
-On Tue, 02 Dec 2008 17:02:30 -0700, DanO wrote:
-> I wanted to know if anyone has had success getting lm_sensors
-> to work with the MSI Wind Pc 100 desktop.
+On Mon, 08 Dec 2008 11:44:34 -0700, DanO wrote:
+> Jean,
 > 
-> It detects the Intel ICH7 and seems to go fine within the sensor-detect
-> but always finishes with a "No Sensors Detected" error.
+> Here is the output of the sensors-detect program:
 > 
-> Any ideas?
+> 
+> # sensors-detect revision $Revision$
+> # System: MICRO-STAR INTERNATIONAL CO., LTD MS-7418
+> (...)
+> Now follows a summary of the probes I have just done.
+> Just press ENTER to continue:
+> 
+> Driver `to-be-written':
+>   * Bus `SMBus I801 adapter at 0400'
+>     Busdriver `i2c-i801', I2C address 0x2e
+>     Chip `Analog Devices ADT7467 or ADT7468' (confidence: 7)
 
-Please download the latest version of sensors-detect:
-svn export http://lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0/prog/detect/sensors-detect
-
-and report the full output. Please also include the output of lspci -nn
-and dmidecode.
-
-That being said, the Wind Pc 100 is a laptop, and most laptops do not
-have sensors other than the ACPI thermal management.
+This would be your hardware monitoring chip. Unfortunately we do not
+have any driver for it at the moment. I can add your name to the list
+of interested users on the wiki if you want.
 
 -- 
 Jean Delvare
