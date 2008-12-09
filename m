@@ -1,98 +1,59 @@
-From: Tobias Preclik <public@tobias.preclik.de>
-Date: Mon, 29 Dec 2008 12:26:27 +0000
-Subject: [lm-sensors] Error getting sensor data: w83627ehf/#34
-Message-Id: <4958C1F3.9020108@tobias.preclik.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1949504950537203251=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 09 Dec 2008 15:37:34 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Fix various typos
+Message-Id: <20081209163734.683475cf@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---===============1949504950537203251==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigCF50CA29913BFB40F4F2DFF5"
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ Documentation/hwmon/lm85  |    2 +-
+ drivers/hwmon/it87.c      |    2 +-
+ drivers/hwmon/w83627ehf.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigCF50CA29913BFB40F4F2DFF5
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hello,
-
-i encountered a problem running sensord. I am running version 2.10.7 and
-have a w83627ehf sensor chip on my P4V800D-X Asus mainboard. The kernel
-is a Gentoo Linux kernel version 2.6.27. The syslog states the following:=
-
-
-sensord started
-Chip: w83627ehf-isa-0290
-Adapter: ISA adapter
-  Case Fan: 0 RPM (min =3D 0 RPM, div =3D 128)
-  CPU Fan: 2481 RPM (min =3D 0 RPM, div =3D 4)
-  Aux Fan: 0 RPM (min =3D 0 RPM, div =3D 128)
-Error getting sensor data: w83627ehf/#34: Can't access procfs/sysfs file
-sensord failed (23)
-
-As I understand it I am supposed to add "#34" to the ignore list in the
-corresponding chip section in /etc/sensors.conf. However this does not
-fix the problem. The sensors tool does not complain btw:
-
-w83627ehf-isa-0290
-Adapter: ISA adapter
-VCore:     +1.59 V  (min =3D  +0.00 V, max =3D  +1.85 V)
-in1:      +12.04 V  (min =3D  +1.80 V, max =3D  +0.00 V) ALARM
-AVCC:      +3.38 V  (min =3D  +0.00 V, max =3D  +0.00 V) ALARM
-3VCC:      +3.36 V  (min =3D  +0.00 V, max =3D  +0.00 V) ALARM
-in4:       +1.32 V  (min =3D  +0.01 V, max =3D  +0.00 V) ALARM
-in5:       +1.71 V  (min =3D  +0.26 V, max =3D  +0.06 V) ALARM
-in6:       +4.28 V  (min =3D  +0.00 V, max =3D  +0.00 V) ALARM
-VSB:       +3.38 V  (min =3D  +0.00 V, max =3D  +0.00 V) ALARM
-VBAT:      +3.28 V  (min =3D  +0.00 V, max =3D  +0.00 V) ALARM
-in9:       +1.26 V  (min =3D  +0.00 V, max =3D  +0.00 V) ALARM
-Case Fan:    0 RPM  (min =3D    0 RPM, div =3D 128) ALARM
-CPU Fan:  2463 RPM  (min =3D    0 RPM, div =3D 4) ALARM
-Aux Fan:     0 RPM  (min =3D    0 RPM, div =3D 128) ALARM
-fan5:        0 RPM  (min =3D    0 RPM, div =3D 128)
-Sys Temp:    +27=B0C  (high =3D    +0=B0C, hyst =3D    +0=B0C)  [thermist=
-or] ALARM
-CPU Temp:   +9.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  [CPU diod=
-e ]
-AUX Temp:  +77.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  [thermist=
-or]
+--- linux-2.6.28-rc7.orig/drivers/hwmon/w83627ehf.c	2008-12-05 23:58:15.000000000 +0100
++++ linux-2.6.28-rc7/drivers/hwmon/w83627ehf.c	2008-12-08 10:48:34.000000000 +0100
+@@ -503,7 +503,7 @@ static struct w83627ehf_data *w83627ehf_
+ 		}
+ 
+ 		for (i = 0; i < 4; i++) {
+-			/* pwmcfg, tolarance mapped for i=0, i=1 to same reg */
++			/* pwmcfg, tolerance mapped for i=0, i=1 to same reg */
+ 			if (i != 1) {
+ 				pwmcfg = w83627ehf_read_value(data,
+ 						W83627EHF_REG_PWM_ENABLE[i]);
+--- linux-2.6.28-rc7.orig/Documentation/hwmon/lm85	2008-10-24 09:27:31.000000000 +0200
++++ linux-2.6.28-rc7/Documentation/hwmon/lm85	2008-12-08 10:48:34.000000000 +0100
+@@ -164,7 +164,7 @@ configured individually according to the
+                       temperature. (PWM value from 0 to 255)
+ 
+ * pwm#_auto_pwm_minctl - this flags selects for temp#_auto_temp_off temperature
+-                         the bahaviour of fans. Write 1 to let fans spinning at
++                         the behaviour of fans. Write 1 to let fans spinning at
+ 			 pwm#_auto_pwm_min or write 0 to let them off.
+ 
+ NOTE: It has been reported that there is a bug in the LM85 that causes the flag
+--- linux-2.6.28-rc7.orig/drivers/hwmon/it87.c	2008-12-05 23:58:15.000000000 +0100
++++ linux-2.6.28-rc7/drivers/hwmon/it87.c	2008-12-08 10:48:49.000000000 +0100
+@@ -1386,7 +1386,7 @@ static void __devinit it87_init_device(s
+ 			it87_write_value(data, IT87_REG_TEMP_HIGH(i), 127);
+ 	}
+ 
+-	/* Check if temperature channnels are reset manually or by some reason */
++	/* Check if temperature channels are reset manually or by some reason */
+ 	tmp = it87_read_value(data, IT87_REG_TEMP_ENABLE);
+ 	if ((tmp & 0x3f) = 0) {
+ 		/* Temp1,Temp3=thermistor; Temp2=thermal diode */
 
 
-How can I fix this?
-
-regards,
-Tobias
-
-
---------------enigCF50CA29913BFB40F4F2DFF5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iEYEARECAAYFAklYwgEACgkQc8GdoDrONNFMmQCgsKHhZMhbQ4H1ZaIf7XmbMqdz
-uoEAoOXy44bU70vC5a6HyNuYst21fDWd
-=w7aL
------END PGP SIGNATURE-----
-
---------------enigCF50CA29913BFB40F4F2DFF5--
-
-
---===============1949504950537203251==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1949504950537203251==--
