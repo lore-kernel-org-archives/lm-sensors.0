@@ -1,7 +1,7 @@
 From: Andreas Herrmann <andreas.herrmann3@amd.com>
-Date: Wed, 10 Dec 2008 10:03:33 +0000
+Date: Wed, 10 Dec 2008 10:30:15 +0000
 Subject: Re: [lm-sensors] [PATCH 1/4] hwmon: (k8temp) adapt cpuid handling,
-Message-Id: <20081210100333.GH19144@alberich.amd.com>
+Message-Id: <20081210103015.GL19144@alberich.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20081205174612.GB5581@alberich.amd.com>
 In-Reply-To: <20081205174612.GB5581@alberich.amd.com>
@@ -10,46 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Dec 09, 2008 at 11:12:39PM +0100, Rudolf Marek wrote:
-> Hello,
->
-> Sorry for the delay.
->
->> Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
->
-> Maybe also some desc. Well the reason why the code below looks like is that
->
-> 1) avoid very old systems - the idea that revs of CPU will be similar/same
-> 2) get the cpuid from PCI. This is good, because some CPU may have the 
-> problem, some other may not.
+On Wed, Dec 10, 2008 at 11:03:33AM +0100, Andreas Herrmann wrote:
+> On Tue, Dec 09, 2008 at 11:12:39PM +0100, Rudolf Marek wrote:
+> > Please tell me why it is not necessary or why you changed that ;)
 
-Jean gave examples of a systems where the PCI will not work. Thus
-it isn't a reliable way to get CPUID. By problem you mean certain
-erratum.  But this can only happen on systems with an unspported mixed
-silicon setup.  E.g. combining K8 RevE with K8 RevF which is
-(according to AMD's documentation) not a supported setup.
+To be more specific.
 
-> Your patch reduces this to boot CPU checks. The idea was to have the driver 
-> know exact CPUID for each PCI driver instance. It was prepared to situation 
-> when some CPU steppings will have the fix, some not.
->
-> Please tell me why it is not necessary or why you changed that ;)
+There are following CPUID checks necessary in k8temp:
 
-For mixed silicon systems certain restrictions apply.
-The allowed mixed silicon revisions for K8 and family 0x10 show
-that it completely suffices for k8temp to check the revision of
-the boot CPU.
+>= K8 RevC
 
-E.g. if boot CPU is >= K8 RevC all other processors should be >=RevC <=RevE
-If boot CPU is RevF all other processors should be RevF.
-(Similar for family 0x10 RevB or RevC.)
+to check for support of temperature reporting at all.
 
-And last not least K8 RevG is desktop/mobile only -- so no mixed setup
-here at all.
+>= RevF
 
-Thus all relevant CPUID checks in k8temp can reliably be performed
-with boot CPU information and no additional CPUID evaluation code is
-needed in k8temp.
+to check for erratum #141
+
+>= RevG (desktop)
+
+to check for temperature skew
+
+(In the future we might have additional checks for
+family 0x10 >= RevC to check for erratum 319.)
+
+This devides K8 CPUs into 4 classes (and family 10h CPUs into
+2 classes).
+
+Now it is important to notice that (by chance) you can't combine
+processors of different classes in a mixed silicon setup.
+See the relevant CPU revision guides for those CPUs.
+E.g., combining RevC with RevF is not supported.
+
+Thus it suffices to check CPUID of boot CPU.
+We don't need to care about unsupported processor combinations.
 
 
 Regards,
