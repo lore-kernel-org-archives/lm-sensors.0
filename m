@@ -1,160 +1,129 @@
-From: Julia Lawall <julia@diku.dk>
-Date: Wed, 10 Dec 2008 16:42:16 +0000
-Subject: [lm-sensors] [PATCH 25/28] drivers/hwmon/smsc47b397: Drop return
-Message-Id: <Pine.LNX.4.64.0812101741530.21998@ask.diku.dk>
+From: "=?ISO-8859-1?Q?Ludovic_Leb=E8gue?=" <ludovic@lebegue.org>
+Date: Wed, 10 Dec 2008 22:24:05 +0000
+Subject: [lm-sensors] Fwd:  sensors-detect: testers wanted!
+Message-Id: <689a35800812101424v77822dc1x4b2b94e71eb09be4@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: dmitri.vorobiev@movial.fi, mhoffman@lightlink.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-From: Julia Lawall <julia@diku.dk>
+Hi Jean,
 
-The return value of the remove function of a driver structure, and thus of
-a platform_driver structure, is ultimately ignored, and is thus
-unnecessary.  This patch removes the return value for the remove function
-stored in a platform_driver structure.  For the files in this patch, the
-return values are always 0.
+Here is the result of my latest tests with f8000 on a 2.6.27 kernel.
 
-A simplified version of the semantic patch that makes this change is as
-follows: (http://www.emn.fr/x-info/coccinelle/)
+- Compilation OK :
+- insmod OK : kernel trace
+    Dec 10 23:16:57 xxx kernel: [88516.594275] f8000: Found F8000 chip at 0=
+xa00
+    Dec 10 23:16:57 xxx kernel: [88516.595009] f8000 f8000.2560: Fan
+monitoring is enabled
+    Dec 10 23:16:57 xxx kernel: [88516.595667] f8000 f8000.2560:
+Temperature and voltage monitoring is enabled
+- "sensors" output
+    f8000-isa-0a00
+    Adapter: ISA adapter
+    in0:         +3.36 V
+    in1:         +3.34 V
+    in2:         +3.28 V
+    fan1:       1466 RPM
+    fan2:        909 RPM
+    fan3:          0 RPM
+    fan4:          0 RPM
+    temp1:       +46.0=B0C  (high =3D +60.0=B0C, crit =3D +70.0=B0C)
+    temp2:       +41.0=B0C  (high =3D +85.0=B0C, crit =3D +100.0=B0C)
+    temp3:       +40.0=B0C  (high =3D +85.0=B0C, crit =3D +100.0=B0C)
 
-// <smpl>
-@r@
-struct platform_driver I;
-identifier a,f;
-position p;
-@@
-I.remove = \(f@p\|a(f@p)\);
+It all seems OK to me.
 
-@void_called@
-identifier r.f;
-position p;
-@@
-f@p(...);
+Regards
+Ludovic
 
-@called@
-identifier r.f;
-position p1 != void_called.p;
-@@
-f@p1(...)
 
-@localfn@
-identifier r.f;
-@@
-static int f(...) { ... }
+---------- Forwarded message ----------
+From: Ludovic Leb=E8gue <ludovic@lebegue.org>
+Date: 2008/12/10
+Subject: Re: [lm-sensors] sensors-detect: testers wanted!
+To: Jean Delvare <khali@linux-fr.org>
 
-@depends on !called && localfn@
-struct platform_driver I;
-identifier a,f;
-position r.p;
-@@
 
-I.
-- remove
-+ remove_new
-   = \(f@p\|a(f@p)\);
+Bonjour Jean,
 
-@depends on !called && localfn@
-identifier r.f,i;
-constant C;
-expression E;
-@@
+Oui en effet je t'avais contact=E9 pour =E9crire un petit proto sur le
+f8000 alros que tu n'avais pas les datasheets ...
 
-- int
-+ void
-       f(...) {
-  <...
-(
--  return \(C\|i\);
-+  return;
-|
--  return E;
-+  E;
-+  return;
-)
-  ...>
-}
-// </smpl>
+Je compile la derni=E8re version et je t'envoi le r=E9sultat ...
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Cordialement
+Ludovic
 
----
- drivers/hwmon/smsc47b397.c |    6 ++----
- drivers/hwmon/smsc47m1.c   |    8 +++-----
- 2 files changed, 5 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/hwmon/smsc47b397.c b/drivers/hwmon/smsc47b397.c
-index eb03544..fd4d596 100644
---- a/drivers/hwmon/smsc47b397.c
-+++ b/drivers/hwmon/smsc47b397.c
-@@ -221,7 +221,7 @@ static const struct attribute_group smsc47b397_group = {
- 	.attrs = smsc47b397_attributes,
- };
- 
--static int __devexit smsc47b397_remove(struct platform_device *pdev)
-+static void __devexit smsc47b397_remove(struct platform_device *pdev)
- {
- 	struct smsc47b397_data *data = platform_get_drvdata(pdev);
- 	struct resource *res;
-@@ -231,8 +231,6 @@ static int __devexit smsc47b397_remove(struct platform_device *pdev)
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
- 	release_region(res->start, SMSC_EXTENT);
- 	kfree(data);
--
--	return 0;
- }
- 
- static int smsc47b397_probe(struct platform_device *pdev);
-@@ -243,7 +241,7 @@ static struct platform_driver smsc47b397_driver = {
- 		.name	= DRVNAME,
- 	},
- 	.probe		= smsc47b397_probe,
--	.remove		= __devexit_p(smsc47b397_remove),
-+	.remove_new	= __devexit_p(smsc47b397_remove),
- };
- 
- static int __devinit smsc47b397_probe(struct platform_device *pdev)
-diff --git a/drivers/hwmon/smsc47m1.c b/drivers/hwmon/smsc47m1.c
-index d1b4985..fbd9556 100644
---- a/drivers/hwmon/smsc47m1.c
-+++ b/drivers/hwmon/smsc47m1.c
-@@ -138,7 +138,7 @@ struct smsc47m1_sio_data {
- 
- 
- static int smsc47m1_probe(struct platform_device *pdev);
--static int __devexit smsc47m1_remove(struct platform_device *pdev);
-+static void __devexit smsc47m1_remove(struct platform_device *pdev);
- static struct smsc47m1_data *smsc47m1_update_device(struct device *dev,
- 		int init);
- 
-@@ -159,7 +159,7 @@ static struct platform_driver smsc47m1_driver = {
- 		.name	= DRVNAME,
- 	},
- 	.probe		= smsc47m1_probe,
--	.remove		= __devexit_p(smsc47m1_remove),
-+	.remove_new	= __devexit_p(smsc47m1_remove),
- };
- 
- static ssize_t get_fan(struct device *dev, struct device_attribute
-@@ -629,7 +629,7 @@ error_release:
- 	return err;
- }
- 
--static int __devexit smsc47m1_remove(struct platform_device *pdev)
-+static void __devexit smsc47m1_remove(struct platform_device *pdev)
- {
- 	struct smsc47m1_data *data = platform_get_drvdata(pdev);
- 	struct resource *res;
-@@ -641,8 +641,6 @@ static int __devexit smsc47m1_remove(struct platform_device *pdev)
- 	release_region(res->start, SMSC_EXTENT);
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(data);
--
--	return 0;
- }
- 
- static struct smsc47m1_data *smsc47m1_update_device(struct device *dev,
+2008/12/4 Jean Delvare <khali@linux-fr.org>:
+> Bonjour Ludovic,
+>
+> Il me semble que c'est toi qui avait test=E9 mon pilote pr=E9liminaire po=
+ur
+> le F8000 il y a plusieurs mois ?
+>
+> On Wed, 3 Dec 2008 23:38:19 +0100, Ludovic Leb=E8gue wrote:
+>> Hi Jean
+>>
+>> Just tested it on my computer.
+>>
+>> The result is Ok compared to what gave the previous version.
+>>
+>> Here is the copy of the latest lines :
+>>
+>>
+>> Driver `coretemp':
+>>   * Chip `Intel Core family thermal sensor' (confidence: 9)
+>>
+>> Driver `f8000':
+>>   * ISA bus, address 0xa00
+>>     Chip `Asus F8000 Super IO' (confidence: 9)
+>>
+>> Do you want to generate /etc/sysconfig/lm_sensors? (yes/NO):
+>> To load everything that is needed, add this to one of the system
+>> initialization scripts (e.g. /etc/rc.d/rc.local):
+>>
+>> #----cut here----
+>> # Chip drivers
+>> modprobe coretemp
+>> # Warning: the required module f8000 is not currently installed
+>> # on your system. For status of 2.6 kernel ports check
+>> # http://www.lm-sensors.org/wiki/Devices. If driver is built
+>> # into the kernel, or unavailable, comment out the following line.
+>> modprobe f8000
+>> /usr/bin/sensors -s
+>> #----cut here----
+>>
+>> If you have some drivers built into your kernel, the list above will
+>> contain too many modules. Skip the appropriate ones! You really
+>> should try these commands right now to make sure everything is
+>> working properly. Monitoring programs won't work until the needed
+>> modules are loaded.
+>>
+>> Unloading i2c-dev... OK
+>> Unloading i2c-i801... OK
+>
+> OK, merci pour le rapport. =C7a m'a l'air correct, en tout cas il n'y a
+> rien qui me choque.
+>
+> Est-ce que tu aurais la possibilit=E9 de tester =E0 nouveau mon pilote
+> f8000 ? J'y ai apport=E9 quelques am=E9liorations ce matin, maintenant que
+> j'ai de la documentation technique dessus. Si tu testes et que =E7a
+> marche, je pourrai peut-=EAtre ajouter ce pilote dans Linux 2.6.29 pour
+> que d'autres utilisateurs puissent en profiter.
+>
+> Le nouveau pilote est l=E0 :
+> http://jdelvare.pck.nerim.net/sensors/f8000/
+>
+> En plus de la sortie de "sensors", je suis int=E9ress=E9 par les logs du
+> noyau au chargement du pilote.
+>
+> Merci,
+> --
+> Jean Delvare
+>
 
 _______________________________________________
 lm-sensors mailing list
