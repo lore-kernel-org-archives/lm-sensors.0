@@ -1,12 +1,12 @@
 From: Julia Lawall <julia@diku.dk>
-Date: Wed, 10 Dec 2008 16:41:06 +0000
-Subject: [lm-sensors] [PATCH 22/28] drivers/hwmon/dme1737.c: Drop return
-Message-Id: <Pine.LNX.4.64.0812101740430.21998@ask.diku.dk>
+Date: Wed, 10 Dec 2008 16:41:30 +0000
+Subject: [lm-sensors] [PATCH 23/28] drivers/hwmon/f71805f.c: Drop return
+Message-Id: <Pine.LNX.4.64.0812101741070.21998@ask.diku.dk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: dmitri.vorobiev@movial.fi, juergh@gmail.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: dmitri.vorobiev@movial.fi, khali@linux-fr.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
 From: Julia Lawall <julia@diku.dk>
 
@@ -80,40 +80,40 @@ expression E;
 Signed-off-by: Julia Lawall <julia@diku.dk>
 
 ---
- drivers/hwmon/dme1737.c |    6 ++----
+ drivers/hwmon/f71805f.c |    6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/hwmon/dme1737.c b/drivers/hwmon/dme1737.c
-index 27a5d39..3a9b988 100644
---- a/drivers/hwmon/dme1737.c
-+++ b/drivers/hwmon/dme1737.c
-@@ -2465,7 +2465,7 @@ exit:
+diff --git a/drivers/hwmon/f71805f.c b/drivers/hwmon/f71805f.c
+index 7a14a2d..76842db 100644
+--- a/drivers/hwmon/f71805f.c
++++ b/drivers/hwmon/f71805f.c
+@@ -1408,7 +1408,7 @@ exit:
  	return err;
  }
  
--static int __devexit dme1737_isa_remove(struct platform_device *pdev)
-+static void __devexit dme1737_isa_remove(struct platform_device *pdev)
+-static int __devexit f71805f_remove(struct platform_device *pdev)
++static void __devexit f71805f_remove(struct platform_device *pdev)
  {
- 	struct dme1737_data *data = platform_get_drvdata(pdev);
+ 	struct f71805f_data *data = platform_get_drvdata(pdev);
+ 	struct resource *res;
+@@ -1424,8 +1424,6 @@ static int __devexit f71805f_remove(struct platform_device *pdev)
  
-@@ -2474,8 +2474,6 @@ static int __devexit dme1737_isa_remove(struct platform_device *pdev)
- 	release_region(data->addr, DME1737_EXTENT);
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(data);
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+ 	release_region(res->start + ADDR_REG_OFFSET, 2);
 -
 -	return 0;
  }
  
- static struct platform_driver dme1737_isa_driver = {
-@@ -2484,7 +2482,7 @@ static struct platform_driver dme1737_isa_driver = {
- 		.name = "dme1737",
+ static struct platform_driver f71805f_driver = {
+@@ -1434,7 +1432,7 @@ static struct platform_driver f71805f_driver = {
+ 		.name	= DRVNAME,
  	},
- 	.probe = dme1737_isa_probe,
--	.remove = __devexit_p(dme1737_isa_remove),
-+	.remove_new = __devexit_p(dme1737_isa_remove),
+ 	.probe		= f71805f_probe,
+-	.remove		= __devexit_p(f71805f_remove),
++	.remove_new	= __devexit_p(f71805f_remove),
  };
  
- /* ---------------------------------------------------------------------
+ static int __init f71805f_device_add(unsigned short address,
 
 _______________________________________________
 lm-sensors mailing list
