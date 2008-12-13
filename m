@@ -1,31 +1,25 @@
-From: Andreas Herrmann <andreas.herrmann3@amd.com>
-Date: Wed, 10 Dec 2008 10:15:25 +0000
-Subject: Re: [lm-sensors] [PATCH 3/4] hwmon: (k8temp) warn about erratum
-Message-Id: <20081210101525.GK19144@alberich.amd.com>
+From: Reinhard Nissl <rnissl@gmx.de>
+Date: Sat, 13 Dec 2008 17:35:26 +0000
+Subject: [lm-sensors] Winbond W83667HG Super IO Sensors
+Message-Id: <4943F25E.3080806@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081205175233.GD5581@alberich.amd.com>
-In-Reply-To: <20081205175233.GD5581@alberich.amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Dec 09, 2008 at 11:32:54PM +0100, Rudolf Marek wrote:
-> Hello again,
->
-> This is OK lets merge it with 2/4 it belongs there.
+Hi,
 
-Ok.
+sensors-detect reports 'to-be-written'. Is someone already
+working on this driver?
 
-I just wait what will happen to patch 1 and then will
-create new patches.
+I ported the fscher driver in 2003. Maybe I could try to port
+some existing driver for this chip too.
 
-
-Regards,
-
-Andreas
-
-
+Bye.
+-- 
+Dipl.-Inform. (FH) Reinhard Nissl
+mailto:rnissl@gmx.de
 
 _______________________________________________
 lm-sensors mailing list
