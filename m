@@ -1,78 +1,117 @@
-From: Andy Poling <poling@econnectix.com>
-Date: Fri, 12 Dec 2008 21:45:35 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 14 Dec 2008 15:44:29 +0000
 Subject: Re: [lm-sensors] sensord exits on any error
-Message-Id: <alpine.DEB.2.00.0812121519170.9967@andydesk.realbig.com>
+Message-Id: <20081214164429.3972b6fe@hyperion.delvare>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="658177-1136499035-1229118341=:9967"
+Content-Type: multipart/mixed; boundary="MP_/ypo=OydpXxGrwkbY8xb8+p3"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <alpine.DEB.2.00.0812051215080.9967@andydesk.realbig.com>
 In-Reply-To: <alpine.DEB.2.00.0812051215080.9967@andydesk.realbig.com>
 To: lm-sensors@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+--MP_/ypo=OydpXxGrwkbY8xb8+p3
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
---658177-1136499035-1229118341=:9967
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Hi Andy,
 
-On Fri, 12 Dec 2008, Jean Delvare wrote:
->> I'll put together updated patches for sensord and the w83793 driver and send
->> them to the list.
->
-> Any news from the sensord patch? I am waiting for it before I release
-> lm-sensors 2.10.8, and I'd really like to release it before I leave for
-> vacation.
+On Fri, 12 Dec 2008 15:45:35 -0600 (CST), Andy Poling wrote:
+> It is kind of embarrassingly simple.  I hope a unified diff is acceptable.
 
-My apologies - for some reason I was holding this until we also had the
-updated patch for w83793.c ready.
+A unified diff is perfect. However I do not think the fix is as simple
+as you suggested. The original code has a rather fragile way to handle
+sleep times between actions, and now that failures no longer break the
+loop, odd things can happen. In particular, with your patch, I hit a
+case where the system log would get filled at a very high rate on
+permanent errors, presumably because sleep() was called with negative
+values.
 
-It is kind of embarrassingly simple.  I hope a unified diff is acceptable.
+Please see my attached patch which hopefully fixes all the issues. It
+worked fine for me. Main differences with your original patch:
+* Errors on reloadLib() are logged.
+* Errors are logged using sensorLog() instead of syslog().
+* Error messages use %d instead of %m. %m read errno but the sensord
+  code doesn't set errno.
+* Each of the 3 actions are handled separately, even if one fails, the
+  other ones are attempted.
 
--Andy
---658177-1136499035-1229118341=:9967
-Content-Type: IMAGE/x-coreldrawpattern; name=sensord.c.pat
-Content-Transfer-Encoding: BASE64
-Content-ID: <alpine.DEB.2.00.0812121545350.9967@andydesk.realbig.com>
-Content-Description: sensord.c.pat
-Content-Disposition: attachment; filename=sensord.c.pat
+Please give it a try and report.
 
-LS0tIHNlbnNvcmQuYy5vcmlnCTIwMDgtMTItMTIgMTU6MjQ6MzYuMTMzMzY0
-MTAzIC0wNjAwCisrKyBzZW5zb3JkLmMJMjAwOC0xMi0xMiAxNTozOToxNS43
-NjQzNjIyODAgLTA2MDAKQEAgLTg1LDI3ICs4NSwyOSBAQAogCiAgIHNlbnNv
-ckxvZyAoTE9HX0lORk8sICJzZW5zb3JkIHN0YXJ0ZWQiKTsKIAotICB3aGls
-ZSAoIWRvbmUgJiYgKHJldCA9PSAwKSkgewotICAgIGlmIChyZXQgPT0gMCkK
-LSAgICAgIHJldCA9IHJlbG9hZExpYiAoKTsKKyAgd2hpbGUgKCFkb25lKSB7
-CisgICAgcmV0ID0gcmVsb2FkTGliICgpOwogICAgIGlmICgocmV0ID09IDAp
-ICYmIHNjYW5UaW1lKSB7IC8qIHNob3VsZCBJIHNjYW4gb24gdGhlIHJlYWQg
-Y3ljbGU/ICovCi0gICAgICByZXQgPSBzY2FuQ2hpcHMgKCk7CisgICAgICBp
-ZiAoKHJldCA9IHNjYW5DaGlwcyAoKSkpCisgICAgICAgIHN5c2xvZyhMT0df
-Tk9USUNFLCAic2Vuc29yIHNjYW4gZXJyb3I6ICVtIik7CiAgICAgICBpZiAo
-c2NhblZhbHVlIDw9IDApCiAgICAgICAgIHNjYW5WYWx1ZSArPSBzY2FuVGlt
-ZTsKICAgICB9CiAgICAgaWYgKChyZXQgPT0gMCkgJiYgbG9nVGltZSAmJiAo
-bG9nVmFsdWUgPD0gMCkpIHsKLSAgICAgIHJldCA9IHJlYWRDaGlwcyAoKTsK
-KyAgICAgIGlmICgocmV0ID0gcmVhZENoaXBzICgpKSkKKyAgICAgICAgc3lz
-bG9nKExPR19OT1RJQ0UsICJzZW5zb3IgcmVhZCBlcnJvcjogJW0iKTsKICAg
-ICAgIGxvZ1ZhbHVlICs9IGxvZ1RpbWU7CiAgICAgfQogICAgIGlmICgocmV0
-ID09IDApICYmIHJyZFRpbWUgJiYgcnJkRmlsZSAmJiAocnJkVmFsdWUgPD0g
-MCkpIHsKLSAgICAgIHJldCA9IHJyZFVwZGF0ZSAoKTsKKyAgICAgIGlmICgo
-cmV0ID0gcnJkVXBkYXRlICgpKSkKKyAgICAgICAgc3lzbG9nKExPR19OT1RJ
-Q0UsICJycmQgdXBkYXRlIGVycm9yOiAlbSIpOwogICAgICAgLyoKICAgICAg
-ICAqIFRoZSBhbW91bnQgb2YgdGltZSB0byB3YWl0IGlzIGNvbXB1dGVkIHVz
-aW5nIHRoZSBzYW1lIG1ldGhvZCBhcwogICAgICAgICogaW4gUlJEIGluc3Rl
-YWQgb2Ygc2ltcGx5IGFkZGluZyB0aGUgaW50ZXJ2YWwuCiAgICAgICAgKi8K
-ICAgICAgIHJyZFZhbHVlID0gcnJkVGltZSAtIHRpbWUoTlVMTCkgJSBycmRU
-aW1lOwogICAgIH0KLSAgICBpZiAoIWRvbmUgJiYgKHJldCA9PSAwKSkgewor
-ICAgIGlmICghZG9uZSkgewogICAgICAgaW50IGEgPSBsb2dUaW1lID8gbG9n
-VmFsdWUgOiBJTlRfTUFYOwogICAgICAgaW50IGIgPSBzY2FuVGltZSA/IHNj
-YW5WYWx1ZSA6IElOVF9NQVg7CiAgICAgICBpbnQgYyA9IChycmRUaW1lICYm
-IHJyZEZpbGUpID8gcnJkVmFsdWUgOiBJTlRfTUFYOwpAQCAtMTE3LDEwICsx
-MTksNyBAQAogICAgIH0KICAgfQogCi0gIGlmIChyZXQpCi0gICAgc2Vuc29y
-TG9nIChMT0dfSU5GTywgInNlbnNvcmQgZmFpbGVkICglZCkiLCByZXQpOwot
-ICBlbHNlCi0gICAgc2Vuc29yTG9nIChMT0dfSU5GTywgInNlbnNvcmQgc3Rv
-cHBlZCIpOworICBzZW5zb3JMb2cgKExPR19JTkZPLCAic2Vuc29yZCBzdG9w
-cGVkIik7CiAKICAgcmV0dXJuIHJldDsKIH0K
+Thanks,
+-- 
+Jean Delvare
 
---658177-1136499035-1229118341=:9967
+--MP_/ypo=OydpXxGrwkbY8xb8+p3
+Content-Type: text/x-patch; name=sensord-survive-transient-errors.patch
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename=sensord-survive-transient-errors.patch
+
+Index: prog/sensord/sensord.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- prog/sensord/sensord.c	(r=C3=A9vision 5564)
++++ prog/sensord/sensord.c	(copie de travail)
+@@ -85,27 +85,30 @@
+=20
+   sensorLog (LOG_INFO, "sensord started");
+=20
+-  while (!done && (ret =3D=3D 0)) {
+-    if (ret =3D=3D 0)
+-      ret =3D reloadLib ();
+-    if ((ret =3D=3D 0) && scanTime) { /* should I scan on the read cycle? =
+*/
+-      ret =3D scanChips ();
+-      if (scanValue <=3D 0)
+-        scanValue +=3D scanTime;
++  while (!done) {
++    ret =3D reloadLib ();
++    if (ret)
++      sensorLog (LOG_NOTICE, "config reload error (%d)", ret);
++    if (scanTime && (scanValue <=3D 0)) {
++      if ((ret =3D scanChips ()))
++        sensorLog (LOG_NOTICE, "sensor scan error (%d)", ret);
++      scanValue +=3D scanTime;
+     }
+-    if ((ret =3D=3D 0) && logTime && (logValue <=3D 0)) {
+-      ret =3D readChips ();
++    if (logTime && (logValue <=3D 0)) {
++      if ((ret =3D readChips ()))
++        sensorLog (LOG_NOTICE, "sensor read error (%d)", ret);
+       logValue +=3D logTime;
+     }
+-    if ((ret =3D=3D 0) && rrdTime && rrdFile && (rrdValue <=3D 0)) {
+-      ret =3D rrdUpdate ();
++    if (rrdTime && rrdFile && (rrdValue <=3D 0)) {
++      if ((ret =3D rrdUpdate ()))
++        sensorLog (LOG_NOTICE, "rrd update error (%d)", ret);
+       /*
+        * The amount of time to wait is computed using the same method as
+        * in RRD instead of simply adding the interval.
+        */
+       rrdValue =3D rrdTime - time(NULL) % rrdTime;
+     }
+-    if (!done && (ret =3D=3D 0)) {
++    if (!done) {
+       int a =3D logTime ? logValue : INT_MAX;
+       int b =3D scanTime ? scanValue : INT_MAX;
+       int c =3D (rrdTime && rrdFile) ? rrdValue : INT_MAX;
+@@ -117,10 +120,7 @@
+     }
+   }
+=20
+-  if (ret)
+-    sensorLog (LOG_INFO, "sensord failed (%d)", ret);
+-  else
+-    sensorLog (LOG_INFO, "sensord stopped");
++  sensorLog (LOG_INFO, "sensord stopped");
+=20
+   return ret;
+ }
+
+--MP_/ypo=OydpXxGrwkbY8xb8+p3
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -82,4 +121,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---658177-1136499035-1229118341=:9967--
+--MP_/ypo=OydpXxGrwkbY8xb8+p3--
