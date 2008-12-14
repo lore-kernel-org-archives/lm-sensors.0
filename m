@@ -1,96 +1,66 @@
-From: Andreas Herrmann <andreas.herrmann3@amd.com>
-Date: Mon, 15 Dec 2008 23:12:13 +0000
-Subject: [lm-sensors] [PATCH 3/3] hwmon: (k8temp) fix temperature reporting
-Message-Id: <20081215231213.GC7013@alberich.amd.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Sun, 14 Dec 2008 14:35:14 +0000
+Subject: [lm-sensors] PATCH: f71882g: check for hwmon powerdown state [2/4]
+Message-Id: <494519A2.3000204@redhat.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------030403060707070705050404"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Current Temperature for K8 RevG desktop CPUs is a "normalized value"
-which can be below ambient temperature.
+This is a multi-part message in MIME format.
+--------------030403060707070705050404
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-As a consequence lots of RevG systems report temperatures like:
+Hi Jean,
 
- sensors
- k8temp-pci-00c3
- Adapter: PCI adapter
- Core0 Temp:
-              +17C
- Core0 Temp:
-               +3C
- Core1 Temp:
-              +21C
- Core1 Temp:
-               +5C
+More f8000 prep work. Take over the checking if the hwmon part is not
+powered down from the standalone f8000 driver.
 
-being quite below ambient temperature.
-There are even reports of negative temperature values.
+This check is valid for all supported models.
 
-This patch corrects the temperature reporting of k8temp for
-RevG desktop CPUs.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-Cc: Rudolf Marek <r.marek@assembler.cz>
-Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
----
- drivers/hwmon/k8temp.c |   17 +++++++++++++++--
- 1 files changed, 15 insertions(+), 2 deletions(-)
+Thanks & Regards,
 
-diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
-index ff12281..b138f79 100644
---- a/drivers/hwmon/k8temp.c
-+++ b/drivers/hwmon/k8temp.c
-@@ -49,6 +49,7 @@ struct k8temp_data {
- 	u8 sensorsp;		/* sensor presence bits - SEL_CORE & SEL_PLACE */
- 	u32 temp[2][2];		/* core, place */
- 	u8 swap_core_select;    /* meaning of SEL_CORE is inverted */
-+	u32 temp_offset;
- };
+Hans
+
+--------------030403060707070705050404
+Content-Type: text/plain;
+ name="hwmon-f71882fg-10-check-for-powerdown.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename="hwmon-f71882fg-10-check-for-powerdown.patch"
+
+More f8000 prep work. Take over the checking if the hwmon part is not
+powered down from the standalone f8000 driver.
+
+This check is valid for all supported models.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+--- linux/drivers/hwmon/f71882fg.c.09-applied	2008-12-14 15:23:07.000000000 +0100
++++ linux/drivers/hwmon/f71882fg.c	2008-12-14 15:23:46.000000000 +0100
+@@ -1500,6 +1500,11 @@
+ 	platform_set_drvdata(pdev, data);
  
- static struct k8temp_data *k8temp_update_device(struct device *dev)
-@@ -116,13 +117,15 @@ static ssize_t show_temp(struct device *dev,
- 	    to_sensor_dev_attr_2(devattr);
- 	int core = attr->nr;
- 	int place = attr->index;
-+	int temp;
- 	struct k8temp_data *data = k8temp_update_device(dev);
- 
- 	if (data->swap_core_select)
- 		core = core ? 0 : 1;
- 
--	return sprintf(buf, "%d\n",
--		       TEMP_FROM_REG(data->temp[core][place]));
-+	temp = TEMP_FROM_REG(data->temp[core][place]) + data->temp_offset;
-+
-+	return sprintf(buf, "%d\n", temp);
- }
- 
- /* core, place */
-@@ -176,6 +179,16 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
- 				 "wrong - check erratum #141\n");
- 		}
- 
-+		if (((model >= 0x68) && (model != 0xc1)) &&
-+		    !(model = 0x68) && !(model = 0x6c) &&
-+		    !(model = 0x7c))
-+			/*
-+			 * RevG desktop CPUs (i.e. no socket S1G1 parts)
-+			 * need additional offset, otherwise reported
-+			 * temperature is below ambient temperature
-+			 */
-+			data->temp_offset = 21000;
-+
- 		break;
- 	}
- 
--- 
-1.6.0.4
+ 	start_reg = f71882fg_read8(data, F71882FG_REG_START);
++	if (start_reg & 0x04) {
++		dev_warn(&pdev->dev, "Hardware monitor is powered down\n");
++		err = -ENODEV;
++		goto exit_free;
++	}
+ 	if (!(start_reg & 0x03)) {
+ 		dev_warn(&pdev->dev, "Hardware monitoring not activated\n");
+ 		err = -ENODEV;
 
-
-
+--------------030403060707070705050404
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------030403060707070705050404--
