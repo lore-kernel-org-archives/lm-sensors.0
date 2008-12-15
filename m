@@ -1,80 +1,100 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 03 Dec 2008 08:53:12 +0000
-Subject: Re: [lm-sensors] Help with configuration on k7s41
-Message-Id: <20081203095312.07e7a0bc@hyperion.delvare>
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
+Date: Mon, 15 Dec 2008 23:07:51 +0000
+Subject: [lm-sensors] [PATCH 1/3] hwmon: (k8temp) adapt cpuid handling,
+Message-Id: <20081215230751.GA7013@alberich.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Noel,
+We don't need to use northbridge based CPUID checking as the allowed
+combinations of processors ensure that all processors in a multisocket
+system have similar characteristics, e.g.
 
-On Mon, 24 Nov 2008 20:27:12 +0100, Noel David Torres Ta=F1o wrote:
-> Please CC me, I'm not suscribed.
->=20
-> I'm using your program with almost no problem in one of my computers (man=
-y thanks), but I have these results in the other one:
->=20
-> w83697hf-isa-0290
-> Adapter: ISA adapter
-> VCore:       +1.57 V  (min =3D  +1.71 V, max =3D  +1.89 V)   ALARM
-> +3.3V:       +3.22 V  (min =3D  +3.14 V, max =3D  +3.47 V)
-> +5V:         +4.89 V  (min =3D  +4.76 V, max =3D  +5.24 V)
-> +12V:       +11.49 V  (min =3D +10.82 V, max =3D +13.19 V)
-> -12V:        +0.72 V  (min =3D -13.18 V, max =3D -10.80 V)   ALARM
-> -5V:         +1.94 V  (min =3D  -5.25 V, max =3D  -4.75 V)   ALARM
-> V5SB:        +5.38 V  (min =3D  +4.76 V, max =3D  +5.24 V)   ALARM
-> VBat:        +3.36 V  (min =3D  +2.40 V, max =3D  +3.60 V)
-> fan1:          0 RPM  (min =3D 2163 RPM, div =3D 8)  ALARM
-> fan2:       2812 RPM  (min =3D 1875 RPM, div =3D 8)
-> temp1:       +35.0=B0C  (high =3D +70.0=B0C, hyst =3D +64.0=B0C)  sensor =
-=3D thermistor
-> temp2:       +37.5=B0C  (high =3D +120.0=B0C, hyst =3D +120.0=B0C)  senso=
-r =3D thermistor
-> beep_enable:enabled
->=20
-> It is running, so I suppose all these ALARMs are false.
+(1) provide temperature sensor interface (>=RevC && <RevF)
+(2) are affected by erratum #141 (>=RevF)
 
-These alarms simply mean that the measured value is outside of the
-programmed range. To make them go away, you must add suitable limits to
-the libsensors configuration file in the form of "set" statements, then
-run "sensors -s" to write the new limits to the chip.
+Thus it is sufficient to check the revision of the boot CPU.
 
-> Could you help me configuring the /etc/sensors3.conf ?
->=20
-> The motherboard is an ASROCK K7S41
+For "mixed silicon support" refer to
+"Revision Guide for AMD Athlon 64 and AMD Opteron Processors" (RevA-E) and
+"Revision Guide for AMD NPT Family 0Fh Processors" (RefF-G).
 
-Writing motherboard-specific configuration files isn't trivial, and we
-do not have a configuration file ready for this model. A few comments
-though:
+Cc: Rudolf Marek <r.marek@assembler.cz>
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+---
+ drivers/hwmon/k8temp.c |   26 +++++++++++---------------
+ 1 files changed, 11 insertions(+), 15 deletions(-)
 
-* in0_min and in0_max need to be adjusted based on the nominal voltage
-  of your CPU. So you must find this information about your CPU and
-  then edit the "set in0_min" and "set in0_max" statements.
+diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
+index 3b90384..be93387 100644
+--- a/drivers/hwmon/k8temp.c
++++ b/drivers/hwmon/k8temp.c
+@@ -31,10 +31,10 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <asm/processor.h>
+ 
+ #define TEMP_FROM_REG(val)	(((((val) >> 16) & 0xff) - 49) * 1000)
+ #define REG_TEMP	0xe4
+-#define REG_CPUID	0xfc
+ #define SEL_PLACE	0x40
+ #define SEL_CORE	0x04
+ 
+@@ -48,7 +48,6 @@ struct k8temp_data {
+ 	/* registers values */
+ 	u8 sensorsp;		/* sensor presence bits - SEL_CORE & SEL_PLACE */
+ 	u32 temp[2][2];		/* core, place */
+-	u8 fam;
+ };
+ 
+ static struct k8temp_data *k8temp_update_device(struct device *dev)
+@@ -143,28 +142,25 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
+ 	int err;
+ 	u8 scfg;
+ 	u32 temp;
++	u8 model, stepping;
+ 	struct k8temp_data *data;
+-	u32 cpuid = cpuid_eax(1);
+-
+-	/* this feature should be available since SH-C0 core */
+-	if ((cpuid = 0xf40) || (cpuid = 0xf50) || (cpuid = 0xf51)) {
+-		err = -ENODEV;
+-		goto exit;
+-	}
+ 
+ 	if (!(data = kzalloc(sizeof(struct k8temp_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+ 
+-	/* get real PCI based cpuid, prior revF of fam 0Fh, this reg is 0 */
+-	pci_read_config_dword(pdev, REG_CPUID, &cpuid);
+-
+-	data->fam = (cpuid & 0x00000f00) >> 8;
+-	data->fam += (cpuid & 0x0ff00000) >> 20;
++	model = boot_cpu_data.x86_model;
++	stepping = boot_cpu_data.x86_mask;
+ 
+-	switch (data->fam) {
++	switch (boot_cpu_data.x86) {
+ 	case 0xf:
++		/* feature available since SH-C0, exclude older revisions */
++		if (((model = 4) && (stepping = 0)) ||
++		    ((model = 5) && ((stepping = 0) || (stepping = 1)))) {
++			err = -ENODEV;
++			goto exit;
++		}
+ 		dev_warn(&pdev->dev, "Temperature readouts might be wrong"
+ 					" - check errata #141\n");
+ 		break;
+-- 
+1.6.0.4
 
-* in5 and in6 are either not -12V and -5V, or different resistors are
-  used for scaling. Not surprising, as -12V and -5V are almost unused
-  in modern computers, monitoring them isn't that useful. Maybe these
-  lines are used to monitor something else. You can comment out the
-  "compute in5" and "compute in6" statements to see the raw readings.
-  Also compare with what your BIOS and/or vendor-provided Windows tool
-  is displaying.
 
-* V5SB is a little high. Either non-standard resistors are used, or it
-  is really that high and you can increase in7_max to 5*1.10 to make the
-  alarm go away. Again, compare with the BIOS value if possible.
 
-* If you only have one monitored fan in your system, you can add
-    ignore fan1
-  to your configuration file.
-
-* If fan2 is your CPU fan, you can add=20
-    label fan2 "CPU Fan"
-  to your configuration file.
-
---=20
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
