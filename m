@@ -1,37 +1,88 @@
-From: Henrik Rydberg <rydberg@bitmath.org>
-Date: Thu, 20 Nov 2008 19:14:00 +0000
-Subject: [lm-sensors] [PATCH] hwmon: applesmc: Make applesmc load
-Message-Id: <4925B6F8.5040500@bitmath.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Mon, 15 Dec 2008 12:38:05 +0000
+Subject: [lm-sensors] PATCH: f71882fg: Fix auto_channels_temp temp numbering
+Message-Id: <49464FAD.3030606@redhat.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------060101030402040004080303"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------060101030402040004080303
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, Nicolas Boichat <nicolas@boichat.ch>, lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
 
-This patch makes use of the new dmi device loading support to
-automatically load the applesmc driver based on the dmi_match table.
+Hi Jean,
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
----
- drivers/hwmon/applesmc.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Adjust auto_channels_temp show and store functions for different numbering of
+temps between f8000 and other supported models.
 
-diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index 488e45c..3e18f19 100644
---- a/drivers/hwmon/applesmc.c
-+++ b/drivers/hwmon/applesmc.c
-@@ -1551,3 +1551,4 @@ module_exit(applesmc_exit);
- MODULE_AUTHOR("Nicolas Boichat");
- MODULE_DESCRIPTION("Apple SMC");
- MODULE_LICENSE("GPL v2");
-+MODULE_DEVICE_TABLE(dmi, applesmc_whitelist);
--- 
-1.5.6.3
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
+Regards,
 
+Hans
+
+--------------060101030402040004080303
+Content-Type: text/plain;
+	name="hwmon-f71882fg-15-fix-f8000-auto_channels_temp.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename*0="hwmon-f71882fg-15-fix-f8000-auto_channels_temp.patch"
+
+Adjust auto_channels_temp show and store functions for different numbering of
+temps between f8000 and other supported models.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+--- linux/drivers/hwmon/f71882fg.c.14-applied	2008-12-15 13:29:42.000000000 +0100
++++ linux/drivers/hwmon/f71882fg.c	2008-12-15 13:33:52.000000000 +0100
+@@ -1610,8 +1610,9 @@
+ 	int result;
+ 	struct f71882fg_data *data = f71882fg_update_device(dev);
+ 	int nr = to_sensor_dev_attr_2(devattr)->index;
++	int temp_start = (data->type == f8000) ? 0 : 1;
+ 
+-	result = 1 << ((data->pwm_auto_point_mapping[nr] & 3) - 1);
++	result = 1 << ((data->pwm_auto_point_mapping[nr] & 3) - temp_start);
+ 
+ 	return sprintf(buf, "%d\n", result);
+ }
+@@ -1622,20 +1623,23 @@
+ {
+ 	struct f71882fg_data *data = dev_get_drvdata(dev);
+ 	int nr = to_sensor_dev_attr_2(devattr)->index;
++	int temp_start = (data->type == f8000) ? 0 : 1;
+ 	long val = simple_strtol(buf, NULL, 10);
++
+ 	switch (val) {
+ 	case 1:
+-		val = 1;
++		val = 0;
+ 		break;
+ 	case 2:
+-		val = 2;
++		val = 1;
+ 		break;
+ 	case 4:
+-		val = 3;
++		val = 2;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
++	val += temp_start;
+ 	mutex_lock(&data->update_lock);
+ 	data->pwm_auto_point_mapping[nr] =
+ 		f71882fg_read8(data, F71882FG_REG_POINT_MAPPING(nr));
+
+--------------060101030402040004080303
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------060101030402040004080303--
