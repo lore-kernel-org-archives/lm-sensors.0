@@ -1,7 +1,7 @@
-From: Andreas Herrmann <andreas.herrmann3@amd.com>
-Date: Wed, 10 Dec 2008 10:30:15 +0000
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Mon, 15 Dec 2008 19:43:50 +0000
 Subject: Re: [lm-sensors] [PATCH 1/4] hwmon: (k8temp) adapt cpuid handling,
-Message-Id: <20081210103015.GL19144@alberich.amd.com>
+Message-Id: <4946B376.2040105@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20081205174612.GB5581@alberich.amd.com>
 In-Reply-To: <20081205174612.GB5581@alberich.amd.com>
@@ -10,45 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Dec 10, 2008 at 11:03:33AM +0100, Andreas Herrmann wrote:
-> On Tue, Dec 09, 2008 at 11:12:39PM +0100, Rudolf Marek wrote:
-> > Please tell me why it is not necessary or why you changed that ;)
+Hi,
 
-To be more specific.
+Sorry for the delay, I was at the mountains.
 
-There are following CPUID checks necessary in k8temp:
+Thank you for detailed clarification.
 
->= K8 RevC
-
-to check for support of temperature reporting at all.
-
->= RevF
-
-to check for erratum #141
-
->= RevG (desktop)
-
-to check for temperature skew
-
-(In the future we might have additional checks for
-family 0x10 >= RevC to check for erratum 319.)
-
-This devides K8 CPUs into 4 classes (and family 10h CPUs into
-2 classes).
-
-Now it is important to notice that (by chance) you can't combine
-processors of different classes in a mixed silicon setup.
-See the relevant CPU revision guides for those CPUs.
-E.g., combining RevC with RevF is not supported.
-
-Thus it suffices to check CPUID of boot CPU.
-We don't need to care about unsupported processor combinations.
-
-
-Regards,
-Andreas
-
-
+Rudolf
 
 _______________________________________________
 lm-sensors mailing list
