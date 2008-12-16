@@ -1,160 +1,38 @@
-From: Julia Lawall <julia@diku.dk>
-Date: Wed, 10 Dec 2008 16:41:52 +0000
-Subject: [lm-sensors] [PATCH 24/28] drivers/hwmon/pc87xxx: Drop return value
-Message-Id: <Pine.LNX.4.64.0812101741310.21998@ask.diku.dk>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 16 Dec 2008 12:41:54 +0000
+Subject: [lm-sensors] lm-sensors 2.10.8 has been released!
+Message-Id: <20081216134154.3dfddc68@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: dmitri.vorobiev@movial.fi, jim.cromie@gmail.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-From: Julia Lawall <julia@diku.dk>
+Hi all,
 
-The return value of the remove function of a driver structure, and thus of
-a platform_driver structure, is ultimately ignored, and is thus
-unnecessary.  This patch removes the return value for the remove function
-stored in a platform_driver structure.  For the files in this patch, the
-return values are always 0.
+I have just released lm-sensors 2.10.8. Changes from 2.10.7 include:
 
-A simplified version of the semantic patch that makes this change is as
-follows: (http://www.emn.fr/x-info/coccinelle/)
+* User-space support for the IT8720F chip.
+* Clean-ups to the i2c-i801 and i2c-piix4 bus drivers and lm78, lm90
+  and max1619 chip drivers, backported from Linux 2.6.
+* Support for the Intel PCH "Ibex Peak" SMBus master.
+* Fixes to the decode-dimms.pl and pwmconfig scripts, backported from
+  the 3.0.x branch and i2c-tools, respectively.
+* Fixes to sensord, in particular it will no longer bail out on
+  transient errors.
+* Fixed it87 temperature sensor types decoding in sensors.
+* Many fixes and improvements to the sensors-detect script.
 
-// <smpl>
-@r@
-struct platform_driver I;
-identifier a,f;
-position p;
-@@
-I.remove = \(f@p\|a(f@p)\);
+This is the last large update for this branch. From now on I will
+refrain from backporting anything else but needed fixes. I suspect (and
+hope) that there are fewer and fewer users for this branch over time,
+so I don't want to spend too much time maintaining it.
 
-@void_called@
-identifier r.f;
-position p;
-@@
-f@p(...);
+Philip, please sign the source tarball and copy it to your mirror,
+thanks.
 
-@called@
-identifier r.f;
-position p1 != void_called.p;
-@@
-f@p1(...)
-
-@localfn@
-identifier r.f;
-@@
-static int f(...) { ... }
-
-@depends on !called && localfn@
-struct platform_driver I;
-identifier a,f;
-position r.p;
-@@
-
-I.
-- remove
-+ remove_new
-   = \(f@p\|a(f@p)\);
-
-@depends on !called && localfn@
-identifier r.f,i;
-constant C;
-expression E;
-@@
-
-- int
-+ void
-       f(...) {
-  <...
-(
--  return \(C\|i\);
-+  return;
-|
--  return E;
-+  E;
-+  return;
-)
-  ...>
-}
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
----
- drivers/hwmon/pc87360.c |    8 +++-----
- drivers/hwmon/pc87427.c |    6 ++----
- 2 files changed, 5 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index 5fbfa34..87c4ce3 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -225,7 +225,7 @@ struct pc87360_data {
-  */
- 
- static int pc87360_probe(struct platform_device *pdev);
--static int __devexit pc87360_remove(struct platform_device *pdev);
-+static void __devexit pc87360_remove(struct platform_device *pdev);
- 
- static int pc87360_read_value(struct pc87360_data *data, u8 ldi, u8 bank,
- 			      u8 reg);
-@@ -245,7 +245,7 @@ static struct platform_driver pc87360_driver = {
- 		.name	= "pc87360",
- 	},
- 	.probe		= pc87360_probe,
--	.remove		= __devexit_p(pc87360_remove),
-+	.remove_new	= __devexit_p(pc87360_remove),
- };
- 
- /*
-@@ -1266,7 +1266,7 @@ ERROR1:
- 	return err;
- }
- 
--static int __devexit pc87360_remove(struct platform_device *pdev)
-+static void __devexit pc87360_remove(struct platform_device *pdev)
- {
- 	struct pc87360_data *data = platform_get_drvdata(pdev);
- 	int i;
-@@ -1285,8 +1285,6 @@ static int __devexit pc87360_remove(struct platform_device *pdev)
- 		}
- 	}
- 	kfree(data);
--
--	return 0;
- }
- 
- /* ldi is the logical device index
-diff --git a/drivers/hwmon/pc87427.c b/drivers/hwmon/pc87427.c
-index 7265f22..674176f 100644
---- a/drivers/hwmon/pc87427.c
-+++ b/drivers/hwmon/pc87427.c
-@@ -482,7 +482,7 @@ exit:
- 	return err;
- }
- 
--static int __devexit pc87427_remove(struct platform_device *pdev)
-+static void __devexit pc87427_remove(struct platform_device *pdev)
- {
- 	struct pc87427_data *data = platform_get_drvdata(pdev);
- 	struct resource *res;
-@@ -500,8 +500,6 @@ static int __devexit pc87427_remove(struct platform_device *pdev)
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
- 	release_region(res->start, res->end - res->start + 1);
--
--	return 0;
- }
- 
- 
-@@ -511,7 +509,7 @@ static struct platform_driver pc87427_driver = {
- 		.name	= DRVNAME,
- 	},
- 	.probe		= pc87427_probe,
--	.remove		= __devexit_p(pc87427_remove),
-+	.remove_new	= __devexit_p(pc87427_remove),
- };
- 
- static int __init pc87427_device_add(unsigned short address)
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
