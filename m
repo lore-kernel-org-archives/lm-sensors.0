@@ -1,35 +1,44 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Fri, 05 Dec 2008 14:35:12 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: New driver for the Asus F8000
-Message-Id: <49393C20.2050708@hhs.nl>
+From: "John Brier" <johnbrier@gmail.com>
+Date: Mon, 22 Dec 2008 22:50:50 +0000
+Subject: [lm-sensors] lm-sensors 2.10.1 with newer 2.6.x.x kernel can't read
+Message-Id: <f421b28c0812221450x5188180u1d21990775c42606@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081204155242.32c3255e@hyperion.delvare>
-In-Reply-To: <20081204155242.32c3255e@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Hans,
-> 
+[root@tb303 ~]# sensors
+Can't access procfs/sysfs file
+Kernel interface access error
+For 2.6 kernels, make sure you have mounted sysfs and libsensors
+was compiled with sysfs support!
 
-<snip>
+I have Debian 4.0 with 2.10.1-3 lm-sensors and libsensors3. I read
+http://www.lm-sensors.org/wiki/Kernel2.6
 
-> The F8000 also has shared features with the F71882FG and/or F718862FG,
-> for example diode fault detection and over-temperature alarms. Maybe
-> you want to take a look at the datasheet and make your own opinion?
-> 
+"In kernel 2.6.22, the way the I2C adapters are presented in sysfs
+changed, and this affects libsensors. You will need lm_sensors version
+2.10.3 or later. Alternatively, the kernel can be compiled with
+CONFIG_SYSFS_DEPRECATED=y, then version 2.10.2 will work too. Older
+versions of lm_sensors will complain that the I2C adapter names can't
+be read. This is only a warning though. "
 
-Yes please, that (me taking a look at the datasheet) probably is the best thing 
-to do.
+So in my kernel 2.6.26.5 I have
 
-<snip>
+# grep CONFIG_SYSFS_DEPRECATED /boot/config-2.6.26.5
+CONFIG_SYSFS_DEPRECATED=y
+CONFIG_SYSFS_DEPRECATED_V2=y
 
-Regards,
+yet I still get this "warning" If it's only a warning why don't I get
+the actual readings from my hardware? I looked into upgrading to
+lm-sensors 3 and libsenseors4 packages from Debian testing tree but
+the dependencies were pretty bad, I might as well upgrade the whole
+system to testing.
 
-Hans
+I have run sensors-detect and have the proper modules loaded.
 
+John Brier
 
 _______________________________________________
 lm-sensors mailing list
