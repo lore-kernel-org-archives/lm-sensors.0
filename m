@@ -1,29 +1,56 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 04 Dec 2008 16:43:17 +0000
-Subject: Re: [lm-sensors] ITE 8710 support
-Message-Id: <20081204174317.4575b02e@hyperion.delvare>
+From: "vit" <vitaya1234@hotmail.com>
+Date: Wed, 24 Dec 2008 10:57:59 +0000
+Subject: [lm-sensors]  PATCH: hwmon-f71882fg-new-driver.patch
+Message-Id: <BAY103-DAV35B6A1A3EE72AC592F7AED9ED0@phx.gbl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0069188087227967386=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <D83626FF0FE88B791C6B5AFB45AB301212279676858217E605BD3FF90E9E@webmail.aster.pl>
-In-Reply-To: <D83626FF0FE88B791C6B5AFB45AB301212279676858217E605BD3FF90E9E@webmail.aster.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <468E48BA.4060005@hhs.nl>
+In-Reply-To: <468E48BA.4060005@hhs.nl>
 To: lm-sensors@vger.kernel.org
 
-On Sat, 29 Nov 2008 15:08:10 +0100 (CET), daniel.perzynski wrote:
-> Hi,
-> 
-> Please add support for ITE 8710F chipset. I can provide data sheet and
-> programming guide. If you are interested in those documents please let
-> me know where to send them.
+This is a multi-part message in MIME format.
 
-I've read the datasheet quickly, and this chip doesn't include hardware
-monitoring features, so there's simply nothing we can do.
+--===============0069188087227967386==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0002_01C965F1.2874B270"
 
--- 
-Jean Delvare
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0002_01C965F1.2874B270
+Content-Type: text/plain;
+	charset="windows-874"
+Content-Transfer-Encoding: quoted-printable
+
+driver  f71882fg
+------=_NextPart_000_0002_01C965F1.2874B270
+Content-Type: text/html;
+	charset="windows-874"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dwindows-874">
+<META content=3D"MSHTML 6.00.5730.11" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV>driver&nbsp; f71882fg</DIV></BODY></HTML>
+
+------=_NextPart_000_0002_01C965F1.2874B270--
+
+
+
+--===============0069188087227967386==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0069188087227967386==--
+
