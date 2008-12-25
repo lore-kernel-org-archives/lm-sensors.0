@@ -1,56 +1,56 @@
-From: Henrik Rydberg <rydberg@euromail.se>
-Date: Thu, 04 Dec 2008 07:36:37 +0000
-Subject: [lm-sensors] [PATCH] hwmon: applesmc: Add support for MacBook Air 2
-Message-Id: <49378885.90401@euromail.se>
+From: "Mark E. Hansen" <meh@Winfirst.Com>
+Date: Thu, 25 Dec 2008 21:06:41 +0000
+Subject: [lm-sensors] Sensors 3.0.3 on CentOS 5.2 (kernel 2.6.18) shows
+Message-Id: <4953F5E1.8050906@Winfirst.Com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <48D7A9F9.50502@euromail.se>
-In-Reply-To: <48D7A9F9.50502@euromail.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, Nicolas Boichat <nicolas@boichat.ch>, lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: lm-sensors@vger.kernel.org
 
-    Add temperature sensor support for MacBook Air 2.
+Some time ago, I upgraded my Linux machine to use a new motherboard:
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
----
- drivers/hwmon/applesmc.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+  ASUS M2NPV-VM
 
-diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index 086c2a5..dca47a5 100644
---- a/drivers/hwmon/applesmc.c
-+++ b/drivers/hwmon/applesmc.c
-@@ -131,6 +131,10 @@ static const char* temperature_sensors_sets[][36] = {
- /* Set 14: iMac 6,1 */
- 	{ "TA0P", "TC0D", "TC0H", "TC0P", "TG0D", "TG0H", "TG0P", "TH0P",
- 	  "TO0P", "Tp0P", NULL },
-+/* Set 15: MacBook Air 2,1 */
-+	{ "TB0T", "TB1S", "TB1T", "TB2S", "TB2T", "TC0D", "TN0D", "TTF0",
-+	  "TV0P", "TVFP", "TW0P", "Th0P", "Tp0P", "Tp1P", "TpFP", "Ts0P",
-+	  "Ts0S", NULL },
- };
+At that time, I was told (on this list) that my CentOS Linux kernel was
+too old for the 3.0.X version of the lm_sensors package. I've now upgraded
+the machine to CentOS 5.2, which includes the Linux kernel 2.6.18.
 
- /* List of keys used to read/write fan speeds */
-@@ -1301,11 +1305,17 @@ static __initdata struct dmi_match_data applesmc_dmi_data[] = {
- 	{ .accelerometer = 0, .light = 0, .temperature_set = 13 },
- /* iMac 6: light sensor only, temperature set 14 */
- 	{ .accelerometer = 0, .light = 0, .temperature_set = 14 },
-+/* MacBook Air 2,1: accelerometer, backlight and temperature set 15 */
-+	{ .accelerometer = 1, .light = 1, .temperature_set = 15 },
- };
+I downloaded lm_sensors-3.0.3 from http://www.lm-sensors.org/wiki/Download
+and built/installed successfully. This included some changes to the system's
+ld.so.conf to include /usr/local/lib on the system LD path.
 
- /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
-  * So we need to put "Apple MacBook Pro" before "Apple MacBook". */
- static __initdata struct dmi_system_id applesmc_whitelist[] = {
-+	{ applesmc_dmi_match, "Apple MacBook Air 2", {
-+	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir2") },
-+		&applesmc_dmi_data[15]},
- 	{ applesmc_dmi_match, "Apple MacBook Air", {
- 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir") },
+When I ran sensors-detect, it found the following:
+
+  It said it found 'ITE IT8716F Super IO Sensors', address 0x290,
+  driver 'it87'.
+
+  It also said it found an AMD K8 thermal sensor embedded with the CPU
+  (driver 'k8temp').
+
+I had it create the /etc/sysconfig/lm_sensors file, which looks like
+this (sans the comments):
+
+  MODULE_0=it87
+  MODULE_1=k8temp
+
+I then created the /etc/init.d/lm_sensors file (as per the instructions)
+and started the service.
+
+I ran sensors -s (as root), but when I run sensors, the only output
+I get is this:
+
+k8temp-pci-00c3
+Adapter: PCI adapter
+Core0 Temp:  +33.0°C
+Core1 Temp:  +37.0°C
+
+Well, this appears to be showing me good CPU temps, but where is
+the rest of the it87 chip data? Did I miss a step?
+
+Thanks for any help.
+
+
 
 _______________________________________________
 lm-sensors mailing list
