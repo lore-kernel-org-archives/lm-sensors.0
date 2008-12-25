@@ -1,136 +1,69 @@
-From: "John Brier" <johnbrier@gmail.com>
-Date: Thu, 25 Dec 2008 18:05:55 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 25 Dec 2008 19:40:57 +0000
 Subject: Re: [lm-sensors] lm-sensors 2.10.1 with newer 2.6.x.x kernel can't
-Message-Id: <f421b28c0812251005k6af2f261s6a6545e2f1504265@mail.gmail.com>
+Message-Id: <200812252040.57732.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <f421b28c0812221450x5188180u1d21990775c42606@mail.gmail.com>
 In-Reply-To: <f421b28c0812221450x5188180u1d21990775c42606@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Thu, Dec 25, 2008 at 9:29 AM, Jean Delvare <khali@linux-fr.org> wrote:
-> Hi John,
-Hi Jean! thanks for responding!
+Hi John,
 
->
-> Preliminary note: using something as old as lm-sensors 2.10.1 with
-> a kernel as recent as 2.6.26.5 doesn't make much sense IMHO. We do
-> our best to preserve compatibility but it's hard to always get it
-> right.
->
+Le Jeudi 25 D=E9cembre 2008 19:05, John Brier a =E9crit=A0:
+> lm-sensors 3 and libsensors 4 want a newer version of libc6 than I
+> have installed, and upgrading that seems like a bad idea (it would
+> probably force upgrading all the packages on the system since they all
+> depend on libc6, thus I might as well move the whole system from
+> debian stable to debian testing) In the end this may be the only
+> solution :-(
 
-Fair enough. I expected this.
+Ah, OK then. I only thought about libsensors compatibility issues,
+not system-wide compatibility issues such as glibc.
 
->> yet I still get this "warning" If it's only a warning why don't I get
->> the actual readings from my hardware?
->
-> The warning documented above is unrelated to your problem, this is
-> why.
->
->> I looked into upgrading to
->> lm-sensors 3 and libsenseors4 packages from Debian testing tree but
->> the dependencies were pretty bad, I might as well upgrade the whole
->> system to testing.
->
-> Shouldn't be. For one thing you should be able to install libsensors3
-> and libsensors4 in parallel. Once this is done you should be able to
-> upgrade lm-sensors (and only lm-sensors) from version 2.x to version
-> 3.x. I am no Debian expert though, maybe I'm missing something.
+That being said, I am a little surprised that Debian offers no half
+way between lm-sensors 2.10.1 (over 2 year old!) and 3.0.2 (fairly
+recent).
 
-lm-sensors 3 and libsensors 4 want a newer version of libc6 than I
-have installed, and upgrading that seems like a bad idea (it would
-probably force upgrading all the packages on the system since they all
-depend on libc6, thus I might as well move the whole system from
-debian stable to debian testing) In the end this may be the only
-solution :-(
+> > Which modules are these?
+>=20
+> i2c_nforce2
+> w83627hf
+> k8temp is compiled directly into the kernel (non modular).
 
-==============[root@tb303 ~]# dpkg -i libsensors4_3.0.2-1+b2_amd64.deb
-(Reading database ... 30914 files and directories currently installed.)
-Preparing to replace libsensors4 1:3.0.2-1+b2 (using
-libsensors4_3.0.2-1+b2_amd64.deb) ...
-Unpacking replacement libsensors4 ...
-dpkg: dependency problems prevent configuration of libsensors4:
- libsensors4 depends on libc6 (>= 2.7-1); however:
-  Version of libc6 on system is 2.3.6.ds1-13etch7.
-dpkg: error processing libsensors4 (--install):
- dependency problems - leaving unconfigured
-Errors were encountered while processing:
- libsensors4
-[root@tb303 ~]# dpkg -i lm-sensors_3.0.2-1+b2_amd64.deb
-(Reading database ... 30914 files and directories currently installed.)
-Preparing to replace lm-sensors 1:2.10.1-3 (using
-lm-sensors_3.0.2-1+b2_amd64.deb) ...
-Unpacking replacement lm-sensors ...
-dpkg: dependency problems prevent configuration of lm-sensors:
- lm-sensors depends on libc6 (>= 2.7-1); however:
-  Version of libc6 on system is 2.3.6.ds1-13etch7.
- lm-sensors depends on libsensors4 (>= 1:3.0.0-1); however:
-  Package libsensors4 is not configured yet.
-dpkg: error processing lm-sensors (--install):
- dependency problems - leaving unconfigured
-Errors were encountered while processing:
- lm-sensors
-[root@tb303 ~]# dpkg -i libc6_2.7-16_amd64.deb
-dpkg: regarding libc6_2.7-16_amd64.deb containing libc6:
- libc6 conflicts with tzdata-etch
-  tzdata provides tzdata-etch and is installed.
-dpkg: error processing libc6_2.7-16_amd64.deb (--install):
- conflicting packages - not installing libc6
-Errors were encountered while processing:
- libc6_2.7-16_amd64.deb
-[root@tb303 ~]# dpkg -p libc6
-Package: libc6
-Priority: required
-Section: libs
-Installed-Size: 11468
-Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
-Architecture: amd64
-Source: glibc
-Version: 2.7-16
-Provides: glibc-2.7-1
-Depends: libgcc1
-Suggests: locales, glibc-doc
-Conflicts: libterm-readline-gnu-perl (<< 1.15-2), tzdata (<< 2007k-1),
-tzdata-etch
-Filename: pool/main/g/glibc/libc6_2.3.6.ds1-13etch5_amd64.deb
-Size: 4936850
-MD5sum: d25329a43a9631173dac87a4ed161ee5
-Description: GNU C Library: Shared libraries
- Contains the standard libraries that are used by nearly all programs on
- the system. This package includes shared versions of the standard C library
- and the standard math library, as well as many others.
-==============
+Please note that i2c-nforce2 isn't actually needed.
 
+> > Please provide the full output of sensors-detect.
+> http://pastebin.ca/1293524
 
->
->> I have run sensors-detect and have the proper modules loaded.
->
-> Which modules are these?
+Looks sane.
 
-i2c_nforce2
-w83627hf
-k8temp is compiled directly into the kernel (non modular).
+> > Did this system ever work with a different combination of lm-sensors
+> > version and kernel version? And what system is this?
+>=20
+> Yes it worked with an older kernel and same version of lm-sensors (not
+> certain on the version of lm-sensors because I've updated since then
+> of course, this was a year ago that it worked). The kernel it used to
+> work on (I can test this again) was 2.6.20.1.
 
+In kernel 2.6.22, the w83627hf driver was converted from an i2c-isa
+driver to a platform driver. Even though this is supposedly supported
+since lm-sensors 2.10.0, this may still be the cause for the
+compatibility problem you're seeing, given how old lm-sensors 2.10.1
+is.
 
->
-> Please provide the full output of sensors-detect.
-http://pastebin.ca/1293524
+Probably the best way to make sure what the exact problem is is to
+run "strace sensors" and see where the failure occurs.
 
->
-> Did this system ever work with a different combination of lm-sensors
-> version and kernel version? And what system is this?
+It would also be a good idea to check that everything is OK on the
+kernel side. What does the following command return?
 
-Yes it worked with an older kernel and same version of lm-sensors (not
-certain on the version of lm-sensors because I've updated since then
-of course, this was a year ago that it worked). The kernel it used to
-work on (I can test this again) was 2.6.20.1.
+grep . /sys/class/hwmon/hwmon*/device/name
 
-The system is MSI K8N Neo4 Platinum nforce4 based motherboard.
-http://www.msicomputer.com/product/p_spec.asp?model=K8N_Neo4_Platinum&class=mb
-
-John Brier
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
