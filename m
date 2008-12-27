@@ -1,40 +1,43 @@
 From: "Mark E. Hansen" <meh@Winfirst.Com>
-Date: Fri, 26 Dec 2008 16:42:38 +0000
-Subject: Re: [lm-sensors] Sensors 3.0.3 on CentOS 5.2 (kernel 2.6.18) shows
-Message-Id: <4955097E.7070701@Winfirst.Com>
+Date: Sat, 27 Dec 2008 01:05:01 +0000
+Subject: [lm-sensors] Sensors 3.0.3 on CentOS 5.2 (kernel 2.6.18) on ASUS
+Message-Id: <49557F3D.20700@Winfirst.Com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4953F5E1.8050906@Winfirst.Com>
 In-Reply-To: <4953F5E1.8050906@Winfirst.Com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 12/26/08 07:38, Jean Delvare wrote:
-> Hi Mark, Hans,
-> 
-> Le Vendredi 26 Décembre 2008 12:17, Hans de Goede a écrit :
+With some help from others, I was able to get an upgraded kernel module for
+the IT8716F chip found on the ASUS M2NPV-VM motherboard, and running 'sensors'
+now shows lots of sensor data. Unfortunately, much of it doesn't make any
+sense.
 
-[ snip ]
+Is it possible that someone has already create a sensors.conf file for this
+version of lm_sensors and this ASUS motherboard?
 
->> The CentOS 2.6.18 kernel does not have the it87 driver.
-> 
-> Or, more likely, it has the it87 driver but that driver doesn't yet
-> support the ITE IT8716F. Looking at:
->   http://www.lm-sensors.org/wiki/Devices
-> it says that support was added in kernel 2.6.19.
-> 
+If it helps any, here is the information I see from the BIOS hardware
+monitoring page:
 
-Thanks Hans, Jean.
+  Q-Fan Controller:    Enabled
+  VCore Voltage   :    1.23V
+  3.3V  Voltage   :    3.18V
+  5.0V  Voltage   :    4.95V
+ 12.0V  Voltage   :   11.60V
 
-I've installed CentOS from the installation CDs, and upgraded to the latest
-packages using 'yum'. How do I get the 2.6.19 kernel? I'm also asking on the
-CentOS support forum, but wanted to ask here as I figured you guys run into
-this from time to time and may just know.
+  CPU Temp            42C
+  M/B Temp            38C
+  CPU Fan Speed       2163 RPM
+  Chassis 1 Fan Speed    0 RPM
+  Chassis 2 Fan Speed 4647 RPM
+  Power Fan Speed        0 RPM
 
-I searched at pbone.net and Google'd, but didn't find anything.
+Can anyone share their sensors.conf file?
 
 Thanks,
+
 
 
 _______________________________________________
