@@ -1,99 +1,37 @@
-From: Andreas Herrmann <andreas.herrmann3@amd.com>
-Date: Mon, 15 Dec 2008 23:07:51 +0000
-Subject: [lm-sensors] [PATCH 1/3] hwmon: (k8temp) adapt cpuid handling,
-Message-Id: <20081215230751.GA7013@alberich.amd.com>
+From: "Mark E. Hansen" <meh@Winfirst.Com>
+Date: Sat, 27 Dec 2008 18:38:13 +0000
+Subject: [lm-sensors] Sensors 3.0.3 on ASUS M2NPV-VM: No Alarms in sensors
+Message-Id: <49567615.8000500@Winfirst.Com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-We don't need to use northbridge based CPUID checking as the allowed
-combinations of processors ensure that all processors in a multisocket
-system have similar characteristics, e.g.
+I have what I think is a working configuration for lm_sensors (I have another
+question out asking for help with the configuration). However, with min/max
+values set, I don't see any "ALARM" flags in the sensors output when a value
+goes out of range.
 
-(1) provide temperature sensor interface (>=RevC && <RevF)
-(2) are affected by erratum #141 (>=RevF)
+When I was using sensors to monitor the health of my machine before (about
+a year ago...), I was able to parse the sensors output looking for this
+string to determine there was something which needed reporting.
 
-Thus it is sufficient to check the revision of the boot CPU.
+Does this alarm depend on a motherboard/chip feature which mine does not
+have, or is there something in the configuration I can set to enable these
+alarms? In looking at the source, it seems it is a feature of the chip?
 
-For "mixed silicon support" refer to
-"Revision Guide for AMD Athlon 64 and AMD Opteron Processors" (RevA-E) and
-"Revision Guide for AMD NPT Family 0Fh Processors" (RefF-G).
+Note: I see that I can enable audible alarms using:
 
-Cc: Rudolf Marek <r.marek@assembler.cz>
-Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
----
- drivers/hwmon/k8temp.c |   26 +++++++++++---------------
- 1 files changed, 11 insertions(+), 15 deletions(-)
+  set beep_enable 1
 
-diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
-index 3b90384..be93387 100644
---- a/drivers/hwmon/k8temp.c
-+++ b/drivers/hwmon/k8temp.c
-@@ -31,10 +31,10 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <asm/processor.h>
- 
- #define TEMP_FROM_REG(val)	(((((val) >> 16) & 0xff) - 49) * 1000)
- #define REG_TEMP	0xe4
--#define REG_CPUID	0xfc
- #define SEL_PLACE	0x40
- #define SEL_CORE	0x04
- 
-@@ -48,7 +48,6 @@ struct k8temp_data {
- 	/* registers values */
- 	u8 sensorsp;		/* sensor presence bits - SEL_CORE & SEL_PLACE */
- 	u32 temp[2][2];		/* core, place */
--	u8 fam;
- };
- 
- static struct k8temp_data *k8temp_update_device(struct device *dev)
-@@ -143,28 +142,25 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
- 	int err;
- 	u8 scfg;
- 	u32 temp;
-+	u8 model, stepping;
- 	struct k8temp_data *data;
--	u32 cpuid = cpuid_eax(1);
--
--	/* this feature should be available since SH-C0 core */
--	if ((cpuid = 0xf40) || (cpuid = 0xf50) || (cpuid = 0xf51)) {
--		err = -ENODEV;
--		goto exit;
--	}
- 
- 	if (!(data = kzalloc(sizeof(struct k8temp_data), GFP_KERNEL))) {
- 		err = -ENOMEM;
- 		goto exit;
- 	}
- 
--	/* get real PCI based cpuid, prior revF of fam 0Fh, this reg is 0 */
--	pci_read_config_dword(pdev, REG_CPUID, &cpuid);
--
--	data->fam = (cpuid & 0x00000f00) >> 8;
--	data->fam += (cpuid & 0x0ff00000) >> 20;
-+	model = boot_cpu_data.x86_model;
-+	stepping = boot_cpu_data.x86_mask;
- 
--	switch (data->fam) {
-+	switch (boot_cpu_data.x86) {
- 	case 0xf:
-+		/* feature available since SH-C0, exclude older revisions */
-+		if (((model = 4) && (stepping = 0)) ||
-+		    ((model = 5) && ((stepping = 0) || (stepping = 1)))) {
-+			err = -ENODEV;
-+			goto exit;
-+		}
- 		dev_warn(&pdev->dev, "Temperature readouts might be wrong"
- 					" - check errata #141\n");
- 		break;
--- 
-1.6.0.4
+but I'm pretty sure I'm not talking about that.
+
+I tested this by setting min/max RPM values for the chassis fan, then
+slowing the fan down by hand.
 
 
+Thanks,
 
 
 _______________________________________________
