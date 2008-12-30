@@ -1,69 +1,26 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 11 Dec 2008 08:50:00 +0000
-Subject: Re: [lm-sensors] sensors-detect: testers wanted!
-Message-Id: <20081211095000.334e3b83@hyperion.delvare>
+From: Justin Piszcz <jpiszcz@lucidpixels.com>
+Date: Tue, 30 Dec 2008 12:26:09 +0000
+Subject: [lm-sensors] Status/support for Linux HECI from Intel? (for
+Message-Id: <alpine.DEB.1.10.0812300700410.11356@p34.internal.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20081203182216.5be504cf@hyperion.delvare>
-In-Reply-To: <20081203182216.5be504cf@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Dan Williams <dan.j.williams@intel.com>
 
-Hi Ludovic,
+The HECI interface would allow lm_sensors developers to grab the 
+temperatures off the chips on the board.
 
-On Wed, 10 Dec 2008 23:24:05 +0100, Ludovic Leb=E8gue wrote:
-> Hi Jean,
->=20
-> Here is the result of my latest tests with f8000 on a 2.6.27 kernel.
->=20
-> - Compilation OK :
-> - insmod OK : kernel trace
->     Dec 10 23:16:57 xxx kernel: [88516.594275] f8000: Found F8000 chip at=
- 0xa00
->     Dec 10 23:16:57 xxx kernel: [88516.595009] f8000 f8000.2560: Fan
-> monitoring is enabled
->     Dec 10 23:16:57 xxx kernel: [88516.595667] f8000 f8000.2560:
-> Temperature and voltage monitoring is enabled
-> - "sensors" output
->     f8000-isa-0a00
->     Adapter: ISA adapter
->     in0:         +3.36 V
->     in1:         +3.34 V
->     in2:         +3.28 V
->     fan1:       1466 RPM
->     fan2:        909 RPM
->     fan3:          0 RPM
->     fan4:          0 RPM
->     temp1:       +46.0=B0C  (high =3D +60.0=B0C, crit =3D +70.0=B0C)
->     temp2:       +41.0=B0C  (high =3D +85.0=B0C, crit =3D +100.0=B0C)
->     temp3:       +40.0=B0C  (high =3D +85.0=B0C, crit =3D +100.0=B0C)
->=20
-> It all seems OK to me.
+From 2005(?)-2008 there was some chatter about supporting it but it never 
+seemed to happen, is there any eventual planned support for supporting 
+Intel's HECI interface or if the user wants to see the 
+temperatures/voltages just buy a different motherboard with an ITE I/O 
+controller?
 
-Looks indeed alright to me. You can add the following
-to /etc/sensors3.conf to get labels for the voltage inputs:
+I have a couple DG965WH boards and it would be nice to see the 
+temperature of the chipset etc without having to reboot into the BIOS.
 
-# Asus/Fintek F8000
-chip "f8000-*"
-
-   # All 3 voltages are internal, so scaling is done by the driver and
-   # labels are always correct
-   label  in0  "+3.3V"
-   label  in1  "3VSB"
-   label  in2  "Vbat"
-
-I've just added this to the default configuration file.
-
-Please note that, after discussion with Hans de Goede (Cc'd), we
-decided that it was better to add support for the F8000 to an existing
-driver (f71882fg) than writing a new driver as I did, because there
-would be a lot of duplicated code otherwise. So Hans will probably ask
-you to do more testing once he is done with the code.
-
-Thanks,
---=20
-Jean Delvare
+Justin.
 
 _______________________________________________
 lm-sensors mailing list
