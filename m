@@ -1,38 +1,44 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 30 Jan 2009 16:23:36 +0000
-Subject: Re: [lm-sensors] Problem with order of module loading
-Message-Id: <20090130172336.533d6698@hyperion.delvare>
+From: Stephen Clark <sclark46@earthlink.net>
+Date: Thu, 01 Jan 2009 02:56:47 +0000
+Subject: [lm-sensors] Support for Intel DG33FB main board?
+Message-Id: <495C30EF.3090708@earthlink.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090125021151.GE16739@paradise.net.nz>
-In-Reply-To: <20090125021151.GE16739@paradise.net.nz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 28 Jan 2009 09:06:28 +0100, Jean Delvare wrote:
-> I have discussed this a bit with Kay Sievers yesterday. He suggested
-> that we can use the modalias files in sysfs together with "modprobe -n"
-> to find out whether a loaded hwmon driver has been auto-loaded or not.
-> This would let us exclude kernel modules from /etc/sysconfig/lm_sensors
-> based on whether they auto-load rather than based on whether they were
-> loaded when sensors-detect was run. This should be way more robust than
-> my initial proposal, to a point where I think it would make sense to
-> give it a try.
+Hi,
 
-Damn, it isn't as easy as I thought. Not all drivers follow the Linux
-device driver model to the letter. Actually, most hwmon drivers do not,
-because they create their own devices. Once such a driver is loaded, it
-appears to be autoloading (its devices have modalias strings that point
-to the driver) but in fact it is not. This fools my new code into
-thinking that pretty much all loaded hwmon drivers were autoloaded.
+I have a new intel DG33FB mainboard when I run sensors-detect I get the following:
+...
+Trying family `SMSC'...                                     Yes
+Found `SMSC LPC47M182 Super IO Fan Sensors'
+     (but not activated)
+...
+Intel Core family thermal sensor...                         Success!
+     (driver `coretemp')
 
-Thus I fear I will have to limit the scope of my autoloading detection
-code to PCI devices. At least this covers the k8temp driver, which is
-probably the one that causes the more trouble in practice.
+This lets me see the temps of the cores on my q6600 but not
+voltages or fan speeds. Are there any plans to support this
+main boards further?
+
+sensors version 3.0.2 with libsensors version 3.0.2
+
+Thanks,
+Steve
+
+PS I am not subscribed so please CC me.
 
 -- 
-Jean Delvare
+
+"They that give up essential liberty to obtain temporary safety,
+deserve neither liberty nor safety."  (Ben Franklin)
+
+"The course of history shows that as a government grows, liberty
+decreases."  (Thomas Jefferson)
+
+
 
 _______________________________________________
 lm-sensors mailing list
