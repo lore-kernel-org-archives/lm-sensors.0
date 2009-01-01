@@ -1,34 +1,43 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 30 Jan 2009 09:54:02 +0000
-Subject: Re: [lm-sensors] w83667hg support feedback: some things work,
-Message-Id: <20090130105402.542ae3ec@hyperion.delvare>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Thu, 01 Jan 2009 14:24:38 +0000
+Subject: Re: [lm-sensors] ADT7463
+Message-Id: <495CD226.4050801@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <806dafc20901200009l2fd53e9bnea2e5402f17b5da2@mail.gmail.com>
-In-Reply-To: <806dafc20901200009l2fd53e9bnea2e5402f17b5da2@mail.gmail.com>
+References: <200612172022.kBHKMM3N011597@srv1.nickelnetworks.com>
+In-Reply-To: <200612172022.kBHKMM3N011597@srv1.nickelnetworks.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 29 Jan 2009 17:33:11 -0500, Christopher Montgomery wrote:
-> > Thanks for reporting. Apparently the pin usage bits have inverted logic
-> > between the W83627EHG and the W83667HG. Can you please test the
-> > following patch? It should fix your problem.
-> 
-> I'll check tonight.
-> 
-> > That's more surprising. How exactly did you attempt to set sane values?
-> > If you edited /etc/sensors3.conf, please remember that it takes a
-> > "sensors -s" to write the new limits to the chip.
-> 
-> Ah, that was certainly my mistake.
-> 
-> Are somewhat scattershot defaults somewhat to be expected?
 
-Yes, this is very frequent.
 
--- 
-Jean Delvare
+Enrico Ng wrote:
+> I have a JVC Mininote XP-MP7431 laptop.  It is pretty old but I know
+> that I can control the fan using speedfan in windows.  I'm having
+> trouble getting my sensors working in linux.  I am using ubuntu.
+> When I do "sensors-detect" it does not detect anything.  I've tried
+> loading lm85 but that does not make any difference.  I'm wondering if I
+> need to recompile the kernel to add support or something.  I'm not sure
+> whats already in there as I can't find the .config.
+> 
+> I'd appreciate any help.
+> Let me know if you need the output from any commands, I'm unsure about
+> what to attach.
+
+Hmm,
+
+That chip should be detected just fine, can you please try this version of 
+sensors-detect:
+http://www.lm-sensors.org/browser/lm-sensors/branches/lm-sensors-3.0.0/prog/detect/sensors-detect?format=raw
+
+(All you need to do is safe the one file and make it executable)
+
+And include the output of running this in your next mail?
+
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
