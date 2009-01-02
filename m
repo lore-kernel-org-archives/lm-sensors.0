@@ -1,64 +1,50 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 30 Jan 2009 17:56:27 +0000
-Subject: [lm-sensors] [PATCH 3/4] hwmon: (ds1621) Avoid unneeded register
-Message-Id: <20090130185627.09933f51@hyperion.delvare>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Fri, 02 Jan 2009 14:15:34 +0000
+Subject: [lm-sensors] SHT15 humidity sensor. Hwmon right place to put a
+Message-Id: <495E2186.7080609@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Register access over SMBus isn't cheap, so avoid register access where
-possible:
-* Only write back the configuration register if it changed.
-* Don't refresh the register cache when we don't have to.
+Dear All,
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Aurelien Jarno <aurelien@aurel32.net>
----
- drivers/hwmon/ds1621.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+I'm in the process of cleaning up a driver for the Sensiron SHT15 humidity and
+temperature sensor chip.
 
---- linux-2.6.29-rc2.orig/drivers/hwmon/ds1621.c	2009-01-28 10:04:25.000000000 +0100
-+++ linux-2.6.29-rc2/drivers/hwmon/ds1621.c	2009-01-28 10:06:50.000000000 +0100
-@@ -101,17 +101,20 @@ static int ds1621_write_temp(struct i2c_
- 
- static void ds1621_init_client(struct i2c_client *client)
- {
--	int reg = i2c_smbus_read_byte_data(client, DS1621_REG_CONF);
-+	u8 conf, new_conf;
-+
-+	new_conf = conf = i2c_smbus_read_byte_data(client, DS1621_REG_CONF);
- 	/* switch to continuous conversion mode */
--	reg &= ~ DS1621_REG_CONFIG_1SHOT;
-+	new_conf &= ~DS1621_REG_CONFIG_1SHOT;
- 
- 	/* setup output polarity */
- 	if (polarity = 0)
--		reg &= ~DS1621_REG_CONFIG_POLARITY;
-+		new_conf &= ~DS1621_REG_CONFIG_POLARITY;
- 	else if (polarity = 1)
--		reg |= DS1621_REG_CONFIG_POLARITY;
-+		new_conf |= DS1621_REG_CONFIG_POLARITY;
- 	
--	i2c_smbus_write_byte_data(client, DS1621_REG_CONF, reg);
-+	if (conf != new_conf)
-+		i2c_smbus_write_byte_data(client, DS1621_REG_CONF, new_conf);
- 	
- 	/* start conversion */
- 	i2c_smbus_write_byte(client, DS1621_COM_START);
-@@ -170,7 +173,7 @@ static ssize_t set_temp(struct device *d
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
- 	struct i2c_client *client = to_i2c_client(dev);
--	struct ds1621_data *data = ds1621_update_client(dev);
-+	struct ds1621_data *data = i2c_get_clientdata(client);
- 	u16 val = LM75_TEMP_TO_REG(simple_strtol(buf, NULL, 10));
- 
- 	mutex_lock(&data->update_lock);
+http://www.sensirion.com/en/01_humidity_sensors/00_humidity_sensors.htm
 
--- 
-Jean Delvare
+Before I proceed too far with this I have a couple of general requests for
+comment.
+
+Is hwmon a sensible place for this driver?
+
+Whilst it could conceivably be used for hardware monitoring that isn't my
+use for it.  I think it is more appropriate here than in the upcoming
+industrial I/O subsystem principally because I can't envision a use where
+the humidity is changing rapidly enough to require the more complex kernel
+ring buffering etc provided there.
+
+The other delightful quirk of this device is that it's bus protocol doesn't
+conform to anything remotely standard and hence will be implemented by directly
+controlling gpios.
+
+Are people happy with such a low level driver in hwmon?
+
+I think he protocol is very much chip specific so not worth a more general
+implementation.  All sensiron's other sensors appear to use more standard
+protocols.
+
+If there are any similar gpio based drivers please point them out to me
+as an example of accepted practice would save both mine and reviewers time!
+
+Thanks,
+
+--
+Jonathan Cameron
+
+
 
 _______________________________________________
 lm-sensors mailing list
