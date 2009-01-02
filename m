@@ -1,28 +1,31 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 10 Jan 2009 10:30:01 +0000
-Subject: Re: [lm-sensors] Aspire One Intel Atom's Motherboard support
-Message-Id: <20090110113001.4dc73f32@hyperion.delvare>
+From: Volker Kuhlmann <list0570@paradise.net.nz>
+Date: Fri, 02 Jan 2009 22:15:48 +0000
+Subject: [lm-sensors] Updated fancontrol script
+Message-Id: <20090102221548.GA19021@paradise.net.nz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <f4897e880807160553h3d8dacdfy20efdddfc8c4b476@mail.gmail.com>
-In-Reply-To: <f4897e880807160553h3d8dacdfy20efdddfc8c4b476@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 10 Jan 2009 11:01:36 +0100, Dieter Jurzitza wrote:
-> Dear listmembers,
-> please see contents of the file "out" attached - this stems from my Acer 
-> Aspire One.
-> Thank you for looking into this,
+I have updated my improved/extended fancontrol script with the changes
+from 0.63 to 0.67 of the "official" script. It's backwards compatible.
 
-Nothing relevant on the SMBus, and unknown Super-I/O chip. I'd say
-you're out of luck and there is no hardware monitoring chip on this
-motherboard. That's rather frequent on laptops, usually thermal
-management is taken care of by ACPI and that's it.
+http://volker.top.geek.nz/linux/tech/lm_sensors/fancontrol-1.1
+
+Major changes: temperature hysteresis for fan speed, using bash string
+functions instead of external programs, changed some ugly programming.
+For minor changes see changelog.
+
+Feel free to make this the official script... ;)
+
+Greets,
+
+Volker
 
 -- 
-Jean Delvare
+Volker Kuhlmann
+http://volker.dnsalias.net/	Please do not CC list postings to me.
 
 _______________________________________________
 lm-sensors mailing list
