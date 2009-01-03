@@ -1,117 +1,82 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 22 Jan 2009 07:47:45 +0000
-Subject: Re: [lm-sensors] Problems with f71882fg and NVIDIA graphics card
-Message-Id: <20090122084745.30f76763@hyperion.delvare>
+From: Vincent Danjean <vdanjean.ml@free.fr>
+Date: Sat, 03 Jan 2009 21:17:41 +0000
+Subject: [lm-sensors] VRM 11.0 needed for it8718 chip
+Message-Id: <495FD5F5.70103@free.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1232481045.6371.77.camel@malcolm>
-In-Reply-To: <1232481045.6371.77.camel@malcolm>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Hi Malcolm,
+  Hi,
 
-On Wed, 21 Jan 2009 16:44:30 -0800, Malcolm Lalkaka wrote:
-> On Wed, 2009-01-21 at 10:18 +0100, Jean Delvare wrote:
-> > Looks compatible. You may try loading the i2c-nforce2 driver and then
-> > run the following command:
-> > 
-> > echo "10de 0aa2" > /sys/bus/pci/drivers/nForce2_smbus/new_id
-> > 
-> > If thinks go well, you should see the nForce2 SMBus (2 channels) in the
-> > output of "i2cdetect -l" (after loading kernel module i2c-dev). 
-> 
-> Yes, this command seemed to work.
-> The output of "i2cdetect -l":
-> i2c-0	unknown   	NVIDIA i2c adapter              	N/A
-> i2c-1	unknown   	NVIDIA i2c adapter              	N/A
-> i2c-2	unknown   	NVIDIA i2c adapter              	N/A
-> i2c-3	unknown   	SMBus nForce2 adapter at 1c00   	N/A
-> i2c-4	unknown   	SMBus nForce2 adapter at 1c80   	N/A
-> 
-> > Check
-> > with "i2cdetect <n>" (where n is the bus number) that they behave OK.
-> 
-> The output of "sudo i2cdetect 3":
-> -----
->         WARNING! This program can confuse your I2C bus, cause data loss and worse!
->         I will probe file /dev/i2c-3.
->         I will probe address range 0x03-0x77.
->         Continue? [Y/n] 
->              0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
->         00:          -- -- -- -- -- 08 -- -- -- -- -- -- -- 
->         10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
->         20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
->         30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
->         40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
->         50: 50 51 -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
->         60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
->         70: -- -- -- -- -- -- -- --                         
-> -----
-> 
-> The output of "sudo i2cdetect 4":
-> -----
->         WARNING! This program can confuse your I2C bus, cause data loss and worse!
->         I will probe file /dev/i2c-4.
->         I will probe address range 0x03-0x77.
->         Continue? [Y/n] 
->              0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
->         00:          -- -- -- -- -- 08 -- -- -- -- -- -- -- 
->         10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
->         20: -- -- 22 -- -- -- -- -- -- -- -- -- -- -- -- -- 
->         30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
->         40: -- -- -- -- -- -- -- -- 48 49 -- -- -- -- 4e -- 
->         50: 50 51 52 53 54 55 56 57 -- -- -- -- -- -- -- -- 
->         60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
->         70: -- -- -- -- -- -- -- --                         
-> -----
->
-> Does that mean they're working?
+  I'm trying to use lm-sensors with a Gigabyte EG45M-DS2H motherboard
+and a Intel(R) Core(TM)2 Quad CPU    Q6600  @ 2.40GHz (from /proc/cpuinfo)
+  sensor-detect asks me to load it87 and coretemp modules
 
-This looks alright. I'll prepare a patch adding support for the MCP79
-to the i2c-nforce2 driver (really just adding the new PCI ID). You
-could try dumping the SPD EEPROM at 3-0x50 to make sure it works as
-well:
-i2cdump 3 0x50 b
-i2cdump 3 0x50 c
-i2cdump 3 0x50 W
-All 3 commands should work and should return the same data.
+  I'm using Debian lenny versions of lm-sensors: 1:3.0.2-1+b2
+(ie 3.0.2 upstream)
 
-> I don't see any new information when running "sensors", though.
+  My chips is a it8718F. When loading my modules, I get:
+[   15.646427] it87: Found IT8718F chip at 0x290, revision 5
+[   15.646427] it87: in3 is VCC (+5V)
+[   15.654427] coretemp coretemp.0: Using relative temperature scale!
+[   15.654427] coretemp coretemp.1: Using relative temperature scale!
+[   15.654427] coretemp coretemp.2: Using relative temperature scale!
+[   15.654427] coretemp coretemp.3: Using relative temperature scale!
 
-Well, if the Super I/O chip (F71882FG) is used for hardware monitoring,
-then there is no reason why there would be an additional chip on the
-SMBus (even though some vendors do it... but not EVGA in my
-experience.) Addresses 0x48, 0x49 and 0x4e are often used for thermal
-sensors though.
+  The default configuration file did have have anything for a it8718.
+I wrote a section based on the one found here:
+http://www.lm-sensors.org/wiki/Configurations/Gigabyte/G33-DS3R
+I had to change low/over to min/max and to comment out "set sensor3 0"
 
-I am also a little curious about the chips at 0x50-0x57 on the second
-SMBus channel. Maybe a custom EEPROM...
+I also add a problem with in0_(min|max): vid was not valid and cpu0_vid
+was always 0. At first, I put a explicit value here. Then, I read
+http://www.lm-sensors.org/browser/lm-sensors/trunk/doc/vid
+(pointed by your FAQ)
+It tells:
+109     The following chip drivers support only VRM 8.2 and cannot be changed:
+110 	
+111 	        adm1024, it87, mtp008, adm9240, gl520sm, lm78
+112 	
+113 	If you have a board with one of these chips which needs advanced
+114 	VRM support please email us.
 
-> EVGA replied to my support request about the PnP BIOS bug that you
-> found. They said that if "there is a specific reason why you suspect a
-> PnP bug in the bios, please let us know and we can pass that information
-> to our product management team to look into." How can I describe this
-> problem to them? Since you've already found the problem, I may as well
-> get them to fix it.
+So, I'm emailing you. Indeed, my /sys/class/hwmon/hwmon0/device/vrm had
+by default a value of 110. The intel website has a document for VRM 11.0.
+If I put the value 100 in /sys/class/hwmon/hwmon0/device/vrm, then
+I got a non zero value for cpu0_vid (the value seems non absurd, ie
+sensors reports 1.063V for cpu_vid0)
 
-Description of the problem:
+Note that "set vrm 100" in my it8718 section is refused by "sensors -s":
+# sensors -s
+Error: Line 1429: Unknown feature name
+it8718-isa-0290: No such subfeature known
 
-In the PnP ACPI tables, the hardware monitoring I/O ports of the
-F71882FG chips are declared at 0x295-0x314, that is, 32 I/O ports
-starting at 0x295, while this device uses only 2 I/O ports, so this
-should be 0x295-0x296. This problem prevents the OS from using the
-device. The BIOS should be fixed to declare only ports 0x295-0x296 for
-the hardware monitoring function. My guess is that it's a simple matter
-of changing the resource length from 0x20 to 0x02.
 
-You can quote the part of the system log (output of the dmesg command
-after boot) which starts with "pnp: PnP ACPI: found 13 devices". It
-should include the faulty I/O port range.
+  If you need more information, please, ask me (but I'm not subscribed to
+this ML, so CC me)
+
+
+  Last remark: lm-sensors seems to work with my config but I'm not sure
+that the CPU temp is correctly computed. I've:
+NBr Temp:    +37.0°C  (low  = +10.0°C, high = +50.0°C)  sensor = transistor
+CPU Temp:    +21.0°C  (low  = +10.0°C, high = +60.0°C)  sensor = thermal diode
+and then
+Core 0:      +31.0°C  (high = +82.0°C, crit = +100.0°C)
+Core 1:      +32.0°C  (high = +82.0°C, crit = +100.0°C)
+Core 2:      +28.0°C  (high = +82.0°C, crit = +100.0°C)
+Core 3:      +31.0°C  (high = +82.0°C, crit = +100.0°C)
+
+  Regards,
+    Vincent
 
 -- 
-Jean Delvare
+Vincent Danjean       GPG key ID 0x9D025E87         vdanjean@debian.org
+GPG key fingerprint: FC95 08A6 854D DB48 4B9A  8A94 0BF7 7867 9D02 5E87
+Unofficial pacakges: http://www-id.imag.fr/~danjean/deb.html#package
+APT repo:  deb http://perso.debian.org/~vdanjean/debian unstable main
+
 
 _______________________________________________
 lm-sensors mailing list
