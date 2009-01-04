@@ -1,64 +1,189 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 30 Jan 2009 17:19:34 +0000
-Subject: Re: [lm-sensors] fan control questions
-Message-Id: <20090130181934.7875dd0c@hyperion.delvare>
+From: Daimonos Tereutes <tereutes@nainwak.com>
+Date: Sun, 04 Jan 2009 17:57:07 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: Add a driver for the ADT7475
+Message-Id: <4960F873.4080803@nainwak.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------050100080602020900000509"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <glni7k$fut$1@ger.gmane.org>
-In-Reply-To: <glni7k$fut$1@ger.gmane.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <20080610194818.GA21150@cosmic.amd.com>
+In-Reply-To: <20080610194818.GA21150@cosmic.amd.com>
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+This is a multi-part message in MIME format.
+--------------050100080602020900000509
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 27 Jan 2009 10:02:28 -0800, Mark Nienberg wrote:
-> I was hoping to use the fan control program on a server with an ASUS KFN4-DRE 
-> motherboard.  The BIOS has three settings for control of fans (disabled, smart fan, 
-> smart fan II). The two smart fan options work very poorly, cycling through full speed 
-> and low speed on about a 24 hour cycle with no apparent regard to temps.  That is why 
-> I would like to take control and force something more rational.
+Matt Roberds a =E9crit :
+> On Tue, 23 Dec 2008, Daimonos Tereutes wrote:
+>> I'm using the patch for ADT7475 since the begining on an ASUS M2N32 WS
+>> Professional without problem.
+>=20
+> It looks like you might be using a modified version of this
+> sensors3.conf :
+> http://www.lm-sensors.org/wiki/Configurations/Asus/M2N-SLI%20Deluxe
+>=20
+> On your board, it seems like it8716 in2 (+3.3 V) works, and it8716 temp=
+3
+> is chassis temp.  Also, the assignment of fans (CPU/chassis/power
+> supply) to chip inputs is a little different.  If you have verified tha=
+t
+> the labels are correct, can you post your sensors3.conf here on the
+> list?  This will help it get to the wiki as a reference for others.
+>=20
+> Thanks!
+>=20
+> Matt Roberds
+>=20
+Hello,
+Sorry for late reply, I was away from computer.
 
-It might be better to tweak the settings of the automatic modes than to
-switch to software control. Sometimes the BIOS allows this. If not,
-some of our drivers have sysfs files to tweak the settings.
+My starting point was indeed
+http://www.lm-sensors.org/wiki/Configurations/Asus/M2N-SLI%20Deluxe
 
-> I assumed that if I am controlling fans from the OS then I don't want the BIOS to 
-> also try to control fans, so I set it to "disabled" and then ran the pwmconfig 
-> program. The program found three pwm devices and tried each one in turn, but there 
-> was no effect on the two fans connected to the motherboard.  There are a total of 10 
-> fan connectors on this board, six of which show up in lm_sensors.  The manual says 
-> that the "smart fan" setting applies to all fan connectors.
-> 
-> Should I have tested with the BIOS settings other than "disabled"?
+I added some names based on dissasembly of ACPI following instructions on=
+ this
+page : http://www.lm-sensors.org/wiki/AsusFormulaHacking
 
-This shouldn't change anything. If pwmconfig finds a PWM output in
-automatic mode, it'll warn you that you probably don't want to change
-it to manual mode, but that's about it (you can override that if you
-really want to.)
+And some other based on different messages on the lm_sensors list.
 
-> Should I test the other 4 fan connectors that lm_sensors recognizes?
+Hopes it will help someone.
 
-Yes, it can't hurt.
+Fran=E7ois
 
-It would help if you would provide more information about your board.
-In particular, which hardware monitoring chip(s) are found by
-sensors-detect? What does the output of "sensors" look like?
+--------------050100080602020900000509
+Content-Type: text/plain;
+ name="sensors3.conf"
+Content-Disposition: inline;
+ filename="sensors3.conf"
+Content-Transfer-Encoding: quoted-printable
 
-If there is more than one chip, are the PWM outputs found on the same
-chip that reports the fan speeds?
+chip "it8716-*"
 
-And do you see fan speeds change when in automatic control mode?
+# Voltages
 
-> Or is this just one of the boards that fan control won't be able to handle?
+    label  in0  "VCore"
+    ignore in1  #"VDDR"    # Allways 0V
+    label  in2  "+3.3V"    # 3.3 V is monitored by adt7475 too
+    label  in3  "+5V"      # VCC
+    label  in4  "+12V"
+    label  in5  "VDDR"     # VDDR? (~1.83V)
+    ignore in6             # Allways 0V
+    label  in7  "5VSB"     # Not in BIOS
+    label  in8  "VBat"     # Not in BIOS
 
-If the BIOS has options to control the fans then the wiring on the board
-must be correct. You're probably not too far away.
+    # Vcore, VDDR, and Vbat are connected directly, so no compute
+    # line is needed for these. For +5V, +12V and 5VSB, the default
+    # resistors seem to have been used.
+# Those formulae are from http://www.lm-sensors.org/wiki/Configurations/A=
+sus/M2N-SLI%20Deluxe
+#    compute in3  ((6.8/10)+1)*@ , @/((6.8/10)+1)
+#    compute in4  ((30/10)+1)*@  , @/((30/10)+1)
+#    compute in5  (84*@)/50, (@/84)*50
+# Those formulae are from ACPI disassembly. The results are similare
+    compute in3  (84*@)/50, (@/84)*50
+    compute in4  (40*@)/10, (@/40)*10
+    compute in5  @/2, @*2
+    compute in7  ((6.8/10)+1)*@, @/((6.8/10)+1)
 
--- 
-Jean Delvare
+   # The BIOS won't set any limit for voltages.
+
+   # CPU is an Athlon X2 BE-2350, with Cool'n'Quiet activated so the rath=
+er wide range of Voltage
+   set in0_min 1.05 * 0.95
+   set in0_max 1.25 * 1.05
+
+   set in2_min 3.3 * 0.95
+   set in2_max 3.3 * 1.05
+   set in3_min   5 * 0.95
+   set in3_max   5 * 1.05
+   set in4_min  12 * 0.95
+   set in4_max  12 * 1.05
+   set in7_min   5 * 0.95
+   set in7_max   5 * 1.05
+
+# Temperatures
+
+# Not sure.  temp1 always reads close to what k8temp reports for Core0,
+# and to what the BIOS reports as the CPU temperature.  temp2 is between
+# temp1 and temp3; it is close to what the BIOS reports as the motherboar=
+d
+# temperature.  temp3 always reads approximate ambient temperature.
+
+    label temp1 "CPU Temp"
+    label temp2 "MB Temp"
+    label temp3 "Chassis Temp"
+
+
+# Fans
+
+    label  fan1 "CPU Fan"
+    label  fan2 "Chassis Fan 1"
+    label  fan3 "Chassis Fan 2"
+
+# QFAN is on in BIOS, fan1 is a 4 pin fan, but fan2 and fan3 are 3 pin fa=
+ns
+# and only show when RPM is above 1000.
+    set fan1_min 1200
+    set fan2_min 300
+    set fan3_min 300
+
+chip "adt7475-*"
+
+# Note: this section depends on some further hacks I have made to
+# Jordan Crouse's driver
+
+# Voltages
+
+    ignore in1
+    label  in2  "+3.3V"
+
+# Temperatures
+
+# temp1 and temp3 don't appear to be hooked up; temp2 is on board the
+# adt7475 chip itself.
+
+    ignore temp1
+    label  temp2  "ADT7475 Temp"
+    ignore temp3
+
+# Fans
+
+    label  fan1 "Chassis Fan 3"
+    label  fan2 "Chassis Fan 4"
+    label  fan3 "Power Supply Fan" # Only one in BIOS
+    label  fan4 "Chassis Fan 5"
+
+# fan3 is take from ACPI dissasembly
+# other fan are simply numbered in order, I never saw anything but 0 RPM
+# for these. According to MB manual there aren't even connected
+    # Ignore fans you don't have
+    set fan3_min 600
+
+
+chip "k8temp-*"
+
+   label temp1 "core0 temp0"
+   label temp2 "core0 temp1"
+   label temp3 "core1 temp0"
+   label temp4 "core1 temp1"
+
+# 21=C2=B0C offset taken from message on lm_sensors list
+# not sure if it is correct or if CPU is boggus, but
+# temps are similar to others probes temp.
+   compute temp1 (@+21), (@-21)=20
+   compute temp2 (@+21), (@-21)=20
+   compute temp3 (@+21), (@-21)
+   compute temp4 (@+21), (@-21)=20
+
+--------------050100080602020900000509
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------050100080602020900000509--
