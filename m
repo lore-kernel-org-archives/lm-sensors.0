@@ -1,71 +1,66 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Thu, 01 Jan 2009 17:23:15 +0000
-Subject: Re: [lm-sensors] ADT7463
-Message-Id: <495CFC03.2000505@redhat.com>
+From: "=?iso-8859-1?q?Honorable.Barr.Frank=20Duke?="
+Date: Mon, 05 Jan 2009 19:21:18 +0000
+Subject: [lm-sensors] I seek your partnership in business
+Message-Id: <441929.45021.qm@web112214.mail.gq1.yahoo.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6119028817095742014=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200612172022.kBHKMM3N011597@srv1.nickelnetworks.com>
-In-Reply-To: <200612172022.kBHKMM3N011597@srv1.nickelnetworks.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <461853.59070.qm@web95112.mail.in2.yahoo.com>
+In-Reply-To: <461853.59070.qm@web95112.mail.in2.yahoo.com>
 To: lm-sensors@vger.kernel.org
 
+--===============6119028817095742014==
+Content-Type: multipart/alternative; boundary="0-734292426-1231183278=:45021"
+Content-Transfer-Encoding: 8bit
+
+--0-734292426-1231183278=:45021
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+Meu novo endere=E7o de e-mailAgora voc=EA pode me contactar atrav=E9s do e-=
+mail:  barr.frank_dk@yahoo.com.br
+
+Hello,
 
 
-Enrico Ng wrote:
-> On Thu, 01 Jan 2009 15:24:38 +0100
-> Hans de Goede <hdegoede@redhat.com> wrote:
-> 
->>
->> Enrico Ng wrote:
->>> I have a JVC Mininote XP-MP7431 laptop.  It is pretty old but I know
->>> that I can control the fan using speedfan in windows.  I'm having
->>> trouble getting my sensors working in linux.  I am using ubuntu.
->>> When I do "sensors-detect" it does not detect anything.  I've tried
->>> loading lm85 but that does not make any difference.  I'm wondering
->>> if I need to recompile the kernel to add support or something.  I'm
->>> not sure whats already in there as I can't find the .config.
->>>
->>> I'd appreciate any help.
->>> Let me know if you need the output from any commands, I'm unsure
->>> about what to attach.
->> Hmm,
->>
->> That chip should be detected just fine, can you please try this
->> version of sensors-detect:
->> http://www.lm-sensors.org/browser/lm-sensors/branches/lm-sensors-3.0.0/prog/detect/sensors-detect?format=raw
->>
->> (All you need to do is safe the one file and make it executable)
->>
->> And include the output of running this in your next mail?
->>
->> Regards,
->>
->> Hans
-> 
-> Here is the output, and I've attached some other output you may find
-> useful.
-> 
-> In /proc/acpi/fan, I have one fan but it only displays on/off state
-> In /proc/acpi/processor/CPU1/ it has info  limit  power  throttling
-> In  /proc/acpi/thermal_zone/THRM/ it has cooling_mode
-> polling_frequency  state  temperature  trip_points
-> 
+I have proposal for you that involve US$12 Million.
 
-Ah, ok, so you've no (visible) smbus adapters, and acpi thermal management, 
-that means that the BIOS has hidden your smbus adapter, this can be worked 
-around, but this is a *BAD* idea, as this means that ACPI is using the smbus, 
-and we thus shouldn't touch it.
 
-The fact that speedfan under windows does allow you to touch your hardware 
-monitoring is not really relevant in this case. We can drive / exposue your 
-hwmon IC, but we *really* don't want to.
+Reply for details
 
-Regards,
 
-Hans
+regards
+
+- Honorable.Barr.Frank Duke
+
+
+--0-734292426-1231183278=:45021
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<div style=3D"border: solid 1px #cccccc; width:448px; background-color:whit=
+e; margin:10px 0px;";><table border=3D0 cellspacing=3D0 cellpadding=3D0 wid=
+th=3D"448"><tr><td class=3Dtablot background=3D"http://us.i1.yimg.com/us.yi=
+mg.com/i/us/pim/gr/gr_announce_1.gif" valign=3Dcenter height=3D57><big styl=
+e=3D"padding:10px;">Meu novo endere=E7o de e-mail</big></td></tr></table><d=
+iv style=3D"padding:10px;">Agora voc=EA pode me contactar atrav=E9s do e-ma=
+il:  <b>barr.frank_dk@yahoo.com.br</b><br><br><span style=3D"color:green;">=
+Hello,<br><br><br>I have proposal for you that involve US$12 Million.<br><b=
+r><br>Reply for details<br><br><br>regards</span><br><br>- <span style=3D"c=
+olor:green;">Honorable.Barr.Frank Duke</span></div></div>
+--0-734292426-1231183278=:45021--
+
+
+
+--===============6119028817095742014==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6119028817095742014==--
+
