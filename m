@@ -1,86 +1,63 @@
-From: Andre Prendel <andre_prendel@gmx.de>
-Date: Fri, 30 Jan 2009 09:01:23 +0000
-Subject: Re: [lm-sensors] [Patch] libsensors: Introduce error string
-Message-Id: <20090130090122.GA4389@ubuntu>
+From: Mark Nienberg <gmane@tippingmar.com>
+Date: Mon, 05 Jan 2009 19:02:30 +0000
+Subject: [lm-sensors] Asus KFN4-DRE board
+Message-Id: <gjtlg7$htb$1@ger.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090129090945.GB4410@ubuntu>
-In-Reply-To: <20090129090945.GB4410@ubuntu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Thu, Jan 29, 2009 at 01:28:19PM +0100, Jean Delvare wrote:
-> On Thu, 29 Jan 2009 12:12:28 +0100, Andre Prendel wrote:
-> > On Thu, Jan 29, 2009 at 10:57:03AM +0100, Jean Delvare wrote:
-> > > Hi Andre,
-> > > 
-> > > On Thu, 29 Jan 2009 10:09:45 +0100, Andre Prendel wrote:
-> > > > sensors_error() returns NULL if errnum is not valid. Returning
-> > > > "Unknown error" in this case, makes output clearer than:
-> > > > 
-> > > > foo: (null)
-> > > > 
-> > > > and prevents error output/logging from segmentation faults.
-> > > > 
-> > > > What do you think?
-> > > > 
-> > > > Andre
-> > > > 
-> > > > Signed-off-by: Andre Prendel <andre_prendel@gmx.de>
-> > > > ---
-> > > > 
-> > > > --- lm-sensors-dev/lib/error.c	2009-01-26 17:43:43.000000000 +0100
-> > > > +++ my-lm-sensors/lib/error.c	2009-01-28 22:49:53.000000000 +0100
-> > > > @@ -33,7 +33,7 @@ void (*sensors_fatal_error) (const char 
-> > > >  						sensors_default_fatal_error;
-> > > >  
-> > > >  static const char *errorlist[] = {
-> > > > -	/* Invalid error code    */ NULL,
-> > > > +	/* Invalid error code    */ "Unknown error",
-> > > >  	/* SENSORS_ERR_WILDCARDS */ "Wildcard found in chip name",
-> > > >  	/* SENSORS_ERR_NO_ENTRY  */ "No such subfeature known",
-> > > >  	/* SENSORS_ERR_ACCESS_R  */ "Can't read",
-> > > 
-> > > Out of curiosity: did you actually hit this problem in real life?
-> > 
-> > No, I didn't. It's just theoretical.
-> >  
-> > > I was about to say that the caller was supposed to check for NULL, but
-> > > apparently neither sensors nor sensord nor even libsensors does, so...
-> > 
-> > IMO error reporting should be very stable. If the caller checks
-> > return value carefully it's fine too. Fprintf() isn't a problem. But I
-> > don't know what about vsnprintf(), syslog().
-> > 
-> > > I guess you're right, having an error string instead of NULL would be
-> > > better. Actually that's what libsensors 2.x did, I can't remember why I
-> > > changed that in 3.x:
-> > > http://www.lm-sensors.org/changeset/4854
-> > > 
-> > > Probably I thought it was not supposed to happen, but I guess it may
-> > > actually happen if mixing a recent application with an older version of
-> > > libsensors.
-> > > 
-> > > So I am pretty much inclined to apply your patch.
-> > 
-> > Vous avez le choix. :)
-> 
-> Sicherlich :)
-> 
-> Patch applied, thanks. If you intend to contribute to the lm-sensors
-> project again on a regular basis, please let me know, we can create an
-> account for you.
+Forgive me if this is double posted.  I'm using gmane and I forgot to enabl=
+e the=20
+address the first time.
 
-I'm very interested in contributing more stuff to the project. For the
-moment I'm happy sending patches to you. If I should be more involved in
-the future we can talk about an account again.
+CentOS 5.2 x86_64
+lm_sensors 2.10.6 installed from atrpms
+ASUS KFN4-DRE server motherboard
 
-Thanks
-Andre
- 
-> -- 
-> Jean Delvare
+sensors-detect suggested the w83627hf module, but that gave nonsense result=
+s.  The=20
+w83792d module is the correct one for this board, as documented in the moth=
+erboard=20
+user guide.  I switched to that one and it mostly works.
+
+Here is typical output:
+
+[root@gecko sysconfig]# service lm_sensors status
+w83792d-i2c-0-2f
+Adapter: SMBus nForce2 adapter at 4c00
+VCoreA:    +1.10 V  (min =3D  +0.80 V, max =3D  +1.60 V)
+5VCC:      +4.91 V  (min =3D  +0.00 V, max =3D  +6.12 V)
+5VSB:      +4.81 V  (min =3D  +0.00 V, max =3D  +6.12 V)
+VBAT:      +3.01 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+HD Fan:   2033 RPM  (min =3D    0 RPM, div =3D 4)
+CPU Fan:  5037 RPM  (min =3D    0 RPM, div =3D 4)
+P/S Fan:   715 RPM  (min =3D    0 RPM, div =3D 16)
+Temp1:     +29.0=B0C  (high =3D +127.0=B0C, hyst =3D +0.0=B0C)
+Temp2:     +28.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)
+Temp3:     +25.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)
+
+I can't make sense of the temperatures because they are almost all the same.
+The BIOS reports these temps at approx the same time as the ones above:
+
+CPU1 34 deg C
+CPU2 N/A  (I only have one CPU on the board, but it holds 2)
+MB   29 deg C
+
+Can anyone suggest corrections and proper labels for the temps?
+
+Also, the board has 10 fan connectors (really!) and I carefully mapped them=
+ to the=20
+monitored fans.  I would be happy to provide this info for a page in the Tr=
+ac wiki.=20
+Or is it possible for me to edit the wiki?
+
+Thanks,
+
+Mark Nienberg
+
+
 
 _______________________________________________
 lm-sensors mailing list
