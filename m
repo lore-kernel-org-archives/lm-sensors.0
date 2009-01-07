@@ -1,108 +1,113 @@
-From: "Henrik Rydberg" <rydberg@euromail.se>
-Date: Sat, 24 Jan 2009 12:46:14 +0000
-Subject: [lm-sensors] [PATCH] hwmon: applesmc: Add support for MacPro 3
-Message-Id: <1232801174-6701-1-git-send-email-rydberg@euromail.se>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 07 Jan 2009 15:55:01 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 2.6.29
+Message-Id: <20090107165501.646e4841@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <48D7A9F9.50502@euromail.se>
-In-Reply-To: <48D7A9F9.50502@euromail.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Bharath Ramesh <bramesh@vt.edu>, Nicolas Boichat <nicolas@boichat.ch>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-From: Bharath Ramesh <bramesh@vt.edu>
+Hi Linus,
 
-MacPro 3 have more temperature sensors than the previous MacPro's also
-the sensor THTG has been removed. This patch add supports for the
-newer temperature sensors in the MacPro3.
+Please pull some hwmon subsystem updates for Linux 2.6.29 from:
 
-Signed-off-by: Bharath Ramesh <bramesh@vt.edu>
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+git://jdelvare.pck.nerim.net/jdelvare-2.6 hwmon-for-linus
 
----
- drivers/hwmon/applesmc.c |   30 +++++++++++++++++++++++++++++-
- 1 files changed, 29 insertions(+), 1 deletions(-)
+There are a lot of improvements to the f71882fg driver, a new driver
+(ltc4245), watchdog support added to the fschmd driver, support for the
+ITE IT8720F, and a few other small things.
 
-diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index e301862..678e34b 100644
---- a/drivers/hwmon/applesmc.c
-+++ b/drivers/hwmon/applesmc.c
-@@ -83,7 +83,7 @@
- /*
-  * Temperature sensors keys (sp78 - 2 bytes).
-  */
--static const char* temperature_sensors_sets[][36] = {
-+static const char *temperature_sensors_sets[][41] = {
- /* Set 0: Macbook Pro */
- 	{ "TA0P", "TB0T", "TC0D", "TC0P", "TG0H", "TG0P", "TG0T", "Th0H",
- 	  "Th1H", "Tm0P", "Ts0P", "Ts1P", NULL },
-@@ -135,6 +135,13 @@ static const char* temperature_sensors_sets[][36] = {
- 	{ "TB0T", "TB1S", "TB1T", "TB2S", "TB2T", "TC0D", "TN0D", "TTF0",
- 	  "TV0P", "TVFP", "TW0P", "Th0P", "Tp0P", "Tp1P", "TpFP", "Ts0P",
- 	  "Ts0S", NULL },
-+/* Set 16: Mac Pro 3,1 (2 x Quad-Core) */
-+	{ "TA0P", "TCAG", "TCAH", "TCBG", "TCBH", "TC0C", "TC0D", "TC0P",
-+	  "TC1C", "TC1D", "TC2C", "TC2D", "TC3C", "TC3D", "TH0P", "TH1P",
-+	  "TH2P", "TH3P", "TMAP", "TMAS", "TMBS", "TM0P", "TM0S", "TM1P",
-+	  "TM1S", "TM2P", "TM2S", "TM3S", "TM8P", "TM8S", "TM9P", "TM9S",
-+	  "TN0C", "TN0D", "TN0H", "TS0C", "Tp0C", "Tp1C", "Tv0S", "Tv1S",
-+	  NULL },
- };
- 
- /* List of keys used to read/write fan speeds */
-@@ -1153,6 +1160,16 @@ static SENSOR_DEVICE_ATTR(temp34_input, S_IRUGO,
- 					applesmc_show_temperature, NULL, 33);
- static SENSOR_DEVICE_ATTR(temp35_input, S_IRUGO,
- 					applesmc_show_temperature, NULL, 34);
-+static SENSOR_DEVICE_ATTR(temp36_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 35);
-+static SENSOR_DEVICE_ATTR(temp37_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 36);
-+static SENSOR_DEVICE_ATTR(temp38_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 37);
-+static SENSOR_DEVICE_ATTR(temp39_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 38);
-+static SENSOR_DEVICE_ATTR(temp40_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 39);
- 
- static struct attribute *temperature_attributes[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
-@@ -1190,6 +1207,11 @@ static struct attribute *temperature_attributes[] = {
- 	&sensor_dev_attr_temp33_input.dev_attr.attr,
- 	&sensor_dev_attr_temp34_input.dev_attr.attr,
- 	&sensor_dev_attr_temp35_input.dev_attr.attr,
-+	&sensor_dev_attr_temp36_input.dev_attr.attr,
-+	&sensor_dev_attr_temp37_input.dev_attr.attr,
-+	&sensor_dev_attr_temp38_input.dev_attr.attr,
-+	&sensor_dev_attr_temp39_input.dev_attr.attr,
-+	&sensor_dev_attr_temp40_input.dev_attr.attr,
- 	NULL
- };
- 
-@@ -1312,6 +1334,8 @@ static __initdata struct dmi_match_data applesmc_dmi_data[] = {
- 	{ .accelerometer = 0, .light = 0, .temperature_set = 14 },
- /* MacBook Air 2,1: accelerometer, backlight and temperature set 15 */
- 	{ .accelerometer = 1, .light = 1, .temperature_set = 15 },
-+/* MacPro3,1: temperature set 16 */
-+	{ .accelerometer = 0, .light = 0, .temperature_set = 16 },
- };
- 
- /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
-@@ -1369,6 +1393,10 @@ static __initdata struct dmi_system_id applesmc_whitelist[] = {
- 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacPro2") },
- 		&applesmc_dmi_data[4]},
-+	{ applesmc_dmi_match, "Apple MacPro3", {
-+	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME, "MacPro3") },
-+		&applesmc_dmi_data[16]},
- 	{ applesmc_dmi_match, "Apple MacPro", {
- 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacPro") },
+ Documentation/feature-removal-schedule.txt |    8 +
+ Documentation/hwmon/f71882fg               |   89 ++
+ Documentation/hwmon/it87                   |   20 +-
+ Documentation/hwmon/lm70                   |   12 +-
+ Documentation/hwmon/lm85                   |    2 +-
+ Documentation/hwmon/ltc4245                |   81 ++
+ Documentation/spi/spi-lm70llp              |   10 +
+ drivers/hwmon/Kconfig                      |   47 +-
+ drivers/hwmon/Makefile                     |    1 +
+ drivers/hwmon/asb100.c                     |    5 +-
+ drivers/hwmon/dme1737.c                    |    5 +
+ drivers/hwmon/f71805f.c                    |    5 +
+ drivers/hwmon/f71882fg.c                   | 1549 +++++++++++++++++++++++-----
+ drivers/hwmon/fschmd.c                     |  448 ++++++++-
+ drivers/hwmon/i5k_amb.c                    |    7 +
+ drivers/hwmon/it87.c                       |   37 +-
+ drivers/hwmon/lm70.c                       |   91 ++-
+ drivers/hwmon/ltc4245.c                    |  567 ++++++++++
+ drivers/hwmon/pc87360.c                    |    6 +
+ drivers/hwmon/pc87427.c                    |    5 +
+ drivers/hwmon/sis5595.c                    |    5 +
+ drivers/hwmon/smsc47b397.c                 |    5 +
+ drivers/hwmon/smsc47m1.c                   |    5 +
+ drivers/hwmon/via686a.c                    |    5 +
+ drivers/hwmon/vt1211.c                     |    5 +
+ drivers/hwmon/vt8231.c                     |    5 +
+ drivers/hwmon/w83627ehf.c                  |    8 +-
+ drivers/hwmon/w83627hf.c                   |    5 +
+ drivers/hwmon/w83781d.c                    |    5 +-
+ drivers/hwmon/w83791d.c                    |    5 +-
+ drivers/hwmon/w83792d.c                    |    5 +-
+ drivers/hwmon/w83793.c                     |    5 +-
+ drivers/spi/spi_lm70llp.c                  |   33 +-
+ 33 files changed, 2729 insertions(+), 362 deletions(-)
+ create mode 100644 Documentation/hwmon/f71882fg
+ create mode 100644 Documentation/hwmon/ltc4245
+ create mode 100644 drivers/hwmon/ltc4245.c
+
+---------------
+
+Darrick J. Wong (1):
+      hwmon: (i5k_amb) Load automatically on all 5000/5400 chipsets
+
+Hans de Goede (18):
+      hwmon: (f71882fg) Style cleanups and put some repeating code into functions
+      hwmon: (f71882fg) Add support for the F71862FG superio sensors
+      hwmon: (f71882fg) Move some io access from the detect to the probe function
+      hwmon: (f71882fg) Prepare for adding F8000 support
+      hwmon: (f71882fg) Fix various sysfs callback function issues
+      hwmon: (f71882fg) Cleanup fan and temp hyst functions
+      hwmon: (f71882fg) Check for hwmon powerdown state
+      hwmon: (f71882fg) Separate max and crit alarm and beep
+      hwmon: (f71882fg) Remove the fan_mode module option
+      hwmon: (f71882fg) Add F8000 support
+      hwmon: (f71882fg) Add missing pwm3 attr for f71862fg
+      hwmon: (f71882fg) Fix auto_channels_temp temp numbering with f8000
+      hwmon: (f71882fg) Add documentation
+      hwmon: (f71882fg) Printout fan modes
+      hwmon: (f71882fg) Fix fan_to/from_reg prototypes
+      hwmon: (fschmd) Cleanups for watchdog support
+      hwmon: (fschmd) Add watchdog support
+      hwmon: Deprecate the fscher and fscpos drivers
+
+Ira Snyder (1):
+      hwmon: Add LTC4245 driver
+
+Jean Delvare (3):
+      hwmon: Don't overuse I2C_CLIENT_MODULE_PARM
+      hwmon: Check for ACPI resource conflicts
+      hwmon: Fix various typos
+
+Jean-Marc Spaggiari (1):
+      hwmon: (it87) Add support for the ITE IT8720F
+
+Kaiwan N Billimoria (1):
+      hwmon: (lm70) Code streamlining and cleanup
+
+Manuel Lauss (1):
+      hwmon: (lm70) Add TI TMP121 support
+
+Mark van Doesburg (3):
+      hwmon: (f71882fg) Use sensor_device_attribute_2
+      hwmon: (f71882fg) Misc cleanups
+      hwmon: (f71882fg) Add PWM support
+
+
+
 -- 
-1.5.6.3
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
