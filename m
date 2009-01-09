@@ -1,71 +1,128 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 14 Jan 2009 14:55:51 +0000
-Subject: Re: [lm-sensors] Supporting ADT7481 temperature sensor
-Message-Id: <20090114155551.5bc3791d@hyperion.delvare>
+Date: Fri, 09 Jan 2009 13:34:39 +0000
+Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (k8temp) fix temperature
+Message-Id: <20090109143439.1256da8a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <FF6D174B07759740B0259F914CE6D7D305339414@LONMLVEM04.e2k.ad.ge.com>
-In-Reply-To: <FF6D174B07759740B0259F914CE6D7D305339414@LONMLVEM04.e2k.ad.ge.com>
+References: <20081215231213.GC7013@alberich.amd.com>
+In-Reply-To: <20081215231213.GC7013@alberich.amd.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Malcolm,
+Hi Andreas,
 
-On Wed, 14 Jan 2009 11:50:33 -0000, Crossley, Malcolm (GE EntSol, Intelligent Platforms) wrote:
-> Jean Delvare wrote:
-> > I beg to disagree. The lm90 driver already supports a lot of
-> > different devices. The ADT7481 differs in a significant way in that
-> > it supports an additional external sensor. This is probably the right
-> > time to start a new driver. Then maybe the support for the ADT7461
-> > can be moved to this new driver so that the lm90 driver can be
-> > simplified a bit.  
->    
-> I attempted to modify the lm90 driver and discovered that fairly 
-> invasive changes were required to support a larger driver structure for
-> storing the sensors values.
-> 
-> I would not move the ADT7461 into a driver for the ADT7481 because the
-> structure would differ as above ( structure for 2 channel device vs 3 
-> channel device) and the registers for device detection are in different
-> locations.
+On Tue, 16 Dec 2008 00:12:13 +0100, Andreas Herrmann wrote:
+> Current Temperature for K8 RevG desktop CPUs is a "normalized value"
+> which can be below ambient temperature.
+>=20
+> As a consequence lots of RevG systems report temperatures like:
+>=20
+>  sensors
+>  k8temp-pci-00c3
+>  Adapter: PCI adapter
+>  Core0 Temp:
+>               +17C
+>  Core0 Temp:
+>                +3C
+>  Core1 Temp:
+>               +21C
+>  Core1 Temp:
+>                +5C
+>=20
+> being quite below ambient temperature.
+> There are even reports of negative temperature values.
+>=20
+> This patch corrects the temperature reporting of k8temp for
+> RevG desktop CPUs.
 
-The larger structure isn't such a big problem. It is perfectly OK to
-use the larger structure for all devices, we do that all the time. The
-difference isn't that much anyway, we are speaking of a few dozen bytes
-here.
+Thanks for working on this, that was very needed.
 
-The different identification registers aren't necessarily a blocking
-factor either. My main motivation for proposing to move ADT7461 support
-is that there are a lot of data->kind = adt7461 conditionals in the
-lm90 driver at the moment, which would go away with the ADT7461 support.
+> Cc: Rudolf Marek <r.marek@assembler.cz>
+> Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+> ---
+>  drivers/hwmon/k8temp.c |   17 +++++++++++++++--
+>  1 files changed, 15 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
+> index ff12281..b138f79 100644
+> --- a/drivers/hwmon/k8temp.c
+> +++ b/drivers/hwmon/k8temp.c
+> @@ -49,6 +49,7 @@ struct k8temp_data {
+>  	u8 sensorsp;		/* sensor presence bits - SEL_CORE & SEL_PLACE */
+>  	u32 temp[2][2];		/* core, place */
+>  	u8 swap_core_select;    /* meaning of SEL_CORE is inverted */
+> +	u32 temp_offset;
+>  };
+> =20
+>  static struct k8temp_data *k8temp_update_device(struct device *dev)
+> @@ -116,13 +117,15 @@ static ssize_t show_temp(struct device *dev,
+>  	    to_sensor_dev_attr_2(devattr);
+>  	int core =3D attr->nr;
+>  	int place =3D attr->index;
+> +	int temp;
+>  	struct k8temp_data *data =3D k8temp_update_device(dev);
+> =20
+>  	if (data->swap_core_select)
+>  		core =3D core ? 0 : 1;
+> =20
+> -	return sprintf(buf, "%d\n",
+> -		       TEMP_FROM_REG(data->temp[core][place]));
+> +	temp =3D TEMP_FROM_REG(data->temp[core][place]) + data->temp_offset;
+> +
+> +	return sprintf(buf, "%d\n", temp);
+>  }
+> =20
+>  /* core, place */
+> @@ -176,6 +179,16 @@ static int __devinit k8temp_probe(struct pci_dev *pd=
+ev,
+>  				 "wrong - check erratum #141\n");
+>  		}
+> =20
+> +		if (((model >=3D 0x68) && (model !=3D 0xc1)) &&
+> +		    !(model =3D 0x68) && !(model =3D 0x6c) &&
+> +		    !(model =3D 0x7c))
 
-But anyway this can be revisited later, if it happens it doesn't have
-to happen at the same time as adding support for the ADT7481, which is
-your primary goal.
+This test is pretty confusing, with these extra parentheses and the mix
+of (a !=3D b) and !(a =3D b). What about the following instead? As far as
+I can see, it leads to the same results, but is much more readable:
 
-> I have created a separate ADT7481 driver based upon the LM90 structure.
-> It's still needs a clean up but it's been tested and it has PEC support
-> included (full PEC support not the half adm1032 support).
+		if (model >=3D 0x69 &&
+		    !(model =3D 0xc1 || model =3D 0x6c || model =3D 0x7c))
 
-Ah, if the PEC support is better it's good news. The ADM1032
-implementation was really a pain :( If I had not needed it to test the
-i2c-core part, I would probably never have implemented it.
 
-> > Can you please also send us a patch against the latest version of
-> > sensors-detect, adding detection of the ADT7481?
-> 
-> Unfortunately I can only use Outlook at work currently and so it will
-> be difficult to send patches to mailing lists without breaking them. I 
-> have a colleague(Martyn Welch) with a better email setup who can send
-> patches on my behalf. I am working towards a better email setup but it
-> will take some weeks (IT issues).
+> +			/*
+> +			 * RevG desktop CPUs (i.e. no socket S1G1 parts)
+> +			 * need additional offset, otherwise reported
+> +			 * temperature is below ambient temperature
+> +			 */
+> +			data->temp_offset =3D 21000;
 
-Outlook isn't so bad that it would screw patches even sent as
-attachments, would it? Oh well, maybe... But of course if Martyn sends
-the patches that's fine with us.
+If you apply the same offset to all sensors, you'll still obtain
+something odd:
 
--- 
+ k8temp-pci-00c3
+ Adapter: PCI adapter
+ Core0 Temp:
+              +38=B0C
+ Core0 Temp:
+              +24=B0C
+ Core1 Temp:
+              +42=B0C
+ Core1 Temp:
+              +26=B0C
+
+That's not terribly realistic, is it? Unless both sensors for a given
+core are very far apart - but I suspect each core is pretty small,
+isn't it?
+
+> +
+>  		break;
+>  	}
+> =20
+
+
+--=20
 Jean Delvare
 
 _______________________________________________
