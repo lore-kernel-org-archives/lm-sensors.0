@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 09 Jan 2009 13:34:39 +0000
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
+Date: Fri, 09 Jan 2009 14:41:02 +0000
 Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (k8temp) fix temperature
-Message-Id: <20090109143439.1256da8a@hyperion.delvare>
+Message-Id: <20090109144102.GZ10725@alberich.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20081215231213.GC7013@alberich.amd.com>
 In-Reply-To: <20081215231213.GC7013@alberich.amd.com>
@@ -10,120 +10,78 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Andreas,
+On Fri, Jan 09, 2009 at 02:34:39PM +0100, Jean Delvare wrote:
+> > @@ -176,6 +179,16 @@ static int __devinit k8temp_probe(struct pci_dev *=
+pdev,
+> >  				 "wrong - check erratum #141\n");
+> >  		}
+> > =20
+> > +		if (((model >=3D 0x68) && (model !=3D 0xc1)) &&
+> > +		    !(model =3D 0x68) && !(model =3D 0x6c) &&
+> > +		    !(model =3D 0x7c))
+>=20
+> This test is pretty confusing, with these extra parentheses and the mix
+> of (a !=3D b) and !(a =3D b). What about the following instead? As far as
+> I can see, it leads to the same results, but is much more readable:
+>=20
+> 		if (model >=3D 0x69 &&
+> 		    !(model =3D 0xc1 || model =3D 0x6c || model =3D 0x7c))
+>=20
 
-On Tue, 16 Dec 2008 00:12:13 +0100, Andreas Herrmann wrote:
-> Current Temperature for K8 RevG desktop CPUs is a "normalized value"
-> which can be below ambient temperature.
+Well, right you are.
+
+When I wrote the check I had following in mind:
+
+  Check for RevG:
+
+  ((model >=3D 0x68) && (model !=3D 0xc1)) // excluding ATHLON64 FX, "JH-F3"
+
+  and after that exclude all mobile parts:
+
+  !(model =3D 0x68) && !(model =3D 0x6c) && !(model =3D 0x7c))
+
+Of course this can be simplified.
+
+> > +			/*
+> > +			 * RevG desktop CPUs (i.e. no socket S1G1 parts)
+> > +			 * need additional offset, otherwise reported
+> > +			 * temperature is below ambient temperature
+> > +			 */
+> > +			data->temp_offset =3D 21000;
 >=20
-> As a consequence lots of RevG systems report temperatures like:
+> If you apply the same offset to all sensors, you'll still obtain
+> something odd:
 >=20
->  sensors
 >  k8temp-pci-00c3
 >  Adapter: PCI adapter
 >  Core0 Temp:
->               +17C
+>               +38=B0C
 >  Core0 Temp:
->                +3C
+>               +24=B0C
 >  Core1 Temp:
->               +21C
+>               +42=B0C
 >  Core1 Temp:
->                +5C
+>               +26=B0C
 >=20
-> being quite below ambient temperature.
-> There are even reports of negative temperature values.
->=20
-> This patch corrects the temperature reporting of k8temp for
-> RevG desktop CPUs.
+> That's not terribly realistic, is it? Unless both sensors for a given
+> core are very far apart -
+> but I suspect each core is pretty small,
+> isn't it?
 
-Thanks for working on this, that was very needed.
+"Far" is relative, isn't it ;-)
 
-> Cc: Rudolf Marek <r.marek@assembler.cz>
-> Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-> ---
->  drivers/hwmon/k8temp.c |   17 +++++++++++++++--
->  1 files changed, 15 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
-> index ff12281..b138f79 100644
-> --- a/drivers/hwmon/k8temp.c
-> +++ b/drivers/hwmon/k8temp.c
-> @@ -49,6 +49,7 @@ struct k8temp_data {
->  	u8 sensorsp;		/* sensor presence bits - SEL_CORE & SEL_PLACE */
->  	u32 temp[2][2];		/* core, place */
->  	u8 swap_core_select;    /* meaning of SEL_CORE is inverted */
-> +	u32 temp_offset;
->  };
-> =20
->  static struct k8temp_data *k8temp_update_device(struct device *dev)
-> @@ -116,13 +117,15 @@ static ssize_t show_temp(struct device *dev,
->  	    to_sensor_dev_attr_2(devattr);
->  	int core =3D attr->nr;
->  	int place =3D attr->index;
-> +	int temp;
->  	struct k8temp_data *data =3D k8temp_update_device(dev);
-> =20
->  	if (data->swap_core_select)
->  		core =3D core ? 0 : 1;
-> =20
-> -	return sprintf(buf, "%d\n",
-> -		       TEMP_FROM_REG(data->temp[core][place]));
-> +	temp =3D TEMP_FROM_REG(data->temp[core][place]) + data->temp_offset;
-> +
-> +	return sprintf(buf, "%d\n", temp);
->  }
-> =20
->  /* core, place */
-> @@ -176,6 +179,16 @@ static int __devinit k8temp_probe(struct pci_dev *pd=
-ev,
->  				 "wrong - check erratum #141\n");
->  		}
-> =20
-> +		if (((model >=3D 0x68) && (model !=3D 0xc1)) &&
-> +		    !(model =3D 0x68) && !(model =3D 0x6c) &&
-> +		    !(model =3D 0x7c))
-
-This test is pretty confusing, with these extra parentheses and the mix
-of (a !=3D b) and !(a =3D b). What about the following instead? As far as
-I can see, it leads to the same results, but is much more readable:
-
-		if (model >=3D 0x69 &&
-		    !(model =3D 0xc1 || model =3D 0x6c || model =3D 0x7c))
+Guess this is from an idle system.
+Please bring load on both cores and look at the temperature
+differences again.
 
 
-> +			/*
-> +			 * RevG desktop CPUs (i.e. no socket S1G1 parts)
-> +			 * need additional offset, otherwise reported
-> +			 * temperature is below ambient temperature
-> +			 */
-> +			data->temp_offset =3D 21000;
-
-If you apply the same offset to all sensors, you'll still obtain
-something odd:
-
- k8temp-pci-00c3
- Adapter: PCI adapter
- Core0 Temp:
-              +38=B0C
- Core0 Temp:
-              +24=B0C
- Core1 Temp:
-              +42=B0C
- Core1 Temp:
-              +26=B0C
-
-That's not terribly realistic, is it? Unless both sensors for a given
-core are very far apart - but I suspect each core is pretty small,
-isn't it?
-
-> +
->  		break;
->  	}
-> =20
 
 
---=20
-Jean Delvare
+Regards,
+
+Andreas
+
+
 
 _______________________________________________
 lm-sensors mailing list
