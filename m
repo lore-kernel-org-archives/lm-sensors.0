@@ -1,169 +1,100 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 30 Jan 2009 17:54:03 +0000
-Subject: [lm-sensors] [PATCH 1/4] hwmon: (ds1621) Reorder code statements
-Message-Id: <20090130185403.68e02343@hyperion.delvare>
+Date: Fri, 09 Jan 2009 13:43:26 +0000
+Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (k8temp) adapt cpuid handling,
+Message-Id: <20090109144326.4ec47ccd@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Reorder the ds1621 driver code so that we can get rid of forward
-function declarations.
+On Tue, 16 Dec 2008 00:07:51 +0100, Andreas Herrmann wrote:
+> We don't need to use northbridge based CPUID checking as the allowed
+> combinations of processors ensure that all processors in a multisocket
+> system have similar characteristics, e.g.
+> 
+> (1) provide temperature sensor interface (>=RevC && <RevF)
+> (2) are affected by erratum #141 (>=RevF)
+> 
+> Thus it is sufficient to check the revision of the boot CPU.
+> 
+> For "mixed silicon support" refer to
+> "Revision Guide for AMD Athlon 64 and AMD Opteron Processors" (RevA-E) and
+> "Revision Guide for AMD NPT Family 0Fh Processors" (RefF-G).
+> 
+> Cc: Rudolf Marek <r.marek@assembler.cz>
+> Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+> ---
+>  drivers/hwmon/k8temp.c |   26 +++++++++++---------------
+>  1 files changed, 11 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
+> index 3b90384..be93387 100644
+> --- a/drivers/hwmon/k8temp.c
+> +++ b/drivers/hwmon/k8temp.c
+> @@ -31,10 +31,10 @@
+>  #include <linux/hwmon-sysfs.h>
+>  #include <linux/err.h>
+>  #include <linux/mutex.h>
+> +#include <asm/processor.h>
+>  
+>  #define TEMP_FROM_REG(val)	(((((val) >> 16) & 0xff) - 49) * 1000)
+>  #define REG_TEMP	0xe4
+> -#define REG_CPUID	0xfc
+>  #define SEL_PLACE	0x40
+>  #define SEL_CORE	0x04
+>  
+> @@ -48,7 +48,6 @@ struct k8temp_data {
+>  	/* registers values */
+>  	u8 sensorsp;		/* sensor presence bits - SEL_CORE & SEL_PLACE */
+>  	u32 temp[2][2];		/* core, place */
+> -	u8 fam;
+>  };
+>  
+>  static struct k8temp_data *k8temp_update_device(struct device *dev)
+> @@ -143,28 +142,25 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
+>  	int err;
+>  	u8 scfg;
+>  	u32 temp;
+> +	u8 model, stepping;
+>  	struct k8temp_data *data;
+> -	u32 cpuid = cpuid_eax(1);
+> -
+> -	/* this feature should be available since SH-C0 core */
+> -	if ((cpuid = 0xf40) || (cpuid = 0xf50) || (cpuid = 0xf51)) {
+> -		err = -ENODEV;
+> -		goto exit;
+> -	}
+>  
+>  	if (!(data = kzalloc(sizeof(struct k8temp_data), GFP_KERNEL))) {
+>  		err = -ENOMEM;
+>  		goto exit;
+>  	}
+>  
+> -	/* get real PCI based cpuid, prior revF of fam 0Fh, this reg is 0 */
+> -	pci_read_config_dword(pdev, REG_CPUID, &cpuid);
+> -
+> -	data->fam = (cpuid & 0x00000f00) >> 8;
+> -	data->fam += (cpuid & 0x0ff00000) >> 20;
+> +	model = boot_cpu_data.x86_model;
+> +	stepping = boot_cpu_data.x86_mask;
+>  
+> -	switch (data->fam) {
+> +	switch (boot_cpu_data.x86) {
+>  	case 0xf:
+> +		/* feature available since SH-C0, exclude older revisions */
+> +		if (((model = 4) && (stepping = 0)) ||
+> +		    ((model = 5) && ((stepping = 0) || (stepping = 1)))) {
+> +			err = -ENODEV;
+> +			goto exit;
+> +		}
+>  		dev_warn(&pdev->dev, "Temperature readouts might be wrong"
+>  					" - check errata #141\n");
+>  		break;
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Aurelien Jarno <aurelien@aurel32.net>
----
- drivers/hwmon/ds1621.c |  123 ++++++++++++++++++++++--------------------------
- 1 file changed, 57 insertions(+), 66 deletions(-)
-
---- linux-2.6.29-rc2.orig/drivers/hwmon/ds1621.c	2009-01-24 17:35:19.000000000 +0100
-+++ linux-2.6.29-rc2/drivers/hwmon/ds1621.c	2009-01-24 17:36:59.000000000 +0100
-@@ -81,34 +81,6 @@ struct ds1621_data {
- 	u8 conf;			/* Register encoding, combined */
- };
- 
--static int ds1621_probe(struct i2c_client *client,
--			const struct i2c_device_id *id);
--static int ds1621_detect(struct i2c_client *client, int kind,
--			 struct i2c_board_info *info);
--static void ds1621_init_client(struct i2c_client *client);
--static int ds1621_remove(struct i2c_client *client);
--static struct ds1621_data *ds1621_update_client(struct device *dev);
--
--static const struct i2c_device_id ds1621_id[] = {
--	{ "ds1621", ds1621 },
--	{ "ds1625", ds1621 },
--	{ }
--};
--MODULE_DEVICE_TABLE(i2c, ds1621_id);
--
--/* This is the driver that will be inserted */
--static struct i2c_driver ds1621_driver = {
--	.class		= I2C_CLASS_HWMON,
--	.driver = {
--		.name	= "ds1621",
--	},
--	.probe		= ds1621_probe,
--	.remove		= ds1621_remove,
--	.id_table	= ds1621_id,
--	.detect		= ds1621_detect,
--	.address_data	= &addr_data,
--};
--
- /* All registers are word-sized, except for the configuration register.
-    DS1621 uses a high-byte first convention, which is exactly opposite to
-    the SMBus standard. */
-@@ -146,6 +118,45 @@ static void ds1621_init_client(struct i2
- 	i2c_smbus_write_byte(client, DS1621_COM_START);
- }
- 
-+static struct ds1621_data *ds1621_update_client(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct ds1621_data *data = i2c_get_clientdata(client);
-+	u8 new_conf;
-+
-+	mutex_lock(&data->update_lock);
-+
-+	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
-+	    || !data->valid) {
-+		int i;
-+
-+		dev_dbg(&client->dev, "Starting ds1621 update\n");
-+
-+		data->conf = ds1621_read_value(client, DS1621_REG_CONF);
-+
-+		for (i = 0; i < ARRAY_SIZE(data->temp); i++)
-+			data->temp[i] = ds1621_read_value(client,
-+							  DS1621_REG_TEMP[i]);
-+
-+		/* reset alarms if necessary */
-+		new_conf = data->conf;
-+		if (data->temp[0] > data->temp[1])	/* input > min */
-+			new_conf &= ~DS1621_ALARM_TEMP_LOW;
-+		if (data->temp[0] < data->temp[2])	/* input < max */
-+			new_conf &= ~DS1621_ALARM_TEMP_HIGH;
-+		if (data->conf != new_conf)
-+			ds1621_write_value(client, DS1621_REG_CONF,
-+					   new_conf);
-+
-+		data->last_updated = jiffies;
-+		data->valid = 1;
-+	}
-+
-+	mutex_unlock(&data->update_lock);
-+
-+	return data;
-+}
-+
- static ssize_t show_temp(struct device *dev, struct device_attribute *da,
- 			 char *buf)
- {
-@@ -294,45 +305,25 @@ static int ds1621_remove(struct i2c_clie
- 	return 0;
- }
- 
-+static const struct i2c_device_id ds1621_id[] = {
-+	{ "ds1621", ds1621 },
-+	{ "ds1625", ds1621 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, ds1621_id);
- 
--static struct ds1621_data *ds1621_update_client(struct device *dev)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	struct ds1621_data *data = i2c_get_clientdata(client);
--	u8 new_conf;
--
--	mutex_lock(&data->update_lock);
--
--	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
--	    || !data->valid) {
--		int i;
--
--		dev_dbg(&client->dev, "Starting ds1621 update\n");
--
--		data->conf = ds1621_read_value(client, DS1621_REG_CONF);
--
--		for (i = 0; i < ARRAY_SIZE(data->temp); i++)
--			data->temp[i] = ds1621_read_value(client,
--							  DS1621_REG_TEMP[i]);
--
--		/* reset alarms if necessary */
--		new_conf = data->conf;
--		if (data->temp[0] > data->temp[1])	/* input > min */
--			new_conf &= ~DS1621_ALARM_TEMP_LOW;
--		if (data->temp[0] < data->temp[2])	/* input < max */
--			new_conf &= ~DS1621_ALARM_TEMP_HIGH;
--		if (data->conf != new_conf)
--			ds1621_write_value(client, DS1621_REG_CONF,
--					   new_conf);
--
--		data->last_updated = jiffies;
--		data->valid = 1;
--	}
--
--	mutex_unlock(&data->update_lock);
--
--	return data;
--}
-+/* This is the driver that will be inserted */
-+static struct i2c_driver ds1621_driver = {
-+	.class		= I2C_CLASS_HWMON,
-+	.driver = {
-+		.name	= "ds1621",
-+	},
-+	.probe		= ds1621_probe,
-+	.remove		= ds1621_remove,
-+	.id_table	= ds1621_id,
-+	.detect		= ds1621_detect,
-+	.address_data	= &addr_data,
-+};
- 
- static int __init ds1621_init(void)
- {
+Applied, thanks. This is essentially an alternative implementation of
+Rudolf's patch, so I think I'll merge both patches together to get a
+clearer history.
 
 -- 
 Jean Delvare
