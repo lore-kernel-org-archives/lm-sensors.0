@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 07 Jan 2009 22:00:52 +0000
+From: Andreas Radke <a.radke@arcor.de>
+Date: Fri, 09 Jan 2009 21:57:59 +0000
 Subject: Re: [lm-sensors] Aspire One Intel Atom's Motherboard support
-Message-Id: <20090107230052.7905eaef@hyperion.delvare>
+Message-Id: <20090109225759.7f423117@laptop64.home>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <f4897e880807160553h3d8dacdfy20efdddfc8c4b476@mail.gmail.com>
 In-Reply-To: <f4897e880807160553h3d8dacdfy20efdddfc8c4b476@mail.gmail.com>
@@ -10,48 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 6 Jan 2009 17:00:53 +0100, Andreas Radke wrote:
-> Am Wed, 16 Jul 2008 14:53:20 +0200
-> schrieb "Simon Depiets" <sdepiets@gmail.com>:
-> 
-> > Hi,
-> >  I've been recently offered an Acer Aspire One netbook and I wish to
-> > control the fanspeed manualy
-> >  I installed the lastest version of lm-sensors (3.0.2), when typing
-> >   $ sensors
-> >      i get
-> >   No sensors found!
-> > 
-> > This could be normal, so I did a
-> >   $ sudo ./sensors-detect
-> >       and the program wants to load the module
-> >   `i2c-i801`
-> >    I don't have such a module, but i have i2c-dev loaded, is i2c-i801
-> > different, mandatory ? How do I add it (I'm not a kernel building
-> > "fan"-boy yet sorry :p)
-> > 
-> >  My /proc/acpi/fan folder is empty, so it seems acpi support by my
-> > kernel is just partial (acpi_listen detects battery status io)
-> > 
-> > Here are my
-> >  - lsmod :  http://www.mmo-tools.com/acpi/lsmod.txt
-> >  - lspci : http://www.mmo-tools.com/acpi/lspci.txt
-> >  - modinfo i2c-dev : http://www.mmo-tools.com/acpi/modinfo_i2c-dev.txt
-> >  - modprobe coretemp (is this a mandatory module ?) :
-> > http://www.mmo-tools.com/acpi/modprobe_coretemp.txt
-> >  - sudo ./sensors-detect-stat.pl
-> > http://www.mmo-tools.com/acpi/sensors-detect-stat.txt
-> > 
-> > I'm looking forward for you help
-> > Thanks a lot and sorry for my poor frenglish
-> 
-> 
-> What's the state? Can we see full lm_sensor support in the near future?
+Am Wed, 7 Jan 2009 23:00:52 +0100
+schrieb Jean Delvare <khali@linux-fr.org>:
 
-Full support for what exactly, please?
+> Full support for what exactly, please?
+> 
 
--- 
-Jean Delvare
+It would be nice if lm_sensors could find a sensor chip and report
+something at all. I haven't heard of any success so far.
+
+So does the netbook have a sensor chip and is there any progress going
+on to read its sensors?
+
+-Andy
 
 _______________________________________________
 lm-sensors mailing list
