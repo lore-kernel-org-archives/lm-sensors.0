@@ -1,179 +1,512 @@
-From: Eric Schumann <e_r_i_c@gmx.net>
-Date: Mon, 05 Jan 2009 18:32:34 +0000
-Subject: [lm-sensors] W83687thf reads fine using sensors
-Message-Id: <20090105193234.0b5d228c@Dominique>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="MP_/4ny_heC4YmLHLIWl_RZoank"
+From: Ira Snyder <iws@ovro.caltech.edu>
+Date: Fri, 09 Jan 2009 22:31:07 +0000
+Subject: [lm-sensors] [PATCH RFCv1] hwmon: Add LTC4215 driver
+Message-Id: <20090109223107.GA8132@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---MP_/4ny_heC4YmLHLIWl_RZoank
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Add Linux support for the Linear Technology LTC4215 Hot Swap controller I2C
+monitoring interface.
 
-Hi,
-I want to share with you, that sensors read W83687thf fine here. I
-found it working on my new EPoX 939 mainboard, which is in fact some
-years old, but new here. Kernel 2.6.26 and Debian running.I got some
-values corresponding to the BIOS output and a strange temperature
-reading. I tried to configure and hope I got it mostly right.
-OK not perfect as I cut the core temp entry by accident ;-)
+Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
+---
 
-TX 
-Eric Schumann
---MP_/4ny_heC4YmLHLIWl_RZoank
-Content-Type: text/plain; name=senunconf.txt
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment; filename=senunconf.txt
+This is my first attempt at a monitoring driver for the ltc4215 chip. I
+based the driver on the recently-accepted ltc4245 driver. This chip is
+much simpler.
 
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:       +33.0=C2=B0C  (crit =3D +70.0=C2=B0C)                 =20
+I have tested the driver with my board, and it appears to work fine.
+With the power supplies disabled, it reads 11.93V input, 1.93V output,
+no current and no power. With the supplies enabled, it reads 11.93V
+input, 11.98V output, no current, no power. I'm not drawing any current
+at the moment, so this is reasonable. The value in the sense register
+never reads anything except 0, so I expect to get zero from the current
+and power calculations.
 
-k8temp-pci-00c3
-Adapter: PCI adapter
-Core0 Temp:  +19.0=C2=B0C                                   =20
+I didn't attempt to support changing any of the chip's settings or
+enabling the FET. I'm not sure even how to do that and still fit within
+the hwmon framework. :)
 
-w83687thf-isa-0290
-Adapter: ISA adapter
-in0:         +1.13 V  (min =3D  +0.70 V, max =3D  +1.87 V)  =20
-in1:         +3.26 V  (min =3D  +0.62 V, max =3D  +1.01 V)   ALARM
-in2:         +2.50 V  (min =3D  +2.37 V, max =3D  +3.94 V)  =20
-in3:         +2.98 V  (min =3D  +4.06 V, max =3D  +3.30 V)   ALARM
-in4:         +1.49 V  (min =3D  +3.97 V, max =3D  +2.42 V)   ALARM
-in7:         +2.98 V  (min =3D  +3.06 V, max =3D  +0.29 V)   ALARM
-in8:         +3.33 V  (min =3D  +1.97 V, max =3D  +4.03 V)  =20
-fan1:          0 RPM  (min =3D  694 RPM, div =3D 8)  ALARM
-fan2:       1814 RPM  (min =3D  688 RPM, div =3D 8)
-fan3:          0 RPM  (min =3D  922 RPM, div =3D 8)  ALARM
-temp1:       +27.0=C2=B0C  (high =3D -67.0=C2=B0C, hyst =3D -105.0=C2=B0C) =
- ALARM  sensor =3D thermistor
-temp2:       +33.5=C2=B0C  (high =3D +72.0=C2=B0C, hyst =3D +70.0=C2=B0C)  =
-sensor =3D thermistor
-temp3:       +13.0=C2=B0C  (high =3D +70.0=C2=B0C, hyst =3D +65.0=C2=B0C)  =
-sensor =3D thermistor
-beep_enable:enabled
+I'd appreciate any comments you have.
 
+Thanks,
+Ira
 
---MP_/4ny_heC4YmLHLIWl_RZoank
-Content-Type: text/plain; name=senconf.txt
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment; filename=senconf.txt
+ Documentation/hwmon/ltc4215 |   50 ++++++
+ drivers/hwmon/Kconfig       |   11 ++
+ drivers/hwmon/Makefile      |    1 +
+ drivers/hwmon/ltc4215.c     |  364 +++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 426 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/ltc4215
+ create mode 100644 drivers/hwmon/ltc4215.c
 
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:       +33.0=C2=B0C  (crit =3D +70.0=C2=B0C)                 =20
+diff --git a/Documentation/hwmon/ltc4215 b/Documentation/hwmon/ltc4215
+new file mode 100644
+index 0000000..2e6a21e
+--- /dev/null
++++ b/Documentation/hwmon/ltc4215
+@@ -0,0 +1,50 @@
++Kernel driver ltc4215
++==========+
++Supported chips:
++  * Linear Technology LTC4215
++    Prefix: 'ltc4215'
++    Addresses scanned: 0x44
++    Datasheet:
++        http://www.linear.com/pc/downloadDocument.do?navId=H0,C1,C1003,C1006,C1163,P17572,D12697
++
++Author: Ira W. Snyder <iws@ovro.caltech.edu>
++
++
++Description
++-----------
++
++The LTC4215 controller allows a board to be safely inserted and removed
++from a live backplane.
++
++
++Usage Notes
++-----------
++
++This driver does not probe for LTC4215 devices, due to the fact that some
++of the possible addresses are unfriendly to probing. You will need to use
++the "force" parameter to tell the driver where to find the device.
++
++Example: the following will load the driver for an LTC4215 at address 0x44
++on I2C bus #0:
++$ modprobe ltc4215 force=0,0x44
++
++
++Sysfs entries
++-------------
++
++The LTC4215 has built-in limits for overvoltage, undervoltage, and
++undercurrent warnings. This makes it very likely that the reference
++circuit will be used.
++
++in1_input		input voltage
++in2_input		output voltage
++
++in1_min_alarm		input undervoltage alarm
++in1_max_alarm		input overvoltage alarm
++
++curr1_input		current
++curr1_max_alarm		overcurrent alarm
++
++power1_input		power usage
++power1_alarm		power bad alarm
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 4b33bc8..ff36c0b 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -560,6 +560,17 @@ config SENSORS_LM93
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm93.
+ 
++config SENSORS_LTC4215
++	tristate "Linear Technology LTC4215"
++	depends on I2C && EXPERIMENTAL
++	default n
++	help
++	  If you say yes here you get support for Linear Technology LTC4215
++	  Hot Swap Controller I2C interface.
++
++	  This driver can also be built as a module. If so, the module will
++	  be called ltc4215.
++
+ config SENSORS_LTC4245
+ 	tristate "Linear Technology LTC4245"
+ 	depends on I2C && EXPERIMENTAL
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 8fd124e..e538b22 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -62,6 +62,7 @@ obj-$(CONFIG_SENSORS_LM87)	+= lm87.o
+ obj-$(CONFIG_SENSORS_LM90)	+= lm90.o
+ obj-$(CONFIG_SENSORS_LM92)	+= lm92.o
+ obj-$(CONFIG_SENSORS_LM93)	+= lm93.o
++obj-$(CONFIG_SENSORS_LTC4215)	+= ltc4215.o
+ obj-$(CONFIG_SENSORS_LTC4245)	+= ltc4245.o
+ obj-$(CONFIG_SENSORS_MAX1111)	+= max1111.o
+ obj-$(CONFIG_SENSORS_MAX1619)	+= max1619.o
+diff --git a/drivers/hwmon/ltc4215.c b/drivers/hwmon/ltc4215.c
+new file mode 100644
+index 0000000..9386e2a
+--- /dev/null
++++ b/drivers/hwmon/ltc4215.c
+@@ -0,0 +1,364 @@
++/*
++ * Driver for Linear Technology LTC4215 I2C Hot Swap Controller
++ *
++ * Copyright (C) 2009 Ira W. Snyder <iws@ovro.caltech.edu>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * Datasheet:
++ * http://www.linear.com/pc/downloadDocument.do?navId=H0,C1,C1003,C1006,C1163,P17572,D12697
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++
++static const unsigned short normal_i2c[] = { I2C_CLIENT_END };
++
++/* Insmod parameters */
++I2C_CLIENT_INSMOD_1(ltc4215);
++
++/* Here are names of the chip's registers (a.k.a. commands) */
++enum ltc4215_cmd {
++	LTC4215_CONTROL			= 0x00, /* rw */
++	LTC4215_ALERT			= 0x01, /* rw */
++	LTC4215_STATUS			= 0x02, /* ro */
++	LTC4215_FAULT			= 0x03, /* rw */
++	LTC4215_SENSE			= 0x04, /* rw */
++	LTC4215_SOURCE			= 0x05, /* rw */
++	LTC4215_ADIN			= 0x06, /* rw */
++};
++
++struct ltc4215_data {
++	struct device *hwmon_dev;
++
++	struct mutex update_lock;
++	bool valid;
++	unsigned long last_updated; /* in jiffies */
++
++	/* Registers */
++	u8 regs[7];
++};
++
++static struct ltc4215_data *ltc4215_update_device(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ltc4215_data *data = i2c_get_clientdata(client);
++	s32 val;
++	int i;
++
++	mutex_lock(&data->update_lock);
++
++	/* The chip's A/D updates 10 times per second */
++	if (time_after(jiffies, data->last_updated + HZ / 10) || !data->valid) {
++
++		dev_dbg(&client->dev, "Starting ltc4215 update\n");
++
++		/* Read all registers */
++		for (i = 0; i < ARRAY_SIZE(data->regs); i++) {
++			val = i2c_smbus_read_byte_data(client, i);
++			if (unlikely(val < 0))
++				data->regs[i] = 0;
++			else
++				data->regs[i] = val;
++		}
++
++		data->last_updated = jiffies;
++		data->valid = 1;
++	}
++
++	mutex_unlock(&data->update_lock);
++
++	return data;
++}
++
++/* Return the voltage from the given register in millivolts */
++static int ltc4215_get_voltage(struct device *dev, u8 reg)
++{
++	struct ltc4215_data *data = ltc4215_update_device(dev);
++	const u8 regval = data->regs[reg];
++	u32 voltage = 0;
++
++	switch (reg) {
++	case LTC4215_SENSE:
++		/* 151 uV per increment */
++		voltage = regval * 151 / 1000;
++		break;
++	case LTC4215_SOURCE:
++		/* 60.5 mV per increment */
++		voltage = regval * 605 / 10;
++		break;
++	case LTC4215_ADIN:
++		/* The ADIN input is divided by 12.5, and has 4.82 mV
++		 * per increment, so we have the additional multiply */
++		voltage = regval * 482 * 125 / 1000;
++		break;
++	default:
++		/* If we get here, the developer messed up */
++		WARN_ON_ONCE(1);
++		break;
++	}
++
++	return voltage;
++}
++
++/* Return the current from the sense resistor in mA */
++static unsigned int ltc4215_get_current(struct device *dev)
++{
++	struct ltc4215_data *data = ltc4215_update_device(dev);
++
++	/* The strange looking conversions that follow are fixed-point
++	 * math, since we cannot do floating point in the kernel.
++	 *
++	 * Step 1: convert sense register to microVolts
++	 * Step 2: convert voltage to milliAmperes
++	 *
++	 * If you play around with the V=IR equation, you come up with
++	 * the following: X uV / Y mOhm = Z mA
++	 *
++	 * With the resistors that are fractions of a milliOhm, we multiply
++	 * the voltage and resistance by 10, to shift the decimal point.
++	 * Now we can use the normal division operator again.
++	 */
++
++	/* Calculate voltage in microVolts (151 uV per increment) */
++	const unsigned int voltage = data->regs[LTC4215_SENSE] * 151;
++
++	/* Calculate current in milliAmperes (4 milliOhm sense resistor) */
++	const unsigned int curr = voltage / 4;
++
++	return curr;
++}
++
++static ssize_t ltc4215_show_voltage(struct device *dev,
++				    struct device_attribute *da,
++				    char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
++	const int voltage = ltc4215_get_voltage(dev, attr->index);
++
++	return snprintf(buf, PAGE_SIZE, "%d\n", voltage);
++}
++
++static ssize_t ltc4215_show_current(struct device *dev,
++				    struct device_attribute *da,
++				    char *buf)
++{
++	const unsigned int curr = ltc4215_get_current(dev);
++
++	return snprintf(buf, PAGE_SIZE, "%u\n", curr);
++}
++
++static ssize_t ltc4215_show_power(struct device *dev,
++				  struct device_attribute *da,
++				  char *buf)
++{
++	const unsigned int curr = ltc4215_get_current(dev);
++	const int output_voltage = ltc4215_get_voltage(dev, LTC4215_ADIN);
++
++	/* current in mA * voltage in mV = power in uW */
++	const unsigned int power = abs(output_voltage * curr);
++
++	return snprintf(buf, PAGE_SIZE, "%u\n", power);
++}
++
++static ssize_t ltc4215_show_alarm(struct device *dev,
++					  struct device_attribute *da,
++					  char *buf)
++{
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(da);
++	struct ltc4215_data *data = ltc4215_update_device(dev);
++	const u8 reg = data->regs[attr->index];
++	const u32 mask = attr->nr;
++
++	return snprintf(buf, PAGE_SIZE, "%u\n", (reg & mask) ? 1 : 0);
++}
++
++/* These macros are used below in constructing device attribute objects
++ * for use with sysfs_create_group() to make a sysfs device file
++ * for each register.
++ */
++
++#define LTC4215_VOLTAGE(name, ltc4215_cmd_idx) \
++	static SENSOR_DEVICE_ATTR(name, S_IRUGO, \
++	ltc4215_show_voltage, NULL, ltc4215_cmd_idx)
++
++#define LTC4215_CURRENT(name) \
++	static SENSOR_DEVICE_ATTR(name, S_IRUGO, \
++	ltc4215_show_current, NULL, 0);
++
++#define LTC4215_POWER(name) \
++	static SENSOR_DEVICE_ATTR(name, S_IRUGO, \
++	ltc4215_show_power, NULL, 0);
++
++#define LTC4215_ALARM(name, mask, reg) \
++	static SENSOR_DEVICE_ATTR_2(name, S_IRUGO, \
++	ltc4215_show_alarm, NULL, (mask), reg)
++
++/* Construct a sensor_device_attribute structure for each register */
++
++/* Current */
++LTC4215_CURRENT(curr1_input);
++LTC4215_ALARM(curr1_max_alarm,	(1 << 2),	LTC4215_STATUS);
++
++/* Power (virtual) */
++LTC4215_POWER(power1_input);
++LTC4215_ALARM(power1_alarm,	(1 << 3),	LTC4215_STATUS);
++
++/* Input Voltage */
++LTC4215_VOLTAGE(in1_input,			LTC4215_ADIN);
++LTC4215_ALARM(in1_max_alarm,	(1 << 0),	LTC4215_STATUS);
++LTC4215_ALARM(in1_min_alarm,	(1 << 1),	LTC4215_STATUS);
++
++/* Output Voltage */
++LTC4215_VOLTAGE(in2_input,			LTC4215_SOURCE);
++
++/* Finally, construct an array of pointers to members of the above objects,
++ * as required for sysfs_create_group()
++ */
++static struct attribute *ltc4215_attributes[] = {
++	&sensor_dev_attr_curr1_input.dev_attr.attr,
++	&sensor_dev_attr_curr1_max_alarm.dev_attr.attr,
++
++	&sensor_dev_attr_power1_input.dev_attr.attr,
++	&sensor_dev_attr_power1_alarm.dev_attr.attr,
++
++	&sensor_dev_attr_in1_input.dev_attr.attr,
++	&sensor_dev_attr_in1_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_in1_min_alarm.dev_attr.attr,
++
++	&sensor_dev_attr_in2_input.dev_attr.attr,
++
++	NULL,
++};
++
++static const struct attribute_group ltc4215_group = {
++	.attrs = ltc4215_attributes,
++};
++
++static int ltc4215_probe(struct i2c_client *client,
++			 const struct i2c_device_id *id)
++{
++	struct ltc4215_data *data;
++	int ret;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data) {
++		ret = -ENOMEM;
++		goto out_kzalloc;
++	}
++
++	i2c_set_clientdata(client, data);
++	mutex_init(&data->update_lock);
++
++	/* Initialize the LTC4215 chip */
++	/* TODO */
++
++	/* Register sysfs hooks */
++	ret = sysfs_create_group(&client->dev.kobj, &ltc4215_group);
++	if (ret)
++		goto out_sysfs_create_group;
++
++	data->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		ret = PTR_ERR(data->hwmon_dev);
++		goto out_hwmon_device_register;
++	}
++
++	return 0;
++
++out_hwmon_device_register:
++	sysfs_remove_group(&client->dev.kobj, &ltc4215_group);
++out_sysfs_create_group:
++	kfree(data);
++out_kzalloc:
++	return ret;
++}
++
++static int ltc4215_remove(struct i2c_client *client)
++{
++	struct ltc4215_data *data = i2c_get_clientdata(client);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &ltc4215_group);
++
++	kfree(data);
++
++	return 0;
++}
++
++static int ltc4215_detect(struct i2c_client *client,
++			  int kind,
++			  struct i2c_board_info *info)
++{
++	struct i2c_adapter *adapter = client->adapter;
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++		return -ENODEV;
++
++	if (kind < 0) {		/* probed detection - check the chip type */
++		s32 v;		/* 8 bits from the chip, or -ERRNO */
++
++		/*
++		 * Register 0x01 bit b7 is reserved, expect 0
++		 * Register 0x03 bit b6 and b7 are reserved, expect 0
++		 */
++		v = i2c_smbus_read_byte_data(client, LTC4215_ALERT);
++		if (v < 0 || (v & (1 << 7)) != 0)
++			return -ENODEV;
++
++		v = i2c_smbus_read_byte_data(client, LTC4215_FAULT);
++		if (v < 0 || (v & ((1 << 6) | (1 << 7))) != 0)
++				return -ENODEV;
++	}
++
++	strlcpy(info->type, "ltc4215", I2C_NAME_SIZE);
++	dev_info(&adapter->dev, "ltc4215 %s at address 0x%02x\n",
++			kind < 0 ? "probed" : "forced",
++			client->addr);
++
++	return 0;
++}
++
++static const struct i2c_device_id ltc4215_id[] = {
++	{ "ltc4215", ltc4215 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, ltc4215_id);
++
++/* This is the driver that will be inserted */
++static struct i2c_driver ltc4215_driver = {
++	.class		= I2C_CLASS_HWMON,
++	.driver = {
++		.name	= "ltc4215",
++	},
++	.probe		= ltc4215_probe,
++	.remove		= ltc4215_remove,
++	.id_table	= ltc4215_id,
++	.detect		= ltc4215_detect,
++	.address_data	= &addr_data,
++};
++
++static int __init ltc4215_init(void)
++{
++	return i2c_add_driver(&ltc4215_driver);
++}
++
++static void __exit ltc4215_exit(void)
++{
++	i2c_del_driver(&ltc4215_driver);
++}
++
++MODULE_AUTHOR("Ira W. Snyder <iws@ovro.caltech.edu>");
++MODULE_DESCRIPTION("LTC4215 driver");
++MODULE_LICENSE("GPL");
++
++module_init(ltc4215_init);
++module_exit(ltc4215_exit);
+-- 
+1.5.4.3
 
-k8temp-pci-00c3
-Adapter: PCI adapter
-temp1:       +18.0=C2=B0C                                   =20
-
-w83687thf-isa-0290
-Adapter: ISA adapter
-VCore:                +1.14 V  (min =3D  +0.70 V, max =3D  +1.87 V)  =20
-+3.3V:                +3.26 V  (min =3D  +3.14 V, max =3D  +3.47 V)  =20
-Vdim:                 +2.50 V  (min =3D  +2.48 V, max =3D  +2.93 V)  =20
-+5V:                  +5.03 V  (min =3D  +4.76 V, max =3D  +5.24 V)  =20
-Chip:                 +1.49 V  (min =3D  +1.49 V, max =3D  +1.76 V)  =20
-5VSB:                 +5.00 V  (min =3D  +4.76 V, max =3D  +5.24 V)  =20
-VBat:                 +3.33 V  (min =3D  +2.40 V, max =3D  +3.60 V)  =20
-Chassis Fan:          620 RPM  (min =3D  399 RPM, div =3D 16)
-CPU Fan:             1757 RPM  (min =3D  688 RPM, div =3D 8)
-Power Fan 2 B bought:   0 RPM  (min =3D  917 RPM, div =3D 16)  ALARM
-System Temp:          +27.0=C2=B0C  (high =3D +50.0=C2=B0C, hyst =3D +45.0=
-=C2=B0C)  sensor =3D thermistor
-CPU Temp:             +33.5=C2=B0C  (high =3D +72.0=C2=B0C, hyst =3D +70.0=
-=C2=B0C)  sensor =3D thermistor
-Strange Temp:         +10.0=C2=B0C  (high =3D +70.0=C2=B0C, hyst =3D +65.0=
-=C2=B0C)  sensor =3D thermistor
-beep_enable:         enabled
-
-
---MP_/4ny_heC4YmLHLIWl_RZoank
-Content-Type: text/plain; name=sensors.conf.txt
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment; filename=sensors.conf.txt
-
-# W83687THF w83627hf 	2.10.0 	2.6.17 	Super I/O, mostly similar to the W836=
-27THF. Support contributed by Jean Delvare.
-#found on EPoX EP-9HEAI V3.0 VIA KT890 Socket 939
-chip "w83687thf-*"
-    label in0 "VCore"
-    label in1 "+3.3V"
-    label in2 "Vdim"
-    label in3  "+5V"  # "+5V"
-    label in4 "Chip"
-    label in5 "not shown by sensors"
-    label in6  "not shown by sensors"
-    label in7 "5VSB"
-    label in8 "VBat"
-
-    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
-#    compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
-#    compute in5 (5.14 * @) - 14.91  ,  (@ + 14.91) / 5.14
-#    compute in6 (3.14 * @) -  7.71  ,  (@ +  7.71) / 3.14
-    compute in7 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
-
-# adjust this if your vid is wrong; see doc/vid
-#   set vrm 9.0
-
-# set limits to  5% for the critical voltages
-# set limits to 10% for the non-critical voltages
-# set limits to 20% for the battery voltage
-
-#    set in0_min vid*0.95
-#    set in0_max vid*1.05
-    set in1_min 3.3 * 0.95
-    set in1_max 3.3 * 1.05
-    set in2_min 2.5 * 0.99
-    set in2_max 2.5 * 1.17
-    set in3_min 5.0 * 0.95
-    set in3_max 5.0 * 1.05
-    set in4_min  1.5 * 0.99
-    set in4_max  1.5 * 1.17
-#    set in5_max -12 * 0.90
-#    set in5_min -12 * 1.10
-#    set in6_max -5 * 0.95
-#    set in6_min -5 * 1.05
-    set in7_min 5 * 0.95
-    set in7_max 5 * 1.05
-    set in8_min 3.0 * 0.80
-    set in8_max 3.0 * 1.20
-
-# set up sensor types (thermistor is default)
-# 1 =3D PII/Celeron Diode; 2 =3D 3904 transistor;
-# 3435 =3D thermistor with Beta =3D 3435
-# If temperature changes very little, try 1 or 2.
-#   set sensor1 1
-#   set sensor2 2
-#   set sensor3 3435
-
-# temperature limits
-set temp1_max 50
-set temp1_max_hyst 45
-# temp 3 less than room temp (hopefully current: 8=C2=B0), perhaps wifi 2 f=
-ridge
-label temp1 "System Temp"
-label temp2 "CPU Temp"
-label temp3 "Strange Temp"
-#       ignore temp3
-label fan2 "CPU Fan"
-label fan3 "Power Fan 2 B bought"
-label fan1 "Chassis Fan"
-set fan1_div 16
-#set fan2_div 8
-set fan3_div 16
-set fan1_min 400
-
---MP_/4ny_heC4YmLHLIWl_RZoank
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---MP_/4ny_heC4YmLHLIWl_RZoank--
