@@ -1,92 +1,76 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 13 Jan 2009 12:08:45 +0000
-Subject: Re: [lm-sensors] Error getting sensor data: w83627ehf/#34
-Message-Id: <20090113130845.3641ae1e@hyperion.delvare>
+From: "Crossley, Malcolm (GE EntSol,
+Date: Mon, 12 Jan 2009 12:18:28 +0000
+Subject: [lm-sensors] Supporting ADT7481 temperature sensor
+Message-Id: <FF6D174B07759740B0259F914CE6D7D305339414@LONMLVEM04.e2k.ad.ge.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4958C1F3.9020108@tobias.preclik.de>
-In-Reply-To: <4958C1F3.9020108@tobias.preclik.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hallo Tobias,
+Hello,
 
-On Tue, 13 Jan 2009 12:20:46 +0100, Tobias Preclik wrote:
-> thank you for your detailed explanation. The problem seemed to be fan4
-> indeed. I updated lm-sensors to 3.0.2 though it is still marked as
-> unstable (and hard-masked because barely any applications can deal with
-> it) in Gentoo.
+I am tasked with writing linux kernel support for the ADT7481 sensor. 
+This sensor is a dual remote, single local, sensor with an extended
+temperature 
+range capability on the remote sensors. 
 
-FWIW, lm-sensors 3.0.2 (and later) are actually very stable. The only
-problem is - as you noticed already - the lack of application support.
-But I expect this to be solved by the end of 2009.
+Most of the register layout of the device is compliant with the LM90
+driver but unfortunately the official manufacturer ID and device ID
+registers are not in 
+a LM90 compliant location. 
 
->               But now sensord starts without complaints and the fan4 is
-> automatically non-existent. But still the values reported by lm-sensors
-> seem bogus. Especially +5V and temperatures values:
->=20
-> w83627ehf-isa-0290
-> Adapter: ISA adapter
-> VCore:       +1.59 V  (min =3D  +0.00 V, max =3D  +1.85 V)
-> +12V:       +12.04 V  (min =3D +10.82 V, max =3D +13.20 V)
-> AVCC:        +3.38 V  (min =3D  +3.14 V, max =3D  +3.47 V)
-> 3VCC:        +3.36 V  (min =3D  +3.14 V, max =3D  +3.47 V)
-> +5V:         +4.30 V  (min =3D  +4.76 V, max =3D  +5.25 V)   ALARM
-> VSB:         +3.38 V  (min =3D  +3.14 V, max =3D  +3.47 V)
-> VBAT:        +3.28 V  (min =3D  +3.14 V, max =3D  +3.47 V)
-> CPU Fan:    2481 RPM  (min =3D 1704 RPM, div =3D 8)
-> Sys Temp:    +27.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM  =
-sensor =3D thermistor
-> CPU Temp:     +9.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
-=3D diode
-> AUX Temp:    +77.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  ALARM  =
-sensor =3D thermistor
->=20
-> How should I go about tweaking the temperature and voltage computations?
-> Should I measure the 5V lines or just fiddle about the resistor values
-> and pretend the raw voltage value is 5V?
+The LM90 driver supports the ADT7481 extended temperature range
+registers through it's
+ADT7461 support. 
 
-Voltage configuration is motherboard-specific and can be a little
-difficult to figure out. A general advice is to check the values
-reported in the BIOS and see how sensors.conf can be tweaked to come up
-to approximately the same result. I agree that your +5V is pretty low
-with the default scaling factor, and that's rather unlikely to be true.
-See what your BIOS says. The other Asus boards using this chip use:
+The ADT7481 does have register values at 0xfe and 0xff but they are not
+documented in 
+the datasheet.
 
-   compute in5 @*(1+(22/10)),  @/(1+(22/10))
+Here is an i2cdump output:
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 67 6b 00 24 08 9a 13 a9 13 24 08 9a 13 a9 13 00    gk.$?????$?????.
+10: 40 00 00 00 00 00 00 00 00 a4 00 00 00 00 00 00    @........?......
+20: 98 05 07 00 00 00 00 00 00 00 00 00 00 00 00 00    ???.............
+30: 6d ae 13 c0 00 00 00 00 00 a9 00 00 00 81 41 02    m???.....?...?A?
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 08 00 00 c0 00 00 00 00 00 00 00 00 00 00 00 00    ?..?............
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 41 62    ..............Ab
 
-One trick that worked many times for me is to wait a bit in the BIOS
-until the reported voltage changes. If your PSU isn't perfect, this
-should happen. Then you have 2 different values for +5V, and the
-difference between them is equal to the ADC's LSB value * the scaling
-factor. The W83627EHF's has an ADC LSB value of 8 mV, so you can deduce
-the scaling factor.
+The official manufacturer ID register is at 0x3e and the official device
+ID register is at
+0x3d.
 
-> What about the temperature values? The CPU temperature seems to be too
-> low (though the room is admittedly cooled). Unfortunately the
-> /proc/acpi/thermal_zone directory remains empty on this machine and I
-> cannot easily doublecheck the temperature. Maybe I should check the
-> values reported in the system BIOS...
->
-> What about the sys and aux temperatures? I seriously doubt that anything
-> is 77.5=B0C hot in that machine while idling. I guess the sys temp is a
-> dead input because the rrdcgi charts show a perfectly constant value of
-> 27.0=B0C. Is that reasonable? Which temperature sensors do "sys temp" and
-> "aux temp" correspond to anyway?
+My question is whether it would be better to?
+1. Modify the lm90 driver, using undocumented registers for detection
+and adding second 
+   remote channel support
+Or 
+2. Write a new driver from scratch but borrow code from the existing
+LM90 driver
 
-First of all: don't trust the labels, they are again
-motherboard-dependent and the default might not match your system.
+I would like to get this driver included into the kernel.
 
-What CPU do you have in the machine? Maybe you can get either the
-k8temp or the coretemp driver to work.
+Thanks for any feedback.
 
-I don't have much to propose for this part, sorry. But it would be
-interesting to know what temperature labels and values your BIOS
-displays.
+Malcolm Crossley
 
---=20
-Jean Delvare
+Malcolm Crossley, Software Engineer, 
+Embedded Systems, GE Fanuc Intelligent Platforms
+GE Fanuc Intelligent Platforms Ltd, registered in England and Wales
+(3828642) 
+at 100 Barbirolli Square, Manchester, M2 3AB, VAT GB 729 849 476
+
 
 _______________________________________________
 lm-sensors mailing list
