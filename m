@@ -1,102 +1,50 @@
-From: Olivier Hochreutiner <olivier.hochreutiner@gmail.com>
-Date: Mon, 12 Jan 2009 16:05:07 +0000
-Subject: [lm-sensors] [PATCH] GPIO output support for LM93 kernel driver
-Message-Id: <f967eaa30901120805y5628259co8e58e6568d677f63@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="000e0cd406c04583d704604b4570"
+From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Date: Tue, 13 Jan 2009 09:36:16 +0000
+Subject: Re: [lm-sensors] [PATCH] GPIO output support for LM93 kernel driver
+Message-Id: <496C6090.3050609@teltonika.lt>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <f967eaa30901120805y5628259co8e58e6568d677f63@mail.gmail.com>
+In-Reply-To: <f967eaa30901120805y5628259co8e58e6568d677f63@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---000e0cd406c04583d704604b4570
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Olivier Hochreutiner wrote:
+> Hi there,
+> 
+> I have been using the LM93 kernel driver and I noticed that 'gpio'
+> file in sysfs is read-only and that the GPIO pins of the LM93 chip can
+> be used as input only.
+> I attached a patch that allows to also use GPIO pins as output, by
+> simply writing to 'gpio' in sysfs. The patch is against the current
+> git revision of the mainstream kernel.
+> I did not handle the case where the GPIO pins are used as inputs after
+> being used as output (in which case, according to the datasheet, 0s
+> should be written to the GPO register, and thus 1s should be written
+> to the 'gpio' sysfs file). Also, if some pins are used as inputs and
+> others as outputs, then, when writing to the 'gpio' file in sysfs, the
+> pins used as inputs should be set to 1 (so that the corresponding bits
+> in the GPO register are set to 0).
+> 
+> Comments are welcome.
 
-Hi there,
+IMO gpiolib would be better and more generic solution instead of creating
+some custom sysfs entry...
 
-I have been using the LM93 kernel driver and I noticed that 'gpio'
-file in sysfs is read-only and that the GPIO pins of the LM93 chip can
-be used as input only.
-I attached a patch that allows to also use GPIO pins as output, by
-simply writing to 'gpio' in sysfs. The patch is against the current
-git revision of the mainstream kernel.
-I did not handle the case where the GPIO pins are used as inputs after
-being used as output (in which case, according to the datasheet, 0s
-should be written to the GPO register, and thus 1s should be written
-to the 'gpio' sysfs file). Also, if some pins are used as inputs and
-others as outputs, then, when writing to the 'gpio' file in sysfs, the
-pins used as inputs should be set to 1 (so that the corresponding bits
-in the GPO register are set to 0).
-
-Comments are welcome.
-
-Best regards,
-
-Olivier Hochreutiner
-
---000e0cd406c04583d704604b4570
-Content-Type: application/octet-stream; name="lm93_gpio_output.patch"
-Content-Disposition: attachment; filename="lm93_gpio_output.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fpvbnof40
-
-U2lnbmVkLW9mZi1ieTogT2xpdmllciBIb2NocmV1dGluZXIgPG9saXZpZXIuaG9jaHJldXRpbmVy
-QGdtYWlsLmNvbT4KLS0tCi0tLSBkcml2ZXJzL2h3bW9uL2xtOTMuYwkyMDA4LTExLTIxIDAwOjAy
-OjM3LjAwMDAwMDAwMCArMDEwMAorKysgZHJpdmVycy9od21vbi9sbTkzLmMJMjAwOS0wMS0xMiAx
-NjozNDo0NC4wMDAwMDAwMDAgKzAxMDAKQEAgLTIzLDYgKzIzLDkgQEAKICAgICBNb2RpZmllZCBm
-b3IgbWFpbmxpbmUgaW50ZWdyYXRpb24gYnkgSGFucyBKLiBLb2NoIDxoamtAbGludXRyb25peC5k
-ZT4KICAgICAgICAgQ29weXJpZ2h0IChjKSAyMDA3IEhhbnMgSi4gS29jaCwgTGludXRyb25peCBH
-bWJICiAKKyAgICBBZGRlZCBHUElPIG91dHB1dCBzdXBwb3J0IGJ5IE9saXZpZXIgSG9jaHJldXRp
-bmVyIDxvbGl2aWVyLmhvY2hyZXV0aW5lckBnbWFpbC5jb20+CisgICAgICAgIENvcHlyaWdodCAo
-YykgMjAwOSBPbGl2aWVyIEhvY2hyZXV0aW5lcgorCiAgICAgVGhpcyBwcm9ncmFtIGlzIGZyZWUg
-c29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkKICAgICBpdCB1
-bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFzIHB1Ymxp
-c2hlZCBieQogICAgIHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247IGVpdGhlciB2ZXJzaW9u
-IDIgb2YgdGhlIExpY2Vuc2UsIG9yCkBAIC0xMDgsNiArMTExLDkgQEAKICNkZWZpbmUgTE05M19S
-RUdfUFdNX01JTl9IWVNUXzM0CTB4YzQKICNkZWZpbmUgTE05M19SRUdfUFdNX01JTl9IWVNUKG5y
-KQkoMHhjMyArIChucikvMikKIAorLyogR1BJTyBvdXRwdXQgc3RhdGUgKi8KKyNkZWZpbmUgTE05
-M19SRUdfR1BPCQkJMHhjNQorCiAvKiBwcm9jaG90X292ZXJyaWRlICYgcHJvY2hvdF9pbnRlcnZh
-bCAqLwogI2RlZmluZSBMTTkzX1JFR19QUk9DSE9UX09WRVJSSURFCTB4YzYKICNkZWZpbmUgTE05
-M19SRUdfUFJPQ0hPVF9JTlRFUlZBTAkweGM3CkBAIC0yNjUsOCArMjcxLDggQEAKIAkvKiB2Y2Nw
-MSAmIHZjY3AyIChpbjcgJiBpbjgpOiBWSUQgcmVsYXRpdmUgbGltaXRzIChyZWdpc3RlciBmb3Jt
-YXQpICovCiAJdTggdmNjcF9saW1pdHNbMl07CiAKLQkvKiBHUElPIGlucHV0IHN0YXRlIChyZWdp
-c3RlciBmb3JtYXQsIGkuZS4gaW52ZXJ0ZWQpICovCi0JdTggZ3BpOworCS8qIEdQSU8gaW5wdXQv
-b3V0cHV0IHN0YXRlIChyZWdpc3RlciBmb3JtYXQsIGkuZS4gaW52ZXJ0ZWQpICovCisJdTggZ3Bp
-bzsKIAogCS8qICNQUk9DSE9UIG92ZXJyaWRlIChyZWdpc3RlciBmb3JtYXQpICovCiAJdTggcHJv
-Y2hvdF9vdmVycmlkZTsKQEAgLTY5Niw2ICs3MDIsMTMgQEAKIAlyZXR1cm4gfnJlZyAmIDB4ZmY7
-CiB9CiAKKy8qIEdQSU86IDAtMjU1LCBHUElPMCBpcyBMU0IKKyAqIFJFRzogaW52ZXJ0ZWQgKi8K
-K3N0YXRpYyB1bnNpZ25lZCBMTTkzX0dQT19UT19SRUcodTggZGF0YSkKK3sKKwlyZXR1cm4gfmRh
-dGEgJiAweGZmOworfQorCiAvKiBhbGFybSBiaXRtYXNrIGRlZmluaXRpb25zCiAgICBUaGUgTE05
-MyBoYXMgbmVhcmx5IDY0IGJpdHMgb2YgZXJyb3Igc3RhdHVzLi4uIEkndmUgcGFyZWQgdGhhdCBk
-b3duIHRvCiAgICB3aGF0IEkgdGhpbmsgaXMgYSB1c2VmdWwgc3Vic2V0IGluIG9yZGVyIHRvIGZp
-dCBpdCBpbnRvIDMyIGJpdHMuCkBAIC05MTgsNyArOTMxLDcgQEAKIAkJCQlMTTkzX1JFR19WQ0NQ
-X0xJTUlUX09GRihpKSk7CiAKIAkvKiBHUElPIGlucHV0IHN0YXRlICovCi0JZGF0YS0+Z3BpID0g
-bG05M19yZWFkX2J5dGUoY2xpZW50LCBMTTkzX1JFR19HUEkpOworCWRhdGEtPmdwaW8gPSBsbTkz
-X3JlYWRfYnl0ZShjbGllbnQsIExNOTNfUkVHX0dQSSk7CiAKIAkvKiAjUFJPQ0hPVCBvdmVycmlk
-ZSBzdGF0ZSAqLwogCWRhdGEtPnByb2Nob3Rfb3ZlcnJpZGUgPSBsbTkzX3JlYWRfYnl0ZShjbGll
-bnQsCkBAIC0yMjgxLDEwICsyMjk0LDI1IEBACiAJCQkJY2hhciAqYnVmKQogewogCXN0cnVjdCBs
-bTkzX2RhdGEgKmRhdGEgPSBsbTkzX3VwZGF0ZV9kZXZpY2UoZGV2KTsKLQlyZXR1cm4gc3ByaW50
-ZihidWYsIiVkXG4iLExNOTNfR1BJX0ZST01fUkVHKGRhdGEtPmdwaSkpOworCXJldHVybiBzcHJp
-bnRmKGJ1ZiwiJWRcbiIsTE05M19HUElfRlJPTV9SRUcoZGF0YS0+Z3BpbykpOworfQorCitzdGF0
-aWMgc3NpemVfdCBzdG9yZV9ncGlvKHN0cnVjdCBkZXZpY2UgKmRldiwKKwkJCQkJc3RydWN0IGRl
-dmljZV9hdHRyaWJ1dGUgKmF0dHIsCisJCQkJCWNvbnN0IGNoYXIgKmJ1Ziwgc2l6ZV90IGNvdW50
-KQoreworCXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0b19pMmNfY2xpZW50KGRldik7CisJ
-c3RydWN0IGxtOTNfZGF0YSAqZGF0YSA9IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOworCWxv
-bmcgdmFsID0gc2ltcGxlX3N0cnRvbChidWYsIE5VTEwsIDEwKTsKKworCW11dGV4X2xvY2soJmRh
-dGEtPnVwZGF0ZV9sb2NrKTsKKwlkYXRhLT5ncGlvID0gTE05M19HUE9fVE9fUkVHKHZhbCk7CisJ
-bG05M193cml0ZV9ieXRlKGNsaWVudCwgTE05M19SRUdfR1BPLCBkYXRhLT5ncGlvKTsKKwltdXRl
-eF91bmxvY2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsKKwlyZXR1cm4gY291bnQ7CiB9CiAKLXN0YXRp
-YyBERVZJQ0VfQVRUUihncGlvLCBTX0lSVUdPLCBzaG93X2dwaW8sIE5VTEwpOworc3RhdGljIERF
-VklDRV9BVFRSKGdwaW8sIFNfSVJVR08gfCBTX0lXVVNSLCBzaG93X2dwaW8sIHN0b3JlX2dwaW8p
-OwogCiBzdGF0aWMgc3NpemVfdCBzaG93X2FsYXJtcyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVj
-dCBkZXZpY2VfYXR0cmlidXRlICphdHRyLAogCQkJCWNoYXIgKmJ1ZikK
---000e0cd406c04583d704604b4570
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> Best regards,
+> 
+> Olivier Hochreutiner
+> 
+> 
+> ------------------------------------------------------------------------
+> 
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---000e0cd406c04583d704604b4570--
