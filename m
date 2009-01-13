@@ -1,113 +1,54 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 07 Jan 2009 15:55:01 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for 2.6.29
-Message-Id: <20090107165501.646e4841@hyperion.delvare>
+From: "Henrik Rydberg" <rydberg@euromail.se>
+Date: Tue, 13 Jan 2009 01:11:22 +0000
+Subject: [lm-sensors] [PATCH] hwmon: applesmc: Fix light sensor readings on
+Message-Id: <1231809082-11165-1-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alex Murray <murray.alex@gmail.com>, Nicolas Boichat <nicolas@boichat.ch>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
 
-Hi Linus,
+From: Alex Murray <murray.alex@gmail.com>
 
-Please pull some hwmon subsystem updates for Linux 2.6.29 from:
+The light sensors ALV0 and ALV1 on newer MacBooks (early 2008 and
+later) changed to report 10 bytes instead the earlier 6, and the
+sensor encoding subsequently changed. As a result, the reported light
+sensors readings are much too low.
 
-git://jdelvare.pck.nerim.net/jdelvare-2.6 hwmon-for-linus
+From experiments leading up to this patch, it seems only the ALV0 is
+reporting data, and the most useful value therein is a 10-bit
+big-endian value at offset 6. This suggests that a new protocol was
+added as a backward-compatible replacement on top of the old one.
 
-There are a lot of improvements to the f71882fg driver, a new driver
-(ltc4245), watchdog support added to the fschmd driver, support for the
-ITE IT8720F, and a few other small things.
+This patch makes applesmc report the improved light sensor reading for
+the new machines, on a scale in conformance with earlier ones.
 
- Documentation/feature-removal-schedule.txt |    8 +
- Documentation/hwmon/f71882fg               |   89 ++
- Documentation/hwmon/it87                   |   20 +-
- Documentation/hwmon/lm70                   |   12 +-
- Documentation/hwmon/lm85                   |    2 +-
- Documentation/hwmon/ltc4245                |   81 ++
- Documentation/spi/spi-lm70llp              |   10 +
- drivers/hwmon/Kconfig                      |   47 +-
- drivers/hwmon/Makefile                     |    1 +
- drivers/hwmon/asb100.c                     |    5 +-
- drivers/hwmon/dme1737.c                    |    5 +
- drivers/hwmon/f71805f.c                    |    5 +
- drivers/hwmon/f71882fg.c                   | 1549 +++++++++++++++++++++++-----
- drivers/hwmon/fschmd.c                     |  448 ++++++++-
- drivers/hwmon/i5k_amb.c                    |    7 +
- drivers/hwmon/it87.c                       |   37 +-
- drivers/hwmon/lm70.c                       |   91 ++-
- drivers/hwmon/ltc4245.c                    |  567 ++++++++++
- drivers/hwmon/pc87360.c                    |    6 +
- drivers/hwmon/pc87427.c                    |    5 +
- drivers/hwmon/sis5595.c                    |    5 +
- drivers/hwmon/smsc47b397.c                 |    5 +
- drivers/hwmon/smsc47m1.c                   |    5 +
- drivers/hwmon/via686a.c                    |    5 +
- drivers/hwmon/vt1211.c                     |    5 +
- drivers/hwmon/vt8231.c                     |    5 +
- drivers/hwmon/w83627ehf.c                  |    8 +-
- drivers/hwmon/w83627hf.c                   |    5 +
- drivers/hwmon/w83781d.c                    |    5 +-
- drivers/hwmon/w83791d.c                    |    5 +-
- drivers/hwmon/w83792d.c                    |    5 +-
- drivers/hwmon/w83793.c                     |    5 +-
- drivers/spi/spi_lm70llp.c                  |   33 +-
- 33 files changed, 2729 insertions(+), 362 deletions(-)
- create mode 100644 Documentation/hwmon/f71882fg
- create mode 100644 Documentation/hwmon/ltc4245
- create mode 100644 drivers/hwmon/ltc4245.c
+Signed-off-by: Alex Murray <murray.alex@gmail.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+---
+ drivers/hwmon/applesmc.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
----------------
-
-Darrick J. Wong (1):
-      hwmon: (i5k_amb) Load automatically on all 5000/5400 chipsets
-
-Hans de Goede (18):
-      hwmon: (f71882fg) Style cleanups and put some repeating code into functions
-      hwmon: (f71882fg) Add support for the F71862FG superio sensors
-      hwmon: (f71882fg) Move some io access from the detect to the probe function
-      hwmon: (f71882fg) Prepare for adding F8000 support
-      hwmon: (f71882fg) Fix various sysfs callback function issues
-      hwmon: (f71882fg) Cleanup fan and temp hyst functions
-      hwmon: (f71882fg) Check for hwmon powerdown state
-      hwmon: (f71882fg) Separate max and crit alarm and beep
-      hwmon: (f71882fg) Remove the fan_mode module option
-      hwmon: (f71882fg) Add F8000 support
-      hwmon: (f71882fg) Add missing pwm3 attr for f71862fg
-      hwmon: (f71882fg) Fix auto_channels_temp temp numbering with f8000
-      hwmon: (f71882fg) Add documentation
-      hwmon: (f71882fg) Printout fan modes
-      hwmon: (f71882fg) Fix fan_to/from_reg prototypes
-      hwmon: (fschmd) Cleanups for watchdog support
-      hwmon: (fschmd) Add watchdog support
-      hwmon: Deprecate the fscher and fscpos drivers
-
-Ira Snyder (1):
-      hwmon: Add LTC4245 driver
-
-Jean Delvare (3):
-      hwmon: Don't overuse I2C_CLIENT_MODULE_PARM
-      hwmon: Check for ACPI resource conflicts
-      hwmon: Fix various typos
-
-Jean-Marc Spaggiari (1):
-      hwmon: (it87) Add support for the ITE IT8720F
-
-Kaiwan N Billimoria (1):
-      hwmon: (lm70) Code streamlining and cleanup
-
-Manuel Lauss (1):
-      hwmon: (lm70) Add TI TMP121 support
-
-Mark van Doesburg (3):
-      hwmon: (f71882fg) Use sensor_device_attribute_2
-      hwmon: (f71882fg) Misc cleanups
-      hwmon: (f71882fg) Add PWM support
-
-
-
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index dca47a5..e301862 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -590,6 +590,11 @@ static ssize_t applesmc_light_show(struct device *dev,
+ 	}
+ 
+ 	ret = applesmc_read_key(LIGHT_SENSOR_LEFT_KEY, buffer, data_length);
++	/* newer macbooks report a single 10-bit bigendian value */
++	if (data_length = 10) {
++		left = be16_to_cpu(*(__be16 *)(buffer + 6)) >> 2;
++		goto out;
++	}
+ 	left = buffer[2];
+ 	if (ret)
+ 		goto out;
 -- 
-Jean Delvare
+1.5.6.3
+
 
 _______________________________________________
 lm-sensors mailing list
