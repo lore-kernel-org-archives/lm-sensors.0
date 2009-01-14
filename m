@@ -1,7 +1,7 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Tue, 13 Jan 2009 18:45:58 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 14 Jan 2009 14:28:45 +0000
 Subject: Re: [lm-sensors] Updated initialization script, testers wanted
-Message-Id: <496CE166.5060803@redhat.com>
+Message-Id: <20090114152845.5121555e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090112140236.6b74302e@hyperion.delvare>
 In-Reply-To: <20090112140236.6b74302e@hyperion.delvare>
@@ -10,96 +10,153 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
+Hi Hans,
 
+On Tue, 13 Jan 2009 19:45:58 +0100, Hans de Goede wrote:
+> Jean Delvare wrote:
+> > The two reasons that motivated the change are explained in the ticket,
+> > there's not so much I can add:
+> >=20
+> > 1* Removing or adding a module manually is error-prone. Say you have
+> > the following configuration file:
+> >=20
+> > MODULE_0=3Dlm90
+> > MODULE_1=3Dk8temp
+> > MODULE_2=3Dit87
+> >=20
+> > Now you change your graphics adapter and the new one no longer has a
+> > thermal sensor, so you no longer need to load the lm90 driver. Simply
+> > removing the first line may or may not be enough, depending on how the
+> > initialization script is implemented. Apparently the one in openSUSE
+> > copes with that, but the one in our repository (which I think you use
+> > in Red Hat) doesn't.
+> >=20
+> > 2* The old format can't be edited with Yast's sysconfig editor, as the
+> > editor expects fixed variable names. I find it pretty convenient for
+> > the user to be able to edit all the system settings in a central place,
+> > with settings put in a function-oriented tree, and a help text for every
+> > setting. I don't know if Red Hat has an equivalent tool, but if it does
+> > then I expect it to have the same problem with the current lm-sensors
+> > configuration file format. It is much easier for me to tell a user to
+> > open the sysconfig editor and change the value of variable
+> > HWMON_MODULES to "foo bar" than to tell him/her to
+> > open /etc/sysconfig/lm_sensors with a text editor, check the highest
+> > MODULE_%d variable, and add a new line MODULE_%(d+1)=BAr.
+>=20
+> Hmm, 1 is sort of silly IMHO if you are making changes renumbering really=
+ isn't=20
+> that hard to do,
 
-Jean Delvare wrote:
-> Hi Hans,
->=20
-> On Tue, 13 Jan 2009 09:02:33 +0100, Hans de Goede wrote:
->> Jean Delvare wrote:
->>> I have implemented and committed the sensors-detect side of ticket
->>> #2246. Now the lm_sensors initialization script needs to be updated as
->>> well, to make use of the new configuration file syntax. The
->>> initialization script in our repository is meant for Red Hat
->>> distributions but I don't have any, so I can't test my changes. The
->>> patch I intend to apply is attached, could you (or anyone with a Red
->>> Hat distribution) give it a try and confirm that it works OK?
->>> Beforehand, you'll need to download and run the latest version of
->>> sensors-detect:
->>>
->>> http://www.lm-sensors.org/svn/lm-sensors/branches/lm-sensors-3.0.0/prog=
-/detect/sensors-detect
->>>
->>> and let it regenerate /etc/sysconfig/lm_sensors.
->> Erm,
->>
->> Not tested, I'm not so happy with this change. I've read the ticker tryi=
-ng to=20
->> find out why we would want this change, and I must say I'm not very conv=
-inced=20
->> with the reasoning there.
->>
->> My problem with these changes is that to me it feels like changing the c=
-onfig=20
->> file format without some very strong reasons, this will cause all kind o=
-f pains=20
->> when upgrading from an lm_sensors version with the old format to that wi=
-th the=20
->> new format. Do we really have to do this?
->=20
-> The two reasons that motivated the change are explained in the ticket,
-> there's not so much I can add:
->=20
-> 1* Removing or adding a module manually is error-prone. Say you have
-> the following configuration file:
->=20
-> MODULE_0=3Dlm90
-> MODULE_1=3Dk8temp
-> MODULE_2=3Dit87
->=20
-> Now you change your graphics adapter and the new one no longer has a
-> thermal sensor, so you no longer need to load the lm90 driver. Simply
-> removing the first line may or may not be enough, depending on how the
-> initialization script is implemented. Apparently the one in openSUSE
-> copes with that, but the one in our repository (which I think you use
-> in Red Hat) doesn't.
->=20
-> 2* The old format can't be edited with Yast's sysconfig editor, as the
-> editor expects fixed variable names. I find it pretty convenient for
-> the user to be able to edit all the system settings in a central place,
-> with settings put in a function-oriented tree, and a help text for every
-> setting. I don't know if Red Hat has an equivalent tool, but if it does
-> then I expect it to have the same problem with the current lm-sensors
-> configuration file format. It is much easier for me to tell a user to
-> open the sysconfig editor and change the value of variable
-> HWMON_MODULES to "foo bar" than to tell him/her to
-> open /etc/sysconfig/lm_sensors with a text editor, check the highest
-> MODULE_%d variable, and add a new line MODULE_%(d+1)=BAr.
->=20
+For me and you, it is easy. For the average user, not necessarily.
+Remember, this change was motivated by my experience with openSuse user
+support, essentially over bugzilla. This isn't the same category of
+users as those asking for help on our mailing list after they have
+self-compiled lm-sensors.
 
-Hmm, 1 is sort of silly IMHO if you are making changes renumbering really i=
-sn't=20
-that hard to do, 2 to me feels like causing pain for all distros for the=20
-benefit of one.
+> 2 to me feels like causing pain for all distros for the=20
+> benefit of one.
 
-Anyways if we are going to make changes to the format, yes we will need a=20
-migration script and, I think we need to think this through more.
+Frankly I don't see this change as a major pain. If I thought it did, I
+wouldn't be proposing it. Converting the configuration file from the
+old to the new format is done by 19 lines of shell:
 
-To be more specific in the future we might / will hopefully get support for=
+CONFIG=3D/etc/sysconfig/lm_sensors
+test -r "$CONFIG" || exit
+
+unset ${!MODULE_*} $HWMON_MODULES
+. "$CONFIG"
+test -n "$HWMON_MODULES" && exit
+
+for i in ${!MODULE_*} ; do
+	eval module=3D\$$i
+	if test -z "$HWMON_MODULES" ; then
+		HWMON_MODULES=3D"$module"
+	else
+		HWMON_MODULES=3D"$HWMON_MODULES $module"
+	fi
+done
+
+echo >> "$CONFIG"
+echo "# New configuration format generated by sysconfig-lm_sensors-convert"=
+ >> "$CONFIG"
+echo "HWMON_MODULES=3D\"$HWMON_MODULES\"" >> "$CONFIG"
+
+(Yes, I kept it voluntarily simple, so bus drivers end up in
+HWMON_MODULES, but that's not a problem in practice.)
+
+I also don't think Suse is the only distribution which would benefit
+from the change. The fact that the new format is easier to parse than
+the original format is an objective fact, it doesn't depend on the
+distribution. For example, right now Debian is adding the modules to
+load to /etc/modules, which isn't too convenient because you can't
+automatically remove entries from that file (if sensors-detect is
+re-run you may end up with duplicate entries.) I don't know why they do
+that but I can imagine that our configuration file format didn't please
+them and they went for the most immediate alternative.
+
+With the new format, Debian could have a new configuration
+file /etc/default/lm_sensors similar to /etc/sysconfig/lm_sensors on
+Red Hat and Suse distributions. Maybe Aurelien wants to comment on this?
+
+If everybody hates my idea then I am not going to push it to you. I
+could implement things my way in Suse and leave the rest of you alone.
+But I also think there is a benefit in having a similar configuration
+mechanism across major distributions.
+
+> Anyways if we are going to make changes to the format, yes we will need a=
 =20
-hwmon on graphics cards, then hopefully everything needed will autoload but=
- we=20
-might need entries in /etc/sysconfig/lm_sensors, so I'm thinking that it wo=
-uld=20
-be good to have separate lines for things like motherboard sensors, gpu sen=
-sors=20
-and harddisk sensors. This will make it easier for both manual editing as f=
+> migration script and, I think we need to think this through more.
+>=20
+> To be more specific in the future we might / will hopefully get support f=
 or=20
-tools for (automatic) configuration.
+> hwmon on graphics cards,
 
-Regards,
+We already do to some extent, but there's definitely room for
+improvement.
 
-Hans
+> (...) then hopefully everything needed will autoload
+
+Really? I agree for bus drivers, but this seems difficult for hwmon
+chip drivers. Do you have some ideas that you didn't share with us yet?
+
+> (...) but we=20
+> might need entries in /etc/sysconfig/lm_sensors, so I'm thinking that it =
+would=20
+> be good to have separate lines for things like motherboard sensors, gpu s=
+ensors=20
+> and harddisk sensors. This will make it easier for both manual editing as=
+ for=20
+> tools for (automatic) configuration.
+
+My initial goal was to make the configuration file more simple, not
+more complex ;) The main reason why I wanted to split bus drivers and
+hardware monitoring chip drivers is that lm_sensors should be
+considered not configured as long as no hardware monitoring drivers are
+listed. The fact that this will make things a little clearer to the
+users is only a side benefit. Oh, and in a few cases, it is more
+efficient to load the bus drivers first.
+
+I don't see much value in splitting the variables further.
+
+Bus drivers will almost always auto-load these days, so these variables
+will almost always be empty. And the trend for graphics adapter is to
+expose I2C buses from the graphics driver itself, so you aren't loading
+the bus drivers just for lm-sensors.
+
+If we ever have a kernel driver for hard disk temperatures (that would
+be nice!) then I suspect it will be the same driver for all disks, and
+hopefully it will auto-load.
+
+This leaves us with the hardware monitoring chips themselves. Given
+that it is possible that the same driver is used for the motherboard
+and for the graphics adapter, how would you split them? Sure, you could
+list the module twice, but that's not exactly efficient.
+
+What benefits do you see in splitting the variables that way?
+
+Thanks,
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
