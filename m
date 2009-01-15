@@ -1,50 +1,48 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Fri, 02 Jan 2009 14:15:34 +0000
-Subject: [lm-sensors] SHT15 humidity sensor. Hwmon right place to put a
-Message-Id: <495E2186.7080609@cam.ac.uk>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 15 Jan 2009 21:30:42 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.29
+Message-Id: <20090115223042.5106b964@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 
-Dear All,
+Hi Linus,
 
-I'm in the process of cleaning up a driver for the Sensiron SHT15 humidity and
-temperature sensor chip.
+Please pull some hwmon subsystem fixes for Linux 2.6.29 from:
 
-http://www.sensirion.com/en/01_humidity_sensors/00_humidity_sensors.htm
+git://jdelvare.pck.nerim.net/jdelvare-2.6 hwmon-for-linus
 
-Before I proceed too far with this I have a couple of general requests for
-comment.
+ Documentation/hwmon/adt7475 |   87 +++
+ drivers/hwmon/Kconfig       |   10 +
+ drivers/hwmon/Makefile      |    2 +
+ drivers/hwmon/abituguru3.c  |   24 +-
+ drivers/hwmon/adt7475.c     | 1221 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/hwmon/k8temp.c      |   55 ++-
+ 6 files changed, 1384 insertions(+), 15 deletions(-)
+ create mode 100644 Documentation/hwmon/adt7475
+ create mode 100644 drivers/hwmon/adt7475.c
 
-Is hwmon a sensible place for this driver?
+---------------
 
-Whilst it could conceivably be used for hardware monitoring that isn't my
-use for it.  I think it is more appropriate here than in the upcoming
-industrial I/O subsystem principally because I can't envision a use where
-the humidity is changing rapidly enough to require the more complex kernel
-ring buffering etc provided there.
+Alistair John Strachan (3):
+      hwmon: (abituguru3) Match partial DMI board name strings
+      hwmon: (abituguru3) Enable DMI probing feature on IN9 32X MAX
+      hwmon: (abituguru3) Fix CONFIG_DMI=n fallback to probe
 
-The other delightful quirk of this device is that it's bus protocol doesn't
-conform to anything remotely standard and hence will be implemented by directly
-controlling gpios.
+Andreas Herrmann (3):
+      hwmon: (k8temp) Warn about fam F rev F errata
+      hwmon: (k8temp) Fix wrong sensor selection for AMD K8 RevF/RevG CPUs
+      hwmon: (k8temp) Fix temperature reporting for (most) K8 RevG CPUs
 
-Are people happy with such a low level driver in hwmon?
-
-I think he protocol is very much chip specific so not worth a more general
-implementation.  All sensiron's other sensors appear to use more standard
-protocols.
-
-If there are any similar gpio based drivers please point them out to me
-as an example of accepted practice would save both mine and reviewers time!
+Jordan Crouse (1):
+      hwmon: Add a driver for the ADT7475 hardware monitoring chip
 
 Thanks,
-
---
-Jonathan Cameron
-
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
