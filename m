@@ -1,32 +1,31 @@
-From: "Pat Moroney" <brandnamebob@gmail.com>
-Date: Thu, 08 Jan 2009 15:43:02 +0000
-Subject: [lm-sensors] ADT7476 support
-Message-Id: <e4f4e0140901080743o71b48016l35e07178f288aaff@mail.gmail.com>
+From: Roel Kluin <roel.kluin@gmail.com>
+Date: Sat, 17 Jan 2009 13:53:15 +0000
+Subject: [lm-sensors] [PATCH 1/?] &&/|| confusion
+Message-Id: <4971E2CB.6080307@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200711071645.05120.billf@thinklogical.com>
-In-Reply-To: <200711071645.05120.billf@thinklogical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+&& / || confusion
 
-I'm using a Tyan S4985 motherboard and it has a ADT7476 chip. I would
-like to add my name to the
-request list for this chip.
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+diff --git a/drivers/hwmon/ltc4245.c b/drivers/hwmon/ltc4245.c
+index 034b2c5..4a1c9fb 100644
+--- a/drivers/hwmon/ltc4245.c
++++ b/drivers/hwmon/ltc4245.c
+@@ -456,7 +456,7 @@ static int ltc4245_check_control_reg(struct i2c_client *client, u8 reg, u8 bits)
+ 		voff1 &= bits;
+ 		voff2 &= bits;
+ 
+-		if (v != voff1 || v != voff2)
++		if (v != voff1 && v != voff2)
+ 			return -ENODEV;
+ 	}
+ 
 
-I have tried lm_sensors 3.0.2 and the chip was detected by
-sensors-detect as a ADT7473 which is incorrect.
-
-I am also willing to help test or gather any information about the
-chip that may be needed.
-
-I have also considered writing the driver myself using the adt7473
-driver as a base to start from.
-
-Thanks,
-Patrick Moroney
 
 _______________________________________________
 lm-sensors mailing list
