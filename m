@@ -1,40 +1,42 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 29 Jan 2009 09:45:37 +0000
-Subject: Re: [lm-sensors] [Patch] Fix typo in error output
-Message-Id: <20090129104537.336ab8cd@hyperion.delvare>
+Date: Mon, 19 Jan 2009 20:13:23 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (f71882fg) Hide misleading error message
+Message-Id: <20090119211323.02f4df9c@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090129090908.GA4410@ubuntu>
-In-Reply-To: <20090129090908.GA4410@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Andre,
+From: Jean Delvare <khali@linux-fr.org>
+Subject: hwmon: (f71882fg) Hide misleading error message
 
-On Thu, 29 Jan 2009 10:09:08 +0100, Andre Prendel wrote:
-> 
-> Removed trailing semicolon in error string.
-> 
-> Signed-off-by: Andre Prendel <andre_prendel@gmx.de>
-> ---
-> 
-> --- lm-sensors-dev/prog/sensors/main.c	2009-01-28 18:12:18.000000000 +0100
-> +++ my-lm-sensors/prog/sensors/main.c	2009-01-28 22:01:14.000000000 +0100
-> @@ -179,7 +179,7 @@ static int do_a_set(const sensors_chip_n
->  
->  	if ((err = sensors_do_chip_sets(name))) {
->  		if (err = -SENSORS_ERR_KERNEL) {
-> -			fprintf(stderr, "%s: %s;\n",
-> +			fprintf(stderr, "%s: %s\n",
->  				sprintf_chip_name(name),
->  				sensors_strerror(err));
->  			fprintf(stderr, "Run as root?\n");
+If the F71882FG chip is at address 0x4e, then the probe at 0x2e will
+fail with the following message in the logs:
+f71882fg: Not a Fintek device
 
-I don't think this is a typo, the semi-colon was probably there on
-purpose. But I don't like it much either, so let's get rid of it :)
+This is misleading because there is a Fintek device, just at a
+different address. So I propose to degrade this message to a debug
+message.
 
-Patch applied, thanks.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/hwmon/f71882fg.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-2.6.29-rc2.orig/drivers/hwmon/f71882fg.c	2009-01-11 10:57:18.000000000 +0100
++++ linux-2.6.29-rc2/drivers/hwmon/f71882fg.c	2009-01-19 20:11:16.000000000 +0100
+@@ -1872,7 +1872,7 @@ static int __init f71882fg_find(int sioa
+ 
+ 	devid = superio_inw(sioaddr, SIO_REG_MANID);
+ 	if (devid != SIO_FINTEK_ID) {
+-		printk(KERN_INFO DRVNAME ": Not a Fintek device\n");
++		pr_debug(DRVNAME ": Not a Fintek device\n");
+ 		goto exit;
+ 	}
+ 
+
 
 -- 
 Jean Delvare
