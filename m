@@ -1,23 +1,53 @@
-From: Alexey Torkhov <atorkhov@gmail.com>
-Date: Fri, 30 Jan 2009 20:00:38 +0000
-Subject: [lm-sensors] Asus P5E3 config
-Message-Id: <d7c97bcb0901301200p38f3c458yd6dbc9f55f65c42d@mail.gmail.com>
+From: powah <wong_powah@yahoo.ca>
+Date: Wed, 21 Jan 2009 14:16:32 +0000
+Subject: [lm-sensors] =?utf-8?q?cannot_install_lm=5Fsensors-2=2E5=2E5-x=2E?=
+Message-Id: <loom.20090121T141214-149@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi.
+I cannot install lm_sensors-2.5.5-3.i386.rpm nor lm_sensors-2.5.5-6.i386.rpm on
+RH 7.1.
+The files complained by "failed dependencies" are present on my computer.
+Why it fail to install?
+Please help to fix the problem.
+Thanks.
 
-I've made config for my Asus M/B:
-http://atorkhov.fedorapeople.org/sensors3.conf-asus_p5e3
-Main difference with existing config is different coefficient in
-voltage formula and different input (in5 instead of in6) for +5V.
+# rpm -ivh /home/tcma/rpm/lm_sensors-2.5.5-3.i386.rpm
+error: failed dependencies:
+        /sbin/ldconfig   is needed by lm_sensors-2.5.5-3
+        /sbin/ldconfig   is needed by lm_sensors-2.5.5-3
+        ld-linux.so.2   is needed by lm_sensors-2.5.5-3
+        libc.so.6   is needed by lm_sensors-2.5.5-3
+        /bin/sh   is needed by lm_sensors-2.5.5-3
+        /usr/bin/perl   is needed by lm_sensors-2.5.5-3
+        libc.so.6(GLIBC_2.0)   is needed by lm_sensors-2.5.5-3
+        libc.so.6(GLIBC_2.1)   is needed by lm_sensors-2.5.5-3
+        libc.so.6(GLIBC_2.1.3)   is needed by lm_sensors-2.5.5-3
 
-Would be good if it'll be added to wiki.
+# rpm -ivh /home/tcma/rpm/lm_sensors-2.5.5-6.i386.rpm
+error: failed dependencies:
+        /sbin/ldconfig   is needed by lm_sensors-2.5.5-6
+        /sbin/ldconfig   is needed by lm_sensors-2.5.5-6
+        ld-linux.so.2   is needed by lm_sensors-2.5.5-6
+        libc.so.6   is needed by lm_sensors-2.5.5-6
+        /bin/sh   is needed by lm_sensors-2.5.5-6
+        /usr/bin/perl   is needed by lm_sensors-2.5.5-6
+        libc.so.6(GLIBC_2.0)   is needed by lm_sensors-2.5.5-6
+        libc.so.6(GLIBC_2.1)   is needed by lm_sensors-2.5.5-6
+        libc.so.6(GLIBC_2.1.3)   is needed by lm_sensors-2.5.5-6
+# uname -a
+Linux pc1 2.4.7-10 #1 Thu Sep 6 17:27:27 EDT 2001 i686 unknown
 
-alex
+# ls -l   /usr/bin/perl
+-rwxr-xr-x    2 root     root       708188 Aug  9  2001 /usr/bin/perl
+
+# ls -l /sbin/ldconfig
+-rwxr-xr-x    1 root     root       460872 Sep  4  2001 /sbin/ldconfig
+
+
 
 _______________________________________________
 lm-sensors mailing list
