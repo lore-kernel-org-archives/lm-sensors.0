@@ -1,58 +1,107 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Date: Wed, 07 Jan 2009 19:21:51 +0000
-Subject: Re: [lm-sensors] Status/support for Linux HECI from Intel? (for
-Message-Id: <1231356111.6648.2.camel@maxim-laptop>
+From: "Henrik Rydberg" <rydberg@euromail.se>
+Date: Sat, 24 Jan 2009 12:46:14 +0000
+Subject: [lm-sensors] [PATCH] hwmon: applesmc: Add support for MacPro 3
+Message-Id: <1232801174-6701-1-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.DEB.1.10.0812300700410.11356@p34.internal.lan>
-	 <4964DB3E.6080908@intel.com>
-	 <alpine.DEB.1.10.0901071142200.29147@p34.internal.lan>
-In-Reply-To: <alpine.DEB.1.10.0901071142200.29147@p34.internal.lan>
+References: <48D7A9F9.50502@euromail.se>
+In-Reply-To: <48D7A9F9.50502@euromail.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Justin Piszcz <jpiszcz@lucidpixels.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Bharath Ramesh <bramesh@vt.edu>, Nicolas Boichat <nicolas@boichat.ch>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
 
-On Wed, 2009-01-07 at 11:42 -0500, Justin Piszcz wrote:
-> 
-> On Wed, 7 Jan 2009, Dan Williams wrote:
-> 
-> > Justin Piszcz wrote:
-> >> The HECI interface would allow lm_sensors developers to grab the
-> >> temperatures off the chips on the board.
-> >> 
-> >> From 2005(?)-2008 there was some chatter about supporting it but it never
-> >> seemed to happen, is there any eventual planned support for supporting
-> >> Intel's HECI interface or if the user wants to see the
-> >> temperatures/voltages just buy a different motherboard with an ITE I/O
-> >> controller?
-> >> 
-> >> I have a couple DG965WH boards and it would be nice to see the
-> >> temperature of the chipset etc without having to reboot into the BIOS.
-> >> 
-> >
-> > Hi Justin,
-> >
-> > I am not up to date on the progress in this area, but perhaps this site 
-> > (http://www.openamt.org/) has what you are looking for?
-> >
-> > Regards,
-> > Dan
-> >
-> 
-> Yeah that is the site-- however, will it ever get merged?  I have not 
-> heard anything about it for a year or so.
+From: Bharath Ramesh <bramesh@vt.edu>
 
-Nope, the heci is just a controller, but we need a way to tell that
-controller to show us the temperature data.
-But intel hasn't released the QST sdk, and probably never will.
+MacPro 3 have more temperature sensors than the previous MacPro's also
+the sensor THTG has been removed. This patch add supports for the
+newer temperature sensors in the MacPro3.
 
-Sad, 
+Signed-off-by: Bharath Ramesh <bramesh@vt.edu>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 
-Best regards,
-	Maxim Levitsky
+---
+ drivers/hwmon/applesmc.c |   30 +++++++++++++++++++++++++++++-
+ 1 files changed, 29 insertions(+), 1 deletions(-)
 
-
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index e301862..678e34b 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -83,7 +83,7 @@
+ /*
+  * Temperature sensors keys (sp78 - 2 bytes).
+  */
+-static const char* temperature_sensors_sets[][36] = {
++static const char *temperature_sensors_sets[][41] = {
+ /* Set 0: Macbook Pro */
+ 	{ "TA0P", "TB0T", "TC0D", "TC0P", "TG0H", "TG0P", "TG0T", "Th0H",
+ 	  "Th1H", "Tm0P", "Ts0P", "Ts1P", NULL },
+@@ -135,6 +135,13 @@ static const char* temperature_sensors_sets[][36] = {
+ 	{ "TB0T", "TB1S", "TB1T", "TB2S", "TB2T", "TC0D", "TN0D", "TTF0",
+ 	  "TV0P", "TVFP", "TW0P", "Th0P", "Tp0P", "Tp1P", "TpFP", "Ts0P",
+ 	  "Ts0S", NULL },
++/* Set 16: Mac Pro 3,1 (2 x Quad-Core) */
++	{ "TA0P", "TCAG", "TCAH", "TCBG", "TCBH", "TC0C", "TC0D", "TC0P",
++	  "TC1C", "TC1D", "TC2C", "TC2D", "TC3C", "TC3D", "TH0P", "TH1P",
++	  "TH2P", "TH3P", "TMAP", "TMAS", "TMBS", "TM0P", "TM0S", "TM1P",
++	  "TM1S", "TM2P", "TM2S", "TM3S", "TM8P", "TM8S", "TM9P", "TM9S",
++	  "TN0C", "TN0D", "TN0H", "TS0C", "Tp0C", "Tp1C", "Tv0S", "Tv1S",
++	  NULL },
+ };
+ 
+ /* List of keys used to read/write fan speeds */
+@@ -1153,6 +1160,16 @@ static SENSOR_DEVICE_ATTR(temp34_input, S_IRUGO,
+ 					applesmc_show_temperature, NULL, 33);
+ static SENSOR_DEVICE_ATTR(temp35_input, S_IRUGO,
+ 					applesmc_show_temperature, NULL, 34);
++static SENSOR_DEVICE_ATTR(temp36_input, S_IRUGO,
++					applesmc_show_temperature, NULL, 35);
++static SENSOR_DEVICE_ATTR(temp37_input, S_IRUGO,
++					applesmc_show_temperature, NULL, 36);
++static SENSOR_DEVICE_ATTR(temp38_input, S_IRUGO,
++					applesmc_show_temperature, NULL, 37);
++static SENSOR_DEVICE_ATTR(temp39_input, S_IRUGO,
++					applesmc_show_temperature, NULL, 38);
++static SENSOR_DEVICE_ATTR(temp40_input, S_IRUGO,
++					applesmc_show_temperature, NULL, 39);
+ 
+ static struct attribute *temperature_attributes[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+@@ -1190,6 +1207,11 @@ static struct attribute *temperature_attributes[] = {
+ 	&sensor_dev_attr_temp33_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp34_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp35_input.dev_attr.attr,
++	&sensor_dev_attr_temp36_input.dev_attr.attr,
++	&sensor_dev_attr_temp37_input.dev_attr.attr,
++	&sensor_dev_attr_temp38_input.dev_attr.attr,
++	&sensor_dev_attr_temp39_input.dev_attr.attr,
++	&sensor_dev_attr_temp40_input.dev_attr.attr,
+ 	NULL
+ };
+ 
+@@ -1312,6 +1334,8 @@ static __initdata struct dmi_match_data applesmc_dmi_data[] = {
+ 	{ .accelerometer = 0, .light = 0, .temperature_set = 14 },
+ /* MacBook Air 2,1: accelerometer, backlight and temperature set 15 */
+ 	{ .accelerometer = 1, .light = 1, .temperature_set = 15 },
++/* MacPro3,1: temperature set 16 */
++	{ .accelerometer = 0, .light = 0, .temperature_set = 16 },
+ };
+ 
+ /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
+@@ -1369,6 +1393,10 @@ static __initdata struct dmi_system_id applesmc_whitelist[] = {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacPro2") },
+ 		&applesmc_dmi_data[4]},
++	{ applesmc_dmi_match, "Apple MacPro3", {
++	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
++	  DMI_MATCH(DMI_PRODUCT_NAME, "MacPro3") },
++		&applesmc_dmi_data[16]},
+ 	{ applesmc_dmi_match, "Apple MacPro", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacPro") },
+-- 
+1.5.6.3
 
 
 _______________________________________________
