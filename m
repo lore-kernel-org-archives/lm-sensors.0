@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 27 Jan 2009 08:10:14 +0000
+Date: Tue, 27 Jan 2009 08:56:54 +0000
 Subject: Re: [lm-sensors] spam
-Message-Id: <20090127091014.7c018d4f@hyperion.delvare>
+Message-Id: <20090127095654.32dade08@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <537C6C0940C6C143AA46A88946B8541710A4164D@ORNLEXCHANGE.ornl.gov>
 In-Reply-To: <537C6C0940C6C143AA46A88946B8541710A4164D@ORNLEXCHANGE.ornl.gov>
@@ -10,24 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 27 Jan 2009 00:04:16 +0200, Axel Thimm wrote:
-> On Mon, Jan 26, 2009 at 03:41:10PM -0500, Jean-Marc Spaggiari wrote:
-> > What appends to the blocked emails? Is there a place to check them and
-> > flag them as "non-spam" to have them sent to the list if needed?
+Hi Axel,
+
+On Mon, 26 Jan 2009 19:34:20 +0200, Axel Thimm wrote:
+> On Tue, Jan 20, 2009 at 03:15:33PM +0100, Jean Delvare wrote:
+> > I have already asked our administrator (Axel, Cc'd) to erase this
+> > offending spam from our mailing list archive. And now, Axel, please
+> > _also_ remove this post from Line, as she quoted the message in its
+> > entirety :(
 > 
-> Posts with a spam score of higher than 5.0 get stuck in the moderator
-> queue.
+> Actually the spam was recogniyed at level 3.0, but the filters deny at
+> 5.0 and above. Maybe we should lower the spam barrier (which would hit
+> a couple of false positives, but better to get an email a month denied
+> than be spammed that way).
 
-Really? I can't remember any message being moderated for this reason.
-The two reasons I see on a regular basis for messages that await
-moderation are: message has implicit destination and message too big.
+Thanks for deleting the offending message. There's one more to delete
+here:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2009-January/025201.html
 
-> But even if it were rejected at least the valid sender with a
-> false positive would notice and rephrase the posting.
+I've blacklisted that specific sender so hopefully we will no longer be
+harmed by similar message... as long as the sender doesn't change.
 
-What I would do is: messages with a high spam score get discarded, and
-messages with a moderate spam score are blocked until moderated. But
-apparently this is already what we have, so it's all OK?
+I am OK with lowering the spam barrier as long as the messages in
+question are either rejected or held for moderation, but not discarded.
 
 -- 
 Jean Delvare
