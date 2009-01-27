@@ -1,77 +1,45 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 27 Jan 2009 12:11:55 +0000
-Subject: Re: [lm-sensors] Updated fancontrol script
-Message-Id: <20090127131155.6b6df0c5@hyperion.delvare>
+From: Cory Casper <ccasper@gmail.com>
+Date: Tue, 27 Jan 2009 16:41:19 +0000
+Subject: [lm-sensors] Smart Battery locks up SMBus communication
+Message-Id: <5955db7c0901270841i70139db2le3b1c7b42a81a@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090102221548.GA19021@paradise.net.nz>
-In-Reply-To: <20090102221548.GA19021@paradise.net.nz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 27 Jan 2009 23:40:41 +1300, Volker Kuhlmann wrote:
-> Hi Jean,
-> 
-> > > I have updated my improved/extended fancontrol script with the changes
-> > > from 0.63 to 0.67 of the "official" script. It's backwards compatible.
-> > 
-> > Someday we should get rid of these version numbers. Referring to the
-> > version of the lm-sensors package is much easier IMHO.
-> 
-> No opinion, no difference to me... ;)
-> 
-> > > http://volker.top.geek.nz/linux/tech/lm_sensors/fancontrol-1.1
-> 
-> > If you want us to take anything from you, please send patches against
-> > our latest version of fancontrol. Preferably incremental ones.
-> 
-> Sure, patch is easy:
-> 
->   cp whatever-your-latest-version-is-cvs-or-stable fancontrol.orig
->   wget http://volker.top.geek.nz/linux/tech/lm_sensors/fancontrol-1.1
->   diff -u fancontrol.orig fancontrol-1.1
-> 
-> Adjust diff format to personal taste. However the resulting patch would
-> be much bigger than either script by itself, so wouldn't really be that
-> useful. I did quite a bit of tidying up.
+I've run across a problem in interfacing with a smart battery
+(bq2060E11) with kernel 2.4.26 and lm-sensors (2.10.0) and i2c
+(2.10.0) patched into the kernel. Every once in a while which
+difficult to repeat, the smart battery will not respond to the Linux
+Host on smartbatt driver initialization. Monitoring I2C/SMBus activity
+shows continuous clocking at the proper frequency on the Clock line
+while the Data line was continuously de-asserted (high) by the smart
+battery. We are unsure of what may be causing this invalid behavior
+from the smart battery IC, however manually pulling the clock and data
+lines low for 2.5 seconds does clear the invalid bus state.
 
-That's not going to happen, sorry. If the changes are so important that
-a patch wouldn't be readable then I don't have the time to take care of
-this. Especially when I'm not even sure what is so great with your
-version. Using bash string functions instead of external programs? The
-latest version of fancontrol only uses one external program during
-runtime, which is sleep, I doubt you managed to replace that. The other
-external calls are only done during setup, and they are nothing a
-standard Linux system always has, so I'm not sure why this would be
-considered a problem. Changed some ugly programming? Please be
-specific. I've done a lot of cleanups to fancontrol myself over the
-past 2 years, and I believe I have managed to make it look reasonably
-good. On top of that, we had a lot of weird issues where bash and/or
-sysfs wouldn't behave the way you'd expected. Now that we have
-something that apparently works fine for all users, I'm certainly not
-going to replace fancontrol with a brand new version hardly anyone has
-ever tested.
+Question 1: Has anyone observed this behavior with a smart battery and
+know of any root causes that can make this happen? I feel that it may
+be related to a message collision on the SMBus, but this is not yet
+proven.
 
-If you want your changes to be merged into lm-sensors, you really only
-have 2 options:
+Question 2: If the root cause cannot be determined, how difficult
+would it be to add the ability to detect this lockup in the kernel by
+monitoring the SMBus activity and if detected, pull the data and clock
+lines low for 2.5 seconds. Any implementation suggestions would be
+highly valued since I will need to implement this. In addition, if
+anyone would be help with this, I would be willing to donate towards
+anyone helping to implement this behavior.
 
-* Split all your changes into incremental patches that can be easily
-reviewed and commented upon, post them, wait for comments, adjust
-accordingly (might include dropping changes which others don't like),
-resend and we'll apply them.
+The SMBus contains a charger IC, Sm-Energy Lithium Ion Battery with
+(BQ2060E207 battery IC), and an MPC880 processor running an Arabella
+patched linux-2.4.26 kernel. The SMBus has two masters: the smart
+battery and MPC880 host processor.
 
-* Volunteer to become the maintainer of pwmconfig and fancontrol for
-the next 2 or 3 years. Get a developer account created, merge your
-changes, and take care of all the user reports about pwmconfig and
-fancontrol on the mailing list.
+Any responses would be very appreciated,
 
-Both options require that you spend a significant amount of time.
-That's what good software development is all about, isn't it?
-
-Thanks,
--- 
-Jean Delvare
+Cory
 
 _______________________________________________
 lm-sensors mailing list
