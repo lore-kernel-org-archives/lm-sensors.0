@@ -1,209 +1,93 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 18 Jan 2009 22:34:26 +0000
-Subject: [lm-sensors] PATCH: i2c-i801-dmi-detect-fscsyl.patch
-Message-Id: <4973AE72.8080902@hhs.nl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------010806080200050201060701"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 30 Jan 2009 17:57:33 +0000
+Subject: [lm-sensors] [PATCH 4/4] hwmon: (ds1621) Clean up documentation
+Message-Id: <20090130185733.5a1b0090@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010806080200050201060701
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+* The alarms sysfs file is deprecated, and individual alarm files are
+  self-explanatory.
+* The driver doesn't implement high-reslution temperature readings so
+  don't document that.
 
-<resend with list in the CC>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Aurelien Jarno <aurelien@aurel32.net>
+---
+ Documentation/hwmon/ds1621 |   51 ++------------------------------------------
+ 1 file changed, 3 insertions(+), 48 deletions(-)
 
-Hi Jean,
-
-This patch adds support to the i2c-i801.c driver for i2c slave enumeration on
-the basis of the motherboard dmi tables onboard table. And uses this support
-to detect the presense of an FSC Syleus IC.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-
-Regards,
-
-Hans
-
-
---------------010806080200050201060701
-Content-Type: text/plain;
- name="i2c-i801-dmi-detect-fscsyl.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="i2c-i801-dmi-detect-fscsyl.patch"
-
-This patch adds support to the i2c-i801.c driver for i2c slave enumeration on
-the basis of the motherboard dmi tables onboard table. And uses this support
-to detect the presense of an FSC Syleus IC.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
---- linux/drivers/i2c/busses/i2c-i801.c	2009-01-18 23:11:44.000000000 +0100
-+++ linux/drivers/i2c/busses/i2c-i801.c	2009-01-18 23:14:49.000000000 +0100
-@@ -65,6 +65,7 @@
- #include <linux/i2c.h>
- #include <linux/acpi.h>
- #include <linux/io.h>
-+#include <linux/dmi.h>
+--- linux-2.6.29-rc3.orig/Documentation/hwmon/ds1621	2009-01-24 17:34:04.000000000 +0100
++++ linux-2.6.29-rc3/Documentation/hwmon/ds1621	2009-01-30 18:02:06.000000000 +0100
+@@ -49,12 +49,9 @@ of up to +/- 0.5 degrees even when compa
+ readings. Be sure to have a high vs. low temperature limit gap of al least
+ 1.0 degree Celsius to avoid Tout "bouncing", though!
  
- /* I801 SMBus address offsets */
- #define SMBHSTSTS	(0 + i801_smba)
-@@ -136,6 +137,10 @@
- #define FEATURE_I2C_BLOCK_READ	(1 << 3)
- static unsigned int i801_features;
+-As for alarms, you can read the alarm status of the DS1621 via the 'alarms'
+-/sys file interface. The result consists mainly of bit 6 and 5 of the
+-configuration register of the chip; bit 6 (0x40 or 64) is the high alarm
+-bit and bit 5 (0x20 or 32) the low one. These bits are set when the high or
+-low limits are met or exceeded and are reset by the module as soon as the
+-respective temperature ranges are left.
++The alarm bits are set when the high or low limits are met or exceeded and
++are reset by the module as soon as the respective temperature ranges are
++left.
  
-+static int i2c_devs_found;
-+static unsigned short i2c_devs_addresses[4];
-+static char i2c_devs_types[4][I2C_NAME_SIZE];
-+
- /* Make sure the SMBus host is ready to start transmitting.
-    Return 0 if it is, -EBUSY if it is not. */
- static int i801_check_pre(void)
-@@ -584,8 +589,6 @@
- MODULE_DEVICE_TABLE (pci, i801_ids);
+ The alarm registers are in no way suitable to find out about the actual
+ status of Tout. They will only tell you about its history, whether or not
+@@ -64,45 +61,3 @@ with neither of the alarms set.
  
- #if defined CONFIG_INPUT_APANEL || defined CONFIG_INPUT_APANEL_MODULE
--static unsigned char apanel_addr;
+ Temperature conversion of the DS1621 takes up to 1000ms; internal access to
+ non-volatile registers may last for 10ms or below.
 -
- /* Scan the system ROM for the signature "FJKEYINF" */
- static __init const void __iomem *bios_signature(const void __iomem *bios)
- {
-@@ -609,7 +612,9 @@
- 	p = bios_signature(bios);
- 	if (p) {
- 		/* just use the first address */
--		apanel_addr = readb(p + 8 + 3) >> 1;
-+		i2c_devs_addresses[0] = readb(p + 8 + 3) >> 1;
-+		strlcpy(i2c_devs_types[0], "fujitsu_apanel", I2C_NAME_SIZE);
-+		i2c_devs_found = 1;
- 	}
- 	iounmap(bios);
- }
-@@ -617,10 +622,82 @@
- static void __init input_apanel_init(void) {}
- #endif
- 
-+#if defined CONFIG_SENSORS_FSCHMD || defined CONFIG_SENSORS_FSCHMD_MODULE
-+struct dmi_onboard_device_info {
-+	const char *name;
-+	u8 type;
-+	unsigned short i2c_addr;
-+	const char *i2c_type;
-+};
-+
-+static struct dmi_onboard_device_info dmi_devices[] = {
-+	{ "Syleus", DMI_DEV_TYPE_OTHER, 0x73, "fscsyl" },
-+};
-+
-+static void dmi_check_onboard_device(u8 type, const char *name)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(dmi_devices); i++) {
-+		/* & ~0x80, ignore enabled/disabled bit */
-+		if ((type & ~0x80) != dmi_devices[i].type)
-+			continue;
-+		if (strcmp(name, dmi_devices[i].name))
-+			continue;
-+
-+		if (i2c_devs_found + 1 == ARRAY_SIZE(i2c_devs_addresses)) {
-+			printk(KERN_WARNING "Warning size of i2c_devs array "
-+				"is too small please report this!");
-+			return;
-+		}
-+
-+		i2c_devs_addresses[i2c_devs_found] = dmi_devices[i].i2c_addr;
-+		strlcpy(i2c_devs_types[i2c_devs_found],
-+			dmi_devices[i].i2c_type, I2C_NAME_SIZE);
-+		i2c_devs_found++;
-+		return;
-+	}
-+}
-+
-+/* We use our own function to check for onboard devices instead of
-+   dmi_find_device() as some buggy BIOS's have the devices we are interested
-+   in marked as disabled */
-+static void dmi_check_onboard_devices(const struct dmi_header *dm)
-+{
-+	int i, count = (dm->length - sizeof(struct dmi_header)) / 2;
-+
-+	if (dm->type != 10)
-+		return;
-+
-+	for (i = 0; i < count; i++) {
-+		const u8 *d = (char *)(dm + 1) + (i * 2);
-+		const char *name = ((char *) dm) + dm->length;
-+		u8 type = d[0];
-+		u8 s = d[1];
-+
-+		if (!s)
-+			continue;
-+		s--;
-+		while (s > 0 && name[0]) {
-+			name += strlen(name) + 1;
-+			s--;
-+		}
-+		dmi_check_onboard_device(type, name);
-+	}
-+}
-+
-+static void __init dmi_onboard_devices_init(void)
-+{
-+	dmi_walk(dmi_check_onboard_devices);
-+}
-+#else
-+static void __init dmi_onboard_devices_init(void) {}
-+#endif
-+
- static int __devinit i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
- {
- 	unsigned char temp;
--	int err;
-+	int i, err;
- 
- 	I801_dev = dev;
- 	i801_features = 0;
-@@ -703,16 +780,16 @@
- 	}
- 
- 	/* Register optional slaves */
--#if defined CONFIG_INPUT_APANEL || defined CONFIG_INPUT_APANEL_MODULE
--	if (apanel_addr) {
-+	for (i = 0; i < i2c_devs_found; i++) {
- 		struct i2c_board_info info;
- 
- 		memset(&info, 0, sizeof(struct i2c_board_info));
--		info.addr = apanel_addr;
--		strlcpy(info.type, "fujitsu_apanel", I2C_NAME_SIZE);
-+		info.addr = i2c_devs_addresses[i];
-+		strlcpy(info.type, i2c_devs_types[i], I2C_NAME_SIZE);
- 		i2c_new_device(&i801_adapter, &info);
-+		dev_dbg(&dev->dev, "Added slave device: %s @ %02x",
-+			info.type, (int)info.addr);
- 	}
--#endif
- 
- 	return 0;
- 
-@@ -765,6 +842,7 @@
- static int __init i2c_i801_init(void)
- {
- 	input_apanel_init();
-+	dmi_onboard_devices_init();
- 	return pci_register_driver(&i801_driver);
- }
- 
+-High Accuracy Temperature Reading
+----------------------------------
+-
+-As said before, the temperature issued via the 9-bit i2c-bus data is
+-somewhat arbitrary. Internally, the temperature conversion is of a
+-different kind that is explained (not so...) well in the DS1621 data sheet.
+-To cut the long story short: Inside the DS1621 there are two oscillators,
+-both of them biassed by a temperature coefficient.
+-
+-Higher resolution of the temperature reading can be achieved using the
+-internal projection, which means taking account of REG_COUNT and REG_SLOPE
+-(the driver manages them):
+-
+-Taken from Dallas Semiconductors App Note 068: 'Increasing Temperature
+-Resolution on the DS1620' and App Note 105: 'High Resolution Temperature
+-Measurement with Dallas Direct-to-Digital Temperature Sensors'
+-
+-- Read the 9-bit temperature and strip the LSB (Truncate the .5 degs)
+-- The resulting value is TEMP_READ.
+-- Then, read REG_COUNT.
+-- And then, REG_SLOPE.
+-
+-      TEMP = TEMP_READ - 0.25 + ((REG_SLOPE - REG_COUNT) / REG_SLOPE)
+-
+-Note that this is what the DONE bit in the DS1621 configuration register is
+-good for: Internally, one temperature conversion takes up to 1000ms. Before
+-that conversion is complete you will not be able to read valid things out
+-of REG_COUNT and REG_SLOPE. The DONE bit, as you may have guessed by now,
+-tells you whether the conversion is complete ("done", in plain English) and
+-thus, whether the values you read are good or not.
+-
+-The DS1621 has two modes of operation: "Continuous" conversion, which can
+-be understood as the default stand-alone mode where the chip gets the
+-temperature and controls external devices via its Tout pin or tells other
+-i2c's about it if they care. The other mode is called "1SHOT", that means
+-that it only figures out about the temperature when it is explicitly told
+-to do so; this can be seen as power saving mode.
+-
+-Now if you want to read REG_COUNT and REG_SLOPE, you have to either stop
+-the continuous conversions until the contents of these registers are valid,
+-or, in 1SHOT mode, you have to have one conversion made.
 
-
---------------010806080200050201060701
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------010806080200050201060701--
