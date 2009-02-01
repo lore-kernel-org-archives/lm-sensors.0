@@ -1,58 +1,30 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 04 Feb 2009 10:05:36 +0000
-Subject: Re: [lm-sensors] Problem with order of module loading
-Message-Id: <20090204110536.2ddaa6a4@hyperion.delvare>
+From: Stefan =?utf-8?b?QnLDvG5z?= <stefan.bruens@rwth-aachen.de>
+Date: Sun, 01 Feb 2009 22:35:25 +0000
+Subject: Re: [lm-sensors] Support for Intel DG33FB main board?
+Message-Id: <loom.20090201T222717-938@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090125021151.GE16739@paradise.net.nz>
-In-Reply-To: <20090125021151.GE16739@paradise.net.nz>
+References: <495C30EF.3090708@earthlink.net>
+In-Reply-To: <495C30EF.3090708@earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Volker,
+Monitoring _should_ be supported via the HECI driver. If it actually works
+depends (for now) on the MB having an AMT engine or not (Everything labeled with
+vPro has one, other ones dont know ...).
 
-On Fri, 30 Jan 2009 17:23:36 +0100, Jean Delvare wrote:
-> On Wed, 28 Jan 2009 09:06:28 +0100, Jean Delvare wrote:
-> > I have discussed this a bit with Kay Sievers yesterday. He suggested
-> > that we can use the modalias files in sysfs together with "modprobe -n"
-> > to find out whether a loaded hwmon driver has been auto-loaded or not.
-> > This would let us exclude kernel modules from /etc/sysconfig/lm_sensors
-> > based on whether they auto-load rather than based on whether they were
-> > loaded when sensors-detect was run. This should be way more robust than
-> > my initial proposal, to a point where I think it would make sense to
-> > give it a try.
-> 
-> Damn, it isn't as easy as I thought. Not all drivers follow the Linux
-> device driver model to the letter. Actually, most hwmon drivers do not,
-> because they create their own devices. Once such a driver is loaded, it
-> appears to be autoloading (its devices have modalias strings that point
-> to the driver) but in fact it is not. This fools my new code into
-> thinking that pretty much all loaded hwmon drivers were autoloaded.
-> 
-> Thus I fear I will have to limit the scope of my autoloading detection
-> code to PCI devices. At least this covers the k8temp driver, which is
-> probably the one that causes the more trouble in practice.
+For AMT, have a look at www.openamt.org
 
-I have finally committed a change which should address your issue:
-  http://www.lm-sensors.org/changeset/5635
+For everything else, sensors are supported via QST over HECI - unfortunately,
+there is no support for this yet, but have a look at
+http://software.intel.com/en-us/forums/manageability-software-
+the (near) future.
 
-Basically, PCI and USB drivers which are auto-loaded on a given system
-are no longer listed in /etc/sysconfig/lm_sensors. That way,
-"rclm_sensors restart" will not unload and reload drivers which are
-already present at boot time. This is the best approach from a
-performance point of view, and it is also stable across reconfiguration
-(running sensors-detect twice doesn't change the outcome.)
+Regards,
 
-Please give a try to:
-  http://www.lm-sensors.org/svn/lm-sensors/trunk/prog/detect/sensors-detect
-and confirm that it solves your problem (k8temp should no longer be
-listed, so the hwmon class device numbers should stay stable across
-reboots.)
+Stefan
 
-Thanks,
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
