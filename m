@@ -1,94 +1,114 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 02 Feb 2009 08:37:49 +0000
-Subject: Re: [lm-sensors] ACPI versus native IC drivers
-Message-Id: <20090202093749.27627445@hyperion.delvare>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Mon, 02 Feb 2009 13:27:36 +0000
+Subject: Re: [lm-sensors] Updated initialization script, testers wanted
+Message-Id: <4986F4C8.4010507@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <495D3E83.8040003@redhat.com>
-In-Reply-To: <495D3E83.8040003@redhat.com>
+References: <20090112140236.6b74302e@hyperion.delvare>
+In-Reply-To: <20090112140236.6b74302e@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Luca, Hans,
 
-Sorry for joining in a little late...
 
-On Sun, 4 Jan 2009 15:06:43 +0100, Luca Tettamanti wrote:
-> On Thu, Jan 1, 2009 at 11:06 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> > Hi all,
-> >
-> > I've made a good start with reviewing the new ATK0110 driver. And I must say I
-> > like it. But, there is a big but.
-> >
-> > On my Asus M2N SLI Deluxe motherboard, with this driver loaded the two hwmon
-> > IC's on this board (one superio, one smbus) get hit by both the ACPI and native
-> > driver code. This is bad, really bad!
+Jean Delvare wrote:
+> Hi Hans,
 > 
-> Old news :S
-> http://thread.gmane.org/gmane.linux.drivers.sensors/12454
-> http://thread.gmane.org/gmane.linux.drivers.sensors/12359
-> I actually started writing the ATK driver in response to that thread.
+> On Sun, 25 Jan 2009 14:47:30 +0100, Hans de Goede wrote:
+>> Jean Delvare wrote:
+>>> Really? I agree for bus drivers, but this seems difficult for hwmon
+>>> chip drivers. Do you have some ideas that you didn't share with us yet?
+>> Well I hope that for graphiccards, the drm / modesetting driver will also 
+>> (probe for?) and instantiate any known to be (sometimes) present i2c sensors.
 > 
-> > Luckily I can fix this by:
-> > 1) Using Jean's queued patch for adding acpi resource checks to superio drivers
-> > from here:
-> > http://khali.linux-fr.org/devel/linux-2.6/jdelvare-hwmon/hwmon-acpi-check-conflict.patch
-> >
-> > 2) Specifying: "acpi_enforce_resources=strict" on the command line
-> >
-> > With this, the native drivers will no longer load. As we have no idea what the
-> > ACPI code is doing (it might be updating the readings periodically based on a
-> > timer for all we know). To me this (causing the native drivers to no longer
-> > load) seems to be the right solution.
+> If they are going to do the same probings we have to do for mainboards,
+> then I don't quite get the point.
+
+Well yes and no, most cards based on a certain GPU all use the same hwmon IC 
+(the one from the reference design). But some may deviate, so there only needs 
+to be a probe for one, maybe 2 chips, and a fairly simple probe. There is no 
+certainty that some manufacturer won't deviate, hence the probe is needed, but 
+the situation is nowhere as bad as with mainboards.
+
+> If it is possible to instantiate the sensor devices without probing
+> because you can get enough information from the hardware to know what
+> and where they are, then that's a different story, and I agree we
+> should do that. Any probing we can avoid is good.
 > 
-> Agreed. Note that since the firmware thinks it owns the hardware it
-> may access it even without a specific driver loaded (e.g. in the
-> thread linked above I think that the native driver was interfering
-> with the standard TZ polling.)
 
-Yes, that's true.
+Well there is no 100% certainty (AFAIK) so we still need a probe, but basicly 
+only for one chip, if the user has one of the rare deviating board he / she is 
+out of luck.
 
-> > Back on topic, there is one big "but" here. If we change the default setting
-> > for acpi_enforce_resources to strict, then this will cause problems for people,
-> > and those problems will get seen as regressions. For example many asus users
-> > will stop having functional sensors (atleast in my asus board ACPI claims the
-> > relevant resources for accessing the sensors). Still I think we should make the
-> > default strict, as that seems the right thing to do. As this is an option
-> > people can always change the option as a work around if this causes too much pain.
-> >
-> > Making this option strict by default is the only safe way I see for ever
-> > allowing the atk0110 driver in to the mainline kernel.
+>>> My initial goal was to make the configuration file more simple, not
+>>> more complex ;) The main reason why I wanted to split bus drivers and
+>>> hardware monitoring chip drivers is that lm_sensors should be
+>>> considered not configured as long as no hardware monitoring drivers are
+>>> listed. The fact that this will make things a little clearer to the
+>>> users is only a side benefit. Oh, and in a few cases, it is more
+>>> efficient to load the bus drivers first.
+>>>
+>>> I don't see much value in splitting the variables further.
+>>>
+>>> Bus drivers will almost always auto-load these days, so these variables
+>>> will almost always be empty. And the trend for graphics adapter is to
+>>> expose I2C buses from the graphics driver itself, so you aren't loading
+>>> the bus drivers just for lm-sensors.
+>>>
+>>> If we ever have a kernel driver for hard disk temperatures (that would
+>>> be nice!) then I suspect it will be the same driver for all disks, and
+>>> hopefully it will auto-load.
+>>>
+>>> This leaves us with the hardware monitoring chips themselves. Given
+>>> that it is possible that the same driver is used for the motherboard
+>>> and for the graphics adapter, how would you split them? Sure, you could
+>>> list the module twice, but that's not exactly efficient.
+>>>
+>>> What benefits do you see in splitting the variables that way?
+>> Oneday I hope we have a tool which will generate and /etc/sensors.conf and 
+>> /etc/sysconfig/lm_sensors based on dmi info and a database, then it would be 
+>> good to have separate line in /etc/sysconfig/lm_sensors, for sensors located on 
+>> the motherboard and sensors located on for example a graphic card, so that that 
+>> tool then can only mangle the motherboard lines, without touching any 
+>> (potentially manually added) other line.
 > 
-> Actually the use of native drivers might already be unsafe... I agree
-> on changing acpi_enforce_resources to strict; the transition shouldn't
-> be too painful: ACPI drivers are loaded automagically, so the existing
-> monitoring software will "just work".
+> I don't expect /etc/sensors.conf to be ever generated. Instead my plan
+> is to change libsensors to read all configuration files from
+> directory /etc/sensors.d. Then our to-be-written configuration tool
+> would simply drop board-specific configuration files to that directory.
+> This is IMHO much easier than merging several files
+> into /etc/sensors.conf.
 
-The real world is more complex than that. For one thing, switching from
-a native hardware monitoring driver to an ACPI hardware monitoring
-driver isn't a transparent operation. Monitoring applications need a
-way to identify each sensor and this is based on the device name
-string, which itself depends on the driver. For example, the device
-name string may change from it8716-isa-0290 to atk0110-acpi-0. This
-means that basically all hardware monitoring software must be
-reconfigured.
+Ack, this sounds like a good plan.
 
-But that's not the worst case. The worst case is when the firmware
-requests the I/O ports and either doesn't actually make use of it, or
-only for the ACPI thermal zone driver which is very limited, or we do
-not have a driver for the ACPI implementation yet. In these 3 cases the
-user plain loses the hardware monitoring functionality. And I suspect
-this is the most common case.
+> I wanted to work on this before the end of
+> January but have been delayed by other issues.
+> 
+> With regards to separate variables in /etc/sysconfig/lm_sensors, it
+> seems to only make sense if our to-be-written configuration tool allows
+> the user to reconfigure the sensors separately on the mainboard and on
+> graphics adapters. Do we have a need for this? At the moment,
+> sensors-detect doesn't make any difference between the mainboard and
+> graphics adapters, it probes the graphics adapters' I2C buses as it
+> does for the SMBus.
 
-For this reason I am suggesting that we move acpi_enforce_resources in
-the direction of "strict" but with baby steps first, as has been
-discussed in another thread since then. If and only if we do not have
-too many complaints, we can make one more step, etc.
+True, I guess this is something best revisited when it actually becomes an issue.
 
-Thanks,
--- 
-Jean Delvare
+<snip>
+
+> 
+> But I don't think there is anything that needs to be done now. The new
+> configuration file format is easily extended in the future if we need
+> variables for specific purposes.
+> 
+
+Ack.
+
+
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
