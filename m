@@ -1,37 +1,108 @@
-From: Andre Prendel <andre_prendel@gmx.de>
-Date: Mon, 23 Feb 2009 11:27:58 +0000
-Subject: Re: [lm-sensors] [PATCH v2 2/2] libsensors: Use __func__
-Message-Id: <20090223112758.GC4511@ubuntu>
+From: Guillaume Delacour <guillaume.delacour@gmail.com>
+Date: Tue, 03 Feb 2009 17:22:27 +0000
+Subject: Re: [lm-sensors] HP VL400 sensors (2)
+Message-Id: <5a54eff70902030922p13b2bbbdic4f8656012ebcaf4@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090223110604.GB4511@ubuntu>
-In-Reply-To: <20090223110604.GB4511@ubuntu>
+References: <5a54eff70901271130p1a948a5clb67baf0c93b8fa@mail.gmail.com>
+In-Reply-To: <5a54eff70901271130p1a948a5clb67baf0c93b8fa@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Mon, Feb 23, 2009 at 12:18:31PM +0100, Jean Delvare wrote:
-> On Mon, 23 Feb 2009 12:06:05 +0100, Andre Prendel wrote:
-> > On Mon, Feb 23, 2009 at 11:37:57AM +0100, Jean Delvare wrote:
-> > > BTW, are you sure you don't want an SVN account? You're sending good
-> > > patches, and you might as well apply them yourself...
-> > 
-> > How works patch reviewing in that case? Should I send the patches
-> > still to the list? I don't want to break something or do silly
-> > things.
-> >
-> > So if we don't lose the reviewing I would be very happy to get an account.
-> 
-> We don't lose anything. You still send the patches to the list for
-> review, and once the review is positive, you get to commit the patches
-> yourself. The only difference is who runs "svn commit".
+2009/1/30 Jean Delvare <khali@linux-fr.org>:
+> Bonjour Guillaume,
+>
+> On Tue, 27 Jan 2009 20:30:16 +0100, Guillaume Delacour wrote:
+>> Hello,
+>>
+>> I have an HP VL 400 (Version: R3B, P/N: D9820-60011) motherboard. None
+>> of hardware status are displayed.
+>
+> You mean in the BIOS?
 
-So let's do it. :)
+Yes i mean in BIOS.
 
-Andre
- 
-> -- 
+>
+>> I want to know if is it possible to have temperature and more if
+>> possible (voltage ?) via sensors:
+>>
+>> # sensors
+>> pc87360-isa-0820
+>> Adapter: ISA adapter
+>> fan1:        0 RPM  (min =3D  952 RPM, div =3D 8)          OVERFLOW
+>> fan2:     1290 RPM  (min =3D  944 RPM, div =3D 4)
+>>
+>> I just have fan2 speed value; fan1 is not plugged yet :)
+>
+> The National Semiconductor PC87360 Super-I/O chip only has 2 fan speed
+> monitoring inputs, not a full hardware monitoring block as the PC87365
+> and PC87366 have.
+
+So this is what i was thinking by meaning nothing in BIOS.
+If i read the data sheet (that you have read), i would be able to
+answer myself :)
+
+>
+>> (...)
+>> # i2cdetect -l
+>> i2c-3   i2c             MAVEN:fb0
+>> Algorithm unavailable
+>> i2c-2   i2c             DDC:fb0 #1
+>> Algorithm unavailable
+>> i2c-1   i2c             DDC:fb0 #0
+>> Algorithm unavailable
+>> i2c-0   smbus           SMBus I801 adapter at 1810
+>> Non-I2C SMBus adapter
+>> # i2cdetect 0
+>> WARNING! This program can confuse your I2C bus, cause data loss and wors=
+e!
+>> I will probe file /dev/i2c-0.
+>> I will probe address range 0x03-0x77.
+>> Continue? [Y/n]
+>>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+>> 00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
+>> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+>> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+>> 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+>> 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+>> 50: UU UU XX XX UU UU XX XX XX XX XX XX XX XX XX XX
+>> 60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
+>> 70: XX XX XX XX XX XX XX XX
+>
+> And nothing beyond EEPROMs on your SMBus.
+>
+>> (...)
+>> Modules are loaded successfully except *i2c-i801*.
+>
+> The i2c-i801 driver seems to be well loaded, as seen in the i2cdetect
+> output above.
+>
+>> Please note that i have tried last lm-sensors version 3.0.3 (by
+>> sources) and there is same behaviour with sensors-detect/sensors.
+>>
+>> Thanks and sorry if this is a my-side-configuration problem.
+>
+> No, it is not. Apparently your hardware doesn't include hardware
+> monitoring features except for the 2 fan inputs on the PC87360. If the
+> chip is properly wired on the motherboard you may be able to also
+> control the speed of these fans, but that's about it.
+
+This is not very interesting for me. Default behavior/speed are good
+and the server is not very *hot* inside.
+Thanks you again for investigation, support and answering me !
+
+>
+> --
 > Jean Delvare
+> http://khali.linux-fr.org/wishlist.html
+>
+
+
+
+--=20
+A bient=F4t.
+Guillaume Delacour.
 
 _______________________________________________
 lm-sensors mailing list
