@@ -1,75 +1,96 @@
-From: Justin Piszcz <jpiszcz@lucidpixels.com>
-Date: Thu, 12 Feb 2009 17:39:11 +0000
-Subject: Re: [lm-sensors] Status/support for Linux HECI from Intel? (for
-Message-Id: <alpine.DEB.1.10.0902121236120.19381@p34.internal.lan>
+From: Guillaume <bou.gui@laposte.net>
+Date: Tue, 03 Feb 2009 11:03:47 +0000
+Subject: [lm-sensors] Is lm-sensors works with Intel P4 ?
+Message-Id: <200902031203.47859.bou.gui@laposte.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.DEB.1.10.0812300700410.11356@p34.internal.lan> <4964DB3E.6080908@intel.com> <alpine.DEB.1.10.0901071142200.29147@p34.internal.lan> <1231356111.6648.2.camel@maxim-laptop> <49937CDF.10307@frugalware.org>
-In-Reply-To: <49937CDF.10307@frugalware.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Gabriel C <crazy@frugalware.org>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>, Dan Williams <dan.j.williams@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
+Hi everyone.
 
+On my (old) laptop, i have an Intel P4=20
 
-On Thu, 12 Feb 2009, Gabriel C wrote:
+LSHW says :
+*-cpu:0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 description: CPU =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 product: Intel(R) Pentium(R) 4 CPU 2.40GHz =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 vendor: Intel Corp. =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
+=A0 =A0 =A0 =A0 =A0 physical id: 4 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 bus info: cpu@0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
+=A0 =A0 =A0 =A0 =A0 version: 15.2.7 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
+=A0 =A0 =A0 =A0 =A0 slot: uPGA2 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
+=A0 =A0 =A0 =A0 =A0 size: 2400MHz =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
+=A0 =A0 =A0 =A0 =A0 capacity: 2400MHz =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
+=A0 =A0 =A0 =A0 =A0 width: 32 bits =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 clock: 2400MHz =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 capabilities: fpu fpu_exception wp vme de pse tsc msr p=
+ae mce cx8=20
+sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm=
+ pbe=20
+up pebs bts cid =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 configuration: id=3D0
 
-> Maxim Levitsky wrote:
->
->> On Wed, 2009-01-07 at 11:42 -0500, Justin Piszcz wrote:
->>> On Wed, 7 Jan 2009, Dan Williams wrote:
->>>
->>>> Justin Piszcz wrote:
->>>>> The HECI interface would allow lm_sensors developers to grab the
->>>>> temperatures off the chips on the board.
->>>>>
->>>>> From 2005(?)-2008 there was some chatter about supporting it but it never
->>>>> seemed to happen, is there any eventual planned support for supporting
->>>>> Intel's HECI interface or if the user wants to see the
->>>>> temperatures/voltages just buy a different motherboard with an ITE I/O
->>>>> controller?
->>>>>
->>>>> I have a couple DG965WH boards and it would be nice to see the
->>>>> temperature of the chipset etc without having to reboot into the BIOS.
->>>>>
->>>> Hi Justin,
->>>>
->>>> I am not up to date on the progress in this area, but perhaps this site
->>>> (http://www.openamt.org/) has what you are looking for?
->>>>
->>>> Regards,
->>>> Dan
->>>>
->>> Yeah that is the site-- however, will it ever get merged?  I have not
->>> heard anything about it for a year or so.
->>
->> Nope, the heci is just a controller, but we need a way to tell that
->> controller to show us the temperature data.
->> But intel hasn't released the QST sdk, and probably never will.
->>
->> Sad,
->
->
-> Well I found this interesting thread about :
->
-> http://software.intel.com/en-us/forums/manageability-software-development/topic/54851/
->
-> It looks like the QST SDK already exists and is planned to be released..
-> (  http://software.intel.com/en-us/forums/manageability-software-development/topic/54851/reply/74068/ )
->
->>
->> Best regards,
->> 	Maxim Levitsky
->>
->
-> Gabriel
+In DMESG, i have the following information :
+[ =A0 =A00.085147] CPU0: Intel P4/Xeon Extended MCE MSRs (12) available =A0=
+ =A0 =A0 =A0 =A0=20
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
+[ =A0 =A00.085196] CPU0: Thermal monitoring enabled
 
-I volunteer to test any patches if/when they are created after the SDK is 
-released.
+I try the lm-sensors script sensors-detect, but no results.
 
-Justin.
+Can someone help me ? I work with a debian distro.
 
+Thank's for answer.
+
+Guillaume
+
+--=20
+Garanti 0% Micro$oft
+Envoy=E9 sous Debian
+---
+Pourquoi payer des logiciels inutiles =E0 l'achat d'un ordinateur neuf ?
+http://www.racketiciel.info
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
