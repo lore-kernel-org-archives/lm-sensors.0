@@ -1,52 +1,58 @@
-From: Alexander Graf <agraf@suse.de>
-Date: Mon, 23 Feb 2009 08:51:04 +0000
-Subject: Re: [lm-sensors] [PATCH] applesmc: Expose Operating System Key in
-Message-Id: <7F323AFD-98C5-40ED-87D7-50EFF86AE175@suse.de>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 04 Feb 2009 10:05:36 +0000
+Subject: Re: [lm-sensors] Problem with order of module loading
+Message-Id: <20090204110536.2ddaa6a4@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1223318477-25365-1-git-send-email-agraf@suse.de>
-In-Reply-To: <1223318477-25365-1-git-send-email-agraf@suse.de>
+References: <20090125021151.GE16739@paradise.net.nz>
+In-Reply-To: <20090125021151.GE16739@paradise.net.nz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Volker,
 
-On 23.02.2009, at 09:47, Jean Delvare wrote:
+On Fri, 30 Jan 2009 17:23:36 +0100, Jean Delvare wrote:
+> On Wed, 28 Jan 2009 09:06:28 +0100, Jean Delvare wrote:
+> > I have discussed this a bit with Kay Sievers yesterday. He suggested
+> > that we can use the modalias files in sysfs together with "modprobe -n"
+> > to find out whether a loaded hwmon driver has been auto-loaded or not.
+> > This would let us exclude kernel modules from /etc/sysconfig/lm_sensors
+> > based on whether they auto-load rather than based on whether they were
+> > loaded when sensors-detect was run. This should be way more robust than
+> > my initial proposal, to a point where I think it would make sense to
+> > give it a try.
+> 
+> Damn, it isn't as easy as I thought. Not all drivers follow the Linux
+> device driver model to the letter. Actually, most hwmon drivers do not,
+> because they create their own devices. Once such a driver is loaded, it
+> appears to be autoloading (its devices have modalias strings that point
+> to the driver) but in fact it is not. This fools my new code into
+> thinking that pretty much all loaded hwmon drivers were autoloaded.
+> 
+> Thus I fear I will have to limit the scope of my autoloading detection
+> code to PCI devices. At least this covers the k8temp driver, which is
+> probably the one that causes the more trouble in practice.
 
-> On Wed, 15 Oct 2008 10:58:34 +0200, Jean Delvare wrote:
->> Hallo Alexander,
->>
->> I don't know a thing about the applesmc driver, so just a few random
->> comments. Nicolas being the maintainer of this driver, his approval =20
->> is
->> needed before your patch can go upstream anyway.
->>
->> On Mon,  6 Oct 2008 20:41:17 +0200, Alexander Graf wrote:
->>> The AppleSMC is used for various tasks. It allows control over fans,
->>> the backlight, invokes the acceleration interrupt and stores a key,
->>> that is used to decrypt binaries on Mac OS X.
->>>
->>> This key is necessary to receive when virtualizing Mac OS X, but
->>> may not be distributed due to copyright restrictions.
->>>
->>> This patch makes reading this key easy by exporting it via sysfs.
->>>
->>> Signed-off-by: Alexander Graf <agraf@suse.de>
->>> Cc: Nicolas Boichat <nicolas@boichat.ch>
->>> Cc: Jean Delvare <khali@linux-fr.org>
->>> Cc: Ren=E9 Rebe <rene@exactcode.de>
->>> (...)
->
-> Alexander, any news from this patch? I never heard you back from you
-> since my review. If you are no longer interested in this patch, I'll
-> just discard it. If you are still interested, please send an updated
-> patch addressing my comments.
+I have finally committed a change which should address your issue:
+  http://www.lm-sensors.org/changeset/5635
 
-Oh phew I almost forgot about it. I'll take your comments into account =20
-and send a new one this week :-).
+Basically, PCI and USB drivers which are auto-loaded on a given system
+are no longer listed in /etc/sysconfig/lm_sensors. That way,
+"rclm_sensors restart" will not unload and reload drivers which are
+already present at boot time. This is the best approach from a
+performance point of view, and it is also stable across reconfiguration
+(running sensors-detect twice doesn't change the outcome.)
 
-Alex
+Please give a try to:
+  http://www.lm-sensors.org/svn/lm-sensors/trunk/prog/detect/sensors-detect
+and confirm that it solves your problem (k8temp should no longer be
+listed, so the hwmon class device numbers should stay stable across
+reboots.)
 
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
