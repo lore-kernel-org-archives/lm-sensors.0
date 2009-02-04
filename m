@@ -1,7 +1,7 @@
 From: Guillaume Delacour <guillaume.delacour@gmail.com>
-Date: Tue, 03 Feb 2009 17:22:27 +0000
-Subject: Re: [lm-sensors] HP VL400 sensors (2)
-Message-Id: <5a54eff70902030922p13b2bbbdic4f8656012ebcaf4@mail.gmail.com>
+Date: Wed, 04 Feb 2009 09:13:16 +0000
+Subject: [lm-sensors]  HP VL400 sensors (2)
+Message-Id: <5a54eff70902040113k1351cbe4l45937a74a969b4aa@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5a54eff70901271130p1a948a5clb67baf0c93b8fa@mail.gmail.com>
 In-Reply-To: <5a54eff70901271130p1a948a5clb67baf0c93b8fa@mail.gmail.com>
@@ -100,7 +100,7 @@ Thanks you again for investigation, support and answering me !
 
 
 
---=20
+--
 A bient=F4t.
 Guillaume Delacour.
 
