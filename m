@@ -1,106 +1,61 @@
-From: Andre Prendel <andre_prendel@gmx.de>
-Date: Fri, 20 Feb 2009 12:20:59 +0000
-Subject: Re: [lm-sensors] [Patch 2/2] libsensors: Use __func__ in
-Message-Id: <20090220122059.GC4260@ubuntu>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 04 Feb 2009 21:53:29 +0000
+Subject: [lm-sensors] [RFC 0/4] Add support for multiple configuration files
+Message-Id: <20090204225329.0ebb0fef@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090220090213.GB4260@ubuntu>
-In-Reply-To: <20090220090213.GB4260@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Feb 20, 2009 at 12:00:08PM +0100, Jean Delvare wrote:
-> Hi Andre,
+Hi all,
 
-Hello Jean,
- 
-> On Fri, 20 Feb 2009 10:02:13 +0100, Andre Prendel wrote:
-> > Unified sensors_fatal_error() calls. Use __func__ to get the function name.
-> > 
-> > ---
-> >  access.c     |    3 +--
-> >  conf-parse.c |    2 +-
-> 
-> conf-parse.c is a generated file. You must patch conf-parse.y instead.
+Here is a proposal to enable support for multiple configuration files
+to libsensors. The original idea was to extend the configuration file
+syntax to allow file inclusion [1]. I have chosen a different approach
+similar to what many other tools to, that is: a directory where users
+can put configuration files. This seems more flexible to me.
 
-thanks for the hint. I will send a new patch.
-> 
-> >  data.c       |    2 +-
-> >  general.c    |    7 +++----
-> >  4 files changed, 6 insertions(+), 8 deletions(-)
-> > 
-> > --- lm-sensors-dev/lib/access.c	2009-02-16 14:12:50.000000000 +0100
-> > +++ my-sensors/lib/access.c	2009-02-19 22:36:39.000000000 +0100
-> > @@ -201,8 +201,7 @@ char *sensors_get_label(const sensors_ch
-> >  	
-> >  sensors_get_label_exit:
-> >  	if (!label)
-> > -		sensors_fatal_error("sensors_get_label",
-> > -				    "Allocating label text");
-> > +		sensors_fatal_error(__func__, "Allocating label text");
-> >  	return label;
-> >  }
-> >  
-> > --- lm-sensors-dev/lib/conf-parse.c	2009-02-17 22:46:54.000000000 +0100
-> > +++ my-sensors/lib/conf-parse.c	2009-02-19 22:36:34.000000000 +0100
-> > @@ -1941,7 +1941,7 @@ sensors_expr *malloc_expr(void)
-> >  {
-> >    sensors_expr *res = malloc(sizeof(sensors_expr));
-> >    if (! res)
-> > -    sensors_fatal_error("malloc_expr","Allocating a new expression");
-> > +    sensors_fatal_error(__func__, "Allocating a new expression");
-> >    return res;
-> >  }
-> >    
-> > --- lm-sensors-dev/lib/data.c	2009-02-16 14:12:50.000000000 +0100
-> > +++ my-sensors/lib/data.c	2009-02-19 22:36:38.000000000 +0100
-> > @@ -88,7 +88,7 @@ int sensors_parse_chip_name(const char *
-> >  			return -SENSORS_ERR_CHIP_NAME;
-> >  		res->prefix = strndup(name, dash - name);
-> >  		if (!res->prefix)
-> > -			sensors_fatal_error("sensors_parse_chip_name",
-> > +			sensors_fatal_error(__func__,
-> >  					    "Allocating name prefix");
-> >  		name = dash + 1;
-> >  	}
-> > 
-> > --- lm-sensors-dev/lib/general.c	2009-01-26 17:43:43.000000000 +0100
-> > +++ my-sensors/lib/general.c	2009-02-19 22:34:41.000000000 +0100
-> > @@ -34,8 +34,7 @@ void sensors_malloc_array(void *list, in
-> >  
-> >  	*my_list = malloc(el_size*A_BUNCH);
-> >  	if (! *my_list)
-> > -		sensors_fatal_error("sensors_malloc_array",
-> > -				    "Allocating new elements");
-> > +		sensors_fatal_error(__func__, "Allocating new elements");
-> >  	*max_el = A_BUNCH;
-> >  	*num_el = 0;
-> >  }
-> > @@ -59,7 +58,7 @@ void sensors_add_array_el(const void *el
-> >  		new_max_el = *max_el + A_BUNCH;
-> >  		*my_list = realloc(*my_list, new_max_el * el_size);
-> >  		if (! *my_list)
-> > -			sensors_fatal_error("sensors_add_array_el",
-> > +			sensors_fatal_error(__func__,
-> >  					    "Allocating new elements");
-> >  		*max_el = new_max_el;
-> >  	}
-> > @@ -77,7 +76,7 @@ void sensors_add_array_els(const void *e
-> >  		new_max_el -= new_max_el % A_BUNCH;
-> >  		*my_list = realloc(*my_list, new_max_el * el_size);
-> >  		if (! *my_list)
-> > -			sensors_fatal_error("sensors_add_array_els",
-> > +			sensors_fatal_error(__func__,
-> >  					    "Allocating new elements");
-> >  		*max_el = new_max_el;
-> >  	}
-> 
+[1] http://www.lm-sensors.org/ticket/2174
 
-Andre
- 
-> -- 
-> Jean Delvare
+In practice, this means that users (or configuration tools) can add
+libsensors configuration files to directory /etc/sensors.d, and they
+are processed exactly the same way as /etc/sensors.conf is. One clear
+potential use of this mechanism is a tool which would identify the
+mainboard and drop a mainboard-specific configuration file
+to /etc/sensors.d, either downloaded from the network or copied from
+some /usr/share/libsensors directory.
+
+This patch set is composed of 3 preliminary patches which reorganize
+the libsensors initialization code with no feature changes, and a 4th
+patch implementing the new feature.
+
+One important thing to notice is that this change makes bus statements
+configuration file specific. While it would be possible to let bus
+statements run from one configuration file to the next, it could result
+in collisions when dropping several files into /etc/sensors.d (for
+example one for the mainboard and one for the graphics adapter.) OTOH,
+this also enforces the fact that bus statements have no effect beyond
+configuration files, which basically means it will be difficult, if not
+impossible, to implement ticket #2238 [2]. While we have been living
+without it so far, there have been some discussions lately about the
+effects of module load order and this ticket was one possible partial
+solution to this problem.
+
+[2] http://www.lm-sensors.org/ticket/2238
+
+Another issue which still needs to be solved is the reporting of parse
+errors. At the moment, the parse errors are identified by only a line
+number, based on the assumption that there is only one possible
+configuration file so the user knows where to look. Now that libsensors
+supports several configuration files, the error messages become more
+difficult to read. I will look into this later. I fear that a clean
+solution would require an API change though.
+
+I would welcome comments, reviews and test reports on these patches.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
