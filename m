@@ -1,213 +1,43 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Thu, 22 Jan 2009 12:37:04 +0000
-Subject: [lm-sensors] PATCH: i2c-i801-dmi-detect-fsc-chips.patch
-Message-Id: <49786870.90308@hhs.nl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------010108090007010604060605"
+From: Vince Herried <vince@planetvince.info>
+Date: Wed, 04 Feb 2009 03:16:46 +0000
+Subject: [lm-sensors] how to set max temp for module coretemp?
+Message-Id: <1233717406.13045.2.camel@lap2.vince>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010108090007010604060605
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In my /etc/sensors3.conf file I have
+chip "coretemp-*"
 
-Hi Jean,
+ label temp1 "cpu0"
+ label temp2 "cpu1"
+ set temp1_max      40
+ set temp1_max_hyst 37
+ set temp2_max      52
+ set temp2_max_hyst 47
 
-This is a new version of the i2c-i801-dmi-detect-fscsyl.patch, renamed to 
-reflect that it now DMI detects other FSC chips too.
+[root@lap2 bin]# sensors -s
+Error: Line 2455: Failed to set value
+Error: Line 2456: Unknown feature name
+Error: Line 2457: Unknown feature name
+Error: Line 2458: Unknown feature name
+coretemp-isa-0000: No such subfeature known
+Error: Line 2455: Failed to set value
+Error: Line 2456: Unknown feature name
+Error: Line 2457: Unknown feature name
+Error: Line 2458: Unknown feature name
+coretemp-isa-0001: No such subfeature known
+[root@lap2 bin]# 
 
-This patch adds support to the i2c-i801.c driver for i2c slave enumeration on
-the basis of the motherboard dmi tables onboard table. And uses this support
-to detect the presense of an FSC Hermes, Hades or Syleus IC
+I would like to be able to set the max temps
+but apparently the coretemp driver doesn't allow it?
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-
-Regards,
-
-Hans
-
-
-
---------------010108090007010604060605
-Content-Type: text/plain;
- name="i2c-i801-dmi-detect-fsc-chips.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="i2c-i801-dmi-detect-fsc-chips.patch"
-
-This patch adds support to the i2c-i801.c driver for i2c slave enumeration on
-the basis of the motherboard dmi tables onboard table. And uses this support
-to detect the presense of an FSC Hermes, Hades or Syleus IC
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
---- linux/drivers/i2c/busses/i2c-i801.c	2009-01-18 23:11:44.000000000 +0100
-+++ linux/drivers/i2c/busses/i2c-i801.c	2009-01-18 23:14:49.000000000 +0100
-@@ -65,6 +65,7 @@
- #include <linux/i2c.h>
- #include <linux/acpi.h>
- #include <linux/io.h>
-+#include <linux/dmi.h>
- 
- /* I801 SMBus address offsets */
- #define SMBHSTSTS	(0 + i801_smba)
-@@ -136,6 +137,10 @@
- #define FEATURE_I2C_BLOCK_READ	(1 << 3)
- static unsigned int i801_features;
- 
-+static int i2c_devs_found;
-+static unsigned short i2c_devs_addresses[4];
-+static char i2c_devs_types[4][I2C_NAME_SIZE];
-+
- /* Make sure the SMBus host is ready to start transmitting.
-    Return 0 if it is, -EBUSY if it is not. */
- static int i801_check_pre(void)
-@@ -584,8 +589,6 @@
- MODULE_DEVICE_TABLE (pci, i801_ids);
- 
- #if defined CONFIG_INPUT_APANEL || defined CONFIG_INPUT_APANEL_MODULE
--static unsigned char apanel_addr;
--
- /* Scan the system ROM for the signature "FJKEYINF" */
- static __init const void __iomem *bios_signature(const void __iomem *bios)
- {
-@@ -609,7 +612,9 @@
- 	p = bios_signature(bios);
- 	if (p) {
- 		/* just use the first address */
--		apanel_addr = readb(p + 8 + 3) >> 1;
-+		i2c_devs_addresses[0] = readb(p + 8 + 3) >> 1;
-+		strlcpy(i2c_devs_types[0], "fujitsu_apanel", I2C_NAME_SIZE);
-+		i2c_devs_found = 1;
- 	}
- 	iounmap(bios);
- }
-@@ -617,10 +622,84 @@
- static void __init input_apanel_init(void) {}
- #endif
- 
-+#if defined CONFIG_SENSORS_FSCHMD || defined CONFIG_SENSORS_FSCHMD_MODULE
-+struct dmi_onboard_device_info {
-+	const char *name;
-+	u8 type;
-+	unsigned short i2c_addr;
-+	const char *i2c_type;
-+};
-+
-+static struct dmi_onboard_device_info dmi_devices[] = {
-+	{ "Hermes", DMI_DEV_TYPE_OTHER, 0x73, "fscher" },
-+	{ "Hades",  DMI_DEV_TYPE_OTHER, 0x73, "fschds" },
-+	{ "Syleus", DMI_DEV_TYPE_OTHER, 0x73, "fscsyl" },
-+};
-+
-+static void dmi_check_onboard_device(u8 type, const char *name)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(dmi_devices); i++) {
-+		/* & ~0x80, ignore enabled/disabled bit */
-+		if ((type & ~0x80) != dmi_devices[i].type)
-+			continue;
-+		if (strcmp(name, dmi_devices[i].name))
-+			continue;
-+
-+		if (i2c_devs_found + 1 == ARRAY_SIZE(i2c_devs_addresses)) {
-+			printk(KERN_WARNING "Warning size of i2c_devs array "
-+				"is too small please report this!");
-+			return;
-+		}
-+
-+		i2c_devs_addresses[i2c_devs_found] = dmi_devices[i].i2c_addr;
-+		strlcpy(i2c_devs_types[i2c_devs_found],
-+			dmi_devices[i].i2c_type, I2C_NAME_SIZE);
-+		i2c_devs_found++;
-+		return;
-+	}
-+}
-+
-+/* We use our own function to check for onboard devices instead of
-+   dmi_find_device() as some buggy BIOS's have the devices we are interested
-+   in marked as disabled */
-+static void dmi_check_onboard_devices(const struct dmi_header *dm)
-+{
-+	int i, count = (dm->length - sizeof(struct dmi_header)) / 2;
-+
-+	if (dm->type != 10)
-+		return;
-+
-+	for (i = 0; i < count; i++) {
-+		const u8 *d = (char *)(dm + 1) + (i * 2);
-+		const char *name = ((char *) dm) + dm->length;
-+		u8 type = d[0];
-+		u8 s = d[1];
-+
-+		if (!s)
-+			continue;
-+		s--;
-+		while (s > 0 && name[0]) {
-+			name += strlen(name) + 1;
-+			s--;
-+		}
-+		dmi_check_onboard_device(type, name);
-+	}
-+}
-+
-+static void __init dmi_onboard_devices_init(void)
-+{
-+	dmi_walk(dmi_check_onboard_devices);
-+}
-+#else
-+static void __init dmi_onboard_devices_init(void) {}
-+#endif
-+
- static int __devinit i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
- {
- 	unsigned char temp;
--	int err;
-+	int i, err;
- 
- 	I801_dev = dev;
- 	i801_features = 0;
-@@ -703,16 +782,16 @@
- 	}
- 
- 	/* Register optional slaves */
--#if defined CONFIG_INPUT_APANEL || defined CONFIG_INPUT_APANEL_MODULE
--	if (apanel_addr) {
-+	for (i = 0; i < i2c_devs_found; i++) {
- 		struct i2c_board_info info;
- 
- 		memset(&info, 0, sizeof(struct i2c_board_info));
--		info.addr = apanel_addr;
--		strlcpy(info.type, "fujitsu_apanel", I2C_NAME_SIZE);
-+		info.addr = i2c_devs_addresses[i];
-+		strlcpy(info.type, i2c_devs_types[i], I2C_NAME_SIZE);
- 		i2c_new_device(&i801_adapter, &info);
-+		dev_err(&dev->dev, "Added slave device: %s @ %02x",
-+			info.type, (int)info.addr);
- 	}
--#endif
- 
- 	return 0;
- 
-@@ -765,6 +844,7 @@
- static int __init i2c_i801_init(void)
- {
- 	input_apanel_init();
-+	dmi_onboard_devices_init();
- 	return pci_register_driver(&i801_driver);
- }
- 
-
---------------010108090007010604060605
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+???
+Vince
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------010108090007010604060605--
-
