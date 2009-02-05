@@ -1,61 +1,115 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 04 Feb 2009 21:53:29 +0000
-Subject: [lm-sensors] [RFC 0/4] Add support for multiple configuration files
-Message-Id: <20090204225329.0ebb0fef@hyperion.delvare>
+From: Matt Roberds <mattroberds@cox.net>
+Date: Thu, 05 Feb 2009 02:29:40 +0000
+Subject: Re: [lm-sensors] [RFC 0/4] Add support for multiple configuration
+Message-Id: <Pine.LNX.4.64.0902042029140.13966@birdbird.example.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20090204225329.0ebb0fef@hyperion.delvare>
+In-Reply-To: <20090204225329.0ebb0fef@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+On Wed, 4 Feb 2009, Jean Delvare wrote:
+> Another issue which still needs to be solved is the reporting of parse
+> errors.
 
-Here is a proposal to enable support for multiple configuration files
-to libsensors. The original idea was to extend the configuration file
-syntax to allow file inclusion [1]. I have chosen a different approach
-similar to what many other tools to, that is: a directory where users
-can put configuration files. This seems more flexible to me.
+If you are going to have multiple config files, it might also be good to
+report what files are being used, even when all of them parse OK.  This
+would help the user detect a config file with permissions problems, or
+that a config file didn't make it into the config directory for some
+reason.  Maybe this only happens when -v is on, or similar.
 
-[1] http://www.lm-sensors.org/ticket/2174
+> I fear that a clean solution would require an API change though.
 
-In practice, this means that users (or configuration tools) can add
-libsensors configuration files to directory /etc/sensors.d, and they
-are processed exactly the same way as /etc/sensors.conf is. One clear
-potential use of this mechanism is a tool which would identify the
-mainboard and drop a mainboard-specific configuration file
-to /etc/sensors.d, either downloaded from the network or copied from
-some /usr/share/libsensors directory.
+The basic problem seems to be that you fopen the file and then pass a
+FILE* down to the parser; I don't think you can work backwards to the
+file name once you have a FILE*.  The API change would probably be to
+pass the filename down as a string, either instead of the FILE* so the
+parser can feed it to fopen, or along with the FILE* so the parser can
+include the name in error messages.
 
-This patch set is composed of 3 preliminary patches which reorganize
-the libsensors initialization code with no feature changes, and a 4th
-patch implementing the new feature.
+Without an API change, you could do something like this.  This is based
+on your patch 4/4.  fprintf(stderr) would probably get replaced by
+sensors_error calls, and some of it might depend on a command-line
+switch.
 
-One important thing to notice is that this change makes bus statements
-configuration file specific. While it would be possible to let bus
-statements run from one configuration file to the next, it could result
-in collisions when dropping several files into /etc/sensors.d (for
-example one for the mainboard and one for the graphics adapter.) OTOH,
-this also enforces the fact that bus statements have no effect beyond
-configuration files, which basically means it will be difficult, if not
-impossible, to implement ticket #2238 [2]. While we have been living
-without it so far, there have been some discussions lately about the
-effects of module load order and this ticket was one possible partial
-solution to this problem.
+---
+static int add_config_from_dir(const char *dir)
+{
+   	int i, count, res;
+   	struct dirent **namelist;
 
-[2] http://www.lm-sensors.org/ticket/2238
+   	count = scandir(dir, &namelist, config_file_filter, alphasort);
+   	if (count < 0) {
+   		if (errno = ENOMEM)
+   			sensors_fatal_error(__func__, "Out of memory");
+   		return 0;
+   	}
 
-Another issue which still needs to be solved is the reporting of parse
-errors. At the moment, the parse errors are identified by only a line
-number, based on the assumption that there is only one possible
-configuration file so the user knows where to look. Now that libsensors
-supports several configuration files, the error messages become more
-difficult to read. I will look into this later. I fear that a clean
-solution would require an API change though.
+   	for (res = 0, i = 0; !res && i < count; i++) {
+   		int len;
+   		char path[NAME_MAX];
+   		FILE *input;
 
-I would welcome comments, reviews and test reports on these patches.
+   		len = snprintf(path, NAME_MAX, "%s/%s", dir,
+   			       namelist[i]->d_name);
+   		if (len >= NAME_MAX)
+   			sensors_fatal_error(__func__, "File name too long");
 
--- 
-Jean Delvare
++		fprintf(stderr, "opening config file '%s': ", path);
+
+   		input = fopen(path, "r");
+   		if (input) {
++			fprintf(stderr, "ok; parsing: ");
+   			res = parse_config(input);
++			if(res) {
+   				/* parse problem */
++				fprintf(stderr, "error\n");
++			} else {
++				fprintf(stderr, "ok\n");
+   			}
+   			fclose(input);
++		}
++		else {
++		/* permissions problem, file disappeared, etc */
++			fprintf(stderr, "error\n");
++		}
+
+
+   		free(namelist[i]);
+   	}
+   	free(namelist);
+
+   	return res;
+}
+---
+
+This still leaves it up to the user to connect the reported errors to a
+file name which might not be on the same line.  In other words, the user
+will see things like this:
+
+---
+opening config file 'ibm-5150.txt': ok; parsing: line 10: iin5 not valid
+line 12: inn6 not valid
+error
+opening config file 'radeon-9500-asc.txt': ok; parsing: ok
+---
+
+and it might not be immediately obvious that "line 12" still refers to
+ibm-5150.txt.  Also the naked "error" might be confusing.
+
+In perfect happy world, something like this might be clearer:
+
+---
+opening ibm-5150.txt
+ibm-5150.txt line 10: iin5 not valid
+ibm-5150.txt line 12: inn6 not valid
+opening radeon-9500-asc.txt
+---
+
+Matt Roberds
+
 
 _______________________________________________
 lm-sensors mailing list
