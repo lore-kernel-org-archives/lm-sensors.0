@@ -1,58 +1,85 @@
-From: Andre Prendel <andre_prendel@gmx.de>
-Date: Thu, 05 Feb 2009 09:03:31 +0000
-Subject: [lm-sensors] [Patch] libsensors: Ignore directories and symlinks in
-Message-Id: <20090205090331.GA5150@ubuntu>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 05 Feb 2009 09:53:34 +0000
+Subject: Re: [lm-sensors] [Patch] libsensors: Ignore directories and
+Message-Id: <20090205105334.01b02ef9@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20090205090331.GA5150@ubuntu>
+In-Reply-To: <20090205090331.GA5150@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Sysfs directory of the hwmon devices contains directories and symlinks.
+Hi Andre,
 
-Here is the output on my Thinkpad:
+On Thu, 5 Feb 2009 10:03:31 +0100, Andre Prendel wrote:
+> Sysfs directory of the hwmon devices contains directories and symlinks.
+> 
+> Here is the output on my Thinkpad:
+> 
+>   andre@ubuntu:/sys/class/hwmon/hwmon0/device$ ls -l
+>   insgesamt 0
+>   lrwxrwxrwx 1 root root    0 2009-02-04 19:44 bus -> ../../../bus/platform
+>   lrwxrwxrwx 1 root root    0 2009-02-04 19:42 driver ->
+>   ../../../bus/platform/drivers/thinkpad_hwmon 
+>   -r--r--r-- 1 root root 4096 2009-02-04 19:44 fan1_input
+>   lrwxrwxrwx 1 root root    0 2009-02-04 19:44 hwmon:hwmon0 ->
+>   ../../../class/hwmon/hwmon0 
+>   -r--r--r-- 1 root root 4096 2009-02-04 19:44 modalias
+>   -r--r--r-- 1 root root 4096 2009-02-04 19:44 name
+>   drwxr-xr-x 2 root root    0 2009-02-04 19:44 power
+>   -rw-r--r-- 1 root root 4096 2009-02-04 19:44 pwm1
+>   -rw-r--r-- 1 root root 4096 2009-02-04 19:44 pwm1_enable
+>   lrwxrwxrwx 1 root root    0 2009-02-04 19:42 subsystem ->
+>   ../../../bus/platform 
+>   -r--r--r-- 1 root root 4096 2009-02-04 19:44 temp10_input
+>   -r--r--r-- 1 root root 4096 2009-02-04 19:44 temp11_input
+>   -r--r--r-- 1 root root 4096 2009-02-04 19:44 temp12_input
+>   [...]
+> 
+> IMO we can ignore them looking for subfeatures (in
+> sensors_read_dynamic_chip()), can't we?
 
-  andre@ubuntu:/sys/class/hwmon/hwmon0/device$ ls -l
-  insgesamt 0
-  lrwxrwxrwx 1 root root    0 2009-02-04 19:44 bus -> ../../../bus/platform
-  lrwxrwxrwx 1 root root    0 2009-02-04 19:42 driver ->
-  ../../../bus/platform/drivers/thinkpad_hwmon 
-  -r--r--r-- 1 root root 4096 2009-02-04 19:44 fan1_input
-  lrwxrwxrwx 1 root root    0 2009-02-04 19:44 hwmon:hwmon0 ->
-  ../../../class/hwmon/hwmon0 
-  -r--r--r-- 1 root root 4096 2009-02-04 19:44 modalias
-  -r--r--r-- 1 root root 4096 2009-02-04 19:44 name
-  drwxr-xr-x 2 root root    0 2009-02-04 19:44 power
-  -rw-r--r-- 1 root root 4096 2009-02-04 19:44 pwm1
-  -rw-r--r-- 1 root root 4096 2009-02-04 19:44 pwm1_enable
-  lrwxrwxrwx 1 root root    0 2009-02-04 19:42 subsystem ->
-  ../../../bus/platform 
-  -r--r--r-- 1 root root 4096 2009-02-04 19:44 temp10_input
-  -r--r--r-- 1 root root 4096 2009-02-04 19:44 temp11_input
-  -r--r--r-- 1 root root 4096 2009-02-04 19:44 temp12_input
-  [...]
+What problem are you trying to solve?
 
-IMO we can ignore them looking for subfeatures (in
-sensors_read_dynamic_chip()), can't we?
+> I assume there are no hidden files in the directory, right? That's the
+> reason why I have removed this from condition.
 
-I assume there are no hidden files in the directory, right? That's the
-reason why I have removed this from condition.
+I've never seen hidden files in sysfs except for sections
+in /sys/module. But the purpose of the original code was merely to skip
+"." and ".." anyway, not hidden files.
 
-Any comments or improvements?
+> 
+> Any comments or improvements?
+> 
+> ---
+> --- lm-sensors-dev/lib/sysfs.c	2009-01-26 17:43:43.000000000 +0100
+> +++ my-sensors-dev/lib/sysfs.c	2009-02-04 21:59:44.000000000 +0100
+> @@ -360,7 +360,8 @@ static int sensors_read_dynamic_chip(sen
+>  		char *name = ent->d_name;
+>  		int nr;
+>  
+> -		if (ent->d_name[0] = '.')
+> +		/* Skip directories and symlinks.  */
+> +		if (ent->d_type = DT_DIR || ent->d_type = DT_LNK)
+>  			continue;
+>  
+>  		sftype = sensors_subfeature_get_type(name, &nr);
 
----
---- lm-sensors-dev/lib/sysfs.c	2009-01-26 17:43:43.000000000 +0100
-+++ my-sensors-dev/lib/sysfs.c	2009-02-04 21:59:44.000000000 +0100
-@@ -360,7 +360,8 @@ static int sensors_read_dynamic_chip(sen
- 		char *name = ent->d_name;
- 		int nr;
- 
--		if (ent->d_name[0] = '.')
-+		/* Skip directories and symlinks.  */
-+		if (ent->d_type = DT_DIR || ent->d_type = DT_LNK)
- 			continue;
- 
- 		sftype = sensors_subfeature_get_type(name, &nr);
+Links must always be handled with care, sometimes sysfs turns
+directories into links or vice-versa and it has broken user-space code
+in the past. But I guess we can safely assume that device attributes
+will never be links?
+
+If you really care about performance (and I guess that's the sole
+purpose of your patch) then it's faster to check for ent->d_type !DT_REG. You can also move "name = ent->d_name" after this test to make
+the fast path even faster.
+
+Out of curiosity, did you actually measure any performance improvement
+with your patch?
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
