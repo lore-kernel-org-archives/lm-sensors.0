@@ -1,80 +1,99 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 04 Feb 2009 22:02:44 +0000
-Subject: [lm-sensors] [PATCH 1/4] libsensors: Exit the configuration file
-Message-Id: <20090204230244.03ebb335@hyperion.delvare>
+Date: Wed, 11 Feb 2009 16:47:38 +0000
+Subject: [lm-sensors] [PATCH 3/6] libsensors: Make
+Message-Id: <20090211174738.3320ff2d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Exit the configuration file parser as soon as we are done with it.
+Make it possible to only substitute the bus number of a subset of the
+chip entries. This is a prerequisite to add support for multiple
+configuration files. Each configuration file can come with its own bus
+statements and the bus number substitution should only affect chip
+entries from the same configuration file.
 
 ---
- lib/init.c |   29 +++++++++++++++++++----------
- 1 file changed, 19 insertions(+), 10 deletions(-)
+ lib/data.c |   10 ++++++++--
+ lib/data.h |    3 ++-
+ lib/init.c |    1 +
+ 3 files changed, 11 insertions(+), 3 deletions(-)
 
---- lm-sensors.orig/lib/init.c	2009-02-04 14:05:11.000000000 +0100
-+++ lm-sensors/lib/init.c	2009-02-04 14:05:22.000000000 +0100
-@@ -61,6 +61,20 @@ static int sensors_parse(void)
- 	return res;
+--- lm-sensors.orig/lib/data.c	2009-02-11 11:11:12.000000000 +0100
++++ lm-sensors/lib/data.c	2009-02-11 11:13:52.000000000 +0100
+@@ -1,7 +1,7 @@
+ /*
+     data.c - Part of libsensors, a Linux library for reading sensor data.
+     Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>
+-    Copyright (C) 2007        Jean Delvare <khali@linux-fr.org>
++    Copyright (C) 2007, 2009  Jean Delvare <khali@linux-fr.org>
+ 
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+@@ -35,6 +35,7 @@ const char *libsensors_version = LM_VERS
+ 
+ sensors_chip *sensors_config_chips = NULL;
+ int sensors_config_chips_count = 0;
++int sensors_config_chips_subst = 0;
+ int sensors_config_chips_max = 0;
+ 
+ sensors_bus *sensors_config_busses = NULL;
+@@ -226,13 +227,17 @@ static int sensors_substitute_chip(senso
+ 	return 0;
  }
  
-+static int parse_config(FILE *input)
-+{
-+	int err;
-+
-+	if (sensors_scanner_init(input))
-+		return -SENSORS_ERR_PARSE;
-+	err = sensors_parse();
-+	sensors_scanner_exit();
-+	if (err)
-+		return -SENSORS_ERR_PARSE;
-+
-+	return 0;
-+}
-+
- int sensors_init(FILE *input)
++/* Bus substitution is on a per-configuration file basis, so we keep
++   memory (in sensors_config_chips_subst) of which chip entries have been
++   already substituted. */
+ int sensors_substitute_busses(void)
  {
- 	int res;
-@@ -71,10 +85,9 @@ int sensors_init(FILE *input)
- 	    (res = sensors_read_sysfs_chips()))
- 		goto exit_cleanup;
+ 	int err, i, j, lineno;
+ 	sensors_chip_name_list *chips;
+ 	int res = 0;
  
--	res = -SENSORS_ERR_PARSE;
- 	if (input) {
--		if (sensors_scanner_init(input) ||
--		    sensors_parse())
-+		res = parse_config(input);
-+		if (res)
- 			goto exit_cleanup;
- 	} else {
- 		/* No configuration provided, use default */
-@@ -82,12 +95,10 @@ int sensors_init(FILE *input)
- 		if (!input && errno = ENOENT)
- 			input = fopen(ALT_CONFIG_FILE, "r");
- 		if (input) {
--			if (sensors_scanner_init(input) ||
--			    sensors_parse()) {
--				fclose(input);
--				goto exit_cleanup;
--			}
-+			res = parse_config(input);
- 			fclose(input);
-+			if (res)
-+				goto exit_cleanup;
+-	for (i = 0; i < sensors_config_chips_count; i++) {
++	for (i = sensors_config_chips_subst;
++	     i < sensors_config_chips_count; i++) {
+ 		lineno = sensors_config_chips[i].lineno;
+ 		chips = &sensors_config_chips[i].chips;
+ 		for (j = 0; j < chips->fits_count; j++) {
+@@ -246,5 +251,6 @@ int sensors_substitute_busses(void)
+ 				res = err;
  		}
  	}
++	sensors_config_chips_subst = sensors_config_chips_count;
+ 	return res;
+ }
+--- lm-sensors.orig/lib/data.h	2009-02-11 11:12:04.000000000 +0100
++++ lm-sensors/lib/data.h	2009-02-11 11:13:52.000000000 +0100
+@@ -1,7 +1,7 @@
+ /*
+     data.h - Part of libsensors, a Linux library for reading sensor data.
+     Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>
+-    Copyright (C) 2007        Jean Delvare <khali@linux-fr.org>
++    Copyright (C) 2007, 2009  Jean Delvare <khali@linux-fr.org>
  
-@@ -194,8 +205,6 @@ void sensors_cleanup(void)
- {
- 	int i;
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+@@ -135,6 +135,7 @@ typedef struct sensors_chip_features {
  
--	sensors_scanner_exit();
--
- 	for (i = 0; i < sensors_proc_chips_count; i++) {
- 		free_chip_name(&sensors_proc_chips[i].chip);
- 		free_chip_features(&sensors_proc_chips[i]);
+ extern sensors_chip *sensors_config_chips;
+ extern int sensors_config_chips_count;
++extern int sensors_config_chips_subst;
+ extern int sensors_config_chips_max;
+ 
+ extern sensors_bus *sensors_config_busses;
+--- lm-sensors.orig/lib/init.c	2009-02-11 11:13:51.000000000 +0100
++++ lm-sensors/lib/init.c	2009-02-11 11:13:52.000000000 +0100
+@@ -240,6 +240,7 @@ void sensors_cleanup(void)
+ 	free(sensors_config_chips);
+ 	sensors_config_chips = NULL;
+ 	sensors_config_chips_count = sensors_config_chips_max = 0;
++	sensors_config_chips_subst = 0;
+ 
+ 	for (i = 0; i < sensors_proc_bus_count; i++)
+ 		free_bus(&sensors_proc_bus[i]);
 
 -- 
 Jean Delvare
