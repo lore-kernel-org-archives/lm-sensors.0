@@ -1,96 +1,108 @@
-From: Guillaume <bou.gui@laposte.net>
-Date: Tue, 03 Feb 2009 11:03:47 +0000
-Subject: [lm-sensors] Is lm-sensors works with Intel P4 ?
-Message-Id: <200902031203.47859.bou.gui@laposte.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 11 Feb 2009 16:43:45 +0000
+Subject: [lm-sensors] [PATCH 2/6] libsensors: Free bus statements sooner
+Message-Id: <20090211174345.191010d6@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi everyone.
+Free bus statements from the configuration file as soon as we are done
+with them.
 
-On my (old) laptop, i have an Intel P4=20
-
-LSHW says :
-*-cpu:0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 description: CPU =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 product: Intel(R) Pentium(R) 4 CPU 2.40GHz =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 vendor: Intel Corp. =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-=A0 =A0 =A0 =A0 =A0 physical id: 4 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 bus info: cpu@0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-=A0 =A0 =A0 =A0 =A0 version: 15.2.7 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-=A0 =A0 =A0 =A0 =A0 slot: uPGA2 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-=A0 =A0 =A0 =A0 =A0 size: 2400MHz =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-=A0 =A0 =A0 =A0 =A0 capacity: 2400MHz =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-=A0 =A0 =A0 =A0 =A0 width: 32 bits =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 clock: 2400MHz =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 capabilities: fpu fpu_exception wp vme de pse tsc msr p=
-ae mce cx8=20
-sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm=
- pbe=20
-up pebs bts cid =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 configuration: id=3D0
-
-In DMESG, i have the following information :
-[ =A0 =A00.085147] CPU0: Intel P4/Xeon Extended MCE MSRs (12) available =A0=
- =A0 =A0 =A0 =A0=20
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-[ =A0 =A00.085196] CPU0: Thermal monitoring enabled
-
-I try the lm-sensors script sensors-detect, but no results.
-
-Can someone help me ? I work with a debian distro.
-
-Thank's for answer.
-
-Guillaume
-
---=20
-Garanti 0% Micro$oft
-Envoy=E9 sous Debian
 ---
-Pourquoi payer des logiciels inutiles =E0 l'achat d'un ordinateur neuf ?
-http://www.racketiciel.info
+ lib/init.c |   47 +++++++++++++++++++++++++++++------------------
+ 1 file changed, 29 insertions(+), 18 deletions(-)
+
+--- lm-sensors.orig/lib/init.c	2009-02-10 22:00:25.000000000 +0100
++++ lm-sensors/lib/init.c	2009-02-10 22:01:46.000000000 +0100
+@@ -61,18 +61,42 @@ static int sensors_parse(void)
+ 	return res;
+ }
+ 
++static void free_bus(sensors_bus *bus)
++{
++	free(bus->adapter);
++}
++
++static void free_config_busses(void)
++{
++	int i;
++
++	for (i = 0; i < sensors_config_busses_count; i++)
++		free_bus(&sensors_config_busses[i]);
++	free(sensors_config_busses);
++	sensors_config_busses = NULL;
++	sensors_config_busses_count = sensors_config_busses_max = 0;
++}
++
+ static int parse_config(FILE *input)
+ {
+ 	int err;
+ 
+-	if (sensors_scanner_init(input))
+-		return -SENSORS_ERR_PARSE;
++	if (sensors_scanner_init(input)) {
++		err = -SENSORS_ERR_PARSE;
++		goto exit_cleanup;
++	}
+ 	err = sensors_parse();
+ 	sensors_scanner_exit();
+-	if (err)
+-		return -SENSORS_ERR_PARSE;
++	if (err) {
++		err = -SENSORS_ERR_PARSE;
++		goto exit_cleanup;
++	}
+ 
+-	return 0;
++	err = sensors_substitute_busses();
++
++exit_cleanup:
++	free_config_busses();
++	return err;
+ }
+ 
+ int sensors_init(FILE *input)
+@@ -107,8 +131,6 @@ int sensors_init(FILE *input)
+ 		}
+ 	}
+ 
+-	if ((res = sensors_substitute_busses()))
+-		goto exit_cleanup;
+ 	return 0;
+ 
+ exit_cleanup:
+@@ -134,11 +156,6 @@ static void free_chip_features(sensors_c
+ 	free(features->feature);
+ }
+ 
+-static void free_bus(sensors_bus *bus)
+-{
+-	free(bus->adapter);
+-}
+-
+ static void free_label(sensors_label *label)
+ {
+ 	free(label->name);
+@@ -218,12 +235,6 @@ void sensors_cleanup(void)
+ 	sensors_proc_chips = NULL;
+ 	sensors_proc_chips_count = sensors_proc_chips_max = 0;
+ 
+-	for (i = 0; i < sensors_config_busses_count; i++)
+-		free_bus(&sensors_config_busses[i]);
+-	free(sensors_config_busses);
+-	sensors_config_busses = NULL;
+-	sensors_config_busses_count = sensors_config_busses_max = 0;
+-
+ 	for (i = 0; i < sensors_config_chips_count; i++)
+ 		free_chip(&sensors_config_chips[i]);
+ 	free(sensors_config_chips);
+
+-- 
+Jean Delvare
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
