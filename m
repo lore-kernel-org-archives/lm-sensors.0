@@ -1,66 +1,63 @@
-From: Gabriel C <crazy@frugalware.org>
-Date: Thu, 12 Feb 2009 01:35:27 +0000
-Subject: Re: [lm-sensors] Status/support for Linux HECI from Intel? (for
-Message-Id: <49937CDF.10307@frugalware.org>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 11 Feb 2009 16:08:02 +0000
+Subject: [lm-sensors] [PATCH 0/6] Add support for multiple configuration
+Message-Id: <20090211170802.59b3768f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.DEB.1.10.0812300700410.11356@p34.internal.lan>	<4964DB3E.6080908@intel.com>	<alpine.DEB.1.10.0901071142200.29147@p34.internal.lan> <1231356111.6648.2.camel@maxim-laptop>
-In-Reply-To: <1231356111.6648.2.camel@maxim-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Justin Piszcz <jpiszcz@lucidpixels.com>, Dan Williams <dan.j.williams@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Maxim Levitsky wrote:
+Hi all,
 
-> On Wed, 2009-01-07 at 11:42 -0500, Justin Piszcz wrote:
->> On Wed, 7 Jan 2009, Dan Williams wrote:
->>
->>> Justin Piszcz wrote:
->>>> The HECI interface would allow lm_sensors developers to grab the
->>>> temperatures off the chips on the board.
->>>>
->>>> From 2005(?)-2008 there was some chatter about supporting it but it never
->>>> seemed to happen, is there any eventual planned support for supporting
->>>> Intel's HECI interface or if the user wants to see the
->>>> temperatures/voltages just buy a different motherboard with an ITE I/O
->>>> controller?
->>>>
->>>> I have a couple DG965WH boards and it would be nice to see the
->>>> temperature of the chipset etc without having to reboot into the BIOS.
->>>>
->>> Hi Justin,
->>>
->>> I am not up to date on the progress in this area, but perhaps this site 
->>> (http://www.openamt.org/) has what you are looking for?
->>>
->>> Regards,
->>> Dan
->>>
->> Yeah that is the site-- however, will it ever get merged?  I have not 
->> heard anything about it for a year or so.
-> 
-> Nope, the heci is just a controller, but we need a way to tell that
-> controller to show us the temperature data.
-> But intel hasn't released the QST sdk, and probably never will.
-> 
-> Sad, 
+Here is an updated proposal to enable support for multiple configuration files
+to libsensors. I have hopefully addressed all the constructive comments
+I received about the first proposal [1]. Thanks Luca and Matt!
 
+[1] http://lists.lm-sensors.org/pipermail/lm-sensors/2009-February/025274.html
 
-Well I found this interesting thread about :
+ doc/libsensors-API.txt  |    4 +
+ lib/access.c            |   17 +++--
+ lib/conf-lex.l          |   22 ++++---
+ lib/conf-parse.y        |   18 ++---
+ lib/conf.h              |    1 
+ lib/data.c              |   27 ++++++--
+ lib/data.h              |   29 +++++++--
+ lib/error.c             |   23 +++++++
+ lib/error.h             |   21 +++++-
+ lib/init.c              |  150 +++++++++++++++++++++++++++++++++++++++---------
+ lib/libsensors.3        |   16 ++++-
+ lib/scanner.h           |    2 
+ lib/sensors.conf.5      |   20 +++++-
+ lib/test/test-scanner.c |    2 
+ 14 files changed, 276 insertions(+), 76 deletions(-)
 
-http://software.intel.com/en-us/forums/manageability-software-development/topic/54851/
+Important changes:
+* Reloading the configuration files works again (patch 3/6).
+* Error handling when configuration files can't be read has been
+  improved. Errors are reported instead of being silently ignored
+  patch 4/6).
+* Error reporting now includes the file name (patches 5/6 and 6/6).
+  This makes it much easier to locate and fix mistakes in configuration
+  files.
 
-It looks like the QST SDK already exists and is planned to be released..
-(  http://software.intel.com/en-us/forums/manageability-software-development/topic/54851/reply/74068/ )
+This last point was implemented by extending the libsensors API with a
+3rd error reporting function. I made it backwards compatible, that is,
+an application which defined a custom function to handle parse errors
+using the old API will still have it called. The new default parse error
+handling function is only called if the old handling function is the
+default one as well. So we should be on the safe side, even though this
+was probably not needed: I couldn't find any monitoring application
+actually defining a cutom parse error function.
 
-> 
-> Best regards,
-> 	Maxim Levitsky
-> 
+The patches apply on top of SVN. I would welcome testing and further
+comments. You can fetch a combined patch at:
+  http://jdelvare.pck.nerim.net/sensors/libsensors-support-for-multiple-config-files.patch
+if it makes testing easier for you.
 
-Gabriel
-
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
