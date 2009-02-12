@@ -1,107 +1,66 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 04 Feb 2009 22:03:27 +0000
-Subject: [lm-sensors] [PATCH 2/4] libsensors: Free bus statements sooner
-Message-Id: <20090204230327.6760c759@hyperion.delvare>
+From: Gabriel C <crazy@frugalware.org>
+Date: Thu, 12 Feb 2009 01:35:27 +0000
+Subject: Re: [lm-sensors] Status/support for Linux HECI from Intel? (for
+Message-Id: <49937CDF.10307@frugalware.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <alpine.DEB.1.10.0812300700410.11356@p34.internal.lan>	<4964DB3E.6080908@intel.com>	<alpine.DEB.1.10.0901071142200.29147@p34.internal.lan> <1231356111.6648.2.camel@maxim-laptop>
+In-Reply-To: <1231356111.6648.2.camel@maxim-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Justin Piszcz <jpiszcz@lucidpixels.com>, Dan Williams <dan.j.williams@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-Free bus statements from the configuration file as soon as we are done
-with them.
+Maxim Levitsky wrote:
 
----
- lib/init.c |   47 +++++++++++++++++++++++++++++------------------
- 1 file changed, 29 insertions(+), 18 deletions(-)
+> On Wed, 2009-01-07 at 11:42 -0500, Justin Piszcz wrote:
+>> On Wed, 7 Jan 2009, Dan Williams wrote:
+>>
+>>> Justin Piszcz wrote:
+>>>> The HECI interface would allow lm_sensors developers to grab the
+>>>> temperatures off the chips on the board.
+>>>>
+>>>> From 2005(?)-2008 there was some chatter about supporting it but it never
+>>>> seemed to happen, is there any eventual planned support for supporting
+>>>> Intel's HECI interface or if the user wants to see the
+>>>> temperatures/voltages just buy a different motherboard with an ITE I/O
+>>>> controller?
+>>>>
+>>>> I have a couple DG965WH boards and it would be nice to see the
+>>>> temperature of the chipset etc without having to reboot into the BIOS.
+>>>>
+>>> Hi Justin,
+>>>
+>>> I am not up to date on the progress in this area, but perhaps this site 
+>>> (http://www.openamt.org/) has what you are looking for?
+>>>
+>>> Regards,
+>>> Dan
+>>>
+>> Yeah that is the site-- however, will it ever get merged?  I have not 
+>> heard anything about it for a year or so.
+> 
+> Nope, the heci is just a controller, but we need a way to tell that
+> controller to show us the temperature data.
+> But intel hasn't released the QST sdk, and probably never will.
+> 
+> Sad, 
 
---- lm-sensors.orig/lib/init.c	2009-02-04 17:45:41.000000000 +0100
-+++ lm-sensors/lib/init.c	2009-02-04 17:47:29.000000000 +0100
-@@ -61,18 +61,42 @@ static int sensors_parse(void)
- 	return res;
- }
- 
-+static void free_bus(sensors_bus *bus)
-+{
-+	free(bus->adapter);
-+}
-+
-+static void free_config_busses(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < sensors_config_busses_count; i++)
-+		free_bus(&sensors_config_busses[i]);
-+	free(sensors_config_busses);
-+	sensors_config_busses = NULL;
-+	sensors_config_busses_count = sensors_config_busses_max = 0;
-+}
-+
- static int parse_config(FILE *input)
- {
- 	int err;
- 
--	if (sensors_scanner_init(input))
--		return -SENSORS_ERR_PARSE;
-+	if (sensors_scanner_init(input)) {
-+		err = -SENSORS_ERR_PARSE;
-+		goto exit_cleanup;
-+	}
- 	err = sensors_parse();
- 	sensors_scanner_exit();
--	if (err)
--		return -SENSORS_ERR_PARSE;
-+	if (err) {
-+		err = -SENSORS_ERR_PARSE;
-+		goto exit_cleanup;
-+	}
- 
--	return 0;
-+	err = sensors_substitute_busses();
-+
-+exit_cleanup:
-+	free_config_busses();
-+	return err;
- }
- 
- int sensors_init(FILE *input)
-@@ -102,8 +126,6 @@ int sensors_init(FILE *input)
- 		}
- 	}
- 
--	if ((res = sensors_substitute_busses()))
--		goto exit_cleanup;
- 	return 0;
- 
- exit_cleanup:
-@@ -129,11 +151,6 @@ static void free_chip_features(sensors_c
- 	free(features->feature);
- }
- 
--static void free_bus(sensors_bus *bus)
--{
--	free(bus->adapter);
--}
--
- static void free_label(sensors_label *label)
- {
- 	free(label->name);
-@@ -213,12 +230,6 @@ void sensors_cleanup(void)
- 	sensors_proc_chips = NULL;
- 	sensors_proc_chips_count = sensors_proc_chips_max = 0;
- 
--	for (i = 0; i < sensors_config_busses_count; i++)
--		free_bus(&sensors_config_busses[i]);
--	free(sensors_config_busses);
--	sensors_config_busses = NULL;
--	sensors_config_busses_count = sensors_config_busses_max = 0;
--
- 	for (i = 0; i < sensors_config_chips_count; i++)
- 		free_chip(&sensors_config_chips[i]);
- 	free(sensors_config_chips);
 
--- 
-Jean Delvare
+Well I found this interesting thread about :
+
+http://software.intel.com/en-us/forums/manageability-software-development/topic/54851/
+
+It looks like the QST SDK already exists and is planned to be released..
+(  http://software.intel.com/en-us/forums/manageability-software-development/topic/54851/reply/74068/ )
+
+> 
+> Best regards,
+> 	Maxim Levitsky
+> 
+
+Gabriel
+
 
 _______________________________________________
 lm-sensors mailing list
