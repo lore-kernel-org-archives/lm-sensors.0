@@ -1,7 +1,7 @@
-From: "Charles" <CharlesA@auroville.org.in>
-Date: Fri, 13 Feb 2009 11:56:45 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 13 Feb 2009 17:41:30 +0000
 Subject: Re: [lm-sensors] [PATCH 4/6] Read extra configuration files from
-Message-Id: <200902131150.n1DBo2Sb005135@rs49.luxsci.com>
+Message-Id: <20090213184130.2faecaf0@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090211175008.0f843712@hyperion.delvare>
 In-Reply-To: <20090211175008.0f843712@hyperion.delvare>
@@ -10,82 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello  :-)
+On Fri, 13 Feb 2009 17:19:36 +0530, Charles wrote:
+> Hello  :-)
+> 
+> >> +the default configuration file. Files those name starts with a dot are
+>                                            ^
+> > Spelling: "Files whose name starts"
+> 
+> Better "Files with names that start"?
+> 
+> "Whose" is the possessive form of "who"; historically it was used only when
+> the possessor was animate.  This usage is loosening to accommodate inanimate
+> possessors (including *n*x files!) but is still controversial.  "Files with
+> names that start" is uncontroversial and, IMHO, more elegant and natural
+> than "Files whose name starts".
 
->> +the default configuration file. Files those name starts with a dot are
-                                           ^
-> Spelling: "Files whose name starts"
+OK, changed.
 
-Better "Files with names that start"?
-
-"Whose" is the possessive form of "who"; historically it was used only when
-the possessor was animate.  This usage is loosening to accommodate inanimate
-possessors (including *n*x files!) but is still controversial.  "Files with
-names that start" is uncontroversial and, IMHO, more elegant and natural
-than "Files whose name starts".
-
-Best
-
-Charles
-
-====================================
-Date: Thu, 12 Feb 2009 23:23:12 -0600 (CST)
-From: Matt Roberds <mattroberds@cox.net>
-Subject: Re: [lm-sensors] [PATCH 4/6] Read extra configuration files
-	from	/etc/sensors.d
-To: Jean Delvare <khali@linux-fr.org>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>
-Message-ID: <Pine.LNX.4.64.0902122322560.32383@birdbird.example.com>
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-
-On Wed, 11 Feb 2009, Jean Delvare wrote:
-> Read extra configuration files from /etc/sensors.d.
-
-[...]
-> +static int add_config_from_dir(const char *dir)
-[...]
-> +	for (res = 0, i = 0; !res && i < count; i++) {
-> +		int len;
-> +		char path[16 + NAME_MAX];
-> +		FILE *input;
-> +
-> +		len = snprintf(path, sizeof(path), "%s/%s", dir,
-> +			       namelist[i]->d_name);
-> +		if (len < 0 || len >= (int)sizeof(path)) {
-> +			res = -SENSORS_ERR_PARSE;
-> +			continue;
-> +		}
-
-This says that the maximum length of the path to the config files is 16
-characters?  Seems kind of short.  By default this will be
-"/etc/sensors.d/" which clocks in at 15 bytes.  If somebody wants to use
-(say) "/usr/local/etc/sensors.d/" they'll be out of luck.  Maybe
-something like
-
-char path[PATH_MAX + NAME_MAX];
-
-would be better?
-
-> +++ lm-sensors/lib/sensors.conf.5	2009-02-11 10:30:22.000000000 +0100
-[...]
-> +A directory where you can put additional libsensors configuration files.
-> +Files found in this directory will be processed in alphabetical order
-after
-> +the default configuration file. Files those name starts with a dot are
-                                           ^
-Spelling: "Files whose name starts"
-
-> +++ lm-sensors/lib/libsensors.3	2009-02-11 10:29:09.000000000 +0100
-[...]
-> +A directory where you can put additional libsensors configuration files.
-> +Files found in this directory will be processed in alphabetical order
-after
-> +the default configuration file. Files those name starts with a dot are
-                                           ^
-Spelling: "Files whose name starts"
-
-Matt Roberds
-
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
