@@ -1,94 +1,57 @@
-From: Dean Loros <autocrosser1@gmail.com>
-Date: Fri, 20 Feb 2009 15:06:13 +0000
-Subject: Re: [lm-sensors] More information on Gigabyte GA-EX58-UD4P
-Message-Id: <499EC6E5.7080804@gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Sat, 14 Feb 2009 19:12:32 +0000
+Subject: [lm-sensors] PATCH; sensors-detect: do not crash FSC Syleus IC's
+Message-Id: <499717A0.6070002@redhat.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3790327452502426274=="
+Content-Type: multipart/mixed; boundary="------------020907060002000608060100"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <49986A9C.6000606@gmail.com>
-In-Reply-To: <49986A9C.6000606@gmail.com>
 To: lm-sensors@vger.kernel.org
 
---===============3790327452502426274==
-Content-Type: text/html; charset=ISO-8859-1
+This is a multi-part message in MIME format.
+--------------020907060002000608060100
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html; charset=ISO-8859-1"
- http-equiv="Content-Type">
-  <title></title>
-</head>
-<body text="#000000" bgcolor="#ffffff">
-Thank you Jean---<br>
-<br>
-I added to the file: /etc/modprobe.d/options &amp; it worked very
-well---I'm really waiting for 2.6.29 to be released for testing in
-Ubuntu.<br>
-<br>
-&nbsp;<br>
-<br>
-On 02/20/2009 12:25 AM, Jean Delvare wrote:
-<blockquote cite="mid:20090220092509.76dd20b2@hyperion.delvare"
- type="cite">
-  <pre wrap="">Hi Dean,
+Hi,
 
-On Thu, 19 Feb 2009 22:10:51 -0800, Dean Loros wrote:
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">Thank you for the information Jean---I assumed that the force_id
-option went into /etc/sensors.conf &amp; /etc/sensors3.conf--I inserted
-it in a way I thought was correct &amp; got "Error: Line 1225: Invalid
-keyword"....The line looks like:  options it87 force_id=0x8718
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-Huu, no, it doesn't go into /etc/sensors3.conf...
+As discussed on IRC the Syleus does not like our way of seeing if a device is 
+present at a certain address, this patch implements a workaround consisting of 
+doing a byte data read instead of a quick command or a byte read.
 
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">I then tried to include it into /etc/modules &amp; got no response at all...line looks like:
+Once reviewed I can commit this myself.
 
-# Chip drivers
-it87
-i2c-dev options it87 force_id=0x8718
-coretemp
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-... and presumably not into /etc/modules either, although I am no
-Debian specialist.
+Regards,
 
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">So I am at a loss as to where the option should be inserted--there
-is not a modprobe file in Ubuntu--Running the current Jaunty testing
-9.04 version for x86. Using the stock ubuntu Jaunty kernel--currently
-at 2.6.28.8--don't want to create a .29 kernel due to testing
-requirements. We have to wait until 9.10 testing in two months to
-move to .29.
+Hans
 
-Thank you for your time..
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-Add the following line to either /etc/modprobe.conf or any file under
-directory /etc/modprobe.d:
+--------------020907060002000608060100
+Content-Type: text/plain;
+ name="sensors-detect-dont-crash-syleus.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="sensors-detect-dont-crash-syleus.patch"
 
-options it87 force_id=0x8718
+Index: prog/detect/sensors-detect
+===================================================================
+--- prog/detect/sensors-detect	(revision 5642)
++++ prog/detect/sensors-detect	(working copy)
+@@ -2629,7 +2629,14 @@
+ {
+ 	my ($file, $addr, $funcs) = @_;
+ 
+-	if (($addr >= 0x50 && $addr <= 0x5F)
++	if ($addr == 0x73) {
++		# Special case for FSC chips, as at least the Syleus locks
++		# up with our regular probe code. Note that to our current
++		# knowledge only FSC chips live on this address, and for them
++		# this probe method is safe
++		return 0 unless ($funcs & I2C_FUNC_SMBUS_READ_BYTE);
++		return i2c_smbus_access($file, SMBUS_READ, 0, SMBUS_BYTE_DATA, []);
++	} elsif (($addr >= 0x50 && $addr <= 0x5F)
+ 	 || ($addr >= 0x30 && $addr <= 0x37)) {
+ 		# This covers all EEPROMs we know of, including page protection
+ 		# addresses. Note that some page protection addresses will not
 
-Then cycle the it87 driver (rmmod it87 &amp;&amp; modprobe it87). This should
-do the trick.
-
-  </pre>
-</blockquote>
-<br>
-</body>
-</html>
-
-
---===============3790327452502426274==
+--------------020907060002000608060100
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -98,4 +61,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3790327452502426274==--
+--------------020907060002000608060100--
