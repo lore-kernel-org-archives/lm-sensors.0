@@ -1,35 +1,31 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 19 Feb 2009 16:56:59 +0000
-Subject: Re: [lm-sensors] Gigabyte GA-EX58-UD4P
-Message-Id: <20090219175659.72248ce1@hyperion.delvare>
+From: Wolfgang Grandegger <wg@grandegger.com>
+Date: Mon, 16 Feb 2009 10:11:34 +0000
+Subject: [lm-sensors] DS75: 12-bit support question
+Message-Id: <49993BD6.7000303@grandegger.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <499C23E8.1040507@gmail.com>
-In-Reply-To: <499C23E8.1040507@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Dean,
+Hello,
 
-On Wed, 18 Feb 2009 07:06:16 -0800, Dean Loros wrote:
-> I've posted to the list about my new motherboard--it's using the Chip 
-> `ITE IT8720 Super IO Sensors' and the new sensors detect script notes 
-> that it is not supported yet.
+I have just realized that there have already been an attempt to get
+12-bit support into the LM75 driver:
 
-Does it? The ITE IT8720 _is_ supported in (upcoming) kernel 2.6.29. On
-previous kernels you can use the force_id parameter of the it87 driver
-to get temporary support, too.
+  http://marc.info/?t0836918500008&r=1&w=4
 
-> What can I do to help get it moved along? 
-> Please send me any informations/thoughts you have about this.
+But it's not obvious too me why it was finally abandoned. In the GIT log
+I just find:
 
-I'll read what you've posted to the list and will answer when I find
-some time.
+     - More careful initialization.  Chips are put into 9-bit mode so
+       the current interconversion routines will never fail.
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+What have I missed?
+
+Thanks,
+
+Wolfgang.
 
 _______________________________________________
 lm-sensors mailing list
