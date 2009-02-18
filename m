@@ -1,37 +1,58 @@
-From: Andre Prendel <andre_prendel@gmx.de>
-Date: Wed, 18 Feb 2009 08:20:08 +0000
-Subject: [lm-sensors] [Patch] libsensors: Fix wrong behaviour in multiple
-Message-Id: <20090218082008.GA4230@ubuntu>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 18 Feb 2009 10:04:12 +0000
+Subject: Re: [lm-sensors] [Patch] libsensors: Fix wrong behaviour in
+Message-Id: <20090218110412.6359bebd@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20090218082008.GA4230@ubuntu>
+In-Reply-To: <20090218082008.GA4230@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The support for multiple configuration files causes a fatal error if
-/etc/sensors.d does not exist.
+Hi Andre,
 
-That shouldn't be treated as an error. This patch fixes that.
+On Wed, 18 Feb 2009 09:20:08 +0100, Andre Prendel wrote:
+> The support for multiple configuration files causes a fatal error if
+> /etc/sensors.d does not exist.
+> 
+> That shouldn't be treated as an error. This patch fixes that.
 
---- lm-sensors-dev/lib/init.c	2009-02-16 14:12:50.000000000 +0100
-+++ my-sensors/lib/init.c	2009-02-17 23:15:46.000000000 +0100
-@@ -124,10 +124,15 @@ static int add_config_from_dir(const cha
- 	struct dirent **namelist;
- 
- 	count = scandir(dir, &namelist, config_file_filter, alphasort);
-+	/* Do not return an error if directory does not exist or is empty. */
- 	if (count < 0) {
-+		if (errno = ENOENT)
-+			return 0;
-+		
- 		sensors_parse_error_wfn(strerror(errno), NULL, 0);
- 		return -SENSORS_ERR_PARSE;
--	}
-+	} else if (!count)
-+		return 0;
- 
- 	for (res = 0, i = 0; !res && i < count; i++) {
- 		int len;
+You are perfectly right, what you propose is how I intended to
+implement the thing but apparently there was a loss of signal between
+the idea and its implementation.
+
+> --- lm-sensors-dev/lib/init.c	2009-02-16 14:12:50.000000000 +0100
+> +++ my-sensors/lib/init.c	2009-02-17 23:15:46.000000000 +0100
+> @@ -124,10 +124,15 @@ static int add_config_from_dir(const cha
+>  	struct dirent **namelist;
+>  
+>  	count = scandir(dir, &namelist, config_file_filter, alphasort);
+> +	/* Do not return an error if directory does not exist or is empty. */
+>  	if (count < 0) {
+> +		if (errno = ENOENT)
+> +			return 0;
+> +		
+
+I'm applying this right now.
+
+>  		sensors_parse_error_wfn(strerror(errno), NULL, 0);
+>  		return -SENSORS_ERR_PARSE;
+> -	}
+> +	} else if (!count)
+> +		return 0;
+
+This second test doesn't seem needed, the following code is a no-op if
+count = 0, isn't it?
+
+>  
+>  	for (res = 0, i = 0; !res && i < count; i++) {
+>  		int len;
+
+Thanks for your contribution!
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
