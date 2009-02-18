@@ -1,108 +1,74 @@
-From: Guillaume Delacour <guillaume.delacour@gmail.com>
-Date: Wed, 04 Feb 2009 09:13:16 +0000
-Subject: [lm-sensors]  HP VL400 sensors (2)
-Message-Id: <5a54eff70902040113k1351cbe4l45937a74a969b4aa@mail.gmail.com>
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Wed, 18 Feb 2009 21:34:28 +0000
+Subject: Re: [lm-sensors] w83793 driver for RHEL 5.2 x86_64
+Message-Id: <499C7EE4.5070200@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5a54eff70901271130p1a948a5clb67baf0c93b8fa@mail.gmail.com>
-In-Reply-To: <5a54eff70901271130p1a948a5clb67baf0c93b8fa@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-2009/1/30 Jean Delvare <khali@linux-fr.org>:
-> Bonjour Guillaume,
->
-> On Tue, 27 Jan 2009 20:30:16 +0100, Guillaume Delacour wrote:
->> Hello,
->>
->> I have an HP VL 400 (Version: R3B, P/N: D9820-60011) motherboard. None
->> of hardware status are displayed.
->
-> You mean in the BIOS?
+Hi,
 
-Yes i mean in BIOS.
+Please CC the lm-sensors list.
 
->
->> I want to know if is it possible to have temperature and more if
->> possible (voltage ?) via sensors:
->>
->> # sensors
->> pc87360-isa-0820
->> Adapter: ISA adapter
->> fan1:        0 RPM  (min =3D  952 RPM, div =3D 8)          OVERFLOW
->> fan2:     1290 RPM  (min =3D  944 RPM, div =3D 4)
->>
->> I just have fan2 speed value; fan1 is not plugged yet :)
->
-> The National Semiconductor PC87360 Super-I/O chip only has 2 fan speed
-> monitoring inputs, not a full hardware monitoring block as the PC87365
-> and PC87366 have.
+Well the new version is in Linux kernel 2.6.20. Please try with some more n=
+ew=20
+version of kernel. What motherboard model/manufacturer it is?
 
-So this is what i was thinking by meaning nothing in BIOS.
-If i read the data sheet (that you have read), i would be able to
-answer myself :)
+In the meanwhile please can you try as root:
 
->
->> (...)
->> # i2cdetect -l
->> i2c-3   i2c             MAVEN:fb0
->> Algorithm unavailable
->> i2c-2   i2c             DDC:fb0 #1
->> Algorithm unavailable
->> i2c-1   i2c             DDC:fb0 #0
->> Algorithm unavailable
->> i2c-0   smbus           SMBus I801 adapter at 1810
->> Non-I2C SMBus adapter
->> # i2cdetect 0
->> WARNING! This program can confuse your I2C bus, cause data loss and wors=
-e!
->> I will probe file /dev/i2c-0.
->> I will probe address range 0x03-0x77.
->> Continue? [Y/n]
->>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
->> 00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
->> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->> 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->> 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->> 50: UU UU XX XX UU UU XX XX XX XX XX XX XX XX XX XX
->> 60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
->> 70: XX XX XX XX XX XX XX XX
->
-> And nothing beyond EEPROMs on your SMBus.
->
->> (...)
->> Modules are loaded successfully except *i2c-i801*.
->
-> The i2c-i801 driver seems to be well loaded, as seen in the i2cdetect
-> output above.
->
->> Please note that i have tried last lm-sensors version 3.0.3 (by
->> sources) and there is same behaviour with sensors-detect/sensors.
->>
->> Thanks and sorry if this is a my-side-configuration problem.
->
-> No, it is not. Apparently your hardware doesn't include hardware
-> monitoring features except for the 2 fan inputs on the PC87360. If the
-> chip is properly wired on the motherboard you may be able to also
-> control the speed of these fans, but that's about it.
+rmmod w83793
+modprobe i2c-dev
+i2cdump 0 0x2f
 
-This is not very interesting for me. Default behavior/speed are good
-and the server is not very *hot* inside.
-Thanks you again for investigation, support and answering me !
+It should dump raw register data of the chip.
 
->
-> --
-> Jean Delvare
-> http://khali.linux-fr.org/wishlist.html
->
+Thanks,
+Rudolf
 
 
 
---
-A bient=F4t.
-Guillaume Delacour.
+maluyao napsal(a):
+> Hi
+>=20
+> I'm using RHEL 5.3 X86_64.The kernel version is 2.6.18-128.el5. The=20
+> lm_sensors is  3.0.2 and/or 2.10.7-4.el5.
+>=20
+> I got a drvier code from here :
+> http://jdelvare.pck.nerim.net/sensors/w83793/
+>=20
+> This driver works not so fine because  some of temperature show me -1=B0C=
+ =20
+> sometimes.
+> for example:
+>=20
+> w83793-i2c-0-2f
+> Adapter: SMBus I801 adapter at 1100
+> CPU1 Temp:    -1.8=B0C  (high =3D  -1.0=B0C, hyst =3D  -1.0=B0C)  ALARM  =
+sensor =3D=20
+> Intel PECI
+> CPU2 Temp:    -1.8=B0C  (high =3D  -1.0=B0C, hyst =3D  -1.0=B0C)  ALARM  =
+sensor =3D=20
+> Intel PECI
+> temp3:        -1.8=B0C  (high =3D  -1.0=B0C, hyst =3D  -1.0=B0C)  ALARM  =
+sensor =3D=20
+> Intel PECI
+> temp4:        -1.8=B0C  (high =3D  -1.0=B0C, hyst =3D  -1.0=B0C)  ALARM  =
+sensor =3D=20
+> Intel PECI
+> temp5:        -1.0=B0C  (high =3D  -1.0=B0C, hyst =3D  -1.0=B0C)  ALARM  =
+sensor =3D=20
+> thermistor
+> beep_enable:enabled
+>=20
+>=20
+> Have you have  new driver for this version of Linux Kernel ?
+>=20
+> Best Regards
+>=20
+> maluyao@gmail.com <mailto:maluyao@gmail.com>
+>=20
 
 _______________________________________________
 lm-sensors mailing list
