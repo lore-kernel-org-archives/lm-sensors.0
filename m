@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 18 Feb 2009 13:54:36 +0000
+Date: Wed, 18 Feb 2009 15:37:51 +0000
 Subject: Re: [lm-sensors] [RFC] Support of chassis intrusion detection
-Message-Id: <20090218145436.2026d795@hyperion.delvare>
+Message-Id: <20090218163751.1b6a5b28@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090217230215.5106b6c0@hyperion.delvare>
 In-Reply-To: <20090217230215.5106b6c0@hyperion.delvare>
@@ -10,101 +10,79 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Matt,
+Hi Fred,
 
-On Wed, 18 Feb 2009 07:20:34 -0600 (CST), Matt Roberds wrote:
-> On Tue, 17 Feb 2009, Jean Delvare wrote:
-> > sysfs interface
-> > =======> >
-> > chassis_intrusion
-> > 		Chassis intrusion detection
+Once again I would like to ask you to reply to the list and not to me
+only. This is especially important for a RFC!
+
+On Wed, 18 Feb 2009 00:33:40 +0100, Fred . wrote:
+> I am very pleased to see that you wrote a RFC. Good job.
+> I am not qualified enough to state in my opinion, but it looks pretty
+> good to me.
+> 0 to clear the detection flag seems good to me.
 > 
-> Will the full name be something like chassis_intrusion0 (or .0 or -0) by
-> default, with the possibility for more (...sion1 or .1 or -1) later?  As
-> far as I can remember, I've only ever seen one bit of chassis intrusion
-> detection per computer, but if it doesn't cost much, it might be nice to
-> allow for expansion.
+> A (not necessarily good) idea. If you could trigger the detection by writing to
+> the file, then people who do not own a case which supports chassis intrusion,
+> could still write and test scripts that works with lm-sensors.
 
-This is a good point, I've been thinking about it. The question is,
-what point would there be in having more than one chassis intrusion
-detector? If the case has been opened, you can't trust the system, no
-matter how it has been opened. So even if there are several sensors,
-merging them into a single information bit (either in hardware or
-software) seems to make sense.
+I see your point, but I don't think I want to allow this. If the
+intrusion alarm can be triggered in software, this opens the door to
+false positives and exploits. This would also require extra code in all
+drivers, because the sysfs file will reflect the value of a hardware
+bit, which can typically be cleared by software but _not_ set by
+software. Making each driver more complex only for testing purposes
+doesn't sound right.
 
-The only situation where this could make a difference is if a computer
-case has several internal compartments, isolated from each other, so
-depending on what exactly was opened, the intruder would have access to
-different parts. But honestly, I've never seen any computer case like
-this, and I fail to see the point of building such cases. So at this
-point I don't think we have to handle multiple chassis_intrusion
-entries in sysfs.
+If people want to test the functionality without the hardware, the
+right way to do that is using the i2c-stub driver together with an
+i2c-based hwmon driver which implements the feature in question. This
+is already in place and should work nicely.
 
+> To play the devils advocate, one may argue that since temperature sensors
+> are called temp1, temp2, etc and not cpu_temp, gpu_temp, then it ought to
+> be called just 'intrusion' instead of 'chassis_intrusion'.
+
+Good point. Now, the question is, is there anything else than the
+chassis that can suffer from intrusion? Racked hard disks maybe? I
+don't have access to high-end server hardware so I admit I don't really
+know.
+
+If we want to be really generic then we should consider that the
+chassis intrusion detectors are merely micro-switches used for a
+specific function. So we might as well go with switch0, switch1...
+However, intrusion detection switches have semantics attached to them
+(in particular the fact that they are set by hardware and cleared by
+software.) They also need to be handled differently from other sensor
+inputs, as discussed with Matt. "sensors --clear-chassis" (or maybe
+--clear-intrusion would be preferable?) must know which chip feature it
+has to access, something which being too generic will make impossible.
+
+> You earlier mentioned keeping in mind extendibility, such as multple sensors,
+> in which case it ought to be named chassis_intrusion0, chassis_intrusion1, etc.
+
+See my reply to Matt.
+
+> Though, I do agree with you that a 'chassis_intrusion' is a good name.
+> It is very simple, clear and non confusing.
 > 
-> > sensors
-> > ===> >
-> > [...] So we could add a dedicated flag to clear the chassis intrusion
-> > detection flag (e.g. "sensors --clear-chassis").
-> 
-> Are there any security implications here?  I am talking more about
-> physical security (somebody stealing a stick of RAM) more than computer
-> security (somebody getting root).  Do we want to somehow limit who can
-> clear the chassis intrusion flag?
+> Realistically speaking, no case is ever likely to have more than one sensors,
+> also I don't think any Super-I/O supports more than one sensor.
 
-Of course we want. Only root will be allowed to run "sensors
---clear-chassis". Same as "sensors -s" today.
+That's what I think too.
 
->                                   On the other hand, a malicious user
-> can cause damage with the current code by (for example) shutting down
-> or slowing the fans, or deliberately setting voltage limits too low or
-> too high (to cause a monitoring daemon to reboot the system or
-> whatever).
+> Though, theoretically someone might have a third-party sensor on a PCI card,
+> or on a USB device.
 
-No, users can't do that, thankfully. Unless the admin is stupid enough
-to suid the sensors binary, but then what can we do...
+For an internal device the limitation is the number of switches on the
+case itself. So I guess such a device would replace, not add to, the
+one already present on the motherboard (if any).
 
->             So letting someone reset the chassis intrusion flag may not
-> be that big a deal.
-> 
-> Do the APM or ACPI specs say anything about how software is supposed to
-> deal with chassis intrusion, or do they just say "a hardware chassis
-> intrusion flag exists", or do they not care?  I know lm-sensors is not
-> ACPI, but if there is already some kind of standard, it might be good to
-> follow it.
+Chassis intrusion detection on an external device is, hmm... Not
+technically impossible, but I'm not sure what sense it makes from the
+system's point of view. The intruder could connect the device to
+another system, reset the intrusion alarm, and reconnect the device.
 
-APM is so old that I doubt we want to care about it at all. I couldn't
-even find a PDF of the specification, only a RTF, that says a lot
-doesn't it? And I'm not sure why a power management specification would
-have anything to do with chassis intrusion.
-
-ACPI v2 doesn't say anything about chassis intrusion as far as I can
-see.
-
-> Are there any problems availability of this feature "early" in the boot
-> process?  Somebody who is really paranoid might want to stop booting, or
-> take some other action, if the intrusion flag is on.  I think that
-> people who care about this mostly do it before the regular OS kernel
-> starts to load, though.  Either they tell the BIOS to treat intrusion as
-> an error and require a password to get past the "error, hit F1 to
-> continue" prompt that the BIOS puts up, or maybe they network boot a
-> small program over PXE that looks at the intrusion flag, dispatches the
-> SWAT team if required, and then boots the regular OS from the local hard
-> drive.
-
-In the typical case of modular drivers, we can't provide the feature
-before the lm_sensors service is started, which is by definition late
-in the boot process (root file system is already mounted.)
-Distributions may still want to check it at this point in time and for
-example fallback to runlevel 2 if an intrusion has been detected. But I
-agree that anyway this is something that should be checked earlier,
-before the OS is started.
-
-> With parallel ports going away, eventually somebody is going to use the
-> chassis intrusion flag as a one-bit, relatively low speed digital input
-> pin.  I don't think there is any action for lm-sensors here other to
-> recognize the question when somebody asks about it.
-
-Whatever you drink in the morning... please consider changing that ;)
+> Either way, I think your RFC is "down to earth" and it looks good.
 
 Thanks,
 -- 
