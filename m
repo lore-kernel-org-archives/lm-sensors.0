@@ -1,81 +1,40 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 20 Feb 2009 09:11:51 +0000
-Subject: Re: [lm-sensors] Intel DG45FC
-Message-Id: <20090220101151.79e0482e@hyperion.delvare>
+From: <JGong@nuvoton.com>
+Date: Wed, 18 Feb 2009 10:19:01 +0000
+Subject: Re: [lm-sensors] hwmon: add support for w83667hg
+Message-Id: <29CFBC9A3FDC81418F5FACEEC8970E0020AE08@ntshml01.nuvoton.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <7bccedf10809181658o18aa47bbt46480ca2a67b1ac9@mail.gmail.com>
-In-Reply-To: <7bccedf10809181658o18aa47bbt46480ca2a67b1ac9@mail.gmail.com>
+References: <29CFBC9A3FDC81418F5FACEEC8970E0020ADD2@ntshml01.nuvoton.com>
+In-Reply-To: <29CFBC9A3FDC81418F5FACEEC8970E0020ADD2@ntshml01.nuvoton.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Anthony,
+Dear Jean,
 
-On Tue, 11 Nov 2008 10:45:10 +0100, Jean Delvare wrote:
-> On Fri, 7 Nov 2008 17:38:00 -0800, Anthony Arobone wrote:
-> > # isadump 0x2e 0x2f 8
-> > WARNING! Running this program can cause system crashes, data loss and worse!
-> > I will probe address register 0x2e and data register 0x2f.
-> > Probing bank 8 using bank register 0x07.
-> > Continue? [Y/n] y
-> >      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> > 00: 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00 00
-> > 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 41
-> > 20: f1 01 00 00 01 01 00 91 00 11 2e 00 00 10 00 00
-> > 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > 60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > 70: 00 03 00 00 04 04 00 00 00 00 00 00 00 00 00 00
-> > 80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > f0: 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 
-> OK, so as expected, the logical device with the hardware monitoring
-> features is disabled. If you look at ticket #2182 starting at:
-> http://www.lm-sensors.org/ticket/2182#comment:13
-> 
-> You'll see what we tried with the other user to enable the logical
-> device and see if it "woke up" the "emulated" LM96000. It did not work
-> for him, but feel free to try too and see if it helps on your board:
-> 
-> isaset -y 0x2e 0x2f 0x07 8
-> isaset -y 0x2e 0x2f 0x60 0x02
-> isaset -y 0x2e 0x2f 0x61 0x90
-> isaset -y 0x2e 0x2f 0x30 1
-> 
-> (After checking in /proc/ioports that there's nothing at 0x290 on your
-> system.) Then:
-> 
-> rmmod lm85
-> modprobe lm85
+I am sorry for my long overdue response. I've been busy with some other projects those months.
 
-Did you ever try this?
+>This is the same register as temp2, isn't it? Does it mean that in6 and
+>temp2 share a pin on the W83667HG chip? If this is the case then only
+>one of these features should be exposed. Which one depends on the chip
+>configuration.
 
-> That being said, I'm not holding my breath. Maybe your system has the
-> same chip variant (WPCD377i) without the hardware monitoring feature
-> and that's the reason why all the readings are 0 and the actual
-> monitoring is done by the Intel ICH chip.
+Yes, the temp2 and the in6 share the pin 109. But I haven't found any configuration register about this issue yet.
 
-Can you please look at your board (physically) and search for the
-Super-I/O chip? This should be one of:
+>What is the problem exactly and why is it happening? Probably this is
+>related to the shared register 0x250 as discussed above. I don't think
+>the code is correct, but without the datasheet and chip I can't tell
+>for sure. Please explain the situation in details.
+ 
+At that time, when I scanned the spec, I found the bank 0 index 26h was "reversed" and the in6 reading and temp2 reading shared the bank2 index 50h, so I used those codes to stop monitoring the temp2 and read out temp2's register as in6 reading. 
 
-PC8374L
-WPCD374L
-WPCD376I
-WPCD377I
+However, recently I consult this problem with my colleague again, he replies that I should still read the in6 at bank 0 index 26h.(It may be the datasheet problem) So I am going to test it on my platform, and make another patch out later.
 
-I would like to know which one you have.
+Best regards,
+Gong Jun
 
-Thanks,
--- 
-Jean Delvare
+
+=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Nuvoton is strictly prohibited; and any information in this email irrelevant to the official business of Nuvoton shall be deemed as neither given nor endorsed by Nuvoton.
 
 _______________________________________________
 lm-sensors mailing list
