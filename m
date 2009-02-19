@@ -1,7 +1,7 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Thu, 19 Feb 2009 09:28:11 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 19 Feb 2009 09:41:26 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Add missing parentheses
-Message-Id: <499D262B.2080102@redhat.com>
+Message-Id: <20090219104126.3de8c55c@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <499AB902.1080308@gmail.com>
 In-Reply-To: <499AB902.1080308@gmail.com>
@@ -10,29 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-
-alistair@devzero.co.uk wrote:
+On Thu, 19 Feb 2009 09:13:45 -0000 (GMT), alistair@devzero.co.uk wrote:
 > (Sorry for the delay and probable mail corruption, I'm travelling)
 > 
 > [snip]
->>  	for (i = 0; i < offset_count; i++)
->>  		if ((x = abituguru3_read(data, bank, offset + i, count,
->> -				buf + i * count)) != count)
->> -			return i * count + (i && (x < 0)) ? 0 : x;
->> +				buf + i * count)) != count) {
->> +			if (x < 0)
->> +				return x;
->> +			return i * count + x;
->> +		}
->>
->>  	return i * count;
->>  }
->>
->> Objections?
+> >  	for (i = 0; i < offset_count; i++)
+> >  		if ((x = abituguru3_read(data, bank, offset + i, count,
+> > -				buf + i * count)) != count)
+> > -			return i * count + (i && (x < 0)) ? 0 : x;
+> > +				buf + i * count)) != count) {
+> > +			if (x < 0)
+> > +				return x;
+> > +			return i * count + x;
+> > +		}
+> >
+> >  	return i * count;
+> >  }
+> >
+> > Objections?
 > 
 > I have no objections to this patch.
-> 
+
+Thanks.
+
 > However, if propagating errors up the stack is desirable, I think it would
 > also be prudent to fix abituguru3_update_device() to pass the error back
 > via ERR_PTR() or similar, instead of returning NULL. That way,
@@ -41,14 +41,13 @@ alistair@devzero.co.uk wrote:
 > 
 > This change is more involved; I can send a follow up for a later
 > time-frame if desired.
-> 
 
-Note: I've never ever seen an actual IO-error with the uguru3 (unlike the 
-revision 1), so i'm not sure this is worth your while.
+I don't think it is really important. The read functions never return
+any error other than -EIO anyway. And there is nothing user-space can do
+about the error code. So I doubt it is worth spending time on this.
 
-Regards,
-
-Hans
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
