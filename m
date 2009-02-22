@@ -1,31 +1,31 @@
-From: Wolfgang Grandegger <wg@grandegger.com>
-Date: Mon, 16 Feb 2009 10:11:34 +0000
-Subject: [lm-sensors] DS75: 12-bit support question
-Message-Id: <49993BD6.7000303@grandegger.com>
+From: "Michael R. Doerner" <mdoerner1@cox.net>
+Date: Sun, 22 Feb 2009 18:48:59 +0000
+Subject: Re: [lm-sensors] [PATCH 2/2] k8temp add support for family 10h and
+Message-Id: <49A19E1B.4000807@cox.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <48E3F7B6.4000901@assembler.cz>
+In-Reply-To: <48E3F7B6.4000901@assembler.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Anybody there?
 
-I have just realized that there have already been an attempt to get
-12-bit support into the LM75 driver:
+Mike Doerner
 
-  http://marc.info/?t0836918500008&r=1&w=4
+Michael R. Doerner wrote:
+> Howdy,
+>
+> I have a AMD Phenom processor and noticed your patch to get the temps
+> for this processor. What and How do I apply this patch to in order to
+> get this working? Or do you have a patched k8temp.c file I can overwrite
+> in the 3.0.3 package (which I'm having trouble locating)? Thanks in advance.
+>
+> Mike Doerner
+>
+>   
 
-But it's not obvious too me why it was finally abandoned. In the GIT log
-I just find:
-
-     - More careful initialization.  Chips are put into 9-bit mode so
-       the current interconversion routines will never fail.
-
-What have I missed?
-
-Thanks,
-
-Wolfgang.
 
 _______________________________________________
 lm-sensors mailing list
