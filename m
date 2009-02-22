@@ -1,109 +1,83 @@
-From: Justin Chudgar <justin@justinzane.com>
-Date: Sun, 22 Feb 2009 18:52:31 +0000
+From: Michael Reinelt <michael@reinelt.co.at>
+Date: Sun, 22 Feb 2009 20:27:16 +0000
 Subject: Re: [lm-sensors] module c7temp shows voltage, but no temperature
-Message-Id: <200902221052.31780.justin@justinzane.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0990661861200212368=="
+Message-Id: <49A1B524.1020406@reinelt.co.at>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200902221052.31780.justin@justinzane.com>
+In-Reply-To: <200902221052.31780.justin@justinzane.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============0990661861200212368==
-Content-Type: multipart/alternative; boundary="Boundary-00=_v7ZoJzK1G5HlVt3"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Justin,
 
---Boundary-00=_v7ZoJzK1G5HlVt3
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+> As I understand, VIA has not released documentation to the lm-sensors
+> developers on the latest revisions of the C7. 
+too bad...
 
-As I understand, VIA has not released documentation to the lm-sensors 
-developers on the latest revisions of the C7. I  believe that it is helpful if 
-you post the output of cpuid with your info, but I forget which switch(es) to 
-use.
+> I believe that it is
+> helpful if you post the output of cpuid with your info, but I forget
+> which switch(es) to use.
 
-As you can see, I CC'd the list with you info. Maybe someone will know 
-something that I  do not. Sorry I was not of more help.
+Well, as far as I con see, my version of cpuid doesn't have any switches
+at all :-)
+
+so here's the output:
+
+artus.reinelt.local:~ # cpuid
+ eax in    eax      ebx      ecx      edx
+00000000 00000001 746e6543 736c7561 48727561
+00000001 000006d0 00000800 00004181 a7c9bbff
+80000000 80000006 00000000 00000000 00000000
+80000001 00000000 00000000 00000000 00100000
+80000002 20202020 20202020 20202020 20202020
+80000003 20202020 56202020 43204149 72502037
+80000004 7365636f 20726f73 30303531 007a484d
+80000005 00000000 08800880 40040140 40040140
+80000006 00000000 00000000 0080a140 00000000
+
+Vendor ID: "CentaurHauls"; CPUID level 1
+
+Unknown vendor
+
+
+and the output of cat /proc/cpuinfo:
+
+artus.reinelt.local:~ # cat /proc/cpuinfo
+processor       : 0
+vendor_id       : CentaurHauls
+cpu family      : 6
+model           : 13
+model name      : VIA C7 Processor 1500MHz
+stepping        : 0
+cpu MHz         : 800.000
+cache size      : 128 KB
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 1
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+cmov pat clflush acpi mmx fxsr sse sse2 tm nx pni est tm2 xtpr rng
+rng_en ace ace_en ace2 ace2_en phe phe_en pmm pmm_en
+bogomips        : 1599.86
+clflush size    : 64
+power management:
+
+
+HTH, Michael
+
 -- 
-
-Justin Chudgar
-Information Technology Consultant
-5040 Saddlehorn Rd, Weed, CA 96084
-530-938-9692 (Home Office) | 530-340-5632 (Mobile)
-
-On Sunday 22 February 2009 01:57:06 am you wrote:
-> Hi Justin, Juerg,
->
-> I just found the c7temp module, and the ticket in the lm-sensors wiki.
-> Looks like I'm facing the same problem...
->
-> My system is a brand-new VIA EPIA M700 with a 1.5GHz C7 CPU.
->
-> As this board is actively cooled, but I want to remove the fan, it would
-> be quite important to me to get some CPU temperatures. The funny thing
-> is that I don't get temperatures anywhere, neither from any of the
-> lm-sensors modules (the board has an additiaonal w83627hf, I'm getting
-> some voltages, but no temperatures), nor from the BIOS setup. There is a
->  menu item called "PC Health" but no temperatures inside (except a
-> "system temperature", which shows no value because one would need an
-> external tmep sensor connected to a pin header)
->
->
-> So my question is: Is there some progress on this issue? Can I be of any
-> help here?
->
->
->
-> Thanks a lot, Michael
-
-
---Boundary-00=_v7ZoJzK1G5HlVt3
-Content-Type: text/html;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Myriad Pro'; font-size:9pt; font-weight:400; font-style:normal;">As I understand, VIA has not released documentation to the lm-sensors developers on the latest revisions of the C7. I  believe that it is helpful if you post the output of cpuid with your info, but I forget which switch(es) to use.<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>As you can see, I CC'd the list with you info. Maybe someone will know something that I  do not. Sorry I was not of more help.<br />-- <br /><br>
-<span style=" font-family:'betecknalowercasebold';">Justin Chudgar</span><br>
-Information Technology Consultant<br>
-5040 Saddlehorn Rd, Weed, CA 96084<br>
-530-938-9692 (Home Office) | 530-340-5632 (Mobile)<br>
-<br />On Sunday 22 February 2009 01:57:06 am you wrote:<br>
-&gt; Hi Justin, Juerg,<br>
-&gt;<br>
-&gt; I just found the c7temp module, and the ticket in the lm-sensors wiki.<br>
-&gt; Looks like I'm facing the same problem...<br>
-&gt;<br>
-&gt; My system is a brand-new VIA EPIA M700 with a 1.5GHz C7 CPU.<br>
-&gt;<br>
-&gt; As this board is actively cooled, but I want to remove the fan, it would<br>
-&gt; be quite important to me to get some CPU temperatures. The funny thing<br>
-&gt; is that I don't get temperatures anywhere, neither from any of the<br>
-&gt; lm-sensors modules (the board has an additiaonal w83627hf, I'm getting<br>
-&gt; some voltages, but no temperatures), nor from the BIOS setup. There is a<br>
-&gt;  menu item called "PC Health" but no temperatures inside (except a<br>
-&gt; "system temperature", which shows no value because one would need an<br>
-&gt; external tmep sensor connected to a pin header)<br>
-&gt;<br>
-&gt;<br>
-&gt; So my question is: Is there some progress on this issue? Can I be of any<br>
-&gt; help here?<br>
-&gt;<br>
-&gt;<br>
-&gt;<br>
-&gt; Thanks a lot, Michael<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p></body></html>
---Boundary-00=_v7ZoJzK1G5HlVt3--
-
-
---===============0990661861200212368==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Michael Reinelt <michael@reinelt.co.at>
+http://home.pages.at/reinelt
+GPG-Key 0xDF13BA50
+ICQ #288386781
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0990661861200212368==--
