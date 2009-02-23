@@ -1,145 +1,124 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 17 Feb 2009 16:49:29 +0000
-Subject: Re: [lm-sensors] [PATCH] Add support to SB800 SMBus changes
-Message-Id: <20090217174929.3c775cc4@hyperion.delvare>
+From: Andre Prendel <andre_prendel@gmx.de>
+Date: Mon, 23 Feb 2009 11:06:05 +0000
+Subject: Re: [lm-sensors] [PATCH v2 2/2] libsensors: Use __func__
+Message-Id: <20090223110604.GB4511@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1234430547.5588.8.camel@chunhao-desktop>
-In-Reply-To: <1234430547.5588.8.camel@chunhao-desktop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, shane.huang-5C7GfCeVMHo@public.gmane.org
 
-Hi Shane,
-
-On Thu, 12 Feb 2009 17:22:27 +0800, Shane Huang wrote:
-> This version of driver adds support for the AMD SB800 Family series of products.
-> Major changes include the changes to addressing the SMBUS registers at different
-> location from the locations in the previous compatible parts from AMD such as
-> SB400/SB600/SB700. For SB800, the main features and register definitions of
-> SMBUS and other interfaces are still compatible with the previous products with
-> the only change being in how to access the internal registers for these blocks
-> may differ.
+On Mon, Feb 23, 2009 at 11:37:57AM +0100, Jean Delvare wrote:
+> Hi Andre,
 > 
-> Signed-off-by: Shane Huang <shane.huang@amd.com>
+> On Mon, 23 Feb 2009 09:44:03 +0100, Andre Prendel wrote:
+> > Hi Jean,
+> > 
+> > this is an updated version of the patch from 20.02. According to your
+> > hint I have patched conf-parse.y and not conf-parse.c.
+> > 
+> > This patch unifies sensors_fatal_error() calls. Uses __func__ to get
+> > the function name.
+> > 
+> > Andre
+> > 
+> > ---
+> >  access.c     |    3 +--
+> >  conf-parse.y |    3 +--
+> >  data.c       |    2 +-
+> >  general.c    |    7 +++----
+> >  4 files changed, 6 insertions(+), 9 deletions(-)
+> > 
+> > diff -urp lm-sensors-dev/lib/access.c my-sensors/lib/access.c
+> > --- lm-sensors-dev/lib/access.c	2009-02-19 23:17:15.000000000 +0100
+> > +++ my-sensors/lib/access.c	2009-02-22 17:57:28.000000000 +0100
+> > @@ -201,8 +201,7 @@ char *sensors_get_label(const sensors_ch
+> >  	
+> >  sensors_get_label_exit:
+> >  	if (!label)
+> > -		sensors_fatal_error("sensors_get_label",
+> > -				    "Allocating label text");
+> > +		sensors_fatal_error(__func__, "Allocating label text");
+> >  	return label;
+> >  }
+> >  
+> > diff -urp lm-sensors-dev/lib/conf-parse.y my-sensors/lib/conf-parse.y
+> > --- lm-sensors-dev/lib/conf-parse.y	2009-02-16 14:12:50.000000000 +0100
+> > +++ my-sensors/lib/conf-parse.y	2009-02-22 18:02:42.000000000 +0100
+> > @@ -342,7 +342,6 @@ sensors_expr *malloc_expr(void)
+> >  {
+> >    sensors_expr *res = malloc(sizeof(sensors_expr));
+> >    if (! res)
+> > -    sensors_fatal_error("malloc_expr","Allocating a new expression");
+> > +    sensors_fatal_error(__func__, "Allocating a new expression");
+> >    return res;
+> >  }
+> > -  
+> > diff -urp lm-sensors-dev/lib/data.c my-sensors/lib/data.c
+> > --- lm-sensors-dev/lib/data.c	2009-02-19 23:17:15.000000000 +0100
+> > +++ my-sensors/lib/data.c	2009-02-22 17:57:28.000000000 +0100
+> > @@ -88,7 +88,7 @@ int sensors_parse_chip_name(const char *
+> >  			return -SENSORS_ERR_CHIP_NAME;
+> >  		res->prefix = strndup(name, dash - name);
+> >  		if (!res->prefix)
+> > -			sensors_fatal_error("sensors_parse_chip_name",
+> > +			sensors_fatal_error(__func__,
+> >  					    "Allocating name prefix");
+> >  		name = dash + 1;
+> >  	}
+> > diff -urp lm-sensors-dev/lib/general.c my-sensors/lib/general.c
+> > --- lm-sensors-dev/lib/general.c	2009-02-19 23:17:15.000000000 +0100
+> > +++ my-sensors/lib/general.c	2009-02-22 17:57:28.000000000 +0100
+> > @@ -34,8 +34,7 @@ void sensors_malloc_array(void *list, in
+> >  
+> >  	*my_list = malloc(el_size*A_BUNCH);
+> >  	if (! *my_list)
+> > -		sensors_fatal_error("sensors_malloc_array",
+> > -				    "Allocating new elements");
+> > +		sensors_fatal_error(__func__, "Allocating new elements");
+> >  	*max_el = A_BUNCH;
+> >  	*num_el = 0;
+> >  }
+> > @@ -59,7 +58,7 @@ void sensors_add_array_el(const void *el
+> >  		new_max_el = *max_el + A_BUNCH;
+> >  		*my_list = realloc(*my_list, new_max_el * el_size);
+> >  		if (! *my_list)
+> > -			sensors_fatal_error("sensors_add_array_el",
+> > +			sensors_fatal_error(__func__,
+> >  					    "Allocating new elements");
+> >  		*max_el = new_max_el;
+> >  	}
+> > @@ -77,7 +76,7 @@ void sensors_add_array_els(const void *e
+> >  		new_max_el -= new_max_el % A_BUNCH;
+> >  		*my_list = realloc(*my_list, new_max_el * el_size);
+> >  		if (! *my_list)
+> > -			sensors_fatal_error("sensors_add_array_els",
+> > +			sensors_fatal_error(__func__,
+> >  					    "Allocating new elements");
+> >  		*max_el = new_max_el;
+> >  	}
 > 
-> diff -ruN a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
-> --- a/drivers/i2c/busses/i2c-piix4.c	2009-02-07 00:58:32.000000000 +0800
-> +++ b/drivers/i2c/busses/i2c-piix4.c	2009-02-11 14:28:37.000000000 +0800
-> @@ -130,11 +130,20 @@
->  				const struct pci_device_id *id)
->  {
->  	unsigned char temp;
-> +	int sbx00_quirk = 0;
-> +	u8 sbx00_a = 0, sbx00_b = 0, sbx00_i2ccfg = 0;
+> Patch looks good, however I can't apply it right now because SVN is
+> frozen for the release of lm-sensors 3.1.0 at the end of the week. Your
+> patch will be applied after the release.
 
-As only the SB800 is affected, and the SB600 and SB700 are not, I would
-suggest renaming these variables to sb800_quirk, sb800_i2ccfg, etc. And
-please come up with better names for sbx00_a and sbx00_b, it's not clear
-what they are supposed to be.
+Allright, thanks.
 
->  
->  	if ((PIIX4_dev->vendor = PCI_VENDOR_ID_SERVERWORKS) &&
->  	    (PIIX4_dev->device = PCI_DEVICE_ID_SERVERWORKS_CSB5))
->  		srvrworks_csb5_delay = 1;
->  
-> +	if ((PIIX4_dev->vendor = PCI_VENDOR_ID_ATI) &&
-> +	    (PIIX4_dev->device = PCI_DEVICE_ID_ATI_SBX00_SMBUS) &&
-> +	    (PIIX4_dev->revision >= 0x40)) {
-> +		dev_info(&PIIX4_dev->dev, "Apply SBX00 SMBus quirk.\n");
-> +		sbx00_quirk = 1;
-> +	}
-> +
->  	/* On some motherboards, it was reported that accessing the SMBus
->  	   caused severe hardware problems */
->  	if (dmi_check_system(piix4_dmi_blacklist)) {
-> @@ -157,13 +166,24 @@
->  		piix4_smba = force_addr & 0xfff0;
->  		force = 0;
->  	} else {
-> -		pci_read_config_word(PIIX4_dev, SMBBA, &piix4_smba);
-> -		piix4_smba &= 0xfff0;
-> -		if(piix4_smba = 0) {
-> -			dev_err(&PIIX4_dev->dev, "SMBus base address "
-> -				"uninitialized - upgrade BIOS or use "
-> -				"force_addr=0xaddr\n");
-> -			return -ENODEV;
-> +		if (sbx00_quirk) {
-> +			/* SBX00 base address location changed in some revs */
-> +			dev_dbg(&PIIX4_dev->dev, "SBX00 SMBus base address "
-> +				"location changed in some revisions!\n");
-> +			outb_p(0x2c, 0xcd6);
-> +			sbx00_a = inb_p(0xcd7);
-> +			outb_p(0x2d, 0xcd6);
-> +			sbx00_b = inb_p(0xcd7);
-> +			piix4_smba = ((sbx00_b << 8) | sbx00_a) & 0xffe0;
-
-What device is at 0xcd6/0xcd7, and how can you be sure it is there? You
-can't access arbitrary I/O ports like that. This needs to be done
-properly. Especially as it appears to be an index/data register pair,
-this needs proper locking.
-
-> +		} else {
-> +			pci_read_config_word(PIIX4_dev, SMBBA, &piix4_smba);
-> +			piix4_smba &= 0xfff0;
-> +			if (piix4_smba = 0) {
-> +				dev_err(&PIIX4_dev->dev, "SMBus base address "
-> +					"uninitialized - upgrade BIOS or use "
-> +					"force_addr=0xaddr\n");
-> +				return -ENODEV;
-> +			}
->  		}
->  	}
->  
-> @@ -176,7 +196,13 @@
->  		return -EBUSY;
->  	}
->  
-> -	pci_read_config_byte(PIIX4_dev, SMBHSTCFG, &temp);
-> +	if (sbx00_quirk) {
-> +		/* Assemble the compatible value for some SBX00 revisions */
-> +		sbx00_i2ccfg = inb_p(piix4_smba + 0x10);
-> +		temp = ((sbx00_i2ccfg << 1) & 0x2) | (sbx00_a & 0x1);
-> +	} else {
-> +		pci_read_config_byte(PIIX4_dev, SMBHSTCFG, &temp);
-> +	}
->  
->  	/* If force_addr is set, we program the new address here. Just to make
->  	   sure, we disable the PIIX4 first. */
-> @@ -218,7 +244,12 @@
->  		dev_err(&PIIX4_dev->dev, "Illegal Interrupt configuration "
->  			"(or code out of date)!\n");
->  
-> -	pci_read_config_byte(PIIX4_dev, SMBREV, &temp);
-> +	if (sbx00_quirk)
-> +		/* Assemble the compatible value for some SBX00 revisions */
-> +		temp = (sbx00_i2ccfg >> 4) & 0x0f;
-
-Mask is not needed, u8 >> 4 can't be more than 4 bits by definition.
-
-> +	else
-> +		pci_read_config_byte(PIIX4_dev, SMBREV, &temp);
-> +
->  	dev_info(&PIIX4_dev->dev,
->  		 "SMBus Host Controller at 0x%x, revision %d\n",
->  		 piix4_smba, temp);
 > 
+> BTW, are you sure you don't want an SVN account? You're sending good
+> patches, and you might as well apply them yourself...
 
-Your patch breaks module parameters force and force_addr. You probably
-don't need them (I would in fact be happy to get rid of them altogether)
-but as long as they are there you must "handle" them properly. The
-easiest way do handle them is to cleanly ignore them for ATI SB800
-devices.
+How works patch reviewing in that case? Should I send the patches
+still to the list? I don't want to break something or do silly
+things.
 
-I suspect the code would gain in clarity, if you would move the
-SB800-specific code to a separate function. After all there's almost
-nothing in common between the setup of the original device and the
-setup of the SB800. So instead of several conditionals, a plain
-separate function would probably be more readable.
+So if we don't lose the reviewing I would be very happy to get an account.
 
--- 
-Jean Delvare
+Thanks
+Andre
+
+> -- 
+> Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
