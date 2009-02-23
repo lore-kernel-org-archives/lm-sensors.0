@@ -1,122 +1,35 @@
 From: Andre Prendel <andre_prendel@gmx.de>
-Date: Mon, 23 Feb 2009 11:06:05 +0000
+Date: Mon, 23 Feb 2009 11:27:58 +0000
 Subject: Re: [lm-sensors] [PATCH v2 2/2] libsensors: Use __func__
-Message-Id: <20090223110604.GB4511@ubuntu>
+Message-Id: <20090223112758.GC4511@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20090223110604.GB4511@ubuntu>
+In-Reply-To: <20090223110604.GB4511@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Feb 23, 2009 at 11:37:57AM +0100, Jean Delvare wrote:
-> Hi Andre,
+On Mon, Feb 23, 2009 at 12:18:31PM +0100, Jean Delvare wrote:
+> On Mon, 23 Feb 2009 12:06:05 +0100, Andre Prendel wrote:
+> > On Mon, Feb 23, 2009 at 11:37:57AM +0100, Jean Delvare wrote:
+> > > BTW, are you sure you don't want an SVN account? You're sending good
+> > > patches, and you might as well apply them yourself...
+> > 
+> > How works patch reviewing in that case? Should I send the patches
+> > still to the list? I don't want to break something or do silly
+> > things.
+> >
+> > So if we don't lose the reviewing I would be very happy to get an account.
 > 
-> On Mon, 23 Feb 2009 09:44:03 +0100, Andre Prendel wrote:
-> > Hi Jean,
-> > 
-> > this is an updated version of the patch from 20.02. According to your
-> > hint I have patched conf-parse.y and not conf-parse.c.
-> > 
-> > This patch unifies sensors_fatal_error() calls. Uses __func__ to get
-> > the function name.
-> > 
-> > Andre
-> > 
-> > ---
-> >  access.c     |    3 +--
-> >  conf-parse.y |    3 +--
-> >  data.c       |    2 +-
-> >  general.c    |    7 +++----
-> >  4 files changed, 6 insertions(+), 9 deletions(-)
-> > 
-> > diff -urp lm-sensors-dev/lib/access.c my-sensors/lib/access.c
-> > --- lm-sensors-dev/lib/access.c	2009-02-19 23:17:15.000000000 +0100
-> > +++ my-sensors/lib/access.c	2009-02-22 17:57:28.000000000 +0100
-> > @@ -201,8 +201,7 @@ char *sensors_get_label(const sensors_ch
-> >  	
-> >  sensors_get_label_exit:
-> >  	if (!label)
-> > -		sensors_fatal_error("sensors_get_label",
-> > -				    "Allocating label text");
-> > +		sensors_fatal_error(__func__, "Allocating label text");
-> >  	return label;
-> >  }
-> >  
-> > diff -urp lm-sensors-dev/lib/conf-parse.y my-sensors/lib/conf-parse.y
-> > --- lm-sensors-dev/lib/conf-parse.y	2009-02-16 14:12:50.000000000 +0100
-> > +++ my-sensors/lib/conf-parse.y	2009-02-22 18:02:42.000000000 +0100
-> > @@ -342,7 +342,6 @@ sensors_expr *malloc_expr(void)
-> >  {
-> >    sensors_expr *res = malloc(sizeof(sensors_expr));
-> >    if (! res)
-> > -    sensors_fatal_error("malloc_expr","Allocating a new expression");
-> > +    sensors_fatal_error(__func__, "Allocating a new expression");
-> >    return res;
-> >  }
-> > -  
-> > diff -urp lm-sensors-dev/lib/data.c my-sensors/lib/data.c
-> > --- lm-sensors-dev/lib/data.c	2009-02-19 23:17:15.000000000 +0100
-> > +++ my-sensors/lib/data.c	2009-02-22 17:57:28.000000000 +0100
-> > @@ -88,7 +88,7 @@ int sensors_parse_chip_name(const char *
-> >  			return -SENSORS_ERR_CHIP_NAME;
-> >  		res->prefix = strndup(name, dash - name);
-> >  		if (!res->prefix)
-> > -			sensors_fatal_error("sensors_parse_chip_name",
-> > +			sensors_fatal_error(__func__,
-> >  					    "Allocating name prefix");
-> >  		name = dash + 1;
-> >  	}
-> > diff -urp lm-sensors-dev/lib/general.c my-sensors/lib/general.c
-> > --- lm-sensors-dev/lib/general.c	2009-02-19 23:17:15.000000000 +0100
-> > +++ my-sensors/lib/general.c	2009-02-22 17:57:28.000000000 +0100
-> > @@ -34,8 +34,7 @@ void sensors_malloc_array(void *list, in
-> >  
-> >  	*my_list = malloc(el_size*A_BUNCH);
-> >  	if (! *my_list)
-> > -		sensors_fatal_error("sensors_malloc_array",
-> > -				    "Allocating new elements");
-> > +		sensors_fatal_error(__func__, "Allocating new elements");
-> >  	*max_el = A_BUNCH;
-> >  	*num_el = 0;
-> >  }
-> > @@ -59,7 +58,7 @@ void sensors_add_array_el(const void *el
-> >  		new_max_el = *max_el + A_BUNCH;
-> >  		*my_list = realloc(*my_list, new_max_el * el_size);
-> >  		if (! *my_list)
-> > -			sensors_fatal_error("sensors_add_array_el",
-> > +			sensors_fatal_error(__func__,
-> >  					    "Allocating new elements");
-> >  		*max_el = new_max_el;
-> >  	}
-> > @@ -77,7 +76,7 @@ void sensors_add_array_els(const void *e
-> >  		new_max_el -= new_max_el % A_BUNCH;
-> >  		*my_list = realloc(*my_list, new_max_el * el_size);
-> >  		if (! *my_list)
-> > -			sensors_fatal_error("sensors_add_array_els",
-> > +			sensors_fatal_error(__func__,
-> >  					    "Allocating new elements");
-> >  		*max_el = new_max_el;
-> >  	}
-> 
-> Patch looks good, however I can't apply it right now because SVN is
-> frozen for the release of lm-sensors 3.1.0 at the end of the week. Your
-> patch will be applied after the release.
+> We don't lose anything. You still send the patches to the list for
+> review, and once the review is positive, you get to commit the patches
+> yourself. The only difference is who runs "svn commit".
 
-Allright, thanks.
+So let's do it. :)
 
-> 
-> BTW, are you sure you don't want an SVN account? You're sending good
-> patches, and you might as well apply them yourself...
-
-How works patch reviewing in that case? Should I send the patches
-still to the list? I don't want to break something or do silly
-things.
-
-So if we don't lose the reviewing I would be very happy to get an account.
-
-Thanks
 Andre
-
+ 
 > -- 
 > Jean Delvare
 
