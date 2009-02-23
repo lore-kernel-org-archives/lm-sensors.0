@@ -1,51 +1,98 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 08 Feb 2009 21:33:49 +0000
-Subject: Re: [lm-sensors] AMD 690G motherboards?
-Message-Id: <20090208223349.1933e98b@hyperion.delvare>
+From: Andre Prendel <andre_prendel@gmx.de>
+Date: Mon, 23 Feb 2009 08:44:03 +0000
+Subject: [lm-sensors] [PATCH v2 2/2] libsensors: Use __func__ in
+Message-Id: <20090223084402.GA4511@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E1LUlss-0003yf-U8@mendel.bio.caltech.edu>
-In-Reply-To: <E1LUlss-0003yf-U8@mendel.bio.caltech.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 08 Feb 2009 12:42:15 -0800, David Mathog wrote:
-> Jean Delvare <khali@linux-fr.org>, wrote:
-> > On Wed, 04 Feb 2009 09:49:58 -0800, David Mathog wrote:
-> > >=20
-> > > Here is the full output of "sensors"
-> > > acpitz-virtual-0
-> > > Adapter: Virtual device
-> > > temp1:        +8.0 =B0C  (crit =3D +75.0 =B0C)                 =20
-> >=20
-> > Apparently the ACPI thermal zone reads the temperature from the
-> > IT8716F's temp1, but it happens to be incorrect. Note that accessing
-> > the sensors from both ACPI and native drivers is dangerous, so you
-> > should load either thermal or it87 but not both.
->=20
-> How does one disable this acpitz-virtual-0 method?  sensors is reporting
-> it, but I don't see that sensors configured it.  /etc/modules only has:
->=20
-> fuse
-> lp
-> it87
-> k8temp
->=20
-> None of which seem related to acpitz-virtual-0
+Hi Jean,
 
-The thermal driver is usually loaded by distribution scripts. Or
-maybe it is auto-loaded by now. In the former case, you must find a
-distribution-specific way to prevent the module from loading. In the
-latter case you have to blacklist the driver, usually by adding
-"blacklist thermal" in any file under /etc/modprobe.d.
+this is an updated version of the patch from 20.02. According to your
+hint I have patched conf-parse.y and not conf-parse.c.
 
-That being said, you should only do that if ACPI doesn't take care of
-thermal management on your system. It usually doesn't on desktop and
-does on laptops, but YMMV.
+This patch unifies sensors_fatal_error() calls. Uses __func__ to get
+the function name.
 
---=20
-Jean Delvare
+Andre
+
+---
+ access.c     |    3 +--
+ conf-parse.y |    3 +--
+ data.c       |    2 +-
+ general.c    |    7 +++----
+ 4 files changed, 6 insertions(+), 9 deletions(-)
+
+diff -urp lm-sensors-dev/lib/access.c my-sensors/lib/access.c
+--- lm-sensors-dev/lib/access.c	2009-02-19 23:17:15.000000000 +0100
++++ my-sensors/lib/access.c	2009-02-22 17:57:28.000000000 +0100
+@@ -201,8 +201,7 @@ char *sensors_get_label(const sensors_ch
+ 	
+ sensors_get_label_exit:
+ 	if (!label)
+-		sensors_fatal_error("sensors_get_label",
+-				    "Allocating label text");
++		sensors_fatal_error(__func__, "Allocating label text");
+ 	return label;
+ }
+ 
+diff -urp lm-sensors-dev/lib/conf-parse.y my-sensors/lib/conf-parse.y
+--- lm-sensors-dev/lib/conf-parse.y	2009-02-16 14:12:50.000000000 +0100
++++ my-sensors/lib/conf-parse.y	2009-02-22 18:02:42.000000000 +0100
+@@ -342,7 +342,6 @@ sensors_expr *malloc_expr(void)
+ {
+   sensors_expr *res = malloc(sizeof(sensors_expr));
+   if (! res)
+-    sensors_fatal_error("malloc_expr","Allocating a new expression");
++    sensors_fatal_error(__func__, "Allocating a new expression");
+   return res;
+ }
+-  
+diff -urp lm-sensors-dev/lib/data.c my-sensors/lib/data.c
+--- lm-sensors-dev/lib/data.c	2009-02-19 23:17:15.000000000 +0100
++++ my-sensors/lib/data.c	2009-02-22 17:57:28.000000000 +0100
+@@ -88,7 +88,7 @@ int sensors_parse_chip_name(const char *
+ 			return -SENSORS_ERR_CHIP_NAME;
+ 		res->prefix = strndup(name, dash - name);
+ 		if (!res->prefix)
+-			sensors_fatal_error("sensors_parse_chip_name",
++			sensors_fatal_error(__func__,
+ 					    "Allocating name prefix");
+ 		name = dash + 1;
+ 	}
+diff -urp lm-sensors-dev/lib/general.c my-sensors/lib/general.c
+--- lm-sensors-dev/lib/general.c	2009-02-19 23:17:15.000000000 +0100
++++ my-sensors/lib/general.c	2009-02-22 17:57:28.000000000 +0100
+@@ -34,8 +34,7 @@ void sensors_malloc_array(void *list, in
+ 
+ 	*my_list = malloc(el_size*A_BUNCH);
+ 	if (! *my_list)
+-		sensors_fatal_error("sensors_malloc_array",
+-				    "Allocating new elements");
++		sensors_fatal_error(__func__, "Allocating new elements");
+ 	*max_el = A_BUNCH;
+ 	*num_el = 0;
+ }
+@@ -59,7 +58,7 @@ void sensors_add_array_el(const void *el
+ 		new_max_el = *max_el + A_BUNCH;
+ 		*my_list = realloc(*my_list, new_max_el * el_size);
+ 		if (! *my_list)
+-			sensors_fatal_error("sensors_add_array_el",
++			sensors_fatal_error(__func__,
+ 					    "Allocating new elements");
+ 		*max_el = new_max_el;
+ 	}
+@@ -77,7 +76,7 @@ void sensors_add_array_els(const void *e
+ 		new_max_el -= new_max_el % A_BUNCH;
+ 		*my_list = realloc(*my_list, new_max_el * el_size);
+ 		if (! *my_list)
+-			sensors_fatal_error("sensors_add_array_els",
++			sensors_fatal_error(__func__,
+ 					    "Allocating new elements");
+ 		*max_el = new_max_el;
+ 	}
 
 _______________________________________________
 lm-sensors mailing list
