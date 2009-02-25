@@ -1,79 +1,55 @@
-From: Justin Chudgar <justin@justinzane.com>
-Date: Tue, 24 Feb 2009 19:18:10 +0000
+From: Michael Reinelt <michael@reinelt.co.at>
+Date: Wed, 25 Feb 2009 04:50:28 +0000
 Subject: Re: [lm-sensors] module c7temp shows voltage, but no temperature
-Message-Id: <200902241118.11911.justin@justinzane.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3217326751577444466=="
+Message-Id: <49A4CE14.3000308@reinelt.co.at>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200902221052.31780.justin@justinzane.com>
 In-Reply-To: <200902221052.31780.justin@justinzane.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============3217326751577444466==
-Content-Type: multipart/alternative; boundary="Boundary-00=_zfEpJGPlbx3U19M"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi there,
 
---Boundary-00=_zfEpJGPlbx3U19M
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Juerg Haefliger wrote:
+> Please also run cpuid -r.
 
-Rudolf:
+here you are:
 
-Juerg is the one who has been helping me out; so everything I say is likely a 
-less accurate repetition of his words. My understanding is that there is at 
-least one, and probably more, system configurations from VIA with C7 CPUs that 
-do not work with the current c7temp module.
+artus.reinelt.local:~ # cpuid -r
+CPU:
+   0x00000000: eax=0x00000001 ebx=0x746e6543 ecx=0x736c7561 edx=0x48727561
+   0x00000001: eax=0x000006d0 ebx=0x00000800 ecx=0x00004181 edx=0xa7c9bbff
+   0x80000000: eax=0x80000006 ebx=0x00000000 ecx=0x00000000 edx=0x00000000
+   0x80000001: eax=0x00000000 ebx=0x00000000 ecx=0x00000000 edx=0x00100000
+   0x80000002: eax=0x20202020 ebx=0x20202020 ecx=0x20202020 edx=0x20202020
+   0x80000003: eax=0x20202020 ebx=0x56202020 ecx=0x43204149 edx=0x72502037
+   0x80000004: eax=0x7365636f ebx=0x20726f73 ecx=0x30303531 edx=0x007a484d
+   0x80000005: eax=0x00000000 ebx=0x08800880 ecx=0x40040140 edx=0x40040140
+   0x80000006: eax=0x00000000 ebx=0x00000000 ecx=0x0080a140 edx=0x00000000
+   0x80860000: eax=0x00000000 ebx=0x00000000 ecx=0x00000000 edx=0x00000000
+   0xc0000000: eax=0xc0000003 ebx=0x00000000 ecx=0x00000000 edx=0x00000000
+   0xc0000001: eax=0x00000000 ebx=0x00000002 ecx=0x00000000 edx=0x0000ffcc
+   0xc0000002: eax=0x00000000 ebx=0x08000810 ecx=0x08100f13 edx=0x42040000
+   0xc0000003: eax=0x57762abe ebx=0xce237d7f ecx=0x5ee56564 edx=0xe8619e36
 
-In my case it is a HP 2133 Mini-Note KX869AT. Michael has a different system, 
-but the same issue. I used the version of CPUID that Juerg recommended and 
-provided the output to him and the list several months ago. At that time he 
-mentioned that he needed documentation from VIA to determine which registers 
-meant what.
+
+I tried another thing, which unfortunately is not promising: I ran cpuid
+-r several times, nothing changed. Then I started a cpuburn process
+(which should lead to a cpu temp increase) but again: nothing changed in
+the output of cpuid :-(
 
 
-If you, Rudolf, are able to find out any technical info about these CPUs, or if 
-you need more accurate technical info about the problems with c7temp, I would 
-suggest contacting Juerg. I will be happy to provide any data from my system 
-and try any patches that may help; but, I am sadly not a developer.
+<crying> I want a CPU temperature! </crying>
 
-Thank you all for your interest and effort. 
 -- 
-
-Justin Chudgar
-Information Technology Consultant
-5040 Saddlehorn Rd, Weed, CA 96084
-530-938-9692 (Home Office)
-
-
-
---Boundary-00=_zfEpJGPlbx3U19M
-Content-Type: text/html;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Myriad Pro'; font-size:8pt; font-weight:400; font-style:normal;">Rudolf:<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Juerg is the one who has been helping me out; so everything I say is likely a less accurate repetition of his words. My understanding is that there is at least one, and probably more, system configurations from VIA with C7 CPUs that do not work with the current c7temp module.<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>In my case it is a HP 2133 Mini-Note KX869AT. Michael has a different system, but the same issue. I used the version of CPUID that Juerg recommended and provided the output to him and the list several months ago. At that time he mentioned that he needed documentation from VIA to determine which registers meant what.<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p><p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>If you, Rudolf, are able to find out any technical info about these CPUs, or if you need more accurate technical info about the problems with c7temp, I would suggest contacting Juerg. I will be happy to provide any data from my system and try any patches that may help; but, I am sadly not a developer.<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Thank you all for your interest and effort. <br />-- <br /><br>
-<span style=" font-family:'betecknalowercasebold';">Justin Chudgar</span><br>
-Information Technology Consultant<br>
-5040 Saddlehorn Rd, Weed, CA 96084<br>
-530-938-9692 (Home Office)<br>
-<br /></p></body></html>
---Boundary-00=_zfEpJGPlbx3U19M--
-
-
---===============3217326751577444466==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Michael Reinelt <michael@reinelt.co.at>
+http://home.pages.at/reinelt
+GPG-Key 0xDF13BA50
+ICQ #288386781
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3217326751577444466==--
