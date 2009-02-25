@@ -1,50 +1,94 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 14 Feb 2009 11:31:29 +0000
-Subject: [lm-sensors] Call for 3.1.0
-Message-Id: <20090214123129.341cba0e@hyperion.delvare>
+From: ts <ts@asplinux.com.ua>
+Date: Wed, 25 Feb 2009 14:19:32 +0000
+Subject: [lm-sensors] lm_sensorsdon't work with S5000PSL
+Message-Id: <49A55374.90804@asplinux.com.ua>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 12 Feb 2009 14:08:42 +0100, Jean Delvare wrote:
-> It's been quite some time since lm-sensors 3.0.3 was released (end of
-> September 2008, that's 4.5 months ago) and I think it's about time to
-> push a new release out. Given the number of big changes in the upcoming
-> release I plan to renumber it from 3.0.4 to 3.1.0.
-> 
-> The major changes in this release will be:
-> * Completely reworked sensors-detect. Support for Linux 2.4 was
->   dropped, devices probe order was reverted (integrated sensors first,
->   I2C/SMBus chips last), bus driver names are retrieved from sysfs, bus
->   number prediction was fixed, modules we loaded ourselves are unloaded.
->   The script is significantly smaller, and smarter.
-> * Improvements to libsensors. Circular dependencies in the
->   configuration file are detected and dealt with, and more importantly,
->   support for multiple configuration files was (well, is being) added.
->   This is an important step in the direction of automatic lm-sensors
->   configuration. Also some performance and memory usage improvements.
->   Support for instantaneous power sensors and current sensors.
-> * The format of /etc/sysconfig/lm_sensors was changed. The new format
->   is easier to edit, which will ease integration with external tools.
-> * New default sensors.conf file. Much lighter, with only always-correct
->   statements. Big performance boost, and hopefully less confusion for
->   the user.
-> * And as usual, random fixes to all tools.
-> 
-> As some of these changes are pretty intrusive, I expect some problems.
-> This release will require some serious testing. The proposed version
-> number (3.1.0) hopefully reflects this.
+Good day!
+I want to install lm_sensors on my server, but when I do command 
+"sensors-detect" I receive this:
+[root@localhost kernel]# sensors-detect
+# sensors-detect revision 5291 (2008-06-23 23:40:46 -0700)
 
-Proposed schedule for the 3.1.0 release:
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
 
-* February 21st: SVN freeze.
-* February 22nd to 27th: testing.
-* February 28th: release.
+We can start with probing for (PCI) I2C or SMBus adapters.
+Do you want to probe now? (YES/no):
+Probing for PCI bus adapters...
+Use driver `i2c-i801' for device 0000:00:1f.3: Intel Enterprise 
+Southbridge - ESB2
 
--- 
-Jean Delvare
+We will now try to load each adapter module in turn.
+Module `i2c-i801' already loaded.
+If you have undetectable or unsupported I2C/SMBus adapters, you can have
+them scanned by manually loading the modules before running this script.
+
+We are now going to do the I2C/SMBus adapter probings. Some chips may
+be double detected; we choose the one with the highest confidence
+value in that case.
+If you found that the adapter hung after probing a certain address,
+you can specify that address to remain unprobed.
+
+Next adapter: SMBus I801 adapter at 4000 (i2c-0)
+Do you want to scan it? (YES/no/selectively):
+
+Some chips are also accessible through the ISA I/O ports. We have to
+write to arbitrary I/O ports to probe them. This is usually safe though.
+Yes, you do have ISA I/O ports even if you do not have any ISA slots!
+Do you want to scan the ISA I/O ports? (YES/no):
+Probing for `National Semiconductor LM78' at 0x290...       No
+Probing for `National Semiconductor LM78-J' at 0x290...     No
+Probing for `National Semiconductor LM79' at 0x290...       No
+Probing for `Winbond W83781D' at 0x290...                   No
+Probing for `Winbond W83782D' at 0x290...                   No
+
+Some Super I/O chips may also contain sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no):
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor'...                   Yes
+Found `Nat. Semi. PC87427 Super IO Health Sensors'         
+    (but not activated)
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Fintek'...                       No
+Trying family `ITE'...                                      No
+
+Some south bridges, CPUs or memory controllers may also contain
+embedded sensors. Do you want to scan for them? (YES/no):
+Silicon Integrated Systems SIS5595...                       No
+VIA VT82C686 Integrated Sensors...                          No
+VIA VT8231 Integrated Sensors...                            No
+AMD K8 thermal sensors...                                   No
+AMD K10 thermal sensors...                                  No
+Intel AMB FB-DIMM thermal sensor...                         Success!
+    (driver `to-be-written')
+
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
+
+Driver `to-be-written' (should be inserted):
+  Detects correctly:
+  * Chip `Intel AMB FB-DIMM thermal sensor' (confidence: 9)
+
+Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no):
+
+As I understood lm_sensors want pc87427.ko module but when I make
+ "modprobe pc87427" I receive:
+[root@localhost kernel]# modprobe pc87427
+FATAL: Error inserting pc87427 
+(/lib/modules/2.6.18-128.1.1.el5.asp121/extra/pc87427.ko): No such device
+Help me please!
+My motherboard - Server Board S5000PSL
+Thank you! With best regards Viktor.
 
 _______________________________________________
 lm-sensors mailing list
