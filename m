@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 26 Feb 2009 15:09:59 +0000
+Date: Thu, 26 Feb 2009 16:10:34 +0000
 Subject: Re: [lm-sensors] W83667HG driver test for in6 and temp3
-Message-Id: <20090226160959.016e3f9b@hyperion.delvare>
+Message-Id: <20090226171034.47e0e62d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <29CFBC9A3FDC81418F5FACEEC8970E0020AE12@ntshml01.nuvoton.com>
 In-Reply-To: <29CFBC9A3FDC81418F5FACEEC8970E0020AE12@ntshml01.nuvoton.com>
@@ -10,39 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Michael,
+Hi all,
 
-On Wed, 25 Feb 2009 11:18:23 -0500, Michael Hampton wrote:
-> I applied this patch to my current Fedora 10 kernel but the patched
-> module fails to load:
-> root@underground ~ # modprobe w83627ehf
-> FATAL: Error inserting w83627ehf
-> (/lib/modules/2.6.27.15-170.2.24.fc10.x86_64/kernel/drivers/hwmon/w83627ehf.ko):
-> No such device
-> 
-> I haven't tried with a vanilla kernel yet. I don't usually run them.
-> 
-> Interestingly, sensors-detect says the device has a different ID:
+On Thu, 26 Feb 2009 17:37:38 +0800, JGong@nuvoton.com wrote:
+> Thanks very much for your quick comment. I've added the skip_in6 and
+> temp3_disable into the data struct, cut the sda_temp into sub-arrays now.
 
-Different from what? 
+Looks good to me. Only your Signed-off-by line is missing. Can I add it?
 
-> Some Super I/O chips may also contain sensors. We have to write to
-> standard I/O ports to probe them. This is usually safe.
-> Do you want to scan for Super I/O sensors? (YES/no):
-> Probing for Super-I/O at 0x2e/0x2f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Fintek'...                       Yes
-> Found unknown chip with ID 0xa513
->     (logical device B has address 0x290, could be sensors)
-> Probing for Super-I/O at 0x4e/0x4f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Fintek'...                       No
-> Trying family `ITE'...                                      No
+To all potential testers: I've split support for the W83667HG into 3
+patches:
 
-The driver accepts IDs 0xa510 to 0xa51f so it should be OK.
+ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/hwmon-w83627ehf-01-invert-fan-pin-logic.patch
+ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/hwmon-w83627ehf-02-add-support-for-w83667hg.patch
+ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/hwmon-w83627ehf-03-fix-temp3-vs-in6.patch
 
+These patches are now in linux-next and will be merged into kernel
+2.6.30 if we receive positive feedback.
+
+Any further change should be in a new patch to be applied on top of
+these 3 patches we already have.
+
+Thanks,
 -- 
 Jean Delvare
 
