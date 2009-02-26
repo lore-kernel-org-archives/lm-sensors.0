@@ -1,8 +1,10 @@
 From: Andre Prendel <andre_prendel@gmx.de>
-Date: Wed, 25 Feb 2009 14:43:38 +0000
+Date: Thu, 26 Feb 2009 09:38:44 +0000
 Subject: Re: [lm-sensors] [RFC] lm-sensors-3.1.0: Create
-Message-Id: <20090225144338.GA10526@ubuntu>
+Message-Id: <20090226093844.GA4330@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20090225144338.GA10526@ubuntu>
+In-Reply-To: <20090225144338.GA10526@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -42,14 +44,12 @@ On Wed, Feb 25, 2009 at 02:36:01PM +0100, Gabriel C wrote:
 > > Yes, I agree, let's create directory sensors.d as part of the
 > > installation process.
 > > 
-> 
+ 
 > 
 > Maybe something like the following patch ? :
 
-Yes, it works. So I can do some other useful things (drinking beer) than
-writing a patch tonight :)
+Jean, what about applying the patch below. Should I do? Will you do?
 
-> 
 > ( maybe some README file in this directory won't be bad to have ? )
 > 
 > Index: etc/Module.mk
