@@ -1,7 +1,7 @@
 From: Andre Prendel <andre_prendel@gmx.de>
-Date: Thu, 26 Feb 2009 09:38:44 +0000
+Date: Thu, 26 Feb 2009 10:13:54 +0000
 Subject: Re: [lm-sensors] [RFC] lm-sensors-3.1.0: Create
-Message-Id: <20090226093844.GA4330@ubuntu>
+Message-Id: <20090226101354.GB4330@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090225144338.GA10526@ubuntu>
 In-Reply-To: <20090225144338.GA10526@ubuntu>
@@ -44,12 +44,10 @@ On Wed, Feb 25, 2009 at 02:36:01PM +0100, Gabriel C wrote:
 > > Yes, I agree, let's create directory sensors.d as part of the
 > > installation process.
 > > 
- 
+> 
 > 
 > Maybe something like the following patch ? :
-
-Jean, what about applying the patch below. Should I do? Will you do?
-
+> 
 > ( maybe some README file in this directory won't be bad to have ? )
 > 
 > Index: etc/Module.mk
@@ -70,6 +68,10 @@ Jean, what about applying the patch below. Should I do? Will you do?
 >  	if [ ! -e $(DESTDIR)$(ETCINSTALL) ] ; then \
 >  	  $(INSTALL) -m 644 $(ETCTARGET) $(DESTDIR)$(ETCINSTALL); \
 >  	fi
+
+Applied, thanks.
+
+Andre
 
 _______________________________________________
 lm-sensors mailing list
