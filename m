@@ -1,96 +1,112 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 01 Mar 2009 08:58:56 +0000
+From: "David O'Shea" <dcoshea@hotmail.com>
+Date: Sun, 01 Mar 2009 10:50:49 +0000
 Subject: Re: [lm-sensors] Compaq Evo D51S hidden sensor
-Message-Id: <20090301095856.0ba4ab52@hyperion.delvare>
+Message-Id: <SNT103-W55912201D47365B8188F79B8A80@phx.gbl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="_c2b4b2d8-61af-4ac6-96cf-3e7312924f90_"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BLU145-W35B82847EBE241F19D2D21B8DC0@phx.gbl>
 In-Reply-To: <BLU145-W35B82847EBE241F19D2D21B8DC0@phx.gbl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David,
+--_c2b4b2d8-61af-4ac6-96cf-3e7312924f90_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-On Sun, 1 Mar 2009 17:14:15 +1000, David O'Shea wrote:
-> 
-> Hi Jean,
-> 
-> Apologies for my late reply too :)
-> 
-> > Date: Tue, 27 Jan 2009 10:44:00 +0100
-> [...]
-> > > The fact that it didn't work with the IDE could just be because I'm so
-> > > clueless!  Does the fact that the IDE controller has a function number
-> > > other than 0 affect the way the DECLARE_PCI_FIXUP_HEADER() macro is used
-> > > or what is passed to the hook function?  Even if not, if you think using
-> > > the IDE is preferable I can have another try in case it didn't work due
-> > > to a stupid mistake.
-> > 
-> > Yes, I would like you to try again with the IDE device, because there's
-> > only one IDE device and 3 USB devices so using the IDE device should be
-> > more efficient (quirk runs only once.)
-> 
-> That makes sense!  Now that I look more closely, I guess the 3 USB devices each have their own ID, though, so it wouldn't be so bad:
-> 
-> 00:1d.0 USB Controller [0c03]: Intel Corporation 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #1 [8086:24c2] (rev 01) (prog-if 00 [UHCI])
-> 00:1d.1 USB Controller [0c03]: Intel Corporation 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #2 [8086:24c4] (rev 01) (prog-if 00 [UHCI])
-> 00:1d.7 USB Controller [0c03]: Intel Corporation 82801DB/DBM (ICH4/ICH4-M) USB2 EHCI Controller [8086:24cd] (rev 01) (prog-if 20 [EHCI])
-> 
-> i.e. 24c2 would only pick up the first one.
 
-Ah, good point. Then it should indeed be OK to use one of the USB
-controllers ID.
+Hi Jean=2C
 
-> 
-> > No, the function number shouldn't play any role. I can't see any reason
-> > why IDE wouldn't work.
-> 
-> I tried again and I guess it is an ordering issue - the special bit has to be set in the ISA bridge which is at 00:1f.0 but the IDE controller is at 00:1f.1 so the function that sets 'asus_hides_smbus' is called after the function that checks it.  I used '#define DEBUG 1' and 'dmesg' to verify:
-> 
-> >>>
-> pci 0000:00:1f.0: calling acpi_pm_check_graylist+0x0/0x2d
-> * The chipset may have PM-Timer Bug. Due to workarounds for a bug,
-> * this clock source is slow. If you are sure your timer does not have
-> * this bug, please use "acpi_pm_good" to disable the workaround
-> pci 0000:00:1f.0: calling old_ich_force_enable_hpet_user+0x0/0x20
-> HPET not enabled in BIOS. You might try hpet=force boot option
-> pci 0000:00:1f.0: calling asus_hides_smbus_lpc+0x0/0xa6
-> pci 0000:00:1f.0: calling quirk_ich4_lpc_acpi+0x0/0x65
-> pci 0000:00:1f.0: quirk: region f800-f87f claimed by ICH4 ACPI/GPIO/TCO
-> pci 0000:00:1f.0: quirk: region fa00-fa3f claimed by ICH4 GPIO
-> pci 0000:00:1f.0: calling pci_fixup_transparent_bridge+0x0/0x2b
-> PCI: 0000:00:1f.1 reg 10 io port: [24b0, 24b7]
-> PCI: 0000:00:1f.1 reg 14 io port: [24c0, 24c3]
-> PCI: 0000:00:1f.1 reg 18 io port: [24b8, 24bf]
-> PCI: 0000:00:1f.1 reg 1c io port: [24c4, 24c7]
-> PCI: 0000:00:1f.1 reg 20 io port: [24a0, 24af]
-> PCI: 0000:00:1f.1 reg 24 32bit mmio: [0, 3ff]
-> pci 0000:00:1f.1: calling asus_hides_smbus_hostbridge+0x0/0x22e
-> pci 0000:00:1f.1: quirk: FIXME: FOUND IDE, THIS IS A COMPAQ EVO, SETTING asus_hides_smbus = 1
-> pci 0000:00:1f.1: calling pci_fixup_transparent_bridge+0x0/0x2b
-> <<<
-> 
-> asus_hides_smbus_lpc() is of course the function that checks 'asus_hides_smbus' and you can see it is called before we got to the point where it was set.
+> Date: Sun=2C 1 Mar 2009 09:58:56 +0100
 
-You are correct.
+>> As you can see from earlier in the mail=2C the USB controllers are at 00=
+:1d so they come before the ISA bridge and I guess that's why using one of =
+them worked for me!  Given that they each have their own ID would it be oka=
+y to use them then?
+>=20
+> Did you try using DECLARE_PCI_FIXUP_EARLY() instead of
+> DECLARE_PCI_FIXUP_HEADER()? I suspect this would let you use the IDE
+> controller.
 
-> 
-> As you can see from earlier in the mail, the USB controllers are at 00:1d so they come before the ISA bridge and I guess that's why using one of them worked for me!  Given that they each have their own ID would it be okay to use them then?
+I'm afraid I didn't look around that much so wasn't aware of that one!
 
-Did you try using DECLARE_PCI_FIXUP_EARLY() instead of
-DECLARE_PCI_FIXUP_HEADER()? I suspect this would let you use the IDE
-controller.
+> But as said above=2C I am now also fine with you using one of the USB
+> controllers if you prefer=3B it's up to you. When you have a working
+> patch=2C please send it to me and I'll review it quickly so that it can
+> make it into 2.6.30.
 
-But as said above, I am now also fine with you using one of the USB
-controllers if you prefer; it's up to you. When you have a working
-patch, please send it to me and I'll review it quickly so that it can
-make it into 2.6.30.
+I prefer to stick to using the USB since it requires less changes and knowi=
+ng as little as I do about the code it is probably best that I do as little=
+ as possible to it :)
 
--- 
-Jean Delvare
+I have attached a patch.  Apologies in advance if I got it wrong somehow!  =
+Also I'm afraid it is based on an older kernel version (2.6.27) since this =
+is what Fedora 10 includes - it was not until you mentioned 2.6.30 that I k=
+new this was old :(  I hope this is acceptable anyway since the patch is pr=
+etty simple.
+
+Thanks in advance=2C
+David
+
+_________________________________________________________________
+Looking to change your car this year? Find car news=2C reviews and more=20
+http://a.ninemsn.com.au/b.aspx?URL=3Dhttp%3A%2F%2Fsecure%2Dau%2Eimrworldwid=
+e%2Ecom%2Fcgi%2Dbin%2Fa%2Fci%5F450304%2Fet%5F2%2Fcg%5F801459%2Fpi%5F1004813=
+%2Fai%5F859641&_t=3D762955845&_r=3Dtig_OCT07&_m=3DEXT=
+
+--_c2b4b2d8-61af-4ac6-96cf-3e7312924f90_
+Content-Type: text/x-patch
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="compaq_evo_d51s_sensors.patch"
+
+ZGlmZiAtciAtdSAuL2xpbnV4LTIuNi4yNy5pNjg2Lm9yaWcvZHJpdmVycy9wY2kvcXVpcmtzLmMg
+Li9saW51eC0yLjYuMjcuaTY4Ni5jb21wYXFfZXZvX2Q1MXNfc2Vuc29ycy9kcml2ZXJzL3BjaS9x
+dWlya3MuYwotLS0gLi9saW51eC0yLjYuMjcuaTY4Ni5vcmlnL2RyaXZlcnMvcGNpL3F1aXJrcy5j
+CTIwMDktMDEtMTggMTM6MzE6MzkuMDAwMDAwMDAwICsxMDMwCisrKyAuL2xpbnV4LTIuNi4yNy5p
+Njg2LmNvbXBhcV9ldm9fZDUxc19zZW5zb3JzL2RyaXZlcnMvcGNpL3F1aXJrcy5jCTIwMDktMDMt
+MDEgMjA6MDM6MTkuMDAwMDAwMDAwICsxMDMwCkBAIC0xMDY3LDEwICsxMDY3LDE1IEBACiAJCQkJ
+ICogaXRzIG9uLWJvYXJkIFZHQSBjb250cm9sbGVyICovCiAJCQkJYXN1c19oaWRlc19zbWJ1cyA9
+IDE7CiAJCQl9Ci0JCWVsc2UgaWYgKGRldi0+ZGV2aWNlID09IFBDSV9ERVZJQ0VfSURfSU5URUxf
+ODI4NDVHX0lHKQorCQllbHNlIGlmIChkZXYtPmRldmljZSA9PSBQQ0lfREVWSUNFX0lEX0lOVEVM
+XzgyODAxREJfMikKIAkJCXN3aXRjaChkZXYtPnN1YnN5c3RlbV9kZXZpY2UpIHsKIAkJCWNhc2Ug
+MHgwMGI4OiAvKiBDb21wYXEgRXZvIEQ1MTAgQ01UICovCiAJCQljYXNlIDB4MDBiOTogLyogQ29t
+cGFxIEV2byBENTEwIFNGRiAqLworCQkJCS8qIE1vdGhlcmJvYXJkIGRvZXNuJ3QgaGF2ZSBIb3N0
+IGJyaWRnZQorCQkJCSAqIHN1YnZlbmRvci9zdWJkZXZpY2UgSURzIGFuZCBvbi1ib2FyZCBWR0EK
+KwkJCQkgKiBjb250cm9sbGVyIGlzIGRpc2FibGVkIGlmIGFuIEFHUCBjYXJkIGlzCisJCQkJICog
+aW5zZXJ0ZWQsIHRoZXJlZm9yZSBjaGVja2luZyBVU0IgVUhDSQorCQkJCSAqIENvbnRyb2xsZXIg
+IzEgKi8KIAkJCQlhc3VzX2hpZGVzX3NtYnVzID0gMTsKIAkJCX0KIAkJZWxzZSBpZiAoZGV2LT5k
+ZXZpY2UgPT0gUENJX0RFVklDRV9JRF9JTlRFTF84MjgxNV9DR0MpCkBAIC0xMDk1LDcgKzExMDAs
+NyBAQAogREVDTEFSRV9QQ0lfRklYVVBfSEVBREVSKFBDSV9WRU5ET1JfSURfSU5URUwsCVBDSV9E
+RVZJQ0VfSURfSU5URUxfODI5MTVHTV9IQiwgYXN1c19oaWRlc19zbWJ1c19ob3N0YnJpZGdlKTsK
+IAogREVDTEFSRV9QQ0lfRklYVVBfSEVBREVSKFBDSV9WRU5ET1JfSURfSU5URUwsCVBDSV9ERVZJ
+Q0VfSURfSU5URUxfODI4MTBfSUczLAlhc3VzX2hpZGVzX3NtYnVzX2hvc3RicmlkZ2UpOwotREVD
+TEFSRV9QQ0lfRklYVVBfSEVBREVSKFBDSV9WRU5ET1JfSURfSU5URUwsCVBDSV9ERVZJQ0VfSURf
+SU5URUxfODI4NDVHX0lHLAlhc3VzX2hpZGVzX3NtYnVzX2hvc3RicmlkZ2UpOworREVDTEFSRV9Q
+Q0lfRklYVVBfSEVBREVSKFBDSV9WRU5ET1JfSURfSU5URUwsCVBDSV9ERVZJQ0VfSURfSU5URUxf
+ODI4MDFEQl8yLAlhc3VzX2hpZGVzX3NtYnVzX2hvc3RicmlkZ2UpOwogREVDTEFSRV9QQ0lfRklY
+VVBfSEVBREVSKFBDSV9WRU5ET1JfSURfSU5URUwsCVBDSV9ERVZJQ0VfSURfSU5URUxfODI4MTVf
+Q0dDLAlhc3VzX2hpZGVzX3NtYnVzX2hvc3RicmlkZ2UpOwogCiBzdGF0aWMgdm9pZCBhc3VzX2hp
+ZGVzX3NtYnVzX2xwYyhzdHJ1Y3QgcGNpX2RldiAqZGV2KQpkaWZmIC1yIC11IC4vbGludXgtMi42
+LjI3Lmk2ODYub3JpZy9pbmNsdWRlL2xpbnV4L3BjaV9pZHMuaCAuL2xpbnV4LTIuNi4yNy5pNjg2
+LmNvbXBhcV9ldm9fZDUxc19zZW5zb3JzL2luY2x1ZGUvbGludXgvcGNpX2lkcy5oCi0tLSAuL2xp
+bnV4LTIuNi4yNy5pNjg2Lm9yaWcvaW5jbHVkZS9saW51eC9wY2lfaWRzLmgJMjAwOS0wMS0xOCAx
+MzozMjozOS4wMDAwMDAwMDAgKzEwMzAKKysrIC4vbGludXgtMi42LjI3Lmk2ODYuY29tcGFxX2V2
+b19kNTFzX3NlbnNvcnMvaW5jbHVkZS9saW51eC9wY2lfaWRzLmgJMjAwOS0wMy0wMSAxOTo0Mzo0
+Mi4wMDAwMDAwMDAgKzEwMzAKQEAgLTIzMjIsNiArMjMyMiw3IEBACiAjZGVmaW5lIFBDSV9ERVZJ
+Q0VfSURfSU5URUxfODI4MDFDQV8xMgkweDI0OGMKICNkZWZpbmUgUENJX0RFVklDRV9JRF9JTlRF
+TF84MjgwMURCXzAJMHgyNGMwCiAjZGVmaW5lIFBDSV9ERVZJQ0VfSURfSU5URUxfODI4MDFEQl8x
+CTB4MjRjMQorI2RlZmluZSBQQ0lfREVWSUNFX0lEX0lOVEVMXzgyODAxREJfMgkweDI0YzIKICNk
+ZWZpbmUgUENJX0RFVklDRV9JRF9JTlRFTF84MjgwMURCXzMJMHgyNGMzCiAjZGVmaW5lIFBDSV9E
+RVZJQ0VfSURfSU5URUxfODI4MDFEQl81CTB4MjRjNQogI2RlZmluZSBQQ0lfREVWSUNFX0lEX0lO
+VEVMXzgyODAxREJfNgkweDI0YzYK
+
+--_c2b4b2d8-61af-4ac6-96cf-3e7312924f90_
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--_c2b4b2d8-61af-4ac6-96cf-3e7312924f90_--
