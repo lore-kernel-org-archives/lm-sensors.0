@@ -1,18 +1,29 @@
-From: Vianney Lejeune <via.lej@free.fr>
-Date: Thu, 26 Mar 2009 17:05:47 +0000
-Subject: Re: [lm-sensors] Can't get pwmconfig working on my Asus P5B-VM
-Message-Id: <D7A446B3-46B8-4F07-8870-3CCC63D3E77E@free.fr>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 02 Mar 2009 10:52:58 +0000
+Subject: Re: [lm-sensors] [PATCH v2 2/2] libsensors: Use __func__ in
+Message-Id: <20090302115258.2dceb4f7@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <25E4D3E5-3EF0-41EB-8F76-730332819C91@free.fr>
-In-Reply-To: <25E4D3E5-3EF0-41EB-8F76-730332819C91@free.fr>
+References: <20090223084402.GA4511@ubuntu>
+In-Reply-To: <20090223084402.GA4511@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> 	I use an Asus P5B-VM motherboard (w83627ehf chipset)
+Andre,
 
-I made a mistake this is the w83627dhg chipset.
+On Mon, 23 Feb 2009 12:27:58 +0100, Andre Prendel wrote:
+> On Mon, Feb 23, 2009 at 12:18:31PM +0100, Jean Delvare wrote:
+> > We don't lose anything. You still send the patches to the list for
+> > review, and once the review is positive, you get to commit the patches
+> > yourself. The only difference is who runs "svn commit".
+> 
+> So let's do it. :)
+
+The 3.1.0 release is done, so you can apply your patch now.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
