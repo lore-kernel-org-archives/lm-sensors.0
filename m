@@ -1,59 +1,59 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Mon, 02 Mar 2009 21:01:06 +0000
-Subject: [lm-sensors] [PATCH] lm90: Support the MAX6648/6692 chips
-Message-Id: <20090302210106.GD6550@plum>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Mon, 02 Mar 2009 23:04:26 +0000
+Subject: Re: [lm-sensors] [PATCH] lm90: Support the MAX6648/6692 chips
+Message-Id: <20090302150426.b22100c1.akpm@linux-foundation.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20090302210106.GD6550@plum>
+In-Reply-To: <20090302210106.GD6550@plum>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: djwong@us.ibm.com
+Cc: khali@linux-fr.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-The max6648 chip has nearly the same register set as the 6657 and
-seems to have a working manufacturer/chip id so we can detect it.
-This patch adds support for it.  Tested on a Nvidia Quadro FX 1500
-card.
+On Mon, 2 Mar 2009 13:01:06 -0800
+"Darrick J. Wong" <djwong@us.ibm.com> wrote:
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
----
+> @@ -776,7 +776,12 @@ static int lm90_detect(struct i2c_client *new_client, int kind,
+>  			 && (reg_config1 & 0x3f) = 0x00
+>  			 && reg_convrate <= 0x07) {
+>  				kind = max6646;
+> -			}
+> +			} else
+> +			/* The MAX6648/6692 chips have a working man/chip id
+> +			 * and the same register set as the 6657.
+> +			 */
+> +			if (chip_id = 0x59 && address = 0x4C)
+> +				kind = max6657;
+>  		}
 
- drivers/hwmon/Kconfig |    4 ++--
- drivers/hwmon/lm90.c  |    7 ++++++-
- 2 files changed, 8 insertions(+), 3 deletions(-)
+gack, the indenting and layout there is totally busted.
 
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 8c312c6..7da49d3 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -550,8 +550,8 @@ config SENSORS_LM90
- 	help
- 	  If you say yes here you get support for National Semiconductor LM90,
- 	  LM86, LM89 and LM99, Analog Devices ADM1032 and ADT7461, and Maxim
--	  MAX6646, MAX6647, MAX6649, MAX6657, MAX6658, MAX6659, MAX6680 and
--	  MAX6681 sensor chips.
-+	  MAX6646, MAX6647, MAX6649, MAX6657, MAX6658, MAX6659, MAX6680,
-+	  MAX6648, MAX6692 and MAX6681 sensor chips.
- 
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called lm90.
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index 96a7018..1802366 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -776,7 +776,12 @@ static int lm90_detect(struct i2c_client *new_client, int kind,
+
+--- a/drivers/hwmon/lm90.c~lm90-support-the-max6648-6692-chips-fix
++++ a/drivers/hwmon/lm90.c
+@@ -776,12 +776,14 @@ static int lm90_detect(struct i2c_client
  			 && (reg_config1 & 0x3f) = 0x00
  			 && reg_convrate <= 0x07) {
  				kind = max6646;
--			}
-+			} else
-+			/* The MAX6648/6692 chips have a working man/chip id
-+			 * and the same register set as the 6657.
-+			 */
-+			if (chip_id = 0x59 && address = 0x4C)
-+				kind = max6657;
+-			} else
+-			/* The MAX6648/6692 chips have a working man/chip id
+-			 * and the same register set as the 6657.
+-			 */
+-			if (chip_id = 0x59 && address = 0x4C)
++			} else if (chip_id = 0x59 && address = 0x4C) {
++				/*
++				 * The MAX6648/6692 chips have a working
++				 * man/chip id and the same register set as the
++				 * 6657.
++				 */
+ 				kind = max6657;
++			}
  		}
  
  		if (kind <= 0) { /* identification failed */
+_
+
 
 _______________________________________________
 lm-sensors mailing list
