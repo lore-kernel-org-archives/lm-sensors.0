@@ -1,32 +1,21 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 28 Mar 2009 17:41:26 +0000
-Subject: Re: [lm-sensors] PATCH: hwmon-fschmd-add-hds-v2.patch
-Message-Id: <20090328184126.022f889c@hyperion.delvare>
+From: Joseph Roberts <robertogoberto@gmail.com>
+Date: Mon, 02 Mar 2009 22:16:29 +0000
+Subject: [lm-sensors] Family 10h
+Message-Id: <2e92ef460903021416h6ae51fc5qbb8bdd19565beafa@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <49CD2204.4020308@redhat.com>
-In-Reply-To: <49CD2204.4020308@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 28 Mar 2009 09:11:27 +0100, Hans de Goede wrote:
-> 
-> 
-> Jean Delvare wrote:
-> > On Fri, 27 Mar 2009 19:59:16 +0100, Hans de Goede wrote:
-> >> This patch adds support for the Hades to the FSC hwmon driver, this patch
-> >> is to be applied on top of the one adding support for the Syleus.
-> > 
-> > Improperly formatted as well, doesn't apply.
-> > 
-> 
-> Ok, sending again this time attached.
+From what  I've read on Phoronix there have been patches / work for
+Family 10h proccessors since early 2008, and according to this
+http://www.phoronix.com/scan.php?page=news_item&px=NzA2NA support for
+the 45nm CPUs (I own a PhenomII 940) was supposed to be included in
+3.1.0, that doesn't appear to be the case though.
 
-Applied, thanks.
-
--- 
-Jean Delvare
+Just curious why it's taking so long for these to be supported? Is
+this project relatively undermanned? lack of resources?
 
 _______________________________________________
 lm-sensors mailing list
