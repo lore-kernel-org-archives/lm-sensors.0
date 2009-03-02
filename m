@@ -1,431 +1,83 @@
-From: Andre Prendel <andre_prendel@gmx.de>
-Date: Mon, 09 Mar 2009 08:45:59 +0000
-Subject: [lm-sensors] [PATCH 5/7] sensord: Coding style conversion (gnu ->
-Message-Id: <20090309084559.GF4636@ubuntu>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 02 Mar 2009 09:15:03 +0000
+Subject: Re: [lm-sensors] Preferred way to obtain thermal data on Linux?
+Message-Id: <20090302101503.199067e0@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Fix coding style in sense.c
+On Sun, 22 Feb 2009 15:25:22 +0100, armencho@gmail.com wrote:
+> I have a Thinkpad T61. Reading from /proc/acpi/ibm/thermal works fine
+> but generates too many interrupts - reading the file once per 5
+> seconds generates 20 interrupts waking up the CPU, wasting battery
+> life and outputting extra heat very strictly speaking, although many
+> would not care. Admittedly reading sensor data through
+> /sys/class/hwmon/*/device/*_input files ALSO interrupts the CPU,
+> albeit not so often. The /proc interface is also deprecated they say.
+> In light of the latter, the multitude of ways to obtain readings, and
+> the fact that I am trying to find battery-life optimal way to read the
+> sensors continually (most hardware monitors do so), i was wondering:
+> 
+> What interface is most reliable, generic and least resource intensive
+> for obtaining sensor readings in Linux (2.6.27.11)?
+> 
+> The reason I am asking is that it seems both documentation of
+> thinkpad-acpi and libsensors mentions similiar facts, and touches the
+> same subjects, almost hinting that the development of these two
+> modules shares a lot of knowledge. Both have their own separate ways
+> to obtain sensor readings, and both prefer this or that. Also, I have
+> no knowledge of internal workings of libsensors, and whether it in
+> fact USES thinkpad-acpi or generic acpi driver or something else to do
+> its job. I just want to get a piece of advice concerning the best
+> method, and also one that is reliable. I know thinkpad-acpi gets data
+> per ACPI specs, and that libsensors does chip-specific stuff, but
+> still that does not give me confidence using either over the other...
 
----
- prog/sensord/sense.c |  399 ++++++++++++++++++++++++++-------------------------
- 1 file changed, 207 insertions(+), 192 deletions(-)
+libsensors doesn't access the hardware directly. It gets its values
+from /sys/class/hwmon. There you will find all the devices that have
+been registered by their drivers as hardware monitoring devices. These
+can be of 3 different kinds:
 
---- quilt-sensors.orig/prog/sensord/sense.c	2009-03-07 22:49:58.000000000 +0100
-+++ quilt-sensors/prog/sensord/sense.c	2009-03-07 23:07:17.000000000 +0100
-@@ -34,202 +34,217 @@
- #define DO_SET 2
- #define DO_RRD 3
- 
--static const char *
--chipName
--(const sensors_chip_name *chip) {
--  static char buffer[256];
--  if (sensors_snprintf_chip_name(buffer, 256, chip) < 0)
--    return NULL;
--  return buffer;
--}
--
--static int
--idChip
--(const sensors_chip_name *chip) {
--  const char *adapter;
--
--  sensorLog (LOG_INFO, "Chip: %s", chipName (chip));
--  adapter = sensors_get_adapter_name (&chip->bus);
--  if (adapter)
--    sensorLog (LOG_INFO, "Adapter: %s", adapter);
--  
--  return 0;
--}
--
--static int
--doKnownChip
--(const sensors_chip_name *chip, const ChipDescriptor *descriptor, int action) {
--  const FeatureDescriptor *features = descriptor->features;
--  int index0, subindex;
--  int ret = 0;
--  double tmp;
--
--  if (action = DO_READ)
--    ret = idChip (chip);
--  for (index0 = 0; (ret = 0) && features[index0].format; ++ index0) {
--    const FeatureDescriptor *feature = features + index0;
--    int alarm, beep;
--    char *label = NULL;
--
--    if (!(label = sensors_get_label (chip, feature->feature))) {
--      sensorLog (LOG_ERR, "Error getting sensor label: %s/%s", chip->prefix, feature->feature->name);
--      ret = 22;
--    } else {
--      double values[MAX_DATA];
--
--      alarm = 0;
--      if (!ret && feature->alarmNumber != -1) {
--        if ((ret = sensors_get_value (chip, feature->alarmNumber, &tmp))) {
--          sensorLog (LOG_ERR, "Error getting sensor data: %s/#%d: %s", chip->prefix, feature->alarmNumber, sensors_strerror (ret));
--          ret = 20;
--        } else {
--          alarm = (int) (tmp + 0.5);
--        }
--      }
--      if ((action = DO_SCAN) && !alarm)
--        continue;
--
--      beep = 0;
--      if (!ret && feature->beepNumber != -1) {
--        if ((ret = sensors_get_value (chip, feature->beepNumber, &tmp))) {
--          sensorLog (LOG_ERR, "Error getting sensor data: %s/#%d: %s", chip->prefix, feature->beepNumber, sensors_strerror (ret));
--          ret = 21;
--        } else {
--          beep = (int) (tmp + 0.5);
--        }
--      }
--
--      for (subindex = 0; !ret && (feature->dataNumbers[subindex] >= 0); ++ subindex) {
--        if ((ret = sensors_get_value (chip, feature->dataNumbers[subindex], values + subindex))) {
--          sensorLog (LOG_ERR, "Error getting sensor data: %s/#%d: %s", chip->prefix, feature->dataNumbers[subindex], sensors_strerror (ret));
--          ret = 23;
--        }
--      }
--      if (ret = 0) {
--        if (action = DO_RRD) { // arse = "N:"
--          if (feature->rrd) {
--            const char *rrded = feature->rrd (values);
--            strcat (strcat (rrdBuff, ":"), rrded ? rrded : "U");
--          }
--        } else {
--          const char *formatted = feature->format (values, alarm, beep);
--          if (formatted) {
--            if (action = DO_READ) {
--              sensorLog (LOG_INFO, "  %s: %s", label, formatted);
--            } else {
--              sensorLog (LOG_ALERT, "Sensor alarm: Chip %s: %s: %s", chipName (chip), label, formatted);
--            }
--          }
--        }
--      }
--    }
--    if (label)
--      free (label);
--  }
--  return ret;
--}
--
--static int
--setChip
--(const sensors_chip_name *chip) {
--  int ret = 0;
--  if ((ret = idChip (chip))) {
--    sensorLog (LOG_ERR, "Error identifying chip: %s", chip->prefix);
--  } else if ((ret = sensors_do_chip_sets (chip))) {
--    sensorLog (LOG_ERR, "Error performing chip sets: %s: %s", chip->prefix, sensors_strerror (ret));
--    ret = 50;
--  } else {
--    sensorLog (LOG_INFO, "Set.");
--  }
--  return ret;
--}
--
--static int
--doChip
--(const sensors_chip_name *chip, int action) {
--  int ret = 0;
--  if (action = DO_SET) {
--    ret = setChip (chip);
--  } else {
--    int index0, chipindex = -1;
--    for (index0 = 0; knownChips[index0].features; ++ index0)
--      /* Trick: we compare addresses here. We know it works because both
--         pointers were returned by sensors_get_detected_chips(), so they
--         refer to libsensors internal structures, which do not move. */
--      if (knownChips[index0].name = chip) {
--        chipindex = index0;
--        break;
--      }
--    if (chipindex >= 0)
--      ret = doKnownChip (chip, &knownChips[chipindex], action);
--  }
--  return ret;
--}
--
--static int
--doChips
--(int action) {
--  const sensors_chip_name *chip;
--  int i, j, ret = 0;
--
--  for (j = 0; (ret = 0) && (j < numChipNames); ++ j) {
--    i = 0;
--    while ((ret = 0) && ((chip = sensors_get_detected_chips (&chipNames[j], &i)) != NULL)) {
--      ret = doChip (chip, action);
--    }
--  }
--
--  return ret;
--}
--
--int
--readChips
--(void) {
--  int ret = 0;
--
--  sensorLog (LOG_DEBUG, "sensor read started");
--  ret = doChips (DO_READ);
--  sensorLog (LOG_DEBUG, "sensor read finished");
--
--  return ret;
--}
--
--int
--scanChips
--(void) {
--  int ret = 0;
--
--  sensorLog (LOG_DEBUG, "sensor sweep started"); /* only logged in debug mode */
--  ret = doChips (DO_SCAN);
--  sensorLog (LOG_DEBUG, "sensor sweep finished");
--
--  return ret;
--}
--
--int
--setChips
--(void) {
--  int ret = 0;
--
--  sensorLog (LOG_DEBUG, "sensor set started");
--  ret = doChips (DO_SET);
--  sensorLog (LOG_DEBUG, "sensor set finished");
-+static const char *chipName(const sensors_chip_name *chip)
-+{
-+	static char buffer[256];
-+	if (sensors_snprintf_chip_name(buffer, 256, chip) < 0)
-+		return NULL;
-+	return buffer;
-+}
-+
-+static int idChip(const sensors_chip_name *chip)
-+{
-+	const char *adapter;
-+
-+	sensorLog(LOG_INFO, "Chip: %s", chipName (chip));
-+	adapter = sensors_get_adapter_name(&chip->bus);
-+	if (adapter)
-+		sensorLog(LOG_INFO, "Adapter: %s", adapter);
-+
-+	return 0;
-+}
-+
-+static int doKnownChip(const sensors_chip_name *chip,
-+		       const ChipDescriptor *descriptor, int action)
-+{
-+	const FeatureDescriptor *features = descriptor->features;
-+	int index0, subindex;
-+	int ret = 0;
-+	double tmp;
-+
-+	if (action = DO_READ)
-+		ret = idChip(chip);
-+	for (index0 = 0; (ret = 0) && features[index0].format; ++ index0) {
-+		const FeatureDescriptor *feature = features + index0;
-+		int alarm, beep;
-+		char *label = NULL;
-+
-+		if (!(label = sensors_get_label(chip, feature->feature))) {
-+			sensorLog(LOG_ERR,
-+				  "Error getting sensor label: %s/%s",
-+				  chip->prefix, feature->feature->name);
-+			ret = 22;
-+		} else {
-+			double values[MAX_DATA];
-+
-+			alarm = 0;
-+			if (!ret && feature->alarmNumber != -1) {
-+				if ((ret = sensors_get_value(chip,
-+							     feature->alarmNumber,
-+							     &tmp))) {
-+					sensorLog(LOG_ERR,
-+						  "Error getting sensor data: %s/#%d: %s",
-+						  chip->prefix,
-+						  feature->alarmNumber,
-+						  sensors_strerror(ret));
-+					ret = 20;
-+				} else {
-+					alarm = (int) (tmp + 0.5);
-+				}
-+			}
-+			if ((action = DO_SCAN) && !alarm)
-+				continue;
-+
-+			beep = 0;
-+			if (!ret && feature->beepNumber != -1) {
-+				if ((ret = sensors_get_value(chip,
-+							     feature->beepNumber,
-+							     &tmp))) {
-+					sensorLog(LOG_ERR,
-+						  "Error getting sensor data: %s/#%d: %s",
-+						  chip->prefix,
-+						  feature->beepNumber,
-+						  sensors_strerror(ret));
-+					ret = 21;
-+				} else {
-+					beep = (int) (tmp + 0.5);
-+				}
-+			}
-+
-+			for (subindex = 0; !ret &&
-+				     (feature->dataNumbers[subindex] >= 0); ++ subindex) {
-+				if ((ret = sensors_get_value(chip, feature->dataNumbers[subindex], values + subindex))) {
-+					sensorLog(LOG_ERR, "Error getting sensor data: %s/#%d: %s", chip->prefix, feature->dataNumbers[subindex], sensors_strerror(ret));
-+					ret = 23;
-+				}
-+			}
-+			if (ret = 0) {
-+				if (action = DO_RRD) { // arse = "N:"
-+					if (feature->rrd) {
-+						const char *rrded = feature->rrd (values);
-+						strcat(strcat (rrdBuff, ":"),
-+						       rrded ? rrded : "U");
-+					}
-+				} else {
-+					const char *formatted = feature->format (values, alarm, beep);
-+					if (formatted) {
-+						if (action = DO_READ) {
-+							sensorLog(LOG_INFO, "  %s: %s", label, formatted);
-+						} else {
-+							sensorLog(LOG_ALERT, "Sensor alarm: Chip %s: %s: %s", chipName(chip), label, formatted);
-+						}
-+					}
-+				}
-+			}
-+		}
-+		if (label)
-+			free(label);
-+	}
-+	return ret;
-+}
-+
-+static int setChip(const sensors_chip_name *chip)
-+{
-+	int ret = 0;
-+	if ((ret = idChip(chip))) {
-+		sensorLog(LOG_ERR, "Error identifying chip: %s",
-+			  chip->prefix);
-+	} else if ((ret = sensors_do_chip_sets(chip))) {
-+		sensorLog(LOG_ERR, "Error performing chip sets: %s: %s",
-+			  chip->prefix, sensors_strerror(ret));
-+		ret = 50;
-+	} else {
-+		sensorLog(LOG_INFO, "Set.");
-+	}
-+	return ret;
-+}
-+
-+static int doChip(const sensors_chip_name *chip, int action)
-+{
-+	int ret = 0;
-+	if (action = DO_SET) {
-+		ret = setChip(chip);
-+	} else {
-+		int index0, chipindex = -1;
-+		for (index0 = 0; knownChips[index0].features; ++ index0)
-+			/*
-+			 * Trick: we compare addresses here. We know it works
-+			 * because both pointers were returned by
-+			 * sensors_get_detected_chips(), so they refer to
-+			 * libsensors internal structures, which do not move.
-+			 */
-+			if (knownChips[index0].name = chip) {
-+				chipindex = index0;
-+				break;
-+			}
-+		if (chipindex >= 0)
-+			ret = doKnownChip(chip, &knownChips[chipindex],
-+					  action);
-+	}
-+	return ret;
-+}
-+
-+static int doChips(int action)
-+{
-+	const sensors_chip_name *chip;
-+	int i, j, ret = 0;
-+
-+	for (j = 0; (ret = 0) && (j < numChipNames); ++ j) {
-+		i = 0;
-+		while ((ret = 0) &&
-+		       ((chip = sensors_get_detected_chips(&chipNames[j], &i))
-+			!= NULL)) {
-+			ret = doChip(chip, action);
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+int readChips(void)
-+{
-+	int ret = 0;
-+
-+	sensorLog(LOG_DEBUG, "sensor read started");
-+	ret = doChips(DO_READ);
-+	sensorLog(LOG_DEBUG, "sensor read finished");
-+
-+	return ret;
-+}
-+
-+int scanChips(void)
-+{
-+	int ret = 0;
-+
-+	sensorLog(LOG_DEBUG, "sensor sweep started");
-+	ret = doChips(DO_SCAN);
-+	sensorLog(LOG_DEBUG, "sensor sweep finished");
-+
-+	return ret;
-+}
-+
-+int setChips(void)
-+{
-+	int ret = 0;
-+
-+	sensorLog(LOG_DEBUG, "sensor set started");
-+	ret = doChips(DO_SET);
-+	sensorLog(LOG_DEBUG, "sensor set finished");
- 
--  return ret;
-+	return ret;
- }
- 
- /* TODO: loadavg entry */
- 
--int
--rrdChips
--(void) {
--  int ret = 0;
--
--  strcpy (rrdBuff, "N");
--
--  sensorLog (LOG_DEBUG, "sensor rrd started"); 
--  ret = doChips (DO_RRD);
--  sensorLog (LOG_DEBUG, "sensor rrd finished");
-+int rrdChips(void)
-+{
-+	int ret = 0;
- 
--  return ret;
-+	strcpy(rrdBuff, "N");
-+
-+	sensorLog(LOG_DEBUG, "sensor rrd started");
-+	ret = doChips(DO_RRD);
-+	sensorLog(LOG_DEBUG, "sensor rrd finished");
-+
-+	return ret;
- }
+* Native hardware monitoring drivers. These access the hardware
+  themselves. In your case, the only such driver that will work on your
+  laptop is the coretemp driver, which reads Intel CPU core temperature
+  from the CPU registers directly. This will appear as "coretemp-isa-*"
+  in the output of "sensors". This is lightweight, shouldn't generate
+  any interrupt.
+
+* Generic ACPI access driver. This is implemented by the ACPI "thermal"
+  driver. I'm not totally sure whether this was fully implemented in
+  2.6.27 or not. If it does, it will appear as "acpitz-virtual-0" in
+  the output of "sensors". This makes use of the standard but limited
+  ACPI thermal zone interface. The implementation details are courtesy
+  of your BIOS vendor.
+
+* Vendor-specific ACPI access driver. In your case, this is the
+  thinkpad-acpi driver. I know this driver has not always implemented
+  the standard hwmon interface. In 2.6.28 it does, but I can't remember
+  if it did in 2.6.27. If it did, it will appear as "thinkpad-isa-0000"
+  in the output of "sensors". I don't know much about the
+  implementation details of this drivers, so I can't comment on that.
+  Please ask Henrique (Cc'd) if you are interested.
+
+These 3 methods may or may not physically read from the same sensors;
+it's difficult to say. You'd have to read the ACPI byte code to make
+sure.
+
+As long as you use a libsensors-based application, you are reading
+values from /sys/class/hwmon which is the right interface. The driver
+implementation behind it depends on the system.
+
+In general, if you care about battery time, polling sensors every few
+seconds isn't such a good idea anyway. Your ACPI implementation should
+take care about kicking in the fan as needed to prevent overheating, so
+you don't really have to watch over it yourself.
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
