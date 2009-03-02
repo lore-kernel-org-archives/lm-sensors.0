@@ -1,43 +1,58 @@
-From: mihai@duras.ro
-Date: Thu, 26 Mar 2009 06:57:25 +0000
-Subject: [lm-sensors] Asus P5B Deluxe..sensors wrong ?
-Message-Id: <36531.79.134.52.2.1238050645.squirrel@webmail.allsoft.ro>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 02 Mar 2009 08:40:01 +0000
+Subject: Re: [lm-sensors] Intel WiFi Link 4965AGN sysfs interface and
+Message-Id: <20090302094001.6dd88f98@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi guys,
+On Sun, 22 Feb 2009 13:43:14 +0100, armencho@gmail.com wrote:
+> I am new here. Have found the 'temperature' file under the
+> '/sys/devices/pci0000:00/0000:00:1c.1/0000:03:00.0'.
+> Files 'vendor' and 'device' cat 0x8086 and 0x4230 respectively, which
+> indicates the device is Intel 4965AGN wifi card by Intel. Upon
+> cat'ting the file 'temperature' I get 320. I have no idea how to
+> translate the number to an understandable value, but I take it to be a
+> temperature readout indeed. Does anybody have a translation profile
+> for this device?
 
+According to the code these are degrees Kelvin. 320 - 273 = 47 degrees
+Celsius. A pretty inconvenient unit, if you ask me.
 
-I'm some sort of a newbie regarding lm-sensors as so far I haven't configured
-that much for a desktop computer with them.
-Now I just switched from Windows XP at home to Ubuntu and I wanted to configure
-fancontrol in order to not have a factory sound inside the house:) with all
-coolers running at max.
-But here comes the part that got me confused.
+> Given that all sensor chips report internal values, I
+> take this needs to be translated, but I currently have no capacity to
+> do a libsensors C interfacing that translates for me (which is
+> recommended), so I wonder whether a human readable translation
+> database exists, or if someone can hint me how to translate exactly
+> this value?
 
-After installing the lm-sensors package and also giving it a sensors-detect I see:
+Documentation/hwmon/sysfs-interface says that temperature values should
+be exported in millidegrees Celsius, which the iwlwifi drivers doesn't
+do. If the temperature in question is one that is worth monitoring, the
+iwlwifi driver should be updated to comply with the hwmon standard.
 
-http://pastebin.com/m46cfbbee
+> It also does not appear to be the same value my Gnome
+> Sensors applet reports for the MiniPCI slot, where this card is
+> supposedly inserted (Thinkpad T61 computer), but then again it may be
+> another sensor altogether.
 
-If you look at the copy paste from the link above some of the values are SCI-FI:
-CPU Fan:    2033 RPM  (min = 84375 RPM, div = 4)  ALARM
-for example the minimum here..and at 84375 I might consider buying a plane:)
-in1:        +12.20 V  (min =  +8.55 V, max =  +3.91 V)   ALARM
-or here with the maximum being lower then the minimum.
+If the iwlwifi driver maintainer cares about integration of the driver
+into hardware monitoring application, he/she should:
+* Have the iwlwifi driver register a hwmon class device, by means of
+  hwmon_device_unregister().
+* Create there a name attribute returning "iwlwifi" or something
+  similar.
+* Create there a temp1_input attribute returning the temperature value
+  in millidegrees Celsius.
 
-Can you tell me what is happening and how I might correct this ?
+This should be very easy to implement. This however is only worth doing
+if the temperature in question is one which is updated frequently. This
+should be verified with the iwlwifi driver maintainer first.
 
-I know I can ignore the ALARMS and just use fancontrol after configuring it
-perhaps without any bad luck, but somehow it bothers me to see with the sensors
-command all those warnings and min/max problems.
-
-
-Regards,
-Mihai
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
