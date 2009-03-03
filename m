@@ -1,52 +1,56 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Sat, 28 Mar 2009 21:50:16 +0000
-Subject: Re: [lm-sensors] PATCH: hwmon-fschmd-add-fscsyl-v3.patch
-Message-Id: <49CE9B98.9030405@redhat.com>
+From: Michael Hampton <error@ioerror.us>
+Date: Tue, 03 Mar 2009 14:49:39 +0000
+Subject: Re: [lm-sensors] W83667HG driver test for in6 and temp3
+Message-Id: <49AD4383.2060809@ioerror.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <49CCC1D5.6040804@redhat.com>
-In-Reply-To: <49CCC1D5.6040804@redhat.com>
+References: <29CFBC9A3FDC81418F5FACEEC8970E0020AE12@ntshml01.nuvoton.com>
+In-Reply-To: <29CFBC9A3FDC81418F5FACEEC8970E0020AE12@ntshml01.nuvoton.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-
-
-On 03/28/2009 02:09 PM, Jean Delvare wrote:
-> On Sat, 28 Mar 2009 09:07:56 +0100, Hans de Goede wrote:
->> This patch adds support for the FSC Syleus IC to the fschmd driver.
->>
->> Many thanks to Fujitsu Siemens Computers for providing docs and a machine to
->> test the driver on.
->> (...)
+Jean Delvare wrote:
+> To all potential testers: I've split support for the W83667HG into 3
+> patches:
 >
-> You forgot to update this part:
+> ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/hwmon-w83627ehf-01-invert-fan-pin-logic.patch
+> ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/hwmon-w83627ehf-02-add-support-for-w83667hg.patch
+> ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/hwmon-w83627ehf-03-fix-temp3-vs-in6.patch
 >
-
-Good catch, thanks!
-
->> @@ -1126,7 +1225,7 @@ static int fschmd_remove(struct i2c_clie
->>   	if (data->hwmon_dev)
->>   		hwmon_device_unregister(data->hwmon_dev);
->>
->> -	for (i = 0; i<  ARRAY_SIZE(fschmd_attr); i++)
->> +	for (i = 0; i<  (FSCHMD_NO_VOLT_SENSORS[data->kind] + 1); i++)
->>   		device_remove_file(&client->dev,&fschmd_attr[i].dev_attr);
->>   	for (i = 0; i<  (FSCHMD_NO_TEMP_SENSORS[data->kind] * 4); i++)
->>   		device_remove_file(&client->dev,
+> These patches are now in linux-next and will be merged into kernel
+> 2.6.30 if we receive positive feedback.
 >
-> Didn't you try unloading the driver? I guess this would break.
+> Any further change should be in a new patch to be applied on top of
+> these 3 patches we already have.
 >
+> Thanks,
+>   
 
-I did unload it, and didn't see any problems.
+I've applied these 3 patches against the latest Fedora 10 kernel
+2.6.27.19-170.2.35.fc10.x86_64 and it's working, only I get temp3 (with
+an invalid value) instead of in6. The motherboard is an ASUS P6T6 WS
+Revolution.
 
-> The rest looks OK. I'll fix it up myself.
-
-Ok, thanks.
-
-Regards,
-
-Hans
+w83667hg-isa-0290
+Adapter: ISA adapter
+in0:         +1.34 V  (min =  +0.00 V, max =  +1.74 V)  
+in1:         +1.70 V  (min =  +0.02 V, max =  +0.00 V)   ALARM
+in2:         +3.22 V  (min =  +1.02 V, max =  +0.26 V)   ALARM
+in3:         +3.18 V  (min =  +2.56 V, max =  +0.00 V)   ALARM
+in4:         +1.69 V  (min =  +0.00 V, max =  +1.04 V)   ALARM
+in5:         +2.04 V  (min =  +0.77 V, max =  +0.52 V)   ALARM
+in7:         +3.34 V  (min =  +0.02 V, max =  +1.34 V)   ALARM
+in8:         +3.31 V  (min =  +0.86 V, max =  +1.09 V)   ALARM
+fan1:       1917 RPM  (min = 1288 RPM, div = 8)
+fan2:       1875 RPM  (min = 14062 RPM, div = 16)  ALARM
+fan3:       1795 RPM  (min = 5273 RPM, div = 4)  ALARM
+fan4:       1875 RPM  (min = 1298 RPM, div = 8)
+fan5:       2481 RPM  (min = 2636 RPM, div = 8)  ALARM
+temp1:       +43.0°C  (high =  +0.0°C, hyst =  +4.0°C)  ALARM  sensor thermistor
+temp2:       +60.5°C  (high = +80.0°C, hyst = +75.0°C)  sensor = diode
+temp3:      +127.0°C  (high = +80.0°C, hyst = +75.0°C)  ALARM  sensor thermistor
+cpu0_vid:   +1.950 V
 
 _______________________________________________
 lm-sensors mailing list
