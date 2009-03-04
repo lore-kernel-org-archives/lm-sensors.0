@@ -1,7 +1,7 @@
-From: Alessandro Di Marco <dmr@c0nc3pt.com>
-Date: Wed, 04 Mar 2009 00:50:40 +0000
-Subject: [lm-sensors] [solved] dme1737 0-002e: Read from register 0xXX
-Message-Id: <3b1aa80d791192c4829ce89fca821167@imap.c0nc3pt.com>
+From: alpha_one_x86 <alpha.super-one@laposte.net>
+Date: Wed, 04 Mar 2009 17:11:37 +0000
+Subject: [lm-sensors] support phenom cpu
+Message-Id: <49AEB649.9020405@laposte.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,164 +9,9 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Problem solved, at last. The below was produced by the performance setup
+Hello, when support phenom cpu internal sensors is planned?
+Thanks.
 
-which I mistakenly loaded after a bios update. Once reverted to fail-safe,
-
-all goes well again.
-
-
-
-Sorry for the inconvenience.
-
-
-
-Best,
-
-Alessandro
-
-
-
-On Tue, 03 Mar 2009 12:35:50 +0100, Alessandro Di Marco <dmr@c0nc3pt.com>
-
-wrote:
-
-> Hi guys,
-
-> 
-
-> after plugging a Tyan M3290 IPMI card into my Tyan Tomcat K8E
-
-> (S2865AG2NRF), the syslog keeps reporting as follows:
-
-> 
-
-> i2c-adapter i2c-0: Found a DME1737 chip at 0x2e (rev 0x89).
-
-> dme1737 0-002e: Optional features: pwm3=yes, pwm5=no, pwm6=no, fan3=yes,
-
-> fan4=yes, fan5=no, fan6=no.
-
-> i2c-adapter i2c-1: Found a DME1737 chip at 0x2e (rev 0x89).
-
-> dme1737 1-002e: Optional features: pwm3=yes, pwm5=no, pwm6=no, fan3=yes,
-
-> fan4=yes, fan5=no, fan6=no.
-
-> dme1737 0-002e: Read from register 0x21 failed! Please report to the
-
-driver
-
-> maintainer.
-
-> dme1737 0-002e: Read from register 0x68 failed! Please report to the
-
-driver
-
-> maintainer.
-
-> wifi0: ath_bstuck_tasklet: Stuck beacon; resetting (beacon miss count:
-
-11)
-
-> usb 1-1: new low speed USB device using ohci_hcd and address 2
-
-> usb 1-1: configuration #1 chosen from 1 choice
-
-> input: USB Mouse as
-
-> /devices/pci0000:00/0000:00:02.0/usb1/1-1/1-1:1.0/input/input4
-
-> generic-usb 0003:15D9:0A37.0001: input,hidraw0: USB HID v1.10 Mouse [USB
-
-> Mouse] on usb-0000:00:02.0-1/input0
-
-> usb 1-1: New USB device found, idVendord9, idProduct
-37
-
-> usb 1-1: New USB device strings: Mfr=0, Product=1, SerialNumber=0
-
-> usb 1-1: Product: USB Mouse
-
-> dme1737 0-002e: Read from register 0x58 failed! Please report to the
-
-driver
-
-> maintainer.
-
-> dme1737 0-002e: Read from register 0x6d failed! Please report to the
-
-driver
-
-> maintainer.
-
-> i2c /dev entries driver
-
-> dme1737 0-002e: Read from register 0x4f failed! Please report to the
-
-driver
-
-> maintainer.
-
-> dme1737 0-002e: Read from register 0x6a failed! Please report to the
-
-driver
-
-> maintainer.
-
-> dme1737 0-002e: Read from register 0x88 failed! Please report to the
-
-driver
-
-> maintainer.
-
-> dme1737 0-002e: Read from register 0x88 failed! Please report to the
-
-driver
-
-> maintainer.
-
-> dme1737 0-002e: Read from register 0x27 failed! Please report to the
-
-driver
-
-> maintainer.
-
-> dme1737 0-002e: Read from register 0x6b failed! Please report to the
-
-driver
-
-> maintainer.
-
-> dme1737 0-002e: Read from register 0x5f failed! Please report to the
-
-driver
-
-> maintainer.
-
-> dme1737 0-002e: Read from register 0x2a failed! Please report to the
-
-driver
-
-> maintainer.
-
-> dme1737 0-002e: Read from register 0x50 failed! Please report to the
-
-driver
-
-> maintainer.
-
-> dme1737 0-002e: Read from register 0x69 failed! Please report to the
-
-driver
-
-> maintainer.
-
-> 
-
-> Regards,
-
-> Alessandro
 
 _______________________________________________
 lm-sensors mailing list
