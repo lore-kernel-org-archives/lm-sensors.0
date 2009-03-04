@@ -1,40 +1,36 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 04 Mar 2009 14:21:47 +0000
+From: Zbigniew Luszpinski <zbiggy@o2.pl>
+Date: Wed, 04 Mar 2009 21:13:35 +0000
 Subject: Re: [lm-sensors] Found unknown SMBus adapter 10de:0752 - how can I
-Message-Id: <20090304152147.00b0a773@hyperion.delvare>
+Message-Id: <200903042213.35785.zbiggy@o2.pl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200903041438.45638.zbiggy@o2.pl>
 In-Reply-To: <200903041438.45638.zbiggy@o2.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Zbiggy,
+Wednesday 04 of March 2009 15:21:47 you wrote:
+> Please send the output of "lspci -vv -s 00:01.1".
 
-On Wed, 4 Mar 2009 14:38:45 +0100, Zbigniew Luszpinski wrote:
-> Hello,
-> 
-> I have ASRock K10N78FullHD-hSLI 3.0 mainboard.
-> lm_sensors 3.1.0->sensors-detect returns this:
-> Found unknown SMBus adapter 10de:0752 at 0000:00:01.1.
-> Sorry, no supported PCI bus adapters found.
-> 
-> lspci finds:
-> 00:01.1 SMBus [0c05]: nVidia Corporation MCP78S [GeForce 8200] SMBus 
-> [10de:0752] (rev a1)
-> 
-> How can I help supporting it?
+00:01.1 SMBus: nVidia Corporation MCP78S [GeForce 8200] SMBus (rev a1)
+        Subsystem: ASRock Incorporation K10N78FullHD-hSLI R3.0 SMBus
+        Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr-=
+=20
+Stepping- SERR- FastB2B-
+        Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort-=20
+<TAbort- <MAbort- >SERR- <PERR-
+        Interrupt: pin A routed to IRQ 7
+        Region 0: I/O ports at 2900 [sized]
+        Region 4: I/O ports at 2d00 [sized]
+        Region 5: I/O ports at 2e00 [sized]
+        Capabilities: [44] Power Management version 2
+                Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D0mA=20
+PME(D0-,D1-,D2-,D3hot+,D3cold+)
+                Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
 
-Please send the output of "lspci -vv -s 00:01.1".
-
-> I think this might be gpu temperature sensor.
-
-Unlikely. The GPU temperature sensor, if you have any, would rather be
-on one of the graphics adapter's I2C buses.
-
--- 
-Jean Delvare
+have a nice day,
+Zbigniew 'zbiggy' Luszpinski
 
 _______________________________________________
 lm-sensors mailing list
