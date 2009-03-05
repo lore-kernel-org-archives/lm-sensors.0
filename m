@@ -1,157 +1,52 @@
-From: DaNiMoTh <jjdanimoth@gmail.com>
-Date: Fri, 27 Mar 2009 21:38:00 +0000
-Subject: [lm-sensors] therm_adt746x.c, the code
-Message-Id: <7b71803f0903271437l2b81acb4kc93b8664b2714877@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="0016e65a0dc4f75cc30466208bdd"
+From: "Stephan Unger" <stephan@sunger.de>
+Date: Thu, 05 Mar 2009 12:45:57 +0000
+Subject: [lm-sensors] i2c_i801 module in kernel 2.4.33?
+Message-Id: <A4EACE15D1B84EA49E6786D5CDA1F323@mephisto>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---0016e65a0dc4f75cc30466208bdd
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hello List,
 
-Hello list,
+I'm trying to install / configure lm-sensors on my Debian Etch system with
+kernel 2.4.33, but I have quiet a problem in setting it up correctly.
 
-I've finished the first write of adt7460 and adt7467 module. It works
-fine on my powerbook, but I need some hints :-)
-The code is attached & gzipped, if you want to test it you need to
-copy on drivers/macintosh .
-When it will be ready, I'll post a patch for the kernel.
+What I was able to achieve so far:
+- enable and compile I2C Support into the kernel. The kernel starts and
+loads the compiled-in module well:
+(dmesg:) i2c-core.o: i2c core module version 2.6.1 (20010830)
+- Modules i2c-dev and i2c-proc are being loaded as well without error
+messages. These can be (un)loaded during runtime.
 
-1) The driver compiles correctly, but recognize my device only if I
-insert the module with a force param:
+If I now run the Perl-Script "sensors-detect", I receive the following
+error:
+Sorry, no sensors were detected.
+Either your sensors are not supported, or they are connected to an
+I2C or SMBus adapter that is not supported. See doc/FAQ,
+doc/lm_sensors-FAQ.html or http://www.lm-sensors.org/wiki/FAQ
+(FAQ #4.24.3) for further information.
+If you find out what chips are on your board, check
+http://www.lm-sensors.org/wiki/Devices for driver status.
 
-insmod therm_adt746x.ko force=8,0x2E
+This probably happens because the script couldn't load the i2c_i801 module,
+which I need for my mainboard.
 
-How I can use the probe and / or detect routines to automagically
-recognize it? If I type
-cat /sys/class/i2c-dev/i2c-8/name , the result is uni-n 1. I tried to
-use this name in the id_table without success;
+Could you please tell me, whether there is any way to get this modul for
+kernel 2.4.33 and if so, where do I get it? If it is a kernel patch, I can
+apply it with:
+cat lm-sensors-kernel-patch.diff | patch -p0 (or p1)
+Correct?
 
-2) Where I can coding "insert into pwm[1-2]_auto_pwm[1-2]_{temp,pwm}
-some default values" ? In the init_client function?
+Any help would be appreciated.
+Greetings from rainy germany
 
-3) The use of likely and unlikely are correct ? Do I need to avoid its
-use ( I don't see much often these macro in i2c/ directory ) ?
+Stephan
 
-Many thanks.
 
---0016e65a0dc4f75cc30466208bdd
-Content-Type: application/x-gzip; name="therm_adt746x.c.gz"
-Content-Disposition: attachment; filename="therm_adt746x.c.gz"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fstbxv4r0
-
-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
-AA==
---0016e65a0dc4f75cc30466208bdd
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---0016e65a0dc4f75cc30466208bdd--
