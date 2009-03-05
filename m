@@ -1,65 +1,49 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 19 Mar 2009 08:24:33 +0000
-Subject: Re: [lm-sensors] Revision of sensors-detect
-Message-Id: <20090319092433.162cf986@hyperion.delvare>
+From: <linuxjagnut@cox.net>
+Date: Thu, 05 Mar 2009 21:46:26 +0000
+Subject: [lm-sensors] no lines in rrd graphs from sensord
+Message-Id: <20090305164626.58YK4.419625.imail@fed1rmwml30>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090312131620.29f81395@hyperion.delvare>
-In-Reply-To: <20090312131620.29f81395@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 13 Mar 2009 17:29:08 +0100, Jean Delvare wrote:
-> On Thu, 12 Mar 2009 19:41:30 +0200, Axel Thimm wrote:
-> > On Thu, Mar 12, 2009 at 01:16:20PM +0100, Jean Delvare wrote:
-> > > If not, it would be nice to have a workaround. I have one, which is a
-> > > simple CGI script which fetches the file using the svn command line
-> > > client and prints its contents:
-> > > 
-> > > #!/bin/sh
-> > > echo "Content-type: text/plain"
-> > > echo
-> > > svn cat http://www.lm-sensors.org/svn/lm-sensors/trunk/prog/detect/sensors-detect
-> > > 
-> > > I've tested it locally and it works fine for me. I could run it on my
-> > > home server, however I think it is better for the users if they get the
-> > > script from lm-sensors.org. They really have no reason to trust my
-> > > personal server (which may also disappear someday.)
-> > > 
-> > > Axel, is there a chance we could run this CGI script on lm-sensors.org
-> > > and point users to it when we want them to test the latest version of
-> > > sensors-detect?
-> > 
-> > I think I'd rather prefer a static solution, e.g. create a daily
-> > checkout w/ keyword substitution. Could be part of the snapshot
-> > creation script.
-> 
-> It isn't uncommon that I commit a fix and ask a user to give it a try
-> right away. Having to wait for one day would be inconvenient in this
-> case. I can live with it if there's no other way (that's probably
-> better than the current situation) but I'd prefer a more frequent
-> update rate.
-> 
-> Wouldn't it be possible to add an exception for sensors-detect to the
-> post-commit hook? If file = sensors-detect then run "svn cat
-> sensors-detect > some path" or something? That way we would ensure
-> there is no delay between the commit and the snapshot, and also no
-> daily checkout when the file doesn't change.
-> 
-> > CGIs are nasty in the sense that for security one may turn it off on a whitelist
-> > basis (actually nothing uses CGI currenlty) and a simply CGI script
-> > could be forgotten in a server update/hardening messing up the
-> > download.
-> 
-> This wouldn't be a critical CGI, so if it breaks, we can simply fix it
-> when we notice the breakage. But anyway, as the server admin it's up to
-> you. If you say no CGI then no CGI.
+I have configured lm_sensors on my system and normal output shows up when I run the sensors command line client.
 
-Axel, any progress here?
+$ sensors
+k8temp-pci-00c3
+Adapter: PCI adapter
+Core0 Temp:  +33.0°C                                    
+Core1 Temp:  +31.0°C                                    
 
--- 
-Jean Delvare
+it8716-isa-0290
+Adapter: ISA adapter
+VCore:       +1.10 V  (min =  +0.00 V, max =  +4.08 V)   
+VDDR:        +2.48 V  (min =  +1.28 V, max =  +1.68 V)   ALARM
++3.3V:       +1.89 V  (min =  +2.78 V, max =  +3.78 V)   ALARM
++5V:         +5.73 V  (min =  +4.49 V, max =  +5.48 V)   ALARM
++12V:        +4.86 V  (min =  +9.98 V, max = +13.95 V)   ALARM
+in5:         +1.17 V  (min =  +0.58 V, max =  +1.34 V)   
+in6:         +2.98 V  (min =  +1.04 V, max =  +1.36 V)   ALARM
+5VSB:        +5.13 V  (min =  +4.49 V, max =  +5.48 V)   
+VBat:        +3.04 V
+fan1:       1634 RPM  (min =   10 RPM)
+fan2:          0 RPM  (min =   10 RPM)  ALARM
+temp1:       +21.0°C  (low  = +127.0°C, high = +127.0°C)  sensor = thermal diode
+temp2:       +35.0°C  (low  = +127.0°C, high = +127.0°C)  sensor = transistor
+temp3:       +25.0°C  (low  = +127.0°C, high = +127.0°C)  sensor = transistor
+cpu0_vid:   +1.525 V
+
+So next I built sensord that is currently packaged with the 3.1.0 release.
+I was able to get it running with the following command line:
+
+/usr/local/sbin/sensord --log-interval 0 --load-average --rrd-file /var/www/html/sensord/sensord.rrd --pid-file /var/www/html/sensord/sensord.pid
+
+and it is running as the apache user on my system and that same user owns the /var/www/html/sensord/ directory. The daemon is running but the size of the rrd file (sensord.rrd from the above command line) does not change size and the time stamp is not updated on the file either.
+
+I can see graphs when I display the URL to the cgi script in my web browser but there are no lines drawn for any graphed output. The bottom of each graph does have a label for the appropriate sensors on my system but no data is being displayed inside the graph itself.
+--
+Steve DuChene
 
 _______________________________________________
 lm-sensors mailing list
