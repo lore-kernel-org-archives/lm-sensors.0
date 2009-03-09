@@ -1,135 +1,152 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 26 Mar 2009 10:00:32 +0000
-Subject: [lm-sensors] [PATCH 2/2] i2c-i801: Instantiate FSC hardware
-Message-Id: <20090326110032.1f6dbd16@hyperion.delvare>
+From: Andre Prendel <andre_prendel@gmx.de>
+Date: Mon, 09 Mar 2009 08:45:38 +0000
+Subject: [lm-sensors] [PATCH 3/7] sensord: Coding style conversion (gnu ->
+Message-Id: <20090309084538.GD4636@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Hans de Goede <hdegoede@redhat.com>
+Fix coding style in lib.c
 
-Detect various FSC hwmon IC's based on DMI tables and then let
-the i2c-i801 driver instantiate the i2c client devices. Note that
-some of the info in the added table is indentical for all rows, still
-this is kept in the table to keep the code general and thus (hopefully)
-easily extensible in the future.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/i2c/busses/i2c-i801.c |   77 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 77 insertions(+)
+ prog/sensord/lib.c |  119 +++++++++++++++++++++++++++--------------------------
+ 1 file changed, 61 insertions(+), 58 deletions(-)
 
---- linux-2.6.30-rc0.orig/drivers/i2c/busses/i2c-i801.c	2009-03-26 09:24:26.000000000 +0100
-+++ linux-2.6.30-rc0/drivers/i2c/busses/i2c-i801.c	2009-03-26 10:50:50.000000000 +0100
-@@ -65,6 +65,7 @@
- #include <linux/i2c.h>
- #include <linux/acpi.h>
- #include <linux/io.h>
-+#include <linux/dmi.h>
+--- quilt-sensors.orig/prog/sensord/lib.c	2009-03-06 16:24:55.000000000 +0100
++++ quilt-sensors/prog/sensord/lib.c	2009-03-08 18:19:28.000000000 +0100
+@@ -32,69 +32,72 @@
+ #include "sensord.h"
+ #include "lib/error.h"
  
- /* I801 SMBus address offsets */
- #define SMBHSTSTS	(0 + i801_smba)
-@@ -616,10 +617,81 @@ static void __init input_apanel_init(voi
- static void __init input_apanel_init(void) {}
- #endif
- 
-+#if defined CONFIG_SENSORS_FSCHMD || defined CONFIG_SENSORS_FSCHMD_MODULE
-+struct dmi_onboard_device_info {
-+	const char *name;
-+	u8 type;
-+	unsigned short i2c_addr;
-+	const char *i2c_type;
-+};
-+
-+static struct dmi_onboard_device_info __devinitdata dmi_devices[] = {
-+	{ "Syleus", DMI_DEV_TYPE_OTHER, 0x73, "fscsyl" },
-+	{ "Hermes", DMI_DEV_TYPE_OTHER, 0x73, "fscher" },
-+	{ "Hades",  DMI_DEV_TYPE_OTHER, 0x73, "fschds" },
-+};
-+
-+static void __devinit dmi_check_onboard_device(u8 type, const char *name,
-+					       struct i2c_adapter *adap)
+-static int
+-loadConfig
+-(const char *cfgPath, int reload) {
+-  struct stat stats;
+-  FILE *cfg = NULL;
+-  int ret = 0;
+-
+-  if (cfgPath && !strcmp (cfgPath, "-")) {
+-    if (!reload) {
+-      if ((ret = sensors_init (stdin))) {
+-        sensorLog (LOG_ERR, "Error loading sensors configuration file <stdin>: %s",
+-                   sensors_strerror (ret));
+-        ret = 12;
+-      }
+-    }
+-  } else if (cfgPath && stat (cfgPath, &stats) < 0) {
+-    sensorLog (LOG_ERR, "Error stating sensors configuration file: %s", cfgPath);
+-    ret = 10;
+-  } else {
+-    if (reload) {
+-      sensorLog (LOG_INFO, "configuration reloading");
+-      sensors_cleanup ();
+-    }
+-    if (cfgPath && !(cfg = fopen (cfgPath, "r"))) {
+-      sensorLog (LOG_ERR, "Error opening sensors configuration file: %s", cfgPath);
+-      ret = 11;
+-    } else if ((ret = sensors_init (cfg))) {
+-      sensorLog (LOG_ERR, "Error loading sensors configuration file %s: %s",
+-                 cfgPath ? cfgPath : "(default)", sensors_strerror (ret));
+-      ret = 11;
+-    }
+-    if (cfg)
+-      fclose (cfg);
+-  }
++static int loadConfig(const char *cfgPath, int reload)
 +{
-+	int i;
-+	struct i2c_board_info info;
++	struct stat stats;
++	FILE *cfg = NULL;
++	int ret = 0;
 +
-+	for (i = 0; i < ARRAY_SIZE(dmi_devices); i++) {
-+		/* & ~0x80, ignore enabled/disabled bit */
-+		if ((type & ~0x80) != dmi_devices[i].type)
-+			continue;
-+		if (strcmp(name, dmi_devices[i].name))
-+			continue;
-+
-+		memset(&info, 0, sizeof(struct i2c_board_info));
-+		info.addr = dmi_devices[i].i2c_addr;
-+		strlcpy(info.type, dmi_devices[i].i2c_type, I2C_NAME_SIZE);
-+		i2c_new_device(adap, &info);
-+		break;
-+	}
-+}
-+
-+/* We use our own function to check for onboard devices instead of
-+   dmi_find_device() as some buggy BIOS's have the devices we are interested
-+   in marked as disabled */
-+static void __devinit dmi_check_onboard_devices(const struct dmi_header *dm,
-+						void *adap)
-+{
-+	int i, count;
-+
-+	if (dm->type != 10)
-+		return;
-+
-+	count = (dm->length - sizeof(struct dmi_header)) / 2;
-+	for (i = 0; i < count; i++) {
-+		const u8 *d = (char *)(dm + 1) + (i * 2);
-+		const char *name = ((char *) dm) + dm->length;
-+		u8 type = d[0];
-+		u8 s = d[1];
-+
-+		if (!s)
-+			continue;
-+		s--;
-+		while (s > 0 && name[0]) {
-+			name += strlen(name) + 1;
-+			s--;
++	if (cfgPath && !strcmp(cfgPath, "-")) {
++		if (!reload) {
++			if ((ret = sensors_init(stdin))) {
++				sensorLog(LOG_ERR,
++					  "Error loading sensors configuration file <stdin>: %s",
++					  sensors_strerror(ret));
++				ret = 12;
++			}
 +		}
-+		if (name[0] = 0) /* Bogus string reference */
-+			continue;
-+
-+		dmi_check_onboard_device(type, name, adap);
++	} else if (cfgPath && stat(cfgPath, &stats) < 0) {
++		sensorLog(LOG_ERR,
++			  "Error stating sensors configuration file: %s",
++			  cfgPath);
++		ret = 10;
++	} else {
++		if (reload) {
++			sensorLog(LOG_INFO, "configuration reloading");
++			sensors_cleanup();
++		}
++		if (cfgPath && !(cfg = fopen(cfgPath, "r"))) {
++			sensorLog(LOG_ERR,
++				  "Error opening sensors configuration file: %s",
++				  cfgPath);
++			ret = 11;
++		} else if ((ret = sensors_init(cfg))) {
++			sensorLog(LOG_ERR,
++				  "Error loading sensors configuration file %s: %s",
++				  cfgPath ? cfgPath : "(default)",
++				  sensors_strerror(ret));
++			ret = 11;
++		}
++		if (cfg)
++			fclose(cfg);
 +	}
-+}
-+#endif
-+
- static int __devinit i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
- {
- 	unsigned char temp;
- 	int err;
-+#if defined CONFIG_SENSORS_FSCHMD || defined CONFIG_SENSORS_FSCHMD_MODULE
-+	const char *vendor;
-+#endif
  
- 	I801_dev = dev;
- 	i801_features = 0;
-@@ -712,6 +784,11 @@ static int __devinit i801_probe(struct p
- 		i2c_new_device(&i801_adapter, &info);
- 	}
- #endif
-+#if defined CONFIG_SENSORS_FSCHMD || defined CONFIG_SENSORS_FSCHMD_MODULE
-+	vendor = dmi_get_system_info(DMI_BOARD_VENDOR);
-+	if (vendor && !strcmp(vendor, "FUJITSU SIEMENS"))
-+		dmi_walk(dmi_check_onboard_devices, &i801_adapter);
-+#endif
+-  return ret;
++	return ret;
+ }
  
- 	return 0;
+-int
+-loadLib
+-(const char *cfgPath) {
+-  int ret;
+-  ret = loadConfig (cfgPath, 0);
+-  if (!ret)
+-    ret = initKnownChips ();
+-  return ret;
++int loadLib(const char *cfgPath)
++{
++	int ret;
++	ret = loadConfig(cfgPath, 0);
++	if (!ret)
++		ret = initKnownChips();
++	return ret;
+ }
  
-
-
--- 
-Jean Delvare
+-int
+-reloadLib
+-(const char *cfgPath) {
+-  int ret;
+-  freeKnownChips ();
+-  ret = loadConfig (cfgPath, 1);
+-  if (!ret)
+-    ret = initKnownChips ();
+-  return ret;
++int reloadLib(const char *cfgPath)
++{
++	int ret;
++	freeKnownChips();
++	ret = loadConfig(cfgPath, 1);
++	if (!ret)
++		ret = initKnownChips();
++	return ret;
+ }
+ 
+-int
+-unloadLib
+-(void) {
+-  freeKnownChips ();
+-  sensors_cleanup ();
+-  return 0;  
++int unloadLib(void)
++{
++	freeKnownChips();
++	sensors_cleanup();
++	return 0;
+ }
 
 _______________________________________________
 lm-sensors mailing list
