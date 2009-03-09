@@ -1,78 +1,411 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 03 Mar 2009 15:06:31 +0000
-Subject: Re: [lm-sensors] W83667HG driver test for in6 and temp3
-Message-Id: <20090303160631.46e5c994@hyperion.delvare>
+From: Andre Prendel <andre_prendel@gmx.de>
+Date: Mon, 09 Mar 2009 08:46:12 +0000
+Subject: [lm-sensors] [PATCH 6/7] sensord: Coding style conversion (gnu ->
+Message-Id: <20090309084612.GG4636@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <29CFBC9A3FDC81418F5FACEEC8970E0020AE12@ntshml01.nuvoton.com>
-In-Reply-To: <29CFBC9A3FDC81418F5FACEEC8970E0020AE12@ntshml01.nuvoton.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Michael,
+Fix coding style in sensord.c
 
-On Tue, 03 Mar 2009 09:49:39 -0500, Michael Hampton wrote:
-> Jean Delvare wrote:
-> > To all potential testers: I've split support for the W83667HG into 3
-> > patches:
-> >
-> > ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvar=
-e-hwmon/hwmon-w83627ehf-01-invert-fan-pin-logic.patch
-> > ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvar=
-e-hwmon/hwmon-w83627ehf-02-add-support-for-w83667hg.patch
-> > ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvar=
-e-hwmon/hwmon-w83627ehf-03-fix-temp3-vs-in6.patch
-> >
-> > These patches are now in linux-next and will be merged into kernel
-> > 2.6.30 if we receive positive feedback.
-> >
-> > Any further change should be in a new patch to be applied on top of
-> > these 3 patches we already have.
-> >
-> > Thanks,
-> >  =20
->=20
-> I've applied these 3 patches against the latest Fedora 10 kernel
-> 2.6.27.19-170.2.35.fc10.x86_64 and it's working, only I get temp3 (with
-> an invalid value) instead of in6. The motherboard is an ASUS P6T6 WS
-> Revolution.
+---
+ prog/sensord/sensord.c |  382 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 192 insertions(+), 190 deletions(-)
 
-OK, thanks for testing and reporting. OTOH, temp3 is invalid, but you
-don't know if in6 would be valid, so it doesn't mean much. Is there any
-temperature or voltage value shown in the BIOS which is missing in the
-output of "sensors"?
-
-Do you happen to have Windows installed on that machine for comparison
-purposes?
-
->=20
-> w83667hg-isa-0290
-> Adapter: ISA adapter
-> in0:         +1.34 V  (min =3D  +0.00 V, max =3D  +1.74 V) =20
-> in1:         +1.70 V  (min =3D  +0.02 V, max =3D  +0.00 V)   ALARM
-> in2:         +3.22 V  (min =3D  +1.02 V, max =3D  +0.26 V)   ALARM
-> in3:         +3.18 V  (min =3D  +2.56 V, max =3D  +0.00 V)   ALARM
-> in4:         +1.69 V  (min =3D  +0.00 V, max =3D  +1.04 V)   ALARM
-> in5:         +2.04 V  (min =3D  +0.77 V, max =3D  +0.52 V)   ALARM
-> in7:         +3.34 V  (min =3D  +0.02 V, max =3D  +1.34 V)   ALARM
-> in8:         +3.31 V  (min =3D  +0.86 V, max =3D  +1.09 V)   ALARM
-> fan1:       1917 RPM  (min =3D 1288 RPM, div =3D 8)
-> fan2:       1875 RPM  (min =3D 14062 RPM, div =3D 16)  ALARM
-> fan3:       1795 RPM  (min =3D 5273 RPM, div =3D 4)  ALARM
-> fan4:       1875 RPM  (min =3D 1298 RPM, div =3D 8)
-> fan5:       2481 RPM  (min =3D 2636 RPM, div =3D 8)  ALARM
-> temp1:       +43.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +4.0=B0C)  ALARM  =
-sensor > thermistor
-> temp2:       +60.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
-=3D diode
-> temp3:      +127.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  ALARM  =
-sensor > thermistor
-> cpu0_vid:   +1.950 V
-
-
---=20
-Jean Delvare
+--- quilt-sensors.orig/prog/sensord/sensord.c	2009-03-07 23:32:46.000000000 +0100
++++ quilt-sensors/prog/sensord/sensord.c	2009-03-07 23:40:17.000000000 +0100
+@@ -44,197 +44,199 @@
+ 
+ #include <stdarg.h>
+ 
+-void
+-sensorLog
+-(int priority, const char *fmt, ...) {
+-  static char buffer[1 + LOG_BUFFER];
+-  va_list ap;
+-  va_start (ap, fmt);
+-  vsnprintf (buffer, LOG_BUFFER, fmt, ap);
+-  buffer[LOG_BUFFER] = '\0';
+-  va_end (ap);
+-  if (debug || (priority < LOG_DEBUG)) {
+-    if (logOpened) {
+-      syslog (priority, "%s", buffer);
+-    } else {
+-      fprintf (stderr, "%s\n", buffer);
+-      fflush (stderr);
+-    }
+-  }
+-}
+-
+-static void
+-signalHandler
+-(int sig) {
+-  signal (sig, signalHandler);
+-  switch (sig) {
+-    case SIGTERM:
+-      done = 1;
+-      break;
+-    case SIGHUP:
+-      reload = 1;
+-      break;
+-  }
+-}
+-
+-static int
+-sensord
+-(void) {
+-  int ret = 0;
+-  int scanValue = 0, logValue = 0;
+-  /*
+-   * First RRD update at next RRD timeslot to prevent failures due
+-   * one timeslot updated twice on restart for example.
+-   */
+-  int rrdValue = rrdTime - time(NULL) % rrdTime;
+-
+-  sensorLog (LOG_INFO, "sensord started");
+-
+-  while (!done) {
+-    if (reload) {
+-      ret = reloadLib (sensorsCfgFile);
+-      if (ret)
+-        sensorLog (LOG_NOTICE, "config reload error (%d)", ret);
+-      reload = 0;
+-    }
+-    if (scanTime && (scanValue <= 0)) {
+-      if ((ret = scanChips ()))
+-        sensorLog (LOG_NOTICE, "sensor scan error (%d)", ret);
+-      scanValue += scanTime;
+-    }
+-    if (logTime && (logValue <= 0)) {
+-      if ((ret = readChips ()))
+-        sensorLog (LOG_NOTICE, "sensor read error (%d)", ret);
+-      logValue += logTime;
+-    }
+-    if (rrdTime && rrdFile && (rrdValue <= 0)) {
+-      if ((ret = rrdUpdate ()))
+-        sensorLog (LOG_NOTICE, "rrd update error (%d)", ret);
+-      /*
+-       * The amount of time to wait is computed using the same method as
+-       * in RRD instead of simply adding the interval.
+-       */
+-      rrdValue = rrdTime - time(NULL) % rrdTime;
+-    }
+-    if (!done) {
+-      int a = logTime ? logValue : INT_MAX;
+-      int b = scanTime ? scanValue : INT_MAX;
+-      int c = (rrdTime && rrdFile) ? rrdValue : INT_MAX;
+-      int sleepTime = (a < b) ? ((a < c) ? a : c) : ((b < c) ? b : c);
+-      sleep (sleepTime);
+-      scanValue -= sleepTime;
+-      logValue -= sleepTime;
+-      rrdValue -= sleepTime;
+-    }
+-  }
+-
+-  sensorLog (LOG_INFO, "sensord stopped");
+-
+-  return ret;
+-}
+-
+-static void
+-openLog
+-(void) {
+-  openlog ("sensord", 0, syslogFacility);
+-  logOpened = 1; 
+-}
+-
+-static void
+-daemonize
+-(void) {
+-  int pid;
+-  struct stat fileStat;
+-  FILE *file;
+-
+-  if (chdir ("/") < 0) {
+-    perror ("chdir()");
+-    exit (EXIT_FAILURE);
+-  }
+-
+-  if (!(stat (pidFile, &fileStat)) &&
+-      ((!S_ISREG (fileStat.st_mode)) || (fileStat.st_size > 11))) {
+-    fprintf (stderr, "Error: PID file `%s' already exists and looks suspicious.\n", pidFile);
+-    exit (EXIT_FAILURE);
+-  }
++void sensorLog(int priority, const char *fmt, ...)
++{
++	static char buffer[1 + LOG_BUFFER];
++	va_list ap;
++	va_start(ap, fmt);
++	vsnprintf(buffer, LOG_BUFFER, fmt, ap);
++	buffer[LOG_BUFFER] = '\0';
++	va_end(ap);
++	if (debug || (priority < LOG_DEBUG)) {
++		if (logOpened) {
++			syslog(priority, "%s", buffer);
++		} else {
++			fprintf(stderr, "%s\n", buffer);
++			fflush(stderr);
++		}
++	}
++}
++
++static void signalHandler(int sig)
++{
++	signal(sig, signalHandler);
++	switch (sig) {
++	case SIGTERM:
++		done = 1;
++		break;
++	case SIGHUP:
++		reload = 1;
++		break;
++	}
++}
++
++static int sensord(void)
++{
++	int ret = 0;
++	int scanValue = 0, logValue = 0;
++	/*
++	 * First RRD update at next RRD timeslot to prevent failures due
++	 * one timeslot updated twice on restart for example.
++	 */
++	int rrdValue = rrdTime - time(NULL) % rrdTime;
++
++	sensorLog(LOG_INFO, "sensord started");
++
++	while (!done) {
++		if (reload) {
++			ret = reloadLib(sensorsCfgFile);
++			if (ret)
++				sensorLog(LOG_NOTICE,
++					  "config reload error (%d)", ret);
++			reload = 0;
++		}
++		if (scanTime && (scanValue <= 0)) {
++			if ((ret = scanChips()))
++				sensorLog(LOG_NOTICE,
++					  "sensor scan error (%d)", ret);
++			scanValue += scanTime;
++		}
++		if (logTime && (logValue <= 0)) {
++			if ((ret = readChips()))
++				sensorLog(LOG_NOTICE,
++					  "sensor read error (%d)", ret);
++			logValue += logTime;
++		}
++		if (rrdTime && rrdFile && (rrdValue <= 0)) {
++			if ((ret = rrdUpdate()))
++				sensorLog(LOG_NOTICE,
++					  "rrd update error (%d)", ret);
++			/*
++			 * The amount of time to wait is computed using the
++			 * same method as in RRD instead of simply adding the
++			 * interval.
++			 */
++			rrdValue = rrdTime - time(NULL) % rrdTime;
++		}
++		if (!done) {
++			int a = logTime ? logValue : INT_MAX;
++			int b = scanTime ? scanValue : INT_MAX;
++			int c = (rrdTime && rrdFile) ? rrdValue : INT_MAX;
++			int sleepTime = (a < b) ? ((a < c) ? a : c) :
++				((b < c) ? b : c);
++			sleep(sleepTime);
++			scanValue -= sleepTime;
++			logValue -= sleepTime;
++			rrdValue -= sleepTime;
++		}
++	}
++
++	sensorLog(LOG_INFO, "sensord stopped");
++
++	return ret;
++}
++
++static void openLog(void)
++{
++	openlog("sensord", 0, syslogFacility);
++	logOpened = 1;
++}
++
++static void daemonize(void)
++{
++	int pid;
++	struct stat fileStat;
++	FILE *file;
++
++	if (chdir("/") < 0) {
++		perror("chdir()");
++		exit(EXIT_FAILURE);
++	}
++
++	if (!(stat(pidFile, &fileStat)) &&
++	    ((!S_ISREG(fileStat.st_mode)) || (fileStat.st_size > 11))) {
++		fprintf(stderr,
++			"Error: PID file `%s' already exists and looks suspicious.\n",
++			pidFile);
++		exit(EXIT_FAILURE);
++	}
+  
+-  if (!(file = fopen (pidFile, "w"))) {
+-    fprintf (stderr, "fopen(\"%s\"): %s\n", pidFile, strerror (errno));
+-    exit (EXIT_FAILURE);
+-  }
++	if (!(file = fopen(pidFile, "w"))) {
++		fprintf(stderr, "fopen(\"%s\"): %s\n", pidFile,
++			strerror(errno));
++		exit(EXIT_FAILURE);
++	}
++
++	/* I should use sigaction but... */
++	if (signal(SIGTERM, signalHandler) = SIG_ERR ||
++	    signal (SIGHUP, signalHandler) = SIG_ERR) {
++		perror("signal");
++		exit(EXIT_FAILURE);
++	}
++
++	if ((pid = fork()) = -1) {
++		perror("fork()");
++		exit(EXIT_FAILURE);
++	} else if (pid != 0) {
++		fprintf(file, "%d\n", pid);
++		fclose(file);
++		unloadLib();
++		exit(EXIT_SUCCESS);
++	}
++
++	if (setsid() < 0) {
++		perror("setsid()");
++		exit(EXIT_FAILURE);
++	}
++
++	fclose(file);
++	close(STDIN_FILENO);
++	close(STDOUT_FILENO);
++	close(STDERR_FILENO);
++}
++
++static void undaemonize(void)
++{
++	unlink(pidFile);
++	closelog();
++}
++
++int main(int argc, char **argv)
++{
++	int ret = 0;
++
++	if (parseArgs(argc, argv) ||
++	    parseChips(argc, argv))
++		exit(EXIT_FAILURE);
++
++	if (loadLib(sensorsCfgFile))
++		exit(EXIT_FAILURE);
++
++	if (isDaemon)
++		openLog();
++	if (rrdFile)
++		ret = rrdInit();
++
++	if (ret) {
++	} else if (doCGI) {
++		ret = rrdCGI();
++	} else if (isDaemon) {
++		daemonize();
++		ret = sensord();
++		undaemonize();
++	} else {
++		if (doSet)
++			ret = setChips();
++		else if (doScan)
++			ret = scanChips();
++		else if (rrdFile)
++			ret = rrdUpdate();
++		else
++			ret = readChips();
++	}
+   
+-  /* I should use sigaction but... */
+-  if (signal (SIGTERM, signalHandler) = SIG_ERR ||
+-      signal (SIGHUP, signalHandler) = SIG_ERR) {
+-    perror ("signal");
+-    exit (EXIT_FAILURE);
+-  }
+-
+-  if ((pid = fork ()) = -1) {
+-    perror ("fork()");
+-    exit (EXIT_FAILURE);
+-  } else if (pid != 0) {
+-    fprintf (file, "%d\n", pid);
+-    fclose (file);
+-    unloadLib ();
+-    exit (EXIT_SUCCESS);
+-  }
+-
+-  if (setsid () < 0) {
+-    perror ("setsid()");
+-    exit (EXIT_FAILURE);
+-  }
+-
+-  fclose (file);
+-  close (STDIN_FILENO);
+-  close (STDOUT_FILENO);
+-  close (STDERR_FILENO);
+-}
+-
+-static void 
+-undaemonize
+-(void) {
+-  unlink (pidFile);
+-  closelog ();
+-}
+-
+-int
+-main
+-(int argc, char **argv) {
+-  int ret = 0;
++	if (unloadLib())
++		exit(EXIT_FAILURE);
+   
+-  if (parseArgs (argc, argv) ||
+-      parseChips (argc, argv))
+-    exit (EXIT_FAILURE);
+-  
+-  if (loadLib (sensorsCfgFile))
+-    exit (EXIT_FAILURE);
+-
+-  if (isDaemon)
+-    openLog ();
+-  if (rrdFile)
+-    ret = rrdInit ();
+-  
+-  if (ret) {
+-  } else if (doCGI) {
+-    ret = rrdCGI ();
+-  } else if (isDaemon) {
+-    daemonize ();
+-    ret = sensord ();
+-    undaemonize ();
+-  } else {
+-    if (doSet)
+-      ret = setChips ();
+-    else if (doScan)
+-      ret = scanChips ();
+-    else if (rrdFile)
+-      ret = rrdUpdate ();
+-    else
+-      ret = readChips ();
+-  }
+-  
+-  if (unloadLib ())
+-    exit (EXIT_FAILURE);
+-  
+-  return ret;
++	return ret;
+ }
 
 _______________________________________________
 lm-sensors mailing list
