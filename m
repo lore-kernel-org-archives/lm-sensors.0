@@ -1,120 +1,630 @@
 From: Andre Prendel <andre_prendel@gmx.de>
-Date: Mon, 09 Mar 2009 08:46:20 +0000
-Subject: [lm-sensors] [PATCH 7/7] sensord: Coding style conversion (gnu ->
-Message-Id: <20090309084620.GH4636@ubuntu>
+Date: Mon, 09 Mar 2009 08:45:27 +0000
+Subject: [lm-sensors] [PATCH 2/7] sensord: Coding style conversion (gnu ->
+Message-Id: <20090309084525.GC4636@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Fix coding style in sensord.h
+Fix coding style in chips.c
 
 ---
- prog/sensord/sensord.h |   61 ++++++++++++++++++++++++-------------------------
- 1 file changed, 31 insertions(+), 30 deletions(-)
+ prog/sensord/chips.c |  547 +++++++++++++++++++++++++--------------------------
+ 1 file changed, 278 insertions(+), 269 deletions(-)
 
---- quilt-sensors.orig/prog/sensord/sensord.h	2009-03-07 23:41:17.000000000 +0100
-+++ quilt-sensors/prog/sensord/sensord.h	2009-03-07 23:44:49.000000000 +0100
-@@ -23,7 +23,7 @@
+--- quilt-sensors.orig/prog/sensord/chips.c	2009-03-06 16:24:55.000000000 +0100
++++ quilt-sensors/prog/sensord/chips.c	2009-03-07 23:11:42.000000000 +0100
+@@ -33,291 +33,300 @@
  
- #include "lib/sensors.h"
+ static char buff[4096];
  
--extern void sensorLog (int priority, const char *fmt, ...);
-+extern void sensorLog(int priority, const char *fmt, ...);
+-static const char *
+-fmtExtra
+-(int alarm, int beep) {
+-  if (alarm)
+-    sprintf (buff + strlen (buff), " [ALARM]");
+-  if (beep)
+-    sprintf (buff + strlen (buff), " (beep)");
+-  return buff;
++static const char *fmtExtra(int alarm, int beep)
++{
++	if (alarm)
++		sprintf(buff + strlen(buff), " [ALARM]");
++	if (beep)
++		sprintf(buff + strlen(buff), " (beep)");
++	return buff;
+ }
  
- /* from args.c */
+-static const char *
+-fmtTemps_1
+-(const double values[], int alarm, int beep) {
+-  sprintf (buff, "%.1f C (limit = %.1f C, hysteresis = %.1f C)", values[0], values[1], values[2]);
+-  return fmtExtra (alarm, beep);
++static const char *fmtTemps_1(const double values[], int alarm, int beep)
++{
++	sprintf(buff, "%.1f C (limit = %.1f C, hysteresis = %.1f C)",
++		values[0], values[1], values[2]);
++	return fmtExtra(alarm, beep);
+ }
  
-@@ -45,59 +45,60 @@
- extern sensors_chip_name chipNames[];
- extern int numChipNames;
+-static const char *
+-fmtTemps_minmax_1
+-(const double values[], int alarm, int beep) {
+- sprintf (buff, "%.1f C (min = %.1f C, max = %.1f C)", values[0], values[1], values[2]);
+- return fmtExtra (alarm, beep);
++static const char *fmtTemps_minmax_1(const double values[], int alarm,
++				     int beep) {
++	sprintf(buff, "%.1f C (min = %.1f C, max = %.1f C)", values[0],
++		values[1], values[2]);
++	return fmtExtra(alarm, beep);
+ }
  
--extern int parseArgs (int argc, char **argv);
--extern int parseChips (int argc, char **argv);
-+extern int parseArgs(int argc, char **argv);
-+extern int parseChips(int argc, char **argv);
+-static const char *
+-fmtTemp_only
+-(const double values[], int alarm, int beep) {
+-  sprintf (buff, "%.1f C", values[0]);
+-  return fmtExtra (alarm, beep);
++static const char *fmtTemp_only(const double values[], int alarm, int beep)
++{
++	sprintf(buff, "%.1f C", values[0]);
++	return fmtExtra(alarm, beep);
+ }
  
- /* from lib.c */
+-static const char *
+-fmtVolt_2
+-(const double values[], int alarm, int beep) {
+-  sprintf (buff, "%+.2f V", values[0]);
+-  return fmtExtra (alarm, beep);
++static const char *fmtVolt_2(const double values[], int alarm, int beep)
++{
++	sprintf(buff, "%+.2f V", values[0]);
++	return fmtExtra(alarm, beep);
+ }
  
--extern int loadLib (const char *cfgPath);
--extern int reloadLib (const char *cfgPath);
--extern int unloadLib (void);
-+extern int loadLib(const char *cfgPath);
-+extern int reloadLib(const char *cfgPath);
-+extern int unloadLib(void);
+-static const char *
+-fmtVolt_3
+-(const double values[], int alarm, int beep) {
+-  sprintf (buff, "%+.3f V", values[0]);
+-  return fmtExtra (alarm, beep);
++static const char *fmtVolt_3(const double values[], int alarm, int beep)
++{
++	sprintf(buff, "%+.3f V", values[0]);
++	return fmtExtra(alarm, beep);
+ }
  
- /* from sense.c */
+-static const char *
+-fmtVolts_2
+-(const double values[], int alarm, int beep) {
+-  sprintf (buff, "%+.2f V (min = %+.2f V, max = %+.2f V)", values[0], values[1], values[2]);
+-  return fmtExtra (alarm, beep);
++static const char *fmtVolts_2(const double values[], int alarm, int beep)
++{
++	sprintf(buff, "%+.2f V (min = %+.2f V, max = %+.2f V)", values[0],
++		values[1], values[2]);
++	return fmtExtra(alarm, beep);
+ }
  
--extern int readChips (void);
--extern int scanChips (void);
--extern int setChips (void);
--extern int rrdChips (void);
-+extern int readChips(void);
-+extern int scanChips(void);
-+extern int setChips(void);
-+extern int rrdChips(void);
+-static const char *
+-fmtFans_0
+-(const double values[], int alarm, int beep) {
+-  sprintf (buff, "%.0f RPM (min = %.0f RPM, div = %.0f)", values[0], values[1], values[2]);
+-  return fmtExtra (alarm, beep);
++static const char *fmtFans_0(const double values[], int alarm, int beep)
++{
++	sprintf(buff, "%.0f RPM (min = %.0f RPM, div = %.0f)", values[0],
++		values[1], values[2]);
++	return fmtExtra(alarm, beep);
+ }
  
- /* from rrd.c */
+-static const char *
+-fmtFans_nodiv_0
+-(const double values[], int alarm, int beep) {
+-  sprintf (buff, "%.0f RPM (min = %.0f RPM)", values[0], values[1]);
+-  return fmtExtra (alarm, beep);
++static const char *fmtFans_nodiv_0(const double values[], int alarm, int beep)
++{
++	sprintf(buff, "%.0f RPM (min = %.0f RPM)", values[0], values[1]);
++	return fmtExtra(alarm, beep);
+ }
  
- extern char rrdBuff[];
--extern int rrdInit (void);
--extern int rrdUpdate (void);
--extern int rrdCGI (void);
-+extern int rrdInit(void);
-+extern int rrdUpdate(void);
-+extern int rrdCGI(void);
+-static const char *
+-fmtFan_only
+-(const double values[], int alarm, int beep) {
+-  sprintf (buff, "%.0f RPM", values[0]);
+-  return fmtExtra (alarm, beep);
++static const char *fmtFan_only(const double values[], int alarm, int beep)
++{
++	sprintf(buff, "%.0f RPM", values[0]);
++	return fmtExtra(alarm, beep);
+ }
  
- /* from chips.c */
+-static const char *
+-fmtSoundAlarm
+-(const double values[], int alarm, int beep) {
+-  sprintf (buff, "Sound alarm %s", (values[0] < 0.5) ? "disabled" : "enabled");
+-  return fmtExtra (alarm, beep);
++static const char *fmtSoundAlarm(const double values[], int alarm, int beep)
++{
++	sprintf(buff, "Sound alarm %s",
++		(values[0] < 0.5) ? "disabled" : "enabled");
++	return fmtExtra(alarm, beep);
+ }
  
- #define MAX_DATA 5
+-static const char *
+-rrdF0
+-(const double values[]) {
+-  sprintf (buff, "%.0f", values[0]);
+-  return buff;
++static const char *rrdF0(const double values[])
++{
++	sprintf(buff, "%.0f", values[0]);
++	return buff;
+ }
  
--typedef const char * (*FormatterFN) (const double values[], int alarm, int beep);
-+typedef const char *(*FormatterFN) (const double values[], int alarm,
-+				     int beep);
+-static const char *
+-rrdF1
+-(const double values[]) {
+-  sprintf (buff, "%.1f", values[0]);
+-  return buff;
++static const char *rrdF1(const double values[])
++{
++	sprintf(buff, "%.1f", values[0]);
++	return buff;
+ }
  
--typedef const char * (*RRDFN) (const double values[]);
-+typedef const char *(*RRDFN) (const double values[]);
+-static const char *
+-rrdF2
+-(const double values[]) {
+-  sprintf (buff, "%.2f", values[0]);
+-  return buff;
++static const char *rrdF2(const double values[])
++{
++	sprintf(buff, "%.2f", values[0]);
++	return buff;
+ }
  
- typedef enum {
--  DataType_voltage = 0,
--  DataType_rpm,
--  DataType_temperature,
--  DataType_other = -1
-+	DataType_voltage = 0,
-+	DataType_rpm,
-+	DataType_temperature,
-+	DataType_other = -1
- } DataType;
+-static const char *
+-rrdF3
+-(const double values[]) {
+-  sprintf (buff, "%.3f", values[0]);
+-  return buff;
++static const char *rrdF3(const double values[])
++{
++	sprintf(buff, "%.3f", values[0]);
++	return buff;
+ }
  
- typedef struct {
--  FormatterFN format;
--  RRDFN rrd;
--  DataType type;
--  int alarmNumber;
--  int beepNumber;
--  const sensors_feature *feature;
--  int dataNumbers[MAX_DATA + 1];
-+	FormatterFN format;
-+	RRDFN rrd;
-+	DataType type;
-+	int alarmNumber;
-+	int beepNumber;
-+	const sensors_feature *feature;
-+	int dataNumbers[MAX_DATA + 1];
- } FeatureDescriptor;
+-static void fillChipVoltage (FeatureDescriptor *voltage,
+-                             const sensors_chip_name *name,
+-                             const sensors_feature *feature)
++static void fillChipVoltage(FeatureDescriptor *voltage,
++			    const sensors_chip_name *name,
++			    const sensors_feature *feature)
+ {
+-  const sensors_subfeature *sf, *sfmin, *sfmax;
+-  int pos = 0;
+-
+-  voltage->rrd = rrdF2;
+-  voltage->type = DataType_voltage;
++	const sensors_subfeature *sf, *sfmin, *sfmax;
++	int pos = 0;
  
- typedef struct {
+-  sf = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_IN_INPUT);
+-  if (sf)
+-    voltage->dataNumbers[pos++] = sf->number;
++	voltage->rrd = rrdF2;
++	voltage->type = DataType_voltage;
+ 
+-  sfmin = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_IN_MIN);
+-  sfmax = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_IN_MAX);
+-  if (sfmin && sfmax) {
+-    voltage->format = fmtVolts_2;
+-    voltage->dataNumbers[pos++] = sfmin->number;
+-    voltage->dataNumbers[pos++] = sfmax->number;
+-  } else {
+-    voltage->format = fmtVolt_2;
+-  }
++	sf = sensors_get_subfeature(name, feature,
++				    SENSORS_SUBFEATURE_IN_INPUT);
++	if (sf)
++		voltage->dataNumbers[pos++] = sf->number;
++
++	sfmin = sensors_get_subfeature(name, feature,
++				       SENSORS_SUBFEATURE_IN_MIN);
++	sfmax = sensors_get_subfeature(name, feature,
++				       SENSORS_SUBFEATURE_IN_MAX);
++	if (sfmin && sfmax) {
++		voltage->format = fmtVolts_2;
++		voltage->dataNumbers[pos++] = sfmin->number;
++		voltage->dataNumbers[pos++] = sfmax->number;
++	} else {
++		voltage->format = fmtVolt_2;
++	}
+   
+-  /* terminate the list */
+-  voltage->dataNumbers[pos] = -1;
++	/* terminate the list */
++	voltage->dataNumbers[pos] = -1;
++
++	/* alarm if applicable */
++	if ((sf = sensors_get_subfeature(name, feature,
++					 SENSORS_SUBFEATURE_IN_ALARM)) ||
++	    (sf = sensors_get_subfeature(name, feature,
++					 SENSORS_SUBFEATURE_IN_MIN_ALARM)) ||
++	    (sf = sensors_get_subfeature(name, feature,
++					 SENSORS_SUBFEATURE_IN_MAX_ALARM))) {
++		voltage->alarmNumber = sf->number;
++	} else {
++		voltage->alarmNumber = -1;
++	}
++	/* beep if applicable */
++	if ((sf = sensors_get_subfeature(name, feature,
++					 SENSORS_SUBFEATURE_IN_BEEP))) {
++		voltage->beepNumber = sf->number;
++	} else {
++		voltage->beepNumber = -1;
++	}
++}
++
++static void fillChipTemperature(FeatureDescriptor *temperature,
++				const sensors_chip_name *name,
++				const sensors_feature *feature)
++{
++	const sensors_subfeature *sf, *sfmin, *sfmax, *sfhyst;
++	int pos = 0;
+ 
+-  /* alarm if applicable */
+-  if ((sf = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_IN_ALARM)) ||
+-      (sf = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_IN_MIN_ALARM)) ||
+-      (sf = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_IN_MAX_ALARM))) {
+-    voltage->alarmNumber = sf->number;
+-  } else {
+-    voltage->alarmNumber = -1;
+-  }
+-  /* beep if applicable */
+-  if ((sf = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_IN_BEEP))) {
+-    voltage->beepNumber = sf->number;
+-  } else {
+-    voltage->beepNumber = -1;
+-  }
+-}
+-
+-static void fillChipTemperature (FeatureDescriptor *temperature,
+-                                 const sensors_chip_name *name,
+-                                 const sensors_feature *feature)
+-{
+-  const sensors_subfeature *sf, *sfmin, *sfmax, *sfhyst;
+-  int pos = 0;
+-
+-  temperature->rrd = rrdF1;
+-  temperature->type = DataType_temperature;
+-
+-  sf = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_TEMP_INPUT);
+-  if (sf)
+-    temperature->dataNumbers[pos++] = sf->number;
+-
+-  sfmin = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_TEMP_MIN);
+-  sfmax = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_TEMP_MAX);
+-  sfhyst = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_TEMP_MAX_HYST);
+-  if (sfmin && sfmax) {
+-    temperature->format = fmtTemps_minmax_1;
+-    temperature->dataNumbers[pos++] = sfmin->number;
+-    temperature->dataNumbers[pos++] = sfmax->number;
+-  } else if (sfmax && sfhyst) {
+-    temperature->format = fmtTemps_1;
+-    temperature->dataNumbers[pos++] = sfmax->number;
+-    temperature->dataNumbers[pos++] = sfhyst->number;
+-  } else {
+-    temperature->format = fmtTemp_only;
+-  }
++	temperature->rrd = rrdF1;
++	temperature->type = DataType_temperature;
++
++	sf = sensors_get_subfeature(name, feature,
++				    SENSORS_SUBFEATURE_TEMP_INPUT);
++	if (sf)
++		temperature->dataNumbers[pos++] = sf->number;
++
++	sfmin = sensors_get_subfeature(name, feature,
++				       SENSORS_SUBFEATURE_TEMP_MIN);
++	sfmax = sensors_get_subfeature(name, feature,
++				       SENSORS_SUBFEATURE_TEMP_MAX);
++	sfhyst = sensors_get_subfeature(name, feature,
++					SENSORS_SUBFEATURE_TEMP_MAX_HYST);
++	if (sfmin && sfmax) {
++		temperature->format = fmtTemps_minmax_1;
++		temperature->dataNumbers[pos++] = sfmin->number;
++		temperature->dataNumbers[pos++] = sfmax->number;
++	} else if (sfmax && sfhyst) {
++		temperature->format = fmtTemps_1;
++		temperature->dataNumbers[pos++] = sfmax->number;
++		temperature->dataNumbers[pos++] = sfhyst->number;
++	} else {
++		temperature->format = fmtTemp_only;
++	}
+   
+-  /* terminate the list */
+-  temperature->dataNumbers[pos] = -1;
++	/* terminate the list */
++	temperature->dataNumbers[pos] = -1;
+ 
+-  /* alarm if applicable */
+-  if ((sf = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_TEMP_ALARM)) ||
+-      (sf = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_TEMP_MAX_ALARM))) {
+-    temperature->alarmNumber = sf->number;
+-  } else {
+-    temperature->alarmNumber = -1;
+-  }
+-  /* beep if applicable */
+-  if ((sf = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_TEMP_BEEP))) {
+-    temperature->beepNumber = sf->number;
+-  } else {
+-    temperature->beepNumber = -1;
+-  }
+-}
+-
+-static void fillChipFan (FeatureDescriptor *fan,
+-                         const sensors_chip_name *name,
+-                         const sensors_feature *feature)
+-{
+-  const sensors_subfeature *sf, *sfmin, *sfdiv;
+-  int pos = 0;
+-
+-  fan->rrd = rrdF0;
+-  fan->type = DataType_rpm;
+-
+-  sf = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_FAN_INPUT);
+-  if (sf)
+-    fan->dataNumbers[pos++] = sf->number;
+-
+-  sfmin = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_FAN_MIN);
+-  if (sfmin) {
+-    fan->dataNumbers[pos++] = sfmin->number;
+-    sfdiv = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_FAN_DIV);
+-    if (sfdiv) {
+-      fan->format = fmtFans_0;
+-      fan->dataNumbers[pos++] = sfdiv->number;
+-    } else {
+-      fan->format = fmtFans_nodiv_0;
+-    }
+-  } else {
+-      fan->format = fmtFan_only;
+-  }
++	/* alarm if applicable */
++	if ((sf = sensors_get_subfeature(name, feature,
++					 SENSORS_SUBFEATURE_TEMP_ALARM)) ||
++	    (sf = sensors_get_subfeature(name, feature,
++					 SENSORS_SUBFEATURE_TEMP_MAX_ALARM))) {
++		temperature->alarmNumber = sf->number;
++	} else {
++		temperature->alarmNumber = -1;
++	}
++	/* beep if applicable */
++	if ((sf = sensors_get_subfeature(name, feature,
++					 SENSORS_SUBFEATURE_TEMP_BEEP))) {
++		temperature->beepNumber = sf->number;
++	} else {
++		temperature->beepNumber = -1;
++	}
++}
++
++static void fillChipFan(FeatureDescriptor *fan,
++			const sensors_chip_name *name,
++			const sensors_feature *feature)
++{
++	const sensors_subfeature *sf, *sfmin, *sfdiv;
++	int pos = 0;
++
++	fan->rrd = rrdF0;
++	fan->type = DataType_rpm;
++
++	sf = sensors_get_subfeature(name, feature,
++				    SENSORS_SUBFEATURE_FAN_INPUT);
++	if (sf)
++		fan->dataNumbers[pos++] = sf->number;
++
++	sfmin = sensors_get_subfeature(name, feature,
++				       SENSORS_SUBFEATURE_FAN_MIN);
++	if (sfmin) {
++		fan->dataNumbers[pos++] = sfmin->number;
++		sfdiv = sensors_get_subfeature(name, feature,
++					       SENSORS_SUBFEATURE_FAN_DIV);
++		if (sfdiv) {
++			fan->format = fmtFans_0;
++			fan->dataNumbers[pos++] = sfdiv->number;
++		} else {
++			fan->format = fmtFans_nodiv_0;
++		}
++	} else {
++		fan->format = fmtFan_only;
++	}
+   
+-  /* terminate the list */
+-  fan->dataNumbers[pos] = -1;
++	/* terminate the list */
++	fan->dataNumbers[pos] = -1;
++
++	/* alarm if applicable */
++	sf = sensors_get_subfeature(name, feature,
++				    SENSORS_SUBFEATURE_FAN_ALARM);
++	if (sf) {
++		fan->alarmNumber = sf->number;
++	} else {
++		fan->alarmNumber = -1;
++	}
++	/* beep if applicable */
++	sf = sensors_get_subfeature(name, feature,
++				    SENSORS_SUBFEATURE_FAN_BEEP);
++	if (sf) {
++		fan->beepNumber = sf->number;
++	} else {
++		fan->beepNumber = -1;
++	}
++}
+ 
+-  /* alarm if applicable */
+-  sf = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_FAN_ALARM);
+-  if (sf) {
+-    fan->alarmNumber = sf->number;
+-  } else {
+-    fan->alarmNumber = -1;
+-  }
+-  /* beep if applicable */
+-  sf = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_FAN_BEEP);
+-  if (sf) {
+-    fan->beepNumber = sf->number;
+-  } else {
+-    fan->beepNumber = -1;
+-  }
+-}
+-
+-static void fillChipVid (FeatureDescriptor *vid,
+-                         const sensors_chip_name *name,
+-                         const sensors_feature *feature)
+-{
+-  const sensors_subfeature *sub;
+-
+-  sub = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_VID);
+-  if (!sub)
+-    return;
+-
+-  vid->format = fmtVolt_3;
+-  vid->rrd = rrdF3;
+-  vid->type = DataType_voltage;
+-  vid->alarmNumber = -1;
+-  vid->beepNumber = -1;
+-  vid->dataNumbers[0] = sub->number;
+-  vid->dataNumbers[1] = -1;
+-}
+-
+-static void fillChipBeepEnable (FeatureDescriptor *beepen,
+-                                const sensors_chip_name *name,
+-                                const sensors_feature *feature)
+-{
+-  const sensors_subfeature *sub;
+-
+-  sub = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_BEEP_ENABLE);
+-  if (!sub)
+-    return;
+-
+-  beepen->format = fmtSoundAlarm;
+-  beepen->rrd = rrdF0;
+-  beepen->type = DataType_other;
+-  beepen->alarmNumber = -1;
+-  beepen->beepNumber = -1;
+-  beepen->dataNumbers[0] = sub->number;
+-  beepen->dataNumbers[1] = -1;
++static void fillChipVid(FeatureDescriptor *vid,
++			const sensors_chip_name *name,
++			const sensors_feature *feature)
++{
++	const sensors_subfeature *sub;
++
++	sub = sensors_get_subfeature(name, feature, SENSORS_SUBFEATURE_VID);
++	if (!sub)
++		return;
++
++	vid->format = fmtVolt_3;
++	vid->rrd = rrdF3;
++	vid->type = DataType_voltage;
++	vid->alarmNumber = -1;
++	vid->beepNumber = -1;
++	vid->dataNumbers[0] = sub->number;
++	vid->dataNumbers[1] = -1;
++}
++
++static void fillChipBeepEnable(FeatureDescriptor *beepen,
++			       const sensors_chip_name *name,
++			       const sensors_feature *feature)
++{
++	const sensors_subfeature *sub;
++
++	sub = sensors_get_subfeature(name, feature,
++				     SENSORS_SUBFEATURE_BEEP_ENABLE);
++	if (!sub)
++		return;
++
++	beepen->format = fmtSoundAlarm;
++	beepen->rrd = rrdF0;
++	beepen->type = DataType_other;
++	beepen->alarmNumber = -1;
++	beepen->beepNumber = -1;
++	beepen->dataNumbers[0] = sub->number;
++	beepen->dataNumbers[1] = -1;
+ }
+ 
+-static
+-FeatureDescriptor * generateChipFeatures (const sensors_chip_name *chip)
++static FeatureDescriptor * generateChipFeatures(const sensors_chip_name *chip)
+ {
+ 	int nr, count = 1;
+ 	const sensors_feature *sensor;
+@@ -366,38 +375,38 @@
+ 
+ ChipDescriptor * knownChips;
+ 
+-int initKnownChips (void)
++int initKnownChips(void)
+ {
+-  int nr, count = 1;
 -  const sensors_chip_name *name;
--  FeatureDescriptor *features;
++	int nr, count = 1;
 +	const sensors_chip_name *name;
-+	FeatureDescriptor *features;
- } ChipDescriptor;
  
- extern ChipDescriptor * knownChips;
--extern int initKnownChips (void);
--extern void freeKnownChips (void);
-+extern int initKnownChips(void);
-+extern void freeKnownChips(void);
+-  /* How many chips do we have? */
+-  nr = 0;
+-  while ((name = sensors_get_detected_chips(NULL, &nr)))
+-    count++;
++	/* How many chips do we have? */
++	nr = 0;
++	while ((name = sensors_get_detected_chips(NULL, &nr)))
++		count++;
+ 
+-  /* Allocate the memory we need */
+-  knownChips = calloc(count, sizeof(ChipDescriptor));
+-  if (!knownChips)
+-    return 1;
++	/* Allocate the memory we need */
++	knownChips = calloc(count, sizeof(ChipDescriptor));
++	if (!knownChips)
++		return 1;
+ 
+-  /* Fill in the data structures */
+-  count = 0;
+-  nr = 0;
+-  while ((name = sensors_get_detected_chips(NULL, &nr))) {
+-    knownChips[count].name = name;
+-    if ((knownChips[count].features = generateChipFeatures(name)))
+-      count++;
+-  }
++	/* Fill in the data structures */
++	count = 0;
++	nr = 0;
++	while ((name = sensors_get_detected_chips(NULL, &nr))) {
++		knownChips[count].name = name;
++		if ((knownChips[count].features = generateChipFeatures(name)))
++			count++;
++	}
+ 
+-  return 0;
++	return 0;
+ }
+ 
+-void freeKnownChips (void)
++void freeKnownChips(void)
+ {
+-  int index0;
++	int index0;
+ 
+-  for (index0 = 0; knownChips[index0].features; index0++)
+-    free (knownChips[index0].features);
+-  free (knownChips);
++	for (index0 = 0; knownChips[index0].features; index0++)
++		free(knownChips[index0].features);
++	free(knownChips);
+ }
 
 _______________________________________________
 lm-sensors mailing list
