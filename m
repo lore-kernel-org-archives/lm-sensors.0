@@ -1,35 +1,75 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 04 Mar 2009 09:16:59 +0000
-Subject: Re: [lm-sensors] Coding style in sensors daemon (sensord)
-Message-Id: <20090304101659.55fa8bd6@hyperion.delvare>
+Date: Tue, 10 Mar 2009 16:03:40 +0000
+Subject: [lm-sensors] [RFC v2] Support of chassis intrusion detection
+Message-Id: <20090310170340.4c63de39@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090304091128.GA4632@ubuntu>
-In-Reply-To: <20090304091128.GA4632@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hallo Andre,
+Hi all,
 
-On Wed, 4 Mar 2009 10:11:29 +0100, Andre Prendel wrote:
-> looking at the source code in prog/sensord I've seen gnu coding
-> style. IMO this is really hard to read. In sensors/ and dump/ we are
-> using the kernel style and I prefer this one.
-> 
-> To be consistent and ease reading and fixing, I will spend some time
-> to bring the sensord code in shape.
-> 
-> Any objections?
+A number of users have asked us to support the chassis intrusion
+detection feature which some hardware monitoring chip have. I've
+created a ticket for this:
+http://www.lm-sensors.org/ticket/2370
 
-No objections, please go ahead. sensord was contributed by Merlin
-Hughes a long time ago, and while I (and others) spent a significant
-amount of time cleaning up the coding style of other parts of the code,
-sensord didn't receive too much love over the past few years... Just
-the minimum to keep it alive. You are very welcome to improve the
-sensord code, be it the style or the code itself.
+I have made a first proposal 3 weeks ago, and got a number of
+interesting comments about it. Here comes a second version hopefully
+addressing all the concerns that had been raised. Changes include:
+* Handle multiple intrusion detection switches.
+* Let the user control whether chassis intrusion should result in
+  system beeping or not. At least the Winbond W83793G supports this, and
+  probably other chips as well.
 
-Thanks,
+
+sysfs interface
+=======
+intrusion[0-*]_alarm
+		Chassis intrusion detection
+		0: OK
+		1: intrusion detected
+		RW
+		Contrary to regular alarm flags which clear themselves
+		automatically when read, this one sticks until cleared by
+		the user. This is done by writing 0 to the file. Writing
+		other values is unsupported.
+
+intrusion[0-*]_beep
+		Chassis intrusion beep
+		0: disable
+		1: enable
+		RW
+
+drivers
+===
+Drivers adm9240, w83792d and w83793 implement this feature in
+non-standard ways. They should be converted to the new, standard
+interface.
+
+libsensors
+=====
+
+SENSORS_FEATURE_INTRUSION = 0x19
+SENSORS_SUBFEATURE_INTRUSION_ALARM = (SENSORS_FEATURE_INTRUSION << 8) | 0x80
+SENSORS_SUBFEATURE_INTRUSION_BEEP = SENSORS_SUBFEATURE_INTRUSION_ALARM + 1 
+
+sensors
+===
+Reading the value of the chassis intrusion alarm and beep subfeatures
+is done like for any other subfeature. Likewise for writing to the beep
+subfeature.
+
+Writing to the alarm subfeature, OTOH, can't be handled the same as
+writing limits, because we certainly don't want to clear the flag
+automatically at lm_sensors start or restart time. So we could add a
+dedicated flag to clear the intrusion detection flag (e.g. "sensors
+--clear-intrusion").
+
+
+If anyone has objections or comments, please speak up.
+
 -- 
 Jean Delvare
 
