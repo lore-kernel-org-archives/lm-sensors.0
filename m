@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 10 Mar 2009 10:08:17 +0000
+From: Andre Prendel <andre_prendel@gmx.de>
+Date: Tue, 10 Mar 2009 10:45:42 +0000
 Subject: Re: [lm-sensors] [PATCH] sensord: Remove leading whitespaces in
-Message-Id: <20090310110817.1a1c4c25@hyperion.delvare>
+Message-Id: <20090310104542.GB5543@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090310083014.GA5543@ubuntu>
 In-Reply-To: <20090310083014.GA5543@ubuntu>
@@ -10,22 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 10 Mar 2009 09:30:14 +0100, Andre Prendel wrote:
-> Hi Jean,
+On Tue, Mar 10, 2009 at 11:08:17AM +0100, Jean Delvare wrote:
+> On Tue, 10 Mar 2009 09:30:14 +0100, Andre Prendel wrote:
+> > Hi Jean,
+> > 
+> > as you noticed about my last patch series, there were some whitespaces
+> > in the code. Unfortunately quilt complains only about trailing
+> > whitespaces, not leading ones in empty lines. So there are some ones left.
 > 
-> as you noticed about my last patch series, there were some whitespaces
-> in the code. Unfortunately quilt complains only about trailing
-> whitespaces, not leading ones in empty lines. So there are some ones left.
+> That's pretty strange, I pretty much thought it did for me at least at
+> some point in time...
+> 
+> > With this patch we get rid of the remaining ones.
+> 
+> Sure, please apply.
 
-That's pretty strange, I pretty much thought it did for me at least at
-some point in time...
+Applied.
 
-> With this patch we get rid of the remaining ones.
+Another question for you. How can I get rid of the committed patches
+in quilt? Google don't give me much information about that. Once I
+have committed the patches, I want to remove them from the series. I want
+to remove them completly from quilt without unapplying the
+changes. What's the right approach, do you know?
 
-Sure, please apply.
+Thanks
+Andre
 
--- 
-Jean Delvare
+> 
+> -- 
+> Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
