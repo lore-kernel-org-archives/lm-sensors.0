@@ -1,78 +1,159 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 10 Mar 2009 13:13:17 +0000
-Subject: Re: [lm-sensors] lm_sensors help
-Message-Id: <20090310141317.2777c7c6@hyperion.delvare>
+From: Andre Prendel <andre_prendel@gmx.de>
+Date: Tue, 10 Mar 2009 08:30:14 +0000
+Subject: [lm-sensors] [PATCH] sensord: Remove leading whitespaces in empty
+Message-Id: <20090310083014.GA5543@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <622d3d2b0903090451v50a8614bjed6e5ba66cafebdd@mail.gmail.com>
-In-Reply-To: <622d3d2b0903090451v50a8614bjed6e5ba66cafebdd@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 9 Mar 2009 15:57:36 +0100, Csapl=E1r Zolt=E1n wrote:
-> Thank you for your quick answer. Unfortunately, it maybe happen, that I
-> cannot find the right information at first sight because of the language
-> problems, so, please, forgive it to me. Could you send me a specific
-> example to the below mentioned own-made sensors.d?
+Hi Jean,
 
-For clarity: I said a configuration file to put _into_
-directory /etc/sensors.d. It's a new feature in lm-sensors 3.1 that you
-can put additional custom configuration files in this directory.
+as you noticed about my last patch series, there were some whitespaces
+in the code. Unfortunately quilt complains only about trailing
+whitespaces, not leading ones in empty lines. So there are some ones left.
 
-> There is a
-> it8712-isa-0290 chip on my motherboard, but it would be also useful a conf
-> file made to another type because I could conclude to the way of the
-> transcription from that.
+With this patch we get rid of the remaining ones.
 
-No, a configuration example for another chip on a different motherboard
-wouldn't help you at all. Chip configuration is motherboard-specific.
-And if you really want this, well, etc/sensors.conf.eg is full of this,
-so you can just look there. At this point you still didn't tell us what
-brand and model your motherboard was, so we can't even give any advice.
+Andre
 
-In the absence of additional information, the only thing I can suggest
-is to try a configuration file which corresponds to the default wiring
-of the ITE IT8712F Super-I/O chip. This is what the chip "it8712-*"
-section in etc/sensors.conf.eg is all about. So, you could copy that
-section (from chip "it8712f-*" to the following chip statement) from
-etc/sensors.conf.eg and copy it into, for
-example, /etc/sensors.d/it8712.
+--
+ args.c  |    8 ++++----
+ chips.c |    6 +++---
+ rrd.c   |   14 +++++++-------
+ 3 files changed, 14 insertions(+), 14 deletions(-)
 
-If we knew which motherboard you have, we could check if we already
-have a suitable configuration file for it. We don't have that many
-configuration files, but you may be lucky. Or we may have a
-configuration file for a similar board from the same vendor, which
-would be a better starting point than the default section.
-
-Writing a custom, perfect configuration file for a specific motherboard
-can be very difficult and time consuming. This isn't something I am
-willing to do for free for people I don't know. I intend to write a
-guide on how to do this but didn't have the time to do it yet.
-
-> As well as, do you know an other command for linux except of sensors to l=
-et
-> me know the chip (e.g. it8712-isa-0290) of my PC?
-
-There are several commands listing the hardware included in your PC, as
-well a graphical front-ends. That's not exactly on-topic here and I
-don't mean to give you an exhaustive list, but to list the ones I know
-and use frequently:
-* "lspci" will list all the PCI devices on your system.
-* "lsusb" will list all the USB devices on your system.
-* "dmidecode" will list many information about your hardware as encoded
-  in the SMBIOS/DMI table in your BIOS.
-* "hwinfo" (at least on Suse Linux) will list a lot of information about
-  your system.
-* There's also a tool names "lshw" which tries to gather as much
-  information as possible, but I'm not sure about its status and
-  availability in distributions.
-* I think both KDE and Gnome come with an applet which displays
-  hardware information.
-
---=20
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+diff -ur quilt-sensors/prog/sensord/args.c sensors-whitespace/prog/sensord/args.c
+--- quilt-sensors/prog/sensord/args.c	2009-03-09 16:26:22.000000000 +0100
++++ sensors-whitespace/prog/sensord/args.c	2009-03-09 23:49:06.000000000 +0100
+@@ -257,13 +257,13 @@
+ 			"Error: Incompatible --set and --alarm-scan.\n");
+ 		return -1;
+ 	}
+-  
++
+ 	if (rrdFile && doSet) {
+ 		fprintf(stderr,
+ 			"Error: Incompatible --set and --rrd-file.\n");
+ 		return -1;
+ 	}
+-  
++
+ 	if (doScan && rrdFile) {
+ 		fprintf(stderr,
+ 			"Error: Incompatible --rrd-file and --alarm-scan.\n");
+@@ -275,13 +275,13 @@
+ 			"Error: Incompatible --rrd-cgi without --rrd-file.\n");
+ 		return -1;
+ 	}
+-  
++
+ 	if (rrdFile && !rrdTime) {
+ 		fprintf(stderr,
+ 			"Error: Incompatible --rrd-file without --rrd-interval.\n");
+ 		return -1;
+ 	}
+-  
++
+ 	if (!logTime && !scanTime && !rrdFile) {
+ 		fprintf(stderr,
+ 			"Error: No logging, alarm or RRD scanning.\n");
+diff -ur quilt-sensors/prog/sensord/chips.c sensors-whitespace/prog/sensord/chips.c
+--- quilt-sensors/prog/sensord/chips.c	2009-03-09 16:26:22.000000000 +0100
++++ sensors-whitespace/prog/sensord/chips.c	2009-03-09 23:49:33.000000000 +0100
+@@ -157,7 +157,7 @@
+ 	} else {
+ 		voltage->format = fmtVolt_2;
+ 	}
+-  
++
+ 	/* terminate the list */
+ 	voltage->dataNumbers[pos] = -1;
+ 
+@@ -213,7 +213,7 @@
+ 	} else {
+ 		temperature->format = fmtTemp_only;
+ 	}
+-  
++
+ 	/* terminate the list */
+ 	temperature->dataNumbers[pos] = -1;
+ 
+@@ -265,7 +265,7 @@
+ 	} else {
+ 		fan->format = fmtFan_only;
+ 	}
+-  
++
+ 	/* terminate the list */
+ 	fan->dataNumbers[pos] = -1;
+ 
+diff -ur quilt-sensors/prog/sensord/rrd.c sensors-whitespace/prog/sensord/rrd.c
+--- quilt-sensors/prog/sensord/rrd.c	2009-03-09 16:26:23.000000000 +0100
++++ sensors-whitespace/prog/sensord/rrd.c	2009-03-09 23:51:05.000000000 +0100
+@@ -23,7 +23,7 @@
+ 
+ /*
+  * RRD is the Round Robin Database
+- * 
++ *
+  * Get this package from:
+  *   http://people.ee.ethz.ch/~oetiker/webtools/rrdtool/
+  *
+@@ -87,7 +87,7 @@
+ {
+ 	char *buffer = rrdLabels[index0];
+ 	int i, j, okay;
+-  
++
+ 	i = 0;
+ 	/* contrain raw label to [A-Za-z0-9_] */
+ 	while ((i < RAW_LABEL_LENGTH) && rawLabel[i]) {
+@@ -243,7 +243,7 @@
+ {
+ 	int ret = 0;
+ 	struct stat tmp;
+-  
++
+ 	sensorLog(LOG_DEBUG, "sensor RRD init");
+ 	if (stat(rrdFile, &tmp)) {
+ 		if (errno = ENOENT) {
+@@ -252,7 +252,7 @@
+ 			const char *argv[6 + MAX_RRD_SENSORS] = {
+ 				"sensord", rrdFile, "-s", stepBuff
+ 			};
+-      
++
+ 			sensorLog(LOG_INFO, "creating round robin database");
+ 			num = rrdGetSensors(argv + argc);
+ 			if (num = 0) {
+@@ -286,7 +286,7 @@
+ 		}
+ 	}
+ 	sensorLog(LOG_DEBUG, "sensor RRD inited");
+-  
++
+ 	return ret;
+ }
+ 
+@@ -450,7 +450,7 @@
+ 		}
+ 	}
+ 	sensorLog(LOG_DEBUG, "sensor rrd updated");
+-  
++
+ 	return ret;
+ }
+ 
+@@ -480,6 +480,6 @@
+ 	}
+ 	printf("<p>\n<small><b>sensord</b> by <a href=\"mailto:merlin@merlin.org\">Merlin Hughes</a>, all credit to the <a href=\"http://www.lm-sensors.org/\">lm_sensors</a> crew.</small>\n</p>\n");
+ 	printf("</BODY>\n</HTML>\n");
+-  
++
+ 	return ret;
+ }
 
 _______________________________________________
 lm-sensors mailing list
