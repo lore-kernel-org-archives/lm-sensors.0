@@ -1,54 +1,40 @@
 From: Martin Michlmayr <tbm@cyrius.com>
-Date: Tue, 10 Mar 2009 09:21:19 +0000
-Subject: [lm-sensors] [RFH] GMT G760A fan speed PWM controller
-Message-Id: <20090310092119.GA3260@deprecation.cyrius.com>
+Date: Tue, 10 Mar 2009 18:05:53 +0000
+Subject: Re: [lm-sensors] [RFH] GMT G760A fan speed PWM controller
+Message-Id: <20090310180553.GA12922@deprecation.cyrius.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="SUOF0GtieIMvvwua"
+Content-Type: multipart/mixed; boundary="T4sUOijqQbZv57TR"
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20090310092119.GA3260@deprecation.cyrius.com>
+In-Reply-To: <20090310092119.GA3260@deprecation.cyrius.com>
 To: lm-sensors@vger.kernel.org
 
 
---SUOF0GtieIMvvwua
+--T4sUOijqQbZv57TR
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-Herbert Valerio Riedel originally submitted a driver for the GMT G760A
-fan speed PWM controller in December 2007:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2007-December/022161.html
-Jean Delvare kindly reviewed the driver and provided some comments:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022291.html
-Unfortunately, Herbert became busy and never got the time to finish
-the driver.
+* Martin Michlmayr <tbm@cyrius.com> [2009-03-10 10:21]:
+> Note that it doesn't seem to work for me - the g760a module doesn't
+> get loaded, even though the DNS-323 board code loads it.
 
-Matt Palmer later made some modifications to Herbert's patch and came
-up with the attached patch, but he also doesn't have the time to push
-for mainline inclusion.
+Laurie Bradshaw pointed out in private that I didn't have the latest
+version of the patch.  He has a version that correctly loads.  I just
+tested this patch and it works for me.
 
-The GMT G760A is used on the D-Link DNS-323, which is a pretty popular
-NAS device: http://wiki.dns323.info/  Even though there is a
-reasonable community around Linux on the DNS-323, it seems that
-there's nobody with the time and knowledge to finish this driver for
-mainline inclusion.
+It seems to me that the new version of the patch is very close to
+being ready.  Jean, do you think you could review it?
 
-I'd therefore like to ask the lm-sensors community for help to get
-this driver into the mainline.  I'd be happy to test the driver on my
-DNS-323.
-
-The current version of the patch (from Matt Palmer) is attached below.
-Note that it doesn't seem to work for me - the g760a module doesn't
-get loaded, even though the DNS-323 board code loads it.  (The lm75
-module, which is also loaded from the DNS-323 board code, is properly
-loaded, though, so I suspect it's a problem with the g760a patch.)
-
+Thanks.
 -- 
 Martin Michlmayr
 http://www.cyrius.com/
 
---SUOF0GtieIMvvwua
+--T4sUOijqQbZv57TR
 Content-Type: text/x-diff; charset=us-ascii
 Content-Disposition: attachment; filename="g760a.patch"
 
-From: Herbert Valerio Riedel <hvr at gnu.org>
+From: Herbert Valerio Riedel <hvr@gnu.org>
 Subject: hwmon: add support for GMT G760A fan speed PWM controller
 
 This controller can be found on the D-Link DNS-323 for instance,
@@ -56,12 +42,14 @@ where it is to be configured via static i2c_board_info in the
 board-specific mach-orion/dns323-setup.c; this driver supports only
 the new-style driver model.
 
-Signed-off-by: Herbert Valerio Riedel <hvr at gnu.org>
+Signed-off-by: Herbert Valerio Riedel <hvr@gnu.org>
 Signed-off-by: Matthew Palmer <mpalmer@debian.org>
+Signed-off-by: Laurie Bradshaw <bradshaw.laurie@googlemail.com>
+Tested-by: Martin Michlmayr <tbm@cyrius.com>
 
---- linux-2.6-2.6.26.orig/Documentation/hwmon/g760a	1970-01-01 10:00:00.000000000 +1000
-+++ linux-2.6-2.6.26.i2c/Documentation/hwmon/g760a	2008-10-26 09:11:20.000000000 +1100
-@@ -0,0 +1,37 @@
+--- /dev/null	2008-06-15 07:07:41.000000000 +0000
++++ b/Documentation/hwmon/g760a	2009-03-10 17:44:13.000000000 +0000
+@@ -0,0 +1,36 @@
 +Kernel driver g760a
 +===================
 +
@@ -71,7 +59,7 @@ Signed-off-by: Matthew Palmer <mpalmer@debian.org>
 +    Datasheet: Publicly available at the GMT website
 +      http://www.gmt.com.tw/datasheet/g760a.pdf
 +
-+Author: Herbert Valerio Riedel <hvr at gnu.org>
++Author: Herbert Valerio Riedel <hvr@gnu.org>
 +
 +Description
 +-----------
@@ -98,16 +86,14 @@ Signed-off-by: Matthew Palmer <mpalmer@debian.org>
 +The g760a driver will not update its values more frequently than every
 +other second; reading them more often will do no harm, but will return
 +'old' values.
-+
-diff -urN linux-2.6-2.6.26.orig/drivers/hwmon/g760a.c linux-2.6-2.6.26.i2c/drivers/hwmon/g760a.c
---- linux-2.6-2.6.26.orig/drivers/hwmon/g760a.c	1970-01-01 10:00:00.000000000 +1000
-+++ linux-2.6-2.6.26.i2c/drivers/hwmon/g760a.c	2008-10-26 12:32:11.000000000 +1100
-@@ -0,0 +1,271 @@
+--- /dev/null	2008-06-15 07:07:41.000000000 +0000
++++ b/drivers/hwmon/g760a.c	2009-03-10 17:49:43.000000000 +0000
+@@ -0,0 +1,268 @@
 +/*
 +    g760a - Driver for the Global Mixed-mode Technology Inc. G760A
 +	    fan speed PWM controller chip
 +
-+    Copyright (C) 2007  Herbert Valerio Riedel <hvr at gnu.org>
++    Copyright (C) 2007  Herbert Valerio Riedel <hvr@gnu.org>
 +
 +    Complete datasheet is available at GMT's website:
 +      http://www.gmt.com.tw/datasheet/g760a.pdf
@@ -129,13 +115,19 @@ diff -urN linux-2.6-2.6.26.orig/drivers/hwmon/g760a.c linux-2.6-2.6.26.i2c/drive
 +#include <linux/mutex.h>
 +#include <linux/sysfs.h>
 +
++static const struct i2c_device_id g760a_id[] = {
++	{ "g760a", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, g760a_id);
++
 +enum g760a_regs {
 +	G760A_REG_SET_CNT = 0x00,
 +	G760A_REG_ACT_CNT = 0x01,
 +	G760A_REG_FAN_STA = 0x02
 +};
 +
-+#define G760A_REG_FAN_STA_RPM_OFF 0x1 /* 20% off */
++#define G760A_REG_FAN_STA_RPM_OFF 0x1 /* +/-20% off */
 +#define G760A_REG_FAN_STA_RPM_LOW 0x2 /* below 1920rpm */
 +
 +/* register data is read (and cached) at most once per second */
@@ -156,7 +148,7 @@ diff -urN linux-2.6-2.6.26.orig/drivers/hwmon/g760a.c linux-2.6-2.6.26.i2c/drive
 +
 +	u8 set_cnt; /* PWM (period) count number; 0xff stops fan	*/
 +	u8 act_cnt; /*   formula: cnt = (CLK * 30)/(rpm * P)		*/
-+	u8 fan_sta; /* bit 0: set when actual fan speed more than %20
++	u8 fan_sta; /* bit 0: set when actual fan speed more than 20%
 +		     *   outside requested fan speed
 +		     * bit 1: set when fan speed below 1920 rpm		*/
 +};
@@ -164,22 +156,24 @@ diff -urN linux-2.6-2.6.26.orig/drivers/hwmon/g760a.c linux-2.6-2.6.26.i2c/drive
 +#define G760A_DEFAULT_CLK 32768
 +#define G760A_DEFAULT_FAN_DIV 2
 +
-+#define RPM_FROM_REG(val, clk, div) \
++#define RPM_FROM_CNT(val, clk, div) \
 +	((0x00 == (val)) ? 0 : (((clk)*30)/((val)*(div))))
 +
 +#define PWM_FROM_CNT(cnt)	(0xff-(cnt))
 +#define PWM_TO_CNT(pwm)		(0xff-(pwm))
 +
 +/* new-style driver model */
-+static int g760a_probe(struct i2c_client *client);
++static int g760a_probe(struct i2c_client *client,
++			const struct i2c_device_id *id);
 +static int g760a_remove(struct i2c_client *client);
 +
 +static struct i2c_driver g760a_driver = {
 +	.driver = {
 +		.name	= "g760a",
 +	},
-+	.probe	= g760a_probe,
-+	.remove	= g760a_remove,
++	.probe	  = g760a_probe,
++	.remove	  = g760a_remove,
++	.id_table = g760a_id,
 +};
 +
 +/* read/write wrappers */
@@ -230,7 +224,7 @@ diff -urN linux-2.6-2.6.26.orig/drivers/hwmon/g760a.c linux-2.6-2.6.26.i2c/drive
 +
 +	mutex_lock(&data->update_lock);
 +	if (!(data->fan_sta & G760A_REG_FAN_STA_RPM_LOW))
-+		rpm = RPM_FROM_REG(data->act_cnt, data->clk, data->fan_div);
++		rpm = RPM_FROM_CNT(data->act_cnt, data->clk, data->fan_div);
 +	mutex_unlock(&data->update_lock);
 +
 +	return sprintf(buf, "%d\n", rpm);
@@ -289,12 +283,12 @@ diff -urN linux-2.6-2.6.26.orig/drivers/hwmon/g760a.c linux-2.6-2.6.26.i2c/drive
 + * new-style driver model code
 + */
 +
-+static int g760a_probe(struct i2c_client *client)
++static int g760a_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
 +{
 +	struct g760a_data *data;
 +	int err;
 +
-+	printk(KERN_INFO "g760a_probe\n");
 +	if (!i2c_check_functionality(client->adapter,
 +				     I2C_FUNC_SMBUS_BYTE_DATA))
 +		return -EIO;
@@ -314,14 +308,11 @@ diff -urN linux-2.6-2.6.26.orig/drivers/hwmon/g760a.c linux-2.6-2.6.26.i2c/drive
 +
 +	/* Register sysfs hooks */
 +	err = sysfs_create_group(&client->dev.kobj, &g760a_group);
-+	if (err) {
-+		printk(KERN_ERR "Failed to create sysfs group: %i\n", err);
++	if (err)
 +		goto error_sysfs_create_group;
-+	}
-+	
++
 +	data->hwmon_dev = hwmon_device_register(&client->dev);
 +	if (IS_ERR(data->hwmon_dev)) {
-+		printk(KERN_ERR "Failed to register hwmon device\n");
 +		err = PTR_ERR(data->hwmon_dev);
 +		goto error_hwmon_device_register;
 +	}
@@ -340,8 +331,6 @@ diff -urN linux-2.6-2.6.26.orig/drivers/hwmon/g760a.c linux-2.6-2.6.26.i2c/drive
 +static int g760a_remove(struct i2c_client *client)
 +{
 +	struct g760a_data *data = i2c_get_clientdata(client);
-+
-+	printk(KERN_INFO "g760a_remove\n");
 +	hwmon_device_unregister(data->hwmon_dev);
 +	sysfs_remove_group(&client->dev.kobj, &g760a_group);
 +	kfree(data);
@@ -354,29 +343,23 @@ diff -urN linux-2.6-2.6.26.orig/drivers/hwmon/g760a.c linux-2.6-2.6.26.i2c/drive
 +
 +static int __init g760a_init(void)
 +{
-+	int rv;
-+	
-+	printk(KERN_INFO "g760a_init\n");
-+	rv = i2c_add_driver(&g760a_driver);
-+	printk(KERN_INFO "i2c_add_driver returned %i\n", rv);
-+	return rv;
++	return i2c_add_driver(&g760a_driver);
 +}
 +
 +static void __exit g760a_exit(void)
 +{
-+	printk(KERN_INFO "g760a_exit\n");
 +	i2c_del_driver(&g760a_driver);
 +}
 +
-+MODULE_AUTHOR("Herbert Valerio Riedel <hvr at gnu.org>");
++MODULE_AUTHOR("Herbert Valerio Riedel <hvr@gnu.org>");
 +MODULE_DESCRIPTION("GMT G760A driver");
 +MODULE_LICENSE("GPL");
 +
 +module_init(g760a_init);
 +module_exit(g760a_exit);
---- linux-2.6-2.6.26.orig/drivers/hwmon/Kconfig	2008-07-14 07:51:29.000000000 +1000
-+++ linux-2.6-2.6.26.i2c/drivers/hwmon/Kconfig	2008-10-26 09:11:20.000000000 +1100
-@@ -301,6 +301,16 @@
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -357,6 +357,16 @@ config SENSORS_FSCHMD
  	  This driver can also be built as a module.  If so, the module
  	  will be called fschmd.
  
@@ -385,7 +368,7 @@ diff -urN linux-2.6-2.6.26.orig/drivers/hwmon/g760a.c linux-2.6-2.6.26.i2c/drive
 +	depends on I2C
 +	help
 +	  If you say yes here you get support for Global Mixed-mode
-+	  Technology Inc G760A fan speed pwm controller chips.
++	  Technology Inc G760A fan speed PWM controller chips.
 +
 +	  This driver can also be built as a module.  If so, the module
 +	  will be called g760a.
@@ -393,18 +376,18 @@ diff -urN linux-2.6-2.6.26.orig/drivers/hwmon/g760a.c linux-2.6-2.6.26.i2c/drive
  config SENSORS_GL518SM
  	tristate "Genesys Logic GL518SM"
  	depends on I2C
---- linux-2.6-2.6.26.orig/drivers/hwmon/Makefile	2008-07-14 07:51:29.000000000 +1000
-+++ linux-2.6-2.6.26.i2c/drivers/hwmon/Makefile	2008-10-26 09:11:20.000000000 +1100
-@@ -37,6 +37,7 @@
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -42,6 +42,7 @@ obj-$(CONFIG_SENSORS_F75375S)	+= f75375s.o
  obj-$(CONFIG_SENSORS_FSCHER)	+= fscher.o
  obj-$(CONFIG_SENSORS_FSCHMD)	+= fschmd.o
  obj-$(CONFIG_SENSORS_FSCPOS)	+= fscpos.o
 +obj-$(CONFIG_SENSORS_G760A)	+= g760a.o
  obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
  obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
- obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
+ obj-$(CONFIG_SENSORS_ULTRA45)	+= ultra45_env.o
 
---SUOF0GtieIMvvwua
+--T4sUOijqQbZv57TR
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -414,4 +397,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---SUOF0GtieIMvvwua--
+--T4sUOijqQbZv57TR--
