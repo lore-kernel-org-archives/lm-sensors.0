@@ -1,45 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 06 Mar 2009 08:14:18 +0000
-Subject: Re: [lm-sensors] Building sensor drivers outside the kernel tree
-Message-Id: <20090306091418.3f0e5306@hyperion.delvare>
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Fri, 13 Mar 2009 10:02:07 +0000
+Subject: Re: [lm-sensors] module c7temp shows voltage, but no temperature
+Message-Id: <49BA2F1F.5080401@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <49AAFDC8.20607@gmx.de>
-In-Reply-To: <49AAFDC8.20607@gmx.de>
+References: <200902221052.31780.justin@justinzane.com>
+In-Reply-To: <200902221052.31780.justin@justinzane.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hallo Reinhard,
+Hello Jason,
 
-On Sun, 01 Mar 2009 22:27:36 +0100, Reinhard Nissl wrote:
-> is there a chance to compile for example Asus atk0110 driver for
-> my distros default kernel?
+We have some problem with c7temp driver in the linux. This was done by Juerg.
+The driver can be downloaded from the lm-sensors.org website in devices section.
 
-No, this is not possible. You could compile the atk0110 driver itself
-easily, however it requires a hook in the ACPI subsystem which is
-missing in standard kernels. So unfortunately you need to rebuild your
-kernel for this part.
+It seems some version of fam6 model D does not have any temperature register in
 
-> I'd like to stay with openSUSE-11.1's kernel-default-2.6.27.19-3.2.1.
-> 
-> I'm used to build modules outside of the kernel tree in the
-> v4l-dvb project. So I wonder why it shouldn't be possible to
-> achieve the same for the above driver.
+>    0xc0000002: eax=0x00000000 ebx=0x08000810 ecx=0x08100f13 edx=0x42040000
 
-In general it is possible. We don't have an external tree but the hwmon
-API is so simple that it is very stable, which means that you can
-often pick the latest version of a driver in the upstream kernel tree,
-an build it for your kernel using a standalone Makefile. The only case
-where it doesn't work is when a given hwmon driver builds on other APIs
-which _did_ change. This is the case of acpi for the atk0110 driver, or
-of i2c for a number of other hwmon drivers. Sometimes it is possible to
-update the code to take API changes into account backwards, but when
-there was no equivalent API in the old kernel (which is the case for the
-atk0110 driver) this is simply not possible.
+Jason, Please can you look to some more recent version of C7 data book, where 
+the values for temperature are stored? (normally they are for cpuid EAX = 
+0xc0000002 in EAX. Here are zeros.
 
--- 
-Jean Delvare
+I dont know what CPU revision it is exactly. I guess we will need to read some 
+other MSR to get current version. Juerg do you know this? Its should be MSR 1154h.
+
+All I know that the cpu is also at HP Mini-note 2133.
+
+Thanks,
+Rudolf
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
