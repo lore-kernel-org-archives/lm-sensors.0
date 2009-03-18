@@ -1,49 +1,43 @@
-From: "Stephan Unger" <stephan@sunger.de>
-Date: Thu, 05 Mar 2009 12:45:57 +0000
-Subject: [lm-sensors] i2c_i801 module in kernel 2.4.33?
-Message-Id: <A4EACE15D1B84EA49E6786D5CDA1F323@mephisto>
+From: =?ISO-8859-1?Q?J=FCrgen?= Keppler <jkeppler@htwg-konstanz.de>
+Date: Wed, 18 Mar 2009 20:04:46 +0000
+Subject: [lm-sensors] lm_sensors-3.1.0 and snmp
+Message-Id: <1237406686.11884.30.camel@proteus.ios.htwg-konstanz.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Hello List,
+Hallo,
 
-I'm trying to install / configure lm-sensors on my Debian Etch system with
-kernel 2.4.33, but I have quiet a problem in setting it up correctly.
+I have installed lm_sensors 3.1.0 on ubuntu 8.04. With sensors the
+output is fine. I want to use SNMP to read the values from lm_sensors,
+but it don't work.
+How do I the configuration for snmp to work with lm_sensors?
 
-What I was able to achieve so far:
-- enable and compile I2C Support into the kernel. The kernel starts and
-loads the compiled-in module well:
-(dmesg:) i2c-core.o: i2c core module version 2.6.1 (20010830)
-- Modules i2c-dev and i2c-proc are being loaded as well without error
-messages. These can be (un)loaded during runtime.
+Can you please help me.
 
-If I now run the Perl-Script "sensors-detect", I receive the following
-error:
-Sorry, no sensors were detected.
-Either your sensors are not supported, or they are connected to an
-I2C or SMBus adapter that is not supported. See doc/FAQ,
-doc/lm_sensors-FAQ.html or http://www.lm-sensors.org/wiki/FAQ
-(FAQ #4.24.3) for further information.
-If you find out what chips are on your board, check
-http://www.lm-sensors.org/wiki/Devices for driver status.
+Thanks
 
-This probably happens because the script couldn't load the i2c_i801 module,
-which I need for my mainboard.
+J. Keppler
 
-Could you please tell me, whether there is any way to get this modul for
-kernel 2.4.33 and if so, where do I get it? If it is a kernel patch, I can
-apply it with:
-cat lm-sensors-kernel-patch.diff | patch -p0 (or p1)
-Correct?
 
-Any help would be appreciated.
-Greetings from rainy germany
+-- 
++------------------------------------------------------------+
+    Dipl.Inf.-Wiss. Jürgen Keppler
 
-Stephan
+    IOS  Institut für Optische Systeme Konstanz
 
+    Hochschule Konstanz Technik, Wirtschaft und Gestaltung
+    University of Applied Sciences
+    Brauneggerstrasse 55
+    78462 Konstanz
+
+    Telefon: +49 (0)7531 / 206-213
+    Fax:     +49 (0)7531 / 206-521
+
+    E-Mail : jkeppler@htwg-konstanz.de
++------------------------------------------------------------+
 
 
 _______________________________________________
