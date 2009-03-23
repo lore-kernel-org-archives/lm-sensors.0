@@ -1,77 +1,90 @@
-From: Juerg Haefliger <juergh@gmail.com>
-Date: Fri, 13 Mar 2009 14:47:24 +0000
-Subject: Re: [lm-sensors] module c7temp shows voltage, but no temperature
-Message-Id: <191fb4ca0903130747pc48028etdde7df6371bd411f@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Mon, 23 Mar 2009 00:07:39 +0000
+Subject: Re: [lm-sensors] [RFC] SHT15 Sensiron humidity and temperature
+Message-Id: <20090322170739.7f4078c4.akpm@linux-foundation.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200902221052.31780.justin@justinzane.com>
-In-Reply-To: <200902221052.31780.justin@justinzane.com>
+References: <497367C6.8010200@cam.ac.uk>
+In-Reply-To: <497367C6.8010200@cam.ac.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-All,
+On Sun, 18 Jan 2009 17:32:54 +0000 Jonathan Cameron <jic23@cam.ac.uk> wrote:
 
-From the information that I have it seems that some BIOSes are turning
-some features off that will also disable the reporting of the temp via
-0xc0000002. Jason, does you BIOS writer guide say why and what feature
-and under what circumstances this should be done by the BIOS?
+> From: Jonathan Cameron <jic23@cam.ac.uk>
+> hwmon: SHT15 and similar Sensiron humidity sensors
+> Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+> 
+> ---
+> Depends on:
+> Regulator: Add voltage change event notification
+> (to be posted to lkml shortly - it needs rebasing as that subsystem
+> is changing rapidly at the mo!)
+> 
+> Data sheet at:
+> http://www.sensirion.ch/en/pdf/product_information/Datasheet-humidity-sensor-SHT1x.pdf
+> 
+> These sensors communicate over a 2 wire bus running a device specific
+> protocol.  The complexity of the driver is mainly due to handling the
+> substantial delays between requesting a reading and the device pulling
+> the data line low to indicate that the data is available.  This is
+> handled by an interrupt that is disabled under all other conditions.
+> 
+> I wasn't terribly clear on the best way to handle this, so comments
+> on that aspect would be particularly welcome!
+> 
+> Interpretation of the temperature depends on knowing the supply voltage.
+> If configured in a board config as a regulator consumer this is obtained
+> from the regulator subsystem. If not it should be provided in the
+> platform data.
+> 
+> I've placed this driver in the hwmon subsystem as it is definitely a
+> device that may be used for hardware monitoring and with it's relatively
+> slow response times (up to 120 milisecs to get a reading) a caching
+> strategy certainly seems to make sense!
+> 
 
-Thanks
-...juerg
+Building this in current kernels on x86_64 gives
 
-On Fri, Mar 13, 2009 at 4:03 AM,  <JasonZhao@viatech.com.cn> wrote:
-> Rudolf
-> Will reply you tonight (3 hours later), back to home now:)
-> However I found I only have a " VIA C7 BIOS WRITERS GUIDE_2.5"( created
-> in 04/04/07) on hand. My colleague that works for c7 on EFI only have
-> this datasheet too.
+drivers/hwmon/sht15.c: In function 'sht15_update_single_val':
+drivers/hwmon/sht15.c:237: error: implicit declaration of function 'IRQ_GPIO'
+
 >
-> -jasonzhao
+> ...
 >
->> -----Original Message-----
->> From: Rudolf Marek [mailto:r.marek@assembler.cz]
->> Sent: Friday, March 13, 2009 6:02 PM
->> To: Jason Zhao
->> Cc: Michael Reinelt; Juerg Haefliger; justin@justinzane.com;
->> lm-sensors@lm-sensors.org
->> Subject: Re: [lm-sensors] module c7temp shows voltage, but no
-> temperature
->>
->> Hello Jason,
->>
->> We have some problem with c7temp driver in the linux. This was done by
-> Juerg.
->> The driver can be downloaded from the lm-sensors.org website in
-> devices
->> section.
->>
->> It seems some version of fam6 model D does not have any temperature
-> register
->> in
->>
->> >    0xc0000002: eax=0x00000000 ebx=0x08000810 ecx=0x08100f13
-> edx=0x42040000
->>
->> Jason, Please can you look to some more recent version of C7 data
-> book, where
->> the values for temperature are stored? (normally they are for cpuid
-> EAX >> 0xc0000002 in EAX. Here are zeros.
->>
->> I dont know what CPU revision it is exactly. I guess we will need to
-> read some
->> other MSR to get current version. Juerg do you know this? Its should
-> be MSR
->> 1154h.
->>
->> All I know that the cpu is also at HP Mini-note 2133.
->>
->> Thanks,
->> Rudolf
->>
->>
->
->
+> +static int __init sht15_init(void)
+> +{
+> +	int ret;
+> +	int i;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(sht_drivers); i++) {
+> +		ret = platform_driver_register(&sht_drivers[i]);
+> +		if (ret)
+> +			goto error_unreg;
+> +	}
+> +
+> +	return 0;
+> +
+> +error_unreg:
+> +	i--;
+> +	for (; i >= 0; i--)
+> +		platform_driver_unregister(&sht_drivers[i]);
+> +
+> +	return ret;
+> +}
+
+We could just do
+
+	while (--i >= 0)
+		platform_driver_unregister(...);
+
+here.
+
+
+Anyway, please take a look at those things and Cc: me on version 2 and
+we'll try to push forward with this, thanks.
+
 
 _______________________________________________
 lm-sensors mailing list
