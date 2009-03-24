@@ -1,30 +1,38 @@
-From: <Wsong@nuvoton.com>
-Date: Tue, 31 Mar 2009 01:12:00 +0000
-Subject: Re: [lm-sensors] NEW Nuvoton w83795 hw chip driver
-Message-Id: <29CFBC9A3FDC81418F5FACEEC8970E0037203A@ntshml01.nuvoton.com>
+From: Alan A <aaa@bright.net>
+Date: Tue, 24 Mar 2009 16:25:14 +0000
+Subject: [lm-sensors] help with lmsensors and intel atom
+Message-Id: <loom.20090324T161504-153@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <29CFBC9A3FDC81418F5FACEEC8970E003069F4@ntshml01.nuvoton.com>
-In-Reply-To: <29CFBC9A3FDC81418F5FACEEC8970E003069F4@ntshml01.nuvoton.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+I'm new here so I hope you're patient with me. I recently put together Ubuntu on
+an Intel Atom (D945GCLF). I'm trying to program sensor data on an external LCD.
+I have no problems writing other data to the display but when I try to parse
+sensor data, I can't get anything worth while. The display I', using is a
+PicoLCD 256X64.
 
-For I will leave Nuvoton, my current email address will be stopped.
+Here's the code I run in the LCD config file:
 
-If you need continue support on 795 linux driver or documents, you can contact with my boss:  LCCHEN@nuvoton.com.
+Widget Temp {
+    class 'Text'
+    expression i2c_sensors('temp_input3')*1.0324-67
+    prefix 'Temp'
+    width 9
+    precision 1
+    align 'R'
+    update tick
+}
 
-Or you can contact with me by: rachine2@yahoo.com.cn.
+    Row7 {
+	Col1 'Temp'
+    }
 
+Maybe I'm out of luck with this board, I hope not. Any advice you might have is
+greatly appreciated.
 
-Best Regards,
-wsong
-
-
-
-=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Nuvoton is strictly prohibited; and any information in this email irrelevant to the official business of Nuvoton shall be deemed as neither given nor endorsed by Nuvoton.
 
 _______________________________________________
 lm-sensors mailing list
