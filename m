@@ -1,12 +1,18 @@
 From: "Mark E. Hansen" <meh@Winfirst.Com>
-Date: Sun, 29 Mar 2009 14:48:56 +0000
+Date: Sun, 29 Mar 2009 14:52:00 +0000
 Subject: [lm-sensors] lm-sensors 2.10.6: Unable to set temp2_max in
-Message-Id: <49CF8A58.9040000@Winfirst.Com>
+Message-Id: <49CF8B10.2060008@Winfirst.Com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <49CF8A58.9040000@Winfirst.Com>
+In-Reply-To: <49CF8A58.9040000@Winfirst.Com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Sorry about the double post - I accidentally sent the initial post
+as a response to a previous thread, rather than starting my own.
+-------------------------------------------------------------------
 
 Hello,
 
