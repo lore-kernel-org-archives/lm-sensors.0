@@ -1,32 +1,74 @@
-From: "Ghent.Debian" <ghent.debian@gmail.com>
-Date: Mon, 23 Mar 2009 17:47:22 +0000
-Subject: [lm-sensors] A bug ? and a question.
-Message-Id: <49C7CB2A.2050200@gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 30 Mar 2009 19:59:00 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 2.6.30
+Message-Id: <20090330215900.3cbb2a00@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hello,
+Hi Linus,
 
-I'm on Debian squeeze with lm-sensors 3.1.0. And a motherbord Asus P5Q 
-Deluxe.
+Please pull some hwmon subsystem updates for Linux 2.6.30 from:
 
-Fisrt : a bug ?
-In my motherboard, one pwm control 2 fans (3, if I have the maximum 
-number of fans). So, in the file "/etc/fancontrol", pwconfig has 
-indicated "FCFANS= 
-hwmon2/device/pwm2=hwmon2/device/fan4_input+hwmon2/device/fan2_input". 
-But with the 2 fans, fancontrol does'nt OK. If I indicate only one fan 
-(for example : "FCFANS= hwmon2/device/pwm2=hwmon2/device/fan4_input") 
-It's no problem.
+git://jdelvare.pck.nerim.net/jdelvare-2.6 hwmon-for-linus
 
-Second :
-I would like that fancontrol control my fans according to several 
-temperatures (example : the same fan for my hard disk and my CPU (it's a 
-fan case, but my CPU have a passif cooling)). I have a solution for do 
-that ?
+There is support for 3 new chips (FSC Syleus, FSC Hades and Nuvoton
+W83667HG) as well as improvements to the ds1621 and hdaps drivers.
+
+ Documentation/hwmon/ds1621                 |   51 +------
+ Documentation/{i2c/chips => hwmon}/pcf8591 |    0
+ Documentation/hwmon/sysfs-interface        |   22 +++
+ Documentation/hwmon/w83627ehf              |   29 +++-
+ drivers/firmware/dmi_scan.c                |   18 ++-
+ drivers/hwmon/Kconfig                      |   27 +++-
+ drivers/hwmon/Makefile                     |    1 +
+ drivers/hwmon/ds1621.c                     |  172 ++++++++++-----------
+ drivers/hwmon/fschmd.c                     |  229 +++++++++++++++++++++-------
+ drivers/hwmon/hdaps.c                      |   66 ++++----
+ drivers/{i2c/chips => hwmon}/pcf8591.c     |   24 ++--
+ drivers/hwmon/w83627ehf.c                  |  170 +++++++++++++++------
+ drivers/i2c/busses/i2c-i801.c              |   77 ++++++++++
+ drivers/i2c/chips/Kconfig                  |   13 --
+ drivers/i2c/chips/Makefile                 |    1 -
+ drivers/platform/x86/dell-laptop.c         |    4 +-
+ drivers/watchdog/hpwdt.c                   |    4 +-
+ include/linux/dmi.h                        |    7 +-
+ 18 files changed, 588 insertions(+), 327 deletions(-)
+ rename Documentation/{i2c/chips => hwmon}/pcf8591 (100%)
+ rename drivers/{i2c/chips => hwmon}/pcf8591.c (96%)
+
+---------------
+
+Frank Seidel (2):
+      hwmon: (hdaps) Allow inversion of separate axis
+      hwmon: (hdaps) Fix Thinkpad X41 axis inversion
+
+Gong Jun (2):
+      hwmon: (w83627ehf) Add support for W83667HG
+      hwmon: (w83627ehf) Only expose in6 or temp3 on the W83667HG
+
+Hans de Goede (3):
+      i2c-i801: Instantiate FSC hardware montioring chips
+      hwmon: (fschmd) Add support for the FSC Syleus IC
+      hwmon: (fschmd) Add support for the FSC Hades IC
+
+Jean Delvare (8):
+      hwmon: (ds1621) Reorder code statements
+      hwmon: (ds1621) Clean up register access
+      hwmon: (ds1621) Avoid unneeded register access
+      hwmon: (ds1621) Clean up documentation
+      hwmon: (w83627ehf) Invert fan pin variables logic
+      Move the pcf8591 driver to hwmon
+      hwmon: Define a standard interface for chassis intrusion detection
+      dmi: Let dmi_walk() users pass private data
+
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
