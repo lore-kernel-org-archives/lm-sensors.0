@@ -1,46 +1,44 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 28 Apr 2009 14:36:01 +0000
-Subject: Re: [lm-sensors] Why internal sensor on atom cpu isn't yet
-Message-Id: <20090428163601.3f70b7fe@hyperion.delvare>
+From: Mihai Tanasescu <mihai@duras.ro>
+Date: Sat, 04 Apr 2009 15:44:55 +0000
+Subject: [lm-sensors] Quick question Winbord w83627ehf - BIOS vs manual
+Message-Id: <49D78077.6090505@duras.ro>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1240762029.10972.15.camel@maxim-laptop>
-In-Reply-To: <1240762029.10972.15.camel@maxim-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 28 Apr 2009 06:31:16 -0700, Philip Pokorny wrote:
-> Why doesn't this fit the current temperature interface?  What is there in the interface that says it has to be an absolute temperature and not a relative temperature?
+Hello guys,
 
-This isn't spelt out explicitly, but it is pretty implicit. Suddenly
-reporting relative temperature margins the same way we report absolute
-temperature values will only confuse the user (and ourselves.) When
-sensors report "+20 degrees", how will you know whether the system is
-totally overheating or if it is rather cold?
 
-If we start reporting temperature margins, the interface must be
-different from what we have today so that libsensors and other tools
-relying on our sysfs interface aren't screwed up. We want sensors and
-other tools to clearly label temperature margins as such.
+I'm having some "theoretical" dilemmas here and wanted some help if 
+possible.
 
-And really I think it makes a lot of sense to report relative
-temperatures, I have no objection to doing that. The absolute
-temperature is one thing, but the key information is whether the system
-is running within its thermal specs or not.
+I'm having an Asus P5B Deluxe MB with a W83627DHG chip.
 
-> Alarms, min-max, hysterisis, etc all still work the same, they are just shifted so that the max limit is zero and the typical values are less than zero.  We allow negative temperatures in the library.
+Prob:
 
-Just because we support them in the library doesn't mean all
-applications support them. I fixed a bug with negative temperatures in
-sensord a few months ago... Anyway the problem is not with negative
-values. The problem is that users must _know_ what they are seeing.
+If I enable in Bios, Q-Fan Control (Thermal Cruise in normal language:) 
+), then do the settings in /sys like:
 
-So please let's not rush here. The proper interface, both at the sysfs
-and libsensors levels, should be discussed.
+/sys/devices/platform/w83627ehf.656/pwm1_enable
+pw2_enable
+etc
+pwm1_target
+pwm1_tolerance
 
--- 
-Jean Delvare
+get set automatically based on what is read by the BIOS ? or do I have 
+to set them ?
+
+Also, if I set them, do they overwrite the BIOS settings ?
+
+I'm a bit confused here and would be grateful if you could shed some 
+light on the subject.
+
+
+
+Thanks,
+Mihai
 
 _______________________________________________
 lm-sensors mailing list
