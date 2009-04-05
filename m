@@ -1,8 +1,10 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 05 Apr 2009 20:01:48 +0000
+Date: Sun, 05 Apr 2009 20:08:06 +0000
 Subject: [lm-sensors] [PATCH] hwmon: (lm95241) Convert to new-style i2c
-Message-Id: <20090405220148.57c2855e@hyperion.delvare>
+Message-Id: <20090405220806.2c2002a0@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20090405220148.57c2855e@hyperion.delvare>
+In-Reply-To: <20090405220148.57c2855e@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -12,7 +14,7 @@ The legacy i2c binding model is going away really soon now, so convert
 the lm95241 driver to the new binding model or it will break.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Davide Rizzo <elpa-rizzo@gmail.com>
+Cc: Davide Rizzo <elpa.rizzo@gmail.com>
 ---
 Davide, please test this patch and report, or send me a dump of your
 chip so that I can test the patch myself (or both.)
