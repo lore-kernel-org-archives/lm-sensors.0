@@ -1,51 +1,56 @@
-From: Aurelien Jarno <aurelien@aurel32.net>
-Date: Mon, 20 Apr 2009 20:30:28 +0000
-Subject: Re: [lm-sensors] Skip building of the static libsensors
-Message-Id: <20090420203028.GZ10866@hall.aurel32.net>
+From: Jiri Horky <jiri.horky@gmail.com>
+Date: Sun, 05 Apr 2009 07:55:28 +0000
+Subject: Re: [lm-sensors] Intel DG45FC
+Message-Id: <49D863F0.3000803@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090420112259.6f92f332@hyperion.delvare>
-In-Reply-To: <20090420112259.6f92f332@hyperion.delvare>
+References: <7bccedf10809181658o18aa47bbt46480ca2a67b1ac9@mail.gmail.com>
+In-Reply-To: <7bccedf10809181658o18aa47bbt46480ca2a67b1ac9@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Apr 20, 2009 at 11:22:59AM +0200, Jean Delvare wrote:
-> Hi all,
-> 
-> OpenSuse is apparently getting rid of all static libraries. I tend to
-> agree, static libraries are almost always the wrong thing to do (think
-> bug fixes and maintenance updates).
-> 
-> In order to help, I have just modified the libsensors build system to
-> make it possible to skip the static library. It is more efficient than
-> letting it build and then just not installing it. If you want to skip
-> building of the static library, all you have to do is change:
-> 
-> BUILD_STATIC_LIB := 1
-> 
-> to
-> 
-> BUILD_STATIC_LIB := 0
-> 
-> in the main Makefile. Or alternatively, build with:
-> 
-> make BUILD_STATIC_LIB=0
-> 
-> (Then don't forget to also pass this parameter to "make install".)
-> 
-> I am curious what the policy of other distributions is. If nobody is
-> interested in the static library then maybe it would make sense to
-> change the default to 0?
-> 
+Hi all,
 
-Debian still ships both shared and static libraries, but all packages
-must link to the shared library. static libraries are reserved for local
-use.
+I too have Intel DG45FC board and I am very interested in getting
+sensors working (and even more in PWM control of board, I am able to
+monitor temperatures with external thermometer). From what I understand,
+it would require "QST SDK" from Intel to be realeased, am I right (does
+that apply to PWM control too?) ? See [1].
 
--- 
-Aurelien Jarno	                        GPG: 1024D/F1BCDB73
-aurelien@aurel32.net                 http://www.aurel32.net
+And to answer Jean Delvare question. I have tried mentioned
+sensors-detect and the output was:
+
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
+
+Driver `coretemp':
+  * Chip `Intel Core family thermal sensor' (confidence: 9)
+
+Driver `lm85':
+  * Bus `SMBus I801 adapter at f000'
+    Busdriver `i2c_i801', I2C address 0x2e
+    Chip `lm85' (confidence: 6)
+
+
+Jiri Horky
+
+[1]
+http://software.intel.com/en-us/forums/manageability-software-development/topic/54851/
+
+
+
+> OK, thanks for the information. This confirms my guess that devices
+> without the hardware monitoring block have revision ID 0x91. Please
+> give a try to the latest version of sensors-detect:
+> http://www.lm-sensors.org/svn/lm-sensors/trunk/prog/detect/sensors-detect
+>
+> It should detect a WPCD376I/377I and tell you it doesn't have hardware
+> monitoring features.
+>
+> -- 
+> Jean Delvare
+
 
 _______________________________________________
 lm-sensors mailing list
