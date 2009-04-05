@@ -1,29 +1,53 @@
-From: Jonathan Winters <jonathan.winters11@gmail.com>
-Date: Sat, 11 Apr 2009 08:57:00 +0000
-Subject: [lm-sensors] You're taking wrong route on K8 monitoring
-Message-Id: <1239440220.18797.5.camel@ip68-13-241-188.ok.ok.cox.net>
+From: Jiri Horky <jiri.horky@gmail.com>
+Date: Sun, 05 Apr 2009 08:00:27 +0000
+Subject: [lm-sensors] lm-sensors@lm-sensors.org
+Message-Id: <49D8651B.7000807@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-You have a valid k8 monitoring system. Ticket 2278 is showing you what
-to do about it as kernel 2.26.29 won't fix this.
+Hi all,
 
-This is from core temp project.
+I too have Intel DG45FC board and I am very interested in getting
+sensors working (and even more in PWM control of board, I am able to
+monitor temperatures with external thermometer). From what I understand,
+it would require "QST SDK" from Intel to be realeased, am I right (does
+that apply to PWM control too?) ? See [1].
 
-The formula for the K8 is: 'Core Temp = Value - 49'.
+And to answer Jean Delvare question. I have tried mentioned
+sensors-detect and the output was:
 
-Add: AMD AM2 65nm K8 based processors get a 21c offset to fix incorrect
-temperature reporting (info from AMD).
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
 
-If you would just look at ticket 2278 and add 21c to the value you might
-have a working temp monitor.
-You report 7 c on my amd 4850e which is g2 step K8.
-add 21c to that and you have 28c which is what my bios reports and what
-windows programs report. So why put off something that is done. ;)
+Driver `coretemp':
+  * Chip `Intel Core family thermal sensor' (confidence: 9)
 
+Driver `lm85':
+  * Bus `SMBus I801 adapter at f000'
+    Busdriver `i2c_i801', I2C address 0x2e
+    Chip `lm85' (confidence: 6)
+
+
+Jiri Horky
+
+[1] http://software.intel.com/en-us/forums/manageability-software-development/topic/54851/
+
+
+
+> > OK, thanks for the information. This confirms my guess that devices
+> > without the hardware monitoring block have revision ID 0x91. Please
+> > give a try to the latest version of sensors-detect:
+> > http://www.lm-sensors.org/svn/lm-sensors/trunk/prog/detect/sensors-detect
+> >
+> > It should detect a WPCD376I/377I and tell you it doesn't have hardware
+> > monitoring features.
+> >
+> > -- 
+> > Jean Delvare
+>   
 
 
 
