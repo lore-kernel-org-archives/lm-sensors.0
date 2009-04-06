@@ -1,29 +1,45 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 21 Apr 2009 08:45:52 +0000
-Subject: Re: [lm-sensors] [PATCH 1/8] sensord: Remove commandline interface.
-Message-Id: <20090421104552.228c9602@hyperion.delvare>
+From: Andre Prendel <andre_prendel@gmx.de>
+Date: Mon, 06 Apr 2009 07:56:58 +0000
+Subject: [lm-sensors] [PATCH 4/8] sensord: Fix switch statement
+Message-Id: <20090406075658.GD4734@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090406075618.GB4734@ubuntu>
-In-Reply-To: <20090406075618.GB4734@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 21 Apr 2009 09:35:33 +0200, Andre Prendel wrote:
-> On Sun, Apr 19, 2009 at 09:39:54AM +0200, Jean Delvare wrote:
-> > There are many other references to isDaemon left in the code, which
-> > suggests that there is room for many additional cleanups. Are you going
-> > to do this?
-> 
-> Will fix this in v2 too. What about the two occurrences at the
-> beginning of parseArgs? I would prefer leaving that to inform the user
-> about the change of the behaviour.
+Removed useless breaks after some exit() calls.
+---
 
-Yes, this is fine with me. We can remove them later, in a year or two.
+ args.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
--- 
-Jean Delvare
+--- quilt-sensors.orig/prog/sensord/args.c	2009-03-24 16:37:00.000000000 +0100
++++ quilt-sensors/prog/sensord/args.c	2009-03-24 16:51:25.000000000 +0100
+@@ -221,23 +221,19 @@
+ 		case 'v':
+ 			printf("sensord version %s\n", LM_VERSION);
+ 			exit(EXIT_SUCCESS);
+-			break;
+ 		case 'h':
+ 			printf("Syntax: %s {options} {chips}\n%s", argv[0],
+ 			       daemonSyntax);
+ 			exit(EXIT_SUCCESS);
+-			break;
+ 		case ':':
+ 		case '?':
+ 			printf("Try `%s --help' for more information.\n",
+ 			       argv[0]);
+ 			return -1;
+-			break;
+ 		default:
+ 			fprintf(stderr,
+ 				"Internal error while parsing options.\n");
+ 			return -1;
+-			break;
+ 		}
+ 	}
+ 
 
 _______________________________________________
 lm-sensors mailing list
