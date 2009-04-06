@@ -1,77 +1,41 @@
 From: Andre Prendel <andre_prendel@gmx.de>
-Date: Mon, 06 Apr 2009 07:57:58 +0000
-Subject: [lm-sensors] [PATCH 7/8] sensord: Use sigaction() for signal
-Message-Id: <20090406075758.GH4734@ubuntu>
+Date: Mon, 06 Apr 2009 07:55:53 +0000
+Subject: [lm-sensors] [PATCH 0/8] sensord: Some cleanups,
+Message-Id: <20090406075553.GA4734@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Replace the deprecated signal() function by sigaction().
+Hello Jean,
 
-The signal() function has some disadvantages. This patch replaces
-signal() by sigaction() to install the signal handlers.
+this patch series fixes some issues caused by the coding style
+conversion a while ago. Most of them are deep indentation levels and
+the related long lines.
+
+Another patch removes the hidden commandline interface. You can call
+sensord as an console application if you have a link (sensors)
+pointing to the sensors deamon (sensord). IMO that's really
+intransparent and I don't know any reason using this.
+
+Further there is a patch introducing a new structure
+(sensord_arguments). The extern struct sensord_args in args.c now is
+the place for all the commandline arguments.
+
+A last one replaces the deprecated signal() function by sigaction.
+
+Andre
 ---
 
- sensord.c |   32 +++++++++++++++++++++++++-------
- 1 file changed, 25 insertions(+), 7 deletions(-)
-
---- quilt-sensors.orig/prog/sensord/sensord.c	2009-04-04 18:25:22.000000000 +0200
-+++ quilt-sensors/prog/sensord/sensord.c	2009-04-05 17:07:19.000000000 +0200
-@@ -65,7 +65,6 @@
- 
- static void signalHandler(int sig)
- {
--	signal(sig, signalHandler);
- 	switch (sig) {
- 	case SIGTERM:
- 		done = 1;
-@@ -147,6 +146,30 @@
- 	logOpened = 1;
- }
- 
-+static void install_sighandler(void)
-+{
-+	struct sigaction new;
-+	int ret;
-+
-+	new.sa_handler = signalHandler;
-+	sigemptyset(&new.sa_mask);
-+	new.sa_flags = SA_RESTART;
-+
-+	ret = sigaction(SIGTERM, &new, NULL);
-+	if (ret = -1) {
-+		fprintf(stderr, "Could not set sighandler for SIGTERM: %s\n",
-+			strerror(errno));
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	ret = sigaction(SIGHUP, &new, NULL);
-+	if (ret = -1) {
-+		fprintf(stderr, "Could not set sighandler for SIGHUP: %s\n",
-+			strerror(errno));
-+		exit(EXIT_FAILURE);
-+	}
-+}
-+
- static void daemonize(void)
- {
- 	int pid;
-@@ -172,12 +195,7 @@
- 		exit(EXIT_FAILURE);
- 	}
- 
--	/* I should use sigaction but... */
--	if (signal(SIGTERM, signalHandler) = SIG_ERR ||
--	    signal (SIGHUP, signalHandler) = SIG_ERR) {
--		perror("signal");
--		exit(EXIT_FAILURE);
--	}
-+	install_sighandler();
- 
- 	if ((pid = fork()) = -1) {
- 		perror("fork()");
+ args.c    |  205 +++++++++++++++++++++++++++++---------------------------------
+ args.h    |   30 +++++++++
+ lib.c     |   93 ++++++++++++++++------------
+ rrd.c     |  108 ++++++++++++++++----------------
+ sense.c   |    6 -
+ sensord.c |   89 ++++++++++++++++----------
+ sensord.h |   18 -----
+ 7 files changed, 294 insertions(+), 255 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
