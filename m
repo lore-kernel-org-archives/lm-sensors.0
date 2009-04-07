@@ -1,58 +1,58 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 02 Mar 2009 08:40:01 +0000
-Subject: Re: [lm-sensors] Intel WiFi Link 4965AGN sysfs interface and
-Message-Id: <20090302094001.6dd88f98@hyperion.delvare>
+From: Clive Messer <clive@vacuumtube.org.uk>
+Date: Tue, 07 Apr 2009 17:11:32 +0000
+Subject: [lm-sensors] atk0110 tested with Asus Rampage II Extreme
+Message-Id: <200904071811.32265.clive@vacuumtube.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Sun, 22 Feb 2009 13:43:14 +0100, armencho@gmail.com wrote:
-> I am new here. Have found the 'temperature' file under the
-> '/sys/devices/pci0000:00/0000:00:1c.1/0000:03:00.0'.
-> Files 'vendor' and 'device' cat 0x8086 and 0x4230 respectively, which
-> indicates the device is Intel 4965AGN wifi card by Intel. Upon
-> cat'ting the file 'temperature' I get 320. I have no idea how to
-> translate the number to an understandable value, but I take it to be a
-> temperature readout indeed. Does anybody have a translation profile
-> for this device?
 
-According to the code these are degrees Kelvin. 320 - 273 = 47 degrees
-Celsius. A pretty inconvenient unit, if you ask me.
+atk0110 driver output from Asus Rampage II Extreme (Core i7 / X58)
 
-> Given that all sensor chips report internal values, I
-> take this needs to be translated, but I currently have no capacity to
-> do a libsensors C interfacing that translates for me (which is
-> recommended), so I wonder whether a human readable translation
-> database exists, or if someone can hint me how to translate exactly
-> this value?
+Now that's what I call a sensor list! ;-)
 
-Documentation/hwmon/sysfs-interface says that temperature values should
-be exported in millidegrees Celsius, which the iwlwifi drivers doesn't
-do. If the temperature in question is one that is worth monitoring, the
-iwlwifi driver should be updated to comply with the hwmon standard.
+[clivem@c7p6t:/etc/sensors.d]$ sensors                              =20
+atk0110-acpi-0                                                      =20
+Adapter: ACPI interface                                             =20
+3.3V Voltage:          +3.33 V  (min =3D  +2.97 V, max =3D  +3.63 V)    =20
+5V Voltage:            +4.97 V  (min =3D  +4.50 V, max =3D  +5.50 V)    =20
+12V Voltage:          +11.91 V  (min =3D +10.20 V, max =3D +13.80 V)    =20
+CPU Voltage:           +1.25 V  (min =3D  +0.80 V, max =3D  +1.80 V)    =20
+CPU PLL Voltage:       +1.82 V  (min =3D  +1.50 V, max =3D  +2.00 V)    =20
+QPI/DRAM Core Voltage: +1.39 V  (min =3D  +0.80 V, max =3D  +1.50 V)    =20
+IOH Voltage:           +1.08 V  (min =3D  +0.90 V, max =3D  +1.35 V)    =20
+IOH PCIE Voltage:      +1.51 V  (min =3D  +1.20 V, max =3D  +1.80 V)    =20
+ICH Voltage:           +1.12 V  (min =3D  +0.90 V, max =3D  +1.35 V)    =20
+ICH PCIE Voltage:      +1.51 V  (min =3D  +1.20 V, max =3D  +1.80 V)    =20
+DRAM Bus Voltage:      +1.64 V  (min =3D  +1.40 V, max =3D  +1.90 V)    =20
+CPU FAN Speed:        4429 RPM  (min =3D  600 RPM)                    =20
+CHA_FAN1 FAN Speed:   4478 RPM  (min =3D  600 RPM)                    =20
+CHA_FAN2 FAN Speed:      0 RPM  (min =3D  600 RPM)                    =20
+CHA_FAN3 FAN Speed:   3015 RPM  (min =3D  600 RPM)                    =20
+PWR_FAN FAN Speed:    1713 RPM  (min =3D  600 RPM)                    =20
+OPT_FAN1 FAN Speed:      0 RPM  (min =3D  600 RPM)                    =20
+OPT_FAN2 FAN Speed:      0 RPM  (min =3D  600 RPM)                    =20
+OPT_FAN3 FAN Speed:      0 RPM  (min =3D  600 RPM)                    =20
+CPU Temperature:       +36.0=B0C  (high =3D +60.0=B0C, crit =3D +65.0=B0C) =
+   =20
+MB Temperature:        +32.0=B0C  (high =3D +45.0=B0C, crit =3D +55.0=B0C) =
+   =20
+SB Temperature:        +44.0=B0C  (high =3D +65.0=B0C, crit =3D +65.0=B0C) =
+   =20
+NB Temperature:        +47.0=B0C  (high =3D +80.0=B0C, crit =3D +80.0=B0C) =
+   =20
+OPT_FAN1 Temperature:   +0.0=B0C  (high =3D +45.0=B0C, crit =3D +45.0=B0C)
+OPT_FAN2 Temperature:   +0.0=B0C  (high =3D +45.0=B0C, crit =3D +45.0=B0C)
+OPT_FAN3 Temperature:   +0.0=B0C  (high =3D +45.0=B0C, crit =3D +45.0=B0C)
 
-> It also does not appear to be the same value my Gnome
-> Sensors applet reports for the MiniPCI slot, where this card is
-> supposedly inserted (Thinkpad T61 computer), but then again it may be
-> another sensor altogether.
+Regards
 
-If the iwlwifi driver maintainer cares about integration of the driver
-into hardware monitoring application, he/she should:
-* Have the iwlwifi driver register a hwmon class device, by means of
-  hwmon_device_unregister().
-* Create there a name attribute returning "iwlwifi" or something
-  similar.
-* Create there a temp1_input attribute returning the temperature value
-  in millidegrees Celsius.
+Clive
+--=20
+Clive Messer <clive@vacuumtube.org.uk>
 
-This should be very easy to implement. This however is only worth doing
-if the temperature in question is one which is updated frequently. This
-should be verified with the iwlwifi driver maintainer first.
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
