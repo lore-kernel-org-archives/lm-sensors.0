@@ -1,105 +1,80 @@
-From: Andre Prendel <andre_prendel@gmx.de>
-Date: Tue, 21 Apr 2009 07:36:14 +0000
-Subject: Re: [lm-sensors] [PATCH 2/8] sensord: Fix help string
-Message-Id: <20090421073614.GB4846@ubuntu>
+From: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
+Date: Tue, 14 Apr 2009 09:27:46 +0000
+Subject: [lm-sensors] w83793 related question
+Message-Id: <49E45712.6020906@aei.mpg.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090406075637.GC4734@ubuntu>
-In-Reply-To: <20090406075637.GC4734@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Apr 19, 2009 at 09:32:36AM +0200, Jean Delvare wrote:
-> Hi Andre,
-> 
-> On Mon, 6 Apr 2009 09:56:37 +0200, Andre Prendel wrote:
-> > Break long lines in the help string.
-> > ---
-> > 
-> >  args.c |   44 +++++++++++++++++++++++++++++++-------------
-> >  1 file changed, 31 insertions(+), 13 deletions(-)
-> > 
-> > --- quilt-sensors.orig/prog/sensord/args.c	2009-03-16 22:55:22.000000000 +0100
-> > +++ quilt-sensors/prog/sensord/args.c	2009-03-16 23:03:45.000000000 +0100
-> > @@ -101,31 +101,49 @@
-> >  }
-> >  
-> >  static const char *daemonSyntax > > -	"  -i, --interval <time>     -- interval between scanning alarms (default 60s)\n"
-> > -	"  -l, --log-interval <time> -- interval between logging sensors (default 30m)\n"
-> > -	"  -t, --rrd-interval <time> -- interval between updating RRD file (default 5m)\n"
-> > +	"  -i, --interval <time>     -- interval between scanning alarms"
-> > +	"(default 60s)\n"
-> > +
-> > +	"  -l, --log-interval <time> -- interval between logging sensors"
-> > +	"(default 30m)\n"
-> > +
-> > +	"  -t, --rrd-interval <time> -- interval between updating RRD file"
-> > +	"(default 5m)\n"
-> > +
-> >  	"  -T, --rrd-no-average      -- switch RRD in non-average mode\n"
-> >  	"  -r, --rrd-file <file>     -- RRD file (default <none>)\n"
-> >  	"  -c, --config-file <file>  -- configuration file\n"
-> > -	"  -p, --pid-file <file>     -- PID file (default /var/run/sensord.pid)\n"
-> > -	"  -f, --syslog-facility <f> -- syslog facility to use (default local4)\n"
-> > +	"  -p, --pid-file <file>     -- PID file"
-> > +	"(default /var/run/sensord.pid)\n"
-> > +
-> > +	"  -f, --syslog-facility <f> -- syslog facility to use"
-> > +	"(default local4)\n"
-> > +
-> >  	"  -g, --rrd-cgi <img-dir>   -- output an RRD CGI script and exit\n"
-> >  	"  -a, --load-average        -- include load average in RRD file\n"
-> >  	"  -d, --debug               -- display some debug information\n"
-> >  	"  -v, --version             -- display version and exit\n"
-> >  	"  -h, --help                -- display help and exit\n"
-> >  	"\n"
-> > +
-> >  	"Specify a value of 0 for any interval to disable that operation;\n"
-> >  	"for example, specify --log-interval 0 to only scan for alarms."
-> >  	"\n"
-> > -	"Specify the filename `-' to read the config file from stdin.\n"
-> > -	"\n"
-> > -	"If no chips are specified, all chip info will be printed.\n"
-> > -	"\n"
-> > -	"If unspecified, no RRD (round robin database) is used. If specified and the\n"
-> > -	"file does not exist, it will be created. For RRD updates to be successful,\n"
-> > -	"the RRD file configuration must EXACTLY match the sensors that are used. If\n"
-> > -	"your configuration changes, delete the old RRD file and restart sensord.\n";
-> > +
-> > +	"Specify the filename `-' to read the config file from stdin.\n\n"
-> > +	"If no chips are specified, all chip info will be printed.\n\n"
-> > +
-> > +	"If unspecified, no RRD (round robin database) is used."
-> > +	" If specified and the\n"
-> > +
-> > +	"file does not exist, it will be created. For RRD updates to be"
-> > +	" successful,\n"
-> > +
-> > +	"the RRD file configuration must EXACTLY match the sensors that are"
-> > +	" used. If\n"
-> > +
-> > +	"your configuration changes, delete the old RRD file and restart"
-> > +	" sensord.\n";
-> >  
-> >  static const char *daemonShortOptions = "i:l:t:Tf:r:c:p:advhg:";
-> >  
-> 
-> This is one of the rare cases where I actually prefer having lines
-> longer than 80 columns than breaking them. Breaking them makes the help
-> text much harder to read, and it also makes it hard to make sure that
-> the output itself will fit in 80 columns.
-> 
-> If you are really unhappy about the long lines then I'd rather drop
-> indentation for this long string than break the long lines.
-> 
+Hi all,
 
-I can live very well without that patch :) So I will drop it in v2.
+on Supermicro PDMSL-LN2+ boards there is a w83793 chip which seems to
+work fine, however, it seems we are hitting quite a few error messages
+and I don't know how to get rid off them cleanly
 
-Andre
+typical messages are:
 
-> -- 
-> Jean Delvare
+[1953397.341265] w83793 0-002f: set bank to 2 failed, fall back to bank
+0, read reg 0x215 error
+[1975470.881264] w83793 0-002f: set bank to 2 failed, fall back to bank
+0, read reg 0x210 error
+[1996226.542514] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0x8c error
+[2007778.861264] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0x88 error
+[2030598.800018] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0x78 error
+[2047548.600033] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0x78 error
+[2061616.870018] i801_smbus 0000:00:1f.3: Transaction timeout
+[2061616.890025] i801_smbus 0000:00:1f.3: Failed terminating the transaction
+[2061616.890233] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0xb2 error
+[2061616.890600] i801_smbus 0000:00:1f.3: SMBus is busy, can't use it!
+[2061616.890812] i801_smbus 0000:00:1f.3: SMBus is busy, can't use it!
+[2061616.891014] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0xc3 error
+[2061616.891384] i801_smbus 0000:00:1f.3: SMBus is busy, can't use it!
+[2061616.891585] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0xc4 error
+[2061616.891948] i801_smbus 0000:00:1f.3: SMBus is busy, can't use it!
+[2061616.892146] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0xc5 error
+[2061616.892515] i801_smbus 0000:00:1f.3: SMBus is busy, can't use it!
+[2061616.892716] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0x52 error
+[2061616.893082] i801_smbus 0000:00:1f.3: SMBus is busy, can't use it!
+[2061616.893281] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0x53 error
+[2061616.893653] i801_smbus 0000:00:1f.3: SMBus is busy, can't use it!
+[2061616.893858] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0x54 error
+[2061616.894228] i801_smbus 0000:00:1f.3: SMBus is busy, can't use it!
+[2061616.894427] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0x55 error
+[2061616.894790] i801_smbus 0000:00:1f.3: SMBus is busy, can't use it!
+[2061616.894988] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0x56 error
+[2061616.895356] i801_smbus 0000:00:1f.3: SMBus is busy, can't use it!
+[2061616.895555] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0x57 error
+[2091449.930030] w83793 0-002f: set bank to 0 failed, fall back to bank
+2, read reg 0x8c error
+[2122602.861265] w83793 0-002f: set bank to 2 failed, fall back to bank
+0, read reg 0x210 error
+
+Google only shows me lots of references to the Linux kernel, but that
+does not really help me much right now.
+
+System is running pretty recent 2.6.27 kernel and lm-sensors 3.0.2.
+
+Any hint how i can get rid off these?
+
+Cheers and thanks a lot in advance
+
+Carsten
 
 _______________________________________________
 lm-sensors mailing list
