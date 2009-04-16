@@ -1,81 +1,133 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 25 Apr 2009 06:27:13 +0000
-Subject: Re: [lm-sensors] Problem with MSI MS-7031
-Message-Id: <20090425082713.3a37bcf1@hyperion.delvare>
+From: Chris Cole <clecol@gmail.com>
+Date: Thu, 16 Apr 2009 22:31:35 +0000
+Subject: [lm-sensors] i2cset troubles
+Message-Id: <49E7B1C7.7000906@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090421181310.205493a9@nat.nasa.one.pl>
-In-Reply-To: <20090421181310.205493a9@nat.nasa.one.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 21 Apr 2009 18:13:10 +0200, Schwarz wrote:
-> Hi,
->=20
-> I have problem reading sensors from MSI MS-7031 (or MSI RS350M) this is
-> Fujitsu-Siemens OEM board, with Socekt 478 and integrated Radeon 9200
-> Pro (IGA) CPU: Pentium 4 3GHz HT with 1GB ram.
-> Chipset: ATI iXP300=20
-> Sensors: w83627thf
-> This board have smartfun control turned on. (slow down fans under 40C)
-> My system is Gentoo x86 STABLE on Gentoo Hardened Kernel
-> Profile: [Gentoo Server]
-> lm_sensors 2.10.7
->=20
-> My sensors output:
-> w83627thf-isa-0290
-> Adapter: ISA adapter
-> VCore:     +1.94 V  (min =3D  +1.94 V, max =3D  +1.94 V)       ALARM  (be=
-ep)
-> +12V:     +15.50 V  (min =3D +15.50 V, max =3D +15.50 V)       ALARM  (be=
-ep)
-> +3.3V:     +4.08 V  (min =3D  +4.08 V, max =3D  +4.08 V)       ALARM  (be=
-ep)
-> +5V:       +6.80 V  (min =3D  +6.80 V, max =3D  +6.80 V)       ALARM  (be=
-ep)
-> -12V:      +6.06 V  (min =3D  +6.06 V, max =3D  +6.06 V)       ALARM  (be=
-ep)
-> V5SB:      +6.85 V  (min =3D  +6.85 V, max =3D  +6.85 V)       ALARM  (be=
-ep)
-> VBat:      +4.08 V  (min =3D  +4.08 V, max =3D  +4.08 V)       ALARM  (be=
-ep)
-> fan1:        0 RPM  (min =3D    0 RPM, div =3D 128)              ALARM
-> (beep) CPU Fan:     0 RPM  (min =3D    0 RPM, div =3D 128)
-> ALARM  (beep) fan3:        0 RPM  (min =3D    0 RPM, div > 128)          =
-    ALARM  (beep) M/B Temp:     -1=B0C  (high =3D    -1=B0C,
-> hyst =3D    -1=B0C)   sensor =3D diode   ALARM   (beep) CPU Temp:   +0.0=
-=B0C
-> (high =3D    +0=B0C, hyst =3D    +0=B0C)   sensor =3D diode   ALARM   (be=
-ep)
-> temp3:      +0.0=B0C  (high =3D    +0=B0C, hyst =3D    +0=B0C)   sensor =
-=3D diode
-> ALARM   (beep) alarms:   Chassis intrusion
-> detection                      ALARM beep_enable: Sound alarm enabled
->=20
-> Everything shows wrong value.
-> Changing sensors type in /etc/sensors.conf does not help (I tried:
-> 1,2,3,4)
-> In BIOS I see that
-> CPU have ~45C
-> GPU: ~60C (Integrated ATI Radeon 9200 Pro)
-> fan1: ~3000rpm (Pentagram 80x80mm 12V ~0.2mA)
-> fan2: ~1200rpm (really big and slow 160x160mm 12V ~0.17mA)
-> fan3: does not exist
->=20
-> I attached sensors-detect output as s.log
->=20
-> pls, help me get somthing from my sensors...=20
+Hey all, I found the i2c-tools and lm-sensors packages today...great 
+stuff! I had a question about using i2cset properly. I'm trying to set 
+the value of a digital potentiometer (maxim 5434L) over the i2cbus, and 
+I can tell by using i2cdump that it's setting the register value 
+properly...but I keep getting "Warning - readback failed" after i use 
+i2cset. Here's the output of what I'm trying to do:
 
-For reference, we investigated this on IRC, the W83627THF is
-apparently not used for hardware monitoring, but no other monitoring
-chip was found. There was a chip at 0x2f on the SMBus but it doesn't
-look like anything we know. So we are stick for now, until we learn
-from the board vendor where the BIOS gets its temperature and fan speed
-readings.
+ccole@test:~$ sudo modprobe scx200_acb
+ccole@test:~$ sudo modprobe i2c-dev
+ccole@test:~$ sudo su -
+root@test:~# i2cdetect -l
+i2c-0    smbus         CS5536 ACB0                         SMBus adapter
 
---=20
-Jean Delvare
+root@test:~# i2cdetect 0
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-0.
+I will probe address range 0x03-0x77.
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: 50 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --                        
+
+root@test:~# i2cdump 0 0x50
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-0, address 0x50, mode byte
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 08 07 0d 0b 01 40 00 04 60 70 00 82 08 00 01    ??????@.?`p.??.?
+10: 0e 04 0c 01 02 20 c0 75 70 00 00 48 30 48 2a 80    ????? ?up..H0H*?
+20: 80 80 45 45 00 00 00 00 00 3c 48 30 2d 55 00 01    ??EE.....<H0-U.?
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 10 68    ..............?h
+40: 7f 7f 7f 7f 7f ba 00 00 00 56 4c 34 37 30 4c 36    ??????...VL470L6
+50: 7f 32 33 2d 42 33 53 00 00 00 00 00 00 00 00 00    ?23-B3S.........
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+
+root@test:~# i2cset 0 0x50 0x50 0x21
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+DANGEROUS! Writing to a serial EEPROM on a memory DIMM
+may render your memory USELESS and make your system UNBOOTABLE!
+I will write to device file /dev/i2c-0, chip address 0x50, data address
+0x50, data 0x21, mode byte.
+Continue? [y/N] y
+Warning - readback failed
+
+root@test:~# i2cdump 0 0x50
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-0, address 0x50, mode byte
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 08 07 0d 0b 01 40 00 04 60 70 00 82 08 00 01    ??????@.?`p.??.?
+10: 0e 04 0c 01 02 20 c0 75 70 00 00 48 30 48 2a 80    ????? ?up..H0H*?
+20: 80 80 45 45 00 00 00 00 00 3c 48 30 2d 55 00 01    ??EE.....<H0-U.?
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 10 68    ..............?h
+40: 7f 7f 7f 7f 7f ba 00 00 00 56 4c 34 37 30 4c 36    ??????...VL470L6
+50: 21 32 33 2d 42 33 53 00 00 00 00 00 00 00 00 00    !23-B3S.........
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+
+root@test:~# i2cset 0 0x50 0x50 0x00
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+DANGEROUS! Writing to a serial EEPROM on a memory DIMM
+may render your memory USELESS and make your system UNBOOTABLE!
+I will write to device file /dev/i2c-0, chip address 0x50, data address
+0x50, data 0x00, mode byte.
+Continue? [y/N] y
+Warning - readback failed
+
+root@test:~# i2cdump 0 0x50
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-0, address 0x50, mode byte
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 08 07 0d 0b 01 40 00 04 60 70 00 82 08 00 01    ??????@.?`p.??.?
+10: 0e 04 0c 01 02 20 c0 75 70 00 00 48 30 48 2a 80    ????? ?up..H0H*?
+20: 80 80 45 45 00 00 00 00 00 3c 48 30 2d 55 00 01    ??EE.....<H0-U.?
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 10 68    ..............?h
+40: 7f 7f 7f 7f 7f ba 00 00 00 56 4c 34 37 30 4c 36    ??????...VL470L6
+50: 00 32 33 2d 42 33 53 00 00 00 00 00 00 00 00 00    .23-B3S.........
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+
+
+Thanks,
+  Chris
 
 _______________________________________________
 lm-sensors mailing list
