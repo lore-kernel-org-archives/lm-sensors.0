@@ -1,43 +1,50 @@
-From: Kim Kyuwon <chammoru@gmail.com>
-Date: Wed, 22 Apr 2009 09:42:49 +0000
-Subject: Re: [lm-sensors] Questions about contributing the
-Message-Id: <4d34a0a70904220242l99064d8t112f60f19cc59739@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 17 Apr 2009 07:17:49 +0000
+Subject: Re: [lm-sensors] [PATCH] assign a default class to MPC adapter
+Message-Id: <20090417091749.20404d2d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090413161101.7da08473@hyperion.delvare>
-In-Reply-To: <20090413161101.7da08473@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Apr 20, 2009 at 12:35 PM, Matt Roberds <mattroberds@cox.net> wrote:
-> On Mon, 13 Apr 2009 16:37:30 +0900, Kim Kyuwon wrote:
->>
->> I'm thinking of contributing the kxsd9 driver (accelerometer driver)
->> as Hardware Monitoring device.
->>
->> Before contributing, I'd like to ask:
->> 1. Does it make sense to implement an accelermeter as lm-sensor
->> driver?
+Hi Michael,
+
+please keep the list CC'd.
+
+On Fri, 17 Apr 2009 08:32:16 +0200, Michael Lawnick wrote:
+> Jean Delvare said the following:
+> > That's right, but why do you insist on instantiating them at runtime?
+> > 
+> Because we have 2 different boards with same main processor but
+> different on-board peripherals. They should run with same binary kernel
+> to avoid duplicate production tests. On boot the system checks on which
+> of the boards it is running and loads the necessary drivers with
+> matching parameters.
+
+Why would the system check need to be done in user-space? I can easily
+imagine a single kernel supporting more than one system, all I2C
+devices being described in the kernel and the right subset of I2C
+devices being instantiated at boot based on which system the kernel is
+running on.
+
+> > The question is: why every other user of i2c-mpc is apparently able 
+> > to declare i2c devices through dts and you aren't?
 >
-> There has been some work in this area under the title "industrialio" or
-> "iio" - separate from lm-sensors.  See http://lkml.org/lkml/2008/12/1/156
-> for a little more information.  One of the devices supported so far is
-> an accelerometer.
+> The question was: does dts work for drivers that are loaded on runtime.
 
-Thank you for information
-I will contact Jonathan Cameron.
+Answer is yes.
 
-Kyuwon
+> I did not check before I asked, because it is a bit complicated here to
+> do. In difference to you Wolfram was able to give a verbose 'yes' which
+> I will check now.
 
-> Matt Roberds
->
->
+In difference to Wolfram I have no specific knowledge of embedded
+boards. I try to help with i2c in general but I am limited when it
+comes to embedded.
 
-
-
---=20
-Kyuwon (=B1=D4=BF=F8)
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
