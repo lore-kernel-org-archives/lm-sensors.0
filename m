@@ -1,36 +1,30 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 13 Apr 2009 14:11:01 +0000
+From: Matt Roberds <mattroberds@cox.net>
+Date: Mon, 20 Apr 2009 03:35:17 +0000
 Subject: Re: [lm-sensors] Questions about contributing the
-Message-Id: <20090413161101.7da08473@hyperion.delvare>
+Message-Id: <Pine.LNX.4.64.0904192224250.8248@birdbird.example.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20090413161101.7da08473@hyperion.delvare>
+In-Reply-To: <20090413161101.7da08473@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 On Mon, 13 Apr 2009 16:37:30 +0900, Kim Kyuwon wrote:
-> Hi Jean,
-> 
 > I'm thinking of contributing the kxsd9 driver (accelerometer driver)
 > as Hardware Monitoring device.
-> 
+>
 > Before contributing, I'd like to ask:
-> 1. Does it make sense to implement an accelermeter as lm-sensor driver?
+> 1. Does it make sense to implement an accelermeter as lm-sensor
+> driver?
 
-General answer is no, the hwmon interface doesn't meet the
-requirements. Accelerometers are specific devices which need a
-dedicated interface.
+There has been some work in this area under the title "industrialio" or
+"iio" - separate from lm-sensors.  See http://lkml.org/lkml/2008/12/1/156
+for a little more information.  One of the devices supported so far is
+an accelerometer.
 
-> The data-sheet is here:
-> http://www.kionix.com/sensors/accelerometer-products.html
-> 
-> 2. Is anyone working on KXSD9?
-> 
-> Regards,
+Matt Roberds
 
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
