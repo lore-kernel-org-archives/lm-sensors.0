@@ -1,53 +1,125 @@
-From: =?ISO-8859-1?Q?Csapl=E1r_Zolt=E1n?= <csaplar.zoltan@gmail.com>
-Date: Wed, 29 Apr 2009 15:00:50 +0000
-Subject: Re: [lm-sensors] lm_sensors 3.1 unique config file
-Message-Id: <06E648E007684F6A8D7A07819C0EA087@csaplar>
+From: "James M. Leddy" <jm.leddy@gmail.com>
+Date: Tue, 28 Apr 2009 02:25:12 +0000
+Subject: [lm-sensors] Asus fan control
+Message-Id: <49F66908.5070202@gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------050608000006070009060601"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <622d3d2b0903100034q2cc67357v7b1ea9707f9a6e4f@mail.gmail.com>
-In-Reply-To: <622d3d2b0903100034q2cc67357v7b1ea9707f9a6e4f@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-hello,
+This is a multi-part message in MIME format.
+--------------050608000006070009060601
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I've written a program that uses lm_sensors 3.1. It's on a lot of PCs, but I 
-managed to collect the chips just now:
+Hi,
 
-- ITE IT8712F
-- ITE IT8718F
-Winbond:
-- w83627ehf
-- w83627hf
-Nat. Semi.:
-- PC8374L
-- PC87372
-SMSC:
-- EMC2700LPC
-- LPC47M10x (smsc47m1)
-- LPC47M15x (smsc47m1)
-- LPC47M172
-- LPC47M172
-- LPC47M172
-- LPC47M182
-- SCH5027D-NW
+I realize http://www.lm-sensors.org/ticket/2350 is closed wontfix, but 
+I absolutely must have fan control on my Asus CUV4X.  It is for that 
+reason that I've developed the attached patch against 2.6.29
 
-I checked the sensors.conf.eg file to the lm_sensors, but fortunately it 
-consists just little information. I cannot understand its logic and how to 
-build up such a file, so I would like to ask for your help.
+I'm attaching here just in case there are others that would like fan 
+control on their asus motherboards.  I've attached a suitable 
+/etc/fancontrol as well, which is tricky since the register only uses 
+values 0x80-0x8f (decimal 128-143).  Honestly pwm2 doesn't seem to do 
+anything on my board, and I don't know which rev of the chip I'm 
+using, and I haven't investigated any other values outside 0x80-0x8f. 
+  I'm just satisfied that my machine no longer sounds like a jet 
+engine. I am willing to work on it if there's a possibility that it 
+could be accepted.
 
-Could somebody send or link me the config files that belong to the above 
-mentioned chips?
-May a more complete collection exist?
-Please, if you need some out RPM (e.g. IT8118F) to get a chip, let me know.
+--------------050608000006070009060601
+Content-Type: text/plain;
+ name="as99127f-fan-enablement.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="as99127f-fan-enablement.patch"
 
-Thank you in advance for your help.
+--- linux-2.6.29-gentoo/drivers/hwmon/w83781d.c	2009-04-17 20:26:33.000000000 -0400
++++ linux-2.6.29-gentoo-r1/drivers/hwmon/w83781d.c	2009-04-28 06:38:07.000000000 -0400
+@@ -139,6 +139,9 @@ static const u8 W83781D_REG_PWM[] = { 0x
+ #define W83781D_REG_PWMCLK12		0x5C
+ #define W83781D_REG_PWMCLK34		0x45C
+ 
++/* PWM AS99127F only */
++static const u8 AS99127F_REG_PWM[] = { 0x59, 0x5A };
++
+ #define W83781D_REG_I2C_ADDR		0x48
+ #define W83781D_REG_I2C_SUBADDR		0x4A
+ 
+@@ -186,6 +189,7 @@ FAN_FROM_REG(u8 val, int div)
+ 
+ #define DIV_FROM_REG(val)		(1 << (val))
+ 
++
+ static inline u8
+ DIV_TO_REG(long val, enum chips type)
+ {
+@@ -696,7 +700,11 @@ store_pwm(struct device *dev, struct dev
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->pwm[nr] = SENSORS_LIMIT(val, 0, 255);
+-	w83781d_write_value(data, W83781D_REG_PWM[nr], data->pwm[nr]);
++	if (data->type == as99127f) {
++		w83781d_write_value(data, AS99127F_REG_PWM[nr], data->pwm[nr]);
++	} else {
++		w83781d_write_value(data, W83781D_REG_PWM[nr], data->pwm[nr]);
++	}
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+@@ -1017,7 +1025,7 @@ w83781d_create_files(struct device *dev,
+ 		}
+ 	}
+ 
+-	if (kind != w83781d && kind != as99127f) {
++	if (kind != w83781d) {
+ 		if ((err = device_create_file(dev,
+ 				&sensor_dev_attr_pwm1.dev_attr))
+ 		    || (err = device_create_file(dev,
+@@ -1469,8 +1477,15 @@ static struct w83781d_data *w83781d_upda
+ 			/* Only PWM2 can be disabled */
+ 			data->pwm2_enable = (w83781d_read_value(data,
+ 					      W83781D_REG_PWMCLK12) & 0x08) >> 3;
++		} else if (data->type == as99127f) {
++			for (i = 0; i < 2; i++) {
++				data->pwm[i] =
++				    w83781d_read_value(data,
++						       AS99127F_REG_PWM[i]);
++			}
+ 		}
+ 
++
+ 		data->temp = w83781d_read_value(data, W83781D_REG_TEMP(1));
+ 		data->temp_max =
+ 		    w83781d_read_value(data, W83781D_REG_TEMP_OVER(1));
 
-Zoli
+--------------050608000006070009060601
+Content-Type: text/plain;
+ name="fancontrol"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="fancontrol"
 
+INTERVAL=10
+FCTEMPS=hwmon0/device/pwm1=hwmon0/device/temp2_input
+FCFANS=hwmon0/device/pwm1=hwmon0/device/fan1_input
+MINTEMP=hwmon0/device/pwm1=40
+MAXTEMP=hwmon0/device/pwm1=55
+
+MINSTART=hwmon0/device/pwm1=135
+MINSTOP=hwmon0/device/pwm1=130
+MINPWM=hwmon0/device/pwm1=130
+MAXPWM=hwmon0/device/pwm1=143
+
+--------------050608000006070009060601
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------050608000006070009060601--
