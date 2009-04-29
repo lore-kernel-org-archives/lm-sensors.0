@@ -1,58 +1,62 @@
-From: Jiri Horky <jiri.horky@gmail.com>
-Date: Sun, 05 Apr 2009 07:55:28 +0000
-Subject: Re: [lm-sensors] Intel DG45FC
-Message-Id: <49D863F0.3000803@gmail.com>
+From: Stefan Steuerwald <salsasepp@googlemail.com>
+Date: Wed, 29 Apr 2009 15:17:01 +0000
+Subject: [lm-sensors] dme1737: Base address not set / How to do the BIOS' job
+Message-Id: <f76a32050904290817u6e296898x2fdbd43136e0d5ef@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============3269053263392543955=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <7bccedf10809181658o18aa47bbt46480ca2a67b1ac9@mail.gmail.com>
-In-Reply-To: <7bccedf10809181658o18aa47bbt46480ca2a67b1ac9@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+--===============3269053263392543955==
+Content-Type: multipart/alternative; boundary=001636c5a26e3c1ff70468b31291
 
-I too have Intel DG45FC board and I am very interested in getting
-sensors working (and even more in PWM control of board, I am able to
-monitor temperatures with external thermometer). From what I understand,
-it would require "QST SDK" from Intel to be realeased, am I right (does
-that apply to PWM control too?) ? See [1].
+--001636c5a26e3c1ff70468b31291
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-And to answer Jean Delvare question. I have tried mentioned
-sensors-detect and the output was:
+Hi lm-sensor,
 
-Now follows a summary of the probes I have just done.
-Just press ENTER to continue:
+I have an embedded system with a SCH3114 Super-I/O sitting at 0x2E on the
+LPC bus.
+My BIOS does not support this chip, hence it goes uninitialized on boot.
+Consequently, when I load the dme1737 kernel module, it says "Base address
+not set".
 
-Driver `coretemp':
-  * Chip `Intel Core family thermal sensor' (confidence: 9)
+For lack of a better BIOS, I think I have to manually poke around the
+SCH3114's registers to set base address, IRQ numbers, whatever else.
+Correct?
+Maybe anybody can point me to some code that may be doing something similar?
+I'd like to enable the Super-I/O's USARTs and LPT, above all.
 
-Driver `lm85':
-  * Bus `SMBus I801 adapter at f000'
-    Busdriver `i2c_i801', I2C address 0x2e
-    Chip `lm85' (confidence: 6)
+Thank you,
+  Stefan.
+
+--001636c5a26e3c1ff70468b31291
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi lm-sensor,<br><br>I have an embedded system with a SCH3114 Super-I/O sit=
+ting at 0x2E on the LPC bus.<br>My BIOS does not support this chip, hence i=
+t goes uninitialized on boot.<br>Consequently, when I load the dme1737 kern=
+el module, it says &quot;Base address not set&quot;.<br>
+<br>For lack of a better BIOS, I think I have to manually poke around the S=
+CH3114&#39;s registers to set base address, IRQ numbers, whatever else.<br>=
+Correct? <br>Maybe anybody can point me to some code that may be doing some=
+thing similar? I&#39;d like to enable the Super-I/O&#39;s USARTs and LPT, a=
+bove all.<br>
+<br>Thank you,<br>=C2=A0 Stefan.<br><br>
+
+--001636c5a26e3c1ff70468b31291--
 
 
-Jiri Horky
-
-[1]
-http://software.intel.com/en-us/forums/manageability-software-development/topic/54851/
-
-
-
-> OK, thanks for the information. This confirms my guess that devices
-> without the hardware monitoring block have revision ID 0x91. Please
-> give a try to the latest version of sensors-detect:
-> http://www.lm-sensors.org/svn/lm-sensors/trunk/prog/detect/sensors-detect
->
-> It should detect a WPCD376I/377I and tell you it doesn't have hardware
-> monitoring features.
->
-> -- 
-> Jean Delvare
-
+--===============3269053263392543955==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============3269053263392543955==--
