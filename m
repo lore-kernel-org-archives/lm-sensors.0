@@ -1,62 +1,44 @@
-From: Stefan Steuerwald <salsasepp@googlemail.com>
-Date: Wed, 29 Apr 2009 15:17:01 +0000
-Subject: [lm-sensors] dme1737: Base address not set / How to do the BIOS' job
-Message-Id: <f76a32050904290817u6e296898x2fdbd43136e0d5ef@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3269053263392543955=="
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Wed, 29 Apr 2009 20:17:12 +0000
+Subject: Re: [lm-sensors] dme1737: Base address not set / How to do the
+Message-Id: <49F8B5C8.9060403@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <f76a32050904290817u6e296898x2fdbd43136e0d5ef@mail.gmail.com>
+In-Reply-To: <f76a32050904290817u6e296898x2fdbd43136e0d5ef@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============3269053263392543955==
-Content-Type: multipart/alternative; boundary=001636c5a26e3c1ff70468b31291
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---001636c5a26e3c1ff70468b31291
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Hi
 
-Hi lm-sensor,
+> For lack of a better BIOS, I think I have to manually poke around the
+> SCH3114's registers to set base address, IRQ numbers, whatever else.
+> Correct?
 
-I have an embedded system with a SCH3114 Super-I/O sitting at 0x2E on the
-LPC bus.
-My BIOS does not support this chip, hence it goes uninitialized on boot.
-Consequently, when I load the dme1737 kernel module, it says "Base address
-not set".
+Yes,
 
-For lack of a better BIOS, I think I have to manually poke around the
-SCH3114's registers to set base address, IRQ numbers, whatever else.
-Correct?
-Maybe anybody can point me to some code that may be doing something similar?
-I'd like to enable the Super-I/O's USARTs and LPT, above all.
+But why the BIOS does not support that? Maybe its not used for monitoring at
+all. Maybe you have added to system somehow? (on some strange addon card?)
 
-Thank you,
-  Stefan.
+What southbridge you have? Vendor/model?
 
---001636c5a26e3c1ff70468b31291
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Thanks,
+Rudolf
 
-Hi lm-sensor,<br><br>I have an embedded system with a SCH3114 Super-I/O sit=
-ting at 0x2E on the LPC bus.<br>My BIOS does not support this chip, hence i=
-t goes uninitialized on boot.<br>Consequently, when I load the dme1737 kern=
-el module, it says &quot;Base address not set&quot;.<br>
-<br>For lack of a better BIOS, I think I have to manually poke around the S=
-CH3114&#39;s registers to set base address, IRQ numbers, whatever else.<br>=
-Correct? <br>Maybe anybody can point me to some code that may be doing some=
-thing similar? I&#39;d like to enable the Super-I/O&#39;s USARTs and LPT, a=
-bove all.<br>
-<br>Thank you,<br>=C2=A0 Stefan.<br><br>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
---001636c5a26e3c1ff70468b31291--
-
-
---===============3269053263392543955==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+iEYEARECAAYFAkn4tcgACgkQ3J9wPJqZRNU5BwCfZx/9ImhkLImucc2F1Mppt3iT
+38QAoJ3Iedeex9UaaUWgi9FIhuMqSm/j
+=TrYY
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3269053263392543955==--
