@@ -1,72 +1,50 @@
 From: Andre Prendel <andre.prendel@gmx.de>
-Date: Mon, 18 May 2009 11:02:39 +0000
-Subject: Re: [lm-sensors] [PATCH RFC 0/2] tmp401: Add support for
-Message-Id: <20090518110239.GB4535@ubuntu>
+Date: Wed, 06 May 2009 07:17:41 +0000
+Subject: [lm-sensors] [PATCH] k8temp: Unset driver data in exit_remove
+Message-Id: <20090506071741.GA4386@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090514092819.GC6644@ubuntu>
-In-Reply-To: <20090514092819.GC6644@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, May 18, 2009 at 12:18:10PM +0200, Hans de Goede wrote:
-> 
-> 
-> On 05/18/2009 11:37 AM, Andre Prendel wrote:
-> > Having a closer look at the datasheet
-> >
-> > http://focus.ti.com/docs/prod/folders/print/tmp411.html
-> >
-> > , I've seen two ways to reset the history.
-> >
-> > 1. Writing any value to the history registers (0x30-0x37). That should
-> > reset all these registers. I've attached a patch (delta) doing this. Hans,
-> > could you please test this one. echo "1">  .../temp_reset_history
-> > should reset the history for tempX_lowest (0xFFF0) and tempX_highest (0x0000).
-> >
-> > 2. SOFTWARE RESET
-> >
-> > Writing the first e-mail I meant this command in my question. You can
-> > find it in datasheet under SOFTWARE RESET. This command restores the
-> > power-on values to all registers (including limits etc.).
-> >
-> > I'd prefer 1. for reseting the history. That's what I'd expect from
-> > temp_reset_history.
-> >
-> 
-> Ack, I think 1 is much better too.
-> 
-> > BTW, what about write-only attributes? I've seen a reset functionality
-> > in the fscpos driver (so I did it like that). show_temp_reset always
-> > returns 1. Using WO attributes could make more sense, but in
-> > sysfs-interface I can only see RO and RW.
-> >
-> 
-> The fscpos driver is an old obsolete driver, so not the best place to look
-> for inspiration. I think that using 0200 as rights for something like
-> temp_reset_history makes perfect sense.
-> 
-> I've tested you're latest patch and temp_reset_history works as advertised.
-> 
-> If you fix the mode for the temp_reset_history, and do a new patch adding
-> docs, then I think this is good to go to Jean's tree for merging into 2.6.31.
-> Jean do you agree?
+Hi Jean, Rudolf,
 
-Alright, I will do so.
+after infiltrating the sensors user space part, I think it's time to
+dive into kernel space. So I took a look at some of the sensor drivers
+to get an understanding. Unfortunately I couldn't find a bug to fix,
+so I had to do something else :)
 
-> 
-> Regards,
-> 
-> Hans
+I don't know whether this patch is worth to be applied, but I have to
+start somewhere.
 
-Thanks,
+I'm very interested in doing more kernel stuff. So if you have some
+work to do, please tell me about it.
+
+Thanks
 Andre
+---
 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+At the exit_free label in k8temp_probe() the driver data is set to
+NULL. This field isn't set before. So this should be done in
+exit_remove.
+
+Signed-off-by: Andre Prendel <andre.prendel@gmx.de>
+---
+
+--- linux-2.6.orig/drivers/hwmon/k8temp.c	2009-05-05 21:31:44.000000000 +0200
++++ linux-2.6/drivers/hwmon/k8temp.c	2009-05-05 21:35:03.000000000 +0200
+@@ -281,8 +281,8 @@
+ 	device_remove_file(&pdev->dev,
+ 			   &sensor_dev_attr_temp4_input.dev_attr);
+ 	device_remove_file(&pdev->dev, &dev_attr_name);
+-exit_free:
+ 	dev_set_drvdata(&pdev->dev, NULL);
++exit_free:
+ 	kfree(data);
+ exit:
+ 	return err;
+
 
 _______________________________________________
 lm-sensors mailing list
