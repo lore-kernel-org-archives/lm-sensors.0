@@ -1,60 +1,48 @@
-From: Jaswinder Singh Rajput <jaswinder@kernel.org>
-Date: Fri, 29 May 2009 05:54:15 +0000
-Subject: Re: [lm-sensors] [stable] [PATCH-tip] x86: hwmon/k8temp.c Add
-Message-Id: <1243575735.3159.7.camel@localhost.localdomain>
+From: =?UTF-8?B?Q3NhcGzDoXIgWm9sdMOhbg==?= <csaplar.zoltan@gmail.com>
+Date: Wed, 06 May 2009 07:06:00 +0000
+Subject: [lm-sensors] lm_sensors 3.1 config file
+Message-Id: <622d3d2b0905060006y366594a7re837cf23d53a0406@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4A165F67.3020005@assembler.cz>
-	 <1242981748.10642.3.camel@localhost.localdomain>
-	 <1242984648.16532.3.camel@localhost.localdomain>
-	 <4A182B61.5010503@assembler.cz>
-	 <1243339833.12303.2.camel@localhost.localdomain>
-	 <4A1C08C6.7060103@assembler.cz>
-	 <1243352672.31783.10.camel@localhost.localdomain>
-	 <1243511849.3669.5.camel@localhost.localdomain>
-	 <20090528142837.530ba070@hyperion.delvare>
-	 <1243520014.3143.11.camel@localhost.localdomain>
-	 <20090528144901.GA7153@kroah.com>
-In-Reply-To: <20090528144901.GA7153@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: Jean Delvare <khali@linux-fr.org>, x86 maintainers <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, stable <stable@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LM Sensors <lm-sensors@lm-sensors.org>, Ingo Molnar <mingo@elte.hu>
+To: lm-sensors@vger.kernel.org
 
-Hi Greg,
+hello,
 
-On Thu, 2009-05-28 at 07:49 -0700, Greg KH wrote:
-> On Thu, May 28, 2009 at 07:43:34PM +0530, Jaswinder Singh Rajput wrote:
-> > On Thu, 2009-05-28 at 14:28 +0200, Jean Delvare wrote:
-> > > On Thu, 28 May 2009 17:27:29 +0530, Jaswinder Singh Rajput wrote:
-> > > > Hello Andrew, Greg and Ingo:
-> > > > 
-> > > > Do you think this patch should go to stable and latest git.
-> > > 
-> > > Definitely not to stable, it's not fixing any bug.
-> > > 
-> > 
-> > Ok, so you suggested this should go to latest git.
-> > 
-> > I proposed for stable because I was using AMD 11H from last 6 months and
-> > I was missing temperature monitor badly because my earlier Laptop was
-> > broken by overheating. So I thought if it goes to stable then users will
-> > start getting benefit of it, but if you want that users should wait for
-> > another 2 years. Then it is OK ;-)
-> 
-> 2 years?  The next kernel release will be out in 3 months, we have a
-> very predictable release schedule.
-> 
+I've written a program that uses lm_sensors 3.1. It's on a lot of PCs,
+but I managed to collect the chips just now:
 
-I am sorry for being unclear. I meant for linux distros. Even one of the
-most active Fedora 10 is using vmlinuz-2.6.27.24-170.2.68.fc10.x86_64 is
-almost 7 months behind the linus git. And another linux distro are still
-using 2.6.22 or so which are almost 2 years behind linus git.
+- ITE IT8712F
+- ITE IT8718F
+Winbond:
+- w83627ehf
+- w83627hf
+Nat. Semi.:
+- PC8374L
+- PC87372
+SMSC:
+- EMC2700LPC
+- LPC47M10x (smsc47m1)
+- LPC47M15x (smsc47m1)
+- LPC47M172
+- LPC47M172
+- LPC47M172
+- LPC47M182
+- SCH5027D-NW
 
-Thanks,
---
-JSR
+I checked the sensors.conf.eg file to the lm_sensors, but fortunately
+it consists just little information. I cannot understand its logic and
+how to build up such a file, so I would like to ask for your help.
 
+Could somebody send or link me the config files that belong to the
+above mentioned chips?
+May a more complete collection exist?
+Please, if you need some out RPM (e.g. IT8118F) to get a chip, let me know.
+
+Thank you in advance for your help.
+
+Zoli
 
 _______________________________________________
 lm-sensors mailing list
