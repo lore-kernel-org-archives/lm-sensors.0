@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 06 May 2009 07:36:45 +0000
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Wed, 06 May 2009 07:54:26 +0000
 Subject: Re: [lm-sensors] [PATCH] k8temp: Unset driver data in exit_remove
-Message-Id: <20090506093645.67e73bb6@hyperion.delvare>
+Message-Id: <20090506075426.GB4386@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090506071741.GA4386@ubuntu>
 In-Reply-To: <20090506071741.GA4386@ubuntu>
@@ -10,73 +10,81 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Andre,
-
-On Wed, 6 May 2009 09:17:41 +0200, Andre Prendel wrote:
-> Hi Jean, Rudolf,
+On Wed, May 06, 2009 at 09:36:45AM +0200, Jean Delvare wrote:
+> Hi Andre,
 > 
-> after infiltrating the sensors user space part, I think it's time to
-> dive into kernel space. So I took a look at some of the sensor drivers
-> to get an understanding. Unfortunately I couldn't find a bug to fix,
-> so I had to do something else :)
+> On Wed, 6 May 2009 09:17:41 +0200, Andre Prendel wrote:
+> > Hi Jean, Rudolf,
+> > 
+> > after infiltrating the sensors user space part, I think it's time to
+> > dive into kernel space. So I took a look at some of the sensor drivers
+> > to get an understanding. Unfortunately I couldn't find a bug to fix,
+> > so I had to do something else :)
+> > 
+> > I don't know whether this patch is worth to be applied, but I have to
+> > start somewhere.
 > 
-> I don't know whether this patch is worth to be applied, but I have to
-> start somewhere.
-
-No, I don't want to apply this, sorry. While your patch is technically
-correct, I prefer to always keep dev_set_drvdata(dev, NULL) or
-equivalent right before freeing the data structure that may have been
-used as the driver data. When developers copy and paste code around, it
-makes it way less likely for them to leave dangling pointers behind.
-
-Given that this is an error path and thus normally not taken, we don't
-care about performance there, robustness is more important.
-
-> I'm very interested in doing more kernel stuff. So if you have some
-> work to do, please tell me about it.
-
-I'll remember that :) Actually you may want to look at the abandoned
-tmp401 driver. Hans de Goede worked on it originally but it never made
-it into mainline. That's a pity because it was almost ready. I seem to
-remember it needs to be updated due to i2c infrastructure changes, and
-minor cleanups were needed before I would take the driver into mainline:
-
-http://lists.lm-sensors.org/pipermail/lm-sensors/2008-June/023411.html
-http://lists.lm-sensors.org/pipermail/lm-sensors/2008-August/024024.html
-
-Is this something you'd be interested in? If you don't have any
-supported chip, I can send you chip dumps, which you can feed into
-i2c-stub to emulate a chip. Or if you are into soldering, you may be
-able to ask TI for free chip samples.
-
-> Thanks
-> Andre
-> ---
+> No, I don't want to apply this, sorry. While your patch is technically
+> correct, I prefer to always keep dev_set_drvdata(dev, NULL) or
+> equivalent right before freeing the data structure that may have been
+> used as the driver data. When developers copy and paste code around, it
+> makes it way less likely for them to leave dangling pointers behind.
 > 
-> At the exit_free label in k8temp_probe() the driver data is set to
-> NULL. This field isn't set before. So this should be done in
-> exit_remove.
-> 
-> Signed-off-by: Andre Prendel <andre.prendel@gmx.de>
-> ---
-> 
-> --- linux-2.6.orig/drivers/hwmon/k8temp.c	2009-05-05 21:31:44.000000000 +0200
-> +++ linux-2.6/drivers/hwmon/k8temp.c	2009-05-05 21:35:03.000000000 +0200
-> @@ -281,8 +281,8 @@
->  	device_remove_file(&pdev->dev,
->  			   &sensor_dev_attr_temp4_input.dev_attr);
->  	device_remove_file(&pdev->dev, &dev_attr_name);
-> -exit_free:
->  	dev_set_drvdata(&pdev->dev, NULL);
-> +exit_free:
->  	kfree(data);
->  exit:
->  	return err;
-> 
+> Given that this is an error path and thus normally not taken, we don't
+> care about performance there, robustness is more important.
 
+I agree with you.
 
--- 
-Jean Delvare
+> > I'm very interested in doing more kernel stuff. So if you have some
+> > work to do, please tell me about it.
+> 
+> I'll remember that :) Actually you may want to look at the abandoned
+> tmp401 driver. Hans de Goede worked on it originally but it never made
+> it into mainline. That's a pity because it was almost ready. I seem to
+> remember it needs to be updated due to i2c infrastructure changes, and
+> minor cleanups were needed before I would take the driver into mainline:
+> 
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-June/023411.html
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-August/024024.html
+> 
+> Is this something you'd be interested in? If you don't have any
+> supported chip, I can send you chip dumps, which you can feed into
+> i2c-stub to emulate a chip. Or if you are into soldering, you may be
+> able to ask TI for free chip samples.
+
+Yes, it sounds interesting, I will have a look this.
+
+Thanks
+Andre
+
+> > Thanks
+> > Andre
+> > ---
+> > 
+> > At the exit_free label in k8temp_probe() the driver data is set to
+> > NULL. This field isn't set before. So this should be done in
+> > exit_remove.
+> > 
+> > Signed-off-by: Andre Prendel <andre.prendel@gmx.de>
+> > ---
+> > 
+> > --- linux-2.6.orig/drivers/hwmon/k8temp.c	2009-05-05 21:31:44.000000000 +0200
+> > +++ linux-2.6/drivers/hwmon/k8temp.c	2009-05-05 21:35:03.000000000 +0200
+> > @@ -281,8 +281,8 @@
+> >  	device_remove_file(&pdev->dev,
+> >  			   &sensor_dev_attr_temp4_input.dev_attr);
+> >  	device_remove_file(&pdev->dev, &dev_attr_name);
+> > -exit_free:
+> >  	dev_set_drvdata(&pdev->dev, NULL);
+> > +exit_free:
+> >  	kfree(data);
+> >  exit:
+> >  	return err;
+> > 
+> 
+> 
+> -- 
+> Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
