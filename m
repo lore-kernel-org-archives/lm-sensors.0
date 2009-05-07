@@ -1,45 +1,60 @@
-From: Tom <siggma@trbailey.net>
-Date: Sat, 23 May 2009 16:54:10 +0000
-Subject: Re: [lm-sensors] Gigabyte GA-945GCMX
-Message-Id: <4A182A32.5050503@trbailey.net>
+From: Julian Gagnon <nongag@googlemail.com>
+Date: Thu, 07 May 2009 17:38:18 +0000
+Subject: [lm-sensors] Reboot Problem fancontrol no longer works
+Message-Id: <2e1931630905071038y63dc19e0ubc289992b93d6514@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7207825582699159941=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4A177CC6.6060805@trbailey.net>
-In-Reply-To: <4A177CC6.6060805@trbailey.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-David Hubbard wrote:
-> Hi Tom,
->
-> On Fri, May 22, 2009 at 10:34 PM, Tom <siggma@trbailey.net> wrote:
->   
->> I have a GA-945GCMX-S2 board that apparently uses the it8718F chip.
->>
->>     
->  I could be
-> wrong, but this is the first request for a Gigabyte schematic. Give
-> the company some time to think it over; they might want you to sign an
-> NDA -- Greg Kroah-Hartman has more information on the legal setup for
-> this: http://www.kroah.com/log/linux/free_drivers.html
->   
-Thanks for the encouragement. Back when I was less gray I used to fiddle 
-with C:\debug and poke around in 80286 BIOS code. I made a cool little 
-Bio Feedback gadget by copying and rewriting the game port adapter code, 
-then hooking my nifty little unregistered, non-integrating RVT 
-(Resistance Voltage Time domain) AD converter to a couple of nickels 
-soldered to wires. QBASIC provided a running graph and I was off to the 
-races. It would even pick up my heartbeat as it slowly shocked me with 
-12v. So, could one do the same in this situation,  or is a multi meg 
-bios too daunting a prospect for poking around these days. It's been a 
-long, long time for me (1992).
+--===============7207825582699159941==
+Content-Type: multipart/alternative; boundary=001636c92477424247046955fa5e
 
-Since there are possible legal issues with contacting the MFG I'll wait 
-a spell and see what else comes up.
--Tom
+--001636c92477424247046955fa5e
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Hi,
+
+I recently put a computer together.  My Mainboard is a Asus P5Q-Pro.  I'm
+loading the module  w83627ehf force_id=0x8860 to be able to read the sensors
+output. I have the stable version from your webpage.  Sudo sensors works,
+and sudo pwmconfig works as well to control my fan speeds.  Unfortunately,
+after a reboot fancontrol no longer works.  Sensors still gives out the
+proper output, only when I start fancontrol, it looks like it's working,
+just the fans don't spin down.  I don't know why.  I know my cpu core temp
+is below the minimum value, and it should just throttle the fan down.  Just
+thought you might be interested.
+
+Greetings Julian
+
+--001636c92477424247046955fa5e
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hi,<br><br>I recently put a computer together.=A0 My Mainboard is a Asus P5=
+Q-Pro.=A0 I&#39;m loading the module=A0 w83627ehf force_id=3D0x8860 to be a=
+ble to read the sensors output. I have the stable version from your webpage=
+.=A0 Sudo sensors works, and sudo pwmconfig works as well to control my fan=
+ speeds.=A0 Unfortunately, after a reboot fancontrol no longer works.=A0 Se=
+nsors still gives out the proper output, only when I start fancontrol, it l=
+ooks like it&#39;s working, just the fans don&#39;t spin down.=A0 I don&#39=
+;t know why.=A0 I know my cpu core temp is below the minimum value, and it =
+should just throttle the fan down.=A0 Just thought you might be interested.=
+<br>
+<br>Greetings Julian<br>
+
+--001636c92477424247046955fa5e--
+
+
+--===============7207825582699159941==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7207825582699159941==--
