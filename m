@@ -1,47 +1,57 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 11 May 2009 19:42:48 +0000
-Subject: Re: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.30
-Message-Id: <20090511214248.0e09d39b@hyperion.delvare>
+Date: Sat, 09 May 2009 11:43:19 +0000
+Subject: Re: [lm-sensors] fancontrol
+Message-Id: <20090509134319.49803f3c@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090508205916.4478b06c@hyperion.delvare>
-	<20090511193733.GA7967@plum>
-In-Reply-To: <20090511193733.GA7967@plum>
+References: <1122217880.3578.8.camel@localhost.localdomain>
+In-Reply-To: <1122217880.3578.8.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: djwong@us.ibm.com
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Hi Darrick,
+Hi Sergio,
 
-On Mon, 11 May 2009 12:37:33 -0700, Darrick J. Wong wrote:
-> On Fri, May 08, 2009 at 08:59:16PM +0200, Jean Delvare wrote:
-> > Hi Linus,
-> > 
-> > Please pull some hwmon subsystem fixes for Linux 2.6.30 from:
-> > 
-> > git://jdelvare.pck.nerim.net/jdelvare-2.6 hwmon-for-linus
-> > 
-> >  drivers/hwmon/asus_atk0110.c |    2 ++
-> >  drivers/hwmon/w83781d.c      |    3 ++-
-> >  2 files changed, 4 insertions(+), 1 deletions(-)
-> > 
-> > ---------------
-> > 
-> > Jean Delvare (1):
-> >       hwmon: (w83781d) Fix W83782D support (NULL pointer dereference)
-> > 
-> > Luca Tettamanti (1):
-> >       hwmon: (asus_atk0110) Fix compiler warning
-> 
-> Hi Jean,
-> 
-> Hmm... is the "Support HC10 in ibmaem driver" patch queued for 2.6.31?  As I
-> recall you put it in your tree some time ago, but I haven't heard or seen it
-> since then. :)
+Sorry for the late answer, this one felt under the radar.
 
-Yes, it is queued for 2.6.31. See:
-ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/
+On Fri, 27 Mar 2009 19:30:49 +0300, sergio wrote:
+> >> force_load is function for initramfs-tools hook script...
+> > That's kind of a misnomer, as it isn't forcing anything.
+> May be, you can suggest the better name?
+>  > It just load the driver early.
+> Yes.
+
+"load_early" would seem like a reasonable name then.
+
+> > Also, to be truly useful for users, the possibility to use absolute
+> > paths should be used by the pwmconfig script, by following and
+> > resolving the device link of hwmon class devices before writing the
+> > configuration file. Care to give it a try?
+>
+> I know. This fix is very simple and quick.
+> Path mixing and pwmconfig is not so easy to fix.
+> But not only paths should be reworked. Pid file is hardcoded.
+
+Didn't seem to cause trouble to anyone so far.
+
+> Egrep is deprecated.
+
+Didn't know that. Replacing all instances of "egrep" with "grep -E"
+should fix it, shouldn't it?
+
+> Configuration file is not very simple.
+
+It's both too simple from a syntax perspective, and too hard to read
+and inflexible as a result, I agree :(
+
+> Maybe it is the right 
+> time to rework whole fancontrol and pwmconfig. Or it will be better to 
+> save time for write new daemon. I can't find any suitable one of some 
+> which can be extended.
+
+This is your time, feel free to spend it any way you like ;)
+
+I've applied your patch, thanks for your contribution.
 
 -- 
 Jean Delvare
