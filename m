@@ -1,59 +1,82 @@
-From: Simon Chen <simonchennj@gmail.com>
-Date: Sat, 23 May 2009 18:11:48 +0000
-Subject: Re: [lm-sensors] weird oscillation in temp reading
-Message-Id: <237854710905231111i1f6ce0d4x2baa79958f585d84@mail.gmail.com>
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Mon, 11 May 2009 16:04:19 +0000
+Subject: [lm-sensors] [PATCH v2 6/7] sensord: Use sigaction() for signal
+Message-Id: <20090511160419.GG17530@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <237854710905041853x1f68ec9ei535c1e8467e442ba@mail.gmail.com>
-In-Reply-To: <237854710905041853x1f68ec9ei535c1e8467e442ba@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Replace the deprecated signal() function by sigaction().
 
-Sorry for the late reply... I'm out of town for a while.
+The signal() function has some disadvantages. This patch replaces
+signal() by sigaction() to install the signal handlers.
 
-Yes, this phenomenon occurs for all eight cores on both Xeon processors.
+Changes in v2:
 
-The temperature reading is dumped every second by running "sensors" of
-lm-sensors. My lm-sensor is configured to use "coretemp" kernel module
-to get temperature readings.
+Zero sigaction structure.
 
-My workload is a repetition of heavy computation for 400ms and then
-idle for 600ms. So, overall the CPU utilization is 40%. The period of
-oscillation showing in the graph is on the order of 10seconds,
-definitely not because of my workload.
+ sensord.c |   33 ++++++++++++++++++++++++++-------
+ 1 file changed, 26 insertions(+), 7 deletions(-)
 
-Thanks.
--Simon
-
-On Fri, May 8, 2009 at 6:13 AM, Jean Delvare <khali@linux-fr.org> wrote:
-> Hi Simon,
->
-> On Mon, 4 May 2009 21:53:22 -0400, Simon Chen wrote:
->> I am using lm-sensor on a dual-quad-core system with two Xeon 5460. I
->> am running a periodic workload on one of the cores: 400ms computation
->> and 600ms idle.
->>
->> >From the thermal side, the temp reading is shown in the figure
->> attached. Notice that there is a very obvious oscillation in the
->> temperature reading on that core. The oscillating period is around
->> 20-30 seconds, which is definitely not sub-second.
->>
->> I've no idea what's going on here. Can anyone share some thoughts?
->
-> I can't remember anything like that before. But you didn't provide
-> enough data for me to comment on it. How do you measure the
-> temperature? Can you reproduce the behavior on a different core? Does
-> the temperature reading oscillation depend on the period of the
-> workload? Does it depend on the duty cycle of the workload? Do you have
-> any form of frequency scaling in effect on these CPUs?
->
-> --
-> Jean Delvare
-> http://khali.linux-fr.org/wishlist.html
->
+Index: quilt-sensors/prog/sensord/sensord.c
+=================================--- quilt-sensors.orig/prog/sensord/sensord.c	2009-05-08 19:55:45.000000000 +0200
++++ quilt-sensors/prog/sensord/sensord.c	2009-05-08 21:18:30.000000000 +0200
+@@ -65,7 +65,6 @@
+ 
+ static void signalHandler(int sig)
+ {
+-	signal(sig, signalHandler);
+ 	switch (sig) {
+ 	case SIGTERM:
+ 		done = 1;
+@@ -147,6 +146,31 @@
+ 	logOpened = 1;
+ }
+ 
++static void install_sighandler(void)
++{
++	struct sigaction new;
++	int ret;
++
++	memset(&new, 0, sizeof(struct sigaction));
++	new.sa_handler = signalHandler;
++	sigemptyset(&new.sa_mask);
++	new.sa_flags = SA_RESTART;
++
++	ret = sigaction(SIGTERM, &new, NULL);
++	if (ret = -1) {
++		fprintf(stderr, "Could not set sighandler for SIGTERM: %s\n",
++			strerror(errno));
++		exit(EXIT_FAILURE);
++	}
++
++	ret = sigaction(SIGHUP, &new, NULL);
++	if (ret = -1) {
++		fprintf(stderr, "Could not set sighandler for SIGHUP: %s\n",
++			strerror(errno));
++		exit(EXIT_FAILURE);
++	}
++}
++
+ static void daemonize(void)
+ {
+ 	int pid;
+@@ -172,12 +196,7 @@
+ 		exit(EXIT_FAILURE);
+ 	}
+ 
+-	/* I should use sigaction but... */
+-	if (signal(SIGTERM, signalHandler) = SIG_ERR ||
+-	    signal (SIGHUP, signalHandler) = SIG_ERR) {
+-		perror("signal");
+-		exit(EXIT_FAILURE);
+-	}
++	install_sighandler();
+ 
+ 	if ((pid = fork()) = -1) {
+ 		perror("fork()");
 
 _______________________________________________
 lm-sensors mailing list
