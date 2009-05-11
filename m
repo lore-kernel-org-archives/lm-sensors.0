@@ -1,35 +1,81 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 25 May 2009 13:46:24 +0000
-Subject: Re: [lm-sensors] [PATCH 1/1] hwmon: Updated documentation on alarms
-Message-Id: <20090525154624.7b683104@hyperion.delvare>
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Mon, 11 May 2009 16:04:01 +0000
+Subject: [lm-sensors] [PATCH v2 4/7] sensord: Refactoring of parseChips()
+Message-Id: <20090511160401.GE17530@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <9EE81EBECB70824985BE0EDA8DC9B515021B3103@VIECLEX01.frequentis.frq>
-In-Reply-To: <9EE81EBECB70824985BE0EDA8DC9B515021B3103@VIECLEX01.frequentis.frq>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 23 May 2009 19:30:20 +0200, Hans de Goede wrote:
-> 
-> 
-> On 05/21/2009 11:57 PM, Engelmayer Christian wrote:
-> > From: Christian Engelmayer<christian.engelmayer@frequentis.com>
-> >
-> > Added gpio channel alarm and fan limit alarm 'max_alarm' to the alarm
-> > section.
-> >
-> 
-> Not sure if we should mention the gpio alarms in the sysfs docs as they
-> are a bit non standard,
-> 
-> Jean ?
+Did some refactoring in parseChips(). This fixes some deep indentation
+levels.
 
-I agree. GPIOs don't have anything to do with hardware monitoring, we
-don't want to document that.
+Changes in v2:
 
--- 
-Jean Delvare
+Make condition (are there chips arguments?) easier to read.
+Removed withspace (coding style).
+---
+
+ args.c |   39 ++++++++++++++++++++-------------------
+ 1 file changed, 20 insertions(+), 19 deletions(-)
+
+Index: quilt-sensors/prog/sensord/args.c
+=================================--- quilt-sensors.orig/prog/sensord/args.c	2009-04-26 21:19:41.000000000 +0200
++++ quilt-sensors/prog/sensord/args.c	2009-04-26 21:21:49.000000000 +0200
+@@ -231,33 +231,34 @@
+ 
+ int parseChips(int argc, char **argv)
+ {
+-	if (optind = argc) {
++	int i, n = argc - optind, err;
++
++	if (n = 0) {
+ 		sensord_args.chipNames[0].prefix  			SENSORS_CHIP_NAME_PREFIX_ANY;
+ 		sensord_args.chipNames[0].bus.type = SENSORS_BUS_TYPE_ANY;
+ 		sensord_args.chipNames[0].bus.nr = SENSORS_BUS_NR_ANY;
+ 		sensord_args.chipNames[0].addr = SENSORS_CHIP_NAME_ADDR_ANY;
+ 		sensord_args.numChipNames = 1;
+-	} else {
+-		int i, n = argc - optind, err;
+-		if (n > MAX_CHIP_NAMES) {
+-			fprintf(stderr, "Too many chip names.\n");
+-			return -1;
+-		}
+-		for (i = 0; i < n; ++ i) {
+-			char *arg = argv[optind + i];
+ 
+-			err = sensors_parse_chip_name(arg,
+-						      sensord_args.chipNames +
+-						      i);
+-			if (err) {
+-				fprintf(stderr,
+-					"Invalid chip name `%s': %s\n", arg,
+-					sensors_strerror(err));
+-				return -1;
+-			}
++		return 0;
++	}
++
++	if (n > MAX_CHIP_NAMES) {
++		fprintf(stderr, "Too many chip names.\n");
++		return -1;
++	}
++	for (i = 0; i < n; ++i) {
++		char *arg = argv[optind + i];
++
++		err = sensors_parse_chip_name(arg, sensord_args.chipNames + i);
++		if (err) {
++			fprintf(stderr,	"Invalid chip name `%s': %s\n", arg,
++				sensors_strerror(err));
++			return -1;
+ 		}
+-		sensord_args.numChipNames = n;
+ 	}
++	sensord_args.numChipNames = n;
++
+ 	return 0;
+ }
 
 _______________________________________________
 lm-sensors mailing list
