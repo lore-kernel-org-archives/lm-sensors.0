@@ -1,124 +1,48 @@
-From: "Ian Bygrave" <ian@bygrave.me.uk>
-Date: Mon, 04 May 2009 12:58:30 +0000
-Subject: [lm-sensors] f71862fg support backport to linux 2.6.26
-Message-Id: <90b46992fd373367a2878f45a3405fa0.squirrel@www.bygrave.me.uk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_20090504135830_24416"
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Mon, 11 May 2009 16:01:36 +0000
+Subject: [lm-sensors] [PATCH v2 3/7] sensord: Fix switch statement
+Message-Id: <20090511160135.GD17530@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_20090504135830_24416
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Removed useless breaks after some exit() calls.
+---
 
-Hans de Goede added support for the 'Fintek F71862FG Super IO Sensors'
-chip to the f7188fg driver.
-http://lists.lm-sensors.org/pipermail/lm-sensors/2008-October/024510.html
-This was included in linux 2.6.29.
+ args.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-I have backported these patches to linux 2.6.26
-as I needed them in debian stable.
-http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=526846
-I forward these backported patches to the list
-in case anyone might find them useful.
-
--- 
--- Ian Bygrave
-
-------=_20090504135830_24416
-Content-Type: application/x-gzip; name="f71862fg-patches.tar.gz"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="f71862fg-patches.tar.gz"
-
-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
-------=_20090504135830_24416
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Index: quilt-sensors/prog/sensord/args.c
+=================================--- quilt-sensors.orig/prog/sensord/args.c	2009-03-24 16:37:00.000000000 +0100
++++ quilt-sensors/prog/sensord/args.c	2009-03-24 16:51:25.000000000 +0100
+@@ -221,23 +221,19 @@
+ 		case 'v':
+ 			printf("sensord version %s\n", LM_VERSION);
+ 			exit(EXIT_SUCCESS);
+-			break;
+ 		case 'h':
+ 			printf("Syntax: %s {options} {chips}\n%s", argv[0],
+ 			       daemonSyntax);
+ 			exit(EXIT_SUCCESS);
+-			break;
+ 		case ':':
+ 		case '?':
+ 			printf("Try `%s --help' for more information.\n",
+ 			       argv[0]);
+ 			return -1;
+-			break;
+ 		default:
+ 			fprintf(stderr,
+ 				"Internal error while parsing options.\n");
+ 			return -1;
+-			break;
+ 		}
+ 	}
+ 
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_20090504135830_24416--
-
-
