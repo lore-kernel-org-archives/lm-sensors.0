@@ -1,99 +1,87 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 27 May 2009 15:29:50 +0000
-Subject: Re: [lm-sensors] [PATCH v2 1/1] hwmon: Updated documentation on
-Message-Id: <20090527172950.36fc3072@hyperion.delvare>
+From: "Mr. Tux" <tuxoholic@hotmail.de>
+Date: Mon, 11 May 2009 08:07:30 +0000
+Subject: [lm-sensors] 5VSB computing on it87
+Message-Id: <BLU120-W7191DFD982F4E48F88CBAD8630@phx.gbl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============2072864528467187153=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <9EE81EBECB70824985BE0EDA8DC9B515021B3458@VIECLEX01.frequentis.frq>
-In-Reply-To: <9EE81EBECB70824985BE0EDA8DC9B515021B3458@VIECLEX01.frequentis.frq>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Christian,
+--===============2072864528467187153==
+Content-Type: multipart/alternative;
+	boundary="_c577d23b-4142-4881-85ec-b7719edca8f8_"
 
-On Tue, 26 May 2009 12:06:36 +0200, Engelmayer Christian wrote:
-> > -----Original Message-----
-> > From: Jean Delvare [mailto:khali@linux-fr.org]
-> > (...)
-> > One thing I am curious about is how we can have fan[1-*]_max_alarm
-> > while we do not have fan[1-*]_max according to our documentation. Some
-> > drivers still seem to implement this feature (dme1737, adt7470,
-> > applesmc) so we should document it, whoulsn't we?
-> 
-> Seems consequential.
+--_c577d23b-4142-4881-85ec-b7719edca8f8_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-I've updated your patch.
 
-For completeness, amongst the 3 drivers I listed above, only adt7470
-implements fan[1-*]_max the way it is supposed to. For dme1737, the
-value is used to calibrate the speed monitoring logic. For applesmc,
-I'm not sure (I don't have any datasheet) but the fact that the
-attribute is read-only suggests that it exposes the physical/nominal
-maximum speed of the fan, rather than a user-selected speed limit.
+Hi list
 
-This can probably be explained by the fact that the maximum fan speed
-limits aren't terribly useful. Your system is at risk if a fan stalls,
-but not if it spins very fast (it can be very noisy then, but that's
-another issue.) The only indirect indication about a hardware problem,
-is when the system is thermo-regulated, a fast-spinning fan suggests a
-very high temperature. But this condition is much better detected with
-a thermal sensor, of course.
+My Foxconn A7GM-S keep showing the wrong Voltage of 5VSB sensor.
 
-As a matter of fact, libsensors doesn't even support fan[1-*]_max
-attributes (if someone wants to implement that... go ahead.)
+This one shows up in BIOS as well=2C so it is connected and should indicate=
+ about 5.02V
 
-> > But the max6650 driver, which is what Christian is working on, does not
-> > have this feature, it doesn't even have fan1_min as far as I can see.
-> > This makes me curious about what the fan1_max_alarm and fan1_min_alarm
-> > flags are supposed to mean for the MAX6650/1 device? Apparently not what
-> > Documentation/hwmon/sysfs-interface says... which would be kind of
-> > problematic.
-> 
-> I understood the interface that the min/max alarms shall be raised when eg.
-> a fan spins not fast enough/too fast, whereas the minimum/maximum limits are
-> taken from the _min/_max limit files.
+But 'sensors' with it87 module loaded keeps showing 6.85V - how to change t=
+he compute
+line in order to get the 5.02V?
 
-This is correct.
+At the moment the compute line is the default:
 
-> The max6650 driver does not implement fan1_min/fan1_max because the chip does
-> not provide support for configurable limits. The chip raises the affected
-> alarms in case the desired speed cannot be attained in closed-loop mode. The
-> limits are a direct result of the minimum/maximum output values supported by
-> the DAC. eg. minimum alarm is raised in case the largest available voltage
-> has
-> been applied across the fan, which means that the fan is unable to spin as
-> fast as the desired speed.
+compute in7  ((6.8/10)+1)*@ =2C @/((6.8/10)+1)
 
-This is a somewhat different condition. We do not have a dedicated sysfs
-interface for this yet. Only a few supported devices/drivers implement
-the fan speed target mode.
+thanks and regards
 
-> That's my reasoning for choosing the mapping to
-> fan1_min_alarm/fan1_max_alarm,
-> although the limits are preset by the hardware and not configurable. Is that
-> a too generous interpretation of the interface to You?
+Mr Tux
 
-I'm not sure. On the one hand, these conditions aren't that different
-from user-defined speed limits, and adding specific code to libsensors
-and monitoring applications might be considered overkill. Both are
-about the fan speed being above or below some limits. But on the other
-hand, my reluctance comes from the fact that some chips actually
-implement both limit types, with separate alarm flags for each (even
-though I don't think any driver currently exposes those), and I'm not
-sure how to make that fit in the current interface.
 
-Opinions are welcome. In the meantime, I have no objection to you using
-the current attribute names for the max6650 driver.
+_________________________________________________________________
+http://redirect.gimas.net/?n=3DM0905xWLHM2
+Unbegrenzter Speicher bei Windows Live Hotmail!=
 
-Don't you think it would make sense to expose the fan1_min and fan1_max
-values which determine when the alarm flags will be raised? I presume
-they can be computed from the target speed value.
+--_c577d23b-4142-4881-85ec-b7719edca8f8_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Jean Delvare
+<html>
+<head>
+<style>
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+font-size: 10pt=3B
+font-family:Verdana
+}
+</style>
+</head>
+<body class=3D'hmmessage'>
+Hi list<br><br>My Foxconn A7GM-S keep showing the wrong Voltage of 5VSB sen=
+sor.<br><br>This one shows up in BIOS as well=2C so it is connected and sho=
+uld indicate about 5.02V<br><br>But 'sensors' with it87 module loaded keeps=
+ showing 6.85V - how to change the compute<br>line in order to get the 5.02=
+V?<br><br>At the moment the compute line is the default:<br><br>compute in7=
+&nbsp=3B ((6.8/10)+1)*@ =2C @/((6.8/10)+1)<br><br>thanks and regards<br><br=
+>Mr Tux<br><br><br /><hr />Kein Werbe-Blabla -  <a href=3D'http://redirect.=
+gimas.net/?n=3DM0905FTP_SpringCampaign1' target=3D'_new'>hier klicken!</a><=
+/body>
+</html>=
+
+--_c577d23b-4142-4881-85ec-b7719edca8f8_--
+
+
+--===============2072864528467187153==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2072864528467187153==--
