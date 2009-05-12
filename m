@@ -1,14 +1,39 @@
-From: Hubert Kario <hka@qbs.com.pl>
-Date: Mon, 11 May 2009 13:56:48 +0000
+From: "Charles" <CharlesA@auroville.org.in>
+Date: Tue, 12 May 2009 07:48:48 +0000
 Subject: Re: [lm-sensors] Specific configurations - Gigabyte mainboard
-Message-Id: <200905111556.49007.hka@qbs.com.pl>
+Message-Id: <200905120737.n4C7b3Yx028795@rs49.luxsci.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200905091227.09847.hka@qbs.com.pl>
 In-Reply-To: <200905091227.09847.hka@qbs.com.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Hello -)
+
+Regards the discussion of fan labels, sometimes a functional description is
+most useful (example "CPU casing") and sometimes a match for OEM label is
+most useful (example "CPU_FAN").
+
+Hence I have chosen to use both, especially as it has been convenient to use
+the mobo fan ports in ways the OEM did not envisage.  Actual examples:
+"Case exhaust (port CPU_FAN)"
+"CPU cooler (port SYS_FAN1)"
+
+Best
+
+Charles
+
+-----Original Message-----
+
+Message: 4
+Date: Mon, 11 May 2009 15:56:48 +0200
+From: Hubert Kario <hka@qbs.com.pl>
+Subject: Re: [lm-sensors] Specific configurations - Gigabyte mainboard
+To: lm-sensors@lm-sensors.org
+Message-ID: <200905111556.49007.hka@qbs.com.pl>
+Content-Type: Text/Plain;  charset="utf-8"
 
 On Monday 11 May 2009 15:08:51 Jean Delvare wrote:
 > On Mon, 11 May 2009 14:57:57 +0200, Hubert Kario wrote:
@@ -42,7 +67,8 @@ On Monday 11 May 2009 15:08:51 Jean Delvare wrote:
 > > > >         ignore in4
 > > > >
 > > > >         label in5 "+12V"
-> > > > 	# that's a bit weird, as the value (29.6) is close to typical
+> > > > 	# that's a bit weird, as the value (29.6) is close to
+typical
 > > > > resistor, # but it does give proper results (in line with what a
 > > > > multimeter # and BIOS show)
 > > >
@@ -72,8 +98,10 @@ On Monday 11 May 2009 15:08:51 Jean Delvare wrote:
 > planned usage of the fan headers. Presumably, anyone able to diverge
 > from this will be able to adjust the configuration file accordingly.
 
-I've seen somwhere an idea (probably in the archives) for lm-sensors to keep 
-very mainboard specific configurations for all mainbords and copy apropriate 
+I've seen somwhere an idea (probably in the archives) for lm-sensors to keep
+
+very mainboard specific configurations for all mainbords and copy apropriate
+
 config files to /etc/sensors.d depending on DMI values?
 
 that's why I put there the exact same labels as the ones printed on the 
@@ -109,20 +137,24 @@ label fan4 "Sys Fan 1"
 > not like you have other CPU temperature sensors on the chip.
 
 in every C2D are 3 temperature sensors, and in every Core 2 Quad a 5 ones:
-one Tcase - temperature of the CPU casing (which max temperature is published 
+one Tcase - temperature of the CPU casing (which max temperature is
+published 
 by intel as the maximum safe operational temperature), this temperature is 
 read by the mainboard using a sensor inside CPU die,
 and Tjunction0, Tjunction1 for C2D and Tjunction0-4 for C2Q which is read 
-using coretemp driver by CPU itself ─ those sensors are inside each core's 
-hotspot and trigger emergency shutdown if CPU is overheating (usually around 
-95-100°C), with highly overclocked CPUs the gradient between Tcase and 
-Tjunction can reach 8-9°C ─ so rather substantial
+using coretemp driver by CPU itself ? those sensors are inside each core's 
+hotspot and trigger emergency shutdown if CPU is overheating (usually around
+
+95-100?C), with highly overclocked CPUs the gradient between Tcase and 
+Tjunction can reach 8-9?C ? so rather substantial
 
 as such there's not one CPU temperature to measure but several, this one is 
 known as Tcase. 
 
-oh, and one more thing - mobile CPUs don't have IHS, so they don't have Tcase, 
-if sensors report a CPU Temp (not the coretemp ones) it's completely external 
+oh, and one more thing - mobile CPUs don't have IHS, so they don't have
+Tcase, 
+if sensors report a CPU Temp (not the coretemp ones) it's completely
+external 
 to the CPU
 
 >
@@ -132,7 +164,8 @@ to the CPU
 > >
 > > np
 > >
-> > BTW, I couldn't use "compute" with "Core 0" and "Core 1" labels (I wanted
+> > BTW, I couldn't use "compute" with "Core 0" and "Core 1" labels (I
+wanted
 > > to calibrate my core temperatures)
 > > line:
 > >
@@ -145,18 +178,9 @@ to the CPU
 >
 >   compute temp1 @ +3, @ -3
 
-but there are no labels defined for coretemp to change temp1 to "Core 0", i'm 
+but there are no labels defined for coretemp to change temp1 to "Core 0",
+i'm 
 confused...
-
-
--- 
-Hubert Kario
-QBS - Quality Business Software
-ul. Ksawerów 30/85
-02-656 Warszawa
-POLAND
-tel. +48 (22) 646-61-51, 646-74-24
-fax +48 (22) 646-61-50
 
 
 _______________________________________________
