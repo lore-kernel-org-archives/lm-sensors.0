@@ -1,417 +1,352 @@
-From: Andre Prendel <andre.prendel@gmx.de>
-Date: Tue, 19 May 2009 08:08:05 +0000
-Subject: [lm-sensors] [PATCH v2 2/3] tmp401: Add support for TI's TMP411
-Message-Id: <20090519080805.GC5200@ubuntu>
+From: Todd Nine <todd@spidertracks.co.nz>
+Date: Wed, 13 May 2009 05:11:57 +0000
+Subject: [lm-sensors] Help with new supermicro fan control
+Message-Id: <302AA348-F401-4C33-A1C8-393BB4A40791@spidertracks.co.nz>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6579521677043737414=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This adds support for TI's TMP411 sensor chip.
 
-Preliminary support were done by Gabriel Konat, Sander Leget and
-Wouter Willems. The chip is compatible with TI's TMP401 sensor
-chip. It has additional support for historical minimun/maximum
-measurements.
+--===============6579521677043737414==
+Content-Type: multipart/alternative; boundary=Apple-Mail-5--256170962
 
-Changes in v2:
 
-Adjust copyright notes.
-Add sysfs attribute temp_reset_history to reset to temperature history.
-Fix condition in tmp401_update_device_reg16().
+--Apple-Mail-5--256170962
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	format=flowed;
+	delsp=yes
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Andre Prendel <andre.prendel@gmx.de>
----
- drivers/hwmon/tmp401.c |  206 +++++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 165 insertions(+), 41 deletions(-)
+Hi all,
+   I'm attempting to install lm_sensors in to CentOs 5.3 x86_64 on a =20
+Super Micro
 
-Index: linux-2.6/drivers/hwmon/tmp401.c
-=================================--- linux-2.6.orig/drivers/hwmon/tmp401.c	2009-05-18 22:02:37.000000000 +0200
-+++ linux-2.6/drivers/hwmon/tmp401.c	2009-05-18 22:05:30.000000000 +0200
-@@ -1,6 +1,9 @@
- /* tmp401.c
-  *
-  * Copyright (C) 2007,2008 Hans de Goede <hdegoede@redhat.com>
-+ * Preliminary tmp411 support by:
-+ * Gabriel Konat, Sander Leget, Wouter Willems
-+ * Copyright (C) 2009 Andre Prendel <andre.prendel@gmx.de>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -40,8 +43,7 @@
- static const unsigned short normal_i2c[] = { 0x4c, I2C_CLIENT_END };
- 
- /* Insmod parameters */
--I2C_CLIENT_INSMOD_1(tmp401);
--
-+I2C_CLIENT_INSMOD_2(tmp401, tmp411);
- 
- /*
-  * The TMP401 registers, note some registers have different addresses for
-@@ -56,6 +58,7 @@
- #define TMP401_CONSECUTIVE_ALERT		0x22
- #define TMP401_MANUFACTURER_ID_REG		0xFE
- #define TMP401_DEVICE_ID_REG			0xFF
-+#define TMP411_N_FACTOR_REG			0x18
- 
- static const u8 TMP401_TEMP_MSB[2]			= { 0x00, 0x01 };
- static const u8 TMP401_TEMP_LSB[2]			= { 0x15, 0x10 };
-@@ -68,6 +71,11 @@
- /* These are called the THERM limit / hysteresis / mask in the datasheet */
- static const u8 TMP401_TEMP_CRIT_LIMIT[2]		= { 0x20, 0x19 };
- 
-+static const u8 TMP411_TEMP_LOWEST_MSB[2]		= { 0x30, 0x34 };
-+static const u8 TMP411_TEMP_LOWEST_LSB[2]		= { 0x31, 0x35 };
-+static const u8 TMP411_TEMP_HIGHEST_MSB[2]		= { 0x32, 0x36 };
-+static const u8 TMP411_TEMP_HIGHEST_LSB[2]		= { 0x33, 0x37 };
-+
- /* Flags */
- #define TMP401_CONFIG_RANGE		0x04
- #define TMP401_CONFIG_SHUTDOWN		0x40
-@@ -82,6 +90,7 @@
- /* Manufacturer / Device ID's */
- #define TMP401_MANUFACTURER_ID			0x55
- #define TMP401_DEVICE_ID			0x11
-+#define TMP411_DEVICE_ID			0x12
- 
- /*
-  * Functions declarations
-@@ -100,6 +109,7 @@
- 
- static const struct i2c_device_id tmp401_id[] = {
- 	{ "tmp401", tmp401 },
-+	{ "tmp411", tmp411 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, tmp401_id);
-@@ -125,6 +135,7 @@
- 	struct mutex update_lock;
- 	char valid; /* zero until following fields are valid */
- 	unsigned long last_updated; /* in jiffies */
-+	int kind;
- 
- 	/* register values */
- 	u8 status;
-@@ -134,6 +145,8 @@
- 	u16 temp_high[2];
- 	u8 temp_crit[2];
- 	u8 temp_crit_hyst;
-+	u16 temp_lowest[2];
-+	u16 temp_highest[2];
- };
- 
- /*
-@@ -238,6 +251,28 @@
- 	return sprintf(buf, "%d\n", temp);
- }
- 
-+static ssize_t show_temp_lowest(struct device *dev,
-+	struct device_attribute *devattr, char *buf)
-+{
-+	int index = to_sensor_dev_attr(devattr)->index;
-+	struct tmp401_data *data = tmp401_update_device(dev);
-+
-+	return sprintf(buf, "%d\n",
-+		tmp401_register_to_temp(data->temp_lowest[index],
-+					data->config));
-+}
-+
-+static ssize_t show_temp_highest(struct device *dev,
-+	struct device_attribute *devattr, char *buf)
-+{
-+	int index = to_sensor_dev_attr(devattr)->index;
-+	struct tmp401_data *data = tmp401_update_device(dev);
-+
-+	return sprintf(buf, "%d\n",
-+		tmp401_register_to_temp(data->temp_highest[index],
-+					data->config));
-+}
-+
- static ssize_t show_status(struct device *dev,
- 	struct device_attribute *devattr, char *buf)
- {
-@@ -250,8 +285,8 @@
- 		return sprintf(buf, "0\n");
- }
- 
--static ssize_t store_temp_min(struct device *dev, struct device_attribute
--	*devattr, const char *buf, size_t count)
-+static ssize_t store_temp_min(struct device *dev,
-+	struct device_attribute	*devattr, const char *buf, size_t count)
- {
- 	int index = to_sensor_dev_attr(devattr)->index;
- 	struct tmp401_data *data = tmp401_update_device(dev);
-@@ -277,8 +312,8 @@
- 	return count;
- }
- 
--static ssize_t store_temp_max(struct device *dev, struct device_attribute
--	*devattr, const char *buf, size_t count)
-+static ssize_t store_temp_max(struct device *dev,
-+	struct device_attribute	*devattr, const char *buf, size_t count)
- {
- 	int index = to_sensor_dev_attr(devattr)->index;
- 	struct tmp401_data *data = tmp401_update_device(dev);
-@@ -361,32 +396,71 @@
- 	return count;
- }
- 
-+/*
-+ * Resets the historical measurements of minimum and maximum temperatures.
-+ * This is done by writing any value to any of the minimum/maximum registers
-+ * (0x30-0x37).
-+ */
-+static ssize_t reset_temp_history(struct device *dev,
-+	struct device_attribute	*devattr, const char *buf, size_t count)
-+{
-+	long val;
-+
-+	if (strict_strtol(buf, 10, &val))
-+		return -EINVAL;
-+
-+	if (val != 1) {
-+		dev_err(dev, "temp_reset_history value %ld not"
-+			" supported. Use 1 to reset the history!\n", val);
-+		return -EINVAL;
-+	}
-+	i2c_smbus_write_byte_data(to_i2c_client(dev),
-+		TMP411_TEMP_LOWEST_MSB[0], val);
-+
-+	return count;
-+}
-+
- static struct sensor_device_attribute tmp401_attr[] = {
- 	SENSOR_ATTR(temp1_input, 0444, show_temp_value, NULL, 0),
- 	SENSOR_ATTR(temp1_min, 0644, show_temp_min, store_temp_min, 0),
- 	SENSOR_ATTR(temp1_max, 0644, show_temp_max, store_temp_max, 0),
- 	SENSOR_ATTR(temp1_crit, 0644, show_temp_crit, store_temp_crit, 0),
- 	SENSOR_ATTR(temp1_crit_hyst, 0644, show_temp_crit_hyst,
--			store_temp_crit_hyst, 0),
-+		    store_temp_crit_hyst, 0),
- 	SENSOR_ATTR(temp1_min_alarm, 0444, show_status, NULL,
--			TMP401_STATUS_LOCAL_LOW),
-+		    TMP401_STATUS_LOCAL_LOW),
- 	SENSOR_ATTR(temp1_max_alarm, 0444, show_status, NULL,
--			TMP401_STATUS_LOCAL_HIGH),
-+		    TMP401_STATUS_LOCAL_HIGH),
- 	SENSOR_ATTR(temp1_crit_alarm, 0444, show_status, NULL,
--			TMP401_STATUS_LOCAL_CRIT),
-+		    TMP401_STATUS_LOCAL_CRIT),
- 	SENSOR_ATTR(temp2_input, 0444, show_temp_value, NULL, 1),
- 	SENSOR_ATTR(temp2_min, 0644, show_temp_min, store_temp_min, 1),
- 	SENSOR_ATTR(temp2_max, 0644, show_temp_max, store_temp_max, 1),
- 	SENSOR_ATTR(temp2_crit, 0644, show_temp_crit, store_temp_crit, 1),
- 	SENSOR_ATTR(temp2_crit_hyst, 0444, show_temp_crit_hyst, NULL, 1),
- 	SENSOR_ATTR(temp2_fault, 0444, show_status, NULL,
--			TMP401_STATUS_REMOTE_OPEN),
-+		    TMP401_STATUS_REMOTE_OPEN),
- 	SENSOR_ATTR(temp2_min_alarm, 0444, show_status, NULL,
--			TMP401_STATUS_REMOTE_LOW),
-+		    TMP401_STATUS_REMOTE_LOW),
- 	SENSOR_ATTR(temp2_max_alarm, 0444, show_status, NULL,
--			TMP401_STATUS_REMOTE_HIGH),
-+		    TMP401_STATUS_REMOTE_HIGH),
- 	SENSOR_ATTR(temp2_crit_alarm, 0444, show_status, NULL,
--			TMP401_STATUS_REMOTE_CRIT),
-+		    TMP401_STATUS_REMOTE_CRIT),
-+};
-+
-+/*
-+ * Additional features of the TMP411 chip.
-+ * The TMP411 stores the minimum and maximum
-+ * temperature measured since power-on, chip-reset, or
-+ * minimum and maximum register reset for both the local
-+ * and remote channels.
-+ */
-+static struct sensor_device_attribute tmp411_attr[] = {
-+	SENSOR_ATTR(temp1_highest, 0444, show_temp_highest, NULL, 0),
-+	SENSOR_ATTR(temp1_lowest, 0444, show_temp_lowest, NULL, 0),
-+	SENSOR_ATTR(temp2_highest, 0444, show_temp_highest, NULL, 1),
-+	SENSOR_ATTR(temp2_lowest, 0444, show_temp_lowest, NULL, 1),
-+	SENSOR_ATTR(temp_reset_history, 0200, NULL, reset_temp_history, 0),
- };
- 
- /*
-@@ -432,8 +506,17 @@
- 			return -ENODEV;
- 
- 		reg = i2c_smbus_read_byte_data(client, TMP401_DEVICE_ID_REG);
--		if (reg != TMP401_DEVICE_ID)
-+
-+		switch (reg) {
-+		case TMP401_DEVICE_ID:
-+			kind = tmp401;
-+			break;
-+		case TMP411_DEVICE_ID:
-+			kind = tmp411;
-+			break;
-+		default:
- 			return -ENODEV;
-+		}
- 
- 		reg = i2c_smbus_read_byte_data(client, TMP401_CONFIG_READ);
- 		if (reg & 0x1b)
-@@ -441,19 +524,21 @@
- 
- 		reg = i2c_smbus_read_byte_data(client,
- 					       TMP401_CONVERSION_RATE_READ);
-+		/* Datasheet says: 0x1-0x6 */
- 		if (reg > 15)
- 			return -ENODEV;
- 	}
--	strlcpy(info->type, "tmp401", I2C_NAME_SIZE);
-+	strlcpy(info->type, tmp401_id[kind - 1].name, I2C_NAME_SIZE);
- 
- 	return 0;
- }
- 
- static int tmp401_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
--{			
-+{
- 	int i, err = 0;
- 	struct tmp401_data *data;
-+	const char *names[] = { "TMP401", "TMP411" };
- 
- 	data = kzalloc(sizeof(struct tmp401_data), GFP_KERNEL);
- 	if (!data)
-@@ -461,6 +546,7 @@
- 
- 	i2c_set_clientdata(client, data);
- 	mutex_init(&data->update_lock);
-+	data->kind = id->driver_data;
- 
- 	/* Initialize the TMP401 chip */
- 	tmp401_init_client(client);
-@@ -468,19 +554,29 @@
- 	/* Register sysfs hooks */
- 	for (i = 0; i < ARRAY_SIZE(tmp401_attr); i++) {
- 		err = device_create_file(&client->dev,
--					&tmp401_attr[i].dev_attr);
-+					 &tmp401_attr[i].dev_attr);
- 		if (err)
- 			goto exit_remove;
- 	}
- 
-+	/* Register aditional tmp411 sysfs hooks */
-+	if (data->kind = tmp411) {
-+		for (i = 0; i < ARRAY_SIZE(tmp411_attr); i++) {
-+			err = device_create_file(&client->dev,
-+						 &tmp411_attr[i].dev_attr);
-+			if (err)
-+				goto exit_remove;
-+		}
-+	}
-+
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
- 	if (IS_ERR(data->hwmon_dev)) {
- 		err = PTR_ERR(data->hwmon_dev);
- 		data->hwmon_dev = NULL;
- 		goto exit_remove;
- 	}
--
--	dev_info(&client->dev, "Detected TI TMP401 chip\n");
-+	dev_info(&client->dev, "Detected TI %s chip\n",
-+		 names[data->kind]);
- 
- 	return 0;
- 
-@@ -500,43 +596,71 @@
- 	for (i = 0; i < ARRAY_SIZE(tmp401_attr); i++)
- 		device_remove_file(&client->dev, &tmp401_attr[i].dev_attr);
- 
-+	if (data->kind = tmp411) {
-+		for (i = 0; i < ARRAY_SIZE(tmp411_attr); i++)
-+			device_remove_file(&client->dev,
-+					   &tmp411_attr[i].dev_attr);
-+	}
-+
- 	kfree(data);
- 	return 0;
- }
- 
-+static struct tmp401_data *tmp401_update_device_reg16(
-+	struct i2c_client *client, struct tmp401_data *data)
-+{
-+	int i;
-+
-+	for (i = 0; i < 2; i++) {
-+		/*
-+		 * High byte must be read first immediately followed
-+		 * by the low byte
-+		 */
-+		data->temp[i] = i2c_smbus_read_byte_data(client,
-+			TMP401_TEMP_MSB[i]) << 8;
-+		data->temp[i] |= i2c_smbus_read_byte_data(client,
-+			TMP401_TEMP_LSB[i]);
-+		data->temp_low[i] = i2c_smbus_read_byte_data(client,
-+			TMP401_TEMP_LOW_LIMIT_MSB_READ[i]) << 8;
-+		data->temp_low[i] |= i2c_smbus_read_byte_data(client,
-+			TMP401_TEMP_LOW_LIMIT_LSB[i]);
-+		data->temp_high[i] = i2c_smbus_read_byte_data(client,
-+			TMP401_TEMP_HIGH_LIMIT_MSB_READ[i]) << 8;
-+		data->temp_high[i] |= i2c_smbus_read_byte_data(client,
-+			TMP401_TEMP_HIGH_LIMIT_LSB[i]);
-+		data->temp_crit[i] = i2c_smbus_read_byte_data(client,
-+			TMP401_TEMP_CRIT_LIMIT[i]);
-+
-+		if (data->kind = tmp411) {
-+			data->temp_lowest[i] = i2c_smbus_read_byte_data(client,
-+				TMP411_TEMP_LOWEST_MSB[i]) << 8;
-+			data->temp_lowest[i] |= i2c_smbus_read_byte_data(
-+				client, TMP411_TEMP_LOWEST_LSB[i]);
-+
-+			data->temp_highest[i] = i2c_smbus_read_byte_data(
-+				client, TMP411_TEMP_HIGHEST_MSB[i]) << 8;
-+			data->temp_highest[i] |= i2c_smbus_read_byte_data(
-+				client, TMP411_TEMP_HIGHEST_LSB[i]);
-+		}
-+	}
-+	return data;
-+}
-+
- static struct tmp401_data *tmp401_update_device(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct tmp401_data *data = i2c_get_clientdata(client);
--	int i;
- 
- 	mutex_lock(&data->update_lock);
- 
- 	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
- 		data->status = i2c_smbus_read_byte_data(client, TMP401_STATUS);
- 		data->config = i2c_smbus_read_byte_data(client,
--						TMP401_CONFIG_READ);
--		for (i = 0; i < 2; i++) {
--			/* High byte must be read first immediately followed
--			   by the low byte */
--			data->temp[i] = i2c_smbus_read_byte_data(client,
--						TMP401_TEMP_MSB[i]) << 8;
--			data->temp[i] |= i2c_smbus_read_byte_data(client,
--						TMP401_TEMP_LSB[i]);
--			data->temp_low[i] = i2c_smbus_read_byte_data(client,
--				TMP401_TEMP_LOW_LIMIT_MSB_READ[i]) << 8;
--			data->temp_low[i] |= i2c_smbus_read_byte_data(client,
--						TMP401_TEMP_LOW_LIMIT_LSB[i]);
--			data->temp_high[i] = i2c_smbus_read_byte_data(client,
--				TMP401_TEMP_HIGH_LIMIT_MSB_READ[i]) << 8;
--			data->temp_high[i] |= i2c_smbus_read_byte_data(client,
--						TMP401_TEMP_HIGH_LIMIT_LSB[i]);
--			data->temp_crit[i] = i2c_smbus_read_byte_data(client,
--						TMP401_TEMP_CRIT_LIMIT[i]);
--		}
-+			TMP401_CONFIG_READ);
-+		tmp401_update_device_reg16(client, data);
- 
- 		data->temp_crit_hyst = i2c_smbus_read_byte_data(client,
--						TMP401_TEMP_CRIT_HYST);
-+			TMP401_TEMP_CRIT_HYST);
- 
- 		data->last_updated = jiffies;
- 		data->valid = 1;
+http://www.supermicro.com/products/motherboard/Xeon1333/5400/X7DWN+.cfm
+
+I've tried both the latest source 3.1, as well as the rpm from yum =20
+which is v 2.10.7 with libsensors v 2.10.7.  I'd prefer to use the RPM =20=
+
+version that comes from yum if possible.  Whenever I run the sensors =20
+command, I always receive the following output.
+
+w83627hf-isa-0290
+Adapter: ISA adapter
+VCore 1:   +3.36 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+VCore 2:   +3.31 V  (min =3D  +0.00 V, max =3D  +4.08 V)
++3.3V:     +3.30 V  (min =3D  +2.82 V, max =3D  +3.79 V)
++5V:       +5.16 V  (min =3D  +0.46 V, max =3D  +0.08 V)       ALARM
++12V:     +11.73 V  (min =3D  +6.69 V, max =3D  +7.30 V)       ALARM
+-12V:      +0.96 V  (min =3D -14.50 V, max =3D -10.63 V)       ALARM
+-5V:       +1.99 V  (min =3D  -5.20 V, max =3D  +1.99 V)
+V5SB:      +5.64 V  (min =3D  +5.16 V, max =3D  +5.00 V)       ALARM
+VBat:      +0.00 V  (min =3D  +0.35 V, max =3D  +0.16 V)       ALARM
+fan1:        0 RPM  (min =3D 5273 RPM, div =3D 128)              ALARM
+fan2:        0 RPM  (min =3D 6250 RPM, div =3D 2)              ALARM
+fan3:        0 RPM  (min =3D 5672 RPM, div =3D 2)              ALARM
+temp1:       -30=B0C  (high =3D   +33=B0C, hyst =3D    +8=B0C)   sensor =
+=3D =20
+thermistor
+temp2:     -34.0=B0C  (high =3D   +80=B0C, hyst =3D   +75=B0C)   sensor =
+=3D =20
+thermistor
+temp3:     -34.0=B0C  (high =3D   +80=B0C, hyst =3D   +75=B0C)   sensor =
+=3D =20
+thermistor
+vid:      +0.000 V  (VRM Version 8.2)
+alarms:
+beep_enable:
+           Sound alarm enabled
+
+
+As you can see none of my fans are working.  I've read the wiki on fan =20=
+
+control and divisors, but I don't seem to have any config options.  =20
+Here is the config I have in etc/sensors.conf for my board.  I know =20
+that my fans must report data, as windows detects the rpms and I have =20=
+
+4 pins on my fan connectors.  I'm also able to detect my temperature =20
+and fan speed in BIOS.  I'm sure it's a simple config I've missed, but =20=
+
+I'm new to lm-sensors so any help would be appreciated.
+
+Thanks,
+Todd
+
+chip "w83782d-*" "w83627hf-*"
+
+# Same as above for w83781d except that in5 and in6 are computed =20
+differently.
+# Rather than an internal inverting op amp, the 82d/83s use standard =20
+positive
+# inputs and the negative voltages are level shifted by a 3.6V =20
+reference.
+# The math is convoluted, so we hope that your motherboard
+# uses the recommended resistor values.
+
+     label in0 "VCore 1"
+     label in1 "VCore 2"
+     label in2 "+3.3V"
+     label in3 "+5V"
+     label in4 "+12V"
+     label in5 "-12V"
+     label in6 "-5V"
+     label in7 "V5SB"
+     label in8 "VBat"
+
+# Abit BP6 motherboard has a few differences. VCore1 and VCore2 are =20
+the core
+# voltages of the two processors. Vtt is memory bus termination =20
+resistors
+# voltage.
+#    label in1 "Vtt"
+#    label in8 "VCore2"
+
+     compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+     compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+     compute in5 (5.14 * @) - 14.91  ,  (@ + 14.91) / 5.14
+     compute in6 (3.14 * @) -  7.71  ,  (@ +  7.71) / 3.14
+     compute in7 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+
+# adjust this if your vid is wrong; see doc/vid
+
+
+
+todd
+SENIOR SOFTWARE ENGINEER
+
+todd nine | spidertracks ltd |  117a the square
+po box 5203 | palmerston north 4441 | new zealand
+P: +64 6 353 3395 | M: +64 21
+E: todd@spidertracks.co.nz W: www.spidertracks.com
+
+
+--Apple-Mail-5--256170962
+Content-Type: text/html;
+	charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; =
+-webkit-line-break: after-white-space; ">Hi all,<div>&nbsp;&nbsp;I'm =
+attempting to install lm_sensors in to CentOs 5.3 x86_64 on a Super =
+Micro</div><div><br></div><div><a =
+href=3D"http://www.supermicro.com/products/motherboard/Xeon1333/5400/X7DWN=
++.cfm">http://www.supermicro.com/products/motherboard/Xeon1333/5400/X7DWN+=
+.cfm</a></div><div><br></div><div>I've tried both the latest source 3.1, =
+as well as the rpm from yum which is&nbsp;v 2.10.7 with libsensors v =
+2.10.7. &nbsp;I'd prefer to use the RPM version that comes from yum if =
+possible. &nbsp;Whenever I run the sensors command, I always receive the =
+following =
+output.</div><div><br></div><div><div>w83627hf-isa-0290</div><div>Adapter:=
+ ISA adapter</div><div>VCore 1: &nbsp; +3.36 V &nbsp;(min =3D =
+&nbsp;+0.00 V, max =3D &nbsp;+4.08 V) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =
+&nbsp; &nbsp;</div><div>VCore 2: &nbsp; +3.31 V &nbsp;(min =3D =
+&nbsp;+0.00 V, max =3D &nbsp;+4.08 V) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =
+&nbsp; &nbsp;</div><div>+3.3V: &nbsp; &nbsp; +3.30 V &nbsp;(min =3D =
+&nbsp;+2.82 V, max =3D &nbsp;+3.79 V) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =
+&nbsp; &nbsp;</div><div>+5V: &nbsp; &nbsp; &nbsp; +5.16 V &nbsp;(min =3D =
+&nbsp;+0.46 V, max =3D &nbsp;+0.08 V) &nbsp; &nbsp; &nbsp; ALARM =
+&nbsp;</div><div>+12V: &nbsp; &nbsp; +11.73 V &nbsp;(min =3D &nbsp;+6.69 =
+V, max =3D &nbsp;+7.30 V) &nbsp; &nbsp; &nbsp; ALARM =
+&nbsp;</div><div>-12V: &nbsp; &nbsp; &nbsp;+0.96 V &nbsp;(min =3D -14.50 =
+V, max =3D -10.63 V) &nbsp; &nbsp; &nbsp; ALARM &nbsp;</div><div>-5V: =
+&nbsp; &nbsp; &nbsp; +1.99 V &nbsp;(min =3D &nbsp;-5.20 V, max =3D =
+&nbsp;+1.99 V) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =
+&nbsp;</div><div>V5SB: &nbsp; &nbsp; &nbsp;+5.64 V &nbsp;(min =3D =
+&nbsp;+5.16 V, max =3D &nbsp;+5.00 V) &nbsp; &nbsp; &nbsp; ALARM =
+&nbsp;</div><div>VBat: &nbsp; &nbsp; &nbsp;+0.00 V &nbsp;(min =3D =
+&nbsp;+0.35 V, max =3D &nbsp;+0.16 V) &nbsp; &nbsp; &nbsp; ALARM =
+&nbsp;</div><div>fan1: &nbsp; &nbsp; &nbsp; &nbsp;0 RPM &nbsp;(min =3D =
+5273 RPM, div =3D 128) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =
+&nbsp;ALARM &nbsp;</div><div>fan2: &nbsp; &nbsp; &nbsp; &nbsp;0 RPM =
+&nbsp;(min =3D 6250 RPM, div =3D 2) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =
+&nbsp; &nbsp;ALARM &nbsp;</div><div>fan3: &nbsp; &nbsp; &nbsp; &nbsp;0 =
+RPM &nbsp;(min =3D 5672 RPM, div =3D 2) &nbsp; &nbsp; &nbsp; &nbsp; =
+&nbsp; &nbsp; &nbsp;ALARM &nbsp;</div><div>temp1: &nbsp; &nbsp; &nbsp; =
+-30=B0C &nbsp;(high =3D &nbsp; +33=B0C, hyst =3D &nbsp; &nbsp;+8=B0C) =
+&nbsp; sensor =3D thermistor &nbsp; &nbsp; &nbsp; &nbsp; =
+&nbsp;&nbsp;</div><div>temp2: &nbsp; &nbsp; -34.0=B0C &nbsp;(high =3D =
+&nbsp; +80=B0C, hyst =3D &nbsp; +75=B0C) &nbsp; sensor =3D thermistor =
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</div><div>temp3: &nbsp; &nbsp; =
+-34.0=B0C &nbsp;(high =3D &nbsp; +80=B0C, hyst =3D &nbsp; +75=B0C) =
+&nbsp; sensor =3D thermistor &nbsp; &nbsp; &nbsp; &nbsp; =
+&nbsp;&nbsp;</div><div>vid: &nbsp; &nbsp; &nbsp;+0.000 V &nbsp;(VRM =
+Version 8.2)</div><div>alarms: =
+&nbsp;&nbsp;</div><div>beep_enable:</div><div>&nbsp;&nbsp; &nbsp; &nbsp; =
+&nbsp; &nbsp;Sound alarm =
+enabled</div><div><br></div><div><br></div><div>As you can see none of =
+my fans are working. &nbsp;I've read the wiki on fan control and =
+divisors, but I don't seem to have any config options. &nbsp;Here is the =
+config I have in&nbsp;etc/sensors.conf for my board. &nbsp;I know that =
+my fans must report data, as windows detects the rpms and I have 4 pins =
+on my fan connectors. &nbsp;I'm also able to detect my temperature and =
+fan speed in BIOS. &nbsp;I'm sure it's a simple config I've missed, but =
+I'm new to lm-sensors so any help would be =
+appreciated.</div><div><br></div><div>Thanks,</div><div>Todd</div><div><br=
+></div><div><div>chip "w83782d-*" =
+"w83627hf-*"</div><div><br></div><div># Same as above for w83781d except =
+that in5 and in6 are computed differently.</div><div># Rather than an =
+internal inverting op amp, the 82d/83s use standard positive</div><div># =
+inputs and the negative voltages are level shifted by a 3.6V =
+reference.</div><div># The math is convoluted, so we hope that your =
+motherboard</div><div># uses the recommended resistor =
+values.</div><div><br></div><div>&nbsp;&nbsp; &nbsp;label in0 "VCore =
+1"</div><div>&nbsp;&nbsp; &nbsp;label in1 "VCore =
+2"</div><div>&nbsp;&nbsp; &nbsp;label in2 "+3.3V"</div><div>&nbsp;&nbsp; =
+&nbsp;label in3 "+5V"</div><div>&nbsp;&nbsp; &nbsp;label in4 =
+"+12V"</div><div>&nbsp;&nbsp; &nbsp;label in5 =
+"-12V"</div><div>&nbsp;&nbsp; &nbsp;label in6 =
+"-5V"</div><div>&nbsp;&nbsp; &nbsp;label in7 =
+"V5SB"</div><div>&nbsp;&nbsp; &nbsp;label in8 =
+"VBat"</div><div><br></div><div># Abit BP6 motherboard has a few =
+differences. VCore1 and VCore2 are the core</div><div># voltages of the =
+two processors. Vtt is memory bus termination resistors</div><div># =
+voltage.</div><div># &nbsp; &nbsp;label in1 "Vtt"</div><div># &nbsp; =
+&nbsp;label in8 "VCore2"</div><div><br></div><div>&nbsp;&nbsp; =
+&nbsp;compute in3 ((6.8/10)+1)*@ , =
+&nbsp;@/((6.8/10)+1)</div><div>&nbsp;&nbsp; &nbsp;compute in4 =
+((28/10)+1)*@ &nbsp;, &nbsp;@/((28/10)+1)</div><div>&nbsp;&nbsp; =
+&nbsp;compute in5 (5.14 * @) - 14.91 &nbsp;, &nbsp;(@ + 14.91) / =
+5.14</div><div>&nbsp;&nbsp; &nbsp;compute in6 (3.14 * @) - &nbsp;7.71 =
+&nbsp;, &nbsp;(@ + &nbsp;7.71) / 3.14</div><div>&nbsp;&nbsp; =
+&nbsp;compute in7 ((6.8/10)+1)*@ , =
+&nbsp;@/((6.8/10)+1)</div><div><br></div><div># adjust this if your vid =
+is wrong; see =
+doc/vid</div><div><br></div></div><div><br></div></div><div><br><div =
+apple-content-edited=3D"true"> <span class=3D"Apple-style-span" =
+style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
+'Lucida Grande'; font-size: 11px; font-style: normal; font-variant: =
+normal; font-weight: normal; letter-spacing: normal; line-height: =
+normal; orphans: 2; text-align: auto; text-indent: 0px; text-transform: =
+none; white-space: normal; widows: 2; word-spacing: 0px; =
+-webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: =
+0px; -webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0; "><div style=3D"word-wrap: =
+break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
+after-white-space; "><span class=3D"Apple-style-span" =
+style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
+'Lucida Grande'; font-size: 11px; font-style: normal; font-variant: =
+normal; font-weight: normal; letter-spacing: normal; line-height: =
+normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: =
+normal; widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: =
+0px; -webkit-border-vertical-spacing: 0px; =
+-webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0px; "><div style=3D"word-wrap: =
+break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
+after-white-space; "><span class=3D"Apple-style-span" =
+style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
+'Lucida Grande'; font-size: 11px; font-style: normal; font-variant: =
+normal; font-weight: normal; letter-spacing: normal; line-height: =
+normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: =
+normal; widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: =
+0px; -webkit-border-vertical-spacing: 0px; =
+-webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0px; "><div style=3D"word-wrap: =
+break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
+after-white-space; "><span class=3D"Apple-style-span" =
+style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
+'Lucida Grande'; font-size: 11px; font-style: normal; font-variant: =
+normal; font-weight: normal; letter-spacing: normal; line-height: =
+normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: =
+normal; widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: =
+0px; -webkit-border-vertical-spacing: 0px; =
+-webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0px; "><div style=3D"word-wrap: =
+break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
+after-white-space; "><span class=3D"Apple-style-span" =
+style=3D"border-collapse: separate; color: rgb(193, 216, 47); =
+font-family: 'Lucida Grande'; font-size: 16px; font-style: normal; =
+font-variant: normal; font-weight: normal; letter-spacing: normal; =
+line-height: normal; orphans: 2; text-indent: 0px; text-transform: none; =
+white-space: normal; widows: 2; word-spacing: 0px; =
+-webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: =
+0px; -webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0px; "><div style=3D"margin-top: 0px; =
+margin-right: 0px; margin-bottom: 0px; margin-left: 0px; font: normal =
+normal normal 16px/normal 'Lucida Grande'; color: rgb(193, 216, 47); =
+"><span class=3D"Apple-style-span" style=3D"font-family: 'Lucida Sans =
+Unicode'; "><font class=3D"Apple-style-span" color=3D"#000000" =
+face=3D"'Lucida Grande'" size=3D"3"><span class=3D"Apple-style-span" =
+style=3D"font-size: 11px;">todd</span></font></span></div><div =
+style=3D"margin-top: 0px; margin-right: 0px; margin-bottom: 0px; =
+margin-left: 0px; font: normal normal normal 16px/normal 'Lucida =
+Grande'; color: rgb(193, 216, 47); "><font class=3D"Apple-style-span" =
+face=3D"'Lucida Sans Unicode'"><span class=3D"Apple-style-span" =
+style=3D"color: rgb(0, 0, 0); font-family: 'Lucida Grande'; font-size: =
+11px; "><div style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; =
+-webkit-line-break: after-white-space; "><div =
+apple-content-edited=3D"true"><div style=3D"word-wrap: break-word; =
+-webkit-nbsp-mode: space; -webkit-line-break: after-white-space; "><span =
+class=3D"Apple-style-span" style=3D"color: rgb(193, 216, 47); font-size: =
+16px; "><div style=3D"margin-top: 0px; margin-right: 0px; margin-bottom: =
+0px; margin-left: 0px; font: normal normal normal 16px/normal 'Lucida =
+Grande'; color: rgb(193, 216, 47); "><font class=3D"Apple-style-span" =
+color=3D"#808080" face=3D"'Lucida Sans Unicode'" size=3D"2"><span =
+class=3D"Apple-style-span" style=3D"font-size: 10px; ">SENIOR SOFTWARE =
+ENGINEER</span></font></div><div style=3D"margin-top: 0px; margin-right: =
+0px; margin-bottom: 0px; margin-left: 0px; font: normal normal normal =
+12px/normal 'Lucida Grande'; min-height: 15px; "><font =
+class=3D"Apple-style-span" face=3D"'Lucida Sans =
+Unicode'"><br></font></div><div style=3D"margin-top: 0px; margin-right: =
+0px; margin-bottom: 0px; margin-left: 0px; font: normal normal normal =
+12px/normal 'Lucida Grande'; min-height: 15px; "><span =
+class=3D"Apple-style-span" style=3D"color: rgb(128, 128, 128); "><span =
+style=3D"color: rgb(0, 0, 0); "><font class=3D"Apple-style-span" =
+face=3D"'Lucida Sans Unicode'">todd nine&nbsp;</font></span><font =
+class=3D"Apple-style-span" face=3D"'Lucida Sans Unicode'">| spidertracks =
+ltd |&nbsp;&nbsp;117a the square</font></span></div><div =
+style=3D"margin-top: 0px; margin-right: 0px; margin-bottom: 0px; =
+margin-left: 0px; font: normal normal normal 12px/normal 'Lucida =
+Grande'; color: rgb(128, 128, 128); "><font class=3D"Apple-style-span" =
+face=3D"'Lucida Sans Unicode'">po box 5203 | palmerston north 4441 | new =
+zealand</font></div><div style=3D"margin-top: 0px; margin-right: 0px; =
+margin-bottom: 0px; margin-left: 0px; font: normal normal normal =
+12px/normal 'Lucida Grande'; color: rgb(128, 128, 128); "><span =
+style=3D"font: normal normal normal 9px/normal 'Lucida Grande'; "><font =
+class=3D"Apple-style-span" face=3D"'Lucida Sans =
+Unicode'">P</font></span><font class=3D"Apple-style-span" face=3D"'Lucida =
+Sans Unicode'">: +64 6 353 3395 |</font><font class=3D"Apple-style-span" =
+face=3D"'Lucida Sans Unicode'">&nbsp;</font><span style=3D"font: normal =
+normal normal 9px/normal 'Lucida Grande'; "><font =
+class=3D"Apple-style-span" face=3D"'Lucida Sans =
+Unicode'">M</font></span><font class=3D"Apple-style-span" face=3D"'Lucida =
+Sans Unicode'">: +64 21&nbsp;</font></div><div style=3D"margin-top: 0px; =
+margin-right: 0px; margin-bottom: 0px; margin-left: 0px; font: normal =
+normal normal 12px/normal 'Lucida Grande'; color: rgb(128, 128, 128); =
+"><span style=3D"font: normal normal normal 9px/normal 'Lucida Grande'; =
+"><font class=3D"Apple-style-span" face=3D"'Lucida Sans =
+Unicode'">E</font></span><font class=3D"Apple-style-span" face=3D"'Lucida =
+Sans Unicode'">:&nbsp;<font class=3D"Apple-style-span" color=3D"#C1D82F" =
+size=3D"4"><font class=3D"Apple-style-span" face=3D"'Lucida Grande'" =
+size=3D"3"><span class=3D"Apple-style-span" style=3D"font-size: 12px; =
+"><a =
+href=3D"mailto:todd@spidertracks.co.nz">todd@spidertracks.co.nz</a></span>=
+</font><span class=3D"Apple-style-span" style=3D"font-size: 16px; =
+">&nbsp;<span class=3D"Apple-style-span" style=3D"color: rgb(128, 128, =
+128); font-family: 'Lucida Grande'; font-size: 12px; "><span =
+style=3D"font: normal normal normal 9px/normal 'Lucida Grande'; "><font =
+class=3D"Apple-style-span" face=3D"'Lucida Sans =
+Unicode'">W</font></span><font class=3D"Apple-style-span" face=3D"'Lucida =
+Sans Unicode'">:&nbsp;<span class=3D"Apple-style-span" style=3D"color: =
+rgb(193, 216, 47); "><font class=3D"Apple-style-span" face=3D"'Lucida =
+Grande'"><a =
+href=3D"http://www.spidertracks.com">www.spidertracks.com</a></font></span=
+></font></span></span></font></font></div></span></div></div></div></span>=
+</font></div></span></div></span></div></span></div></span></div></span> =
+</div><br></div></body></html>=
+
+--Apple-Mail-5--256170962--
+
+
+--===============6579521677043737414==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6579521677043737414==--
