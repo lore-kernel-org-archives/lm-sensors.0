@@ -1,29 +1,70 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 15 May 2009 07:14:16 +0000
-Subject: Re: [lm-sensors] Patch: Darwin (Mac OS X) support for decode-dimms
-Message-Id: <20090515091416.75809e60@hyperion.delvare>
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Thu, 14 May 2009 19:07:35 +0000
+Subject: Re: [lm-sensors] hwmon-vid driver from linux 2.6.29
+Message-Id: <4A0C6BF7.9010107@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.OSX.1.00.0905142254120.24797@fjelljo.puffin.lb.shuttle.de>
-In-Reply-To: <alpine.OSX.1.00.0905142254120.24797@fjelljo.puffin.lb.shuttle.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hallo Michael,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On Thu, 14 May 2009 23:15:08 +0200 (CEST), Michael Klein wrote:
-> Here's a small patch for the decode-dimms script to make it work on OS 
-> X.  Instead of device nodes, the EEPROM content can be read with the 
-> ioreg(8) command there.
+Hi,
 
-Wrong mailing list. decode-dimms is part of i2c-tools now, bug reports
-and patches should go to the linux-i2c mailing list:
 
-http://vger.kernel.org/vger-lists.html#linux-i2c
 
--- 
-Jean Delvare
+I'm posting this to mailing list. I did no changes a long time. I need to check
+that. In the meanwhile can you give me an output of "cpuid" utility.
+
+Thanks,
+Rudolf
+
+
+
+
+
+Gnu Belarusian wrote:
+> Hallo!
+> 
+> Module hwmon_vid (drivers/hwmon/hwmon-vid.c) from linux-2.6.29(.3) returns  
+> incorrect voltage for my CPU from it8716f sensor (real/2). 
+> With module from 2.6.26 voltage is correct.
+> 
+> Code changed between versions:
+> 
+>  int vid_from_reg(int val, u8 vrm)
+>  {
+>         int vid;
+> @@ -96,9 +102,16 @@
+>                 if (val < 0x02 || val > 0xb2)
+>                         return 0;
+>                 return((1600000 - (val - 2) * 6250 + 500) / 1000);
+> -       case 24:                /* Opteron processor */
+> +
+> +       case 24:                /* Athlon64 & Opteron */
+>                 val &= 0x1f;
+> -               return(val = 0x1f ? 0 : 1550 - val * 25);
+> +               if (val = 0x1f)
+> +                       return 0;
+> +                               /* fall through */
+> +       case 25:                /* AMD NPT 0Fh */
+> +               val &= 0x3f;
+> +               return (val < 32) ? 1550 - 25 * val
+> +                       : 775 - (25 * (val - 31)) / 2;
+> 
+> May be you should revert old code.
+> 
+> My CPU is AMD BE-2350 stepping 01. IT87 sensor: IT8716F chip at 0x228, revision 0.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iEYEARECAAYFAkoMa/QACgkQ3J9wPJqZRNWzWwCfco9A7j9dMJhVoeFaHcgS6QSp
+vmkAn2l+5gDcPnsSbsa7/AKCpbLCtM/I
+=pf/j
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 lm-sensors mailing list
