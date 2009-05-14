@@ -1,25 +1,38 @@
-From: Mark Nienberg <gmane@tippingmar.com>
-Date: Wed, 13 May 2009 16:54:48 +0000
+From: Hubert Kario <hka@qbs.com.pl>
+Date: Thu, 14 May 2009 11:01:50 +0000
 Subject: Re: [lm-sensors] Specific configurations - Gigabyte mainboard
-Message-Id: <gueu0o$j5g$1@ger.gmane.org>
+Message-Id: <200905141301.51101.hka@qbs.com.pl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200905091227.09847.hka@qbs.com.pl>
 In-Reply-To: <200905091227.09847.hka@qbs.com.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hubert,
+On Wednesday 13 May 2009 18:54:48 Mark Nienberg wrote:
+> Hubert,
+>
+> If you two are done hashing this out, please post a revised copy of the
+> configuration. I would be happy to get it into the wiki.
 
-If you two are done hashing this out, please post a revised copy of the 
-configuration. I would be happy to get it into the wiki.
+I still don't know the exact ID under wich the sensor chip is visible. I ha=
+d=20
+to RMA the board and now I'm wating for a replacement, should get it in fri=
+day=20
+or monday.
 
-Thanks,
+>
+> Thanks,
 
--- 
-Mark Nienberg
-Sent from an invalid address. Please reply to the group.
+--=20
+Hubert Kario
+QBS - Quality Business Software
+ul. Ksawer=F3w 30/85
+02-656 Warszawa
+POLAND
+tel. +48 (22) 646-61-51, 646-74-24
+fax +48 (22) 646-61-50
 
 
 _______________________________________________
