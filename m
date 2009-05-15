@@ -1,8 +1,10 @@
-From: Madhusudhanan Ravindran <mravindran@in.mvista.com>
-Date: Fri, 15 May 2009 06:58:28 +0000
+From: Madhu <madhu.chinakonda@gmail.com>
+Date: Fri, 15 May 2009 07:33:56 +0000
 Subject: [lm-sensors] Support for  nuvoton(Winbond) W83627DHG-P ?
-Message-Id: <1242369988.21111.53.camel@localhost.localdomain>
+Message-Id: <1242372116.21111.55.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1242369988.21111.53.camel@localhost.localdomain>
+In-Reply-To: <1242369988.21111.53.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
