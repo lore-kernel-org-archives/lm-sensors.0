@@ -1,78 +1,109 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 31 May 2009 18:20:11 +0000
-Subject: [lm-sensors] [PATCH v2] hwmon: PCI quirk for hwmon access on MSI
-Message-Id: <20090531202011.61d66389@hyperion.delvare>
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Tue, 19 May 2009 08:08:27 +0000
+Subject: [lm-sensors] [PATCH v2 3/3] tmp401: Add documentation
+Message-Id: <20090519080827.GD5200@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The MSI MS-7031 is based on an ATI IXP300 south bridge. On this south
-bridge, accessible I/O ports must be enabled explicitly. Unfortunately
-the BIOS forgets to enable access to the hardware monitoring chip I/O
-ports, so hardware monitoring fails.
+Documentation for the tmp401 driver.
 
-Add a quirk enabling access to the required ports (0x295-0x296). This
-is exactly what MSI's own hardware monitoring application is doing, so
-it has to be the right way.
+The documentation describes the tmp401 driver and the supported Texas
+Instruments TMP401 and TMP411 temperature sensor chips.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Further documentation for new sysfs attributes supported by this
+driver is added to /Documentation/hwmon/sysfs-interface.
+
+Signed-off-by: Andre Prendel <andre.prendel@gmx.de>
 ---
- drivers/hwmon/hwmon.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ Documentation/hwmon/sysfs-interface |   19 ++++++++++++++++
+ Documentation/hwmon/tmp401          |   42 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 61 insertions(+)
 
---- linux-2.6.30-rc7.orig/drivers/hwmon/hwmon.c	2009-03-24 13:43:33.000000000 +0100
-+++ linux-2.6.30-rc7/drivers/hwmon/hwmon.c	2009-05-27 19:02:43.000000000 +0200
-@@ -18,6 +18,7 @@
- #include <linux/hwmon.h>
- #include <linux/gfp.h>
- #include <linux/spinlock.h>
-+#include <linux/pci.h>
+Index: linux-2.6/Documentation/hwmon/tmp401
+=================================--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6/Documentation/hwmon/tmp401	2009-05-18 22:51:33.000000000 +0200
+@@ -0,0 +1,42 @@
++Kernel driver tmp401
++==========
++
++Supported chips:
++  * Texas Instruments TMP401
++    Prefix: 'tmp401'
++    Addresses scanned: I2C 0x4c
++    Datasheet: http://focus.ti.com/docs/prod/folders/print/tmp401.html
++  * Texas Instruments TMP411
++    Prefix: 'tmp411'
++    Addresses scanned: I2C 0x4c
++    Datasheet: http://focus.ti.com/docs/prod/folders/print/tmp411.html
++
++Authors:
++         Hans de Goede <hdegoede@redhat.com>
++	 Andre Prendel <andre.prendel@gmx.de>
++
++Description
++-----------
++
++This driver implements support for Texas Instruments TMP401 and
++TMP411 chips. These chips implements one remote and one local
++temperature sensor. Temperature is measured in degrees
++Celsius. Resolution of the remote sensor is 0.0625 degree. Local
++sensor resolution can be set to 0.5, 0.25, 0.125 or 0.0625 degree (not
++supported by the driver so far, so using the default resolution of 0.5
++degree).
++
++The driver provides the common sysfs-interface for temperatures (see
++/Documentation/hwmon/sysfs-interface under Temperatures).
++
++The TMP411 chip is compatible with TMP401. It provides some additional
++features.
++
++* Minimum and Maximum temperature measured since power-on, chip-reset
++
++  Exported via sysfs attributes tempX_lowest and tempX_highest.
++
++* Reset of historical minimum/maximum temperature measurements
++
++  Exported via sysfs attribute temp_reset_history. Writing 1 to this
++  file triggers a reset.
+Index: linux-2.6/Documentation/hwmon/sysfs-interface
+=================================--- linux-2.6.orig/Documentation/hwmon/sysfs-interface	2009-05-18 21:19:06.000000000 +0200
++++ linux-2.6/Documentation/hwmon/sysfs-interface	2009-05-18 22:23:14.000000000 +0200
+@@ -70,6 +70,7 @@
+ [0-*]	denotes any positive number starting from 0
+ [1-*]	denotes any positive number starting from 1
+ RO	read only value
++WO	write only value
+ RW	read/write value
  
- #define HWMON_ID_PREFIX "hwmon"
- #define HWMON_ID_FORMAT HWMON_ID_PREFIX "%d"
-@@ -86,8 +87,36 @@ void hwmon_device_unregister(struct devi
- 			"hwmon_device_unregister() failed: bad class ID!\n");
- }
+ Read/write values may be read-only for some chips, depending on the
+@@ -290,6 +291,24 @@
+ 		user-space.
+ 		RO
  
-+static void __init hwmon_pci_quirks(void)
-+{
-+#if defined CONFIG_X86 && defined CONFIG_PCI
-+	struct pci_dev *sb;
-+	u16 base;
-+	u8 enable;
++temp[1-*]_lowest
++		Historical minimum temperature
++		Unit: millidegree Celsius
++		RO
 +
-+	/* Open access to 0x295-0x296 on MSI MS-7031 */
-+	sb = pci_get_device(PCI_VENDOR_ID_ATI, 0x436c, NULL);
-+	if (sb &&
-+	    (sb->subsystem_vendor = 0x1462 &&	/* MSI */
-+	     sb->subsystem_device = 0x0031)) {	/* MS-7031 */
++temp[1-*]_highest
++		Historical maximum temperature
++		Unit: millidegree Celsius
++		RO
 +
-+		pci_read_config_byte(sb, 0x48, &enable);
-+		pci_read_config_word(sb, 0x64, &base);
++temp[1-*]_reset_history
++		Reset temp_lowest and temp_highest
++		WO
 +
-+		if (base = 0 && !(enable & BIT(2))) {
-+			dev_info(&sb->dev,
-+				 "Opening wide generic port at 0x295\n");
-+			pci_write_config_word(sb, 0x64, 0x295);
-+			pci_write_config_byte(sb, 0x48, enable | BIT(2));
-+		}
-+	}
-+#endif
-+}
++temp_reset_history
++		Reset temp_lowest and temp_highest for all sensors
++		WO
 +
- static int __init hwmon_init(void)
- {
-+	hwmon_pci_quirks();
-+
- 	hwmon_class = class_create(THIS_MODULE, "hwmon");
- 	if (IS_ERR(hwmon_class)) {
- 		printk(KERN_ERR "hwmon.c: couldn't create sysfs class\n");
-
-
--- 
-Jean Delvare
+ Some chips measure temperature using external thermistors and an ADC, and
+ report the temperature measurement as a voltage. Converting this voltage
+ back to a temperature (or the other way around for limits) requires
 
 _______________________________________________
 lm-sensors mailing list
