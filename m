@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Tue, 19 May 2009 17:08:43 +0000
+From: "Christian Engelmayer" <Christian.Engelmayer@frequentis.com>
+Date: Tue, 19 May 2009 20:52:01 +0000
 Subject: Re: [lm-sensors] [PATCH 2.6.29.3 1/1] hwmon: added support for the
-Message-Id: <4A12E79B.8050908@hhs.nl>
+Message-Id: <000401c9d8c3$aae3fbe0$00abf3a0$@Engelmayer@frequentis.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <9EE81EBECB70824985BE0EDA8DC9B5150214E42C@VIECLEX01.frequentis.frq>
 In-Reply-To: <9EE81EBECB70824985BE0EDA8DC9B5150214E42C@VIECLEX01.frequentis.frq>
@@ -10,44 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 05/19/2009 12:45 PM, Engelmayer Christian wrote:
->> I'm not sure we should be exporting gpio functionality like this. First of
->> all the gpio function usually is fixed by how the IC is wired up, so I
-> would
->> expect that to be set by the BIOS / firmware. And when not, this should be
->> set through a board configuration file, exporting this to userspace feels
-> wrong.
->
-> I see Your points. I also missed the actual sysfs interface definition.
-> I will leave setting up the pins and the knowledge on the actual wiring
-> completely to the custom firmware then.
->
->> The same can be said for toggling the pin when its an output, its function
-> will
->> depend upon how its wired up again, and I would expect some higher level
-> interface
->> (like an ACPI interface or whatever) expose its functionality in a more
-> sane way.
->
-> For the usecase that drives me, I would nevertheless need userspace
-> to be able to check whether an alarm condition exists. Having firmware
-> set up the gpio usage and enabled the adapted alarm conditions one
-> could combine the various alarm sources provided by the chip (min/max
-> output, tach overflow, gpio related) into alarm file 'fan1_alarm' as
-> already specified in the hwmon sysfs-interface standard.
->
-> Would that be an acceptable extension?
->
+> Extending the supported alarms would be fine, although I would not aggregate
+> them all under one sysfs file, just make a gpio#_alarm sysfs file, and make
+the
+> presence of this file conditional on the configuration of the gpio pins.
 
-Extending the supported alarms would be fine, although I would not aggregate
-them all under one sysfs file, just make a gpio#_alarm sysfs file, and make the
-presence of this file conditional on the configuration of the gpio pins.
+> Would that work for you ?
 
-Would that work for you ?
+It would.
+
+I suggested combining the status into a single file because that file name
+is already supported. In case an extension is accptable and for further
+clarification I would suggest the following:
+
+device alarm         | alarm file
+---------------------+------------------
+gpio 2 pulled low    | gpio2_alarm
+gpio 1 pulled low    | gpio1_alarm
+Tachometer overflow  | fan1_tach_alarm
+Minimum output level | fan1_min_alarm
+Maximum output level | fan1_max_alarm
+
+All 5 sources can be enabled independently with POR 'all disabled'.
+The first 2 sources make only sense depending on the gpio definitions,
+while the other 3 would be provided just by the chip itself.
+
+After the previous discussion I would then leave the setup of the gpios
+and the enabling of appropriate alarm sources completely to the firmware.
+The driver shall discover the alarms enabled by the firmware at startup
+and use that information as a condition for adding the alarm files as shown
+above for enabled alarms.
 
 Regards,
+Christian
 
-Hans
+
 
 _______________________________________________
 lm-sensors mailing list
