@@ -1,49 +1,49 @@
-From: Andre Prendel <andre.prendel@gmx.de>
-Date: Tue, 19 May 2009 15:33:17 +0000
-Subject: Re: [lm-sensors] [PATCH v2 0/3] tmp401: Add support for TI's
-Message-Id: <20090519153317.GE5200@ubuntu>
+From: "Rob Bloom" <Rob.Bloom@ca.flextronics.com>
+Date: Mon, 25 May 2009 15:17:12 +0000
+Subject: [lm-sensors] lm-sensors chip support
+Message-Id: <0331509C72A4CE4F925973DC8EC98E1B0165EC68@AMSACEX2.americas.ad.flextronics.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090519080556.GA5200@ubuntu>
-In-Reply-To: <20090519080556.GA5200@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, May 19, 2009 at 04:36:30PM +0200, Jean Delvare wrote:
-> On Tue, 19 May 2009 10:29:33 +0200, Hans de Goede wrote:
-> > On 05/19/2009 10:05 AM, Andre Prendel wrote:
-> > > Hello Jean, Hans,
-> > >
-> > > this is version v2 of the tmp401 driver patch series.
-> > >
-> > > I've added some documentation and fixed the issues of your review (see
-> > > changes in patch 2/3).
-> > >
-> > 
-> > All 3 look good!
-> > 
-> > Acked-by: Hans de Goede <hdegoede@redhat.com>
-> 
-> Good. I've applied all 3 patches. I did some cleanups between patch 1
-> and patch 2 so that patch 2 doesn't change the coding style for code
-> that was just added by patch 1. The end result is pretty much the same,
-> but this makes patch 2 much easier to read.
-> 
-> All 3 patches are now visible at:
-> ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/
-> and are scheduled for merge into kernel 2.6.31.
+Hi,
 
-So I'm on the kernel walk of fame soon, that's great, thanks :)
+I'm in a project which is looking at using lm-sensors to monitor the
+following chips on various circuit boards:
 
-> 
-> Please update wiki/Devices to reflect the current status.
-Done.
+- ADM1032ARMZ (temp sensor)
+- MAX6639 (temp sensor)
+- POWR1014A (power monitor)
+- SA56004EDP (temp sensor)
 
-> -- 
-> Jean Delvare
+I cross-checked these against the lm-sensors list of supported chips
+(http://www.lm-sensors.org/wiki/Devices) and find that only the 1st one
+is supported.  
 
-Andre
+Do you know if there are any plans to develop support for the latter 3
+in the list?  Or, are any of these compatible with another chip that is
+supported?  
+
+If there are no plans and no compatibilities, is there documentation you
+can point me to that describes a framework for adding a driver to be
+supported by lm-sensors.  I'd like to consider this if this is not
+difficult.  
+
+As I understand it, there is no chip-specific code in lm-sensors; to add
+support, one must add driver code into the kernel itself (ie. no code is
+added to the lm-sensors domain).  Is this correct?  Is there an example
+of a driver that was supported recently that I can use as an
+example/framework?
+
+Thanks for your help,
+...Rob
+
+
+
+Legal Disclaimer:
+The information contained in this message may be privileged and confidential. It is intended to be read only by the individual or entity to whom it is addressed or by their designee. If the reader of this message is not the intended recipient, you are on notice that any distribution of this message, in any form, is strictly prohibited. If you have received this message in error, please immediately notify the sender and delete or destroy any copy of this message
 
 _______________________________________________
 lm-sensors mailing list
