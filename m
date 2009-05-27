@@ -1,93 +1,29 @@
-From: Andre Prendel <andre_prendel@gmx.de>
-Date: Mon, 04 May 2009 09:22:51 +0000
-Subject: Re: [lm-sensors] [PATCH 7/8] sensord: Use sigaction() for
-Message-Id: <20090504092251.GA4884@ubuntu>
+From: powah <wong_powah@yahoo.ca>
+Date: Wed, 27 May 2009 18:36:58 +0000
+Subject: [lm-sensors] false alarm
+Message-Id: <loom.20090527T183436-144@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Apr 06, 2009 at 09:57:58AM +0200, Andre Prendel wrote:
-> Replace the deprecated signal() function by sigaction().
-> 
-> The signal() function has some disadvantages. This patch replaces
-> signal() by sigaction() to install the signal handlers.
+The sensors command has this output.
+How to determine whether the alarm is valid or false?
 
-Hi Jean,
+# sensors
+lm85-i2c-1-2e
+Adapter: SMBus I801 adapter at 2020
+VCore:      +1.49 V  (min =  +1.45 V, max =  +1.60 V)   ALARM
+V3.3:       +3.32 V  (min =  +3.13 V, max =  +3.47 V)
+V5:        +5.18 V  (min =  +4.74 V, max =  +5.26 V)
+V12:      +11.94 V  (min = +11.38 V, max = +12.62 V)
+CPU Fan:   3794 RPM  (min = 4000 RPM)                     ALARM
+CPU Temp:    +37 C  (low  =   +10 C, high =   +50 C)
+M/B Temp:    +36 C  (low  =   +10 C, high =   +35 C)     ALARM
+vid:      +1.525 V    (VRM Version  9.1)
 
-there are two patches left for reviewing (7/8, 8/8).
 
-Maybe you have forgotten about that. So here is the reminder ;)
-
-Thanks
-Andre
-
-> ---
-> 
->  sensord.c |   32 +++++++++++++++++++++++++-------
->  1 file changed, 25 insertions(+), 7 deletions(-)
-> 
-> --- quilt-sensors.orig/prog/sensord/sensord.c	2009-04-04 18:25:22.000000000 +0200
-> +++ quilt-sensors/prog/sensord/sensord.c	2009-04-05 17:07:19.000000000 +0200
-> @@ -65,7 +65,6 @@
->  
->  static void signalHandler(int sig)
->  {
-> -	signal(sig, signalHandler);
->  	switch (sig) {
->  	case SIGTERM:
->  		done = 1;
-> @@ -147,6 +146,30 @@
->  	logOpened = 1;
->  }
->  
-> +static void install_sighandler(void)
-> +{
-> +	struct sigaction new;
-> +	int ret;
-> +
-> +	new.sa_handler = signalHandler;
-> +	sigemptyset(&new.sa_mask);
-> +	new.sa_flags = SA_RESTART;
-> +
-> +	ret = sigaction(SIGTERM, &new, NULL);
-> +	if (ret = -1) {
-> +		fprintf(stderr, "Could not set sighandler for SIGTERM: %s\n",
-> +			strerror(errno));
-> +		exit(EXIT_FAILURE);
-> +	}
-> +
-> +	ret = sigaction(SIGHUP, &new, NULL);
-> +	if (ret = -1) {
-> +		fprintf(stderr, "Could not set sighandler for SIGHUP: %s\n",
-> +			strerror(errno));
-> +		exit(EXIT_FAILURE);
-> +	}
-> +}
-> +
->  static void daemonize(void)
->  {
->  	int pid;
-> @@ -172,12 +195,7 @@
->  		exit(EXIT_FAILURE);
->  	}
->  
-> -	/* I should use sigaction but... */
-> -	if (signal(SIGTERM, signalHandler) = SIG_ERR ||
-> -	    signal (SIGHUP, signalHandler) = SIG_ERR) {
-> -		perror("signal");
-> -		exit(EXIT_FAILURE);
-> -	}
-> +	install_sighandler();
->  
->  	if ((pid = fork()) = -1) {
->  		perror("fork()");
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
 _______________________________________________
 lm-sensors mailing list
