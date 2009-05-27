@@ -1,7 +1,7 @@
-From: Andre Prendel <andre.prendel@gmx.de>
-Date: Wed, 27 May 2009 11:44:36 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 27 May 2009 11:59:01 +0000
 Subject: Re: [lm-sensors] TI TMP421 chip address
-Message-Id: <20090527114436.GD4422@ubuntu>
+Message-Id: <20090527135901.15d593de@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090527091514.GB4422@ubuntu>
 In-Reply-To: <20090527091514.GB4422@ubuntu>
@@ -10,59 +10,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, May 27, 2009 at 01:08:19PM +0200, Hans de Goede wrote:
->
->
+On Wed, 27 May 2009 13:08:19 +0200, Hans de Goede wrote:
+> 
+> 
 > On 05/27/2009 11:15 AM, Andre Prendel wrote:
->> Hi Hans,
->>
->> looking in the datasheet of the TMP421 sensor chip
->>
->> http://focus.ti.com/docs/prod/folders/print/tmp421.html,
->>
->> I saw the following addresses.
->>
->> TMP421  100 11xx
->> TMP422  100 11xx
->> TMP423A 100 1100
->> TMP423B 100 1101
->>
->> But the preliminary driver of your students uses 0x2a.
->>
->>   /* Addresses to scan */
->>   static unsigned short normal_i2c[] = { 0x2a, I2C_CLIENT_END };
->>
->> 0x2a = 010 1010b, right?
->>
->
+> > Hi Hans,
+> >
+> > looking in the datasheet of the TMP421 sensor chip
+> >
+> > http://focus.ti.com/docs/prod/folders/print/tmp421.html,
+> >
+> > I saw the following addresses.
+> >
+> > TMP421  100 11xx
+> > TMP422  100 11xx
+> > TMP423A 100 1100
+> > TMP423B 100 1101
+> >
+> > But the preliminary driver of your students uses 0x2a.
+> >
+> >   /* Addresses to scan */
+> >   static unsigned short normal_i2c[] = { 0x2a, I2C_CLIENT_END };
+> >
+> > 0x2a = 010 1010b, right?
+> >
+> 
 > Right.
->
->> Do I misunderstand something?
->
+> 
+> > Do I misunderstand something?
+> 
 > No, what my students did in there was wrong, they only put the
 > address in there to which the sample I gave them is wired
->
+> 
 > The addresses to scan should be:
 > static unsigned short normal_i2c[] = { 0x1c, 0x1d, 0x1e, 0x1f,
->   0x2a, 0x4c, 0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
->
+>    0x2a, 0x4c, 0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
+> 
 > But we better run those past Jean, to see if any of
 > those are dangerous to scan by default, Jean ?
->
->> And what means the xx in the address of TMP421/422?
->
-> This means that the address is configurable by hooking up
-> the IC in different ways, see table 9 and 10 at page 17 of
-> the data sheet.
 
-Thanks, I didn't see this so far. Now I understand :)
+0x2a and 0x4c-0x4f are very popular addresses for hardware monitoring
+chips and can be scanned. 0x1c-0x1f is something new, sensors-detect
+doesn't even scan 0x1c-0x1e at the moment, only 0x1f is scanned (for
+the Maxim MAX6650/MAX6651.)
 
->
-> Regards,
->
-> Hans
+Where do the 0x1c-0x1f and 0x2a addresses come from? The possible
+addresses listed above by Andre were only 0x4c-0x4f.
 
-Andre
+On which systems are these chips found? If only on embedded systems and
+not on PC, the safe option would be to only scan 0x2a and 0x4c-0x4f. On
+embedded systems, probing won't be used anyway, so devices can be
+instantiated at any address, regardless of what the driver lists.
+
+Please add detection of these chips to sensors-detect, for addresses
+0x2a and 0x4c-0x4f, and add them to the wiki.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
