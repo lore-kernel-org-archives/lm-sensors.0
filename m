@@ -1,7 +1,7 @@
 From: Ben Dooks <ben@simtec.co.uk>
-Date: Thu, 28 May 2009 13:16:49 +0000
+Date: Thu, 28 May 2009 15:21:34 +0000
 Subject: Re: [lm-sensors] HWMON: S3C24XX series ADC driver
-Message-Id: <4A1E8EC1.4020108@simtec.co.uk>
+Message-Id: <4A1EABFE.9050209@simtec.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090520215029.692678819@fluff.org.uk>
 In-Reply-To: <20090520215029.692678819@fluff.org.uk>
@@ -11,41 +11,52 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Jean Delvare wrote:
-> On Thu, 28 May 2009 12:22:41 +0100, Ben Dooks wrote:
->> Jean Delvare wrote:
->>> On Tue, 26 May 2009 09:07:01 +0100, Ben Dooks wrote:
->>>> +	int			val;
->>> This is an horribly vague struct member name, and undocumented at that.
->> Added documentation and renamed to ret_val.
->>
->>   * @ret_val: Value returned from current conversion to return to caller.
+> Hi Ben,
 > 
-> This seems artificially complex. You need to wait for the conversion to
-> complete anyway, so why bother with an asynchronous mechanism?
 
-I'll add a sync conversion call to the adc core driver
-and this'll get rid of both of these.
+[snip]
 
+>> +	struct device		*hwmon_dev;
+>> +
+>> +	struct sensor_device_attribute *in_attr[8];
 > 
->>>> +static struct s3c_hwmon *done_adc;
->>> What is this?
->> The core adc driver doesn't keep any private data, so we need
->> this to get back to our state when the conversion ends.
-> 
-> This will break if you have two "s3c-hwmon" devices on the same system.
-> Why don't you just fix the core adc driver?
-> 
-> 
->>>> +	ret *= cfg->mult;
->>>> +	ret /= cfg->div;
->>> Division lacks rounding.
->> Which rounding should be used?
-> 
-> DIV_ROUND_CLOSEST()
+> What is the benefit of allocating these attributes dynamically? You are
+> likely to fragment your memory and require ugly code to make it work.
 
-ok, will change.
+I suppose if we're only looking at producing a single in
+or in and label attribute then it is only 24+name bytes
+for each attribute.
 
--- 
+[snip]
+
+>> +static int s3c_hwmon_create_attr(struct s3c_hwmon *hwmon,
+>> +				 struct s3c_hwmon_pdata *pdata,
+>> +				 int channel)
+>> +{
+>> +	struct s3c_hwmon_chcfg *cfg = pdata->in[channel];
+>> +	struct sensor_device_attribute *attr;
+>> +	const char *name;
+>> +
+>> +	if (!cfg)
+>> +		return 0;
+>> +
+>> +	attr = kzalloc(sizeof(*attr) + MAX_LABEL, GFP_KERNEL);
+>> +	if (attr = NULL)
+>> +		return -ENOMEM;
+>> +
+>> +	if (cfg->name)
+>> +		name = cfg->name;
+>> +	else {
+>> +		name = (char *)(attr+1);
+>> +		snprintf((char *)(attr+1), MAX_LABEL, "in_%d", channel);
+> 
+> This name doesn't match what is described in
+> Documentation/hwmon/sysfs-interface, which means that your driver won't
+> work with libsensors. This is a blocker.
+
+Ah, having re-read it, it seems the name should go in in%d_label sysfs 
+field as well as changing in_%d to in%d_input.
+
 Ben Dooks, Software Engineer, Simtec Electronics
 
 http://www.simtec.co.uk/
