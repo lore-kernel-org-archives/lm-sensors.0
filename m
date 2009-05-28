@@ -1,31 +1,34 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Wed, 13 May 2009 17:42:31 +0000
-Subject: Re: [lm-sensors] Fintek F71889FG support?
-Message-Id: <4A0B0687.9040202@redhat.com>
+From: jjDaNiMoTh <jjdanimoth@gmail.com>
+Date: Thu, 28 May 2009 20:03:38 +0000
+Subject: Re: [lm-sensors] [PATCH] adt746x compatibile with lm_sensors
+Message-Id: <7b71803f0905281303s780bdcd6o81e45cf512c1b6e4@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090512225941.33FE7837DC@ws4-3.us4.outblaze.com>
-In-Reply-To: <20090512225941.33FE7837DC@ws4-3.us4.outblaze.com>
+References: <7b71803f0904090550i37f489d0hb37cc777c844671f@mail.gmail.com>
+In-Reply-To: <7b71803f0904090550i37f489d0hb37cc777c844671f@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-
-On 05/13/2009 12:59 AM, michael polniak wrote:
-> I have a new AM3 mainboard with Fintek F71889FG  super I/O controller. sensors-detect shows it as:
+2009/4/9 DaNiMoTh <jjdanimoth@gmail.com>:
+> Hello to all,
 >
-> Trying family `VIA/Winbond/Fintek'...                       Yes
-> Found unknown chip with ID 0x0723
+> After the first attempt to make a better driver for adt746x, I follow
+> what Jean said to me.
+> So, there is a patch for the actual adt746x driver that move the sysfs
+> attributes from /sys/devices/temperature to /sys/class/hwmon/ and also
+> it renames the old attributes (ex. from sensor1_temperature to
+> temp1_input).
 >
-> Is there any Fintek driver that can be modified to include this chip? I am will to test it.
+> As result, now I'm able to see two temperatures and two fan speed from
+> lm_sensors.
 >
 
-Maybe, we first need a data sheet, and fintek does not seem to have one up on their website yet.
+Hello, any news for this ?
 
-Regards,
+There are something that I do wrong ?
 
-Hans
+Many thanks :)
 
 _______________________________________________
 lm-sensors mailing list
