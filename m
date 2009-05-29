@@ -1,93 +1,59 @@
-From: Michael Abbott <michael@araneidae.co.uk>
-Date: Wed, 06 May 2009 07:29:52 +0000
-Subject: [lm-sensors] [PATCH 2.6.29.2] Add low_power support for adm1021
-Message-Id: <Pine.LNX.4.64.0905060826530.24668@venus.araneidae.co.uk>
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
+Date: Fri, 29 May 2009 05:54:15 +0000
+Subject: Re: [lm-sensors] [stable] [PATCH-tip] x86: hwmon/k8temp.c Add
+Message-Id: <1243575735.3159.7.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4A165F67.3020005@assembler.cz>
+	 <1242981748.10642.3.camel@localhost.localdomain>
+	 <1242984648.16532.3.camel@localhost.localdomain>
+	 <4A182B61.5010503@assembler.cz>
+	 <1243339833.12303.2.camel@localhost.localdomain>
+	 <4A1C08C6.7060103@assembler.cz>
+	 <1243352672.31783.10.camel@localhost.localdomain>
+	 <1243511849.3669.5.camel@localhost.localdomain>
+	 <20090528142837.530ba070@hyperion.delvare>
+	 <1243520014.3143.11.camel@localhost.localdomain>
+	 <20090528144901.GA7153@kroah.com>
+In-Reply-To: <20090528144901.GA7153@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Jean Delvare <khali@linux-fr.org>, x86 maintainers <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, stable <stable@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LM Sensors <lm-sensors@lm-sensors.org>, Ingo Molnar <mingo@elte.hu>
 
-Occasionally it is helpful to be able to turn a temperature sensor off
-(for example if it's making unwanted electrical noise).  This patch
-adds a sysfs node to put any adm1021 compatible device into low power mode.
+Hi Greg,
 
-In low power mode a special single-shot command is required to take a 
-measurement: this is not implemented in this patch.
+On Thu, 2009-05-28 at 07:49 -0700, Greg KH wrote:
+> On Thu, May 28, 2009 at 07:43:34PM +0530, Jaswinder Singh Rajput wrote:
+> > On Thu, 2009-05-28 at 14:28 +0200, Jean Delvare wrote:
+> > > On Thu, 28 May 2009 17:27:29 +0530, Jaswinder Singh Rajput wrote:
+> > > > Hello Andrew, Greg and Ingo:
+> > > > 
+> > > > Do you think this patch should go to stable and latest git.
+> > > 
+> > > Definitely not to stable, it's not fixing any bug.
+> > > 
+> > 
+> > Ok, so you suggested this should go to latest git.
+> > 
+> > I proposed for stable because I was using AMD 11H from last 6 months and
+> > I was missing temperature monitor badly because my earlier Laptop was
+> > broken by overheating. So I thought if it goes to stable then users will
+> > start getting benefit of it, but if you want that users should wait for
+> > another 2 years. Then it is OK ;-)
+> 
+> 2 years?  The next kernel release will be out in 3 months, we have a
+> very predictable release schedule.
+> 
 
-Signed-off-by: Michael Abbott <michael.abbott@diamond.ac.uk>
----
- drivers/hwmon/adm1021.c |   33 +++++++++++++++++++++++++++++++++
- 1 files changed, 33 insertions(+), 0 deletions(-)
+I am sorry for being unclear. I meant for linux distros. Even one of the
+most active Fedora 10 is using vmlinuz-2.6.27.24-170.2.68.fc10.x86_64 is
+almost 7 months behind the linus git. And another linux distro are still
+using 2.6.22 or so which are almost 2 years behind linus git.
 
-diff --git a/drivers/hwmon/adm1021.c b/drivers/hwmon/adm1021.c
-index b11e06f..ba7a423 100644
---- a/drivers/hwmon/adm1021.c
-+++ b/drivers/hwmon/adm1021.c
-@@ -83,6 +83,7 @@ struct adm1021_data {
- 
- 	struct mutex update_lock;
- 	char valid;		/* !=0 if following fields are valid */
-+	char low_power;		/* !=0 if device in low power mode */
- 	unsigned long last_updated;	/* In jiffies */
- 
- 	s8 temp_max[2];		/* Register values */
-@@ -216,6 +217,35 @@ static ssize_t set_temp_min(struct device *dev,
- 	return count;
- }
- 
-+static ssize_t show_low_power(
-+	struct device *dev, struct device_attribute *devattr, char *buf)
-+{
-+	struct adm1021_data *data = adm1021_update_device(dev);
-+	return sprintf(buf, "%d\n", data->low_power);
-+}
-+
-+static ssize_t set_low_power(
-+	struct device *dev, struct device_attribute *devattr,
-+	const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adm1021_data *data = i2c_get_clientdata(client);
-+	int low_power = simple_strtol(buf, NULL, 10) != 0;
-+	mutex_lock(&data->update_lock);
-+
-+	if (low_power != data->low_power) {
-+		int config = i2c_smbus_read_byte_data(
-+			client, ADM1021_REG_CONFIG_R);
-+		data->low_power = low_power;
-+		i2c_smbus_write_byte_data(client, ADM1021_REG_CONFIG_W,
-+			(config & 0xBF) | (low_power << 6));
-+	}
-+	mutex_unlock(&data->update_lock);
-+
-+	return count;
-+}
-+
-+
- static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
- static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max,
- 			  set_temp_max, 0);
-@@ -233,6 +263,8 @@ static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO, show_alarm, NULL, 3);
- static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_alarm, NULL, 2);
- 
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
-+static DEVICE_ATTR(
-+	low_power, S_IWUSR | S_IRUGO, show_low_power, set_low_power);
- 
- static struct attribute *adm1021_attributes[] = {
- 	&sensor_dev_attr_temp1_max.dev_attr.attr,
-@@ -247,6 +279,7 @@ static struct attribute *adm1021_attributes[] = {
- 	&sensor_dev_attr_temp2_min_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp2_fault.dev_attr.attr,
- 	&dev_attr_alarms.attr,
-+	&dev_attr_low_power.attr,
- 	NULL
- };
- 
--- 
-1.6.1.3
+Thanks,
+--
+JSR
 
 
 _______________________________________________
