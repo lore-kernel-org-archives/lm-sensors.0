@@ -1,48 +1,32 @@
-From: =?UTF-8?B?Q3NhcGzDoXIgWm9sdMOhbg==?= <csaplar.zoltan@gmail.com>
-Date: Wed, 06 May 2009 07:06:00 +0000
-Subject: [lm-sensors] lm_sensors 3.1 config file
-Message-Id: <622d3d2b0905060006y366594a7re837cf23d53a0406@mail.gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Fri, 29 May 2009 09:05:52 +0000
+Subject: [lm-sensors] PATCH [0/4]: hwmon: Add f71858fg support to the
+Message-Id: <4A1FA570.4010500@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-hello,
+Hi Jean,
 
-I've written a program that uses lm_sensors 3.1. It's on a lot of PCs,
-but I managed to collect the chips just now:
+Can you please review this set and queue it for 2.6.31 ?
+Thanks.
 
-- ITE IT8712F
-- ITE IT8718F
-Winbond:
-- w83627ehf
-- w83627hf
-Nat. Semi.:
-- PC8374L
-- PC87372
-SMSC:
-- EMC2700LPC
-- LPC47M10x (smsc47m1)
-- LPC47M15x (smsc47m1)
-- LPC47M172
-- LPC47M172
-- LPC47M172
-- LPC47M182
-- SCH5027D-NW
+This set contains the following patches, the first 2 are
+preparation patches for adding the f71858fg support ,
+the 3th one is a bugfix to the f8000 support which I noticed
+while working on this and the last one is the actual
+f71858fg support:
 
-I checked the sensors.conf.eg file to the lm_sensors, but fortunately
-it consists just little information. I cannot understand its logic and
-how to build up such a file, so I would like to ask for your help.
+hwmon: f71882fg cleanup f8000 pwm handling
+hwmon: f71882fg sanity check f8000 pwm settings
+hwmon: f71882fg add temp#_fault sysfs attr for f8000
+hwmon: f71882fg add support for the f71858fg
 
-Could somebody send or link me the config files that belong to the
-above mentioned chips?
-May a more complete collection exist?
-Please, if you need some out RPM (e.g. IT8118F) to get a chip, let me know.
+Regards,
 
-Thank you in advance for your help.
-
-Zoli
+Hans
 
 _______________________________________________
 lm-sensors mailing list
