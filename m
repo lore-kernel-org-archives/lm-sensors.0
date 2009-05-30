@@ -1,7 +1,7 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Tue, 26 May 2009 09:01:36 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 30 May 2009 14:20:19 +0000
 Subject: Re: [lm-sensors] [PATCH v3 1/1] hwmon: added support for the
-Message-Id: <4A1BAFEF.8030408@hhs.nl>
+Message-Id: <20090530162019.6d70808b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <9EE81EBECB70824985BE0EDA8DC9B515021B31B4@VIECLEX01.frequentis.frq>
 In-Reply-To: <9EE81EBECB70824985BE0EDA8DC9B515021B31B4@VIECLEX01.frequentis.frq>
@@ -10,53 +10,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 05/24/2009 10:38 PM, Engelmayer Christian wrote:
-> From: Christian Engelmayer<christian.engelmayer@frequentis.com>
->
+Hi Christian,
+
+On Sun, 24 May 2009 22:38:15 +0200, Engelmayer Christian wrote:
+> From: Christian Engelmayer <christian.engelmayer@frequentis.com>
+> 
 > Exported the alarm stati provided by the MAX6650/MAX6651 fan-speed regulator
 > and monitor chips via sysfs.
->
-
-Looks good to me now,
-
-Acked-by: Hans de Goede <hdegoede@redhat.com>
-
-
-
-> Signed-off-by: Christian Engelmayer<christian.engelmayer@frequentis.com>
+> 
+> Signed-off-by: Christian Engelmayer <christian.engelmayer@frequentis.com>
 > ---
 > Tested with the MAX6651 chip. This obsoletes the previously proposed patch
 > 'support for the max6650 GPIO and alarm features' after discussion on sane
 > gpio handling.
->
+> 
 > Revised after remarks by Hans de Goede. Changed the alarm attributes to
 > sensor
 > device attributes thus eliminating the need for pointer comparison in show
 > function get_alarm(). Left the alarm behaviour unchanged. In case the sysfs
 > interface does not prefer 'real time' over 'latched' alarms I prefer to keep
 > the style used by the device.
->
+> 
 > Incorporated additional remarks by Hans de Goede. Changed a temporary
 > variable
 > from 'u8' to 'int'. Changed the order of alarms within the code from MSB
 > first
 > to LSB first as occuring within the registers.
->
+
+Note that the patch is corrupted by your e-mail client, I can't apply
+it. Please fix and resend - in attachment if you can't get inline to
+work.
+
+> 
 > --- drivers/hwmon/max6650.c.orig	2009-05-20 12:36:21.000000000 +0200
 > +++ drivers/hwmon/max6650.c	2009-05-24 22:13:40.000000000 +0200
 > @@ -12,7 +12,7 @@
->    * also work with the MAX6651. It does not distinguish max6650 and max6651
->    * chips.
->    *
+>   * also work with the MAX6651. It does not distinguish max6650 and max6651
+>   * chips.
+>   *
 > - * Tha datasheet was last seen at:
 > + * The datasheet was last seen at:
->    *
->    *        http://pdfserv.maxim-ic.com/en/ds/MAX6650-MAX6651.pdf
->    *
+>   *
+>   *        http://pdfserv.maxim-ic.com/en/ds/MAX6650-MAX6651.pdf
+>   *
 > @@ -98,6 +98,17 @@ I2C_CLIENT_INSMOD_1(max6650);
->   #define MAX6650_CFG_MODE_OPEN_LOOP	0x30
->   #define MAX6650_COUNT_MASK		0x03
->
+>  #define MAX6650_CFG_MODE_OPEN_LOOP	0x30
+>  #define MAX6650_COUNT_MASK		0x03
+>  
 > +/*
 > + * Alarm status register bits
 > + */
@@ -68,22 +68,22 @@ Acked-by: Hans de Goede <hdegoede@redhat.com>
 > +#define MAX6650_ALRM_GPIO2	0x10
 > +#define MAX6650_ALRM_MASK	0x1F
 > +
->   /* Minimum and maximum values of the FAN-RPM */
->   #define FAN_RPM_MIN 240
->   #define FAN_RPM_MAX 30000
+>  /* Minimum and maximum values of the FAN-RPM */
+>  #define FAN_RPM_MIN 240
+>  #define FAN_RPM_MAX 30000
 > @@ -151,6 +162,8 @@ struct max6650_data
->   	u8 tach[4];
->   	u8 count;
->   	u8 dac;
+>  	u8 tach[4];
+>  	u8 count;
+>  	u8 dac;
 > +	u8 alarm_en;
 > +	u8 alarm;
->   };
->
->   static ssize_t get_fan(struct device *dev, struct device_attribute *devattr,
+>  };
+>  
+>  static ssize_t get_fan(struct device *dev, struct device_attribute *devattr,
 > @@ -418,6 +431,54 @@ static ssize_t set_div(struct device *de
->   	return count;
->   }
->
+>  	return count;
+>  }
+>  
 > +/*
 > + * Get alarm stati:
 > + * Possible values:
@@ -120,11 +120,16 @@ Acked-by: Hans de Goede <hdegoede@redhat.com>
 > +	default:
 > +		return 0;
 > +	}
+
+It would be much easier to pass the mask directly as attr->index. Just
+because it is named "index" doesn't mean you can't use it for whatever
+you want ;)
+
 > +
-> +	if (data->alarm&  mask) {
+> +	if (data->alarm & mask) {
 > +		mutex_lock(&data->update_lock);
 > +		alarm = 1;
-> +		data->alarm&= ~mask;
+> +		data->alarm &= ~mask;
 > +		data->alarm |= i2c_smbus_read_byte_data(client,
 > +							MAX6650_REG_ALARM);
 > +		mutex_unlock(&data->update_lock);
@@ -133,19 +138,19 @@ Acked-by: Hans de Goede <hdegoede@redhat.com>
 > +	return sprintf(buf, "%d\n", alarm);
 > +}
 > +
->   static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, get_fan, NULL, 0);
->   static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, get_fan, NULL, 1);
->   static SENSOR_DEVICE_ATTR(fan3_input, S_IRUGO, get_fan, NULL, 2);
-> @@ -426,7 +487,41 @@ static DEVICE_ATTR(fan1_target, S_IWUSR
->   static DEVICE_ATTR(fan1_div, S_IWUSR | S_IRUGO, get_div, set_div);
->   static DEVICE_ATTR(pwm1_enable, S_IWUSR | S_IRUGO, get_enable, set_enable);
->   static DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, get_pwm, set_pwm);
+>  static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, get_fan, NULL, 0);
+>  static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, get_fan, NULL, 1);
+>  static SENSOR_DEVICE_ATTR(fan3_input, S_IRUGO, get_fan, NULL, 2);
+> @@ -426,7 +487,41 @@ static DEVICE_ATTR(fan1_target, S_IWUSR 
+>  static DEVICE_ATTR(fan1_div, S_IWUSR | S_IRUGO, get_div, set_div);
+>  static DEVICE_ATTR(pwm1_enable, S_IWUSR | S_IRUGO, get_enable, set_enable);
+>  static DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, get_pwm, set_pwm);
 > +static SENSOR_DEVICE_ATTR(fan1_max_alarm, S_IRUGO, get_alarm, NULL, 0);
 > +static SENSOR_DEVICE_ATTR(fan1_min_alarm, S_IRUGO, get_alarm, NULL, 1);
 > +static SENSOR_DEVICE_ATTR(fan1_fault, S_IRUGO, get_alarm, NULL, 2);
 > +static SENSOR_DEVICE_ATTR(gpio1_alarm, S_IRUGO, get_alarm, NULL, 3);
 > +static SENSOR_DEVICE_ATTR(gpio2_alarm, S_IRUGO, get_alarm, NULL, 4);
->
+>  
 > +static mode_t max6650_attrs_visible(struct kobject *kobj, struct attribute
 > *a,
 > +				    int n)
@@ -157,54 +162,69 @@ Acked-by: Hans de Goede <hdegoede@redhat.com>
 > +	 * Hide the alarms that have not been enabled by the firmware
 > +	 */
 > +
-> +	if (a =&sensor_dev_attr_fan1_max_alarm.dev_attr.attr) {
-> +		if (!(data->alarm_en&  MAX6650_ALRM_MAX))
+> +	if (a = &sensor_dev_attr_fan1_max_alarm.dev_attr.attr) {
+> +		if (!(data->alarm_en & MAX6650_ALRM_MAX))
 > +			return 0;
-> +	} else if (a =&sensor_dev_attr_fan1_min_alarm.dev_attr.attr) {
-> +		if (!(data->alarm_en&  MAX6650_ALRM_MIN))
+> +	} else if (a = &sensor_dev_attr_fan1_min_alarm.dev_attr.attr) {
+> +		if (!(data->alarm_en & MAX6650_ALRM_MIN))
 > +			return 0;
-> +	} else if (a =&sensor_dev_attr_fan1_fault.dev_attr.attr) {
-> +		if (!(data->alarm_en&  MAX6650_ALRM_TACH))
+> +	} else if (a = &sensor_dev_attr_fan1_fault.dev_attr.attr) {
+> +		if (!(data->alarm_en & MAX6650_ALRM_TACH))
 > +			return 0;
-> +	} else if (a =&sensor_dev_attr_gpio1_alarm.dev_attr.attr) {
-> +		if (!(data->alarm_en&  MAX6650_ALRM_GPIO1))
+> +	} else if (a = &sensor_dev_attr_gpio1_alarm.dev_attr.attr) {
+> +		if (!(data->alarm_en & MAX6650_ALRM_GPIO1))
 > +			return 0;
-> +	} else if (a =&sensor_dev_attr_gpio2_alarm.dev_attr.attr) {
-> +		if (!(data->alarm_en&  MAX6650_ALRM_GPIO2))
+> +	} else if (a = &sensor_dev_attr_gpio2_alarm.dev_attr.attr) {
+> +		if (!(data->alarm_en & MAX6650_ALRM_GPIO2))
 > +			return 0;
 > +	}
+
+I believe this code could be made somewhat more simple if you store the
+mask in ->index as suggested above.
+
 > +
 > +	return a->mode;
 > +}
->
->   static struct attribute *max6650_attrs[] = {
->   	&sensor_dev_attr_fan1_input.dev_attr.attr,
+>  
+>  static struct attribute *max6650_attrs[] = {
+>  	&sensor_dev_attr_fan1_input.dev_attr.attr,
 > @@ -437,11 +532,17 @@ static struct attribute *max6650_attrs[]
->   	&dev_attr_fan1_div.attr,
->   	&dev_attr_pwm1_enable.attr,
->   	&dev_attr_pwm1.attr,
+>  	&dev_attr_fan1_div.attr,
+>  	&dev_attr_pwm1_enable.attr,
+>  	&dev_attr_pwm1.attr,
 > +	&sensor_dev_attr_fan1_max_alarm.dev_attr.attr,
 > +	&sensor_dev_attr_fan1_min_alarm.dev_attr.attr,
 > +	&sensor_dev_attr_fan1_fault.dev_attr.attr,
 > +	&sensor_dev_attr_gpio1_alarm.dev_attr.attr,
 > +	&sensor_dev_attr_gpio2_alarm.dev_attr.attr,
->   	NULL
->   };
->
->   static struct attribute_group max6650_attr_grp = {
->   	.attrs = max6650_attrs,
+>  	NULL
+>  };
+>  
+>  static struct attribute_group max6650_attr_grp = {
+>  	.attrs = max6650_attrs,
 > +	.is_visible = max6650_attrs_visible,
->   };
->
->   /*
+
+Nice trick, I didn't know about it :)
+
+>  };
+>  
+>  /*
 > @@ -658,6 +759,14 @@ static struct max6650_data *max6650_upda
->   		data->count = i2c_smbus_read_byte_data(client,
->   							MAX6650_REG_COUNT);
->   		data->dac = i2c_smbus_read_byte_data(client,
+>  		data->count = i2c_smbus_read_byte_data(client,
+>  							MAX6650_REG_COUNT);
+>  		data->dac = i2c_smbus_read_byte_data(client,
 > MAX6650_REG_DAC);
 > +		data->alarm_en = i2c_smbus_read_byte_data(client,
 > +
 > MAX6650_REG_ALARM_EN);
+
+As far as I can see this is used at device initialization time and only
+there. This means that reading the value in the update function is
+overkill - as is calling it from max6650_attrs_visible (will make the
+drivers loading somewhat slower.) You should simply read the value you
+need in max6650_attrs_visible() directly. Then you don't even need to
+store it in the data structure.
+
 > +
 > +		/* Alarms are cleared on read in case the condition that
 > +		 * caused the alarm is removed. Keep the value latched here
@@ -212,17 +232,13 @@ Acked-by: Hans de Goede <hdegoede@redhat.com>
 > */
 > +		data->alarm |= i2c_smbus_read_byte_data(client,
 > +							MAX6650_REG_ALARM);
->
->   		data->last_updated = jiffies;
->   		data->valid = 1;
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+>  
+>  		data->last_updated = jiffies;
+>  		data->valid = 1;
+> 
 
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
