@@ -1,55 +1,34 @@
-From: Jaswinder Singh Rajput <jaswinder@kernel.org>
-Date: Sat, 06 Jun 2009 10:48:34 +0000
-Subject: Re: [lm-sensors] [PATCH-tip] x86: hwmon/k8temp.c Add support for
-Message-Id: <1244284594.2475.53.camel@ht.satnam>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 01 Jun 2009 14:55:38 +0000
+Subject: Re: [lm-sensors] Fintek F71889F support?
+Message-Id: <20090601165538.50b77bd8@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1242979484.8796.7.camel@localhost.localdomain>
-	 <4A165F67.3020005@assembler.cz>
-	 <1242981748.10642.3.camel@localhost.localdomain>
-	 <1242984648.16532.3.camel@localhost.localdomain>
-	 <4A182B61.5010503@assembler.cz>
-	 <1243339833.12303.2.camel@localhost.localdomain>
-	 <4A1C08C6.7060103@assembler.cz>
-	 <1243352672.31783.10.camel@localhost.localdomain>
-In-Reply-To: <1243352672.31783.10.camel@localhost.localdomain>
+References: <200905312332.29251.clive@vacuumtube.org.uk>
+In-Reply-To: <200905312332.29251.clive@vacuumtube.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rudolf Marek <r.marek@assembler.cz>
-Cc: Ingo Molnar <mingo@elte.hu>, x86 maintainers <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Hello Rudolf,
+On Sun, 31 May 2009 23:32:29 +0100, Clive Messer wrote:
+> I just installed a new AM3 motherboard (MSI 790FX-GD70). 
+> 
+> sensors-detect .....
+> 
+> Trying family `VIA/Winbond/Fintek'...                       Yes
+> Found unknown chip with ID 0x0723
+> 
+> The SuperIO chip is a Fintek F71889F. No mention of it on the wiki device 
+> list. Any plans to support it, or perhaps it will work with an existing driver 
+> if 'forced'?
 
-On Tue, 2009-05-26 at 21:14 +0530, Jaswinder Singh Rajput wrote:
-> On Tue, 2009-05-26 at 17:20 +0200, Rudolf Marek wrote:
-> > Hello,
-> > 
-> > Sorry I disagree. Lets skip whole 10H. I failed many times to get some useful 
-> > info from AMD about this issue. I'm strongly against to impose some limits which 
-> > might indicate what is OK and what is not.
-> > 
-> 
-> OK, So here is new patch after skipping 10H. I hope I will get ack
-> now ;-)
-> 
-> Subject: [PATCH] x86: hwmon/k8temp.c Add support for AMD 11H
-> 
-> This patch will also work for AMD 10H. But we are skipping it as :
-> 
-> AMD 10H cpus reports Inaccurate Temperature Measurement:
-> http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/41322.pdf
-> Errata #319
-> 
-> Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
-> ---
+Please read this discussion thread from last week:
 
-As per your suggestion I skipped whole 10H. Have you queued this patch
-or there is still some issues left.
+http://lists.lm-sensors.org/pipermail/lm-sensors/2009-May/025833.html
 
-Thanks,
---
-JSR
-
+-- 
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
