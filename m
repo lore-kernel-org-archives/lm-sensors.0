@@ -1,31 +1,37 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Date: Thu, 25 Jun 2009 17:04:12 +0000
-Subject: Re: [lm-sensors] [RFC] LM75 add regulator support
-Message-Id: <19F003B3-C906-4630-AEB9-C070BDECD9D9@opensource.wolfsonmicro.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 01 Jun 2009 14:37:59 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.30
+Message-Id: <20090601163759.0d125486@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4A43A1CC.2040701@cam.ac.uk>
-In-Reply-To: <4A43A1CC.2040701@cam.ac.uk>
+References: <20090508205916.4478b06c@hyperion.delvare>
+In-Reply-To: <20090508205916.4478b06c@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-On 25 Jun 2009, at 17:11, Jonathan Cameron <jic23@cam.ac.uk> wrote:
+Hi Linus,
 
->
-> Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
->
-> ---
-> Data sheet trawling has established that, of the devices listed by
-> this driver, there are two voltage ranges. (2.7-5.5 or 3-5.5)
+Please pull some hwmon subsystem fixes for Linux 2.6.30 from:
 
-You shouldn't need to have the driver request the voltage range it  
-needs like this - the machine constraints should deal with that. In  
-general you should only actively manage the voltage in a consumer if  
-you need to change voltages dynamically.
+git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
 
-Doing this would also mean that the driver would be able to use the  
-stub consumer API that is provided when regulator support is disabled.
+ Documentation/hwmon/sysfs-interface |    6 ++++++
+ drivers/hwmon/lm78.c                |    2 +-
+ 2 files changed, 7 insertions(+), 1 deletions(-)
+
+---------------
+
+Christian Engelmayer (1):
+      hwmon: Update documentation on fan_max
+
+Mike Frysinger (1):
+      hwmon: (lm78) Add missing __devexit_p()
+
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
