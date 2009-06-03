@@ -1,7 +1,7 @@
-From: Jacob Steinberger <trefalgar@realitybytes.net>
-Date: Wed, 03 Jun 2009 14:55:32 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 03 Jun 2009 15:05:04 +0000
 Subject: Re: [lm-sensors] Power Supply Monitoring
-Message-Id: <20090603095532.ynqtmfdtwgo00kgw@blastoid.drak.net>
+Message-Id: <20090603170504.5f03636b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090602164941.uz55en9rms0okkg0@blastoid.drak.net>
 In-Reply-To: <20090602164941.uz55en9rms0okkg0@blastoid.drak.net>
@@ -10,25 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> You seem convinced that NUT won't work. I'm not sure why you've
-> come to this conclusion. Perhaps you've researched NUT lately
-> and found that it doesn't support any of the UPSs you're using.
-> Of course, that would have to be pretty bad luck, as NUT supports
-> many (most?) of them.
-
-The goal isn't to monitor the UPS, it's to monitor the power supplies  
-on the individual servers. Just monitoring the UPS isn't sufficient if  
-you have a power supply failure.
-
+On Wed, 03 Jun 2009 07:31:21 -0700, Mark E. Hansen wrote:
+> On 06/02/09 20:09, Jacob Steinberger wrote:
+> > I'm really just looking for a way to do a simple function check on the 
+> > power supplies to detect when they're operational. Not necessarily to 
+> > find out what voltage is going through, but to see if it's even working 
+> > or not. For example, we have one power supply on grid, the other is on 
+> > UPS - the easiest way to detect if there's a problem with UPS or grid 
+> > power is to monitor the power supplies on the boxes. This would function 
+> > as a dual monitor if there was ever an issue with just a power supply.
+> 
 > How do you expect software on a computer to tell you when the power
 > supply on that computer has gone to zero volts?
 
-Because it should know the voltage coming of each power rail? These  
-servers have dual power supplies, and I'm looking to detect a failure  
-with *one*. Detecting a failure in both is easy - the box is offline.
+Some computers have dual (or more) power supply units. On these
+machines, as long as at least one PSU is still up and running, you can
+monitor them all. However it is relatively rare that mainboards are
+wired to monitor that kind of setup.
 
-Jacob
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
