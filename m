@@ -1,61 +1,25 @@
-From: "Michael S. Zick" <lkml@morethan.org>
-Date: Fri, 12 Jun 2009 18:20:06 +0000
-Subject: Re: [lm-sensors]
-Message-Id: <200906121320.10169.lkml@morethan.org>
+From: Hector Oron <hector.oron@gmail.com>
+Date: Wed, 03 Jun 2009 10:14:29 +0000
+Subject: Re: [lm-sensors] HWMON: S3C24XX series ADC driver
+Message-Id: <dd0a3d700906030314w41836bay6922cc6a5860fd3b@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090612_181603_063915.tomaz.mertelj@guest.arnes.si>
-In-Reply-To: <20090612_181603_063915.tomaz.mertelj@guest.arnes.si>
+References: <20090520215029.692678819@fluff.org.uk>
+In-Reply-To: <20090520215029.692678819@fluff.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: tomaz.mertelj@guest.arnes.si
-Cc: Harald Welte <HaraldWelte@viatech.com>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Fri June 12 2009, tomaz.mertelj@guest.arnes.si wrote:
-> > On Fri June 12 2009, Michael S. Zick wrote:
-> > 
-> > And the output of sensors with H.W. driver built-in:
-> > 
-> > root@cb01:~# sensors
-> > acpitz-virtual-0
-> > Adapter: Virtual device
-> > temp1:       +48.8�C  (crit = +94.8�C)
-> > 
-> > via-cputemp-isa-0000
-> > Adapter: ISA adapter
-> > Core 0:      +50.0�C
-> > 
-> > Which looks reasonable to me, on this machine.
-> > 
-> > Mike 
-> 
-> On VIA VB7002  acpitz  obviously does not work so I can not compare. I 
-> guess BIOS does not support the temperature reading since there is no 
-> temperature readout in BIOS. 
-> 
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:      -247.7 C  (crit = +140.0 C)
-> 
-> via-cputemp-isa-0000
-> Adapter: ISA adapter
-> Core 0:      +27.0 C
-> 
-> Is there a way to reset the CPU temperature calibration to the factory 
-> default?  
-> 
+Hi Ben,
 
-There should be among those registers we dumped
-for Harald.  He now has a good and a bad case to
-look at - he also has access to the msr magic numbers.
+Where can I find those changes to test?
+I have a clone of your git repo located at aeryn.fluff.org.uk, is the
+s3c-hwmon (adc core) driver in this repo? any branch?
 
-Mike
-> Tomaz Mertelj 
-> 
-> 
-> 
+Cheers =3D)
 
-
+--=20
+ H=E9ctor Or=F3n
 
 _______________________________________________
 lm-sensors mailing list
