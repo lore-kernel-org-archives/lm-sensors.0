@@ -1,230 +1,33 @@
-From: Paul Goyette <paul@whooppee.com>
-Date: Thu, 04 Jun 2009 13:28:20 +0000
-Subject: [lm-sensors] Suggested enhancements (with patches) to
-Message-Id: <Pine.NEB.4.64.0906040614390.4006@quicky.whooppee.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="0-1983162188-1244122100=:4006"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 04 Jun 2009 13:41:38 +0000
+Subject: Re: [lm-sensors] Suggested enhancements (with patches) to
+Message-Id: <20090604154138.1c1db84b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <Pine.NEB.4.64.0906040614390.4006@quicky.whooppee.com>
+In-Reply-To: <Pine.NEB.4.64.0906040614390.4006@quicky.whooppee.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Paul,
 
---0-1983162188-1244122100=:4006
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+On Thu, 4 Jun 2009 06:28:20 -0700 (PDT), Paul Goyette wrote:
+> (Hopefully this is the correct mailing list - there does not appear to 
+> be a list dedicated to i2c-tools.)
 
-(Hopefully this is the correct mailing list - there does not appear to 
-be a list dedicated to i2c-tools.)
+No, this is not the correct mailing list. Please use the linux-i2c list
+for now [1]. I would like to move i2c-tools to a separate site to clear
+the confusion [2], and maybe have a dedicated mailing list for it
+there, but I can't seem to find the time to actually do it :(
 
-Dear list readers,
+[1] http://vger.kernel.org/vger-lists.html#linux-i2c
+[2] http://marc.info/?l=linux-i2c&m3322185704754&w=2
 
-Attached are three patches to the decode-dimms that I've found to be 
-rather useful.
-
-First, there are several places where the printl_cond() function should 
-be used to display some manufacturing data.  With existing code, if only 
-some DIMMs have this data, the side-by-side feature will be disabled. 
-This patch completes the implementation of printl_cond().
-
-Second, when decoding more than two DIMMs, it might well be useful to 
-have the side-by-side merge-cells work even if only some of the DIMMs 
-have equal values.  This improves the display when, for example, you 
-have two pairs of DIMMs.  Even though the DIMMs in each pair are the 
-same, the existing code will not merge cells unless all four DIMMs are 
-the same.  This patch allows merging of the partial rows.
-
-The third patch is useful to expand the OS base where decode-dimms is 
-useful.  This patch teaches decode-dimms how to retrieve SPD EEPROM data 
-from a NetBSD sysctl(8) node.  Without this, the only way to use 
-decode-dimms on NetBSD is to manually extract the sysctl(8) entries, run 
-them through hexdump, supply hexdump's output file(s) as input to 
-decode-dimms with -x, and then clean up (delete) the hexdump output!
-
-All three of these patches are relative to the most recent version of 
-decode-dimms that I can find:
-
-http://lm-sensors.org/browser/i2c-tools/trunk/eeprom/decode-dimms?rev=5714
-
-
-
-
--------------------------------------------------------------------------
-|   Paul Goyette   | PGP DSS Key fingerprint: |  E-mail addresses:      |
-| Customer Service | FA29 0E3B 35AF E8AE 6651 |  paul at whooppee.com   |
-| Network Engineer | 0786 F758 55DE 53BA 7731 | pgoyette at juniper.net |
-| Kernel Developer |                          | pgoyette at netbsd.org  |
--------------------------------------------------------------------------
---0-1983162188-1244122100=:4006
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=more-printl_cond.diff
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.NEB.4.64.0906040628200.4006@quicky.whooppee.com>
-Content-Description: 
-Content-Disposition: attachment; filename=more-printl_cond.diff
-
-LS0tIGRlY29kZS1kaW1tcy01NzE0CTIwMDktMDUtMjMgMTQ6MDI6MTAuMDAw
-MDAwMDAwIC0wNzAwDQorKysgbXktZGVjb2RlLWRpbW1zCTIwMDktMDUtMjQg
-MDc6MDI6NDguMDAwMDAwMDAwIC0wNzAwDQpAQCAtMTM3MywyNiArMTM4OCwy
-MCBAQA0KIAlwcmludGwoIk1vZHVsZSBNYW51ZmFjdHVyZXIiLA0KIAkgICAg
-ICAgbWFudWZhY3R1cmVyX2RkcjMoJGJ5dGVzLT5bMTE3XSwgJGJ5dGVzLT5b
-MTE4XSkpOw0KIA0KLQlpZiAoc3BkX3dyaXR0ZW4oQHskYnl0ZXN9WzE0OC4u
-MTQ5XSkpIHsNCi0JCXByaW50bCgiRFJBTSBNYW51ZmFjdHVyZXIiLA0KLQkJ
-ICAgICAgIG1hbnVmYWN0dXJlcl9kZHIzKCRieXRlcy0+WzE0OF0sICRieXRl
-cy0+WzE0OV0pKTsNCi0JfQ0KKwlwcmludGxfY29uZChzcGRfd3JpdHRlbihA
-eyRieXRlc31bMTQ4Li4xNDldKSwgIkRSQU0gTWFudWZhY3R1cmVyIiwNCisJ
-CSAgICBtYW51ZmFjdHVyZXJfZGRyMygkYnl0ZXMtPlsxNDhdLCAkYnl0ZXMt
-PlsxNDldKSk7DQogDQogCXByaW50bF9tZmdfbG9jYXRpb25fY29kZSgkYnl0
-ZXMtPlsxMTldKTsNCiANCi0JaWYgKHNwZF93cml0dGVuKEB7JGJ5dGVzfVsx
-MjAuLjEyMV0pKSB7DQotCQlwcmludGwoIk1hbnVmYWN0dXJpbmcgRGF0ZSIs
-DQotCQkgICAgICAgbWFudWZhY3R1cmVfZGF0ZSgkYnl0ZXMtPlsxMjBdLCAk
-Ynl0ZXMtPlsxMjFdKSk7DQotCX0NCisJcHJpbnRsX2NvbmQoc3BkX3dyaXR0
-ZW4oQHskYnl0ZXN9WzEyMC4uMTIxXSksICJNYW51ZmFjdHVyaW5nIERhdGUi
-LA0KKwkJICAgIG1hbnVmYWN0dXJlX2RhdGUoJGJ5dGVzLT5bMTIwXSwgJGJ5
-dGVzLT5bMTIxXSkpOw0KIA0KIAlwcmludGxfbWZnX2Fzc2VtYmx5X3Nlcmlh
-bChAeyRieXRlc31bMTIyLi4xMjVdKTsNCiANCiAJcHJpbnRsKCJQYXJ0IE51
-bWJlciIsIHBhcnRfbnVtYmVyKEB7JGJ5dGVzfVsxMjguLjE0NV0pKTsNCiAN
-Ci0JaWYgKHNwZF93cml0dGVuKEB7JGJ5dGVzfVsxNDYuLjE0N10pKSB7DQot
-CQlwcmludGwoIlJldmlzaW9uIENvZGUiLA0KLQkJICAgICAgIHNwcmludGYo
-IjB4JTAyWCUwMlgiLCAkYnl0ZXMtPlsxNDZdLCAkYnl0ZXMtPlsxNDddKSk7
-DQotCX0NCisJcHJpbnRsX2NvbmQoc3BkX3dyaXR0ZW4oQHskYnl0ZXN9WzE0
-Ni4uMTQ3XSksICJSZXZpc2lvbiBDb2RlIiwNCisJCSAgICBzcHJpbnRmKCIw
-eCUwMlglMDJYIiwgJGJ5dGVzLT5bMTQ2XSwgJGJ5dGVzLT5bMTQ3XSkpOw0K
-IH0NCiANCiAjIFBhcmFtZXRlcjogRUVQUk9NIGJ5dGVzIDAtMTI3ICh1c2lu
-ZyA2NC05OCkNCg==
-
---0-1983162188-1244122100=:4006
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=merge-some.diff
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.NEB.4.64.0906040628201.4006@quicky.whooppee.com>
-Content-Description: 
-Content-Disposition: attachment; filename=merge-some.diff
-
-LS0tIGRlY29kZS1kaW1tcy01NzE0CTIwMDktMDUtMjMgMTQ6MDI6MTAuMDAw
-MDAwMDAwIC0wNzAwDQorKysgbXktZGVjb2RlLWRpbW1zCTIwMDktMDUtMjQg
-MDc6MDI6NDguMDAwMDAwMDAwIC0wNzAwDQpAQCAtMzgxLDEwICszODEsMjUg
-QEANCiAJCSRsYWJlbCA9IGh0bWxfZW5jb2RlKCRsYWJlbCk7DQogCQlAdmFs
-dWVzID0gbWFwIHsgaHRtbF9lbmNvZGUoJF8pIH0gQHZhbHVlczsNCiAJCXBy
-aW50ICI8dHI+PHRkIHZhbGlnbj10b3A+JGxhYmVsPC90ZD4iOw0KLQkJaWYg
-KCRvcHRfbWVyZ2UgJiYgJHNhbWVfdmFsdWVzKSB7DQorCQlpZiAoISRvcHRf
-bWVyZ2UpIHsNCisJCQlwcmludCAiPHRkPiRfPC90ZD4iIGZvcmVhY2ggQHZh
-bHVlczsNCisJCX0gZWxzaWYgKCRzYW1lX3ZhbHVlcykgew0KIAkJCXByaW50
-ICI8dGQgY29sc3Bhbj0iLihzY2FsYXIgQHZhbHVlcykuIj4kdmFsdWVzWzBd
-PC90ZD4iOw0KIAkJfSBlbHNlIHsNCi0JCQlwcmludCAiPHRkPiRfPC90ZD4i
-IGZvcmVhY2ggQHZhbHVlczsNCisJCQkjIEZvciBIVE1MIG91dHB1dCwgbWVy
-Z2UgYWRqYWNlbnQgY2VsbHMgZXZlbiBpZg0KKwkJCSMgdGhlIHdob2xlIGxp
-bmUgY2Fubm90IGJlIG1lcmdlZC4NCisJCQlteSAkY29sY250ID0gMDsNCisJ
-CQlteSAkdmFsdWU7DQorCQkJd2hpbGUgKEB2YWx1ZXMpIHsNCisJCQkJJGNv
-bGNudCsrOw0KKwkJCQkkdmFsdWUgPSBzaGlmdCBAdmFsdWVzOw0KKwkJCQlu
-ZXh0IGlmIChAdmFsdWVzICYmICR2YWx1ZSBlcSAkdmFsdWVzWzBdKTsNCisJ
-CQkJcHJpbnQgIjx0ZCBjb2xzcGFuPSIgLiAkY29sY250IC4gIj4kdmFsdWU8
-L3RkPiI7DQorCQkJCSRjb2xjbnQgPSAwOw0KKwkJCX0NCisJCQlpZiAoJGNv
-bGNudCkgew0KKwkJCQlwcmludCAiPHRkIGNvbHNwYW49IiAuICRjb2xjbnQg
-LiAiPiR2YWx1ZTwvdGQ+IjsNCisJCQl9DQogCQl9DQogCQlwcmludCAiPC90
-cj5cbiI7DQogCX0gZWxzZSB7DQo=
-
---0-1983162188-1244122100=:4006
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=use_sysctl.diff
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.NEB.4.64.0906040628202.4006@quicky.whooppee.com>
-Content-Description: 
-Content-Disposition: attachment; filename=use_sysctl.diff
-
-LS0tIGRlY29kZS1kaW1tcy01NzE0Lm9yaWcJMjAwOS0wNS0yMyAxMjo0OToy
-Ni4wMDAwMDAwMDAgLTA3MDANCisrKyBkZWNvZGUtZGltbXMtNTcxNC5zeXNj
-dGwJMjAwOS0wNS0yMyAxNDowMjoxMC4wMDAwMDAwMDAgLTA3MDANCkBAIC00
-MSw4ICs0MSw5IEBADQogdXNlIFBPU0lYIHF3KGNlaWwpOw0KIHVzZSBGY250
-bCBxdyg6REVGQVVMVCA6c2Vlayk7DQogdXNlIHZhcnMgcXcoJG9wdF9odG1s
-ICRvcHRfYm9keW9ubHkgJG9wdF9zaWRlX2J5X3NpZGUgJG9wdF9tZXJnZQ0K
-LQkgICAgJG9wdF9pZ25jaGVjayAkdXNlX3N5c2ZzICR1c2VfaGV4ZHVtcCAk
-c2JzX2NvbF93aWR0aA0KLQkgICAgQHZlbmRvcnMgJWRlY29kZV9jYWxsYmFj
-ayAkcmV2aXNpb24gQGRpbW0gJGN1cnJlbnQgJWhleGR1bXBfY2FjaGUpOw0K
-KwkgICAgJG9wdF9pZ25jaGVjayAkdXNlX3N5c2ZzICR1c2VfaGV4ZHVtcCAk
-dXNlX3N5c2N0bCAkc2JzX2NvbF93aWR0aA0KKwkgICAgQHZlbmRvcnMgJWRl
-Y29kZV9jYWxsYmFjayAkcmV2aXNpb24gQGRpbW0gJGN1cnJlbnQgJWhleGR1
-bXBfY2FjaGUNCisJICAgICVzeXNjdGxfY2FjaGUpOw0KIA0KIHVzZSBjb25z
-dGFudCBMSVRUTEVFTkRJQU4JPT4gImxpdHRsZS1lbmRpYW4iOw0KIHVzZSBj
-b25zdGFudCBCSUdFTkRJQU4JCT0+ICJiaWctZW5kaWFuIjsNCkBAIC0yNTMs
-NiArMjU0LDcgQEANCiAgIlNpbGljb25CbHVlIFRlY2hub2xvZ2llcyIsICJS
-YW1idXMgSW5jLiJdKTsNCiANCiAkdXNlX3N5c2ZzID0gLWQgJy9zeXMvYnVz
-JzsNCiskdXNlX3N5c2N0bCA9IDA7DQogDQogIyBXZSBjb25zaWRlciB0aGF0
-IG5vIGRhdGEgd2FzIHdyaXR0ZW4gdG8gdGhpcyBhcmVhIG9mIHRoZSBTUEQg
-RUVQUk9NIGlmDQogIyBhbGwgYnl0ZXMgcmVhZCAweDAwIG9yIGFsbCBieXRl
-cyByZWFkIDB4ZmYNCkBAIC0xNTQzLDYgKzE1NDUsMjYgQEANCiAJfQ0KIH0N
-CiANCisjIHJlYWQgZGF0YSBmcm9tIGEgTmV0QlNEIChvciBlcXVpdmFsZW50
-KSBzeXNjdGwgdmFyaWFibGUNCisNCitzdWIgcmVhZF9zeXNjdGwoJCkNCit7
-DQorDQorCSMgTG9vayBpbiB0aGUgY2FjaGUgZmlyc3QNCisJcmV0dXJuIEB7
-JHN5c2N0bF9jYWNoZXskX1swXX19IGlmIGV4aXN0cyAkc3lzY3RsX2NhY2hl
-eyRfWzBdfTsNCisNCisJbXkgJHN5c2N0bF92YXIgPSBzcHJpbnRmKCJody4l
-cy5zcGRfZGF0YSIsICRfWzBdKTsNCisJb3BlbihQSVBFLCAiLXwiLCAic3lz
-Y3RsIC1yICRzeXNjdGxfdmFyIikNCisJCW9yIGRpZSAiQ2Fubm90IHJlYWQg
-c3lzY3RsIHZhcmlhYmxlICRzeXNjdGxfdmFyIjsNCisJc3lzcmVhZChQSVBF
-LCBteSAkZWVwcm9tLCA1MTIpOyAjIFhYWCBBc3N1bWVkIG1heGltdW0gc2l6
-ZSEgWFhYDQorCWNsb3NlIFBJUEUgb3IgZGllICJzeXNjdGwgcmV0dXJuZWQg
-JD8iOw0KKwlteSBAYnl0ZXMgPSB1bnBhY2soIkMqIiwgJGVlcHJvbSk7DQor
-DQorCSMgQ2FjaGUgdGhlIGRhdGEgZm9yIGxhdGVyIHVzZQ0KKwkkaGV4ZHVt
-cF9jYWNoZXskX1swXX0gPSBcQGJ5dGVzOw0KKwlyZXR1cm4gQGJ5dGVzOw0K
-K30NCisNCiAjIFJlYWQgYnl0ZXMgZnJvbSBTUEQtRUVQUk9NDQogIyBOb3Rl
-OiBvZmZzZXQgbXVzdCBiZSBhIG11bHRpcGxlIG9mIDE2IQ0KIHN1YiByZWFk
-c3BkKCQkJCkNCkBAIC0xNTUyLDYgKzE1NzQsOSBAQA0KIAlpZiAoJHVzZV9o
-ZXhkdW1wKSB7DQogCQlAYnl0ZXMgPSByZWFkX2hleGR1bXAoJGRpbW1faSk7
-DQogCQlyZXR1cm4gQGJ5dGVzWyRvZmZzZXQuLigkb2Zmc2V0ICsgJHNpemUg
-LSAxKV07DQorCX0gZWxzaWYgKCR1c2Vfc3lzY3RsKSB7DQorCQlAYnl0ZXMg
-PSByZWFkX3N5c2N0bCgkZGltbV9pKTsNCisJCXJldHVybiBAYnl0ZXNbJG9m
-ZnNldC4uKCRvZmZzZXQgKyAkc2l6ZSAtIDEpXTsNCiAJfSBlbHNpZiAoJHVz
-ZV9zeXNmcykgew0KIAkJIyBLZXJuZWwgMi42IHdpdGggc3lzZnMNCiAJCXN5
-c29wZW4oSEFORExFLCAiJGRpbW1faS9lZXByb20iLCBPX1JET05MWSkNCkBA
-IC0xNjIxLDcgKzE2NDYsNyBAQA0KICMgUGFyc2UgY29tbWFuZC1saW5lDQog
-Zm9yZWFjaCAoQEFSR1YpIHsNCiAJaWYgKCRfIGVxICctaCcgfHwgJF8gZXEg
-Jy0taGVscCcpIHsNCi0JCXByaW50ICJVc2FnZTogJDAgWy1jXSBbLWYgWy1i
-XV0gWy14fC1YIGZpbGUgW2ZpbGVzLi5dXVxuIiwNCisJCXByaW50ICJVc2Fn
-ZTogJDAgWy1jXSBbLWYgWy1iXV0gWy14fC1YfC1zIGZpbGUgW2ZpbGVzLi5d
-XVxuIiwNCiAJCQkiICAgICAgICQwIC1oXG5cbiIsDQogCQkJIiAgLWYsIC0t
-Zm9ybWF0ICAgICAgICAgICAgUHJpbnQgbmljZSBodG1sIG91dHB1dFxuIiwN
-CiAJCQkiICAtYiwgLS1ib2R5b25seSAgICAgICAgICBEb24ndCBwcmludCBo
-dG1sIGhlYWRlclxuIiwNCkBAIC0xNjMzLDYgKzE2NTgsOCBAQA0KIAkJCSIg
-IC14LCAgICAgICAgICAgICAgICAgICAgIFJlYWQgZGF0YSBmcm9tIGhleGR1
-bXAgZmlsZXNcbiIsDQogCQkJIiAgLVgsICAgICAgICAgICAgICAgICAgICAg
-U2FtZSBhcyAteCBleGNlcHQgdHJlYXQgbXVsdGlieXRlIGhleFxuIiwNCiAJ
-CQkiICAgICAgICAgICAgICAgICAgICAgICAgICBkYXRhIGFzIGxpdHRsZSBl
-bmRpYW5cbiIsDQorCQkJIiAgLXMsICAgICAgICAgICAgICAgICAgICAgVXNl
-IE5ldEJTRC1jb21wYXRpYmxlIHN5c2N0bCg4KSB0byBvYnRhaW5cbiIsDQor
-CQkJIiAgICAgICAgICAgICAgICAgICAgICAgICAgRUVQUk9NIGRhdGFcbiIs
-DQogCQkJIiAgLWgsIC0taGVscCAgICAgICAgICAgICAgRGlzcGxheSB0aGlz
-IHVzYWdlIHN1bW1hcnlcbiI7DQogCQlwcmludCA8PCJFT0YiOw0KIA0KQEAg
-LTE2NzMsMTMgKzE3MDAsMjAgQEANCiAJCSR1c2VfaGV4ZHVtcCA9IExJVFRM
-RUVORElBTjsNCiAJCW5leHQ7DQogCX0NCisJaWYgKCRfIGVxICctcycpIHsN
-CisJCWlmICgteCAiL3NiaW4vc3lzY3RsIikgew0KKwkJCSR1c2Vfc3lzY3Rs
-ID0gMTsNCisJCX0gZWxzZSB7IGRpZSAiTm8gL3NiaW4vc3lzY3RsIGF2YWls
-YWJsZSBmb3IgLXMiOyB9DQorCQluZXh0Ow0KKwl9DQogDQogCWlmIChtL14t
-Lykgew0KIAkJcHJpbnQgU1RERVJSICJVbnJlY29nbml6ZWQgb3B0aW9uICRf
-XG4iOw0KIAkJZXhpdDsNCiAJfQ0KIA0KLQlwdXNoIEBkaW1tLCB7IGVlcHJv
-bSA9PiAkXywgZmlsZSA9PiAkXyB9IGlmICR1c2VfaGV4ZHVtcDsNCisJcHVz
-aCBAZGltbSwgeyBlZXByb20gPT4gJF8sIGZpbGUgPT4gJF8gfQ0KKwkJaWYg
-KCR1c2Vfc3lzY3RsIHx8ICR1c2VfaGV4ZHVtcCk7DQogfQ0KIA0KIGlmICgk
-b3B0X2h0bWwgJiYgISRvcHRfYm9keW9ubHkpIHsNCkBAIC0xNzMyLDcgKzE3
-NjYsNyBAQA0KICMgICogY2hrX3NwZDogVGhlIGNoZWNrc3VtIG9yIENSQyB2
-YWx1ZSBmb3VuZCBpbiB0aGUgRUVQUk9NDQogIyAgKiBjaGtfY2FsYzogVGhl
-IGNoZWNrc3VtIG9yIENSQyBjb21wdXRlZCBmcm9tIHRoZSBFRVBST00gZGF0
-YQ0KICMgS2V5cyBhcmUgYWRkZWQgb3ZlciB0aW1lLg0KLUBkaW1tID0gZ2V0
-X2RpbW1fbGlzdCgpIHVubGVzcyAkdXNlX2hleGR1bXA7DQorQGRpbW0gPSBn
-ZXRfZGltbV9saXN0KCkgdW5sZXNzICgkdXNlX3N5c2N0bCB8fCAkdXNlX2hl
-eGR1bXApOw0KIA0KIGZvciBteSAkaSAoMCAuLiAkI2RpbW0pIHsNCiAJbXkg
-QGJ5dGVzID0gcmVhZHNwZCgwLCAxMjgsICRkaW1tWyRpXS0+e2ZpbGV9KTsN
-CkBAIC0xNzY4LDcgKzE4MDIsNyBAQA0KIAkJcHJpbnRsKCJEZWNvZGluZyBF
-RVBST00iLCAkZGltbVskY3VycmVudF0tPntlZXByb219KTsNCiAJfQ0KIA0K
-LQlpZiAoISR1c2VfaGV4ZHVtcCkgew0KKwlpZiAoISR1c2VfaGV4ZHVtcCAm
-JiAhJHVzZV9zeXNjdGwpIHsNCiAJCWlmICgkZGltbVskY3VycmVudF0tPntm
-aWxlfSA9fiAvLShbXGRhLWZdKykkL2kpIHsNCiAJCQlteSAkZGltbV9udW0g
-PSBoZXgoJDEpIC0gMHg1MCArIDE7DQogCQkJaWYgKCRkaW1tX251bSA+PSAx
-ICYmICRkaW1tX251bSA8PSA4KSB7DQo=
-
---0-1983162188-1244122100=:4006
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---0-1983162188-1244122100=:4006--
