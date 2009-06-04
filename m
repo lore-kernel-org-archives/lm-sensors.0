@@ -1,345 +1,223 @@
-From: Todd Nine <todd@spidertracks.co.nz>
-Date: Wed, 13 May 2009 05:11:57 +0000
-Subject: [lm-sensors] Help with new supermicro fan control
-Message-Id: <302AA348-F401-4C33-A1C8-393BB4A40791@spidertracks.co.nz>
+From: Paul Goyette <paul@whooppee.com>
+Date: Thu, 04 Jun 2009 13:28:20 +0000
+Subject: [lm-sensors] Suggested enhancements (with patches) to
+Message-Id: <Pine.NEB.4.64.0906040614390.4006@quicky.whooppee.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6579521677043737414=="
+Content-Type: multipart/mixed; boundary="0-1983162188-1244122100=:4006"
 List-Id: <lm-sensors.vger.kernel.org>
 To: lm-sensors@vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---===============6579521677043737414==
-Content-Type: multipart/alternative; boundary=Apple-Mail-5--256170962
+--0-1983162188-1244122100=:4006
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 
+(Hopefully this is the correct mailing list - there does not appear to 
+be a list dedicated to i2c-tools.)
 
---Apple-Mail-5--256170962
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	format=flowed;
-	delsp=yes
-Content-Transfer-Encoding: quoted-printable
+Dear list readers,
 
-Hi all,
-   I'm attempting to install lm_sensors in to CentOs 5.3 x86_64 on a =20
-Super Micro
+Attached are three patches to the decode-dimms that I've found to be 
+rather useful.
 
-http://www.supermicro.com/products/motherboard/Xeon1333/5400/X7DWN+.cfm
+First, there are several places where the printl_cond() function should 
+be used to display some manufacturing data.  With existing code, if only 
+some DIMMs have this data, the side-by-side feature will be disabled. 
+This patch completes the implementation of printl_cond().
 
-I've tried both the latest source 3.1, as well as the rpm from yum =20
-which is v 2.10.7 with libsensors v 2.10.7.  I'd prefer to use the RPM =20=
+Second, when decoding more than two DIMMs, it might well be useful to 
+have the side-by-side merge-cells work even if only some of the DIMMs 
+have equal values.  This improves the display when, for example, you 
+have two pairs of DIMMs.  Even though the DIMMs in each pair are the 
+same, the existing code will not merge cells unless all four DIMMs are 
+the same.  This patch allows merging of the partial rows.
 
-version that comes from yum if possible.  Whenever I run the sensors =20
-command, I always receive the following output.
+The third patch is useful to expand the OS base where decode-dimms is 
+useful.  This patch teaches decode-dimms how to retrieve SPD EEPROM data 
+from a NetBSD sysctl(8) node.  Without this, the only way to use 
+decode-dimms on NetBSD is to manually extract the sysctl(8) entries, run 
+them through hexdump, supply hexdump's output file(s) as input to 
+decode-dimms with -x, and then clean up (delete) the hexdump output!
 
-w83627hf-isa-0290
-Adapter: ISA adapter
-VCore 1:   +3.36 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-VCore 2:   +3.31 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-+3.3V:     +3.30 V  (min =3D  +2.82 V, max =3D  +3.79 V)
-+5V:       +5.16 V  (min =3D  +0.46 V, max =3D  +0.08 V)       ALARM
-+12V:     +11.73 V  (min =3D  +6.69 V, max =3D  +7.30 V)       ALARM
--12V:      +0.96 V  (min =3D -14.50 V, max =3D -10.63 V)       ALARM
--5V:       +1.99 V  (min =3D  -5.20 V, max =3D  +1.99 V)
-V5SB:      +5.64 V  (min =3D  +5.16 V, max =3D  +5.00 V)       ALARM
-VBat:      +0.00 V  (min =3D  +0.35 V, max =3D  +0.16 V)       ALARM
-fan1:        0 RPM  (min =3D 5273 RPM, div =3D 128)              ALARM
-fan2:        0 RPM  (min =3D 6250 RPM, div =3D 2)              ALARM
-fan3:        0 RPM  (min =3D 5672 RPM, div =3D 2)              ALARM
-temp1:       -30=B0C  (high =3D   +33=B0C, hyst =3D    +8=B0C)   sensor =
-=3D =20
-thermistor
-temp2:     -34.0=B0C  (high =3D   +80=B0C, hyst =3D   +75=B0C)   sensor =
-=3D =20
-thermistor
-temp3:     -34.0=B0C  (high =3D   +80=B0C, hyst =3D   +75=B0C)   sensor =
-=3D =20
-thermistor
-vid:      +0.000 V  (VRM Version 8.2)
-alarms:
-beep_enable:
-           Sound alarm enabled
+All three of these patches are relative to the most recent version of 
+decode-dimms that I can find:
 
-
-As you can see none of my fans are working.  I've read the wiki on fan =20=
-
-control and divisors, but I don't seem to have any config options.  =20
-Here is the config I have in etc/sensors.conf for my board.  I know =20
-that my fans must report data, as windows detects the rpms and I have =20=
-
-4 pins on my fan connectors.  I'm also able to detect my temperature =20
-and fan speed in BIOS.  I'm sure it's a simple config I've missed, but =20=
-
-I'm new to lm-sensors so any help would be appreciated.
-
-Thanks,
-Todd
-
-chip "w83782d-*" "w83627hf-*"
-
-# Same as above for w83781d except that in5 and in6 are computed =20
-differently.
-# Rather than an internal inverting op amp, the 82d/83s use standard =20
-positive
-# inputs and the negative voltages are level shifted by a 3.6V =20
-reference.
-# The math is convoluted, so we hope that your motherboard
-# uses the recommended resistor values.
-
-     label in0 "VCore 1"
-     label in1 "VCore 2"
-     label in2 "+3.3V"
-     label in3 "+5V"
-     label in4 "+12V"
-     label in5 "-12V"
-     label in6 "-5V"
-     label in7 "V5SB"
-     label in8 "VBat"
-
-# Abit BP6 motherboard has a few differences. VCore1 and VCore2 are =20
-the core
-# voltages of the two processors. Vtt is memory bus termination =20
-resistors
-# voltage.
-#    label in1 "Vtt"
-#    label in8 "VCore2"
-
-     compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
-     compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
-     compute in5 (5.14 * @) - 14.91  ,  (@ + 14.91) / 5.14
-     compute in6 (3.14 * @) -  7.71  ,  (@ +  7.71) / 3.14
-     compute in7 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
-
-# adjust this if your vid is wrong; see doc/vid
+http://lm-sensors.org/browser/i2c-tools/trunk/eeprom/decode-dimms?rev=5714
 
 
 
-todd
-SENIOR SOFTWARE ENGINEER
 
-todd nine | spidertracks ltd |  117a the square
-po box 5203 | palmerston north 4441 | new zealand
-P: +64 6 353 3395 | M: +64 21
-E: todd@spidertracks.co.nz W: www.spidertracks.com
+-------------------------------------------------------------------------
+|   Paul Goyette   | PGP DSS Key fingerprint: |  E-mail addresses:      |
+| Customer Service | FA29 0E3B 35AF E8AE 6651 |  paul at whooppee.com   |
+| Network Engineer | 0786 F758 55DE 53BA 7731 | pgoyette at juniper.net |
+| Kernel Developer |                          | pgoyette at netbsd.org  |
+-------------------------------------------------------------------------
+--0-1983162188-1244122100=:4006
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=more-printl_cond.diff
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.NEB.4.64.0906040628200.4006@quicky.whooppee.com>
+Content-Description: 
+Content-Disposition: attachment; filename=more-printl_cond.diff
 
+LS0tIGRlY29kZS1kaW1tcy01NzE0CTIwMDktMDUtMjMgMTQ6MDI6MTAuMDAw
+MDAwMDAwIC0wNzAwDQorKysgbXktZGVjb2RlLWRpbW1zCTIwMDktMDUtMjQg
+MDc6MDI6NDguMDAwMDAwMDAwIC0wNzAwDQpAQCAtMTM3MywyNiArMTM4OCwy
+MCBAQA0KIAlwcmludGwoIk1vZHVsZSBNYW51ZmFjdHVyZXIiLA0KIAkgICAg
+ICAgbWFudWZhY3R1cmVyX2RkcjMoJGJ5dGVzLT5bMTE3XSwgJGJ5dGVzLT5b
+MTE4XSkpOw0KIA0KLQlpZiAoc3BkX3dyaXR0ZW4oQHskYnl0ZXN9WzE0OC4u
+MTQ5XSkpIHsNCi0JCXByaW50bCgiRFJBTSBNYW51ZmFjdHVyZXIiLA0KLQkJ
+ICAgICAgIG1hbnVmYWN0dXJlcl9kZHIzKCRieXRlcy0+WzE0OF0sICRieXRl
+cy0+WzE0OV0pKTsNCi0JfQ0KKwlwcmludGxfY29uZChzcGRfd3JpdHRlbihA
+eyRieXRlc31bMTQ4Li4xNDldKSwgIkRSQU0gTWFudWZhY3R1cmVyIiwNCisJ
+CSAgICBtYW51ZmFjdHVyZXJfZGRyMygkYnl0ZXMtPlsxNDhdLCAkYnl0ZXMt
+PlsxNDldKSk7DQogDQogCXByaW50bF9tZmdfbG9jYXRpb25fY29kZSgkYnl0
+ZXMtPlsxMTldKTsNCiANCi0JaWYgKHNwZF93cml0dGVuKEB7JGJ5dGVzfVsx
+MjAuLjEyMV0pKSB7DQotCQlwcmludGwoIk1hbnVmYWN0dXJpbmcgRGF0ZSIs
+DQotCQkgICAgICAgbWFudWZhY3R1cmVfZGF0ZSgkYnl0ZXMtPlsxMjBdLCAk
+Ynl0ZXMtPlsxMjFdKSk7DQotCX0NCisJcHJpbnRsX2NvbmQoc3BkX3dyaXR0
+ZW4oQHskYnl0ZXN9WzEyMC4uMTIxXSksICJNYW51ZmFjdHVyaW5nIERhdGUi
+LA0KKwkJICAgIG1hbnVmYWN0dXJlX2RhdGUoJGJ5dGVzLT5bMTIwXSwgJGJ5
+dGVzLT5bMTIxXSkpOw0KIA0KIAlwcmludGxfbWZnX2Fzc2VtYmx5X3Nlcmlh
+bChAeyRieXRlc31bMTIyLi4xMjVdKTsNCiANCiAJcHJpbnRsKCJQYXJ0IE51
+bWJlciIsIHBhcnRfbnVtYmVyKEB7JGJ5dGVzfVsxMjguLjE0NV0pKTsNCiAN
+Ci0JaWYgKHNwZF93cml0dGVuKEB7JGJ5dGVzfVsxNDYuLjE0N10pKSB7DQot
+CQlwcmludGwoIlJldmlzaW9uIENvZGUiLA0KLQkJICAgICAgIHNwcmludGYo
+IjB4JTAyWCUwMlgiLCAkYnl0ZXMtPlsxNDZdLCAkYnl0ZXMtPlsxNDddKSk7
+DQotCX0NCisJcHJpbnRsX2NvbmQoc3BkX3dyaXR0ZW4oQHskYnl0ZXN9WzE0
+Ni4uMTQ3XSksICJSZXZpc2lvbiBDb2RlIiwNCisJCSAgICBzcHJpbnRmKCIw
+eCUwMlglMDJYIiwgJGJ5dGVzLT5bMTQ2XSwgJGJ5dGVzLT5bMTQ3XSkpOw0K
+IH0NCiANCiAjIFBhcmFtZXRlcjogRUVQUk9NIGJ5dGVzIDAtMTI3ICh1c2lu
+ZyA2NC05OCkNCg==
 
---Apple-Mail-5--256170962
-Content-Type: text/html;
-	charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+--0-1983162188-1244122100=:4006
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=merge-some.diff
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.NEB.4.64.0906040628201.4006@quicky.whooppee.com>
+Content-Description: 
+Content-Disposition: attachment; filename=merge-some.diff
 
-<html><body style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; =
--webkit-line-break: after-white-space; ">Hi all,<div>&nbsp;&nbsp;I'm =
-attempting to install lm_sensors in to CentOs 5.3 x86_64 on a Super =
-Micro</div><div><br></div><div><a =
-href=3D"http://www.supermicro.com/products/motherboard/Xeon1333/5400/X7DWN=
-+.cfm">http://www.supermicro.com/products/motherboard/Xeon1333/5400/X7DWN+=
-.cfm</a></div><div><br></div><div>I've tried both the latest source 3.1, =
-as well as the rpm from yum which is&nbsp;v 2.10.7 with libsensors v =
-2.10.7. &nbsp;I'd prefer to use the RPM version that comes from yum if =
-possible. &nbsp;Whenever I run the sensors command, I always receive the =
-following =
-output.</div><div><br></div><div><div>w83627hf-isa-0290</div><div>Adapter:=
- ISA adapter</div><div>VCore 1: &nbsp; +3.36 V &nbsp;(min =3D =
-&nbsp;+0.00 V, max =3D &nbsp;+4.08 V) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =
-&nbsp; &nbsp;</div><div>VCore 2: &nbsp; +3.31 V &nbsp;(min =3D =
-&nbsp;+0.00 V, max =3D &nbsp;+4.08 V) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =
-&nbsp; &nbsp;</div><div>+3.3V: &nbsp; &nbsp; +3.30 V &nbsp;(min =3D =
-&nbsp;+2.82 V, max =3D &nbsp;+3.79 V) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =
-&nbsp; &nbsp;</div><div>+5V: &nbsp; &nbsp; &nbsp; +5.16 V &nbsp;(min =3D =
-&nbsp;+0.46 V, max =3D &nbsp;+0.08 V) &nbsp; &nbsp; &nbsp; ALARM =
-&nbsp;</div><div>+12V: &nbsp; &nbsp; +11.73 V &nbsp;(min =3D &nbsp;+6.69 =
-V, max =3D &nbsp;+7.30 V) &nbsp; &nbsp; &nbsp; ALARM =
-&nbsp;</div><div>-12V: &nbsp; &nbsp; &nbsp;+0.96 V &nbsp;(min =3D -14.50 =
-V, max =3D -10.63 V) &nbsp; &nbsp; &nbsp; ALARM &nbsp;</div><div>-5V: =
-&nbsp; &nbsp; &nbsp; +1.99 V &nbsp;(min =3D &nbsp;-5.20 V, max =3D =
-&nbsp;+1.99 V) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =
-&nbsp;</div><div>V5SB: &nbsp; &nbsp; &nbsp;+5.64 V &nbsp;(min =3D =
-&nbsp;+5.16 V, max =3D &nbsp;+5.00 V) &nbsp; &nbsp; &nbsp; ALARM =
-&nbsp;</div><div>VBat: &nbsp; &nbsp; &nbsp;+0.00 V &nbsp;(min =3D =
-&nbsp;+0.35 V, max =3D &nbsp;+0.16 V) &nbsp; &nbsp; &nbsp; ALARM =
-&nbsp;</div><div>fan1: &nbsp; &nbsp; &nbsp; &nbsp;0 RPM &nbsp;(min =3D =
-5273 RPM, div =3D 128) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =
-&nbsp;ALARM &nbsp;</div><div>fan2: &nbsp; &nbsp; &nbsp; &nbsp;0 RPM =
-&nbsp;(min =3D 6250 RPM, div =3D 2) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =
-&nbsp; &nbsp;ALARM &nbsp;</div><div>fan3: &nbsp; &nbsp; &nbsp; &nbsp;0 =
-RPM &nbsp;(min =3D 5672 RPM, div =3D 2) &nbsp; &nbsp; &nbsp; &nbsp; =
-&nbsp; &nbsp; &nbsp;ALARM &nbsp;</div><div>temp1: &nbsp; &nbsp; &nbsp; =
--30=B0C &nbsp;(high =3D &nbsp; +33=B0C, hyst =3D &nbsp; &nbsp;+8=B0C) =
-&nbsp; sensor =3D thermistor &nbsp; &nbsp; &nbsp; &nbsp; =
-&nbsp;&nbsp;</div><div>temp2: &nbsp; &nbsp; -34.0=B0C &nbsp;(high =3D =
-&nbsp; +80=B0C, hyst =3D &nbsp; +75=B0C) &nbsp; sensor =3D thermistor =
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</div><div>temp3: &nbsp; &nbsp; =
--34.0=B0C &nbsp;(high =3D &nbsp; +80=B0C, hyst =3D &nbsp; +75=B0C) =
-&nbsp; sensor =3D thermistor &nbsp; &nbsp; &nbsp; &nbsp; =
-&nbsp;&nbsp;</div><div>vid: &nbsp; &nbsp; &nbsp;+0.000 V &nbsp;(VRM =
-Version 8.2)</div><div>alarms: =
-&nbsp;&nbsp;</div><div>beep_enable:</div><div>&nbsp;&nbsp; &nbsp; &nbsp; =
-&nbsp; &nbsp;Sound alarm =
-enabled</div><div><br></div><div><br></div><div>As you can see none of =
-my fans are working. &nbsp;I've read the wiki on fan control and =
-divisors, but I don't seem to have any config options. &nbsp;Here is the =
-config I have in&nbsp;etc/sensors.conf for my board. &nbsp;I know that =
-my fans must report data, as windows detects the rpms and I have 4 pins =
-on my fan connectors. &nbsp;I'm also able to detect my temperature and =
-fan speed in BIOS. &nbsp;I'm sure it's a simple config I've missed, but =
-I'm new to lm-sensors so any help would be =
-appreciated.</div><div><br></div><div>Thanks,</div><div>Todd</div><div><br=
-></div><div><div>chip "w83782d-*" =
-"w83627hf-*"</div><div><br></div><div># Same as above for w83781d except =
-that in5 and in6 are computed differently.</div><div># Rather than an =
-internal inverting op amp, the 82d/83s use standard positive</div><div># =
-inputs and the negative voltages are level shifted by a 3.6V =
-reference.</div><div># The math is convoluted, so we hope that your =
-motherboard</div><div># uses the recommended resistor =
-values.</div><div><br></div><div>&nbsp;&nbsp; &nbsp;label in0 "VCore =
-1"</div><div>&nbsp;&nbsp; &nbsp;label in1 "VCore =
-2"</div><div>&nbsp;&nbsp; &nbsp;label in2 "+3.3V"</div><div>&nbsp;&nbsp; =
-&nbsp;label in3 "+5V"</div><div>&nbsp;&nbsp; &nbsp;label in4 =
-"+12V"</div><div>&nbsp;&nbsp; &nbsp;label in5 =
-"-12V"</div><div>&nbsp;&nbsp; &nbsp;label in6 =
-"-5V"</div><div>&nbsp;&nbsp; &nbsp;label in7 =
-"V5SB"</div><div>&nbsp;&nbsp; &nbsp;label in8 =
-"VBat"</div><div><br></div><div># Abit BP6 motherboard has a few =
-differences. VCore1 and VCore2 are the core</div><div># voltages of the =
-two processors. Vtt is memory bus termination resistors</div><div># =
-voltage.</div><div># &nbsp; &nbsp;label in1 "Vtt"</div><div># &nbsp; =
-&nbsp;label in8 "VCore2"</div><div><br></div><div>&nbsp;&nbsp; =
-&nbsp;compute in3 ((6.8/10)+1)*@ , =
-&nbsp;@/((6.8/10)+1)</div><div>&nbsp;&nbsp; &nbsp;compute in4 =
-((28/10)+1)*@ &nbsp;, &nbsp;@/((28/10)+1)</div><div>&nbsp;&nbsp; =
-&nbsp;compute in5 (5.14 * @) - 14.91 &nbsp;, &nbsp;(@ + 14.91) / =
-5.14</div><div>&nbsp;&nbsp; &nbsp;compute in6 (3.14 * @) - &nbsp;7.71 =
-&nbsp;, &nbsp;(@ + &nbsp;7.71) / 3.14</div><div>&nbsp;&nbsp; =
-&nbsp;compute in7 ((6.8/10)+1)*@ , =
-&nbsp;@/((6.8/10)+1)</div><div><br></div><div># adjust this if your vid =
-is wrong; see =
-doc/vid</div><div><br></div></div><div><br></div></div><div><br><div =
-apple-content-edited=3D"true"> <span class=3D"Apple-style-span" =
-style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
-'Lucida Grande'; font-size: 11px; font-style: normal; font-variant: =
-normal; font-weight: normal; letter-spacing: normal; line-height: =
-normal; orphans: 2; text-align: auto; text-indent: 0px; text-transform: =
-none; white-space: normal; widows: 2; word-spacing: 0px; =
--webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: =
-0px; -webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
-auto; -webkit-text-stroke-width: 0; "><div style=3D"word-wrap: =
-break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
-after-white-space; "><span class=3D"Apple-style-span" =
-style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
-'Lucida Grande'; font-size: 11px; font-style: normal; font-variant: =
-normal; font-weight: normal; letter-spacing: normal; line-height: =
-normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: =
-normal; widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: =
-0px; -webkit-border-vertical-spacing: 0px; =
--webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
-auto; -webkit-text-stroke-width: 0px; "><div style=3D"word-wrap: =
-break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
-after-white-space; "><span class=3D"Apple-style-span" =
-style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
-'Lucida Grande'; font-size: 11px; font-style: normal; font-variant: =
-normal; font-weight: normal; letter-spacing: normal; line-height: =
-normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: =
-normal; widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: =
-0px; -webkit-border-vertical-spacing: 0px; =
--webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
-auto; -webkit-text-stroke-width: 0px; "><div style=3D"word-wrap: =
-break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
-after-white-space; "><span class=3D"Apple-style-span" =
-style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
-'Lucida Grande'; font-size: 11px; font-style: normal; font-variant: =
-normal; font-weight: normal; letter-spacing: normal; line-height: =
-normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: =
-normal; widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: =
-0px; -webkit-border-vertical-spacing: 0px; =
--webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
-auto; -webkit-text-stroke-width: 0px; "><div style=3D"word-wrap: =
-break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
-after-white-space; "><span class=3D"Apple-style-span" =
-style=3D"border-collapse: separate; color: rgb(193, 216, 47); =
-font-family: 'Lucida Grande'; font-size: 16px; font-style: normal; =
-font-variant: normal; font-weight: normal; letter-spacing: normal; =
-line-height: normal; orphans: 2; text-indent: 0px; text-transform: none; =
-white-space: normal; widows: 2; word-spacing: 0px; =
--webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: =
-0px; -webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
-auto; -webkit-text-stroke-width: 0px; "><div style=3D"margin-top: 0px; =
-margin-right: 0px; margin-bottom: 0px; margin-left: 0px; font: normal =
-normal normal 16px/normal 'Lucida Grande'; color: rgb(193, 216, 47); =
-"><span class=3D"Apple-style-span" style=3D"font-family: 'Lucida Sans =
-Unicode'; "><font class=3D"Apple-style-span" color=3D"#000000" =
-face=3D"'Lucida Grande'" size=3D"3"><span class=3D"Apple-style-span" =
-style=3D"font-size: 11px;">todd</span></font></span></div><div =
-style=3D"margin-top: 0px; margin-right: 0px; margin-bottom: 0px; =
-margin-left: 0px; font: normal normal normal 16px/normal 'Lucida =
-Grande'; color: rgb(193, 216, 47); "><font class=3D"Apple-style-span" =
-face=3D"'Lucida Sans Unicode'"><span class=3D"Apple-style-span" =
-style=3D"color: rgb(0, 0, 0); font-family: 'Lucida Grande'; font-size: =
-11px; "><div style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; =
--webkit-line-break: after-white-space; "><div =
-apple-content-edited=3D"true"><div style=3D"word-wrap: break-word; =
--webkit-nbsp-mode: space; -webkit-line-break: after-white-space; "><span =
-class=3D"Apple-style-span" style=3D"color: rgb(193, 216, 47); font-size: =
-16px; "><div style=3D"margin-top: 0px; margin-right: 0px; margin-bottom: =
-0px; margin-left: 0px; font: normal normal normal 16px/normal 'Lucida =
-Grande'; color: rgb(193, 216, 47); "><font class=3D"Apple-style-span" =
-color=3D"#808080" face=3D"'Lucida Sans Unicode'" size=3D"2"><span =
-class=3D"Apple-style-span" style=3D"font-size: 10px; ">SENIOR SOFTWARE =
-ENGINEER</span></font></div><div style=3D"margin-top: 0px; margin-right: =
-0px; margin-bottom: 0px; margin-left: 0px; font: normal normal normal =
-12px/normal 'Lucida Grande'; min-height: 15px; "><font =
-class=3D"Apple-style-span" face=3D"'Lucida Sans =
-Unicode'"><br></font></div><div style=3D"margin-top: 0px; margin-right: =
-0px; margin-bottom: 0px; margin-left: 0px; font: normal normal normal =
-12px/normal 'Lucida Grande'; min-height: 15px; "><span =
-class=3D"Apple-style-span" style=3D"color: rgb(128, 128, 128); "><span =
-style=3D"color: rgb(0, 0, 0); "><font class=3D"Apple-style-span" =
-face=3D"'Lucida Sans Unicode'">todd nine&nbsp;</font></span><font =
-class=3D"Apple-style-span" face=3D"'Lucida Sans Unicode'">| spidertracks =
-ltd |&nbsp;&nbsp;117a the square</font></span></div><div =
-style=3D"margin-top: 0px; margin-right: 0px; margin-bottom: 0px; =
-margin-left: 0px; font: normal normal normal 12px/normal 'Lucida =
-Grande'; color: rgb(128, 128, 128); "><font class=3D"Apple-style-span" =
-face=3D"'Lucida Sans Unicode'">po box 5203 | palmerston north 4441 | new =
-zealand</font></div><div style=3D"margin-top: 0px; margin-right: 0px; =
-margin-bottom: 0px; margin-left: 0px; font: normal normal normal =
-12px/normal 'Lucida Grande'; color: rgb(128, 128, 128); "><span =
-style=3D"font: normal normal normal 9px/normal 'Lucida Grande'; "><font =
-class=3D"Apple-style-span" face=3D"'Lucida Sans =
-Unicode'">P</font></span><font class=3D"Apple-style-span" face=3D"'Lucida =
-Sans Unicode'">: +64 6 353 3395 |</font><font class=3D"Apple-style-span" =
-face=3D"'Lucida Sans Unicode'">&nbsp;</font><span style=3D"font: normal =
-normal normal 9px/normal 'Lucida Grande'; "><font =
-class=3D"Apple-style-span" face=3D"'Lucida Sans =
-Unicode'">M</font></span><font class=3D"Apple-style-span" face=3D"'Lucida =
-Sans Unicode'">: +64 21&nbsp;</font></div><div style=3D"margin-top: 0px; =
-margin-right: 0px; margin-bottom: 0px; margin-left: 0px; font: normal =
-normal normal 12px/normal 'Lucida Grande'; color: rgb(128, 128, 128); =
-"><span style=3D"font: normal normal normal 9px/normal 'Lucida Grande'; =
-"><font class=3D"Apple-style-span" face=3D"'Lucida Sans =
-Unicode'">E</font></span><font class=3D"Apple-style-span" face=3D"'Lucida =
-Sans Unicode'">:&nbsp;<font class=3D"Apple-style-span" color=3D"#C1D82F" =
-size=3D"4"><font class=3D"Apple-style-span" face=3D"'Lucida Grande'" =
-size=3D"3"><span class=3D"Apple-style-span" style=3D"font-size: 12px; =
-"><a =
-href=3D"mailto:todd@spidertracks.co.nz">todd@spidertracks.co.nz</a></span>=
-</font><span class=3D"Apple-style-span" style=3D"font-size: 16px; =
-">&nbsp;<span class=3D"Apple-style-span" style=3D"color: rgb(128, 128, =
-128); font-family: 'Lucida Grande'; font-size: 12px; "><span =
-style=3D"font: normal normal normal 9px/normal 'Lucida Grande'; "><font =
-class=3D"Apple-style-span" face=3D"'Lucida Sans =
-Unicode'">W</font></span><font class=3D"Apple-style-span" face=3D"'Lucida =
-Sans Unicode'">:&nbsp;<span class=3D"Apple-style-span" style=3D"color: =
-rgb(193, 216, 47); "><font class=3D"Apple-style-span" face=3D"'Lucida =
-Grande'"><a =
-href=3D"http://www.spidertracks.com">www.spidertracks.com</a></font></span=
-></font></span></span></font></font></div></span></div></div></div></span>=
-</font></div></span></div></span></div></span></div></span></div></span> =
-</div><br></div></body></html>=
+LS0tIGRlY29kZS1kaW1tcy01NzE0CTIwMDktMDUtMjMgMTQ6MDI6MTAuMDAw
+MDAwMDAwIC0wNzAwDQorKysgbXktZGVjb2RlLWRpbW1zCTIwMDktMDUtMjQg
+MDc6MDI6NDguMDAwMDAwMDAwIC0wNzAwDQpAQCAtMzgxLDEwICszODEsMjUg
+QEANCiAJCSRsYWJlbCA9IGh0bWxfZW5jb2RlKCRsYWJlbCk7DQogCQlAdmFs
+dWVzID0gbWFwIHsgaHRtbF9lbmNvZGUoJF8pIH0gQHZhbHVlczsNCiAJCXBy
+aW50ICI8dHI+PHRkIHZhbGlnbj10b3A+JGxhYmVsPC90ZD4iOw0KLQkJaWYg
+KCRvcHRfbWVyZ2UgJiYgJHNhbWVfdmFsdWVzKSB7DQorCQlpZiAoISRvcHRf
+bWVyZ2UpIHsNCisJCQlwcmludCAiPHRkPiRfPC90ZD4iIGZvcmVhY2ggQHZh
+bHVlczsNCisJCX0gZWxzaWYgKCRzYW1lX3ZhbHVlcykgew0KIAkJCXByaW50
+ICI8dGQgY29sc3Bhbj0iLihzY2FsYXIgQHZhbHVlcykuIj4kdmFsdWVzWzBd
+PC90ZD4iOw0KIAkJfSBlbHNlIHsNCi0JCQlwcmludCAiPHRkPiRfPC90ZD4i
+IGZvcmVhY2ggQHZhbHVlczsNCisJCQkjIEZvciBIVE1MIG91dHB1dCwgbWVy
+Z2UgYWRqYWNlbnQgY2VsbHMgZXZlbiBpZg0KKwkJCSMgdGhlIHdob2xlIGxp
+bmUgY2Fubm90IGJlIG1lcmdlZC4NCisJCQlteSAkY29sY250ID0gMDsNCisJ
+CQlteSAkdmFsdWU7DQorCQkJd2hpbGUgKEB2YWx1ZXMpIHsNCisJCQkJJGNv
+bGNudCsrOw0KKwkJCQkkdmFsdWUgPSBzaGlmdCBAdmFsdWVzOw0KKwkJCQlu
+ZXh0IGlmIChAdmFsdWVzICYmICR2YWx1ZSBlcSAkdmFsdWVzWzBdKTsNCisJ
+CQkJcHJpbnQgIjx0ZCBjb2xzcGFuPSIgLiAkY29sY250IC4gIj4kdmFsdWU8
+L3RkPiI7DQorCQkJCSRjb2xjbnQgPSAwOw0KKwkJCX0NCisJCQlpZiAoJGNv
+bGNudCkgew0KKwkJCQlwcmludCAiPHRkIGNvbHNwYW49IiAuICRjb2xjbnQg
+LiAiPiR2YWx1ZTwvdGQ+IjsNCisJCQl9DQogCQl9DQogCQlwcmludCAiPC90
+cj5cbiI7DQogCX0gZWxzZSB7DQo=
 
---Apple-Mail-5--256170962--
+--0-1983162188-1244122100=:4006
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=use_sysctl.diff
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.NEB.4.64.0906040628202.4006@quicky.whooppee.com>
+Content-Description: 
+Content-Disposition: attachment; filename=use_sysctl.diff
 
+LS0tIGRlY29kZS1kaW1tcy01NzE0Lm9yaWcJMjAwOS0wNS0yMyAxMjo0OToy
+Ni4wMDAwMDAwMDAgLTA3MDANCisrKyBkZWNvZGUtZGltbXMtNTcxNC5zeXNj
+dGwJMjAwOS0wNS0yMyAxNDowMjoxMC4wMDAwMDAwMDAgLTA3MDANCkBAIC00
+MSw4ICs0MSw5IEBADQogdXNlIFBPU0lYIHF3KGNlaWwpOw0KIHVzZSBGY250
+bCBxdyg6REVGQVVMVCA6c2Vlayk7DQogdXNlIHZhcnMgcXcoJG9wdF9odG1s
+ICRvcHRfYm9keW9ubHkgJG9wdF9zaWRlX2J5X3NpZGUgJG9wdF9tZXJnZQ0K
+LQkgICAgJG9wdF9pZ25jaGVjayAkdXNlX3N5c2ZzICR1c2VfaGV4ZHVtcCAk
+c2JzX2NvbF93aWR0aA0KLQkgICAgQHZlbmRvcnMgJWRlY29kZV9jYWxsYmFj
+ayAkcmV2aXNpb24gQGRpbW0gJGN1cnJlbnQgJWhleGR1bXBfY2FjaGUpOw0K
+KwkgICAgJG9wdF9pZ25jaGVjayAkdXNlX3N5c2ZzICR1c2VfaGV4ZHVtcCAk
+dXNlX3N5c2N0bCAkc2JzX2NvbF93aWR0aA0KKwkgICAgQHZlbmRvcnMgJWRl
+Y29kZV9jYWxsYmFjayAkcmV2aXNpb24gQGRpbW0gJGN1cnJlbnQgJWhleGR1
+bXBfY2FjaGUNCisJICAgICVzeXNjdGxfY2FjaGUpOw0KIA0KIHVzZSBjb25z
+dGFudCBMSVRUTEVFTkRJQU4JPT4gImxpdHRsZS1lbmRpYW4iOw0KIHVzZSBj
+b25zdGFudCBCSUdFTkRJQU4JCT0+ICJiaWctZW5kaWFuIjsNCkBAIC0yNTMs
+NiArMjU0LDcgQEANCiAgIlNpbGljb25CbHVlIFRlY2hub2xvZ2llcyIsICJS
+YW1idXMgSW5jLiJdKTsNCiANCiAkdXNlX3N5c2ZzID0gLWQgJy9zeXMvYnVz
+JzsNCiskdXNlX3N5c2N0bCA9IDA7DQogDQogIyBXZSBjb25zaWRlciB0aGF0
+IG5vIGRhdGEgd2FzIHdyaXR0ZW4gdG8gdGhpcyBhcmVhIG9mIHRoZSBTUEQg
+RUVQUk9NIGlmDQogIyBhbGwgYnl0ZXMgcmVhZCAweDAwIG9yIGFsbCBieXRl
+cyByZWFkIDB4ZmYNCkBAIC0xNTQzLDYgKzE1NDUsMjYgQEANCiAJfQ0KIH0N
+CiANCisjIHJlYWQgZGF0YSBmcm9tIGEgTmV0QlNEIChvciBlcXVpdmFsZW50
+KSBzeXNjdGwgdmFyaWFibGUNCisNCitzdWIgcmVhZF9zeXNjdGwoJCkNCit7
+DQorDQorCSMgTG9vayBpbiB0aGUgY2FjaGUgZmlyc3QNCisJcmV0dXJuIEB7
+JHN5c2N0bF9jYWNoZXskX1swXX19IGlmIGV4aXN0cyAkc3lzY3RsX2NhY2hl
+eyRfWzBdfTsNCisNCisJbXkgJHN5c2N0bF92YXIgPSBzcHJpbnRmKCJody4l
+cy5zcGRfZGF0YSIsICRfWzBdKTsNCisJb3BlbihQSVBFLCAiLXwiLCAic3lz
+Y3RsIC1yICRzeXNjdGxfdmFyIikNCisJCW9yIGRpZSAiQ2Fubm90IHJlYWQg
+c3lzY3RsIHZhcmlhYmxlICRzeXNjdGxfdmFyIjsNCisJc3lzcmVhZChQSVBF
+LCBteSAkZWVwcm9tLCA1MTIpOyAjIFhYWCBBc3N1bWVkIG1heGltdW0gc2l6
+ZSEgWFhYDQorCWNsb3NlIFBJUEUgb3IgZGllICJzeXNjdGwgcmV0dXJuZWQg
+JD8iOw0KKwlteSBAYnl0ZXMgPSB1bnBhY2soIkMqIiwgJGVlcHJvbSk7DQor
+DQorCSMgQ2FjaGUgdGhlIGRhdGEgZm9yIGxhdGVyIHVzZQ0KKwkkaGV4ZHVt
+cF9jYWNoZXskX1swXX0gPSBcQGJ5dGVzOw0KKwlyZXR1cm4gQGJ5dGVzOw0K
+K30NCisNCiAjIFJlYWQgYnl0ZXMgZnJvbSBTUEQtRUVQUk9NDQogIyBOb3Rl
+OiBvZmZzZXQgbXVzdCBiZSBhIG11bHRpcGxlIG9mIDE2IQ0KIHN1YiByZWFk
+c3BkKCQkJCkNCkBAIC0xNTUyLDYgKzE1NzQsOSBAQA0KIAlpZiAoJHVzZV9o
+ZXhkdW1wKSB7DQogCQlAYnl0ZXMgPSByZWFkX2hleGR1bXAoJGRpbW1faSk7
+DQogCQlyZXR1cm4gQGJ5dGVzWyRvZmZzZXQuLigkb2Zmc2V0ICsgJHNpemUg
+LSAxKV07DQorCX0gZWxzaWYgKCR1c2Vfc3lzY3RsKSB7DQorCQlAYnl0ZXMg
+PSByZWFkX3N5c2N0bCgkZGltbV9pKTsNCisJCXJldHVybiBAYnl0ZXNbJG9m
+ZnNldC4uKCRvZmZzZXQgKyAkc2l6ZSAtIDEpXTsNCiAJfSBlbHNpZiAoJHVz
+ZV9zeXNmcykgew0KIAkJIyBLZXJuZWwgMi42IHdpdGggc3lzZnMNCiAJCXN5
+c29wZW4oSEFORExFLCAiJGRpbW1faS9lZXByb20iLCBPX1JET05MWSkNCkBA
+IC0xNjIxLDcgKzE2NDYsNyBAQA0KICMgUGFyc2UgY29tbWFuZC1saW5lDQog
+Zm9yZWFjaCAoQEFSR1YpIHsNCiAJaWYgKCRfIGVxICctaCcgfHwgJF8gZXEg
+Jy0taGVscCcpIHsNCi0JCXByaW50ICJVc2FnZTogJDAgWy1jXSBbLWYgWy1i
+XV0gWy14fC1YIGZpbGUgW2ZpbGVzLi5dXVxuIiwNCisJCXByaW50ICJVc2Fn
+ZTogJDAgWy1jXSBbLWYgWy1iXV0gWy14fC1YfC1zIGZpbGUgW2ZpbGVzLi5d
+XVxuIiwNCiAJCQkiICAgICAgICQwIC1oXG5cbiIsDQogCQkJIiAgLWYsIC0t
+Zm9ybWF0ICAgICAgICAgICAgUHJpbnQgbmljZSBodG1sIG91dHB1dFxuIiwN
+CiAJCQkiICAtYiwgLS1ib2R5b25seSAgICAgICAgICBEb24ndCBwcmludCBo
+dG1sIGhlYWRlclxuIiwNCkBAIC0xNjMzLDYgKzE2NTgsOCBAQA0KIAkJCSIg
+IC14LCAgICAgICAgICAgICAgICAgICAgIFJlYWQgZGF0YSBmcm9tIGhleGR1
+bXAgZmlsZXNcbiIsDQogCQkJIiAgLVgsICAgICAgICAgICAgICAgICAgICAg
+U2FtZSBhcyAteCBleGNlcHQgdHJlYXQgbXVsdGlieXRlIGhleFxuIiwNCiAJ
+CQkiICAgICAgICAgICAgICAgICAgICAgICAgICBkYXRhIGFzIGxpdHRsZSBl
+bmRpYW5cbiIsDQorCQkJIiAgLXMsICAgICAgICAgICAgICAgICAgICAgVXNl
+IE5ldEJTRC1jb21wYXRpYmxlIHN5c2N0bCg4KSB0byBvYnRhaW5cbiIsDQor
+CQkJIiAgICAgICAgICAgICAgICAgICAgICAgICAgRUVQUk9NIGRhdGFcbiIs
+DQogCQkJIiAgLWgsIC0taGVscCAgICAgICAgICAgICAgRGlzcGxheSB0aGlz
+IHVzYWdlIHN1bW1hcnlcbiI7DQogCQlwcmludCA8PCJFT0YiOw0KIA0KQEAg
+LTE2NzMsMTMgKzE3MDAsMjAgQEANCiAJCSR1c2VfaGV4ZHVtcCA9IExJVFRM
+RUVORElBTjsNCiAJCW5leHQ7DQogCX0NCisJaWYgKCRfIGVxICctcycpIHsN
+CisJCWlmICgteCAiL3NiaW4vc3lzY3RsIikgew0KKwkJCSR1c2Vfc3lzY3Rs
+ID0gMTsNCisJCX0gZWxzZSB7IGRpZSAiTm8gL3NiaW4vc3lzY3RsIGF2YWls
+YWJsZSBmb3IgLXMiOyB9DQorCQluZXh0Ow0KKwl9DQogDQogCWlmIChtL14t
+Lykgew0KIAkJcHJpbnQgU1RERVJSICJVbnJlY29nbml6ZWQgb3B0aW9uICRf
+XG4iOw0KIAkJZXhpdDsNCiAJfQ0KIA0KLQlwdXNoIEBkaW1tLCB7IGVlcHJv
+bSA9PiAkXywgZmlsZSA9PiAkXyB9IGlmICR1c2VfaGV4ZHVtcDsNCisJcHVz
+aCBAZGltbSwgeyBlZXByb20gPT4gJF8sIGZpbGUgPT4gJF8gfQ0KKwkJaWYg
+KCR1c2Vfc3lzY3RsIHx8ICR1c2VfaGV4ZHVtcCk7DQogfQ0KIA0KIGlmICgk
+b3B0X2h0bWwgJiYgISRvcHRfYm9keW9ubHkpIHsNCkBAIC0xNzMyLDcgKzE3
+NjYsNyBAQA0KICMgICogY2hrX3NwZDogVGhlIGNoZWNrc3VtIG9yIENSQyB2
+YWx1ZSBmb3VuZCBpbiB0aGUgRUVQUk9NDQogIyAgKiBjaGtfY2FsYzogVGhl
+IGNoZWNrc3VtIG9yIENSQyBjb21wdXRlZCBmcm9tIHRoZSBFRVBST00gZGF0
+YQ0KICMgS2V5cyBhcmUgYWRkZWQgb3ZlciB0aW1lLg0KLUBkaW1tID0gZ2V0
+X2RpbW1fbGlzdCgpIHVubGVzcyAkdXNlX2hleGR1bXA7DQorQGRpbW0gPSBn
+ZXRfZGltbV9saXN0KCkgdW5sZXNzICgkdXNlX3N5c2N0bCB8fCAkdXNlX2hl
+eGR1bXApOw0KIA0KIGZvciBteSAkaSAoMCAuLiAkI2RpbW0pIHsNCiAJbXkg
+QGJ5dGVzID0gcmVhZHNwZCgwLCAxMjgsICRkaW1tWyRpXS0+e2ZpbGV9KTsN
+CkBAIC0xNzY4LDcgKzE4MDIsNyBAQA0KIAkJcHJpbnRsKCJEZWNvZGluZyBF
+RVBST00iLCAkZGltbVskY3VycmVudF0tPntlZXByb219KTsNCiAJfQ0KIA0K
+LQlpZiAoISR1c2VfaGV4ZHVtcCkgew0KKwlpZiAoISR1c2VfaGV4ZHVtcCAm
+JiAhJHVzZV9zeXNjdGwpIHsNCiAJCWlmICgkZGltbVskY3VycmVudF0tPntm
+aWxlfSA9fiAvLShbXGRhLWZdKykkL2kpIHsNCiAJCQlteSAkZGltbV9udW0g
+PSBoZXgoJDEpIC0gMHg1MCArIDE7DQogCQkJaWYgKCRkaW1tX251bSA+PSAx
+ICYmICRkaW1tX251bSA8PSA4KSB7DQo=
 
---===============6579521677043737414==
+--0-1983162188-1244122100=:4006
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -349,4 +227,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6579521677043737414==--
+--0-1983162188-1244122100=:4006--
