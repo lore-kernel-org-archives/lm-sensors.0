@@ -1,7 +1,7 @@
-From: Madhu <madhu.chinakonda@gmail.com>
-Date: Tue, 02 Jun 2009 06:44:20 +0000
+From: "Zafar, Khurram" <Khurram.Zafar@kla-tencor.com>
+Date: Thu, 04 Jun 2009 21:24:59 +0000
 Subject: Re: [lm-sensors] Where to download drivers?
-Message-Id: <1243924340.3359.31.camel@localhost.localdomain>
+Message-Id: <47E375F28A0EFE4F8E3BE9D8818AA50D0206639F@CA1EXCLV05.adcorp.kla-tencor.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <47E375F28A0EFE4F8E3BE9D8818AA50D01FF5F07@CA1EXCLV05.adcorp.kla-tencor.com>
 In-Reply-To: <47E375F28A0EFE4F8E3BE9D8818AA50D01FF5F07@CA1EXCLV05.adcorp.kla-tencor.com>
@@ -9,6 +9,21 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Madhu,
+
+After upgrading to the latest 2.6.29 kernel and re-installing
+lm_sensors, everything is working fine. Thanks for your help!
+
+Regards,
+KZ
+
+-----Original Message-----
+From: Madhu [mailto:madhu.chinakonda@gmail.com] 
+Sent: Monday, June 01, 2009 11:32 PM
+To: Zafar, Khurram
+Cc: madhu; lm-sensors@lm-sensors.org
+Subject: RE: [lm-sensors] Where to download drivers?
 
 Hi Zafar,
 
@@ -89,7 +104,8 @@ On Mon, 2009-06-01 at 08:56 -0700, Zafar, Khurram wrote:
 > 
 > We are using SuSE Linux Enterprise Server, SP2.
 > 
-> I will use VPN to log onto our network later in the day and get you the
+> I will use VPN to log onto our network later in the day and get you
+the
 > specific information you requested.
 > 
 > When I run "sensors" I get an error message indicating that no drivers
@@ -113,7 +129,8 @@ On Mon, 2009-06-01 at 08:56 -0700, Zafar, Khurram wrote:
 > Generally, most distribution kernels will come with these drivers
 > (coretemp, etc) enabled as modules.
 > 
-> So, lm-sensor tries to load these modules, if there is no such modules,
+> So, lm-sensor tries to load these modules, if there is no such
+modules,
 > I think it assumes that you have compiled statically,
 > 
 > Also it would be useful if you send the output of the following,
@@ -129,8 +146,10 @@ On Mon, 2009-06-01 at 08:56 -0700, Zafar, Khurram wrote:
 > > 
 > >  
 > > 
-> > I have just downloaded and compiled the latest lm_sensors package and
-> > run "sensors-detect," whose output is shown down below. My question is
+> > I have just downloaded and compiled the latest lm_sensors package
+and
+> > run "sensors-detect," whose output is shown down below. My question
+is
 > > very simple:
 > > 
 > >  
@@ -227,8 +246,10 @@ On Mon, 2009-06-01 at 08:56 -0700, Zafar, Khurram wrote:
 > > 
 > > This email and any files transmitted with it are confidential and
 > > intended solely for the use of the individual or entity to whom they
-> > are addressed. If you have received this email in error, do not use or
-> > review the message or any information transmitted with it, and notify
+> > are addressed. If you have received this email in error, do not use
+or
+> > review the message or any information transmitted with it, and
+notify
 > > the sender.
 > > 
 > >  
