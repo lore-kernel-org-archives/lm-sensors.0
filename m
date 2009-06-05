@@ -1,514 +1,149 @@
-From: Juerg Haefliger <juergh@gmail.com>
-Date: Sat, 27 Jun 2009 18:34:34 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Add driver for VIA CPU core
-Message-Id: <191fb4ca0906271134r2c9761e3la56bdea3f66b60f4@mail.gmail.com>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Date: Fri, 05 Jun 2009 11:29:38 +0000
+Subject: [lm-sensors] Jetway NC92-330-LF motherboard sensors.conf
+Message-Id: <55a4f86e0906050429q2aad447cqf7ddea1a043bf1c5@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="000e0cd1826435ac4c046b9835ba"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090609083406.GE25316@prithivi.gnumonks.org>
-	 <20090619231132.22296525@hyperion.delvare>
-In-Reply-To: <20090619231132.22296525@hyperion.delvare>
+To: lm-sensors@vger.kernel.org
+
+--000e0cd1826435ac4c046b9835ba
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Hi,
+
+submitting a sensors.conf file for a Jetway NC92-330-LF motherboard
+with f71882fg monitoring chip.
+
+# uname -a
+Linux gaia 2.6.29.4-168.mz1.fc11.x86_64 #1 SMP Fri Jun 5 11:10:05 CEST
+2009 x86_64 x86_64 x86_64 GNU/Linux
+
+# lsmod | head -n 5
+Module                  Size  Used by
+f71882fg               27120  0
+coretemp                6768  0
+
+Also including a slight patch to coretemp.c for atom support.
+
+Hope you include the conf in the wiki.
+Thanks,
+Maciej
+
+--000e0cd1826435ac4c046b9835ba
+Content-Type: application/octet-stream; name="sensors3.conf"
+Content-Disposition: attachment; filename="sensors3.conf"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fvktb5ag0
+
+IyBKZXR3YXkgTkM5Mi0zMzAtTEYKCmNoaXAgImY3MTg2MmZnLSoiCgogICAgbGFiZWwgaW4wICJW
+Y2MzViIKICAgIGxhYmVsIGluMSAiVmNvcmUiCiAgICBsYWJlbCBpbjIgIiAgIE5CIgogICAgbGFi
+ZWwgaW4zICIrIDVWIgogICAgbGFiZWwgaW40ICIrMTJWIgogICAgbGFiZWwgaW41ICI1VlNCIgog
+ICAgbGFiZWwgaW42ICJWRElNTSIKICAgIGxhYmVsIGluNyAiVlNCM1YiCiAgICBsYWJlbCBpbjgg
+IlZiYXQiCgogICAgbGFiZWwgZmFuMSAiQ1BVRkFOIgogICAgbGFiZWwgZmFuMiAiU1lTRkFOMSIK
+ICAgIGxhYmVsIGZhbjMgIlNZU0ZBTjIiCgogICAgbGFiZWwgdGVtcDEgIj9DUFUgVGVtcCIKICAg
+IGxhYmVsIHRlbXAyICI/U3lzIFRlbXAiCiAgICBsYWJlbCB0ZW1wMyAiPz8/PyBUZW1wIgoKIyBB
+Y2NvcmRpbmcgdG8gZGF0YXNoZWV0LCAzVkNDL1ZTQi9WQkFUCiMgKGllLiBWY2MzVi9WU0IzVi9W
+YmF0LCBvciBpbjAvaW43L2luOCkKIyB1c2UgaW50ZXJuYWwgUjE9UjI9MTUwSyBPaG0gcmVzaXN0
+b3JzCiMKIyByZW1lbWJlciBWX2luX3RvX2NoaXAgPSBWX3JlYWwgKiBSMiAvIChSMSArIFIyKQoj
+ICh3aGVyZSBWX3JlYWwtLS0tUjEtLS0qLS0tLVZfaW5fdG9fY2hpcCkgW21heCAyLjA0OFZdCiMg
+KCAgICAgICAgICAgICAgICAgICAgIHwgICAgICAgICAgICAgICAgKQojICggICAgICAgICAgICAg
+ICAgICAgIFIyICAgICAgICAgICAgICAgICkKIyAoICAgICAgICAgICAgICAgICAgICAgfCAgICAg
+ICAgICAgICAgICApCiMgKCAgICAgICAgICAgICAgICAgICAgR05EICAgICAgICAgICAgICAgKQoj
+CiMgSXQgd291bGQgc2VlbSB0aGF0IFZESU1NIGlzIHRoZSBzYW1lLi4uCiMgSGVuY2UgdGhvc2Ug
+Zm91ciBhcmUgc2V0IHRvIHVzZSAiQCoyLCBALzIiCiMKIyBUaGUgdmFsdWVzIG9mIDUuMjUgZm9y
+ICs1ViBhbmQgNVZTQiBhbmQgMTEgZm9yICsxMlYKIyBhcmUgZnJvbSB0aGUgZGF0YXNoZWV0IGFz
+IHdlbGwgKGFmdGVyIGp1Z2dsaW5nKToKIwojIFZDT1JFICAgIFIxPTFLICAgUjI9aW5mIFZDT1JF
+ICAtPiAqMQojIFZSQU0gICAgIFIxPTEwSyAgUjI9MTBLIFZJTjIgICAtPiAqMgojIFZDSElQU0VU
+IFIxPTQuN0sgUjI9MTBLIFZJTjMgICAtPiAqMS40NwojIFZDQzVWICAgIFIxPTIwSyAgUjI9NC43
+IFZJTjQgICAtPiAqNS4yNTUzMTkxNDgKIyArMTJWICAgICBSMT0yMDBLIFIyPTIwSyBWSU41ICAg
+LT4gKjExCiMgVkNDMS41ViAgUjE9MTBLICBSMj1pbmYgVklONiAgIC0+ICoxCgogICAgY29tcHV0
+ZSBpbjAgQCoyLCBALzIKICAgIGNvbXB1dGUgaW4xIEAsIEAKICAgIGNvbXB1dGUgaW4yIEAsIEAK
+ICAgIGNvbXB1dGUgaW4zIEAqNS4yNTUzMTkxNDgsIEAvNS4yNTUzMTkxNDgKICAgIGNvbXB1dGUg
+aW40IEAqMTEsIEAvMTEKICAgIGNvbXB1dGUgaW41IEAqNS4yNTUzMTkxNDgsIEAvNS4yNTUzMTkx
+NDgKICAgIGNvbXB1dGUgaW42IEAqMiwgQC8yCiAgICBjb21wdXRlIGluNyBAKjIsIEAvMgogICAg
+Y29tcHV0ZSBpbjggQCoyLCBALzIKCiMgICBzZXQgdGVtcDFfdHlwZSAyCiAgICBzZXQgdGVtcDFf
+bWF4ICAgICAgICA4NQogICAgc2V0IHRlbXAxX21heF9oeXN0ICAgODEKICAgIHNldCB0ZW1wMV9j
+cml0ICAgICAgIDY1CiMgICBzZXQgdGVtcDFfY3JpdF9oeXN0ICA2MQojICAgc2V0IHRlbXAyX3R5
+cGUgMgogICAgc2V0IHRlbXAyX21heCAgICAgICAgODUKICAgIHNldCB0ZW1wMl9tYXhfaHlzdCAg
+IDgxCiAgICBzZXQgdGVtcDJfY3JpdCAgICAgIDEwMAojICAgc2V0IHRlbXAyX2NyaXRfaHlzdCAg
+OTYKIyAgIHNldCB0ZW1wM190eXBlIDIKICAgIHNldCB0ZW1wM19tYXggICAgICAgIDcwCiAgICBz
+ZXQgdGVtcDNfbWF4X2h5c3QgICA2OAogICAgc2V0IHRlbXAzX2NyaXQgICAgICAgODUKIyAgIHNl
+dCB0ZW1wM19jcml0X2h5c3QgIDgzCgo=
+--000e0cd1826435ac4c046b9835ba
+Content-Type: application/octet-stream; 
+	name="linux-2.6-mz-atom_coretemp.patch"
+Content-Disposition: attachment; filename="linux-2.6-mz-atom_coretemp.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fvktbcdl1
+
+ZGlmZiAtTmF1ciB2YW5pbGxhLTIuNi4yOS9Eb2N1bWVudGF0aW9uL2h3bW9uL2NvcmV0ZW1wIHZh
+bmlsbGEtMi42LjI5LmNvcmV0ZW1wL0RvY3VtZW50YXRpb24vaHdtb24vY29yZXRlbXAKLS0tIHZh
+bmlsbGEtMi42LjI5L0RvY3VtZW50YXRpb24vaHdtb24vY29yZXRlbXAJMjAwOS0wMy0yNCAwMDox
+MjoxNC4wMDAwMDAwMDAgKzAxMDAKKysrIHZhbmlsbGEtMi42LjI5LmNvcmV0ZW1wL0RvY3VtZW50
+YXRpb24vaHdtb24vY29yZXRlbXAJMjAwOS0wNi0wNSAwOTozNzoyMS4yNjMxMjQ1NzQgKzAyMDAK
+QEAgLTQsNyArNCw3IEBACiBTdXBwb3J0ZWQgY2hpcHM6CiAgICogQWxsIEludGVsIENvcmUgZmFt
+aWx5CiAgICAgUHJlZml4OiAnY29yZXRlbXAnCi0gICAgQ1BVSUQ6IGZhbWlseSAweDYsIG1vZGVs
+cyAweGUsIDB4ZiwgMHgxNiwgMHgxNworICAgIENQVUlEOiBmYW1pbHkgMHg2LCBtb2RlbHMgMHhl
+LCAweGYsIDB4MTYsIDB4MTcsIDB4MWMKICAgICBEYXRhc2hlZXQ6IEludGVsIDY0IGFuZCBJQS0z
+MiBBcmNoaXRlY3R1cmVzIFNvZnR3YXJlIERldmVsb3BlcidzIE1hbnVhbAogICAgICAgICAgICAg
+ICAgVm9sdW1lIDNBOiBTeXN0ZW0gUHJvZ3JhbW1pbmcgR3VpZGUKICAgICAgICAgICAgICAgIGh0
+dHA6Ly9zb2Z0d2FyZWNvbW11bml0eS5pbnRlbC5jb20vV2lraS9Nb2JpbGl0eS83MjAuaHRtCkBA
+IC0xNCwxMCArMTQsMTEgQEAKIERlc2NyaXB0aW9uCiAtLS0tLS0tLS0tLQogCi1UaGlzIGRyaXZl
+ciBwZXJtaXRzIHJlYWRpbmcgdGVtcGVyYXR1cmUgc2Vuc29yIGVtYmVkZGVkIGluc2lkZSBJbnRl
+bCBDb3JlIENQVS4KLVRlbXBlcmF0dXJlIGlzIG1lYXN1cmVkIGluIGRlZ3JlZXMgQ2Vsc2l1cyBh
+bmQgbWVhc3VyZW1lbnQgcmVzb2x1dGlvbiBpcwotMSBkZWdyZWUgQy4gVmFsaWQgdGVtcGVyYXR1
+cmVzIGFyZSBmcm9tIDAgdG8gVGpNYXggZGVncmVlcyBDLCBiZWNhdXNlCi10aGUgYWN0dWFsIHZh
+bHVlIG9mIHRlbXBlcmF0dXJlIHJlZ2lzdGVyIGlzIGluIGZhY3QgYSBkZWx0YSBmcm9tIFRqTWF4
+LgorVGhpcyBkcml2ZXIgcGVybWl0cyByZWFkaW5nIHRlbXBlcmF0dXJlIHNlbnNvciBlbWJlZGRl
+ZCBpbnNpZGUgSW50ZWwKK0NvcmUgYW5kIEludGVsIEF0b20gQ1BVcy4gVGVtcGVyYXR1cmUgaXMg
+bWVhc3VyZWQgaW4gZGVncmVlcyBDZWxzaXVzCithbmQgbWVhc3VyZW1lbnQgcmVzb2x1dGlvbiBp
+cyAxIGRlZ3JlZSBDLiBWYWxpZCB0ZW1wZXJhdHVyZXMgYXJlIGZyb20gMAordG8gVGpNYXggZGVn
+cmVlcyBDLCBiZWNhdXNlIHRoZSBhY3R1YWwgdmFsdWUgb2YgdGVtcGVyYXR1cmUgcmVnaXN0ZXIg
+aXMKK2luIGZhY3QgYSBkZWx0YSBmcm9tIFRqTWF4LgogCiBUZW1wZXJhdHVyZSBrbm93biBhcyBU
+ak1heCBpcyB0aGUgbWF4aW11bSBqdW5jdGlvbiB0ZW1wZXJhdHVyZSBvZiBwcm9jZXNzb3IuCiBJ
+bnRlbCBkZWZpbmVzIHRoaXMgdGVtcGVyYXR1cmUgYXMgODVDIG9yIDEwMEMuIEF0IHRoaXMgdGVt
+cGVyYXR1cmUsIHByb3RlY3Rpb24KQEAgLTM1LDQgKzM2LDUgQEAKIAogVGhlIFRqTWF4IHRlbXBl
+cmF0dXJlIGlzIHNldCB0byA4NSBkZWdyZWVzIEMgaWYgdW5kb2N1bWVudGVkIG1vZGVsIHNwZWNp
+ZmljCiByZWdpc3RlciAoVU1TUikgMHhlZSBoYXMgYml0IDMwIHNldC4gSWYgbm90IHRoZSBUak1h
+eCBpcyAxMDAgZGVncmVlcyBDIGFzCi0oc29tZXRpbWVzKSBkb2N1bWVudGVkIGluIHByb2Nlc3Nv
+ciBkYXRhc2hlZXQuCisoc29tZXRpbWVzKSBkb2N1bWVudGVkIGluIHByb2Nlc3NvciBkYXRhc2hl
+ZXQuIFRoZSBJbnRlbCBBdG9tIGhhcyBUak1heCA5NUMKK2FzIHBlciB0aGUgc3BlY2lmaWNhdGlv
+bi4KZGlmZiAtTmF1ciB2YW5pbGxhLTIuNi4yOS9kcml2ZXJzL2h3bW9uL2NvcmV0ZW1wLmMgdmFu
+aWxsYS0yLjYuMjkuY29yZXRlbXAvZHJpdmVycy9od21vbi9jb3JldGVtcC5jCi0tLSB2YW5pbGxh
+LTIuNi4yOS9kcml2ZXJzL2h3bW9uL2NvcmV0ZW1wLmMJMjAwOS0wMy0yNCAwMDoxMjoxNC4wMDAw
+MDAwMDAgKzAxMDAKKysrIHZhbmlsbGEtMi42LjI5LmNvcmV0ZW1wL2RyaXZlcnMvaHdtb24vY29y
+ZXRlbXAuYwkyMDA5LTA2LTA1IDEwOjA5OjAyLjIwNjYyNDM0NSArMDIwMApAQCAtMSw3ICsxLDgg
+QEAKIC8qCiAgKiBjb3JldGVtcC5jIC0gTGludXgga2VybmVsIG1vZHVsZSBmb3IgaGFyZHdhcmUg
+bW9uaXRvcmluZwogICoKLSAqIENvcHlyaWdodCAoQykgMjAwNyBSdWRvbGYgTWFyZWsgPHIubWFy
+ZWtAYXNzZW1ibGVyLmN6PgorICogQ29weXJpZ2h0IChDKSAyMDA3LCAyMDA4IFJ1ZG9sZiBNYXJl
+ayA8ci5tYXJla0Bhc3NlbWJsZXIuY3o+CisgKiBBdG9tIHBhdGNoIHBvcnRlZCBieSBNYWNpZWog
+WmVuY3p5a293c2tpIDx6ZW5jenlrb3dza2lAZ21haWwuY29tPgogICoKICAqIEluc3BpcmVkIGZy
+b20gbWFueSBod21vbiBkcml2ZXJzCiAgKgpAQCAtMTYxLDYgKzE2MiwxMyBAQAogCWludCBlcnI7
+CiAJdTMyIGVheCwgZWR4OwogCisJLyogSW50ZWwgQXRvbSBoYXMgYSBmaXhlZCBUak1heCBhdCA5
+NUMgKi8KKwlpZiAoYy0+eDg2X21vZGVsID09IDB4MWMpIHsKKwkJdGptYXggPSA5NTAwMDsKKwkJ
+aXNtb2JpbGUgPSAwOworCQlyZXR1cm4gdGptYXg7CisJfQorCQogCS8qIEVhcmx5IGNoaXBzIGhh
+dmUgbm8gTVNSIGZvciBUak1heCAqLwogCiAJaWYgKChjLT54ODZfbW9kZWwgPT0gMHhmKSAmJiAo
+Yy0+eDg2X21hc2sgPCA0KSkgewpAQCAtNDEzLDExICs0MjEsMTEgQEAKIAlmb3JfZWFjaF9vbmxp
+bmVfY3B1KGkpIHsKIAkJc3RydWN0IGNwdWluZm9feDg2ICpjID0gJmNwdV9kYXRhKGkpOwogCi0J
+CS8qIGNoZWNrIGlmIGZhbWlseSA2LCBtb2RlbHMgMHhlLCAweGYsIDB4MTYsIDB4MTcsIDB4MUEg
+Ki8KKwkJLyogY2hlY2sgaWYgZmFtaWx5IDYsIG1vZGVscyAweGUsIDB4ZiwgMHgxNiwgMHgxNywg
+MHgxYSwgMHgxYyAqLwogCQlpZiAoKGMtPmNwdWlkX2xldmVsIDwgMCkgfHwgKGMtPng4NiAhPSAw
+eDYpIHx8CiAJCSAgICAhKChjLT54ODZfbW9kZWwgPT0gMHhlKSB8fCAoYy0+eDg2X21vZGVsID09
+IDB4ZikgfHwKIAkJCShjLT54ODZfbW9kZWwgPT0gMHgxNikgfHwgKGMtPng4Nl9tb2RlbCA9PSAw
+eDE3KSB8fAotCQkJKGMtPng4Nl9tb2RlbCA9PSAweDFBKSkpIHsKKwkJCShjLT54ODZfbW9kZWwg
+PT0gMHgxYSkgfHwgKGMtPng4Nl9tb2RlbCA9PSAweDFjKSkpIHsKIAogCQkJLyogc3VwcG9ydGVk
+IENQVSBub3QgZm91bmQsIGJ1dCByZXBvcnQgdGhlIHVua25vd24KIAkJCSAgIGZhbWlseSA2IENQ
+VSAqLwo=
+--000e0cd1826435ac4c046b9835ba
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Harald Welte <HaraldWelte@viatech.com>, Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
-
-Hi Jean,
-
-
-> Hi Harald,
->
-> On Tue, 9 Jun 2009 16:34:06 +0800, Harald Welte wrote:
->> This is a driver for the on-die digital temperature sensor of
->> VIA's recent CPU models.
->>
->> Signed-off-by: Harald Welte <HaraldWelte@viatech.com>
->> ---
->>  drivers/hwmon/Kconfig       |    8 +
->>  drivers/hwmon/Makefile      |    1 +
->>  drivers/hwmon/via-cputemp.c |  354 +++++++++++++++++++++++++++++++++++++++++++
->>  3 files changed, 363 insertions(+), 0 deletions(-)
->>  create mode 100644 drivers/hwmon/via-cputemp.c
->
-> Interesting. I'm adding Juerg Haefliger in Cc. A few months ago, Juerg
-> submitted a driver named "c7temp" doing basically the same, with
-> mitigated success. I seem to remember that Juerg's driver was also
-> displaying either the VID or Vcore for the CPU. We don't want to have
-> two drivers for the same hardware, so let's merge everything in one
-> driver and push this upstream.
->
-> Juerg, you were there first, so I'd like to hear you on this. Are there
-> differences between Harald'd driver and yours? Which one should I pick?
-
-Personally I don't care which driver you pick as long as we get one
-into mainline eventually. Just a few comments:
-
-1) My driver uses the CPUID instruction to read the performance
-registers that contain the temp and voltage data. Harald's driver
-reads MSRs. I don't know if there are any benefits of using one method
-over the other.
-
-2) If we pick Harald's, it would be nice if his driver can also read
-and export the CPU core voltage.
-
-3) Quite a few testers of my driver reported 0 temp readings for some
-C7 CPUs. I was never able to figure out why some CPUs return 0 temp
-but I'm guessing it depends on the thermal monitor settings. I'd like
-to understand what is going on and hope Harald can shed some light.
-
-...juerg
-
-
-> For now, here's a review of Harald's driver:
->
->>
->> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
->> index d73f5f4..e863833 100644
->> --- a/drivers/hwmon/Kconfig
->> +++ b/drivers/hwmon/Kconfig
->> @@ -787,6 +787,14 @@ config SENSORS_THMC50
->>         This driver can also be built as a module.  If so, the module
->>         will be called thmc50.
->>
->> +config SENSORS_VIA_CPUTEMP
->> +     tristate "VIA CPU temperature sensor"
->> +     depends on X86
->> +     help
->> +       If you say yes here you get support for the temperature
->> +       sensor inside your CPU. Supported all are all known variants
->> +       of the VIA C7 and Nano.
->> +
->>  config SENSORS_VIA686A
->>       tristate "VIA686A"
->>       depends on PCI
->> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
->> index 0ae2698..3edf7fa 100644
->> --- a/drivers/hwmon/Makefile
->> +++ b/drivers/hwmon/Makefile
->> @@ -82,6 +82,7 @@ obj-$(CONFIG_SENSORS_SMSC47B397)+= smsc47b397.o
->>  obj-$(CONFIG_SENSORS_SMSC47M1)       += smsc47m1.o
->>  obj-$(CONFIG_SENSORS_SMSC47M192)+= smsc47m192.o
->>  obj-$(CONFIG_SENSORS_THMC50) += thmc50.o
->> +obj-$(CONFIG_SENSORS_VIA_CPUTEMP)+= via-cputemp.o
->>  obj-$(CONFIG_SENSORS_VIA686A)        += via686a.o
->>  obj-$(CONFIG_SENSORS_VT1211) += vt1211.o
->>  obj-$(CONFIG_SENSORS_VT8231) += vt8231.o
->> diff --git a/drivers/hwmon/via-cputemp.c b/drivers/hwmon/via-cputemp.c
->> new file mode 100644
->> index 0000000..1032355
->> --- /dev/null
->> +++ b/drivers/hwmon/via-cputemp.c
->> @@ -0,0 +1,354 @@
->> +/*
->> + * via-cputemp.c - Driver for VIA CPU core temperature monitoring
->> + * Copyright (C) 2009 VIA Technologies, Inc.
->> + *
->> + * based on existing coretemp.c, which is
->> + *
->> + * Copyright (C) 2007 Rudolf Marek <r.marek@assembler.cz>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License as published by
->> + * the Free Software Foundation; version 2 of the License.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + *
->> + * You should have received a copy of the GNU General Public License
->> + * along with this program; if not, write to the Free Software
->> + * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
->> + * 02110-1301 USA.
->> + */
->> +
->> +#include <linux/module.h>
->> +#include <linux/delay.h>
->> +#include <linux/init.h>
->> +#include <linux/slab.h>
->> +#include <linux/jiffies.h>
->> +#include <linux/hwmon.h>
->> +#include <linux/sysfs.h>
->> +#include <linux/hwmon-sysfs.h>
->> +#include <linux/err.h>
->> +#include <linux/mutex.h>
->> +#include <linux/list.h>
->> +#include <linux/platform_device.h>
->> +#include <linux/cpu.h>
->> +#include <asm/msr.h>
->> +#include <asm/processor.h>
->> +
->> +#define DRVNAME      "via-cputemp"
->> +
->> +typedef enum { SHOW_TEMP, SHOW_LABEL, SHOW_NAME } SHOW;
->
-> No typedef in kernel code please, an enum is enough.
->
->> +
->> +/*
->> + * Functions declaration
->> + */
->> +
->> +struct via_cputemp_data {
->> +     struct device *hwmon_dev;
->> +     const char *name;
->> +     u32 id;
->> +     u32 msr;
->> +};
->> +
->> +/*
->> + * Sysfs stuff
->> + */
->> +
->> +static ssize_t show_name(struct device *dev, struct device_attribute
->> +                       *devattr, char *buf)
->> +{
->> +     int ret;
->> +     struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
->> +     struct via_cputemp_data *data = dev_get_drvdata(dev);
->> +
->> +     if (attr->index = SHOW_NAME)
->> +             ret = sprintf(buf, "%s\n", data->name);
->> +     else    /* show label */
->> +             ret = sprintf(buf, "Core %d\n", data->id);
->> +     return ret;
->> +}
->> +
->> +static ssize_t show_temp(struct device *dev,
->> +                      struct device_attribute *devattr, char *buf)
->> +{
->> +     struct via_cputemp_data *data = dev_get_drvdata(dev);
->> +     u32 eax, edx;
->> +     int err;
->> +
->> +     err = rdmsr_safe_on_cpu(data->id, data->msr, &eax, &edx);
->> +     if (err)
->> +             return -EAGAIN;
->> +
->> +     err = sprintf(buf, "%d\n", eax & 0xffffff);
->> +
->> +     return err;
->
-> return sprintf()... would be clearer, as the returned value is never an
-> error in this case.
->
-> Also note that in theory the result could overflow once multiplied by
-> 1000.
->
->> +}
->> +
->> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL,
->> +                       SHOW_TEMP);
->> +static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, show_name, NULL, SHOW_LABEL);
->> +static SENSOR_DEVICE_ATTR(name, S_IRUGO, show_name, NULL, SHOW_NAME);
->> +
->> +static struct attribute *via_cputemp_attributes[] = {
->> +     &sensor_dev_attr_name.dev_attr.attr,
->> +     &sensor_dev_attr_temp1_label.dev_attr.attr,
->> +     &sensor_dev_attr_temp1_input.dev_attr.attr,
->> +     NULL
->> +};
->> +
->> +static const struct attribute_group via_cputemp_group = {
->> +     .attrs = via_cputemp_attributes,
->> +};
->> +
->> +static int __devinit via_cputemp_probe(struct platform_device *pdev)
->> +{
->> +     struct via_cputemp_data *data;
->> +     struct cpuinfo_x86 *c = &cpu_data(pdev->id);
->> +     int err;
->> +     u32 eax, edx;
->> +
->> +     if (!(data = kzalloc(sizeof(struct via_cputemp_data), GFP_KERNEL))) {
->
-> ERROR: do not use assignment in if condition
->
->> +             err = -ENOMEM;
->> +             dev_err(&pdev->dev, "Out of memory\n");
->> +             goto exit;
->> +     }
->> +
->> +     data->id = pdev->id;
->
-> pdev->id is an unsigned int, so shouldn't data->id be too?
->
->> +     data->name = "via-cputemp";
->
-> This must be made "via_cputemp", as dashes aren't accepted in hwmon
-> device names.
->
->> +
->> +     switch (c->x86_model) {
->> +     case 0xA:
->> +             /* C7 A */
->> +     case 0xD:
->> +             /* C7 D */
->> +             data->msr = 0x1169;
->> +             break;
->> +     case 0xF:
->> +             /* Nano */
->> +             data->msr = 0x1423;
->> +             break;
->> +     default:
->> +             err = -ENODEV;
->> +             goto exit_free;
->> +     }
->> +
->> +     /* test if we can access the TEMPERATURE MSR */
->> +     err = rdmsr_safe_on_cpu(data->id, data->msr, &eax, &edx);
->> +     if (err) {
->
-> In the runtime read function, you handle errors with -EAGAIN, which
-> means transient errors are expected. If such an error happens at
-> registration time, we could see random failures. That's confusing for
-> the user. I believe you should either skip the test at registration
-> (are there really CPU models where it always fails?) or try more than
-> once to rule out temporary failures.
->
->> +             dev_err(&pdev->dev,
->> +                     "Unable to access TEMPERATURE MSR, giving up\n");
->> +             goto exit_free;
->> +     }
->> +
->> +     platform_set_drvdata(pdev, data);
->> +
->> +     if ((err = sysfs_create_group(&pdev->dev.kobj, &via_cputemp_group)))
->
-> ERROR: do not use assignment in if condition
->
->> +             goto exit_free;
->> +
->> +     data->hwmon_dev = hwmon_device_register(&pdev->dev);
->> +     if (IS_ERR(data->hwmon_dev)) {
->> +             err = PTR_ERR(data->hwmon_dev);
->> +             dev_err(&pdev->dev, "Class registration failed (%d)\n",
->> +                     err);
->> +             goto exit_class;
->> +     }
->> +
->> +     return 0;
->> +
->> +exit_class:
->> +     sysfs_remove_group(&pdev->dev.kobj, &via_cputemp_group);
->> +exit_free:
->
-> A platform_set_drvdata(pdev, NULL) would be welcome here.
->
->> +     kfree(data);
->
-> This is a little inconsistent, as the first label refers to the last
-> action that succeeded and the second label refers to the first cleanup
-> step to execute. Renaming exit_class to exit_remove would help.
->
->> +exit:
->> +     return err;
->> +}
->> +
->> +static int __devexit via_cputemp_remove(struct platform_device *pdev)
->> +{
->> +     struct via_cputemp_data *data = platform_get_drvdata(pdev);
->> +
->> +     hwmon_device_unregister(data->hwmon_dev);
->> +     sysfs_remove_group(&pdev->dev.kobj, &via_cputemp_group);
->> +     platform_set_drvdata(pdev, NULL);
->> +     kfree(data);
->> +     return 0;
->> +}
->> +
->> +static struct platform_driver via_cputemp_driver = {
->> +     .driver = {
->> +             .owner = THIS_MODULE,
->> +             .name = DRVNAME,
->> +     },
->> +     .probe = via_cputemp_probe,
->> +     .remove = __devexit_p(via_cputemp_remove),
->> +};
->> +
->> +struct pdev_entry {
->> +     struct list_head list;
->> +     struct platform_device *pdev;
->> +     unsigned int cpu;
->> +};
->> +
->> +static LIST_HEAD(pdev_list);
->> +static DEFINE_MUTEX(pdev_list_mutex);
->> +
->> +static int __cpuinit via_cputemp_device_add(unsigned int cpu)
->> +{
->> +     int err;
->> +     struct platform_device *pdev;
->> +     struct pdev_entry *pdev_entry;
->> +
->> +     pdev = platform_device_alloc(DRVNAME, cpu);
->> +     if (!pdev) {
->> +             err = -ENOMEM;
->> +             printk(KERN_ERR DRVNAME ": Device allocation failed\n");
->> +             goto exit;
->> +     }
->> +
->> +     pdev_entry = kzalloc(sizeof(struct pdev_entry), GFP_KERNEL);
->> +     if (!pdev_entry) {
->> +             err = -ENOMEM;
->> +             goto exit_device_put;
->> +     }
->> +
->> +     err = platform_device_add(pdev);
->> +     if (err) {
->> +             printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
->> +                    err);
->> +             goto exit_device_free;
->> +     }
->> +
->> +     pdev_entry->pdev = pdev;
->> +     pdev_entry->cpu = cpu;
->> +     mutex_lock(&pdev_list_mutex);
->> +     list_add_tail(&pdev_entry->list, &pdev_list);
->> +     mutex_unlock(&pdev_list_mutex);
->> +
->> +     return 0;
->> +
->> +exit_device_free:
->> +     kfree(pdev_entry);
->> +exit_device_put:
->> +     platform_device_put(pdev);
->> +exit:
->> +     return err;
->> +}
->> +
->> +#ifdef CONFIG_HOTPLUG_CPU
->> +static void via_cputemp_device_remove(unsigned int cpu)
->> +{
->> +     struct pdev_entry *p, *n;
->> +     mutex_lock(&pdev_list_mutex);
->> +     list_for_each_entry_safe(p, n, &pdev_list, list) {
->> +             if (p->cpu = cpu) {
->> +                     platform_device_unregister(p->pdev);
->> +                     list_del(&p->list);
->> +                     kfree(p);
->> +             }
->> +     }
->> +     mutex_unlock(&pdev_list_mutex);
->> +}
->> +
->> +static int __cpuinit via_cputemp_cpu_callback(struct notifier_block *nfb,
->> +                              unsigned long action, void *hcpu)
->> +{
->> +     unsigned int cpu = (unsigned long) hcpu;
->> +
->> +     switch (action) {
->> +     case CPU_ONLINE:
->> +     case CPU_DOWN_FAILED:
->> +             via_cputemp_device_add(cpu);
->> +             break;
->> +     case CPU_DOWN_PREPARE:
->> +             via_cputemp_device_remove(cpu);
->> +             break;
->> +     }
->> +     return NOTIFY_OK;
->> +}
->> +
->> +static struct notifier_block via_cputemp_cpu_notifier __refdata = {
->> +     .notifier_call = via_cputemp_cpu_callback,
->> +};
->> +#endif                               /* !CONFIG_HOTPLUG_CPU */
->> +
->> +static int __init via_cputemp_init(void)
->> +{
->> +     int i, err = -ENODEV;
->
-> err would be better initialized when the error occurs, for consistency.
->
->> +     struct pdev_entry *p, *n;
->> +
->> +     if (cpu_data(0).x86_vendor != X86_VENDOR_CENTAUR) {
->> +             printk(KERN_DEBUG "not a VIA CPU\n");
->
-> Missing DRV_NAME.
->
->> +             goto exit;
->> +     }
->> +
->> +     err = platform_driver_register(&via_cputemp_driver);
->> +     if (err)
->> +             goto exit;
->> +
->> +     for_each_online_cpu(i) {
->> +             struct cpuinfo_x86 *c = &cpu_data(i);
->> +
->> +             if (c->x86 != 6)
->> +                     continue;
->> +
->> +             if (c->x86_model < 0x0a)
->> +                     continue;
->> +
->> +             if (c->x86_model > 0x0f) {
->> +                     printk(KERN_WARNING DRVNAME ": Unknown CPU "
->> +                             "model %x\n", c->x86_model);
->
-> Please use 0x%x for clarity.
->
->> +                     continue;
->> +             }
->> +
->> +             err = via_cputemp_device_add(i);
->> +             if (err)
->> +                     goto exit_devices_unreg;
->> +     }
->> +     if (list_empty(&pdev_list)) {
->> +             err = -ENODEV;
->> +             goto exit_driver_unreg;
->> +     }
->> +
->> +#ifdef CONFIG_HOTPLUG_CPU
->> +     register_hotcpu_notifier(&via_cputemp_cpu_notifier);
->> +#endif
->> +     return 0;
->> +
->> +exit_devices_unreg:
->> +     mutex_lock(&pdev_list_mutex);
->> +     list_for_each_entry_safe(p, n, &pdev_list, list) {
->> +             platform_device_unregister(p->pdev);
->> +             list_del(&p->list);
->> +             kfree(p);
->> +     }
->> +     mutex_unlock(&pdev_list_mutex);
->> +exit_driver_unreg:
->> +     platform_driver_unregister(&via_cputemp_driver);
->> +exit:
->> +     return err;
->> +}
->> +
->> +static void __exit via_cputemp_exit(void)
->> +{
->> +     struct pdev_entry *p, *n;
->> +#ifdef CONFIG_HOTPLUG_CPU
->> +     unregister_hotcpu_notifier(&via_cputemp_cpu_notifier);
->> +#endif
->> +     mutex_lock(&pdev_list_mutex);
->> +     list_for_each_entry_safe(p, n, &pdev_list, list) {
->> +             platform_device_unregister(p->pdev);
->> +             list_del(&p->list);
->> +             kfree(p);
->> +     }
->> +     mutex_unlock(&pdev_list_mutex);
->> +     platform_driver_unregister(&via_cputemp_driver);
->> +}
->> +
->> +MODULE_AUTHOR("Harald Welte <HaraldWelte@viatech.com>");
->> +MODULE_DESCRIPTION("VIA CPU temperature monitor");
->> +MODULE_LICENSE("GPL");
->> +
->> +module_init(via_cputemp_init)
->> +module_exit(via_cputemp_exit)
->
-> The rest looks OK.
->
-> --
-> Jean Delvare
->
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-
+--000e0cd1826435ac4c046b9835ba--
