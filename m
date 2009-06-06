@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 05 Jun 2009 15:12:29 +0000
+From: Hleb Valoshka <375gnu@gmail.com>
+Date: Sat, 06 Jun 2009 14:31:31 +0000
 Subject: Re: [lm-sensors] hwmon-vid driver from linux 2.6.29
-Message-Id: <20090605171229.5e557efb@hyperion.delvare>
+Message-Id: <be6d22e0906060731x3fd775ewf4bcae0d7ffe3ac6@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4A0C6BF7.9010107@assembler.cz>
 In-Reply-To: <4A0C6BF7.9010107@assembler.cz>
@@ -10,72 +10,107 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hleb,
+On 6/5/09, Jean Delvare <khali@linux-fr.org> wrote:
 
-On Thu, 14 May 2009 22:14:36 +0300, Hleb Valoshka wrote:
-> Vendor ID: "AuthenticAMD"; CPUID level 1
-> 
-> AMD-specific functions
-> Version 00060fb1:
-> Family: 15 Model: 11 []
+>> AMD-specific functions
+>> Version 00060fb1:
+>> Family: 15 Model: 11 []
+> This is a BH-G1 core, family 0Fh, it does have 6 VID pins, so VRM
+> version "25" (in hwmon-vid's terms) is correct. Is it the value
+> returned in /sys/bus/platform/devices/it87.552/vrm? I suppose the value
+> returned in that file in kernel 2.6.26 was "24" instead?
 
-This is a BH-G1 core, family 0Fh, it does have 6 VID pins, so VRM
-version "25" (in hwmon-vid's terms) is correct. Is it the value
-returned in /sys/bus/platform/devices/it87.552/vrm? I suppose the value
-returned in that file in kernel 2.6.26 was "24" instead?
+@globus-debian:~$ cat /sys/bus/platform/devices/it87.552/vrm
+25
 
-> >> Module hwmon_vid (drivers/hwmon/hwmon-vid.c) from linux-2.6.29(.3) returns
-> >>
-> >> incorrect voltage for my CPU from it8716f sensor (real/2).
-> >> With module from 2.6.26 voltage is correct.
+yes, with 2.6.26 it was 24
 
-What was the voltage value before, and what is it now?
 
-> >> Code changed between versions:
-> >>
-> >>  int vid_from_reg(int val, u8 vrm)
-> >>  {
-> >>         int vid;
-> >> @@ -96,9 +102,16 @@
-> >>                 if (val < 0x02 || val > 0xb2)
-> >>                         return 0;
-> >>                 return((1600000 - (val - 2) * 6250 + 500) / 1000);
-> >> -       case 24:                /* Opteron processor */
-> >> +
-> >> +       case 24:                /* Athlon64 & Opteron */
-> >>                 val &= 0x1f;
-> >> -               return(val = 0x1f ? 0 : 1550 - val * 25);
-> >> +               if (val = 0x1f)
-> >> +                       return 0;
-> >> +                               /* fall through */
-> >> +       case 25:                /* AMD NPT 0Fh */
-> >> +               val &= 0x3f;
-> >> +               return (val < 32) ? 1550 - 25 * val
-> >> +                       : 775 - (25 * (val - 31)) / 2;
-> >>
-> >> May be you should revert old code.
-> >>
-> >> My CPU is AMD BE-2350 stepping 01. IT87 sensor: IT8716F chip at 0x228,
-> >> revision 0.
+>> >> Module hwmon_vid (drivers/hwmon/hwmon-vid.c) from linux-2.6.29(.3)
+>> >> returns
+>> >>
+>> >> incorrect voltage for my CPU from it8716f sensor (real/2).
+>> >> With module from 2.6.26 voltage is correct.
+> What was the voltage value before, and what is it now?
 
-The hwmon-vid code looks correct, and I think you are the first person
-complaining since the code was changed (while we did have success
-reports.) It could be that VID5 pin is not properly wired on your
-system. Or a bug in the it87 driver.
+cpu freq | 2.6.26 | 2.6.29
+---------------------------------
+1 GHz    | 1.1 V  | 0.54 V
+2.1 GHz  | 1.25 V | 0,61 V
 
-Please provide a dump of your IT8716F chip:
+> The hwmon-vid code looks correct, and I think you are the first person
+> complaining since the code was changed (while we did have success
+> reports.) It could be that VID5 pin is not properly wired on your
+> system. Or a bug in the it87 driver.
 
-isadump 0x22d 0x22e
+Is it wired on motherboard? It's Gigabyte GA-MA69VM-S2 (amd rs690v based)
 
-As well as a dump of the Super-I/O config space:
+> Please provide a dump of your IT8716F chip:
+>
+> isadump 0x22d 0x22e
 
-isadump -k 0x87,0x01,0x55,0x55 0x2e 0x2f 4
+@globus-debian:~$ sudo isadump 0x22d 0x22e
+WARNING! Running this program can cause system crashes, data loss and worse!
+I will probe address register 0x22d and data register 0x22e.
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: 11 10 00 00 ff ff 00 37 ff 87 32 09 07 11 ff 00
+10: ff ff ff 31 d7 82 7f c2 02 ff 00 ff ff ff ff ff
+20: 44 79 d2 bb c3 ca 46 b8 be 29 20 16 7e 8d 8d 8d
+30: ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00
+40: 7f 7f 7f 7f 7f 7f 00 0d 2d ff ff ff ff ff ff ff
+50: ff 1c 7f 7f 7f 50 eb eb 90 eb 00 12 60 00 00 00
+60: ff 14 7f 27 90 03 ff ff 7f 7f 7f 00 00 7f ff ff
+70: ff 14 7f 20 90 03 ff ff ff ff ff ff ff ff ff ff
+80: 00 00 00 00 ff ff ff ff 00 00 ff c0 02 00 99 99
+90: 7f 7f 7f 00 00 7f ff ff 7f 7f 7f 00 00 7f ff ff
+a0: 00 00 00 00 00 00 00 ff ff ff ff ff ff ff ff ff
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
 
-Also, if you use the powernow-k8 driver, it should print the available
-VIDs when the driver is loaded, please report what the driver says.
+> As well as a dump of the Super-I/O config space:
+> isadump -k 0x87,0x01,0x55,0x55 0x2e 0x2f 4
+
+@globus-debian:~$ sudo isadump -k 0x87,0x01,0x55,0x55 0x2e 0x2f 4
+WARNING! Running this program can cause system crashes, data loss and worse!
+I will probe address register 0x2e and data register 0x2f.
+Probing bank 4 using bank register 0x07.
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: 00 00 00 00 00 00 00 04 00 00 00 00 00 00 00 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 87 16 00 10 1a 00 00 00 80 00 00 00 1f 00 00 00
+30: 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 02 28 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 02 00 00 04 04 00 00 00 00 00 00 00 00 00 00
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 80 00 0e 00 88 00 ff 00 00 00 00 00 00 00 00 00
+
+> Also, if you use the powernow-k8 driver, it should print the available
+> VIDs when the driver is loaded, please report what the driver says.
+
+powernow-k8: Found 1 AMD Athlon(tm) X2 Dual Core Processor BE-2350
+processors (2 cpu cores) (version 2.20.00)
+powernow-k8:    0 : fid 0xd (2100 MHz), vid 0xc
+powernow-k8:    1 : fid 0xc (2000 MHz), vid 0xd
+powernow-k8:    2 : fid 0xa (1800 MHz), vid 0xf
+powernow-k8:    3 : fid 0x2 (1000 MHz), vid 0x12
+
+(To make test I compiled hwmod-vid from 26 for 29 and everything was ok)
 
 -- 
-Jean Delvare
+http://375gnu.wordpress.com
 
 _______________________________________________
 lm-sensors mailing list
