@@ -1,39 +1,51 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 23 Jun 2009 06:47:46 +0000
-Subject: Re: [lm-sensors] =?iso-8859-15?q?Intel=AE_Desktop_Board_D945GSEJT?=
-Message-Id: <20090623084746.7d1bba56@hyperion.delvare>
+Date: Mon, 08 Jun 2009 11:33:02 +0000
+Subject: Re: [lm-sensors] [PATCH v2 0/7] sensord: Some cleanups,
+Message-Id: <20090608133302.21b427ac@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4A3FF883.5080607@web.de>
-In-Reply-To: <4A3FF883.5080607@web.de>
+References: <20090511160001.GA17530@ubuntu>
+In-Reply-To: <20090511160001.GA17530@ubuntu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGFsbG8gRGVubmlzLAoKT24gTW9uLCAyMiBKdW4gMjAwOSAyMzozMjo1MSArMDIwMCwgRGVubmlz
-IEpvcmRhbiB3cm90ZToKPiBJJ20gZ2V0dGluZyBzaWNrIGJ5IHRyeWluZyB0byBpbnN0YWxsIGxt
-LXNlbnNvcnMgZm9yIHRoaXMgbWFpbmJvYXJkIHdpdGggCj4geHVidW50dSA5LjA0Lgo+IAo+IEZp
-bmFsbHkgbm8gc2Vuc29ycyBhcmUgZm91bmQuIFdoZW4gSSB0cnkgdG8gdXNlIHRoZSBtb3N0IHJl
-Y2VudCAKPiBzZW5zb3JzLWRldGVjdCBzY3JpcHQgaXQgc2F5czoKPiAKPiBEcml2ZXIgYHc4MzYy
-N2VoZic6Cj4gICAqIElTQSBidXMsIGFkZHJlc3MgMHhhMDAKPiAgICAgQ2hpcCBgV2luYm9uZCBX
-ODM2MjdESEctUCBTdXBlciBJTyBTZW5zb3JzJyAoY29uZmlkZW5jZTogOSkKPiAKPiBCdXQgaWYg
-SSB0cnkgdG8gbG9hZCB0aGF0IG1vZHVsZSBpdCBzYXlzOgo+IAo+IHN1ZG8gbW9kcHJvYmUgdzgz
-NjI3ZWhmCj4gV0FSTklORzogQWxsIGNvbmZpZyBmaWxlcyBuZWVkIC5jb25mOiAvZXRjL21vZHBy
-b2JlLmQvb3NzLWNvbXBhdCwgaXQgCj4gd2lsbCBiZSBpZ25vcmVkIGluIGEgZnV0dXJlIHJlbGVh
-c2UuCj4gRkFUQUw6IEVycm9yIGluc2VydGluZyB3ODM2MjdlaGYgCj4gKC9saWIvbW9kdWxlcy8y
-LjYuMjgtMTMtZ2VuZXJpYy9rZXJuZWwvZHJpdmVycy9od21vbi93ODM2MjdlaGYua28pOiBObyAK
-PiBzdWNoIGRldmljZQo+IAo+IEkgZG9uJ3Qga25vdyB3aGF0IHRvIGRvIHRvIGZpbmFsbHkgdXNl
-IGxtLXNlbnNvcnMuIER1ZSB0byB0aGUgZmFjdCBJJ20gCj4gdXNpbmcgYSBmYW5sZXNzIHN5c3Rl
-bSBoZXJlIEkgZG9uJ3Qgd2FudCB0byBzaXQgaW4gdGhlIGRhcmsgcmVnYXJkaW5nIAo+IHRlbXBl
-cmF0dXJlIGZvciBteSBDUFUuCj4gCj4gVGhhbmtzIGZvciBhbnkgc3VwcG9ydCBoZXJlLgoKVGhp
-cyBpcyBrZXJuZWwgYnVnICMxMzMzODoKaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19i
-dWcuY2dpP2lkEzMzOAoKRml4ZWQgaW4ga2VybmVsIDIuNi4zMToKaHR0cDovL2dpdC5rZXJuZWwu
-b3JnLz9wPWxpbnV4L2tlcm5lbC9naXQvdG9ydmFsZHMvbGludXgtMi42LmdpdDthPWNvbW1pdDto
-wWU0OGRjZTA1ZmYwNjI2NmNkZmQwY2JhNTVmYzUzNjdjZDQ5OWE1CgpXb3JrYXJvdW5kIGZvciBv
-bGRlciBrZXJuZWxzIChhcyByb290KToKKiBBZGQgdGhlIGZvbGxvd2luZyBsaW5lIC9ldGMvbW9k
-cHJvYmUuZC9od21vbi5jb25mOgogIG9wdGlvbnMgdzgzNjI3ZWhmIGZvcmNlX2lkPTB4YTAyMAoq
-IG1vZHByb2JlIHc4MzYyN2VoZgoKLS0gCkplYW4gRGVsdmFyZQpodHRwOi8va2hhbGkubGludXgt
-ZnIub3JnL3dpc2hsaXN0Lmh0bWwKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29y
-cy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vu
-c29ycw==
+Hi Andre,
+
+On Mon, 11 May 2009 18:00:01 +0200, Andre Prendel wrote:
+> Hello Jean,
+> 
+> here is the updated patch series according to your notes. Thanks for
+> your careful review.
+> 
+> There is much work left. I will go on with cleanups in further patches
+> (see the note in patch 1/7). I've dropped patch 2/8.
+> 
+> You can see the changes in the changelog of every patch under "Changes
+> in v2".
+> 
+> Thanks,
+> Andre
+> ---
+>  args.c    |  177 +++++++++++++++++++++-----------------------------------------
+>  args.h    |   30 ++++++++++
+
+While you have committed your patches by now, this file is nowhere to
+be seen in SVN. I suspect you forgot to "svn add" the file? Please do
+now, so that sensord builds again.
+
+>  lib.c     |   74 +++++++++++++------------
+>  rrd.c     |  110 +++++++++++++++++++-------------------
+>  sense.c   |    6 +-
+>  sensord.c |  103 +++++++++++++++++++++---------------
+>  sensord.h |   18 ------
+>  7 files changed, 246 insertions(+), 272 deletions(-)
+
+Thanks,
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
