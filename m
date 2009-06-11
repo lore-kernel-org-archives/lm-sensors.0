@@ -1,450 +1,148 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 26 Jun 2009 11:42:52 +0000
-Subject: Re: [lm-sensors] [PATCH v2 1/2] hwmon: Add driver for Texas
-Message-Id: <20090626134252.233a276e@hyperion.delvare>
+From: martind@noxam.com
+Date: Thu, 11 Jun 2009 23:28:27 +0000
+Subject: [lm-sensors] ASUS M3A78-CM
+Message-Id: <56834.1244762907@noxam.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============4830265329427472375=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090626081116.GB4510@ubuntu>
-In-Reply-To: <20090626081116.GB4510@ubuntu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Andre,
 
-On Fri, 26 Jun 2009 10:11:16 +0200, Andre Prendel wrote:
-> Add support for Texas Instruments TMP421/422/423 temperature sensor IC.
-> 
-> TI's TMP421/422/423 are I2C temperature sensor chips. These chips are
-> similar to TI's TMP401/411 chips, but with reduced functionality (only
-> temperature measurement). The chips have one local sensor and up to
-> three (TMP423) remote sensors.
-> 
-> Changes in v2:
-> 
-> Jean, I've fixed all the issues from your review. Biggest change is
-> introducing a sysfs group with the is_visible() calllback. Now only
-> the supported temperature files appears in sysfs.
-> 
-> Signed-off-by: Andre Prendel <andre.prendel@gmx.de>
-> ---
->  Kconfig  |   10 +
->  Makefile |    1 
->  tmp421.c |  349 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 360 insertions(+)
-
-Looks mostly OK now. I have a few comments remaining, see below. But I
-will fix these myself, no need to resend.
-
-> 
-> Index: linux-2.6/drivers/hwmon/tmp421.c
-> =================================> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ linux-2.6/drivers/hwmon/tmp421.c	2009-06-23 19:58:56.000000000 +0200
-> @@ -0,0 +1,349 @@
-> +/* tmp421.c
-> + *
-> + * Copyright (C) 2009 Andre Prendel <andre.prendel@gmx.de>
-> + * Preliminary support by:
-> + * Melvin Rook, Raymond Ng
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +
-> +/*
-> + * Driver for the Texas Instruments TMP421 SMBus temperature sensor IC.
-> + * Supported models: TMP421, TMP422, TMP423
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/slab.h>
-> +#include <linux/jiffies.h>
-> +#include <linux/i2c.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +#include <linux/err.h>
-> +#include <linux/mutex.h>
-> +#include <linux/sysfs.h>
-> +
-> +/* Addresses to scan */
-> +static unsigned short normal_i2c[] = { 0x2a, 0x4c, 0x4d, 0x4e, 0x4f,
-> +				       I2C_CLIENT_END };
-> +
-> +/* Insmod parameters */
-> +I2C_CLIENT_INSMOD_3(tmp421, tmp422, tmp423);
-> +
-> +/* The TMP421 registers */
-> +#define TMP421_CONFIG_REG_1			0x09
-> +#define TMP421_CONVERSION_RATE_REG		0x0B
-> +#define TMP421_MANUFACTURER_ID_REG		0xFE
-> +#define TMP421_DEVICE_ID_REG			0xFF
-> +
-> +static const u8 TMP421_TEMP_MSB[4]		= { 0x00, 0x01, 0x02, 0x03 };
-> +static const u8 TMP421_TEMP_LSB[4]		= { 0x10, 0x11, 0x12, 0x13 };
-> +
-> +/* Flags */
-> +#define TMP421_CONFIG_SHUTDOWN			0x40
-> +#define TMP421_CONFIG_RANGE			0x04
-> +
-> +/* Manufacturer / Device ID's */
-> +#define TMP421_MANUFACTURER_ID			0x55
-> +#define TMP421_DEVICE_ID			0x21
-> +#define TMP422_DEVICE_ID			0x22
-> +#define TMP423_DEVICE_ID			0x23
-> +
-> +static const struct i2c_device_id tmp421_id[] = {
-> +	{ "tmp421", tmp421 },
-> +	{ "tmp422", tmp422 },
-> +	{ "tmp423", tmp423 },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(i2c, tmp421_id);
-> +
-> +struct tmp421_data {
-> +	struct device *hwmon_dev;
-> +	struct mutex update_lock;
-> +	char valid;
-> +	unsigned long last_updated;
-> +	int kind;
-> +	u8 config;
-> +	s16 temp[4];
-> +};
-> +
-> +static int temp_from_s16(s16 reg)
-> +{
-> +	int temp = reg;
-> +
-> +	return (temp * 1000 + 128) / 256;
-> +}
-> +
-> +static int temp_from_u16(u16 reg)
-> +{
-> +	int temp = reg;
-> +
-> +	/* Add offset for extended temperature range. */
-> +	temp -= 64 * 256;
-> +
-> +	return (temp * 1000 + 128) / 256;
-> +}
-> +
-> +static struct tmp421_data *tmp421_update_device(struct device *dev)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct tmp421_data *data = i2c_get_clientdata(client);
-> +	int i;
-> +
-> +	mutex_lock(&data->update_lock);
-> +
-> +	if (time_after(jiffies, data->last_updated + 2 * HZ) || !data->valid) {
-> +		data->config = i2c_smbus_read_byte_data(client,
-> +			TMP421_CONFIG_REG_1);
-> +
-> +		for (i = 0; i <= data->kind; i++) {
-> +			data->temp[i] = i2c_smbus_read_byte_data(client,
-> +				TMP421_TEMP_MSB[i]) << 8;
-> +			data->temp[i] |= i2c_smbus_read_byte_data(client,
-> +				TMP421_TEMP_LSB[i]);
-> +		}
-> +		data->last_updated = jiffies;
-> +		data->valid = 1;
-> +	}
-> +
-> +	mutex_unlock(&data->update_lock);
-> +
-> +	return data;
-> +}
-> +
-> +static ssize_t show_temp_value(struct device *dev,
-> +			       struct device_attribute *devattr, char *buf)
-> +{
-> +	int index = to_sensor_dev_attr(devattr)->index;
-> +	struct tmp421_data *data = tmp421_update_device(dev);
-> +	int temp;
-> +
-> +	mutex_lock(&data->update_lock);
-> +	if (data->config & TMP421_CONFIG_RANGE)
-> +		temp = temp_from_u16(data->temp[index]);
-> +	else
-> +		temp = temp_from_s16(data->temp[index]);
-> +	mutex_unlock(&data->update_lock);
-> +
-> +	return sprintf(buf, "%d\n", temp);
-> +}
-> +
-> +static ssize_t show_fault(struct device *dev,
-> +			  struct device_attribute *devattr, char *buf)
-> +{
-> +	int index = to_sensor_dev_attr(devattr)->index;
-> +	struct tmp421_data *data = tmp421_update_device(dev);
-> +
-> +	/*
-> +	 * The OPEN bit signals a fault. This is bit 0 of the temperature
-> +	 * register (low byte).
-> +	 */
-> +	if (data->temp[index] & 0x01)
-> +		return sprintf(buf, "1\n");
-> +	else
-> +		return sprintf(buf, "0\n");
-> +}
-> +
-> +static mode_t tmp421_is_visible(struct kobject *kobj, struct attribute *a,
-> +				int n)
-> +{
-> +	struct device *dev = container_of(kobj, struct device, kobj);
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct tmp421_data *data = i2c_get_clientdata(client);
-
-If you don't need client for anything else, you can take a shortcut
-with data = dev_get_drvdata(dev).
-
-> +	struct device_attribute *devattr;
-> +	unsigned int index;
-> +
-> +	devattr = container_of(a, struct device_attribute, attr);
-> +	index = to_sensor_dev_attr(devattr)->index;
-> +
-> +	if (data->kind > index)
-> +		return a->mode;
-
-This is still a little fragile IMHO, and might require a rework in the
-future.
-
-> +
-> +	return 0;
-> +}
-> +
-> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_value, NULL, 0);
-> +static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_value, NULL, 1);
-> +static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_fault, NULL, 1);
-> +static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp_value, NULL, 2);
-> +static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_fault, NULL, 2);
-> +static SENSOR_DEVICE_ATTR(temp4_input, S_IRUGO, show_temp_value, NULL, 3);
-> +static SENSOR_DEVICE_ATTR(temp4_fault, S_IRUGO, show_fault, NULL, 3);
-> +
-> +static struct attribute *tmp421_attr[] = {
-> +	&sensor_dev_attr_temp1_input.dev_attr.attr,
-> +	&sensor_dev_attr_temp2_input.dev_attr.attr,
-> +	&sensor_dev_attr_temp2_fault.dev_attr.attr,
-> +	&sensor_dev_attr_temp3_input.dev_attr.attr,
-> +	&sensor_dev_attr_temp3_fault.dev_attr.attr,
-> +	&sensor_dev_attr_temp4_input.dev_attr.attr,
-> +	&sensor_dev_attr_temp4_fault.dev_attr.attr,
-> +	NULL
-> +};
-> +
-> +static const struct attribute_group tmp421_group = {
-> +	.attrs = tmp421_attr,
-> +	.is_visible = tmp421_is_visible,
-> +};
-> +
-> +static int tmp421_init_client(struct i2c_client *client)
-> +{
-> +	int config, config_orig;
-> +
-> +	/* Set the conversion rate to 2 Hz */
-> +	i2c_smbus_write_byte_data(client, TMP421_CONVERSION_RATE_REG, 0x05);
-> +
-> +	/* Start conversions (disable shutdown if necessary) */
-> +	config = i2c_smbus_read_byte_data(client, TMP421_CONFIG_REG_1);
-> +	if (config < 0) {
-> +		dev_err(&client->dev, "Could not read configuration"
-> +			 " register (%d)\n", config);
-> +		return -ENODEV;
-> +	}
-> +
-> +	config_orig = config;
-> +	config &= ~TMP421_CONFIG_SHUTDOWN;
-> +
-> +	if (config != config_orig) {
-> +		dev_info(&client->dev, "Enable monitoring chip\n");
-> +		i2c_smbus_write_byte_data(client, TMP421_CONFIG_REG_1, config);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int tmp421_detect(struct i2c_client *client, int kind,
-> +			 struct i2c_board_info *info)
-> +{
-> +	struct i2c_adapter *adapter = client->adapter;
-> +	const char *names[] = { "TMP421", "TMP422", "TMP423" };
-> +
-> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-> +		return -ENODEV;
-> +
-> +	if (kind <= 0) {
-> +		u8 reg;
-> +
-> +		reg = i2c_smbus_read_byte_data(client,
-> +					       TMP421_MANUFACTURER_ID_REG);
-> +		if (reg != TMP421_MANUFACTURER_ID)
-> +			return -ENODEV;
-> +
-> +		reg = i2c_smbus_read_byte_data(client,
-> +					       TMP421_DEVICE_ID_REG);
-> +		switch (reg) {
-> +		case TMP421_DEVICE_ID:
-> +			kind = tmp421;
-> +			break;
-> +		case TMP422_DEVICE_ID:
-> +			kind = tmp422;
-> +			break;
-> +		case TMP423_DEVICE_ID:
-> +			kind = tmp423;
-> +			break;
-> +		default:
-> +			return -ENODEV;
-> +		}
-> +	}
-> +	strlcpy(info->type, tmp421_id[kind - 1].name, I2C_NAME_SIZE);
-> +	dev_info(&adapter->dev, "Detected TI %s chip\n", names[kind - 1]);
-
-I suggest adding the address in the log message.
-
-> +
-> +	return 0;
-> +}
-> +
-> +static int tmp421_remove(struct i2c_client *client)
-> +{
-> +	struct tmp421_data *data = i2c_get_clientdata(client);
-> +
-> +	if (data->hwmon_dev)
-> +		hwmon_device_unregister(data->hwmon_dev);
-
-As you are no longer calling tmp421_remove() from tmp421_probe(), this
-test will always be successful.
-
-> +
-> +	sysfs_remove_group(&client->dev.kobj, &tmp421_group);
-> +
-> +	i2c_set_clientdata(client, NULL);
-> +	kfree(data);
-> +
-> +	return 0;
-> +}
-> +
-> +static int tmp421_probe(struct i2c_client *client,
-> +			const struct i2c_device_id *id)
-> +{
-> +	struct tmp421_data *data;
-> +	int err;
-> +
-> +	data = kzalloc(sizeof(struct tmp421_data), GFP_KERNEL);
-> +	if (!data)
-> +		return -ENOMEM;
-> +
-> +	i2c_set_clientdata(client, data);
-> +	mutex_init(&data->update_lock);
-> +	data->kind = id->driver_data;
-> +
-> +	err = tmp421_init_client(client);
-> +	if (err)
-> +		goto exit_free;
-> +
-> +	err = sysfs_create_group(&client->dev.kobj, &tmp421_group);
-> +	if (err)
-> +		goto exit_free;
-> +
-> +	data->hwmon_dev = hwmon_device_register(&client->dev);
-> +	if (IS_ERR(data->hwmon_dev)) {
-> +		err = PTR_ERR(data->hwmon_dev);
-> +		data->hwmon_dev = NULL;
-> +		goto exit_remove;
-> +	}
-> +	return 0;
-> +
-> +exit_remove:
-> +	sysfs_remove_group(&client->dev.kobj, &tmp421_group);
-> +
-> +exit_free:
-> +	i2c_set_clientdata(client, NULL);
-> +	kfree(data);
-> +
-> +	return err;
-> +}
-> +
-> +static struct i2c_driver tmp421_driver = {
-> +	.class = I2C_CLASS_HWMON,
-> +	.driver = {
-> +		.name	= "tmp421",
-> +	},
-> +	.probe = tmp421_probe,
-> +	.remove = tmp421_remove,
-> +	.id_table = tmp421_id,
-> +	.detect = tmp421_detect,
-> +	.address_data = &addr_data,
-> +};
-> +
-> +static int __init tmp421_init(void)
-> +{
-> +	return i2c_add_driver(&tmp421_driver);
-> +}
-> +
-> +static void __exit tmp421_exit(void)
-> +{
-> +	i2c_del_driver(&tmp421_driver);
-> +}
-> +
-> +MODULE_AUTHOR("Andre Prendel <andre.prendel@gmx.de>");
-> +MODULE_DESCRIPTION("Texas Instruments TMP421/422/423 temperature sensor"
-> +		   " driver");
-> +MODULE_LICENSE("GPL");
-> +
-> +module_init(tmp421_init);
-> +module_exit(tmp421_exit);
-> Index: linux-2.6/drivers/hwmon/Kconfig
-> =================================> --- linux-2.6.orig/drivers/hwmon/Kconfig	2009-06-18 19:45:08.000000000 +0200
-> +++ linux-2.6/drivers/hwmon/Kconfig	2009-06-18 19:54:36.000000000 +0200
-> @@ -797,6 +797,16 @@
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called tmp401.
->  
-> +config SENSORS_TMP421
-> +	tristate "Texas Instruments TMP421, TMP422 and TMP423"
-> +	depends on I2C && EXPERIMENTAL
-> +	help
-> +	  If you say yes here you get support for Texas Instruments TMP421
-> +	  temperature sensor chips.
-
-... as well as TMP422 and TMP423.
-
-> +
-> +	  This driver can also be built as a module.  If so, the module
-> +	  will be called tmp421.
-> +
->  config SENSORS_VIA686A
->  	tristate "VIA686A"
->  	depends on PCI
-> Index: linux-2.6/drivers/hwmon/Makefile
-> =================================> --- linux-2.6.orig/drivers/hwmon/Makefile	2009-06-18 19:45:08.000000000 +0200
-> +++ linux-2.6/drivers/hwmon/Makefile	2009-06-18 19:54:36.000000000 +0200
-> @@ -83,6 +83,7 @@
->  obj-$(CONFIG_SENSORS_SMSC47M192)+= smsc47m192.o
->  obj-$(CONFIG_SENSORS_THMC50)	+= thmc50.o
->  obj-$(CONFIG_SENSORS_TMP401)	+= tmp401.o
-> +obj-$(CONFIG_SENSORS_TMP421)	+= tmp421.o
->  obj-$(CONFIG_SENSORS_VIA686A)	+= via686a.o
->  obj-$(CONFIG_SENSORS_VT1211)	+= vt1211.o
->  obj-$(CONFIG_SENSORS_VT8231)	+= vt8231.o
+--===============4830265329427472375==
+Content-type: multipart/alternative;
+	boundary="Boundary_(ID_Z/ScvS22X7cFWOzCgwWLSQ)"
 
 
--- 
-Jean Delvare
+--Boundary_(ID_Z/ScvS22X7cFWOzCgwWLSQ)
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 7BIT
+
+ 
+	Hi all! 
+ After couple hours... figured out the config for an ASUS M3A78-CM
+ motherboard
+ Here you go!
+ chip "it87-*" "it8712-*"
+ # The values below have been tested on Asus M3A78-CM motherboards.
+     label in0 "VCore 1"
+     ignore in1
+     label in2 "+3.3V"
+     ignore in3
+     label in4 "+12V"
+     label in5 "+5V"
+     ignore in6
+     ignore in7
+     label in8 "VBat"
+     compute in4 ((28/10) +1)*@  , @/((28/10) +1)
+     compute in5 @*(1+(22/10)),  @/(1+(22/10))
+     set in0_min  1.30 * 0.95
+     set in0_max  1.30 * 1.05
+     set in2_min  3.3 * 0.95
+     set in2_max  3.3 * 1.05
+     set in4_min   12 * 0.95
+     set in4_max   12 * 1.05
+     set in5_min    5 * 0.95
+     set in5_max    5 * 1.05
+     set temp1_type 2
+     set temp2_type 2
+     set temp3_type 3
+     ignore temp3
+     label temp1       "CPU Temp"
+     label temp2       "M/B Temp"
+ _____________________________________
+ remove everything else!
+ here is the output from sensors:
+ frodo:/sys/class/hwmon/hwmon1/device # sensors
+ atk0110-acpi-0
+ Adapter: ACPI interface
+ Vcore Voltage:     +1.30 V  (min =  +0.85 V, max =  +1.60 V)
+  +3.3 Voltage:     +3.28 V  (min =  +2.97 V, max =  +3.63 V)
+  +5 Voltage:       +4.97 V  (min =  +4.50 V, max =  +5.50 V)
+  +12 Voltage:     +12.22 V  (min = +10.20 V, max = +13.80 V)
+ CPU FAN Speed:    2295 RPM  (min =  600 RPM)
+ CHASSIS FAN Speed:   0 RPM  (min =  600 RPM)
+ POWER FAN Speed:  1313 RPM  (min =  600 RPM)
+ CPU Temperature:   +48.0&deg;C  (high = +60.0&deg;C, crit =
+ +95.0&deg;C)
+ MB Temperature:    +35.0&deg;C  (high = +45.0&deg;C, crit =
+ +95.0&deg;C)
+ it8712-isa-0290
+ Adapter: ISA adapter
+ VCore 1:     +1.30 V  (min =  +1.23 V, max =  +1.36 V)
+ +3.3V:       +3.28 V  (min =  +3.14 V, max =  +3.47 V)
+ +12V:       +12.22 V  (min = +11.37 V, max = +12.59 V)
+ +5V:         +4.97 V  (min =  +4.76 V, max =  +5.27 V)
+ VBat:        +3.20 V
+ fan1:       2295 RPM  (min =    0 RPM)
+ fan2:          0 RPM  (min =    0 RPM)
+ fan3:       1313 RPM  (min =    0 RPM)
+ CPU Temp:    +48.0&deg;C  (low  =  -1.0&deg;C, high =  -5.0&deg;C) 
+ sensor = thermistor
+ M/B Temp:    +35.0&deg;C  (low  =  -1.0&deg;C, high = +127.0&deg;C) 
+ sensor = thermistor
+ cpu0_vid:   +1.550 V
+ frodo:/sys/class/hwmon/hwmon1/device #
+ Best Regards
+ Martin Desormeaux
+ a.k.a Neo2048
+
+--Boundary_(ID_Z/ScvS22X7cFWOzCgwWLSQ)
+Content-type: text/html; charset=utf-8
+Content-transfer-encoding: quoted-printable
+
+<HTML>
+<p>&nbsp;</p><p>Hi all! <br /> <br /> After couple hours... figured out the=
+ config for an ASUS M3A78-CM<br /> motherboard<br /> Here you go!<br /> chi=
+p &quot;it87-*&quot; &quot;it8712-*&quot;<br /> <br /> # The values below h=
+ave been tested on Asus M3A78-CM motherboards.<br /> <br />     label in0 &=
+quot;VCore 1&quot;<br />     ignore in1<br />     label in2 &quot;+3.3V&quo=
+t;<br />     ignore in3<br />     label in4 &quot;+12V&quot;<br />     labe=
+l in5 &quot;+5V&quot;<br />     ignore in6<br />     ignore in7<br />     l=
+abel in8 &quot;VBat&quot;<br /> <br />     compute in4 ((28/10) +1)*@  , @/=
+((28/10) +1)<br />     compute in5 @*(1+(22/10)),  @/(1+(22/10))<br /> <br =
+/>     set in0_min  1.30 * 0.95<br />     set in0_max  1.30 * 1.05<br />   =
+  set in2_min  3.3 * 0.95<br />     set in2_max  3.3 * 1.05<br />     set i=
+n4_min   12 * 0.95<br />     set in4_max   12 * 1.05<br />     set in5_min =
+   5 * 0.95<br />     set in5_max    5 * 1.05<br /> <br />     set temp1_ty=
+pe 2<br />     set temp2_type 2<br />     set temp3_type 3<br />     ignore=
+ temp3<br /> <br />     label temp1       &quot;CPU Temp&quot;<br />     la=
+bel temp2       &quot;M/B Temp&quot;<br /> <br /> _________________________=
+____________<br /> <br /> remove everything else!<br /> <br /> here is the =
+output from sensors:<br /> frodo:/sys/class/hwmon/hwmon1/device # sensors<b=
+r /> atk0110-acpi-0<br /> Adapter: ACPI interface<br /> Vcore Voltage:     =
++1.30 V  (min =3D  +0.85 V, max =3D  +1.60 V)<br />  +3.3 Voltage:     +3.2=
+8 V  (min =3D  +2.97 V, max =3D  +3.63 V)<br />  +5 Voltage:       +4.97 V =
+ (min =3D  +4.50 V, max =3D  +5.50 V)<br />  +12 Voltage:     +12.22 V  (mi=
+n =3D +10.20 V, max =3D +13.80 V)<br /> CPU FAN Speed:    2295 RPM  (min =
+=3D  600 RPM)<br /> CHASSIS FAN Speed:   0 RPM  (min =3D  600 RPM)<br /> PO=
+WER FAN Speed:  1313 RPM  (min =3D  600 RPM)<br /> CPU Temperature:   +48.0=
+&amp;deg;C  (high =3D +60.0&amp;deg;C, crit =3D<br /> +95.0&amp;deg;C)<br /=
+> MB Temperature:    +35.0&amp;deg;C  (high =3D +45.0&amp;deg;C, crit =3D<b=
+r /> +95.0&amp;deg;C)<br /> <br /> it8712-isa-0290<br /> Adapter: ISA adapt=
+er<br /> VCore 1:     +1.30 V  (min =3D  +1.23 V, max =3D  +1.36 V)<br /> +=
+3.3V:       +3.28 V  (min =3D  +3.14 V, max =3D  +3.47 V)<br /> +12V:      =
+ +12.22 V  (min =3D +11.37 V, max =3D +12.59 V)<br /> +5V:         +4.97 V =
+ (min =3D  +4.76 V, max =3D  +5.27 V)<br /> VBat:        +3.20 V<br /> fan1=
+:       2295 RPM  (min =3D    0 RPM)<br /> fan2:          0 RPM  (min =3D  =
+  0 RPM)<br /> fan3:       1313 RPM  (min =3D    0 RPM)<br /> CPU Temp:    =
++48.0&amp;deg;C  (low  =3D  -1.0&amp;deg;C, high =3D  -5.0&amp;deg;C) <br /=
+> sensor =3D thermistor<br /> M/B Temp:    +35.0&amp;deg;C  (low  =3D  -1.0=
+&amp;deg;C, high =3D +127.0&amp;deg;C) <br /> sensor =3D thermistor<br /> c=
+pu0_vid:   +1.550 V<br /> <br /> frodo:/sys/class/hwmon/hwmon1/device #<br =
+/> Best Regards<br /> Martin Desormeaux<br /> <br /> a.k.a Neo2048</p></HTM=
+L>=
+
+--Boundary_(ID_Z/ScvS22X7cFWOzCgwWLSQ)--
+
+
+--===============4830265329427472375==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============4830265329427472375==--
