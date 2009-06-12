@@ -1,64 +1,43 @@
 From: "Michael S. Zick" <lkml@morethan.org>
-Date: Fri, 12 Jun 2009 11:46:45 +0000
+Date: Fri, 12 Jun 2009 13:09:05 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Add driver for VIA CPU core
-Message-Id: <200906120646.48615.lkml@morethan.org>
+Message-Id: <200906120809.07678.lkml@morethan.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090609083406.GE25316@prithivi.gnumonks.org> <20090611153255.ba8d6c54.akpm@linux-foundation.org> <20090612101200.3fe6d494@hyperion.delvare>
-In-Reply-To: <20090612101200.3fe6d494@hyperion.delvare>
+References: <20090609083406.GE25316@prithivi.gnumonks.org> <200906120646.48615.lkml@morethan.org> <20090612125450.GK30843@prithivi.gnumonks.org>
+In-Reply-To: <20090612125450.GK30843@prithivi.gnumonks.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Tomaz Mertelj <tomaz.mertelj@guest.arnes.si>, Harald Welte <HaraldWelte@viatech.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Harald Welte <HaraldWelte@viatech.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Tomaz Mertelj <tomaz.mertelj@guest.arnes.si>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Fri June 12 2009, Jean Delvare wrote:
-> On Thu, 11 Jun 2009 15:32:55 -0700, Andrew Morton wrote:
-> > On Wed, 10 Jun 2009 17:40:31 +0000 (UTC)
-> > Tomaz Mertelj <tomaz.mertelj@guest.arnes.si> wrote:
+On Fri June 12 2009, Harald Welte wrote:
+> On Fri, Jun 12, 2009 at 06:46:45AM -0500, Michael S. Zick wrote:
+> > > Temperature values are supposed to be expressed in millidegrees C, not
+> > > degrees C as it seems to be doing (although 25 degrees C seems pretty
+> > > low for a CPU temperature?) The drivers needs to multiply values by
+> > > 1000 before exporting them to sysfs. Then "sensors" will report the
+> > > correct temperature value.
+> > > 
 > > 
-> > > Harald Welte <HaraldWelte <at> viatech.com> writes:
-> > > 
-> > > > 
-> > > > This is a driver for the on-die digital temperature sensor of
-> > > > VIA's recent CPU models.
-> > > > 
-> > > > Signed-off-by: Harald Welte <HaraldWelte <at> viatech.com>
-> > > > 
-> > > 
-> > > Harald,
+> > Ah, 25 degrees C is room temperature - real hard for the junction temperature
+> > to be 25 degrees C with power applied; lacking an infinitely perfect heatsink.
 > > 
-> > You carefully removed Harald from Cc: so he probably didn't read your
-> > email.
-> > 
-> > > I tested it on 2.6.28.3 kernel on VIA VB7002 motherboard and it does not work 
-> > > correctly.
-> > > 
-> > > Output form sensors:
-> > > 
-> > > via-cputemp-isa-0000
+> > Look for an "off by one" error in shifting or masking the value.
 > 
-> Harald, dashes in hwmon chip names are _prohibited_. Please change to
-> via_cputemp or similar.
+> there is no shifting and the masking is 0xffffffff :)
 > 
-> > > Adapter: ISA adapter
-> > > Core 0:       +0.0 C
-> > > 
-> > > On the other hand 
-> > > cat '/sys/class/hwmon/hwmon2/device/driver/via-cputemp.0/temp1_input' outputs 
-> > > numbers between 25-27. 
-> > > 
-> 
-> Temperature values are supposed to be expressed in millidegrees C, not
-> degrees C as it seems to be doing (although 25 degrees C seems pretty
-> low for a CPU temperature?) The drivers needs to multiply values by
-> 1000 before exporting them to sysfs. Then "sensors" will report the
-> correct temperature value.
+> it might be that the BIOS is doing something wrong when programming the
+> calibration MSR's at early botoup.  I would need the contents of MSR 
+> 0x1160 ... 0x116C as well as 0x1152 and 0x1153 to be able to determine that.
 > 
 
-Ah, 25 degrees C is room temperature - real hard for the junction temperature
-to be 25 degrees C with power applied; lacking an infinitely perfect heatsink.
+I was commenting on someone else's observation - -
+Will build with your patch and poke at it a bit.
 
-Look for an "off by one" error in shifting or masking the value.
+I should be able to read those registers from /dev/cpu/0/msr, correct?
+Or is there a "safe" mask in the msr driver that prevents reading random
+MSR registers?
 
 Mike
 
