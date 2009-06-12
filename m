@@ -1,35 +1,60 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 03 Jun 2009 15:05:04 +0000
-Subject: Re: [lm-sensors] Power Supply Monitoring
-Message-Id: <20090603170504.5f03636b@hyperion.delvare>
+From: "Michael S. Zick" <lkml@morethan.org>
+Date: Fri, 12 Jun 2009 17:38:19 +0000
+Subject: Re: [lm-sensors]
+Message-Id: <200906121238.21568.lkml@morethan.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090602164941.uz55en9rms0okkg0@blastoid.drak.net>
-In-Reply-To: <20090602164941.uz55en9rms0okkg0@blastoid.drak.net>
+References: <20090612_152510_043383.tomaz.mertelj@guest.arnes.si> <200906121031.05738.lkml@morethan.org> <200906121104.26174.lkml@morethan.org>
+In-Reply-To: <200906121104.26174.lkml@morethan.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: tomaz.mertelj@guest.arnes.si
+Cc: Harald Welte <HaraldWelte@viatech.com>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Wed, 03 Jun 2009 07:31:21 -0700, Mark E. Hansen wrote:
-> On 06/02/09 20:09, Jacob Steinberger wrote:
-> > I'm really just looking for a way to do a simple function check on the 
-> > power supplies to detect when they're operational. Not necessarily to 
-> > find out what voltage is going through, but to see if it's even working 
-> > or not. For example, we have one power supply on grid, the other is on 
-> > UPS - the easiest way to detect if there's a problem with UPS or grid 
-> > power is to monitor the power supplies on the boxes. This would function 
-> > as a dual monitor if there was ever an issue with just a power supply.
-> 
-> How do you expect software on a computer to tell you when the power
-> supply on that computer has gone to zero volts?
+On Fri June 12 2009, Michael S. Zick wrote:
+>
+> The tool does not report read failures.
+> **BUT** if you remember to "modprobe msr" or have it built in...
+> Translation: Cockpit error.  ;)
+>=20
+> root@cb01:~# for r in 0x1160 0x1161 0x1162 0x1163 0x1164 0x1165 0x1166 0x=
+1167 0x1168 0x1169 0x116a 0x116b 0x116c 0x1152 0x1153 ; do ./rdmsrll  $r ; =
+done
+> MSR register 0x1160 =3D> 00:00:00:00:00:00:05:dc
+> MSR register 0x1161 =3D> 00:00:00:00:00:00:03:e8
+> MSR register 0x1162 =3D> 00:00:00:00:00:00:00:00
+> MSR register 0x1163 =3D> 00:00:00:00:00:00:00:00
+> MSR register 0x1164 =3D> 00:00:00:00:00:00:00:5f
+> MSR register 0x1165 =3D> 00:00:00:00:00:00:00:64
+> MSR register 0x1166 =3D> 00:00:00:00:00:00:00:7d
+> MSR register 0x1167 =3D> 00:00:00:00:00:00:00:00
+> MSR register 0x1168 =3D> 00:00:00:00:00:00:01:8d
+> MSR register 0x1169 =3D> 00:00:00:00:00:00:00:32
+> MSR register 0x116a =3D> 00:00:00:00:00:00:00:03
+> MSR register 0x116b =3D> 00:00:00:00:00:00:01:a6
+> MSR register 0x116c =3D> 00:00:00:00:00:00:03:34
+> MSR register 0x1152 =3D> e7:2c:b3:9f:fb:ff:ff:ff
+> MSR register 0x1153 =3D> 04:06:0c:09:fe:ff:ff:ff
+>=20
+> Which is the same data as reported by msr-tools.
+>
 
-Some computers have dual (or more) power supply units. On these
-machines, as long as at least one PSU is still up and running, you can
-monitor them all. However it is relatively rare that mainboards are
-wired to monitor that kind of setup.
+And the output of sensors with H.W. driver built-in:
 
--- 
-Jean Delvare
+root@cb01:~# sensors
+acpitz-virtual-0
+Adapter: Virtual device
+temp1:       +48.8=B0C  (crit =3D +94.8=B0C)
+
+via-cputemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +50.0=B0C
+
+Which looks reasonable to me, on this machine.
+
+Mike=20
+> Mike=20
+
 
 _______________________________________________
 lm-sensors mailing list
