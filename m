@@ -1,7 +1,7 @@
 From: "Michael S. Zick" <lkml@morethan.org>
-Date: Fri, 12 Jun 2009 13:47:36 +0000
+Date: Fri, 12 Jun 2009 14:23:00 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Add driver for VIA CPU core
-Message-Id: <200906120847.46609.lkml@morethan.org>
+Message-Id: <200906120923.02851.lkml@morethan.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090609083406.GE25316@prithivi.gnumonks.org> <20090612125450.GK30843@prithivi.gnumonks.org> <200906120841.08114.lkml@morethan.org>
 In-Reply-To: <200906120841.08114.lkml@morethan.org>
@@ -53,15 +53,33 @@ On Fri June 12 2009, Michael S. Zick wrote:
 > The high 32b look strange in that output - might be
 > the utility I used (attached).
 > 
+
+Yes - that utility had problems with casting the address;
+I think I fixed that, this looks better:
+
+root@cb01:~# for r in 0x1160 0x1161 0x1162 0x1163 0x1164 0x1165 0x1166 0x1167 0x1168 0x1169 0x116a 0x116b 0x116c 0x1152 0x1153 ; do ./rdmsrll $r ; done
+MSR register 0x1160 => 08:04:83:94:bf:86:e1:d8
+MSR register 0x1161 => 08:04:83:94:bf:ec:73:78
+MSR register 0x1162 => 08:04:83:94:bf:bf:4b:58
+MSR register 0x1163 => 08:04:83:94:bf:bc:82:28
+MSR register 0x1164 => 08:04:83:94:bf:b1:1d:98
+MSR register 0x1165 => 08:04:83:94:bf:cb:09:88
+MSR register 0x1166 => 08:04:83:94:bf:d0:03:e8
+MSR register 0x1167 => 08:04:83:94:bf:91:26:18
+MSR register 0x1168 => 08:04:83:94:bf:99:26:38
+MSR register 0x1169 => 08:04:83:94:bf:b3:f1:08
+MSR register 0x116a => 08:04:83:94:bf:d5:42:88
+MSR register 0x116b => 08:04:83:94:bf:f8:b6:28
+MSR register 0x116c => 08:04:83:94:bf:f6:68:88
+MSR register 0x1152 => 08:04:83:94:bf:d5:b4:f8
+MSR register 0x1153 => 08:04:83:94:bf:bd:d5:28
+
+Mike
 > Mike
 > 
 > 
 
-Hmm ... if the utility is correct and I read that
-under a 16bit mask - that is 36,852 milliDegrees.
-Sounds about right for this machine and conditions.
 
-Mike
 
 _______________________________________________
 lm-sensors mailing list
