@@ -1,32 +1,37 @@
-From: Konstantinos Alexakis <mr_k_one@yahoo.com>
-Date: Sat, 20 Jun 2009 16:25:22 +0000
-Subject: [lm-sensors] lm-sensors (coretemp error)
-Message-Id: <50584.37550.qm@web55105.mail.re4.yahoo.com>
+From: Alistair John Strachan <alistair@devzero.co.uk>
+Date: Sat, 13 Jun 2009 17:21:14 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon: (abituguru3) DMI probing for IX38
+Message-Id: <1244913674-9633-4-git-send-email-alistair@devzero.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Switch the IX38 QuadGT over from port probing to the preferred DMI
+probe method.
 
-Hello,
+Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
+Tested-by: Dmitriy Fedchenko <dmitriy-fedc@yandex.ru>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/abituguru3.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-In ana attempt ti install lm-sensors on my Laptop with an Intel Core2Duo processor (coretemp driver) I got stuck after giving the following command:  
-sudo modprobe coretemp 
-...where I got this error message:
-FATAL: Error inserting coretemp (/lib/modules/2.6.24-16-generic/kernel/drivers/hwmon/coretemp.ko): No such device
-
-I am an novice at this (Linux etc), so I was wondering whether you could give me some hlep...  
-The initial instructions I followed came from here: http://www.techthrob.com/2009/03/02/enabling-hardware-sensors-in-linux
-
-
-Thank you in advance
-
-
-Kostas
-
-
-      
+diff --git a/drivers/hwmon/abituguru3.c b/drivers/hwmon/abituguru3.c
+index ad2b343..2908cfc 100644
+--- a/drivers/hwmon/abituguru3.c
++++ b/drivers/hwmon/abituguru3.c
+@@ -564,7 +564,7 @@ static const struct abituguru3_motherboard_info abituguru3_motherboards[] = {
+ 		{ "AUX3 Fan",		36, 2, 60, 1, 0 },
+ 		{ NULL, 0, 0, 0, 0, 0 } }
+ 	},
+-	{ 0x001C, NULL /* Unknown, need DMI string */, {
++	{ 0x001C, "IX38 QuadGT", {
+ 		{ "CPU Core",		 0, 0, 10, 1, 0 },
+ 		{ "DDR2",		 1, 0, 20, 1, 0 },
+ 		{ "DDR2 VTT",		 2, 0, 10, 1, 0 },
 
 _______________________________________________
 lm-sensors mailing list
