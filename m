@@ -1,7 +1,7 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Sun, 14 Jun 2009 07:22:27 +0000
+From: Alistair John Strachan <alistair@devzero.co.uk>
+Date: Sun, 14 Jun 2009 07:45:26 +0000
 Subject: Re: [lm-sensors] [PATCH 0/3] hwmon: (abituguru3) DMI probing on
-Message-Id: <4A34A533.7020900@redhat.com>
+Message-Id: <200906140845.26292.alistair@devzero.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1244913674-9633-1-git-send-email-alistair@devzero.co.uk>
 In-Reply-To: <1244913674-9633-1-git-send-email-alistair@devzero.co.uk>
@@ -10,27 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-
-On 06/13/2009 07:21 PM, Alistair John Strachan wrote:
-> Salut Jean,
+On Sunday 14 June 2009 08:22:27 Hans de Goede wrote:
+> On 06/13/2009 07:21 PM, Alistair John Strachan wrote:
+> > Salut Jean,
+> >
+> > These patches have been compile and runtime tested.
+> >
+> > They switch AB9, AB9 QuadGT and IX38 QuadGT mainboards over to using
+> > the DMI probe method. The testers have been credited appropriately.
+> >
+> > (The driver currently supports 17 models, 7 are now using DMI.)
 >
-> These patches have been compile and runtime tested.
+> Hi,
 >
-> They switch AB9, AB9 QuadGT and IX38 QuadGT mainboards over to using
-> the DMI probe method. The testers have been credited appropriately.
->
-> (The driver currently supports 17 models, 7 are now using DMI.)
->
+> All 3 look good to me, although I did notice 2 have a common prefix,
+> we have some code to handle this in place, right ?
 
-Hi,
+Yes, Jean pointed this out last time and now we just chop the bit we don't 
+care about off (find first open bracket, trim any preceding spaces), and 
+compare only exact strings (length must match, non case-sensitive strings must 
+match).
 
-All 3 look good to me, although I did notice 2 have a common prefix,
-we have some code to handle this in place, right ?
+Should all work fine, but I sent the strings separately in case there are 
+regressions.
 
-Regards,
-
-Hans
+-- 
+Cheers,
+Alistair.
 
 _______________________________________________
 lm-sensors mailing list
