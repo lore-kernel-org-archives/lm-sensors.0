@@ -1,73 +1,158 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 17 Jun 2009 11:08:46 +0000
-Subject: [lm-sensors] [PATCH] hwmon-vid: Ignore 6th VID pin of AMD family
-Message-Id: <20090617130846.398be4bf@hyperion.delvare>
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Mon, 15 Jun 2009 07:49:32 +0000
+Subject: [lm-sensors] [PATCH 4/5] sensord: Refactoring of applyToFeature()
+Message-Id: <20090615074932.GH4667@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-We had a report about a mainboard for AMD family 0Fh processors not
-routing the 6th VID pin from the CPU to the hardware monitoring chip.
+This patch cleans up function applyToFeature().
 
-While the vendor should have wired the pin (or, failing that, should
-have hardwired it to level high rather than low), the fact is that
-none of these processors are currently known to operate at the lower
-voltage levels which require the 6th VID pin. So, as a practical
-workaround, I propose to ignore the 6th VID pin for these CPUs.
+Function applyToFeature() is nearly unreadable. There are some deep
+levels of indentation and cascades of loops makes code flow difficult to
+read.
 
-If this decision ever causes problems, we'll reconsider.
+I split up this function into three smaller one. This reduces
+indentation levels and makes code flow clearer.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Frank Myhr <fmyhr@fhmtech.com>
-Cc: Hleb Valoshka <375gnu@gmail.com>
-Cc: Rudolf Marek <r.marek@assembler.cz>
-Cc: Andreas Herrmann <andreas.herrmann3@amd.com>
+Note:
+This is just the first step. I'm not happy with the mechanism. IMHO
+this generic way (function pointer) is not the best one. Hiding the
+compiler warnings (void (label)) in rrdGetSensors_DS() and
+rrdCGI_DEF() confirms my opinion.
+
+I think a more conrete way is a better approach. So this should be
+just the starting point for further optimizations.
 ---
-I know this is technically incorrect, but this seems to be the easiest
-solution in practice.
 
- drivers/hwmon/hwmon-vid.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ rrd.c |  107 ++++++++++++++++++++++++++++++++++++++++--------------------------
+ 1 file changed, 65 insertions(+), 42 deletions(-)
 
---- linux-2.6.31-pre.orig/drivers/hwmon/hwmon-vid.c	2009-06-10 05:05:27.000000000 +0200
-+++ linux-2.6.31-pre/drivers/hwmon/hwmon-vid.c	2009-06-17 12:45:36.000000000 +0200
-@@ -179,8 +179,14 @@ struct vrm_model {
- static struct vrm_model vrm_models[] = {
- 	{X86_VENDOR_AMD, 0x6, ANY, ANY, 90},		/* Athlon Duron etc */
- 	{X86_VENDOR_AMD, 0xF, 0x3F, ANY, 24},		/* Athlon 64, Opteron */
--	{X86_VENDOR_AMD, 0xF, ANY, ANY, 25},		/* NPT family 0Fh */
-+	/* In theory, all NPT family 0Fh processors have 6 VID pins and should
-+	   thus use vrm 25, however in practice not all mainboards route the
-+	   6th VID pin because it is never needed. So we use the 5 VID pin
-+	   variant (vrm 24) for the models which exist today. */
-+	{X86_VENDOR_AMD, 0xF, 0x7F, ANY, 24},		/* NPT family 0Fh */
-+	{X86_VENDOR_AMD, 0xF, ANY, ANY, 25},		/* future fam. 0Fh */
- 	{X86_VENDOR_AMD, 0x10, ANY, ANY, 25},		/* NPT family 10h */
-+
- 	{X86_VENDOR_INTEL, 0x6, 0x9, ANY, 13},		/* Pentium M (130 nm) */
- 	{X86_VENDOR_INTEL, 0x6, 0xB, ANY, 85},		/* Tualatin */
- 	{X86_VENDOR_INTEL, 0x6, 0xD, ANY, 13},		/* Pentium M (90 nm) */
-@@ -191,12 +197,14 @@ static struct vrm_model vrm_models[] = {
- 	{X86_VENDOR_INTEL, 0xF, 0x1, ANY, 90},		/* P4 Willamette */
- 	{X86_VENDOR_INTEL, 0xF, 0x2, ANY, 90},		/* P4 Northwood */
- 	{X86_VENDOR_INTEL, 0xF, ANY, ANY, 100},		/* Prescott and above assume VRD 10 */
-+
- 	{X86_VENDOR_CENTAUR, 0x6, 0x7, ANY, 85},	/* Eden ESP/Ezra */
- 	{X86_VENDOR_CENTAUR, 0x6, 0x8, 0x7, 85},	/* Ezra T */
- 	{X86_VENDOR_CENTAUR, 0x6, 0x9, 0x7, 85},	/* Nemiah */
- 	{X86_VENDOR_CENTAUR, 0x6, 0x9, ANY, 17},	/* C3-M, Eden-N */
- 	{X86_VENDOR_CENTAUR, 0x6, 0xA, 0x7, 0},		/* No information */
- 	{X86_VENDOR_CENTAUR, 0x6, 0xA, ANY, 13},	/* C7, Esther */
-+
- 	{X86_VENDOR_UNKNOWN, ANY, ANY, ANY, 0}		/* stop here */
- };
+Index: sensors/prog/sensord/rrd.c
+=================================--- sensors.orig/prog/sensord/rrd.c	2009-06-14 14:57:03.000000000 +0200
++++ sensors/prog/sensord/rrd.c	2009-06-14 15:30:16.000000000 +0200
+@@ -137,54 +137,77 @@
+ 	}
+ }
  
-
-
--- 
-Jean Delvare
+-static int applyToFeatures(FeatureFN fn, void *data)
++static int generate_features(FeatureFN fn, void *data,
++			     const sensors_chip_name *chip,
++			     const ChipDescriptor *desc)
+ {
+-	const sensors_chip_name *chip;
+-	int i, j, ret = 0, num = 0;
+-
+-	for (j = 0; (ret = 0) && (j < sensord_args.numChipNames); ++ j) {
+-		i = 0;
+-		while ((ret = 0) && ((chip = sensors_get_detected_chips(&sensord_args.chipNames[j], &i)) != NULL)) {
+-			int index0, chipindex = -1;
+-
+-			/* Trick: we compare addresses here. We know it works
+-			 * because both pointers were returned by
+-			 * sensors_get_detected_chips(), so they refer to
+-			 * libsensors internal structures, which do not move.
+-			 */
+-			for (index0 = 0; knownChips[index0].features; ++index0)
+-				if (knownChips[index0].name = chip) {
+-					chipindex = index0;
+-					break;
+-				}
+-			if (chipindex >= 0) {
+-				const ChipDescriptor *descriptor = &knownChips[chipindex];
+-				const FeatureDescriptor *features = descriptor->features;
+-
+-				for (index0 = 0; (ret = 0) && (num < MAX_RRD_SENSORS) && features[index0].format; ++index0) {
+-					const FeatureDescriptor *feature = features + index0;
+-					const char *rawLabel = feature->feature->name;
+-					char *label = NULL;
+-
+-					if (!(label = sensors_get_label(chip, feature->feature))) {
+-						sensorLog(LOG_ERR, "Error getting sensor label: %s/%s", chip->prefix, rawLabel);
+-						ret = -1;
+-					} else  {
+-						rrdCheckLabel(rawLabel, num);
+-						ret = fn(data,
+-							 rrdLabels[num],
+-							 label, feature);
+-						++ num;
+-					}
+-					if (label)
+-						free(label);
+-				}
+-			}
++	int i, ret = 0, num = 0;
++	const FeatureDescriptor *features = desc->features;
++	const FeatureDescriptor *feature;
++	const char *rawLabel;
++	char *label;
++
++	for (i = 0; num < MAX_RRD_SENSORS && features[i].format; ++i) {
++		feature = features + i;
++		rawLabel = feature->feature->name;
++
++		label = sensors_get_label(chip, feature->feature);
++		if (!label) {
++			sensorLog(LOG_ERR, "Error getting sensor label: %s/%s",
++				  chip->prefix, rawLabel);
++			ret = -1;
++			break;
++		} else  {
++			rrdCheckLabel(rawLabel, num);
++			ret = fn(data, rrdLabels[num], label, feature);
++			++num;
+ 		}
++		free(label);
+ 	}
+ 	return ret;
+ }
+ 
++static ChipDescriptor *lookup_known_chips(const sensors_chip_name *chip)
++{
++	int i;
++
++	/* Trick: we compare addresses here. We know it works
++	 * because both pointers were returned by
++	 * sensors_get_detected_chips(), so they refer to
++	 * libsensors internal structures, which do not move.
++	 */
++	for (i = 0; knownChips[i].features; i++) {
++		if (knownChips[i].name = chip) {
++			return &knownChips[i];
++		}
++	}
++	return NULL;
++}
++
++static int applyToFeatures(FeatureFN fn, void *data)
++{
++	int i, i_detected, ret;
++	const sensors_chip_name *chip, *chip_arg;
++	ChipDescriptor *desc;
++
++	for (i = 0; i < sensord_args.numChipNames; i++) {
++		chip_arg = &sensord_args.chipNames[i];
++		i_detected = 0;
++		while ((chip = sensors_get_detected_chips(chip_arg,
++							  &i_detected))) {
++
++			desc = lookup_known_chips(chip);
++			if (!desc)
++				continue;
++
++			ret = generate_features(fn, data, chip, desc);
++			if (ret)
++				return ret;
++		}
++	}
++	return 0;
++}
++
+ struct ds {
+ 	int num;
+ 	const char **argv;
 
 _______________________________________________
 lm-sensors mailing list
