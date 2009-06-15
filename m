@@ -1,37 +1,50 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 28 Jun 2009 14:38:27 +0000
-Subject: [lm-sensors] libsensors license change
-Message-Id: <20090628163827.76018405@hyperion.delvare>
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Mon, 15 Jun 2009 07:49:19 +0000
+Subject: [lm-sensors] [PATCH 3/5] sensord: Remove needless casts
+Message-Id: <20090615074919.GG4667@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+This patch removes some needless casts. We don't have to cast
+explicitly from void * (in C).
+---
 
-We had repeated requests to change the license of libsensors from GPL
-to LGPL, so that non-GPL applications can link with it. I would like to
-see it happen, so I have setup a page explaining it in the wiki:
+ rrd.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-http://www.lm-sensors.org/wiki/LibsensorsLicense
-
-Now the difficult part begins: contact all copyright holders, and as
-many contributors as possible, and ask them if they agree to the change
-of license from GPL 2 to LGPL 2.1. If things go well, we could change
-the license on July 1st, 2010 (1 year from now.) The change would
-obviously only apply to versions of libsensors released after this day,
-and only to version 3.x and later.
-
-I will update the wiki page as we receive answers from the
-contributors. If you have contributed to libsensors, please let me know
-now if you agree to change the license from GPL 2 to LGPL 2.1. I really
-do not expect anyone to object, but we have to ask everyone still, for
-legal reasons.
-
-Thanks,
--- 
-Jean Delvare
+Index: sensors/prog/sensord/rrd.c
+=================================--- sensors.orig/prog/sensord/rrd.c	2009-06-09 22:11:20.000000000 +0200
++++ sensors/prog/sensord/rrd.c	2009-06-10 11:31:02.000000000 +0200
+@@ -196,7 +196,7 @@
+ {
+ 	(void) label; /* no warning */
+ 	if (!feature || feature->rrd) {
+-		struct ds *data = (struct ds *) _data;
++		struct ds *data = _data;
+ 		char *ptr = rrdBuff + data->num * RRD_BUFF;
+ 		const char *min, *max;
+ 		data->argv[data->num ++] = ptr;
+@@ -306,7 +306,7 @@
+ static int rrdCGI_DEF(void *_data, const char *rawLabel, const char *label,
+ 		      const FeatureDescriptor *feature)
+ {
+-	struct gr *data = (struct gr *) _data;
++	struct gr *data = _data;
+ 	(void) label; /* no warning */
+ 	if (!feature || (feature->rrd && (feature->type = data->type)))
+ 		printf("\n\tDEF:%s=%s:%s:AVERAGE", rawLabel,
+@@ -342,7 +342,7 @@
+ static int rrdCGI_LINE(void *_data, const char *rawLabel, const char *label,
+ 		       const FeatureDescriptor *feature)
+ {
+-	struct gr *data = (struct gr *) _data;
++	struct gr *data = _data;
+ 	if (!feature || (feature->rrd && (feature->type = data->type)))
+ 		printf("\n\tLINE2:%s#%.6x:\"%s\"", rawLabel,
+ 		       rrdCGI_color(label), label);
 
 _______________________________________________
 lm-sensors mailing list
