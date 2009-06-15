@@ -1,73 +1,79 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 30 Jun 2009 20:43:51 +0000
-Subject: Re: [lm-sensors] How to un-ignore a sensor?
-Message-Id: <20090630224351.61d3b377@hyperion.delvare>
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Mon, 15 Jun 2009 07:47:13 +0000
+Subject: [lm-sensors] [PATCH 1/5] sensord: Fix coding style
+Message-Id: <20090615074713.GE4667@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090629211323.32695.qmail@science.horizon.com>
-In-Reply-To: <20090629211323.32695.qmail@science.horizon.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi George,
+This patch fixes some coding style issues.
 
-On 30 Jun 2009 05:09:56 -0400, George Spelvin wrote:
-> > No, it doesn't. The default sensors.conf file should not include any
-> > ignore statement to start with. And actually it no longer does, so the
-> > problem is already solved.
-> 
-> Um... okay.  Is that a universal solution?  Debian ships a larger config
-> file that does include some "ignore" lines.  It does seem useful to
-> have an overridable default.
+* Remove whitespaces between variable and increment operator.
+* Break long lines.
+---
 
-Which version of lm-sensors do the ship? The change occurred in version
-3.1.0.
+ rrd.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-> Are there plans for some more flexible include or conditional
-> mechanism to allow segregating site-local edits?
-
-This was implemented in lm-sensors 3.1.0 (and fixed in 3.1.1 for some
-filesystems.)
-
-> >> (On another note, would it be worth it to implement a basic hash table for
-> >> the various symbol lists?)
-> 
-> > I doubt it. With the new default configuration file being much smaller
-> > than it used to be, I do not think lists are a big problem from a
-> > performance perspective. A hash table would probably require more
-> > memory and I'd rather keep the memory footprint low.
-> > 
-> > That being said, if I am proven wrong, I have no objection to a change.
-> > If you reimplement data storage in libsensors using hash tables and it
-> > is much faster, doesn't need too much additional memory, and doesn't
-> > make the code too complex either, they why not?
-> 
-> Okay, I'll poke at it if I'm motivated, but remember your priorities.
-> It seems that there are a lot of duplicated strings ("temp3_max"), so
-> if the overhead can be can be made small enough, interning them would
-> save memory.
-
-I fear I don't quite follow you here. Which strings are duplicated
-exactly, and what do you mean by "interning"?
-
-> > Patches are easier to review and try when submitted separately.
-> 
-> Sorry.
-> 
-> > The license of libsensors will change from GPL to LGPL on July 1st,
-> > 2010. Before I apply your patches, please confirm that you have no
-> > objection to your code being released under the LGPL.
-> 
-> Yes, of course.  These changes are all in the public domain.
-> Do whatever you like with them (even evil things).
-
-Great, thanks.
-
-I'm out to kill kittens with your patches now ;)
-
--- 
-Jean Delvare
+Index: sensors/prog/sensord/rrd.c
+=================================--- sensors.orig/prog/sensord/rrd.c	2009-06-09 19:45:56.000000000 +0200
++++ sensors/prog/sensord/rrd.c	2009-06-09 20:27:00.000000000 +0200
+@@ -99,7 +99,7 @@
+ 		} else {
+ 			buffer[i] = '_';
+ 		}
+-		++ i;
++		++i;
+ 	}
+ 	buffer[i] = '\0';
+ 
+@@ -108,7 +108,7 @@
+ 
+ 	/* locate duplicates */
+ 	while (okay && (j < index0))
+-		okay = strcmp(rrdLabels[j ++], buffer);
++		okay = strcmp(rrdLabels[j++], buffer);
+ 
+ 	/* uniquify duplicate labels with _? or _?? */
+ 	while (!okay) {
+@@ -449,13 +449,19 @@
+ {
+ 	int ret = 0, i;
+ 
+-	printf("#!" RRDCGI "\n\n<HTML>\n<HEAD>\n<TITLE>sensord</TITLE>\n</HEAD>\n<BODY>\n<H1>sensord</H1>\n");
++	printf("#!" RRDCGI "\n\n<HTML>\n"
++	       "<HEAD>\n<TITLE>sensord</TITLE>\n</HEAD>\n"
++	       "<BODY>\n<H1>sensord</H1>\n");
++
+ 	for (i = 0; i < ARRAY_SIZE(graphs); i++) {
+ 		struct gr *graph = &graphs[i];
+ 
+ 		printf("<H2>%s</H2>\n", graph->h2);
+-		printf("<P>\n<RRD::GRAPH %s/%s.png\n\t--imginfo '<IMG SRC=" WWWDIR "/%%s WIDTH=%%lu HEIGHT=%%lu>'\n\t-a PNG\n\t-h 200 -w 800\n",
++		printf("<P>\n<RRD::GRAPH %s/%s.png\n\t--imginfo '"
++		       "<IMG SRC=" WWWDIR "/%%s WIDTH=%%lu HEIGHT=%%lu>'"
++		       "\n\t-a PNG\n\t-h 200 -w 800\n",
+ 		       sensord_args.cgiDir, graph->image);
++
+ 		printf("\t--lazy\n\t-v '%s'\n\t-t '%s'\n\t-x '%s'\n\t%s",
+ 		       graph->axisTitle, graph->title, graph->axisDefn,
+ 		       graph->options);
+@@ -469,7 +475,12 @@
+ 			ret = rrdCGI_LINE(graph, LOADAVG, LOAD_AVERAGE, NULL);
+ 		printf (">\n</P>\n");
+ 	}
+-	printf("<p>\n<small><b>sensord</b> by <a href=\"mailto:merlin@merlin.org\">Merlin Hughes</a>, all credit to the <a href=\"http://www.lm-sensors.org/\">lm_sensors</a> crew.</small>\n</p>\n");
++	printf("<p>\n<small><b>sensord</b> by "
++	       "<a href=\"mailto:merlin@merlin.org\">Merlin Hughes</a>"
++	       ", all credit to the "
++	       "<a href=\"http://www.lm-sensors.org/\">lm_sensors</a> "
++	       "crew.</small>\n</p>\n");
++
+ 	printf("</BODY>\n</HTML>\n");
+ 
+ 	return ret;
 
 _______________________________________________
 lm-sensors mailing list
