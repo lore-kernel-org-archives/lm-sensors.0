@@ -1,7 +1,7 @@
-From: Alistair John Strachan <alistair@devzero.co.uk>
-Date: Sun, 14 Jun 2009 07:45:26 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 15 Jun 2009 20:02:24 +0000
 Subject: Re: [lm-sensors] [PATCH 0/3] hwmon: (abituguru3) DMI probing on
-Message-Id: <200906140845.26292.alistair@devzero.co.uk>
+Message-Id: <20090615220224.6db894f6@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1244913674-9633-1-git-send-email-alistair@devzero.co.uk>
 In-Reply-To: <1244913674-9633-1-git-send-email-alistair@devzero.co.uk>
@@ -10,33 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sunday 14 June 2009 08:22:27 Hans de Goede wrote:
-> On 06/13/2009 07:21 PM, Alistair John Strachan wrote:
-> > Salut Jean,
-> >
-> > These patches have been compile and runtime tested.
-> >
-> > They switch AB9, AB9 QuadGT and IX38 QuadGT mainboards over to using
-> > the DMI probe method. The testers have been credited appropriately.
-> >
-> > (The driver currently supports 17 models, 7 are now using DMI.)
->
-> Hi,
->
-> All 3 look good to me, although I did notice 2 have a common prefix,
-> we have some code to handle this in place, right ?
+Hi Alistair,
 
-Yes, Jean pointed this out last time and now we just chop the bit we don't 
-care about off (find first open bracket, trim any preceding spaces), and 
-compare only exact strings (length must match, non case-sensitive strings must 
-match).
+On Sat, 13 Jun 2009 18:21:11 +0100, Alistair John Strachan wrote:
+> These patches have been compile and runtime tested.
+> 
+> They switch AB9, AB9 QuadGT and IX38 QuadGT mainboards over to using
+> the DMI probe method. The testers have been credited appropriately.
+> 
+> (The driver currently supports 17 models, 7 are now using DMI.)
 
-Should all work fine, but I sent the strings separately in case there are 
-regressions.
+I think it's somewhat overkill to split these changes into 3 patches. I
+don't really expect a regression here, and if it were to happen, I'm
+reasonably certain we would figure out which change is faulty without
+reverting the patches.
 
+Care to resubmit as a single patch?
+
+Thanks,
 -- 
-Cheers,
-Alistair.
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
