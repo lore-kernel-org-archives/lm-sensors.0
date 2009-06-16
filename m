@@ -1,7 +1,7 @@
 From: Andre Prendel <andre.prendel@gmx.de>
-Date: Tue, 16 Jun 2009 07:32:27 +0000
+Date: Tue, 16 Jun 2009 07:58:31 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: Add driver tmp421 for TI's
-Message-Id: <20090616073227.GA4545@ubuntu>
+Message-Id: <20090616075831.GB4545@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090615074320.GB4667@ubuntu>
 In-Reply-To: <20090615074320.GB4667@ubuntu>
@@ -13,9 +13,10 @@ To: lm-sensors@vger.kernel.org
 On Mon, Jun 15, 2009 at 10:52:24PM +0200, Jean Delvare wrote:
 > Hi Andre,
 
-Hi Jean,
+Hi again,
 
-> 
+There is one remaining question, see below.
+
 > On Mon, 15 Jun 2009 09:43:20 +0200, Andre Prendel wrote:
 > > TI's TMP421/422/423 are I2C temperature sensor chips. These chips are
 > > similar to TI's TMP401/411 chips, but with reduced functionality (only
@@ -23,12 +24,7 @@ Hi Jean,
 > > three (TMP423) remote sensors.
 > 
 > Overall good, please see my review below.
-
-I will fix the issues this week and send an updated version.
-
-Thanks,
-Andre
-
+> 
 > > 
 > > Notes:
 > > Hans, I've dropped two checks in tmp421_detect(). These checks came
@@ -213,7 +209,12 @@ Andre
 > 
 > This lacks protection: you have no guarantee that data->config and
 > data->temp[index] belong to the same read cycle.
-> 
+
+The *data pointer comes from tmp421_update_device(dev). So this should
+be from the same cycle, shouldn't be. I don't know how to
+protect. Hardware access is protected in tmp421_update_device(). Maybe
+I misunderstood something.
+
 > > +
 > > +	return sprintf(buf, "%d\n", temp);
 > > +}
