@@ -1,221 +1,151 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 01 Jun 2009 07:41:40 +0000
-Subject: Re: [lm-sensors] [PATCH v4 1/1] hwmon: added support for the
-Message-Id: <20090601094140.22f2bd74@hyperion.delvare>
+From: sbalfour@att.net
+Date: Wed, 17 Jun 2009 22:23:15 +0000
+Subject: [lm-sensors] sensors command output all wrong
+Message-Id: <061720092223.13248.4A396CD3000447E2000033C022230647629B0A02D29B9B0EBF9D9A0100040E0D9C@att.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7480763379881173149=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Christian,
 
-On Mon, 1 Jun 2009 00:08:09 +0200, Christian Engelmayer wrote:
-> From: Christian Engelmayer <christian.engelmayer@frequentis.com>
-> 
-> Exported the alarm stati provided by the MAX6650/MAX6651 fan-speed regulator
-> and monitor chips via sysfs.
-> 
-> Signed-off-by: Christian Engelmayer <christian.engelmayer@frequentis.com>
-> ---
-> Tested with the MAX6651 chip. This obsoletes the previously proposed patch
-> 'support for the max6650 GPIO and alarm features' after discussion on sane
-> gpio handling.
-> 
-> Revised after remarks by Hans de Goede. Changed the alarm attributes to sensor
-> device attributes thus eliminating the need for pointer comparison in show
-> function get_alarm(). Left the alarm behaviour unchanged. In case the sysfs
-> interface does not prefer 'real time' over 'latched' alarms I prefer to keep
-> the style used by the device.
-> 
-> Incorporated additional remarks by Hans de Goede. Changed a temporary variable
-> from 'u8' to 'int'. Changed the order of alarms within the code from MSB first
-> to LSB first as occuring within the registers.
-> 
-> Incorporated additional remarks by Jean Delvare. Using attr->index for
-> directly passing alarm masks. Resending the patch as it was previously
-> corrupted by the mail client.
-
-This looks good now, although I would suggest some cleanups:
-
-> 
-> --- linux-2.6.29.4-vanilla/drivers/hwmon/max6650.c	2009-05-30 23:58:59.000000000 +0200
-> +++ linux-2.6.29.4/drivers/hwmon/max6650.c	2009-05-31 00:01:47.000000000 +0200
-> @@ -12,7 +12,7 @@
->   * also work with the MAX6651. It does not distinguish max6650 and max6651
->   * chips.
->   *
-> - * Tha datasheet was last seen at:
-> + * The datasheet was last seen at:
->   *
->   *        http://pdfserv.maxim-ic.com/en/ds/MAX6650-MAX6651.pdf
->   *
-> @@ -98,6 +98,17 @@ I2C_CLIENT_INSMOD_1(max6650);
->  #define MAX6650_CFG_MODE_OPEN_LOOP	0x30
->  #define MAX6650_COUNT_MASK		0x03
->  
-> +/*
-> + * Alarm status register bits
-> + */
-> +
-> +#define MAX6650_ALRM_MAX	0x01
-> +#define MAX6650_ALRM_MIN	0x02
-> +#define MAX6650_ALRM_TACH	0x04
-> +#define MAX6650_ALRM_GPIO1	0x08
-> +#define MAX6650_ALRM_GPIO2	0x10
-> +#define MAX6650_ALRM_MASK	0x1F
-
-You don't use MAX6650_ALRM_MASK anywhere so I'd rather not bother
-defining it.
-
-> +
->  /* Minimum and maximum values of the FAN-RPM */
->  #define FAN_RPM_MIN 240
->  #define FAN_RPM_MAX 30000
-> @@ -151,6 +162,7 @@ struct max6650_data
->  	u8 tach[4];
->  	u8 count;
->  	u8 dac;
-> +	u8 alarm;
->  };
->  
->  static ssize_t get_fan(struct device *dev, struct device_attribute *devattr,
-> @@ -418,6 +430,33 @@ static ssize_t set_div(struct device *de
->  	return count;
->  }
->  
-> +/*
-> + * Get alarm stati:
-> + * Possible values:
-> + * 0 = no alarm
-> + * 1 = alarm
-> + */
-> +
-> +static ssize_t get_alarm(struct device *dev, struct device_attribute *devattr,
-> +			 char *buf)
-> +{
-> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> +	struct max6650_data *data = max6650_update_device(dev);
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	int alarm = 0;
-> +
-> +	if (data->alarm & attr->index) {
-> +		mutex_lock(&data->update_lock);
-> +		alarm = 1;
-> +		data->alarm &= ~attr->index;
-> +		data->alarm |= i2c_smbus_read_byte_data(client,
-> +							MAX6650_REG_ALARM);
-> +		mutex_unlock(&data->update_lock);
-> +	}
-> +
-> +	return sprintf(buf, "%d\n", alarm);
-> +}
-> +
->  static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, get_fan, NULL, 0);
->  static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, get_fan, NULL, 1);
->  static SENSOR_DEVICE_ATTR(fan3_input, S_IRUGO, get_fan, NULL, 2);
-> @@ -426,7 +465,47 @@ static DEVICE_ATTR(fan1_target, S_IWUSR 
->  static DEVICE_ATTR(fan1_div, S_IWUSR | S_IRUGO, get_div, set_div);
->  static DEVICE_ATTR(pwm1_enable, S_IWUSR | S_IRUGO, get_enable, set_enable);
->  static DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, get_pwm, set_pwm);
-> +static SENSOR_DEVICE_ATTR(fan1_max_alarm, S_IRUGO, get_alarm, NULL,
-> +			  MAX6650_ALRM_MAX);
-> +static SENSOR_DEVICE_ATTR(fan1_min_alarm, S_IRUGO, get_alarm, NULL,
-> +			  MAX6650_ALRM_MIN);
-> +static SENSOR_DEVICE_ATTR(fan1_fault, S_IRUGO, get_alarm, NULL,
-> +			  MAX6650_ALRM_TACH);
-> +static SENSOR_DEVICE_ATTR(gpio1_alarm, S_IRUGO, get_alarm, NULL,
-> +			  MAX6650_ALRM_GPIO1);
-> +static SENSOR_DEVICE_ATTR(gpio2_alarm, S_IRUGO, get_alarm, NULL,
-> +			  MAX6650_ALRM_GPIO2);
-> +
-> +static mode_t max6650_attrs_visible(struct kobject *kobj, struct attribute *a,
-> +				    int n)
-> +{
-> +	struct device *dev = container_of(kobj, struct device, kobj);
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	u8 alarm_en = i2c_smbus_read_byte_data(client, MAX6650_REG_ALARM_EN);
->  
-> +	/*
-> +	 * Hide the alarms that have not been enabled by the firmware
-> +	 */
-> +
-> +	if (a = &sensor_dev_attr_fan1_max_alarm.dev_attr.attr) {
-> +		if (!(alarm_en & MAX6650_ALRM_MAX))
-> +			return 0;
-> +	} else if (a = &sensor_dev_attr_fan1_min_alarm.dev_attr.attr) {
-> +		if (!(alarm_en & MAX6650_ALRM_MIN))
-> +			return 0;
-> +	} else if (a = &sensor_dev_attr_fan1_fault.dev_attr.attr) {
-> +		if (!(alarm_en & MAX6650_ALRM_TACH))
-> +			return 0;
-> +	} else if (a = &sensor_dev_attr_gpio1_alarm.dev_attr.attr) {
-> +		if (!(alarm_en & MAX6650_ALRM_GPIO1))
-> +			return 0;
-> +	} else if (a = &sensor_dev_attr_gpio2_alarm.dev_attr.attr) {
-> +		if (!(alarm_en & MAX6650_ALRM_GPIO2))
-> +			return 0;
-> +	}
-
-If I'm not mistaken, this can be written in a more efficient way:
-
-	struct device_attribute *devattr;
-
-	devattr = container_of(a, struct device_attribute, attr);
-	if (devattr = &sensor_dev_attr_fan1_max_alarm.dev_attr
-	 || devattr = &sensor_dev_attr_fan1_min_alarm.dev_attr
-	 || devattr = &sensor_dev_attr_fan1_fault.dev_attr
-	 || devattr = &sensor_dev_attr_gpio1_alarm.dev_attr
-	 || devattr = &sensor_dev_attr_gpio2_alarm.dev_attr) {
-		if (!(alarm_en & to_sensor_dev_attr(devattr)->index))
- 			return 0;
- 	}
-
-What do you think?
-
-> +
-> +	return a->mode;
-> +}
->  
->  static struct attribute *max6650_attrs[] = {
->  	&sensor_dev_attr_fan1_input.dev_attr.attr,
-> @@ -437,11 +516,17 @@ static struct attribute *max6650_attrs[]
->  	&dev_attr_fan1_div.attr,
->  	&dev_attr_pwm1_enable.attr,
->  	&dev_attr_pwm1.attr,
-> +	&sensor_dev_attr_fan1_max_alarm.dev_attr.attr,
-> +	&sensor_dev_attr_fan1_min_alarm.dev_attr.attr,
-> +	&sensor_dev_attr_fan1_fault.dev_attr.attr,
-> +	&sensor_dev_attr_gpio1_alarm.dev_attr.attr,
-> +	&sensor_dev_attr_gpio2_alarm.dev_attr.attr,
->  	NULL
->  };
->  
->  static struct attribute_group max6650_attr_grp = {
->  	.attrs = max6650_attrs,
-> +	.is_visible = max6650_attrs_visible,
->  };
->  
->  /*
-> @@ -659,6 +744,12 @@ static struct max6650_data *max6650_upda
->  							MAX6650_REG_COUNT);
->  		data->dac = i2c_smbus_read_byte_data(client, MAX6650_REG_DAC);
->  
-> +		/* Alarms are cleared on read in case the condition that
-> +		 * caused the alarm is removed. Keep the value latched here
-> +		 * for providing the register through different alarm files. */
-> +		data->alarm |= i2c_smbus_read_byte_data(client,
-> +							MAX6650_REG_ALARM);
-> +
->  		data->last_updated = jiffies;
->  		data->valid = 1;
->  	}
+--===============7480763379881173149==
+Content-Type: multipart/alternative;
+	boundary="NextPart_Webmail_9m3u9jl4l_13248_1245277395_0"
 
 
--- 
-Jean Delvare
+--NextPart_Webmail_9m3u9jl4l_13248_1245277395_0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Here's my sensors command output:
+
+root@Belladonna:/etc# sensors
+acpitz-virtual-0
+Adapter: Virtual device
+temp1:       +21.8=C2=B0C  (crit =3D +96.8=C2=B0C)
+
+k8temp-pci-00c3
+Adapter: PCI adapter
+Core0 Temp:  +64.0=C2=B0C
+Core1 Temp:  +63.0=C2=B0C
+
+k8temp-pci-00cb
+Adapter: PCI adapter
+Core0 Temp:  +52.0=C2=B0C
+Core1 Temp:  +49.0=C2=B0C
+
+w83627thf-isa-0290
+Adapter: ISA adapter
+VCore:       +0.98 V  (min =3D  +0.70 V, max =3D  +1.87 V)
++12V:        +4.13 V  (min =3D  +3.10 V, max =3D  +0.97 V)   ALARM
++3.3V:       +1.89 V  (min =3D  +1.54 V, max =3D  +2.30 V)
++5V:         +4.83 V  (min =3D  +0.96 V, max =3D  +6.51 V)
+-12V:       -10.30 V  (min =3D -13.43 V, max =3D  -8.33 V)
+V5SB:        +4.97 V  (min =3D  +3.92 V, max =3D  +1.80 V)   ALARM
+VBat:        +2.82 V  (min =3D  +0.00 V, max =3D  +0.13 V)   ALARM
+fan1:          0 RPM  (min =3D 168750 RPM, div =3D 2)  ALARM
+CPU Fan:       0 RPM  (min =3D   -1 RPM, div =3D 2)  ALARM
+fan3:          0 RPM  (min =3D 10384 RPM, div =3D 2)  ALARM
+M/B Temp:    +61.0=C2=B0C  (high =3D  +4.0=C2=B0C, hyst =3D  +2.0=C2=B0C)  =
+ALARM  sensor =3D thermistor
+CPU Temp:    +57.0=C2=B0C  (high =3D +80.0=C2=B0C, hyst =3D +75.0=C2=B0C)  =
+sensor =3D thermistor
+temp3:       +43.5=C2=B0C  (high =3D +80.0=C2=B0C, hyst =3D +75.0=C2=B0C)  =
+sensor =3D thermistor
+beep_enable:enabled
+
+The only information there that's nearly correct is the values for +5V and=
+=20
+V5SB.  Maybe the Vbat is ok.  My CPU's are both running 100% usage, and=20
+temps are more like 50C at idle, 70C at full usage (measured in Windows).
+AMD spec for Vcore for Opteron 285 is 1.30-1.35V.  Bios says 1.29/1.34V.
+CPU frequency scaling is @2.6GHZ.  My system periodically freezes, and
+that's believable if Vcore is really 0.98V.  It does however, run fine at
+2.2GHZ @Vcore 0.94V.
+My MOBO is MSI K8N Master2-far; dual CPUs are Opteron 285 @2.6Mhz.
+My sensor chip is reported as w83627thf, but I'm doubtful.  My PSU is
+PC Power & Cooling Silencer 750, rated 750W,  peak 825W, single rail
++12V @60A.  It can deliver the juice.  My watt meter says the system is=20
+consuming ~300W, so I'm not even close to drawing down the PSU.=20=20
+I'm on Kubuntu 8.10.  Any help?
+
+                                       Stuart
+--NextPart_Webmail_9m3u9jl4l_13248_1245277395_0
+Content-Type: multipart/related;
+	boundary="NextPart_Webmail_9m3u9jl4l_13248_1245277395_1"
+
+
+--NextPart_Webmail_9m3u9jl4l_13248_1245277395_1
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<!-- BEGIN WEBMAIL STATIONERY -->
+<head></head>
+<body>
+<!-- WEBMAIL STATIONERY notheme -->
+Here's my sensors command output:<br><br>root@Belladonna:/etc# sensors<br>a=
+cpitz-virtual-0<br>Adapter: Virtual device<br>temp1:&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp; +21.8=C2=B0C&nbsp; (crit =3D +96.8=C2=B0C)<br><br>k8temp-pci-=
+00c3<br>Adapter: PCI adapter<br>Core0 Temp:&nbsp; +64.0=C2=B0C<br>Core1 Tem=
+p:&nbsp; +63.0=C2=B0C<br><br>k8temp-pci-00cb<br>Adapter: PCI adapter<br>Cor=
+e0 Temp:&nbsp; +52.0=C2=B0C<br>Core1 Temp:&nbsp; +49.0=C2=B0C<br><br>w83627=
+thf-isa-0290<br>Adapter: ISA adapter<br>VCore:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp; +0.98 V&nbsp; (min =3D&nbsp; +0.70 V, max =3D&nbsp; +1.87 V)<br>+12=
+V:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +4.13 V&nbsp; (min =3D&nbsp; +=
+3.10 V, max =3D&nbsp; +0.97 V)&nbsp;&nbsp; ALARM<br>+3.3V:&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp; +1.89 V&nbsp; (min =3D&nbsp; +1.54 V, max =3D&nbsp; +2.=
+30 V)<br>+5V:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +4.83 V&nbsp;=
+ (min =3D&nbsp; +0.96 V, max =3D&nbsp; +6.51 V)<br>-12V:&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp; -10.30 V&nbsp; (min =3D -13.43 V, max =3D&nbsp; -8.33 V)<=
+br>V5SB:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +4.97 V&nbsp; (min =3D&n=
+bsp; +3.92 V, max =3D&nbsp; +1.80 V)&nbsp;&nbsp; ALARM<br>VBat:&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +2.82 V&nbsp; (min =3D&nbsp; +0.00 V, max =
+=3D&nbsp; +0.13 V)&nbsp;&nbsp; ALARM<br>fan1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp; 0 RPM&nbsp; (min =3D 168750 RPM, div =3D 2)&nbsp; =
+ALARM<br>CPU Fan:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 RPM&nbsp; (min =3D&=
+nbsp;&nbsp; -1 RPM, div =3D 2)&nbsp; ALARM<br>fan3:&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 RPM&nbsp; (min =3D 10384 RPM, div =3D 2)&n=
+bsp; ALARM<br>M/B Temp:&nbsp;&nbsp;&nbsp; +61.0=C2=B0C&nbsp; (high =3D&nbsp=
+; +4.0=C2=B0C, hyst =3D&nbsp; +2.0=C2=B0C)&nbsp; ALARM&nbsp; sensor =3D the=
+rmistor<br>CPU Temp:&nbsp;&nbsp;&nbsp; +57.0=C2=B0C&nbsp; (high =3D +80.0=
+=C2=B0C, hyst =3D +75.0=C2=B0C)&nbsp; sensor =3D thermistor<br>temp3:&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +43.5=C2=B0C&nbsp; (high =3D +80.0=C2=B0C, h=
+yst =3D +75.0=C2=B0C)&nbsp; sensor =3D thermistor<br>beep_enable:enabled<br=
+><br>The only information there that's nearly correct is the values for +5V=
+ and <br>V5SB.&nbsp; Maybe the Vbat is ok.&nbsp; My CPU's are both running =
+100% usage, and <br>temps are more like 50C at idle, 70C at full usage (mea=
+sured in Windows).<br>AMD spec for Vcore for Opteron 285 is 1.30-1.35V.&nbs=
+p; Bios says 1.29/1.34V.<br>CPU frequency scaling is @2.6GHZ.&nbsp; My syst=
+em periodically freezes, and<br>that's believable if Vcore is really 0.98V.=
+&nbsp; It does however, run fine at<br>2.2GHZ @Vcore 0.94V.<br>My MOBO is M=
+SI K8N Master2-far; dual CPUs are Opteron 285 @2.6Mhz.<br>My sensor chip is=
+ reported as w83627thf, but I'm doubtful.&nbsp; My PSU is<br>PC Power &amp;=
+ Cooling Silencer 750, rated 750W,&nbsp; peak 825W, single rail<br>+12V @60=
+A.&nbsp; It can deliver the juice.&nbsp; My watt meter says the system is <=
+br>consuming ~300W, so I'm not even close to drawing down the PSU.&nbsp; <b=
+r>I'm on Kubuntu 8.10.&nbsp; Any help?<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Stuart<br>
+<!-- END WEBMAIL STATIONERY -->
+
+</body>
+</html>
+
+--NextPart_Webmail_9m3u9jl4l_13248_1245277395_1--
+
+--NextPart_Webmail_9m3u9jl4l_13248_1245277395_0--
+
+
+--===============7480763379881173149==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7480763379881173149==--
