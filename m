@@ -1,102 +1,51 @@
-From: Andre Prendel <andre.prendel@gmx.de>
-Date: Fri, 26 Jun 2009 08:29:33 +0000
-Subject: Re: [lm-sensors] Another possible hwmon project
-Message-Id: <20090626082933.GD4510@ubuntu>
+From: Kushal Koolwal <kushalkoolwal@hotmail.com>
+Date: Thu, 18 Jun 2009 17:09:33 +0000
+Subject: [lm-sensors] dme1737 sensors force_start
+Message-Id: <SNT106-W242B7EE77BE87384F8FE15BA3D0@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090624081700.GB4949@ubuntu>
-In-Reply-To: <20090624081700.GB4949@ubuntu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jun 24, 2009 at 10:24:03AM +0200, Hans de Goede wrote:
 
-<snip>
+Hi,
 
-> >>>> I don't think you need to dig that deep wrt DMI,
-> >>> I want to know how things work at low level. This makes things easier
-> >>> to understand for me.
-> >>>
-> >>>> what we will most likely
-> >>>> and up doing is looking for the strings found inside
-> >>>> /sys/devices/virtual/dmi/id/board_name
-> >>>> /sys/devices/virtual/dmi/id/board_vendor
-> >>> I can't see these files in sysfs. What driver is responsible for creation?
-> >>>
-> >> Hmm, strange, I dunno on all my systems they just exists. Weird, maybe you
-> >> are running a somewhat old kernel ?
-> >
-> > Ok, I've found the files on my system under /sys/class/dmi/id/. Driver
-> > /drivers/firmware/dmi-id.c creates the files. The driver was
-> > introduced in 2007.
-> >
-> 
-> Hmm, ok, I have them there too (/sys/class/dmi/id is a symlink to
-> /sys/devices/virtual/dmi/id on my system), so if /sys/class/dmi/id
-> works on more systems / kernel configs lets use that.
+I am using Debian 5.0 with 2.6.30 kernel and my board has SCH3114 chip. Upo=
+n booting I get the following messages in the dmesg:
+[   70.012233] dme1737 dme1737.3184: Found a SCH311x chip at 0x0c70
+[   70.012326] dme1737 dme1737.3184: Device is not monitoring. Use the forc=
+e_start load parameter to override.
+[   70.013552] dme1737 dme1737.3184: Failed to initialize device.
+[   70.013653] dme1737: probe of dme1737.3184 failed with error -14
 
-Ok, that's a known issue. Sensors-detect already take care of it.
+So naturally the sensors-detect and sensors did not work.
 
----
-r5530 | khali | 2008-12-05 23:56:30 +0100 (Fr, 05. Dez 2008) | 3 lines
+Upon loading the module the following way:
+modprobe dme1737 force_start
 
-Alternatively look for DMI data in /sys/class/dmi/id, as
-/sys/devices/virtual/dmi/id only exists since kernel 2.6.28.
+it started working fine.
 
-Index: prog/detect/sensors-detect
-=================================--- prog/detect/sensors-detect	(Revision 5529)
-+++ prog/detect/sensors-detect	(Revision 5530)
-@@ -2150,11 +2150,13 @@
-   	    'System Manufacturer' => 1,
- 	    	    'System Name' => 1,
- 		    );
-+		    my $dmi_id_dir;
- 
-	# First try reading the strings from sysfs if available
--	if (-d "$sysfs_root/devices/virtual/dmi/id") {
-+	if (-d ($dmi_id_dir = "$sysfs_root/devices/virtual/dmi/id")	# kernel >= 2.6.28
-+	 || -d ($dmi_id_dir = "$sysfs_root/class/dmi/id")) {
- 	    foreach my $k (keys %items) {
--	    	       $dmi{$k} = sysfs_device_attribute("$sysfs_root/devices/virtual/dmi/id", $k);
-+		       		  $dmi{$k} = sysfs_device_attribute($dmi_id_dir, $k);
- 				  	   }
- 					   } else {
- 					     # Else fallback on calling dmidecode
----
+Any ideas why I need to give force_start? Is this a chip /BIOS/OS issues?
 
-Looking for both should be the best.
+In the past I have other boards which used the same chipset but in those I =
+never had to give the force_start option.
 
-> > Jean, could you bring some light into the darkness? I've seen you did
-> > some work on the DMI stuff.
-> >
-> > I'm using the most recent mainline kernel form git. Hans, what version
-> > do you use?
-> >
-> 
-> I'm using a stock Fedora 11 kernel, I think this might be related to
-> the various sysfs compatibility kernel configuration options.
-> 
-> > BTW, Jean. Hans asked me for working on the automatic configuration of
-> > sensors using DMI information.
-> >
-> 
-> Ack, its still something which I would like to see done, so I suggested the
-> idea to Andre.
-> 
-> Andre, as said before I think once you're done orienting yourself, the first
-> thing to do is write a proposal how this all will work and send it to the
-> list.
-> 
-> Regards,
-> 
-> Hans
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+I am using sensors version 3.0.2 with libsensors version 3.0.2
 
+Thanks.
+
+Kushal Koolwal
+
+I do blog at http://blogs.koolwal.net/
+
+
+
+
+_________________________________________________________________
+Microsoft brings you a new way to search the web.  Try  Bing=99 now
+http://www.bing.com?form=3DMFEHPG&publ=3DWLHMTAG&crea=3DTEXT_MFEHPG_Core_ta=
+gline_try bing_1x1
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
