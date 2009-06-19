@@ -1,85 +1,487 @@
-From: "Michael S. Zick" <lkml@morethan.org>
-Date: Fri, 12 Jun 2009 14:23:00 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 19 Jun 2009 21:11:32 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Add driver for VIA CPU core
-Message-Id: <200906120923.02851.lkml@morethan.org>
+Message-Id: <20090619231132.22296525@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090609083406.GE25316@prithivi.gnumonks.org> <20090612125450.GK30843@prithivi.gnumonks.org> <200906120841.08114.lkml@morethan.org>
-In-Reply-To: <200906120841.08114.lkml@morethan.org>
+References: <20090609083406.GE25316@prithivi.gnumonks.org>
+In-Reply-To: <20090609083406.GE25316@prithivi.gnumonks.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Harald Welte <HaraldWelte@viatech.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Tomaz Mertelj <tomaz.mertelj@guest.arnes.si>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Juerg Haefliger <juergh@gmail.com>
 
-On Fri June 12 2009, Michael S. Zick wrote:
-> On Fri June 12 2009, Harald Welte wrote:
-> > On Fri, Jun 12, 2009 at 06:46:45AM -0500, Michael S. Zick wrote:
-> > > > Temperature values are supposed to be expressed in millidegrees C, not
-> > > > degrees C as it seems to be doing (although 25 degrees C seems pretty
-> > > > low for a CPU temperature?) The drivers needs to multiply values by
-> > > > 1000 before exporting them to sysfs. Then "sensors" will report the
-> > > > correct temperature value.
-> > > > 
-> > > 
-> > > Ah, 25 degrees C is room temperature - real hard for the junction temperature
-> > > to be 25 degrees C with power applied; lacking an infinitely perfect heatsink.
-> > > 
-> > > Look for an "off by one" error in shifting or masking the value.
-> > 
-> > there is no shifting and the masking is 0xffffffff :)
-> > 
-> > it might be that the BIOS is doing something wrong when programming the
-> > calibration MSR's at early botoup.  I would need the contents of MSR 
-> > 0x1160 ... 0x116C as well as 0x1152 and 0x1153 to be able to determine that.
-> > 
+Hi Harald,
+
+On Tue, 9 Jun 2009 16:34:06 +0800, Harald Welte wrote:
+> This is a driver for the on-die digital temperature sensor of
+> VIA's recent CPU models.
 > 
-> root@cb01:~# for r in 0x1160 0x1161 0x1162 0x1163 0x1164 0x1165 0x1166 0x1167 0x1168 0x1169 0x116a 0x116b 0x116c 0x1152 0x1153 ; do ./rdmsr $r ; done
-> MSR register 0x1160 => 08:04:98:10:b7:ef:8f:f4
-> MSR register 0x1161 => 08:04:98:10:b7:fb:af:f4
-> MSR register 0x1162 => 08:04:98:10:b7:ec:ff:f4
-> MSR register 0x1163 => 08:04:98:10:b7:fa:cf:f4
-> MSR register 0x1164 => 08:04:98:10:b7:f4:cf:f4
-> MSR register 0x1165 => 08:04:98:10:b7:f3:2f:f4
-> MSR register 0x1166 => 08:04:98:10:b7:f1:7f:f4
-> MSR register 0x1167 => 08:04:98:10:b7:f2:0f:f4
-> MSR register 0x1168 => 08:04:98:10:b7:ef:0f:f4
-> MSR register 0x1169 => 08:04:98:10:b7:fc:8f:f4
-> MSR register 0x116a => 08:04:98:10:b7:ef:8f:f4
-> MSR register 0x116b => 08:04:98:10:b7:f8:bf:f4
-> MSR register 0x116c => 08:04:98:10:b7:f9:df:f4
-> MSR register 0x1152 => 08:04:98:10:b7:ed:5f:f4
-> MSR register 0x1153 => 08:04:98:10:b7:ed:cf:f4
+> Signed-off-by: Harald Welte <HaraldWelte@viatech.com>
+> ---
+>  drivers/hwmon/Kconfig       |    8 +
+>  drivers/hwmon/Makefile      |    1 +
+>  drivers/hwmon/via-cputemp.c |  354 +++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 363 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/hwmon/via-cputemp.c
+
+Interesting. I'm adding Juerg Haefliger in Cc. A few months ago, Juerg
+submitted a driver named "c7temp" doing basically the same, with
+mitigated success. I seem to remember that Juerg's driver was also
+displaying either the VID or Vcore for the CPU. We don't want to have
+two drivers for the same hardware, so let's merge everything in one
+driver and push this upstream.
+
+Juerg, you were there first, so I'd like to hear you on this. Are there
+differences between Harald'd driver and yours? Which one should I pick?
+
+For now, here's a review of Harald's driver:
+
 > 
-> The high 32b look strange in that output - might be
-> the utility I used (attached).
-> 
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> index d73f5f4..e863833 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -787,6 +787,14 @@ config SENSORS_THMC50
+>  	  This driver can also be built as a module.  If so, the module
+>  	  will be called thmc50.
+>  
+> +config SENSORS_VIA_CPUTEMP
+> +	tristate "VIA CPU temperature sensor"
+> +	depends on X86
+> +	help
+> +	  If you say yes here you get support for the temperature
+> +	  sensor inside your CPU. Supported all are all known variants
+> +	  of the VIA C7 and Nano.
+> +
+>  config SENSORS_VIA686A
+>  	tristate "VIA686A"
+>  	depends on PCI
+> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+> index 0ae2698..3edf7fa 100644
+> --- a/drivers/hwmon/Makefile
+> +++ b/drivers/hwmon/Makefile
+> @@ -82,6 +82,7 @@ obj-$(CONFIG_SENSORS_SMSC47B397)+= smsc47b397.o
+>  obj-$(CONFIG_SENSORS_SMSC47M1)	+= smsc47m1.o
+>  obj-$(CONFIG_SENSORS_SMSC47M192)+= smsc47m192.o
+>  obj-$(CONFIG_SENSORS_THMC50)	+= thmc50.o
+> +obj-$(CONFIG_SENSORS_VIA_CPUTEMP)+= via-cputemp.o
+>  obj-$(CONFIG_SENSORS_VIA686A)	+= via686a.o
+>  obj-$(CONFIG_SENSORS_VT1211)	+= vt1211.o
+>  obj-$(CONFIG_SENSORS_VT8231)	+= vt8231.o
+> diff --git a/drivers/hwmon/via-cputemp.c b/drivers/hwmon/via-cputemp.c
+> new file mode 100644
+> index 0000000..1032355
+> --- /dev/null
+> +++ b/drivers/hwmon/via-cputemp.c
+> @@ -0,0 +1,354 @@
+> +/*
+> + * via-cputemp.c - Driver for VIA CPU core temperature monitoring
+> + * Copyright (C) 2009 VIA Technologies, Inc.
+> + *
+> + * based on existing coretemp.c, which is
+> + *
+> + * Copyright (C) 2007 Rudolf Marek <r.marek@assembler.cz>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; version 2 of the License.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+> + * 02110-1301 USA.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/delay.h>
+> +#include <linux/init.h>
+> +#include <linux/slab.h>
+> +#include <linux/jiffies.h>
+> +#include <linux/hwmon.h>
+> +#include <linux/sysfs.h>
+> +#include <linux/hwmon-sysfs.h>
+> +#include <linux/err.h>
+> +#include <linux/mutex.h>
+> +#include <linux/list.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/cpu.h>
+> +#include <asm/msr.h>
+> +#include <asm/processor.h>
+> +
+> +#define DRVNAME	"via-cputemp"
+> +
+> +typedef enum { SHOW_TEMP, SHOW_LABEL, SHOW_NAME } SHOW;
 
-Yes - that utility had problems with casting the address;
-I think I fixed that, this looks better:
+No typedef in kernel code please, an enum is enough.
 
-root@cb01:~# for r in 0x1160 0x1161 0x1162 0x1163 0x1164 0x1165 0x1166 0x1167 0x1168 0x1169 0x116a 0x116b 0x116c 0x1152 0x1153 ; do ./rdmsrll $r ; done
-MSR register 0x1160 => 08:04:83:94:bf:86:e1:d8
-MSR register 0x1161 => 08:04:83:94:bf:ec:73:78
-MSR register 0x1162 => 08:04:83:94:bf:bf:4b:58
-MSR register 0x1163 => 08:04:83:94:bf:bc:82:28
-MSR register 0x1164 => 08:04:83:94:bf:b1:1d:98
-MSR register 0x1165 => 08:04:83:94:bf:cb:09:88
-MSR register 0x1166 => 08:04:83:94:bf:d0:03:e8
-MSR register 0x1167 => 08:04:83:94:bf:91:26:18
-MSR register 0x1168 => 08:04:83:94:bf:99:26:38
-MSR register 0x1169 => 08:04:83:94:bf:b3:f1:08
-MSR register 0x116a => 08:04:83:94:bf:d5:42:88
-MSR register 0x116b => 08:04:83:94:bf:f8:b6:28
-MSR register 0x116c => 08:04:83:94:bf:f6:68:88
-MSR register 0x1152 => 08:04:83:94:bf:d5:b4:f8
-MSR register 0x1153 => 08:04:83:94:bf:bd:d5:28
+> +
+> +/*
+> + * Functions declaration
+> + */
+> +
+> +struct via_cputemp_data {
+> +	struct device *hwmon_dev;
+> +	const char *name;
+> +	u32 id;
+> +	u32 msr;
+> +};
+> +
+> +/*
+> + * Sysfs stuff
+> + */
+> +
+> +static ssize_t show_name(struct device *dev, struct device_attribute
+> +			  *devattr, char *buf)
+> +{
+> +	int ret;
+> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> +	struct via_cputemp_data *data = dev_get_drvdata(dev);
+> +
+> +	if (attr->index = SHOW_NAME)
+> +		ret = sprintf(buf, "%s\n", data->name);
+> +	else	/* show label */
+> +		ret = sprintf(buf, "Core %d\n", data->id);
+> +	return ret;
+> +}
+> +
+> +static ssize_t show_temp(struct device *dev,
+> +			 struct device_attribute *devattr, char *buf)
+> +{
+> +	struct via_cputemp_data *data = dev_get_drvdata(dev);
+> +	u32 eax, edx;
+> +	int err;
+> +
+> +	err = rdmsr_safe_on_cpu(data->id, data->msr, &eax, &edx);
+> +	if (err)
+> +		return -EAGAIN;
+> +
+> +	err = sprintf(buf, "%d\n", eax & 0xffffff);
+> +
+> +	return err;
 
-Mike
-> Mike
-> 
-> 
+return sprintf()... would be clearer, as the returned value is never an
+error in this case.
 
+Also note that in theory the result could overflow once multiplied by
+1000.
 
+> +}
+> +
+> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL,
+> +			  SHOW_TEMP);
+> +static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, show_name, NULL, SHOW_LABEL);
+> +static SENSOR_DEVICE_ATTR(name, S_IRUGO, show_name, NULL, SHOW_NAME);
+> +
+> +static struct attribute *via_cputemp_attributes[] = {
+> +	&sensor_dev_attr_name.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_label.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_input.dev_attr.attr,
+> +	NULL
+> +};
+> +
+> +static const struct attribute_group via_cputemp_group = {
+> +	.attrs = via_cputemp_attributes,
+> +};
+> +
+> +static int __devinit via_cputemp_probe(struct platform_device *pdev)
+> +{
+> +	struct via_cputemp_data *data;
+> +	struct cpuinfo_x86 *c = &cpu_data(pdev->id);
+> +	int err;
+> +	u32 eax, edx;
+> +
+> +	if (!(data = kzalloc(sizeof(struct via_cputemp_data), GFP_KERNEL))) {
+
+ERROR: do not use assignment in if condition
+
+> +		err = -ENOMEM;
+> +		dev_err(&pdev->dev, "Out of memory\n");
+> +		goto exit;
+> +	}
+> +
+> +	data->id = pdev->id;
+
+pdev->id is an unsigned int, so shouldn't data->id be too?
+
+> +	data->name = "via-cputemp";
+
+This must be made "via_cputemp", as dashes aren't accepted in hwmon
+device names.
+
+> +
+> +	switch (c->x86_model) {
+> +	case 0xA:
+> +		/* C7 A */
+> +	case 0xD:
+> +		/* C7 D */
+> +		data->msr = 0x1169;
+> +		break;
+> +	case 0xF:
+> +		/* Nano */
+> +		data->msr = 0x1423;
+> +		break;
+> +	default:
+> +		err = -ENODEV;
+> +		goto exit_free;
+> +	}
+> +
+> +	/* test if we can access the TEMPERATURE MSR */
+> +	err = rdmsr_safe_on_cpu(data->id, data->msr, &eax, &edx);
+> +	if (err) {
+
+In the runtime read function, you handle errors with -EAGAIN, which
+means transient errors are expected. If such an error happens at
+registration time, we could see random failures. That's confusing for
+the user. I believe you should either skip the test at registration
+(are there really CPU models where it always fails?) or try more than
+once to rule out temporary failures.
+
+> +		dev_err(&pdev->dev,
+> +			"Unable to access TEMPERATURE MSR, giving up\n");
+> +		goto exit_free;
+> +	}
+> +
+> +	platform_set_drvdata(pdev, data);
+> +
+> +	if ((err = sysfs_create_group(&pdev->dev.kobj, &via_cputemp_group)))
+
+ERROR: do not use assignment in if condition
+
+> +		goto exit_free;
+> +
+> +	data->hwmon_dev = hwmon_device_register(&pdev->dev);
+> +	if (IS_ERR(data->hwmon_dev)) {
+> +		err = PTR_ERR(data->hwmon_dev);
+> +		dev_err(&pdev->dev, "Class registration failed (%d)\n",
+> +			err);
+> +		goto exit_class;
+> +	}
+> +
+> +	return 0;
+> +
+> +exit_class:
+> +	sysfs_remove_group(&pdev->dev.kobj, &via_cputemp_group);
+> +exit_free:
+
+A platform_set_drvdata(pdev, NULL) would be welcome here.
+
+> +	kfree(data);
+
+This is a little inconsistent, as the first label refers to the last
+action that succeeded and the second label refers to the first cleanup
+step to execute. Renaming exit_class to exit_remove would help.
+
+> +exit:
+> +	return err;
+> +}
+> +
+> +static int __devexit via_cputemp_remove(struct platform_device *pdev)
+> +{
+> +	struct via_cputemp_data *data = platform_get_drvdata(pdev);
+> +
+> +	hwmon_device_unregister(data->hwmon_dev);
+> +	sysfs_remove_group(&pdev->dev.kobj, &via_cputemp_group);
+> +	platform_set_drvdata(pdev, NULL);
+> +	kfree(data);
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver via_cputemp_driver = {
+> +	.driver = {
+> +		.owner = THIS_MODULE,
+> +		.name = DRVNAME,
+> +	},
+> +	.probe = via_cputemp_probe,
+> +	.remove = __devexit_p(via_cputemp_remove),
+> +};
+> +
+> +struct pdev_entry {
+> +	struct list_head list;
+> +	struct platform_device *pdev;
+> +	unsigned int cpu;
+> +};
+> +
+> +static LIST_HEAD(pdev_list);
+> +static DEFINE_MUTEX(pdev_list_mutex);
+> +
+> +static int __cpuinit via_cputemp_device_add(unsigned int cpu)
+> +{
+> +	int err;
+> +	struct platform_device *pdev;
+> +	struct pdev_entry *pdev_entry;
+> +
+> +	pdev = platform_device_alloc(DRVNAME, cpu);
+> +	if (!pdev) {
+> +		err = -ENOMEM;
+> +		printk(KERN_ERR DRVNAME ": Device allocation failed\n");
+> +		goto exit;
+> +	}
+> +
+> +	pdev_entry = kzalloc(sizeof(struct pdev_entry), GFP_KERNEL);
+> +	if (!pdev_entry) {
+> +		err = -ENOMEM;
+> +		goto exit_device_put;
+> +	}
+> +
+> +	err = platform_device_add(pdev);
+> +	if (err) {
+> +		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
+> +		       err);
+> +		goto exit_device_free;
+> +	}
+> +
+> +	pdev_entry->pdev = pdev;
+> +	pdev_entry->cpu = cpu;
+> +	mutex_lock(&pdev_list_mutex);
+> +	list_add_tail(&pdev_entry->list, &pdev_list);
+> +	mutex_unlock(&pdev_list_mutex);
+> +
+> +	return 0;
+> +
+> +exit_device_free:
+> +	kfree(pdev_entry);
+> +exit_device_put:
+> +	platform_device_put(pdev);
+> +exit:
+> +	return err;
+> +}
+> +
+> +#ifdef CONFIG_HOTPLUG_CPU
+> +static void via_cputemp_device_remove(unsigned int cpu)
+> +{
+> +	struct pdev_entry *p, *n;
+> +	mutex_lock(&pdev_list_mutex);
+> +	list_for_each_entry_safe(p, n, &pdev_list, list) {
+> +		if (p->cpu = cpu) {
+> +			platform_device_unregister(p->pdev);
+> +			list_del(&p->list);
+> +			kfree(p);
+> +		}
+> +	}
+> +	mutex_unlock(&pdev_list_mutex);
+> +}
+> +
+> +static int __cpuinit via_cputemp_cpu_callback(struct notifier_block *nfb,
+> +				 unsigned long action, void *hcpu)
+> +{
+> +	unsigned int cpu = (unsigned long) hcpu;
+> +
+> +	switch (action) {
+> +	case CPU_ONLINE:
+> +	case CPU_DOWN_FAILED:
+> +		via_cputemp_device_add(cpu);
+> +		break;
+> +	case CPU_DOWN_PREPARE:
+> +		via_cputemp_device_remove(cpu);
+> +		break;
+> +	}
+> +	return NOTIFY_OK;
+> +}
+> +
+> +static struct notifier_block via_cputemp_cpu_notifier __refdata = {
+> +	.notifier_call = via_cputemp_cpu_callback,
+> +};
+> +#endif				/* !CONFIG_HOTPLUG_CPU */
+> +
+> +static int __init via_cputemp_init(void)
+> +{
+> +	int i, err = -ENODEV;
+
+err would be better initialized when the error occurs, for consistency.
+
+> +	struct pdev_entry *p, *n;
+> +
+> +	if (cpu_data(0).x86_vendor != X86_VENDOR_CENTAUR) {
+> +		printk(KERN_DEBUG "not a VIA CPU\n");
+
+Missing DRV_NAME.
+
+> +		goto exit;
+> +	}
+> +
+> +	err = platform_driver_register(&via_cputemp_driver);
+> +	if (err)
+> +		goto exit;
+> +
+> +	for_each_online_cpu(i) {
+> +		struct cpuinfo_x86 *c = &cpu_data(i);
+> +
+> +		if (c->x86 != 6)
+> +			continue;
+> +
+> +		if (c->x86_model < 0x0a)
+> +			continue;
+> +
+> +		if (c->x86_model > 0x0f) {
+> +			printk(KERN_WARNING DRVNAME ": Unknown CPU "
+> +				"model %x\n", c->x86_model);
+
+Please use 0x%x for clarity.
+
+> +			continue;
+> +		}
+> +
+> +		err = via_cputemp_device_add(i);
+> +		if (err)
+> +			goto exit_devices_unreg;
+> +	}
+> +	if (list_empty(&pdev_list)) {
+> +		err = -ENODEV;
+> +		goto exit_driver_unreg;
+> +	}
+> +
+> +#ifdef CONFIG_HOTPLUG_CPU
+> +	register_hotcpu_notifier(&via_cputemp_cpu_notifier);
+> +#endif
+> +	return 0;
+> +
+> +exit_devices_unreg:
+> +	mutex_lock(&pdev_list_mutex);
+> +	list_for_each_entry_safe(p, n, &pdev_list, list) {
+> +		platform_device_unregister(p->pdev);
+> +		list_del(&p->list);
+> +		kfree(p);
+> +	}
+> +	mutex_unlock(&pdev_list_mutex);
+> +exit_driver_unreg:
+> +	platform_driver_unregister(&via_cputemp_driver);
+> +exit:
+> +	return err;
+> +}
+> +
+> +static void __exit via_cputemp_exit(void)
+> +{
+> +	struct pdev_entry *p, *n;
+> +#ifdef CONFIG_HOTPLUG_CPU
+> +	unregister_hotcpu_notifier(&via_cputemp_cpu_notifier);
+> +#endif
+> +	mutex_lock(&pdev_list_mutex);
+> +	list_for_each_entry_safe(p, n, &pdev_list, list) {
+> +		platform_device_unregister(p->pdev);
+> +		list_del(&p->list);
+> +		kfree(p);
+> +	}
+> +	mutex_unlock(&pdev_list_mutex);
+> +	platform_driver_unregister(&via_cputemp_driver);
+> +}
+> +
+> +MODULE_AUTHOR("Harald Welte <HaraldWelte@viatech.com>");
+> +MODULE_DESCRIPTION("VIA CPU temperature monitor");
+> +MODULE_LICENSE("GPL");
+> +
+> +module_init(via_cputemp_init)
+> +module_exit(via_cputemp_exit)
+
+The rest looks OK.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
