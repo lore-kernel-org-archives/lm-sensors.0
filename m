@@ -1,59 +1,43 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 10 Jun 2009 16:24:04 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Fix more __devexit_p glitches
-Message-Id: <20090610182404.67a47f89@hyperion.delvare>
+From: Dennis Jordan <dejord@web.de>
+Date: Mon, 22 Jun 2009 21:32:51 +0000
+Subject: [lm-sensors] =?iso-8859-15?q?Intel=AE_Desktop_Board_D945GSEJT?=
+Message-Id: <4A3FF883.5080607@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090604093041.442ad394@hyperion.delvare>
-In-Reply-To: <20090604093041.442ad394@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 10 Jun 2009 10:11:49 -0600, Jim Cromie wrote:
-> On Thu, Jun 4, 2009 at 1:30 AM, Jean Delvare <khali@linux-fr.org> wrote:
-> 
-> > Make sure __devexit and devexit_p() match in all hwmon drivers.
-> > Suggested by a similar fix from Mike Frysinger.
-> >
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > Cc: Hans de Goede <hdegoede@redhat.com>
-> > Cc: Jonathan Cameron <jic23@cam.ac.uk>
-> > ---
-> >  drivers/hwmon/f71882fg.c |    2 +-
-> >  drivers/hwmon/sht15.c    |   10 +++++-----
-> >  2 files changed, 6 insertions(+), 6 deletions(-)
-> >
-> > --- linux-2.6.30-rc8.orig/drivers/hwmon/f71882fg.c      2009-06-03
-> > 10:55:43.000000000 +0200
-> > +++ linux-2.6.30-rc8/drivers/hwmon/f71882fg.c   2009-06-04
-> > 09:02:47.000000000 +0200
-> > @@ -253,7 +253,7 @@ static struct platform_driver f71882fg_d
-> >                .name   = DRVNAME,
-> >        },
-> >        .probe          = f71882fg_probe,
-> > -       .remove         = __devexit_p(f71882fg_remove),
-> > +       .remove         = f71882fg_remove,
-> >  };
-> >
-> 
-> 
-> I think that one is reversed, certainly vs following.
+Hi there,
 
-This is on purpose. f71882fg_remove() is not marked with __devexit, so
-there is no point in protecting references thereto with __devexit_p().
+I'm getting sick by trying to install lm-sensors for this mainboard with 
+xubuntu 9.04.
 
-Note that, contrary to the other way, this one does not cause build
-errors. It's just needlessly complex, and confusing for the reader.
+Finally no sensors are found. When I try to use the most recent 
+sensors-detect script it says:
 
-> > -               .remove = sht15_remove,
-> > +               .remove = __devexit_p(sht15_remove),
-> >
-> >
+Driver `w83627ehf':
+  * ISA bus, address 0xa00
+    Chip `Winbond W83627DHG-P Super IO Sensors' (confidence: 9)
 
+But if I try to load that module it says:
 
--- 
-Jean Delvare
+sudo modprobe w83627ehf
+WARNING: All config files need .conf: /etc/modprobe.d/oss-compat, it 
+will be ignored in a future release.
+FATAL: Error inserting w83627ehf 
+(/lib/modules/2.6.28-13-generic/kernel/drivers/hwmon/w83627ehf.ko): No 
+such device
+
+I don't know what to do to finally use lm-sensors. Due to the fact I'm 
+using a fanless system here I don't want to sit in the dark regarding 
+temperature for my CPU.
+
+Thanks for any support here.
+
+Kind regards
+Dennis
+
 
 _______________________________________________
 lm-sensors mailing list
