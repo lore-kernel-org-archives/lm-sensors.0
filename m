@@ -1,45 +1,39 @@
-From: Dennis Jordan <dejord@web.de>
-Date: Mon, 22 Jun 2009 21:32:51 +0000
-Subject: [lm-sensors] =?iso-8859-15?q?Intel=AE_Desktop_Board_D945GSEJT?=
-Message-Id: <4A3FF883.5080607@web.de>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 23 Jun 2009 06:47:46 +0000
+Subject: Re: [lm-sensors] =?iso-8859-15?q?Intel=AE_Desktop_Board_D945GSEJT?=
+Message-Id: <20090623084746.7d1bba56@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4A3FF883.5080607@web.de>
+In-Reply-To: <4A3FF883.5080607@web.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi there,
-
-I'm getting sick by trying to install lm-sensors for this mainboard with 
-xubuntu 9.04.
-
-Finally no sensors are found. When I try to use the most recent 
-sensors-detect script it says:
-
-Driver `w83627ehf':
-  * ISA bus, address 0xa00
-    Chip `Winbond W83627DHG-P Super IO Sensors' (confidence: 9)
-
-But if I try to load that module it says:
-
-sudo modprobe w83627ehf
-WARNING: All config files need .conf: /etc/modprobe.d/oss-compat, it 
-will be ignored in a future release.
-FATAL: Error inserting w83627ehf 
-(/lib/modules/2.6.28-13-generic/kernel/drivers/hwmon/w83627ehf.ko): No 
-such device
-
-I don't know what to do to finally use lm-sensors. Due to the fact I'm 
-using a fanless system here I don't want to sit in the dark regarding 
-temperature for my CPU.
-
-Thanks for any support here.
-
-Kind regards
-Dennis
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGFsbG8gRGVubmlzLAoKT24gTW9uLCAyMiBKdW4gMjAwOSAyMzozMjo1MSArMDIwMCwgRGVubmlz
+IEpvcmRhbiB3cm90ZToKPiBJJ20gZ2V0dGluZyBzaWNrIGJ5IHRyeWluZyB0byBpbnN0YWxsIGxt
+LXNlbnNvcnMgZm9yIHRoaXMgbWFpbmJvYXJkIHdpdGggCj4geHVidW50dSA5LjA0Lgo+IAo+IEZp
+bmFsbHkgbm8gc2Vuc29ycyBhcmUgZm91bmQuIFdoZW4gSSB0cnkgdG8gdXNlIHRoZSBtb3N0IHJl
+Y2VudCAKPiBzZW5zb3JzLWRldGVjdCBzY3JpcHQgaXQgc2F5czoKPiAKPiBEcml2ZXIgYHc4MzYy
+N2VoZic6Cj4gICAqIElTQSBidXMsIGFkZHJlc3MgMHhhMDAKPiAgICAgQ2hpcCBgV2luYm9uZCBX
+ODM2MjdESEctUCBTdXBlciBJTyBTZW5zb3JzJyAoY29uZmlkZW5jZTogOSkKPiAKPiBCdXQgaWYg
+SSB0cnkgdG8gbG9hZCB0aGF0IG1vZHVsZSBpdCBzYXlzOgo+IAo+IHN1ZG8gbW9kcHJvYmUgdzgz
+NjI3ZWhmCj4gV0FSTklORzogQWxsIGNvbmZpZyBmaWxlcyBuZWVkIC5jb25mOiAvZXRjL21vZHBy
+b2JlLmQvb3NzLWNvbXBhdCwgaXQgCj4gd2lsbCBiZSBpZ25vcmVkIGluIGEgZnV0dXJlIHJlbGVh
+c2UuCj4gRkFUQUw6IEVycm9yIGluc2VydGluZyB3ODM2MjdlaGYgCj4gKC9saWIvbW9kdWxlcy8y
+LjYuMjgtMTMtZ2VuZXJpYy9rZXJuZWwvZHJpdmVycy9od21vbi93ODM2MjdlaGYua28pOiBObyAK
+PiBzdWNoIGRldmljZQo+IAo+IEkgZG9uJ3Qga25vdyB3aGF0IHRvIGRvIHRvIGZpbmFsbHkgdXNl
+IGxtLXNlbnNvcnMuIER1ZSB0byB0aGUgZmFjdCBJJ20gCj4gdXNpbmcgYSBmYW5sZXNzIHN5c3Rl
+bSBoZXJlIEkgZG9uJ3Qgd2FudCB0byBzaXQgaW4gdGhlIGRhcmsgcmVnYXJkaW5nIAo+IHRlbXBl
+cmF0dXJlIGZvciBteSBDUFUuCj4gCj4gVGhhbmtzIGZvciBhbnkgc3VwcG9ydCBoZXJlLgoKVGhp
+cyBpcyBrZXJuZWwgYnVnICMxMzMzODoKaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19i
+dWcuY2dpP2lkEzMzOAoKRml4ZWQgaW4ga2VybmVsIDIuNi4zMToKaHR0cDovL2dpdC5rZXJuZWwu
+b3JnLz9wPWxpbnV4L2tlcm5lbC9naXQvdG9ydmFsZHMvbGludXgtMi42LmdpdDthPWNvbW1pdDto
+wWU0OGRjZTA1ZmYwNjI2NmNkZmQwY2JhNTVmYzUzNjdjZDQ5OWE1CgpXb3JrYXJvdW5kIGZvciBv
+bGRlciBrZXJuZWxzIChhcyByb290KToKKiBBZGQgdGhlIGZvbGxvd2luZyBsaW5lIC9ldGMvbW9k
+cHJvYmUuZC9od21vbi5jb25mOgogIG9wdGlvbnMgdzgzNjI3ZWhmIGZvcmNlX2lkPTB4YTAyMAoq
+IG1vZHByb2JlIHc4MzYyN2VoZgoKLS0gCkplYW4gRGVsdmFyZQpodHRwOi8va2hhbGkubGludXgt
+ZnIub3JnL3dpc2hsaXN0Lmh0bWwKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29y
+cy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vu
+c29ycw==
