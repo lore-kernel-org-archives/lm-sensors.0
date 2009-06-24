@@ -1,7 +1,7 @@
 From: Konstantin Kletschke <konsti@ku-gbr.de>
-Date: Wed, 24 Jun 2009 12:32:45 +0000
+Date: Wed, 24 Jun 2009 12:34:17 +0000
 Subject: Re: [lm-sensors] HowTo Asus P5Q, W83667HG vs ATK0110 - fancontrol
-Message-Id: <20090624123245.GB16923@punzenstreichler.doom>
+Message-Id: <20090624123417.GC16923@punzenstreichler.doom>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090624094735.GA16670@punzenstreichler.doom>
 In-Reply-To: <20090624094735.GA16670@punzenstreichler.doom>
@@ -10,62 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hi Luca,
 
-Am 2009-06-24 14:10 +0200 schrieb Jean Delvare:
+Am 2009-06-24 13:08 +0200 schrieb Luca Tettamanti:
 
-> Note that the >> doesn't buy you anything, > is enough. These are
-> virtual files.
+> > Can fan pwm value controlled with this driver?
+> 
+> Not directly, the relevant ACPI method doesn't actually touch the
+> hardware. It should be possible to use Q-FAN to switch between
+> different profiles, but I've yet to RE that interface.
 
-My zsh has no_clobber enabled and the shell insists on >> even on
-virtual files therefore :-) 
+You mean the cooling profile (actually selectable in BIOS) could be
+changed from acpi, if REed?
 
-> This is very odd. Which kernel are you running exactly? I have a hard
+> > Does lm_sensors-3.1.0 still need to be patched to acces this driver?
+> 
+> No, it's fine as is.
 
-Exactly I am running 2.6.30-rc7, the guy reporting this in the ubuntu
-forum did this februrary 28th, so on another kernel.
-
-> time understanding how this can happen at all. Does writing to pwm3
-> change the value of pwm2, too?
-
-echo into pwm1 changes nothing:
-
-> cat pwm1 pwm2 pwm3
-77
-55
-78
-> echo "99" >> pwm1
-> cat pwm1 pwm2 pwm3
-77
-55
-78
-
-echo into pwm2 changes pwm1:
-
-> cat pwm1 pwm2 pwm3
-77
-55
-78
-> echo "99" >> pwm2
-> cat pwm1 pwm2 pwm3
-99
-55
-78
-
-echo into pwm3 changes pwm3:
-
-> cat pwm1 pwm2 pwm3
-99
-55
-78
-> echo "100" >> pwm3
-> cat pwm1 pwm2 pwm3
-99
-55
-100
+Okay, so the my problem remains to access pwm2 which not seems to be
+possible at the moment.
 
 Regards, Konsti
-
 
 
 -- 
