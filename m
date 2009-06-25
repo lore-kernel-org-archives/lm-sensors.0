@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 25 Jun 2009 08:06:05 +0000
+From: Hleb Valoshka <375gnu@gmail.com>
+Date: Thu, 25 Jun 2009 13:50:44 +0000
 Subject: Re: [lm-sensors] hwmon-vid driver from linux 2.6.29
-Message-Id: <20090625100605.3435b331@hyperion.delvare>
+Message-Id: <be6d22e0906250650g7b59d35bh45f2f1a2a971b41a@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4A0C6BF7.9010107@assembler.cz>
 In-Reply-To: <4A0C6BF7.9010107@assembler.cz>
@@ -10,38 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hleb,
+On 6/25/09, Jean Delvare <khali@linux-fr.org> wrote:
 
-On Wed, 24 Jun 2009 20:47:44 +0300, Hleb Valoshka wrote:
-> On 6/8/09, Jean Delvare <khali@linux-fr.org> wrote:
-> >> > You could contact the motherboard vendor and tell them about the
-> >> > problem (the question is "Is VID5 properly routed from CPU to
-> >> > IT8716F?") and see what they have to say about this.
-> >> The question is sent.
-> > OK, thanks. Please let us know if you manage to get something useful.
-> 
-> They have replied.
-> 
-> => All voltages and monitoring is properly routed in our m/b's. If you
-> use old s/w with Phenom CPU, it will not be monitored properly in some
-> points by 3rd party s/w. We recommend you to use s/w for Windows,
-> because we don't have s/w for your OS.
-> =
-Thanks for transmitting the information. Their vague warning about the
-Phenom doesn't apply to your case as you have a 0Fh family, not 10h
-family CPU. Not that it would be terribly useful anyway, as they do not
-say _why_ 3rd party software could get it wrong. And they did not
-specifically answered to the question we asked about VID5.
+> As you may have seen, I have posted a patch meanwhile, which should
+> work around the problem on your board and possibly others. Did you have
+> the opportunity to test it?
 
-Our testing was pretty clear that the value of VID5 was not correct. If
-they can't explain that then I fear they won't be of any help to us :(
+Yes, it works good.
 
-As you may have seen, I have posted a patch meanwhile, which should
-work around the problem on your board and possibly others. Did you have
-the opportunity to test it?
 
 -- 
-Jean Delvare
+http://375gnu.wordpress.com
 
 _______________________________________________
 lm-sensors mailing list
