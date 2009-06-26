@@ -1,31 +1,64 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 04 Jun 2009 13:41:38 +0000
-Subject: Re: [lm-sensors] Suggested enhancements (with patches) to
-Message-Id: <20090604154138.1c1db84b@hyperion.delvare>
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Fri, 26 Jun 2009 08:11:56 +0000
+Subject: [lm-sensors] [PATCH v2 2/2] hwmon: Add documentation for tmp421
+Message-Id: <20090626081156.GC4510@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.NEB.4.64.0906040614390.4006@quicky.whooppee.com>
-In-Reply-To: <Pine.NEB.4.64.0906040614390.4006@quicky.whooppee.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Paul,
+This patch adds documentation for the tmp421 driver.
 
-On Thu, 4 Jun 2009 06:28:20 -0700 (PDT), Paul Goyette wrote:
-> (Hopefully this is the correct mailing list - there does not appear to 
-> be a list dedicated to i2c-tools.)
+changes in v2:
 
-No, this is not the correct mailing list. Please use the linux-i2c list
-for now [1]. I would like to move i2c-tools to a separate site to clear
-the confusion [2], and maybe have a dedicated mailing list for it
-there, but I can't seem to find the time to actually do it :(
+Replace degree symbol by "degree C" and fix other spelling mistakes.
 
-[1] http://vger.kernel.org/vger-lists.html#linux-i2c
-[2] http://marc.info/?l=linux-i2c&m3322185704754&w=2
+Signed-off-by: Andre Prendel <andre.prendel@gmx.de>
+---
+ tmp421 |   36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
--- 
-Jean Delvare
+Index: linux-2.6/Documentation/hwmon/tmp421
+=================================--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6/Documentation/hwmon/tmp421	2009-06-25 23:18:52.000000000 +0200
+@@ -0,0 +1,36 @@
++Kernel driver tmp421
++==========
++
++Supported chips:
++  * Texas Instruments TMP421
++    Prefix: 'tmp421'
++    Addresses scanned: I2C 0x2a, 0x4c, 0x4d, 0x4e and 0x4f
++    Datasheet: http://focus.ti.com/docs/prod/folders/print/tmp421.html
++  * Texas Instruments TMP422
++    Prefix: 'tmp422'
++    Addresses scanned: I2C 0x2a, 0x4c, 0x4d, 0x4e and 0x4f
++    Datasheet: http://focus.ti.com/docs/prod/folders/print/tmp421.html
++  * Texas Instruments TMP423
++    Prefix: 'tmp423'
++    Addresses scanned: I2C 0x2a, 0x4c, 0x4d, 0x4e and 0x4f
++    Datasheet: http://focus.ti.com/docs/prod/folders/print/tmp421.html
++
++Authors:
++	Andre Prendel <andre.prendel@gmx.de>
++
++Description
++-----------
++
++This driver implements support for Texas Instruments TMP421, TMP422
++and TMP423 temperature sensor chips. These chips implement one local
++and up to one (TMP421), up to two (TMP422) or up to three (TMP423)
++remote sensors. Temperature is measured in degrees Celsius. The chips
++are wired over I2C/SMBus and specified over a temperature range of -40
++to +125 degrees Celsius. Resolution for both the local and remote
++channels is 0.0625 degree C.
++
++The chips support only temperature measurement. The driver exports
++the temperature values via the following sysfs files.
++
++temp[1-4]_input
++temp[2-4]_fault
 
 _______________________________________________
 lm-sensors mailing list
