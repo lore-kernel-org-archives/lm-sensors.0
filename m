@@ -1,7 +1,7 @@
-From: Jaswinder Singh Rajput <jaswinder@kernel.org>
-Date: Fri, 26 Jun 2009 09:28:00 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 26 Jun 2009 09:30:59 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: add GP2A002 proximity/ambient sensor
-Message-Id: <1246007760.3067.5.camel@hpdv5.satnam>
+Message-Id: <20090626113059.4c0c2fb3@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4A448926.1030701@samsung.com>
 In-Reply-To: <4A448926.1030701@samsung.com>
@@ -11,7 +11,7 @@ Content-Transfer-Encoding: 7bit
 To: Minkyu Kang <mk7.kang@samsung.com>
 Cc: linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, lm-sensors@lm-sensors.org, suchang.woo@samsung.com, kyungmin.park@samsung.com
 
-On Fri, 2009-06-26 at 17:39 +0900, Minkyu Kang wrote:
+On Fri, 26 Jun 2009 17:39:02 +0900, Minkyu Kang wrote:
 > The GP2A002 is a I2C interfaced Sensor for Proximity/Ambient
 > This patch adds support the GP2A002 sensor
 > 
@@ -26,43 +26,26 @@ On Fri, 2009-06-26 at 17:39 +0900, Minkyu Kang wrote:
 >  create mode 100644 drivers/hwmon/gp2ap002.c
 >  create mode 100644 include/linux/gp2ap002.h
 > 
-
-> diff --git a/include/linux/gp2ap002.h b/include/linux/gp2ap002.h
-> new file mode 100644
-> index 0000000..b6a950b
-> --- /dev/null
-> +++ b/include/linux/gp2ap002.h
-> @@ -0,0 +1,21 @@
-> +/*
-> + *  Copyright (C) 2009 Samsung Electronics
-> + *  Minkyu Kang <mk7.kang@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> index 2d50166..cc4e200 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -1017,6 +1017,13 @@ config SENSORS_APPLESMC
+>  	  Say Y here if you have an applicable laptop and want to experience
+>  	  the awesome power of applesmc.
+>  
+> +config SENSORS_GP2AP002
+> +	tristate "GP2AP002 series Proximity/Ambient Sensor"
+> +	depends on HWMON && I2C
+> +	help
+> +	  This driver provides support for Proximity/Ambient Sensor.
 > +
-> +#ifndef __GP2AP002_H_
-> +#define __GP2AP002_H_
-> +
-> +struct gp2ap002_platform_data {
-> +	int (*get_adc)(void);
-> +	void (*power_enable)(int);
-> +	int vo_gpio;
-> +	int prox_mode;
-> +	int enable;
-> +};
-> +
-> +#endif
 
-I am curious what is the use of include/linux/gp2ap002.h, it only have
-gp2ap002_platform_data structure which you can keep in your source file
-the only file which is using it.
+This doesn't have anything to do with hardware monitoring, so this
+doesn't belong to drivers/hwmon.
 
-Thanks,
---
-JSR
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
