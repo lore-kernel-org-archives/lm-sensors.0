@@ -1,49 +1,37 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 20 Jun 2009 08:21:01 +0000
-Subject: Re: [lm-sensors] [PATCH 1/1] HWMON: max6650, fix lock imbalance
-Message-Id: <20090620102101.35e92c01@hyperion.delvare>
+From: Joe Perches <joe@perches.com>
+Date: Sun, 28 Jun 2009 16:26:23 +0000
+Subject: [lm-sensors] [PATCH 18/62] drivers/hwmon/sht15.c: Remove
+Message-Id: <b74f45f84ee741d41ab6938ea07fed85ee79b0a2.1246173681.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1245446795-1901-1-git-send-email-jirislaby@gmail.com>
-	<20090619230252.GB3862@local>
-In-Reply-To: <20090619230252.GB3862@local>
+References: <cover.1246173664.git.joe@perches.com>
+In-Reply-To: <cover.1246173664.git.joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Hans J. Koch" <hjk@linutronix.de>, Jiri Slaby <jirislaby@gmail.com>
-Cc: akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: linux-kernel@vger.kernel.org
+Cc: trivial@kernel.org, Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org
 
-On Sat, 20 Jun 2009 01:02:52 +0200, Hans J. Koch wrote:
-> On Fri, Jun 19, 2009 at 11:26:35PM +0200, Jiri Slaby wrote:
-> > Add omitted update_lock to one switch/case in set_div.
-> 
-> Ahem, yes, thanks!
-> 
-> > 
-> > Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-> 
-> Signed-off-by: Hans J. Koch <hjk@linutronix.de>
-> 
-> > ---
-> >  drivers/hwmon/max6650.c |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/max6650.c b/drivers/hwmon/max6650.c
-> > index 86142a8..58f66be 100644
-> > --- a/drivers/hwmon/max6650.c
-> > +++ b/drivers/hwmon/max6650.c
-> > @@ -418,6 +418,7 @@ static ssize_t set_div(struct device *dev, struct device_attribute *devattr,
-> >  		data->count = 3;
-> >  		break;
-> >  	default:
-> > +		mutex_unlock(&data->update_lock);
-> >  		dev_err(&client->dev,
-> >  			"illegal value for fan divider (%d)\n", div);
-> >  		return -EINVAL;
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/hwmon/sht15.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Applied, thanks.
-
+diff --git a/drivers/hwmon/sht15.c b/drivers/hwmon/sht15.c
+index 56cd600..6290a25 100644
+--- a/drivers/hwmon/sht15.c
++++ b/drivers/hwmon/sht15.c
+@@ -257,7 +257,7 @@ static inline int sht15_update_single_val(struct sht15_data *data,
+ 				 (data->flag = SHT15_READING_NOTHING),
+ 				 msecs_to_jiffies(timeout_msecs));
+ 	if (ret = 0) {/* timeout occurred */
+-		disable_irq_nosync(gpio_to_irq(data->pdata->gpio_data));;
++		disable_irq_nosync(gpio_to_irq(data->pdata->gpio_data));
+ 		sht15_connection_reset(data);
+ 		return -ETIME;
+ 	}
 -- 
-Jean Delvare
+1.6.3.1.10.g659a0.dirty
+
 
 _______________________________________________
 lm-sensors mailing list
