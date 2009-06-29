@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 28 Jun 2009 12:25:51 +0000
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Mon, 29 Jun 2009 08:54:10 +0000
 Subject: Re: [lm-sensors] [PATCH v2 0/2] hwmon: Add support for TI's
-Message-Id: <20090628142551.46c1314a@hyperion.delvare>
+Message-Id: <20090629085410.GA4723@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090626081031.GA4510@ubuntu>
 In-Reply-To: <20090626081031.GA4510@ubuntu>
@@ -10,27 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 26 Jun 2009 10:10:31 +0200, Andre Prendel wrote:
-> Hello Jean, Hans,
+On Sun, Jun 28, 2009 at 02:25:51PM +0200, Jean Delvare wrote:
+> On Fri, 26 Jun 2009 10:10:31 +0200, Andre Prendel wrote:
+> > Hello Jean, Hans,
+> > 
+> > Here is an updated version of the tmp421 driver. I've fixed the issues
+> > according to your review. Please take a closer look at the
+> > is_visible() callback of the sysfs group. I'm using the attributes' index
+> > to decide whether the file is visible or not.
+> > 
+> > Jean, I know you're on vacation, so take your time :)
 > 
-> Here is an updated version of the tmp421 driver. I've fixed the issues
-> according to your review. Please take a closer look at the
-> is_visible() callback of the sysfs group. I'm using the attributes' index
-> to decide whether the file is visible or not.
+> Now that the wiki is back, please update the TMP421 etc. entry.
+
+Is the driver scheduled for 2.6.32 or the next rc?
+
+> > BTW I spend some time with my girlfriend at the Cote d'Azur last
+> > year. Probably the best vacation I've ever had. But speaking french is
+> > very difficult :)
 > 
-> Jean, I know you're on vacation, so take your time :)
+> Yes French is indeed very difficult :( but we have beautiful landscapes
+> and excellent cuisine :)
 
-Now that the wiki is back, please update the TMP421 etc. entry.
+You're right :)
 
-> BTW I spend some time with my girlfriend at the Cote d'Azur last
-> year. Probably the best vacation I've ever had. But speaking french is
-> very difficult :)
+Thanks,
+Andre
 
-Yes French is indeed very difficult :( but we have beautiful landscapes
-and excellent cuisine :)
-
--- 
-Jean Delvare
+> -- 
+> Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
