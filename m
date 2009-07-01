@@ -1,613 +1,902 @@
-From: Marco Chiappero <marco@absence.it>
-Date: Sun, 12 Jul 2009 22:11:34 +0000
-Subject: [lm-sensors] HowTo Asus P5Q, W83667HG vs ATK0110 - fancontrol
-Message-Id: <4A5A5F96.30503@absence.it>
+From: "Chris Verges" <chrisv@cyberswitching.com>
+Date: Wed, 01 Jul 2009 18:17:40 +0000
+Subject: [lm-sensors] [PATCH] adxl345 accelerometer hwmon driver
+Message-Id: <68FBE0F3CE97264395875AC1C468F22C152BE8@mail03.cyberswitching.local>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------070301050503070400010002"
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C9FA78.3D0DF07A"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090624094735.GA16670@punzenstreichler.doom>
-In-Reply-To: <20090624094735.GA16670@punzenstreichler.doom>
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
 This is a multi-part message in MIME format.
---------------070301050503070400010002
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Hi,
-sorry for not noticing this thread before!
-
-
- > > 0x11 indeed writes to 0x11.
- > > This reflects somehow how echo into the /sys filesystem reacts.
- >
- > Indeed. So this is not a bug in the driver, but rather the hardware
- > misbehaving. I'll ask out contact at Nuvoton about this.
-
-Same behavior here with another Asus board (Maximus II Formula - 
-W83667HG-A).
-
-
-A few words about the topic W83667HG vs ATK0110.
-I'm currently using the atk0110 driver [1] and I'm happy with it since I 
-don't need a fine grain control for my fans and the default hw control 
-looks pretty good to me. As you know, the Asus software for Windows 
-indeed uses the ACPI interface, so I suggest the Asus owners to move to 
-the ATK0110 driver. However I'd like to implement or to see implemented 
-the fan profile switching for the Q-Fan mode, allowing minimum fan 
-control  but still sufficient for most users. I had a quick look at the 
-driver code and at my dsdt and it seems easy enought.
-
-I'd like to put attention on another aspect of many recent board from 
-Asus, the power management, aka EPU. Today I gave another try to Everest 
-on Windows and made a sensors dump (attached). As you can see from the 
-bus scan many chips are present, the Winbond, the two unidentified ICs 
-at 0x38 and 0x40, and, among others, an IC at 0x20. Accordingly with a 
-scan from the previous model of this board, the Maxiums Formula (Sensor 
-Type W83627DHG + W83791D + ADT7475 + ADP3228 (ISA 290h, SMB 
-2Ch/2Eh/20h)) and the Everest output, it is the ASP0800, a custom VRM 
-control chip from AD, providing (I suppose) the current CPU wattage 
-reading. I don't know the right indexes for this information but it's 
-somehow possibile. I think it's interesting for the Asus owners to add 
-this reading as well, if possible, isn't it?
-It would be great to receive further informations from Asus in order to 
-have some power tuning capabilities like the Windows 6-Engine software 
-provides, but it's out of the hwmon scope and need good contacts at Asus.
-
-
-[1] Well, to tell the true I would have no choice since most readings 
-are provided by two unknown ICs. 
-http://lists.lm-sensors.org/pipermail/lm-sensors/2008-September/024163.html
-
---------------070301050503070400010002
+------_=_NextPart_001_01C9FA78.3D0DF07A
 Content-Type: text/plain;
- name="everest.txt"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: inline;
- filename="everest.txt"
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Propriet��� sensore	
-Tipo sensore	Winbond W83667HG  (ISA 290h)
-Tipo sensore GPU	Diode  (ATI-Diode)
-Nome scheda madre	Asus Maximus II Series
-Rilevata intrusione nello chassis	No
-	
-Temperature	
-Scheda madre	40 ���C  (104 ���F)
-Processore	32 ���C  (90 ���F)
-Processore 1 / core 1	39 ���C  (102 ���F)
-Processore 1 / core 2	39 ���C  (102 ���F)
-North Bridge	51 ���C  (124 ���F)
-South Bridge	54 ���C  (129 ���F)
-PWM	42 ���C  (108 ���F)
-Diodo GPU	49 ���C  (120 ���F)
-Temperatura 1	26 ���C  (79 ���F)
-Temperatura 2	38 ���C  (100 ���F)
-Temperatura 3	40 ���C  (104 ���F)
-WDC WD6401AALS-00L3B2	[ TRIAL VERSION ]
-	
-Ventoline	
-Processore	981 RPM
-Chassis 1	672 RPM
-Chassis 2	802 RPM
-Chassis 3	842 RPM
-	
-Valori voltaggio	
-Core processore	0.94 V
-+3.3 V	3.34 V
-+5 V	5.11 V
-+12 V	[ TRIAL VERSION ]
-Standby V +5	5.12 V
-CPU VTT	1.12 V
-CPU PLL	1.53 V
-North Bridge +1.1 V	1.12 V
-South Bridge +1.1 V	1.12 V
-South Bridge +1.5 V	1.50 V
-DIMM	2.11 V
-DIMM VTT	1.05 V
-	
-Valori dissipazione di potenza	
-Processore	4.14 W
-Debug Info F	D3 55 FF D4 0C
-Debug Info T	40 33 26
-Debug Info V	75 D9 D3 D1 D6 FF 9B (03)
-Debug Info I	C1 A513
+Hi kernel hackers,
 
-------[ Motherboard Info ]------
+Here is a patch that adds support to the Linux kernel for Analog
+Device's ADXL345 chip.  It is an accelerometer that uses I2C and HWMON.
+When I looked into the MAINTAINERS file for the appropriate list, the
+"Orphan" status of "Hardware Monitoring" confused me as to the proper
+list for this patch ... please let me know if I need to forward it
+elsewhere.
 
-Motherboard ID      : 65-1901-000001-00101111-121708-Eaglelake$A1007001_BIOS DATE: 12/17/08 12:28:08 VER: 08.00.14
-Motherboard Model   : Asus Maximus II Formula
-Motherboard Chipset : Intel Eaglelake P45
+ALPHA Warning: THIS CODE COMPILES WITHOUT ERROR, BUT HAS NOT BEEN TESTED
+YET.
 
-DMI MB Manufacturer : ASUSTeK Computer INC.
-DMI MB Product      : Maximus II Formula
-DMI MB Version      : Rev 1.xx
-DMI MB Serial       : MS1C86B22000429
-DMI SYS Manufacturer: System manufacturer
-DMI SYS Product     : Maximus II Formula
-DMI SYS Version     : System Version
-DMI SYS Serial      : System Serial Number
-DMI BIOS Version    : 1901
+I'd appreciate feedback from those who have the time/interest to help!
+Code review would be great, someone with hardware for testing would be
+excellent.
 
-------[ GPIO @ isa 0500 ]------
+Thanks,
+Chris
 
-0000  C2 75 FD 19  C3 7F 6F E0  00 00 00 00  FD FE FD E2
-0010  00 00 00 00  00 00 00 00  00 00 00 00  00 00 00 00
-0020  00 00 08 00  00 00 00 00  00 00 00 00  C0 24 00 00
-0030  FF 00 03 03  50 FF 55 0D  83 FF FE 1F  00 00 00 00
 
-ITE 87xx HWMonitor Port	0000h
-ITE 87xx Device ID	0000h
-ITE 87xx Version	00h
+--- PATCH BELOW ---
 
-Winbond SuperIO HWMonitor Port	0290h
-Winbond SuperIO Device ID	A513h
+Signed-off-by: Chris Verges <chrisv@cyberswitching.com>
+Index: drivers/hwmon/Makefile
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.29.3-orig/drivers/hwmon/Makefile	(revision 33)
++++ linux-2.6.29.3/drivers/hwmon/Makefile	(revision 49)
+@@ -29,6 +29,7 @@
+ obj-$(CONFIG_SENSORS_ADT7470)	+=3D adt7470.o
+ obj-$(CONFIG_SENSORS_ADT7473)	+=3D adt7473.o
+ obj-$(CONFIG_SENSORS_ADT7475)	+=3D adt7475.o
++obj-$(CONFIG_SENSORS_ADXL345)	+=3D adxl345.o
+=20
+ obj-$(CONFIG_SENSORS_APPLESMC)	+=3D applesmc.o
+ obj-$(CONFIG_SENSORS_AMS)	+=3D ams/
+Index: drivers/hwmon/Kconfig
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.29.3-orig/drivers/hwmon/Kconfig	(revision 33)
++++ linux-2.6.29.3/drivers/hwmon/Kconfig	(revision 49)
+@@ -199,6 +199,16 @@
+ 	  This driver can also be build as a module.  If so, the module
+ 	  will be called adt7475.
+=20
++config SENSORS_ADXL345
++	tristate "Analog Devices ADXL345"
++	depends on I2C && EXPERIMENTAL
++	help
++	  If you say yes here, you get support for the Analog Devices
++	  ADXL345 digital accelerometer chip.
++
++	  This driver can also be build as a module.  If so, the module
++	  will be called adxl345.
++
+ config SENSORS_K8TEMP
+ 	tristate "AMD Athlon64/FX or Opteron temperature sensor"
+ 	depends on X86 && PCI && EXPERIMENTAL
+Index: drivers/hwmon/adxl345.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.29.3-orig/drivers/hwmon/adxl345.c	(revision 0)
++++ linux-2.6.29.3/drivers/hwmon/adxl345.c	(revision 49)
+@@ -0,0 +1,521 @@
++/*
++ * A hwmon driver for the Analog Devices ADXL345
++ *
++ * Copyright (c) 2009 Cyber Switching, Inc.
++ * Author: Robert Mehranfar <robertme@earthlink.net>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/jiffies.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/hwmon-vid.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++#include <linux/kernel.h>
++
++#define DRV_NAME	"adxl345"
++#define DRV_VERSION	"0.1"
++
++#define SIMULATE 1
++
++/*
++ * The ADXL345 registers
++ */
++#define ADXL345_REG_DEV_ID		0x00
++#define ADXL345_REG_OFS(nr)		(0x1E + (nr))
++#define ADXL345_REG_DATA(nr)		(0x32 + (nr))
++#define ADXL345_REG_DATA_FORMAT		0x31
++
++/*
++ * See ADXL345 specification
++ */
++#define OFFSET_SCALE_FACTOR_WHOLE 15
++#define OFFSET_SCALE_FACTOR_FRACTIONAL 6
++
++#define MAX_OFFSET 1988
++#define MIN_OFFSET -1998
++
++/*
++ * Based on 10-bit resolution +/-16 range set in the DATA FORMAT
+register
++ */
++#define DATA_SCALE_FACTOR_WHOLE 15
++#define DATA_SCALE_FACTOR_FRACTIONAL 6
++#define NUMBER_OF_AXES 3
++
++#define X_AXIS 0
++#define Y_AXIS 1
++#define Z_AXIS 2
++
++/* Position in the sysfs attribute array */
++#define X_AXIS_ATTR 0
++#define Y_AXIS_ATTR 1
++#define Z_AXIS_ATTR 2
++#define DATA_ATTR 3
++
++/*
++ * Functions declaration
++ */
++static void adxl345_init_client(struct i2c_client *client);
++static struct adxl345_data *adxl345_update_device(struct device *dev);
++static void convert_to_fraction(s16 data, u8 whole_scale, u8
+fraction_scale,
++					int *decimal, int *fraction);
++
++/*
++ * Client data (each client gets its own)
++ */
++struct adxl345_data {
++	struct i2c_client	client;
++	struct device		*hwmon_dev;
++	struct mutex		update_lock;	/* lock on the structure
+*/
++	char			valid;		/* 0 until below are
+valid */
++	unsigned long		last_updated;	/* in jiffies */
++
++	/*
++	 * ADXL345 Data
++	 * In two's complement, data coming in from or going out to
+user-space
++	 * must be converted.
++	 */
++	u8			offset[NUMBER_OF_AXES];
++	u16			data[NUMBER_OF_AXES];
++};
++
++
++/*
++ * Converts internal data to a decimal-fraction value.
++ * Notes: Must already be converted out of twos complement
++ *
++ * @param data  Data to be converted
++ * @param whole_scale Scale factor for whole number part. (Set to 1 for
+no scaling).
++ * @param fraction_scale Scale factor for fractional number part. (Set
+to 1 for no scaling).
++ * @param decimal Pointer to location to store decimal part.
++ * @param fraction Pointer to location to store fractional part.
++ */
++static void convert_to_fraction(s16 data, u8 whole_scale, u8
+fraction_scale,
++					int *decimal, int *fraction)
++{
++	int temp_decimal, temp_fraction, temp;
++	int sign =3D 1;
++
++	/* Scale the decimal and fractional parts */
++	temp_decimal =3D data * whole_scale * 10;
++	temp_fraction =3D data * fraction_scale;
++
++	/* get rid of the sign for negative fractions */
++	if (temp_fraction < 0) {
++		sign =3D -1;
++		temp_fraction *=3D sign;
++	}
++
++	/* If necessary, carry */
++	if (temp_fraction >=3D 10) {
++		/* Add to the decimal part */
++		temp_decimal +=3D sign * temp_fraction;
++
++		/* Amount to be subtracted from the fractional part */
++		temp =3D temp_fraction / 10;
++
++		temp_fraction -=3D temp * 10;
++	}
++
++	temp_decimal /=3D 10;
++
++	/*
++	 * If at least 10 still remains in the fractional part, one
++	 * last carry
++	 */
++	if (temp_fraction >=3D 10) {
++		temp_decimal +=3D sign;
++		temp_fraction -=3D 10;
++	}
++
++	/* Pass the values up */
++	*decimal =3D temp_decimal;
++	*fraction =3D temp_fraction;
++}
++
++/*
++ * Called in response to cat ofs(x,y,z) in sysfs
++ *
++ * @param dev Pointer to device
++ * @param attr Pointer to the device attributes
++ * @param buf Pointer to string shown in user space
++ * @return Number of chars copied to buffer
++*/
++static ssize_t show_offset(struct device *dev,
++				struct device_attribute *attr,
++				char *buf)
++{
++	int index =3D to_sensor_dev_attr(attr)->index;
++	struct adxl345_data *data =3D adxl345_update_device(dev);
++	int decimal, fraction;
++	s8 temp_data;
++
++	dev_dbg(dev, "%s\n", __func__);
++
++	/* Convert from 2's complement */
++	temp_data =3D ~(data->offset[index] - 1);
++
++	dev_dbg(dev, "temp_data=3D%d\n", temp_data);
++
++	convert_to_fraction(temp_data,
++			OFFSET_SCALE_FACTOR_WHOLE,
++			OFFSET_SCALE_FACTOR_FRACTIONAL,
++			&decimal,
++			&fraction);
++
++	return snprintf(buf, PAGE_SIZE,
++			"%4d.%1d\n", decimal, fraction);
++}
++
++/*
++ * Called in response to echoing data to ofs(x,y,z) in sysfs
++ * Note: Input range is -1998 to 1998 milli-g's
++ *
++ * @param dev Pointer to device
++ * @param attr Pointer to the device attributes
++ * @param buf Pointer to string passed in from user space
++ * @param count Number of chars passed in from user space..
++ * @return Number of chars passed in from user space.
++ */
++static ssize_t set_offset(struct device *dev,
++				struct device_attribute *attr,
++				const char *buf,
++				size_t count)
++{
++	int index =3D to_sensor_dev_attr(attr)->index;
++	struct i2c_client *client =3D to_i2c_client(dev);
++	struct adxl345_data *data =3D i2c_get_clientdata(client);
++	long val;
++	long temp_val;
++
++	dev_dbg(dev, "%s\n", __func__);
++
++	if (!strict_strtol(buf, 10, &val)) {
++		dev_dbg(dev, "error in converting string '%s' to
+long\n",
++				buf);
++		return 0;
++	}
++
++	/* If outside offset range, clip to max or min value */
++	if (val < MIN_OFFSET)
++		val =3D MIN_OFFSET;
++	else if (val > MAX_OFFSET)
++		val =3D MAX_OFFSET;
++
++	temp_val =3D (val * 100) %
++			((OFFSET_SCALE_FACTOR_WHOLE * 100) +
++			(OFFSET_SCALE_FACTOR_FRACTIONAL * 10));
++	if (temp_val < 0)
++		temp_val *=3D -1;
++
++	/* Get rid of scale for internal storage */
++	val =3D (val * 100) /
++			((OFFSET_SCALE_FACTOR_WHOLE * 100) +
++			(OFFSET_SCALE_FACTOR_FRACTIONAL * 10));
++
++	if (temp_val > (OFFSET_SCALE_FACTOR_WHOLE * 100) / 2 && val > 0)
++		++val;
++	else if (temp_val > (OFFSET_SCALE_FACTOR_WHOLE * 100) / 2 && val
+< 0)
++		--val;
++
++	val =3D ~val + 1;  /* convert to two's complement */
++
++	mutex_lock(&data->update_lock);
++
++	data->offset[index] =3D val;
++
++	dev_dbg(dev, "offset[%d]=3D%d\n", index, data->offset[index]);
++
++	/* Write the avlue to the chip via I2C */
++	i2c_smbus_write_byte_data(client,
++			ADXL345_REG_OFS(index),
++			data->offset[index]);
++
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
++/*
++ * Called in response to cat data in sysfs
++ *
++ * @param dev Pointer to device
++ * @param attr Pointer to the device attributes
++ * @param buf Pointer to string shown in user space
++ * @return Number of chars copied to buffer
++*/
++static ssize_t show_data(struct device *dev, struct device_attribute
+*attr,
++				char *buf)
++{
++	int i;
++	s16 temp_data;
++	int decimal[NUMBER_OF_AXES], fraction[NUMBER_OF_AXES];
++
++	struct adxl345_data *data =3D adxl345_update_device(dev);
++
++	/* Convert x,y,z values */
++	for (i =3D 0; i < NUMBER_OF_AXES; i++) {
++		/* Convert from 2's complement */
++		temp_data =3D ~(data->data[i] - 1);
++
++		convert_to_fraction(temp_data,
++				DATA_SCALE_FACTOR_WHOLE,
++				DATA_SCALE_FACTOR_FRACTIONAL,
++				&decimal[i],
++				&fraction[i]);
++	}
++
++	return snprintf(buf, PAGE_SIZE,
++			"x:%5d.%1d y:%5d.%1d z:%5d.%1d\n",
++			decimal[X_AXIS], fraction[X_AXIS],
++			decimal[Y_AXIS], fraction[Y_AXIS],
++			decimal[Z_AXIS], fraction[Z_AXIS]);
++}
++
++/*  Attributes of the sysfs entries */
++static SENSOR_DEVICE_ATTR(ofsx, S_IWUSR | S_IRUGO,
++				show_offset, set_offset, X_AXIS_ATTR);
++static SENSOR_DEVICE_ATTR(ofsy, S_IWUSR | S_IRUGO,
++				show_offset, set_offset, Y_AXIS_ATTR);
++static SENSOR_DEVICE_ATTR(ofsz, S_IWUSR | S_IRUGO,
++				show_offset, set_offset, Z_AXIS_ATTR);
++static SENSOR_DEVICE_ATTR(data, S_IRUGO,
++				show_data, NULL, DATA_ATTR);
++
++static struct attribute *adxl345_attributes[] =3D {
++	&sensor_dev_attr_ofsx.dev_attr.attr,
++	&sensor_dev_attr_ofsy.dev_attr.attr,
++	&sensor_dev_attr_ofsz.dev_attr.attr,
++	&sensor_dev_attr_data.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group adxl345_group =3D {
++	.attrs =3D adxl345_attributes,
++};
++
++/*
++ * Initialize the chip
++ *
++ * @param client Pointer to the client structure
++ */
++static void adxl345_init_client(struct i2c_client *client)
++{
++	dev_dbg(&client->dev, "%s\n", __func__);
++
++	/*
++	 * Set up the device, No self test, Dont care about SPI or
++	 * interrupt, 10 bit resoltion, +/- 16g range
++	 */
++	i2c_smbus_write_byte_data(client, ADXL345_REG_DATA_FORMAT,
+0x03);
++}
++
++/*
++ * Does more than just detection. If detection succeeds, it also
++ * registers the new chip.
++ *
++ * @param adapter Pointer to the adapter
++ * @param address I2C address
++ * @return Zero, upon success
++ */
++static int adxl345_probe(struct i2c_client *client,
++				const struct i2c_device_id *id)
++{
++	struct adxl345_data *data;
++	int err =3D 0;
++	u8 dev_id;
++
++	dev_dbg(&client->dev, "%s\n", __func__);
++
++	if (!i2c_check_functionality(client->adapter,
+I2C_FUNC_SMBUS_BYTE_DATA))
++		return -ENODEV;
++
++	data =3D kzalloc(sizeof(struct adxl345_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, data);
++
++	#ifdef SIMULATE
++	dev_id =3D 0xE5; /* Spoof the Analog Devices device ID */
++	dev_dbg(&client->dev, "Simulating ADXL345 device\n");
++	#else
++	dev_id =3D i2c_smbus_read_byte_data(client, ADXL345_REG_DEV_ID);
++	#endif
++
++	/* If the chip is not from Analog Devices, report an error */
++	if (dev_id !=3D 0xE5) {
++		dev_err(&client->dev, "Unsupported chip
+(dev_id=3D0x%02X)\n",
++				dev_id);
++		err =3D -EINVAL;
++		goto err_free_mem;
++	}
++
++	dev_info(&client->dev, "chip found, driver version "
++			DRV_VERSION "\n");
++
++	/* We can fill in the remaining client fields */
++	mutex_init(&data->update_lock);
++
++	/* Initialize the ADXL345 chip */
++	adxl345_init_client(client);
++
++	/* Register sysfs hooks */
++	err =3D sysfs_create_group(&client->dev.kobj, &adxl345_group);
++	if (err)
++		goto err_free_mem;
++
++	data->hwmon_dev =3D hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err =3D PTR_ERR(data->hwmon_dev);
++		goto err_remove;
++	}
++
++	return 0;
++
++err_remove:
++	sysfs_remove_group(&client->dev.kobj, &adxl345_group);
++err_free_mem:
++	kfree(data);
++
++	return err;
++}
++
++/*
++ * Unregister device, remove the sysfs entries, and detach the client
++ * from I2C bus.
++ *
++ * @param client Pointer to the client structure
++ * @return Zero, upon success.
++ */
++static int adxl345_remove(struct i2c_client *client)
++{
++	struct adxl345_data *data =3D i2c_get_clientdata(client);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &adxl345_group);
++
++	i2c_unregister_device(client);
++
++	kfree(data);
++
++	return 0;
++}
++
++/*
++ * Gets the data from the chip.
++ *
++ * @param client Pointer to the device
++ * @return Pointer to structure containing the data
++ */
++static struct adxl345_data *adxl345_update_device(struct device *dev)
++{
++	struct i2c_client *client =3D to_i2c_client(dev);
++	struct adxl345_data *data =3D i2c_get_clientdata(client);
++	int i;
++
++	dev_dbg(dev, "%s\n", __func__);
++
++	mutex_lock(&data->update_lock);
++
++	/*
++	 * This delay is 500ms, based on a default value of 100 for HZ
++	 * in ARM kernels
++	 */
++	if (time_after(jiffies, data->last_updated + HZ * 50) ||
++		!data->valid) {
++		for (i =3D 0; i < NUMBER_OF_AXES; i++) {
++			data->offset[i] =3D
+i2c_smbus_read_byte_data(client,
++						ADXL345_REG_OFS(i));
++			dev_dbg(dev, "offset[%d]=3D%d\n", i,
+data->offset[i]);
++		}
++
++		/*
++		 * Concatenate the data from each register pair
++		 * Indexing logic is needed as per ADXL345 spec, LSB is
+first
++		 * INDEX(reg)  LSB  MSB
++		 *     0        0    1
++		 *     1        2    3
++		 *     2        4    5
++		 */
++		for (i =3D 0; i < NUMBER_OF_AXES; i++) {
++			/* Get the MSB, shift by 8, and then get the LSB
+*/
++			data->data[i] =3D i2c_smbus_read_byte_data(client,
++						ADXL345_REG_DATA(i*2+1))
+<< 8;
++			data->data[i] |=3D
+i2c_smbus_read_byte_data(client,
++						ADXL345_REG_DATA(i*2));
++
++			dev_dbg(dev, "data[%d]=3D%d\n", i, data->data[i]);
++		}
++
++		data->last_updated =3D jiffies;
++		data->valid =3D 1;
++	}
++
++	mutex_unlock(&data->update_lock);
++
++	return data;
++}
++
++/*
++ * Driver data (common to all clients)
++ */
++
++static const struct i2c_device_id adxl345_id[] =3D {
++	{ "adxl345", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, adxl345_id);
++
++static struct i2c_driver adxl345_driver =3D {
++	.driver =3D {
++		.name	=3D DRV_NAME,
++	},
++	.probe		=3D adxl345_probe,
++	.remove		=3D adxl345_remove,
++	.id_table	=3D adxl345_id,
++};
++
++/*
++ * Initialize the module
++ *
++ * @return Zero, upon success
++ */
++static int __init adxl345_init(void)
++{
++	return i2c_add_driver(&adxl345_driver);
++}
++
++/*
++ * Remove the module
++ */
++static void __exit adxl345_exit(void)
++{
++	i2c_del_driver(&adxl345_driver);
++}
++
++MODULE_AUTHOR("Robert Mehranfar <robertme@earthlink.net>");
++MODULE_DESCRIPTION("Analog Devices ADXL345 driver");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(DRV_VERSION);
++
++module_init(adxl345_init);
++module_exit(adxl345_exit);
 
-Fintek SuperIO HWMonitor Port	0000h
-Fintek SuperIO Device ID	0000h
+------_=_NextPart_001_01C9FA78.3D0DF07A
+Content-Type: application/octet-stream;
+	name="adxl345.patch"
+Content-Transfer-Encoding: base64
+Content-Description: adxl345.patch
+Content-Disposition: attachment;
+	filename="adxl345.patch"
 
-LPC47 SuperIO HWMonitor Port	0000h
-LPC47 SuperIO Device ID	FFFFh
+U2lnbmVkLW9mZi1ieTogQ2hyaXMgVmVyZ2VzIDxjaHJpc3ZAY3liZXJzd2l0Y2hpbmcuY29tPgpJ
+bmRleDogZHJpdmVycy9od21vbi9NYWtlZmlsZQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC0yLjYuMjku
+My1vcmlnL2RyaXZlcnMvaHdtb24vTWFrZWZpbGUJKHJldmlzaW9uIDMzKQorKysgbGludXgtMi42
+LjI5LjMvZHJpdmVycy9od21vbi9NYWtlZmlsZQkocmV2aXNpb24gNDkpCkBAIC0yOSw2ICsyOSw3
+IEBACiBvYmotJChDT05GSUdfU0VOU09SU19BRFQ3NDcwKQkrPSBhZHQ3NDcwLm8KIG9iai0kKENP
+TkZJR19TRU5TT1JTX0FEVDc0NzMpCSs9IGFkdDc0NzMubwogb2JqLSQoQ09ORklHX1NFTlNPUlNf
+QURUNzQ3NSkJKz0gYWR0NzQ3NS5vCitvYmotJChDT05GSUdfU0VOU09SU19BRFhMMzQ1KQkrPSBh
+ZHhsMzQ1Lm8KIAogb2JqLSQoQ09ORklHX1NFTlNPUlNfQVBQTEVTTUMpCSs9IGFwcGxlc21jLm8K
+IG9iai0kKENPTkZJR19TRU5TT1JTX0FNUykJKz0gYW1zLwpJbmRleDogZHJpdmVycy9od21vbi9L
+Y29uZmlnCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT0KLS0tIGxpbnV4LTIuNi4yOS4zLW9yaWcvZHJpdmVycy9od21vbi9L
+Y29uZmlnCShyZXZpc2lvbiAzMykKKysrIGxpbnV4LTIuNi4yOS4zL2RyaXZlcnMvaHdtb24vS2Nv
+bmZpZwkocmV2aXNpb24gNDkpCkBAIC0xOTksNiArMTk5LDE2IEBACiAJICBUaGlzIGRyaXZlciBj
+YW4gYWxzbyBiZSBidWlsZCBhcyBhIG1vZHVsZS4gIElmIHNvLCB0aGUgbW9kdWxlCiAJICB3aWxs
+IGJlIGNhbGxlZCBhZHQ3NDc1LgogCitjb25maWcgU0VOU09SU19BRFhMMzQ1CisJdHJpc3RhdGUg
+IkFuYWxvZyBEZXZpY2VzIEFEWEwzNDUiCisJZGVwZW5kcyBvbiBJMkMgJiYgRVhQRVJJTUVOVEFM
+CisJaGVscAorCSAgSWYgeW91IHNheSB5ZXMgaGVyZSwgeW91IGdldCBzdXBwb3J0IGZvciB0aGUg
+QW5hbG9nIERldmljZXMKKwkgIEFEWEwzNDUgZGlnaXRhbCBhY2NlbGVyb21ldGVyIGNoaXAuCisK
+KwkgIFRoaXMgZHJpdmVyIGNhbiBhbHNvIGJlIGJ1aWxkIGFzIGEgbW9kdWxlLiAgSWYgc28sIHRo
+ZSBtb2R1bGUKKwkgIHdpbGwgYmUgY2FsbGVkIGFkeGwzNDUuCisKIGNvbmZpZyBTRU5TT1JTX0s4
+VEVNUAogCXRyaXN0YXRlICJBTUQgQXRobG9uNjQvRlggb3IgT3B0ZXJvbiB0ZW1wZXJhdHVyZSBz
+ZW5zb3IiCiAJZGVwZW5kcyBvbiBYODYgJiYgUENJICYmIEVYUEVSSU1FTlRBTApJbmRleDogZHJp
+dmVycy9od21vbi9hZHhsMzQ1LmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gbGludXgtMi42LjI5LjMtb3JpZy9k
+cml2ZXJzL2h3bW9uL2FkeGwzNDUuYwkocmV2aXNpb24gMCkKKysrIGxpbnV4LTIuNi4yOS4zL2Ry
+aXZlcnMvaHdtb24vYWR4bDM0NS5jCShyZXZpc2lvbiA0OSkKQEAgLTAsMCArMSw1MjEgQEAKKy8q
+CisgKiBBIGh3bW9uIGRyaXZlciBmb3IgdGhlIEFuYWxvZyBEZXZpY2VzIEFEWEwzNDUKKyAqCisg
+KiBDb3B5cmlnaHQgKGMpIDIwMDkgQ3liZXIgU3dpdGNoaW5nLCBJbmMuCisgKiBBdXRob3I6IFJv
+YmVydCBNZWhyYW5mYXIgPHJvYmVydG1lQGVhcnRobGluay5uZXQ+CisgKgorICogVGhpcyBwcm9n
+cmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2Rp
+ZnkKKyAqIGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vu
+c2UgYXMgcHVibGlzaGVkIGJ5CisgKiB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRo
+ZXIgdmVyc2lvbiAyIG9mIHRoZSBMaWNlbnNlLCBvcgorICogKGF0IHlvdXIgb3B0aW9uKSBhbnkg
+bGF0ZXIgdmVyc2lvbi4KKyAqCisgKiBUaGlzIHByb2dyYW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhl
+IGhvcGUgdGhhdCBpdCB3aWxsIGJlIHVzZWZ1bCwKKyAqIGJ1dCBXSVRIT1VUIEFOWSBXQVJSQU5U
+WTsgd2l0aG91dCBldmVuIHRoZSBpbXBsaWVkIHdhcnJhbnR5IG9mCisgKiBNRVJDSEFOVEFCSUxJ
+VFkgb3IgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UuICBTZWUgdGhlCisgKiBHTlUg
+R2VuZXJhbCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBkZXRhaWxzLgorICoKKyAqIFlvdSBzaG91
+bGQgaGF2ZSByZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNl
+CisgKiBhbG9uZyB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYgbm90LCB3cml0ZSB0byB0aGUgRnJlZSBT
+b2Z0d2FyZQorICogRm91bmRhdGlvbiwgSW5jLiwgNjc1IE1hc3MgQXZlLCBDYW1icmlkZ2UsIE1B
+IDAyMTM5LCBVU0EuCisgKi8KKworI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPgorI2luY2x1ZGUg
+PGxpbnV4L2luaXQuaD4KKyNpbmNsdWRlIDxsaW51eC9zbGFiLmg+CisjaW5jbHVkZSA8bGludXgv
+amlmZmllcy5oPgorI2luY2x1ZGUgPGxpbnV4L2kyYy5oPgorI2luY2x1ZGUgPGxpbnV4L2h3bW9u
+Lmg+CisjaW5jbHVkZSA8bGludXgvaHdtb24tc3lzZnMuaD4KKyNpbmNsdWRlIDxsaW51eC9od21v
+bi12aWQuaD4KKyNpbmNsdWRlIDxsaW51eC9lcnIuaD4KKyNpbmNsdWRlIDxsaW51eC9tdXRleC5o
+PgorI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5oPgorCisjZGVmaW5lIERSVl9OQU1FCSJhZHhsMzQ1
+IgorI2RlZmluZSBEUlZfVkVSU0lPTgkiMC4xIgorCisjZGVmaW5lIFNJTVVMQVRFIDEKKworLyoK
+KyAqIFRoZSBBRFhMMzQ1IHJlZ2lzdGVycworICovCisjZGVmaW5lIEFEWEwzNDVfUkVHX0RFVl9J
+RAkJMHgwMAorI2RlZmluZSBBRFhMMzQ1X1JFR19PRlMobnIpCQkoMHgxRSArIChucikpCisjZGVm
+aW5lIEFEWEwzNDVfUkVHX0RBVEEobnIpCQkoMHgzMiArIChucikpCisjZGVmaW5lIEFEWEwzNDVf
+UkVHX0RBVEFfRk9STUFUCQkweDMxCisKKy8qCisgKiBTZWUgQURYTDM0NSBzcGVjaWZpY2F0aW9u
+CisgKi8KKyNkZWZpbmUgT0ZGU0VUX1NDQUxFX0ZBQ1RPUl9XSE9MRSAxNQorI2RlZmluZSBPRkZT
+RVRfU0NBTEVfRkFDVE9SX0ZSQUNUSU9OQUwgNgorCisjZGVmaW5lIE1BWF9PRkZTRVQgMTk4OAor
+I2RlZmluZSBNSU5fT0ZGU0VUIC0xOTk4CisKKy8qCisgKiBCYXNlZCBvbiAxMC1iaXQgcmVzb2x1
+dGlvbiArLy0xNiByYW5nZSBzZXQgaW4gdGhlIERBVEEgRk9STUFUIHJlZ2lzdGVyCisgKi8KKyNk
+ZWZpbmUgREFUQV9TQ0FMRV9GQUNUT1JfV0hPTEUgMTUKKyNkZWZpbmUgREFUQV9TQ0FMRV9GQUNU
+T1JfRlJBQ1RJT05BTCA2CisjZGVmaW5lIE5VTUJFUl9PRl9BWEVTIDMKKworI2RlZmluZSBYX0FY
+SVMgMAorI2RlZmluZSBZX0FYSVMgMQorI2RlZmluZSBaX0FYSVMgMgorCisvKiBQb3NpdGlvbiBp
+biB0aGUgc3lzZnMgYXR0cmlidXRlIGFycmF5ICovCisjZGVmaW5lIFhfQVhJU19BVFRSIDAKKyNk
+ZWZpbmUgWV9BWElTX0FUVFIgMQorI2RlZmluZSBaX0FYSVNfQVRUUiAyCisjZGVmaW5lIERBVEFf
+QVRUUiAzCisKKy8qCisgKiBGdW5jdGlvbnMgZGVjbGFyYXRpb24KKyAqLworc3RhdGljIHZvaWQg
+YWR4bDM0NV9pbml0X2NsaWVudChzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50KTsKK3N0YXRpYyBz
+dHJ1Y3QgYWR4bDM0NV9kYXRhICphZHhsMzQ1X3VwZGF0ZV9kZXZpY2Uoc3RydWN0IGRldmljZSAq
+ZGV2KTsKK3N0YXRpYyB2b2lkIGNvbnZlcnRfdG9fZnJhY3Rpb24oczE2IGRhdGEsIHU4IHdob2xl
+X3NjYWxlLCB1OCBmcmFjdGlvbl9zY2FsZSwKKwkJCQkJaW50ICpkZWNpbWFsLCBpbnQgKmZyYWN0
+aW9uKTsKKworLyoKKyAqIENsaWVudCBkYXRhIChlYWNoIGNsaWVudCBnZXRzIGl0cyBvd24pCisg
+Ki8KK3N0cnVjdCBhZHhsMzQ1X2RhdGEgeworCXN0cnVjdCBpMmNfY2xpZW50CWNsaWVudDsKKwlz
+dHJ1Y3QgZGV2aWNlCQkqaHdtb25fZGV2OworCXN0cnVjdCBtdXRleAkJdXBkYXRlX2xvY2s7CS8q
+IGxvY2sgb24gdGhlIHN0cnVjdHVyZSAqLworCWNoYXIJCQl2YWxpZDsJCS8qIDAgdW50aWwgYmVs
+b3cgYXJlIHZhbGlkICovCisJdW5zaWduZWQgbG9uZwkJbGFzdF91cGRhdGVkOwkvKiBpbiBqaWZm
+aWVzICovCisKKwkvKgorCSAqIEFEWEwzNDUgRGF0YQorCSAqIEluIHR3bydzIGNvbXBsZW1lbnQs
+IGRhdGEgY29taW5nIGluIGZyb20gb3IgZ29pbmcgb3V0IHRvIHVzZXItc3BhY2UKKwkgKiBtdXN0
+IGJlIGNvbnZlcnRlZC4KKwkgKi8KKwl1OAkJCW9mZnNldFtOVU1CRVJfT0ZfQVhFU107CisJdTE2
+CQkJZGF0YVtOVU1CRVJfT0ZfQVhFU107Cit9OworCisKKy8qCisgKiBDb252ZXJ0cyBpbnRlcm5h
+bCBkYXRhIHRvIGEgZGVjaW1hbC1mcmFjdGlvbiB2YWx1ZS4KKyAqIE5vdGVzOiBNdXN0IGFscmVh
+ZHkgYmUgY29udmVydGVkIG91dCBvZiB0d29zIGNvbXBsZW1lbnQKKyAqCisgKiBAcGFyYW0gZGF0
+YSAgRGF0YSB0byBiZSBjb252ZXJ0ZWQKKyAqIEBwYXJhbSB3aG9sZV9zY2FsZSBTY2FsZSBmYWN0
+b3IgZm9yIHdob2xlIG51bWJlciBwYXJ0LiAoU2V0IHRvIDEgZm9yIG5vIHNjYWxpbmcpLgorICog
+QHBhcmFtIGZyYWN0aW9uX3NjYWxlIFNjYWxlIGZhY3RvciBmb3IgZnJhY3Rpb25hbCBudW1iZXIg
+cGFydC4gKFNldCB0byAxIGZvciBubyBzY2FsaW5nKS4KKyAqIEBwYXJhbSBkZWNpbWFsIFBvaW50
+ZXIgdG8gbG9jYXRpb24gdG8gc3RvcmUgZGVjaW1hbCBwYXJ0LgorICogQHBhcmFtIGZyYWN0aW9u
+IFBvaW50ZXIgdG8gbG9jYXRpb24gdG8gc3RvcmUgZnJhY3Rpb25hbCBwYXJ0LgorICovCitzdGF0
+aWMgdm9pZCBjb252ZXJ0X3RvX2ZyYWN0aW9uKHMxNiBkYXRhLCB1OCB3aG9sZV9zY2FsZSwgdTgg
+ZnJhY3Rpb25fc2NhbGUsCisJCQkJCWludCAqZGVjaW1hbCwgaW50ICpmcmFjdGlvbikKK3sKKwlp
+bnQgdGVtcF9kZWNpbWFsLCB0ZW1wX2ZyYWN0aW9uLCB0ZW1wOworCWludCBzaWduID0gMTsKKwor
+CS8qIFNjYWxlIHRoZSBkZWNpbWFsIGFuZCBmcmFjdGlvbmFsIHBhcnRzICovCisJdGVtcF9kZWNp
+bWFsID0gZGF0YSAqIHdob2xlX3NjYWxlICogMTA7CisJdGVtcF9mcmFjdGlvbiA9IGRhdGEgKiBm
+cmFjdGlvbl9zY2FsZTsKKworCS8qIGdldCByaWQgb2YgdGhlIHNpZ24gZm9yIG5lZ2F0aXZlIGZy
+YWN0aW9ucyAqLworCWlmICh0ZW1wX2ZyYWN0aW9uIDwgMCkgeworCQlzaWduID0gLTE7CisJCXRl
+bXBfZnJhY3Rpb24gKj0gc2lnbjsKKwl9CisKKwkvKiBJZiBuZWNlc3NhcnksIGNhcnJ5ICovCisJ
+aWYgKHRlbXBfZnJhY3Rpb24gPj0gMTApIHsKKwkJLyogQWRkIHRvIHRoZSBkZWNpbWFsIHBhcnQg
+Ki8KKwkJdGVtcF9kZWNpbWFsICs9IHNpZ24gKiB0ZW1wX2ZyYWN0aW9uOworCisJCS8qIEFtb3Vu
+dCB0byBiZSBzdWJ0cmFjdGVkIGZyb20gdGhlIGZyYWN0aW9uYWwgcGFydCAqLworCQl0ZW1wID0g
+dGVtcF9mcmFjdGlvbiAvIDEwOworCisJCXRlbXBfZnJhY3Rpb24gLT0gdGVtcCAqIDEwOworCX0K
+KworCXRlbXBfZGVjaW1hbCAvPSAxMDsKKworCS8qCisJICogSWYgYXQgbGVhc3QgMTAgc3RpbGwg
+cmVtYWlucyBpbiB0aGUgZnJhY3Rpb25hbCBwYXJ0LCBvbmUKKwkgKiBsYXN0IGNhcnJ5CisJICov
+CisJaWYgKHRlbXBfZnJhY3Rpb24gPj0gMTApIHsKKwkJdGVtcF9kZWNpbWFsICs9IHNpZ247CisJ
+CXRlbXBfZnJhY3Rpb24gLT0gMTA7CisJfQorCisJLyogUGFzcyB0aGUgdmFsdWVzIHVwICovCisJ
+KmRlY2ltYWwgPSB0ZW1wX2RlY2ltYWw7CisJKmZyYWN0aW9uID0gdGVtcF9mcmFjdGlvbjsKK30K
+KworLyoKKyAqIENhbGxlZCBpbiByZXNwb25zZSB0byBjYXQgb2ZzKHgseSx6KSBpbiBzeXNmcwor
+ICoKKyAqIEBwYXJhbSBkZXYgUG9pbnRlciB0byBkZXZpY2UKKyAqIEBwYXJhbSBhdHRyIFBvaW50
+ZXIgdG8gdGhlIGRldmljZSBhdHRyaWJ1dGVzCisgKiBAcGFyYW0gYnVmIFBvaW50ZXIgdG8gc3Ry
+aW5nIHNob3duIGluIHVzZXIgc3BhY2UKKyAqIEByZXR1cm4gTnVtYmVyIG9mIGNoYXJzIGNvcGll
+ZCB0byBidWZmZXIKKyovCitzdGF0aWMgc3NpemVfdCBzaG93X29mZnNldChzdHJ1Y3QgZGV2aWNl
+ICpkZXYsCisJCQkJc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCisJCQkJY2hhciAqYnVm
+KQoreworCWludCBpbmRleCA9IHRvX3NlbnNvcl9kZXZfYXR0cihhdHRyKS0+aW5kZXg7CisJc3Ry
+dWN0IGFkeGwzNDVfZGF0YSAqZGF0YSA9IGFkeGwzNDVfdXBkYXRlX2RldmljZShkZXYpOworCWlu
+dCBkZWNpbWFsLCBmcmFjdGlvbjsKKwlzOCB0ZW1wX2RhdGE7CisKKwlkZXZfZGJnKGRldiwgIiVz
+XG4iLCBfX2Z1bmNfXyk7CisKKwkvKiBDb252ZXJ0IGZyb20gMidzIGNvbXBsZW1lbnQgKi8KKwl0
+ZW1wX2RhdGEgPSB+KGRhdGEtPm9mZnNldFtpbmRleF0gLSAxKTsKKworCWRldl9kYmcoZGV2LCAi
+dGVtcF9kYXRhPSVkXG4iLCB0ZW1wX2RhdGEpOworCisJY29udmVydF90b19mcmFjdGlvbih0ZW1w
+X2RhdGEsCisJCQlPRkZTRVRfU0NBTEVfRkFDVE9SX1dIT0xFLAorCQkJT0ZGU0VUX1NDQUxFX0ZB
+Q1RPUl9GUkFDVElPTkFMLAorCQkJJmRlY2ltYWwsCisJCQkmZnJhY3Rpb24pOworCisJcmV0dXJu
+IHNucHJpbnRmKGJ1ZiwgUEFHRV9TSVpFLAorCQkJIiU0ZC4lMWRcbiIsIGRlY2ltYWwsIGZyYWN0
+aW9uKTsKK30KKworLyoKKyAqIENhbGxlZCBpbiByZXNwb25zZSB0byBlY2hvaW5nIGRhdGEgdG8g
+b2ZzKHgseSx6KSBpbiBzeXNmcworICogTm90ZTogSW5wdXQgcmFuZ2UgaXMgLTE5OTggdG8gMTk5
+OCBtaWxsaS1nJ3MKKyAqCisgKiBAcGFyYW0gZGV2IFBvaW50ZXIgdG8gZGV2aWNlCisgKiBAcGFy
+YW0gYXR0ciBQb2ludGVyIHRvIHRoZSBkZXZpY2UgYXR0cmlidXRlcworICogQHBhcmFtIGJ1ZiBQ
+b2ludGVyIHRvIHN0cmluZyBwYXNzZWQgaW4gZnJvbSB1c2VyIHNwYWNlCisgKiBAcGFyYW0gY291
+bnQgTnVtYmVyIG9mIGNoYXJzIHBhc3NlZCBpbiBmcm9tIHVzZXIgc3BhY2UuLgorICogQHJldHVy
+biBOdW1iZXIgb2YgY2hhcnMgcGFzc2VkIGluIGZyb20gdXNlciBzcGFjZS4KKyAqLworc3RhdGlj
+IHNzaXplX3Qgc2V0X29mZnNldChzdHJ1Y3QgZGV2aWNlICpkZXYsCisJCQkJc3RydWN0IGRldmlj
+ZV9hdHRyaWJ1dGUgKmF0dHIsCisJCQkJY29uc3QgY2hhciAqYnVmLAorCQkJCXNpemVfdCBjb3Vu
+dCkKK3sKKwlpbnQgaW5kZXggPSB0b19zZW5zb3JfZGV2X2F0dHIoYXR0ciktPmluZGV4OworCXN0
+cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0b19pMmNfY2xpZW50KGRldik7CisJc3RydWN0IGFk
+eGwzNDVfZGF0YSAqZGF0YSA9IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOworCWxvbmcgdmFs
+OworCWxvbmcgdGVtcF92YWw7CisKKwlkZXZfZGJnKGRldiwgIiVzXG4iLCBfX2Z1bmNfXyk7CisK
+KwlpZiAoIXN0cmljdF9zdHJ0b2woYnVmLCAxMCwgJnZhbCkpIHsKKwkJZGV2X2RiZyhkZXYsICJl
+cnJvciBpbiBjb252ZXJ0aW5nIHN0cmluZyAnJXMnIHRvIGxvbmdcbiIsCisJCQkJYnVmKTsKKwkJ
+cmV0dXJuIDA7CisJfQorCisJLyogSWYgb3V0c2lkZSBvZmZzZXQgcmFuZ2UsIGNsaXAgdG8gbWF4
+IG9yIG1pbiB2YWx1ZSAqLworCWlmICh2YWwgPCBNSU5fT0ZGU0VUKQorCQl2YWwgPSBNSU5fT0ZG
+U0VUOworCWVsc2UgaWYgKHZhbCA+IE1BWF9PRkZTRVQpCisJCXZhbCA9IE1BWF9PRkZTRVQ7CisK
+Kwl0ZW1wX3ZhbCA9ICh2YWwgKiAxMDApICUKKwkJCSgoT0ZGU0VUX1NDQUxFX0ZBQ1RPUl9XSE9M
+RSAqIDEwMCkgKworCQkJKE9GRlNFVF9TQ0FMRV9GQUNUT1JfRlJBQ1RJT05BTCAqIDEwKSk7CisJ
+aWYgKHRlbXBfdmFsIDwgMCkKKwkJdGVtcF92YWwgKj0gLTE7CisKKwkvKiBHZXQgcmlkIG9mIHNj
+YWxlIGZvciBpbnRlcm5hbCBzdG9yYWdlICovCisJdmFsID0gKHZhbCAqIDEwMCkgLworCQkJKChP
+RkZTRVRfU0NBTEVfRkFDVE9SX1dIT0xFICogMTAwKSArCisJCQkoT0ZGU0VUX1NDQUxFX0ZBQ1RP
+Ul9GUkFDVElPTkFMICogMTApKTsKKworCWlmICh0ZW1wX3ZhbCA+IChPRkZTRVRfU0NBTEVfRkFD
+VE9SX1dIT0xFICogMTAwKSAvIDIgJiYgdmFsID4gMCkKKwkJKyt2YWw7CisJZWxzZSBpZiAodGVt
+cF92YWwgPiAoT0ZGU0VUX1NDQUxFX0ZBQ1RPUl9XSE9MRSAqIDEwMCkgLyAyICYmIHZhbCA8IDAp
+CisJCS0tdmFsOworCisJdmFsID0gfnZhbCArIDE7ICAvKiBjb252ZXJ0IHRvIHR3bydzIGNvbXBs
+ZW1lbnQgKi8KKworCW11dGV4X2xvY2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsKKworCWRhdGEtPm9m
+ZnNldFtpbmRleF0gPSB2YWw7CisKKwlkZXZfZGJnKGRldiwgIm9mZnNldFslZF09JWRcbiIsIGlu
+ZGV4LCBkYXRhLT5vZmZzZXRbaW5kZXhdKTsKKworCS8qIFdyaXRlIHRoZSBhdmx1ZSB0byB0aGUg
+Y2hpcCB2aWEgSTJDICovCisJaTJjX3NtYnVzX3dyaXRlX2J5dGVfZGF0YShjbGllbnQsCisJCQlB
+RFhMMzQ1X1JFR19PRlMoaW5kZXgpLAorCQkJZGF0YS0+b2Zmc2V0W2luZGV4XSk7CisKKwltdXRl
+eF91bmxvY2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsKKworCXJldHVybiBjb3VudDsKK30KKworLyoK
+KyAqIENhbGxlZCBpbiByZXNwb25zZSB0byBjYXQgZGF0YSBpbiBzeXNmcworICoKKyAqIEBwYXJh
+bSBkZXYgUG9pbnRlciB0byBkZXZpY2UKKyAqIEBwYXJhbSBhdHRyIFBvaW50ZXIgdG8gdGhlIGRl
+dmljZSBhdHRyaWJ1dGVzCisgKiBAcGFyYW0gYnVmIFBvaW50ZXIgdG8gc3RyaW5nIHNob3duIGlu
+IHVzZXIgc3BhY2UKKyAqIEByZXR1cm4gTnVtYmVyIG9mIGNoYXJzIGNvcGllZCB0byBidWZmZXIK
+KyovCitzdGF0aWMgc3NpemVfdCBzaG93X2RhdGEoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3Qg
+ZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwKKwkJCQljaGFyICpidWYpCit7CisJaW50IGk7CisJczE2
+IHRlbXBfZGF0YTsKKwlpbnQgZGVjaW1hbFtOVU1CRVJfT0ZfQVhFU10sIGZyYWN0aW9uW05VTUJF
+Ul9PRl9BWEVTXTsKKworCXN0cnVjdCBhZHhsMzQ1X2RhdGEgKmRhdGEgPSBhZHhsMzQ1X3VwZGF0
+ZV9kZXZpY2UoZGV2KTsKKworCS8qIENvbnZlcnQgeCx5LHogdmFsdWVzICovCisJZm9yIChpID0g
+MDsgaSA8IE5VTUJFUl9PRl9BWEVTOyBpKyspIHsKKwkJLyogQ29udmVydCBmcm9tIDIncyBjb21w
+bGVtZW50ICovCisJCXRlbXBfZGF0YSA9IH4oZGF0YS0+ZGF0YVtpXSAtIDEpOworCisJCWNvbnZl
+cnRfdG9fZnJhY3Rpb24odGVtcF9kYXRhLAorCQkJCURBVEFfU0NBTEVfRkFDVE9SX1dIT0xFLAor
+CQkJCURBVEFfU0NBTEVfRkFDVE9SX0ZSQUNUSU9OQUwsCisJCQkJJmRlY2ltYWxbaV0sCisJCQkJ
+JmZyYWN0aW9uW2ldKTsKKwl9CisKKwlyZXR1cm4gc25wcmludGYoYnVmLCBQQUdFX1NJWkUsCisJ
+CQkieDolNWQuJTFkIHk6JTVkLiUxZCB6OiU1ZC4lMWRcbiIsCisJCQlkZWNpbWFsW1hfQVhJU10s
+IGZyYWN0aW9uW1hfQVhJU10sCisJCQlkZWNpbWFsW1lfQVhJU10sIGZyYWN0aW9uW1lfQVhJU10s
+CisJCQlkZWNpbWFsW1pfQVhJU10sIGZyYWN0aW9uW1pfQVhJU10pOworfQorCisvKiAgQXR0cmli
+dXRlcyBvZiB0aGUgc3lzZnMgZW50cmllcyAqLworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihv
+ZnN4LCBTX0lXVVNSIHwgU19JUlVHTywKKwkJCQlzaG93X29mZnNldCwgc2V0X29mZnNldCwgWF9B
+WElTX0FUVFIpOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihvZnN5LCBTX0lXVVNSIHwgU19J
+UlVHTywKKwkJCQlzaG93X29mZnNldCwgc2V0X29mZnNldCwgWV9BWElTX0FUVFIpOworc3RhdGlj
+IFNFTlNPUl9ERVZJQ0VfQVRUUihvZnN6LCBTX0lXVVNSIHwgU19JUlVHTywKKwkJCQlzaG93X29m
+ZnNldCwgc2V0X29mZnNldCwgWl9BWElTX0FUVFIpOworc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRU
+UihkYXRhLCBTX0lSVUdPLAorCQkJCXNob3dfZGF0YSwgTlVMTCwgREFUQV9BVFRSKTsKKworc3Rh
+dGljIHN0cnVjdCBhdHRyaWJ1dGUgKmFkeGwzNDVfYXR0cmlidXRlc1tdID0geworCSZzZW5zb3Jf
+ZGV2X2F0dHJfb2ZzeC5kZXZfYXR0ci5hdHRyLAorCSZzZW5zb3JfZGV2X2F0dHJfb2ZzeS5kZXZf
+YXR0ci5hdHRyLAorCSZzZW5zb3JfZGV2X2F0dHJfb2Zzei5kZXZfYXR0ci5hdHRyLAorCSZzZW5z
+b3JfZGV2X2F0dHJfZGF0YS5kZXZfYXR0ci5hdHRyLAorCU5VTEwKK307CisKK3N0YXRpYyBjb25z
+dCBzdHJ1Y3QgYXR0cmlidXRlX2dyb3VwIGFkeGwzNDVfZ3JvdXAgPSB7CisJLmF0dHJzID0gYWR4
+bDM0NV9hdHRyaWJ1dGVzLAorfTsKKworLyoKKyAqIEluaXRpYWxpemUgdGhlIGNoaXAKKyAqCisg
+KiBAcGFyYW0gY2xpZW50IFBvaW50ZXIgdG8gdGhlIGNsaWVudCBzdHJ1Y3R1cmUKKyAqLworc3Rh
+dGljIHZvaWQgYWR4bDM0NV9pbml0X2NsaWVudChzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50KQor
+eworCWRldl9kYmcoJmNsaWVudC0+ZGV2LCAiJXNcbiIsIF9fZnVuY19fKTsKKworCS8qCisJICog
+U2V0IHVwIHRoZSBkZXZpY2UsIE5vIHNlbGYgdGVzdCwgRG9udCBjYXJlIGFib3V0IFNQSSBvcgor
+CSAqIGludGVycnVwdCwgMTAgYml0IHJlc29sdGlvbiwgKy8tIDE2ZyByYW5nZQorCSAqLworCWky
+Y19zbWJ1c193cml0ZV9ieXRlX2RhdGEoY2xpZW50LCBBRFhMMzQ1X1JFR19EQVRBX0ZPUk1BVCwg
+MHgwMyk7Cit9CisKKy8qCisgKiBEb2VzIG1vcmUgdGhhbiBqdXN0IGRldGVjdGlvbi4gSWYgZGV0
+ZWN0aW9uIHN1Y2NlZWRzLCBpdCBhbHNvCisgKiByZWdpc3RlcnMgdGhlIG5ldyBjaGlwLgorICoK
+KyAqIEBwYXJhbSBhZGFwdGVyIFBvaW50ZXIgdG8gdGhlIGFkYXB0ZXIKKyAqIEBwYXJhbSBhZGRy
+ZXNzIEkyQyBhZGRyZXNzCisgKiBAcmV0dXJuIFplcm8sIHVwb24gc3VjY2VzcworICovCitzdGF0
+aWMgaW50IGFkeGwzNDVfcHJvYmUoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwKKwkJCQljb25z
+dCBzdHJ1Y3QgaTJjX2RldmljZV9pZCAqaWQpCit7CisJc3RydWN0IGFkeGwzNDVfZGF0YSAqZGF0
+YTsKKwlpbnQgZXJyID0gMDsKKwl1OCBkZXZfaWQ7CisKKwlkZXZfZGJnKCZjbGllbnQtPmRldiwg
+IiVzXG4iLCBfX2Z1bmNfXyk7CisKKwlpZiAoIWkyY19jaGVja19mdW5jdGlvbmFsaXR5KGNsaWVu
+dC0+YWRhcHRlciwgSTJDX0ZVTkNfU01CVVNfQllURV9EQVRBKSkKKwkJcmV0dXJuIC1FTk9ERVY7
+CisKKwlkYXRhID0ga3phbGxvYyhzaXplb2Yoc3RydWN0IGFkeGwzNDVfZGF0YSksIEdGUF9LRVJO
+RUwpOworCWlmICghZGF0YSkKKwkJcmV0dXJuIC1FTk9NRU07CisKKwlpMmNfc2V0X2NsaWVudGRh
+dGEoY2xpZW50LCBkYXRhKTsKKworCSNpZmRlZiBTSU1VTEFURQorCWRldl9pZCA9IDB4RTU7IC8q
+IFNwb29mIHRoZSBBbmFsb2cgRGV2aWNlcyBkZXZpY2UgSUQgKi8KKwlkZXZfZGJnKCZjbGllbnQt
+PmRldiwgIlNpbXVsYXRpbmcgQURYTDM0NSBkZXZpY2VcbiIpOworCSNlbHNlCisJZGV2X2lkID0g
+aTJjX3NtYnVzX3JlYWRfYnl0ZV9kYXRhKGNsaWVudCwgQURYTDM0NV9SRUdfREVWX0lEKTsKKwkj
+ZW5kaWYKKworCS8qIElmIHRoZSBjaGlwIGlzIG5vdCBmcm9tIEFuYWxvZyBEZXZpY2VzLCByZXBv
+cnQgYW4gZXJyb3IgKi8KKwlpZiAoZGV2X2lkICE9IDB4RTUpIHsKKwkJZGV2X2VycigmY2xpZW50
+LT5kZXYsICJVbnN1cHBvcnRlZCBjaGlwIChkZXZfaWQ9MHglMDJYKVxuIiwKKwkJCQlkZXZfaWQp
+OworCQllcnIgPSAtRUlOVkFMOworCQlnb3RvIGVycl9mcmVlX21lbTsKKwl9CisKKwlkZXZfaW5m
+bygmY2xpZW50LT5kZXYsICJjaGlwIGZvdW5kLCBkcml2ZXIgdmVyc2lvbiAiCisJCQlEUlZfVkVS
+U0lPTiAiXG4iKTsKKworCS8qIFdlIGNhbiBmaWxsIGluIHRoZSByZW1haW5pbmcgY2xpZW50IGZp
+ZWxkcyAqLworCW11dGV4X2luaXQoJmRhdGEtPnVwZGF0ZV9sb2NrKTsKKworCS8qIEluaXRpYWxp
+emUgdGhlIEFEWEwzNDUgY2hpcCAqLworCWFkeGwzNDVfaW5pdF9jbGllbnQoY2xpZW50KTsKKwor
+CS8qIFJlZ2lzdGVyIHN5c2ZzIGhvb2tzICovCisJZXJyID0gc3lzZnNfY3JlYXRlX2dyb3VwKCZj
+bGllbnQtPmRldi5rb2JqLCAmYWR4bDM0NV9ncm91cCk7CisJaWYgKGVycikKKwkJZ290byBlcnJf
+ZnJlZV9tZW07CisKKwlkYXRhLT5od21vbl9kZXYgPSBod21vbl9kZXZpY2VfcmVnaXN0ZXIoJmNs
+aWVudC0+ZGV2KTsKKwlpZiAoSVNfRVJSKGRhdGEtPmh3bW9uX2RldikpIHsKKwkJZXJyID0gUFRS
+X0VSUihkYXRhLT5od21vbl9kZXYpOworCQlnb3RvIGVycl9yZW1vdmU7CisJfQorCisJcmV0dXJu
+IDA7CisKK2Vycl9yZW1vdmU6CisJc3lzZnNfcmVtb3ZlX2dyb3VwKCZjbGllbnQtPmRldi5rb2Jq
+LCAmYWR4bDM0NV9ncm91cCk7CitlcnJfZnJlZV9tZW06CisJa2ZyZWUoZGF0YSk7CisKKwlyZXR1
+cm4gZXJyOworfQorCisvKgorICogVW5yZWdpc3RlciBkZXZpY2UsIHJlbW92ZSB0aGUgc3lzZnMg
+ZW50cmllcywgYW5kIGRldGFjaCB0aGUgY2xpZW50CisgKiBmcm9tIEkyQyBidXMuCisgKgorICog
+QHBhcmFtIGNsaWVudCBQb2ludGVyIHRvIHRoZSBjbGllbnQgc3RydWN0dXJlCisgKiBAcmV0dXJu
+IFplcm8sIHVwb24gc3VjY2Vzcy4KKyAqLworc3RhdGljIGludCBhZHhsMzQ1X3JlbW92ZShzdHJ1
+Y3QgaTJjX2NsaWVudCAqY2xpZW50KQoreworCXN0cnVjdCBhZHhsMzQ1X2RhdGEgKmRhdGEgPSBp
+MmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50KTsKKworCWh3bW9uX2RldmljZV91bnJlZ2lzdGVyKGRh
+dGEtPmh3bW9uX2Rldik7CisJc3lzZnNfcmVtb3ZlX2dyb3VwKCZjbGllbnQtPmRldi5rb2JqLCAm
+YWR4bDM0NV9ncm91cCk7CisKKwlpMmNfdW5yZWdpc3Rlcl9kZXZpY2UoY2xpZW50KTsKKworCWtm
+cmVlKGRhdGEpOworCisJcmV0dXJuIDA7Cit9CisKKy8qCisgKiBHZXRzIHRoZSBkYXRhIGZyb20g
+dGhlIGNoaXAuCisgKgorICogQHBhcmFtIGNsaWVudCBQb2ludGVyIHRvIHRoZSBkZXZpY2UKKyAq
+IEByZXR1cm4gUG9pbnRlciB0byBzdHJ1Y3R1cmUgY29udGFpbmluZyB0aGUgZGF0YQorICovCitz
+dGF0aWMgc3RydWN0IGFkeGwzNDVfZGF0YSAqYWR4bDM0NV91cGRhdGVfZGV2aWNlKHN0cnVjdCBk
+ZXZpY2UgKmRldikKK3sKKwlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdG9faTJjX2NsaWVu
+dChkZXYpOworCXN0cnVjdCBhZHhsMzQ1X2RhdGEgKmRhdGEgPSBpMmNfZ2V0X2NsaWVudGRhdGEo
+Y2xpZW50KTsKKwlpbnQgaTsKKworCWRldl9kYmcoZGV2LCAiJXNcbiIsIF9fZnVuY19fKTsKKwor
+CW11dGV4X2xvY2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsKKworCS8qCisJICogVGhpcyBkZWxheSBp
+cyA1MDBtcywgYmFzZWQgb24gYSBkZWZhdWx0IHZhbHVlIG9mIDEwMCBmb3IgSFoKKwkgKiBpbiBB
+Uk0ga2VybmVscworCSAqLworCWlmICh0aW1lX2FmdGVyKGppZmZpZXMsIGRhdGEtPmxhc3RfdXBk
+YXRlZCArIEhaICogNTApIHx8CisJCSFkYXRhLT52YWxpZCkgeworCQlmb3IgKGkgPSAwOyBpIDwg
+TlVNQkVSX09GX0FYRVM7IGkrKykgeworCQkJZGF0YS0+b2Zmc2V0W2ldID0gaTJjX3NtYnVzX3Jl
+YWRfYnl0ZV9kYXRhKGNsaWVudCwKKwkJCQkJCUFEWEwzNDVfUkVHX09GUyhpKSk7CisJCQlkZXZf
+ZGJnKGRldiwgIm9mZnNldFslZF09JWRcbiIsIGksIGRhdGEtPm9mZnNldFtpXSk7CisJCX0KKwor
+CQkvKgorCQkgKiBDb25jYXRlbmF0ZSB0aGUgZGF0YSBmcm9tIGVhY2ggcmVnaXN0ZXIgcGFpcgor
+CQkgKiBJbmRleGluZyBsb2dpYyBpcyBuZWVkZWQgYXMgcGVyIEFEWEwzNDUgc3BlYywgTFNCIGlz
+IGZpcnN0CisJCSAqIElOREVYKHJlZykgIExTQiAgTVNCCisJCSAqICAgICAwICAgICAgICAwICAg
+IDEKKwkJICogICAgIDEgICAgICAgIDIgICAgMworCQkgKiAgICAgMiAgICAgICAgNCAgICA1CisJ
+CSAqLworCQlmb3IgKGkgPSAwOyBpIDwgTlVNQkVSX09GX0FYRVM7IGkrKykgeworCQkJLyogR2V0
+IHRoZSBNU0IsIHNoaWZ0IGJ5IDgsIGFuZCB0aGVuIGdldCB0aGUgTFNCICovCisJCQlkYXRhLT5k
+YXRhW2ldID0gaTJjX3NtYnVzX3JlYWRfYnl0ZV9kYXRhKGNsaWVudCwKKwkJCQkJCUFEWEwzNDVf
+UkVHX0RBVEEoaSoyKzEpKSA8PCA4OworCQkJZGF0YS0+ZGF0YVtpXSB8PSBpMmNfc21idXNfcmVh
+ZF9ieXRlX2RhdGEoY2xpZW50LAorCQkJCQkJQURYTDM0NV9SRUdfREFUQShpKjIpKTsKKworCQkJ
+ZGV2X2RiZyhkZXYsICJkYXRhWyVkXT0lZFxuIiwgaSwgZGF0YS0+ZGF0YVtpXSk7CisJCX0KKwor
+CQlkYXRhLT5sYXN0X3VwZGF0ZWQgPSBqaWZmaWVzOworCQlkYXRhLT52YWxpZCA9IDE7CisJfQor
+CisJbXV0ZXhfdW5sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7CisKKwlyZXR1cm4gZGF0YTsKK30K
+KworLyoKKyAqIERyaXZlciBkYXRhIChjb21tb24gdG8gYWxsIGNsaWVudHMpCisgKi8KKworc3Rh
+dGljIGNvbnN0IHN0cnVjdCBpMmNfZGV2aWNlX2lkIGFkeGwzNDVfaWRbXSA9IHsKKwl7ICJhZHhs
+MzQ1IiwgMCB9LAorCXsgfQorfTsKK01PRFVMRV9ERVZJQ0VfVEFCTEUoaTJjLCBhZHhsMzQ1X2lk
+KTsKKworc3RhdGljIHN0cnVjdCBpMmNfZHJpdmVyIGFkeGwzNDVfZHJpdmVyID0geworCS5kcml2
+ZXIgPSB7CisJCS5uYW1lCT0gRFJWX05BTUUsCisJfSwKKwkucHJvYmUJCT0gYWR4bDM0NV9wcm9i
+ZSwKKwkucmVtb3ZlCQk9IGFkeGwzNDVfcmVtb3ZlLAorCS5pZF90YWJsZQk9IGFkeGwzNDVfaWQs
+Cit9OworCisvKgorICogSW5pdGlhbGl6ZSB0aGUgbW9kdWxlCisgKgorICogQHJldHVybiBaZXJv
+LCB1cG9uIHN1Y2Nlc3MKKyAqLworc3RhdGljIGludCBfX2luaXQgYWR4bDM0NV9pbml0KHZvaWQp
+Cit7CisJcmV0dXJuIGkyY19hZGRfZHJpdmVyKCZhZHhsMzQ1X2RyaXZlcik7Cit9CisKKy8qCisg
+KiBSZW1vdmUgdGhlIG1vZHVsZQorICovCitzdGF0aWMgdm9pZCBfX2V4aXQgYWR4bDM0NV9leGl0
+KHZvaWQpCit7CisJaTJjX2RlbF9kcml2ZXIoJmFkeGwzNDVfZHJpdmVyKTsKK30KKworTU9EVUxF
+X0FVVEhPUigiUm9iZXJ0IE1laHJhbmZhciA8cm9iZXJ0bWVAZWFydGhsaW5rLm5ldD4iKTsKK01P
+RFVMRV9ERVNDUklQVElPTigiQW5hbG9nIERldmljZXMgQURYTDM0NSBkcml2ZXIiKTsKK01PRFVM
+RV9MSUNFTlNFKCJHUEwiKTsKK01PRFVMRV9WRVJTSU9OKERSVl9WRVJTSU9OKTsKKworbW9kdWxl
+X2luaXQoYWR4bDM0NV9pbml0KTsKK21vZHVsZV9leGl0KGFkeGwzNDVfZXhpdCk7Cg==
 
-------[ LM78 ISA Sensor Device at 0290 ]------
-
-0000  04 7F 04 4A  30 00 3C 20  01 9B 01 01  3C 3C 04 04
-0010  04 FF 30 00  00 01 01 3C  43 17 00 00  2A FF FF CF
-0020  7C D9 D2 D0  D5 FF 9B 28  D4 55 FF DA  00 0D 12 9A
-0030  C2 14 04 B0  71 89 61 00  32 25 40 88  80 32 37 D5
-0040  03 DE 00 FF  FF 00 3F 35  2D 21 20 C0  10 95 00 A3
-0050  FF FF 00 FF  FF FF 00 80  C1 7F FF FF  19 C4 04 05
-0060  04 4A 50 00  01 01 3C FF  0A FF 01 FF  FF FF FF 1E
-0070  3C 3C 3C 3C  3C 37 FF FF  FF FF FF 4B  22 00 28 FF
-0080  04 7F 04 4A  30 00 3C 20  01 9B 01 01  3C 3C 04 04
-0090  04 FF 30 00  00 01 01 3C  43 17 00 00  2A FF FF CF
-00A0  7C D9 D2 D0  D5 FF 9B 28  D4 55 FF DA  00 0D 12 9A
-00B0  C2 14 04 B0  71 89 61 00  32 25 40 88  80 32 37 D5
-00C0  03 00 00 FF  FF 00 3F 35  2D 21 20 C0  10 95 00 A3
-00D0  FF FF 00 FF  FF FF 00 80  C1 7F FF FF  19 C4 04 05
-00E0  04 4A 50 00  01 01 3C FF  0A FF 01 FF  FF FF FF 1E
-00F0  3C 3C 3C 3C  3C 37 FF FF  FF FF FF 4B  22 00 28 FF
-
-------[ ACPI Temperatures & Fans ]------
-
-_TZ_.THM0._TMP             : 
-_TZ_.THM1._TMP             : 
-_TZ_.THR0._TMP             : 
-_TZ_.THR1._TMP             : 
-_TZ_.TZ00._TMP             : 
-_TZ_.TZ01._TMP             : 
-_TZ_.RFAN                  : 
-_TZ_.RFAN(0)               : 
-_TZ_.RFAN(1)               : 
-_SB_.ATKD.TMPR             : 
-_SB_.PCI0.LPC0.EC0_.CCTV   : 
-_SB_.PCI0.LPC0.EC0_.LRPM   : 
-_SB_.PCI0.LPC0.EC0_.HRPM   : 
-_SB_.PCI0.SBRG.EC0_.ECPU   : 
-_SB_.PCI0.SBRG.EC0_.TACH(0): 
-_SB_.PCI0.SBRG.EC0_.TACH(1): 
-_SB_.PCI0.SBRG.EC0_.TAH0   : 
-_SB_.PCI0.SBRG.EC0_.TAH1   : 
-_SB_.PCI0.SBRG.EC0_.ST00   : 
-_SB_.PCI0.SBRG.EC0_.SC01   : 
-_SB_.PCI0.SBRG.EC0_.SC02   : 
-_SB_.PCI0.SBRG.EC0_.SC03   : 
-_SB_.PCI0.SBRG.EC0_.SC04   : 
-_SB_.PCI0.SBRG.EC0_.SC05   : 
-_SB_.PCI0.SBRG.EC0_.SC06   : 
-_SB_.PCI0.PIB_.EC0_.TCRT   : 
-_SB_.PCI0.SBRG.EC0_.CTPM   : 
-_SB_.PCI0.SBRG.EC__.CPUT   : 
-_SB_.PCI0.SBRG.EC__.SYST   : 
-_SB_.PCI0.LPC_.EC0_.CTMP   : 
-_SB_.PCI0.LPCB.EC0_.CTMP   : 
-_SB_.PCI0.LPC_.EC0_.TMP1   : 
-_SB_.PCI0.LPC_.EC0_.TMP2   : 
-_SB_.PCI0.LPC_.EC0_.TMPI   : 
-_SB_.PCI0.LPC_.EC0_.TMPV   : 
-
-------[ Asus ATK0110 ]------
-
-Motherboard ID: P5Q-Deluxe
-
-ICPU/VCPU/PCPU: 10 / 82 / 54142
-
-CPU Temperature	  33.5 C
-MB Temperature	  40.0 C
-NB Temperature	  51.0 C
-OPT_FAN1 Temperature	  26.0 C
-OPT_FAN2 Temperature	  38.0 C
-OPT_FAN3 Temperature	  40.0 C
-POWER Temperature	  42.0 C
-SB Temperature	  54.0 C
-CH_FAN1 Speed	   671 RPM
-CH_FAN2 Speed	   802 RPM
-CH_FAN3 Speed	   841 RPM
-CPU FAN Speed	   992 RPM
-OPT1_FAN Speed	     0 RPM
-OPT2_FAN Speed	     0 RPM
-OPT3_FAN Speed	     0 RPM
-Power_FAN Speed	     0 RPM
-+12 Voltage	12.152 V
-+3.3 Voltage	 3.328 V
-+5 Voltage	 5.112 V
-CPUPLL Voltage	 1.528 V
-DDR Voltage	 2.110 V
-Dram VTT Volt	 1.052 V
-NB11 Voltage	 1.118 V
-SB11 Voltage	 1.124 V
-SB15 Voltage	 1.501 V
-Vcore Voltage	 1.078 V
-VTTCPU Voltage	 1.124 V
-
-CPU Temperature	 153.7 C
-MB Temperature	 154.4 C
-Chassis FAN Speed	  1539 RPM
-CPU FAN Speed	  1538 RPM
-Power FAN Speed	  1540 RPM
-+12V Voltage	 1.541 V
-+3.3V Voltage	 1.543 V
-+5V Voltage	 1.542 V
-Vcore Voltage	 1.536 V
-
-==========================================================================
-
-------[ 1 SMBus detected ]------
-
-------[ SMBus #0 ]------
-
-SMBus Type  : Intel ICH
-SMBus Port  : 0400
-Can Have SPD: Yes
-Scan Type   : Full
-
-------[ SMBus Device B00-D20 ]------
-
-  0000  FF 80 17 7F FF FF FF FF FF FF FF FF FF FF FF FF  ...............
-  0010  00 FF FF FF FF FF FF FF FF B0 FF FF FF FF FF FF  ................
-  0020  20 00 FF FF FF 20 B2 FF FF FF FF FF FF FF FF FF   .... ..........
-  0030  FF FF FF FF FF FF FF FF 74 03 FF FF FF FF FF FF  ........t.......
-  0040  FF FF FF FF FF FF FF FF FF FF 64 FF FF FF FF FF  ..........d.....
-  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0060  FF FF FF FF FF FF FF FF FF FF 2C FF FF FF FF FF  ..........,.....
-  0070  FF FF FF FF FF FF FF FF 02 08 00 00 FF FF 80 FF  ................
-  0080  00 FF FF FF FF FF FF FF FF FF FF 52 04 FF FF FF  ...........R....
-  0090  FF FF FF FF FF FF 80 FF FF 41 98 01 FF FF FF FF  .........A......
-  00A0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00B0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00C0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00D0  00 03 72 72 03 02 01 33 43 00 00 00 00 28 00 07  ..rr...3C....(..
-  00E0  00 00 10 0C 10 10 17 10 10 10 10 FF 07 FF 00 00  ................
-  00F0  FF 0A FF FF FF 01 02 FF FF 00 00 50 FF FF FF FF  ...........P....
-
-------[ SMBus Device B00-D20 ]------
-
-  0000  FFFF 3780 6617 FF7F FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0010  7700 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 54B0 FFFF FFFF FFFF FFFF FFFF FFFF 
-  0020  7620 0000 FFFF FFFF FFFF 0020 00B2 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0030  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0074 0003 FFFF FFFF FFFF FFFF FFFF FFFF 
-  0040  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0064 FFFF FFFF FFFF FFFF FFFF 
-  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0060  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 012C FFFF FFFF FFFF FFFF FFFF 
-  0070  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF ED02 0208 3500 5E00 FFFF FFFF 1982 FFFF 
-  0080  DE00 FFFF FFFF FFFF FFFF FFFF FFFF D35E FFFF FFFF FFFF 0052 D304 FFFF FFFF FFFF 
-  0090  FFFF FFFF FFFF FFFF FFFF FFFF D353 FFFF FFFF 8641 3298 9701 FFFF FFFF FFFF FFFF 
-  00A0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00B0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00C0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00D0  FA00 9803 7572 1E72 5803 3402 8001 BA35 BA43 C000 7D00 1600 0000 B328 D600 A807 
-  00E0  1B00 7000 BD10 820C C010 AB10 0317 7D10 3A10 5110 EC10 FFFF F407 FFFF 3700 5C00 
-  00F0  4AFF E40A FFFF FFFF FFFF 7E01 0002 FFFF FFFF 8300 3E00 E250 B0FF FFFF FFFF FFFF 
-
-------[ SMBus Device B00-D30 ]------
-
-  0000  03 C0 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  ..@..@..........
-  0010  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0020  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0030  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0040  FF C0 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  ..@..@..........
-  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0060  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0070  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0080  FF C0 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  ..@..@..........
-  0090  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00A0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00B0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00C0  FF C0 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  ..@..@..........
-  00D0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00E0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00F0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-
-------[ SMBus Device B00-D30 ]------
-
-  0000  C003 40C0 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0010  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0020  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0030  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0040  C0FF 40C0 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0060  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0070  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0080  C0FF 40C0 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0090  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00A0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00B0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00C0  C0FF 40C0 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00D0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00E0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00F0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-
-------[ SMBus Device B00-D32 ]------
-
-  0000  03 40 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  .@@..@..........
-  0010  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0020  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0030  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0040  FF 40 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  .@@..@..........
-  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0060  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0070  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0080  FF 40 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  .@@..@..........
-  0090  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00A0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00B0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00C0  FF 40 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  .@@..@..........
-  00D0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00E0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00F0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-
-------[ SMBus Device B00-D32 ]------
-
-  0000  4003 4040 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0010  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0020  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0030  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0040  40FF 4040 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0060  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0070  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0080  40FF 4040 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0090  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00A0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00B0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00C0  40FF 4040 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00D0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00E0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00F0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-
-------[ SMBus Device B00-D33 ]------
-
-  0000  03 C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
-  0010  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0020  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0030  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0040  FF C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
-  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0060  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0070  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0080  FF C0 C0 00 00 C0 FF 00 FF FF FF FF FF FF FF FF  ................
-  0090  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00A0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00B0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00C0  FF C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
-  00D0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00E0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00F0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-
-------[ SMBus Device B00-D33 ]------
-
-  0000  C003 C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0010  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0020  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0030  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0040  C0FF C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0060  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0070  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0080  C0FF C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0090  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00A0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00B0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00C0  C0FF C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00D0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00E0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00F0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-
-------[ SMBus Device B00-D35 ]------
-
-  0000  03 C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
-  0010  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0020  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0030  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0040  FF C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
-  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0060  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0070  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0080  FF C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
-  0090  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00A0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00B0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00C0  FF C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
-  00D0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00E0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00F0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-
-------[ SMBus Device B00-D35 ]------
-
-  0000  C003 C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0010  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0020  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0030  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0040  C0FF C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0060  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0070  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0080  C0FF C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0090  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00A0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00B0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00C0  C0FF C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00D0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00E0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00F0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-
-------[ SMBus Device B00-D38 ]------
-
-  0000  FF 55 A0 55 74 72 55 3F FF FF FF 01 00 FF FF FF  .U.UtrU?........
-  0010  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0020  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0030  00 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0040  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0060  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0070  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0080  FF FF FF FF FF FF FF FF FF FF 69 43 44 00 56 A1  ..........iCD.V.
-  0090  36 04 3E 08 64 04 DD 05 FF 05 64 04 1C 04 5E 04  6.>.d.....d...^.
-  00A0  00 00 E8 03 23 03 A0 02 FF FF FF FF 04 FF FF FF  ....#...........
-  00B0  FF 9A 00 03 16 00 00 03 05 FF FF FF FF FF FF FF  ................
-  00C0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00D0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00E0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00F0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-
-------[ SMBus Device B00-D38 ]------
-
-  0000  FFFF 5555 A0A0 5555 7474 7272 5555 3F3F FFFF FFFF FFFF 0101 0000 FFFF FFFF FFFF 
-  0010  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0020  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0030  0000 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0040  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0000 FFFF FFFF FFFF FFFF FFFF FFFF 0064 
-  0060  FFFF FFFF FFFF FFFF 00DD FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0005 FFFF FFFF FFFF 
-  0070  FFFF 0005 FFFF 001C FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0080  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 4343 4444 0000 0026 A1A1 
-  0090  FFFF 0404 3E3E 00A0 FFFF 0202 DDDD FFFF F8F8 FFFF 5E5E 0404 FFFF 0404 5E5E 0404 
-  00A0  0000 0003 E8E8 0000 FFFF 0000 A0A0 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00B0  FFFF 0000 FFFF 0303 1616 0000 0000 0303 0505 FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00C0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00D0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00E0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00F0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-
-------[ SMBus Device B00-D40 ]------
-
-  0000  FF FF FF FF FF FF FF 00 00 00 00 FF FF FF FF FF  ................
-  0010  FF 50 46 FF FF FF FF FF FF FF FF FF FF FF FF FF  .PF.............
-  0020  FF FF FF FF FF FF FF 00 FF FF FF FF FF FF FF FF  ................
-  0030  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0040  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0060  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0070  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  0080  FF FF FF FF FF FF FF FF FF FF 50 CC 29 00 56 EC  ..........P.).V.
-  0090  00 00 00 00 00 00 4A 03 FF FF FF FF FF FF FF FF  ......J.........
-  00A0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00B0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00C0  28 36 33 2A 28 26 1A FF FF FF FF FF FF FF FF 00  (63*(&..........
-  00D0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00E0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-  00F0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
-
-------[ SMBus Device B00-D40 ]------
-
-  0000  FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0000 0000 0000 0000 FFFF FFFF FFFF FFFF FFFF 
-  0010  FFFF 5050 4646 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0020  FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0000 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0030  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0040  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0060  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0070  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  0080  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 5050 CCCC 2929 0000 5656 ECEC 
-  0090  0000 0000 0000 0000 0000 0000 4949 0303 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00A0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00B0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00C0  2828 3636 3333 2A2A 2828 2626 1A1A FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0000 
-  00D0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00E0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-  00F0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
-
-------[ SMBus Device B00-D44 ]------
-
-  0000  00 00 00 04 00 00 00 00 00 16 10 17 07 12 07 09  ................
-  0010  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  0020  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  0030  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  0040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  0050  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  0060  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  0070  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  0080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  0090  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00A0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00B0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00C0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00D0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00E0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00F0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-
-------[ SMBus Device B00-D44 ]------
-
-  0000  FF00 FF00 FF00 FF04 FF00 FF00 FF00 FF00 FF00 FF16 FF10 FF17 FF07 FF12 FF07 FF09 
-  0010  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  0020  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  0030  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  0040  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  0050  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  0060  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  0070  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  0080  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  0090  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  00A0  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  00B0  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  00C0  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  00D0  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  00E0  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-  00F0  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
-
-------[ SMBus Device B00-D50 ]------
-
-  0000  80 08 08 0E 0A 61 40 00 05 25 40 00 82 08 00 00  .....a@..%@.....
-  0010  0C 08 30 03 02 00 03 37 50 00 00 32 1E 32 2D 01  ..0....7P..2.2-.
-  0020  17 25 05 12 3C 1E 1E 00 06 39 7F 80 14 1E 00 00  .%..<....9.....
-  0030  00 00 00 00 00 00 00 00 00 00 00 00 00 00 12 0D  ................
-  0040  7F 7F 9E 00 00 00 00 00 01 43 4D 32 58 32 30 34  .......CM2X204
-  0050  38 2D 38 35 30 30 43 35 44 20 20 20 20 00 00 00  8-8500C5D    ...
-  0060  00 00 00 6D 56 4E B1 21 FF FF FF FF FF FF FF FF  ...mVN.!........
-  0070  FF FF FF FF 8C 50 01 20 25 1E 20 25 25 1C 3C 29  .....P. %. %%.<)
-  0080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  0090  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00A0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00B0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00C0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00D0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00E0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00F0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-
-------[ SMBus Device B00-D52 ]------
-
-  0000  80 08 08 0E 0A 61 40 00 05 25 40 00 82 08 00 00  .....a@..%@.....
-  0010  0C 08 30 03 02 00 03 37 50 00 00 32 1E 32 2D 01  ..0....7P..2.2-.
-  0020  17 25 05 12 3C 1E 1E 00 06 39 7F 80 14 1E 00 00  .%..<....9.....
-  0030  00 00 00 00 00 00 00 00 00 00 00 00 00 00 12 0D  ................
-  0040  7F 7F 9E 00 00 00 00 00 01 43 4D 32 58 32 30 34  .......CM2X204
-  0050  38 2D 38 35 30 30 43 35 44 20 20 20 20 00 00 00  8-8500C5D    ...
-  0060  00 00 00 6D 56 4E B1 21 FF FF FF FF FF FF FF FF  ...mVN.!........
-  0070  FF FF FF FF 8C 50 01 20 25 1E 20 25 25 1C 3C 29  .....P. %. %%.<)
-  0080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  0090  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00A0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00B0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00C0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00D0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00E0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  00F0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-
-------[ Chips Found ]------
-
-B00-D20: Analog Devices ASP0800 (Asus EPU2)
-
---------------070301050503070400010002
+------_=_NextPart_001_01C9FA78.3D0DF07A
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -617,4 +906,5 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------070301050503070400010002--
+------_=_NextPart_001_01C9FA78.3D0DF07A--
+
