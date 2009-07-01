@@ -1,64 +1,62 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Tue, 14 Jul 2009 15:04:17 +0000
-Subject: Re: [lm-sensors] resume lm_sensor from hibernate or suspend
-Message-Id: <4A5C9E71.8000707@hhs.nl>
+From: "George Spelvin" <linux@horizon.com>
+Date: Wed, 01 Jul 2009 07:03:59 +0000
+Subject: Re: [lm-sensors] How to un-ignore a sensor?
+Message-Id: <20090701070359.9966.qmail@science.horizon.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4A5C7322.6090409@redhat.com>
-In-Reply-To: <4A5C7322.6090409@redhat.com>
+References: <20090629211323.32695.qmail@science.horizon.com>
+In-Reply-To: <20090629211323.32695.qmail@science.horizon.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 07/14/2009 03:21 PM, Jean Delvare wrote:
-> Hi Nikola,
->
-> On Tue, 14 Jul 2009 13:59:30 +0200, Nikola Pajkovsky wrote:
->> Hi guys,
->>
->>      I'd like to talk about bug
->> https://bugzilla.redhat.com/show_bug.cgi?idH6874. Hans says that's not
->> good idea resume automatically with sensors -s in
->> /usr/lib/pm-utils/sleep.d.
->> Do you have any other idea?
->
-> This has the merit of being very simple and to solve the problem
-> immediately at hand. However there are a few things to keep in mind:
->
-> * Whether limits need to be rewritten may depend on several things,
->    including but not limited to:
->    - resume from RAM vs. resume from disk
->    - hardware monitoring chip model
->    - BIOS implementation details
->
-> * You should only call "sensors -s" if you also do it on system boot.
->    If the user/admin is somehow given an option to run it or not at
->    system boot then his/her choice should also be honored at resume time.
->    That being said, the default libsensors configuration file these days
->    no longer contains any possibly wrong "set" statement, so we should
->    be on the safe side either way.
->
-> * I thought that restoring devices to their pre-suspend state was the
->    kernel's job? With the proposed user-space solution, I can imagine a
->    scenario where the system is resumed with random sensor limits, an
->    alarm triggers because of this, and only then "sensors -s" is run.
->    This could cause spurious beeping or system halt for example,
->    depending on how the monitoring device in question is wired.
->    That being said, these are issues we would already hit now without
->    your proposed implementation, so it can't make it worse.
->
-> All in all I see no problem implementing you idea on a per-distribution
-> basis as long as my second point above is taken into consideration.
->
-> Hans, did you have any specific issue in mind, which I overlooked?
->
+>> Um... okay.  Is that a universal solution?  Debian ships a larger config
+>> file that does include some "ignore" lines.  It does seem useful to
+>> have an overridable default.
 
-No, I just thought it would be good to discuss this with a wider
-audience, and maybe come up with an upstream solution.
+> Which version of lm-sensors do the ship? The change occurred in version
+> 3.1.0.
 
-Regards,
+3.1.1.  Would you like a copy of the tarball?
 
-Hans
+>> Are there plans for some more flexible include or conditional
+>> mechanism to allow segregating site-local edits?
+
+> This was implemented in lm-sensors 3.1.0 (and fixed in 3.1.1 for some
+> filesystems.)
+
+Is that the "/etc/sensors.d" thing?  I suppose if you moved *all* of the
+ignore statements into there and had some sort of symlink thing.
+
+What I was thinking was more a way to supply a board name, which would
+reference a chip config file, that would include a base chip configuration
+and customize it.
+
+Many people could just specify a board name.  Or add a new alias for an
+existing chip config file.  Only a few would have to customize a chip
+config file (to reflect the creative new way the mobo has wired up the
+super-I/O chip), and creating a new one would be quite rare.
+
+>> Okay, I'll poke at it if I'm motivated, but remember your priorities.
+>> It seems that there are a lot of duplicated strings ("temp3_max"), so
+>> if the overhead can be can be made small enough, interning them would
+>> save memory.
+
+> I fear I don't quite follow you here. Which strings are duplicated
+> exactly, and what do you mean by "interning"?
+
+A lot of the sensor names are duplicated a lot in different chipsets.
+I used "temp3_max" as an example, although "in1" is another one.
+
+"interning" is to build a single global reference-counted string table so
+all copies of a given string point to a single copy.  (This is *separate*
+from the possibility of per-chip hash tables.)  This has the useful
+property that later string compare reduces to a pointer compare.
+
+As long as the number of copies of each string is large enough (say,
+an average of two) that eliminating the duplicate copies saves more
+space than the hash table plus reference counts add, it's a net space
+savings.
 
 _______________________________________________
 lm-sensors mailing list
