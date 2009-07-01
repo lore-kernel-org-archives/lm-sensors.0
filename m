@@ -1,45 +1,36 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 01 Jul 2009 20:13:10 +0000
+From: "Chris Verges" <chrisv@cyberswitching.com>
+Date: Wed, 01 Jul 2009 20:52:28 +0000
 Subject: Re: [lm-sensors] [PATCH] adxl345 accelerometer hwmon driver
-Message-Id: <20090701221310.1d6aa587@hyperion.delvare>
+Message-Id: <68FBE0F3CE97264395875AC1C468F22C152C1D@mail03.cyberswitching.local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <68FBE0F3CE97264395875AC1C468F22C152BE8@mail03.cyberswitching.local>
-	<4A4BB4AB.7010003@cam.ac.uk>
-	<68FBE0F3CE97264395875AC1C468F22C152BFA@mail03.cyberswitching.local>
-In-Reply-To: <68FBE0F3CE97264395875AC1C468F22C152BFA@mail03.cyberswitching.local>
+References: <68FBE0F3CE97264395875AC1C468F22C152BE8@mail03.cyberswitching.local><4A4BB4AB.7010003@cam.ac.uk><68FBE0F3CE97264395875AC1C468F22C152BFA@mail03.cyberswitching.local> <20090701221310.1d6aa587@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chris Verges <chrisv@cyberswitching.com>
+To: Jean Delvare <khali@linux-fr.org>
 Cc: Jonathan Cameron <jic23@cam.ac.uk>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Wed, 1 Jul 2009 12:19:02 -0700, Chris Verges wrote:
-> > What are you actually doing with it?  If you aren't doing hardware
-> > monitoring then I would expect you aren't going to receive a
-> > favourable response on here.
-> 
-> The ADXL345 is a 3D accelerometer.  It's very similar to the following
-> chips already in the HWMON section of the kernel:
-> 
->    - SENSORS_LIS3LV02D
->    - SENSORS_APPLESMC
-> 
-> The driver provides 3D axis data when the user polls the chip via the
-> sysfsinterface.
+> Probably it's about time to put an end to this and kick all
+> accelerometer drivers out of drivers/hwmon.
 
-A few accelerometer drivers were originally added to drivers/hwmon
-because the chips also included some hwmon features (e.g. temperature
-sensor.) Now every new accelerometer driver gets dropped in
-drivers/hwmon "because there are other accelerometer drivers there".
-The LIS3LV02D driver is a perfect example of this... the device is not
-even registered as a hwmon driver! This driver definitely doesn't
-belong there.
+Hi Jean,
 
-Probably it's about time to put an end to this and kick all
-accelerometer drivers out of drivers/hwmon.
+This actually makes a lot of sense.  The remaining question is,
+"To where do we kick them?"
 
--- 
-Jean Delvare
+After reading Jonathan's iio.pdf, I'm all on-board with the
+adxl345 driver being placed in this new subsystem.  However,
+IIO subsystem isn't released into the "vanilla" kernel yet.
+
+Until the IIO subsystem is finished and I can port the driver
+into it, what's the appropriate place for the adxl345 to
+reside?  misc?  A new directory?
+
+Chris
+
+P.S. All references to hwmon will be removed, and the
+programmer who added them in will be flogged.  :-) Thanks for
+pointing that out!
 
 _______________________________________________
 lm-sensors mailing list
