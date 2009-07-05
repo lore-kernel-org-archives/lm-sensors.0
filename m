@@ -1,40 +1,31 @@
-From: Andre Prendel <andre.prendel@gmx.de>
-Date: Tue, 07 Jul 2009 06:00:22 +0000
-Subject: Re: [lm-sensors] [PATCH] sensors-detect: Update Texas Instruments
-Message-Id: <20090707060022.GA4518@ubuntu>
+From: Christopher Hogan <chris.c.hogan@gmail.com>
+Date: Sun, 05 Jul 2009 15:40:01 +0000
+Subject: [lm-sensors] w83627hf Device needs an ACPI driver
+Message-Id: <6977f2fc0907050840g7b70bdb8jf8a9a85f2be730a4@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090706202845.GA4415@ubuntu>
-In-Reply-To: <20090706202845.GA4415@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Jul 06, 2009 at 11:19:56PM +0200, Jean Delvare wrote:
-> On Mon, 6 Jul 2009 22:28:46 +0200, Andre Prendel wrote:
-> > Support for TI's TMP411 sensor chip is in mainline since
-> > 2.6.31-rc1. So now we can refer to the tmp401 driver.
-> > ---
-> > 
-> > Index: sensors/prog/detect/sensors-detect
-> > =================================> > --- sensors.orig/prog/detect/sensors-detect	2009-07-06 22:12:13.000000000 +0200
-> > +++ sensors/prog/detect/sensors-detect	2009-07-06 22:12:23.000000000 +0200
-> > @@ -904,7 +904,7 @@
-> >  		i2c_detect => sub { lm90_detect(@_, 9); },
-> >  	}, {
-> >  		name => "Texas Instruments TMP411",
-> > -		driver => "to-be-written",
-> > +		driver => "tmp401",
-> >  		i2c_addrs => [0x4c..0x4e],
-> >  		i2c_detect => sub { lm90_detect(@_, 10); },
-> >  	}, {
-> 
-> Yup, please commit.
+Loading w83627hf produces the following error:
+w83627hf: Found W83627HF chip at 0x290
+ACPI: I/O resource w83627hf [0x295-0x296] conflicts with ACPI region
+IP__ [0x295-0x296]
+ACPI: Device needs an ACPI driver
 
-Done.
+I have ACPI compiled into kernel 2.6.29-gentoo-r3.
 
-> -- 
-> Jean Delvare
+I googled a bit and found kernel bug:
+http://bugzilla.kernel.org/show_bug.cgi?id508
+
+Am I correct that an ACPI compatible driver for this chip doesn't
+exist and that I should disable part/all of ACPI in order to have full
+access to my sensors?
+
+Thanks,
+
+Christopher Hogan
 
 _______________________________________________
 lm-sensors mailing list
