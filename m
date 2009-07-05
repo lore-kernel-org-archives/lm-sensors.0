@@ -1,132 +1,126 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Date: Mon, 27 Jul 2009 13:45:27 +0000
-Subject: [lm-sensors] [PATCH 0/22] WM831x drivers
-Message-Id: <20090727134527.GA12849@rakim.wolfsonmicro.main>
+From: Dan Davison <davison@stats.ox.ac.uk>
+Date: Sun, 05 Jul 2009 18:10:04 +0000
+Subject: Re: [lm-sensors] pwmconfig failure under Ubuntu Intrepid with Intel
+Message-Id: <87prcfknlv.fsf@stats.ox.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20081124013830.GA9778@stats.ox.ac.uk>
+In-Reply-To: <20081124013830.GA9778@stats.ox.ac.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Samuel Ortiz <sameo@linux.intel.com>, Richard Purdie <rpurdie@rpsys.net>, David Brownell <dbrownell@users.sourceforge.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, Jean Delvare <khali@linux-fr.org>, Anton Vorontsov <cbouatmailru@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Alessandro Zummo <a.zummo@towertech.it>, Wim Van Sebroeck <wim@iguana.be>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, rtc-linux@googlegroups.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: lm-sensors@vger.kernel.org
 
-The following patch series adds initial support for the WM813x series of
-PMICs.
+Hi Jean,
 
-Since these devices have functionality that crosses many subsystems the
-patches cross many kernel trees.  For clarity I'm presenting this
-initial submission as a single series but I have endeavoured to split
-things up so that the patches can be applied separately to the various
-subsystems.  In order to avoid merge issues as patches are applied the
-platform data for the devices is included in the core patches.
+I don't think I ever thanked you for this helpful reply. It's summer
+again, and I'm getting annoyed by my laptop fan again, and I had cause
+to re-read your email. Thanks.
 
-Due to Kconfig and Makefile collisons I've also included the patch adding
-hwmon support for the WM835x series of PMICs to the series.  Other than
-the build system updates there is no interdependence between those two
-patches.
+Dan
 
-Mark Brown (22):
-      mfd: Allow multiple MFD cells with the same name
-      mfd: Initial core support for WM831x series devices
-      mfd: Add WM831x interrupt support
-      mfd: Add WM831x AUXADC support
-      mfd: Conditionally add WM831x backlight subdevice
-      mfd: Add basic WM831x OTP support
-      mfd: Export ISEL values from WM831x core
-      mfd: Hook WM831x into build system
-      backlight: Add WM831x backlight driver
-      gpio: Add WM831X GPIO driver
-      hwmon: Add WM835x PMIC hardware monitoring driver
-      hwmon: WM831x PMIC hardware monitoring driver
-      Input: Add support for the WM831x ON pin
-      leds: Add WM831x status LED driver
-      power_supply: Add driver for the PMU on WM831x PMICs
-      regulator: Add WM831x DC-DC buck convertor support
-      regulator: Add WM831x LDO support
-      regulator: Add WM831x EPE support
-      regulator: Add WM831x DC-DC boost convertor support
-      regulator: Add WM831x ISINK support
-      RTC: Add support for RTCs on Wolfson WM831x devices
-      [WATCHDOG] Add support for WM831x watchdog
+Jean Delvare <khali@linux-fr.org> writes:
 
- Documentation/hwmon/wm831x           |   37 +
- Documentation/hwmon/wm8350           |   26 +
- drivers/gpio/Kconfig                 |    7 +
- drivers/gpio/Makefile                |    1 +
- drivers/gpio/wm831x-gpio.c           |  252 ++++++
- drivers/hwmon/Kconfig                |   21 +
- drivers/hwmon/Makefile               |    2 +
- drivers/hwmon/wm831x-hwmon.c         |  236 ++++++
- drivers/hwmon/wm8350-hwmon.c         |  151 ++++
- drivers/input/misc/Kconfig           |   10 +
- drivers/input/misc/Makefile          |    1 +
- drivers/input/misc/wm831x-on.c       |  163 ++++
- drivers/leds/Kconfig                 |    7 +
- drivers/leds/Makefile                |    1 +
- drivers/leds/leds-wm831x-status.c    |  341 ++++++++
- drivers/mfd/Kconfig                  |   10 +
- drivers/mfd/Makefile                 |    2 +
- drivers/mfd/mfd-core.c               |    2 +-
- drivers/mfd/wm831x-core.c            | 1549 ++++++++++++++++++++++++++++++++++
- drivers/mfd/wm831x-irq.c             |  559 ++++++++++++
- drivers/mfd/wm831x-otp.c             |   83 ++
- drivers/mfd/wm8350-core.c            |    3 +
- drivers/power/Kconfig                |    7 +
- drivers/power/Makefile               |    1 +
- drivers/power/wm831x_power.c         |  779 +++++++++++++++++
- drivers/regulator/Kconfig            |    7 +
- drivers/regulator/Makefile           |    3 +
- drivers/regulator/wm831x-dcdc.c      |  862 +++++++++++++++++++
- drivers/regulator/wm831x-isink.c     |  260 ++++++
- drivers/regulator/wm831x-ldo.c       |  852 +++++++++++++++++++
- drivers/rtc/Kconfig                  |   10 +
- drivers/rtc/Makefile                 |    1 +
- drivers/rtc/rtc-wm831x.c             |  538 ++++++++++++
- drivers/video/backlight/Kconfig      |    7 +
- drivers/video/backlight/Makefile     |    1 +
- drivers/video/backlight/wm831x_bl.c  |  250 ++++++
- drivers/watchdog/Kconfig             |    7 +
- drivers/watchdog/Makefile            |    1 +
- drivers/watchdog/wm831x_wdt.c        |  441 ++++++++++
- include/linux/mfd/core.h             |    1 +
- include/linux/mfd/wm831x/auxadc.h    |  216 +++++
- include/linux/mfd/wm831x/core.h      |  289 +++++++
- include/linux/mfd/wm831x/gpio.h      |   55 ++
- include/linux/mfd/wm831x/irq.h       |  764 +++++++++++++++++
- include/linux/mfd/wm831x/otp.h       |  162 ++++
- include/linux/mfd/wm831x/pdata.h     |  113 +++
- include/linux/mfd/wm831x/pmu.h       |  189 +++++
- include/linux/mfd/wm831x/regulator.h | 1218 ++++++++++++++++++++++++++
- include/linux/mfd/wm831x/status.h    |   34 +
- include/linux/mfd/wm831x/watchdog.h  |   52 ++
- include/linux/mfd/wm8350/core.h      |    6 +
- 51 files changed, 10589 insertions(+), 1 deletions(-)
- create mode 100644 Documentation/hwmon/wm831x
- create mode 100644 Documentation/hwmon/wm8350
- create mode 100644 drivers/gpio/wm831x-gpio.c
- create mode 100644 drivers/hwmon/wm831x-hwmon.c
- create mode 100644 drivers/hwmon/wm8350-hwmon.c
- create mode 100644 drivers/input/misc/wm831x-on.c
- create mode 100644 drivers/leds/leds-wm831x-status.c
- create mode 100644 drivers/mfd/wm831x-core.c
- create mode 100644 drivers/mfd/wm831x-irq.c
- create mode 100644 drivers/mfd/wm831x-otp.c
- create mode 100644 drivers/power/wm831x_power.c
- create mode 100644 drivers/regulator/wm831x-dcdc.c
- create mode 100644 drivers/regulator/wm831x-isink.c
- create mode 100644 drivers/regulator/wm831x-ldo.c
- create mode 100644 drivers/rtc/rtc-wm831x.c
- create mode 100644 drivers/video/backlight/wm831x_bl.c
- create mode 100644 drivers/watchdog/wm831x_wdt.c
- create mode 100644 include/linux/mfd/wm831x/auxadc.h
- create mode 100644 include/linux/mfd/wm831x/core.h
- create mode 100644 include/linux/mfd/wm831x/gpio.h
- create mode 100644 include/linux/mfd/wm831x/irq.h
- create mode 100644 include/linux/mfd/wm831x/otp.h
- create mode 100644 include/linux/mfd/wm831x/pdata.h
- create mode 100644 include/linux/mfd/wm831x/pmu.h
- create mode 100644 include/linux/mfd/wm831x/regulator.h
- create mode 100644 include/linux/mfd/wm831x/status.h
- create mode 100644 include/linux/mfd/wm831x/watchdog.h
+> Hi Dan,
+>
+> On Sun, 23 Nov 2008 20:38:30 -0500, Dan Davison wrote:
+>> pwmconfig fails with the message
+>> 
+>>   /usr/sbin/pwmconfig: There are no pwm-capable sensor modules installed
+>> 
+>> Looking at the pwmconfig shell-script, the error occurs because there are no pwm* files in the relevant place:
+>> 
+>> ~> ls /sys/class/hwmon/hwmon*/device/
+>> /sys/class/hwmon/hwmon1/device/:
+>> driver  hwmon  modalias  name  power  subsystem  temp1_crit  temp1_crit_alarm  temp1_input  temp1_label  uevent
+>> 
+>> /sys/class/hwmon/hwmon2/device/:
+>> driver  hwmon  modalias  name  power  subsystem  temp1_crit  temp1_crit_alarm  temp1_input  temp1_label  uevent
+>> 
+>> 
+>> However, despite a few hours googling, I am unclear whether there is
+>> any hope that I can get this working, and if so what to do next. This
+>> is a Fujitsu-Siemens Lifebook S Series laptop which has the an Intel
+>> Core Duo processor with Intel 945GM chipset, and is running Ubuntu
+>> Intrepid (fully updated).
+>
+> On most recent laptops, thermal management is handled by ACPI. No
+> hardware monitoring chips are exposed to the OS and thus software-based
+> fan speed control is not possible (and most often not desirable either
+> - the ACPI-based control should work just fine.)
+>
+>> I've looked at http://www.lm-sensors.org/wiki/Devices, but don't fully
+>> understand the information there. Under SENSOR CHIP DRIVERS there is
+>> this entry
+>> 
+>> Intel   Core, Core 2  yes  coretemp   2.6.22  (2007-03-25) Integrated sensor in CPU. Driver contributed by Rudolf Marek. 
+>> 
+>> Is this good news, or is it saying that there's just temperature stuff
+>> but no fan control?
+>
+> The coretemp driver lets you read the CPU temperature value of Intel
+> Core and later CPU models. It is not a hardware monitoring chip driver,
+> so, no fan speed readings nor control.
+>
+>> and under I2C/SMBUS BUS DRIVERS there are several entries for Intel
+>> none of which obviously correspond to my hardware.
+>> 
+>> I've run sensors-detect which results in (full output at bottom) 
+>> 
+>> Driver `smartbatt' (should be inserted):
+>
+> FWIW, the smartbatt driver is a legacy thing for Linux 2.4. I seem to
+> remember that ACPI is taking care of this now (at least on some laptop
+> models). The ACPI driver is named sbs. We should no longer recommend
+> the smartbatt driver.
+>
+>>   Detects correctly:
+>>   * Bus `SMBus I801 adapter at 18e0'
+>>     Busdriver `i2c-i801', I2C address 0x0b
+>>     Chip `Smart Battery' (confidence: 5)
+>> 
+>> Driver `coretemp' (should be inserted):
+>>   Detects correctly:
+>>   * Chip `Intel Core family thermal sensor' (confidence: 9)
+>> 
+>> This coretemp module is loaded and is providing temperature
+>> readings. I don't know if it has anything to do with fan control.
+>
+> No, it doesn't. It is a simple temperature-only driver.
+>
+>> 
+>> Running sensors gives
+>> 
+>> ~> sensors
+>> acpitz-virtual-0
+>> Adapter: Virtual device
+>> temp1:       +26.8°C  (crit = +100.0°C)                  
+>> temp2:       +26.8°C  (crit = +100.0°C)                  
+>> 
+>> coretemp-isa-0000
+>> Adapter: ISA adapter
+>> Core 0:      +43.0°C  (crit = +100.0°C)                  
+>> 
+>> coretemp-isa-0001
+>> Adapter: ISA adapter
+>> Core 1:      +43.0°C  (crit = +100.0°C)            
+>> 
+>> 
+>> (I have not observed the first two temperatures be anything other than
+>> 26.8).
+>
+> These are the ACPI temperatures, if they never change, this suggests
+> that the ACPI implementation of your laptop is broken. Upgrading the
+> BIOS might help. As a side note, the value 26.8 itself is pretty
+> suspicious, considering that 26.8 + 273.2 (the difference between the
+> degree C and Kelvin scales) = 300.
+>
+>> I'd like to be able to modify my fan behaviour but don't know what to
+>> do in order that pwmconfig runs. Thanks very much for any help. Full
+>> output from sensors-detect follows.
+>
+> pwmconfig will most likely never work on your system, sorry. If you
+> need to control your fans, and if this can indeed be done, this will
+> either be done through ACPI, or through a laptop-specific kernel driver.
 
 _______________________________________________
 lm-sensors mailing list
