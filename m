@@ -1,46 +1,97 @@
-From: Mike Frysinger <vapier.adi@gmail.com>
-Date: Thu, 02 Jul 2009 18:15:02 +0000
-Subject: Re: [lm-sensors] [PATCH] adxl345 accelerometer hwmon driver
-Message-Id: <8bd0f97a0907021115r761d7906w818acefc6c03efa4@mail.gmail.com>
+From: Julia Lawall <julia@diku.dk>
+Date: Sun, 05 Jul 2009 06:37:14 +0000
+Subject: [lm-sensors] [PATCH 4/5] drivers/hwmon: Use resource_size
+Message-Id: <Pine.LNX.4.64.0907050836530.27464@ask.diku.dk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <68FBE0F3CE97264395875AC1C468F22C152BE8@mail03.cyberswitching.local> 
-	<4A4CF07B.3090600@cam.ac.uk> <8bd0f97a0907021043l30a34e6dh581ea5e96130d7eb@mail.gmail.com> 
-	<4A4CF587.1030202@gmail.com> <8A42379416420646B9BFAC9682273B6D0C2497DC@limkexm3.ad.analog.com>
-In-Reply-To: <8A42379416420646B9BFAC9682273B6D0C2497DC@limkexm3.ad.analog.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Hennerich, Michael" <Michael.Hennerich@analog.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@gmail.com>, Jonathan Cameron <jic23@cam.ac.uk>, Chris Verges <chrisv@cyberswitching.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Robin Getz <rgetz@blackfin.uclinux.org>
+To: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-On Thu, Jul 2, 2009 at 14:12, Hennerich, Michael wrote:
->From: J.I. Cameron [mailto:jic23@hermes.cam.ac.uk] On Behalf Of
->> Looks like a nice driver, see what you mean about the i2c fun and games
->> you are having though.
->> I'm particularly interested in your use of the fifo:
->>
->>I've only had a quick look, but assuming I read it right, you are using
->>the fifo
->>with a watermark of 0 then spitting out 3 separate events for every
->>element in it.
->>Basically a data ready response unless you fail to read in time. Seems
->>like a sensible
->>approach with this particular chip in input type applications.
->
-> We fully use the FIFO - the link Mike sent around was the initial
-> checkin.
-> After that I fixes some bugs and added functionality.
-> BTW I also implemented the Watermark feature.
+From: Julia Lawall <julia@diku.dk>
 
-nah, that link i posted is everything.  the kernel.org repo has
-cleaned up / squashed changes.  so all the little pieces in our
-personal repo have been put together to form the one changeset on
-kernel.org.
+Use the function resource_size, which reduces the chance of introducing
+off-by-one errors in calculating the resource size.
 
-ive been emptying my other subsystem queues and havent gotten around
-to input/hwmon/fb yet.  i'll start up a thread on our list to see what
-people are happy with submitting.
--mike
+The semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@
+struct resource *res;
+@@
+
+- (res->end - res->start) + 1
++ resource_size(res)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/hwmon/pc87427.c |    6 +++---
+ drivers/hwmon/vt1211.c  |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff -u -p a/drivers/hwmon/pc87427.c b/drivers/hwmon/pc87427.c
+--- a/drivers/hwmon/pc87427.c 2009-01-09 22:41:01.000000000 +0100
++++ b/drivers/hwmon/pc87427.c 2009-07-04 21:38:15.000000000 +0200
+@@ -435,7 +435,7 @@ static int __devinit pc87427_probe(struc
+ 	/* This will need to be revisited when we add support for
+ 	   temperature and voltage monitoring. */
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	if (!request_region(res->start, res->end - res->start + 1, DRVNAME)) {
++	if (!request_region(res->start, resource_size(res), DRVNAME)) {
+ 		err = -EBUSY;
+ 		dev_err(&pdev->dev, "Failed to request region 0x%lx-0x%lx\n",
+ 			(unsigned long)res->start, (unsigned long)res->end);
+@@ -475,7 +475,7 @@ exit_remove_files:
+ 		sysfs_remove_group(&pdev->dev.kobj, &pc87427_group_fan[i]);
+ 	}
+ exit_release_region:
+-	release_region(res->start, res->end - res->start + 1);
++	release_region(res->start, resource_size(res));
+ exit_kfree:
+ 	platform_set_drvdata(pdev, NULL);
+ 	kfree(data);
+@@ -500,7 +500,7 @@ static int __devexit pc87427_remove(stru
+ 	kfree(data);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	release_region(res->start, res->end - res->start + 1);
++	release_region(res->start, resource_size(res));
+ 
+ 	return 0;
+ }
+diff -u -p a/drivers/hwmon/vt1211.c b/drivers/hwmon/vt1211.c
+--- a/drivers/hwmon/vt1211.c 2009-03-02 11:33:15.000000000 +0100
++++ b/drivers/hwmon/vt1211.c 2009-07-04 21:38:17.000000000 +0200
+@@ -1136,7 +1136,7 @@ static int __devinit vt1211_probe(struct
+ 	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	if (!request_region(res->start, res->end - res->start + 1, DRVNAME)) {
++	if (!request_region(res->start, resource_size(res), DRVNAME)) {
+ 		err = -EBUSY;
+ 		dev_err(dev, "Failed to request region 0x%lx-0x%lx\n",
+ 			(unsigned long)res->start, (unsigned long)res->end);
+@@ -1209,7 +1209,7 @@ EXIT_DEV_REMOVE:
+ 	dev_err(dev, "Sysfs interface creation failed (%d)\n", err);
+ EXIT_DEV_REMOVE_SILENT:
+ 	vt1211_remove_sysfs(pdev);
+-	release_region(res->start, res->end - res->start + 1);
++	release_region(res->start, resource_size(res));
+ EXIT_KFREE:
+ 	platform_set_drvdata(pdev, NULL);
+ 	kfree(data);
+@@ -1228,7 +1228,7 @@ static int __devexit vt1211_remove(struc
+ 	kfree(data);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	release_region(res->start, res->end - res->start + 1);
++	release_region(res->start, resource_size(res));
+ 
+ 	return 0;
+ }
 
 _______________________________________________
 lm-sensors mailing list
