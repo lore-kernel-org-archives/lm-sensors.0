@@ -1,94 +1,92 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Sat, 25 Jul 2009 00:43:29 +0000
-Subject: [lm-sensors] [PATCH 1/2] hwmon: Enhance the sysfs API for power
-Message-Id: <20090725004328.20709.57712.stgit@elm3a70.beaverton.ibm.com>
+From: Michael Abbott <michael@araneidae.co.uk>
+Date: Mon, 06 Jul 2009 16:26:32 +0000
+Subject: [lm-sensors] [PATCH] Add low_power support for adm1021 driver.
+Message-Id: <Pine.LNX.4.64.0907061725170.11795@venus.araneidae.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090725004322.20709.96804.stgit@elm3a70.beaverton.ibm.com>
-In-Reply-To: <20090725004322.20709.96804.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Darrick J. Wong" <djwong@us.ibm.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, linux-acpi <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
+To: lm-sensors@lm-sensors.org
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Augment the documentation of the hwmon sysfs API to accomodate ACPI power
-meters.
+Resending this patch previously sent some months again.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Occasionally it is helpful to be able to turn a temperature sensor off
+(for example if it's making unwanted electrical noise).  This patch
+adds a sysfs node to put any adm1021 compatible device into low power mode.
+
+Signed-off-by: Michael Abbott <michael.abbott@diamond.ac.uk>
 ---
- Documentation/hwmon/sysfs-interface |   44 +++++++++++++++++++++++++++++++++++
- 1 files changed, 44 insertions(+), 0 deletions(-)
+ drivers/hwmon/adm1021.c |   33 +++++++++++++++++++++++++++++++++
+ 1 files changed, 33 insertions(+), 0 deletions(-)
 
-
-diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
-index dcbd502..e196701 100644
---- a/Documentation/hwmon/sysfs-interface
-+++ b/Documentation/hwmon/sysfs-interface
-@@ -357,6 +357,14 @@ power[1-*]_average_interval	Power use averaging interval
- 				Unit: milliseconds
- 				RW
+diff --git a/drivers/hwmon/adm1021.c b/drivers/hwmon/adm1021.c
+index de84398..39434e1 100644
+--- a/drivers/hwmon/adm1021.c
++++ b/drivers/hwmon/adm1021.c
+@@ -83,6 +83,7 @@ struct adm1021_data {
  
-+power[1-*]_average_interval_max	Maximum power use averaging interval
-+				Unit: milliseconds
-+				RO
-+
-+power[1-*]_average_interval_min	Minimum power use averaging interval
-+				Unit: milliseconds
-+				RO
-+
- power[1-*]_average_highest	Historical average maximum power use
- 				Unit: microWatt
- 				RO
-@@ -365,6 +373,16 @@ power[1-*]_average_lowest	Historical average minimum power use
- 				Unit: microWatt
- 				RO
+ 	struct mutex update_lock;
+ 	char valid;		/* !=0 if following fields are valid */
++	char low_power;		/* !=0 if device in low power mode */
+ 	unsigned long last_updated;	/* In jiffies */
  
-+power[1-*]_average_max		A notification is sent when power use
-+				rises above this value.
-+				Unit: microWatt
-+				RW
-+
-+power[1-*]_average_min		A notification is sent when power use
-+				sinks below this value.
-+				Unit: microWatt
-+				RW
-+
- power[1-*]_input		Instantaneous power use
- 				Unit: microWatt
- 				RO
-@@ -381,6 +399,32 @@ power[1-*]_reset_history	Reset input_highest, input_lowest,
- 				average_highest and average_lowest.
- 				WO
+ 	int temp_max[2];		/* Register values */
+@@ -213,6 +214,35 @@ static ssize_t set_temp_min(struct device *dev,
+ 	return count;
+ }
  
-+power[1-*]_accuracy		Accuracy of the power meter.
-+				Unit: Percent
-+				RO
++static ssize_t show_low_power(
++	struct device *dev, struct device_attribute *devattr, char *buf)
++{
++	struct adm1021_data *data = adm1021_update_device(dev);
++	return sprintf(buf, "%d\n", data->low_power);
++}
 +
-+power[1-*]_alarm		1 if the system is drawing more power than the
-+				cap allows; 0 otherwise.
-+				RO
++static ssize_t set_low_power(
++	struct device *dev, struct device_attribute *devattr,
++	const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adm1021_data *data = i2c_get_clientdata(client);
++	int low_power = simple_strtol(buf, NULL, 10) != 0;
++	mutex_lock(&data->update_lock);
 +
-+power[1-*]_cap			If power use rises above this limit, the
-+				system should take action to reduce power use.
-+				Unit: microWatt
-+				RW
++	if (low_power != data->low_power) {
++		int config = i2c_smbus_read_byte_data(
++			client, ADM1021_REG_CONFIG_R);
++		data->low_power = low_power;
++		i2c_smbus_write_byte_data(client, ADM1021_REG_CONFIG_W,
++			(config & 0xBF) | (low_power << 6));
++	}
++	mutex_unlock(&data->update_lock);
 +
-+power[1-*]_cap_hyst		Margin of hysteresis built around capping and
-+				notification.
-+				Unit: microWatt
-+				RW
++	return count;
++}
 +
-+power[1-*]_cap_max		Maximum cap that can be set.
-+				Unit: microWatt
-+				RO
 +
-+power[1-*]_cap_min		Minimum cap that can be set.
-+				Unit: microWatt
-+				RO
-+
- **********
- * Energy *
- **********
+ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
+ static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max,
+ 			  set_temp_max, 0);
+@@ -230,6 +260,8 @@ static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO, show_alarm, NULL, 3);
+ static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_alarm, NULL, 2);
+ 
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
++static DEVICE_ATTR(
++	low_power, S_IWUSR | S_IRUGO, show_low_power, set_low_power);
+ 
+ static struct attribute *adm1021_attributes[] = {
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+@@ -244,6 +276,7 @@ static struct attribute *adm1021_attributes[] = {
+ 	&sensor_dev_attr_temp2_min_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_fault.dev_attr.attr,
+ 	&dev_attr_alarms.attr,
++	&dev_attr_low_power.attr,
+ 	NULL
+ };
+ 
+-- 
+1.6.1.3
 
 
 _______________________________________________
