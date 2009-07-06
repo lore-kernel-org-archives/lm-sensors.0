@@ -1,45 +1,29 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 03 Jul 2009 19:09:12 +0000
-Subject: Re: [lm-sensors] no PWM output with pwmconfig
-Message-Id: <20090703210912.2011a9df@hyperion.delvare>
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Mon, 06 Jul 2009 20:28:46 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Update Texas Instruments
+Message-Id: <20090706202845.GA4415@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4A4B9B3C.1040104@chello.nl>
-In-Reply-To: <4A4B9B3C.1040104@chello.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 03 Jul 2009 19:25:49 +0200, Hans de Goede wrote:
-> Hi,
-> 
-> On 07/03/2009 04:54 PM, Jean Delvare wrote:
-> > On Fri, 03 Jul 2009 16:35:57 +0200, Hans de Goede wrote:
-> >> Yes, erm well the F718xx family has them in reverse order in hardware and
-> >> I kept the hardware order for sysfs files. A bit strange I must admit.
-> >>
-> >> In hindsight it might have been better to reverse the order in sysfs
-> >> for consistency with other drivers.
-> >
-> > I agree. It shouldn't be too difficult, and even though we can't easily
-> > get a fully consistent interface for automatic speed mode due to each
-> > chip being different in its own creative way, being as consistent as we
-> > can makes things easier for the users.
-> 
-> Yes, but do we want to change this now, after the fact, that would
-> basically come down to ABI breakage.
+Support for TI's TMP411 sensor chip is in mainline since
+2.6.31-rc1. So now we can refer to the tmp401 driver.
+---
 
-You can see it that way for sure. Or you can see it as fixing an
-interface which was improperly implemented originally. While our
-documentation doesn't explicitly say how trip points are ordered, the
-"incremental" approach is the most natural one and the one implemented by
-all other drivers too.
-
-I don't care too much myself, so it's really up to you. You may also
-want to contribute a patch to the documentation to make things clearer.
-
--- 
-Jean Delvare
+Index: sensors/prog/detect/sensors-detect
+=================================--- sensors.orig/prog/detect/sensors-detect	2009-07-06 22:12:13.000000000 +0200
++++ sensors/prog/detect/sensors-detect	2009-07-06 22:12:23.000000000 +0200
+@@ -904,7 +904,7 @@
+ 		i2c_detect => sub { lm90_detect(@_, 9); },
+ 	}, {
+ 		name => "Texas Instruments TMP411",
+-		driver => "to-be-written",
++		driver => "tmp401",
+ 		i2c_addrs => [0x4c..0x4e],
+ 		i2c_detect => sub { lm90_detect(@_, 10); },
+ 	}, {
 
 _______________________________________________
 lm-sensors mailing list
