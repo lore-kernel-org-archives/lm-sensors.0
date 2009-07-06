@@ -1,41 +1,41 @@
 From: Rudolf Marek <r.marek@assembler.cz>
-Date: Mon, 06 Jul 2009 16:34:28 +0000
-Subject: [lm-sensors] [PATCH] Add support for Atom CPUs
-Message-Id: <4A522794.1020507@assembler.cz>
+Date: Mon, 06 Jul 2009 20:38:10 +0000
+Subject: Re: [lm-sensors] [PATCH] Add support for Atom CPUs
+Message-Id: <4A5260B2.4010405@assembler.cz>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------010608050801030202000300"
+Content-Type: multipart/mixed; boundary="------------010400050502060306030401"
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4A522794.1020507@assembler.cz>
+In-Reply-To: <4A522794.1020507@assembler.cz>
 To: lm-sensors@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010608050801030202000300
+--------------010400050502060306030401
 Content-Type: text/plain; charset=ISO-8859-2
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-Hello,
+Hi all,
 
-Following patch adds support for Atom CPUs. Intel documents TjMax at 90C but
-some Atoms may have 125C (this is undocumented speculation). The variable is
-renamed, because next patch use this.
+Thanks Martin for a test. It seems that TAGET MSR is not implemented, also
+driver incorrectly reports that it uses relative temperature scale. Fix it with
+updated patch.
 
 Signed-off-by: Rudolf Marek <r.marek@assembler.cz>
-
-Please test this!
 
 Rudolf
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.9 (GNU/Linux)
 Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iEYEARECAAYFAkpSJ5QACgkQ3J9wPJqZRNU3jwCgm2dIVplikohpmBHd9FPyIECj
-mY8AnjSRQoKdl7VKZJawJ+l6NH6I5LKI
-=1Mg+
+iEYEARECAAYFAkpSYLEACgkQ3J9wPJqZRNX2qwCfeF0+WAidbXs/cterief56qV/
+i4EAn1zchUyNP54Qas3KEqV5RGGi40Kj
+=ye/T
 -----END PGP SIGNATURE-----
 
---------------010608050801030202000300
+--------------010400050502060306030401
 Content-Type: text/x-diff;
  name="add_atoms.patch"
 Content-Transfer-Encoding: 7bit
@@ -45,7 +45,7 @@ Content-Disposition: inline;
 Index: linux-2.6.30.1/drivers/hwmon/coretemp.c
 ===================================================================
 --- linux-2.6.30.1.orig/drivers/hwmon/coretemp.c	2009-07-06 17:07:16.458757525 +0200
-+++ linux-2.6.30.1/drivers/hwmon/coretemp.c	2009-07-06 18:25:46.934758067 +0200
++++ linux-2.6.30.1/drivers/hwmon/coretemp.c	2009-07-06 22:34:59.417758968 +0200
 @@ -157,17 +157,24 @@
  	/* The 100C is default for both mobile and non mobile CPUs */
  
@@ -91,7 +91,29 @@ Index: linux-2.6.30.1/drivers/hwmon/coretemp.c
  
  		err = rdmsr_safe_on_cpu(id, 0xee, &eax, &edx);
  		if (err) {
-@@ -413,11 +420,11 @@
+@@ -195,7 +202,8 @@
+ 		} else if (eax & 0x40000000) {
+ 			tjmax = 85000;
+ 		}
+-	} else {
++	/* if we dont use msr EE it means we are desktop CPU (with exeception of Atom) */
++	} else if (tjmax == 100000) {
+ 		dev_warn(dev, "Using relative temperature scale!\n");
+ 	}
+ 
+@@ -248,9 +256,9 @@
+ 	platform_set_drvdata(pdev, data);
+ 
+ 	/* read the still undocumented IA32_TEMPERATURE_TARGET it exists
+-	   on older CPUs but not in this register */
++	   on older CPUs but not in this register, Atoms don't have it too */
+ 
+-	if (c->x86_model > 0xe) {
++	if ((c->x86_model > 0xe) && (c->x86_model != 0x1c)) {
+ 		err = rdmsr_safe_on_cpu(data->id, 0x1a2, &eax, &edx);
+ 		if (err) {
+ 			dev_warn(&pdev->dev, "Unable to read"
+@@ -413,11 +421,11 @@
  	for_each_online_cpu(i) {
  		struct cpuinfo_x86 *c = &cpu_data(i);
  
@@ -108,7 +130,7 @@ Index: linux-2.6.30.1/drivers/hwmon/coretemp.c
 Index: linux-2.6.30.1/Documentation/hwmon/coretemp
 ===================================================================
 --- linux-2.6.30.1.orig/Documentation/hwmon/coretemp	2009-07-06 18:31:56.262759644 +0200
-+++ linux-2.6.30.1/Documentation/hwmon/coretemp	2009-07-06 18:32:20.302461349 +0200
++++ linux-2.6.30.1/Documentation/hwmon/coretemp	2009-07-06 22:31:01.905898848 +0200
 @@ -4,7 +4,7 @@
  Supported chips:
    * All Intel Core family
@@ -139,16 +161,16 @@ Index: linux-2.6.30.1/drivers/hwmon/Kconfig
  config SENSORS_IBMAEM
  	tristate "IBM Active Energy Manager temperature/power sensors and control"
 
---------------010608050801030202000300
+--------------010400050502060306030401
 Content-Type: application/octet-stream;
  name="add_atoms.patch.sig"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment;
  filename="add_atoms.patch.sig"
 
-iEYEABECAAYFAkpSJ5QACgkQ3J9wPJqZRNWdAQCeK7OeV7TIDK9gHEwgCcBqkttXlTwAn1GK
-1tJ/Gsb/UiWfuwkNus/NHWVp
---------------010608050801030202000300
+iEYEABECAAYFAkpSYLEACgkQ3J9wPJqZRNUjGgCbB1QpDZeadXxZ1bdcv7oO+rzYjaoAoNGI
+vn8uONq/ma138elRd1A766iw
+--------------010400050502060306030401
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -158,4 +180,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------010608050801030202000300--
+--------------010400050502060306030401--
