@@ -1,104 +1,116 @@
-From: Hubert Kario <hka@qbs.com.pl>
-Date: Thu, 02 Jul 2009 14:46:36 +0000
-Subject: Re: [lm-sensors] false/fake lm_sensors result ?
-Message-Id: <200907021646.37185.hka@qbs.com.pl>
+From: Michael Abbott <michael@araneidae.co.uk>
+Date: Mon, 06 Jul 2009 16:25:07 +0000
+Subject: [lm-sensors] [PATCH] Support high precision ADM1023 remote sensor
+Message-Id: <Pine.LNX.4.64.0907061720470.11795@venus.araneidae.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@lm-sensors.org
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thursday 02 July 2009 14:05:17 czezz wrote:
-> I have run lm_sensor on my Slackware 12.0.0 (generic kernel 2.6.22.6 #2 SMP
-> form install DVD).
->
-> "sensors-detect" found 3 modules.
-> I have loaded them again, just for sure:
->
-> # modprobe i2c-piix4
-> # modprobe w83781d
-> # modprobe eeprom
->
-> This is an output of "sensors":
->
-> # sensors
-> w83782d-i2c-0-2d
-> Adapter: SMBus PIIX4 adapter at 5000
-> VCore 1:   +2.03 V  (min =  +1.79 V, max =  +2.19 V)
-> VCore 2:   +1.49 V  (min =  +1.79 V, max =  +2.19 V)       ALARM
-> +3.3V:     +3.28 V  (min =  +2.82 V, max =  +3.79 V)
-> +5V:       +5.16 V  (min =  +6.85 V, max =  +6.40 V)       ALARM
-> +12V:     +12.52 V  (min = +13.56 V, max = +15.50 V)       ALARM
-> -12V:     -12.20 V  (min =  -8.41 V, max =  +5.73 V)       ALARM
-> -5V:       -5.30 V  (min =  -2.94 V, max =  +2.69 V)       ALARM
-> V5SB:      +5.03 V  (min =  +5.78 V, max =  +6.85 V)       ALARM
-> VBat:      +2.98 V  (min =  +4.05 V, max =  +3.06 V)       ALARM
-> fan1:        0 RPM  (min = 2700 RPM, div = 2)              ALARM
-> fan2:        0 RPM  (min =    0 RPM, div = 2)
-> fan3:        0 RPM  (min =    0 RPM, div = 2)
-> temp1:       +47°C  (high =    -9°C, hyst =  +125°C)   sensor = thermistor
-> temp2:    +120.5°C  (high =   +70°C, hyst =   +65°C)   sensor = thermistor 
->  ALARM temp3:     -48.0°C  (high =   +70°C, hyst =   +65°C)   sensor > thermistor vid:      +2.000 V  (VRM Version 8.2)
-> alarms:   Chassis intrusion detection                      ALARM
-> beep_enable:
->           Sound alarm enabled
->
-> w83782d-isa-0290
-> Adapter: ISA adapter
-> VCore 1:   +2.03 V  (min =  +1.79 V, max =  +2.19 V)
-> VCore 2:   +1.49 V  (min =  +1.79 V, max =  +2.19 V)       ALARM
-> +3.3V:     +3.28 V  (min =  +2.82 V, max =  +3.79 V)
-> +5V:       +5.16 V  (min =  +6.85 V, max =  +6.40 V)       ALARM
-> +12V:     +12.52 V  (min = +13.56 V, max = +15.50 V)       ALARM
-> -12V:     -12.11 V  (min =  -8.41 V, max =  +5.73 V)       ALARM
-> -5V:       -5.30 V  (min =  -2.94 V, max =  +2.69 V)       ALARM
-> V5SB:      +5.03 V  (min =  +5.78 V, max =  +6.85 V)       ALARM
-> VBat:      +2.99 V  (min =  +4.05 V, max =  +3.06 V)       ALARM
-> fan1:        0 RPM  (min = 2700 RPM, div = 2)              ALARM
-> fan2:        0 RPM  (min =    0 RPM, div = 2)
-> fan3:        0 RPM  (min =    0 RPM, div = 2)
-> temp1:       +47°C  (high =    -9°C, hyst =  +125°C)   sensor = thermistor
-> temp2:    +121.0°C  (high =   +70°C, hyst =   +65°C)   sensor = thermistor 
->  ALARM temp3:     -48.0°C  (high =   +70°C, hyst =   +65°C)   sensor > thermistor vid:      +2.000 V  (VRM Version 8.2)
-> alarms:   Chassis intrusion detection                      ALARM
-> beep_enable:
->           Sound alarm enabled
->
-> I cant belive that "temp2" = 121 °C. Except that I dont know what temp2
-> really is, I guess it is CPU (?). This same about temp3 -48. That machine
-> does not stand in a fridge. Any help what is wrong ?
+The ADM1023 temperature sensor supports higher resolution for its external 
+sensor (sensitivity of 1/8 deg C).  This patch makes this higher 
+resolution available through the appropriate temperature sysfs nodes.
 
-It looks like temp2 and temp3 are not connected (it's quite common, 
-manufacturers frequently buy off-the-shelf equipment install only one or two 
-thermistors to an IC that can monitor more of them), just ignore those 
-results.
+Curiously, this functionality was available in the 2.4 kernel driver (but 
+formatted in a less helpful manner).
 
-You can remove them entirely from view by adding
+---
+ drivers/hwmon/adm1021.c |   47 +++++++++++++++++++++++------------------------
+ 1 files changed, 23 insertions(+), 24 deletions(-)
 
-ignore temp2
-ignore temp3
-
-lines to your sensors config file to a section with following header:
-chip "w83792d-*"
-
-you can do the same to fan1-fan3
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-
-
-
+diff --git a/drivers/hwmon/adm1021.c b/drivers/hwmon/adm1021.c
+index b11e06f..de84398 100644
+--- a/drivers/hwmon/adm1021.c
++++ b/drivers/hwmon/adm1021.c
+@@ -85,14 +85,11 @@ struct adm1021_data {
+ 	char valid;		/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
+ 
+-	s8 temp_max[2];		/* Register values */
+-	s8 temp_min[2];
+-	s8 temp[2];
++	int temp_max[2];		/* Register values */
++	int temp_min[2];
++	int temp[2];
+ 	u8 alarms;
+ 	/* Special values for ADM1023 only */
+-	u8 remote_temp_prec;
+-	u8 remote_temp_os_prec;
+-	u8 remote_temp_hyst_prec;
+ 	u8 remote_temp_offset;
+ 	u8 remote_temp_offset_prec;
+ };
+@@ -141,7 +138,7 @@ static ssize_t show_temp(struct device *dev,
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct adm1021_data *data = adm1021_update_device(dev);
+ 
+-	return sprintf(buf, "%d\n", 1000 * data->temp[index]);
++	return sprintf(buf, "%d\n", data->temp[index]);
+ }
+ 
+ static ssize_t show_temp_max(struct device *dev,
+@@ -150,7 +147,7 @@ static ssize_t show_temp_max(struct device *dev,
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct adm1021_data *data = adm1021_update_device(dev);
+ 
+-	return sprintf(buf, "%d\n", 1000 * data->temp_max[index]);
++	return sprintf(buf, "%d\n", data->temp_max[index]);
+ }
+ 
+ static ssize_t show_temp_min(struct device *dev,
+@@ -159,7 +156,7 @@ static ssize_t show_temp_min(struct device *dev,
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct adm1021_data *data = adm1021_update_device(dev);
+ 
+-	return sprintf(buf, "%d\n", 1000 * data->temp_min[index]);
++	return sprintf(buf, "%d\n", data->temp_min[index]);
+ }
+ 
+ static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
+@@ -412,25 +409,27 @@ static struct adm1021_data *adm1021_update_device(struct device *dev)
+ 		dev_dbg(&client->dev, "Starting adm1021 update\n");
+ 
+ 		for (i = 0; i < 2; i++) {
+-			data->temp[i] = i2c_smbus_read_byte_data(client,
+-						ADM1021_REG_TEMP(i));
+-			data->temp_max[i] = i2c_smbus_read_byte_data(client,
+-						ADM1021_REG_TOS_R(i));
+-			data->temp_min[i] = i2c_smbus_read_byte_data(client,
+-						ADM1021_REG_THYST_R(i));
++			data->temp[i] = 1000 *
++				(s8) i2c_smbus_read_byte_data(
++					client, ADM1021_REG_TEMP(i));
++			data->temp_max[i] = 1000 *
++				(s8) i2c_smbus_read_byte_data(
++					client, ADM1021_REG_TOS_R(i));
++			data->temp_min[i] = 1000 *
++				(s8) i2c_smbus_read_byte_data(
++					client, ADM1021_REG_THYST_R(i));
+ 		}
+ 		data->alarms = i2c_smbus_read_byte_data(client,
+ 						ADM1021_REG_STATUS) & 0x7c;
+ 		if (data->type = adm1023) {
+-			data->remote_temp_prec -				i2c_smbus_read_byte_data(client,
+-						ADM1023_REG_REM_TEMP_PREC);
+-			data->remote_temp_os_prec -				i2c_smbus_read_byte_data(client,
+-						ADM1023_REG_REM_TOS_PREC);
+-			data->remote_temp_hyst_prec -				i2c_smbus_read_byte_data(client,
+-						ADM1023_REG_REM_THYST_PREC);
++			/* The ADM1023 provides 3 extra bits of precision for
++			 * the remote sensor in extra registers. */
++			data->temp[1] += 125 * (i2c_smbus_read_byte_data(
++				client, ADM1023_REG_REM_TEMP_PREC) >> 5);
++			data->temp_max[1] += 125 * (i2c_smbus_read_byte_data(
++				client, ADM1023_REG_REM_TOS_PREC) >> 5);
++			data->temp_min[1] += 125 * (i2c_smbus_read_byte_data(
++				client, ADM1023_REG_REM_THYST_PREC) >> 5);
+ 			data->remote_temp_offset  				i2c_smbus_read_byte_data(client,
+ 						ADM1023_REG_REM_OFFSET);
 -- 
-Hubert Kario
-QBS - Quality Business Software
-02-656 Warszawa, ul. Ksawerów 30/85
-tel. +48 (22) 646-61-51, 646-74-24
-www.qbs.com.pl
+1.6.1.3
 
-System Zarządzania Jakością
-zgodny z normą ISO 9001:2000
 
 _______________________________________________
 lm-sensors mailing list
