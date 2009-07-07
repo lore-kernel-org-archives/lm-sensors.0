@@ -1,7 +1,7 @@
-From: Henrique de Moraes Holschuh <hmh@debian.org>
-Date: Tue, 07 Jul 2009 14:49:36 +0000
+From: "Trisal, Kalhan" <kalhan.trisal@intel.com>
+Date: Tue, 07 Jul 2009 15:11:14 +0000
 Subject: Re: [lm-sensors] Intel Moorestown Platform Thermal Driver
-Message-Id: <20090707144936.GA28840@khazad-dum.debian.net>
+Message-Id: <3CA6C6D9F70D314CA34352990B57DA153303F958@bgsmsx502.gar.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090706212531.GA15120@intel.com>
 In-Reply-To: <20090706212531.GA15120@intel.com>
@@ -9,6 +9,15 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+I have renamed the driver with emc1403 driver as the driver is generic enough to be used for emc1403 chip. The interrupt part is kept inside the flag so that code gets enabled only when Power management in the Moorestown platform is enabled.
+
+-----Original Message-----
+From: Henrique de Moraes Holschuh [mailto:hmh@debian.org] 
+Sent: Tuesday, July 07, 2009 8:20 PM
+To: Trisal, Kalhan
+Cc: khali@linux-fr.org; lm-sensors@lm-sensors.org
+Subject: Re: [lm-sensors] Intel Moorestown Platform Thermal Driver
 
 On Tue, 07 Jul 2009, Trisal, Kalhan wrote:
 > Hi Henrique
