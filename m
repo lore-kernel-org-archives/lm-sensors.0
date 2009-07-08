@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 07 Jul 2009 10:52:07 +0000
+From: Rudolf Marek <r.marek@assembler.cz>
+Date: Wed, 08 Jul 2009 20:38:05 +0000
 Subject: Re: [lm-sensors] [PATCH] Add support for Atom CPUs
-Message-Id: <20090707125207.7fcd23fa@hyperion.delvare>
+Message-Id: <4A5503AD.2060800@assembler.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4A522794.1020507@assembler.cz>
 In-Reply-To: <4A522794.1020507@assembler.cz>
@@ -10,155 +10,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On Mon, 06 Jul 2009 22:38:10 +0200, Rudolf Marek wrote:
-> Thanks Martin for a test. It seems that TAGET MSR is not implemented, also
-> driver incorrectly reports that it uses relative temperature scale. Fix it with
-> updated patch.
+>> +	/* if we dont use msr EE it means we are desktop CPU (with exeception of Atom) */
 > 
-> Signed-off-by: Rudolf Marek <r.marek@assembler.cz>
+> Line too long.
 
-> Index: linux-2.6.30.1/drivers/hwmon/coretemp.c
-> =================================> --- linux-2.6.30.1.orig/drivers/hwmon/coretemp.c	2009-07-06 17:07:16.458757525 +0200
-> +++ linux-2.6.30.1/drivers/hwmon/coretemp.c	2009-07-06 22:34:59.417758968 +0200
-> @@ -157,17 +157,24 @@
->  	/* The 100C is default for both mobile and non mobile CPUs */
->  
->  	int tjmax = 100000;
-> -	int ismobile = 1;
-> +	int usemsr_ee = 1;
->  	int err;
->  	u32 eax, edx;
->  
->  	/* Early chips have no MSR for TjMax */
->  
->  	if ((c->x86_model = 0xf) && (c->x86_mask < 4)) {
-> -		ismobile = 0;
-> +		usemsr_ee = 0;
->  	}
->  
-> -	if ((c->x86_model > 0xe) && (ismobile)) {
-> +	/* Atoms seems to have TjMax at 90C */
-> +
-> +	if (c->x86_model = 0x1c) {
-> +		usemsr_ee = 0;
-> +		tjmax = 90000;
-> +	}
-> +
-> +	if ((c->x86_model > 0xe) && (usemsr_ee)) {
->  
->  		/* Now we can detect the mobile CPU using Intel provided table
->  		   http://softwarecommunity.intel.com/Wiki/Mobility/720.htm
-> @@ -179,13 +186,13 @@
->  			dev_warn(dev,
->  				 "Unable to access MSR 0x17, assuming desktop"
->  				 " CPU\n");
-> -			ismobile = 0;
-> +			usemsr_ee = 0;
->  		} else if (!(eax & 0x10000000)) {
-> -			ismobile = 0;
-> +			usemsr_ee = 0;
->  		}
->  	}
->  
-> -	if (ismobile) {
-> +	if (usemsr_ee) {
->  
->  		err = rdmsr_safe_on_cpu(id, 0xee, &eax, &edx);
->  		if (err) {
-> @@ -195,7 +202,8 @@
->  		} else if (eax & 0x40000000) {
->  			tjmax = 85000;
->  		}
-> -	} else {
-> +	/* if we dont use msr EE it means we are desktop CPU (with exeception of Atom) */
+Well I thought the 80 lines limit is not so strict anymore.
 
-Line too long.
+> 
+>> +	} else if (tjmax = 100000) {
+>>  		dev_warn(dev, "Using relative temperature scale!\n");
+>>  	}
+>>  
+> 
+> I think function adjust_tjmax() has reached its limit of readability. I
+> don't understand why it needs to be so complex. For example, the case
+> of the Atom is very simply always return 90 degree C. So why not just:
 
-> +	} else if (tjmax = 100000) {
->  		dev_warn(dev, "Using relative temperature scale!\n");
->  	}
->  
+Yes right, but it is going to be complex for penryns. I will try to simplify it.
 
-I think function adjust_tjmax() has reached its limit of readability. I
-don't understand why it needs to be so complex. For example, the case
-of the Atom is very simply always return 90 degree C. So why not just:
+> 
+> 	/* Atoms seems to have TjMax at 90C */
+> 	if (c->x86_model = 0x1c)
+> 		return 90000;
 
-	/* Atoms seems to have TjMax at 90C */
-	if (c->x86_model = 0x1c)
-		return 90000;
+Because of multiple returns? If you are OK with multiple returns I will fix it.
 
-at the beginning of the function, and be done with that case? And I
-suspect the rest can be simplified a bit too.
+> 
+> at the beginning of the function, and be done with that case? And I
+> suspect the rest can be simplified a bit too.
+> 
+>> @@ -248,9 +256,9 @@
+>>  	platform_set_drvdata(pdev, data);
+>>  
+>>  	/* read the still undocumented IA32_TEMPERATURE_TARGET it exists
+>> -	   on older CPUs but not in this register */
+>> +	   on older CPUs but not in this register, Atoms don't have it too */
+> 
+> s/too/either/
 
-> @@ -248,9 +256,9 @@
->  	platform_set_drvdata(pdev, data);
->  
->  	/* read the still undocumented IA32_TEMPERATURE_TARGET it exists
-> -	   on older CPUs but not in this register */
-> +	   on older CPUs but not in this register, Atoms don't have it too */
+ok
+> sensors-detect needs to be updated as well.
 
-s/too/either/
+yes good catch.
 
->  
-> -	if (c->x86_model > 0xe) {
-> +	if ((c->x86_model > 0xe) && (c->x86_model != 0x1c)) {
->  		err = rdmsr_safe_on_cpu(data->id, 0x1a2, &eax, &edx);
->  		if (err) {
->  			dev_warn(&pdev->dev, "Unable to read"
-> @@ -413,11 +421,11 @@
->  	for_each_online_cpu(i) {
->  		struct cpuinfo_x86 *c = &cpu_data(i);
->  
-> -		/* check if family 6, models 0xe, 0xf, 0x16, 0x17, 0x1A */
-> +		/* check if family 6, models 0xe, 0xf, 0x16, 0x17, 0x1A, 0x1c */
->  		if ((c->cpuid_level < 0) || (c->x86 != 0x6) ||
->  		    !((c->x86_model = 0xe) || (c->x86_model = 0xf) ||
->  			(c->x86_model = 0x16) || (c->x86_model = 0x17) ||
-> -			(c->x86_model = 0x1A))) {
-> +			(c->x86_model = 0x1A) || (c->x86_model = 0x1c))) {
->  
->  			/* supported CPU not found, but report the unknown
->  			   family 6 CPU */
+Thanks,
+Rudolf
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-sensors-detect needs to be updated as well.
-
-> Index: linux-2.6.30.1/Documentation/hwmon/coretemp
-> =================================> --- linux-2.6.30.1.orig/Documentation/hwmon/coretemp	2009-07-06 18:31:56.262759644 +0200
-> +++ linux-2.6.30.1/Documentation/hwmon/coretemp	2009-07-06 22:31:01.905898848 +0200
-> @@ -4,7 +4,7 @@
->  Supported chips:
->    * All Intel Core family
->      Prefix: 'coretemp'
-> -    CPUID: family 0x6, models 0xe, 0xf, 0x16, 0x17
-> +    CPUID: family 0x6, models 0xe, 0xf, 0x16, 0x17, 0x1c (Atom)
->      Datasheet: Intel 64 and IA-32 Architectures Software Developer's Manual
->                 Volume 3A: System Programming Guide
->                 http://softwarecommunity.intel.com/Wiki/Mobility/720.htm
-> Index: linux-2.6.30.1/drivers/hwmon/Kconfig
-> =================================> --- linux-2.6.30.1.orig/drivers/hwmon/Kconfig	2009-07-06 18:32:31.974757310 +0200
-> +++ linux-2.6.30.1/drivers/hwmon/Kconfig	2009-07-06 18:33:48.566759515 +0200
-> @@ -402,12 +402,12 @@
->  	  will be called gl520sm.
->  
->  config SENSORS_CORETEMP
-> -	tristate "Intel Core (2) Duo/Solo temperature sensor"
-> +	tristate "Intel Core/Core2/Atom temperature sensor"
->  	depends on X86 && EXPERIMENTAL
->  	help
->  	  If you say yes here you get support for the temperature
-> -	  sensor inside your CPU. Supported all are all known variants
-> -	  of Intel Core family.
-> +	  sensor inside your CPU. Most of the family 6 CPUs
-> +	  are supported. Check documentation/driver for details.
->  
->  config SENSORS_IBMAEM
->  	tristate "IBM Active Energy Manager temperature/power sensors and control"
-
-
--- 
-Jean Delvare
+iEYEARECAAYFAkpVA6YACgkQ3J9wPJqZRNVM6wCghNTnneKd3ta0M7X9GO+EeRNZ
+OH4An3uuSHgvH/rB+8leDYf7zFAOI9mc
+=HIzj
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 lm-sensors mailing list
