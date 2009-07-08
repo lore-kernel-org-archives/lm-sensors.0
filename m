@@ -1,7 +1,7 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Wed, 08 Jul 2009 20:38:05 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 08 Jul 2009 21:18:34 +0000
 Subject: Re: [lm-sensors] [PATCH] Add support for Atom CPUs
-Message-Id: <4A5503AD.2060800@assembler.cz>
+Message-Id: <20090708231834.2169e6fb@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4A522794.1020507@assembler.cz>
 In-Reply-To: <4A522794.1020507@assembler.cz>
@@ -10,62 +10,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
->> +	/* if we dont use msr EE it means we are desktop CPU (with exeception of Atom) */
+On Wed, 08 Jul 2009 22:38:05 +0200, Rudolf Marek wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
 > 
-> Line too long.
-
-Well I thought the 80 lines limit is not so strict anymore.
-
+> >> +	/* if we dont use msr EE it means we are desktop CPU (with exeception of Atom) */
+> > 
+> > Line too long.
 > 
->> +	} else if (tjmax = 100000) {
->>  		dev_warn(dev, "Using relative temperature scale!\n");
->>  	}
->>  
+> Well I thought the 80 lines limit is not so strict anymore.
+
+Quoting CodingStyle:
+
+"The only exception to this is where exceeding 80 columns significantly
+increases readability and does not hide information."
+
+Do you really believe that splitting this comment will hinder
+readability?
+
+> >> +	} else if (tjmax = 100000) {
+> >>  		dev_warn(dev, "Using relative temperature scale!\n");
+> >>  	}
+> >>  
+> > 
+> > I think function adjust_tjmax() has reached its limit of readability. I
+> > don't understand why it needs to be so complex. For example, the case
+> > of the Atom is very simply always return 90 degree C. So why not just:
 > 
-> I think function adjust_tjmax() has reached its limit of readability. I
-> don't understand why it needs to be so complex. For example, the case
-> of the Atom is very simply always return 90 degree C. So why not just:
-
-Yes right, but it is going to be complex for penryns. I will try to simplify it.
-
+> Yes right, but it is going to be complex for penryns. I will try to simplify it.
 > 
-> 	/* Atoms seems to have TjMax at 90C */
-> 	if (c->x86_model = 0x1c)
-> 		return 90000;
-
-Because of multiple returns? If you are OK with multiple returns I will fix it.
-
+> > 
+> > 	/* Atoms seems to have TjMax at 90C */
+> > 	if (c->x86_model = 0x1c)
+> > 		return 90000;
 > 
-> at the beginning of the function, and be done with that case? And I
-> suspect the rest can be simplified a bit too.
-> 
->> @@ -248,9 +256,9 @@
->>  	platform_set_drvdata(pdev, data);
->>  
->>  	/* read the still undocumented IA32_TEMPERATURE_TARGET it exists
->> -	   on older CPUs but not in this register */
->> +	   on older CPUs but not in this register, Atoms don't have it too */
-> 
-> s/too/either/
+> Because of multiple returns? If you are OK with multiple returns I will fix it.
 
-ok
-> sensors-detect needs to be updated as well.
-
-yes good catch.
+Last time I checked, the C language supported it ;) I see no point in
+limiting yourself if this means your code becomes harder to read.
 
 Thanks,
-Rudolf
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iEYEARECAAYFAkpVA6YACgkQ3J9wPJqZRNVM6wCghNTnneKd3ta0M7X9GO+EeRNZ
-OH4An3uuSHgvH/rB+8leDYf7zFAOI9mc
-=HIzj
------END PGP SIGNATURE-----
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
