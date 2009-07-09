@@ -1,180 +1,188 @@
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
-Date: Fri, 31 Jul 2009 00:41:03 +0000
-Subject: [lm-sensors] [PATCH 4/6] hwmon: adxx: Convert to device table
-Message-Id: <20090731004103.GD8371@oksana.dev.rtsoft.ru>
+From: "Bill Nackers" <bnackers@trentontechnology.com>
+Date: Thu, 09 Jul 2009 16:02:36 +0000
+Subject: [lm-sensors] lm-sensors, RHEL 5.3, 32bit
+Message-Id: <4BD6296F442049D48C2A6FD3FF61C693@NACKERS4>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6349597410018311455=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090731003957.GA23982@oksana.dev.rtsoft.ru>
-In-Reply-To: <20090731003957.GA23982@oksana.dev.rtsoft.ru>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+
+--===============6349597410018311455==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_000E_01CA008D.2719EE40"
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_000E_01CA008D.2719EE40
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ben Dooks <ben@fluff.org>, David Brownell <dbrownell@users.sourceforge.net>, David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Jean Delvare <khali@linux-fr.org>, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linuxppc-dev@ozlabs.org
 
-This patch makes the code a little bit nicer, and shorter.
+Hi,
+ 
+I am somewhat of a Linux newbie and was finally able to figure out what I
+needed to get lm-sensors installed and working...sort of.  Now, when I type
+"sensors" at a terminal window command prompt, it gives me the values once
+and then goes back to the command prompt.  Shouldn't it continue to monitor
+and not go back to the command prompt until I terminate the sensors
+program???
+ 
+Regards,
+ 
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
----
- drivers/hwmon/adcxx.c |  101 ++++++++-----------------------------------------
- 1 files changed, 16 insertions(+), 85 deletions(-)
+Bill Nackers
+Technical Service Engineer 
 
-diff --git a/drivers/hwmon/adcxx.c b/drivers/hwmon/adcxx.c
-index 242294d..5e9e095 100644
---- a/drivers/hwmon/adcxx.c
-+++ b/drivers/hwmon/adcxx.c
-@@ -43,6 +43,7 @@
- #include <linux/hwmon.h>
- #include <linux/hwmon-sysfs.h>
- #include <linux/mutex.h>
-+#include <linux/mod_devicetable.h>
- #include <linux/spi/spi.h>
- 
- #define DRVNAME		"adcxx"
-@@ -157,8 +158,9 @@ static struct sensor_device_attribute ad_input[] = {
- 
- /*----------------------------------------------------------------------*/
- 
--static int __devinit adcxx_probe(struct spi_device *spi, int channels)
-+static int __devinit adcxx_probe(struct spi_device *spi)
- {
-+	int channels = spi_get_device_id(spi)->driver_data;
- 	struct adcxx *adc;
- 	int status;
- 	int i;
-@@ -204,26 +206,6 @@ out_err:
- 	return status;
- }
- 
--static int __devinit adcxx1s_probe(struct spi_device *spi)
--{
--	return adcxx_probe(spi, 1);
--}
--
--static int __devinit adcxx2s_probe(struct spi_device *spi)
--{
--	return adcxx_probe(spi, 2);
--}
--
--static int __devinit adcxx4s_probe(struct spi_device *spi)
--{
--	return adcxx_probe(spi, 4);
--}
--
--static int __devinit adcxx8s_probe(struct spi_device *spi)
--{
--	return adcxx_probe(spi, 8);
--}
--
- static int __devexit adcxx_remove(struct spi_device *spi)
- {
- 	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-@@ -241,79 +223,33 @@ static int __devexit adcxx_remove(struct spi_device *spi)
- 	return 0;
- }
- 
--static struct spi_driver adcxx1s_driver = {
--	.driver = {
--		.name	= "adcxx1s",
--		.owner	= THIS_MODULE,
--	},
--	.probe	= adcxx1s_probe,
--	.remove	= __devexit_p(adcxx_remove),
-+static const struct spi_device_id adcxx_ids[] = {
-+	{ "adcxx1s", 1 },
-+	{ "adcxx2s", 2 },
-+	{ "adcxx4s", 4 },
-+	{ "adcxx8s", 8 },
-+	{ },
- };
-+MODULE_DEVICE_TABLE(spi, adcxx_ids);
- 
--static struct spi_driver adcxx2s_driver = {
-+static struct spi_driver adcxx_driver = {
- 	.driver = {
--		.name	= "adcxx2s",
-+		.name	= "adcxx",
- 		.owner	= THIS_MODULE,
- 	},
--	.probe	= adcxx2s_probe,
--	.remove	= __devexit_p(adcxx_remove),
--};
--
--static struct spi_driver adcxx4s_driver = {
--	.driver = {
--		.name	= "adcxx4s",
--		.owner	= THIS_MODULE,
--	},
--	.probe	= adcxx4s_probe,
--	.remove	= __devexit_p(adcxx_remove),
--};
--
--static struct spi_driver adcxx8s_driver = {
--	.driver = {
--		.name	= "adcxx8s",
--		.owner	= THIS_MODULE,
--	},
--	.probe	= adcxx8s_probe,
-+	.id_table = adcxx_ids,
-+	.probe	= adcxx_probe,
- 	.remove	= __devexit_p(adcxx_remove),
- };
- 
- static int __init init_adcxx(void)
- {
--	int status;
--	status = spi_register_driver(&adcxx1s_driver);
--	if (status)
--		goto reg_1_failed;
--
--	status = spi_register_driver(&adcxx2s_driver);
--	if (status)
--		goto reg_2_failed;
--
--	status = spi_register_driver(&adcxx4s_driver);
--	if (status)
--		goto reg_4_failed;
--
--	status = spi_register_driver(&adcxx8s_driver);
--	if (status)
--		goto reg_8_failed;
--
--	return status;
--
--reg_8_failed:
--	spi_unregister_driver(&adcxx4s_driver);
--reg_4_failed:
--	spi_unregister_driver(&adcxx2s_driver);
--reg_2_failed:
--	spi_unregister_driver(&adcxx1s_driver);
--reg_1_failed:
--	return status;
-+	return spi_register_driver(&adcxx_driver);
- }
- 
- static void __exit exit_adcxx(void)
- {
--	spi_unregister_driver(&adcxx1s_driver);
--	spi_unregister_driver(&adcxx2s_driver);
--	spi_unregister_driver(&adcxx4s_driver);
--	spi_unregister_driver(&adcxx8s_driver);
-+	spi_unregister_driver(&adcxx_driver);
- }
- 
- module_init(init_adcxx);
-@@ -322,8 +258,3 @@ module_exit(exit_adcxx);
- MODULE_AUTHOR("Marc Pignat");
- MODULE_DESCRIPTION("National Semiconductor adcxx8sxxx Linux driver");
- MODULE_LICENSE("GPL");
--
--MODULE_ALIAS("adcxx1s");
--MODULE_ALIAS("adcxx2s");
--MODULE_ALIAS("adcxx4s");
--MODULE_ALIAS("adcxx8s");
--- 
-1.6.3.3
+Support Hours:  8AM-6PM Eastern Time, Monday-Friday 
 
+  
+
+TRENTON
+Phone:         (800) 875-6031  (770) 287-3100
+E-mail:          <mailto:wbnackers@TrentonTechnology.com>
+bnackers@TrentonTechnology.com
+
+Web:             <http://www.trentontechnology.com/>
+www.TrentonTechnology.com
+Follow us:    <http://www.twitter.com/TrentonTech>
+www.Twitter.com/TrentonTech
+____________________________________________________________________________
+__________________________
+
+This electronic mail message and any attachment(s) contain information
+intended for the exclusive use of the party to whom it is addressed and may
+contain information that is proprietary, privileged, confidential, and/or
+exempt from disclosure.  If you are not the intended recipient, you are
+hereby notified that any viewing, copying, disclosure or distribution of
+this information is prohibited.  If you believe this message was sent to you
+in error, please immediately notify the sender by reply e-mail and delete
+this message from your computer system without disclosing it.  Thank you.
+____________________________________________________________________________
+__________________________
+ 
+
+------=_NextPart_000_000E_01CA008D.2719EE40
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META content=3D"text/html; charset=3Dus-ascii" =
+http-equiv=3DContent-Type>
+<META name=3DGENERATOR content=3D"MSHTML 8.00.6001.18702"></HEAD>
+<BODY>
+<DIV><SPAN class=3D413515215-09072009><FONT size=3D2=20
+face=3DArial>Hi,</FONT></SPAN></DIV>
+<DIV><SPAN class=3D413515215-09072009><FONT size=3D2=20
+face=3DArial></FONT></SPAN>&nbsp;</DIV>
+<DIV><SPAN class=3D413515215-09072009><FONT size=3D2 face=3DArial>I am =
+somewhat of a=20
+Linux newbie and was finally able to figure out what I needed to get =
+lm-sensors=20
+installed and working...sort of.&nbsp; Now, when I type "sensors" at a =
+terminal=20
+window command prompt, it gives me the values once and then goes back to =
+the=20
+command prompt.&nbsp; Shouldn't it continue to monitor and not go back =
+to the=20
+command prompt until I terminate the sensors =
+program???</FONT></SPAN></DIV>
+<DIV>&nbsp;</DIV>
+<DIV align=3Dleft>
+<DIV align=3Dleft><FONT size=3D2 face=3DArial>Re</FONT><FONT =
+face=3DArial><FONT=20
+size=3D2>gards,</FONT></FONT></DIV>
+<DIV align=3Dleft><FONT face=3DArial><FONT size=3D2><SPAN=20
+class=3D636133818-01052009></SPAN></FONT></FONT>&nbsp;</DIV>
+<DIV align=3Dleft>
+<DT>
+<DIV align=3Dleft><FONT face=3DArial><FONT size=3D2>Bill =
+Nackers<BR>Technical=20
+Service&nbsp;Engineer<SPAN=20
+class=3D056273819-12052009>&nbsp;</SPAN></FONT></FONT></DIV></DT></DIV>
+<DT>
+<DIV align=3Dleft><FONT face=3DArial><FONT size=3D2><SPAN=20
+class=3D056273819-12052009>Support Hours:&nbsp; 8AM-6PM Eastern Time,=20
+Monday-Friday&nbsp;</SPAN></FONT></FONT></DIV>
+<DT>
+<DIV align=3Dleft><FONT face=3DArial><FONT size=3D2><SPAN=20
+class=3D636133818-01052009>&nbsp;</SPAN><SPAN=20
+class=3D636133818-01052009>&nbsp;</SPAN></FONT></FONT></DIV>
+<DT>
+<DIV align=3Dleft><FONT color=3D#ff0000><FONT face=3DArial><FONT=20
+size=3D2><STRONG>TRENTON</STRONG></FONT></FONT></FONT><BR><FONT =
+size=3D1><FONT=20
+face=3DArial><STRONG>Phone:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</ST=
+RONG><SPAN>&nbsp;<SPAN=20
+class=3D056273819-12052009>&nbsp;<STRONG>(800) 875-6031&nbsp;=20
+(</STRONG></SPAN></SPAN></FONT></FONT><FONT size=3D1 =
+face=3DArial><STRONG>770)=20
+287-3100<BR>E-mail:&nbsp;=20
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</STRONG></FONT><A=20
+href=3D"mailto:wbnackers@TrentonTechnology.com" target=3D_blank><FONT=20
+color=3D#0000ff><FONT face=3DArial><FONT size=3D1><STRONG><SPAN=20
+class=3D056273819-12052009><FONT color=3D#800000><FONT=20
+color=3D#0000ff>bnackers@</FONT></FONT></SPAN>TrentonTechnology.com</STRO=
+NG></FONT></FONT></FONT></A></DIV>
+<DT>
+<DIV align=3Dleft><FONT size=3D1=20
+face=3DArial><STRONG>Web:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+&nbsp;&nbsp;&nbsp;&nbsp; </STRONG></FONT><A=20
+href=3D"http://www.trentontechnology.com/" target=3D_blank><FONT =
+color=3D#0000ff=20
+size=3D1 =
+face=3DArial><STRONG>www.TrentonTechnology.com</STRONG></FONT></A><BR><FO=
+NT=20
+size=3D1 face=3DArial><STRONG>Follow us: &nbsp;&nbsp;</STRONG></FONT><A=20
+href=3D"http://www.twitter.com/TrentonTech"><FONT size=3D1=20
+face=3DArial><STRONG>www.Twitter.com/TrentonTech</STRONG></FONT></A><BR><=
+SPAN=20
+style=3D"FONT-FAMILY: Arial; FONT-SIZE: =
+7.5pt">__________________________________________________________________=
+____________________________________<BR><BR>This=20
+electronic mail message and any attachment(s) contain information =
+intended for=20
+the exclusive use of the party to whom it is </SPAN><SPAN=20
+style=3D"FONT-FAMILY: Arial; FONT-SIZE: 7.5pt">addressed and may contain =
+
+information that is proprietary, privileged, confidential, and/or exempt =
+from=20
+disclosure.<SPAN style=3D"mso-spacerun: yes">&nbsp; </SPAN>If you are=20
+not&nbsp;</SPAN><SPAN style=3D"FONT-FAMILY: Arial; FONT-SIZE: 7.5pt">the =
+intended=20
+recipient, you are hereby notified that any viewing, copying, disclosure =
+or=20
+distribution of this information is prohibited.&nbsp; </SPAN><SPAN=20
+style=3D"FONT-FAMILY: Arial; FONT-SIZE: 7.5pt">If you believe this =
+message was=20
+sent to you in error, please immediately notify the sender by reply =
+e-mail and=20
+delete this message </SPAN><SPAN=20
+style=3D"FONT-FAMILY: Arial; FONT-SIZE: 7.5pt">from your computer system =
+without=20
+disclosing it.<SPAN style=3D"mso-spacerun: yes">&nbsp; </SPAN>Thank=20
+you.<BR>_________________________________________________________________=
+_____________________________________</SPAN></DIV></DT></DIV>
+<DIV>&nbsp;</DIV></BODY></HTML>
+
+------=_NextPart_000_000E_01CA008D.2719EE40--
+
+
+
+
+--===============6349597410018311455==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6349597410018311455==--
+
+
