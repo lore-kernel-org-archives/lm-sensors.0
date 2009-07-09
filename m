@@ -1,58 +1,44 @@
 From: Juerg Haefliger <juergh@gmail.com>
-Date: Wed, 01 Jul 2009 01:06:43 +0000
-Subject: [lm-sensors] Fwd:  dme1737 sensors force_start
-Message-Id: <191fb4ca0906301806v9d8f2afw9689ff5309f99200@mail.gmail.com>
+Date: Thu, 09 Jul 2009 14:19:09 +0000
+Subject: Re: [lm-sensors] sensors-detect and c7temp
+Message-Id: <191fb4ca0907090719u4b4994b6x33a12874b83aaf04@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Adding  the list
-
-
----------- Forwarded message ----------
-From: Juerg Haefliger <juergh@gmail.com>
-Date: Tue, Jun 30, 2009 at 6:00 PM
-Subject: Re: [lm-sensors] dme1737 sensors force_start
-To: Kushal Koolwal <kushalkoolwal@hotmail.com>
-
-
-Hi Kushal,
-
-
->
-> Pardon me for my ignore. I am still not clear if this is a definite BIOS issue or a driver issues or partly both. I do have access to our firmware engineer who develops the BIOS. If you think that this is a 100% BIOS issue I can ask BIOS guy to fix this. Also I appreciate if anybody can tell me what needs to be fixed exactly in the BIOS.
-
-It's a BIOS issue. The driver shouldn't have to enable HW monitoring,
-the BIOS should. Unless the HW monitoring pieces of the Super-IO chip
-in this machine are not used but that doesn't seem to be the case
-since you say everything works fine when you use the force_start
-parameter. Note that there are machines out there that have Super-IOs
-with HW monitoring capabilities which are not connected/unused and
-hence not enabled by the BIOS.
-
-Are there any options in the BIOS? Do you see temp/voltage data in the BIOS?
-
-...juerg
-
-
-> Thanks
->
-> Kushal Koolwal
->
-> I do blog at http://blogs.koolwal.net/
-> _________________________________________________________________
-> Windows Live™ SkyDrive™: Get 25 GB of free online storage.
-> http://windowslive.com/online/skydrive?ocid=TXT_TAGLM_WL_SD_25GB_062009
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-
+SGFucywgTmljaG9sYXMsCgpIYW5zLCB5b3UgcmV2aWV3ZWQgaXQgYWxyZWFkeSBhIGxvbmcgdGlt
+ZSBhZ28gOi0pCihodHRwOi8vYXJ0aWNsZS5nbWFuZS5vcmcvZ21hbmUubGludXguZHJpdmVycy5z
+ZW5zb3JzLzE3MDI5L21hdGNox3RlbXApCkkgcGVyc29uYWxseSBkb24ndCBoYXZlIGEgQzcgYW5k
+IHRoZSBkcml2ZXIgZGlkIG5ldmVyIG1ha2UgaXQgaW50bwptYWlubGluZSBJIGd1ZXNzIG1haW5s
+eSBiZWNhdXNlIHRoZXJlIHdlcmUgcXVpdGUgYSBmZXcgdGVzdGVycyB0aGF0CnJlcG9ydGVkIDAg
+QyB0ZW1wIHJlYWRpbmdzLiBTb21lIEM3IGRvbid0IHNlZW0gdG8gaGF2ZSB0aGUgU1cgcmVhZGFi
+bGUKdGVtcCBzZW5zb3IgZW5hYmxlZCBhbmQgSSBjb3VsZG4ndC9uZXZlciBoYWQgdGhlIHRpbWUg
+dG8gZmlndXJlIG91dAp3aGF0IGlzIGdvaW5nIG9uLiBPbiB0b3Agb2YgdGhhdCwgSGFyYWxkIGZy
+b20gVklBIHBvc3RlZCBhIHBhdGNoIGZvciBhCmRpZmZlcmVudCBkcml2ZXIgZm9yIHRoZSBDNy4K
+aHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVybWFpbC9sbS1zZW5zb3JzLzIwMDktSnVu
+ZS8wMjYwMzcuaHRtbAoKSmVhbiB3YXMgYXNraW5nIHdoaWNoIG9uZSBoZSBzaG91bGQgcGljayB0
+byBpbmNsdWRlIGFuZCBJIHJlcGxpZWQgd2l0aAphIGZldyBxdWVzdGlvbnMgZm9yIEhhcmFsZCBh
+bmQgd2UgYXJlIHdhaXRpbmcgb24gYSByZXNwb25zZS4gVGhlIGJhbGwKaXMgaW4gSGFyYWxkJ3Mg
+Y291cnQuCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9waXBlcm1haWwvbG0tc2Vuc29ycy8y
+MDA5LUp1bmUvMDI2MTY3Lmh0bWwKCk5pY2hvbGFzLCBmZWVsIGZyZWUgdG8gdGVzdCBlaXRoZXIg
+b3IgYm90aCBkcml2ZXJzLgoKSXQncyB0aW1lIHRvIGdldCBlaXRoZXIgb25lIG9mIHRoZW0gaW50
+byB0aGUga2VybmVsLiBJZiB3ZSBkb24ndCBoZWFyCmZyb20gSGFyYWxkIEkgc3VnZ2VzdCB0byBw
+aWNrIG1pbmUgOi0pCgouLi5qdWVyZwoKCk9uIFRodSwgSnVsIDksIDIwMDkgYXQgNjoxMyBBTSwg
+SGFucyBkZSBHb2VkZTxoZGVnb2VkZUByZWRoYXQuY29tPiB3cm90ZToKPiBIaSwKPgo+IE9uIDA2
+LzI1LzIwMDkgMDk6NDggUE0sIE5pY29sYXMgQ2hhdXZldCB3cm90ZToKPj4KPj4gSGVsbG8gSGFu
+cyEKPj4KPj4gwqBGcm9tIGh0dHA6Ly93d3cubG0tc2Vuc29ycy5vcmcvd2lraS9EZXZpY2UgYW5k
+IGFib3V0IEM3IChFc3RoZXIpCj4+Cj4+IEkgb3duIHN1Y2ggZGV2aWNlLCBhbmQgaXQgc2VlbXMg
+c3RpbGwgcmVxdWVzdGluZyB0ZXN0ZXJzIGZvciB0aGUgYzd0ZW1wCj4+IGRyaXZlciA/Cj4+Cj4K
+PiBJJ20gbm90IHN1cmUgd2hhdCB0aGUgc3RhdHVzIG9mIHRoaXMgZHJpdmVyIGlzLCBpdCBzZWVt
+cyBpdCBuZXZlciBtYWRlIGl0Cj4gaW50bwo+IHRoZSBtYWlubGluZSBrZXJuZWwsIHdoaWNoIGlz
+IGEgcGV0dHkuIEkgaG9wZSB0aGUgYXV0aG9yIG9mIHRoZSBkcml2ZXIKPiAoSnVlcmcgSGFlZmxp
+Z2VyIDxqdWVyZ2hAZ21haWwuY29tPiwgaW4gdGhlIENDKSBjYW4gYW5zd2VyIHRoaXMuCj4KPiBK
+dWVyZywgd2hhdCBldmVyIGhhcHBlbmVkIHRvIHRoZSBjN3RlbXAgZHJpdmVyID8gQXJlIHlvdSBz
+dGlsbCBpbnRlcmVzdGVkCj4gaW4gZ2V0dGluZyBpdCBpbnRvIHRoZSBtYWlubGluZT8gSWYgc28g
+Tmljb2xhcyBjYW4gdGVzdCBpdCBhbmQgSSBjYW4gcmV2aWV3Cj4gaXQuCj4KPiBUaGFua3MgJiBS
+ZWdhcmRzLAo+Cj4gSGFucwo+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMu
+b3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNv
+cnMK
