@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 09 Jul 2009 09:20:03 +0000
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
+Date: Thu, 09 Jul 2009 09:42:37 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: k8temp.c Add support for AMD 11h
-Message-Id: <20090709112003.53fed044@hyperion.delvare>
+Message-Id: <1247131837.4486.19.camel@hpdv5.satnam>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1246959006.3001.7.camel@hpdv5.satnam>
 In-Reply-To: <1246959006.3001.7.camel@hpdv5.satnam>
@@ -10,29 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 09 Jul 2009 14:35:45 +0530, Jaswinder Singh Rajput wrote:
-> Hello Rudolf,
-> 
-> On Thu, 2009-07-09 at 09:31 +0200, Jean Delvare wrote:
-> > On Wed, 08 Jul 2009 23:25:42 +0200, Rudolf Marek wrote:
-> > > I think Jean will have some comments too. Here is quick review.
+On Thu, 2009-07-09 at 11:20 +0200, Jean Delvare wrote:
+> On Thu, 09 Jul 2009 14:35:45 +0530, Jaswinder Singh Rajput wrote:
+> > Hello Rudolf,
 > > 
-> > No, I do not. I don't have the time to review this code and I have no
-> > hardware to test. I will not pick this patch, it should go upstream via
-> > someone else (maybe Andrew Morton.)
+> > On Thu, 2009-07-09 at 09:31 +0200, Jean Delvare wrote:
+> > > On Wed, 08 Jul 2009 23:25:42 +0200, Rudolf Marek wrote:
+> > > > I think Jean will have some comments too. Here is quick review.
+> > > 
+> > > No, I do not. I don't have the time to review this code and I have no
+> > > hardware to test. I will not pick this patch, it should go upstream via
+> > > someone else (maybe Andrew Morton.)
+> > > 
 > > 
+> > Ok, It seems Jean is quite busy.
+> > 
+> > If you are interested and want to send it to upstream then I will send
+> > updated patches otherwise we should wait for few more months for Jean
+> > availability.
 > 
-> Ok, It seems Jean is quite busy.
+> No, do not wait for me. I have never said that I would take the patch
+> later.
 > 
-> If you are interested and want to send it to upstream then I will send
-> updated patches otherwise we should wait for few more months for Jean
-> availability.
 
-No, do not wait for me. I have never said that I would take the patch
-later.
+Ok, thanks for your help.
 
--- 
-Jean Delvare
+Then it will be better we should wait for some one adopt "HARDWARE
+MONITORING" :
+
+HARDWARE MONITORING
+L:      lm-sensors@lm-sensors.org
+W:      http://www.lm-sensors.org/
+S:      Orphan
+F:      drivers/hwmon/
+
+Thanks,
+--
+JSR
+
 
 _______________________________________________
 lm-sensors mailing list
