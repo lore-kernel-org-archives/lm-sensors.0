@@ -1,7 +1,7 @@
-From: Christopher Hogan <chris.c.hogan@gmail.com>
-Date: Sun, 05 Jul 2009 17:02:31 +0000
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 12 Jul 2009 08:44:49 +0000
 Subject: Re: [lm-sensors] w83627hf Device needs an ACPI driver
-Message-Id: <6977f2fc0907051002u5c8c2280u46b001c10a45a2a1@mail.gmail.com>
+Message-Id: <4A59A281.3070408@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <6977f2fc0907050840g7b70bdb8jf8a9a85f2be730a4@mail.gmail.com>
 In-Reply-To: <6977f2fc0907050840g7b70bdb8jf8a9a85f2be730a4@mail.gmail.com>
@@ -10,21 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> What motherboard is this? For ASUS there's asus_atk0110.
+On 07/05/2009 05:40 PM, Christopher Hogan wrote:
+> Loading w83627hf produces the following error:
+> w83627hf: Found W83627HF chip at 0x290
+> ACPI: I/O resource w83627hf [0x295-0x296] conflicts with ACPI region
+> IP__ [0x295-0x296]
+> ACPI: Device needs an ACPI driver
+>
+> I have ACPI compiled into kernel 2.6.29-gentoo-r3.
+>
+> I googled a bit and found kernel bug:
+> http://bugzilla.kernel.org/show_bug.cgi?id508
+>
+> Am I correct that an ACPI compatible driver for this chip doesn't
+> exist and that I should disable part/all of ACPI in order to have full
+> access to my sensors?
+>
 
-I'm not really sure. It's an older Acer desktop. Sensors-detect told
-me which module (w83627hf) to load.
+Hi,
 
-> Disabling ACPI on a modern system is not an option. You can override
-> that check with acpi_enforce_resources=lax (kernel option), but - as
-> the message says - both ACPI subsystem and the native hwmon driver
-> might try to touch the chip at the same time.
+For (some) more info on this see:
+http://hansdegoede.livejournal.com/7932.html
 
-Thanks, I'll have to give that a try. If the machine starts rebooting,
-or I can can't get a reading from the sensor, I might play with the
-polling options. Mostly, I want to keep an eye on the voltages and fan
-RPMs so that I know, in advance, if something is failing. AS I said,
-it's an older machine.
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
