@@ -1,117 +1,72 @@
 From: Andre Prendel <andre.prendel@gmx.de>
-Date: Wed, 22 Jul 2009 20:44:10 +0000
-Subject: Re: [lm-sensors] Another possible hwmon project
-Message-Id: <20090722204409.GA4411@ubuntu>
+Date: Sun, 12 Jul 2009 19:34:04 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Add TMP42x chip detection
+Message-Id: <20090712193403.GA4444@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090624081700.GB4949@ubuntu>
-In-Reply-To: <20090624081700.GB4949@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Jul 21, 2009 at 04:20:20PM +0200, Jean Delvare wrote:
-> Hi Andre, Hans,
+This patch adds detection for TI's TMP421, TMP422 and TMP423 chips to
+sensors-detect. Only the manufactory ID and the device ID is used for
+detection. I hope this is reliable enough.
+---
 
-Hey you two,
+ sensors-detect |   34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-> Sorry again for the late answer. I'm taking benefit of my forced
-> off-line time to answer my old e-mail.
-> 
-> On Fri, 26 Jun 2009 10:29:33 +0200, Andre Prendel wrote:
-> > Ok, that's a known issue. Sensors-detect already take care of it.
-> > 
-> > ---
-> > r5530 | khali | 2008-12-05 23:56:30 +0100 (Fr, 05. Dez 2008) | 3 lines
-> > 
-> > Alternatively look for DMI data in /sys/class/dmi/id, as
-> > /sys/devices/virtual/dmi/id only exists since kernel 2.6.28.
-> > 
-> > Index: prog/detect/sensors-detect
-> > =================================> > --- prog/detect/sensors-detect	(Revision 5529)
-> > +++ prog/detect/sensors-detect	(Revision 5530)
-> > @@ -2150,11 +2150,13 @@
-> >    	    'System Manufacturer' => 1,
-> >  	    	    'System Name' => 1,
-> >  		    );
-> > +		    my $dmi_id_dir;
-> >  
-> > 	# First try reading the strings from sysfs if available
-> > -	if (-d "$sysfs_root/devices/virtual/dmi/id") {
-> > +	if (-d ($dmi_id_dir = "$sysfs_root/devices/virtual/dmi/id")	# kernel >= 2.6.28
-> > +	 || -d ($dmi_id_dir = "$sysfs_root/class/dmi/id")) {
-> >  	    foreach my $k (keys %items) {
-> > -	    	       $dmi{$k} = sysfs_device_attribute("$sysfs_root/devices/virtual/dmi/id", $k);
-> > +		       		  $dmi{$k} = sysfs_device_attribute($dmi_id_dir, $k);
-> >  				  	   }
-> >  					   } else {
-> >  					     # Else fallback on calling dmidecode
-> > ---
-> > 
-> > Looking for both should be the best.
-> 
-> Indeed, I had hit the problem before, and solved it with the above
-> patch. BTW, I do not think Andre will have too much work with the
-> DMI/SMBIOS part, because what's already in sensors-detect should be
-> good enough. We can discuss which strings exactly we want to use,
-> whether we want to clean them up and how, how to encode them etc. but
-> the fetching part should be robust by now.
-> 
-> Actually, I added DMI identification to sensors-detect with in mind the
-> idea of leveraging it for automatic configuration, just as Hans was
-> mentioning (and as was already discussed on the list in the past.) I am
-> not sure whether sensors-detect would be used for that, or a separate
-> script/tool, but at least the logic and possibly the code for the
-> DMI-based board identification should be reusable.
->  
-> > > > BTW, Jean. Hans asked me for working on the automatic configuration of
-> > > > sensors using DMI information.
-> > > 
-> > > Ack, its still something which I would like to see done, so I suggested the
-> > > idea to Andre.
-> 
-> I also do think this should be done. My plan a few months ago was to
-> spend Novell's Hack Week IV on it, but it had to happen that this week
-> is the week I'm moving to a new flat, which means a few days without
-> easy Internet access, plus all the furniture to move around. So it was
-> definitely not the right week. But we can work on this together at any
-> later point anyway.
-> 
-> Slightly more into the details, my plan was a two-step one:
-> 
-> 1* Come up with a filesystem-based storage structure for board-specific
->    configuration files. For example:
-> 
->    /usr/share/sensors/conf/dmi/by-board/$vendor/$board.conf
->    /usr/share/sensors/conf/dmi/by-product/$vendor/$product.conf
-> 
->    And add the logic to sensors-detect (or another script, this can be
->    debated) to check for this file and propose to copy the
->    configuration file to /etc/sensors.d.
-> 
-> 2* Come up with a network-based storage structure for the same files.
->    I am not going into the details here, this would be done later
->    anyway and I have no precise idea of how to implement (and host) the
->    service. There might be something about this in the document that
->    was written by Jasper Alias, Ivo Manca and Gijs van der Weg back in
->    February 2007 *sigh* which I admit I never read *re-sigh*.
->    Andre, if you did not receive a copy of this document already, I can
->    send it to you.
-
-Unfortunately I'm very busy with my new job (have to explore tons of
-c++ code), so I didn't find the time to do some work on this. I didn't
-even read all the mailings to this topic. Hans already sent all the
-stuff to me. I hope I can find some time at the weekend to make some
-thoughts, gather all the information and maybe start another DMI
-Config thread :)
-
-> 
-> Thanks,
-> -- 
-> Jean Delvare
-
-Thanks,
-Andre
+Index: sensors/prog/detect/sensors-detect
+=================================--- sensors.orig/prog/detect/sensors-detect	2009-07-10 22:15:41.000000000 +0200
++++ sensors/prog/detect/sensors-detect	2009-07-12 19:26:14.000000000 +0200
+@@ -908,6 +908,21 @@
+ 		i2c_addrs => [0x4c..0x4e],
+ 		i2c_detect => sub { lm90_detect(@_, 10); },
+ 	}, {
++		name => "Texas Instruments TMP421",
++		driver => "tmp421",
++		i2c_addrs => [0x2a, 0x4c..0x4f],
++		i2c_detect => sub { tmp42x_detect(@_, 0); },
++	}, {
++		name => "Texas Instruments TMP422",
++		driver => "tmp421",
++		i2c_addrs => [0x2a, 0x4c..0x4f],
++		i2c_detect => sub { tmp42x_detect(@_, 1); },
++	}, {
++		name => "Texas Instruments TMP423",
++		driver => "tmp421",
++		i2c_addrs => [0x2a, 0x4c..0x4f],
++		i2c_detect => sub { tmp42x_detect(@_, 2); },
++	}, {
+ 		name => "National Semiconductor LM95231",
+ 		driver => "to-be-written",
+ 		i2c_addrs => [0x2b, 0x19, 0x2a],
+@@ -3907,6 +3922,25 @@
+ }
+ 
+ # Registers used:
++#   0xfe: Manufactorer ID
++#   0xff: Device ID
++sub tmp42x_detect()
++{
++	my ($file, $addr, $chip) = @_;
++
++	my $mid = i2c_smbus_read_byte_data($file, 0xfe);
++	my $cid = i2c_smbus_read_byte_data($file, 0xff);
++
++	return if ($mid != 0x55);
++
++	return 6 if ($chip = 0 && $cid = 0x21); # TMP421
++	return 6 if ($chip = 1 && $cid = 0x22); # TMP422
++	return 6 if ($chip = 2 && $cid = 0x23); # TMP423
++
++	return;
++}
++
++# Registers used:
+ #   0x03: Configuration (no low nibble, returns the previous low nibble)
+ #   0x04: Conversion rate
+ #   0xfe: Manufacturer ID
 
 _______________________________________________
 lm-sensors mailing list
