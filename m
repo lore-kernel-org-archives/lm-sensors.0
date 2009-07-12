@@ -1,111 +1,613 @@
-From: geza gaz <gezagaz@yahoo.com>
-Date: Mon, 15 Jun 2009 12:58:35 +0000
-Subject: Re: [lm-sensors] AMD K10 yet?
-Message-Id: <538155.80274.qm@web33308.mail.mud.yahoo.com>
+From: Marco Chiappero <marco@absence.it>
+Date: Sun, 12 Jul 2009 22:11:34 +0000
+Subject: [lm-sensors] HowTo Asus P5Q, W83667HG vs ATK0110 - fancontrol
+Message-Id: <4A5A5F96.30503@absence.it>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5082797809951011314=="
+Content-Type: multipart/mixed; boundary="------------070301050503070400010002"
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20090624094735.GA16670@punzenstreichler.doom>
+In-Reply-To: <20090624094735.GA16670@punzenstreichler.doom>
 To: lm-sensors@vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------070301050503070400010002
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
---===============5082797809951011314==
-Content-Type: multipart/alternative; boundary="0-1248057719-1245070715=:80274"
-
-
---0-1248057719-1245070715=:80274
-Content-Type: text/plain; charset=us-ascii
-
-
-
->Hi, just wondered if AMD K10 chips are supported yet? I searched the list for 
->this topic and see a patch from Oct 08, but it's confusing whether this patch 
->is working or not because of some errata on AMD's part. I see we also have 
->IT8720 capability according to sensors-detect, but this is not available yet 
->for us to use either.  Is there any (other) way to monitor temperatures on 
->this platform (Asus M4N78 pro motherboard, AMD Phenom II Deneb 920 cpu)?
->
->Thanks in advance for any info :)
-
-Hi, i also try to get CPU temp info from a system we just got. It is 
-Tyan Thunder s4985g3nr-e motherboard with an additional cpu board, so we have
- 8 Opterons, qadcore all. I downloaded the rewritten k8temp source and 
-recompiled. Also downloaded lm_sensors 3.1.0 and installed it. Using the new 
-k8temp module and the new sensors, the output i get is:
-
-w83627hf-isa-0c00
-Adapter: ISA adapter
-in0:         +1.78 V  (min =  +0.00 V, max =  +4.08 V)
-in1:         +1.76 V  (min =  +0.00 V, max =  +4.08 V)
-in2:         +3.36 V  (min =  +2.82 V, max =  +3.79 V)
-in3:         +2.96 V  (min =  +4.02 V, max =  +2.48 V)
-in4:         +1.46 V  (min =  +4.08 V, max =  +4.08 V)
-in5:         +1.49 V  (min =  +4.08 V, max =  +4.08 V)
-in6:         +1.17 V  (min =  +4.08 V, max =  +4.08 V)
-in7:         +3.33 V  (min =  +4.08 V, max =  +4.08 V)
-in8:         +0.06 V  (min =  +4.08 V, max =  +4.08 V)
-fan1:          0 RPM  (min =    0 RPM, div = 2)
-fan2:          0 RPM  (min =    0 RPM, div = 2)
-fan3:          0 RPM  (min =    0 RPM, div = 2)
-temp1:       +32.0 C  (high =  -1.0 C, hyst =  -1.0 C)  sensor = thermistor
-temp2:       +32.5 C  (high = +80.0 C, hyst = +75.0 C)  sensor = thermistor
-temp3:       +34.5 C  (high = +80.0 C, hyst = +75.0 C)  sensor = thermistor
-cpu0_vid:   +0.000 V
-beep_enable:enabled
-
-k10temp-pci-00c3
-Adapter: PCI adapter
-temp1:        +7.5 C                                    
-
-k10temp-pci-00cb
-Adapter: PCI adapter
-temp1:       +17.5 C                                    
-
-k10temp-pci-00d3
-Adapter: PCI adapter
-temp1:        +8.5 C                                    
-
-k10temp-pci-00db
-Adapter: PCI adapter
-temp1:        +8.0 C                                    
-
-k10temp-pci-00e3
-Adapter: PCI adapter
-temp1:       +12.0 C                                    
-
-k10temp-pci-00eb
-Adapter: PCI adapter
-temp1:        +4.5 C                                    
-
-k10temp-pci-00f3
-Adapter: PCI adapter
-temp1:        +4.4 C                                    
-
-k10temp-pci-00fb
-Adapter: PCI adapter
-temp1:        +7.5 C
+Hi,
+sorry for not noticing this thread before!
 
 
-I know the temps are supposed to be relative to some value, this is just 
-the point where i currently am. Also the 8 cpus, not all the cores are reported.
+ > > 0x11 indeed writes to 0x11.
+ > > This reflects somehow how echo into the /sys filesystem reacts.
+ >
+ > Indeed. So this is not a bug in the driver, but rather the hardware
+ > misbehaving. I'll ask out contact at Nuvoton about this.
 
-Peter
-
-
-
-      
---0-1248057719-1245070715=:80274
-Content-Type: text/html; charset=us-ascii
-
-<html><head><style type="text/css"><!-- DIV {margin:0px;} --></style></head><body><div style="font-family:times new roman,new york,times,serif;font-size:12pt"><div><br></div><div style="font-family: times new roman,new york,times,serif; font-size: 12pt;"><pre>&gt;Hi, just wondered if AMD K10 chips are supported yet? I searched the list for <br>&gt;this topic and see a patch from Oct 08, but it's confusing whether this patch <br>&gt;is working or not because of some errata on AMD's part. I see we also have <br>&gt;IT8720 capability according to sensors-detect, but this is not available yet <br>&gt;for us to use either.  Is there any (other) way to monitor temperatures on <br>&gt;this platform (Asus M4N78 pro motherboard, AMD Phenom II Deneb 920 cpu)?<br>&gt;<br>&gt;Thanks in advance for any info :)<br><br>Hi, i also try to get CPU temp info from a system we just got. It is <br>Tyan Thunder s4985g3nr-e motherboard with an additional cpu board, so we
- have<br>&nbsp;8 Opterons, qadcore all. I downloaded the rewritten k8temp source and <br>recompiled. Also downloaded lm_sensors 3.1.0 and installed it. Using the new <br>k8temp module and the new sensors, the output i get is:<br><br>w83627hf-isa-0c00<br>Adapter: ISA adapter<br>in0:         +1.78 V  (min =  +0.00 V, max =  +4.08 V)<br>in1:         +1.76 V  (min =  +0.00 V, max =  +4.08 V)<br>in2:         +3.36 V  (min =  +2.82 V, max =  +3.79 V)<br>in3:         +2.96 V  (min =  +4.02 V, max =  +2.48 V)<br>in4:         +1.46 V  (min =  +4.08 V, max =  +4.08 V)<br>in5:         +1.49 V  (min =  +4.08 V, max =  +4.08 V)<br>in6:         +1.17 V  (min =  +4.08 V, max =  +4.08 V)<br>in7:         +3.33 V  (min =  +4.08 V, max =  +4.08 V)<br>in8:         +0.06 V  (min =  +4.08 V, max =  +4.08 V)<br>fan1:          0 RPM  (min =    0 RPM, div = 2)<br>fan2:          0 RPM  (min =    0 RPM, div = 2)<br>fan3:          0 RPM  (min =    0 RPM, div = 2)<br>temp1:      
- +32.0 C  (high =  -1.0 C, hyst =  -1.0 C)  sensor = thermistor<br>temp2:       +32.5 C  (high = +80.0 C, hyst = +75.0 C)  sensor = thermistor<br>temp3:       +34.5 C  (high = +80.0 C, hyst = +75.0 C)  sensor = thermistor<br>cpu0_vid:   +0.000 V<br>beep_enable:enabled<br><br>k10temp-pci-00c3<br>Adapter: PCI adapter<br>temp1:        +7.5 C                                    <br><br>k10temp-pci-00cb<br>Adapter: PCI adapter<br>temp1:       +17.5 C                                    <br><br>k10temp-pci-00d3<br>Adapter: PCI adapter<br>temp1:        +8.5 C                                    <br><br>k10temp-pci-00db<br>Adapter: PCI adapter<br>temp1:        +8.0 C                                    <br><br>k10temp-pci-00e3<br>Adapter: PCI adapter<br>temp1:       +12.0 C                                    <br><br>k10temp-pci-00eb<br>Adapter: PCI adapter<br>temp1:        +4.5 C                                    <br><br>k10temp-pci-00f3<br>Adapter: PCI
- adapter<br>temp1:        +4.4 C                                    <br><br>k10temp-pci-00fb<br>Adapter: PCI adapter<br>temp1:        +7.5 C<br><br><br>I know the temps are supposed to be relative to some value, this is just <br>the point where i currently am. Also the 8 cpus, not all the cores are reported.<br><br>Peter<br></pre></div></div><br>
-
-      </body></html>
---0-1248057719-1245070715=:80274--
+Same behavior here with another Asus board (Maximus II Formula - 
+W83667HG-A).
 
 
---===============5082797809951011314==
+A few words about the topic W83667HG vs ATK0110.
+I'm currently using the atk0110 driver [1] and I'm happy with it since I 
+don't need a fine grain control for my fans and the default hw control 
+looks pretty good to me. As you know, the Asus software for Windows 
+indeed uses the ACPI interface, so I suggest the Asus owners to move to 
+the ATK0110 driver. However I'd like to implement or to see implemented 
+the fan profile switching for the Q-Fan mode, allowing minimum fan 
+control  but still sufficient for most users. I had a quick look at the 
+driver code and at my dsdt and it seems easy enought.
+
+I'd like to put attention on another aspect of many recent board from 
+Asus, the power management, aka EPU. Today I gave another try to Everest 
+on Windows and made a sensors dump (attached). As you can see from the 
+bus scan many chips are present, the Winbond, the two unidentified ICs 
+at 0x38 and 0x40, and, among others, an IC at 0x20. Accordingly with a 
+scan from the previous model of this board, the Maxiums Formula (Sensor 
+Type W83627DHG + W83791D + ADT7475 + ADP3228 (ISA 290h, SMB 
+2Ch/2Eh/20h)) and the Everest output, it is the ASP0800, a custom VRM 
+control chip from AD, providing (I suppose) the current CPU wattage 
+reading. I don't know the right indexes for this information but it's 
+somehow possibile. I think it's interesting for the Asus owners to add 
+this reading as well, if possible, isn't it?
+It would be great to receive further informations from Asus in order to 
+have some power tuning capabilities like the Windows 6-Engine software 
+provides, but it's out of the hwmon scope and need good contacts at Asus.
+
+
+[1] Well, to tell the true I would have no choice since most readings 
+are provided by two unknown ICs. 
+http://lists.lm-sensors.org/pipermail/lm-sensors/2008-September/024163.html
+
+--------------070301050503070400010002
+Content-Type: text/plain;
+ name="everest.txt"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline;
+ filename="everest.txt"
+
+Propriet��� sensore	
+Tipo sensore	Winbond W83667HG  (ISA 290h)
+Tipo sensore GPU	Diode  (ATI-Diode)
+Nome scheda madre	Asus Maximus II Series
+Rilevata intrusione nello chassis	No
+	
+Temperature	
+Scheda madre	40 ���C  (104 ���F)
+Processore	32 ���C  (90 ���F)
+Processore 1 / core 1	39 ���C  (102 ���F)
+Processore 1 / core 2	39 ���C  (102 ���F)
+North Bridge	51 ���C  (124 ���F)
+South Bridge	54 ���C  (129 ���F)
+PWM	42 ���C  (108 ���F)
+Diodo GPU	49 ���C  (120 ���F)
+Temperatura 1	26 ���C  (79 ���F)
+Temperatura 2	38 ���C  (100 ���F)
+Temperatura 3	40 ���C  (104 ���F)
+WDC WD6401AALS-00L3B2	[ TRIAL VERSION ]
+	
+Ventoline	
+Processore	981 RPM
+Chassis 1	672 RPM
+Chassis 2	802 RPM
+Chassis 3	842 RPM
+	
+Valori voltaggio	
+Core processore	0.94 V
++3.3 V	3.34 V
++5 V	5.11 V
++12 V	[ TRIAL VERSION ]
+Standby V +5	5.12 V
+CPU VTT	1.12 V
+CPU PLL	1.53 V
+North Bridge +1.1 V	1.12 V
+South Bridge +1.1 V	1.12 V
+South Bridge +1.5 V	1.50 V
+DIMM	2.11 V
+DIMM VTT	1.05 V
+	
+Valori dissipazione di potenza	
+Processore	4.14 W
+Debug Info F	D3 55 FF D4 0C
+Debug Info T	40 33 26
+Debug Info V	75 D9 D3 D1 D6 FF 9B (03)
+Debug Info I	C1 A513
+
+------[ Motherboard Info ]------
+
+Motherboard ID      : 65-1901-000001-00101111-121708-Eaglelake$A1007001_BIOS DATE: 12/17/08 12:28:08 VER: 08.00.14
+Motherboard Model   : Asus Maximus II Formula
+Motherboard Chipset : Intel Eaglelake P45
+
+DMI MB Manufacturer : ASUSTeK Computer INC.
+DMI MB Product      : Maximus II Formula
+DMI MB Version      : Rev 1.xx
+DMI MB Serial       : MS1C86B22000429
+DMI SYS Manufacturer: System manufacturer
+DMI SYS Product     : Maximus II Formula
+DMI SYS Version     : System Version
+DMI SYS Serial      : System Serial Number
+DMI BIOS Version    : 1901
+
+------[ GPIO @ isa 0500 ]------
+
+0000  C2 75 FD 19  C3 7F 6F E0  00 00 00 00  FD FE FD E2
+0010  00 00 00 00  00 00 00 00  00 00 00 00  00 00 00 00
+0020  00 00 08 00  00 00 00 00  00 00 00 00  C0 24 00 00
+0030  FF 00 03 03  50 FF 55 0D  83 FF FE 1F  00 00 00 00
+
+ITE 87xx HWMonitor Port	0000h
+ITE 87xx Device ID	0000h
+ITE 87xx Version	00h
+
+Winbond SuperIO HWMonitor Port	0290h
+Winbond SuperIO Device ID	A513h
+
+Fintek SuperIO HWMonitor Port	0000h
+Fintek SuperIO Device ID	0000h
+
+LPC47 SuperIO HWMonitor Port	0000h
+LPC47 SuperIO Device ID	FFFFh
+
+------[ LM78 ISA Sensor Device at 0290 ]------
+
+0000  04 7F 04 4A  30 00 3C 20  01 9B 01 01  3C 3C 04 04
+0010  04 FF 30 00  00 01 01 3C  43 17 00 00  2A FF FF CF
+0020  7C D9 D2 D0  D5 FF 9B 28  D4 55 FF DA  00 0D 12 9A
+0030  C2 14 04 B0  71 89 61 00  32 25 40 88  80 32 37 D5
+0040  03 DE 00 FF  FF 00 3F 35  2D 21 20 C0  10 95 00 A3
+0050  FF FF 00 FF  FF FF 00 80  C1 7F FF FF  19 C4 04 05
+0060  04 4A 50 00  01 01 3C FF  0A FF 01 FF  FF FF FF 1E
+0070  3C 3C 3C 3C  3C 37 FF FF  FF FF FF 4B  22 00 28 FF
+0080  04 7F 04 4A  30 00 3C 20  01 9B 01 01  3C 3C 04 04
+0090  04 FF 30 00  00 01 01 3C  43 17 00 00  2A FF FF CF
+00A0  7C D9 D2 D0  D5 FF 9B 28  D4 55 FF DA  00 0D 12 9A
+00B0  C2 14 04 B0  71 89 61 00  32 25 40 88  80 32 37 D5
+00C0  03 00 00 FF  FF 00 3F 35  2D 21 20 C0  10 95 00 A3
+00D0  FF FF 00 FF  FF FF 00 80  C1 7F FF FF  19 C4 04 05
+00E0  04 4A 50 00  01 01 3C FF  0A FF 01 FF  FF FF FF 1E
+00F0  3C 3C 3C 3C  3C 37 FF FF  FF FF FF 4B  22 00 28 FF
+
+------[ ACPI Temperatures & Fans ]------
+
+_TZ_.THM0._TMP             : 
+_TZ_.THM1._TMP             : 
+_TZ_.THR0._TMP             : 
+_TZ_.THR1._TMP             : 
+_TZ_.TZ00._TMP             : 
+_TZ_.TZ01._TMP             : 
+_TZ_.RFAN                  : 
+_TZ_.RFAN(0)               : 
+_TZ_.RFAN(1)               : 
+_SB_.ATKD.TMPR             : 
+_SB_.PCI0.LPC0.EC0_.CCTV   : 
+_SB_.PCI0.LPC0.EC0_.LRPM   : 
+_SB_.PCI0.LPC0.EC0_.HRPM   : 
+_SB_.PCI0.SBRG.EC0_.ECPU   : 
+_SB_.PCI0.SBRG.EC0_.TACH(0): 
+_SB_.PCI0.SBRG.EC0_.TACH(1): 
+_SB_.PCI0.SBRG.EC0_.TAH0   : 
+_SB_.PCI0.SBRG.EC0_.TAH1   : 
+_SB_.PCI0.SBRG.EC0_.ST00   : 
+_SB_.PCI0.SBRG.EC0_.SC01   : 
+_SB_.PCI0.SBRG.EC0_.SC02   : 
+_SB_.PCI0.SBRG.EC0_.SC03   : 
+_SB_.PCI0.SBRG.EC0_.SC04   : 
+_SB_.PCI0.SBRG.EC0_.SC05   : 
+_SB_.PCI0.SBRG.EC0_.SC06   : 
+_SB_.PCI0.PIB_.EC0_.TCRT   : 
+_SB_.PCI0.SBRG.EC0_.CTPM   : 
+_SB_.PCI0.SBRG.EC__.CPUT   : 
+_SB_.PCI0.SBRG.EC__.SYST   : 
+_SB_.PCI0.LPC_.EC0_.CTMP   : 
+_SB_.PCI0.LPCB.EC0_.CTMP   : 
+_SB_.PCI0.LPC_.EC0_.TMP1   : 
+_SB_.PCI0.LPC_.EC0_.TMP2   : 
+_SB_.PCI0.LPC_.EC0_.TMPI   : 
+_SB_.PCI0.LPC_.EC0_.TMPV   : 
+
+------[ Asus ATK0110 ]------
+
+Motherboard ID: P5Q-Deluxe
+
+ICPU/VCPU/PCPU: 10 / 82 / 54142
+
+CPU Temperature	  33.5 C
+MB Temperature	  40.0 C
+NB Temperature	  51.0 C
+OPT_FAN1 Temperature	  26.0 C
+OPT_FAN2 Temperature	  38.0 C
+OPT_FAN3 Temperature	  40.0 C
+POWER Temperature	  42.0 C
+SB Temperature	  54.0 C
+CH_FAN1 Speed	   671 RPM
+CH_FAN2 Speed	   802 RPM
+CH_FAN3 Speed	   841 RPM
+CPU FAN Speed	   992 RPM
+OPT1_FAN Speed	     0 RPM
+OPT2_FAN Speed	     0 RPM
+OPT3_FAN Speed	     0 RPM
+Power_FAN Speed	     0 RPM
++12 Voltage	12.152 V
++3.3 Voltage	 3.328 V
++5 Voltage	 5.112 V
+CPUPLL Voltage	 1.528 V
+DDR Voltage	 2.110 V
+Dram VTT Volt	 1.052 V
+NB11 Voltage	 1.118 V
+SB11 Voltage	 1.124 V
+SB15 Voltage	 1.501 V
+Vcore Voltage	 1.078 V
+VTTCPU Voltage	 1.124 V
+
+CPU Temperature	 153.7 C
+MB Temperature	 154.4 C
+Chassis FAN Speed	  1539 RPM
+CPU FAN Speed	  1538 RPM
+Power FAN Speed	  1540 RPM
++12V Voltage	 1.541 V
++3.3V Voltage	 1.543 V
++5V Voltage	 1.542 V
+Vcore Voltage	 1.536 V
+
+==========================================================================
+
+------[ 1 SMBus detected ]------
+
+------[ SMBus #0 ]------
+
+SMBus Type  : Intel ICH
+SMBus Port  : 0400
+Can Have SPD: Yes
+Scan Type   : Full
+
+------[ SMBus Device B00-D20 ]------
+
+  0000  FF 80 17 7F FF FF FF FF FF FF FF FF FF FF FF FF  ...............
+  0010  00 FF FF FF FF FF FF FF FF B0 FF FF FF FF FF FF  ................
+  0020  20 00 FF FF FF 20 B2 FF FF FF FF FF FF FF FF FF   .... ..........
+  0030  FF FF FF FF FF FF FF FF 74 03 FF FF FF FF FF FF  ........t.......
+  0040  FF FF FF FF FF FF FF FF FF FF 64 FF FF FF FF FF  ..........d.....
+  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0060  FF FF FF FF FF FF FF FF FF FF 2C FF FF FF FF FF  ..........,.....
+  0070  FF FF FF FF FF FF FF FF 02 08 00 00 FF FF 80 FF  ................
+  0080  00 FF FF FF FF FF FF FF FF FF FF 52 04 FF FF FF  ...........R....
+  0090  FF FF FF FF FF FF 80 FF FF 41 98 01 FF FF FF FF  .........A......
+  00A0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00B0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00C0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00D0  00 03 72 72 03 02 01 33 43 00 00 00 00 28 00 07  ..rr...3C....(..
+  00E0  00 00 10 0C 10 10 17 10 10 10 10 FF 07 FF 00 00  ................
+  00F0  FF 0A FF FF FF 01 02 FF FF 00 00 50 FF FF FF FF  ...........P....
+
+------[ SMBus Device B00-D20 ]------
+
+  0000  FFFF 3780 6617 FF7F FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0010  7700 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 54B0 FFFF FFFF FFFF FFFF FFFF FFFF 
+  0020  7620 0000 FFFF FFFF FFFF 0020 00B2 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0030  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0074 0003 FFFF FFFF FFFF FFFF FFFF FFFF 
+  0040  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0064 FFFF FFFF FFFF FFFF FFFF 
+  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0060  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 012C FFFF FFFF FFFF FFFF FFFF 
+  0070  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF ED02 0208 3500 5E00 FFFF FFFF 1982 FFFF 
+  0080  DE00 FFFF FFFF FFFF FFFF FFFF FFFF D35E FFFF FFFF FFFF 0052 D304 FFFF FFFF FFFF 
+  0090  FFFF FFFF FFFF FFFF FFFF FFFF D353 FFFF FFFF 8641 3298 9701 FFFF FFFF FFFF FFFF 
+  00A0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00B0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00C0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00D0  FA00 9803 7572 1E72 5803 3402 8001 BA35 BA43 C000 7D00 1600 0000 B328 D600 A807 
+  00E0  1B00 7000 BD10 820C C010 AB10 0317 7D10 3A10 5110 EC10 FFFF F407 FFFF 3700 5C00 
+  00F0  4AFF E40A FFFF FFFF FFFF 7E01 0002 FFFF FFFF 8300 3E00 E250 B0FF FFFF FFFF FFFF 
+
+------[ SMBus Device B00-D30 ]------
+
+  0000  03 C0 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  ..@..@..........
+  0010  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0020  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0030  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0040  FF C0 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  ..@..@..........
+  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0060  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0070  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0080  FF C0 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  ..@..@..........
+  0090  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00A0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00B0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00C0  FF C0 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  ..@..@..........
+  00D0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00E0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00F0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+
+------[ SMBus Device B00-D30 ]------
+
+  0000  C003 40C0 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0010  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0020  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0030  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0040  C0FF 40C0 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0060  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0070  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0080  C0FF 40C0 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0090  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00A0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00B0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00C0  C0FF 40C0 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00D0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00E0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00F0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+
+------[ SMBus Device B00-D32 ]------
+
+  0000  03 40 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  .@@..@..........
+  0010  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0020  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0030  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0040  FF 40 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  .@@..@..........
+  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0060  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0070  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0080  FF 40 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  .@@..@..........
+  0090  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00A0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00B0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00C0  FF 40 40 00 00 40 00 00 FF FF FF FF FF FF FF FF  .@@..@..........
+  00D0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00E0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00F0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+
+------[ SMBus Device B00-D32 ]------
+
+  0000  4003 4040 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0010  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0020  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0030  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0040  40FF 4040 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0060  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0070  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0080  40FF 4040 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0090  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00A0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00B0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00C0  40FF 4040 0040 0000 FF00 FF40 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00D0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00E0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00F0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+
+------[ SMBus Device B00-D33 ]------
+
+  0000  03 C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
+  0010  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0020  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0030  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0040  FF C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
+  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0060  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0070  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0080  FF C0 C0 00 00 C0 FF 00 FF FF FF FF FF FF FF FF  ................
+  0090  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00A0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00B0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00C0  FF C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
+  00D0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00E0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00F0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+
+------[ SMBus Device B00-D33 ]------
+
+  0000  C003 C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0010  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0020  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0030  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0040  C0FF C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0060  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0070  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0080  C0FF C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0090  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00A0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00B0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00C0  C0FF C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00D0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00E0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00F0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+
+------[ SMBus Device B00-D35 ]------
+
+  0000  03 C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
+  0010  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0020  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0030  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0040  FF C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
+  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0060  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0070  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0080  FF C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
+  0090  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00A0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00B0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00C0  FF C0 C0 00 00 C0 00 00 FF FF FF FF FF FF FF FF  ................
+  00D0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00E0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00F0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+
+------[ SMBus Device B00-D35 ]------
+
+  0000  C003 C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0010  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0020  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0030  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0040  C0FF C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0060  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0070  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0080  C0FF C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0090  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00A0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00B0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00C0  C0FF C0C0 00C0 0000 FF00 FFC0 FF00 FF00 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00D0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00E0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00F0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+
+------[ SMBus Device B00-D38 ]------
+
+  0000  FF 55 A0 55 74 72 55 3F FF FF FF 01 00 FF FF FF  .U.UtrU?........
+  0010  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0020  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0030  00 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0040  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0060  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0070  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0080  FF FF FF FF FF FF FF FF FF FF 69 43 44 00 56 A1  ..........iCD.V.
+  0090  36 04 3E 08 64 04 DD 05 FF 05 64 04 1C 04 5E 04  6.>.d.....d...^.
+  00A0  00 00 E8 03 23 03 A0 02 FF FF FF FF 04 FF FF FF  ....#...........
+  00B0  FF 9A 00 03 16 00 00 03 05 FF FF FF FF FF FF FF  ................
+  00C0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00D0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00E0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00F0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+
+------[ SMBus Device B00-D38 ]------
+
+  0000  FFFF 5555 A0A0 5555 7474 7272 5555 3F3F FFFF FFFF FFFF 0101 0000 FFFF FFFF FFFF 
+  0010  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0020  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0030  0000 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0040  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0000 FFFF FFFF FFFF FFFF FFFF FFFF 0064 
+  0060  FFFF FFFF FFFF FFFF 00DD FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0005 FFFF FFFF FFFF 
+  0070  FFFF 0005 FFFF 001C FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0080  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 4343 4444 0000 0026 A1A1 
+  0090  FFFF 0404 3E3E 00A0 FFFF 0202 DDDD FFFF F8F8 FFFF 5E5E 0404 FFFF 0404 5E5E 0404 
+  00A0  0000 0003 E8E8 0000 FFFF 0000 A0A0 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00B0  FFFF 0000 FFFF 0303 1616 0000 0000 0303 0505 FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00C0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00D0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00E0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00F0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+
+------[ SMBus Device B00-D40 ]------
+
+  0000  FF FF FF FF FF FF FF 00 00 00 00 FF FF FF FF FF  ................
+  0010  FF 50 46 FF FF FF FF FF FF FF FF FF FF FF FF FF  .PF.............
+  0020  FF FF FF FF FF FF FF 00 FF FF FF FF FF FF FF FF  ................
+  0030  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0040  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0050  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0060  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0070  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  0080  FF FF FF FF FF FF FF FF FF FF 50 CC 29 00 56 EC  ..........P.).V.
+  0090  00 00 00 00 00 00 4A 03 FF FF FF FF FF FF FF FF  ......J.........
+  00A0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00B0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00C0  28 36 33 2A 28 26 1A FF FF FF FF FF FF FF FF 00  (63*(&..........
+  00D0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00E0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+  00F0  FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+
+------[ SMBus Device B00-D40 ]------
+
+  0000  FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0000 0000 0000 0000 FFFF FFFF FFFF FFFF FFFF 
+  0010  FFFF 5050 4646 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0020  FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0000 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0030  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0040  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0050  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0060  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0070  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  0080  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 5050 CCCC 2929 0000 5656 ECEC 
+  0090  0000 0000 0000 0000 0000 0000 4949 0303 FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00A0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00B0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00C0  2828 3636 3333 2A2A 2828 2626 1A1A FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 0000 
+  00D0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00E0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+  00F0  FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 
+
+------[ SMBus Device B00-D44 ]------
+
+  0000  00 00 00 04 00 00 00 00 00 16 10 17 07 12 07 09  ................
+  0010  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0020  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0030  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0050  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0060  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0070  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0090  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00A0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00B0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00C0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00D0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00E0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00F0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+
+------[ SMBus Device B00-D44 ]------
+
+  0000  FF00 FF00 FF00 FF04 FF00 FF00 FF00 FF00 FF00 FF16 FF10 FF17 FF07 FF12 FF07 FF09 
+  0010  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  0020  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  0030  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  0040  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  0050  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  0060  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  0070  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  0080  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  0090  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  00A0  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  00B0  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  00C0  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  00D0  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  00E0  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+  00F0  FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 FF00 
+
+------[ SMBus Device B00-D50 ]------
+
+  0000  80 08 08 0E 0A 61 40 00 05 25 40 00 82 08 00 00  .....a@..%@.....
+  0010  0C 08 30 03 02 00 03 37 50 00 00 32 1E 32 2D 01  ..0....7P..2.2-.
+  0020  17 25 05 12 3C 1E 1E 00 06 39 7F 80 14 1E 00 00  .%..<....9.....
+  0030  00 00 00 00 00 00 00 00 00 00 00 00 00 00 12 0D  ................
+  0040  7F 7F 9E 00 00 00 00 00 01 43 4D 32 58 32 30 34  .......CM2X204
+  0050  38 2D 38 35 30 30 43 35 44 20 20 20 20 00 00 00  8-8500C5D    ...
+  0060  00 00 00 6D 56 4E B1 21 FF FF FF FF FF FF FF FF  ...mVN.!........
+  0070  FF FF FF FF 8C 50 01 20 25 1E 20 25 25 1C 3C 29  .....P. %. %%.<)
+  0080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0090  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00A0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00B0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00C0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00D0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00E0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00F0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+
+------[ SMBus Device B00-D52 ]------
+
+  0000  80 08 08 0E 0A 61 40 00 05 25 40 00 82 08 00 00  .....a@..%@.....
+  0010  0C 08 30 03 02 00 03 37 50 00 00 32 1E 32 2D 01  ..0....7P..2.2-.
+  0020  17 25 05 12 3C 1E 1E 00 06 39 7F 80 14 1E 00 00  .%..<....9.....
+  0030  00 00 00 00 00 00 00 00 00 00 00 00 00 00 12 0D  ................
+  0040  7F 7F 9E 00 00 00 00 00 01 43 4D 32 58 32 30 34  .......CM2X204
+  0050  38 2D 38 35 30 30 43 35 44 20 20 20 20 00 00 00  8-8500C5D    ...
+  0060  00 00 00 6D 56 4E B1 21 FF FF FF FF FF FF FF FF  ...mVN.!........
+  0070  FF FF FF FF 8C 50 01 20 25 1E 20 25 25 1C 3C 29  .....P. %. %%.<)
+  0080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0090  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00A0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00B0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00C0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00D0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00E0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00F0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+
+------[ Chips Found ]------
+
+B00-D20: Analog Devices ASP0800 (Asus EPU2)
+
+--------------070301050503070400010002
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -115,4 +617,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5082797809951011314==--
+--------------070301050503070400010002--
