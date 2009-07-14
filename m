@@ -1,86 +1,54 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Thu, 16 Jul 2009 15:10:27 +0000
-Subject: Re: [lm-sensors] ECS 945GCT-D (Fintek F71862FG SuperIO)
-Message-Id: <4A5F42E3.8000201@hhs.nl>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Tue, 14 Jul 2009 16:57:44 +0000
+Subject: Re: [lm-sensors] Use the Linux I2C subsystem for a two wire
+Message-Id: <4A5CB908.4060404@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.53.0907032150370.2556@opal.ansuz.sooke.bc.ca>
-In-Reply-To: <Pine.LNX.4.53.0907032150370.2556@opal.ansuz.sooke.bc.ca>
+References: <528f13590907140925h7aa36452o60da32d3bf941241@mail.gmail.com>
+In-Reply-To: <528f13590907140925h7aa36452o60da32d3bf941241-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: alfred steele <alfred.jaquez-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM Sensors <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
 
-Hi,
+alfred steele wrote:
+> Hi,
+> I was looking at  the implementation of the i2 dev interface and the
+> bitbanging interface supplied by kernel v 2.6.24.  What i intend to do
+> is use the i2c kernel subsystem to write a userspace driver(using the
+> dev - ioctl interface) for a sensor SHT11 which uses a two wire
+> interface and a protocol with a packet structure which is different
+> from traditional I2C.
+Worth noting at this point that there is already a driver for this chip
+in mainline (sht15 under hwmon - I've copied this to the lm-sensors where
+that driver has previously been discussed).
+I can't recall exactly when it was merged, but it's not there in 2.6.29
+and is in 2.6.30.
 
-On 07/04/2009 04:06 AM, mskala@ansuz.sooke.bc.ca wrote:
-> I have an Elitegroup (ECS) model 945GCT-D motherboard.  This is an Intel
-> Atom 230 fanless mini-DTX board with a Fintek F71862FG SuperIO chip; it
-> seems to be similar to the Jetway NC92-330-LF, which uses the same SuperIO
-> chip, and using the configuration for that board from the Wiki, I get this
-> output:
->
-> f71862fg-isa-0a00
-> Adapter: ISA adapter
-> Vcc3V:       +3.22 V
-> Vcore:       +1.21 V
->     NB:       +1.91 V
-> + 5V:        +0.00 V
-> +12V:       +10.74 V
-> 5VSB:        +3.91 V
-> VDIMM:       +1.04 V
-> VSB3V:       +3.42 V
-> Vbat:        +3.33 V
-> CPUFAN:        0 RPM  ALARM
-> SYSFAN1:       0 RPM  ALARM
-> SYSFAN2:       0 RPM  ALARM
-> ?CPU Temp:   +52.0C  (high = +85.0C, hyst = +81.0C)
->                        (crit = +255.0C, hyst = +251.0C)  sensor = transistor
-> ?Sys Temp:     FAULT  (high = +85.0C, hyst = +81.0C)
->                        (crit = +100.0C, hyst = +96.0C)  sensor = transistor
-> ???? Temp:  +127.0C  (high = +70.0C, hyst = +68.0C)  ALARM
->                        (crit = +85.0C, hyst = +83.0C)  ALARM  sensor = transistor
->
-> The BIOS only reports three numbers:  VCore 1.210 V, VDIMM 1.912 V, and
-> CPU Temp 53.0C.  From this I conclude that the VCore and CPU temperature
-> numbers are being reported correctly by sensors, and the voltage labelled
-> "NB" is actually VDIMM.  The other two temperatures seem to be garbage,
-> and they don't change with system load, so I think the board probably does
-> not have those channels of the SuperIO chip hooked up to anything useful.
->
-> The board has three-pin headers for two fans (called "CPU" and "PWR") but
-> I have nothing hooked up to those.
->
-> So:  it's not difficult to create a configuration file stanza based on the
-> one from the NC92-330-LF with the non-useful parts set to ignore.
 
-I agree with all of the above :)
+> 
+>>From the header files and the API's therein, it looks like the
+> bitbanging interface should allow any  protocol header to be passed
+> as a "payload"(void *data) to the linux kernel i2c bitbanging driver
+> using gpio api.  Please let me know if this is a correct approach if
+> we intend to write a sensore driver with a proprietary 2 wire
+> interface protocol.
+> 
+> This would allow us to write  a user-space driver which is more
+> generic for the sensor and that can be changed to a I2C driver if the
+> GPIOs are later or tied in hardware to a  dedicated I2C controller. We
+> are using the mx31 pdk
+ 
+First thing to note is that this device is in no way using an i2c type
+comms protocol. I'd be somewhat surprised if any i2c controllers are
+generic enough to talk to it.  The start condition is non standard,
+it uses a 3 bit address (with only 000) supported, and it also has a
+fairly hideous means of indicating that the sampling process
+has finished.  Basically you'd have more luck using the gpio's directly
+than through anything to do with i2c.
 
-> I
-> wonder about those other voltages, though.  Most of them seem to be
-> measuring something, but 10.74 sounds low for the +12V supply, so I wonder
-> if the formula for that is inapplicable to this board.  But then again, I
-> am running this from an 84W power supply which maybe doesn't have enough
-> oomph to keep that bus at the full 12V?
-
-No, the 10.74 looks like it might actually be measuring 12V because of the
-scaling done in sensors.conf. The best way to create a configfile for a new
-motherboard is to first make sensors.conf completely empty, then you will see
-the actual voltages as measured by the chip (which might be scaled down from
-the actual voltages by external resistors.
-
-> The fact that the BIOS doesn't
-> report any other voltages than VCore and VDIMM is a little odd, and the
-> BIOS's VDIMM seems to be on a different channel from the one that was
-> called VDIMM on the Jetway board.  I don't know if any of those voltage
-> channels can be trusted.
-
-An other possible source of information for this is the windows software
-if any. If that measures more boltages there are probably more voltages hooked
-up if not, well then probably not. Or try asking Jetway.
-
-Regards,
-
-Hans
+---
+Jonathan Cameron
 
 _______________________________________________
 lm-sensors mailing list
