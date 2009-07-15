@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Jul 2009 20:09:37 +0000
+Date: Wed, 15 Jul 2009 20:32:02 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Add WM835x PMIC hardware monitoring
-Message-Id: <20090715220937.71823829@hyperion.delvare>
+Message-Id: <20090715223202.192a2cd9@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1247671762-19506-1-git-send-email-broonie@opensource.wolfsonmicro.com>
 In-Reply-To: <1247671762-19506-1-git-send-email-broonie@opensource.wolfsonmicro.com>
@@ -10,25 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
-
-On Wed, 15 Jul 2009 16:29:22 +0100, Mark Brown wrote:
-> This driver provides reporting of the status supply voltage rails
-> of the WM835x series of PMICs via the hwmon API.
+On Wed, 15 Jul 2009 21:27:44 +0100, Mark Brown wrote:
+> On Wed, Jul 15, 2009 at 10:09:37PM +0200, Jean Delvare wrote:
 > 
-> Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> ---
->  drivers/hwmon/Kconfig           |   10 +++
->  drivers/hwmon/Makefile          |    1 +
->  drivers/hwmon/wm8350-hwmon.c    |  155 +++++++++++++++++++++++++++++++++++++++
->  drivers/mfd/wm8350-core.c       |    3 +
->  include/linux/mfd/wm8350/core.h |    6 ++
->  5 files changed, 175 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/hwmon/wm8350-hwmon.c
+> > I'm pretty busy at the moment and normally I wouldn't go for a driver
+> > review, but this one seems simple enough and as I recall, I owe you
+> > one. So I'll review your code as my time permits, stay tuned.
+> 
+> Thanks.  I just realised that I sent you the wrong version of the patch
+> (got confused juggling a fairly large patch queue) - I'll follow up
+> later tonight or tomorrow with a fixed one, please wait for that.
+> Apologies for the noise.
 
-I'm pretty busy at the moment and normally I wouldn't go for a driver
-review, but this one seems simple enough and as I recall, I owe you
-one. So I'll review your code as my time permits, stay tuned.
+OK, no problem.
+
+> Is there someone else I should send hwmon stuff to instead if you don't
+> normally review this?  There is no entry in MAINTAINERS.
+
+You'd send the patch to the list and hope that someone will pick it and
+review it. But chances are thin. Other possibilities are finding
+someone else interested in support for that specific chip and have
+him/her review and test your driver. Then usually Andrew Morton can
+pick the patch and push it upstream.
+
+Or you can volunteer to be the new hwmon subsystem maintainer and send
+the patch to Linus yourself ;)
 
 -- 
 Jean Delvare
