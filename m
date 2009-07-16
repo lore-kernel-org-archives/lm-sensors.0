@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Jul 2009 20:07:53 +0000
+From: "Trisal, Kalhan" <kalhan.trisal@intel.com>
+Date: Thu, 16 Jul 2009 11:10:27 +0000
 Subject: Re: [lm-sensors] Thermal driver for EMC1403
-Message-Id: <20090715220753.6e82929b@hyperion.delvare>
+Message-Id: <3CA6C6D9F70D314CA34352990B57DA1533133B34@bgsmsx502.gar.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090716005145.GA8012@intel.com>
 In-Reply-To: <20090716005145.GA8012@intel.com>
@@ -9,6 +9,19 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+
+Based on my previous with discussion with Henrique I submitted the patch again. 
+
+Thanks 
+Kalhan 
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org] 
+Sent: Thursday, July 16, 2009 1:38 AM
+To: Trisal, Kalhan
+Cc: lm-sensors@lm-sensors.org
+Subject: Re: Thermal driver for EMC1403
 
 Hi Kalhan,
 
