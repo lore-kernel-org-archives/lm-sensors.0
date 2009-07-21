@@ -1,90 +1,103 @@
-From: lu zhihe <tombowfly@gmail.com>
-Date: Mon, 13 Jul 2009 13:24:57 +0000
-Subject: Re: [lm-sensors] [PATCH 2.6.31-rc2] hwmon: add support for
-Message-Id: <73511e6c0907130624n8db8319nbf277cad05e43dae@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 21 Jul 2009 14:20:20 +0000
+Subject: Re: [lm-sensors] Another possible hwmon project
+Message-Id: <20090721162020.70cdd215@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <73511e6c0907090641v506ba4a2pa9a1e93a69dd2fd1@mail.gmail.com>
-In-Reply-To: <73511e6c0907090641v506ba4a2pa9a1e93a69dd2fd1@mail.gmail.com>
+References: <20090624081700.GB4949@ubuntu>
+In-Reply-To: <20090624081700.GB4949@ubuntu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hi Andre, Hans,
 
+Sorry again for the late answer. I'm taking benefit of my forced
+off-line time to answer my old e-mail.
 
->2009/7/13 Jean Delvare <khali@linux-fr.org>:
+On Fri, 26 Jun 2009 10:29:33 +0200, Andre Prendel wrote:
+> Ok, that's a known issue. Sensors-detect already take care of it.
+> 
+> ---
+> r5530 | khali | 2008-12-05 23:56:30 +0100 (Fr, 05. Dez 2008) | 3 lines
+> 
+> Alternatively look for DMI data in /sys/class/dmi/id, as
+> /sys/devices/virtual/dmi/id only exists since kernel 2.6.28.
+> 
+> Index: prog/detect/sensors-detect
+> =================================> --- prog/detect/sensors-detect	(Revision 5529)
+> +++ prog/detect/sensors-detect	(Revision 5530)
+> @@ -2150,11 +2150,13 @@
+>    	    'System Manufacturer' => 1,
+>  	    	    'System Name' => 1,
+>  		    );
+> +		    my $dmi_id_dir;
+>  
+> 	# First try reading the strings from sysfs if available
+> -	if (-d "$sysfs_root/devices/virtual/dmi/id") {
+> +	if (-d ($dmi_id_dir = "$sysfs_root/devices/virtual/dmi/id")	# kernel >= 2.6.28
+> +	 || -d ($dmi_id_dir = "$sysfs_root/class/dmi/id")) {
+>  	    foreach my $k (keys %items) {
+> -	    	       $dmi{$k} = sysfs_device_attribute("$sysfs_root/devices/virtual/dmi/id", $k);
+> +		       		  $dmi{$k} = sysfs_device_attribute($dmi_id_dir, $k);
+>  				  	   }
+>  					   } else {
+>  					     # Else fallback on calling dmidecode
+> ---
+> 
+> Looking for both should be the best.
 
->> intel-agp.c has 2432 LOC and only deals with AGP/GART table management. I
->> don't think anybody would be amused to see other code in there.
->
-> Well, the driver posted by Lu was rather small, and most of it is for
-> device management, not functionality. Adding temperature reading to
-> another driver would probably fit in 250 lines.
+Indeed, I had hit the problem before, and solved it with the above
+patch. BTW, I do not think Andre will have too much work with the
+DMI/SMBIOS part, because what's already in sensors-detect should be
+good enough. We can discuss which strings exactly we want to use,
+whether we want to clean them up and how, how to encode them etc. but
+the fetching part should be robust by now.
 
-I agree with you.
-While, as there is not GM965 North Bridge driver direct process
-MCHBAR_I965 (MCH Memory Mapped Register BAR), if any driver module try
-to support GM965 thermal sensor, it need to call "pci_get_device",
-read the MCHBAR base address, and do ioremap_nocache to access the
-Thermal sensor register.
+Actually, I added DMI identification to sensors-detect with in mind the
+idea of leveraging it for automatic configuration, just as Hans was
+mentioning (and as was already discussed on the list in the past.) I am
+not sure whether sensors-detect would be used for that, or a separate
+script/tool, but at least the logic and possibly the code for the
+DMI-based board identification should be reusable.
+ 
+> > > BTW, Jean. Hans asked me for working on the automatic configuration of
+> > > sensors using DMI information.
+> > 
+> > Ack, its still something which I would like to see done, so I suggested the
+> > idea to Andre.
 
-If it doesn't do on drivers/hwmon, it need to do on drivers/char/agp
-or some how.
+I also do think this should be done. My plan a few months ago was to
+spend Novell's Hack Week IV on it, but it had to happen that this week
+is the week I'm moving to a new flat, which means a few days without
+easy Internet access, plus all the furniture to move around. So it was
+definitely not the right week. But we can work on this together at any
+later point anyway.
 
+Slightly more into the details, my plan was a two-step one:
 
->2009/7/12 Jean Delvare <khali@linux-fr.org>:
->It's a limitation of the device driver model to only let one driver bind t=
-o a given device at any given time.
+1* Come up with a filesystem-based storage structure for board-specific
+   configuration files. For example:
 
-I understand what you means, it DID has PCI driver conflict when two
-driver register as PCI device.
-While, apggart-intel is registed as PCI driver, gm965temp is as
-Platfrom devices driver. Gm965temp uses "pseudo-bus".
+   /usr/share/sensors/conf/dmi/by-board/$vendor/$board.conf
+   /usr/share/sensors/conf/dmi/by-product/$vendor/$product.conf
 
-Take a "tree -d /sys/device" snapshot:
+   And add the logic to sensors-detect (or another script, this can be
+   debated) to check for this file and propose to copy the
+   configuration file to /etc/sensors.d.
 
-|-- pci0000:00
-| =A0 |-- 0000:00:00.0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0***
-| =A0 | =A0 |-- bus -> ../../../bus/pci =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0***
-| =A0 | =A0 |-- driver -> ../../../bus/pci/drivers/agpgart-intel =A0 ***
-| =A0 | =A0 |-- firmware_node -> ../../LNXSYSTM:00/device:00/PNP0A08:00/PNP=
-0C02:00
-| =A0 | =A0 |-- power
-| =A0 | =A0 `-- subsystem -> ../../../bus/pci
-| =A0 |-- 0000:00:02.0
-| =A0 | =A0 |-- bus -> ../../../bus/pci
-| =A0 | =A0 |-- driver -> ../../../bus/pci/drivers/i915
-| =A0 | =A0 |-- drm:card0 -> ../../../class/drm/card0
-| =A0 | =A0 |-- drm:controlD64 -> ../../../class/drm/controlD64
-| =A0 | =A0 |-- firmware_node -> ../../LNXSYSTM:00/device:00/PNP0A08:00/dev=
-ice:07
-| =A0 | =A0 |-- graphics:fb1 -> ../../../class/graphics/fb1
-| =A0 | =A0 |-- i2c-adapter:i2c-1 -> ../../../class/i2c-adapter/i2c-1
-| =A0 | =A0 |-- i2c-adapter:i2c-2 -> ../../../class/i2c-adapter/i2c-2
-| =A0 | =A0 |-- power
-| =A0 | =A0 `-- subsystem -> ../../../bus/pci
-...
-|-- platform
-| =A0 |-- gm965temp.0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 ***
-| =A0 | =A0 |-- bus -> ../../../bus/platform =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 **
-| =A0 | =A0 |-- driver -> ../../../bus/platform/drivers/gm965temp =A0***
-| =A0 | =A0 |-- hwmon:hwmon1 -> ../../../class/hwmon/hwmon1
-| =A0 | =A0 |-- power
-| =A0 | =A0 `-- subsystem -> ../../../bus/platform
-...
+2* Come up with a network-based storage structure for the same files.
+   I am not going into the details here, this would be done later
+   anyway and I have no precise idea of how to implement (and host) the
+   service. There might be something about this in the document that
+   was written by Jasper Alias, Ivo Manca and Gijs van der Weg back in
+   February 2007 *sigh* which I admit I never read *re-sigh*.
+   Andre, if you did not receive a copy of this document already, I can
+   send it to you.
 
-In this sysfs layout, I don't think agpgart-intel and gm965temp will confli=
-ct.
-
---
-Thx
-
-Lu Zhihe
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
