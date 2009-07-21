@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 21 Jul 2009 10:36:20 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Tue, 21 Jul 2009 10:57:57 +0000
 Subject: Re: [lm-sensors] [PATCH] asus_atk0110: fix limit readings
-Message-Id: <20090721123620.52653484@hyperion.delvare>
+Message-Id: <68676e00907210357w4aa962d6o32e149eb33aa5012@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090721092742.GA11055@nb-core2.darkstar.lan>
 In-Reply-To: <20090721092742.GA11055@nb-core2.darkstar.lan>
@@ -10,47 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Luca,
+On Tue, Jul 21, 2009 at 12:36 PM, Jean Delvare<khali@linux-fr.org> wrote:
+> Hi Luca,
+>
+> On Tue, 21 Jul 2009 11:27:42 +0200, Luca Tettamanti wrote:
+>> On newer Asus boards the "upper" limit of a sensor is encoded as delta from the
+>> "lower" limit. Fix the driver to correctly handle this case.
+>> Note that the bug is purely cosmetic.
+>
+> I don't see how it would be only cosmetic, if the driver was reporting
+> wrong upper limits before.
 
-On Tue, 21 Jul 2009 11:27:42 +0200, Luca Tettamanti wrote:
-> On newer Asus boards the "upper" limit of a sensor is encoded as delta from the
-> "lower" limit. Fix the driver to correctly handle this case.
-> Note that the bug is purely cosmetic.
+I mean that it didn't affect the correct operation of the thresholds
+(at least in the firmware).
 
-I don't see how it would be only cosmetic, if the driver was reporting
-wrong upper limits before.
-
-> 
-> Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
-> Tested-by: Alex Macfarlane Smith <nospam@archifishal.co.uk>
-> ---
-> 
->  drivers/hwmon/asus_atk0110.c |    6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
-> index bff0103..fe4fa29 100644
-> --- a/drivers/hwmon/asus_atk0110.c
-> +++ b/drivers/hwmon/asus_atk0110.c
-> @@ -593,7 +593,11 @@ static int atk_add_sensor(struct atk_data *data, union acpi_object *obj)
->  	sensor->data = data;
->  	sensor->id = flags->integer.value;
->  	sensor->limit1 = limit1->integer.value;
-> -	sensor->limit2 = limit2->integer.value;
-> +	if (data->old_interface)
-> +		sensor->limit2 = limit2->integer.value;
-> +	else
-> +		/* The upper limit is expressed as delta from lower limit */
-> +		sensor->limit2 = sensor->limit1 + limit2->integer.value;
->  
->  	snprintf(sensor->input_attr_name, ATTR_NAME_SIZE,
->  			"%s%d_input", base_name, start + *num);
-> 
-
-Applied, thanks.
-
--- 
-Jean Delvare
+Luca
 
 _______________________________________________
 lm-sensors mailing list
