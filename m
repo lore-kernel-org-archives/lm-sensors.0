@@ -1,106 +1,43 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 05 Jul 2009 12:12:00 +0000
-Subject: Re: [lm-sensors] [PATCH 4/5] drivers/hwmon: Use resource_size
-Message-Id: <20090705141200.6b0deb34@hyperion.delvare>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Tue, 21 Jul 2009 09:27:42 +0000
+Subject: [lm-sensors] [PATCH] asus_atk0110: fix limit readings
+Message-Id: <20090721092742.GA11055@nb-core2.darkstar.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.64.0907050836530.27464@ask.diku.dk>
-In-Reply-To: <Pine.LNX.4.64.0907050836530.27464@ask.diku.dk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Julia Lawall <julia@diku.dk>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Sun, 5 Jul 2009 08:37:14 +0200 (CEST), Julia Lawall wrote:
-> From: Julia Lawall <julia@diku.dk>
-> 
-> Use the function resource_size, which reduces the chance of introducing
-> off-by-one errors in calculating the resource size.
-> 
-> The semantic patch that makes this change is as follows:
-> (http://www.emn.fr/x-info/coccinelle/)
-> 
-> // <smpl>
-> @@
-> struct resource *res;
-> @@
-> 
-> - (res->end - res->start) + 1
-> + resource_size(res)
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <julia@diku.dk>
-> 
-> ---
->  drivers/hwmon/pc87427.c |    6 +++---
->  drivers/hwmon/vt1211.c  |    6 +++---
->  2 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff -u -p a/drivers/hwmon/pc87427.c b/drivers/hwmon/pc87427.c
-> --- a/drivers/hwmon/pc87427.c 2009-01-09 22:41:01.000000000 +0100
-> +++ b/drivers/hwmon/pc87427.c 2009-07-04 21:38:15.000000000 +0200
-> @@ -435,7 +435,7 @@ static int __devinit pc87427_probe(struc
->  	/* This will need to be revisited when we add support for
->  	   temperature and voltage monitoring. */
->  	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-> -	if (!request_region(res->start, res->end - res->start + 1, DRVNAME)) {
-> +	if (!request_region(res->start, resource_size(res), DRVNAME)) {
->  		err = -EBUSY;
->  		dev_err(&pdev->dev, "Failed to request region 0x%lx-0x%lx\n",
->  			(unsigned long)res->start, (unsigned long)res->end);
-> @@ -475,7 +475,7 @@ exit_remove_files:
->  		sysfs_remove_group(&pdev->dev.kobj, &pc87427_group_fan[i]);
->  	}
->  exit_release_region:
-> -	release_region(res->start, res->end - res->start + 1);
-> +	release_region(res->start, resource_size(res));
->  exit_kfree:
->  	platform_set_drvdata(pdev, NULL);
->  	kfree(data);
-> @@ -500,7 +500,7 @@ static int __devexit pc87427_remove(stru
->  	kfree(data);
->  
->  	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-> -	release_region(res->start, res->end - res->start + 1);
-> +	release_region(res->start, resource_size(res));
->  
->  	return 0;
->  }
-> diff -u -p a/drivers/hwmon/vt1211.c b/drivers/hwmon/vt1211.c
-> --- a/drivers/hwmon/vt1211.c 2009-03-02 11:33:15.000000000 +0100
-> +++ b/drivers/hwmon/vt1211.c 2009-07-04 21:38:17.000000000 +0200
-> @@ -1136,7 +1136,7 @@ static int __devinit vt1211_probe(struct
->  	}
->  
->  	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-> -	if (!request_region(res->start, res->end - res->start + 1, DRVNAME)) {
-> +	if (!request_region(res->start, resource_size(res), DRVNAME)) {
->  		err = -EBUSY;
->  		dev_err(dev, "Failed to request region 0x%lx-0x%lx\n",
->  			(unsigned long)res->start, (unsigned long)res->end);
-> @@ -1209,7 +1209,7 @@ EXIT_DEV_REMOVE:
->  	dev_err(dev, "Sysfs interface creation failed (%d)\n", err);
->  EXIT_DEV_REMOVE_SILENT:
->  	vt1211_remove_sysfs(pdev);
-> -	release_region(res->start, res->end - res->start + 1);
-> +	release_region(res->start, resource_size(res));
->  EXIT_KFREE:
->  	platform_set_drvdata(pdev, NULL);
->  	kfree(data);
-> @@ -1228,7 +1228,7 @@ static int __devexit vt1211_remove(struc
->  	kfree(data);
->  
->  	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-> -	release_region(res->start, res->end - res->start + 1);
-> +	release_region(res->start, resource_size(res));
->  
->  	return 0;
->  }
+On newer Asus boards the "upper" limit of a sensor is encoded as delta from the
+"lower" limit. Fix the driver to correctly handle this case.
+Note that the bug is purely cosmetic.
 
-Applied, thanks.
+Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+Tested-by: Alex Macfarlane Smith <nospam@archifishal.co.uk>
+---
 
--- 
-Jean Delvare
+ drivers/hwmon/asus_atk0110.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
+index bff0103..fe4fa29 100644
+--- a/drivers/hwmon/asus_atk0110.c
++++ b/drivers/hwmon/asus_atk0110.c
+@@ -593,7 +593,11 @@ static int atk_add_sensor(struct atk_data *data, union acpi_object *obj)
+ 	sensor->data = data;
+ 	sensor->id = flags->integer.value;
+ 	sensor->limit1 = limit1->integer.value;
+-	sensor->limit2 = limit2->integer.value;
++	if (data->old_interface)
++		sensor->limit2 = limit2->integer.value;
++	else
++		/* The upper limit is expressed as delta from lower limit */
++		sensor->limit2 = sensor->limit1 + limit2->integer.value;
+ 
+ 	snprintf(sensor->input_attr_name, ATTR_NAME_SIZE,
+ 			"%s%d_input", base_name, start + *num);
+
+Luca
 
 _______________________________________________
 lm-sensors mailing list
