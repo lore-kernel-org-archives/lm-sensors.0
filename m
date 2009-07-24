@@ -1,32 +1,41 @@
-From: Roel Kluin <roel.kluin@gmail.com>
-Date: Thu, 23 Jul 2009 17:34:58 +0000
-Subject: [lm-sensors] [PATCH] dme1737: Keep index within pwm_config[]
-Message-Id: <4A689F42.4070701@gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 24 Jul 2009 07:12:12 +0000
+Subject: Re: [lm-sensors] [PATCH] dme1737: Keep index within pwm_config[]
+Message-Id: <20090724091212.3c067d38@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4A689F42.4070701@gmail.com>
+In-Reply-To: <4A689F42.4070701@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-pwm_config is only 3 bytes - pwm_config[3] is out of range.
+On Thu, 23 Jul 2009 19:34:58 +0200, Roel Kluin wrote:
+> pwm_config is only 3 bytes - pwm_config[3] is out of range.
+> 
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> ---
+> Credits to Parfait and Nathan Keynes,
+> 
+> diff --git a/drivers/hwmon/dme1737.c b/drivers/hwmon/dme1737.c
+> index 3df202a..57e8ed4 100644
+> --- a/drivers/hwmon/dme1737.c
+> +++ b/drivers/hwmon/dme1737.c
+> @@ -1134,7 +1134,7 @@ static ssize_t show_pwm(struct device *dev, struct device_attribute *attr,
+>  		res = PWM_FREQ_FROM_REG(data->pwm_freq[ix]);
+>  		break;
+>  	case SYS_PWM_ENABLE:
+> -		if (ix > 3) {
+> +		if (ix >= 3) {
+>  			res = 1; /* pwm[5-6] hard-wired to manual mode */
+>  		} else {
+>  			res = PWM_EN_FROM_REG(data->pwm_config[ix]);
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
----
-Credits to Parfait and Nathan Keynes,
+This code path is never called with ix = 3 (the device has no PWM4
+output) so it doesn't make any difference in practice.
 
-diff --git a/drivers/hwmon/dme1737.c b/drivers/hwmon/dme1737.c
-index 3df202a..57e8ed4 100644
---- a/drivers/hwmon/dme1737.c
-+++ b/drivers/hwmon/dme1737.c
-@@ -1134,7 +1134,7 @@ static ssize_t show_pwm(struct device *dev, struct device_attribute *attr,
- 		res = PWM_FREQ_FROM_REG(data->pwm_freq[ix]);
- 		break;
- 	case SYS_PWM_ENABLE:
--		if (ix > 3) {
-+		if (ix >= 3) {
- 			res = 1; /* pwm[5-6] hard-wired to manual mode */
- 		} else {
- 			res = PWM_EN_FROM_REG(data->pwm_config[ix]);
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
