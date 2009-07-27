@@ -1,109 +1,305 @@
-From: VastOne <vastone@gmail.com>
-Date: Thu, 30 Jul 2009 03:19:26 +0000
-Subject: [lm-sensors] Needing help with either
-Message-Id: <8d37920b0907292019y44b5c69bh23ce713a29aeb21d@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8498459930545717224=="
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Mon, 27 Jul 2009 13:46:01 +0000
+Subject: [lm-sensors] [PATCH 11/22] hwmon: Add WM835x PMIC hardware
+Message-Id: <1248702372-29534-11-git-send-email-broonie@opensource.wolfsonmicro.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
---===============8498459930545717224==
-Content-Type: multipart/alternative; boundary=0015174c135260ba3c046fe3c5a0
-
---0015174c135260ba3c046fe3c5a0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-Been using lm-sensors for quite a while and no issues with all of my
-gigabyte motherboards
-
-After reading great reviews for a MSI AMD 790FX-GD70 motherboard I am very
-happy with it...
-
-If I can get lm-sensors to work again. With the channels version 3.02 I was
-getting the message no driver for Fintek F75387SG/RG yet and sensors
-reported "No sensors found"
-
-After reading here and everywhere about the issues with 2.5 kernels and
-above with 3.02 lm-sensors, I have upgraded to 3.1.1 and now the Fintek is
-found
-
-Driver `to-be-written':
-* Chip `AMD K10 thermal sensors' (confidence: 9)
-* ISA bus, address 0x600
-Chip `Fintek F71889FG Super IO Sensors' (confidence: 9)
-* Bus `SMBus PIIX4 adapter at 0b00'
-Busdriver `i2c_piix4', I2C address 0x2e
-Chip `Fintek F75387SG/RG' (confidence: 7)
-
-Note: there is no driver for AMD K10 thermal sensors yet.
-Check http://www.lm-sensors.org/wiki/Devices for updates.
-
-No modules to load, skipping modules configuration.
-
-Unloading i2c-dev... OK
-
-And I am back to No Sensors found..
-
-All of these are allegedly supported but I cannot get any of them to load.
-
-Has any one ever seen the AMD K10 or the Fintek Super chip loaded and
-working?
-
-
--- 
-Thank you,
-
-vastone@gmail.com
-
---0015174c135260ba3c046fe3c5a0
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-Been using lm-sensors for quite a while and no issues with all of my gigabyte motherboards<br>
-<br>
-After reading great reviews for a MSI AMD 790FX-GD70 motherboard I am very happy with it...<br>
-<br>
-If I can get lm-sensors to work again. With the channels version 3.02 I
-was getting the message no driver for Fintek F75387SG/RG yet and
-sensors reported &quot;No sensors found&quot;<br>
-<br>
-After reading here and everywhere about the issues with 2.5 kernels and
-above with 3.02 lm-sensors, I have upgraded to 3.1.1 and now the Fintek
-is found <br>
-<br>
-Driver `to-be-written&#39;:<br>
-  * Chip `AMD K10 thermal sensors&#39; (confidence: 9)<br>
-  * ISA bus, address 0x600<br>
-    Chip `Fintek F71889FG Super IO Sensors&#39; (confidence: 9)<br>
-  * Bus `SMBus PIIX4 adapter at 0b00&#39;<br>
-    Busdriver `i2c_piix4&#39;, I2C address 0x2e<br>
-    Chip `Fintek F75387SG/RG&#39; (confidence: 7)<br>
-<br>
-Note: there is no driver for AMD K10 thermal sensors yet.<br>
-Check <a href="http://www.lm-sensors.org/wiki/Devices" target="_blank">http://www.lm-sensors.org/wiki/Devices</a> for updates.<br>
-<br>
-No modules to load, skipping modules configuration.<br>
-<br>
-Unloading i2c-dev... OK<br>
-<br>
-And I am back to No Sensors found..<br><br>
-All of these are allegedly supported but I cannot get any of them to load.<br>
-<br>
-Has any one ever seen the AMD K10 or the Fintek Super chip loaded and working? <br>
-<br clear="all"><br>-- <br>Thank you,<br><br><a href="mailto:vastone@gmail.com">vastone@gmail.com</a><br>
-
---0015174c135260ba3c046fe3c5a0--
-
-
---===============8498459930545717224==
-Content-Type: text/plain; charset="us-ascii"
+References: <20090727134527.GA12849@rakim.wolfsonmicro.main>
+In-Reply-To: <20090727134527.GA12849@rakim.wolfsonmicro.main>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, lm-sensors@lm-sensors.org
+
+This driver provides reporting of the status supply voltage rails
+of the WM835x series of PMICs via the hwmon API.
+
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org
+---
+ Documentation/hwmon/wm8350      |   26 +++++++
+ drivers/hwmon/Kconfig           |   10 +++
+ drivers/hwmon/Makefile          |    1 +
+ drivers/hwmon/wm8350-hwmon.c    |  151 +++++++++++++++++++++++++++++++++++++++
+ drivers/mfd/wm8350-core.c       |    3 +
+ include/linux/mfd/wm8350/core.h |    6 ++
+ 6 files changed, 197 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/wm8350
+ create mode 100644 drivers/hwmon/wm8350-hwmon.c
+
+diff --git a/Documentation/hwmon/wm8350 b/Documentation/hwmon/wm8350
+new file mode 100644
+index 0000000..98f923b
+--- /dev/null
++++ b/Documentation/hwmon/wm8350
+@@ -0,0 +1,26 @@
++Kernel driver wm8350-hwmon
++=============
++
++Supported chips:
++  * Wolfson Microelectronics WM835x PMICs
++    Prefix: 'wm8350'
++    Datasheet:
++	http://www.wolfsonmicro.com/products/WM8350
++	http://www.wolfsonmicro.com/products/WM8351
++	http://www.wolfsonmicro.com/products/WM8352
++
++Authors: Mark Brown <broonie@opensource.wolfsonmicro.com>
++
++Description
++-----------
++
++The WM835x series of PMICs include an AUXADC which can be used to
++monitor a range of system operating parameters, including the voltages
++of the major supplies within the system.  Currently the driver provides
++simple access to these major supplies.
++
++Voltage Monitoring
++------------------
++
++Voltages are sampled by a 12 bit ADC.  For the internal supplies the ADC
++is referenced to the system VRTC.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index a897732..8d17135 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -930,6 +930,16 @@ config SENSORS_W83627EHF
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called w83627ehf.
+ 
++config SENSORS_WM8350
++	tristate "Wolfson Microelectronics WM835x"
++	depends on MFD_WM8350
++	help
++	  If you say yes here you get support for the hardware
++	  monitoring features of the WM835x series of PMICs.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called wm8350-hwmon.
++
+ config SENSORS_ULTRA45
+ 	tristate "Sun Ultra45 PIC16F747"
+ 	depends on SPARC64
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 537daac..6126257 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -90,6 +90,7 @@ obj-$(CONFIG_SENSORS_VT8231)	+= vt8231.o
+ obj-$(CONFIG_SENSORS_W83627EHF)	+= w83627ehf.o
+ obj-$(CONFIG_SENSORS_W83L785TS)	+= w83l785ts.o
+ obj-$(CONFIG_SENSORS_W83L786NG)	+= w83l786ng.o
++obj-$(CONFIG_SENSORS_WM8350)	+= wm8350-hwmon.o
+ 
+ ifeq ($(CONFIG_HWMON_DEBUG_CHIP),y)
+ EXTRA_CFLAGS += -DDEBUG
+diff --git a/drivers/hwmon/wm8350-hwmon.c b/drivers/hwmon/wm8350-hwmon.c
+new file mode 100644
+index 0000000..1329059
+--- /dev/null
++++ b/drivers/hwmon/wm8350-hwmon.c
+@@ -0,0 +1,151 @@
++/*
++ * drivers/hwmon/wm8350-hwmon.c - Wolfson Microelectronics WM8350 PMIC
++ *                                  hardware monitoring features.
++ *
++ * Copyright (C) 2009 Wolfson Microelectronics plc
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License v2 as published by the
++ * Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/err.h>
++#include <linux/platform_device.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++
++#include <linux/mfd/wm8350/core.h>
++#include <linux/mfd/wm8350/comparator.h>
++
++static ssize_t show_name(struct device *dev,
++			 struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "wm8350\n");
++}
++
++static const char *input_names[] = {
++	[WM8350_AUXADC_USB]  = "USB",
++	[WM8350_AUXADC_LINE] = "Line",
++	[WM8350_AUXADC_BATT] = "Battery",
++};
++
++
++static ssize_t show_voltage(struct device *dev,
++			    struct device_attribute *attr, char *buf)
++{
++	struct wm8350 *wm8350 = dev_get_drvdata(dev);
++	int channel = to_sensor_dev_attr(attr)->index;
++	int val;
++
++	val = wm8350_read_auxadc(wm8350, channel, 0, 0) * WM8350_AUX_COEFF;
++	val = DIV_ROUND_CLOSEST(val, 1000);
++
++	return sprintf(buf, "%d\n", val);
++}
++
++static ssize_t show_label(struct device *dev,
++			  struct device_attribute *attr, char *buf)
++{
++	int channel = to_sensor_dev_attr(attr)->index;
++
++	return sprintf(buf, "%s\n", input_names[channel]);
++}
++
++#define WM8350_NAMED_VOLTAGE(id, name) \
++	static SENSOR_DEVICE_ATTR(in##id##_input, S_IRUGO, show_voltage,\
++				  NULL, name);		\
++	static SENSOR_DEVICE_ATTR(in##id##_label, S_IRUGO, show_label,	\
++				  NULL, name)
++
++static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
++
++WM8350_NAMED_VOLTAGE(0, WM8350_AUXADC_USB);
++WM8350_NAMED_VOLTAGE(1, WM8350_AUXADC_BATT);
++WM8350_NAMED_VOLTAGE(2, WM8350_AUXADC_LINE);
++
++static struct attribute *wm8350_attributes[] = {
++	&dev_attr_name.attr,
++
++	&sensor_dev_attr_in0_input.dev_attr.attr,
++	&sensor_dev_attr_in0_label.dev_attr.attr,
++	&sensor_dev_attr_in1_input.dev_attr.attr,
++	&sensor_dev_attr_in1_label.dev_attr.attr,
++	&sensor_dev_attr_in2_input.dev_attr.attr,
++	&sensor_dev_attr_in2_label.dev_attr.attr,
++
++	NULL,
++};
++
++static const struct attribute_group wm8350_attr_group = {
++	.attrs	= wm8350_attributes,
++};
++
++static int __devinit wm8350_hwmon_probe(struct platform_device *pdev)
++{
++	struct wm8350 *wm8350 = platform_get_drvdata(pdev);
++	int ret;
++
++	ret = sysfs_create_group(&pdev->dev.kobj, &wm8350_attr_group);
++	if (ret)
++		goto err;
++
++	wm8350->hwmon.classdev = hwmon_device_register(&pdev->dev);
++	if (IS_ERR(wm8350->hwmon.classdev)) {
++		ret = PTR_ERR(wm8350->hwmon.classdev);
++		goto err_group;
++	}
++
++	return 0;
++
++err_group:
++	sysfs_remove_group(&pdev->dev.kobj, &wm8350_attr_group);
++err:
++	return ret;
++}
++
++static int __devexit wm8350_hwmon_remove(struct platform_device *pdev)
++{
++	struct wm8350 *wm8350 = platform_get_drvdata(pdev);
++
++	hwmon_device_unregister(wm8350->hwmon.classdev);
++	sysfs_remove_group(&pdev->dev.kobj, &wm8350_attr_group);
++
++	return 0;
++}
++
++static struct platform_driver wm8350_hwmon_driver = {
++	.probe = wm8350_hwmon_probe,
++	.remove = __devexit_p(wm8350_hwmon_remove),
++	.driver = {
++		.name = "wm8350-hwmon",
++		.owner = THIS_MODULE,
++	},
++};
++
++static int __init wm8350_hwmon_init(void)
++{
++	return platform_driver_register(&wm8350_hwmon_driver);
++}
++module_init(wm8350_hwmon_init);
++
++static void __exit wm8350_hwmon_exit(void)
++{
++	platform_driver_unregister(&wm8350_hwmon_driver);
++}
++module_exit(wm8350_hwmon_exit);
++
++MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
++MODULE_DESCRIPTION("WM8350 Hardware Monitoring");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:wm8350-hwmon");
+diff --git a/drivers/mfd/wm8350-core.c b/drivers/mfd/wm8350-core.c
+index fe24079..9d662a5 100644
+--- a/drivers/mfd/wm8350-core.c
++++ b/drivers/mfd/wm8350-core.c
+@@ -1472,6 +1472,8 @@ int wm8350_device_init(struct wm8350 *wm8350, int irq,
+ 				   &(wm8350->codec.pdev));
+ 	wm8350_client_dev_register(wm8350, "wm8350-gpio",
+ 				   &(wm8350->gpio.pdev));
++	wm8350_client_dev_register(wm8350, "wm8350-hwmon",
++				   &(wm8350->hwmon.pdev));
+ 	wm8350_client_dev_register(wm8350, "wm8350-power",
+ 				   &(wm8350->power.pdev));
+ 	wm8350_client_dev_register(wm8350, "wm8350-rtc", &(wm8350->rtc.pdev));
+@@ -1498,6 +1500,7 @@ void wm8350_device_exit(struct wm8350 *wm8350)
+ 	platform_device_unregister(wm8350->wdt.pdev);
+ 	platform_device_unregister(wm8350->rtc.pdev);
+ 	platform_device_unregister(wm8350->power.pdev);
++	platform_device_unregister(wm8350->hwmon.pdev);
+ 	platform_device_unregister(wm8350->gpio.pdev);
+ 	platform_device_unregister(wm8350->codec.pdev);
+ 
+diff --git a/include/linux/mfd/wm8350/core.h b/include/linux/mfd/wm8350/core.h
+index 42cca67..969b0b5 100644
+--- a/include/linux/mfd/wm8350/core.h
++++ b/include/linux/mfd/wm8350/core.h
+@@ -605,6 +605,11 @@ struct wm8350_irq {
+ 	void *data;
+ };
+ 
++struct wm8350_hwmon {
++	struct platform_device *pdev;
++	struct device *classdev;
++};
++
+ struct wm8350 {
+ 	struct device *dev;
+ 
+@@ -629,6 +634,7 @@ struct wm8350 {
+ 	/* Client devices */
+ 	struct wm8350_codec codec;
+ 	struct wm8350_gpio gpio;
++	struct wm8350_hwmon hwmon;
+ 	struct wm8350_pmic pmic;
+ 	struct wm8350_power power;
+ 	struct wm8350_rtc rtc;
+-- 
+1.6.3.3
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8498459930545717224==--
