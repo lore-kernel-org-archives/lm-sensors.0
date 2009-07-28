@@ -1,8 +1,10 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 11 Jul 2009 12:26:10 +0000
+Date: Tue, 28 Jul 2009 16:51:32 +0000
 Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.31
-Message-Id: <20090711142610.048b69f5@hyperion.delvare>
+Message-Id: <20090728185132.43bacebf@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20090711142610.048b69f5@hyperion.delvare>
+In-Reply-To: <20090711142610.048b69f5@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,21 +17,17 @@ Please pull some hwmon subsystem fixes for Linux 2.6.31 from:
 
 git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
 
- drivers/hwmon/abituguru3.c |    6 +++---
- drivers/hwmon/max6650.c    |    1 +
- drivers/hwmon/sht15.c      |    2 +-
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/hwmon/asus_atk0110.c |    6 +++++-
+ drivers/hwmon/smsc47m1.c     |   11 +++++++++++
+ 2 files changed, 16 insertions(+), 1 deletions(-)
 
 ---------------
 
-Alistair John Strachan (1):
-      hwmon: (abituguru3) DMI probing for AB9, AB9 QuadQT and IX38 QuadGT
+Jean Delvare (1):
+      hwmon: (smsc47m1) Differentiate between LPC47M233 and LPC47M292
 
-Jiri Slaby (1):
-      hwmon: (max6650) Fix lock imbalance
-
-Joe Perches (1):
-      hwmon: (sht15) Remove unnecessary semicolon
+Luca Tettamanti (1):
+      hwmon: (asus_atk0110) Fix upper limit readings
 
 Thanks,
 -- 
