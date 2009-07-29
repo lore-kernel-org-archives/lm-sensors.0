@@ -1,53 +1,196 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 12 Jul 2009 08:43:18 +0000
-Subject: Re: [lm-sensors] Intel Moorestown Platform Thermal Driver
-Message-Id: <4A59A226.3070401@hhs.nl>
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Date: Wed, 29 Jul 2009 17:04:57 +0000
+Subject: [lm-sensors] [PATCH 1/7] spi: Add support for device table matching
+Message-Id: <20090729170457.GA4803@oksana.dev.rtsoft.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090706212531.GA15120@intel.com>
-In-Reply-To: <20090706212531.GA15120@intel.com>
+References: <20090729170345.GA26787@oksana.dev.rtsoft.ru>
+In-Reply-To: <20090729170345.GA26787@oksana.dev.rtsoft.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Brownell <dbrownell@users.sourceforge.net>, David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Jean Delvare <khali@linux-fr.org>, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linuxppc-dev@ozlabs.org
 
-On 07/07/2009 04:59 PM, Trisal, Kalhan wrote:
-> I have renamed the driver with emc1403 driver as the driver is generic enough to be used for emc1403 chip. The interrupt part is kept inside the flag so that code gets enabled only when Power management in the Moorestown platform is enabled.
->
+With this patch spi drivers can use standard spi_driver.id_table and
+MODULE_DEVICE_TABLE() mechanisms to bind against the devices. Just
+like we do with I2C drivers.
 
-Hi,
+This is useful when a single driver supports several variants of
+devices but it is not possible to detect them in run-time (like
+non-JEDEC chips probing in drivers/mtd/devices/m25p80.c), and
+when platform_data usage is overkill.
 
-Yes, but currently this is a #ifdef, besides the #ifdef there also should be a runtime check
-to only switch to interrupt based operation when actually running on a Moorestown platform,
-iow we want the *same* kernel to be able to run on both an emc1403 on some generic machine
-(so in polling mode only) and on a Moorestown platform (and use the interrupt stuff there).
+This patch also makes life a lot easier on OpenFirmware platforms,
+since with OF we extensively use proper device IDs in modaliases.
 
-Regards,
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+---
+ drivers/spi/spi.c               |   26 +++++++++++++++++++++++++-
+ include/linux/mod_devicetable.h |   13 +++++++++++++
+ include/linux/spi/spi.h         |   10 ++++++++--
+ scripts/mod/file2alias.c        |   13 +++++++++++++
+ 4 files changed, 59 insertions(+), 3 deletions(-)
 
-Hans
-
-
-> -----Original Message-----
-> From: Henrique de Moraes Holschuh [mailto:hmh@debian.org]
-> Sent: Tuesday, July 07, 2009 8:20 PM
-> To: Trisal, Kalhan
-> Cc: khali@linux-fr.org; lm-sensors@lm-sensors.org
-> Subject: Re: [lm-sensors] Intel Moorestown Platform Thermal Driver
->
-> On Tue, 07 Jul 2009, Trisal, Kalhan wrote:
->> Hi Henrique
->>     I thought about that but then the interrupt logic is very much specific to Moorestown platform. I am comfortable in renaming the driver to emc1403.
->
-> Can it be made to work with DMI matches so that it enables the interrupt
-> logic on moorestown, and uses a generic approach otherwise?
->
-> Either that, or split it in two files, one with the moorestown specific
-> stuff, the other with the generic chip driver?
->
-> Anyway, if it is too difficult to do that or it doesn't make much sense
-> because nobody else uses the emc1403, the fact that it has
-> moorestown-specific stuff in it does excuse the name... but in that case,
-> I'd call it moorestown_hwmon or something, to avoid clashes.
->
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index 70845cc..1431bf2 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -59,9 +59,24 @@ static struct device_attribute spi_dev_attrs[] = {
+  * and the sysfs version makes coldplug work too.
+  */
+ 
++static const struct spi_device_id *spi_match_id(const struct spi_device_id *id,
++						const struct spi_device *sdev)
++{
++	while (id->name[0]) {
++		if (!strcmp(sdev->modalias, id->name))
++			return id;
++		id++;
++	}
++	return NULL;
++}
++
+ static int spi_match_device(struct device *dev, struct device_driver *drv)
+ {
+ 	const struct spi_device	*spi = to_spi_device(dev);
++	const struct spi_driver	*sdrv = to_spi_driver(drv);
++
++	if (sdrv->id_table)
++		return !!spi_match_id(sdrv->id_table, spi);
+ 
+ 	return strcmp(spi->modalias, drv->name) = 0;
+ }
+@@ -121,6 +136,13 @@ struct bus_type spi_bus_type = {
+ };
+ EXPORT_SYMBOL_GPL(spi_bus_type);
+ 
++static int spi_drv_probe_id(struct device *dev)
++{
++	const struct spi_driver		*sdrv = to_spi_driver(dev->driver);
++	struct spi_device		*sdev = to_spi_device(dev);
++
++	return sdrv->probe_id(sdev, spi_match_id(sdrv->id_table, sdev));
++}
+ 
+ static int spi_drv_probe(struct device *dev)
+ {
+@@ -151,7 +173,9 @@ static void spi_drv_shutdown(struct device *dev)
+ int spi_register_driver(struct spi_driver *sdrv)
+ {
+ 	sdrv->driver.bus = &spi_bus_type;
+-	if (sdrv->probe)
++	if (sdrv->probe_id)
++		sdrv->driver.probe = spi_drv_probe_id;
++	else if (sdrv->probe)
+ 		sdrv->driver.probe = spi_drv_probe;
+ 	if (sdrv->remove)
+ 		sdrv->driver.remove = spi_drv_remove;
+diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
+index 1bf5900..9660dca 100644
+--- a/include/linux/mod_devicetable.h
++++ b/include/linux/mod_devicetable.h
+@@ -399,6 +399,19 @@ struct i2c_device_id {
+ 			__attribute__((aligned(sizeof(kernel_ulong_t))));
+ };
+ 
++/* spi */
++
++#define SPI_NAME_SIZE	20
++
++struct spi_device_id {
++	char name[SPI_NAME_SIZE];
++#ifdef __KERNEL__
++	void *data;
++#else
++	kernel_ulong_t data;
++#endif
++};
++
+ /* dmi */
+ enum dmi_field {
+ 	DMI_NONE,
+diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
+index c47c4b4..c8d92a1 100644
+--- a/include/linux/spi/spi.h
++++ b/include/linux/spi/spi.h
+@@ -20,6 +20,7 @@
+ #define __LINUX_SPI_H
+ 
+ #include <linux/device.h>
++#include <linux/mod_devicetable.h>
+ 
+ /*
+  * INTERFACES between SPI master-side drivers and SPI infrastructure.
+@@ -86,7 +87,7 @@ struct spi_device {
+ 	int			irq;
+ 	void			*controller_state;
+ 	void			*controller_data;
+-	char			modalias[32];
++	char			modalias[SPI_NAME_SIZE];
+ 
+ 	/*
+ 	 * likely need more hooks for more protocol options affecting how
+@@ -145,6 +146,8 @@ struct spi_message;
+ 
+ /**
+  * struct spi_driver - Host side "protocol" driver
++ * @id_table: List of SPI devices supported by this driver
++ * @probe_id: Binds this driver to the spi device via id_table matching.
+  * @probe: Binds this driver to the spi device.  Drivers can verify
+  *	that the device is actually present, and may need to configure
+  *	characteristics (such as bits_per_word) which weren't needed for
+@@ -170,6 +173,9 @@ struct spi_message;
+  * MMC, RTC, filesystem character device nodes, and hardware monitoring.
+  */
+ struct spi_driver {
++	const struct spi_device_id *id_table;
++	int			(*probe_id)(struct spi_device *spi,
++					    const struct spi_device_id *id);
+ 	int			(*probe)(struct spi_device *spi);
+ 	int			(*remove)(struct spi_device *spi);
+ 	void			(*shutdown)(struct spi_device *spi);
+@@ -732,7 +738,7 @@ struct spi_board_info {
+ 	 * controller_data goes to spi_device.controller_data,
+ 	 * irq is copied too
+ 	 */
+-	char		modalias[32];
++	char		modalias[SPI_NAME_SIZE];
+ 	const void	*platform_data;
+ 	void		*controller_data;
+ 	int		irq;
+diff --git a/scripts/mod/file2alias.c b/scripts/mod/file2alias.c
+index 40e0045..9d446e3 100644
+--- a/scripts/mod/file2alias.c
++++ b/scripts/mod/file2alias.c
+@@ -657,6 +657,15 @@ static int do_i2c_entry(const char *filename, struct i2c_device_id *id,
+ 	return 1;
+ }
+ 
++/* Looks like: S */
++static int do_spi_entry(const char *filename, struct spi_device_id *id,
++			char *alias)
++{
++	sprintf(alias, "%s", id->name);
++
++	return 1;
++}
++
+ static const struct dmifield {
+ 	const char *prefix;
+ 	int field;
+@@ -853,6 +862,10 @@ void handle_moddevtable(struct module *mod, struct elf_info *info,
+ 		do_table(symval, sym->st_size,
+ 			 sizeof(struct i2c_device_id), "i2c",
+ 			 do_i2c_entry, mod);
++	else if (sym_is(symname, "__mod_spi_device_table"))
++		do_table(symval, sym->st_size,
++			 sizeof(struct spi_device_id), "spi",
++			 do_spi_entry, mod);
+ 	else if (sym_is(symname, "__mod_dmi_device_table"))
+ 		do_table(symval, sym->st_size,
+ 			 sizeof(struct dmi_system_id), "dmi",
+-- 
+1.6.3.3
 
 
 _______________________________________________
