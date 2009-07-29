@@ -1,7 +1,7 @@
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
-Date: Wed, 29 Jul 2009 17:05:14 +0000
-Subject: [lm-sensors] [PATCH 6/7] hwmon: adxx: Convert to device table
-Message-Id: <20090729170514.GF4803@oksana.dev.rtsoft.ru>
+Date: Wed, 29 Jul 2009 17:05:21 +0000
+Subject: [lm-sensors] [PATCH 7/7] hwmon: lm70: Convert to device table
+Message-Id: <20090729170521.GG4803@oksana.dev.rtsoft.ru>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090729170345.GA26787@oksana.dev.rtsoft.ru>
 In-Reply-To: <20090729170345.GA26787@oksana.dev.rtsoft.ru>
@@ -15,169 +15,123 @@ This patch makes the code a little bit nicer, and shorter.
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 ---
- drivers/hwmon/adcxx.c |  106 ++++++++-----------------------------------------
- 1 files changed, 17 insertions(+), 89 deletions(-)
+ drivers/hwmon/lm70.c |   58 +++++++++++++++++--------------------------------
+ 1 files changed, 20 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/hwmon/adcxx.c b/drivers/hwmon/adcxx.c
-index b01c0d5..6b3b057 100644
---- a/drivers/hwmon/adcxx.c
-+++ b/drivers/hwmon/adcxx.c
-@@ -43,6 +43,7 @@
+diff --git a/drivers/hwmon/lm70.c b/drivers/hwmon/lm70.c
+index 3953c22..b4be110 100644
+--- a/drivers/hwmon/lm70.c
++++ b/drivers/hwmon/lm70.c
+@@ -32,6 +32,7 @@
+ #include <linux/sysfs.h>
  #include <linux/hwmon.h>
- #include <linux/hwmon-sysfs.h>
  #include <linux/mutex.h>
 +#include <linux/mod_devicetable.h>
  #include <linux/spi/spi.h>
  
- #define DRVNAME		"adcxx"
-@@ -157,8 +158,10 @@ static struct sensor_device_attribute ad_input[] = {
+ 
+@@ -130,11 +131,21 @@ static DEVICE_ATTR(name, S_IRUGO, lm70_show_name, NULL);
  
  /*----------------------------------------------------------------------*/
  
--static int __devinit adcxx_probe(struct spi_device *spi, int channels)
-+static int __devinit adcxx_probe(struct spi_device *spi,
-+				 const struct spi_device_id *id)
+-static int __devinit common_probe(struct spi_device *spi, int chip)
++static int __devinit lm70_probe(struct spi_device *spi,
++				const struct spi_device_id *id)
  {
-+	int channels = (int)id->data;
- 	struct adcxx *adc;
++	int chip = (int)id->data;
+ 	struct lm70 *p_lm70;
  	int status;
- 	int i;
-@@ -204,30 +207,6 @@ out_err:
+ 
++	/* signaling is SPI_MODE_0 for both LM70 and TMP121 */
++	if (spi->mode & (SPI_CPOL | SPI_CPHA))
++		return -EINVAL;
++
++	/* 3-wire link (shared SI/SO) for LM70 */
++	if (chip = LM70_CHIP_LM70 && !(spi->mode & SPI_3WIRE))
++		return -EINVAL;
++
+ 	/* NOTE:  we assume 8-bit words, and convert to 16 bits manually */
+ 
+ 	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
+@@ -170,26 +181,6 @@ out_dev_reg_failed:
  	return status;
  }
  
--static int __devinit adcxx1s_probe(struct spi_device *spi,
--				   const struct spi_device_id *id)
+-static int __devinit lm70_probe(struct spi_device *spi,
+-				const struct spi_device_id *id)
 -{
--	return adcxx_probe(spi, 1);
+-	/* signaling is SPI_MODE_0 on a 3-wire link (shared SI/SO) */
+-	if ((spi->mode & (SPI_CPOL | SPI_CPHA)) || !(spi->mode & SPI_3WIRE))
+-		return -EINVAL;
+-
+-	return common_probe(spi, LM70_CHIP_LM70);
 -}
 -
--static int __devinit adcxx2s_probe(struct spi_device *spi,
--				   const struct spi_device_id *id)
+-static int __devinit tmp121_probe(struct spi_device *spi,
+-				  const struct spi_device_id *id)
 -{
--	return adcxx_probe(spi, 2);
+-	/* signaling is SPI_MODE_0 with only MISO connected */
+-	if (spi->mode & (SPI_CPOL | SPI_CPHA))
+-		return -EINVAL;
+-
+-	return common_probe(spi, LM70_CHIP_TMP121);
 -}
 -
--static int __devinit adcxx4s_probe(struct spi_device *spi,
--				   const struct spi_device_id *id)
--{
--	return adcxx_probe(spi, 4);
--}
--
--static int __devinit adcxx8s_probe(struct spi_device *spi,
--				   const struct spi_device_id *id)
--{
--	return adcxx_probe(spi, 8);
--}
--
- static int __devexit adcxx_remove(struct spi_device *spi)
+ static int __devexit lm70_remove(struct spi_device *spi)
  {
- 	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-@@ -245,79 +224,33 @@ static int __devexit adcxx_remove(struct spi_device *spi)
+ 	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
+@@ -203,41 +194,32 @@ static int __devexit lm70_remove(struct spi_device *spi)
  	return 0;
  }
  
--static struct spi_driver adcxx1s_driver = {
+-static struct spi_driver tmp121_driver = {
 -	.driver = {
--		.name	= "adcxx1s",
+-		.name	= "tmp121",
 -		.owner	= THIS_MODULE,
 -	},
--	.probe	= adcxx1s_probe,
--	.remove	= __devexit_p(adcxx_remove),
-+static const struct spi_device_id adcxx_ids[] = {
-+	{ "adcxx1s", (void *)1 },
-+	{ "adcxx2s", (void *)2 },
-+	{ "adcxx4s", (void *)4 },
-+	{ "adcxx8s", (void *)8 },
+-	.probe	= tmp121_probe,
+-	.remove	= __devexit_p(lm70_remove),
++
++static const struct spi_device_id lm70_ids[] = {
++	{ "lm70",   (void *)LM70_CHIP_LM70 },
++	{ "tmp121", (void *)LM70_CHIP_TMP121 },
 +	{ },
  };
-+MODULE_DEVICE_TABLE(spi, adcxx_ids);
++MODULE_DEVICE_TABLE(spi, lm70_ids);
  
--static struct spi_driver adcxx2s_driver = {
-+static struct spi_driver adcxx_driver = {
+ static struct spi_driver lm70_driver = {
  	.driver = {
--		.name	= "adcxx2s",
-+		.name	= "adcxx",
+ 		.name	= "lm70",
  		.owner	= THIS_MODULE,
  	},
--	.probe	= adcxx2s_probe,
--	.remove	= __devexit_p(adcxx_remove),
--};
--
--static struct spi_driver adcxx4s_driver = {
--	.driver = {
--		.name	= "adcxx4s",
--		.owner	= THIS_MODULE,
--	},
--	.probe	= adcxx4s_probe,
--	.remove	= __devexit_p(adcxx_remove),
--};
--
--static struct spi_driver adcxx8s_driver = {
--	.driver = {
--		.name	= "adcxx8s",
--		.owner	= THIS_MODULE,
--	},
--	.probe	= adcxx8s_probe,
-+	.id_table = adcxx_ids,
-+	.probe	= adcxx_probe,
- 	.remove	= __devexit_p(adcxx_remove),
++	.id_table = lm70_ids,
+ 	.probe	= lm70_probe,
+ 	.remove	= __devexit_p(lm70_remove),
  };
  
- static int __init init_adcxx(void)
+ static int __init init_lm70(void)
  {
--	int status;
--	status = spi_register_driver(&adcxx1s_driver);
--	if (status)
--		goto reg_1_failed;
+-	int ret = spi_register_driver(&lm70_driver);
+-	if (ret)
+-		return ret;
 -
--	status = spi_register_driver(&adcxx2s_driver);
--	if (status)
--		goto reg_2_failed;
+-	ret = spi_register_driver(&tmp121_driver);
+-	if (ret)
+-		spi_unregister_driver(&lm70_driver);
 -
--	status = spi_register_driver(&adcxx4s_driver);
--	if (status)
--		goto reg_4_failed;
--
--	status = spi_register_driver(&adcxx8s_driver);
--	if (status)
--		goto reg_8_failed;
--
--	return status;
--
--reg_8_failed:
--	spi_unregister_driver(&adcxx4s_driver);
--reg_4_failed:
--	spi_unregister_driver(&adcxx2s_driver);
--reg_2_failed:
--	spi_unregister_driver(&adcxx1s_driver);
--reg_1_failed:
--	return status;
-+	return spi_register_driver(&adcxx_driver);
+-	return ret;
++	return spi_register_driver(&lm70_driver);
  }
  
- static void __exit exit_adcxx(void)
+ static void __exit cleanup_lm70(void)
  {
--	spi_unregister_driver(&adcxx1s_driver);
--	spi_unregister_driver(&adcxx2s_driver);
--	spi_unregister_driver(&adcxx4s_driver);
--	spi_unregister_driver(&adcxx8s_driver);
-+	spi_unregister_driver(&adcxx_driver);
+ 	spi_unregister_driver(&lm70_driver);
+-	spi_unregister_driver(&tmp121_driver);
  }
  
- module_init(init_adcxx);
-@@ -326,8 +259,3 @@ module_exit(exit_adcxx);
- MODULE_AUTHOR("Marc Pignat");
- MODULE_DESCRIPTION("National Semiconductor adcxx8sxxx Linux driver");
- MODULE_LICENSE("GPL");
--
--MODULE_ALIAS("spi:adcxx1s");
--MODULE_ALIAS("spi:adcxx2s");
--MODULE_ALIAS("spi:adcxx4s");
--MODULE_ALIAS("spi:adcxx8s");
+ module_init(init_lm70);
 -- 
 1.6.3.3
-
 
 _______________________________________________
 lm-sensors mailing list
