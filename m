@@ -1,139 +1,109 @@
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
-Date: Wed, 29 Jul 2009 17:05:21 +0000
-Subject: [lm-sensors] [PATCH 7/7] hwmon: lm70: Convert to device table
-Message-Id: <20090729170521.GG4803@oksana.dev.rtsoft.ru>
+From: VastOne <vastone@gmail.com>
+Date: Thu, 30 Jul 2009 03:19:26 +0000
+Subject: [lm-sensors] Needing help with either
+Message-Id: <8d37920b0907292019y44b5c69bh23ce713a29aeb21d@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8498459930545717224=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090729170345.GA26787@oksana.dev.rtsoft.ru>
-In-Reply-To: <20090729170345.GA26787@oksana.dev.rtsoft.ru>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+--===============8498459930545717224==
+Content-Type: multipart/alternative; boundary=0015174c135260ba3c046fe3c5a0
+
+--0015174c135260ba3c046fe3c5a0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Brownell <dbrownell@users.sourceforge.net>, David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Jean Delvare <khali@linux-fr.org>, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linuxppc-dev@ozlabs.org
 
-This patch makes the code a little bit nicer, and shorter.
+Been using lm-sensors for quite a while and no issues with all of my
+gigabyte motherboards
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
----
- drivers/hwmon/lm70.c |   58 +++++++++++++++++--------------------------------
- 1 files changed, 20 insertions(+), 38 deletions(-)
+After reading great reviews for a MSI AMD 790FX-GD70 motherboard I am very
+happy with it...
 
-diff --git a/drivers/hwmon/lm70.c b/drivers/hwmon/lm70.c
-index 3953c22..b4be110 100644
---- a/drivers/hwmon/lm70.c
-+++ b/drivers/hwmon/lm70.c
-@@ -32,6 +32,7 @@
- #include <linux/sysfs.h>
- #include <linux/hwmon.h>
- #include <linux/mutex.h>
-+#include <linux/mod_devicetable.h>
- #include <linux/spi/spi.h>
- 
- 
-@@ -130,11 +131,21 @@ static DEVICE_ATTR(name, S_IRUGO, lm70_show_name, NULL);
- 
- /*----------------------------------------------------------------------*/
- 
--static int __devinit common_probe(struct spi_device *spi, int chip)
-+static int __devinit lm70_probe(struct spi_device *spi,
-+				const struct spi_device_id *id)
- {
-+	int chip = (int)id->data;
- 	struct lm70 *p_lm70;
- 	int status;
- 
-+	/* signaling is SPI_MODE_0 for both LM70 and TMP121 */
-+	if (spi->mode & (SPI_CPOL | SPI_CPHA))
-+		return -EINVAL;
-+
-+	/* 3-wire link (shared SI/SO) for LM70 */
-+	if (chip = LM70_CHIP_LM70 && !(spi->mode & SPI_3WIRE))
-+		return -EINVAL;
-+
- 	/* NOTE:  we assume 8-bit words, and convert to 16 bits manually */
- 
- 	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
-@@ -170,26 +181,6 @@ out_dev_reg_failed:
- 	return status;
- }
- 
--static int __devinit lm70_probe(struct spi_device *spi,
--				const struct spi_device_id *id)
--{
--	/* signaling is SPI_MODE_0 on a 3-wire link (shared SI/SO) */
--	if ((spi->mode & (SPI_CPOL | SPI_CPHA)) || !(spi->mode & SPI_3WIRE))
--		return -EINVAL;
--
--	return common_probe(spi, LM70_CHIP_LM70);
--}
--
--static int __devinit tmp121_probe(struct spi_device *spi,
--				  const struct spi_device_id *id)
--{
--	/* signaling is SPI_MODE_0 with only MISO connected */
--	if (spi->mode & (SPI_CPOL | SPI_CPHA))
--		return -EINVAL;
--
--	return common_probe(spi, LM70_CHIP_TMP121);
--}
--
- static int __devexit lm70_remove(struct spi_device *spi)
- {
- 	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
-@@ -203,41 +194,32 @@ static int __devexit lm70_remove(struct spi_device *spi)
- 	return 0;
- }
- 
--static struct spi_driver tmp121_driver = {
--	.driver = {
--		.name	= "tmp121",
--		.owner	= THIS_MODULE,
--	},
--	.probe	= tmp121_probe,
--	.remove	= __devexit_p(lm70_remove),
-+
-+static const struct spi_device_id lm70_ids[] = {
-+	{ "lm70",   (void *)LM70_CHIP_LM70 },
-+	{ "tmp121", (void *)LM70_CHIP_TMP121 },
-+	{ },
- };
-+MODULE_DEVICE_TABLE(spi, lm70_ids);
- 
- static struct spi_driver lm70_driver = {
- 	.driver = {
- 		.name	= "lm70",
- 		.owner	= THIS_MODULE,
- 	},
-+	.id_table = lm70_ids,
- 	.probe	= lm70_probe,
- 	.remove	= __devexit_p(lm70_remove),
- };
- 
- static int __init init_lm70(void)
- {
--	int ret = spi_register_driver(&lm70_driver);
--	if (ret)
--		return ret;
--
--	ret = spi_register_driver(&tmp121_driver);
--	if (ret)
--		spi_unregister_driver(&lm70_driver);
--
--	return ret;
-+	return spi_register_driver(&lm70_driver);
- }
- 
- static void __exit cleanup_lm70(void)
- {
- 	spi_unregister_driver(&lm70_driver);
--	spi_unregister_driver(&tmp121_driver);
- }
- 
- module_init(init_lm70);
+If I can get lm-sensors to work again. With the channels version 3.02 I was
+getting the message no driver for Fintek F75387SG/RG yet and sensors
+reported "No sensors found"
+
+After reading here and everywhere about the issues with 2.5 kernels and
+above with 3.02 lm-sensors, I have upgraded to 3.1.1 and now the Fintek is
+found
+
+Driver `to-be-written':
+* Chip `AMD K10 thermal sensors' (confidence: 9)
+* ISA bus, address 0x600
+Chip `Fintek F71889FG Super IO Sensors' (confidence: 9)
+* Bus `SMBus PIIX4 adapter at 0b00'
+Busdriver `i2c_piix4', I2C address 0x2e
+Chip `Fintek F75387SG/RG' (confidence: 7)
+
+Note: there is no driver for AMD K10 thermal sensors yet.
+Check http://www.lm-sensors.org/wiki/Devices for updates.
+
+No modules to load, skipping modules configuration.
+
+Unloading i2c-dev... OK
+
+And I am back to No Sensors found..
+
+All of these are allegedly supported but I cannot get any of them to load.
+
+Has any one ever seen the AMD K10 or the Fintek Super chip loaded and
+working?
+
+
 -- 
-1.6.3.3
+Thank you,
+
+vastone@gmail.com
+
+--0015174c135260ba3c046fe3c5a0
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Been using lm-sensors for quite a while and no issues with all of my gigabyte motherboards<br>
+<br>
+After reading great reviews for a MSI AMD 790FX-GD70 motherboard I am very happy with it...<br>
+<br>
+If I can get lm-sensors to work again. With the channels version 3.02 I
+was getting the message no driver for Fintek F75387SG/RG yet and
+sensors reported &quot;No sensors found&quot;<br>
+<br>
+After reading here and everywhere about the issues with 2.5 kernels and
+above with 3.02 lm-sensors, I have upgraded to 3.1.1 and now the Fintek
+is found <br>
+<br>
+Driver `to-be-written&#39;:<br>
+  * Chip `AMD K10 thermal sensors&#39; (confidence: 9)<br>
+  * ISA bus, address 0x600<br>
+    Chip `Fintek F71889FG Super IO Sensors&#39; (confidence: 9)<br>
+  * Bus `SMBus PIIX4 adapter at 0b00&#39;<br>
+    Busdriver `i2c_piix4&#39;, I2C address 0x2e<br>
+    Chip `Fintek F75387SG/RG&#39; (confidence: 7)<br>
+<br>
+Note: there is no driver for AMD K10 thermal sensors yet.<br>
+Check <a href="http://www.lm-sensors.org/wiki/Devices" target="_blank">http://www.lm-sensors.org/wiki/Devices</a> for updates.<br>
+<br>
+No modules to load, skipping modules configuration.<br>
+<br>
+Unloading i2c-dev... OK<br>
+<br>
+And I am back to No Sensors found..<br><br>
+All of these are allegedly supported but I cannot get any of them to load.<br>
+<br>
+Has any one ever seen the AMD K10 or the Fintek Super chip loaded and working? <br>
+<br clear="all"><br>-- <br>Thank you,<br><br><a href="mailto:vastone@gmail.com">vastone@gmail.com</a><br>
+
+--0015174c135260ba3c046fe3c5a0--
+
+
+--===============8498459930545717224==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8498459930545717224==--
