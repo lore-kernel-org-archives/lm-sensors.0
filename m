@@ -1,40 +1,50 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sun, 12 Jul 2009 08:44:49 +0000
-Subject: Re: [lm-sensors] w83627hf Device needs an ACPI driver
-Message-Id: <4A59A281.3070408@hhs.nl>
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Date: Fri, 31 Jul 2009 00:39:57 +0000
+Subject: [lm-sensors] [PATCH v2 0/6] Device table matching for SPI subsystem
+Message-Id: <20090731003957.GA23982@oksana.dev.rtsoft.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <6977f2fc0907050840g7b70bdb8jf8a9a85f2be730a4@mail.gmail.com>
-In-Reply-To: <6977f2fc0907050840g7b70bdb8jf8a9a85f2be730a4@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ben Dooks <ben@fluff.org>, David Brownell <dbrownell@users.sourceforge.net>, David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Jean Delvare <khali@linux-fr.org>, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linuxppc-dev@ozlabs.org
 
-On 07/05/2009 05:40 PM, Christopher Hogan wrote:
-> Loading w83627hf produces the following error:
-> w83627hf: Found W83627HF chip at 0x290
-> ACPI: I/O resource w83627hf [0x295-0x296] conflicts with ACPI region
-> IP__ [0x295-0x296]
-> ACPI: Device needs an ACPI driver
->
-> I have ACPI compiled into kernel 2.6.29-gentoo-r3.
->
-> I googled a bit and found kernel bug:
-> http://bugzilla.kernel.org/show_bug.cgi?id508
->
-> Am I correct that an ACPI compatible driver for this chip doesn't
-> exist and that I should disable part/all of ACPI in order to have full
-> access to my sensors?
->
+Andrew,
 
-Hi,
+This new patch set overwrites following patches:
 
-For (some) more info on this see:
-http://hansdegoede.livejournal.com/7932.html
+  hwmon-lm70-convert-to-device-table-matching.patch
+  hwmon-adxx-convert-to-device-table-matching.patch
+  spi-merge-probe-and-probe_id-callbacks.patch
+  spi-prefix-modalias-with-spi.patch
+  of-remove-stmm25p40-alias.patch
+  mtd-m25p80-convert-to-device-table-matching.patch
+  spi-add-support-for-device-table-matching.patch
 
-Regards,
 
-Hans
+Changes since v1:
+
+- Implemented Ben Dooks' idea of spi_get_device_id(), so we won't
+  call spi_match_id() twice for drivers that don't need the id.
+
+- "spi: Merge probe and probe_id callbacks" patch no longer needed
+  as we don't change probe()'s arguments;
+
+- Rename spi_device_id->data to driver_data, and turn it into
+  kernel_ulong_t to match majority of subsystems. Most drivers
+  don't need a pointer type anyway (e.g. m25p80 needs it, but
+  lm70 and adcxx don't);
+
+- SPI_NAME_SIZE now defined to 32 (as it should be, using 20
+  for name size was a cut-n-paste typo from I2C defines).
+
+
+Thanks!
+
+-- 
+Anton Vorontsov
+email: cbouatmailru@gmail.com
+irc://irc.freenode.net/bd2
 
 _______________________________________________
 lm-sensors mailing list
