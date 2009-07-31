@@ -1,300 +1,175 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Date: Mon, 27 Jul 2009 13:46:01 +0000
-Subject: [lm-sensors] [PATCH 11/22] hwmon: Add WM835x PMIC hardware
-Message-Id: <1248702372-29534-11-git-send-email-broonie@opensource.wolfsonmicro.com>
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Date: Fri, 31 Jul 2009 00:41:03 +0000
+Subject: [lm-sensors] [PATCH 4/6] hwmon: adxx: Convert to device table
+Message-Id: <20090731004103.GD8371@oksana.dev.rtsoft.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090727134527.GA12849@rakim.wolfsonmicro.main>
-In-Reply-To: <20090727134527.GA12849@rakim.wolfsonmicro.main>
+References: <20090731003957.GA23982@oksana.dev.rtsoft.ru>
+In-Reply-To: <20090731003957.GA23982@oksana.dev.rtsoft.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, lm-sensors@lm-sensors.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ben Dooks <ben@fluff.org>, David Brownell <dbrownell@users.sourceforge.net>, David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Jean Delvare <khali@linux-fr.org>, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linuxppc-dev@ozlabs.org
 
-This driver provides reporting of the status supply voltage rails
-of the WM835x series of PMICs via the hwmon API.
+This patch makes the code a little bit nicer, and shorter.
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Acked-by: Jean Delvare <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 ---
- Documentation/hwmon/wm8350      |   26 +++++++
- drivers/hwmon/Kconfig           |   10 +++
- drivers/hwmon/Makefile          |    1 +
- drivers/hwmon/wm8350-hwmon.c    |  151 +++++++++++++++++++++++++++++++++++++++
- drivers/mfd/wm8350-core.c       |    3 +
- include/linux/mfd/wm8350/core.h |    6 ++
- 6 files changed, 197 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/hwmon/wm8350
- create mode 100644 drivers/hwmon/wm8350-hwmon.c
+ drivers/hwmon/adcxx.c |  101 ++++++++-----------------------------------------
+ 1 files changed, 16 insertions(+), 85 deletions(-)
 
-diff --git a/Documentation/hwmon/wm8350 b/Documentation/hwmon/wm8350
-new file mode 100644
-index 0000000..98f923b
---- /dev/null
-+++ b/Documentation/hwmon/wm8350
-@@ -0,0 +1,26 @@
-+Kernel driver wm8350-hwmon
-+=============
-+
-+Supported chips:
-+  * Wolfson Microelectronics WM835x PMICs
-+    Prefix: 'wm8350'
-+    Datasheet:
-+	http://www.wolfsonmicro.com/products/WM8350
-+	http://www.wolfsonmicro.com/products/WM8351
-+	http://www.wolfsonmicro.com/products/WM8352
-+
-+Authors: Mark Brown <broonie@opensource.wolfsonmicro.com>
-+
-+Description
-+-----------
-+
-+The WM835x series of PMICs include an AUXADC which can be used to
-+monitor a range of system operating parameters, including the voltages
-+of the major supplies within the system.  Currently the driver provides
-+simple access to these major supplies.
-+
-+Voltage Monitoring
-+------------------
-+
-+Voltages are sampled by a 12 bit ADC.  For the internal supplies the ADC
-+is referenced to the system VRTC.
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index a897732..8d17135 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -930,6 +930,16 @@ config SENSORS_W83627EHF
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called w83627ehf.
+diff --git a/drivers/hwmon/adcxx.c b/drivers/hwmon/adcxx.c
+index 242294d..5e9e095 100644
+--- a/drivers/hwmon/adcxx.c
++++ b/drivers/hwmon/adcxx.c
+@@ -43,6 +43,7 @@
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/mutex.h>
++#include <linux/mod_devicetable.h>
+ #include <linux/spi/spi.h>
  
-+config SENSORS_WM8350
-+	tristate "Wolfson Microelectronics WM835x"
-+	depends on MFD_WM8350
-+	help
-+	  If you say yes here you get support for the hardware
-+	  monitoring features of the WM835x series of PMICs.
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called wm8350-hwmon.
-+
- config SENSORS_ULTRA45
- 	tristate "Sun Ultra45 PIC16F747"
- 	depends on SPARC64
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index 537daac..6126257 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -90,6 +90,7 @@ obj-$(CONFIG_SENSORS_VT8231)	+= vt8231.o
- obj-$(CONFIG_SENSORS_W83627EHF)	+= w83627ehf.o
- obj-$(CONFIG_SENSORS_W83L785TS)	+= w83l785ts.o
- obj-$(CONFIG_SENSORS_W83L786NG)	+= w83l786ng.o
-+obj-$(CONFIG_SENSORS_WM8350)	+= wm8350-hwmon.o
+ #define DRVNAME		"adcxx"
+@@ -157,8 +158,9 @@ static struct sensor_device_attribute ad_input[] = {
  
- ifeq ($(CONFIG_HWMON_DEBUG_CHIP),y)
- EXTRA_CFLAGS += -DDEBUG
-diff --git a/drivers/hwmon/wm8350-hwmon.c b/drivers/hwmon/wm8350-hwmon.c
-new file mode 100644
-index 0000000..1329059
---- /dev/null
-+++ b/drivers/hwmon/wm8350-hwmon.c
-@@ -0,0 +1,151 @@
-+/*
-+ * drivers/hwmon/wm8350-hwmon.c - Wolfson Microelectronics WM8350 PMIC
-+ *                                  hardware monitoring features.
-+ *
-+ * Copyright (C) 2009 Wolfson Microelectronics plc
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License v2 as published by the
-+ * Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program; if not, write to the Free Software Foundation, Inc.,
-+ * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/err.h>
-+#include <linux/platform_device.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+
-+#include <linux/mfd/wm8350/core.h>
-+#include <linux/mfd/wm8350/comparator.h>
-+
-+static ssize_t show_name(struct device *dev,
-+			 struct device_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "wm8350\n");
-+}
-+
-+static const char *input_names[] = {
-+	[WM8350_AUXADC_USB]  = "USB",
-+	[WM8350_AUXADC_LINE] = "Line",
-+	[WM8350_AUXADC_BATT] = "Battery",
-+};
-+
-+
-+static ssize_t show_voltage(struct device *dev,
-+			    struct device_attribute *attr, char *buf)
-+{
-+	struct wm8350 *wm8350 = dev_get_drvdata(dev);
-+	int channel = to_sensor_dev_attr(attr)->index;
-+	int val;
-+
-+	val = wm8350_read_auxadc(wm8350, channel, 0, 0) * WM8350_AUX_COEFF;
-+	val = DIV_ROUND_CLOSEST(val, 1000);
-+
-+	return sprintf(buf, "%d\n", val);
-+}
-+
-+static ssize_t show_label(struct device *dev,
-+			  struct device_attribute *attr, char *buf)
-+{
-+	int channel = to_sensor_dev_attr(attr)->index;
-+
-+	return sprintf(buf, "%s\n", input_names[channel]);
-+}
-+
-+#define WM8350_NAMED_VOLTAGE(id, name) \
-+	static SENSOR_DEVICE_ATTR(in##id##_input, S_IRUGO, show_voltage,\
-+				  NULL, name);		\
-+	static SENSOR_DEVICE_ATTR(in##id##_label, S_IRUGO, show_label,	\
-+				  NULL, name)
-+
-+static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
-+
-+WM8350_NAMED_VOLTAGE(0, WM8350_AUXADC_USB);
-+WM8350_NAMED_VOLTAGE(1, WM8350_AUXADC_BATT);
-+WM8350_NAMED_VOLTAGE(2, WM8350_AUXADC_LINE);
-+
-+static struct attribute *wm8350_attributes[] = {
-+	&dev_attr_name.attr,
-+
-+	&sensor_dev_attr_in0_input.dev_attr.attr,
-+	&sensor_dev_attr_in0_label.dev_attr.attr,
-+	&sensor_dev_attr_in1_input.dev_attr.attr,
-+	&sensor_dev_attr_in1_label.dev_attr.attr,
-+	&sensor_dev_attr_in2_input.dev_attr.attr,
-+	&sensor_dev_attr_in2_label.dev_attr.attr,
-+
-+	NULL,
-+};
-+
-+static const struct attribute_group wm8350_attr_group = {
-+	.attrs	= wm8350_attributes,
-+};
-+
-+static int __devinit wm8350_hwmon_probe(struct platform_device *pdev)
-+{
-+	struct wm8350 *wm8350 = platform_get_drvdata(pdev);
-+	int ret;
-+
-+	ret = sysfs_create_group(&pdev->dev.kobj, &wm8350_attr_group);
-+	if (ret)
-+		goto err;
-+
-+	wm8350->hwmon.classdev = hwmon_device_register(&pdev->dev);
-+	if (IS_ERR(wm8350->hwmon.classdev)) {
-+		ret = PTR_ERR(wm8350->hwmon.classdev);
-+		goto err_group;
-+	}
-+
-+	return 0;
-+
-+err_group:
-+	sysfs_remove_group(&pdev->dev.kobj, &wm8350_attr_group);
-+err:
-+	return ret;
-+}
-+
-+static int __devexit wm8350_hwmon_remove(struct platform_device *pdev)
-+{
-+	struct wm8350 *wm8350 = platform_get_drvdata(pdev);
-+
-+	hwmon_device_unregister(wm8350->hwmon.classdev);
-+	sysfs_remove_group(&pdev->dev.kobj, &wm8350_attr_group);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver wm8350_hwmon_driver = {
-+	.probe = wm8350_hwmon_probe,
-+	.remove = __devexit_p(wm8350_hwmon_remove),
-+	.driver = {
-+		.name = "wm8350-hwmon",
-+		.owner = THIS_MODULE,
-+	},
-+};
-+
-+static int __init wm8350_hwmon_init(void)
-+{
-+	return platform_driver_register(&wm8350_hwmon_driver);
-+}
-+module_init(wm8350_hwmon_init);
-+
-+static void __exit wm8350_hwmon_exit(void)
-+{
-+	platform_driver_unregister(&wm8350_hwmon_driver);
-+}
-+module_exit(wm8350_hwmon_exit);
-+
-+MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
-+MODULE_DESCRIPTION("WM8350 Hardware Monitoring");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:wm8350-hwmon");
-diff --git a/drivers/mfd/wm8350-core.c b/drivers/mfd/wm8350-core.c
-index fe24079..9d662a5 100644
---- a/drivers/mfd/wm8350-core.c
-+++ b/drivers/mfd/wm8350-core.c
-@@ -1472,6 +1472,8 @@ int wm8350_device_init(struct wm8350 *wm8350, int irq,
- 				   &(wm8350->codec.pdev));
- 	wm8350_client_dev_register(wm8350, "wm8350-gpio",
- 				   &(wm8350->gpio.pdev));
-+	wm8350_client_dev_register(wm8350, "wm8350-hwmon",
-+				   &(wm8350->hwmon.pdev));
- 	wm8350_client_dev_register(wm8350, "wm8350-power",
- 				   &(wm8350->power.pdev));
- 	wm8350_client_dev_register(wm8350, "wm8350-rtc", &(wm8350->rtc.pdev));
-@@ -1498,6 +1500,7 @@ void wm8350_device_exit(struct wm8350 *wm8350)
- 	platform_device_unregister(wm8350->wdt.pdev);
- 	platform_device_unregister(wm8350->rtc.pdev);
- 	platform_device_unregister(wm8350->power.pdev);
-+	platform_device_unregister(wm8350->hwmon.pdev);
- 	platform_device_unregister(wm8350->gpio.pdev);
- 	platform_device_unregister(wm8350->codec.pdev);
+ /*----------------------------------------------------------------------*/
  
-diff --git a/include/linux/mfd/wm8350/core.h b/include/linux/mfd/wm8350/core.h
-index 42cca67..969b0b5 100644
---- a/include/linux/mfd/wm8350/core.h
-+++ b/include/linux/mfd/wm8350/core.h
-@@ -605,6 +605,11 @@ struct wm8350_irq {
- 	void *data;
+-static int __devinit adcxx_probe(struct spi_device *spi, int channels)
++static int __devinit adcxx_probe(struct spi_device *spi)
+ {
++	int channels = spi_get_device_id(spi)->driver_data;
+ 	struct adcxx *adc;
+ 	int status;
+ 	int i;
+@@ -204,26 +206,6 @@ out_err:
+ 	return status;
+ }
+ 
+-static int __devinit adcxx1s_probe(struct spi_device *spi)
+-{
+-	return adcxx_probe(spi, 1);
+-}
+-
+-static int __devinit adcxx2s_probe(struct spi_device *spi)
+-{
+-	return adcxx_probe(spi, 2);
+-}
+-
+-static int __devinit adcxx4s_probe(struct spi_device *spi)
+-{
+-	return adcxx_probe(spi, 4);
+-}
+-
+-static int __devinit adcxx8s_probe(struct spi_device *spi)
+-{
+-	return adcxx_probe(spi, 8);
+-}
+-
+ static int __devexit adcxx_remove(struct spi_device *spi)
+ {
+ 	struct adcxx *adc = dev_get_drvdata(&spi->dev);
+@@ -241,79 +223,33 @@ static int __devexit adcxx_remove(struct spi_device *spi)
+ 	return 0;
+ }
+ 
+-static struct spi_driver adcxx1s_driver = {
+-	.driver = {
+-		.name	= "adcxx1s",
+-		.owner	= THIS_MODULE,
+-	},
+-	.probe	= adcxx1s_probe,
+-	.remove	= __devexit_p(adcxx_remove),
++static const struct spi_device_id adcxx_ids[] = {
++	{ "adcxx1s", 1 },
++	{ "adcxx2s", 2 },
++	{ "adcxx4s", 4 },
++	{ "adcxx8s", 8 },
++	{ },
+ };
++MODULE_DEVICE_TABLE(spi, adcxx_ids);
+ 
+-static struct spi_driver adcxx2s_driver = {
++static struct spi_driver adcxx_driver = {
+ 	.driver = {
+-		.name	= "adcxx2s",
++		.name	= "adcxx",
+ 		.owner	= THIS_MODULE,
+ 	},
+-	.probe	= adcxx2s_probe,
+-	.remove	= __devexit_p(adcxx_remove),
+-};
+-
+-static struct spi_driver adcxx4s_driver = {
+-	.driver = {
+-		.name	= "adcxx4s",
+-		.owner	= THIS_MODULE,
+-	},
+-	.probe	= adcxx4s_probe,
+-	.remove	= __devexit_p(adcxx_remove),
+-};
+-
+-static struct spi_driver adcxx8s_driver = {
+-	.driver = {
+-		.name	= "adcxx8s",
+-		.owner	= THIS_MODULE,
+-	},
+-	.probe	= adcxx8s_probe,
++	.id_table = adcxx_ids,
++	.probe	= adcxx_probe,
+ 	.remove	= __devexit_p(adcxx_remove),
  };
  
-+struct wm8350_hwmon {
-+	struct platform_device *pdev;
-+	struct device *classdev;
-+};
-+
- struct wm8350 {
- 	struct device *dev;
+ static int __init init_adcxx(void)
+ {
+-	int status;
+-	status = spi_register_driver(&adcxx1s_driver);
+-	if (status)
+-		goto reg_1_failed;
+-
+-	status = spi_register_driver(&adcxx2s_driver);
+-	if (status)
+-		goto reg_2_failed;
+-
+-	status = spi_register_driver(&adcxx4s_driver);
+-	if (status)
+-		goto reg_4_failed;
+-
+-	status = spi_register_driver(&adcxx8s_driver);
+-	if (status)
+-		goto reg_8_failed;
+-
+-	return status;
+-
+-reg_8_failed:
+-	spi_unregister_driver(&adcxx4s_driver);
+-reg_4_failed:
+-	spi_unregister_driver(&adcxx2s_driver);
+-reg_2_failed:
+-	spi_unregister_driver(&adcxx1s_driver);
+-reg_1_failed:
+-	return status;
++	return spi_register_driver(&adcxx_driver);
+ }
  
-@@ -629,6 +634,7 @@ struct wm8350 {
- 	/* Client devices */
- 	struct wm8350_codec codec;
- 	struct wm8350_gpio gpio;
-+	struct wm8350_hwmon hwmon;
- 	struct wm8350_pmic pmic;
- 	struct wm8350_power power;
- 	struct wm8350_rtc rtc;
+ static void __exit exit_adcxx(void)
+ {
+-	spi_unregister_driver(&adcxx1s_driver);
+-	spi_unregister_driver(&adcxx2s_driver);
+-	spi_unregister_driver(&adcxx4s_driver);
+-	spi_unregister_driver(&adcxx8s_driver);
++	spi_unregister_driver(&adcxx_driver);
+ }
+ 
+ module_init(init_adcxx);
+@@ -322,8 +258,3 @@ module_exit(exit_adcxx);
+ MODULE_AUTHOR("Marc Pignat");
+ MODULE_DESCRIPTION("National Semiconductor adcxx8sxxx Linux driver");
+ MODULE_LICENSE("GPL");
+-
+-MODULE_ALIAS("adcxx1s");
+-MODULE_ALIAS("adcxx2s");
+-MODULE_ALIAS("adcxx4s");
+-MODULE_ALIAS("adcxx8s");
 -- 
 1.6.3.3
 
