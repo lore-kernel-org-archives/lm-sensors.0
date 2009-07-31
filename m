@@ -1,7 +1,7 @@
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
-Date: Fri, 31 Jul 2009 00:41:01 +0000
-Subject: [lm-sensors] [PATCH 3/6] of: Remove "stm,m25p40" alias
-Message-Id: <20090731004101.GC8371@oksana.dev.rtsoft.ru>
+Date: Fri, 31 Jul 2009 00:41:04 +0000
+Subject: [lm-sensors] [PATCH 5/6] hwmon: lm70: Convert to device table
+Message-Id: <20090731004104.GE8371@oksana.dev.rtsoft.ru>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090731003957.GA23982@oksana.dev.rtsoft.ru>
 In-Reply-To: <20090731003957.GA23982@oksana.dev.rtsoft.ru>
@@ -11,26 +11,122 @@ Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: Ben Dooks <ben@fluff.org>, David Brownell <dbrownell@users.sourceforge.net>, David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Jean Delvare <khali@linux-fr.org>, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linuxppc-dev@ozlabs.org
 
-The alias isn't needed any longer since the m25p80 driver converted
-to the module device table matching.
+This patch makes the code a little bit nicer, and shorter.
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 ---
- drivers/of/base.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ drivers/hwmon/lm70.c |   55 +++++++++++++++++--------------------------------
+ 1 files changed, 19 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index 69f85c0..ddf224d 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -447,7 +447,6 @@ struct of_modalias_table {
- static struct of_modalias_table of_modalias_table[] = {
- 	{ "fsl,mcu-mpc8349emitx", "mcu-mpc8349emitx" },
- 	{ "mmc-spi-slot", "mmc_spi" },
--	{ "stm,m25p40", "m25p80" },
+diff --git a/drivers/hwmon/lm70.c b/drivers/hwmon/lm70.c
+index ae6204f..ab8a5d3 100644
+--- a/drivers/hwmon/lm70.c
++++ b/drivers/hwmon/lm70.c
+@@ -32,6 +32,7 @@
+ #include <linux/sysfs.h>
+ #include <linux/hwmon.h>
+ #include <linux/mutex.h>
++#include <linux/mod_devicetable.h>
+ #include <linux/spi/spi.h>
+ 
+ 
+@@ -130,11 +131,20 @@ static DEVICE_ATTR(name, S_IRUGO, lm70_show_name, NULL);
+ 
+ /*----------------------------------------------------------------------*/
+ 
+-static int __devinit common_probe(struct spi_device *spi, int chip)
++static int __devinit lm70_probe(struct spi_device *spi)
+ {
++	int chip = spi_get_device_id(spi)->driver_data;
+ 	struct lm70 *p_lm70;
+ 	int status;
+ 
++	/* signaling is SPI_MODE_0 for both LM70 and TMP121 */
++	if (spi->mode & (SPI_CPOL | SPI_CPHA))
++		return -EINVAL;
++
++	/* 3-wire link (shared SI/SO) for LM70 */
++	if (chip = LM70_CHIP_LM70 && !(spi->mode & SPI_3WIRE))
++		return -EINVAL;
++
+ 	/* NOTE:  we assume 8-bit words, and convert to 16 bits manually */
+ 
+ 	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
+@@ -170,24 +180,6 @@ out_dev_reg_failed:
+ 	return status;
+ }
+ 
+-static int __devinit lm70_probe(struct spi_device *spi)
+-{
+-	/* signaling is SPI_MODE_0 on a 3-wire link (shared SI/SO) */
+-	if ((spi->mode & (SPI_CPOL | SPI_CPHA)) || !(spi->mode & SPI_3WIRE))
+-		return -EINVAL;
+-
+-	return common_probe(spi, LM70_CHIP_LM70);
+-}
+-
+-static int __devinit tmp121_probe(struct spi_device *spi)
+-{
+-	/* signaling is SPI_MODE_0 with only MISO connected */
+-	if (spi->mode & (SPI_CPOL | SPI_CPHA))
+-		return -EINVAL;
+-
+-	return common_probe(spi, LM70_CHIP_TMP121);
+-}
+-
+ static int __devexit lm70_remove(struct spi_device *spi)
+ {
+ 	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
+@@ -201,41 +193,32 @@ static int __devexit lm70_remove(struct spi_device *spi)
+ 	return 0;
+ }
+ 
+-static struct spi_driver tmp121_driver = {
+-	.driver = {
+-		.name	= "tmp121",
+-		.owner	= THIS_MODULE,
+-	},
+-	.probe	= tmp121_probe,
+-	.remove	= __devexit_p(lm70_remove),
++
++static const struct spi_device_id lm70_ids[] = {
++	{ "lm70",   LM70_CHIP_LM70 },
++	{ "tmp121", LM70_CHIP_TMP121 },
++	{ },
+ };
++MODULE_DEVICE_TABLE(spi, lm70_ids);
+ 
+ static struct spi_driver lm70_driver = {
+ 	.driver = {
+ 		.name	= "lm70",
+ 		.owner	= THIS_MODULE,
+ 	},
++	.id_table = lm70_ids,
+ 	.probe	= lm70_probe,
+ 	.remove	= __devexit_p(lm70_remove),
  };
  
- /**
+ static int __init init_lm70(void)
+ {
+-	int ret = spi_register_driver(&lm70_driver);
+-	if (ret)
+-		return ret;
+-
+-	ret = spi_register_driver(&tmp121_driver);
+-	if (ret)
+-		spi_unregister_driver(&lm70_driver);
+-
+-	return ret;
++	return spi_register_driver(&lm70_driver);
+ }
+ 
+ static void __exit cleanup_lm70(void)
+ {
+ 	spi_unregister_driver(&lm70_driver);
+-	spi_unregister_driver(&tmp121_driver);
+ }
+ 
+ module_init(init_lm70);
 -- 
 1.6.3.3
 
