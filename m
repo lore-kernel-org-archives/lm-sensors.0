@@ -1,276 +1,67 @@
-From: "H Hartley Sweeten" <hartleys@visionengravers.com>
-Date: Thu, 13 Aug 2009 20:56:56 +0000
-Subject: [lm-sensors] [PATCH] hwmon: include <linux/io.h> instead of
-Message-Id: <BD79186B4FD85F4B8E60E381CAEE190901BE9DA3@mi8nycmail19.Mi8.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Mon, 03 Aug 2009 11:57:52 +0000
+Subject: Re: [lm-sensors] [PATCH 1/2] Create a DIV_ROUND_CLOSEST macro to do
+Message-Id: <1249300672.7924.53.camel@twins>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20081111010132.1730.76566.stgit@elm3a70.beaverton.ibm.com>
+In-Reply-To: <20081111010132.1730.76566.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org, mactel-linux-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
-Cc: alistair@devzero.co.uk, nicolas@boichat.ch, juergh@gmail.com, khali@linux-fr.org, frank@f-seidel.de, jim.cromie@gmail.com, mhoffman@lightlink.com, vt8231@hiddenengine.co.uk
+To: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Julia Lawall <julia@diku.dk>
 
-Drivers should be including <linux/io.h> instead of <asm/io.h>.
+On Mon, 2008-11-10 at 17:01 -0800, Darrick J. Wong wrote:
+> Create a helper macro to divide two numbers and round the result to the
+> nearest whole number.  This is a helper macro for hwmon drivers that
+> want to convert incoming sysfs values per standard hwmon practice, though
+> the macro itself can be used by anyone.
 
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Alistair John Strachan <alistair@devzero.co.uk>
-Cc: Nicolas Boichat <nicolas@boichat.ch>
-Cc: Juerg Haefliger <juergh@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Frank Seidel <frank@f-seidel.de>
-Cc: Jim Cromie <jim.cromie@gmail.com>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Roger Lucas <vt8231@hiddenengine.co.uk>
+Its too late to rename this now isn't it :-/
 
----
+DIV_ROUND_{UP,CEIL}
+DIV_ROUND_{DOWN,FLOOR}
 
-diff --git a/drivers/hwmon/abituguru.c b/drivers/hwmon/abituguru.c
-index 4dbdb81..03694cc 100644
---- a/drivers/hwmon/abituguru.c
-+++ b/drivers/hwmon/abituguru.c
-@@ -32,7 +32,7 @@
- #include <linux/hwmon.h>
- #include <linux/hwmon-sysfs.h>
- #include <linux/dmi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- /* Banks */
- #define ABIT_UGURU_ALARM_BANK			0x20 /* 1x 3 bytes */
-diff --git a/drivers/hwmon/abituguru3.c b/drivers/hwmon/abituguru3.c
-index 7d3f15d..ad6f8b7 100644
---- a/drivers/hwmon/abituguru3.c
-+++ b/drivers/hwmon/abituguru3.c
-@@ -34,7 +34,7 @@
- #include <linux/hwmon.h>
- #include <linux/hwmon-sysfs.h>
- #include <linux/dmi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- /* uGuru3 bank addresses */
- #define ABIT_UGURU3_SETTINGS_BANK		0x01
-diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index 678e34b..753b348 100644
---- a/drivers/hwmon/applesmc.c
-+++ b/drivers/hwmon/applesmc.c
-@@ -35,7 +35,7 @@
- #include <linux/dmi.h>
- #include <linux/mutex.h>
- #include <linux/hwmon-sysfs.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <linux/leds.h>
- #include <linux/hwmon.h>
- #include <linux/workqueue.h>
-diff --git a/drivers/hwmon/dme1737.c b/drivers/hwmon/dme1737.c
-index 3df202a..9814d51 100644
---- a/drivers/hwmon/dme1737.c
-+++ b/drivers/hwmon/dme1737.c
-@@ -35,7 +35,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/acpi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- /* ISA device, if found */
- static struct platform_device *pdev;
-diff --git a/drivers/hwmon/f71805f.c b/drivers/hwmon/f71805f.c
-index 8998765..525a00b 100644
---- a/drivers/hwmon/f71805f.c
-+++ b/drivers/hwmon/f71805f.c
-@@ -40,7 +40,7 @@
- #include <linux/sysfs.h>
- #include <linux/ioport.h>
- #include <linux/acpi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- static unsigned short force_id;
- module_param(force_id, ushort, 0);
-diff --git a/drivers/hwmon/hdaps.c b/drivers/hwmon/hdaps.c
-index d3612a1..be2d131 100644
---- a/drivers/hwmon/hdaps.c
-+++ b/drivers/hwmon/hdaps.c
-@@ -35,8 +35,7 @@
- #include <linux/timer.h>
- #include <linux/dmi.h>
- #include <linux/jiffies.h>
--
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- #define HDAPS_LOW_PORT		0x1600	/* first port used by hdaps */
- #define HDAPS_NR_PORTS		0x30	/* number of ports: 0x1600 - 0x162f */
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 9157247..ffeb2a1 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -50,7 +50,7 @@
- #include <linux/string.h>
- #include <linux/dmi.h>
- #include <linux/acpi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- #define DRVNAME "it87"
- 
-diff --git a/drivers/hwmon/lm78.c b/drivers/hwmon/lm78.c
-index a1787fd..f7e7016 100644
---- a/drivers/hwmon/lm78.c
-+++ b/drivers/hwmon/lm78.c
-@@ -31,7 +31,7 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- /* ISA device, if found */
- static struct platform_device *pdev;
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-index fb052fe..4a64b85 100644
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -44,7 +44,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/acpi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- static u8 devid;
- static struct platform_device *pdev;
-diff --git a/drivers/hwmon/pc87427.c b/drivers/hwmon/pc87427.c
-index 3a8a0f7..4e0de0e 100644
---- a/drivers/hwmon/pc87427.c
-+++ b/drivers/hwmon/pc87427.c
-@@ -33,7 +33,7 @@
- #include <linux/sysfs.h>
- #include <linux/ioport.h>
- #include <linux/acpi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- static unsigned short force_id;
- module_param(force_id, ushort, 0);
-diff --git a/drivers/hwmon/sis5595.c b/drivers/hwmon/sis5595.c
-index aa2e831..12f2e70 100644
---- a/drivers/hwmon/sis5595.c
-+++ b/drivers/hwmon/sis5595.c
-@@ -63,7 +63,7 @@
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
- #include <linux/acpi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- 
- /* If force_addr is set to anything different from 0, we forcibly enable
-diff --git a/drivers/hwmon/smsc47b397.c b/drivers/hwmon/smsc47b397.c
-index 6f6d52b..f46d936 100644
---- a/drivers/hwmon/smsc47b397.c
-+++ b/drivers/hwmon/smsc47b397.c
-@@ -37,7 +37,7 @@
- #include <linux/init.h>
- #include <linux/mutex.h>
- #include <linux/acpi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- static unsigned short force_id;
- module_param(force_id, ushort, 0);
-diff --git a/drivers/hwmon/smsc47m1.c b/drivers/hwmon/smsc47m1.c
-index ba75bfc..8ad50fd 100644
---- a/drivers/hwmon/smsc47m1.c
-+++ b/drivers/hwmon/smsc47m1.c
-@@ -38,7 +38,7 @@
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
- #include <linux/acpi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- static unsigned short force_id;
- module_param(force_id, ushort, 0);
-diff --git a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
-index a022aed..39e82a4 100644
---- a/drivers/hwmon/via686a.c
-+++ b/drivers/hwmon/via686a.c
-@@ -42,7 +42,7 @@
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
- #include <linux/acpi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- 
- /* If force_addr is set to anything different from 0, we forcibly enable
-diff --git a/drivers/hwmon/vt1211.c b/drivers/hwmon/vt1211.c
-index 73f77a9..120b5d6 100644
---- a/drivers/hwmon/vt1211.c
-+++ b/drivers/hwmon/vt1211.c
-@@ -33,7 +33,7 @@
- #include <linux/mutex.h>
- #include <linux/ioport.h>
- #include <linux/acpi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- static int uch_config = -1;
- module_param(uch_config, int, 0);
-diff --git a/drivers/hwmon/vt8231.c b/drivers/hwmon/vt8231.c
-index 9982b45..470a122 100644
---- a/drivers/hwmon/vt8231.c
-+++ b/drivers/hwmon/vt8231.c
-@@ -36,7 +36,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/acpi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- static int force_addr;
- module_param(force_addr, int, 0);
-diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-index 0e97469..bb5e787 100644
---- a/drivers/hwmon/w83627ehf.c
-+++ b/drivers/hwmon/w83627ehf.c
-@@ -51,7 +51,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/acpi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include "lm75.h"
- 
- enum kinds { w83627ehf, w83627dhg, w83627dhg_p, w83667hg };
-diff --git a/drivers/hwmon/w83627hf.c b/drivers/hwmon/w83627hf.c
-index 389150b..2be28ac 100644
---- a/drivers/hwmon/w83627hf.c
-+++ b/drivers/hwmon/w83627hf.c
-@@ -51,7 +51,7 @@
- #include <linux/mutex.h>
- #include <linux/ioport.h>
- #include <linux/acpi.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include "lm75.h"
- 
- static struct platform_device *pdev;
-diff --git a/drivers/hwmon/w83781d.c b/drivers/hwmon/w83781d.c
-index 0bdab95..d27ed1b 100644
---- a/drivers/hwmon/w83781d.c
-+++ b/drivers/hwmon/w83781d.c
-@@ -48,7 +48,7 @@
- #ifdef CONFIG_ISA
- #include <linux/platform_device.h>
- #include <linux/ioport.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #endif
- 
- #include "lm75.h" 
+I get.
+
+The proposed thing is simply DIV_ROUND, but this DIV_ROUND_CLOSEST name
+is just wonky.
+
+Also, shouldn't it be something like ?
+
+  DIV_ROUND(x, y) (((x) + (((y)+1)/2)) / (y))
+
+Also, do we want the default rounding to be symmetric or asymmetric?
+
+I think round to half even or something would be nice, but would add an
+extra conditional, not sure its worth it (round away from zero only
+works for signed numbers and it would also cost one conditional).
+
+> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+> ---
+> 
+>  include/linux/kernel.h |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+> index fba141d..fb02266 100644
+> --- a/include/linux/kernel.h
+> +++ b/include/linux/kernel.h
+> @@ -48,6 +48,12 @@ extern const char linux_proc_banner[];
+>  #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
+>  #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
+>  #define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
+> +#define DIV_ROUND_CLOSEST(x, divisor)(			\
+> +{							\
+> +	typeof(divisor) __divisor = divisor;		\
+> +	(((x) + ((__divisor) / 2)) / (__divisor));	\
+> +}							\
+> +)
+>  
+>  #define _RET_IP_		(unsigned long)__builtin_return_address(0)
+>  #define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
+
+
 
 _______________________________________________
 lm-sensors mailing list
