@@ -1,120 +1,83 @@
-From: "Trisal, Kalhan" <kalhan.trisal@intel.com>
-Date: Thu, 13 Aug 2009 10:56:22 +0000
-Subject: Re: [lm-sensors] Ambient Light sensor for Intersil-ISL29020 device
-Message-Id: <3CA6C6D9F70D314CA34352990B57DA1535F025E4@bgsmsx502.gar.corp.intel.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 04 Aug 2009 08:52:46 +0000
+Subject: Re: [lm-sensors] lm-sensors 3.0.0 init script lm-sensors -- what
+Message-Id: <20090804105246.6a0535c4@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090811185416.GB32002@intel.com>
-In-Reply-To: <20090811185416.GB32002@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This driver used Hwmon interface , I don't find the ils29003 registering with hwmon. I still believe this should be part of hwmon group.
+Hi Charles,
 
-Thanks 
-Kalhan 
-
------Original Message-----
-From: Cory T. Tusar [mailto:ctusar@videon-central.com] 
-Sent: Tuesday, August 11, 2009 7:00 PM
-To: Trisal, Kalhan
-Cc: lm-sensors@lm-sensors.org; alan@linux.intel.com
-Subject: Re: [lm-sensors] Ambient Light sensor for Intersil-ISL29020 device
-
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-Kalhan Trisal wrote:
->>From 2d11a9f666b7477cc8faca0f055f4477f328516f Mon Sep 17 00:00:00 2001
-> From: Kalhan Trisal <kalhan.trisal@intel.com>
-> Date: Tue, 11 Aug 2009 14:28:32 -0400
-> Subject: [PATCH] Intersil ISL29020 ALS driver
-> ALS driver will read the latest Lux measurement based on the light brightness and will report the LUX output through sysfs interface.
+On Thu, 30 Jul 2009 20:49:19 +0530, Charles wrote:
+> Hello  :-)
 > 
-> Signed-off-by: Kalhan Trisal <kalhan.trisal@intel.com>
+> The lm-sensors 3.0.0 init script "lm-sensors" runs only two significant
+> commands:
 > 
-> ---
->  drivers/hwmon/Kconfig    |   11 ++
->  drivers/hwmon/Makefile   |    1 +
->  drivers/hwmon/isl29020.c |  237 ++++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 249 insertions(+), 0 deletions(-)
->  create mode 100755 drivers/hwmon/isl29020.c
-> 
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 2d50166..c89f1f6 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -1017,6 +1017,17 @@ config SENSORS_APPLESMC
->           Say Y here if you have an applicable laptop and want to experience
->           the awesome power of applesmc.
-> 
-> +config SENSORS_ISL29020
-> +       tristate "Intersil ISL29020 ALS"
-> +       depends on I2C_MRST
+> sensors -s 
+> sensors 
 
-Is there a reason you're hardcoding a Moorestown dependency here?
+Which distribution are you running? The initialization script is
+distribution-specific. We provide a sample implementation, which I
+think Fedora/Red Hat is using, but other distributions have their own
+script.
 
-> +       default n
-> +       help
-> +         If you say yes here you get support for the ALS Devices
-> +         Ambient Light Sensor monitoring chip.
-> +         Range values can be configured using sysfs.
-> +         Lux Data are  accessible via sysfs.
-> +
-> +
->  config HWMON_DEBUG_CHIP
->         bool "Hardware Monitoring Chip debugging messages"
->         default n
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index b793dce..3b1e424 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -89,6 +89,7 @@ obj-$(CONFIG_SENSORS_VT8231)  += vt8231.o
->  obj-$(CONFIG_SENSORS_W83627EHF)        += w83627ehf.o
->  obj-$(CONFIG_SENSORS_W83L785TS)        += w83l785ts.o
->  obj-$(CONFIG_SENSORS_W83L786NG)        += w83l786ng.o
-> +obj-$(CONFIG_SENSORS_LIS331DL) += lis331dl.o
+Our reference implementation runs "sensors -s" but not "sensors".
 
-This appears to be incorrect.
+> I understand the "sensors -s" activates any limits created by set statements
+> in sensors3.conf.  What happens (or could be configured to happen) if a
+> limit is exceeded?  The sensors.conf man page tells how to configure set
+> values but not what they do.
 
-> 
->  ifeq ($(CONFIG_HWMON_DEBUG_CHIP),y)
->  EXTRA_CFLAGS += -DDEBUG
-> diff --git a/drivers/hwmon/isl29020.c b/drivers/hwmon/isl29020.c
-> new file mode 100755
-> index 0000000..162dcb1
-> --- /dev/null
-> +++ b/drivers/hwmon/isl29020.c
+It really depends on the chip, how it is configured (typically by the
+BIOS, or its default configuration) and how it is wired on the
+mainboard. That's why the manual page can't tell you ;)
 
-Would this driver be better placed in drivers/misc, alongside the
-similar ils29003 driver?
+In general, exceeding a limit will simply raise an alarm flag, which
+will show as "ALARM" in the output of the "sensors" command. Other
+actions that are possible depending on the chip and configuration:
+* Beeping
+* Fan kicking in
+* CPU throttling
+* System shutdown
 
-- -Cory
+The last 3 items are relatively rare, and would only happen when a high
+or critical temperature limit is exceeded. And they would take a chip
+with a dedicated output pin, properly configured and properly wired.
 
+> Why does the init script run sensors (discarding its output)?  Is this
+> necessary for initialisation before lmsensors library functions can be used?
 
-- -- 
-Cory T. Tusar
-Senior Software Engineer
-Videon Central, Inc.
-2171 Sandy Drive
-State College, PA 16803
-(814) 235-1111 x316
-(814) 235-1118 fax
+The idea would be to clear undue alarm flags which were raised before
+the limits were properly set. Most chips latch the alarm flags and only
+clear them after they have been read and the alarm condition has gone.
 
+Whether calling "sensors" in the init script is a good idea or not, is
+subject to debate. Clearing the alarm flags is nice (avoids user
+confusion), but OTOH, many GUI applications don't show alarm flags
+anyway, and that call to "sensors" means reading all hardware registers
+for most drivers, and for I2C/SMBus devices this can take a "long" time
+(say 1 second) while the current trend is to shorten the boot time of
+Linux systems. If anyone is really bothered by the irrelevant alarms
+when "sensors" (or another monitoring application) is first run, then
+I'd suggest modifying the kernel drivers so that updating limits also
+clears the corresponding alarm flags. Or to have a separate cache for
+alarms, so that reading/clearing them is reasonably fast.
 
-"There are two ways of constructing a software design.  One way is to
- make it so simple that there are obviously no deficiencies, and the
- other way is to make it so complicated that there are no obvious
- deficiencies."  --Sir Charles Anthony Richard Hoare
+> In case the answers to these questions depend on hardware and lmsensors
+> library users, I am particularly interested in the it87 chip and GKrellM.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.11 (GNU/Linux)
+The IT8705F can emit beeps on out-of-limits conditions, although our
+driver (it87) doesn't support this feature yet (but if the BIOS has set
+it up for you, you could still have it.) Once again it depends on how
+the chip is wired on the mainboard.
 
-iEYEARECAAYFAkqBckwACgkQHT1tsfGwHJ/68QCfY9RgbwotuijyABAFacG9ogQi
-NvwAoJl2u9cunjoBEJBST4GqKpHiID9a
-=ldQN
------END PGP SIGNATURE-----
+Hope it helps,
+-- 
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html.en
 
 _______________________________________________
 lm-sensors mailing list
