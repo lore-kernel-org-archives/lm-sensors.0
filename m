@@ -1,11 +1,12 @@
 From: Sascha Hauer <s.hauer@pengutronix.de>
-Date: Tue, 11 Aug 2009 08:59:24 +0000
+Date: Tue, 11 Aug 2009 09:07:45 +0000
 Subject: [lm-sensors] [PATCH 3/5] [hwmon] add Freescale MC13783 adc driver
-Message-Id: <1249981166-4210-3-git-send-email-s.hauer@pengutronix.de>
+Message-Id: <1249981667-4366-4-git-send-email-s.hauer@pengutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1249981166-4210-1-git-send-email-s.hauer@pengutronix.de>
- <1249981166-4210-2-git-send-email-s.hauer@pengutronix.de>
-In-Reply-To: <1249981166-4210-2-git-send-email-s.hauer@pengutronix.de>
+References: <1249981667-4366-1-git-send-email-s.hauer@pengutronix.de>
+ <1249981667-4366-2-git-send-email-s.hauer@pengutronix.de>
+ <1249981667-4366-3-git-send-email-s.hauer@pengutronix.de>
+In-Reply-To: <1249981667-4366-3-git-send-email-s.hauer@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
