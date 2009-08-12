@@ -1,204 +1,535 @@
-From: "Bill Nackers" <bnackers@trentontechnology.com>
-Date: Wed, 05 Aug 2009 17:20:34 +0000
-Subject: [lm-sensors] PECI interface
-Message-Id: <99FFC5A4248E4AE29D35364194EFDE88@NACKERS4>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============7065975589350932344=="
+From: sigurdan@stud.ntnu.no
+Date: Wed, 12 Aug 2009 13:06:22 +0000
+Subject: [lm-sensors] [RFC][PATCH] hwmon: Analog Devices AD7991/5/9 driver
+Message-Id: <20090812150622.dn173d6qjccww8o4@webmail.ntnu.no>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Adding support for the Analog Devices AD7991/5/9 IC's.
 
---===============7065975589350932344==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0009_01CA15CF.83FDC3A0"
+Signed-off-by: Sigurd M. Andreassen <sigurdan at stud.ntnu.no>
+---
+  drivers/hwmon/Kconfig       |   10 +
+  drivers/hwmon/Makefile      |    1 +
+  drivers/hwmon/ad799x.c      |  461  
++++++++++++++++++++++++++++++++++++++++++++
+  3 files changed, 472 insertions(+), 0 deletions(-)
+  create mode 100644 drivers/hwmon/ad799x.c
 
-This is a multi-part message in MIME format.
+I'm not sure what to do about the configuration bits, export them  
+directly to user space? What about the detect function, is it  
+acceptable?
 
-------=_NextPart_000_0009_01CA15CF.83FDC3A0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Sigurd.
 
-To whom it may concern:
- 
-Let me start off by saying I'm a Windows slave and have very little Linux
-experience and absolutely no training.  That said, if support calls come in
-on Linux, I need to answer.
- 
-We have a customer that is using an SHB (MCXx and MCGx series) that we
-manufacturer.  The SHB uses processors that support PECI system monitoring.
-http://en.wikipedia.org/wiki/PECI
- 
-Does anyone know of a way to set lm-sensors up to support PECI?  Thanks in
-advance for your response.
- 
-Regards,
- 
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index d73f5f4..1c52784 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -77,6 +77,16 @@ config SENSORS_AD7418
+  	  This driver can also be built as a module. If so, the module
+  	  will be called ad7418.
 
-Bill Nackers
-Technical Service Engineer 
++config SENSORS_AD799X
++	tristate "Analog Devices AD7991, AD7995 and AD7999"
++	depends on I2C && EXPERIMENTAL
++	help
++	  If you say yes here you get support for the Analog Devices
++	  AD7991, AD7995 and AD7999 4 channel ADC.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called ad799x.
++
+  config SENSORS_ADCXX
+  	tristate "National Semiconductor ADCxxxSxxx"
+  	depends on SPI_MASTER && EXPERIMENTAL
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 0ae2698..2848f30 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -17,6 +17,7 @@ obj-$(CONFIG_SENSORS_ABITUGURU)	+= abituguru.o
+  obj-$(CONFIG_SENSORS_ABITUGURU3)+= abituguru3.o
+  obj-$(CONFIG_SENSORS_AD7414)	+= ad7414.o
+  obj-$(CONFIG_SENSORS_AD7418)	+= ad7418.o
++obj-$(CONFIG_SENSORS_AD799X)    += ad799x.o
+  obj-$(CONFIG_SENSORS_ADCXX)	+= adcxx.o
+  obj-$(CONFIG_SENSORS_ADM1021)	+= adm1021.o
+  obj-$(CONFIG_SENSORS_ADM1025)	+= adm1025.o
+diff --git a/drivers/hwmon/ad799x.c b/drivers/hwmon/ad799x.c
+new file mode 100644
+index 0000000..9f38a1d
+--- /dev/null
++++ b/drivers/hwmon/ad799x.c
+@@ -0,0 +1,461 @@
++/*
++ * ad799x.c - Linux kernel module for hardware monitoring
++ *
++ * Copyright (C) 2009  Sigurd M. Andreassen <sigurdan@stud.ntnu.no>
++ *
++ * Based on the lm90 driver. This driver was written for the ad7991
++ * IC by Analog devices, but also supports ad7995 and ad7999. This
++ * series of adc's has a 4 channel multiplexed input where one
++ * input channel, number 3, can be configured as voltage reference.
++ * Default voltage reference is the power pin Vcc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/i2c.h>
++#include <linux/slab.h>		/*	kzalloc() 		*/
++#include <linux/sysfs.h>	/*	sysfs_create_group() 	*/
++#include <linux/sched.h>	/*	jiffies			*/
++#include <linux/delay.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++
++/* Configuration register bits */
++#define AD799X_CON_CH3 		7
++#define AD799X_CON_CH2		6
++#define AD799X_CON_CH1 		5
++#define AD799X_CON_CH0 		4
++#define AD799X_CON_REF_SEL 	3
++#define AD799X_CON_FLTR 	2
++#define AD799X_CON_BIT_TR_DL 	1
++#define AD799X_CON_SMP_DL	0
++
++/* 	Addresses to scan -> joins with I2C_CLIENT macro 	*/
++static const unsigned short normal_i2c[] = { 0x28, 0x29, I2C_CLIENT_END };
++
++I2C_CLIENT_INSMOD_3(ad7991, ad7995, ad7999);
++
++/* 	Each client has this additional data 	*/
++struct ad799x_data {
++	struct device *hwmon_dev;
++	int kind;			/* enum defined by INSMOD_3 macro */
++	u32 reference;			/* [mV]				*/
++	struct mutex lock;
++};
++
++/*	sysfs hook function
++ *
++ *	Returns bytes written to buf on success, -EINVAL if input value
++ *	is invalid, -ERESTARTSYS on problems locking mutex and return value
++ *	from smbus routine if call fails.
++ *
++ */
++static ssize_t ad799x_read(struct device *dev, struct  
+device_attribute *devattr,
++								char *buf)
++{
++
++	s32 ret;
++	u16 max_value;
++	u8 config_reg;
++	u8 return_values[2];
++	struct ad799x_data *ad799x;
++
++	struct attribute ad799x_attr = devattr->attr;
++
++	struct i2c_client *client = to_i2c_client(dev);
++
++	/*	Switching by filename number, in<number>_input	*/
++	switch (ad799x_attr.name[2]) {
++	case '0' :
++		config_reg = (1 << AD799X_CON_CH0);
++		break;
++	case '1' :
++		config_reg = (1 << AD799X_CON_CH1);
++		break;
++	case '2' :
++		config_reg = (1 << AD799X_CON_CH2);
++		break;
++	case '3' 	:
++		config_reg = (1 << AD799X_CON_CH3);
++		break;
++	default :
++		return -EINVAL;
++     	}
++
++	/*	Writing ADC sample channel according to attribut	*/
++	ret = i2c_smbus_read_i2c_block_data(client, config_reg, 2,
++							&return_values[0]);
++
++	if (ret != 2) {
++		dev_dbg(&client->dev, "ad799x: Problems reading from adc"
++						" @ 0x%x\n", client->addr);
++		return ret;
++	}
++
++	ret = (return_values[0] << 8) | return_values[1];
++
++	/*	Removing channel ID bits	*/
++	ret &= 0x0FFF;
++
++	ad799x = i2c_get_clientdata(client);
++
++	/*	Lock mutex and fetch reference value	*/
++	if (mutex_lock_interruptible(&ad799x->lock))
++		return -ERESTARTSYS;
++
++	if (ad799x->kind = ad7995) {
++		/*	10-bit	*/
++		ret = (ret >> 2);
++		max_value = 1023;
++	}
++	else if (ad799x->kind = ad7999) {
++		/*	8-bit	*/
++		ret = (ret >> 4);
++		max_value = 255;
++	}
++	else if (ad799x->kind = ad7991) {
++		/*	12-bit	*/
++		max_value = 4095;
++	}
++	else {
++		return -EINVAL;
++	}
++
++	ret = ret * ad799x->reference;
++
++	mutex_unlock(&ad799x->lock);
++
++	ret = ret / max_value;
++
++	return sprintf(buf, "%d\n", ret);
++}
++
++/*
++ *	Returns bytes written to buffer on success, -EINVAL if input value
++ *	is invalid and -ERESTARTSYS on problems locking mutex.
++ *
++ */
++static ssize_t ad799x_show(struct device *dev, struct device_attribute *attr,
++								char *buf)
++{
++
++	struct i2c_client *client;
++	struct ad799x_data *ad799x;
++
++	u32 temp_value = 0;
++
++	u8 nr = to_sensor_dev_attr(attr)->index;
++
++	switch (nr) {
++	case 0 :
++		/*	No other then ground level	*/
++		temp_value = 0;
++		break;
++	case 1 :
++		/*	Fetch client data struct	*/
++		client = to_i2c_client(dev);
++		ad799x = i2c_get_clientdata(client);
++
++		/*	Lock mutex and fetch reference value	*/
++		if (mutex_lock_interruptible(&ad799x->lock))
++			return -ERESTARTSYS;
++
++		temp_value = ad799x->reference;
++
++		mutex_unlock(&ad799x->lock);
++		break;
++	default :
++		return -EINVAL;
++	}
++
++	return sprintf(buf, "%d\n", temp_value);
++}
++
++/*
++ *	Returns bytes written on success, -EINVAL if input value
++ *	is invalid and -ERESTARTSYS on problems locking mutex.
++ *
++ */
++static ssize_t ad799x_set(struct device *dev, struct device_attribute  
+*devattr,
++			const char *buf, size_t count)
++{
++
++	unsigned long new_ref;
++
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ad799x_data *ad799x = i2c_get_clientdata(client);
++
++	/*	Fetch incoming value and check it for validity	*/
++	if (strict_strtoul(buf, 10, &new_ref))
++		return -EINVAL;
++
++	if (new_ref > 5500 || new_ref < 2700)
++		return -EINVAL;
++
++	/*	Lock data struct and set new input reference value	*/
++	if (mutex_lock_interruptible(&ad799x->lock))
++		return -ERESTARTSYS;
++
++	ad799x->reference = new_ref;
++
++	mutex_unlock(&ad799x->lock);
++
++	return count;
++}
++
++/*	Tighing attribute names to functions	*/
++static DEVICE_ATTR(in0_input, S_IRUGO, ad799x_read, NULL);
++static DEVICE_ATTR(in1_input, S_IRUGO, ad799x_read, NULL);
++static DEVICE_ATTR(in2_input, S_IRUGO, ad799x_read, NULL);
++static DEVICE_ATTR(in3_input, S_IRUGO, ad799x_read, NULL);
++static SENSOR_DEVICE_ATTR(in_min, S_IRUGO, ad799x_show, NULL, 0);
++static SENSOR_DEVICE_ATTR(in_max, S_IWUSR | S_IRUGO, ad799x_show,
++								ad799x_set, 1);
++
++
++/*	Sysfs attributes	*/
++static struct attribute *ad799x_attributes[] = {
++	&dev_attr_in0_input.attr,
++	&dev_attr_in1_input.attr,
++	&dev_attr_in2_input.attr,
++	&dev_attr_in3_input.attr,
++	&sensor_dev_attr_in_min.dev_attr.attr,
++	&sensor_dev_attr_in_max.dev_attr.attr,
++	NULL
++};
++
++/*	Attribute group	*/
++static const struct attribute_group ad799x_attr_group = {
++	.attrs = ad799x_attributes,
++};
++
++
++/* Return 0 if detection is successful, -ENODEV otherwise
++ *
++ *
++ *
++ */
++static int ad799x_detect(struct i2c_client *new_client, int kind,
++						struct i2c_board_info *info)
++{
++
++	s32 ret;
++	u8 return_values[2];
++	u8 id_flags[4] = {0x00, 0x10, 0x20, 0x30};
++	u8 i, mask = = (1 << AD799X_CON_CH0);
++	const char *type_name;
++
++	struct i2c_adapter *adapter = new_client->adapter;
++
++	/*	We only need block functionality	*/
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BLOCK_DATA))
++		return -ENODEV;
++
++	/*	If not forced	*/
++	if (kind < 0) {
++
++		/*	Channel sequence: 0, 1, 2, 3	*/
++		for (i = 0; i < 4; i++) {
++
++			ret = i2c_smbus_read_i2c_block_data(new_client, mask, 2,
++							&return_values[0]);
++
++			if ((return_values[0] & 0xF0) != id_flags[i])
++				return -ENODEV;
++
++			/*	Compensate for new config mask	*/
++			mask <<= 1;
++		}
++
++		kind = ad7999;
++
++		/*	Looping, trying to disproof statment above	*/
++		for (i = 0; i < 50; i++) {
++
++			ret = i2c_smbus_read_i2c_block_data(new_client, mask, 2,
++							 &return_values[0]);
++
++			if (return_values[1] & 0x0F) {
++				if (return_values[1] & 0x03) {
++					kind = ad7991;
++					break;
++				} else {
++					kind = ad7995;
++				}
++			}
++			/*	Switching adc input channel	*/
++			if (mask = 0x80)
++				mask = (1 << AD799X_CON_CH0);
++			else
++				mask <<= 1;
++		}
++
++		/*	No ad7999 @ 0x28	*/
++		if (new_client->addr = 0x28 && kind = ad7999)
++			return -ENODEV;
++
++		/*	The rest is done as if with force parameter	*/
++	}
++
++	/*	If force parameter 	*/
++	switch (kind) {
++	case ad7991 :
++		type_name = "ad7991";
++		break;
++	case ad7995 :
++		type_name = "ad7995";
++		break;
++	case ad7999 :
++		type_name = "ad7999";
++		break;
++	default :
++		return -ENODEV;
++	}
++
++	pr_info("ad799x: Found Analog Devices %s chip\n", type_name);
++
++	strlcpy(info->type, type_name, I2C_NAME_SIZE);
++
++        return 0;
++}
++
++/*
++ *	Returns 0 on success and error code on failure.
++ *
++ *
++ */
++static int ad799x_probe(struct i2c_client *client,
++						const struct i2c_device_id *id)
++{
++
++	int err = 0;
++	struct ad799x_data *ad799x;
++
++
++	/*	Allocating memory to hold device/client specific values	*/
++	if (!(ad799x = kzalloc(sizeof(struct ad799x_data), GFP_KERNEL))) {
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	/*	Init dev data mutex	*/
++	mutex_init(&ad799x->lock);
++
++	ad799x->hwmon_dev = hwmon_device_register(&client->dev);
++
++	if (ad799x->hwmon_dev = NULL) {
++		err = PTR_ERR(ad799x->hwmon_dev);
++		goto hwmon_reg_failed;
++	}
++
++	/*	Tighing dev data to client struct	*/
++	dev_set_drvdata(&client->dev, ad799x);
++
++	/*	Register sysfs hook	*/
++	if ((err = sysfs_create_group(&client->dev.kobj, &ad799x_attr_group)))
++		goto sysfs_create_group_failed;
++
++	/*	Default reference voltage 3300 mV	*/
++	if (mutex_lock_interruptible(&ad799x->lock))
++		return -ERESTARTSYS;
++
++	/*	Setting chip kind from ad799x_idtable passed by id struct */
++	ad799x->kind = id->driver_data;
++
++	ad799x->reference = 3300;
++
++	mutex_unlock(&ad799x->lock);
++
++	return 0;
++
++sysfs_create_group_failed:
++	hwmon_device_unregister(ad799x->hwmon_dev);
++hwmon_reg_failed:
++	dev_set_drvdata(&client->dev, NULL);
++	kfree(ad799x);
++exit:
++	return err;
++
++}
++
++
++/*	Removing different device registrations	(buttom of probe func.)	*/
++static int __devexit ad799x_remove(struct i2c_client *client)
++{
++
++	struct ad799x_data *ad799x = i2c_get_clientdata(client);
++
++	sysfs_remove_group(&client->dev.kobj, &ad799x_attr_group);
++
++	hwmon_device_unregister(ad799x->hwmon_dev);
++
++	dev_set_drvdata(&client->dev, NULL);
++	kfree(ad799x);
++
++	return 0;
++
++}
++
++/*	All supported devices	*/
++static struct i2c_device_id ad799x_idtable[] = {
++	{ "ad7991", ad7991 },
++	{ "ad7995", ad7995 },
++	{ "ad7999", ad7999 },
++	{ }
++};
++
++/*	Tighs id_table to device 	*/
++MODULE_DEVICE_TABLE(i2c, ad799x_idtable);
++
++
++static struct i2c_driver ad799x_driver = {
++
++	.class = I2C_CLASS_HWMON,
++	.driver = {
++		.owner  = THIS_MODULE,
++		.name	= "ad799x",
++	},
++
++	.probe		= ad799x_probe,
++	.remove		= __devexit_p(ad799x_remove),
++	.id_table	= ad799x_idtable,
++
++	.address_data	= &addr_data,
++	.detect		= ad799x_detect,
++
++};
++
++
++static int __init ad799x_init(void)
++{
++	return i2c_add_driver(&ad799x_driver);
++}
++
++static void __exit ad799x_cleanup(void)
++{
++	i2c_del_driver(&ad799x_driver);
++}
++
++MODULE_AUTHOR("Sigurd Myhre Andreassen <sigurdan@stud.ntnu.no>");
++MODULE_DESCRIPTION("Driver for the Norwegian Defence Research"
++		"Establishment (FFI). Analog Devices AD7991/5/9 driver");
++MODULE_LICENSE("GPL");
++
++module_init(ad799x_init);
++module_exit(ad799x_cleanup);
++
 
-Support Hours:  8AM-6PM Eastern Time, Monday-Friday 
-
-  
-
-TRENTON
-Phone:         (800) 875-6031  (770) 287-3100
-E-mail:          <mailto:wbnackers@TrentonTechnology.com>
-bnackers@TrentonTechnology.com
-
-Web:             <http://www.trentontechnology.com/>
-www.TrentonTechnology.com
-Follow us:    <http://www.twitter.com/TrentonTech>
-www.Twitter.com/TrentonTech
-____________________________________________________________________________
-__________________________
-
-This electronic mail message and any attachment(s) contain information
-intended for the exclusive use of the party to whom it is addressed and may
-contain information that is proprietary, privileged, confidential, and/or
-exempt from disclosure.  If you are not the intended recipient, you are
-hereby notified that any viewing, copying, disclosure or distribution of
-this information is prohibited.  If you believe this message was sent to you
-in error, please immediately notify the sender by reply e-mail and delete
-this message from your computer system without disclosing it.  Thank you.
-____________________________________________________________________________
-__________________________
- 
-
-------=_NextPart_000_0009_01CA15CF.83FDC3A0
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META content=3D"text/html; charset=3Dus-ascii" =
-http-equiv=3DContent-Type>
-<META name=3DGENERATOR content=3D"MSHTML 8.00.6001.18702"></HEAD>
-<BODY>
-<DIV><SPAN class=3D597551517-05082009><FONT size=3D2 face=3DArial>To =
-whom it may=20
-concern:</FONT></SPAN></DIV>
-<DIV><SPAN class=3D597551517-05082009><FONT size=3D2=20
-face=3DArial></FONT></SPAN>&nbsp;</DIV>
-<DIV><SPAN class=3D597551517-05082009><FONT size=3D2 face=3DArial>Let me =
-start off by=20
-saying I'm a Windows slave and have very little Linux experience and =
-absolutely=20
-no training.&nbsp; That said, if support calls come in on Linux, I need =
-to=20
-answer.</FONT></SPAN></DIV>
-<DIV><SPAN class=3D597551517-05082009><FONT size=3D2=20
-face=3DArial></FONT></SPAN>&nbsp;</DIV>
-<DIV><SPAN class=3D597551517-05082009><FONT size=3D2 face=3DArial>We =
-have a customer=20
-that is using an SHB (MCXx and MCGx series) that we manufacturer.&nbsp; =
-The SHB=20
-uses processors that support PECI system monitoring.&nbsp; <A=20
-href=3D"http://en.wikipedia.org/wiki/PECI">http://en.wikipedia.org/wiki/P=
-ECI</A></FONT></SPAN></DIV>
-<DIV><SPAN class=3D597551517-05082009><FONT size=3D2=20
-face=3DArial></FONT></SPAN>&nbsp;</DIV>
-<DIV><SPAN class=3D597551517-05082009><FONT size=3D2 face=3DArial>Does =
-anyone know of=20
-a way to set lm-sensors up to support PECI?&nbsp; Thanks in advance for =
-your=20
-response.</FONT></SPAN></DIV>
-<DIV align=3Dleft>
-<DIV align=3Dleft><FONT size=3D2 face=3DArial></FONT>&nbsp;</DIV>
-<DIV align=3Dleft><FONT size=3D2 face=3DArial>Re</FONT><FONT =
-face=3DArial><FONT=20
-size=3D2>gards,</FONT></FONT></DIV>
-<DIV align=3Dleft><FONT face=3DArial><FONT size=3D2><SPAN=20
-class=3D636133818-01052009></SPAN></FONT></FONT>&nbsp;</DIV>
-<DIV align=3Dleft>
-<DT>
-<DIV align=3Dleft><FONT face=3DArial><FONT size=3D2>Bill =
-Nackers<BR>Technical=20
-Service&nbsp;Engineer<SPAN=20
-class=3D056273819-12052009>&nbsp;</SPAN></FONT></FONT></DIV></DT></DIV>
-<DT>
-<DIV align=3Dleft><FONT face=3DArial><FONT size=3D2><SPAN=20
-class=3D056273819-12052009>Support Hours:&nbsp; 8AM-6PM Eastern Time,=20
-Monday-Friday&nbsp;</SPAN></FONT></FONT></DIV>
-<DT>
-<DIV align=3Dleft><FONT face=3DArial><FONT size=3D2><SPAN=20
-class=3D636133818-01052009>&nbsp;</SPAN><SPAN=20
-class=3D636133818-01052009>&nbsp;</SPAN></FONT></FONT></DIV>
-<DT>
-<DIV align=3Dleft><FONT color=3D#ff0000><FONT face=3DArial><FONT=20
-size=3D2><STRONG>TRENTON</STRONG></FONT></FONT></FONT><BR><FONT =
-size=3D1><FONT=20
-face=3DArial><STRONG>Phone:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</ST=
-RONG><SPAN>&nbsp;<SPAN=20
-class=3D056273819-12052009>&nbsp;<STRONG>(800) 875-6031&nbsp;=20
-(</STRONG></SPAN></SPAN></FONT></FONT><FONT size=3D1 =
-face=3DArial><STRONG>770)=20
-287-3100<BR>E-mail:&nbsp;=20
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</STRONG></FONT><A=20
-href=3D"mailto:wbnackers@TrentonTechnology.com" target=3D_blank><FONT=20
-color=3D#0000ff><FONT face=3DArial><FONT size=3D1><STRONG><SPAN=20
-class=3D056273819-12052009><FONT color=3D#800000><FONT=20
-color=3D#0000ff>bnackers@</FONT></FONT></SPAN>TrentonTechnology.com</STRO=
-NG></FONT></FONT></FONT></A></DIV>
-<DT>
-<DIV align=3Dleft><FONT size=3D1=20
-face=3DArial><STRONG>Web:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
-&nbsp;&nbsp;&nbsp;&nbsp; </STRONG></FONT><A=20
-href=3D"http://www.trentontechnology.com/" target=3D_blank><FONT =
-color=3D#0000ff=20
-size=3D1 =
-face=3DArial><STRONG>www.TrentonTechnology.com</STRONG></FONT></A><BR><FO=
-NT=20
-size=3D1 face=3DArial><STRONG>Follow us: &nbsp;&nbsp;</STRONG></FONT><A=20
-href=3D"http://www.twitter.com/TrentonTech"><FONT size=3D1=20
-face=3DArial><STRONG>www.Twitter.com/TrentonTech</STRONG></FONT></A><BR><=
-SPAN=20
-style=3D"FONT-FAMILY: Arial; FONT-SIZE: =
-7.5pt">__________________________________________________________________=
-____________________________________<BR><BR>This=20
-electronic mail message and any attachment(s) contain information =
-intended for=20
-the exclusive use of the party to whom it is </SPAN><SPAN=20
-style=3D"FONT-FAMILY: Arial; FONT-SIZE: 7.5pt">addressed and may contain =
-
-information that is proprietary, privileged, confidential, and/or exempt =
-from=20
-disclosure.<SPAN style=3D"mso-spacerun: yes">&nbsp; </SPAN>If you are=20
-not&nbsp;</SPAN><SPAN style=3D"FONT-FAMILY: Arial; FONT-SIZE: 7.5pt">the =
-intended=20
-recipient, you are hereby notified that any viewing, copying, disclosure =
-or=20
-distribution of this information is prohibited.&nbsp; </SPAN><SPAN=20
-style=3D"FONT-FAMILY: Arial; FONT-SIZE: 7.5pt">If you believe this =
-message was=20
-sent to you in error, please immediately notify the sender by reply =
-e-mail and=20
-delete this message </SPAN><SPAN=20
-style=3D"FONT-FAMILY: Arial; FONT-SIZE: 7.5pt">from your computer system =
-without=20
-disclosing it.<SPAN style=3D"mso-spacerun: yes">&nbsp; </SPAN>Thank=20
-you.<BR>_________________________________________________________________=
-_____________________________________</SPAN></DIV></DT></DIV>
-<DIV>&nbsp;</DIV></BODY></HTML>
-
-------=_NextPart_000_0009_01CA15CF.83FDC3A0--
-
-
-
-
---===============7065975589350932344==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============7065975589350932344==--
-
-
