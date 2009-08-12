@@ -1,535 +1,106 @@
-From: sigurdan@stud.ntnu.no
-Date: Wed, 12 Aug 2009 13:06:22 +0000
-Subject: [lm-sensors] [RFC][PATCH] hwmon: Analog Devices AD7991/5/9 driver
-Message-Id: <20090812150622.dn173d6qjccww8o4@webmail.ntnu.no>
+From: Len Brown <lenb@kernel.org>
+Date: Wed, 12 Aug 2009 03:43:39 +0000
+Subject: Re: [lm-sensors] Revert "ACPICA: Remove obsolete
+Message-Id: <alpine.LFD.2.00.0908112331250.8449@localhost.localdomain>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Boundary_(ID_dPFgyiOmZstDEgehGlrF/w)"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
+References: <alpine.LFD.2.00.0908021306270.3293@sony-vgn-z540>
+ <20090803074620.GA2285@phenom2.trippelsdorf.de>
+In-Reply-To: <20090803074620.GA2285@phenom2.trippelsdorf.de>
+To: Markus Trippelsdorf <markus@trippelsdorf.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
+
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--Boundary_(ID_dPFgyiOmZstDEgehGlrF/w)
+Content-type: TEXT/PLAIN; charset=iso-8859-1
+Content-transfer-encoding: QUOTED-PRINTABLE
+
+(cc: lm-sensors)
+
+> >     Revert "ACPICA: Remove obsolete acpi_os_validate_address inte=
+rface"
+> >    =20
+> >     This reverts commit f9ca058430333c9a24c5ca926aa445125f88df18.
+> >    =20
+> >     which caused a regression:
+> >    =20
+> >     http://bugzilla.kernel.org/show_bug.cgi?id=3D13620
+> >    =20
+>=20
+> This revert breaks it8720 hardware monitoring on my machine:
+>=20
+> ACPI: I/O resource it87 [0x295-0x296] conflicts with ACPI region EC=
+RE [0x290-0x2af]
+> ACPI: Device needs an ACPI driver
+
+Thanks for the report, but I don't have a simple answer for you.
+
+The mechanism that is restored to 2.6.29 behaviour here
+is intended to address an extremely severe bug in Linux
+where native sensor drivers access the same registers
+as AML, causing fun things like change of temperature units and
+spurious critical thermal shutdowns.
+The commit that we reverted here was an oversight in 2.6.30,
+and so the current plan is to revert that commit in 2.6.30.stable too=
+.
+
+The mechanism prevents the sensor driver from loading when
+such a potential conflict is detected.
+
+If you can attach the output of acpidump from your machine
+to a new bugzilla entry, we can verify that the mechanism
+is indeed not mistaken on your box.
+
+thanks,
+Len Brown, Intel Open Source Technology Center
+
+> Reverting the revert solves the problem:
+>=20
+> markus@phenom2 ~ % sensors
+> it8720-isa-0290
+> Adapter: ISA adapter
+> in0:         +0.00 V  (min =3D  +0.00 V, max =3D  +4.08 V)   ALARM
+> in1:         +1.65 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+> in2:         +1.14 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+> in3:         +3.09 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+> in4:         +4.08 V  (min =3D  +0.00 V, max =3D  +4.08 V)   ALARM
+> in5:         +4.08 V  (min =3D  +0.00 V, max =3D  +4.08 V)   ALARM
+> in6:         +4.08 V  (min =3D  +0.00 V, max =3D  +4.08 V)   ALARM
+> in7:         +4.08 V  (min =3D  +0.00 V, max =3D  +4.08 V)   ALARM
+> in8:         +3.41 V
+> fan1:       1175 RPM  (min =3D    0 RPM)
+> fan2:       1175 RPM  (min =3D    0 RPM)
+> fan3:        859 RPM  (min =3D    0 RPM)
+> temp1:       +37.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  =
+sensor =3D thermistor
+> temp2:       +41.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  =
+sensor =3D thermistor
+> temp3:      -128.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  =
+sensor =3D disabled
+> cpu0_vid:   +1.550 V
+>=20
+> k10temp-pci-00c3
+> Adapter: PCI adapter
+> temp1:       +37.8=B0C
+>=20
+> dmesg and .config is attached.
+>=20
+> --=20
+> Markus
+>=20
+
+
+--Boundary_(ID_dPFgyiOmZstDEgehGlrF/w)
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-Adding support for the Analog Devices AD7991/5/9 IC's.
-
-Signed-off-by: Sigurd M. Andreassen <sigurdan at stud.ntnu.no>
----
-  drivers/hwmon/Kconfig       |   10 +
-  drivers/hwmon/Makefile      |    1 +
-  drivers/hwmon/ad799x.c      |  461  
-+++++++++++++++++++++++++++++++++++++++++++
-  3 files changed, 472 insertions(+), 0 deletions(-)
-  create mode 100644 drivers/hwmon/ad799x.c
-
-I'm not sure what to do about the configuration bits, export them  
-directly to user space? What about the detect function, is it  
-acceptable?
-
-Sigurd.
-
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index d73f5f4..1c52784 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -77,6 +77,16 @@ config SENSORS_AD7418
-  	  This driver can also be built as a module. If so, the module
-  	  will be called ad7418.
-
-+config SENSORS_AD799X
-+	tristate "Analog Devices AD7991, AD7995 and AD7999"
-+	depends on I2C && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for the Analog Devices
-+	  AD7991, AD7995 and AD7999 4 channel ADC.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called ad799x.
-+
-  config SENSORS_ADCXX
-  	tristate "National Semiconductor ADCxxxSxxx"
-  	depends on SPI_MASTER && EXPERIMENTAL
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index 0ae2698..2848f30 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -17,6 +17,7 @@ obj-$(CONFIG_SENSORS_ABITUGURU)	+= abituguru.o
-  obj-$(CONFIG_SENSORS_ABITUGURU3)+= abituguru3.o
-  obj-$(CONFIG_SENSORS_AD7414)	+= ad7414.o
-  obj-$(CONFIG_SENSORS_AD7418)	+= ad7418.o
-+obj-$(CONFIG_SENSORS_AD799X)    += ad799x.o
-  obj-$(CONFIG_SENSORS_ADCXX)	+= adcxx.o
-  obj-$(CONFIG_SENSORS_ADM1021)	+= adm1021.o
-  obj-$(CONFIG_SENSORS_ADM1025)	+= adm1025.o
-diff --git a/drivers/hwmon/ad799x.c b/drivers/hwmon/ad799x.c
-new file mode 100644
-index 0000000..9f38a1d
---- /dev/null
-+++ b/drivers/hwmon/ad799x.c
-@@ -0,0 +1,461 @@
-+/*
-+ * ad799x.c - Linux kernel module for hardware monitoring
-+ *
-+ * Copyright (C) 2009  Sigurd M. Andreassen <sigurdan@stud.ntnu.no>
-+ *
-+ * Based on the lm90 driver. This driver was written for the ad7991
-+ * IC by Analog devices, but also supports ad7995 and ad7999. This
-+ * series of adc's has a 4 channel multiplexed input where one
-+ * input channel, number 3, can be configured as voltage reference.
-+ * Default voltage reference is the power pin Vcc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <linux/slab.h>		/*	kzalloc() 		*/
-+#include <linux/sysfs.h>	/*	sysfs_create_group() 	*/
-+#include <linux/sched.h>	/*	jiffies			*/
-+#include <linux/delay.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/err.h>
-+
-+/* Configuration register bits */
-+#define AD799X_CON_CH3 		7
-+#define AD799X_CON_CH2		6
-+#define AD799X_CON_CH1 		5
-+#define AD799X_CON_CH0 		4
-+#define AD799X_CON_REF_SEL 	3
-+#define AD799X_CON_FLTR 	2
-+#define AD799X_CON_BIT_TR_DL 	1
-+#define AD799X_CON_SMP_DL	0
-+
-+/* 	Addresses to scan -> joins with I2C_CLIENT macro 	*/
-+static const unsigned short normal_i2c[] = { 0x28, 0x29, I2C_CLIENT_END };
-+
-+I2C_CLIENT_INSMOD_3(ad7991, ad7995, ad7999);
-+
-+/* 	Each client has this additional data 	*/
-+struct ad799x_data {
-+	struct device *hwmon_dev;
-+	int kind;			/* enum defined by INSMOD_3 macro */
-+	u32 reference;			/* [mV]				*/
-+	struct mutex lock;
-+};
-+
-+/*	sysfs hook function
-+ *
-+ *	Returns bytes written to buf on success, -EINVAL if input value
-+ *	is invalid, -ERESTARTSYS on problems locking mutex and return value
-+ *	from smbus routine if call fails.
-+ *
-+ */
-+static ssize_t ad799x_read(struct device *dev, struct  
-device_attribute *devattr,
-+								char *buf)
-+{
-+
-+	s32 ret;
-+	u16 max_value;
-+	u8 config_reg;
-+	u8 return_values[2];
-+	struct ad799x_data *ad799x;
-+
-+	struct attribute ad799x_attr = devattr->attr;
-+
-+	struct i2c_client *client = to_i2c_client(dev);
-+
-+	/*	Switching by filename number, in<number>_input	*/
-+	switch (ad799x_attr.name[2]) {
-+	case '0' :
-+		config_reg = (1 << AD799X_CON_CH0);
-+		break;
-+	case '1' :
-+		config_reg = (1 << AD799X_CON_CH1);
-+		break;
-+	case '2' :
-+		config_reg = (1 << AD799X_CON_CH2);
-+		break;
-+	case '3' 	:
-+		config_reg = (1 << AD799X_CON_CH3);
-+		break;
-+	default :
-+		return -EINVAL;
-+     	}
-+
-+	/*	Writing ADC sample channel according to attribut	*/
-+	ret = i2c_smbus_read_i2c_block_data(client, config_reg, 2,
-+							&return_values[0]);
-+
-+	if (ret != 2) {
-+		dev_dbg(&client->dev, "ad799x: Problems reading from adc"
-+						" @ 0x%x\n", client->addr);
-+		return ret;
-+	}
-+
-+	ret = (return_values[0] << 8) | return_values[1];
-+
-+	/*	Removing channel ID bits	*/
-+	ret &= 0x0FFF;
-+
-+	ad799x = i2c_get_clientdata(client);
-+
-+	/*	Lock mutex and fetch reference value	*/
-+	if (mutex_lock_interruptible(&ad799x->lock))
-+		return -ERESTARTSYS;
-+
-+	if (ad799x->kind = ad7995) {
-+		/*	10-bit	*/
-+		ret = (ret >> 2);
-+		max_value = 1023;
-+	}
-+	else if (ad799x->kind = ad7999) {
-+		/*	8-bit	*/
-+		ret = (ret >> 4);
-+		max_value = 255;
-+	}
-+	else if (ad799x->kind = ad7991) {
-+		/*	12-bit	*/
-+		max_value = 4095;
-+	}
-+	else {
-+		return -EINVAL;
-+	}
-+
-+	ret = ret * ad799x->reference;
-+
-+	mutex_unlock(&ad799x->lock);
-+
-+	ret = ret / max_value;
-+
-+	return sprintf(buf, "%d\n", ret);
-+}
-+
-+/*
-+ *	Returns bytes written to buffer on success, -EINVAL if input value
-+ *	is invalid and -ERESTARTSYS on problems locking mutex.
-+ *
-+ */
-+static ssize_t ad799x_show(struct device *dev, struct device_attribute *attr,
-+								char *buf)
-+{
-+
-+	struct i2c_client *client;
-+	struct ad799x_data *ad799x;
-+
-+	u32 temp_value = 0;
-+
-+	u8 nr = to_sensor_dev_attr(attr)->index;
-+
-+	switch (nr) {
-+	case 0 :
-+		/*	No other then ground level	*/
-+		temp_value = 0;
-+		break;
-+	case 1 :
-+		/*	Fetch client data struct	*/
-+		client = to_i2c_client(dev);
-+		ad799x = i2c_get_clientdata(client);
-+
-+		/*	Lock mutex and fetch reference value	*/
-+		if (mutex_lock_interruptible(&ad799x->lock))
-+			return -ERESTARTSYS;
-+
-+		temp_value = ad799x->reference;
-+
-+		mutex_unlock(&ad799x->lock);
-+		break;
-+	default :
-+		return -EINVAL;
-+	}
-+
-+	return sprintf(buf, "%d\n", temp_value);
-+}
-+
-+/*
-+ *	Returns bytes written on success, -EINVAL if input value
-+ *	is invalid and -ERESTARTSYS on problems locking mutex.
-+ *
-+ */
-+static ssize_t ad799x_set(struct device *dev, struct device_attribute  
-*devattr,
-+			const char *buf, size_t count)
-+{
-+
-+	unsigned long new_ref;
-+
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct ad799x_data *ad799x = i2c_get_clientdata(client);
-+
-+	/*	Fetch incoming value and check it for validity	*/
-+	if (strict_strtoul(buf, 10, &new_ref))
-+		return -EINVAL;
-+
-+	if (new_ref > 5500 || new_ref < 2700)
-+		return -EINVAL;
-+
-+	/*	Lock data struct and set new input reference value	*/
-+	if (mutex_lock_interruptible(&ad799x->lock))
-+		return -ERESTARTSYS;
-+
-+	ad799x->reference = new_ref;
-+
-+	mutex_unlock(&ad799x->lock);
-+
-+	return count;
-+}
-+
-+/*	Tighing attribute names to functions	*/
-+static DEVICE_ATTR(in0_input, S_IRUGO, ad799x_read, NULL);
-+static DEVICE_ATTR(in1_input, S_IRUGO, ad799x_read, NULL);
-+static DEVICE_ATTR(in2_input, S_IRUGO, ad799x_read, NULL);
-+static DEVICE_ATTR(in3_input, S_IRUGO, ad799x_read, NULL);
-+static SENSOR_DEVICE_ATTR(in_min, S_IRUGO, ad799x_show, NULL, 0);
-+static SENSOR_DEVICE_ATTR(in_max, S_IWUSR | S_IRUGO, ad799x_show,
-+								ad799x_set, 1);
-+
-+
-+/*	Sysfs attributes	*/
-+static struct attribute *ad799x_attributes[] = {
-+	&dev_attr_in0_input.attr,
-+	&dev_attr_in1_input.attr,
-+	&dev_attr_in2_input.attr,
-+	&dev_attr_in3_input.attr,
-+	&sensor_dev_attr_in_min.dev_attr.attr,
-+	&sensor_dev_attr_in_max.dev_attr.attr,
-+	NULL
-+};
-+
-+/*	Attribute group	*/
-+static const struct attribute_group ad799x_attr_group = {
-+	.attrs = ad799x_attributes,
-+};
-+
-+
-+/* Return 0 if detection is successful, -ENODEV otherwise
-+ *
-+ *
-+ *
-+ */
-+static int ad799x_detect(struct i2c_client *new_client, int kind,
-+						struct i2c_board_info *info)
-+{
-+
-+	s32 ret;
-+	u8 return_values[2];
-+	u8 id_flags[4] = {0x00, 0x10, 0x20, 0x30};
-+	u8 i, mask = = (1 << AD799X_CON_CH0);
-+	const char *type_name;
-+
-+	struct i2c_adapter *adapter = new_client->adapter;
-+
-+	/*	We only need block functionality	*/
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BLOCK_DATA))
-+		return -ENODEV;
-+
-+	/*	If not forced	*/
-+	if (kind < 0) {
-+
-+		/*	Channel sequence: 0, 1, 2, 3	*/
-+		for (i = 0; i < 4; i++) {
-+
-+			ret = i2c_smbus_read_i2c_block_data(new_client, mask, 2,
-+							&return_values[0]);
-+
-+			if ((return_values[0] & 0xF0) != id_flags[i])
-+				return -ENODEV;
-+
-+			/*	Compensate for new config mask	*/
-+			mask <<= 1;
-+		}
-+
-+		kind = ad7999;
-+
-+		/*	Looping, trying to disproof statment above	*/
-+		for (i = 0; i < 50; i++) {
-+
-+			ret = i2c_smbus_read_i2c_block_data(new_client, mask, 2,
-+							 &return_values[0]);
-+
-+			if (return_values[1] & 0x0F) {
-+				if (return_values[1] & 0x03) {
-+					kind = ad7991;
-+					break;
-+				} else {
-+					kind = ad7995;
-+				}
-+			}
-+			/*	Switching adc input channel	*/
-+			if (mask = 0x80)
-+				mask = (1 << AD799X_CON_CH0);
-+			else
-+				mask <<= 1;
-+		}
-+
-+		/*	No ad7999 @ 0x28	*/
-+		if (new_client->addr = 0x28 && kind = ad7999)
-+			return -ENODEV;
-+
-+		/*	The rest is done as if with force parameter	*/
-+	}
-+
-+	/*	If force parameter 	*/
-+	switch (kind) {
-+	case ad7991 :
-+		type_name = "ad7991";
-+		break;
-+	case ad7995 :
-+		type_name = "ad7995";
-+		break;
-+	case ad7999 :
-+		type_name = "ad7999";
-+		break;
-+	default :
-+		return -ENODEV;
-+	}
-+
-+	pr_info("ad799x: Found Analog Devices %s chip\n", type_name);
-+
-+	strlcpy(info->type, type_name, I2C_NAME_SIZE);
-+
-+        return 0;
-+}
-+
-+/*
-+ *	Returns 0 on success and error code on failure.
-+ *
-+ *
-+ */
-+static int ad799x_probe(struct i2c_client *client,
-+						const struct i2c_device_id *id)
-+{
-+
-+	int err = 0;
-+	struct ad799x_data *ad799x;
-+
-+
-+	/*	Allocating memory to hold device/client specific values	*/
-+	if (!(ad799x = kzalloc(sizeof(struct ad799x_data), GFP_KERNEL))) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	/*	Init dev data mutex	*/
-+	mutex_init(&ad799x->lock);
-+
-+	ad799x->hwmon_dev = hwmon_device_register(&client->dev);
-+
-+	if (ad799x->hwmon_dev = NULL) {
-+		err = PTR_ERR(ad799x->hwmon_dev);
-+		goto hwmon_reg_failed;
-+	}
-+
-+	/*	Tighing dev data to client struct	*/
-+	dev_set_drvdata(&client->dev, ad799x);
-+
-+	/*	Register sysfs hook	*/
-+	if ((err = sysfs_create_group(&client->dev.kobj, &ad799x_attr_group)))
-+		goto sysfs_create_group_failed;
-+
-+	/*	Default reference voltage 3300 mV	*/
-+	if (mutex_lock_interruptible(&ad799x->lock))
-+		return -ERESTARTSYS;
-+
-+	/*	Setting chip kind from ad799x_idtable passed by id struct */
-+	ad799x->kind = id->driver_data;
-+
-+	ad799x->reference = 3300;
-+
-+	mutex_unlock(&ad799x->lock);
-+
-+	return 0;
-+
-+sysfs_create_group_failed:
-+	hwmon_device_unregister(ad799x->hwmon_dev);
-+hwmon_reg_failed:
-+	dev_set_drvdata(&client->dev, NULL);
-+	kfree(ad799x);
-+exit:
-+	return err;
-+
-+}
-+
-+
-+/*	Removing different device registrations	(buttom of probe func.)	*/
-+static int __devexit ad799x_remove(struct i2c_client *client)
-+{
-+
-+	struct ad799x_data *ad799x = i2c_get_clientdata(client);
-+
-+	sysfs_remove_group(&client->dev.kobj, &ad799x_attr_group);
-+
-+	hwmon_device_unregister(ad799x->hwmon_dev);
-+
-+	dev_set_drvdata(&client->dev, NULL);
-+	kfree(ad799x);
-+
-+	return 0;
-+
-+}
-+
-+/*	All supported devices	*/
-+static struct i2c_device_id ad799x_idtable[] = {
-+	{ "ad7991", ad7991 },
-+	{ "ad7995", ad7995 },
-+	{ "ad7999", ad7999 },
-+	{ }
-+};
-+
-+/*	Tighs id_table to device 	*/
-+MODULE_DEVICE_TABLE(i2c, ad799x_idtable);
-+
-+
-+static struct i2c_driver ad799x_driver = {
-+
-+	.class = I2C_CLASS_HWMON,
-+	.driver = {
-+		.owner  = THIS_MODULE,
-+		.name	= "ad799x",
-+	},
-+
-+	.probe		= ad799x_probe,
-+	.remove		= __devexit_p(ad799x_remove),
-+	.id_table	= ad799x_idtable,
-+
-+	.address_data	= &addr_data,
-+	.detect		= ad799x_detect,
-+
-+};
-+
-+
-+static int __init ad799x_init(void)
-+{
-+	return i2c_add_driver(&ad799x_driver);
-+}
-+
-+static void __exit ad799x_cleanup(void)
-+{
-+	i2c_del_driver(&ad799x_driver);
-+}
-+
-+MODULE_AUTHOR("Sigurd Myhre Andreassen <sigurdan@stud.ntnu.no>");
-+MODULE_DESCRIPTION("Driver for the Norwegian Defence Research"
-+		"Establishment (FFI). Analog Devices AD7991/5/9 driver");
-+MODULE_LICENSE("GPL");
-+
-+module_init(ad799x_init);
-+module_exit(ad799x_cleanup);
-+
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--Boundary_(ID_dPFgyiOmZstDEgehGlrF/w)--
