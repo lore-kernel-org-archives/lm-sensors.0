@@ -1,12 +1,12 @@
 From: Sascha Hauer <s.hauer@pengutronix.de>
-Date: Tue, 11 Aug 2009 09:07:45 +0000
+Date: Wed, 12 Aug 2009 15:05:29 +0000
 Subject: [lm-sensors] [PATCH 3/5] [hwmon] add Freescale MC13783 adc driver
-Message-Id: <1249981667-4366-4-git-send-email-s.hauer@pengutronix.de>
+Message-Id: <1250089531-10399-4-git-send-email-s.hauer@pengutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1249981667-4366-1-git-send-email-s.hauer@pengutronix.de>
- <1249981667-4366-2-git-send-email-s.hauer@pengutronix.de>
- <1249981667-4366-3-git-send-email-s.hauer@pengutronix.de>
-In-Reply-To: <1249981667-4366-3-git-send-email-s.hauer@pengutronix.de>
+References: <1250089531-10399-1-git-send-email-s.hauer@pengutronix.de>
+ <1250089531-10399-2-git-send-email-s.hauer@pengutronix.de>
+ <1250089531-10399-3-git-send-email-s.hauer@pengutronix.de>
+In-Reply-To: <1250089531-10399-3-git-send-email-s.hauer@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -17,6 +17,12 @@ From: Luotao Fu <l.fu@pengutronix.de>
 
 This driver provides support for the ADC integrated into the
 Freescale MC13783 PMIC.
+
+Changes since v1:
+
+- add MODULE_ALIAS
+- __init -> __devinit in probe function
+- use platform_driver_probe instead of platform_driver_register
 
 Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
 Cc: Hans de Goede <hdegoede@redhat.com>
@@ -61,7 +67,7 @@ index b793dce..9b4e131 100644
  EXTRA_CFLAGS += -DDEBUG
 diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13783-adc.c
 new file mode 100644
-index 0000000..885c009
+index 0000000..87168f9
 --- /dev/null
 +++ b/drivers/hwmon/mc13783-adc.c
 @@ -0,0 +1,181 @@
@@ -151,7 +157,7 @@ index 0000000..885c009
 +	SENSOR_ATTR(in15_input, S_IRUGO, mc13783_adc_read, NULL, 15),
 +};
 +
-+static int __init mc13783_adc_probe(struct platform_device *pdev)
++static int __devinit mc13783_adc_probe(struct platform_device *pdev)
 +{
 +	struct mc13783_adc_priv *priv;
 +	int ret, i;
@@ -161,7 +167,7 @@ index 0000000..885c009
 +	if (!priv)
 +		return -ENOMEM;
 +
-+	priv->mc13783 = pdev->dev.platform_data;
++	priv->mc13783 = dev_get_drvdata(pdev->dev.parent);
 +
 +	entries = ARRAY_SIZE(mc13783_adc_ctl);
 +
@@ -222,7 +228,6 @@ index 0000000..885c009
 +}
 +
 +static struct platform_driver mc13783_adc_driver = {
-+	.probe		= mc13783_adc_probe,
 +	.remove 	= __devexit_p(mc13783_adc_remove),
 +	.driver		= {
 +		.owner	= THIS_MODULE,
@@ -232,7 +237,7 @@ index 0000000..885c009
 +
 +static int __init mc13783_adc_init(void)
 +{
-+	return platform_driver_register(&mc13783_adc_driver);
++	return platform_driver_probe(&mc13783_adc_driver, &mc13783_adc_probe);
 +}
 +
 +static void __exit mc13783_adc_exit(void)
@@ -246,6 +251,7 @@ index 0000000..885c009
 +MODULE_DESCRIPTION("MC13783 input touchscreen driver");
 +MODULE_AUTHOR("Luotao Fu, <l.fu@pengutronix.de>");
 +MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:mc13783-adc");
 -- 
 1.6.3.3
 
