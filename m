@@ -1,83 +1,50 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 04 Aug 2009 08:52:46 +0000
-Subject: Re: [lm-sensors] lm-sensors 3.0.0 init script lm-sensors -- what
-Message-Id: <20090804105246.6a0535c4@hyperion.delvare>
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Date: Thu, 13 Aug 2009 17:43:08 +0000
+Subject: [lm-sensors] ina209 driver + using calulate lines in sensors3.conf
+Message-Id: <20090813174308.GC28596@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Charles,
+Hello all.
 
-On Thu, 30 Jul 2009 20:49:19 +0530, Charles wrote:
-> Hello  :-)
-> 
-> The lm-sensors 3.0.0 init script "lm-sensors" runs only two significant
-> commands:
-> 
-> sensors -s 
-> sensors 
+I'm working on a driver (posted here previously) for the INA209 chip.
+The chip itself has support for power and current readings, though they
+will only be valid if a special calibration register is set
+appropriately. The units used for interpreting the power and current
+registers change depending on the value in the calibration register;
+they are not constant.
 
-Which distribution are you running? The initialization script is
-distribution-specific. We provide a sample implementation, which I
-think Fedora/Red Hat is using, but other distributions have their own
-script.
+It is possible to calculate the power and current from userspace using
+the sense resistor reading + the sense resistor value (which changes
+between implementations).
 
-Our reference implementation runs "sensors -s" but not "sensors".
+I am aware of the "calculate" lines in sensors3.conf, which should be
+able to do this kind of calculation.
 
-> I understand the "sensors -s" activates any limits created by set statements
-> in sensors3.conf.  What happens (or could be configured to happen) if a
-> limit is exceeded?  The sensors.conf man page tells how to configure set
-> values but not what they do.
+My previous postings of this driver have mostly been ignored, probably
+due to set the calibration register before use. This is something not
+supported by the hwmon sysfs-interface. Using the userspace sensors
+program to handle this instead removes the need to set the calibration
+register.
 
-It really depends on the chip, how it is configured (typically by the
-BIOS, or its default configuration) and how it is wired on the
-mainboard. That's why the manual page can't tell you ;)
+I have two possible solutions:
+1) Have curr1_input output the sense resistor voltage in mV and use the
+   sensors program (using "calculate") to convert it appropriately
+2) Have curr1_input always read back 0 uA, and have the sensors program
+   use in0_input (the sense resistor voltage in mV) in the calculate
+   line, ignoring the reading from curr1_input
 
-In general, exceeding a limit will simply raise an alarm flag, which
-will show as "ALARM" in the output of the "sensors" command. Other
-actions that are possible depending on the chip and configuration:
-* Beeping
-* Fan kicking in
-* CPU throttling
-* System shutdown
+I can figure out how to use calculate for #1, but I cannot figure out
+how to reference a different sensor in a calculate line. The
+documentation claims this is possible, but I cannot find any examples.
 
-The last 3 items are relatively rare, and would only happen when a high
-or critical temperature limit is exceeded. And they would take a chip
-with a dedicated output pin, properly configured and properly wired.
+Which of these two solutions would be more acceptable?
 
-> Why does the init script run sensors (discarding its output)?  Is this
-> necessary for initialisation before lmsensors library functions can be used?
-
-The idea would be to clear undue alarm flags which were raised before
-the limits were properly set. Most chips latch the alarm flags and only
-clear them after they have been read and the alarm condition has gone.
-
-Whether calling "sensors" in the init script is a good idea or not, is
-subject to debate. Clearing the alarm flags is nice (avoids user
-confusion), but OTOH, many GUI applications don't show alarm flags
-anyway, and that call to "sensors" means reading all hardware registers
-for most drivers, and for I2C/SMBus devices this can take a "long" time
-(say 1 second) while the current trend is to shorten the boot time of
-Linux systems. If anyone is really bothered by the irrelevant alarms
-when "sensors" (or another monitoring application) is first run, then
-I'd suggest modifying the kernel drivers so that updating limits also
-clears the corresponding alarm flags. Or to have a separate cache for
-alarms, so that reading/clearing them is reasonably fast.
-
-> In case the answers to these questions depend on hardware and lmsensors
-> library users, I am particularly interested in the it87 chip and GKrellM.
-
-The IT8705F can emit beeps on out-of-limits conditions, although our
-driver (it87) doesn't support this feature yet (but if the BIOS has set
-it up for you, you could still have it.) Once again it depends on how
-the chip is wired on the mainboard.
-
-Hope it helps,
--- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html.en
+Thanks,
+Ira
 
 _______________________________________________
 lm-sensors mailing list
