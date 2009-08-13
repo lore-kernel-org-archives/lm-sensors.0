@@ -1,7 +1,7 @@
-From: "Cory T. Tusar" <ctusar@videon-central.com>
-Date: Tue, 11 Aug 2009 13:29:48 +0000
+From: "Trisal, Kalhan" <kalhan.trisal@intel.com>
+Date: Thu, 13 Aug 2009 10:56:22 +0000
 Subject: Re: [lm-sensors] Ambient Light sensor for Intersil-ISL29020 device
-Message-Id: <4A81724C.7060702@videon-central.com>
+Message-Id: <3CA6C6D9F70D314CA34352990B57DA1535F025E4@bgsmsx502.gar.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090811185416.GB32002@intel.com>
 In-Reply-To: <20090811185416.GB32002@intel.com>
@@ -9,6 +9,18 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+This driver used Hwmon interface , I don't find the ils29003 registering with hwmon. I still believe this should be part of hwmon group.
+
+Thanks 
+Kalhan 
+
+-----Original Message-----
+From: Cory T. Tusar [mailto:ctusar@videon-central.com] 
+Sent: Tuesday, August 11, 2009 7:00 PM
+To: Trisal, Kalhan
+Cc: lm-sensors@lm-sensors.org; alan@linux.intel.com
+Subject: Re: [lm-sensors] Ambient Light sensor for Intersil-ISL29020 device
 
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
