@@ -1,7 +1,7 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Tue, 11 Aug 2009 13:14:09 +0000
+From: "Trisal, Kalhan" <kalhan.trisal@intel.com>
+Date: Thu, 13 Aug 2009 10:56:16 +0000
 Subject: Re: [lm-sensors] Compass Driver Honeywell HMC6352 device
-Message-Id: <4A816EA1.8060203@cam.ac.uk>
+Message-Id: <3CA6C6D9F70D314CA34352990B57DA1535F025E2@bgsmsx502.gar.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090811185813.GC32002@intel.com>
 In-Reply-To: <20090811185813.GC32002@intel.com>
@@ -9,6 +9,18 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Thanks Jonathan will be submitting new patch will all the comments incorporated.
+
+Thanks 
+Kalhan 
+
+-----Original Message-----
+From: Jonathan Cameron [mailto:jic23@cam.ac.uk] 
+Sent: Tuesday, August 11, 2009 6:44 PM
+To: Trisal, Kalhan
+Cc: lm-sensors@lm-sensors.org; alan@linux.intel.com
+Subject: Re: [lm-sensors] Compass Driver Honeywell HMC6352 device
 
 Kalhan Trisal wrote:
 >>From f06c004fe53f67326ceb9524d0e43d7fe6abed0f Mon Sep 17 00:00:00 2001
@@ -122,6 +134,9 @@ Driver is pretty simple and does the job.
 You probably want these function names to include the chip name,
 cuts down on chance of a name clash at a later date.
 
+
+>> Accepted 
+
 > +static ssize_t compass_calibration_store(struct device *dev,
 > +		struct device_attribute *attr, const char *buf, size_t count)
 > +{
@@ -130,6 +145,8 @@ cuts down on chance of a name clash at a later date.
 > +	unsigned long val;
 
 Definitely want some #defines to clarify these random seeming values.
+
+>> Accepted 
 
 > +	char  cmd[] = {0x43};
 > +	char  cmd1[] = {0x45};
@@ -294,6 +311,8 @@ Definitely want some #defines to clarify these random seeming values.
 > +}
 Should probably name it after the chip, not so generically.
 > +static struct i2c_device_id hmc6352_id[] = {
+ >> Accepted 
+
 > +	{ "i2c_compass", 0 },
 > +	{ }
 > +};
@@ -313,7 +332,7 @@ Should probably name it after the chip, not so generically.
 > +{
 > +	int res;
 return i2c_add_driver(...) would be simpler.
-
+>> Accepted 
 > +
 > +	res = i2c_add_driver(&hmc6352_driver);
 > +	return res;
