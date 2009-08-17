@@ -1,7 +1,7 @@
-From: Alex Riesen <raa.lkml@gmail.com>
-Date: Thu, 13 Aug 2009 19:14:12 +0000
+From: "Agarwal, Ramesh" <ramesh.agarwal@intel.com>
+Date: Mon, 17 Aug 2009 08:19:38 +0000
 Subject: Re: [lm-sensors] Intel Moorestown Analog Accelerometer driver
-Message-Id: <20090813191412.GA13354@blimp.localdomain>
+Message-Id: <DC9628ADC672424FAECF61709E90EDDE5C9FF27A@bgsmsx501.gar.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <c632a690908130147j55df80fbmc96b5bec6f9927b4@mail.gmail.com>
 In-Reply-To: <c632a690908130147j55df80fbmc96b5bec6f9927b4@mail.gmail.com>
@@ -10,47 +10,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Ramesh Agarwal says:
-> +The accelerometer operates in the polling mode. This is to say that sampling
-> +by the driver will be done only if a user application has requested for the
-> +values.  The driver does not  register as an input device, and hence input
-> +calibration and fixing the sampling rate is left to the user level
-> +framework/application. The sysfs interface only provides the decimal values
-> +of the voltage read from the ADC where each bit is equivalent to 2mV.
-...
-> +/* PMIC ADC INTERRUPT REGISTERS */
-> +#define PMIC_ADC_ACC_REG_ADCINT		0x5F	/*ADC interrupt register */
+Hi Alex,
 
-Does the accelerometer itself actually provide an interrupt for the
-data? Can the interrupt be used?
+Please see my response inline.
 
-The "ADC interrupt register" seem to hint at that.
+> -----Original Message-----
+> From: Alex Riesen [mailto:raa.lkml@gmail.com]
+> Sent: Friday, August 14, 2009 12:44 AM
+> To: Agarwal, Ramesh
+> Cc: lm-sensors@lm-sensors.org; Mark Brown
+> Subject: Re: Intel Moorestown Analog Accelerometer driver
+> 
+> Ramesh Agarwal says:
+> > +The accelerometer operates in the polling mode. This is to say that
+> sampling
+> > +by the driver will be done only if a user application has requested for
+> the
+> > +values.  The driver does not  register as an input device, and hence
+> input
+> > +calibration and fixing the sampling rate is left to the user level
+> > +framework/application. The sysfs interface only provides the decimal
+> values
+> > +of the voltage read from the ADC where each bit is equivalent to 2mV.
+> ...
+> > +/* PMIC ADC INTERRUPT REGISTERS */
+> > +#define PMIC_ADC_ACC_REG_ADCINT		0x5F	/*ADC interrupt register
+> */
+> 
+> Does the accelerometer itself actually provide an interrupt for the
+> data? Can the interrupt be used?
+> 
+> The "ADC interrupt register" seem to hint at that.
+> 
+> Forcing people to poll for interactive data (and that seems to be a
+> very common use for accelerometers these days) is not very nice.
+[Agarwal, Ramesh] The accelerometer unfortunately does not have any interrupt. It just gives the voltage for the current value of the g on the three co-ordinates. The Interrupt being referred to is for the ADC. Once the ADC is started it will sample all the channels (including others which are used by other analog devices) in a round robin fashion. The interrupt is raised when one round of sampling completes.
 
-Forcing people to poll for interactive data (and that seems to be a
-very common use for accelerometers these days) is not very nice.
-
-> +static unsigned int analog_accel_read(int offset)
-> +{
-> +	unsigned int ret_val;
-> +	struct mrst_pmic_reg_data ipc_data;
-> +
-> +	ipc_data.ioc = 0;	/* No need to generate MSI */
-> +	ipc_data.num_entries = 2;
-> +	ipc_data.pmic_reg_data[0].register_address > +		PMIC_ADC_REG_HIGH(mrst_analog_reg_idx,
-> +				offset); /* Higher 8 bits */
-> +	ipc_data.pmic_reg_data[1].register_address > +		PMIC_ADC_REG_LOW(mrst_analog_reg_idx,
-> +				offset); /* Lower 3 bits */
-> +	if (mrst_pmic_ioread(&ipc_data) != 0) {
-> +		printk(KERN_ERR
-> +		"mrst_analog_accel:PMIC reg read using IPC failed\n");
-> +		return -1;
-
-You return -1 in a function returning unsigned?
-And you don't handle the -1 anyway, so maybe a more useful value can
-be returned (like one you'd return when there is no acceleration).
-Or you can handle the error more sensibly, and return error (if it's
-possible) from sysfs' _show().
-
+> 
+> > +static unsigned int analog_accel_read(int offset)
+> > +{
+> > +	unsigned int ret_val;
+> > +	struct mrst_pmic_reg_data ipc_data;
+> > +
+> > +	ipc_data.ioc = 0;	/* No need to generate MSI */
+> > +	ipc_data.num_entries = 2;
+> > +	ipc_data.pmic_reg_data[0].register_address > > +		PMIC_ADC_REG_HIGH(mrst_analog_reg_idx,
+> > +				offset); /* Higher 8 bits */
+> > +	ipc_data.pmic_reg_data[1].register_address > > +		PMIC_ADC_REG_LOW(mrst_analog_reg_idx,
+> > +				offset); /* Lower 3 bits */
+> > +	if (mrst_pmic_ioread(&ipc_data) != 0) {
+> > +		printk(KERN_ERR
+> > +		"mrst_analog_accel:PMIC reg read using IPC failed\n");
+> > +		return -1;
+> 
+> You return -1 in a function returning unsigned?
+> And you don't handle the -1 anyway, so maybe a more useful value can
+> be returned (like one you'd return when there is no acceleration).
+> Or you can handle the error more sensibly, and return error (if it's
+> possible) from sysfs' _show().
+> 
+[Agarwal, Ramesh] Sending 0xffffffff was kind of my way of indicating an error because the values coming out of the ADC are just 10 bits, so anything larger than that would indicate that there was an error reading the values. 
 
 
 _______________________________________________
