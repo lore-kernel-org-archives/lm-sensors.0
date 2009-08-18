@@ -1,42 +1,114 @@
 From: "Darrick J. Wong" <djwong@us.ibm.com>
-Date: Tue, 18 Aug 2009 23:32:47 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: Enhance the sysfs API for power
-Message-Id: <20090818233247.GC10233@tux1.beaverton.ibm.com>
+Date: Tue, 18 Aug 2009 23:48:04 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: Enhance the sysfs API for power
+Message-Id: <20090818234803.2004.28814.stgit@elm3a70.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090725004322.20709.96804.stgit@elm3a70.beaverton.ibm.com> <20090725004328.20709.57712.stgit@elm3a70.beaverton.ibm.com> <20090807180906.GD1728@ucw.cz> <20090808174020.GA29600@tux1.beaverton.ibm.com> <20090808214830.GC24153@elf.ucw.cz> <20090810211211.GB30815@tux1.beaverton.ibm.com> <20090812115653.GJ24339@elf.ucw.cz>
-In-Reply-To: <20090812115653.GJ24339@elf.ucw.cz>
+References: <20090818234757.2004.88017.stgit@elm3a70.beaverton.ibm.com>
+In-Reply-To: <20090818234757.2004.88017.stgit@elm3a70.beaverton.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, linux-acpi <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
+To: "Darrick J. Wong" <djwong@us.ibm.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, linux-acpi <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Pavel Machek <pavel@ucw.cz>
 
-On Wed, Aug 12, 2009 at 01:56:54PM +0200, Pavel Machek wrote:
+Augment the documentation of the hwmon sysfs API to accomodate ACPI power
+meters.
 
-> Is netlink right interface for that? Perhaps /sys files should be
-> pollable?
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
+ Documentation/hwmon/sysfs-interface |   60 ++++++++++++++++++++++++++++++++++-
+ 1 files changed, 59 insertions(+), 1 deletions(-)
 
-Since the ACPI meter receives ACPI events, it seems logical to me that these
-events should be passed through to ACPI clients.  It also seems logical that
-hwmon clients shouldn't have to know about ACPI netlink sockets either, so
-I'll combine them both and see what popular consensus thinks of that. :)
 
-Therefore, I updated the patch to make the appropriate sysfs files pollable,
-and the hwmon sysfs documentation to state that they can be polled.
+diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+index dcbd502..8b5a654 100644
+--- a/Documentation/hwmon/sysfs-interface
++++ b/Documentation/hwmon/sysfs-interface
+@@ -353,10 +353,20 @@ power[1-*]_average		Average power use
+ 				Unit: microWatt
+ 				RO
+ 
+-power[1-*]_average_interval	Power use averaging interval
++power[1-*]_average_interval	Power use averaging interval.  A poll
++				notification is sent to this file if the
++				hardware changes the averaging interval.
+ 				Unit: milliseconds
+ 				RW
+ 
++power[1-*]_average_interval_max	Maximum power use averaging interval
++				Unit: milliseconds
++				RO
++
++power[1-*]_average_interval_min	Minimum power use averaging interval
++				Unit: milliseconds
++				RO
++
+ power[1-*]_average_highest	Historical average maximum power use
+ 				Unit: microWatt
+ 				RO
+@@ -365,6 +375,18 @@ power[1-*]_average_lowest	Historical average minimum power use
+ 				Unit: microWatt
+ 				RO
+ 
++power[1-*]_average_max		A poll notification is sent to
++				power[1-*]_average when power use
++				rises above this value.
++				Unit: microWatt
++				RW
++
++power[1-*]_average_min		A poll notification is sent to
++				power[1-*]_average when power use
++				sinks below this value.
++				Unit: microWatt
++				RW
++
+ power[1-*]_input		Instantaneous power use
+ 				Unit: microWatt
+ 				RO
+@@ -381,6 +403,42 @@ power[1-*]_reset_history	Reset input_highest, input_lowest,
+ 				average_highest and average_lowest.
+ 				WO
+ 
++power[1-*]_accuracy		Accuracy of the power meter.
++				Unit: Percent
++				RO
++
++power[1-*]_alarm		1 if the system is drawing more power than the
++				cap allows; 0 otherwise.  A poll notification is
++				sent to this file if the power use exceeds the
++				cap.  The action that is taken when this event
++				happens is undefined--it is possible that the
++				hardware will reduce performance to cut the
++				power use, but it is also possible that the
++				system designer expects the OS to try to
++				reduce power consumption.  Contact your
++				machine's vendor to find out which.
++				RO
++
++power[1-*]_cap			If power use rises above this limit, the
++				system should take action to reduce power use.
++				A poll notification is sent to this file if the
++				cap is changed by the hardware.
++				Unit: microWatt
++				RW
++
++power[1-*]_cap_hyst		Margin of hysteresis built around capping and
++				notification.
++				Unit: microWatt
++				RW
++
++power[1-*]_cap_max		Maximum cap that can be set.
++				Unit: microWatt
++				RO
++
++power[1-*]_cap_min		Minimum cap that can be set.
++				Unit: microWatt
++				RO
++
+ **********
+ * Energy *
+ **********
 
-> > So it goes with ACPI.  Given that things like Node Manager and Active Energy
-> > Manager claim to be able to control power use, I would guess that it is
-> > generally likely that a power monitoring system would take action on its own to
-> > cut power use, and not necessarily bothering to tell the OS exactly what it's
-> > doing.
-> 
-> I guess this needs to be clarified/documented properly because it
-> should go anywhere near mainline.
-
-Ok, I'll clarify the documentation to say that those two scenarios are
-possible, and to contact the machine vendor for details.
-
---D
 
 _______________________________________________
 lm-sensors mailing list
