@@ -1,7 +1,7 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Tue, 18 Aug 2009 13:14:41 +0000
+From: "Trisal, Kalhan" <kalhan.trisal@intel.com>
+Date: Thu, 20 Aug 2009 11:08:34 +0000
 Subject: Re: [lm-sensors] Accelerometer driver for
-Message-Id: <4A8AA941.1080801@cam.ac.uk>
+Message-Id: <3CA6C6D9F70D314CA34352990B57DA1537728EFA@bgsmsx502.gar.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <f34ca13c0908170720l6a7a1311m6592846f30056822@mail.gmail.com>
 In-Reply-To: <f34ca13c0908170720l6a7a1311m6592846f30056822@mail.gmail.com>
@@ -9,6 +9,18 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Yes I will be implementing the i2c part for this driver and that will send the patch after testing.
+
+I have seen this driver, since it did not supported I2C interface so we thought of writing one more.
+
+
+-----Original Message-----
+From: Jonathan Cameron [mailto:jic23@cam.ac.uk] 
+Sent: Tuesday, August 18, 2009 6:45 PM
+To: Constantine A. Murenin
+Cc: Trisal, Kalhan; alan@linux.intel.com; lm-sensors@lm-sensors.org
+Subject: Re: [lm-sensors] Accelerometer driver for STMicroeletronics-LIS331DL-three-axis-digital
 
 Constantine A. Murenin wrote:
 > Hi,
