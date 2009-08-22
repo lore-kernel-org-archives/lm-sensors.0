@@ -1,76 +1,98 @@
-From: Karl Schmidt <karl@xtronics.com>
-Date: Fri, 28 Aug 2009 18:36:18 +0000
-Subject: [lm-sensors] Creating alarm for fans
-Message-Id: <4A9823A2.2010907@xtronics.com>
+From: "Henrik Rydberg" <rydberg@euromail.se>
+Date: Sat, 22 Aug 2009 21:33:52 +0000
+Subject: [lm-sensors] [PATCH] hwmon: applesmc: restore keyboard backlight on
+Message-Id: <1250976832-9801-1-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: nicolas@boichat.ch, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
 
-I hope this isn't a stupid question -but google didn't get me there..
+On resume from suspend, the driver currently resets the logical
+state as if it was brought up from halt. This patch uses the
+dev_pm_ops.resume method to synchronize the hardware with the
+memorized logical state, bringing back the backlight to the level
+prior to suspend.
 
-Please cc -- I'm off list..
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+---
+ drivers/hwmon/applesmc.c |   27 +++++++++++++++------------
+ 1 files changed, 15 insertions(+), 12 deletions(-)
 
-I used to be able to get an alarm for fans - but now I don't.
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 678e34b..0b781c8 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -178,6 +178,8 @@ static const int debug;
+ static struct platform_device *pdev;
+ static s16 rest_x;
+ static s16 rest_y;
++static u8 backlight_state[2];
++
+ static struct device *hwmon_dev;
+ static struct input_polled_dev *applesmc_idev;
+ 
+@@ -497,17 +499,25 @@ static int applesmc_probe(struct platform_device *dev)
+ 	return 0;
+ }
+ 
+-static int applesmc_resume(struct platform_device *dev)
++/* Synchronize device with memorized backlight state */
++static int applesmc_pm_resume(struct device *dev)
+ {
+-	return applesmc_device_init();
++	mutex_lock(&applesmc_lock);
++	applesmc_write_key(BACKLIGHT_KEY, backlight_state, 2);
++	mutex_unlock(&applesmc_lock);
++	return 0;
+ }
+ 
++static struct dev_pm_ops applesmc_pm_ops = {
++	.resume = applesmc_pm_resume,
++};
++
+ static struct platform_driver applesmc_driver = {
+ 	.probe = applesmc_probe,
+-	.resume = applesmc_resume,
+ 	.driver	= {
+ 		.name = "applesmc",
+ 		.owner = THIS_MODULE,
++		.pm = &applesmc_pm_ops,
+ 	},
+ };
+ 
+@@ -804,17 +814,10 @@ static ssize_t applesmc_calibrate_store(struct device *dev,
+ 	return count;
+ }
+ 
+-/* Store the next backlight value to be written by the work */
+-static unsigned int backlight_value;
+-
+ static void applesmc_backlight_set(struct work_struct *work)
+ {
+-	u8 buffer[2];
+-
+ 	mutex_lock(&applesmc_lock);
+-	buffer[0] = backlight_value;
+-	buffer[1] = 0x00;
+-	applesmc_write_key(BACKLIGHT_KEY, buffer, 2);
++	applesmc_write_key(BACKLIGHT_KEY, backlight_state, 2);
+ 	mutex_unlock(&applesmc_lock);
+ }
+ static DECLARE_WORK(backlight_work, &applesmc_backlight_set);
+@@ -824,7 +827,7 @@ static void applesmc_brightness_set(struct led_classdev *led_cdev,
+ {
+ 	int ret;
+ 
+-	backlight_value = value;
++	backlight_state[0] = value;
+ 	ret = queue_work(applesmc_led_wq, &backlight_work);
+ 
+ 	if (debug && (!ret))
+-- 
+1.6.3.3
 
-
-chip "lm85c-*" "adm1027-*" "adt7463-*" "lm85-*" "lm85b-*"
-
-# Voltage inputs
-# Depending on the hardware setup, the ADT7463 may not have in4.
-    label in0   "V1.5"      # AGP on Intel S845WD1-E
-    label in1   "VCore"
-    label in2   "V3.3"
-    label in3   "V5"
-    label in4   "V12"
-
-# Temperature inputs
-    label temp1  "CPU Temp"
-    label temp2  "Board Temp"
-    label temp3  "Remote Temp"
-
-# Fan inputs
-    label fan1   "CPU_Fan"
-    label fan2   "Fan2"
-    label fan3   "Fan3"
-    label fan4   "Fan4"
-set fan1_min 8000
-
-
-
-
-lm85b-i2c-0-2e
-Adapter: SMBus nForce2 adapter at 1c00
-V1.5:        +1.30 V  (min =3D  +0.00 V, max =3D  +3.32 V)
-VCore:       +1.42 V  (min =3D  +0.00 V, max =3D  +2.99 V)
-V3.3:        +3.35 V  (min =3D  +0.00 V, max =3D  +4.38 V)
-V5:          +5.08 V  (min =3D  +0.00 V, max =3D  +6.64 V)
-V12:        +12.06 V  (min =3D  +0.00 V, max =3D +15.94 V)
-CPU_Fan:    7837 RPM  (min =3D 8000 RPM)
-Fan2:       8169 RPM  (min =3D    0 RPM)
-Fan3:       7964 RPM  (min =3D    0 RPM)
-Fan4:       7917 RPM  (min =3D    0 RPM)
-CPU Temp:    +37.0=B0C  (low  =3D -127.0=B0C, high =3D +127.0=B0C)
-Board Temp:  +26.0=B0C  (low  =3D -127.0=B0C, high =3D +127.0=B0C)
-Remote Temp: +23.0=B0C  (low  =3D -127.0=B0C, high =3D +127.0=B0C)
-
-
-2.6.26-2-amd64 #1 SMP
-
-
----------------------------------------------------------------------------=
------
-Karl Schmidt                                  EMail Karl@xtronics.com
-Transtronics, Inc.                              WEB http://xtronics.com
-3209 West 9th Street                             Ph (785) 841-3089
-Lawrence, KS 66049                              FAX (785) 841-0434
-
-Assumption is the mother of mistakes.
-Buckaroo Banzai
-
----------------------------------------------------------------------------=
------
 
 _______________________________________________
 lm-sensors mailing list
