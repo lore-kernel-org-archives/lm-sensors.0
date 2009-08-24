@@ -1,60 +1,110 @@
-From: "Ira W. Snyder" <iws@ovro.caltech.edu>
-Date: Thu, 13 Aug 2009 21:31:56 +0000
-Subject: Re: [lm-sensors] ina209 driver + using calulate lines
-Message-Id: <20090813213156.GH28596@ovro.caltech.edu>
+From: "Henrik Rydberg" <rydberg@euromail.se>
+Date: Mon, 24 Aug 2009 23:42:01 +0000
+Subject: [lm-sensors] [PATCH] hwmon: applesmc: restore accelerometer and
+Message-Id: <1251157321-25535-1-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: nicolas@boichat.ch, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
 
-On Thu, Aug 13, 2009 at 10:43:08AM -0700, Ira W. Snyder wrote:
-> Hello all.
-> 
-> I'm working on a driver (posted here previously) for the INA209 chip.
-> The chip itself has support for power and current readings, though they
-> will only be valid if a special calibration register is set
-> appropriately. The units used for interpreting the power and current
-> registers change depending on the value in the calibration register;
-> they are not constant.
-> 
-> It is possible to calculate the power and current from userspace using
-> the sense resistor reading + the sense resistor value (which changes
-> between implementations).
-> 
-> I am aware of the "calculate" lines in sensors3.conf, which should be
-> able to do this kind of calculation.
-> 
-> My previous postings of this driver have mostly been ignored, probably
-> due to set the calibration register before use. This is something not
-> supported by the hwmon sysfs-interface. Using the userspace sensors
-> program to handle this instead removes the need to set the calibration
-> register.
-> 
-> I have two possible solutions:
-> 1) Have curr1_input output the sense resistor voltage in mV and use the
->    sensors program (using "calculate") to convert it appropriately
-> 2) Have curr1_input always read back 0 uA, and have the sensors program
->    use in0_input (the sense resistor voltage in mV) in the calculate
->    line, ignoring the reading from curr1_input
-> 
-> I can figure out how to use calculate for #1, but I cannot figure out
-> how to reference a different sensor in a calculate line. The
-> documentation claims this is possible, but I cannot find any examples.
-> 
+On resume from suspend, the driver currently resets the logical
+state as if it was brought up from halt. This patch uses the
+dev_pm_ops.resume/restore methods to synchronize the hardware with
+the memorized logical state, in effect bringing back the accelerometer
+and backlight to the state prior to suspend. Works for both suspend to
+ram and hibernation. The patch has zero effect on the running state.
 
-Ignore the "I don't know how to use other sensor values from a compute
-statement" part of this. I've figured it out.
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+---
+ drivers/hwmon/applesmc.c |   38 ++++++++++++++++++++++++++------------
+ 1 files changed, 26 insertions(+), 12 deletions(-)
 
-compute power1 curr1_input * in1_input, curr1_input * in1_input
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 678e34b..b7ab1a0 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -178,6 +178,8 @@ static const int debug;
+ static struct platform_device *pdev;
+ static s16 rest_x;
+ static s16 rest_y;
++static u8 backlight_state[2];
++
+ static struct device *hwmon_dev;
+ static struct input_polled_dev *applesmc_idev;
+ 
+@@ -497,17 +499,36 @@ static int applesmc_probe(struct platform_device *dev)
+ 	return 0;
+ }
+ 
+-static int applesmc_resume(struct platform_device *dev)
++/* Synchronize device with memorized backlight state */
++static int applesmc_pm_resume(struct device *dev)
+ {
+-	return applesmc_device_init();
++	mutex_lock(&applesmc_lock);
++	if (applesmc_light)
++		applesmc_write_key(BACKLIGHT_KEY, backlight_state, 2);
++	mutex_unlock(&applesmc_lock);
++	return 0;
+ }
+ 
++/* Reinitialize device on resume from hibernation */
++static int applesmc_pm_restore(struct device *dev)
++{
++	int ret = applesmc_device_init();
++	if (ret)
++		return ret;
++	return applesmc_pm_resume(dev);
++}
++
++static struct dev_pm_ops applesmc_pm_ops = {
++	.resume = applesmc_pm_resume,
++	.restore = applesmc_pm_restore,
++};
++
+ static struct platform_driver applesmc_driver = {
+ 	.probe = applesmc_probe,
+-	.resume = applesmc_resume,
+ 	.driver	= {
+ 		.name = "applesmc",
+ 		.owner = THIS_MODULE,
++		.pm = &applesmc_pm_ops,
+ 	},
+ };
+ 
+@@ -804,17 +825,10 @@ static ssize_t applesmc_calibrate_store(struct device *dev,
+ 	return count;
+ }
+ 
+-/* Store the next backlight value to be written by the work */
+-static unsigned int backlight_value;
+-
+ static void applesmc_backlight_set(struct work_struct *work)
+ {
+-	u8 buffer[2];
+-
+ 	mutex_lock(&applesmc_lock);
+-	buffer[0] = backlight_value;
+-	buffer[1] = 0x00;
+-	applesmc_write_key(BACKLIGHT_KEY, buffer, 2);
++	applesmc_write_key(BACKLIGHT_KEY, backlight_state, 2);
+ 	mutex_unlock(&applesmc_lock);
+ }
+ static DECLARE_WORK(backlight_work, &applesmc_backlight_set);
+@@ -824,7 +838,7 @@ static void applesmc_brightness_set(struct led_classdev *led_cdev,
+ {
+ 	int ret;
+ 
+-	backlight_value = value;
++	backlight_state[0] = value;
+ 	ret = queue_work(applesmc_led_wq, &backlight_work);
+ 
+ 	if (debug && (!ret))
+-- 
+1.6.3.3
 
-Works perfectly for me. The power1_input value is calculated using the
-readings from curr1_input and in1_input.
-
-The rest of my questions still stand.
-
-Thanks,
-Ira
 
 _______________________________________________
 lm-sensors mailing list
