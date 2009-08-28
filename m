@@ -1,38 +1,76 @@
-From: clubsoda@hushmail.com
-Date: Tue, 25 Aug 2009 16:19:47 +0000
-Subject: Re: [lm-sensors] w83781d - Unable to set fan1_div
-Message-Id: <20090825161947.22F29B8043@smtp.hushmail.com>
+From: Karl Schmidt <karl@xtronics.com>
+Date: Fri, 28 Aug 2009 18:36:18 +0000
+Subject: [lm-sensors] Creating alarm for fans
+Message-Id: <4A9823A2.2010907@xtronics.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090813210941.8E3F9B0048@smtp.hushmail.com>
-In-Reply-To: <20090813210941.8E3F9B0048@smtp.hushmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
+I hope this isn't a stupid question -but google didn't get me there..
 
-Answers own query... :)
+Please cc -- I'm off list..
 
-
-The problem turned out to be that whilst the as99127f-0-2d chip 
-requires the w83781d kernel module, any settings like "set fan1_div 
-8" in the w83781d section of /etc/sensors3.conf seem to be ignored 
-because the as99127f has its own dedicated chip section.
+I used to be able to get an alarm for fans - but now I don't.
 
 
-Also worth mentioning that sensors are broken for this motherboard 
-with the latest Karmic Koala kernels [2.6.31-6-generic and 2.6.31-2-
-rt].  Errors from dmesg:-
+chip "lm85c-*" "adm1027-*" "adt7463-*" "lm85-*" "lm85b-*"
 
- ACPI: I/O resource 0000:00:1f.3 [0xe800-0xe80f] conflicts with 
-ACPI region SM00 [0xe800-0xe806]
- ACPI: Device needs an ACPI driver
- i801_smbus: probe of 0000:00:1f.3 failed with error -16
+# Voltage inputs
+# Depending on the hardware setup, the ADT7463 may not have in4.
+    label in0   "V1.5"      # AGP on Intel S845WD1-E
+    label in1   "VCore"
+    label in2   "V3.3"
+    label in3   "V5"
+    label in4   "V12"
 
-The workaround is to add the boot parameter 
-acpi_enforce_resources=lax.
-Hope this helps someone.
+# Temperature inputs
+    label temp1  "CPU Temp"
+    label temp2  "Board Temp"
+    label temp3  "Remote Temp"
 
+# Fan inputs
+    label fan1   "CPU_Fan"
+    label fan2   "Fan2"
+    label fan3   "Fan3"
+    label fan4   "Fan4"
+set fan1_min 8000
+
+
+
+
+lm85b-i2c-0-2e
+Adapter: SMBus nForce2 adapter at 1c00
+V1.5:        +1.30 V  (min =3D  +0.00 V, max =3D  +3.32 V)
+VCore:       +1.42 V  (min =3D  +0.00 V, max =3D  +2.99 V)
+V3.3:        +3.35 V  (min =3D  +0.00 V, max =3D  +4.38 V)
+V5:          +5.08 V  (min =3D  +0.00 V, max =3D  +6.64 V)
+V12:        +12.06 V  (min =3D  +0.00 V, max =3D +15.94 V)
+CPU_Fan:    7837 RPM  (min =3D 8000 RPM)
+Fan2:       8169 RPM  (min =3D    0 RPM)
+Fan3:       7964 RPM  (min =3D    0 RPM)
+Fan4:       7917 RPM  (min =3D    0 RPM)
+CPU Temp:    +37.0=B0C  (low  =3D -127.0=B0C, high =3D +127.0=B0C)
+Board Temp:  +26.0=B0C  (low  =3D -127.0=B0C, high =3D +127.0=B0C)
+Remote Temp: +23.0=B0C  (low  =3D -127.0=B0C, high =3D +127.0=B0C)
+
+
+2.6.26-2-amd64 #1 SMP
+
+
+---------------------------------------------------------------------------=
+-----
+Karl Schmidt                                  EMail Karl@xtronics.com
+Transtronics, Inc.                              WEB http://xtronics.com
+3209 West 9th Street                             Ph (785) 841-3089
+Lawrence, KS 66049                              FAX (785) 841-0434
+
+Assumption is the mother of mistakes.
+Buckaroo Banzai
+
+---------------------------------------------------------------------------=
+-----
 
 _______________________________________________
 lm-sensors mailing list
