@@ -1,45 +1,62 @@
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
-Date: Wed, 05 Aug 2009 01:06:20 +0000
-Subject: Re: [lm-sensors] [PATCH 1/7] spi: Add support for device table
-Message-Id: <20090805010620.GB14451@oksana.dev.rtsoft.ru>
+From: ponto <hugoandregomes@gmail.com>
+Date: Sat, 29 Aug 2009 16:46:35 +0000
+Subject: [lm-sensors] lm_sensors problem
+Message-Id: <ff68bccf0908290946s44775ac4t6b1b1dfd52c1ca23@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090729170345.GA26787@oksana.dev.rtsoft.ru>
- <20090729170457.GA4803@oksana.dev.rtsoft.ru>
- <20090729214446.GB1728@fluff.org.uk>
- <200908031921.23126.david-b@pacbell.net>
-In-Reply-To: <200908031921.23126.david-b@pacbell.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: David Brownell <david-b@pacbell.net>
-Cc: Ben Dooks <ben-linux@fluff.org>, Andrew Morton <akpm@linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Jean Delvare <khali@linux-fr.org>, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linuxppc-dev@ozlabs.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Mon, Aug 03, 2009 at 07:21:22PM -0700, David Brownell wrote:
-> On Wednesday 29 July 2009, Ben Dooks wrote:
-> > >  struct spi_driver {
-> > > +     const struct spi_device_id *id_table;
-> > > +     int                     (*probe_id)(struct spi_device *spi,
-> > > +                                         const struct spi_device_id *id);
-> > 
-> > how about leaving it at just probe and have either a call or a field
-> > in the device that you can look at to see if this was a new style of
-> > call?
-> > 
-> > >       int                     (*probe)(struct spi_device *spi);
-> 
-> For the record, if this is going to happen I think the
-> appropriate long-term solution is to have probe() take
-> the device_id just as it does with other busses.
+i've used sensors-detect and it gave me:
 
-Just curious. Why you prefer another argument in the probe()
-instead of calling some helper function? Most drivers don't
-need the "id" argument, so why spend memory and cpu cycles
-for it?
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
 
--- 
-Anton Vorontsov
-email: cbouatmailru@gmail.com
-irc://irc.freenode.net/bd2
+Driver `coretemp':
+ * Chip `Intel Core family thermal sensor' (confidence: 9)
+
+Do you want to overwrite /etc/conf.d/lm_sensors? (YES/no):
+Copy prog/init/lm_sensors.init to /etc/rc.d/lm_sensors
+for initialization at boot time.
+You should now start the lm_sensors service to load the required
+kernel modules.
+
+and sensors started to give me:
+
+sensors
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +56.0=B0C  (high =3D +100.0=B0C, crit =3D +100.0=B0C)
+
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +60.0=B0C  (high =3D +100.0=B0C, crit =3D +100.0=B0C)
+
+acpitz-virtual-0
+Adapter: Virtual device
+temp1:       +60.0=B0C  (crit =3D +94.0=B0C)
+
+was not suppose to give the fan's rpm's and so and so?
+
+
+oh, pwmconfig does outputs me this:
+pwmconfig
+# pwmconfig revision 5630 (2009-01-29)
+This program will search your sensors for pulse width modulation (pwm)
+controls, and test each one to see if it controls a fan on
+your motherboard. Note that many motherboards do not have pwm
+circuitry installed, even if your sensor chip supports pwm.
+
+We will attempt to briefly stop each fan using the pwm controls.
+The program will attempt to restore each fan to full speed
+after testing. However, it is ** very important ** that you
+physically verify that the fans have been to full speed
+after the program has completed.
+
+/usr/sbin/pwmconfig: There are no pwm-capable sensor modules installed
+
+as this have to do with the supose missing values on lm sensors?
 
 _______________________________________________
 lm-sensors mailing list
