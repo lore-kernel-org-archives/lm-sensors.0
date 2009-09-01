@@ -1,51 +1,62 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 02 Sep 2009 19:30:09 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Disable s3c-hwmon build for S3C64xx
-Message-Id: <20090902213009.47c3b5bd@hyperion.delvare>
+From: Hubert Kario <hka@qbs.com.pl>
+Date: Tue, 01 Sep 2009 18:26:41 +0000
+Subject: Re: [lm-sensors] "No sensors found!" on Intel Entry Storage System
+Message-Id: <200909012026.42247.hka@qbs.com.pl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1251110906-19010-1-git-send-email-broonie@opensource.wolfsonmicro.com>
-	<20090902211048.5c424d07@hyperion.delvare>
-In-Reply-To: <20090902211048.5c424d07@hyperion.delvare>
+References: <1251523453.13079.32.camel@Ubuntu>
+In-Reply-To: <1251523453.13079.32.camel@Ubuntu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Wed, 2 Sep 2009 21:10:48 +0200, Jean Delvare wrote:
-> Hi Mark,
-> 
-> On Mon, 24 Aug 2009 11:48:26 +0100, Mark Brown wrote:
-> > The s3c-hwmon driver depends on the arch/arm implementation of the core
-> > ADC support for the chip.  Since the S3C64xx version has not yet been
-> > merged disable building of the driver on S3C64xx for now.
-> > 
-> > Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> > ---
-> >  drivers/hwmon/Kconfig |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> > index a54407b..fa94b56 100644
-> > --- a/drivers/hwmon/Kconfig
-> > +++ b/drivers/hwmon/Kconfig
-> > @@ -704,7 +704,7 @@ config SENSORS_SHT15
-> >  
-> >  config SENSORS_S3C
-> >  	tristate "S3C24XX/S3C64XX Inbuilt ADC"
-> > -	depends on ARCH_S3C2410 || ARCH_S3C64XX
-> > +	depends on ARCH_S3C2410
-> >  	help
-> >  	  If you say yes here you get support for the on-board ADCs of
-> >  	  the Samsung S3C24XX or S3C64XX series of SoC
-> 
-> I presume this is meant for 2.6.31 and should be sent to Linus very
-> quickly?
+On Saturday 29 August 2009 18:03:36 Tech2009 wrote:
+> > Message: 3
+> > Date: Sat, 29 Aug 2009 10:30:25 +0200
+> > From: Hubert Kario <hka@qbs.com.pl>
+> > Subject: Re: [lm-sensors] "No sensors found!" on Intel Entry Storage
+> > System SS4200
+> > To: lm-sensors@lm-sensors.org
+> > Message-ID: <200908291030.25637.hka@qbs.com.pl>
+> > Content-Type: text/plain;  charset=3D"iso-8859-2"
+> >
+> >
+> >
+> > and what shows dmesg?
+>
+> dmesg output after sensors-detect:
+> [ 1815.988770] i2c /dev entries driver
+>
+> dmesg output after sensors:
+> (blank)
+So there doesn't appear to be any problem...
+>
+>
+> The bundled Linux image does not appear to use the dme1737 module or
+> lmsensors. The web interface loads several closed source libraries, and
+> I'm not sure how they access the hardware.
+They may access the hardware directly, is the web interface running as root?
+Also, you may check /sys file system, look in /sys/bus/platform/drivers/ fo=
+r=20
+it, the module may be compiled in in the bundled image
+>
+> Is there something I should try to determine why sensors-detect sees the
+> chip but sensors does not?
+you could try one of the parameters aviable for the module, for list of all=
+ of=20
+them, run:
+modinfo dme1737
 
-Err, scratch this. I thought the driver was already in mainline but it
-isn't yet, so no hurry.
 
--- 
-Jean Delvare
+--=20
+Hubert Kario
+QBS - Quality Business Software
+ul. Ksawer=F3w 30/85
+02-656 Warszawa
+POLAND
+tel. +48 (22) 646-61-51, 646-74-24
+fax +48 (22) 646-61-50
+
 
 _______________________________________________
 lm-sensors mailing list
