@@ -1,35 +1,30 @@
-From: Stefan Catruna <stefancatruna@gmail.com>
-Date: Sat, 12 Sep 2009 11:25:27 +0000
-Subject: Re: [lm-sensors] Intel DQ45CB motherboard - zero stats
-Message-Id: <5a2e2c6e0909120425u5fd6ba80nfab96fb0ccda1335@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 02 Sep 2009 12:51:36 +0000
+Subject: Re: [lm-sensors] Ambient Light sensor for Intersil-ISL29020 device
+Message-Id: <20090902145136.2d822a57@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5a2e2c6e0909112349n7ec3a8f5m4c22af9dff02cd33@mail.gmail.com>
-In-Reply-To: <5a2e2c6e0909112349n7ec3a8f5m4c22af9dff02cd33@mail.gmail.com>
+References: <20090811185416.GB32002@intel.com>
+In-Reply-To: <20090811185416.GB32002@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Sep 12, 2009 at 12:51 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> On Sat, 12 Sep 2009 12:36:41 +0300, Stefan Catruna wrote:
->> On Sat, Sep 12, 2009 at 12:25 PM, Jean Delvare <khali@linux-fr.org> wrote:
->> > On Sat, 12 Sep 2009 12:15:33 +0300, Stefan Catruna wrote:
->> >> PPS: I'm having some problems with the temperature, it reached even 100
->> >
->> > Not good. Maybe your fans aren't spinning fast enough? If you are doing
->> > fan speed control, try without it for a moment.
->>
->> I'm not using fan speed control, set them to Aggressive in BIOS and
->> the temp is still high ...
->
-> Maybe the heatsink isn't properly installed, or you need to use thermal
-> paste?
+On Thu, 13 Aug 2009 16:22:29 +0530, Trisal, Kalhan wrote:
+> This driver used Hwmon interface ,
 
-It's a BOX CPU - Core 2 Quad Q9550, so I'll have to get a real cooler :)
+No, it doesn't. It registers as a hwmon device but it doesn't implement
+_any_ feature listed in Documentation/hwmon/sysfs-interface. Which can
+be easily explained: your device is not a hardware monitoring device.
 
-> --
-> Jean Delvare
-> http://khali.linux-fr.org/wishlist.html
+> I don't find the ils29003 registering with hwmon. I still believe
+> this should be part of hwmon group.
+
+No, it shouldn't. hwmon is for hardware monitoring. Other sensor types
+must find a different home.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
