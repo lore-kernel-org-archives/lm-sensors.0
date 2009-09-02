@@ -1,40 +1,38 @@
-From: "Ira W. Snyder" <iws@ovro.caltech.edu>
-Date: Wed, 02 Sep 2009 19:23:47 +0000
-Subject: [lm-sensors] [PATCH] hwmon: ltc4215: clear faults at startup
-Message-Id: <20090902192347.GI2328@ovro.caltech.edu>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 02 Sep 2009 13:09:28 +0000
+Subject: Re: [lm-sensors] How to Communicate with chips on the ISA bus/SMBus?
+Message-Id: <20090902150928.25fe05f1@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-When power is applied to the ltc4215 chip it sometimes reports spurious
-faults. The faults are not yet exposed via sysfs, however it may be useful
-for userspace to read the fault register directly with the i2cget command.
-Clear the fault register when the driver is installed so userspace doesn't
-have to worry about spurious fault indications.
+On Mon, 24 Aug 2009 16:59:50 -0500, Javier Andres Caceres Alvis wrote:
+> Hi there,
+> 
+> 
+> This is a low level (native development) question. A motherboard can contain
+> sensors to read many values (voltage, fan speed, etc).
+> I understand that many manufactures place this information at ISA-SM I/O
+> ports.
+> I have a Fintek F71882 "Super Hardware Monitor" datasheet which tells the
+> memory addresses where bit registers are located, but I don't know how to
+> access to such as memory blocks under Windows.
+> 
+> Here a list of some hw monitor/sensor manufacturers:
+> http://www.almico.com/forumsensors.php
+> Here an explanation on ISA/SMBus funtionality:
+> http://www.lm-sensors.org/wiki/FAQ/Chapter1
+> 
+> Thanks a lot. unfortunally these topics lack of documentation under windows.
 
-Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
----
- drivers/hwmon/ltc4215.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+We are doing only Linux development here, so we simply can't help you.
+You better find a Windows-oriented developer forum or mailing list for
+your questions.
 
-diff --git a/drivers/hwmon/ltc4215.c b/drivers/hwmon/ltc4215.c
-index 9386e2a..6c9a041 100644
---- a/drivers/hwmon/ltc4215.c
-+++ b/drivers/hwmon/ltc4215.c
-@@ -259,7 +259,7 @@ static int ltc4215_probe(struct i2c_client *client,
- 	mutex_init(&data->update_lock);
- 
- 	/* Initialize the LTC4215 chip */
--	/* TODO */
-+	i2c_smbus_write_byte_data(client, LTC4215_FAULT, 0x00);
- 
- 	/* Register sysfs hooks */
- 	ret = sysfs_create_group(&client->dev.kobj, &ltc4215_group);
 -- 
-1.5.4.3
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
