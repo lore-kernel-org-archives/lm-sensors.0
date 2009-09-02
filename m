@@ -1,7 +1,7 @@
-From: Juerg Haefliger <juergh@gmail.com>
-Date: Wed, 02 Sep 2009 02:10:40 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 02 Sep 2009 19:29:16 +0000
 Subject: Re: [lm-sensors] "No sensors found!" on Intel Entry Storage System
-Message-Id: <191fb4ca0909011910y6f3c44a0y9e50ea846c0a6c97@mail.gmail.com>
+Message-Id: <20090902212916.7ebde8df@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1251523453.13079.32.camel@Ubuntu>
 In-Reply-To: <1251523453.13079.32.camel@Ubuntu>
@@ -10,39 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi
+On Wed, 2 Sep 2009 02:23:52 +0200, Hubert Kario wrote:
+> On Tuesday 01 September 2009 23:27:28 Tech2009 wrote:
+> > Thank you for the suggestions.
+> >
+> > I looked in sysfs on the factory distro, no sign of dme1737 there (see
+> > attached). However there are other i2c devices not on my debian
+> > install...you could be right about the direct port io, but without
+> > disassembling the library it's hard to tell.
+> >
+> > I tried loading dme1737 with force_start, but that made no difference
+> > for me.
+> I was thinking about using the 'force' parameter to givie the address 
+> explicitly to the module, the device may be on non standard port.
+> sensors-detect is usually more capable of detecting devices than kernel 
+> modules
 
->> and what shows dmesg?
->
->
-> dmesg output after sensors-detect:
-> [ 1815.988770] i2c /dev entries driver
->
-> dmesg output after sensors:
-> (blank)
+Good point. The dme1737 driver only recognizes version/stepping value
+of 0x69 as the SCH5027. sensors-detect OTOH recognizes all version/
+steppings from 0x69 to 0x6f. It would be interesting to see a dump of
+the chip (modprobe i2c-dev then run i2cdump), I'd guess you have a
+version/stepping value > 0x69.
 
+Then I don't know which of the driver or sensors-detect is correct.
+Juerg?
 
-Please send the output of dmesg after you load the dme1737 driver. It
-should at least spit out a message like "Found a SCH5027 chip at xyz".
+It might help to have a physical look at the chip and read the top
+marking, if this is possible.
 
-...juerg
-
-
->
-> The bundled Linux image does not appear to use the dme1737 module or
-> lmsensors. The web interface loads several closed source libraries, and
-> I'm not sure how they access the hardware.
->
-> Is there something I should try to determine why sensors-detect sees the
-> chip but sensors does not?
->
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+-- 
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
