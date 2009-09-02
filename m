@@ -1,47 +1,49 @@
-From: "corentin.labbe" <corentin.labbe@geomatys.fr>
-Date: Wed, 02 Sep 2009 08:45:02 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Wed, 02 Sep 2009 23:55:02 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Driver for Texas Instruments
-Message-Id: <4A9E308E.60505@geomatys.fr>
+Message-Id: <20090902165502.b6710792.akpm@linux-foundation.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090831_202450_066558.tomaz.mertelj@guest.arnes.si>
 In-Reply-To: <20090831_202450_066558.tomaz.mertelj@guest.arnes.si>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: tomaz.mertelj@guest.arnes.si
 Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-tomaz.mertelj@guest.arnes.si a =E9crit :
+On Mon, 31 Aug 2009 22:24:50 +0200
+tomaz.mertelj@guest.arnes.si wrote:
+
 > I have crafted a hwmon driver for Texas Instruments amc6821 SMB-bus 2-
-> channel temperature sensor, pwm controller. This is my first linux projec=
-t=20
+> channel temperature sensor, pwm controller. This is my first linux project 
 > so some corrections will be necessary.
->=20
-> T. Mertelj
+> 
 
-Hello
+The driver looks saneish to me, but...
 
-I have some warnings
+- The attachment uses \r\n line termination and caused me quite a bit
+  of trouble before I worked out what was going on.
 
-  CC      drivers/hwmon/amc6821.o
-drivers/hwmon/amc6821.c: In function `set_temp1_auto_point_temp':
-drivers/hwmon/amc6821.c:390: warning: comparison is always true due to limi=
-ted range of data type
-drivers/hwmon/amc6821.c: In function `set_temp2_auto_point_temp':
-drivers/hwmon/amc6821.c:391: warning: comparison is always true due to limi=
-ted range of data type
-drivers/hwmon/amc6821.c: In function `set_pwm1_auto_point_pwm':
-drivers/hwmon/amc6821.c:408: warning: comparison is always true due to limi=
-ted range of data type
-drivers/hwmon/amc6821.c:419: warning: comparison is always true due to limi=
-ted range of data type
+- The changelog is missing your Signed-off-by:.  Please read up on
+  this in Documentation/SubmittingPatches.
 
-you use tmp as a unsigned 8 bit so it is always >=3D 0 (it can't be below 0)
-Prefer use:
-s8 tmp;
+- The driver needs lots and lots of trivial coding-style fixes. 
+  Please take a look at some similar drivers and also use the
+  scripts/checkpatch.pl tool.
+
+  checkpatch says:
+
+	total: 153 errors, 110 warnings, 874 lines checked
+
+  which must be some sort of record ;)
+
+  Also, some C functions have needless `\' line continuations in them.
 
 
-Cordially
+All pretty simple stuff.  Please take a look at all that and then resend?
+
+Thanks.
+
 
 _______________________________________________
 lm-sensors mailing list
