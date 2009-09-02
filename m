@@ -1,188 +1,91 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 07 Sep 2009 15:47:27 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Clearly mark ACPI drivers as such
-Message-Id: <20090907174727.4d4abd90@hyperion.delvare>
+Date: Wed, 02 Sep 2009 13:04:17 +0000
+Subject: Re: [lm-sensors] Need help in deciphering sensors output (BIOS
+Message-Id: <20090902150417.70ea09cc@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Now that we have ACPI-based hardware monitoring drivers, and we will
-start telling users to use them instead of native drivers when I/O
-resources conflict, I think it would be good to clearly mark ACPI
-drivers as such in Kconfig.
+On Tue, 18 Aug 2009 17:17:22 -0400 (EDT), Artem Tashkinov wrote:
+> Hi!
+>=20
+> With the recent BIOS update, my lm_sensors no longer correctly show many =
+readings (or I don't know how to set up /etc/sensors.conf correctly).
+>=20
+> Hardware info:
+>=20
+> Motherboard: Gigabyte M61P-S3, monitoring chip it87, BIOS revision F7f.
+>=20
+> lm_sensors: lm_sensors-3.1.0-1.fc11.i586
+> Kernel: 2.6.30.1 (vanilla)
+>=20
+> # sensors-detect output:
+>=20
+> Driver `it87':
+> * ISA bus, address 0x290
+> Chip `ITE IT8716F Super IO Sensors' (confidence: 9)
+>=20
+> Driver `adt7473':
+> * Bus `NVIDIA i2c adapter '
+> Busdriver `nvidia', I2C address 0x2e
+> Chip `Analog Devices ADT7473' (confidence: 5)
+>=20
+> Driver `k8temp':
+> * Chip `AMD K8 thermal sensors' (confidence: 9)
+>=20
+> $ sensors output:
+>=20
+> sensors
+> it8716-isa-0290
+> Adapter: ISA adapter
+> in0: +1.10 V (min =3D +0.00 V, max =3D +4.08 V)
+> in1: +1.89 V (min =3D +0.00 V, max =3D +4.08 V)
+> in2: +3.33 V (min =3D +0.00 V, max =3D +4.08 V)
+> in3: +3.34 V (min =3D +0.00 V, max =3D +4.08 V)
+> in4: +3.02 V (min =3D +0.00 V, max =3D +4.08 V)
+> in5: +3.22 V (min =3D +0.00 V, max =3D +4.08 V)
+> in6: +1.15 V (min =3D +0.00 V, max =3D +4.08 V)
+> in7: +3.34 V (min =3D +0.00 V, max =3D +4.08 V)
+> Vbat: +3.04 V
+> fan1: 1394 RPM (min =3D 0 RPM)
+> fan2: 1344 RPM (min =3D 0 RPM)
+> temp1: +40.0=B0C (low =3D +127.0=B0C, high =3D +60.0=B0C) sensor =3D ther=
+mistor
+> temp2: +40.0=B0C (low =3D +127.0=B0C, high =3D +127.0=B0C) sensor =3D the=
+rmistor
+> temp3: +26.0=B0C (low =3D +127.0=B0C, high =3D +60.0=B0C) sensor =3D ther=
+mal diode
+> cpu0_vid: +0.538 V
+>=20
+> k8temp-pci-00c3
+> Adapter: PCI adapter
+> Core0 Temp: +37.0=B0C
+> Core1 Temp: +30.0=B0C
+>=20
+> I wonder where +12V and +5V lines are, which were shown before BIOS updat=
+e. Gigabyte own utility shows that data correctly.
 
-Also, in the case of monolithic kernels, I think the ACPI drivers
-should take precedence over native drivers, so they should be listed
-first in Makefile.
+I'm fairly certain this doesn't have anything to do with the BIOS
+update. The labels must have gone away after an upgrade of the
+lm-sensors package. We're removed most labels by default on purpose
+because the actual wiring is mainboard dependent and we prefer to
+display raw values rather than mislabeled or misscaled values.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Luca Tettamanti <kronos.it@gmail.com>
----
- drivers/hwmon/Kconfig  |  100 +++++++++++++++++++++++++-----------------------
- drivers/hwmon/Makefile |    6 +-
- 2 files changed, 58 insertions(+), 48 deletions(-)
+You can revert to the old behavior by pointing "sensors" to the old
+configuration file, which is still distributed as etc/sensors.conf.eg
+in our source package.
 
---- linux-2.6.31-rc9.orig/drivers/hwmon/Kconfig	2009-09-03 18:18:30.000000000 +0200
-+++ linux-2.6.31-rc9/drivers/hwmon/Kconfig	2009-09-07 17:26:31.000000000 +0200
-@@ -28,6 +28,17 @@ config HWMON_VID
- 	tristate
- 	default n
- 
-+config HWMON_DEBUG_CHIP
-+	bool "Hardware Monitoring Chip debugging messages"
-+	default n
-+	help
-+	  Say Y here if you want the I2C chip drivers to produce a bunch of
-+	  debug messages to the system log.  Select this if you are having
-+	  a problem with I2C support and want to see more of what is going
-+	  on.
-+
-+comment "Native drivers"
-+
- config SENSORS_ABITUGURU
- 	tristate "Abit uGuru (rev 1 & 2)"
- 	depends on X86 && EXPERIMENTAL
-@@ -248,18 +259,6 @@ config SENSORS_ASB100
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called asb100.
- 
--config SENSORS_ATK0110
--	tristate "ASUS ATK0110 ACPI hwmon"
--	depends on X86 && ACPI && EXPERIMENTAL
--	help
--	  If you say yes here you get support for the ACPI hardware
--	  monitoring interface found in many ASUS motherboards. This
--	  driver will provide readings of fans, voltages and temperatures
--	  through the system firmware.
--
--	  This driver can also be built as a module. If so, the module
--	  will be called asus_atk0110.
--
- config SENSORS_ATXP1
- 	tristate "Attansic ATXP1 VID controller"
- 	depends on I2C && EXPERIMENTAL
-@@ -947,34 +946,6 @@ config SENSORS_HDAPS
- 	  Say Y here if you have an applicable laptop and want to experience
- 	  the awesome power of hdaps.
- 
--config SENSORS_LIS3LV02D
--	tristate "STMicroeletronics LIS3LV02Dx three-axis digital accelerometer"
--	depends on ACPI && INPUT
--	select INPUT_POLLDEV
--	select NEW_LEDS
--	select LEDS_CLASS
--	default n
--	help
--	  This driver provides support for the LIS3LV02Dx accelerometer. In
--	  particular, it can be found in a number of HP laptops, which have the
--	  "Mobile Data Protection System 3D" or "3D DriveGuard" feature. On such
--	  systems the driver should load automatically (via ACPI). The
--	  accelerometer might also be found in other systems, connected via SPI
--	  or I2C.  The accelerometer data is readable via
--	  /sys/devices/platform/lis3lv02d.
--
--	  This driver also provides an absolute input class device, allowing
--	  the laptop to act as a pinball machine-esque joystick. On HP laptops,
--	  if the led infrastructure is activated, support for a led indicating
--	  disk protection will be provided as hp:red:hddprotection.
--
--	  This driver can also be built as modules.  If so, the core module
--	  will be called lis3lv02d and a specific module for HP laptops will be
--	  called hp_accel.
--
--	  Say Y here if you have an applicable laptop and want to experience
--	  the awesome power of lis3lv02d.
--
- config SENSORS_LIS3_SPI
- 	tristate "STMicroeletronics LIS3LV02Dx three-axis digital accelerometer (SPI)"
- 	depends on !ACPI && SPI_MASTER && INPUT
-@@ -1017,13 +988,50 @@ config SENSORS_APPLESMC
- 	  Say Y here if you have an applicable laptop and want to experience
- 	  the awesome power of applesmc.
- 
--config HWMON_DEBUG_CHIP
--	bool "Hardware Monitoring Chip debugging messages"
-+if ACPI
-+
-+comment "ACPI drivers"
-+
-+config SENSORS_ATK0110
-+	tristate "ASUS ATK0110"
-+	depends on X86 && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for the ACPI hardware
-+	  monitoring interface found in many ASUS motherboards. This
-+	  driver will provide readings of fans, voltages and temperatures
-+	  through the system firmware.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called asus_atk0110.
-+
-+config SENSORS_LIS3LV02D
-+	tristate "STMicroeletronics LIS3LV02Dx three-axis digital accelerometer"
-+	depends on INPUT
-+	select INPUT_POLLDEV
-+	select NEW_LEDS
-+	select LEDS_CLASS
- 	default n
- 	help
--	  Say Y here if you want the I2C chip drivers to produce a bunch of
--	  debug messages to the system log.  Select this if you are having
--	  a problem with I2C support and want to see more of what is going
--	  on.
-+	  This driver provides support for the LIS3LV02Dx accelerometer. In
-+	  particular, it can be found in a number of HP laptops, which have the
-+	  "Mobile Data Protection System 3D" or "3D DriveGuard" feature. On such
-+	  systems the driver should load automatically (via ACPI). The
-+	  accelerometer might also be found in other systems, connected via SPI
-+	  or I2C.  The accelerometer data is readable via
-+	  /sys/devices/platform/lis3lv02d.
-+
-+	  This driver also provides an absolute input class device, allowing
-+	  the laptop to act as a pinball machine-esque joystick. On HP laptops,
-+	  if the led infrastructure is activated, support for a led indicating
-+	  disk protection will be provided as hp:red:hddprotection.
-+
-+	  This driver can also be built as modules.  If so, the core module
-+	  will be called lis3lv02d and a specific module for HP laptops will be
-+	  called hp_accel.
-+
-+	  Say Y here if you have an applicable laptop and want to experience
-+	  the awesome power of lis3lv02d.
-+
-+endif # ACPI
- 
- endif # HWMON
---- linux-2.6.31-rc9.orig/drivers/hwmon/Makefile	2009-09-03 18:18:30.000000000 +0200
-+++ linux-2.6.31-rc9/drivers/hwmon/Makefile	2009-09-07 17:22:10.000000000 +0200
-@@ -5,6 +5,10 @@
- obj-$(CONFIG_HWMON)		+= hwmon.o
- obj-$(CONFIG_HWMON_VID)		+= hwmon-vid.o
- 
-+# APCI drivers
-+obj-$(CONFIG_SENSORS_ATK0110)	+= asus_atk0110.o
-+
-+# Native drivers
- # asb100, then w83781d go first, as they can override other drivers' addresses.
- obj-$(CONFIG_SENSORS_ASB100)	+= asb100.o
- obj-$(CONFIG_SENSORS_W83627HF)	+= w83627hf.o
-@@ -29,10 +33,8 @@ obj-$(CONFIG_SENSORS_ADT7462)	+= adt7462
- obj-$(CONFIG_SENSORS_ADT7470)	+= adt7470.o
- obj-$(CONFIG_SENSORS_ADT7473)	+= adt7473.o
- obj-$(CONFIG_SENSORS_ADT7475)	+= adt7475.o
--
- obj-$(CONFIG_SENSORS_APPLESMC)	+= applesmc.o
- obj-$(CONFIG_SENSORS_AMS)	+= ams/
--obj-$(CONFIG_SENSORS_ATK0110)	+= asus_atk0110.o
- obj-$(CONFIG_SENSORS_ATXP1)	+= atxp1.o
- obj-$(CONFIG_SENSORS_CORETEMP)	+= coretemp.o
- obj-$(CONFIG_SENSORS_DME1737)	+= dme1737.o
+But of course, even better is to come up with a custom configuration
+file for your mainboard model. Apparently we do not have one for this
+model yet. If you compare the values displayed by the BIOS with the
+values displayed by "sensors", it is possible to come up with a mapping
+and scaling factors.
 
-
--- 
+--=20
 Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
