@@ -1,41 +1,83 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 02 Sep 2009 12:56:16 +0000
-Subject: Re: [lm-sensors] w83781d - Unable to set fan1_div
-Message-Id: <20090902145616.4dc421ee@hyperion.delvare>
+Date: Wed, 02 Sep 2009 13:16:21 +0000
+Subject: Re: [lm-sensors] Creating alarm for fans
+Message-Id: <20090902151621.1c30e3c4@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090813210941.8E3F9B0048@smtp.hushmail.com>
-In-Reply-To: <20090813210941.8E3F9B0048@smtp.hushmail.com>
+References: <4A9823A2.2010907@xtronics.com>
+In-Reply-To: <4A9823A2.2010907@xtronics.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Fri, 14 Aug 2009 06:09:41 +0900, clubsoda@hushmail.com wrote:
-> Board is ASUS P4T requiring i2c-i801 and w83781d modules, with 
-> sensors reporting as99127f-i2c-0-2d.  Tried setting fan1_div, 
-> fan2_div and fan3_div to 8 in sensors3.conf and sensors.conf but 
-> even after reboot div=2 so the minimum reportable fan speed is 2657 
-> RPM.
+Hi Karl,
 
-In order to set the new limits you must run "sensors -s" as root. It's
-in the FAQ.
+On Fri, 28 Aug 2009 13:36:18 -0500, Karl Schmidt wrote:
+> I hope this isn't a stupid question -but google didn't get me there..
+>=20
+> Please cc -- I'm off list..
+>=20
+> I used to be able to get an alarm for fans - but now I don't.
+>=20
+>=20
+> chip "lm85c-*" "adm1027-*" "adt7463-*" "lm85-*" "lm85b-*"
+>=20
+> # Voltage inputs
+> # Depending on the hardware setup, the ADT7463 may not have in4.
+>     label in0   "V1.5"      # AGP on Intel S845WD1-E
+>     label in1   "VCore"
+>     label in2   "V3.3"
+>     label in3   "V5"
+>     label in4   "V12"
+>=20
+> # Temperature inputs
+>     label temp1  "CPU Temp"
+>     label temp2  "Board Temp"
+>     label temp3  "Remote Temp"
+>=20
+> # Fan inputs
+>     label fan1   "CPU_Fan"
+>     label fan2   "Fan2"
+>     label fan3   "Fan3"
+>     label fan4   "Fan4"
+> set fan1_min 8000
+>=20
+>=20
+>=20
+>=20
+> lm85b-i2c-0-2e
+> Adapter: SMBus nForce2 adapter at 1c00
+> V1.5:        +1.30 V  (min =3D  +0.00 V, max =3D  +3.32 V)
+> VCore:       +1.42 V  (min =3D  +0.00 V, max =3D  +2.99 V)
+> V3.3:        +3.35 V  (min =3D  +0.00 V, max =3D  +4.38 V)
+> V5:          +5.08 V  (min =3D  +0.00 V, max =3D  +6.64 V)
+> V12:        +12.06 V  (min =3D  +0.00 V, max =3D +15.94 V)
+> CPU_Fan:    7837 RPM  (min =3D 8000 RPM)
+> Fan2:       8169 RPM  (min =3D    0 RPM)
+> Fan3:       7964 RPM  (min =3D    0 RPM)
+> Fan4:       7917 RPM  (min =3D    0 RPM)
+> CPU Temp:    +37.0=B0C  (low  =3D -127.0=B0C, high =3D +127.0=B0C)
+> Board Temp:  +26.0=B0C  (low  =3D -127.0=B0C, high =3D +127.0=B0C)
+> Remote Temp: +23.0=B0C  (low  =3D -127.0=B0C, high =3D +127.0=B0C)
+>=20
+>=20
+> 2.6.26-2-amd64 #1 SMP
 
-Rebooting will not help at all, quite to the contrary: settings are
-almost always lost on reboot, so you have to run "sensors -s" again.
-Some distributions include this step in their init scripts, some do not.
+This is strange. The lack of alarms for Fan2, Fan3 and Fan4 can be
+easily explained by the min being set to 0. But for CPU_Fan you should
+get one.
 
-> 
-> BIOS is not too great at displaying low fan speeds either but ASUS 
-> Probe in Windows goes down to 900 RPM or lower so the hardware is 
-> capable.
-> 
-> Xubuntu Karmic alpha 3 system plus all updates.
-> sensors, libsensors v3.0.2
-> kernel 2.6.31-5-generic
+Are you able to get _any_ other alarm flag to raise?
 
--- 
+Which version of lm-sensors are you running?
+
+Can you please locate your chip under /sys/class/hwmon and list the
+name and contents of all the "*alarm*" files there? This will tell us
+whether this is a hardware/driver issue or an lm-sensors (user-space)
+issue.
+
+--=20
 Jean Delvare
-http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
