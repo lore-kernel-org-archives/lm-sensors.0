@@ -1,31 +1,33 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Wed, 30 Sep 2009 19:44:26 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Driver for Texas Instruments
-Message-Id: <20090930124426.4d4528b7.akpm@linux-foundation.org>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 02 Sep 2009 13:04:56 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: include <linux/io.h> instead of
+Message-Id: <20090902150456.6c3c0767@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090923_093247_088063.tomaz.mertelj@guest.arnes.si>
-In-Reply-To: <20090923_093247_088063.tomaz.mertelj@guest.arnes.si>
+References: <BD79186B4FD85F4B8E60E381CAEE190901BE9DA3@mi8nycmail19.Mi8.com>
+In-Reply-To: <BD79186B4FD85F4B8E60E381CAEE190901BE9DA3@mi8nycmail19.Mi8.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tomaz.mertelj@guest.arnes.si
-Cc: khali@linux-fr.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: H Hartley Sweeten <hartleys@visionengravers.com>
+Cc: lm-sensors@lm-sensors.org, mactel-linux-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, alistair@devzero.co.uk, nicolas@boichat.ch, juergh@gmail.com, frank@f-seidel.de, jim.cromie@gmail.com, mhoffman@lightlink.com, vt8231@hiddenengine.co.uk
 
-On Wed, 23 Sep 2009 11:32:47 +0200
-tomaz.mertelj@guest.arnes.si wrote:
-
-> On Wed, 9 Sep 2009 09:34:35 +0200
-> Jean Delvare <khali@linux-fr.org> wrote:
+On Thu, 13 Aug 2009 16:56:56 -0400, H Hartley Sweeten wrote:
+> Drivers should be including <linux/io.h> instead of <asm/io.h>.
 > 
-> > > And then do all the real work in a common function?  Rather than
-> > > expanding tens of copies of the same thing?
-> >
-> > Yes please. We got rid of macro-generated callbacks in most hwmon
-> > drivers a couple years ago already.
-> 
-> Here is an incremental patch to TI amc6821 chip hwmon driver:
+> Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+> Cc: Alistair John Strachan <alistair@devzero.co.uk>
+> Cc: Nicolas Boichat <nicolas@boichat.ch>
+> Cc: Juerg Haefliger <juergh@gmail.com>
+> Cc: Jean Delvare <khali@linux-fr.org>
+> Cc: Frank Seidel <frank@f-seidel.de>
+> Cc: Jim Cromie <jim.cromie@gmail.com>
+> Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+> Cc: Roger Lucas <vt8231@hiddenengine.co.uk>
 
-The patch is hopelessly wordwrapped.  Please fix and resend?
+Applied, thanks.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
