@@ -1,63 +1,57 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 02 Sep 2009 19:06:51 +0000
+Date: Fri, 04 Sep 2009 15:17:01 +0000
 Subject: Re: [lm-sensors] Creating alarm for fans
-Message-Id: <20090902210651.40d36626@hyperion.delvare>
+Message-Id: <20090904171701.1decd339@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4A9823A2.2010907@xtronics.com>
 In-Reply-To: <4A9823A2.2010907@xtronics.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Hi Karl,
 
-On Wed, 02 Sep 2009 12:02:47 -0500, Karl Schmidt wrote:
+Please keep the list Cc'd.
+
+On Thu, 03 Sep 2009 23:05:38 -0500, Karl Schmidt wrote:
 > Jean Delvare wrote:
-> > Please try this too, for example set in0_max to 1.0V and see if
-> > in0_alarm gets raised.
->=20
-> no joy..
-> #sensors
-> k8temp-pci-00c3
-> Adapter: PCI adapter
-> Core0 Temp:  +24.0=B0C
->=20
-> lm85b-i2c-0-2e
-> Adapter: SMBus nForce2 adapter at 1c00
-> V1.5:        +1.30 V  (min =3D  +0.00 V, max =3D  +1.00 V)
-> VCore:       +1.42 V  (min =3D  +0.00 V, max =3D  +2.99 V)
-> V3.3:        +3.33 V  (min =3D  +0.00 V, max =3D  +4.38 V)
-> V5:          +5.08 V  (min =3D  +0.00 V, max =3D  +6.64 V)
-> V12:        +12.06 V  (min =3D  +0.00 V, max =3D +15.94 V)
-> CPU_Fan:    7826 RPM  (min =3D 8000 RPM)
-> Fan2:       8181 RPM  (min =3D    0 RPM)
-> Fan3:       7917 RPM  (min =3D    0 RPM)
-> Fan4:       7929 RPM  (min =3D    0 RPM)
-> CPU Temp:    +39.0=B0C  (low  =3D -127.0=B0C, high =3D +127.0=B0C)
-> Board Temp:  +28.0=B0C  (low  =3D -127.0=B0C, high =3D +127.0=B0C)
-> Remote Temp: +24.0=B0C  (low  =3D -127.0=B0C, high =3D +127.0=B0C)
-> cpu0_vid:   +1.550 V
+> 
+> > 
+> > This will dump all the device registers. I will then check against the
+> > datasheet and see if I spot anything.
+> 
+> I don't think this is a hardware problem - the readings make sense - where is it that the levels are 
+> compared to the set statements? This used to work on this computer until there was an upgrade to -- 
+> I think version 3... Unless they are ignoring the set statements - thinking the chip will generate 
+> all alarms?
 
-> > (...)
-> > Does "alarms" read 0 as well?
->=20
-> yes - all alarms files read zero
-> /sys/class/hwmon/hwmon1/device# cat alarms
-> 0
+Alarms are computed by the chips in hardware. "sensors" merely reports
+what the driver tells it to, and the driver in turn merely reports the
+hardware state.
 
-OK, this rules out a user-space issue. The problem must be either at
-the hardware level or in the lm85 driver.
+> 
+> I have a different machine - different sensors - same version of software and it works.
+> 
+> I was trying things and listed out the working modules - if that might help:
+> 
+> lsmod |grep dme
+> dme1737                43168  0
+> hwmon_vid               7296  2 dme1737,lm85
+> i2c_core               27936  4 dme1737,eeprom,lm85,i2c_nforce2
+> 
+> I tired loading different permutations of the modules - nothing seems to work.
+> 
+> 
+> I tried purging the lm-sensors package and reinstalling... no joy?????
 
-Please unload the lm85 driver temporarily, load the i2c-dev driver, and
-provide the output of the following command:
+It is interesting that you have two full-featured hardware monitoring
+chips in your system. I'm rather surprised, I admit.
 
-i2cdump 0 0x2e
+I'll look at the dump you sent when I have a moment, but I have a lot
+of work these days, so please be patient.
 
-This will dump all the device registers. I will then check against the
-datasheet and see if I spot anything.
-
---=20
+-- 
 Jean Delvare
 
 _______________________________________________
