@@ -1,51 +1,117 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 21 Sep 2009 07:50:05 +0000
-Subject: Re: [lm-sensors] coretemp support for Core i5 CPU
-Message-Id: <20090921095005.1ec418b7@hyperion.delvare>
+From: Eric Schumann <e_r_i_c@gmx.net>
+Date: Tue, 08 Sep 2009 11:31:06 +0000
+Subject: [lm-sensors] I'm stuck in tweaking the config file for my ABIT UL8
+Message-Id: <20090908133106.54403ca3.e_r_i_c@gmx.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Multipart=_Tue__8_Sep_2009_13_31_06_+0200_K5DzlTUkBlGHUtUz"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4AB5DE1F.1020004@gmail.com>
-	<20090920211620.1c18d7fb@hyperion.delvare>
-	<51f3faa70909201553y75cb9f8q8ab34e9659fe479b@mail.gmail.com>
-In-Reply-To: <51f3faa70909201553y75cb9f8q8ab34e9659fe479b@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+
+--Multipart=_Tue__8_Sep_2009_13_31_06_+0200_K5DzlTUkBlGHUtUz
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: Robert Hancock <hancockrwd@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Sun, 20 Sep 2009 16:53:53 -0600, Robert Hancock wrote:
-> On Sun, Sep 20, 2009 at 1:16 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> > Supporting the digital thermal sensor is one thing, but it is totally
-> > insufficient. If you look at the coretemp driver, you'll see we need to
-> > figure out a number of calibration values which are model-dependent. So
-> > we will need to check this part before adding support for new CPU
-> > models anyway.
-> 
-> Well, I see there is the TCC activation temperature which the reading
-> is relative to, which is detected on the mobile CPUs via an MSR read,
-> so it would only be a problem if they changed this temperature on
-> other CPUs..
+Hello,
 
-They actually did change it on almost every CPU model so far. I fail to
-see why that would suddenly change (even though I'd really love it.)
+I am trying to get a valid output for my w83627ehf-isa-0290 based Abit
+UL8 board. I tried to compute in1 and in6 to be +12V and +5V. 
+Readings from the BIOS differs slightly from the output, it's close but
+not the same. I tried to tweak the original calculation for the asus
+board or the calculation for the msi K9N platinium from Markus Bauer.
 
-> It might make sense to warn "unknown CPU model, temperature reading
-> may be suspect" or something, but I should think it should still load
-> as the temperature reading is likely still correct.
+It did not make much difference if it is /10 or /34. I cannot extract
+the right formula's out of the data sheet.
 
-Our experience is the exact opposite. The temperature reading is likely
-not correct. And we prefer not telling the user anything than to tell
-him/her something incorrect. Most users won't notice warnings in their
-kernel logs, all they see is a CPU temperature value in their desktop
-tray area.
+I have no idea about the right labels and if my calculations are done
+in the right place, I collected the readings from the BIOS, but cannot
+map it. The CPU Core Voltage seem to be OK. The other voltages look
+strange to me. I'm using sensors version 3.0.2 with libsensors version
+3.0.2.
 
-I hope Intel will finally take over the driver maintenance and deal
-with their own mess. It has been a pain for us to maintain since day 2.
+How can I proceed?
+I attach my chaotic configuration and the resulting output.
 
--- 
-Jean Delvare
+regards,
+eric
+
+--Multipart=_Tue__8_Sep_2009_13_31_06_+0200_K5DzlTUkBlGHUtUz
+Content-Type: application/octet-stream;
+ name="sensors.ul8"
+Content-Disposition: attachment;
+ filename="sensors.ul8"
+Content-Transfer-Encoding: base64
+
+I1dpbmJvbmQgVzgzNjI3RUhGIGNvbmZpZ3VyYXRpb24gZm9yIEFCSVQgVUw4CmNoaXAgInc4MzYy
+N2VoZi0qIiAidzgzNjI3ZGhnLSoiCiNXaW5ib25kIFc4MzYyN0VIRi9FSEcgU3VwZXIgSU8gU2Vu
+c29yIDAsMDA4VgojaW4wIGlzIHVzZWQgZm9yIHRoZSBDUFUgVmNvcmUuIFRoaXMgb25seQojbGVh
+dmVzIHlvdSB3aXRoIGluMSwgaW40LCBpbjUsIGluNiBhbmQgaW45IHRvIGRpc2NvdmVyIHRoZSBt
+YXBwaW5nIGFuZAojc2NhbGluZyBmYWN0b3JzIHRoZXJlb2YsIGFuZCBvZGRzIGFyZSB0aGF0IHRo
+ZXNlIGluY2x1ZGUgYXQgbGVhc3QgKzVWCiMgICBCSU9TIGxvb2tzIGxpa2UgdGhpczoKIyAxICAg
+Q1BVIENvcmUgVm9sdGFnZQkxLDM3LzEsMzgKIyAyICAgRERSIENvcmUgVm9sdGFnZQkyLDYvMiw2
+MgojIDMgICBERFIgVlRUIFZvbHRhZ2UJMSwyOS8xLDMKIyA0ICAgQUdQIFZEUSBWb2x0YWdlCTEs
+NTUvMSw1NgojIDUgICBBVFggKzEyCSAgICAgICAxMiwzMyAvMTIsMzgJMTMwNC8xMzEyCiMgNiAg
+IEFUWCArNVYJCTQsNjQgLzQsNjcJMTg2NC8xODcyCQojIDcgICBBVFggKzMsMwkJMywyNC8zLDI2
+CiAgICBsYWJlbCBpbjAgIkNQVSBDb3JlIFZvbHRhZ2UiCiAgICBsYWJlbCBpbjEgIkFUWCArMTJW
+IgogICAgbGFiZWwgaW4yICI/IiAgIAogICAgbGFiZWwgaW4zICI/IgogICAgbGFiZWwgaW40ICI/
+IgogICAgbGFiZWwgaW41ICI/IgogICAgbGFiZWwgaW42ICI/IEFUWCArNVYiCiAgICBsYWJlbCBp
+bjcgIj8iCiAgICBsYWJlbCBpbjggIj8iCiAgICBsYWJlbCBpbjkgIj8iCgojICsxMlYgaXMgaW4x
+IGFuZCArNVYgaXMgaW42IGFzIHJlY29tbWVuZGVkIGJ5IGRhdGFzaGVldAojY2FsY3VsYXRlIHJl
+YWRpbmcgMTMxMiBjYXQgL3N5cy9jbGFzcy9od21vbi9od21vbjIvZGV2aWNlL2luMV9pbnB1dAog
+Y29tcHV0ZSBpbjEgQCooMSsoODQuNTYvMTApKSwgIEAvKDErKDg0LjU2LzEwKSkjIHRvbyBoaWdo
+CiNjYWxjdWxhdGUgcmVhZGluZyAxODcyIGNhdCAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMi9kZXZp
+Y2UvaW42X2lucHV0CiBjb21wdXRlIGluNiBAKigxKygxNC45NS8xMCkpLCAgQC8oMSsoMTQuOTUv
+MTApKSMgdG9vIGxvdwojICAgY29tcHV0ZSBpbjYgQCooMSsoMTQuOTQ2MjM3LzEwKSksICBALygx
+KygxNC45NDYyMzcvMTApKQoKICAgbGFiZWwgZmFuMSAgICAgICJDYXNlIEZhbiIKICAgbGFiZWwg
+ZmFuMiAgICAgICJDUFUgRmFuIgogICBsYWJlbCBmYW4zICAgICAgIkF1eCBGYW4iCiMgIGlnbm9y
+ZSBmYW4zCiMgIGlnbm9yZSBmYW40CiMgIHNldCBmYW4xX21pbiAgICAxMjAwCiMgIHNldCBmYW4y
+X21pbiAgICAxNzAwCgojIFRlbXBlcmF0dXJlcwogICBsYWJlbCB0ZW1wMSAgICAgIlN5cyBUZW1w
+IgogICBsYWJlbCB0ZW1wMiAgICAgIkNQVSBUZW1wIgogICBsYWJlbCB0ZW1wMyAgICAgIkFVWCBU
+ZW1wIgoK
+
+--Multipart=_Tue__8_Sep_2009_13_31_06_+0200_K5DzlTUkBlGHUtUz
+Content-Type: application/octet-stream;
+ name="sensors.out.20090908"
+Content-Disposition: attachment;
+ filename="sensors.out.20090908"
+Content-Transfer-Encoding: base64
+
+YWNwaXR6LXZpcnR1YWwtMApBZGFwdGVyOiBWaXJ0dWFsIGRldmljZQp0ZW1wMTogICAgICAgKzM0
+LjDCsEMgIChjcml0ID0gKzg1LjDCsEMpICAgICAgICAgICAgICAgICAgCgprOHRlbXAtcGNpLTAw
+YzMKQWRhcHRlcjogUENJIGFkYXB0ZXIKdGVtcDE6ICAgICAgICsyNC4wwrBDICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgCgp3ODM2MjdlaGYtaXNhLTAyOTAKQWRhcHRlcjogSVNB
+IGFkYXB0ZXIKQ1BVIENvcmUgVm9sdGFnZTogKzEuMTIgViAgKG1pbiA9ICArMC4wMCBWLCBtYXgg
+PSAgKzEuNzQgVikgICAKQVRYICsxMlY6ICAgICAgICArMTIuNDEgViAgKG1pbiA9ICsxOC42MSBW
+LCBtYXggPSAgKzMuNjMgVikgICBBTEFSTQo/OiAgICAgICAgICAgICAgICArMy4yNSBWICAobWlu
+ID0gICsxLjU1IFYsIG1heCA9ICArMi41MyBWKSAgIEFMQVJNCj86ICAgICAgICAgICAgICAgICsz
+LjI1IFYgIChtaW4gPSAgKzIuMTAgViwgbWF4ID0gICsyLjU0IFYpICAgQUxBUk0KPzogICAgICAg
+ICAgICAgICAgKzEuMzAgViAgKG1pbiA9ICArMC4xOSBWLCBtYXggPSAgKzAuMjggVikgICBBTEFS
+TQo/OiAgICAgICAgICAgICAgICArMS41NiBWICAobWluID0gICswLjI1IFYsIG1heCA9ICArMS42
+MyBWKSAgIAo/IEFUWCArNVY6ICAgICAgICArNC42NyBWICAobWluID0gICszLjgxIFYsIG1heCA9
+ICArMC45NiBWKSAgIEFMQVJNCj86ICAgICAgICAgICAgICAgICszLjI1IFYgIChtaW4gPSAgKzMu
+MTQgViwgbWF4ID0gICsyLjAyIFYpICAgQUxBUk0KPzogICAgICAgICAgICAgICAgKzMuMjAgViAg
+KG1pbiA9ICArMi4zMCBWLCBtYXggPSAgKzAuMTQgVikgICBBTEFSTQo/OiAgICAgICAgICAgICAg
+ICArMS41OCBWICAobWluID0gICswLjE2IFYsIG1heCA9ICArMC4wOCBWKSAgIEFMQVJNCkNhc2Ug
+RmFuOiAgICAgICAgIDk4MSBSUE0gIChtaW4gPSAgNzAzIFJQTSwgZGl2ID0gMTYpCkNQVSBGYW46
+ICAgICAgICAgMTAxNiBSUE0gIChtaW4gPSAgNzAzIFJQTSwgZGl2ID0gMTYpCkF1eCBGYW46ICAg
+ICAgICAgICAgMCBSUE0gIChtaW4gPSAgNzAzIFJQTSwgZGl2ID0gMTI4KSAgQUxBUk0KZmFuNDog
+ICAgICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICA2NTkgUlBNLCBkaXYgPSAxMjgpICBBTEFSTQpm
+YW41OiAgICAgICAgICAgICAgIDAgUlBNICAobWluID0gIDcwMyBSUE0sIGRpdiA9IDEyOCkKU3lz
+IFRlbXA6ICAgICAgICAgKzMwLjDCsEMgIChoaWdoID0gLTQyLjDCsEMsIGh5c3QgPSArNTMuMMKw
+QykgIHNlbnNvciA9IHRoZXJtaXN0b3IKQ1BVIFRlbXA6ICAgICAgICAgKzM0LjDCsEMgIChoaWdo
+ID0gKzg1LjDCsEMsIGh5c3QgPSArODAuMMKwQykgIHNlbnNvciA9IGRpb2RlCkFVWCBUZW1wOiAg
+ICAgICAgICszMC4wwrBDICAoaGlnaCA9ICs4NS4wwrBDLCBoeXN0ID0gKzgwLjDCsEMpICBzZW5z
+b3IgPSB0aGVybWlzdG9yCmNwdTBfdmlkOiAgICAgICAgKzEuMzUwIFYKCg==
+
+--Multipart=_Tue__8_Sep_2009_13_31_06_+0200_K5DzlTUkBlGHUtUz
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--Multipart=_Tue__8_Sep_2009_13_31_06_+0200_K5DzlTUkBlGHUtUz--
