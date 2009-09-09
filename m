@@ -1,55 +1,52 @@
 From: Dok Sander <doksander@yahoo.com>
-Date: Mon, 07 Sep 2009 18:42:39 +0000
-Subject: [lm-sensors] cross-compiling for mips fails
-Message-Id: <801433.83353.qm@web59310.mail.re1.yahoo.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============4422160804080948539=="
+Date: Wed, 09 Sep 2009 18:47:49 +0000
+Subject: Re: [lm-sensors] cross-compiling for mips fails
+Message-Id: <514792.17440.qm@web59303.mail.re1.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <801433.83353.qm@web59310.mail.re1.yahoo.com>
+In-Reply-To: <801433.83353.qm@web59310.mail.re1.yahoo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
---===============4422160804080948539==
-Content-Type: multipart/alternative; boundary="0-251037914-1252348959=:83353"
+I heard that mips doesn't have I/O ports so is this more of a problem with =
+lm-sensors' cross-compiling compatibility(It shouldn't be looking for io.h =
+at all)? lm-sensors doesn't provide configure and there aren't arent anythi=
+ng related to cross-compiling. I know that Debian supports lm-sensors for m=
+ips so it's possible to compile somehow. Hints/Patches, anyone?
 
---0-251037914-1252348959=:83353
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+--- On Mon, 9/7/09, Dok Sander <doksander@yahoo.com> wrote:
 
-Hi,
-
-I'm trying to cross-compile lm-sensors for mips. I'm using eglibc 2.10.1 as=
- the main C library. I get the following error:
-
-make: *** No rule to make target `sys/io.h', needed by `prog/dump/superio.r=
-d'.=A0 Stop.
-
-And checking the headers, sys/io.h does not exist. So this could be problem=
- of eglibc instead. Has anyone else encountered this problem?
-
-=A0 Thanks
-=0A=0A=0A      
---0-251037914-1252348959=:83353
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<table cellspacing=3D"0" cellpadding=3D"0" border=3D"0" ><tr><td valign=3D"=
-top" style=3D"font: inherit;">Hi,<br><br>I'm trying to cross-compile lm-sen=
-sors for mips. I'm using eglibc 2.10.1 as the main C library. I get the fol=
-lowing error:<br><br><span style=3D"font-style: italic;">make: *** No rule =
-to make target `sys/io.h', needed by `prog/dump/superio.rd'.&nbsp; Stop.</s=
-pan><br><br>And checking the headers, sys/io.h does not exist. So this coul=
-d be problem of eglibc instead. Has anyone else encountered this problem?<b=
-r><br>&nbsp; Thanks<br></td></tr></table><br>=0A=0A      
---0-251037914-1252348959=:83353--
+> From: Dok Sander <doksander@yahoo.com>
+> Subject: cross-compiling for mips fails
+> To: lm-sensors@lm-sensors.org
+> Date: Monday, September 7, 2009, 6:42 PM
+> Hi,
+>=20
+> I'm trying to cross-compile lm-sensors for mips.
+> I'm using eglibc 2.10.1 as the main C library. I get the
+> following error:
+>=20
+> make: *** No rule to make
+> target `sys/io.h', needed by
+> `prog/dump/superio.rd'.=A0 Stop.
+>=20
+> And checking the headers, sys/io.h does not exist. So this
+> could be problem of eglibc instead. Has anyone else
+> encountered this problem?
+>=20
+> =A0 Thanks
+>=20
+>=20
+>=20
+>      =20
 
 
---===============4422160804080948539==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+     =20
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============4422160804080948539==--
