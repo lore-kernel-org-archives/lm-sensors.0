@@ -1,8 +1,10 @@
 From: Rodolfo Giometti <giometti@linux.it>
-Date: Thu, 10 Sep 2009 12:30:09 +0000
+Date: Fri, 11 Sep 2009 15:07:04 +0000
 Subject: [lm-sensors] hwmon & mfd: add mfd support to
-Message-Id: <1252585810-5336-1-git-send-email-giometti@linux.it>
+Message-Id: <1252681625-385-1-git-send-email-giometti@linux.it>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1252585810-5336-1-git-send-email-giometti@linux.it>
+In-Reply-To: <1252585810-5336-1-git-send-email-giometti@linux.it>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
