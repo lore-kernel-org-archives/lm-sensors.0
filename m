@@ -1,39 +1,59 @@
-From: Kent Liu <kent.liu@linux.intel.com>
-Date: Sun, 27 Sep 2009 09:12:12 +0000
-Subject: Re: [lm-sensors] [PATCH] coretemp: Add Lynnfield CPU
-Message-Id: <20090927091212.GA14268@wliu-linux.bj.intel.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 14 Sep 2009 20:48:46 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (adm1031) Add sysfs files for
+Message-Id: <20090914224846.5a7fd079@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090915021341.GA14957@owl>
-In-Reply-To: <20090915021341.GA14957@owl>
+References: <20090630183918.GA3322@ovro.caltech.edu>
+In-Reply-To: <20090630183918.GA3322@ovro.caltech.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 23, 2009 at 12:00:08PM +0200, Jean Delvare wrote:
-> On Wed, 16 Sep 2009 23:24:51 +0200, Rudolf Marek wrote:
-> > Looks good. However I would like to see the Documentation/hwmon/coretemp updated 
-> > too.
-> 
-> I'll take care of that.
-Thanks Jean.
-> 
-> > Maybe Intel can overtake the driver maintainership because I'm quite struggling 
-> > to get any info from Intel. Second reason is lack of free time.
-> 
-> Huaxu, Kent, can you please comment on this?
-Hmmm... I am looking for an Intel internal support for this maintainership, since I 
-usually not receive such documents either. I would like to take once this can be 
-resolved.
-> 
-> > Huaxu Wan napsal(a):
-> > > Add Lynnfield processor support. Lynnfield is a quad-core Nehalem based microprocessor for Desktop market, which is introduced in September 2009.
-> 
-> What are the TjMax and TTarget temperatures for these CPUs?
-So far I do not find them in datasheet. Let me check what I can find more.
+Hi Ira,
 
-Thanks,
-Kent
+On Tue, 30 Jun 2009 11:39:18 -0700, Ira Snyder wrote:
+> The ADM1030/ADM1031 chips have temperature offset registers, for both the
+> local and remote temperature sensors. Following the example set forth in
+> the LM90/ADM1032 driver, expose the offset registers to userspace.
+>=20
+> Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
+> ---
+>=20
+> I have tested this with an adm1031 chip, and I see the offsets as
+> expected. I do not have any other compatible chips to test with, however
+> I read the adm1030 datasheet, and everything should work fine.
+>=20
+> On the adm1031, the datasheet claims the offset registers can be used to
+> add/subtract 15 degC from the temperature reading. I have found that it
+> is actually possible to add 15 degC and subtract 16 degC. Following the
+> data sheet, I clamped the value to +- 15 degC, just in case other chips
+> are not compatible.
+>=20
+>  drivers/hwmon/adm1031.c |   40 ++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 40 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
+> index 7894418..5690595 100644
+> --- a/drivers/hwmon/adm1031.c
+> +++ b/drivers/hwmon/adm1031.c
+> @@ -145,6 +147,10 @@ adm1031_write_value(struct i2c_client *client, u8 re=
+g, unsigned int value)
+> =20
+>  #define TEMP_FROM_REG_EXT(val, ext)	(TEMP_FROM_REG(val) + (ext) * 125)
+> =20
+> +#define TEMP_OFFSET_TO_REG(val)		(TEMP_TO_REG(val) & 0x8f)
+> +#define TEMP_OFFSET_FROM_REG(val)	TEMP_FROM_REG((val) < 0 ? \
+> +						      (val) | 0x70 : (val))
+
+This is not how I read the datasheet for negative offsets. The ADM1030
+datasheet says that -1=B0C would be coded 0x81, while your implementation
+would decode 0x81 to -15=B0C. But I admit the datasheet isn't too clear
+either... Did you test your code with negative offsets and found that
+it works OK?
+
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
