@@ -1,100 +1,182 @@
-From: Kevin Zhao <yingwuzhao@gmail.com>
-Date: Wed, 19 Aug 2009 09:22:50 +0000
-Subject: [lm-sensors] m sensors question, on core i7, please please help
-Message-Id: <691a2bf40908190222n1fa8c3c8wd13bd5be6e372ef0@mail.gmail.com>
+From: "Nicolas Krzywinski" <lists@site7even.de>
+Date: Tue, 15 Sep 2009 21:22:14 +0000
+Subject: [lm-sensors] i801_smbus 0000:00:1f.3: Bus collision! SMBus may be
+Message-Id: <op.u0bhncaa5kimqn@sesta09.lan7even>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi, everyone, I have this strange issue with the lm-sensors, the
-output of sensors for my core i7 on ASUS p6t mobo is very wired. It
-report CPU temp as 50C, way more than the core temp. Since core-temp
-is normally always higher than cpu temp, as shown in windows the cpu
-temp is barely 40C. This is completely unusual. I open the case the
-cpu heatsink is almost cold.
+Hi,
 
-The problem caused by this is that the fan is constantly running at
-its maximum speed, since it "thinks" the cpu is hot. I am really
-confused, is the CPU really HOT? (I doubt) or is it simply lm-sensors
-is giving non-senses out put?
+just another desparate user that wrung out lm-sensors.org, Google & Co. ;-)
 
-Is this rummer really true that core i7 runner hotter for some strange
-reason in linux than in windows?
-Please help, and info is appreciated.
+First of all: I don't really have a problem, because lm-sensors work on my =
+=20
+baby
+But: There is some spamming in the kernel log (see subject and below)
 
-Code:
-atk0110-acpi-0
-Adapter: ACPI interface
-Vcore Voltage:      +0.94 V  (min =3D  +0.80 V, max =3D  +1.60 V)
- +3.3 Voltage:      +3.28 V  (min =3D  +2.97 V, max =3D  +3.63 V)
- +5 Voltage:        +5.14 V  (min =3D  +4.50 V, max =3D  +5.50 V)
- +12 Voltage:      +12.19 V  (min =3D +10.20 V, max =3D +13.80 V)
-CPU FAN Speed:     1171 RPM  (min =3D  600 RPM)
-CHASSIS1 FAN Speed:   0 RPM  (min =3D  600 RPM)
-CHASSIS2 FAN Speed:   0 RPM  (min =3D  600 RPM)
-POWER FAN Speed:      0 RPM  (min =3D    0 RPM)
-CPU Temperature:    +50.0=B0C  (high =3D +60.0=B0C, crit =3D +75.0=B0C)
-MB Temperature:     +47.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
+-----
 
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:      +40.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+Now lets hear the details:
 
-coretemp-isa-0001
-Adapter: ISA adapter
-Core 1:      +36.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+My system:
+1x Intel Xeon DP E5506
+..on Tyan S7002WGM2NR-LE (one CPU slot free)
+..using KVR1066D3Q8R7SK3/12G as short-term memory
+..with several SATA drives attached
+..running Debian 2.6.26-17lenny2
 
-coretemp-isa-0002
-Adapter: ISA adapter
-Core 2:      +40.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+As far as I understand aptitude, I installed:
+lm-sensors 3.0.2-1+b2
+..with libc6 2.7-18
+..and libsensors4 3.0.2-1+b2
+..and perl 5.10.0-19lenny2
+..and sed 4.1.5-6
 
-coretemp-isa-0003
-Adapter: ISA adapter
-Core 3:      +37.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+-----
 
-coretemp-isa-0004
-Adapter: ISA adapter
-Core 4:      +40.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+What I modified in sensors3.conf:
 
-coretemp-isa-0005
-Adapter: ISA adapter
-Core 5:      +36.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+[..]
+chip "lm78-*" "lm79-*" "w83781d-*"
+[..]
+    ignore in0
+    ignore in1
+    ignore in2
+    ignore in3
+    ignore in4
+    ignore in5
+    ignore in6
+[..]
+     ignore fan1
+     ignore fan2
+     ignore fan3
 
-coretemp-isa-0006
-Adapter: ISA adapter
-Core 6:      +40.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+    ignore temp1
+    ignore cpu0_vid
+[..]
+chip "w83793-*"
+[..]
+    ignore fan6
+    ignore fan7
+    ignore fan8
+    ignore fan9
+    ignore fan10
+    ignore fan11
+    ignore fan12
 
-coretemp-isa-0007
-Adapter: ISA adapter
-Core 7:      +37.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+    # This we have to reactivate when there is a second cpu installed..
+    ignore temp2
+    ignore temp5
+[..]
 
-w83627ehf-isa-0290
-Adapter: ISA adapter
-Vcore:       +0.94 V  (min =3D  +0.00 V, max =3D  +1.74 V)
-in1:         +1.74 V  (min =3D  +0.02 V, max =3D  +0.01 V)   ALARM
-AVCC:        +3.31 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-VCC:         +3.28 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-in4:         +1.71 V  (min =3D  +0.00 V, max =3D  +1.06 V)   ALARM
-in5:         +2.04 V  (min =3D  +0.06 V, max =3D  +1.15 V)   ALARM
-in6:         +1.62 V  (min =3D  +0.13 V, max =3D  +1.02 V)   ALARM
-3VSB:        +3.36 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-Vbat:        +3.25 V  (min =3D  +2.70 V, max =3D  +3.30 V)
-in9:         +0.00 V  (min =3D  +1.60 V, max =3D  +0.03 V)   ALARM
-fan1:          0 RPM  (min =3D 21093 RPM, div =3D 64)  ALARM
-fan2:       1188 RPM  (min =3D    0 RPM, div =3D 16)  ALARM
-fan3:          0 RPM  (min =3D 21093 RPM, div =3D 64)  ALARM
-fan4:          0 RPM  (min =3D 21093 RPM, div =3D 64)  ALARM
-fan5:          0 RPM  (min =3D 10546 RPM, div =3D 128)  ALARM
-temp1:       +47.0=B0C  (high =3D  +5.0=B0C, hyst =3D +10.0=B0C)  ALARM  se=
-nsor
-=3D thermistor
-temp2:       +50.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
-=3D diode
-temp3:        -3.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
-=3D thermistor
-cpu0_vid:   +0.000 V
+Remarks: ignored anything from lm78.. because I got only rubbish from =20
+there - but Winbond works fine, nothing more that I need.
+
+-----
+
+Output of "sensors" command gives me pretty good values (except min/max =20
+but I'm not keen on that):
+
+me@myserver:~$ sensors
+lm78-i2c-0-2d
+Adapter: SMBus I801 adapter at 0400
+
+w83793-i2c-0-2f
+Adapter: SMBus I801 adapter at 0400
+VCoreA:      +1.21 V  (min =3D  +0.00 V, max =3D  +2.05 V)
+VCoreB:      +0.00 V  (min =3D  +0.00 V, max =3D  +2.05 V)
+Vtt:         +1.09 V  (min =3D  +0.00 V, max =3D  +2.05 V)
+in3:         +1.47 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+in4:         +1.07 V  (min =3D  +0.00 V, max =3D  +4.08 V)
++3.3V:       +3.28 V  (min =3D  +0.00 V, max =3D  +4.08 V)
++12V:       +11.71 V  (min =3D  +0.00 V, max =3D +24.48 V)
++5V:         +4.90 V  (min =3D  +0.15 V, max =3D  +6.27 V)
+5VSB:        +4.88 V  (min =3D  +0.15 V, max =3D  +6.27 V)
+VBAT:        +3.18 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+fan1:        525 RPM  (min =3D    0 RPM)
+fan2:          0 RPM  (min =3D    0 RPM)
+fan3:        775 RPM  (min =3D    0 RPM)
+fan4:       1131 RPM  (min =3D    0 RPM)
+fan5:        703 RPM  (min =3D    0 RPM)
+CPU1 Temp:   +71.2=B0C  (high =3D +100.0=B0C, hyst =3D +95.0=B0C)  sensor =
+=3D Intel =20
+PECI
+temp6:       +49.0=B0C  (high =3D +100.0=B0C, hyst =3D +95.0=B0C)  sensor =
+=3D =20
+thermistor
+beep_enable:disabled
+
+Remarks: don't wonder CPU temp, this is fully on load for more than 2 days =
+=20
+now ;-)
+
+-----
+
+Now, all that I need works thats good ... but lets have a look at my =20
+kernel log:
+
+me@myserver:~$ tail /var/log/kern.log
+Sep 15 21:49:59 server7even3 kernel: [2670913.842602] i801_smbus =20
+0000:00:1f.3: Bus collision! SMBus may be locked until next hard reset. =20
+(sorry!)
+Sep 15 22:13:48 server7even3 kernel: [2672347.037041] i801_smbus =20
+0000:00:1f.3: Bus collision! SMBus may be locked until next hard reset. =20
+(sorry!)
+Sep 15 22:20:55 server7even3 kernel: [2672775.506601] i801_smbus =20
+0000:00:1f.3: Bus collision! SMBus may be locked until next hard reset. =20
+(sorry!)
+Sep 15 22:28:04 server7even3 kernel: [2673204.696425] i801_smbus =20
+0000:00:1f.3: Bus collision! SMBus may be locked until next hard reset. =20
+(sorry!)
+Sep 15 22:31:39 server7even3 kernel: [2673420.968805] i801_smbus =20
+0000:00:1f.3: Bus collision! SMBus may be locked until next hard reset. =20
+(sorry!)
+Sep 15 22:37:15 server7even3 kernel: [2673757.521883] i801_smbus =20
+0000:00:1f.3: Bus collision! SMBus may be locked until next hard reset. =20
+(sorry!)
+Sep 15 23:01:02 server7even3 kernel: [2675186.137306] i801_smbus =20
+0000:00:1f.3: Bus collision! SMBus may be locked until next hard reset. =20
+(sorry!)
+Sep 15 23:03:58 server7even3 kernel: [2675362.459786] i801_smbus =20
+0000:00:1f.3: Bus collision! SMBus may be locked until next hard reset. =20
+(sorry!)
+Sep 15 23:07:30 server7even3 kernel: [2675574.876593] i801_smbus =20
+0000:00:1f.3: Bus collision! SMBus may be locked until next hard reset. =20
+(sorry!)
+Sep 15 23:09:01 server7even3 kernel: [2675666.787660] i801_smbus =20
+0000:00:1f.3: Bus collision! SMBus may be locked until next hard reset. =20
+(sorry!)
+
+
+I do not really get to the point on what is causing those messages, =20
+because:
+- I got readings (any other occurrence of this message I found got no =20
+sensor readings)
+- I added only "ignores" to sensors3.conf (did I confused the kernel =20
+because I ignored anything from lm78??)
+- There is no time schema I can identify, the messages seem to occur =20
+really arbitrary
+
+
+What I did not do until now (I apologize, but have reasons):
+- Restart of system (I don't want to restart because I think that message  =
+
+will come back)
+- stopped sensord (because of the need to monitor the cpu temp, you know..)
+
+
+Further:
+- I installed phpsysinfo as well. Anything evil with that maybe?
+
+
+Long story, short question: any hints?
+
+
+Regards,
+Nicolas
 
 _______________________________________________
 lm-sensors mailing list
