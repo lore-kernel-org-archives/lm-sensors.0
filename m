@@ -1,7 +1,7 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Date: Tue, 15 Sep 2009 11:38:39 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 17 Sep 2009 13:34:50 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon w83627hf: add mfd support.
-Message-Id: <20090915113837.GA13153@sortiz.org>
+Message-Id: <20090917153450.57a75eae@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1252585810-5336-2-git-send-email-giometti@linux.it>
 In-Reply-To: <1252585810-5336-2-git-send-email-giometti@linux.it>
@@ -12,8 +12,11 @@ To: lm-sensors@vger.kernel.org
 
 Hi Rodolfo,
 
-On Fri, Sep 11, 2009 at 05:07:05PM +0200, Rodolfo Giometti wrote:
+On Fri, 11 Sep 2009 17:07:05 +0200, Rodolfo Giometti wrote:
 > The file has been splitted up into two parts:
+
+Spelling: split (it's an irregular verb.)
+
 > 
 > * drivers/mfd/w83627hf-core.c      - detects the chip and define proper
 >                                      platform devices into mfd support
@@ -22,14 +25,12 @@ On Fri, Sep 11, 2009 at 05:07:05PM +0200, Rodolfo Giometti wrote:
 >                                      functionality only
 > 
 > The patch also fixes up some non reentrant code and some C-style issues.
-I'm fine with the mfd part.
-Jean, are you ok with the hwmon one ? I'm ok with queueing this one up, unless
-you want to carry it.
 
-Cheers,
-Samuel.
+Sounds wrong. Mixing coding style cleanups with real changes makes
+reviewing much harder. You'll have to move these changes to a separate
+patch I'm afraid.
 
-
+> 
 > Signed-off-by: Rodolfo Giometti <giometti@linux.it>
 > ---
 >  drivers/hwmon/w83627hf.c     |  373 +++++++++---------------------------------
@@ -40,6 +41,9 @@ Samuel.
 >  5 files changed, 409 insertions(+), 298 deletions(-)
 >  create mode 100644 drivers/mfd/w83627hf-core.c
 >  create mode 100644 include/linux/mfd/w83627hf.h
+
+Review:
+
 > 
 > diff --git a/drivers/hwmon/w83627hf.c b/drivers/hwmon/w83627hf.c
 > index 389150b..25f35ac 100644
@@ -50,6 +54,9 @@ Samuel.
 >      w83627hf.c - Part of lm_sensors, Linux kernel modules for hardware
 > -                monitoring
 > +		 monitoring
+
+This kind of clean up is better done in a separate patch.
+
 >      Copyright (c) 1998 - 2003  Frodo Looijaard <frodol@dds.nl>,
 >      Philip Edelbrock <phil@netroedge.com>,
 >      and Mark Studebaker <mdsxyz123@yahoo.com>
@@ -59,6 +66,9 @@ Samuel.
 >  #include <linux/acpi.h>
 > -#include <asm/io.h>
 > +#include <linux/io.h>
+
+This is already fixed in my hwmon tree.
+
 >  #include "lm75.h"
 > -
 > -static struct platform_device *pdev;
@@ -72,6 +82,10 @@ Samuel.
 > @@ -76,88 +72,8 @@ static unsigned short force_id;
 >  module_param(force_id, ushort, 0);
 >  MODULE_PARM_DESC(force_id, "Override the detected device ID");
+
+You have left module parameters force_addr and force_id in this driver
+while they are no longer used anywhere. This is confusing.
+
 >  
 > -/* modified from kernel/include/traps.c */
 > -static int REG;		/* The register to read/write */
@@ -349,6 +363,10 @@ Samuel.
 > +		nr = 2 ? W83781D_REG_PIN : W83781D_REG_VID_FANDIV)
 > +		& (nr = 0 ? 0xcf : 0x3f))
 > +		| ((data->fan_div[nr] & 0x03) << (nr = 0 ? 4 : 6));
+
+You are turning a properly indented expression into an unreadable mess,
+I don't call this a improvement. Please revert.
+
 > +	w83627hf_write_value(data,
 > +		nr = 2 ? W83781D_REG_PIN : W83781D_REG_VID_FANDIV, reg);
 >  
@@ -357,6 +375,9 @@ Samuel.
 > -	    | ((data->fan_div[nr] & 0x04) << (3 + nr));
 > +		& ~(1 << (5 + nr)))
 > +		| ((data->fan_div[nr] & 0x04) << (3 + nr));
+
+Same here, the original code was much easier to read.
+
 >  	w83627hf_write_value(data, W83781D_REG_VBAT, reg);
 >  
 >  	/* Restore fan_min */
@@ -476,6 +497,9 @@ Samuel.
 >  	release_region(res->start, WINB_REGION_SIZE);
 > -      ERROR0:
 > +ERROR0:
+
+Nack. Labels aligned on column 0 make future patches harder to read.
+
 >  	return err;
 >  }
 >  
@@ -518,6 +542,20 @@ Samuel.
 > +	superio_exit(sio_data);
 >  	return res;
 >  }
+
+This looks wrong. The whole point of the MFD infrastructure is to
+control who is accessing the common registers. Here you let the hwmon
+driver access the Super-I/O configuration registers without any kind of
+synchronisation. What if another user of w83627hf-core does the same at
+the same moment?
+
+You need a way to protect common registers. You'll need a mutex, for
+sure. Then you can either export this mutex and count on all "children"
+drivers' cooperation to properly request and release it. Or you can
+move all the code accessing the common registers into w83627hf-core,
+and stop exporting the superio_* functions. I don't know if there is a
+recommended practice for MFD drivers. Samuel?
+
 >  
 >  static int __devinit w83687thf_read_vid(struct platform_device *pdev)
 >  {
@@ -553,6 +591,11 @@ Samuel.
 > +	superio_exit(sio_data);
 >  	return res;
 >  }
+
+Same problem here. And with proper locking, we would finally be able to
+refresh the VID reading at run-time, instead of a one-shot at
+initialization time!
+
 >  
 > @@ -1616,7 +1467,7 @@ static void __devinit w83627hf_init_device(struct platform_device *pdev)
 >  
@@ -578,6 +621,9 @@ Samuel.
 > - 			/* bits 0-3 are reserved  in 627THF */
 > - 			if (data->type = w83627thf)
 > +			/* bits 0-3 are reserved  in 627THF */
+
+While you're here: double space before "in".
+
 > +			if (data->type = w83627thf)
 >  				tmp &= 0xf0;
 >  			data->pwm[i] = tmp;
@@ -711,15 +757,31 @@ Samuel.
 > +	help
 > +	  If you say yes here you add support for the Winbond W836X7 series
 > +	  of sensor chips: the W83627HF, W83627THF, W83637HF, W83687THF and
+
+Super-I/O chips, not sensor chips.
+
 > +	  W83697HF to your platform.
 > +
 > +	  This is a multi functional device and this support defines a new
 > +	  platform device only. See other configurations submenu in order to
+
+Spelling: configuration submenus?
+
 > +	  enable the drivers of Winbond chip's functionalities.
 > +
 > +	  This driver can also be built as a module.  If so, the module
 > +	  will be called w83627hf-core.
 > +
+
+Shouldn't this option be selected automatically by the w83627hf (hwmon)
+driver? Currently it is possible to select only the hwmon driver, but
+that driver will never work because the required platform driver won't
+be created. This is a problem for current users upgrading to a new
+kernel, as CONFIG_MFD_W83627HF defaults to N.
+
+But then again I don't know if there is already a policy regarding this
+for MFD drivers. Samuel?
+
 >  endmenu
 >  
 >  menu "Multimedia Capabilities Port drivers"
@@ -784,18 +846,36 @@ Samuel.
 > +module_param(force_addr, ushort, 0);
 > +MODULE_PARM_DESC(force_addr,
 > +		 "Initialize the base address of the sensors");
+
+This needs to be renamed. The address in question is specific to the
+hwmon part.
+
 > +static u8 force_i2c = 0x1f;
 > +module_param(force_i2c, byte, 0);
 > +MODULE_PARM_DESC(force_i2c,
 > +		 "Initialize the i2c address of the sensors");
+
+Not used anywhere.
+
 > +
 > +static int init = 1;
 > +module_param(init, bool, 0);
 > +MODULE_PARM_DESC(init, "Set to zero to bypass chip initialization");
+
+Ditto.
+
 > +
 > +static unsigned short force_id;
 > +module_param(force_id, ushort, 0);
 > +MODULE_PARM_DESC(force_id, "Override the detected device ID");
+
+Note: I am curious how this will fly in practice. Originally this
+option was meant to force on of the 5 available hardware monitoring
+implementations. It didn't assume much about the other functions of the
+chips. Now that the option moved to the core MFD w83627hf driver, it
+would affect all "children" drivers, not only the hwmon one. This might
+not be fine-grained enough.
+
 > +
 > +/*
 > + * Devices definitions
@@ -924,10 +1004,22 @@ Samuel.
 > +
 > +	hwmon_res.start += address;
 > +	hwmon_res.end += address;
+
+This is bad. The second time you enter this function, you add address
+again and get totally wrong values. Why don't you just _set_ start and
+end, instead of altering a pre-set value?
+
+Anyway I don't get the point of the global hwmon_res resource, as you
+have a local one (res). One should be enough, and less error-prone.
+
 > +
 > +	err = acpi_check_resource_conflict(&res);
 > +	if (err)
 > +		goto exit;
+
+This should prevent the hwmon platform device from being registered,
+_not_ the main MFD device.
+
 > +
 > +	pdev = platform_device_alloc(DRVNAME, address);
 > +	if (!pdev) {
@@ -957,6 +1049,10 @@ Samuel.
 > +			err);
 > +		goto exit_device_unregister;
 > +	}
+
+You never delete these devices? This means that unloading and reloading
+the driver will fail.
+
 > +
 > +	return 0;
 > +
@@ -998,11 +1094,19 @@ Samuel.
 > --- /dev/null
 > +++ b/include/linux/mfd/w83627hf.h
 > @@ -0,0 +1,68 @@
+
+No header comment? No description of what this file is for? No author,
+no copyright?
+
 > +#define DRVNAME "w83627hf"
 > +
 > +/* Offset & size of I/O region we are interested in */
 > +#define WINB_REGION_OFFSET      5
 > +#define WINB_REGION_SIZE	2
+
+You should come up with a more unique prefix, and better names
+altogether: these defines are specific to the hwmon part of the chips!
+
 > +
 > +enum chips { w83627hf, w83627thf, w83697hf, w83637hf, w83687thf };
 > +struct w83627hf_sio_data {
@@ -1036,13 +1140,24 @@ Samuel.
 > +#define W83687THF_VID_DATA	0xF1 /* w83687thf only */
 > +
 > +#define DEV			0x07    /* Register: Logical device select */
+
+You don't really need a define for this register number: it's used only
+once, and isn't particularly interesting.
+
 > +#define DEVID			0x20    /* Register: Device ID */
+
+This is only used by the core mfd driver, so there's no need to have it
+in this header file.
+
 > +
 > +static inline void superio_outb(struct w83627hf_sio_data *sio, int reg, int val)
 > +{
 > +	outb(reg, sio->sioaddr);
 > +	outb(val, sio->sioaddr + 1);
 > +}
+
+You need to include <linux/io.h> to have access to outb() and inb().
+
 > +
 > +static inline int superio_inb(struct w83627hf_sio_data *sio, int reg)
 > +{
@@ -1066,13 +1181,10 @@ Samuel.
 > +{
 > +	outb(0xAA, sio->sioaddr);
 > +}
-> -- 
-> 1.6.0.4
-> 
+
 
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
