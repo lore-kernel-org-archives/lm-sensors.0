@@ -1,32 +1,1609 @@
-From: Eric Schumann <e_r_i_c@gmx.net>
-Date: Sat, 12 Sep 2009 14:38:04 +0000
-Subject: Re: [lm-sensors] I'm stuck in tweaking the config file for my ABIT
-Message-Id: <20090912163804.64ec58aa.e_r_i_c@gmx.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 20 Sep 2009 07:36:29 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Delete deprecated FSC drivers
+Message-Id: <20090920093629.7bfec1b7@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090908133106.54403ca3.e_r_i_c@gmx.net>
-In-Reply-To: <20090908133106.54403ca3.e_r_i_c@gmx.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello, it's me again
-I tried another Power supply. Result: nothing helpful to me.
+The legacy fscpos and fscher drivers have been replaced by the unified
+fschmd driver. The transition period is over now, we can delete them.
 
-PSU2		sensors		in*_input	bios 
-ATX +12V:         12.33 /.41	1304/1312	12,54 /,59
-ATX  +5V:          4.73 /.75 	1896/1904	 4,71 /,76
-
-PSU1 was
-ATX +12V:         12,33		1304/1312	12,33	
-ATX  +5V:	   4.67		1864/1872	 4,67 
-
-BIOS +12/5V change, monitoring +5V?!
-eric
-
-
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
 ---
-I'm taking the chicken to measure
+ Documentation/feature-removal-schedule.txt |    8 
+ Documentation/hwmon/fscher                 |  169 ------
+ drivers/hwmon/Kconfig                      |   28 -
+ drivers/hwmon/Makefile                     |    2 
+ drivers/hwmon/fscher.c                     |  680 ----------------------------
+ drivers/hwmon/fscpos.c                     |  654 --------------------------
+ 6 files changed, 1541 deletions(-)
+
+--- linux-2.6.32-pre.orig/Documentation/hwmon/fscher	2009-06-10 05:05:27.000000000 +0200
++++ /dev/null	1970-01-01 00:00:00.000000000 +0000
+@@ -1,169 +0,0 @@
+-Kernel driver fscher
+-==========
+-
+-Supported chips:
+-  * Fujitsu-Siemens Hermes chip
+-    Prefix: 'fscher'
+-    Addresses scanned: I2C 0x73
+-
+-Authors:
+-        Reinhard Nissl <rnissl@gmx.de> based on work
+-        from Hermann Jung <hej@odn.de>,
+-        Frodo Looijaard <frodol@dds.nl>,
+-        Philip Edelbrock <phil@netroedge.com>
+-
+-Description
+------------
+-
+-This driver implements support for the Fujitsu-Siemens Hermes chip. It is
+-described in the 'Register Set Specification BMC Hermes based Systemboard'
+-from Fujitsu-Siemens.
+-
+-The Hermes chip implements a hardware-based system management, e.g. for
+-controlling fan speed and core voltage. There is also a watchdog counter on
+-the chip which can trigger an alarm and even shut the system down.
+-
+-The chip provides three temperature values (CPU, motherboard and
+-auxiliary), three voltage values (+12V, +5V and battery) and three fans
+-(power supply, CPU and auxiliary).
+-
+-Temperatures are measured in degrees Celsius. The resolution is 1 degree.
+-
+-Fan rotation speeds are reported in RPM (rotations per minute). The value
+-can be divided by a programmable divider (1, 2 or 4) which is stored on
+-the chip.
+-
+-Voltage sensors (also known as "in" sensors) report their values in volts.
+-
+-All values are reported as final values from the driver. There is no need
+-for further calculations.
+-
+-
+-Detailed description
+---------------------
+-
+-Below you'll find a single line description of all the bit values. With
+-this information, you're able to decode e. g. alarms, wdog, etc. To make
+-use of the watchdog, you'll need to set the watchdog time and enable the
+-watchdog. After that it is necessary to restart the watchdog time within
+-the specified period of time, or a system reset will occur.
+-
+-* revision
+-  READING & 0xff = 0x??: HERMES revision identification
+-
+-* alarms
+-  READING & 0x80 = 0x80: CPU throttling active
+-  READING & 0x80 = 0x00: CPU running at full speed
+-
+-  READING & 0x10 = 0x10: software event (see control:1)
+-  READING & 0x10 = 0x00: no software event
+-
+-  READING & 0x08 = 0x08: watchdog event (see wdog:2)
+-  READING & 0x08 = 0x00: no watchdog event
+-
+-  READING & 0x02 = 0x02: thermal event (see temp*:1)
+-  READING & 0x02 = 0x00: no thermal event
+-
+-  READING & 0x01 = 0x01: fan event (see fan*:1)
+-  READING & 0x01 = 0x00: no fan event
+-
+-  READING & 0x13 ! 0x00: ALERT LED is flashing
+-
+-* control
+-  READING & 0x01 = 0x01: software event
+-  READING & 0x01 = 0x00: no software event
+-
+-  WRITING & 0x01 = 0x01: set software event
+-  WRITING & 0x01 = 0x00: clear software event
+-
+-* watchdog_control
+-  READING & 0x80 = 0x80: power off on watchdog event while thermal event
+-  READING & 0x80 = 0x00: watchdog power off disabled (just system reset enabled)
+-
+-  READING & 0x40 = 0x40: watchdog timebase 60 seconds (see also wdog:1)
+-  READING & 0x40 = 0x00: watchdog timebase  2 seconds
+-
+-  READING & 0x10 = 0x10: watchdog enabled
+-  READING & 0x10 = 0x00: watchdog disabled
+-
+-  WRITING & 0x80 = 0x80: enable "power off on watchdog event while thermal event"
+-  WRITING & 0x80 = 0x00: disable "power off on watchdog event while thermal event"
+-
+-  WRITING & 0x40 = 0x40: set watchdog timebase to 60 seconds
+-  WRITING & 0x40 = 0x00: set watchdog timebase to  2 seconds
+-
+-  WRITING & 0x20 = 0x20: disable watchdog
+-
+-  WRITING & 0x10 = 0x10: enable watchdog / restart watchdog time
+-
+-* watchdog_state
+-  READING & 0x02 = 0x02: watchdog system reset occurred
+-  READING & 0x02 = 0x00: no watchdog system reset occurred
+-
+-  WRITING & 0x02 = 0x02: clear watchdog event
+-
+-* watchdog_preset
+-  READING & 0xff = 0x??: configured watch dog time in units (see wdog:3 0x40)
+-
+-  WRITING & 0xff = 0x??: configure watch dog time in units
+-
+-* in*     (0: +5V, 1: +12V, 2: onboard 3V battery)
+-  READING: actual voltage value
+-
+-* temp*_status   (1: CPU sensor, 2: onboard sensor, 3: auxiliary sensor)
+-  READING & 0x02 = 0x02: thermal event (overtemperature)
+-  READING & 0x02 = 0x00: no thermal event
+-
+-  READING & 0x01 = 0x01: sensor is working
+-  READING & 0x01 = 0x00: sensor is faulty
+-
+-  WRITING & 0x02 = 0x02: clear thermal event
+-
+-* temp*_input   (1: CPU sensor, 2: onboard sensor, 3: auxiliary sensor)
+-  READING: actual temperature value
+-
+-* fan*_status   (1: power supply fan, 2: CPU fan, 3: auxiliary fan)
+-  READING & 0x04 = 0x04: fan event (fan fault)
+-  READING & 0x04 = 0x00: no fan event
+-
+-  WRITING & 0x04 = 0x04: clear fan event
+-
+-* fan*_div (1: power supply fan, 2: CPU fan, 3: auxiliary fan)
+-  	Divisors 2,4 and 8 are supported, both for reading and writing
+-
+-* fan*_pwm   (1: power supply fan, 2: CPU fan, 3: auxiliary fan)
+-  READING & 0xff = 0x00: fan may be switched off
+-  READING & 0xff = 0x01: fan must run at least at minimum speed (supply: 6V)
+-  READING & 0xff = 0xff: fan must run at maximum speed (supply: 12V)
+-  READING & 0xff = 0x??: fan must run at least at given speed (supply: 6V..12V)
+-
+-  WRITING & 0xff = 0x00: fan may be switched off
+-  WRITING & 0xff = 0x01: fan must run at least at minimum speed (supply: 6V)
+-  WRITING & 0xff = 0xff: fan must run at maximum speed (supply: 12V)
+-  WRITING & 0xff = 0x??: fan must run at least at given speed (supply: 6V..12V)
+-
+-* fan*_input   (1: power supply fan, 2: CPU fan, 3: auxiliary fan)
+-  READING: actual RPM value
+-
+-
+-Limitations
+------------
+-
+-* Measuring fan speed
+-It seems that the chip counts "ripples" (typical fans produce 2 ripples per
+-rotation while VERAX fans produce 18) in a 9-bit register. This register is
+-read out every second, then the ripple prescaler (2, 4 or 8) is applied and
+-the result is stored in the 8 bit output register. Due to the limitation of
+-the counting register to 9 bits, it is impossible to measure a VERAX fan
+-properly (even with a prescaler of 8). At its maximum speed of 3500 RPM the
+-fan produces 1080 ripples per second which causes the counting register to
+-overflow twice, leading to only 186 RPM.
+-
+-* Measuring input voltages
+-in2 ("battery") reports the voltage of the onboard lithium battery and not
+-+3.3V from the power supply.
+-
+-* Undocumented features
+-Fujitsu-Siemens Computers has not documented all features of the chip so
+-far. Their software, System Guard, shows that there are a still some
+-features which cannot be controlled by this implementation.
+--- linux-2.6.32-pre.orig/drivers/hwmon/Kconfig	2009-09-19 10:12:21.000000000 +0200
++++ linux-2.6.32-pre/drivers/hwmon/Kconfig	2009-09-20 08:59:19.000000000 +0200
+@@ -325,34 +325,6 @@ config SENSORS_F75375S
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called f75375s.
+ 
+-config SENSORS_FSCHER
+-	tristate "FSC Hermes (DEPRECATED)"
+-	depends on X86 && I2C
+-	help
+-	  This driver is DEPRECATED please use the new merged fschmd
+-	  ("FSC Poseidon, Scylla, Hermes, Heimdall and Heracles") driver
+-	  instead.
+-
+-	  If you say yes here you get support for Fujitsu Siemens
+-	  Computers Hermes sensor chips.
+-
+-	  This driver can also be built as a module.  If so, the module
+-	  will be called fscher.
+-
+-config SENSORS_FSCPOS
+-	tristate "FSC Poseidon (DEPRECATED)"
+-	depends on X86 && I2C
+-	help
+-	  This driver is DEPRECATED please use the new merged fschmd
+-	  ("FSC Poseidon, Scylla, Hermes, Heimdall and Heracles") driver
+-	  instead.
+-
+-	  If you say yes here you get support for Fujitsu Siemens
+-	  Computers Poseidon sensor chips.
+-
+-	  This driver can also be built as a module.  If so, the module
+-	  will be called fscpos.
+-
+ config SENSORS_FSCHMD
+ 	tristate "Fujitsu Siemens Computers sensor chips"
+ 	depends on X86 && I2C
+--- linux-2.6.32-pre.orig/drivers/hwmon/Makefile	2009-09-19 10:12:21.000000000 +0200
++++ linux-2.6.32-pre/drivers/hwmon/Makefile	2009-09-20 08:59:39.000000000 +0200
+@@ -42,9 +42,7 @@ obj-$(CONFIG_SENSORS_DS1621)	+= ds1621.o
+ obj-$(CONFIG_SENSORS_F71805F)	+= f71805f.o
+ obj-$(CONFIG_SENSORS_F71882FG)	+= f71882fg.o
+ obj-$(CONFIG_SENSORS_F75375S)	+= f75375s.o
+-obj-$(CONFIG_SENSORS_FSCHER)	+= fscher.o
+ obj-$(CONFIG_SENSORS_FSCHMD)	+= fschmd.o
+-obj-$(CONFIG_SENSORS_FSCPOS)	+= fscpos.o
+ obj-$(CONFIG_SENSORS_G760A)	+= g760a.o
+ obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
+ obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
+--- linux-2.6.32-pre.orig/drivers/hwmon/fscher.c	2009-09-19 22:24:29.000000000 +0200
++++ /dev/null	1970-01-01 00:00:00.000000000 +0000
+@@ -1,680 +0,0 @@
+-/*
+- * fscher.c - Part of lm_sensors, Linux kernel modules for hardware
+- * monitoring
+- * Copyright (C) 2003, 2004 Reinhard Nissl <rnissl@gmx.de>
+- * 
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- * 
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- * 
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- */
+-
+-/* 
+- *  fujitsu siemens hermes chip, 
+- *  module based on fscpos.c 
+- *  Copyright (C) 2000 Hermann Jung <hej@odn.de>
+- *  Copyright (C) 1998, 1999 Frodo Looijaard <frodol@dds.nl>
+- *  and Philip Edelbrock <phil@netroedge.com>
+- */
+-
+-#include <linux/module.h>
+-#include <linux/init.h>
+-#include <linux/slab.h>
+-#include <linux/jiffies.h>
+-#include <linux/i2c.h>
+-#include <linux/hwmon.h>
+-#include <linux/err.h>
+-#include <linux/mutex.h>
+-#include <linux/sysfs.h>
+-
+-/*
+- * Addresses to scan
+- */
+-
+-static const unsigned short normal_i2c[] = { 0x73, I2C_CLIENT_END };
+-
+-/*
+- * Insmod parameters
+- */
+-
+-I2C_CLIENT_INSMOD_1(fscher);
+-
+-/*
+- * The FSCHER registers
+- */
+-
+-/* chip identification */
+-#define FSCHER_REG_IDENT_0		0x00
+-#define FSCHER_REG_IDENT_1		0x01
+-#define FSCHER_REG_IDENT_2		0x02
+-#define FSCHER_REG_REVISION		0x03
+-
+-/* global control and status */
+-#define FSCHER_REG_EVENT_STATE		0x04
+-#define FSCHER_REG_CONTROL		0x05
+-
+-/* watchdog */
+-#define FSCHER_REG_WDOG_PRESET		0x28
+-#define FSCHER_REG_WDOG_STATE		0x23
+-#define FSCHER_REG_WDOG_CONTROL		0x21
+-
+-/* fan 0 */
+-#define FSCHER_REG_FAN0_MIN		0x55
+-#define FSCHER_REG_FAN0_ACT		0x0e
+-#define FSCHER_REG_FAN0_STATE		0x0d
+-#define FSCHER_REG_FAN0_RIPPLE		0x0f
+-
+-/* fan 1 */
+-#define FSCHER_REG_FAN1_MIN		0x65
+-#define FSCHER_REG_FAN1_ACT		0x6b
+-#define FSCHER_REG_FAN1_STATE		0x62
+-#define FSCHER_REG_FAN1_RIPPLE		0x6f
+-
+-/* fan 2 */
+-#define FSCHER_REG_FAN2_MIN		0xb5
+-#define FSCHER_REG_FAN2_ACT		0xbb
+-#define FSCHER_REG_FAN2_STATE		0xb2
+-#define FSCHER_REG_FAN2_RIPPLE		0xbf
+-
+-/* voltage supervision */
+-#define FSCHER_REG_VOLT_12		0x45
+-#define FSCHER_REG_VOLT_5		0x42
+-#define FSCHER_REG_VOLT_BATT		0x48
+-
+-/* temperature 0 */
+-#define FSCHER_REG_TEMP0_ACT		0x64
+-#define FSCHER_REG_TEMP0_STATE		0x71
+-
+-/* temperature 1 */
+-#define FSCHER_REG_TEMP1_ACT		0x32
+-#define FSCHER_REG_TEMP1_STATE		0x81
+-
+-/* temperature 2 */
+-#define FSCHER_REG_TEMP2_ACT		0x35
+-#define FSCHER_REG_TEMP2_STATE		0x91
+-
+-/*
+- * Functions declaration
+- */
+-
+-static int fscher_probe(struct i2c_client *client,
+-			const struct i2c_device_id *id);
+-static int fscher_detect(struct i2c_client *client, int kind,
+-			 struct i2c_board_info *info);
+-static int fscher_remove(struct i2c_client *client);
+-static struct fscher_data *fscher_update_device(struct device *dev);
+-static void fscher_init_client(struct i2c_client *client);
+-
+-static int fscher_read_value(struct i2c_client *client, u8 reg);
+-static int fscher_write_value(struct i2c_client *client, u8 reg, u8 value);
+-
+-/*
+- * Driver data (common to all clients)
+- */
+- 
+-static const struct i2c_device_id fscher_id[] = {
+-	{ "fscher", fscher },
+-	{ }
+-};
+-
+-static struct i2c_driver fscher_driver = {
+-	.class		= I2C_CLASS_HWMON,
+-	.driver = {
+-		.name	= "fscher",
+-	},
+-	.probe		= fscher_probe,
+-	.remove		= fscher_remove,
+-	.id_table	= fscher_id,
+-	.detect		= fscher_detect,
+-	.address_data	= &addr_data,
+-};
+-
+-/*
+- * Client data (each client gets its own)
+- */
+-
+-struct fscher_data {
+-	struct device *hwmon_dev;
+-	struct mutex update_lock;
+-	char valid; /* zero until following fields are valid */
+-	unsigned long last_updated; /* in jiffies */
+-
+-	/* register values */
+-	u8 revision;		/* revision of chip */
+-	u8 global_event;	/* global event status */
+-	u8 global_control;	/* global control register */
+-	u8 watchdog[3];		/* watchdog */
+-	u8 volt[3];		/* 12, 5, battery voltage */ 
+-	u8 temp_act[3];		/* temperature */
+-	u8 temp_status[3];	/* status of sensor */
+-	u8 fan_act[3];		/* fans revolutions per second */
+-	u8 fan_status[3];	/* fan status */
+-	u8 fan_min[3];		/* fan min value for rps */
+-	u8 fan_ripple[3];	/* divider for rps */
+-};
+-
+-/*
+- * Sysfs stuff
+- */
+-
+-#define sysfs_r(kind, sub, offset, reg) \
+-static ssize_t show_##kind##sub (struct fscher_data *, char *, int); \
+-static ssize_t show_##kind##offset##sub (struct device *, struct device_attribute *attr, char *); \
+-static ssize_t show_##kind##offset##sub (struct device *dev, struct device_attribute *attr, char *buf) \
+-{ \
+-	struct fscher_data *data = fscher_update_device(dev); \
+-	return show_##kind##sub(data, buf, (offset)); \
+-}
+-
+-#define sysfs_w(kind, sub, offset, reg) \
+-static ssize_t set_##kind##sub (struct i2c_client *, struct fscher_data *, const char *, size_t, int, int); \
+-static ssize_t set_##kind##offset##sub (struct device *, struct device_attribute *attr, const char *, size_t); \
+-static ssize_t set_##kind##offset##sub (struct device *dev, struct device_attribute *attr, const char *buf, size_t count) \
+-{ \
+-	struct i2c_client *client = to_i2c_client(dev); \
+-	struct fscher_data *data = i2c_get_clientdata(client); \
+-	return set_##kind##sub(client, data, buf, count, (offset), reg); \
+-}
+-
+-#define sysfs_rw_n(kind, sub, offset, reg) \
+-sysfs_r(kind, sub, offset, reg) \
+-sysfs_w(kind, sub, offset, reg) \
+-static DEVICE_ATTR(kind##offset##sub, S_IRUGO | S_IWUSR, show_##kind##offset##sub, set_##kind##offset##sub);
+-
+-#define sysfs_rw(kind, sub, reg) \
+-sysfs_r(kind, sub, 0, reg) \
+-sysfs_w(kind, sub, 0, reg) \
+-static DEVICE_ATTR(kind##sub, S_IRUGO | S_IWUSR, show_##kind##0##sub, set_##kind##0##sub);
+-
+-#define sysfs_ro_n(kind, sub, offset, reg) \
+-sysfs_r(kind, sub, offset, reg) \
+-static DEVICE_ATTR(kind##offset##sub, S_IRUGO, show_##kind##offset##sub, NULL);
+-
+-#define sysfs_ro(kind, sub, reg) \
+-sysfs_r(kind, sub, 0, reg) \
+-static DEVICE_ATTR(kind, S_IRUGO, show_##kind##0##sub, NULL);
+-
+-#define sysfs_fan(offset, reg_status, reg_min, reg_ripple, reg_act) \
+-sysfs_rw_n(pwm,        , offset, reg_min) \
+-sysfs_rw_n(fan, _status, offset, reg_status) \
+-sysfs_rw_n(fan, _div   , offset, reg_ripple) \
+-sysfs_ro_n(fan, _input , offset, reg_act)
+-
+-#define sysfs_temp(offset, reg_status, reg_act) \
+-sysfs_rw_n(temp, _status, offset, reg_status) \
+-sysfs_ro_n(temp, _input , offset, reg_act)
+-    
+-#define sysfs_in(offset, reg_act) \
+-sysfs_ro_n(in, _input, offset, reg_act)
+-
+-#define sysfs_revision(reg_revision) \
+-sysfs_ro(revision, , reg_revision)
+-
+-#define sysfs_alarms(reg_events) \
+-sysfs_ro(alarms, , reg_events)
+-
+-#define sysfs_control(reg_control) \
+-sysfs_rw(control, , reg_control)
+-
+-#define sysfs_watchdog(reg_control, reg_status, reg_preset) \
+-sysfs_rw(watchdog, _control, reg_control) \
+-sysfs_rw(watchdog, _status , reg_status) \
+-sysfs_rw(watchdog, _preset , reg_preset)
+-
+-sysfs_fan(1, FSCHER_REG_FAN0_STATE, FSCHER_REG_FAN0_MIN,
+-	     FSCHER_REG_FAN0_RIPPLE, FSCHER_REG_FAN0_ACT)
+-sysfs_fan(2, FSCHER_REG_FAN1_STATE, FSCHER_REG_FAN1_MIN,
+-	     FSCHER_REG_FAN1_RIPPLE, FSCHER_REG_FAN1_ACT)
+-sysfs_fan(3, FSCHER_REG_FAN2_STATE, FSCHER_REG_FAN2_MIN,
+-	     FSCHER_REG_FAN2_RIPPLE, FSCHER_REG_FAN2_ACT)
+-
+-sysfs_temp(1, FSCHER_REG_TEMP0_STATE, FSCHER_REG_TEMP0_ACT)
+-sysfs_temp(2, FSCHER_REG_TEMP1_STATE, FSCHER_REG_TEMP1_ACT)
+-sysfs_temp(3, FSCHER_REG_TEMP2_STATE, FSCHER_REG_TEMP2_ACT)
+-
+-sysfs_in(0, FSCHER_REG_VOLT_12)
+-sysfs_in(1, FSCHER_REG_VOLT_5)
+-sysfs_in(2, FSCHER_REG_VOLT_BATT)
+-
+-sysfs_revision(FSCHER_REG_REVISION)
+-sysfs_alarms(FSCHER_REG_EVENTS)
+-sysfs_control(FSCHER_REG_CONTROL)
+-sysfs_watchdog(FSCHER_REG_WDOG_CONTROL, FSCHER_REG_WDOG_STATE, FSCHER_REG_WDOG_PRESET)
+-  
+-static struct attribute *fscher_attributes[] = {
+-	&dev_attr_revision.attr,
+-	&dev_attr_alarms.attr,
+-	&dev_attr_control.attr,
+-
+-	&dev_attr_watchdog_status.attr,
+-	&dev_attr_watchdog_control.attr,
+-	&dev_attr_watchdog_preset.attr,
+-
+-	&dev_attr_in0_input.attr,
+-	&dev_attr_in1_input.attr,
+-	&dev_attr_in2_input.attr,
+-
+-	&dev_attr_fan1_status.attr,
+-	&dev_attr_fan1_div.attr,
+-	&dev_attr_fan1_input.attr,
+-	&dev_attr_pwm1.attr,
+-	&dev_attr_fan2_status.attr,
+-	&dev_attr_fan2_div.attr,
+-	&dev_attr_fan2_input.attr,
+-	&dev_attr_pwm2.attr,
+-	&dev_attr_fan3_status.attr,
+-	&dev_attr_fan3_div.attr,
+-	&dev_attr_fan3_input.attr,
+-	&dev_attr_pwm3.attr,
+-
+-	&dev_attr_temp1_status.attr,
+-	&dev_attr_temp1_input.attr,
+-	&dev_attr_temp2_status.attr,
+-	&dev_attr_temp2_input.attr,
+-	&dev_attr_temp3_status.attr,
+-	&dev_attr_temp3_input.attr,
+-	NULL
+-};
+-
+-static const struct attribute_group fscher_group = {
+-	.attrs = fscher_attributes,
+-};
+-
+-/*
+- * Real code
+- */
+-
+-/* Return 0 if detection is successful, -ENODEV otherwise */
+-static int fscher_detect(struct i2c_client *new_client, int kind,
+-			 struct i2c_board_info *info)
+-{
+-	struct i2c_adapter *adapter = new_client->adapter;
+-
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+-		return -ENODEV;
+-
+-	/* Do the remaining detection unless force or force_fscher parameter */
+-	if (kind < 0) {
+-		if ((i2c_smbus_read_byte_data(new_client,
+-		     FSCHER_REG_IDENT_0) != 0x48)	/* 'H' */
+-		 || (i2c_smbus_read_byte_data(new_client,
+-		     FSCHER_REG_IDENT_1) != 0x45)	/* 'E' */
+-		 || (i2c_smbus_read_byte_data(new_client,
+-		     FSCHER_REG_IDENT_2) != 0x52))	/* 'R' */
+-			return -ENODEV;
+-	}
+-
+-	strlcpy(info->type, "fscher", I2C_NAME_SIZE);
+-
+-	return 0;
+-}
+-
+-static int fscher_probe(struct i2c_client *new_client,
+-			const struct i2c_device_id *id)
+-{
+-	struct fscher_data *data;
+-	int err;
+-
+-	data = kzalloc(sizeof(struct fscher_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
+-
+-	i2c_set_clientdata(new_client, data);
+-	data->valid = 0;
+-	mutex_init(&data->update_lock);
+-
+-	fscher_init_client(new_client);
+-
+-	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&new_client->dev.kobj, &fscher_group)))
+-		goto exit_free;
+-
+-	data->hwmon_dev = hwmon_device_register(&new_client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove_files;
+-	}
+-
+-	return 0;
+-
+-exit_remove_files:
+-	sysfs_remove_group(&new_client->dev.kobj, &fscher_group);
+-exit_free:
+-	kfree(data);
+-exit:
+-	return err;
+-}
+-
+-static int fscher_remove(struct i2c_client *client)
+-{
+-	struct fscher_data *data = i2c_get_clientdata(client);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &fscher_group);
+-
+-	kfree(data);
+-	return 0;
+-}
+-
+-static int fscher_read_value(struct i2c_client *client, u8 reg)
+-{
+-	dev_dbg(&client->dev, "read reg 0x%02x\n", reg);
+-
+-	return i2c_smbus_read_byte_data(client, reg);
+-}
+-
+-static int fscher_write_value(struct i2c_client *client, u8 reg, u8 value)
+-{
+-	dev_dbg(&client->dev, "write reg 0x%02x, val 0x%02x\n",
+-		reg, value);
+-
+-	return i2c_smbus_write_byte_data(client, reg, value);
+-}
+-
+-/* Called when we have found a new FSC Hermes. */
+-static void fscher_init_client(struct i2c_client *client)
+-{
+-	struct fscher_data *data = i2c_get_clientdata(client);
+-
+-	/* Read revision from chip */
+-	data->revision =  fscher_read_value(client, FSCHER_REG_REVISION);
+-}
+-
+-static struct fscher_data *fscher_update_device(struct device *dev)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct fscher_data *data = i2c_get_clientdata(client);
+-
+-	mutex_lock(&data->update_lock);
+-
+-	if (time_after(jiffies, data->last_updated + 2 * HZ) || !data->valid) {
+-
+-		dev_dbg(&client->dev, "Starting fscher update\n");
+-
+-		data->temp_act[0] = fscher_read_value(client, FSCHER_REG_TEMP0_ACT);
+-		data->temp_act[1] = fscher_read_value(client, FSCHER_REG_TEMP1_ACT);
+-		data->temp_act[2] = fscher_read_value(client, FSCHER_REG_TEMP2_ACT);
+-		data->temp_status[0] = fscher_read_value(client, FSCHER_REG_TEMP0_STATE);
+-		data->temp_status[1] = fscher_read_value(client, FSCHER_REG_TEMP1_STATE);
+-		data->temp_status[2] = fscher_read_value(client, FSCHER_REG_TEMP2_STATE);
+-
+-		data->volt[0] = fscher_read_value(client, FSCHER_REG_VOLT_12);
+-		data->volt[1] = fscher_read_value(client, FSCHER_REG_VOLT_5);
+-		data->volt[2] = fscher_read_value(client, FSCHER_REG_VOLT_BATT);
+-
+-		data->fan_act[0] = fscher_read_value(client, FSCHER_REG_FAN0_ACT);
+-		data->fan_act[1] = fscher_read_value(client, FSCHER_REG_FAN1_ACT);
+-		data->fan_act[2] = fscher_read_value(client, FSCHER_REG_FAN2_ACT);
+-		data->fan_status[0] = fscher_read_value(client, FSCHER_REG_FAN0_STATE);
+-		data->fan_status[1] = fscher_read_value(client, FSCHER_REG_FAN1_STATE);
+-		data->fan_status[2] = fscher_read_value(client, FSCHER_REG_FAN2_STATE);
+-		data->fan_min[0] = fscher_read_value(client, FSCHER_REG_FAN0_MIN);
+-		data->fan_min[1] = fscher_read_value(client, FSCHER_REG_FAN1_MIN);
+-		data->fan_min[2] = fscher_read_value(client, FSCHER_REG_FAN2_MIN);
+-		data->fan_ripple[0] = fscher_read_value(client, FSCHER_REG_FAN0_RIPPLE);
+-		data->fan_ripple[1] = fscher_read_value(client, FSCHER_REG_FAN1_RIPPLE);
+-		data->fan_ripple[2] = fscher_read_value(client, FSCHER_REG_FAN2_RIPPLE);
+-
+-		data->watchdog[0] = fscher_read_value(client, FSCHER_REG_WDOG_PRESET);
+-		data->watchdog[1] = fscher_read_value(client, FSCHER_REG_WDOG_STATE);
+-		data->watchdog[2] = fscher_read_value(client, FSCHER_REG_WDOG_CONTROL);
+-
+-		data->global_event = fscher_read_value(client, FSCHER_REG_EVENT_STATE);
+-		data->global_control = fscher_read_value(client,
+-							FSCHER_REG_CONTROL);
+-
+-		data->last_updated = jiffies;
+-		data->valid = 1;                 
+-	}
+-
+-	mutex_unlock(&data->update_lock);
+-
+-	return data;
+-}
+-
+-
+-
+-#define FAN_INDEX_FROM_NUM(nr)	((nr) - 1)
+-
+-static ssize_t set_fan_status(struct i2c_client *client, struct fscher_data *data,
+-			      const char *buf, size_t count, int nr, int reg)
+-{
+-	/* bits 0..1, 3..7 reserved => mask with 0x04 */  
+-	unsigned long v = simple_strtoul(buf, NULL, 10) & 0x04;
+-	
+-	mutex_lock(&data->update_lock);
+-	data->fan_status[FAN_INDEX_FROM_NUM(nr)] &= ~v;
+-	fscher_write_value(client, reg, v);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+-static ssize_t show_fan_status(struct fscher_data *data, char *buf, int nr)
+-{
+-	/* bits 0..1, 3..7 reserved => mask with 0x04 */  
+-	return sprintf(buf, "%u\n", data->fan_status[FAN_INDEX_FROM_NUM(nr)] & 0x04);
+-}
+-
+-static ssize_t set_pwm(struct i2c_client *client, struct fscher_data *data,
+-		       const char *buf, size_t count, int nr, int reg)
+-{
+-	unsigned long v = simple_strtoul(buf, NULL, 10);
+-
+-	mutex_lock(&data->update_lock);
+-	data->fan_min[FAN_INDEX_FROM_NUM(nr)] = v > 0xff ? 0xff : v;
+-	fscher_write_value(client, reg, data->fan_min[FAN_INDEX_FROM_NUM(nr)]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+-static ssize_t show_pwm(struct fscher_data *data, char *buf, int nr)
+-{
+-	return sprintf(buf, "%u\n", data->fan_min[FAN_INDEX_FROM_NUM(nr)]);
+-}
+-
+-static ssize_t set_fan_div(struct i2c_client *client, struct fscher_data *data,
+-			   const char *buf, size_t count, int nr, int reg)
+-{
+-	/* supported values: 2, 4, 8 */
+-	unsigned long v = simple_strtoul(buf, NULL, 10);
+-
+-	switch (v) {
+-	case 2: v = 1; break;
+-	case 4: v = 2; break;
+-	case 8: v = 3; break;
+-	default:
+-		dev_err(&client->dev, "fan_div value %ld not "
+-			 "supported. Choose one of 2, 4 or 8!\n", v);
+-		return -EINVAL;
+-	}
+-
+-	mutex_lock(&data->update_lock);
+-
+-	/* bits 2..7 reserved => mask with 0x03 */
+-	data->fan_ripple[FAN_INDEX_FROM_NUM(nr)] &= ~0x03;
+-	data->fan_ripple[FAN_INDEX_FROM_NUM(nr)] |= v;
+-
+-	fscher_write_value(client, reg, data->fan_ripple[FAN_INDEX_FROM_NUM(nr)]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+-static ssize_t show_fan_div(struct fscher_data *data, char *buf, int nr)
+-{
+-	/* bits 2..7 reserved => mask with 0x03 */  
+-	return sprintf(buf, "%u\n", 1 << (data->fan_ripple[FAN_INDEX_FROM_NUM(nr)] & 0x03));
+-}
+-
+-#define RPM_FROM_REG(val)	(val*60)
+-
+-static ssize_t show_fan_input (struct fscher_data *data, char *buf, int nr)
+-{
+-	return sprintf(buf, "%u\n", RPM_FROM_REG(data->fan_act[FAN_INDEX_FROM_NUM(nr)]));
+-}
+-
+-
+-
+-#define TEMP_INDEX_FROM_NUM(nr)		((nr) - 1)
+-
+-static ssize_t set_temp_status(struct i2c_client *client, struct fscher_data *data,
+-			       const char *buf, size_t count, int nr, int reg)
+-{
+-	/* bits 2..7 reserved, 0 read only => mask with 0x02 */  
+-	unsigned long v = simple_strtoul(buf, NULL, 10) & 0x02;
+-
+-	mutex_lock(&data->update_lock);
+-	data->temp_status[TEMP_INDEX_FROM_NUM(nr)] &= ~v;
+-	fscher_write_value(client, reg, v);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+-static ssize_t show_temp_status(struct fscher_data *data, char *buf, int nr)
+-{
+-	/* bits 2..7 reserved => mask with 0x03 */
+-	return sprintf(buf, "%u\n", data->temp_status[TEMP_INDEX_FROM_NUM(nr)] & 0x03);
+-}
+-
+-#define TEMP_FROM_REG(val)	(((val) - 128) * 1000)
+-
+-static ssize_t show_temp_input(struct fscher_data *data, char *buf, int nr)
+-{
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_act[TEMP_INDEX_FROM_NUM(nr)]));
+-}
+-
+-/*
+- * The final conversion is specified in sensors.conf, as it depends on
+- * mainboard specific values. We export the registers contents as
+- * pseudo-hundredths-of-Volts (range 0V - 2.55V). Not that it makes much
+- * sense per se, but it minimizes the conversions count and keeps the
+- * values within a usual range.
+- */
+-#define VOLT_FROM_REG(val)	((val) * 10)
+-
+-static ssize_t show_in_input(struct fscher_data *data, char *buf, int nr)
+-{
+-	return sprintf(buf, "%u\n", VOLT_FROM_REG(data->volt[nr]));
+-}
+-
+-
+-
+-static ssize_t show_revision(struct fscher_data *data, char *buf, int nr)
+-{
+-	return sprintf(buf, "%u\n", data->revision);
+-}
+-
+-
+-
+-static ssize_t show_alarms(struct fscher_data *data, char *buf, int nr)
+-{
+-	/* bits 2, 5..6 reserved => mask with 0x9b */
+-	return sprintf(buf, "%u\n", data->global_event & 0x9b);
+-}
+-
+-
+-
+-static ssize_t set_control(struct i2c_client *client, struct fscher_data *data,
+-			   const char *buf, size_t count, int nr, int reg)
+-{
+-	/* bits 1..7 reserved => mask with 0x01 */  
+-	unsigned long v = simple_strtoul(buf, NULL, 10) & 0x01;
+-
+-	mutex_lock(&data->update_lock);
+-	data->global_control = v;
+-	fscher_write_value(client, reg, v);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+-static ssize_t show_control(struct fscher_data *data, char *buf, int nr)
+-{
+-	/* bits 1..7 reserved => mask with 0x01 */
+-	return sprintf(buf, "%u\n", data->global_control & 0x01);
+-}
+-
+-
+-
+-static ssize_t set_watchdog_control(struct i2c_client *client, struct
+-				    fscher_data *data, const char *buf, size_t count,
+-				    int nr, int reg)
+-{
+-	/* bits 0..3 reserved => mask with 0xf0 */  
+-	unsigned long v = simple_strtoul(buf, NULL, 10) & 0xf0;
+-
+-	mutex_lock(&data->update_lock);
+-	data->watchdog[2] &= ~0xf0;
+-	data->watchdog[2] |= v;
+-	fscher_write_value(client, reg, data->watchdog[2]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+-static ssize_t show_watchdog_control(struct fscher_data *data, char *buf, int nr)
+-{
+-	/* bits 0..3 reserved, bit 5 write only => mask with 0xd0 */
+-	return sprintf(buf, "%u\n", data->watchdog[2] & 0xd0);
+-}
+-
+-static ssize_t set_watchdog_status(struct i2c_client *client, struct fscher_data *data,
+-				   const char *buf, size_t count, int nr, int reg)
+-{
+-	/* bits 0, 2..7 reserved => mask with 0x02 */  
+-	unsigned long v = simple_strtoul(buf, NULL, 10) & 0x02;
+-
+-	mutex_lock(&data->update_lock);
+-	data->watchdog[1] &= ~v;
+-	fscher_write_value(client, reg, v);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+-static ssize_t show_watchdog_status(struct fscher_data *data, char *buf, int nr)
+-{
+-	/* bits 0, 2..7 reserved => mask with 0x02 */
+-	return sprintf(buf, "%u\n", data->watchdog[1] & 0x02);
+-}
+-
+-static ssize_t set_watchdog_preset(struct i2c_client *client, struct fscher_data *data,
+-				   const char *buf, size_t count, int nr, int reg)
+-{
+-	unsigned long v = simple_strtoul(buf, NULL, 10) & 0xff;
+-	
+-	mutex_lock(&data->update_lock);
+-	data->watchdog[0] = v;
+-	fscher_write_value(client, reg, data->watchdog[0]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+-static ssize_t show_watchdog_preset(struct fscher_data *data, char *buf, int nr)
+-{
+-	return sprintf(buf, "%u\n", data->watchdog[0]);
+-}
+-
+-static int __init sensors_fscher_init(void)
+-{
+-	return i2c_add_driver(&fscher_driver);
+-}
+-
+-static void __exit sensors_fscher_exit(void)
+-{
+-	i2c_del_driver(&fscher_driver);
+-}
+-
+-MODULE_AUTHOR("Reinhard Nissl <rnissl@gmx.de>");
+-MODULE_DESCRIPTION("FSC Hermes driver");
+-MODULE_LICENSE("GPL");
+-
+-module_init(sensors_fscher_init);
+-module_exit(sensors_fscher_exit);
+--- linux-2.6.32-pre.orig/drivers/hwmon/fscpos.c	2009-09-19 22:24:29.000000000 +0200
++++ /dev/null	1970-01-01 00:00:00.000000000 +0000
+@@ -1,654 +0,0 @@
+-/*
+-	fscpos.c - Kernel module for hardware monitoring with FSC Poseidon chips
+-	Copyright (C) 2004, 2005 Stefan Ott <stefan@desire.ch>
+-
+-	This program is free software; you can redistribute it and/or modify
+-	it under the terms of the GNU General Public License as published by
+-	the Free Software Foundation; either version 2 of the License, or
+-	(at your option) any later version.
+-
+-	This program is distributed in the hope that it will be useful,
+-	but WITHOUT ANY WARRANTY; without even the implied warranty of
+-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+-	GNU General Public License for more details.
+-
+-	You should have received a copy of the GNU General Public License
+-	along with this program; if not, write to the Free Software
+-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-*/
+-
+-/*
+-	fujitsu siemens poseidon chip,
+-	module based on the old fscpos module by Hermann Jung <hej@odn.de> and
+-	the fscher module by Reinhard Nissl <rnissl@gmx.de>
+-
+-	original module based on lm80.c
+-	Copyright (C) 1998, 1999 Frodo Looijaard <frodol@dds.nl>
+-	and Philip Edelbrock <phil@netroedge.com>
+-
+-	Thanks to Jean Delvare for reviewing my code and suggesting a lot of
+-	improvements.
+-*/
+-
+-#include <linux/module.h>
+-#include <linux/slab.h>
+-#include <linux/jiffies.h>
+-#include <linux/i2c.h>
+-#include <linux/init.h>
+-#include <linux/hwmon.h>
+-#include <linux/err.h>
+-#include <linux/mutex.h>
+-#include <linux/sysfs.h>
+-
+-/*
+- * Addresses to scan
+- */
+-static const unsigned short normal_i2c[] = { 0x73, I2C_CLIENT_END };
+-
+-/*
+- * Insmod parameters
+- */
+-I2C_CLIENT_INSMOD_1(fscpos);
+-
+-/*
+- * The FSCPOS registers
+- */
+-
+-/* chip identification */
+-#define FSCPOS_REG_IDENT_0		0x00
+-#define FSCPOS_REG_IDENT_1		0x01
+-#define FSCPOS_REG_IDENT_2		0x02
+-#define FSCPOS_REG_REVISION		0x03
+-
+-/* global control and status */
+-#define FSCPOS_REG_EVENT_STATE		0x04
+-#define FSCPOS_REG_CONTROL		0x05
+-
+-/* watchdog */
+-#define FSCPOS_REG_WDOG_PRESET		0x28
+-#define FSCPOS_REG_WDOG_STATE		0x23
+-#define FSCPOS_REG_WDOG_CONTROL		0x21
+-
+-/* voltages */
+-#define FSCPOS_REG_VOLT_12		0x45
+-#define FSCPOS_REG_VOLT_5		0x42
+-#define FSCPOS_REG_VOLT_BATT		0x48
+-
+-/* fans - the chip does not support minimum speed for fan2 */
+-static u8 FSCPOS_REG_PWM[] = { 0x55, 0x65 };
+-static u8 FSCPOS_REG_FAN_ACT[] = { 0x0e, 0x6b, 0xab };
+-static u8 FSCPOS_REG_FAN_STATE[] = { 0x0d, 0x62, 0xa2 };
+-static u8 FSCPOS_REG_FAN_RIPPLE[] = { 0x0f, 0x6f, 0xaf };
+-
+-/* temperatures */
+-static u8 FSCPOS_REG_TEMP_ACT[] = { 0x64, 0x32, 0x35 };
+-static u8 FSCPOS_REG_TEMP_STATE[] = { 0x71, 0x81, 0x91 };
+-
+-/*
+- * Functions declaration
+- */
+-static int fscpos_probe(struct i2c_client *client,
+-			const struct i2c_device_id *id);
+-static int fscpos_detect(struct i2c_client *client, int kind,
+-			 struct i2c_board_info *info);
+-static int fscpos_remove(struct i2c_client *client);
+-
+-static int fscpos_read_value(struct i2c_client *client, u8 reg);
+-static int fscpos_write_value(struct i2c_client *client, u8 reg, u8 value);
+-static struct fscpos_data *fscpos_update_device(struct device *dev);
+-static void fscpos_init_client(struct i2c_client *client);
+-
+-static void reset_fan_alarm(struct i2c_client *client, int nr);
+-
+-/*
+- * Driver data (common to all clients)
+- */
+-static const struct i2c_device_id fscpos_id[] = {
+-	{ "fscpos", fscpos },
+-	{ }
+-};
+-
+-static struct i2c_driver fscpos_driver = {
+-	.class		= I2C_CLASS_HWMON,
+-	.driver = {
+-		.name	= "fscpos",
+-	},
+-	.probe		= fscpos_probe,
+-	.remove		= fscpos_remove,
+-	.id_table	= fscpos_id,
+-	.detect		= fscpos_detect,
+-	.address_data	= &addr_data,
+-};
+-
+-/*
+- * Client data (each client gets its own)
+- */
+-struct fscpos_data {
+-	struct device *hwmon_dev;
+-	struct mutex update_lock;
+-	char valid; 		/* 0 until following fields are valid */
+-	unsigned long last_updated;	/* In jiffies */
+-
+-	/* register values */
+-	u8 revision;		/* revision of chip */
+-	u8 global_event;	/* global event status */
+-	u8 global_control;	/* global control register */
+-	u8 wdog_control;	/* watchdog control */
+-	u8 wdog_state;		/* watchdog status */
+-	u8 wdog_preset;		/* watchdog preset */
+-	u8 volt[3];		/* 12, 5, battery current */
+-	u8 temp_act[3];		/* temperature */
+-	u8 temp_status[3];	/* status of sensor */
+-	u8 fan_act[3];		/* fans revolutions per second */
+-	u8 fan_status[3];	/* fan status */
+-	u8 pwm[2];		/* fan min value for rps */
+-	u8 fan_ripple[3];	/* divider for rps */
+-};
+-
+-/* Temperature */
+-#define TEMP_FROM_REG(val)	(((val) - 128) * 1000)
+-
+-static ssize_t show_temp_input(struct fscpos_data *data, char *buf, int nr)
+-{
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_act[nr - 1]));
+-}
+-
+-static ssize_t show_temp_status(struct fscpos_data *data, char *buf, int nr)
+-{
+-	/* bits 2..7 reserved => mask with 0x03 */
+-	return sprintf(buf, "%u\n", data->temp_status[nr - 1] & 0x03);
+-}
+-
+-static ssize_t show_temp_reset(struct fscpos_data *data, char *buf, int nr)
+-{
+-	return sprintf(buf, "1\n");
+-}
+-
+-static ssize_t set_temp_reset(struct i2c_client *client, struct fscpos_data
+-			*data, const char *buf,	size_t count, int nr, int reg)
+-{
+-	unsigned long v = simple_strtoul(buf, NULL, 10);
+-	if (v != 1) {
+-		dev_err(&client->dev, "temp_reset value %ld not supported. "
+-					"Use 1 to reset the alarm!\n", v);
+-		return -EINVAL;
+-	}
+-
+-	dev_info(&client->dev, "You used the temp_reset feature which has not "
+-				"been proplerly tested. Please report your "
+-				"experience to the module author.\n");
+-
+-	/* Supported value: 2 (clears the status) */
+-	fscpos_write_value(client, FSCPOS_REG_TEMP_STATE[nr - 1], 2);
+-	return count;
+-}
+-
+-/* Fans */
+-#define RPM_FROM_REG(val)	((val) * 60)
+-
+-static ssize_t show_fan_status(struct fscpos_data *data, char *buf, int nr)
+-{
+-	/* bits 0..1, 3..7 reserved => mask with 0x04 */
+-	return sprintf(buf, "%u\n", data->fan_status[nr - 1] & 0x04);
+-}
+-
+-static ssize_t show_fan_input(struct fscpos_data *data, char *buf, int nr)
+-{
+-	return sprintf(buf, "%u\n", RPM_FROM_REG(data->fan_act[nr - 1]));
+-}
+-
+-static ssize_t show_fan_ripple(struct fscpos_data *data, char *buf, int nr)
+-{
+-	/* bits 2..7 reserved => mask with 0x03 */
+-	return sprintf(buf, "%u\n", data->fan_ripple[nr - 1] & 0x03);
+-}
+-
+-static ssize_t set_fan_ripple(struct i2c_client *client, struct fscpos_data
+-			*data, const char *buf,	size_t count, int nr, int reg)
+-{
+-	/* supported values: 2, 4, 8 */
+-	unsigned long v = simple_strtoul(buf, NULL, 10);
+-
+-	switch (v) {
+-		case 2: v = 1; break;
+-		case 4: v = 2; break;
+-		case 8: v = 3; break;
+-	default:
+-		dev_err(&client->dev, "fan_ripple value %ld not supported. "
+-					"Must be one of 2, 4 or 8!\n", v);
+-		return -EINVAL;
+-	}
+-	
+-	mutex_lock(&data->update_lock);
+-	/* bits 2..7 reserved => mask with 0x03 */
+-	data->fan_ripple[nr - 1] &= ~0x03;
+-	data->fan_ripple[nr - 1] |= v;
+-	
+-	fscpos_write_value(client, reg, data->fan_ripple[nr - 1]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+-static ssize_t show_pwm(struct fscpos_data *data, char *buf, int nr)
+-{
+-	return sprintf(buf, "%u\n", data->pwm[nr - 1]);
+-}
+-
+-static ssize_t set_pwm(struct i2c_client *client, struct fscpos_data *data,
+-				const char *buf, size_t count, int nr, int reg)
+-{
+-	unsigned long v = simple_strtoul(buf, NULL, 10);
+-
+-	/* Range: 0..255 */
+-	if (v < 0) v = 0;
+-	if (v > 255) v = 255;
+-
+-	mutex_lock(&data->update_lock);
+-	data->pwm[nr - 1] = v;
+-	fscpos_write_value(client, reg, data->pwm[nr - 1]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+-static void reset_fan_alarm(struct i2c_client *client, int nr)
+-{
+-	fscpos_write_value(client, FSCPOS_REG_FAN_STATE[nr], 4);
+-}
+-
+-/* Volts */
+-#define VOLT_FROM_REG(val, mult)	((val) * (mult) / 255)
+-
+-static ssize_t show_volt_12(struct device *dev, struct device_attribute *attr, char *buf)
+-{
+-	struct fscpos_data *data = fscpos_update_device(dev);
+-	return sprintf(buf, "%u\n", VOLT_FROM_REG(data->volt[0], 14200));
+-}
+-
+-static ssize_t show_volt_5(struct device *dev, struct device_attribute *attr, char *buf)
+-{
+-	struct fscpos_data *data = fscpos_update_device(dev);
+-	return sprintf(buf, "%u\n", VOLT_FROM_REG(data->volt[1], 6600));
+-}
+-
+-static ssize_t show_volt_batt(struct device *dev, struct device_attribute *attr, char *buf)
+-{
+-	struct fscpos_data *data = fscpos_update_device(dev);
+-	return sprintf(buf, "%u\n", VOLT_FROM_REG(data->volt[2], 3300));
+-}
+-
+-/* Watchdog */
+-static ssize_t show_wdog_control(struct fscpos_data *data, char *buf)
+-{
+-	/* bits 0..3 reserved, bit 6 write only => mask with 0xb0 */
+-	return sprintf(buf, "%u\n", data->wdog_control & 0xb0);
+-}
+-
+-static ssize_t set_wdog_control(struct i2c_client *client, struct fscpos_data
+-				*data, const char *buf,	size_t count, int reg)
+-{
+-	/* bits 0..3 reserved => mask with 0xf0 */
+-	unsigned long v = simple_strtoul(buf, NULL, 10) & 0xf0;
+-
+-	mutex_lock(&data->update_lock);
+-	data->wdog_control &= ~0xf0;
+-	data->wdog_control |= v;
+-	fscpos_write_value(client, reg, data->wdog_control);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+-static ssize_t show_wdog_state(struct fscpos_data *data, char *buf)
+-{
+-	/* bits 0, 2..7 reserved => mask with 0x02 */
+-	return sprintf(buf, "%u\n", data->wdog_state & 0x02);
+-}
+-
+-static ssize_t set_wdog_state(struct i2c_client *client, struct fscpos_data
+-				*data, const char *buf, size_t count, int reg)
+-{
+-	unsigned long v = simple_strtoul(buf, NULL, 10) & 0x02;
+-
+-	/* Valid values: 2 (clear) */
+-	if (v != 2) {
+-		dev_err(&client->dev, "wdog_state value %ld not supported. "
+-					"Must be 2 to clear the state!\n", v);
+-		return -EINVAL;
+-	}
+-
+-	mutex_lock(&data->update_lock);
+-	data->wdog_state &= ~v;
+-	fscpos_write_value(client, reg, v);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+-static ssize_t show_wdog_preset(struct fscpos_data *data, char *buf)
+-{
+-	return sprintf(buf, "%u\n", data->wdog_preset);
+-}
+-
+-static ssize_t set_wdog_preset(struct i2c_client *client, struct fscpos_data
+-				*data, const char *buf,	size_t count, int reg)
+-{
+-	unsigned long v = simple_strtoul(buf, NULL, 10) & 0xff;
+-
+-	mutex_lock(&data->update_lock);
+-	data->wdog_preset = v;
+-	fscpos_write_value(client, reg, data->wdog_preset);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+-/* Event */
+-static ssize_t show_event(struct device *dev, struct device_attribute *attr, char *buf)
+-{
+-	/* bits 5..7 reserved => mask with 0x1f */
+-	struct fscpos_data *data = fscpos_update_device(dev);
+-	return sprintf(buf, "%u\n", data->global_event & 0x9b);
+-}
+-
+-/*
+- * Sysfs stuff
+- */
+-#define create_getter(kind, sub) \
+-	static ssize_t sysfs_show_##kind##sub(struct device *dev, struct device_attribute *attr, char *buf) \
+-	{ \
+-		struct fscpos_data *data = fscpos_update_device(dev); \
+-		return show_##kind##sub(data, buf); \
+-	}
+-
+-#define create_getter_n(kind, offset, sub) \
+-	static ssize_t sysfs_show_##kind##offset##sub(struct device *dev, struct device_attribute *attr, char\
+-								 	*buf) \
+-	{ \
+-		struct fscpos_data *data = fscpos_update_device(dev); \
+-		return show_##kind##sub(data, buf, offset); \
+-	}
+-
+-#define create_setter(kind, sub, reg) \
+-	static ssize_t sysfs_set_##kind##sub (struct device *dev, struct device_attribute *attr, const char \
+-							*buf, size_t count) \
+-	{ \
+-		struct i2c_client *client = to_i2c_client(dev); \
+-		struct fscpos_data *data = i2c_get_clientdata(client); \
+-		return set_##kind##sub(client, data, buf, count, reg); \
+-	}
+-
+-#define create_setter_n(kind, offset, sub, reg) \
+-	static ssize_t sysfs_set_##kind##offset##sub (struct device *dev, struct device_attribute *attr, \
+-					const char *buf, size_t count) \
+-	{ \
+-		struct i2c_client *client = to_i2c_client(dev); \
+-		struct fscpos_data *data = i2c_get_clientdata(client); \
+-		return set_##kind##sub(client, data, buf, count, offset, reg);\
+-	}
+-
+-#define create_sysfs_device_ro(kind, sub, offset) \
+-	static DEVICE_ATTR(kind##offset##sub, S_IRUGO, \
+-					sysfs_show_##kind##offset##sub, NULL);
+-
+-#define create_sysfs_device_rw(kind, sub, offset) \
+-	static DEVICE_ATTR(kind##offset##sub, S_IRUGO | S_IWUSR, \
+-		sysfs_show_##kind##offset##sub, sysfs_set_##kind##offset##sub);
+-
+-#define sysfs_ro_n(kind, sub, offset) \
+-	create_getter_n(kind, offset, sub); \
+-	create_sysfs_device_ro(kind, sub, offset);
+-
+-#define sysfs_rw_n(kind, sub, offset, reg) \
+-	create_getter_n(kind, offset, sub); \
+-	create_setter_n(kind, offset, sub, reg); \
+-	create_sysfs_device_rw(kind, sub, offset);
+-
+-#define sysfs_rw(kind, sub, reg) \
+-	create_getter(kind, sub); \
+-	create_setter(kind, sub, reg); \
+-	create_sysfs_device_rw(kind, sub,);
+-
+-#define sysfs_fan_with_min(offset, reg_status, reg_ripple, reg_min) \
+-	sysfs_fan(offset, reg_status, reg_ripple); \
+-	sysfs_rw_n(pwm,, offset, reg_min);
+-
+-#define sysfs_fan(offset, reg_status, reg_ripple) \
+-	sysfs_ro_n(fan, _input, offset); \
+-	sysfs_ro_n(fan, _status, offset); \
+-	sysfs_rw_n(fan, _ripple, offset, reg_ripple);
+-
+-#define sysfs_temp(offset, reg_status) \
+-	sysfs_ro_n(temp, _input, offset); \
+-	sysfs_ro_n(temp, _status, offset); \
+-	sysfs_rw_n(temp, _reset, offset, reg_status);
+-
+-#define sysfs_watchdog(reg_wdog_preset, reg_wdog_state, reg_wdog_control) \
+-	sysfs_rw(wdog, _control, reg_wdog_control); \
+-	sysfs_rw(wdog, _preset, reg_wdog_preset); \
+-	sysfs_rw(wdog, _state, reg_wdog_state);
+-
+-sysfs_fan_with_min(1, FSCPOS_REG_FAN_STATE[0], FSCPOS_REG_FAN_RIPPLE[0],
+-							FSCPOS_REG_PWM[0]);
+-sysfs_fan_with_min(2, FSCPOS_REG_FAN_STATE[1], FSCPOS_REG_FAN_RIPPLE[1],
+-							FSCPOS_REG_PWM[1]);
+-sysfs_fan(3, FSCPOS_REG_FAN_STATE[2], FSCPOS_REG_FAN_RIPPLE[2]);
+-
+-sysfs_temp(1, FSCPOS_REG_TEMP_STATE[0]);
+-sysfs_temp(2, FSCPOS_REG_TEMP_STATE[1]);
+-sysfs_temp(3, FSCPOS_REG_TEMP_STATE[2]);
+-
+-sysfs_watchdog(FSCPOS_REG_WDOG_PRESET, FSCPOS_REG_WDOG_STATE,
+-						FSCPOS_REG_WDOG_CONTROL);
+-
+-static DEVICE_ATTR(event, S_IRUGO, show_event, NULL);
+-static DEVICE_ATTR(in0_input, S_IRUGO, show_volt_12, NULL);
+-static DEVICE_ATTR(in1_input, S_IRUGO, show_volt_5, NULL);
+-static DEVICE_ATTR(in2_input, S_IRUGO, show_volt_batt, NULL);
+-
+-static struct attribute *fscpos_attributes[] = {
+-	&dev_attr_event.attr,
+-	&dev_attr_in0_input.attr,
+-	&dev_attr_in1_input.attr,
+-	&dev_attr_in2_input.attr,
+-
+-	&dev_attr_wdog_control.attr,
+-	&dev_attr_wdog_preset.attr,
+-	&dev_attr_wdog_state.attr,
+-
+-	&dev_attr_temp1_input.attr,
+-	&dev_attr_temp1_status.attr,
+-	&dev_attr_temp1_reset.attr,
+-	&dev_attr_temp2_input.attr,
+-	&dev_attr_temp2_status.attr,
+-	&dev_attr_temp2_reset.attr,
+-	&dev_attr_temp3_input.attr,
+-	&dev_attr_temp3_status.attr,
+-	&dev_attr_temp3_reset.attr,
+-
+-	&dev_attr_fan1_input.attr,
+-	&dev_attr_fan1_status.attr,
+-	&dev_attr_fan1_ripple.attr,
+-	&dev_attr_pwm1.attr,
+-	&dev_attr_fan2_input.attr,
+-	&dev_attr_fan2_status.attr,
+-	&dev_attr_fan2_ripple.attr,
+-	&dev_attr_pwm2.attr,
+-	&dev_attr_fan3_input.attr,
+-	&dev_attr_fan3_status.attr,
+-	&dev_attr_fan3_ripple.attr,
+-	NULL
+-};
+-
+-static const struct attribute_group fscpos_group = {
+-	.attrs = fscpos_attributes,
+-};
+-
+-/* Return 0 if detection is successful, -ENODEV otherwise */
+-static int fscpos_detect(struct i2c_client *new_client, int kind,
+-			 struct i2c_board_info *info)
+-{
+-	struct i2c_adapter *adapter = new_client->adapter;
+-
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+-		return -ENODEV;
+-
+-	/* Do the remaining detection unless force or force_fscpos parameter */
+-	if (kind < 0) {
+-		if ((fscpos_read_value(new_client, FSCPOS_REG_IDENT_0)
+-			!= 0x50) /* 'P' */
+-		|| (fscpos_read_value(new_client, FSCPOS_REG_IDENT_1)
+-			!= 0x45) /* 'E' */
+-		|| (fscpos_read_value(new_client, FSCPOS_REG_IDENT_2)
+-			!= 0x47))/* 'G' */
+-			return -ENODEV;
+-	}
+-
+-	strlcpy(info->type, "fscpos", I2C_NAME_SIZE);
+-
+-	return 0;
+-}
+-
+-static int fscpos_probe(struct i2c_client *new_client,
+-			const struct i2c_device_id *id)
+-{
+-	struct fscpos_data *data;
+-	int err;
+-
+-	data = kzalloc(sizeof(struct fscpos_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
+-
+-	i2c_set_clientdata(new_client, data);
+-	data->valid = 0;
+-	mutex_init(&data->update_lock);
+-
+-	/* Inizialize the fscpos chip */
+-	fscpos_init_client(new_client);
+-
+-	/* Announce that the chip was found */
+-	dev_info(&new_client->dev, "Found fscpos chip, rev %u\n", data->revision);
+-
+-	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&new_client->dev.kobj, &fscpos_group)))
+-		goto exit_free;
+-
+-	data->hwmon_dev = hwmon_device_register(&new_client->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove_files;
+-	}
+-
+-	return 0;
+-
+-exit_remove_files:
+-	sysfs_remove_group(&new_client->dev.kobj, &fscpos_group);
+-exit_free:
+-	kfree(data);
+-exit:
+-	return err;
+-}
+-
+-static int fscpos_remove(struct i2c_client *client)
+-{
+-	struct fscpos_data *data = i2c_get_clientdata(client);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &fscpos_group);
+-
+-	kfree(data);
+-	return 0;
+-}
+-
+-static int fscpos_read_value(struct i2c_client *client, u8 reg)
+-{
+-	dev_dbg(&client->dev, "Read reg 0x%02x\n", reg);
+-	return i2c_smbus_read_byte_data(client, reg);
+-}
+-
+-static int fscpos_write_value(struct i2c_client *client, u8 reg, u8 value)
+-{
+-	dev_dbg(&client->dev, "Write reg 0x%02x, val 0x%02x\n", reg, value);
+-	return i2c_smbus_write_byte_data(client, reg, value);
+-}
+-
+-/* Called when we have found a new FSCPOS chip */
+-static void fscpos_init_client(struct i2c_client *client)
+-{
+-	struct fscpos_data *data = i2c_get_clientdata(client);
+-
+-	/* read revision from chip */
+-	data->revision = fscpos_read_value(client, FSCPOS_REG_REVISION);
+-}
+-
+-static struct fscpos_data *fscpos_update_device(struct device *dev)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct fscpos_data *data = i2c_get_clientdata(client);
+-
+-	mutex_lock(&data->update_lock);
+-
+-	if (time_after(jiffies, data->last_updated + 2 * HZ) || !data->valid) {
+-		int i;
+-
+-		dev_dbg(&client->dev, "Starting fscpos update\n");
+-
+-		for (i = 0; i < 3; i++) {
+-			data->temp_act[i] = fscpos_read_value(client,
+-						FSCPOS_REG_TEMP_ACT[i]);
+-			data->temp_status[i] = fscpos_read_value(client,
+-						FSCPOS_REG_TEMP_STATE[i]);
+-			data->fan_act[i] = fscpos_read_value(client,
+-						FSCPOS_REG_FAN_ACT[i]);
+-			data->fan_status[i] = fscpos_read_value(client,
+-						FSCPOS_REG_FAN_STATE[i]);
+-			data->fan_ripple[i] = fscpos_read_value(client,
+-						FSCPOS_REG_FAN_RIPPLE[i]);
+-			if (i < 2) {
+-				/* fan2_min is not supported by the chip */
+-				data->pwm[i] = fscpos_read_value(client,
+-							FSCPOS_REG_PWM[i]);
+-			}
+-			/* reset fan status if speed is back to > 0 */
+-			if (data->fan_status[i] != 0 && data->fan_act[i] > 0) {
+-				reset_fan_alarm(client, i);
+-			}
+-		}
+-
+-		data->volt[0] = fscpos_read_value(client, FSCPOS_REG_VOLT_12);
+-		data->volt[1] = fscpos_read_value(client, FSCPOS_REG_VOLT_5);
+-		data->volt[2] = fscpos_read_value(client, FSCPOS_REG_VOLT_BATT);
+-
+-		data->wdog_preset = fscpos_read_value(client,
+-							FSCPOS_REG_WDOG_PRESET);
+-		data->wdog_state = fscpos_read_value(client,
+-							FSCPOS_REG_WDOG_STATE);
+-		data->wdog_control = fscpos_read_value(client,
+-						FSCPOS_REG_WDOG_CONTROL);
+-
+-		data->global_event = fscpos_read_value(client,
+-						FSCPOS_REG_EVENT_STATE);
+-
+-		data->last_updated = jiffies;
+-		data->valid = 1;
+-	}
+-	mutex_unlock(&data->update_lock);
+-	return data;
+-}
+-
+-static int __init sm_fscpos_init(void)
+-{
+-	return i2c_add_driver(&fscpos_driver);
+-}
+-
+-static void __exit sm_fscpos_exit(void)
+-{
+-	i2c_del_driver(&fscpos_driver);
+-}
+-
+-MODULE_AUTHOR("Stefan Ott <stefan@desire.ch> based on work from Hermann Jung "
+-				"<hej@odn.de>, Frodo Looijaard <frodol@dds.nl>"
+-				" and Philip Edelbrock <phil@netroedge.com>");
+-MODULE_DESCRIPTION("fujitsu siemens poseidon chip driver");
+-MODULE_LICENSE("GPL");
+-
+-module_init(sm_fscpos_init);
+-module_exit(sm_fscpos_exit);
+--- linux-2.6.32-pre.orig/Documentation/feature-removal-schedule.txt	2009-09-19 10:13:40.000000000 +0200
++++ linux-2.6.32-pre/Documentation/feature-removal-schedule.txt	2009-09-20 09:26:21.000000000 +0200
+@@ -354,14 +354,6 @@ Who:  Krzysztof Piotr Oledzki <ole@ans.p
+ 
+ ---------------------------
+ 
+-What:	fscher and fscpos drivers
+-When:	June 2009
+-Why:	Deprecated by the new fschmd driver.
+-Who:	Hans de Goede <hdegoede@redhat.com>
+-	Jean Delvare <khali@linux-fr.org>
+-
+----------------------------
+-
+ What:	sysfs ui for changing p4-clockmod parameters
+ When:	September 2009
+ Why:	See commits 129f8ae9b1b5be94517da76009ea956e89104ce8 and
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
