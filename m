@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 18 Sep 2009 16:16:38 +0000
+From: Samuel Ortiz <sameo@linux.intel.com>
+Date: Sun, 20 Sep 2009 23:48:37 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon w83627hf: add mfd support.
-Message-Id: <20090918181638.42331042@hyperion.delvare>
+Message-Id: <20090920234836.GA32706@sortiz.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1252585810-5336-2-git-send-email-giometti@linux.it>
 In-Reply-To: <1252585810-5336-2-git-send-email-giometti@linux.it>
@@ -10,180 +10,92 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Samuel,
+Hi Jean,
 
-On Fri, 18 Sep 2009 16:42:49 +0200, Samuel Ortiz wrote:
-> On Fri, Sep 18, 2009 at 02:09:23PM +0200, Rodolfo Giometti wrote:
-> > +#define W627_DEVID		0x52
-> > +#define W627THF_DEVID		0x82
-> > +#define W697_DEVID		0x60
-> > +#define W637_DEVID		0x70
-> > +#define W687THF_DEVID		0x85
-> > +#define WINB_ACT_REG		0x30
-> > +#define WINB_BASE_REG		0x60
-> Are those 2 last ones HWMON specific. If that's so, please be more specific
-> about it.
-
-No, these are standard registers common to all logical devices.
-
-> > +/* Constants specified below */
-> > +
-> > +/* Offset & size of I/O region we are interested in */
-> This seems to be the hwmon region, so please be more specific about it in the
-> comments and in the naming below.
-
-Correct.
-
-> > +#define WINB_REGION_OFFSET	5
-> > +#define WINB_REGION_SIZE	2
-> > +
-> > +static int __init w83627hf_find(int sioaddr, unsigned short *addr,
-> > +				struct w83627hf_sio_data *sio_data)
-> > +{
-> > +	int err = -ENODEV;
-> > +	u16 val;
-> > +
-> > +	sio_data->sioaddr = sioaddr;
-> > +
-> > +	superio_enter(sio_data);
-> > +	val = force_id ? force_id : superio_inb(sio_data, 0x20);
-> > +	switch (val) {
-> > +	case W627_DEVID:
-> > +		sio_data->type = w83627hf;
-> > +		break;
-> > +	case W627THF_DEVID:
-> > +		sio_data->type = w83627thf;
-> > +		break;
-> > +	case W697_DEVID:
-> > +		sio_data->type = w83697hf;
-> > +		break;
-> > +	case W637_DEVID:
-> > +		sio_data->type = w83637hf;
-> > +		break;
-> > +	case W687THF_DEVID:
-> > +		sio_data->type = w83687thf;
-> > +		break;
-> > +	case 0xff:	/* No device at all */
-> > +		goto exit;
-> > +	default:
-> > +		pr_debug(DRVNAME ": Unsupported chip (DEVID=0x%02x)\n", val);
-> > +		goto exit;
-> > +	}
-> > +
-> > +	sio_data->name = names[sio_data->type];
-> > +
-> > +	superio_select(sio_data, W83627HF_LD_HWM);
-> > +	force_hwmon_addr &= (~7);
-> > +	if (force_hwmon_addr) {
-> > +		printk(KERN_WARNING DRVNAME ": Forcing address 0x%x\n",
-> > +		       force_hwmon_addr);
-> > +		superio_outb(sio_data, WINB_BASE_REG, force_hwmon_addr >> 8);
-> > +		superio_outb(sio_data, WINB_BASE_REG + 1,
-> > +					force_hwmon_addr & 0xff);
-> > +	}
-> > +	val = (superio_inb(sio_data, WINB_BASE_REG) << 8) |
-> > +	       superio_inb(sio_data, WINB_BASE_REG + 1);
-> > +	*addr = val & (~7);
-> > +	if (*addr = 0) {
-> > +		printk(KERN_WARNING DRVNAME ": Base address not set, "
-> > +		       "skipping\n");
-> > +		goto exit;
-> > +	}
-> > +
-> > +	val = superio_inb(sio_data, WINB_ACT_REG);
-> > +	if (!(val & 0x01)) {
-> > +		printk(KERN_WARNING DRVNAME ": Enabling HWM logical device\n");
-> > +		superio_outb(sio_data, WINB_ACT_REG, val | 0x01);
-> > +	}
-> > +
-> > +	err = 0;
-> > +	pr_info(DRVNAME ": Found %s chip at %#x\n",
-> > +		names[sio_data->type], *addr);
->
-> I'm not familiar with this chip, but although the function is called
-> w83627hf_find(), it seems to me that what we're doing here is enabling the
-> hwmon subdevice. Am I correct ? If that's so, could we split this function,
-> and maybe even move the hwmon specific part into the hwmon driver.
-
-The enablement of the hwmon logical device is only a side effect. The
-main goal of the function is to figure out whether a supported chip is
-present, and which one. The original reason to put everything is the
-same function is so that we don't have to enter and exit the super-io
-config mode twice.
-
-But I wouldn't object to it being split into two separate functions,
-each one doing just one thing. That would be cleaner, and speed isn't
-critical.
-
-> > + exit:
-> > +	superio_exit(sio_data);
-> > +	return err;
-> > +}
-
-> > (...)
-> > +static inline void superio_enter(struct w83627hf_sio_data *sio)
-> > +{
-> > +	mutex_lock(&sio->lock);
-> > +
-> > +	outb(0x87, sio->sioaddr);
-> > +	outb(0x87, sio->sioaddr);
->
-> I'm not really happy with this one. The unbalanced locking here makes me feel
-> unconfortable.
-
-Me, I don't have any objection. Callers will have to balance
-superio_enter and superio_exit anyway. So hiding the mutex in there
-seems reasonable.
-
-> Something like that:
+On Fri, Sep 18, 2009 at 06:16:38PM +0200, Jean Delvare wrote:
+> > > +static inline void superio_enter(struct w83627hf_sio_data *sio)
+> > > +{
+> > > +	mutex_lock(&sio->lock);
+> > > +
+> > > +	outb(0x87, sio->sioaddr);
+> > > +	outb(0x87, sio->sioaddr);
+> >
+> > I'm not really happy with this one. The unbalanced locking here makes me feel
+> > unconfortable.
 > 
-> void superio_outb(struct w83627hf_sio_data *sio, int ld, int reg, int val)
-> {
-> 	mutex_lock(&sio->lock);
-> 
-> 	/* Enter */
-> 	outb(0x87, sio->sioaddr)
-> 	outb(0x87, sio->sioaddr)
-> 
-> 	/* Select module */
-> 	outb(0x07, sio->sioaddr);
-> 	outb(ld, sio->sioaddr + 1);
-> 
-> 	/* Write */
-> 	outb(reg, sio->sioaddr);
-> 	outb(val, sio->sioaddr + 1);
-> 
-> 	/* Exit */
-> 	outb(0xAA, sio->sioaddr);
-> 
-> 	mutex_unlock(&sio->lock);
-> }
-> 
-> would look saner to me. I know we're wasting many IO ops here, but it seems to
-> me that the subdevices get to call the superio API only at init time.
-> I think it's worth it as your subdevices wouldnt have to care about following
-> these error prone steps, and you wouldnt have any more unbalanced locking
-> risks.
+> Me, I don't have any objection. Callers will have to balance
+> superio_enter and superio_exit anyway. So hiding the mutex in there
+> seems reasonable.
+Oh, hiding the mutex from the callers makes perfect sense to me. What I dont
+really like is the fact that it's so easy to screw the locking (unbalance it,
+unlock while not locking, unlock from a different process than the one that
+locked, etc...) with this API. In fact, it doesnt bring much compared to
+letting callers handling the locking by themselves.
+Obviously, the only thing it brings is not having the callers know or care
+about the MFD core locking. More comments below...
 
-The above has limitations. Think of the hwmon logical device enablement
-function which we discussed above. In this function we must read a
-register, and depending on the value, maybe write to it, but altering
-only one bit (so based on the original value.)
+ 
+> > Something like that:
+> > 
+> > void superio_outb(struct w83627hf_sio_data *sio, int ld, int reg, int val)
+> > {
+> > 	mutex_lock(&sio->lock);
+> > 
+> > 	/* Enter */
+> > 	outb(0x87, sio->sioaddr)
+> > 	outb(0x87, sio->sioaddr)
+> > 
+> > 	/* Select module */
+> > 	outb(0x07, sio->sioaddr);
+> > 	outb(ld, sio->sioaddr + 1);
+> > 
+> > 	/* Write */
+> > 	outb(reg, sio->sioaddr);
+> > 	outb(val, sio->sioaddr + 1);
+> > 
+> > 	/* Exit */
+> > 	outb(0xAA, sio->sioaddr);
+> > 
+> > 	mutex_unlock(&sio->lock);
+> > }
+> > 
+> > would look saner to me. I know we're wasting many IO ops here, but it seems to
+> > me that the subdevices get to call the superio API only at init time.
+> > I think it's worth it as your subdevices wouldnt have to care about following
+> > these error prone steps, and you wouldnt have any more unbalanced locking
+> > risks.
+> 
+> The above has limitations. Think of the hwmon logical device enablement
+> function which we discussed above. In this function we must read a
+> register, and depending on the value, maybe write to it, but altering
+> only one bit (so based on the original value.)
+> 
+> There is no way to achieve this in a race-free manner with your
+> proposed superio_outb() function and the equivalent superio_inb()
+> implementation. Even a superio_alterb() function wouldn't do, because
+> we want to print a message.
+I agree about that. But since this API is supposed to be used by subdevices, I
+looked at what the only available one (w83627hf.c) would do with it. It seems
+to me that this API would work well for w83627thf_read_gpio5() and
+w83627thf_read_vid(). The more complex register manipulations found in
+w83627hf_find() wouldnt have to use this API since it's an MFD core routine.
+I definitely see the limitation of the above API, but it looks like it fills
+the current need without introducing potential locking issues.
+Now, you guys know way better the HW than me and can tell if this API will be
+too limited for future subdevices. If that's the case, then let's go with
+Rodolfo's proposal but I'd like to have an additional check for all the
+superio_* routines (except superio_enter()), which would be a:
+WARN_ON(!mutex_is_locked(&sio->lock));
 
-There is no way to achieve this in a race-free manner with your
-proposed superio_outb() function and the equivalent superio_inb()
-implementation. Even a superio_alterb() function wouldn't do, because
-we want to print a message.
+That wont protect us from the "unlocking from a different process" bug, but it
+would still be a progress.
 
-At least with Rodolfo's proposal, this can be done. With your approach,
-we'd need dedicated functions for every non-trivial register access.
-
-As far as speed is concerned, I agree it's not critical, at least for
-the use cases I know of. 
-
+Cheers,
+Samuel.
 
 -- 
-Jean Delvare
+Intel Open Source Technology Centre
+http://oss.intel.com/
 
 _______________________________________________
 lm-sensors mailing list
