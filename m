@@ -1,64 +1,28 @@
-From: Tomaz Mertelj <tomaz.mertelj@guest.arnes.si>
-Date: Tue, 22 Sep 2009 05:59:14 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Tue, 22 Sep 2009 06:02:57 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Driver for Texas Instruments
-Message-Id: <5.1.0.14.2.20090922075153.00be9690@pop3.arnes.si>
+Message-Id: <20090921230257.1aa1b636.akpm@linux-foundation.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090909093435.60531d95@hyperion.delvare>
- <20090905_120834_010267.tomaz.mertelj@guest.arnes.si>
- <20090908170649.855dd1ff.akpm@linux-foundation.org>
- <20090909093435.60531d95@hyperion.delvare>
-In-Reply-To: <20090921144423.6ebf564f.akpm@linux-foundation.org>
+	<20090905_120834_010267.tomaz.mertelj@guest.arnes.si>
+	<20090908170649.855dd1ff.akpm@linux-foundation.org>
+	<20090909093435.60531d95@hyperion.delvare>
+	<5.1.0.14.2.20090922075153.00be9690@pop3.arnes.si>
+In-Reply-To: <5.1.0.14.2.20090922075153.00be9690@pop3.arnes.si>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, Jean Delvare <khali@linux-fr.org>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Tomaz Mertelj <tomaz.mertelj@guest.arnes.si>
+Cc: Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-At 14:44 21. 9. 2009 -0700, Andrew Morton wrote:
->On Wed, 9 Sep 2009 09:34:35 +0200
->Jean Delvare <khali@linux-fr.org> wrote:
->
-> > > #define set_temp_para(name, reg)\
-> > > static ssize_t set_##name(\
-> > >             struct device *dev,\
-> > >             struct device_attribute *attr,\
-> > >             const char *buf,\
-> > >             size_t count)\
-> > > {\
-> > >     return set_helper(dev, attr, buf, count, &dev->name);\
-> > > }
-> > >
-> > > And then do all the real work in a common function?  Rather than
-> > > expanding tens of copies of the same thing?
-> >
-> > Yes please. We got rid of macro-generated callbacks in most hwmon
-> > drivers a couple years ago already.
->
->I never received an update to this patch so I'm retaining it in my tree
->for now.
+On Tue, 22 Sep 2009 07:59:14 +0200 Tomaz Mertelj <tomaz.mertelj@guest.arnes.si> wrote:
 
+> Should I post a patch on top of the original patch or a full patch to the 
+> latest kernel tree?
 
-OK. I have an update almost ready. I only need some time to test it.
+Either is OK for me.
 
-Should I post a patch on top of the original patch or a full patch to the 
-latest kernel tree?
-
-Tomaz Mertelj
-
-
-***********************************************************************************
-Tomaz Mertelj
-E-mail: tomaz.mertelj@guest.arnes.si    Home page: 
-http://optlab.ijs.si/tmertelj
-
-
-Staniceva 14
-1000 Ljubljana
-Slovenia
-***********************************************************************************
-
-
-
+I'll turn it into an incremental patch so I can see what you changed.
 
 _______________________________________________
 lm-sensors mailing list
