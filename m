@@ -1,33 +1,36 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 05 Sep 2009 16:09:26 +0000
-Subject: Re: [lm-sensors] Mandriva 2010.0b1, lm-sensors 3.1.1,
-Message-Id: <20090905180926.63d28e95@hyperion.delvare>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Thu, 24 Sep 2009 08:53:55 +0000
+Subject: Re: [lm-sensors] [PATCH] asus_atk0110: add support for Asus P7P55D
+Message-Id: <68676e00909240153o4ae86eeegf9b6d000668ec858@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200909051753.34432.philippe.roubach@free.fr>
-In-Reply-To: <200909051753.34432.philippe.roubach@free.fr>
+References: <20090923191240.GA15198@dreamland.darkstar.lan>
+	 <51f3faa70909232018v7e621190m84deb648b08d2135@mail.gmail.com>
+In-Reply-To: <51f3faa70909232018v7e621190m84deb648b08d2135@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Robert Hancock <hancockrwd@gmail.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
 
-Salut Philippe,
+On Thu, Sep 24, 2009 at 5:18 AM, Robert Hancock <hancockrwd@gmail.com> wrote:
+> On Wed, Sep 23, 2009 at 1:12 PM, Luca Tettamanti <kronos.it@gmail.com> wrote:
+>> With P7P55D (and newer) boards Asus extended the output buffer (ASBF)
+>> making the driver unable to read the data from the sensors.
+>> Change the driver to use dynamic buffers (allocated by ACPI core); the
+>> return value is cached, so the number of memory allocations is very low.
+>>
+>> Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+>> Tested-by: Robert Hancock <hancockrwd@gmail.com>
+>
+> I just noticed a problem (either with this patch or some other issue
+> with the driver on this board): The readings don't seem to be
+> updating, I get the same values all the time.
 
-On Sat, 5 Sep 2009 17:53:34 +0200, ROUBACH Philippe wrote:
-> see my bug report about the problem
-> 
-> https://qa.mandriva.com/show_bug.cgi?idS459
+Jean just relayed me some information from Asus on this board, the EC
+is disabled by default.
+I'm working on a fix.
 
-Check the kernel logs when you attempt to load the it87 driver. Most
-likely your problem is the one explained here:
-
-http://hansdegoede.livejournal.com/7932.html
-
-Your board being an Asus one, loading the asus_atk0110 driver instead
-of the it87 driver might help.
-
--- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+L
 
 _______________________________________________
 lm-sensors mailing list
