@@ -1,302 +1,1733 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Wed, 16 Sep 2009 14:37:45 +0000
-Subject: Re: [lm-sensors] Accelerometer driver for
-Message-Id: <4AB0F839.6040203@cam.ac.uk>
+From: Nix <nix@esperi.org.uk>
+Date: Sat, 26 Sep 2009 11:36:33 +0000
+Subject: [lm-sensors] 2.6.31 regression: brand-new ACPI conflicts prevent
+Message-Id: <87ws3maqf2.fsf@spindle.srvr.nix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <f34ca13c0908170720l6a7a1311m6592846f30056822@mail.gmail.com>
-In-Reply-To: <f34ca13c0908170720l6a7a1311m6592846f30056822@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: linux-kernel@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, khali@linux-fr.org, lm-sensors@lm-sensors.org, linux-i2c@vger.kernel.org
 
-Hi Kalhan,
+[Sorry for the huge Cc:, but this problem may cross subsystems: at least
+ I have no idea which subsystem the problem is in.]
 
-Mostly looks good, couple of nitpicks below.
-I'd also suggest starting a new thread as this is a very different patch
-from the one that started this thread.
+My desktop system is a newish Nehalem with PCIe (of course), the usual
+coretemp sensor, and a Winbond W83667HG on the I2C bus. In 2.6.30.5,
+this all worked, but in 2.6.31.1 the latter sensor isn't found. The boot
+log says, in part (full log appended):
 
-Jonathan
-> I2C support for lis302dl.
-> 
->>From aba997f79290a58dd7a564bf9f931dffb43ec292 Mon Sep 17 00:00:00 2001
-> From: Kalhan Trisal <kalhan.trisal@intel.com>
-> Date: Wed, 16 Sep 2009 17:53:59 -0400
-> Subject: [PATCH] I2C glue layer for lis3lv02d STMicroelectronics digital accelerometer
-> This patch will support I2C interface for ST Microelectronics 3 axis digital accelerometer. Few register fields have changed due to which I have added device id to differentiate between LIS3LV02Dx and LIS[32]02DL.
+[    0.929754] i2c /dev entries driver
+[    0.929821] i801_smbus 0000:00:1f.3: PCI INT C -> GSI 18 (level, low) ->=
+ IRQ 18
+[    0.929887] ACPI: I/O resource 0000:00:1f.3 [0x400-0x41f] conflicts with=
+ ACPI region SMRG [0x400-0x40f]
+[    0.929955] ACPI: Device needs an ACPI driver
+[    0.930003] i801_smbus: probe of 0000:00:1f.3 failed with error -16
+[    0.930077] coretemp coretemp.0: Using relative temperature scale!
+[    0.930156] coretemp coretemp.1: Using relative temperature scale!
+[    0.930228] coretemp coretemp.2: Using relative temperature scale!
+[    0.930304] coretemp coretemp.3: Using relative temperature scale!
+[    0.930375] coretemp coretemp.4: Using relative temperature scale!
+[    0.930448] coretemp coretemp.5: Using relative temperature scale!
+[    0.930521] coretemp coretemp.6: Using relative temperature scale!
+[    0.930596] coretemp coretemp.7: Using relative temperature scale!
+[    0.930682] w83627ehf: Found W83667HG chip at 0x290
+[    0.930736] ACPI: I/O resource w83627ehf [0x295-0x296] conflicts with AC=
+PI region HWRE [0x290-0x299]
+[    0.930804] ACPI: Device needs an ACPI driver
+
+2.6.30.x said (I didn't have coretemp built in back then):
+
+[   40.297764] i2c /dev entries driver
+[   40.297830] i801_smbus 0000:00:1f.3: PCI INT C -> GSI 18 (level, low) ->=
+ IRQ 18
+[   40.297952] w83627ehf: Found W83667HG chip at 0x290
+
+Note: coretemp is not at fault, I just built it in because I wanted
+*some* sort of temperature monitoring. Here's the same part of my first
+2.6.31.x boot log, without coretemp:
+
+[    0.931782] i2c /dev entries driver
+[    0.931848] i801_smbus 0000:00:1f.3: PCI INT C -> GSI 18 (level, low) ->=
+ IRQ 18
+[    0.931914] ACPI: I/O resource 0000:00:1f.3 [0x400-0x41f] conflicts with=
+ ACPI region SMRG [0x400-0x40f]
+[    0.931982] ACPI: Device needs an ACPI driver
+[    0.932031] i801_smbus: probe of 0000:00:1f.3 failed with error -16
+[    0.932109] w83627ehf: Found W83667HG chip at 0x290
+[    0.932163] ACPI: I/O resource w83627ehf [0x295-0x296] conflicts with AC=
+PI region HWRE [0x290-0x299]
+[    0.932231] ACPI: Device needs an ACPI driver
+
+The only kernel patch installed is TuxOnIce, and that too was installed
+and working in 2.6.30 and has hardly changed since then. (I very much
+doubt it gets involved in bus probes anyway, but I could verify that
+the regression still happens without it if need be.)
+
+I can bisect for this if you wish.
+
+Full boot log of that last boot, up to the point at which early
+userspace comes up, .config follows:
+
+[    0.000000] Linux version 2.6.31.1-04843-g79daf3e-dirty (compiler@mutila=
+te) (gcc version 4.4.2 20090902 (prerelease) (GCC) ) #1 SMP PREEMPT Fri Sep=
+ 25 22:24:44 BST 2009
+[    0.000000] Command line: BOOT_IMAGE=3DLinux ro resume=3Dswap:/dev/sda2
+[    0.000000] KERNEL supported cpus:
+[    0.000000]   Intel GenuineIntel
+[    0.000000]   AMD AuthenticAMD
+[    0.000000]   Centaur CentaurHauls
+[    0.000000] BIOS-provided physical RAM map:
+[    0.000000]  BIOS-e820: 0000000000000000 - 000000000009ec00 (usable)
+[    0.000000]  BIOS-e820: 000000000009ec00 - 00000000000a0000 (reserved)
+[    0.000000]  BIOS-e820: 00000000000e4c00 - 0000000000100000 (reserved)
+[    0.000000]  BIOS-e820: 0000000000100000 - 00000000bf680000 (usable)
+[    0.000000]  BIOS-e820: 00000000bf680000 - 00000000bf698000 (ACPI data)
+[    0.000000]  BIOS-e820: 00000000bf698000 - 00000000bf6dc000 (ACPI NVS)
+[    0.000000]  BIOS-e820: 00000000bf6dc000 - 00000000c0000000 (reserved)
+[    0.000000]  BIOS-e820: 00000000fee00000 - 00000000fee01000 (reserved)
+[    0.000000]  BIOS-e820: 00000000ffe00000 - 0000000100000000 (reserved)
+[    0.000000]  BIOS-e820: 0000000100000000 - 0000000340000000 (usable)
+[    0.000000] DMI 2.5 present.
+[    0.000000] AMI BIOS detected: BIOS may corrupt low RAM, working around =
+it.
+[    0.000000] e820 update range: 0000000000000000 - 0000000000010000 (usab=
+le) =3D> (reserved)
+[    0.000000] last_pfn =3D 0x340000 max_arch_pfn =3D 0x400000000
+[    0.000000] MTRR default type: uncachable
+[    0.000000] MTRR fixed ranges enabled:
+[    0.000000]   00000-9FFFF write-back
+[    0.000000]   A0000-BFFFF uncachable
+[    0.000000]   C0000-E3FFF write-protect
+[    0.000000]   E4000-EBFFF write-through
+[    0.000000]   EC000-FFFFF write-protect
+[    0.000000] MTRR variable ranges enabled:
+[    0.000000]   0 base 000000000 mask E00000000 write-back
+[    0.000000]   1 base 200000000 mask F00000000 write-back
+[    0.000000]   2 base 300000000 mask FC0000000 write-back
+[    0.000000]   3 base 0C0000000 mask FC0000000 uncachable
+[    0.000000]   4 base 0BF700000 mask FFFF00000 uncachable
+[    0.000000]   5 base 0BF800000 mask FFF800000 uncachable
+[    0.000000]   6 disabled
+[    0.000000]   7 disabled
+[    0.000000] x86 PAT enabled: cpu 0, old 0x7040600070406, new 0x701060007=
+0106
+[    0.000000] e820 update range: 00000000bf700000 - 0000000100000000 (usab=
+le) =3D> (reserved)
+[    0.000000] last_pfn =3D 0xbf680 max_arch_pfn =3D 0x400000000
+[    0.000000] Scanning 0 areas for low memory corruption
+[    0.000000] modified physical RAM map:
+[    0.000000]  modified: 0000000000000000 - 0000000000010000 (reserved)
+[    0.000000]  modified: 0000000000010000 - 000000000009ec00 (usable)
+[    0.000000]  modified: 000000000009ec00 - 00000000000a0000 (reserved)
+[    0.000000]  modified: 00000000000e4c00 - 0000000000100000 (reserved)
+[    0.000000]  modified: 0000000000100000 - 00000000bf680000 (usable)
+[    0.000000]  modified: 00000000bf680000 - 00000000bf698000 (ACPI data)
+[    0.000000]  modified: 00000000bf698000 - 00000000bf6dc000 (ACPI NVS)
+[    0.000000]  modified: 00000000bf6dc000 - 00000000c0000000 (reserved)
+[    0.000000]  modified: 00000000fee00000 - 00000000fee01000 (reserved)
+[    0.000000]  modified: 00000000ffe00000 - 0000000100000000 (reserved)
+[    0.000000]  modified: 0000000100000000 - 0000000340000000 (usable)
+[    0.000000] initial memory mapped : 0 - 20000000
+[    0.000000] init_memory_mapping: 0000000000000000-00000000bf680000
+[    0.000000]  0000000000 - 00bf600000 page 2M
+[    0.000000]  00bf600000 - 00bf680000 page 4k
+[    0.000000] kernel direct mapping tables up to bf680000 @ 10000-15000
+[    0.000000] init_memory_mapping: 0000000100000000-0000000340000000
+[    0.000000]  0100000000 - 0340000000 page 2M
+[    0.000000] kernel direct mapping tables up to 340000000 @ 13000-21000
+[    0.000000] ACPI: RSDP 00000000000fae10 00024 (v02 ACPIAM)
+[    0.000000] ACPI: XSDT 00000000bf680100 0005C (v01 032509 XSDT1124 20090=
+325 MSFT 00000097)
+[    0.000000] ACPI: FACP 00000000bf680290 000F4 (v03 032509 FACP1124 20090=
+325 MSFT 00000097)
+[    0.000000] ACPI: DSDT 00000000bf6804b0 0C3DD (v01  A1146 A1146001 00000=
+001 INTL 20060113)
+[    0.000000] ACPI: FACS 00000000bf698000 00040
+[    0.000000] ACPI: APIC 00000000bf680390 000D8 (v01 032509 APIC1124 20090=
+325 MSFT 00000097)
+[    0.000000] ACPI: MCFG 00000000bf680470 0003C (v01 032509 OEMMCFG  20090=
+325 MSFT 00000097)
+[    0.000000] ACPI: OEMB 00000000bf698040 00072 (v01 032509 OEMB1124 20090=
+325 MSFT 00000097)
+[    0.000000] ACPI: HPET 00000000bf68f4b0 00038 (v01 032509 OEMHPET  20090=
+325 MSFT 00000097)
+[    0.000000] ACPI: OSFR 00000000bf68f4f0 000B0 (v01 032509 OEMOSFR  20090=
+325 MSFT 00000097)
+[    0.000000] ACPI: SSDT 00000000bf69a140 0249F (v01 DpgPmm    CpuPm 00000=
+012 INTL 20060113)
+[    0.000000] ACPI: Local APIC address 0xfee00000
+[    0.000000] (7 early reservations) =3D> bootmem [0000000000 - 0340000000]
+[    0.000000]   #0 [0000000000 - 0000001000]   BIOS data page =3D> [000000=
+0000 - 0000001000]
+[    0.000000]   #1 [0000006000 - 0000008000]       TRAMPOLINE =3D> [000000=
+6000 - 0000008000]
+[    0.000000]   #2 [0001000000 - 00017bf37c]    TEXT DATA BSS =3D> [000100=
+0000 - 00017bf37c]
+[    0.000000]   #3 [000009ec00 - 0000100000]    BIOS reserved =3D> [000009=
+ec00 - 0000100000]
+[    0.000000]   #4 [00017c0000 - 00017c0288]              BRK =3D> [00017c=
+0000 - 00017c0288]
+[    0.000000]   #5 [0000010000 - 0000013000]          PGTABLE =3D> [000001=
+0000 - 0000013000]
+[    0.000000]   #6 [0000013000 - 000001c000]          PGTABLE =3D> [000001=
+3000 - 000001c000]
+[    0.000000]  [ffffea0000000000-ffffea000b5fffff] PMD -> [ffff88002860000=
+0-ffff880032dfffff] on node 0
+[    0.000000] Zone PFN ranges:
+[    0.000000]   DMA      0x00000010 -> 0x00001000
+[    0.000000]   DMA32    0x00001000 -> 0x00100000
+[    0.000000]   Normal   0x00100000 -> 0x00340000
+[    0.000000] Movable zone start PFN for each node
+[    0.000000] early_node_map[3] active PFN ranges
+[    0.000000]     0: 0x00000010 -> 0x0000009e
+[    0.000000]     0: 0x00000100 -> 0x000bf680
+[    0.000000]     0: 0x00100000 -> 0x00340000
+[    0.000000] On node 0 totalpages: 3143182
+[    0.000000]   DMA zone: 56 pages used for memmap
+[    0.000000]   DMA zone: 112 pages reserved
+[    0.000000]   DMA zone: 3814 pages, LIFO batch:0
+[    0.000000]   DMA32 zone: 14280 pages used for memmap
+[    0.000000]   DMA32 zone: 765624 pages, LIFO batch:31
+[    0.000000]   Normal zone: 32256 pages used for memmap
+[    0.000000]   Normal zone: 2327040 pages, LIFO batch:31
+[    0.000000] ACPI: PM-Timer IO Port: 0x808
+[    0.000000] ACPI: Local APIC address 0xfee00000
+[    0.000000] ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x02] lapic_id[0x02] enabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x03] lapic_id[0x04] enabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x04] lapic_id[0x06] enabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x05] lapic_id[0x01] enabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x06] lapic_id[0x03] enabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x07] lapic_id[0x05] enabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x08] lapic_id[0x07] enabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x09] lapic_id[0x88] disabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x0a] lapic_id[0x89] disabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x0b] lapic_id[0x8a] disabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x0c] lapic_id[0x8b] disabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x0d] lapic_id[0x8c] disabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x0e] lapic_id[0x8d] disabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x0f] lapic_id[0x8e] disabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x10] lapic_id[0x8f] disabled)
+[    0.000000] ACPI: IOAPIC (id[0x08] address[0xfec00000] gsi_base[0])
+[    0.000000] IOAPIC[0]: apic_id 8, version 32, address 0xfec00000, GSI 0-=
+23
+[    0.000000] ACPI: IOAPIC (id[0x09] address[0xfec8a000] gsi_base[24])
+[    0.000000] IOAPIC[1]: apic_id 9, version 32, address 0xfec8a000, GSI 24=
+-47
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+[    0.000000] ACPI: IRQ0 used by override.
+[    0.000000] ACPI: IRQ2 used by override.
+[    0.000000] ACPI: IRQ9 used by override.
+[    0.000000] Using ACPI (MADT) for SMP configuration information
+[    0.000000] ACPI: HPET id: 0x8086a301 base: 0xfed00000
+[    0.000000] 16 Processors exceeds NR_CPUS limit of 8
+[    0.000000] SMP: Allowing 8 CPUs, 0 hotplug CPUs
+[    0.000000] nr_irqs_gsi: 48
+[    0.000000] PM: Registered nosave memory: 000000000009e000 - 00000000000=
+9f000
+[    0.000000] PM: Registered nosave memory: 000000000009f000 - 00000000000=
+a0000
+[    0.000000] PM: Registered nosave memory: 00000000000a0000 - 00000000000=
+e5000
+[    0.000000] PM: Registered nosave memory: 00000000000e5000 - 00000000001=
+00000
+[    0.000000] PM: Registered nosave memory: 00000000bf680000 - 00000000bf6=
+98000
+[    0.000000] PM: Registered nosave memory: 00000000bf698000 - 00000000bf6=
+dc000
+[    0.000000] PM: Registered nosave memory: 00000000bf6dc000 - 00000000c00=
+00000
+[    0.000000] PM: Registered nosave memory: 00000000c0000000 - 00000000fee=
+00000
+[    0.000000] PM: Registered nosave memory: 00000000fee00000 - 00000000fee=
+01000
+[    0.000000] PM: Registered nosave memory: 00000000fee01000 - 00000000ffe=
+00000
+[    0.000000] PM: Registered nosave memory: 00000000ffe00000 - 00000001000=
+00000
+[    0.000000] Allocating PCI resources starting at c0000000 (gap: c0000000=
+:3ee00000)
+[    0.000000] NR_CPUS:8 nr_cpumask_bits:8 nr_cpu_ids:8 nr_node_ids:1
+[    0.000000] PERCPU: Embedded 27 pages at ffff880028034000, static data 8=
+0608 bytes
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Tota=
+l pages: 3096478
+[    0.000000] Kernel command line: BOOT_IMAGE=3DLinux ro resume=3Dswap:/de=
+v/sda2
+[    0.000000] PID hash table entries: 4096 (order: 12, 32768 bytes)
+[    0.000000] Dentry cache hash table entries: 2097152 (order: 12, 1677721=
+6 bytes)
+[    0.000000] Inode-cache hash table entries: 1048576 (order: 11, 8388608 =
+bytes)
+[    0.000000] Initializing CPU#0
+[    0.000000] Checking aperture...
+[    0.000000] No AGP bridge found
+[    0.000000] PCI-DMA: Using software bounce buffering for IO (SWIOTLB)
+[    0.000000] Placing 64MB software IO TLB between ffff880020000000 - ffff=
+880024000000
+[    0.000000] software IO TLB at phys 0x20000000 - 0x24000000
+[    0.000000] Memory: 12300148k/13631488k available (4002k kernel code, 10=
+58760k absent, 271688k reserved, 2219k data, 1096k init)
+[    0.000000] NR_IRQS:4352 nr_irqs:880
+[    0.000000] Extended CMOS year: 2000
+[    0.000000] Fast TSC calibration using PIT
+[    0.000000] Detected 2672.883 MHz processor.
+[    0.006550] Console: colour VGA+ 80x50
+[    0.006551] console [tty0] enabled
+[    0.012451] hpet clockevent registered
+[    0.012454] HPET: 4 timers in total, 0 timers will be used for per-cpu t=
+imer
+[    0.012509] Calibrating delay loop (skipped), value calculated using tim=
+er frequency.. 5345.76 BogoMIPS (lpj&72883)
+[    0.012646] Mount-cache hash table entries: 256
+[    0.012778] CPU: Physical Processor ID: 0
+[    0.012825] CPU: Processor Core ID: 0
+[    0.012872] CPU: L1 I cache: 32K, L1 D cache: 32K
+[    0.012946] CPU: L2 cache: 256K
+[    0.012990] CPU: L3 cache: 8192K
+[    0.013036] mce: CPU supports 9 MCE banks
+[    0.013089] CPU0: Thermal monitoring enabled (TM1)
+[    0.013138] CPU 0 MCA banks CMCI:2 CMCI:3 CMCI:5 CMCI:6 SHD:8
+[    0.013349] using mwait in idle threads.
+[    0.013395] Performance Counters: Nehalem/Corei7 events, Intel PMU drive=
+r.
+[    0.013515] ... version:                 3
+[    0.013562] ... bit width:               48
+[    0.013608] ... generic counters:        4
+[    0.013654] ... value mask:              0000ffffffffffff
+[    0.013703] ... max period:              000000007fffffff
+[    0.013751] ... fixed-purpose counters:  3
+[    0.013798] ... counter mask:            000000070000000f
+[    0.013857] ACPI: Core revision 20090521
+[    0.053964] ftrace: converting mcount calls to 0f 1f 44 00 00
+[    0.054019] ftrace: allocating 17976 entries in 71 pages
+[    0.058639] Setting APIC routing to flat
+[    0.059129] ..TIMER: vector=3D0x30 apic1=3D0 pin1=3D2 apic2=3D-1 pin2=3D=
+-1
+[    0.069177] CPU0: Intel(R) Core(TM) i7 CPU         920  @ 2.67GHz steppi=
+ng 04
+[    0.173420] Booting processor 1 APIC 0x2 ip 0x6000
+[    0.183851] Initializing CPU#1
+[    0.244371] Calibrating delay using timer specific routine.. 5344.67 Bog=
+oMIPS (lpj&72337)
+[    0.244377] CPU: Physical Processor ID: 0
+[    0.244378] CPU: Processor Core ID: 1
+[    0.244380] CPU: L1 I cache: 32K, L1 D cache: 32K
+[    0.244381] CPU: L2 cache: 256K
+[    0.244382] CPU: L3 cache: 8192K
+[    0.244385] mce: CPU supports 9 MCE banks
+[    0.244392] CPU1: Thermal monitoring enabled (TM1)
+[    0.244395] CPU 1 MCA banks CMCI:2 CMCI:3 CMCI:5 SHD:6 SHD:8
+[    0.244985] x86 PAT enabled: cpu 1, old 0x7040600070406, new 0x701060007=
+0106
+[    0.245587] CPU1: Intel(R) Core(TM) i7 CPU         920  @ 2.67GHz steppi=
+ng 04
+[    0.246218] Skipping synchronization checks as TSC is reliable.
+[    0.246393] Booting processor 2 APIC 0x4 ip 0x6000
+[    0.256797] Initializing CPU#2
+[    0.318340] Calibrating delay using timer specific routine.. 5451.56 Bog=
+oMIPS (lpj'25784)
+[    0.318348] CPU: Physical Processor ID: 0
+[    0.318349] CPU: Processor Core ID: 2
+[    0.318351] CPU: L1 I cache: 32K, L1 D cache: 32K
+[    0.318352] CPU: L2 cache: 256K
+[    0.318353] CPU: L3 cache: 8192K
+[    0.318355] mce: CPU supports 9 MCE banks
+[    0.318363] CPU2: Thermal monitoring enabled (TM1)
+[    0.318366] CPU 2 MCA banks CMCI:2 CMCI:3 CMCI:5 SHD:6 SHD:8
+[    0.318951] x86 PAT enabled: cpu 2, old 0x7040600070406, new 0x701060007=
+0106
+[    0.319572] CPU2: Intel(R) Core(TM) i7 CPU         920  @ 2.67GHz steppi=
+ng 04
+[    0.326198] Skipping synchronization checks as TSC is reliable.
+[    0.326356] Booting processor 3 APIC 0x6 ip 0x6000
+[    0.336764] Initializing CPU#3
+[    0.397305] Calibrating delay using timer specific routine.. 5344.67 Bog=
+oMIPS (lpj&72339)
+[    0.397311] CPU: Physical Processor ID: 0
+[    0.397312] CPU: Processor Core ID: 3
+[    0.397314] CPU: L1 I cache: 32K, L1 D cache: 32K
+[    0.397315] CPU: L2 cache: 256K
+[    0.397316] CPU: L3 cache: 8192K
+[    0.397318] mce: CPU supports 9 MCE banks
+[    0.397326] CPU3: Thermal monitoring enabled (TM1)
+[    0.397328] CPU 3 MCA banks CMCI:2 CMCI:3 CMCI:5 SHD:6 SHD:8
+[    0.397918] x86 PAT enabled: cpu 3, old 0x7040600070406, new 0x701060007=
+0106
+[    0.398523] CPU3: Intel(R) Core(TM) i7 CPU         920  @ 2.67GHz steppi=
+ng 04
+[    0.399154] Skipping synchronization checks as TSC is reliable.
+[    0.399330] Booting processor 4 APIC 0x1 ip 0x6000
+[    0.409734] Initializing CPU#4
+[    0.470273] Calibrating delay using timer specific routine.. 5344.67 Bog=
+oMIPS (lpj&72339)
+[    0.470280] CPU: Physical Processor ID: 0
+[    0.470281] CPU: Processor Core ID: 0
+[    0.470284] CPU: L1 I cache: 32K, L1 D cache: 32K
+[    0.470285] CPU: L2 cache: 256K
+[    0.470287] CPU: L3 cache: 8192K
+[    0.470289] mce: CPU supports 9 MCE banks
+[    0.470298] CPU4: Thermal monitoring enabled (TM1)
+[    0.470301] CPU 4 MCA banks SHD:2 SHD:3 SHD:5 SHD:6 SHD:8
+[    0.471051] x86 PAT enabled: cpu 4, old 0x7040600070406, new 0x701060007=
+0106
+[    0.471835] CPU4: Intel(R) Core(TM) i7 CPU         920  @ 2.67GHz steppi=
+ng 04
+[    0.472472] Skipping synchronization checks as TSC is reliable.
+[    0.473293] Booting processor 5 APIC 0x3 ip 0x6000
+[    0.483701] Initializing CPU#5
+[    0.545242] Calibrating delay using timer specific routine.. 5451.57 Bog=
+oMIPS (lpj'25785)
+[    0.545249] CPU: Physical Processor ID: 0
+[    0.545250] CPU: Processor Core ID: 1
+[    0.545252] CPU: L1 I cache: 32K, L1 D cache: 32K
+[    0.545253] CPU: L2 cache: 256K
+[    0.545254] CPU: L3 cache: 8192K
+[    0.545256] mce: CPU supports 9 MCE banks
+[    0.545264] CPU5: Thermal monitoring enabled (TM1)
+[    0.545266] CPU 5 MCA banks SHD:2 SHD:3 SHD:5 SHD:6 SHD:8
+[    0.546028] x86 PAT enabled: cpu 5, old 0x7040600070406, new 0x701060007=
+0106
+[    0.546884] CPU5: Intel(R) Core(TM) i7 CPU         920  @ 2.67GHz steppi=
+ng 04
+[    0.547515] Skipping synchronization checks as TSC is reliable.
+[    0.548260] Booting processor 6 APIC 0x5 ip 0x6000
+[    0.558667] Initializing CPU#6
+[    0.619208] Calibrating delay using timer specific routine.. 5344.67 Bog=
+oMIPS (lpj&72338)
+[    0.619214] CPU: Physical Processor ID: 0
+[    0.619215] CPU: Processor Core ID: 2
+[    0.619217] CPU: L1 I cache: 32K, L1 D cache: 32K
+[    0.619218] CPU: L2 cache: 256K
+[    0.619219] CPU: L3 cache: 8192K
+[    0.619221] mce: CPU supports 9 MCE banks
+[    0.619229] CPU6: Thermal monitoring enabled (TM1)
+[    0.619231] CPU 6 MCA banks SHD:2 SHD:3 SHD:5 SHD:6 SHD:8
+[    0.619989] x86 PAT enabled: cpu 6, old 0x7040600070406, new 0x701060007=
+0106
+[    0.620827] CPU6: Intel(R) Core(TM) i7 CPU         920  @ 2.67GHz steppi=
+ng 04
+[    0.621458] Skipping synchronization checks as TSC is reliable.
+[    0.622226] Booting processor 7 APIC 0x7 ip 0x6000
+[    0.632635] Initializing CPU#7
+[    0.693176] Calibrating delay using timer specific routine.. 5344.67 Bog=
+oMIPS (lpj&72337)
+[    0.693182] CPU: Physical Processor ID: 0
+[    0.693183] CPU: Processor Core ID: 3
+[    0.693185] CPU: L1 I cache: 32K, L1 D cache: 32K
+[    0.693186] CPU: L2 cache: 256K
+[    0.693187] CPU: L3 cache: 8192K
+[    0.693189] mce: CPU supports 9 MCE banks
+[    0.693197] CPU7: Thermal monitoring enabled (TM1)
+[    0.693199] CPU 7 MCA banks SHD:2 SHD:3 SHD:5 SHD:6 SHD:8
+[    0.693958] x86 PAT enabled: cpu 7, old 0x7040600070406, new 0x701060007=
+0106
+[    0.694794] CPU7: Intel(R) Core(TM) i7 CPU         920  @ 2.67GHz steppi=
+ng 04
+[    0.695425] Skipping synchronization checks as TSC is reliable.
+[    0.695487] Brought up 8 CPUs
+[    0.695532] Total of 8 processors activated (42972.28 BogoMIPS).
+[    0.695626] CPU0 attaching sched-domain:
+[    0.695628]  domain 0: span 0,4 level SIBLING
+[    0.695630]   groups: 0 4
+[    0.695633]   domain 1: span 0-7 level MC
+[    0.695634]    groups: 0,4 1,5 2,6 3,7
+[    0.695639] CPU1 attaching sched-domain:
+[    0.695640]  domain 0: span 1,5 level SIBLING
+[    0.695642]   groups: 1 5
+[    0.695644]   domain 1: span 0-7 level MC
+[    0.695645]    groups: 1,5 2,6 3,7 0,4
+[    0.695650] CPU2 attaching sched-domain:
+[    0.695651]  domain 0: span 2,6 level SIBLING
+[    0.695652]   groups: 2 6
+[    0.695655]   domain 1: span 0-7 level MC
+[    0.695656]    groups: 2,6 3,7 0,4 1,5
+[    0.695660] CPU3 attaching sched-domain:
+[    0.695662]  domain 0: span 3,7 level SIBLING
+[    0.695663]   groups: 3 7
+[    0.695666]   domain 1: span 0-7 level MC
+[    0.695667]    groups: 3,7 0,4 1,5 2,6
+[    0.695671] CPU4 attaching sched-domain:
+[    0.695672]  domain 0: span 0,4 level SIBLING
+[    0.695674]   groups: 4 0
+[    0.695676]   domain 1: span 0-7 level MC
+[    0.695678]    groups: 0,4 1,5 2,6 3,7
+[    0.695682] CPU5 attaching sched-domain:
+[    0.695683]  domain 0: span 1,5 level SIBLING
+[    0.695685]   groups: 5 1
+[    0.695687]   domain 1: span 0-7 level MC
+[    0.695688]    groups: 1,5 2,6 3,7 0,4
+[    0.695692] CPU6 attaching sched-domain:
+[    0.695694]  domain 0: span 2,6 level SIBLING
+[    0.695695]   groups: 6 2
+[    0.695698]   domain 1: span 0-7 level MC
+[    0.695699]    groups: 2,6 3,7 0,4 1,5
+[    0.695703] CPU7 attaching sched-domain:
+[    0.695704]  domain 0: span 3,7 level SIBLING
+[    0.695706]   groups: 7 3
+[    0.695708]   domain 1: span 0-7 level MC
+[    0.695710]    groups: 3,7 0,4 1,5 2,6
+[    0.696209] NET: Registered protocol family 16
+[    0.696324] ACPI: bus type pci registered
+[    0.696404] dca service started, version 1.8
+[    0.696473] PCI: MCFG configuration 0: base e0000000 segment 0 buses 0 -=
+ 255
+[    0.696525] PCI: Not using MMCONFIG.
+[    0.696570] PCI: Using configuration type 1 for base access
+[    0.697389] bio: create slab <bio-0> at 0
+[    0.698262] ACPI: EC: Look up EC in DSDT
+[    0.731986] ACPI: Interpreter enabled
+[    0.732035] ACPI: (supports S0 S4 S5)
+[    0.732173] ACPI: Using IOAPIC for interrupt routing
+[    0.732271] PCI: MCFG configuration 0: base e0000000 segment 0 buses 0 -=
+ 255
+[    0.734602] PCI: MCFG area at e0000000 reserved in ACPI motherboard reso=
+urces
+[    0.740058] PCI: Using MMCONFIG at e0000000 - efffffff
+[    0.748457] ACPI: No dock devices found.
+[    0.748635] ACPI: PCI Root Bridge [PCI0] (0000:00)
+[    0.748753] pci 0000:00:00.0: PME# supported from D0 D3hot D3cold
+[    0.748804] pci 0000:00:00.0: PME# disabled
+[    0.748902] pci 0000:00:01.0: PME# supported from D0 D3hot D3cold
+[    0.748953] pci 0000:00:01.0: PME# disabled
+[    0.749050] pci 0000:00:03.0: PME# supported from D0 D3hot D3cold
+[    0.749101] pci 0000:00:03.0: PME# disabled
+[    0.749200] pci 0000:00:07.0: PME# supported from D0 D3hot D3cold
+[    0.749252] pci 0000:00:07.0: PME# disabled
+[    0.749585] pci 0000:00:1a.0: reg 20 io port: [0xa800-0xa81f]
+[    0.749646] pci 0000:00:1a.1: reg 20 io port: [0xa880-0xa89f]
+[    0.749707] pci 0000:00:1a.2: reg 20 io port: [0xac00-0xac1f]
+[    0.749773] pci 0000:00:1a.7: reg 10 32bit mmio: [0xfbaff000-0xfbaff3ff]
+[    0.749822] pci 0000:00:1a.7: PME# supported from D0 D3hot D3cold
+[    0.749874] pci 0000:00:1a.7: PME# disabled
+[    0.749955] pci 0000:00:1b.0: reg 10 64bit mmio: [0xfbaf8000-0xfbafbfff]
+[    0.749992] pci 0000:00:1b.0: PME# supported from D0 D3hot D3cold
+[    0.750043] pci 0000:00:1b.0: PME# disabled
+[    0.750140] pci 0000:00:1c.0: PME# supported from D0 D3hot D3cold
+[    0.750192] pci 0000:00:1c.0: PME# disabled
+[    0.750290] pci 0000:00:1c.2: PME# supported from D0 D3hot D3cold
+[    0.750342] pci 0000:00:1c.2: PME# disabled
+[    0.750439] pci 0000:00:1c.3: PME# supported from D0 D3hot D3cold
+[    0.750491] pci 0000:00:1c.3: PME# disabled
+[    0.750588] pci 0000:00:1c.4: PME# supported from D0 D3hot D3cold
+[    0.750639] pci 0000:00:1c.4: PME# disabled
+[    0.750735] pci 0000:00:1d.0: reg 20 io port: [0xa080-0xa09f]
+[    0.750796] pci 0000:00:1d.1: reg 20 io port: [0xa400-0xa41f]
+[    0.750857] pci 0000:00:1d.2: reg 20 io port: [0xa480-0xa49f]
+[    0.750922] pci 0000:00:1d.7: reg 10 32bit mmio: [0xfbafe000-0xfbafe3ff]
+[    0.750971] pci 0000:00:1d.7: PME# supported from D0 D3hot D3cold
+[    0.751023] pci 0000:00:1d.7: PME# disabled
+[    0.751175] pci 0000:00:1f.0: quirk: region 0800-087f claimed by ICH6 AC=
+PI/GPIO/TCO
+[    0.751242] pci 0000:00:1f.0: quirk: region 0500-053f claimed by ICH6 GP=
+IO
+[    0.751295] pci 0000:00:1f.0: ICH7 LPC Generic IO decode 1 PIO at 0294 (=
+mask 0003)
+[    0.751363] pci 0000:00:1f.0: ICH7 LPC Generic IO decode 3 PIO at 4700 (=
+mask 001f)
+[    0.751483] pci 0000:00:1f.2: reg 10 io port: [0x9c00-0x9c07]
+[    0.751488] pci 0000:00:1f.2: reg 14 io port: [0x9880-0x9883]
+[    0.751493] pci 0000:00:1f.2: reg 18 io port: [0x9800-0x9807]
+[    0.751497] pci 0000:00:1f.2: reg 1c io port: [0x9480-0x9483]
+[    0.751502] pci 0000:00:1f.2: reg 20 io port: [0x9400-0x941f]
+[    0.751507] pci 0000:00:1f.2: reg 24 32bit mmio: [0xfbafc000-0xfbafc7ff]
+[    0.751535] pci 0000:00:1f.2: PME# supported from D3hot
+[    0.751584] pci 0000:00:1f.2: PME# disabled
+[    0.751654] pci 0000:00:1f.3: reg 10 64bit mmio: [0xfbafd000-0xfbafd0ff]
+[    0.751666] pci 0000:00:1f.3: reg 20 io port: [0x400-0x41f]
+[    0.751735] pci 0000:02:00.0: reg 10 64bit mmio: [0xd0000000-0xdfffffff]
+[    0.751742] pci 0000:02:00.0: reg 18 64bit mmio: [0xfbbe0000-0xfbbeffff]
+[    0.751747] pci 0000:02:00.0: reg 20 io port: [0xb000-0xb0ff]
+[    0.751755] pci 0000:02:00.0: reg 30 32bit mmio: [0xfbbc0000-0xfbbdffff]
+[    0.751771] pci 0000:02:00.0: supports D1 D2
+[    0.751800] pci 0000:02:00.1: reg 10 64bit mmio: [0xfbbfc000-0xfbbfffff]
+[    0.751831] pci 0000:02:00.1: supports D1 D2
+[    0.753778] pci 0000:00:03.0: bridge io port: [0xb000-0xbfff]
+[    0.753782] pci 0000:00:03.0: bridge 32bit mmio: [0xfbb00000-0xfbbfffff]
+[    0.753788] pci 0000:00:03.0: bridge 64bit mmio pref: [0xd0000000-0xdfff=
+ffff]
+[    0.753863] pci 0000:00:1c.0: bridge 64bit mmio pref: [0xfaf00000-0xfaff=
+ffff]
+[    0.753906] pci 0000:06:00.0: reg 10 io port: [0xe800-0xe8ff]
+[    0.753924] pci 0000:06:00.0: reg 18 64bit mmio: [0xfbeff000-0xfbefffff]
+[    0.753937] pci 0000:06:00.0: reg 20 64bit mmio: [0xfaef0000-0xfaefffff]
+[    0.753944] pci 0000:06:00.0: reg 30 32bit mmio: [0xfbec0000-0xfbedffff]
+[    0.753980] pci 0000:06:00.0: supports D1 D2
+[    0.753982] pci 0000:06:00.0: PME# supported from D0 D1 D2 D3hot D3cold
+[    0.754036] pci 0000:06:00.0: PME# disabled
+[    0.755804] pci 0000:00:1c.2: bridge io port: [0xe000-0xefff]
+[    0.755809] pci 0000:00:1c.2: bridge 32bit mmio: [0xfbe00000-0xfbefffff]
+[    0.755815] pci 0000:00:1c.2: bridge 64bit mmio pref: [0xfae00000-0xfaef=
+ffff]
+[    0.755867] pci 0000:05:00.0: reg 10 64bit mmio: [0xfbdff000-0xfbdff7ff]
+[    0.755874] pci 0000:05:00.0: reg 18 io port: [0xd800-0xd8ff]
+[    0.755928] pci 0000:05:00.0: supports D2
+[    0.755929] pci 0000:05:00.0: PME# supported from D2 D3hot D3cold
+[    0.755982] pci 0000:05:00.0: PME# disabled
+[    0.757807] pci 0000:00:1c.3: bridge io port: [0xd000-0xdfff]
+[    0.757811] pci 0000:00:1c.3: bridge 32bit mmio: [0xfbd00000-0xfbdfffff]
+[    0.757904] pci 0000:04:00.0: reg 24 32bit mmio: [0xfbcfe000-0xfbcfffff]
+[    0.757912] pci 0000:04:00.0: reg 30 32bit mmio: [0xfbce0000-0xfbceffff]
+[    0.757942] pci 0000:04:00.0: PME# supported from D3hot
+[    0.757993] pci 0000:04:00.0: PME# disabled
+[    0.758088] pci 0000:04:00.1: reg 10 io port: [0xcc00-0xcc07]
+[    0.758097] pci 0000:04:00.1: reg 14 io port: [0xc880-0xc883]
+[    0.758105] pci 0000:04:00.1: reg 18 io port: [0xc800-0xc807]
+[    0.758113] pci 0000:04:00.1: reg 1c io port: [0xc480-0xc483]
+[    0.758121] pci 0000:04:00.1: reg 20 io port: [0xc400-0xc40f]
+[    0.758186] pci 0000:04:00.0: disabling ASPM on pre-1.1 PCIe device.  Yo=
+u can enable it with 'pcie_aspm=3Dforce'
+[    0.758318] pci 0000:00:1c.4: bridge io port: [0xc000-0xcfff]
+[    0.758322] pci 0000:00:1c.4: bridge 32bit mmio: [0xfbc00000-0xfbcfffff]
+[    0.758368] pci 0000:00:1e.0: transparent bridge
+[    0.758448] pci_bus 0000:00: on NUMA node 0
+[    0.758452] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+[    0.758737] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P1._PRT]
+[    0.758837] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P4._PRT]
+[    0.758893] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P6._PRT]
+[    0.758945] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P7._PRT]
+[    0.758997] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P8._PRT]
+[    0.759064] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.NPE1._PRT]
+[    0.759116] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.NPE3._PRT]
+[    0.759170] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.NPE7._PRT]
+[    0.784435] ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 6 7 10 11 12 14 *1=
+5)
+[    0.784886] ACPI: PCI Interrupt Link [LNKB] (IRQs *5)
+[    0.785118] ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 6 7 10 *11 12 14 1=
+5)
+[    0.785566] ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 6 7 *10 11 12 14 1=
+5)
+[    0.786014] ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 6 7 10 11 12 *14 1=
+5)
+[    0.786461] ACPI: PCI Interrupt Link [LNKF] (IRQs *3 4 6 7 10 11 12 14 1=
+5)
+[    0.786909] ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 6 *7 10 11 12 14 1=
+5)
+[    0.787356] ACPI: PCI Interrupt Link [LNKH] (IRQs 3 *4 6 7 10 11 12 14 1=
+5)
+[    0.787850] SCSI subsystem initialized
+[    0.788005] libata version 3.00 loaded.
+[    0.788046] usbcore: registered new interface driver usbfs
+[    0.788105] usbcore: registered new interface driver hub
+[    0.788172] usbcore: registered new device driver usb
+[    0.788280] PCI: Using ACPI for IRQ routing
+[    0.791752] hpet0: at MMIO 0xfed00000, IRQs 2, 8, 0, 0
+[    0.791941] hpet0: 4 comparators, 64-bit 14.318180 MHz counter
+[    0.801152] Switched to high resolution mode on CPU 0
+[    0.801298] Switched to high resolution mode on CPU 2
+[    0.801301] Switched to high resolution mode on CPU 3
+[    0.801303] Switched to high resolution mode on CPU 1
+[    0.801718] Switched to high resolution mode on CPU 4
+[    0.801720] Switched to high resolution mode on CPU 6
+[    0.801722] Switched to high resolution mode on CPU 7
+[    0.801728] Switched to high resolution mode on CPU 5
+[    0.804403] pnp: PnP ACPI init
+[    0.804467] ACPI: bus type pnp registered
+[    0.806963] pnp: PnP ACPI: found 16 devices
+[    0.813008] ACPI: ACPI bus type pnp unregistered
+[    0.813063] system 00:01: iomem range 0xfbf00000-0xfbffffff has been res=
+erved
+[    0.813116] system 00:01: iomem range 0xfc000000-0xfcffffff has been res=
+erved
+[    0.813169] system 00:01: iomem range 0xfd000000-0xfdffffff has been res=
+erved
+[    0.813221] system 00:01: iomem range 0xfe000000-0xfebfffff has been res=
+erved
+[    0.813274] system 00:01: iomem range 0xfec8a000-0xfec8afff could not be=
+ reserved
+[    0.813339] system 00:01: iomem range 0xfed10000-0xfed10fff has been res=
+erved
+[    0.813396] system 00:06: ioport range 0x290-0x29f has been reserved
+[    0.813449] system 00:07: ioport range 0x4d0-0x4d1 has been reserved
+[    0.813500] system 00:07: ioport range 0x800-0x87f has been reserved
+[    0.813551] system 00:07: ioport range 0x500-0x57f could not be reserved
+[    0.813603] system 00:07: iomem range 0xfed1c000-0xfed1ffff has been res=
+erved
+[    0.813656] system 00:07: iomem range 0xfed20000-0xfed3ffff has been res=
+erved
+[    0.813708] system 00:07: iomem range 0xfed40000-0xfed8ffff has been res=
+erved
+[    0.813763] system 00:0a: iomem range 0xffc00000-0xffdfffff has been res=
+erved
+[    0.813817] system 00:0b: iomem range 0xfec00000-0xfec00fff could not be=
+ reserved
+[    0.813882] system 00:0b: iomem range 0xfee00000-0xfee00fff has been res=
+erved
+[    0.813937] system 00:0e: iomem range 0xe0000000-0xefffffff has been res=
+erved
+[    0.813991] system 00:0f: iomem range 0x0-0x9ffff could not be reserved
+[    0.814042] system 00:0f: iomem range 0xc0000-0xcffff has been reserved
+[    0.814094] system 00:0f: iomem range 0xe0000-0xfffff could not be reser=
+ved
+[    0.814146] system 00:0f: iomem range 0x100000-0xbfefffff could not be r=
+eserved
+[    0.814211] system 00:0f: iomem range 0xfed90000-0xffffffff could not be=
+ reserved
+[    0.819052] pci 0000:00:01.0: PCI bridge, secondary bus 0000:01
+[    0.819102] pci 0000:00:01.0:   IO window: disabled
+[    0.819153] pci 0000:00:01.0:   MEM window: disabled
+[    0.819202] pci 0000:00:01.0:   PREFETCH window: disabled
+[    0.819252] pci 0000:00:03.0: PCI bridge, secondary bus 0000:02
+[    0.819303] pci 0000:00:03.0:   IO window: 0xb000-0xbfff
+[    0.819354] pci 0000:00:03.0:   MEM window: 0xfbb00000-0xfbbfffff
+[    0.819407] pci 0000:00:03.0:   PREFETCH window: 0x000000d0000000-0x0000=
+00dfffffff
+[    0.819475] pci 0000:00:07.0: PCI bridge, secondary bus 0000:03
+[    0.819524] pci 0000:00:07.0:   IO window: disabled
+[    0.819574] pci 0000:00:07.0:   MEM window: disabled
+[    0.819623] pci 0000:00:07.0:   PREFETCH window: disabled
+[    0.819673] pci 0000:00:1c.0: PCI bridge, secondary bus 0000:07
+[    0.819723] pci 0000:00:1c.0:   IO window: disabled
+[    0.819773] pci 0000:00:1c.0:   MEM window: disabled
+[    0.819823] pci 0000:00:1c.0:   PREFETCH window: 0x000000faf00000-0x0000=
+00faffffff
+[    0.819891] pci 0000:00:1c.2: PCI bridge, secondary bus 0000:06
+[    0.819942] pci 0000:00:1c.2:   IO window: 0xe000-0xefff
+[    0.819993] pci 0000:00:1c.2:   MEM window: 0xfbe00000-0xfbefffff
+[    0.820044] pci 0000:00:1c.2:   PREFETCH window: 0x000000fae00000-0x0000=
+00faefffff
+[    0.820113] pci 0000:00:1c.3: PCI bridge, secondary bus 0000:05
+[    0.820164] pci 0000:00:1c.3:   IO window: 0xd000-0xdfff
+[    0.820215] pci 0000:00:1c.3:   MEM window: 0xfbd00000-0xfbdfffff
+[    0.820266] pci 0000:00:1c.3:   PREFETCH window: disabled
+[    0.820317] pci 0000:00:1c.4: PCI bridge, secondary bus 0000:04
+[    0.820367] pci 0000:00:1c.4:   IO window: 0xc000-0xcfff
+[    0.820420] pci 0000:00:1c.4:   MEM window: 0xfbc00000-0xfbcfffff
+[    0.820471] pci 0000:00:1c.4:   PREFETCH window: disabled
+[    0.820522] pci 0000:00:1e.0: PCI bridge, secondary bus 0000:08
+[    0.820571] pci 0000:00:1e.0:   IO window: disabled
+[    0.820621] pci 0000:00:1e.0:   MEM window: disabled
+[    0.820671] pci 0000:00:1e.0:   PREFETCH window: disabled
+[    0.820727] pci 0000:00:01.0: setting latency timer to 64
+[    0.820733] pci 0000:00:03.0: setting latency timer to 64
+[    0.820738] pci 0000:00:07.0: setting latency timer to 64
+[    0.820745]   alloc irq_desc for 17 on node -1
+[    0.820746]   alloc kstat_irqs on node -1
+[    0.820751] pci 0000:00:1c.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+[    0.820803] pci 0000:00:1c.0: setting latency timer to 64
+[    0.820809]   alloc irq_desc for 18 on node -1
+[    0.820810]   alloc kstat_irqs on node -1
+[    0.820813] pci 0000:00:1c.2: PCI INT C -> GSI 18 (level, low) -> IRQ 18
+[    0.820866] pci 0000:00:1c.2: setting latency timer to 64
+[    0.820871]   alloc irq_desc for 19 on node -1
+[    0.820872]   alloc kstat_irqs on node -1
+[    0.820875] pci 0000:00:1c.3: PCI INT D -> GSI 19 (level, low) -> IRQ 19
+[    0.820928] pci 0000:00:1c.3: setting latency timer to 64
+[    0.820934] pci 0000:00:1c.4: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+[    0.820986] pci 0000:00:1c.4: setting latency timer to 64
+[    0.820991] pci 0000:00:1e.0: setting latency timer to 64
+[    0.820995] pci_bus 0000:00: resource 0 io:  [0x00-0xffff]
+[    0.820996] pci_bus 0000:00: resource 1 mem: [0x000000-0xfffffffffffffff=
+f]
+[    0.820998] pci_bus 0000:02: resource 0 io:  [0xb000-0xbfff]
+[    0.821000] pci_bus 0000:02: resource 1 mem: [0xfbb00000-0xfbbfffff]
+[    0.821002] pci_bus 0000:02: resource 2 pref mem [0xd0000000-0xdfffffff]
+[    0.821004] pci_bus 0000:07: resource 2 pref mem [0xfaf00000-0xfaffffff]
+[    0.821006] pci_bus 0000:06: resource 0 io:  [0xe000-0xefff]
+[    0.821007] pci_bus 0000:06: resource 1 mem: [0xfbe00000-0xfbefffff]
+[    0.821009] pci_bus 0000:06: resource 2 pref mem [0xfae00000-0xfaefffff]
+[    0.821011] pci_bus 0000:05: resource 0 io:  [0xd000-0xdfff]
+[    0.821012] pci_bus 0000:05: resource 1 mem: [0xfbd00000-0xfbdfffff]
+[    0.821014] pci_bus 0000:04: resource 0 io:  [0xc000-0xcfff]
+[    0.821016] pci_bus 0000:04: resource 1 mem: [0xfbc00000-0xfbcfffff]
+[    0.821018] pci_bus 0000:08: resource 3 io:  [0x00-0xffff]
+[    0.821019] pci_bus 0000:08: resource 4 mem: [0x000000-0xfffffffffffffff=
+f]
+[    0.821072] NET: Registered protocol family 2
+[    0.821193] IP route cache hash table entries: 524288 (order: 10, 419430=
+4 bytes)
+[    0.821763] TCP established hash table entries: 262144 (order: 10, 41943=
+04 bytes)
+[    0.822416] TCP bind hash table entries: 65536 (order: 8, 1048576 bytes)
+[    0.822604] TCP: Hash tables configured (established 262144 bind 65536)
+[    0.822655] TCP reno registered
+[    0.822788] NET: Registered protocol family 1
+[    0.834789] Scanning for low memory corruption every 60 seconds
+[    0.835521] HugeTLB registered 2 MB page size, pre-allocated 0 pages
+[    0.835735] VFS: Disk quotas dquot_6.5.2
+[    0.835805] Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+[    0.836073] Installing knfsd (copyright (C) 1996 okir@monad.swb.de).
+[    0.836197] fuse init (API version 7.12)
+[    0.836300] msgmni has been set to 24025
+[    0.836539] alg: No test for stdrng (krng)
+[    0.836593] io scheduler noop registered
+[    0.836659] io scheduler cfq registered (default)
+[    0.836840] pci 0000:02:00.0: Boot video device
+[    0.836943]   alloc irq_desc for 48 on node -1
+[    0.836944]   alloc kstat_irqs on node -1
+[    0.836951] pcieport-driver 0000:00:01.0: irq 48 for MSI/MSI-X
+[    0.836957] pcieport-driver 0000:00:01.0: setting latency timer to 64
+[    0.837046]   alloc irq_desc for 49 on node -1
+[    0.837047]   alloc kstat_irqs on node -1
+[    0.837052] pcieport-driver 0000:00:03.0: irq 49 for MSI/MSI-X
+[    0.837057] pcieport-driver 0000:00:03.0: setting latency timer to 64
+[    0.837145]   alloc irq_desc for 50 on node -1
+[    0.837146]   alloc kstat_irqs on node -1
+[    0.837151] pcieport-driver 0000:00:07.0: irq 50 for MSI/MSI-X
+[    0.837157] pcieport-driver 0000:00:07.0: setting latency timer to 64
+[    0.837240]   alloc irq_desc for 51 on node -1
+[    0.837241]   alloc kstat_irqs on node -1
+[    0.837246] pcieport-driver 0000:00:1c.0: irq 51 for MSI/MSI-X
+[    0.837253] pcieport-driver 0000:00:1c.0: setting latency timer to 64
+[    0.837343]   alloc irq_desc for 52 on node -1
+[    0.837344]   alloc kstat_irqs on node -1
+[    0.837350] pcieport-driver 0000:00:1c.2: irq 52 for MSI/MSI-X
+[    0.837356] pcieport-driver 0000:00:1c.2: setting latency timer to 64
+[    0.837451]   alloc irq_desc for 53 on node -1
+[    0.837452]   alloc kstat_irqs on node -1
+[    0.837458] pcieport-driver 0000:00:1c.3: irq 53 for MSI/MSI-X
+[    0.837464] pcieport-driver 0000:00:1c.3: setting latency timer to 64
+[    0.837554]   alloc irq_desc for 54 on node -1
+[    0.837556]   alloc kstat_irqs on node -1
+[    0.837561] pcieport-driver 0000:00:1c.4: irq 54 for MSI/MSI-X
+[    0.837567] pcieport-driver 0000:00:1c.4: setting latency timer to 64
+[    0.837636] aer 0000:00:01.0:pcie02: AER service couldn't init device: n=
+o _OSC support
+[    0.837641] aer 0000:00:03.0:pcie02: AER service couldn't init device: n=
+o _OSC support
+[    0.837645] aer 0000:00:07.0:pcie02: AER service couldn't init device: n=
+o _OSC support
+[    0.837697] input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN:00/inpu=
+t/input0
+[    0.837762] ACPI: Power Button [PWRF]
+[    0.837855] input: Power Button as /devices/LNXSYSTM:00/device:00/PNP0C0=
+C:00/input/input1
+[    0.837921] ACPI: Power Button [PWRB]
+[    0.838748] ACPI: SSDT 00000000bf6980c0 00403 (v01 DpgPmm  P001Ist 00000=
+011 INTL 20060113)
+[    0.841279] processor LNXCPU:00: registered as cooling_device0
+[    0.841801] ACPI: SSDT 00000000bf6984d0 00403 (v01 DpgPmm  P002Ist 00000=
+012 INTL 20060113)
+[    0.844240] processor LNXCPU:01: registered as cooling_device1
+[    0.844757] ACPI: SSDT 00000000bf6988e0 00403 (v01 DpgPmm  P003Ist 00000=
+012 INTL 20060113)
+[    0.847195] processor LNXCPU:02: registered as cooling_device2
+[    0.847714] ACPI: SSDT 00000000bf698cf0 00403 (v01 DpgPmm  P004Ist 00000=
+012 INTL 20060113)
+[    0.850153] processor LNXCPU:03: registered as cooling_device3
+[    0.850669] ACPI: SSDT 00000000bf699100 00403 (v01 DpgPmm  P005Ist 00000=
+012 INTL 20060113)
+[    0.853106] processor LNXCPU:04: registered as cooling_device4
+[    0.853622] ACPI: SSDT 00000000bf699510 00403 (v01 DpgPmm  P006Ist 00000=
+012 INTL 20060113)
+[    0.856059] processor LNXCPU:05: registered as cooling_device5
+[    0.856572] ACPI: SSDT 00000000bf699920 00403 (v01 DpgPmm  P007Ist 00000=
+012 INTL 20060113)
+[    0.859014] processor LNXCPU:06: registered as cooling_device6
+[    0.859530] ACPI: SSDT 00000000bf699d30 00403 (v01 DpgPmm  P008Ist 00000=
+012 INTL 20060113)
+[    0.861970] processor LNXCPU:07: registered as cooling_device7
+[    0.865101] Linux agpgart interface v0.103
+[    0.865149] Serial: 8250/16550 driver, 4 ports, IRQ sharing disabled
+[    0.865517] ahci 0000:00:1f.2: version 3.0
+[    0.865527]   alloc irq_desc for 20 on node -1
+[    0.865529]   alloc kstat_irqs on node -1
+[    0.865534] ahci 0000:00:1f.2: PCI INT B -> GSI 20 (level, low) -> IRQ 20
+[    0.865610]   alloc irq_desc for 55 on node -1
+[    0.865611]   alloc kstat_irqs on node -1
+[    0.865617] ahci 0000:00:1f.2: irq 55 for MSI/MSI-X
+[    0.865639] ahci: SSS flag set, parallel bus scan disabled
+[    0.865722] ahci 0000:00:1f.2: AHCI 0001.0200 32 slots 6 ports 3 Gbps 0x=
+3f impl SATA mode
+[    0.865789] ahci 0000:00:1f.2: flags: 64bit ncq sntf stag pm led clo pmp=
+ pio slum part ems=20
+[    0.865858] ahci 0000:00:1f.2: setting latency timer to 64
+[    0.875191] scsi0 : ahci
+[    0.875306] scsi1 : ahci
+[    0.875390] scsi2 : ahci
+[    0.875469] scsi3 : ahci
+[    0.875548] scsi4 : ahci
+[    0.875628] scsi5 : ahci
+[    0.875768] ata1: SATA max UDMA/133 abar m2048@0xfbafc000 port 0xfbafc10=
+0 irq 55
+[    0.875834] ata2: SATA max UDMA/133 abar m2048@0xfbafc000 port 0xfbafc18=
+0 irq 55
+[    0.875899] ata3: SATA max UDMA/133 abar m2048@0xfbafc000 port 0xfbafc20=
+0 irq 55
+[    0.875965] ata4: SATA max UDMA/133 abar m2048@0xfbafc000 port 0xfbafc28=
+0 irq 55
+[    0.876030] ata5: SATA max UDMA/133 abar m2048@0xfbafc000 port 0xfbafc30=
+0 irq 55
+[    0.876095] ata6: SATA max UDMA/133 abar m2048@0xfbafc000 port 0xfbafc38=
+0 irq 55
+[    0.876182]   alloc irq_desc for 16 on node -1
+[    0.876184]   alloc kstat_irqs on node -1
+[    0.876189] ahci 0000:04:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+[    0.887157] ahci 0000:04:00.0: AHCI 0001.0000 32 slots 2 ports 3 Gbps 0x=
+3 impl SATA mode
+[    0.887232] ahci 0000:04:00.0: flags: 64bit ncq pm led clo pmp pio slum =
+part=20
+[    0.887287] ahci 0000:04:00.0: setting latency timer to 64
+[    0.887377] scsi6 : ahci
+[    0.887460] scsi7 : ahci
+[    0.887555] ata7: SATA max UDMA/133 abar m8192@0xfbcfe000 port 0xfbcfe10=
+0 irq 16
+[    0.887622] ata8: SATA max UDMA/133 abar m8192@0xfbcfe000 port 0xfbcfe18=
+0 irq 16
+[    0.887733] pata_jmicron 0000:04:00.1: PCI INT B -> GSI 17 (level, low) =
+-> IRQ 17
+[    0.887814] pata_jmicron 0000:04:00.1: setting latency timer to 64
+[    0.887860] scsi8 : pata_jmicron
+[    0.887941] scsi9 : pata_jmicron
+[    0.894615] ata9: PATA max UDMA/100 cmd 0xcc00 ctl 0xc880 bmdma 0xc400 i=
+rq 17
+[    0.894669] ata10: PATA max UDMA/100 cmd 0xc800 ctl 0xc480 bmdma 0xc408 =
+irq 17
+[    0.894772] r8169 Gigabit Ethernet driver 2.3LK-NAPI loaded
+[    0.894838] r8169 0000:06:00.0: PCI INT A -> GSI 18 (level, low) -> IRQ =
+18
+[    0.894914] r8169 0000:06:00.0: setting latency timer to 64
+[    0.894952]   alloc irq_desc for 56 on node -1
+[    0.894953]   alloc kstat_irqs on node -1
+[    0.894963] r8169 0000:06:00.0: irq 56 for MSI/MSI-X
+[    0.895116] eth0: RTL8168c/8111c at 0xffffc90000042000, 00:24:8c:0f:64:1=
+8, XID 3c4000c0 IRQ 56
+[    0.897977] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[    0.898039] ehci_hcd 0000:00:1a.7: PCI INT C -> GSI 18 (level, low) -> I=
+RQ 18
+[    0.898097] ehci_hcd 0000:00:1a.7: setting latency timer to 64
+[    0.898100] ehci_hcd 0000:00:1a.7: EHCI Host Controller
+[    0.898166] ehci_hcd 0000:00:1a.7: new USB bus registered, assigned bus =
+number 1
+[    0.902135] ehci_hcd 0000:00:1a.7: debug port 1
+[    0.902185] ehci_hcd 0000:00:1a.7: cache line size of 32 is not supported
+[    0.902196] ehci_hcd 0000:00:1a.7: irq 18, io mem 0xfbaff000
+[    0.911125] ehci_hcd 0000:00:1a.7: USB 2.0 started, EHCI 1.00
+[    0.911238] usb usb1: configuration #1 chosen from 1 choice
+[    0.911305] hub 1-0:1.0: USB hub found
+[    0.911354] hub 1-0:1.0: 6 ports detected
+[    0.911446]   alloc irq_desc for 23 on node -1
+[    0.911447]   alloc kstat_irqs on node -1
+[    0.911451] ehci_hcd 0000:00:1d.7: PCI INT A -> GSI 23 (level, low) -> I=
+RQ 23
+[    0.911510] ehci_hcd 0000:00:1d.7: setting latency timer to 64
+[    0.911513] ehci_hcd 0000:00:1d.7: EHCI Host Controller
+[    0.911564] ehci_hcd 0000:00:1d.7: new USB bus registered, assigned bus =
+number 2
+[    0.915528] ehci_hcd 0000:00:1d.7: debug port 1
+[    0.915579] ehci_hcd 0000:00:1d.7: cache line size of 32 is not supported
+[    0.915589] ehci_hcd 0000:00:1d.7: irq 23, io mem 0xfbafe000
+[    0.925121] ehci_hcd 0000:00:1d.7: USB 2.0 started, EHCI 1.00
+[    0.925228] usb usb2: configuration #1 chosen from 1 choice
+[    0.925293] hub 2-0:1.0: USB hub found
+[    0.925342] hub 2-0:1.0: 6 ports detected
+[    0.925435] uhci_hcd: USB Universal Host Controller Interface driver
+[    0.925503] uhci_hcd 0000:00:1a.0: PCI INT A -> GSI 16 (level, low) -> I=
+RQ 16
+[    0.925558] uhci_hcd 0000:00:1a.0: setting latency timer to 64
+[    0.925561] uhci_hcd 0000:00:1a.0: UHCI Host Controller
+[    0.925613] uhci_hcd 0000:00:1a.0: new USB bus registered, assigned bus =
+number 3
+[    0.925697] uhci_hcd 0000:00:1a.0: irq 16, io base 0x0000a800
+[    0.925795] usb usb3: configuration #1 chosen from 1 choice
+[    0.925860] hub 3-0:1.0: USB hub found
+[    0.925908] hub 3-0:1.0: 2 ports detected
+[    0.925984]   alloc irq_desc for 21 on node -1
+[    0.925986]   alloc kstat_irqs on node -1
+[    0.925989] uhci_hcd 0000:00:1a.1: PCI INT B -> GSI 21 (level, low) -> I=
+RQ 21
+[    0.926045] uhci_hcd 0000:00:1a.1: setting latency timer to 64
+[    0.926047] uhci_hcd 0000:00:1a.1: UHCI Host Controller
+[    0.926100] uhci_hcd 0000:00:1a.1: new USB bus registered, assigned bus =
+number 4
+[    0.926192] uhci_hcd 0000:00:1a.1: irq 21, io base 0x0000a880
+[    0.926288] usb usb4: configuration #1 chosen from 1 choice
+[    0.926354] hub 4-0:1.0: USB hub found
+[    0.926405] hub 4-0:1.0: 2 ports detected
+[    0.926483] uhci_hcd 0000:00:1a.2: PCI INT D -> GSI 19 (level, low) -> I=
+RQ 19
+[    0.926538] uhci_hcd 0000:00:1a.2: setting latency timer to 64
+[    0.926540] uhci_hcd 0000:00:1a.2: UHCI Host Controller
+[    0.926592] uhci_hcd 0000:00:1a.2: new USB bus registered, assigned bus =
+number 5
+[    0.926681] uhci_hcd 0000:00:1a.2: irq 19, io base 0x0000ac00
+[    0.926777] usb usb5: configuration #1 chosen from 1 choice
+[    0.926842] hub 5-0:1.0: USB hub found
+[    0.926890] hub 5-0:1.0: 2 ports detected
+[    0.926967] uhci_hcd 0000:00:1d.0: PCI INT A -> GSI 23 (level, low) -> I=
+RQ 23
+[    0.927022] uhci_hcd 0000:00:1d.0: setting latency timer to 64
+[    0.927024] uhci_hcd 0000:00:1d.0: UHCI Host Controller
+[    0.927076] uhci_hcd 0000:00:1d.0: new USB bus registered, assigned bus =
+number 6
+[    0.927160] uhci_hcd 0000:00:1d.0: irq 23, io base 0x0000a080
+[    0.927258] usb usb6: configuration #1 chosen from 1 choice
+[    0.927323] hub 6-0:1.0: USB hub found
+[    0.927374] hub 6-0:1.0: 2 ports detected
+[    0.927450] uhci_hcd 0000:00:1d.1: PCI INT B -> GSI 19 (level, low) -> I=
+RQ 19
+[    0.927505] uhci_hcd 0000:00:1d.1: setting latency timer to 64
+[    0.927507] uhci_hcd 0000:00:1d.1: UHCI Host Controller
+[    0.927559] uhci_hcd 0000:00:1d.1: new USB bus registered, assigned bus =
+number 7
+[    0.927643] uhci_hcd 0000:00:1d.1: irq 19, io base 0x0000a400
+[    0.927738] usb usb7: configuration #1 chosen from 1 choice
+[    0.927806] hub 7-0:1.0: USB hub found
+[    0.927854] hub 7-0:1.0: 2 ports detected
+[    0.927929] uhci_hcd 0000:00:1d.2: PCI INT C -> GSI 18 (level, low) -> I=
+RQ 18
+[    0.927984] uhci_hcd 0000:00:1d.2: setting latency timer to 64
+[    0.927986] uhci_hcd 0000:00:1d.2: UHCI Host Controller
+[    0.928039] uhci_hcd 0000:00:1d.2: new USB bus registered, assigned bus =
+number 8
+[    0.928123] uhci_hcd 0000:00:1d.2: irq 18, io base 0x0000a480
+[    0.928222] usb usb8: configuration #1 chosen from 1 choice
+[    0.928287] hub 8-0:1.0: USB hub found
+[    0.928336] hub 8-0:1.0: 2 ports detected
+[    0.928430] usbcore: registered new interface driver usblp
+[    0.928479] Initializing USB Mass Storage driver...
+[    0.928555] usbcore: registered new interface driver usb-storage
+[    0.928605] USB Mass Storage support registered.
+[    0.928679] PNP: PS/2 Controller [PNP0303:PS2K,PNP0f03:PS2M] at 0x60,0x6=
+4 irq 1,12
+[    0.931323] serio: i8042 KBD port at 0x60,0x64 irq 1
+[    0.931376] serio: i8042 AUX port at 0x60,0x64 irq 12
+[    0.931448] mice: PS/2 mouse device common for all mice
+[    0.931583] rtc_cmos 00:03: RTC can wake from S4
+[    0.931652] rtc_cmos 00:03: rtc core: registered rtc_cmos as rtc0
+[    0.931724] rtc0: alarms up to one month, y3k, 114 bytes nvram, hpet irqs
+[    0.931782] i2c /dev entries driver
+[    0.931848] i801_smbus 0000:00:1f.3: PCI INT C -> GSI 18 (level, low) ->=
+ IRQ 18
+[    0.931914] ACPI: I/O resource 0000:00:1f.3 [0x400-0x41f] conflicts with=
+ ACPI region SMRG [0x400-0x40f]
+[    0.931982] ACPI: Device needs an ACPI driver
+[    0.932031] i801_smbus: probe of 0000:00:1f.3 failed with error -16
+[    0.932109] w83627ehf: Found W83667HG chip at 0x290
+[    0.932163] ACPI: I/O resource w83627ehf [0x295-0x296] conflicts with AC=
+PI region HWRE [0x290-0x299]
+[    0.932231] ACPI: Device needs an ACPI driver
+[    0.932283] md: raid1 personality registered for level 1
+[    0.932409] device-mapper: ioctl: 4.15.0-ioctl (2009-04-01) initialised:=
+ dm-devel@redhat.com
+[    0.932534] EDAC MC: Ver: 2.1.0 Sep 25 2009
+[    0.932684] cpuidle: using governor ladder
+[    0.932731] cpuidle: using governor menu
+[    0.932829] usbcore: registered new interface driver usbhid
+[    0.932879] usbhid: v2.6:USB HID core driver
+[    0.932940] Advanced Linux Sound Architecture Driver Version 1.0.20.
+[    0.933161]   alloc irq_desc for 22 on node -1
+[    0.933162]   alloc kstat_irqs on node -1
+[    0.933166] HDA Intel 0000:00:1b.0: PCI INT A -> GSI 22 (level, low) -> =
+IRQ 22
+[    0.933248] HDA Intel 0000:00:1b.0: setting latency timer to 64
+[    0.948924] input: AT Translated Set 2 keyboard as /devices/platform/i80=
+42/serio0/input/input2
+[    0.972626]   alloc irq_desc for 34 on node -1
+[    0.972628]   alloc kstat_irqs on node -1
+[    0.972633] HDA Intel 0000:02:00.1: PCI INT B -> GSI 34 (level, low) -> =
+IRQ 34
+[    0.972713] HDA Intel 0000:02:00.1: setting latency timer to 64
+[    0.998350] ALSA device list:
+[    0.998395]   #0: HDA Intel at 0xfbaf8000 irq 22
+[    0.998442]   #1: HDA ATI HDMI at 0xfbbfc000 irq 34
+[    0.998681] TCP cubic registered
+[    0.998727] NET: Registered protocol family 17
+[    0.998939] RPC: Registered udp transport module.
+[    0.998986] RPC: Registered tcp transport module.
+[    1.003954] TuxOnIce 3.0.1 (http://tuxonice.net)
+[    1.004035] TuxOnIce: Ignoring late initcall, as requested.
+[    1.181364] ata1: SATA link down (SStatus 0 SControl 300)
+[    1.192061] ata8: SATA link down (SStatus 0 SControl 300)
+[    1.345016] ata7: SATA link up 3.0 Gbps (SStatus 123 SControl 300)
+[    1.345303] ata7.15: Port Multiplier 1.1, 0x0322:0x1043 r0, 5 ports, fea=
+t 0x5/0xf
+[    1.345622] ata7.15: applying bridge limits
+[    1.345709] ata7.00: hard resetting link
+[    1.382013] usb 7-1: new low speed USB device using uhci_hcd and address=
+ 2
+[    1.496966] ata2: SATA link down (SStatus 0 SControl 300)
+[    1.544567] usb 7-1: configuration #1 chosen from 1 choice
+[    1.560626] input: Logitech USB Optical Mouse as /devices/pci0000:00/000=
+0:00:1d.1/usb7/7-1/7-1:1.0/input/input3
+[    1.560728] generic-usb 0003:046D:C018.0001: input: USB HID v1.11 Mouse =
+[Logitech USB Optical Mouse] on usb-0000:00:1d.1-1/input0
+[    1.566233] input: PS/2 Generic Mouse as /devices/platform/i8042/serio1/=
+input/input4
+[    1.803083] ata7.00: SATA link up 3.0 Gbps (SStatus 123 SControl 320)
+[    1.803142] ata7.01: hard resetting link
+[    1.812877] ata3: SATA link down (SStatus 0 SControl 300)
+[    2.260961] ata7.01: SATA link up 3.0 Gbps (SStatus 123 SControl 0)
+[    2.261017] ata7.02: hard resetting link
+[    2.281751] ata4: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
+[    2.282504] ata4.00: ATAPI: TSSTcorp CDDVDW SH-S223F, SB03, max UDMA/100=
+, ATAPI AN
+[    2.283528] ata4.00: configured for UDMA/100
+[    2.295271] scsi 3:0:0:0: CD-ROM            TSSTcorp CDDVDW SH-S223F  SB=
+03 PQ: 0 ANSI: 5
+[    2.298504] sr0: scsi3-mmc drive: 48x/48x writer dvd-ram cd/rw xa/form2 =
+cdda tray
+[    2.298576] Uniform CD-ROM driver Revision: 3.20
+[    2.298707] sr 3:0:0:0: Attached scsi CD-ROM sr0
+[    2.565989] ata7.02: SATA link down (SStatus 0 SControl 0)
+[    2.572152] ata7.03: hard resetting link
+[    2.603656] ata5: SATA link down (SStatus 0 SControl 300)
+[    2.876900] ata7.03: SATA link down (SStatus 0 SControl 0)
+[    2.876955] ata7.04: hard resetting link
+[    2.919568] ata6: SATA link down (SStatus 0 SControl 300)
+[    3.181814] ata7.04: SATA link down (SStatus 0 SControl 0)
+[    3.181952] ata7.00: ATA-7: ST3500320AS, 0909, max UDMA/133
+[    3.182006] ata7.00: 976773168 sectors, multi 1: LBA48=20
+[    3.182218] ata7.00: configured for UDMA/133
+[    3.183809] ata7.01: ATA-8: ST3500320AS, SD1A, max UDMA/133
+[    3.183863] ata7.01: 976773168 sectors, multi 0: LBA48 NCQ (depth 31/32)
+[    3.185882] ata7.01: configured for UDMA/133
+[    3.185963] ata7: EH complete
+[    3.186101] scsi 6:0:0:0: Direct-Access     ATA      ST3500320AS      09=
+09 PQ: 0 ANSI: 5
+[    3.186293] sd 6:0:0:0: [sda] 976773168 512-byte logical blocks: (500 GB=
+/465 GiB)
+[    3.186338] scsi 6:1:0:0: Direct-Access     ATA      ST3500320AS      SD=
+1A PQ: 0 ANSI: 5
+[    3.186457] sd 6:1:0:0: [sdb] 976773168 512-byte logical blocks: (500 GB=
+/465 GiB)
+[    3.186475] sd 6:0:0:0: [sda] Write Protect is off
+[    3.186478] sd 6:0:0:0: [sda] Mode Sense: 00 3a 00 00
+[    3.186499] sd 6:0:0:0: [sda] Write cache: enabled, read cache: enabled,=
+ doesn't support DPO or FUA
+[    3.186609]  sda:
+[    3.186733] sd 6:1:0:0: [sdb] Write Protect is off
+[    3.186831] sd 6:1:0:0: [sdb] Mode Sense: 00 3a 00 00
+[    3.186852] sd 6:1:0:0: [sdb] Write cache: enabled, read cache: enabled,=
+ doesn't support DPO or FUA
+[    3.187027]  sdb: sda1 sda2 sda3
+[    3.214417] sd 6:0:0:0: [sda] Attached SCSI disk
+[    3.237335]  sdb1 sdb2 sdb3
+[    3.237695] sd 6:1:0:0: [sdb] Attached SCSI disk
+[    3.349475] rtc_cmos 00:03: setting system clock to 2009-09-25 21:53:38 =
+UTC (1253915618)
+[    3.349631] Freeing unused kernel memory: 1096k freed
+[    3.349848] Write protecting the kernel read-only data: 5812k
 
 
-Firstly please format patches more carefully.  Description typically sub 70 something
-character lines and remove the previous email from below the patch.
-> 
-> Signed-off-by: Kalhan Trisal <kalhan.trisal@intel.com>
-> ---
->  drivers/hwmon/Kconfig         |   17 ++++++
->  drivers/hwmon/Makefile        |    1 +
->  drivers/hwmon/lis3lv02d.c     |   13 ++++-
->  drivers/hwmon/lis3lv02d.h     |    9 +++-
->  drivers/hwmon/lis3lv02d_i2c.c |  115 +++++++++++++++++++++++++++++++++++++++++
->  5 files changed, 151 insertions(+), 4 deletions(-)
->  create mode 100644 drivers/hwmon/lis3lv02d_i2c.c
-> 
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 2d50166..2a4eba1 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -992,6 +992,23 @@ config SENSORS_LIS3_SPI
->           will be called lis3lv02d and a specific module for the SPI transport
->           is called lis3lv02d_spi.
-> 
-> +config SENSORS_LIS3_I2C
-> +       tristate "STMicroeletronics LIS3LV02Dx three-axis digital accelerometer (I2C)"
-> +       depends on I2C
-> +       select INPUT_POLLDEV
-> +       default n
-> +       help
-> +         This driver provides support for the LIS3LV02Dx accelerometer connected
-> +         via I2C. The accelerometer data is readable via
-> +         /sys/devices/platform/lis3lv02d.
-What are peoples feelings on this?  Personally I'd prefer devices to register
-as what they are when we can identify them rather than a generic name.
-> +
-> +         This driver also provides an absolute input class device, allowing
-> +         the laptop to act as a pinball machine-esque joystick.
-> +
-> +         This driver can also be built as modules.  If so, the core module
-> +         will be called lis3lv02d and a specific module for the I2C transport
-> +         is called lis3lv02d_i2c.
-> +
->  config SENSORS_APPLESMC
->         tristate "Apple SMC (Motion sensor, light sensor, keyboard backlight)"
->         depends on INPUT && X86
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index b793dce..93ab518 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -55,6 +55,7 @@ obj-$(CONFIG_SENSORS_IT87)    += it87.o
->  obj-$(CONFIG_SENSORS_K8TEMP)   += k8temp.o
->  obj-$(CONFIG_SENSORS_LIS3LV02D) += lis3lv02d.o hp_accel.o
->  obj-$(CONFIG_SENSORS_LIS3_SPI) += lis3lv02d.o lis3lv02d_spi.o
-> +obj-$(CONFIG_SENSORS_LIS3_I2C) += lis3lv02d.o lis3lv02d_i2c.o
->  obj-$(CONFIG_SENSORS_LM63)     += lm63.o
->  obj-$(CONFIG_SENSORS_LM70)     += lm70.o
->  obj-$(CONFIG_SENSORS_LM75)     += lm75.o
-> diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-> index 271338b..39562a3 100644
-> --- a/drivers/hwmon/lis3lv02d.c
-> +++ b/drivers/hwmon/lis3lv02d.c
-> @@ -361,15 +361,22 @@ static ssize_t lis3lv02d_calibrate_store(struct device *dev,
->  }
-> 
->  /* conversion btw sampling rate and the register values */
-> -static int lis3lv02dl_df_val[4] = {40, 160, 640, 2560};
-> +static int lis3lv02dl_df_val[6] = {40, 100, 160, 400, 640, 2560};
->  static ssize_t lis3lv02d_rate_show(struct device *dev,
->                         struct device_attribute *attr, char *buf)
->  {
->         u8 ctrl;
-> -       int val;
-> +       int val = 0;
-> 
->         lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
-> -       val = (ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4;
-> +       if (lis3_dev.device_id = LIS302D_DEV) {
-> +               if (ctrl & CTRL1_PD1)
-Hang on, why do you appear to be querying a power down address
-to get the rate?  I haven't looked at data sheet, but guessing 
-this is because you just wanted the right mask.  If so add
-a definition for your chip, say LIS302D_CTRL1_DR and use
-that instead.
-
-> +                       val = 3;
-> +               else
-> +                       val = 1;
-> +       } else if (lis3_dev.device_id = LIS3LV02D_DEV)
-> +               val = (ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4;
-> +
->         return sprintf(buf, "%d\n", lis3lv02dl_df_val[val]);
->  }
-> 
-> diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
-> index e320e2f..d21a7c8 100644
-> --- a/drivers/hwmon/lis3lv02d.h
-> +++ b/drivers/hwmon/lis3lv02d.h
-> @@ -20,6 +20,7 @@
->   */
->  #include <linux/platform_device.h>
->  #include <linux/input-polldev.h>
-> +#include <linux/i2c.h>
-Worth having this inside some #defines?
-Same for the additions to the struct lis3lv02d later, no point in
-adding to kernel bloat if people don't want i2c support.
-> 
->  /*
->   * The actual chip is STMicroelectronics LIS3LV02DL or LIS3LV02DQ that seems to
-> @@ -170,6 +171,11 @@ enum lis3lv02d_dd_src {
->         DD_SRC_IA       = 0x40,
->  };
-> 
-> +enum lis_dev_support {
-> +       LIS3LV02D_DEV   = 0x01,
-> +       LIS302D_DEV     = 0x02,
-> +};
-> +
->  struct axis_conversion {
->         s8      x;
->         s8      y;
-> @@ -181,8 +187,9 @@ struct lis3lv02d {
->         int (*init) (struct lis3lv02d *lis3);
->         int (*write) (struct lis3lv02d *lis3, int reg, u8 val);
->         int (*read) (struct lis3lv02d *lis3, int reg, u8 *ret);
-> -
-worth using the existing bus_priv pointer for this rather than introducing
-new element?
-> +       struct i2c_client  *lisi2c_client; /* support I2C interface*/
->         u8                      whoami;    /* 3Ah: 2-byte registries, 3Bh: 1-byte registries */
-> +       u8                      device_id;    /* devide_id fo chip */
- of or for?
->         s16 (*read_data) (struct lis3lv02d *lis3, int reg);
->         int                     mdps_max_val;
-> 
-> diff --git a/drivers/hwmon/lis3lv02d_i2c.c b/drivers/hwmon/lis3lv02d_i2c.c
-> new file mode 100644
-> index 0000000..c75e554
-> --- /dev/null
-> +++ b/drivers/hwmon/lis3lv02d_i2c.c
-> @@ -0,0 +1,115 @@
-> +/*
-> + * lis3lv02d_i2c - I2C glue layer for LIS[32]02DL varients
-> + *
-> + * Copyright (c) 2009  Kalhan Trisal <kalhan.trisal@intel.com>
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License version 2 as
-> + *  publishhed by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/err.h>
-> +#include <linux/input.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/workqueue.h>
-> +#include "lis3lv02d.h"
-> +
-> +
-> +static int lis3_i2c_read(struct lis3lv02d *lis3, int reg, u8 *v)
-> +{
-> +       int ret;
-> +       ret = i2c_smbus_read_byte_data(lis3->lisi2c_client, reg);
-> +
-> +       *v = (u8) ret;
-> +       return 0;
-> +}
-> +
-> +static int lis3_i2c_write(struct lis3lv02d *lis3, int reg, u8 val)
-> +{
-> +       int ret_val;
-> +
-> +       ret_val = i2c_smbus_write_byte_data(lis3->lisi2c_client, reg, val);
-> +       return ret_val;
-> +}
-> +
-> +static int lis3_i2c_init(struct lis3lv02d *lis3)
-> +{
-> +       u8 reg;
-> +       int ret;
-> +
-> +       /* power up the device */
-> +       ret = lis3->read(lis3, CTRL_REG1, &reg);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       reg |= CTRL1_PD0;
-> +       return lis3->write(lis3, CTRL_REG1, reg);
-> +}
-> +
-> +static struct axis_conversion lis3lv02d_axis_normal = { 1, 2, 3 };
-> +
-> +static int  lis302dl_probe(struct i2c_client *client,
-> +                               const struct i2c_device_id *id)
-> +{
-> +       int ret;
-> +
-As above suggestion, stick the client structure in bus_priv.
-> +       lis3_dev.lisi2c_client = client;
-> +       lis3_dev.init = lis3_i2c_init;
-> +       lis3_dev.read = lis3_i2c_read;
-> +       lis3_dev.write = lis3_i2c_write;
-> +       lis3_dev.irq = client->irq;
-> +       lis3_dev.ac = lis3lv02d_axis_normal;
-> +       lis3_dev.pdata = client->dev.platform_data;
-> +       lis3_dev.device_id = LIS302D_DEV;
-Not happy with this.  You are currently forcing all i2c devices
-to be the one you have and all spi to be the other.  Both support
-both bus types.  Easiest option here is to use the id table
-to correctly register what you actually have. Or add a detect
-feature.  I think these have different values in the WHO_AM_I
-register, so you ought to be able to identify them.
-
-> +       i2c_set_clientdata(client, &lis3_dev);
-> +       ret = lis3lv02d_init_device(&lis3_dev);
-> +       return ret;
-combine last 2 lines.
-> +}
-> +
-> +static int lis302dl_remove(struct i2c_client *client)
-> +{
-> +       struct lis3lv02d *lis3 = i2c_get_clientdata(client);
-> +       lis3lv02d_joystick_disable();
-> +       lis3lv02d_poweroff(lis3);
-> +       return 0;
-> +}
-Any reason to restrict it to this device?  Far as I can tell
-should work with anything the spi driver supports as well.
-> +static struct i2c_device_id lis302dl_id[] = {
-> +       { "lis302dl", 0 },
-> +       { }
-> +};
-> +
-> +MODULE_DEVICE_TABLE(i2c, lis302dl_id);
-> +
-> +static struct i2c_driver lis302dl_driver = {
-> +       .driver = {
-> +       .name = "lis302dl_i2c",
-> +},
-Formatting issue.  Run checkpatch over this before repost.
-> +       .probe = lis302dl_probe,
-> +       .remove = lis302dl_remove,
-> +       .id_table = lis302dl_id,
-> +};
-> +
-> +static int __init sensor_lis302dl_init(void)
-> +{
-> +       int res;
-> +
-> +       res = i2c_add_driver(&lis302dl_driver);
-> +       return res;
-combine this into 
-return i2c_add_driver(&lis302dl_driver);
-> +}
-> +
-> +static void  __exit sensor_lis302dl_exit(void)
-> +{
-> +i2c_del_driver(&lis302dl_driver);
-Formatting issue. (missing tab?) Might just be email client
-fun and games
-> +}
-> +
-> +module_init(sensor_lis302dl_init);
-> +module_exit(sensor_lis302dl_exit);
-> +
-> +MODULE_AUTHOR("Kalhan Trisal <kalhan.trisal@intel.com>");
-> +MODULE_DESCRIPTION("LIS[32]02DL I2C glue layer");
-> +MODULE_LICENSE("GPL");
-> +
-> --
-> 1.6.0.6
-> 
+CONFIG_64BIT=3Dy
+CONFIG_X86_64=3Dy
+CONFIG_X86=3Dy
+CONFIG_OUTPUT_FORMAT=3D"elf64-x86-64"
+CONFIG_ARCH_DEFCONFIG=3D"arch/x86/configs/x86_64_defconfig"
+CONFIG_GENERIC_TIME=3Dy
+CONFIG_GENERIC_CMOS_UPDATE=3Dy
+CONFIG_CLOCKSOURCE_WATCHDOG=3Dy
+CONFIG_GENERIC_CLOCKEVENTS=3Dy
+CONFIG_GENERIC_CLOCKEVENTS_BROADCAST=3Dy
+CONFIG_LOCKDEP_SUPPORT=3Dy
+CONFIG_STACKTRACE_SUPPORT=3Dy
+CONFIG_HAVE_LATENCYTOP_SUPPORT=3Dy
+CONFIG_FAST_CMPXCHG_LOCAL=3Dy
+CONFIG_MMU=3Dy
+CONFIG_ZONE_DMA=3Dy
+CONFIG_GENERIC_ISA_DMA=3Dy
+CONFIG_GENERIC_IOMAP=3Dy
+CONFIG_GENERIC_BUG=3Dy
+CONFIG_GENERIC_BUG_RELATIVE_POINTERS=3Dy
+CONFIG_GENERIC_HWEIGHT=3Dy
+CONFIG_ARCH_MAY_HAVE_PC_FDC=3Dy
+CONFIG_RWSEM_GENERIC_SPINLOCK=3Dy
+CONFIG_ARCH_HAS_CPU_IDLE_WAIT=3Dy
+CONFIG_GENERIC_CALIBRATE_DELAY=3Dy
+CONFIG_GENERIC_TIME_VSYSCALL=3Dy
+CONFIG_ARCH_HAS_CPU_RELAX=3Dy
+CONFIG_ARCH_HAS_DEFAULT_IDLE=3Dy
+CONFIG_ARCH_HAS_CACHE_LINE_SIZE=3Dy
+CONFIG_HAVE_SETUP_PER_CPU_AREA=3Dy
+CONFIG_HAVE_DYNAMIC_PER_CPU_AREA=3Dy
+CONFIG_HAVE_CPUMASK_OF_CPU_MAP=3Dy
+CONFIG_ARCH_HIBERNATION_POSSIBLE=3Dy
+CONFIG_ARCH_SUSPEND_POSSIBLE=3Dy
+CONFIG_ZONE_DMA32=3Dy
+CONFIG_ARCH_POPULATES_NODE_MAP=3Dy
+CONFIG_AUDIT_ARCH=3Dy
+CONFIG_ARCH_SUPPORTS_OPTIMIZED_INLINING=3Dy
+CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC=3Dy
+CONFIG_GENERIC_HARDIRQS=3Dy
+CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=3Dy
+CONFIG_GENERIC_IRQ_PROBE=3Dy
+CONFIG_GENERIC_PENDING_IRQ=3Dy
+CONFIG_USE_GENERIC_SMP_HELPERS=3Dy
+CONFIG_X86_64_SMP=3Dy
+CONFIG_X86_HT=3Dy
+CONFIG_X86_TRAMPOLINE=3Dy
+CONFIG_DEFCONFIG_LIST=3D"/lib/modules/$UNAME_RELEASE/.config"
+CONFIG_CONSTRUCTORS=3Dy
+CONFIG_EXPERIMENTAL=3Dy
+CONFIG_LOCK_KERNEL=3Dy
+CONFIG_INIT_ENV_ARG_LIMIT2
+CONFIG_LOCALVERSION=3D""
+CONFIG_LOCALVERSION_AUTO=3Dy
+CONFIG_HAVE_KERNEL_GZIP=3Dy
+CONFIG_HAVE_KERNEL_BZIP2=3Dy
+CONFIG_HAVE_KERNEL_LZMA=3Dy
+CONFIG_KERNEL_GZIP=3Dy
+CONFIG_SWAP=3Dy
+CONFIG_SYSVIPC=3Dy
+CONFIG_SYSVIPC_SYSCTL=3Dy
+CONFIG_POSIX_MQUEUE=3Dy
+CONFIG_POSIX_MQUEUE_SYSCTL=3Dy
+CONFIG_BSD_PROCESS_ACCT=3Dy
+CONFIG_CLASSIC_RCU=3Dy
+CONFIG_LOG_BUF_SHIFT=16
+CONFIG_HAVE_UNSTABLE_SCHED_CLOCK=3Dy
+CONFIG_GROUP_SCHED=3Dy
+CONFIG_FAIR_GROUP_SCHED=3Dy
+CONFIG_RT_GROUP_SCHED=3Dy
+CONFIG_USER_SCHED=3Dy
+CONFIG_CGROUPS=3Dy
+CONFIG_RELAY=3Dy
+CONFIG_NAMESPACES=3Dy
+CONFIG_BLK_DEV_INITRD=3Dy
+CONFIG_INITRAMFS_SOURCE=3D"usr/initramfs.mutilate"
+CONFIG_INITRAMFS_ROOT_UID=99
+CONFIG_INITRAMFS_ROOT_GID=101
+CONFIG_RD_GZIP=3Dy
+CONFIG_RD_BZIP2=3Dy
+CONFIG_RD_LZMA=3Dy
+CONFIG_INITRAMFS_COMPRESSION_GZIP=3Dy
+CONFIG_CC_OPTIMIZE_FOR_SIZE=3Dy
+CONFIG_SYSCTL=3Dy
+CONFIG_ANON_INODES=3Dy
+CONFIG_UID16=3Dy
+CONFIG_SYSCTL_SYSCALL=3Dy
+CONFIG_KALLSYMS=3Dy
+CONFIG_KALLSYMS_ALL=3Dy
+CONFIG_HOTPLUG=3Dy
+CONFIG_PRINTK=3Dy
+CONFIG_BUG=3Dy
+CONFIG_ELF_CORE=3Dy
+CONFIG_PCSPKR_PLATFORM=3Dy
+CONFIG_BASE_FULL=3Dy
+CONFIG_FUTEX=3Dy
+CONFIG_EPOLL=3Dy
+CONFIG_SIGNALFD=3Dy
+CONFIG_TIMERFD=3Dy
+CONFIG_EVENTFD=3Dy
+CONFIG_SHMEM=3Dy
+CONFIG_AIO=3Dy
+CONFIG_HAVE_PERF_COUNTERS=3Dy
+CONFIG_PERF_COUNTERS=3Dy
+CONFIG_EVENT_PROFILE=3Dy
+CONFIG_VM_EVENT_COUNTERS=3Dy
+CONFIG_PCI_QUIRKS=3Dy
+CONFIG_STRIP_ASM_SYMS=3Dy
+CONFIG_SLAB=3Dy
+CONFIG_TRACEPOINTS=3Dy
+CONFIG_MARKERS=3Dy
+CONFIG_HAVE_OPROFILE=3Dy
+CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS=3Dy
+CONFIG_HAVE_IOREMAP_PROT=3Dy
+CONFIG_HAVE_KPROBES=3Dy
+CONFIG_HAVE_KRETPROBES=3Dy
+CONFIG_HAVE_ARCH_TRACEHOOK=3Dy
+CONFIG_HAVE_DMA_ATTRS=3Dy
+CONFIG_HAVE_DMA_API_DEBUG=3Dy
+CONFIG_SLABINFO=3Dy
+CONFIG_RT_MUTEXES=3Dy
+CONFIG_BASE_SMALL=3D0
+CONFIG_MODULES=3Dy
+CONFIG_MODULE_UNLOAD=3Dy
+CONFIG_STOP_MACHINE=3Dy
+CONFIG_BLOCK=3Dy
+CONFIG_BLOCK_COMPAT=3Dy
+CONFIG_IOSCHED_NOOP=3Dy
+CONFIG_IOSCHED_AS=3Dm
+CONFIG_IOSCHED_DEADLINE=3Dm
+CONFIG_IOSCHED_CFQ=3Dy
+CONFIG_DEFAULT_CFQ=3Dy
+CONFIG_DEFAULT_IOSCHED=3D"cfq"
+CONFIG_PREEMPT_NOTIFIERS=3Dy
+CONFIG_FREEZER=3Dy
+CONFIG_TICK_ONESHOT=3Dy
+CONFIG_NO_HZ=3Dy
+CONFIG_HIGH_RES_TIMERS=3Dy
+CONFIG_GENERIC_CLOCKEVENTS_BUILD=3Dy
+CONFIG_SMP=3Dy
+CONFIG_SPARSE_IRQ=3Dy
+CONFIG_SCHED_OMIT_FRAME_POINTER=3Dy
+CONFIG_MCORE2=3Dy
+CONFIG_X86_CPU=3Dy
+CONFIG_X86_L1_CACHE_BYTESd
+CONFIG_X86_INTERNODE_CACHE_BYTESd
+CONFIG_X86_CMPXCHG=3Dy
+CONFIG_X86_L1_CACHE_SHIFT=3D6
+CONFIG_X86_WP_WORKS_OK=3Dy
+CONFIG_X86_INTEL_USERCOPY=3Dy
+CONFIG_X86_USE_PPRO_CHECKSUM=3Dy
+CONFIG_X86_P6_NOP=3Dy
+CONFIG_X86_TSC=3Dy
+CONFIG_X86_CMPXCHG64=3Dy
+CONFIG_X86_CMOV=3Dy
+CONFIG_X86_MINIMUM_CPU_FAMILYd
+CONFIG_X86_DEBUGCTLMSR=3Dy
+CONFIG_CPU_SUP_INTEL=3Dy
+CONFIG_CPU_SUP_AMD=3Dy
+CONFIG_CPU_SUP_CENTAUR=3Dy
+CONFIG_HPET_TIMER=3Dy
+CONFIG_HPET_EMULATE_RTC=3Dy
+CONFIG_DMI=3Dy
+CONFIG_GART_IOMMU=3Dy
+CONFIG_SWIOTLB=3Dy
+CONFIG_IOMMU_HELPER=3Dy
+CONFIG_IOMMU_API=3Dy
+CONFIG_NR_CPUS=3D8
+CONFIG_SCHED_SMT=3Dy
+CONFIG_SCHED_MC=3Dy
+CONFIG_PREEMPT=3Dy
+CONFIG_X86_LOCAL_APIC=3Dy
+CONFIG_X86_IO_APIC=3Dy
+CONFIG_X86_MCE=3Dy
+CONFIG_X86_NEW_MCE=3Dy
+CONFIG_X86_MCE_INTEL=3Dy
+CONFIG_X86_MCE_THRESHOLD=3Dy
+CONFIG_X86_THERMAL_VECTOR=3Dy
+CONFIG_MICROCODE=3Dm
+CONFIG_MICROCODE_INTEL=3Dy
+CONFIG_MICROCODE_OLD_INTERFACE=3Dy
+CONFIG_X86_MSR=3Dm
+CONFIG_X86_CPUID=3Dy
+CONFIG_X86_CPU_DEBUG=3Dm
+CONFIG_ARCH_PHYS_ADDR_T_64BIT=3Dy
+CONFIG_DIRECT_GBPAGES=3Dy
+CONFIG_ARCH_SPARSEMEM_DEFAULT=3Dy
+CONFIG_ARCH_SPARSEMEM_ENABLE=3Dy
+CONFIG_ARCH_SELECT_MEMORY_MODEL=3Dy
+CONFIG_SELECT_MEMORY_MODEL=3Dy
+CONFIG_SPARSEMEM_MANUAL=3Dy
+CONFIG_SPARSEMEM=3Dy
+CONFIG_HAVE_MEMORY_PRESENT=3Dy
+CONFIG_SPARSEMEM_EXTREME=3Dy
+CONFIG_SPARSEMEM_VMEMMAP_ENABLE=3Dy
+CONFIG_SPARSEMEM_VMEMMAP=3Dy
+CONFIG_PAGEFLAGS_EXTENDED=3Dy
+CONFIG_SPLIT_PTLOCK_CPUS=3D4
+CONFIG_PHYS_ADDR_T_64BIT=3Dy
+CONFIG_ZONE_DMA_FLAG=3D1
+CONFIG_BOUNCE=3Dy
+CONFIG_VIRT_TO_BUS=3Dy
+CONFIG_HAVE_MLOCK=3Dy
+CONFIG_HAVE_MLOCKED_PAGE_BIT=3Dy
+CONFIG_MMU_NOTIFIER=3Dy
+CONFIG_DEFAULT_MMAP_MIN_ADDR@96
+CONFIG_X86_CHECK_BIOS_CORRUPTION=3Dy
+CONFIG_X86_BOOTPARAM_MEMORY_CORRUPTION_CHECK=3Dy
+CONFIG_X86_RESERVE_LOW_64K=3Dy
+CONFIG_MTRR=3Dy
+CONFIG_X86_PAT=3Dy
+CONFIG_HZ_1000=3Dy
+CONFIG_HZ=1000
+CONFIG_SCHED_HRTICK=3Dy
+CONFIG_PHYSICAL_START=3D0x1000000
+CONFIG_PHYSICAL_ALIGN=3D0x1000000
+CONFIG_HOTPLUG_CPU=3Dy
+CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG=3Dy
+CONFIG_ARCH_HIBERNATION_HEADER=3Dy
+CONFIG_PM=3Dy
+CONFIG_PM_SLEEP_SMP=3Dy
+CONFIG_PM_SLEEP=3Dy
+CONFIG_HIBERNATION_NVS=3Dy
+CONFIG_HIBERNATION=3Dy
+CONFIG_PM_STD_PARTITION=3D""
+CONFIG_TOI_CORE=3Dy
+CONFIG_TOI_SWAP=3Dy
+CONFIG_TOI_CRYPTO=3Dy
+CONFIG_TOI_USERUI=3Dy
+CONFIG_TOI_USERUI_DEFAULT_PATH=3D"/usr/sbin/tuxoniceui_text"
+CONFIG_TOI_REPLACE_SWSUSP=3Dy
+CONFIG_TOI_IGNORE_LATE_INITCALL=3Dy
+CONFIG_TOI_DEFAULT_WAIT=3D-1
+CONFIG_TOI_DEFAULT_EXTRA_PAGES_ALLOWANCE 00
+CONFIG_TOI=3Dy
+CONFIG_ACPI=3Dy
+CONFIG_ACPI_SLEEP=3Dy
+CONFIG_ACPI_PROC_EVENT=3Dy
+CONFIG_ACPI_BUTTON=3Dy
+CONFIG_ACPI_FAN=3Dy
+CONFIG_ACPI_DOCK=3Dy
+CONFIG_ACPI_PROCESSOR=3Dy
+CONFIG_ACPI_HOTPLUG_CPU=3Dy
+CONFIG_ACPI_THERMAL=3Dy
+CONFIG_ACPI_CUSTOM_DSDT_FILE=3D""
+CONFIG_ACPI_BLACKLIST_YEAR=3D0
+CONFIG_ACPI_PCI_SLOT=3Dy
+CONFIG_X86_PM_TIMER=3Dy
+CONFIG_ACPI_CONTAINER=3Dy
+CONFIG_CPU_FREQ=3Dy
+CONFIG_CPU_FREQ_TABLE=3Dy
+CONFIG_CPU_FREQ_STAT=3Dy
+CONFIG_CPU_FREQ_STAT_DETAILS=3Dy
+CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=3Dy
+CONFIG_CPU_FREQ_GOV_PERFORMANCE=3Dy
+CONFIG_CPU_FREQ_GOV_ONDEMAND=3Dy
+CONFIG_X86_ACPI_CPUFREQ=3Dy
+CONFIG_CPU_IDLE=3Dy
+CONFIG_CPU_IDLE_GOV_LADDER=3Dy
+CONFIG_CPU_IDLE_GOV_MENU=3Dy
+CONFIG_I7300_IDLE_IOAT_CHANNEL=3Dy
+CONFIG_I7300_IDLE=3Dy
+CONFIG_PCI=3Dy
+CONFIG_PCI_DIRECT=3Dy
+CONFIG_PCI_MMCONFIG=3Dy
+CONFIG_PCI_DOMAINS=3Dy
+CONFIG_DMAR=3Dy
+CONFIG_DMAR_DEFAULT_ON=3Dy
+CONFIG_DMAR_FLOPPY_WA=3Dy
+CONFIG_PCIEPORTBUS=3Dy
+CONFIG_PCIEAER=3Dy
+CONFIG_PCIEASPM=3Dy
+CONFIG_ARCH_SUPPORTS_MSI=3Dy
+CONFIG_PCI_MSI=3Dy
+CONFIG_PCI_IOV=3Dy
+CONFIG_ISA_DMA_API=3Dy
+CONFIG_K8_NB=3Dy
+CONFIG_BINFMT_ELF=3Dy
+CONFIG_COMPAT_BINFMT_ELF=3Dy
+CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS=3Dy
+CONFIG_BINFMT_MISC=3Dy
+CONFIG_IA32_EMULATION=3Dy
+CONFIG_COMPAT=3Dy
+CONFIG_COMPAT_FOR_U64_ALIGNMENT=3Dy
+CONFIG_SYSVIPC_COMPAT=3Dy
+CONFIG_NET=3Dy
+CONFIG_PACKET=3Dy
+CONFIG_PACKET_MMAP=3Dy
+CONFIG_UNIX=3Dy
+CONFIG_INET=3Dy
+CONFIG_IP_MULTICAST=3Dy
+CONFIG_IP_FIB_HASH=3Dy
+CONFIG_INET_LRO=3Dy
+CONFIG_INET_DIAG=3Dy
+CONFIG_INET_TCP_DIAG=3Dy
+CONFIG_TCP_CONG_CUBIC=3Dy
+CONFIG_DEFAULT_TCP_CONG=3D"cubic"
+CONFIG_UEVENT_HELPER_PATH=3D""
+CONFIG_PREVENT_FIRMWARE_BUILD=3Dy
+CONFIG_FW_LOADER=3Dy
+CONFIG_FIRMWARE_IN_KERNEL=3Dy
+CONFIG_EXTRA_FIRMWARE=3D""
+CONFIG_PNP=3Dy
+CONFIG_PNPACPI=3Dy
+CONFIG_BLK_DEV=3Dy
+CONFIG_BLK_DEV_LOOP=3Dm
+CONFIG_BLK_DEV_CRYPTOLOOP=3Dm
+CONFIG_BLK_DEV_NBD=3Dm
+CONFIG_CDROM_PKTCDVD=3Dy
+CONFIG_CDROM_PKTCDVD_BUFFERS=16
+CONFIG_MISC_DEVICES=3Dy
+CONFIG_HAVE_IDE=3Dy
+CONFIG_SCSI=3Dy
+CONFIG_SCSI_DMA=3Dy
+CONFIG_BLK_DEV_SD=3Dy
+CONFIG_BLK_DEV_SR=3Dy
+CONFIG_SCSI_MULTI_LUN=3Dy
+CONFIG_SCSI_SCAN_ASYNC=3Dy
+CONFIG_SCSI_WAIT_SCAN=3Dm
+CONFIG_SCSI_LOWLEVEL=3Dy
+CONFIG_ATA=3Dy
+CONFIG_ATA_ACPI=3Dy
+CONFIG_SATA_PMP=3Dy
+CONFIG_SATA_AHCI=3Dy
+CONFIG_ATA_SFF=3Dy
+CONFIG_PATA_JMICRON=3Dy
+CONFIG_MD=3Dy
+CONFIG_BLK_DEV_MD=3Dy
+CONFIG_MD_RAID1=3Dy
+CONFIG_BLK_DEV_DM=3Dy
+CONFIG_DM_CRYPT=3Dy
+CONFIG_DM_SNAPSHOT=3Dy
+CONFIG_DM_MIRROR=3Dy
+CONFIG_DM_ZERO=3Dy
+CONFIG_FIREWIRE=3Dm
+CONFIG_FIREWIRE_OHCI=3Dm
+CONFIG_FIREWIRE_OHCI_DEBUG=3Dy
+CONFIG_FIREWIRE_SBP2=3Dm
+CONFIG_NETDEVICES=3Dy
+CONFIG_DUMMY=3Dm
+CONFIG_MII=3Dy
+CONFIG_NETDEV_1000=3Dy
+CONFIG_R8169=3Dy
+CONFIG_INPUT=3Dy
+CONFIG_INPUT_MOUSEDEV=3Dy
+CONFIG_INPUT_MOUSEDEV_SCREEN_X=1680
+CONFIG_INPUT_MOUSEDEV_SCREEN_Y=1050
+CONFIG_INPUT_JOYDEV=3Dy
+CONFIG_INPUT_EVDEV=3Dy
+CONFIG_INPUT_KEYBOARD=3Dy
+CONFIG_KEYBOARD_ATKBD=3Dy
+CONFIG_INPUT_MOUSE=3Dy
+CONFIG_MOUSE_PS2=3Dy
+CONFIG_MOUSE_PS2_ALPS=3Dy
+CONFIG_MOUSE_PS2_LOGIPS2PP=3Dy
+CONFIG_MOUSE_PS2_SYNAPTICS=3Dy
+CONFIG_MOUSE_PS2_LIFEBOOK=3Dy
+CONFIG_MOUSE_PS2_TRACKPOINT=3Dy
+CONFIG_INPUT_JOYSTICK=3Dy
+CONFIG_JOYSTICK_ANALOG=3Dy
+CONFIG_SERIO=3Dy
+CONFIG_SERIO_I8042=3Dy
+CONFIG_SERIO_LIBPS2=3Dy
+CONFIG_GAMEPORT=3Dy
+CONFIG_VT=3Dy
+CONFIG_CONSOLE_TRANSLATIONS=3Dy
+CONFIG_VT_CONSOLE=3Dy
+CONFIG_HW_CONSOLE=3Dy
+CONFIG_SERIAL_8250=3Dy
+CONFIG_FIX_EARLYCON_MEM=3Dy
+CONFIG_SERIAL_8250_PCI=3Dy
+CONFIG_SERIAL_8250_PNP=3Dy
+CONFIG_SERIAL_8250_NR_UARTS=3D4
+CONFIG_SERIAL_8250_RUNTIME_UARTS=3D4
+CONFIG_SERIAL_CORE=3Dy
+CONFIG_UNIX98_PTYS=3Dy
+CONFIG_NVRAM=3Dm
+CONFIG_HPET=3Dy
+CONFIG_HPET_MMAP=3Dy
+CONFIG_DEVPORT=3Dy
+CONFIG_I2C=3Dy
+CONFIG_I2C_BOARDINFO=3Dy
+CONFIG_I2C_CHARDEV=3Dy
+CONFIG_I2C_HELPER_AUTO=3Dy
+CONFIG_I2C_ALGOBIT=3Dm
+CONFIG_I2C_I801=3Dy
+CONFIG_ARCH_WANT_OPTIONAL_GPIOLIB=3Dy
+CONFIG_HWMON=3Dy
+CONFIG_HWMON_VID=3Dy
+CONFIG_SENSORS_CORETEMP=3Dy
+CONFIG_SENSORS_W83627EHF=3Dy
+CONFIG_THERMAL=3Dy
+CONFIG_THERMAL_HWMON=3Dy
+CONFIG_SSB_POSSIBLE=3Dy
+CONFIG_AGP=3Dy
+CONFIG_AGP_AMD64=3Dy
+CONFIG_DRM=3Dm
+CONFIG_DRM_RADEON=3Dm
+CONFIG_FB=3Dm
+CONFIG_FB_CFB_FILLRECT=3Dm
+CONFIG_FB_CFB_COPYAREA=3Dm
+CONFIG_FB_CFB_IMAGEBLIT=3Dm
+CONFIG_VGA_CONSOLE=3Dy
+CONFIG_DUMMY_CONSOLE=3Dy
+CONFIG_FRAMEBUFFER_CONSOLE=3Dm
+CONFIG_FONT_8x8=3Dy
+CONFIG_FONT_8x16=3Dy
+CONFIG_SOUND=3Dy
+CONFIG_SOUND_OSS_CORE=3Dy
+CONFIG_SND=3Dy
+CONFIG_SND_TIMER=3Dy
+CONFIG_SND_PCM=3Dy
+CONFIG_SND_JACK=3Dy
+CONFIG_SND_SEQUENCER=3Dy
+CONFIG_SND_SEQ_DUMMY=3Dm
+CONFIG_SND_OSSEMUL=3Dy
+CONFIG_SND_MIXER_OSS=3Dy
+CONFIG_SND_PCM_OSS=3Dy
+CONFIG_SND_PCM_OSS_PLUGINS=3Dy
+CONFIG_SND_SEQUENCER_OSS=3Dy
+CONFIG_SND_HRTIMER=3Dy
+CONFIG_SND_SEQ_HRTIMER_DEFAULT=3Dy
+CONFIG_SND_DYNAMIC_MINORS=3Dy
+CONFIG_SND_VERBOSE_PROCFS=3Dy
+CONFIG_SND_VMASTER=3Dy
+CONFIG_SND_PCI=3Dy
+CONFIG_SND_HDA_INTEL=3Dy
+CONFIG_SND_HDA_INPUT_JACK=3Dy
+CONFIG_SND_HDA_CODEC_ATIHDMI=3Dy
+CONFIG_SND_HDA_CODEC_INTELHDMI=3Dy
+CONFIG_SND_HDA_ELD=3Dy
+CONFIG_SND_HDA_GENERIC=3Dy
+CONFIG_SND_HDA_POWER_SAVE=3Dy
+CONFIG_SND_HDA_POWER_SAVE_DEFAULT=3D0
+CONFIG_HID_SUPPORT=3Dy
+CONFIG_HID=3Dy
+CONFIG_USB_HID=3Dy
+CONFIG_USB_SUPPORT=3Dy
+CONFIG_USB_ARCH_HAS_HCD=3Dy
+CONFIG_USB_ARCH_HAS_OHCI=3Dy
+CONFIG_USB_ARCH_HAS_EHCI=3Dy
+CONFIG_USB=3Dy
+CONFIG_USB_DEVICEFS=3Dy
+CONFIG_USB_DYNAMIC_MINORS=3Dy
+CONFIG_USB_EHCI_HCD=3Dy
+CONFIG_USB_UHCI_HCD=3Dy
+CONFIG_USB_PRINTER=3Dy
+CONFIG_USB_STORAGE=3Dy
+CONFIG_EDAC=3Dy
+CONFIG_EDAC_MM_EDAC=3Dy
+CONFIG_RTC_LIB=3Dy
+CONFIG_RTC_CLASS=3Dy
+CONFIG_RTC_HCTOSYS=3Dy
+CONFIG_RTC_HCTOSYS_DEVICE=3D"rtc0"
+CONFIG_RTC_INTF_SYSFS=3Dy
+CONFIG_RTC_INTF_PROC=3Dy
+CONFIG_RTC_INTF_DEV=3Dy
+CONFIG_RTC_DRV_CMOS=3Dy
+CONFIG_DMADEVICES=3Dy
+CONFIG_INTEL_IOATDMA=3Dy
+CONFIG_DMA_ENGINE=3Dy
+CONFIG_NET_DMA=3Dy
+CONFIG_DCA=3Dy
+CONFIG_X86_PLATFORM_DEVICES=3Dy
+CONFIG_FIRMWARE_MEMMAP=3Dy
+CONFIG_DMIID=3Dy
+CONFIG_EXT4_FS=3Dy
+CONFIG_EXT4_FS_XATTR=3Dy
+CONFIG_EXT4_FS_POSIX_ACL=3Dy
+CONFIG_JBD2=3Dy
+CONFIG_FS_MBCACHE=3Dy
+CONFIG_FS_POSIX_ACL=3Dy
+CONFIG_FILE_LOCKING=3Dy
+CONFIG_FSNOTIFY=3Dy
+CONFIG_DNOTIFY=3Dy
+CONFIG_INOTIFY=3Dy
+CONFIG_INOTIFY_USER=3Dy
+CONFIG_QUOTA=3Dy
+CONFIG_QUOTA_NETLINK_INTERFACE=3Dy
+CONFIG_PRINT_QUOTA_WARNING=3Dy
+CONFIG_QUOTA_TREE=3Dy
+CONFIG_QFMT_V2=3Dy
+CONFIG_QUOTACTL=3Dy
+CONFIG_FUSE_FS=3Dy
+CONFIG_CUSE=3Dy
+CONFIG_GENERIC_ACL=3Dy
+CONFIG_ISO9660_FS=3Dy
+CONFIG_JOLIET=3Dy
+CONFIG_UDF_FS=3Dy
+CONFIG_UDF_NLS=3Dy
+CONFIG_FAT_FS=3Dm
+CONFIG_MSDOS_FS=3Dm
+CONFIG_VFAT_FS=3Dm
+CONFIG_FAT_DEFAULT_CODEPAGEC7
+CONFIG_FAT_DEFAULT_IOCHARSET=3D"iso8859-1"
+CONFIG_PROC_FS=3Dy
+CONFIG_PROC_SYSCTL=3Dy
+CONFIG_PROC_PAGE_MONITOR=3Dy
+CONFIG_SYSFS=3Dy
+CONFIG_TMPFS=3Dy
+CONFIG_TMPFS_POSIX_ACL=3Dy
+CONFIG_HUGETLBFS=3Dy
+CONFIG_HUGETLB_PAGE=3Dy
+CONFIG_CONFIGFS_FS=3Dy
+CONFIG_MISC_FILESYSTEMS=3Dy
+CONFIG_NETWORK_FILESYSTEMS=3Dy
+CONFIG_NFS_FS=3Dy
+CONFIG_NFS_V3=3Dy
+CONFIG_NFS_V3_ACL=3Dy
+CONFIG_NFSD=3Dy
+CONFIG_NFSD_V2_ACL=3Dy
+CONFIG_NFSD_V3=3Dy
+CONFIG_NFSD_V3_ACL=3Dy
+CONFIG_LOCKD=3Dy
+CONFIG_LOCKD_V4=3Dy
+CONFIG_EXPORTFS=3Dy
+CONFIG_NFS_ACL_SUPPORT=3Dy
+CONFIG_NFS_COMMON=3Dy
+CONFIG_SUNRPC=3Dy
+CONFIG_PARTITION_ADVANCED=3Dy
+CONFIG_MSDOS_PARTITION=3Dy
+CONFIG_NLS=3Dy
+CONFIG_NLS_DEFAULT=3D"iso8859-1"
+CONFIG_NLS_CODEPAGE_437=3Dy
+CONFIG_NLS_ASCII=3Dm
+CONFIG_NLS_ISO8859_1=3Dy
+CONFIG_NLS_ISO8859_15=3Dm
+CONFIG_NLS_UTF8=3Dm
+CONFIG_TRACE_IRQFLAGS_SUPPORT=3Dy
+CONFIG_PRINTK_TIME=3Dy
+CONFIG_ENABLE_WARN_DEPRECATED=3Dy
+CONFIG_ENABLE_MUST_CHECK=3Dy
+CONFIG_FRAME_WARN=1024
+CONFIG_DEBUG_FS=3Dy
+CONFIG_DEBUG_KERNEL=3Dy
+CONFIG_DETECT_SOFTLOCKUP=3Dy
+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE=3D0
+CONFIG_DETECT_HUNG_TASK=3Dy
+CONFIG_BOOTPARAM_HUNG_TASK_PANIC_VALUE=3D0
+CONFIG_SCHED_DEBUG=3Dy
+CONFIG_SCHEDSTATS=3Dy
+CONFIG_TIMER_STATS=3Dy
+CONFIG_STACKTRACE=3Dy
+CONFIG_DEBUG_BUGVERBOSE=3Dy
+CONFIG_DEBUG_INFO=3Dy
+CONFIG_DEBUG_MEMORY_INIT=3Dy
+CONFIG_ARCH_WANT_FRAME_POINTERS=3Dy
+CONFIG_FRAME_POINTER=3Dy
+CONFIG_LATENCYTOP=3Dy
+CONFIG_SYSCTL_SYSCALL_CHECK=3Dy
+CONFIG_USER_STACKTRACE_SUPPORT=3Dy
+CONFIG_NOP_TRACER=3Dy
+CONFIG_HAVE_FTRACE_NMI_ENTER=3Dy
+CONFIG_HAVE_FUNCTION_TRACER=3Dy
+CONFIG_HAVE_FUNCTION_GRAPH_TRACER=3Dy
+CONFIG_HAVE_FUNCTION_GRAPH_FP_TEST=3Dy
+CONFIG_HAVE_FUNCTION_TRACE_MCOUNT_TEST=3Dy
+CONFIG_HAVE_DYNAMIC_FTRACE=3Dy
+CONFIG_HAVE_FTRACE_MCOUNT_RECORD=3Dy
+CONFIG_HAVE_FTRACE_SYSCALLS=3Dy
+CONFIG_RING_BUFFER=3Dy
+CONFIG_FTRACE_NMI_ENTER=3Dy
+CONFIG_EVENT_TRACING=3Dy
+CONFIG_CONTEXT_SWITCH_TRACER=3Dy
+CONFIG_TRACING=3Dy
+CONFIG_GENERIC_TRACER=3Dy
+CONFIG_TRACING_SUPPORT=3Dy
+CONFIG_FTRACE=3Dy
+CONFIG_FUNCTION_TRACER=3Dy
+CONFIG_SYSPROF_TRACER=3Dy
+CONFIG_BRANCH_PROFILE_NONE=3Dy
+CONFIG_BLK_DEV_IO_TRACE=3Dy
+CONFIG_DYNAMIC_FTRACE=3Dy
+CONFIG_FTRACE_MCOUNT_RECORD=3Dy
+CONFIG_HAVE_ARCH_KGDB=3Dy
+CONFIG_HAVE_ARCH_KMEMCHECK=3Dy
+CONFIG_STRICT_DEVMEM=3Dy
+CONFIG_X86_VERBOSE_BOOTUP=3Dy
+CONFIG_EARLY_PRINTK=3Dy
+CONFIG_DEBUG_RODATA=3Dy
+CONFIG_HAVE_MMIOTRACE_SUPPORT=3Dy
+CONFIG_IO_DELAY_TYPE_0X80=3D0
+CONFIG_IO_DELAY_TYPE_0XED=3D1
+CONFIG_IO_DELAY_TYPE_UDELAY=3D2
+CONFIG_IO_DELAY_TYPE_NONE=3D3
+CONFIG_IO_DELAY_0X80=3Dy
+CONFIG_DEFAULT_IO_DELAY_TYPE=3D0
+CONFIG_SECURITY_FILE_CAPABILITIES=3Dy
+CONFIG_CRYPTO=3Dy
+CONFIG_CRYPTO_ALGAPI=3Dy
+CONFIG_CRYPTO_ALGAPI2=3Dy
+CONFIG_CRYPTO_AEAD2=3Dy
+CONFIG_CRYPTO_BLKCIPHER=3Dy
+CONFIG_CRYPTO_BLKCIPHER2=3Dy
+CONFIG_CRYPTO_HASH2=3Dy
+CONFIG_CRYPTO_RNG2=3Dy
+CONFIG_CRYPTO_PCOMP=3Dy
+CONFIG_CRYPTO_MANAGER=3Dy
+CONFIG_CRYPTO_MANAGER2=3Dy
+CONFIG_CRYPTO_WORKQUEUE=3Dy
+CONFIG_CRYPTO_CBC=3Dy
+CONFIG_CRYPTO_LZO=3Dy
+CONFIG_HAVE_KVM=3Dy
+CONFIG_HAVE_KVM_IRQCHIP=3Dy
+CONFIG_VIRTUALIZATION=3Dy
+CONFIG_KVM=3Dy
+CONFIG_KVM_INTEL=3Dy
+CONFIG_BINARY_PRINTF=3Dy
+CONFIG_BITREVERSE=3Dy
+CONFIG_GENERIC_FIND_FIRST_BIT=3Dy
+CONFIG_GENERIC_FIND_NEXT_BIT=3Dy
+CONFIG_GENERIC_FIND_LAST_BIT=3Dy
+CONFIG_CRC16=3Dy
+CONFIG_CRC_ITU_T=3Dy
+CONFIG_CRC32=3Dy
+CONFIG_ZLIB_INFLATE=3Dy
+CONFIG_LZO_COMPRESS=3Dy
+CONFIG_LZO_DECOMPRESS=3Dy
+CONFIG_DECOMPRESS_GZIP=3Dy
+CONFIG_DECOMPRESS_BZIP2=3Dy
+CONFIG_DECOMPRESS_LZMA=3Dy
+CONFIG_HAS_IOMEM=3Dy
+CONFIG_HAS_IOPORT=3Dy
+CONFIG_HAS_DMA=3Dy
+CONFIG_NLATTR=3Dy
 
 _______________________________________________
 lm-sensors mailing list
