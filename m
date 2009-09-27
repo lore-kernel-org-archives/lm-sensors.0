@@ -1,7 +1,7 @@
-From: "Cestonaro, Thilo" <thilo.cestonaro@ts.fujitsu.com>
-Date: Mon, 21 Sep 2009 07:46:00 +0000
-Subject: [lm-sensors] FW: FW: PATCH: add sections for the new FTS chips to
-Message-Id: <1C27BF3FB8EE3A4D8F901C22ADE1DE07D7794B87F8@ABGEX72E.FSC.NET>
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Sun, 27 Sep 2009 16:48:34 +0000
+Subject: Re: [lm-sensors] FW: PATCH: add sections for the new FTS chips
+Message-Id: <20090927164833.GA4658@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1C27BF3FB8EE3A4D8F901C22ADE1DE07CE9D65F6E0@ABGEX72E.FSC.NET>
 In-Reply-To: <1C27BF3FB8EE3A4D8F901C22ADE1DE07CE9D65F6E0@ABGEX72E.FSC.NET>
@@ -10,24 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hey,
+On Wed, Sep 16, 2009 at 10:18:53AM +0200, Cestonaro, Thilo wrote:
+> Hey,
 
-Andre Prendel wrote:
-> While doing this I realized that it isn't a motherboard specific
-> configuration. It's just the chip configuration. On which motherboard
-> one can find the chips?
+Hey Thilo,
 
-(Hades)
-D215x-S
-D2608
+> here is a patch which adds new sections to the sensors.conf.default.
+> The fts.conf can be used as a custom configuration in the wiki.
 
-(Syleus)
-D283x-S
+Sorry for the delay. We had some problems with lm-sensors.org infrastructure.
 
-Thanks!
+The motherboard specific configurations one can find now under
 
-Regards,
-Thilo
+  http://www.lm-sensors.org/wiki/Configurations/FujitsuTechnologySolutions
+
+and I've commited your patch for default config file a few minutes ago. See
+
+  http://www.lm-sensors.org/changeset/5775/lm-sensors/trunk
+
+Thanks,
+Andre
 
 _______________________________________________
 lm-sensors mailing list
