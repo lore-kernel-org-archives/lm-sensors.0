@@ -1,7 +1,7 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Wed, 16 Sep 2009 21:24:51 +0000
+From: Kent Liu <kent.liu@linux.intel.com>
+Date: Sun, 27 Sep 2009 09:12:12 +0000
 Subject: Re: [lm-sensors] [PATCH] coretemp: Add Lynnfield CPU
-Message-Id: <4AB157A3.4060408@assembler.cz>
+Message-Id: <20090927091212.GA14268@wliu-linux.bj.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090915021341.GA14957@owl>
 In-Reply-To: <20090915021341.GA14957@owl>
@@ -10,46 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-
-Looks good. However I would like to see the Documentation/hwmon/coretemp updated 
-too.
-
-Maybe Intel can overtake the driver maintainership because I'm quite struggling 
-to get any info from Intel. Second reason is lack of free time.
-
-Thank you,
-
-Rudolf
-
-Huaxu Wan napsal(a):
-> Add Lynnfield processor support. Lynnfield is a quad-core Nehalem based microprocessor for Desktop market, which is introduced in September 2009.
+On Wed, Sep 23, 2009 at 12:00:08PM +0200, Jean Delvare wrote:
+> On Wed, 16 Sep 2009 23:24:51 +0200, Rudolf Marek wrote:
+> > Looks good. However I would like to see the Documentation/hwmon/coretemp updated 
+> > too.
 > 
-> Signed-off-by: Huaxu Wan <huaxu.wan@linux.intel.com>
-> Signed-off-by: Kent Liu <kent.liu@linux.intel.com>
-> ---
->  drivers/hwmon/coretemp.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
+> I'll take care of that.
+Thanks Jean.
 > 
-> diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-> index 93c1722..a9a21dc 100644
-> --- a/drivers/hwmon/coretemp.c
-> +++ b/drivers/hwmon/coretemp.c
-> @@ -413,11 +413,11 @@ static int __init coretemp_init(void)
->         for_each_online_cpu(i) {
->                 struct cpuinfo_x86 *c = &cpu_data(i);
+> > Maybe Intel can overtake the driver maintainership because I'm quite struggling 
+> > to get any info from Intel. Second reason is lack of free time.
 > 
-> -               /* check if family 6, models 0xe, 0xf, 0x16, 0x17, 0x1A */
-> +               /* check if family 6, models 0xe, 0xf, 0x16, 0x17, 0x1A, 0x1E */
->                 if ((c->cpuid_level < 0) || (c->x86 != 0x6) ||
->                     !((c->x86_model = 0xe) || (c->x86_model = 0xf) ||
->                         (c->x86_model = 0x16) || (c->x86_model = 0x17) ||
-> -                       (c->x86_model = 0x1A))) {
-> +                       (c->x86_model = 0x1A) || (c->x86_model = 0x1E))) {
+> Huaxu, Kent, can you please comment on this?
+Hmmm... I am looking for an Intel internal support for this maintainership, since I 
+usually not receive such documents either. I would like to take once this can be 
+resolved.
 > 
->                         /* supported CPU not found, but report the unknown
->                            family 6 CPU */
-> --
+> > Huaxu Wan napsal(a):
+> > > Add Lynnfield processor support. Lynnfield is a quad-core Nehalem based microprocessor for Desktop market, which is introduced in September 2009.
+> 
+> What are the TjMax and TTarget temperatures for these CPUs?
+So far I do not find them in datasheet. Let me check what I can find more.
+
+Thanks,
+Kent
 
 _______________________________________________
 lm-sensors mailing list
