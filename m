@@ -1,55 +1,30 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 07 Sep 2009 14:31:13 +0000
-Subject: Re: [lm-sensors] asus_atk0110 maintainer
-Message-Id: <20090907163113.29fa39f1@hyperion.delvare>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Tue, 29 Sep 2009 08:20:57 +0000
+Subject: [lm-sensors] sensors.conf manpage name
+Message-Id: <4AC1C369.8090901@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090907154042.0e0c9aad@hyperion.delvare>
-In-Reply-To: <20090907154042.0e0c9aad@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 7 Sep 2009 15:48:25 +0200, Luca Tettamanti wrote:
-> On Mon, Sep 07, 2009 at 03:40:42PM +0200, Jean Delvare wrote:
-> > Hi Luca,
-> > 
-> > It was pointed out to me recently that you are not listed in
-> > MAINTAINERS for the asus_atk0110 driver. As I expect this driver to get
-> > a wider testing coverage in the next few weeks, I think it would be
-> > better if users knew who to report their problems to. Could you please
-> > send a patch adding an entry in MAINTAINERS for the ATK0110?
-> 
-> Add myself as asus_atk0110 maintainer.
-> 
-> Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
-> ---
-> 
->  MAINTAINERS |    6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 8dca9d8..2ccc21c 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -897,6 +897,12 @@ W:	http://wireless.kernel.org/en/users/Drivers/ar9170
->  S:	Maintained
->  F:	drivers/net/wireless/ath/ar9170/
->  
-> +ATK0110 HWMON DRIVER
-> +M:	Luca Tettamanti <kronos.it@gmail.com>
-> +L:	lm-sensors@lm-sensors.org
-> +S:	Maintained
-> +F:	drivers/hwmon/asus_atk0110.c
-> +
->  ATI_REMOTE2 DRIVER
->  M:	Ville Syrjala <syrjala@sci.fi>
->  S:	Maintained
+Hi,
 
-Excellent, thanks for the quick reply! Applied.
+I just received this bug report:
+https://bugzilla.redhat.com/show_bug.cgi?idR6178
 
--- 
-Jean Delvare
+Which makes sense, so now I was thinking how to best handle this. We
+can make a sensors3.conf.5 symlink to sensors.conf.5 or we can just
+rename it. There is something to be said for both cases.
+
+sensors3.conf is the new default name, but sensors.conf is still used
+as a fallback by libsensors.
+
+So what is your 2 cents on this ?
+
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
