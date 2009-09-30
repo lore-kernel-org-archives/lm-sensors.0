@@ -1,7 +1,7 @@
 From: Robert Hancock <hancockrwd@gmail.com>
-Date: Wed, 30 Sep 2009 02:08:52 +0000
+Date: Wed, 30 Sep 2009 23:38:21 +0000
 Subject: Re: [lm-sensors] [PATCH] asus_atk0110: add support for Asus P7P55D
-Message-Id: <51f3faa70909291908jdf1a081s831263f7c5e9b73c@mail.gmail.com>
+Message-Id: <51f3faa70909301638s4eff14edg46420e2e8877fd15@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20090923191240.GA15198@dreamland.darkstar.lan>
 	 <51f3faa70909232018v7e621190m84deb648b08d2135@mail.gmail.com>
@@ -16,7 +16,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Thomas Backlund <tmb@mandriva.org>
-Cc: Luca Tettamanti <kronos.it@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
+Cc: Luca Tettamanti <kronos.it@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, astarikovskiy@suse.de
 
 On Tue, Sep 29, 2009 at 8:49 AM, Thomas Backlund <tmb@mandriva.org> wrote:
 > Robert Hancock skrev:
@@ -56,9 +56,8 @@ On Tue, Sep 29, 2009 at 8:49 AM, Thomas Backlund <tmb@mandriva.org> wrote:
 > Try this one:
 > http://marc.info/?l=linux-kernel&m5421276407283&w=2
 
-I added this patch, no timeouts after 2 hours. Could be just chance
-though, if it lasts till tomorrow evening it will be pretty
-conclusive..
+With that patch it's lasted almost a day with no timeouts, previously
+I was getting about one every hour. Has that patch been submitted?
 
 _______________________________________________
 lm-sensors mailing list
