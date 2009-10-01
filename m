@@ -1,121 +1,235 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 06 Oct 2009 17:43:09 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (lm77) Clean up detect function
-Message-Id: <20091006194309.0ce16c32@hyperion.delvare>
+Date: Thu, 01 Oct 2009 15:12:18 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (w83627hf) Stop using globals for I/O
+Message-Id: <20091001171218.5e56e358@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-As kind is now hard-coded to -1, there is room for code clean-ups.
+Stop using global variables REG and VAL for I/O port numbers. This is
+ugly and unsafe.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Rodolfo Giometti <giometti@linux.it>
 ---
-The patch looks large, but most of it is really only removing one
-depth of indentation.
+Rodolfo, your MFD conversion patch could go on top of the other patch I
+just sent and this one. I presume it would then be much smaller and
+easier to review.
 
- drivers/hwmon/lm77.c |   78 ++++++++++++++++++++++++--------------------------
- 1 file changed, 38 insertions(+), 40 deletions(-)
+ drivers/hwmon/w83627hf.c |   85 ++++++++++++++++++++++------------------------
+ 1 file changed, 42 insertions(+), 43 deletions(-)
 
---- linux-2.6.32-rc3.orig/drivers/hwmon/lm77.c	2009-10-06 10:33:15.000000000 +0200
-+++ linux-2.6.32-rc3/drivers/hwmon/lm77.c	2009-10-06 11:44:30.000000000 +0200
-@@ -249,6 +249,7 @@ static int lm77_detect(struct i2c_client
- 		       struct i2c_board_info *info)
+--- linux-2.6.32-rc1.orig/drivers/hwmon/w83627hf.c	2009-10-01 15:36:01.000000000 +0200
++++ linux-2.6.32-rc1/drivers/hwmon/w83627hf.c	2009-10-01 16:31:46.000000000 +0200
+@@ -59,6 +59,11 @@ static struct platform_device *pdev;
+ #define DRVNAME "w83627hf"
+ enum chips { w83627hf, w83627thf, w83697hf, w83637hf, w83687thf };
+ 
++struct w83627hf_sio_data {
++	enum chips type;
++	int sioaddr;
++};
++
+ static u8 force_i2c = 0x1f;
+ module_param(force_i2c, byte, 0);
+ MODULE_PARM_DESC(force_i2c,
+@@ -73,9 +78,7 @@ module_param(force_id, ushort, 0);
+ MODULE_PARM_DESC(force_id, "Override the detected device ID");
+ 
+ /* modified from kernel/include/traps.c */
+-static int REG;		/* The register to read/write */
+ #define	DEV	0x07	/* Register: Logical device select */
+-static int VAL;		/* The value to read/write */
+ 
+ /* logical device numbers for superio_select (below) */
+ #define W83627HF_LD_FDC		0x00
+@@ -105,37 +108,37 @@ static int VAL;		/* The value to read/wr
+ #define W83687THF_VID_DATA	0xF1 /* w83687thf only */
+ 
+ static inline void
+-superio_outb(int reg, int val)
++superio_outb(struct w83627hf_sio_data *sio, int reg, int val)
  {
- 	struct i2c_adapter *adapter = new_client->adapter;
-+	int i, cur, conf, hyst, crit, min, max;
+-	outb(reg, REG);
+-	outb(val, VAL);
++	outb(reg, sio->sioaddr);
++	outb(val, sio->sioaddr + 1);
+ }
  
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
- 				     I2C_FUNC_SMBUS_WORD_DATA))
-@@ -265,51 +266,48 @@ static int lm77_detect(struct i2c_client
- 	   4. registers cycling over 8-address boundaries
+ static inline int
+-superio_inb(int reg)
++superio_inb(struct w83627hf_sio_data *sio, int reg)
+ {
+-	outb(reg, REG);
+-	return inb(VAL);
++	outb(reg, sio->sioaddr);
++	return inb(sio->sioaddr + 1);
+ }
  
- 	   Word-sized registers are high-byte first. */
--	if (kind < 0) {
--		int i, cur, conf, hyst, crit, min, max;
+ static inline void
+-superio_select(int ld)
++superio_select(struct w83627hf_sio_data *sio, int ld)
+ {
+-	outb(DEV, REG);
+-	outb(ld, VAL);
++	outb(DEV, sio->sioaddr);
++	outb(ld,  sio->sioaddr + 1);
+ }
  
--		/* addresses cycling */
--		cur = i2c_smbus_read_word_data(new_client, 0);
--		conf = i2c_smbus_read_byte_data(new_client, 1);
--		hyst = i2c_smbus_read_word_data(new_client, 2);
--		crit = i2c_smbus_read_word_data(new_client, 3);
--		min = i2c_smbus_read_word_data(new_client, 4);
--		max = i2c_smbus_read_word_data(new_client, 5);
--		for (i = 8; i <= 0xff; i += 8)
--			if (i2c_smbus_read_byte_data(new_client, i + 1) != conf
--			    || i2c_smbus_read_word_data(new_client, i + 2) != hyst
--			    || i2c_smbus_read_word_data(new_client, i + 3) != crit
--			    || i2c_smbus_read_word_data(new_client, i + 4) != min
--			    || i2c_smbus_read_word_data(new_client, i + 5) != max)
--				return -ENODEV;
+ static inline void
+-superio_enter(void)
++superio_enter(struct w83627hf_sio_data *sio)
+ {
+-	outb(0x87, REG);
+-	outb(0x87, REG);
++	outb(0x87, sio->sioaddr);
++	outb(0x87, sio->sioaddr);
+ }
+ 
+ static inline void
+-superio_exit(void)
++superio_exit(struct w83627hf_sio_data *sio)
+ {
+-	outb(0xAA, REG);
++	outb(0xAA, sio->sioaddr);
+ }
+ 
+ #define W627_DEVID 0x52
+@@ -376,10 +379,6 @@ struct w83627hf_data {
+ 	u8 vrm_ovt;		/* Register value, 627THF/637HF/687THF only */
+ };
+ 
+-struct w83627hf_sio_data {
+-	enum chips type;
+-};
 -
--		/* sign bits */
--		if (((cur & 0x00f0) != 0xf0 && (cur & 0x00f0) != 0x0)
--		    || ((hyst & 0x00f0) != 0xf0 && (hyst & 0x00f0) != 0x0)
--		    || ((crit & 0x00f0) != 0xf0 && (crit & 0x00f0) != 0x0)
--		    || ((min & 0x00f0) != 0xf0 && (min & 0x00f0) != 0x0)
--		    || ((max & 0x00f0) != 0xf0 && (max & 0x00f0) != 0x0))
-+	/* addresses cycling */
-+	cur = i2c_smbus_read_word_data(new_client, 0);
-+	conf = i2c_smbus_read_byte_data(new_client, 1);
-+	hyst = i2c_smbus_read_word_data(new_client, 2);
-+	crit = i2c_smbus_read_word_data(new_client, 3);
-+	min = i2c_smbus_read_word_data(new_client, 4);
-+	max = i2c_smbus_read_word_data(new_client, 5);
-+	for (i = 8; i <= 0xff; i += 8) {
-+		if (i2c_smbus_read_byte_data(new_client, i + 1) != conf
-+		 || i2c_smbus_read_word_data(new_client, i + 2) != hyst
-+		 || i2c_smbus_read_word_data(new_client, i + 3) != crit
-+		 || i2c_smbus_read_word_data(new_client, i + 4) != min
-+		 || i2c_smbus_read_word_data(new_client, i + 5) != max)
- 			return -ENODEV;
-+	}
  
--		/* unused bits */
--		if (conf & 0xe0)
--			return -ENODEV;
-+	/* sign bits */
-+	if (((cur & 0x00f0) != 0xf0 && (cur & 0x00f0) != 0x0)
-+	 || ((hyst & 0x00f0) != 0xf0 && (hyst & 0x00f0) != 0x0)
-+	 || ((crit & 0x00f0) != 0xf0 && (crit & 0x00f0) != 0x0)
-+	 || ((min & 0x00f0) != 0xf0 && (min & 0x00f0) != 0x0)
-+	 || ((max & 0x00f0) != 0xf0 && (max & 0x00f0) != 0x0))
-+		return -ENODEV;
+ static int w83627hf_probe(struct platform_device *pdev);
+ static int __devexit w83627hf_remove(struct platform_device *pdev);
+@@ -1136,11 +1135,8 @@ static int __init w83627hf_find(int sioa
+ 		"W83687THF",
+ 	};
  
--		/* 0x06 and 0x07 return the last read value */
--		cur = i2c_smbus_read_word_data(new_client, 0);
--		if (i2c_smbus_read_word_data(new_client, 6) != cur
--		    || i2c_smbus_read_word_data(new_client, 7) != cur)
--			return -ENODEV;
--		hyst = i2c_smbus_read_word_data(new_client, 2);
--		if (i2c_smbus_read_word_data(new_client, 6) != hyst
--		    || i2c_smbus_read_word_data(new_client, 7) != hyst)
--			return -ENODEV;
--		min = i2c_smbus_read_word_data(new_client, 4);
--		if (i2c_smbus_read_word_data(new_client, 6) != min
--		    || i2c_smbus_read_word_data(new_client, 7) != min)
--			return -ENODEV;
-+	/* unused bits */
-+	if (conf & 0xe0)
-+		return -ENODEV;
+-	REG = sioaddr;
+-	VAL = sioaddr + 1;
+-
+-	superio_enter();
+-	val = force_id ? force_id : superio_inb(DEVID);
++	superio_enter(sio_data);
++	val = force_id ? force_id : superio_inb(sio_data, DEVID);
+ 	switch (val) {
+ 	case W627_DEVID:
+ 		sio_data->type = w83627hf;
+@@ -1164,9 +1160,9 @@ static int __init w83627hf_find(int sioa
+ 		goto exit;
+ 	}
  
--	}
-+	/* 0x06 and 0x07 return the last read value */
-+	cur = i2c_smbus_read_word_data(new_client, 0);
-+	if (i2c_smbus_read_word_data(new_client, 6) != cur
-+	 || i2c_smbus_read_word_data(new_client, 7) != cur)
-+		return -ENODEV;
-+	hyst = i2c_smbus_read_word_data(new_client, 2);
-+	if (i2c_smbus_read_word_data(new_client, 6) != hyst
-+	 || i2c_smbus_read_word_data(new_client, 7) != hyst)
-+		return -ENODEV;
-+	min = i2c_smbus_read_word_data(new_client, 4);
-+	if (i2c_smbus_read_word_data(new_client, 6) != min
-+	 || i2c_smbus_read_word_data(new_client, 7) != min)
-+		return -ENODEV;
+-	superio_select(W83627HF_LD_HWM);
+-	val = (superio_inb(WINB_BASE_REG) << 8) |
+-	       superio_inb(WINB_BASE_REG + 1);
++	superio_select(sio_data, W83627HF_LD_HWM);
++	val = (superio_inb(sio_data, WINB_BASE_REG) << 8) |
++	       superio_inb(sio_data, WINB_BASE_REG + 1);
+ 	*addr = val & WINB_ALIGNMENT;
+ 	if (*addr = 0) {
+ 		printk(KERN_WARNING DRVNAME ": Base address not set, "
+@@ -1174,18 +1170,19 @@ static int __init w83627hf_find(int sioa
+ 		goto exit;
+ 	}
  
- 	strlcpy(info->type, "lm77", I2C_NAME_SIZE);
+-	val = superio_inb(WINB_ACT_REG);
++	val = superio_inb(sio_data, WINB_ACT_REG);
+ 	if (!(val & 0x01)) {
+ 		printk(KERN_WARNING DRVNAME ": Enabling HWM logical device\n");
+-		superio_outb(WINB_ACT_REG, val | 0x01);
++		superio_outb(sio_data, WINB_ACT_REG, val | 0x01);
+ 	}
+ 
+ 	err = 0;
++	sio_data->sioaddr = sioaddr;
+ 	pr_info(DRVNAME ": Found %s chip at %#x\n",
+ 		names[sio_data->type], *addr);
+ 
+  exit:
+-	superio_exit();
++	superio_exit(sio_data);
+ 	return err;
+ }
+ 
+@@ -1500,20 +1497,21 @@ static int w83627hf_read_value(struct w8
+ 
+ static int __devinit w83627thf_read_gpio5(struct platform_device *pdev)
+ {
++	struct w83627hf_sio_data *sio_data = pdev->dev.platform_data;
+ 	int res = 0xff, sel;
+ 
+-	superio_enter();
+-	superio_select(W83627HF_LD_GPIO5);
++	superio_enter(sio_data);
++	superio_select(sio_data, W83627HF_LD_GPIO5);
+ 
+ 	/* Make sure these GPIO pins are enabled */
+-	if (!(superio_inb(W83627THF_GPIO5_EN) & (1<<3))) {
++	if (!(superio_inb(sio_data, W83627THF_GPIO5_EN) & (1<<3))) {
+ 		dev_dbg(&pdev->dev, "GPIO5 disabled, no VID function\n");
+ 		goto exit;
+ 	}
+ 
+ 	/* Make sure the pins are configured for input
+ 	   There must be at least five (VRM 9), and possibly 6 (VRM 10) */
+-	sel = superio_inb(W83627THF_GPIO5_IOSR) & 0x3f;
++	sel = superio_inb(sio_data, W83627THF_GPIO5_IOSR) & 0x3f;
+ 	if ((sel & 0x1f) != 0x1f) {
+ 		dev_dbg(&pdev->dev, "GPIO5 not configured for VID "
+ 			"function\n");
+@@ -1521,37 +1519,38 @@ static int __devinit w83627thf_read_gpio
+ 	}
+ 
+ 	dev_info(&pdev->dev, "Reading VID from GPIO5\n");
+-	res = superio_inb(W83627THF_GPIO5_DR) & sel;
++	res = superio_inb(sio_data, W83627THF_GPIO5_DR) & sel;
+ 
+ exit:
+-	superio_exit();
++	superio_exit(sio_data);
+ 	return res;
+ }
+ 
+ static int __devinit w83687thf_read_vid(struct platform_device *pdev)
+ {
++	struct w83627hf_sio_data *sio_data = pdev->dev.platform_data;
+ 	int res = 0xff;
+ 
+-	superio_enter();
+-	superio_select(W83627HF_LD_HWM);
++	superio_enter(sio_data);
++	superio_select(sio_data, W83627HF_LD_HWM);
+ 
+ 	/* Make sure these GPIO pins are enabled */
+-	if (!(superio_inb(W83687THF_VID_EN) & (1 << 2))) {
++	if (!(superio_inb(sio_data, W83687THF_VID_EN) & (1 << 2))) {
+ 		dev_dbg(&pdev->dev, "VID disabled, no VID function\n");
+ 		goto exit;
+ 	}
+ 
+ 	/* Make sure the pins are configured for input */
+-	if (!(superio_inb(W83687THF_VID_CFG) & (1 << 4))) {
++	if (!(superio_inb(sio_data, W83687THF_VID_CFG) & (1 << 4))) {
+ 		dev_dbg(&pdev->dev, "VID configured as output, "
+ 			"no VID function\n");
+ 		goto exit;
+ 	}
+ 
+-	res = superio_inb(W83687THF_VID_DATA) & 0x3f;
++	res = superio_inb(sio_data, W83687THF_VID_DATA) & 0x3f;
+ 
+ exit:
+-	superio_exit();
++	superio_exit(sio_data);
+ 	return res;
+ }
  
 
 
