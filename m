@@ -1,64 +1,37 @@
-From: Juerg Haefliger <juergh@gmail.com>
-Date: Mon, 26 Oct 2009 15:10:30 +0000
-Subject: Re: [lm-sensors] lm-sensors in AMOS 3000 Via embedded computer
-Message-Id: <191fb4ca0910260810x32836643jbb170d76a680dbe5@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 01 Oct 2009 06:50:02 +0000
+Subject: Re: [lm-sensors] [PATCH] asus_atk0110: add support for Asus P7P55D
+Message-Id: <20091001085002.1dbc7eee@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5313434.164821256566262289.JavaMail.root@resprs02>
-In-Reply-To: <5313434.164821256566262289.JavaMail.root@resprs02>
+References: <20090923191240.GA15198@dreamland.darkstar.lan>
+	<51f3faa70909232018v7e621190m84deb648b08d2135@mail.gmail.com>
+	<20090928131700.GA19243@nb-core2.darkstar.lan>
+	<51f3faa70909281920x2782d8dfm1835ab24779abfa3@mail.gmail.com>
+	<51f3faa70909282134o1d60efekeded09f09b192df6@mail.gmail.com>
+	<68676e00909290707u70d192f2j2f2d4dd07bd07234@mail.gmail.com>
+	<51f3faa70909290740l4f4df186w114bf48e1db3a948@mail.gmail.com>
+	<4AC21E7B.70000@mandriva.org>
+	<51f3faa70909301638s4eff14edg46420e2e8877fd15@mail.gmail.com>
+In-Reply-To: <51f3faa70909301638s4eff14edg46420e2e8877fd15@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Robert Hancock <hancockrwd@gmail.com>
+Cc: Thomas Backlund <tmb@mandriva.org>, Luca Tettamanti <kronos.it@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, astarikovskiy@suse.de
 
-> I have an AMOS 3000 embedded PC, based on a EPIA P700 board. I am
-> testing a unit with AMOS 3000 - EPIA P700 - C7 1 Ghz, to know how much
-> can I get from it.
->
-> I installed Ubuntu 9.04, kernel 2.6.28 (also 2.6.31) successfully but
-> I found some issues. The PC gets really hot at full load and it halted
-> by overtemperature during the installation of additional software. This
-> motherboard, EPIA P700 has a C7 processor with fanless heat sink, VX700
-> chipset, ADM1032 and SUPER I/O VT1212 Lite, but lm-sensors 3.1.1 doesn’
-> t detect any sensor, only c7temp driver is demanded. I patched my
-> kernel and I tried to compile the c7temp module but it gives a
-> meaningless reading, 1 Volt 0 Celsius (I dislike this driver, so I
-> prefer to get working ADM1032 one). I don’t know if it supports
-> hardware monitoring. I only am able to find two devices in the SMBUS
-> (SDRAM and clock) without any clues about where is the ADM1032 chip.
+On Wed, 30 Sep 2009 17:38:21 -0600, Robert Hancock wrote:
+> On Tue, Sep 29, 2009 at 8:49 AM, Thomas Backlund <tmb@mandriva.org> wrote:
+> > Try this one:
+> > http://marc.info/?l=linux-kernel&m5421276407283&w=2
+> 
+> With that patch it's lasted almost a day with no timeouts, previously
+> I was getting about one every hour. Has that patch been submitted?
 
-You can try the via-cputemp driver:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2009-June/026037.html
+Do you mean you're still getting timeouts but they are less frequent,
+or you did not get any timeout at all so far?
 
-
-> This board is based on a VX700 chipset, and a VT1212 Super I/O chip,
-> and I have read in the P700 datasheet and operating manual that it is
-> in charge of hardware monitoring in this board.
->
-> Which is the best way to get lm-sensors woking in this motherboard,
-> ADM1032 or VT1212?  Anyone has any clue?
-
-VT1212 does not contain any hardware monitoring capabilities. It must
-be the ADM1032 then.
-
-
-> I think that these devices are hidden (BIOS manufacturer
-> configuration), anybody knows how to unhide the SMBUS devices?
-
-Don't know how to do that for a VX700 chip.
-
-...juerg
-
-
-
-> Thank you in advance and regards,
->
-> Antonio
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
