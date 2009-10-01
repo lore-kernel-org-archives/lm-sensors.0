@@ -1,31 +1,36 @@
-From: James Spooner <jspooner@maxeler.com>
-Date: Mon, 26 Oct 2009 20:10:33 +0000
-Subject: [lm-sensors] ADT7490 Support
-Message-Id: <64c68f1f0910261310y7a04f31du290bd6ff10dc0c1a@mail.gmail.com>
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Thu, 01 Oct 2009 18:01:47 +0000
+Subject: Re: [lm-sensors] PATCH: add sections for the new FTS chips
+Message-Id: <20091001180147.GA4396@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1C27BF3FB8EE3A4D8F901C22ADE1DE07CE9D65F6E0@ABGEX72E.FSC.NET>
+In-Reply-To: <1C27BF3FB8EE3A4D8F901C22ADE1DE07CE9D65F6E0@ABGEX72E.FSC.NET>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+On Mon, Sep 28, 2009 at 09:01:35PM +0200, Jean Delvare wrote:
+> On Mon, 28 Sep 2009 20:58:45 +0200, Andre Prendel wrote:
+> > On Mon, Sep 28, 2009 at 09:43:58AM +0200, Jean Delvare wrote:
+> > > 
+> > > > and I've commited your patch for default config file a few minutes ago. See
+> > > > 
+> > > >   http://www.lm-sensors.org/changeset/5775/lm-sensors/trunk
+> > > 
+> > > Ignore statements in the default config file sounds wrong. What was the
+> > > point of implementing inputs on the monitoring chip if they really are
+> > > never used?
+> > 
+> > Hm, that's right. So should we remove the the ignore statements? Say yes and I
+> > will do it :)
+> 
+> Yes, I think we should.
 
-Referring to the recent thread on the ADT7490 (on Intel's new P55
-desktop motherboards).  I'd like to register a request for such a
-driver, and offer to help with testing as needed.  Is anyone currently
-working on a driver for this chip?
+Ok, svn is back again and I've just committed the change.
 
-Cheers,
-
-James
-
--- 
-James Spooner
-Maxeler Technologies
-
-E-mail: jbs@maxeler.com
-Tel: +44 (0) 208 762 6120
-Web: www.maxeler.com
+Regards,
+Andre
 
 _______________________________________________
 lm-sensors mailing list
