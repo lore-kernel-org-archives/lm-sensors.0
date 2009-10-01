@@ -1,244 +1,98 @@
-From: Andre Prendel <andre.prendel@gmx.de>
-Date: Mon, 26 Oct 2009 20:57:27 +0000
-Subject: [lm-sensors] [PATCH v2 4/6] sensord: Refactoring of applyToFeature()
-Message-Id: <20091026205727.GE4725@ubuntu>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 01 Oct 2009 15:10:54 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (w83627hf) Drop the force_addr module
+Message-Id: <20091001171054.423028f8@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This patch cleans up function applyToFeature().
+This module parameter is there to workaround broken BIOS. I'm not even
+sure if it was used in the past 5 years, and it gets in the way of
+converting the driver to the MFD infrastructure. So tell the users how
+they can do the same from user-space.
 
-Function applyToFeature() is nearly unreadable. There are some deep
-levels of indentation and cascades of loops makes code flow difficult to
-read.
-
-I split up this function into three smaller one. This reduces
-indentation levels and makes code flow clearer.
-
-Note:
-This is just the first step. I'm not happy with the mechanism. IMHO
-this generic way (function pointer) is not the best one. Hiding the
-compiler warnings (void (label)) in rrdGetSensors_DS() and
-rrdCGI_DEF() confirms my opinion.
-
-I think a more conrete way is a better approach. So this should be
-just the starting point for further optimizations.
-
-Changes v2:
-
-* Rename generate_features() to _appyToFeatures().
-* Get rid of needless variable num.
-* Change prototype of function pointer FeatureFN. None of the
-  functions returns with an error, so we needn't a return value.
-
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Rodolfo Giometti <giometti@linux.it>
 ---
+ Documentation/hwmon/w83627hf |   29 +++++++++++++++++++++++++++--
+ drivers/hwmon/w83627hf.c     |   11 -----------
+ 2 files changed, 27 insertions(+), 13 deletions(-)
 
- prog/sensord/rrd.c |  124 +++++++++++++++++++++++++++++------------------------
- 1 file changed, 70 insertions(+), 54 deletions(-)
-Index: sensors/prog/sensord/rrd.c
-=================================--- sensors.orig/prog/sensord/rrd.c	2009-10-26 21:08:33.000000000 +0100
-+++ sensors/prog/sensord/rrd.c	2009-10-26 21:14:18.000000000 +0100
-@@ -68,7 +68,7 @@
- #define LOADAVG "loadavg"
- #define LOAD_AVERAGE "Load Average"
+--- linux-2.6.32-rc1.orig/Documentation/hwmon/w83627hf	2009-06-10 05:05:27.000000000 +0200
++++ linux-2.6.32-rc1/Documentation/hwmon/w83627hf	2009-10-01 15:36:04.000000000 +0200
+@@ -32,8 +32,6 @@ Authors:
+ Module Parameters
+ -----------------
  
--typedef int (*FeatureFN) (void *data, const char *rawLabel, const char *label,
-+typedef void (*FeatureFN) (void *data, const char *rawLabel, const char *label,
- 			  const FeatureDescriptor *feature);
+-* force_addr: int
+-  Initialize the ISA address of the sensors
+ * force_i2c: int
+   Initialize the I2C address of the sensors
+ * init: int
+@@ -70,3 +68,30 @@ doesn't help, you may just ignore the bo
+ For further information on this driver see the w83781d driver documentation.
  
- static char rrdNextChar(char c)
-@@ -137,52 +137,72 @@
+ [1] http://www.lm-sensors.org/browser/lm-sensors/trunk/doc/vid
++
++Forcing the address
++-------------------
++
++The driver used to have a module parameter named force_addr, which could
++be used to force the base I/O address of the hardware monitoring block.
++This was meant as a workaround for mainboards with a broken BIOS. This
++module parameter is gone for technical reasons. If you need this feature,
++you can obtain the same result by using the isaset tool (part of
++lm-sensors) before loading the driver:
++
++# Enter the Super I/O config space
++isaset -y -f 0x2e 0x87
++isaset -y -f 0x2e 0x87
++
++# Select the hwmon logical device
++isaset -y 0x2e 0x2f 0x07 0x0b
++
++# Set the base I/O address (to 0x290 in this example)
++isaset -y 0x2e 0x2f 0x60 0x02
++isaset -y 0x2e 0x2f 0x61 0x90
++
++# Exit the Super-I/O config space
++isaset -y -f 0x2e 0xaa
++
++The above sequence assumes a Super-I/O config space at 0x2e/0x2f, but
++0x4e/0x4f is also possible.
+--- linux-2.6.32-rc1.orig/drivers/hwmon/w83627hf.c	2009-10-01 15:28:30.000000000 +0200
++++ linux-2.6.32-rc1/drivers/hwmon/w83627hf.c	2009-10-01 15:36:01.000000000 +0200
+@@ -59,10 +59,6 @@ static struct platform_device *pdev;
+ #define DRVNAME "w83627hf"
+ enum chips { w83627hf, w83627thf, w83697hf, w83637hf, w83687thf };
+ 
+-static u16 force_addr;
+-module_param(force_addr, ushort, 0);
+-MODULE_PARM_DESC(force_addr,
+-		 "Initialize the base address of the sensors");
+ static u8 force_i2c = 0x1f;
+ module_param(force_i2c, byte, 0);
+ MODULE_PARM_DESC(force_i2c,
+@@ -1169,13 +1165,6 @@ static int __init w83627hf_find(int sioa
  	}
- }
  
--static int applyToFeatures(FeatureFN fn, void *data)
-+static int _applyToFeatures(FeatureFN fn, void *data,
-+			     const sensors_chip_name *chip,
-+			     const ChipDescriptor *desc)
-+{
-+	int i;
-+	const FeatureDescriptor *features = desc->features;
-+	const FeatureDescriptor *feature;
-+	const char *rawLabel;
-+	char *label;
-+
-+	for (i = 0; i < MAX_RRD_SENSORS && features[i].format; ++i) {
-+		feature = features + i;
-+		rawLabel = feature->feature->name;
-+
-+		label = sensors_get_label(chip, feature->feature);
-+		if (!label) {
-+			sensorLog(LOG_ERR, "Error getting sensor label: %s/%s",
-+				  chip->prefix, rawLabel);
-+			return -1;
-+		}
-+
-+		rrdCheckLabel(rawLabel, i);
-+		fn(data, rrdLabels[i], label, feature);
-+		free(label);
-+	}
-+	return 0;
-+}
-+
-+static ChipDescriptor *lookup_known_chips(const sensors_chip_name *chip)
- {
--	const sensors_chip_name *chip;
--	int i, j, ret = 0, num = 0;
-+	int i;
- 
--	for (j = 0; (ret = 0) && (j < sensord_args.numChipNames); ++ j) {
--		i = 0;
--		while ((ret = 0) && ((chip = sensors_get_detected_chips(&sensord_args.chipNames[j], &i)) != NULL)) {
--			int index0, chipindex = -1;
--
--			/* Trick: we compare addresses here. We know it works
--			 * because both pointers were returned by
--			 * sensors_get_detected_chips(), so they refer to
--			 * libsensors internal structures, which do not move.
--			 */
--			for (index0 = 0; knownChips[index0].features; ++index0)
--				if (knownChips[index0].name = chip) {
--					chipindex = index0;
--					break;
--				}
--			if (chipindex >= 0) {
--				const ChipDescriptor *descriptor = &knownChips[chipindex];
--				const FeatureDescriptor *features = descriptor->features;
--
--				for (index0 = 0; (ret = 0) && (num < MAX_RRD_SENSORS) && features[index0].format; ++index0) {
--					const FeatureDescriptor *feature = features + index0;
--					const char *rawLabel = feature->feature->name;
--					char *label = NULL;
--
--					if (!(label = sensors_get_label(chip, feature->feature))) {
--						sensorLog(LOG_ERR, "Error getting sensor label: %s/%s", chip->prefix, rawLabel);
--						ret = -1;
--					} else  {
--						rrdCheckLabel(rawLabel, num);
--						ret = fn(data,
--							 rrdLabels[num],
--							 label, feature);
--						++ num;
--					}
--					if (label)
--						free(label);
--				}
--			}
-+	/* Trick: we compare addresses here. We know it works
-+	 * because both pointers were returned by
-+	 * sensors_get_detected_chips(), so they refer to
-+	 * libsensors internal structures, which do not move.
-+	 */
-+	for (i = 0; knownChips[i].features; i++) {
-+		if (knownChips[i].name = chip) {
-+			return &knownChips[i];
- 		}
- 	}
--	return ret;
-+	return NULL;
-+}
-+
-+static int applyToFeatures(FeatureFN fn, void *data)
-+{
-+	int i, i_detected, ret;
-+	const sensors_chip_name *chip, *chip_arg;
-+	ChipDescriptor *desc;
-+
-+	for (i = 0; i < sensord_args.numChipNames; i++) {
-+		chip_arg = &sensord_args.chipNames[i];
-+		i_detected = 0;
-+		while ((chip = sensors_get_detected_chips(chip_arg,
-+							  &i_detected))) {
-+			desc = lookup_known_chips(chip);
-+			if (!desc)
-+				continue;
-+
-+			ret = _applyToFeatures(fn, data, chip, desc);
-+			if (ret)
-+				return ret;
-+		}
-+	}
-+	return 0;
- }
- 
- struct ds {
-@@ -190,7 +210,7 @@
- 	const char **argv;
- };
- 
--static int rrdGetSensors_DS(void *_data, const char *rawLabel,
-+static void rrdGetSensors_DS(void *_data, const char *rawLabel,
- 			    const char *label,
- 			    const FeatureDescriptor *feature)
- {
-@@ -227,7 +247,6 @@
- 		sprintf(ptr, "DS:%s:GAUGE:%d:%s:%s", rawLabel, 5 *
- 			sensord_args.rrdTime, min, max);
- 	}
--	return 0;
- }
- 
- static int rrdGetSensors(const char **argv)
-@@ -236,8 +255,8 @@
- 	struct ds data = { 0, argv};
- 	ret = applyToFeatures(rrdGetSensors_DS, &data);
- 	if (!ret && sensord_args.doLoad)
--		ret = rrdGetSensors_DS(&data, LOADAVG, LOAD_AVERAGE, NULL);
--	return ret ? -1 : data.num;
-+		rrdGetSensors_DS(&data, LOADAVG, LOAD_AVERAGE, NULL);
-+	return data.num;
- }
- 
- int rrdInit(void)
-@@ -303,7 +322,7 @@
- 	int loadAvg;
- };
- 
--static int rrdCGI_DEF(void *_data, const char *rawLabel, const char *label,
-+static void rrdCGI_DEF(void *_data, const char *rawLabel, const char *label,
- 		      const FeatureDescriptor *feature)
- {
- 	struct gr *data = _data;
-@@ -311,7 +330,6 @@
- 	if (!feature || (feature->rrd && (feature->type = data->type)))
- 		printf("\n\tDEF:%s=%s:%s:AVERAGE", rawLabel,
- 		       sensord_args.rrdFile, rawLabel);
--	return 0;
- }
- 
- /*
-@@ -339,14 +357,13 @@
- 	return color;
- }
- 
--static int rrdCGI_LINE(void *_data, const char *rawLabel, const char *label,
-+static void rrdCGI_LINE(void *_data, const char *rawLabel, const char *label,
- 		       const FeatureDescriptor *feature)
- {
- 	struct gr *data = _data;
- 	if (!feature || (feature->rrd && (feature->type = data->type)))
- 		printf("\n\tLINE2:%s#%.6x:\"%s\"", rawLabel,
- 		       rrdCGI_color(label), label);
--	return 0;
- }
- 
- static struct gr graphs[] = {
-@@ -468,11 +485,10 @@
- 		if (!ret)
- 			ret = applyToFeatures(rrdCGI_DEF, graph);
- 		if (!ret && sensord_args.doLoad && graph->loadAvg)
--			ret = rrdCGI_DEF(graph, LOADAVG, LOAD_AVERAGE, NULL);
--		if (!ret)
-+			rrdCGI_DEF(graph, LOADAVG, LOAD_AVERAGE, NULL);
- 			ret = applyToFeatures(rrdCGI_LINE, graph);
- 		if (!ret && sensord_args.doLoad && graph->loadAvg)
--			ret = rrdCGI_LINE(graph, LOADAVG, LOAD_AVERAGE, NULL);
-+			rrdCGI_LINE(graph, LOADAVG, LOAD_AVERAGE, NULL);
- 		printf (">\n</p>\n");
- 	}
- 	printf("<p>\n<small><b>sensord</b> by "
+ 	superio_select(W83627HF_LD_HWM);
+-	force_addr &= WINB_ALIGNMENT;
+-	if (force_addr) {
+-		printk(KERN_WARNING DRVNAME ": Forcing address 0x%x\n",
+-		       force_addr);
+-		superio_outb(WINB_BASE_REG, force_addr >> 8);
+-		superio_outb(WINB_BASE_REG + 1, force_addr & 0xff);
+-	}
+ 	val = (superio_inb(WINB_BASE_REG) << 8) |
+ 	       superio_inb(WINB_BASE_REG + 1);
+ 	*addr = val & WINB_ALIGNMENT;
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
